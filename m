@@ -1,62 +1,190 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 04/11] OMAP2+: clock: comment that osc_ck/osc_sys_ck should
-	use clockfw autoidle control
-Date: Tue, 15 Feb 2011 23:52:47 -0700
-Message-ID: <20110216065246.22089.21163.stgit@twilight.localdomain>
+Subject: [PATCH 03/11] OMAP2xxx: clock: add clockfw autoidle support for APLLs
+Date: Tue, 15 Feb 2011 23:52:46 -0700
+Message-ID: <20110216065244.22089.1063.stgit@twilight.localdomain>
 References: <20110216065030.22089.61217.stgit@twilight.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:47513 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:47509 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751816Ab1BPGyE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Feb 2011 01:54:04 -0500
+	with ESMTP id S1751943Ab1BPGyD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Feb 2011 01:54:03 -0500
 In-Reply-To: <20110216065030.22089.61217.stgit@twilight.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Kevin Hilman <khilman@ti.com>
 
-Place some comments in the OMAP oscillator clock control code to note that
-its autoidle mode should eventually be controlled via the new OMAP clockfw
-autoidle control interface.
+OMAP2xxx devices have two on-chip APLLs.  These APLLs can
+automatically enter idle when not in use.  Connect the APLL autoidle
+code to the clock code, so that the clock framework can handle this
+process.  As part of this patch, remove the code in mach-omap2/pm24xx.c
+that previously handled APLL autoidle control.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/clkt2xxx_osc.c |   14 ++++++++++++++
- 1 files changed, 14 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/clkt2xxx_apll.c |   24 +++++++++++++++++++
+ arch/arm/mach-omap2/cm2xxx_3xxx.c   |   44 ++++++++++++++++++++++++++++++++++-
+ arch/arm/mach-omap2/cm2xxx_3xxx.h   |    5 ++++
+ arch/arm/mach-omap2/pm24xx.c        |    8 ------
+ 4 files changed, 72 insertions(+), 9 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clkt2xxx_osc.c b/arch/arm/mach-omap2/clkt2xxx_osc.c
-index df7b805..c346092 100644
---- a/arch/arm/mach-omap2/clkt2xxx_osc.c
-+++ b/arch/arm/mach-omap2/clkt2xxx_osc.c
-@@ -30,6 +30,13 @@
- #include "prm2xxx_3xxx.h"
- #include "prm-regbits-24xx.h"
- 
-+/*
-+ * XXX This does not actually enable the osc_ck, since the osc_ck must
-+ * be running for this function to be called.  Instead, this function
-+ * is used to disable an autoidle mode on the osc_ck.  The existing
-+ * clk_enable/clk_disable()-based usecounting for osc_ck should be
-+ * replaced with autoidle-based usecounting.
-+ */
- static int omap2_enable_osc_ck(struct clk *clk)
- {
- 	u32 pcc;
-@@ -41,6 +48,13 @@ static int omap2_enable_osc_ck(struct clk *clk)
- 	return 0;
+diff --git a/arch/arm/mach-omap2/clkt2xxx_apll.c b/arch/arm/mach-omap2/clkt2xxx_apll.c
+index f51cffd..b19a1f7 100644
+--- a/arch/arm/mach-omap2/clkt2xxx_apll.c
++++ b/arch/arm/mach-omap2/clkt2xxx_apll.c
+@@ -78,6 +78,26 @@ static int omap2_clk_apll54_enable(struct clk *clk)
+ 	return omap2_clk_apll_enable(clk, OMAP24XX_ST_54M_APLL_MASK);
  }
  
-+/*
-+ * XXX This does not actually disable the osc_ck, since doing so would
-+ * immediately halt the system.  Instead, this function is used to
-+ * enable an autoidle mode on the osc_ck.  The existing
-+ * clk_enable/clk_disable()-based usecounting for osc_ck should be
-+ * replaced with autoidle-based usecounting.
-+ */
- static void omap2_disable_osc_ck(struct clk *clk)
++static void _apll96_allow_idle(struct clk *clk)
++{
++	omap2xxx_cm_set_apll96_auto_low_power_stop();
++}
++
++static void _apll96_deny_idle(struct clk *clk)
++{
++	omap2xxx_cm_set_apll96_disable_autoidle();
++}
++
++static void _apll54_allow_idle(struct clk *clk)
++{
++	omap2xxx_cm_set_apll54_auto_low_power_stop();
++}
++
++static void _apll54_deny_idle(struct clk *clk)
++{
++	omap2xxx_cm_set_apll54_disable_autoidle();
++}
++
+ /* Stop APLL */
+ static void omap2_clk_apll_disable(struct clk *clk)
  {
- 	u32 pcc;
+@@ -93,11 +113,15 @@ static void omap2_clk_apll_disable(struct clk *clk)
+ const struct clkops clkops_apll96 = {
+ 	.enable		= omap2_clk_apll96_enable,
+ 	.disable	= omap2_clk_apll_disable,
++	.allow_idle	= _apll96_allow_idle,
++	.deny_idle	= _apll96_deny_idle,
+ };
+ 
+ const struct clkops clkops_apll54 = {
+ 	.enable		= omap2_clk_apll54_enable,
+ 	.disable	= omap2_clk_apll_disable,
++	.allow_idle	= _apll54_allow_idle,
++	.deny_idle	= _apll54_deny_idle,
+ };
+ 
+ /* Public functions */
+diff --git a/arch/arm/mach-omap2/cm2xxx_3xxx.c b/arch/arm/mach-omap2/cm2xxx_3xxx.c
+index 6b0c7c8..9d0dec8 100644
+--- a/arch/arm/mach-omap2/cm2xxx_3xxx.c
++++ b/arch/arm/mach-omap2/cm2xxx_3xxx.c
+@@ -25,10 +25,14 @@
+ #include "cm-regbits-24xx.h"
+ #include "cm-regbits-34xx.h"
+ 
+-/* CM_AUTOIDLE_PLL.AUTO_* bit values */
++/* CM_AUTOIDLE_PLL.AUTO_* bit values for DPLLs */
+ #define DPLL_AUTOIDLE_DISABLE				0x0
+ #define OMAP2XXX_DPLL_AUTOIDLE_LOW_POWER_STOP		0x3
+ 
++/* CM_AUTOIDLE_PLL.AUTO_* bit values for APLLs (OMAP2xxx only) */
++#define OMAP2XXX_APLL_AUTOIDLE_DISABLE			0x0
++#define OMAP2XXX_APLL_AUTOIDLE_LOW_POWER_STOP		0x3
++
+ static const u8 cm_idlest_offs[] = {
+ 	CM_IDLEST1, CM_IDLEST2, OMAP2430_CM_IDLEST3
+ };
+@@ -154,6 +158,44 @@ void omap2xxx_cm_set_dpll_auto_low_power_stop(void)
+ }
+ 
+ /*
++ * APLL autoidle control
++ */
++
++static void _omap2xxx_set_apll_autoidle(u8 m, u32 mask)
++{
++	u32 v;
++
++	v = omap2_cm_read_mod_reg(PLL_MOD, CM_AUTOIDLE);
++	v &= ~mask;
++	v |= m << __ffs(mask);
++	omap2_cm_write_mod_reg(v, PLL_MOD, CM_AUTOIDLE);
++}
++
++void omap2xxx_cm_set_apll54_disable_autoidle(void)
++{
++	_omap2xxx_set_apll_autoidle(OMAP2XXX_APLL_AUTOIDLE_LOW_POWER_STOP,
++				    OMAP24XX_AUTO_54M_MASK);
++}
++
++void omap2xxx_cm_set_apll54_auto_low_power_stop(void)
++{
++	_omap2xxx_set_apll_autoidle(OMAP2XXX_APLL_AUTOIDLE_DISABLE,
++				    OMAP24XX_AUTO_54M_MASK);
++}
++
++void omap2xxx_cm_set_apll96_disable_autoidle(void)
++{
++	_omap2xxx_set_apll_autoidle(OMAP2XXX_APLL_AUTOIDLE_LOW_POWER_STOP,
++				    OMAP24XX_AUTO_96M_MASK);
++}
++
++void omap2xxx_cm_set_apll96_auto_low_power_stop(void)
++{
++	_omap2xxx_set_apll_autoidle(OMAP2XXX_APLL_AUTOIDLE_DISABLE,
++				    OMAP24XX_AUTO_96M_MASK);
++}
++
++/*
+  *
+  */
+ 
+diff --git a/arch/arm/mach-omap2/cm2xxx_3xxx.h b/arch/arm/mach-omap2/cm2xxx_3xxx.h
+index 5f4df1c..088bbad 100644
+--- a/arch/arm/mach-omap2/cm2xxx_3xxx.h
++++ b/arch/arm/mach-omap2/cm2xxx_3xxx.h
+@@ -125,6 +125,11 @@ extern void omap3xxx_cm_clkdm_force_wakeup(s16 module, u32 mask);
+ extern void omap2xxx_cm_set_dpll_disable_autoidle(void);
+ extern void omap2xxx_cm_set_dpll_auto_low_power_stop(void);
+ 
++extern void omap2xxx_cm_set_apll54_disable_autoidle(void);
++extern void omap2xxx_cm_set_apll54_auto_low_power_stop(void);
++extern void omap2xxx_cm_set_apll96_disable_autoidle(void);
++extern void omap2xxx_cm_set_apll96_auto_low_power_stop(void);
++
+ #endif
+ 
+ /* CM register bits shared between 24XX and 3430 */
+diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
+index 23b4607..15b0f53 100644
+--- a/arch/arm/mach-omap2/pm24xx.c
++++ b/arch/arm/mach-omap2/pm24xx.c
+@@ -378,7 +378,6 @@ static void __init prcm_setup_regs(void)
+ {
+ 	int i, num_mem_banks;
+ 	struct powerdomain *pwrdm;
+-	u32 v;
+ 
+ 	/* Enable autoidle */
+ 	omap2_prm_write_mod_reg(OMAP24XX_AUTOIDLE_MASK, OCP_MOD,
+@@ -469,13 +468,6 @@ static void __init prcm_setup_regs(void)
+ 	omap2_cm_write_mod_reg(OMAP2420_AUTO_DSP_IPI_MASK, OMAP24XX_DSP_MOD,
+ 			       CM_AUTOIDLE);
+ 
+-	/* Put both APLLs into autoidle mode */
+-	v = omap2_cm_read_mod_reg(PLL_MOD, CM_AUTOIDLE);
+-	v &= ~(OMAP24XX_AUTO_96M_MASK | OMAP24XX_AUTO_54M_SHIFT);
+-	v |= (0x03 << OMAP24XX_AUTO_96M_SHIFT) |
+-		(0x03 << OMAP24XX_AUTO_54M_SHIFT);
+-	omap2_cm_write_mod_reg(v, PLL_MOD, CM_AUTOIDLE);
+-
+ 	omap2_cm_write_mod_reg(OMAP24XX_AUTO_OMAPCTRL_MASK |
+ 			       OMAP24XX_AUTO_WDT1_MASK |
+ 			       OMAP24XX_AUTO_MPU_WDT_MASK |
 
 
