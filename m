@@ -1,15 +1,19 @@
 From: Sumit Semwal <sumit.semwal@ti.com>
 Subject: [PATCH v4 1/3] OMAP2PLUS: DSS2: Add OMAP4 Kconfig support
-Date: Wed, 16 Feb 2011 10:23:23 +0530
-Message-ID: <1297832003-3611-1-git-send-email-sumit.semwal@ti.com>
+Date: Wed, 16 Feb 2011 10:24:29 +0530
+Message-ID: <1297832069-3678-1-git-send-email-sumit.semwal@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:57174 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:37709 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752656Ab1BPExi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 15 Feb 2011 23:53:38 -0500
+	id S1752656Ab1BPEyh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 15 Feb 2011 23:54:37 -0500
+Received: from dlep34.itg.ti.com ([157.170.170.115])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1G4sbZD031629
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Tue, 15 Feb 2011 22:54:37 -0600
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@nokia.com, linux-omap@vger.kernel.org
+To: tomi.valkeinen@ti.com, linux-omap@vger.kernel.org
 Cc: Mayuresh Janorkar <mayur@ti.com>
 
 From: Mayuresh Janorkar <mayur@ti.com>
