@@ -1,65 +1,71 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 02/11] OMAP2: clock: add DPLL autoidle support
-Date: Tue, 15 Feb 2011 23:52:44 -0700
-Message-ID: <20110216065243.22089.78413.stgit@twilight.localdomain>
+Subject: [PATCH 05/11] OMAP2+: clock: add interface clock type code with
+	autoidle support
+Date: Tue, 15 Feb 2011 23:52:48 -0700
+Message-ID: <20110216065247.22089.10049.stgit@twilight.localdomain>
 References: <20110216065030.22089.61217.stgit@twilight.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:47507 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:47515 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751378Ab1BPGyD (ORCPT
+	with ESMTP id S1752039Ab1BPGyD (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Feb 2011 01:54:03 -0500
 In-Reply-To: <20110216065030.22089.61217.stgit@twilight.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Kevin Hilman <khilman@ti.com>
 
-Add the necessary code and data to allow the clock framework to enable
-and disable the OMAP2 DPLL autoidle state.  This is so the direct
-register access can be moved out of the mach-omap2/pm24xx.c code, and other
-code that needs to control this (e.g., CPUIdle) can do so via an API.
-As part of this patch, remove the pm24xx.c code that formerly wrote
-directly to the autoidle bits.
+Add interface clock type code with autoidle enable/disable support.
+The clkops structures created in this file will be used for all
+OMAP2/3 interface clocks with autoidle support.  They will enable the
+clock framework to control interface clock autoidle directly.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/Makefile         |    3 +-
- arch/arm/mach-omap2/clkt2xxx_dpll.c  |   63 ++++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/clock.h          |    1 +
- arch/arm/mach-omap2/clock2420_data.c |    2 +
- arch/arm/mach-omap2/clock2430_data.c |    2 +
- arch/arm/mach-omap2/cm2xxx_3xxx.c    |   27 +++++++++++++++
- arch/arm/mach-omap2/cm2xxx_3xxx.h    |    3 ++
- arch/arm/mach-omap2/pm24xx.c         |   12 ++++--
- 8 files changed, 105 insertions(+), 8 deletions(-)
- create mode 100644 arch/arm/mach-omap2/clkt2xxx_dpll.c
+ arch/arm/mach-omap2/Makefile    |    6 ++-
+ arch/arm/mach-omap2/clkt_iclk.c |   73 +++++++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/clock.h     |    9 ++++-
+ 3 files changed, 85 insertions(+), 3 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/clkt_iclk.c
 
 diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 3a798ef..41cb404 100644
+index 41cb404..a28ba5a 100644
 --- a/arch/arm/mach-omap2/Makefile
 +++ b/arch/arm/mach-omap2/Makefile
-@@ -112,7 +112,8 @@ obj-$(CONFIG_ARCH_OMAP2)		+= $(clock-common) clock2xxx.o \
+@@ -107,19 +107,21 @@ obj-$(CONFIG_ARCH_OMAP3)		+= clockdomain.o \
+ 					   clockdomains2xxx_3xxx_data.o
+ obj-$(CONFIG_ARCH_OMAP4)		+= clockdomain.o \
+ 					   clockdomains44xx_data.o
++
+ # Clock framework
+ obj-$(CONFIG_ARCH_OMAP2)		+= $(clock-common) clock2xxx.o \
  					   clkt2xxx_sys.o \
  					   clkt2xxx_dpllcore.o \
  					   clkt2xxx_virt_prcm_set.o \
--					   clkt2xxx_apll.o clkt2xxx_osc.o
-+					   clkt2xxx_apll.o clkt2xxx_osc.o \
-+					   clkt2xxx_dpll.o
+ 					   clkt2xxx_apll.o clkt2xxx_osc.o \
+-					   clkt2xxx_dpll.o
++					   clkt2xxx_dpll.o clkt_iclk.o
  obj-$(CONFIG_ARCH_OMAP2420)		+= clock2420_data.o
  obj-$(CONFIG_ARCH_OMAP2430)		+= clock2430.o clock2430_data.o
  obj-$(CONFIG_ARCH_OMAP3)		+= $(clock-common) clock3xxx.o \
-diff --git a/arch/arm/mach-omap2/clkt2xxx_dpll.c b/arch/arm/mach-omap2/clkt2xxx_dpll.c
+ 					   clock34xx.o clkt34xx_dpll3m2.o \
+ 					   clock3517.o clock36xx.o \
+-					   dpll3xxx.o clock3xxx_data.o
++					   dpll3xxx.o clock3xxx_data.o \
++					   clkt_iclk.o
+ obj-$(CONFIG_ARCH_OMAP4)		+= $(clock-common) clock44xx_data.o \
+ 					   dpll3xxx.o dpll44xx.o
+ 
+diff --git a/arch/arm/mach-omap2/clkt_iclk.c b/arch/arm/mach-omap2/clkt_iclk.c
 new file mode 100644
-index 0000000..1502a7b
+index 0000000..dd8a6d3
 --- /dev/null
-+++ b/arch/arm/mach-omap2/clkt2xxx_dpll.c
-@@ -0,0 +1,63 @@
++++ b/arch/arm/mach-omap2/clkt_iclk.c
+@@ -0,0 +1,73 @@
 +/*
-+ * OMAP2-specific DPLL control functions
++ * OMAP2/3 interface clock control
 + *
 + * Copyright (C) 2011 Nokia Corporation
 + * Paul Walmsley
@@ -68,185 +74,102 @@ index 0000000..1502a7b
 + * it under the terms of the GNU General Public License version 2 as
 + * published by the Free Software Foundation.
 + */
++#undef DEBUG
 +
 +#include <linux/kernel.h>
-+#include <linux/errno.h>
 +#include <linux/clk.h>
 +#include <linux/io.h>
 +
 +#include <plat/clock.h>
++#include <plat/prcm.h>
 +
 +#include "clock.h"
++#include "clock2xxx.h"
 +#include "cm2xxx_3xxx.h"
 +#include "cm-regbits-24xx.h"
 +
 +/* Private functions */
 +
-+/**
-+ * _allow_idle - enable DPLL autoidle bits
-+ * @clk: struct clk * of the DPLL to operate on
-+ *
-+ * Enable DPLL automatic idle control.  The DPLL will enter low-power
-+ * stop when its downstream clocks are gated.  No return value.
-+ * REVISIT: DPLL can optionally enter low-power bypass by writing 0x1
-+ * instead.  Add some mechanism to optionally enter this mode.
-+ */
-+static void _allow_idle(struct clk *clk)
++/* XXX */
++void omap2_clkt_iclk_allow_idle(struct clk *clk)
 +{
-+	if (!clk || !clk->dpll_data)
-+		return;
++	u32 v, r;
 +
-+	omap2xxx_cm_set_dpll_auto_low_power_stop();
++	r = ((__force u32)clk->enable_reg ^ (CM_AUTOIDLE ^ CM_ICLKEN));
++
++	v = __raw_readl((__force void __iomem *)r);
++	v |= (1 << clk->enable_bit);
++	__raw_writel(v, (__force void __iomem *)r);
 +}
 +
-+/**
-+ * _deny_idle - prevent DPLL from automatically idling
-+ * @clk: struct clk * of the DPLL to operate on
-+ *
-+ * Disable DPLL automatic idle control.  No return value.
-+ */
-+static void _deny_idle(struct clk *clk)
++/* XXX */
++void omap2_clkt_iclk_deny_idle(struct clk *clk)
 +{
-+	if (!clk || !clk->dpll_data)
-+		return;
++	u32 v, r;
 +
-+	omap2xxx_cm_set_dpll_disable_autoidle();
++	r = ((__force u32)clk->enable_reg ^ (CM_AUTOIDLE ^ CM_ICLKEN));
++
++	v = __raw_readl((__force void __iomem *)r);
++	v &= ~(1 << clk->enable_bit);
++	__raw_writel(v, (__force void __iomem *)r);
 +}
-+
 +
 +/* Public data */
 +
-+const struct clkops clkops_omap2xxx_dpll_ops = {
-+	.allow_idle	= _allow_idle,
-+	.deny_idle	= _deny_idle,
++const struct clkops clkops_omap2_iclk_dflt_wait = {
++	.enable		= omap2_dflt_clk_enable,
++	.disable	= omap2_dflt_clk_disable,
++	.find_companion	= omap2_clk_dflt_find_companion,
++	.find_idlest	= omap2_clk_dflt_find_idlest,
++	.allow_idle	= omap2_clkt_iclk_allow_idle,
++	.deny_idle	= omap2_clkt_iclk_deny_idle,
++};
++
++const struct clkops clkops_omap2_iclk_dflt = {
++	.enable		= omap2_dflt_clk_enable,
++	.disable	= omap2_dflt_clk_disable,
++	.allow_idle	= omap2_clkt_iclk_allow_idle,
++	.deny_idle	= omap2_clkt_iclk_deny_idle,
++};
++
++const struct clkops clkops_omap2_iclk_idle_only = {
++	.allow_idle	= omap2_clkt_iclk_allow_idle,
++	.deny_idle	= omap2_clkt_iclk_deny_idle,
 +};
 +
 diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
-index 0725a6a..9972d89 100644
+index 9972d89..5008f14 100644
 --- a/arch/arm/mach-omap2/clock.h
 +++ b/arch/arm/mach-omap2/clock.h
-@@ -148,6 +148,7 @@ extern void omap2_clk_exit_cpufreq_table(struct cpufreq_frequency_table **table)
+@@ -2,7 +2,7 @@
+  *  linux/arch/arm/mach-omap2/clock.h
+  *
+  *  Copyright (C) 2005-2009 Texas Instruments, Inc.
+- *  Copyright (C) 2004-2009 Nokia Corporation
++ *  Copyright (C) 2004-2011 Nokia Corporation
+  *
+  *  Contacts:
+  *  Richard Woodruff <r-woodruff2@ti.com>
+@@ -86,6 +86,10 @@ long omap2_clksel_round_rate(struct clk *clk, unsigned long target_rate);
+ int omap2_clksel_set_rate(struct clk *clk, unsigned long rate);
+ int omap2_clksel_set_parent(struct clk *clk, struct clk *new_parent);
+ 
++/* clkt_iclk.c public functions */
++extern void omap2_clkt_iclk_allow_idle(struct clk *clk);
++extern void omap2_clkt_iclk_deny_idle(struct clk *clk);
++
+ u32 omap2_get_dpll_rate(struct clk *clk);
+ void omap2_init_dpll_parent(struct clk *clk);
+ 
+@@ -148,6 +152,9 @@ extern void omap2_clk_exit_cpufreq_table(struct cpufreq_frequency_table **table)
  #define omap2_clk_exit_cpufreq_table	0
  #endif
  
-+extern const struct clkops clkops_omap2xxx_dpll_ops;
++extern const struct clkops clkops_omap2_iclk_dflt_wait;
++extern const struct clkops clkops_omap2_iclk_dflt;
++extern const struct clkops clkops_omap2_iclk_idle_only;
+ extern const struct clkops clkops_omap2xxx_dpll_ops;
  extern const struct clkops clkops_omap3_noncore_dpll_ops;
  extern const struct clkops clkops_omap3_core_dpll_ops;
- extern const struct clkops clkops_omap4_dpllmx_ops;
-diff --git a/arch/arm/mach-omap2/clock2420_data.c b/arch/arm/mach-omap2/clock2420_data.c
-index ee73e14..30fbcbd 100644
---- a/arch/arm/mach-omap2/clock2420_data.c
-+++ b/arch/arm/mach-omap2/clock2420_data.c
-@@ -125,7 +125,7 @@ static struct dpll_data dpll_dd = {
-  */
- static struct clk dpll_ck = {
- 	.name		= "dpll_ck",
--	.ops		= &clkops_null,
-+	.ops		= &clkops_omap2xxx_dpll_ops,
- 	.parent		= &sys_ck,		/* Can be func_32k also */
- 	.dpll_data	= &dpll_dd,
- 	.clkdm_name	= "wkup_clkdm",
-diff --git a/arch/arm/mach-omap2/clock2430_data.c b/arch/arm/mach-omap2/clock2430_data.c
-index a1298e5..1ff150a 100644
---- a/arch/arm/mach-omap2/clock2430_data.c
-+++ b/arch/arm/mach-omap2/clock2430_data.c
-@@ -125,7 +125,7 @@ static struct dpll_data dpll_dd = {
-  */
- static struct clk dpll_ck = {
- 	.name		= "dpll_ck",
--	.ops		= &clkops_null,
-+	.ops		= &clkops_omap2xxx_dpll_ops,
- 	.parent		= &sys_ck,		/* Can be func_32k also */
- 	.dpll_data	= &dpll_dd,
- 	.clkdm_name	= "wkup_clkdm",
-diff --git a/arch/arm/mach-omap2/cm2xxx_3xxx.c b/arch/arm/mach-omap2/cm2xxx_3xxx.c
-index 96954aa..6b0c7c8 100644
---- a/arch/arm/mach-omap2/cm2xxx_3xxx.c
-+++ b/arch/arm/mach-omap2/cm2xxx_3xxx.c
-@@ -25,6 +25,10 @@
- #include "cm-regbits-24xx.h"
- #include "cm-regbits-34xx.h"
- 
-+/* CM_AUTOIDLE_PLL.AUTO_* bit values */
-+#define DPLL_AUTOIDLE_DISABLE				0x0
-+#define OMAP2XXX_DPLL_AUTOIDLE_LOW_POWER_STOP		0x3
-+
- static const u8 cm_idlest_offs[] = {
- 	CM_IDLEST1, CM_IDLEST2, OMAP2430_CM_IDLEST3
- };
-@@ -125,6 +129,29 @@ void omap3xxx_cm_clkdm_force_wakeup(s16 module, u32 mask)
- 	_write_clktrctrl(OMAP34XX_CLKSTCTRL_FORCE_WAKEUP, module, mask);
- }
- 
-+/*
-+ * DPLL autoidle control
-+ */
-+
-+static void _omap2xxx_set_dpll_autoidle(u8 m)
-+{
-+	u32 v;
-+
-+	v = omap2_cm_read_mod_reg(PLL_MOD, CM_AUTOIDLE);
-+	v &= ~OMAP24XX_AUTO_DPLL_MASK;
-+	v |= m << OMAP24XX_AUTO_DPLL_SHIFT;
-+	omap2_cm_write_mod_reg(v, PLL_MOD, CM_AUTOIDLE);
-+}
-+
-+void omap2xxx_cm_set_dpll_disable_autoidle(void)
-+{
-+	_omap2xxx_set_dpll_autoidle(OMAP2XXX_DPLL_AUTOIDLE_LOW_POWER_STOP);
-+}
-+
-+void omap2xxx_cm_set_dpll_auto_low_power_stop(void)
-+{
-+	_omap2xxx_set_dpll_autoidle(DPLL_AUTOIDLE_DISABLE);
-+}
- 
- /*
-  *
-diff --git a/arch/arm/mach-omap2/cm2xxx_3xxx.h b/arch/arm/mach-omap2/cm2xxx_3xxx.h
-index 5e9ea5b..5f4df1c 100644
---- a/arch/arm/mach-omap2/cm2xxx_3xxx.h
-+++ b/arch/arm/mach-omap2/cm2xxx_3xxx.h
-@@ -122,6 +122,9 @@ extern void omap3xxx_cm_clkdm_disable_hwsup(s16 module, u32 mask);
- extern void omap3xxx_cm_clkdm_force_sleep(s16 module, u32 mask);
- extern void omap3xxx_cm_clkdm_force_wakeup(s16 module, u32 mask);
- 
-+extern void omap2xxx_cm_set_dpll_disable_autoidle(void);
-+extern void omap2xxx_cm_set_dpll_auto_low_power_stop(void);
-+
- #endif
- 
- /* CM register bits shared between 24XX and 3430 */
-diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
-index 97feb3a..23b4607 100644
---- a/arch/arm/mach-omap2/pm24xx.c
-+++ b/arch/arm/mach-omap2/pm24xx.c
-@@ -378,6 +378,7 @@ static void __init prcm_setup_regs(void)
- {
- 	int i, num_mem_banks;
- 	struct powerdomain *pwrdm;
-+	u32 v;
- 
- 	/* Enable autoidle */
- 	omap2_prm_write_mod_reg(OMAP24XX_AUTOIDLE_MASK, OCP_MOD,
-@@ -468,11 +469,12 @@ static void __init prcm_setup_regs(void)
- 	omap2_cm_write_mod_reg(OMAP2420_AUTO_DSP_IPI_MASK, OMAP24XX_DSP_MOD,
- 			       CM_AUTOIDLE);
- 
--	/* Put DPLL and both APLLs into autoidle mode */
--	omap2_cm_write_mod_reg((0x03 << OMAP24XX_AUTO_DPLL_SHIFT) |
--			       (0x03 << OMAP24XX_AUTO_96M_SHIFT) |
--			       (0x03 << OMAP24XX_AUTO_54M_SHIFT),
--			       PLL_MOD, CM_AUTOIDLE);
-+	/* Put both APLLs into autoidle mode */
-+	v = omap2_cm_read_mod_reg(PLL_MOD, CM_AUTOIDLE);
-+	v &= ~(OMAP24XX_AUTO_96M_MASK | OMAP24XX_AUTO_54M_SHIFT);
-+	v |= (0x03 << OMAP24XX_AUTO_96M_SHIFT) |
-+		(0x03 << OMAP24XX_AUTO_54M_SHIFT);
-+	omap2_cm_write_mod_reg(v, PLL_MOD, CM_AUTOIDLE);
- 
- 	omap2_cm_write_mod_reg(OMAP24XX_AUTO_OMAPCTRL_MASK |
- 			       OMAP24XX_AUTO_WDT1_MASK |
 
 
