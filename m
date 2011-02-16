@@ -1,81 +1,96 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 0/4] OMAP4: DSS2: Adding fclk support for DPI interface
-Date: Wed, 16 Feb 2011 17:32:02 +0100
-Message-ID: <4D5BFC02.10201@ti.com>
-References: <1296741419-9037-1-git-send-email-raghuveer.murthy@ti.com> <1297699342.2951.62.camel@deskari> <4D5B9176.5060000@ti.com>
+From: Dave Martin <dave.martin@linaro.org>
+Subject: Re: [PATCH] ARM: Avoid discarding sections that might have
+ SMP_ON_UP fixups
+Date: Wed, 16 Feb 2011 16:35:43 +0000
+Message-ID: <20110216163543.GA27480@arm.com>
+References: <AANLkTinjAHLCMJja8q=bPhRBuoR2DCO_NjDw1qNi5MrU@mail.gmail.com>
+ <20110210144617.GD3652@n2100.arm.linux.org.uk>
+ <AANLkTiks_8hXd=7cKN0jNw=1QGcb=5ZyFu1sEFc0G=Px@mail.gmail.com>
+ <20110210191125.GA12582@n2100.arm.linux.org.uk>
+ <AANLkTim0RRw-xHQYTdHLCXCS_GXkaCiW8y9Fz=jMmwPa@mail.gmail.com>
+ <20110211101345.GA23785@n2100.arm.linux.org.uk>
+ <AANLkTikFkZH6KK_KUgXaaKyQM6eZOh-ki3xdtS2fk8zN@mail.gmail.com>
+ <20110211160500.GA31529@n2100.arm.linux.org.uk>
+ <AANLkTik1T_RDb_MVw9WWY_BX75isoGq2k1L+uVCN-bbq@mail.gmail.com>
+ <20110211163247.GB31529@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:38361 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751900Ab1BPQcF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 16 Feb 2011 11:32:05 -0500
-In-Reply-To: <4D5B9176.5060000@ti.com>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:59038 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751518Ab1BPQgD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Feb 2011 11:36:03 -0500
+Received: by wyb28 with SMTP id 28so1514239wyb.19
+        for <linux-omap@vger.kernel.org>; Wed, 16 Feb 2011 08:36:01 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <20110211163247.GB31529@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Murthy, Raghuveer" <raghuveer.murthy@ti.com>
-Cc: "paul@pwsan.com" <paul@pwsan.com>, "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Nicolas Pitre <nicolas.pitre@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Murthy,
+Hi,
 
-On 2/16/2011 9:57 AM, Murthy, Raghuveer wrote:
-> On Monday 14 February 2011 09:32 PM, Valkeinen, Tomi wrote:
->> Hi,
->>
->> On Thu, 2011-02-03 at 07:56 -0600, Murthy, Raghuveer wrote:
->>> - Adding dss_feature for DPLL fclk
->>> - Enabling pixel clock generation for DPI interface
->>
->> A bit more description what the patch set is about would be nice. Also,
->> one line patch descriptions are a bit too short for anything else than
->> the most trivial patches.
->>
->> Now to the actual patch contents:
->>
->> DPLL is not a feature of the DSS, and I don't think we should have
->> dss_features for that. In fact, I think the whole DPLL code should be
->> moved from DSS to somewhere under arch/arm.
->>
->> In a perfect world DSS could just set the dss_fck to whatever rate it
->> requires, but as the clock rate can only be set to certain rates, and we
->> need a precise control for the rate, some other method has to be in
->> place.
->>
->> I am not sure what this method should be. Perhaps there is something in
->> the clock framework that could help us here, or perhaps we just need a
->> bunch of function pointers in the DSS's platform data which can be used
->> to configure the clock.
->>
->>    Tomi
->>
->>
->
-> Hi Paul, Benoit,
->
-> DPLL_PER post divider output for DSS core functional clock can be
-> changed in OMAP3xxx and OMAP4430, based on the requested pixel clock for
-> a given display resolution.
->
-> Additionally, the number of dividers available for DPLL_PER post
-> dividors for DSS has increased from 16 to 32, from OMAP3630 onwards.
->
-> Both these are added as dss_features.
->
-> Given the above comments from Tomi, can the same be included as part of
-> the clock framework?
+On Fri, Feb 11, 2011 at 04:32:47PM +0000, Russell King - ARM Linux wrote:
 
-Yes, I do agree with Tomi, this code has nothing to do in the DSS driver.
-We do have similar issue with clock rate that can be changed by 2 
-successive clock nodes (DPLL and HS divider for example).
+[...]
 
-But it might be tricky to handle in a generic manner. We need to tie 
-these two clock nodes and thus ensuring that there is no other 
-descendant for the parent node and then force a parent rate change if 
-the clock rate cannot be achieve by the descendant.
+> diff --git a/arch/arm/kernel/vmlinux.lds.S b/arch/arm/kernel/vmlinux.lds.S
+> index 45b5651..343d29f 100644
+> --- a/arch/arm/kernel/vmlinux.lds.S
+> +++ b/arch/arm/kernel/vmlinux.lds.S
+> @@ -21,6 +21,12 @@
+>  #define ARM_CPU_KEEP(x)
+>  #endif
+>  
+> +#if defined(CONFIG_SMP_ON_UP) && !defined(CONFIG_DEBUG_SPINLOCK)
+> +#define ARM_EXIT_KEEP(x)	x
+> +#else
+> +#define ARM_EXIT_KEEP(x)
+> +#endif
+> +
+>  OUTPUT_ARCH(arm)
+>  ENTRY(stext)
+>  
+> @@ -43,6 +49,7 @@ SECTIONS
+>  		_sinittext = .;
+>  			HEAD_TEXT
+>  			INIT_TEXT
+> +			ARM_EXIT_KEEP(EXIT_TEXT)
+>  		_einittext = .;
+>  		ARM_CPU_DISCARD(PROC_INFO)
+>  		__arch_info_begin = .;
+> @@ -71,6 +78,7 @@ SECTIONS
+>  #ifndef CONFIG_XIP_KERNEL
+>  		__init_begin = _stext;
+>  		INIT_DATA
+> +		ARM_EXIT_KEEP(EXIT_DATA)
+>  #endif
+>  	}
+>  
+> @@ -166,6 +174,7 @@ SECTIONS
+>  		. = ALIGN(PAGE_SIZE);
+>  		__init_begin = .;
+>  		INIT_DATA
+> +		ARM_EXIT_KEEP(EXIT_DATA)
+>  		. = ALIGN(PAGE_SIZE);
+>  		__init_end = .;
+>  #endif
+> 
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
 
-Maybe Paul has some idea about that.
+This works for me in a case known to fail without the patch.
 
-Regards,
-Benoit
+Tested-by: Dave Martin <dave.martin@linaro.org>
 
+I still don't quite understand the intricacies of how vmlinux
+is laid out, but the patch looks sensible.
+
+Do you need anything more from me on this?  If not, I will
+throw away my patch and replace it with yours.
+
+Cheers
+---Dave
