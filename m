@@ -1,283 +1,281 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH 2/2] hwmon: twl4030: Hwmon Driver for TWL4030 MADC
-Date: Wed, 16 Feb 2011 18:26:57 +0530
-Message-ID: <1297861017-10057-1-git-send-email-j-keerthy@ti.com>
+From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Subject: [PATCH v10 00/11] dmtimer adaptation to platform_driver
+Date: Wed, 16 Feb 2011 18:30:09 +0530
+Message-ID: <1297861220-831-1-git-send-email-tarun.kanti@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:52908 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751268Ab1BPM5g (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Feb 2011 07:57:36 -0500
+Received: from arroyo.ext.ti.com ([192.94.94.40]:52091 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751113Ab1BPM5v (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 16 Feb 2011 07:57:51 -0500
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1GCvmrF019327
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Wed, 16 Feb 2011 06:57:50 -0600
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: lm-sensors@lm-sensors.org, guenter.roeck@ericsson.com, sameo@linux.intel.com
-Cc: mikko.k.ylinen@nokia.com, amit.kucheria@canonical.com, j-keerthy@ti.com, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: khilman@ti.com, Tarun Kanti DebBarma <tarun.kanti@ti.com>
 
-This driver exposes the sysfs nodes of the TWL4030 MADC module.
-All the channel values are expressed in terms of mV. Channel 13
-and channel 14 are reserved. There are channels which represent
-temperature and current. Even they output raw voltage in mV.
+dmtimer adaptation to platform_driver.
 
-Signed-off-by: Keerthy <j-keerthy@ti.com>
----
+This patch series is adaptation of dmtimer code to platform driver
+using omap_device and omap_hwmod abstraction.
 
-The previous discussion concluded in keeping the generic ADC
-functionality and the hwmon separate. The discussion can be found here:
+Baseline:
+git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
+Branch: master
 
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg41805.html
+Test Platforms:
+OMAP1710
+OMAP2420
+OMAP2430
+OMAP3430
+OMAP3630
+OMAP4430
 
- Documentation/hwmon/twl4030-madc-hwmon |   45 +++++++++
- drivers/hwmon/Kconfig                  |   10 ++
- drivers/hwmon/Makefile                 |    1 +
- drivers/hwmon/twl4030-madc-hwmon.c     |  155 ++++++++++++++++++++++++++++++++
- 4 files changed, 211 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/hwmon/twl4030-madc-hwmon
- create mode 100644 drivers/hwmon/twl4030-madc-hwmon.c
+Test Info:
+(1) Tested request, enable, disable, clock source configuration, start,
+stop, free of timers.
+(2) Verified outputs of following commands
+cat /sys/devices/platform/omap/omap_timer.*/power/runtime_status
+cat /sys/devices/platform/omap/omap_timer.*/power/runtime_active_time
+(2) OMAP3: Tested Retention and Off modes.
+(3) Boot test on OMAP1710.
 
-diff --git a/Documentation/hwmon/twl4030-madc-hwmon b/Documentation/hwmon/twl4030-madc-hwmon
-new file mode 100644
-index 0000000..2cf1cc2
---- /dev/null
-+++ b/Documentation/hwmon/twl4030-madc-hwmon
-@@ -0,0 +1,45 @@
-+Kernel driver twl4030-madc
-+=========================
-+
-+Supported chips:
-+	* Texas Instruments TWL4030
-+	Prefix: 'twl4030-madc'
-+
-+
-+Authors:
-+	J Keerthy <j-keerthy@ti.com>
-+
-+Description
-+-----------
-+
-+The Texas Instruments TWL4030 is a Power Management and Audio Circuit. Among
-+other things it contains a 10-bit A/D converter MADC. The converter has 16
-+channels which can be used in different modes.
-+
-+
-+See this table for the meaning of the different channels
-+
-+Channel Signal
-+------------------------------------------
-+0	Battery type(BTYPE)
-+1	BCI: Battery temperature (BTEMP)
-+2	GP analog input
-+3	GP analog input
-+4	GP analog input
-+5	GP analog input
-+6	GP analog input
-+7	GP analog input
-+8	BCI: VBUS voltage(VBUS)
-+9	Backup Battery voltage (VBKP)
-+10	BCI: Battery charger current (ICHG)
-+11	BCI: Battery charger voltage (VCHG)
-+12	BCI: Main battery voltage (VBAT)
-+13	Reserved
-+14	Reserved
-+15	VRUSB Supply/Speaker left/Speaker right polarization level
-+
-+
-+The Sysfs nodes will represent the voltage in the units of mV,
-+the temperature channel shows the converted raw voltage in mV.
-+The Battery charging current channel represents raw voltage mV.
-+Channel 13 and 14 are reserved.
-diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
-index 773e484..11ddde3 100644
---- a/drivers/hwmon/Kconfig
-+++ b/drivers/hwmon/Kconfig
-@@ -940,6 +940,16 @@ config SENSORS_TMP421
- 	  This driver can also be built as a module.  If so, the module
- 	  will be called tmp421.
- 
-+config SENSORS_TWL4030_MADC
-+	tristate "Texas Instruments TWL4030 MADC Hwmon"
-+	depends on TWL4030_MADC
-+	help
-+	This driver provides hwmon support for triton TWL4030-MADC.
-+	This driver can be built as part of kernel or can be built
-+	as a module.
-+		This driver exposes the various voltage values to
-+	the user space.
-+
- config SENSORS_VIA_CPUTEMP
- 	tristate "VIA CPU temperature sensor"
- 	depends on X86
-diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
-index dde02d9..bc7d740 100644
---- a/drivers/hwmon/Makefile
-+++ b/drivers/hwmon/Makefile
-@@ -102,6 +102,7 @@ obj-$(CONFIG_SENSORS_THMC50)	+= thmc50.o
- obj-$(CONFIG_SENSORS_TMP102)	+= tmp102.o
- obj-$(CONFIG_SENSORS_TMP401)	+= tmp401.o
- obj-$(CONFIG_SENSORS_TMP421)	+= tmp421.o
-+obj-$(CONFIG_SENSORS_TWL4030_MADC)+= twl4030-madc-hwmon.o
- obj-$(CONFIG_SENSORS_VIA_CPUTEMP)+= via-cputemp.o
- obj-$(CONFIG_SENSORS_VIA686A)	+= via686a.o
- obj-$(CONFIG_SENSORS_VT1211)	+= vt1211.o
-diff --git a/drivers/hwmon/twl4030-madc-hwmon.c b/drivers/hwmon/twl4030-madc-hwmon.c
-new file mode 100644
-index 0000000..4a61e8a
---- /dev/null
-+++ b/drivers/hwmon/twl4030-madc-hwmon.c
-@@ -0,0 +1,155 @@
-+/*
-+ *
-+ * TWL4030 MADC Hwmon driver-This driver monitors the real time
-+ * conversion of analog signals like battery temperature,
-+ * battery type, battery level etc. User can ask for the conversion on a
-+ * particular channel using the sysfs nodes.
-+ *
-+ * Copyright (C) 2010 Texas Instruments Incorporated - http://www.ti.com/
-+ * J Keerthy <j-keerthy@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-+ * 02110-1301 USA
-+ *
-+ */
-+
-+#include <linux/platform_device.h>
-+#include <linux/i2c/twl.h>
-+#include <linux/i2c/twl4030-madc.h>
-+#include <linux/hwmon.h>
-+#include <linux/hwmon-sysfs.h>
-+
-+/*
-+ * sysfs hook function
-+ */
-+static ssize_t madc_read(struct device *dev,
-+			 struct device_attribute *devattr, char *buf)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct twl4030_madc_request req;
-+	long val;
-+
-+	req.channels = (1 << attr->index);
-+	req.method = TWL4030_MADC_SW2;
-+	req.func_cb = NULL;
-+	val = twl4030_madc_conversion(&req);
-+	if (val >= 0)
-+		val = req.rbuf[attr->index];
-+	else
-+		return val;
-+
-+	return sprintf(buf, "%ld\n", val);
-+}
-+
-+/* sysfs nodes to read individual channels from user side */
-+static SENSOR_DEVICE_ATTR(in0_battery_type, S_IRUGO, madc_read, NULL, 0);
-+static SENSOR_DEVICE_ATTR(in1_battery_temp, S_IRUGO, madc_read, NULL, 1);
-+static SENSOR_DEVICE_ATTR(in2_input, S_IRUGO, madc_read, NULL, 2);
-+static SENSOR_DEVICE_ATTR(in3_input, S_IRUGO, madc_read, NULL, 3);
-+static SENSOR_DEVICE_ATTR(in4_input, S_IRUGO, madc_read, NULL, 4);
-+static SENSOR_DEVICE_ATTR(in5_input, S_IRUGO, madc_read, NULL, 5);
-+static SENSOR_DEVICE_ATTR(in6_input, S_IRUGO, madc_read, NULL, 6);
-+static SENSOR_DEVICE_ATTR(in7_input, S_IRUGO, madc_read, NULL, 7);
-+static SENSOR_DEVICE_ATTR(in8_vbus, S_IRUGO, madc_read, NULL, 8);
-+static SENSOR_DEVICE_ATTR(in9_vbkp, S_IRUGO, madc_read, NULL, 9);
-+static SENSOR_DEVICE_ATTR(in10_battery_charger_current,
-+			S_IRUGO, madc_read, NULL, 10);
-+static SENSOR_DEVICE_ATTR(in11_battery_charger_voltage,
-+			S_IRUGO, madc_read, NULL, 11);
-+static SENSOR_DEVICE_ATTR(in12_main_battery_voltage,
-+			S_IRUGO, madc_read, NULL, 12);
-+static SENSOR_DEVICE_ATTR(in15_input, S_IRUGO, madc_read, NULL, 15);
-+
-+static struct attribute *twl4030_madc_attributes[] = {
-+	&sensor_dev_attr_in0_battery_type.dev_attr.attr,
-+	&sensor_dev_attr_in1_battery_temp.dev_attr.attr,
-+	&sensor_dev_attr_in2_input.dev_attr.attr,
-+	&sensor_dev_attr_in3_input.dev_attr.attr,
-+	&sensor_dev_attr_in4_input.dev_attr.attr,
-+	&sensor_dev_attr_in5_input.dev_attr.attr,
-+	&sensor_dev_attr_in6_input.dev_attr.attr,
-+	&sensor_dev_attr_in7_input.dev_attr.attr,
-+	&sensor_dev_attr_in8_vbus.dev_attr.attr,
-+	&sensor_dev_attr_in9_vbkp.dev_attr.attr,
-+	&sensor_dev_attr_in10_battery_charger_current.dev_attr.attr,
-+	&sensor_dev_attr_in11_battery_charger_voltage.dev_attr.attr,
-+	&sensor_dev_attr_in12_main_battery_voltage.dev_attr.attr,
-+	&sensor_dev_attr_in15_input.dev_attr.attr,
-+	NULL
-+};
-+
-+static const struct attribute_group twl4030_madc_group = {
-+	.attrs = twl4030_madc_attributes,
-+};
-+
-+static int __devinit twl4030_madc_hwmon_probe(struct platform_device *pdev)
-+{
-+	int ret;
-+	int status;
-+	struct device *hwmon;
-+
-+	ret = sysfs_create_group(&pdev->dev.kobj, &twl4030_madc_group);
-+	if (ret)
-+		goto err_sysfs;
-+	hwmon = hwmon_device_register(&pdev->dev);
-+	if (IS_ERR(hwmon)) {
-+		dev_err(&pdev->dev, "hwmon_device_register failed.\n");
-+		status = PTR_ERR(hwmon);
-+		goto err_reg;
-+	}
-+
-+	return 0;
-+
-+err_reg:
-+	sysfs_remove_group(&pdev->dev.kobj, &twl4030_madc_group);
-+err_sysfs:
-+
-+	return ret;
-+}
-+
-+static int __devexit twl4030_madc_hwmon_remove(struct platform_device *pdev)
-+{
-+	hwmon_device_unregister(&pdev->dev);
-+	sysfs_remove_group(&pdev->dev.kobj, &twl4030_madc_group);
-+
-+	return 0;
-+}
-+
-+static struct platform_driver twl4030_madc_hwmon_driver = {
-+	.probe = twl4030_madc_hwmon_probe,
-+	.remove = __exit_p(twl4030_madc_hwmon_remove),
-+	.driver = {
-+		   .name = "twl4030_madc_hwmon",
-+		   .owner = THIS_MODULE,
-+		   },
-+};
-+
-+static int __init twl4030_madc_hwmon_init(void)
-+{
-+	return platform_driver_register(&twl4030_madc_hwmon_driver);
-+}
-+
-+module_init(twl4030_madc_hwmon_init);
-+
-+static void __exit twl4030_madc_hwmon_exit(void)
-+{
-+	platform_driver_unregister(&twl4030_madc_hwmon_driver);
-+}
-+
-+module_exit(twl4030_madc_hwmon_exit);
-+
-+MODULE_DESCRIPTION("TWL4030 ADC Hwmon driver");
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("J Keerthy");
-+MODULE_ALIAS("twl4030_madc_hwmon");
--- 
-1.7.0.4
+v10:
+(1) Update PM runtime for active early timers so that PM runtime userspace
+info is correct.
+(2) Include code to configure timers to POSTED mode which got missed in
+the previous version.
+(3) Remove pm runtime_enable from OMAP1 specific code since this is not
+applicable.
+
+v9:
+(1) In OMAP3 hwmod database, added entry for timer12 which was missing.
+Beagle board uses timer12 as its millisecond timer.
+(2) In OMAP3 hwmod database, rectified in-correct prcm configurations
+for timer10 and timer11.
+From:
+       .prcm           = {
+                       .module_bit = OMAP24XX_EN_GPT10_SHIFT,
+                       .idlest_idle_bit = OMAP24XX_ST_GPT10_SHIFT,
+       },
+To:
+       .prcm           = {
+                       .module_bit = OMAP3430_EN_GPT10_SHIFT,
+                       .idlest_idle_bit = OMAP3430_ST_GPT10_SHIFT,
+               },
+(3) In OMAP3 hwmod database, removed timer master port entry for all
+timers because it is not supported.
+
+static struct omap_hwmod_ocp_if *omap3xxx_timer7_masters[] = {
+       &omap3xxx_l4_per__timer7,
+};
+
+(4) In OMAP4 hwmod database, added SIDLE_SMART_WKUP flag for
+non-millisecond timers.
+(5) In OMAP3 hwmod database, rectified sysconfig configuration for
+non-millisecond timers.
+From: omap_hwmod_sysc_type2 To: omap_hwmod_sysc_type1.
+This was preventing system to go to RETENTION and OFF modes.
+
+v8:
+(1) Baselined on Tony's tree in omap-for-linus branch
+(2) The last patch in v7 series has been removed because it is fixed
+by following patch:
+commit: 78f26e872f77b6312273216de1a8f836c6f2e143
+OMAP: hwmod: Set autoidle after smartidle during _sysc_enable
+
+v7:
+(1) In omap1_dm_timer_set_src(), the computation of shift value to respective
+dmtimer clock source was corrected:
+From:
+int n = (pdev->id) << 1;
+To:
+int n = (pdev->id - 1) << 1;
+This change is needed because dmtimer is indexed from 1 now instead of 0.
+(2) In  omap1_dm_timer_init(void) memory resource end address chnaged:
+From:
+res[0].end = base + 0xff;
+To:
+res[0].end = base + 0x46;
+This was causing request_mem_region() failure in driver probe().
+(3) In the export APIs there are some calls which are not applicable to OMAP1.
+They have been made conditional now. They include following calls:
+
+timer->fclk = clk_get(&timer->pdev->dev, "fck");
+omap_dm_timer_enable()
+omap_dm_timer_disable()
+
+(4) Remove usage of cpu_is_omap16xx() and instead a flag has been added in
+struct dmtimer_platform_data {
+...
+u32 is_omap16xx:1;
+}
+This flag is set to 1 in mach-omap1/dmtimer.c and set to 0 in mach-omap2/dmtimer.c
+This flag is used in plat-omap/dmtimer.c wherever it needs to distiguish omap16xx.
+(5) Remove #include <plat/omap_device.h> from mach-omap1/dmtimer.c
+(6) Instead of using macros like INT_24XX_GPTIMERx, use the numbers
+directly in OMAP2420, OMAP2430 and OMAP3xxx hwmod database.
+(7) pm_runtime_get_sync() and pm_runtime_put_sync() return value check modified
+from positive to negative value:
+if (pm_runtime_get_sync(...) < 0) {
+...
+}
+
+v6:
+(1) Removed reset functions to mach-omap1/dmtimer.c.
+Access to reset function from plat-omap/dmtimer.c is provided by means
+of function pointer.
+(2) Remove multiple calls to omap_device_build() for registering timer devices
+during early and regular initialization. Regular device registration is now done
+by reading data from temporary list. This list is populated during early init
+where timer data is read from hwmod database and corresponding memory allocated.
+(3) kfree(pdata) under error condition since platform_device_unregister does
+not free its pdata.
+(4) Removed extra header inclusion in mach-omap2 and plat-omap
+NOTE: omap_dm_timer.<id> field could not be removed because during regular boot
+there is no mechanism to match the current pdev with corresponding entry in the
+timer list which was partially initialized during early boot.
+
+v5:
+(1) In mach-omap2/dmtimer.c merged the merged two different init functions
+into a single one, viz: omap_timer_init(*oh, *user). Now this function is
+used both during early init and later. The distinction is between the two
+is made thriugh the *user field.
+(2) Added timeout to low-level access routines in place of infinite while
+loop which waits on write-pend register bit.
+(3) Modified devices names from "omap-timer.x" to "omap_timer.x"
+(4) Modified module description from "OMAP DUAL MODE TIMER DRIVER" to:
+MODULE_DESCRIPTION("OMAP Dual-Mode Timer Driver");
+(5) Use well-defined constants for new IP revision register constants instead
+of hard-coded values.
+(6) Use consistent naming mechanism by using _dm_timer_ instead of _dmtimer_
+wherever applicable.
+(7) Removed id field from omap_dm_timer{} since the same can be obtained from
+pdev.
+(8) clk_get() and clk_put() moved from probe() and remove() functions.
+Now clk_get() is called when timer is acquired in the omap_dm_timer_prepare()
+and clk_put() is called in omap_dm_timer_free().
+(9) Incorporated general comments:
+(i) Redundant Copyright information.
+(ii) Typos in comments.
+(iii) Modify subjects for hwmod database related patches.
+(iv) Remove redundant comments from hwmod database as they would be lost during
+auto-generation in the future.
+
+v4:
+(1) clock aliases are renamed as "32k_ck", "sys_ck" and "alt_ck"
+(2) incorporate missing clk_put() for corresponding clk_get()
+(3) modified clk_get()/clk_put() to be called once once in platform driver.
+(4) consistent header for new files
+(5) check return value of omap_hwmod_for_each_by_class() in device init
+routines.
+(6) remove is_abe_timer field in dmtimer_platform_data structure. this is
+no longer needed with new input clock source aliasing.
+(7) proper splitting of patch series
+(8) remove register map from hwmod database.
+(9) remove clock source strings array from hwmod database and associated
+structure declaration from plat/dmtimer.h. this is no longer needed.
+(10) remove dev_attr from hwmod database. this is no longer needed.
+(11) use register offsets to identify OMAP 4 registers instead of register map.
+(12) remove clock source name strings from hwmod database.
+(13) introduce new mechanism for getting struct clk associated with clock source
+names. this is achieved by adding clock alisases for all supported clock sources.
+(14) remove clock setup functions in mach-omap2 for populating struct clk
+associated with all input clock sources because this is no longer needed with
+above implementation.
+(15) device names changed from dmtimer to omap-timer
+(16) device index starts from 1 instead of 0
+(17) remove .init_name from hwmod database. this is not needed.
+(18) introduce separate functions for reading/writing interrupt registers instead of
+doing all operations within a single function.
+
+v3:
+(1) multi-line comment error correction
+(2) provision to allow any of the available dmtimers as early timers
+instead of restricting them to millisecond timers only.
+(3) in 'struct omap_dmtimer{}' is_initialized flag is redundant and
+so must be removed. if the element is found in the list it is already
+initialized.
+(4) remove 'found' flag in omap_dm_timer_request() and
+omap_dm_timer_request_specific() functions.
+this is not needed with alternate implementation.
+(5) use .init_name to initialize device names so that it can be identified
+during early boot as well. This is to avoid duplicate functions for clock
+manipulations during early boot and later.
+(6) remove redundant functions from mach-omap2 which are created just to
+call pm functions like: pm_runtime_get_sync(),pm_runtime_put_sync(),..
+and instead call them directly from plat-omap function api's.
+(7) timer clock source names made part of hwmod database. source_clock[]
+of type 'struct clk' is made part of platform data.
+(8) clockactivity field initialized in hwmod database to preserve fclk
+during idle. code which manipulate OCP config removed since they are
+already taken care by hwmod framework.
+(9) omap2_dm_timer_set_src() is optimized. Clock enable/disbale routines
+moved to plat-omap layer and simplfied to the level so as not to sacrifice
+intended functionality.
+NOTE: During early boot clock management was requested to be placed upon
+client drivers responsibility. this has not been done keeping in mind
+that it would entail (i) multiple modifications of client drivers (ii) it
+would violate the purpose of having a framework (open to debate).
+(10) dmtimer register maps moved to hwmod database
+
+v2:
+(1) removed dedicated functions for early timer clock access.
+instead, now we have common functions for early and normal timers.
+(2) removed usage of clock source strings for reading corresponding
+struct clks. this is now achieved through clock aliases introduced
+for each input clock sources.
+(3) IP revision to distinguish new IP standard and the rest and then
+initialize dmtimer interrupt and functional offsets.
+(4) provision to initialize all dmtimers as early timers.
+(5) remove dm_timer_setup() function because this is no longer needed.
+(6) modify the device index to start from 1 instead of 0.
+(7) device name changed from dmtimer to omap-timer
+(8) extract device ids' from hwmod name and same used for device build.
+(9) additional resource allocation checks and free
+(10) early timer variable initialization
+(11) initialize timer_ip_type and register offsets in platform data structure.
+(12) some more comments/logs
+
+Cousson, Benoit (1):
+  OMAP4: hwmod data: add dmtimer
+
+Tarun Kanti DebBarma (4):
+  OMAP2+: dmtimer: convert to platform devices
+  OMAP: dmtimer: switch-over to platform device driver
+  OMAP: dmtimer: pm_runtime support
+  OMAP: dmtimer: add timeout to low-level routines
+
+Thara Gopinath (6):
+  OMAP2+: dmtimer: add device names to flck nodes
+  OMAP2420: hwmod data: add dmtimer
+  OMAP2430: hwmod data: add dmtimer
+  OMAP3: hwmod data: add dmtimer
+  OMAP1: dmtimer: conversion to platform devices
+  OMAP: dmtimer: platform driver
+
+ arch/arm/mach-omap1/Makefile               |    2 +-
+ arch/arm/mach-omap1/dmtimer.c              |  214 +++++++++
+ arch/arm/mach-omap1/timer32k.c             |    4 -
+ arch/arm/mach-omap2/Makefile               |    2 +-
+ arch/arm/mach-omap2/clock2420_data.c       |   60 ++-
+ arch/arm/mach-omap2/clock2430_data.c       |   60 ++-
+ arch/arm/mach-omap2/clock3xxx_data.c       |   48 ++-
+ arch/arm/mach-omap2/clock44xx_data.c       |   44 ++-
+ arch/arm/mach-omap2/dmtimer.c              |  260 +++++++++++
+ arch/arm/mach-omap2/dmtimer.h              |   30 ++
+ arch/arm/mach-omap2/io.c                   |    3 +
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c |  634 +++++++++++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c |  633 +++++++++++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  649 ++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  623 ++++++++++++++++++++++++++
+ arch/arm/mach-omap2/timer-gp.c             |    1 -
+ arch/arm/plat-omap/dmtimer.c               |  607 +++++++++++++-------------
+ arch/arm/plat-omap/include/plat/dmtimer.h  |   38 ++-
+ 18 files changed, 3558 insertions(+), 354 deletions(-)
+ create mode 100644 arch/arm/mach-omap1/dmtimer.c
+ create mode 100644 arch/arm/mach-omap2/dmtimer.c
+ create mode 100644 arch/arm/mach-omap2/dmtimer.h
 
