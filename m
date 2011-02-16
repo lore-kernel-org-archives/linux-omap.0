@@ -1,24 +1,25 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+From: Felipe Balbi <balbi@ti.com>
 Subject: Re: your mail
-Date: Wed, 16 Feb 2011 13:55:42 +0200
-Message-ID: <20110216115542.GE2497@legolas.emea.dhcp.ti.com>
-References: <1297857190-27449-1-git-send-email-hemahk@ti.com>
-Reply-To: balbi-l0cyMroinI0@public.gmane.org
+Date: Wed, 16 Feb 2011 13:55:52 +0200
+Message-ID: <20110216115552.GF2497@legolas.emea.dhcp.ti.com>
+References: <1297857292-27494-1-git-send-email-hemahk@ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:44060 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751067Ab1BPLz4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 16 Feb 2011 06:55:56 -0500
 Content-Disposition: inline
-In-Reply-To: <1297857190-27449-1-git-send-email-hemahk-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <1297857292-27494-1-git-send-email-hemahk@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Hema HK <hemahk@ti.com>
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>
 
 no subject ??
 
 -- 
 balbi
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
