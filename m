@@ -1,67 +1,340 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 0/2] Add recommended bpp for omap dss2 generic dpi
- panels
-Date: Wed, 16 Feb 2011 17:58:06 +0200
-Message-ID: <1297871886.14556.21.camel@deskari>
-References: <1297530130-10355-1-git-send-email-daniel.morsing@gmail.com>
-	 <1297861914.988.1.camel@deskari>  <1297865193.8777.8.camel@morsing>
-	 <1297866996.988.69.camel@deskari>  <1297870958.8777.21.camel@morsing>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Subject: Re: [PATCH 2/2] hwmon: twl4030: Hwmon Driver for TWL4030 MADC
+Date: Wed, 16 Feb 2011 08:09:48 -0800
+Message-ID: <20110216160948.GB14199@ericsson.com>
+References: <1297861017-10057-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:35940 "EHLO arroyo.ext.ti.com"
+Received: from imr4.ericy.com ([198.24.6.8]:59272 "EHLO imr4.ericy.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751795Ab1BPP6L (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 16 Feb 2011 10:58:11 -0500
-In-Reply-To: <1297870958.8777.21.camel@morsing>
+	id S1751968Ab1BPQKg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 16 Feb 2011 11:10:36 -0500
+Content-Disposition: inline
+In-Reply-To: <1297861017-10057-1-git-send-email-j-keerthy@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Daniel Morsing <daniel.morsing@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Bryan Wu <bryan.wu@canonical.com>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Keerthy <j-keerthy@ti.com>
+Cc: "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "mikko.k.ylinen@nokia.com" <mikko.k.ylinen@nokia.com>, "amit.kucheria@canonical.com" <amit.kucheria@canonical.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Wed, 2011-02-16 at 09:42 -0600, Daniel Morsing wrote:
-> On Wed, 2011-02-16 at 16:36 +0200, Tomi Valkeinen wrote:
-
-> > And I found:
-> > 
-> > http://www.timll.com/chinese/download/files/CHILIN_TECHNOLOGY.pdf
-> > 
-> > It looks like 24bpp display.
-> > 
+On Wed, Feb 16, 2011 at 07:56:57AM -0500, Keerthy wrote:
+> This driver exposes the sysfs nodes of the TWL4030 MADC module.
+> All the channel values are expressed in terms of mV. Channel 13
+> and channel 14 are reserved. There are channels which represent
+> temperature and current. Even they output raw voltage in mV.
 > 
-> Ok I looked through the datasheet and it looks to me that i got
-> the .config field right. Only thing that's vague from that sheet is
-> which pixel clock edge the v-sync and h-sync are driven low and the
-> color distortion is still there with either option.
+Why ?
+
+> Signed-off-by: Keerthy <j-keerthy@ti.com>
+> ---
 > 
-> > What kind of color distortion do you see? Perhaps the problem is
-> > somewhere else, like wrong horizontal sync, vertical sync or pixel clock
-> > signal setting in .config field. This info should be in the panel
-> > datasheet, but it usually takes some deciphering to understand it =).
-> > 
-> >  Tomi
-> > 
+> The previous discussion concluded in keeping the generic ADC
+> functionality and the hwmon separate. The discussion can be found here:
 > 
-> I'm seeing a light cyan tint to everything when running at 24bpp. Using
-> 16 datalines causes a heavy blue tint.
+> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg41805.html
+> 
+>  Documentation/hwmon/twl4030-madc-hwmon |   45 +++++++++
+>  drivers/hwmon/Kconfig                  |   10 ++
+>  drivers/hwmon/Makefile                 |    1 +
+>  drivers/hwmon/twl4030-madc-hwmon.c     |  155 ++++++++++++++++++++++++++++++++
+>  4 files changed, 211 insertions(+), 0 deletions(-)
+>  create mode 100644 Documentation/hwmon/twl4030-madc-hwmon
+>  create mode 100644 drivers/hwmon/twl4030-madc-hwmon.c
+> 
+> diff --git a/Documentation/hwmon/twl4030-madc-hwmon b/Documentation/hwmon/twl4030-madc-hwmon
+> new file mode 100644
+> index 0000000..2cf1cc2
+> --- /dev/null
+> +++ b/Documentation/hwmon/twl4030-madc-hwmon
+> @@ -0,0 +1,45 @@
+> +Kernel driver twl4030-madc
+> +=========================
+> +
+> +Supported chips:
+> +	* Texas Instruments TWL4030
+> +	Prefix: 'twl4030-madc'
+> +
+> +
+> +Authors:
+> +	J Keerthy <j-keerthy@ti.com>
+> +
+> +Description
+> +-----------
+> +
+> +The Texas Instruments TWL4030 is a Power Management and Audio Circuit. Among
+> +other things it contains a 10-bit A/D converter MADC. The converter has 16
+> +channels which can be used in different modes.
+> +
+> +
+> +See this table for the meaning of the different channels
+> +
+> +Channel Signal
+> +------------------------------------------
+> +0	Battery type(BTYPE)
+> +1	BCI: Battery temperature (BTEMP)
+> +2	GP analog input
+> +3	GP analog input
+> +4	GP analog input
+> +5	GP analog input
+> +6	GP analog input
+> +7	GP analog input
+> +8	BCI: VBUS voltage(VBUS)
+> +9	Backup Battery voltage (VBKP)
+> +10	BCI: Battery charger current (ICHG)
+> +11	BCI: Battery charger voltage (VCHG)
+> +12	BCI: Main battery voltage (VBAT)
+> +13	Reserved
+> +14	Reserved
+> +15	VRUSB Supply/Speaker left/Speaker right polarization level
+> +
+> +
+> +The Sysfs nodes will represent the voltage in the units of mV,
+> +the temperature channel shows the converted raw voltage in mV.
+> +The Battery charging current channel represents raw voltage mV.
 
-But with 24 datalines and 16 bpp it works? Sounds strange =). 
+Doesn't really make sense to me to export values known to be current and temperature
+as voltages. You'll have to add a lot more information for that to make sense.
 
-One thing to check are the pinmuxings (or pad configuration, as it's
-called in omap3 trm).
+> +Channel 13 and 14 are reserved.
 
-Are you using 2.6.37 or newer kernel?
+You already said that above.
 
-Is this also happening with other devkit8000 devices, so it's not just a
-broken device?
+> diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+> index 773e484..11ddde3 100644
+> --- a/drivers/hwmon/Kconfig
+> +++ b/drivers/hwmon/Kconfig
+> @@ -940,6 +940,16 @@ config SENSORS_TMP421
+>  	  This driver can also be built as a module.  If so, the module
+>  	  will be called tmp421.
+>  
+> +config SENSORS_TWL4030_MADC
+> +	tristate "Texas Instruments TWL4030 MADC Hwmon"
+> +	depends on TWL4030_MADC
+> +	help
+> +	This driver provides hwmon support for triton TWL4030-MADC.
+> +	This driver can be built as part of kernel or can be built
+> +	as a module.
 
-Have you tried with an image with full red, green and blue areas, to see
-if only certain colors are affected? 
+	Kernel is obvious. Please stick with the usual text
 
-And the last option is of course get a scope and see what's going on in
-the datalines.
+	"This driver can also be built as a module.  If so, the module
+         will be called XXXX"
 
- Tomi
+At least please tell users how the module is named.
 
+> +		This driver exposes the various voltage values to
+> +	the user space.
+> +
+Not sure if this provides any value. Either case, it should be before "built as module".
 
+>  config SENSORS_VIA_CPUTEMP
+>  	tristate "VIA CPU temperature sensor"
+>  	depends on X86
+> diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
+> index dde02d9..bc7d740 100644
+> --- a/drivers/hwmon/Makefile
+> +++ b/drivers/hwmon/Makefile
+> @@ -102,6 +102,7 @@ obj-$(CONFIG_SENSORS_THMC50)	+= thmc50.o
+>  obj-$(CONFIG_SENSORS_TMP102)	+= tmp102.o
+>  obj-$(CONFIG_SENSORS_TMP401)	+= tmp401.o
+>  obj-$(CONFIG_SENSORS_TMP421)	+= tmp421.o
+> +obj-$(CONFIG_SENSORS_TWL4030_MADC)+= twl4030-madc-hwmon.o
+>  obj-$(CONFIG_SENSORS_VIA_CPUTEMP)+= via-cputemp.o
+>  obj-$(CONFIG_SENSORS_VIA686A)	+= via686a.o
+>  obj-$(CONFIG_SENSORS_VT1211)	+= vt1211.o
+> diff --git a/drivers/hwmon/twl4030-madc-hwmon.c b/drivers/hwmon/twl4030-madc-hwmon.c
+> new file mode 100644
+> index 0000000..4a61e8a
+> --- /dev/null
+> +++ b/drivers/hwmon/twl4030-madc-hwmon.c
+> @@ -0,0 +1,155 @@
+> +/*
+> + *
+> + * TWL4030 MADC Hwmon driver-This driver monitors the real time
+> + * conversion of analog signals like battery temperature,
+> + * battery type, battery level etc. User can ask for the conversion on a
+> + * particular channel using the sysfs nodes.
+> + *
+> + * Copyright (C) 2010 Texas Instruments Incorporated - http://www.ti.com/
+
+2011 ?
+
+> + * J Keerthy <j-keerthy@ti.com>
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License
+> + * version 2 as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful, but
+> + * WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> + * General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+> + * 02110-1301 USA
+> + *
+> + */
+> +
+> +#include <linux/platform_device.h>
+> +#include <linux/i2c/twl.h>
+> +#include <linux/i2c/twl4030-madc.h>
+> +#include <linux/hwmon.h>
+> +#include <linux/hwmon-sysfs.h>
+> +
+> +/*
+> + * sysfs hook function
+> + */
+> +static ssize_t madc_read(struct device *dev,
+> +			 struct device_attribute *devattr, char *buf)
+> +{
+> +	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+> +	struct twl4030_madc_request req;
+> +	long val;
+> +
+> +	req.channels = (1 << attr->index);
+> +	req.method = TWL4030_MADC_SW2;
+> +	req.func_cb = NULL;
+> +	val = twl4030_madc_conversion(&req);
+> +	if (val >= 0)
+> +		val = req.rbuf[attr->index];
+> +	else
+> +		return val;
+> +
+Seems to be a bit complicated.
+
+	if (val < 0)
+		return val;
+
+	return sprintf(buf, "%ld\n", req.rbuf[attr->index]);
+
+would be more straightforward.
+
+> +	return sprintf(buf, "%ld\n", val);
+> +}
+> +
+> +/* sysfs nodes to read individual channels from user side */
+> +static SENSOR_DEVICE_ATTR(in0_battery_type, S_IRUGO, madc_read, NULL, 0);
+> +static SENSOR_DEVICE_ATTR(in1_battery_temp, S_IRUGO, madc_read, NULL, 1);
+
+I don't know why people always try to introduce new sysfs attributes
+for no good reason. Use a label if you want to describe the sensor.
+And use tempX_input for temperatures, and currX_input for currents.
+
+I am not inclined to accept drivers introducing new sysfs attributes,
+unless the new attribute has either been discussed and added to the ABI,
+or if a _really_ good reason for the non-standard attribute is provided.
+Neither is the case here. 
+
+> +static SENSOR_DEVICE_ATTR(in2_input, S_IRUGO, madc_read, NULL, 2);
+> +static SENSOR_DEVICE_ATTR(in3_input, S_IRUGO, madc_read, NULL, 3);
+> +static SENSOR_DEVICE_ATTR(in4_input, S_IRUGO, madc_read, NULL, 4);
+> +static SENSOR_DEVICE_ATTR(in5_input, S_IRUGO, madc_read, NULL, 5);
+> +static SENSOR_DEVICE_ATTR(in6_input, S_IRUGO, madc_read, NULL, 6);
+> +static SENSOR_DEVICE_ATTR(in7_input, S_IRUGO, madc_read, NULL, 7);
+> +static SENSOR_DEVICE_ATTR(in8_vbus, S_IRUGO, madc_read, NULL, 8);
+> +static SENSOR_DEVICE_ATTR(in9_vbkp, S_IRUGO, madc_read, NULL, 9);
+> +static SENSOR_DEVICE_ATTR(in10_battery_charger_current,
+> +			S_IRUGO, madc_read, NULL, 10);
+> +static SENSOR_DEVICE_ATTR(in11_battery_charger_voltage,
+> +			S_IRUGO, madc_read, NULL, 11);
+> +static SENSOR_DEVICE_ATTR(in12_main_battery_voltage,
+> +			S_IRUGO, madc_read, NULL, 12);
+
+... and again ...
+
+> +static SENSOR_DEVICE_ATTR(in15_input, S_IRUGO, madc_read, NULL, 15);
+> +
+
+Number sequence doesn't have to match chip channel number.
+Sure you want to leave a hole here ?
+
+Either case, you should describe in the documentation how chip channels
+match attribute names.
+
+> +static struct attribute *twl4030_madc_attributes[] = {
+> +	&sensor_dev_attr_in0_battery_type.dev_attr.attr,
+> +	&sensor_dev_attr_in1_battery_temp.dev_attr.attr,
+> +	&sensor_dev_attr_in2_input.dev_attr.attr,
+> +	&sensor_dev_attr_in3_input.dev_attr.attr,
+> +	&sensor_dev_attr_in4_input.dev_attr.attr,
+> +	&sensor_dev_attr_in5_input.dev_attr.attr,
+> +	&sensor_dev_attr_in6_input.dev_attr.attr,
+> +	&sensor_dev_attr_in7_input.dev_attr.attr,
+> +	&sensor_dev_attr_in8_vbus.dev_attr.attr,
+> +	&sensor_dev_attr_in9_vbkp.dev_attr.attr,
+> +	&sensor_dev_attr_in10_battery_charger_current.dev_attr.attr,
+> +	&sensor_dev_attr_in11_battery_charger_voltage.dev_attr.attr,
+> +	&sensor_dev_attr_in12_main_battery_voltage.dev_attr.attr,
+> +	&sensor_dev_attr_in15_input.dev_attr.attr,
+> +	NULL
+> +};
+> +
+> +static const struct attribute_group twl4030_madc_group = {
+> +	.attrs = twl4030_madc_attributes,
+> +};
+> +
+> +static int __devinit twl4030_madc_hwmon_probe(struct platform_device *pdev)
+> +{
+> +	int ret;
+> +	int status;
+> +	struct device *hwmon;
+> +
+> +	ret = sysfs_create_group(&pdev->dev.kobj, &twl4030_madc_group);
+> +	if (ret)
+> +		goto err_sysfs;
+> +	hwmon = hwmon_device_register(&pdev->dev);
+> +	if (IS_ERR(hwmon)) {
+> +		dev_err(&pdev->dev, "hwmon_device_register failed.\n");
+> +		status = PTR_ERR(hwmon);
+> +		goto err_reg;
+> +	}
+> +
+> +	return 0;
+> +
+> +err_reg:
+> +	sysfs_remove_group(&pdev->dev.kobj, &twl4030_madc_group);
+> +err_sysfs:
+> +
+> +	return ret;
+> +}
+> +
+> +static int __devexit twl4030_madc_hwmon_remove(struct platform_device *pdev)
+> +{
+> +	hwmon_device_unregister(&pdev->dev);
+> +	sysfs_remove_group(&pdev->dev.kobj, &twl4030_madc_group);
+> +
+> +	return 0;
+> +}
+> +
+> +static struct platform_driver twl4030_madc_hwmon_driver = {
+> +	.probe = twl4030_madc_hwmon_probe,
+> +	.remove = __exit_p(twl4030_madc_hwmon_remove),
+> +	.driver = {
+> +		   .name = "twl4030_madc_hwmon",
+> +		   .owner = THIS_MODULE,
+> +		   },
+> +};
+> +
+> +static int __init twl4030_madc_hwmon_init(void)
+> +{
+> +	return platform_driver_register(&twl4030_madc_hwmon_driver);
+> +}
+> +
+> +module_init(twl4030_madc_hwmon_init);
+> +
+> +static void __exit twl4030_madc_hwmon_exit(void)
+> +{
+> +	platform_driver_unregister(&twl4030_madc_hwmon_driver);
+> +}
+> +
+> +module_exit(twl4030_madc_hwmon_exit);
+> +
+> +MODULE_DESCRIPTION("TWL4030 ADC Hwmon driver");
+> +MODULE_LICENSE("GPL");
+> +MODULE_AUTHOR("J Keerthy");
+> +MODULE_ALIAS("twl4030_madc_hwmon");
+> -- 
+> 1.7.0.4
+> 
