@@ -1,140 +1,69 @@
-From: Hema Kalliguddi <hemahk-l0cyMroinI0@public.gmane.org>
-Subject: RE: [4/7 v2] usb: otg: OMAP4430: Add phy_suspend function pointer to
-Date: Wed, 16 Feb 2011 19:18:54 +0530
-Message-ID: <53936b7d86893c40ea6e3be959d95b6a@mail.gmail.com>
-References: <1297762958-26199-1-git-send-email-hemahk@ti.com>
- <1297762958-26199-4-git-send-email-hemahk@ti.com> <4D5A6F20.5060109@ru.mvista.com>
- <137f7a77ed983ac5f3d08eaea0b2bb66@mail.gmail.com> <4D5BB6BF.7050603@ru.mvista.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [RESEND][PATCH v2] OMAP: DSS: Adding two APIs for panel-taal:
+ check_timings and set_timings
+Date: Wed, 16 Feb 2011 15:57:38 +0200
+Message-ID: <1297864658.988.21.camel@deskari>
+References: <1297864482-16903-1-git-send-email-mayur@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4D5BB6BF.7050603-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:55409 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753877Ab1BPN5l (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 16 Feb 2011 08:57:41 -0500
+Received: from dlep34.itg.ti.com ([157.170.170.115])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1GDve95023976
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Wed, 16 Feb 2011 07:57:40 -0600
+Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
+	by dlep34.itg.ti.com (8.13.7/8.13.7) with ESMTP id p1GDvdI9028229
+	for <linux-omap@vger.kernel.org>; Wed, 16 Feb 2011 07:57:39 -0600 (CST)
+Received: from dlee74.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p1GDvdNR016745
+	for <linux-omap@vger.kernel.org>; Wed, 16 Feb 2011 07:57:39 -0600 (CST)
+In-Reply-To: <1297864482-16903-1-git-send-email-mayur@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Janorkar, Mayuresh" <mayur@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
 Hi,
 
->-----Original Message-----
->From: Sergei Shtylyov [mailto:sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org]
->Sent: Wednesday, February 16, 2011 5:07 PM
->To: Hema Kalliguddi
->Cc: Sergei Shtylyov; linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
->linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Felipe Balbi; Tony Lindgren
->Subject: Re: [4/7 v2] usb: otg: OMAP4430: Add phy_suspend
->function pointer to
->
->Hello.
->
->On 16-02-2011 8:14, Hema Kalliguddi wrote:
->
->>>> From: Kalliguddi, Hema<hemahk-l0cyMroinI0@public.gmane.org>
->
->>>> Introduce the .phy_suspend function pointer to
->>> twl4030_usb_data structure.
->>>> assign the function to it for both sdp board and panda boards.
->>>> This will be used by the twl6030-usb transceiver driver.
->
->>>> Signed-off-by: Hema HK<hemahk-l0cyMroinI0@public.gmane.org>
->>>> Cc: Felipe Balbi<balbi-l0cyMroinI0@public.gmane.org>
->>>> Cc: Tony Lindgren<tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
->
->>> [...]
->
->>>> Index: linux-2.6/arch/arm/mach-omap2/board-4430sdp.c
->>>> ===================================================================
->>>> --- linux-2.6.orig/arch/arm/mach-omap2/board-4430sdp.c
->>>> +++ linux-2.6/arch/arm/mach-omap2/board-4430sdp.c
->>>> @@ -272,6 +272,7 @@ static struct twl4030_usb_data omap4_usb
->>>>    	.phy_exit	= omap4430_phy_exit,
->>>>    	.phy_power	= omap4430_phy_power,
->>>>    	.phy_set_clock	= omap4430_phy_set_clk,
->>>> +	.phy_suspend	= omap4430_phy_suspend,
->>>>    };
->>>>
->>>>    static struct omap2_hsmmc_info mmc[] = {
->>>> Index: linux-2.6/arch/arm/mach-omap2/board-omap4panda.c
->>>> ===================================================================
->>>> --- linux-2.6.orig/arch/arm/mach-omap2/board-omap4panda.c
->>>> +++ linux-2.6/arch/arm/mach-omap2/board-omap4panda.c
->>>> @@ -153,6 +153,7 @@ static struct twl4030_usb_data omap4_usb
->>>>    	.phy_exit	= omap4430_phy_exit,
->>>>    	.phy_power	= omap4430_phy_power,
->>>>    	.phy_set_clock	= omap4430_phy_set_clk,
->>>> +	.phy_suspend	= omap4430_phy_suspend,
->>>>    };
->>>>
->>>>    static struct omap2_hsmmc_info mmc[] = {
->>>> Index: linux-2.6/arch/arm/plat-omap/include/plat/usb.h
->>>> ===================================================================
->>>> --- linux-2.6.orig/arch/arm/plat-omap/include/plat/usb.h
->>>> +++ linux-2.6/arch/arm/plat-omap/include/plat/usb.h
->>>> @@ -88,6 +88,7 @@ extern int omap4430_phy_power(struct dev
->>>>    extern int omap4430_phy_set_clk(struct device *dev, int on);
->>>>    extern int omap4430_phy_init(struct device *dev);
->>>>    extern int omap4430_phy_exit(struct device *dev);
->>>> +extern int omap4430_phy_suspend(struct device *dev, int suspend);
->
->>>     I think this *extern* declaration should be a part of the
->>> previous patch.
->
->> What is the problem if extern when using?
->
->    I think 'extern' declaration should be in the same place
->where this
->function is defined, else you're just defining an unused
->function. Same goes
->for the 'phy_suspend' initializers...
->
->>>>    #endif
->>>>
->>>> Index: linux-2.6/include/linux/i2c/twl.h
->>>> ===================================================================
->>>> --- linux-2.6.orig/include/linux/i2c/twl.h
->>>> +++ linux-2.6/include/linux/i2c/twl.h
->>>> @@ -600,6 +600,8 @@ struct twl4030_usb_data {
->>>>    	int		(*phy_power)(struct device
->*dev, int iD, int on);
->>>>    	/* enable/disable  phy clocks */
->>>>    	int		(*phy_set_clock)(struct device
->*dev, int on);
->>>> +	/* suspend/resume of phy */
->>>> +	int		(*phy_suspend)(struct device *dev, int suspend);
->>>>    };
->
->>>     I'd make the above the only change in this patch, and add
->>> all the other
->>> changes into the previous patch (which then I'd change places
->>> with that one).
->
->> No. if I do that git bisect fails.
->
->    How in the world it will fail?
->
->> Initializer does not make any sense without function
->poointer declaration.
->
->    I said "which then I'd changed places with that one", i.e.
->put this patch
->first and the previous patch second. Otherwise, you're just
->doing things
->beckwards: first you define the method implementation, and
->then you declare
->the method itself... it should be vice versa.
->
+On Wed, 2011-02-16 at 07:54 -0600, Janorkar, Mayuresh wrote:
+> check_timings and set_timings APIS are not present for panel-taal.
+> 
+> OMAPFB provides a bootarg omapfb.mode for setting mode parameters which include display,
+> resolution, bits-per-pixel.
+> 
+> OMAPFB expects panel driver to have check_timings and set_timings APIs.
+> These are checked by omapfb in case we wish to set default mode through bootargs.
+> e.g.: omapfb.mode="lcd:864x480-16" (display device:width X height - bits per pixel)
+> 
+> omapfb_set_def_mode function in omapfb-main.c essentially needs these functions
+> otherwise it would return -EINVAL and default mode sent through bootargs
+> would be ignored.
 
-I understand that. I will change it and send the patches.
+I don't like this patch. You cannot change the timings for Taal, so
+those added functions look quite hacky.
 
-Regards,
-Hema
+The reason for this patch isn't clear from the description (it should).
+If I guess correctly, the point of the patch is to be able to change the
+default color format via boot arguments when using taal panel?
 
->> Regards,
->> Hema
->
->WBR, Sergei
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+If so, I think the change should be in the omapfb driver. Perhaps the
+omapfb driver should:
+
+1. check if check_timings & set_timings exist
+2. if they do exist, do the same thing as the code does now
+3. if they don't, use get_timings to verify that the given resolution is
+correct
+
+That wouldn't be perfect either, but I guess it should do the job. But
+this is again something where FB framework and OMAP HW do not quite
+match, and we end up with hacky solution, no matter what we do. But we
+can try to keep the hacks in the omapfb driver =).
+
+ Tomi
+
+
