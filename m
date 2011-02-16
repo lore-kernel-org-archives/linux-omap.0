@@ -1,41 +1,35 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 0/3] OMAP2+ hwmod fixes
-Date: Wed, 16 Feb 2011 14:07:28 +0100
-Message-ID: <4D5BCC10.2060301@ti.com>
-References: <1297858285-7056-1-git-send-email-rnayak@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 0/2] Add recommended bpp for omap dss2 generic dpi
+ panels
+Date: Wed, 16 Feb 2011 15:11:54 +0200
+Message-ID: <1297861914.988.1.camel@deskari>
+References: <1297530130-10355-1-git-send-email-daniel.morsing@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:53472 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751209Ab1BPNHe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Feb 2011 08:07:34 -0500
-In-Reply-To: <1297858285-7056-1-git-send-email-rnayak@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:52911 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750726Ab1BPNMI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 16 Feb 2011 08:12:08 -0500
+In-Reply-To: <1297530130-10355-1-git-send-email-daniel.morsing@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Nayak, Rajendra" <rnayak@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Daniel Morsing <daniel.morsing@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <tomba@iki.fi>, Bryan Wu <bryan.wu@canonical.com>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Rajendra,
+Hi,
 
-On 2/16/2011 1:11 PM, Nayak, Rajendra wrote:
-> This series fixes some hwmod api return values
-> and also adds some state checks.
-> The hwmod iterator functions are made to
-> continue and not break if one of the
-> callback functions ends up with an error.
+On Sat, 2011-02-12 at 11:02 -0600, Daniel Morsing wrote:
+> This series adds a mechanism for specifying a recommended bpp for
+> generic dss2 dpi panels and adds a panel that uses this feature.
+> 
+> The panel added is the 4.3 inch display that is sold with the
+> Devkit8000.
 
-By doing that, you change the behavior of this function.
-I'm not sure I fully understand why.
-Could you elaborate on the use case?
+Hmm. Devkit8000's panel is connected with 24 datalines, according to the
+board file. Why do you want to use 16 bpp format for that?
 
-To avoid that behavior in the past, I was just returning
-0 in case of failure to avoid stopping the iteration.
-It looks like you do not want to stop the iteration but still
-retrieve the error.
-I do not see in this series what you plan to do with the
-error at the end of the iteration.
+ Tomi
 
-Thanks,
-Benoit
+
