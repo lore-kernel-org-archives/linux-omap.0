@@ -1,136 +1,295 @@
-From: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
-Subject: [7/7 v3] usb: musb: OMAP4430: Fix usb device detection if connected during boot
-Date: Wed, 16 Feb 2011 17:20:49 +0530
-Message-ID: <1297857049-27367-7-git-send-email-hemahk@ti.com>
-References: <1297857049-27367-1-git-send-email-hemahk@ti.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1297857049-27367-1-git-send-email-hemahk-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Kalliguddi, Hema" <hemahk-l0cyMroinI0@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+From: Hema HK <hemahk@ti.com>
+Subject: (unknown)
+Date: Wed, 16 Feb 2011 17:23:10 +0530
+Message-ID: <1297857190-27449-1-git-send-email-hemahk@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:49282 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756078Ab1BPLxV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 16 Feb 2011 06:53:21 -0500
+Subject: 
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-usb@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Hema HK <hemahk@ti.com>
 
-From: Kalliguddi, Hema <hemahk-l0cyMroinI0@public.gmane.org>
+From: Hema HK <hemahk@ti.com
 
-OMAP4430 is embedded with UTMI PHY. This PHY does not support the
-OTG features like ID pin detection and VBUS detection. This function
-is exported to an external companion chip TWL6030. Software must retrieve
-the OTG HNP and SRP status from the TWL6030 and configure the bits inside
-the control module that drive the related USBOTGHS UTMI interface signals.
-It must also read back the UTMI signals needed to configure the TWL6030 
-OTG module.
+Moved all the board specific internal PHY functions out of usb_musb.c file
+as this file is shared between the OMAP2+ and AM35xx platforms.
+There exists a file which has the functions specific to internal PHY
+used for OMAP4 platform. Moved all phy specific functions to this file
+and passing these functions through board data in the board file.
 
-Can find more details in the TRM[1].
-[1]:http://focus.ti.com/pdfs/wtbu/OMAP4430_ES2.0_Public_TRM_vJ.pdf
+Signed-off-by: Hema HK <hemahk@ti.com>
 
-In OMAP4430 musb driver VBUS and ID notifications are received from the
-transceiver driver. If the cable/device is connected during boot,
-notifications from transceiver driver will be missed till musb driver
-is loaded.
-Patch to configure the transceiver in the platform_enable/disable
-functions and enable the vbus in the gadget driver based on the 
-last_event of the otg_transceiver.
-
-Signed-off-by: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
-Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-
----
-drivers/usb/musb/musb_gadget.c |    4 +++
- drivers/usb/musb/omap2430.c    |   49 ++++++++++++++++++++++++++++++++++++-----
- 2 files changed, 48 insertions(+), 5 deletions(-)
-
-Index: linux-2.6/drivers/usb/musb/musb_gadget.c
+Index: linux-2.6/arch/arm/mach-omap2/board-am3517evm.c
 ===================================================================
---- linux-2.6.orig/drivers/usb/musb/musb_gadget.c
-+++ linux-2.6/drivers/usb/musb/musb_gadget.c
-@@ -1855,6 +1855,10 @@ int usb_gadget_probe_driver(struct usb_g
- 			} else {
- 				hcd->self.uses_pio_for_control = 1;
- 			}
-+
-+			if ((musb->xceiv->last_event == USB_EVENT_ID)
-+						&& musb->xceiv->set_vbus)
-+				otg_set_vbus(musb->xceiv, 1);
- 		}
- 	}
+--- linux-2.6.orig/arch/arm/mach-omap2/board-am3517evm.c
++++ linux-2.6/arch/arm/mach-omap2/board-am3517evm.c
+@@ -409,6 +409,10 @@ static struct omap_musb_board_data musb_
+ 	.interface_type         = MUSB_INTERFACE_ULPI,
+ 	.mode                   = MUSB_OTG,
+ 	.power                  = 500,
++	.set_phy_power		= am35x_musb_phy_power,
++	.clear_irq		= am35x_musb_clear_irq,
++	.set_mode		= am35x_musb_set_mode,
++	.reset			= am35x_musb_reset,
+ };
  
-Index: linux-2.6/drivers/usb/musb/omap2430.c
+ static __init void am3517_evm_musb_init(void)
+Index: linux-2.6/arch/arm/mach-omap2/omap_phy_internal.c
 ===================================================================
---- linux-2.6.orig/drivers/usb/musb/omap2430.c
-+++ linux-2.6/drivers/usb/musb/omap2430.c
-@@ -350,16 +350,56 @@ static int omap2430_musb_init(struct mus
- 	if (status)
- 		DBG(1, "notification register failed\n");
+--- linux-2.6.orig/arch/arm/mach-omap2/omap_phy_internal.c
++++ linux-2.6/arch/arm/mach-omap2/omap_phy_internal.c
+@@ -29,6 +29,7 @@
+ #include <linux/usb.h>
  
--	/* check whether cable is already connected */
--	if (musb->xceiv->state ==OTG_STATE_B_IDLE)
--		musb_otg_notifications(&musb->nb, 1,
--					musb->xceiv->gadget);
--
- 	setup_timer(&musb_idle_timer, musb_do_idle, (unsigned long) musb);
+ #include <plat/usb.h>
++#include "control.h"
+ 
+ /* OMAP control module register for UTMI PHY */
+ #define CONTROL_DEV_CONF		0x300
+@@ -147,3 +148,95 @@ int omap4430_phy_exit(struct device *dev
  
  	return 0;
  }
- 
-+static void omap2430_musb_enable(struct musb *musb)
++
++void am35x_musb_reset(void)
 +{
-+	u8		devctl;
-+	unsigned long timeout = jiffies + msecs_to_jiffies(1000);
-+	struct device *dev = musb->controller;
-+	struct musb_hdrc_platform_data *pdata = dev->platform_data;
-+	struct omap_musb_board_data *data = pdata->board_data;
++	u32	regval;
 +
-+	switch (musb->xceiv->last_event) {
++	/* Reset the musb interface */
++	regval = omap_ctrl_readl(AM35XX_CONTROL_IP_SW_RESET);
 +
-+	case USB_EVENT_ID:
-+		otg_init(musb->xceiv);
-+		if (data->interface_type == MUSB_INTERFACE_UTMI) {
-+			devctl = musb_readb(musb->mregs, MUSB_DEVCTL);
-+			/* start the session */
-+			devctl |= MUSB_DEVCTL_SESSION;
-+			musb_writeb(musb->mregs, MUSB_DEVCTL, devctl);
-+			while (musb_readb(musb->mregs, MUSB_DEVCTL) &
-+						MUSB_DEVCTL_BDEVICE) {
-+				cpu_relax();
++	regval |= AM35XX_USBOTGSS_SW_RST;
++	omap_ctrl_writel(regval, AM35XX_CONTROL_IP_SW_RESET);
 +
-+				if (time_after(jiffies, timeout)) {
-+					dev_err(musb->controller,
-+					"configured as A device timeout");
-+					break;
-+				}
++	regval &= ~AM35XX_USBOTGSS_SW_RST;
++	omap_ctrl_writel(regval, AM35XX_CONTROL_IP_SW_RESET);
++
++	regval = omap_ctrl_readl(AM35XX_CONTROL_IP_SW_RESET);
++}
++
++void am35x_musb_phy_power(u8 on)
++{
++	unsigned long timeout = jiffies + msecs_to_jiffies(100);
++	u32 devconf2;
++
++	if (on) {
++		/*
++		 * Start the on-chip PHY and its PLL.
++		 */
++		devconf2 = omap_ctrl_readl(AM35XX_CONTROL_DEVCONF2);
++
++		devconf2 &= ~(CONF2_RESET | CONF2_PHYPWRDN | CONF2_OTGPWRDN);
++		devconf2 |= CONF2_PHY_PLLON;
++
++		omap_ctrl_writel(devconf2, AM35XX_CONTROL_DEVCONF2);
++
++		pr_info(KERN_INFO "Waiting for PHY clock good...\n");
++		while (!(omap_ctrl_readl(AM35XX_CONTROL_DEVCONF2)
++				& CONF2_PHYCLKGD)) {
++			cpu_relax();
++
++			if (time_after(jiffies, timeout)) {
++				pr_err(KERN_ERR "musb PHY clock good timed out\n");
++				break;
 +			}
 +		}
-+		break;
++	} else {
++		/*
++		 * Power down the on-chip PHY.
++		 */
++		devconf2 = omap_ctrl_readl(AM35XX_CONTROL_DEVCONF2);
 +
-+	case USB_EVENT_VBUS:
-+		otg_init(musb->xceiv);
-+		break;
-+
-+	default:
-+		break;
++		devconf2 &= ~CONF2_PHY_PLLON;
++		devconf2 |=  CONF2_PHYPWRDN | CONF2_OTGPWRDN;
++		omap_ctrl_writel(devconf2, AM35XX_CONTROL_DEVCONF2);
 +	}
 +}
 +
-+static void omap2430_musb_disable(struct musb *musb)
++void am35x_musb_clear_irq(void)
 +{
-+	if (musb->xceiv->last_event)
-+		otg_shutdown(musb->xceiv);
++	u32 regval;
++
++	regval = omap_ctrl_readl(AM35XX_CONTROL_LVL_INTR_CLEAR);
++	regval |= AM35XX_USBOTGSS_INT_CLR;
++	omap_ctrl_writel(regval, AM35XX_CONTROL_LVL_INTR_CLEAR);
++	regval = omap_ctrl_readl(AM35XX_CONTROL_LVL_INTR_CLEAR);
 +}
 +
- static int omap2430_musb_exit(struct musb *musb)
- {
- 
-@@ -377,6 +417,9 @@ static const struct musb_platform_ops om
- 	.try_idle	= omap2430_musb_try_idle,
- 
- 	.set_vbus	= omap2430_musb_set_vbus,
++void am35x_musb_set_mode(u8 musb_mode)
++{
++	u32 devconf2 = omap_ctrl_readl(AM35XX_CONTROL_DEVCONF2);
 +
-+	.enable		= omap2430_musb_enable,
-+	.disable	= omap2430_musb_disable,
- };
++	devconf2 &= ~CONF2_OTGMODE;
++	switch (musb_mode) {
++#ifdef	CONFIG_USB_MUSB_HDRC_HCD
++	case MUSB_HOST:		/* Force VBUS valid, ID = 0 */
++		devconf2 |= CONF2_FORCE_HOST;
++		break;
++#endif
++#ifdef	CONFIG_USB_GADGET_MUSB_HDRC
++	case MUSB_PERIPHERAL:	/* Force VBUS valid, ID = 1 */
++		devconf2 |= CONF2_FORCE_DEVICE;
++		break;
++#endif
++#ifdef	CONFIG_USB_MUSB_OTG
++	case MUSB_OTG:		/* Don't override the VBUS/ID comparators */
++		devconf2 |= CONF2_NO_OVERRIDE;
++		break;
++#endif
++	default:
++		pr_info(KERN_INFO "Unsupported mode %u\n", musb_mode);
++	}
++
++	omap_ctrl_writel(devconf2, AM35XX_CONTROL_DEVCONF2);
++}
+Index: linux-2.6/arch/arm/mach-omap2/usb-musb.c
+===================================================================
+--- linux-2.6.orig/arch/arm/mach-omap2/usb-musb.c
++++ linux-2.6/arch/arm/mach-omap2/usb-musb.c
+@@ -30,102 +30,9 @@
+ #include <mach/irqs.h>
+ #include <mach/am35xx.h>
+ #include <plat/usb.h>
+-#include "control.h"
  
- static u64 omap2430_dmamask = DMA_BIT_MASK(32);
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ #if defined(CONFIG_USB_MUSB_OMAP2PLUS) || defined (CONFIG_USB_MUSB_AM35X)
+ 
+-static void am35x_musb_reset(void)
+-{
+-	u32	regval;
+-
+-	/* Reset the musb interface */
+-	regval = omap_ctrl_readl(AM35XX_CONTROL_IP_SW_RESET);
+-
+-	regval |= AM35XX_USBOTGSS_SW_RST;
+-	omap_ctrl_writel(regval, AM35XX_CONTROL_IP_SW_RESET);
+-
+-	regval &= ~AM35XX_USBOTGSS_SW_RST;
+-	omap_ctrl_writel(regval, AM35XX_CONTROL_IP_SW_RESET);
+-
+-	regval = omap_ctrl_readl(AM35XX_CONTROL_IP_SW_RESET);
+-}
+-
+-static void am35x_musb_phy_power(u8 on)
+-{
+-	unsigned long timeout = jiffies + msecs_to_jiffies(100);
+-	u32 devconf2;
+-
+-	if (on) {
+-		/*
+-		 * Start the on-chip PHY and its PLL.
+-		 */
+-		devconf2 = omap_ctrl_readl(AM35XX_CONTROL_DEVCONF2);
+-
+-		devconf2 &= ~(CONF2_RESET | CONF2_PHYPWRDN | CONF2_OTGPWRDN);
+-		devconf2 |= CONF2_PHY_PLLON;
+-
+-		omap_ctrl_writel(devconf2, AM35XX_CONTROL_DEVCONF2);
+-
+-		pr_info(KERN_INFO "Waiting for PHY clock good...\n");
+-		while (!(omap_ctrl_readl(AM35XX_CONTROL_DEVCONF2)
+-				& CONF2_PHYCLKGD)) {
+-			cpu_relax();
+-
+-			if (time_after(jiffies, timeout)) {
+-				pr_err(KERN_ERR "musb PHY clock good timed out\n");
+-				break;
+-			}
+-		}
+-	} else {
+-		/*
+-		 * Power down the on-chip PHY.
+-		 */
+-		devconf2 = omap_ctrl_readl(AM35XX_CONTROL_DEVCONF2);
+-
+-		devconf2 &= ~CONF2_PHY_PLLON;
+-		devconf2 |=  CONF2_PHYPWRDN | CONF2_OTGPWRDN;
+-		omap_ctrl_writel(devconf2, AM35XX_CONTROL_DEVCONF2);
+-	}
+-}
+-
+-static void am35x_musb_clear_irq(void)
+-{
+-	u32 regval;
+-
+-	regval = omap_ctrl_readl(AM35XX_CONTROL_LVL_INTR_CLEAR);
+-	regval |= AM35XX_USBOTGSS_INT_CLR;
+-	omap_ctrl_writel(regval, AM35XX_CONTROL_LVL_INTR_CLEAR);
+-	regval = omap_ctrl_readl(AM35XX_CONTROL_LVL_INTR_CLEAR);
+-}
+-
+-static void am35x_musb_set_mode(u8 musb_mode)
+-{
+-	u32 devconf2 = omap_ctrl_readl(AM35XX_CONTROL_DEVCONF2);
+-
+-	devconf2 &= ~CONF2_OTGMODE;
+-	switch (musb_mode) {
+-#ifdef	CONFIG_USB_MUSB_HDRC_HCD
+-	case MUSB_HOST:		/* Force VBUS valid, ID = 0 */
+-		devconf2 |= CONF2_FORCE_HOST;
+-		break;
+-#endif
+-#ifdef	CONFIG_USB_GADGET_MUSB_HDRC
+-	case MUSB_PERIPHERAL:	/* Force VBUS valid, ID = 1 */
+-		devconf2 |= CONF2_FORCE_DEVICE;
+-		break;
+-#endif
+-#ifdef	CONFIG_USB_MUSB_OTG
+-	case MUSB_OTG:		/* Don't override the VBUS/ID comparators */
+-		devconf2 |= CONF2_NO_OVERRIDE;
+-		break;
+-#endif
+-	default:
+-		pr_info(KERN_INFO "Unsupported mode %u\n", musb_mode);
+-	}
+-
+-	omap_ctrl_writel(devconf2, AM35XX_CONTROL_DEVCONF2);
+-}
+-
+ static struct resource musb_resources[] = {
+ 	[0] = { /* start and end set dynamically */
+ 		.flags	= IORESOURCE_MEM,
+@@ -189,10 +96,6 @@ void __init usb_musb_init(struct omap_mu
+ 		musb_device.name = "musb-am35x";
+ 		musb_resources[0].start = AM35XX_IPSS_USBOTGSS_BASE;
+ 		musb_resources[1].start = INT_35XX_USBOTG_IRQ;
+-		board_data->set_phy_power = am35x_musb_phy_power;
+-		board_data->clear_irq = am35x_musb_clear_irq;
+-		board_data->set_mode = am35x_musb_set_mode;
+-		board_data->reset = am35x_musb_reset;
+ 	} else if (cpu_is_omap34xx()) {
+ 		musb_resources[0].start = OMAP34XX_HSUSB_OTG_BASE;
+ 	} else if (cpu_is_omap44xx()) {
+Index: linux-2.6/arch/arm/plat-omap/include/plat/usb.h
+===================================================================
+--- linux-2.6.orig/arch/arm/plat-omap/include/plat/usb.h
++++ linux-2.6/arch/arm/plat-omap/include/plat/usb.h
+@@ -91,6 +91,10 @@ extern int omap4430_phy_exit(struct devi
+ 
+ #endif
+ 
++extern void am35x_musb_reset(void);
++extern void am35x_musb_phy_power(u8 on);
++extern void am35x_musb_clear_irq(void);
++extern void am35x_musb_set_mode(u8 musb_mode);
+ 
+ /*
+  * FIXME correct answer depends on hmc_mode,
+Index: linux-2.6/arch/arm/mach-omap2/Makefile
+===================================================================
+--- linux-2.6.orig/arch/arm/mach-omap2/Makefile
++++ linux-2.6/arch/arm/mach-omap2/Makefile
+@@ -218,7 +218,8 @@ obj-$(CONFIG_MACH_OMAP4_PANDA)		+= board
+ 					   hsmmc.o \
+ 					   omap_phy_internal.o
+ 
+-obj-$(CONFIG_MACH_OMAP3517EVM)		+= board-am3517evm.o
++obj-$(CONFIG_MACH_OMAP3517EVM)		+= board-am3517evm.o \
++					   omap_phy_internal.o \
+ 
+ obj-$(CONFIG_MACH_CRANEBOARD)		+= board-am3517crane.o
+ 
