@@ -1,131 +1,86 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: RE: [PATCH 00/11] OMAP2+: clock: add clockfw autoidle for iclks, OMAP2xxx
-Date: Wed, 16 Feb 2011 16:45:17 +0530
-Message-ID: <43af56d25809fa616f0e17d7e641ebc0@mail.gmail.com>
-References: <20110216065030.22089.61217.stgit@twilight.localdomain>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Anand Gadiyar <gadiyar@ti.com>
+Subject: [PATCH 1/2] omap4: 4430sdp: drop ehci support
+Date: Wed, 16 Feb 2011 16:47:19 +0530
+Message-ID: <1297855040-1337-1-git-send-email-gadiyar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:34190 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756034Ab1BPLPW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 16 Feb 2011 06:15:22 -0500
-Received: by fxm5 with SMTP id 5so1273791fxm.25
-        for <linux-omap@vger.kernel.org>; Wed, 16 Feb 2011 03:15:19 -0800 (PST)
-In-Reply-To: <20110216065030.22089.61217.stgit@twilight.localdomain>
+Received: from bear.ext.ti.com ([192.94.94.41]:49587 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755570Ab1BPLRa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 16 Feb 2011 06:17:30 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Anand Gadiyar <gadiyar@ti.com>, Keshava Munegowda <keshava_mgowda@ti.com>, Tony Lindgren <tony@atomide.com>
 
-> -----Original Message-----
-> From: linux-arm-kernel-bounces@lists.infradead.org
-[mailto:linux-arm-kernel-bounces@lists.infradead.org] On Behalf
-> Of Paul Walmsley
-> Sent: Wednesday, February 16, 2011 12:23 PM
-> To: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
-> Subject: [PATCH 00/11] OMAP2+: clock: add clockfw autoidle for iclks,
-OMAP2xxx
->
-> Hello,
->
-> This patch series adds clock framework-controlled autoidle support for
-> the OMAP2xxx DPLL, APLLs, and OMAP2/3 interface clocks.  The old
-> direct register writes in the PM code to enable clock autoidle have been
-> removed.
->
-> This series also ensures that all clock autoidle is disabled during
-> boot and only re-enabled if CONFIG_PM is enabled.
->
-> The series applies on the 'clk_autoidle_a_2.6.39' branch of
-> git://git.pwsan.com/linux-2.6.
->
-> Boot-tested on N800, and dynamic idle-tested on OMAP3430 Beagleboard.
-> Compile-tested with omap1_defconfig, omap2plus_defconfig, a 5912
-> OSK-only config, an N8x0-only config, an OMAP3-only config, and an
-OMAP4-only
-> config.
+Most revisions of the OMAP4 Blaze/SDP platform do not have
+the EHCI signals routed by default. The pads are routed
+for the alternate HSI functionality instead, and explicit
+board modifications are needed to route the signals to
+the USB PHY on the board.
 
-Boot-tested on 3430sdp/4430sdp, with CONFIG_PM and with !CONFIG_PM.
-suspend-offmode tested on 3430sdp and suspend-retmode on 4430sdp (with
-some out-of-tree patches)
-Dynamic idle testing on 3430sdp showed me some very jerky debug console
-the
-moment a 'echo 1 > /debug/pm_debug/sleep_while_idle' is done.
-This however seems to be the case even on 2.6.38-rc4 and not related to
-the
-current patch series. Will debug further, but seems to some 3430sdp
-specific
-issue, since you did not see it on Beagleboard and seems it is not seen on
-OMAP3
-zoom's either.
-Just out of curiosity, what dynamic-idle state where you able to achieve
-on
-Beagle? And what was the debug console timeout that you configured?
+Also, turning on the PHY connected to the EHCI port causes
+a board reboot during bootup due to an unintended short
+on the rails - this affects many initial revisions of the
+board, and needs a minor board mod to fix (or as a
+workaround, one should not attempt to power on the
+USB PHY).
 
-Regards,
-Rajendra
+Given that these boards need explicit board mods to even
+get EHCI working (separate from the accidental short above),
+we should not attempt to enable EHCI by default.
 
->
->
-> - Paul
->
-> ---
->
-> clk_autoidle_b_2.6.39
->    text	   data	    bss	    dec	    hex	filename
-> 5530703	 330544	5594520	11455767	 aecd17
-vmlinux.omap2plus_defconfig.orig
-> 5531167	 330544	5594520	11456231	 aecee7
-vmlinux.omap2plus_defconfig.patched
->
-> Paul Walmsley (11):
->       OMAP2+: clock: disable autoidle on all clocks during clock init
->       OMAP2: clock: add DPLL autoidle support
->       OMAP2xxx: clock: add clockfw autoidle support for APLLs
->       OMAP2+: clock: comment that osc_ck/osc_sys_ck should use clockfw
-autoidle control
->       OMAP2+: clock: add interface clock type code with autoidle support
->       OMAP2420: clock: add sdrc_ick
->       OMAP2420: clock: use autoidle clkops for all autoidle-controllable
-interface clocks
->       OMAP2430/3xxx: clock: add modem clock autoidle support
->       OMAP2430: clock: use autoidle clkops for all autoidle-controllable
-interface clocks
->       OMAP3: clock: use autoidle clkops for all autoidle-controllable
-interface clocks
->       OMAP2/3: PM: remove manual CM_AUTOIDLE bit setting in
-mach-omap2/pm*xx.c
->
->
->  arch/arm/mach-omap2/Makefile          |    7 +
->  arch/arm/mach-omap2/clkt2xxx_apll.c   |   24 +++++
->  arch/arm/mach-omap2/clkt2xxx_dpll.c   |   63 +++++++++++++
->  arch/arm/mach-omap2/clkt2xxx_osc.c    |   14 +++
->  arch/arm/mach-omap2/clkt_iclk.c       |   82 +++++++++++++++++
->  arch/arm/mach-omap2/clock.h           |   11 ++
->  arch/arm/mach-omap2/clock2420_data.c  |  130
-+++++++++++++++++-----------
->  arch/arm/mach-omap2/clock2430_data.c  |  130
-++++++++++++++++------------
->  arch/arm/mach-omap2/clock34xx.c       |   29 ++++++
->  arch/arm/mach-omap2/clock34xx.h       |    5 +
->  arch/arm/mach-omap2/clock3517.c       |    4 +
->  arch/arm/mach-omap2/clock3xxx.c       |    3 -
->  arch/arm/mach-omap2/clock3xxx_data.c  |  155
-+++++++++++++++++----------------
->  arch/arm/mach-omap2/clock44xx_data.c  |    3 +
->  arch/arm/mach-omap2/cm-regbits-24xx.h |    3 +
->  arch/arm/mach-omap2/cm2xxx_3xxx.c     |   69 +++++++++++++++
->  arch/arm/mach-omap2/cm2xxx_3xxx.h     |    8 ++
->  arch/arm/mach-omap2/pm24xx.c          |   69 +--------------
->  arch/arm/mach-omap2/pm34xx.c          |  105 ----------------------
->  19 files changed, 557 insertions(+), 357 deletions(-)
->  create mode 100644 arch/arm/mach-omap2/clkt2xxx_dpll.c
->  create mode 100644 arch/arm/mach-omap2/clkt_iclk.c
->
->
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+So drop the EHCI support from the board files for the
+Blaze/SDP platforms.
+
+Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
+Cc: Keshava Munegowda <keshava_mgowda@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+---
+
+ arch/arm/mach-omap2/board-4430sdp.c |   20 --------------------
+ 1 file changed, 20 deletions(-)
+
+Index: linux-omap-usb/arch/arm/mach-omap2/board-4430sdp.c
+===================================================================
+--- linux-omap-usb.orig/arch/arm/mach-omap2/board-4430sdp.c
++++ linux-omap-usb/arch/arm/mach-omap2/board-4430sdp.c
+@@ -44,7 +44,6 @@
+ #define ETH_KS8851_IRQ			34
+ #define ETH_KS8851_POWER_ON		48
+ #define ETH_KS8851_QUART		138
+-#define OMAP4SDP_MDM_PWR_EN_GPIO	157
+ #define OMAP4_SFH7741_SENSOR_OUTPUT_GPIO	184
+ #define OMAP4_SFH7741_ENABLE_GPIO		188
+ 
+@@ -251,16 +250,6 @@ static void __init omap_4430sdp_init_irq
+ 	gic_init_irq();
+ }
+ 
+-static const struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
+-	.port_mode[0]	= EHCI_HCD_OMAP_MODE_PHY,
+-	.port_mode[1]	= EHCI_HCD_OMAP_MODE_UNKNOWN,
+-	.port_mode[2]	= EHCI_HCD_OMAP_MODE_UNKNOWN,
+-	.phy_reset	= false,
+-	.reset_gpio_port[0]  = -EINVAL,
+-	.reset_gpio_port[1]  = -EINVAL,
+-	.reset_gpio_port[2]  = -EINVAL,
+-};
+-
+ static struct omap_musb_board_data musb_board_data = {
+ 	.interface_type		= MUSB_INTERFACE_UTMI,
+ 	.mode			= MUSB_OTG,
+@@ -576,14 +564,6 @@ static void __init omap_4430sdp_init(voi
+ 	omap_serial_init();
+ 	omap4_twl6030_hsmmc_init(mmc);
+ 
+-	/* Power on the ULPI PHY */
+-	status = gpio_request(OMAP4SDP_MDM_PWR_EN_GPIO, "USBB1 PHY VMDM_3V3");
+-	if (status)
+-		pr_err("%s: Could not get USBB1 PHY GPIO\n", __func__);
+-	else
+-		gpio_direction_output(OMAP4SDP_MDM_PWR_EN_GPIO, 1);
+-
+-	usb_ehci_init(&ehci_pdata);
+ 	usb_musb_init(&musb_board_data);
+ 
+ 	status = omap_ethernet_init();
