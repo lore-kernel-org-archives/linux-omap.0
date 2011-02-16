@@ -1,82 +1,140 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: RE: [PATCH 0/3] OMAP2+ hwmod fixes
-Date: Wed, 16 Feb 2011 19:13:12 +0530
-Message-ID: <6cc4b2788ff1e15c22987d5db91f0395@mail.gmail.com>
-References: <1297858285-7056-1-git-send-email-rnayak@ti.com> <4D5BCC10.2060301@ti.com>
+From: Hema Kalliguddi <hemahk-l0cyMroinI0@public.gmane.org>
+Subject: RE: [4/7 v2] usb: otg: OMAP4430: Add phy_suspend function pointer to
+Date: Wed, 16 Feb 2011 19:18:54 +0530
+Message-ID: <53936b7d86893c40ea6e3be959d95b6a@mail.gmail.com>
+References: <1297762958-26199-1-git-send-email-hemahk@ti.com>
+ <1297762958-26199-4-git-send-email-hemahk@ti.com> <4D5A6F20.5060109@ru.mvista.com>
+ <137f7a77ed983ac5f3d08eaea0b2bb66@mail.gmail.com> <4D5BB6BF.7050603@ru.mvista.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:36640 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751791Ab1BPNnO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 16 Feb 2011 08:43:14 -0500
-Received: by mail-fx0-f54.google.com with SMTP id 16so1418834fxm.27
-        for <linux-omap@vger.kernel.org>; Wed, 16 Feb 2011 05:43:13 -0800 (PST)
-In-Reply-To: <4D5BCC10.2060301@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4D5BB6BF.7050603-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
 
-Hi Benoit,
+Hi,
 
-> -----Original Message-----
-> From: Cousson, Benoit [mailto:b-cousson@ti.com]
-> Sent: Wednesday, February 16, 2011 6:37 PM
-> To: Nayak, Rajendra
-> Cc: linux-omap@vger.kernel.org; paul@pwsan.com;
-linux-arm-kernel@lists.infradead.org
-> Subject: Re: [PATCH 0/3] OMAP2+ hwmod fixes
+>-----Original Message-----
+>From: Sergei Shtylyov [mailto:sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org]
+>Sent: Wednesday, February 16, 2011 5:07 PM
+>To: Hema Kalliguddi
+>Cc: Sergei Shtylyov; linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
+>linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Felipe Balbi; Tony Lindgren
+>Subject: Re: [4/7 v2] usb: otg: OMAP4430: Add phy_suspend
+>function pointer to
 >
-> Hi Rajendra,
+>Hello.
 >
-> On 2/16/2011 1:11 PM, Nayak, Rajendra wrote:
-> > This series fixes some hwmod api return values
-> > and also adds some state checks.
-> > The hwmod iterator functions are made to
-> > continue and not break if one of the
-> > callback functions ends up with an error.
+>On 16-02-2011 8:14, Hema Kalliguddi wrote:
 >
-> By doing that, you change the behavior of this function.
-> I'm not sure I fully understand why.
-> Could you elaborate on the use case?
-
-Since these functions iterate over all hwmods
-calling a common callback function, there might
-be cases wherein the callback function for *some*
-hwmods might fail. For instance, if you run through
-all hwmods and try to clear the context registers
-for all of them, for some hwmods which might
-not have context registers the callback function
-might return a -EINVAL, however that should not
-stop you from attempting to clear the context
-registers for the rest of the hwmods which have
-them and abort the function midway, no?
-This is more hypothetical, however the real usecase
-that prompted me with this patch was when I
-had some wrong state check in _setup function,
-and the iterator would stop with the first failure
-and not even attempt to setup the rest of the
-hwmods.
-
+>>>> From: Kalliguddi, Hema<hemahk-l0cyMroinI0@public.gmane.org>
 >
-> To avoid that behavior in the past, I was just returning
-> 0 in case of failure to avoid stopping the iteration.
-> It looks like you do not want to stop the iteration but still
-> retrieve the error.
-> I do not see in this series what you plan to do with the
-> error at the end of the iteration.
+>>>> Introduce the .phy_suspend function pointer to
+>>> twl4030_usb_data structure.
+>>>> assign the function to it for both sdp board and panda boards.
+>>>> This will be used by the twl6030-usb transceiver driver.
+>
+>>>> Signed-off-by: Hema HK<hemahk-l0cyMroinI0@public.gmane.org>
+>>>> Cc: Felipe Balbi<balbi-l0cyMroinI0@public.gmane.org>
+>>>> Cc: Tony Lindgren<tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+>
+>>> [...]
+>
+>>>> Index: linux-2.6/arch/arm/mach-omap2/board-4430sdp.c
+>>>> ===================================================================
+>>>> --- linux-2.6.orig/arch/arm/mach-omap2/board-4430sdp.c
+>>>> +++ linux-2.6/arch/arm/mach-omap2/board-4430sdp.c
+>>>> @@ -272,6 +272,7 @@ static struct twl4030_usb_data omap4_usb
+>>>>    	.phy_exit	= omap4430_phy_exit,
+>>>>    	.phy_power	= omap4430_phy_power,
+>>>>    	.phy_set_clock	= omap4430_phy_set_clk,
+>>>> +	.phy_suspend	= omap4430_phy_suspend,
+>>>>    };
+>>>>
+>>>>    static struct omap2_hsmmc_info mmc[] = {
+>>>> Index: linux-2.6/arch/arm/mach-omap2/board-omap4panda.c
+>>>> ===================================================================
+>>>> --- linux-2.6.orig/arch/arm/mach-omap2/board-omap4panda.c
+>>>> +++ linux-2.6/arch/arm/mach-omap2/board-omap4panda.c
+>>>> @@ -153,6 +153,7 @@ static struct twl4030_usb_data omap4_usb
+>>>>    	.phy_exit	= omap4430_phy_exit,
+>>>>    	.phy_power	= omap4430_phy_power,
+>>>>    	.phy_set_clock	= omap4430_phy_set_clk,
+>>>> +	.phy_suspend	= omap4430_phy_suspend,
+>>>>    };
+>>>>
+>>>>    static struct omap2_hsmmc_info mmc[] = {
+>>>> Index: linux-2.6/arch/arm/plat-omap/include/plat/usb.h
+>>>> ===================================================================
+>>>> --- linux-2.6.orig/arch/arm/plat-omap/include/plat/usb.h
+>>>> +++ linux-2.6/arch/arm/plat-omap/include/plat/usb.h
+>>>> @@ -88,6 +88,7 @@ extern int omap4430_phy_power(struct dev
+>>>>    extern int omap4430_phy_set_clk(struct device *dev, int on);
+>>>>    extern int omap4430_phy_init(struct device *dev);
+>>>>    extern int omap4430_phy_exit(struct device *dev);
+>>>> +extern int omap4430_phy_suspend(struct device *dev, int suspend);
+>
+>>>     I think this *extern* declaration should be a part of the
+>>> previous patch.
+>
+>> What is the problem if extern when using?
+>
+>    I think 'extern' declaration should be in the same place
+>where this
+>function is defined, else you're just defining an unused
+>function. Same goes
+>for the 'phy_suspend' initializers...
+>
+>>>>    #endif
+>>>>
+>>>> Index: linux-2.6/include/linux/i2c/twl.h
+>>>> ===================================================================
+>>>> --- linux-2.6.orig/include/linux/i2c/twl.h
+>>>> +++ linux-2.6/include/linux/i2c/twl.h
+>>>> @@ -600,6 +600,8 @@ struct twl4030_usb_data {
+>>>>    	int		(*phy_power)(struct device
+>*dev, int iD, int on);
+>>>>    	/* enable/disable  phy clocks */
+>>>>    	int		(*phy_set_clock)(struct device
+>*dev, int on);
+>>>> +	/* suspend/resume of phy */
+>>>> +	int		(*phy_suspend)(struct device *dev, int suspend);
+>>>>    };
+>
+>>>     I'd make the above the only change in this patch, and add
+>>> all the other
+>>> changes into the previous patch (which then I'd change places
+>>> with that one).
+>
+>> No. if I do that git bisect fails.
+>
+>    How in the world it will fail?
+>
+>> Initializer does not make any sense without function
+>poointer declaration.
+>
+>    I said "which then I'd changed places with that one", i.e.
+>put this patch
+>first and the previous patch second. Otherwise, you're just
+>doing things
+>beckwards: first you define the method implementation, and
+>then you declare
+>the method itself... it should be vice versa.
+>
 
-Most users of these iterators would just use the non-zero
-return value to throw an error/warning out stating there
-were failures running through all the callback functions.
-That does not change with this patch, and they can still
-do it.
+I understand that. I will change it and send the patches.
 
 Regards,
-Rajendra
+Hema
 
+>> Regards,
+>> Hema
 >
-> Thanks,
-> Benoit
+>WBR, Sergei
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
