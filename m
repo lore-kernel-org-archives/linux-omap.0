@@ -1,114 +1,77 @@
-From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: Re: [PATCH v2] OMAP: PM: DMA: Enable runtime pm
-Date: Wed, 16 Feb 2011 19:35:35 +0530
-Message-ID: <20110216140535.GA15484@m-desktop>
-References: <1297082286-8449-1-git-send-email-manjugk@ti.com>
- <87ipwm1daa.fsf@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 0/2] Add recommended bpp for omap dss2 generic dpi
+ panels
+Date: Wed, 16 Feb 2011 16:36:36 +0200
+Message-ID: <1297866996.988.69.camel@deskari>
+References: <1297530130-10355-1-git-send-email-daniel.morsing@gmail.com>
+	 <1297861914.988.1.camel@deskari>  <1297865193.8777.8.camel@morsing>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:57848 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755041Ab1BPOHl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 16 Feb 2011 09:07:41 -0500
-Received: by mail-gx0-f182.google.com with SMTP id 8so643414gxk.41
-        for <linux-omap@vger.kernel.org>; Wed, 16 Feb 2011 06:07:40 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <87ipwm1daa.fsf@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58089 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755658Ab1BPOgm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 16 Feb 2011 09:36:42 -0500
+In-Reply-To: <1297865193.8777.8.camel@morsing>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: "G, Manjunath Kondaiah" <manjugk@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com
+To: Daniel Morsing <daniel.morsing@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Bryan Wu <bryan.wu@canonical.com>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Kevin,
+On Wed, 2011-02-16 at 08:06 -0600, Daniel Morsing wrote:
+> Hi Tomi
+>=20
+> On Wed, 2011-02-16 at 15:11 +0200, Tomi Valkeinen wrote:
+> > Hi,
+> >=20
+> > On Sat, 2011-02-12 at 11:02 -0600, Daniel Morsing wrote:
+> > > The panel added is the 4.3 inch display that is sold with the
+> > > Devkit8000.
+> >=20
+> > Hmm. Devkit8000's panel is connected with 24 datalines, according t=
+o the
+> > board file. Why do you want to use 16 bpp format for that?
+> >=20
+> >  Tomi
+> >=20
+>=20
+> Running the panel at 24 bpp or specifying 16 datalines causes color
+> distortion.
+>=20
+> The only way I've been able to run the panel without color distortion=
+,
+> is with 24 datalines and 16 bpp.
+>=20
+> I'm not well versed in displays, so I might be making a mistake
+> somewhere. The BSP for the devkit8000 doesn't include a datasheet for
+> the panel, so I can't look into what's causing this weirdness.
 
-On Mon, Feb 14, 2011 at 02:06:53PM -0800, Kevin Hilman wrote:
-> "G, Manjunath Kondaiah" <manjugk@ti.com> writes:
-> 
-> > From: Manjunath G Kondaiah <manjugk@ti.com>
-> >
-> > Enable runtime pm and use pm_runtime_get_sync and pm_runtime_put_autosuspend
-> > for OMAP DMA driver.
-> >
-> > The DMA driver uses auto suspend feature of runtime pm framework through
-> > which the clock gets disabled automatically if there is no activity for
-> > more than one second.
-> >
-> > Testing:
-> > Compile: omap1_defconfig and omap2plus_defconfig
-> > Boot: OMAP1710(H3), OMAP2420(H4), OMAP3630(Zoom3), OMAP4(Blaze)
-> 
-> The normal DMA tests should also be run on these platforms.  Based on
-> the above, I can't tell any DMA tests were run.   Based on my tests,
-> this isn't working for chained xfers.
-> 
-> Using the runtime PM sysfs interface, you can check the runtime status
-> of the device:
-> 
-> # cat /sys/devices/platform/omap/omap_dma_system.0/power/runtime_status          
-> 
-> It should show 'active' during transfer, and after timeout expires it
-> will show 'suspended'.
-> 
-> Doing some tests using my dmatest module:
-> 
->   git://gitorious.org/omap-test/dmatest.git
-> 
-> I noticed that it gets stuck in 'active' and never gets suspended when I
-> used DMA channel linking (load module using 'linking=1' as load-time option)
-> 
-> I'm not sure exactly why, but I will guess that the reason is that there
-> is an imbalance in get/put calls when using chaining, since 'get' is
-> only called once upon omap_start_dma() but 'put' is called for every
-> channel in the callback.
+I don't think I'll add a feature which doesn't make sense, to fix a
+problem we don't understand =3D).
 
-Even I noticed this after running chaining test case and checking
-runtime status. But, I am wondering even with 'active' runtime status, 
-the core hits off and retention.
+A datasheet I found mentions
 
-The complete log which has all the sequences of running chaining tests,
-enabling off mode and checking runtime status is available at:
-http://pastebin.com/YEHMEXUP
+"One 4.3=E2=80=9D TFT LCD (With Touch panel, CHI HSIN LR043JC211 LCD
+Model)"
 
-Though I agree on the point that, it is mismatch with get/put calls with
-DMA chaining, I still need to analyze this in detail.
+And I found:
 
-The other thing which is not considered here is, the get_sync is called
-inside start_dma only(request_dma will call get_sync and put after the
-getting requested channel). After request_dma and start_dma, there are
-API's called by user(dma_set_params, priority etc) which also require
-get_sync since those API's will access configuration registers. I am
-wondering if have get_sync and put in all the API's, this might result
-in over loading. 
+http://www.timll.com/chinese/download/files/CHILIN_TECHNOLOGY.pdf
 
-> 
-> > On zoom3 core retention is tested with following steps:
-> > echo 1 > /debug/pm_debug/sleep_while_idle
-> > echo 1 > /debug/pm_debug/enable_off_mode
-> > echo 5 > /sys/devices/platform/omap/omap_uart.0/sleep_timeout
-> > echo 5 > /sys/devices/platform/omap/omap_uart.1/sleep_timeout
-> > echo 5 > /sys/devices/platform/omap/omap_uart.2/sleep_timeout
-> > echo 5 > /sys/devices/platform/omap/omap_uart.3/sleep_timeout
-> >
-> > It is observed that(on pm branch), core retention count gets increasing if the
-> > board is left idle for more than 5 seconds. However, it doesnot enter off mode
-> > (even without DMA runtime changes).
-> 
-> What silicon rev is on your Zoom3?  
-It's 3630 ES1.0. 
-> Mainline kernels now disable core off-mode for 3630 revs < ES2.1 due to erratum 
->i583.
-> 
-> If this happens, you should see something like this on the console:
-> 
->            Core OFF disabled due to errata i583
-> 
-We can observe above message in mainline after enabling cpu idle in
-omap2plus_defconfig.
+It looks like 24bpp display.
 
-I switched to zoom2 and able to hit core retention and
-off mode with mainline.
+What kind of color distortion do you see? Perhaps the problem is
+somewhere else, like wrong horizontal sync, vertical sync or pixel cloc=
+k
+signal setting in .config field. This info should be in the panel
+datasheet, but it usually takes some deciphering to understand it =3D).
 
--Manjunath
+ Tomi
 
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
