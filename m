@@ -1,108 +1,61 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH 5/6 v2] cbus: retu: tabify retu initialization
-Date: Wed, 16 Feb 2011 22:01:20 +0200
-Message-ID: <1297886481-26098-6-git-send-email-balbi@ti.com>
+Subject: [PATCH 4/6] cbus: retu: replace EXPORT_SYMBOL with EXPORT_SYMBOL_GPL
+Date: Wed, 16 Feb 2011 22:01:19 +0200
+Message-ID: <1297886481-26098-5-git-send-email-balbi@ti.com>
 References: <1297886481-26098-1-git-send-email-balbi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:47389 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753788Ab1BPUBn (ORCPT
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:44975 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754177Ab1BPUBp (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 16 Feb 2011 15:01:43 -0500
-Received: by bwz15 with SMTP id 15so1161580bwz.5
-        for <linux-omap@vger.kernel.org>; Wed, 16 Feb 2011 12:01:41 -0800 (PST)
+	Wed, 16 Feb 2011 15:01:45 -0500
+Received: by bwz13 with SMTP id 13so2840374bwz.15
+        for <linux-omap@vger.kernel.org>; Wed, 16 Feb 2011 12:01:43 -0800 (PST)
 In-Reply-To: <1297886481-26098-1-git-send-email-balbi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
 
-and while at that, save a register and drop
-the irq variable which is used right before
-initializing it to retu->irq.
+We don't want non-GPL retu children, so force
+all exported symbols to be GPL-only.
 
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- drivers/cbus/retu.c |   27 +++++++++++----------------
- 1 files changed, 11 insertions(+), 16 deletions(-)
+ drivers/cbus/retu.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/cbus/retu.c b/drivers/cbus/retu.c
-index 4c8a7ea..a4c565b 100644
+index af4d96a..4c8a7ea 100644
 --- a/drivers/cbus/retu.c
 +++ b/drivers/cbus/retu.c
-@@ -438,7 +438,6 @@ static int __init retu_probe(struct platform_device *pdev)
+@@ -106,7 +106,7 @@ int retu_read_reg(struct device *child, unsigned reg)
  
- 	int		ret = -ENOMEM;
- 	int		rev;
--	int		irq;
+ 	return __retu_read_reg(retu, reg);
+ }
+-EXPORT_SYMBOL(retu_read_reg);
++EXPORT_SYMBOL_GPL(retu_read_reg);
  
- 	retu = kzalloc(sizeof(*retu), GFP_KERNEL);
- 	if (!retu) {
-@@ -447,16 +446,14 @@ static int __init retu_probe(struct platform_device *pdev)
- 	}
+ /**
+  * retu_write_reg - Write a value to a register in Retu
+@@ -122,7 +122,7 @@ void retu_write_reg(struct device *child, unsigned reg, u16 val)
  
- 	platform_set_drvdata(pdev, retu);
--	the_retu = retu;
+ 	__retu_write_reg(retu, reg, val);
+ }
+-EXPORT_SYMBOL(retu_write_reg);
++EXPORT_SYMBOL_GPL(retu_write_reg);
  
--	mutex_init(&retu->mutex);
--
--	irq = platform_get_irq(pdev, 0);
-+	retu->irq	= platform_get_irq(pdev, 0);
-+	retu->irq_base	= pdata->irq_base;
-+	retu->irq_end	= pdata->irq_end;
-+	retu->devid	= pdata->devid;
-+	the_retu	= retu;
+ /**
+  * retu_set_clear_reg_bits - helper function to read/set/clear bits
+@@ -185,7 +185,7 @@ int retu_read_adc(struct device *child, int channel)
  
--	retu->irq = irq;
--	retu->irq_base = pdata->irq_base;
--	retu->irq_end = pdata->irq_end;
--	retu->devid = pdata->devid;
-+	mutex_init(&retu->mutex);
+ 	return res;
+ }
+-EXPORT_SYMBOL(retu_read_adc);
++EXPORT_SYMBOL_GPL(retu_read_adc);
  
- 	retu_irq_init(retu);
- 
-@@ -471,14 +468,14 @@ static int __init retu_probe(struct platform_device *pdev)
- 	/* Mask all RETU interrupts */
- 	__retu_write_reg(retu, RETU_REG_IMR, 0xffff);
- 
--	ret = request_threaded_irq(irq, NULL, retu_irq_handler, 0,
-+	ret = request_threaded_irq(retu->irq, NULL, retu_irq_handler, 0,
- 			  "retu", retu);
- 	if (ret < 0) {
- 		dev_err(&pdev->dev, "Unable to register IRQ handler\n");
- 		goto err1;
- 	}
- 
--	set_irq_wake(irq, 1);
-+	set_irq_wake(retu->irq, 1);
- 
- 	/* Register power off function */
- 	pm_power_off = retu_power_off;
-@@ -493,7 +490,7 @@ static int __init retu_probe(struct platform_device *pdev)
- 
- err2:
- 	__retu_write_reg(retu, RETU_REG_IMR, 0xffff);
--	free_irq(irq, retu);
-+	free_irq(retu->irq, retu);
- 
- err1:
- 	kfree(retu);
-@@ -506,13 +503,11 @@ err0:
- static int __exit retu_remove(struct platform_device *pdev)
+ static irqreturn_t retu_irq_handler(int irq, void *_retu)
  {
- 	struct retu		*retu = platform_get_drvdata(pdev);
--	int			irq;
--
--	irq = platform_get_irq(pdev, 0);
- 
- 	/* Mask all RETU interrupts */
- 	__retu_write_reg(retu, RETU_REG_IMR, 0xffff);
--	free_irq(irq, retu);
-+
-+	free_irq(retu->irq, retu);
- 	retu_irq_exit(retu);
- 	kfree(retu);
- 	the_retu = NULL;
 -- 
 1.7.4.rc2
 
