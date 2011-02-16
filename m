@@ -1,340 +1,232 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Subject: Re: [PATCH 2/2] hwmon: twl4030: Hwmon Driver for TWL4030 MADC
-Date: Wed, 16 Feb 2011 08:09:48 -0800
-Message-ID: <20110216160948.GB14199@ericsson.com>
-References: <1297861017-10057-1-git-send-email-j-keerthy@ti.com>
+From: David Cohen <dacohen@gmail.com>
+Subject: Re: [PATCH v2 1/1] OMAP: IOMMU: add support to callback during fault handling
+Date: Wed, 16 Feb 2011 18:28:49 +0200
+Message-ID: <AANLkTikcd9EkgUpm9JMPoiG+O3_CVBGO9T_45Me-qWn3@mail.gmail.com>
+References: <1297780591-15613-1-git-send-email-dacohen@gmail.com>
+	<1297780591-15613-2-git-send-email-dacohen@gmail.com>
+	<20110215.164822.811675675026794737.Hiroshi.DOYU@nokia.com>
+	<AANLkTikK0zAYtSaA1LCdkn2t4_XiTH_DmESEzw8MLvfU@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from imr4.ericy.com ([198.24.6.8]:59272 "EHLO imr4.ericy.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751968Ab1BPQKg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 16 Feb 2011 11:10:36 -0500
-Content-Disposition: inline
-In-Reply-To: <1297861017-10057-1-git-send-email-j-keerthy@ti.com>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:60850 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753121Ab1BPQ2u convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Feb 2011 11:28:50 -0500
+Received: by iyj8 with SMTP id 8so1383439iyj.19
+        for <linux-omap@vger.kernel.org>; Wed, 16 Feb 2011 08:28:50 -0800 (PST)
+In-Reply-To: <AANLkTikK0zAYtSaA1LCdkn2t4_XiTH_DmESEzw8MLvfU@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "mikko.k.ylinen@nokia.com" <mikko.k.ylinen@nokia.com>, "amit.kucheria@canonical.com" <amit.kucheria@canonical.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com
 
-On Wed, Feb 16, 2011 at 07:56:57AM -0500, Keerthy wrote:
-> This driver exposes the sysfs nodes of the TWL4030 MADC module.
-> All the channel values are expressed in terms of mV. Channel 13
-> and channel 14 are reserved. There are channels which represent
-> temperature and current. Even they output raw voltage in mV.
-> 
-Why ?
+On Tue, Feb 15, 2011 at 5:10 PM, David Cohen <dacohen@gmail.com> wrote:
+> On Tue, Feb 15, 2011 at 4:48 PM, Hiroshi DOYU <Hiroshi.DOYU@nokia.com=
+> wrote:
+>> Hi David,
+>
+> Hi Hiroshi,
+>
+>>
+>> Sorry for a bit late reply....
+>
+> You're just in time. :)
+>
+>>
+>> From: David Cohen <dacohen@gmail.com>
+>> Subject: [PATCH v2 1/1] OMAP: IOMMU: add support to callback during =
+fault handling
+>> Date: Tue, 15 Feb 2011 16:36:31 +0200
+>>
+>>> Add support to register a callback for IOMMU fault situations. Driv=
+ers using
+>>> IOMMU module might want to be informed when such errors happen in o=
+rder to
+>>> debug it or react.
+>>>
+>>> Signed-off-by: David Cohen <dacohen@gmail.com>
+>>> ---
+>>> =C2=A0arch/arm/mach-omap2/iommu2.c =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0| =C2=A0 21 +++++++++++++--
+>>> =C2=A0arch/arm/plat-omap/include/plat/iommu.h | =C2=A0 15 +++++++++=
++-
+>>> =C2=A0arch/arm/plat-omap/iommu.c =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0| =C2=A0 41 ++++++++++++++++++++++++++++---
+>>> =C2=A03 files changed, 69 insertions(+), 8 deletions(-)
+>>>
+>>> diff --git a/arch/arm/mach-omap2/iommu2.c b/arch/arm/mach-omap2/iom=
+mu2.c
+>>> index 14ee686..504310d 100644
+>>> --- a/arch/arm/mach-omap2/iommu2.c
+>>> +++ b/arch/arm/mach-omap2/iommu2.c
+>>> @@ -143,10 +143,10 @@ static void omap2_iommu_set_twl(struct iommu =
+*obj, bool on)
+>>> =C2=A0 =C2=A0 =C2=A0 __iommu_set_twl(obj, false);
+>>> =C2=A0}
+>>>
+>>> -static u32 omap2_iommu_fault_isr(struct iommu *obj, u32 *ra)
+>>> +static u32 omap2_iommu_fault_isr(struct iommu *obj, u32 *ra, u32 *=
+iommu_errs)
+>>> =C2=A0{
+>>> =C2=A0 =C2=A0 =C2=A0 int i;
+>>> - =C2=A0 =C2=A0 u32 stat, da;
+>>> + =C2=A0 =C2=A0 u32 stat, da, errs;
+>>> =C2=A0 =C2=A0 =C2=A0 const char *err_msg[] =3D {
+>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 "tlb miss",
+>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 "translation fault=
+",
+>>> @@ -157,8 +157,10 @@ static u32 omap2_iommu_fault_isr(struct iommu =
+*obj, u32 *ra)
+>>>
+>>> =C2=A0 =C2=A0 =C2=A0 stat =3D iommu_read_reg(obj, MMU_IRQSTATUS);
+>>> =C2=A0 =C2=A0 =C2=A0 stat &=3D MMU_IRQ_MASK;
+>>> - =C2=A0 =C2=A0 if (!stat)
+>>> + =C2=A0 =C2=A0 if (!stat) {
+>>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 *iommu_errs =3D 0;
+>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return 0;
+>>> + =C2=A0 =C2=A0 }
+>>>
+>>> =C2=A0 =C2=A0 =C2=A0 da =3D iommu_read_reg(obj, MMU_FAULT_AD);
+>>> =C2=A0 =C2=A0 =C2=A0 *ra =3D da;
+>>> @@ -171,6 +173,19 @@ static u32 omap2_iommu_fault_isr(struct iommu =
+*obj, u32 *ra)
+>>> =C2=A0 =C2=A0 =C2=A0 }
+>>> =C2=A0 =C2=A0 =C2=A0 printk("\n");
+>>>
+>>> + =C2=A0 =C2=A0 errs =3D 0;
+>>> + =C2=A0 =C2=A0 if (stat & MMU_IRQ_TLBMISS)
+>>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 errs |=3D OMAP_IOMMU_ER=
+R_TLB_MISS;
+>>> + =C2=A0 =C2=A0 if (stat & MMU_IRQ_TRANSLATIONFAULT)
+>>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 errs |=3D OMAP_IOMMU_ER=
+R_TRANS_FAULT;
+>>> + =C2=A0 =C2=A0 if (stat & MMU_IRQ_EMUMISS)
+>>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 errs |=3D OMAP_IOMMU_ER=
+R_EMU_MISS;
+>>> + =C2=A0 =C2=A0 if (stat & MMU_IRQ_TABLEWALKFAULT)
+>>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 errs |=3D OMAP_IOMMU_ER=
+R_TBLWALK_FAULT;
+>>> + =C2=A0 =C2=A0 if (stat & MMU_IRQ_MULTIHITFAULT)
+>>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 errs |=3D OMAP_IOMMU_ER=
+R_MULTIHIT_FAULT;
+>>> + =C2=A0 =C2=A0 *iommu_errs =3D errs;
+>>> +
+>>> =C2=A0 =C2=A0 =C2=A0 iommu_write_reg(obj, stat, MMU_IRQSTATUS);
+>>>
+>>> =C2=A0 =C2=A0 =C2=A0 return stat;
+>>> diff --git a/arch/arm/plat-omap/include/plat/iommu.h b/arch/arm/pla=
+t-omap/include/plat/iommu.h
+>>> index 19cbb5e..5a2475f 100644
+>>> --- a/arch/arm/plat-omap/include/plat/iommu.h
+>>> +++ b/arch/arm/plat-omap/include/plat/iommu.h
+>>> @@ -31,6 +31,7 @@ struct iommu {
+>>> =C2=A0 =C2=A0 =C2=A0 struct clk =C2=A0 =C2=A0 =C2=A0*clk;
+>>> =C2=A0 =C2=A0 =C2=A0 void __iomem =C2=A0 =C2=A0*regbase;
+>>> =C2=A0 =C2=A0 =C2=A0 struct device =C2=A0 *dev;
+>>> + =C2=A0 =C2=A0 void =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0*faul=
+t_cb_priv;
+>>>
+>>> =C2=A0 =C2=A0 =C2=A0 unsigned int =C2=A0 =C2=A0refcount;
+>>> =C2=A0 =C2=A0 =C2=A0 struct mutex =C2=A0 =C2=A0iommu_lock; =C2=A0 =C2=
+=A0 /* global for this whole object */
+>>> @@ -48,6 +49,7 @@ struct iommu {
+>>> =C2=A0 =C2=A0 =C2=A0 struct mutex =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0mmap_lock; /* protect mmap */
+>>>
+>>> =C2=A0 =C2=A0 =C2=A0 int (*isr)(struct iommu *obj);
+>>> + =C2=A0 =C2=A0 void (*fault_cb)(struct iommu *obj, u32 da, u32 iom=
+mu_errs, void *priv);
+>>
+>> What about making use of (*isr)() for fault call back as well?
+>>
+>> Basic concept is that, client can decide how to deal with iommu
+>> fault. For example, for advanced case, client wants daynamic loading=
+ of
+>> TLB(or PTE), or for ISP case, clients just want more appropriate fau=
+lt
+>> reporting. This (*isr)() could be used in such flexibility.
+>
+> In this case, it seems we can re-use it.
+>
+>>
+>> =C2=A0 785 =C2=A0 * =C2=A0 =C2=A0 =C2=A0Device IOMMU generic operati=
+ons
+>> =C2=A0 786 =C2=A0 */
+>> =C2=A0 787 =C2=A0static irqreturn_t iommu_fault_handler(int irq, voi=
+d *data)
+>> =C2=A0 788 =C2=A0{
+>> =C2=A0 789 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0u32 stat, da;
+>> =C2=A0 790 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0u32 *iopgd, *iopte;
+>> =C2=A0 791 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0int err =3D -EIO;
+>> =C2=A0 792 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0struct iommu *obj =3D d=
+ata;
+>> =C2=A0 793
+>> =C2=A0 794 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0if (!obj->refcount)
+>> =C2=A0 795 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0return IRQ_NONE;
+>> =C2=A0 796
+>> =C2=A0 797 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0/* Dynamic loading TLB =
+or PTE */
+>> =C2=A0 798 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0if (obj->isr)
+>> =C2=A0 799 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0err =3D obj->isr(obj);
+>> =C2=A0 800
+>> =C2=A0 801 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0if (!err)
+>> =C2=A0 802 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0return IRQ_HANDLED;
+>> =C2=A0 803
+>> =C2=A0 804 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0clk_enable(obj->clk);
+>> =C2=A0 805 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0stat =3D iommu_report_f=
+ault(obj, &da);
+>> =C2=A0 806 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0clk_disable(obj->clk);
+>> =C2=A0 807 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0if (!stat)
+>> =C2=A0 808 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0return IRQ_HANDLED;
+>> =C2=A0 809
+>> =C2=A0 810 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0iommu_disable(obj);
+>>
+>> I guess that this modifying the above code could make (*isr)()
+>> flexible to be used for any purpose for clients? For me, having both
+>> following may be a bit residual.
+>
 
-> Signed-off-by: Keerthy <j-keerthy@ti.com>
-> ---
-> 
-> The previous discussion concluded in keeping the generic ADC
-> functionality and the hwmon separate. The discussion can be found here:
-> 
-> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg41805.html
-> 
->  Documentation/hwmon/twl4030-madc-hwmon |   45 +++++++++
->  drivers/hwmon/Kconfig                  |   10 ++
->  drivers/hwmon/Makefile                 |    1 +
->  drivers/hwmon/twl4030-madc-hwmon.c     |  155 ++++++++++++++++++++++++++++++++
->  4 files changed, 211 insertions(+), 0 deletions(-)
->  create mode 100644 Documentation/hwmon/twl4030-madc-hwmon
->  create mode 100644 drivers/hwmon/twl4030-madc-hwmon.c
-> 
-> diff --git a/Documentation/hwmon/twl4030-madc-hwmon b/Documentation/hwmon/twl4030-madc-hwmon
-> new file mode 100644
-> index 0000000..2cf1cc2
-> --- /dev/null
-> +++ b/Documentation/hwmon/twl4030-madc-hwmon
-> @@ -0,0 +1,45 @@
-> +Kernel driver twl4030-madc
-> +=========================
-> +
-> +Supported chips:
-> +	* Texas Instruments TWL4030
-> +	Prefix: 'twl4030-madc'
-> +
-> +
-> +Authors:
-> +	J Keerthy <j-keerthy@ti.com>
-> +
-> +Description
-> +-----------
-> +
-> +The Texas Instruments TWL4030 is a Power Management and Audio Circuit. Among
-> +other things it contains a 10-bit A/D converter MADC. The converter has 16
-> +channels which can be used in different modes.
-> +
-> +
-> +See this table for the meaning of the different channels
-> +
-> +Channel Signal
-> +------------------------------------------
-> +0	Battery type(BTYPE)
-> +1	BCI: Battery temperature (BTEMP)
-> +2	GP analog input
-> +3	GP analog input
-> +4	GP analog input
-> +5	GP analog input
-> +6	GP analog input
-> +7	GP analog input
-> +8	BCI: VBUS voltage(VBUS)
-> +9	Backup Battery voltage (VBKP)
-> +10	BCI: Battery charger current (ICHG)
-> +11	BCI: Battery charger voltage (VCHG)
-> +12	BCI: Main battery voltage (VBAT)
-> +13	Reserved
-> +14	Reserved
-> +15	VRUSB Supply/Speaker left/Speaker right polarization level
-> +
-> +
-> +The Sysfs nodes will represent the voltage in the units of mV,
-> +the temperature channel shows the converted raw voltage in mV.
-> +The Battery charging current channel represents raw voltage mV.
+There are few possible issues in this case. (*isr)() is meant to
+replace the generic fault handler on iommu, but the fault callback
+isn't. Basically fault callback needs to call specific iommu fault
+report to know faulty 'da' and iommu errors, so part of the generic
+fault handler must be called.
 
-Doesn't really make sense to me to export values known to be current and temperature
-as voltages. You'll have to add a lot more information for that to make sense.
+One possible solution is always call specific fault report before
+(*isr)(). IMO it makes sense as (*isr)() might want to know at least
+the current faults.
+But in this case, specific fault report should not print anything else
+as only the upper layer and user will know when a fault is actually an
+error or not. So, they're responsible for error messages.
 
-> +Channel 13 and 14 are reserved.
+I'm sending a v3 with these changes. Comments will be welcome.
 
-You already said that above.
+Br,
 
-> diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
-> index 773e484..11ddde3 100644
-> --- a/drivers/hwmon/Kconfig
-> +++ b/drivers/hwmon/Kconfig
-> @@ -940,6 +940,16 @@ config SENSORS_TMP421
->  	  This driver can also be built as a module.  If so, the module
->  	  will be called tmp421.
->  
-> +config SENSORS_TWL4030_MADC
-> +	tristate "Texas Instruments TWL4030 MADC Hwmon"
-> +	depends on TWL4030_MADC
-> +	help
-> +	This driver provides hwmon support for triton TWL4030-MADC.
-> +	This driver can be built as part of kernel or can be built
-> +	as a module.
+David
 
-	Kernel is obvious. Please stick with the usual text
-
-	"This driver can also be built as a module.  If so, the module
-         will be called XXXX"
-
-At least please tell users how the module is named.
-
-> +		This driver exposes the various voltage values to
-> +	the user space.
-> +
-Not sure if this provides any value. Either case, it should be before "built as module".
-
->  config SENSORS_VIA_CPUTEMP
->  	tristate "VIA CPU temperature sensor"
->  	depends on X86
-> diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
-> index dde02d9..bc7d740 100644
-> --- a/drivers/hwmon/Makefile
-> +++ b/drivers/hwmon/Makefile
-> @@ -102,6 +102,7 @@ obj-$(CONFIG_SENSORS_THMC50)	+= thmc50.o
->  obj-$(CONFIG_SENSORS_TMP102)	+= tmp102.o
->  obj-$(CONFIG_SENSORS_TMP401)	+= tmp401.o
->  obj-$(CONFIG_SENSORS_TMP421)	+= tmp421.o
-> +obj-$(CONFIG_SENSORS_TWL4030_MADC)+= twl4030-madc-hwmon.o
->  obj-$(CONFIG_SENSORS_VIA_CPUTEMP)+= via-cputemp.o
->  obj-$(CONFIG_SENSORS_VIA686A)	+= via686a.o
->  obj-$(CONFIG_SENSORS_VT1211)	+= vt1211.o
-> diff --git a/drivers/hwmon/twl4030-madc-hwmon.c b/drivers/hwmon/twl4030-madc-hwmon.c
-> new file mode 100644
-> index 0000000..4a61e8a
-> --- /dev/null
-> +++ b/drivers/hwmon/twl4030-madc-hwmon.c
-> @@ -0,0 +1,155 @@
-> +/*
-> + *
-> + * TWL4030 MADC Hwmon driver-This driver monitors the real time
-> + * conversion of analog signals like battery temperature,
-> + * battery type, battery level etc. User can ask for the conversion on a
-> + * particular channel using the sysfs nodes.
-> + *
-> + * Copyright (C) 2010 Texas Instruments Incorporated - http://www.ti.com/
-
-2011 ?
-
-> + * J Keerthy <j-keerthy@ti.com>
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License
-> + * version 2 as published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful, but
-> + * WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-> + * General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-> + * 02110-1301 USA
-> + *
-> + */
-> +
-> +#include <linux/platform_device.h>
-> +#include <linux/i2c/twl.h>
-> +#include <linux/i2c/twl4030-madc.h>
-> +#include <linux/hwmon.h>
-> +#include <linux/hwmon-sysfs.h>
-> +
-> +/*
-> + * sysfs hook function
-> + */
-> +static ssize_t madc_read(struct device *dev,
-> +			 struct device_attribute *devattr, char *buf)
-> +{
-> +	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-> +	struct twl4030_madc_request req;
-> +	long val;
-> +
-> +	req.channels = (1 << attr->index);
-> +	req.method = TWL4030_MADC_SW2;
-> +	req.func_cb = NULL;
-> +	val = twl4030_madc_conversion(&req);
-> +	if (val >= 0)
-> +		val = req.rbuf[attr->index];
-> +	else
-> +		return val;
-> +
-Seems to be a bit complicated.
-
-	if (val < 0)
-		return val;
-
-	return sprintf(buf, "%ld\n", req.rbuf[attr->index]);
-
-would be more straightforward.
-
-> +	return sprintf(buf, "%ld\n", val);
-> +}
-> +
-> +/* sysfs nodes to read individual channels from user side */
-> +static SENSOR_DEVICE_ATTR(in0_battery_type, S_IRUGO, madc_read, NULL, 0);
-> +static SENSOR_DEVICE_ATTR(in1_battery_temp, S_IRUGO, madc_read, NULL, 1);
-
-I don't know why people always try to introduce new sysfs attributes
-for no good reason. Use a label if you want to describe the sensor.
-And use tempX_input for temperatures, and currX_input for currents.
-
-I am not inclined to accept drivers introducing new sysfs attributes,
-unless the new attribute has either been discussed and added to the ABI,
-or if a _really_ good reason for the non-standard attribute is provided.
-Neither is the case here. 
-
-> +static SENSOR_DEVICE_ATTR(in2_input, S_IRUGO, madc_read, NULL, 2);
-> +static SENSOR_DEVICE_ATTR(in3_input, S_IRUGO, madc_read, NULL, 3);
-> +static SENSOR_DEVICE_ATTR(in4_input, S_IRUGO, madc_read, NULL, 4);
-> +static SENSOR_DEVICE_ATTR(in5_input, S_IRUGO, madc_read, NULL, 5);
-> +static SENSOR_DEVICE_ATTR(in6_input, S_IRUGO, madc_read, NULL, 6);
-> +static SENSOR_DEVICE_ATTR(in7_input, S_IRUGO, madc_read, NULL, 7);
-> +static SENSOR_DEVICE_ATTR(in8_vbus, S_IRUGO, madc_read, NULL, 8);
-> +static SENSOR_DEVICE_ATTR(in9_vbkp, S_IRUGO, madc_read, NULL, 9);
-> +static SENSOR_DEVICE_ATTR(in10_battery_charger_current,
-> +			S_IRUGO, madc_read, NULL, 10);
-> +static SENSOR_DEVICE_ATTR(in11_battery_charger_voltage,
-> +			S_IRUGO, madc_read, NULL, 11);
-> +static SENSOR_DEVICE_ATTR(in12_main_battery_voltage,
-> +			S_IRUGO, madc_read, NULL, 12);
-
-... and again ...
-
-> +static SENSOR_DEVICE_ATTR(in15_input, S_IRUGO, madc_read, NULL, 15);
-> +
-
-Number sequence doesn't have to match chip channel number.
-Sure you want to leave a hole here ?
-
-Either case, you should describe in the documentation how chip channels
-match attribute names.
-
-> +static struct attribute *twl4030_madc_attributes[] = {
-> +	&sensor_dev_attr_in0_battery_type.dev_attr.attr,
-> +	&sensor_dev_attr_in1_battery_temp.dev_attr.attr,
-> +	&sensor_dev_attr_in2_input.dev_attr.attr,
-> +	&sensor_dev_attr_in3_input.dev_attr.attr,
-> +	&sensor_dev_attr_in4_input.dev_attr.attr,
-> +	&sensor_dev_attr_in5_input.dev_attr.attr,
-> +	&sensor_dev_attr_in6_input.dev_attr.attr,
-> +	&sensor_dev_attr_in7_input.dev_attr.attr,
-> +	&sensor_dev_attr_in8_vbus.dev_attr.attr,
-> +	&sensor_dev_attr_in9_vbkp.dev_attr.attr,
-> +	&sensor_dev_attr_in10_battery_charger_current.dev_attr.attr,
-> +	&sensor_dev_attr_in11_battery_charger_voltage.dev_attr.attr,
-> +	&sensor_dev_attr_in12_main_battery_voltage.dev_attr.attr,
-> +	&sensor_dev_attr_in15_input.dev_attr.attr,
-> +	NULL
-> +};
-> +
-> +static const struct attribute_group twl4030_madc_group = {
-> +	.attrs = twl4030_madc_attributes,
-> +};
-> +
-> +static int __devinit twl4030_madc_hwmon_probe(struct platform_device *pdev)
-> +{
-> +	int ret;
-> +	int status;
-> +	struct device *hwmon;
-> +
-> +	ret = sysfs_create_group(&pdev->dev.kobj, &twl4030_madc_group);
-> +	if (ret)
-> +		goto err_sysfs;
-> +	hwmon = hwmon_device_register(&pdev->dev);
-> +	if (IS_ERR(hwmon)) {
-> +		dev_err(&pdev->dev, "hwmon_device_register failed.\n");
-> +		status = PTR_ERR(hwmon);
-> +		goto err_reg;
-> +	}
-> +
-> +	return 0;
-> +
-> +err_reg:
-> +	sysfs_remove_group(&pdev->dev.kobj, &twl4030_madc_group);
-> +err_sysfs:
-> +
-> +	return ret;
-> +}
-> +
-> +static int __devexit twl4030_madc_hwmon_remove(struct platform_device *pdev)
-> +{
-> +	hwmon_device_unregister(&pdev->dev);
-> +	sysfs_remove_group(&pdev->dev.kobj, &twl4030_madc_group);
-> +
-> +	return 0;
-> +}
-> +
-> +static struct platform_driver twl4030_madc_hwmon_driver = {
-> +	.probe = twl4030_madc_hwmon_probe,
-> +	.remove = __exit_p(twl4030_madc_hwmon_remove),
-> +	.driver = {
-> +		   .name = "twl4030_madc_hwmon",
-> +		   .owner = THIS_MODULE,
-> +		   },
-> +};
-> +
-> +static int __init twl4030_madc_hwmon_init(void)
-> +{
-> +	return platform_driver_register(&twl4030_madc_hwmon_driver);
-> +}
-> +
-> +module_init(twl4030_madc_hwmon_init);
-> +
-> +static void __exit twl4030_madc_hwmon_exit(void)
-> +{
-> +	platform_driver_unregister(&twl4030_madc_hwmon_driver);
-> +}
-> +
-> +module_exit(twl4030_madc_hwmon_exit);
-> +
-> +MODULE_DESCRIPTION("TWL4030 ADC Hwmon driver");
-> +MODULE_LICENSE("GPL");
-> +MODULE_AUTHOR("J Keerthy");
-> +MODULE_ALIAS("twl4030_madc_hwmon");
-> -- 
-> 1.7.0.4
-> 
+> I agree. We need to add 'void *isr_priv' to iommu struct and the
+> function to register isr.
+> I'll send a v3 soon.
+>
+> Regards,
+>
+> David
+>
+>>
+>>> =C2=A0 =C2=A0 =C2=A0 int (*isr)(struct iommu *obj);
+>>> + =C2=A0 =C2=A0 void (*fault_cb)(struct iommu *obj, u32 da, u32 iom=
+mu_errs, void *priv);
+>>
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
