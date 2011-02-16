@@ -1,86 +1,113 @@
-From: =?ISO-8859-15?Q?Robert_W=F6rle?= <rwoerle@mibtec.de>
-Subject: Omapdss Managers confusion
-Date: Wed, 16 Feb 2011 09:34:58 +0100
-Message-ID: <4D5B8C32.1070708@mibtec.de>
+From: Bob Liu <lliubbo@gmail.com>
+Subject: Re: [PATCH] arm: omap3beagle: init musb default role by Kconfig
+Date: Wed, 16 Feb 2011 16:49:34 +0800
+Message-ID: <AANLkTikjhkhQzDDVazEr8wP7JHnnonGs8GFytA=QaE6c@mail.gmail.com>
+References: <1297760100-7200-1-git-send-email-lliubbo@gmail.com>
+	<20110215112350.GM2570@legolas.emea.dhcp.ti.com>
+	<AANLkTik-tZKZ-0G1RBXD0rz1O4=wLXtHd2wTD-61dLm0@mail.gmail.com>
+	<20110216080506.GC2497@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:63802 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758717Ab1BPIfA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Feb 2011 03:35:00 -0500
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:48470 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757608Ab1BPItf convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Feb 2011 03:49:35 -0500
+Received: by wyb28 with SMTP id 28so1083666wyb.19
+        for <linux-omap@vger.kernel.org>; Wed, 16 Feb 2011 00:49:34 -0800 (PST)
+In-Reply-To: <20110216080506.GC2497@legolas.emea.dhcp.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: balbi@ti.com
+Cc: linux-omap@vger.kernel.org, archit@ti.com, tony@atomide.com, adrian.hunter@nokia.com
 
-Dear All
+On Wed, Feb 16, 2011 at 4:05 PM, Felipe Balbi <balbi@ti.com> wrote:
+> On Wed, Feb 16, 2011 at 10:07:26AM +0800, Bob Liu wrote:
+>> On Tue, Feb 15, 2011 at 7:23 PM, Felipe Balbi <balbi@ti.com> wrote:
+>> > Hi,
+>> >
+>> > On Tue, Feb 15, 2011 at 04:55:00PM +0800, Bob Liu wrote:
+>> >> Currently musb is initialized to OTG mode by default in musb_boar=
+d_data, it's
+>> >> better to init it depending on Kconfig.
+>> >
+>> > what's the problem in always keeping OTG ? that board is wired for=
+ OTG
+>> > anyway.
+>> >
+>>
+>> Yeah, but it's better if user can make their choices by themselves.
+>> Or mask the other choices in Kconfig if keeping OTG.
+>> Currently user can select HOST-only mode in Kconfig, but will receiv=
+e
+>> compiler error.
+>> In my opinion, this should be consist.
+>
+> compile error ?? Would you share that ? All I see is a dev_err() when
+> Kconfig doesn't match board-file.
+>
+>> Another problem is if keeping in OTG mode, my board can't recognize =
+usb device.
+>> HOST-only mode works fine, I am still debugging on it.
+>> But I think it's not related with current topic.
+>
+> I can be related. Try this:
 
-May someon drop me a line about the following
+Yeah, it works. Thanks, sorry for the noise
+=2E
+BTW: Is the below patch which about musb_core.c will be merged into mai=
+nline ?
 
-I am trying to run up a good gst pipeline ( to start with  videotestsrc) 
-but i am running into this
+>
+> diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_cor=
+e.c
+> index 54a8bd1..bc29655 100644
+> --- a/drivers/usb/musb/musb_core.c
+> +++ b/drivers/usb/musb/musb_core.c
+> @@ -1949,31 +1949,6 @@ musb_init_controller(struct device *dev, int n=
+Irq, void __iomem *ctrl)
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0goto fail0;
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0}
+>
+> - =C2=A0 =C2=A0 =C2=A0 switch (plat->mode) {
+> - =C2=A0 =C2=A0 =C2=A0 case MUSB_HOST:
+> -#ifdef CONFIG_USB_MUSB_HDRC_HCD
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 break;
+> -#else
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 goto bad_config;
+> -#endif
+> - =C2=A0 =C2=A0 =C2=A0 case MUSB_PERIPHERAL:
+> -#ifdef CONFIG_USB_GADGET_MUSB_HDRC
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 break;
+> -#else
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 goto bad_config;
+> -#endif
+> - =C2=A0 =C2=A0 =C2=A0 case MUSB_OTG:
+> -#ifdef CONFIG_USB_MUSB_OTG
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 break;
+> -#else
+> -bad_config:
+> -#endif
+> - =C2=A0 =C2=A0 =C2=A0 default:
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 dev_err(dev, "inco=
+mpatible Kconfig role setting\n");
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 status =3D -EINVAL=
+;
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 goto fail0;
+> - =C2=A0 =C2=A0 =C2=A0 }
+> -
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0/* allocate */
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0musb =3D allocate_instance(dev, plat->conf=
+ig, ctrl);
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0if (!musb) {
+>
 
-My Device: igep0030 module
-my kernel:  2.6.35.9  from here ( 
-http://git.igep.es/?p=pub/scm/linux-omap-2.6.git;a=summary)
-cmdline is : omapfb.mode=lcd:1024x768MR@60 ubi.mtd=4 rootfstype=ubifs 
-root=ubi0 console=ttyS0,115200n8 video=omapfb:vram:2M,vram:4M 
-mem=88M@0x80000000 mem=384M@0x88000000
-
-All is compiled with openembedded.
-
-When i play this:
-
-root@biogas:~# DMAI_DEBUG=2 gst-launch --gst-debug=2  videotestsrc ! 
-TIDmaiVideo
-Sink autoselect=TRUE displayDevice=/dev/fb0 videoStd=VGA
-@0x000e8885:[T:0x402f2000] ti.sdo.dmai - [Dmai] Dmai log level set to 
-'2'. Note that calling CERuntime_init after this point may cause 
-unexpected change to DMAI tracing behavior.
-Setting pipeline to PAUSED ...
-Pipeline is PREROLLING ...
-Pipeline is PREROLLED ...
-Setting pipeline to PLAYING ...
-New clock: GstSystemClock
-@0x00104dc1:[T:0x4185a490] ti.sdo.dmai - [Buffer] Alloc Buffer of size 
-153600 at 0x419c7000 (0x868e7000 phys)
-@0x0010589a:[T:0x4185a490] ti.sdo.dmai - [Dmai] Unknown Device Output Found
-@0x001058f6:[T:0x4185a490] ti.sdo.dmai - [Dmai] Failed to Detect Current 
-Display Output.
-@0x00105914:[T:0x4185a490] ti.sdo.dmai - [Dmai] Attempting to change to 3
-@0x00105951:[T:0x4185a490] ti.sdo.dmai - [Display] Failed to setup sysfs 
-variables
-@0x00105a45:[T:0x4185a490] ti.sdo.dmai - [Dmai] Unknown Device Output Found
-@0x00105a64:[T:0x4185a490] ti.sdo.dmai - [Dmai] Failed to Detect Current 
-Display Output.
-@0x00105a82:[T:0x4185a490] ti.sdo.dmai - [Dmai] Attempting to change to 3
-
-this loops till i stop the pipeline
-
-
-I followed the code into 
-davinci_multimedia_application_interface/dmai/packages/ti/sdo/dmai/linux/omap3530/_Sysfs.c 
-
-where it loops on working out the managers ( waiting for either "lcd" 
-"tv" or "dvi")
-
-also
-kernel/drivers/video/omap2/dss/manager.c  supports only "lcd" and "tv" 
-as managers
-but my kernel shows
-
-root@biogas:~# cat /sys/devices/platform/omapdss/manager0/display
-tft
-
-So do i ve a miscombination of versions here ( one knowing about a new 
-"tft" manager and one not ) ?
-
-All Documents i find never talk about "tft" , where is this coming from ?
-
-Any hints
-
-Thanks in advance
-
-Rob
-
+--=20
+Regards,
+--Bob
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
