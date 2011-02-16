@@ -1,54 +1,60 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] arm: omap3beagle: init musb default role by Kconfig
-Date: Wed, 16 Feb 2011 10:05:06 +0200
-Message-ID: <20110216080506.GC2497@legolas.emea.dhcp.ti.com>
-References: <1297760100-7200-1-git-send-email-lliubbo@gmail.com>
- <20110215112350.GM2570@legolas.emea.dhcp.ti.com>
- <AANLkTik-tZKZ-0G1RBXD0rz1O4=wLXtHd2wTD-61dLm0@mail.gmail.com>
+Subject: Re: OMAP3 & USB NFS root
+Date: Wed, 16 Feb 2011 10:05:43 +0200
+Message-ID: <20110216080543.GD2497@legolas.emea.dhcp.ti.com>
+References: <1297691206.2951.8.camel@deskari>
+ <20110214134842.GH2549@legolas.emea.dhcp.ti.com>
+ <1297692039.2951.10.camel@deskari>
+ <20110214140216.GJ2549@legolas.emea.dhcp.ti.com>
+ <1297838666.2031.8.camel@deskari>
+ <20110216080227.GB2497@legolas.emea.dhcp.ti.com>
 Reply-To: balbi@ti.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:54306 "EHLO
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:54733 "EHLO
 	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752234Ab1BPIFL (ORCPT
+	by vger.kernel.org with ESMTP id S1753078Ab1BPIFr (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 16 Feb 2011 03:05:11 -0500
+	Wed, 16 Feb 2011 03:05:47 -0500
 Received: by mail-bw0-f42.google.com with SMTP id 13so1970834bwz.15
-        for <linux-omap@vger.kernel.org>; Wed, 16 Feb 2011 00:05:10 -0800 (PST)
+        for <linux-omap@vger.kernel.org>; Wed, 16 Feb 2011 00:05:46 -0800 (PST)
 Content-Disposition: inline
-In-Reply-To: <AANLkTik-tZKZ-0G1RBXD0rz1O4=wLXtHd2wTD-61dLm0@mail.gmail.com>
+In-Reply-To: <20110216080227.GB2497@legolas.emea.dhcp.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Bob Liu <lliubbo@gmail.com>
-Cc: balbi@ti.com, linux-omap@vger.kernel.org, archit@ti.com, tony@atomide.com, adrian.hunter@nokia.com
+To: Felipe Balbi <balbi@ti.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Wed, Feb 16, 2011 at 10:07:26AM +0800, Bob Liu wrote:
-> On Tue, Feb 15, 2011 at 7:23 PM, Felipe Balbi <balbi@ti.com> wrote:
-> > Hi,
-> >
-> > On Tue, Feb 15, 2011 at 04:55:00PM +0800, Bob Liu wrote:
-> >> Currently musb is initialized to OTG mode by default in musb_board_data, it's
-> >> better to init it depending on Kconfig.
-> >
-> > what's the problem in always keeping OTG ? that board is wired for OTG
-> > anyway.
-> >
+On Wed, Feb 16, 2011 at 10:02:27AM +0200, Felipe Balbi wrote:
+> Hi,
 > 
-> Yeah, but it's better if user can make their choices by themselves.
-> Or mask the other choices in Kconfig if keeping OTG.
-> Currently user can select HOST-only mode in Kconfig, but will receive
-> compiler error.
-> In my opinion, this should be consist.
+> On Wed, Feb 16, 2011 at 08:44:26AM +0200, Tomi Valkeinen wrote:
+> > > ah, ok. So it's another problem. I don't have beagle, but I have an old
+> > > overo here. Will try tomorrow to see what's going on. Thanks for the
+> > > report.
+> > 
+> > Did you get a chance to try this? Or any suggestions what I could try? I
+> > could of course try to bisect it, but that's quite laborious as I have
+> > to store the kernel into an mmc to be able to use it.
+> 
+> I'm trying to get my overo to work. MMC doesn't seem to be working on
+> u-boot again:
+> 
+> Overo # mmc rescan 0
+> Overo # fatload mmc 0 82000000 uImage
+> reading uImage
+> mmc_send_cmd: timedout waiting for cmddis!
+> mmc fail to send stop cmd
+> mmc_send_cmd: timedout waiting for cmddis!
+> Invalid FAT entry
+> 
+> 952320 bytes read
+> Overo # 
+> 
+> u-boot's HEAD is efb063390d2d1e712c2c8110911616244d562c4b
 
-compile error ?? Would you share that ? All I see is a dev_err() when
-Kconfig doesn't match board-file.
-
-> Another problem is if keeping in OTG mode, my board can't recognize usb device.
-> HOST-only mode works fine, I am still debugging on it.
-> But I think it's not related with current topic.
-
-I can be related. Try this:
+case I can't get it working, would you care to try the below patch ?
 
 diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
 index 54a8bd1..bc29655 100644
@@ -86,6 +92,7 @@ index 54a8bd1..bc29655 100644
         /* allocate */
         musb = allocate_instance(dev, plat->config, ctrl);
         if (!musb) {
+
 
 -- 
 balbi
