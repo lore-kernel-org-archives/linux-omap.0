@@ -1,60 +1,47 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 6/6] cbus: retu: set pm_power_off to NULL when removing
- retu
-Date: Wed, 16 Feb 2011 21:51:09 +0200
-Message-ID: <20110216195109.GD2451@legolas.emea.dhcp.ti.com>
-References: <1297885350-3462-1-git-send-email-balbi@ti.com>
- <1297885350-3462-7-git-send-email-balbi@ti.com>
-Reply-To: balbi@ti.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Subject: [PATCH 0/6] CBUS Third try
+Date: Wed, 16 Feb 2011 22:01:15 +0200
+Message-ID: <1297886481-26098-1-git-send-email-balbi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:57925 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750844Ab1BPTvP (ORCPT
+Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:43286 "EHLO
+	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751365Ab1BPUB0 (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 16 Feb 2011 14:51:15 -0500
-Received: by mail-ey0-f175.google.com with SMTP id 28so997021eya.34
-        for <linux-omap@vger.kernel.org>; Wed, 16 Feb 2011 11:51:12 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <1297885350-3462-7-git-send-email-balbi@ti.com>
+	Wed, 16 Feb 2011 15:01:26 -0500
+Received: by mail-bw0-f46.google.com with SMTP id 15so1042070bwz.33
+        for <linux-omap@vger.kernel.org>; Wed, 16 Feb 2011 12:01:25 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
 
-On Wed, Feb 16, 2011 at 09:42:30PM +0200, Felipe Balbi wrote:
-> we need to clear pm_power_off otherwise we
-> will have kernel trying to call an unexistent
-> function.
-> 
-> Signed-off-by: Felipe Balbi <balbi@ti.com>
-> ---
->  drivers/cbus/retu.c |    5 +++--
->  1 files changed, 3 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/cbus/retu.c b/drivers/cbus/retu.c
-> index d0454bd..0ca58b7 100644
-> --- a/drivers/cbus/retu.c
-> +++ b/drivers/cbus/retu.c
-> @@ -489,6 +489,7 @@ static int __init retu_probe(struct platform_device *pdev)
->  	return 0;
->  
->  err2:
-> +	pm_power_off = NULL;
->  	__retu_write_reg(retu, RETU_REG_IMR, 0xffff);
->  	free_irq(retu->irq, retu);
->  
-> @@ -504,7 +505,8 @@ static int __exit retu_remove(struct platform_device *pdev)
->  {
->  	struct retu		*retu = platform_get_drvdata(pdev);
->  
-> -	irq = platform_get_irq(pdev, 0);
-> +	pm_power_off = NULL;
-> +	the_retu = NULL;
+Hi Tony,
 
-there it goes, I commited that hunk to the wrong patch. Sorry about
-that.
+here are the fixes for CBUS RETU.
+
+Just one patch added, no other differences. My cbus
+branch has been updated for convenience:
+
+git://gitorious.org/usb/usb.git cbus
+
+(I'm starting to think usb.git isn't a good name for that tree)
+
+Felipe Balbi (6):
+  cbus: retu: wdt: save dev in retu_wdt_dev
+  cbus: retu: pass the child device pointer to all retu functions
+  cbus: retu: headset: don't save pdev pointer
+  cbus: retu: replace EXPORT_SYMBOL with EXPORT_SYMBOL_GPL
+  cbus: retu: tabify retu initialization
+  cbus: retu: set pm_power_off to NULL when removing retu
+
+ drivers/cbus/retu-headset.c   |   35 +++++++++++--------
+ drivers/cbus/retu-pwrbutton.c |    2 +-
+ drivers/cbus/retu-rtc.c       |   28 ++++++++--------
+ drivers/cbus/retu-wdt.c       |    8 ++--
+ drivers/cbus/retu.c           |   73 ++++++++++++++++++++++++----------------
+ drivers/cbus/retu.h           |    9 +++--
+ 6 files changed, 88 insertions(+), 67 deletions(-)
 
 -- 
-balbi
+1.7.4.rc2
+
