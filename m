@@ -1,130 +1,83 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v2] OMAP: PM: DMA: Enable runtime pm
-Date: Wed, 16 Feb 2011 11:47:33 -0800
-Message-ID: <87zkpvn4mi.fsf@ti.com>
-References: <1297082286-8449-1-git-send-email-manjugk@ti.com>
-	<87ipwm1daa.fsf@ti.com> <20110216140535.GA15484@m-desktop>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 0/6] trivial compile warning fixes
+Date: Wed, 16 Feb 2011 21:48:10 +0200
+Message-ID: <20110216194810.GB2451@legolas.emea.dhcp.ti.com>
+References: <1297774156-23312-1-git-send-email-balbi@ti.com>
+ <20110216173033.GG20795@atomide.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed; boundary="ZPt4rx8FFjLCG7dd"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:43594 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752726Ab1BPTsD (ORCPT
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:54753 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753135Ab1BPTss (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 16 Feb 2011 14:48:03 -0500
-Received: by mail-yx0-f176.google.com with SMTP id 8so843391yxm.35
-        for <linux-omap@vger.kernel.org>; Wed, 16 Feb 2011 11:47:37 -0800 (PST)
-In-Reply-To: <20110216140535.GA15484@m-desktop> (Manjunath Kondaiah G.'s
-	message of "Wed, 16 Feb 2011 19:35:35 +0530")
+	Wed, 16 Feb 2011 14:48:48 -0500
+Received: by mail-bw0-f51.google.com with SMTP id 10so1961105bwz.38
+        for <linux-omap@vger.kernel.org>; Wed, 16 Feb 2011 11:48:13 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <20110216173033.GG20795@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com
-
-"G, Manjunath Kondaiah" <manjugk@ti.com> writes:
-
-> Hi Kevin,
->
-> On Mon, Feb 14, 2011 at 02:06:53PM -0800, Kevin Hilman wrote:
->> "G, Manjunath Kondaiah" <manjugk@ti.com> writes:
->> 
->> > From: Manjunath G Kondaiah <manjugk@ti.com>
->> >
->> > Enable runtime pm and use pm_runtime_get_sync and pm_runtime_put_autosuspend
->> > for OMAP DMA driver.
->> >
->> > The DMA driver uses auto suspend feature of runtime pm framework through
->> > which the clock gets disabled automatically if there is no activity for
->> > more than one second.
->> >
->> > Testing:
->> > Compile: omap1_defconfig and omap2plus_defconfig
->> > Boot: OMAP1710(H3), OMAP2420(H4), OMAP3630(Zoom3), OMAP4(Blaze)
->> 
->> The normal DMA tests should also be run on these platforms.  Based on
->> the above, I can't tell any DMA tests were run.   Based on my tests,
->> this isn't working for chained xfers.
->> 
->> Using the runtime PM sysfs interface, you can check the runtime status
->> of the device:
->> 
->> # cat /sys/devices/platform/omap/omap_dma_system.0/power/runtime_status          
->> 
->> It should show 'active' during transfer, and after timeout expires it
->> will show 'suspended'.
->> 
->> Doing some tests using my dmatest module:
->> 
->>   git://gitorious.org/omap-test/dmatest.git
->> 
->> I noticed that it gets stuck in 'active' and never gets suspended when I
->> used DMA channel linking (load module using 'linking=1' as load-time option)
->> 
->> I'm not sure exactly why, but I will guess that the reason is that there
->> is an imbalance in get/put calls when using chaining, since 'get' is
->> only called once upon omap_start_dma() but 'put' is called for every
->> channel in the callback.
->
-> Even I noticed this after running chaining test case and checking
-> runtime status. But, I am wondering even with 'active' runtime status, 
-> the core hits off and retention.
-
-Probably because system DMA is auto-idle and clocked by the core_l3_iclk
-
-> The complete log which has all the sequences of running chaining tests,
-> enabling off mode and checking runtime status is available at:
-> http://pastebin.com/YEHMEXUP
->
-> Though I agree on the point that, it is mismatch with get/put calls with
-> DMA chaining, I still need to analyze this in detail.
-
-Yes.  The mismatch highlights an underlying problem.
-
-> The other thing which is not considered here is, the get_sync is called
-> inside start_dma only(request_dma will call get_sync and put after the
-> getting requested channel). After request_dma and start_dma, there are
-> API's called by user(dma_set_params, priority etc) which also require
-> get_sync since those API's will access configuration registers. I am
-> wondering if have get_sync and put in all the API's, this might result
-> in over loading. 
-
-I'm not sure what you mean by over loading.
-
-You need to have all register accesses inside get/put calls.  As long as
-they are balanced, this should not leed to problems.
-
->> 
->> > On zoom3 core retention is tested with following steps:
->> > echo 1 > /debug/pm_debug/sleep_while_idle
->> > echo 1 > /debug/pm_debug/enable_off_mode
->> > echo 5 > /sys/devices/platform/omap/omap_uart.0/sleep_timeout
->> > echo 5 > /sys/devices/platform/omap/omap_uart.1/sleep_timeout
->> > echo 5 > /sys/devices/platform/omap/omap_uart.2/sleep_timeout
->> > echo 5 > /sys/devices/platform/omap/omap_uart.3/sleep_timeout
->> >
->> > It is observed that(on pm branch), core retention count gets increasing if the
->> > board is left idle for more than 5 seconds. However, it doesnot enter off mode
->> > (even without DMA runtime changes).
->> 
->> What silicon rev is on your Zoom3?  
-> It's 3630 ES1.0. 
->> Mainline kernels now disable core off-mode for 3630 revs < ES2.1 due to erratum 
->>i583.
->> 
->> If this happens, you should see something like this on the console:
->> 
->>            Core OFF disabled due to errata i583
->> 
-> We can observe above message in mainline after enabling cpu idle in
-> omap2plus_defconfig.
->
-> I switched to zoom2 and able to hit core retention and
-> off mode with mainline.
-
-OK, good. 
-
-Thanks for clarifying.
+To: Tony Lindgren <tony@atomide.com>
+Cc: Felipe Balbi <balbi@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
 
-Kevin
+--ZPt4rx8FFjLCG7dd
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
+On Wed, Feb 16, 2011 at 09:30:33AM -0800, Tony Lindgren wrote:
+> * Felipe Balbi <balbi@ti.com> [110215 04:47]:
+> > Hi Tony,
+> > 
+> > following are a few compile warning fixes for your
+> > consideration.
+> 
+> I already got youre previous set queued in devel-cleanup
+> branch. Care to see if that needs further patching?
+
+attached patch is needed.
+
+-- 
+balbi
+
+--ZPt4rx8FFjLCG7dd
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: attachment; filename="0001-arm-omap2-clksel-fix-compile-warning.diff"
+
+>From b1487889dc0e6d3c328d658e5d6730373785a49c Mon Sep 17 00:00:00 2001
+From: Felipe Balbi <balbi@ti.com>
+Date: Sun, 16 Jan 2011 13:22:03 +0200
+Subject: [PATCH] arm: omap2: clksel: fix compile warning
+Organization: Texas Instruments\n
+
+Fix the following compile warning:
+arch/arm/mach-omap2/clkt_clksel.c: In function '_get_div_and_fieldval':
+arch/arm/mach-omap2/clkt_clksel.c:100:35: warning: 'max_clkr' may be
+used uninitialized in this function
+
+Acked-by: Paul Walmsley <paul@pwsan.com>
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+---
+ arch/arm/mach-omap2/clkt_clksel.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/clkt_clksel.c b/arch/arm/mach-omap2/clkt_clksel.c
+index a781cd6..e25364d 100644
+--- a/arch/arm/mach-omap2/clkt_clksel.c
++++ b/arch/arm/mach-omap2/clkt_clksel.c
+@@ -97,7 +97,7 @@ static u8 _get_div_and_fieldval(struct clk *src_clk, struct clk *clk,
+ 				u32 *field_val)
+ {
+ 	const struct clksel *clks;
+-	const struct clksel_rate *clkr, *max_clkr;
++	const struct clksel_rate *clkr, *max_clkr = NULL;
+ 	u8 max_div = 0;
+ 
+ 	clks = _get_clksel_by_parent(clk, src_clk);
+-- 
+1.7.4.rc2
+
+
+--ZPt4rx8FFjLCG7dd--
