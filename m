@@ -1,723 +1,1129 @@
-From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Subject: [PATCH v10 02/11] OMAP2420: hwmod data: add dmtimer
-Date: Wed, 16 Feb 2011 18:30:11 +0530
-Message-ID: <1297861220-831-3-git-send-email-tarun.kanti@ti.com>
-References: <1297861220-831-1-git-send-email-tarun.kanti@ti.com>
+From: "Pihet-XID, Jean" <j-pihet@ti.com>
+Subject: Re: [PATCH 2/2] OMAP: PM: implement devices wakeup latency
+ constraints APIs
+Date: Wed, 16 Feb 2011 13:58:23 +0100
+Message-ID: <AANLkTim=GNey=828eXZV3Zfvw9tt2_7y1nLG=8sns+yz@mail.gmail.com>
+References: <1297365807-12143-1-git-send-email-j-pihet@ti.com>
+	<1297365807-12143-3-git-send-email-j-pihet@ti.com>
+	<b34afc47bcc37fa68315718cdbcd19e1@mail.gmail.com>
+	<AANLkTi=-3K0CryCYfSS1n7oPr7fdweszZY7wpt=Ci69B@mail.gmail.com>
+	<36fbce9c419f5946a3a8fccdbffaa912@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:52093 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751565Ab1BPM5w (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 16 Feb 2011 07:57:52 -0500
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1GCvmmi019330
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Wed, 16 Feb 2011 06:57:50 -0600
-In-Reply-To: <1297861220-831-1-git-send-email-tarun.kanti@ti.com>
+Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:44478 "EHLO
+	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752008Ab1BPNB4 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 16 Feb 2011 08:01:56 -0500
+Received: by mail-qy0-f178.google.com with SMTP id 33so1262006qyk.16
+        for <linux-omap@vger.kernel.org>; Wed, 16 Feb 2011 05:01:54 -0800 (PST)
+In-Reply-To: <36fbce9c419f5946a3a8fccdbffaa912@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: khilman@ti.com, Thara Gopinath <thara@ti.com>, Tarun Kanti DebBarma <tarun.kanti@ti.com>
+To: Vishwanath Sripathy <vishwanath.bs@ti.com>
+Cc: Jean Pihet <jean.pihet@newoldbits.com>, Kevin Hilman <khilman@ti.com>, paul@pwsan.com, Vibhore Vardhan <vvardhan@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org
 
-From: Thara Gopinath <thara@ti.com>
+Hi Vishwa,
 
-Add dmtimer data.
+On Wed, Feb 16, 2011 at 11:49 AM, Vishwanath Sripathy
+<vishwanath.bs@ti.com> wrote:
+>> -----Original Message-----
+>> From: Jean Pihet [mailto:jean.pihet@newoldbits.com]
+>> Sent: Tuesday, February 15, 2011 7:22 PM
+>> To: Vishwanath Sripathy
+>> Cc: Kevin Hilman; paul@pwsan.com; Vibhore Vardhan; Santosh
+>> Shilimkar; Rajendra Nayak; linux-omap@vger.kernel.org; Jean Pihet-XI=
+D
+>> Subject: Re: [PATCH 2/2] OMAP: PM: implement devices wakeup latency
+>> constraints APIs
+>>
+>> Hi Vishwa,
+>>
+>> On Tue, Feb 15, 2011 at 10:35 AM, Vishwanath Sripathy
+>> <vishwanath.bs@ti.com> wrote:
+>> >> -----Original Message-----
+>> >> From: jean.pihet@newoldbits.com
+>> [mailto:jean.pihet@newoldbits.com]
+>> >> Sent: Friday, February 11, 2011 12:53 AM
+>> >> To: khilman@ti.com; paul@pwsan.com; Vibhore Vardhan; Santosh
+>> >> Shilimkar; Vishwanath BS; rnayak@ti.com
+>> >> Cc: linux-omap@vger.kernel.org; Jean Pihet; Vibhore Vardhan
+>> >> Subject: [PATCH 2/2] OMAP: PM: implement devices wakeup latency
+>> >> constraints APIs
+>> >>
+>> >> From: Jean Pihet <j-pihet@ti.com>
+>> >>
+>> >> Implement OMAP PM layer omap_pm_set_max_dev_wakeup_lat API
+>> by
+>> >> creating similar APIs at the omap_device and omap_hwmod levels.
+>> The
+>> >> omap_hwmod level call is the layer with access to the powerdomain
+>> >> core, so it is the place where the powerdomain is queried to set =
+and
+>> >> release the constraints.
+>> >>
+>> >> NOTE: only works for devices which have been converted to use
+>> >> =A0 =A0 =A0 omap_device/omap_hwmod.
+>> >>
+>> >> Longer term, we could possibly remove this API from the OMAP PM
+>> layer,
+>> >> and instead directly use the omap_device level API.
+>> >>
+>> >> Based on Vibhore's original patch , adapted to omap_device and
+>> >> omap_hwmod frameworks.
+>> >>
+>> >> Signed-off-by: Jean Pihet <j-pihet@ti.com>
+>> >> Cc: Vibhore Vardhan <vvardhan@ti.com>
+>> >> ---
+>> >> =A0arch/arm/mach-omap2/omap_hwmod.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =
+=A0 62
+>> +++++++++-
+>> >> =A0arch/arm/mach-omap2/powerdomain.c =A0 =A0 =A0 =A0 =A0 =A0 | =A0=
+176
+>> >> ++++++++++++++++++++++++-
+>> >> =A0arch/arm/mach-omap2/powerdomain.h =A0 =A0 =A0 =A0 =A0 =A0 | =A0=
+ 31 +++++
+>> >> =A0arch/arm/mach-omap2/powerdomains3xxx_data.c =A0 | =A0 60
+>> >> +++++++++
+>> >> =A0arch/arm/plat-omap/include/plat/omap_device.h | =A0 =A02 +
+>> >> =A0arch/arm/plat-omap/include/plat/omap_hwmod.h =A0| =A0 =A02 +
+>> >> =A0arch/arm/plat-omap/omap-pm-constraints.c =A0 =A0 =A0| =A0101 +=
++++++----
+>> -----
+>> >> =A0arch/arm/plat-omap/omap_device.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =
+=A0 28 ++++
+>> >> =A08 files changed, 399 insertions(+), 63 deletions(-)
+>> >>
+>> >> diff --git a/arch/arm/mach-omap2/omap_hwmod.c
+>> b/arch/arm/mach-
+>> >> omap2/omap_hwmod.c
+>> >> index e282e35..0dc096f 100644
+>> >> --- a/arch/arm/mach-omap2/omap_hwmod.c
+>> >> +++ b/arch/arm/mach-omap2/omap_hwmod.c
+>> >> @@ -142,6 +142,7 @@
+>> >> =A0#include "powerdomain.h"
+>> >> =A0#include <plat/clock.h>
+>> >> =A0#include <plat/omap_hwmod.h>
+>> >> +#include <plat/omap_device.h>
+>> >> =A0#include <plat/prcm.h>
+>> >>
+>> >> =A0#include "cm2xxx_3xxx.h"
+>> >> @@ -2198,10 +2199,69 @@ ohsps_unlock:
+>> >> =A0}
+>> >>
+>> >> =A0/**
+>> >> + * omap_hwmod_set_max_dev_wakeup_lat - set a device wake-up
+>> >> constraint
+>> >> + * @oh: struct omap_hwmod *
+>> >> + * @req_oh: struct omap_hwmod *
+>> > Need to explain what this parameters mean.
+>> Ok, will add a description here. Basically oh corresponds to the
+>> device (and so the power domain) to set a constraint on and req_oh i=
+s
+>> the constraint requester. oh is used to determine which power domain
+>> to set a constraint on, req_oh is used to record the requester for
+>> later update or removal of a constraint.
+>>
+>> >> + * @t: wakeup latency constraint (us). -1 removes the existing
+>> >> constraint
+>> >> + *
+>> >> + * Query the powerdomain of @oh to set/release the wake-up
+>> >> constraint
+>> >> + *
+>> >> + * Returns -EINVAL if @oh or @req_oh have no power domain, or
+>> the
+>> >> return
+>> >> + * code from the pwrdm function
+>> >> (pwrdm_wakeuplat_set/release_constraint)
+>> >> + * of the powerdomain assocated with @oh.
+>> >> + */
+>> >> +int omap_hwmod_set_max_dev_wakeup_lat(struct omap_hwmod
+>> >> *req_oh,
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 struct omap_hwmod *oh, long t)
+>> >> +{
+>> >> + =A0 =A0 struct device *req_dev;
+>> >> + =A0 =A0 struct platform_device *pdev;
+>> >> + =A0 =A0 struct powerdomain *pwrdm;
+>> >> + =A0 =A0 int ret =3D 0;
+>> >> +
+>> >> + =A0 =A0 pwrdm =3D omap_hwmod_get_pwrdm(oh);
+>> >> +
+>> >> + =A0 =A0 /* Catch devices with undefined powerdomains */
+>> >> + =A0 =A0 if (!pwrdm) {
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 pr_err("omap_hwmod: Error: could not fi=
+nd parent "
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "powerdomain for %s\n",=
+ oh->name);
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
+>> >> + =A0 =A0 }
+>> >> +
+>> >> + =A0 =A0 pdev =3D &(req_oh->od->pdev);
+>> >> + =A0 =A0 if (pdev =3D=3D NULL) {
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 pr_err("omap_hwmod: Error: pdev not fou=
+nd for oh
+>> %s\n",
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0oh->name);
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
+>> >> + =A0 =A0 }
+>> >> +
+>> >> + =A0 =A0 req_dev =3D &(pdev->dev);
+>> >> + =A0 =A0 if (req_dev =3D=3D NULL) {
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 pr_err("omap_hwmod: Error: device not f=
+ound for oh
+>> >> %s\n",
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0oh->name);
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
+>> >> + =A0 =A0 }
+>> > If I understand correctly, req_dev is used for keeping track of
+> different
+>> > requests. If so, why can't you directly pass req_dev as an input p=
+aram
+>> > instead of deriving it from pdev.
+>> The layering in the API is as follows: caller -> omap-pm ->
+>> omap_device -> omap_hwmod -> powerdomain. The =A0parameters types
+>> are
+>> passed accordingly.
+>>
+>> Note: I will rename pdev to req_pdev to make it clear that the
+>> parameter relates to the requester.
+>>
+>> >> +
+>> >> + =A0 =A0 /* Call set/release_constraint for the given pwrdm */
+>> >> + =A0 =A0 if (t =3D=3D -1) {
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 pr_debug("omap_hwmod: remove max device=
+ latency
+>> >> constraint: "
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"oh %s, pwrdm %s, re=
+q by oh %s\n",
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0oh->name, pwrdm->nam=
+e, req_oh->name);
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 ret =3D pwrdm_wakeuplat_release_constra=
+int(pwrdm,
+>> >> req_dev);
+>> >> + =A0 =A0 } else {
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 pr_debug("omap_hwmod: add max device la=
+tency
+>> >> constraint: "
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"oh %s, t =3D %ld us=
+ec, pwrdm %s, req by oh
+>> >> %s\n",
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0oh->name, t, pwrdm->=
+name, req_oh->name);
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 ret =3D pwrdm_wakeuplat_set_constraint(=
+pwrdm, req_dev,
+>> >> t);
+>> >> + =A0 =A0 }
+>> >> +
+>> >> + =A0 =A0 return 0;
+>> >> +}
+>> >> +
+>> >> +/**
+>> >> =A0 * omap_hwmod_get_context_loss_count - get lost context count
+>> >> =A0 * @oh: struct omap_hwmod *
+>> >> =A0 *
+>> >> - * Query the powerdomain of of @oh to get the context loss
+>> >> + * Query the powerdomain of @oh to get the context loss
+>> >> =A0 * count for this device.
+>> >> =A0 *
+>> >> =A0 * Returns the context loss count of the powerdomain assocated=
+ with
+>> >> @oh
+>> >> diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-
+>> >> omap2/powerdomain.c
+>> >> index eaed0df..3ed3bea 100644
+>> >> --- a/arch/arm/mach-omap2/powerdomain.c
+>> >> +++ b/arch/arm/mach-omap2/powerdomain.c
+>> >> @@ -19,16 +19,19 @@
+>> >> =A0#include <linux/list.h>
+>> >> =A0#include <linux/errno.h>
+>> >> =A0#include <linux/string.h>
+>> >> +#include <linux/slab.h>
+>> >> +
+>> >> +#include <plat/cpu.h>
+>> >> +#include <plat/prcm.h>
+>> >> +
+>> >> =A0#include "cm2xxx_3xxx.h"
+>> >> =A0#include "prcm44xx.h"
+>> >> =A0#include "cm44xx.h"
+>> >> =A0#include "prm2xxx_3xxx.h"
+>> >> =A0#include "prm44xx.h"
+>> >>
+>> >> -#include <plat/cpu.h>
+>> >> =A0#include "powerdomain.h"
+>> >> =A0#include "clockdomain.h"
+>> >> -#include <plat/prcm.h>
+>> >>
+>> >> =A0#include "pm.h"
+>> >>
+>> >> @@ -103,6 +106,13 @@ static int _pwrdm_register(struct
+>> powerdomain
+>> >> *pwrdm)
+>> >> =A0 =A0 =A0 pwrdm->state =3D pwrdm_read_pwrst(pwrdm);
+>> >> =A0 =A0 =A0 pwrdm->state_counter[pwrdm->state] =3D 1;
+>> >>
+>> >> + =A0 =A0 /* Initialize priority ordered list for wakeup latency
+> constraint
+>> > */
+>> >> + =A0 =A0 spin_lock_init(&pwrdm->wakeuplat_lock);
+>> >> + =A0 =A0 plist_head_init(&pwrdm->wakeuplat_dev_list, &pwrdm-
+>> >> >wakeuplat_lock);
+>> >> +
+>> >> + =A0 =A0 /* res_mutex protects res_list add and del ops */
+>> >> + =A0 =A0 mutex_init(&pwrdm->wakeuplat_mutex);
+>> >> +
+>> >> =A0 =A0 =A0 pr_debug("powerdomain: registered %s\n", pwrdm->name)=
+;
+>> >>
+>> >> =A0 =A0 =A0 return 0;
+>> >> @@ -176,6 +186,62 @@ static int _pwrdm_post_transition_cb(struct
+>> >> powerdomain *pwrdm, void *unused)
+>> >> =A0 =A0 =A0 return 0;
+>> >> =A0}
+>> >>
+>> >> +/**
+>> >> + * pwrdm_wakeuplat_update_pwrst - Update power domain power
+>> >> state if needed
+>> >> + * @pwrdm: struct powerdomain * to which requesting device
+>> belongs
+>> >> to
+>> >> + *
+>> >> + * Finds minimum latency value from all entries in the list and
+>> >> + * the power domain power state needing the constraint. Programs
+>> >> + * new state if it is different from current power state.
+>> >> + */
+>> >> +static void pwrdm_wakeuplat_update_pwrst(struct powerdomain
+>> >> *pwrdm)
+>> >> +{
+>> >> + =A0 =A0 struct plist_node *node;
+>> >> + =A0 =A0 int new_state;
+>> >> + =A0 =A0 unsigned long min_latency =3D -1;
+>> >> +
+>> >> + =A0 =A0 if (!plist_head_empty(&pwrdm->wakeuplat_dev_list)) {
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 node =3D plist_last(&pwrdm->wakeuplat_d=
+ev_list);
+>> > Wouldn't plist_last return the node with highest latency? I think =
+you
+>> are
+>> > looking for lowest latency.
+>> Yes indeed. We need the strongest constraint, so the lowest allowed
+>> wake-up latency value.
+> Then shouldn't you use plist_first?
+> I suppose plist_last will return the highest latency (weakest constra=
+int).
+That is correct. plist_first must be used instead.
 
-Signed-off-by: Thara Gopinath <thara@ti.com>
-Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Acked-by: Cousson, Benoit <b-cousson@ti.com>
----
- arch/arm/mach-omap2/omap_hwmod_2420_data.c |  634 ++++++++++++++++++++++++++++
- arch/arm/plat-omap/include/plat/dmtimer.h  |   11 +
- 2 files changed, 645 insertions(+), 0 deletions(-)
+>>
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 min_latency =3D node->prio;
+>> >> + =A0 =A0 }
+>> >> +
+>> >> + =A0 =A0 /* Find power state with wakeup latency < minimum const=
+raint.
+>> >> */
+>> >> + =A0 =A0 for (new_state =3D 0x0; new_state < PWRDM_MAX_PWRSTS;
+>> >> new_state++) {
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 if (min_latency =3D=3D -1 ||
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 pwrdm->wakeup_lat[new_state] <=3D=
+ min_latency)
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+>> >> + =A0 =A0 }
+>> >> +
+>> >> + =A0 =A0 switch (new_state) {
+>> >> + =A0 =A0 case PWRDM_FUNC_PWRST_OFF:
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 new_state =3D PWRDM_POWER_OFF;
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 break;
+>> >> + =A0 =A0 case PWRDM_FUNC_PWRST_OSWR:
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 pwrdm_set_logic_retst(pwrdm, PWRDM_POWE=
+R_OFF);
+>> >> + =A0 =A0 case PWRDM_FUNC_PWRST_CSWR:
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 new_state =3D PWRDM_POWER_RET;
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 break;
+>> >> + =A0 =A0 case PWRDM_FUNC_PWRST_ON:
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 new_state =3D PWRDM_POWER_ON;
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 break;
+>> >> + =A0 =A0 default:
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 pr_warn("powerdomain: requested latency=
+ constraint not
+> "
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "supported %s set to ON=
+ state\n", pwrdm->name);
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 new_state =3D PWRDM_POWER_ON;
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 break;
+>> >> + =A0 =A0 }
+>> >> +
+>> >> + =A0 =A0 if (pwrdm_read_pwrst(pwrdm) !=3D new_state) {
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 if (cpu_is_omap34xx())
+>> > Why this cpu check here?
+>> Only 34xx has support for the latency constraints. The other platfor=
+ms
+>> have the wakeup latency values set as '0', which means that OFF mode
+>> will always be chosen as preferred state. Is it allowed to set the
+>> pwrdm_state in this case?
+> Then this will not work for OMAP4 right? OMAP4 also should support de=
+vice
+> latency constraints.
+Yes OMAP4 support is coming later. The changes for OMAP4 will be minor
+once OMAP3 support is working.
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-index 7fffd34..837c9df 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-@@ -19,6 +19,7 @@
- #include <plat/i2c.h>
- #include <plat/gpio.h>
- #include <plat/mcspi.h>
-+#include <plat/dmtimer.h>
- 
- #include "omap_hwmod_common_data.h"
- 
-@@ -318,6 +319,625 @@ static struct omap_hwmod omap2420_iva_hwmod = {
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
- };
- 
-+/* Timer Common */
-+static struct omap_hwmod_class_sysconfig omap2420_timer_sysc = {
-+	.rev_offs	= 0x0000,
-+	.sysc_offs	= 0x0010,
-+	.syss_offs	= 0x0014,
-+	.sysc_flags	= (SYSC_HAS_SIDLEMODE | SYSC_HAS_CLOCKACTIVITY |
-+			   SYSC_HAS_ENAWAKEUP | SYSC_HAS_SOFTRESET |
-+			   SYSC_HAS_AUTOIDLE),
-+	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
-+	.sysc_fields    = &omap_hwmod_sysc_type1,
-+};
-+
-+static struct omap_hwmod_class omap2420_timer_hwmod_class = {
-+	.name = "timer",
-+	.sysc = &omap2420_timer_sysc,
-+	.rev = OMAP_TIMER_IP_VERSION_1,
-+};
-+
-+/* timer1 */
-+static struct omap_hwmod omap2420_timer1_hwmod;
-+static struct omap_hwmod_irq_info omap2420_timer1_mpu_irqs[] = {
-+	{ .irq = 37, },
-+};
-+
-+static struct omap_hwmod_addr_space omap2420_timer1_addrs[] = {
-+	{
-+		.pa_start	= 0x48028000,
-+		.pa_end		= 0x48028000 + SZ_1K - 1,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+};
-+
-+/* l4_wkup -> timer1 */
-+static struct omap_hwmod_ocp_if omap2420_l4_wkup__timer1 = {
-+	.master		= &omap2420_l4_wkup_hwmod,
-+	.slave		= &omap2420_timer1_hwmod,
-+	.clk		= "gpt1_ick",
-+	.addr		= omap2420_timer1_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap2420_timer1_addrs),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* timer1 slave port */
-+static struct omap_hwmod_ocp_if *omap2420_timer1_slaves[] = {
-+	&omap2420_l4_wkup__timer1,
-+};
-+
-+/* timer1 hwmod */
-+static struct omap_hwmod omap2420_timer1_hwmod = {
-+	.name		= "timer1",
-+	.mpu_irqs	= omap2420_timer1_mpu_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap2420_timer1_mpu_irqs),
-+	.main_clk	= "gpt1_fck",
-+	.prcm		= {
-+		.omap2 = {
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP24XX_EN_GPT1_SHIFT,
-+			.module_offs = WKUP_MOD,
-+			.idlest_reg_id = 1,
-+			.idlest_idle_bit = OMAP24XX_ST_GPT1_SHIFT,
-+		},
-+	},
-+	.slaves		= omap2420_timer1_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap2420_timer1_slaves),
-+	.class		= &omap2420_timer_hwmod_class,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
-+};
-+
-+/* timer2 */
-+static struct omap_hwmod omap2420_timer2_hwmod;
-+static struct omap_hwmod_irq_info omap2420_timer2_mpu_irqs[] = {
-+	{ .irq = 38, },
-+};
-+
-+static struct omap_hwmod_addr_space omap2420_timer2_addrs[] = {
-+	{
-+		.pa_start	= 0x4802a000,
-+		.pa_end		= 0x4802a000 + SZ_1K - 1,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+};
-+
-+/* l4_core -> timer2 */
-+static struct omap_hwmod_ocp_if omap2420_l4_core__timer2 = {
-+	.master		= &omap2420_l4_core_hwmod,
-+	.slave		= &omap2420_timer2_hwmod,
-+	.clk		= "gpt2_ick",
-+	.addr		= omap2420_timer2_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap2420_timer2_addrs),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* timer2 slave port */
-+static struct omap_hwmod_ocp_if *omap2420_timer2_slaves[] = {
-+	&omap2420_l4_core__timer2,
-+};
-+
-+/* timer2 hwmod */
-+static struct omap_hwmod omap2420_timer2_hwmod = {
-+	.name		= "timer2",
-+	.mpu_irqs	= omap2420_timer2_mpu_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap2420_timer2_mpu_irqs),
-+	.main_clk	= "gpt2_fck",
-+	.prcm		= {
-+		.omap2 = {
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP24XX_EN_GPT2_SHIFT,
-+			.module_offs = CORE_MOD,
-+			.idlest_reg_id = 1,
-+			.idlest_idle_bit = OMAP24XX_ST_GPT2_SHIFT,
-+		},
-+	},
-+	.slaves		= omap2420_timer2_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap2420_timer2_slaves),
-+	.class		= &omap2420_timer_hwmod_class,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
-+};
-+
-+/* timer3 */
-+static struct omap_hwmod omap2420_timer3_hwmod;
-+static struct omap_hwmod_irq_info omap2420_timer3_mpu_irqs[] = {
-+	{ .irq = 39, },
-+};
-+
-+static struct omap_hwmod_addr_space omap2420_timer3_addrs[] = {
-+	{
-+		.pa_start	= 0x48078000,
-+		.pa_end		= 0x48078000 + SZ_1K - 1,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+};
-+
-+/* l4_core -> timer3 */
-+static struct omap_hwmod_ocp_if omap2420_l4_core__timer3 = {
-+	.master		= &omap2420_l4_core_hwmod,
-+	.slave		= &omap2420_timer3_hwmod,
-+	.clk		= "gpt3_ick",
-+	.addr		= omap2420_timer3_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap2420_timer3_addrs),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* timer3 slave port */
-+static struct omap_hwmod_ocp_if *omap2420_timer3_slaves[] = {
-+	&omap2420_l4_core__timer3,
-+};
-+
-+/* timer3 hwmod */
-+static struct omap_hwmod omap2420_timer3_hwmod = {
-+	.name		= "timer3",
-+	.mpu_irqs	= omap2420_timer3_mpu_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap2420_timer3_mpu_irqs),
-+	.main_clk	= "gpt3_fck",
-+	.prcm		= {
-+		.omap2 = {
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP24XX_EN_GPT3_SHIFT,
-+			.module_offs = CORE_MOD,
-+			.idlest_reg_id = 1,
-+			.idlest_idle_bit = OMAP24XX_ST_GPT3_SHIFT,
-+		},
-+	},
-+	.slaves		= omap2420_timer3_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap2420_timer3_slaves),
-+	.class		= &omap2420_timer_hwmod_class,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
-+};
-+
-+/* timer4 */
-+static struct omap_hwmod omap2420_timer4_hwmod;
-+static struct omap_hwmod_irq_info omap2420_timer4_mpu_irqs[] = {
-+	{ .irq = 40, },
-+};
-+
-+static struct omap_hwmod_addr_space omap2420_timer4_addrs[] = {
-+	{
-+		.pa_start	= 0x4807a000,
-+		.pa_end		= 0x4807a000 + SZ_1K - 1,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+};
-+
-+/* l4_core -> timer4 */
-+static struct omap_hwmod_ocp_if omap2420_l4_core__timer4 = {
-+	.master		= &omap2420_l4_core_hwmod,
-+	.slave		= &omap2420_timer4_hwmod,
-+	.clk		= "gpt4_ick",
-+	.addr		= omap2420_timer4_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap2420_timer4_addrs),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* timer4 slave port */
-+static struct omap_hwmod_ocp_if *omap2420_timer4_slaves[] = {
-+	&omap2420_l4_core__timer4,
-+};
-+
-+/* timer4 hwmod */
-+static struct omap_hwmod omap2420_timer4_hwmod = {
-+	.name		= "timer4",
-+	.mpu_irqs	= omap2420_timer4_mpu_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap2420_timer4_mpu_irqs),
-+	.main_clk	= "gpt4_fck",
-+	.prcm		= {
-+		.omap2 = {
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP24XX_EN_GPT4_SHIFT,
-+			.module_offs = CORE_MOD,
-+			.idlest_reg_id = 1,
-+			.idlest_idle_bit = OMAP24XX_ST_GPT4_SHIFT,
-+		},
-+	},
-+	.slaves		= omap2420_timer4_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap2420_timer4_slaves),
-+	.class		= &omap2420_timer_hwmod_class,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
-+};
-+
-+/* timer5 */
-+static struct omap_hwmod omap2420_timer5_hwmod;
-+static struct omap_hwmod_irq_info omap2420_timer5_mpu_irqs[] = {
-+	{ .irq = 41, },
-+};
-+
-+static struct omap_hwmod_addr_space omap2420_timer5_addrs[] = {
-+	{
-+		.pa_start	= 0x4807c000,
-+		.pa_end		= 0x4807c000 + SZ_1K - 1,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+};
-+
-+/* l4_core -> timer5 */
-+static struct omap_hwmod_ocp_if omap2420_l4_core__timer5 = {
-+	.master		= &omap2420_l4_core_hwmod,
-+	.slave		= &omap2420_timer5_hwmod,
-+	.clk		= "gpt5_ick",
-+	.addr		= omap2420_timer5_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap2420_timer5_addrs),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* timer5 slave port */
-+static struct omap_hwmod_ocp_if *omap2420_timer5_slaves[] = {
-+	&omap2420_l4_core__timer5,
-+};
-+
-+/* timer5 hwmod */
-+static struct omap_hwmod omap2420_timer5_hwmod = {
-+	.name		= "timer5",
-+	.mpu_irqs	= omap2420_timer5_mpu_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap2420_timer5_mpu_irqs),
-+	.main_clk	= "gpt5_fck",
-+	.prcm		= {
-+		.omap2 = {
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP24XX_EN_GPT5_SHIFT,
-+			.module_offs = CORE_MOD,
-+			.idlest_reg_id = 1,
-+			.idlest_idle_bit = OMAP24XX_ST_GPT5_SHIFT,
-+		},
-+	},
-+	.slaves		= omap2420_timer5_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap2420_timer5_slaves),
-+	.class		= &omap2420_timer_hwmod_class,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
-+};
-+
-+
-+/* timer6 */
-+static struct omap_hwmod omap2420_timer6_hwmod;
-+static struct omap_hwmod_irq_info omap2420_timer6_mpu_irqs[] = {
-+	{ .irq = 42, },
-+};
-+
-+static struct omap_hwmod_addr_space omap2420_timer6_addrs[] = {
-+	{
-+		.pa_start	= 0x4807e000,
-+		.pa_end		= 0x4807e000 + SZ_1K - 1,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+};
-+
-+/* l4_core -> timer6 */
-+static struct omap_hwmod_ocp_if omap2420_l4_core__timer6 = {
-+	.master		= &omap2420_l4_core_hwmod,
-+	.slave		= &omap2420_timer6_hwmod,
-+	.clk		= "gpt6_ick",
-+	.addr		= omap2420_timer6_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap2420_timer6_addrs),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* timer6 slave port */
-+static struct omap_hwmod_ocp_if *omap2420_timer6_slaves[] = {
-+	&omap2420_l4_core__timer6,
-+};
-+
-+/* timer6 hwmod */
-+static struct omap_hwmod omap2420_timer6_hwmod = {
-+	.name		= "timer6",
-+	.mpu_irqs	= omap2420_timer6_mpu_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap2420_timer6_mpu_irqs),
-+	.main_clk	= "gpt6_fck",
-+	.prcm		= {
-+		.omap2 = {
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP24XX_EN_GPT6_SHIFT,
-+			.module_offs = CORE_MOD,
-+			.idlest_reg_id = 1,
-+			.idlest_idle_bit = OMAP24XX_ST_GPT6_SHIFT,
-+		},
-+	},
-+	.slaves		= omap2420_timer6_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap2420_timer6_slaves),
-+	.class		= &omap2420_timer_hwmod_class,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
-+};
-+
-+/* timer7 */
-+static struct omap_hwmod omap2420_timer7_hwmod;
-+static struct omap_hwmod_irq_info omap2420_timer7_mpu_irqs[] = {
-+	{ .irq = 43, },
-+};
-+
-+static struct omap_hwmod_addr_space omap2420_timer7_addrs[] = {
-+	{
-+		.pa_start	= 0x48080000,
-+		.pa_end		= 0x48080000 + SZ_1K - 1,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+};
-+
-+/* l4_core -> timer7 */
-+static struct omap_hwmod_ocp_if omap2420_l4_core__timer7 = {
-+	.master		= &omap2420_l4_core_hwmod,
-+	.slave		= &omap2420_timer7_hwmod,
-+	.clk		= "gpt7_ick",
-+	.addr		= omap2420_timer7_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap2420_timer7_addrs),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* timer7 slave port */
-+static struct omap_hwmod_ocp_if *omap2420_timer7_slaves[] = {
-+	&omap2420_l4_core__timer7,
-+};
-+
-+/* timer7 hwmod */
-+static struct omap_hwmod omap2420_timer7_hwmod = {
-+	.name		= "timer7",
-+	.mpu_irqs	= omap2420_timer7_mpu_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap2420_timer7_mpu_irqs),
-+	.main_clk	= "gpt7_fck",
-+	.prcm		= {
-+		.omap2 = {
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP24XX_EN_GPT7_SHIFT,
-+			.module_offs = CORE_MOD,
-+			.idlest_reg_id = 1,
-+			.idlest_idle_bit = OMAP24XX_ST_GPT7_SHIFT,
-+		},
-+	},
-+	.slaves		= omap2420_timer7_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap2420_timer7_slaves),
-+	.class		= &omap2420_timer_hwmod_class,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
-+};
-+
-+/* timer8 */
-+static struct omap_hwmod omap2420_timer8_hwmod;
-+static struct omap_hwmod_irq_info omap2420_timer8_mpu_irqs[] = {
-+	{ .irq = 44, },
-+};
-+
-+static struct omap_hwmod_addr_space omap2420_timer8_addrs[] = {
-+	{
-+		.pa_start	= 0x48082000,
-+		.pa_end		= 0x48082000 + SZ_1K - 1,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+};
-+
-+/* l4_core -> timer8 */
-+static struct omap_hwmod_ocp_if omap2420_l4_core__timer8 = {
-+	.master		= &omap2420_l4_core_hwmod,
-+	.slave		= &omap2420_timer8_hwmod,
-+	.clk		= "gpt8_ick",
-+	.addr		= omap2420_timer8_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap2420_timer8_addrs),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* timer8 slave port */
-+static struct omap_hwmod_ocp_if *omap2420_timer8_slaves[] = {
-+	&omap2420_l4_core__timer8,
-+};
-+
-+/* timer8 hwmod */
-+static struct omap_hwmod omap2420_timer8_hwmod = {
-+	.name		= "timer8",
-+	.mpu_irqs	= omap2420_timer8_mpu_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap2420_timer8_mpu_irqs),
-+	.main_clk	= "gpt8_fck",
-+	.prcm		= {
-+		.omap2 = {
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP24XX_EN_GPT8_SHIFT,
-+			.module_offs = CORE_MOD,
-+			.idlest_reg_id = 1,
-+			.idlest_idle_bit = OMAP24XX_ST_GPT8_SHIFT,
-+		},
-+	},
-+	.slaves		= omap2420_timer8_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap2420_timer8_slaves),
-+	.class		= &omap2420_timer_hwmod_class,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
-+};
-+
-+/* timer9 */
-+static struct omap_hwmod omap2420_timer9_hwmod;
-+static struct omap_hwmod_irq_info omap2420_timer9_mpu_irqs[] = {
-+	{ .irq = 45, },
-+};
-+
-+static struct omap_hwmod_addr_space omap2420_timer9_addrs[] = {
-+	{
-+		.pa_start	= 0x48084000,
-+		.pa_end		= 0x48084000 + SZ_1K - 1,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+};
-+
-+/* l4_core -> timer9 */
-+static struct omap_hwmod_ocp_if omap2420_l4_core__timer9 = {
-+	.master		= &omap2420_l4_core_hwmod,
-+	.slave		= &omap2420_timer9_hwmod,
-+	.clk		= "gpt9_ick",
-+	.addr		= omap2420_timer9_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap2420_timer9_addrs),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* timer9 slave port */
-+static struct omap_hwmod_ocp_if *omap2420_timer9_slaves[] = {
-+	&omap2420_l4_core__timer9,
-+};
-+
-+/* timer9 hwmod */
-+static struct omap_hwmod omap2420_timer9_hwmod = {
-+	.name		= "timer9",
-+	.mpu_irqs	= omap2420_timer9_mpu_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap2420_timer9_mpu_irqs),
-+	.main_clk	= "gpt9_fck",
-+	.prcm		= {
-+		.omap2 = {
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP24XX_EN_GPT9_SHIFT,
-+			.module_offs = CORE_MOD,
-+			.idlest_reg_id = 1,
-+			.idlest_idle_bit = OMAP24XX_ST_GPT9_SHIFT,
-+		},
-+	},
-+	.slaves		= omap2420_timer9_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap2420_timer9_slaves),
-+	.class		= &omap2420_timer_hwmod_class,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
-+};
-+
-+/* timer10 */
-+static struct omap_hwmod omap2420_timer10_hwmod;
-+static struct omap_hwmod_irq_info omap2420_timer10_mpu_irqs[] = {
-+	{ .irq = 46, },
-+};
-+
-+static struct omap_hwmod_addr_space omap2420_timer10_addrs[] = {
-+	{
-+		.pa_start	= 0x48086000,
-+		.pa_end		= 0x48086000 + SZ_1K - 1,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+};
-+
-+/* l4_core -> timer10 */
-+static struct omap_hwmod_ocp_if omap2420_l4_core__timer10 = {
-+	.master		= &omap2420_l4_core_hwmod,
-+	.slave		= &omap2420_timer10_hwmod,
-+	.clk		= "gpt10_ick",
-+	.addr		= omap2420_timer10_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap2420_timer10_addrs),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* timer10 slave port */
-+static struct omap_hwmod_ocp_if *omap2420_timer10_slaves[] = {
-+	&omap2420_l4_core__timer10,
-+};
-+
-+/* timer10 hwmod */
-+static struct omap_hwmod omap2420_timer10_hwmod = {
-+	.name		= "timer10",
-+	.mpu_irqs	= omap2420_timer10_mpu_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap2420_timer10_mpu_irqs),
-+	.main_clk	= "gpt10_fck",
-+	.prcm		= {
-+		.omap2 = {
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP24XX_EN_GPT10_SHIFT,
-+			.module_offs = CORE_MOD,
-+			.idlest_reg_id = 1,
-+			.idlest_idle_bit = OMAP24XX_ST_GPT10_SHIFT,
-+		},
-+	},
-+	.slaves		= omap2420_timer10_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap2420_timer10_slaves),
-+	.class		= &omap2420_timer_hwmod_class,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
-+};
-+
-+/* timer11 */
-+static struct omap_hwmod omap2420_timer11_hwmod;
-+static struct omap_hwmod_irq_info omap2420_timer11_mpu_irqs[] = {
-+	{ .irq = 47, },
-+};
-+
-+static struct omap_hwmod_addr_space omap2420_timer11_addrs[] = {
-+	{
-+		.pa_start	= 0x48088000,
-+		.pa_end		= 0x48088000 + SZ_1K - 1,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+};
-+
-+/* l4_core -> timer11 */
-+static struct omap_hwmod_ocp_if omap2420_l4_core__timer11 = {
-+	.master		= &omap2420_l4_core_hwmod,
-+	.slave		= &omap2420_timer11_hwmod,
-+	.clk		= "gpt11_ick",
-+	.addr		= omap2420_timer11_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap2420_timer11_addrs),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* timer11 slave port */
-+static struct omap_hwmod_ocp_if *omap2420_timer11_slaves[] = {
-+	&omap2420_l4_core__timer11,
-+};
-+
-+/* timer11 hwmod */
-+static struct omap_hwmod omap2420_timer11_hwmod = {
-+	.name		= "timer11",
-+	.mpu_irqs	= omap2420_timer11_mpu_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap2420_timer11_mpu_irqs),
-+	.main_clk	= "gpt11_fck",
-+	.prcm		= {
-+		.omap2 = {
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP24XX_EN_GPT11_SHIFT,
-+			.module_offs = CORE_MOD,
-+			.idlest_reg_id = 1,
-+			.idlest_idle_bit = OMAP24XX_ST_GPT11_SHIFT,
-+		},
-+	},
-+	.slaves		= omap2420_timer11_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap2420_timer11_slaves),
-+	.class		= &omap2420_timer_hwmod_class,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
-+};
-+
-+/* timer12 */
-+static struct omap_hwmod omap2420_timer12_hwmod;
-+static struct omap_hwmod_irq_info omap2420_timer12_mpu_irqs[] = {
-+	{ .irq = 48, },
-+};
-+
-+static struct omap_hwmod_addr_space omap2420_timer12_addrs[] = {
-+	{
-+		.pa_start	= 0x4808a000,
-+		.pa_end		= 0x4808a000 + SZ_1K - 1,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+};
-+
-+/* l4_core -> timer12 */
-+static struct omap_hwmod_ocp_if omap2420_l4_core__timer12 = {
-+	.master		= &omap2420_l4_core_hwmod,
-+	.slave		= &omap2420_timer12_hwmod,
-+	.clk		= "gpt12_ick",
-+	.addr		= omap2420_timer12_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap2420_timer12_addrs),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* timer12 slave port */
-+static struct omap_hwmod_ocp_if *omap2420_timer12_slaves[] = {
-+	&omap2420_l4_core__timer12,
-+};
-+
-+/* timer12 hwmod */
-+static struct omap_hwmod omap2420_timer12_hwmod = {
-+	.name		= "timer12",
-+	.mpu_irqs	= omap2420_timer12_mpu_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap2420_timer12_mpu_irqs),
-+	.main_clk	= "gpt12_fck",
-+	.prcm		= {
-+		.omap2 = {
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP24XX_EN_GPT12_SHIFT,
-+			.module_offs = CORE_MOD,
-+			.idlest_reg_id = 1,
-+			.idlest_idle_bit = OMAP24XX_ST_GPT12_SHIFT,
-+		},
-+	},
-+	.slaves		= omap2420_timer12_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap2420_timer12_slaves),
-+	.class		= &omap2420_timer_hwmod_class,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
-+};
-+
- /* l4_wkup -> wd_timer2 */
- static struct omap_hwmod_addr_space omap2420_wd_timer2_addrs[] = {
- 	{
-@@ -1022,6 +1642,20 @@ static __initdata struct omap_hwmod *omap2420_hwmods[] = {
- 	&omap2420_l4_wkup_hwmod,
- 	&omap2420_mpu_hwmod,
- 	&omap2420_iva_hwmod,
-+
-+	&omap2420_timer1_hwmod,
-+	&omap2420_timer2_hwmod,
-+	&omap2420_timer3_hwmod,
-+	&omap2420_timer4_hwmod,
-+	&omap2420_timer5_hwmod,
-+	&omap2420_timer6_hwmod,
-+	&omap2420_timer7_hwmod,
-+	&omap2420_timer8_hwmod,
-+	&omap2420_timer9_hwmod,
-+	&omap2420_timer10_hwmod,
-+	&omap2420_timer11_hwmod,
-+	&omap2420_timer12_hwmod,
-+
- 	&omap2420_wd_timer2_hwmod,
- 	&omap2420_uart1_hwmod,
- 	&omap2420_uart2_hwmod,
-diff --git a/arch/arm/plat-omap/include/plat/dmtimer.h b/arch/arm/plat-omap/include/plat/dmtimer.h
-index dfa3aff..d6c70d2 100644
---- a/arch/arm/plat-omap/include/plat/dmtimer.h
-+++ b/arch/arm/plat-omap/include/plat/dmtimer.h
-@@ -3,6 +3,12 @@
-  *
-  * OMAP Dual-Mode Timers
-  *
-+ * Copyright (C) 2010 Texas Instruments Incorporated - http://www.ti.com/
-+ * Tarun Kanti DebBarma <tarun.kanti@ti.com>
-+ * Thara Gopinath <thara@ti.com>
-+ *
-+ * Platform device conversion and hwmod support.
-+ *
-  * Copyright (C) 2005 Nokia Corporation
-  * Author: Lauri Leukkunen <lauri.leukkunen@nokia.com>
-  * PWM and clock framwork support by Timo Teras.
-@@ -44,6 +50,11 @@
- #define OMAP_TIMER_TRIGGER_OVERFLOW		0x01
- #define OMAP_TIMER_TRIGGER_OVERFLOW_AND_COMPARE	0x02
- 
-+/*
-+ * IP revision identifier so that Highlander IP
-+ * in OMAP4 can be distinguished.
-+ */
-+#define OMAP_TIMER_IP_VERSION_1                        0x1
- struct omap_dm_timer;
- extern struct omap_dm_timer *gptimer_wakeup;
- extern struct sys_timer omap_timer;
--- 
-1.6.0.4
+Thanks,
+Jean
 
+> Vishwa
+>>
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_set_pwrdm_state(pw=
+rdm, new_state);
+>> >> + =A0 =A0 }
+>> >> +
+>> >> + =A0 =A0 pr_debug("powerdomain: %s pwrst: curr=3D %d, prev=3D %d
+>> next=3D
+>> >> %d "
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0"wkuplat_min=3D %lu, set_state=3D %d=
+\n", pwrdm->name,
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0pwrdm_read_pwrst(pwrdm),
+>> >> pwrdm_read_prev_pwrst(pwrdm),
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0pwrdm_read_next_pwrst(pwrdm), min_la=
+tency,
+>> >> new_state);
+>> >> +}
+>> >> +
+>> >> =A0/* Public functions */
+>> >>
+>> >> =A0/**
+>> >> @@ -911,6 +977,112 @@ int pwrdm_post_transition(void)
+>> >> =A0}
+>> >>
+>> >> =A0/**
+>> >> + * pwrdm_wakeuplat_set_constraint - Set powerdomain wakeup
+>> >> latency constraint
+>> >> + * @pwrdm: struct powerdomain * to which requesting device
+>> belongs
+>> >> to
+>> >> + * @dev: struct device * of requesting device
+>> >> + * @t: wakeup latency constraint in microseconds
+>> >> + *
+>> >> + * Adds new entry to powerdomain's wakeup latency constraint lis=
+t.
+>> >> + * If the requesting device already exists in the list, old valu=
+e is
+>> >> + * overwritten. Checks whether current power state is still
+>> adequate.
+>> >> + * Returns -EINVAL if the powerdomain or device pointer is NULL,
+>> >> + * or -ENOMEM if kmalloc fails, or returns 0 upon success.
+>> >> + */
+>> >> +int pwrdm_wakeuplat_set_constraint(struct powerdomain *pwrdm,
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+struct device *req_dev, unsigned
+> long
+>> > t)
+>> >> +{
+>> >> + =A0 =A0 struct =A0wakeuplat_dev_list *user;
+>> >> + =A0 =A0 int found =3D 0, ret =3D 0;
+>> >> +
+>> >> + =A0 =A0 if (!pwrdm || !req_dev) {
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 WARN(1, "powerdomain: %s: invalid param=
+eter(s)",
+>> >> __func__);
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
+>> >> + =A0 =A0 }
+>> >> +
+>> >> + =A0 =A0 mutex_lock(&pwrdm->wakeuplat_mutex);
+>> >> +
+>> >> + =A0 =A0 plist_for_each_entry(user, &pwrdm->wakeuplat_dev_list, =
+node)
+>> {
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 if (user->dev =3D=3D req_dev) {
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 found =3D 1;
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 }
+>> >> + =A0 =A0 }
+>> >> +
+>> >> + =A0 =A0 /* Add new entry to the list or update existing request=
+ */
+>> >> + =A0 =A0 if (found && user->constraint_us =3D=3D t) {
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 goto exit_set;
+>> >> + =A0 =A0 } else if (!found) {
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 user =3D kzalloc(sizeof(struct wakeupla=
+t_dev_list),
+>> >> GFP_KERNEL);
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 if (!user) {
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_err("powerdomain: FA=
+TAL ERROR: kzalloc
+>> >> failed\n");
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D -ENOMEM;
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto exit_set;
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 }
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 user->dev =3D req_dev;
+>> >> + =A0 =A0 } else {
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 plist_del(&user->node, &pwrdm->wakeupla=
+t_dev_list);
+>> >> + =A0 =A0 }
+>> >> +
+>> >> + =A0 =A0 plist_node_init(&user->node, t);
+>> >> + =A0 =A0 plist_add(&user->node, &pwrdm->wakeuplat_dev_list);
+>> >> + =A0 =A0 user->node.prio =3D user->constraint_us =3D t;
+>> >> +
+>> >> + =A0 =A0 pwrdm_wakeuplat_update_pwrst(pwrdm);
+>> >> +
+>> >> +exit_set:
+>> >> + =A0 =A0 mutex_unlock(&pwrdm->wakeuplat_mutex);
+>> >> +
+>> >> + =A0 =A0 return ret;
+>> >> +}
+>> >> +
+>> >> +/**
+>> >> + * pwrdm_wakeuplat_release_constraint - Release powerdomain
+>> >> wkuplat constraint
+>> >> + * @pwrdm: struct powerdomain * to which requesting device
+>> belongs
+>> >> to
+>> >> + * @req_dev: struct device * of requesting device
+>> >> + *
+>> >> + * Removes device's entry from powerdomain's wakeup latency
+>> >> constraint list.
+>> >> + * Checks whether current power state is still adequate.
+>> >> + * Returns -EINVAL if the powerdomain or device pointer is NULL =
+or
+>> >> + * no such entry exists in the list, or returns 0 upon success.
+>> >> + */
+>> >> +int pwrdm_wakeuplat_release_constraint(struct powerdomain
+>> *pwrdm,
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0struct device *req_dev)
+>> >> +{
+>> >> + =A0 =A0 struct wakeuplat_dev_list *user;
+>> >> + =A0 =A0 int found =3D 0, ret =3D 0;
+>> >> +
+>> >> + =A0 =A0 if (!pwrdm || !req_dev) {
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 WARN(1, "powerdomain: %s: invalid param=
+eter(s)",
+>> >> __func__);
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
+>> >> + =A0 =A0 }
+>> >> +
+>> >> + =A0 =A0 mutex_lock(&pwrdm->wakeuplat_mutex);
+>> >> +
+>> >> + =A0 =A0 plist_for_each_entry(user, &pwrdm->wakeuplat_dev_list, =
+node)
+>> {
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 if (user->dev =3D=3D req_dev) {
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 found =3D 1;
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 }
+>> >> + =A0 =A0 }
+>> >> +
+>> >> + =A0 =A0 if (!found) {
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 pr_err("OMAP PM: Error: no prior constr=
+aint to
+>> > release\n");
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 ret =3D -EINVAL;
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 goto exit_rls;
+>> >> + =A0 =A0 }
+>> >> +
+>> >> + =A0 =A0 plist_del(&user->node, &pwrdm->wakeuplat_dev_list);
+>> >> + =A0 =A0 kfree(user);
+>> >> +
+>> >> + =A0 =A0 pwrdm_wakeuplat_update_pwrst(pwrdm);
+>> >> +
+>> >> +exit_rls:
+>> >> + =A0 =A0 mutex_unlock(&pwrdm->wakeuplat_mutex);
+>> >> +
+>> >> + =A0 =A0 return ret;
+>> >> +}
+>> >> +
+>> >> +/**
+>> >> =A0 * pwrdm_get_context_loss_count - get powerdomain's context lo=
+ss
+>> >> count
+>> >> =A0 * @pwrdm: struct powerdomain * to wait for
+>> >> =A0 *
+>> >> diff --git a/arch/arm/mach-omap2/powerdomain.h b/arch/arm/mach-
+>> >> omap2/powerdomain.h
+>> >> index c66431e..d4189d8 100644
+>> >> --- a/arch/arm/mach-omap2/powerdomain.h
+>> >> +++ b/arch/arm/mach-omap2/powerdomain.h
+>> >> @@ -19,6 +19,9 @@
+>> >>
+>> >> =A0#include <linux/types.h>
+>> >> =A0#include <linux/list.h>
+>> >> +#include <linux/plist.h>
+>> >> +#include <linux/mutex.h>
+>> >> +#include <linux/spinlock.h>
+>> >>
+>> >> =A0#include <linux/atomic.h>
+>> >>
+>> >> @@ -46,6 +49,15 @@
+>> >>
+>> >> =A0#define PWRSTS_OFF_RET_ON =A0 =A0(PWRSTS_OFF_RET | (1 <<
+>> >> PWRDM_POWER_ON))
+>> >>
+>> >> +/* Powerdomain functional power states */
+>> >> +#define PWRDM_FUNC_PWRST_OFF 0x0
+>> >> +#define PWRDM_FUNC_PWRST_OSWR =A0 =A0 =A0 =A00x1
+>> >> +#define PWRDM_FUNC_PWRST_CSWR =A0 =A0 =A0 =A00x2
+>> >> +#define PWRDM_FUNC_PWRST_ON =A00x3
+>> >> +
+>> >> +#define PWRDM_MAX_FUNC_PWRSTS =A0 =A0 =A0 =A04
+>> >> +
+>> >> +#define UNSUP_STATE =A0 =A0 =A0 =A0 =A0-1
+>> >>
+>> >> =A0/* Powerdomain flags */
+>> >> =A0#define PWRDM_HAS_HDWR_SAR =A0 (1 << 0) /* hardware save-
+>> and-
+>> >> restore support */
+>> >> @@ -96,6 +108,10 @@ struct powerdomain;
+>> >> =A0 * @state_counter:
+>> >> =A0 * @timer:
+>> >> =A0 * @state_timer:
+>> >> + * @wakeup_lat: Wakeup latencies for possible powerdomain power
+>> >> states
+>> Will add a comment about the ordering (latency values must be sorted
+>> in decremental order).
+>>
+>> >> + * @wakeuplat_lock: spinlock for plist
+>> >> + * @wakeuplat_dev_list: plist_head linking all devices placing
+>> >> constraint
+>> >> + * @wakeuplat_mutex: mutex to protect per powerdomain list ops
+>> >> =A0 *
+>> >> =A0 * @prcm_partition possible values are defined in mach-
+>> >> omap2/prcm44xx.h.
+>> >> =A0 */
+>> >> @@ -121,6 +137,16 @@ struct powerdomain {
+>> >> =A0 =A0 =A0 s64 timer;
+>> >> =A0 =A0 =A0 s64 state_timer[PWRDM_MAX_PWRSTS];
+>> >> =A0#endif
+>> >> + =A0 =A0 const u32 wakeup_lat[PWRDM_MAX_FUNC_PWRSTS];
+>> >> + =A0 =A0 spinlock_t wakeuplat_lock;
+>> >> + =A0 =A0 struct plist_head wakeuplat_dev_list;
+>> >> + =A0 =A0 struct mutex wakeuplat_mutex;
+>> >> +};
+>> >> +
+>> >> +struct wakeuplat_dev_list {
+>> >> + =A0 =A0 struct device *dev;
+>> >> + =A0 =A0 unsigned long constraint_us;
+>> >> + =A0 =A0 struct plist_node node;
+>> >> =A0};
+>> >>
+>> >> =A0/**
+>> >> @@ -211,6 +237,11 @@ int pwrdm_clkdm_state_switch(struct
+>> >> clockdomain *clkdm);
+>> >> =A0int pwrdm_pre_transition(void);
+>> >> =A0int pwrdm_post_transition(void);
+>> >> =A0int pwrdm_set_lowpwrstchange(struct powerdomain *pwrdm);
+>> >> +
+>> >> +int pwrdm_wakeuplat_set_constraint(struct powerdomain *pwrdm,
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+struct device *dev, unsigned long
+> t);
+>> >> +int pwrdm_wakeuplat_release_constraint(struct powerdomain
+>> *pwrdm,
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0struct device *dev);
+>> >> =A0u32 pwrdm_get_context_loss_count(struct powerdomain *pwrdm);
+>> >>
+>> >> =A0extern void omap2xxx_powerdomains_init(void);
+>> >> diff --git a/arch/arm/mach-omap2/powerdomains3xxx_data.c
+>> >> b/arch/arm/mach-omap2/powerdomains3xxx_data.c
+>> >> index e1bec56..4f7e44d 100644
+>> >> --- a/arch/arm/mach-omap2/powerdomains3xxx_data.c
+>> >> +++ b/arch/arm/mach-omap2/powerdomains3xxx_data.c
+>> >> @@ -52,6 +52,12 @@ static struct powerdomain iva2_pwrdm =3D {
+>> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 [2] =3D PWRSTS_OFF_ON,
+>> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 [3] =3D PWRDM_POWER_ON,
+>> >> =A0 =A0 =A0 },
+>> >> + =A0 =A0 .wakeup_lat =3D {
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_OFF] =3D 1100,
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_OSWR] =3D UNSUP_STATE=
+,
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_CSWR] =3D 350,
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_ON] =3D 0,
+>> >> + =A0 =A0 },
+>> >> =A0};
+>> >>
+>> >> =A0static struct powerdomain mpu_3xxx_pwrdm =3D {
+>> >> @@ -68,6 +74,12 @@ static struct powerdomain mpu_3xxx_pwrdm
+>> =3D {
+>> >> =A0 =A0 =A0 .pwrsts_mem_on =A0 =A0=3D {
+>> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 [0] =3D PWRSTS_OFF_ON,
+>> >> =A0 =A0 =A0 },
+>> >> + =A0 =A0 .wakeup_lat =3D {
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_OFF] =3D 95,
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_OSWR] =3D UNSUP_STATE=
+,
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_CSWR] =3D 45,
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_ON] =3D 0,
+>> >> + =A0 =A0 },
+>> >> =A0};
+>> >>
+>> >> =A0/*
+>> >> @@ -98,6 +110,12 @@ static struct powerdomain
+>> >> core_3xxx_pre_es3_1_pwrdm =3D {
+>> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 [0] =3D PWRSTS_OFF_RET_ON, /* MEM1ONS=
+TATE */
+>> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 [1] =3D PWRSTS_OFF_RET_ON, /* MEM2ONS=
+TATE */
+>> >> =A0 =A0 =A0 },
+>> >> + =A0 =A0 .wakeup_lat =3D {
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_OFF] =3D 100,
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_OSWR] =3D UNSUP_STATE=
+,
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_CSWR] =3D 60,
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_ON] =3D 0,
+>> >> + =A0 =A0 },
+>> >> =A0};
+>> >>
+>> >> =A0static struct powerdomain core_3xxx_es3_1_pwrdm =3D {
+>> >> @@ -121,6 +139,12 @@ static struct powerdomain
+>> >> core_3xxx_es3_1_pwrdm =3D {
+>> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 [0] =3D PWRSTS_OFF_RET_ON, /* MEM1ONS=
+TATE */
+>> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 [1] =3D PWRSTS_OFF_RET_ON, /* MEM2ONS=
+TATE */
+>> >> =A0 =A0 =A0 },
+>> >> + =A0 =A0 .wakeup_lat =3D {
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_OFF] =3D 100,
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_OSWR] =3D UNSUP_STATE=
+,
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_CSWR] =3D 60,
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_ON] =3D 0,
+>> >> + =A0 =A0 },
+>> >> =A0};
+>> >>
+>> >> =A0static struct powerdomain dss_pwrdm =3D {
+>> >> @@ -136,6 +160,12 @@ static struct powerdomain dss_pwrdm =3D {
+>> >> =A0 =A0 =A0 .pwrsts_mem_on =A0 =A0=3D {
+>> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 [0] =3D PWRDM_POWER_ON, =A0/* MEMONST=
+ATE */
+>> >> =A0 =A0 =A0 },
+>> >> + =A0 =A0 .wakeup_lat =3D {
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_OFF] =3D 70,
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_OSWR] =3D UNSUP_STATE=
+,
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_CSWR] =3D 20,
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_ON] =3D 0,
+>> >> + =A0 =A0 },
+>> >> =A0};
+>> >>
+>> >> =A0/*
+>> >> @@ -157,6 +187,12 @@ static struct powerdomain sgx_pwrdm =3D {
+>> >> =A0 =A0 =A0 .pwrsts_mem_on =A0 =A0=3D {
+>> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 [0] =3D PWRDM_POWER_ON, =A0/* MEMONST=
+ATE */
+>> >> =A0 =A0 =A0 },
+>> >> + =A0 =A0 .wakeup_lat =3D {
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_OFF] =3D 1000,
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_OSWR] =3D UNSUP_STATE=
+,
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_CSWR] =3D UNSUP_STATE=
+,
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_ON] =3D 0,
+>> >> + =A0 =A0 },
+>> >> =A0};
+>> >>
+>> >> =A0static struct powerdomain cam_pwrdm =3D {
+>> >> @@ -172,6 +208,12 @@ static struct powerdomain cam_pwrdm =3D {
+>> >> =A0 =A0 =A0 .pwrsts_mem_on =A0 =A0=3D {
+>> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 [0] =3D PWRDM_POWER_ON, =A0/* MEMONST=
+ATE */
+>> >> =A0 =A0 =A0 },
+>> >> + =A0 =A0 .wakeup_lat =3D {
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_OFF] =3D 850,
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_OSWR] =3D UNSUP_STATE=
+,
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_CSWR] =3D 35,
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_ON] =3D 0,
+>> >> + =A0 =A0 },
+>> >> =A0};
+>> >>
+>> >> =A0static struct powerdomain per_pwrdm =3D {
+>> >> @@ -187,6 +229,12 @@ static struct powerdomain per_pwrdm =3D {
+>> >> =A0 =A0 =A0 .pwrsts_mem_on =A0 =A0=3D {
+>> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 [0] =3D PWRDM_POWER_ON, =A0/* MEMONST=
+ATE */
+>> >> =A0 =A0 =A0 },
+>> >> + =A0 =A0 .wakeup_lat =3D {
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_OFF] =3D 200,
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_OSWR] =3D UNSUP_STATE=
+,
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_CSWR] =3D 110,
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_ON] =3D 0,
+>> >> + =A0 =A0 },
+>> >> =A0};
+>> >>
+>> >> =A0static struct powerdomain emu_pwrdm =3D {
+>> >> @@ -201,6 +249,12 @@ static struct powerdomain neon_pwrdm =3D {
+>> >> =A0 =A0 =A0 .omap_chip =A0 =A0 =A0 =A0=3D OMAP_CHIP_INIT(CHIP_IS_=
+OMAP3430),
+>> >> =A0 =A0 =A0 .pwrsts =A0 =A0 =A0 =A0 =A0 =3D PWRSTS_OFF_RET_ON,
+>> >> =A0 =A0 =A0 .pwrsts_logic_ret =3D PWRDM_POWER_RET,
+>> >> + =A0 =A0 .wakeup_lat =3D {
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_OFF] =3D 200,
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_OSWR] =3D UNSUP_STATE=
+,
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_CSWR] =3D 35,
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_ON] =3D 0,
+>> >> + =A0 =A0 },
+>> >> =A0};
+>> >>
+>> >> =A0static struct powerdomain usbhost_pwrdm =3D {
+>> >> @@ -223,6 +277,12 @@ static struct powerdomain usbhost_pwrdm
+>> =3D {
+>> >> =A0 =A0 =A0 .pwrsts_mem_on =A0 =A0=3D {
+>> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 [0] =3D PWRDM_POWER_ON, =A0/* MEMONST=
+ATE */
+>> >> =A0 =A0 =A0 },
+>> >> + =A0 =A0 .wakeup_lat =3D {
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_OFF] =3D 800,
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_OSWR] =3D UNSUP_STATE=
+,
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_CSWR] =3D 150,
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_ON] =3D 0,
+>> >> + =A0 =A0 },
+>> >> =A0};
+>> >>
+>> >> =A0static struct powerdomain dpll1_pwrdm =3D {
+>> >> diff --git a/arch/arm/plat-omap/include/plat/omap_device.h
+>> >> b/arch/arm/plat-omap/include/plat/omap_device.h
+>> >> index e4c349f..5da6b47 100644
+>> >> --- a/arch/arm/plat-omap/include/plat/omap_device.h
+>> >> +++ b/arch/arm/plat-omap/include/plat/omap_device.h
+>> >> @@ -107,6 +107,8 @@ void __iomem
+>> *omap_device_get_rt_va(struct
+>> >> omap_device *od);
+>> >> =A0int omap_device_align_pm_lat(struct platform_device *pdev,
+>> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0u32 new_wa=
+keup_lat_limit);
+>> >> =A0struct powerdomain *omap_device_get_pwrdm(struct omap_device
+>> >> *od);
+>> >> +int omap_device_set_max_dev_wakeup_lat(struct platform_device
+>> >> *req_pdev,
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0struct platform_device *pdev,
+> long
+>> > t);
+>> >> =A0u32 omap_device_get_context_loss_count(struct platform_device
+>> >> *pdev);
+>> >>
+>> >> =A0/* Other */
+>> >> diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h
+>> >> b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+>> >> index 1eee85a..0fbb974 100644
+>> >> --- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
+>> >> +++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+>> >> @@ -587,6 +587,8 @@ int omap_hwmod_for_each_by_class(const
+>> char
+>> >> *classname,
+>> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0vo=
+id *user);
+>> >>
+>> >> =A0int omap_hwmod_set_postsetup_state(struct omap_hwmod *oh, u8
+>> >> state);
+>> >> +int omap_hwmod_set_max_dev_wakeup_lat(struct omap_hwmod
+>> >> *req_oh,
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 struct omap_hwmod *oh, long t);
+>> >> =A0u32 omap_hwmod_get_context_loss_count(struct omap_hwmod
+>> *oh);
+>> >>
+>> >> =A0/*
+>> >> diff --git a/arch/arm/plat-omap/omap-pm-constraints.c
+>> b/arch/arm/plat-
+>> >> omap/omap-pm-constraints.c
+>> >> index c8b4e4c..7ae855f 100644
+>> >> --- a/arch/arm/plat-omap/omap-pm-constraints.c
+>> >> +++ b/arch/arm/plat-omap/omap-pm-constraints.c
+>> >> @@ -24,6 +24,7 @@
+>> >> =A0/* Interface documentation is in mach/omap-pm.h */
+>> >> =A0#include <plat/omap-pm.h>
+>> >> =A0#include <plat/omap_device.h>
+>> >> +#include <plat/common.h>
+>> >>
+>> >> =A0static bool off_mode_enabled;
+>> >> =A0static u32 dummy_context_loss_counter;
+>> >> @@ -32,34 +33,6 @@ static u32 dummy_context_loss_counter;
+>> >> =A0 * Device-driver-originated constraints (via board-*.c files)
+>> >> =A0 */
+>> >>
+>> >> -int omap_pm_set_max_mpu_wakeup_lat(struct device *dev, long t)
+>> >> -{
+>> >> - =A0 =A0 if (!dev || t < -1) {
+>> >> - =A0 =A0 =A0 =A0 =A0 =A0 WARN(1, "OMAP PM: %s: invalid parameter=
+(s)",
+>> >> __func__);
+>> >> - =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
+>> >> - =A0 =A0 };
+>> >> -
+>> >> - =A0 =A0 if (t =3D=3D -1)
+>> >> - =A0 =A0 =A0 =A0 =A0 =A0 pr_debug("OMAP PM: remove max MPU wakeu=
+p latency
+>> >> constraint: "
+>> >> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"dev %s\n", dev_name=
+(dev));
+>> >> - =A0 =A0 else
+>> >> - =A0 =A0 =A0 =A0 =A0 =A0 pr_debug("OMAP PM: add max MPU wakeup l=
+atency
+>> >> constraint: "
+>> >> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"dev %s, t =3D %ld u=
+sec\n", dev_name(dev), t);
+>> >> -
+>> >> - =A0 =A0 /*
+>> >> - =A0 =A0 =A0* For current Linux, this needs to map the MPU to a
+>> >> - =A0 =A0 =A0* powerdomain, then go through the list of current m=
+ax lat
+>> >> - =A0 =A0 =A0* constraints on the MPU and find the smallest. =A0I=
+f
+>> >> - =A0 =A0 =A0* the latency constraint has changed, the code shoul=
+d
+>> >> - =A0 =A0 =A0* recompute the state to enter for the next powerdom=
+ain
+>> >> - =A0 =A0 =A0* state.
+>> >> - =A0 =A0 =A0*
+>> >> - =A0 =A0 =A0* TI CDP code can call constraint_set here.
+>> >> - =A0 =A0 =A0*/
+>> >> -
+>> >> - =A0 =A0 return 0;
+>> >> -}
+>> >> -
+>> >> =A0int omap_pm_set_min_bus_tput(struct device *dev, u8 agent_id,
+>> >> unsigned long r)
+>> >> =A0{
+>> >> =A0 =A0 =A0 if (!dev || (agent_id !=3D OCP_INITIATOR_AGENT &&
+>> >> @@ -87,62 +60,70 @@ int omap_pm_set_min_bus_tput(struct
+>> device
+>> >> *dev, u8 agent_id, unsigned long r)
+>> >> =A0 =A0 =A0 return 0;
+>> >> =A0}
+>> >>
+>> >> +/*
+>> >> + * omap_pm_set_max_dev_wakeup_lat - set/release devices wake-
+>> up
+>> >> latency
+>> >> + * constraints
+>> >> + */
+>> >> =A0int omap_pm_set_max_dev_wakeup_lat(struct device *req_dev,
+>> struct
+>> >> device *dev,
+>> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+long t)
+>> >> =A0{
+>> >> + =A0 =A0 struct platform_device *pdev, *req_pdev;
+>> >> + =A0 =A0 int ret =3D 0;
+>> >> +
+>> >> =A0 =A0 =A0 if (!req_dev || !dev || t < -1) {
+>> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 WARN(1, "OMAP PM: %s: invalid paramet=
+er(s)",
+>> >> __func__);
+>> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
+>> >> + =A0 =A0 }
+>> >> +
+>> >> + =A0 =A0 /* Look for the platform devices */
+>> >> + =A0 =A0 pdev =3D container_of(dev, struct platform_device, dev)=
+;
+>> >
+>> > You could perhaps use macro to_platform_device instead of using
+>> > container_of.
+>> Yes that is better.
+>>
+>> >
+>> >> + =A0 =A0 req_pdev =3D container_of(req_dev, struct platform_devi=
+ce, dev);
+>> Same here.
+>>
+>> >> +
+>> >> + =A0 =A0 /* Try to catch non platform devices. */
+>> >> + =A0 =A0 if ((pdev->name =3D=3D NULL) || (req_pdev->name =3D=3D =
+NULL)) {
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 pr_err("OMAP-PM set_wakeup_lat: Error: =
+platform devices
+>> >> "
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"not valid\n");
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
+>> >> + =A0 =A0 } else {
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 /* Call the omap_device API */
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 ret =3D omap_device_set_max_dev_wakeup_=
+lat(req_pdev,
+>> >> pdev, t);
+>> >> + =A0 =A0 }
+>> >> +
+>> >> + =A0 =A0 return ret;
+>> >> +}
+>> >> +
+>> >> +int omap_pm_set_max_mpu_wakeup_lat(struct device *req_dev,
+>> long
+>> >> t)
+>> >> +{
+>> >> + =A0 =A0 if (!req_dev || t < -1) {
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 WARN(1, "OMAP PM: %s: invalid parameter=
+(s)",
+>> >> __func__);
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
+>> >> =A0 =A0 =A0 };
+>> >>
+>> >> =A0 =A0 =A0 if (t =3D=3D -1)
+>> >> - =A0 =A0 =A0 =A0 =A0 =A0 pr_debug("OMAP PM: remove max device la=
+tency
+>> >> constraint: "
+>> >> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"dev %s\n", dev_name=
+(dev));
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 pr_debug("OMAP PM: remove max MPU wakeu=
+p latency
+>> >> constraint: "
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"dev %s\n", dev_name=
+(req_dev));
+>> >> =A0 =A0 =A0 else
+>> >> - =A0 =A0 =A0 =A0 =A0 =A0 pr_debug("OMAP PM: add max device laten=
+cy constraint: "
+>> >> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"dev %s, t =3D %ld u=
+sec\n", dev_name(dev), t);
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 pr_debug("OMAP PM: add max MPU wakeup l=
+atency
+>> >> constraint: "
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"dev %s, t =3D %ld u=
+sec\n", dev_name(req_dev),
+> t);
+>> >>
+>> >> - =A0 =A0 /*
+>> >> - =A0 =A0 =A0* For current Linux, this needs to map the device to=
+ a
+>> >> - =A0 =A0 =A0* powerdomain, then go through the list of current m=
+ax lat
+>> >> - =A0 =A0 =A0* constraints on that powerdomain and find the small=
+est. =A0If
+>> >> - =A0 =A0 =A0* the latency constraint has changed, the code shoul=
+d
+>> >> - =A0 =A0 =A0* recompute the state to enter for the next powerdom=
+ain
+>> >> - =A0 =A0 =A0* state. =A0Conceivably, this code should also deter=
+mine
+>> >> - =A0 =A0 =A0* whether to actually disable the device clocks or n=
+ot,
+>> >> - =A0 =A0 =A0* depending on how long it takes to re-enable the cl=
+ocks.
+>> >> - =A0 =A0 =A0*
+>> >> - =A0 =A0 =A0* TI CDP code can call constraint_set here.
+>> >> - =A0 =A0 =A0*/
+>> >> + =A0 =A0 omap_pm_set_max_dev_wakeup_lat(req_dev,
+>> >> omap2_get_mpuss_device(), t);
+>> >>
+>> >> =A0 =A0 =A0 return 0;
+>> >> =A0}
+>> >>
+>> >> -int omap_pm_set_max_sdma_lat(struct device *dev, long t)
+>> >> +int omap_pm_set_max_sdma_lat(struct device *req_dev, long t)
+>> >> =A0{
+>> >> - =A0 =A0 if (!dev || t < -1) {
+>> >> + =A0 =A0 if (!req_dev || t < -1) {
+>> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 WARN(1, "OMAP PM: %s: invalid paramet=
+er(s)",
+>> >> __func__);
+>> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
+>> >> =A0 =A0 =A0 };
+>> >>
+>> >> =A0 =A0 =A0 if (t =3D=3D -1)
+>> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_debug("OMAP PM: remove max DMA lat=
+ency constraint:
+>> >> "
+>> >> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"dev %s\n", dev_name=
+(dev));
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"dev %s\n", dev_name=
+(req_dev));
+>> >> =A0 =A0 =A0 else
+>> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_debug("OMAP PM: add max DMA latenc=
+y constraint: "
+>> >> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"dev %s, t =3D %ld u=
+sec\n", dev_name(dev), t);
+>> >> -
+>> >> - =A0 =A0 /*
+>> >> - =A0 =A0 =A0* For current Linux PM QOS params, this code should =
+scan the
+>> >> - =A0 =A0 =A0* list of maximum CPU and DMA latencies and select t=
+he
+>> >> - =A0 =A0 =A0* smallest, then set cpu_dma_latency pm_qos_param
+>> >> - =A0 =A0 =A0* accordingly.
+>> >> - =A0 =A0 =A0*
+>> >> - =A0 =A0 =A0* For future Linux PM QOS params, with separate CPU =
+and DMA
+>> >> - =A0 =A0 =A0* latency params, this code should just set the dma_=
+latency
+>> >> param.
+>> >> - =A0 =A0 =A0*
+>> >> - =A0 =A0 =A0* TI CDP code can call constraint_set here.
+>> >> - =A0 =A0 =A0*/
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"dev %s, t =3D %ld u=
+sec\n", dev_name(req_dev),
+> t);
+>> >>
+>> >> =A0 =A0 =A0 return 0;
+>> >> =A0}
+>> >> diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-
+>> >> omap/omap_device.c
+>> >> index 57adb27..1fe93d3 100644
+>> >> --- a/arch/arm/plat-omap/omap_device.c
+>> >> +++ b/arch/arm/plat-omap/omap_device.c
+>> >> @@ -280,6 +280,34 @@ static void _add_optional_clock_alias(struct
+>> >> omap_device *od,
+>> >> =A0/* Public functions for use by core code */
+>> >>
+>> >> =A0/**
+>> >> + * omap_device_set_max_dev_wakeup_lat - set/release a device
+>> >> constraint
+>> >> + * @od: struct omap_device *
+>> >> + * @req_od: struct omap_device *
+>> >> + *
+>> >> + * Using the primary hwmod, set/release a device constraint for =
+the
+>> >> pdev
+>> >> + * device, requested by the req_pdev device.
+>> >> + *
+>> >> + * If any hwmods exist for the omap_device assoiated with @pdev
+>> and
+>> >> @req_pdev,
+>> >> + * set/release the constraint for the corresponding hwmods,
+>> otherwise
+>> >> return
+>> >> + * -EINVAL.
+>> >> + */
+>> >> +int omap_device_set_max_dev_wakeup_lat(struct platform_device
+>> >> *req_pdev,
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0struct platform_device *pdev,
+> long
+>> > t)
+>> >> +{
+>> >> + =A0 =A0 struct omap_device *od, *req_od;
+>> >> + =A0 =A0 u32 ret =3D -EINVAL;
+>> >> +
+>> >> + =A0 =A0 od =3D _find_by_pdev(pdev);
+>> >> + =A0 =A0 req_od =3D _find_by_pdev(req_pdev);
+>> >> +
+>> >> + =A0 =A0 if ((od->hwmods_cnt) && (req_od->hwmods_cnt))
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 ret =3D omap_hwmod_set_max_dev_wakeup_l=
+at(req_od-
+>> >> >hwmods[0],
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 od->hwmods[0],
+> t);
+>> >> +
+>> >> + =A0 =A0 return ret;
+>> >> +}
+>> >> +
+>> >> +/**
+>> >> =A0 * omap_device_get_context_loss_count - get lost context count
+>> >> =A0 * @od: struct omap_device *
+>> >> =A0 *
+>> > Vishwa
+>> >> --
+>> >> 1.7.2.3
+>> >
+>>
+>> Thanks for the review, I will resubmit the patch asap.
+>>
+>> Regards,
+>> Jean
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
