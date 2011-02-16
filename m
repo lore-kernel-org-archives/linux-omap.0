@@ -1,61 +1,56 @@
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: Re: [PATCHv5 0/3] Introduce the /proc/socinfo and use it to export
- OMAP data
-Date: Wed, 16 Feb 2011 13:57:29 +0200
-Message-ID: <20110216115729.GA29817@besouro.research.nokia.com>
-References: <1273587331-24604-1-git-send-email-eduardo.valentin@nokia.com>
- <AANLkTin7vRMreG3hOAk95MYZUCV-Kr6ac7gD7jgvX6Gf@mail.gmail.com>
-Reply-To: eduardo.valentin@nokia.com
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: RE: [PATCH v2 0/2] Fix/Clean regulator consumer mapping for 3430sdp
+Date: Wed, 16 Feb 2011 17:49:03 +0530
+Message-ID: <147642dc9bed7d0af86fc618cca09edd@mail.gmail.com>
+References: <1296737122-20765-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <AANLkTin7vRMreG3hOAk95MYZUCV-Kr6ac7gD7jgvX6Gf@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: ext Linus Walleij <linus.walleij@linaro.org>
-Cc: Eduardo Valentin <eduardo.valentin@nokia.com>, LKML <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, Linux-OMAP <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, ext Tony Lindgren <tony@atomide.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, Peter De-Schrijver <Peter.De-Schrijver@nokia.com>, santosh.shilimkar@ti.com, Ambresh <a0393775@ti.com>, felipe.balbi@nokia.com, Jouni Hogander <jouni.hogander@nokia.com>, Paul Mundt <lethal@linux-sh.org>, Lee Jones <Lee.Jones@linaro.org>, maxime.coquelin-nonst@stericsson.com, Jonas =?utf-8?B?77+9YmVyZw==?= <jonas.aberg@stericsson.com>, ext Nishanth Menon <nm@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:47954 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758987Ab1BPMTH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 16 Feb 2011 07:19:07 -0500
+Received: by mail-fx0-f44.google.com with SMTP id 9so1481982fxm.3
+        for <linux-omap@vger.kernel.org>; Wed, 16 Feb 2011 04:19:05 -0800 (PST)
+In-Reply-To: <1296737122-20765-1-git-send-email-rnayak@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org
+Cc: tony@atomide.com, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>
 
-Hello Linus,
+Tony,
 
-On Tue, Feb 15, 2011 at 01:58:00PM +0100, ext Linus Walleij wrote:
-> 2010/5/11 Eduardo Valentin <eduardo.valentin@nokia.com>:
-> 
-> > Here is the version 5 of the change to export OMAP data to userspace
-> > (name, revision, id code, production id and die id).
-> >
-> > Basically, this version is still attempting to create a new file under /proc.
-> > It is the /proc/socinfo, which should be used to export bits which are SoC specific
-> > (not CPU related, nor machine related).
-> >
-> > So, differences between previous version are:
-> > - merged patch 02/04 with 03/04 to avoid compilation breakages.
-> > - simplified the seq_file usage by using the single_open and single_release functions
-> > - exported a function to register a seq_operation .show callback
-> > - adapted the changes accordingly
-> >
-> > As usual, comments are welcome.
-> 
-> Eduardo, what has happened to this patchset?
+> -----Original Message-----
+> From: Rajendra Nayak [mailto:rnayak@ti.com]
+> Sent: Thursday, February 03, 2011 6:15 PM
+> To: linux-omap@vger.kernel.org
+> Cc: tony@atomide.com; linux-arm-kernel@lists.infradead.org;
+balbi@ti.com; Rajendra Nayak
+> Subject: [PATCH v2 0/2] Fix/Clean regulator consumer mapping for 3430sdp
+>
+> This is a short series to fix some, and clean the
+> existing regulator consumer supply mappings for
+> the OMAP3430sdp board.
+>
+> The series is boot tested on the 3430sdp board
+> and applies on 2.6.38-rc3.
 
-Got forgotten :-(. Unfortunately I didn't pushed it hard enough.
+Any plans to pull these 3430sdp board file cleanup/fixes?
 
-> 
-> Now we need something similar for arch/arm/mach-ux500 and I was sort of
-> hoping that this infrastructure would be in place already... wrong I was.
+Regards,
+Rajendra
 
-Right.
-
-> 
-> Do you want help in picking it up and try to polish it up?
-
-Yeah, but it would need a refactoring. IIRC, result of last discussion was that
-we should not mess with /proc. So, maybe moving back to something under sysfs.
-Perhaps /sys/devices/soc or so?
-
-> 
-> Yours,
-> Linus Walleij
-
--- 
-Eduardo Valentin
+>
+> Changes in v2:
+> Define regulator_consumer_supply as array's
+> and use ARRAY_SIZE macro to define
+> num_consumer_supplies
+>
+> Rajendra Nayak (2):
+>   omap3sdp: Fix regulator mapping for ads7846 TS controller
+>   omap3sdp: clean regulator supply mapping in board file
+>
+>  arch/arm/mach-omap2/board-3430sdp.c |   78
++++++++++++++++++------------------
+>  1 files changed, 38 insertions(+), 40 deletions(-)
