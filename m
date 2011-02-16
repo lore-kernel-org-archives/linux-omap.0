@@ -1,96 +1,78 @@
-From: Dave Martin <dave.martin@linaro.org>
-Subject: Re: [PATCH] ARM: Avoid discarding sections that might have
- SMP_ON_UP fixups
-Date: Wed, 16 Feb 2011 16:35:43 +0000
-Message-ID: <20110216163543.GA27480@arm.com>
-References: <AANLkTinjAHLCMJja8q=bPhRBuoR2DCO_NjDw1qNi5MrU@mail.gmail.com>
- <20110210144617.GD3652@n2100.arm.linux.org.uk>
- <AANLkTiks_8hXd=7cKN0jNw=1QGcb=5ZyFu1sEFc0G=Px@mail.gmail.com>
- <20110210191125.GA12582@n2100.arm.linux.org.uk>
- <AANLkTim0RRw-xHQYTdHLCXCS_GXkaCiW8y9Fz=jMmwPa@mail.gmail.com>
- <20110211101345.GA23785@n2100.arm.linux.org.uk>
- <AANLkTikFkZH6KK_KUgXaaKyQM6eZOh-ki3xdtS2fk8zN@mail.gmail.com>
- <20110211160500.GA31529@n2100.arm.linux.org.uk>
- <AANLkTik1T_RDb_MVw9WWY_BX75isoGq2k1L+uVCN-bbq@mail.gmail.com>
- <20110211163247.GB31529@n2100.arm.linux.org.uk>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH] TI816X: Update to use init_early
+Date: Wed, 16 Feb 2011 09:12:41 -0800
+Message-ID: <20110216171241.GE20795@atomide.com>
+References: <1297791368-32042-1-git-send-email-hemantp@ti.com>
+ <20110215180139.GF11199@n2100.arm.linux.org.uk>
+ <20110215180533.GA20795@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:59038 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751518Ab1BPQgD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Feb 2011 11:36:03 -0500
-Received: by wyb28 with SMTP id 28so1514239wyb.19
-        for <linux-omap@vger.kernel.org>; Wed, 16 Feb 2011 08:36:01 -0800 (PST)
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:39428 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752627Ab1BPRNB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Feb 2011 12:13:01 -0500
 Content-Disposition: inline
-In-Reply-To: <20110211163247.GB31529@n2100.arm.linux.org.uk>
+In-Reply-To: <20110215180533.GA20795@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Nicolas Pitre <nicolas.pitre@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Hemant Pedanekar <hemantp@ti.com>, linux-omap@vger.kernel.org, khilman@ti.com, linux-arm-kernel@lists.infradead.org
 
-Hi,
-
-On Fri, Feb 11, 2011 at 04:32:47PM +0000, Russell King - ARM Linux wrote:
-
-[...]
-
-> diff --git a/arch/arm/kernel/vmlinux.lds.S b/arch/arm/kernel/vmlinux.lds.S
-> index 45b5651..343d29f 100644
-> --- a/arch/arm/kernel/vmlinux.lds.S
-> +++ b/arch/arm/kernel/vmlinux.lds.S
-> @@ -21,6 +21,12 @@
->  #define ARM_CPU_KEEP(x)
->  #endif
->  
-> +#if defined(CONFIG_SMP_ON_UP) && !defined(CONFIG_DEBUG_SPINLOCK)
-> +#define ARM_EXIT_KEEP(x)	x
-> +#else
-> +#define ARM_EXIT_KEEP(x)
-> +#endif
-> +
->  OUTPUT_ARCH(arm)
->  ENTRY(stext)
->  
-> @@ -43,6 +49,7 @@ SECTIONS
->  		_sinittext = .;
->  			HEAD_TEXT
->  			INIT_TEXT
-> +			ARM_EXIT_KEEP(EXIT_TEXT)
->  		_einittext = .;
->  		ARM_CPU_DISCARD(PROC_INFO)
->  		__arch_info_begin = .;
-> @@ -71,6 +78,7 @@ SECTIONS
->  #ifndef CONFIG_XIP_KERNEL
->  		__init_begin = _stext;
->  		INIT_DATA
-> +		ARM_EXIT_KEEP(EXIT_DATA)
->  #endif
->  	}
->  
-> @@ -166,6 +174,7 @@ SECTIONS
->  		. = ALIGN(PAGE_SIZE);
->  		__init_begin = .;
->  		INIT_DATA
-> +		ARM_EXIT_KEEP(EXIT_DATA)
->  		. = ALIGN(PAGE_SIZE);
->  		__init_end = .;
->  #endif
+* Tony Lindgren <tony@atomide.com> [110215 10:04]:
+> * Russell King - ARM Linux <linux@arm.linux.org.uk> [110215 10:00]:
+> > On Tue, Feb 15, 2011 at 11:06:08PM +0530, Hemant Pedanekar wrote:
+> > > +static void __init ti8168_evm_init_irq(void)
+> > > +{
+> > > +	omap_board_config = ti8168_evm_config;
+> > > +	omap_board_config_size = ARRAY_SIZE(ti8168_evm_config);
+> > > +	omap2_init_common_infrastructure();
+> > > +	omap2_init_common_devices(NULL, NULL);
+> > > +	omap_init_irq();
+> > > +}
+> > 
+> > What here can use the new init_early hook in the machine record?
 > 
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+> I can fix this up for the init_early changes when I merge the branches
+> together.
 
-This works for me in a case known to fail without the patch.
+Here's the patch to do that.
 
-Tested-by: Dave Martin <dave.martin@linaro.org>
+Tony
 
-I still don't quite understand the intricacies of how vmlinux
-is laid out, but the patch looks sensible.
+From: Tony Lindgren <tony@atomide.com>
+Date: Wed, 16 Feb 2011 08:45:46 -0800
+Subject: [PATCH] TI816X: Update to use init_early
 
-Do you need anything more from me on this?  If not, I will
-throw away my patch and replace it with yours.
+Update to use init_early
 
-Cheers
----Dave
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+--- a/arch/arm/mach-omap2/board-ti8168evm.c
++++ b/arch/arm/mach-omap2/board-ti8168evm.c
+@@ -27,12 +27,16 @@
+ static struct omap_board_config_kernel ti8168_evm_config[] __initdata = {
+ };
+ 
+-static void __init ti8168_evm_init_irq(void)
++static void __init ti8168_init_early(void)
+ {
+ 	omap_board_config = ti8168_evm_config;
+ 	omap_board_config_size = ARRAY_SIZE(ti8168_evm_config);
+ 	omap2_init_common_infrastructure();
+ 	omap2_init_common_devices(NULL, NULL);
++}
++
++static void __init ti8168_evm_init_irq(void)
++{
+ 	omap_init_irq();
+ }
+ 
+@@ -51,6 +55,7 @@ MACHINE_START(TI8168EVM, "ti8168evm")
+ 	/* Maintainer: Texas Instruments */
+ 	.boot_params	= 0x80000100,
+ 	.map_io		= ti8168_evm_map_io,
++	.init_early	= ti8168_init_early,
+ 	.init_irq	= ti8168_evm_init_irq,
+ 	.timer		= &omap_timer,
+ 	.init_machine	= ti8168_evm_init,
