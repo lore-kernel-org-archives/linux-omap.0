@@ -1,268 +1,70 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 1/5] ARM: smp: Select local timers vs dummy timer support runtime
-Date: Wed, 16 Feb 2011 18:15:28 +0530
-Message-ID: <ee756102dc8b46a37cf46d0fbe64b133@mail.gmail.com>
-References: <1297510187-31547-1-git-send-email-santosh.shilimkar@ti.com> <1297510187-31547-2-git-send-email-santosh.shilimkar@ti.com>
+From: "Gulati, Shweta" <shweta.gulati@ti.com>
+Subject: Re: [PATCH V4] OMAP3: PM: Set/clear T2 bit for Smartreflex on TWL
+Date: Wed, 16 Feb 2011 18:17:34 +0530
+Message-ID: <AANLkTimGZr9vbr1Z5LnN6p5v3y4MBz8iCx2G-ehsKtfV@mail.gmail.com>
+References: <1297756738-2696-1-git-send-email-shweta.gulati@ti.com>
+	<20110215171652.601c9c68.jhnikula@gmail.com>
+	<20110215172931.3a6e45a8.jhnikula@gmail.com>
+	<AANLkTi=3PCBOvFtd1T-=tDjXcs+_0opKqxVps+StCZqf@mail.gmail.com>
+	<20110216134523.ba5d3917.jhnikula@gmail.com>
+	<AANLkTiniGdh2_=eFjSaLsQ4VVG1Eh0F=0Tex-KNKspBf@mail.gmail.com>
+	<20110216143112.6f756a94.jhnikula@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:47709 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754284Ab1BPMpd (ORCPT
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:35102 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751067Ab1BPMrg (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 16 Feb 2011 07:45:33 -0500
-Received: by qwi4 with SMTP id 4so1491242qwi.25
-        for <linux-omap@vger.kernel.org>; Wed, 16 Feb 2011 04:45:32 -0800 (PST)
-In-Reply-To: <1297510187-31547-2-git-send-email-santosh.shilimkar@ti.com>
+	Wed, 16 Feb 2011 07:47:36 -0500
+Received: by mail-bw0-f46.google.com with SMTP id 15so688082bwz.5
+        for <linux-omap@vger.kernel.org>; Wed, 16 Feb 2011 04:47:35 -0800 (PST)
+In-Reply-To: <20110216143112.6f756a94.jhnikula@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Kevin Hilman <khilman@ti.com>, linux-arm-kernel@lists.infradead.org, tony@atomide.com, David Brown <davidb@codeaurora.org>, Daniel Walker <dwalker@codeaurora.org>, Bryan Huntsman <bryanh@codeaurora.org>, Kukjin Kim <kgene.kim@samsung.com>, Paul Mundt <lethal@linux-sh.org>, Magnus Damm <magnus.damm@gmail.com>, Colin Cross <ccross@android.com>, Erik Gilling <konkers@android.com>, Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>, Linus Walleij <linus.walleij@stericsson.com>, linux-omap@vger.kernel.org
+To: Jarkko Nikula <jhnikula@gmail.com>
+Cc: linux-omap@vger.kernel.org, Thara Gopinath <thara@ti.com>, Nishanth Menon <nm@ti.com>, linux-arm-kernel@lists.infradead.org
 
-Russell,
-> -----Original Message-----
-> From: Santosh Shilimkar [mailto:santosh.shilimkar@ti.com]
-> Sent: Saturday, February 12, 2011 5:00 PM
-> To: linux-omap@vger.kernel.org
-> Cc: khilman@ti.com; linux-arm-kernel@lists.infradead.org;
-> tony@atomide.com; Santosh Shilimkar; Russell King; David Brown;
-> Daniel Walker; Bryan Huntsman; Kukjin Kim; Paul Mundt; Magnus Damm;
-> Colin Cross; Erik Gilling; Srinidhi Kasagar; Linus Walleij
-> Subject: [PATCH 1/5] ARM: smp: Select local timers vs dummy timer
-> support runtime
->
-> The current code support of dummy timers in absence of local
-> timer is compile time. This is an attempt to convert it to runtime
-> so that on few SOC version if the local timers aren't supported
-> kernel can switch to dummy timers. OMAP4430 ES1.0 does suffer from
-> this limitation.
->
-> This patch should not have any functional impact on affected
-> files.
->
-> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Cc: Russell King <linux@arm.linux.org.uk>
-> Cc: David Brown <davidb@codeaurora.org>
-> Cc: Daniel Walker <dwalker@codeaurora.org>
-> Cc: Bryan Huntsman <bryanh@codeaurora.org>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Kukjin Kim <kgene.kim@samsung.com>
-> Cc: Paul Mundt <lethal@linux-sh.org>
-> Cc: Magnus Damm <magnus.damm@gmail.com>
-> Cc: Colin Cross <ccross@android.com>
-> Cc: Erik Gilling <konkers@android.com>
-> Cc: Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>
-> Cc: Linus Walleij <linus.walleij@stericsson.com>
-> ---
-Any comments on this one?
-So far David has acked this for mach-msm.
+Hi,
 
->  arch/arm/include/asm/localtimer.h   |    8 +++++++-
->  arch/arm/kernel/smp.c               |    7 +++----
->  arch/arm/mach-msm/timer.c           |    3 ++-
->  arch/arm/mach-omap2/timer-mpu.c     |    3 ++-
->  arch/arm/mach-realview/localtimer.c |    3 ++-
->  arch/arm/mach-s5pv310/localtimer.c  |    3 ++-
->  arch/arm/mach-shmobile/localtimer.c |    3 ++-
->  arch/arm/mach-tegra/localtimer.c    |    3 ++-
->  arch/arm/mach-ux500/localtimer.c    |    3 ++-
->  arch/arm/mach-vexpress/localtimer.c |    3 ++-
->  10 files changed, 26 insertions(+), 13 deletions(-)
+On Wed, Feb 16, 2011 at 6:01 PM, Jarkko Nikula <jhnikula@gmail.com> wrote:
+> On Wed, 16 Feb 2011 17:24:30 +0530
+> "Gulati, Shweta" <shweta.gulati@ti.com> wrote:
 >
-> diff --git a/arch/arm/include/asm/localtimer.h
-> b/arch/arm/include/asm/localtimer.h
-> index 6bc63ab..080d74f 100644
-> --- a/arch/arm/include/asm/localtimer.h
-> +++ b/arch/arm/include/asm/localtimer.h
-> @@ -44,8 +44,14 @@ int local_timer_ack(void);
->  /*
->   * Setup a local timer interrupt for a CPU.
->   */
-> -void local_timer_setup(struct clock_event_device *);
-> +int local_timer_setup(struct clock_event_device *);
+>> > Note proof of concept patch only. I omitted the comments and don't do
+>> > explicit SR disable and I'd clean up the error paths in twl4030_power_init
+>> > a bit before this (e.g. printing error codes). Not sure either is the
+>> > twl4030-power.c right place for this or core.
+>> You missed commit log which says that "T2 bit is required to enable I2C_SR
+>> path of voltage control" it is not at all enabling SR, voltage scale
+>> APIs VPforceupdate/ VCbypass
+>> needs this path to be enabled.
+>> And calling APIs twl_i2c_read/write in driver codebase does n't ensure correct
+>> ordering of flag changes and twl_read/write.
 >
-> +#else
-> +
-> +static inline int local_timer_setup(struct clock_event_device *evt)
-> +{
-> +	return -ENXIO;
-> +}
->  #endif
+> Ah, yeah. I forgot to comment that I tried shortly also to run this
+> enable code from workqueue ~60 s after bootup and indeed SR didn't work
+> if those autocomp sysfs nodes were set before setting the TWL SR bit and
+> I believe same holds for voltage scaling too as you say.
 >
->  #endif
-> diff --git a/arch/arm/kernel/smp.c b/arch/arm/kernel/smp.c
-> index 4539ebc..7b9cc53 100644
-> --- a/arch/arm/kernel/smp.c
-> +++ b/arch/arm/kernel/smp.c
-> @@ -474,13 +474,12 @@ static void smp_timer_broadcast(const struct
-> cpumask *mask)
->  #define smp_timer_broadcast	NULL
->  #endif
->
-> -#ifndef CONFIG_LOCAL_TIMERS
->  static void broadcast_timer_set_mode(enum clock_event_mode mode,
->  	struct clock_event_device *evt)
->  {
->  }
->
-> -static void local_timer_setup(struct clock_event_device *evt)
-> +static void dummy_timer_setup(struct clock_event_device *evt)
->  {
->  	evt->name	= "dummy_timer";
->  	evt->features	= CLOCK_EVT_FEAT_ONESHOT |
-> @@ -492,7 +491,6 @@ static void local_timer_setup(struct
-> clock_event_device *evt)
->
->  	clockevents_register_device(evt);
->  }
-> -#endif
->
->  void __cpuinit percpu_timer_setup(void)
->  {
-> @@ -502,7 +500,8 @@ void __cpuinit percpu_timer_setup(void)
->  	evt->cpumask = cpumask_of(cpu);
->  	evt->broadcast = smp_timer_broadcast;
->
-> -	local_timer_setup(evt);
-> +	if (local_timer_setup(evt))
-> +		dummy_timer_setup(evt);
->  }
->
->  #ifdef CONFIG_HOTPLUG_CPU
-> diff --git a/arch/arm/mach-msm/timer.c b/arch/arm/mach-msm/timer.c
-> index c105d28..ae85aa9 100644
-> --- a/arch/arm/mach-msm/timer.c
-> +++ b/arch/arm/mach-msm/timer.c
-> @@ -255,7 +255,7 @@ static void __init msm_timer_init(void)
->  }
->
->  #ifdef CONFIG_SMP
-> -void __cpuinit local_timer_setup(struct clock_event_device *evt)
-> +int __cpuinit local_timer_setup(struct clock_event_device *evt)
->  {
->  	struct msm_clock *clock = &msm_clocks[MSM_GLOBAL_TIMER];
->
-> @@ -287,6 +287,7 @@ void __cpuinit local_timer_setup(struct
-> clock_event_device *evt)
->  	gic_enable_ppi(clock->irq.irq);
->
->  	clockevents_register_device(evt);
-> +	return 0;
->  }
->
->  inline int local_timer_ack(void)
-> diff --git a/arch/arm/mach-omap2/timer-mpu.c b/arch/arm/mach-
-> omap2/timer-mpu.c
-> index 954682e..09c73dc 100644
-> --- a/arch/arm/mach-omap2/timer-mpu.c
-> +++ b/arch/arm/mach-omap2/timer-mpu.c
-> @@ -26,9 +26,10 @@
->  /*
->   * Setup the local clock events for a CPU.
->   */
-> -void __cpuinit local_timer_setup(struct clock_event_device *evt)
-> +int __cpuinit local_timer_setup(struct clock_event_device *evt)
->  {
->  	evt->irq = OMAP44XX_IRQ_LOCALTIMER;
->  	twd_timer_setup(evt);
-> +	return 0;
->  }
->
-> diff --git a/arch/arm/mach-realview/localtimer.c b/arch/arm/mach-
-> realview/localtimer.c
-> index 60b4e11..aca29ce 100644
-> --- a/arch/arm/mach-realview/localtimer.c
-> +++ b/arch/arm/mach-realview/localtimer.c
-> @@ -19,8 +19,9 @@
->  /*
->   * Setup the local clock events for a CPU.
->   */
-> -void __cpuinit local_timer_setup(struct clock_event_device *evt)
-> +int __cpuinit local_timer_setup(struct clock_event_device *evt)
->  {
->  	evt->irq = IRQ_LOCALTIMER;
->  	twd_timer_setup(evt);
-> +	return 0;
->  }
-> diff --git a/arch/arm/mach-s5pv310/localtimer.c b/arch/arm/mach-
-> s5pv310/localtimer.c
-> index 2784036..8239c6a 100644
-> --- a/arch/arm/mach-s5pv310/localtimer.c
-> +++ b/arch/arm/mach-s5pv310/localtimer.c
-> @@ -18,8 +18,9 @@
->  /*
->   * Setup the local clock events for a CPU.
->   */
-> -void __cpuinit local_timer_setup(struct clock_event_device *evt)
-> +int __cpuinit local_timer_setup(struct clock_event_device *evt)
->  {
->  	evt->irq = IRQ_LOCALTIMER;
->  	twd_timer_setup(evt);
-> +	return 0;
->  }
-> diff --git a/arch/arm/mach-shmobile/localtimer.c b/arch/arm/mach-
-> shmobile/localtimer.c
-> index 2111c28..ad9ccc9 100644
-> --- a/arch/arm/mach-shmobile/localtimer.c
-> +++ b/arch/arm/mach-shmobile/localtimer.c
-> @@ -18,8 +18,9 @@
->  /*
->   * Setup the local clock events for a CPU.
->   */
-> -void __cpuinit local_timer_setup(struct clock_event_device *evt)
-> +int __cpuinit local_timer_setup(struct clock_event_device *evt)
->  {
->  	evt->irq = 29;
->  	twd_timer_setup(evt);
-> +	return 0;
->  }
-> diff --git a/arch/arm/mach-tegra/localtimer.c b/arch/arm/mach-
-> tegra/localtimer.c
-> index f81ca7c..e91d681 100644
-> --- a/arch/arm/mach-tegra/localtimer.c
-> +++ b/arch/arm/mach-tegra/localtimer.c
-> @@ -18,8 +18,9 @@
->  /*
->   * Setup the local clock events for a CPU.
->   */
-> -void __cpuinit local_timer_setup(struct clock_event_device *evt)
-> +int __cpuinit local_timer_setup(struct clock_event_device *evt)
->  {
->  	evt->irq = IRQ_LOCALTIMER;
->  	twd_timer_setup(evt);
-> +	return 0;
->  }
-> diff --git a/arch/arm/mach-ux500/localtimer.c b/arch/arm/mach-
-> ux500/localtimer.c
-> index 2288f6a..5ba1133 100644
-> --- a/arch/arm/mach-ux500/localtimer.c
-> +++ b/arch/arm/mach-ux500/localtimer.c
-> @@ -21,8 +21,9 @@
->  /*
->   * Setup the local clock events for a CPU.
->   */
-> -void __cpuinit local_timer_setup(struct clock_event_device *evt)
-> +int __cpuinit local_timer_setup(struct clock_event_device *evt)
->  {
->  	evt->irq = IRQ_LOCALTIMER;
->  	twd_timer_setup(evt);
-> +	return 0;
->  }
-> diff --git a/arch/arm/mach-vexpress/localtimer.c b/arch/arm/mach-
-> vexpress/localtimer.c
-> index c0e3a59..e5adbfa 100644
-> --- a/arch/arm/mach-vexpress/localtimer.c
-> +++ b/arch/arm/mach-vexpress/localtimer.c
-> @@ -19,8 +19,9 @@
->  /*
->   * Setup the local clock events for a CPU.
->   */
-> -void __cpuinit local_timer_setup(struct clock_event_device *evt)
-> +int __cpuinit local_timer_setup(struct clock_event_device *evt)
->  {
->  	evt->irq = IRQ_LOCALTIMER;
->  	twd_timer_setup(evt);
-> +	return 0;
->  }
+> What I'm thinking is there actually need for some higher level
+> control for these that quarantees the right order independently from
+> when each module are initialized.
+Yes there is a need.
+Voltage control for TWL uses different ways VMODE/I2C1/I2C_SR
+Most of the OMAP3+ boards uses I2C_SR, for this to function properly
+SR_BIT on TWL side needs to be enabled but there could be some boards
+that use VMODE  method of scaling, for those boards this bit has to be
+disabled which can be done from board file that is why a flag is set to make
+sure that API 'omap3_twl_set_sr_bit()' is called once and all initializations
+are done in order so SR bit is set/cleared aptly.
 > --
-> 1.6.0.4
+> Jarkko
+>
+
+
+
+-- 
+Thanks,
+Regards,
+Shweta
