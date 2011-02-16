@@ -1,62 +1,66 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: Pandaboard boot problem
-Date: Wed, 16 Feb 2011 09:59:00 +0100
-Message-ID: <AANLkTimn4LGiMrb6YKQvvj2BrAxmT8T6sdA0TgniB8L0@mail.gmail.com>
-References: <AANLkTikCjuhHJbvK6YL40mYq2Yt99UCob4bHKRqPRToW@mail.gmail.com>
-	<20110204015301.GQ3322@atomide.com>
-	<AANLkTinJPPDH6bWQ-Q14k6vgx8iGQvUmPFbrWqQX1JJ5@mail.gmail.com>
-	<20110214163815.d488841f.jhnikula@gmail.com>
+From: Raghuveer Murthy <x0075817@ti.com>
+Subject: Re: [PATCH 0/4] OMAP4: DSS2: Adding fclk support for DPI interface
+Date: Wed, 16 Feb 2011 14:27:26 +0530
+Message-ID: <4D5B9176.5060000@ti.com>
+References: <1296741419-9037-1-git-send-email-raghuveer.murthy@ti.com> <1297699342.2951.62.camel@deskari>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:59456 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754343Ab1BPI7B (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Feb 2011 03:59:01 -0500
-Received: by qwa26 with SMTP id 26so1038131qwa.19
-        for <linux-omap@vger.kernel.org>; Wed, 16 Feb 2011 00:59:01 -0800 (PST)
-In-Reply-To: <20110214163815.d488841f.jhnikula@gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:42831 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754055Ab1BPJCC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 16 Feb 2011 04:02:02 -0500
+In-Reply-To: <1297699342.2951.62.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jhnikula@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+To: "paul@pwsan.com" <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>
+Cc: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, "Murthy, Raghuveer" <raghuveer.murthy@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Jarkko,
-
-On Mon, Feb 14, 2011 at 3:38 PM, Jarkko Nikula <jhnikula@gmail.com> wrote:
-> On Mon, 14 Feb 2011 15:01:30 +0100
-> Jean Pihet <jean.pihet@newoldbits.com> wrote:
+On Monday 14 February 2011 09:32 PM, Valkeinen, Tomi wrote:
+> Hi,
 >
->> > If so, I've seen this same issue few times after having my panda
->> > powered off for a while, for example over the weekend.
->> >
->> > What I've noticed is that leaving just u-boot prompt running
->> > for a few minutes cures the problem somehow.. After that the
->> > kernel will boot just fine.
->> Unfortunately that is not helping.
->> I am still investigating. For the moment the pandaboard is pretty useless ;(
->>
-> Try to heat TWL6030 a little. My board seems to suffer some soldering
-> fault around it and the device keeps running if I warm up the chip with
-> a 40 W light bulb ~1-2 cm distance.
-That works! I heated the chip with a halogen heater at ~10cm distance
-and the board ran fine for 3 minutes after that.
-
-> It keeps running fine by using the Ubuntu kernel but I think reason is
-> that the EHCI is initialized there and the TWL draws more current and
-> thus heats up.
-That probably is the reason.
-
-> No idea why the u-boot runs fine.
-That would be nice to identify the root cause and get a SW workaround in place.
-
-The other solution is to invest in extra heaters or a sun tan machine
-in the office ;p
-
+> On Thu, 2011-02-03 at 07:56 -0600, Murthy, Raghuveer wrote:
+>> - Adding dss_feature for DPLL fclk
+>> - Enabling pixel clock generation for DPI interface
 >
-> --
-> Jarkko
+> A bit more description what the patch set is about would be nice. Also,
+> one line patch descriptions are a bit too short for anything else than
+> the most trivial patches.
+>
+> Now to the actual patch contents:
+>
+> DPLL is not a feature of the DSS, and I don't think we should have
+> dss_features for that. In fact, I think the whole DPLL code should be
+> moved from DSS to somewhere under arch/arm.
+>
+> In a perfect world DSS could just set the dss_fck to whatever rate it
+> requires, but as the clock rate can only be set to certain rates, and we
+> need a precise control for the rate, some other method has to be in
+> place.
+>
+> I am not sure what this method should be. Perhaps there is something in
+> the clock framework that could help us here, or perhaps we just need a
+> bunch of function pointers in the DSS's platform data which can be used
+> to configure the clock.
+>
+>   Tomi
+>
 >
 
-Thanks,
-Jean
+Hi Paul, Benoit,
+
+DPLL_PER post divider output for DSS core functional clock can be 
+changed in OMAP3xxx and OMAP4430, based on the requested pixel clock for 
+a given display resolution.
+
+Additionally, the number of dividers available for DPLL_PER post 
+dividors for DSS has increased from 16 to 32, from OMAP3630 onwards.
+
+Both these are added as dss_features.
+
+Given the above comments from Tomi, can the same be included as part of 
+the clock framework?
+
+Regards,
+Raghuveer
