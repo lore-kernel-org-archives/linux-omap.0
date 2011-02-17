@@ -1,52 +1,64 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 1/2] omap4: 4430sdp: drop ehci support
-Date: Thu, 17 Feb 2011 09:49:03 +0200
-Message-ID: <20110217074903.GE2439@legolas.emea.dhcp.ti.com>
-References: <1297855040-1337-1-git-send-email-gadiyar@ti.com>
-Reply-To: balbi@ti.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Bryan Wu <bryan.wu@canonical.com>
+Subject: [PATCH] omap3: Adding vdd_sdi regulator supply to OMAP3EVM
+Date: Thu, 17 Feb 2011 16:11:14 +0800
+Message-ID: <1297930274-16278-1-git-send-email-bryan.wu@canonical.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:51626 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753275Ab1BQHtI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 17 Feb 2011 02:49:08 -0500
-Received: by mail-bw0-f50.google.com with SMTP id 12so2322874bwg.9
-        for <linux-omap@vger.kernel.org>; Wed, 16 Feb 2011 23:49:07 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <1297855040-1337-1-git-send-email-gadiyar@ti.com>
+Received: from adelie.canonical.com ([91.189.90.139]:39291 "EHLO
+	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751170Ab1BQILc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Feb 2011 03:11:32 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Anand Gadiyar <gadiyar@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Keshava Munegowda <keshava_mgowda@ti.com>, Tony Lindgren <tony@atomide.com>
+To: linux-omap@vger.kernel.org
+Cc: tony@atomide.com, kernel-team@lists.ubuntu.com
 
-On Wed, Feb 16, 2011 at 04:47:19PM +0530, Anand Gadiyar wrote:
-> Most revisions of the OMAP4 Blaze/SDP platform do not have
-> the EHCI signals routed by default. The pads are routed
-> for the alternate HSI functionality instead, and explicit
-> board modifications are needed to route the signals to
-> the USB PHY on the board.
-> 
-> Also, turning on the PHY connected to the EHCI port causes
-> a board reboot during bootup due to an unintended short
-> on the rails - this affects many initial revisions of the
-> board, and needs a minor board mod to fix (or as a
-> workaround, one should not attempt to power on the
-> USB PHY).
-> 
-> Given that these boards need explicit board mods to even
-> get EHCI working (separate from the accidental short above),
-> we should not attempt to enable EHCI by default.
-> 
-> So drop the EHCI support from the board files for the
-> Blaze/SDP platforms.
-> 
-> Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
-> Cc: Keshava Munegowda <keshava_mgowda@ti.com>
-> Cc: Tony Lindgren <tony@atomide.com>
+From: Mathieu J. Poirier <mathieu.poirier@canonical.com>
 
-applied, thanks.
+https://bugs.launchpad.net/bugs/630885
 
+When booting, the omapdss subsystem is looking for a regulator named
+"vdds_sdi". When the regulator is not found the initialisation sequence
+is aborted resulting in omapfb not finding a display to work with.  This
+patch allows the omapfb sub system to complete its initialisation
+properly and enable LCD display. The problem was fixed by lumping a
+"vdds_sdi" with the already existing "vdds_dsi" regulator. This fix
+takes its root from work done on the Beagle board and the Pandora board.
+
+Signed-off-by: Mathieu Poirier <mathieu.poirier@canonical.com>
+Signed-off-by: Andy Whitcroft <apw@canonical.com>
+Signed-off-by: Bryan Wu <bryan.wu@canonical.com>
+---
+ arch/arm/mach-omap2/board-omap3evm.c |   10 ++++++----
+ 1 files changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index c2a0fca..8b8eb36 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -521,8 +521,10 @@ static struct regulator_init_data omap3_evm_vdac = {
+ };
+ 
+ /* VPLL2 for digital video outputs */
+-static struct regulator_consumer_supply omap3_evm_vpll2_supply =
+-	REGULATOR_SUPPLY("vdds_dsi", "omapdss");
++static struct regulator_consumer_supply omap3_evm_vdds_supplies[] = {
++	REGULATOR_SUPPLY("vdds_sdi", "omapdss"),
++	REGULATOR_SUPPLY("vdds_dsi", "omapdss"),
++};
+ 
+ static struct regulator_init_data omap3_evm_vpll2 = {
+ 	.constraints = {
+@@ -534,8 +536,8 @@ static struct regulator_init_data omap3_evm_vpll2 = {
+ 		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+ 					| REGULATOR_CHANGE_STATUS,
+ 	},
+-	.num_consumer_supplies	= 1,
+-	.consumer_supplies	= &omap3_evm_vpll2_supply,
++	.num_consumer_supplies	= ARRAY_SIZE(omap3_evm_vdds_supplies),
++	.consumer_supplies	= omap3_evm_vdds_supplies,
+ };
+ 
+ static struct twl4030_platform_data omap3evm_twldata = {
 -- 
-balbi
+1.7.1
+
