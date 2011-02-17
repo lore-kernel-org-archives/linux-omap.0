@@ -1,40 +1,43 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 2/6] ARM: pm: add generic CPU suspend/resume support
-Date: Thu, 17 Feb 2011 23:36:05 +0000
-Message-ID: <20110217233605.GB4110@n2100.arm.linux.org.uk>
-References: <20110211161626.GA31356@n2100.arm.linux.org.uk> <E1Pnvgw-0002yZ-M0@rmk-PC.arm.linux.org.uk> <AANLkTinL0HgSsFmoxyiBuRA6JiWKsHTLW4wFnVDJf_1w@mail.gmail.com> <20110215110453.GB11199@n2100.arm.linux.org.uk> <AANLkTik_c4D7CPO9j9ZYUSuR45ggJ8Y953VLQCg4tkkr@mail.gmail.com> <1297939312.7096.32.camel@e102568-lin.cambridge.arm.com> <AANLkTincWLyqdtAoS4gxvhGZGRdzRAiQ41Pn8QSG-id=@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v5 3/5] OMAP4: hwmod data: add mailbox data
+Date: Thu, 17 Feb 2011 15:39:09 -0800
+Message-ID: <20110217233908.GG20795@atomide.com>
+References: <1296674843-12718-1-git-send-email-omar.ramirez@ti.com>
+ <1296674843-12718-4-git-send-email-omar.ramirez@ti.com>
+ <4D5943A9.8010205@ti.com>
+ <AANLkTinA2a60TSM7qDC1LQiRaUTs0DR3bDMv+oVsVOE0@mail.gmail.com>
+ <4D5AF8BA.8080403@ti.com>
+ <AANLkTi=yj2_bS1h87u0hhUUpA=RPZe-A=PiNSf_q_66r@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:40959 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753961Ab1BQXgV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Feb 2011 18:36:21 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:53292 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753302Ab1BQXjV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Feb 2011 18:39:21 -0500
 Content-Disposition: inline
-In-Reply-To: <AANLkTincWLyqdtAoS4gxvhGZGRdzRAiQ41Pn8QSG-id=@mail.gmail.com>
+In-Reply-To: <AANLkTi=yj2_bS1h87u0hhUUpA=RPZe-A=PiNSf_q_66r@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Colin Cross <ccross@google.com>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-omap@vger.kernel.org, Kukjin Kim <kgene.kim@samsung.com>, Eric Miao <eric.y.miao@gmail.com>, linux-arm-kernel@lists.infradead.org
+To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, Russell King <linux@arm.linux.org.uk>, lo <linux-omap@vger.kernel.org>, lak <linux-arm-kernel@lists.infradead.org>
 
-On Thu, Feb 17, 2011 at 12:05:59PM -0800, Colin Cross wrote:
-> On Thu, Feb 17, 2011 at 2:41 AM, Lorenzo Pieralisi
-> <lorenzo.pieralisi@arm.com> wrote:
-> > I think that on resume you invalidate L1 in the reset vector before
-> > jumping to cpu_resume, correct ?
->
-> I manually invalidate the L1 Dcache, but not the Icache.
+* Ramirez Luna, Omar <omar.ramirez@ti.com> [110215 16:11]:
+> 
+> > If you have to do several platform_get_irq_byname to get this one, I'd
+> > prefer to get rid of that name for OMAP4. It will make mailbox irq
+> > consistent with the other hwmods.
+> 
+> I was thinking to standardize the names to be mbox0..mboxN across all
+> the platforms, reason being that the mailbox also has capabilities to
+> be used not only by dsp or iva, by using a polling method.
+> 
+> So even if the mailbox in OMAP3 is called "dsp", it has 4 more queues
+> apart from the 2 used for messaging between arm and dsp, that could be
+> used even if tidspbridge wasn't there.
 
-Well...
-ARMv5 and older invalidates the L1 Dcache.
-ARMv6 cleans and invalidates the L1 Dcache.
-ARMv7 does nothing with the L1 Dcache.
+So what's the status of this series? Can the rest of the patches
+now be applied on top of the current omap-for-linus or do the names
+still need fixing?
 
-That's rather inconsistent, but that's what people are doing with their
-current suspend/resume paths.  We really ought to have this well-defined.
-
-I don't see any reason why there should be any dirty data in the Dcache,
-so I think the safe thing we should be doing in every case is a L1 Dcache
-invalidate on resume.
-
-That's a separate change though.
+Tony
