@@ -1,240 +1,267 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 3/5] OMAP2xxx: clock: fix interface clocks and clockdomains
-	for modules in the WKUP domain
-Date: Wed, 16 Feb 2011 21:17:53 -0700
-Message-ID: <20110217041752.16009.3279.stgit@twilight.localdomain>
-References: <20110217041437.16009.52336.stgit@twilight.localdomain>
+From: Kukjin Kim <kgene.kim@samsung.com>
+Subject: RE: [RFC 1/5] ARM: P2V: separate PHYS_OFFSET from platform definitions
+Date: Thu, 17 Feb 2011 14:33:28 +0900
+Message-ID: <015c01cbce64$373c6ef0$a5b54cd0$%kim@samsung.com>
+References: <20110104202052.GE24935@n2100.arm.linux.org.uk>
+	<E1PaDOb-00023Z-CR@rmk-PC.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:55847 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752290Ab1BQESa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Feb 2011 23:18:30 -0500
-In-Reply-To: <20110217041437.16009.52336.stgit@twilight.localdomain>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-reply-to: <E1PaDOb-00023Z-CR@rmk-PC.arm.linux.org.uk>
+Content-language: ko
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: 'Russell King - ARM Linux' <linux@arm.linux.org.uk>, 'Nicolas Pitre' <nico@fluxnic.net>
+Cc: 'Srinidhi Kasagar' <srinidhi.kasagar@stericsson.com>, 'Kevin Hilman' <khilman@deeprootsystems.com>, 'Anton Vorontsov' <avorontsov@mvista.com>, 'Lennert Buytenhek' <kernel@wantstofly.org>, linux-samsung-soc@vger.kernel.org, 'Erik Gilling' <konkers@android.com>, linux-sh@vger.kernel.org, 'Vincent Sanders' <support@simtec.co.uk>, "'Hans J. Koch'" <hjk@linutronix.de>, 'Magnus Damm' <magnus.damm@gmail.com>, 'Marc Singer' <elf@buici.com>, 'Tony Lindgren' <tony@atomide.com>, 'David Brown' <davidb@codeaurora.org>, 'Alessandro Rubini' <rubini@unipv.it>, 'Jiandong Zheng' <jdzheng@broadcom.com>, 'Wan ZongShun' <mcuos.com@gmail.com>, linux-arm-msm@vger.kernel.org, 'Olof Johansson' <olof@lixom.net>, 'Ryan Mallon' <ryan@bluewatersys.com>, 'Ben Dooks' <ben-linux@fluff.org>, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 'Daniel
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-The parent of the interface clocks for GPTIMER1, MPU_WDT,
-SYNCTIMER_32K, SCM, WDT1, and the ICR (2430 only) were all listed as
-being l4_ck.  This isn't accurate; these modules exist inside the WKUP
-domain, and the interface clock to these modules runs at the SYS_CLK
-rate rather than the CORE L4 rate.
+Russell King - ARM Linux wrote:
+> 
+> This uncouple PHYS_OFFSET from the platform definitions, thereby
+> facilitating run-time computation of the physical memory offset.
+> 
+> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> ---
+>  arch/arm/include/asm/memory.h                  |    2 ++
+>  arch/arm/kernel/tcm.c                          |    2 +-
+>  arch/arm/mach-aaec2000/include/mach/memory.h   |    2 +-
+>  arch/arm/mach-at91/include/mach/memory.h       |    2 +-
+>  arch/arm/mach-bcmring/include/mach/hardware.h  |    2 +-
+>  arch/arm/mach-bcmring/include/mach/memory.h    |    2 +-
+>  arch/arm/mach-clps711x/include/mach/memory.h   |    2 +-
+>  arch/arm/mach-cns3xxx/include/mach/memory.h    |    2 +-
+>  arch/arm/mach-davinci/include/mach/memory.h    |    4 ++--
+>  arch/arm/mach-dove/include/mach/memory.h       |    2 +-
+>  arch/arm/mach-ebsa110/include/mach/memory.h    |    2 +-
+>  arch/arm/mach-ep93xx/include/mach/memory.h     |   10 +++++-----
+>  arch/arm/mach-footbridge/include/mach/memory.h |    2 +-
+>  arch/arm/mach-h720x/include/mach/memory.h      |    2 +-
+>  arch/arm/mach-integrator/include/mach/memory.h |    2 +-
+>  arch/arm/mach-iop13xx/include/mach/memory.h    |    2 +-
+>  arch/arm/mach-iop32x/include/mach/memory.h     |    2 +-
+>  arch/arm/mach-iop33x/include/mach/memory.h     |    2 +-
+>  arch/arm/mach-ixp2000/include/mach/memory.h    |    2 +-
+>  arch/arm/mach-ixp23xx/include/mach/memory.h    |    2 +-
+>  arch/arm/mach-ixp4xx/include/mach/memory.h     |    2 +-
+>  arch/arm/mach-kirkwood/include/mach/memory.h   |    2 +-
+>  arch/arm/mach-ks8695/include/mach/memory.h     |    2 +-
+>  arch/arm/mach-lh7a40x/include/mach/memory.h    |    2 +-
+>  arch/arm/mach-loki/include/mach/memory.h       |    2 +-
+>  arch/arm/mach-lpc32xx/include/mach/memory.h    |    2 +-
+>  arch/arm/mach-mmp/include/mach/memory.h        |    2 +-
+>  arch/arm/mach-msm/board-msm7x30.c              |    2 +-
+>  arch/arm/mach-msm/include/mach/memory.h        |   10 +++++-----
+>  arch/arm/mach-mv78xx0/include/mach/memory.h    |    2 +-
+>  arch/arm/mach-mx3/mach-kzm_arm11_01.c          |    2 +-
+>  arch/arm/mach-netx/include/mach/memory.h       |    2 +-
+>  arch/arm/mach-nomadik/include/mach/memory.h    |    2 +-
+>  arch/arm/mach-ns9xxx/include/mach/memory.h     |    2 +-
+>  arch/arm/mach-nuc93x/include/mach/memory.h     |    2 +-
+>  arch/arm/mach-orion5x/include/mach/memory.h    |    2 +-
+>  arch/arm/mach-pnx4008/include/mach/memory.h    |    2 +-
+>  arch/arm/mach-pxa/include/mach/memory.h        |    2 +-
+>  arch/arm/mach-realview/include/mach/memory.h   |    4 ++--
+>  arch/arm/mach-rpc/include/mach/memory.h        |    2 +-
+>  arch/arm/mach-s3c2400/include/mach/memory.h    |    2 +-
+>  arch/arm/mach-s3c2410/include/mach/memory.h    |    2 +-
+>  arch/arm/mach-s3c24a0/include/mach/memory.h    |    2 +-
+>  arch/arm/mach-s3c64xx/include/mach/memory.h    |    2 +-
+>  arch/arm/mach-s5p6442/include/mach/memory.h    |    2 +-
+>  arch/arm/mach-s5p64x0/include/mach/memory.h    |    2 +-
+>  arch/arm/mach-s5pc100/include/mach/memory.h    |    2 +-
+>  arch/arm/mach-s5pv210/include/mach/memory.h    |    2 +-
+>  arch/arm/mach-s5pv310/include/mach/memory.h    |    2 +-
+>  arch/arm/mach-sa1100/include/mach/memory.h     |    2 +-
+>  arch/arm/mach-shark/include/mach/memory.h      |    2 +-
+>  arch/arm/mach-shmobile/include/mach/memory.h   |    2 +-
+>  arch/arm/mach-tegra/include/mach/memory.h      |    2 +-
+>  arch/arm/mach-u300/include/mach/memory.h       |    6 +++---
+>  arch/arm/mach-u300/u300.c                      |    2 +-
+>  arch/arm/mach-ux500/include/mach/memory.h      |    2 +-
+>  arch/arm/mach-versatile/include/mach/memory.h  |    2 +-
+>  arch/arm/mach-vexpress/include/mach/memory.h   |    2 +-
+>  arch/arm/mach-w90x900/include/mach/memory.h    |    2 +-
+>  arch/arm/plat-omap/include/plat/memory.h       |    4 ++--
+>  arch/arm/plat-spear/include/plat/memory.h      |    2 +-
+>  arch/arm/plat-stmp3xxx/include/mach/memory.h   |    2 +-
+>  arch/arm/plat-tcc/include/mach/memory.h        |    2 +-
+>  63 files changed, 77 insertions(+), 75 deletions(-)
+> 
+> diff --git a/arch/arm/include/asm/memory.h b/arch/arm/include/asm/memory.h
+> index 23c2e8e..00b04ae 100644
+> --- a/arch/arm/include/asm/memory.h
+> +++ b/arch/arm/include/asm/memory.h
+> @@ -24,6 +24,8 @@
+>   */
+>  #define UL(x) _AC(x, UL)
+> 
+> +#define PHYS_OFFSET	PLAT_PHYS_OFFSET
+> +
+>  #ifdef CONFIG_MMU
+> 
+>  /*
+> diff --git a/arch/arm/kernel/tcm.c b/arch/arm/kernel/tcm.c
+> index 26685c2..f5cf660 100644
+> --- a/arch/arm/kernel/tcm.c
+> +++ b/arch/arm/kernel/tcm.c
+> @@ -15,7 +15,7 @@
+>  #include <linux/string.h> /* memcpy */
+>  #include <asm/cputype.h>
+>  #include <asm/mach/map.h>
+> -#include <mach/memory.h>
+> +#include <asm/memory.h>
+>  #include "tcm.h"
+> 
+>  static struct gen_pool *tcm_pool;
 
-So, create a new clock "wu_l4_ick", similar to the OMAP3
-"wkup_l4_ick", that serves as the parent for these clocks.
+(snip)
 
-Also, these clocks were listed as existing inside core_l4_clkdm;
-wkup_clkdm is probably more accurate.
+> diff --git a/arch/arm/mach-s3c2400/include/mach/memory.h b/arch/arm/mach-
+> s3c2400/include/mach/memory.h
+> index cf5901f..3f33670 100644
+> --- a/arch/arm/mach-s3c2400/include/mach/memory.h
+> +++ b/arch/arm/mach-s3c2400/include/mach/memory.h
+> @@ -15,6 +15,6 @@
+>  #ifndef __ASM_ARCH_MEMORY_H
+>  #define __ASM_ARCH_MEMORY_H
+> 
+> -#define PHYS_OFFSET	UL(0x0C000000)
+> +#define PLAT_PHYS_OFFSET	UL(0x0C000000)
+> 
+>  #endif
+> diff --git a/arch/arm/mach-s3c2410/include/mach/memory.h b/arch/arm/mach-
+> s3c2410/include/mach/memory.h
+> index 6f1e587..f92b97b 100644
+> --- a/arch/arm/mach-s3c2410/include/mach/memory.h
+> +++ b/arch/arm/mach-s3c2410/include/mach/memory.h
+> @@ -11,6 +11,6 @@
+>  #ifndef __ASM_ARCH_MEMORY_H
+>  #define __ASM_ARCH_MEMORY_H
+> 
+> -#define PHYS_OFFSET	UL(0x30000000)
+> +#define PLAT_PHYS_OFFSET	UL(0x30000000)
+> 
+>  #endif
+> diff --git a/arch/arm/mach-s3c24a0/include/mach/memory.h b/arch/arm/mach-
+> s3c24a0/include/mach/memory.h
+> index 7d74fd5..7d208a7 100644
+> --- a/arch/arm/mach-s3c24a0/include/mach/memory.h
+> +++ b/arch/arm/mach-s3c24a0/include/mach/memory.h
+> @@ -11,7 +11,7 @@
+>  #ifndef __ASM_ARCH_24A0_MEMORY_H
+>  #define __ASM_ARCH_24A0_MEMORY_H __FILE__
+> 
+> -#define PHYS_OFFSET UL(0x10000000)
+> +#define PLAT_PHYS_OFFSET UL(0x10000000)
+> 
+>  #define __virt_to_bus(x) __virt_to_phys(x)
+>  #define __bus_to_virt(x) __phys_to_virt(x)
+> diff --git a/arch/arm/mach-s3c64xx/include/mach/memory.h b/arch/arm/mach-
+> s3c64xx/include/mach/memory.h
+> index 42cc54e..4760cda 100644
+> --- a/arch/arm/mach-s3c64xx/include/mach/memory.h
+> +++ b/arch/arm/mach-s3c64xx/include/mach/memory.h
+> @@ -13,7 +13,7 @@
+>  #ifndef __ASM_ARCH_MEMORY_H
+>  #define __ASM_ARCH_MEMORY_H
+> 
+> -#define PHYS_OFFSET     UL(0x50000000)
+> +#define PLAT_PHYS_OFFSET     UL(0x50000000)
+> 
+>  #define CONSISTENT_DMA_SIZE	SZ_8M
+> 
+> diff --git a/arch/arm/mach-s5p6442/include/mach/memory.h b/arch/arm/mach-
+> s5p6442/include/mach/memory.h
+> index 9ddd877..cfe259d 100644
+> --- a/arch/arm/mach-s5p6442/include/mach/memory.h
+> +++ b/arch/arm/mach-s5p6442/include/mach/memory.h
+> @@ -13,7 +13,7 @@
+>  #ifndef __ASM_ARCH_MEMORY_H
+>  #define __ASM_ARCH_MEMORY_H
+> 
+> -#define PHYS_OFFSET		UL(0x20000000)
+> +#define PLAT_PHYS_OFFSET		UL(0x20000000)
+>  #define CONSISTENT_DMA_SIZE	SZ_8M
+> 
+>  #endif /* __ASM_ARCH_MEMORY_H */
+> diff --git a/arch/arm/mach-s5p64x0/include/mach/memory.h b/arch/arm/mach-
+> s5p64x0/include/mach/memory.h
+> index 1b036b0..365a6eb 100644
+> --- a/arch/arm/mach-s5p64x0/include/mach/memory.h
+> +++ b/arch/arm/mach-s5p64x0/include/mach/memory.h
+> @@ -13,7 +13,7 @@
+>  #ifndef __ASM_ARCH_MEMORY_H
+>  #define __ASM_ARCH_MEMORY_H __FILE__
+> 
+> -#define PHYS_OFFSET		UL(0x20000000)
+> +#define PLAT_PHYS_OFFSET		UL(0x20000000)
+>  #define CONSISTENT_DMA_SIZE	SZ_8M
+> 
+>  #endif /* __ASM_ARCH_MEMORY_H */
+> diff --git a/arch/arm/mach-s5pc100/include/mach/memory.h b/arch/arm/mach-
+> s5pc100/include/mach/memory.h
+> index 4b60d18..bda4e79 100644
+> --- a/arch/arm/mach-s5pc100/include/mach/memory.h
+> +++ b/arch/arm/mach-s5pc100/include/mach/memory.h
+> @@ -13,6 +13,6 @@
+>  #ifndef __ASM_ARCH_MEMORY_H
+>  #define __ASM_ARCH_MEMORY_H
+> 
+> -#define PHYS_OFFSET     	UL(0x20000000)
+> +#define PLAT_PHYS_OFFSET     	UL(0x20000000)
+> 
+>  #endif
+> diff --git a/arch/arm/mach-s5pv210/include/mach/memory.h b/arch/arm/mach-
+> s5pv210/include/mach/memory.h
+> index d503e0c..7b5fcf0 100644
+> --- a/arch/arm/mach-s5pv210/include/mach/memory.h
+> +++ b/arch/arm/mach-s5pv210/include/mach/memory.h
+> @@ -13,7 +13,7 @@
+>  #ifndef __ASM_ARCH_MEMORY_H
+>  #define __ASM_ARCH_MEMORY_H
+> 
+> -#define PHYS_OFFSET		UL(0x20000000)
+> +#define PLAT_PHYS_OFFSET		UL(0x20000000)
+>  #define CONSISTENT_DMA_SIZE	(SZ_8M + SZ_4M + SZ_2M)
+> 
+>  /*
+> diff --git a/arch/arm/mach-s5pv310/include/mach/memory.h b/arch/arm/mach-
+> s5pv310/include/mach/memory.h
+> index 1dffb48..470b01b 100644
+> --- a/arch/arm/mach-s5pv310/include/mach/memory.h
+> +++ b/arch/arm/mach-s5pv310/include/mach/memory.h
+> @@ -13,7 +13,7 @@
+>  #ifndef __ASM_ARCH_MEMORY_H
+>  #define __ASM_ARCH_MEMORY_H __FILE__
+> 
+> -#define PHYS_OFFSET		UL(0x40000000)
+> +#define PLAT_PHYS_OFFSET		UL(0x40000000)
+> 
+>  /* Maximum of 256MiB in one bank */
+>  #define MAX_PHYSMEM_BITS	32
 
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
----
- arch/arm/mach-omap2/clock2420_data.c |   33 +++++++++++++++++++-----------
- arch/arm/mach-omap2/clock2430_data.c |   37 +++++++++++++++++++++-------------
- 2 files changed, 44 insertions(+), 26 deletions(-)
+(snip)
 
-diff --git a/arch/arm/mach-omap2/clock2420_data.c b/arch/arm/mach-omap2/clock2420_data.c
-index fd5ba90..6e9d20d 100644
---- a/arch/arm/mach-omap2/clock2420_data.c
-+++ b/arch/arm/mach-omap2/clock2420_data.c
-@@ -826,6 +826,14 @@ static struct clk dss_54m_fck = {	/* Alt clk used in power management */
- 	.recalc		= &followparent_recalc,
- };
- 
-+static struct clk wu_l4_ick = {
-+	.name		= "wu_l4_ick",
-+	.ops		= &clkops_null,
-+	.parent		= &sys_ck,
-+	.clkdm_name	= "wkup_clkdm",
-+	.recalc		= &followparent_recalc,
-+};
-+
- /*
-  * CORE power domain ICLK & FCLK defines.
-  * Many of the these can have more than one possible parent. Entries
-@@ -847,8 +855,8 @@ static const struct clksel omap24xx_gpt_clksel[] = {
- static struct clk gpt1_ick = {
- 	.name		= "gpt1_ick",
- 	.ops		= &clkops_omap2_iclk_dflt_wait,
--	.parent		= &l4_ck,
--	.clkdm_name	= "core_l4_clkdm",
-+	.parent		= &wu_l4_ick,
-+	.clkdm_name	= "wkup_clkdm",
- 	.enable_reg	= OMAP_CM_REGADDR(WKUP_MOD, CM_ICLKEN),
- 	.enable_bit	= OMAP24XX_EN_GPT1_SHIFT,
- 	.recalc		= &followparent_recalc,
-@@ -1300,8 +1308,8 @@ static struct clk uart3_fck = {
- static struct clk gpios_ick = {
- 	.name		= "gpios_ick",
- 	.ops		= &clkops_omap2_iclk_dflt_wait,
--	.parent		= &l4_ck,
--	.clkdm_name	= "core_l4_clkdm",
-+	.parent		= &wu_l4_ick,
-+	.clkdm_name	= "wkup_clkdm",
- 	.enable_reg	= OMAP_CM_REGADDR(WKUP_MOD, CM_ICLKEN),
- 	.enable_bit	= OMAP24XX_EN_GPIOS_SHIFT,
- 	.recalc		= &followparent_recalc,
-@@ -1320,8 +1328,8 @@ static struct clk gpios_fck = {
- static struct clk mpu_wdt_ick = {
- 	.name		= "mpu_wdt_ick",
- 	.ops		= &clkops_omap2_iclk_dflt_wait,
--	.parent		= &l4_ck,
--	.clkdm_name	= "core_l4_clkdm",
-+	.parent		= &wu_l4_ick,
-+	.clkdm_name	= "wkup_clkdm",
- 	.enable_reg	= OMAP_CM_REGADDR(WKUP_MOD, CM_ICLKEN),
- 	.enable_bit	= OMAP24XX_EN_MPU_WDT_SHIFT,
- 	.recalc		= &followparent_recalc,
-@@ -1340,9 +1348,9 @@ static struct clk mpu_wdt_fck = {
- static struct clk sync_32k_ick = {
- 	.name		= "sync_32k_ick",
- 	.ops		= &clkops_omap2_iclk_dflt_wait,
--	.parent		= &l4_ck,
-+	.parent		= &wu_l4_ick,
-+	.clkdm_name	= "wkup_clkdm",
- 	.flags		= ENABLE_ON_INIT,
--	.clkdm_name	= "core_l4_clkdm",
- 	.enable_reg	= OMAP_CM_REGADDR(WKUP_MOD, CM_ICLKEN),
- 	.enable_bit	= OMAP24XX_EN_32KSYNC_SHIFT,
- 	.recalc		= &followparent_recalc,
-@@ -1351,8 +1359,8 @@ static struct clk sync_32k_ick = {
- static struct clk wdt1_ick = {
- 	.name		= "wdt1_ick",
- 	.ops		= &clkops_omap2_iclk_dflt_wait,
--	.parent		= &l4_ck,
--	.clkdm_name	= "core_l4_clkdm",
-+	.parent		= &wu_l4_ick,
-+	.clkdm_name	= "wkup_clkdm",
- 	.enable_reg	= OMAP_CM_REGADDR(WKUP_MOD, CM_ICLKEN),
- 	.enable_bit	= OMAP24XX_EN_WDT1_SHIFT,
- 	.recalc		= &followparent_recalc,
-@@ -1361,9 +1369,9 @@ static struct clk wdt1_ick = {
- static struct clk omapctrl_ick = {
- 	.name		= "omapctrl_ick",
- 	.ops		= &clkops_omap2_iclk_dflt_wait,
--	.parent		= &l4_ck,
-+	.parent		= &wu_l4_ick,
-+	.clkdm_name	= "wkup_clkdm",
- 	.flags		= ENABLE_ON_INIT,
--	.clkdm_name	= "core_l4_clkdm",
- 	.enable_reg	= OMAP_CM_REGADDR(WKUP_MOD, CM_ICLKEN),
- 	.enable_bit	= OMAP24XX_EN_OMAPCTRL_SHIFT,
- 	.recalc		= &followparent_recalc,
-@@ -1825,6 +1833,7 @@ static struct omap_clk omap2420_clks[] = {
- 	/* L4 domain clocks */
- 	CLK(NULL,	"l4_ck",	&l4_ck,		CK_242X),
- 	CLK(NULL,	"ssi_l4_ick",	&ssi_l4_ick,	CK_242X),
-+	CLK(NULL,	"wu_l4_ick",	&wu_l4_ick,	CK_242X),
- 	/* virtual meta-group clock */
- 	CLK(NULL,	"virt_prcm_set", &virt_prcm_set, CK_242X),
- 	/* general l4 interface ck, multi-parent functional clk */
-diff --git a/arch/arm/mach-omap2/clock2430_data.c b/arch/arm/mach-omap2/clock2430_data.c
-index 0d069ef..3378dbf 100644
---- a/arch/arm/mach-omap2/clock2430_data.c
-+++ b/arch/arm/mach-omap2/clock2430_data.c
-@@ -814,6 +814,14 @@ static struct clk dss_54m_fck = {	/* Alt clk used in power management */
- 	.recalc		= &followparent_recalc,
- };
- 
-+static struct clk wu_l4_ick = {
-+	.name		= "wu_l4_ick",
-+	.ops		= &clkops_null,
-+	.parent		= &sys_ck,
-+	.clkdm_name	= "wkup_clkdm",
-+	.recalc		= &followparent_recalc,
-+};
-+
- /*
-  * CORE power domain ICLK & FCLK defines.
-  * Many of the these can have more than one possible parent. Entries
-@@ -835,8 +843,8 @@ static const struct clksel omap24xx_gpt_clksel[] = {
- static struct clk gpt1_ick = {
- 	.name		= "gpt1_ick",
- 	.ops		= &clkops_omap2_iclk_dflt_wait,
--	.parent		= &l4_ck,
--	.clkdm_name	= "core_l4_clkdm",
-+	.parent		= &wu_l4_ick,
-+	.clkdm_name	= "wkup_clkdm",
- 	.enable_reg	= OMAP_CM_REGADDR(WKUP_MOD, CM_ICLKEN),
- 	.enable_bit	= OMAP24XX_EN_GPT1_SHIFT,
- 	.recalc		= &followparent_recalc,
-@@ -1380,8 +1388,8 @@ static struct clk uart3_fck = {
- static struct clk gpios_ick = {
- 	.name		= "gpios_ick",
- 	.ops		= &clkops_omap2_iclk_dflt_wait,
--	.parent		= &l4_ck,
--	.clkdm_name	= "core_l4_clkdm",
-+	.parent		= &wu_l4_ick,
-+	.clkdm_name	= "wkup_clkdm",
- 	.enable_reg	= OMAP_CM_REGADDR(WKUP_MOD, CM_ICLKEN),
- 	.enable_bit	= OMAP24XX_EN_GPIOS_SHIFT,
- 	.recalc		= &followparent_recalc,
-@@ -1400,8 +1408,8 @@ static struct clk gpios_fck = {
- static struct clk mpu_wdt_ick = {
- 	.name		= "mpu_wdt_ick",
- 	.ops		= &clkops_omap2_iclk_dflt_wait,
--	.parent		= &l4_ck,
--	.clkdm_name	= "core_l4_clkdm",
-+	.parent		= &wu_l4_ick,
-+	.clkdm_name	= "wkup_clkdm",
- 	.enable_reg	= OMAP_CM_REGADDR(WKUP_MOD, CM_ICLKEN),
- 	.enable_bit	= OMAP24XX_EN_MPU_WDT_SHIFT,
- 	.recalc		= &followparent_recalc,
-@@ -1420,9 +1428,9 @@ static struct clk mpu_wdt_fck = {
- static struct clk sync_32k_ick = {
- 	.name		= "sync_32k_ick",
- 	.ops		= &clkops_omap2_iclk_dflt_wait,
--	.parent		= &l4_ck,
- 	.flags		= ENABLE_ON_INIT,
--	.clkdm_name	= "core_l4_clkdm",
-+	.parent		= &wu_l4_ick,
-+	.clkdm_name	= "wkup_clkdm",
- 	.enable_reg	= OMAP_CM_REGADDR(WKUP_MOD, CM_ICLKEN),
- 	.enable_bit	= OMAP24XX_EN_32KSYNC_SHIFT,
- 	.recalc		= &followparent_recalc,
-@@ -1431,8 +1439,8 @@ static struct clk sync_32k_ick = {
- static struct clk wdt1_ick = {
- 	.name		= "wdt1_ick",
- 	.ops		= &clkops_omap2_iclk_dflt_wait,
--	.parent		= &l4_ck,
--	.clkdm_name	= "core_l4_clkdm",
-+	.parent		= &wu_l4_ick,
-+	.clkdm_name	= "wkup_clkdm",
- 	.enable_reg	= OMAP_CM_REGADDR(WKUP_MOD, CM_ICLKEN),
- 	.enable_bit	= OMAP24XX_EN_WDT1_SHIFT,
- 	.recalc		= &followparent_recalc,
-@@ -1441,9 +1449,9 @@ static struct clk wdt1_ick = {
- static struct clk omapctrl_ick = {
- 	.name		= "omapctrl_ick",
- 	.ops		= &clkops_omap2_iclk_dflt_wait,
--	.parent		= &l4_ck,
- 	.flags		= ENABLE_ON_INIT,
--	.clkdm_name	= "core_l4_clkdm",
-+	.parent		= &wu_l4_ick,
-+	.clkdm_name	= "wkup_clkdm",
- 	.enable_reg	= OMAP_CM_REGADDR(WKUP_MOD, CM_ICLKEN),
- 	.enable_bit	= OMAP24XX_EN_OMAPCTRL_SHIFT,
- 	.recalc		= &followparent_recalc,
-@@ -1452,8 +1460,8 @@ static struct clk omapctrl_ick = {
- static struct clk icr_ick = {
- 	.name		= "icr_ick",
- 	.ops		= &clkops_omap2_iclk_dflt_wait,
--	.parent		= &l4_ck,
--	.clkdm_name	= "core_l4_clkdm",
-+	.parent		= &wu_l4_ick,
-+	.clkdm_name	= "wkup_clkdm",
- 	.enable_reg	= OMAP_CM_REGADDR(WKUP_MOD, CM_ICLKEN),
- 	.enable_bit	= OMAP2430_EN_ICR_SHIFT,
- 	.recalc		= &followparent_recalc,
-@@ -1914,6 +1922,7 @@ static struct omap_clk omap2430_clks[] = {
- 	/* L4 domain clocks */
- 	CLK(NULL,	"l4_ck",	&l4_ck,		CK_243X),
- 	CLK(NULL,	"ssi_l4_ick",	&ssi_l4_ick,	CK_243X),
-+	CLK(NULL,	"wu_l4_ick",	&wu_l4_ick,	CK_243X),
- 	/* virtual meta-group clock */
- 	CLK(NULL,	"virt_prcm_set", &virt_prcm_set, CK_243X),
- 	/* general l4 interface ck, multi-parent functional clk */
+> --
+> 1.6.2.5
 
+Acked-by: Kukjin Kim <kgene.kim@samsung.com>
 
+Hmm...and as a note, submitted changing 'mach-exynos4' from 'mach-s5pv310'.
+I know you can handle it later :)
+
+Thanks.
+
+Best regards,
+Kgene.
+--
+Kukjin Kim <kgene.kim@samsung.com>, Senior Engineer,
+SW Solution Development Team, Samsung Electronics Co., Ltd.
