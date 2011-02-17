@@ -1,7 +1,7 @@
 From: Felipe Balbi <balbi@ti.com>
 Subject: Re: [patch-v2.6.39 6/7] OMAP4430: hwmod data: Adding USBOTG
-Date: Thu, 17 Feb 2011 19:17:25 +0200
-Message-ID: <20110217171725.GB14574@legolas.emea.dhcp.ti.com>
+Date: Thu, 17 Feb 2011 19:17:47 +0200
+Message-ID: <20110217171747.GC14574@legolas.emea.dhcp.ti.com>
 References: <4D5D25F9.8030907@ti.com>
  <20110217151527.GL22356@legolas.emea.dhcp.ti.com>
  <20110217151804.GM22356@legolas.emea.dhcp.ti.com>
@@ -16,13 +16,13 @@ Reply-To: balbi@ti.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:42692 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754040Ab1BQRRa (ORCPT
+Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:45119 "EHLO
+	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757111Ab1BQRRx (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 17 Feb 2011 12:17:30 -0500
-Received: by mail-ew0-f46.google.com with SMTP id 5so1156664ewy.19
-        for <linux-omap@vger.kernel.org>; Thu, 17 Feb 2011 09:17:29 -0800 (PST)
+	Thu, 17 Feb 2011 12:17:53 -0500
+Received: by mail-bw0-f41.google.com with SMTP id 16so2713841bwz.28
+        for <linux-omap@vger.kernel.org>; Thu, 17 Feb 2011 09:17:51 -0800 (PST)
 Content-Disposition: inline
 In-Reply-To: <4D5D5770.9020501@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -47,7 +47,7 @@ On Thu, Feb 17, 2011 at 06:14:24PM +0100, Cousson, Benoit wrote:
 > 
 > Then I will add USB in my series.
 
-Cool, my for-tony branch has been updated without OMAP4 HWMOD data.
+BTW, which branch should I use from your tree to test ?
 
 -- 
 balbi
