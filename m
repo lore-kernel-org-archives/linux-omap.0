@@ -1,42 +1,43 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: linux-next: manual merge of the omap_dss2 tree with the omap tree
-Date: Thu, 17 Feb 2011 13:10:26 +1100
-Message-ID: <20110217131026.aacb119f.sfr@canb.auug.org.au>
+From: Anand Gadiyar <gadiyar@ti.com>
+Subject: RE: omap3evm does not boot after 2.6.38-rc1
+Date: Thu, 17 Feb 2011 09:42:19 +0530
+Message-ID: <0fc7120064d33b37334afa28bf4ee760@mail.gmail.com>
+References: <AANLkTi=GHh-UTfTHgDJKW8HfCbTbe6zqitAL0FeyXtW8@mail.gmail.com> <20110217015454.GN20795@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Charulatha V <charu@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Senthilvadivu Guruswamy <svadivu@ti.com>, Sumit Semwal <sumit.semwal@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:42311 "EHLO
+	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750981Ab1BQEMl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 16 Feb 2011 23:12:41 -0500
+Received: by mail-fx0-f41.google.com with SMTP id 12so2241913fxm.0
+        for <linux-omap@vger.kernel.org>; Wed, 16 Feb 2011 20:12:40 -0800 (PST)
+In-Reply-To: <20110217015454.GN20795@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Sung Hee Park <shpark7@stanford.edu>
+Cc: linux-omap@vger.kernel.org
 
-Hi Tomi,
+Tony Lindgren wrote:
+> * Sung Hee Park <shpark7@stanford.edu> [110216 14:18]:
+> > Hi all,
+> >
+> > I'm having a problem with booting the linux kernel on my omap3evm. It
+> > halts after saying "Uncompressing Linux... done, booting the kernel."
+> > on boot. I had a similar problem with 2.6.37, but after changing the
+> > name of the serial port devices from /dev/ttyS* to /dev/ttyO*, it
+> > worked. Does anyone experiencing this problem again with 2.6.38
+> > kernels? Please let me know if you have any idea what might have gone
+> > wrong.
+>
+> If you have 2.6.38-rc1 booting, maybe try running git bisect on it
+> to find out where it breaks?
+>
+> Tony
 
-Today's linux-next merge of the omap_dss2 tree got a conflict in
-arch/arm/mach-omap2/omap_hwmod_2420_data.c between commit
-eb969b4f07175960fa0b325e6c9bd2093ab49645 ("OMAP2420: hwmod data: Add
-McSPI") from the omap tree and commit
-e9ca66e751e89d2d5323d809ecb2b54f4e255d8d ("OMAP2420: hwmod data: add DSS
-DISPC RFBI VENC") from the omap_dss2 tree.
+Enable CONFIG_EARLY_PRINTK, and add the word earlyprintk to your bootargs.
+This should help get some prints on the debug UART which might help
+debug this.
 
-I fixed it up (see below) and can carry the fix as necessary.
--- 
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
-
-diff --cc arch/arm/mach-omap2/omap_hwmod_2420_data.c
-index 7fffd34,21014de..0000000
---- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-@@@ -18,8 -18,8 +18,9 @@@
-  #include <plat/serial.h>
-  #include <plat/i2c.h>
-  #include <plat/gpio.h>
- +#include <plat/mcspi.h>
-- 
-+ #include <plat/l3_2xxx.h>
-+ #include <plat/l4_2xxx.h>
-  #include "omap_hwmod_common_data.h"
-  
-  #include "cm-regbits-24xx.h"
+- Anand
