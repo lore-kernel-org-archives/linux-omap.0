@@ -1,84 +1,50 @@
-From: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
-Subject: Re: Latest config warning
-Date: Thu, 17 Feb 2011 10:38:26 -0800
-Message-ID: <20110217183826.GA8188@kroah.com>
-References: <20110107113506.GK1198@n2100.arm.linux.org.uk>
- <20110107164748.GC880@atomide.com>
- <B85A65D85D7EB246BE421B3FB0FBB593024829AE8C@dbde02.ent.ti.com>
- <20110107192238.GD2272@legolas.emea.dhcp.ti.com>
- <B85A65D85D7EB246BE421B3FB0FBB593024894BC9D@dbde02.ent.ti.com>
- <20110210114854.GJ3580@legolas.emea.dhcp.ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [patch-v2.6.39 6/7] OMAP4430: hwmod data: Adding USBOTG
+Date: Thu, 17 Feb 2011 21:08:09 +0200
+Message-ID: <20110217190809.GM14574@legolas.emea.dhcp.ti.com>
+References: <4D5D44AF.5050805@ti.com>
+ <20110217162000.GP20795@atomide.com>
+ <20110217162209.GA13425@legolas.emea.dhcp.ti.com>
+ <20110217165953.GR20795@atomide.com>
+ <4D5D5770.9020501@ti.com>
+ <20110217171747.GC14574@legolas.emea.dhcp.ti.com>
+ <4D5D59E5.6020307@ti.com>
+ <20110217173711.GF14574@legolas.emea.dhcp.ti.com>
+ <4D5D5F13.2010602@ti.com>
+ <20110217181849.GV20795@atomide.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:39632 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757789Ab1BQTIS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 17 Feb 2011 14:08:18 -0500
+Received: by mail-bw0-f47.google.com with SMTP id 10so2786035bwz.6
+        for <linux-omap@vger.kernel.org>; Thu, 17 Feb 2011 11:08:14 -0800 (PST)
 Content-Disposition: inline
-In-Reply-To: <20110210114854.GJ3580-UiBtZHVXSwEVvW8u9ZQWYwjfymiNCTlR@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: "Premi, Sanjeev" <premi-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20110217181849.GV20795@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, "Balbi, Felipe" <balbi@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, "Kalliguddi, Hema" <hemahk@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>
 
-On Thu, Feb 10, 2011 at 01:48:54PM +0200, Felipe Balbi wrote:
-> Hi,
-> 
-> On Thu, Feb 10, 2011 at 05:07:06PM +0530, Premi, Sanjeev wrote:
-> > > diff --git a/drivers/usb/Kconfig b/drivers/usb/Kconfig
-> > > index 5a7c8f1..ac137d1 100644
-> > > --- a/drivers/usb/Kconfig
-> > > +++ b/drivers/usb/Kconfig
-> > > @@ -10,8 +10,6 @@ menuconfig USB_SUPPORT
-> > >           This option adds core support for Universal Serial Bus (USB).
-> > >           You will also need drivers from the following menu to make use
-> > > of it.
-> > > 
-> > > -if USB_SUPPORT
-> > > -
-> > >  # Host-side USB depends on having a host controller
-> > >  # NOTE:  dummy_hcd is always an option, but it's ignored here ...
-> > >  # NOTE:  SL-811 option should be board-specific ...
-> > > @@ -59,16 +57,9 @@ config USB_ARCH_HAS_OHCI
-> > >  # some non-PCI hcds implement EHCI
-> > >  config USB_ARCH_HAS_EHCI
-> > >         boolean
-> > > -       default y if PPC_83xx
-> > > -       default y if PPC_MPC512x
-> > > -       default y if SOC_AU1200
-> > > -       default y if ARCH_IXP4XX
-> > > -       default y if ARCH_W90X900
-> > > -       default y if ARCH_AT91SAM9G45
-> > > -       default y if ARCH_MXC
-> > > -       default y if ARCH_OMAP3
-> > > -       default y if ARCH_CNS3XXX
-> > > -       default PCI
-> > > +       default n
-> > > +
-> > > +if USB_SUPPORT
-> > > 
-> > >  # ARM SA1111 chips have a non-PCI based "OHCI-compatible" USB host
-> > > interface.
-> > >  config USB
-> > > 
-> > > and expect ARCH Kconfigs to select the features they have.
-> > > 
-> > > Greg, what do you think ?
-> > > 
+On Thu, Feb 17, 2011 at 10:18:49AM -0800, Tony Lindgren wrote:
+> * Cousson, Benoit <b-cousson@ti.com> [110217 09:45]:
 > > 
-> > I noticed same problem when building kernel from latest master today.
+> > Done, boot tested, and that does remove the warning about the
+> > missing opt clock you had with the previous data.
 > > 
-> > Felipe, Greg:
-> >  Do you have agreement on what would be good fix for this warning?
+> > git://gitorious.org/omap-pm/linux.git for_2.6.39/omap4_hwmod_data
+> > 
+> > Just let me know if it does break anything else.
 > 
-> Yeah, I never got a reply about the proposal above. Greg, what do you
-> think ?
+> Pulled into omap-for-linus. Also now merged are the devel-hwspinlock
+> and devel-mcspi branches.
 
-I don't know, I can't remember what the outcome of the "arches need to
-select the proper Kconfig options" discussion ended up being.  Anyone
-remember?
+Ok good. Tomorrow I'll send you a proper pull request for my part, will
+leave testusb running over night.
 
-thanks,
-
-greg k-h
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+balbi
