@@ -1,117 +1,72 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: [patch-v2.6.39 05/12] usb: otg: enable regulator only on cable/device connect
-Date: Thu, 17 Feb 2011 14:38:42 +0200
-Message-ID: <1297946329-9353-6-git-send-email-balbi@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: [patch-v2.6.39 06/12] usb: otg: Remove one unnecessary I2C read request.
+Date: Thu, 17 Feb 2011 14:38:43 +0200
+Message-ID: <1297946329-9353-7-git-send-email-balbi@ti.com>
 References: <1297946329-9353-1-git-send-email-balbi@ti.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1297946329-9353-1-git-send-email-balbi-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
-Cc: Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hema HK <hemahk-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:50122 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756190Ab1BQMjO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 17 Feb 2011 07:39:14 -0500
+In-Reply-To: <1297946329-9353-1-git-send-email-balbi@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Greg KH <greg@kroah.com>
+Cc: Linux USB Mailing List <linux-usb@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Hema HK <hemahk@ti.com>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Felipe Balbi <balbi@ti.com>
 
-From: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
+From: Hema HK <hemahk@ti.com>
 
-Remove the regulator enable while driver loading and enable it only when
-the cable/device is connected and disable it when disconnected.
+To get the ID status there was an I2C read transfer. Removed this I2C
+read transfer as this info can be used from existing variable(linkstat).
 
-Remove the configuration of config_state and config_trans register
-configuration as these registers are programmed when regulator
-enable/disable is called.
-
-Signed-off-by: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Hema HK <hemahk@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- drivers/usb/otg/twl6030-usb.c |   27 ++++++++++++---------------
- 1 files changed, 12 insertions(+), 15 deletions(-)
+ drivers/usb/otg/twl6030-usb.c |    7 ++-----
+ 1 files changed, 2 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/usb/otg/twl6030-usb.c b/drivers/usb/otg/twl6030-usb.c
-index 28f7701..eca4591 100644
+index eca4591..88989e6 100644
 --- a/drivers/usb/otg/twl6030-usb.c
 +++ b/drivers/usb/otg/twl6030-usb.c
-@@ -158,8 +158,6 @@ static int twl6030_phy_init(struct otg_transceiver *x)
+@@ -149,7 +149,6 @@ static int twl6030_set_phy_clk(struct otg_transceiver *x, int on)
+ 
+ static int twl6030_phy_init(struct otg_transceiver *x)
+ {
+-	u8 hw_state;
+ 	struct twl6030_usb *twl;
+ 	struct device *dev;
+ 	struct twl4030_usb_data *pdata;
+@@ -158,9 +157,7 @@ static int twl6030_phy_init(struct otg_transceiver *x)
  	dev  = twl->dev;
  	pdata = dev->platform_data;
  
--	regulator_enable(twl->usb3v3);
+-	hw_state = twl6030_readb(twl, TWL6030_MODULE_ID0, STS_HW_CONDITIONS);
 -
- 	hw_state = twl6030_readb(twl, TWL6030_MODULE_ID0, STS_HW_CONDITIONS);
+-	if (hw_state & STS_USB_ID)
++	if (twl->linkstat == USB_EVENT_ID)
+ 		pdata->phy_power(twl->dev, 1, 1);
+ 	else
+ 		pdata->phy_power(twl->dev, 0, 1);
+@@ -290,6 +287,7 @@ static irqreturn_t twl6030_usbotg_irq(int irq, void *_twl)
+ 		status = USB_EVENT_ID;
+ 		twl->otg.default_a = true;
+ 		twl->otg.state = OTG_STATE_A_IDLE;
++		twl->linkstat = status;
+ 		blocking_notifier_call_chain(&twl->otg.notifier, status,
+ 							twl->otg.gadget);
+ 	} else  {
+@@ -299,7 +297,6 @@ static irqreturn_t twl6030_usbotg_irq(int irq, void *_twl)
+ 								0x1);
+ 	}
+ 	twl6030_writeb(twl, TWL_MODULE_USB, USB_ID_INT_LATCH_CLR, status);
+-	twl->linkstat = status;
  
- 	if (hw_state & STS_USB_ID)
-@@ -180,7 +178,6 @@ static void twl6030_phy_shutdown(struct otg_transceiver *x)
- 	dev  = twl->dev;
- 	pdata = dev->platform_data;
- 	pdata->phy_power(twl->dev, 0, 0);
--	regulator_disable(twl->usb3v3);
+ 	return IRQ_HANDLED;
  }
- 
- static int twl6030_usb_ldo_init(struct twl6030_usb *twl)
-@@ -199,16 +196,6 @@ static int twl6030_usb_ldo_init(struct twl6030_usb *twl)
- 	if (IS_ERR(twl->usb3v3))
- 		return -ENODEV;
- 
--	regulator_enable(twl->usb3v3);
--
--	/* Program the VUSB_CFG_TRANS for ACTIVE state. */
--	twl6030_writeb(twl, TWL_MODULE_PM_RECEIVER, 0x3F,
--						VUSB_CFG_TRANS);
--
--	/* Program the VUSB_CFG_STATE register to ON on all groups. */
--	twl6030_writeb(twl, TWL_MODULE_PM_RECEIVER, 0xE1,
--						VUSB_CFG_STATE);
--
- 	/* Program the USB_VBUS_CTRL_SET and set VBUS_ACT_COMP bit */
- 	twl6030_writeb(twl, TWL_MODULE_USB, 0x4, USB_VBUS_CTRL_SET);
- 
-@@ -261,16 +248,23 @@ static irqreturn_t twl6030_usb_irq(int irq, void *_twl)
- 						CONTROLLER_STAT1);
- 	if (!(hw_state & STS_USB_ID)) {
- 		if (vbus_state & VBUS_DET) {
-+			regulator_enable(twl->usb3v3);
-+			twl->asleep = 1;
- 			status = USB_EVENT_VBUS;
- 			twl->otg.default_a = false;
- 			twl->otg.state = OTG_STATE_B_IDLE;
-+			twl->linkstat = status;
-+			blocking_notifier_call_chain(&twl->otg.notifier,
-+						status, twl->otg.gadget);
- 		} else {
- 			status = USB_EVENT_NONE;
--		}
--		if (status >= 0) {
- 			twl->linkstat = status;
- 			blocking_notifier_call_chain(&twl->otg.notifier,
- 						status, twl->otg.gadget);
-+			if (twl->asleep) {
-+				regulator_disable(twl->usb3v3);
-+				twl->asleep = 0;
-+			}
- 		}
- 	}
- 	sysfs_notify(&twl->dev->kobj, NULL, "vbus");
-@@ -288,6 +282,8 @@ static irqreturn_t twl6030_usbotg_irq(int irq, void *_twl)
- 
- 	if (hw_state & STS_USB_ID) {
- 
-+		regulator_enable(twl->usb3v3);
-+		twl->asleep = 1;
- 		twl6030_writeb(twl, TWL_MODULE_USB, USB_ID_INT_EN_HI_CLR, 0x1);
- 		twl6030_writeb(twl, TWL_MODULE_USB, USB_ID_INT_EN_HI_SET,
- 								0x10);
-@@ -437,6 +433,7 @@ static int __devinit twl6030_usb_probe(struct platform_device *pdev)
- 		return status;
- 	}
- 
-+	twl->asleep = 0;
- 	pdata->phy_init(dev);
- 	twl6030_enable_irq(&twl->otg);
- 	dev_info(&pdev->dev, "Initialized TWL6030 USB module\n");
 -- 
 1.7.4.rc2
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
