@@ -1,82 +1,65 @@
-From: Raghuveer Murthy <x0075817@ti.com>
-Subject: Re: [3/4] OMAP: DSS2: Adding macro for DISPC_DIVISOR register
-Date: Thu, 17 Feb 2011 12:47:54 +0530
-Message-ID: <4D5CCBA2.80204@ti.com>
-References: <1296742161-9395-4-git-send-email-raghuveer.murthy@ti.com> <1297870985.14556.14.camel@deskari>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 1/2] omap4: 4430sdp: drop ehci support
+Date: Thu, 17 Feb 2011 09:47:06 +0200
+Message-ID: <20110217074706.GD2439@legolas.emea.dhcp.ti.com>
+References: <1297855040-1337-1-git-send-email-gadiyar@ti.com>
+ <20110216112631.GA2497@legolas.emea.dhcp.ti.com>
+ <20110217014210.GL20795@atomide.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:32939 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751028Ab1BQHRd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Feb 2011 02:17:33 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1H7HUqb032545
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 17 Feb 2011 01:17:32 -0600
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id p1H7HSTD022576
-	for <linux-omap@vger.kernel.org>; Thu, 17 Feb 2011 12:47:29 +0530 (IST)
-In-Reply-To: <1297870985.14556.14.camel@deskari>
+Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:55939 "EHLO
+	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750877Ab1BQHrM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 17 Feb 2011 02:47:12 -0500
+Received: by bwz10 with SMTP id 10so2298756bwz.34
+        for <linux-omap@vger.kernel.org>; Wed, 16 Feb 2011 23:47:09 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <20110217014210.GL20795@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
-Cc: "Murthy, Raghuveer" <raghuveer.murthy@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Felipe Balbi <balbi@ti.com>, Anand Gadiyar <gadiyar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Keshava Munegowda <keshava_mgowda@ti.com>
 
-On Wednesday 16 February 2011 09:13 PM, Valkeinen, Tomi wrote:
-> On Thu, 2011-02-03 at 14:09 +0000, Raghuveer Murthy wrote:
->> Added macro for DISPC_DIVISOR. This is different from DISPC_DIVISOR1 and
->> DISPC_DIVISOR2. OMAP4 supports all the above 3 registers.
->>
->> DISPC_DIVISOR1 and DISPC_DIVISOR2 registers are accessed through
->> DISPC_DIVISORo(ch) macro
->>
->> Signed-off-by: Raghuveer Murthy<raghuveer.murthy@ti.com>
->>
->> ---
->> drivers/video/omap2/dss/dispc.c |   11 +++++++++++
->>   1 files changed, 11 insertions(+), 0 deletions(-)
->>
->> diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
->> index e52a413..6225d12 100644
->> --- a/drivers/video/omap2/dss/dispc.c
->> +++ b/drivers/video/omap2/dss/dispc.c
->> @@ -132,6 +132,17 @@ struct dispc_reg { u16 idx; };
->>
->>   #define DISPC_VID_PRELOAD(n)		DISPC_REG(0x230 + (n)*0x04)
->>
->> +/*
->> + * The OMAP4 DISPC_DIVISOR1 is backward compatible to OMAP3xxx DISPC_DIVISOR.
->> + * However DISPC_DIVISOR is also provided in OMAP4, to control DISPC_CORE_CLK.
->> + * This allows DISPC_CORE_CLK to be independent of logical clock dividers (lcd)
->> + * of LCD1 (primary) and LCD2 (secondary) displays.
->> + *
->> + * To derive pixel clocks for Primary and Secondary LCD channels, configure the
->> + * lcd and pcd in DISPC_DIVISOR1 and DISPC_DIVISOR2 respectively, using the
->> + * DISPC_DIVISORo(ch).
->> + */
->> +#define DISPC_DIVISOR			DISPC_REG(0x0804)
->>
->>   #define DISPC_IRQ_MASK_ERROR            (DISPC_IRQ_GFX_FIFO_UNDERFLOW | \
->>   					 DISPC_IRQ_OCP_ERR | \
->
-> See my comment about comments in previous mail.
->
-> I think you should merge this and the next patch. There's not much point
-> in adding a single line define, which is not used (yet).
->
-> How about the debug output from debug/omapdss/clk file? Does it print
-> sensible things on OMAP4 after these patches?
+On Wed, Feb 16, 2011 at 05:42:10PM -0800, Tony Lindgren wrote:
+> * Felipe Balbi <balbi@ti.com> [110216 03:25]:
+> > On Wed, Feb 16, 2011 at 04:47:19PM +0530, Anand Gadiyar wrote:
+> > > Most revisions of the OMAP4 Blaze/SDP platform do not have
+> > > the EHCI signals routed by default. The pads are routed
+> > > for the alternate HSI functionality instead, and explicit
+> > > board modifications are needed to route the signals to
+> > > the USB PHY on the board.
+> > > 
+> > > Also, turning on the PHY connected to the EHCI port causes
+> > > a board reboot during bootup due to an unintended short
+> > > on the rails - this affects many initial revisions of the
+> > > board, and needs a minor board mod to fix (or as a
+> > > workaround, one should not attempt to power on the
+> > > USB PHY).
+> > > 
+> > > Given that these boards need explicit board mods to even
+> > > get EHCI working (separate from the accidental short above),
+> > > we should not attempt to enable EHCI by default.
+> > > 
+> > > So drop the EHCI support from the board files for the
+> > > Blaze/SDP platforms.
+> > > 
+> > > Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
+> > > Cc: Keshava Munegowda <keshava_mgowda@ti.com>
+> > > Cc: Tony Lindgren <tony@atomide.com>
+> > 
+> > Tony, if you want to queue this one directly, here's my:
+> > 
+> > Acked-by: Felipe Balbi <balbi@ti.com>
+> > 
+> > if you wish, I can send you a pull request as well. I already have
+> > another patch for you anyway.
+> 
+> OK if you have more I'd rather pull.
 
-Will verify this.
->
->   Tomi
->
->
+ok. Taken.
 
-Acknowledge the comments for patch 2/4 and 3/4. Will merge them and post 
-a new series.
-
-Regards,
-Raghuveer
+-- 
+balbi
