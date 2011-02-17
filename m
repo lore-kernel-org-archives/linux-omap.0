@@ -1,68 +1,79 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 0/4] OMAP4: DSS2: Adding fclk support for DPI interface
-Date: Thu, 17 Feb 2011 07:49:41 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1102170747590.1831@utopia.booyaka.com>
-References: <1296741419-9037-1-git-send-email-raghuveer.murthy@ti.com> <1297699342.2951.62.camel@deskari> <4D5B9176.5060000@ti.com>
+From: "Semwal, Sumit" <sumit.semwal@ti.com>
+Subject: Re: [PATCH 4/8] OMAP4: hwmod data: Add DSS, DISPC, DSI1&2, RFBI, HDMI
+	and VENC
+Date: Thu, 17 Feb 2011 20:32:43 +0530
+Message-ID: <AANLkTimPxP2dN-xgKhTwFwo-iPcgJ9gRSYAFF3=TLap1@mail.gmail.com>
+References: <1297938289-8678-1-git-send-email-b-cousson@ti.com>
+	<1297938289-8678-5-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:56484 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751974Ab1BQOtm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Feb 2011 09:49:42 -0500
-In-Reply-To: <4D5B9176.5060000@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1297938289-8678-5-git-send-email-b-cousson@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: khilman@ti.com, paul@pwsan.com, tony@atomide.com, Senthilvadivu Guruswamy <svadivu@ti.com>, Mayuresh Janorkar <mayur@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Raghuveer Murthy <x0075817@ti.com>
-Cc: Benoit Cousson <b-cousson@ti.com>, "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, "Murthy, Raghuveer" <raghuveer.murthy@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Wed, 16 Feb 2011, Raghuveer Murthy wrote:
+Hi Benoit,
 
-> On Monday 14 February 2011 09:32 PM, Valkeinen, Tomi wrote:
-> > On Thu, 2011-02-03 at 07:56 -0600, Murthy, Raghuveer wrote:
-> > > - Adding dss_feature for DPLL fclk
-> > > - Enabling pixel clock generation for DPI interface
-> > 
-> > A bit more description what the patch set is about would be nice. Also,
-> > one line patch descriptions are a bit too short for anything else than
-> > the most trivial patches.
-> > 
-> > Now to the actual patch contents:
-> > 
-> > DPLL is not a feature of the DSS, and I don't think we should have
-> > dss_features for that. In fact, I think the whole DPLL code should be
-> > moved from DSS to somewhere under arch/arm.
-> > 
-> > In a perfect world DSS could just set the dss_fck to whatever rate it
-> > requires, but as the clock rate can only be set to certain rates, and we
-> > need a precise control for the rate, some other method has to be in
-> > place.
-> > 
-> > I am not sure what this method should be. Perhaps there is something in
-> > the clock framework that could help us here, or perhaps we just need a
-> > bunch of function pointers in the DSS's platform data which can be used
-> > to configure the clock.
-> > 
-> >   Tomi
-> > 
-> > 
-> 
-> Hi Paul, Benoit,
-> 
-> DPLL_PER post divider output for DSS core functional clock can be changed in
-> OMAP3xxx and OMAP4430, based on the requested pixel clock for a given display
-> resolution.
-> 
-> Additionally, the number of dividers available for DPLL_PER post dividors for
-> DSS has increased from 16 to 32, from OMAP3630 onwards.
-> 
-> Both these are added as dss_features.
-> 
-> Given the above comments from Tomi, can the same be included as part of the
-> clock framework?
+One minor comment;
 
-Have you considered just calling clk_round_rate() on the DPLL_PER's output 
-divider and seeing if you can get a rate that you're happy with?
+On Thu, Feb 17, 2011 at 3:54 PM, Benoit Cousson <b-cousson@ti.com> wrote:
+> Add dss, dispc, dsi1, dsi2, hdmi, rfbi and venc hwmods.
+> In OMAP4 there are severals IPs that can be reached by differents
+> interconnect paths depending of the access initiator (MPU vs. SDMA).
+> In the case of the DSS, both L3 direct path and L4 CFG path can be
+> used to access all the DSS IPs. The two ocp_ip already exists to support
+> the two address spaces.
+>
+> =A0 =A0 =A0+------------+-- L3_MAIN --+ MPU
+> =A0IP =A0| =A0 =A0 =A0 =A0 =A0 =A0|
+> =A0 =A0 =A0+-- L4_CFG --+
+>
+> L3 main address range is specified first, since it is used by default.
+> dss is also considered as an IP as dispc, rfbi, and named as dss_core.
+>
+> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+> Signed-off-by: Mayuresh Janorkar <mayur@ti.com>
+> Signed-off-by: Senthilvadivu Guruswamy <svadivu@ti.com>
+> Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
+> [b-cousson@ti.com: Re-organize structures to match file
+> convention and remove irq entry from dss_hwmod]
+> ---
+> =A0arch/arm/mach-omap2/omap_hwmod_44xx_data.c | =A0612 ++++++++++++++++++=
++++++++++-
+> =A01 files changed, 604 insertions(+), 8 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-o=
+map2/omap_hwmod_44xx_data.c
+> index 37b3024..aafe60d 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> @@ -1,7 +1,7 @@
+> =A0/*
+> =A0* Hardware modules present on the OMAP44xx chips
+> =A0*
+> - * Copyright (C) 2009-2010 Texas Instruments, Inc.
+> + * Copyright (C) 2009-2011 Texas Instruments, Inc.
+> =A0* Copyright (C) 2009-2010 Nokia Corporation
+> =A0*
+> =A0* Paul Walmsley
+> @@ -43,6 +43,7 @@
+> =A0static struct omap_hwmod omap44xx_dma_system_hwmod;
+> =A0static struct omap_hwmod omap44xx_dmm_hwmod;
+> =A0static struct omap_hwmod omap44xx_dsp_hwmod;
+> +static struct omap_hwmod omap44xx_dss_hwmod;
+I guess we agreed to name this dss_core - any specific reason to change it?
 
-
-- Paul
+Best regards,
+~Sumit.
+<snip>
