@@ -1,16 +1,16 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [patch-v2.6.39 5/7] AM35xx: hwmod data: Add USBOTG
-Date: Thu, 17 Feb 2011 14:41:04 +0200
-Message-ID: <1297946466-9565-6-git-send-email-balbi@ti.com>
+Subject: [patch-v2.6.39 7/7] OMAP2+: musb: hwmod adaptation for musb registration
+Date: Thu, 17 Feb 2011 14:41:06 +0200
+Message-ID: <1297946466-9565-8-git-send-email-balbi@ti.com>
 References: <1297946466-9565-1-git-send-email-balbi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:56671 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756183Ab1BQMlh (ORCPT
+Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:46303 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756183Ab1BQMlk (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 17 Feb 2011 07:41:37 -0500
-Received: by mail-bw0-f49.google.com with SMTP id 5so2481695bwz.36
-        for <linux-omap@vger.kernel.org>; Thu, 17 Feb 2011 04:41:36 -0800 (PST)
+	Thu, 17 Feb 2011 07:41:40 -0500
+Received: by bwz10 with SMTP id 10so2672204bwz.20
+        for <linux-omap@vger.kernel.org>; Thu, 17 Feb 2011 04:41:37 -0800 (PST)
 In-Reply-To: <1297946466-9565-1-git-send-email-balbi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -19,8 +19,10 @@ Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Maili
 
 From: Hema HK <hemahk@ti.com>
 
-AM35xx hwmod data structures are populated for USBOTG with base address,
-L3 and L4 interface clocks and IRQ.
+Using omap_device_build API instead of platform_device_register for
+OMAP2430,OMAP3xxx, OMAP4430 and AM35x musb device registration.
+The device specific resources defined in centralized
+database will be used.
 
 Signed-off-by: Hema HK <hemahk@ti.com>
 Cc: Tony Lindgren <tony@atomide.com>
@@ -29,120 +31,142 @@ Cc: Cousson, Benoit <b-cousson@ti.com>
 Cc: Paul Walmsley <paul@pwsan.com>
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   65 ++++++++++++++++++++++++++++
- 1 files changed, 65 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/usb-musb.c |   84 +++++++++++++++++++++-------------------
+ 1 files changed, 44 insertions(+), 40 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index cce09fd..b4cd8dd 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -28,6 +28,7 @@
- #include "prm-regbits-34xx.h"
- #include "cm-regbits-34xx.h"
- #include "wd_timer.h"
-+#include <mach/am35xx.h>
+diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
+index 5a82b43..b089ea4 100644
+--- a/arch/arm/mach-omap2/usb-musb.c
++++ b/arch/arm/mach-omap2/usb-musb.c
+@@ -30,6 +30,7 @@
+ #include <mach/irqs.h>
+ #include <mach/am35xx.h>
+ #include <plat/usb.h>
++#include <plat/omap_device.h>
+ #include "control.h"
+ #include "mux.h"
  
- /*
-  * OMAP3xxx hardware module integration data
-@@ -55,6 +56,8 @@ static struct omap_hwmod omap3xxx_gpio5_hwmod;
- static struct omap_hwmod omap3xxx_gpio6_hwmod;
- static struct omap_hwmod omap34xx_sr1_hwmod;
- static struct omap_hwmod omap34xx_sr2_hwmod;
-+static struct omap_hwmod am35xx_usbhsotg_hwmod;
-+
+@@ -127,22 +128,6 @@ static void am35x_musb_set_mode(u8 musb_mode)
+ 	omap_ctrl_writel(devconf2, AM35XX_CONTROL_DEVCONF2);
+ }
  
- static struct omap_hwmod omap3xxx_dma_system_hwmod;
+-static struct resource musb_resources[] = {
+-	[0] = { /* start and end set dynamically */
+-		.flags	= IORESOURCE_MEM,
+-	},
+-	[1] = {	/* general IRQ */
+-		.start	= INT_243X_HS_USB_MC,
+-		.flags	= IORESOURCE_IRQ,
+-		.name	= "mc",
+-	},
+-	[2] = {	/* DMA IRQ */
+-		.start	= INT_243X_HS_USB_DMA,
+-		.flags	= IORESOURCE_IRQ,
+-		.name	= "dma",
+-	},
+-};
+-
+ static struct musb_hdrc_config musb_config = {
+ 	.multipoint	= 1,
+ 	.dyn_fifo	= 1,
+@@ -170,16 +155,12 @@ static struct musb_hdrc_platform_data musb_plat = {
  
-@@ -117,6 +120,13 @@ static struct omap_hwmod_ocp_if omap3xxx_usbhsotg__l3 = {
- 	.user		= OCP_USER_MPU,
- };
+ static u64 musb_dmamask = DMA_BIT_MASK(32);
  
-+/* l3_core -> am35xx_usbhsotg interface */
-+static struct omap_hwmod_ocp_if am35xx_usbhsotg__l3 = {
-+	.master		= &am35xx_usbhsotg_hwmod,
-+	.slave		= &omap3xxx_l3_main_hwmod,
-+	.clk		= "core_l3_ick",
-+	.user		= OCP_USER_MPU,
-+};
- /* L4_CORE -> L4_WKUP interface */
- static struct omap_hwmod_ocp_if omap3xxx_l4_core__l4_wkup = {
- 	.master	= &omap3xxx_l4_core_hwmod,
-@@ -340,6 +350,31 @@ static struct omap_hwmod_ocp_if *omap3xxx_usbhsotg_slaves[] = {
- 	&omap3xxx_l4_core__usbhsotg,
- };
- 
-+static struct omap_hwmod_addr_space am35xx_usbhsotg_addrs[] = {
+-static struct platform_device musb_device = {
+-	.name		= "musb-omap2430",
+-	.id		= -1,
+-	.dev = {
+-		.dma_mask		= &musb_dmamask,
+-		.coherent_dma_mask	= DMA_BIT_MASK(32),
+-		.platform_data		= &musb_plat,
++static struct omap_device_pm_latency omap_musb_latency[] = {
 +	{
-+		.pa_start	= AM35XX_IPSS_USBOTGSS_BASE,
-+		.pa_end		= AM35XX_IPSS_USBOTGSS_BASE + SZ_4K - 1,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+};
-+
-+/* l4_core -> usbhsotg  */
-+static struct omap_hwmod_ocp_if am35xx_l4_core__usbhsotg = {
-+	.master		= &omap3xxx_l4_core_hwmod,
-+	.slave		= &am35xx_usbhsotg_hwmod,
-+	.clk		= "l4_ick",
-+	.addr		= am35xx_usbhsotg_addrs,
-+	.addr_cnt	= ARRAY_SIZE(am35xx_usbhsotg_addrs),
-+	.user		= OCP_USER_MPU,
-+};
-+
-+static struct omap_hwmod_ocp_if *am35xx_usbhsotg_masters[] = {
-+	&am35xx_usbhsotg__l3,
-+};
-+
-+static struct omap_hwmod_ocp_if *am35xx_usbhsotg_slaves[] = {
-+	&am35xx_l4_core__usbhsotg,
-+};
- /* Slave interfaces on the L4_CORE interconnect */
- static struct omap_hwmod_ocp_if *omap3xxx_l4_core_slaves[] = {
- 	&omap3xxx_l3_main__l4_core,
-@@ -1452,6 +1487,33 @@ static struct omap_hwmod omap3xxx_usbhsotg_hwmod = {
- 				| HWMOD_SWSUP_MSTANDBY,
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
- };
-+/* usb_otg_hs */
-+static struct omap_hwmod_irq_info am35xx_usbhsotg_mpu_irqs[] = {
-+
-+	{ .name = "mc", .irq = 71 },
-+};
-+
-+static struct omap_hwmod_class am35xx_usbotg_class = {
-+	.name = "am35xx_usbotg",
-+	.sysc = NULL,
-+};
-+
-+static struct omap_hwmod am35xx_usbhsotg_hwmod = {
-+	.name		= "am35x_otg_hs",
-+	.mpu_irqs	= am35xx_usbhsotg_mpu_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(am35xx_usbhsotg_mpu_irqs),
-+	.main_clk	= NULL,
-+	.prcm = {
-+		.omap2 = {
-+		},
-+	},
-+	.masters	= am35xx_usbhsotg_masters,
-+	.masters_cnt	= ARRAY_SIZE(am35xx_usbhsotg_masters),
-+	.slaves		= am35xx_usbhsotg_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(am35xx_usbhsotg_slaves),
-+	.class		= &am35xx_usbotg_class,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES3_1)
-+};
- 
- static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
- 	&omap3xxx_l3_main_hwmod,
-@@ -1488,6 +1550,9 @@ static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
- 	/* usbotg class */
- 	&omap3xxx_usbhsotg_hwmod,
- 
-+	/* usbotg for am35x */
-+	&am35xx_usbhsotg_hwmod,
-+
- 	NULL,
++		.deactivate_func	= omap_device_idle_hwmods,
++		.activate_func		= omap_device_enable_hwmods,
++		.flags			= OMAP_DEVICE_LATENCY_AUTO_ADJUST,
+ 	},
+-	.num_resources	= ARRAY_SIZE(musb_resources),
+-	.resource	= musb_resources,
  };
  
+ static void usb_musb_mux_init(struct omap_musb_board_data *board_data)
+@@ -219,28 +200,24 @@ static void usb_musb_mux_init(struct omap_musb_board_data *board_data)
+ 		break;
+ 	}
+ }
++
+ void __init usb_musb_init(struct omap_musb_board_data *board_data)
+ {
+-	if (cpu_is_omap243x()) {
+-		musb_resources[0].start = OMAP243X_HS_BASE;
+-	} else if (cpu_is_omap3517() || cpu_is_omap3505()) {
+-		musb_device.name = "musb-am35x";
+-		musb_resources[0].start = AM35XX_IPSS_USBOTGSS_BASE;
+-		musb_resources[1].start = INT_35XX_USBOTG_IRQ;
++	struct omap_hwmod		*oh;
++	struct omap_device		*od;
++	struct platform_device		*pdev;
++	struct device			*dev;
++	int				bus_id = -1;
++	const char			*oh_name, *name;
++
++	if (cpu_is_omap3517() || cpu_is_omap3505()) {
+ 		board_data->set_phy_power = am35x_musb_phy_power;
+ 		board_data->clear_irq = am35x_musb_clear_irq;
+ 		board_data->set_mode = am35x_musb_set_mode;
+ 		board_data->reset = am35x_musb_reset;
+-	} else if (cpu_is_omap34xx()) {
+-		musb_resources[0].start = OMAP34XX_HSUSB_OTG_BASE;
+ 	} else if (cpu_is_omap44xx()) {
+-		musb_resources[0].start = OMAP44XX_HSUSB_OTG_BASE;
+-		musb_resources[1].start = OMAP44XX_IRQ_HS_USB_MC_N;
+-		musb_resources[2].start = OMAP44XX_IRQ_HS_USB_DMA_N;
+-
+ 		usb_musb_mux_init(board_data);
+ 	}
+-	musb_resources[0].end = musb_resources[0].start + SZ_4K - 1;
+ 
+ 	/*
+ 	 * REVISIT: This line can be removed once all the platforms using
+@@ -252,8 +229,35 @@ void __init usb_musb_init(struct omap_musb_board_data *board_data)
+ 	musb_plat.mode = board_data->mode;
+ 	musb_plat.extvbus = board_data->extvbus;
+ 
+-	if (platform_device_register(&musb_device) < 0)
+-		printk(KERN_ERR "Unable to register HS-USB (MUSB) device\n");
++	if (cpu_is_omap3517() || cpu_is_omap3505()) {
++		oh_name = "am35x_otg_hs";
++		name = "musb-am35x";
++	} else {
++		oh_name = "usb_otg_hs";
++		name = "musb-omap2430";
++	}
++
++	oh = omap_hwmod_lookup(oh_name);
++	if (!oh) {
++		pr_err("Could not look up %s\n", oh_name);
++		return;
++	}
++
++	od = omap_device_build(name, bus_id, oh, &musb_plat,
++			       sizeof(musb_plat), omap_musb_latency,
++			       ARRAY_SIZE(omap_musb_latency), false);
++	if (IS_ERR(od)) {
++		pr_err("Could not build omap_device for %s %s\n",
++						name, oh_name);
++		return;
++	}
++
++	pdev = &od->pdev;
++	dev = &pdev->dev;
++	get_device(dev);
++	dev->dma_mask = &musb_dmamask;
++	dev->coherent_dma_mask = musb_dmamask;
++	put_device(dev);
+ }
+ 
+ #else
 -- 
 1.7.4.rc2
 
