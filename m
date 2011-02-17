@@ -1,430 +1,294 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 5/6] ARM: pm: convert samsung platforms to generic
-	suspend/resume support
-Date: Thu, 17 Feb 2011 14:06:21 +0000
-Message-ID: <20110217140621.GC24989@n2100.arm.linux.org.uk>
-References: <20110211161626.GA31356@n2100.arm.linux.org.uk> <E1Pnvhv-0002yp-A0@rmk-PC.arm.linux.org.uk> <017901cbce9b$7b405ee0$71c11ca0$%kim@samsung.com>
+From: Hema Kalliguddi <hemahk@ti.com>
+Subject: RE: [patch-v2.6.39 6/7] OMAP4430: hwmod data: Adding USBOTG
+Date: Thu, 17 Feb 2011 19:37:49 +0530
+Message-ID: <99889a7c6e6df0d50ff668f8bd2e9957@mail.gmail.com>
+References: <1297946466-9565-1-git-send-email-balbi@ti.com>
+ <1297946466-9565-7-git-send-email-balbi@ti.com> <4D5D25F9.8030907@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:53188 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750733Ab1BQOGl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Feb 2011 09:06:41 -0500
-Content-Disposition: inline
-In-Reply-To: <017901cbce9b$7b405ee0$71c11ca0$%kim@samsung.com>
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:46284 "EHLO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750733Ab1BQOHw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 17 Feb 2011 09:07:52 -0500
+Received: by mail-fx0-f42.google.com with SMTP id 11so3413844fxm.15
+        for <linux-omap@vger.kernel.org>; Thu, 17 Feb 2011 06:07:50 -0800 (PST)
+In-Reply-To: <4D5D25F9.8030907@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kukjin Kim <kgene.kim@samsung.com>
-Cc: 'Eric Miao' <eric.y.miao@gmail.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Benoit Cousson <b-cousson@ti.com>, Felipe Balbi <balbi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>
 
-On Thu, Feb 17, 2011 at 09:09:02PM +0900, Kukjin Kim wrote:
-> Hi Russell,
-> 
-> I tested on SMDKV210(S5PV210) and SMDKC110(S5PC110).
+Benoit,
 
-Thanks for testing.  It looks like I'm missing a load for r3 in the
-s5pv210 code.  The replacement patch below should resolve this.
+>-----Original Message-----
+>From: Cousson, Benoit [mailto:b-cousson@ti.com]
+>Sent: Thursday, February 17, 2011 7:13 PM
+>To: Balbi, Felipe
+>Cc: Tony Lindgren; Linux OMAP Mailing List; Linux ARM Kernel
+>Mailing List; Kalliguddi, Hema; Kevin Hilman; Paul Walmsley
+>Subject: Re: [patch-v2.6.39 6/7] OMAP4430: hwmod data: Adding USBOTG
+>
+>Hi Felipe and Hema,
+>
+>Sorry for this late review, but I have a couple of comments on
+>this one.
+:-)....
 
- arch/arm/mach-s3c64xx/sleep.S           |   63 +-----------------
- arch/arm/mach-s5pv210/sleep.S           |  105 +-----------------------------
- arch/arm/plat-s3c24xx/sleep.S           |   57 +----------------
- arch/arm/plat-samsung/include/plat/pm.h |   12 +---
- arch/arm/plat-samsung/pm.c              |   16 +-----
- 5 files changed, 14 insertions(+), 239 deletions(-)
+>
+>Since I was planning to send usb hwmod data file to Tony
+>directly like I
+>did for the other drivers, I can handle the update myself if you want.
+>
 
-diff --git a/arch/arm/mach-s3c64xx/sleep.S b/arch/arm/mach-s3c64xx/sleep.S
-index b2ef443..afe5a76 100644
---- a/arch/arm/mach-s3c64xx/sleep.S
-+++ b/arch/arm/mach-s3c64xx/sleep.S
-@@ -32,25 +32,13 @@
- 	 * code after resume.
- 	 *
- 	 * entry:
--	 *	r0 = pointer to the save block
-+	 *	r1 = v:p offset
- 	*/
- 
- ENTRY(s3c_cpu_save)
- 	stmfd	sp!, { r4 - r12, lr }
--
--	mrc	p15, 0, r4, c13, c0, 0	@ FCSE/PID
--	mrc	p15, 0, r5, c3, c0, 0	@ Domain ID
--	mrc	p15, 0, r6, c2, c0, 0	@ Translation Table BASE0
--	mrc	p15, 0, r7, c2, c0, 1	@ Translation Table BASE1
--	mrc	p15, 0, r8, c2, c0, 2	@ Translation Table Control
--	mrc	p15, 0, r9, c1, c0, 0	@ Control register
--	mrc	p15, 0, r10, c1, c0, 1	@ Auxiliary control register
--	mrc	p15, 0, r11, c1, c0, 2	@ Co-processor access controls
--
--	stmia	r0, { r4 - r13 }	@ Save CP registers and SP
--
--	@@ save our state to ram
--	bl	s3c_pm_cb_flushcache
-+	ldr	r3, =resume_with_mmu
-+	bl	cpu_suspend
- 
- 	@@ call final suspend code
- 	ldr	r0, =pm_cpu_sleep
-@@ -61,18 +49,6 @@ ENTRY(s3c_cpu_save)
- resume_with_mmu:
- 	ldmfd	sp!, { r4 - r12, pc }	@ return, from sp from s3c_cpu_save
- 
--	.data
--
--	/* the next bit is code, but it requires easy access to the
--	 * s3c_sleep_save_phys data before the MMU is switched on, so
--	 * we store the code that needs this variable in the .data where
--	 * the value can be written to (the .text segment is RO).
--	*/
--
--	.global	s3c_sleep_save_phys
--s3c_sleep_save_phys:
--	.word	0
--
- 	/* Sleep magic, the word before the resume entry point so that the
- 	 * bootloader can check for a resumeable image. */
- 
-@@ -110,35 +86,4 @@ ENTRY(s3c_cpu_resume)
- 	orr	r0, r0, #1 << 15			@ GPN15
- 	str	r0, [ r3, #S3C64XX_GPNDAT ]
- #endif
--
--	/* __v6_setup from arch/arm/mm/proc-v6.S, ensure that the caches
--	 * are thoroughly cleaned just in case the bootloader didn't do it
--	 * for us. */
--	mov	r0, #0
--	mcr	p15, 0, r0, c7, c14, 0		@ clean+invalidate D cache
--	mcr	p15, 0, r0, c7, c5, 0		@ invalidate I cache
--	mcr	p15, 0, r0, c7, c15, 0		@ clean+invalidate cache
--	mcr	p15, 0, r0, c7, c10, 4		@ drain write buffer
--	@@mcr	p15, 0, r0, c8, c7, 0		@ invalidate I + D TLBs
--	@@mcr	p15, 0, r0, c7, c7, 0		@ Invalidate I + D caches
--
--	ldr	r0, s3c_sleep_save_phys
--	ldmia	r0, { r4 - r13 }
--
--	mcr	p15, 0, r4, c13, c0, 0	@ FCSE/PID
--	mcr	p15, 0, r5, c3, c0, 0	@ Domain ID
--	mcr	p15, 0, r6, c2, c0, 0	@ Translation Table BASE0
--	mcr	p15, 0, r7, c2, c0, 1	@ Translation Table BASE1
--	mcr	p15, 0, r8, c2, c0, 2	@ Translation Table Control
--	mcr	p15, 0, r10, c1, c0, 1	@ Auxiliary control register
--
--	mov	r0, #0			@ restore copro access controls
--	mcr	p15, 0, r11, c1, c0, 2	@ Co-processor access controls
--	mcr 	p15, 0, r0, c7, c5, 4
--
--	ldr	r2, =resume_with_mmu
--	mcr	p15, 0, r9, c1, c0, 0		/* turn mmu back on */
--	nop
--	mov	pc, r2				/* jump back */
--
--	.end
-+	b	cpu_resume
-diff --git a/arch/arm/mach-s5pv210/sleep.S b/arch/arm/mach-s5pv210/sleep.S
-index d4d222b..a3d6494 100644
---- a/arch/arm/mach-s5pv210/sleep.S
-+++ b/arch/arm/mach-s5pv210/sleep.S
-@@ -35,50 +35,24 @@
- 	/* s3c_cpu_save
- 	 *
- 	 * entry:
--	 *	r0 = save address (virtual addr of s3c_sleep_save_phys)
-+	 *	r1 = v:p offset
- 	*/
- 
- ENTRY(s3c_cpu_save)
- 
- 	stmfd	sp!, { r3 - r12, lr }
--
--	mrc	p15, 0, r4, c13, c0, 0	@ FCSE/PID
--	mrc	p15, 0, r5, c3, c0, 0	@ Domain ID
--	mrc	p15, 0, r6, c2, c0, 0	@ Translation Table BASE0
--	mrc	p15, 0, r7, c2, c0, 1	@ Translation Table BASE1
--	mrc	p15, 0, r8, c2, c0, 2	@ Translation Table Control
--	mrc	p15, 0, r9, c1, c0, 0	@ Control register
--	mrc	p15, 0, r10, c1, c0, 1	@ Auxiliary control register
--	mrc	p15, 0, r11, c1, c0, 2	@ Co-processor access controls
--	mrc	p15, 0, r12, c10, c2, 0	@ Read PRRR
--	mrc	p15, 0, r3, c10, c2, 1	@ READ NMRR
--
--	stmia	r0, { r3 - r13 }
--
--	bl	s3c_pm_cb_flushcache
-+	ldr	r3, =resume_with_mmu
-+	bl	cpu_suspend
- 
- 	ldr	r0, =pm_cpu_sleep
- 	ldr	r0, [ r0 ]
- 	mov	pc, r0
- 
- resume_with_mmu:
--	/*
--	 * After MMU is turned on, restore the previous MMU table.
--	 */
--	ldr	r9 , =(PAGE_OFFSET - PHYS_OFFSET)
--	add	r4, r4, r9
--	str	r12, [r4]
--
- 	ldmfd	sp!, { r3 - r12, pc }
- 
- 	.ltorg
- 
--	.data
--
--	.global	s3c_sleep_save_phys
--s3c_sleep_save_phys:
--	.word	0
--
- 	/* sleep magic, to allow the bootloader to check for an valid
- 	 * image to resume to. Must be the first word before the
- 	 * s3c_cpu_resume entry.
-@@ -96,75 +70,4 @@ s3c_sleep_save_phys:
- 	*/
- 
- ENTRY(s3c_cpu_resume)
--	mov	r0, #PSR_I_BIT | PSR_F_BIT | SVC_MODE
--	msr	cpsr_c, r0
--
--	mov	r1, #0
--	mcr	p15, 0, r1, c8, c7, 0		@ invalidate TLBs
--	mcr	p15, 0, r1, c7, c5, 0		@ invalidate I Cache
--
--	ldr	r0, s3c_sleep_save_phys		@ address of restore block
--	ldmia	r0, { r3 - r13 }
--
--	mcr	p15, 0, r4, c13, c0, 0		@ FCSE/PID
--	mcr	p15, 0, r5, c3, c0, 0		@ Domain ID
--
--	mcr	p15, 0, r8, c2, c0, 2		@ Translation Table Control
--	mcr	p15, 0, r7, c2, c0, 1		@ Translation Table BASE1
--	mcr	p15, 0, r6, c2, c0, 0		@ Translation Table BASE0
--
--	mcr	p15, 0, r10, c1, c0, 1		@ Auxiliary control register
--
--	mov	r0, #0
--	mcr	p15, 0, r0, c8, c7, 0		@ Invalidate I & D TLB
--
--	mov	r0, #0				@ restore copro access
--	mcr	p15, 0, r11, c1, c0, 2		@ Co-processor access
--	mcr 	p15, 0, r0, c7, c5, 4
--
--	mcr	p15, 0, r12, c10, c2, 0		@ write PRRR
--	mcr	p15, 0, r3, c10, c2, 1		@ write NMRR
--
--	/*
--	 * In Cortex-A8, when MMU is turned on, the pipeline is flushed.
--	 * And there are no valid entries in the MMU table at this point.
--	 * So before turning on the MMU, the MMU entry for the DRAM address
--	 * range is added. After the MMU is turned on, the other entries
--	 * in the MMU table will be restored.
--	*/
--
--	/* r6 = Translation Table BASE0 */
--	mov	r4, r6
--	mov	r4, r4, LSR #14
--	mov	r4, r4, LSL #14
--
--	/* Load address for adding to MMU table list */
--	ldr	r11, =0xE010F000		@ INFORM0 reg.
--	ldr	r10, [r11, #0]
--	mov	r10, r10, LSR #18
--	bic	r10, r10, #0x3
--	orr	r4, r4, r10
--
--	/* Calculate MMU table entry */
--	mov 	r10, r10, LSL #18
--	ldr	r5, =0x40E
--	orr	r10, r10, r5
--
--	/* Back up originally data */
--	ldr	r12, [r4]
--
--	/* Add calculated MMU table entry into MMU table list */
--	str	r10, [r4]
--
--	ldr	r2, =resume_with_mmu
--	mcr	p15, 0, r9, c1, c0, 0		@ turn on MMU, etc
--
--	nop
--	nop
--	nop
--	nop
--	nop					@ second-to-last before mmu
--
--	mov	pc, r2				@ go back to virtual address
--
--	.ltorg
-+	b	cpu_resume
-diff --git a/arch/arm/plat-s3c24xx/sleep.S b/arch/arm/plat-s3c24xx/sleep.S
-index e73e3b6..fd7032f 100644
---- a/arch/arm/plat-s3c24xx/sleep.S
-+++ b/arch/arm/plat-s3c24xx/sleep.S
-@@ -44,23 +44,13 @@
- 	/* s3c_cpu_save
- 	 *
- 	 * entry:
--	 *	r0 = save address (virtual addr of s3c_sleep_save_phys)
-+	 *	r1 = v:p offset
- 	*/
- 
- ENTRY(s3c_cpu_save)
- 	stmfd	sp!, { r4 - r12, lr }
--
--	@@ store co-processor registers
--
--	mrc	p15, 0, r4, c13, c0, 0	@ PID
--	mrc	p15, 0, r5, c3, c0, 0	@ Domain ID
--	mrc	p15, 0, r6, c2, c0, 0	@ translation table base address
--	mrc	p15, 0, r7, c1, c0, 0	@ control register
--
--	stmia	r0, { r4 - r13 }
--
--	@@ write our state back to RAM
--	bl	s3c_pm_cb_flushcache
-+	ldr	r3, =resume_with_mmu
-+	bl	cpu_suspend
- 
- 	@@ jump to final code to send system to sleep
- 	ldr	r0, =pm_cpu_sleep
-@@ -76,20 +66,6 @@ resume_with_mmu:
- 
- 	.ltorg
- 
--	@@ the next bits sit in the .data segment, even though they
--	@@ happen to be code... the s3c_sleep_save_phys needs to be
--	@@ accessed by the resume code before it can restore the MMU.
--	@@ This means that the variable has to be close enough for the
--	@@ code to read it... since the .text segment needs to be RO,
--	@@ the data segment can be the only place to put this code.
--
--	.data
--
--	.global	s3c_sleep_save_phys
--s3c_sleep_save_phys:
--	.word	0
--
--
- 	/* sleep magic, to allow the bootloader to check for an valid
- 	 * image to resume to. Must be the first word before the
- 	 * s3c_cpu_resume entry.
-@@ -100,10 +76,6 @@ s3c_sleep_save_phys:
- 	/* s3c_cpu_resume
- 	 *
- 	 * resume code entry for bootloader to call
--	 *
--	 * we must put this code here in the data segment as we have no
--	 * other way of restoring the stack pointer after sleep, and we
--	 * must not write to the code segment (code is read-only)
- 	*/
- 
- ENTRY(s3c_cpu_resume)
-@@ -134,25 +106,4 @@ ENTRY(s3c_cpu_resume)
- 	beq	1001b
- #endif /* CONFIG_DEBUG_RESUME */
- 
--	mov	r1, #0
--	mcr	p15, 0, r1, c8, c7, 0		@@ invalidate I & D TLBs
--	mcr	p15, 0, r1, c7, c7, 0		@@ invalidate I & D caches
--
--	ldr	r0, s3c_sleep_save_phys		@ address of restore block
--	ldmia	r0, { r4 - r13 }
--
--	mcr	p15, 0, r4, c13, c0, 0		@ PID
--	mcr	p15, 0, r5, c3, c0, 0		@ Domain ID
--	mcr	p15, 0, r6, c2, c0, 0		@ translation table base
--
--#ifdef CONFIG_DEBUG_RESUME
--	mov	r3, #'R'
--	strb	r3, [ r2, #S3C2410_UTXH ]
--#endif
--
--	ldr	r2, =resume_with_mmu
--	mcr	p15, 0, r7, c1, c0, 0		@ turn on MMU, etc
--	nop					@ second-to-last before mmu
--	mov	pc, r2				@ go back to virtual address
--
--	.ltorg
-+	b	cpu_resume
-diff --git a/arch/arm/plat-samsung/include/plat/pm.h b/arch/arm/plat-samsung/include/plat/pm.h
-index d9025e3..4aa697d 100644
---- a/arch/arm/plat-samsung/include/plat/pm.h
-+++ b/arch/arm/plat-samsung/include/plat/pm.h
-@@ -50,13 +50,11 @@ extern unsigned char pm_uart_udivslot;  /* true to save UART UDIVSLOT */
- 
- /* from sleep.S */
- 
--extern int  s3c_cpu_save(unsigned long *saveblk);
-+extern int  s3c_cpu_save(unsigned long *saveblk, long);
- extern void s3c_cpu_resume(void);
- 
- extern void s3c2410_cpu_suspend(void);
- 
--extern unsigned long s3c_sleep_save_phys;
--
- /* sleep save info */
- 
- /**
-@@ -179,13 +177,5 @@ extern void s3c_pm_restore_gpios(void);
-  */
- extern void s3c_pm_save_gpios(void);
- 
--/**
-- * s3c_pm_cb_flushcache - callback for assembly code
-- *
-- * Callback to issue flush_cache_all() as this call is
-- * not a directly callable object.
-- */
--extern void s3c_pm_cb_flushcache(void);
--
- extern void s3c_pm_save_core(void);
- extern void s3c_pm_restore_core(void);
-diff --git a/arch/arm/plat-samsung/pm.c b/arch/arm/plat-samsung/pm.c
-index 02d531f..d5b58d3 100644
---- a/arch/arm/plat-samsung/pm.c
-+++ b/arch/arm/plat-samsung/pm.c
-@@ -241,8 +241,6 @@ void (*pm_cpu_sleep)(void);
- 
- static int s3c_pm_enter(suspend_state_t state)
- {
--	static unsigned long regs_save[16];
--
- 	/* ensure the debug is initialised (if enabled) */
- 
- 	s3c_pm_debug_init();
-@@ -266,12 +264,6 @@ static int s3c_pm_enter(suspend_state_t state)
- 		return -EINVAL;
- 	}
- 
--	/* store the physical address of the register recovery block */
--
--	s3c_sleep_save_phys = virt_to_phys(regs_save);
--
--	S3C_PMDBG("s3c_sleep_save_phys=0x%08lx\n", s3c_sleep_save_phys);
--
- 	/* save all necessary core registers not covered by the drivers */
- 
- 	s3c_pm_save_gpios();
-@@ -305,7 +297,7 @@ static int s3c_pm_enter(suspend_state_t state)
- 	 * we resume as it saves its own register state and restores it
- 	 * during the resume.  */
- 
--	s3c_cpu_save(regs_save);
-+	s3c_cpu_save(0, PLAT_PHYS_OFFSET - PAGE_OFFSET);
- 
- 	/* restore the cpu state using the kernel's cpu init code. */
- 
-@@ -336,12 +328,6 @@ static int s3c_pm_enter(suspend_state_t state)
- 	return 0;
- }
- 
--/* callback from assembly code */
--void s3c_pm_cb_flushcache(void)
--{
--	flush_cache_all();
--}
--
- static int s3c_pm_prepare(void)
- {
- 	/* prepare check area if configured */
+I was not aware that you are sending the Hwmod patches for OMAP4
+for all the drivers. Anyway I am OK with you sending the patch or
+required I can also send it.
+
+>
+>On 2/17/2011 1:41 PM, Balbi, Felipe wrote:
+>> From: Hema HK<hemahk@ti.com>
+>
+>The authorship is not correct. It should be me.
+>
+Yes. I agree. It is a mistake.
+>[...]
+>
+>> +static struct omap_hwmod_class_sysconfig
+>omap44xx_usb_otg_hs_sysc = {
+>> +	.rev_offs	= 0x0400,
+>> +	.sysc_offs	= 0x0404,
+>> +	.syss_offs	= 0x0408,
+>> +	.sysc_flags	= (SYSC_HAS_SIDLEMODE | SYSC_HAS_MIDLEMODE|
+>> +			  SYSC_HAS_ENAWAKEUP | SYSC_HAS_SOFTRESET |
+>> +			  SYSC_HAS_AUTOIDLE),
+>
+>These flags does not contains the latest reset flag
+>(SYSS_HAS_RESET_STATUS) introduced in 2.6.37.
+OK.
+>
+>[...]
+>
+>> +static struct omap_hwmod_addr_space omap44xx_usb_otg_hs_addrs[] = {
+>> +	{
+>> +		.pa_start	= OMAP44XX_HSUSB_OTG_BASE,
+>> +		.pa_end		= OMAP44XX_HSUSB_OTG_BASE + SZ_4K - 1,
+>
+>You should not use the defines anymore, since the only user of the
+>physical address should be this file.
+
+Then we shlould be removing these defines right?
+>
+>[...]
+>
+>> +static struct omap_hwmod_opt_clk usb_otg_hs_opt_clks[] = {
+>> +	{ .role = "xclk", .clk = "otg_60m_gfclk_ck" },
+>
+>That optional clock does not exist anymore, it should be
+>"usb_otg_hs_xclk".
+>
+Since this clock is not enabled for musb as 60Mhz clock is external,
+I did not notice this.
+
+In your updated patch  below still the optional clock name is not changed.
+
+>[...]
+>
+>> @@ -2068,6 +2159,8 @@ static __initdata struct omap_hwmod
+>*omap44xx_hwmods[] = {
+>>   	&omap44xx_wd_timer2_hwmod,
+>>   	&omap44xx_wd_timer3_hwmod,
+>>
+>> +	/* hsusb otg class */
+>> +	&omap44xx_usb_otg_hs_hwmod,
+>
+>"usb_otb_hs" should be before "wd_timer2".
+
+Is this because of the automated scripts which generates the hwmod?
+>
+>For information, the updated version is below. It is based on rc5 +
+>for_2.6.39/omap4_hwmod_data series I've just sent.
+
+Regards,
+Hema
+>
+>Regards,
+>Benoit
+>
+>
+>---
+> From 5c2017f9405588127bf0b41f718409411d01abf8 Mon Sep 17 00:00:00 2001
+>From: Benoit Cousson <b-cousson@ti.com>
+>Date: Thu, 17 Feb 2011 12:41:05 +0000
+>Subject: [PATCH] OMAP4430: hwmod data: Add USBOTG
+>
+>OMAP4 hwmod data structures are populated with base address, L3 and L4
+>interface clocks, IRQs and sysconfig register details.
+>
+>As per OMAP USBOTG specification, need to configure the USBOTG
+>to smart idle/standby or no idle/standby during data transfer and
+>force idle/standby when not in use to support retention and offmode.
+>By setting HWMOD_SWSUP_SIDLE and HWMOD_SWSUP_MSTANDBY flags,framework
+>will take care of configuring to no idle/standby when module is enabled
+>and force idle/standby when idled.
+>
+>Signed-off-by: Cousson, Benoit <b-cousson@ti.com>
+>Signed-off-by: Hema HK <hemahk@ti.com>
+>Cc: Tony Lindgren <tony@atomide.com>
+>Cc: Kevin Hilman <khilman@deeprootsystems.com>
+>Cc: Paul Walmsley <paul@pwsan.com>
+>Signed-off-by: Felipe Balbi <balbi@ti.com>
+>[b-cousson@ti.com: Fix position, opt_clk, and author]
+>---
+>  arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   95
+>++++++++++++++++++++++++++++
+>  1 files changed, 95 insertions(+), 0 deletions(-)
+>
+>diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+>b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+>index 989bc96..b27e1e3 100644
+>--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+>+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+>@@ -62,6 +62,7 @@ static struct omap_hwmod omap44xx_mmc1_hwmod;
+>  static struct omap_hwmod omap44xx_mmc2_hwmod;
+>  static struct omap_hwmod omap44xx_mpu_hwmod;
+>  static struct omap_hwmod omap44xx_mpu_private_hwmod;
+>+static struct omap_hwmod omap44xx_usb_otg_hs_hwmod;
+>
+>  /*
+>   * Interconnects omap_hwmod structures
+>@@ -344,6 +345,14 @@ static struct omap_hwmod_ocp_if
+>omap44xx_l4_cfg__l3_main_2 = {
+>  	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+>  };
+>
+>+/* usb_otg_hs -> l3_main_2 */
+>+static struct omap_hwmod_ocp_if omap44xx_usb_otg_hs__l3_main_2 = {
+>+	.master		= &omap44xx_usb_otg_hs_hwmod,
+>+	.slave		= &omap44xx_l3_main_2_hwmod,
+>+	.clk		= "l3_div_ck",
+>+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+>+};
+>+
+>  /* l3_main_2 slave ports */
+>  static struct omap_hwmod_ocp_if *omap44xx_l3_main_2_slaves[] = {
+>  	&omap44xx_dma_system__l3_main_2,
+>@@ -353,6 +362,7 @@ static struct omap_hwmod_ocp_if
+>*omap44xx_l3_main_2_slaves[] = {
+>  	&omap44xx_iva__l3_main_2,
+>  	&omap44xx_l3_main_1__l3_main_2,
+>  	&omap44xx_l4_cfg__l3_main_2,
+>+	&omap44xx_usb_otg_hs__l3_main_2,
+>  };
+>
+>  static struct omap_hwmod omap44xx_l3_main_2_hwmod = {
+>@@ -4725,6 +4735,88 @@ static struct omap_hwmod
+>omap44xx_uart4_hwmod = {
+>  };
+>
+>  /*
+>+ * 'usb_otg_hs' class
+>+ * high-speed on-the-go universal serial bus (usb_otg_hs) controller
+>+ */
+>+
+>+static struct omap_hwmod_class_sysconfig omap44xx_usb_otg_hs_sysc = {
+>+	.rev_offs	= 0x0400,
+>+	.sysc_offs	= 0x0404,
+>+	.syss_offs	= 0x0408,
+>+	.sysc_flags	= (SYSC_HAS_AUTOIDLE | SYSC_HAS_ENAWAKEUP |
+>+			   SYSC_HAS_MIDLEMODE | SYSC_HAS_SIDLEMODE |
+>+			   SYSC_HAS_SOFTRESET | SYSS_HAS_RESET_STATUS),
+>+	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
+>+			   SIDLE_SMART_WKUP | MSTANDBY_FORCE |
+>MSTANDBY_NO |
+>+			   MSTANDBY_SMART),
+>+	.sysc_fields	= &omap_hwmod_sysc_type1,
+>+};
+>+
+>+static struct omap_hwmod_class omap44xx_usb_otg_hs_hwmod_class = {
+>+	.name = "usb_otg_hs",
+>+	.sysc = &omap44xx_usb_otg_hs_sysc,
+>+};
+>+
+>+/* usb_otg_hs */
+>+static struct omap_hwmod_irq_info omap44xx_usb_otg_hs_irqs[] = {
+>+	{ .name = "mc", .irq = 92 + OMAP44XX_IRQ_GIC_START },
+>+	{ .name = "dma", .irq = 93 + OMAP44XX_IRQ_GIC_START },
+>+};
+>+
+>+/* usb_otg_hs master ports */
+>+static struct omap_hwmod_ocp_if *omap44xx_usb_otg_hs_masters[] = {
+>+	&omap44xx_usb_otg_hs__l3_main_2,
+>+};
+>+
+>+static struct omap_hwmod_addr_space omap44xx_usb_otg_hs_addrs[] = {
+>+	{
+>+		.pa_start	= 0x4a0ab000,
+>+		.pa_end		= 0x4a0ab003,
+>+		.flags		= ADDR_TYPE_RT
+>+	},
+>+};
+>+
+>+/* l4_cfg -> usb_otg_hs */
+>+static struct omap_hwmod_ocp_if omap44xx_l4_cfg__usb_otg_hs = {
+>+	.master		= &omap44xx_l4_cfg_hwmod,
+>+	.slave		= &omap44xx_usb_otg_hs_hwmod,
+>+	.clk		= "l4_div_ck",
+>+	.addr		= omap44xx_usb_otg_hs_addrs,
+>+	.addr_cnt	= ARRAY_SIZE(omap44xx_usb_otg_hs_addrs),
+>+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+>+};
+>+
+>+/* usb_otg_hs slave ports */
+>+static struct omap_hwmod_ocp_if *omap44xx_usb_otg_hs_slaves[] = {
+>+	&omap44xx_l4_cfg__usb_otg_hs,
+>+};
+>+
+>+static struct omap_hwmod_opt_clk usb_otg_hs_opt_clks[] = {
+>+	{ .role = "xclk", .clk = "otg_60m_gfclk_ck" },
+>+};
+>+
+>+static struct omap_hwmod omap44xx_usb_otg_hs_hwmod = {
+>+	.name		= "usb_otg_hs",
+>+	.class		= &omap44xx_usb_otg_hs_hwmod_class,
+>+	.mpu_irqs	= omap44xx_usb_otg_hs_irqs,
+>+	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_usb_otg_hs_irqs),
+>+	.main_clk	= "usb_otg_hs_ick",
+>+	.prcm = {
+>+		.omap4 = {
+>+			.clkctrl_reg =
+>OMAP4430_CM_L3INIT_USB_OTG_CLKCTRL,
+>+		},
+>+	},
+>+	.opt_clks	= usb_otg_hs_opt_clks,
+>+	.opt_clks_cnt = ARRAY_SIZE(usb_otg_hs_opt_clks),
+>+	.slaves		= omap44xx_usb_otg_hs_slaves,
+>+	.slaves_cnt	= ARRAY_SIZE(omap44xx_usb_otg_hs_slaves),
+>+	.masters	= omap44xx_usb_otg_hs_masters,
+>+	.masters_cnt	= ARRAY_SIZE(omap44xx_usb_otg_hs_masters),
+>+	.flags		= HWMOD_SWSUP_SIDLE | HWMOD_SWSUP_MSTANDBY,
+>+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+>+};
+>+
+>+/*
+>   * 'wd_timer' class
+>   * 32-bit watchdog upward counter that generates a pulse on
+>the reset
+>pin on
+>   * overflow condition
+>@@ -4995,6 +5087,9 @@ static __initdata struct omap_hwmod
+>*omap44xx_hwmods[] = {
+>  	&omap44xx_uart3_hwmod,
+>  	&omap44xx_uart4_hwmod,
+>
+>+	/* usb_otg_hs class */
+>+	&omap44xx_usb_otg_hs_hwmod,
+>+
+>  	/* wd_timer class */
+>  	&omap44xx_wd_timer2_hwmod,
+>  	&omap44xx_wd_timer3_hwmod,
+>--
+>1.7.0.4
+>
+>
