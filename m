@@ -1,37 +1,54 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 2/6] ARM: pm: add generic CPU suspend/resume support
-Date: Thu, 17 Feb 2011 13:59:08 +0000
-Message-ID: <20110217135907.GB24989@n2100.arm.linux.org.uk>
-References: <20110211161626.GA31356@n2100.arm.linux.org.uk> <E1Pnvgw-0002yZ-M0@rmk-PC.arm.linux.org.uk> <AANLkTinL0HgSsFmoxyiBuRA6JiWKsHTLW4wFnVDJf_1w@mail.gmail.com> <20110215110453.GB11199@n2100.arm.linux.org.uk> <AANLkTik_c4D7CPO9j9ZYUSuR45ggJ8Y953VLQCg4tkkr@mail.gmail.com> <1297939312.7096.32.camel@e102568-lin.cambridge.arm.com>
+From: Anand Gadiyar <gadiyar@ti.com>
+Subject: RE: [PATCH 1/2] omap4: 4430sdp: drop ehci support
+Date: Thu, 17 Feb 2011 19:34:51 +0530
+Message-ID: <9384e5030701b4680b09f7ad49190054@mail.gmail.com>
+References: <1297855040-1337-1-git-send-email-gadiyar@ti.com> <20110217114916.GA24989@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:52130 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753459Ab1BQN72 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Feb 2011 08:59:28 -0500
-Content-Disposition: inline
-In-Reply-To: <1297939312.7096.32.camel@e102568-lin.cambridge.arm.com>
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:48566 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756499Ab1BQOEz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 17 Feb 2011 09:04:55 -0500
+Received: by mail-fx0-f43.google.com with SMTP id 18so2585060fxm.16
+        for <linux-omap@vger.kernel.org>; Thu, 17 Feb 2011 06:04:52 -0800 (PST)
+In-Reply-To: <20110217114916.GA24989@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Colin Cross <ccross@google.com>, linux-omap@vger.kernel.org, Kukjin Kim <kgene.kim@samsung.com>, Eric Miao <eric.y.miao@gmail.com>, linux-arm-kernel@lists.infradead.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Keshava Munegowda <keshava_mgowda@ti.com>
 
-On Thu, Feb 17, 2011 at 10:41:52AM +0000, Lorenzo Pieralisi wrote:
-> When calling suspend from cpuidle, do you flush the stack (ie CPU
-> context) from L2 using outer_cache functions ? This has to be done when
-> one CPU is shut down with L2 enabled for the MMU off resume path to work
-> properly.
-> I think that on resume you invalidate L1 in the reset vector before
-> jumping to cpu_resume, correct ?
+Russell King - ARM Linux wrote:
+> On Wed, Feb 16, 2011 at 04:47:19PM +0530, Anand Gadiyar wrote:
+> > Most revisions of the OMAP4 Blaze/SDP platform do not have
+> > the EHCI signals routed by default. The pads are routed
+> > for the alternate HSI functionality instead, and explicit
+> > board modifications are needed to route the signals to
+> > the USB PHY on the board.
+> >
+> > Also, turning on the PHY connected to the EHCI port causes
+> > a board reboot during bootup due to an unintended short
+> > on the rails - this affects many initial revisions of the
+> > board, and needs a minor board mod to fix (or as a
+> > workaround, one should not attempt to power on the
+> > USB PHY).
+>
+> It's probably a good idea to put some comment in the code to that
+> effect - people don't generally look at the history when adding new
+> features.
 
-Let's forget cpuidle using this code for the time being - the issues
-there appear to be more complex than the suspend-to-ram which this code
-is currently being used for.  What I'm saying is that cpuidle using
-this is an enhancement over and above its current use.
+I did part of this in patch 2/2.
+I've muxed the pad in "safe mode" which turns off the output drivers
+for the pad - so it can no longer drive a 1.
 
-Once we have the S2R stuff working and tested, then we can go back to
-cpuidle stuff.
+I've also placed a big warning above that line explaining why.
 
-I fear that trying to get this to work for cpuidle will result in the
-entire thing being thrown away.
+> It's probably also a good idea to claim the GPIO for the
+> PHY power control and ensure that it's set to 'off' mode - that code
+> can then be a placeholder for the comment.
+
+This is a good idea too. Tony, if you concur, I'll go
+respin this series.
+
+- Anand
