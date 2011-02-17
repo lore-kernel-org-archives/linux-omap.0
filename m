@@ -1,208 +1,234 @@
-From: Dave Martin <dave.martin@linaro.org>
-Subject: [PATCH v5 5/5] ARM: omap3: Thumb-2 compatibility for sleep34xx.S
-Date: Thu, 17 Feb 2011 12:42:38 +0000
-Message-ID: <1297946558-13436-6-git-send-email-dave.martin@linaro.org>
-References: <1297946558-13436-1-git-send-email-dave.martin@linaro.org>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:49320 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753222Ab1BQMrb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Feb 2011 07:47:31 -0500
-Received: by wyb28 with SMTP id 28so2474178wyb.19
-        for <linux-omap@vger.kernel.org>; Thu, 17 Feb 2011 04:47:29 -0800 (PST)
-In-Reply-To: <1297946558-13436-1-git-send-email-dave.martin@linaro.org>
-Sender: linux-omap-owner@vger.kernel.org
+From: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [patch v2.6.39 2/3] usb: musb: gadget: beautify usb_gadget_probe_driver()/usb_gadget_unregister_driver
+Date: Thu, 17 Feb 2011 16:00:30 +0300
+Message-ID: <4D5D1BEE.30704@ru.mvista.com>
+References: <1297942221-22995-1-git-send-email-balbi@ti.com> <1297942221-22995-3-git-send-email-balbi@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1297942221-22995-3-git-send-email-balbi-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>, Hema Kalliguddi <hemahk-l0cyMroinI0@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Dave Martin <dave.martin@linaro.org>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Jean Pihet <j-pihet@ti.com>, Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, Nicolas Pitre <nicolas.pitre@linaro.org>, linaro-dev@lists.linaro.org, patches@linaro.org
 
- * Build unconditionally as ARM for correct interoperation with
-   OMAP firmware.
+Hello.
 
- * Fix an out-of-range ADR when building for ARM.
+On 17-02-2011 14:30, Felipe Balbi wrote:
 
- * Remove deprecated PC-relative stores.
+> Just a few cosmetic fixes to usb_gadget_probe_driver()
+> and usb_gadget_unregister_driver().
 
- * Add the required ENDPROC() directive for each ENTRY().
+> Decreased a few indentation levels with goto statements.
 
- * .align before data words.
+> Signed-off-by: Felipe Balbi<balbi-l0cyMroinI0@public.gmane.org>
+[...]
 
- * Handle non-interworking return from v7_flush_dcache_all.
+> diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_gadget.c
+> index 2fe3046..86decba 100644
+> --- a/drivers/usb/musb/musb_gadget.c
+> +++ b/drivers/usb/musb/musb_gadget.c
+> @@ -1801,90 +1801,95 @@ void musb_gadget_cleanup(struct musb *musb)
+>   int usb_gadget_probe_driver(struct usb_gadget_driver *driver,
+>   		int (*bind)(struct usb_gadget *))
+>   {
+> -	int retval;
+> -	unsigned long flags;
+> -	struct musb *musb = the_gadget;
+> +	struct musb		*musb = the_gadget;
+> +	unsigned long		flags;
+> +	int			retval = -EINVAL;
+>
+>   	if (!driver
+>   			|| driver->speed != USB_SPEED_HIGH
+>   			|| !bind || !driver->setup)
+> -		return -EINVAL;
+> +		goto err0;
 
-Signed-off-by: Dave Martin <dave.martin@linaro.org>
----
- arch/arm/mach-omap2/sleep34xx.S |   48 ++++++++++++++++++++++++++++++++++----
- 1 files changed, 43 insertions(+), 5 deletions(-)
+    Not sure what this gains...
 
-diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
-index a05c348..f377724 100644
---- a/arch/arm/mach-omap2/sleep34xx.S
-+++ b/arch/arm/mach-omap2/sleep34xx.S
-@@ -64,6 +64,11 @@
- #define SDRC_DLLA_STATUS_V	OMAP34XX_SDRC_REGADDR(SDRC_DLLA_STATUS)
- #define SDRC_DLLA_CTRL_V	OMAP34XX_SDRC_REGADDR(SDRC_DLLA_CTRL)
- 
-+/*
-+ * This file needs be built unconditionally as ARM to interoperate correctly
-+ * with non-Thumb-2-capable firmware. 
-+ */
-+	.arm
- 
- /*
-  * API functions
-@@ -82,6 +87,8 @@ ENTRY(get_restore_pointer)
- 	stmfd	sp!, {lr}	@ save registers on stack
- 	adr	r0, restore
- 	ldmfd	sp!, {pc}	@ restore regs and return
-+ENDPROC(get_restore_pointer)
-+	.align
- ENTRY(get_restore_pointer_sz)
- 	.word	. - get_restore_pointer
- 
-@@ -91,6 +98,8 @@ ENTRY(get_omap3630_restore_pointer)
- 	stmfd	sp!, {lr}	@ save registers on stack
- 	adr	r0, restore_3630
- 	ldmfd	sp!, {pc}	@ restore regs and return
-+ENDPROC(get_omap3630_restore_pointer)
-+	.align
- ENTRY(get_omap3630_restore_pointer_sz)
- 	.word	. - get_omap3630_restore_pointer
- 
-@@ -100,6 +109,8 @@ ENTRY(get_es3_restore_pointer)
- 	stmfd	sp!, {lr}	@ save registers on stack
- 	adr	r0, restore_es3
- 	ldmfd	sp!, {pc}	@ restore regs and return
-+ENDPROC(get_es3_restore_pointer)
-+	.align
- ENTRY(get_es3_restore_pointer_sz)
- 	.word	. - get_es3_restore_pointer
- 
-@@ -113,8 +124,10 @@ ENTRY(enable_omap3630_toggle_l2_on_restore)
- 	stmfd	sp!, {lr}	@ save registers on stack
- 	/* Setup so that we will disable and enable l2 */
- 	mov	r1, #0x1
--	str	r1, l2dis_3630
-+	adrl	r2, l2dis_3630	@ may be too distant for plain adr
-+	str	r1, [r2]
- 	ldmfd	sp!, {pc}	@ restore regs and return
-+ENDPROC(enable_omap3630_toggle_l2_on_restore)
- 
- 	.text
- /* Function to call rom code to save secure ram context */
-@@ -139,12 +152,14 @@ ENTRY(save_secure_ram_context)
- 	nop
- 	nop
- 	ldmfd	sp!, {r1-r12, pc}
-+	.align
- sram_phy_addr_mask:
- 	.word	SRAM_BASE_P
- high_mask:
- 	.word	0xffff
- api_params:
- 	.word	0x4, 0x0, 0x0, 0x1, 0x1
-+ENDPROC(save_secure_ram_context)
- ENTRY(save_secure_ram_context_sz)
- 	.word	. - save_secure_ram_context
- 
-@@ -279,8 +294,18 @@ clean_l2:
- 	 *  - 'might' have to copy address, load and jump to it
- 	 */
- 	ldr	r1, kernel_flush
--	mov	lr, pc
--	bx	r1
-+	blx	r1
-+	/*
-+	 * The kernel doesn't interwork: v7_flush_dcache_all in particluar will
-+	 * always return in Thumb state when CONFIG_THUMB2_KERNEL is enabled.
-+	 * This sequence switches back to ARM.  Note that .align may insert a
-+	 * nop: bx pc needs to be word-aligned in order to work.
-+	 */
-+ THUMB(	.thumb		)
-+ THUMB(	.align		)
-+ THUMB(	bx	pc	)
-+ THUMB(	nop		)
-+	.arm
- 
- omap3_do_wfi:
- 	ldr	r4, sdrc_power		@ read the SDRC_POWER register
-@@ -438,6 +463,7 @@ skipl2dis:
- #endif
- 	b	logic_l1_restore
- 
-+	.align
- l2_inv_api_params:
- 	.word	0x1, 0x00
- l2_inv_gp:
-@@ -607,6 +633,7 @@ usettbr0:
- 
- /* This function implements the erratum ID i443 WA, applies to 34xx >= ES3.0 */
- 	.text
-+	.align	3
- ENTRY(es3_sdrc_fix)
- 	ldr	r4, sdrc_syscfg		@ get config addr
- 	ldr	r5, [r4]		@ get value
-@@ -634,6 +661,7 @@ ENTRY(es3_sdrc_fix)
- 	str	r5, [r4]		@ kick off refreshes
- 	bx	lr
- 
-+	.align
- sdrc_syscfg:
- 	.word	SDRC_SYSCONFIG_P
- sdrc_mr_0:
-@@ -648,6 +676,7 @@ sdrc_emr2_1:
- 	.word	SDRC_EMR2_1_P
- sdrc_manual_1:
- 	.word	SDRC_MANUAL_1_P
-+ENDPROC(es3_sdrc_fix)
- ENTRY(es3_sdrc_fix_sz)
- 	.word	. - es3_sdrc_fix
- 
-@@ -682,6 +711,12 @@ wait_sdrc_ready:
- 	bic	r5, r5, #0x40
- 	str	r5, [r4]
- 
-+/*
-+ * PC-relative stores lead to undefined behaviour in Thumb-2: use a r7 as a
-+ * base instead.
-+ * Be careful not to clobber r7 when maintaing this code.
-+ */
-+
- is_dll_in_lock_mode:
- 	/* Is dll in lock mode? */
- 	ldr	r4, sdrc_dlla_ctrl
-@@ -689,10 +724,11 @@ is_dll_in_lock_mode:
- 	tst	r5, #0x4
- 	bxne	lr			@ Return if locked
- 	/* wait till dll locks */
-+	adr	r7, kick_counter
- wait_dll_lock_timed:
- 	ldr	r4, wait_dll_lock_counter
- 	add	r4, r4, #1
--	str	r4, wait_dll_lock_counter
-+	str	r4, [r7, #wait_dll_lock_counter - kick_counter]
- 	ldr	r4, sdrc_dlla_status
- 	/* Wait 20uS for lock */
- 	mov	r6, #8
-@@ -718,9 +754,10 @@ kick_dll:
- 	dsb
- 	ldr	r4, kick_counter
- 	add	r4, r4, #1
--	str	r4, kick_counter
-+	str	r4, [r7]		@ kick_counter
- 	b	wait_dll_lock_timed
- 
-+	.align
- cm_idlest1_core:
- 	.word	CM_IDLEST1_CORE_V
- cm_idlest_ckgen:
-@@ -763,6 +800,7 @@ kick_counter:
- 	.word	0
- wait_dll_lock_counter:
- 	.word	0
-+ENDPROC(omap34xx_cpu_suspend)
- 
- ENTRY(omap34xx_cpu_suspend_sz)
- 	.word	. - omap34xx_cpu_suspend
--- 
-1.7.1
+>
+>   	/* driver must be initialized to support peripheral mode */
+>   	if (!musb) {
+>   		DBG(1, "%s, no dev??\n", __func__);
+> -		return -ENODEV;
+> +		retval = -ENODEV;
+> +		goto err0;
 
+    This too...
+
+>   	}
+>
+>   	DBG(3, "registering driver %s\n", driver->function);
+> -	spin_lock_irqsave(&musb->lock, flags);
+
+    Is it really correct to remove spinlocm protection here?
+
+>   	if (musb->gadget_driver) {
+>   		DBG(1, "%s is already bound to %s\n",
+>   				musb_driver_name,
+>   				musb->gadget_driver->driver.name);
+>   		retval = -EBUSY;
+> -	} else {
+> -		musb->gadget_driver = driver;
+> -		musb->g.dev.driver =&driver->driver;
+> -		driver->driver.bus = NULL;
+> -		musb->softconnect = 1;
+> -		retval = 0;
+> +		goto err0;
+>   	}
+>
+> +	spin_lock_irqsave(&musb->lock, flags);
+> +	musb->gadget_driver = driver;
+> +	musb->g.dev.driver =&driver->driver;
+> +	driver->driver.bus = NULL;
+> +	musb->softconnect = 1;
+>   	spin_unlock_irqrestore(&musb->lock, flags);
+>
+> -	if (retval == 0) {
+
+    Yeah, I have noticed this too and wanted to change it -- but forgot... :-)
+
+[...]
+
+> -		if (is_otg_enabled(musb)) {
+> -			struct usb_hcd	*hcd = musb_to_hcd(musb);
+> +	if (is_otg_enabled(musb)) {
+> +		struct usb_hcd	*hcd = musb_to_hcd(musb);
+>
+> -			DBG(3, "OTG startup...\n");
+> +		DBG(3, "OTG startup...\n");
+>
+> -			/* REVISIT:  funcall to other code, which also
+> -			 * handles power budgeting ... this way also
+> -			 * ensures HdrcStart is indirectly called.
+> -			 */
+> -			retval = usb_add_hcd(musb_to_hcd(musb), -1, 0);
+> -			if (retval<  0) {
+> -				DBG(1, "add_hcd failed, %d\n", retval);
+> -				spin_lock_irqsave(&musb->lock, flags);
+> -				otg_set_peripheral(musb->xceiv, NULL);
+
+    You're removing this call -- is it intentional?
+
+> -				musb->gadget_driver = NULL;
+> -				musb->g.dev.driver = NULL;
+> -				spin_unlock_irqrestore(&musb->lock, flags);
+> -			} else {
+> -				hcd->self.uses_pio_for_control = 1;
+> -			}
+> +		/* REVISIT:  funcall to other code, which also
+> +		 * handles power budgeting ... this way also
+> +		 * ensures HdrcStart is indirectly called.
+> +		 */
+> +		retval = usb_add_hcd(musb_to_hcd(musb), -1, 0);
+> +		if (retval < 0) {
+> +			DBG(1, "add_hcd failed, %d\n", retval);
+> +			goto err2;
+>   		}
+> +
+> +		hcd->self.uses_pio_for_control = 1;
+>   	}
+>
+> +	return 0;
+> +
+> +err2:
+> +	if (!is_otg_enabled(musb))
+> +		musb_stop(musb);
+
+    Hm, this wasn't called before -- you don't describe why it's needed.
+
+> +
+> +err1:
+> +	musb->gadget_driver = NULL;
+> +	musb->g.dev.driver = NULL;
+> +
+> +err0:
+>   	return retval;
+>   }
+>   EXPORT_SYMBOL(usb_gadget_probe_driver);
+> @@ -1939,14 +1944,17 @@ static void stop_activity(struct musb *musb, struct usb_gadget_driver *driver)
+>    */
+>   int usb_gadget_unregister_driver(struct usb_gadget_driver *driver)
+>   {
+> -	unsigned long	flags;
+> -	int		retval = 0;
+>   	struct musb	*musb = the_gadget;
+> +	unsigned long	flags;
+>
+>   	if (!driver || !driver->unbind || !musb)
+>   		return -EINVAL;
+>
+> -	/* REVISIT always use otg_set_peripheral() here too;
+> +	if (!musb->gadget_driver)
+> +		return -EINVAL;
+> +
+> +	/*
+> +	 * REVISIT always use otg_set_peripheral() here too;
+>   	 * this needs to shut down the OTG engine.
+>   	 */
+>
+> @@ -1956,29 +1964,26 @@ int usb_gadget_unregister_driver(struct usb_gadget_driver *driver)
+>   	musb_hnp_stop(musb);
+>   #endif
+>
+> -	if (musb->gadget_driver == driver) {
+> +	(void) musb_gadget_vbus_draw(&musb->g, 0);
+>
+> -		(void) musb_gadget_vbus_draw(&musb->g, 0);
+> +	musb->xceiv->state = OTG_STATE_UNDEFINED;
+> +	stop_activity(musb, driver);
+> +	otg_set_peripheral(musb->xceiv, NULL);
+>
+> -		musb->xceiv->state = OTG_STATE_UNDEFINED;
+> -		stop_activity(musb, driver);
+> -		otg_set_peripheral(musb->xceiv, NULL);
+> +	DBG(3, "unregistering driver %s\n", driver->function);
+>
+> -		DBG(3, "unregistering driver %s\n", driver->function);
+> -		spin_unlock_irqrestore(&musb->lock, flags);
+> -		driver->unbind(&musb->g);
+> -		spin_lock_irqsave(&musb->lock, flags);
+> +	spin_unlock_irqrestore(&musb->lock, flags);
+> +	driver->unbind(&musb->g);
+> +	spin_lock_irqsave(&musb->lock, flags);
+>
+> -		musb->gadget_driver = NULL;
+> -		musb->g.dev.driver = NULL;
+> +	musb->gadget_driver = NULL;
+> +	musb->g.dev.driver = NULL;
+>
+> -		musb->is_active = 0;
+> -		musb_platform_try_idle(musb, 0);
+> -	} else
+> -		retval = -EINVAL;
+> +	musb->is_active = 0;
+> +	musb_platform_try_idle(musb, 0);
+>   	spin_unlock_irqrestore(&musb->lock, flags);
+>
+> -	if (is_otg_enabled(musb)&&  retval == 0) {
+> +	if (is_otg_enabled(musb)) {
+>   		usb_remove_hcd(musb_to_hcd(musb));
+>   		/* FIXME we need to be able to register another
+>   		 * gadget driver here and have everything work;
+> @@ -1986,7 +1991,10 @@ int usb_gadget_unregister_driver(struct usb_gadget_driver *driver)
+>   		 */
+>   	}
+>
+> -	return retval;
+> +	if (!is_otg_enabled(musb))
+> +		musb_stop(musb);
+
+    Wasn't called before either -- you don't describe why it's needed...
+
+> +
+> +	return 0;
+>   }
+>   EXPORT_SYMBOL(usb_gadget_unregister_driver);
+
+WBR, Sergei
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
