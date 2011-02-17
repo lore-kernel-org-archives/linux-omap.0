@@ -1,42 +1,65 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [patch-v2.6.39 08/12] usb: otg: OMAP4430: Introducing suspend
- function for power management
-Date: Thu, 17 Feb 2011 21:13:39 +0200
-Message-ID: <20110217191339.GO14574@legolas.emea.dhcp.ti.com>
-References: <1297946329-9353-1-git-send-email-balbi@ti.com>
- <1297946329-9353-9-git-send-email-balbi@ti.com>
-Reply-To: balbi-l0cyMroinI0@public.gmane.org
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 0/4] OMAP4: DSS2: Adding fclk support for DPI interface
+Date: Thu, 17 Feb 2011 21:16:00 +0200
+Message-ID: <1297970160.2031.155.camel@deskari>
+References: <1296741419-9037-1-git-send-email-raghuveer.murthy@ti.com>
+	 <1297699342.2951.62.camel@deskari> <4D5B9176.5060000@ti.com>
+	 <alpine.DEB.2.00.1102170747590.1831@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1297946329-9353-9-git-send-email-balbi-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hema HK <hemahk-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:52062 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754543Ab1BQTQG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 17 Feb 2011 14:16:06 -0500
+In-Reply-To: <alpine.DEB.2.00.1102170747590.1831@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "Murthy, Raghuveer" <raghuveer.murthy@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, Feb 17, 2011 at 02:38:45PM +0200, Felipe Balbi wrote:
-> From: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
+On Thu, 2011-02-17 at 08:49 -0600, Paul Walmsley wrote:
+> On Wed, 16 Feb 2011, Raghuveer Murthy wrote:
 > 
-> Introduced the suspend/resume function for the OMAP4430 internal PHY.
-> This will be used by the twl6030-usb transceiver driver.
-> Moved the clock enable/disable function calls and power on/off of the PHY
-> code from power on/off functions to suspend/resume function.
-> 
-> Pass the suspend function through board data for OMAP4430sdp and OMAP4panda.
-> This will be used by the twl6030-usb transceiver driver.
-> 
-> Signed-off-by: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
-> Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> Cc: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 
-Tony, care to ack so I can take this via Greg's tree ?
+<snip>
 
--- 
-balbi
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > 
+> > DPLL_PER post divider output for DSS core functional clock can be changed in
+> > OMAP3xxx and OMAP4430, based on the requested pixel clock for a given display
+> > resolution.
+> > 
+> > Additionally, the number of dividers available for DPLL_PER post dividors for
+> > DSS has increased from 16 to 32, from OMAP3630 onwards.
+> > 
+> > Both these are added as dss_features.
+> > 
+> > Given the above comments from Tomi, can the same be included as part of the
+> > clock framework?
+> 
+> Have you considered just calling clk_round_rate() on the DPLL_PER's output 
+> divider and seeing if you can get a rate that you're happy with?
+
+Hmm, yes, perhaps that would be possible.
+
+Currently we iterate suitable clocks by going through all fck dividers,
+then lck dividers and then pck dividers, and checking if one of the
+resulting pixel clocks is close to the required one.
+
+But we could start with the required pck, and go "up" from there with
+pck dividers, lck dividers, and in the end using clk_round_rate() to see
+if the set of dividers is possible.
+
+And we know the maximum allowed fck rate, so we can use that as a
+ceiling and forget any divider sets that lead to too high clocks.
+
+This will probably need a bit more iterations, though, as we may be
+trying multiple divider sets leading to the same fck rate, because the
+code doesn't have any idea what the possible rates are.
+
+I trust clk_round_rate() is quite simple function (ie. fast)?
+
+ Tomi
+
+
