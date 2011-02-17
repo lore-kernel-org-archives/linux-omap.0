@@ -1,64 +1,94 @@
-From: Bryan Wu <bryan.wu@canonical.com>
-Subject: [PATCH] omap3: Adding vdd_sdi regulator supply to OMAP3EVM
-Date: Thu, 17 Feb 2011 16:11:14 +0800
-Message-ID: <1297930274-16278-1-git-send-email-bryan.wu@canonical.com>
+From: "Janorkar, Mayuresh" <mayur@ti.com>
+Subject: RE: [RESEND][PATCH v2] OMAP: DSS: Adding two APIs for panel-taal:
+ check_timings and set_timings
+Date: Thu, 17 Feb 2011 14:20:38 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB033C768AE7@dbde02.ent.ti.com>
+References: <1297864482-16903-1-git-send-email-mayur@ti.com>
+ <1297864658.988.21.camel@deskari>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from adelie.canonical.com ([91.189.90.139]:39291 "EHLO
-	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751170Ab1BQILc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Feb 2011 03:11:32 -0500
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60967 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751959Ab1BQIuo convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Feb 2011 03:50:44 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1H8of3q013000
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Thu, 17 Feb 2011 02:50:43 -0600
+Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id p1H8oeFs011602
+	for <linux-omap@vger.kernel.org>; Thu, 17 Feb 2011 14:20:40 +0530 (IST)
+In-Reply-To: <1297864658.988.21.camel@deskari>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: tony@atomide.com, kernel-team@lists.ubuntu.com
+To: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-From: Mathieu J. Poirier <mathieu.poirier@canonical.com>
+Tomi,
 
-https://bugs.launchpad.net/bugs/630885
+> -----Original Message-----
+> From: Valkeinen, Tomi
+> Sent: Wednesday, February 16, 2011 7:28 PM
+> To: Janorkar, Mayuresh
+> Cc: linux-omap@vger.kernel.org
+> Subject: Re: [RESEND][PATCH v2] OMAP: DSS: Adding two APIs for panel-taal:
+> check_timings and set_timings
+> 
+> Hi,
+> 
+> On Wed, 2011-02-16 at 07:54 -0600, Janorkar, Mayuresh wrote:
+> > check_timings and set_timings APIS are not present for panel-taal.
+> >
+> > OMAPFB provides a bootarg omapfb.mode for setting mode parameters which
+> include display,
+> > resolution, bits-per-pixel.
+> >
+> > OMAPFB expects panel driver to have check_timings and set_timings APIs.
+> > These are checked by omapfb in case we wish to set default mode through
+> bootargs.
+> > e.g.: omapfb.mode="lcd:864x480-16" (display device:width X height - bits
+> per pixel)
+> >
+> > omapfb_set_def_mode function in omapfb-main.c essentially needs these
+> functions
+> > otherwise it would return -EINVAL and default mode sent through bootargs
+> > would be ignored.
+> 
+> I don't like this patch. You cannot change the timings for Taal, so
+> those added functions look quite hacky.
+> 
+> The reason for this patch isn't clear from the description (it should).
+> If I guess correctly, the point of the patch is to be able to change the
+> default color format via boot arguments when using taal panel?
 
-When booting, the omapdss subsystem is looking for a regulator named
-"vdds_sdi". When the regulator is not found the initialisation sequence
-is aborted resulting in omapfb not finding a display to work with.  This
-patch allows the omapfb sub system to complete its initialisation
-properly and enable LCD display. The problem was fixed by lumping a
-"vdds_sdi" with the already existing "vdds_dsi" regulator. This fix
-takes its root from work done on the Beagle board and the Pandora board.
+The intent of this patch was ability to change bits-per-pixel of framebuffer through bootargs.
 
-Signed-off-by: Mathieu Poirier <mathieu.poirier@canonical.com>
-Signed-off-by: Andy Whitcroft <apw@canonical.com>
-Signed-off-by: Bryan Wu <bryan.wu@canonical.com>
----
- arch/arm/mach-omap2/board-omap3evm.c |   10 ++++++----
- 1 files changed, 6 insertions(+), 4 deletions(-)
+> 
+> If so, I think the change should be in the omapfb driver. Perhaps the
+> omapfb driver should:
+> 
+> 1. check if check_timings & set_timings exist
+> 2. if they do exist, do the same thing as the code does now
+> 3. if they don't, use get_timings to verify that the given resolution is
+> correct
 
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index c2a0fca..8b8eb36 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -521,8 +521,10 @@ static struct regulator_init_data omap3_evm_vdac = {
- };
- 
- /* VPLL2 for digital video outputs */
--static struct regulator_consumer_supply omap3_evm_vpll2_supply =
--	REGULATOR_SUPPLY("vdds_dsi", "omapdss");
-+static struct regulator_consumer_supply omap3_evm_vdds_supplies[] = {
-+	REGULATOR_SUPPLY("vdds_sdi", "omapdss"),
-+	REGULATOR_SUPPLY("vdds_dsi", "omapdss"),
-+};
- 
- static struct regulator_init_data omap3_evm_vpll2 = {
- 	.constraints = {
-@@ -534,8 +536,8 @@ static struct regulator_init_data omap3_evm_vpll2 = {
- 		.valid_ops_mask		= REGULATOR_CHANGE_MODE
- 					| REGULATOR_CHANGE_STATUS,
- 	},
--	.num_consumer_supplies	= 1,
--	.consumer_supplies	= &omap3_evm_vpll2_supply,
-+	.num_consumer_supplies	= ARRAY_SIZE(omap3_evm_vdds_supplies),
-+	.consumer_supplies	= omap3_evm_vdds_supplies,
- };
- 
- static struct twl4030_platform_data omap3evm_twldata = {
--- 
-1.7.1
+But that would lead to a situation in which you would set the bits-per-pixel without checking if panel supports it.
+
+> That wouldn't be perfect either, but I guess it should do the job. But
+> this is again something where FB framework and OMAP HW do not quite
+> match, and we end up with hacky solution, no matter what we do. But we
+> can try to keep the hacks in the omapfb driver =).
+
+
+OMAPFB depends a on the attached panel for configuring FB parameters.
+panel-generic-dpi.c it has an API dpi_check_timings which checks whether timings are supported or not.
+How about adding a similar API for dsi_check_timings? We would call it from panel-taal.
+(I do understand that timings required by taal are only xres and yres much less compared to dpi)
+
+> 
+>  Tomi
+> 
 
