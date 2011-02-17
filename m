@@ -1,40 +1,41 @@
-From: "JD (Jiandong) Zheng" <jdzheng@broadcom.com>
-Subject: RE: [RFC 1/5] ARM: P2V: separate PHYS_OFFSET from platform definitions
-Date: Thu, 17 Feb 2011 10:07:45 -0800
-Message-ID: <8628FE4E7912BF47A96AE7DD7BAC0AADDDF03CE1D9@SJEXCHCCR02.corp.ad.broadcom.com>
-References: <20110104202052.GE24935@n2100.arm.linux.org.uk>
-	<E1PaDOb-00023Z-CR@rmk-PC.arm.linux.org.uk>
-	<AANLkTinwQwPK7Lg4dxkLGBxvp1hz489iAB6YrSG45e75@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [patch-v2.6.39 6/7] OMAP4430: hwmod data: Adding USBOTG
+Date: Thu, 17 Feb 2011 10:18:49 -0800
+Message-ID: <20110217181849.GV20795@atomide.com>
+References: <20110217152648.GO22356@legolas.emea.dhcp.ti.com>
+ <4D5D44AF.5050805@ti.com>
+ <20110217162000.GP20795@atomide.com>
+ <20110217162209.GA13425@legolas.emea.dhcp.ti.com>
+ <20110217165953.GR20795@atomide.com>
+ <4D5D5770.9020501@ti.com>
+ <20110217171747.GC14574@legolas.emea.dhcp.ti.com>
+ <4D5D59E5.6020307@ti.com>
+ <20110217173711.GF14574@legolas.emea.dhcp.ti.com>
+ <4D5D5F13.2010602@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <AANLkTinwQwPK7Lg4dxkLGBxvp1hz489iAB6YrSG45e75@mail.gmail.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>, Kevin Hilman <khilman@deeprootsystems.com>, Anton Vorontsov <avorontsov@mvista.com>, Lennert Buytenhek <kernel@wantstofly.org>, Kukjin Kim <kgene.kim@samsung.com>, Erik Gilling <konkers@android.com>, "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, Vincent Sanders <support@simtec.co.uk>, "Hans J. Koch" <hjk@linutronix.de>, Magnus Damm <magnus.damm@gmail.com>, Marc Singer <elf@buici.com>, Tony Lindgren <tony@atomide.com>, David Brown <davidb@codeaurora.org>, Alessandro Rubini <rubini@unipv.it>, Wan ZongShun <mcuos.com@gmail.com>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, Olof Johansson <olof@lixom.net>, Ryan Mallon <ryan@bluewatersys.com>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, Ben Dooks <ben-linux@fluff.org>, "linux-tegra@vger.kernel.org" <linux-tegra@vger.>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:31903 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757093Ab1BQSTN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Feb 2011 13:19:13 -0500
+Content-Disposition: inline
+In-Reply-To: <4D5D5F13.2010602@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "Balbi, Felipe" <balbi@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, "Kalliguddi, Hema" <hemahk@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>
 
-On Wed, Jan 5, 2011 at 4:22 AM, Russell King - ARM Linux
-<linux@arm.linux.org.uk> wrote:
-> This uncouple PHYS_OFFSET from the platform definitions, thereby
-> facilitating run-time computation of the physical memory offset.
->
-> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-> ---
-> arch/arm/include/asm/memory.h                  |    2 ++
-> arch/arm/kernel/tcm.c                          |    2 +-
+* Cousson, Benoit <b-cousson@ti.com> [110217 09:45]:
+> 
+> Done, boot tested, and that does remove the warning about the
+> missing opt clock you had with the previous data.
+> 
+> git://gitorious.org/omap-pm/linux.git for_2.6.39/omap4_hwmod_data
+> 
+> Just let me know if it does break anything else.
 
-> arch/arm/mach-bcmring/include/mach/hardware.h  |    2 +-
-> arch/arm/mach-bcmring/include/mach/memory.h    |    2 +-
+Pulled into omap-for-linus. Also now merged are the devel-hwspinlock
+and devel-mcspi branches.
 
-Acked-by: Jiandong Zheng <jdzheng@broadcom.com>
+Tony
