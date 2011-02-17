@@ -1,32 +1,49 @@
-From: Eric Miao <eric.y.miao@gmail.com>
-Subject: Re: [RFC 1/5] ARM: P2V: separate PHYS_OFFSET from platform definitions
-Date: Thu, 17 Feb 2011 23:16:00 +0800
-Message-ID: <AANLkTinwQwPK7Lg4dxkLGBxvp1hz489iAB6YrSG45e75@mail.gmail.com>
-References: <20110104202052.GE24935@n2100.arm.linux.org.uk>
-	<E1PaDOb-00023Z-CR@rmk-PC.arm.linux.org.uk>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [patch-v2.6.39 6/7] OMAP4430: hwmod data: Adding USBOTG
+Date: Thu, 17 Feb 2011 17:18:04 +0200
+Message-ID: <20110217151804.GM22356@legolas.emea.dhcp.ti.com>
+References: <1297946466-9565-1-git-send-email-balbi@ti.com>
+ <1297946466-9565-7-git-send-email-balbi@ti.com>
+ <4D5D25F9.8030907@ti.com>
+ <20110217151527.GL22356@legolas.emea.dhcp.ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <E1PaDOb-00023Z-CR@rmk-PC.arm.linux.org.uk>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>, Kevin Hilman <khilman@deeprootsystems.com>, Anton Vorontsov <avorontsov@mvista.com>, Lennert Buytenhek <kernel@wantstofly.org>, Kukjin Kim <kgene.kim@samsung.com>, Erik Gilling <konkers@android.com>, linux-sh@vger.kernel.org, Vincent Sanders <support@simtec.co.uk>, "Hans J. Koch" <hjk@linutronix.de>, Magnus Damm <magnus.damm@gmail.com>, Marc Singer <elf@buici.com>, Tony Lindgren <tony@atomide.com>, David Brown <davidb@codeaurora.org>, Alessandro Rubini <rubini@unipv.it>, Jiandong Zheng <jdzheng@broadcom.com>, Wan ZongShun <mcuos.com@gmail.com>, linux-arm-msm@vger.kernel.org, Olof Johansson <olof@lixom.net>, Ryan Mallon <ryan@bluewatersys.com>, linux-samsung-soc@vger.kernel.org, Ben Dooks <ben-linux@fluff.org>, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Daniel
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:54199 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750862Ab1BQPSJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 17 Feb 2011 10:18:09 -0500
+Received: by mail-ew0-f53.google.com with SMTP id 6so1090993ewy.26
+        for <linux-omap@vger.kernel.org>; Thu, 17 Feb 2011 07:18:08 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <20110217151527.GL22356@legolas.emea.dhcp.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, "Kalliguddi, Hema" <hemahk@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>
 
-On Wed, Jan 5, 2011 at 4:22 AM, Russell King - ARM Linux
-<linux@arm.linux.org.uk> wrote:
-> This uncouple PHYS_OFFSET from the platform definitions, thereby
-> facilitating run-time computation of the physical memory offset.
->
-> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+On Thu, Feb 17, 2011 at 05:15:27PM +0200, Felipe Balbi wrote:
+> On Thu, Feb 17, 2011 at 02:43:21PM +0100, Cousson, Benoit wrote:
+> > Hi Felipe and Hema,
+> > 
+> > Sorry for this late review, but I have a couple of comments on this one.
+> > 
+> > Since I was planning to send usb hwmod data file to Tony directly
+> > like I did for the other drivers, I can handle the update myself if
+> > you want.
+> 
+> I'll change this particular patch to yours.
 
-Acked-by: Eric Miao <eric.y.miao@gmail.com>
+doesn't apply:
+
+$ patch -p1 < ~/benoit.diff 
+patching file arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+Hunk #1 succeeded at 55 with fuzz 1 (offset -7 lines).
+patch: **** malformed patch at line 42: omap44xx_l4_cfg__l3_main_2 = {
+
+could you base this off of v2.6.38-rc5 ?
+
+-- 
+balbi
