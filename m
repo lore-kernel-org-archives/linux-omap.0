@@ -1,123 +1,310 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH 1/8] OMAP4: hwmod data: Add hwspinlock
-Date: Thu, 17 Feb 2011 11:24:42 +0100
-Message-ID: <1297938289-8678-2-git-send-email-b-cousson@ti.com>
+Subject: [PATCH 2/8] OMAP4: hwmod data: Add McSPI
+Date: Thu, 17 Feb 2011 11:24:43 +0100
+Message-ID: <1297938289-8678-3-git-send-email-b-cousson@ti.com>
 References: <1297938289-8678-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:37571 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:41562 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751993Ab1BQKZO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 17 Feb 2011 05:25:14 -0500
+	id S1751993Ab1BQKZR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 17 Feb 2011 05:25:17 -0500
 In-Reply-To: <1297938289-8678-1-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com, paul@pwsan.com, khilman@ti.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>, Hari Kanigeri <h-kanigeri2@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>, Charulatha V <charu@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>
 
-Add hwspinlock hwmod data for OMAP4 chip
+Update omap4 hwmod file with McSPI info.
 
-Signed-off-by: Cousson, Benoit <b-cousson@ti.com>
-Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
-Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: Paul Walmsley <paul@pwsan.com>
-[b-cousson@ti.com: Move the data to keep the original
-order and add missing SIDLE_SMART_WKUP flag]
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+Signed-off-by: Charulatha V <charu@ti.com>
+Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
+Acked-by: Grant Likely <grant.likely@secretlab.ca>
+Reviewed-by: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   65 +++++++++++++++++++++++++++-
- 1 files changed, 64 insertions(+), 1 deletions(-)
+[b-cousson@ti.com: Remove dev_attr to prevent dependency
+with device code. It will have to be re-added along with
+the original series]
+---
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  249 +++++++++++++++++++++++++++-
+ 1 files changed, 245 insertions(+), 4 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index c2806bd..46da576 100644
+index 46da576..8199eb2 100644
 --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
 +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -555,7 +555,6 @@ static struct omap_hwmod omap44xx_mpu_private_hwmod = {
-  *  sl2if
-  *  slimbus1
-  *  slimbus2
-- *  spinlock
-  *  timer1
-  *  timer10
-  *  timer11
-@@ -1639,6 +1638,67 @@ static struct omap_hwmod omap44xx_smartreflex_mpu_hwmod = {
+@@ -534,10 +534,6 @@ static struct omap_hwmod omap44xx_mpu_private_hwmod = {
+  *  mcbsp3
+  *  mcbsp4
+  *  mcpdm
+- *  mcspi1
+- *  mcspi2
+- *  mcspi3
+- *  mcspi4
+  *  mmc1
+  *  mmc2
+  *  mmc3
+@@ -1434,6 +1430,245 @@ static struct omap_hwmod omap44xx_iva_hwmod = {
  };
  
  /*
-+ * 'spinlock' class
-+ * spinlock provides hardware assistance for synchronizing the processes
-+ * running on multiple processors
++ * 'mcspi' class
++ * multichannel serial port interface (mcspi) / master/slave synchronous serial
++ * bus
 + */
 +
-+static struct omap_hwmod_class_sysconfig omap44xx_spinlock_sysc = {
++static struct omap_hwmod_class_sysconfig omap44xx_mcspi_sysc = {
 +	.rev_offs	= 0x0000,
 +	.sysc_offs	= 0x0010,
-+	.syss_offs	= 0x0014,
-+	.sysc_flags	= (SYSC_HAS_AUTOIDLE | SYSC_HAS_CLOCKACTIVITY |
-+			   SYSC_HAS_ENAWAKEUP | SYSC_HAS_SIDLEMODE |
-+			   SYSC_HAS_SOFTRESET | SYSS_HAS_RESET_STATUS),
++	.sysc_flags	= (SYSC_HAS_EMUFREE | SYSC_HAS_RESET_STATUS |
++			   SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET),
 +	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
 +			   SIDLE_SMART_WKUP),
-+	.sysc_fields	= &omap_hwmod_sysc_type1,
++	.sysc_fields	= &omap_hwmod_sysc_type2,
 +};
 +
-+static struct omap_hwmod_class omap44xx_spinlock_hwmod_class = {
-+	.name	= "spinlock",
-+	.sysc	= &omap44xx_spinlock_sysc,
++static struct omap_hwmod_class omap44xx_mcspi_hwmod_class = {
++	.name	= "mcspi",
++	.sysc	= &omap44xx_mcspi_sysc,
 +};
 +
-+/* spinlock */
-+static struct omap_hwmod omap44xx_spinlock_hwmod;
-+static struct omap_hwmod_addr_space omap44xx_spinlock_addrs[] = {
++/* mcspi1 */
++static struct omap_hwmod omap44xx_mcspi1_hwmod;
++static struct omap_hwmod_irq_info omap44xx_mcspi1_irqs[] = {
++	{ .irq = 65 + OMAP44XX_IRQ_GIC_START },
++};
++
++static struct omap_hwmod_dma_info omap44xx_mcspi1_sdma_reqs[] = {
++	{ .name = "tx0", .dma_req = 34 + OMAP44XX_DMA_REQ_START },
++	{ .name = "rx0", .dma_req = 35 + OMAP44XX_DMA_REQ_START },
++	{ .name = "tx1", .dma_req = 36 + OMAP44XX_DMA_REQ_START },
++	{ .name = "rx1", .dma_req = 37 + OMAP44XX_DMA_REQ_START },
++	{ .name = "tx2", .dma_req = 38 + OMAP44XX_DMA_REQ_START },
++	{ .name = "rx2", .dma_req = 39 + OMAP44XX_DMA_REQ_START },
++	{ .name = "tx3", .dma_req = 40 + OMAP44XX_DMA_REQ_START },
++	{ .name = "rx3", .dma_req = 41 + OMAP44XX_DMA_REQ_START },
++};
++
++static struct omap_hwmod_addr_space omap44xx_mcspi1_addrs[] = {
 +	{
-+		.pa_start	= 0x4a0f6000,
-+		.pa_end		= 0x4a0f6fff,
++		.pa_start	= 0x48098000,
++		.pa_end		= 0x480981ff,
 +		.flags		= ADDR_TYPE_RT
 +	},
 +};
 +
-+/* l4_cfg -> spinlock */
-+static struct omap_hwmod_ocp_if omap44xx_l4_cfg__spinlock = {
-+	.master		= &omap44xx_l4_cfg_hwmod,
-+	.slave		= &omap44xx_spinlock_hwmod,
++/* l4_per -> mcspi1 */
++static struct omap_hwmod_ocp_if omap44xx_l4_per__mcspi1 = {
++	.master		= &omap44xx_l4_per_hwmod,
++	.slave		= &omap44xx_mcspi1_hwmod,
 +	.clk		= "l4_div_ck",
-+	.addr		= omap44xx_spinlock_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap44xx_spinlock_addrs),
++	.addr		= omap44xx_mcspi1_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap44xx_mcspi1_addrs),
 +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
 +};
 +
-+/* spinlock slave ports */
-+static struct omap_hwmod_ocp_if *omap44xx_spinlock_slaves[] = {
-+	&omap44xx_l4_cfg__spinlock,
++/* mcspi1 slave ports */
++static struct omap_hwmod_ocp_if *omap44xx_mcspi1_slaves[] = {
++	&omap44xx_l4_per__mcspi1,
 +};
 +
-+static struct omap_hwmod omap44xx_spinlock_hwmod = {
-+	.name		= "spinlock",
-+	.class		= &omap44xx_spinlock_hwmod_class,
++static struct omap_hwmod omap44xx_mcspi1_hwmod = {
++	.name		= "mcspi1",
++	.class		= &omap44xx_mcspi_hwmod_class,
++	.mpu_irqs	= omap44xx_mcspi1_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_mcspi1_irqs),
++	.sdma_reqs	= omap44xx_mcspi1_sdma_reqs,
++	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_mcspi1_sdma_reqs),
++	.main_clk	= "mcspi1_fck",
 +	.prcm = {
 +		.omap4 = {
-+			.clkctrl_reg = OMAP4430_CM_L4CFG_HW_SEM_CLKCTRL,
++			.clkctrl_reg = OMAP4430_CM_L4PER_MCSPI1_CLKCTRL,
 +		},
 +	},
-+	.slaves		= omap44xx_spinlock_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap44xx_spinlock_slaves),
++	.slaves		= omap44xx_mcspi1_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap44xx_mcspi1_slaves),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
++};
++
++/* mcspi2 */
++static struct omap_hwmod omap44xx_mcspi2_hwmod;
++static struct omap_hwmod_irq_info omap44xx_mcspi2_irqs[] = {
++	{ .irq = 66 + OMAP44XX_IRQ_GIC_START },
++};
++
++static struct omap_hwmod_dma_info omap44xx_mcspi2_sdma_reqs[] = {
++	{ .name = "tx0", .dma_req = 42 + OMAP44XX_DMA_REQ_START },
++	{ .name = "rx0", .dma_req = 43 + OMAP44XX_DMA_REQ_START },
++	{ .name = "tx1", .dma_req = 44 + OMAP44XX_DMA_REQ_START },
++	{ .name = "rx1", .dma_req = 45 + OMAP44XX_DMA_REQ_START },
++};
++
++static struct omap_hwmod_addr_space omap44xx_mcspi2_addrs[] = {
++	{
++		.pa_start	= 0x4809a000,
++		.pa_end		= 0x4809a1ff,
++		.flags		= ADDR_TYPE_RT
++	},
++};
++
++/* l4_per -> mcspi2 */
++static struct omap_hwmod_ocp_if omap44xx_l4_per__mcspi2 = {
++	.master		= &omap44xx_l4_per_hwmod,
++	.slave		= &omap44xx_mcspi2_hwmod,
++	.clk		= "l4_div_ck",
++	.addr		= omap44xx_mcspi2_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap44xx_mcspi2_addrs),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* mcspi2 slave ports */
++static struct omap_hwmod_ocp_if *omap44xx_mcspi2_slaves[] = {
++	&omap44xx_l4_per__mcspi2,
++};
++
++static struct omap_hwmod omap44xx_mcspi2_hwmod = {
++	.name		= "mcspi2",
++	.class		= &omap44xx_mcspi_hwmod_class,
++	.mpu_irqs	= omap44xx_mcspi2_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_mcspi2_irqs),
++	.sdma_reqs	= omap44xx_mcspi2_sdma_reqs,
++	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_mcspi2_sdma_reqs),
++	.main_clk	= "mcspi2_fck",
++	.prcm = {
++		.omap4 = {
++			.clkctrl_reg = OMAP4430_CM_L4PER_MCSPI2_CLKCTRL,
++		},
++	},
++	.slaves		= omap44xx_mcspi2_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap44xx_mcspi2_slaves),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
++};
++
++/* mcspi3 */
++static struct omap_hwmod omap44xx_mcspi3_hwmod;
++static struct omap_hwmod_irq_info omap44xx_mcspi3_irqs[] = {
++	{ .irq = 91 + OMAP44XX_IRQ_GIC_START },
++};
++
++static struct omap_hwmod_dma_info omap44xx_mcspi3_sdma_reqs[] = {
++	{ .name = "tx0", .dma_req = 14 + OMAP44XX_DMA_REQ_START },
++	{ .name = "rx0", .dma_req = 15 + OMAP44XX_DMA_REQ_START },
++	{ .name = "tx1", .dma_req = 22 + OMAP44XX_DMA_REQ_START },
++	{ .name = "rx1", .dma_req = 23 + OMAP44XX_DMA_REQ_START },
++};
++
++static struct omap_hwmod_addr_space omap44xx_mcspi3_addrs[] = {
++	{
++		.pa_start	= 0x480b8000,
++		.pa_end		= 0x480b81ff,
++		.flags		= ADDR_TYPE_RT
++	},
++};
++
++/* l4_per -> mcspi3 */
++static struct omap_hwmod_ocp_if omap44xx_l4_per__mcspi3 = {
++	.master		= &omap44xx_l4_per_hwmod,
++	.slave		= &omap44xx_mcspi3_hwmod,
++	.clk		= "l4_div_ck",
++	.addr		= omap44xx_mcspi3_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap44xx_mcspi3_addrs),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* mcspi3 slave ports */
++static struct omap_hwmod_ocp_if *omap44xx_mcspi3_slaves[] = {
++	&omap44xx_l4_per__mcspi3,
++};
++
++static struct omap_hwmod omap44xx_mcspi3_hwmod = {
++	.name		= "mcspi3",
++	.class		= &omap44xx_mcspi_hwmod_class,
++	.mpu_irqs	= omap44xx_mcspi3_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_mcspi3_irqs),
++	.sdma_reqs	= omap44xx_mcspi3_sdma_reqs,
++	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_mcspi3_sdma_reqs),
++	.main_clk	= "mcspi3_fck",
++	.prcm = {
++		.omap4 = {
++			.clkctrl_reg = OMAP4430_CM_L4PER_MCSPI3_CLKCTRL,
++		},
++	},
++	.slaves		= omap44xx_mcspi3_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap44xx_mcspi3_slaves),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
++};
++
++/* mcspi4 */
++static struct omap_hwmod omap44xx_mcspi4_hwmod;
++static struct omap_hwmod_irq_info omap44xx_mcspi4_irqs[] = {
++	{ .irq = 48 + OMAP44XX_IRQ_GIC_START },
++};
++
++static struct omap_hwmod_dma_info omap44xx_mcspi4_sdma_reqs[] = {
++	{ .name = "tx0", .dma_req = 69 + OMAP44XX_DMA_REQ_START },
++	{ .name = "rx0", .dma_req = 70 + OMAP44XX_DMA_REQ_START },
++};
++
++static struct omap_hwmod_addr_space omap44xx_mcspi4_addrs[] = {
++	{
++		.pa_start	= 0x480ba000,
++		.pa_end		= 0x480ba1ff,
++		.flags		= ADDR_TYPE_RT
++	},
++};
++
++/* l4_per -> mcspi4 */
++static struct omap_hwmod_ocp_if omap44xx_l4_per__mcspi4 = {
++	.master		= &omap44xx_l4_per_hwmod,
++	.slave		= &omap44xx_mcspi4_hwmod,
++	.clk		= "l4_div_ck",
++	.addr		= omap44xx_mcspi4_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap44xx_mcspi4_addrs),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* mcspi4 slave ports */
++static struct omap_hwmod_ocp_if *omap44xx_mcspi4_slaves[] = {
++	&omap44xx_l4_per__mcspi4,
++};
++
++static struct omap_hwmod omap44xx_mcspi4_hwmod = {
++	.name		= "mcspi4",
++	.class		= &omap44xx_mcspi_hwmod_class,
++	.mpu_irqs	= omap44xx_mcspi4_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_mcspi4_irqs),
++	.sdma_reqs	= omap44xx_mcspi4_sdma_reqs,
++	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_mcspi4_sdma_reqs),
++	.main_clk	= "mcspi4_fck",
++	.prcm = {
++		.omap4 = {
++			.clkctrl_reg = OMAP4430_CM_L4PER_MCSPI4_CLKCTRL,
++		},
++	},
++	.slaves		= omap44xx_mcspi4_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap44xx_mcspi4_slaves),
 +	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
 +};
 +
 +/*
-  * 'uart' class
-  * universal asynchronous receiver/transmitter (uart)
+  * 'mpu' class
+  * mpu sub-system
   */
-@@ -2058,6 +2118,9 @@ static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
- 	&omap44xx_smartreflex_iva_hwmod,
- 	&omap44xx_smartreflex_mpu_hwmod,
+@@ -2110,6 +2345,12 @@ static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
+ 	&omap44xx_iva_seq0_hwmod,
+ 	&omap44xx_iva_seq1_hwmod,
  
-+	/* spinlock class */
-+	&omap44xx_spinlock_hwmod,
++	/* mcspi class */
++	&omap44xx_mcspi1_hwmod,
++	&omap44xx_mcspi2_hwmod,
++	&omap44xx_mcspi3_hwmod,
++	&omap44xx_mcspi4_hwmod,
 +
- 	/* uart class */
- 	&omap44xx_uart1_hwmod,
- 	&omap44xx_uart2_hwmod,
+ 	/* mpu class */
+ 	&omap44xx_mpu_hwmod,
+ 
 -- 
 1.7.0.4
 
