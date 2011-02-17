@@ -1,52 +1,71 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] omap iommu: Gracefully fail iommu_enable if no
- arch_iommu is registered.
-Date: Thu, 17 Feb 2011 13:45:07 -0800
-Message-ID: <20110217214507.GB20795@atomide.com>
-References: <1295387104-17885-1-git-send-email-martin@neutronstar.dyndns.org>
+From: Sung Hee Park <shpark7@stanford.edu>
+Subject: Re: omap3evm does not boot after 2.6.38-rc1
+Date: Thu, 17 Feb 2011 14:01:36 -0800
+Message-ID: <AANLkTik3PovrJ09ewK8S-sLLD+6uNvPzAuRPo9krUM=b@mail.gmail.com>
+References: <AANLkTi=GHh-UTfTHgDJKW8HfCbTbe6zqitAL0FeyXtW8@mail.gmail.com>
+	<20110217015454.GN20795@atomide.com>
+	<0fc7120064d33b37334afa28bf4ee760@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:41227 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751506Ab1BQVpM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Feb 2011 16:45:12 -0500
-Content-Disposition: inline
-In-Reply-To: <1295387104-17885-1-git-send-email-martin@neutronstar.dyndns.org>
+Received: from mail-ww0-f42.google.com ([74.125.82.42]:54144 "EHLO
+	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756223Ab1BQWBj convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Feb 2011 17:01:39 -0500
+Received: by wwi17 with SMTP id 17so6045594wwi.1
+        for <linux-omap@vger.kernel.org>; Thu, 17 Feb 2011 14:01:38 -0800 (PST)
+In-Reply-To: <0fc7120064d33b37334afa28bf4ee760@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Martin Hostettler <martin@neutronstar.dyndns.org>
-Cc: linux-omap@vger.kernel.org, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+To: Anand Gadiyar <gadiyar@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-* Martin Hostettler <martin@neutronstar.dyndns.org> [110118 13:44]:
-> In a modular build of the iommu code it's possible that the arch iommu code
-> isn't loaded when trying to enable the iommu. Instead of blindly following a
-> null pointer return -NODEV in that case.
+Thanks for your suggestion. After enabling the early printk option, I
+figured out that sched_clock_poll() was causing the problem, which can
+be fixed with the following patch.
 
-Thanks applying.
+http://www.spinics.net/lists/arm-kernel/msg111325.html
 
-Tony
+Sung Hee
 
- 
-> Signed-off-by: Martin Hostettler <martin@neutronstar.dyndns.org>
-> ---
->  arch/arm/plat-omap/iommu.c |    3 +++
->  1 files changed, 3 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/plat-omap/iommu.c b/arch/arm/plat-omap/iommu.c
-> index 6cd151b..c1c6887 100644
-> --- a/arch/arm/plat-omap/iommu.c
-> +++ b/arch/arm/plat-omap/iommu.c
-> @@ -104,6 +104,9 @@ static int iommu_enable(struct iommu *obj)
->  	if (!obj)
->  		return -EINVAL;
->  
-> +	if (!arch_iommu)
-> +		return -ENODEV;
-> +
->  	clk_enable(obj->clk);
->  
->  	err = arch_iommu->enable(obj);
-> -- 
-> 1.7.1
-> 
+
+On Wed, Feb 16, 2011 at 8:12 PM, Anand Gadiyar <gadiyar@ti.com> wrote:
+> Tony Lindgren wrote:
+>> * Sung Hee Park <shpark7@stanford.edu> [110216 14:18]:
+>> > Hi all,
+>> >
+>> > I'm having a problem with booting the linux kernel on my omap3evm.=
+ It
+>> > halts after saying "Uncompressing Linux... done, booting the kerne=
+l."
+>> > on boot. I had a similar problem with 2.6.37, but after changing t=
+he
+>> > name of the serial port devices from /dev/ttyS* to /dev/ttyO*, it
+>> > worked. Does anyone experiencing this problem again with 2.6.38
+>> > kernels? Please let me know if you have any idea what might have g=
+one
+>> > wrong.
+>>
+>> If you have 2.6.38-rc1 booting, maybe try running git bisect on it
+>> to find out where it breaks?
+>>
+>> Tony
+>
+> Enable CONFIG_EARLY_PRINTK, and add the word earlyprintk to your boot=
+args.
+> This should help get some prints on the debug UART which might help
+> debug this.
+>
+> - Anand
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
