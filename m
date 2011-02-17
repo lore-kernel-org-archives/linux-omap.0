@@ -1,101 +1,45 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [patch-v2.6.39 1/7] arm: omap4: usb: explicitly configure MUSB pads
-Date: Thu, 17 Feb 2011 14:41:00 +0200
-Message-ID: <1297946466-9565-2-git-send-email-balbi@ti.com>
-References: <1297946466-9565-1-git-send-email-balbi@ti.com>
+Subject: [patch-v2.6.39 0/7] Patches for next merge window
+Date: Thu, 17 Feb 2011 14:40:59 +0200
+Message-ID: <1297946466-9565-1-git-send-email-balbi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:56456 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755035Ab1BQMlQ (ORCPT
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:51893 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753532Ab1BQMlL (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 17 Feb 2011 07:41:16 -0500
-Received: by bwg12 with SMTP id 12so2520506bwg.9
-        for <linux-omap@vger.kernel.org>; Thu, 17 Feb 2011 04:41:14 -0800 (PST)
-In-Reply-To: <1297946466-9565-1-git-send-email-balbi@ti.com>
+	Thu, 17 Feb 2011 07:41:11 -0500
+Received: by mail-bw0-f48.google.com with SMTP id 8so2854094bwz.21
+        for <linux-omap@vger.kernel.org>; Thu, 17 Feb 2011 04:41:10 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Anand Gadiyar <gadiyar@ti.com>, Felipe Balbi <balbi@ti.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Felipe Balbi <balbi@ti.com>
 
-From: Anand Gadiyar <gadiyar@ti.com>
+Hi Tony,
 
-Use the mux framework APIs to explicitly configure
-the MUSB pads. The MUSB controller in OMAP4 can use
-either the old ULPI interface, or the new internal PHY.
-Configure the pads accordingly.
+here are the patches for next merge window which I
+have queued for you. A pull request is comming tomorrow.
 
-Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
- arch/arm/mach-omap2/usb-musb.c |   40 ++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 40 insertions(+), 0 deletions(-)
+All patches where boot tested on omap4430 pandaboard.
 
-diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
-index 5298949..5a82b43 100644
---- a/arch/arm/mach-omap2/usb-musb.c
-+++ b/arch/arm/mach-omap2/usb-musb.c
-@@ -31,6 +31,7 @@
- #include <mach/am35xx.h>
- #include <plat/usb.h>
- #include "control.h"
-+#include "mux.h"
- 
- #if defined(CONFIG_USB_MUSB_OMAP2PLUS) || defined (CONFIG_USB_MUSB_AM35X)
- 
-@@ -181,6 +182,43 @@ static struct platform_device musb_device = {
- 	.resource	= musb_resources,
- };
- 
-+static void usb_musb_mux_init(struct omap_musb_board_data *board_data)
-+{
-+	switch (board_data->interface_type) {
-+	case MUSB_INTERFACE_UTMI:
-+		omap_mux_init_signal("usba0_otg_dp", OMAP_PIN_INPUT);
-+		omap_mux_init_signal("usba0_otg_dm", OMAP_PIN_INPUT);
-+		break;
-+	case MUSB_INTERFACE_ULPI:
-+		omap_mux_init_signal("usba0_ulpiphy_clk",
-+						OMAP_PIN_INPUT_PULLDOWN);
-+		omap_mux_init_signal("usba0_ulpiphy_stp",
-+						OMAP_PIN_INPUT_PULLDOWN);
-+		omap_mux_init_signal("usba0_ulpiphy_dir",
-+						OMAP_PIN_INPUT_PULLDOWN);
-+		omap_mux_init_signal("usba0_ulpiphy_nxt",
-+						OMAP_PIN_INPUT_PULLDOWN);
-+		omap_mux_init_signal("usba0_ulpiphy_dat0",
-+						OMAP_PIN_INPUT_PULLDOWN);
-+		omap_mux_init_signal("usba0_ulpiphy_dat1",
-+						OMAP_PIN_INPUT_PULLDOWN);
-+		omap_mux_init_signal("usba0_ulpiphy_dat2",
-+						OMAP_PIN_INPUT_PULLDOWN);
-+		omap_mux_init_signal("usba0_ulpiphy_dat3",
-+						OMAP_PIN_INPUT_PULLDOWN);
-+		omap_mux_init_signal("usba0_ulpiphy_dat4",
-+						OMAP_PIN_INPUT_PULLDOWN);
-+		omap_mux_init_signal("usba0_ulpiphy_dat5",
-+						OMAP_PIN_INPUT_PULLDOWN);
-+		omap_mux_init_signal("usba0_ulpiphy_dat6",
-+						OMAP_PIN_INPUT_PULLDOWN);
-+		omap_mux_init_signal("usba0_ulpiphy_dat7",
-+						OMAP_PIN_INPUT_PULLDOWN);
-+		break;
-+	default:
-+		break;
-+	}
-+}
- void __init usb_musb_init(struct omap_musb_board_data *board_data)
- {
- 	if (cpu_is_omap243x()) {
-@@ -199,6 +237,8 @@ void __init usb_musb_init(struct omap_musb_board_data *board_data)
- 		musb_resources[0].start = OMAP44XX_HSUSB_OTG_BASE;
- 		musb_resources[1].start = OMAP44XX_IRQ_HS_USB_MC_N;
- 		musb_resources[2].start = OMAP44XX_IRQ_HS_USB_DMA_N;
-+
-+		usb_musb_mux_init(board_data);
- 	}
- 	musb_resources[0].end = musb_resources[0].start + SZ_4K - 1;
- 
+Anand Gadiyar (2):
+  arm: omap4: usb: explicitly configure MUSB pads
+  arm: omap4: 4430sdp: drop ehci support
+
+Hema HK (5):
+  OMAP2430: hwmod data: Add USBOTG
+  OMAP3xxx: hwmod data: Add USBOTG
+  AM35xx: hwmod data: Add USBOTG
+  OMAP4430: hwmod data: Adding USBOTG
+  OMAP2+: musb: hwmod adaptation for musb registration
+
+ arch/arm/mach-omap2/board-4430sdp.c        |   19 ---
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c |   98 ++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  166 ++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   93 ++++++++++++++++
+ arch/arm/mach-omap2/usb-musb.c             |  122 ++++++++++++++-------
+ 5 files changed, 440 insertions(+), 58 deletions(-)
+
 -- 
 1.7.4.rc2
 
