@@ -1,31 +1,40 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v9 0/7] nand prefetch-irq support and ecc layout chanage
-Date: Thu, 17 Feb 2011 15:34:47 -0800
-Message-ID: <20110217233446.GF20795@atomide.com>
-References: <1296209529-22696-1-git-send-email-s-ghorai@ti.com>
- <2A3DCF3DA181AD40BDE86A3150B27B6B036AB6B036@dbde02.ent.ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 2/6] ARM: pm: add generic CPU suspend/resume support
+Date: Thu, 17 Feb 2011 23:36:05 +0000
+Message-ID: <20110217233605.GB4110@n2100.arm.linux.org.uk>
+References: <20110211161626.GA31356@n2100.arm.linux.org.uk> <E1Pnvgw-0002yZ-M0@rmk-PC.arm.linux.org.uk> <AANLkTinL0HgSsFmoxyiBuRA6JiWKsHTLW4wFnVDJf_1w@mail.gmail.com> <20110215110453.GB11199@n2100.arm.linux.org.uk> <AANLkTik_c4D7CPO9j9ZYUSuR45ggJ8Y953VLQCg4tkkr@mail.gmail.com> <1297939312.7096.32.camel@e102568-lin.cambridge.arm.com> <AANLkTincWLyqdtAoS4gxvhGZGRdzRAiQ41Pn8QSG-id=@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:49388 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752543Ab1BQXex (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Feb 2011 18:34:53 -0500
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:40959 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753961Ab1BQXgV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Feb 2011 18:36:21 -0500
 Content-Disposition: inline
-In-Reply-To: <2A3DCF3DA181AD40BDE86A3150B27B6B036AB6B036@dbde02.ent.ti.com>
+In-Reply-To: <AANLkTincWLyqdtAoS4gxvhGZGRdzRAiQ41Pn8QSG-id=@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Ghorai, Sukumar" <s-ghorai@ti.com>
-Cc: "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Colin Cross <ccross@google.com>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-omap@vger.kernel.org, Kukjin Kim <kgene.kim@samsung.com>, Eric Miao <eric.y.miao@gmail.com>, linux-arm-kernel@lists.infradead.org
 
-* Ghorai, Sukumar <s-ghorai@ti.com> [110203 11:35]:
+On Thu, Feb 17, 2011 at 12:05:59PM -0800, Colin Cross wrote:
+> On Thu, Feb 17, 2011 at 2:41 AM, Lorenzo Pieralisi
+> <lorenzo.pieralisi@arm.com> wrote:
+> > I think that on resume you invalidate L1 in the reset vector before
+> > jumping to cpu_resume, correct ?
 >
-> In this version I have addressed all inputs on previous versions.
-> Please check if it's possible to push all theses in any of your testing
-> branch!
+> I manually invalidate the L1 Dcache, but not the Icache.
 
-Thanks, queuing for the upcoming merge window.
+Well...
+ARMv5 and older invalidates the L1 Dcache.
+ARMv6 cleans and invalidates the L1 Dcache.
+ARMv7 does nothing with the L1 Dcache.
 
-Regards,
+That's rather inconsistent, but that's what people are doing with their
+current suspend/resume paths.  We really ought to have this well-defined.
 
-Tony
+I don't see any reason why there should be any dirty data in the Dcache,
+so I think the safe thing we should be doing in every case is a L1 Dcache
+invalidate on resume.
+
+That's a separate change though.
