@@ -1,43 +1,67 @@
-From: Anand Gadiyar <gadiyar@ti.com>
-Subject: RE: omap3evm does not boot after 2.6.38-rc1
-Date: Thu, 17 Feb 2011 09:42:19 +0530
-Message-ID: <0fc7120064d33b37334afa28bf4ee760@mail.gmail.com>
-References: <AANLkTi=GHh-UTfTHgDJKW8HfCbTbe6zqitAL0FeyXtW8@mail.gmail.com> <20110217015454.GN20795@atomide.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH 1/5] OMAP2xxx: clock: fix parents for L3-derived clocks
+Date: Wed, 16 Feb 2011 21:17:51 -0700
+Message-ID: <20110217041749.16009.43307.stgit@twilight.localdomain>
+References: <20110217041437.16009.52336.stgit@twilight.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:42311 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750981Ab1BQEMl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 16 Feb 2011 23:12:41 -0500
-Received: by mail-fx0-f41.google.com with SMTP id 12so2241913fxm.0
-        for <linux-omap@vger.kernel.org>; Wed, 16 Feb 2011 20:12:40 -0800 (PST)
-In-Reply-To: <20110217015454.GN20795@atomide.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:55843 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752020Ab1BQES3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Feb 2011 23:18:29 -0500
+In-Reply-To: <20110217041437.16009.52336.stgit@twilight.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Sung Hee Park <shpark7@stanford.edu>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Tony Lindgren wrote:
-> * Sung Hee Park <shpark7@stanford.edu> [110216 14:18]:
-> > Hi all,
-> >
-> > I'm having a problem with booting the linux kernel on my omap3evm. It
-> > halts after saying "Uncompressing Linux... done, booting the kernel."
-> > on boot. I had a similar problem with 2.6.37, but after changing the
-> > name of the serial port devices from /dev/ttyS* to /dev/ttyO*, it
-> > worked. Does anyone experiencing this problem again with 2.6.38
-> > kernels? Please let me know if you have any idea what might have gone
-> > wrong.
->
-> If you have 2.6.38-rc1 booting, maybe try running git bisect on it
-> to find out where it breaks?
->
-> Tony
+Several clocks are listed as having the core L4 clock as their parent,
+when they are actually derived from the L3 clock.  Fix these.
 
-Enable CONFIG_EARLY_PRINTK, and add the word earlyprintk to your bootargs.
-This should help get some prints on the debug UART which might help
-debug this.
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap2/clock2420_data.c |    2 +-
+ arch/arm/mach-omap2/clock2430_data.c |    6 +++---
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-- Anand
+diff --git a/arch/arm/mach-omap2/clock2420_data.c b/arch/arm/mach-omap2/clock2420_data.c
+index 68c0369..693a0a8 100644
+--- a/arch/arm/mach-omap2/clock2420_data.c
++++ b/arch/arm/mach-omap2/clock2420_data.c
+@@ -1614,7 +1614,7 @@ static struct clk sdma_fck = {
+ static struct clk sdma_ick = {
+ 	.name		= "sdma_ick",
+ 	.ops		= &clkops_omap2_iclk_idle_only,
+-	.parent		= &l4_ck,
++	.parent		= &core_l3_ck,
+ 	.clkdm_name	= "core_l3_clkdm",
+ 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN3),
+ 	.enable_bit	= OMAP24XX_AUTO_SDMA_SHIFT,
+diff --git a/arch/arm/mach-omap2/clock2430_data.c b/arch/arm/mach-omap2/clock2430_data.c
+index 34daed9..f00f52e 100644
+--- a/arch/arm/mach-omap2/clock2430_data.c
++++ b/arch/arm/mach-omap2/clock2430_data.c
+@@ -1652,7 +1652,7 @@ static struct clk sdma_fck = {
+ static struct clk sdma_ick = {
+ 	.name		= "sdma_ick",
+ 	.ops		= &clkops_omap2_iclk_idle_only,
+-	.parent		= &l4_ck,
++	.parent		= &core_l3_ck,
+ 	.clkdm_name	= "core_l3_clkdm",
+ 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN3),
+ 	.enable_bit	= OMAP24XX_AUTO_SDMA_SHIFT,
+@@ -1662,9 +1662,9 @@ static struct clk sdma_ick = {
+ static struct clk sdrc_ick = {
+ 	.name		= "sdrc_ick",
+ 	.ops		= &clkops_omap2_iclk_idle_only,
+-	.parent		= &l4_ck,
++	.parent		= &core_l3_ck,
+ 	.flags		= ENABLE_ON_INIT,
+-	.clkdm_name	= "core_l4_clkdm",
++	.clkdm_name	= "core_l3_clkdm",
+ 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN3),
+ 	.enable_bit	= OMAP2430_EN_SDRC_SHIFT,
+ 	.recalc		= &followparent_recalc,
+
+
