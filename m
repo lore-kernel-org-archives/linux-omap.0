@@ -1,43 +1,69 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v5 3/5] OMAP4: hwmod data: add mailbox data
-Date: Thu, 17 Feb 2011 15:39:09 -0800
-Message-ID: <20110217233908.GG20795@atomide.com>
-References: <1296674843-12718-1-git-send-email-omar.ramirez@ti.com>
- <1296674843-12718-4-git-send-email-omar.ramirez@ti.com>
- <4D5943A9.8010205@ti.com>
- <AANLkTinA2a60TSM7qDC1LQiRaUTs0DR3bDMv+oVsVOE0@mail.gmail.com>
- <4D5AF8BA.8080403@ti.com>
- <AANLkTi=yj2_bS1h87u0hhUUpA=RPZe-A=PiNSf_q_66r@mail.gmail.com>
+Subject: Re: [alsa-devel] [PATCH v2 08/13] OMAP2+: McBSP: hwmod adaptation
+ for McBSP
+Date: Thu, 17 Feb 2011 15:41:40 -0800
+Message-ID: <20110217234140.GH20795@atomide.com>
+References: <1296485437-12806-1-git-send-email-kishon@ti.com>
+ <1296485437-12806-9-git-send-email-kishon@ti.com>
+ <4D47FB19.9040901@nokia.com>
+ <20110201194436.74826dd0.jhnikula@gmail.com>
+ <AANLkTimzjg3+yGwz1sa+dfWyrjaS1mO+zn_LT3hhDHdQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:53292 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753302Ab1BQXjV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Feb 2011 18:39:21 -0500
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:64485 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752490Ab1BQXlz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Feb 2011 18:41:55 -0500
 Content-Disposition: inline
-In-Reply-To: <AANLkTi=yj2_bS1h87u0hhUUpA=RPZe-A=PiNSf_q_66r@mail.gmail.com>
+In-Reply-To: <AANLkTimzjg3+yGwz1sa+dfWyrjaS1mO+zn_LT3hhDHdQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, Russell King <linux@arm.linux.org.uk>, lo <linux-omap@vger.kernel.org>, lak <linux-arm-kernel@lists.infradead.org>
+To: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
+Cc: Jarkko Nikula <jhnikula@gmail.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, alsa-devel@alsa-project.org, b-cousson@ti.com, khilman@deeprootsystems.com, broonie@opensource.wolfsonmicro.com, paul@pwsan.com, p-basak2@ti.com, lrg@slimlogic.co.uk, linux-omap@vger.kernel.org, shubhrajyoti@ti.com, charu@ti.com
 
-* Ramirez Luna, Omar <omar.ramirez@ti.com> [110215 16:11]:
-> 
-> > If you have to do several platform_get_irq_byname to get this one, I'd
-> > prefer to get rid of that name for OMAP4. It will make mailbox irq
-> > consistent with the other hwmods.
-> 
-> I was thinking to standardize the names to be mbox0..mboxN across all
-> the platforms, reason being that the mailbox also has capabilities to
-> be used not only by dsp or iva, by using a polling method.
-> 
-> So even if the mailbox in OMAP3 is called "dsp", it has 4 more queues
-> apart from the 2 used for messaging between arm and dsp, that could be
-> used even if tidspbridge wasn't there.
+* ABRAHAM, KISHON VIJAY <kishon@ti.com> [110201 22:22]:
+> On Tue, Feb 1, 2011 at 11:14 PM, Jarkko Nikula <jhnikula@gmail.com> w=
+rote:
+> > On Tue, 01 Feb 2011 14:22:49 +0200
+> > Peter Ujfalusi <peter.ujfalusi@nokia.com> wrote:
+> >
+> >> Looks good, but...
+> >> > + =C2=A0 if (oh->class->rev =3D=3D MCBSP_CONFIG_TYPE3) {
+> >> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (id =3D=3D 2)
+> >> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ pdata->buffer_size =3D 0x500; /*FIFO size is 1024 + 256*/
+> >> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 else
+> >> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ pdata->buffer_size =3D 0x80; =C2=A0/*FIFO size is 128*/
+> >> > + =C2=A0 }
+> >>
+> >> I would add spaces around these comments (after /* and before */).
+> >>
+> > Actually this part of code doesn't compile for CONFIG_ARCH_OMAP2 if
+> > CONFIG_ARCH_OMAP3 is not set. Reason is that the buffer_size in und=
+er
+> > CONFIG_ARCH_OMAP3 compilation in struct omap_mcbsp_platform_data
+> > definition.
+> >
+> > I think it's easiest if this patch just removes that conditional
+> > compilation from struct omap_mcbsp_platform_data as it really doesn=
+'t
+> > save that much from non !OMAP3 builds.
+>=20
+>   Thanks. Will fix it in the next version.
 
-So what's the status of this series? Can the rest of the patches
-now be applied on top of the current omap-for-linus or do the names
-still need fixing?
+Any news on updating this series?
+
+Note that you can now leave out the omap4 hwmod data as that has
+been merged to omap-for-linus.
+
+Regards,
 
 Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
