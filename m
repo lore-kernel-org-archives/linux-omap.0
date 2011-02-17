@@ -1,319 +1,173 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: [patch-v2.6.39 03/12] usb: musb: gadget: do not poke with gadget's list_head
-Date: Thu, 17 Feb 2011 14:38:40 +0200
-Message-ID: <1297946329-9353-4-git-send-email-balbi@ti.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: [patch-v2.6.39 12/12] usb: otg: notifier: switch to atomic notifier
+Date: Thu, 17 Feb 2011 14:38:49 +0200
+Message-ID: <1297946329-9353-13-git-send-email-balbi@ti.com>
 References: <1297946329-9353-1-git-send-email-balbi@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:33379 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755745Ab1BQMjF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 17 Feb 2011 07:39:05 -0500
-In-Reply-To: <1297946329-9353-1-git-send-email-balbi@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1297946329-9353-1-git-send-email-balbi-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+Cc: Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: Linux USB Mailing List <linux-usb@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
 
-struct usb_request's list_head is supposed to be
-used only by gadget drivers, but musb is abusing
-that. Give struct musb_request its own list_head
-and prevent musb from poking into other driver's
-business.
+most of our notifications, will be called from IRQ
+context, so an atomic notifier suits the job better.
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
+Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 ---
- drivers/usb/musb/musb_core.h       |    4 +-
- drivers/usb/musb/musb_gadget.c     |   37 +++++++++++++++++++----------------
- drivers/usb/musb/musb_gadget.h     |    7 ++++-
- drivers/usb/musb/musb_gadget_ep0.c |   24 +++++++++++++---------
- 4 files changed, 41 insertions(+), 31 deletions(-)
+ drivers/usb/otg/ab8500-usb.c    |    6 +++---
+ drivers/usb/otg/nop-usb-xceiv.c |    2 +-
+ drivers/usb/otg/twl4030-usb.c   |    6 +++---
+ drivers/usb/otg/twl6030-usb.c   |    8 ++++----
+ include/linux/usb/otg.h         |    6 +++---
+ 5 files changed, 14 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
-index d74a811..2c8dde6 100644
---- a/drivers/usb/musb/musb_core.h
-+++ b/drivers/usb/musb/musb_core.h
-@@ -328,7 +328,7 @@ struct musb_hw_ep {
- #endif
- };
+diff --git a/drivers/usb/otg/ab8500-usb.c b/drivers/usb/otg/ab8500-usb.c
+index d14736b..07ccea9 100644
+--- a/drivers/usb/otg/ab8500-usb.c
++++ b/drivers/usb/otg/ab8500-usb.c
+@@ -212,7 +212,7 @@ static int ab8500_usb_link_status_update(struct ab8500_usb *ab)
+ 		break;
+ 	}
  
--static inline struct usb_request *next_in_request(struct musb_hw_ep *hw_ep)
-+static inline struct musb_request *next_in_request(struct musb_hw_ep *hw_ep)
- {
- #ifdef CONFIG_USB_GADGET_MUSB_HDRC
- 	return next_request(&hw_ep->ep_in);
-@@ -337,7 +337,7 @@ static inline struct usb_request *next_in_request(struct musb_hw_ep *hw_ep)
- #endif
+-	blocking_notifier_call_chain(&ab->otg.notifier, event, v);
++	atomic_notifier_call_chain(&ab->otg.notifier, event, v);
+ 
+ 	return 0;
  }
+@@ -281,7 +281,7 @@ static int ab8500_usb_set_power(struct otg_transceiver *otg, unsigned mA)
+ 	ab->vbus_draw = mA;
  
--static inline struct usb_request *next_out_request(struct musb_hw_ep *hw_ep)
-+static inline struct musb_request *next_out_request(struct musb_hw_ep *hw_ep)
- {
- #ifdef CONFIG_USB_GADGET_MUSB_HDRC
- 	return next_request(&hw_ep->ep_out);
-diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_gadget.c
-index 86decba..0f59bf9 100644
---- a/drivers/usb/musb/musb_gadget.c
-+++ b/drivers/usb/musb/musb_gadget.c
-@@ -189,7 +189,7 @@ __acquires(ep->musb->lock)
- 
- 	req = to_musb_request(request);
- 
--	list_del(&request->list);
-+	list_del(&req->list);
- 	if (req->request.status == -EINPROGRESS)
- 		req->request.status = status;
- 	musb = req->musb;
-@@ -251,9 +251,8 @@ static void nuke(struct musb_ep *ep, const int status)
- 		ep->dma = NULL;
- 	}
- 
--	while (!list_empty(&(ep->req_list))) {
--		req = container_of(ep->req_list.next, struct musb_request,
--				request.list);
-+	while (!list_empty(&ep->req_list)) {
-+		req = list_first_entry(&ep->req_list, struct musb_request, list);
- 		musb_g_giveback(ep, &req->request, status);
- 	}
+ 	if (mA)
+-		blocking_notifier_call_chain(&ab->otg.notifier,
++		atomic_notifier_call_chain(&ab->otg.notifier,
+ 				USB_EVENT_ENUMERATED, ab->otg.gadget);
+ 	return 0;
  }
-@@ -485,6 +484,7 @@ static void txstate(struct musb *musb, struct musb_request *req)
- void musb_g_tx(struct musb *musb, u8 epnum)
- {
- 	u16			csr;
-+	struct musb_request	*req;
- 	struct usb_request	*request;
- 	u8 __iomem		*mbase = musb->mregs;
- 	struct musb_ep		*musb_ep = &musb->endpoints[epnum].ep_in;
-@@ -492,7 +492,8 @@ void musb_g_tx(struct musb *musb, u8 epnum)
- 	struct dma_channel	*dma;
+@@ -500,7 +500,7 @@ static int __devinit ab8500_usb_probe(struct platform_device *pdev)
  
- 	musb_ep_select(mbase, epnum);
--	request = next_request(musb_ep);
-+	req = next_request(musb_ep);
-+	request = &req->request;
+ 	platform_set_drvdata(pdev, ab);
  
- 	csr = musb_readw(epio, MUSB_TXCSR);
- 	DBG(4, "<== %s, txcsr %04x\n", musb_ep->end_point.name, csr);
-@@ -571,15 +572,15 @@ void musb_g_tx(struct musb *musb, u8 epnum)
+-	BLOCKING_INIT_NOTIFIER_HEAD(&ab->otg.notifier);
++	ATOMIC_INIT_NOTIFIER_HEAD(&ab->otg.notifier);
  
- 		if (request->actual == request->length) {
- 			musb_g_giveback(musb_ep, request, 0);
--			request = musb_ep->desc ? next_request(musb_ep) : NULL;
--			if (!request) {
-+			req = musb_ep->desc ? next_request(musb_ep) : NULL;
-+			if (!req) {
- 				DBG(4, "%s idle now\n",
- 					musb_ep->end_point.name);
- 				return;
- 			}
- 		}
+ 	/* v1: Wait for link status to become stable.
+ 	 * all: Updates form set_host and set_peripheral as they are atomic.
+diff --git a/drivers/usb/otg/nop-usb-xceiv.c b/drivers/usb/otg/nop-usb-xceiv.c
+index 8acf165..c1e3600 100644
+--- a/drivers/usb/otg/nop-usb-xceiv.c
++++ b/drivers/usb/otg/nop-usb-xceiv.c
+@@ -132,7 +132,7 @@ static int __devinit nop_usb_xceiv_probe(struct platform_device *pdev)
  
--		txstate(musb, to_musb_request(request));
-+		txstate(musb, req);
- 	}
- }
+ 	platform_set_drvdata(pdev, nop);
  
-@@ -821,6 +822,7 @@ static void rxstate(struct musb *musb, struct musb_request *req)
- void musb_g_rx(struct musb *musb, u8 epnum)
- {
- 	u16			csr;
-+	struct musb_request	*req;
- 	struct usb_request	*request;
- 	void __iomem		*mbase = musb->mregs;
- 	struct musb_ep		*musb_ep;
-@@ -835,10 +837,12 @@ void musb_g_rx(struct musb *musb, u8 epnum)
+-	BLOCKING_INIT_NOTIFIER_HEAD(&nop->otg.notifier);
++	ATOMIC_INIT_NOTIFIER_HEAD(&nop->otg.notifier);
  
- 	musb_ep_select(mbase, epnum);
- 
--	request = next_request(musb_ep);
--	if (!request)
-+	req = next_request(musb_ep);
-+	if (!req)
- 		return;
- 
-+	request = &req->request;
-+
- 	csr = musb_readw(epio, MUSB_RXCSR);
- 	dma = is_dma_capable() ? musb_ep->dma : NULL;
- 
-@@ -914,15 +918,15 @@ void musb_g_rx(struct musb *musb, u8 epnum)
- #endif
- 		musb_g_giveback(musb_ep, request, 0);
- 
--		request = next_request(musb_ep);
--		if (!request)
-+		req = next_request(musb_ep);
-+		if (!req)
- 			return;
- 	}
- #if defined(CONFIG_USB_INVENTRA_DMA) || defined(CONFIG_USB_TUSB_OMAP_DMA)
+ 	return 0;
  exit:
- #endif
- 	/* Analyze request */
--	rxstate(musb, to_musb_request(request));
-+	rxstate(musb, req);
- }
+diff --git a/drivers/usb/otg/twl4030-usb.c b/drivers/usb/otg/twl4030-usb.c
+index 6ca505f..2362d83 100644
+--- a/drivers/usb/otg/twl4030-usb.c
++++ b/drivers/usb/otg/twl4030-usb.c
+@@ -512,7 +512,7 @@ static irqreturn_t twl4030_usb_irq(int irq, void *_twl)
+ 		else
+ 			twl4030_phy_resume(twl);
  
- /* ------------------------------------------------------------ */
-@@ -1171,7 +1175,6 @@ struct usb_request *musb_alloc_request(struct usb_ep *ep, gfp_t gfp_flags)
- 		return NULL;
+-		blocking_notifier_call_chain(&twl->otg.notifier, status,
++		atomic_notifier_call_chain(&twl->otg.notifier, status,
+ 				twl->otg.gadget);
  	}
- 
--	INIT_LIST_HEAD(&request->request.list);
- 	request->request.dma = DMA_ADDR_INVALID;
- 	request->epnum = musb_ep->current_epnum;
- 	request->ep = musb_ep;
-@@ -1257,10 +1260,10 @@ static int musb_gadget_queue(struct usb_ep *ep, struct usb_request *req,
- 	}
- 
- 	/* add request to the list */
--	list_add_tail(&(request->request.list), &(musb_ep->req_list));
-+	list_add_tail(&request->list, &musb_ep->req_list);
- 
- 	/* it this is the head of the queue, start i/o ... */
--	if (!musb_ep->busy && &request->request.list == musb_ep->req_list.next)
-+	if (!musb_ep->busy && &request->list == musb_ep->req_list.next)
- 		musb_ep_restart(musb, request);
- 
- cleanup:
-@@ -1349,7 +1352,7 @@ static int musb_gadget_set_halt(struct usb_ep *ep, int value)
- 
- 	musb_ep_select(mbase, epnum);
- 
--	request = to_musb_request(next_request(musb_ep));
-+	request = next_request(musb_ep);
- 	if (value) {
- 		if (request) {
- 			DBG(3, "request in progress, cannot halt %s\n",
-diff --git a/drivers/usb/musb/musb_gadget.h b/drivers/usb/musb/musb_gadget.h
-index a55354f..66b7c5e 100644
---- a/drivers/usb/musb/musb_gadget.h
-+++ b/drivers/usb/musb/musb_gadget.h
-@@ -35,6 +35,8 @@
- #ifndef __MUSB_GADGET_H
- #define __MUSB_GADGET_H
- 
-+#include <linux/list.h>
-+
- enum buffer_map_state {
- 	UN_MAPPED = 0,
- 	PRE_MAPPED,
-@@ -43,6 +45,7 @@ enum buffer_map_state {
- 
- struct musb_request {
- 	struct usb_request	request;
-+	struct list_head	list;
- 	struct musb_ep		*ep;
- 	struct musb		*musb;
- 	u8 tx;			/* endpoint direction */
-@@ -94,13 +97,13 @@ static inline struct musb_ep *to_musb_ep(struct usb_ep *ep)
- 	return ep ? container_of(ep, struct musb_ep, end_point) : NULL;
- }
- 
--static inline struct usb_request *next_request(struct musb_ep *ep)
-+static inline struct musb_request *next_request(struct musb_ep *ep)
- {
- 	struct list_head	*queue = &ep->req_list;
- 
- 	if (list_empty(queue))
- 		return NULL;
--	return container_of(queue->next, struct usb_request, list);
-+	return container_of(queue->next, struct musb_request, list);
- }
- 
- extern void musb_g_tx(struct musb *musb, u8 epnum);
-diff --git a/drivers/usb/musb/musb_gadget_ep0.c b/drivers/usb/musb/musb_gadget_ep0.c
-index 6dd03f4..75a542e 100644
---- a/drivers/usb/musb/musb_gadget_ep0.c
-+++ b/drivers/usb/musb/musb_gadget_ep0.c
-@@ -304,8 +304,7 @@ __acquires(musb->lock)
- 				}
- 
- 				/* Maybe start the first request in the queue */
--				request = to_musb_request(
--						next_request(musb_ep));
-+				request = next_request(musb_ep);
- 				if (!musb_ep->busy && request) {
- 					DBG(3, "restarting the request\n");
- 					musb_ep_restart(musb, request);
-@@ -491,10 +490,12 @@ stall:
- static void ep0_rxstate(struct musb *musb)
- {
- 	void __iomem		*regs = musb->control_ep->regs;
-+	struct musb_request	*request;
- 	struct usb_request	*req;
- 	u16			count, csr;
- 
--	req = next_ep0_request(musb);
-+	request = next_ep0_request(musb);
-+	req = &request->request;
- 
- 	/* read packet and ack; or stall because of gadget driver bug:
- 	 * should have provided the rx buffer before setup() returned.
-@@ -544,17 +545,20 @@ static void ep0_rxstate(struct musb *musb)
- static void ep0_txstate(struct musb *musb)
- {
- 	void __iomem		*regs = musb->control_ep->regs;
--	struct usb_request	*request = next_ep0_request(musb);
-+	struct musb_request	*req = next_ep0_request(musb);
-+	struct usb_request	*request;
- 	u16			csr = MUSB_CSR0_TXPKTRDY;
- 	u8			*fifo_src;
- 	u8			fifo_count;
- 
--	if (!request) {
-+	if (!req) {
- 		/* WARN_ON(1); */
- 		DBG(2, "odd; csr0 %04x\n", musb_readw(regs, MUSB_CSR0));
- 		return;
- 	}
- 
-+	request = &req->request;
-+
- 	/* load the data */
- 	fifo_src = (u8 *) request->buf + request->actual;
- 	fifo_count = min((unsigned) MUSB_EP0_FIFOSIZE,
-@@ -598,7 +602,7 @@ static void ep0_txstate(struct musb *musb)
- static void
- musb_read_setup(struct musb *musb, struct usb_ctrlrequest *req)
- {
--	struct usb_request	*r;
-+	struct musb_request	*r;
- 	void __iomem		*regs = musb->control_ep->regs;
- 
- 	musb_read_fifo(&musb->endpoints[0], sizeof *req, (u8 *)req);
-@@ -616,7 +620,7 @@ musb_read_setup(struct musb *musb, struct usb_ctrlrequest *req)
- 	/* clean up any leftover transfers */
- 	r = next_ep0_request(musb);
- 	if (r)
--		musb_g_ep0_giveback(musb, r);
-+		musb_g_ep0_giveback(musb, &r->request);
- 
- 	/* For zero-data requests we want to delay the STATUS stage to
- 	 * avoid SETUPEND errors.  If we read data (OUT), delay accepting
-@@ -758,11 +762,11 @@ irqreturn_t musb_g_ep0_irq(struct musb *musb)
- 	case MUSB_EP0_STAGE_STATUSOUT:
- 		/* end of sequence #1: write to host (TX state) */
- 		{
--			struct usb_request	*req;
-+			struct musb_request	*req;
- 
- 			req = next_ep0_request(musb);
- 			if (req)
--				musb_g_ep0_giveback(musb, req);
-+				musb_g_ep0_giveback(musb, &req->request);
+ 	sysfs_notify(&twl->dev->kobj, NULL, "vbus");
+@@ -534,7 +534,7 @@ static void twl4030_usb_phy_init(struct twl4030_usb *twl)
+ 			twl->asleep = 0;
  		}
  
- 		/*
-@@ -961,7 +965,7 @@ musb_g_ep0_queue(struct usb_ep *e, struct usb_request *r, gfp_t gfp_flags)
+-		blocking_notifier_call_chain(&twl->otg.notifier, status,
++		atomic_notifier_call_chain(&twl->otg.notifier, status,
+ 				twl->otg.gadget);
  	}
+ 	sysfs_notify(&twl->dev->kobj, NULL, "vbus");
+@@ -623,7 +623,7 @@ static int __devinit twl4030_usb_probe(struct platform_device *pdev)
+ 	if (device_create_file(&pdev->dev, &dev_attr_vbus))
+ 		dev_warn(&pdev->dev, "could not create sysfs file\n");
  
- 	/* add request to the list */
--	list_add_tail(&(req->request.list), &(ep->req_list));
-+	list_add_tail(&req->list, &ep->req_list);
+-	BLOCKING_INIT_NOTIFIER_HEAD(&twl->otg.notifier);
++	ATOMIC_INIT_NOTIFIER_HEAD(&twl->otg.notifier);
  
- 	DBG(3, "queue to %s (%s), length=%d\n",
- 			ep->name, ep->is_in ? "IN/TX" : "OUT/RX",
+ 	/* Our job is to use irqs and status from the power module
+ 	 * to keep the transceiver disabled when nothing's connected.
+diff --git a/drivers/usb/otg/twl6030-usb.c b/drivers/usb/otg/twl6030-usb.c
+index 05f17b7..8a91b4b 100644
+--- a/drivers/usb/otg/twl6030-usb.c
++++ b/drivers/usb/otg/twl6030-usb.c
+@@ -263,13 +263,13 @@ static irqreturn_t twl6030_usb_irq(int irq, void *_twl)
+ 			twl->otg.state = OTG_STATE_B_IDLE;
+ 			twl->linkstat = status;
+ 			twl->otg.last_event = status;
+-			blocking_notifier_call_chain(&twl->otg.notifier,
++			atomic_notifier_call_chain(&twl->otg.notifier,
+ 						status, twl->otg.gadget);
+ 		} else {
+ 			status = USB_EVENT_NONE;
+ 			twl->linkstat = status;
+ 			twl->otg.last_event = status;
+-			blocking_notifier_call_chain(&twl->otg.notifier,
++			atomic_notifier_call_chain(&twl->otg.notifier,
+ 						status, twl->otg.gadget);
+ 			if (twl->asleep) {
+ 				regulator_disable(twl->usb3v3);
+@@ -302,7 +302,7 @@ static irqreturn_t twl6030_usbotg_irq(int irq, void *_twl)
+ 		twl->otg.state = OTG_STATE_A_IDLE;
+ 		twl->linkstat = status;
+ 		twl->otg.last_event = status;
+-		blocking_notifier_call_chain(&twl->otg.notifier, status,
++		atomic_notifier_call_chain(&twl->otg.notifier, status,
+ 							twl->otg.gadget);
+ 	} else  {
+ 		twl6030_writeb(twl, TWL_MODULE_USB, USB_ID_INT_EN_HI_CLR,
+@@ -419,7 +419,7 @@ static int __devinit twl6030_usb_probe(struct platform_device *pdev)
+ 	if (device_create_file(&pdev->dev, &dev_attr_vbus))
+ 		dev_warn(&pdev->dev, "could not create sysfs file\n");
+ 
+-	BLOCKING_INIT_NOTIFIER_HEAD(&twl->otg.notifier);
++	ATOMIC_INIT_NOTIFIER_HEAD(&twl->otg.notifier);
+ 
+ 	twl->irq_enabled = true;
+ 	status = request_threaded_irq(twl->irq1, NULL, twl6030_usbotg_irq,
+diff --git a/include/linux/usb/otg.h b/include/linux/usb/otg.h
+index da511ee..6e40718 100644
+--- a/include/linux/usb/otg.h
++++ b/include/linux/usb/otg.h
+@@ -75,7 +75,7 @@ struct otg_transceiver {
+ 	void __iomem			*io_priv;
+ 
+ 	/* for notification of usb_xceiv_events */
+-	struct blocking_notifier_head	notifier;
++	struct atomic_notifier_head	notifier;
+ 
+ 	/* to pass extra port status to the root hub */
+ 	u16			port_status;
+@@ -235,13 +235,13 @@ otg_start_srp(struct otg_transceiver *otg)
+ static inline int
+ otg_register_notifier(struct otg_transceiver *otg, struct notifier_block *nb)
+ {
+-	return blocking_notifier_chain_register(&otg->notifier, nb);
++	return atomic_notifier_chain_register(&otg->notifier, nb);
+ }
+ 
+ static inline void
+ otg_unregister_notifier(struct otg_transceiver *otg, struct notifier_block *nb)
+ {
+-	blocking_notifier_chain_unregister(&otg->notifier, nb);
++	atomic_notifier_chain_unregister(&otg->notifier, nb);
+ }
+ 
+ /* for OTG controller drivers (and maybe other stuff) */
 -- 
 1.7.4.rc2
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
