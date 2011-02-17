@@ -1,118 +1,72 @@
-From: Hema HK <hemahk@ti.com>
-Subject: [4/7 v4] usb: otg: OMAP4430: Introducing suspend function for power management
-Date: Thu, 17 Feb 2011 12:06:07 +0530
-Message-ID: <1297924570-3750-4-git-send-email-hemahk@ti.com>
+From: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
+Subject: [6/7 v4] usb: otg: TWL6030 Save the last event in otg_transceiver
+Date: Thu, 17 Feb 2011 12:06:09 +0530
+Message-ID: <1297924570-3750-6-git-send-email-hemahk@ti.com>
 References: <1297924570-3750-1-git-send-email-hemahk@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:54826 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753524Ab1BQGg0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 17 Feb 2011 01:36:26 -0500
-In-Reply-To: <1297924570-3750-1-git-send-email-hemahk@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1297924570-3750-1-git-send-email-hemahk-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Kalliguddi, Hema" <hemahk-l0cyMroinI0@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-usb@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, "Kalliguddi, Hema" <hemahk@ti.com>, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
 
-From: Kalliguddi, Hema <hemahk@ti.com>
+From: Kalliguddi, Hema <hemahk-l0cyMroinI0@public.gmane.org>
 
-Introduced the suspend/resume function for the OMAP4430 internal PHY.
-This will be used by the twl6030-usb transceiver driver.
-Moved the clock enable/disable function calls and power on/off of the PHY
-code from power on/off functions to suspend/resume function.
+Save the last event in the otg_transceiver so that it can used in the
+musb driver and gadget driver to configure the musb and enable the 
+vbus for host mode and OTG mode, if the device is connected during boot.
 
-Pass the suspend function through board data for OMAP4430sdp and OMAP4panda.
-This will be used by the twl6030-usb transceiver driver.
-
-Signed-off-by: Hema HK <hemahk@ti.com>
-Cc: Felipe Balbi <balbi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Paul Walmsley <paul@pwsan.com>
+Signed-off-by: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
+Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
 ---
-arch/arm/mach-omap2/omap_phy_internal.c |   22 +++++++++++++++-------
- arch/arm/mach-omap2/board-4430sdp.c     |    1 +
- arch/arm/mach-omap2/board-omap4panda.c  |    1 +
- arch/arm/mach-omap2/omap_phy_internal.c |   22 +++++++++++++++-------
- arch/arm/plat-omap/include/plat/usb.h   |    1 +
- 4 files changed, 18 insertions(+), 7 deletions(-)
+[Reusing some part of the patch[1] posted by Arnaud Mandy]
+[1] http://permalink.gmane.org/gmane.linux.usb.general/37123
+---
+ drivers/usb/otg/twl6030-usb.c |    3 +++
+ include/linux/usb/otg.h       |    1 +
+ 2 files changed, 4 insertions(+)
 
-Index: linux-2.6/arch/arm/mach-omap2/omap_phy_internal.c
+Index: linux-2.6/drivers/usb/otg/twl6030-usb.c
 ===================================================================
---- linux-2.6.orig/arch/arm/mach-omap2/omap_phy_internal.c
-+++ linux-2.6/arch/arm/mach-omap2/omap_phy_internal.c
-@@ -104,13 +104,6 @@ int omap4430_phy_set_clk(struct device *
- int omap4430_phy_power(struct device *dev, int ID, int on)
- {
- 	if (on) {
--		/* enabled the clocks */
--		omap4430_phy_set_clk(dev, 1);
--		/* power on the phy */
--		if (__raw_readl(ctrl_base + CONTROL_DEV_CONF) & PHY_PD) {
--			__raw_writel(~PHY_PD, ctrl_base + CONTROL_DEV_CONF);
--			mdelay(200);
--		}
- 		if (ID)
- 			/* enable VBUS valid, IDDIG groung */
- 			__raw_writel(AVALID | VBUSVALID, ctrl_base +
-@@ -126,10 +119,25 @@ int omap4430_phy_power(struct device *de
- 		/* Enable session END and IDIG to high impedence. */
- 		__raw_writel(SESSEND | IDDIG, ctrl_base +
- 					USBOTGHS_CONTROL);
-+	}
-+	return 0;
-+}
-+
-+int omap4430_phy_suspend(struct device *dev, int suspend)
-+{
-+	if (suspend) {
- 		/* Disable the clocks */
- 		omap4430_phy_set_clk(dev, 0);
- 		/* Power down the phy */
- 		__raw_writel(PHY_PD, ctrl_base + CONTROL_DEV_CONF);
-+	} else {
-+		/* Enable the internel phy clcoks */
-+		omap4430_phy_set_clk(dev, 1);
-+		/* power on the phy */
-+		if (__raw_readl(ctrl_base + CONTROL_DEV_CONF) & PHY_PD) {
-+			__raw_writel(~PHY_PD, ctrl_base + CONTROL_DEV_CONF);
-+			mdelay(200);
-+		}
- 	}
- 
- 	return 0;
-Index: linux-2.6/arch/arm/plat-omap/include/plat/usb.h
+--- linux-2.6.orig/drivers/usb/otg/twl6030-usb.c
++++ linux-2.6/drivers/usb/otg/twl6030-usb.c
+@@ -262,11 +262,13 @@ static irqreturn_t twl6030_usb_irq(int i
+ 			twl->otg.default_a = false;
+ 			twl->otg.state = OTG_STATE_B_IDLE;
+ 			twl->linkstat = status;
++			twl->otg.last_event = status;
+ 			blocking_notifier_call_chain(&twl->otg.notifier,
+ 						status, twl->otg.gadget);
+ 		} else {
+ 			status = USB_EVENT_NONE;
+ 			twl->linkstat = status;
++			twl->otg.last_event = status;
+ 			blocking_notifier_call_chain(&twl->otg.notifier,
+ 						status, twl->otg.gadget);
+ 			if (twl->asleep) {
+@@ -299,6 +301,7 @@ static irqreturn_t twl6030_usbotg_irq(in
+ 		twl->otg.default_a = true;
+ 		twl->otg.state = OTG_STATE_A_IDLE;
+ 		twl->linkstat = status;
++		twl->otg.last_event = status;
+ 		blocking_notifier_call_chain(&twl->otg.notifier, status,
+ 							twl->otg.gadget);
+ 	} else  {
+Index: linux-2.6/include/linux/usb/otg.h
 ===================================================================
---- linux-2.6.orig/arch/arm/plat-omap/include/plat/usb.h
-+++ linux-2.6/arch/arm/plat-omap/include/plat/usb.h
-@@ -88,6 +88,7 @@ extern int omap4430_phy_power(struct dev
- extern int omap4430_phy_set_clk(struct device *dev, int on);
- extern int omap4430_phy_init(struct device *dev);
- extern int omap4430_phy_exit(struct device *dev);
-+extern int omap4430_phy_suspend(struct device *dev, int suspend);
+--- linux-2.6.orig/include/linux/usb/otg.h
++++ linux-2.6/include/linux/usb/otg.h
+@@ -66,6 +66,7 @@ struct otg_transceiver {
  
- #endif
+ 	u8			default_a;
+ 	enum usb_otg_state	state;
++	enum usb_xceiv_events	last_event;
  
-Index: linux-2.6/arch/arm/mach-omap2/board-4430sdp.c
-===================================================================
---- linux-2.6.orig/arch/arm/mach-omap2/board-4430sdp.c
-+++ linux-2.6/arch/arm/mach-omap2/board-4430sdp.c
-@@ -272,6 +272,7 @@ static struct twl4030_usb_data omap4_usb
- 	.phy_exit	= omap4430_phy_exit,
- 	.phy_power	= omap4430_phy_power,
- 	.phy_set_clock	= omap4430_phy_set_clk,
-+	.phy_suspend	= omap4430_phy_suspend,
- };
- 
- static struct omap2_hsmmc_info mmc[] = {
-Index: linux-2.6/arch/arm/mach-omap2/board-omap4panda.c
-===================================================================
---- linux-2.6.orig/arch/arm/mach-omap2/board-omap4panda.c
-+++ linux-2.6/arch/arm/mach-omap2/board-omap4panda.c
-@@ -153,6 +153,7 @@ static struct twl4030_usb_data omap4_usb
- 	.phy_exit	= omap4430_phy_exit,
- 	.phy_power	= omap4430_phy_power,
- 	.phy_set_clock	= omap4430_phy_set_clk,
-+	.phy_suspend	= omap4430_phy_suspend,
- };
- 
- static struct omap2_hsmmc_info mmc[] = {
+ 	struct usb_bus		*host;
+ 	struct usb_gadget	*gadget;
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
