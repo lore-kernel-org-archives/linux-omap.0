@@ -1,40 +1,45 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [patch-v2.6.39 6/7] OMAP4430: hwmod data: Adding USBOTG
-Date: Thu, 17 Feb 2011 08:59:53 -0800
-Message-ID: <20110217165953.GR20795@atomide.com>
-References: <1297946466-9565-1-git-send-email-balbi@ti.com>
- <1297946466-9565-7-git-send-email-balbi@ti.com>
- <4D5D25F9.8030907@ti.com>
- <20110217151527.GL22356@legolas.emea.dhcp.ti.com>
- <20110217151804.GM22356@legolas.emea.dhcp.ti.com>
- <4D5D3D0B.8090106@ti.com>
- <20110217152648.GO22356@legolas.emea.dhcp.ti.com>
- <4D5D44AF.5050805@ti.com>
- <20110217162000.GP20795@atomide.com>
- <20110217162209.GA13425@legolas.emea.dhcp.ti.com>
+Subject: Re: [PATCH 2/8] OMAP4: hwmod data: Add McSPI
+Date: Thu, 17 Feb 2011 09:05:14 -0800
+Message-ID: <20110217170514.GS20795@atomide.com>
+References: <1297938289-8678-1-git-send-email-b-cousson@ti.com>
+ <1297938289-8678-3-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:37632 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752856Ab1BQRAS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Feb 2011 12:00:18 -0500
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:32255 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756941Ab1BQRFi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Feb 2011 12:05:38 -0500
 Content-Disposition: inline
-In-Reply-To: <20110217162209.GA13425@legolas.emea.dhcp.ti.com>
+In-Reply-To: <1297938289-8678-3-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, "Kalliguddi, Hema" <hemahk@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: paul@pwsan.com, khilman@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Charulatha V <charu@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>
 
-* Felipe Balbi <balbi@ti.com> [110217 08:20]:
-> On Thu, Feb 17, 2011 at 08:20:01AM -0800, Tony Lindgren wrote:
-> > 
-> > Maybe no need to rebase, I'll apply Benoit's series first into
-> > omap-for-linus, then let's applying the other hwmod related patches
-> > should be trivial.
+Hi,
+
+Noticed one cosmetic thing below.
+
+* Benoit Cousson <b-cousson@ti.com> [110217 02:23]:
+> Update omap4 hwmod file with McSPI info.
 > 
-> So I can drop the omap4 HWMOD part from my branch ?
+> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+> Signed-off-by: Charulatha V <charu@ti.com>
+> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
+> Acked-by: Grant Likely <grant.likely@secretlab.ca>
+> Reviewed-by: Kevin Hilman <khilman@ti.com>
+> ---
+  ^^^ That should not be here, it shows up in your commit.
 
-Yeh assuming Benoit's data is correct.
+> [b-cousson@ti.com: Remove dev_attr to prevent dependency
+> with device code. It will have to be re-added along with
+> the original series]
+
+As the above should be part of the commit too. Care to
+refresh your branch for that?
+
+Regards,
 
 Tony
