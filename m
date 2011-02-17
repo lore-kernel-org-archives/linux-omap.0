@@ -1,96 +1,178 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [patch-v2.6.39 2/7] arm: omap4: 4430sdp: drop ehci support
-Date: Thu, 17 Feb 2011 14:41:01 +0200
-Message-ID: <1297946466-9565-3-git-send-email-balbi@ti.com>
+Subject: [patch-v2.6.39 4/7] OMAP3xxx: hwmod data: Add USBOTG
+Date: Thu, 17 Feb 2011 14:41:03 +0200
+Message-ID: <1297946466-9565-5-git-send-email-balbi@ti.com>
 References: <1297946466-9565-1-git-send-email-balbi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:43883 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755035Ab1BQMlS (ORCPT
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:52099 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755035Ab1BQMlZ (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 17 Feb 2011 07:41:18 -0500
-Received: by mail-bw0-f48.google.com with SMTP id 8so2602745bwz.35
-        for <linux-omap@vger.kernel.org>; Thu, 17 Feb 2011 04:41:17 -0800 (PST)
+	Thu, 17 Feb 2011 07:41:25 -0500
+Received: by mail-bw0-f41.google.com with SMTP id 16so2455564bwz.28
+        for <linux-omap@vger.kernel.org>; Thu, 17 Feb 2011 04:41:24 -0800 (PST)
 In-Reply-To: <1297946466-9565-1-git-send-email-balbi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Anand Gadiyar <gadiyar@ti.com>, Keshava Munegowda <keshava_mgowda@ti.com>, Felipe Balbi <balbi@ti.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Hema HK <hemahk@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Felipe Balbi <balbi@ti.com>
 
-From: Anand Gadiyar <gadiyar@ti.com>
+From: Hema HK <hemahk@ti.com>
 
-Most revisions of the OMAP4 Blaze/SDP platform do not have
-the EHCI signals routed by default. The pads are routed
-for the alternate HSI functionality instead, and explicit
-board modifications are needed to route the signals to
-the USB PHY on the board.
+OMAP3 hwmod data structures are populated for USBOTG with base address,
+L3 and L4 interface clocks, IRQs and sysconfig register details.
+This is applicable for OMAP3430 amd OMAP3630.
 
-Also, turning on the PHY connected to the EHCI port causes
-a board reboot during bootup due to an unintended short
-on the rails - this affects many initial revisions of the
-board, and needs a minor board mod to fix (or as a
-workaround, one should not attempt to power on the
-USB PHY).
+As per OMAP USBOTG specification, need to configure the USBOTG
+to smart idle/standby or no idle/standby during data transfer and
+force idle/standby when not in use to support retention and offmode.
+By setting HWMOD_SWSUP_SIDLE and HWMOD_SWSUP_MSTANDBY flags, framework
+will take care of configuring to no idle/standby when module is enabled
+and force idle/standby when idled.
 
-Given that these boards need explicit board mods to even
-get EHCI working (separate from the accidental short above),
-we should not attempt to enable EHCI by default.
-
-So drop the EHCI support from the board files for the
-Blaze/SDP platforms.
-
-Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
-Cc: Keshava Munegowda <keshava_mgowda@ti.com>
+Signed-off-by: Hema HK <hemahk@ti.com>
 Cc: Tony Lindgren <tony@atomide.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Cousson, Benoit <b-cousson@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- arch/arm/mach-omap2/board-4430sdp.c |   19 -------------------
- 1 files changed, 0 insertions(+), 19 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  101 ++++++++++++++++++++++++++++
+ 1 files changed, 101 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index 07d1b20..674c183 100644
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -44,7 +44,6 @@
- #define ETH_KS8851_IRQ			34
- #define ETH_KS8851_POWER_ON		48
- #define ETH_KS8851_QUART		138
--#define OMAP4SDP_MDM_PWR_EN_GPIO	157
- #define OMAP4_SFH7741_SENSOR_OUTPUT_GPIO	184
- #define OMAP4_SFH7741_ENABLE_GPIO		188
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+index 8d81813..cce09fd 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -107,6 +107,15 @@ static struct omap_hwmod omap3xxx_uart1_hwmod;
+ static struct omap_hwmod omap3xxx_uart2_hwmod;
+ static struct omap_hwmod omap3xxx_uart3_hwmod;
+ static struct omap_hwmod omap3xxx_uart4_hwmod;
++static struct omap_hwmod omap3xxx_usbhsotg_hwmod;
++
++/* l3_core -> usbhsotg interface */
++static struct omap_hwmod_ocp_if omap3xxx_usbhsotg__l3 = {
++	.master		= &omap3xxx_usbhsotg_hwmod,
++	.slave		= &omap3xxx_l3_main_hwmod,
++	.clk		= "core_l3_ick",
++	.user		= OCP_USER_MPU,
++};
  
-@@ -251,16 +250,6 @@ static void __init omap_4430sdp_init_irq(void)
- 	gic_init_irq();
- }
+ /* L4_CORE -> L4_WKUP interface */
+ static struct omap_hwmod_ocp_if omap3xxx_l4_core__l4_wkup = {
+@@ -301,6 +310,36 @@ static struct omap_hwmod_ocp_if omap3_l4_core__sr2 = {
+ 	.user		= OCP_USER_MPU,
+ };
  
--static const struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
--	.port_mode[0]	= EHCI_HCD_OMAP_MODE_PHY,
--	.port_mode[1]	= EHCI_HCD_OMAP_MODE_UNKNOWN,
--	.port_mode[2]	= EHCI_HCD_OMAP_MODE_UNKNOWN,
--	.phy_reset	= false,
--	.reset_gpio_port[0]  = -EINVAL,
--	.reset_gpio_port[1]  = -EINVAL,
--	.reset_gpio_port[2]  = -EINVAL,
--};
--
- static struct omap_musb_board_data musb_board_data = {
- 	.interface_type		= MUSB_INTERFACE_UTMI,
- 	.mode			= MUSB_OTG,
-@@ -576,14 +565,6 @@ static void __init omap_4430sdp_init(void)
- 	omap_serial_init();
- 	omap4_twl6030_hsmmc_init(mmc);
++/*
++* usbhsotg interface data
++*/
++
++static struct omap_hwmod_addr_space omap3xxx_usbhsotg_addrs[] = {
++	{
++		.pa_start	= OMAP34XX_HSUSB_OTG_BASE,
++		.pa_end		= OMAP34XX_HSUSB_OTG_BASE + SZ_4K - 1,
++		.flags		= ADDR_TYPE_RT
++	},
++};
++
++/* l4_core -> usbhsotg  */
++static struct omap_hwmod_ocp_if omap3xxx_l4_core__usbhsotg = {
++	.master		= &omap3xxx_l4_core_hwmod,
++	.slave		= &omap3xxx_usbhsotg_hwmod,
++	.clk		= "l4_ick",
++	.addr		= omap3xxx_usbhsotg_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap3xxx_usbhsotg_addrs),
++	.user		= OCP_USER_MPU,
++};
++
++static struct omap_hwmod_ocp_if *omap3xxx_usbhsotg_masters[] = {
++	&omap3xxx_usbhsotg__l3,
++};
++
++static struct omap_hwmod_ocp_if *omap3xxx_usbhsotg_slaves[] = {
++	&omap3xxx_l4_core__usbhsotg,
++};
++
+ /* Slave interfaces on the L4_CORE interconnect */
+ static struct omap_hwmod_ocp_if *omap3xxx_l4_core_slaves[] = {
+ 	&omap3xxx_l3_main__l4_core,
+@@ -1356,6 +1395,64 @@ static struct omap_hwmod omap36xx_sr2_hwmod = {
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3630ES1),
+ };
  
--	/* Power on the ULPI PHY */
--	status = gpio_request(OMAP4SDP_MDM_PWR_EN_GPIO, "USBB1 PHY VMDM_3V3");
--	if (status)
--		pr_err("%s: Could not get USBB1 PHY GPIO\n", __func__);
--	else
--		gpio_direction_output(OMAP4SDP_MDM_PWR_EN_GPIO, 1);
--
--	usb_ehci_init(&ehci_pdata);
- 	usb_musb_init(&musb_board_data);
++/*
++ * usbhsotg
++ */
++static struct omap_hwmod_class_sysconfig omap3xxx_usbhsotg_sysc = {
++	.rev_offs	= 0x0400,
++	.sysc_offs	= 0x0404,
++	.syss_offs	= 0x0408,
++	.sysc_flags	= (SYSC_HAS_SIDLEMODE | SYSC_HAS_MIDLEMODE|
++			  SYSC_HAS_ENAWAKEUP | SYSC_HAS_SOFTRESET |
++			  SYSC_HAS_AUTOIDLE),
++	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
++			  MSTANDBY_FORCE | MSTANDBY_NO | MSTANDBY_SMART),
++	.sysc_fields	= &omap_hwmod_sysc_type1,
++};
++
++static struct omap_hwmod_class usbotg_class = {
++	.name = "usbotg",
++	.sysc = &omap3xxx_usbhsotg_sysc,
++};
++
++/* usb_otg_hs */
++static struct omap_hwmod_irq_info omap3xxx_usbhsotg_mpu_irqs[] = {
++
++	{ .name = "mc", .irq = 92 },
++	{ .name = "dma", .irq = 93 },
++};
++
++static struct omap_hwmod omap3xxx_usbhsotg_hwmod = {
++	.name		= "usb_otg_hs",
++	.mpu_irqs	= omap3xxx_usbhsotg_mpu_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap3xxx_usbhsotg_mpu_irqs),
++	.main_clk	= "hsotgusb_ick",
++	.prcm		= {
++		.omap2 = {
++			.prcm_reg_id = 1,
++			.module_bit = OMAP3430_EN_HSOTGUSB_SHIFT,
++			.module_offs = CORE_MOD,
++			.idlest_reg_id = 1,
++			.idlest_idle_bit = OMAP3430ES2_ST_HSOTGUSB_IDLE_SHIFT,
++			.idlest_stdby_bit = OMAP3430ES2_ST_HSOTGUSB_STDBY_SHIFT
++		},
++	},
++	.masters	= omap3xxx_usbhsotg_masters,
++	.masters_cnt	= ARRAY_SIZE(omap3xxx_usbhsotg_masters),
++	.slaves		= omap3xxx_usbhsotg_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap3xxx_usbhsotg_slaves),
++	.class		= &usbotg_class,
++
++	/*
++	 * Erratum ID: i479  idle_req / idle_ack mechanism potentially
++	 * broken when autoidle is enabled
++	 * workaround is to disable the autoidle bit at module level.
++	 */
++	.flags		= HWMOD_NO_OCP_AUTOIDLE | HWMOD_SWSUP_SIDLE
++				| HWMOD_SWSUP_MSTANDBY,
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
++};
++
+ static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
+ 	&omap3xxx_l3_main_hwmod,
+ 	&omap3xxx_l4_core_hwmod,
+@@ -1387,6 +1484,10 @@ static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
  
- 	status = omap_ethernet_init();
+ 	/* dma_system class*/
+ 	&omap3xxx_dma_system_hwmod,
++
++	/* usbotg class */
++	&omap3xxx_usbhsotg_hwmod,
++
+ 	NULL,
+ };
+ 
 -- 
 1.7.4.rc2
 
