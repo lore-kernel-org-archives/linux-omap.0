@@ -1,140 +1,184 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 2/5] omap4: Enable ARM local timers with OMAP4430 es1.0 exception
-Date: Fri, 18 Feb 2011 23:41:34 +0530
-Message-ID: <33e02589041f47e8df8bdc7d97a631f1@mail.gmail.com>
-References: <1297510187-31547-1-git-send-email-santosh.shilimkar@ti.com> <1297510187-31547-3-git-send-email-santosh.shilimkar@ti.com>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [PATCH] perf: add OMAP support for the new power events
+Date: Fri, 18 Feb 2011 19:14:26 +0100
+Message-ID: <AANLkTik8y_LszTZdc2tt=yXGO6QpWqjHnTojn2L0jFWK@mail.gmail.com>
+References: <1295878857-8983-1-git-send-email-j-pihet@ti.com>
+	<87oc6jiox0.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary=001636832066d46fc4049c9271ba
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:44677 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752037Ab1BRSLj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 18 Feb 2011 13:11:39 -0500
-Received: by mail-qy0-f177.google.com with SMTP id 27so3540797qyk.8
-        for <linux-omap@vger.kernel.org>; Fri, 18 Feb 2011 10:11:36 -0800 (PST)
-In-Reply-To: <1297510187-31547-3-git-send-email-santosh.shilimkar@ti.com>
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:53721 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755679Ab1BRSO1 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Feb 2011 13:14:27 -0500
+Received: by qyk7 with SMTP id 7so321872qyk.19
+        for <linux-omap@vger.kernel.org>; Fri, 18 Feb 2011 10:14:26 -0800 (PST)
+In-Reply-To: <87oc6jiox0.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Kevin Hilman <khilman@ti.com>, linux-arm-kernel@lists.infradead.org, tony@atomide.com
+To: Kevin Hilman <khilman@ti.com>
+Cc: Thomas Renninger <trenn@suse.de>, linux-omap@vger.kernel.org, Jean Pihet <j-pihet@ti.com>
 
---001636832066d46fc4049c9271ba
-Content-Type: text/plain; charset=ISO-8859-1
-
-> -----Original Message-----
-> From: Santosh Shilimkar [mailto:santosh.shilimkar@ti.com]
-> Sent: Saturday, February 12, 2011 5:00 PM
-> To: linux-omap@vger.kernel.org
-> Cc: khilman@ti.com; linux-arm-kernel@lists.infradead.org;
-> tony@atomide.com; Santosh Shilimkar
-> Subject: [PATCH 2/5] omap4: Enable ARM local timers with OMAP4430
-> es1.0 exception
+On Thu, Feb 10, 2011 at 10:02 PM, Kevin Hilman <khilman@ti.com> wrote:
+> jean.pihet@newoldbits.com writes:
 >
-[....]
+>> From: Jean Pihet <j-pihet@ti.com>
+>>
+>> The patch adds the new power management trace points for
+>> the OMAP architecture.
+>>
+>> The trace points are for:
+>> - default idle handler. Since the cpuidle framework is
+>> =A0 instrumented in the generic way there is no need to
+>> =A0 add trace points in the OMAP specific cpuidle handler;
+>> - cpufreq (DVFS),
+>> - SoC clocks changes (enable, disable, set_rate),
+>> - change of power domains next power states.
+>>
+>> Tested on OMAP3 with suspend/resume, cpuidle, basic DVFS
+>>
+>> Signed-off-by: Jean Pihet <j-pihet@ti.com>
+>
+> Looks good to me. =A0Please post one more time with linux-arm-kernel =
+in Cc.
+> After that, unless there are objections, I'll queue for 2.6.39.
+Ok thanks for reviewing the patch.
+I sent the updated patch. The change is an extra trace point in the
+case a power domain did not hit the desired target state. This allows
+the parsing/GUI tools to trace the desired and actually hit states.
 
-> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-
-> omap2/Kconfig
-> index 1a2cf62..f285dd7 100644
-> --- a/arch/arm/mach-omap2/Kconfig
-> +++ b/arch/arm/mach-omap2/Kconfig
-> @@ -44,6 +44,7 @@ config ARCH_OMAP4
->  	depends on ARCH_OMAP2PLUS
->  	select CPU_V7
->  	select ARM_GIC
-> +	select LOCAL_TIMERS
-This change should be 'select LOCAL_TIMERS if SMP'
+Regards,
+Jean
 
-Otherwise, with !SMP, the build will break.
-Here is the updated version with Tony's ack added.
-
---------
->From f76f0efffafccf76be7d820f2f775311b06087bd Mon Sep 17 00:00:00 2001
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Date: Thu, 27 Jan 2011 17:10:34 +0530
-Subject: [PATCH] omap4: Enable ARM local timers with OMAP4430 es1.0
-exception
-
-On OMAP4430 ES1.0 the local timers are gated by security. Enable the
-CONFIG_LOCAL_TIMERS for omap2plus build and handle the OMAP4430 es1.0
-exception case.
-
-This patch has dependency on the first patch in this series.
-	ARM: smp: Select local timers vs dummy timer support runtime
-
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Acked-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap2/Kconfig     |    1 +
- arch/arm/mach-omap2/timer-mpu.c |    4 ++++
- 2 files changed, 5 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index 1a2cf62..f285dd7 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -44,6 +44,7 @@ config ARCH_OMAP4
- 	depends on ARCH_OMAP2PLUS
- 	select CPU_V7
- 	select ARM_GIC
-+	select LOCAL_TIMERS
- 	select PL310_ERRATA_588369
- 	select ARM_ERRATA_720789
- 	select ARCH_HAS_OPP
-diff --git a/arch/arm/mach-omap2/timer-mpu.c
-b/arch/arm/mach-omap2/timer-mpu.c
-index 09c73dc..31c0ac4 100644
---- a/arch/arm/mach-omap2/timer-mpu.c
-+++ b/arch/arm/mach-omap2/timer-mpu.c
-@@ -28,6 +28,10 @@
-  */
- int __cpuinit local_timer_setup(struct clock_event_device *evt)
- {
-+	/* Local timers are not supprted on OMAP4430 ES1.0 */
-+	if (omap_rev() == OMAP4430_REV_ES1_0)
-+		return -ENXIO;
-+
- 	evt->irq = OMAP44XX_IRQ_LOCALTIMER;
- 	twd_timer_setup(evt);
- 	return 0;
--- 
-1.6.0.4
-
---001636832066d46fc4049c9271ba
-Content-Type: application/octet-stream;
-	name="0002-omap4-Enable-ARM-local-timers-with-OMAP4430-es1.0-e.patch"
-Content-Disposition: attachment;
-	filename="0002-omap4-Enable-ARM-local-timers-with-OMAP4430-es1.0-e.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: fcbda469665a3c28_0.1
-
-RnJvbSBmNzZmMGVmZmZhZmNjZjc2YmU3ZDgyMGYyZjc3NTMxMWIwNjA4N2JkIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBTYW50b3NoIFNoaWxpbWthciA8c2FudG9zaC5zaGlsaW1rYXJA
-dGkuY29tPgpEYXRlOiBUaHUsIDI3IEphbiAyMDExIDE3OjEwOjM0ICswNTMwClN1YmplY3Q6IFtQ
-QVRDSF0gb21hcDQ6IEVuYWJsZSBBUk0gbG9jYWwgdGltZXJzIHdpdGggT01BUDQ0MzAgZXMxLjAg
-ZXhjZXB0aW9uCgpPbiBPTUFQNDQzMCBFUzEuMCB0aGUgbG9jYWwgdGltZXJzIGFyZSBnYXRlZCBi
-eSBzZWN1cml0eS4gRW5hYmxlIHRoZQpDT05GSUdfTE9DQUxfVElNRVJTIGZvciBvbWFwMnBsdXMg
-YnVpbGQgYW5kIGhhbmRsZSB0aGUgT01BUDQ0MzAgZXMxLjAKZXhjZXB0aW9uIGNhc2UuCgpUaGlz
-IHBhdGNoIGhhcyBkZXBlbmRlbmN5IG9uIHRoZSBmaXJzdCBwYXRjaCBpbiB0aGlzIHNlcmllcy4K
-CUFSTTogc21wOiBTZWxlY3QgbG9jYWwgdGltZXJzIHZzIGR1bW15IHRpbWVyIHN1cHBvcnQgcnVu
-dGltZQoKU2lnbmVkLW9mZi1ieTogU2FudG9zaCBTaGlsaW1rYXIgPHNhbnRvc2guc2hpbGlta2Fy
-QHRpLmNvbT4KQWNrZWQtYnk6IFRvbnkgTGluZGdyZW4gPHRvbnlAYXRvbWlkZS5jb20+Ci0tLQog
-YXJjaC9hcm0vbWFjaC1vbWFwMi9LY29uZmlnICAgICB8ICAgIDEgKwogYXJjaC9hcm0vbWFjaC1v
-bWFwMi90aW1lci1tcHUuYyB8ICAgIDQgKysrKwogMiBmaWxlcyBjaGFuZ2VkLCA1IGluc2VydGlv
-bnMoKyksIDAgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9L
-Y29uZmlnIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9LY29uZmlnCmluZGV4IDFhMmNmNjIuLmYyODVk
-ZDcgMTAwNjQ0Ci0tLSBhL2FyY2gvYXJtL21hY2gtb21hcDIvS2NvbmZpZworKysgYi9hcmNoL2Fy
-bS9tYWNoLW9tYXAyL0tjb25maWcKQEAgLTQ0LDYgKzQ0LDcgQEAgY29uZmlnIEFSQ0hfT01BUDQK
-IAlkZXBlbmRzIG9uIEFSQ0hfT01BUDJQTFVTCiAJc2VsZWN0IENQVV9WNwogCXNlbGVjdCBBUk1f
-R0lDCisJc2VsZWN0IExPQ0FMX1RJTUVSUyBpZiBTTVAKIAlzZWxlY3QgUEwzMTBfRVJSQVRBXzU4
-ODM2OQogCXNlbGVjdCBBUk1fRVJSQVRBXzcyMDc4OQogCXNlbGVjdCBBUkNIX0hBU19PUFAKZGlm
-ZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gtb21hcDIvdGltZXItbXB1LmMgYi9hcmNoL2FybS9tYWNo
-LW9tYXAyL3RpbWVyLW1wdS5jCmluZGV4IDA5YzczZGMuLjMxYzBhYzQgMTAwNjQ0Ci0tLSBhL2Fy
-Y2gvYXJtL21hY2gtb21hcDIvdGltZXItbXB1LmMKKysrIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi90
-aW1lci1tcHUuYwpAQCAtMjgsNiArMjgsMTAgQEAKICAqLwogaW50IF9fY3B1aW5pdCBsb2NhbF90
-aW1lcl9zZXR1cChzdHJ1Y3QgY2xvY2tfZXZlbnRfZGV2aWNlICpldnQpCiB7CisJLyogTG9jYWwg
-dGltZXJzIGFyZSBub3Qgc3VwcHJ0ZWQgb24gT01BUDQ0MzAgRVMxLjAgKi8KKwlpZiAob21hcF9y
-ZXYoKSA9PSBPTUFQNDQzMF9SRVZfRVMxXzApCisJCXJldHVybiAtRU5YSU87CisKIAlldnQtPmly
-cSA9IE9NQVA0NFhYX0lSUV9MT0NBTFRJTUVSOwogCXR3ZF90aW1lcl9zZXR1cChldnQpOwogCXJl
-dHVybiAwOwotLSAKMS42LjAuNAoK
---001636832066d46fc4049c9271ba--
+>
+> Kevin
+>
+>> ---
+>> =A0arch/arm/mach-omap2/clock.c =A0 =A0 =A0 | =A0 =A08 +++++++-
+>> =A0arch/arm/mach-omap2/pm34xx.c =A0 =A0 =A0| =A0 =A07 +++++++
+>> =A0arch/arm/mach-omap2/powerdomain.c | =A0 =A08 +++++++-
+>> =A03 files changed, 21 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock=
+=2Ec
+>> index 2a2f152..72af75d 100644
+>> --- a/arch/arm/mach-omap2/clock.c
+>> +++ b/arch/arm/mach-omap2/clock.c
+>> @@ -22,7 +22,9 @@
+>> =A0#include <linux/clk.h>
+>> =A0#include <linux/io.h>
+>> =A0#include <linux/bitops.h>
+>> +#include <trace/events/power.h>
+>>
+>> +#include <asm/cpu.h>
+>> =A0#include <plat/clock.h>
+>> =A0#include "clockdomain.h"
+>> =A0#include <plat/cpu.h>
+>> @@ -261,6 +263,7 @@ void omap2_clk_disable(struct clk *clk)
+>>
+>> =A0 =A0 =A0 pr_debug("clock: %s: disabling in hardware\n", clk->name=
+);
+>>
+>> + =A0 =A0 trace_clock_disable(clk->name, 0, smp_processor_id());
+>> =A0 =A0 =A0 clk->ops->disable(clk);
+>>
+>> =A0 =A0 =A0 if (clk->clkdm)
+>> @@ -312,6 +315,7 @@ int omap2_clk_enable(struct clk *clk)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
+>> =A0 =A0 =A0 }
+>>
+>> + =A0 =A0 trace_clock_enable(clk->name, 1, smp_processor_id());
+>> =A0 =A0 =A0 ret =3D clk->ops->enable(clk);
+>> =A0 =A0 =A0 if (ret) {
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 WARN(1, "clock: %s: could not enable: %d=
+\n", clk->name, ret);
+>> @@ -349,8 +353,10 @@ int omap2_clk_set_rate(struct clk *clk, unsigne=
+d long rate)
+>> =A0 =A0 =A0 pr_debug("clock: set_rate for clock %s to rate %ld\n", c=
+lk->name, rate);
+>>
+>> =A0 =A0 =A0 /* dpll_ck, core_ck, virt_prcm_set; plus all clksel cloc=
+ks */
+>> - =A0 =A0 if (clk->set_rate)
+>> + =A0 =A0 if (clk->set_rate) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 trace_clock_set_rate(clk->name, rate, smp_=
+processor_id());
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D clk->set_rate(clk, rate);
+>> + =A0 =A0 }
+>>
+>> =A0 =A0 =A0 return ret;
+>> =A0}
+>> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34=
+xx.c
+>> index 8cbbead..7c5e0ee 100644
+>> --- a/arch/arm/mach-omap2/pm34xx.c
+>> +++ b/arch/arm/mach-omap2/pm34xx.c
+>> @@ -29,6 +29,7 @@
+>> =A0#include <linux/delay.h>
+>> =A0#include <linux/slab.h>
+>> =A0#include <linux/console.h>
+>> +#include <trace/events/power.h>
+>>
+>> =A0#include <plat/sram.h>
+>> =A0#include "clockdomain.h"
+>> @@ -518,8 +519,14 @@ static void omap3_pm_idle(void)
+>> =A0 =A0 =A0 if (omap_irq_pending() || need_resched())
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto out;
+>>
+>> + =A0 =A0 trace_power_start(POWER_CSTATE, 1, smp_processor_id());
+>> + =A0 =A0 trace_cpu_idle(1, smp_processor_id());
+>> +
+>> =A0 =A0 =A0 omap_sram_idle();
+>>
+>> + =A0 =A0 trace_power_end(smp_processor_id());
+>> + =A0 =A0 trace_cpu_idle(PWR_EVENT_EXIT, smp_processor_id());
+>> +
+>> =A0out:
+>> =A0 =A0 =A0 local_fiq_enable();
+>> =A0 =A0 =A0 local_irq_enable();
+>> diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2=
+/powerdomain.c
+>> index eaed0df..e1feb50 100644
+>> --- a/arch/arm/mach-omap2/powerdomain.c
+>> +++ b/arch/arm/mach-omap2/powerdomain.c
+>> @@ -19,12 +19,15 @@
+>> =A0#include <linux/list.h>
+>> =A0#include <linux/errno.h>
+>> =A0#include <linux/string.h>
+>> +#include <trace/events/power.h>
+>> +
+>> =A0#include "cm2xxx_3xxx.h"
+>> =A0#include "prcm44xx.h"
+>> =A0#include "cm44xx.h"
+>> =A0#include "prm2xxx_3xxx.h"
+>> =A0#include "prm44xx.h"
+>>
+>> +#include <asm/cpu.h>
+>> =A0#include <plat/cpu.h>
+>> =A0#include "powerdomain.h"
+>> =A0#include "clockdomain.h"
+>> @@ -406,8 +409,11 @@ int pwrdm_set_next_pwrst(struct powerdomain *pw=
+rdm, u8 pwrst)
+>> =A0 =A0 =A0 pr_debug("powerdomain: setting next powerstate for %s to=
+ %0x\n",
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pwrdm->name, pwrst);
+>>
+>> - =A0 =A0 if (arch_pwrdm && arch_pwrdm->pwrdm_set_next_pwrst)
+>> + =A0 =A0 if (arch_pwrdm && arch_pwrdm->pwrdm_set_next_pwrst) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 trace_power_domain_target(pwrdm->name, pwr=
+st,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 smp_processor_id());
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D arch_pwrdm->pwrdm_set_next_pwrst=
+(pwrdm, pwrst);
+>> + =A0 =A0 }
+>>
+>> =A0 =A0 =A0 return ret;
+>> =A0}
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
