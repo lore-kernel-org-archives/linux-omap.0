@@ -1,100 +1,46 @@
-From: "J, KEERTHY" <j-keerthy-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v2] i2c-omap: Double clear of ARDY status in IRQ handler
-Date: Fri, 18 Feb 2011 07:37:35 +0530
-Message-ID: <AANLkTin+g7RcMvuGY8FgFuxA+AWqyrhdZQQ+-PfGC1oQ@mail.gmail.com>
-References: <1297832056-28142-1-git-send-email-j-keerthy@ti.com>
-	<20110218000843.GP20795@atomide.com>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: linux-next: manual merge of the omap_dss2 tree with the omap tree
+Date: Fri, 18 Feb 2011 13:25:15 +1100
+Message-ID: <20110218132515.e071230f.sfr@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20110218000843.GP20795-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: ben-i2c-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Richard woodruff <r-woodruff2-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-next-owner@vger.kernel.org>
+Sender: linux-next-owner@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Russell King <rmk+kernel@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Senthilvadivu Guruswamy <svadivu@ti.com>, Sumit Semwal <sumit.semwal@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Feb 18, 2011 at 5:38 AM, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote=
-:
-> * Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org> [110215 20:53]:
->> From: Richard woodruff <r-woodruff2-l0cyMroinI0@public.gmane.org>
->>
->> This errata occurs when the ARDY interrupt generation is enabled.
->> At the begining of every new transaction the ARDY interrupt is clear=
-ed.
->>
->> On continuous i2c transactions where after clearing the ARDY bit fro=
-m
->> I2C_STAT register (clearing the interrupt), the IRQ line is reassert=
-ed and the
->> I2C_STAT[ARDY] bit set again on 1. In fact, the ARDY status bit is n=
-ot cleared
->> at the write access to I2C_STAT[ARDY] and only the IRQ line is deass=
-erted and
->> then reasserted. This is not captured in the usual errata documents.
->>
->> The workaround is to have a double clear of ARDY status in irq handl=
-er.
->
-> I'll add this to omap-testing for few days and then if no issue Ben
-> can merge this.
+Hi Tomi,
 
-Thanks Tony.
->
-> Regards,
->
-> Tony
->
->> Signed-off-by: Richard woodruff <r-woodruff2-l0cyMroinI0@public.gmane.org>
->> Signed-off-by: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
->> ---
->> =A0drivers/i2c/busses/i2c-omap.c | =A0 =A06 +++++-
->> =A01 files changed, 5 insertions(+), 1 deletions(-)
->>
->> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-=
-omap.c
->> index b605ff3..5b35cf4 100644
->> --- a/drivers/i2c/busses/i2c-omap.c
->> +++ b/drivers/i2c/busses/i2c-omap.c
->> @@ -847,11 +847,15 @@ complete:
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(dev->dev, "Arbit=
-ration lost\n");
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 err |=3D OMAP_I2C_STAT_A=
-L;
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
->> + =A0 =A0 =A0 =A0 =A0 =A0 /*
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0* ProDB0017052: Clear ARDY bit twice
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0*/
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (stat & (OMAP_I2C_STAT_ARDY | OMAP_I2=
-C_STAT_NACK |
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 OMAP_I2C_STAT_AL)) {
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_i2c_ack_stat(dev, s=
-tat &
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (OMAP_I2=
-C_STAT_RRDY | OMAP_I2C_STAT_RDR |
->> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP_I2C_S=
-TAT_XRDY | OMAP_I2C_STAT_XDR));
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP_I2C_S=
-TAT_XRDY | OMAP_I2C_STAT_XDR |
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP_I2C_S=
-TAT_ARDY));
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_i2c_complete_cmd(de=
-v, err);
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return IRQ_HANDLED;
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
->> --
->> 1.7.0.4
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-i2c"=
- in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
+Today's linux-next merge of the omap_dss2 tree got a conflict in
+arch/arm/mach-omap2/board-am3517evm.c between commit
+3dc3bad6f1b316d79d9d1d596a590b5097cb3dc4 ("ARM: OMAP2: use early init
+hook") from the omap tree and commit
+603aa0662c26ad05c3ecf1b912f8bebf76dab73d ("OMAP2, 3: DSS2: board files:
+replace platform_device_register with omap_display_init()") from the
+omap_dss2 tree.
 
+Just context changes.  I fixed it up (see below) and can carry the fix as
+necessary.
+-- 
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
 
-
---=20
-Regards and Thanks,
-Keerthy
+diff --cc arch/arm/mach-omap2/board-am3517evm.c
+index d0d0f55,548f524..0000000
+--- a/arch/arm/mach-omap2/board-am3517evm.c
++++ b/arch/arm/mach-omap2/board-am3517evm.c
+@@@ -392,11 -384,7 +384,7 @@@ static struct omap_dss_board_info am351
+  static struct omap_board_config_kernel am3517_evm_config[] __initdata = {
+  };
+  
+- static struct platform_device *am3517_evm_devices[] __initdata = {
+- 	&am3517_evm_dss_device,
+- };
+- 
+ -static void __init am3517_evm_init_irq(void)
+ +static void __init am3517_evm_init_early(void)
+  {
+  	omap_board_config = am3517_evm_config;
+  	omap_board_config_size = ARRAY_SIZE(am3517_evm_config);
