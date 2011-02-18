@@ -1,183 +1,100 @@
-From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: [PATCH v6 3/4] OMAP: mailbox: build device using omap_device/omap_hwmod
-Date: Thu, 17 Feb 2011 19:42:26 -0600
-Message-ID: <1297993347-5654-4-git-send-email-omar.ramirez@ti.com>
-References: <1297993347-5654-1-git-send-email-omar.ramirez@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:33655 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752318Ab1BRBx5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 17 Feb 2011 20:53:57 -0500
-In-Reply-To: <1297993347-5654-1-git-send-email-omar.ramirez@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: "J, KEERTHY" <j-keerthy-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2] i2c-omap: Double clear of ARDY status in IRQ handler
+Date: Fri, 18 Feb 2011 07:37:35 +0530
+Message-ID: <AANLkTin+g7RcMvuGY8FgFuxA+AWqyrhdZQQ+-PfGC1oQ@mail.gmail.com>
+References: <1297832056-28142-1-git-send-email-j-keerthy@ti.com>
+	<20110218000843.GP20795@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20110218000843.GP20795-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: ben-i2c-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Richard woodruff <r-woodruff2-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Russell King <linux@arm.linux.org.uk>, Kevin Hilman <khilman@ti.com>, Benoit Cousson <b-cousson@ti.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Sourav Poddar <sourav.poddar@ti.com>, lo <linux-omap@vger.kernel.org>, lak <linux-arm-kernel@lists.infradead.org>, Felipe Contreras <felipe.contreras@gmail.com>, Omar Ramirez Luna <omar.ramirez@ti.com>
 
-From: Felipe Contreras <felipe.contreras@gmail.com>
+On Fri, Feb 18, 2011 at 5:38 AM, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote=
+:
+> * Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org> [110215 20:53]:
+>> From: Richard woodruff <r-woodruff2-l0cyMroinI0@public.gmane.org>
+>>
+>> This errata occurs when the ARDY interrupt generation is enabled.
+>> At the begining of every new transaction the ARDY interrupt is clear=
+ed.
+>>
+>> On continuous i2c transactions where after clearing the ARDY bit fro=
+m
+>> I2C_STAT register (clearing the interrupt), the IRQ line is reassert=
+ed and the
+>> I2C_STAT[ARDY] bit set again on 1. In fact, the ARDY status bit is n=
+ot cleared
+>> at the write access to I2C_STAT[ARDY] and only the IRQ line is deass=
+erted and
+>> then reasserted. This is not captured in the usual errata documents.
+>>
+>> The workaround is to have a double clear of ARDY status in irq handl=
+er.
+>
+> I'll add this to omap-testing for few days and then if no issue Ben
+> can merge this.
 
-Remove static platform_device and resource data within
-omap mailbox driver; use the one defined in the hwmod
-database along with omap_device framework for device
-build and registration.
+Thanks Tony.
+>
+> Regards,
+>
+> Tony
+>
+>> Signed-off-by: Richard woodruff <r-woodruff2-l0cyMroinI0@public.gmane.org>
+>> Signed-off-by: Keerthy <j-keerthy-l0cyMroinI0@public.gmane.org>
+>> ---
+>> =A0drivers/i2c/busses/i2c-omap.c | =A0 =A06 +++++-
+>> =A01 files changed, 5 insertions(+), 1 deletions(-)
+>>
+>> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-=
+omap.c
+>> index b605ff3..5b35cf4 100644
+>> --- a/drivers/i2c/busses/i2c-omap.c
+>> +++ b/drivers/i2c/busses/i2c-omap.c
+>> @@ -847,11 +847,15 @@ complete:
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(dev->dev, "Arbit=
+ration lost\n");
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 err |=3D OMAP_I2C_STAT_A=
+L;
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
+>> + =A0 =A0 =A0 =A0 =A0 =A0 /*
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0* ProDB0017052: Clear ARDY bit twice
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0*/
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (stat & (OMAP_I2C_STAT_ARDY | OMAP_I2=
+C_STAT_NACK |
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 OMAP_I2C_STAT_AL)) {
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_i2c_ack_stat(dev, s=
+tat &
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (OMAP_I2=
+C_STAT_RRDY | OMAP_I2C_STAT_RDR |
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP_I2C_S=
+TAT_XRDY | OMAP_I2C_STAT_XDR));
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP_I2C_S=
+TAT_XRDY | OMAP_I2C_STAT_XDR |
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP_I2C_S=
+TAT_ARDY));
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_i2c_complete_cmd(de=
+v, err);
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return IRQ_HANDLED;
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
+>> --
+>> 1.7.0.4
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-i2c"=
+ in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
 
-Add device latency functions to be used, so clock can be
-enabled and sysconfig is configured.
 
-Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
-Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
----
- arch/arm/mach-omap2/devices.c |   98 +++++++----------------------------------
- arch/arm/mach-omap2/mailbox.c |    7 +--
- 2 files changed, 19 insertions(+), 86 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index 71f099b..44962eb 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -143,95 +143,29 @@ static inline void omap_init_camera(void)
- #endif
- 
- #if defined(CONFIG_OMAP_MBOX_FWK) || defined(CONFIG_OMAP_MBOX_FWK_MODULE)
--
--#define MBOX_REG_SIZE   0x120
--
--#ifdef CONFIG_ARCH_OMAP2
--static struct resource omap2_mbox_resources[] = {
--	{
--		.start		= OMAP24XX_MAILBOX_BASE,
--		.end		= OMAP24XX_MAILBOX_BASE + MBOX_REG_SIZE - 1,
--		.flags		= IORESOURCE_MEM,
--	},
--	{
--		.start		= INT_24XX_MAIL_U0_MPU,
--		.flags		= IORESOURCE_IRQ,
--		.name		= "dsp",
--	},
--	{
--		.start		= INT_24XX_MAIL_U3_MPU,
--		.flags		= IORESOURCE_IRQ,
--		.name		= "iva",
--	},
--};
--static int omap2_mbox_resources_sz = ARRAY_SIZE(omap2_mbox_resources);
--#else
--#define omap2_mbox_resources		NULL
--#define omap2_mbox_resources_sz		0
--#endif
--
--#ifdef CONFIG_ARCH_OMAP3
--static struct resource omap3_mbox_resources[] = {
--	{
--		.start		= OMAP34XX_MAILBOX_BASE,
--		.end		= OMAP34XX_MAILBOX_BASE + MBOX_REG_SIZE - 1,
--		.flags		= IORESOURCE_MEM,
--	},
--	{
--		.start		= INT_24XX_MAIL_U0_MPU,
--		.flags		= IORESOURCE_IRQ,
--		.name		= "dsp",
--	},
--};
--static int omap3_mbox_resources_sz = ARRAY_SIZE(omap3_mbox_resources);
--#else
--#define omap3_mbox_resources		NULL
--#define omap3_mbox_resources_sz		0
--#endif
--
--#ifdef CONFIG_ARCH_OMAP4
--
--#define OMAP4_MBOX_REG_SIZE	0x130
--static struct resource omap4_mbox_resources[] = {
--	{
--		.start          = OMAP44XX_MAILBOX_BASE,
--		.end            = OMAP44XX_MAILBOX_BASE +
--					OMAP4_MBOX_REG_SIZE - 1,
--		.flags          = IORESOURCE_MEM,
--	},
--	{
--		.start          = OMAP44XX_IRQ_MAIL_U0,
--		.flags          = IORESOURCE_IRQ,
--		.name		= "mbox",
-+static struct omap_device_pm_latency mbox_latencies[] = {
-+	[0] = {
-+		.activate_func = omap_device_enable_hwmods,
-+		.deactivate_func = omap_device_idle_hwmods,
-+		.flags = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
- 	},
- };
--static int omap4_mbox_resources_sz = ARRAY_SIZE(omap4_mbox_resources);
--#else
--#define omap4_mbox_resources		NULL
--#define omap4_mbox_resources_sz		0
--#endif
--
--static struct platform_device mbox_device = {
--	.name		= "omap-mailbox",
--	.id		= -1,
--};
- 
- static inline void omap_init_mbox(void)
- {
--	if (cpu_is_omap24xx()) {
--		mbox_device.resource = omap2_mbox_resources;
--		mbox_device.num_resources = omap2_mbox_resources_sz;
--	} else if (cpu_is_omap34xx()) {
--		mbox_device.resource = omap3_mbox_resources;
--		mbox_device.num_resources = omap3_mbox_resources_sz;
--	} else if (cpu_is_omap44xx()) {
--		mbox_device.resource = omap4_mbox_resources;
--		mbox_device.num_resources = omap4_mbox_resources_sz;
--	} else {
--		pr_err("%s: platform not supported\n", __func__);
-+	struct omap_hwmod *oh;
-+	struct omap_device *od;
-+
-+	oh = omap_hwmod_lookup("mailbox");
-+	if (!oh) {
-+		pr_err("%s: unable to find hwmod\n", __func__);
- 		return;
- 	}
--	platform_device_register(&mbox_device);
-+
-+	od = omap_device_build("omap-mailbox", -1, oh, NULL, 0,
-+				mbox_latencies, ARRAY_SIZE(mbox_latencies), 0);
-+	WARN(IS_ERR(od), "%s: could not build device, err %ld\n",
-+						__func__, PTR_ERR(od));
- }
- #else
- static inline void omap_init_mbox(void) { }
-diff --git a/arch/arm/mach-omap2/mailbox.c b/arch/arm/mach-omap2/mailbox.c
-index 29b9dc3..de352bd 100644
---- a/arch/arm/mach-omap2/mailbox.c
-+++ b/arch/arm/mach-omap2/mailbox.c
-@@ -398,14 +398,14 @@ static int __devinit omap2_mbox_probe(struct platform_device *pdev)
- 	else if (cpu_is_omap34xx()) {
- 		list = omap3_mboxes;
- 
--		list[0]->irq = platform_get_irq_byname(pdev, "dsp");
-+		list[0]->irq = platform_get_irq(pdev, 0);
- 	}
- #endif
- #if defined(CONFIG_ARCH_OMAP2)
- 	else if (cpu_is_omap2430()) {
- 		list = omap2_mboxes;
- 
--		list[0]->irq = platform_get_irq_byname(pdev, "dsp");
-+		list[0]->irq = platform_get_irq(pdev, 0);
- 	} else if (cpu_is_omap2420()) {
- 		list = omap2_mboxes;
- 
-@@ -417,8 +417,7 @@ static int __devinit omap2_mbox_probe(struct platform_device *pdev)
- 	else if (cpu_is_omap44xx()) {
- 		list = omap4_mboxes;
- 
--		list[0]->irq = list[1]->irq =
--			platform_get_irq_byname(pdev, "mbox");
-+		list[0]->irq = list[1]->irq = platform_get_irq(pdev, 0);
- 	}
- #endif
- 	else {
--- 
-1.7.1
-
+--=20
+Regards and Thanks,
+Keerthy
