@@ -1,70 +1,59 @@
-From: "Koyamangalath, Abhilash" <abhilash.kv@ti.com>
-Subject: RE: watchdog pdev id set to -1
-Date: Fri, 18 Feb 2011 16:39:48 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC35608703700616CE@dbde02.ent.ti.com>
-References: <FCCFB4CDC6E5564B9182F639FC3560870370061699@dbde02.ent.ti.com>
- <20110218105635.GB10489@legolas.emea.dhcp.ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] OMAP: DSS2: Have separate irq handlers for DISPC and
+ DSI
+Date: Fri, 18 Feb 2011 13:11:37 +0200
+Message-ID: <1298027497.24062.53.camel@deskari>
+References: <1297952702-13419-1-git-send-email-archit@ti.com>
+	 <91F20383AC6A5F4DB94C692112281213B4C15EBB91@dlee07.ent.ti.com>
+	 <4D5E3D35.9000902@ti.com> <1298023223.24062.24.camel@deskari>
+	 <4D5E5275.4020002@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60099 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:40274 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750699Ab1BRLJ5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Feb 2011 06:09:57 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1IB9sjZ008824
+	id S1753719Ab1BRLLl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 18 Feb 2011 06:11:41 -0500
+Received: from dlep36.itg.ti.com ([157.170.170.91])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1IBBeOk007160
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 18 Feb 2011 05:09:56 -0600
-In-Reply-To: <20110218105635.GB10489@legolas.emea.dhcp.ti.com>
-Content-Language: en-US
+	for <linux-omap@vger.kernel.org>; Fri, 18 Feb 2011 05:11:40 -0600
+Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
+	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id p1IBBetn027391
+	for <linux-omap@vger.kernel.org>; Fri, 18 Feb 2011 05:11:40 -0600 (CST)
+Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p1IBBee9021351
+	for <linux-omap@vger.kernel.org>; Fri, 18 Feb 2011 05:11:40 -0600 (CST)
+In-Reply-To: <4D5E5275.4020002@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Balbi, Felipe" <balbi@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Taneja, Archit" <archit@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Cousson, Benoit" <b-cousson@ti.com>
 
-I understand, but is there a subtle reason why are starting from
-an erroneous-looking -1 rather than a more natural 0 (or 1 ?).
-
-
-> -----Original Message-----
-> From: Balbi, Felipe
-> Sent: Friday, February 18, 2011 4:27 PM
-> To: Koyamangalath, Abhilash
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: watchdog pdev id set to -1
-> 
+On Fri, 2011-02-18 at 05:05 -0600, Taneja, Archit wrote:
 > Hi,
 > 
-> (your lines are over 80-characters, fix it)
-> 
-> On Fri, Feb 18, 2011 at 04:11:11PM +0530, Koyamangalath, Abhilash wrote:
-> > There this boot-time message (on both omap3 and am3517 evms atleast):
-> > [    1.904418] omap_device: omap_wdt.-1: new worst case activate
-> > latency 0: 6105
-> >
-> > omap_init_wdt() initializes the id to -1 and then omap_device_build()
-> > is called with this value; this eventually calls
-> > platform_device_register() with a pdev having id as -1. I don't see
-> > any code that checks for this -1 and changes it to a non-erroneous
-> > value.
-> >
-> > Perhaps there is a reason I've failed to notice?  Please comment.
-> > Else I'm planning to submit a patch which fixes this.
-> 
-> That's not an error value. If you have a -1 ID, you're only telling the
-> kernel "this is only omap_wdt platform_device I have", which means that
-> it will look in sysfs as:
-> 
-> /sys/devices/platform/omap_wdt/
-> 
-> if you have an ID >= 0, it will look as:
-> 
-> /sys/devices/platform/omap_wdt.0/
-> /sys/devices/platform/omap_wdt.1/
-> /sys/devices/platform/omap_wdt.2/
-> 
-> etc, that's all.
-> 
-> --
-> balbi
+
+<snip>
+
+> One strange thing I see though is the increment with and without printks 
+> in the irq handler in  both the cases. I always see increments of 2 when 
+> I put prints. I see 3 when I don't. That's a bit peculiar.
+
+Hmm. That's probably because prints make it slower. TE_TRIGGER and
+VC0_IRQ probably happen at different times. If you have printks, they
+are combined into one interrupt. If no printk, the code is faster and
+handles them separately.
+
+> Behavior looks as expected. I guess we can go without DSS_IRQSTATUS 
+> then. Should I send out a patch? Also, should we remove DSS_IRQSTATUS in 
+> totality from the code now?
+
+Ok. Yes, please send a patch. Is DSS_IRQSTATUS used anywhere after the
+patch? I guess not. But let's leave the define there, as the register
+still exists.
+
+ Tomi
+
+
