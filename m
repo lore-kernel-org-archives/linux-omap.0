@@ -1,58 +1,39 @@
-From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Subject: Re: [PATCH v5 3/5] OMAP4: hwmod data: add mailbox data
-Date: Thu, 17 Feb 2011 18:24:59 -0600
-Message-ID: <AANLkTikUt=GHVW1AEzm4gLCL1Be6eK+qJti=a1KR2N7H@mail.gmail.com>
-References: <1296674843-12718-1-git-send-email-omar.ramirez@ti.com>
-	<1296674843-12718-4-git-send-email-omar.ramirez@ti.com>
-	<4D5943A9.8010205@ti.com>
-	<AANLkTinA2a60TSM7qDC1LQiRaUTs0DR3bDMv+oVsVOE0@mail.gmail.com>
-	<4D5AF8BA.8080403@ti.com>
-	<AANLkTi=yj2_bS1h87u0hhUUpA=RPZe-A=PiNSf_q_66r@mail.gmail.com>
-	<20110217233908.GG20795@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v10 00/11] dmtimer adaptation to platform_driver
+Date: Thu, 17 Feb 2011 16:57:06 -0800
+Message-ID: <20110218005706.GR20795@atomide.com>
+References: <1297861220-831-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:38136 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752040Ab1BRAZA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 17 Feb 2011 19:25:00 -0500
-Received: by mail-gy0-f173.google.com with SMTP id 5so1545701gye.32
-        for <linux-omap@vger.kernel.org>; Thu, 17 Feb 2011 16:24:59 -0800 (PST)
-In-Reply-To: <20110217233908.GG20795@atomide.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:22323 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752108Ab1BRA5L (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Feb 2011 19:57:11 -0500
+Content-Disposition: inline
+In-Reply-To: <1297861220-831-1-git-send-email-tarun.kanti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, Russell King <linux@arm.linux.org.uk>, lo <linux-omap@vger.kernel.org>, lak <linux-arm-kernel@lists.infradead.org>
+To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@ti.com
 
-Hi Tony,
+Hi,
 
-On Thu, Feb 17, 2011 at 5:39 PM, Tony Lindgren <tony@atomide.com> wrote:
-> * Ramirez Luna, Omar <omar.ramirez@ti.com> [110215 16:11]:
->>
->> > If you have to do several platform_get_irq_byname to get this one, I'd
->> > prefer to get rid of that name for OMAP4. It will make mailbox irq
->> > consistent with the other hwmods.
->>
->> I was thinking to standardize the names to be mbox0..mboxN across all
->> the platforms, reason being that the mailbox also has capabilities to
->> be used not only by dsp or iva, by using a polling method.
->>
->> So even if the mailbox in OMAP3 is called "dsp", it has 4 more queues
->> apart from the 2 used for messaging between arm and dsp, that could be
->> used even if tidspbridge wasn't there.
->
-> So what's the status of this series? Can the rest of the patches
-> now be applied on top of the current omap-for-linus or do the names
-> still need fixing?
+* Tarun Kanti DebBarma <tarun.kanti@ti.com> [110216 04:56]:
+> dmtimer adaptation to platform_driver.
+> 
+> This patch series is adaptation of dmtimer code to platform driver
+> using omap_device and omap_hwmod abstraction.
 
-I'm going to remove the names for the hwmods with a single irq. And
-change the interface clock to be the main_clk, so it can be disabled
-when runtime pm is disabled.
+Looks like this needs rebasing on top of current omap-for-linus
+because of the omap4 hwmod data being merged.
 
-I won't resend the patch for OMAP4 hwmod data, as this was send
-earlier by Benoit.
+Also note that you may need to change things with the clock
+init with init_early changes.
 
-Regards,
+That's something we need to consider carefully as we don't
+necessarily want to have the system timer depend on hwmod
+and clock framework. But that can be fixed later on after
+your patch series.
 
-Omar
+Tony
