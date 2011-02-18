@@ -1,57 +1,80 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: watchdog pdev id set to -1
-Date: Fri, 18 Feb 2011 12:56:35 +0200
-Message-ID: <20110218105635.GB10489@legolas.emea.dhcp.ti.com>
-References: <FCCFB4CDC6E5564B9182F639FC3560870370061699@dbde02.ent.ti.com>
-Reply-To: balbi@ti.com
+From: archit taneja <archit@ti.com>
+Subject: Re: [PATCH] OMAP: DSS2: Have separate irq handlers for DISPC and
+ DSI
+Date: Fri, 18 Feb 2011 16:35:25 +0530
+Message-ID: <4D5E5275.4020002@ti.com>
+References: <1297952702-13419-1-git-send-email-archit@ti.com>	 <91F20383AC6A5F4DB94C692112281213B4C15EBB91@dlee07.ent.ti.com>	 <4D5E3D35.9000902@ti.com> <1298023223.24062.24.camel@deskari>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:55121 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751094Ab1BRK4l (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 18 Feb 2011 05:56:41 -0500
-Received: by bwz15 with SMTP id 15so676859bwz.5
-        for <linux-omap@vger.kernel.org>; Fri, 18 Feb 2011 02:56:38 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC3560870370061699@dbde02.ent.ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:44831 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752795Ab1BRLEH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 18 Feb 2011 06:04:07 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1IB43mA020454
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Fri, 18 Feb 2011 05:04:05 -0600
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id p1IB43MQ000724
+	for <linux-omap@vger.kernel.org>; Fri, 18 Feb 2011 16:34:03 +0530 (IST)
+In-Reply-To: <1298023223.24062.24.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Koyamangalath, Abhilash" <abhilash.kv@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Cousson, Benoit" <b-cousson@ti.com>
 
 Hi,
 
-(your lines are over 80-characters, fix it)
+On Friday 18 February 2011 03:30 PM, Valkeinen, Tomi wrote:
 
-On Fri, Feb 18, 2011 at 04:11:11PM +0530, Koyamangalath, Abhilash wrote:
-> There this boot-time message (on both omap3 and am3517 evms atleast):
-> [    1.904418] omap_device: omap_wdt.-1: new worst case activate
-> latency 0: 6105
-> 
-> omap_init_wdt() initializes the id to -1 and then omap_device_build()
-> is called with this value; this eventually calls
-> platform_device_register() with a pdev having id as -1. I don't see
-> any code that checks for this -1 and changes it to a non-erroneous
-> value.
-> 
-> Perhaps there is a reason I've failed to notice?  Please comment.
-> Else I'm planning to submit a patch which fixes this.
 
-That's not an error value. If you have a -1 ID, you're only telling the
-kernel "this is only omap_wdt platform_device I have", which means that
-it will look in sysfs as:
+<snip>
+> Well, if DSS_IRQSTATUS doesn't work as I described above, in the worst
+> case we will just run a few more lines of code in the irq handler, as we
+> check for registered interrupts. But that would only happen if either
+> DISPC or DSI has no interrupts enabled, which is... never?
+>
+> So I think it should work fine anyway.
+>
+>   Tomi
 
-/sys/devices/platform/omap_wdt/
+I tried to read IRQSTATUS registers in 2 the cases:
 
-if you have an ID >= 0, it will look as:
+With DSS_IRQSTATUS:
 
-/sys/devices/platform/omap_wdt.0/
-/sys/devices/platform/omap_wdt.1/
-/sys/devices/platform/omap_wdt.2/
+[   51.166503] DSS_IRQSTATUS 2 -> DSI
+[   51.170135] DSS_IRQSTATUS 2 -> DSI
+[   51.173095] DSI_IRQSTATUS 20001 -> TE_TRIGGER | VC0_IRQ
+[   51.208282] DSS_IRQSTATUS 1 -> DISPC
+[   51.211242] DISPC_IRQSTATUS 81
+[   51.214508] DSS_IRQSTATUS 2 -> FRAMEDONE | GFX_END_WINDOW
+[   51.217437] DSI_IRQSTATUS 20001 -> TE_TRIGGER | VC0_IRQ
 
-etc, that's all.
+The cat /proc/interrupts increments by 2 for every manual update call.
 
--- 
-balbi
+Without DSS_IRQSTATUS:
+
+
+Doing a ./upd (from omapfb-tests) on 3430sdp with Taal:
+
+[   77.060668] DISPC irqstatus 0
+[   77.064270] DSI irqstatus 20001-> TE_TRIGGER | VC0_IRQ
+[   77.104888] DISPC irqstatus 81 -> FRAMEDONE | GFX_END_WINDOW
+[   77.108154] DSI irqstatus 20001 -> TE_TRIGGER | VC0_IRQ
+
+VC0_IRQSTATUS came as 0x24 -> BTA_ACK | PACKET_SENT
+
+The cat /proc/interrupts increments by 2 for every manual update call as 
+before.
+
+One strange thing I see though is the increment with and without printks 
+in the irq handler in  both the cases. I always see increments of 2 when 
+I put prints. I see 3 when I don't. That's a bit peculiar.
+
+Behavior looks as expected. I guess we can go without DSS_IRQSTATUS 
+then. Should I send out a patch? Also, should we remove DSS_IRQSTATUS in 
+totality from the code now?
+
+Archit
