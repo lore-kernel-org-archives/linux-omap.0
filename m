@@ -1,208 +1,183 @@
 From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: [PATCH v6 1/4] OMAP2: hwmod data: add mailbox data
-Date: Thu, 17 Feb 2011 19:42:24 -0600
-Message-ID: <1297993347-5654-2-git-send-email-omar.ramirez@ti.com>
+Subject: [PATCH v6 3/4] OMAP: mailbox: build device using omap_device/omap_hwmod
+Date: Thu, 17 Feb 2011 19:42:26 -0600
+Message-ID: <1297993347-5654-4-git-send-email-omar.ramirez@ti.com>
 References: <1297993347-5654-1-git-send-email-omar.ramirez@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:46006 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:33655 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753578Ab1BRBxz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 17 Feb 2011 20:53:55 -0500
+	id S1752318Ab1BRBx5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 17 Feb 2011 20:53:57 -0500
 In-Reply-To: <1297993347-5654-1-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Russell King <linux@arm.linux.org.uk>, Kevin Hilman <khilman@ti.com>, Benoit Cousson <b-cousson@ti.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Sourav Poddar <sourav.poddar@ti.com>, lo <linux-omap@vger.kernel.org>, lak <linux-arm-kernel@lists.infradead.org>, Omar Ramirez Luna <omar.ramirez@ti.com>
+Cc: Russell King <linux@arm.linux.org.uk>, Kevin Hilman <khilman@ti.com>, Benoit Cousson <b-cousson@ti.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Sourav Poddar <sourav.poddar@ti.com>, lo <linux-omap@vger.kernel.org>, lak <linux-arm-kernel@lists.infradead.org>, Felipe Contreras <felipe.contreras@gmail.com>, Omar Ramirez Luna <omar.ramirez@ti.com>
 
-Mailbox hwmod data for omap2430 and 2420.
+From: Felipe Contreras <felipe.contreras@gmail.com>
 
+Remove static platform_device and resource data within
+omap mailbox driver; use the one defined in the hwmod
+database along with omap_device framework for device
+build and registration.
+
+Add device latency functions to be used, so clock can be
+enabled and sysconfig is configured.
+
+Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
 Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_2420_data.c |   73 ++++++++++++++++++++++++++++
- arch/arm/mach-omap2/omap_hwmod_2430_data.c |   72 +++++++++++++++++++++++++++
- 2 files changed, 145 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/devices.c |   98 +++++++----------------------------------
+ arch/arm/mach-omap2/mailbox.c |    7 +--
+ 2 files changed, 19 insertions(+), 86 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-index 7fffd34..bd7f982 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-@@ -904,6 +904,76 @@ static struct omap_hwmod omap2420_dma_system_hwmod = {
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index 71f099b..44962eb 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -143,95 +143,29 @@ static inline void omap_init_camera(void)
+ #endif
+ 
+ #if defined(CONFIG_OMAP_MBOX_FWK) || defined(CONFIG_OMAP_MBOX_FWK_MODULE)
+-
+-#define MBOX_REG_SIZE   0x120
+-
+-#ifdef CONFIG_ARCH_OMAP2
+-static struct resource omap2_mbox_resources[] = {
+-	{
+-		.start		= OMAP24XX_MAILBOX_BASE,
+-		.end		= OMAP24XX_MAILBOX_BASE + MBOX_REG_SIZE - 1,
+-		.flags		= IORESOURCE_MEM,
+-	},
+-	{
+-		.start		= INT_24XX_MAIL_U0_MPU,
+-		.flags		= IORESOURCE_IRQ,
+-		.name		= "dsp",
+-	},
+-	{
+-		.start		= INT_24XX_MAIL_U3_MPU,
+-		.flags		= IORESOURCE_IRQ,
+-		.name		= "iva",
+-	},
+-};
+-static int omap2_mbox_resources_sz = ARRAY_SIZE(omap2_mbox_resources);
+-#else
+-#define omap2_mbox_resources		NULL
+-#define omap2_mbox_resources_sz		0
+-#endif
+-
+-#ifdef CONFIG_ARCH_OMAP3
+-static struct resource omap3_mbox_resources[] = {
+-	{
+-		.start		= OMAP34XX_MAILBOX_BASE,
+-		.end		= OMAP34XX_MAILBOX_BASE + MBOX_REG_SIZE - 1,
+-		.flags		= IORESOURCE_MEM,
+-	},
+-	{
+-		.start		= INT_24XX_MAIL_U0_MPU,
+-		.flags		= IORESOURCE_IRQ,
+-		.name		= "dsp",
+-	},
+-};
+-static int omap3_mbox_resources_sz = ARRAY_SIZE(omap3_mbox_resources);
+-#else
+-#define omap3_mbox_resources		NULL
+-#define omap3_mbox_resources_sz		0
+-#endif
+-
+-#ifdef CONFIG_ARCH_OMAP4
+-
+-#define OMAP4_MBOX_REG_SIZE	0x130
+-static struct resource omap4_mbox_resources[] = {
+-	{
+-		.start          = OMAP44XX_MAILBOX_BASE,
+-		.end            = OMAP44XX_MAILBOX_BASE +
+-					OMAP4_MBOX_REG_SIZE - 1,
+-		.flags          = IORESOURCE_MEM,
+-	},
+-	{
+-		.start          = OMAP44XX_IRQ_MAIL_U0,
+-		.flags          = IORESOURCE_IRQ,
+-		.name		= "mbox",
++static struct omap_device_pm_latency mbox_latencies[] = {
++	[0] = {
++		.activate_func = omap_device_enable_hwmods,
++		.deactivate_func = omap_device_idle_hwmods,
++		.flags = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
+ 	},
  };
+-static int omap4_mbox_resources_sz = ARRAY_SIZE(omap4_mbox_resources);
+-#else
+-#define omap4_mbox_resources		NULL
+-#define omap4_mbox_resources_sz		0
+-#endif
+-
+-static struct platform_device mbox_device = {
+-	.name		= "omap-mailbox",
+-	.id		= -1,
+-};
  
- /*
-+ * 'mailbox' class
-+ * mailbox module allowing communication between the on-chip processors
-+ * using a queued mailbox-interrupt mechanism.
-+ */
+ static inline void omap_init_mbox(void)
+ {
+-	if (cpu_is_omap24xx()) {
+-		mbox_device.resource = omap2_mbox_resources;
+-		mbox_device.num_resources = omap2_mbox_resources_sz;
+-	} else if (cpu_is_omap34xx()) {
+-		mbox_device.resource = omap3_mbox_resources;
+-		mbox_device.num_resources = omap3_mbox_resources_sz;
+-	} else if (cpu_is_omap44xx()) {
+-		mbox_device.resource = omap4_mbox_resources;
+-		mbox_device.num_resources = omap4_mbox_resources_sz;
+-	} else {
+-		pr_err("%s: platform not supported\n", __func__);
++	struct omap_hwmod *oh;
++	struct omap_device *od;
 +
-+static struct omap_hwmod_class_sysconfig omap2420_mailbox_sysc = {
-+	.rev_offs	= 0x000,
-+	.sysc_offs	= 0x010,
-+	.syss_offs	= 0x014,
-+	.sysc_flags	= (SYSC_HAS_CLOCKACTIVITY | SYSC_HAS_SIDLEMODE |
-+			   SYSC_HAS_SOFTRESET | SYSC_HAS_AUTOIDLE),
-+	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
-+	.sysc_fields	= &omap_hwmod_sysc_type1,
-+};
++	oh = omap_hwmod_lookup("mailbox");
++	if (!oh) {
++		pr_err("%s: unable to find hwmod\n", __func__);
+ 		return;
+ 	}
+-	platform_device_register(&mbox_device);
 +
-+static struct omap_hwmod_class omap2420_mailbox_hwmod_class = {
-+	.name = "mailbox",
-+	.sysc = &omap2420_mailbox_sysc,
-+};
-+
-+/* mailbox */
-+static struct omap_hwmod omap2420_mailbox_hwmod;
-+static struct omap_hwmod_irq_info omap2420_mailbox_irqs[] = {
-+	{ .name = "dsp", .irq = 26 },
-+	{ .name = "iva", .irq = 34 },
-+};
-+
-+static struct omap_hwmod_addr_space omap2420_mailbox_addrs[] = {
-+	{
-+		.pa_start	= 0x48094000,
-+		.pa_end		= 0x480941ff,
-+		.flags		= ADDR_TYPE_RT,
-+	},
-+};
-+
-+/* l4_core -> mailbox */
-+static struct omap_hwmod_ocp_if omap2420_l4_core__mailbox = {
-+	.master		= &omap2420_l4_core_hwmod,
-+	.slave		= &omap2420_mailbox_hwmod,
-+	.addr		= omap2420_mailbox_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap2420_mailbox_addrs),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* mailbox slave ports */
-+static struct omap_hwmod_ocp_if *omap2420_mailbox_slaves[] = {
-+	&omap2420_l4_core__mailbox,
-+};
-+
-+static struct omap_hwmod omap2420_mailbox_hwmod = {
-+	.name		= "mailbox",
-+	.class		= &omap2420_mailbox_hwmod_class,
-+	.mpu_irqs	= omap2420_mailbox_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap2420_mailbox_irqs),
-+	.main_clk	= "mailboxes_ick",
-+	.prcm		= {
-+		.omap2 = {
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP24XX_EN_MAILBOXES_SHIFT,
-+			.module_offs = CORE_MOD,
-+			.idlest_reg_id = 1,
-+			.idlest_idle_bit = OMAP24XX_ST_MAILBOXES_SHIFT,
-+		},
-+	},
-+	.slaves		= omap2420_mailbox_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap2420_mailbox_slaves),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
-+};
-+
-+/*
-  * 'mcspi' class
-  * multichannel serial port interface (mcspi) / master/slave synchronous serial
-  * bus
-@@ -1038,6 +1108,9 @@ static __initdata struct omap_hwmod *omap2420_hwmods[] = {
- 	/* dma_system class*/
- 	&omap2420_dma_system_hwmod,
++	od = omap_device_build("omap-mailbox", -1, oh, NULL, 0,
++				mbox_latencies, ARRAY_SIZE(mbox_latencies), 0);
++	WARN(IS_ERR(od), "%s: could not build device, err %ld\n",
++						__func__, PTR_ERR(od));
+ }
+ #else
+ static inline void omap_init_mbox(void) { }
+diff --git a/arch/arm/mach-omap2/mailbox.c b/arch/arm/mach-omap2/mailbox.c
+index 29b9dc3..de352bd 100644
+--- a/arch/arm/mach-omap2/mailbox.c
++++ b/arch/arm/mach-omap2/mailbox.c
+@@ -398,14 +398,14 @@ static int __devinit omap2_mbox_probe(struct platform_device *pdev)
+ 	else if (cpu_is_omap34xx()) {
+ 		list = omap3_mboxes;
  
-+	/* mailbox class */
-+	&omap2420_mailbox_hwmod,
-+
- 	/* mcspi class */
- 	&omap2420_mcspi1_hwmod,
- 	&omap2420_mcspi2_hwmod,
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-index 60fe4aa..2bd1d1e 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-@@ -978,6 +978,75 @@ static struct omap_hwmod omap2430_dma_system_hwmod = {
- };
+-		list[0]->irq = platform_get_irq_byname(pdev, "dsp");
++		list[0]->irq = platform_get_irq(pdev, 0);
+ 	}
+ #endif
+ #if defined(CONFIG_ARCH_OMAP2)
+ 	else if (cpu_is_omap2430()) {
+ 		list = omap2_mboxes;
  
- /*
-+ * 'mailbox' class
-+ * mailbox module allowing communication between the on-chip processors
-+ * using a queued mailbox-interrupt mechanism.
-+ */
-+
-+static struct omap_hwmod_class_sysconfig omap2430_mailbox_sysc = {
-+	.rev_offs	= 0x000,
-+	.sysc_offs	= 0x010,
-+	.syss_offs	= 0x014,
-+	.sysc_flags	= (SYSC_HAS_CLOCKACTIVITY | SYSC_HAS_SIDLEMODE |
-+				SYSC_HAS_SOFTRESET | SYSC_HAS_AUTOIDLE),
-+	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
-+	.sysc_fields	= &omap_hwmod_sysc_type1,
-+};
-+
-+static struct omap_hwmod_class omap2430_mailbox_hwmod_class = {
-+	.name = "mailbox",
-+	.sysc = &omap2430_mailbox_sysc,
-+};
-+
-+/* mailbox */
-+static struct omap_hwmod omap2430_mailbox_hwmod;
-+static struct omap_hwmod_irq_info omap2430_mailbox_irqs[] = {
-+	{ .irq = 26 },
-+};
-+
-+static struct omap_hwmod_addr_space omap2430_mailbox_addrs[] = {
-+	{
-+		.pa_start	= 0x48094000,
-+		.pa_end		= 0x480941ff,
-+		.flags		= ADDR_TYPE_RT,
-+	},
-+};
-+
-+/* l4_core -> mailbox */
-+static struct omap_hwmod_ocp_if omap2430_l4_core__mailbox = {
-+	.master		= &omap2430_l4_core_hwmod,
-+	.slave		= &omap2430_mailbox_hwmod,
-+	.addr		= omap2430_mailbox_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap2430_mailbox_addrs),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* mailbox slave ports */
-+static struct omap_hwmod_ocp_if *omap2430_mailbox_slaves[] = {
-+	&omap2430_l4_core__mailbox,
-+};
-+
-+static struct omap_hwmod omap2430_mailbox_hwmod = {
-+	.name		= "mailbox",
-+	.class		= &omap2430_mailbox_hwmod_class,
-+	.mpu_irqs	= omap2430_mailbox_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap2430_mailbox_irqs),
-+	.main_clk	= "mailboxes_ick",
-+	.prcm		= {
-+		.omap2 = {
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP24XX_EN_MAILBOXES_SHIFT,
-+			.module_offs = CORE_MOD,
-+			.idlest_reg_id = 1,
-+			.idlest_idle_bit = OMAP24XX_ST_MAILBOXES_SHIFT,
-+		},
-+	},
-+	.slaves		= omap2430_mailbox_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap2430_mailbox_slaves),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
-+};
-+
-+/*
-  * 'mcspi' class
-  * multichannel serial port interface (mcspi) / master/slave synchronous serial
-  * bus
-@@ -1156,6 +1225,9 @@ static __initdata struct omap_hwmod *omap2430_hwmods[] = {
- 	/* dma_system class*/
- 	&omap2430_dma_system_hwmod,
+-		list[0]->irq = platform_get_irq_byname(pdev, "dsp");
++		list[0]->irq = platform_get_irq(pdev, 0);
+ 	} else if (cpu_is_omap2420()) {
+ 		list = omap2_mboxes;
  
-+	/* mailbox class */
-+	&omap2430_mailbox_hwmod,
-+
- 	/* mcspi class */
- 	&omap2430_mcspi1_hwmod,
- 	&omap2430_mcspi2_hwmod,
+@@ -417,8 +417,7 @@ static int __devinit omap2_mbox_probe(struct platform_device *pdev)
+ 	else if (cpu_is_omap44xx()) {
+ 		list = omap4_mboxes;
+ 
+-		list[0]->irq = list[1]->irq =
+-			platform_get_irq_byname(pdev, "mbox");
++		list[0]->irq = list[1]->irq = platform_get_irq(pdev, 0);
+ 	}
+ #endif
+ 	else {
 -- 
 1.7.1
 
