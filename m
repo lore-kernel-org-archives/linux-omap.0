@@ -1,91 +1,68 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v3 07/13] OMAP3: hwmod: add dev_attr for McBSP sidetone
-Date: Fri, 18 Feb 2011 19:52:22 +0530
-Message-ID: <1298038948-19871-8-git-send-email-kishon@ti.com>
+Subject: [PATCH v3 13/13] OMAP: hwmod: Removal of macros for data that is obtained from hwmod database
+Date: Fri, 18 Feb 2011 19:52:28 +0530
+Message-ID: <1298038948-19871-14-git-send-email-kishon@ti.com>
 References: <1298038948-19871-1-git-send-email-kishon@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:49622 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:49632 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758228Ab1BRO2P (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 18 Feb 2011 09:28:15 -0500
+	id S1758267Ab1BRO2U (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 18 Feb 2011 09:28:20 -0500
 In-Reply-To: <1298038948-19871-1-git-send-email-kishon@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, b-cousson@ti.com, tony@atomide.com, broonie@opensource.wolfsonmicro.com, jhnikula@gmail.com, peter.ujfalusi@nokia.com
 Cc: p-basak2@ti.com, kishon@ti.com, charu@ti.com, shubhrajyoti@ti.com
 
-Since the sidetone block is tightly coupled to the mcbsp, sidetone information
-is directly added to mcbsp2 & 3 hwmod dev_attr.
+Information like base address and DMA channel nubers should no longer
+be obtained using macros. These information should be obtained from
+hwmod database. Hence the macros that define the base address are removed.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+Signed-off-by: Charulatha V <charu@ti.com>
+Acked-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Acked-by: Jarkko Nikula <jhnikula@gmail.com>
+Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   10 ++++++++++
- arch/arm/plat-omap/include/plat/mcbsp.h    |    9 +++++++++
- 2 files changed, 19 insertions(+), 0 deletions(-)
+ arch/arm/plat-omap/include/plat/mcbsp.h |   25 +------------------------
+ 1 files changed, 1 insertions(+), 24 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index dd43199..e9298e9 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -1355,6 +1355,10 @@ static struct omap_hwmod_ocp_if *omap3xxx_mcbsp2_slaves[] = {
- 	&omap3xxx_l4_per__mcbsp2,
- };
- 
-+static struct omap_mcbsp_dev_attr omap34xx_mcbsp2_dev_attr = {
-+	.sidetone	= "mcbsp2_sidetone",
-+};
-+
- static struct omap_hwmod omap3xxx_mcbsp2_hwmod = {
- 	.name		= "mcbsp2",
- 	.class		= &omap3xxx_mcbsp_hwmod_class,
-@@ -1374,6 +1378,7 @@ static struct omap_hwmod omap3xxx_mcbsp2_hwmod = {
- 	},
- 	.slaves		= omap3xxx_mcbsp2_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap3xxx_mcbsp2_slaves),
-+	.dev_attr	= &omap34xx_mcbsp2_dev_attr,
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
- };
- 
-@@ -1413,6 +1418,10 @@ static struct omap_hwmod_ocp_if *omap3xxx_mcbsp3_slaves[] = {
- 	&omap3xxx_l4_per__mcbsp3,
- };
- 
-+static struct omap_mcbsp_dev_attr omap34xx_mcbsp3_dev_attr = {
-+	.sidetone       = "mcbsp3_sidetone",
-+};
-+
- static struct omap_hwmod omap3xxx_mcbsp3_hwmod = {
- 	.name		= "mcbsp3",
- 	.class		= &omap3xxx_mcbsp_hwmod_class,
-@@ -1432,6 +1441,7 @@ static struct omap_hwmod omap3xxx_mcbsp3_hwmod = {
- 	},
- 	.slaves		= omap3xxx_mcbsp3_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap3xxx_mcbsp3_slaves),
-+	.dev_attr	= &omap34xx_mcbsp3_dev_attr,
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
- };
- 
 diff --git a/arch/arm/plat-omap/include/plat/mcbsp.h b/arch/arm/plat-omap/include/plat/mcbsp.h
-index afcbb7b..1fe0637 100644
+index 21c9b10..f8f690a 100644
 --- a/arch/arm/plat-omap/include/plat/mcbsp.h
 +++ b/arch/arm/plat-omap/include/plat/mcbsp.h
-@@ -475,6 +475,15 @@ struct omap_mcbsp {
- #endif
- 	void *reg_cache;
- };
-+
-+/**
-+ * omap_mcbsp_dev_attr - OMAP McBSP device attributes for omap_hwmod
-+ * @sidetone: name of the sidetone device
-+ */
-+struct omap_mcbsp_dev_attr {
-+	const char *sidetone;
-+};
-+
- extern struct omap_mcbsp **mcbsp_ptr;
- extern int omap_mcbsp_count, omap_mcbsp_cache_size;
+@@ -52,30 +52,7 @@ static struct platform_device omap_mcbsp##port_nr = {	\
+ #define OMAP1610_MCBSP2_BASE	0xfffb1000
+ #define OMAP1610_MCBSP3_BASE	0xe1017000
  
+-#define OMAP24XX_MCBSP1_BASE	0x48074000
+-#define OMAP24XX_MCBSP2_BASE	0x48076000
+-#define OMAP2430_MCBSP3_BASE	0x4808c000
+-#define OMAP2430_MCBSP4_BASE	0x4808e000
+-#define OMAP2430_MCBSP5_BASE	0x48096000
+-
+-#define OMAP34XX_MCBSP1_BASE	0x48074000
+-#define OMAP34XX_MCBSP2_BASE	0x49022000
+-#define OMAP34XX_MCBSP2_ST_BASE	0x49028000
+-#define OMAP34XX_MCBSP3_BASE	0x49024000
+-#define OMAP34XX_MCBSP3_ST_BASE	0x4902A000
+-#define OMAP34XX_MCBSP3_BASE	0x49024000
+-#define OMAP34XX_MCBSP4_BASE	0x49026000
+-#define OMAP34XX_MCBSP5_BASE	0x48096000
+-
+-#define OMAP44XX_MCBSP1_BASE	0x40122000
+-#define OMAP44XX_MCBSP1_DMA_BASE	0x49022000
+-#define OMAP44XX_MCBSP2_BASE	0x40124000
+-#define OMAP44XX_MCBSP2_DMA_BASE	0x49024000
+-#define OMAP44XX_MCBSP3_BASE	0x40126000
+-#define OMAP44XX_MCBSP3_DMA_BASE	0x49026000
+-#define OMAP44XX_MCBSP4_BASE	0x48096000
+-
+-#if defined(CONFIG_ARCH_OMAP15XX) || defined(CONFIG_ARCH_OMAP16XX) || defined(CONFIG_ARCH_OMAP730) || defined(CONFIG_ARCH_OMAP850)
++#ifdef CONFIG_ARCH_OMAP1
+ 
+ #define OMAP_MCBSP_REG_DRR2	0x00
+ #define OMAP_MCBSP_REG_DRR1	0x02
 -- 
 1.7.0.4
 
