@@ -1,78 +1,86 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: [GIT PULL] OMAP USB Patches for 2.6.39
-Date: Fri, 18 Feb 2011 14:11:45 +0200
-Message-ID: <20110218121145.GB11151@legolas.emea.dhcp.ti.com>
-Reply-To: balbi@ti.com
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: hwmod: multi-omap: disabling smartreflex on AM3517
+Date: Fri, 18 Feb 2011 17:43:06 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024B83BF08@dbde02.ent.ti.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB5930248A017D9@dbde02.ent.ti.com>
+ <4D5A75FF.5040703@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:35464 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754207Ab1BRMLv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 18 Feb 2011 07:11:51 -0500
-Content-Disposition: inline
+Received: from arroyo.ext.ti.com ([192.94.94.40]:34293 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755462Ab1BRMNL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Feb 2011 07:13:11 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1ICD7Qe012747
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Fri, 18 Feb 2011 06:13:10 -0600
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id p1ICD7if011551
+	for <linux-omap@vger.kernel.org>; Fri, 18 Feb 2011 17:43:07 +0530 (IST)
+In-Reply-To: <4D5A75FF.5040703@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: Linux USB Mailing List <linux-usb@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Greg,
+> -----Original Message-----
+> From: Cousson, Benoit
+> Sent: Tuesday, February 15, 2011 6:18 PM
+> To: Premi, Sanjeev
+> Cc: linux-omap@vger.kernel.org
+> Subject: Re: hwmod: multi-omap: disabling smartreflex on AM3517
+> 
+> Hi Sanjeev,
+> 
+> On 2/15/2011 12:51 PM, Premi, Sanjeev wrote:
+> > AM3517 doesn't support SmartReflex.
+> >
+> > However, these HWMODS are defined in omap3xxxx_hwmods[]:
+> > 	&omap34xx_sr1_hwmod,
+> > 	&omap34xx_sr2_hwmod,
+> > 	&omap36xx_sr1_hwmod,
+> > 	&omap36xx_sr2_hwmod,
+> >
+> > (similar definition in l4_slaves as well)
+> >
+> > This leads to crash when booting the kernel on AM3517EVM during
+> > _setup().
+> >
+> > I see the field .omap_chip being initialized; but not used.
+> 
+> Yes, it is. During the hwmod initialization (omap_hwmod_init), only the
+> hwmods that match the correct chip version are kept.
+> I guess that your problem is that AM3517 is probably seen as a regular
+> 3430 for the moment.
+> 
+> > If I were to use this - along with cpu_is_omap3517(), I would need
+> > to define a new flag e.g. CHIP_IS_AM3517 and add it to almost all
+> > devices defined in omap_hwmod_3xxx_data.c.
+> >
+> > Before going all out on making changes, wanted to check if there is
+> > a better way. Has this/similar possibility been considered earlier?
+> 
+> Well, this is the best way to do that for my point of view. This
+> .omap_chip field was done for that purpose.
+> During device init, the sr code will do query for the smartreflex hwmod
+> and will failed, thus avoiding to do further initialization.
 
-Here are the patches I have for the next merge window.
+[sp] Trying to avoid big change, and thinking 'narrowly' about this
+     issue in isolation, I had been mulling adding SmartReflex to
+     the omap3_features; and (somehow) using the same.
 
-The outstanding feature is the introduction of pm_runtime
-support for the OMAP glue layer for MUSB.
+     But after noticing the patch related to USBOTG on AM35x, I think
+     original proposal is unambiguous and best way forward.
 
-These patches have been tested on omap4430 with g_zero
-+ testusb overnight and no problems have come from those.
+     Started working on the patch. Hope to have it ready later tonight
+     or tomorrow.
 
-These are on top of greg/usb-next, if you want me to rebase
-on top of another commit, please let me know about it and I'll
-do it quickly.
+~sanjeev
 
-Thanks, pull request below.
+> 
+> Regards,
+> Benoit
 
-The following changes since commit 04b31c776f34d127b422da92899272a0b8cda21d:
-
-  usb: isp1362-hcd: use bitmap_clear() and bitmap_set() (2011-02-17 11:00:24 -0800)
-
-are available in the git repository at:
-  git://gitorious.org/usb/usb.git for-next
-
-Felipe Balbi (4):
-      usb: musb: do not error out if Kconfig doesn't match board mode
-      usb: musb: gadget: beautify usb_gadget_probe_driver()/usb_gadget_unregister_driver
-      usb: musb: gadget: do not poke with gadget's list_head
-      usb: otg: notifier: switch to atomic notifier
-
-Hema HK (8):
-      usb: musb: Using runtime pm APIs for musb.
-      usb: otg: enable regulator only on cable/device connect
-      usb: otg: Remove one unnecessary I2C read request.
-      usb: otg: OMAP4430: Add phy_suspend function pointer to twl4030_usb_data
-      usb: otg: OMAP4430: Introducing suspend function for power management
-      usb: otg: TWL6030: Introduce the twl6030_phy_suspend function.
-      usb: otg: TWL6030 Save the last event in otg_transceiver
-      usb: musb: OMAP4430: Fix usb device detection if connected during boot
-
- arch/arm/mach-omap2/board-4430sdp.c     |    1 +
- arch/arm/mach-omap2/board-omap4panda.c  |    1 +
- arch/arm/mach-omap2/omap_phy_internal.c |   22 +++-
- arch/arm/plat-omap/include/plat/usb.h   |    1 +
- drivers/usb/musb/musb_core.c            |   25 ----
- drivers/usb/musb/musb_core.h            |    6 +-
- drivers/usb/musb/musb_gadget.c          |  191 +++++++++++++++++--------------
- drivers/usb/musb/musb_gadget.h          |    7 +-
- drivers/usb/musb/musb_gadget_ep0.c      |   24 +++--
- drivers/usb/musb/omap2430.c             |  134 ++++++++++++----------
- drivers/usb/otg/ab8500-usb.c            |    6 +-
- drivers/usb/otg/nop-usb-xceiv.c         |    2 +-
- drivers/usb/otg/twl4030-usb.c           |    6 +-
- drivers/usb/otg/twl6030-usb.c           |   56 ++++++----
- include/linux/i2c/twl.h                 |    2 +
- include/linux/usb/otg.h                 |    7 +-
- 16 files changed, 260 insertions(+), 231 deletions(-)
-
--- 
-balbi
