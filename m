@@ -1,228 +1,173 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH] perf: add OMAP support for the new power events
-Date: Fri, 18 Feb 2011 23:51:38 +0530
-Message-ID: <ef11c43d66fe4e7c7177b1120fab5f1a@mail.gmail.com>
-References: <1298052645-4164-1-git-send-email-j-pihet@ti.com>
+From: "Jeff Graham" <Jeff.Graham@brukeroptics.com>
+Subject: Re: general kernel building questions
+Date: Fri, 18 Feb 2011 15:55:07 -0500
+Message-ID: <F752F64AD8BC1D42B49B877FEE3CD34901410C2A@USTED.BOPTUS.OPTIK.LAN>
+Reply-To: <jeg@brukeroptics.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:47366 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750836Ab1BRSVl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 18 Feb 2011 13:21:41 -0500
-Received: by qwk3 with SMTP id 3so3467959qwk.30
-        for <linux-omap@vger.kernel.org>; Fri, 18 Feb 2011 10:21:39 -0800 (PST)
-In-Reply-To: <1298052645-4164-1-git-send-email-j-pihet@ti.com>
+Received: from mx1.bruker.com ([173.13.75.234]:3872 "EHLO mx1.bruker.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751598Ab1BRU50 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Feb 2011 15:57:26 -0500
+Content-class: urn:content-classes:message
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: jean.pihet@newoldbits.com, Kevin Hilman <khilman@ti.com>, Thomas Renninger <trenn@suse.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Jean Pihet-XID <j-pihet@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: gadiyar@ti.com
 
-Jean,
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of jean.pihet@newoldbits.com
-> Sent: Friday, February 18, 2011 11:41 PM
-> To: Kevin Hilman; Thomas Renninger; linux-omap@vger.kernel.org;
-> linux-arm-kernel@lists.infradead.org
-> Cc: Jean Pihet
-> Subject: [PATCH] perf: add OMAP support for the new power events
->
-> From: Jean Pihet <j-pihet@ti.com>
->
-> The patch adds the new power management trace points for
-> the OMAP architecture.
->
-> The trace points are for:
-> - default idle handler. Since the cpuidle framework is
->   instrumented in the generic way there is no need to
->   add trace points in the OMAP specific cpuidle handler;
-> - cpufreq (DVFS),
-> - SoC clocks changes (enable, disable, set_rate),
-> - power domain states: the desired target state and -if different-
->   the actually hit state.
->
-> Because of the generic nature of the changes, OMAP3 and OMAP4 are
-> supported.
->
-> Tested on OMAP3 with suspend/resume, cpuidle, basic DVFS.
->
-> Signed-off-by: Jean Pihet <j-pihet@ti.com>
+Hello,
 
-Thanks for additional power domain trace point as per
-discussion.
+I have downloaded the kernel yesterday (Feb 17) using:
+git clone -depth 1 git://git.kernel.org/pub/scm/linux/kernel/git/tmlind=
+/linux-omap-2.6.git
 
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Then today I did a "git pull" to sync up. So I think I am ready to atte=
+mpt a kernel compile. I hope this kernel is stable. I need the touchscr=
+een, USB and Ethernet to work.
 
-> ---
->  arch/arm/mach-omap2/clock.c       |    8 +++++++-
->  arch/arm/mach-omap2/pm34xx.c      |    7 +++++++
->  arch/arm/mach-omap2/powerdomain.c |   26 +++++++++++++++++++++++---
->  3 files changed, 37 insertions(+), 4 deletions(-)
+Now I need to find the config files for the Overo Fire and the TI DM373=
+0 EVM board. In the directory <kernel>/arch/arm/configs I see these can=
+didates:
+=A0=A0=A0=A0=A0 davinci_all_defconfig
+=A0=A0=A0=A0=A0 omap2plus_defconfig
+
+I assume that one of these is correct.
+
+Is there a 'special' config file I should download from somewhere for t=
+he Overo Fire or TI EVM? Or do both boards (or all omap boards?) use th=
+e same defconfig?
+
+I have configured Intel kernels before, but not an Arm kernel, so I don=
+'t know where the dragons are. What I am asking is how to config the ke=
+rnel for my 2 boards...I don't find a canonical .config file anywhere t=
+o start from: what menu options need to be configured, need to be modul=
+es or need to be built in, which ones to not enable, etc. As a strategy=
+ I can start from the current /proc/config.gz, but since this is for ol=
+der kernels I assume there are changes that must be made.
+
+Does the configure script somehow pick up the correct defconfig when I =
+specify the arch from within menuconfig?
+
+
+My two systems are:
+
+Component=A0=A0TI MISTRAL OMAP EVM=A0=A0=A0=A0Overo FIRE
+---------=A0=A0---------------------=A0=A0---------------
+x-loader=A0=A0=A01.46 (Aug 16 2010)=A0=A0=A0=A0=A01.4.2 (Jan 13 2010)
+U-boot=A0=A0=A0=A0=A02009.11 (Aug 16 2010)=A0=A02009.11 (Jan 13 2010)
+kernel=A0=A0=A0=A0=A02.6.32 (sdk@nemo)=A0=A0=A0=A0=A0=A02.6.32 (steve@w=
+ww.sakoman.com)
+distro=A0=A0=A0=A0=A0Arago 2010.05 ttyS0=A0=A0=A0=A0Angstrom 2009.X-tes=
+t-20100101 ttyS2
+
+Is it possible to upgrade both the same x-loader and boot loader?
+
+As I have seen already in this forum, it seems that I need to worry abo=
+ut:
+a) change the boot arg from "console=3DttyS2,115200" to =A0"console=3Dt=
+ty02,115200"
+b) change /etc/inittab line to S:2345:respawn:/sbin/getty 115200 tty02,=
+ and similarly for other serial devices in there
+
+
+As a strategy, should I keep the existing boot loaders and first upgrad=
+e the kernels, then consider upgrading the boot loaders? Or should I tr=
+y to first upgrade the boot loaders with existing kernels then try new =
+kernels?
+
+Thanks for the help.
+
+
+
+-----Original Message-----
+=46rom: Anand Gadiyar [mailto:gadiyar@ti.com]=20
+Sent: Friday, February 04, 2011 11:33 AM
+Subject: RE: general kernel building questions
+
+> I have an Overo Fire board (OMAP 3530) and also a Mistral DM3730 EVM
+> board.
 >
-> diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-
-> omap2/clock.c
-> index 2a2f152..72af75d 100644
-> --- a/arch/arm/mach-omap2/clock.c
-> +++ b/arch/arm/mach-omap2/clock.c
-> @@ -22,7 +22,9 @@
->  #include <linux/clk.h>
->  #include <linux/io.h>
->  #include <linux/bitops.h>
-> +#include <trace/events/power.h>
+> I would like to try some of the newer kernels on each, and maybe some
+> patches mentioned in this list. I could be a tester for these once I
+> figure out how to update bootloaders and build and install kernels. I=
+s
+> there a how-to guide somewhere?
+Nothing comes to mind right now.
+
+There is some useful reading material on elinux.org and omappedia.org.
+I'll see if I can locate a good guide - if no one else points one out,
+I'll try and put something together.
+
+> So some newb questions if I may:
 >
-> +#include <asm/cpu.h>
->  #include <plat/clock.h>
->  #include "clockdomain.h"
->  #include <plat/cpu.h>
-> @@ -261,6 +263,7 @@ void omap2_clk_disable(struct clk *clk)
->
->  	pr_debug("clock: %s: disabling in hardware\n", clk->name);
->
-> +	trace_clock_disable(clk->name, 0, smp_processor_id());
->  	clk->ops->disable(clk);
->
->  	if (clk->clkdm)
-> @@ -312,6 +315,7 @@ int omap2_clk_enable(struct clk *clk)
->  		}
->  	}
->
-> +	trace_clock_enable(clk->name, 1, smp_processor_id());
->  	ret = clk->ops->enable(clk);
->  	if (ret) {
->  		WARN(1, "clock: %s: could not enable: %d\n", clk->name,
-> ret);
-> @@ -349,8 +353,10 @@ int omap2_clk_set_rate(struct clk *clk,
-> unsigned long rate)
->  	pr_debug("clock: set_rate for clock %s to rate %ld\n", clk-
-> >name, rate);
->
->  	/* dpll_ck, core_ck, virt_prcm_set; plus all clksel clocks */
-> -	if (clk->set_rate)
-> +	if (clk->set_rate) {
-> +		trace_clock_set_rate(clk->name, rate,
-> smp_processor_id());
->  		ret = clk->set_rate(clk, rate);
-> +	}
->
->  	return ret;
->  }
-> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-
-> omap2/pm34xx.c
-> index 2f864e4..d1cc3f4 100644
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -29,6 +29,7 @@
->  #include <linux/delay.h>
->  #include <linux/slab.h>
->  #include <linux/console.h>
-> +#include <trace/events/power.h>
->
->  #include <plat/sram.h>
->  #include "clockdomain.h"
-> @@ -519,8 +520,14 @@ static void omap3_pm_idle(void)
->  	if (omap_irq_pending() || need_resched())
->  		goto out;
->
-> +	trace_power_start(POWER_CSTATE, 1, smp_processor_id());
-> +	trace_cpu_idle(1, smp_processor_id());
-> +
->  	omap_sram_idle();
->
-> +	trace_power_end(smp_processor_id());
-> +	trace_cpu_idle(PWR_EVENT_EXIT, smp_processor_id());
-> +
->  out:
->  	local_fiq_enable();
->  	local_irq_enable();
-> diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-
-> omap2/powerdomain.c
-> index eaed0df..1495eed 100644
-> --- a/arch/arm/mach-omap2/powerdomain.c
-> +++ b/arch/arm/mach-omap2/powerdomain.c
-> @@ -19,12 +19,15 @@
->  #include <linux/list.h>
->  #include <linux/errno.h>
->  #include <linux/string.h>
-> +#include <trace/events/power.h>
-> +
->  #include "cm2xxx_3xxx.h"
->  #include "prcm44xx.h"
->  #include "cm44xx.h"
->  #include "prm2xxx_3xxx.h"
->  #include "prm44xx.h"
->
-> +#include <asm/cpu.h>
->  #include <plat/cpu.h>
->  #include "powerdomain.h"
->  #include "clockdomain.h"
-> @@ -32,6 +35,8 @@
->
->  #include "pm.h"
->
-> +#define PWRDM_TRACE_STATES_FLAG	(1<<31)
-> +
->  enum {
->  	PWRDM_STATE_NOW = 0,
->  	PWRDM_STATE_PREV,
-> @@ -130,8 +135,7 @@ static void
-> _update_logic_membank_counters(struct powerdomain *pwrdm)
->  static int _pwrdm_state_switch(struct powerdomain *pwrdm, int flag)
->  {
->
-> -	int prev;
-> -	int state;
-> +	int prev, state, trace_state = 0;
->
->  	if (pwrdm == NULL)
->  		return -EINVAL;
-> @@ -148,6 +152,17 @@ static int _pwrdm_state_switch(struct
-> powerdomain *pwrdm, int flag)
->  			pwrdm->state_counter[prev]++;
->  		if (prev == PWRDM_POWER_RET)
->  			_update_logic_membank_counters(pwrdm);
-> +		/*
-> +		 * If the power domain did not hit the desired state,
-> +		 * generate a trace event with both the desired and hit
-> states
-> +		 */
-> +		if (state != prev) {
-> +			trace_state = (PWRDM_TRACE_STATES_FLAG |
-> +				       ((state & OMAP_POWERSTATE_MASK) <<
-8)
-> |
-> +				       ((prev & OMAP_POWERSTATE_MASK) <<
-> 0));
-> +			trace_power_domain_target(pwrdm->name,
-> trace_state,
-> +						  smp_processor_id());
-> +		}
->  		break;
->  	default:
->  		return -EINVAL;
-> @@ -406,8 +421,13 @@ int pwrdm_set_next_pwrst(struct powerdomain
-> *pwrdm, u8 pwrst)
->  	pr_debug("powerdomain: setting next powerstate for %s to
-> %0x\n",
->  		 pwrdm->name, pwrst);
->
-> -	if (arch_pwrdm && arch_pwrdm->pwrdm_set_next_pwrst)
-> +	if (arch_pwrdm && arch_pwrdm->pwrdm_set_next_pwrst) {
-> +		/* Trace the pwrdm desired target state */
-> +		trace_power_domain_target(pwrdm->name, pwrst,
-> +					  smp_processor_id());
-> +		/* Program the pwrdm desired target state */
->  		ret = arch_pwrdm->pwrdm_set_next_pwrst(pwrdm, pwrst);
-> +	}
->
->  	return ret;
->  }
-> --
-> 1.7.2.3
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-
-> omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 1. Where do I grab the latest kernels that have some chance at
+> stability?
+The mainline kernel will at least boot up on most OMAP boards.
+The master branch of linux-omap closely tracks the mainline kernel
+and is a little more likely to work.
+
+> 2. Where are the def config files?
+
+There are now only 2 defconfig files for the OMAPs.
+omap1_defconfig for all OMAP1 platforms
+and
+omap2plus_defconfig for all OMAP2,3,4 platforms
+
+They enable support for multiple boards, and contain
+drivers that may not always be useful. So they are bigger
+than absolutely necessary.
+
+> 3. I know how to apply kernel patches, but where are the
+> patches and how to I git specific ones?
+Which patches are you interested in?
+
+Anything that is queued up in a maintainer's tree can
+be cherry picked by you.
+
+Patches submitted to this list are also available
+on patchwork.
+https://patchwork.kernel.org/project/linux-omap/list/
+
+> 4. Will 2.6.37, 2.6.38 mainline (currently rc3), linux-next and/or
+> snapshot from kernel.org work?
+
+I'm not very sure about the status of individual boards in the .37
+kernel, but I expect that most of them will at least boot.
+A recent snapshot from kernel.org should also be about the same.
+
+2.6.38-rc3 will have more new features than the .37 kernel, and
+I believe it is reasoably stable. Again, I expect it to at least
+boot on most OMAP platforms. If it doesn't work for you,
+please report it to this list and work with us to fix it.
+
+Some features may not be present in the .38-rc releases.
+Patches posted here and to other mailing lists which are not
+bug-fixes will get queued up only for the merge window after
+2.6.38 is released.
+
+linux-next is the bleeding-edge kernel - it will start looking
+like a preview of the next -rc1 kernel, but it could easily be broken
+as there are frequent changes. These start stabilizing around -rc6
+or so of the current kernel. Testing linux-next would certainly
+be useful in ensuring the next merge window goes smoothly.
+
+> 5. How quickly do the patches mentioned in this list land there?
+That depends, mostly on the quality of the patches, and how
+non-controversial they are. Fixes usually make it through
+quickly, as long as the code quality is good.
+
+Non-fixes can take a few weeks, depending on how good the
+initial patch is, how responsive the submitter is to
+comments, and how many people find the patch useful.
+
+Non-fixes can also take months, if the right conditions
+are not met. :(
+
+- Anand
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
