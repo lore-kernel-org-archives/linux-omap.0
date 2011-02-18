@@ -1,123 +1,66 @@
-From: Hema Kalliguddi <hemahk@ti.com>
-Subject: RE: [patch-v2.6.39 5/7] AM35xx: hwmod data: Add USBOTG
-Date: Fri, 18 Feb 2011 18:37:03 +0530
-Message-ID: <0387bf9911e20f7d6fa56aeb8ded4071@mail.gmail.com>
-References: <1297946466-9565-1-git-send-email-balbi@ti.com>
- <1297946466-9565-6-git-send-email-balbi@ti.com> <B85A65D85D7EB246BE421B3FB0FBB593024B83BED5@dbde02.ent.ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 2/2] omap3: devkit8000: Add and use 4.3 inch display
+Date: Fri, 18 Feb 2011 15:07:46 +0200
+Message-ID: <1298034466.24062.99.camel@deskari>
+References: <1297530130-10355-1-git-send-email-daniel.morsing@gmail.com>
+	 <1297530130-10355-3-git-send-email-daniel.morsing@gmail.com>
+	 <4D5E67E7.7040603@gmail.com>  <1298033744.2323.9.camel@morsing>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:39059 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750775Ab1BRNHG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 18 Feb 2011 08:07:06 -0500
-Received: by mail-fx0-f48.google.com with SMTP id 2so3919620fxm.7
-        for <linux-omap@vger.kernel.org>; Fri, 18 Feb 2011 05:07:04 -0800 (PST)
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593024B83BED5@dbde02.ent.ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:45115 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752292Ab1BRNHw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 18 Feb 2011 08:07:52 -0500
+In-Reply-To: <1298033744.2323.9.camel@morsing>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sanjeev Premi <premi@ti.com>, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Kevin Hilman <khilman@deeprootsystems.com>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
+To: Daniel Morsing <daniel.morsing@gmail.com>
+Cc: Thomas Weber <thomas.weber.linux@googlemail.com>, Tony Lindgren <tony@atomide.com>, Bryan Wu <bryan.wu@canonical.com>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Premi,
+On Fri, 2011-02-18 at 06:55 -0600, Daniel Morsing wrote:
+> On Fri, 2011-02-18 at 13:36 +0100, Thomas Weber wrote:
+> > Hello Daniel,
+> > 
+> > Am 12.02.2011 18:02, schrieb Daniel Morsing:
+> > > This patch adds a generic panel entry for the 4.3 inch display that is
+> > > sold with the devkit8000 and modifies the board file to use this
+> > > display.
+> > > 
+> > > 
+> > 
+> > So only the 4.3 inch display can be used with the devkit8000?
+> > There are also Devkit8000 with 5.6 and 7 inch displays.
+> > 
+> > Regards,
+> > Thomas
+> > 
+> 
+> Yeah, I'll admit that the patch is a bit one-sided. I couldn't find a
+> way to specify a board using a class of displays with separate timing
+> settings.
+> 
+> One way to do it would be to add the settings to modedb, but modedb is
+> really only for standardized display settings. The other way to do it
+> would be to add a kernel config for which display you have connected to
+> the board, but I think that is a bad idea, because it makes everything
+> more complicated and switching out displays would require recompiling
+> the kernel.
+> 
+> Maybe Tomi or the fbdev guys have some input on how to best do this?
 
->-----Original Message-----
->From: Premi, Sanjeev [mailto:premi@ti.com]
->Sent: Friday, February 18, 2011 4:59 PM
->To: Balbi, Felipe; Tony Lindgren
->Cc: Linux OMAP Mailing List; Linux ARM Kernel Mailing List;
->Kalliguddi, Hema; Kevin Hilman; Cousson, Benoit; Paul Walmsley
->Subject: RE: [patch-v2.6.39 5/7] AM35xx: hwmod data: Add USBOTG
->
->> -----Original Message-----
->> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
->> owner@vger.kernel.org] On Behalf Of Balbi, Felipe
->> Sent: Thursday, February 17, 2011 6:11 PM
->> To: Tony Lindgren
->> Cc: Linux OMAP Mailing List; Linux ARM Kernel Mailing List;
->Kalliguddi,
->> Hema; Kevin Hilman; Cousson, Benoit; Paul Walmsley; Balbi, Felipe
->> Subject: [patch-v2.6.39 5/7] AM35xx: hwmod data: Add USBOTG
->>
->> From: Hema HK <hemahk@ti.com>
->>
->> AM35xx hwmod data structures are populated for USBOTG with
->base address,
->> L3 and L4 interface clocks and IRQ.
->>
->> Signed-off-by: Hema HK <hemahk@ti.com>
->> Cc: Tony Lindgren <tony@atomide.com>
->> Cc: Kevin Hilman <khilman@deeprootsystems.com>
->> Cc: Cousson, Benoit <b-cousson@ti.com>
->> Cc: Paul Walmsley <paul@pwsan.com>
->> Signed-off-by: Felipe Balbi <balbi@ti.com>
->> ---
->>  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   65
->> ++++++++++++++++++++++++++++
->>  1 files changed, 65 insertions(+), 0 deletions(-)
->>
->[snip]
->>
->> +	/* usbotg for am35x */
->> +	&am35xx_usbhsotg_hwmod,
->> +
->>  	NULL,
->
->Felipe, Hema,
->
->This patch will break all existing OMAP35x (and I believe
->OMAP3430 - since there is no difference - unless there is
->some trick in the USB driver code).
->
+There's no proper way for this currently. And I'm not even sure what
+would be a good way to do this.
 
-I agree that this will break the AM35x because there is no
-separate CHIP_IS* defined for AM35x.
-AM35x is treated as one of the version of OMAP3430.
+Optimally the board code could read some configuration value from eeprom
+or where-ever, which would tell the configuration of the board. And the
+board file could then configure the correct display.
 
->I have seen similar problems with smart reflex included in
->the AM35x hwmod data.
+Another way would be to add a devkit8000 specific kernel parameter,
+given from bootloader, which would tell the configuration. The board
+file would use this parameter to configure the correct display.
 
-Unless the new CHIP_IS_* introduced for AM35x this problem will
-still exists.
+ Tomi
 
-I thought you are already working on this because you were
-asking the questions in the list.
 
->
->In this case accessing "unknown" registers corresponding to
->SmartReflex in _setup() causes crash.
->(http://marc.info/?l=linux-omap&m=129777408503329&w=2)
->
->I expect similar to be happening on OMAP35x with inclusion
->of am35xx_usbhsotg_hwmod. If you don't see any crash, there
->would be side-effects - and _setup() would be initializing
->non-existent OTG registers on OMAP35x.
->
-This will not impact for OMAP3 as the IDCODE is different AM35x and
-OMAP3, so passing the right chip version in the HWMOD database for AM35x
-will avoid the hwod init incase of OMAP3.
-
->Did you see any problems while testing?
->
-I tested with OMAP3430SDP and OMAP3630Zoom3 and did not see
-the problem.
-
-Regards,
-Hema
-
->~sanjeev
->
->PS: Sending mail via webmailer. Formatting may break
->
->>  };
->>
->> --
->> 1.7.4.rc2
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe
->linux-omap" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
