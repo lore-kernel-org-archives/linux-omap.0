@@ -1,58 +1,51 @@
-From: Artem Bityutskiy <dedekind1@gmail.com>
-Subject: Re: [PATCH 4/4] mtd: OneNAND: OMAP2: increase multiblock erase
- verify timeout
-Date: Fri, 18 Feb 2011 06:31:38 +0200
-Message-ID: <1298003498.2735.4.camel@localhost>
-References: <1297068421-14430-1-git-send-email-adrian.hunter@nokia.com>
-	 <1297068421-14430-5-git-send-email-adrian.hunter@nokia.com>
-	 <20110217234603.GI20795@atomide.com>
-Reply-To: dedekind1@gmail.com
+From: archit taneja <archit@ti.com>
+Subject: Re: OMAP4 Mux FW question
+Date: Fri, 18 Feb 2011 10:38:14 +0530
+Message-ID: <4D5DFEBE.4020902@ti.com>
+References: <4D5CFA13.7030608@ti.com> <1af78c6718e8f15c87c4ab50bfa04a41@mail.gmail.com> <1e14f38aeaa635e1c2374931fd406736@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:62790 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752268Ab1BREcy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Feb 2011 23:32:54 -0500
-Received: by ewy5 with SMTP id 5so1411829ewy.19
-        for <linux-omap@vger.kernel.org>; Thu, 17 Feb 2011 20:32:53 -0800 (PST)
-In-Reply-To: <20110217234603.GI20795@atomide.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:51722 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750842Ab1BRFG6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Feb 2011 00:06:58 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1I56tRB006809
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Thu, 17 Feb 2011 23:06:57 -0600
+In-Reply-To: <1e14f38aeaa635e1c2374931fd406736@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Adrian Hunter <adrian.hunter@nokia.com>, Kyungmin Park <kyungmin.park@samsung.com>, linux-mtd Mailing List <linux-mtd@lists.infradead.org>, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>, linux-omap Mailing List <linux-omap@vger.kernel.org>
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: "R, Sricharan" <r.sricharan@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
 Hi,
 
-On Thu, 2011-02-17 at 15:46 -0800, Tony Lindgren wrote:
-> * Adrian Hunter <adrian.hunter@nokia.com> [110207 00:45]:
-> > From: Roman Tereshonkov <roman.tereshonkov@nokia.com>
-> >=20
-> > The current multiblock erase verify read timeout 100us is the maxim=
-um
-> > for none-error case. If errors happen during multibock erase then
-> > the specification recommends to run multiblock erase verify command
-> > with maximum timeout 10ms (see specs. for KFM4G16Q2A and KFN8G16Q2A=
-).
-> >=20
-> > For the most common non-error case we wait 100us in udelay polling
-> > loop. In case of timeout the interrupt mode is used to wait for the
-> > command end.
-> >=20
-> > Signed-off-by: Roman Tereshonkov <roman.tereshonkov@nokia.com>
->=20
-> I'll queue this series. Anybody from MTD list care to ack this patch?
+On Thursday 17 February 2011 05:11 PM, Shilimkar, Santosh wrote:
+> (Avoid top posting please)
+>> -----Original Message-----
+>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+>> owner@vger.kernel.org] On Behalf Of Sricharan R
+>> Sent: Thursday, February 17, 2011 5:05 PM
+>> To: Archit Taneja; Benoit Cousson; linux-omap@vger.kernel.org
+>> Subject: RE: OMAP4 Mux FW question
+>>
+>> Hi Archit,
+>>   Those control registers are not a part of the mux list.
+>>   So the mux framework does not support configuring them.
+>>   Only the pad mux registers are configured.
+>
+> [....]
+>
+> If they are not part of MUX registers then you could
+> use control APIs directly. They should work.
+>
+> omap4_ctrl_pad_readl() and omap4_ctrl_pad_writel()
 
-Acked-by: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
+I tried this out, it works fine with this.
 
---=20
-Best Regards,
-Artem Bityutskiy (=D0=90=D1=80=D1=82=D1=91=D0=BC =D0=91=D0=B8=D1=82=D1=8E=
-=D1=86=D0=BA=D0=B8=D0=B9)
+Thanks,
+Archit
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
