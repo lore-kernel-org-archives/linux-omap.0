@@ -1,161 +1,129 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v3 10/13] OMAP: McBSP: Add pm runtime support
-Date: Fri, 18 Feb 2011 19:52:25 +0530
-Message-ID: <1298038948-19871-11-git-send-email-kishon@ti.com>
+Subject: [PATCH v3 06/13] OMAP4: hwmod: Naming of address space
+Date: Fri, 18 Feb 2011 19:52:21 +0530
+Message-ID: <1298038948-19871-7-git-send-email-kishon@ti.com>
 References: <1298038948-19871-1-git-send-email-kishon@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:40998 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:49627 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758247Ab1BRO2R (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 18 Feb 2011 09:28:17 -0500
+	id S1758237Ab1BRO2Q (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 18 Feb 2011 09:28:16 -0500
 In-Reply-To: <1298038948-19871-1-git-send-email-kishon@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, b-cousson@ti.com, tony@atomide.com, broonie@opensource.wolfsonmicro.com, jhnikula@gmail.com, peter.ujfalusi@nokia.com
 Cc: p-basak2@ti.com, kishon@ti.com, charu@ti.com, shubhrajyoti@ti.com
 
-Add pm runtime support for McBSP driver.
-Reference to fclk is not removed because it is required when the
-functional clock is switched from one source to another.
+Added a name to address space belonging to SDMA and MPU facilitating
+the driver to get the address space info by name. Added a revision
+member inorder to facilitate the driver to differentiate between
+mcbsp in different omap.
+Also added a platform_get_irq in probe to get irq number by index since
+from OMAP4, there will be a single irq line.
 
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
-Acked-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Acked-by: Jarkko Nikula <jhnikula@gmail.com>
-Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
 ---
- arch/arm/mach-omap2/mcbsp.c             |    5 +++--
- arch/arm/plat-omap/include/plat/mcbsp.h |    1 -
- arch/arm/plat-omap/mcbsp.c              |   23 ++++++-----------------
- 3 files changed, 9 insertions(+), 20 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    8 ++++++++
+ arch/arm/plat-omap/include/plat/mcbsp.h    |    1 +
+ arch/arm/plat-omap/mcbsp.c                 |    4 ++++
+ 3 files changed, 13 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/mcbsp.c b/arch/arm/mach-omap2/mcbsp.c
-index 275d6cf..4ada6a9 100644
---- a/arch/arm/mach-omap2/mcbsp.c
-+++ b/arch/arm/mach-omap2/mcbsp.c
-@@ -23,6 +23,7 @@
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+index 84e795c..4ae8df3 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -24,6 +24,7 @@
  #include <plat/cpu.h>
- #include <plat/mcbsp.h>
- #include <plat/omap_device.h>
-+#include <linux/pm_runtime.h>
+ #include <plat/gpio.h>
+ #include <plat/dma.h>
++#include <plat/mcbsp.h>
  
- #include "control.h"
+ #include "omap_hwmod_common_data.h"
  
-@@ -83,7 +84,7 @@ int omap2_mcbsp_set_clks_src(u8 id, u8 fck_src_id)
- 		return -EINVAL;
- 	}
+@@ -2736,6 +2737,7 @@ static struct omap_hwmod_class_sysconfig omap44xx_mcbsp_sysc = {
+ static struct omap_hwmod_class omap44xx_mcbsp_hwmod_class = {
+ 	.name	= "mcbsp",
+ 	.sysc	= &omap44xx_mcbsp_sysc,
++	.rev	= MCBSP_CONFIG_TYPE4,
+ };
  
--	clk_disable(mcbsp->fclk);
-+	pm_runtime_put_sync(mcbsp->dev);
+ /* mcbsp1 */
+@@ -2751,6 +2753,7 @@ static struct omap_hwmod_dma_info omap44xx_mcbsp1_sdma_reqs[] = {
  
- 	r = clk_set_parent(mcbsp->fclk, fck_src);
- 	if (IS_ERR_VALUE(r)) {
-@@ -93,7 +94,7 @@ int omap2_mcbsp_set_clks_src(u8 id, u8 fck_src_id)
- 		return -EINVAL;
- 	}
+ static struct omap_hwmod_addr_space omap44xx_mcbsp1_addrs[] = {
+ 	{
++		.name		= "mpu",
+ 		.pa_start	= 0x40122000,
+ 		.pa_end		= 0x401220ff,
+ 		.flags		= ADDR_TYPE_RT
+@@ -2769,6 +2772,7 @@ static struct omap_hwmod_ocp_if omap44xx_l4_abe__mcbsp1 = {
  
--	clk_enable(mcbsp->fclk);
-+	pm_runtime_get_sync(mcbsp->dev);
+ static struct omap_hwmod_addr_space omap44xx_mcbsp1_dma_addrs[] = {
+ 	{
++		.name		= "dma",
+ 		.pa_start	= 0x49022000,
+ 		.pa_end		= 0x490220ff,
+ 		.flags		= ADDR_TYPE_RT
+@@ -2822,6 +2826,7 @@ static struct omap_hwmod_dma_info omap44xx_mcbsp2_sdma_reqs[] = {
  
- 	clk_put(fck_src);
+ static struct omap_hwmod_addr_space omap44xx_mcbsp2_addrs[] = {
+ 	{
++		.name		= "mpu",
+ 		.pa_start	= 0x40124000,
+ 		.pa_end		= 0x401240ff,
+ 		.flags		= ADDR_TYPE_RT
+@@ -2840,6 +2845,7 @@ static struct omap_hwmod_ocp_if omap44xx_l4_abe__mcbsp2 = {
  
+ static struct omap_hwmod_addr_space omap44xx_mcbsp2_dma_addrs[] = {
+ 	{
++		.name		= "dma",
+ 		.pa_start	= 0x49024000,
+ 		.pa_end		= 0x490240ff,
+ 		.flags		= ADDR_TYPE_RT
+@@ -2893,6 +2899,7 @@ static struct omap_hwmod_dma_info omap44xx_mcbsp3_sdma_reqs[] = {
+ 
+ static struct omap_hwmod_addr_space omap44xx_mcbsp3_addrs[] = {
+ 	{
++		.name		= "mpu",
+ 		.pa_start	= 0x40126000,
+ 		.pa_end		= 0x401260ff,
+ 		.flags		= ADDR_TYPE_RT
+@@ -2911,6 +2918,7 @@ static struct omap_hwmod_ocp_if omap44xx_l4_abe__mcbsp3 = {
+ 
+ static struct omap_hwmod_addr_space omap44xx_mcbsp3_dma_addrs[] = {
+ 	{
++		.name		= "dma",
+ 		.pa_start	= 0x49026000,
+ 		.pa_end		= 0x490260ff,
+ 		.flags		= ADDR_TYPE_RT
 diff --git a/arch/arm/plat-omap/include/plat/mcbsp.h b/arch/arm/plat-omap/include/plat/mcbsp.h
-index c6cabfc..964a940 100644
+index f084b6a..afcbb7b 100644
 --- a/arch/arm/plat-omap/include/plat/mcbsp.h
 +++ b/arch/arm/plat-omap/include/plat/mcbsp.h
-@@ -465,7 +465,6 @@ struct omap_mcbsp {
- 	/* Protect the field .free, while checking if the mcbsp is in use */
- 	spinlock_t lock;
- 	struct omap_mcbsp_platform_data *pdata;
--	struct clk *iclk;
- 	struct clk *fclk;
- #ifdef CONFIG_ARCH_OMAP3
- 	struct omap_mcbsp_st_data *st_data;
+@@ -39,6 +39,7 @@ static struct platform_device omap_mcbsp##port_nr = {	\
+ 
+ #define MCBSP_CONFIG_TYPE2	0x2
+ #define MCBSP_CONFIG_TYPE3	0x3
++#define MCBSP_CONFIG_TYPE4	0x4
+ 
+ #define OMAP7XX_MCBSP1_BASE	0xfffb1000
+ #define OMAP7XX_MCBSP2_BASE	0xfffb1800
 diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
-index 074c50f..965fc58 100644
+index 1b45446..57257e8 100644
 --- a/arch/arm/plat-omap/mcbsp.c
 +++ b/arch/arm/plat-omap/mcbsp.c
-@@ -28,6 +28,7 @@
- #include <plat/dma.h>
- #include <plat/mcbsp.h>
- #include <plat/omap_device.h>
-+#include <linux/pm_runtime.h>
+@@ -1839,6 +1839,10 @@ static int __devinit omap_mcbsp_probe(struct platform_device *pdev)
+ 	mcbsp->tx_irq = platform_get_irq_byname(pdev, "tx");
+ 	mcbsp->rx_irq = platform_get_irq_byname(pdev, "rx");
  
- /* XXX These "sideways" includes are a sign that something is wrong */
- #include "../mach-omap2/cm2xxx_3xxx.h"
-@@ -770,8 +771,7 @@ int omap_mcbsp_request(unsigned int id)
- 	if (mcbsp->pdata && mcbsp->pdata->ops && mcbsp->pdata->ops->request)
- 		mcbsp->pdata->ops->request(id);
- 
--	clk_enable(mcbsp->iclk);
--	clk_enable(mcbsp->fclk);
-+	pm_runtime_get_sync(mcbsp->dev);
- 
- 	/* Do procedure specific to omap34xx arch, if applicable */
- 	omap34xx_mcbsp_request(mcbsp);
-@@ -819,8 +819,7 @@ err_clk_disable:
- 	/* Do procedure specific to omap34xx arch, if applicable */
- 	omap34xx_mcbsp_free(mcbsp);
- 
--	clk_disable(mcbsp->fclk);
--	clk_disable(mcbsp->iclk);
-+	pm_runtime_put_sync(mcbsp->dev);
- 
- 	spin_lock(&mcbsp->lock);
- 	mcbsp->free = true;
-@@ -850,8 +849,7 @@ void omap_mcbsp_free(unsigned int id)
- 	/* Do procedure specific to omap34xx arch, if applicable */
- 	omap34xx_mcbsp_free(mcbsp);
- 
--	clk_disable(mcbsp->fclk);
--	clk_disable(mcbsp->iclk);
-+	pm_runtime_put_sync(mcbsp->dev);
- 
- 	if (mcbsp->io_type == OMAP_MCBSP_IRQ_IO) {
- 		/* Free IRQs */
-@@ -1867,32 +1865,24 @@ static int __devinit omap_mcbsp_probe(struct platform_device *pdev)
- 	}
- 	mcbsp->dma_tx_sync = res->start;
- 
--	mcbsp->iclk = clk_get(&pdev->dev, "ick");
--	if (IS_ERR(mcbsp->iclk)) {
--		ret = PTR_ERR(mcbsp->iclk);
--		dev_err(&pdev->dev, "unable to get ick: %d\n", ret);
--		goto err_res;
--	}
--
- 	mcbsp->fclk = clk_get(&pdev->dev, "fck");
- 	if (IS_ERR(mcbsp->fclk)) {
- 		ret = PTR_ERR(mcbsp->fclk);
- 		dev_err(&pdev->dev, "unable to get fck: %d\n", ret);
--		goto err_fclk;
-+		goto err_res;
- 	}
- 
- 	mcbsp->pdata = pdata;
- 	mcbsp->dev = &pdev->dev;
- 	mcbsp_ptr[id] = mcbsp;
- 	platform_set_drvdata(pdev, mcbsp);
-+	pm_runtime_enable(mcbsp->dev);
- 
- 	/* Initialize mcbsp properties for OMAP34XX if needed / applicable */
- 	omap34xx_device_init(mcbsp);
- 
- 	return 0;
- 
--err_fclk:
--	clk_put(mcbsp->iclk);
- err_res:
- 	iounmap(mcbsp->io_base);
- err_ioremap:
-@@ -1915,7 +1905,6 @@ static int __devexit omap_mcbsp_remove(struct platform_device *pdev)
- 		omap34xx_device_exit(mcbsp);
- 
- 		clk_put(mcbsp->fclk);
--		clk_put(mcbsp->iclk);
- 
- 		iounmap(mcbsp->io_base);
- 		kfree(mcbsp);
++	/* From OMAP4 there will be a single irq line */
++	if (mcbsp->tx_irq == -ENXIO)
++		mcbsp->tx_irq = platform_get_irq(pdev, 0);
++
+ 	res = platform_get_resource_byname(pdev, IORESOURCE_DMA, "rx");
+ 	if (!res) {
+ 		dev_err(&pdev->dev, "%s:mcbsp%d has invalid rx DMA channel\n",
 -- 
 1.7.0.4
 
