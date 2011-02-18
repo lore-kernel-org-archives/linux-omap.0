@@ -1,80 +1,195 @@
-From: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
-Subject: RE: [PATCH] OMAP: DSS2: Have separate irq handlers for DISPC and DSI
-Date: Fri, 18 Feb 2011 03:10:26 -0600
-Message-ID: <91F20383AC6A5F4DB94C692112281213B4C15EBB91@dlee07.ent.ti.com>
-References: <1297952702-13419-1-git-send-email-archit@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Mike Turquette <mturquette@ti.com>
+Subject: [PATCH 1/4] OMAP: voltage: pre- and post-transition notifiers
+Date: Fri, 18 Feb 2011 03:20:50 -0600
+Message-ID: <1298020853-13761-1-git-send-email-mturquette@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:34221 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757819Ab1BRJKl convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Feb 2011 04:10:41 -0500
-Received: from dlep36.itg.ti.com ([157.170.170.91])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1I9Ae4E026829
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 18 Feb 2011 03:10:40 -0600
-Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
-	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id p1I9Ael3018306
-	for <linux-omap@vger.kernel.org>; Fri, 18 Feb 2011 03:10:40 -0600 (CST)
-Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p1I9Ae8O009688
-	for <linux-omap@vger.kernel.org>; Fri, 18 Feb 2011 03:10:40 -0600 (CST)
-In-Reply-To: <1297952702-13419-1-git-send-email-archit@ti.com>
-Content-Language: en-US
+Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:41181 "EHLO
+	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753393Ab1BRJWa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 18 Feb 2011 04:22:30 -0500
+Received: by yie30 with SMTP id 30so27060yie.23
+        for <linux-omap@vger.kernel.org>; Fri, 18 Feb 2011 01:22:26 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Taneja, Archit" <archit@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Cousson, Benoit" <b-cousson@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: Mike Turquette <mturquette@ti.com>
 
-Hi,
+Introduce notifier infrastructure for VDD voltage transitions.  Users can
+register a notifier prior to a VDD's volt_scale function getting called
+(VOLTSCALE_PRECHANGE) or after the VDD has been scaled
+(VOLTSCALE_POSTCHANGE).
 
-On Thu, 2011-02-17 at 08:25 -0600, Taneja, Archit wrote:
-> Currently, the core DSS platform device requests for an irq line for OMAP2 and
-> OMAP3. Make DISPC and DSI platform devices request for a shared IRQ line.
-> 
-> On OMAP3, the logical OR of DSI and DISPC interrupt lines goes to the MPU. There
-> is a register DSS_IRQSTATUS which tells if the interrupt came from DISPC or DSI.
-> 
-> On OMAP2, there is no DSI, only DISPC interrupts goto the MPU. There is no
-> DSS_IRQSTATUS register.
-> 
-> Hence, it makes more sense to have separate irq handlers corresponding to the
-> DSS sub modules instead of having a common handler.
-> 
-> Since on OMAP3 the logical OR of the lines goes to MPU, the irq line is shared
-> among the IRQ handlers.
-> 
-> The hwmod irq info has been removed for DSS to DISPC and DSI for OMAP2 and OMAP3
-> hwmod databases. The Probes of DISPC and DSI now request for irq handlers. A dss
-> feature is also added to tell whether the irq lines is shared between DISPC and
-> DSI or not.
+Signed-off-by: Mike Turquette <mturquette@ti.com>
+---
+All patches in this series based on PM branch (b6fb54b) plus Vishwa's 13
+OMAP3 DVFS patches (http://marc.info/?l=linux-omap&m=129561825804975&w=2).
+Only validated on Zoom3 since OMAP4 DVFS patches were not available.
 
-Yes, I think this looks much cleaner.
+ arch/arm/mach-omap2/voltage.c             |   47 ++++++++++++++++++++++++++++-
+ arch/arm/plat-omap/include/plat/voltage.h |   30 ++++++++++++++++++
+ 2 files changed, 76 insertions(+), 1 deletions(-)
 
-However, I'm not sure if it's necessary to check the DSS_IRQSTATUS. It
-depends a bit on how DSS_IRQSTATUS works. If it just mirrors the
-DISPC/DSI_IRQSTATUS (ie, if there's any bit up in DSI_IRQSTATUS, the DSI
-bit in DSS_IRQSTATUS is up), we can do without it.
-
-For example let's say we haven't enabled any interrupts in DSI, so
-preferably we want to spend as little time in the dsi irq handler as
-possible.
-
-Now, if DSI_IRQSTATUS is all zeroes, and thus DSS_IRQSTATUS.DSI is also
-zero, we can skip the DSI handler by checking DSS_IRQSTATUS.DSI as you
-do in this patch. But we could as well check DSI_IRQSTATUS, and exit if
-it's all zeroes.
-
-If, on the other hand, DSI_IRQSTATUS has any bit up, then also
-DSS_IRQSTATUS.DSI is up, and we have to check the DSI interrupts anyway.
-
-So in both cases the end result is the same, and we can do with less
-code by not using DSS_IRQSTATUS.
-
-However, I'm not 100% sure DSS_IRQSTATUS works like that, but it would
-sound logical and I don't know how could it work otherwise.
-
- Tomi
+diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
+index a0bd73b..0cbc58a 100644
+--- a/arch/arm/mach-omap2/voltage.c
++++ b/arch/arm/mach-omap2/voltage.c
+@@ -729,6 +729,9 @@ static int __init omap3_vdd_data_configure(struct omap_vdd_info *vdd)
+ 		return -EINVAL;
+ 	}
+ 
++	/* initialize the voltage change notifier chain */
++	srcu_init_notifier_head(&vdd->volt_change_notify_chain);
++
+ 	if (!strcmp(vdd->voltdm.name, "mpu")) {
+ 		if (cpu_is_omap3630()) {
+ 			vdd->volt_data = omap36xx_vddmpu_volt_data;
+@@ -912,6 +915,9 @@ static int __init omap4_vdd_data_configure(struct omap_vdd_info *vdd)
+ 		return -EINVAL;
+ 	}
+ 
++	/* initialize the voltage change notifier chain */
++	srcu_init_notifier_head(&vdd->volt_change_notify_chain);
++
+ 	if (!strcmp(vdd->voltdm.name, "mpu")) {
+ 		vdd->volt_data = omap44xx_vdd_mpu_volt_data;
+ 		vdd->vp_reg.tranxdone_status =
+@@ -1201,7 +1207,9 @@ void omap_vp_disable(struct voltagedomain *voltdm)
+ int omap_voltage_scale_vdd(struct voltagedomain *voltdm,
+ 		unsigned long target_volt)
+ {
++	int ret;
+ 	struct omap_vdd_info *vdd;
++	struct omap_volt_change_info v_info;
+ 
+ 	if (!voltdm || IS_ERR(voltdm)) {
+ 		pr_warning("%s: VDD specified does not exist!\n", __func__);
+@@ -1216,7 +1224,20 @@ int omap_voltage_scale_vdd(struct voltagedomain *voltdm,
+ 		return -ENODATA;
+ 	}
+ 
+-	return vdd->volt_scale(vdd, target_volt);
++	/* load notifier chain data */
++	v_info.target_volt = target_volt;
++	v_info.vdd = vdd;
++
++	srcu_notifier_call_chain(&vdd->volt_change_notify_chain,
++			VOLTSCALE_PRECHANGE, (void *)&v_info);
++
++	ret = vdd->volt_scale(vdd, target_volt);
++
++	if (!ret)
++		srcu_notifier_call_chain(&vdd->volt_change_notify_chain,
++				VOLTSCALE_POSTCHANGE, (void *)&v_info);
++
++	return ret;
+ }
+ 
+ /**
+@@ -1437,6 +1458,30 @@ struct voltagedomain *omap_voltage_domain_lookup(char *name)
+ 	return ERR_PTR(-EINVAL);
+ }
+ 
++int omap_voltage_register_notifier(struct omap_vdd_info *vdd,
++		struct notifier_block *nb)
++{
++	if (!vdd || IS_ERR(vdd)) {
++		pr_warning("%s: invalid VDD specified\n", __func__);
++		return -EINVAL;
++	}
++
++	return srcu_notifier_chain_register(&vdd->volt_change_notify_chain,
++			nb);
++}
++
++int omap_voltage_unregister_notifier(struct omap_vdd_info *vdd,
++		struct notifier_block *nb)
++{
++	if (!vdd || IS_ERR(vdd)) {
++		pr_warning("%s: invalid VDD specified\n", __func__);
++		return -EINVAL;
++	}
++
++	return srcu_notifier_chain_unregister(&vdd->volt_change_notify_chain,
++			nb);
++}
++
+ /**
+  * omap_voltage_late_init() - Init the various voltage parameters
+  *
+diff --git a/arch/arm/plat-omap/include/plat/voltage.h b/arch/arm/plat-omap/include/plat/voltage.h
+index e0b7f22..017e65b 100644
+--- a/arch/arm/plat-omap/include/plat/voltage.h
++++ b/arch/arm/plat-omap/include/plat/voltage.h
+@@ -15,10 +15,14 @@
+ #define __ARCH_ARM_MACH_OMAP2_VOLTAGE_H
+ 
+ #include <linux/err.h>
++#include <linux/notifier.h>
+ 
+ #define VOLTSCALE_VPFORCEUPDATE		1
+ #define VOLTSCALE_VCBYPASS		2
+ 
++#define VOLTSCALE_PRECHANGE		0
++#define VOLTSCALE_POSTCHANGE		1
++
+ /*
+  * OMAP3 GENERIC setup times. Revisit to see if these needs to be
+  * passed from board or PMIC file
+@@ -249,6 +253,7 @@ struct omap_vdd_info {
+ 	struct vc_reg_info vc_reg;
+ 	struct voltagedomain voltdm;
+ 	struct omap_vdd_dep_info *dep_vdd_info;
++	struct srcu_notifier_head volt_change_notify_chain;
+ 	int nr_dep_vdd;
+ 	struct dentry *debug_dir;
+ 	u32 curr_volt;
+@@ -261,6 +266,17 @@ struct omap_vdd_info {
+ 		unsigned long target_volt);
+ };
+ 
++/**
++ * omap_volt_change_info - container used by voltage notifier chain
++ *
++ * @vdd_info		: the voltage domain affected by the transition
++ * @target_volt		: voltage the affected domain is transitioning to
++ */
++struct omap_volt_change_info {
++	unsigned long target_volt;
++	struct omap_vdd_info *vdd;
++};
++
+ unsigned long omap_vp_get_curr_volt(struct voltagedomain *voltdm);
+ void omap_vp_enable(struct voltagedomain *voltdm);
+ void omap_vp_disable(struct voltagedomain *voltdm);
+@@ -280,6 +296,10 @@ void omap_change_voltscale_method(struct voltagedomain *voltdm,
+ 		int voltscale_method);
+ /* API to get the voltagedomain pointer */
+ struct voltagedomain *omap_voltage_domain_lookup(char *name);
++int omap_voltage_register_notifier(struct omap_vdd_info *vdd,
++		struct notifier_block *nb);
++int omap_voltage_unregister_notifier(struct omap_vdd_info *vdd,
++		struct notifier_block *nb);
+ 
+ int omap_voltage_late_init(void);
+ #else
+@@ -298,6 +318,16 @@ static inline struct voltagedomain *omap_voltage_domain_lookup(char *name)
+ {
+ 	return ERR_PTR(-EINVAL);
+ }
++static inline int omap_voltage_register_notifier(struct omap_vdd_info *vdd,
++		struct notifier block *nb)
++{
++	return 0;
++}
++static inline int omap_voltage_unregister_notifier(struct omap_vdd_info *vdd,
++		struct notifier block *nb)
++{
++	return 0;
++}
+ #endif
+ 
+ #endif
+-- 
+1.7.1
 
