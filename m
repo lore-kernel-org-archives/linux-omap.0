@@ -1,49 +1,65 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [patch-v2.6.39 6/7] OMAP4430: hwmod data: Adding USBOTG
-Date: Fri, 18 Feb 2011 15:11:11 +0100
-Message-ID: <4D5E7DFF.7020609@ti.com>
-References: <20110217152648.GO22356@legolas.emea.dhcp.ti.com> <4D5D44AF.5050805@ti.com> <20110217162000.GP20795@atomide.com> <20110217162209.GA13425@legolas.emea.dhcp.ti.com> <20110217165953.GR20795@atomide.com> <4D5D5770.9020501@ti.com> <20110217171747.GC14574@legolas.emea.dhcp.ti.com> <4D5D59E5.6020307@ti.com> <20110217173711.GF14574@legolas.emea.dhcp.ti.com> <4D5D5F13.2010602@ti.com> <20110217181849.GV20795@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH v3 01/13] OMAP: hwmod: allow hwmod to provide address space accessible from SDMA
+Date: Fri, 18 Feb 2011 19:52:16 +0530
+Message-ID: <1298038948-19871-2-git-send-email-kishon@ti.com>
+References: <1298038948-19871-1-git-send-email-kishon@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:39847 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:49607 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754202Ab1BROLT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 18 Feb 2011 09:11:19 -0500
-In-Reply-To: <20110217181849.GV20795@atomide.com>
+	id S1758091Ab1BRO2M (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 18 Feb 2011 09:28:12 -0500
+In-Reply-To: <1298038948-19871-1-git-send-email-kishon@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "Balbi, Felipe" <balbi@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, "Kalliguddi, Hema" <hemahk@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>, "Raja, Govindraj" <govindraj.raja@ti.com>
+To: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, b-cousson@ti.com, tony@atomide.com, broonie@opensource.wolfsonmicro.com, jhnikula@gmail.com, peter.ujfalusi@nokia.com
+Cc: p-basak2@ti.com, kishon@ti.com, charu@ti.com, shubhrajyoti@ti.com
 
-Hi Tony
+Adds support for resource API to get address space info other than just MPU.
+The drivers can now use platform_get_resource_byname() to get resource of
+type 'IORESOURCE_MEM' by name.
 
-On 2/17/2011 7:18 PM, Tony Lindgren wrote:
-> * Cousson, Benoit<b-cousson@ti.com>  [110217 09:45]:
->>
->> Done, boot tested, and that does remove the warning about the
->> missing opt clock you had with the previous data.
->>
->> git://gitorious.org/omap-pm/linux.git for_2.6.39/omap4_hwmod_data
->>
->> Just let me know if it does break anything else.
-> 
-> Pulled into omap-for-linus. Also now merged are the devel-hwspinlock
-> and devel-mcspi branches.
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+Acked-by: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap2/omap_hwmod.c             |    1 +
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |    4 +++-
+ 2 files changed, 4 insertions(+), 1 deletions(-)
 
-McSPI OMAP4 hwmod data are missing a couple of flags that break the boot for the moment.
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index d6b8d2e..d72ae5c 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -1919,6 +1919,7 @@ int omap_hwmod_fill_resources(struct omap_hwmod *oh, struct resource *res)
+ 		os = oh->slaves[i];
+ 
+ 		for (j = 0; j < os->addr_cnt; j++) {
++			(res + r)->name = (os->addr + j)->name;
+ 			(res + r)->start = (os->addr + j)->pa_start;
+ 			(res + r)->end = (os->addr + j)->pa_end;
+ 			(res + r)->flags = IORESOURCE_MEM;
+diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+index e50a19a..2b54852 100644
+--- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
++++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+@@ -178,7 +178,8 @@ struct omap_hwmod_omap2_firewall {
+ #define ADDR_TYPE_RT		(1 << 1)
+ 
+ /**
+- * struct omap_hwmod_addr_space - MPU address space handled by the hwmod
++ * struct omap_hwmod_addr_space - address space handled by the hwmod
++ * @name: name of the address space
+  * @pa_start: starting physical address
+  * @pa_end: ending physical address
+  * @flags: (see omap_hwmod_addr_space.flags macros above)
+@@ -187,6 +188,7 @@ struct omap_hwmod_omap2_firewall {
+  * structure.  GPMC is one example.
+  */
+ struct omap_hwmod_addr_space {
++	const char *name;
+ 	u32 pa_start;
+ 	u32 pa_end;
+ 	u8 flags;
+-- 
+1.7.0.4
 
-Govindraj should rebase on the omap4_hwmod_data branch and add the missing rev and dev_attr for the McSPI.
-
-Unfortunately, even with that patch omap-for-linus boot hangs after the following trace:
-
-[    0.875091] omap_device: omap2_mcspi.1: new worst case activate latency 0: 30517
-[    0.886657] usbcore: registered new interface driver usbfs
-[    0.892822] usbcore: registered new interface driver hub
-[    0.898681] usbcore: registered new device driver usb
-[    0.904815] omap_i2c omap_i2c.1: bus 1 rev4.0 at 400 kHz
-
-
-Regards,
-Benoit
