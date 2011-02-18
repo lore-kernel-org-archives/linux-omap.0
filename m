@@ -1,48 +1,35 @@
-From: archit taneja <archit@ti.com>
-Subject: Re: [PATCH] OMAP: DSS2: Have separate irq handlers for DISPC and
- DSI
-Date: Fri, 18 Feb 2011 15:55:58 +0530
-Message-ID: <4D5E4936.7040807@ti.com>
-References: <1297952702-13419-1-git-send-email-archit@ti.com>	 <91F20383AC6A5F4DB94C692112281213B4C15EBB91@dlee07.ent.ti.com>	 <4D5E3D35.9000902@ti.com>	 <AANLkTik119ZB8+mR-MzXHUbZdxDo966HWehE8LeCxpWZ@mail.gmail.com> <1298022650.24062.20.camel@deskari>
+From: "Koyamangalath, Abhilash" <abhilash.kv@ti.com>
+Subject: watchdog pdev id set to -1
+Date: Fri, 18 Feb 2011 16:11:11 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC3560870370061699@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:43198 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:43853 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753673Ab1BRKYk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 18 Feb 2011 05:24:40 -0500
+	id S1756824Ab1BRKlR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Feb 2011 05:41:17 -0500
 Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1IAObFK016929
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1IAfEat018479
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 18 Feb 2011 04:24:39 -0600
-In-Reply-To: <1298022650.24062.20.camel@deskari>
+	for <linux-omap@vger.kernel.org>; Fri, 18 Feb 2011 04:41:16 -0600
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id p1IAfDJ9026637
+	for <linux-omap@vger.kernel.org>; Fri, 18 Feb 2011 16:11:13 +0530 (IST)
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
-Cc: "Turquette, Mike" <mturquette@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Cousson, Benoit" <b-cousson@ti.com>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Friday 18 February 2011 03:20 PM, Valkeinen, Tomi wrote:
-> On Fri, 2011-02-18 at 03:45 -0600, Turquette, Mike wrote:
->
-> <snip>
->
->> PRM_IRQSTATUS_* registers will have status bits set even when the
->> corresponding PRM_IRQENABLE_* bits are not set.  The common assumption
->> was that status bits would not be set if interrupts weren't enabled
->> and this caused us some issues in prcm_interrupt_handler some time
->> back.  I don't know how DSS_IRQSTATUS works under the hood, but be
->> careful of such assumptions :-)
+There this boot-time message (on both omap3 and am3517 evms atleast):
+[    1.904418] omap_device: omap_wdt.-1: new worst case activate latency 0: 6105
 
-And, there is no DSS_IRQENABLE at all in our case :)
+omap_init_wdt() initializes the id to -1 and then omap_device_build() is called with this value; this eventually calls platform_device_register() with a pdev having id as -1. I don't see any code that checks for this -1 and changes it to a non-erroneous value.
 
->
-> That's how DISPC_IRQ* and DSI_IRQ* also works. But that's not what this
-> discussion was about =). DISPC and DSI have a shared interrupt line, and
-> there's a DSS_IRQSTATUS register with two bits, telling if the interrupt
-> was for DISPC or DSI.
->
->   Tomi
->
->
+Perhaps there is a reason I've failed to notice?
+Please comment.
+Else I'm planning to submit a patch which fixes this.
+
+- Abhilash
 
