@@ -1,78 +1,70 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: RE: [RESEND][PATCH v2] OMAP: DSS: Adding two APIs for panel-taal:
- check_timings and set_timings
-Date: Fri, 18 Feb 2011 13:50:31 +0200
-Message-ID: <1298029831.24062.72.camel@deskari>
-References: <1297864482-16903-1-git-send-email-mayur@ti.com>
-	 <1297864658.988.21.camel@deskari>
-	 <EAF47CD23C76F840A9E7FCE10091EFAB033C768AE7@dbde02.ent.ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH 3/5] ARM: l2x0: Errata fix for flush by Way operation can
+ cause data corruption
+Date: Fri, 18 Feb 2011 17:32:32 +0530
+Message-ID: <a52fd2d3aaca5ad999974fe3f886d90d@mail.gmail.com>
+References: <1297510187-31547-1-git-send-email-santosh.shilimkar@ti.com><1297510187-31547-4-git-send-email-santosh.shilimkar@ti.com><AANLkTimkqZ5datA+7shggbWz3+j=TDg5beUkQK=b1AmK@mail.gmail.com><13596bec9184b117d6a1d02da8e017bf@mail.gmail.com><AANLkTimjXG5-kEW=1vodnGo3Ct_xOS_HihdqN0TeL9ba@mail.gmail.com><33573d5cfc91cf45dc58ee861cccc2ae@mail.gmail.com><4dfaffa99292bf8e36791ea9a68de75e@mail.gmail.com>
+ <AANLkTikEjTgisftQV46djrOP8iWMFV267v-efHsVf_Nd@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:46494 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753861Ab1BRLue (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 18 Feb 2011 06:50:34 -0500
-Received: from dlep33.itg.ti.com ([157.170.170.112])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1IBoXdN024531
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 18 Feb 2011 05:50:33 -0600
-Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
-	by dlep33.itg.ti.com (8.13.7/8.13.7) with ESMTP id p1IBoXen023479
-	for <linux-omap@vger.kernel.org>; Fri, 18 Feb 2011 05:50:33 -0600 (CST)
-Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p1IBoXhu001852
-	for <linux-omap@vger.kernel.org>; Fri, 18 Feb 2011 05:50:33 -0600 (CST)
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB033C768AE7@dbde02.ent.ti.com>
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:35616 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754330Ab1BRMCf convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 18 Feb 2011 07:02:35 -0500
+Received: by mail-qy0-f173.google.com with SMTP id 38so294360qyl.18
+        for <linux-omap@vger.kernel.org>; Fri, 18 Feb 2011 04:02:34 -0800 (PST)
+In-Reply-To: <AANLkTikEjTgisftQV46djrOP8iWMFV267v-efHsVf_Nd@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Janorkar, Mayuresh" <mayur@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Catalin Marinas <catalin.marinas@arm.com>
+Cc: linux-arm-kernel@lists.infradead.org, Andrei Warkentin <andreiw@motorola.com>, Kevin Hilman <khilman@ti.com>, tony@atomide.com, linux-omap@vger.kernel.org
 
-On Thu, 2011-02-17 at 02:50 -0600, Janorkar, Mayuresh wrote:
-> Tomi,
-> 
+> -----Original Message-----
+> From: catalin.marinas@gmail.com [mailto:catalin.marinas@gmail.com]
+> On Behalf Of Catalin Marinas
+> Sent: Wednesday, February 16, 2011 9:24 PM
+> To: Santosh Shilimkar
+> Cc: linux-arm-kernel@lists.infradead.org; Andrei Warkentin; Kevin
+> Hilman; tony@atomide.com; linux-omap@vger.kernel.org
+> Subject: Re: [PATCH 3/5] ARM: l2x0: Errata fix for flush by Way
+> operation can cause data corruption
+>
+> On 15 February 2011 07:14, Santosh Shilimkar
+> <santosh.shilimkar@ti.com> wrote:
+> > --- a/arch/arm/Kconfig
+> > +++ b/arch/arm/Kconfig
+> > @@ -1140,7 +1140,7 @@ config ARM_ERRATA_742231
+> >
+> > =A0config PL310_ERRATA_588369
+> > =A0 =A0 =A0 =A0bool "Clean & Invalidate maintenance operations do n=
+ot
+> invalidate
+> > clean lines"
+> > - =A0 =A0 =A0 depends on CACHE_L2X0 && ARCH_OMAP4
+> > + =A0 =A0 =A0 depends on CACHE_L2X0 && CACHE_PL310
+>
+> It can just depend on CACHE_PL310 as this depends on CACHE_L2X0.
+>
+With CACHE_PL310 alone, I get below warning.
 
-<snip>
+warning: (ARCH_OMAP4) selects PL310_ERRATA_588369 which has unmet direc=
+t
+dependencies (CACHE_PL310)
 
-> > If so, I think the change should be in the omapfb driver. Perhaps the
-> > omapfb driver should:
-> > 
-> > 1. check if check_timings & set_timings exist
-> > 2. if they do exist, do the same thing as the code does now
-> > 3. if they don't, use get_timings to verify that the given resolution is
-> > correct
-> 
-> But that would lead to a situation in which you would set the bits-per-pixel without checking if panel supports it.
+This is coming because Pl310 can't be selected on V6 and OMAP
+common build has V6 and V7 both enabled.
 
-You are mixing up the panel's color depth and the framebuffer's color
-depth. The panel has a certain color depth, and that is not changed.
+So to avoid the warning and also able to select the errata in
+OMAP build, I am making the errata's depends on CACHE_L2X0
+with comment.
 
-The fb parameter sets up the framebuffer color depth. DISPC will convert
-that input color depth to 24bpp internally, and then again convert it to
-16/18/24 bpp when outputting it to the panel. So fb and panel color
-depths are independent.
-
-> > That wouldn't be perfect either, but I guess it should do the job. But
-> > this is again something where FB framework and OMAP HW do not quite
-> > match, and we end up with hacky solution, no matter what we do. But we
-> > can try to keep the hacks in the omapfb driver =).
-> 
-> 
-> OMAPFB depends a on the attached panel for configuring FB parameters.
-> panel-generic-dpi.c it has an API dpi_check_timings which checks whether timings are supported or not.
-> How about adding a similar API for dsi_check_timings? We would call it from panel-taal.
-> (I do understand that timings required by taal are only xres and yres much less compared to dpi)
-
-For command mode panels the xres and yres are hardcoded, you cannot
-change them. I don't see a reason to have a set or check function for
-that. Omapfb should not try to change the values, if they cannot be
-changed.
-
-I think in this case omapfb should just check if the given xres/yres is
-correct, and use the given bpp for the framebuffer.
-
- Tomi
-
-
+Regards,
+Santosh
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
