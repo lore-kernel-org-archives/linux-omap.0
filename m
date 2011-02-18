@@ -1,40 +1,49 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: watchdog pdev id set to -1
-Date: Fri, 18 Feb 2011 13:12:37 +0200
-Message-ID: <20110218111237.GE10489@legolas.emea.dhcp.ti.com>
-References: <FCCFB4CDC6E5564B9182F639FC3560870370061699@dbde02.ent.ti.com>
- <20110218105635.GB10489@legolas.emea.dhcp.ti.com>
- <FCCFB4CDC6E5564B9182F639FC35608703700616CE@dbde02.ent.ti.com>
-Reply-To: balbi@ti.com
+From: "Reizer, Eyal" <eyalr@ti.com>
+Subject: RE: Ping-> Subject:    [PATCH] omap: omap3evm: add support for the
+ WL12xx WLAN module to the omap3evm
+Date: Fri, 18 Feb 2011 12:11:01 +0100
+Message-ID: <EC51CDB0807A51469E0C9CB8CF72D65F033179B976@dnce02.ent.ti.com>
+References: <EC51CDB0807A51469E0C9CB8CF72D65F032D73AA68@dnce02.ent.ti.com>,<20110217222027.GD20795@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:41903 "EHLO
-	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754171Ab1BRLMm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 18 Feb 2011 06:12:42 -0500
-Received: by mail-bw0-f48.google.com with SMTP id 8so3986332bwz.21
-        for <linux-omap@vger.kernel.org>; Fri, 18 Feb 2011 03:12:41 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608703700616CE@dbde02.ent.ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60253 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754741Ab1BRLNi convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Feb 2011 06:13:38 -0500
+In-Reply-To: <20110217222027.GD20795@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Koyamangalath, Abhilash" <abhilash.kv@ti.com>
-Cc: "Balbi, Felipe" <balbi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
+Sure,
 
-(don't top-post)
+Will test it first thing on Sunday.
 
-On Fri, Feb 18, 2011 at 04:39:48PM +0530, Koyamangalath, Abhilash wrote:
-> I understand, but is there a subtle reason why are starting from
-> an erroneous-looking -1 rather than a more natural 0 (or 1 ?).
+Best Regards,
+Eyal
 
--1 means no ID. The IDs are zero-based, so we can't use zero. Just
-change that value and see how things change on sysfs and dmesg then you
-will know what I'm talking about. That's just an implementation decision
-of using -1 to signify "no ID needed".
+________________________________________
+From: Tony Lindgren [tony@atomide.com]
+Sent: Friday, February 18, 2011 12:20 AM
+To: Reizer, Eyal
+Cc: linux-omap@vger.kernel.org
+Subject: Re: Ping-> Subject:    [PATCH] omap: omap3evm: add support for the WL12xx WLAN module to the omap3evm
 
--- 
-balbi
+* Reizer, Eyal <eyalr@ti.com> [110215 07:11]:
+> Dear Tony,
+>
+> I did not receive any comments to the patch I have send in the following link:
+>
+> http://marc.info/?l=linux-omap&m=129612179900695&w=2
+>
+> Are there any issues with excepting this patch?
+
+Pushing to devel-board branch for the upcoming merge window.
+Can you please check it's working? I had to merge some other
+evm board changes manually..
+
+Tony
