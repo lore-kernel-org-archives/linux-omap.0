@@ -1,51 +1,156 @@
-From: archit taneja <archit@ti.com>
-Subject: Re: OMAP4 Mux FW question
-Date: Fri, 18 Feb 2011 10:38:14 +0530
-Message-ID: <4D5DFEBE.4020902@ti.com>
-References: <4D5CFA13.7030608@ti.com> <1af78c6718e8f15c87c4ab50bfa04a41@mail.gmail.com> <1e14f38aeaa635e1c2374931fd406736@mail.gmail.com>
+From: "Krishnamoorthy, Balaji T" <balajitk@ti.com>
+Subject: Re: [PATCH] OMAP4:Fix -EINVAL for vana, vcxio, vdac
+Date: Fri, 18 Feb 2011 10:48:17 +0530
+Message-ID: <AANLkTinaueC5dizcKXJ-eEjwA1HpLCaYX8Mv6NA9PMC1@mail.gmail.com>
+References: <1297092599-428-1-git-send-email-balajitk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51722 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750842Ab1BRFG6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Feb 2011 00:06:58 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1I56tRB006809
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 17 Feb 2011 23:06:57 -0600
-In-Reply-To: <1e14f38aeaa635e1c2374931fd406736@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1297092599-428-1-git-send-email-balajitk@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Balaji T K <balajitk@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: "R, Sricharan" <r.sricharan@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
+On Mon, Feb 7, 2011 at 8:59 PM, Balaji T K <balajitk@ti.com> wrote:
+> Fixed regulators in twl6030 do not have set_voltage hook.
+> Regulator core returns -22 if set_voltage is NULL and apply_uV is set
+> while applying the constraint to set voltage resulting in failure during =
+probe
+> of these regulators.
+> Do not set apply_uV for fixed regulators which don't have set_voltage.
 
-On Thursday 17 February 2011 05:11 PM, Shilimkar, Santosh wrote:
-> (Avoid top posting please)
->> -----Original Message-----
->> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
->> owner@vger.kernel.org] On Behalf Of Sricharan R
->> Sent: Thursday, February 17, 2011 5:05 PM
->> To: Archit Taneja; Benoit Cousson; linux-omap@vger.kernel.org
->> Subject: RE: OMAP4 Mux FW question
->>
->> Hi Archit,
->>   Those control registers are not a part of the mux list.
->>   So the mux framework does not support configuring them.
->>   Only the pad mux registers are configured.
+Hi Tony,
+
+Any comments on this patch.
+If not can you queue this.
+
 >
-> [....]
+> machine_constraints_voltage: VANA: failed to apply 2100000uV constraint
+> twl_reg twl_reg.43: can't register VANA, -22
+> twl_reg: probe of twl_reg.43 failed with error -22
+> machine_constraints_voltage: VCXIO: failed to apply 1800000uV constraint
+> twl_reg twl_reg.44: can't register VCXIO, -22
+> twl_reg: probe of twl_reg.44 failed with error -22
+> machine_constraints_voltage: VDAC: failed to apply 1800000uV constraint
+> twl_reg twl_reg.45: can't register VDAC, -22
+> twl_reg: probe of twl_reg.45 failed with error -22
 >
-> If they are not part of MUX registers then you could
-> use control APIs directly. They should work.
+> Signed-off-by: Balaji T K <balajitk@ti.com>
+> ---
+> Boot tested on OMAP4SDP with omap2plus_defconfig
 >
-> omap4_ctrl_pad_readl() and omap4_ctrl_pad_writel()
-
-I tried this out, it works fine with this.
-
-Thanks,
-Archit
-
+> =A0arch/arm/mach-omap2/board-4430sdp.c =A0 =A0| =A0 =A03 ---
+> =A0arch/arm/mach-omap2/board-omap4panda.c | =A0 =A03 ---
+> =A02 files changed, 0 insertions(+), 6 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/bo=
+ard-4430sdp.c
+> index 07d1b20..1b16525 100644
+> --- a/arch/arm/mach-omap2/board-4430sdp.c
+> +++ b/arch/arm/mach-omap2/board-4430sdp.c
+> @@ -434,7 +434,6 @@ static struct regulator_init_data sdp4430_vana =3D {
+> =A0 =A0 =A0 =A0.constraints =3D {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.min_uV =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=3D 2100000,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.max_uV =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=3D 2100000,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 .apply_uV =A0 =A0 =A0 =A0 =A0 =A0 =A0 =3D t=
+rue,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.valid_modes_mask =A0 =A0 =A0 =3D REGULATO=
+R_MODE_NORMAL
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0| REGULATOR_MODE_STANDBY,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.valid_ops_mask =A0=3D REGULATOR_CHANGE_MO=
+DE
+> @@ -446,7 +445,6 @@ static struct regulator_init_data sdp4430_vcxio =3D {
+> =A0 =A0 =A0 =A0.constraints =3D {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.min_uV =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=3D 1800000,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.max_uV =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=3D 1800000,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 .apply_uV =A0 =A0 =A0 =A0 =A0 =A0 =A0 =3D t=
+rue,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.valid_modes_mask =A0 =A0 =A0 =3D REGULATO=
+R_MODE_NORMAL
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0| REGULATOR_MODE_STANDBY,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.valid_ops_mask =A0=3D REGULATOR_CHANGE_MO=
+DE
+> @@ -458,7 +456,6 @@ static struct regulator_init_data sdp4430_vdac =3D {
+> =A0 =A0 =A0 =A0.constraints =3D {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.min_uV =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=3D 1800000,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.max_uV =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=3D 1800000,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 .apply_uV =A0 =A0 =A0 =A0 =A0 =A0 =A0 =3D t=
+rue,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.valid_modes_mask =A0 =A0 =A0 =3D REGULATO=
+R_MODE_NORMAL
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0| REGULATOR_MODE_STANDBY,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.valid_ops_mask =A0=3D REGULATOR_CHANGE_MO=
+DE
+> diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2=
+/board-omap4panda.c
+> index e001a04..3686533 100644
+> --- a/arch/arm/mach-omap2/board-omap4panda.c
+> +++ b/arch/arm/mach-omap2/board-omap4panda.c
+> @@ -305,7 +305,6 @@ static struct regulator_init_data omap4_panda_vana =
+=3D {
+> =A0 =A0 =A0 =A0.constraints =3D {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.min_uV =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=3D 2100000,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.max_uV =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=3D 2100000,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 .apply_uV =A0 =A0 =A0 =A0 =A0 =A0 =A0 =3D t=
+rue,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.valid_modes_mask =A0 =A0 =A0 =3D REGULATO=
+R_MODE_NORMAL
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0| REGULATOR_MODE_STANDBY,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.valid_ops_mask =A0=3D REGULATOR_CHANGE_MO=
+DE
+> @@ -317,7 +316,6 @@ static struct regulator_init_data omap4_panda_vcxio =
+=3D {
+> =A0 =A0 =A0 =A0.constraints =3D {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.min_uV =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=3D 1800000,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.max_uV =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=3D 1800000,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 .apply_uV =A0 =A0 =A0 =A0 =A0 =A0 =A0 =3D t=
+rue,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.valid_modes_mask =A0 =A0 =A0 =3D REGULATO=
+R_MODE_NORMAL
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0| REGULATOR_MODE_STANDBY,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.valid_ops_mask =A0=3D REGULATOR_CHANGE_MO=
+DE
+> @@ -329,7 +327,6 @@ static struct regulator_init_data omap4_panda_vdac =
+=3D {
+> =A0 =A0 =A0 =A0.constraints =3D {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.min_uV =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=3D 1800000,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.max_uV =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=3D 1800000,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 .apply_uV =A0 =A0 =A0 =A0 =A0 =A0 =A0 =3D t=
+rue,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.valid_modes_mask =A0 =A0 =A0 =3D REGULATO=
+R_MODE_NORMAL
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0| REGULATOR_MODE_STANDBY,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.valid_ops_mask =A0=3D REGULATOR_CHANGE_MO=
+DE
+> --
+> 1.7.0.4
+>
+>
