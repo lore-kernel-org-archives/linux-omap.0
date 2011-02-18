@@ -1,177 +1,58 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RESEND][PATCH] ARM: OMAP: Add chip id recognition for OMAP4
-	ES2.1 and ES2.2
-Date: Thu, 17 Feb 2011 16:18:46 -0800
-Message-ID: <20110218001846.GQ20795@atomide.com>
-References: <1296136768-19337-1-git-send-email-nskamat@ti.com>
-	<d527676275d592a27e3de42e1036b7ec@mail.gmail.com>
-	<20110214230750.GR20795@atomide.com>
+From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Subject: Re: [PATCH v5 3/5] OMAP4: hwmod data: add mailbox data
+Date: Thu, 17 Feb 2011 18:24:59 -0600
+Message-ID: <AANLkTikUt=GHVW1AEzm4gLCL1Be6eK+qJti=a1KR2N7H@mail.gmail.com>
+References: <1296674843-12718-1-git-send-email-omar.ramirez@ti.com>
+	<1296674843-12718-4-git-send-email-omar.ramirez@ti.com>
+	<4D5943A9.8010205@ti.com>
+	<AANLkTinA2a60TSM7qDC1LQiRaUTs0DR3bDMv+oVsVOE0@mail.gmail.com>
+	<4D5AF8BA.8080403@ti.com>
+	<AANLkTi=yj2_bS1h87u0hhUUpA=RPZe-A=PiNSf_q_66r@mail.gmail.com>
+	<20110217233908.GG20795@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20110214230750.GR20795@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Nishant Kamat <nskamat@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:38136 "EHLO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752040Ab1BRAZA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 17 Feb 2011 19:25:00 -0500
+Received: by mail-gy0-f173.google.com with SMTP id 5so1545701gye.32
+        for <linux-omap@vger.kernel.org>; Thu, 17 Feb 2011 16:24:59 -0800 (PST)
+In-Reply-To: <20110217233908.GG20795@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, Russell King <linux@arm.linux.org.uk>, lo <linux-omap@vger.kernel.org>, lak <linux-arm-kernel@lists.infradead.org>
 
-* Tony Lindgren <tony@atomide.com> [110214 15:06]:
-> * Nishant Kamat <nskamat@ti.com> [110214 07:53]:
-> > Hi Tony,
-> > 
-> > There have been no comments on this patch but an Ack from Santosh.
-> > Would you please accept/merge this, or do you have any comments?
-> 
-> Thanks will queue. Next time, please also Cc linux-arm-kernel mailing
-> list for your arch/arm/*omap*/ related patches.
+Hi Tony,
 
-Here's repost of this with linux-arm-kernel Cc'd.
+On Thu, Feb 17, 2011 at 5:39 PM, Tony Lindgren <tony@atomide.com> wrote:
+> * Ramirez Luna, Omar <omar.ramirez@ti.com> [110215 16:11]:
+>>
+>> > If you have to do several platform_get_irq_byname to get this one, I'd
+>> > prefer to get rid of that name for OMAP4. It will make mailbox irq
+>> > consistent with the other hwmods.
+>>
+>> I was thinking to standardize the names to be mbox0..mboxN across all
+>> the platforms, reason being that the mailbox also has capabilities to
+>> be used not only by dsp or iva, by using a polling method.
+>>
+>> So even if the mailbox in OMAP3 is called "dsp", it has 4 more queues
+>> apart from the 2 used for messaging between arm and dsp, that could be
+>> used even if tidspbridge wasn't there.
+>
+> So what's the status of this series? Can the rest of the patches
+> now be applied on top of the current omap-for-linus or do the names
+> still need fixing?
+
+I'm going to remove the names for the hwmods with a single irq. And
+change the interface clock to be the main_clk, so it can be disabled
+when runtime pm is disabled.
+
+I won't resend the patch for OMAP4 hwmod data, as this was send
+earlier by Benoit.
 
 Regards,
 
-Tony
-
-
-From: Nishant Kamat <nskamat@ti.com>
-Date: Thu, 17 Feb 2011 09:55:03 -0800
-Subject: [PATCH] omap: Add chip id recognition for OMAP4 ES2.1 and ES2.2
-
-Allow OMAP4 ES2.1 and ES2.2 revisions to be recognized in the
-omap4_check_revision() function.
-
-Mainly, ES2.1 has fixes that allow LPDDR to be used at 100% OPP (400MHz).
-ES2.2 additionally has a couple of power management fixes (to reduce
-leakage), an I2C1 SDA line state fix, and a floating point write
-corruption fix (cortex erratum).
-
-Even though the current mainline support doesn't need to distinguish
-between ES2.X versions, it's still useful to know the correct silicon
-rev when issues are reported. Moreover, these id checks can be used by
-power management code that selects suitable OPPs considering the
-memory speed limitation on ES2.0.
-
-For details about the silicon errata on OMAP4430, refer
-http://focus.ti.com/pdfs/wtbu/SWPZ009A_OMAP4430_Errata_Public_vA.pdf
-
-Signed-off-by: Nishant Kamat <nskamat@ti.com>
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index 5c25f1b..3168b17 100644
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -6,7 +6,7 @@
-  * Copyright (C) 2005 Nokia Corporation
-  * Written by Tony Lindgren <tony@atomide.com>
-  *
-- * Copyright (C) 2009 Texas Instruments
-+ * Copyright (C) 2009-11 Texas Instruments
-  * Added OMAP4 support - Santosh Shilimkar <santosh.shilimkar@ti.com>
-  *
-  * This program is free software; you can redistribute it and/or modify
-@@ -328,7 +328,7 @@ static void __init omap4_check_revision(void)
- 	 */
- 	idcode = read_tap_reg(OMAP_TAP_IDCODE);
- 	hawkeye = (idcode >> 12) & 0xffff;
--	rev = (idcode >> 28) & 0xff;
-+	rev = (idcode >> 28) & 0xf;
- 
- 	/*
- 	 * Few initial ES2.0 samples IDCODE is same as ES1.0
-@@ -347,22 +347,31 @@ static void __init omap4_check_revision(void)
- 			omap_chip.oc |= CHIP_IS_OMAP4430ES1;
- 			break;
- 		case 1:
-+		default:
- 			omap_revision = OMAP4430_REV_ES2_0;
- 			omap_chip.oc |= CHIP_IS_OMAP4430ES2;
-+		}
-+		break;
-+	case 0xb95c:
-+		switch (rev) {
-+		case 3:
-+			omap_revision = OMAP4430_REV_ES2_1;
-+			omap_chip.oc |= CHIP_IS_OMAP4430ES2_1;
- 			break;
-+		case 4:
- 		default:
--			omap_revision = OMAP4430_REV_ES2_0;
--			omap_chip.oc |= CHIP_IS_OMAP4430ES2;
--	}
--	break;
-+			omap_revision = OMAP4430_REV_ES2_2;
-+			omap_chip.oc |= CHIP_IS_OMAP4430ES2_2;
-+		}
-+		break;
- 	default:
--		/* Unknown default to latest silicon rev as default*/
--		omap_revision = OMAP4430_REV_ES2_0;
--		omap_chip.oc |= CHIP_IS_OMAP4430ES2;
-+		/* Unknown default to latest silicon rev as default */
-+		omap_revision = OMAP4430_REV_ES2_2;
-+		omap_chip.oc |= CHIP_IS_OMAP4430ES2_2;
- 	}
- 
--	pr_info("OMAP%04x ES%d.0\n",
--			omap_rev() >> 16, ((omap_rev() >> 12) & 0xf) + 1);
-+	pr_info("OMAP%04x ES%d.%d\n", omap_rev() >> 16,
-+		((omap_rev() >> 12) & 0xf), ((omap_rev() >> 8) & 0xf));
- }
- 
- #define OMAP3_SHOW_FEATURE(feat)		\
-diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
-index be99438..8198bb6 100644
---- a/arch/arm/plat-omap/include/plat/cpu.h
-+++ b/arch/arm/plat-omap/include/plat/cpu.h
-@@ -5,7 +5,7 @@
-  *
-  * Copyright (C) 2004, 2008 Nokia Corporation
-  *
-- * Copyright (C) 2009 Texas Instruments.
-+ * Copyright (C) 2009-11 Texas Instruments.
-  *
-  * Written by Tony Lindgren <tony.lindgren@nokia.com>
-  *
-@@ -405,8 +405,10 @@ IS_OMAP_TYPE(3517, 0x3517)
- #define TI8168_REV_ES1_1	(TI816X_CLASS | (OMAP_REVBITS_01 << 8))
- 
- #define OMAP443X_CLASS		0x44300044
--#define OMAP4430_REV_ES1_0	OMAP443X_CLASS
--#define OMAP4430_REV_ES2_0	0x44301044
-+#define OMAP4430_REV_ES1_0	(OMAP443X_CLASS | (0x10 << 8))
-+#define OMAP4430_REV_ES2_0	(OMAP443X_CLASS | (0x20 << 8))
-+#define OMAP4430_REV_ES2_1	(OMAP443X_CLASS | (0x21 << 8))
-+#define OMAP4430_REV_ES2_2	(OMAP443X_CLASS | (0x22 << 8))
- 
- /*
-  * omap_chip bits
-@@ -434,12 +436,16 @@ IS_OMAP_TYPE(3517, 0x3517)
- #define CHIP_IS_OMAP3630ES1_1           (1 << 9)
- #define CHIP_IS_OMAP3630ES1_2           (1 << 10)
- #define CHIP_IS_OMAP4430ES2		(1 << 11)
-+#define CHIP_IS_OMAP4430ES2_1		(1 << 12)
-+#define CHIP_IS_OMAP4430ES2_2		(1 << 13)
- #define CHIP_IS_TI816X			(1 << 14)
- 
- #define CHIP_IS_OMAP24XX		(CHIP_IS_OMAP2420 | CHIP_IS_OMAP2430)
- 
--#define CHIP_IS_OMAP4430		(CHIP_IS_OMAP4430ES1 | \
--						 CHIP_IS_OMAP4430ES2)
-+#define CHIP_IS_OMAP4430		(CHIP_IS_OMAP4430ES1 |		\
-+					 CHIP_IS_OMAP4430ES2 |		\
-+					 CHIP_IS_OMAP4430ES2_1 |	\
-+					 CHIP_IS_OMAP4430ES2_2)
- 
- /*
-  * "GE" here represents "greater than or equal to" in terms of ES
+Omar
