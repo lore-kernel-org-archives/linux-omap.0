@@ -1,58 +1,48 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 1/3] OMAP2+: hwmod: Avoid setup if clock lookup failed
-Date: Fri, 18 Feb 2011 18:34:34 +0100
-Message-ID: <4D5EADAA.7010007@ti.com>
-References: <1297858285-7056-1-git-send-email-rnayak@ti.com> <1297858285-7056-2-git-send-email-rnayak@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 4/4] mtd: OneNAND: OMAP2: increase multiblock erase
+ verify timeout
+Date: Fri, 18 Feb 2011 09:34:47 -0800
+Message-ID: <20110218173447.GT20795@atomide.com>
+References: <1297068421-14430-1-git-send-email-adrian.hunter@nokia.com>
+ <1297068421-14430-5-git-send-email-adrian.hunter@nokia.com>
+ <20110217234603.GI20795@atomide.com>
+ <1298003498.2735.4.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:36330 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751373Ab1BRRem (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Feb 2011 12:34:42 -0500
-In-Reply-To: <1297858285-7056-2-git-send-email-rnayak@ti.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:45503 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753493Ab1BRRe5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Feb 2011 12:34:57 -0500
+Content-Disposition: inline
+In-Reply-To: <1298003498.2735.4.camel@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Nayak, Rajendra" <rnayak@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Artem Bityutskiy <dedekind1@gmail.com>
+Cc: Adrian Hunter <adrian.hunter@nokia.com>, Kyungmin Park <kyungmin.park@samsung.com>, linux-mtd Mailing List <linux-mtd@lists.infradead.org>, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>, linux-omap Mailing List <linux-omap@vger.kernel.org>
 
-On 2/16/2011 1:11 PM, Nayak, Rajendra wrote:
-> Add a hwmod state check in the _setup function
-> to avoid setting up hwmods' for which clock
-> lookup has failed.
->
-> Signed-off-by: Rajendra Nayak<rnayak@ti.com>
-> ---
->   arch/arm/mach-omap2/omap_hwmod.c |    6 ++++++
->   1 files changed, 6 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-> index e282e35..cd9dcde 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod.c
-> @@ -1362,6 +1362,12 @@ static int _setup(struct omap_hwmod *oh, void *data)
->   	int i, r;
->   	u8 postsetup_state;
->
-> +	if (oh->_state != _HWMOD_STATE_CLKS_INITED) {
-> +		WARN(1, "omap_hwmod: %s: _setup failed as one or more"
-> +		     "clock lookups' have failed\n", oh->name);
+* Artem Bityutskiy <dedekind1@gmail.com> [110217 20:31]:
+> Hi,
+> 
+> On Thu, 2011-02-17 at 15:46 -0800, Tony Lindgren wrote:
+> > * Adrian Hunter <adrian.hunter@nokia.com> [110207 00:45]:
+> > > From: Roman Tereshonkov <roman.tereshonkov@nokia.com>
+> > > 
+> > > The current multiblock erase verify read timeout 100us is the maximum
+> > > for none-error case. If errors happen during multibock erase then
+> > > the specification recommends to run multiblock erase verify command
+> > > with maximum timeout 10ms (see specs. for KFM4G16Q2A and KFN8G16Q2A).
+> > > 
+> > > For the most common non-error case we wait 100us in udelay polling
+> > > loop. In case of timeout the interrupt mode is used to wait for the
+> > > command end.
+> > > 
+> > > Signed-off-by: Roman Tereshonkov <roman.tereshonkov@nokia.com>
+> > 
+> > I'll queue this series. Anybody from MTD list care to ack this patch?
+> 
+> Acked-by: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
 
-Maybe a pr_warning will be enough for that?
+Thanks!
 
-> +		return -EINVAL;
-
-As discussed previously I'd prefer to return 0 here since we do not want 
-to break the iteration.
-
-> +	}
-> +
->   	/* Set iclk autoidle mode */
->   	if (oh->slaves_cnt>  0) {
->   		for (i = 0; i<  oh->slaves_cnt; i++) {
-
-Otherwise it is fine for me.
-
-Thanks,
-Benoit
+Tony
