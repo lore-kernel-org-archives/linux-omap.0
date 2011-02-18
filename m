@@ -1,55 +1,92 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH v10 00/11] dmtimer adaptation to platform_driver
-Date: Fri, 18 Feb 2011 11:16:29 +0530
-Message-ID: <106a7a107bdd8b83317510d139620757@mail.gmail.com>
-References: <1297861220-831-1-git-send-email-tarun.kanti@ti.com> <20110218005706.GR20795@atomide.com>
+From: Sung Hee Park <shpark7@stanford.edu>
+Subject: Re: omapfb: no driver for display
+Date: Thu, 17 Feb 2011 22:55:23 -0800
+Message-ID: <AANLkTi=Bqie3-rUavKn_Bv=RhJ7f6RNzgCsHF6pXVwen@mail.gmail.com>
+References: <AANLkTi=f=SKE=QR97ttPnBrpW=2wNGd03+q4agmu6Uap@mail.gmail.com>
+	<AANLkTikpCcpkjb8i_8Gk5ey1FtgsaUenmKNDhrtjLqon@mail.gmail.com>
+	<AANLkTinoLOyqBCMNKbpcJMhZHnncX1T07nbfsTThA_a4@mail.gmail.com>
+	<4D5DF547.7010703@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:56315 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750841Ab1BRFqc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 18 Feb 2011 00:46:32 -0500
-Received: by qwd7 with SMTP id 7so98768qwd.19
-        for <linux-omap@vger.kernel.org>; Thu, 17 Feb 2011 21:46:30 -0800 (PST)
-In-Reply-To: <20110218005706.GR20795@atomide.com>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:37023 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752682Ab1BRGz0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Feb 2011 01:55:26 -0500
+Received: by wwa36 with SMTP id 36so3437163wwa.1
+        for <linux-omap@vger.kernel.org>; Thu, 17 Feb 2011 22:55:25 -0800 (PST)
+In-Reply-To: <4D5DF547.7010703@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>
-Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Tarun Kanti DebBarma <tarun.kanti@ti.com>
+To: archit taneja <archit@ti.com>
+Cc: Bryan Wu <bryan.wu@canonical.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Semwal, Sumit" <sumit.semwal@ti.com>
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Tony Lindgren
-> Sent: Friday, February 18, 2011 6:27 AM
-> To: Tarun Kanti DebBarma
-> Cc: linux-omap@vger.kernel.org; khilman@ti.com
-> Subject: Re: [PATCH v10 00/11] dmtimer adaptation to platform_driver
->
-> Hi,
->
-> * Tarun Kanti DebBarma <tarun.kanti@ti.com> [110216 04:56]:
-> > dmtimer adaptation to platform_driver.
-> >
-> > This patch series is adaptation of dmtimer code to platform driver
-> > using omap_device and omap_hwmod abstraction.
->
-> Looks like this needs rebasing on top of current omap-for-linus
-> because of the omap4 hwmod data being merged.
->
-> Also note that you may need to change things with the clock
-> init with init_early changes.
->
-> That's something we need to consider carefully as we don't
-> necessarily want to have the system timer depend on hwmod
-> and clock framework. But that can be fixed later on after
-> your patch series.
->
-This is interesting. Major work of the timer series was around
-making this early timer work with hwmod. We had such a
-discussion earlier, to leave OS tick timer from hwmod because
-of various implications.
+Thanks for your suggestions. I've selected DPI and VENC options, and
+Sharp LS LCD Panel in OMAP2/3 Display Device Drivers section, but not
+Generic Panel. Enabling Generic Panel made it work. Thanks!
 
 Regards,
-Santosh
+Sung Hee
+
+
+
+On Thu, Feb 17, 2011 at 8:27 PM, archit taneja <archit@ti.com> wrote:
+> Hi,
+>
+> On Friday 18 February 2011 09:46 AM, Sung Hee Park wrote:
+>>
+>> Bryan,
+>>
+>> I've already tried that patch but didn't work. The omapdss is not
+>> showing any error message, but omapfb still does.
+>>
+>> Thanks,
+>> Sung Hee
+>>
+>> On Thu, Feb 17, 2011 at 7:46 PM, Bryan Wu<bryan.wu@canonical.com> =A0=
+wrote:
+>>>
+>>> Sung Hee,
+>>>
+>>> Could you please try the patch I forwarded to L-O yesterday?
+>>> https://patchwork.kernel.org/patch/569501/
+>>>
+>>> Thanks,
+>>> -Bryan
+>>>
+>>> On Fri, Feb 18, 2011 at 11:17 AM, Sung Hee Park<shpark7@stanford.ed=
+u>
+>>> =A0wrote:
+>>>>
+>>>> Hi,
+>>>>
+>>>> I found my frame buffer is not working while I'm testing the linux
+>>>> kernel 2.6.38-rc5 on omap3evm, which used to work fine with 2.6.37=
+=2E
+>>>>
+>>>> Kernel command line: mem=3D128M console=3DttyO0,115200n8 noinitrd =
+rw
+>>>> root=3D/dev/mmcblk0p2 rootfstype=3Dext3 rootwait omapfb.rot
+>>>> ate=3D3 omapfb.vrfb=3Dy vram=3D8M earlyprintk=3Dserial,uart0,11520=
+0n8
+>>>> omapdss.debug=3D1 omapfb.debug=3D1
+>>>> OMAPFB: omapfb_init
+>>>> OMAPFB: omapfb_probe
+>>>> omapfb omapfb: no driver for display
+>>>> omapfb omapfb: failed to setup omapfb
+>
+> It looks like an issue with what you have selected in the menuconfig.=
+ Could
+> you ensure you have DPI and VENC selected, and in displays Generic DP=
+I panel
+> and sharp-ls panel selected.
+>
+> Regards,
+> Archit
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
