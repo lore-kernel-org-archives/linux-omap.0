@@ -1,60 +1,58 @@
-From: archit taneja <archit@ti.com>
-Subject: Re: omapfb: no driver for display
-Date: Fri, 18 Feb 2011 09:57:51 +0530
-Message-ID: <4D5DF547.7010703@ti.com>
-References: <AANLkTi=f=SKE=QR97ttPnBrpW=2wNGd03+q4agmu6Uap@mail.gmail.com>	<AANLkTikpCcpkjb8i_8Gk5ey1FtgsaUenmKNDhrtjLqon@mail.gmail.com> <AANLkTinoLOyqBCMNKbpcJMhZHnncX1T07nbfsTThA_a4@mail.gmail.com>
+From: Artem Bityutskiy <dedekind1@gmail.com>
+Subject: Re: [PATCH 4/4] mtd: OneNAND: OMAP2: increase multiblock erase
+ verify timeout
+Date: Fri, 18 Feb 2011 06:31:38 +0200
+Message-ID: <1298003498.2735.4.camel@localhost>
+References: <1297068421-14430-1-git-send-email-adrian.hunter@nokia.com>
+	 <1297068421-14430-5-git-send-email-adrian.hunter@nokia.com>
+	 <20110217234603.GI20795@atomide.com>
+Reply-To: dedekind1@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48268 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752218Ab1BRE0j (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 17 Feb 2011 23:26:39 -0500
-In-Reply-To: <AANLkTinoLOyqBCMNKbpcJMhZHnncX1T07nbfsTThA_a4@mail.gmail.com>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:62790 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752268Ab1BREcy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Feb 2011 23:32:54 -0500
+Received: by ewy5 with SMTP id 5so1411829ewy.19
+        for <linux-omap@vger.kernel.org>; Thu, 17 Feb 2011 20:32:53 -0800 (PST)
+In-Reply-To: <20110217234603.GI20795@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sung Hee Park <shpark7@stanford.edu>
-Cc: Bryan Wu <bryan.wu@canonical.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Semwal, Sumit" <sumit.semwal@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Adrian Hunter <adrian.hunter@nokia.com>, Kyungmin Park <kyungmin.park@samsung.com>, linux-mtd Mailing List <linux-mtd@lists.infradead.org>, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>, linux-omap Mailing List <linux-omap@vger.kernel.org>
 
 Hi,
 
-On Friday 18 February 2011 09:46 AM, Sung Hee Park wrote:
-> Bryan,
->
-> I've already tried that patch but didn't work. The omapdss is not
-> showing any error message, but omapfb still does.
->
-> Thanks,
-> Sung Hee
->
-> On Thu, Feb 17, 2011 at 7:46 PM, Bryan Wu<bryan.wu@canonical.com>  wrote:
->> Sung Hee,
->>
->> Could you please try the patch I forwarded to L-O yesterday?
->> https://patchwork.kernel.org/patch/569501/
->>
->> Thanks,
->> -Bryan
->>
->> On Fri, Feb 18, 2011 at 11:17 AM, Sung Hee Park<shpark7@stanford.edu>  wrote:
->>> Hi,
->>>
->>> I found my frame buffer is not working while I'm testing the linux
->>> kernel 2.6.38-rc5 on omap3evm, which used to work fine with 2.6.37.
->>>
->>> Kernel command line: mem=128M console=ttyO0,115200n8 noinitrd rw
->>> root=/dev/mmcblk0p2 rootfstype=ext3 rootwait omapfb.rot
->>> ate=3 omapfb.vrfb=y vram=8M earlyprintk=serial,uart0,115200n8
->>> omapdss.debug=1 omapfb.debug=1
->>> OMAPFB: omapfb_init
->>> OMAPFB: omapfb_probe
->>> omapfb omapfb: no driver for display
->>> omapfb omapfb: failed to setup omapfb
+On Thu, 2011-02-17 at 15:46 -0800, Tony Lindgren wrote:
+> * Adrian Hunter <adrian.hunter@nokia.com> [110207 00:45]:
+> > From: Roman Tereshonkov <roman.tereshonkov@nokia.com>
+> >=20
+> > The current multiblock erase verify read timeout 100us is the maxim=
+um
+> > for none-error case. If errors happen during multibock erase then
+> > the specification recommends to run multiblock erase verify command
+> > with maximum timeout 10ms (see specs. for KFM4G16Q2A and KFN8G16Q2A=
+).
+> >=20
+> > For the most common non-error case we wait 100us in udelay polling
+> > loop. In case of timeout the interrupt mode is used to wait for the
+> > command end.
+> >=20
+> > Signed-off-by: Roman Tereshonkov <roman.tereshonkov@nokia.com>
+>=20
+> I'll queue this series. Anybody from MTD list care to ack this patch?
 
-It looks like an issue with what you have selected in the menuconfig. 
-Could you ensure you have DPI and VENC selected, and in displays Generic 
-DPI panel and sharp-ls panel selected.
+Acked-by: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
 
-Regards,
-Archit
+--=20
+Best Regards,
+Artem Bityutskiy (=D0=90=D1=80=D1=82=D1=91=D0=BC =D0=91=D0=B8=D1=82=D1=8E=
+=D1=86=D0=BA=D0=B8=D0=B9)
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
