@@ -1,92 +1,58 @@
-From: Sung Hee Park <shpark7@stanford.edu>
-Subject: Re: omapfb: no driver for display
-Date: Thu, 17 Feb 2011 22:55:23 -0800
-Message-ID: <AANLkTi=Bqie3-rUavKn_Bv=RhJ7f6RNzgCsHF6pXVwen@mail.gmail.com>
-References: <AANLkTi=f=SKE=QR97ttPnBrpW=2wNGd03+q4agmu6Uap@mail.gmail.com>
-	<AANLkTikpCcpkjb8i_8Gk5ey1FtgsaUenmKNDhrtjLqon@mail.gmail.com>
-	<AANLkTinoLOyqBCMNKbpcJMhZHnncX1T07nbfsTThA_a4@mail.gmail.com>
-	<4D5DF547.7010703@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: [GIT PULL] USB patches
+Date: Fri, 18 Feb 2011 09:35:13 +0200
+Message-ID: <20110218073513.GW14574@legolas.emea.dhcp.ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:37023 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752682Ab1BRGz0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Feb 2011 01:55:26 -0500
-Received: by wwa36 with SMTP id 36so3437163wwa.1
-        for <linux-omap@vger.kernel.org>; Thu, 17 Feb 2011 22:55:25 -0800 (PST)
-In-Reply-To: <4D5DF547.7010703@ti.com>
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:43794 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753352Ab1BRHfT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 18 Feb 2011 02:35:19 -0500
+Received: by bwg12 with SMTP id 12so4730211bwg.40
+        for <linux-omap@vger.kernel.org>; Thu, 17 Feb 2011 23:35:17 -0800 (PST)
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: archit taneja <archit@ti.com>
-Cc: Bryan Wu <bryan.wu@canonical.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Semwal, Sumit" <sumit.semwal@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-Thanks for your suggestions. I've selected DPI and VENC options, and
-Sharp LS LCD Panel in OMAP2/3 Display Device Drivers section, but not
-Generic Panel. Enabling Generic Panel made it work. Thanks!
+Hi Tony,
 
-Regards,
-Sung Hee
+Here's a pull request for the changes we need to get into the upcoming
+merge window. These have been tested overnight on pandaboard.
 
+I also checked that it merges cleanly with your omap-for-linus branch.
 
+The following changes since commit 85e2efbb1db9a18d218006706d6e4fbeb0216213:
 
-On Thu, Feb 17, 2011 at 8:27 PM, archit taneja <archit@ti.com> wrote:
-> Hi,
->
-> On Friday 18 February 2011 09:46 AM, Sung Hee Park wrote:
->>
->> Bryan,
->>
->> I've already tried that patch but didn't work. The omapdss is not
->> showing any error message, but omapfb still does.
->>
->> Thanks,
->> Sung Hee
->>
->> On Thu, Feb 17, 2011 at 7:46 PM, Bryan Wu<bryan.wu@canonical.com> =A0=
-wrote:
->>>
->>> Sung Hee,
->>>
->>> Could you please try the patch I forwarded to L-O yesterday?
->>> https://patchwork.kernel.org/patch/569501/
->>>
->>> Thanks,
->>> -Bryan
->>>
->>> On Fri, Feb 18, 2011 at 11:17 AM, Sung Hee Park<shpark7@stanford.ed=
-u>
->>> =A0wrote:
->>>>
->>>> Hi,
->>>>
->>>> I found my frame buffer is not working while I'm testing the linux
->>>> kernel 2.6.38-rc5 on omap3evm, which used to work fine with 2.6.37=
-=2E
->>>>
->>>> Kernel command line: mem=3D128M console=3DttyO0,115200n8 noinitrd =
-rw
->>>> root=3D/dev/mmcblk0p2 rootfstype=3Dext3 rootwait omapfb.rot
->>>> ate=3D3 omapfb.vrfb=3Dy vram=3D8M earlyprintk=3Dserial,uart0,11520=
-0n8
->>>> omapdss.debug=3D1 omapfb.debug=3D1
->>>> OMAPFB: omapfb_init
->>>> OMAPFB: omapfb_probe
->>>> omapfb omapfb: no driver for display
->>>> omapfb omapfb: failed to setup omapfb
->
-> It looks like an issue with what you have selected in the menuconfig.=
- Could
-> you ensure you have DPI and VENC selected, and in displays Generic DP=
-I panel
-> and sharp-ls panel selected.
->
-> Regards,
-> Archit
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+  Linux 2.6.38-rc5 (2011-02-15 19:23:45 -0800)
+
+are available in the git repository at:
+  git://gitorious.org/usb/usb.git for-tony
+
+Anand Gadiyar (2):
+      arm: omap4: usb: explicitly configure MUSB pads
+      arm: omap4: 4430sdp: drop ehci support
+
+Hema HK (5):
+      usb: musb: AM35x: moving internal phy functions out of usb_musb.c file
+      OMAP2430: hwmod data: Add USBOTG
+      OMAP3xxx: hwmod data: Add USBOTG
+      AM35xx: hwmod data: Add USBOTG
+      OMAP2+: musb: hwmod adaptation for musb registration
+
+ arch/arm/mach-omap2/Makefile               |    3 +-
+ arch/arm/mach-omap2/board-4430sdp.c        |   19 ---
+ arch/arm/mach-omap2/board-am3517evm.c      |    4 +
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c |   98 +++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  166 +++++++++++++++++++++
+ arch/arm/mach-omap2/omap_phy_internal.c    |   93 ++++++++++++
+ arch/arm/mach-omap2/usb-musb.c             |  219 +++++++++++-----------------
+ arch/arm/plat-omap/include/plat/usb.h      |    4 +
+ 8 files changed, 450 insertions(+), 156 deletions(-)
+
+-- 
+balbi
