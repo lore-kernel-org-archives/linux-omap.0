@@ -1,280 +1,336 @@
 From: Lesly A M <leslyam@ti.com>
-Subject: [PATCH 08/12] omap3: pm: TWL4030 power scripts for OMAP3 boards
-Date: Fri, 18 Feb 2011 22:38:54 +0530
-Message-ID: <1298048938-1480-9-git-send-email-leslyam@ti.com>
+Subject: [PATCH 07/12] omap3: pm: Re-programing the setup time based on CORE target state
+Date: Fri, 18 Feb 2011 22:38:53 +0530
+Message-ID: <1298048938-1480-8-git-send-email-leslyam@ti.com>
 References: <1298048938-1480-1-git-send-email-leslyam@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:34029 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:34026 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751683Ab1BRRJV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 18 Feb 2011 12:09:21 -0500
+	id S1754698Ab1BRRJU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 18 Feb 2011 12:09:20 -0500
 In-Reply-To: <1298048938-1480-1-git-send-email-leslyam@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Lesly A M <leslyam@ti.com>, Nishanth Menon <nm@ti.com>, David Derrick <dderrick@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
 
-Power bus message sequence for TWL4030 to enter sleep/wakeup/warm_reset.
+Since the setup time values are different for each CORE_DOMAIN target state
+and VDD1(MPU voltage) can not be scaled separately. Because VDD1 has
+dependency with VDD2(CORE voltage)
 
-TWL4030 power scripts which can be used by different OMAP3 boards
-with the power companion chip (TWL4030 series).
+Adding a new function omap3_voltage_vc_update() to re-program the VC setuptime
+data while entering low power mode.
 
-The twl4030 generic script is exported and can be used by any other
-boardfile to update the power data in twl4030_platform_data.
-
-http://omapedia.org/wiki/TWL4030_power_scripts
+Also added a flag to optimize the sleep latency. This flag is checked before
+calling the vc_update, and is ignored if it is already configured for
+the same target state.
 
 Signed-off-by: Lesly A M <leslyam@ti.com>
 Cc: Nishanth Menon <nm@ti.com>
 Cc: David Derrick <dderrick@ti.com>
 Cc: Samuel Ortiz <sameo@linux.intel.com>
 ---
- arch/arm/mach-omap2/twl4030.c |  146 +++++++++++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/twl4030.h |   21 ++++++
- include/linux/i2c/twl.h       |   33 +++++++++-
- 3 files changed, 197 insertions(+), 3 deletions(-)
- create mode 100644 arch/arm/mach-omap2/twl4030.c
- create mode 100644 arch/arm/mach-omap2/twl4030.h
+ arch/arm/mach-omap2/pm34xx.c              |   11 ++-
+ arch/arm/mach-omap2/voltage.c             |  165 ++++++++++++++++++++--------
+ arch/arm/plat-omap/include/plat/voltage.h |    2 +
+ 3 files changed, 127 insertions(+), 51 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/twl4030.c b/arch/arm/mach-omap2/twl4030.c
-new file mode 100644
-index 0000000..f3d05e5
---- /dev/null
-+++ b/arch/arm/mach-omap2/twl4030.c
-@@ -0,0 +1,146 @@
-+/*
-+ * OMAP power script for PMIC TWL4030
-+ *
-+ * Author: Lesly A M <leslyam@ti.com>
-+ *
-+ * Copyright (C) 2010 Texas Instruments, Inc.
-+ * Lesly A M <leslyam@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#ifdef CONFIG_TWL4030_POWER
-+
-+#include "twl4030.h"
-+
-+/*
-+ * Sequence to control the TRITON Power resources,
-+ * when the system goes into sleep.
-+ * Executed upon P1_P2/P3 transition for sleep.
-+ */
-+static struct twl4030_ins __initdata sleep_on_seq[] = {
-+	/* Broadcast message to put res to sleep */
-+	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R1,
-+							RES_STATE_SLEEP), 2},
-+	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R2,
-+							RES_STATE_SLEEP), 2},
-+};
-+
-+static struct twl4030_script sleep_on_script __initdata = {
-+	.script	= sleep_on_seq,
-+	.size	= ARRAY_SIZE(sleep_on_seq),
-+	.flags	= TWL4030_SLEEP_SCRIPT,
-+};
-+
-+/*
-+ * Sequence to control the TRITON Power resources,
-+ * when the system wakeup from sleep.
-+ * Executed upon P1_P2 transition for wakeup.
-+ */
-+static struct twl4030_ins wakeup_p12_seq[] __initdata = {
-+	/* Broadcast message to put res to active */
-+	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R1,
-+							RES_STATE_ACTIVE), 2},
-+};
-+
-+static struct twl4030_script wakeup_p12_script __initdata = {
-+	.script	= wakeup_p12_seq,
-+	.size	= ARRAY_SIZE(wakeup_p12_seq),
-+	.flags	= TWL4030_WAKEUP12_SCRIPT,
-+};
-+
-+/*
-+ * Sequence to control the TRITON Power resources,
-+ * when the system wakeup from sleep.
-+ * Executed upon P3 transition for wakeup.
-+ */
-+static struct twl4030_ins wakeup_p3_seq[] __initdata = {
-+	/* Broadcast message to put res to active */
-+	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R2,
-+							RES_STATE_ACTIVE), 2},
-+};
-+
-+static struct twl4030_script wakeup_p3_script __initdata = {
-+	.script = wakeup_p3_seq,
-+	.size   = ARRAY_SIZE(wakeup_p3_seq),
-+	.flags  = TWL4030_WAKEUP3_SCRIPT,
-+};
-+
-+/*
-+ * Sequence to reset the TRITON Power resources,
-+ * when the system gets warm reset.
-+ * Executed upon warm reset signal.
-+ */
-+static struct twl4030_ins wrst_seq[] __initdata = {
-+/*
-+ * Reset twl4030.
-+ * Reset Main_Ref.
-+ * Reset All type2_group2.
-+ * Reset VUSB_3v1.
-+ * Reset All type2_group1.
-+ * Reset RC.
-+ * Reenable twl4030.
-+ */
-+	{MSG_SINGULAR(DEV_GRP_NULL, RES_RESET, RES_STATE_OFF), 2},
-+	{MSG_SINGULAR(DEV_GRP_NULL, RES_Main_Ref, RES_STATE_WRST), 2},
-+	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R2,
-+							RES_STATE_WRST), 2},
-+	{MSG_SINGULAR(DEV_GRP_NULL, RES_VUSB_3V1, RES_STATE_WRST), 2},
-+	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R1,
-+							RES_STATE_WRST), 2},
-+	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_RC, RES_TYPE_ALL, RES_TYPE2_R0,
-+							RES_STATE_WRST), 2},
-+	{MSG_SINGULAR(DEV_GRP_NULL, RES_RESET, RES_STATE_ACTIVE), 2},
-+};
-+
-+static struct twl4030_script wrst_script __initdata = {
-+	.script = wrst_seq,
-+	.size   = ARRAY_SIZE(wrst_seq),
-+	.flags  = TWL4030_WRST_SCRIPT,
-+};
-+
-+/* TRITON script for sleep, wakeup & warm_reset */
-+static struct twl4030_script *twl4030_scripts[] __initdata = {
-+	&wakeup_p12_script,
-+	&wakeup_p3_script,
-+	&sleep_on_script,
-+	&wrst_script,
-+};
-+
-+static struct twl4030_resconfig twl4030_rconfig[] = {
-+	{ .resource = RES_VPLL1, .devgroup = DEV_GRP_P1, .type = 3,
-+		.type2 = 1, .remap_sleep = RES_STATE_OFF },
-+	{ .resource = RES_VINTANA1, .devgroup = DEV_GRP_ALL, .type = 1,
-+		.type2 = 2, .remap_sleep = RES_STATE_SLEEP },
-+	{ .resource = RES_VINTANA2, .devgroup = DEV_GRP_ALL, .type = 0,
-+		.type2 = 2, .remap_sleep = RES_STATE_SLEEP },
-+	{ .resource = RES_VINTDIG, .devgroup = DEV_GRP_ALL, .type = 1,
-+		.type2 = 2, .remap_sleep = RES_STATE_SLEEP },
-+	{ .resource = RES_VIO, .devgroup = DEV_GRP_ALL, .type = 2,
-+		.type2 = 2, .remap_sleep = RES_STATE_SLEEP },
-+	{ .resource = RES_VDD1, .devgroup = DEV_GRP_P1,
-+		.type = 4, .type2 = 1, .remap_sleep = RES_STATE_OFF },
-+	{ .resource = RES_VDD2, .devgroup = DEV_GRP_P1,
-+		.type = 3, .type2 = 1, .remap_sleep = RES_STATE_OFF },
-+	{ .resource = RES_REGEN, .devgroup = DEV_GRP_ALL, .type = 2,
-+		.type2 = 1, .remap_sleep = RES_STATE_SLEEP },
-+	{ .resource = RES_NRES_PWRON, .devgroup = DEV_GRP_ALL, .type = 0,
-+		.type2 = 1, .remap_sleep = RES_STATE_SLEEP },
-+	{ .resource = RES_CLKEN, .devgroup = DEV_GRP_ALL, .type = 3,
-+		.type2 = 2, .remap_sleep = RES_STATE_SLEEP },
-+	{ .resource = RES_SYSEN, .devgroup = DEV_GRP_ALL, .type = 6,
-+		.type2 = 1, .remap_sleep = RES_STATE_SLEEP },
-+	{ .resource = RES_HFCLKOUT, .devgroup = DEV_GRP_P3,
-+		.type = 0, .type2 = 2, .remap_sleep = RES_STATE_SLEEP },
-+	{ 0, 0},
-+};
-+
-+struct twl4030_power_data twl4030_generic_script = {
-+	.scripts	= twl4030_scripts,
-+	.num		= ARRAY_SIZE(twl4030_scripts),
-+	.resource_config = twl4030_rconfig,
-+};
-+EXPORT_SYMBOL(twl4030_generic_script);
-+#endif
-diff --git a/arch/arm/mach-omap2/twl4030.h b/arch/arm/mach-omap2/twl4030.h
-new file mode 100644
-index 0000000..e385340
---- /dev/null
-+++ b/arch/arm/mach-omap2/twl4030.h
-@@ -0,0 +1,21 @@
-+/*
-+ * OMAP TWL4030 power scripts header file
-+ *
-+ * Author: Lesly A M <x0080970@ti.com>
-+ *
-+ * Copyright (C) 2010 Texas Instruments, Inc.
-+ * Lesly A M <x0080970@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#ifndef __ARCH_ARM_MACH_OMAP3_TWL4030_SCRIPT_H
-+#define __ARCH_ARM_MACH_OMAP3_TWL4030_SCRIPT_H
-+
-+#include <linux/i2c/twl.h>
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 8a7c756..0d94dc1 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -40,6 +40,7 @@
+ #include <plat/gpmc.h>
+ #include <plat/dma.h>
+ #include <plat/usb.h>
 +#include <plat/voltage.h>
+ 
+ #include <asm/tlbflush.h>
+ 
+@@ -356,6 +357,7 @@ void omap_sram_idle(void)
+ 	int core_next_state = PWRDM_POWER_ON;
+ 	int per_going_off;
+ 	int core_prev_state, per_prev_state;
++	static int core_next_state_set = PWRDM_POWER_ON;
+ 	u32 sdrc_pwr = 0;
+ 
+ 	if (!_omap_sram_idle)
+@@ -422,6 +424,11 @@ void omap_sram_idle(void)
+ 			omap3_core_save_context();
+ 			omap3_cm_save_context();
+ 		}
++		/* Update the voltsetup time for RET/OFF */
++		if (core_next_state != core_next_state_set) {
++			omap3_voltage_vc_update(core_next_state);
++			core_next_state_set = core_next_state;
++		}
+ 	}
+ 
+ 	omap3_intc_prepare_idle();
+@@ -478,10 +485,6 @@ void omap_sram_idle(void)
+ 		}
+ 		omap_uart_resume_idle(0);
+ 		omap_uart_resume_idle(1);
+-		if (core_next_state == PWRDM_POWER_OFF)
+-			omap2_prm_clear_mod_reg_bits(OMAP3430_AUTO_OFF_MASK,
+-					       OMAP3430_GR_MOD,
+-					       OMAP3_PRM_VOLTCTRL_OFFSET);
+ 	}
+ 	omap3_intc_resume_idle();
+ 
+diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
+index 1c58f8b..43279a6 100644
+--- a/arch/arm/mach-omap2/voltage.c
++++ b/arch/arm/mach-omap2/voltage.c
+@@ -35,11 +35,18 @@
+ #include "prcm44xx.h"
+ #include "prminst44xx.h"
+ #include "control.h"
++#include "powerdomain.h"
+ 
+ #define VP_IDLE_TIMEOUT		200
+ #define VP_TRANXDONE_TIMEOUT	300
+ #define VOLTAGE_DIR_SIZE	16
+ 
++/* duration of one sys_32k clk cycle in uS */
++#define SYS_32K_CLK_CYCLE	31
 +
-+extern struct twl4030_power_data twl4030_generic_script;
-+#endif
-diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
-index 61b9609..f4bd475 100644
---- a/include/linux/i2c/twl.h
-+++ b/include/linux/i2c/twl.h
-@@ -436,9 +436,23 @@ static inline int twl6030_mmc_card_detect(struct device *dev, int slot)
++static u32 sys_clk_speed;
++static u32 sys_clk_cycle;
++
+ /* Voltage processor register offsets */
+ struct vp_reg_offs {
+ 	u8 vpconfig;
+@@ -771,13 +778,6 @@ static void __init omap3_vc_init(struct omap_vdd_info *vdd)
+ 	vc_val |= vdd->pmic_info->pmic_reg << vdd->vc_reg.smps_volra_shift;
+ 	vdd->write_reg(vc_val, mod, vdd->vc_reg.smps_volra_reg);
  
- /* Power bus message definitions */
+-	/*Configure the setup times */
+-	vc_val = vdd->read_reg(mod, vdd->vc_reg.voltsetup_reg);
+-	vc_val &= ~vdd->vc_reg.voltsetup_mask;
+-	vc_val |= vdd->pmic_info->voltsetup_ret.voltsetup <<
+-			vdd->vc_reg.voltsetup_shift;
+-	vdd->write_reg(vc_val, mod, vdd->vc_reg.voltsetup_reg);
+-
+ 	/* Set up the on, inactive, retention and off voltage */
+ 	on_vsel = vdd->pmic_info->uv_to_vsel(vdd->pmic_info->on_volt);
+ 	onlp_vsel = vdd->pmic_info->uv_to_vsel(vdd->pmic_info->onlp_volt);
+@@ -797,20 +797,14 @@ static void __init omap3_vc_init(struct omap_vdd_info *vdd)
+ 			OMAP3_PRM_VC_CH_CONF_OFFSET);
+ 	vdd->write_reg(OMAP3430_MCODE_SHIFT | OMAP3430_HSEN_MASK, mod,
+ 			OMAP3_PRM_VC_I2C_CFG_OFFSET);
+-	vdd->write_reg(vdd->pmic_info->clksetup_ret.clksetup, mod,
+-			OMAP3_PRM_CLKSETUP_OFFSET);
+-	vdd->write_reg(vdd->pmic_info->voltsetup_ret.voltoffset, mod,
+-			vdd->vc_reg.voltoffset_reg);
+-	vdd->write_reg(vdd->pmic_info->voltsetup_ret.voltsetup2, mod,
+-			vdd->vc_reg.voltsetup2_reg);
++	omap3_voltage_vc_update(PWRDM_POWER_RET);
+ 	is_initialized = true;
+ }
  
--/* The TWL4030/5030 splits its power-management resources (the various
-- * regulators, clock and reset lines) into 3 processor groups - P1, P2 and
-- * P3. These groups can then be configured to transition between sleep, wait-on
-+/*
-+ * The TWL4030/5030 splits its power-management resources (the various
-+ * regulators, clock and reset lines) into 3 processor groups - P1, P2 and P3.
-+ *
-+ * Resources attached to device group P1 is managed depending on the state of
-+ * NSLEEP1 pin of TRITON, which is connected to sys_off signal from OMAP
-+ *
-+ * Resources attached to device group P2 is managed depending on the state of
-+ * NSLEEP2 pin of TRITON, which is can be connected to a modem or
-+ * some other processor
-+ *
-+ * Resources attached to device group P3 is managed depending on the state of
-+ * CLKREQ pin of TRITON, which is connected to clk request signal from OMAP
-+ *
-+ * If required these resources can be attached to combination of P1/P2/P3.
-+ *
-+ * These groups can then be configured to transition between sleep, wait-on
-  * and active states by sending messages to the power bus.  See Section 5.4.2
-  * Power Resources of TWL4030 TRM
-  */
-@@ -448,7 +462,17 @@ static inline int twl6030_mmc_card_detect(struct device *dev, int slot)
- #define DEV_GRP_P1		0x1	/* P1: all OMAP devices */
- #define DEV_GRP_P2		0x2	/* P2: all Modem devices */
- #define DEV_GRP_P3		0x4	/* P3: all peripheral devices */
-+#define DEV_GRP_ALL		0x7	/* P1/P2/P3: all devices */
+ /* Sets up all the VDD related info for OMAP3 */
+ static int __init omap3_vdd_data_configure(struct omap_vdd_info *vdd)
+ {
+-	struct clk *sys_ck;
+-	u32 sys_clk_speed, timeout_val, waittime;
++	u32 timeout_val, waittime;
  
-+/*
-+ * The 27 power resources in TRITON is again divided into
-+ * analog resources:
-+ *	Power Providers - LDO regulators, dc-to-dc regulators
-+ *	Power Reference - analog reference
+ 	if (!vdd->pmic_info) {
+ 		pr_err("%s: PMIC info requried to configure vdd_%s not"
+@@ -853,21 +847,6 @@ static int __init omap3_vdd_data_configure(struct omap_vdd_info *vdd)
+ 		return -EINVAL;
+ 	}
+ 
+-	/*
+-	 * Sys clk rate is require to calculate vp timeout value and
+-	 * smpswaittimemin and smpswaittimemax.
+-	 */
+-	sys_ck = clk_get(NULL, "sys_ck");
+-	if (IS_ERR(sys_ck)) {
+-		pr_warning("%s: Could not get the sys clk to calculate"
+-			"various vdd_%s params\n", __func__, vdd->voltdm.name);
+-		return -EINVAL;
+-	}
+-	sys_clk_speed = clk_get_rate(sys_ck);
+-	clk_put(sys_ck);
+-	/* Divide to avoid overflow */
+-	sys_clk_speed /= 1000;
+-
+ 	/* Generic voltage parameters */
+ 	vdd->curr_volt = 1200000;
+ 	vdd->ocp_mod = OCP_MOD;
+@@ -989,8 +968,7 @@ static void __init omap4_vc_init(struct omap_vdd_info *vdd)
+ /* Sets up all the VDD related info for OMAP4 */
+ static int __init omap4_vdd_data_configure(struct omap_vdd_info *vdd)
+ {
+-	struct clk *sys_ck;
+-	u32 sys_clk_speed, timeout_val, waittime;
++	u32 timeout_val, waittime;
+ 
+ 	if (!vdd->pmic_info) {
+ 		pr_err("%s: PMIC info requried to configure vdd_%s not"
+@@ -1046,21 +1024,6 @@ static int __init omap4_vdd_data_configure(struct omap_vdd_info *vdd)
+ 		return -EINVAL;
+ 	}
+ 
+-	/*
+-	 * Sys clk rate is require to calculate vp timeout value and
+-	 * smpswaittimemin and smpswaittimemax.
+-	 */
+-	sys_ck = clk_get(NULL, "sys_clkin_ck");
+-	if (IS_ERR(sys_ck)) {
+-		pr_warning("%s: Could not get the sys clk to calculate"
+-			"various vdd_%s params\n", __func__, vdd->voltdm.name);
+-		return -EINVAL;
+-	}
+-	sys_clk_speed = clk_get_rate(sys_ck);
+-	clk_put(sys_ck);
+-	/* Divide to avoid overflow */
+-	sys_clk_speed /= 1000;
+-
+ 	/* Generic voltage parameters */
+ 	vdd->curr_volt = 1200000;
+ 	vdd->ocp_mod = OMAP4430_PRM_OCP_SOCKET_INST;
+@@ -1557,10 +1520,118 @@ int __init omap_voltage_late_init(void)
+ }
+ 
+ /**
++ * omap3_voltage_vc_update() - update the clk & vol setup time.
 + *
-+ * and digital resources:
-+ *	Reset & Clock - reset and clock signals.
++ * @core_next_state:	next target state for CORE DOMAIN.
++ *
++ * This API is to be called to update the clk & volt setup time
++ * depending on the CORE target state.
 + */
- /* Resource groups */
- #define RES_GRP_RES		0x0	/* Reserved */
- #define RES_GRP_PP		0x1	/* Power providers */
-@@ -460,7 +484,10 @@ static inline int twl6030_mmc_card_detect(struct device *dev, int slot)
- #define RES_GRP_ALL		0x7	/* All resource groups */
- 
- #define RES_TYPE2_R0		0x0
-+#define RES_TYPE2_R1		0x1
-+#define RES_TYPE2_R2		0x2
- 
-+#define RES_TYPE_R0		0x0
- #define RES_TYPE_ALL		0x7
- 
- /* Resource states */
++void omap3_voltage_vc_update(int core_next_state)
++{
++	u32 voltsetup_time;
++	u16 mod;
++	struct voltagedomain *voltdm;
++	struct omap_vdd_info *vdd_mpu, *vdd_core;
++	u16 voltsetup_vdd1, voltsetup_vdd2;
++
++	if (!cpu_is_omap34xx())
++		return;
++
++	voltdm = omap_voltage_domain_lookup("mpu");
++	vdd_mpu = container_of(voltdm, struct omap_vdd_info, voltdm);
++	mod = vdd_mpu->vc_reg.prm_mod;
++	voltdm = omap_voltage_domain_lookup("core");
++	vdd_core = container_of(voltdm, struct omap_vdd_info, voltdm);
++
++	/* update voltsetup time */
++	if (core_next_state == PWRDM_POWER_OFF) {
++		vdd_mpu->write_reg(OMAP3430_SEL_OFF_MASK |
++				OMAP3430_AUTO_OFF_MASK,
++				mod, OMAP3_PRM_VOLTCTRL_OFFSET);
++
++		/* Calculating the values with sys_32k clk */
++		vdd_mpu->write_reg(vdd_mpu->pmic_info->clksetup_off.clksetup /
++			SYS_32K_CLK_CYCLE, mod, OMAP3_PRM_CLKSETUP_OFFSET);
++
++		/* Calculating the values with sys clk */
++		voltsetup_vdd1 =
++			((vdd_mpu->pmic_info->voltsetup_off.voltsetup * 1000) /
++							sys_clk_cycle) >> 3;
++		voltsetup_vdd2 =
++			((vdd_core->pmic_info->voltsetup_off.voltsetup * 1000) /
++							sys_clk_cycle) >> 3;
++
++		voltsetup_time = (voltsetup_vdd2 <<
++				vdd_core->vc_reg.voltsetup_shift) |
++				voltsetup_vdd1;
++		vdd_mpu->write_reg(voltsetup_time, mod,
++				vdd_mpu->vc_reg.voltsetup_reg);
++
++		/* Calculating the values with sys_32k clk */
++		vdd_mpu->write_reg(
++			vdd_mpu->pmic_info->voltsetup_off.voltsetup2 /
++			SYS_32K_CLK_CYCLE, mod, vdd_mpu->vc_reg.voltsetup2_reg);
++		vdd_mpu->write_reg(
++			vdd_mpu->pmic_info->voltsetup_off.voltoffset /
++			SYS_32K_CLK_CYCLE, mod, vdd_mpu->vc_reg.voltoffset_reg);
++
++	} else if (core_next_state == PWRDM_POWER_RET) {
++		vdd_mpu->write_reg(OMAP3430_AUTO_RET_MASK, mod,
++				OMAP3_PRM_VOLTCTRL_OFFSET);
++
++		/* Calculating the values with sys_32k clk */
++		vdd_mpu->write_reg(vdd_mpu->pmic_info->clksetup_ret.clksetup /
++			SYS_32K_CLK_CYCLE, mod, OMAP3_PRM_CLKSETUP_OFFSET);
++
++		/* Calculating the values with sys clk */
++		voltsetup_vdd1 =
++			((vdd_mpu->pmic_info->voltsetup_ret.voltsetup * 1000) /
++							sys_clk_cycle) >> 3;
++		voltsetup_vdd2 =
++			((vdd_core->pmic_info->voltsetup_ret.voltsetup * 1000) /
++							sys_clk_cycle) >> 3;
++
++		voltsetup_time = (voltsetup_vdd2 <<
++				vdd_core->vc_reg.voltsetup_shift) |
++				voltsetup_vdd1;
++		vdd_mpu->write_reg(voltsetup_time, mod,
++				vdd_mpu->vc_reg.voltsetup_reg);
++		/* clear voltsetup2_reg if sys_off not enabled */
++		vdd_mpu->write_reg(
++			vdd_mpu->pmic_info->voltsetup_ret.voltsetup2 /
++			SYS_32K_CLK_CYCLE, mod, vdd_mpu->vc_reg.voltsetup2_reg);
++		vdd_mpu->write_reg(
++			vdd_mpu->pmic_info->voltsetup_ret.voltoffset /
++			SYS_32K_CLK_CYCLE, mod, vdd_mpu->vc_reg.voltoffset_reg);
++	}
++}
++
++/**
+  * omap_voltage_early_init()- Volatage driver early init
+  */
+ static int __init omap_voltage_early_init(void)
+ {
++	struct clk *sys_ck;
++
++	/*
++	 * Sys clk rate is require to calculate vp timeout value and
++	 * smpswaittimemin and smpswaittimemax.
++	 */
++	sys_ck = clk_get(NULL, "sys_ck");
++	if (IS_ERR(sys_ck)) {
++		pr_warning("%s: Could not get the sys_clk frequency.\n",
++							__func__);
++		return -EINVAL;
++	}
++	sys_clk_speed = clk_get_rate(sys_ck);
++	clk_put(sys_ck);
++
++	/* Divide to avoid overflow */
++	sys_clk_speed /= 1000;
++	/* Duration of one sys_clk cylce in nS */
++	sys_clk_cycle = 1000000 / sys_clk_speed;
++
+ 	if (cpu_is_omap34xx()) {
+ 		vdd_info = omap3_vdd_info;
+ 		nr_scalable_vdd = OMAP3_NR_SCALABLE_VDD;
+diff --git a/arch/arm/plat-omap/include/plat/voltage.h b/arch/arm/plat-omap/include/plat/voltage.h
+index c0373d0..2d737b9 100644
+--- a/arch/arm/plat-omap/include/plat/voltage.h
++++ b/arch/arm/plat-omap/include/plat/voltage.h
+@@ -151,6 +151,7 @@ struct dentry *omap_voltage_get_dbgdir(struct voltagedomain *voltdm);
+ #ifdef CONFIG_PM
+ int omap_voltage_register_pmic(struct voltagedomain *voltdm,
+ 		struct omap_volt_pmic_info *pmic_info);
++void omap3_voltage_vc_update(int core_next_state);
+ void omap_change_voltscale_method(struct voltagedomain *voltdm,
+ 		int voltscale_method);
+ /* API to get the voltagedomain pointer */
+@@ -163,6 +164,7 @@ static inline int omap_voltage_register_pmic(struct voltagedomain *voltdm,
+ {
+ 	return -EINVAL;
+ }
++void omap3_voltage_vc_update(int core_next_state) {}
+ static inline  void omap_change_voltscale_method(struct voltagedomain *voltdm,
+ 		int voltscale_method) {}
+ static inline int omap_voltage_late_init(void)
 -- 
 1.7.1
 
