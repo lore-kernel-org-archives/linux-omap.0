@@ -1,203 +1,175 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v3 03/13] OMAP2420: hwmod data: Add McBSP
-Date: Fri, 18 Feb 2011 19:52:18 +0530
-Message-ID: <1298038948-19871-4-git-send-email-kishon@ti.com>
+Subject: [PATCH v3 12/13] ASoC: McBSP: get hw params from McBSP driver
+Date: Fri, 18 Feb 2011 19:52:27 +0530
+Message-ID: <1298038948-19871-13-git-send-email-kishon@ti.com>
 References: <1298038948-19871-1-git-send-email-kishon@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:49625 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:49629 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758235Ab1BRO2Q (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 18 Feb 2011 09:28:16 -0500
+	id S1758246Ab1BRO2R (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 18 Feb 2011 09:28:17 -0500
 In-Reply-To: <1298038948-19871-1-git-send-email-kishon@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, b-cousson@ti.com, tony@atomide.com, broonie@opensource.wolfsonmicro.com, jhnikula@gmail.com, peter.ujfalusi@nokia.com
 Cc: p-basak2@ti.com, kishon@ti.com, charu@ti.com, shubhrajyoti@ti.com
 
-From: Charulatha V <charu@ti.com>
+Removed the use of macros to obtain base address and DMA channel number.
+Instead use the McBSP driver API's that passes base address and DMA
+channel number to the client driver.
 
-Add McBSP hwmod data for OMAP2420.
-
-Also add macros in prcm-common.h for idlest bit of OMAP24XX McBSP devices
-
-Signed-off-by: Charulatha V <charu@ti.com>
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
-Cc: Benoit Cousson <b-cousson@ti.com>
+Acked-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Acked-by: Jarkko Nikula <jhnikula@gmail.com>
+Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_2420_data.c |  129 ++++++++++++++++++++++++++++
- arch/arm/mach-omap2/prcm-common.h          |    4 +
- 2 files changed, 133 insertions(+), 0 deletions(-)
+ sound/soc/omap/omap-mcbsp.c |  126 ++-----------------------------------------
+ 1 files changed, 4 insertions(+), 122 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-index 7fffd34..2ebd6bf 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-@@ -90,6 +90,8 @@ static struct omap_hwmod omap2420_uart2_hwmod;
- static struct omap_hwmod omap2420_uart3_hwmod;
- static struct omap_hwmod omap2420_i2c1_hwmod;
- static struct omap_hwmod omap2420_i2c2_hwmod;
-+static struct omap_hwmod omap2420_mcbsp1_hwmod;
-+static struct omap_hwmod omap2420_mcbsp2_hwmod;
+diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
+index ede6afd..2175f09 100644
+--- a/sound/soc/omap/omap-mcbsp.c
++++ b/sound/soc/omap/omap-mcbsp.c
+@@ -69,110 +69,6 @@ static struct omap_mcbsp_data mcbsp_data[NUM_LINKS];
+  */
+ static struct omap_pcm_dma_data omap_mcbsp_dai_dma_params[NUM_LINKS][2];
  
- /* l4 core -> mcspi1 interface */
- static struct omap_hwmod_addr_space omap2420_mcspi1_addr_space[] = {
-@@ -1016,6 +1018,129 @@ static struct omap_hwmod omap2420_mcspi2_hwmod = {
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
- };
+-#if defined(CONFIG_ARCH_OMAP15XX) || defined(CONFIG_ARCH_OMAP16XX)
+-static const int omap1_dma_reqs[][2] = {
+-	{ OMAP_DMA_MCBSP1_TX, OMAP_DMA_MCBSP1_RX },
+-	{ OMAP_DMA_MCBSP2_TX, OMAP_DMA_MCBSP2_RX },
+-	{ OMAP_DMA_MCBSP3_TX, OMAP_DMA_MCBSP3_RX },
+-};
+-static const unsigned long omap1_mcbsp_port[][2] = {
+-	{ OMAP1510_MCBSP1_BASE + OMAP_MCBSP_REG_DXR1,
+-	  OMAP1510_MCBSP1_BASE + OMAP_MCBSP_REG_DRR1 },
+-	{ OMAP1510_MCBSP2_BASE + OMAP_MCBSP_REG_DXR1,
+-	  OMAP1510_MCBSP2_BASE + OMAP_MCBSP_REG_DRR1 },
+-	{ OMAP1510_MCBSP3_BASE + OMAP_MCBSP_REG_DXR1,
+-	  OMAP1510_MCBSP3_BASE + OMAP_MCBSP_REG_DRR1 },
+-};
+-#else
+-static const int omap1_dma_reqs[][2] = {};
+-static const unsigned long omap1_mcbsp_port[][2] = {};
+-#endif
+-
+-#if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
+-static const int omap24xx_dma_reqs[][2] = {
+-	{ OMAP24XX_DMA_MCBSP1_TX, OMAP24XX_DMA_MCBSP1_RX },
+-	{ OMAP24XX_DMA_MCBSP2_TX, OMAP24XX_DMA_MCBSP2_RX },
+-#if defined(CONFIG_SOC_OMAP2430) || defined(CONFIG_ARCH_OMAP3)
+-	{ OMAP24XX_DMA_MCBSP3_TX, OMAP24XX_DMA_MCBSP3_RX },
+-	{ OMAP24XX_DMA_MCBSP4_TX, OMAP24XX_DMA_MCBSP4_RX },
+-	{ OMAP24XX_DMA_MCBSP5_TX, OMAP24XX_DMA_MCBSP5_RX },
+-#endif
+-};
+-#else
+-static const int omap24xx_dma_reqs[][2] = {};
+-#endif
+-
+-#if defined(CONFIG_ARCH_OMAP4)
+-static const int omap44xx_dma_reqs[][2] = {
+-	{ OMAP44XX_DMA_MCBSP1_TX, OMAP44XX_DMA_MCBSP1_RX },
+-	{ OMAP44XX_DMA_MCBSP2_TX, OMAP44XX_DMA_MCBSP2_RX },
+-	{ OMAP44XX_DMA_MCBSP3_TX, OMAP44XX_DMA_MCBSP3_RX },
+-	{ OMAP44XX_DMA_MCBSP4_TX, OMAP44XX_DMA_MCBSP4_RX },
+-};
+-#else
+-static const int omap44xx_dma_reqs[][2] = {};
+-#endif
+-
+-#if defined(CONFIG_SOC_OMAP2420)
+-static const unsigned long omap2420_mcbsp_port[][2] = {
+-	{ OMAP24XX_MCBSP1_BASE + OMAP_MCBSP_REG_DXR1,
+-	  OMAP24XX_MCBSP1_BASE + OMAP_MCBSP_REG_DRR1 },
+-	{ OMAP24XX_MCBSP2_BASE + OMAP_MCBSP_REG_DXR1,
+-	  OMAP24XX_MCBSP2_BASE + OMAP_MCBSP_REG_DRR1 },
+-};
+-#else
+-static const unsigned long omap2420_mcbsp_port[][2] = {};
+-#endif
+-
+-#if defined(CONFIG_SOC_OMAP2430)
+-static const unsigned long omap2430_mcbsp_port[][2] = {
+-	{ OMAP24XX_MCBSP1_BASE + OMAP_MCBSP_REG_DXR,
+-	  OMAP24XX_MCBSP1_BASE + OMAP_MCBSP_REG_DRR },
+-	{ OMAP24XX_MCBSP2_BASE + OMAP_MCBSP_REG_DXR,
+-	  OMAP24XX_MCBSP2_BASE + OMAP_MCBSP_REG_DRR },
+-	{ OMAP2430_MCBSP3_BASE + OMAP_MCBSP_REG_DXR,
+-	  OMAP2430_MCBSP3_BASE + OMAP_MCBSP_REG_DRR },
+-	{ OMAP2430_MCBSP4_BASE + OMAP_MCBSP_REG_DXR,
+-	  OMAP2430_MCBSP4_BASE + OMAP_MCBSP_REG_DRR },
+-	{ OMAP2430_MCBSP5_BASE + OMAP_MCBSP_REG_DXR,
+-	  OMAP2430_MCBSP5_BASE + OMAP_MCBSP_REG_DRR },
+-};
+-#else
+-static const unsigned long omap2430_mcbsp_port[][2] = {};
+-#endif
+-
+-#if defined(CONFIG_ARCH_OMAP3)
+-static const unsigned long omap34xx_mcbsp_port[][2] = {
+-	{ OMAP34XX_MCBSP1_BASE + OMAP_MCBSP_REG_DXR,
+-	  OMAP34XX_MCBSP1_BASE + OMAP_MCBSP_REG_DRR },
+-	{ OMAP34XX_MCBSP2_BASE + OMAP_MCBSP_REG_DXR,
+-	  OMAP34XX_MCBSP2_BASE + OMAP_MCBSP_REG_DRR },
+-	{ OMAP34XX_MCBSP3_BASE + OMAP_MCBSP_REG_DXR,
+-	  OMAP34XX_MCBSP3_BASE + OMAP_MCBSP_REG_DRR },
+-	{ OMAP34XX_MCBSP4_BASE + OMAP_MCBSP_REG_DXR,
+-	  OMAP34XX_MCBSP4_BASE + OMAP_MCBSP_REG_DRR },
+-	{ OMAP34XX_MCBSP5_BASE + OMAP_MCBSP_REG_DXR,
+-	  OMAP34XX_MCBSP5_BASE + OMAP_MCBSP_REG_DRR },
+-};
+-#else
+-static const unsigned long omap34xx_mcbsp_port[][2] = {};
+-#endif
+-
+-#if defined(CONFIG_ARCH_OMAP4)
+-static const unsigned long omap44xx_mcbsp_port[][2] = {
+-	{ OMAP44XX_MCBSP1_BASE + OMAP_MCBSP_REG_DXR,
+-	  OMAP44XX_MCBSP1_BASE + OMAP_MCBSP_REG_DRR },
+-	{ OMAP44XX_MCBSP2_BASE + OMAP_MCBSP_REG_DXR,
+-	  OMAP44XX_MCBSP2_BASE + OMAP_MCBSP_REG_DRR },
+-	{ OMAP44XX_MCBSP3_BASE + OMAP_MCBSP_REG_DXR,
+-	  OMAP44XX_MCBSP3_BASE + OMAP_MCBSP_REG_DRR },
+-	{ OMAP44XX_MCBSP4_BASE + OMAP_MCBSP_REG_DXR,
+-	  OMAP44XX_MCBSP4_BASE + OMAP_MCBSP_REG_DRR },
+-};
+-#else
+-static const unsigned long omap44xx_mcbsp_port[][2] = {};
+-#endif
+-
+ static void omap_mcbsp_set_threshold(struct snd_pcm_substream *substream)
+ {
+ 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
+@@ -346,24 +242,10 @@ static int omap_mcbsp_dai_hw_params(struct snd_pcm_substream *substream,
+ 	unsigned int format, div, framesize, master;
  
-+/*
-+ * 'mcbsp' class
-+ * multi channel buffered serial port controller
-+ */
+ 	dma_data = &omap_mcbsp_dai_dma_params[cpu_dai->id][substream->stream];
+-	if (cpu_class_is_omap1()) {
+-		dma = omap1_dma_reqs[bus_id][substream->stream];
+-		port = omap1_mcbsp_port[bus_id][substream->stream];
+-	} else if (cpu_is_omap2420()) {
+-		dma = omap24xx_dma_reqs[bus_id][substream->stream];
+-		port = omap2420_mcbsp_port[bus_id][substream->stream];
+-	} else if (cpu_is_omap2430()) {
+-		dma = omap24xx_dma_reqs[bus_id][substream->stream];
+-		port = omap2430_mcbsp_port[bus_id][substream->stream];
+-	} else if (cpu_is_omap343x()) {
+-		dma = omap24xx_dma_reqs[bus_id][substream->stream];
+-		port = omap34xx_mcbsp_port[bus_id][substream->stream];
+-	 } else if (cpu_is_omap44xx()) {
+-		dma = omap44xx_dma_reqs[bus_id][substream->stream];
+-		port = omap44xx_mcbsp_port[bus_id][substream->stream];
+-	} else {
+-		return -ENODEV;
+-	}
 +
-+static struct omap_hwmod_class omap2420_mcbsp_hwmod_class = {
-+	.name = "mcbsp",
-+};
++	dma = omap_mcbsp_dma_ch_params(bus_id, substream->stream);
++	port = omap_mcbsp_dma_reg_params(bus_id, substream->stream);
 +
-+/* mcbsp1 */
-+static struct omap_hwmod_irq_info omap2420_mcbsp1_irqs[] = {
-+	{ .name = "tx", .irq = 59 },
-+	{ .name = "rx", .irq = 60 },
-+};
-+
-+static struct omap_hwmod_dma_info omap2420_mcbsp1_sdma_chs[] = {
-+	{ .name = "rx", .dma_req = 32 },
-+	{ .name = "tx", .dma_req = 31 },
-+};
-+
-+static struct omap_hwmod_addr_space omap2420_mcbsp1_addrs[] = {
-+	{
-+		.name		= "mpu",
-+		.pa_start	= 0x48074000,
-+		.pa_end		= 0x480740ff,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+};
-+
-+/* l4_core -> mcbsp1 */
-+static struct omap_hwmod_ocp_if omap2420_l4_core__mcbsp1 = {
-+	.master		= &omap2420_l4_core_hwmod,
-+	.slave		= &omap2420_mcbsp1_hwmod,
-+	.clk		= "mcbsp1_ick",
-+	.addr		= omap2420_mcbsp1_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap2420_mcbsp1_addrs),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* mcbsp1 slave ports */
-+static struct omap_hwmod_ocp_if *omap2420_mcbsp1_slaves[] = {
-+	&omap2420_l4_core__mcbsp1,
-+};
-+
-+static struct omap_hwmod omap2420_mcbsp1_hwmod = {
-+	.name		= "mcbsp1",
-+	.class		= &omap2420_mcbsp_hwmod_class,
-+	.mpu_irqs	= omap2420_mcbsp1_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap2420_mcbsp1_irqs),
-+	.sdma_reqs	= omap2420_mcbsp1_sdma_chs,
-+	.sdma_reqs_cnt	= ARRAY_SIZE(omap2420_mcbsp1_sdma_chs),
-+	.main_clk	= "mcbsp1_fck",
-+	.prcm		= {
-+		.omap2 = {
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP24XX_EN_MCBSP1_SHIFT,
-+			.module_offs = CORE_MOD,
-+			.idlest_reg_id = 1,
-+			.idlest_idle_bit = OMAP24XX_ST_MCBSP1_SHIFT,
-+		},
-+	},
-+	.slaves		= omap2420_mcbsp1_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap2420_mcbsp1_slaves),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
-+};
-+
-+/* mcbsp2 */
-+static struct omap_hwmod_irq_info omap2420_mcbsp2_irqs[] = {
-+	{ .name = "tx", .irq = 62 },
-+	{ .name = "rx", .irq = 63 },
-+};
-+
-+static struct omap_hwmod_dma_info omap2420_mcbsp2_sdma_chs[] = {
-+	{ .name = "rx", .dma_req = 34 },
-+	{ .name = "tx", .dma_req = 33 },
-+};
-+
-+static struct omap_hwmod_addr_space omap2420_mcbsp2_addrs[] = {
-+	{
-+		.name		= "mpu",
-+		.pa_start	= 0x48076000,
-+		.pa_end		= 0x480760ff,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+};
-+
-+/* l4_core -> mcbsp2 */
-+static struct omap_hwmod_ocp_if omap2420_l4_core__mcbsp2 = {
-+	.master		= &omap2420_l4_core_hwmod,
-+	.slave		= &omap2420_mcbsp2_hwmod,
-+	.clk		= "mcbsp2_ick",
-+	.addr		= omap2420_mcbsp2_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap2420_mcbsp2_addrs),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* mcbsp2 slave ports */
-+static struct omap_hwmod_ocp_if *omap2420_mcbsp2_slaves[] = {
-+	&omap2420_l4_core__mcbsp2,
-+};
-+
-+static struct omap_hwmod omap2420_mcbsp2_hwmod = {
-+	.name		= "mcbsp2",
-+	.class		= &omap2420_mcbsp_hwmod_class,
-+	.mpu_irqs	= omap2420_mcbsp2_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap2420_mcbsp2_irqs),
-+	.sdma_reqs	= omap2420_mcbsp2_sdma_chs,
-+	.sdma_reqs_cnt	= ARRAY_SIZE(omap2420_mcbsp2_sdma_chs),
-+	.main_clk	= "mcbsp2_fck",
-+	.prcm		= {
-+		.omap2 = {
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP24XX_EN_MCBSP2_SHIFT,
-+			.module_offs = CORE_MOD,
-+			.idlest_reg_id = 1,
-+			.idlest_idle_bit = OMAP24XX_ST_MCBSP2_SHIFT,
-+		},
-+	},
-+	.slaves		= omap2420_mcbsp2_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap2420_mcbsp2_slaves),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
-+};
-+
- static __initdata struct omap_hwmod *omap2420_hwmods[] = {
- 	&omap2420_l3_main_hwmod,
- 	&omap2420_l4_core_hwmod,
-@@ -1038,6 +1163,10 @@ static __initdata struct omap_hwmod *omap2420_hwmods[] = {
- 	/* dma_system class*/
- 	&omap2420_dma_system_hwmod,
- 
-+	/* mcbsp class */
-+	&omap2420_mcbsp1_hwmod,
-+	&omap2420_mcbsp2_hwmod,
-+
- 	/* mcspi class */
- 	&omap2420_mcspi1_hwmod,
- 	&omap2420_mcspi2_hwmod,
-diff --git a/arch/arm/mach-omap2/prcm-common.h b/arch/arm/mach-omap2/prcm-common.h
-index 87486f5..d4af21d 100644
---- a/arch/arm/mach-omap2/prcm-common.h
-+++ b/arch/arm/mach-omap2/prcm-common.h
-@@ -121,6 +121,10 @@
- #define OMAP24XX_ST_MCSPI2_MASK				(1 << 18)
- #define OMAP24XX_ST_MCSPI1_SHIFT			17
- #define OMAP24XX_ST_MCSPI1_MASK				(1 << 17)
-+#define OMAP24XX_ST_MCBSP2_SHIFT			16
-+#define OMAP24XX_ST_MCBSP2_MASK				(1 << 16)
-+#define OMAP24XX_ST_MCBSP1_SHIFT			15
-+#define OMAP24XX_ST_MCBSP1_MASK				(1 << 15)
- #define OMAP24XX_ST_GPT12_SHIFT				14
- #define OMAP24XX_ST_GPT12_MASK				(1 << 14)
- #define OMAP24XX_ST_GPT11_SHIFT				13
+ 	switch (params_format(params)) {
+ 	case SNDRV_PCM_FORMAT_S16_LE:
+ 		dma_data->data_type = OMAP_DMA_DATA_TYPE_S16;
 -- 
 1.7.0.4
 
