@@ -1,157 +1,123 @@
-From: Thomas Weber <weber@corscience.de>
-Subject: Re: SDHC card affected by preemption model in 2.6.35
-Date: Fri, 18 Feb 2011 13:57:25 +0100
-Message-ID: <4D5E6CB5.8080500@corscience.de>
-References: <1276613548.2824.46.camel@black>	<AANLkTimOIzK4JsTBnOvRHTGj-dGduMRk8ZbZVqIL9shr@mail.gmail.com>	<1276636633.2824.88.camel@black>	<AANLkTikJE7fNYmRqFYL9WB7z_o3GcfaDsTJ4-yZUk4od@mail.gmail.com>	<1276726376.3211.36.camel@black> <AANLkTimiNPC-1PuI3D3sGs-c4FCq6UtJqZ_a6iVY_3Ci@mail.gmail.com>
+From: Hema Kalliguddi <hemahk@ti.com>
+Subject: RE: [patch-v2.6.39 5/7] AM35xx: hwmod data: Add USBOTG
+Date: Fri, 18 Feb 2011 18:37:03 +0530
+Message-ID: <0387bf9911e20f7d6fa56aeb8ded4071@mail.gmail.com>
+References: <1297946466-9565-1-git-send-email-balbi@ti.com>
+ <1297946466-9565-6-git-send-email-balbi@ti.com> <B85A65D85D7EB246BE421B3FB0FBB593024B83BED5@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:50143 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752292Ab1BRM6n (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Feb 2011 07:58:43 -0500
-In-Reply-To: <AANLkTimiNPC-1PuI3D3sGs-c4FCq6UtJqZ_a6iVY_3Ci@mail.gmail.com>
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:39059 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750775Ab1BRNHG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 18 Feb 2011 08:07:06 -0500
+Received: by mail-fx0-f48.google.com with SMTP id 2so3919620fxm.7
+        for <linux-omap@vger.kernel.org>; Fri, 18 Feb 2011 05:07:04 -0800 (PST)
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593024B83BED5@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Venkatraman S <svenkatr@ti.com>
-Cc: Mathieu Poirier <mathieu.poirier@canonical.com>, s-ghorai@ti.com, linux-omap@vger.kernel.org, Madhusudhan Chikkature <madhu.cr@ti.com>
+To: Sanjeev Premi <premi@ti.com>, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Kevin Hilman <khilman@deeprootsystems.com>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-Hello Mathieu, hello Venkat,
+Hi Premi,
 
-I hope it is not too old and you remember this:
+>-----Original Message-----
+>From: Premi, Sanjeev [mailto:premi@ti.com]
+>Sent: Friday, February 18, 2011 4:59 PM
+>To: Balbi, Felipe; Tony Lindgren
+>Cc: Linux OMAP Mailing List; Linux ARM Kernel Mailing List;
+>Kalliguddi, Hema; Kevin Hilman; Cousson, Benoit; Paul Walmsley
+>Subject: RE: [patch-v2.6.39 5/7] AM35xx: hwmod data: Add USBOTG
+>
+>> -----Original Message-----
+>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+>> owner@vger.kernel.org] On Behalf Of Balbi, Felipe
+>> Sent: Thursday, February 17, 2011 6:11 PM
+>> To: Tony Lindgren
+>> Cc: Linux OMAP Mailing List; Linux ARM Kernel Mailing List;
+>Kalliguddi,
+>> Hema; Kevin Hilman; Cousson, Benoit; Paul Walmsley; Balbi, Felipe
+>> Subject: [patch-v2.6.39 5/7] AM35xx: hwmod data: Add USBOTG
+>>
+>> From: Hema HK <hemahk@ti.com>
+>>
+>> AM35xx hwmod data structures are populated for USBOTG with
+>base address,
+>> L3 and L4 interface clocks and IRQ.
+>>
+>> Signed-off-by: Hema HK <hemahk@ti.com>
+>> Cc: Tony Lindgren <tony@atomide.com>
+>> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+>> Cc: Cousson, Benoit <b-cousson@ti.com>
+>> Cc: Paul Walmsley <paul@pwsan.com>
+>> Signed-off-by: Felipe Balbi <balbi@ti.com>
+>> ---
+>>  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   65
+>> ++++++++++++++++++++++++++++
+>>  1 files changed, 65 insertions(+), 0 deletions(-)
+>>
+>[snip]
+>>
+>> +	/* usbotg for am35x */
+>> +	&am35xx_usbhsotg_hwmod,
+>> +
+>>  	NULL,
+>
+>Felipe, Hema,
+>
+>This patch will break all existing OMAP35x (and I believe
+>OMAP3430 - since there is no difference - unless there is
+>some trick in the USB driver code).
+>
 
-Am 17.06.2010 16:33, schrieb Venkatraman S:
->  Mathieu Poirier <mathieu.poirier@canonical.com> wrote:
->> On Wed, 2010-06-16 at 14:13 +0530, Venkatraman S wrote:
->>> Mathieu Poirier <mathieu.poirier@canonical.com> wrote:
->>>> On Tue, 2010-06-15 at 20:58 +0530, Venkatraman S wrote:
->>>>> Mathieu Poirier <mathieu.poirier@canonical.com> wrote:
->>>>>> HW: Beagleboard rev. C2 and C4
->>>>>> Processor: OMAP3
->>>>>> Kernel: 2.6.35-rc2
->>>>>> Driver: mmci-omap-hs
->>>>>>
->>>>>> I am faced with an SDHC card problem on a beagleboard.  Some cards
->>>>>> cannot be initialized on startup while others work perfectly.  I tracked
->>>>>> the issue down to one single kernel config: PREEMPT_VOLUNTARY.
->>>>>>
->>>>>> When going from PREEMPT_VOLUNTARY to PREEMPT_NONE the problem goes away.
->>>>>>
->>>>>> When booting, a failing card (PREEMPT_VOLUNTARY) will output the
->>>>>> following:
->>>>>> [ 2.283355] mmc0: error -110 whilst initialising SD card
->>>>>>
->>>>>> I have also seen transfer errors such as this one:
->>>>>> [ 105.343780] mmcblk0: error -110 transferring data, sector 798431, nr
->>>>>> 26, card status 0xc00
->>>>>>
->>>>>> When working properly (PREEMPT_NONE), you get:
->>>>>> [   27.026519] mmc0: new high speed SDHC card at address 0007
->>>>>> [   27.075775] mmcblk0: mmc0:0007 SD08G 7.49 GiB
->>>>>>
->>>>>> We seem to have a little timing problem - has anyone seen the same
->>>>>> issue ?  Can driver "mmci-omap-hs" actually work under
->>>>>> PREEMPT_VOLUNTARY ?
->>>>>>
->>>>>> Thanks, Mathieu.
->>>>>>
->>>>>
->>>>> I will check this out - not tested with PREEMPT_VOLUNTARY so far.
->>>>> If it's not too much trouble, can you provide a log with CONFIG_MMC_DEBUG ?
->>>>> Also, some details about the failing card would be helpful.
->>>>>
->>>>> Thanks,
->>>>> Venkat.
->>>>
->>>> Venkat,
->>>>
->>>> Unfortunately enabling CONFIG_MMC_DEBUG doesn't yield more information -
->>>> the error message is the same and no additional output shows on the
->>>> console.
->>>>
->>>> As for the cards, had failures with 3 different manufacturer:
->>>> - Patriot Memory, MicroSD card, 8GB, class 4, SDHC.
->>>> - Kinston, 4GB, class 6, SDHC.
->>>> - Sandisk, 4GB, Class 2, SDHC.
->>>>
->>>> I am more than willing to test kernels for you if need be.
->>>>
->>>> Thanks, Mathieu.
->>>>
->>>
->>> For MMC/SD logs to be sent to the console, you need to
->>> a) "echo 8 > /proc/sys/kernel/printk" in the shell and
->>> b) insert the card
->>>
->>> If you are booting from the card itself, then this won't work and
->>> DEBUG_LL has to be enabled (in addition to CONFIG_MMC_DEBUG)
->>>
->>> Apologies - I should have explained this initially.
->>>
->>> Regards,
->>> Venkat.
->>
->> Venkat,
->>
->> I am indeed booting from the card itself, making things more difficult.
->> DEBUG_LL has been configured since the very beginning and still not much
->> to look at on the console.  To see something I had to pass loglevel=8 on
->> the kernel command line.  At that point there is tones of stuff coming
->> out and the card is initialized properly, which points to a timing
->> issue.
->>
->> Since I couldn't reproduce the failure when debug messages are enabled,
->> I turned them back off and started to instrument the code on the hunt
->> for the failure.
->>
->> I have cornered the source of the problem in
->> "drivers/mmc/core/sd_ops.c", function "mmc_sd_switch".  When the kernel
->> is configured with PREEMPT_NONE, the value of "data.error" is set to "0"
->> after "mmc_wait_for_req" returns.  When PREEMPT_VOLUNTARY is configured,
->> "data.error" gets set to "-110" upon "mmc_wait_for_req" returning, which
->> prevent the remaining of the configuration to take place.
->>
-> 
-> -110 = -ETIMEDOUT.
-> The error is set from omap_hsmmc.c line 1029, when the controller
-> returns a DATA_TIMEOUT error.
-> This can happen for any mmc_wait_for_req() call, not just in mmc_sd_switch().
-> 
-> A simple workaround is to increase the timeout value, as below. Could
-> you please try with this patch ?
-> Yes, it's a debugging hack and not the right solution.
-> [I have so far not reproduced the problem with my setup. Still trying..]
-> 
-> ----
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> index b032828..9ca399e 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -1413,7 +1413,7 @@ omap_hsmmc_prepare_data(struct omap_hsmmc_host
-> *host, struct mmc_request *req)
-> 
->         OMAP_HSMMC_WRITE(host->base, BLK, (req->data->blksz)
->                                         | (req->data->blocks << 16));
-> -       set_data_timeout(host, req->data->timeout_ns, req->data->timeout_clks);
-> +       set_data_timeout(host, 100000000U, 0);
-> 
->         if (host->use_dma) {
->                 ret = omap_hsmmc_start_dma_transfer(host, req);
-> ----
-> 
->   This provides a good 100ms window for delays due to scheduling variations.
-> I have to still find out which section is sensitive to it.
-> Regards,
-> Venkat.
-> --
+I agree that this will break the AM35x because there is no
+separate CHIP_IS* defined for AM35x.
+AM35x is treated as one of the version of OMAP3430.
 
-We have a custom omap3 board and use kernel 2.6.37-rc8.  We have the
-problem that we sometimes cannot mount our rootfs from sd-card. This
-happens only when CONFIG_PREEMPT=y. When using CONFIG_PREEMPT_NONE or
-enabling CONFIG_MMC_DEBUG everything works fine.
+>I have seen similar problems with smart reflex included in
+>the AM35x hwmod data.
 
-The "100 ms patch" doesn't work for us. Do you found other solution(s)?
+Unless the new CHIP_IS_* introduced for AM35x this problem will
+still exists.
+
+I thought you are already working on this because you were
+asking the questions in the list.
+
+>
+>In this case accessing "unknown" registers corresponding to
+>SmartReflex in _setup() causes crash.
+>(http://marc.info/?l=linux-omap&m=129777408503329&w=2)
+>
+>I expect similar to be happening on OMAP35x with inclusion
+>of am35xx_usbhsotg_hwmod. If you don't see any crash, there
+>would be side-effects - and _setup() would be initializing
+>non-existent OTG registers on OMAP35x.
+>
+This will not impact for OMAP3 as the IDCODE is different AM35x and
+OMAP3, so passing the right chip version in the HWMOD database for AM35x
+will avoid the hwod init incase of OMAP3.
+
+>Did you see any problems while testing?
+>
+I tested with OMAP3430SDP and OMAP3630Zoom3 and did not see
+the problem.
 
 Regards,
-Thomas
+Hema
+
+>~sanjeev
+>
+>PS: Sending mail via webmailer. Formatting may break
+>
+>>  };
+>>
+>> --
+>> 1.7.4.rc2
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe
+>linux-omap" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
