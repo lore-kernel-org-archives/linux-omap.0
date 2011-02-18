@@ -1,185 +1,402 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v3 09/13] OMAP: McBSP: use omap_device APIs to modify SYSCONFIG
-Date: Fri, 18 Feb 2011 19:52:24 +0530
-Message-ID: <1298038948-19871-10-git-send-email-kishon@ti.com>
+Subject: [PATCH v3 04/13] OMAP2430: hwmod data: Add McBSP
+Date: Fri, 18 Feb 2011 19:52:19 +0530
+Message-ID: <1298038948-19871-5-git-send-email-kishon@ti.com>
 References: <1298038948-19871-1-git-send-email-kishon@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:41000 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758261Ab1BRO2S (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 18 Feb 2011 09:28:18 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:51147 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758091Ab1BRO2T (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Feb 2011 09:28:19 -0500
 In-Reply-To: <1298038948-19871-1-git-send-email-kishon@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, b-cousson@ti.com, tony@atomide.com, broonie@opensource.wolfsonmicro.com, jhnikula@gmail.com, peter.ujfalusi@nokia.com
 Cc: p-basak2@ti.com, kishon@ti.com, charu@ti.com, shubhrajyoti@ti.com
 
-McBSP2/3 in OMAP3 has sidetone feature which requires autoidle
-to be disabled before starting the sidetone. Also SYSCONFIG
-register has to be set with smart idle or no idle depending on the
-dma op mode (threshold or element sync). For doing these operations
-dynamically at runtime, omap_device APIs are used to modify SYSCONFIG register.
+From: Charulatha V <charu@ti.com>
 
+Add McBSP hwmod data for OMAP2430.
+
+Added a revision member inorder to facilitate the driver to
+differentiate between mcbsp in different omap.
+
+Signed-off-by: Charulatha V <charu@ti.com>
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
-Acked-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Acked-by: Jarkko Nikula <jhnikula@gmail.com>
-Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+Cc: Benoit Cousson <b-cousson@ti.com>
 ---
- depends-on :
-	http://permalink.gmane.org/gmane.linux.ports.arm.omap/51133
- 	http://permalink.gmane.org/gmane.linux.ports.arm.omap/51134
- arch/arm/plat-omap/mcbsp.c |   66 ++++++++++++++++++++++++--------------------
- 1 files changed, 36 insertions(+), 30 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c |  322 ++++++++++++++++++++++++++++
+ arch/arm/plat-omap/include/plat/mcbsp.h    |    2 +
+ 2 files changed, 324 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
-index 57257e8..074c50f 100644
---- a/arch/arm/plat-omap/mcbsp.c
-+++ b/arch/arm/plat-omap/mcbsp.c
-@@ -27,6 +27,7 @@
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+index 60fe4aa..757ec2c 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+@@ -18,6 +18,7 @@
+ #include <plat/serial.h>
+ #include <plat/i2c.h>
+ #include <plat/gpio.h>
++#include <plat/mcbsp.h>
+ #include <plat/mcspi.h>
  
- #include <plat/dma.h>
- #include <plat/mcbsp.h>
-+#include <plat/omap_device.h>
+ #include "omap_hwmod_common_data.h"
+@@ -92,6 +93,11 @@ static struct omap_hwmod omap2430_uart2_hwmod;
+ static struct omap_hwmod omap2430_uart3_hwmod;
+ static struct omap_hwmod omap2430_i2c1_hwmod;
+ static struct omap_hwmod omap2430_i2c2_hwmod;
++static struct omap_hwmod omap2430_mcbsp1_hwmod;
++static struct omap_hwmod omap2430_mcbsp2_hwmod;
++static struct omap_hwmod omap2430_mcbsp3_hwmod;
++static struct omap_hwmod omap2430_mcbsp4_hwmod;
++static struct omap_hwmod omap2430_mcbsp5_hwmod;
  
- /* XXX These "sideways" includes are a sign that something is wrong */
- #include "../mach-omap2/cm2xxx_3xxx.h"
-@@ -228,9 +229,19 @@ void omap_mcbsp_config(unsigned int id, const struct omap_mcbsp_reg_cfg *config)
- EXPORT_SYMBOL(omap_mcbsp_config);
+ /* I2C IP block address space length (in bytes) */
+ #define OMAP2_I2C_AS_LEN		128
+@@ -1133,6 +1139,315 @@ static struct omap_hwmod omap2430_mcspi3_hwmod = {
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
+ };
  
- #ifdef CONFIG_ARCH_OMAP3
-+static struct omap_device *find_omap_device_by_dev(struct device *dev)
-+{
-+	struct platform_device *pdev = container_of(dev,
-+					struct platform_device, dev);
-+	return container_of(pdev, struct omap_device, pdev);
-+}
++/*
++ * 'mcbsp' class
++ * multi channel buffered serial port controller
++ */
 +
- static void omap_st_on(struct omap_mcbsp *mcbsp)
- {
- 	unsigned int w;
-+	struct omap_device *od;
++static struct omap_hwmod_class_sysconfig omap2430_mcbsp_sysc = {
++	.rev_offs	= 0x007C,
++	.sysc_offs	= 0x008C,
++	.sysc_flags	= (SYSC_HAS_SOFTRESET),
++	.sysc_fields    = &omap_hwmod_sysc_type1,
++};
 +
-+	od = find_omap_device_by_dev(mcbsp->dev);
- 
- 	/*
- 	 * Sidetone uses McBSP ICLK - which must not idle when sidetones
-@@ -244,8 +255,7 @@ static void omap_st_on(struct omap_mcbsp *mcbsp)
- 	w = MCBSP_READ(mcbsp, SSELCR);
- 	MCBSP_WRITE(mcbsp, SSELCR, w | SIDETONEEN);
- 
--	w = MCBSP_ST_READ(mcbsp, SYSCONFIG);
--	MCBSP_ST_WRITE(mcbsp, SYSCONFIG, w & ~(ST_AUTOIDLE));
-+	omap_device_disable_autoidle(od);
- 
- 	/* Enable Sidetone from Sidetone Core */
- 	w = MCBSP_ST_READ(mcbsp, SSELCR);
-@@ -255,12 +265,14 @@ static void omap_st_on(struct omap_mcbsp *mcbsp)
- static void omap_st_off(struct omap_mcbsp *mcbsp)
- {
- 	unsigned int w;
-+	struct omap_device *od;
++static struct omap_hwmod_class omap2430_mcbsp_hwmod_class = {
++	.name = "mcbsp",
++	.sysc = &omap2430_mcbsp_sysc,
++	.rev  = MCBSP_CONFIG_TYPE2,
++};
 +
-+	od = find_omap_device_by_dev(mcbsp->dev);
- 
- 	w = MCBSP_ST_READ(mcbsp, SSELCR);
- 	MCBSP_ST_WRITE(mcbsp, SSELCR, w & ~(ST_SIDETONEEN));
- 
--	w = MCBSP_ST_READ(mcbsp, SYSCONFIG);
--	MCBSP_ST_WRITE(mcbsp, SYSCONFIG, w | ST_AUTOIDLE);
-+	omap_device_enable_autoidle(od);
- 
- 	w = MCBSP_READ(mcbsp, SSELCR);
- 	MCBSP_WRITE(mcbsp, SSELCR, w & ~(SIDETONEEN));
-@@ -273,9 +285,11 @@ static void omap_st_off(struct omap_mcbsp *mcbsp)
- static void omap_st_fir_write(struct omap_mcbsp *mcbsp, s16 *fir)
- {
- 	u16 val, i;
-+	struct omap_device *od;
- 
--	val = MCBSP_ST_READ(mcbsp, SYSCONFIG);
--	MCBSP_ST_WRITE(mcbsp, SYSCONFIG, val & ~(ST_AUTOIDLE));
-+	od = find_omap_device_by_dev(mcbsp->dev);
++/* mcbsp1 */
++static struct omap_hwmod_irq_info omap2430_mcbsp1_irqs[] = {
++	{ .name = "tx",		.irq = 59 },
++	{ .name = "rx",		.irq = 60 },
++	{ .name = "ovr",	.irq = 61 },
++	{ .name = "common",	.irq = 64 },
++};
 +
-+	omap_device_disable_autoidle(od);
- 
- 	val = MCBSP_ST_READ(mcbsp, SSELCR);
- 
-@@ -303,9 +317,11 @@ static void omap_st_chgain(struct omap_mcbsp *mcbsp)
- {
- 	u16 w;
- 	struct omap_mcbsp_st_data *st_data = mcbsp->st_data;
-+	struct omap_device *od;
++static struct omap_hwmod_dma_info omap2430_mcbsp1_sdma_chs[] = {
++	{ .name = "rx", .dma_req = 32 },
++	{ .name = "tx", .dma_req = 31 },
++};
 +
-+	od = find_omap_device_by_dev(mcbsp->dev);
- 
--	w = MCBSP_ST_READ(mcbsp, SYSCONFIG);
--	MCBSP_ST_WRITE(mcbsp, SYSCONFIG, w & ~(ST_AUTOIDLE));
-+	omap_device_disable_autoidle(od);
- 
- 	w = MCBSP_ST_READ(mcbsp, SSELCR);
- 
-@@ -648,48 +664,38 @@ EXPORT_SYMBOL(omap_mcbsp_get_dma_op_mode);
- 
- static inline void omap34xx_mcbsp_request(struct omap_mcbsp *mcbsp)
- {
-+	struct omap_device *od;
++static struct omap_hwmod_addr_space omap2430_mcbsp1_addrs[] = {
++	{
++		.name		= "mpu",
++		.pa_start	= 0x48074000,
++		.pa_end		= 0x480740ff,
++		.flags		= ADDR_TYPE_RT
++	},
++};
 +
-+	od = find_omap_device_by_dev(mcbsp->dev);
- 	/*
- 	 * Enable wakup behavior, smart idle and all wakeups
- 	 * REVISIT: some wakeups may be unnecessary
- 	 */
- 	if (cpu_is_omap34xx() || cpu_is_omap44xx()) {
--		u16 syscon;
--
--		syscon = MCBSP_READ(mcbsp, SYSCON);
--		syscon &= ~(ENAWAKEUP | SIDLEMODE(0x03) | CLOCKACTIVITY(0x03));
--
--		if (mcbsp->dma_op_mode == MCBSP_DMA_MODE_THRESHOLD) {
--			syscon |= (ENAWAKEUP | SIDLEMODE(0x02) |
--					CLOCKACTIVITY(0x02));
-+		if (mcbsp->dma_op_mode != MCBSP_DMA_MODE_THRESHOLD)
-+			omap_device_noidle(od);
-+		else
- 			MCBSP_WRITE(mcbsp, WAKEUPEN, XRDYEN | RRDYEN);
--		} else {
--			syscon |= SIDLEMODE(0x01);
--		}
--
--		MCBSP_WRITE(mcbsp, SYSCON, syscon);
- 	}
++/* l4_core -> mcbsp1 */
++static struct omap_hwmod_ocp_if omap2430_l4_core__mcbsp1 = {
++	.master		= &omap2430_l4_core_hwmod,
++	.slave		= &omap2430_mcbsp1_hwmod,
++	.clk		= "mcbsp1_ick",
++	.addr		= omap2430_mcbsp1_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap2430_mcbsp1_addrs),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* mcbsp1 slave ports */
++static struct omap_hwmod_ocp_if *omap2430_mcbsp1_slaves[] = {
++	&omap2430_l4_core__mcbsp1,
++};
++
++static struct omap_hwmod omap2430_mcbsp1_hwmod = {
++	.name		= "mcbsp1",
++	.class		= &omap2430_mcbsp_hwmod_class,
++	.mpu_irqs	= omap2430_mcbsp1_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap2430_mcbsp1_irqs),
++	.sdma_reqs	= omap2430_mcbsp1_sdma_chs,
++	.sdma_reqs_cnt	= ARRAY_SIZE(omap2430_mcbsp1_sdma_chs),
++	.main_clk	= "mcbsp1_fck",
++	.prcm		= {
++		.omap2 = {
++			.prcm_reg_id = 1,
++			.module_bit = OMAP24XX_EN_MCBSP1_SHIFT,
++			.module_offs = CORE_MOD,
++			.idlest_reg_id = 1,
++			.idlest_idle_bit = OMAP24XX_ST_MCBSP1_SHIFT,
++		},
++	},
++	.slaves		= omap2430_mcbsp1_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap2430_mcbsp1_slaves),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++};
++
++/* mcbsp2 */
++static struct omap_hwmod_irq_info omap2430_mcbsp2_irqs[] = {
++	{ .name = "tx",		.irq = 62 },
++	{ .name = "rx",		.irq = 63 },
++	{ .name = "common",	.irq = 16 },
++};
++
++static struct omap_hwmod_dma_info omap2430_mcbsp2_sdma_chs[] = {
++	{ .name = "rx", .dma_req = 34 },
++	{ .name = "tx", .dma_req = 33 },
++};
++
++static struct omap_hwmod_addr_space omap2430_mcbsp2_addrs[] = {
++	{
++		.name		= "mpu",
++		.pa_start	= 0x48076000,
++		.pa_end		= 0x480760ff,
++		.flags		= ADDR_TYPE_RT
++	},
++};
++
++/* l4_core -> mcbsp2 */
++static struct omap_hwmod_ocp_if omap2430_l4_core__mcbsp2 = {
++	.master		= &omap2430_l4_core_hwmod,
++	.slave		= &omap2430_mcbsp2_hwmod,
++	.clk		= "mcbsp2_ick",
++	.addr		= omap2430_mcbsp2_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap2430_mcbsp2_addrs),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* mcbsp2 slave ports */
++static struct omap_hwmod_ocp_if *omap2430_mcbsp2_slaves[] = {
++	&omap2430_l4_core__mcbsp2,
++};
++
++static struct omap_hwmod omap2430_mcbsp2_hwmod = {
++	.name		= "mcbsp2",
++	.class		= &omap2430_mcbsp_hwmod_class,
++	.mpu_irqs	= omap2430_mcbsp2_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap2430_mcbsp2_irqs),
++	.sdma_reqs	= omap2430_mcbsp2_sdma_chs,
++	.sdma_reqs_cnt	= ARRAY_SIZE(omap2430_mcbsp2_sdma_chs),
++	.main_clk	= "mcbsp2_fck",
++	.prcm		= {
++		.omap2 = {
++			.prcm_reg_id = 1,
++			.module_bit = OMAP24XX_EN_MCBSP2_SHIFT,
++			.module_offs = CORE_MOD,
++			.idlest_reg_id = 1,
++			.idlest_idle_bit = OMAP24XX_ST_MCBSP2_SHIFT,
++		},
++	},
++	.slaves		= omap2430_mcbsp2_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap2430_mcbsp2_slaves),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++};
++
++/* mcbsp3 */
++static struct omap_hwmod_irq_info omap2430_mcbsp3_irqs[] = {
++	{ .name = "tx",		.irq = 89 },
++	{ .name = "rx",		.irq = 90 },
++	{ .name = "common",	.irq = 17 },
++};
++
++static struct omap_hwmod_dma_info omap2430_mcbsp3_sdma_chs[] = {
++	{ .name = "rx", .dma_req = 18 },
++	{ .name = "tx", .dma_req = 17 },
++};
++
++static struct omap_hwmod_addr_space omap2430_mcbsp3_addrs[] = {
++	{
++		.name		= "mpu",
++		.pa_start	= 0x4808C000,
++		.pa_end		= 0x4808C0ff,
++		.flags		= ADDR_TYPE_RT
++	},
++};
++
++/* l4_core -> mcbsp3 */
++static struct omap_hwmod_ocp_if omap2430_l4_core__mcbsp3 = {
++	.master		= &omap2430_l4_core_hwmod,
++	.slave		= &omap2430_mcbsp3_hwmod,
++	.clk		= "mcbsp3_ick",
++	.addr		= omap2430_mcbsp3_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap2430_mcbsp3_addrs),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* mcbsp3 slave ports */
++static struct omap_hwmod_ocp_if *omap2430_mcbsp3_slaves[] = {
++	&omap2430_l4_core__mcbsp3,
++};
++
++static struct omap_hwmod omap2430_mcbsp3_hwmod = {
++	.name		= "mcbsp3",
++	.class		= &omap2430_mcbsp_hwmod_class,
++	.mpu_irqs	= omap2430_mcbsp3_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap2430_mcbsp3_irqs),
++	.sdma_reqs	= omap2430_mcbsp3_sdma_chs,
++	.sdma_reqs_cnt	= ARRAY_SIZE(omap2430_mcbsp3_sdma_chs),
++	.main_clk	= "mcbsp3_fck",
++	.prcm		= {
++		.omap2 = {
++			.prcm_reg_id = 1,
++			.module_bit = OMAP2430_EN_MCBSP3_SHIFT,
++			.module_offs = CORE_MOD,
++			.idlest_reg_id = 2,
++			.idlest_idle_bit = OMAP2430_ST_MCBSP3_SHIFT,
++		},
++	},
++	.slaves		= omap2430_mcbsp3_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap2430_mcbsp3_slaves),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++};
++
++/* mcbsp4 */
++static struct omap_hwmod_irq_info omap2430_mcbsp4_irqs[] = {
++	{ .name = "tx",		.irq = 54 },
++	{ .name = "rx",		.irq = 55 },
++	{ .name = "common",	.irq = 18 },
++};
++
++static struct omap_hwmod_dma_info omap2430_mcbsp4_sdma_chs[] = {
++	{ .name = "rx", .dma_req = 20 },
++	{ .name = "tx", .dma_req = 19 },
++};
++
++static struct omap_hwmod_addr_space omap2430_mcbsp4_addrs[] = {
++	{
++		.name		= "mpu",
++		.pa_start	= 0x4808E000,
++		.pa_end		= 0x4808E0ff,
++		.flags		= ADDR_TYPE_RT
++	},
++};
++
++/* l4_core -> mcbsp4 */
++static struct omap_hwmod_ocp_if omap2430_l4_core__mcbsp4 = {
++	.master		= &omap2430_l4_core_hwmod,
++	.slave		= &omap2430_mcbsp4_hwmod,
++	.clk		= "mcbsp4_ick",
++	.addr		= omap2430_mcbsp4_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap2430_mcbsp4_addrs),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* mcbsp4 slave ports */
++static struct omap_hwmod_ocp_if *omap2430_mcbsp4_slaves[] = {
++	&omap2430_l4_core__mcbsp4,
++};
++
++static struct omap_hwmod omap2430_mcbsp4_hwmod = {
++	.name		= "mcbsp4",
++	.class		= &omap2430_mcbsp_hwmod_class,
++	.mpu_irqs	= omap2430_mcbsp4_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap2430_mcbsp4_irqs),
++	.sdma_reqs	= omap2430_mcbsp4_sdma_chs,
++	.sdma_reqs_cnt	= ARRAY_SIZE(omap2430_mcbsp4_sdma_chs),
++	.main_clk	= "mcbsp4_fck",
++	.prcm		= {
++		.omap2 = {
++			.prcm_reg_id = 1,
++			.module_bit = OMAP2430_EN_MCBSP4_SHIFT,
++			.module_offs = CORE_MOD,
++			.idlest_reg_id = 2,
++			.idlest_idle_bit = OMAP2430_ST_MCBSP4_SHIFT,
++		},
++	},
++	.slaves		= omap2430_mcbsp4_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap2430_mcbsp4_slaves),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++};
++
++/* mcbsp5 */
++static struct omap_hwmod_irq_info omap2430_mcbsp5_irqs[] = {
++	{ .name = "tx",		.irq = 81 },
++	{ .name = "rx",		.irq = 82 },
++	{ .name = "common",	.irq = 19 },
++};
++
++static struct omap_hwmod_dma_info omap2430_mcbsp5_sdma_chs[] = {
++	{ .name = "rx", .dma_req = 22 },
++	{ .name = "tx", .dma_req = 21 },
++};
++
++static struct omap_hwmod_addr_space omap2430_mcbsp5_addrs[] = {
++	{
++		.name		= "mpu",
++		.pa_start	= 0x48096000,
++		.pa_end		= 0x480960ff,
++		.flags		= ADDR_TYPE_RT
++	},
++};
++
++/* l4_core -> mcbsp5 */
++static struct omap_hwmod_ocp_if omap2430_l4_core__mcbsp5 = {
++	.master		= &omap2430_l4_core_hwmod,
++	.slave		= &omap2430_mcbsp5_hwmod,
++	.clk		= "mcbsp5_ick",
++	.addr		= omap2430_mcbsp5_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap2430_mcbsp5_addrs),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* mcbsp5 slave ports */
++static struct omap_hwmod_ocp_if *omap2430_mcbsp5_slaves[] = {
++	&omap2430_l4_core__mcbsp5,
++};
++
++static struct omap_hwmod omap2430_mcbsp5_hwmod = {
++	.name		= "mcbsp5",
++	.class		= &omap2430_mcbsp_hwmod_class,
++	.mpu_irqs	= omap2430_mcbsp5_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap2430_mcbsp5_irqs),
++	.sdma_reqs	= omap2430_mcbsp5_sdma_chs,
++	.sdma_reqs_cnt	= ARRAY_SIZE(omap2430_mcbsp5_sdma_chs),
++	.main_clk	= "mcbsp5_fck",
++	.prcm		= {
++		.omap2 = {
++			.prcm_reg_id = 1,
++			.module_bit = OMAP2430_EN_MCBSP5_SHIFT,
++			.module_offs = CORE_MOD,
++			.idlest_reg_id = 2,
++			.idlest_idle_bit = OMAP2430_ST_MCBSP5_SHIFT,
++		},
++	},
++	.slaves		= omap2430_mcbsp5_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap2430_mcbsp5_slaves),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
++};
++
+ static __initdata struct omap_hwmod *omap2430_hwmods[] = {
+ 	&omap2430_l3_main_hwmod,
+ 	&omap2430_l4_core_hwmod,
+@@ -1156,6 +1471,13 @@ static __initdata struct omap_hwmod *omap2430_hwmods[] = {
+ 	/* dma_system class*/
+ 	&omap2430_dma_system_hwmod,
+ 
++	/* mcbsp class */
++	&omap2430_mcbsp1_hwmod,
++	&omap2430_mcbsp2_hwmod,
++	&omap2430_mcbsp3_hwmod,
++	&omap2430_mcbsp4_hwmod,
++	&omap2430_mcbsp5_hwmod,
++
+ 	/* mcspi class */
+ 	&omap2430_mcspi1_hwmod,
+ 	&omap2430_mcspi2_hwmod,
+diff --git a/arch/arm/plat-omap/include/plat/mcbsp.h b/arch/arm/plat-omap/include/plat/mcbsp.h
+index dc1a282..64491a5 100644
+--- a/arch/arm/plat-omap/include/plat/mcbsp.h
++++ b/arch/arm/plat-omap/include/plat/mcbsp.h
+@@ -37,6 +37,8 @@ static struct platform_device omap_mcbsp##port_nr = {	\
+ 	.id	= OMAP_MCBSP##port_nr,			\
  }
  
- static inline void omap34xx_mcbsp_free(struct omap_mcbsp *mcbsp)
- {
-+	struct omap_device *od;
++#define MCBSP_CONFIG_TYPE2	0x2
 +
-+	od = find_omap_device_by_dev(mcbsp->dev);
-+
- 	/*
- 	 * Disable wakup behavior, smart idle and all wakeups
- 	 */
- 	if (cpu_is_omap34xx() || cpu_is_omap44xx()) {
--		u16 syscon;
--
--		syscon = MCBSP_READ(mcbsp, SYSCON);
--		syscon &= ~(ENAWAKEUP | SIDLEMODE(0x03) | CLOCKACTIVITY(0x03));
- 		/*
- 		 * HW bug workaround - If no_idle mode is taken, we need to
- 		 * go to smart_idle before going to always_idle, or the
- 		 * device will not hit retention anymore.
- 		 */
--		syscon |= SIDLEMODE(0x02);
--		MCBSP_WRITE(mcbsp, SYSCON, syscon);
--
--		syscon &= ~(SIDLEMODE(0x03));
--		MCBSP_WRITE(mcbsp, SYSCON, syscon);
-+		omap_device_default_idle(od);
-+		omap_device_forceidle(od);
+ #define OMAP7XX_MCBSP1_BASE	0xfffb1000
+ #define OMAP7XX_MCBSP2_BASE	0xfffb1800
  
- 		MCBSP_WRITE(mcbsp, WAKEUPEN, 0);
- 	}
 -- 
 1.7.0.4
 
