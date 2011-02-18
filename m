@@ -1,12 +1,12 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v3 08/13] OMAP2+: McBSP: hwmod adaptation for McBSP
-Date: Fri, 18 Feb 2011 19:52:23 +0530
-Message-ID: <1298038948-19871-9-git-send-email-kishon@ti.com>
+Subject: [PATCH v3 05/13] OMAP3: hwmod data: Add McBSP
+Date: Fri, 18 Feb 2011 19:52:20 +0530
+Message-ID: <1298038948-19871-6-git-send-email-kishon@ti.com>
 References: <1298038948-19871-1-git-send-email-kishon@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:40999 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:49630 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758255Ab1BRO2R (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1758251Ab1BRO2R (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Fri, 18 Feb 2011 09:28:17 -0500
 In-Reply-To: <1298038948-19871-1-git-send-email-kishon@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -14,667 +14,505 @@ List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, b-cousson@ti.com, tony@atomide.com, broonie@opensource.wolfsonmicro.com, jhnikula@gmail.com, peter.ujfalusi@nokia.com
 Cc: p-basak2@ti.com, kishon@ti.com, charu@ti.com, shubhrajyoti@ti.com
 
-Modify OMAP2+ McBSP to use omap hwmod framework APIs
+From: Charulatha V <charu@ti.com>
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+Add McBSP hwmod data for OMAP3.
+
+Added a revision member inorder to facilitate the driver to
+differentiate between mcbsp in different omap.
+
 Signed-off-by: Charulatha V <charu@ti.com>
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
-Acked-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Acked-by: Jarkko Nikula <jhnikula@gmail.com>
-Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Benoit Cousson <b-cousson@ti.com>
 ---
- arch/arm/mach-omap2/mcbsp.c             |  595 +++----------------------------
- arch/arm/plat-omap/include/plat/mcbsp.h |    2 +-
- 2 files changed, 46 insertions(+), 551 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  439 ++++++++++++++++++++++++++++
+ arch/arm/plat-omap/include/plat/mcbsp.h    |    1 +
+ 2 files changed, 440 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/mcbsp.c b/arch/arm/mach-omap2/mcbsp.c
-index 765ebe7..275d6cf 100644
---- a/arch/arm/mach-omap2/mcbsp.c
-+++ b/arch/arm/mach-omap2/mcbsp.c
-@@ -22,10 +22,10 @@
- #include <plat/dma.h>
- #include <plat/cpu.h>
- #include <plat/mcbsp.h>
-+#include <plat/omap_device.h>
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+index 800eda4..dd43199 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -22,6 +22,7 @@
+ #include <plat/i2c.h>
+ #include <plat/gpio.h>
+ #include <plat/smartreflex.h>
++#include <plat/mcbsp.h>
+ #include <plat/mcspi.h>
  
- #include "control.h"
+ #include "omap_hwmod_common_data.h"
+@@ -63,6 +64,14 @@ static struct omap_hwmod omap34xx_mcspi4;
  
--
- /* McBSP internal signal muxing functions */
+ static struct omap_hwmod omap3xxx_dma_system_hwmod;
  
- void omap2_mcbsp1_mux_clkr_src(u8 mux)
-@@ -101,573 +101,68 @@ int omap2_mcbsp_set_clks_src(u8 id, u8 fck_src_id)
- }
- EXPORT_SYMBOL(omap2_mcbsp_set_clks_src);
- 
--
--/* Platform data */
--
--#ifdef CONFIG_SOC_OMAP2420
--struct resource omap2420_mcbsp_res[][6] = {
-+struct omap_device_pm_latency omap2_mcbsp_latency[] = {
- 	{
--		{
--			.start = OMAP24XX_MCBSP1_BASE,
--			.end   = OMAP24XX_MCBSP1_BASE + SZ_256,
--			.flags = IORESOURCE_MEM,
--		},
--		{
--			.name  = "rx",
--			.start = INT_24XX_MCBSP1_IRQ_RX,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "tx",
--			.start = INT_24XX_MCBSP1_IRQ_TX,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "rx",
--			.start = OMAP24XX_DMA_MCBSP1_RX,
--			.flags = IORESOURCE_DMA,
--		},
--		{
--			.name  = "tx",
--			.start = OMAP24XX_DMA_MCBSP1_TX,
--			.flags = IORESOURCE_DMA,
--		},
--	},
--	{
--		{
--			.start = OMAP24XX_MCBSP2_BASE,
--			.end   = OMAP24XX_MCBSP2_BASE + SZ_256,
--			.flags = IORESOURCE_MEM,
--		},
--		{
--			.name  = "rx",
--			.start = INT_24XX_MCBSP2_IRQ_RX,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "tx",
--			.start = INT_24XX_MCBSP2_IRQ_TX,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "rx",
--			.start = OMAP24XX_DMA_MCBSP2_RX,
--			.flags = IORESOURCE_DMA,
--		},
--		{
--			.name  = "tx",
--			.start = OMAP24XX_DMA_MCBSP2_TX,
--			.flags = IORESOURCE_DMA,
--		},
-+		.deactivate_func = omap_device_idle_hwmods,
-+		.activate_func   = omap_device_enable_hwmods,
-+		.flags = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
- 	},
++static struct omap_hwmod omap3xxx_mcbsp1_hwmod;
++static struct omap_hwmod omap3xxx_mcbsp2_hwmod;
++static struct omap_hwmod omap3xxx_mcbsp3_hwmod;
++static struct omap_hwmod omap3xxx_mcbsp4_hwmod;
++static struct omap_hwmod omap3xxx_mcbsp5_hwmod;
++static struct omap_hwmod omap3xxx_mcbsp2_sidetone_hwmod;
++static struct omap_hwmod omap3xxx_mcbsp3_sidetone_hwmod;
++
+ /* L3 -> L4_CORE interface */
+ static struct omap_hwmod_ocp_if omap3xxx_l3_main__l4_core = {
+ 	.master	= &omap3xxx_l3_main_hwmod,
+@@ -1232,6 +1241,427 @@ static struct omap_hwmod omap3xxx_dma_system_hwmod = {
+ 	.flags		= HWMOD_NO_IDLEST,
  };
--#define OMAP2420_MCBSP_RES_SZ		ARRAY_SIZE(omap2420_mcbsp_res[1])
--#define OMAP2420_MCBSP_COUNT		ARRAY_SIZE(omap2420_mcbsp_res)
--#else
--#define omap2420_mcbsp_res		NULL
--#define OMAP2420_MCBSP_RES_SZ		0
--#define OMAP2420_MCBSP_COUNT		0
--#endif
  
--#define omap2420_mcbsp_pdata		NULL
-+static int omap_init_mcbsp(struct omap_hwmod *oh, void *unused)
-+{
-+	int id, count = 1;
-+	char *name = "omap-mcbsp";
-+	struct omap_hwmod *oh_device[2];
-+	struct omap_mcbsp_platform_data *pdata = NULL;
-+	struct omap_device *od;
++/*
++ * 'mcbsp' class
++ * multi channel buffered serial port controller
++ */
++
++static struct omap_hwmod_class_sysconfig omap3xxx_mcbsp_sysc = {
++	.sysc_offs	= 0x008c,
++	.sysc_flags	= (SYSC_HAS_CLOCKACTIVITY | SYSC_HAS_ENAWAKEUP |
++			   SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET),
++	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
++	.sysc_fields	= &omap_hwmod_sysc_type1,
++	.clockact	= 0x2,
++};
++
++static struct omap_hwmod_class omap3xxx_mcbsp_hwmod_class = {
++	.name = "mcbsp",
++	.sysc = &omap3xxx_mcbsp_sysc,
++	.rev  = MCBSP_CONFIG_TYPE3,
++};
++
++/* mcbsp1 */
++static struct omap_hwmod_irq_info omap3xxx_mcbsp1_irqs[] = {
++	{ .name = "irq", .irq = 16 },
++	{ .name = "tx", .irq = 59 },
++	{ .name = "rx", .irq = 60 },
++};
++
++static struct omap_hwmod_dma_info omap3xxx_mcbsp1_sdma_chs[] = {
++	{ .name = "rx", .dma_req = 32 },
++	{ .name = "tx", .dma_req = 31 },
++};
++
++static struct omap_hwmod_addr_space omap3xxx_mcbsp1_addrs[] = {
++	{
++		.name		= "mpu",
++		.pa_start	= 0x48074000,
++		.pa_end		= 0x480740ff,
++		.flags		= ADDR_TYPE_RT
++	},
++};
++
++/* l4_core -> mcbsp1 */
++static struct omap_hwmod_ocp_if omap3xxx_l4_core__mcbsp1 = {
++	.master		= &omap3xxx_l4_core_hwmod,
++	.slave		= &omap3xxx_mcbsp1_hwmod,
++	.clk		= "mcbsp1_ick",
++	.addr		= omap3xxx_mcbsp1_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap3xxx_mcbsp1_addrs),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* mcbsp1 slave ports */
++static struct omap_hwmod_ocp_if *omap3xxx_mcbsp1_slaves[] = {
++	&omap3xxx_l4_core__mcbsp1,
++};
++
++static struct omap_hwmod omap3xxx_mcbsp1_hwmod = {
++	.name		= "mcbsp1",
++	.class		= &omap3xxx_mcbsp_hwmod_class,
++	.mpu_irqs	= omap3xxx_mcbsp1_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap3xxx_mcbsp1_irqs),
++	.sdma_reqs	= omap3xxx_mcbsp1_sdma_chs,
++	.sdma_reqs_cnt	= ARRAY_SIZE(omap3xxx_mcbsp1_sdma_chs),
++	.main_clk	= "mcbsp1_fck",
++	.prcm		= {
++		.omap2 = {
++			.prcm_reg_id = 1,
++			.module_bit = OMAP3430_EN_MCBSP1_SHIFT,
++			.module_offs = CORE_MOD,
++			.idlest_reg_id = 1,
++			.idlest_idle_bit = OMAP3430_ST_MCBSP1_SHIFT,
++		},
++	},
++	.slaves		= omap3xxx_mcbsp1_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap3xxx_mcbsp1_slaves),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++};
++
++/* mcbsp2 */
++static struct omap_hwmod_irq_info omap3xxx_mcbsp2_irqs[] = {
++	{ .name = "irq", .irq = 17 },
++	{ .name = "tx", .irq = 62 },
++	{ .name = "rx", .irq = 63 },
++};
++
++static struct omap_hwmod_dma_info omap3xxx_mcbsp2_sdma_chs[] = {
++	{ .name = "rx", .dma_req = 34 },
++	{ .name = "tx", .dma_req = 33 },
++};
++
++static struct omap_hwmod_addr_space omap3xxx_mcbsp2_addrs[] = {
++	{
++		.name		= "mpu",
++		.pa_start	= 0x49022000,
++		.pa_end		= 0x490220ff,
++		.flags		= ADDR_TYPE_RT
++	},
++};
++
++/* l4_per -> mcbsp2 */
++static struct omap_hwmod_ocp_if omap3xxx_l4_per__mcbsp2 = {
++	.master		= &omap3xxx_l4_per_hwmod,
++	.slave		= &omap3xxx_mcbsp2_hwmod,
++	.clk		= "mcbsp2_ick",
++	.addr		= omap3xxx_mcbsp2_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap3xxx_mcbsp2_addrs),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* mcbsp2 slave ports */
++static struct omap_hwmod_ocp_if *omap3xxx_mcbsp2_slaves[] = {
++	&omap3xxx_l4_per__mcbsp2,
++};
++
++static struct omap_hwmod omap3xxx_mcbsp2_hwmod = {
++	.name		= "mcbsp2",
++	.class		= &omap3xxx_mcbsp_hwmod_class,
++	.mpu_irqs	= omap3xxx_mcbsp2_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap3xxx_mcbsp2_irqs),
++	.sdma_reqs	= omap3xxx_mcbsp2_sdma_chs,
++	.sdma_reqs_cnt	= ARRAY_SIZE(omap3xxx_mcbsp2_sdma_chs),
++	.main_clk	= "mcbsp2_fck",
++	.prcm		= {
++		.omap2 = {
++			.prcm_reg_id = 1,
++			.module_bit = OMAP3430_EN_MCBSP2_SHIFT,
++			.module_offs = OMAP3430_PER_MOD,
++			.idlest_reg_id = 1,
++			.idlest_idle_bit = OMAP3430_ST_MCBSP2_SHIFT,
++		},
++	},
++	.slaves		= omap3xxx_mcbsp2_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap3xxx_mcbsp2_slaves),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++};
++
++/* mcbsp3 */
++static struct omap_hwmod_irq_info omap3xxx_mcbsp3_irqs[] = {
++	{ .name = "irq", .irq = 22 },
++	{ .name = "tx", .irq = 89 },
++	{ .name = "rx", .irq = 90 },
++};
++
++static struct omap_hwmod_dma_info omap3xxx_mcbsp3_sdma_chs[] = {
++	{ .name = "rx", .dma_req = 18 },
++	{ .name = "tx", .dma_req = 17 },
++};
++
++static struct omap_hwmod_addr_space omap3xxx_mcbsp3_addrs[] = {
++	{
++		.name		= "mpu",
++		.pa_start	= 0x49024000,
++		.pa_end		= 0x490240ff,
++		.flags		= ADDR_TYPE_RT
++	},
++};
++
++/* l4_per -> mcbsp3 */
++static struct omap_hwmod_ocp_if omap3xxx_l4_per__mcbsp3 = {
++	.master		= &omap3xxx_l4_per_hwmod,
++	.slave		= &omap3xxx_mcbsp3_hwmod,
++	.clk		= "mcbsp3_ick",
++	.addr		= omap3xxx_mcbsp3_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap3xxx_mcbsp3_addrs),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* mcbsp3 slave ports */
++static struct omap_hwmod_ocp_if *omap3xxx_mcbsp3_slaves[] = {
++	&omap3xxx_l4_per__mcbsp3,
++};
++
++static struct omap_hwmod omap3xxx_mcbsp3_hwmod = {
++	.name		= "mcbsp3",
++	.class		= &omap3xxx_mcbsp_hwmod_class,
++	.mpu_irqs	= omap3xxx_mcbsp3_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap3xxx_mcbsp3_irqs),
++	.sdma_reqs	= omap3xxx_mcbsp3_sdma_chs,
++	.sdma_reqs_cnt	= ARRAY_SIZE(omap3xxx_mcbsp3_sdma_chs),
++	.main_clk	= "mcbsp3_fck",
++	.prcm		= {
++		.omap2 = {
++			.prcm_reg_id = 1,
++			.module_bit = OMAP3430_EN_MCBSP3_SHIFT,
++			.module_offs = OMAP3430_PER_MOD,
++			.idlest_reg_id = 1,
++			.idlest_idle_bit = OMAP3430_ST_MCBSP3_SHIFT,
++		},
++	},
++	.slaves		= omap3xxx_mcbsp3_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap3xxx_mcbsp3_slaves),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++};
++
++/* mcbsp4 */
++static struct omap_hwmod_irq_info omap3xxx_mcbsp4_irqs[] = {
++	{ .name = "irq", .irq = 23 },
++	{ .name = "tx", .irq = 54 },
++	{ .name = "rx", .irq = 55 },
++};
++
++static struct omap_hwmod_dma_info omap3xxx_mcbsp4_sdma_chs[] = {
++	{ .name = "rx", .dma_req = 20 },
++	{ .name = "tx", .dma_req = 19 },
++};
++
++static struct omap_hwmod_addr_space omap3xxx_mcbsp4_addrs[] = {
++	{
++		.name		= "mpu",
++		.pa_start	= 0x49026000,
++		.pa_end		= 0x490260ff,
++		.flags		= ADDR_TYPE_RT
++	},
++};
++
++/* l4_per -> mcbsp4 */
++static struct omap_hwmod_ocp_if omap3xxx_l4_per__mcbsp4 = {
++	.master		= &omap3xxx_l4_per_hwmod,
++	.slave		= &omap3xxx_mcbsp4_hwmod,
++	.clk		= "mcbsp4_ick",
++	.addr		= omap3xxx_mcbsp4_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap3xxx_mcbsp4_addrs),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* mcbsp4 slave ports */
++static struct omap_hwmod_ocp_if *omap3xxx_mcbsp4_slaves[] = {
++	&omap3xxx_l4_per__mcbsp4,
++};
++
++static struct omap_hwmod omap3xxx_mcbsp4_hwmod = {
++	.name		= "mcbsp4",
++	.class		= &omap3xxx_mcbsp_hwmod_class,
++	.mpu_irqs	= omap3xxx_mcbsp4_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap3xxx_mcbsp4_irqs),
++	.sdma_reqs	= omap3xxx_mcbsp4_sdma_chs,
++	.sdma_reqs_cnt	= ARRAY_SIZE(omap3xxx_mcbsp4_sdma_chs),
++	.main_clk	= "mcbsp4_fck",
++	.prcm		= {
++		.omap2 = {
++			.prcm_reg_id = 1,
++			.module_bit = OMAP3430_EN_MCBSP4_SHIFT,
++			.module_offs = OMAP3430_PER_MOD,
++			.idlest_reg_id = 1,
++			.idlest_idle_bit = OMAP3430_ST_MCBSP4_SHIFT,
++		},
++	},
++	.slaves		= omap3xxx_mcbsp4_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap3xxx_mcbsp4_slaves),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++};
++
++/* mcbsp5 */
++static struct omap_hwmod_irq_info omap3xxx_mcbsp5_irqs[] = {
++	{ .name = "irq", .irq = 27 },
++	{ .name = "tx", .irq = 81 },
++	{ .name = "rx", .irq = 82 },
++};
++
++static struct omap_hwmod_dma_info omap3xxx_mcbsp5_sdma_chs[] = {
++	{ .name = "rx", .dma_req = 22 },
++	{ .name = "tx", .dma_req = 21 },
++};
++
++static struct omap_hwmod_addr_space omap3xxx_mcbsp5_addrs[] = {
++	{
++		.name		= "mpu",
++		.pa_start	= 0x48096000,
++		.pa_end		= 0x480960ff,
++		.flags		= ADDR_TYPE_RT
++	},
++};
++
++/* l4_core -> mcbsp5 */
++static struct omap_hwmod_ocp_if omap3xxx_l4_core__mcbsp5 = {
++	.master		= &omap3xxx_l4_core_hwmod,
++	.slave		= &omap3xxx_mcbsp5_hwmod,
++	.clk		= "mcbsp5_ick",
++	.addr		= omap3xxx_mcbsp5_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap3xxx_mcbsp5_addrs),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* mcbsp5 slave ports */
++static struct omap_hwmod_ocp_if *omap3xxx_mcbsp5_slaves[] = {
++	&omap3xxx_l4_core__mcbsp5,
++};
++
++static struct omap_hwmod omap3xxx_mcbsp5_hwmod = {
++	.name		= "mcbsp5",
++	.class		= &omap3xxx_mcbsp_hwmod_class,
++	.mpu_irqs	= omap3xxx_mcbsp5_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap3xxx_mcbsp5_irqs),
++	.sdma_reqs	= omap3xxx_mcbsp5_sdma_chs,
++	.sdma_reqs_cnt	= ARRAY_SIZE(omap3xxx_mcbsp5_sdma_chs),
++	.main_clk	= "mcbsp5_fck",
++	.prcm		= {
++		.omap2 = {
++			.prcm_reg_id = 1,
++			.module_bit = OMAP3430_EN_MCBSP5_SHIFT,
++			.module_offs = CORE_MOD,
++			.idlest_reg_id = 1,
++			.idlest_idle_bit = OMAP3430_ST_MCBSP5_SHIFT,
++		},
++	},
++	.slaves		= omap3xxx_mcbsp5_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap3xxx_mcbsp5_slaves),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++};
++/* 'mcbsp sidetone' class */
++
++static struct omap_hwmod_class_sysconfig omap3xxx_mcbsp_sidetone_sysc = {
++	.sysc_offs	= 0x0010,
++	.sysc_flags	= SYSC_HAS_AUTOIDLE,
++	.sysc_fields	= &omap_hwmod_sysc_type1,
++};
++
++static struct omap_hwmod_class omap3xxx_mcbsp_sidetone_hwmod_class = {
++	.name = "mcbsp_sidetone",
++	.sysc = &omap3xxx_mcbsp_sidetone_sysc,
++};
++
++/* mcbsp2_sidetone */
++static struct omap_hwmod_irq_info omap3xxx_mcbsp2_sidetone_irqs[] = {
++	{ .name = "irq", .irq = 4 },
++};
++
++static struct omap_hwmod_addr_space omap3xxx_mcbsp2_sidetone_addrs[] = {
++	{
++		.name		= "sidetone",
++		.pa_start	= 0x49028000,
++		.pa_end		= 0x490280ff,
++		.flags		= ADDR_TYPE_RT
++	},
++};
++
++/* l4_per -> mcbsp2_sidetone */
++static struct omap_hwmod_ocp_if omap3xxx_l4_per__mcbsp2_sidetone = {
++	.master		= &omap3xxx_l4_per_hwmod,
++	.slave		= &omap3xxx_mcbsp2_sidetone_hwmod,
++	.clk		= "mcbsp2_ick",
++	.addr		= omap3xxx_mcbsp2_sidetone_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap3xxx_mcbsp2_sidetone_addrs),
++	.user		= OCP_USER_MPU,
++};
++
++/* mcbsp2_sidetone slave ports */
++static struct omap_hwmod_ocp_if *omap3xxx_mcbsp2_sidetone_slaves[] = {
++	&omap3xxx_l4_per__mcbsp2_sidetone,
++};
++
++static struct omap_hwmod omap3xxx_mcbsp2_sidetone_hwmod = {
++	.name		= "mcbsp2_sidetone",
++	.class		= &omap3xxx_mcbsp_sidetone_hwmod_class,
++	.mpu_irqs	= omap3xxx_mcbsp2_sidetone_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap3xxx_mcbsp2_sidetone_irqs),
++	.main_clk	= "mcbsp2_fck",
++	.prcm		= {
++		.omap2 = {
++			.prcm_reg_id = 1,
++			 .module_bit = OMAP3430_EN_MCBSP2_SHIFT,
++			.module_offs = OMAP3430_PER_MOD,
++			.idlest_reg_id = 1,
++			.idlest_idle_bit = OMAP3430_ST_MCBSP2_SHIFT,
++		},
++	},
++	.slaves		= omap3xxx_mcbsp2_sidetone_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap3xxx_mcbsp2_sidetone_slaves),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++};
++
++/* mcbsp3_sidetone */
++static struct omap_hwmod_irq_info omap3xxx_mcbsp3_sidetone_irqs[] = {
++	{ .name = "irq", .irq = 5 },
++};
++
++static struct omap_hwmod_addr_space omap3xxx_mcbsp3_sidetone_addrs[] = {
++	{
++		.name		= "sidetone",
++		.pa_start	= 0x4902A000,
++		.pa_end		= 0x4902A0ff,
++		.flags		= ADDR_TYPE_RT
++	},
++};
++
++/* l4_per -> mcbsp3_sidetone */
++static struct omap_hwmod_ocp_if omap3xxx_l4_per__mcbsp3_sidetone = {
++	.master		= &omap3xxx_l4_per_hwmod,
++	.slave		= &omap3xxx_mcbsp3_sidetone_hwmod,
++	.clk		= "mcbsp3_ick",
++	.addr		= omap3xxx_mcbsp3_sidetone_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap3xxx_mcbsp3_sidetone_addrs),
++	.user		= OCP_USER_MPU,
++};
++
++/* mcbsp3_sidetone slave ports */
++static struct omap_hwmod_ocp_if *omap3xxx_mcbsp3_sidetone_slaves[] = {
++	&omap3xxx_l4_per__mcbsp3_sidetone,
++};
++
++static struct omap_hwmod omap3xxx_mcbsp3_sidetone_hwmod = {
++	.name		= "mcbsp3_sidetone",
++	.class		= &omap3xxx_mcbsp_sidetone_hwmod_class,
++	.mpu_irqs	= omap3xxx_mcbsp3_sidetone_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap3xxx_mcbsp3_sidetone_irqs),
++	.main_clk	= "mcbsp3_fck",
++	.prcm		= {
++		.omap2 = {
++			.prcm_reg_id = 1,
++			.module_bit = OMAP3430_EN_MCBSP3_SHIFT,
++			.module_offs = OMAP3430_PER_MOD,
++			.idlest_reg_id = 1,
++			.idlest_idle_bit = OMAP3430_ST_MCBSP3_SHIFT,
++		},
++	},
++	.slaves		= omap3xxx_mcbsp3_sidetone_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap3xxx_mcbsp3_sidetone_slaves),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++};
++
++
+ /* SR common */
+ static struct omap_hwmod_sysc_fields omap34xx_sr_sysc_fields = {
+ 	.clkact_shift	= 20,
+@@ -1662,6 +2092,15 @@ static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
+ 	/* dma_system class*/
+ 	&omap3xxx_dma_system_hwmod,
  
--#ifdef CONFIG_SOC_OMAP2430
--struct resource omap2430_mcbsp_res[][6] = {
--	{
--		{
--			.start = OMAP24XX_MCBSP1_BASE,
--			.end   = OMAP24XX_MCBSP1_BASE + SZ_256,
--			.flags = IORESOURCE_MEM,
--		},
--		{
--			.name  = "rx",
--			.start = INT_24XX_MCBSP1_IRQ_RX,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "tx",
--			.start = INT_24XX_MCBSP1_IRQ_TX,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "rx",
--			.start = OMAP24XX_DMA_MCBSP1_RX,
--			.flags = IORESOURCE_DMA,
--		},
--		{
--			.name  = "tx",
--			.start = OMAP24XX_DMA_MCBSP1_TX,
--			.flags = IORESOURCE_DMA,
--		},
--	},
--	{
--		{
--			.start = OMAP24XX_MCBSP2_BASE,
--			.end   = OMAP24XX_MCBSP2_BASE + SZ_256,
--			.flags = IORESOURCE_MEM,
--		},
--		{
--			.name  = "rx",
--			.start = INT_24XX_MCBSP2_IRQ_RX,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "tx",
--			.start = INT_24XX_MCBSP2_IRQ_TX,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "rx",
--			.start = OMAP24XX_DMA_MCBSP2_RX,
--			.flags = IORESOURCE_DMA,
--		},
--		{
--			.name  = "tx",
--			.start = OMAP24XX_DMA_MCBSP2_TX,
--			.flags = IORESOURCE_DMA,
--		},
--	},
--	{
--		{
--			.start = OMAP2430_MCBSP3_BASE,
--			.end   = OMAP2430_MCBSP3_BASE + SZ_256,
--			.flags = IORESOURCE_MEM,
--		},
--		{
--			.name  = "rx",
--			.start = INT_24XX_MCBSP3_IRQ_RX,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "tx",
--			.start = INT_24XX_MCBSP3_IRQ_TX,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "rx",
--			.start = OMAP24XX_DMA_MCBSP3_RX,
--			.flags = IORESOURCE_DMA,
--		},
--		{
--			.name  = "tx",
--			.start = OMAP24XX_DMA_MCBSP3_TX,
--			.flags = IORESOURCE_DMA,
--		},
--	},
--	{
--		{
--			.start = OMAP2430_MCBSP4_BASE,
--			.end   = OMAP2430_MCBSP4_BASE + SZ_256,
--			.flags = IORESOURCE_MEM,
--		},
--		{
--			.name  = "rx",
--			.start = INT_24XX_MCBSP4_IRQ_RX,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "tx",
--			.start = INT_24XX_MCBSP4_IRQ_TX,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "rx",
--			.start = OMAP24XX_DMA_MCBSP4_RX,
--			.flags = IORESOURCE_DMA,
--		},
--		{
--			.name  = "tx",
--			.start = OMAP24XX_DMA_MCBSP4_TX,
--			.flags = IORESOURCE_DMA,
--		},
--	},
--	{
--		{
--			.start = OMAP2430_MCBSP5_BASE,
--			.end   = OMAP2430_MCBSP5_BASE + SZ_256,
--			.flags = IORESOURCE_MEM,
--		},
--		{
--			.name  = "rx",
--			.start = INT_24XX_MCBSP5_IRQ_RX,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "tx",
--			.start = INT_24XX_MCBSP5_IRQ_TX,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "rx",
--			.start = OMAP24XX_DMA_MCBSP5_RX,
--			.flags = IORESOURCE_DMA,
--		},
--		{
--			.name  = "tx",
--			.start = OMAP24XX_DMA_MCBSP5_TX,
--			.flags = IORESOURCE_DMA,
--		},
--	},
--};
--#define OMAP2430_MCBSP_RES_SZ		ARRAY_SIZE(omap2430_mcbsp_res[1])
--#define OMAP2430_MCBSP_COUNT		ARRAY_SIZE(omap2430_mcbsp_res)
--#else
--#define omap2430_mcbsp_res		NULL
--#define OMAP2430_MCBSP_RES_SZ		0
--#define OMAP2430_MCBSP_COUNT		0
--#endif
-+	sscanf(oh->name, "mcbsp%d", &id);
- 
--#define omap2430_mcbsp_pdata		NULL
-+	pdata = kzalloc(sizeof(struct omap_mcbsp_platform_data), GFP_KERNEL);
-+	if (!pdata) {
-+		pr_err("%s: No memory for mcbsp\n", __func__);
-+		return -ENOMEM;
-+	}
- 
--#ifdef CONFIG_ARCH_OMAP3
--struct resource omap34xx_mcbsp_res[][7] = {
--	{
--		{
--			.start = OMAP34XX_MCBSP1_BASE,
--			.end   = OMAP34XX_MCBSP1_BASE + SZ_256,
--			.flags = IORESOURCE_MEM,
--		},
--		{
--			.name  = "rx",
--			.start = INT_24XX_MCBSP1_IRQ_RX,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "tx",
--			.start = INT_24XX_MCBSP1_IRQ_TX,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "rx",
--			.start = OMAP24XX_DMA_MCBSP1_RX,
--			.flags = IORESOURCE_DMA,
--		},
--		{
--			.name  = "tx",
--			.start = OMAP24XX_DMA_MCBSP1_TX,
--			.flags = IORESOURCE_DMA,
--		},
--	},
--	{
--		{
--			.start = OMAP34XX_MCBSP2_BASE,
--			.end   = OMAP34XX_MCBSP2_BASE + SZ_256,
--			.flags = IORESOURCE_MEM,
--		},
--		{
--			.name  = "sidetone",
--			.start = OMAP34XX_MCBSP2_ST_BASE,
--			.end   = OMAP34XX_MCBSP2_ST_BASE + SZ_256,
--			.flags = IORESOURCE_MEM,
--		},
--		{
--			.name  = "rx",
--			.start = INT_24XX_MCBSP2_IRQ_RX,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "tx",
--			.start = INT_24XX_MCBSP2_IRQ_TX,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "rx",
--			.start = OMAP24XX_DMA_MCBSP2_RX,
--			.flags = IORESOURCE_DMA,
--		},
--		{
--			.name  = "tx",
--			.start = OMAP24XX_DMA_MCBSP2_TX,
--			.flags = IORESOURCE_DMA,
--		},
--	},
--	{
--		{
--			.start = OMAP34XX_MCBSP3_BASE,
--			.end   = OMAP34XX_MCBSP3_BASE + SZ_256,
--			.flags = IORESOURCE_MEM,
--		},
--		{
--			.name  = "sidetone",
--			.start = OMAP34XX_MCBSP3_ST_BASE,
--			.end   = OMAP34XX_MCBSP3_ST_BASE + SZ_256,
--			.flags = IORESOURCE_MEM,
--		},
--		{
--			.name  = "rx",
--			.start = INT_24XX_MCBSP3_IRQ_RX,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "tx",
--			.start = INT_24XX_MCBSP3_IRQ_TX,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "rx",
--			.start = OMAP24XX_DMA_MCBSP3_RX,
--			.flags = IORESOURCE_DMA,
--		},
--		{
--			.name  = "tx",
--			.start = OMAP24XX_DMA_MCBSP3_TX,
--			.flags = IORESOURCE_DMA,
--		},
--	},
--	{
--		{
--			.start = OMAP34XX_MCBSP4_BASE,
--			.end   = OMAP34XX_MCBSP4_BASE + SZ_256,
--			.flags = IORESOURCE_MEM,
--		},
--		{
--			.name  = "rx",
--			.start = INT_24XX_MCBSP4_IRQ_RX,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "tx",
--			.start = INT_24XX_MCBSP4_IRQ_TX,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "rx",
--			.start = OMAP24XX_DMA_MCBSP4_RX,
--			.flags = IORESOURCE_DMA,
--		},
--		{
--			.name  = "tx",
--			.start = OMAP24XX_DMA_MCBSP4_TX,
--			.flags = IORESOURCE_DMA,
--		},
--	},
--	{
--		{
--			.start = OMAP34XX_MCBSP5_BASE,
--			.end   = OMAP34XX_MCBSP5_BASE + SZ_256,
--			.flags = IORESOURCE_MEM,
--		},
--		{
--			.name  = "rx",
--			.start = INT_24XX_MCBSP5_IRQ_RX,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "tx",
--			.start = INT_24XX_MCBSP5_IRQ_TX,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "rx",
--			.start = OMAP24XX_DMA_MCBSP5_RX,
--			.flags = IORESOURCE_DMA,
--		},
--		{
--			.name  = "tx",
--			.start = OMAP24XX_DMA_MCBSP5_TX,
--			.flags = IORESOURCE_DMA,
--		},
--	},
--};
-+	if (oh->class->rev == MCBSP_CONFIG_TYPE3) {
-+		if (id == 2)
-+			/* The FIFO has 1024 + 256 locations */
-+			pdata->buffer_size = 0x500;
-+		else
-+			/* The FIFO has 128 locations */
-+			pdata->buffer_size = 0x80;
-+	}
- 
--static struct omap_mcbsp_platform_data omap34xx_mcbsp_pdata[] = {
--	{
--		.buffer_size	= 0x80, /* The FIFO has 128 locations */
--	},
--	{
--		.buffer_size	= 0x500, /* The FIFO has 1024 + 256 locations */
--	},
--	{
--		.buffer_size	= 0x80, /* The FIFO has 128 locations */
--	},
--	{
--		.buffer_size	= 0x80, /* The FIFO has 128 locations */
--	},
--	{
--		.buffer_size	= 0x80, /* The FIFO has 128 locations */
--	},
--};
--#define OMAP34XX_MCBSP_RES_SZ		ARRAY_SIZE(omap34xx_mcbsp_res[1])
--#define OMAP34XX_MCBSP_COUNT		ARRAY_SIZE(omap34xx_mcbsp_res)
--#else
--#define omap34xx_mcbsp_pdata		NULL
--#define omap34XX_mcbsp_res		NULL
--#define OMAP34XX_MCBSP_RES_SZ		0
--#define OMAP34XX_MCBSP_COUNT		0
--#endif
-+	oh_device[0] = oh;
- 
--struct resource omap44xx_mcbsp_res[][6] = {
--	{
--		{
--			.name  = "mpu",
--			.start = OMAP44XX_MCBSP1_BASE,
--			.end   = OMAP44XX_MCBSP1_BASE + SZ_256,
--			.flags = IORESOURCE_MEM,
--		},
--		{
--			.name  = "dma",
--			.start = OMAP44XX_MCBSP1_DMA_BASE,
--			.end   = OMAP44XX_MCBSP1_DMA_BASE + SZ_256,
--			.flags = IORESOURCE_MEM,
--		},
--		{
--			.name  = "rx",
--			.start = 0,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "tx",
--			.start = OMAP44XX_IRQ_MCBSP1,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "rx",
--			.start = OMAP44XX_DMA_MCBSP1_RX,
--			.flags = IORESOURCE_DMA,
--		},
--		{
--			.name  = "tx",
--			.start = OMAP44XX_DMA_MCBSP1_TX,
--			.flags = IORESOURCE_DMA,
--		},
--	},
--	{
--		{
--			.name  = "mpu",
--			.start = OMAP44XX_MCBSP2_BASE,
--			.end   = OMAP44XX_MCBSP2_BASE + SZ_256,
--			.flags = IORESOURCE_MEM,
--		},
--		{
--			.name  = "dma",
--			.start = OMAP44XX_MCBSP2_DMA_BASE,
--			.end   = OMAP44XX_MCBSP2_DMA_BASE + SZ_256,
--			.flags = IORESOURCE_MEM,
--		},
--		{
--			.name  = "rx",
--			.start = 0,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "tx",
--			.start = OMAP44XX_IRQ_MCBSP2,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "rx",
--			.start = OMAP44XX_DMA_MCBSP2_RX,
--			.flags = IORESOURCE_DMA,
--		},
--		{
--			.name  = "tx",
--			.start = OMAP44XX_DMA_MCBSP2_TX,
--			.flags = IORESOURCE_DMA,
--		},
--	},
--	{
--		{
--			.name  = "mpu",
--			.start = OMAP44XX_MCBSP3_BASE,
--			.end   = OMAP44XX_MCBSP3_BASE + SZ_256,
--			.flags = IORESOURCE_MEM,
--		},
--		{
--			.name  = "dma",
--			.start = OMAP44XX_MCBSP3_DMA_BASE,
--			.end   = OMAP44XX_MCBSP3_DMA_BASE + SZ_256,
--			.flags = IORESOURCE_MEM,
--		},
--		{
--			.name  = "rx",
--			.start = 0,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "tx",
--			.start = OMAP44XX_IRQ_MCBSP3,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "rx",
--			.start = OMAP44XX_DMA_MCBSP3_RX,
--			.flags = IORESOURCE_DMA,
--		},
--		{
--			.name  = "tx",
--			.start = OMAP44XX_DMA_MCBSP3_TX,
--			.flags = IORESOURCE_DMA,
--		},
--	},
--	{
--		{
--			.start = OMAP44XX_MCBSP4_BASE,
--			.end   = OMAP44XX_MCBSP4_BASE + SZ_256,
--			.flags = IORESOURCE_MEM,
--		},
--		{
--			.name  = "rx",
--			.start = 0,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "tx",
--			.start = OMAP44XX_IRQ_MCBSP4,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "rx",
--			.start = OMAP44XX_DMA_MCBSP4_RX,
--			.flags = IORESOURCE_DMA,
--		},
--		{
--			.name  = "tx",
--			.start = OMAP44XX_DMA_MCBSP4_TX,
--			.flags = IORESOURCE_DMA,
--		},
--	},
--};
--#define omap44xx_mcbsp_pdata		NULL
--#define OMAP44XX_MCBSP_RES_SZ		ARRAY_SIZE(omap44xx_mcbsp_res[1])
--#define OMAP44XX_MCBSP_COUNT		ARRAY_SIZE(omap44xx_mcbsp_res)
-+	if (oh->dev_attr) {
-+		oh_device[1] = omap_hwmod_lookup((
-+		(struct omap_mcbsp_dev_attr *)(oh->dev_attr))->sidetone);
-+		count++;
-+	}
-+	od = omap_device_build_ss(name, id, oh_device, count, pdata,
-+				sizeof(*pdata), omap2_mcbsp_latency,
-+				ARRAY_SIZE(omap2_mcbsp_latency), false);
-+	kfree(pdata);
-+	if (IS_ERR(od))  {
-+		pr_err("%s: Cant build omap_device for %s:%s.\n", __func__,
-+					name, oh->name);
-+		return PTR_ERR(od);
-+	}
-+	omap_mcbsp_count++;
-+	return 0;
-+}
- 
- static int __init omap2_mcbsp_init(void)
- {
--	if (cpu_is_omap2420())
--		omap_mcbsp_count = OMAP2420_MCBSP_COUNT;
--	else if (cpu_is_omap2430())
--		omap_mcbsp_count = OMAP2430_MCBSP_COUNT;
--	else if (cpu_is_omap34xx())
--		omap_mcbsp_count = OMAP34XX_MCBSP_COUNT;
--	else if (cpu_is_omap44xx())
--		omap_mcbsp_count = OMAP44XX_MCBSP_COUNT;
-+	omap_hwmod_for_each_by_class("mcbsp", omap_init_mcbsp, NULL);
- 
- 	mcbsp_ptr = kzalloc(omap_mcbsp_count * sizeof(struct omap_mcbsp *),
- 								GFP_KERNEL);
- 	if (!mcbsp_ptr)
- 		return -ENOMEM;
- 
--	if (cpu_is_omap2420())
--		omap_mcbsp_register_board_cfg(omap2420_mcbsp_res[0],
--					OMAP2420_MCBSP_RES_SZ,
--					omap2420_mcbsp_pdata,
--					OMAP2420_MCBSP_COUNT);
--	if (cpu_is_omap2430())
--		omap_mcbsp_register_board_cfg(omap2430_mcbsp_res[0],
--					OMAP2420_MCBSP_RES_SZ,
--					omap2430_mcbsp_pdata,
--					OMAP2430_MCBSP_COUNT);
--	if (cpu_is_omap34xx())
--		omap_mcbsp_register_board_cfg(omap34xx_mcbsp_res[0],
--					OMAP34XX_MCBSP_RES_SZ,
--					omap34xx_mcbsp_pdata,
--					OMAP34XX_MCBSP_COUNT);
--	if (cpu_is_omap44xx())
--		omap_mcbsp_register_board_cfg(omap44xx_mcbsp_res[0],
--					OMAP44XX_MCBSP_RES_SZ,
--					omap44xx_mcbsp_pdata,
--					OMAP44XX_MCBSP_COUNT);
--
- 	return omap_mcbsp_init();
- }
- arch_initcall(omap2_mcbsp_init);
++	/* mcbsp class */
++	&omap3xxx_mcbsp1_hwmod,
++	&omap3xxx_mcbsp2_hwmod,
++	&omap3xxx_mcbsp3_hwmod,
++	&omap3xxx_mcbsp4_hwmod,
++	&omap3xxx_mcbsp5_hwmod,
++	&omap3xxx_mcbsp2_sidetone_hwmod,
++	&omap3xxx_mcbsp3_sidetone_hwmod,
++
+ 	/* mcspi class */
+ 	&omap34xx_mcspi1,
+ 	&omap34xx_mcspi2,
 diff --git a/arch/arm/plat-omap/include/plat/mcbsp.h b/arch/arm/plat-omap/include/plat/mcbsp.h
-index 1fe0637..c6cabfc 100644
+index 64491a5..f084b6a 100644
 --- a/arch/arm/plat-omap/include/plat/mcbsp.h
 +++ b/arch/arm/plat-omap/include/plat/mcbsp.h
-@@ -421,8 +421,8 @@ struct omap_mcbsp_platform_data {
- #ifdef CONFIG_ARCH_OMAP3
- 	/* Sidetone block for McBSP 2 and 3 */
- 	unsigned long phys_base_st;
--	u16 buffer_size;
- #endif
-+	u16 buffer_size;
- };
+@@ -38,6 +38,7 @@ static struct platform_device omap_mcbsp##port_nr = {	\
+ }
  
- struct omap_mcbsp_st_data {
+ #define MCBSP_CONFIG_TYPE2	0x2
++#define MCBSP_CONFIG_TYPE3	0x3
+ 
+ #define OMAP7XX_MCBSP1_BASE	0xfffb1000
+ #define OMAP7XX_MCBSP2_BASE	0xfffb1800
 -- 
 1.7.0.4
 
