@@ -1,185 +1,140 @@
-From: jean.pihet@newoldbits.com
-Subject: [PATCH] perf: add OMAP support for the new power events
-Date: Fri, 18 Feb 2011 19:10:45 +0100
-Message-ID: <1298052645-4164-1-git-send-email-j-pihet@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH 2/5] omap4: Enable ARM local timers with OMAP4430 es1.0 exception
+Date: Fri, 18 Feb 2011 23:41:34 +0530
+Message-ID: <33e02589041f47e8df8bdc7d97a631f1@mail.gmail.com>
+References: <1297510187-31547-1-git-send-email-santosh.shilimkar@ti.com> <1297510187-31547-3-git-send-email-santosh.shilimkar@ti.com>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary=001636832066d46fc4049c9271ba
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:59743 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753810Ab1BRSLK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Feb 2011 13:11:10 -0500
-Received: by wwa36 with SMTP id 36so4038932wwa.1
-        for <linux-omap@vger.kernel.org>; Fri, 18 Feb 2011 10:11:08 -0800 (PST)
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:44677 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752037Ab1BRSLj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 18 Feb 2011 13:11:39 -0500
+Received: by mail-qy0-f177.google.com with SMTP id 27so3540797qyk.8
+        for <linux-omap@vger.kernel.org>; Fri, 18 Feb 2011 10:11:36 -0800 (PST)
+In-Reply-To: <1297510187-31547-3-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>, Thomas Renninger <trenn@suse.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Jean Pihet <j-pihet@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: Kevin Hilman <khilman@ti.com>, linux-arm-kernel@lists.infradead.org, tony@atomide.com
 
-From: Jean Pihet <j-pihet@ti.com>
+--001636832066d46fc4049c9271ba
+Content-Type: text/plain; charset=ISO-8859-1
 
-The patch adds the new power management trace points for
-the OMAP architecture.
+> -----Original Message-----
+> From: Santosh Shilimkar [mailto:santosh.shilimkar@ti.com]
+> Sent: Saturday, February 12, 2011 5:00 PM
+> To: linux-omap@vger.kernel.org
+> Cc: khilman@ti.com; linux-arm-kernel@lists.infradead.org;
+> tony@atomide.com; Santosh Shilimkar
+> Subject: [PATCH 2/5] omap4: Enable ARM local timers with OMAP4430
+> es1.0 exception
+>
+[....]
 
-The trace points are for:
-- default idle handler. Since the cpuidle framework is
-  instrumented in the generic way there is no need to
-  add trace points in the OMAP specific cpuidle handler;
-- cpufreq (DVFS),
-- SoC clocks changes (enable, disable, set_rate),
-- power domain states: the desired target state and -if different-
-  the actually hit state.
+> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-
+> omap2/Kconfig
+> index 1a2cf62..f285dd7 100644
+> --- a/arch/arm/mach-omap2/Kconfig
+> +++ b/arch/arm/mach-omap2/Kconfig
+> @@ -44,6 +44,7 @@ config ARCH_OMAP4
+>  	depends on ARCH_OMAP2PLUS
+>  	select CPU_V7
+>  	select ARM_GIC
+> +	select LOCAL_TIMERS
+This change should be 'select LOCAL_TIMERS if SMP'
 
-Because of the generic nature of the changes, OMAP3 and OMAP4 are supported.
+Otherwise, with !SMP, the build will break.
+Here is the updated version with Tony's ack added.
 
-Tested on OMAP3 with suspend/resume, cpuidle, basic DVFS.
+--------
+>From f76f0efffafccf76be7d820f2f775311b06087bd Mon Sep 17 00:00:00 2001
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Date: Thu, 27 Jan 2011 17:10:34 +0530
+Subject: [PATCH] omap4: Enable ARM local timers with OMAP4430 es1.0
+exception
 
-Signed-off-by: Jean Pihet <j-pihet@ti.com>
+On OMAP4430 ES1.0 the local timers are gated by security. Enable the
+CONFIG_LOCAL_TIMERS for omap2plus build and handle the OMAP4430 es1.0
+exception case.
+
+This patch has dependency on the first patch in this series.
+	ARM: smp: Select local timers vs dummy timer support runtime
+
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Acked-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/clock.c       |    8 +++++++-
- arch/arm/mach-omap2/pm34xx.c      |    7 +++++++
- arch/arm/mach-omap2/powerdomain.c |   26 +++++++++++++++++++++++---
- 3 files changed, 37 insertions(+), 4 deletions(-)
+ arch/arm/mach-omap2/Kconfig     |    1 +
+ arch/arm/mach-omap2/timer-mpu.c |    4 ++++
+ 2 files changed, 5 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index 2a2f152..72af75d 100644
---- a/arch/arm/mach-omap2/clock.c
-+++ b/arch/arm/mach-omap2/clock.c
-@@ -22,7 +22,9 @@
- #include <linux/clk.h>
- #include <linux/io.h>
- #include <linux/bitops.h>
-+#include <trace/events/power.h>
- 
-+#include <asm/cpu.h>
- #include <plat/clock.h>
- #include "clockdomain.h"
- #include <plat/cpu.h>
-@@ -261,6 +263,7 @@ void omap2_clk_disable(struct clk *clk)
- 
- 	pr_debug("clock: %s: disabling in hardware\n", clk->name);
- 
-+	trace_clock_disable(clk->name, 0, smp_processor_id());
- 	clk->ops->disable(clk);
- 
- 	if (clk->clkdm)
-@@ -312,6 +315,7 @@ int omap2_clk_enable(struct clk *clk)
- 		}
- 	}
- 
-+	trace_clock_enable(clk->name, 1, smp_processor_id());
- 	ret = clk->ops->enable(clk);
- 	if (ret) {
- 		WARN(1, "clock: %s: could not enable: %d\n", clk->name, ret);
-@@ -349,8 +353,10 @@ int omap2_clk_set_rate(struct clk *clk, unsigned long rate)
- 	pr_debug("clock: set_rate for clock %s to rate %ld\n", clk->name, rate);
- 
- 	/* dpll_ck, core_ck, virt_prcm_set; plus all clksel clocks */
--	if (clk->set_rate)
-+	if (clk->set_rate) {
-+		trace_clock_set_rate(clk->name, rate, smp_processor_id());
- 		ret = clk->set_rate(clk, rate);
-+	}
- 
- 	return ret;
- }
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 2f864e4..d1cc3f4 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -29,6 +29,7 @@
- #include <linux/delay.h>
- #include <linux/slab.h>
- #include <linux/console.h>
-+#include <trace/events/power.h>
- 
- #include <plat/sram.h>
- #include "clockdomain.h"
-@@ -519,8 +520,14 @@ static void omap3_pm_idle(void)
- 	if (omap_irq_pending() || need_resched())
- 		goto out;
- 
-+	trace_power_start(POWER_CSTATE, 1, smp_processor_id());
-+	trace_cpu_idle(1, smp_processor_id());
-+
- 	omap_sram_idle();
- 
-+	trace_power_end(smp_processor_id());
-+	trace_cpu_idle(PWR_EVENT_EXIT, smp_processor_id());
-+
- out:
- 	local_fiq_enable();
- 	local_irq_enable();
-diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-index eaed0df..1495eed 100644
---- a/arch/arm/mach-omap2/powerdomain.c
-+++ b/arch/arm/mach-omap2/powerdomain.c
-@@ -19,12 +19,15 @@
- #include <linux/list.h>
- #include <linux/errno.h>
- #include <linux/string.h>
-+#include <trace/events/power.h>
-+
- #include "cm2xxx_3xxx.h"
- #include "prcm44xx.h"
- #include "cm44xx.h"
- #include "prm2xxx_3xxx.h"
- #include "prm44xx.h"
- 
-+#include <asm/cpu.h>
- #include <plat/cpu.h>
- #include "powerdomain.h"
- #include "clockdomain.h"
-@@ -32,6 +35,8 @@
- 
- #include "pm.h"
- 
-+#define PWRDM_TRACE_STATES_FLAG	(1<<31)
-+
- enum {
- 	PWRDM_STATE_NOW = 0,
- 	PWRDM_STATE_PREV,
-@@ -130,8 +135,7 @@ static void _update_logic_membank_counters(struct powerdomain *pwrdm)
- static int _pwrdm_state_switch(struct powerdomain *pwrdm, int flag)
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index 1a2cf62..f285dd7 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -44,6 +44,7 @@ config ARCH_OMAP4
+ 	depends on ARCH_OMAP2PLUS
+ 	select CPU_V7
+ 	select ARM_GIC
++	select LOCAL_TIMERS
+ 	select PL310_ERRATA_588369
+ 	select ARM_ERRATA_720789
+ 	select ARCH_HAS_OPP
+diff --git a/arch/arm/mach-omap2/timer-mpu.c
+b/arch/arm/mach-omap2/timer-mpu.c
+index 09c73dc..31c0ac4 100644
+--- a/arch/arm/mach-omap2/timer-mpu.c
++++ b/arch/arm/mach-omap2/timer-mpu.c
+@@ -28,6 +28,10 @@
+  */
+ int __cpuinit local_timer_setup(struct clock_event_device *evt)
  {
- 
--	int prev;
--	int state;
-+	int prev, state, trace_state = 0;
- 
- 	if (pwrdm == NULL)
- 		return -EINVAL;
-@@ -148,6 +152,17 @@ static int _pwrdm_state_switch(struct powerdomain *pwrdm, int flag)
- 			pwrdm->state_counter[prev]++;
- 		if (prev == PWRDM_POWER_RET)
- 			_update_logic_membank_counters(pwrdm);
-+		/*
-+		 * If the power domain did not hit the desired state,
-+		 * generate a trace event with both the desired and hit states
-+		 */
-+		if (state != prev) {
-+			trace_state = (PWRDM_TRACE_STATES_FLAG |
-+				       ((state & OMAP_POWERSTATE_MASK) << 8) |
-+				       ((prev & OMAP_POWERSTATE_MASK) << 0));
-+			trace_power_domain_target(pwrdm->name, trace_state,
-+						  smp_processor_id());
-+		}
- 		break;
- 	default:
- 		return -EINVAL;
-@@ -406,8 +421,13 @@ int pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst)
- 	pr_debug("powerdomain: setting next powerstate for %s to %0x\n",
- 		 pwrdm->name, pwrst);
- 
--	if (arch_pwrdm && arch_pwrdm->pwrdm_set_next_pwrst)
-+	if (arch_pwrdm && arch_pwrdm->pwrdm_set_next_pwrst) {
-+		/* Trace the pwrdm desired target state */
-+		trace_power_domain_target(pwrdm->name, pwrst,
-+					  smp_processor_id());
-+		/* Program the pwrdm desired target state */
- 		ret = arch_pwrdm->pwrdm_set_next_pwrst(pwrdm, pwrst);
-+	}
- 
- 	return ret;
- }
++	/* Local timers are not supprted on OMAP4430 ES1.0 */
++	if (omap_rev() == OMAP4430_REV_ES1_0)
++		return -ENXIO;
++
+ 	evt->irq = OMAP44XX_IRQ_LOCALTIMER;
+ 	twd_timer_setup(evt);
+ 	return 0;
 -- 
-1.7.2.3
+1.6.0.4
 
+--001636832066d46fc4049c9271ba
+Content-Type: application/octet-stream;
+	name="0002-omap4-Enable-ARM-local-timers-with-OMAP4430-es1.0-e.patch"
+Content-Disposition: attachment;
+	filename="0002-omap4-Enable-ARM-local-timers-with-OMAP4430-es1.0-e.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: fcbda469665a3c28_0.1
+
+RnJvbSBmNzZmMGVmZmZhZmNjZjc2YmU3ZDgyMGYyZjc3NTMxMWIwNjA4N2JkIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBTYW50b3NoIFNoaWxpbWthciA8c2FudG9zaC5zaGlsaW1rYXJA
+dGkuY29tPgpEYXRlOiBUaHUsIDI3IEphbiAyMDExIDE3OjEwOjM0ICswNTMwClN1YmplY3Q6IFtQ
+QVRDSF0gb21hcDQ6IEVuYWJsZSBBUk0gbG9jYWwgdGltZXJzIHdpdGggT01BUDQ0MzAgZXMxLjAg
+ZXhjZXB0aW9uCgpPbiBPTUFQNDQzMCBFUzEuMCB0aGUgbG9jYWwgdGltZXJzIGFyZSBnYXRlZCBi
+eSBzZWN1cml0eS4gRW5hYmxlIHRoZQpDT05GSUdfTE9DQUxfVElNRVJTIGZvciBvbWFwMnBsdXMg
+YnVpbGQgYW5kIGhhbmRsZSB0aGUgT01BUDQ0MzAgZXMxLjAKZXhjZXB0aW9uIGNhc2UuCgpUaGlz
+IHBhdGNoIGhhcyBkZXBlbmRlbmN5IG9uIHRoZSBmaXJzdCBwYXRjaCBpbiB0aGlzIHNlcmllcy4K
+CUFSTTogc21wOiBTZWxlY3QgbG9jYWwgdGltZXJzIHZzIGR1bW15IHRpbWVyIHN1cHBvcnQgcnVu
+dGltZQoKU2lnbmVkLW9mZi1ieTogU2FudG9zaCBTaGlsaW1rYXIgPHNhbnRvc2guc2hpbGlta2Fy
+QHRpLmNvbT4KQWNrZWQtYnk6IFRvbnkgTGluZGdyZW4gPHRvbnlAYXRvbWlkZS5jb20+Ci0tLQog
+YXJjaC9hcm0vbWFjaC1vbWFwMi9LY29uZmlnICAgICB8ICAgIDEgKwogYXJjaC9hcm0vbWFjaC1v
+bWFwMi90aW1lci1tcHUuYyB8ICAgIDQgKysrKwogMiBmaWxlcyBjaGFuZ2VkLCA1IGluc2VydGlv
+bnMoKyksIDAgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9L
+Y29uZmlnIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9LY29uZmlnCmluZGV4IDFhMmNmNjIuLmYyODVk
+ZDcgMTAwNjQ0Ci0tLSBhL2FyY2gvYXJtL21hY2gtb21hcDIvS2NvbmZpZworKysgYi9hcmNoL2Fy
+bS9tYWNoLW9tYXAyL0tjb25maWcKQEAgLTQ0LDYgKzQ0LDcgQEAgY29uZmlnIEFSQ0hfT01BUDQK
+IAlkZXBlbmRzIG9uIEFSQ0hfT01BUDJQTFVTCiAJc2VsZWN0IENQVV9WNwogCXNlbGVjdCBBUk1f
+R0lDCisJc2VsZWN0IExPQ0FMX1RJTUVSUyBpZiBTTVAKIAlzZWxlY3QgUEwzMTBfRVJSQVRBXzU4
+ODM2OQogCXNlbGVjdCBBUk1fRVJSQVRBXzcyMDc4OQogCXNlbGVjdCBBUkNIX0hBU19PUFAKZGlm
+ZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gtb21hcDIvdGltZXItbXB1LmMgYi9hcmNoL2FybS9tYWNo
+LW9tYXAyL3RpbWVyLW1wdS5jCmluZGV4IDA5YzczZGMuLjMxYzBhYzQgMTAwNjQ0Ci0tLSBhL2Fy
+Y2gvYXJtL21hY2gtb21hcDIvdGltZXItbXB1LmMKKysrIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi90
+aW1lci1tcHUuYwpAQCAtMjgsNiArMjgsMTAgQEAKICAqLwogaW50IF9fY3B1aW5pdCBsb2NhbF90
+aW1lcl9zZXR1cChzdHJ1Y3QgY2xvY2tfZXZlbnRfZGV2aWNlICpldnQpCiB7CisJLyogTG9jYWwg
+dGltZXJzIGFyZSBub3Qgc3VwcHJ0ZWQgb24gT01BUDQ0MzAgRVMxLjAgKi8KKwlpZiAob21hcF9y
+ZXYoKSA9PSBPTUFQNDQzMF9SRVZfRVMxXzApCisJCXJldHVybiAtRU5YSU87CisKIAlldnQtPmly
+cSA9IE9NQVA0NFhYX0lSUV9MT0NBTFRJTUVSOwogCXR3ZF90aW1lcl9zZXR1cChldnQpOwogCXJl
+dHVybiAwOwotLSAKMS42LjAuNAoK
+--001636832066d46fc4049c9271ba--
