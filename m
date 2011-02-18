@@ -1,74 +1,177 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2] i2c-omap: Double clear of ARDY status in IRQ handler
-Date: Thu, 17 Feb 2011 16:08:43 -0800
-Message-ID: <20110218000843.GP20795@atomide.com>
-References: <1297832056-28142-1-git-send-email-j-keerthy@ti.com>
+Subject: Re: [RESEND][PATCH] ARM: OMAP: Add chip id recognition for OMAP4
+	ES2.1 and ES2.2
+Date: Thu, 17 Feb 2011 16:18:46 -0800
+Message-ID: <20110218001846.GQ20795@atomide.com>
+References: <1296136768-19337-1-git-send-email-nskamat@ti.com>
+	<d527676275d592a27e3de42e1036b7ec@mail.gmail.com>
+	<20110214230750.GR20795@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:18880 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754960Ab1BRAIt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Feb 2011 19:08:49 -0500
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <1297832056-28142-1-git-send-email-j-keerthy@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20110214230750.GR20795@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Nishant Kamat <nskamat@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: ben-i2c@fluff.org, linux-i2c@vger.kernel.org, linux-omap@vger.kernel.org, Richard woodruff <r-woodruff2@ti.com>
 
-* Keerthy <j-keerthy@ti.com> [110215 20:53]:
-> From: Richard woodruff <r-woodruff2@ti.com>
+* Tony Lindgren <tony@atomide.com> [110214 15:06]:
+> * Nishant Kamat <nskamat@ti.com> [110214 07:53]:
+> > Hi Tony,
+> > 
+> > There have been no comments on this patch but an Ack from Santosh.
+> > Would you please accept/merge this, or do you have any comments?
 > 
-> This errata occurs when the ARDY interrupt generation is enabled.
-> At the begining of every new transaction the ARDY interrupt is cleared.
-> 
-> On continuous i2c transactions where after clearing the ARDY bit from
-> I2C_STAT register (clearing the interrupt), the IRQ line is reasserted and the
-> I2C_STAT[ARDY] bit set again on 1. In fact, the ARDY status bit is not cleared
-> at the write access to I2C_STAT[ARDY] and only the IRQ line is deasserted and
-> then reasserted. This is not captured in the usual errata documents.
-> 
-> The workaround is to have a double clear of ARDY status in irq handler.
+> Thanks will queue. Next time, please also Cc linux-arm-kernel mailing
+> list for your arch/arm/*omap*/ related patches.
 
-I'll add this to omap-testing for few days and then if no issue Ben
-can merge this.
+Here's repost of this with linux-arm-kernel Cc'd.
 
 Regards,
 
 Tony
+
+
+From: Nishant Kamat <nskamat@ti.com>
+Date: Thu, 17 Feb 2011 09:55:03 -0800
+Subject: [PATCH] omap: Add chip id recognition for OMAP4 ES2.1 and ES2.2
+
+Allow OMAP4 ES2.1 and ES2.2 revisions to be recognized in the
+omap4_check_revision() function.
+
+Mainly, ES2.1 has fixes that allow LPDDR to be used at 100% OPP (400MHz).
+ES2.2 additionally has a couple of power management fixes (to reduce
+leakage), an I2C1 SDA line state fix, and a floating point write
+corruption fix (cortex erratum).
+
+Even though the current mainline support doesn't need to distinguish
+between ES2.X versions, it's still useful to know the correct silicon
+rev when issues are reported. Moreover, these id checks can be used by
+power management code that selects suitable OPPs considering the
+memory speed limitation on ES2.0.
+
+For details about the silicon errata on OMAP4430, refer
+http://focus.ti.com/pdfs/wtbu/SWPZ009A_OMAP4430_Errata_Public_vA.pdf
+
+Signed-off-by: Nishant Kamat <nskamat@ti.com>
+Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+index 5c25f1b..3168b17 100644
+--- a/arch/arm/mach-omap2/id.c
++++ b/arch/arm/mach-omap2/id.c
+@@ -6,7 +6,7 @@
+  * Copyright (C) 2005 Nokia Corporation
+  * Written by Tony Lindgren <tony@atomide.com>
+  *
+- * Copyright (C) 2009 Texas Instruments
++ * Copyright (C) 2009-11 Texas Instruments
+  * Added OMAP4 support - Santosh Shilimkar <santosh.shilimkar@ti.com>
+  *
+  * This program is free software; you can redistribute it and/or modify
+@@ -328,7 +328,7 @@ static void __init omap4_check_revision(void)
+ 	 */
+ 	idcode = read_tap_reg(OMAP_TAP_IDCODE);
+ 	hawkeye = (idcode >> 12) & 0xffff;
+-	rev = (idcode >> 28) & 0xff;
++	rev = (idcode >> 28) & 0xf;
  
-> Signed-off-by: Richard woodruff <r-woodruff2@ti.com>
-> Signed-off-by: Keerthy <j-keerthy@ti.com>
-> ---
->  drivers/i2c/busses/i2c-omap.c |    6 +++++-
->  1 files changed, 5 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> index b605ff3..5b35cf4 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -847,11 +847,15 @@ complete:
->  			dev_err(dev->dev, "Arbitration lost\n");
->  			err |= OMAP_I2C_STAT_AL;
->  		}
-> +		/* 
-> +		 * ProDB0017052: Clear ARDY bit twice
-> +		 */ 
->  		if (stat & (OMAP_I2C_STAT_ARDY | OMAP_I2C_STAT_NACK |
->  					OMAP_I2C_STAT_AL)) {
->  			omap_i2c_ack_stat(dev, stat &
->  				(OMAP_I2C_STAT_RRDY | OMAP_I2C_STAT_RDR |
-> -				OMAP_I2C_STAT_XRDY | OMAP_I2C_STAT_XDR));
-> +				OMAP_I2C_STAT_XRDY | OMAP_I2C_STAT_XDR |
-> +				OMAP_I2C_STAT_ARDY));
->  			omap_i2c_complete_cmd(dev, err);
->  			return IRQ_HANDLED;
->  		}
-> -- 
-> 1.7.0.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-i2c" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ 	/*
+ 	 * Few initial ES2.0 samples IDCODE is same as ES1.0
+@@ -347,22 +347,31 @@ static void __init omap4_check_revision(void)
+ 			omap_chip.oc |= CHIP_IS_OMAP4430ES1;
+ 			break;
+ 		case 1:
++		default:
+ 			omap_revision = OMAP4430_REV_ES2_0;
+ 			omap_chip.oc |= CHIP_IS_OMAP4430ES2;
++		}
++		break;
++	case 0xb95c:
++		switch (rev) {
++		case 3:
++			omap_revision = OMAP4430_REV_ES2_1;
++			omap_chip.oc |= CHIP_IS_OMAP4430ES2_1;
+ 			break;
++		case 4:
+ 		default:
+-			omap_revision = OMAP4430_REV_ES2_0;
+-			omap_chip.oc |= CHIP_IS_OMAP4430ES2;
+-	}
+-	break;
++			omap_revision = OMAP4430_REV_ES2_2;
++			omap_chip.oc |= CHIP_IS_OMAP4430ES2_2;
++		}
++		break;
+ 	default:
+-		/* Unknown default to latest silicon rev as default*/
+-		omap_revision = OMAP4430_REV_ES2_0;
+-		omap_chip.oc |= CHIP_IS_OMAP4430ES2;
++		/* Unknown default to latest silicon rev as default */
++		omap_revision = OMAP4430_REV_ES2_2;
++		omap_chip.oc |= CHIP_IS_OMAP4430ES2_2;
+ 	}
+ 
+-	pr_info("OMAP%04x ES%d.0\n",
+-			omap_rev() >> 16, ((omap_rev() >> 12) & 0xf) + 1);
++	pr_info("OMAP%04x ES%d.%d\n", omap_rev() >> 16,
++		((omap_rev() >> 12) & 0xf), ((omap_rev() >> 8) & 0xf));
+ }
+ 
+ #define OMAP3_SHOW_FEATURE(feat)		\
+diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
+index be99438..8198bb6 100644
+--- a/arch/arm/plat-omap/include/plat/cpu.h
++++ b/arch/arm/plat-omap/include/plat/cpu.h
+@@ -5,7 +5,7 @@
+  *
+  * Copyright (C) 2004, 2008 Nokia Corporation
+  *
+- * Copyright (C) 2009 Texas Instruments.
++ * Copyright (C) 2009-11 Texas Instruments.
+  *
+  * Written by Tony Lindgren <tony.lindgren@nokia.com>
+  *
+@@ -405,8 +405,10 @@ IS_OMAP_TYPE(3517, 0x3517)
+ #define TI8168_REV_ES1_1	(TI816X_CLASS | (OMAP_REVBITS_01 << 8))
+ 
+ #define OMAP443X_CLASS		0x44300044
+-#define OMAP4430_REV_ES1_0	OMAP443X_CLASS
+-#define OMAP4430_REV_ES2_0	0x44301044
++#define OMAP4430_REV_ES1_0	(OMAP443X_CLASS | (0x10 << 8))
++#define OMAP4430_REV_ES2_0	(OMAP443X_CLASS | (0x20 << 8))
++#define OMAP4430_REV_ES2_1	(OMAP443X_CLASS | (0x21 << 8))
++#define OMAP4430_REV_ES2_2	(OMAP443X_CLASS | (0x22 << 8))
+ 
+ /*
+  * omap_chip bits
+@@ -434,12 +436,16 @@ IS_OMAP_TYPE(3517, 0x3517)
+ #define CHIP_IS_OMAP3630ES1_1           (1 << 9)
+ #define CHIP_IS_OMAP3630ES1_2           (1 << 10)
+ #define CHIP_IS_OMAP4430ES2		(1 << 11)
++#define CHIP_IS_OMAP4430ES2_1		(1 << 12)
++#define CHIP_IS_OMAP4430ES2_2		(1 << 13)
+ #define CHIP_IS_TI816X			(1 << 14)
+ 
+ #define CHIP_IS_OMAP24XX		(CHIP_IS_OMAP2420 | CHIP_IS_OMAP2430)
+ 
+-#define CHIP_IS_OMAP4430		(CHIP_IS_OMAP4430ES1 | \
+-						 CHIP_IS_OMAP4430ES2)
++#define CHIP_IS_OMAP4430		(CHIP_IS_OMAP4430ES1 |		\
++					 CHIP_IS_OMAP4430ES2 |		\
++					 CHIP_IS_OMAP4430ES2_1 |	\
++					 CHIP_IS_OMAP4430ES2_2)
+ 
+ /*
+  * "GE" here represents "greater than or equal to" in terms of ES
