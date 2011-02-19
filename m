@@ -1,163 +1,66 @@
-From: Vishwanath Sripathy <vishwanath.bs@ti.com>
-Subject: RE: [PATCH 15/19] omap3+: sr: introduce notifier_control
-Date: Sat, 19 Feb 2011 19:10:55 +0530
-Message-ID: <765c3f6e8053293455100f296fb76ae5@mail.gmail.com>
-References: <1298116918-30744-1-git-send-email-nm@ti.com> <1298116918-30744-16-git-send-email-nm@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [GIT PULL] OMAP USB Patches for 2.6.39
+Date: Sat, 19 Feb 2011 16:50:09 +0200
+Message-ID: <20110219145009.GA2154@legolas.emea.dhcp.ti.com>
+References: <20110218121145.GB11151@legolas.emea.dhcp.ti.com>
+ <20110218163144.GA11460@kroah.com>
+ <20110218163514.GA11555@kroah.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:51582 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753191Ab1BSNlB (ORCPT
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:50020 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754541Ab1BSOuR (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Sat, 19 Feb 2011 08:41:01 -0500
-Received: by fxm12 with SMTP id 12so4965679fxm.0
-        for <linux-omap@vger.kernel.org>; Sat, 19 Feb 2011 05:40:59 -0800 (PST)
-In-Reply-To: <1298116918-30744-16-git-send-email-nm@ti.com>
+	Sat, 19 Feb 2011 09:50:17 -0500
+Content-Disposition: inline
+In-Reply-To: <20110218163514.GA11555@kroah.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>
+To: Greg KH <greg@kroah.com>
+Cc: Felipe Balbi <balbi@ti.com>, Linux USB Mailing List <linux-usb@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Nishanth Menon
-> Sent: Saturday, February 19, 2011 5:32 PM
-> To: linux-omap
-> Cc: Tony Lindgren; Kevin Hilman; Nishanth Menon
-> Subject: [PATCH 15/19] omap3+: sr: introduce notifier_control
->
-> We need some mechanism from class drivers to control when notifiers
-> should be triggered and when not, currently we have none, which makes
-> Class driver usage of the interrupt events almost impossible.
-> Introduce an smartreflex driver api for doing the same.
->
-> Signed-off-by: Nishanth Menon <nm@ti.com>
-> ---
->  arch/arm/mach-omap2/smartreflex.c             |   57
-> +++++++++++++++++++++++++
->  arch/arm/plat-omap/include/plat/smartreflex.h |    8 ++++
->  2 files changed, 65 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-
-> omap2/smartreflex.c
-> index 165f6f3..ad23b8d 100644
-> --- a/arch/arm/mach-omap2/smartreflex.c
-> +++ b/arch/arm/mach-omap2/smartreflex.c
-> @@ -704,6 +704,63 @@ void sr_disable(struct voltagedomain *voltdm)
->  }
->
->  /**
-> + * sr_notifier_control() - control the notifier mechanism
-> + * @voltdm:	VDD pointer to which the SR module to be configured
-> belongs to.
-> + * @enable:	true to enable notifiers and false to disable the same
-> + *
-> + * SR modules allow an MCU interrupt mechanism that vary based on
-> the IP
-> + * revision, we allow the system to generate interrupt if the class
-driver
-> + * has capability to handle the same. it is upto the class driver to
-> ensure
-> + * the proper sequencing and handling for a clean implementation.
-> returns
-> + * 0 if all goes fine, else returns failure results
-> + */
-> +int sr_notifier_control(struct voltagedomain *voltdm, bool enable)
-> +{
-> +	struct omap_sr *sr = _sr_lookup(voltdm);
-> +	u32 value = 0;
-> +	if (IS_ERR_OR_NULL(sr)) {
-> +		pr_warning("%s: sr corresponding to domain not found\n",
-> +				__func__);
-> +		return -EINVAL;
-> +	}
-> +	if (!sr->autocomp_active)
-> +		return -EINVAL;
-Why you do you return here? Class driver should still be able to place
-it's request even if sr is disabled though it will be effective only after
-sr is enabled.
+Hi,
 
-Vishwa
+On Fri, Feb 18, 2011 at 08:35:14AM -0800, Greg KH wrote:
+> On Fri, Feb 18, 2011 at 08:31:44AM -0800, Greg KH wrote:
+> > On Fri, Feb 18, 2011 at 02:11:45PM +0200, Felipe Balbi wrote:
+> > > Hi Greg,
+> > > 
+> > > Here are the patches I have for the next merge window.
+> > > 
+> > > The outstanding feature is the introduction of pm_runtime
+> > > support for the OMAP glue layer for MUSB.
+> > > 
+> > > These patches have been tested on omap4430 with g_zero
+> > > + testusb overnight and no problems have come from those.
+> > > 
+> > > These are on top of greg/usb-next, if you want me to rebase
+> > > on top of another commit, please let me know about it and I'll
+> > > do it quickly.
+> > > 
+> > > Thanks, pull request below.
+> > > 
+> > > The following changes since commit 04b31c776f34d127b422da92899272a0b8cda21d:
+> > > 
+> > >   usb: isp1362-hcd: use bitmap_clear() and bitmap_set() (2011-02-17 11:00:24 -0800)
+> > > 
+> > > are available in the git repository at:
+> > >   git://gitorious.org/usb/usb.git for-next
+> > 
+> > $ git pull git://gitorious.org/usb/usb.git for-next
+> > fatal: The remote end hung up unexpectedly
+> > 
+> > Something's wrong on gitorious's side and I can't seem to pull this :(
+> > 
+> > Any ideas?
+> 
+> Nevermind, it took 7 tried, but eventually it worked.  Wierd.
+> 
+> pulled and pushed out now, thanks.
 
-> +
-> +	/* if I could never register an isr, why bother?? */
-> +	if (!(sr_class && sr_class->notify && sr_class->notify_flags &&
-> +			sr->irq)) {
-> +		dev_warn(&sr->pdev->dev,
-> +			"%s: unable to setup irq without handling
-> mechanism\n",
-> +			__func__);
-> +		return -EINVAL;
-> +	}
-> +
-> +	switch (sr->ip_type) {
-> +	case SR_TYPE_V1:
-> +		value = notifier_to_irqen_v1(sr_class->notify_flags);
-> +		sr_modify_reg(sr, ERRCONFIG_V1, value,
-> +				(enable) ? value : 0);
-> +		break;
-> +	case SR_TYPE_V2:
-> +		value = notifier_to_irqen_v2(sr_class->notify_flags);
-> +		sr_write_reg(sr, (enable) ? IRQENABLE_SET :
-> IRQENABLE_CLR,
-> +				value);
-> +		break;
-> +	default:
-> +		 dev_warn(&sr->pdev->dev, "%s: unknown type of
-> sr??\n",
-> +				 __func__);
-> +		return -EINVAL;
-> +	}
-> +
-> +	if (enable)
-> +		enable_irq(sr->irq);
-> +	else
-> +		disable_irq_nosync(sr->irq);
-> +
-> +	return 0;
-> +}
-> +
-> +/**
->   * sr_register_class() - API to register a smartreflex class
-parameters.
->   * @class_data:	The structure containing various sr class specific
-> data.
->   *
-> diff --git a/arch/arm/plat-omap/include/plat/smartreflex.h
-> b/arch/arm/plat-omap/include/plat/smartreflex.h
-> index ff07d1e..d420f44 100644
-> --- a/arch/arm/plat-omap/include/plat/smartreflex.h
-> +++ b/arch/arm/plat-omap/include/plat/smartreflex.h
-> @@ -242,6 +242,7 @@ void omap_sr_register_pmic(struct
-> omap_sr_pmic_data *pmic_data);
->  /* Smartreflex driver hooks to be called from Smartreflex class driver
-*/
->  int sr_enable(struct voltagedomain *voltdm, unsigned long volt);
->  void sr_disable(struct voltagedomain *voltdm);
-> +int sr_notifier_control(struct voltagedomain *voltdm, bool enable);
->  int sr_configure_errgen(struct voltagedomain *voltdm);
->  int sr_configure_minmax(struct voltagedomain *voltdm);
->
-> @@ -250,6 +251,13 @@ int sr_register_class(struct
-> omap_sr_class_data *class_data);
->  #else
->  static inline void omap_sr_enable(struct voltagedomain *voltdm) {}
->  static inline void omap_sr_disable(struct voltagedomain *voltdm) {}
-> +
-> +static inline int sr_notifier_control(struct voltagedomain *voltdm,
-> +		bool enable)
-> +{
-> +	return -EINVAL;
-> +}
-> +
->  static inline void omap_sr_disable_reset_volt(
->  		struct voltagedomain *voltdm) {}
->  static inline void omap_sr_register_pmic(
-> --
-> 1.7.1
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Ok, thanks a lot Greg.
+
+-- 
+balbi
