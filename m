@@ -1,50 +1,74 @@
-From: archit taneja <archit@ti.com>
-Subject: Re: omapfb: no driver for display
-Date: Sat, 19 Feb 2011 16:15:15 +0530
-Message-ID: <4D5F9F3B.6000507@ti.com>
-References: <AANLkTi=f=SKE=QR97ttPnBrpW=2wNGd03+q4agmu6Uap@mail.gmail.com>	<AANLkTikpCcpkjb8i_8Gk5ey1FtgsaUenmKNDhrtjLqon@mail.gmail.com>	<AANLkTinoLOyqBCMNKbpcJMhZHnncX1T07nbfsTThA_a4@mail.gmail.com>	<4D5DF547.7010703@ti.com>	<AANLkTik_H0vAEjB8tOyJNC4oDS1+Tp5ick0mq4jhhqMV@mail.gmail.com>	<AANLkTimt934X7G8DSnqVQ03fbggD9-SHWW3-QPQp+yAq@mail.gmail.com>	<AANLkTikSU_QgRNahQU3Rrb1KZ0vCNZ4FTz59hOmDaaUD@mail.gmail.com>	<AANLkTi=piR+YKvJi+_B4fZk6TtQA_drPEAyKKcMa0oZN@mail.gmail.com> <AANLkTinUO69HYZUUQ-NzyB_LDLvvfBnLqtSDKimu0xy3@mail.gmail.com>
+From: David Cohen <dacohen@gmail.com>
+Subject: Re: [PATCH resend] video: omap24xxcam: Fix compilation
+Date: Sat, 19 Feb 2011 13:35:09 +0200
+Message-ID: <AANLkTik+6fguqgH8Bpnpqo7Axmquy3caRMELTZVmuN1j@mail.gmail.com>
+References: <1297068547-10635-1-git-send-email-weber@corscience.de>
+	<4D5A6353.7040907@maxwell.research.nokia.com>
+	<20110215113717.GN2570@legolas.emea.dhcp.ti.com>
+	<4D5A672A.7040000@samsung.com>
+	<4D5A6874.1080705@corscience.de>
+	<20110215115349.GQ2570@legolas.emea.dhcp.ti.com>
+	<4D5A6EEC.5000908@maxwell.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50598 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753027Ab1BSKny (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 19 Feb 2011 05:43:54 -0500
-In-Reply-To: <AANLkTinUO69HYZUUQ-NzyB_LDLvvfBnLqtSDKimu0xy3@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <4D5A6EEC.5000908@maxwell.research.nokia.com>
+Sender: linux-media-owner@vger.kernel.org
+To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>, balbi@ti.com
+Cc: Thomas Weber <weber@corscience.de>, Sylwester Nawrocki <s.nawrocki@samsung.com>, linux-omap@vger.kernel.org, Mauro Carvalho Chehab <mchehab@infradead.org>, Hans Verkuil <hverkuil@xs4all.nl>, Tejun Heo <tj@kernel.org>, linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ming Lei <tom.leiming@gmail.com>
-Cc: Felipe Contreras <felipe.contreras@gmail.com>, Sung Hee Park <shpark7@stanford.edu>, Bryan Wu <bryan.wu@canonical.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Semwal, Sumit" <sumit.semwal@ti.com>
 
-Hi,
+Hi Sakari and Felipe,
 
-Which board are you on? For all the display devices you add in the board 
-file, you should have the corresponding drivers in the menuconfig set also.
+On Tue, Feb 15, 2011 at 2:17 PM, Sakari Ailus
+<sakari.ailus@maxwell.research.nokia.com> wrote:
+> Felipe Balbi wrote:
+>> Hi,
+>>
+>> On Tue, Feb 15, 2011 at 12:50:12PM +0100, Thomas Weber wrote:
+>>> Hello Felipe,
+>>>
+>>> in include/linux/wait.h
+>>>
+>>> #define wake_up(x) =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0__wake_=
+up(x, TASK_NORMAL, 1, NULL)
+>>
+>> aha, now I get it, so shouldn't the real fix be including <linux/sch=
+ed.h>
+>> on <linux/wait.h>, I mean, it's <linuux/wait.h> who uses a symbol
+>> defined in <linux/sched.h>, right ?
 
-For example, in board3430-sdp.c, we add a sharp ls, a dvi and venc 
-panel. We therefore select sharpls and generic dpi panel in menuconfig.
-and at least DPI and VENC in the interfaces menu.
+That's a tricky situation. linux/sched.h includes indirectly
+linux/completion.h which includes linux/wait.h.
+By including sched.h in wait.h, the side effect is completion.h will
+then include a blank wait.h file and trigger a compilation error every
+time wait.h is included by any file.
 
+>
+> Surprisingly many other files still don't seem to be affected. But th=
+is
+> is actually a better solution (to include sched.h in wait.h).
 
-On Saturday 19 February 2011 03:30 PM, Ming Lei wrote:
-> Hi,
->
-> 2011/2/19 Felipe Contreras<felipe.contreras@gmail.com>:
->> Are you sure? AFAIK early_param is executed _after_ memory blocks are reserved.
->
-> Yes, I am sure.
->
-> If 'vram=16M' is passed in, I can find the below:
->
->      [    0.000000] Memory: 1008MB = 1008MB total
->
-> but if 'vram=8M' is taken, will be
->
->      [    0.000000] Memory: 1016MB = 1016MB total
->
-> You may have a try on your board to confirm it.
->
->
-> thanks,
+It does not affect all files include wait.h because TASK_* macros are
+used with #define statements only. So it has no effect unless some
+file tries to use a macro which used TASK_*. It seems the usual on
+kernel is to include both wait.h and sched.h when necessary.
+IMO your patch is fine.
 
+Br,
+
+David
+
+>
+> --
+> Sakari Ailus
+> sakari.ailus@maxwell.research.nokia.com
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kerne=
+l" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =C2=A0http://vger.kernel.org/majordomo-info.ht=
+ml
+> Please read the FAQ at =C2=A0http://www.tux.org/lkml/
+>
