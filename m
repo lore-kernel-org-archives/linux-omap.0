@@ -1,99 +1,87 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH 00/19] OMAP3+: introduce SR class 1.5
-Date: Sat, 19 Feb 2011 17:31:39 +0530
-Message-ID: <1298116918-30744-1-git-send-email-nm@ti.com>
+Subject: [PATCH 01/19] omap3: hwmod: add smartreflex irqs
+Date: Sat, 19 Feb 2011 17:31:40 +0530
+Message-ID: <1298116918-30744-2-git-send-email-nm@ti.com>
+References: <1298116918-30744-1-git-send-email-nm@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:36765 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750788Ab1BSMCJ (ORCPT
+Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:41114 "EHLO
+	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750788Ab1BSMCQ (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Sat, 19 Feb 2011 07:02:09 -0500
-Received: by mail-gw0-f53.google.com with SMTP id 10so2752543gwb.40
-        for <linux-omap@vger.kernel.org>; Sat, 19 Feb 2011 04:02:07 -0800 (PST)
+	Sat, 19 Feb 2011 07:02:16 -0500
+Received: by gye5 with SMTP id 5so2303433gye.18
+        for <linux-omap@vger.kernel.org>; Sat, 19 Feb 2011 04:02:15 -0800 (PST)
+In-Reply-To: <1298116918-30744-1-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
 Cc: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Nishanth Menon <nm@ti.com>
 
-Hi,
-This series intends to introduce SmartReflex AVS Class 1.5 support which
-is now the recommended AVS class for usage in OMAP3630, OMAP4 an potentially
-in later generation of silicon as well. Smartreflex class 1.5 is a software
-controlled hardware calibration mechanism designed to improve dvfs latencies
-and system performance as well as helping bring in additional benefits to the
-system from h/w perspective. The corresponding patch has details on this class
-and the implementation as well.
+OMAP3 smartreflex irqs in hwmod structures with the same naming as
+present in OMAP4. Without these IRQs being registered, SmartReflex
+driver will be unable to get the irq numbers to handle notifications
 
-The series eventually results in OMAP343x based platforms using class3 and
-OMAP3630, OMAP4 platforms using class1.5 automatically without modifications
-or additions to board files.
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   17 +++++++++++++++++
+ 1 files changed, 17 insertions(+), 0 deletions(-)
 
-This series is Based on:
-a) k.org 2.6.38-rc5 (b2.6.38-rc5)
-b) The following branches Kevin Hilman's tree: (pm-base)
- 'pm/for_2.6.38/pm-fixes', 'pm/for_2.6.39/pm-misc' and 'pm/pm-wip/cpufreq'
- http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git;a=summary
-c) sr-fixes: (sr-baseline)
-	http://marc.info/?l=linux-omap&m=129783708019505&w=2
-	http://marc.info/?l=linux-omap&m=129679846322563&w=2
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+index 8d81813..ea1f49a 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -265,6 +265,15 @@ static struct omap_hwmod_ocp_if omap3_l4_core__i2c3 = {
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
++
++static struct omap_hwmod_irq_info omap3_smartreflex_mpu_irqs[] = {
++	{.name = "sr1_irq", .irq = 18},
++};
++
++static struct omap_hwmod_irq_info omap3_smartreflex_core_irqs[] = {
++	{.name = "sr2_irq", .irq = 19},
++};
++
+ /* L4 CORE -> SR1 interface */
+ static struct omap_hwmod_addr_space omap3_sr1_addr_space[] = {
+ 	{
+@@ -1289,6 +1298,8 @@ static struct omap_hwmod omap34xx_sr1_hwmod = {
+ 					CHIP_IS_OMAP3430ES3_0 |
+ 					CHIP_IS_OMAP3430ES3_1),
+ 	.flags		= HWMOD_SET_DEFAULT_CLOCKACT,
++	.mpu_irqs	= omap3_smartreflex_mpu_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap3_smartreflex_mpu_irqs),
+ };
+ 
+ static struct omap_hwmod omap36xx_sr1_hwmod = {
+@@ -1308,6 +1319,8 @@ static struct omap_hwmod omap36xx_sr1_hwmod = {
+ 	.slaves		= omap3_sr1_slaves,
+ 	.slaves_cnt	= ARRAY_SIZE(omap3_sr1_slaves),
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3630ES1),
++	.mpu_irqs	= omap3_smartreflex_mpu_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap3_smartreflex_mpu_irqs),
+ };
+ 
+ /* SR2 */
+@@ -1335,6 +1348,8 @@ static struct omap_hwmod omap34xx_sr2_hwmod = {
+ 					CHIP_IS_OMAP3430ES3_0 |
+ 					CHIP_IS_OMAP3430ES3_1),
+ 	.flags		= HWMOD_SET_DEFAULT_CLOCKACT,
++	.mpu_irqs	= omap3_smartreflex_core_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap3_smartreflex_core_irqs),
+ };
+ 
+ static struct omap_hwmod omap36xx_sr2_hwmod = {
+@@ -1354,6 +1369,8 @@ static struct omap_hwmod omap36xx_sr2_hwmod = {
+ 	.slaves		= omap3_sr2_slaves,
+ 	.slaves_cnt	= ARRAY_SIZE(omap3_sr2_slaves),
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3630ES1),
++	.mpu_irqs	= omap3_smartreflex_core_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap3_smartreflex_core_irqs),
+ };
+ 
+ static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
+-- 
+1.7.1
 
-This series is also available at:
-	git://gitorious.org/linux-omap-nm-sr/linux-omap-sr.git
-	Branch: sr-1.5-v1
-
-Note: There is also a branch sr-dvfs-1.5 in my tree which contains the test
-version of code which is based off Vishwa's DVFS series which is currently
-being revamped. it may need few handtweaking for testing (esp selecting class
-at menuconfig level or by commenting out appropriate late_init).
-
-The series contains a bunch of bugfixes and improvements needed to introduce
-Smartreflex class 1.5.
-
-Nishanth Menon (19):
-  omap3: hwmod: add smartreflex irqs
-  omap3630: hwmod: sr: enable for higher ES
-  omap3+: voltage: remove initial voltage
-  omap3+: voltage: remove spurious pr_notice for debugfs
-  omap3+: voltage: use IS_ERR_OR_NULL
-  omap3+: voltage: use volt_data pointer instead values
-  omap3+: voltage: add transdone apis
-  omap3+: sr: make notify independent of class
-  omap3+: sr: introduce class init,deinit and priv data
-  omap3+: sr: fix cosmetic indentation
-  omap3+: sr: call handler with interrupt disabled
-  omap3+: sr: disable interrupt by default
-  omap3+: sr: enable/disable SR only on need
-  omap3+: sr: introduce notifiers flags
-  omap3+: sr: introduce notifier_control
-  omap3+: sr: disable spamming interrupts
-  omap3+: sr: make enable path use volt_data pointer
-  omap3630+: sr: add support for class 1.5
-  omap3430: sr: class3: restrict cpu to run on
-
- arch/arm/mach-omap2/Makefile                  |    1 +
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c    |   25 +-
- arch/arm/mach-omap2/pm.c                      |    3 +-
- arch/arm/mach-omap2/smartreflex-class1p5.c    |  556 +++++++++++++++++++++++++
- arch/arm/mach-omap2/smartreflex-class3.c      |   21 +-
- arch/arm/mach-omap2/smartreflex.c             |  249 ++++++++++--
- arch/arm/mach-omap2/voltage.c                 |  236 ++++++++---
- arch/arm/plat-omap/Kconfig                    |   17 +
- arch/arm/plat-omap/include/plat/smartreflex.h |   42 ++-
- arch/arm/plat-omap/include/plat/voltage.h     |   36 ++-
- 10 files changed, 1062 insertions(+), 124 deletions(-)
- create mode 100644 arch/arm/mach-omap2/smartreflex-class1p5.c
-
-Testing performed:
-- basic boot tests on SDP3630 and SDP3430 - with bare series
-- Detailed dvfs tests with Viswha's series on SDP3430 and SDP3630
-- OMAP4 was'nt supported yet by dvfs series, so very restricted tests.
-- Build tests with and without each of SR classes, SMARTREFLEX enabled.
-
-Test Script: http://pastebin.mozilla.org/1080985
-
-I request any additional tests on Panda, BeagleXM, EVM platforms that folks
-may have. please feel free to comment and provide tested-by/Acked-by feedback
-before I take this ahead including l-a.
-
-Regards,
-Nishanth Menon
