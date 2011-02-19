@@ -1,12 +1,12 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 17/17] omap4: Remove un-used do_wfi() macro.
-Date: Sat, 19 Feb 2011 16:12:38 +0530
-Message-ID: <1298112158-28469-18-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH 15/17] omap4: cpuidle: Switch to gptimer from twd in deeper C-states.
+Date: Sat, 19 Feb 2011 16:12:36 +0530
+Message-ID: <1298112158-28469-16-git-send-email-santosh.shilimkar@ti.com>
 References: <1298112158-28469-1-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50552 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:50550 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754104Ab1BSKnA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1754086Ab1BSKnA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Sat, 19 Feb 2011 05:43:00 -0500
 In-Reply-To: <1298112158-28469-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -14,33 +14,57 @@ List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: khilman@ti.com, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-With OMAP4 suspend, idle and hotplug series, we no longer need
-do_wfi() macro.
+CPU local timer(TWD) stops when the CPU is transitioning into
+deeper C-States. Since these timers are not wakeup capable, we
+need the wakeup capable global timer to program the wakeup time
+depending on the next timer expiry.
 
-Remove the same.
+It can be handled by registering a global wakeup capable timer along
+with local timers marked with (mis)feature flag CLOCK_EVT_FEAT_C3STOP.
+Then notify the clock events layer from idle code using
+CLOCK_EVT_NOTIFY_BROADCAST_ENTER/EXIT).
 
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Reviewed-by: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/include/mach/omap4-common.h |    6 ------
- 1 files changed, 0 insertions(+), 6 deletions(-)
+ arch/arm/mach-omap2/cpuidle44xx.c |    8 ++++++++
+ 1 files changed, 8 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/include/mach/omap4-common.h b/arch/arm/mach-omap2/include/mach/omap4-common.h
-index 74c9aa7..ca20333 100644
---- a/arch/arm/mach-omap2/include/mach/omap4-common.h
-+++ b/arch/arm/mach-omap2/include/mach/omap4-common.h
-@@ -16,12 +16,6 @@
+diff --git a/arch/arm/mach-omap2/cpuidle44xx.c b/arch/arm/mach-omap2/cpuidle44xx.c
+index aa1584e..e887eb5 100644
+--- a/arch/arm/mach-omap2/cpuidle44xx.c
++++ b/arch/arm/mach-omap2/cpuidle44xx.c
+@@ -12,6 +12,7 @@
+ 
+ #include <linux/sched.h>
+ #include <linux/cpuidle.h>
++#include <linux/clockchips.h>
+ 
  #include <asm/proc-fns.h>
  
- #ifndef __ASSEMBLER__
--/*
-- * wfi used in low power code. Directly opcode is used instead
-- * of instruction to avoid mulit-omap build break
-- */
--#define do_wfi()			\
--		__asm__ __volatile__ (".word	0xe320f003" : : : "memory")
+@@ -95,6 +96,7 @@ static int omap4_enter_idle(struct cpuidle_device *dev,
+ 	struct omap4_processor_cx *cx = cpuidle_get_statedata(state);
+ 	struct timespec ts_preidle, ts_postidle, ts_idle;
+ 	u32 cpu1_state;
++	int cpu_id = smp_processor_id();
  
- #ifdef CONFIG_CACHE_L2X0
- extern void __iomem *l2cache_base;
+ 	/* Used to keep track of the total time in idle */
+ 	getnstimeofday(&ts_preidle);
+@@ -127,8 +129,14 @@ static int omap4_enter_idle(struct cpuidle_device *dev,
+ 	pwrdm_set_logic_retst(core_pd, cx->core_logic_state);
+ 	omap_set_pwrdm_state(core_pd, cx->core_state);
+ 
++	if (cx->type > OMAP4_STATE_C1)
++		clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ENTER, &cpu_id);
++
+ 	omap4_enter_lowpower(dev->cpu, cx->cpu0_state);
+ 
++	if (cx->type > OMAP4_STATE_C1)
++		clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, &cpu_id);
++
+ return_sleep_time:
+ 	getnstimeofday(&ts_postidle);
+ 	ts_idle = timespec_sub(ts_postidle, ts_preidle);
 -- 
 1.6.0.4
 
