@@ -1,90 +1,105 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 12/17] omap4: pm-debug: Add wakeup timer and debug counters
-Date: Sat, 19 Feb 2011 16:12:33 +0530
-Message-ID: <1298112158-28469-13-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH 16/17] omap4: cpuidle: Allow debugfs control through enable_off_mode
+Date: Sat, 19 Feb 2011 16:12:37 +0530
+Message-ID: <1298112158-28469-17-git-send-email-santosh.shilimkar@ti.com>
 References: <1298112158-28469-1-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:47843 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754117Ab1BSKnE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 19 Feb 2011 05:43:04 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:48721 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752473Ab1BSKnB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 19 Feb 2011 05:43:01 -0500
 In-Reply-To: <1298112158-28469-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: khilman@ti.com, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-This patch adds configurable wakeup timer support in suspend. Also
-for statistics pm counter support is added.
+Only MPU OFF and RET is controllable. CORE state is blocked
+at ON state till the CORE RET support is added.
 
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Reviewed-by: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/omap4-mpuss-lowpower.c |    8 ++++++++
- arch/arm/mach-omap2/pm-debug.c             |    6 ++++--
- arch/arm/mach-omap2/pm44xx.c               |    5 +++++
- 3 files changed, 17 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/cpuidle44xx.c |   30 ++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/pm.h          |    1 +
+ arch/arm/mach-omap2/pm44xx.c      |    4 ++++
+ 3 files changed, 35 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap4-mpuss-lowpower.c b/arch/arm/mach-omap2/omap4-mpuss-lowpower.c
-index ab2e101..5e0141e 100644
---- a/arch/arm/mach-omap2/omap4-mpuss-lowpower.c
-+++ b/arch/arm/mach-omap2/omap4-mpuss-lowpower.c
-@@ -287,6 +287,10 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
- 	if (cpu)
- 		goto cpu_prepare;
+diff --git a/arch/arm/mach-omap2/cpuidle44xx.c b/arch/arm/mach-omap2/cpuidle44xx.c
+index e887eb5..4207862 100644
+--- a/arch/arm/mach-omap2/cpuidle44xx.c
++++ b/arch/arm/mach-omap2/cpuidle44xx.c
+@@ -170,6 +170,31 @@ static int omap4_enter_idle_bm(struct cpuidle_device *dev,
+ }
  
-+#ifdef CONFIG_PM_DEBUG
-+	pwrdm_pre_transition();
-+#endif
+ /**
++ * omap4_cpuidle_update_states() - Update the cpuidle states
++ * @mpu_deepest_state: Enable states upto and including this for mpu domain
++ * @core_deepest_state: Enable states upto and including this for core domain
++ *
++ * This goes through the list of states available and enables and disables the
++ * validity of C states based on deepest state that can be achieved for the
++ * variable domain
++ */
++void omap4_cpuidle_update_states(u32 mpu_deepest_state, u32 core_deepest_state)
++{
++	int i;
 +
- 	/*
- 	 * Check MPUSS next state and save GIC if needed
- 	 * GIC lost during MPU OFF and OSWR
-@@ -332,6 +336,10 @@ cpu_prepare:
- 		gic_dist_set(CPU0_ID, 1);
++	for (i = OMAP4_STATE_C1; i < OMAP4_MAX_STATES; i++) {
++		struct omap4_processor_cx *cx = &omap4_power_states[i];
++
++		if ((cx->mpu_state >= mpu_deepest_state) &&
++		    (cx->core_state >= core_deepest_state)) {
++			cx->valid = 1;
++		} else {
++			cx->valid = 0;
++		}
++	}
++}
++
++/**
+  * omap4_init_power_states - Initialises the OMAP4 specific C states.
+  *
+  */
+@@ -325,6 +350,11 @@ int __init omap4_idle_init(void)
+ 		}
  	}
  
-+#ifdef CONFIG_PM_DEBUG
-+	pwrdm_post_transition();
-+#endif
++	if (enable_off_mode)
++		omap4_cpuidle_update_states(PWRDM_POWER_OFF, PWRDM_POWER_OFF);
++	else
++		omap4_cpuidle_update_states(PWRDM_POWER_RET, PWRDM_POWER_RET);
 +
- ret:
  	return 0;
  }
-diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
-index 9b46b3e..7d6dd5b 100644
---- a/arch/arm/mach-omap2/pm-debug.c
-+++ b/arch/arm/mach-omap2/pm-debug.c
-@@ -606,9 +606,11 @@ static int __init pm_dbg_init(void)
- 	if (pm_dbg_init_done)
- 		return 0;
+ #else
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index ce848b0..4df89d1 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -77,6 +77,7 @@ extern u32 sleep_while_idle;
  
--	if (cpu_is_omap34xx())
-+	if (cpu_is_omap34xx()) {
- 		pm_dbg_reg_modules = omap3_pm_reg_modules;
--	else {
-+	} else if (cpu_is_omap44xx()) {
-+		/* Allow pm_dbg_init on OMAP4. */
-+	} else {
- 		printk(KERN_ERR "%s: only OMAP3 supported\n", __func__);
- 		return -ENODEV;
- 	}
+ #if defined(CONFIG_CPU_IDLE)
+ extern void omap3_cpuidle_update_states(u32, u32);
++extern void omap4_cpuidle_update_states(u32, u32);
+ #endif
+ 
+ #if defined(CONFIG_PM_DEBUG) && defined(CONFIG_DEBUG_FS)
 diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
-index f527e33..8e57b42 100644
+index 628242d..6244ab2 100644
 --- a/arch/arm/mach-omap2/pm44xx.c
 +++ b/arch/arm/mach-omap2/pm44xx.c
-@@ -42,6 +42,11 @@ static int omap4_pm_suspend(void)
- 	int state, ret = 0;
- 	u32 cpu_id = smp_processor_id();
+@@ -183,6 +183,10 @@ void omap4_pm_off_mode_enable(int enable)
+ 	else
+ 		state = PWRDM_POWER_RET;
  
-+	/* Wakeup timer from suspend */
-+	if (wakeup_timer_seconds || wakeup_timer_milliseconds)
-+		omap2_pm_wakeup_on_timer(wakeup_timer_seconds,
-+					 wakeup_timer_milliseconds);
++#ifdef CONFIG_CPU_IDLE
++	omap4_cpuidle_update_states(state, PWRDM_POWER_ON);
++#endif
 +
- 	/* Save current powerdomain state */
  	list_for_each_entry(pwrst, &pwrst_list, node) {
- 		pwrst->saved_state = pwrdm_read_next_pwrst(pwrst->pwrdm);
+ 		/* FIXME: Remove this check when core retention is supported */
+ 		if (!strcmp(pwrst->pwrdm->name, "mpu_pwrdm")) {
 -- 
 1.6.0.4
 
