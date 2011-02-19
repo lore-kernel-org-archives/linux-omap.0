@@ -1,78 +1,79 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 06/17] omap4: pm: Program CPU1 to hit OFF when off-lined
-Date: Sat, 19 Feb 2011 16:12:27 +0530
-Message-ID: <1298112158-28469-7-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH 05/17] omap4: pm: Initialise all the clockdomains to supported states
+Date: Sat, 19 Feb 2011 16:12:26 +0530
+Message-ID: <1298112158-28469-6-git-send-email-santosh.shilimkar@ti.com>
 References: <1298112158-28469-1-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:34187 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:50535 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753027Ab1BSKms (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 19 Feb 2011 05:42:48 -0500
+	id S1753896Ab1BSKmu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 19 Feb 2011 05:42:50 -0500
 In-Reply-To: <1298112158-28469-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: khilman@ti.com, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: khilman@ti.com, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Rajendra Nayak <rnayak@ti.com>
 
-Program non-boot CPUs to hit lowest supported power state
-when it is off-lined using cpu hotplug framework.
+Initialise hardware supervised mode for all clockdomains if it's
+supported. Initiate sleep transition for other clockdomains,
+if they are not being used.
 
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 Reviewed-by: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/omap-hotplug.c |   18 +++++++++++++-----
- 1 files changed, 13 insertions(+), 5 deletions(-)
+ arch/arm/mach-omap2/pm44xx.c |   22 +++++++++++++++++++++-
+ 1 files changed, 21 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap-hotplug.c b/arch/arm/mach-omap2/omap-hotplug.c
-index 4976b93..9f8f097 100644
---- a/arch/arm/mach-omap2/omap-hotplug.c
-+++ b/arch/arm/mach-omap2/omap-hotplug.c
-@@ -20,6 +20,9 @@
+diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
+index b142673..9a9dc41 100644
+--- a/arch/arm/mach-omap2/pm44xx.c
++++ b/arch/arm/mach-omap2/pm44xx.c
+@@ -17,9 +17,11 @@
+ #include <linux/slab.h>
+ #include <plat/clock.h>
  
- #include <asm/cacheflush.h>
+-#include "powerdomain.h"
  #include <mach/omap4-common.h>
-+#include <mach/omap-wakeupgen.h>
-+
+ 
 +#include "powerdomain.h"
- 
- int platform_cpu_kill(unsigned int cpu)
- {
-@@ -32,6 +35,8 @@ int platform_cpu_kill(unsigned int cpu)
-  */
- void platform_cpu_die(unsigned int cpu)
- {
-+	unsigned int this_cpu;
++#include "clockdomain.h"
 +
- 	flush_cache_all();
- 	dsb();
+ struct power_state {
+ 	struct powerdomain *pwrdm;
+ 	u32 next_state;
+@@ -74,6 +76,22 @@ static const struct platform_suspend_ops omap_pm_ops = {
+ };
+ #endif /* CONFIG_SUSPEND */
  
-@@ -39,18 +44,21 @@ void platform_cpu_die(unsigned int cpu)
- 	 * we're ready for shutdown now, so do it
- 	 */
- 	if (omap_modify_auxcoreboot0(0x0, 0x200) != 0x0)
--		printk(KERN_CRIT "Secure clear status failed\n");
-+		pr_err("Secure clear status failed\n");
++/*
++ * Enable hardwarew supervised mode for all clockdomains if it's
++ * supported. Initiate sleep transition for other clockdomains, if
++ * they are not used
++ */
++static int __init clkdms_setup(struct clockdomain *clkdm, void *unused)
++{
++	if (clkdm->flags & CLKDM_CAN_ENABLE_AUTO)
++		clkdm_allow_idle(clkdm);
++	else if (clkdm->flags & CLKDM_CAN_FORCE_SLEEP &&
++			atomic_read(&clkdm->usecount) == 0)
++		clkdm_sleep(clkdm);
++	return 0;
++}
++
++
+ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
+ {
+ 	struct power_state *pwrst;
+@@ -116,6 +134,8 @@ static int __init omap4_pm_init(void)
+ 	/* Enable autoidle for all clks which support it*/
+ 	omap_clk_enable_autoidle();
  
- 	for (;;) {
- 		/*
--		 * Execute WFI
-+		 * Enter into low power state
-+		 * clear all interrupt wakeup sources
- 		 */
--		do_wfi();
--
--		if (omap_read_auxcoreboot0() == cpu) {
-+		omap_wakeupgen_irqmask_all(cpu, 1);
-+		omap4_enter_lowpower(cpu, PWRDM_POWER_OFF);
-+		this_cpu = hard_smp_processor_id();
-+		if (omap_read_auxcoreboot0() == this_cpu) {
- 			/*
- 			 * OK, proper wakeup, we're done
- 			 */
-+			omap_wakeupgen_irqmask_all(this_cpu, 0);
- 			break;
- 		}
- 		pr_debug("CPU%u: spurious wakeup call\n", cpu);
++	(void) clkdm_for_each(clkdms_setup, NULL);
++
+ 	ret = omap4_mpuss_init();
+ 	if (ret) {
+ 		pr_err("Failed to initialise OMAP4 MPUSS\n");
 -- 
 1.6.0.4
 
