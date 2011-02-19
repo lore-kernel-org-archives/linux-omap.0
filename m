@@ -1,48 +1,57 @@
-From: Ming Lei <tom.leiming@gmail.com>
-Subject: Re: omapfb: no driver for display
-Date: Sat, 19 Feb 2011 18:00:50 +0800
-Message-ID: <AANLkTinUO69HYZUUQ-NzyB_LDLvvfBnLqtSDKimu0xy3@mail.gmail.com>
-References: <AANLkTi=f=SKE=QR97ttPnBrpW=2wNGd03+q4agmu6Uap@mail.gmail.com>
-	<AANLkTikpCcpkjb8i_8Gk5ey1FtgsaUenmKNDhrtjLqon@mail.gmail.com>
-	<AANLkTinoLOyqBCMNKbpcJMhZHnncX1T07nbfsTThA_a4@mail.gmail.com>
-	<4D5DF547.7010703@ti.com>
-	<AANLkTik_H0vAEjB8tOyJNC4oDS1+Tp5ick0mq4jhhqMV@mail.gmail.com>
-	<AANLkTimt934X7G8DSnqVQ03fbggD9-SHWW3-QPQp+yAq@mail.gmail.com>
-	<AANLkTikSU_QgRNahQU3Rrb1KZ0vCNZ4FTz59hOmDaaUD@mail.gmail.com>
-	<AANLkTi=piR+YKvJi+_B4fZk6TtQA_drPEAyKKcMa0oZN@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: [PATCH 03/17] omap4: Export scu base address
+Date: Sat, 19 Feb 2011 16:12:24 +0530
+Message-ID: <1298112158-28469-4-git-send-email-santosh.shilimkar@ti.com>
+References: <1298112158-28469-1-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:58519 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752591Ab1BSKAv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 19 Feb 2011 05:00:51 -0500
-Received: by yxt3 with SMTP id 3so1952988yxt.19
-        for <linux-omap@vger.kernel.org>; Sat, 19 Feb 2011 02:00:50 -0800 (PST)
-In-Reply-To: <AANLkTi=piR+YKvJi+_B4fZk6TtQA_drPEAyKKcMa0oZN@mail.gmail.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:34185 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752842Ab1BSKms (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 19 Feb 2011 05:42:48 -0500
+In-Reply-To: <1298112158-28469-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: archit taneja <archit@ti.com>, Sung Hee Park <shpark7@stanford.edu>, Bryan Wu <bryan.wu@canonical.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Semwal, Sumit" <sumit.semwal@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: khilman@ti.com, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Hi,
+The scu base address needs to be accessed in cpu hotplug
+for power management. Hence export the same
 
-2011/2/19 Felipe Contreras <felipe.contreras@gmail.com>:
-> Are you sure? AFAIK early_param is executed _after_ memory blocks are reserved.
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Reviewed-by: Kevin Hilman <khilman@ti.com>
+---
+ arch/arm/mach-omap2/include/mach/omap4-common.h |    4 ++++
+ arch/arm/mach-omap2/omap-smp.c                  |    2 +-
+ 2 files changed, 5 insertions(+), 1 deletions(-)
 
-Yes, I am sure.
-
-If 'vram=16M' is passed in, I can find the below:
-
-    [    0.000000] Memory: 1008MB = 1008MB total
-
-but if 'vram=8M' is taken, will be
-
-    [    0.000000] Memory: 1016MB = 1016MB total
-
-You may have a try on your board to confirm it.
-
-
-thanks,
+diff --git a/arch/arm/mach-omap2/include/mach/omap4-common.h b/arch/arm/mach-omap2/include/mach/omap4-common.h
+index 5b0270b..0e5edd8 100644
+--- a/arch/arm/mach-omap2/include/mach/omap4-common.h
++++ b/arch/arm/mach-omap2/include/mach/omap4-common.h
+@@ -26,6 +26,10 @@ extern void __iomem *l2cache_base;
+ 
+ extern void __iomem *gic_dist_base_addr;
+ 
++#ifdef CONFIG_SMP
++extern void __iomem *scu_base;
++#endif
++
+ extern void __init gic_init_irq(void);
+ extern void omap_smc1(u32 fn, u32 arg);
+ 
+diff --git a/arch/arm/mach-omap2/omap-smp.c b/arch/arm/mach-omap2/omap-smp.c
+index b66cfe8..b105a29 100644
+--- a/arch/arm/mach-omap2/omap-smp.c
++++ b/arch/arm/mach-omap2/omap-smp.c
+@@ -26,7 +26,7 @@
+ #include <mach/omap4-common.h>
+ 
+ /* SCU base address */
+-static void __iomem *scu_base;
++void __iomem *scu_base;
+ 
+ static DEFINE_SPINLOCK(boot_lock);
+ 
 -- 
-Lei Ming
+1.6.0.4
+
