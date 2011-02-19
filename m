@@ -1,105 +1,46 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 16/17] omap4: cpuidle: Allow debugfs control through enable_off_mode
-Date: Sat, 19 Feb 2011 16:12:37 +0530
-Message-ID: <1298112158-28469-17-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH 17/17] omap4: Remove un-used do_wfi() macro.
+Date: Sat, 19 Feb 2011 16:12:38 +0530
+Message-ID: <1298112158-28469-18-git-send-email-santosh.shilimkar@ti.com>
 References: <1298112158-28469-1-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48721 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752473Ab1BSKnB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 19 Feb 2011 05:43:01 -0500
+Received: from comal.ext.ti.com ([198.47.26.152]:50552 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754104Ab1BSKnA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 19 Feb 2011 05:43:00 -0500
 In-Reply-To: <1298112158-28469-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: khilman@ti.com, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Only MPU OFF and RET is controllable. CORE state is blocked
-at ON state till the CORE RET support is added.
+With OMAP4 suspend, idle and hotplug series, we no longer need
+do_wfi() macro.
+
+Remove the same.
 
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Reviewed-by: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/cpuidle44xx.c |   30 ++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/pm.h          |    1 +
- arch/arm/mach-omap2/pm44xx.c      |    4 ++++
- 3 files changed, 35 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/include/mach/omap4-common.h |    6 ------
+ 1 files changed, 0 insertions(+), 6 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/cpuidle44xx.c b/arch/arm/mach-omap2/cpuidle44xx.c
-index e887eb5..4207862 100644
---- a/arch/arm/mach-omap2/cpuidle44xx.c
-+++ b/arch/arm/mach-omap2/cpuidle44xx.c
-@@ -170,6 +170,31 @@ static int omap4_enter_idle_bm(struct cpuidle_device *dev,
- }
+diff --git a/arch/arm/mach-omap2/include/mach/omap4-common.h b/arch/arm/mach-omap2/include/mach/omap4-common.h
+index 74c9aa7..ca20333 100644
+--- a/arch/arm/mach-omap2/include/mach/omap4-common.h
++++ b/arch/arm/mach-omap2/include/mach/omap4-common.h
+@@ -16,12 +16,6 @@
+ #include <asm/proc-fns.h>
  
- /**
-+ * omap4_cpuidle_update_states() - Update the cpuidle states
-+ * @mpu_deepest_state: Enable states upto and including this for mpu domain
-+ * @core_deepest_state: Enable states upto and including this for core domain
-+ *
-+ * This goes through the list of states available and enables and disables the
-+ * validity of C states based on deepest state that can be achieved for the
-+ * variable domain
-+ */
-+void omap4_cpuidle_update_states(u32 mpu_deepest_state, u32 core_deepest_state)
-+{
-+	int i;
-+
-+	for (i = OMAP4_STATE_C1; i < OMAP4_MAX_STATES; i++) {
-+		struct omap4_processor_cx *cx = &omap4_power_states[i];
-+
-+		if ((cx->mpu_state >= mpu_deepest_state) &&
-+		    (cx->core_state >= core_deepest_state)) {
-+			cx->valid = 1;
-+		} else {
-+			cx->valid = 0;
-+		}
-+	}
-+}
-+
-+/**
-  * omap4_init_power_states - Initialises the OMAP4 specific C states.
-  *
-  */
-@@ -325,6 +350,11 @@ int __init omap4_idle_init(void)
- 		}
- 	}
+ #ifndef __ASSEMBLER__
+-/*
+- * wfi used in low power code. Directly opcode is used instead
+- * of instruction to avoid mulit-omap build break
+- */
+-#define do_wfi()			\
+-		__asm__ __volatile__ (".word	0xe320f003" : : : "memory")
  
-+	if (enable_off_mode)
-+		omap4_cpuidle_update_states(PWRDM_POWER_OFF, PWRDM_POWER_OFF);
-+	else
-+		omap4_cpuidle_update_states(PWRDM_POWER_RET, PWRDM_POWER_RET);
-+
- 	return 0;
- }
- #else
-diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-index ce848b0..4df89d1 100644
---- a/arch/arm/mach-omap2/pm.h
-+++ b/arch/arm/mach-omap2/pm.h
-@@ -77,6 +77,7 @@ extern u32 sleep_while_idle;
- 
- #if defined(CONFIG_CPU_IDLE)
- extern void omap3_cpuidle_update_states(u32, u32);
-+extern void omap4_cpuidle_update_states(u32, u32);
- #endif
- 
- #if defined(CONFIG_PM_DEBUG) && defined(CONFIG_DEBUG_FS)
-diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
-index 628242d..6244ab2 100644
---- a/arch/arm/mach-omap2/pm44xx.c
-+++ b/arch/arm/mach-omap2/pm44xx.c
-@@ -183,6 +183,10 @@ void omap4_pm_off_mode_enable(int enable)
- 	else
- 		state = PWRDM_POWER_RET;
- 
-+#ifdef CONFIG_CPU_IDLE
-+	omap4_cpuidle_update_states(state, PWRDM_POWER_ON);
-+#endif
-+
- 	list_for_each_entry(pwrst, &pwrst_list, node) {
- 		/* FIXME: Remove this check when core retention is supported */
- 		if (!strcmp(pwrst->pwrdm->name, "mpu_pwrdm")) {
+ #ifdef CONFIG_CACHE_L2X0
+ extern void __iomem *l2cache_base;
 -- 
 1.6.0.4
 
