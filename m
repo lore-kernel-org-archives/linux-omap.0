@@ -1,246 +1,176 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 13/17] omap4: cpuidle: Basic CPUidle support
-Date: Sat, 19 Feb 2011 16:12:34 +0530
-Message-ID: <1298112158-28469-14-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH 10/17] omap4: pm: Add L2 cache lowpower support
+Date: Sat, 19 Feb 2011 16:12:31 +0530
+Message-ID: <1298112158-28469-11-git-send-email-santosh.shilimkar@ti.com>
 References: <1298112158-28469-1-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50546 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754039Ab1BSKm5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 19 Feb 2011 05:42:57 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:48719 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754058Ab1BSKm5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 19 Feb 2011 05:42:57 -0500
 In-Reply-To: <1298112158-28469-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: khilman@ti.com, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: khilman@ti.com, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-From: Rajendra Nayak <rnayak@ti.com>
+When MPUSS hits off-mode e, L2 cache is lost. This patch adds L2X0
+necessary maintenance operations and context restoration in the
+low power code.
 
-The patch adds a basic CPUidle driver for OMAP4. Just
-one C state is registered for both CPU cores which
-does a wfi.
-
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Reviewed-by: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/Makefile      |    3 +-
- arch/arm/mach-omap2/cpuidle44xx.c |  165 +++++++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/pm.h          |    1 +
- arch/arm/mach-omap2/pm44xx.c      |    2 +
- 4 files changed, 170 insertions(+), 1 deletions(-)
- create mode 100644 arch/arm/mach-omap2/cpuidle44xx.c
+ arch/arm/mach-omap2/omap4-mpuss-lowpower.c |   11 +++++
+ arch/arm/mach-omap2/omap4-sar-layout.h     |    2 +
+ arch/arm/mach-omap2/sleep44xx.S            |   64 ++++++++++++++++++++++++++++
+ 3 files changed, 77 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 5d94f7e..2b4fe44 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -64,7 +64,8 @@ obj-$(CONFIG_ARCH_OMAP2)		+= sleep24xx.o pm_bus.o voltage.o
- obj-$(CONFIG_ARCH_OMAP3)		+= pm34xx.o sleep34xx.o voltage.o \
- 					   cpuidle34xx.o pm_bus.o
- obj-$(CONFIG_ARCH_OMAP4)		+= pm44xx.o voltage.o pm_bus.o \
--					   omap4-mpuss-lowpower.o sleep44xx.o
-+					   omap4-mpuss-lowpower.o sleep44xx.o \
-+					   cpuidle44xx.o
- obj-$(CONFIG_PM_DEBUG)			+= pm-debug.o
- obj-$(CONFIG_OMAP_SMARTREFLEX)          += sr_device.o smartreflex.o
- obj-$(CONFIG_OMAP_SMARTREFLEX_CLASS3)	+= smartreflex-class3.o
-diff --git a/arch/arm/mach-omap2/cpuidle44xx.c b/arch/arm/mach-omap2/cpuidle44xx.c
-new file mode 100644
-index 0000000..6c3c69d
---- /dev/null
-+++ b/arch/arm/mach-omap2/cpuidle44xx.c
-@@ -0,0 +1,165 @@
-+/*
-+ * OMAP4 CPU IDLE Routines
-+ *
-+ * Copyright (C) 2011 Texas Instruments, Inc.
-+ * Rajendra Nayak <rnayak@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/sched.h>
-+#include <linux/cpuidle.h>
-+
-+#include <asm/proc-fns.h>
-+
-+#include <mach/omap4-common.h>
-+
-+#include "pm.h"
-+
-+#ifdef CONFIG_CPU_IDLE
-+
-+#define OMAP4_MAX_STATES	1
-+/* C1 - CPUx wfi + MPU inactive + CORE inactive */
-+#define OMAP4_STATE_C1		0
-+
-+struct omap4_processor_cx {
-+	u8 valid;
-+	u8 type;
-+	u32 sleep_latency;
-+	u32 wakeup_latency;
-+	u32 cpu0_state;
-+	u32 cpu1_state;
-+	u32 mpu_state;
-+	u32 core_state;
-+	u32 threshold;
-+	u32 flags;
-+};
-+
-+struct omap4_processor_cx omap4_power_states[OMAP4_MAX_STATES];
-+struct omap4_processor_cx current_cx_state;
-+
-+static struct cpuidle_params cpuidle_params_table[] = {
-+	/* C1 */
-+	{1, 2, 2, 5},
-+};
-+
-+/**
-+ * omap4_enter_idle - Programs OMAP4 to enter the specified state
-+ * @dev: cpuidle device
-+ * @state: The target state to be programmed
-+ *
-+ * Called from the CPUidle framework to program the device to the
-+ * specified low power state selected by the governor.
-+ * Returns the amount of time spent in the low power state.
-+ */
-+static int omap4_enter_idle(struct cpuidle_device *dev,
-+			struct cpuidle_state *state)
-+{
-+	struct timespec ts_preidle, ts_postidle, ts_idle;
-+
-+	/* Used to keep track of the total time in idle */
-+	getnstimeofday(&ts_preidle);
-+
-+	local_irq_disable();
-+	local_fiq_disable();
-+
-+	cpu_do_idle();
-+
-+	getnstimeofday(&ts_postidle);
-+	ts_idle = timespec_sub(ts_postidle, ts_preidle);
-+
-+	local_irq_enable();
-+	local_fiq_enable();
-+
-+	return ts_idle.tv_nsec / NSEC_PER_USEC + ts_idle.tv_sec * USEC_PER_SEC;
-+}
-+
-+DEFINE_PER_CPU(struct cpuidle_device, omap4_idle_dev);
-+
-+/**
-+ * omap4_init_power_states - Initialises the OMAP4 specific C states.
-+ *
-+ * Below is the desciption of each C state.
-+ * C1 : CPUx wfi + MPU inative + Core inactive
-+ */
-+void omap_init_power_states(void)
-+{
-+	/* C1 . CPUx wfi + MPU inactive + Core inactive */
-+	omap4_power_states[OMAP4_STATE_C1].valid =
-+			cpuidle_params_table[OMAP4_STATE_C1].valid;
-+	omap4_power_states[OMAP4_STATE_C1].type = OMAP4_STATE_C1;
-+	omap4_power_states[OMAP4_STATE_C1].sleep_latency =
-+			cpuidle_params_table[OMAP4_STATE_C1].sleep_latency;
-+	omap4_power_states[OMAP4_STATE_C1].wakeup_latency =
-+			cpuidle_params_table[OMAP4_STATE_C1].wake_latency;
-+	omap4_power_states[OMAP4_STATE_C1].threshold =
-+			cpuidle_params_table[OMAP4_STATE_C1].threshold;
-+	omap4_power_states[OMAP4_STATE_C1].mpu_state = PWRDM_POWER_ON;
-+	omap4_power_states[OMAP4_STATE_C1].core_state = PWRDM_POWER_ON;
-+	omap4_power_states[OMAP4_STATE_C1].flags = CPUIDLE_FLAG_TIME_VALID;
-+
-+}
-+
-+struct cpuidle_driver omap4_idle_driver = {
-+	.name =		"omap4_idle",
-+	.owner =	THIS_MODULE,
-+};
-+
-+/**
-+ * omap4_idle_init - Init routine for OMAP4 idle
-+ *
-+ * Registers the OMAP4 specific cpuidle driver with the cpuidle
-+ * framework with the valid set of states.
-+ */
-+int __init omap4_idle_init(void)
-+{
-+	int cpu_id, i, count = 0;
-+	struct omap4_processor_cx *cx;
-+	struct cpuidle_state *state;
-+	struct cpuidle_device *dev;
-+
-+	omap_init_power_states();
-+	cpuidle_register_driver(&omap4_idle_driver);
-+
-+	for_each_cpu(cpu_id, cpu_online_mask) {
-+		pr_err("CPUidle for CPU%d registered\n", cpu_id);
-+		dev = &per_cpu(omap4_idle_dev, cpu_id);
-+		dev->cpu = cpu_id;
-+		count = 0;
-+		for (i = OMAP4_STATE_C1; i < OMAP4_MAX_STATES; i++) {
-+			cx = &omap4_power_states[i];
-+			state = &dev->states[count];
-+
-+			if (!cx->valid)
-+				continue;
-+			cpuidle_set_statedata(state, cx);
-+			state->exit_latency = cx->sleep_latency +
-+							cx->wakeup_latency;
-+			state->target_residency = cx->threshold;
-+			state->flags = cx->flags;
-+			state->enter = omap4_enter_idle;
-+			sprintf(state->name, "C%d", count+1);
-+			count++;
-+		}
-+
-+		if (!count)
-+			return -EINVAL;
-+		dev->state_count = count;
-+
-+		if (cpuidle_register_device(dev)) {
-+			pr_err("%s: CPUidle register device failed\n",
-+				__func__);
-+			return -EIO;
-+		}
-+	}
-+
-+	return 0;
-+}
-+#else
-+int __init omap4_idle_init(void)
-+{
-+	return 0;
-+}
-+#endif /* CONFIG_CPU_IDLE */
-diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-index f557407..ce848b0 100644
---- a/arch/arm/mach-omap2/pm.h
-+++ b/arch/arm/mach-omap2/pm.h
-@@ -22,6 +22,7 @@ extern void omap_sram_idle(void);
- extern int omap3_can_sleep(void);
- extern int omap_set_pwrdm_state(struct powerdomain *pwrdm, u32 state);
- extern int omap3_idle_init(void);
-+extern int omap4_idle_init(void);
+diff --git a/arch/arm/mach-omap2/omap4-mpuss-lowpower.c b/arch/arm/mach-omap2/omap4-mpuss-lowpower.c
+index a30f19b..bff768f 100644
+--- a/arch/arm/mach-omap2/omap4-mpuss-lowpower.c
++++ b/arch/arm/mach-omap2/omap4-mpuss-lowpower.c
+@@ -49,6 +49,7 @@
+ #include <asm/system.h>
+ #include <asm/irq.h>
+ #include <asm/hardware/gic.h>
++#include <asm/hardware/cache-l2x0.h>
  
- #if defined(CONFIG_PM_OPP)
- extern int omap3_opp_init(void);
-diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
-index 8e57b42..628242d 100644
---- a/arch/arm/mach-omap2/pm44xx.c
-+++ b/arch/arm/mach-omap2/pm44xx.c
-@@ -230,6 +230,8 @@ static int __init omap4_pm_init(void)
- 	suspend_set_ops(&omap_pm_ops);
- #endif /* CONFIG_SUSPEND */
+ #include <plat/omap44xx.h>
+ #include <mach/omap4-common.h>
+@@ -341,6 +342,7 @@ int __init omap4_mpuss_init(void)
+ {
+ 	struct omap4_cpu_pm_info *pm_info;
+ 	u8 i;
++	u32 val;
  
-+	omap4_idle_init();
+ 	if (omap_rev() == OMAP4430_REV_ES1_0) {
+ 		WARN(1, "Power Management not supported on OMAP4430 ES1.0\n");
+@@ -410,6 +412,15 @@ int __init omap4_mpuss_init(void)
+ 	for (i = 0; i < max_spi_reg; i++)
+ 		sar_writel(GIC_ISR_NON_SECURE, ICDISR_SPI_OFFSET, i);
+ 
++#ifdef CONFIG_CACHE_L2X0
++	/*
++	 * Save the L2X0 AUXCTRL value to SAR memory. Its used to
++	 * in every restore patch MPUSS OFF path.
++	 */
++	val = __raw_readl(l2cache_base + L2X0_AUX_CTRL);
++	__raw_writel(val, sar_ram_base + L2X0_AUXCTRL_OFFSET);
++#endif
 +
- err2:
- 	return ret;
+ 	return 0;
  }
+ 
+diff --git a/arch/arm/mach-omap2/omap4-sar-layout.h b/arch/arm/mach-omap2/omap4-sar-layout.h
+index 5a815c4..eb2d53b 100644
+--- a/arch/arm/mach-omap2/omap4-sar-layout.h
++++ b/arch/arm/mach-omap2/omap4-sar-layout.h
+@@ -25,6 +25,8 @@
+ #define MMU_OFFSET				0xd00
+ #define SCU_OFFSET0				0xd20
+ #define SCU_OFFSET1				0xd24
++#define L2X0_OFFSET				0xd28
++#define L2X0_AUXCTRL_OFFSET			0xd2c
+ 
+ /* CPUx Wakeup Non-Secure Physical Address offsets in SAR_BANK3 */
+ #define CPU0_WAKEUP_NS_PA_ADDR_OFFSET		0xa04
+diff --git a/arch/arm/mach-omap2/sleep44xx.S b/arch/arm/mach-omap2/sleep44xx.S
+index bb42a7a..e683f78 100644
+--- a/arch/arm/mach-omap2/sleep44xx.S
++++ b/arch/arm/mach-omap2/sleep44xx.S
+@@ -13,6 +13,7 @@
+ #include <asm/system.h>
+ #include <asm/smp_scu.h>
+ #include <asm/memory.h>
++#include <asm/hardware/cache-l2x0.h>
+ 
+ #include <plat/omap44xx.h>
+ #include <mach/omap4-common.h>
+@@ -56,6 +57,7 @@ ENTRY(omap4_cpu_suspend)
+ 	beq	do_WFI				@ Nothing to save, jump to WFI
+ 	ldr	r8, =sar_ram_base
+ 	ldr	r8, [r8]
++	str	r1, [r8, #L2X0_OFFSET]		@ Store save state
+ 	ands	r0, r0, #0x0f
+ 	orreq	r8, r8, #CPU0_SAVE_OFFSET
+ 	orrne	r8, r8, #CPU1_SAVE_OFFSET
+@@ -131,6 +133,42 @@ ENTRY(omap4_cpu_suspend)
+ 	ldr	r0, =scu_base
+ 	ldr	r0, [r0]
+ 	bl     scu_power_mode
++	isb
++	dsb
++
++#ifdef CONFIG_CACHE_L2X0
++	/*
++	 * Clean and invalidate the L2 cache.
++	 * Common cache-l2x0.c functions can't be used here since it
++	 * uses spinlocks. We are out of coherency here with data cache
++	 * disabled. The spinlock implementation uses exclusive load/store
++	 * instruction which can fail without data cache being enabled.
++	 * OMAP4 hardware doesn't support exclusive monitor which can
++	 * overcome exclusive access issue. Because of this, CPU can
++	 * lead to deadlock.
++	 */
++l2x_clean_inv:
++	ldr	r8, =sar_ram_base
++	ldr	r8, [r8]
++	ldr	r0, [r8, #L2X0_OFFSET]
++	cmp	r0, #3
++	bne	do_WFI
++	ldr	r2, =l2cache_base
++	ldr	r2, [r2]
++	mov	r0, #0xff
++	str	r0, [r2, #L2X0_CLEAN_WAY]
++wait:
++	ldr	r0, [r2, #L2X0_CLEAN_WAY]
++	ands	r0, r0, #0xff
++	bne	wait
++l2x_sync:
++	mov	r0, #0x0
++	str	r0, [r2, #L2X0_CACHE_SYNC]
++sync:
++	ldr	r0, [r2, #L2X0_CACHE_SYNC]
++	ands	r0, r0, #0x1
++	bne	sync
++#endif
+ 
+ do_WFI:
+ 	/*
+@@ -193,6 +231,32 @@ ENDPROC(omap4_cpu_suspend)
+  */
+ 
+ ENTRY(omap4_cpu_resume)
++#ifdef CONFIG_CACHE_L2X0
++	/*
++	 * Restore the L2 AUXCTRL and enable the L2 cache.
++	 * 0x109 =  Program the L2X0 AUXCTRL
++	 * 0x102 =  Enable the L2 using L2X0 CTRL
++	 * register r0 contains value to be programmed.
++	 * L2 cache is already invalidate by ROM code as part
++	 * of MPUSS OFF wakeup path.
++	 */
++	ldr	r2, =OMAP44XX_L2CACHE_BASE
++	ldr	r0, [r2, #L2X0_CTRL]
++	and	r0, #0x0f
++	cmp	r0, #1
++	beq	skip_l2en			@ Skip if already enabled
++	ldr	r3, =OMAP44XX_SAR_RAM_BASE
++	ldr	r0, [r3, #L2X0_AUXCTRL_OFFSET]
++	ldr	r12, =0x109			@ Setup L2 AUXCTRL value
++	dsb
++	smc	#0
++	mov	r0, #0x1
++	ldr	r12, =0x102			@ Enable L2 Cache controller
++	dsb
++	smc	#0
++skip_l2en:
++#endif
++
+ 	/*
+ 	 * Check the wakeup cpuid and use appropriate
+ 	 * SAR BANK location for context restore.
 -- 
 1.6.0.4
 
