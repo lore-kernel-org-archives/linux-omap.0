@@ -1,66 +1,66 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [GIT PULL] OMAP USB Patches for 2.6.39
-Date: Sat, 19 Feb 2011 16:50:09 +0200
-Message-ID: <20110219145009.GA2154@legolas.emea.dhcp.ti.com>
-References: <20110218121145.GB11151@legolas.emea.dhcp.ti.com>
- <20110218163144.GA11460@kroah.com>
- <20110218163514.GA11555@kroah.com>
+Subject: Re: [PATCH resend] video: omap24xxcam: Fix compilation
+Date: Sat, 19 Feb 2011 17:00:25 +0200
+Message-ID: <20110219150024.GA4487@legolas.emea.dhcp.ti.com>
+References: <1297068547-10635-1-git-send-email-weber@corscience.de>
+ <4D5A6353.7040907@maxwell.research.nokia.com>
+ <20110215113717.GN2570@legolas.emea.dhcp.ti.com>
+ <4D5A672A.7040000@samsung.com>
+ <4D5A6874.1080705@corscience.de>
+ <20110215115349.GQ2570@legolas.emea.dhcp.ti.com>
+ <4D5A6EEC.5000908@maxwell.research.nokia.com>
+ <AANLkTik+6fguqgH8Bpnpqo7Axmquy3caRMELTZVmuN1j@mail.gmail.com>
 Reply-To: balbi@ti.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:50020 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754541Ab1BSOuR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Sat, 19 Feb 2011 09:50:17 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20110218163514.GA11555@kroah.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <AANLkTik+6fguqgH8Bpnpqo7Axmquy3caRMELTZVmuN1j@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: David Cohen <dacohen@gmail.com>
+Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>, balbi@ti.com, Thomas Weber <weber@corscience.de>, Sylwester Nawrocki <s.nawrocki@samsung.com>, linux-omap@vger.kernel.org, Mauro Carvalho Chehab <mchehab@infradead.org>, Hans Verkuil <hverkuil@xs4all.nl>, Tejun Heo <tj@kernel.org>, linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: Felipe Balbi <balbi@ti.com>, Linux USB Mailing List <linux-usb@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
 Hi,
 
-On Fri, Feb 18, 2011 at 08:35:14AM -0800, Greg KH wrote:
-> On Fri, Feb 18, 2011 at 08:31:44AM -0800, Greg KH wrote:
-> > On Fri, Feb 18, 2011 at 02:11:45PM +0200, Felipe Balbi wrote:
-> > > Hi Greg,
-> > > 
-> > > Here are the patches I have for the next merge window.
-> > > 
-> > > The outstanding feature is the introduction of pm_runtime
-> > > support for the OMAP glue layer for MUSB.
-> > > 
-> > > These patches have been tested on omap4430 with g_zero
-> > > + testusb overnight and no problems have come from those.
-> > > 
-> > > These are on top of greg/usb-next, if you want me to rebase
-> > > on top of another commit, please let me know about it and I'll
-> > > do it quickly.
-> > > 
-> > > Thanks, pull request below.
-> > > 
-> > > The following changes since commit 04b31c776f34d127b422da92899272a0b8cda21d:
-> > > 
-> > >   usb: isp1362-hcd: use bitmap_clear() and bitmap_set() (2011-02-17 11:00:24 -0800)
-> > > 
-> > > are available in the git repository at:
-> > >   git://gitorious.org/usb/usb.git for-next
-> > 
-> > $ git pull git://gitorious.org/usb/usb.git for-next
-> > fatal: The remote end hung up unexpectedly
-> > 
-> > Something's wrong on gitorious's side and I can't seem to pull this :(
-> > 
-> > Any ideas?
+On Sat, Feb 19, 2011 at 01:35:09PM +0200, David Cohen wrote:
+> >> aha, now I get it, so shouldn't the real fix be including <linux/sched.h>
+> >> on <linux/wait.h>, I mean, it's <linuux/wait.h> who uses a symbol
+> >> defined in <linux/sched.h>, right ?
 > 
-> Nevermind, it took 7 tried, but eventually it worked.  Wierd.
-> 
-> pulled and pushed out now, thanks.
+> That's a tricky situation. linux/sched.h includes indirectly
+> linux/completion.h which includes linux/wait.h.
 
-Ok, thanks a lot Greg.
+Ok, so the real problem is that there is circular dependency between
+<linux/sched.h> and <linux/wait.h>
+
+> By including sched.h in wait.h, the side effect is completion.h will
+> then include a blank wait.h file and trigger a compilation error every
+> time wait.h is included by any file.
+
+true, but the real problem is the circular dependency between those
+files.
+
+> > Surprisingly many other files still don't seem to be affected. But this
+> > is actually a better solution (to include sched.h in wait.h).
+> 
+> It does not affect all files include wait.h because TASK_* macros are
+> used with #define statements only. So it has no effect unless some
+> file tries to use a macro which used TASK_*. It seems the usual on
+> kernel is to include both wait.h and sched.h when necessary.
+> IMO your patch is fine.
+
+I have to disagree. The fundamental problem is the circular dependency
+between those two files:
+
+sched.h uses wait_queue_head_t defined in wait.h
+wait.h uses TASK_* defined in sched.h
+
+So, IMO the real fix would be clear out the circular dependency. Maybe
+introducing <linux/task.h> to define those TASK_* symbols and include
+that on sched.h and wait.h
+
+Just dig a quick and dirty to try it out and works like a charm
 
 -- 
 balbi
