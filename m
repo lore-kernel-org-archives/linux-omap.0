@@ -1,117 +1,100 @@
-From: "Reizer, Eyal" <eyalr@ti.com>
-Subject: Re: Re: Ping-> Subject: [PATCH] omap: omap3evm: add support for the
- WL12xx WLAN module to the omap3evm
-Date: Sun, 20 Feb 2011 12:43:24 +0100
-Message-ID: <EC51CDB0807A51469E0C9CB8CF72D65F033179C275@dnce02.ent.ti.com>
-References: <EC51CDB0807A51469E0C9CB8CF72D65F032D73AA68@dnce02.ent.ti.com>
- <20110217222027.GD20795@atomide.com>
- <EC51CDB0807A51469E0C9CB8CF72D65F033179C274@dnce02.ent.ti.com>
- <7981352757621917219@unknownmsgid>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 2/6] ARM: pm: add generic CPU suspend/resume support
+Date: Sun, 20 Feb 2011 12:00:39 +0000
+Message-ID: <20110220120039.GA14495@n2100.arm.linux.org.uk>
+References: <20110211161626.GA31356@n2100.arm.linux.org.uk> <E1Pnvgw-0002yZ-M0@rmk-PC.arm.linux.org.uk> <AANLkTinL0HgSsFmoxyiBuRA6JiWKsHTLW4wFnVDJf_1w@mail.gmail.com> <20110215110453.GB11199@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="_000_EC51CDB0807A51469E0C9CB8CF72D65F033179C275dnce02enttico_"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:45060 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751404Ab1BTLna (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 20 Feb 2011 06:43:30 -0500
-In-Reply-To: <7981352757621917219@unknownmsgid>
-Content-Language: en-US
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:45900 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752759Ab1BTMA6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 20 Feb 2011 07:00:58 -0500
+Content-Disposition: inline
+In-Reply-To: <20110215110453.GB11199@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ohad@wizery.com" <ohad@wizery.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Colin Cross <ccross@google.com>
+Cc: linux-omap@vger.kernel.org, Kukjin Kim <kgene.kim@samsung.com>, Eric Miao <eric.y.miao@gmail.com>, linux-arm-kernel@lists.infradead.org
 
---_000_EC51CDB0807A51469E0C9CB8CF72D65F033179C275dnce02enttico_
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Kukjin, could you test this update as well please?
 
-SGkgT2hhZCwKCk9uIFN1biwgMjAxMS0wMi0yMCBhdCAxMzozMiArMDIwMCwgT2hhZCBCZW4tQ29o
-ZW4gd3JvdGU6Cj4gSGkgRXlhbCwKPiAKPiAKPiAKPiAocG9zdGluZyBmcm9tIGEgbW9iaWxlIGRl
-dmljZSwgc28gZm9ybWF0dGluZyBtYXliZSBmdW5reSkKPiAKPiBPbiBGZWIgMjAsIDIwMTEsIGF0
-IDEyOjUwIFBNLCAiUmVpemVyLCBFeWFsIiA8ZXlhbHJAdGkuY29tPiB3cm90ZToKPiAuLi4KPiA+
-ICsjaWZkZWYgQ09ORklHX1dMMTJYWF9QTEFURk9STV9EQVRBCj4gPiAKPiAKPiAKPiBbP11bP11D
-T05GSUdfV0wxMlhYX1BMQVRGT1JNX0RBVEFoZXJlIGlzIGEgYml0IHByb2JsZW1hdGljLiBCdXQg
-d2UgY2FuCj4gY2hhbmdlIHRoYXQgb25jZSB0aG9zZSAib3RoZXIiIG1vZHVsZXMgc2hvdyB1cCAo
-aWYgYW55KQo+IAo+IAplcjogdGhlcmUgaXMgb25seSBvbmUgd2xhbiBtb2R1bGUgYXZhaWxhYmxl
-IGZvciB0aGUgb21hcDNldm0gYm9hcmQgKGJvdGgKbWFkZSBieSBNaXN0cmFsKSBzbyB0aGlzIHNo
-b3VsZCBiZSBvay4KCj4gPiBbP10KPiA+IFs/XQo+ID4gCj4gCj4gCj4gTm8gbmVlZCB0byBoYXZl
-IHRoZSBob3N0IHB1bGxpbmcgdXAgdGhlIDEyNzEncyBpbnRlcnJ1cHQgbGluZSAoaXQncwo+IGp1
-c3Qgd2FzdGluZyBwb3dlcikuCj4gCj4gCj4gWWVhaCwgd2UgaGF2ZSB0aGF0IG9uIFpPT00sIHRv
-bywgYnV0IGl0J3MgcmVkdW5kYW50Lgo+IAplcjogb2ssIEkgd2lsbCBjaGFuZ2UgdGhhdCBmb3Ig
-dGhlIG9tYXAzZXZtLgoKCkJlc3QgUmVnYXJkcywKRXlhbAoK
+Thanks.
 
---_000_EC51CDB0807A51469E0C9CB8CF72D65F033179C275dnce02enttico_
-Content-Disposition: attachment; filename="winmail.dat"
-Content-Transfer-Encoding: base64
-Content-Type: application/ms-tnef; name="winmail.dat"
-
-eJ8+IgRDAQaQCAAEAAAAAAABAAEAAQeQBgAIAAAA5AQAAAAAAADoAAEJgAEAIQAAADE0QTlEQjQ2
-RERCMTgzNDFCMDM1NkJFOTVDNDEyRDE0ACIHAQ2ABAACAAAAAgACAAEFgAMADgAAANsHAgAUAAsA
-KwAYAAAARgEBIIADAA4AAADbBwIAFAALACsAGAAAAEYBAQiABwAYAAAASVBNLk1pY3Jvc29mdCBN
-YWlsLk5vdGUAMQgBBIABAGcAAABSZTogUmU6IFBpbmctPiBTdWJqZWN0OiBbUEFUQ0hdIG9tYXA6
-IG9tYXAzZXZtOiBhZGQgc3VwcG9ydCBmb3IgdGhlIFdMMTJ4eCBXTEFOIG1vZHVsZSB0byB0aGUg
-b21hcDNldm0AHiIBA5AGAKANAAAuAAAAAgF/AAEAAAA/AAAAPEVDNTFDREIwODA3QTUxNDY5RTBD
-OUNCOENGNzJENjVGMDMzMTc5QzI3NUBkbmNlMDIuZW50LnRpLmNvbT4AAAIBCRABAAAAXQMAAFkD
-AABBBQAATFpGdTfTkAthAApmYmlkBAAAY2PAcGcxMjUyAP4DQ/B0ZXh0AfcCpAPjAgAEY2gKwHNl
-dDAg7wdtAoMAUBFNMgqABrQCgJZ9CoAIyDsJYjE5DsC/CcMWcgoyFnECgBViKgmwcwnwBJBhdAWy
-DlADYHOibwGAIEV4EcFuGDBdBlJ2BJAXtgIQcgDAdH0IUG4aMRAgBcAFoBtkZJogA1IgECIXslx2
-CJDkd2sLgGQ1HVME8AdADRdwMApxF/Jia21rBnMBkAAgIEJNX0LgRUdJTn0K+wvyATAge0hpIE8R
-0GQstFxsC4BlCoEiJE8DoCBTdW4sIAHQMTFQLTAyLQHQIBiAIIAxMzozMiArI8BfHqAjUCHCH7AJ
-8C0IUGhZCfAgdwNgECA6IhU+8iAhkUV5B0AiBibgJ4+pKJgocBkQdAuAZxx03GEgBGANwB5wIAEA
-HWD8Y2UjUBkgHHAa8yoDAMAUeWIZ4GYjMGt5KccoryGwA6BGZWIjYSNUIyNQJCIyOjUSMFBNwSNQ
-IlJlaXoEkCNQIScyIiA8ZSdBckC1KgAuBaBtJuAmHS4zIDMmdybgKyMGkAEBIEMAT05GSUdfV0wB
-DpBYWF9QTEFUqEZPUh/QRDWAQTNZ4y1fN2hbP104kTSPNZh7JdAJcCAEACqRDcAFQHBbA2ACYGUb
-EQ5QLh+wdX0FQHcZ4B5QC5AmhhmVdH8R0AVAAiArcD3hGRAZ4CJvJjA6oTEgBGF1HnAEIHNzPqAH
-4HVwKbAGkCQQbnctP0FYBJA6PeE6tQIgbPZ5PjEZ4HcLYAOgP3QkEP52C3ALYDuxK9JCsj4wAMD8
-cDMrQBywBuALESmwBuD/PfAiFQDAAQA7MEOAGNAfYPkYcGwpK6I98DrxP/E/oPMcYCzBb2szRjNZ
-OJFKT382b0y/B7ArwBhQHFEYkCD/EdAaMEVzPqE7YT+gIiEqMMdAQUWCDpA3MScEIAuAvRuhckBA
-BUAiIkBhdFEgySZ3anVPwXdhKfQp0Bk8kHIpM0hUbyBZZTxhaCNQPJFPFT4TIFqsT08wIRiQbyNQ
-YjxhrVJSIAlxIzBkAHB0VF/3QoJJoCNQSSYAAxADID2Kv0VOSc0iFSVwT8EwYGcLET5zIgYnMiIc
-FUJhAAAAAB8AQgABAAAAGgAAAFIAZQBpAHoAZQByACwAIABFAHkAYQBsAAAAAAAfAGUAAQAAABoA
-AABlAHkAYQBsAHIAQAB0AGkALgBjAG8AbQAAAAAAHwBkAAEAAAAKAAAAUwBNAFQAUAAAAAAAAgFB
-AAEAAABWAAAAAAAAAIErH6S+oxAZnW4A3QEPVAIAAACAUgBlAGkAegBlAHIALAAgAEUAeQBhAGwA
-AABTAE0AVABQAAAAZQB5AGEAbAByAEAAdABpAC4AYwBvAG0AAAAAAB8AGgwBAAAAGgAAAFIAZQBp
-AHoAZQByACwAIABFAHkAYQBsAAAAAAAfAB8MAQAAABoAAABlAHkAYQBsAHIAQAB0AGkALgBjAG8A
-bQAAAAAAHwAeDAEAAAAKAAAAUwBNAFQAUAAAAAAAAgEZDAEAAABWAAAAAAAAAIErH6S+oxAZnW4A
-3QEPVAIAAACAUgBlAGkAegBlAHIALAAgAEUAeQBhAGwAAABTAE0AVABQAAAAZQB5AGEAbAByAEAA
-dABpAC4AYwBvAG0AAAAAAB8AMUABAAAAAgAAAAAAAAALAEA6AQAAAB8AMEABAAAAAgAAAAAAAAAf
-ABoAAQAAABIAAABJAFAATQAuAE4AbwB0AGUAAAAAAAMA8T8JBAAACwBAOgEAAAADAP0/5AQAAAIB
-CzABAAAAEAAAABSp20bdsYNBsDVr6VxBLRQDABcAAQAAAEAAOQAAlmdh89DLAUAACDDF9oZh89DL
-AQMANgAAAAAAHwBwAAEAAADGAAAAUgBlADoAIABQAGkAbgBnAC0APgAgAFMAdQBiAGoAZQBjAHQA
-OgAgAFsAUABBAFQAQwBIAF0AIABvAG0AYQBwADoAIABvAG0AYQBwADMAZQB2AG0AOgAgAGEAZABk
-ACAAcwB1AHAAcABvAHIAdAAgAGYAbwByACAAdABoAGUAIABXAEwAMQAyAHgAeAAgAFcATABBAE4A
-IABtAG8AZAB1AGwAZQAgAHQAbwAgAHQAaABlACAAbwBtAGEAcAAzAGUAdgBtAAAAAAACAXEAAQAA
-ABYAAAABy9DzYYbwYTE0Q+RPqqIFscPCFFhSAAAfADUQAQAAAH4AAAA8AEUAQwA1ADEAQwBEAEIA
-MAA4ADAANwBBADUAMQA0ADYAOQBFADAAQwA5AEMAQgA4AEMARgA3ADIARAA2ADUARgAwADMAMwAx
-ADcAOQBDADIANwA1AEAAZABuAGMAZQAwADIALgBlAG4AdAAuAHQAaQAuAGMAbwBtAD4AAAAAAB8A
-ORABAAAAjAEAADwARQBDADUAMQBDAEQAQgAwADgAMAA3AEEANQAxADQANgA5AEUAMABDADkAQwBC
-ADgAQwBGADcAMgBEADYANQBGADAAMwAyAEQANwAzAEEAQQA2ADgAQABkAG4AYwBlADAAMgAuAGUA
-bgB0AC4AdABpAC4AYwBvAG0APgAgADwAMgAwADEAMQAwADIAMQA3ADIAMgAyADAAMgA3AC4ARwBE
-ADIAMAA3ADkANQBAAGEAdABvAG0AaQBkAGUALgBjAG8AbQA+ACAAPABFAEMANQAxAEMARABCADAA
-OAAwADcAQQA1ADEANAA2ADkARQAwAEMAOQBDAEIAOABDAEYANwAyAEQANgA1AEYAMAAzADMAMQA3
-ADkAQwAyADcANABAAGQAbgBjAGUAMAAyAC4AZQBuAHQALgB0AGkALgBjAG8AbQA+ACAAPAA3ADkA
-OAAxADMANQAyADcANQA3ADYAMgAxADkAMQA3ADIAMQA5AEAAdQBuAGsAbgBvAHcAbgBtAHMAZwBp
-AGQAPgAAAB8AQhABAAAARgAAADwANwA5ADgAMQAzADUAMgA3ADUANwA2ADIAMQA5ADEANwAyADEA
-OQBAAHUAbgBrAG4AbwB3AG4AbQBzAGcAaQBkAD4AAAAAAAsA8hABAAAAHwDzEAEAAADuAAAAUgBl
-ACUAMwBBACAAUgBlACUAMwBBACAAUABpAG4AZwAtACUAMwBFACAAUwB1AGIAagBlAGMAdAAlADMA
-QQAgAFsAUABBAFQAQwBIAF0AIABvAG0AYQBwACUAMwBBACAAbwBtAGEAcAAzAGUAdgBtACUAMwBB
-ACAAYQBkAGQAIABzAHUAcABwAG8AcgB0ACAAZgBvAHIAIAB0AGgAZQAgAFcATAAxADIAeAB4ACAA
-VwBMAEEATgAgAG0AbwBkAHUAbABlACAAdABvACAAdABoAGUAIABvAG0AYQBwADMAZQB2AG0ALgBF
-AE0ATAAAAAAACwD0EAAAAAALAPUQAAAAAAsA9hAAAAAAQAAHMG7oFmHz0MsBAwDeP+n9AAAfAPg/
-AQAAABoAAABSAGUAaQB6AGUAcgAsACAARQB5AGEAbAAAAAAAAgH5PwEAAABvAAAAAAAAANynQMjA
-QhAatLkIACsv4YIBAAAAAAAAAC9PPVRJL09VPUVYQ0hBTkdFIEFETUlOSVNUUkFUSVZFIEdST1VQ
-IChGWURJQk9IRjIzU1BETFQpL0NOPVJFQ0lQSUVOVFMvQ049RS1SRUlaRVIAAB8A+j8BAAAAGgAA
-AFIAZQBpAHoAZQByACwAIABFAHkAYQBsAAAAAAACAfs/AQAAAG8AAAAAAAAA3KdAyMBCEBq0uQgA
-Ky/hggEAAAAAAAAAL089VEkvT1U9RVhDSEFOR0UgQURNSU5JU1RSQVRJVkUgR1JPVVAgKEZZRElC
-T0hGMjNTUERMVCkvQ049UkVDSVBJRU5UUy9DTj1FLVJFSVpFUgAAAwAZQAAAAAADABpAAAAAAAMA
-DTT5PwAAAgEUNAEAAAAQAAAAVJShwCl/EBulhwgAKyolFx8APQABAAAACgAAAFIAZQA6ACAAAAAA
-AB8ANwABAAAAzgAAAFIAZQA6ACAAUgBlADoAIABQAGkAbgBnAC0APgAgAFMAdQBiAGoAZQBjAHQA
-OgAgAFsAUABBAFQAQwBIAF0AIABvAG0AYQBwADoAIABvAG0AYQBwADMAZQB2AG0AOgAgAGEAZABk
-ACAAcwB1AHAAcABvAHIAdAAgAGYAbwByACAAdABoAGUAIABXAEwAMQAyAHgAeAAgAFcATABBAE4A
-IABtAG8AZAB1AGwAZQAgAHQAbwAgAHQAaABlACAAbwBtAGEAcAAzAGUAdgBtAAAAAAAfAACAhgMC
-AAAAAADAAAAAAAAARgEAAAAeAAAAYQBjAGMAZQBwAHQAbABhAG4AZwB1AGEAZwBlAAAAAAABAAAA
-DAAAAGUAbgAtAFUAUwAAAB8AAICGAwIAAAAAAMAAAAAAAABGAQAAACAAAAB4AC0AbQBzAC0AaABh
-AHMALQBhAHQAdABhAGMAaAAAAAEAAAACAAAAAAAAALGr
-
---_000_EC51CDB0807A51469E0C9CB8CF72D65F033179C275dnce02enttico_--
+On Tue, Feb 15, 2011 at 11:04:53AM +0000, Russell King - ARM Linux wrot=
+e:
+> On Fri, Feb 11, 2011 at 06:50:57PM -0800, Colin Cross wrote:
+> > > +ENDPROC(cpu_resume_turn_mmu_on)
+> > > +cpu_resume_after_mmu:
+> > > + =A0 =A0 =A0 str =A0 =A0 r5, [r2, r4, lsl #2] =A0 =A0@ restore o=
+ld mapping
+> > > +#ifdef MULTI_CACHE
+> > > + =A0 =A0 =A0 ldr =A0 =A0 r10, =3Dcpu_cache
+> > > + =A0 =A0 =A0 ldr =A0 =A0 pc, [r10, #CACHE_FLUSH_KERN_ALL]
+> > > +#else
+> > > + =A0 =A0 =A0 b =A0 =A0 =A0 __cpuc_flush_kern_all
+> > > +#endif
+>=20
+> I think we can eliminate this cache flush by delaying the cache enabl=
+e
+> as below.  Could you see whether Tegra 2 survives this please?
+> Thanks.
+>=20
+> diff --git a/arch/arm/kernel/sleep.S b/arch/arm/kernel/sleep.S
+> index bed1876..193be5f 100644
+> --- a/arch/arm/kernel/sleep.S
+> +++ b/arch/arm/kernel/sleep.S
+> @@ -4,6 +4,7 @@
+>  #include <asm/assembler.h>
+>  #include <asm/glue-cache.h>
+>  #include <asm/glue-proc.h>
+> +#include <asm/system.h>
+>  	.text
+> =20
+>  /*
+> @@ -81,25 +82,22 @@ ENTRY(cpu_resume_mmu)
+>  	str	r3, [r2, r4, lsl #2]	@ setup 1:1 mapping for mmu code
+>  	sub	r2, r2, r1
+>  	ldr	r3, =3Dcpu_resume_after_mmu
+> +	bic	r1, r0, #CR_C		@ ensure D-cache is disabled
+>  	b	cpu_resume_turn_mmu_on
+>  ENDPROC(cpu_resume_mmu)
+>  	.ltorg
+>  	.align	5
+>  cpu_resume_turn_mmu_on:
+> -	mcr	p15, 0, r0, c1, c0, 0	@ turn on MMU, caches, etc
+> -	mrc	p15, 0, r0, c0, c0, 0	@ read id reg
+> -	mov	r0, r0
+> -	mov	r0, r0
+> +	mcr	p15, 0, r1, c1, c0, 0	@ turn on MMU, I-cache, etc
+> +	mrc	p15, 0, r1, c0, c0, 0	@ read id reg
+> +	mov	r1, r1
+> +	mov	r1, r1
+>  	mov	pc, r3			@ jump to virtual address
+>  ENDPROC(cpu_resume_turn_mmu_on)
+>  cpu_resume_after_mmu:
+>  	str	r5, [r2, r4, lsl #2]	@ restore old mapping
+> -#ifdef MULTI_CACHE
+> -	ldr	r10, =3Dcpu_cache
+> -	ldr	pc, [r10, #CACHE_FLUSH_KERN_ALL]
+> -#else
+> -	b	__cpuc_flush_kern_all
+> -#endif
+> +	mcr	p15, 0, r0, c1, c0, 0	@ turn on D-cache
+> +	mov	pc, lr
+> =20
+>  /*
+>   * Note: Yes, part of the following code is located into the .data s=
+ection.
+>=20
+>=20
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
