@@ -1,197 +1,161 @@
-From: "Manuel, Lesly Arackal" <leslyam@ti.com>
-Subject: Re: [PATCH 09/12] omap3: pm: TWL5030 version checking
-Date: Mon, 21 Feb 2011 15:56:34 +0530
-Message-ID: <AANLkTinWqtgRP5y6sMrGLbSxQ-s4BnycrvBOcUeJBB3J@mail.gmail.com>
-References: <1298048938-1480-1-git-send-email-leslyam@ti.com>
-	<1298048938-1480-10-git-send-email-leslyam@ti.com>
-	<AANLkTimuiYp1k2vMMnD-a=oqh==fkJdqsckTovguwqSO@mail.gmail.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH 14/17] omap4: cpuidle: Add MPUSS RET OFF states
+Date: Mon, 21 Feb 2011 15:56:57 +0530
+Message-ID: <6176616fe77333f80f0cfaae4fc8aff3@mail.gmail.com>
+References: <1298112158-28469-1-git-send-email-santosh.shilimkar@ti.com><1298112158-28469-15-git-send-email-santosh.shilimkar@ti.com>
+ <AANLkTik-hj+-ZPnfVKLCH0h-QeyziH4H-j6EE+_QHHCU@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:56677 "EHLO
-	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755118Ab1BUK0f convert rfc822-to-8bit
+Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:41635 "EHLO
+	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755343Ab1BUK1B convert rfc822-to-8bit
 	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 21 Feb 2011 05:26:35 -0500
-Received: by mail-vx0-f181.google.com with SMTP id 39so959699vxb.40
-        for <linux-omap@vger.kernel.org>; Mon, 21 Feb 2011 02:26:34 -0800 (PST)
-In-Reply-To: <AANLkTimuiYp1k2vMMnD-a=oqh==fkJdqsckTovguwqSO@mail.gmail.com>
+	Mon, 21 Feb 2011 05:27:01 -0500
+Received: by qyk29 with SMTP id 29so1011549qyk.10
+        for <linux-omap@vger.kernel.org>; Mon, 21 Feb 2011 02:27:00 -0800 (PST)
+In-Reply-To: <AANLkTik-hj+-ZPnfVKLCH0h-QeyziH4H-j6EE+_QHHCU@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Cohen <dacohen@gmail.com>
-Cc: linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>, David Derrick <dderrick@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
+To: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
 
-Hi David,
-
-On Sat, Feb 19, 2011 at 5:21 AM, David Cohen <dacohen@gmail.com> wrote:
-> Hi,
+> -----Original Message-----
+> From: Jean Pihet [mailto:jean.pihet@newoldbits.com]
+> Sent: Monday, February 21, 2011 3:49 PM
+> To: Santosh Shilimkar
+> Cc: linux-omap@vger.kernel.org; khilman@ti.com; linux-arm-
+> kernel@lists.infradead.org; Rajendra Nayak
+> Subject: Re: [PATCH 14/17] omap4: cpuidle: Add MPUSS RET OFF states
 >
-> On Fri, Feb 18, 2011 at 7:08 PM, Lesly A M <leslyam@ti.com> wrote:
->> Added api to get the TWL5030 Si version from the IDCODE register.
->> It is used for enabling the workaround for TWL errata 27.
->>
->> Signed-off-by: Lesly A M <leslyam@ti.com>
->> Cc: Nishanth Menon <nm@ti.com>
->> Cc: David Derrick <dderrick@ti.com>
->> Cc: Samuel Ortiz <sameo@linux.intel.com>
->> ---
->> =A0drivers/mfd/twl-core.c =A0| =A0 50 ++++++++++++++++++++++++++++++=
-+++++++++++++++++
->> =A0include/linux/i2c/twl.h | =A0 10 +++++++++
->> =A02 files changed, 60 insertions(+), 0 deletions(-)
->>
->> diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
->> index a35fa7d..211c2cc 100644
->> --- a/drivers/mfd/twl-core.c
->> +++ b/drivers/mfd/twl-core.c
->> @@ -487,6 +487,56 @@ EXPORT_SYMBOL(twl_i2c_read_u8);
->>
->> =A0/*---------------------------------------------------------------=
--------*/
->>
->> +/**
->> + * twl_read_idcode_register - api to read the IDCODE register.
->> + * @value: returns 32 bit IDCODE register value.
->> + *
->> + * Unlocks the IDCODE register and read the 32 bit value.
->> + */
->> +int twl_read_idcode_register(u32 *value)
->> +{
->> + =A0 =A0 =A0 int err =3D 0;
+> Hi Santosh,
 >
-> No need to initialize 'ret'.
-Ok
-
->> +
->> + =A0 =A0 =A0 err =3D twl_i2c_write_u8(TWL4030_MODULE_INTBR, TWL_EEP=
-ROM_R_UNLOCK,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 R_UNLOCK_TEST_REG);
->> + =A0 =A0 =A0 if (err)
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_err("TWL4030 Unable to unlock IDCOD=
-E registers\n");
->> +
->> + =A0 =A0 =A0 err =3D twl_i2c_read(TWL4030_MODULE_INTBR, (u8 *)(valu=
-e),
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 0x0, 4);
->
-> Variable 'err' is being overwritten here.
->
->> + =A0 =A0 =A0 if (err)
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_err("TWL4030: unable to read IDCODE=
--%d\n", err);
->> +
->> + =A0 =A0 =A0 err =3D twl_i2c_write_u8(TWL4030_MODULE_INTBR, 0x0, R_=
-UNLOCK_TEST_REG);
->
-> Here again.
->
->> + =A0 =A0 =A0 if (err)
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_err("TWL4030 Unable to relock IDCOD=
-E registers\n");
->> +
->> + =A0 =A0 =A0 return err;
->
-> And then you're returning 'err'. Unless you care only about the last
-> 'err' assignment, something is wrong here, isn't it? :)
-
-Ok, I will use a label and goto that label if there is some err on any
-i2c_read/write
+[...]
 
 >
->> +}
->> +
->> +/**
->> + * twl5030_get_si_ver - api to get TWL5030 Si version.
->> + * @value: returns Si version from IDCODE.
->> + *
->> + * Api to get the TWL5030 Si version from IDCODE value.
->> + */
->> +int twl5030_get_si_ver(u32 *value)
->> +{
->> + =A0 =A0 =A0 int ret =3D 0;
+> > + * cpuidle CORE retention support.
+> > + * Currently only MPUSS latency numbers are added based on
+> > + * measurements done internally. The numbers for MPUSS are
+> > + * not board dependent and hence set directly here instead of
+> > + * passing it from board files.
+> > + */
+> > =A0static struct cpuidle_params cpuidle_params_table[] =3D {
+> > - =A0 =A0 =A0 /* C1 */
+> > - =A0 =A0 =A0 {1, 2, 2, 5},
+> > + =A0 =A0 =A0 /* C1 - CPU0 WFI + CPU1 ON/OFF + MPU ON =A0 + CORE ON=
+ */
+> > + =A0 =A0 =A0 {1, =A0 =A0 2, =A0 =A0 =A02, =A0 =A0 =A05},
+> > + =A0 =A0 =A0 /* C2 - CPU0 ON + CPU1 OFF + MPU ON =A0+ CORE ON */
+> > + =A0 =A0 =A0 {1, =A0 =A0 140, =A0 =A0160, =A0 =A0300},
+> > + =A0 =A0 =A0 /* C3 - CPU0 OFF + CPU1 OFF + MPU CSWR + CORE ON */
+> > + =A0 =A0 =A0 {1, =A0 =A0 200, =A0 =A0300, =A0 =A0700},
+> > + =A0 =A0 =A0 /* C4 - CPU0 OFF + CPU1 OFF + MPU OFF + CORE ON */
+> > + =A0 =A0 =A0 {1, =A0 =A0 1400, =A0 600, =A0 =A05000},
+> > =A0};
+> >
+> > +DEFINE_PER_CPU(struct cpuidle_device, omap4_idle_dev);
+> > +
+> > +static int omap4_idle_bm_check(void)
+> > +{
+> > + =A0 =A0 =A0 /* FIXME: Populate this with CORE retention support *=
+/
+> > + =A0 =A0 =A0 return 0;
+> > +}
+> > +
+> > =A0/**
+> > =A0* omap4_enter_idle - Programs OMAP4 to enter the specified state
+> > =A0* @dev: cpuidle device
+> > @@ -57,7 +92,9 @@ static struct cpuidle_params
+> cpuidle_params_table[] =3D {
+> > =A0static int omap4_enter_idle(struct cpuidle_device *dev,
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0struct cpuidle_state=
+ *state)
+> > =A0{
+> > + =A0 =A0 =A0 struct omap4_processor_cx *cx =3D
+> cpuidle_get_statedata(state);
+> > =A0 =A0 =A0 =A0struct timespec ts_preidle, ts_postidle, ts_idle;
+> > + =A0 =A0 =A0 u32 cpu1_state;
+> >
+> > =A0 =A0 =A0 =A0/* Used to keep track of the total time in idle */
+> > =A0 =A0 =A0 =A0getnstimeofday(&ts_preidle);
+> > @@ -65,28 +102,74 @@ static int omap4_enter_idle(struct
+> cpuidle_device *dev,
+> > =A0 =A0 =A0 =A0local_irq_disable();
+> > =A0 =A0 =A0 =A0local_fiq_disable();
+> >
+> > - =A0 =A0 =A0 cpu_do_idle();
 >
-> No need to initialize 'ret'.
-Ok
+> I think the piece of code below is rather difficult to read and
+> understand. Based on the patch description and the comment here
+> below
+> I do not see the relation with the code.
+>
+There is relation. The comments are as per the conditions. And
+The hardware constraint is back-ground behind the conditions.
 
->> + =A0 =A0 =A0 static u32 twl_idcode;
->> +
->> + =A0 =A0 =A0 if (twl_idcode =3D=3D 0)
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D twl_read_idcode_register(&twl_=
-idcode);
->> + =A0 =A0 =A0 if (ret)
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_err("TWL4030 Unable to check Si ver=
-sion\n");
+> " On OMAP4 because of hardware constraints, no low power states are
+>  targeted when both CPUs are online and in SMP mode. The low power
+>  states are attempted only when secondary CPU gets offline to OFF
+>  through hotplug infrastructure. "
+> The test below does not seem to match this comment.
 >
-> Shouldn't you return error here?
-Yes,
+> > + =A0 =A0 =A0 /*
+> > + =A0 =A0 =A0 =A0* Special hardware/software considerations:
+> > + =A0 =A0 =A0 =A0* 1. Do only WFI for secondary CPU(non-boot - CPU1=
+).
+> > + =A0 =A0 =A0 =A0* =A0 =A0Secondary cores are taken down only via h=
+otplug
+> path.
+> The comment looks contradictory. Which one is taken OFF using this
+> code, which one from hotplug?
+> Does this correspond to the condition '(dev->cpu)' in the test
+> below?
 
->> +
->> + =A0 =A0 =A0 if (TWL_SIL_TYPE(twl_idcode) =3D=3D TWL_SIL_5030)
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 *value =3D TWL_SIL_REV(twl_idcode);
+Yes.
 >
-> Otherwise, what happens here if twl_read_idcode_register() fails?
+> > + =A0 =A0 =A0 =A0* 2. Do only a WFI as long as in SMP mode.
+> Does this correspond to the condition '(num_online_cpus() > 1)' in
+> the
+> test below? If so it this one triggering the low power mode for
+> cpu0?
+yes
 >
->> +
->> + =A0 =A0 =A0 return ret;
+> > + =A0 =A0 =A0 =A0* 3. Continue to do only WFI till CPU1 hits OFF st=
+ate.
+> > + =A0 =A0 =A0 =A0* =A0 =A0This is necessary to honour hardware reco=
+mmondation
+> > + =A0 =A0 =A0 =A0* =A0 =A0of triggeing all the possible low power m=
+odes once
+> CPU1 is
+> > + =A0 =A0 =A0 =A0* =A0 =A0out of coherency and in OFF mode.
+> Does this correspond to the condition '(cpu1_state !=3D
+> PWRDM_POWER_OFF)' in the test below?
 >
-> return 0 if the code reaches this point.
-Ok. I will do the changes
+Yes
+
+> > + =A0 =A0 =A0 =A0* Update dev->last_state so that governor stats re=
+flects
+> right
+> > + =A0 =A0 =A0 =A0* data.
+> > + =A0 =A0 =A0 =A0*/
+> > + =A0 =A0 =A0 cpu1_state =3D pwrdm_read_pwrst(cpu1_pd);
+> > + =A0 =A0 =A0 if ((dev->cpu) || (num_online_cpus() > 1) ||
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (cpu1_state !=3D PWRD=
+M_POWER_OFF)) {
+> Are '||' correct here?
+Yes.
+
+> Sorry if the code behaves correctly, the remarks are about
+> readability especially in the comments.
+>
+You got all three correct. Instead of having three If's doing
+same thing I have merged them and added comments above.
+
+And you got all of them correctly.
 
 Regards,
-Lesly A M
-
->> +}
->> +EXPORT_SYMBOL(twl5030_get_si_ver);
->> +
->> =A0static struct device *
->> =A0add_numbered_child(unsigned chip, const char *name, int num,
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0void *pdata, unsigned pdata_len,
->> diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
->> index f4bd475..5d3f2bf 100644
->> --- a/include/linux/i2c/twl.h
->> +++ b/include/linux/i2c/twl.h
->> @@ -150,7 +150,15 @@
->> =A0#define MMC_PU =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (0=
-x1 << 3)
->> =A0#define MMC_PD =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (0=
-x1 << 2)
->>
->> +#define R_UNLOCK_TEST_REG =A0 =A0 =A00x12
->> +#define TWL_EEPROM_R_UNLOCK =A0 =A00x49
->>
->> +#define TWL_SIL_TYPE(rev) =A0 =A0 =A0((rev) & 0x00FFFFFF)
->> +#define TWL_SIL_REV(rev) =A0 =A0 =A0 ((rev) >> 24)
->> +#define TWL_SIL_5030 =A0 =A0 =A0 =A0 =A0 0x09002F
->> +#define TWL5030_REV_1_0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A00x00
->> +#define TWL5030_REV_1_1 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A00x10
->> +#define TWL5030_REV_1_2 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A00x30
->>
->> =A0#define TWL4030_CLASS_ID =A0 =A0 =A0 =A0 =A0 =A0 =A0 0x4030
->> =A0#define TWL6030_CLASS_ID =A0 =A0 =A0 =A0 =A0 =A0 =A0 0x6030
->> @@ -180,6 +188,8 @@ int twl_i2c_read_u8(u8 mod_no, u8 *val, u8 reg);
->> =A0int twl_i2c_write(u8 mod_no, u8 *value, u8 reg, unsigned num_byte=
-s);
->> =A0int twl_i2c_read(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes=
-);
->>
->> +int twl5030_get_si_ver(u32 *value);
->> +
->> =A0int twl6030_interrupt_unmask(u8 bit_mask, u8 offset);
->> =A0int twl6030_interrupt_mask(u8 bit_mask, u8 offset);
->>
->> --
->> 1.7.1
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap=
-" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->>
->
+Santosh
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
