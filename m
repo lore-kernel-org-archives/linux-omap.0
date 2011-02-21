@@ -1,71 +1,60 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 3/6] omap3: l3: Introduce l3-interconnect error handling driver
-Date: Mon, 21 Feb 2011 19:16:27 +0530
-Message-ID: <1298295990-1070-4-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH 6/6] omap4: l3: Introduce l3-interconnect error handling driver
+Date: Mon, 21 Feb 2011 19:16:30 +0530
+Message-ID: <1298295990-1070-7-git-send-email-santosh.shilimkar@ti.com>
 References: <1298295990-1070-1-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:37905 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:37909 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756034Ab1BUNqg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 21 Feb 2011 08:46:36 -0500
+	id S1756038Ab1BUNqh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 21 Feb 2011 08:46:37 -0500
 Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1LDkXYU017269
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1LDkXLP017273
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Mon, 21 Feb 2011 07:46:35 -0600
+	for <linux-omap@vger.kernel.org>; Mon, 21 Feb 2011 07:46:36 -0600
 In-Reply-To: <1298295990-1070-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: balbi@ti.com, b-cousson@ti.com, r.sricharan@ti.com, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-From: Felipe Balbi <balbi@ti.com>
-
 The driver provides the information regarding the ocp errors
-that gets logged in the interconnect.The error info provides
-the details regarding the master or the target that
-generated the error, type of error and the corresponding address.
-The stack dump is also provided.
+that gets logged in the interconnect. The error information
+gives the detail regarding the target that was attempted
+to be accessed and its corresponding address.
 
 Signed-off-by: sricharan <r.sricharan@ti.com>
-[r.sricharan@ti.com: Enhacements, major cleanup and made it functional]
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-[santosh.shilimkar@ti.com: Driver design changes as per OMAP4 version]
-Signed-off-by: Felipe Balbi <balbi@ti.com>
-[balbi@ti.com: Initial version of the driver]
-Tested-by: sricharan <r.sricharan@ti.com>
 ---
- arch/arm/mach-omap2/Makefile               |    3 +
- arch/arm/mach-omap2/l3_interconnect_3xxx.c |  314 ++++++++++++++++++++++++++
- arch/arm/mach-omap2/l3_interconnect_3xxx.h |  338 ++++++++++++++++++++++++++++
- 3 files changed, 655 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-omap2/l3_interconnect_3xxx.c
- create mode 100644 arch/arm/mach-omap2/l3_interconnect_3xxx.h
+ arch/arm/mach-omap2/Makefile               |    1 +
+ arch/arm/mach-omap2/l3_interconnect_4xxx.c |  254 ++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/l3_interconnect_4xxx.h |  132 ++++++++++++++
+ 3 files changed, 387 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/l3_interconnect_4xxx.c
+ create mode 100644 arch/arm/mach-omap2/l3_interconnect_4xxx.h
 
 diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 4ab82f6..623aee1 100644
+index 623aee1..3ad18e6 100644
 --- a/arch/arm/mach-omap2/Makefile
 +++ b/arch/arm/mach-omap2/Makefile
-@@ -135,6 +135,9 @@ obj-$(CONFIG_ARCH_OMAP4)		+= omap_hwmod_44xx_data.o
- # EMU peripherals
- obj-$(CONFIG_OMAP3_EMU)			+= emu.o
+@@ -137,6 +137,7 @@ obj-$(CONFIG_OMAP3_EMU)			+= emu.o
  
-+# L3 interconnect
-+obj-$(CONFIG_ARCH_OMAP3)		+= l3_interconnect_3xxx.o
-+
+ # L3 interconnect
+ obj-$(CONFIG_ARCH_OMAP3)		+= l3_interconnect_3xxx.o
++obj-$(CONFIG_ARCH_OMAP4)		+= l3_interconnect_4xxx.o
+ 
  obj-$(CONFIG_OMAP_MBOX_FWK)		+= mailbox_mach.o
  mailbox_mach-objs			:= mailbox.o
- 
-diff --git a/arch/arm/mach-omap2/l3_interconnect_3xxx.c b/arch/arm/mach-omap2/l3_interconnect_3xxx.c
+diff --git a/arch/arm/mach-omap2/l3_interconnect_4xxx.c b/arch/arm/mach-omap2/l3_interconnect_4xxx.c
 new file mode 100644
-index 0000000..1d1aae3
+index 0000000..15a08ca
 --- /dev/null
-+++ b/arch/arm/mach-omap2/l3_interconnect_3xxx.c
-@@ -0,0 +1,314 @@
-+ /*
-+  * L3 Interconnect Driver
++++ b/arch/arm/mach-omap2/l3_interconnect_4xxx.c
+@@ -0,0 +1,254 @@
++/*
++  * L3 Interconnect error handling driver
 +  *
 +  * Copyright (C) 2011 Texas Corporation
-+  *	Felipe Balbi <balbi@ti.com>
 +  *	Santosh Shilimkar <santosh.shilimkar@ti.com>
 +  *	Sricharan <r.sricharan@ti.com>
 +  *
@@ -84,260 +73,198 @@ index 0000000..1d1aae3
 +  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 +  * USA
 +  */
-+
-+#include <linux/kernel.h>
-+#include <linux/slab.h>
++#include <linux/init.h>
++#include <linux/io.h>
 +#include <linux/platform_device.h>
 +#include <linux/interrupt.h>
-+#include <linux/io.h>
-+#include "l3_interconnect_3xxx.h"
++#include <linux/kernel.h>
++#include <linux/slab.h>
 +
-+static inline u64 omap3_l3_readll(void __iomem *base, u16 reg)
-+{
-+	return __raw_readll(base + reg);
-+}
++#include "l3_interconnect_4xxx.h"
 +
-+static inline void omap3_l3_writell(void __iomem *base, u16 reg, u64 value)
-+{
-+	__raw_writell(value, base + reg);
-+}
-+
-+static inline enum omap3_l3_code omap3_l3_decode_error_code(u64 error)
-+{
-+	return (error & 0x0f000000) >> L3_ERROR_LOG_CODE;
-+}
-+
-+static inline u32 omap3_l3_decode_addr(u64 error_addr)
-+{
-+	return error_addr & 0xffffffff;
-+}
-+
-+static inline unsigned omap3_l3_decode_cmd(u64 error)
-+{
-+	return (error & 0x07) >> L3_ERROR_LOG_CMD;
-+}
-+
-+static inline enum omap3_l3_initiator_id omap3_l3_decode_initid(u64 error)
-+{
-+	return (error & 0xff00) >> L3_ERROR_LOG_INITID;
-+}
-+
-+static inline unsigned omap3_l3_decode_req_info(u64 error)
-+{
-+	return (error >> 32) & 0xffff;
-+}
-+
-+static char *omap3_l3_code_string(u8 code)
-+{
-+	switch (code) {
-+	case OMAP_L3_CODE_NOERROR:
-+		return "No Error";
-+	case OMAP_L3_CODE_UNSUP_CMD:
-+		return "Unsupported Command";
-+	case OMAP_L3_CODE_ADDR_HOLE:
-+		return "Address Hole";
-+	case OMAP_L3_CODE_PROTECT_VIOLATION:
-+		return "Protection Violation";
-+	case OMAP_L3_CODE_IN_BAND_ERR:
-+		return "In-band Error";
-+	case OMAP_L3_CODE_REQ_TOUT_NOT_ACCEPT:
-+		return "Request Timeout Not Accepted";
-+	case OMAP_L3_CODE_REQ_TOUT_NO_RESP:
-+		return "Request Timeout, no response";
-+	default:
-+		return "UNKNOWN error";
-+	}
-+}
-+
-+static char *omap3_l3_initiator_string(u8 initid)
-+{
-+	switch (initid) {
-+	case OMAP_L3_LCD:
-+		return "LCD";
-+	case OMAP_L3_SAD2D:
-+		return "SAD2D";
-+	case OMAP_L3_IA_MPU_SS_1:
-+	case OMAP_L3_IA_MPU_SS_2:
-+	case OMAP_L3_IA_MPU_SS_3:
-+	case OMAP_L3_IA_MPU_SS_4:
-+	case OMAP_L3_IA_MPU_SS_5:
-+		return "MPU";
-+	case OMAP_L3_IA_IVA_SS_1:
-+	case OMAP_L3_IA_IVA_SS_2:
-+	case OMAP_L3_IA_IVA_SS_3:
-+		return "IVA_SS";
-+	case OMAP_L3_IA_IVA_SS_DMA_1:
-+	case OMAP_L3_IA_IVA_SS_DMA_2:
-+	case OMAP_L3_IA_IVA_SS_DMA_3:
-+	case OMAP_L3_IA_IVA_SS_DMA_4:
-+	case OMAP_L3_IA_IVA_SS_DMA_5:
-+	case OMAP_L3_IA_IVA_SS_DMA_6:
-+		return "IVA_SS_DMA";
-+	case OMAP_L3_IA_SGX:
-+		return "SGX";
-+	case OMAP_L3_IA_CAM_1:
-+	case OMAP_L3_IA_CAM_2:
-+	case OMAP_L3_IA_CAM_3:
-+		return "CAM";
-+	case OMAP_L3_IA_DAP:
-+		return "DAP";
-+	case OMAP_L3_SDMA_WR_1:
-+	case OMAP_L3_SDMA_WR_2:
-+		return "SDMA_WR";
-+	case OMAP_L3_SDMA_RD_1:
-+	case OMAP_L3_SDMA_RD_2:
-+	case OMAP_L3_SDMA_RD_3:
-+	case OMAP_L3_SDMA_RD_4:
-+		return "SDMA_RD";
-+	case OMAP_L3_USBOTG:
-+		return "USB_OTG";
-+	case OMAP_L3_USBHOST:
-+		return "USB_HOST";
-+	default:
-+		return "UNKNOWN Initiator";
-+	}
-+}
-+
-+/**
-+ * omap3_l3_block_irq - handles a register block's irq
-+ * @l3: struct omap3_l3 *
-+ * @base: register block base address
-+ * @error: L3_ERROR_LOG register of our block
++/*
++ * Interrupt Handler for L3 error detection.
++ *	1) Identify the L3 clockdomain partition to which the error belongs to.
++ *	2) Identify the slave where the error information is logged
++ *	3) Print the logged information.
++ *	4) Add dump stack to provide kernel trace.
 + *
-+ * Called in hard-irq context. Caller should take care of locking
++ * Two Types of errors :
++ *	1) Custom errors in L3 :
++ *		Target like DMM/FW/EMIF generates SRESP=ERR error
++ *	2) Standard L3 error:
++ *		- Unsupported CMD.
++ *			L3 tries to access target while it is idle
++ *		- OCP disconnect.
++ *		- Address hole error:
++ *			If DSS/ISS/FDIF/USBHOSTFS access a target where they
++ *			do not have connectivity, the error is logged in
++ *			their default target which is DMM2.
 + *
-+ * OMAP36xx TRM gives, on page 2001, Figure 9-10, the Typical Error
-+ * Analysis Sequence, we are following that sequence here, please
-+ * refer to that Figure for more information on the subject.
++ *	On High Secure devices, firewall errors are possible and those
++ *	can be trapped as well. But the trapping is implemented as part
++ *	secure software and hence need not be implemented here.
 + */
-+static irqreturn_t omap3_l3_block_irq(struct omap3_l3 *l3,
-+					u64 error, int error_addr)
++static irqreturn_t l3_interrupt_handler(int irq, void *_l3)
 +{
-+	u8                      code = omap3_l3_decode_error_code(error);
-+	u8                      initid = omap3_l3_decode_initid(error);
-+	u8                      multi = error & L3_ERROR_LOG_MULTI;
-+	u32			address = omap3_l3_decode_addr(error_addr);
 +
-+	WARN(true, "%s Error seen by %s %s at address %x\n",
-+				 omap3_l3_code_string(code),
-+			  omap3_l3_initiator_string(initid),
-+			     multi ? "Multiple Errors" : "",
-+						   address);
++	struct omap4_l3		*l3 = _l3;
++	int inttype, i, j;
++	int err_src = 0;
++	u32 std_err_main_addr, std_err_main, err_reg;
++	u32 base, slave_addr, clear;
++	char *source_name;
 +
++	/* Get the Type of interrupt */
++	if (irq == l3->app_irq)
++		inttype = L3_APPLICATION_ERROR;
++	else
++		inttype = L3_DEBUG_ERROR;
++
++	for (i = 0; i < L3_MODULES; i++) {
++		/*
++		 * Read the regerr register of the clock domain
++		 * to determine the source
++		 */
++		base = (u32)l3->l3_base[i];
++		err_reg =  readl(base + l3_flagmux[i] + (inttype << 3));
++
++		/* Get the corresponding error and analyse */
++		if (err_reg) {
++			/* Identify the source from control status register */
++			for (j = 0; !(err_reg & (1 << j)); j++)
++									;
++
++			err_src = j;
++			/* Read the stderrlog_main_source from clk domain */
++			std_err_main_addr = base + (*(l3_targ[i] + err_src));
++			std_err_main =  readl(std_err_main_addr);
++
++			switch ((std_err_main & CUSTOM_ERROR)) {
++			case STANDARD_ERROR:
++				source_name =
++				l3_targ_stderrlog_main_name[i][err_src];
++
++				slave_addr = std_err_main_addr +
++						L3_SLAVE_ADDRESS_OFFSET;
++				WARN(true, "L3 standard error: SOURCE:%s at address 0x%x\n",
++					source_name, readl(slave_addr));
++				/* clear the std error log*/
++				clear = std_err_main | CLEAR_STDERR_LOG;
++				writel(clear, std_err_main_addr);
++				break;
++
++			case CUSTOM_ERROR:
++				source_name =
++				l3_targ_stderrlog_main_name[i][err_src];
++
++				WARN(true, "CUSTOM SRESP error with SOURCE:%s\n",
++							source_name);
++				/* clear the std error log*/
++				clear = std_err_main | CLEAR_STDERR_LOG;
++				writel(clear, std_err_main_addr);
++				break;
++
++			default:
++				/* Nothing to be handled here as of now */
++				break;
++			}
++		/* Error found so break the for loop */
++		break;
++		}
++	}
 +	return IRQ_HANDLED;
 +}
 +
-+static irqreturn_t omap3_l3_app_irq(int irq, void *_l3)
++static int __init omap4_l3_probe(struct platform_device *pdev)
 +{
-+	struct omap3_l3         *l3 = _l3;
-+
-+	u64                     status, clear;
-+	u64                     error;
-+	u64			error_addr;
-+	u64			err_source = 0;
-+	void			__iomem *base;
-+	int			int_type;
-+
-+	irqreturn_t             ret = IRQ_NONE;
-+
-+	if (irq == l3->app_irq)
-+		int_type = L3_APPLICATION_ERROR;
-+	else
-+		int_type = L3_DEBUG_ERROR;
-+
-+	if (!int_type) {
-+		status = omap3_l3_readll(l3->rt, L3_SI_FLAG_STATUS_0);
-+		/*
-+		 * if we have a timeout error, there's nothing we can
-+		 * do besides rebooting the board. So let's BUG on any
-+		 * of such errors and handle the others. timeout error
-+		 * is severe and not expected to occur.
-+		 */
-+		BUG_ON(status & L3_STATUS_0_TIMEOUT_MASK);
-+	} else {
-+		status = omap3_l3_readll(l3->rt, L3_SI_FLAG_STATUS_1);
-+		/* No timeout error for debug sources */
-+	}
-+
-+	base = ((l3->rt) + (*(omap3_l3_bases[int_type] + err_source)));
-+
-+	/* identify the error source */
-+	for (err_source = 0; !(status & (1 << err_source)); err_source++)
-+									;
-+	error = omap3_l3_readll(base, L3_ERROR_LOG);
-+
-+	if (error) {
-+		error_addr = omap3_l3_readll(base, L3_ERROR_LOG_ADDR);
-+
-+		ret |= omap3_l3_block_irq(l3, error, error_addr);
-+	}
-+
-+	/* Clear the status register */
-+	clear = ((L3_AGENT_STATUS_CLEAR_IA << int_type) |
-+		 (L3_AGENT_STATUS_CLEAR_TA));
-+
-+	omap3_l3_writell(base, L3_AGENT_STATUS, clear);
-+
-+	/* clear the error log register */
-+	omap3_l3_writell(base, L3_ERROR_LOG, error);
-+
-+	return ret;
-+}
-+
-+static int __init omap3_l3_probe(struct platform_device *pdev)
-+{
-+	struct omap3_l3         *l3;
-+	struct resource         *res;
-+	int                     ret;
-+	int                     irq;
++	static struct omap4_l3		*l3;
++	struct resource		*res;
++	int			ret;
++	int			irq;
 +
 +	l3 = kzalloc(sizeof(*l3), GFP_KERNEL);
-+	if (!l3) {
++	if (!l3)
 +		ret = -ENOMEM;
-+		goto err0;
-+	}
 +
 +	platform_set_drvdata(pdev, l3);
-+
 +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 +	if (!res) {
-+		dev_err(&pdev->dev, "couldn't find resource\n");
++		dev_err(&pdev->dev, "couldn't find resource 0\n");
 +		ret = -ENODEV;
 +		goto err1;
 +	}
-+	l3->rt = ioremap(res->start, resource_size(res));
-+	if (!(l3->rt)) {
++
++	l3->l3_base[0] = ioremap(res->start, resource_size(res));
++	if (!(l3->l3_base[0])) {
 +		dev_err(&pdev->dev, "ioremap failed\n");
 +		ret = -ENOMEM;
 +		goto err2;
 +	}
 +
-+	irq = platform_get_irq(pdev, 0);
-+	ret = request_irq(irq, omap3_l3_app_irq,
-+		IRQF_DISABLED | IRQF_TRIGGER_RISING,
-+		"l3-debug-irq", l3);
-+	if (ret) {
-+		dev_err(&pdev->dev, "couldn't request debug irq\n");
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
++	if (!res) {
++		dev_err(&pdev->dev, "couldn't find resource 1\n");
++		ret = -ENODEV;
 +		goto err3;
++	}
++
++	l3->l3_base[1] = ioremap(res->start, resource_size(res));
++	if (!(l3->l3_base[1])) {
++		dev_err(&pdev->dev, "ioremap failed\n");
++		ret = -ENOMEM;
++		goto err4;
++	}
++
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 2);
++	if (!res) {
++		dev_err(&pdev->dev, "couldn't find resource 2\n");
++		ret = -ENODEV;
++		goto err5;
++	}
++
++	l3->l3_base[2] = ioremap(res->start, resource_size(res));
++	if (!(l3->l3_base[2])) {
++		dev_err(&pdev->dev, "ioremap failed\n");
++		ret = -ENOMEM;
++		goto err6;
++	}
++
++	/*
++	 * Setup interrupt Handlers
++	 */
++	irq = platform_get_irq(pdev, 0);
++	ret = request_irq(irq,
++			l3_interrupt_handler,
++			IRQF_DISABLED, "l3-dbg-irq", l3);
++	if (ret) {
++		pr_crit("L3: request_irq failed to register for 0x%x\n",
++					 OMAP44XX_IRQ_L3_DBG);
++		goto err7;
 +	}
 +	l3->debug_irq = irq;
 +
 +	irq = platform_get_irq(pdev, 1);
-+	ret = request_irq(irq, omap3_l3_app_irq,
-+		IRQF_DISABLED | IRQF_TRIGGER_RISING,
-+		"l3-app-irq", l3);
-+
++	ret = request_irq(irq,
++			l3_interrupt_handler,
++			IRQF_DISABLED, "l3-app-irq", l3);
 +	if (ret) {
-+		dev_err(&pdev->dev, "couldn't request app irq\n");
-+		goto err4;
++		pr_crit("L3: request_irq failed to register for 0x%x\n",
++					 OMAP44XX_IRQ_L3_APP);
++		goto err8;
 +	}
-+
 +	l3->app_irq = irq;
-+	goto err0;
 +
++	goto err0;
++err8:
++err7:
++	iounmap(l3->l3_base[2]);
++err6:
++err5:
++	iounmap(l3->l3_base[1]);
 +err4:
 +err3:
-+	iounmap(l3->rt);
++	iounmap(l3->l3_base[0]);
 +err2:
 +err1:
 +	kfree(l3);
@@ -345,47 +272,49 @@ index 0000000..1d1aae3
 +	return ret;
 +}
 +
-+static int __exit omap3_l3_remove(struct platform_device *pdev)
++static int __exit omap4_l3_remove(struct platform_device *pdev)
 +{
-+	struct omap3_l3         *l3 = platform_get_drvdata(pdev);
++	struct omap4_l3         *l3 = platform_get_drvdata(pdev);
 +
 +	free_irq(l3->app_irq, l3);
 +	free_irq(l3->debug_irq, l3);
-+	iounmap(l3->rt);
++	iounmap(l3->l3_base[0]);
++	iounmap(l3->l3_base[1]);
++	iounmap(l3->l3_base[2]);
 +	kfree(l3);
 +
 +	return 0;
 +}
 +
-+static struct platform_driver omap3_l3_driver = {
-+	.remove         = __exit_p(omap3_l3_remove),
-+	.driver         = {
-+	.name   = "omap3-l3-interconnect",
++static struct platform_driver omap4_l3_driver = {
++	.remove		= __exit_p(omap4_l3_remove),
++	.driver		= {
++	.name		= "omap4-l3-interconnect",
 +	},
 +};
 +
-+static int __init omap3_l3_init(void)
++static int __init omap4_l3_init(void)
 +{
-+	return platform_driver_probe(&omap3_l3_driver, omap3_l3_probe);
++	return platform_driver_probe(&omap4_l3_driver, omap4_l3_probe);
 +}
-+postcore_initcall_sync(omap3_l3_init);
++postcore_initcall_sync(omap4_l3_init);
 +
-+static void __exit omap3_l3_exit(void)
++static void __exit omap4_l3_exit(void)
 +{
-+	platform_driver_unregister(&omap3_l3_driver);
++	platform_driver_unregister(&omap4_l3_driver);
 +}
-+module_exit(omap3_l3_exit);
-diff --git a/arch/arm/mach-omap2/l3_interconnect_3xxx.h b/arch/arm/mach-omap2/l3_interconnect_3xxx.h
++module_exit(omap4_l3_exit);
++
+diff --git a/arch/arm/mach-omap2/l3_interconnect_4xxx.h b/arch/arm/mach-omap2/l3_interconnect_4xxx.h
 new file mode 100644
-index 0000000..d04db61
+index 0000000..b1e4573
 --- /dev/null
-+++ b/arch/arm/mach-omap2/l3_interconnect_3xxx.h
-@@ -0,0 +1,338 @@
++++ b/arch/arm/mach-omap2/l3_interconnect_4xxx.h
+@@ -0,0 +1,132 @@
 + /*
-+  * L3 Interconnect Driver header
++  * L3 Interconnect  error handling driver header
 +  *
 +  * Copyright (C) 2011 Texas Corporation
-+  *	Felipe Balbi <balbi@ti.com>
 +  *	Santosh Shilimkar <santosh.shilimkar@ti.com>
 +  *	sricharan <r.sricharan@ti.com>
 +  *
@@ -407,316 +336,111 @@ index 0000000..d04db61
 +#ifndef __ARCH_ARM_MACH_OMAP2_L3_INTERCONNECT_3XXX_H
 +#define __ARCH_ARM_MACH_OMAP2_L3_INTERCONNECT_3XXX_H
 +
-+/* Register definitions. All 64-bit wide */
-+#define L3_COMPONENT			0x000
-+#define L3_CORE				0x018
-+#define L3_AGENT_CONTROL		0x020
-+#define L3_AGENT_STATUS			0x028
-+#define L3_ERROR_LOG			0x058
-+
-+#define L3_ERROR_LOG_MULTI		(1 << 31)
-+#define L3_ERROR_LOG_SECONDARY		(1 << 30)
-+
-+#define L3_ERROR_LOG_ADDR		0x060
-+
-+/* Register definitions for Sideband Interconnect */
-+#define L3_SI_CONTROL			0x020
-+#define L3_SI_FLAG_STATUS_0		0x510
-+
-+const u64 shift = 1;
-+
-+#define L3_STATUS_0_MPUIA_BRST		(shift << 0)
-+#define L3_STATUS_0_MPUIA_RSP		(shift << 1)
-+#define L3_STATUS_0_MPUIA_INBAND	(shift << 2)
-+#define L3_STATUS_0_IVAIA_BRST		(shift << 6)
-+#define L3_STATUS_0_IVAIA_RSP		(shift << 7)
-+#define L3_STATUS_0_IVAIA_INBAND	(shift << 8)
-+#define L3_STATUS_0_SGXIA_BRST		(shift << 9)
-+#define L3_STATUS_0_SGXIA_RSP		(shift << 10)
-+#define L3_STATUS_0_SGXIA_MERROR	(shift << 11)
-+#define L3_STATUS_0_CAMIA_BRST		(shift << 12)
-+#define L3_STATUS_0_CAMIA_RSP		(shift << 13)
-+#define L3_STATUS_0_CAMIA_INBAND	(shift << 14)
-+#define L3_STATUS_0_DISPIA_BRST		(shift << 15)
-+#define L3_STATUS_0_DISPIA_RSP		(shift << 16)
-+#define L3_STATUS_0_DMARDIA_BRST	(shift << 18)
-+#define L3_STATUS_0_DMARDIA_RSP		(shift << 19)
-+#define L3_STATUS_0_DMAWRIA_BRST	(shift << 21)
-+#define L3_STATUS_0_DMAWRIA_RSP		(shift << 22)
-+#define L3_STATUS_0_USBOTGIA_BRST	(shift << 24)
-+#define L3_STATUS_0_USBOTGIA_RSP	(shift << 25)
-+#define L3_STATUS_0_USBOTGIA_INBAND	(shift << 26)
-+#define L3_STATUS_0_USBHOSTIA_BRST	(shift << 27)
-+#define L3_STATUS_0_USBHOSTIA_INBAND	(shift << 28)
-+#define L3_STATUS_0_SMSTA_REQ		(shift << 48)
-+#define L3_STATUS_0_GPMCTA_REQ		(shift << 49)
-+#define L3_STATUS_0_OCMRAMTA_REQ	(shift << 50)
-+#define L3_STATUS_0_OCMROMTA_REQ	(shift << 51)
-+#define L3_STATUS_0_IVATA_REQ		(shift << 54)
-+#define L3_STATUS_0_SGXTA_REQ		(shift << 55)
-+#define L3_STATUS_0_SGXTA_SERROR	(shift << 56)
-+#define L3_STATUS_0_GPMCTA_SERROR	(shift << 57)
-+#define L3_STATUS_0_L4CORETA_REQ	(shift << 58)
-+#define L3_STATUS_0_L4PERTA_REQ		(shift << 59)
-+#define L3_STATUS_0_L4EMUTA_REQ		(shift << 60)
-+#define L3_STATUS_0_MAD2DTA_REQ		(shift << 61)
-+
-+#define L3_STATUS_0_TIMEOUT_MASK	(L3_STATUS_0_MPUIA_BRST         \
-+					| L3_STATUS_0_MPUIA_RSP         \
-+					| L3_STATUS_0_IVAIA_BRST        \
-+					| L3_STATUS_0_IVAIA_RSP         \
-+					| L3_STATUS_0_SGXIA_BRST        \
-+					| L3_STATUS_0_SGXIA_RSP         \
-+					| L3_STATUS_0_CAMIA_BRST        \
-+					| L3_STATUS_0_CAMIA_RSP         \
-+					| L3_STATUS_0_DISPIA_BRST       \
-+					| L3_STATUS_0_DISPIA_RSP        \
-+					| L3_STATUS_0_DMARDIA_BRST      \
-+					| L3_STATUS_0_DMARDIA_RSP       \
-+					| L3_STATUS_0_DMAWRIA_BRST      \
-+					| L3_STATUS_0_DMAWRIA_RSP       \
-+					| L3_STATUS_0_USBOTGIA_BRST     \
-+					| L3_STATUS_0_USBOTGIA_RSP      \
-+					| L3_STATUS_0_USBHOSTIA_BRST    \
-+					| L3_STATUS_0_SMSTA_REQ         \
-+					| L3_STATUS_0_GPMCTA_REQ        \
-+					| L3_STATUS_0_OCMRAMTA_REQ      \
-+					| L3_STATUS_0_OCMROMTA_REQ      \
-+					| L3_STATUS_0_IVATA_REQ         \
-+					| L3_STATUS_0_SGXTA_REQ         \
-+					| L3_STATUS_0_L4CORETA_REQ      \
-+					| L3_STATUS_0_L4PERTA_REQ       \
-+					| L3_STATUS_0_L4EMUTA_REQ       \
-+					| L3_STATUS_0_MAD2DTA_REQ)
-+
-+#define L3_SI_FLAG_STATUS_1		0x530
-+
-+#define L3_STATUS_1_MPU_DATAIA		(1 << 0)
-+#define L3_STATUS_1_DAPIA0		(1 << 3)
-+#define L3_STATUS_1_DAPIA1		(1 << 4)
-+#define L3_STATUS_1_IVAIA		(1 << 6)
-+
-+#define L3_PM_ERROR_LOG			0x020
-+#define L3_PM_CONTROL			0x028
-+#define L3_PM_ERROR_CLEAR_SINGLE	0x030
-+#define L3_PM_ERROR_CLEAR_MULTI		0x038
-+#define L3_PM_REQ_INFO_PERMISSION(n)	(0x048 + (0x020 * n))
-+#define L3_PM_READ_PERMISSION(n)	(0x050 + (0x020 * n))
-+#define L3_PM_WRITE_PERMISSION(n)	(0x058 + (0x020 * n))
-+#define L3_PM_ADDR_MATCH(n)		(0x060 + (0x020 * n))
-+
-+/* L3 error log bit fields. Common for IA and TA */
-+#define L3_ERROR_LOG_CODE		24
-+#define L3_ERROR_LOG_INITID		8
-+#define L3_ERROR_LOG_CMD		0
-+
-+/* L3 agent status bit fields. */
-+#define L3_AGENT_STATUS_CLEAR_IA	0x10000000
-+#define L3_AGENT_STATUS_CLEAR_TA	0x01000000
-+
-+#define OMAP34xx_IRQ_L3_APP		10
++/*
++ * L3 register offsets
++ */
++#define L3_MODULES			3
++#define CLEAR_STDERR_LOG		(1 << 31)
++#define CUSTOM_ERROR			0x2
++#define STANDARD_ERROR			0x0
++#define INBAND_ERROR			0x0
++#define EMIF_KERRLOG_OFFSET		0x10
++#define L3_SLAVE_ADDRESS_OFFSET		0x14
++#define LOGICAL_ADDR_ERRORLOG		0x4
 +#define L3_APPLICATION_ERROR		0x0
 +#define L3_DEBUG_ERROR			0x1
 +
-+enum omap3_l3_initiator_id {
-+	/* LCD has 1 ID */
-+	OMAP_L3_LCD	        = 29,
-+	/* SAD2D has 1 ID */
-+	OMAP_L3_SAD2D		= 28,
-+	/* MPU has 5 IDs */
-+	OMAP_L3_IA_MPU_SS_1     = 27,
-+	OMAP_L3_IA_MPU_SS_2     = 26,
-+	OMAP_L3_IA_MPU_SS_3     = 25,
-+	OMAP_L3_IA_MPU_SS_4     = 24,
-+	OMAP_L3_IA_MPU_SS_5     = 23,
-+	/* IVA2.2 SS has 3 IDs*/
-+	OMAP_L3_IA_IVA_SS_1     = 22,
-+	OMAP_L3_IA_IVA_SS_2     = 21,
-+	OMAP_L3_IA_IVA_SS_3     = 20,
-+	/* IVA 2.2 SS DMA has 6 IDS */
-+	OMAP_L3_IA_IVA_SS_DMA_1 = 19,
-+	OMAP_L3_IA_IVA_SS_DMA_2 = 18,
-+	OMAP_L3_IA_IVA_SS_DMA_3 = 17,
-+	OMAP_L3_IA_IVA_SS_DMA_4 = 16,
-+	OMAP_L3_IA_IVA_SS_DMA_5 = 15,
-+	OMAP_L3_IA_IVA_SS_DMA_6 = 14,
-+	/* SGX has 1 ID */
-+	OMAP_L3_IA_SGX		= 13,
-+	/* CAM has 3 ID */
-+	OMAP_L3_IA_CAM_1	= 12,
-+	OMAP_L3_IA_CAM_2	= 11,
-+	OMAP_L3_IA_CAM_3	= 10,
-+	/* DAP has 1 ID */
-+	OMAP_L3_IA_DAP		= 9,
-+	/* SDMA WR has 2 IDs */
-+	OMAP_L3_SDMA_WR_1	= 8,
-+	OMAP_L3_SDMA_WR_2	= 7,
-+	/* SDMA RD has 4 IDs */
-+	OMAP_L3_SDMA_RD_1	= 6,
-+	OMAP_L3_SDMA_RD_2	= 5,
-+	OMAP_L3_SDMA_RD_3	= 4,
-+	OMAP_L3_SDMA_RD_4	= 3,
-+	/* HSUSB OTG has 1 ID */
-+	OMAP_L3_USBOTG		= 2,
-+	/* HSUSB HOST has 1 ID */
-+	OMAP_L3_USBHOST		= 1,
-+};
-+
-+enum omap3_l3_code {
-+	OMAP_L3_CODE_NOERROR = 0,
-+	OMAP_L3_CODE_UNSUP_CMD = 1,
-+	OMAP_L3_CODE_ADDR_HOLE = 2,
-+	OMAP_L3_CODE_PROTECT_VIOLATION = 3,
-+	OMAP_L3_CODE_IN_BAND_ERR = 4,
-+	/* codes 5 and 6 are reserved */
-+	OMAP_L3_CODE_REQ_TOUT_NOT_ACCEPT = 7,
-+	OMAP_L3_CODE_REQ_TOUT_NO_RESP = 8,
-+	/* codes 9 - 15 are also reserved */
-+};
-+
-+struct omap3_l3 {
-+	struct device   *dev;
-+	struct clk      *ick;
-+
-+	/* memory base*/
-+	void __iomem    *rt;
-+
-+	int             debug_irq;
-+	int             app_irq;
-+
-+	/* true when and inband functional error occurs */
-+	unsigned        inband:1;
-+};
-+
-+/* offsets for l3 agents in order with the Flag status register */
-+unsigned int __iomem omap3_l3_app_bases[] = {
-+	/* MPU IA */
-+	0x1400,
-+	0x1400,
-+	0x1400,
-+	/* RESERVED */
-+	0,
-+	0,
-+	0,
-+	/* IVA 2.2 IA */
-+	0x1800,
-+	0x1800,
-+	0x1800,
-+	/* SGX IA */
-+	0x1c00,
-+	0x1c00,
-+	/* RESERVED */
-+	0,
-+	/* CAMERA IA */
-+	0x5800,
-+	0x5800,
-+	0x5800,
-+	/* DISPLAY IA */
-+	0x5400,
-+	0x5400,
-+	/* RESERVED */
-+	0,
-+	/*SDMA RD IA */
-+	0x4c00,
-+	0x4c00,
-+	/* RESERVED */
-+	0,
-+	/* SDMA WR IA */
-+	0x5000,
-+	0x5000,
-+	/* RESERVED */
-+	0,
-+	/* USB OTG IA */
-+	0x4400,
-+	0x4400,
-+	0x4400,
-+	/* USB HOST IA */
-+	0x4000,
-+	0x4000,
-+	/* RESERVED */
-+	0,
-+	0,
-+	0,
-+	0,
-+	/* SAD2D IA */
-+	0x3000,
-+	0x3000,
-+	0x3000,
-+	/* RESERVED */
-+	0,
-+	0,
-+	0,
-+	0,
-+	0,
-+	0,
-+	0,
-+	0,
-+	0,
-+	0,
-+	0,
-+	0,
-+	/* SMA TA */
-+	0x2000,
-+	/* GPMC TA */
-+	0x2400,
-+	/* OCM RAM TA */
-+	0x2800,
-+	/* OCM ROM TA */
-+	0x2C00,
-+	/* L4 CORE TA */
-+	0x6800,
-+	/* L4 PER TA */
-+	0x6c00,
-+	/* IVA 2.2 TA */
-+	0x6000,
-+	/* SGX TA */
-+	0x6400,
-+	/* L4 EMU TA */
-+	0x7000,
-+	/* GPMC TA */
-+	0x2400,
-+	/* L4 CORE TA */
-+	0x6800,
-+	/* L4 PER TA */
-+	0x6c00,
-+	/* L4 EMU TA */
-+	0x7000,
-+	/* MAD2D TA */
-+	0x3400,
-+	/* RESERVED */
-+	0,
-+	0,
-+};
-+
-+unsigned int __iomem omap3_l3_debug_bases[] = {
-+	/* MPU DATA IA */
-+	0x1400,
-+	/* RESERVED */
-+	0,
-+	0,
-+	/* DAP IA */
-+	0x5c00,
-+	0x5c00,
-+	/* RESERVED */
-+	0,
-+	/* IVA 2.2 IA */
-+	0x1800,
-+	/* REST RESERVED */
-+};
-+
-+u32 *omap3_l3_bases[] = {
-+	omap3_l3_app_bases,
-+	omap3_l3_debug_bases,
++u32 l3_flagmux[L3_MODULES] = {
++	0x50C,
++	0x100C,
++	0X020C
 +};
 +
 +/*
-+ * REVISIT define __raw_readll/__raw_writell here, but move them to
-+ * <asm/io.h> at some point
++ * L3 Target standard Error register offsets
 + */
-+#define __raw_writell(v, a)	(__chk_io_ptr(a), \
-+				*(volatile u64 __force *)(a) = (v))
-+#define __raw_readll(a)		(__chk_io_ptr(a), \
-+				*(volatile u64 __force *)(a))
++u32 l3_targ_stderrlog_main_clk1[] = {
++	0x148, /* DMM1 */
++	0x248, /* DMM2 */
++	0x348, /* ABE */
++	0x448, /* L4CFG */
++	0x648  /* CLK2 PWR DISC */
++};
++
++u32 l3_targ_stderrlog_main_clk2[] = {
++	0x548,		/* CORTEX M3 */
++	0x348,		/* DSS */
++	0x148,		/* GPMC */
++	0x448,		/* ISS */
++	0x748,		/* IVAHD */
++	0xD48,		/* missing in TRM  corresponds to AES1*/
++	0x948,		/* L4 PER0*/
++	0x248,		/* OCMRAM */
++	0x148,		/* missing in TRM corresponds to GPMC sERROR*/
++	0x648,		/* SGX */
++	0x848,		/* SL2 */
++	0x1648,		/* C2C */
++	0x1148,		/* missing in TRM corresponds PWR DISC CLK1*/
++	0xF48,		/* missing in TRM corrsponds to SHA1*/
++	0xE48,		/* missing in TRM corresponds to AES2*/
++	0xC48,		/* L4 PER3 */
++	0xA48,		/* L4 PER1*/
++	0xB48		/* L4 PER2*/
++};
++
++u32 l3_targ_stderrlog_main_clk3[] = {
++	0x0148	/* EMUSS */
++};
++
++char *l3_targ_stderrlog_main_name[L3_MODULES][18] = {
++	{
++	"DMM1",
++	"DMM2",
++	"ABE",
++	"L4CFG",
++	"CLK2 PWR DISC",
++	},
++	{
++	"CORTEX M3" ,
++	"DSS ",
++	"GPMC ",
++	"ISS ",
++	"IVAHD ",
++	"AES1",
++	"L4 PER0",
++	"OCMRAM ",
++	"GPMC sERROR",
++	"SGX ",
++	"SL2 ",
++	"C2C ",
++	"PWR DISC CLK1",
++	"SHA1",
++	"AES2",
++	"L4 PER3",
++	"L4 PER1",
++	"L4 PER2",
++	},
++	{
++	"EMUSS",
++	},
++};
++
++u32 *l3_targ[L3_MODULES] = {
++	l3_targ_stderrlog_main_clk1,
++	l3_targ_stderrlog_main_clk2,
++	l3_targ_stderrlog_main_clk3,
++};
++
++struct omap4_l3 {
++	struct device	*dev;
++	struct clk	*ick;
++
++	/* memory base */
++	void __iomem *l3_base[4];
++
++	int		debug_irq;
++	int		app_irq;
++};
 +
 +#endif
 -- 
