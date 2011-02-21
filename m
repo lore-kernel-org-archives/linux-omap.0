@@ -1,74 +1,77 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [patch-v2.6.39 6/7] OMAP4430: hwmod data: Adding USBOTG
-Date: Mon, 21 Feb 2011 15:09:53 -0800
-Message-ID: <20110221230953.GH15225@atomide.com>
-References: <20110217173711.GF14574@legolas.emea.dhcp.ti.com>
- <4D5D5F13.2010602@ti.com>
- <20110217181849.GV20795@atomide.com>
- <4D5E7DFF.7020609@ti.com>
- <20110218154135.GF11151@legolas.emea.dhcp.ti.com>
- <4D5EA36A.4000903@ti.com>
- <20110221182213.GD15225@atomide.com>
- <4D62DAF0.9050301@ti.com>
- <20110221220815.GG15225@atomide.com>
- <4D62ECCC.3040208@ti.com>
+From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Subject: Re: [PATCH v3 2/2] OMAP: IOMMU: add support to callback during fault handling
+Date: Mon, 21 Feb 2011 17:25:56 -0600
+Message-ID: <AANLkTi=ETUza9vYLxucB4hs-7x9+tDTY8mxUPziWvnig@mail.gmail.com>
+References: <1297884951-3019-1-git-send-email-dacohen@gmail.com>
+	<1297884951-3019-3-git-send-email-dacohen@gmail.com>
+	<AANLkTikbjZ7GH7+bx94r6saYuGzCt9aito-Y8NS94SoQ@mail.gmail.com>
+	<AANLkTi=rJZo2KwryYznFp6Qq25Oh0+F44OKV-khuQyte@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:64079 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750836Ab1BUXJ5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Feb 2011 18:09:57 -0500
-Content-Disposition: inline
-In-Reply-To: <4D62ECCC.3040208@ti.com>
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:40535 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750777Ab1BUX0B convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 21 Feb 2011 18:26:01 -0500
+Received: by mail-yw0-f45.google.com with SMTP id 41so773919ywl.18
+        for <linux-omap@vger.kernel.org>; Mon, 21 Feb 2011 15:25:56 -0800 (PST)
+In-Reply-To: <AANLkTi=rJZo2KwryYznFp6Qq25Oh0+F44OKV-khuQyte@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "Balbi, Felipe" <balbi@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, "Kalliguddi, Hema" <hemahk@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>, "Raja, Govindraj" <govindraj.raja@ti.com>
+To: David Cohen <dacohen@gmail.com>
+Cc: hiroshi.doyu@nokia.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, Felipe Balbi <balbi@ti.com>
 
-* Cousson, Benoit <b-cousson@ti.com> [110221 14:51]:
-> On 2/21/2011 11:08 PM, Tony Lindgren wrote:
-> >
-> >Thanks, I'll apply it to omap-for-linus. The omap4 hang seems to be
-> >caused by the timer patch, the following fixes it. How do you want
-> >to deal with fixing this issue?
-> 
-> I guess it is due to the early_init change?
+Hi,
 
-Yes that seems to be the case.
- 
-> I have some concern bypassing hwmod to handle system timer. The
-> idea, before the introduction of the early_init, was to use hwmod
-> for early initialization as well including timers. It will become a
-> little bit harder now :-(
+On Mon, Feb 21, 2011 at 3:12 PM, David Cohen <dacohen@gmail.com> wrote:
+> Generic errors codes make easier to threat possible IOMMU users which
+> have (partially or totally) common drivers for different OMAP
+> versions.
 
-If we get rid of the system timer dependency to hwmod we can
-pretty much initialize everything later on and don't need to
-use early_init stuff at all.
- 
-> I still didn't fully understand the rational behind that early_init
-> for timer BTW.
+Agree then.
 
-I'm currently thinking that we should just have omap[234]_init_timer
-functions that do not depend on hwmod at all.
- 
-> Meanwhile, the following will just prevent the fmwk to reset and
-> idle the timer during hwmod_init.
+>>> + =A0 =A0 =A0 /* Fault callback or TLB/PTE Dynamic loading */
+>>> + =A0 =A0 =A0 if (obj->isr && !obj->isr(obj, da, errs, obj->isr_pri=
+v))
+>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return IRQ_HANDLED;
+>>
+>> BTW, why not changing the name isr for cb, it is confusing since the=
+re
+>> is another fault_isr called by mmu, AFAIK nobody uses obj->isr
+>
+> The main purpose of this function is to be an ISR, not only callback.
 
-That seems like a good to fix for now until the hwmod timer
-changes are sorted out.
+Yep, I just thought it was a bit too much of:
+(1) The real isr: iommu_fault_handler, set on request_irq
+(2) A plugged fault_isr for mach specific code: omap2_iommu_fault_isr,
+for error reporting.
+(3) And then a plugged custom isr, to be set by the user.
 
-Tony
+=46eel free to ignore.
 
-> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> @@ -3989,6 +3989,7 @@ static struct omap_hwmod_ocp_if
-> *omap44xx_timer1_slaves[] = {
->  static struct omap_hwmod omap44xx_timer1_hwmod = {
->  	.name		= "timer1",
->  	.class		= &omap44xx_timer_1ms_hwmod_class,
-> +	.flags		= HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET,
->  	.mpu_irqs	= omap44xx_timer1_irqs,
->  	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_timer1_irqs),
->  	.main_clk	= "timer1_fck",
-> 
+>> So I think the following will be bad practice:
+>>
+>> =A0 =A0 =A0 =A0mmu =3D iommu_get("iva2");
+>> =A0 =A0 =A0 =A0if (!IS_ERR(mmu))
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0mmu->isr =3D mmu_fault_callback;
+>>
+>> Shall we think anything to prevent such mis-usage?
+>
+> Well, the IOMMU user has access to IOMMU obj, so it can not only
+> change the (*isr)() but to mess with a lot of other stuff. The only
+> way to prevent it is to avoid user to have obj. But then, this fix (o=
+r
+> issue) does not belong to this patch.
+
+Agree, just pointing out.
+
+Regards,
+
+Omar
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
