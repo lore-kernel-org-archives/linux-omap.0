@@ -1,54 +1,53 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [PATCH v3 0/2] OMAP: IOMMU fault callback support
-Date: Mon, 21 Feb 2011 11:52:21 +0200 (EET)
-Message-ID: <20110221.115221.795673505667830874.Hiroshi.DOYU@nokia.com>
-References: <1297884951-3019-1-git-send-email-dacohen@gmail.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH 1/3] OMAP: smartreflex: move plat/smartreflex.h to	mach-omap2/smartreflex.h
+Date: Mon, 21 Feb 2011 10:55:58 +0100
+Message-ID: <4D6236AE.7000407@ti.com>
+References: <20110221020231.7598.14024.stgit@twilight.localdomain> <20110221020851.7598.57763.stgit@twilight.localdomain>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:43926 "EHLO mgw-da02.nokia.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:33195 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751386Ab1BUJwp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 21 Feb 2011 04:52:45 -0500
-In-Reply-To: <1297884951-3019-1-git-send-email-dacohen@gmail.com>
+	id S1751386Ab1BUJ4E (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 21 Feb 2011 04:56:04 -0500
+In-Reply-To: <20110221020851.7598.57763.stgit@twilight.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, dacohen@gmail.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-From: David Cohen <dacohen@gmail.com>
-Subject: [PATCH v3 0/2] OMAP: IOMMU fault callback support
-Date: Wed, 16 Feb 2011 21:35:49 +0200
+Hi Paul,
 
-> Hi,
-> 
-> This patch set adapts current (*isr)() to be used as fault callback.
-> IOMMU faults might be very difficult to reproduce and then to figure out
-> the source of the problem. Currently IOMMU driver prints not so useful
-> debug message and does not notice user about such issue.
-> With a fault callback, IOMMU user may debug much more useful information
-> and/or react to go back to a valid state.
-
-Tony, please put them in your queue too. Thanks.
-
-> Br,
-> 
-> David
+On 2/21/2011 3:08 AM, Paul Walmsley wrote:
+> There's no reason for this header file to be in
+> plat-omap/include/plat/smartreflex.h.  The hardware devices are in
+> OMAP2+ SoCs only.  Leaving this header file in plat-omap causes
+> problems due to cross-dependencies with other header files that should
+> live in mach-omap2/.
+>
+> Signed-off-by: Paul Walmsley<paul@pwsan.com>
 > ---
-> 
-> David Cohen (2):
->   OMAP2+: IOMMU: don't print fault warning on specific layer
->   OMAP: IOMMU: add support to callback during fault handling
+>   arch/arm/mach-omap2/omap_hwmod_3xxx_data.c    |    2 +-
+>   arch/arm/mach-omap2/smartreflex-class3.c      |    2 +-
+>   arch/arm/mach-omap2/smartreflex.c             |    2 +-
+>   arch/arm/mach-omap2/smartreflex.h             |    0
+>   arch/arm/mach-omap2/sr_device.c               |    2 +-
+>   5 files changed, 4 insertions(+), 4 deletions(-)
+>   rename arch/arm/{plat-omap/include/plat/smartreflex.h =>  mach-omap2/smartreflex.h} (100%)
+>
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+> index 8d81813..7f0b5e7 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+> @@ -21,13 +21,13 @@
+>   #include<plat/l4_3xxx.h>
+>   #include<plat/i2c.h>
+>   #include<plat/gpio.h>
+> -#include<plat/smartreflex.h>
 
-Acked-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+In fact that include is not used for OMAP4 data and does not seems to be 
+used either in this file.
+I guess you can simply remove it.
 
-> 
->  arch/arm/mach-omap2/iommu2.c            |   33 +++++++++-----------
->  arch/arm/plat-omap/include/plat/iommu.h |   14 ++++++++-
->  arch/arm/plat-omap/iommu.c              |   52 ++++++++++++++++++++++---------
->  3 files changed, 65 insertions(+), 34 deletions(-)
-> 
-> -- 
-> 1.7.2.3
-> 
+Benoit
