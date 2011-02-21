@@ -1,66 +1,60 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v2 1/1] headers: fix circular dependency between
- linux/sched.h and linux/wait.h
-Date: Mon, 21 Feb 2011 18:29:39 +0200
-Message-ID: <20110221162939.GK23087@legolas.emea.dhcp.ti.com>
+From: Randy Dunlap <rdunlap@xenotime.net>
+Subject: Re: [PATCH v2 0/1] Fix linux/wait.h header file
+Date: Mon, 21 Feb 2011 08:33:58 -0800
+Message-ID: <20110221083358.3a941b4e.rdunlap@xenotime.net>
 References: <1298299131-17695-1-git-send-email-dacohen@gmail.com>
- <1298299131-17695-2-git-send-email-dacohen@gmail.com>
- <1298303677.24121.1.camel@twins>
- <AANLkTimOT6jNG3=TiRMJR0dgEQ6EHjcBPJ1ivCu3Wj5Q@mail.gmail.com>
- <1298305245.24121.7.camel@twins>
-Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1298305245.24121.7.camel@twins>
+In-Reply-To: <1298299131-17695-1-git-send-email-dacohen@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: David Cohen <dacohen@gmail.com>, linux-kernel@vger.kernel.org, mingo@elte.hu, linux-omap@vger.kernel.org, linux-media@vger.kernel.org, Alexey Dobriyan <adobriyan@gmail.com>, Oleg Nesterov <oleg@redhat.com>
+To: David Cohen <dacohen@gmail.com>
+Cc: linux-kernel@vger.kernel.org, mingo@elte.hu, peterz@infradead.org, linux-omap@vger.kernel.org, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On Mon, 21 Feb 2011 16:38:50 +0200 David Cohen wrote:
 
-On Mon, Feb 21, 2011 at 05:20:45PM +0100, Peter Zijlstra wrote:
-> > > I think Alexey already told you what you done wrong.
-> > >
-> > > Also, I really don't like the task_state.h header, it assumes a lot of
-> > > things it doesn't include itself and only works because its using macros
-> > > and not inlines at it probably should.
-> > 
-> > Like wait.h I'd say. The main issue is wait.h uses TASK_* macros but
-> > cannot properly include sched.h as it would create a circular
-> > dependency. So a file including wait.h is able to compile because the
-> > dependency of sched.h relies on wake_up*() macros and it's not always
-> > used.
-> > We can still drop everything else from task_state.h but the TASK_*
-> > macros and then the problem you just pointed out won't exist anymore.
-> > What do you think about it?
+> Hi,
 > 
-> I'd much rather see a real cleanup.. eg. remove the need for sched.h to
-> include wait.h.
-
-isn't that exactly what he's trying to achieve ? Moving TASK_* to its
-own header is one approach, what other approach do you suggest ?
-
-> afaict its needed because struct signal_struct and struct sighand_struct
-> include a wait_queue_head_t. The inclusion seems to come through
-
-yes.
-
-> completion.h, but afaict we don't actually need to include completion.h
-> because all we have is a pointer to a completion, which is perfectly
-> fine with an incomplete type.
-
-so maybe just dropping completion.h from sched.h would do it.
-
-> This all would suggest we move the signal bits into their own header
-> (include/linux/signal.h already exists and seems inviting).
+> OMAP2 camera driver compilation is broken due to problems on linux/wait.h header
+> file:
 > 
-> And then make sched.c include signal.h and completion.h.
+> drivers/media/video/omap24xxcam.c: In function 'omap24xxcam_vbq_complete':
+> drivers/media/video/omap24xxcam.c:414: error: 'TASK_NORMAL' undeclared (first use in this function)
+> drivers/media/video/omap24xxcam.c:414: error: (Each undeclared identifier is reported only once
+> drivers/media/video/omap24xxcam.c:414: error: for each function it appears in.)
+> make[3]: *** [drivers/media/video/omap24xxcam.o] Error 1
+> make[2]: *** [drivers/media/video] Error 2
+> make[1]: *** [drivers/media] Error 2
+> make: *** [drivers] Error 2
+> 
+> This file defines macros wake_up*() which use TASK_* defined on linux/sched.h.
+> But sched.h cannot be included on wait.h due to a circular dependency between
+> both files. This patch fixes such compilation and the circular dependency
+> problem.
+> 
+> Br,
+> 
+> David
+> ---
+> 
+> David Cohen (1):
+>   headers: fix circular dependency between linux/sched.h and
+>     linux/wait.h
+> 
+>  include/linux/sched.h      |   58 +-----------------------------------------
+>  include/linux/task_state.h |   61 ++++++++++++++++++++++++++++++++++++++++++++
+>  include/linux/wait.h       |    1 +
+>  3 files changed, 63 insertions(+), 57 deletions(-)
+>  create mode 100644 include/linux/task_state.h
+> 
+> -- 
 
-you wouldn't prevent the underlying problem which is the need to include
-sched.h whenever you include wait.h and use wake_up*()
+and please drop patch 0/1.  All of this info can be included in patch 1/1,
+either above the first "---" line (for commit info) or after it (for
+background info).
 
--- 
-balbi
+---
+~Randy
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
