@@ -1,55 +1,211 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 6/6] omap3: pm: Use exported set_cr() instead of a custom one.
-Date: Mon, 21 Feb 2011 18:49:25 +0530
-Message-ID: <1298294365-30770-7-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH 4/6] omap3: pm: Remove un-necessary cp15 registers form low power cpu context
+Date: Mon, 21 Feb 2011 18:49:23 +0530
+Message-ID: <1298294365-30770-5-git-send-email-santosh.shilimkar@ti.com>
 References: <1298294365-30770-1-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:41446 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:60855 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755994Ab1BUNTg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 21 Feb 2011 08:19:36 -0500
+	id S1755986Ab1BUNTi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 21 Feb 2011 08:19:38 -0500
 In-Reply-To: <1298294365-30770-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: khilman@ti.com, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Remove the custom restore_control_register() and use the exported
-set_cr() instead to set the system control register(SCTRL) value.
+The current code saves few un-necessary registers which are read-only or
+write-only, unused CP15 registers.
 
-No functional change.
+Remove them and keep only necessary CP15 registers part of
+low power context save/restore.
 
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Cc: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/pm34xx.c |    7 +------
- 1 files changed, 1 insertions(+), 6 deletions(-)
+ arch/arm/mach-omap2/sleep34xx.S |  156 ++++++++++-----------------------------
+ 1 files changed, 40 insertions(+), 116 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 2f864e4..63a3e1d 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -311,11 +311,6 @@ static irqreturn_t prcm_interrupt_handler (int irq, void *dev_id)
- 	return IRQ_HANDLED;
- }
+diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
+index 7442431..28baeb2 100644
+--- a/arch/arm/mach-omap2/sleep34xx.S
++++ b/arch/arm/mach-omap2/sleep34xx.S
+@@ -199,66 +199,29 @@ save_context_wfi:
+ 	beq	clean_caches
  
--static void restore_control_register(u32 val)
--{
--	__asm__ __volatile__ ("mcr p15, 0, %0, c1, c0, 0" : : "r" (val));
--}
+ l1_logic_lost:
+-	/* Store sp and spsr to SDRAM */
+-	mov	r4, sp
+-	mrs	r5, spsr
+-	mov	r6, lr
++	mov	r4, sp			@ Store sp
++	mrs	r5, spsr		@ Store spsr
++	mov	r6, lr			@ Store lr
+ 	stmia	r8!, {r4-r6}
+-	/* Save all ARM registers */
+-	/* Coprocessor access control register */
+-	mrc	p15, 0, r6, c1, c0, 2
+-	stmia	r8!, {r6}
+-	/* TTBR0, TTBR1 and Translation table base control */
+-	mrc	p15, 0, r4, c2, c0, 0
+-	mrc	p15, 0, r5, c2, c0, 1
+-	mrc	p15, 0, r6, c2, c0, 2
+-	stmia	r8!, {r4-r6}
+-	/*
+-	 * Domain access control register, data fault status register,
+-	 * and instruction fault status register
+-	 */
+-	mrc	p15, 0, r4, c3, c0, 0
+-	mrc	p15, 0, r5, c5, c0, 0
+-	mrc	p15, 0, r6, c5, c0, 1
+-	stmia	r8!, {r4-r6}
+-	/*
+-	 * Data aux fault status register, instruction aux fault status,
+-	 * data fault address register and instruction fault address register
+-	 */
+-	mrc	p15, 0, r4, c5, c1, 0
+-	mrc	p15, 0, r5, c5, c1, 1
+-	mrc	p15, 0, r6, c6, c0, 0
+-	mrc	p15, 0, r7, c6, c0, 2
+-	stmia	r8!, {r4-r7}
+-	/*
+-	 * user r/w thread and process ID, user r/o thread and process ID,
+-	 * priv only thread and process ID, cache size selection
+-	 */
+-	mrc	p15, 0, r4, c13, c0, 2
+-	mrc	p15, 0, r5, c13, c0, 3
+-	mrc	p15, 0, r6, c13, c0, 4
+-	mrc	p15, 2, r7, c0, c0, 0
++
++	mrc	p15, 0, r4, c1, c0, 2	@ Coprocessor access control register
++	mrc	p15, 0, r5, c2, c0, 0	@ TTBR0
++	mrc	p15, 0, r6, c2, c0, 1	@ TTBR1
++	mrc	p15, 0, r7, c2, c0, 2	@ TTBCR
+ 	stmia	r8!, {r4-r7}
+-	/* Data TLB lockdown, instruction TLB lockdown registers */
+-	mrc	p15, 0, r5, c10, c0, 0
+-	mrc	p15, 0, r6, c10, c0, 1
+-	stmia	r8!, {r5-r6}
+-	/* Secure or non secure vector base address, FCSE PID, Context PID*/
+-	mrc	p15, 0, r4, c12, c0, 0
+-	mrc	p15, 0, r5, c13, c0, 0
+-	mrc	p15, 0, r6, c13, c0, 1
+-	stmia	r8!, {r4-r6}
+-	/* Primary remap, normal remap registers */
+-	mrc	p15, 0, r4, c10, c2, 0
+-	mrc	p15, 0, r5, c10, c2, 1
+-	stmia	r8!,{r4-r5}
+ 
+-	/* Store current cpsr*/
+-	mrs	r2, cpsr
+-	stmia	r8!, {r2}
++	mrc	p15, 0, r4, c3, c0, 0	@ Domain access Control Register
++	mrc	p15, 0, r5, c10, c2, 0	@ PRRR
++	mrc	p15, 0, r6, c10, c2, 1	@ NMRR
++	stmia	r8!,{r4-r6}
++
++	mrc	p15, 0, r4, c13, c0, 1	@ Context ID
++	mrc	p15, 0, r5, c13, c0, 2	@ User r/w thread and process ID
++	mrc	p15, 0, r6, c12, c0, 0	@ Secure or NS vector base address
++	mrs	r7, cpsr		@ Store current cpsr
++	stmia	r8!, {r4-r7}
+ 
+-	mrc	p15, 0, r4, c1, c0, 0
+-	/* save control register */
++	mrc	p15, 0, r4, c1, c0, 0	@ save control register
+ 	stmia	r8!, {r4}
+ 
+ clean_caches:
+@@ -463,68 +426,29 @@ skipl2reen:
+ 	ldr	r4, scratchpad_base
+ 	ldr	r3, [r4,#0xBC]
+ 	adds	r3, r3, #16
++
+ 	ldmia	r3!, {r4-r6}
+-	mov	sp, r4
+-	msr	spsr_cxsf, r5
+-	mov	lr, r6
 -
- /* Function to restore the table entry that was modified for enabling MMU */
- static void restore_table_entry(void)
- {
-@@ -337,7 +332,7 @@ static void restore_table_entry(void)
- 	control_reg_value = __raw_readl(scratchpad_address
- 					+ OMAP343X_CONTROL_REG_VALUE_OFFSET);
- 	/* This will enable caches and prediction */
--	restore_control_register(control_reg_value);
-+	set_cr(control_reg_value);
- }
+-	ldmia	r3!, {r4-r9}
+-	/* Coprocessor access Control Register */
+-	mcr p15, 0, r4, c1, c0, 2
+-
+-	/* TTBR0 */
+-	MCR p15, 0, r5, c2, c0, 0
+-	/* TTBR1 */
+-	MCR p15, 0, r6, c2, c0, 1
+-	/* Translation table base control register */
+-	MCR p15, 0, r7, c2, c0, 2
+-	/* Domain access Control Register */
+-	MCR p15, 0, r8, c3, c0, 0
+-	/* Data fault status Register */
+-	MCR p15, 0, r9, c5, c0, 0
+-
+-	ldmia	r3!,{r4-r8}
+-	/* Instruction fault status Register */
+-	MCR p15, 0, r4, c5, c0, 1
+-	/* Data Auxiliary Fault Status Register */
+-	MCR p15, 0, r5, c5, c1, 0
+-	/* Instruction Auxiliary Fault Status Register*/
+-	MCR p15, 0, r6, c5, c1, 1
+-	/* Data Fault Address Register */
+-	MCR p15, 0, r7, c6, c0, 0
+-	/* Instruction Fault Address Register*/
+-	MCR p15, 0, r8, c6, c0, 2
+-	ldmia	r3!,{r4-r7}
++	mov	sp, r4			@ Restore sp
++	msr	spsr_cxsf, r5		@ Restore spsr
++	mov	lr, r6			@ Restore lr
  
- void omap_sram_idle(void)
+-	/* User r/w thread and process ID */
+-	MCR p15, 0, r4, c13, c0, 2
+-	/* User ro thread and process ID */
+-	MCR p15, 0, r5, c13, c0, 3
+-	/* Privileged only thread and process ID */
+-	MCR p15, 0, r6, c13, c0, 4
+-	/* Cache size selection */
+-	MCR p15, 2, r7, c0, c0, 0
+-	ldmia	r3!,{r4-r8}
+-	/* Data TLB lockdown registers */
+-	MCR p15, 0, r4, c10, c0, 0
+-	/* Instruction TLB lockdown registers */
+-	MCR p15, 0, r5, c10, c0, 1
+-	/* Secure or Nonsecure Vector Base Address */
+-	MCR p15, 0, r6, c12, c0, 0
+-	/* FCSE PID */
+-	MCR p15, 0, r7, c13, c0, 0
+-	/* Context PID */
+-	MCR p15, 0, r8, c13, c0, 1
+-
+-	ldmia	r3!,{r4-r5}
+-	/* Primary memory remap register */
+-	MCR p15, 0, r4, c10, c2, 0
+-	/* Normal memory remap register */
+-	MCR p15, 0, r5, c10, c2, 1
+-
+-	/* Restore cpsr */
+-	ldmia	r3!,{r4}		@ load CPSR from SDRAM
+-	msr	cpsr, r4		@ store cpsr
++	ldmia	r3!, {r4-r7}
++	mcr	p15, 0, r4, c1, c0, 2	@ Coprocessor access Control Register
++	mcr	p15, 0, r5, c2, c0, 0	@ TTBR0
++	mcr	p15, 0, r6, c2, c0, 1	@ TTBR1
++	mcr	p15, 0, r7, c2, c0, 2	@ TTBCR
++
++	ldmia	r3!,{r4-r6}
++	mcr	p15, 0, r4, c3, c0, 0	@ Domain access Control Register
++	mcr	p15, 0, r5, c10, c2, 0	@ PRRR
++	mcr	p15, 0, r6, c10, c2, 1	@ NMRR
++
++
++	ldmia	r3!,{r4-r7}
++	mcr	p15, 0, r4, c13, c0, 1	@ Context ID
++	mrc	p15, 0, r5, c12, c0, 0	@ Secure or NS vector base address
++	msr	cpsr, r6		@ store cpsr
++	mcr	p15, 0, r7, c13, c0, 2	@ User r/w thread and process ID
+ 
+ 	/* Enabling MMU here */
+ 	mrc	p15, 0, r7, c2, c0, 2 	@ Read TTBRControl
 -- 
 1.6.0.4
 
