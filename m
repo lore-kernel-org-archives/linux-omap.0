@@ -1,108 +1,45 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 5/6] omap4: Initialise the l3 device with the hwmod data.
-Date: Tue, 22 Feb 2011 00:33:28 +0530
-Message-ID: <295be59bd43a2e9f0961c10263ce19c0@mail.gmail.com>
-References: <1298295990-1070-1-git-send-email-santosh.shilimkar@ti.com>
- <1298295990-1070-6-git-send-email-santosh.shilimkar@ti.com> <4D62AAAA.40104@ti.com>
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: Re: [PATCH v2 1/1] headers: fix circular dependency between
+ linux/sched.h and linux/wait.h
+Date: Mon, 21 Feb 2011 21:21:20 +0200
+Message-ID: <20110221192046.GA6822@p183.telecom.by>
+References: <1298299131-17695-1-git-send-email-dacohen@gmail.com>
+ <1298299131-17695-2-git-send-email-dacohen@gmail.com>
+ <1298303677.24121.1.camel@twins>
+ <AANLkTimOT6jNG3=TiRMJR0dgEQ6EHjcBPJ1ivCu3Wj5Q@mail.gmail.com>
+ <1298305245.24121.7.camel@twins>
+ <20110221162939.GK23087@legolas.emea.dhcp.ti.com>
+ <1298306607.24121.18.camel@twins>
+ <20110221165443.GL23087@legolas.emea.dhcp.ti.com>
+ <1298307962.24121.27.camel@twins>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:37018 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753196Ab1BUTDb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 21 Feb 2011 14:03:31 -0500
-Received: by mail-qy0-f173.google.com with SMTP id 36so1495490qyk.11
-        for <linux-omap@vger.kernel.org>; Mon, 21 Feb 2011 11:03:30 -0800 (PST)
-In-Reply-To: <4D62AAAA.40104@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1298307962.24121.27.camel@twins>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: balbi@ti.com, David Cohen <dacohen@gmail.com>, linux-kernel@vger.kernel.org, mingo@elte.hu, linux-omap@vger.kernel.org, linux-media@vger.kernel.org, Oleg Nesterov <oleg@redhat.com>
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Sricharan R <r.sricharan@ti.com>
 
-> -----Original Message-----
-> From: Cousson, Benoit [mailto:b-cousson@ti.com]
-> Sent: Monday, February 21, 2011 11:41 PM
-> To: Shilimkar, Santosh
-> Cc: linux-omap@vger.kernel.org; Balbi, Felipe; R, Sricharan
-> Subject: Re: [PATCH 5/6] omap4: Initialise the l3 device with the
-> hwmod data.
->
-> On 2/21/2011 2:46 PM, Shilimkar, Santosh wrote:
-> > From: sricharan<r.sricharan@ti.com>
-> >
-> > The l3 interconnect device is build with all the data required
-> > to handle the error logging. The data is extracted from the
-> > hwmod data base.
-> >
-> > Signed-off-by: sricharan<r.sricharan@ti.com>
-> > Signed-off-by: sricharan<r.sricharan@ti.com>
-> > Tested-by: sricharan<r.sricharan@ti.com>
->
-> Mmm, I'm not sure the tested-by is meaningfull in your case, since
-> you wrote the code and so everybody will assume you tested it.
-> One s-o-b should be probably enough.
->
+On Mon, Feb 21, 2011 at 06:06:02PM +0100, Peter Zijlstra wrote:
+> 1) remove the inclusion of completion.h -- easy we can live with an
+> incomplete type.
 
-Well he tested whole series including the patch from Felipe.
-So a tested-by on whole series doesn't hurt, right ?
+ACK
 
-Just for record, I have seen tested by applied on whole series
-Where as some of the patches in this series are just comment
-updates.
+> 2) move the other wait_queue_head_t users (signal_struct sighand_struct)
+> out of sched.h
+> 
+> 3) ...
 
-> > Cc: Benoit Cousson<b-cousson@ti.com>
-> > ---
-> >   arch/arm/mach-omap2/devices.c |   23 +++++++++++++++++++++++
-> >   1 files changed, 23 insertions(+), 0 deletions(-)
-> >
-> > diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-
-> omap2/devices.c
-> > index 2d46f55..25fa2ad 100644
-> > --- a/arch/arm/mach-omap2/devices.c
-> > +++ b/arch/arm/mach-omap2/devices.c
-> > @@ -57,6 +57,29 @@ static int __init omap3_l3_init(void)
-> >   }
-> >   postcore_initcall(omap3_l3_init);
-> >
-> > +static int __init omap4_l3_init(void)
-> > +{
-> > +	int l;
-> > +	struct omap_hwmod *oh;
-> > +	struct omap_device *od;
-> > +	char oh_name[12];
-> > +
-> > +	l = snprintf(oh_name, 12, "l3_main_1");
-> > +
-> > +	oh = omap_hwmod_lookup(oh_name);
-> > +
-> > +	if (!oh)
-> > +		pr_err("could not look up %s\n", oh_name);
-> > +
-> > +	od = omap_device_build("omap4-l3-interconnect", 0, oh, NULL,
->
-> In order to stick to the OMAP device naming convention and to have
-> something not dependent of the chip version, I think we'd better
-> name
-> the device like that: "omap_l3_noc". Since it is a Arteris "Network
-> On
-> Chip" on OMAP4. We will not have to change it for OMAP5 then.
-> On OMAP3 the name can then be "omap_l3_smx" for the Sonics MX
-> interconnect.
->
-Device name changes are fine but file name changes as per this.
-dosn't look right if they are like
-omap_l3_noc.c
-omap_l3_smx.c
+Compile test! :^)
 
-May be we can rename them like below
-omap_l3_3xxx.c
-omap_l3_4xxx.c
+> 4) profit!
+> 
+> Just isolating the TASK_state bits isn't going to be enough, wait.h also
+> wants wake_up goo and schedule*(), therefore either include sched.h from
+> whatever .c file you're using wait.h bits or do the above cleanup.
 
-
-> Please note that the L4 is in both case a Sonics 3220. But I don't
-> think
-> the L4 is managed by this series.
-> Maybe the driver file name should be renamed accordingly.
->
-L4 is not included.
+Speaking of junk in sched.h, I'll send mm_types.h removal next merge window
+and maybe cred.h.
