@@ -1,79 +1,93 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: Re: Ping-> Subject:    [PATCH] omap: omap3evm: add support for
- the WL12xx WLAN module to the omap3evm
-Date: Mon, 21 Feb 2011 14:59:39 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024BD488FB@dbde02.ent.ti.com>
-References: <EC51CDB0807A51469E0C9CB8CF72D65F032D73AA68@dnce02.ent.ti.com>
- <20110217222027.GD20795@atomide.com>
- <EC51CDB0807A51469E0C9CB8CF72D65F033179C274@dnce02.ent.ti.com>
+From: "Manuel, Lesly Arackal" <leslyam@ti.com>
+Subject: Re: [PATCH 01/12] omap3: pm: Fix for the TRITON sleep/wakeup sequence
+Date: Mon, 21 Feb 2011 15:09:42 +0530
+Message-ID: <AANLkTik-U0EDfTLCe_UonJbjiDH_Txo5bmQegg=LoYam@mail.gmail.com>
+References: <1298048938-1480-1-git-send-email-leslyam@ti.com>
+	<1298048938-1480-2-git-send-email-leslyam@ti.com>
+	<AANLkTimSS9eDXaWhwfWOKS3oDf5UQPTrW0amfSaex0ZQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:51018 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750936Ab1BUJ3p convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Feb 2011 04:29:45 -0500
-In-Reply-To: <EC51CDB0807A51469E0C9CB8CF72D65F033179C274@dnce02.ent.ti.com>
-Content-Language: en-US
+Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:58370 "EHLO
+	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751949Ab1BUJjn convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 21 Feb 2011 04:39:43 -0500
+Received: by mail-vw0-f45.google.com with SMTP id 19so1608834vws.4
+        for <linux-omap@vger.kernel.org>; Mon, 21 Feb 2011 01:39:43 -0800 (PST)
+In-Reply-To: <AANLkTimSS9eDXaWhwfWOKS3oDf5UQPTrW0amfSaex0ZQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Reizer, Eyal" <eyalr@ti.com>, "tony@atomide.com" <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: David Cohen <dacohen@gmail.com>
+Cc: linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>, David Derrick <dderrick@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Reizer, Eyal
-> Sent: Sunday, February 20, 2011 4:20 PM
-> To: tony@atomide.com
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: Re: Ping-> Subject: [PATCH] omap: omap3evm: add support for
-> the WL12xx WLAN module to the omap3evm
-> 
-> On Thu, 2011-02-17 at 14:20 -0800, Tony Lindgren wrote:
-> > * Reizer, Eyal <eyalr@ti.com> [110215 07:11]:
-> > > Dear Tony,
-> > >
-> > > I did not receive any comments to the patch I have send in the
-> following link:
-> > >
-> > > http://marc.info/?l=linux-omap&m=129612179900695&w=2
-> > >
-> > > Are there any issues with excepting this patch?
-> >
-> > Pushing to devel-board branch for the upcoming merge window.
-> > Can you please check it's working? I had to merge some other
-> > evm board changes manually..
-> >
-> > Tony
-> 
-> Dear Tony,
-> 
-> As you requested, I have tested the devel-board branch this morning and
-> found one merge issue.
-> I see that there are now two mux arrays, one for omap35x and one for
-> omap36x.
-> You have merged the muxes changes to the omap35x_board_mux[] array, but
-> have missed the other structure called omap36x_board_mux[].
-> The same change should be merged there as well.
-> The result is that it would work OK on an evm with an omap35x SOM but
-> not on  aboard with an omap37x SOM.
-> Please find below a fix for that.
-> 
+Hi David,
 
-Eyal,
+On Sat, Feb 19, 2011 at 5:08 AM, David Cohen <dacohen@gmail.com> wrote:
+> Hi,
+>
+> On Fri, Feb 18, 2011 at 7:08 PM, Lesly A M <leslyam@ti.com> wrote:
+>> Since the function to populate the sleep script is getting called al=
+ways
+>> irrespective of the flag "TWL4030_SLEEP_SCRIPT", other scripts data
+>> is getting over written by the sleep script.
+>
+> Are you sure this is the correct patch description? For me it's somet=
+hing like:
+> Add missing brackets to if statement.
 
-I am assuming that you will be sending an updated version of the patch
-fixing some of the issues pointed in this response:
-http://marc.info/?l=linux-omap&m=129820402332111&w=2
+Yes, adding the missing brackets, to fix this issue.
+Ok, I will include "adding the missing brackets" in the change log.
 
-You can add the patch below to updated submission.
-
-~sanjeev
-
-> Best Regards,
-> Eyal Reizer
-> 
-
-[snip]...[snip]
-
+Regards,
+Lesly AM
+>>
+>> Signed-off-by: Lesly A M <leslyam@ti.com>
+>> Cc: Nishanth Menon <nm@ti.com>
+>> Cc: David Derrick <dderrick@ti.com>
+>> Cc: Samuel Ortiz <sameo@linux.intel.com>
+>> ---
+>> =A0drivers/mfd/twl4030-power.c | =A0 =A03 ++-
+>> =A01 files changed, 2 insertions(+), 1 deletions(-)
+>>
+>> diff --git a/drivers/mfd/twl4030-power.c b/drivers/mfd/twl4030-power=
+=2Ec
+>> index 16422de..2c0d4d1 100644
+>> --- a/drivers/mfd/twl4030-power.c
+>> +++ b/drivers/mfd/twl4030-power.c
+>> @@ -447,12 +447,13 @@ static int __init load_twl4030_script(struct t=
+wl4030_script *tscript,
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (err)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0goto out;
+>> =A0 =A0 =A0 =A0}
+>> - =A0 =A0 =A0 if (tscript->flags & TWL4030_SLEEP_SCRIPT)
+>> + =A0 =A0 =A0 if (tscript->flags & TWL4030_SLEEP_SCRIPT) {
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (order)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pr_warning("TWL4030: =
+Bad order of scripts (sleep "\
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0"script before wakeup) Leads to boot"\
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0"failure on some boards\n");
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0err =3D twl4030_config_sleep_sequence=
+(address);
+>> + =A0 =A0 =A0 }
+>> =A0out:
+>> =A0 =A0 =A0 =A0return err;
+>> =A0}
+>> --
+>> 1.7.1
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap=
+" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>>
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
