@@ -1,58 +1,72 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH resend] video: omap24xxcam: Fix compilation
-Date: Mon, 21 Feb 2011 09:36:40 +0200
-Message-ID: <20110221073640.GA3094@legolas.emea.dhcp.ti.com>
-References: <1297068547-10635-1-git-send-email-weber@corscience.de>
- <4D5A6353.7040907@maxwell.research.nokia.com>
- <20110215113717.GN2570@legolas.emea.dhcp.ti.com>
- <4D5A672A.7040000@samsung.com>
- <4D5A6874.1080705@corscience.de>
- <20110215115349.GQ2570@legolas.emea.dhcp.ti.com>
- <4D5A6EEC.5000908@maxwell.research.nokia.com>
- <AANLkTik+6fguqgH8Bpnpqo7Axmquy3caRMELTZVmuN1j@mail.gmail.com>
- <20110219150024.GA4487@legolas.emea.dhcp.ti.com>
- <AANLkTik5dwNZrUxjgjKeAQOsp610d6y_TNGg1b5Vc5Zd@mail.gmail.com>
-Reply-To: balbi@ti.com
+From: "Varadarajan, Charulatha" <charu@ti.com>
+Subject: Re: [PATCH resend] omap: rx51: Add SI4713 FM transmitter
+Date: Mon, 21 Feb 2011 13:10:59 +0530
+Message-ID: <AANLkTikR5v9_G3oyRjVP1oCcBo=hU+ikywximd=VDbDd@mail.gmail.com>
+References: <1298040354-1726-1-git-send-email-jhnikula@gmail.com> <1298270556-11571-1-git-send-email-jhnikula@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <AANLkTik5dwNZrUxjgjKeAQOsp610d6y_TNGg1b5Vc5Zd@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: David Cohen <dacohen@gmail.com>
-Cc: balbi@ti.com, Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>, Thomas Weber <weber@corscience.de>, Sylwester Nawrocki <s.nawrocki@samsung.com>, linux-omap@vger.kernel.org, Mauro Carvalho Chehab <mchehab@infradead.org>, Hans Verkuil <hverkuil@xs4all.nl>, Tejun Heo <tj@kernel.org>, linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:39200 "EHLO
+	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751751Ab1BUHll convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 21 Feb 2011 02:41:41 -0500
+Received: by ywi6 with SMTP id 6so1097242ywi.3
+        for <linux-omap@vger.kernel.org>; Sun, 20 Feb 2011 23:41:39 -0800 (PST)
+In-Reply-To: <1298270556-11571-1-git-send-email-jhnikula@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jarkko Nikula <jhnikula@gmail.com>
+Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org
 
-Hi,
+On Mon, Feb 21, 2011 at 12:12, Jarkko Nikula <jhnikula@gmail.com> wrote=
+:
+> Add SI4713 FM transmitter supplies, platform data and setup to RX-51/=
+N900.
+> It is connected to line output signals of TLV320AIC34 codec A part.
+> Driver can be either built-in or a module. It can be tuned with v4l2-=
+ctl
+> from ivtv-utils. Following examples illustrate the use of it:
+>
+> =A0 =A0 =A0 =A0v4l2-ctl -d /dev/radio0 --set-ctrl=3Dmute=3D0 (power u=
+p)
+> =A0 =A0 =A0 =A0v4l2-ctl -d /dev/radio0 -f 107900 (tune 107.9 MHz)
+>
+> =A0 =A0 =A0 =A0v4l2-ctl -d /dev/radio0 --set-ctrl=3Dmute=3D1 (power d=
+own)
+>
+> Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
+> ---
+> Resend =3D forgot to cc LAKML.
+> ---
 
-On Sat, Feb 19, 2011 at 06:04:58PM +0200, David Cohen wrote:
-> > I have to disagree. The fundamental problem is the circular dependency
-> > between those two files:
-> >
-> > sched.h uses wait_queue_head_t defined in wait.h
-> > wait.h uses TASK_* defined in sched.h
-> >
-> > So, IMO the real fix would be clear out the circular dependency. Maybe
-> > introducing <linux/task.h> to define those TASK_* symbols and include
-> > that on sched.h and wait.h
-> >
-> > Just dig a quick and dirty to try it out and works like a charm
-> 
-> We have 2 problems:
->  - omap24xxcam compilation broken
->  - circular dependency between sched.h and wait.h
-> 
-> To fix the broken compilation we can do what the rest of the kernel is
-> doing, which is to include sched.h.
-> Then, the circular dependency is fixed by some different approach
-> which would probably change *all* current usage of TASK_*.
+<<snip>>
 
-considering that 1 is caused by 2 I would fix 2.
+> +
+> +static __init void rx51_init_si4713(void)
+> +{
+> + =A0 =A0 =A0 int err;
+> +
+> + =A0 =A0 =A0 err =3D gpio_request_one(RX51_FMTX_IRQ, GPIOF_DIR_IN, "=
+si4713 irq");
+> + =A0 =A0 =A0 if (err) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 printk(KERN_ERR "Cannot request si4713 =
+irq gpio. %d\n", err);
 
-> IMO, there's no need to create a dependency between those issues.
+use pr_err instead of printk.
 
-There's no dependency between them, it's just that the root cause for
-this problem is a circular dependency between wait.h and sched.h
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return;
+> + =A0 =A0 =A0 }
+> + =A0 =A0 =A0 rx51_si4713_board_info.irq =3D gpio_to_irq(RX51_FMTX_IR=
+Q);
+> + =A0 =A0 =A0 platform_device_register(&rx51_si4713_dev);
+> +}
+> +
 
--- 
-balbi
+<<snip>>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
