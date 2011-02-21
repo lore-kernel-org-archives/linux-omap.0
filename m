@@ -1,660 +1,3045 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 4/4] OMAP: Voltage: Adaptive Body-Bias handlers
-Date: Tue, 22 Feb 2011 00:01:55 +0100
-Message-ID: <4D62EEE3.2030600@ti.com>
-References: <1298020853-13761-1-git-send-email-mturquette@ti.com> <1298020853-13761-4-git-send-email-mturquette@ti.com> <AANLkTinfah7pawowWjvSYKi1=g7b3_3QFu=N895cvpkX@mail.gmail.com> <AANLkTinnCU2fYN1VvfJ1d=bzWLN4VkRUTHv9YhPJ=L_E@mail.gmail.com>
+From: "Gulati, Shweta" <shweta.gulati@ti.com>
+Subject: Re: [PATCH 3/3] OMAP2+: voltage: reorganize, split code from data
+Date: Mon, 21 Feb 2011 13:29:23 +0530
+Message-ID: <AANLkTikdx41hE5d5xG8rpB95DUvVu0=VHi6Zj=ePtREb@mail.gmail.com>
+References: <20110221020231.7598.14024.stgit@twilight.localdomain>
+	<20110221020856.7598.34506.stgit@twilight.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:41367 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750998Ab1BUXB5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Feb 2011 18:01:57 -0500
-Received: from dlep33.itg.ti.com ([157.170.170.112])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1LN1vYZ021670
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Mon, 21 Feb 2011 17:01:57 -0600
-Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
-	by dlep33.itg.ti.com (8.13.7/8.13.7) with ESMTP id p1LN1vDf006731
-	for <linux-omap@vger.kernel.org>; Mon, 21 Feb 2011 17:01:57 -0600 (CST)
-In-Reply-To: <AANLkTinnCU2fYN1VvfJ1d=bzWLN4VkRUTHv9YhPJ=L_E@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20110221020856.7598.34506.stgit@twilight.localdomain>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: "Turquette, Mike" <mturquette@ti.com>
-Cc: "Gulati, Shweta" <shweta.gulati@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Mike,
+Hi,
 
-On 2/21/2011 8:47 PM, Turquette, Mike wrote:
-> On Mon, Feb 21, 2011 at 4:31 AM, Gulati, Shweta<shweta.gulati@ti.com>  wrote:
->> Hi,
->>
->> On Fri, Feb 18, 2011 at 2:50 PM, Mike Turquette<mturquette@ti.com>  wrote:
->>> Introduce voltage transition notification handlers for Adaptive Body-Bias
->>> LDOs.  There is an ABB LDO for VDD_MPU on OMAP3630 and an ABB_LDO on VDD_MPU
->>> and VDD_IVA on OMAP4430.
->>>
->>> All of these LDOs are handled similary.  Initial configuration is to enable
->>> the possibility of going into Forward Body-Bias (which boosts voltage at
->>> high OPPs).  This feature was designed for weak silicon, and eFuse values
->>> exist to control whether or not this feature should be turned on.  However
->>> recommendations from hardware folks always say to leave it on regardless of
->>> eFuse values, so we don't bother checking them.  For all other OPPs the LDO
->>> is in bypass and will follow the voltage of it's corresponding VDD_xxx.
->>> Reverse Body-Bias exists but we never use this in practice (for saving power
->>> on strongly characterised silicon).
->> Would RBB be never enabled in future for any of the OPPs or any platforms
->> that way SLOW_OPP should also be added in OPP types
+On Mon, Feb 21, 2011 at 7:38 AM, Paul Walmsley <paul@pwsan.com> wrote:
+> This is a first pass at reorganizing mach-omap2/voltage.c:
 >
-> Will do this in next version.  RBB is a possibility.
-
-You should not waste you time with that, the RBB should be remove from 
-the TRM soon.
-That mode is not supported anymore.
-
-Benoit
-
+> - Separate almost all of the data from the code of mach-omap2/voltage.c.
+> =A0The code remains in mach-omap2/voltage.c. =A0The data goes into one
+> =A0of several places, depending on what type of data it is:
 >
->>> Upon a DVFS transition the notifiers handle the sequencing of voltage
->>> scaling and ABB LDO transitions.  When moving to a higher OPP that needs
->>> FBB, raise voltage first and then enable FBB.  When moving down to an OPP
->>> that bypasses ABB, first bypass the LDO then lower voltage.
->>>
->>> Signed-off-by: Mike Turquette<mturquette@ti.com>
->>> ---
->>>   arch/arm/mach-omap2/voltage.c             |  379 ++++++++++++++++++++++++++++-
->>>   arch/arm/plat-omap/include/plat/voltage.h |    6 +-
->>>   2 files changed, 370 insertions(+), 15 deletions(-)
->>>
->>> diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
->>> index 6ede092..644a45f 100644
->>> --- a/arch/arm/mach-omap2/voltage.c
->>> +++ b/arch/arm/mach-omap2/voltage.c
->>> @@ -43,6 +43,16 @@
->>>   #define FAST_OPP               0x1
->>>   #define NOMINAL_OPP            0x0
->>>
->>> +/* prototypes used by ABB function pointers */
->>> +static int omap_abb_notify_voltage(struct notifier_block *nb,
->>> +               unsigned long val, void *data);
->>> +
->>> +static int omap3_abb_configure(struct omap_abb_info *abb);
->>> +static int omap3_abb_set_opp(struct omap_abb_info *abb, int opp_type);
->>> +
->>> +static int omap4_abb_configure(struct omap_abb_info *abb);
->>> +static int omap4_abb_set_opp(struct omap_abb_info *abb, int opp_type);
->>> +
->>>   static struct omap_vdd_info *vdd_info;
->>>   /*
->>>   * Number of scalable voltage domains.
->>> @@ -70,9 +80,11 @@ static struct omap_vdd_info omap3_vdd_info[] = {
->>>                                         = OMAP3_PRM_IRQSTATUS_MPU_OFFSET,
->>>                         .done_st_shift  = OMAP3630_ABB_LDO_TRANXDONE_ST_SHIFT,
->>>                         .done_st_mask   = OMAP3630_ABB_LDO_TRANXDONE_ST_MASK,
->>> -                       .configure      = NULL,
->>> -                       .nb_handler     = NULL,
->>> -                       .set_opp        = NULL,
->>> +                       .nb     = {
->>> +                               .notifier_call = omap_abb_notify_voltage,
->>> +                       },
->>> +                       .configure      = omap3_abb_configure,
->>> +                       .set_opp        = omap3_abb_set_opp,
->>>                 },
->>>         },
->>>         {
->>> @@ -113,9 +125,11 @@ static struct omap_vdd_info omap4_vdd_info[] = {
->>>                                         = OMAP4_PRM_IRQSTATUS_MPU_2_OFFSET,
->>>                         .done_st_shift  = OMAP4430_ABB_MPU_DONE_ST_SHIFT,
->>>                         .done_st_mask   = OMAP4430_ABB_MPU_DONE_ST_MASK,
->>> -                       .configure      = NULL,
->>> -                       .nb_handler     = NULL,
->>> -                       .set_opp        = NULL,
->>> +                       .nb             = {
->>> +                               .notifier_call = omap_abb_notify_voltage,
->>> +                       },
->>> +                       .configure      = omap4_abb_configure,
->>> +                       .set_opp        = omap4_abb_set_opp,
->>>                 },
->>>         },
->>>         {
->>> @@ -137,9 +151,11 @@ static struct omap_vdd_info omap4_vdd_info[] = {
->>>                                         = OMAP4_PRM_IRQSTATUS_MPU_OFFSET,
->>>                         .done_st_shift  = OMAP4430_ABB_IVA_DONE_ST_SHIFT,
->>>                         .done_st_mask   = OMAP4430_ABB_IVA_DONE_ST_MASK,
->>> -                       .configure      = NULL,
->>> -                       .nb_handler     = NULL,
->>> -                       .set_opp        = NULL,
->>> +                       .nb             = {
->>> +                               .notifier_call = omap_abb_notify_voltage,
->>> +                       },
->>> +                       .configure      = omap4_abb_configure,
->>> +                       .set_opp        = omap4_abb_set_opp,
->>>                 },
->>>         },
->>>         {
->>> @@ -194,7 +210,7 @@ static struct omap_volt_data omap36xx_vddmpu_volt_data[] = {
->>>                         NOMINAL_OPP),
->>>         VOLT_DATA_DEFINE(OMAP3630_VDD_MPU_OPP100_UV,
->>>                         OMAP3630_CONTROL_FUSE_OPP100_VDD1, 0xf9, 0x16,
->>> -                       NOMINAL_OPP),
->>> +                       FAST_OPP),
->>>         VOLT_DATA_DEFINE(OMAP3630_VDD_MPU_OPP120_UV,
->>>                         OMAP3630_CONTROL_FUSE_OPP120_VDD1, 0xfa, 0x23,
->>>                         NOMINAL_OPP),
->>> @@ -493,6 +509,74 @@ static void __init vdd_debugfs_init(struct omap_vdd_info *vdd)
->>>                                 &nom_volt_debug_fops);
->>>   }
->>>
->>> +/* voltage transition notification handlers */
->>> +
->>> +/**
->>> + * omap_abb_notify_voltage - voltage change notifier handler for ABB
->>> + * @nb         : notifier block
->>> + * @val                : VOLTSCALE_PRECHANGE or VOLTSCALE_POSTCHANGE
->>> + * @data       : struct omap_volt_change_info for a given voltage domain
->>> + *
->>> + * Sets ABB LDO to either bypass or Forward Body-Bias whenever a voltage
->>> + * change notification is generated.  Voltages marked as FAST will result in
->>> + * FBB operation of ABB LDO and voltages marked as NOMINAL will bypass the
->>> + * LDO.  Does not handle Reverse Body-Bias since there is not benefit for it
->>> + * on any existing silicon.  Returns 0 upon success, negative error code
->>> + * otherwise.
->>> + */
->>> +static int omap_abb_notify_voltage(struct notifier_block *nb,
->>> +               unsigned long val, void *data)
->>> +{
->>> +       struct omap_volt_change_info *v_info;
->>> +       struct omap_vdd_info *vdd;
->>> +       struct omap_volt_data *curr_volt_data, *target_volt_data;
->>> +       int ret = 0;
->>> +
->>> +       if (!nb || IS_ERR(nb) || !data || IS_ERR(data)) {
->>> +               pr_warning("%s: invalid data specified\n", __func__);
->>> +               ret = -EINVAL;
->>> +               goto out;
->>> +       }
->>> +
->>> +       v_info = (struct omap_volt_change_info *)data;
->>> +       vdd = v_info->vdd;
->>> +
->>> +       /* get the voltdata structures for the current&  target voltage */
->>> +       target_volt_data = omap_voltage_get_voltdata(&vdd->voltdm,
->>> +                       v_info->target_volt);
->>> +       curr_volt_data = omap_voltage_get_voltdata(&vdd->voltdm,
->>> +                       v_info->curr_volt);
->>> +
->>> +       /* nothing to do here */
->>> +       if (target_volt_data->abb_opp == curr_volt_data->abb_opp)
->>> +               goto out;
->>> +
->>> +       /*
->>> +        * When the VDD drops from a voltage requiring the ABB LDO to be in
->>> +        * FBB mode to a voltage requiring bypass mode, we must bypass the LDO
->>> +        * before the voltage transition.
->>> +        */
->>> +       if (val == VOLTSCALE_PRECHANGE&&
->>> +                       target_volt_data->abb_opp == NOMINAL_OPP) {
->>> +               ret = vdd->abb.set_opp(&vdd->abb, NOMINAL_OPP);
->>> +
->>> +       /*
->>> +        * When moving from a voltage requiring the ABB LDO to be bypassed to
->>> +        * a voltage requiring FBB mode, we must change the LDO operation
->>> +        * after the voltage transition.
->>> +        */
->>> +       } else if (val == VOLTSCALE_POSTCHANGE&&
->>> +                       target_volt_data->abb_opp == FAST_OPP) {
->>> +               ret = vdd->abb.set_opp(&vdd->abb, FAST_OPP);
->>> +
->>> +       /* invalid combination, bail out */
->>> +       } else
->>> +               ret = -EINVAL;
->>> +
->>> +out:
->>> +       return ret;
->>> +}
->>> +
->>>   /* Voltage scale and accessory APIs */
->>>   static int _pre_volt_scale(struct omap_vdd_info *vdd,
->>>                 unsigned long target_volt, u8 *target_vsel, u8 *current_vsel)
->>> @@ -717,6 +801,142 @@ static int vp_forceupdate_scale_voltage(struct omap_vdd_info *vdd,
->>>         return 0;
->>>   }
->>>
->>> +/**
->>> + * omap3_abb_set_opp - program ABB LDO upon a voltage transition
->>> + *
->>> + * @abb                : ABB instance being programmed
->>> + * @opp_type   : flag for NOMINAL or FAST OPP
->>> + */
->>> +static int omap3_abb_set_opp(struct omap_abb_info *abb, int opp_type)
->>> +{
->>> +       int ret = 0;
->>> +       int timeout;
->>> +
->>> +       /* program for NOMINAL OPP or FAST OPP */
->>> +       omap2_prm_rmw_mod_reg_bits(OMAP3630_OPP_SEL_MASK,
->>> +                       (opp_type<<  OMAP3630_OPP_SEL_SHIFT),
->>> +                       OMAP3430_GR_MOD, abb->setup_offs);
->> Rather than passing a parameter 'opp_type' u can set OPP_SEL bit in
->> SETUP Register in API
+> =A0- Silicon process/validation data: mach-omap2/opp*_data.c
+> =A0- VC (Voltage Controller) data: mach-omap2/vc*_data.c
+> =A0- VP (Voltage Processor) data: mach-omap2/vp*_data.c
+> =A0- Voltage domain data: mach-omap2/voltagedomains*_data.c
 >
-> I'm not sure I follow.  The opp_type corresponds to the voltage we're
-> transitioning to, so that data must be passed in to this generic
-> set_opp function.
+> =A0The ultimate goal is for all this data to be autogenerated, the same
+> =A0way we autogenerate the rest of our data.
 >
->> omap_abb_notify_voltage where if-else are used to check whether ABB
->> needs to transition or not.
+> - Separate VC and VP common data from VDD-specific VC and VP data.
 >
-> The notifier handles this... it will not execute call set_opp function
-> if there is no need to change ABB registers.
+> - Separate common voltage.c code from SoC-specific code; reuse common cod=
+e.
 >
->>> +
->>> +       /* clear ABB ldo interrupt status */
->>> +       omap2_prm_clear_mod_reg_bits(abb->done_st_mask, OCP_MOD,
->>> +                       abb->irqstatus_mpu_offs);
->>> +
->>> +       /* enable ABB LDO OPP change */
->>> +       omap2_prm_set_mod_reg_bits(OMAP3630_OPP_CHANGE_MASK, OMAP3430_GR_MOD,
->>> +                       abb->setup_offs);
->>> +
->>> +       timeout = 0;
->>> +
->>> +       /* wait until OPP change completes */
->>> +       while ((timeout<  ABB_TRANXDONE_TIMEOUT)&&
->>> +                       (!(omap2_prm_read_mod_reg(OCP_MOD,
->>> +                                                 abb->irqstatus_mpu_offs)&
->>> +                          abb->done_st_mask))) {
->>> +               udelay(1);
->>> +               timeout++;
->>> +       }
->>> +
->>> +       if (timeout == ABB_TRANXDONE_TIMEOUT)
->>> +               pr_warning("%s: TRANXDONE timed out waiting for OPP change\n",
->>> +                               __func__);
->>> +
->>> +       timeout = 0;
->>> +
->>> +       /* Clear all pending TRANXDONE interrupts/status */
->>> +       while (timeout<  ABB_TRANXDONE_TIMEOUT) {
->>> +               omap2_prm_write_mod_reg((1<<  abb->done_st_shift), OCP_MOD,
->>> +                               abb->irqstatus_mpu_offs);
->>> +
->>> +               if (!(omap2_prm_read_mod_reg(OCP_MOD, abb->irqstatus_mpu_offs)
->>> +&  abb->done_st_mask))
->>> +                       break;
->>> +
->>> +               udelay(1);
->>> +               timeout++;
->>> +       }
->>> +
->>> +       if (timeout == ABB_TRANXDONE_TIMEOUT) {
->>> +               pr_warning("%s: TRANXDONE timed out trying to clear status\n",
->>> +                               __func__);
->>> +               ret = -EBUSY;
->>> +       }
->>> +
->>> +       return ret;
->>> +}
->>> +
->>> +/**
->>> + * omap4_abb_set_opp - program ABB LDO upon a voltage transition
->>> + *
->>> + * @abb                : ABB instance being programmed
->>> + * @opp_type   : flag for NOMINAL or FAST OPP
->>> + */
->>> +static int omap4_abb_set_opp(struct omap_abb_info *abb, int opp_type)
->>> +{
->>> +       int ret = 0;
->>> +       int timeout;
->>> +
->>> +       /* program for NOMINAL OPP or FAST OPP */
->>> +       omap4_prminst_rmw_inst_reg_bits(OMAP4430_OPP_SEL_MASK,
->>> +                       (opp_type<<  OMAP4430_OPP_SEL_SHIFT),
->>> +                       OMAP4430_PRM_PARTITION, OMAP4430_PRM_DEVICE_INST,
->>> +                       abb->ctrl_offs);
->>> +
->>> +       /* clear ABB ldo interrupt status */
->>> +       omap4_prminst_rmw_inst_reg_bits(abb->done_st_mask,
->>> +                       (0x0<<  abb->done_st_shift), OMAP4430_PRM_PARTITION,
->>> +                       OMAP4430_PRM_DEVICE_INST, abb->ctrl_offs);
->>> +
->>> +       /* enable ABB LDO OPP change */
->>> +       omap4_prminst_rmw_inst_reg_bits(OMAP4430_OPP_CHANGE_MASK,
->>> +                       (0x1<<  OMAP4430_OPP_CHANGE_SHIFT),
->>> +                       OMAP4430_PRM_PARTITION, OMAP4430_PRM_DEVICE_INST,
->>> +                       abb->ctrl_offs);
->>> +
->> A generic struct can be created which has Masks and shifts of all
->> register offsets  like OMAP4430_OPP_CHANGE_MASK
->> and OMAP3630_ACTIVE_FBB_SEL_MASK whose objects for OMAP3 and OMAP4 can be used.
+> - Reorganize structures to avoid unnecessary memory loss due to unpacked
+> =A0fields.
 >
-> True.  I chose to have the struct differentiate between VDDs, not OMAP
-> chips.  Do others have an opinion on this?  I guess it comes down to
-> whether we should have OMAP-specific ABB set_opp functions, and that
-> struct data should be per-VDD (like it is in my patch)... OR if we
-> should have a generic ABB set_opp function only that works across all
-> OMAPs and all data is in the struct whether it is VDD- or
-> OMAP-specific.  My problem with the latter solution is that it assumes
-> the programming model will not change from OMAP to OMAP...
+> There is much left to be done. =A0VC code and VP code should be separated=
+ out
+> into vc*.c and vp*.c files. =A0Many fields in the existing structures are
+> superfluous, and should be removed. =A0Some code in voltage.c seems to be
+> duplicated; that code should be moved into functions of its own. =A0Proper
+> voltage domain code should be created, as was done with the powerdomain
+> and clockdomains, and powerdomains should reference voltagedomains.
 >
->>> +       timeout = 0;
->>> +
->>> +       /* wait until OPP change completes */
->>> +       while ((timeout<  ABB_TRANXDONE_TIMEOUT)&&
->>> +                       (!(omap4_prminst_read_inst_reg(OMAP4430_PRM_PARTITION,
->>> +                                                      OMAP4430_PRM_DEVICE_INST,
->>> +                                                      abb->irqstatus_mpu_offs)
->>> +&  abb->done_st_mask))) {
->>> +               udelay(1);
->>> +               timeout++;
->>> +       }
->>> +
->>> +       if (timeout == ABB_TRANXDONE_TIMEOUT)
->>> +               pr_warning("%s: TRANXDONE timed out waiting for OPP change\n",
->>> +                               __func__);
->>> +
->>> +       timeout = 0;
->>> +
->>> +       /* Clear all pending TRANXDONE interrupts/status */
->>> +       while (timeout<  ABB_TRANXDONE_TIMEOUT) {
->>> +               omap4_prminst_write_inst_reg((1<<  abb->done_st_shift),
->>> +                               OMAP4430_PRM_PARTITION,
->>> +                               OMAP4430_PRM_DEVICE_INST,
->>> +                               abb->irqstatus_mpu_offs);
->>> +
->>> +               if (!(omap4_prminst_read_inst_reg(OMAP4430_PRM_PARTITION,
->>> +                                               OMAP4430_PRM_DEVICE_INST,
->>> +                                               abb->irqstatus_mpu_offs)
->>> +&  abb->done_st_mask)) {
->>> +                       break;
->>> +
->>> +                       udelay(1);
->>> +                       timeout++;
->>> +               }
->>> +       }
->>> +
->>> +       if (timeout == ABB_TRANXDONE_TIMEOUT) {
->>> +               pr_warning("%s: TRANXDONE timed out trying to clear status\n",
->>> +                               __func__);
->>> +               ret = -EBUSY;
->>> +       }
->>> +
->>> +       return ret;
->>> +}
->>> +
->>>   /* OMAP3 specific voltage init functions */
->>>
->>>   /*
->>> @@ -789,6 +1009,64 @@ static void __init omap3_vc_init(struct omap_vdd_info *vdd)
->>>         is_initialized = true;
->>>   }
->>>
->>> +/**
->>> + * omap3_abb_configure - per-VDD configuration of ABB
->>> + *
->>> + * @abb                : abb instance being initialized
->>> + */
->>> +static int omap3_abb_configure(struct omap_abb_info *abb)
->>> +{
->>> +       int ret = 0;
->>> +       u32 sr2_wt_cnt_val;
->>> +       struct clk *sys_ck;
->>> +       struct omap_vdd_info *vdd;
->>> +
->>> +       if (!abb || IS_ERR(abb)) {
->>> +                       pr_warning("%s: invalid abb\n", __func__);
->>> +                       ret = -EINVAL;
->>> +                       goto out;
->>> +       }
->>> +
->>> +       sys_ck = clk_get(NULL, "sys_ck");
->>> +       if (IS_ERR(sys_ck)) {
->>> +               pr_warning("%s: unable to fetch SYS_CK\n", __func__);
->>> +               ret = -ENODEV;
->>> +               goto out;
->>> +       }
->>> +
->>> +       vdd = container_of(abb, struct omap_vdd_info, abb);
->>> +
->>> +       /* LDO settling time */
->>> +       sr2_wt_cnt_val = clk_get_rate(sys_ck);
->>> +       sr2_wt_cnt_val = sr2_wt_cnt_val / 1000000 / 16;
->>> +
->>> +       omap2_prm_rmw_mod_reg_bits(OMAP3630_SR2_WTCNT_VALUE_MASK,
->>> +                       (sr2_wt_cnt_val<<  OMAP3630_SR2_WTCNT_VALUE_SHIFT),
->>> +                       OMAP3430_GR_MOD, abb->setup_offs);
->>> +
->>> +       /* allow FBB operation */
->>> +       omap2_prm_set_mod_reg_bits(OMAP3630_ACTIVE_FBB_SEL_MASK,
->>> +                       OMAP3430_GR_MOD, abb->setup_offs);
->>> +
->>> +       /* do not allow ACTIVE RBB operation */
->>> +       omap2_prm_set_mod_reg_bits(OMAP3630_ACTIVE_RBB_SEL_MASK,
->>> +                       OMAP3430_GR_MOD, abb->setup_offs);
->>> +
->>> +       /* do not allow SLEEP RBB operation */
->>> +       omap2_prm_set_mod_reg_bits(OMAP3630_SLEEP_RBB_SEL_MASK,
->>> +                       OMAP3430_GR_MOD, abb->setup_offs);
->>> +
->>> +       /* enable ABB LDO */
->>> +       omap2_prm_set_mod_reg_bits(OMAP3630_SR2EN_MASK,
->>> +                       OMAP3430_GR_MOD, abb->ctrl_offs);
->> ABB should n't be enabled in this API rather it should be enabled only
->> when it goes to FBB/RBB mode
+> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+> ---
+> =A0arch/arm/mach-omap2/Makefile =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 =
+20
+> =A0arch/arm/mach-omap2/omap_opp_data.h =A0 =A0 =A0 =A0 =A0 | =A0 12
+> =A0arch/arm/mach-omap2/opp3xxx_data.c =A0 =A0 =A0 =A0 =A0 =A0| =A0 44 +
+> =A0arch/arm/mach-omap2/opp4xxx_data.c =A0 =A0 =A0 =A0 =A0 =A0| =A0 30 +
+> =A0arch/arm/mach-omap2/vc.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| =
+=A0 83 ++
+> =A0arch/arm/mach-omap2/vc3xxx_data.c =A0 =A0 =A0 =A0 =A0 =A0 | =A0 63 ++
+> =A0arch/arm/mach-omap2/vc44xx_data.c =A0 =A0 =A0 =A0 =A0 =A0 | =A0 72 ++
+> =A0arch/arm/mach-omap2/voltage.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | 1016 +=
+++++++------------------
+> =A0arch/arm/mach-omap2/voltage.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0 66=
+ ++
+> =A0arch/arm/mach-omap2/voltagedomains3xxx_data.c | =A0104 +++
+> =A0arch/arm/mach-omap2/voltagedomains44xx_data.c | =A0108 +++
+> =A0arch/arm/mach-omap2/vp.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| =
+=A0143 ++++
+> =A0arch/arm/mach-omap2/vp3xxx_data.c =A0 =A0 =A0 =A0 =A0 =A0 | =A0 82 ++
+> =A0arch/arm/mach-omap2/vp44xx_data.c =A0 =A0 =A0 =A0 =A0 =A0 | =A0 97 ++
+> =A014 files changed, 1192 insertions(+), 748 deletions(-)
+> =A0create mode 100644 arch/arm/mach-omap2/vc.h
+> =A0create mode 100644 arch/arm/mach-omap2/vc3xxx_data.c
+> =A0create mode 100644 arch/arm/mach-omap2/vc44xx_data.c
+> =A0create mode 100644 arch/arm/mach-omap2/voltagedomains3xxx_data.c
+> =A0create mode 100644 arch/arm/mach-omap2/voltagedomains44xx_data.c
+> =A0create mode 100644 arch/arm/mach-omap2/vp.h
+> =A0create mode 100644 arch/arm/mach-omap2/vp3xxx_data.c
+> =A0create mode 100644 arch/arm/mach-omap2/vp44xx_data.c
 >
-> I disagree.  I've verified with hw team that this is perfectly safe as
-> it leaves ABB ldo in bypass and will follow VDD_xxx voltage.  No
-> reason to complicate notifier code with some "if
-> (!abb_already_enabled)" check.
+> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+> index 1c0c2b0..d5c1dba 100644
+> --- a/arch/arm/mach-omap2/Makefile
+> +++ b/arch/arm/mach-omap2/Makefile
+> @@ -59,10 +59,10 @@ endif
+> =A0# Power Management
+> =A0ifeq ($(CONFIG_PM),y)
+> =A0obj-$(CONFIG_ARCH_OMAP2) =A0 =A0 =A0 =A0 =A0 =A0 =A0 +=3D pm24xx.o
+> -obj-$(CONFIG_ARCH_OMAP2) =A0 =A0 =A0 =A0 =A0 =A0 =A0 +=3D sleep24xx.o pm=
+_bus.o voltage.o
+> -obj-$(CONFIG_ARCH_OMAP3) =A0 =A0 =A0 =A0 =A0 =A0 =A0 +=3D pm34xx.o sleep=
+34xx.o voltage.o \
+> +obj-$(CONFIG_ARCH_OMAP2) =A0 =A0 =A0 =A0 =A0 =A0 =A0 +=3D sleep24xx.o pm=
+_bus.o
+> +obj-$(CONFIG_ARCH_OMAP3) =A0 =A0 =A0 =A0 =A0 =A0 =A0 +=3D pm34xx.o sleep=
+34xx.o \
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 cpuidle34xx.o pm_bus.o
+> -obj-$(CONFIG_ARCH_OMAP4) =A0 =A0 =A0 =A0 =A0 =A0 =A0 +=3D pm44xx.o volta=
+ge.o pm_bus.o
+> +obj-$(CONFIG_ARCH_OMAP4) =A0 =A0 =A0 =A0 =A0 =A0 =A0 +=3D pm44xx.o pm_bu=
+s.o
+> =A0obj-$(CONFIG_PM_DEBUG) =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 +=3D pm-debug.o
+> =A0obj-$(CONFIG_OMAP_SMARTREFLEX) =A0 =A0 =A0 =A0 =A0+=3D sr_device.o sma=
+rtreflex.o
+> =A0obj-$(CONFIG_OMAP_SMARTREFLEX_CLASS3) =A0+=3D smartreflex-class3.o
+> @@ -78,13 +78,23 @@ endif
 >
->>> +
->>> +       /* register the notifier handler */
->>> +       omap_voltage_register_notifier(vdd,&abb->nb);
->>> +
->>> +out:
->>> +       return ret;
->>> +}
->>> +
->>>   /* Sets up all the VDD related info for OMAP3 */
->>>   static int __init omap3_vdd_data_configure(struct omap_vdd_info *vdd)
->>>   {
->>> @@ -824,6 +1102,9 @@ static int __init omap3_vdd_data_configure(struct omap_vdd_info *vdd)
->>>                 vdd->vc_reg.smps_volra_mask = OMAP3430_VOLRA0_MASK;
->>>                 vdd->vc_reg.voltsetup_shift = OMAP3430_SETUP_TIME1_SHIFT;
->>>                 vdd->vc_reg.voltsetup_mask = OMAP3430_SETUP_TIME1_MASK;
->>> +
->>> +               /* configure ABB */
->>> +               vdd->abb.configure(&vdd->abb);
->>>         } else if (!strcmp(vdd->voltdm.name, "core")) {
->>>                 if (cpu_is_omap3630())
->>>                         vdd->volt_data = omap36xx_vddcore_volt_data;
->>> @@ -975,6 +1256,73 @@ static void __init omap4_vc_init(struct omap_vdd_info *vdd)
->>>         is_initialized = true;
->>>   }
->>>
->> To remove code repetition rather than having 2 APIs for abb_configure,
->> I believe 1 API which has generic register offsets struct objects for
->> all platforms
->> (OMAP3 and OMAP4 for now) can be used.
->> This would be scalable for OMAP5+ also.
+> =A0# PRCM
+> =A0obj-$(CONFIG_ARCH_OMAP2) =A0 =A0 =A0 =A0 =A0 =A0 =A0 +=3D prcm.o cm2xx=
+x_3xxx.o prm2xxx_3xxx.o
+> -obj-$(CONFIG_ARCH_OMAP3) =A0 =A0 =A0 =A0 =A0 =A0 =A0 +=3D prcm.o cm2xxx_=
+3xxx.o prm2xxx_3xxx.o
+> +obj-$(CONFIG_ARCH_OMAP3) =A0 =A0 =A0 =A0 =A0 =A0 =A0 +=3D prcm.o cm2xxx_=
+3xxx.o prm2xxx_3xxx.o \
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0vc3xxx_data.o vp3xxx_data.o
+> =A0# XXX The presence of cm2xxx_3xxx.o on the line below is temporary and
+> =A0# will be removed once the OMAP4 part of the codebase is converted to
+> =A0# use OMAP4-specific PRCM functions.
+> =A0obj-$(CONFIG_ARCH_OMAP4) =A0 =A0 =A0 =A0 =A0 =A0 =A0 +=3D prcm.o cm2xx=
+x_3xxx.o cminst44xx.o \
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 cm44xx.o prcm_mpu44xx.o \
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0prminst44xx.o
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0prminst44xx.o vc44xx_data.o \
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0vp44xx_data.o
+> +
+> +# OMAP voltage domains
+> +voltagedomain-common =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 :=3D voltage.o
+> +obj-$(CONFIG_ARCH_OMAP2) =A0 =A0 =A0 =A0 =A0 =A0 =A0 +=3D $(voltagedomai=
+n-common)
+> +obj-$(CONFIG_ARCH_OMAP3) =A0 =A0 =A0 =A0 =A0 =A0 =A0 +=3D $(voltagedomai=
+n-common) \
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0voltagedomains3xxx_data.o
+> +obj-$(CONFIG_ARCH_OMAP4) =A0 =A0 =A0 =A0 =A0 =A0 =A0 +=3D $(voltagedomai=
+n-common) \
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0voltagedomains44xx_data.o
 >
-> This is the same as what I've stated above for the ABB set_opp
-> function.  We can't be sure what the programming model will be for
-> future OMAPs, so should we really do it as your suggest?  It is
-> possible that we retain the same set_opp function pointer, and only
-> implemenet it once since it can be used by both OMAP3 and OMAP4 using
-> more verbose struct data.  OMAP5 might have a different programming
-> model altogether, so we will need to retain the set_opp function
-> pointer just to be safe.  Thoughts on this?
+> =A0# OMAP powerdomain framework
+> =A0powerdomain-common =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 +=3D powerd=
+omain.o powerdomain-common.o
+> diff --git a/arch/arm/mach-omap2/omap_opp_data.h b/arch/arm/mach-omap2/om=
+ap_opp_data.h
+> index 46ac27d..d8158bb 100644
+> --- a/arch/arm/mach-omap2/omap_opp_data.h
+> +++ b/arch/arm/mach-omap2/omap_opp_data.h
+> @@ -21,6 +21,8 @@
 >
->>
->>> +/**
->>> + * omap4_abb_configure - per-VDD configuration of ABB
->>> + *
->>> + * @abb                : abb instance being initialized
->>> + */
->>> +static int omap4_abb_configure(struct omap_abb_info *abb)
->>> +{
->>> +       int ret = 0;
->>> +       u32 sr2_wt_cnt_val;
->>> +       struct clk *sys_ck;
->>> +       struct omap_vdd_info *vdd;
->>> +
->>> +       if (!abb || IS_ERR(abb)) {
->>> +                       pr_warning("%s: invalid abb\n", __func__);
->>> +                       ret = -EINVAL;
->>> +                       goto out;
->>> +       }
->>> +
->>> +       sys_ck = clk_get(NULL, "sys_clkin_ck");
->>> +       if (IS_ERR(sys_ck)) {
->>> +               pr_warning("%s: unable to fetch SYS_CK", __func__);
->>> +               ret = -ENODEV;
->>> +               goto out;
->>> +       }
->>> +
->>> +       vdd = container_of(abb, struct omap_vdd_info, abb);
->>> +
->>> +       /* LDO settling time */
->>> +       sr2_wt_cnt_val = clk_get_rate(sys_ck);
->>> +       sr2_wt_cnt_val = sr2_wt_cnt_val / 1000000 / 16;
->>> +
->>> +       omap4_prminst_rmw_inst_reg_bits(OMAP4430_SR2_WTCNT_VALUE_MASK,
->>> +                       (sr2_wt_cnt_val<<  OMAP4430_SR2_WTCNT_VALUE_SHIFT),
->>> +                       OMAP4430_PRM_PARTITION, OMAP4430_PRM_DEVICE_INST,
->>> +                       abb->setup_offs);
->>> +
->>> +       /* allow FBB operation */
->>> +       omap4_prminst_rmw_inst_reg_bits(OMAP4430_ACTIVE_FBB_SEL_MASK,
->>> +                       (1<<  OMAP4430_ACTIVE_FBB_SEL_SHIFT),
->>> +                       OMAP4430_PRM_PARTITION, OMAP4430_PRM_DEVICE_INST,
->>> +                       abb->setup_offs);
->>> +
->>> +       /* do not allow ACTIVE RBB operation */
->>> +       omap4_prminst_rmw_inst_reg_bits(OMAP4430_ACTIVE_RBB_SEL_MASK,
->>> +                       (0<<  OMAP4430_ACTIVE_RBB_SEL_SHIFT),
->>> +                       OMAP4430_PRM_PARTITION, OMAP4430_PRM_DEVICE_INST,
->>> +                       abb->setup_offs);
->>> +
->>> +       /* do not allow SLEEP RBB operation */
->>> +       omap4_prminst_rmw_inst_reg_bits(OMAP4430_SLEEP_RBB_SEL_MASK,
->>> +                       (0<<  OMAP4430_SLEEP_RBB_SEL_SHIFT),
->>> +                       OMAP4430_PRM_PARTITION, OMAP4430_PRM_DEVICE_INST,
->>> +                       abb->setup_offs);
->>> +
->>> +       /* enable ABB LDO */
->>> +       omap4_prminst_rmw_inst_reg_bits(OMAP4430_SR2EN_MASK,
->>> +                       (1<<  OMAP4430_SR2EN_SHIFT),
->>> +                       OMAP4430_PRM_PARTITION, OMAP4430_PRM_DEVICE_INST,
->>> +                       abb->setup_offs);
->> Same as above.
+> =A0#include <plat/omap_hwmod.h>
 >
-> Same as my above comment ;-)  This is safe and there is no reason to change it.
+> +#include "voltage.h"
+> +
+> =A0/*
+> =A0* *BIG FAT WARNING*:
+> =A0* USE the following ONLY in opp data initialization common to an SoC.
+> @@ -69,4 +71,14 @@ struct omap_opp_def {
+> =A0extern int __init omap_init_opp_table(struct omap_opp_def *opp_def,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0u32 opp_def_size);
 >
-> Regards,
-> Mike
+> +
+> +extern struct omap_volt_data omap34xx_vddmpu_volt_data[];
+> +extern struct omap_volt_data omap34xx_vddcore_volt_data[];
+> +extern struct omap_volt_data omap36xx_vddmpu_volt_data[];
+> +extern struct omap_volt_data omap36xx_vddcore_volt_data[];
+> +
+> +extern struct omap_volt_data omap44xx_vdd_mpu_volt_data[];
+> +extern struct omap_volt_data omap44xx_vdd_iva_volt_data[];
+> +extern struct omap_volt_data omap44xx_vdd_core_volt_data[];
+> +
+> =A0#endif =A0 =A0 =A0 =A0 /* __ARCH_ARM_MACH_OMAP2_OMAP_OPP_DATA_H */
+> diff --git a/arch/arm/mach-omap2/opp3xxx_data.c b/arch/arm/mach-omap2/opp=
+3xxx_data.c
+> index 0486fce..3c7f0c0 100644
+> --- a/arch/arm/mach-omap2/opp3xxx_data.c
+> +++ b/arch/arm/mach-omap2/opp3xxx_data.c
+> @@ -4,8 +4,9 @@
+> =A0* Copyright (C) 2009-2010 Texas Instruments Incorporated - http://www.=
+ti.com/
+> =A0* =A0 =A0 Nishanth Menon
+> =A0* =A0 =A0 Kevin Hilman
+> - * Copyright (C) 2010 Nokia Corporation.
+> + * Copyright (C) 2010-2011 Nokia Corporation.
+> =A0* =A0 =A0 =A0Eduardo Valentin
+> + * =A0 =A0 =A0Paul Walmsley
+> =A0*
+> =A0* This program is free software; you can redistribute it and/or modify
+> =A0* it under the terms of the GNU General Public License version 2 as
+> @@ -20,8 +21,49 @@
 >
->>> +       /* register the notifier handler */
->>> +       omap_voltage_register_notifier(vdd,&abb->nb);
->>> +
->>> +out:
->>> +       return ret;
->>> +}
->>> +
->>>   /* Sets up all the VDD related info for OMAP4 */
->>>   static int __init omap4_vdd_data_configure(struct omap_vdd_info *vdd)
->>>   {
->>> @@ -983,8 +1331,8 @@ static int __init omap4_vdd_data_configure(struct omap_vdd_info *vdd)
->>>
->>>         if (!vdd->pmic_info) {
->>>                 pr_err("%s: PMIC info requried to configure vdd_%s not"
->>> -                       "populated.Hence cannot initialize vdd_%s\n",
->>> -                       __func__, vdd->voltdm.name, vdd->voltdm.name);
->>> +                               "populated.Hence cannot initialize vdd_%s\n",
->>> +                               __func__, vdd->voltdm.name, vdd->voltdm.name);
->>>                 return -EINVAL;
->>>         }
->>>
->>> @@ -1005,6 +1353,9 @@ static int __init omap4_vdd_data_configure(struct omap_vdd_info *vdd)
->>>                 vdd->vc_reg.voltsetup_reg =
->>>                                 OMAP4_PRM_VOLTSETUP_MPU_RET_SLEEP_OFFSET;
->>>                 vdd->prm_irqst_reg = OMAP4_PRM_IRQSTATUS_MPU_2_OFFSET;
->>> +
->>> +               /* configure ABB */
->>> +               vdd->abb.configure(&vdd->abb);
->>>         } else if (!strcmp(vdd->voltdm.name, "core")) {
->>>                 vdd->volt_data = omap44xx_vdd_core_volt_data;
->>>                 vdd->vp_reg.tranxdone_status =
->>> @@ -1032,6 +1383,9 @@ static int __init omap4_vdd_data_configure(struct omap_vdd_info *vdd)
->>>                 vdd->vc_reg.voltsetup_reg =
->>>                                 OMAP4_PRM_VOLTSETUP_IVA_RET_SLEEP_OFFSET;
->>>                 vdd->prm_irqst_reg = OMAP4_PRM_IRQSTATUS_MPU_OFFSET;
->>> +
->>> +               /* configure ABB */
->>> +               vdd->abb.configure(&vdd->abb);
->>>         } else {
->>>                 pr_warning("%s: vdd_%s does not exisit in OMAP4\n",
->>>                         __func__, vdd->voltdm.name);
->>> @@ -1299,6 +1653,7 @@ int omap_voltage_scale_vdd(struct voltagedomain *voltdm,
->>>
->>>         /* load notifier chain data */
->>>         v_info.target_volt = target_volt;
->>> +       v_info.curr_volt = vdd->curr_volt;
->>>         v_info.vdd = vdd;
->>>
->>>         srcu_notifier_call_chain(&vdd->volt_change_notify_chain,
->>> diff --git a/arch/arm/plat-omap/include/plat/voltage.h b/arch/arm/plat-omap/include/plat/voltage.h
->>> index af790bf..07997f7 100644
->>> --- a/arch/arm/plat-omap/include/plat/voltage.h
->>> +++ b/arch/arm/plat-omap/include/plat/voltage.h
->>> @@ -235,8 +235,8 @@ struct omap_vdd_dep_info {
->>>   * @irqstatus_mpu_offs : PRM_IRQSTATUS_MPU* register offset
->>>   * @done_st_shift      : ABB_vdd_DONE_ST shift
->>>   * @done_st_mask       : ABB_vdd_DONE_ST bit mask
->>> + * @nb                 : voltage transition notifier block
->>>   * @configure          : boot-time configuration
->>> - * @nb_handler         : voltage transition notification handler
->>>   * @set_opp            : transition function called from nb_handler
->>>   */
->>>   struct omap_abb_info {
->>> @@ -245,9 +245,8 @@ struct omap_abb_info {
->>>         u8 irqstatus_mpu_offs;
->>>         u8 done_st_shift;
->>>         u32 done_st_mask;
->>> +       struct notifier_block nb;
->>>         int (*configure) (struct omap_abb_info *abb);
->>> -       int (*nb_handler) (struct notifier_block *nb, unsigned long val,
->>> -                       void *data);
->>>         int (*set_opp) (struct omap_abb_info *abb, int opp_type);
->>>   };
->>>
->>> @@ -302,6 +301,7 @@ struct omap_vdd_info {
->>>   */
->>>   struct omap_volt_change_info {
->>>         unsigned long target_volt;
->>> +       unsigned long curr_volt;
->>>         struct omap_vdd_info *vdd;
->>>   };
->>>
->>> --
->>> 1.7.1
->>>
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>
->>
->>
->>
->> --
->> Thanks,
->> Regards,
->> Shweta
->>
+> =A0#include <plat/cpu.h>
+>
+> +#include "control.h"
+> =A0#include "omap_opp_data.h"
+>
+> +/* 34xx */
+> +
+> +/* VDD1 */
+> +struct omap_volt_data omap34xx_vddmpu_volt_data[] =3D {
+> + =A0 =A0 =A0 VOLT_DATA_DEFINE(OMAP3430_VDD_MPU_OPP1_UV, OMAP343X_CONTROL=
+_FUSE_OPP1_VDD1, 0xf4, 0x0c),
+> + =A0 =A0 =A0 VOLT_DATA_DEFINE(OMAP3430_VDD_MPU_OPP2_UV, OMAP343X_CONTROL=
+_FUSE_OPP2_VDD1, 0xf4, 0x0c),
+> + =A0 =A0 =A0 VOLT_DATA_DEFINE(OMAP3430_VDD_MPU_OPP3_UV, OMAP343X_CONTROL=
+_FUSE_OPP3_VDD1, 0xf9, 0x18),
+> + =A0 =A0 =A0 VOLT_DATA_DEFINE(OMAP3430_VDD_MPU_OPP4_UV, OMAP343X_CONTROL=
+_FUSE_OPP4_VDD1, 0xf9, 0x18),
+> + =A0 =A0 =A0 VOLT_DATA_DEFINE(OMAP3430_VDD_MPU_OPP5_UV, OMAP343X_CONTROL=
+_FUSE_OPP5_VDD1, 0xf9, 0x18),
+> + =A0 =A0 =A0 VOLT_DATA_DEFINE(0, 0, 0, 0),
+> +};
+> +
+> +/* VDD2 */
+> +struct omap_volt_data omap34xx_vddcore_volt_data[] =3D {
+> + =A0 =A0 =A0 VOLT_DATA_DEFINE(OMAP3430_VDD_CORE_OPP1_UV, OMAP343X_CONTRO=
+L_FUSE_OPP1_VDD2, 0xf4, 0x0c),
+> + =A0 =A0 =A0 VOLT_DATA_DEFINE(OMAP3430_VDD_CORE_OPP2_UV, OMAP343X_CONTRO=
+L_FUSE_OPP2_VDD2, 0xf4, 0x0c),
+> + =A0 =A0 =A0 VOLT_DATA_DEFINE(OMAP3430_VDD_CORE_OPP3_UV, OMAP343X_CONTRO=
+L_FUSE_OPP3_VDD2, 0xf9, 0x18),
+> + =A0 =A0 =A0 VOLT_DATA_DEFINE(0, 0, 0, 0),
+> +};
+> +
+> +/* 36xx */
+> +
+> +/* VDD1 */
+> +struct omap_volt_data omap36xx_vddmpu_volt_data[] =3D {
+> + =A0 =A0 =A0 VOLT_DATA_DEFINE(OMAP3630_VDD_MPU_OPP50_UV, OMAP3630_CONTRO=
+L_FUSE_OPP50_VDD1, 0xf4, 0x0c),
+> + =A0 =A0 =A0 VOLT_DATA_DEFINE(OMAP3630_VDD_MPU_OPP100_UV, OMAP3630_CONTR=
+OL_FUSE_OPP100_VDD1, 0xf9, 0x16),
+> + =A0 =A0 =A0 VOLT_DATA_DEFINE(OMAP3630_VDD_MPU_OPP120_UV, OMAP3630_CONTR=
+OL_FUSE_OPP120_VDD1, 0xfa, 0x23),
+> + =A0 =A0 =A0 VOLT_DATA_DEFINE(OMAP3630_VDD_MPU_OPP1G_UV, OMAP3630_CONTRO=
+L_FUSE_OPP1G_VDD1, 0xfa, 0x27),
+> + =A0 =A0 =A0 VOLT_DATA_DEFINE(0, 0, 0, 0),
+> +};
+> +
+> +/* VDD2 */
+> +struct omap_volt_data omap36xx_vddcore_volt_data[] =3D {
+> + =A0 =A0 =A0 VOLT_DATA_DEFINE(OMAP3630_VDD_CORE_OPP50_UV, OMAP3630_CONTR=
+OL_FUSE_OPP50_VDD2, 0xf4, 0x0c),
+> + =A0 =A0 =A0 VOLT_DATA_DEFINE(OMAP3630_VDD_CORE_OPP100_UV, OMAP3630_CONT=
+ROL_FUSE_OPP100_VDD2, 0xf9, 0x16),
+> + =A0 =A0 =A0 VOLT_DATA_DEFINE(0, 0, 0, 0),
+> +};
+> +
+The definition of "VOLT_DATA_DEFINE" is there in voltage.h
+I think its better to move these Volt_data to voltagedomains files
+rather than in
+OPP layer files
+> +/* OPP data */
+> +
+> =A0static struct omap_opp_def __initdata omap34xx_opp_def_list[] =3D {
+> =A0 =A0 =A0 =A0/* MPU OPP1 */
+> =A0 =A0 =A0 =A0OPP_INITIALIZER("mpu", true, 125000000, 975000),
+> diff --git a/arch/arm/mach-omap2/opp4xxx_data.c b/arch/arm/mach-omap2/opp=
+4xxx_data.c
+> index a11fa56..addaf70 100644
+> --- a/arch/arm/mach-omap2/opp4xxx_data.c
+> +++ b/arch/arm/mach-omap2/opp4xxx_data.c
+> @@ -5,8 +5,9 @@
+> =A0* =A0 =A0 Nishanth Menon
+> =A0* =A0 =A0 Kevin Hilman
+> =A0* =A0 =A0 Thara Gopinath
+> - * Copyright (C) 2010 Nokia Corporation.
+> + * Copyright (C) 2010-2011 Nokia Corporation.
+> =A0* =A0 =A0 =A0Eduardo Valentin
+> + * =A0 =A0 =A0Paul Walmsley
+> =A0*
+> =A0* This program is free software; you can redistribute it and/or modify
+> =A0* it under the terms of the GNU General Public License version 2 as
+> @@ -21,8 +22,35 @@
+>
+> =A0#include <plat/cpu.h>
+>
+> +#include "control.h"
+> =A0#include "omap_opp_data.h"
+>
+> +/*
+> + * Structures containing OMAP4430 voltage supported and various
+> + * voltage dependent data for each VDD.
+> + */
+> +struct omap_volt_data omap44xx_vdd_mpu_volt_data[] =3D {
+> + =A0 =A0 =A0 VOLT_DATA_DEFINE(OMAP4430_VDD_MPU_OPP50_UV, OMAP44XX_CONTRO=
+L_FUSE_MPU_OPP50, 0xf4, 0x0c),
+> + =A0 =A0 =A0 VOLT_DATA_DEFINE(OMAP4430_VDD_MPU_OPP100_UV, OMAP44XX_CONTR=
+OL_FUSE_MPU_OPP100, 0xf9, 0x16),
+> + =A0 =A0 =A0 VOLT_DATA_DEFINE(OMAP4430_VDD_MPU_OPPTURBO_UV, OMAP44XX_CON=
+TROL_FUSE_MPU_OPPTURBO, 0xfa, 0x23),
+> + =A0 =A0 =A0 VOLT_DATA_DEFINE(OMAP4430_VDD_MPU_OPPNITRO_UV, OMAP44XX_CON=
+TROL_FUSE_MPU_OPPNITRO, 0xfa, 0x27),
+> + =A0 =A0 =A0 VOLT_DATA_DEFINE(0, 0, 0, 0),
+> +};
+> +
+> +struct omap_volt_data omap44xx_vdd_iva_volt_data[] =3D {
+> + =A0 =A0 =A0 VOLT_DATA_DEFINE(OMAP4430_VDD_IVA_OPP50_UV, OMAP44XX_CONTRO=
+L_FUSE_IVA_OPP50, 0xf4, 0x0c),
+> + =A0 =A0 =A0 VOLT_DATA_DEFINE(OMAP4430_VDD_IVA_OPP100_UV, OMAP44XX_CONTR=
+OL_FUSE_IVA_OPP100, 0xf9, 0x16),
+> + =A0 =A0 =A0 VOLT_DATA_DEFINE(OMAP4430_VDD_IVA_OPPTURBO_UV, OMAP44XX_CON=
+TROL_FUSE_IVA_OPPTURBO, 0xfa, 0x23),
+> + =A0 =A0 =A0 VOLT_DATA_DEFINE(0, 0, 0, 0),
+> +};
+> +
+> +struct omap_volt_data omap44xx_vdd_core_volt_data[] =3D {
+> + =A0 =A0 =A0 VOLT_DATA_DEFINE(OMAP4430_VDD_CORE_OPP50_UV, OMAP44XX_CONTR=
+OL_FUSE_CORE_OPP50, 0xf4, 0x0c),
+> + =A0 =A0 =A0 VOLT_DATA_DEFINE(OMAP4430_VDD_CORE_OPP100_UV, OMAP44XX_CONT=
+ROL_FUSE_CORE_OPP100, 0xf9, 0x16),
+> + =A0 =A0 =A0 VOLT_DATA_DEFINE(0, 0, 0, 0),
+> +};
+> +
+Same.
+> =A0static struct omap_opp_def __initdata omap44xx_opp_def_list[] =3D {
+> =A0 =A0 =A0 =A0/* MPU OPP1 - OPP50 */
+> =A0 =A0 =A0 =A0OPP_INITIALIZER("mpu", true, 300000000, 1100000),
+> diff --git a/arch/arm/mach-omap2/vc.h b/arch/arm/mach-omap2/vc.h
+> new file mode 100644
+> index 0000000..e776777
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/vc.h
+> @@ -0,0 +1,83 @@
+> +/*
+> + * OMAP3/4 Voltage Controller (VC) structure and macro definitions
+> + *
+> + * Copyright (C) 2007, 2010 Texas Instruments, Inc.
+> + * Rajendra Nayak <rnayak@ti.com>
+> + * Lesly A M <x0080970@ti.com>
+> + * Thara Gopinath <thara@ti.com>
+> + *
+> + * Copyright (C) 2008, 2011 Nokia Corporation
+> + * Kalle Jokiniemi
+> + * Paul Walmsley
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License version
+> + * 2 as published by the Free Software Foundation.
+> + */
+> +#ifndef __ARCH_ARM_MACH_OMAP2_VC_H
+> +#define __ARCH_ARM_MACH_OMAP2_VC_H
+> +
+> +#include <linux/kernel.h>
+> +
+> +/**
+> + * struct omap_vc_common_data - per-VC register/bitfield data
+> + * @cmd_on_mask: ON bitmask in PRM_VC_CMD_VAL* register
+> + * @valid: VALID bitmask in PRM_VC_BYPASS_VAL register
+> + * @smps_sa_reg: Offset of PRM_VC_SMPS_SA reg from PRM start
+> + * @smps_volra_reg: Offset of PRM_VC_SMPS_VOL_RA reg from PRM start
+> + * @bypass_val_reg: Offset of PRM_VC_BYPASS_VAL reg from PRM start
+> + * @data_shift: DATA field shift in PRM_VC_BYPASS_VAL register
+> + * @slaveaddr_shift: SLAVEADDR field shift in PRM_VC_BYPASS_VAL register
+> + * @regaddr_shift: REGADDR field shift in PRM_VC_BYPASS_VAL register
+> + * @cmd_on_shift: ON field shift in PRM_VC_CMD_VAL_* register
+> + * @cmd_onlp_shift: ONLP field shift in PRM_VC_CMD_VAL_* register
+> + * @cmd_ret_shift: RET field shift in PRM_VC_CMD_VAL_* register
+> + * @cmd_off_shift: OFF field shift in PRM_VC_CMD_VAL_* register
+> + *
+> + * XXX One of cmd_on_mask and cmd_on_shift are not needed
+> + * XXX VALID should probably be a shift, not a mask
+> + */
+> +struct omap_vc_common_data {
+> + =A0 =A0 =A0 u32 cmd_on_mask;
+> + =A0 =A0 =A0 u32 valid;
+> + =A0 =A0 =A0 u8 smps_sa_reg;
+> + =A0 =A0 =A0 u8 smps_volra_reg;
+> + =A0 =A0 =A0 u8 bypass_val_reg;
+> + =A0 =A0 =A0 u8 data_shift;
+> + =A0 =A0 =A0 u8 slaveaddr_shift;
+> + =A0 =A0 =A0 u8 regaddr_shift;
+> + =A0 =A0 =A0 u8 cmd_on_shift;
+> + =A0 =A0 =A0 u8 cmd_onlp_shift;
+> + =A0 =A0 =A0 u8 cmd_ret_shift;
+> + =A0 =A0 =A0 u8 cmd_off_shift;
+> +};
+> +
+> +/**
+> + * struct omap_vc_instance_data - VC per-instance data
+> + * @vc_common: pointer to VC common data for this platform
+> + * @smps_sa_mask: SA* bitmask in the PRM_VC_SMPS_SA register
+> + * @smps_volra_mask: VOLRA* bitmask in the PRM_VC_VOL_RA register
+> + * @smps_sa_shift: SA* field shift in the PRM_VC_SMPS_SA register
+> + * @smps_volra_shift: VOLRA* field shift in the PRM_VC_VOL_RA register
+> + *
+> + * XXX It is not necessary to have both a *_mask and a *_shift -
+> + * =A0 =A0 remove one
+> + */
+> +struct omap_vc_instance_data {
+> + =A0 =A0 =A0 const struct omap_vc_common_data *vc_common;
+> + =A0 =A0 =A0 u32 smps_sa_mask;
+> + =A0 =A0 =A0 u32 smps_volra_mask;
+> + =A0 =A0 =A0 u8 cmdval_reg;
+> + =A0 =A0 =A0 u8 smps_sa_shift;
+> + =A0 =A0 =A0 u8 smps_volra_shift;
+> +};
+> +
+> +extern struct omap_vc_instance_data omap3_vc1_data;
+> +extern struct omap_vc_instance_data omap3_vc2_data;
+> +
+> +extern struct omap_vc_instance_data omap4_vc_mpu_data;
+> +extern struct omap_vc_instance_data omap4_vc_iva_data;
+> +extern struct omap_vc_instance_data omap4_vc_core_data;
+> +
+> +#endif
+> +
+> diff --git a/arch/arm/mach-omap2/vc3xxx_data.c b/arch/arm/mach-omap2/vc3x=
+xx_data.c
+> new file mode 100644
+> index 0000000..f37dc4b
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/vc3xxx_data.c
+> @@ -0,0 +1,63 @@
+> +/*
+> + * OMAP3 Voltage Controller (VC) data
+> + *
+> + * Copyright (C) 2007, 2010 Texas Instruments, Inc.
+> + * Rajendra Nayak <rnayak@ti.com>
+> + * Lesly A M <x0080970@ti.com>
+> + * Thara Gopinath <thara@ti.com>
+> + *
+> + * Copyright (C) 2008, 2011 Nokia Corporation
+> + * Kalle Jokiniemi
+> + * Paul Walmsley
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +#include <linux/io.h>
+> +#include <linux/err.h>
+> +#include <linux/init.h>
+> +
+> +#include <plat/common.h>
+> +
+> +#include "prm-regbits-34xx.h"
+> +#include "voltage.h"
+> +
+> +#include "vc.h"
+> +
+> +/*
+> + * VC data common to 34xx/36xx chips
+> + * XXX This stuff presumably belongs in the vc3xxx.c or vc.c file.
+> + */
+> +static struct omap_vc_common_data omap3_vc_common =3D {
+> + =A0 =A0 =A0 .smps_sa_reg =A0 =A0 =3D OMAP3_PRM_VC_SMPS_SA_OFFSET,
+> + =A0 =A0 =A0 .smps_volra_reg =A0=3D OMAP3_PRM_VC_SMPS_VOL_RA_OFFSET,
+> + =A0 =A0 =A0 .bypass_val_reg =A0=3D OMAP3_PRM_VC_BYPASS_VAL_OFFSET,
+> + =A0 =A0 =A0 .data_shift =A0 =A0 =A0=3D OMAP3430_DATA_SHIFT,
+> + =A0 =A0 =A0 .slaveaddr_shift =3D OMAP3430_SLAVEADDR_SHIFT,
+> + =A0 =A0 =A0 .regaddr_shift =A0 =3D OMAP3430_REGADDR_SHIFT,
+> + =A0 =A0 =A0 .valid =A0 =A0 =A0 =A0 =A0 =3D OMAP3430_VALID_MASK,
+> + =A0 =A0 =A0 .cmd_on_shift =A0 =A0=3D OMAP3430_VC_CMD_ON_SHIFT,
+> + =A0 =A0 =A0 .cmd_on_mask =A0 =A0 =3D OMAP3430_VC_CMD_ON_MASK,
+> + =A0 =A0 =A0 .cmd_onlp_shift =A0=3D OMAP3430_VC_CMD_ONLP_SHIFT,
+> + =A0 =A0 =A0 .cmd_ret_shift =A0 =3D OMAP3430_VC_CMD_RET_SHIFT,
+> + =A0 =A0 =A0 .cmd_off_shift =A0 =3D OMAP3430_VC_CMD_OFF_SHIFT,
+> +};
+> +
+> +struct omap_vc_instance_data omap3_vc1_data =3D {
+> + =A0 =A0 =A0 .vc_common =3D &omap3_vc_common,
+> + =A0 =A0 =A0 .cmdval_reg =3D OMAP3_PRM_VC_CMD_VAL_0_OFFSET,
+> + =A0 =A0 =A0 .smps_sa_shift =3D OMAP3430_PRM_VC_SMPS_SA_SA0_SHIFT,
+> + =A0 =A0 =A0 .smps_sa_mask =3D OMAP3430_PRM_VC_SMPS_SA_SA0_MASK,
+> + =A0 =A0 =A0 .smps_volra_shift =3D OMAP3430_VOLRA0_SHIFT,
+> + =A0 =A0 =A0 .smps_volra_mask =3D OMAP3430_VOLRA0_MASK,
+> +};
+> +
+> +struct omap_vc_instance_data omap3_vc2_data =3D {
+> + =A0 =A0 =A0 .vc_common =3D &omap3_vc_common,
+> + =A0 =A0 =A0 .cmdval_reg =3D OMAP3_PRM_VC_CMD_VAL_1_OFFSET,
+> + =A0 =A0 =A0 .smps_sa_shift =3D OMAP3430_PRM_VC_SMPS_SA_SA1_SHIFT,
+> + =A0 =A0 =A0 .smps_sa_mask =3D OMAP3430_PRM_VC_SMPS_SA_SA1_MASK,
+> + =A0 =A0 =A0 .smps_volra_shift =3D OMAP3430_VOLRA1_SHIFT,
+> + =A0 =A0 =A0 .smps_volra_mask =3D OMAP3430_VOLRA1_MASK,
+> +};
+> diff --git a/arch/arm/mach-omap2/vc44xx_data.c b/arch/arm/mach-omap2/vc44=
+xx_data.c
+> new file mode 100644
+> index 0000000..548cb06
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/vc44xx_data.c
+> @@ -0,0 +1,72 @@
+> +/*
+> + * OMAP4 Voltage Controller (VC) data
+> + *
+> + * Copyright (C) 2007, 2010 Texas Instruments, Inc.
+> + * Rajendra Nayak <rnayak@ti.com>
+> + * Lesly A M <x0080970@ti.com>
+> + * Thara Gopinath <thara@ti.com>
+> + *
+> + * Copyright (C) 2008, 2011 Nokia Corporation
+> + * Kalle Jokiniemi
+> + * Paul Walmsley
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +#include <linux/io.h>
+> +#include <linux/err.h>
+> +#include <linux/init.h>
+> +
+> +#include <plat/common.h>
+> +
+> +#include "prm44xx.h"
+> +#include "prm-regbits-44xx.h"
+> +#include "voltage.h"
+> +
+> +#include "vc.h"
+> +
+> +/*
+> + * VC data common to 44xx chips
+> + * XXX This stuff presumably belongs in the vc3xxx.c or vc.c file.
+> + */
+> +static const struct omap_vc_common_data omap4_vc_data =3D {
+> + =A0 =A0 =A0 .smps_sa_reg =3D OMAP4_PRM_VC_SMPS_SA_OFFSET,
+> + =A0 =A0 =A0 .smps_volra_reg =3D OMAP4_PRM_VC_VAL_SMPS_RA_VOL_OFFSET,
+> + =A0 =A0 =A0 .bypass_val_reg =3D OMAP4_PRM_VC_VAL_BYPASS_OFFSET,
+> + =A0 =A0 =A0 .data_shift =3D OMAP4430_DATA_SHIFT,
+> + =A0 =A0 =A0 .slaveaddr_shift =3D OMAP4430_SLAVEADDR_SHIFT,
+> + =A0 =A0 =A0 .regaddr_shift =3D OMAP4430_REGADDR_SHIFT,
+> + =A0 =A0 =A0 .valid =3D OMAP4430_VALID_MASK,
+> + =A0 =A0 =A0 .cmd_on_shift =3D OMAP4430_ON_SHIFT,
+> + =A0 =A0 =A0 .cmd_on_mask =3D OMAP4430_ON_MASK,
+> + =A0 =A0 =A0 .cmd_onlp_shift =3D OMAP4430_ONLP_SHIFT,
+> + =A0 =A0 =A0 .cmd_ret_shift =3D OMAP4430_RET_SHIFT,
+> + =A0 =A0 =A0 .cmd_off_shift =3D OMAP4430_OFF_SHIFT,
+> +};
+> +
+> +/* VC instance data for each controllable voltage line */
+> +struct omap_vc_instance_data omap4_vc_mpu_data =3D {
+> + =A0 =A0 =A0 .cmdval_reg =3D OMAP4_PRM_VC_VAL_CMD_VDD_MPU_L_OFFSET,
+> + =A0 =A0 =A0 .smps_sa_shift =3D OMAP4430_SA_VDD_MPU_L_PRM_VC_SMPS_SA_SHI=
+FT,
+> + =A0 =A0 =A0 .smps_sa_mask =3D OMAP4430_SA_VDD_MPU_L_PRM_VC_SMPS_SA_MASK,
+> + =A0 =A0 =A0 .smps_volra_shift =3D OMAP4430_VOLRA_VDD_MPU_L_SHIFT,
+> + =A0 =A0 =A0 .smps_volra_mask =3D OMAP4430_VOLRA_VDD_MPU_L_MASK,
+> +};
+> +
+> +struct omap_vc_instance_data omap4_vc_iva_data =3D {
+> + =A0 =A0 =A0 .cmdval_reg =3D OMAP4_PRM_VC_VAL_CMD_VDD_IVA_L_OFFSET,
+> + =A0 =A0 =A0 .smps_sa_shift =3D OMAP4430_SA_VDD_IVA_L_PRM_VC_SMPS_SA_SHI=
+FT,
+> + =A0 =A0 =A0 .smps_sa_mask =3D OMAP4430_SA_VDD_IVA_L_PRM_VC_SMPS_SA_MASK,
+> + =A0 =A0 =A0 .smps_volra_shift =3D OMAP4430_VOLRA_VDD_IVA_L_SHIFT,
+> + =A0 =A0 =A0 .smps_volra_mask =3D OMAP4430_VOLRA_VDD_IVA_L_MASK,
+> +};
+> +
+> +struct omap_vc_instance_data omap4_vc_core_data =3D {
+> + =A0 =A0 =A0 .cmdval_reg =3D OMAP4_PRM_VC_VAL_CMD_VDD_CORE_L_OFFSET,
+> + =A0 =A0 =A0 .smps_sa_shift =3D OMAP4430_SA_VDD_CORE_L_0_6_SHIFT,
+> + =A0 =A0 =A0 .smps_sa_mask =3D OMAP4430_SA_VDD_CORE_L_0_6_MASK,
+> + =A0 =A0 =A0 .smps_volra_shift =3D OMAP4430_VOLRA_VDD_CORE_L_SHIFT,
+> + =A0 =A0 =A0 .smps_volra_mask =3D OMAP4430_VOLRA_VDD_CORE_L_MASK,
+> +};
+> +
+> diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
+> index 3c9bcdc..97f8e73 100644
+> --- a/arch/arm/mach-omap2/voltage.c
+> +++ b/arch/arm/mach-omap2/voltage.c
+> @@ -7,8 +7,9 @@
+> =A0* Rajendra Nayak <rnayak@ti.com>
+> =A0* Lesly A M <x0080970@ti.com>
+> =A0*
+> - * Copyright (C) 2008 Nokia Corporation
+> + * Copyright (C) 2008, 2011 Nokia Corporation
+> =A0* Kalle Jokiniemi
+> + * Paul Walmsley
+> =A0*
+> =A0* Copyright (C) 2010 Texas Instruments, Inc.
+> =A0* Thara Gopinath <thara@ti.com>
+> @@ -36,284 +37,28 @@
+>
+> =A0#include "voltage.h"
+>
+> -#define VP_IDLE_TIMEOUT =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0200
+> -#define VP_TRANXDONE_TIMEOUT =A0 300
+> +#include "vc.h"
+> +#include "vp.h"
+> +
+> =A0#define VOLTAGE_DIR_SIZE =A0 =A0 =A0 16
+>
+> -/* Voltage processor register offsets */
+> -struct vp_reg_offs {
+> - =A0 =A0 =A0 u8 vpconfig;
+> - =A0 =A0 =A0 u8 vstepmin;
+> - =A0 =A0 =A0 u8 vstepmax;
+> - =A0 =A0 =A0 u8 vlimitto;
+> - =A0 =A0 =A0 u8 vstatus;
+> - =A0 =A0 =A0 u8 voltage;
+> -};
+This struct  is defined in plat/voltage.h not in voltage.c
+> -/* Voltage Processor bit field values, shifts and masks */
+> -struct vp_reg_val {
+> - =A0 =A0 =A0 /* PRM module */
+> - =A0 =A0 =A0 u16 prm_mod;
+> - =A0 =A0 =A0 /* VPx_VPCONFIG */
+> - =A0 =A0 =A0 u32 vpconfig_erroroffset;
+> - =A0 =A0 =A0 u16 vpconfig_errorgain;
+> - =A0 =A0 =A0 u32 vpconfig_errorgain_mask;
+> - =A0 =A0 =A0 u8 vpconfig_errorgain_shift;
+> - =A0 =A0 =A0 u32 vpconfig_initvoltage_mask;
+> - =A0 =A0 =A0 u8 vpconfig_initvoltage_shift;
+> - =A0 =A0 =A0 u32 vpconfig_timeouten;
+> - =A0 =A0 =A0 u32 vpconfig_initvdd;
+> - =A0 =A0 =A0 u32 vpconfig_forceupdate;
+> - =A0 =A0 =A0 u32 vpconfig_vpenable;
+> - =A0 =A0 =A0 /* VPx_VSTEPMIN */
+> - =A0 =A0 =A0 u8 vstepmin_stepmin;
+> - =A0 =A0 =A0 u16 vstepmin_smpswaittimemin;
+> - =A0 =A0 =A0 u8 vstepmin_stepmin_shift;
+> - =A0 =A0 =A0 u8 vstepmin_smpswaittimemin_shift;
+> - =A0 =A0 =A0 /* VPx_VSTEPMAX */
+> - =A0 =A0 =A0 u8 vstepmax_stepmax;
+> - =A0 =A0 =A0 u16 vstepmax_smpswaittimemax;
+> - =A0 =A0 =A0 u8 vstepmax_stepmax_shift;
+> - =A0 =A0 =A0 u8 vstepmax_smpswaittimemax_shift;
+> - =A0 =A0 =A0 /* VPx_VLIMITTO */
+> - =A0 =A0 =A0 u8 vlimitto_vddmin;
+> - =A0 =A0 =A0 u8 vlimitto_vddmax;
+> - =A0 =A0 =A0 u16 vlimitto_timeout;
+> - =A0 =A0 =A0 u8 vlimitto_vddmin_shift;
+> - =A0 =A0 =A0 u8 vlimitto_vddmax_shift;
+> - =A0 =A0 =A0 u8 vlimitto_timeout_shift;
+> - =A0 =A0 =A0 /* PRM_IRQSTATUS*/
+> - =A0 =A0 =A0 u32 tranxdone_status;
+> -};
+Same
+> -/* Voltage controller registers and offsets */
+> -struct vc_reg_info {
+> - =A0 =A0 =A0 /* PRM module */
+> - =A0 =A0 =A0 u16 prm_mod;
+> - =A0 =A0 =A0 /* VC register offsets */
+> - =A0 =A0 =A0 u8 smps_sa_reg;
+> - =A0 =A0 =A0 u8 smps_volra_reg;
+> - =A0 =A0 =A0 u8 bypass_val_reg;
+> - =A0 =A0 =A0 u8 cmdval_reg;
+> - =A0 =A0 =A0 u8 voltsetup_reg;
+> - =A0 =A0 =A0 /*VC_SMPS_SA*/
+> - =A0 =A0 =A0 u8 smps_sa_shift;
+> - =A0 =A0 =A0 u32 smps_sa_mask;
+> - =A0 =A0 =A0 /* VC_SMPS_VOL_RA */
+> - =A0 =A0 =A0 u8 smps_volra_shift;
+> - =A0 =A0 =A0 u32 smps_volra_mask;
+> - =A0 =A0 =A0 /* VC_BYPASS_VAL */
+> - =A0 =A0 =A0 u8 data_shift;
+> - =A0 =A0 =A0 u8 slaveaddr_shift;
+> - =A0 =A0 =A0 u8 regaddr_shift;
+> - =A0 =A0 =A0 u32 valid;
+> - =A0 =A0 =A0 /* VC_CMD_VAL */
+> - =A0 =A0 =A0 u8 cmd_on_shift;
+> - =A0 =A0 =A0 u8 cmd_onlp_shift;
+> - =A0 =A0 =A0 u8 cmd_ret_shift;
+> - =A0 =A0 =A0 u8 cmd_off_shift;
+> - =A0 =A0 =A0 u32 cmd_on_mask;
+> - =A0 =A0 =A0 /* PRM_VOLTSETUP */
+> - =A0 =A0 =A0 u8 voltsetup_shift;
+> - =A0 =A0 =A0 u32 voltsetup_mask;
+> -};
+Same
+> -/**
+> - * omap_vdd_info - Per Voltage Domain info
+> - *
+> - * @volt_data =A0 =A0 =A0 =A0 =A0: voltage table having the distinct vol=
+tages supported
+> - * =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 by the domain and other a=
+ssociated per voltage data.
+> - * @pmic_info =A0 =A0 =A0 =A0 =A0: pmic specific parameters which should=
+ be populted by
+> - * =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 the pmic drivers.
+> - * @vp_offs =A0 =A0 =A0 =A0 =A0 =A0: structure containing the offsets fo=
+r various
+> - * =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 vp registers
+> - * @vp_reg =A0 =A0 =A0 =A0 =A0 =A0 : the register values, shifts, masks =
+for various
+> - * =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 vp registers
+> - * @vc_reg =A0 =A0 =A0 =A0 =A0 =A0 : structure containing various variou=
+s vc registers,
+> - * =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 shifts, masks etc.
+> - * @voltdm =A0 =A0 =A0 =A0 =A0 =A0 : pointer to the voltage domain struc=
+ture
+> - * @debug_dir =A0 =A0 =A0 =A0 =A0: debug directory for this voltage doma=
+in.
+> - * @curr_volt =A0 =A0 =A0 =A0 =A0: current voltage for this vdd.
+> - * @ocp_mod =A0 =A0 =A0 =A0 =A0 =A0: The prm module for accessing the pr=
+m irqstatus reg.
+> - * @prm_irqst_reg =A0 =A0 =A0: prm irqstatus register.
+> - * @vp_enabled =A0 =A0 =A0 =A0 : flag to keep track of whether vp is ena=
+bled or not
+> - * @volt_scale =A0 =A0 =A0 =A0 : API to scale the voltage of the vdd.
+> - */
+> -struct omap_vdd_info {
+> - =A0 =A0 =A0 struct omap_volt_data *volt_data;
+> - =A0 =A0 =A0 struct omap_volt_pmic_info *pmic_info;
+> - =A0 =A0 =A0 struct vp_reg_offs vp_offs;
+> - =A0 =A0 =A0 struct vp_reg_val vp_reg;
+> - =A0 =A0 =A0 struct vc_reg_info vc_reg;
+> - =A0 =A0 =A0 struct voltagedomain voltdm;
+> - =A0 =A0 =A0 struct dentry *debug_dir;
+> - =A0 =A0 =A0 u32 curr_volt;
+> - =A0 =A0 =A0 u16 ocp_mod;
+> - =A0 =A0 =A0 u8 prm_irqst_reg;
+> - =A0 =A0 =A0 bool vp_enabled;
+> - =A0 =A0 =A0 u32 (*read_reg) (u16 mod, u8 offset);
+> - =A0 =A0 =A0 void (*write_reg) (u32 val, u16 mod, u8 offset);
+> - =A0 =A0 =A0 int (*volt_scale) (struct omap_vdd_info *vdd,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 unsigned long target_volt);
+> -};
+Same
+> -static struct omap_vdd_info *vdd_info;
+> +static struct omap_vdd_info **vdd_info;
+> +
+> =A0/*
+> =A0* Number of scalable voltage domains.
+> =A0*/
+> =A0static int nr_scalable_vdd;
+>
+> -/* OMAP3 VDD sturctures */
+> -static struct omap_vdd_info omap3_vdd_info[] =3D {
+> - =A0 =A0 =A0 {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 .vp_offs =3D {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .vpconfig =3D OMAP3_PRM_VP1=
+_CONFIG_OFFSET,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .vstepmin =3D OMAP3_PRM_VP1=
+_VSTEPMIN_OFFSET,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .vstepmax =3D OMAP3_PRM_VP1=
+_VSTEPMAX_OFFSET,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .vlimitto =3D OMAP3_PRM_VP1=
+_VLIMITTO_OFFSET,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .vstatus =3D OMAP3_PRM_VP1_=
+STATUS_OFFSET,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .voltage =3D OMAP3_PRM_VP1_=
+VOLTAGE_OFFSET,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 },
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 .voltdm =3D {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .name =3D "mpu",
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 },
+> - =A0 =A0 =A0 },
+> - =A0 =A0 =A0 {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 .vp_offs =3D {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .vpconfig =3D OMAP3_PRM_VP2=
+_CONFIG_OFFSET,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .vstepmin =3D OMAP3_PRM_VP2=
+_VSTEPMIN_OFFSET,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .vstepmax =3D OMAP3_PRM_VP2=
+_VSTEPMAX_OFFSET,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .vlimitto =3D OMAP3_PRM_VP2=
+_VLIMITTO_OFFSET,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .vstatus =3D OMAP3_PRM_VP2_=
+STATUS_OFFSET,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .voltage =3D OMAP3_PRM_VP2_=
+VOLTAGE_OFFSET,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 },
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 .voltdm =3D {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .name =3D "core",
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 },
+> - =A0 =A0 =A0 },
+> -};
+> -
+> -#define OMAP3_NR_SCALABLE_VDD ARRAY_SIZE(omap3_vdd_info)
+> -
+> -/* OMAP4 VDD sturctures */
+> -static struct omap_vdd_info omap4_vdd_info[] =3D {
+> - =A0 =A0 =A0 {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 .vp_offs =3D {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .vpconfig =3D OMAP4_PRM_VP_=
+MPU_CONFIG_OFFSET,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .vstepmin =3D OMAP4_PRM_VP_=
+MPU_VSTEPMIN_OFFSET,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .vstepmax =3D OMAP4_PRM_VP_=
+MPU_VSTEPMAX_OFFSET,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .vlimitto =3D OMAP4_PRM_VP_=
+MPU_VLIMITTO_OFFSET,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .vstatus =3D OMAP4_PRM_VP_M=
+PU_STATUS_OFFSET,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .voltage =3D OMAP4_PRM_VP_M=
+PU_VOLTAGE_OFFSET,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 },
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 .voltdm =3D {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .name =3D "mpu",
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 },
+> - =A0 =A0 =A0 },
+> - =A0 =A0 =A0 {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 .vp_offs =3D {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .vpconfig =3D OMAP4_PRM_VP_=
+IVA_CONFIG_OFFSET,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .vstepmin =3D OMAP4_PRM_VP_=
+IVA_VSTEPMIN_OFFSET,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .vstepmax =3D OMAP4_PRM_VP_=
+IVA_VSTEPMAX_OFFSET,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .vlimitto =3D OMAP4_PRM_VP_=
+IVA_VLIMITTO_OFFSET,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .vstatus =3D OMAP4_PRM_VP_I=
+VA_STATUS_OFFSET,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .voltage =3D OMAP4_PRM_VP_I=
+VA_VOLTAGE_OFFSET,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 },
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 .voltdm =3D {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .name =3D "iva",
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 },
+> - =A0 =A0 =A0 },
+> - =A0 =A0 =A0 {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 .vp_offs =3D {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .vpconfig =3D OMAP4_PRM_VP_=
+CORE_CONFIG_OFFSET,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .vstepmin =3D OMAP4_PRM_VP_=
+CORE_VSTEPMIN_OFFSET,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .vstepmax =3D OMAP4_PRM_VP_=
+CORE_VSTEPMAX_OFFSET,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .vlimitto =3D OMAP4_PRM_VP_=
+CORE_VLIMITTO_OFFSET,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .vstatus =3D OMAP4_PRM_VP_C=
+ORE_STATUS_OFFSET,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .voltage =3D OMAP4_PRM_VP_C=
+ORE_VOLTAGE_OFFSET,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 },
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 .voltdm =3D {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .name =3D "core",
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 },
+> - =A0 =A0 =A0 },
+> -};
+> -
+> -#define OMAP4_NR_SCALABLE_VDD ARRAY_SIZE(omap4_vdd_info)
+> -
+> -/*
+> - * Structures containing OMAP3430/OMAP3630 voltage supported and various
+> - * voltage dependent data for each VDD.
+> - */
+> -#define VOLT_DATA_DEFINE(_v_nom, _efuse_offs, _errminlimit, _errgain) =
+=A0\
+> -{ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0\
+> - =A0 =A0 =A0 .volt_nominal =A0 =3D _v_nom, =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 \
+> - =A0 =A0 =A0 .sr_efuse_offs =A0=3D _efuse_offs, =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0\
+> - =A0 =A0 =A0 .sr_errminlimit =3D _errminlimit, =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 \
+> - =A0 =A0 =A0 .vp_errgain =A0 =A0 =3D _errgain =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0\
+> -}
+> -
+> -/* VDD1 */
+> -static struct omap_volt_data omap34xx_vddmpu_volt_data[] =3D {
+> - =A0 =A0 =A0 VOLT_DATA_DEFINE(OMAP3430_VDD_MPU_OPP1_UV, OMAP343X_CONTROL=
+_FUSE_OPP1_VDD1, 0xf4, 0x0c),
+> - =A0 =A0 =A0 VOLT_DATA_DEFINE(OMAP3430_VDD_MPU_OPP2_UV, OMAP343X_CONTROL=
+_FUSE_OPP2_VDD1, 0xf4, 0x0c),
+> - =A0 =A0 =A0 VOLT_DATA_DEFINE(OMAP3430_VDD_MPU_OPP3_UV, OMAP343X_CONTROL=
+_FUSE_OPP3_VDD1, 0xf9, 0x18),
+> - =A0 =A0 =A0 VOLT_DATA_DEFINE(OMAP3430_VDD_MPU_OPP4_UV, OMAP343X_CONTROL=
+_FUSE_OPP4_VDD1, 0xf9, 0x18),
+> - =A0 =A0 =A0 VOLT_DATA_DEFINE(OMAP3430_VDD_MPU_OPP5_UV, OMAP343X_CONTROL=
+_FUSE_OPP5_VDD1, 0xf9, 0x18),
+> - =A0 =A0 =A0 VOLT_DATA_DEFINE(0, 0, 0, 0),
+> -};
+> -
+> -static struct omap_volt_data omap36xx_vddmpu_volt_data[] =3D {
+> - =A0 =A0 =A0 VOLT_DATA_DEFINE(OMAP3630_VDD_MPU_OPP50_UV, OMAP3630_CONTRO=
+L_FUSE_OPP50_VDD1, 0xf4, 0x0c),
+> - =A0 =A0 =A0 VOLT_DATA_DEFINE(OMAP3630_VDD_MPU_OPP100_UV, OMAP3630_CONTR=
+OL_FUSE_OPP100_VDD1, 0xf9, 0x16),
+> - =A0 =A0 =A0 VOLT_DATA_DEFINE(OMAP3630_VDD_MPU_OPP120_UV, OMAP3630_CONTR=
+OL_FUSE_OPP120_VDD1, 0xfa, 0x23),
+> - =A0 =A0 =A0 VOLT_DATA_DEFINE(OMAP3630_VDD_MPU_OPP1G_UV, OMAP3630_CONTRO=
+L_FUSE_OPP1G_VDD1, 0xfa, 0x27),
+> - =A0 =A0 =A0 VOLT_DATA_DEFINE(0, 0, 0, 0),
+> -};
+> -
+> -/* VDD2 */
+> -static struct omap_volt_data omap34xx_vddcore_volt_data[] =3D {
+> - =A0 =A0 =A0 VOLT_DATA_DEFINE(OMAP3430_VDD_CORE_OPP1_UV, OMAP343X_CONTRO=
+L_FUSE_OPP1_VDD2, 0xf4, 0x0c),
+> - =A0 =A0 =A0 VOLT_DATA_DEFINE(OMAP3430_VDD_CORE_OPP2_UV, OMAP343X_CONTRO=
+L_FUSE_OPP2_VDD2, 0xf4, 0x0c),
+> - =A0 =A0 =A0 VOLT_DATA_DEFINE(OMAP3430_VDD_CORE_OPP3_UV, OMAP343X_CONTRO=
+L_FUSE_OPP3_VDD2, 0xf9, 0x18),
+> - =A0 =A0 =A0 VOLT_DATA_DEFINE(0, 0, 0, 0),
+> -};
+> -
+> -static struct omap_volt_data omap36xx_vddcore_volt_data[] =3D {
+> - =A0 =A0 =A0 VOLT_DATA_DEFINE(OMAP3630_VDD_CORE_OPP50_UV, OMAP3630_CONTR=
+OL_FUSE_OPP50_VDD2, 0xf4, 0x0c),
+> - =A0 =A0 =A0 VOLT_DATA_DEFINE(OMAP3630_VDD_CORE_OPP100_UV, OMAP3630_CONT=
+ROL_FUSE_OPP100_VDD2, 0xf9, 0x16),
+> - =A0 =A0 =A0 VOLT_DATA_DEFINE(0, 0, 0, 0),
+> -};
+> -
+> -/*
+> - * Structures containing OMAP4430 voltage supported and various
+> - * voltage dependent data for each VDD.
+> - */
+> -static struct omap_volt_data omap44xx_vdd_mpu_volt_data[] =3D {
+> - =A0 =A0 =A0 VOLT_DATA_DEFINE(OMAP4430_VDD_MPU_OPP50_UV, OMAP44XX_CONTRO=
+L_FUSE_MPU_OPP50, 0xf4, 0x0c),
+> - =A0 =A0 =A0 VOLT_DATA_DEFINE(OMAP4430_VDD_MPU_OPP100_UV, OMAP44XX_CONTR=
+OL_FUSE_MPU_OPP100, 0xf9, 0x16),
+> - =A0 =A0 =A0 VOLT_DATA_DEFINE(OMAP4430_VDD_MPU_OPPTURBO_UV, OMAP44XX_CON=
+TROL_FUSE_MPU_OPPTURBO, 0xfa, 0x23),
+> - =A0 =A0 =A0 VOLT_DATA_DEFINE(OMAP4430_VDD_MPU_OPPNITRO_UV, OMAP44XX_CON=
+TROL_FUSE_MPU_OPPNITRO, 0xfa, 0x27),
+> - =A0 =A0 =A0 VOLT_DATA_DEFINE(0, 0, 0, 0),
+> -};
+> -
+> -static struct omap_volt_data omap44xx_vdd_iva_volt_data[] =3D {
+> - =A0 =A0 =A0 VOLT_DATA_DEFINE(OMAP4430_VDD_IVA_OPP50_UV, OMAP44XX_CONTRO=
+L_FUSE_IVA_OPP50, 0xf4, 0x0c),
+> - =A0 =A0 =A0 VOLT_DATA_DEFINE(OMAP4430_VDD_IVA_OPP100_UV, OMAP44XX_CONTR=
+OL_FUSE_IVA_OPP100, 0xf9, 0x16),
+> - =A0 =A0 =A0 VOLT_DATA_DEFINE(OMAP4430_VDD_IVA_OPPTURBO_UV, OMAP44XX_CON=
+TROL_FUSE_IVA_OPPTURBO, 0xfa, 0x23),
+> - =A0 =A0 =A0 VOLT_DATA_DEFINE(0, 0, 0, 0),
+> -};
+> -
+> -static struct omap_volt_data omap44xx_vdd_core_volt_data[] =3D {
+> - =A0 =A0 =A0 VOLT_DATA_DEFINE(OMAP4430_VDD_CORE_OPP50_UV, OMAP44XX_CONTR=
+OL_FUSE_CORE_OPP50, 0xf4, 0x0c),
+> - =A0 =A0 =A0 VOLT_DATA_DEFINE(OMAP4430_VDD_CORE_OPP100_UV, OMAP44XX_CONT=
+ROL_FUSE_CORE_OPP100, 0xf9, 0x16),
+> - =A0 =A0 =A0 VOLT_DATA_DEFINE(0, 0, 0, 0),
+> -};
+> +/* XXX document */
+> +static s16 prm_mod_offs;
+> +static s16 prm_irqst_ocp_mod_offs;
+>
+> =A0static struct dentry *voltage_dir;
+>
+> =A0/* Init function pointers */
+> -static void (*vc_init) (struct omap_vdd_info *vdd);
+> -static int (*vdd_data_configure) (struct omap_vdd_info *vdd);
+> +static int vp_forceupdate_scale_voltage(struct omap_vdd_info *vdd,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 unsigned long target_volt);
+>
+> =A0static u32 omap3_voltage_read_reg(u16 mod, u8 offset)
+> =A0{
+> @@ -336,6 +81,60 @@ static void omap4_voltage_write_reg(u32 val, u16 mod,=
+ u8 offset)
+> =A0 =A0 =A0 =A0omap4_prminst_write_inst_reg(val, OMAP4430_PRM_PARTITION, =
+mod, offset);
+> =A0}
+>
+> +static int __init _config_common_vdd_data(struct omap_vdd_info *vdd)
+> +{
+> + =A0 =A0 =A0 char *sys_ck_name;
+> + =A0 =A0 =A0 struct clk *sys_ck;
+> + =A0 =A0 =A0 u32 sys_clk_speed, timeout_val, waittime;
+> +
+> + =A0 =A0 =A0 /*
+> + =A0 =A0 =A0 =A0* XXX Clockfw should handle this, or this should be in a
+> + =A0 =A0 =A0 =A0* struct record
+> + =A0 =A0 =A0 =A0*/
+> + =A0 =A0 =A0 if (cpu_is_omap24xx() || cpu_is_omap34xx())
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 sys_ck_name =3D "sys_ck";
+> + =A0 =A0 =A0 else if (cpu_is_omap44xx())
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 sys_ck_name =3D "sys_clkin_ck";
+> +
+> + =A0 =A0 =A0 /*
+> + =A0 =A0 =A0 =A0* Sys clk rate is require to calculate vp timeout value =
+and
+> + =A0 =A0 =A0 =A0* smpswaittimemin and smpswaittimemax.
+> + =A0 =A0 =A0 =A0*/
+> + =A0 =A0 =A0 sys_ck =3D clk_get(NULL, sys_ck_name);
+> + =A0 =A0 =A0 if (IS_ERR(sys_ck)) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_warning("%s: Could not get the sys clk t=
+o calculate"
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "various vdd_%s params\n", =
+__func__, vdd->voltdm.name);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
+> + =A0 =A0 =A0 }
+> + =A0 =A0 =A0 sys_clk_speed =3D clk_get_rate(sys_ck);
+> + =A0 =A0 =A0 clk_put(sys_ck);
+> + =A0 =A0 =A0 /* Divide to avoid overflow */
+> + =A0 =A0 =A0 sys_clk_speed /=3D 1000;
+> +
+> + =A0 =A0 =A0 /* Generic voltage parameters */
+> + =A0 =A0 =A0 vdd->curr_volt =3D 1200000;
+> + =A0 =A0 =A0 vdd->volt_scale =3D vp_forceupdate_scale_voltage;
+> + =A0 =A0 =A0 vdd->vp_enabled =3D false;
+> +
+> + =A0 =A0 =A0 vdd->vp_rt_data.vpconfig_erroroffset =3D
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 (vdd->pmic_info->vp_erroroffset <<
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0vdd->vp_data->vp_common->vpconfig_erroro=
+ffset_shift);
+> +
+> + =A0 =A0 =A0 timeout_val =3D (sys_clk_speed * vdd->pmic_info->vp_timeout=
+_us) / 1000;
+> + =A0 =A0 =A0 vdd->vp_rt_data.vlimitto_timeout =3D timeout_val;
+> + =A0 =A0 =A0 vdd->vp_rt_data.vlimitto_vddmin =3D vdd->pmic_info->vp_vddm=
+in;
+> + =A0 =A0 =A0 vdd->vp_rt_data.vlimitto_vddmax =3D vdd->pmic_info->vp_vddm=
+ax;
+> +
+> + =A0 =A0 =A0 waittime =3D ((vdd->pmic_info->step_size / vdd->pmic_info->=
+slew_rate) *
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 sys_clk_spe=
+ed) / 1000;
+> + =A0 =A0 =A0 vdd->vp_rt_data.vstepmin_smpswaittimemin =3D waittime;
+> + =A0 =A0 =A0 vdd->vp_rt_data.vstepmax_smpswaittimemax =3D waittime;
+> + =A0 =A0 =A0 vdd->vp_rt_data.vstepmin_stepmin =3D vdd->pmic_info->vp_vst=
+epmin;
+> + =A0 =A0 =A0 vdd->vp_rt_data.vstepmax_stepmax =3D vdd->pmic_info->vp_vst=
+epmax;
+> +
+> + =A0 =A0 =A0 return 0;
+> +}
+> +
+> =A0/* Voltage debugfs support */
+> =A0static int vp_volt_debug_get(void *data, u64 *val)
+> =A0{
+> @@ -347,7 +146,7 @@ static int vp_volt_debug_get(void *data, u64 *val)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return -EINVAL;
+> =A0 =A0 =A0 =A0}
+>
+> - =A0 =A0 =A0 vsel =3D vdd->read_reg(vdd->vp_reg.prm_mod, vdd->vp_offs.vo=
+ltage);
+> + =A0 =A0 =A0 vsel =3D vdd->read_reg(prm_mod_offs, vdd->vp_data->voltage);
+> =A0 =A0 =A0 =A0pr_notice("curr_vsel =3D %x\n", vsel);
+>
+> =A0 =A0 =A0 =A0if (!vdd->pmic_info->vsel_to_uv) {
+> @@ -380,7 +179,6 @@ DEFINE_SIMPLE_ATTRIBUTE(nom_volt_debug_fops, nom_volt=
+_debug_get, NULL,
+> =A0static void vp_latch_vsel(struct omap_vdd_info *vdd)
+> =A0{
+> =A0 =A0 =A0 =A0u32 vpconfig;
+> - =A0 =A0 =A0 u16 mod;
+> =A0 =A0 =A0 =A0unsigned long uvdc;
+> =A0 =A0 =A0 =A0char vsel;
+>
+> @@ -397,30 +195,27 @@ static void vp_latch_vsel(struct omap_vdd_info *vdd)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return;
+> =A0 =A0 =A0 =A0}
+>
+> - =A0 =A0 =A0 mod =3D vdd->vp_reg.prm_mod;
+> -
+> =A0 =A0 =A0 =A0vsel =3D vdd->pmic_info->uv_to_vsel(uvdc);
+>
+> - =A0 =A0 =A0 vpconfig =3D vdd->read_reg(mod, vdd->vp_offs.vpconfig);
+> - =A0 =A0 =A0 vpconfig &=3D ~(vdd->vp_reg.vpconfig_initvoltage_mask |
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vp_reg.vpconfig_initvd=
+d);
+> - =A0 =A0 =A0 vpconfig |=3D vsel << vdd->vp_reg.vpconfig_initvoltage_shif=
+t;
+> + =A0 =A0 =A0 vpconfig =3D vdd->read_reg(prm_mod_offs, vdd->vp_data->vpco=
+nfig);
+> + =A0 =A0 =A0 vpconfig &=3D ~(vdd->vp_data->vp_common->vpconfig_initvolta=
+ge_mask |
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vp_data->vp_common->vp=
+config_initvdd);
+> + =A0 =A0 =A0 vpconfig |=3D vsel << vdd->vp_data->vp_common->vpconfig_ini=
+tvoltage_shift;
+>
+> - =A0 =A0 =A0 vdd->write_reg(vpconfig, mod, vdd->vp_offs.vpconfig);
+> + =A0 =A0 =A0 vdd->write_reg(vpconfig, prm_mod_offs, vdd->vp_data->vpconf=
+ig);
+>
+> =A0 =A0 =A0 =A0/* Trigger initVDD value copy to voltage processor */
+> - =A0 =A0 =A0 vdd->write_reg((vpconfig | vdd->vp_reg.vpconfig_initvdd), m=
+od,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vp_offs.vpconfig);
+> + =A0 =A0 =A0 vdd->write_reg((vpconfig | vdd->vp_data->vp_common->vpconfi=
+g_initvdd),
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0prm_mod_offs, vdd->vp_data->=
+vpconfig);
+>
+> =A0 =A0 =A0 =A0/* Clear initVDD copy trigger bit */
+> - =A0 =A0 =A0 vdd->write_reg(vpconfig, mod, vdd->vp_offs.vpconfig);
+> + =A0 =A0 =A0 vdd->write_reg(vpconfig, prm_mod_offs, vdd->vp_data->vpconf=
+ig);
+> =A0}
+>
+> =A0/* Generic voltage init functions */
+> =A0static void __init vp_init(struct omap_vdd_info *vdd)
+> =A0{
+> =A0 =A0 =A0 =A0u32 vp_val;
+> - =A0 =A0 =A0 u16 mod;
+>
+> =A0 =A0 =A0 =A0if (!vdd->read_reg || !vdd->write_reg) {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pr_err("%s: No read/write API for accessin=
+g vdd_%s regs\n",
+> @@ -428,33 +223,31 @@ static void __init vp_init(struct omap_vdd_info *vd=
+d)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return;
+> =A0 =A0 =A0 =A0}
+>
+> - =A0 =A0 =A0 mod =3D vdd->vp_reg.prm_mod;
+> -
+> - =A0 =A0 =A0 vp_val =3D vdd->vp_reg.vpconfig_erroroffset |
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 (vdd->vp_reg.vpconfig_errorgain <<
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vp_reg.vpconfig_errorgain_shift) |
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vp_reg.vpconfig_timeouten;
+> - =A0 =A0 =A0 vdd->write_reg(vp_val, mod, vdd->vp_offs.vpconfig);
+> -
+> - =A0 =A0 =A0 vp_val =3D ((vdd->vp_reg.vstepmin_smpswaittimemin <<
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vp_reg.vstepmin_smpswaittimemin_shift)=
+ |
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 (vdd->vp_reg.vstepmin_stepmin <<
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vp_reg.vstepmin_stepmin_shift));
+> - =A0 =A0 =A0 vdd->write_reg(vp_val, mod, vdd->vp_offs.vstepmin);
+> -
+> - =A0 =A0 =A0 vp_val =3D ((vdd->vp_reg.vstepmax_smpswaittimemax <<
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vp_reg.vstepmax_smpswaittimemax_shift)=
+ |
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 (vdd->vp_reg.vstepmax_stepmax <<
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vp_reg.vstepmax_stepmax_shift));
+> - =A0 =A0 =A0 vdd->write_reg(vp_val, mod, vdd->vp_offs.vstepmax);
+> -
+> - =A0 =A0 =A0 vp_val =3D ((vdd->vp_reg.vlimitto_vddmax <<
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vp_reg.vlimitto_vddmax_shift) |
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 (vdd->vp_reg.vlimitto_vddmin <<
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vp_reg.vlimitto_vddmin_shift) |
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 (vdd->vp_reg.vlimitto_timeout <<
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vp_reg.vlimitto_timeout_shift));
+> - =A0 =A0 =A0 vdd->write_reg(vp_val, mod, vdd->vp_offs.vlimitto);
+> + =A0 =A0 =A0 vp_val =3D vdd->vp_rt_data.vpconfig_erroroffset |
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 (vdd->vp_rt_data.vpconfig_errorgain <<
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vp_data->vp_common->vpconfig_errorgain=
+_shift) |
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vp_data->vp_common->vpconfig_timeouten;
+> + =A0 =A0 =A0 vdd->write_reg(vp_val, prm_mod_offs, vdd->vp_data->vpconfig=
+);
+> +
+> + =A0 =A0 =A0 vp_val =3D ((vdd->vp_rt_data.vstepmin_smpswaittimemin <<
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vp_data->vp_common->vstepmin_smpswaitt=
+imemin_shift) |
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 (vdd->vp_rt_data.vstepmin_stepmin <<
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vp_data->vp_common->vstepmin_stepmin_s=
+hift));
+> + =A0 =A0 =A0 vdd->write_reg(vp_val, prm_mod_offs, vdd->vp_data->vstepmin=
+);
+> +
+> + =A0 =A0 =A0 vp_val =3D ((vdd->vp_rt_data.vstepmax_smpswaittimemax <<
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vp_data->vp_common->vstepmax_smpswaitt=
+imemax_shift) |
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 (vdd->vp_rt_data.vstepmax_stepmax <<
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vp_data->vp_common->vstepmax_stepmax_s=
+hift));
+> + =A0 =A0 =A0 vdd->write_reg(vp_val, prm_mod_offs, vdd->vp_data->vstepmax=
+);
+> +
+> + =A0 =A0 =A0 vp_val =3D ((vdd->vp_rt_data.vlimitto_vddmax <<
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vp_data->vp_common->vlimitto_vddmax_sh=
+ift) |
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 (vdd->vp_rt_data.vlimitto_vddmin <<
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vp_data->vp_common->vlimitto_vddmin_sh=
+ift) |
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 (vdd->vp_rt_data.vlimitto_timeout <<
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vp_data->vp_common->vlimitto_timeout_s=
+hift));
+> + =A0 =A0 =A0 vdd->write_reg(vp_val, prm_mod_offs, vdd->vp_data->vlimitto=
+);
+> =A0}
+>
+> =A0static void __init vdd_debugfs_init(struct omap_vdd_info *vdd)
+> @@ -481,23 +274,23 @@ static void __init vdd_debugfs_init(struct omap_vdd=
+_info *vdd)
+> =A0 =A0 =A0 =A0}
+>
+> =A0 =A0 =A0 =A0(void) debugfs_create_x16("vp_errorgain", S_IRUGO, vdd->de=
+bug_dir,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 &(vdd->vp_r=
+eg.vpconfig_errorgain));
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 &(vdd->vp_r=
+t_data.vpconfig_errorgain));
+> =A0 =A0 =A0 =A0(void) debugfs_create_x16("vp_smpswaittimemin", S_IRUGO,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0vdd->debug=
+_dir,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 &(vdd->vp_r=
+eg.vstepmin_smpswaittimemin));
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 &(vdd->vp_r=
+t_data.vstepmin_smpswaittimemin));
+> =A0 =A0 =A0 =A0(void) debugfs_create_x8("vp_stepmin", S_IRUGO, vdd->debug=
+_dir,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 &(vdd->vp_r=
+eg.vstepmin_stepmin));
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 &(vdd->vp_r=
+t_data.vstepmin_stepmin));
+> =A0 =A0 =A0 =A0(void) debugfs_create_x16("vp_smpswaittimemax", S_IRUGO,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0vdd->debug=
+_dir,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 &(vdd->vp_r=
+eg.vstepmax_smpswaittimemax));
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 &(vdd->vp_r=
+t_data.vstepmax_smpswaittimemax));
+> =A0 =A0 =A0 =A0(void) debugfs_create_x8("vp_stepmax", S_IRUGO, vdd->debug=
+_dir,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 &(vdd->vp_r=
+eg.vstepmax_stepmax));
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 &(vdd->vp_r=
+t_data.vstepmax_stepmax));
+> =A0 =A0 =A0 =A0(void) debugfs_create_x8("vp_vddmax", S_IRUGO, vdd->debug_=
+dir,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 &(vdd->vp_r=
+eg.vlimitto_vddmax));
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 &(vdd->vp_r=
+t_data.vlimitto_vddmax));
+> =A0 =A0 =A0 =A0(void) debugfs_create_x8("vp_vddmin", S_IRUGO, vdd->debug_=
+dir,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 &(vdd->vp_r=
+eg.vlimitto_vddmin));
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 &(vdd->vp_r=
+t_data.vlimitto_vddmin));
+> =A0 =A0 =A0 =A0(void) debugfs_create_x16("vp_timeout", S_IRUGO, vdd->debu=
+g_dir,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 &(vdd->vp_r=
+eg.vlimitto_timeout));
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 &(vdd->vp_r=
+t_data.vlimitto_timeout));
+> =A0 =A0 =A0 =A0(void) debugfs_create_file("curr_vp_volt", S_IRUGO, vdd->d=
+ebug_dir,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0(void *) v=
+dd, &vp_volt_debug_fops);
+> =A0 =A0 =A0 =A0(void) debugfs_create_file("curr_nominal_volt", S_IRUGO,
+> @@ -510,8 +303,12 @@ static int _pre_volt_scale(struct omap_vdd_info *vdd,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0unsigned long target_volt, u8 *target_vsel=
+, u8 *current_vsel)
+> =A0{
+> =A0 =A0 =A0 =A0struct omap_volt_data *volt_data;
+> + =A0 =A0 =A0 const struct omap_vc_common_data *vc_common;
+> + =A0 =A0 =A0 const struct omap_vp_common_data *vp_common;
+> =A0 =A0 =A0 =A0u32 vc_cmdval, vp_errgain_val;
+> - =A0 =A0 =A0 u16 vp_mod, vc_mod;
+> +
+> + =A0 =A0 =A0 vc_common =3D vdd->vc_data->vc_common;
+> + =A0 =A0 =A0 vp_common =3D vdd->vp_data->vp_common;
+>
+> =A0 =A0 =A0 =A0/* Check if suffiecient pmic info is available for this vd=
+d */
+> =A0 =A0 =A0 =A0if (!vdd->pmic_info) {
+> @@ -533,33 +330,30 @@ static int _pre_volt_scale(struct omap_vdd_info *vd=
+d,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return -EINVAL;
+> =A0 =A0 =A0 =A0}
+>
+> - =A0 =A0 =A0 vp_mod =3D vdd->vp_reg.prm_mod;
+> - =A0 =A0 =A0 vc_mod =3D vdd->vc_reg.prm_mod;
+> -
+> =A0 =A0 =A0 =A0/* Get volt_data corresponding to target_volt */
+> =A0 =A0 =A0 =A0volt_data =3D omap_voltage_get_voltdata(&vdd->voltdm, targ=
+et_volt);
+> =A0 =A0 =A0 =A0if (IS_ERR(volt_data))
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0volt_data =3D NULL;
+>
+> =A0 =A0 =A0 =A0*target_vsel =3D vdd->pmic_info->uv_to_vsel(target_volt);
+> - =A0 =A0 =A0 *current_vsel =3D vdd->read_reg(vp_mod, vdd->vp_offs.voltag=
+e);
+> + =A0 =A0 =A0 *current_vsel =3D vdd->read_reg(prm_mod_offs, vdd->vp_data-=
+>voltage);
+>
+> =A0 =A0 =A0 =A0/* Setting the ON voltage to the new target voltage */
+> - =A0 =A0 =A0 vc_cmdval =3D vdd->read_reg(vc_mod, vdd->vc_reg.cmdval_reg);
+> - =A0 =A0 =A0 vc_cmdval &=3D ~vdd->vc_reg.cmd_on_mask;
+> - =A0 =A0 =A0 vc_cmdval |=3D (*target_vsel << vdd->vc_reg.cmd_on_shift);
+> - =A0 =A0 =A0 vdd->write_reg(vc_cmdval, vc_mod, vdd->vc_reg.cmdval_reg);
+> + =A0 =A0 =A0 vc_cmdval =3D vdd->read_reg(prm_mod_offs, vdd->vc_data->cmd=
+val_reg);
+> + =A0 =A0 =A0 vc_cmdval &=3D ~vc_common->cmd_on_mask;
+> + =A0 =A0 =A0 vc_cmdval |=3D (*target_vsel << vc_common->cmd_on_shift);
+> + =A0 =A0 =A0 vdd->write_reg(vc_cmdval, prm_mod_offs, vdd->vc_data->cmdva=
+l_reg);
+>
+> =A0 =A0 =A0 =A0/* Setting vp errorgain based on the voltage */
+> =A0 =A0 =A0 =A0if (volt_data) {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vp_errgain_val =3D vdd->read_reg(vp_mod,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vp_off=
+s.vpconfig);
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vp_reg.vpconfig_errorgain =3D volt_dat=
+a->vp_errgain;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vp_errgain_val &=3D ~vdd->vp_reg.vpconfig_e=
+rrorgain_mask;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vp_errgain_val |=3D vdd->vp_reg.vpconfig_er=
+rorgain <<
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vp_reg=
+.vpconfig_errorgain_shift;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->write_reg(vp_errgain_val, vp_mod,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vp_off=
+s.vpconfig);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 vp_errgain_val =3D vdd->read_reg(prm_mod_of=
+fs,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0vdd->vp_data->vpconfig);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vp_rt_data.vpconfig_errorgain =3D volt=
+_data->vp_errgain;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 vp_errgain_val &=3D ~vp_common->vpconfig_er=
+rorgain_mask;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 vp_errgain_val |=3D vdd->vp_rt_data.vpconfi=
+g_errorgain <<
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 vp_common->vpconfig_errorga=
+in_shift;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->write_reg(vp_errgain_val, prm_mod_offs,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0vdd->vp_data=
+->vpconfig);
+> =A0 =A0 =A0 =A0}
+>
+> =A0 =A0 =A0 =A0return 0;
+> @@ -585,7 +379,6 @@ static int vc_bypass_scale_voltage(struct omap_vdd_in=
+fo *vdd,
+> =A0{
+> =A0 =A0 =A0 =A0u32 loop_cnt =3D 0, retries_cnt =3D 0;
+> =A0 =A0 =A0 =A0u32 vc_valid, vc_bypass_val_reg, vc_bypass_value;
+> - =A0 =A0 =A0 u16 mod;
+> =A0 =A0 =A0 =A0u8 target_vsel, current_vsel;
+> =A0 =A0 =A0 =A0int ret;
+>
+> @@ -593,20 +386,19 @@ static int vc_bypass_scale_voltage(struct omap_vdd_=
+info *vdd,
+> =A0 =A0 =A0 =A0if (ret)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return ret;
+>
+> - =A0 =A0 =A0 mod =3D vdd->vc_reg.prm_mod;
+> -
+> - =A0 =A0 =A0 vc_valid =3D vdd->vc_reg.valid;
+> - =A0 =A0 =A0 vc_bypass_val_reg =3D vdd->vc_reg.bypass_val_reg;
+> - =A0 =A0 =A0 vc_bypass_value =3D (target_vsel << vdd->vc_reg.data_shift)=
+ |
+> + =A0 =A0 =A0 vc_valid =3D vdd->vc_data->vc_common->valid;
+> + =A0 =A0 =A0 vc_bypass_val_reg =3D vdd->vc_data->vc_common->bypass_val_r=
+eg;
+> + =A0 =A0 =A0 vc_bypass_value =3D (target_vsel << vdd->vc_data->vc_common=
+->data_shift) |
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0(vdd->pmic_info->pmic_reg =
+<<
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vc_reg.regaddr_shift) |
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vc_data->vc_common->re=
+gaddr_shift) |
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0(vdd->pmic_info->i2c_slave=
+_addr <<
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vc_reg.slaveaddr_shift=
+);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vc_data->vc_common->sl=
+aveaddr_shift);
+>
+> - =A0 =A0 =A0 vdd->write_reg(vc_bypass_value, mod, vc_bypass_val_reg);
+> - =A0 =A0 =A0 vdd->write_reg(vc_bypass_value | vc_valid, mod, vc_bypass_v=
+al_reg);
+> + =A0 =A0 =A0 vdd->write_reg(vc_bypass_value, prm_mod_offs, vc_bypass_val=
+_reg);
+> + =A0 =A0 =A0 vdd->write_reg(vc_bypass_value | vc_valid, prm_mod_offs,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0vc_bypass_val_reg);
+>
+> - =A0 =A0 =A0 vc_bypass_value =3D vdd->read_reg(mod, vc_bypass_val_reg);
+> + =A0 =A0 =A0 vc_bypass_value =3D vdd->read_reg(prm_mod_offs, vc_bypass_v=
+al_reg);
+> =A0 =A0 =A0 =A0/*
+> =A0 =A0 =A0 =A0 * Loop till the bypass command is acknowledged from the S=
+MPS.
+> =A0 =A0 =A0 =A0 * NOTE: This is legacy code. The loop count and retry cou=
+nt needs
+> @@ -625,7 +417,8 @@ static int vc_bypass_scale_voltage(struct omap_vdd_in=
+fo *vdd,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0loop_cnt =3D 0;
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0udelay(10);
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0}
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vc_bypass_value =3D vdd->read_reg(mod, vc_b=
+ypass_val_reg);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 vc_bypass_value =3D vdd->read_reg(prm_mod_o=
+ffs,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 vc_bypass_val_reg);
+> =A0 =A0 =A0 =A0}
+>
+> =A0 =A0 =A0 =A0_post_volt_scale(vdd, target_volt, target_vsel, current_vs=
+el);
+> @@ -637,7 +430,6 @@ static int vp_forceupdate_scale_voltage(struct omap_v=
+dd_info *vdd,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0unsigned long target_volt)
+> =A0{
+> =A0 =A0 =A0 =A0u32 vpconfig;
+> - =A0 =A0 =A0 u16 mod, ocp_mod;
+> =A0 =A0 =A0 =A0u8 target_vsel, current_vsel, prm_irqst_reg;
+> =A0 =A0 =A0 =A0int ret, timeout =3D 0;
+>
+> @@ -645,20 +437,18 @@ static int vp_forceupdate_scale_voltage(struct omap=
+_vdd_info *vdd,
+> =A0 =A0 =A0 =A0if (ret)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return ret;
+>
+> - =A0 =A0 =A0 mod =3D vdd->vp_reg.prm_mod;
+> - =A0 =A0 =A0 ocp_mod =3D vdd->ocp_mod;
+> - =A0 =A0 =A0 prm_irqst_reg =3D vdd->prm_irqst_reg;
+> + =A0 =A0 =A0 prm_irqst_reg =3D vdd->vp_data->prm_irqst_data->prm_irqst_r=
+eg;
+>
+> =A0 =A0 =A0 =A0/*
+> =A0 =A0 =A0 =A0 * Clear all pending TransactionDone interrupt/status. Typ=
+ical latency
+> =A0 =A0 =A0 =A0 * is <3us
+> =A0 =A0 =A0 =A0 */
+> =A0 =A0 =A0 =A0while (timeout++ < VP_TRANXDONE_TIMEOUT) {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->write_reg(vdd->vp_reg.tranxdone_status,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ocp_mod, pr=
+m_irqst_reg);
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (!(vdd->read_reg(ocp_mod, prm_irqst_reg)=
+ &
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vp_reg=
+.tranxdone_status))
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->write_reg(vdd->vp_data->prm_irqst_data=
+->tranxdone_status,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0prm_irqst_oc=
+p_mod_offs, prm_irqst_reg);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (!(vdd->read_reg(prm_irqst_ocp_mod_offs,=
+ prm_irqst_reg) &
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vp_data->prm_irqst_data->t=
+ranxdone_status))
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0udelay(1);
+> =A0 =A0 =A0 =A0}
+> =A0 =A0 =A0 =A0if (timeout >=3D VP_TRANXDONE_TIMEOUT) {
+> @@ -668,30 +458,31 @@ static int vp_forceupdate_scale_voltage(struct omap=
+_vdd_info *vdd,
+> =A0 =A0 =A0 =A0}
+>
+> =A0 =A0 =A0 =A0/* Configure for VP-Force Update */
+> - =A0 =A0 =A0 vpconfig =3D vdd->read_reg(mod, vdd->vp_offs.vpconfig);
+> - =A0 =A0 =A0 vpconfig &=3D ~(vdd->vp_reg.vpconfig_initvdd |
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vp_reg.vpconfig_forceu=
+pdate |
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vp_reg.vpconfig_initvo=
+ltage_mask);
+> + =A0 =A0 =A0 vpconfig =3D vdd->read_reg(prm_mod_offs, vdd->vp_data->vpco=
+nfig);
+> + =A0 =A0 =A0 vpconfig &=3D ~(vdd->vp_data->vp_common->vpconfig_initvdd |
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vp_data->vp_common->vp=
+config_forceupdate |
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vp_data->vp_common->vp=
+config_initvoltage_mask);
+> =A0 =A0 =A0 =A0vpconfig |=3D ((target_vsel <<
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vp_reg.vpconfig_initvo=
+ltage_shift));
+> - =A0 =A0 =A0 vdd->write_reg(vpconfig, mod, vdd->vp_offs.vpconfig);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vp_data->vp_common->vp=
+config_initvoltage_shift));
+> + =A0 =A0 =A0 vdd->write_reg(vpconfig, prm_mod_offs, vdd->vp_data->vpconf=
+ig);
+>
+> =A0 =A0 =A0 =A0/* Trigger initVDD value copy to voltage processor */
+> - =A0 =A0 =A0 vpconfig |=3D vdd->vp_reg.vpconfig_initvdd;
+> - =A0 =A0 =A0 vdd->write_reg(vpconfig, mod, vdd->vp_offs.vpconfig);
+> + =A0 =A0 =A0 vpconfig |=3D vdd->vp_data->vp_common->vpconfig_initvdd;
+> + =A0 =A0 =A0 vdd->write_reg(vpconfig, prm_mod_offs, vdd->vp_data->vpconf=
+ig);
+>
+> =A0 =A0 =A0 =A0/* Force update of voltage */
+> - =A0 =A0 =A0 vpconfig |=3D vdd->vp_reg.vpconfig_forceupdate;
+> - =A0 =A0 =A0 vdd->write_reg(vpconfig, mod, vdd->vp_offs.vpconfig);
+> + =A0 =A0 =A0 vpconfig |=3D vdd->vp_data->vp_common->vpconfig_forceupdate;
+> + =A0 =A0 =A0 vdd->write_reg(vpconfig, prm_mod_offs, vdd->vp_data->vpconf=
+ig);
+>
+> =A0 =A0 =A0 =A0/*
+> =A0 =A0 =A0 =A0 * Wait for TransactionDone. Typical latency is <200us.
+> =A0 =A0 =A0 =A0 * Depends on SMPSWAITTIMEMIN/MAX and voltage change
+> =A0 =A0 =A0 =A0 */
+> =A0 =A0 =A0 =A0timeout =3D 0;
+> - =A0 =A0 =A0 omap_test_timeout((vdd->read_reg(ocp_mod, prm_irqst_reg) &
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vp_reg.tranxdone_statu=
+s),
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 VP_TRANXDONE_TIMEOUT, timeo=
+ut);
+> + =A0 =A0 =A0 pr_err("prm_irqst_ocp_mod_offs =3D %08x\n", prm_irqst_ocp_m=
+od_offs);
+> + =A0 =A0 =A0 omap_test_timeout((vdd->read_reg(prm_irqst_ocp_mod_offs, pr=
+m_irqst_reg) &
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0vdd->vp_data->prm_ir=
+qst_data->tranxdone_status),
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 VP_TRANXDONE_TIMEOUT, t=
+imeout);
+> =A0 =A0 =A0 =A0if (timeout >=3D VP_TRANXDONE_TIMEOUT)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pr_err("%s: vdd_%s TRANXDONE timeout excee=
+ded."
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"TRANXDONE never got set a=
+fter the voltage update\n",
+> @@ -705,11 +496,11 @@ static int vp_forceupdate_scale_voltage(struct omap=
+_vdd_info *vdd,
+> =A0 =A0 =A0 =A0 */
+> =A0 =A0 =A0 =A0timeout =3D 0;
+> =A0 =A0 =A0 =A0while (timeout++ < VP_TRANXDONE_TIMEOUT) {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->write_reg(vdd->vp_reg.tranxdone_status,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ocp_mod, pr=
+m_irqst_reg);
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (!(vdd->read_reg(ocp_mod, prm_irqst_reg)=
+ &
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vp_reg=
+.tranxdone_status))
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->write_reg(vdd->vp_data->prm_irqst_data=
+->tranxdone_status,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0prm_irqst_oc=
+p_mod_offs, prm_irqst_reg);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (!(vdd->read_reg(prm_irqst_ocp_mod_offs,=
+ prm_irqst_reg) &
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vp_data->prm_irqst_data->t=
+ranxdone_status))
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0udelay(1);
+> =A0 =A0 =A0 =A0}
+>
+> @@ -718,222 +509,95 @@ static int vp_forceupdate_scale_voltage(struct oma=
+p_vdd_info *vdd,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"to clear the TRANXDONE st=
+atus\n",
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0__func__, vdd->voltdm.name=
+);
+>
+> - =A0 =A0 =A0 vpconfig =3D vdd->read_reg(mod, vdd->vp_offs.vpconfig);
+> + =A0 =A0 =A0 vpconfig =3D vdd->read_reg(prm_mod_offs, vdd->vp_data->vpco=
+nfig);
+> =A0 =A0 =A0 =A0/* Clear initVDD copy trigger bit */
+> - =A0 =A0 =A0 vpconfig &=3D ~vdd->vp_reg.vpconfig_initvdd;;
+> - =A0 =A0 =A0 vdd->write_reg(vpconfig, mod, vdd->vp_offs.vpconfig);
+> + =A0 =A0 =A0 vpconfig &=3D ~vdd->vp_data->vp_common->vpconfig_initvdd;
+> + =A0 =A0 =A0 vdd->write_reg(vpconfig, prm_mod_offs, vdd->vp_data->vpconf=
+ig);
+> =A0 =A0 =A0 =A0/* Clear force bit */
+> - =A0 =A0 =A0 vpconfig &=3D ~vdd->vp_reg.vpconfig_forceupdate;
+> - =A0 =A0 =A0 vdd->write_reg(vpconfig, mod, vdd->vp_offs.vpconfig);
+> + =A0 =A0 =A0 vpconfig &=3D ~vdd->vp_data->vp_common->vpconfig_forceupdat=
+e;
+> + =A0 =A0 =A0 vdd->write_reg(vpconfig, prm_mod_offs, vdd->vp_data->vpconf=
+ig);
+>
+> =A0 =A0 =A0 =A0return 0;
+> =A0}
+>
+> -/* OMAP3 specific voltage init functions */
+> +static void __init omap3_vfsm_init(struct omap_vdd_info *vdd)
+> +{
+> + =A0 =A0 =A0 /*
+> + =A0 =A0 =A0 =A0* Voltage Manager FSM parameters init
+> + =A0 =A0 =A0 =A0* XXX This data should be passed in from the board file
+> + =A0 =A0 =A0 =A0*/
+> + =A0 =A0 =A0 vdd->write_reg(OMAP3_CLKSETUP, prm_mod_offs, OMAP3_PRM_CLKS=
+ETUP_OFFSET);
+> + =A0 =A0 =A0 vdd->write_reg(OMAP3_VOLTOFFSET, prm_mod_offs,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0OMAP3_PRM_VOLTOFFSET_OFFSET);
+> + =A0 =A0 =A0 vdd->write_reg(OMAP3_VOLTSETUP2, prm_mod_offs,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0OMAP3_PRM_VOLTSETUP2_OFFSET);
+> +}
+>
+> -/*
+> - * Intializes the voltage controller registers with the PMIC and board
+> - * specific parameters and voltage setup times for OMAP3.
+> - */
+> =A0static void __init omap3_vc_init(struct omap_vdd_info *vdd)
+> =A0{
+> - =A0 =A0 =A0 u32 vc_val;
+> - =A0 =A0 =A0 u16 mod;
+> - =A0 =A0 =A0 u8 on_vsel, onlp_vsel, ret_vsel, off_vsel;
+> =A0 =A0 =A0 =A0static bool is_initialized;
+> + =A0 =A0 =A0 u8 on_vsel, onlp_vsel, ret_vsel, off_vsel;
+> + =A0 =A0 =A0 u32 vc_val;
+>
+> - =A0 =A0 =A0 if (!vdd->pmic_info || !vdd->pmic_info->uv_to_vsel) {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_err("%s: PMIC info requried to configure=
+ vc for"
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "vdd_%s not populated.Hence=
+ cannot initialize vc\n",
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 __func__, vdd->voltdm.name);
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 return;
+> - =A0 =A0 =A0 }
+> -
+> - =A0 =A0 =A0 if (!vdd->read_reg || !vdd->write_reg) {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_err("%s: No read/write API for accessing=
+ vdd_%s regs\n",
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 __func__, vdd->voltdm.name);
+> + =A0 =A0 =A0 if (is_initialized)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return;
+> - =A0 =A0 =A0 }
+> -
+> - =A0 =A0 =A0 mod =3D vdd->vc_reg.prm_mod;
+> -
+> - =A0 =A0 =A0 /* Set up the SMPS_SA(i2c slave address in VC */
+> - =A0 =A0 =A0 vc_val =3D vdd->read_reg(mod, vdd->vc_reg.smps_sa_reg);
+> - =A0 =A0 =A0 vc_val &=3D ~vdd->vc_reg.smps_sa_mask;
+> - =A0 =A0 =A0 vc_val |=3D vdd->pmic_info->i2c_slave_addr << vdd->vc_reg.s=
+mps_sa_shift;
+> - =A0 =A0 =A0 vdd->write_reg(vc_val, mod, vdd->vc_reg.smps_sa_reg);
+> -
+> - =A0 =A0 =A0 /* Setup the VOLRA(pmic reg addr) in VC */
+> - =A0 =A0 =A0 vc_val =3D vdd->read_reg(mod, vdd->vc_reg.smps_volra_reg);
+> - =A0 =A0 =A0 vc_val &=3D ~vdd->vc_reg.smps_volra_mask;
+> - =A0 =A0 =A0 vc_val |=3D vdd->pmic_info->pmic_reg << vdd->vc_reg.smps_vo=
+lra_shift;
+> - =A0 =A0 =A0 vdd->write_reg(vc_val, mod, vdd->vc_reg.smps_volra_reg);
+> -
+> - =A0 =A0 =A0 /*Configure the setup times */
+> - =A0 =A0 =A0 vc_val =3D vdd->read_reg(mod, vdd->vc_reg.voltsetup_reg);
+> - =A0 =A0 =A0 vc_val &=3D ~vdd->vc_reg.voltsetup_mask;
+> - =A0 =A0 =A0 vc_val |=3D vdd->pmic_info->volt_setup_time <<
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vc_reg.voltsetup_shift;
+> - =A0 =A0 =A0 vdd->write_reg(vc_val, mod, vdd->vc_reg.voltsetup_reg);
+>
+> =A0 =A0 =A0 =A0/* Set up the on, inactive, retention and off voltage */
+> =A0 =A0 =A0 =A0on_vsel =3D vdd->pmic_info->uv_to_vsel(vdd->pmic_info->on_=
+volt);
+> =A0 =A0 =A0 =A0onlp_vsel =3D vdd->pmic_info->uv_to_vsel(vdd->pmic_info->o=
+nlp_volt);
+> =A0 =A0 =A0 =A0ret_vsel =3D vdd->pmic_info->uv_to_vsel(vdd->pmic_info->re=
+t_volt);
+> =A0 =A0 =A0 =A0off_vsel =3D vdd->pmic_info->uv_to_vsel(vdd->pmic_info->of=
+f_volt);
+> - =A0 =A0 =A0 vc_val =A0=3D ((on_vsel << vdd->vc_reg.cmd_on_shift) |
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 (onlp_vsel << vdd->vc_reg.cmd_onlp_shift) |
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 (ret_vsel << vdd->vc_reg.cmd_ret_shift) |
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 (off_vsel << vdd->vc_reg.cmd_off_shift));
+> - =A0 =A0 =A0 vdd->write_reg(vc_val, mod, vdd->vc_reg.cmdval_reg);
+> -
+> - =A0 =A0 =A0 if (is_initialized)
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 return;
+> + =A0 =A0 =A0 vc_val =A0=3D ((on_vsel << vdd->vc_data->vc_common->cmd_on_=
+shift) |
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 (onlp_vsel << vdd->vc_data->vc_common->cmd_=
+onlp_shift) |
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 (ret_vsel << vdd->vc_data->vc_common->cmd_r=
+et_shift) |
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 (off_vsel << vdd->vc_data->vc_common->cmd_o=
+ff_shift));
+> + =A0 =A0 =A0 vdd->write_reg(vc_val, prm_mod_offs, vdd->vc_data->cmdval_r=
+eg);
+>
+> - =A0 =A0 =A0 /* Generic VC parameters init */
+> - =A0 =A0 =A0 vdd->write_reg(OMAP3430_CMD1_MASK | OMAP3430_RAV1_MASK, mod,
+> + =A0 =A0 =A0 /*
+> + =A0 =A0 =A0 =A0* Generic VC parameters init
+> + =A0 =A0 =A0 =A0* XXX This data should be abstracted out
+> + =A0 =A0 =A0 =A0*/
+> + =A0 =A0 =A0 vdd->write_reg(OMAP3430_CMD1_MASK | OMAP3430_RAV1_MASK, prm=
+_mod_offs,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0OMAP3_PRM_VC_CH_CONF_OFFSE=
+T);
+> - =A0 =A0 =A0 vdd->write_reg(OMAP3430_MCODE_SHIFT | OMAP3430_HSEN_MASK, m=
+od,
+> + =A0 =A0 =A0 vdd->write_reg(OMAP3430_MCODE_SHIFT | OMAP3430_HSEN_MASK, p=
+rm_mod_offs,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0OMAP3_PRM_VC_I2C_CFG_OFFSE=
+T);
+> - =A0 =A0 =A0 vdd->write_reg(OMAP3_CLKSETUP, mod, OMAP3_PRM_CLKSETUP_OFFS=
+ET);
+> - =A0 =A0 =A0 vdd->write_reg(OMAP3_VOLTOFFSET, mod, OMAP3_PRM_VOLTOFFSET_=
+OFFSET);
+> - =A0 =A0 =A0 vdd->write_reg(OMAP3_VOLTSETUP2, mod, OMAP3_PRM_VOLTSETUP2_=
+OFFSET);
+> +
+> + =A0 =A0 =A0 omap3_vfsm_init(vdd);
+> +
+> =A0 =A0 =A0 =A0is_initialized =3D true;
+> =A0}
+>
+> -/* Sets up all the VDD related info for OMAP3 */
+> -static int __init omap3_vdd_data_configure(struct omap_vdd_info *vdd)
+> +
+> +/* OMAP4 specific voltage init functions */
+> +static void __init omap4_vc_init(struct omap_vdd_info *vdd)
+> =A0{
+> - =A0 =A0 =A0 struct clk *sys_ck;
+> - =A0 =A0 =A0 u32 sys_clk_speed, timeout_val, waittime;
+> + =A0 =A0 =A0 static bool is_initialized;
+> + =A0 =A0 =A0 u32 vc_val;
+>
+> - =A0 =A0 =A0 if (!vdd->pmic_info) {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_err("%s: PMIC info requried to configure=
+ vdd_%s not"
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "populated.Hence cannot ini=
+tialize vdd_%s\n",
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 __func__, vdd->voltdm.name,=
+ vdd->voltdm.name);
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
+> - =A0 =A0 =A0 }
+> + =A0 =A0 =A0 if (is_initialized)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return;
+>
+> - =A0 =A0 =A0 if (!strcmp(vdd->voltdm.name, "mpu")) {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (cpu_is_omap3630())
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->volt_data =3D omap36xx=
+_vddmpu_volt_data;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 else
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->volt_data =3D omap34xx=
+_vddmpu_volt_data;
+> -
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vp_reg.tranxdone_status =3D OMAP3430_V=
+P1_TRANXDONE_ST_MASK;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vc_reg.cmdval_reg =3D OMAP3_PRM_VC_CMD=
+_VAL_0_OFFSET;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vc_reg.smps_sa_shift =3D OMAP3430_PRM_=
+VC_SMPS_SA_SA0_SHIFT;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vc_reg.smps_sa_mask =3D OMAP3430_PRM_V=
+C_SMPS_SA_SA0_MASK;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vc_reg.smps_volra_shift =3D OMAP3430_V=
+OLRA0_SHIFT;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vc_reg.smps_volra_mask =3D OMAP3430_VO=
+LRA0_MASK;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vc_reg.voltsetup_shift =3D OMAP3430_SE=
+TUP_TIME1_SHIFT;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vc_reg.voltsetup_mask =3D OMAP3430_SET=
+UP_TIME1_MASK;
+> - =A0 =A0 =A0 } else if (!strcmp(vdd->voltdm.name, "core")) {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (cpu_is_omap3630())
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->volt_data =3D omap36xx=
+_vddcore_volt_data;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 else
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->volt_data =3D omap34xx=
+_vddcore_volt_data;
+> -
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vp_reg.tranxdone_status =3D OMAP3430_V=
+P2_TRANXDONE_ST_MASK;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vc_reg.cmdval_reg =3D OMAP3_PRM_VC_CMD=
+_VAL_1_OFFSET;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vc_reg.smps_sa_shift =3D OMAP3430_PRM_=
+VC_SMPS_SA_SA1_SHIFT;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vc_reg.smps_sa_mask =3D OMAP3430_PRM_V=
+C_SMPS_SA_SA1_MASK;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vc_reg.smps_volra_shift =3D OMAP3430_V=
+OLRA1_SHIFT;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vc_reg.smps_volra_mask =3D OMAP3430_VO=
+LRA1_MASK;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vc_reg.voltsetup_shift =3D OMAP3430_SE=
+TUP_TIME2_SHIFT;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vc_reg.voltsetup_mask =3D OMAP3430_SET=
+UP_TIME2_MASK;
+> - =A0 =A0 =A0 } else {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_warning("%s: vdd_%s does not exisit in O=
+MAP3\n",
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 __func__, vdd->voltdm.name);
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
+> - =A0 =A0 =A0 }
+> + =A0 =A0 =A0 /* TODO: Configure setup times and CMD_VAL values*/
+>
+> =A0 =A0 =A0 =A0/*
+> - =A0 =A0 =A0 =A0* Sys clk rate is require to calculate vp timeout value =
+and
+> - =A0 =A0 =A0 =A0* smpswaittimemin and smpswaittimemax.
+> + =A0 =A0 =A0 =A0* Generic VC parameters init
+> + =A0 =A0 =A0 =A0* XXX This data should be abstracted out
+> =A0 =A0 =A0 =A0 */
+> - =A0 =A0 =A0 sys_ck =3D clk_get(NULL, "sys_ck");
+> - =A0 =A0 =A0 if (IS_ERR(sys_ck)) {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_warning("%s: Could not get the sys clk t=
+o calculate"
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "various vdd_%s params\n", =
+__func__, vdd->voltdm.name);
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
+> - =A0 =A0 =A0 }
+> - =A0 =A0 =A0 sys_clk_speed =3D clk_get_rate(sys_ck);
+> - =A0 =A0 =A0 clk_put(sys_ck);
+> - =A0 =A0 =A0 /* Divide to avoid overflow */
+> - =A0 =A0 =A0 sys_clk_speed /=3D 1000;
+> -
+> - =A0 =A0 =A0 /* Generic voltage parameters */
+> - =A0 =A0 =A0 vdd->curr_volt =3D 1200000;
+> - =A0 =A0 =A0 vdd->ocp_mod =3D OCP_MOD;
+> - =A0 =A0 =A0 vdd->prm_irqst_reg =3D OMAP3_PRM_IRQSTATUS_MPU_OFFSET;
+> - =A0 =A0 =A0 vdd->read_reg =3D omap3_voltage_read_reg;
+> - =A0 =A0 =A0 vdd->write_reg =3D omap3_voltage_write_reg;
+> - =A0 =A0 =A0 vdd->volt_scale =3D vp_forceupdate_scale_voltage;
+> - =A0 =A0 =A0 vdd->vp_enabled =3D false;
+> + =A0 =A0 =A0 vc_val =3D (OMAP4430_RAV_VDD_MPU_L_MASK | OMAP4430_CMD_VDD_=
+MPU_L_MASK |
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP4430_RAV_VDD_IVA_L_MASK | OMAP4430_=
+CMD_VDD_IVA_L_MASK |
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP4430_RAV_VDD_CORE_L_MASK | OMAP4430=
+_CMD_VDD_CORE_L_MASK);
+> + =A0 =A0 =A0 vdd->write_reg(vc_val, prm_mod_offs, OMAP4_PRM_VC_CFG_CHANN=
+EL_OFFSET);
+>
+> - =A0 =A0 =A0 /* VC parameters */
+> - =A0 =A0 =A0 vdd->vc_reg.prm_mod =3D OMAP3430_GR_MOD;
+> - =A0 =A0 =A0 vdd->vc_reg.smps_sa_reg =3D OMAP3_PRM_VC_SMPS_SA_OFFSET;
+> - =A0 =A0 =A0 vdd->vc_reg.smps_volra_reg =3D OMAP3_PRM_VC_SMPS_VOL_RA_OFF=
+SET;
+> - =A0 =A0 =A0 vdd->vc_reg.bypass_val_reg =3D OMAP3_PRM_VC_BYPASS_VAL_OFFS=
+ET;
+> - =A0 =A0 =A0 vdd->vc_reg.voltsetup_reg =3D OMAP3_PRM_VOLTSETUP1_OFFSET;
+> - =A0 =A0 =A0 vdd->vc_reg.data_shift =3D OMAP3430_DATA_SHIFT;
+> - =A0 =A0 =A0 vdd->vc_reg.slaveaddr_shift =3D OMAP3430_SLAVEADDR_SHIFT;
+> - =A0 =A0 =A0 vdd->vc_reg.regaddr_shift =3D OMAP3430_REGADDR_SHIFT;
+> - =A0 =A0 =A0 vdd->vc_reg.valid =3D OMAP3430_VALID_MASK;
+> - =A0 =A0 =A0 vdd->vc_reg.cmd_on_shift =3D OMAP3430_VC_CMD_ON_SHIFT;
+> - =A0 =A0 =A0 vdd->vc_reg.cmd_on_mask =3D OMAP3430_VC_CMD_ON_MASK;
+> - =A0 =A0 =A0 vdd->vc_reg.cmd_onlp_shift =3D OMAP3430_VC_CMD_ONLP_SHIFT;
+> - =A0 =A0 =A0 vdd->vc_reg.cmd_ret_shift =3D OMAP3430_VC_CMD_RET_SHIFT;
+> - =A0 =A0 =A0 vdd->vc_reg.cmd_off_shift =3D OMAP3430_VC_CMD_OFF_SHIFT;
+> -
+> - =A0 =A0 =A0 vdd->vp_reg.prm_mod =3D OMAP3430_GR_MOD;
+> -
+> - =A0 =A0 =A0 /* VPCONFIG bit fields */
+> - =A0 =A0 =A0 vdd->vp_reg.vpconfig_erroroffset =3D (vdd->pmic_info->vp_er=
+roroffset <<
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0OMAP3430=
+_ERROROFFSET_SHIFT);
+> - =A0 =A0 =A0 vdd->vp_reg.vpconfig_errorgain_mask =3D OMAP3430_ERRORGAIN_=
+MASK;
+> - =A0 =A0 =A0 vdd->vp_reg.vpconfig_errorgain_shift =3D OMAP3430_ERRORGAIN=
+_SHIFT;
+> - =A0 =A0 =A0 vdd->vp_reg.vpconfig_initvoltage_shift =3D OMAP3430_INITVOL=
+TAGE_SHIFT;
+> - =A0 =A0 =A0 vdd->vp_reg.vpconfig_initvoltage_mask =3D OMAP3430_INITVOLT=
+AGE_MASK;
+> - =A0 =A0 =A0 vdd->vp_reg.vpconfig_timeouten =3D OMAP3430_TIMEOUTEN_MASK;
+> - =A0 =A0 =A0 vdd->vp_reg.vpconfig_initvdd =3D OMAP3430_INITVDD_MASK;
+> - =A0 =A0 =A0 vdd->vp_reg.vpconfig_forceupdate =3D OMAP3430_FORCEUPDATE_M=
+ASK;
+> - =A0 =A0 =A0 vdd->vp_reg.vpconfig_vpenable =3D OMAP3430_VPENABLE_MASK;
+> -
+> - =A0 =A0 =A0 /* VSTEPMIN VSTEPMAX bit fields */
+> - =A0 =A0 =A0 waittime =3D ((vdd->pmic_info->step_size / vdd->pmic_info->=
+slew_rate) *
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 sys_clk_spe=
+ed) / 1000;
+> - =A0 =A0 =A0 vdd->vp_reg.vstepmin_smpswaittimemin =3D waittime;
+> - =A0 =A0 =A0 vdd->vp_reg.vstepmax_smpswaittimemax =3D waittime;
+> - =A0 =A0 =A0 vdd->vp_reg.vstepmin_stepmin =3D vdd->pmic_info->vp_vstepmi=
+n;
+> - =A0 =A0 =A0 vdd->vp_reg.vstepmax_stepmax =3D vdd->pmic_info->vp_vstepma=
+x;
+> - =A0 =A0 =A0 vdd->vp_reg.vstepmin_smpswaittimemin_shift =3D
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP3430_SM=
+PSWAITTIMEMIN_SHIFT;
+> - =A0 =A0 =A0 vdd->vp_reg.vstepmax_smpswaittimemax_shift =3D
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP3430_SM=
+PSWAITTIMEMAX_SHIFT;
+> - =A0 =A0 =A0 vdd->vp_reg.vstepmin_stepmin_shift =3D OMAP3430_VSTEPMIN_SH=
+IFT;
+> - =A0 =A0 =A0 vdd->vp_reg.vstepmax_stepmax_shift =3D OMAP3430_VSTEPMAX_SH=
+IFT;
+> -
+> - =A0 =A0 =A0 /* VLIMITTO bit fields */
+> - =A0 =A0 =A0 timeout_val =3D (sys_clk_speed * vdd->pmic_info->vp_timeout=
+_us) / 1000;
+> - =A0 =A0 =A0 vdd->vp_reg.vlimitto_timeout =3D timeout_val;
+> - =A0 =A0 =A0 vdd->vp_reg.vlimitto_vddmin =3D vdd->pmic_info->vp_vddmin;
+> - =A0 =A0 =A0 vdd->vp_reg.vlimitto_vddmax =3D vdd->pmic_info->vp_vddmax;
+> - =A0 =A0 =A0 vdd->vp_reg.vlimitto_vddmin_shift =3D OMAP3430_VDDMIN_SHIFT;
+> - =A0 =A0 =A0 vdd->vp_reg.vlimitto_vddmax_shift =3D OMAP3430_VDDMAX_SHIFT;
+> - =A0 =A0 =A0 vdd->vp_reg.vlimitto_timeout_shift =3D OMAP3430_TIMEOUT_SHI=
+FT;
+> + =A0 =A0 =A0 /* XXX These are magic numbers and do not belong! */
+> + =A0 =A0 =A0 vc_val =3D (0x60 << OMAP4430_SCLL_SHIFT | 0x26 << OMAP4430_=
+SCLH_SHIFT);
+> + =A0 =A0 =A0 vdd->write_reg(vc_val, prm_mod_offs, OMAP4_PRM_VC_CFG_I2C_C=
+LK_OFFSET);
+>
+> - =A0 =A0 =A0 return 0;
+> + =A0 =A0 =A0 is_initialized =3D true;
+> =A0}
+>
+> -/* OMAP4 specific voltage init functions */
+> -static void __init omap4_vc_init(struct omap_vdd_info *vdd)
+> +static void __init omap_vc_init(struct omap_vdd_info *vdd)
+> =A0{
+> =A0 =A0 =A0 =A0u32 vc_val;
+> - =A0 =A0 =A0 u16 mod;
+> - =A0 =A0 =A0 static bool is_initialized;
+>
+> =A0 =A0 =A0 =A0if (!vdd->pmic_info || !vdd->pmic_info->uv_to_vsel) {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pr_err("%s: PMIC info requried to configur=
+e vc for"
+> @@ -948,173 +612,61 @@ static void __init omap4_vc_init(struct omap_vdd_i=
+nfo *vdd)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return;
+> =A0 =A0 =A0 =A0}
+>
+> - =A0 =A0 =A0 mod =3D vdd->vc_reg.prm_mod;
+> -
+> =A0 =A0 =A0 =A0/* Set up the SMPS_SA(i2c slave address in VC */
+> - =A0 =A0 =A0 vc_val =3D vdd->read_reg(mod, vdd->vc_reg.smps_sa_reg);
+> - =A0 =A0 =A0 vc_val &=3D ~vdd->vc_reg.smps_sa_mask;
+> - =A0 =A0 =A0 vc_val |=3D vdd->pmic_info->i2c_slave_addr << vdd->vc_reg.s=
+mps_sa_shift;
+> - =A0 =A0 =A0 vdd->write_reg(vc_val, mod, vdd->vc_reg.smps_sa_reg);
+> + =A0 =A0 =A0 vc_val =3D vdd->read_reg(prm_mod_offs,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0vdd->vc_data=
+->vc_common->smps_sa_reg);
+> + =A0 =A0 =A0 vc_val &=3D ~vdd->vc_data->smps_sa_mask;
+> + =A0 =A0 =A0 vc_val |=3D vdd->pmic_info->i2c_slave_addr << vdd->vc_data-=
+>smps_sa_shift;
+> + =A0 =A0 =A0 vdd->write_reg(vc_val, prm_mod_offs,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0vdd->vc_data->vc_common->smp=
+s_sa_reg);
+>
+> =A0 =A0 =A0 =A0/* Setup the VOLRA(pmic reg addr) in VC */
+> - =A0 =A0 =A0 vc_val =3D vdd->read_reg(mod, vdd->vc_reg.smps_volra_reg);
+> - =A0 =A0 =A0 vc_val &=3D ~vdd->vc_reg.smps_volra_mask;
+> - =A0 =A0 =A0 vc_val |=3D vdd->pmic_info->pmic_reg << vdd->vc_reg.smps_vo=
+lra_shift;
+> - =A0 =A0 =A0 vdd->write_reg(vc_val, mod, vdd->vc_reg.smps_volra_reg);
+> -
+> - =A0 =A0 =A0 /* TODO: Configure setup times and CMD_VAL values*/
+> -
+> - =A0 =A0 =A0 if (is_initialized)
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 return;
+> -
+> - =A0 =A0 =A0 /* Generic VC parameters init */
+> - =A0 =A0 =A0 vc_val =3D (OMAP4430_RAV_VDD_MPU_L_MASK | OMAP4430_CMD_VDD_=
+MPU_L_MASK |
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP4430_RAV_VDD_IVA_L_MASK | OMAP4430_CMD_=
+VDD_IVA_L_MASK |
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP4430_RAV_VDD_CORE_L_MASK | OMAP4430_CMD=
+_VDD_CORE_L_MASK);
+> - =A0 =A0 =A0 vdd->write_reg(vc_val, mod, OMAP4_PRM_VC_CFG_CHANNEL_OFFSET=
+);
+> -
+> - =A0 =A0 =A0 vc_val =3D (0x60 << OMAP4430_SCLL_SHIFT | 0x26 << OMAP4430_=
+SCLH_SHIFT);
+> - =A0 =A0 =A0 vdd->write_reg(vc_val, mod, OMAP4_PRM_VC_CFG_I2C_CLK_OFFSET=
+);
+> + =A0 =A0 =A0 vc_val =3D vdd->read_reg(prm_mod_offs,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0vdd->vc_data=
+->vc_common->smps_volra_reg);
+> + =A0 =A0 =A0 vc_val &=3D ~vdd->vc_data->smps_volra_mask;
+> + =A0 =A0 =A0 vc_val |=3D vdd->pmic_info->pmic_reg << vdd->vc_data->smps_=
+volra_shift;
+> + =A0 =A0 =A0 vdd->write_reg(vc_val, prm_mod_offs,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0vdd->vc_data->vc_common->smp=
+s_volra_reg);
+> +
+> + =A0 =A0 =A0 /* Configure the setup times */
+> + =A0 =A0 =A0 vc_val =3D vdd->read_reg(prm_mod_offs, vdd->vfsm->voltsetup=
+_reg);
+> + =A0 =A0 =A0 vc_val &=3D ~vdd->vfsm->voltsetup_mask;
+> + =A0 =A0 =A0 vc_val |=3D vdd->pmic_info->volt_setup_time <<
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vfsm->voltsetup_shift;
+> + =A0 =A0 =A0 vdd->write_reg(vc_val, prm_mod_offs, vdd->vfsm->voltsetup_r=
+eg);
+>
+> - =A0 =A0 =A0 is_initialized =3D true;
+> + =A0 =A0 =A0 if (cpu_is_omap34xx())
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap3_vc_init(vdd);
+> + =A0 =A0 =A0 else if (cpu_is_omap44xx())
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap4_vc_init(vdd);
+> =A0}
+>
+> -/* Sets up all the VDD related info for OMAP4 */
+> -static int __init omap4_vdd_data_configure(struct omap_vdd_info *vdd)
+> +static int __init omap_vdd_data_configure(struct omap_vdd_info *vdd)
+> =A0{
+> - =A0 =A0 =A0 struct clk *sys_ck;
+> - =A0 =A0 =A0 u32 sys_clk_speed, timeout_val, waittime;
+> + =A0 =A0 =A0 int ret =3D -EINVAL;
+>
+> =A0 =A0 =A0 =A0if (!vdd->pmic_info) {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pr_err("%s: PMIC info requried to configur=
+e vdd_%s not"
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"populated.Hence cannot in=
+itialize vdd_%s\n",
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0__func__, vdd->voltdm.name=
+, vdd->voltdm.name);
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto ovdc_out;
+> =A0 =A0 =A0 =A0}
+>
+> - =A0 =A0 =A0 if (!strcmp(vdd->voltdm.name, "mpu")) {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->volt_data =3D omap44xx_vdd_mpu_volt_da=
+ta;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vp_reg.tranxdone_status =3D
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP4430_VP=
+_MPU_TRANXDONE_ST_MASK;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vc_reg.cmdval_reg =3D OMAP4_PRM_VC_VAL=
+_CMD_VDD_MPU_L_OFFSET;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vc_reg.smps_sa_shift =3D
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP4430_SA=
+_VDD_MPU_L_PRM_VC_SMPS_SA_SHIFT;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vc_reg.smps_sa_mask =3D
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP4430_SA=
+_VDD_MPU_L_PRM_VC_SMPS_SA_MASK;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vc_reg.smps_volra_shift =3D OMAP4430_V=
+OLRA_VDD_MPU_L_SHIFT;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vc_reg.smps_volra_mask =3D OMAP4430_VO=
+LRA_VDD_MPU_L_MASK;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vc_reg.voltsetup_reg =3D
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP4_PRM_V=
+OLTSETUP_MPU_RET_SLEEP_OFFSET;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->prm_irqst_reg =3D OMAP4_PRM_IRQSTATUS_=
+MPU_2_OFFSET;
+> - =A0 =A0 =A0 } else if (!strcmp(vdd->voltdm.name, "core")) {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->volt_data =3D omap44xx_vdd_core_volt_d=
+ata;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vp_reg.tranxdone_status =3D
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP4430_VP=
+_CORE_TRANXDONE_ST_MASK;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vc_reg.cmdval_reg =3D
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP4_PRM_V=
+C_VAL_CMD_VDD_CORE_L_OFFSET;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vc_reg.smps_sa_shift =3D OMAP4430_SA_V=
+DD_CORE_L_0_6_SHIFT;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vc_reg.smps_sa_mask =3D OMAP4430_SA_VD=
+D_CORE_L_0_6_MASK;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vc_reg.smps_volra_shift =3D OMAP4430_V=
+OLRA_VDD_CORE_L_SHIFT;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vc_reg.smps_volra_mask =3D OMAP4430_VO=
+LRA_VDD_CORE_L_MASK;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vc_reg.voltsetup_reg =3D
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP4_PRM_V=
+OLTSETUP_CORE_RET_SLEEP_OFFSET;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->prm_irqst_reg =3D OMAP4_PRM_IRQSTATUS_=
+MPU_OFFSET;
+> - =A0 =A0 =A0 } else if (!strcmp(vdd->voltdm.name, "iva")) {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->volt_data =3D omap44xx_vdd_iva_volt_da=
+ta;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vp_reg.tranxdone_status =3D
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP4430_VP=
+_IVA_TRANXDONE_ST_MASK;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vc_reg.cmdval_reg =3D OMAP4_PRM_VC_VAL=
+_CMD_VDD_IVA_L_OFFSET;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vc_reg.smps_sa_shift =3D
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP4430_SA=
+_VDD_IVA_L_PRM_VC_SMPS_SA_SHIFT;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vc_reg.smps_sa_mask =3D
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP4430_SA=
+_VDD_IVA_L_PRM_VC_SMPS_SA_MASK;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vc_reg.smps_volra_shift =3D OMAP4430_V=
+OLRA_VDD_IVA_L_SHIFT;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vc_reg.smps_volra_mask =3D OMAP4430_VO=
+LRA_VDD_IVA_L_MASK;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vc_reg.voltsetup_reg =3D
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP4_PRM_V=
+OLTSETUP_IVA_RET_SLEEP_OFFSET;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->prm_irqst_reg =3D OMAP4_PRM_IRQSTATUS_=
+MPU_OFFSET;
+> - =A0 =A0 =A0 } else {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_warning("%s: vdd_%s does not exisit in O=
+MAP4\n",
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 __func__, vdd->voltdm.name);
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
+> - =A0 =A0 =A0 }
+> + =A0 =A0 =A0 if (IS_ERR_VALUE(_config_common_vdd_data(vdd)))
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto ovdc_out;
+>
+> - =A0 =A0 =A0 /*
+> - =A0 =A0 =A0 =A0* Sys clk rate is require to calculate vp timeout value =
+and
+> - =A0 =A0 =A0 =A0* smpswaittimemin and smpswaittimemax.
+> - =A0 =A0 =A0 =A0*/
+> - =A0 =A0 =A0 sys_ck =3D clk_get(NULL, "sys_clkin_ck");
+> - =A0 =A0 =A0 if (IS_ERR(sys_ck)) {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_warning("%s: Could not get the sys clk t=
+o calculate"
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "various vdd_%s params\n", =
+__func__, vdd->voltdm.name);
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
+> + =A0 =A0 =A0 if (cpu_is_omap34xx()) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->read_reg =3D omap3_voltage_read_reg;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->write_reg =3D omap3_voltage_write_reg;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D 0;
+> + =A0 =A0 =A0 } else if (cpu_is_omap44xx()) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->read_reg =3D omap4_voltage_read_reg;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->write_reg =3D omap4_voltage_write_reg;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D 0;
+> =A0 =A0 =A0 =A0}
+> - =A0 =A0 =A0 sys_clk_speed =3D clk_get_rate(sys_ck);
+> - =A0 =A0 =A0 clk_put(sys_ck);
+> - =A0 =A0 =A0 /* Divide to avoid overflow */
+> - =A0 =A0 =A0 sys_clk_speed /=3D 1000;
+> -
+> - =A0 =A0 =A0 /* Generic voltage parameters */
+> - =A0 =A0 =A0 vdd->curr_volt =3D 1200000;
+> - =A0 =A0 =A0 vdd->ocp_mod =3D OMAP4430_PRM_OCP_SOCKET_INST;
+> - =A0 =A0 =A0 vdd->read_reg =3D omap4_voltage_read_reg;
+> - =A0 =A0 =A0 vdd->write_reg =3D omap4_voltage_write_reg;
+> - =A0 =A0 =A0 vdd->volt_scale =3D vp_forceupdate_scale_voltage;
+> - =A0 =A0 =A0 vdd->vp_enabled =3D false;
+>
+> - =A0 =A0 =A0 /* VC parameters */
+> - =A0 =A0 =A0 vdd->vc_reg.prm_mod =3D OMAP4430_PRM_DEVICE_INST;
+> - =A0 =A0 =A0 vdd->vc_reg.smps_sa_reg =3D OMAP4_PRM_VC_SMPS_SA_OFFSET;
+> - =A0 =A0 =A0 vdd->vc_reg.smps_volra_reg =3D OMAP4_PRM_VC_VAL_SMPS_RA_VOL=
+_OFFSET;
+> - =A0 =A0 =A0 vdd->vc_reg.bypass_val_reg =3D OMAP4_PRM_VC_VAL_BYPASS_OFFS=
+ET;
+> - =A0 =A0 =A0 vdd->vc_reg.data_shift =3D OMAP4430_DATA_SHIFT;
+> - =A0 =A0 =A0 vdd->vc_reg.slaveaddr_shift =3D OMAP4430_SLAVEADDR_SHIFT;
+> - =A0 =A0 =A0 vdd->vc_reg.regaddr_shift =3D OMAP4430_REGADDR_SHIFT;
+> - =A0 =A0 =A0 vdd->vc_reg.valid =3D OMAP4430_VALID_MASK;
+> - =A0 =A0 =A0 vdd->vc_reg.cmd_on_shift =3D OMAP4430_ON_SHIFT;
+> - =A0 =A0 =A0 vdd->vc_reg.cmd_on_mask =3D OMAP4430_ON_MASK;
+> - =A0 =A0 =A0 vdd->vc_reg.cmd_onlp_shift =3D OMAP4430_ONLP_SHIFT;
+> - =A0 =A0 =A0 vdd->vc_reg.cmd_ret_shift =3D OMAP4430_RET_SHIFT;
+> - =A0 =A0 =A0 vdd->vc_reg.cmd_off_shift =3D OMAP4430_OFF_SHIFT;
+> -
+> - =A0 =A0 =A0 vdd->vp_reg.prm_mod =3D OMAP4430_PRM_DEVICE_INST;
+> -
+> - =A0 =A0 =A0 /* VPCONFIG bit fields */
+> - =A0 =A0 =A0 vdd->vp_reg.vpconfig_erroroffset =3D (vdd->pmic_info->vp_er=
+roroffset <<
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0OMAP4430=
+_ERROROFFSET_SHIFT);
+> - =A0 =A0 =A0 vdd->vp_reg.vpconfig_errorgain_mask =3D OMAP4430_ERRORGAIN_=
+MASK;
+> - =A0 =A0 =A0 vdd->vp_reg.vpconfig_errorgain_shift =3D OMAP4430_ERRORGAIN=
+_SHIFT;
+> - =A0 =A0 =A0 vdd->vp_reg.vpconfig_initvoltage_shift =3D OMAP4430_INITVOL=
+TAGE_SHIFT;
+> - =A0 =A0 =A0 vdd->vp_reg.vpconfig_initvoltage_mask =3D OMAP4430_INITVOLT=
+AGE_MASK;
+> - =A0 =A0 =A0 vdd->vp_reg.vpconfig_timeouten =3D OMAP4430_TIMEOUTEN_MASK;
+> - =A0 =A0 =A0 vdd->vp_reg.vpconfig_initvdd =3D OMAP4430_INITVDD_MASK;
+> - =A0 =A0 =A0 vdd->vp_reg.vpconfig_forceupdate =3D OMAP4430_FORCEUPDATE_M=
+ASK;
+> - =A0 =A0 =A0 vdd->vp_reg.vpconfig_vpenable =3D OMAP4430_VPENABLE_MASK;
+> -
+> - =A0 =A0 =A0 /* VSTEPMIN VSTEPMAX bit fields */
+> - =A0 =A0 =A0 waittime =3D ((vdd->pmic_info->step_size / vdd->pmic_info->=
+slew_rate) *
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 sys_clk_spe=
+ed) / 1000;
+> - =A0 =A0 =A0 vdd->vp_reg.vstepmin_smpswaittimemin =3D waittime;
+> - =A0 =A0 =A0 vdd->vp_reg.vstepmax_smpswaittimemax =3D waittime;
+> - =A0 =A0 =A0 vdd->vp_reg.vstepmin_stepmin =3D vdd->pmic_info->vp_vstepmi=
+n;
+> - =A0 =A0 =A0 vdd->vp_reg.vstepmax_stepmax =3D vdd->pmic_info->vp_vstepma=
+x;
+> - =A0 =A0 =A0 vdd->vp_reg.vstepmin_smpswaittimemin_shift =3D
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP4430_SMPSWAITTIMEMIN_SH=
+IFT;
+> - =A0 =A0 =A0 vdd->vp_reg.vstepmax_smpswaittimemax_shift =3D
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP4430_SMPSWAITTIMEMAX_SH=
+IFT;
+> - =A0 =A0 =A0 vdd->vp_reg.vstepmin_stepmin_shift =3D OMAP4430_VSTEPMIN_SH=
+IFT;
+> - =A0 =A0 =A0 vdd->vp_reg.vstepmax_stepmax_shift =3D OMAP4430_VSTEPMAX_SH=
+IFT;
+> -
+> - =A0 =A0 =A0 /* VLIMITTO bit fields */
+> - =A0 =A0 =A0 timeout_val =3D (sys_clk_speed * vdd->pmic_info->vp_timeout=
+_us) / 1000;
+> - =A0 =A0 =A0 vdd->vp_reg.vlimitto_timeout =3D timeout_val;
+> - =A0 =A0 =A0 vdd->vp_reg.vlimitto_vddmin =3D vdd->pmic_info->vp_vddmin;
+> - =A0 =A0 =A0 vdd->vp_reg.vlimitto_vddmax =3D vdd->pmic_info->vp_vddmax;
+> - =A0 =A0 =A0 vdd->vp_reg.vlimitto_vddmin_shift =3D OMAP4430_VDDMIN_SHIFT;
+> - =A0 =A0 =A0 vdd->vp_reg.vlimitto_vddmax_shift =3D OMAP4430_VDDMAX_SHIFT;
+> - =A0 =A0 =A0 vdd->vp_reg.vlimitto_timeout_shift =3D OMAP4430_TIMEOUT_SHI=
+FT;
+> -
+> - =A0 =A0 =A0 return 0;
+> +ovdc_out:
+> + =A0 =A0 =A0 return ret;
+> =A0}
+>
+> =A0/* Public functions */
+> @@ -1162,8 +714,7 @@ unsigned long omap_vp_get_curr_volt(struct voltagedo=
+main *voltdm)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return 0;
+> =A0 =A0 =A0 =A0}
+>
+> - =A0 =A0 =A0 curr_vsel =3D vdd->read_reg(vdd->vp_reg.prm_mod,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd->vp_offs.voltage);
+> + =A0 =A0 =A0 curr_vsel =3D vdd->read_reg(prm_mod_offs, vdd->vp_data->vol=
+tage);
+>
+> =A0 =A0 =A0 =A0if (!vdd->pmic_info || !vdd->pmic_info->vsel_to_uv) {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pr_warning("%s: PMIC function to convert v=
+sel to voltage"
+> @@ -1185,7 +736,6 @@ void omap_vp_enable(struct voltagedomain *voltdm)
+> =A0{
+> =A0 =A0 =A0 =A0struct omap_vdd_info *vdd;
+> =A0 =A0 =A0 =A0u32 vpconfig;
+> - =A0 =A0 =A0 u16 mod;
+>
+> =A0 =A0 =A0 =A0if (!voltdm || IS_ERR(voltdm)) {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pr_warning("%s: VDD specified does not exi=
+st!\n", __func__);
+> @@ -1199,8 +749,6 @@ void omap_vp_enable(struct voltagedomain *voltdm)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return;
+> =A0 =A0 =A0 =A0}
+>
+> - =A0 =A0 =A0 mod =3D vdd->vp_reg.prm_mod;
+> -
+> =A0 =A0 =A0 =A0/* If VP is already enabled, do nothing. Return */
+> =A0 =A0 =A0 =A0if (vdd->vp_enabled)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return;
+> @@ -1208,9 +756,9 @@ void omap_vp_enable(struct voltagedomain *voltdm)
+> =A0 =A0 =A0 =A0vp_latch_vsel(vdd);
+>
+> =A0 =A0 =A0 =A0/* Enable VP */
+> - =A0 =A0 =A0 vpconfig =3D vdd->read_reg(mod, vdd->vp_offs.vpconfig);
+> - =A0 =A0 =A0 vpconfig |=3D vdd->vp_reg.vpconfig_vpenable;
+> - =A0 =A0 =A0 vdd->write_reg(vpconfig, mod, vdd->vp_offs.vpconfig);
+> + =A0 =A0 =A0 vpconfig =3D vdd->read_reg(prm_mod_offs, vdd->vp_data->vpco=
+nfig);
+> + =A0 =A0 =A0 vpconfig |=3D vdd->vp_data->vp_common->vpconfig_vpenable;
+> + =A0 =A0 =A0 vdd->write_reg(vpconfig, prm_mod_offs, vdd->vp_data->vpconf=
+ig);
+> =A0 =A0 =A0 =A0vdd->vp_enabled =3D true;
+> =A0}
+>
+> @@ -1225,7 +773,6 @@ void omap_vp_disable(struct voltagedomain *voltdm)
+> =A0{
+> =A0 =A0 =A0 =A0struct omap_vdd_info *vdd;
+> =A0 =A0 =A0 =A0u32 vpconfig;
+> - =A0 =A0 =A0 u16 mod;
+> =A0 =A0 =A0 =A0int timeout;
+>
+> =A0 =A0 =A0 =A0if (!voltdm || IS_ERR(voltdm)) {
+> @@ -1240,8 +787,6 @@ void omap_vp_disable(struct voltagedomain *voltdm)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return;
+> =A0 =A0 =A0 =A0}
+>
+> - =A0 =A0 =A0 mod =3D vdd->vp_reg.prm_mod;
+> -
+> =A0 =A0 =A0 =A0/* If VP is already disabled, do nothing. Return */
+> =A0 =A0 =A0 =A0if (!vdd->vp_enabled) {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pr_warning("%s: Trying to disable VP for v=
+dd_%s when"
+> @@ -1250,14 +795,14 @@ void omap_vp_disable(struct voltagedomain *voltdm)
+> =A0 =A0 =A0 =A0}
+>
+> =A0 =A0 =A0 =A0/* Disable VP */
+> - =A0 =A0 =A0 vpconfig =3D vdd->read_reg(mod, vdd->vp_offs.vpconfig);
+> - =A0 =A0 =A0 vpconfig &=3D ~vdd->vp_reg.vpconfig_vpenable;
+> - =A0 =A0 =A0 vdd->write_reg(vpconfig, mod, vdd->vp_offs.vpconfig);
+> + =A0 =A0 =A0 vpconfig =3D vdd->read_reg(prm_mod_offs, vdd->vp_data->vpco=
+nfig);
+> + =A0 =A0 =A0 vpconfig &=3D ~vdd->vp_data->vp_common->vpconfig_vpenable;
+> + =A0 =A0 =A0 vdd->write_reg(vpconfig, prm_mod_offs, vdd->vp_data->vpconf=
+ig);
+>
+> =A0 =A0 =A0 =A0/*
+> =A0 =A0 =A0 =A0 * Wait for VP idle Typical latency is <2us. Maximum laten=
+cy is ~100us
+> =A0 =A0 =A0 =A0 */
+> - =A0 =A0 =A0 omap_test_timeout((vdd->read_reg(mod, vdd->vp_offs.vstatus)=
+),
+> + =A0 =A0 =A0 omap_test_timeout((vdd->read_reg(prm_mod_offs, vdd->vp_data=
+->vstatus)),
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0VP_IDLE_TI=
+MEOUT, timeout);
+>
+> =A0 =A0 =A0 =A0if (timeout >=3D VP_IDLE_TIMEOUT)
+> @@ -1510,8 +1055,8 @@ struct voltagedomain *omap_voltage_domain_lookup(ch=
+ar *name)
+> =A0 =A0 =A0 =A0}
+>
+> =A0 =A0 =A0 =A0for (i =3D 0; i < nr_scalable_vdd; i++) {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (!(strcmp(name, vdd_info[i].voltdm.name)=
+))
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return &vdd_info[i].voltdm;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (!(strcmp(name, vdd_info[i]->voltdm.name=
+)))
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return &vdd_info[i]->voltdm;
+> =A0 =A0 =A0 =A0}
+>
+> =A0 =A0 =A0 =A0return ERR_PTR(-EINVAL);
+> @@ -1539,35 +1084,24 @@ int __init omap_voltage_late_init(void)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pr_err("%s: Unable to create voltage debug=
+fs main dir\n",
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0__func__);
+> =A0 =A0 =A0 =A0for (i =3D 0; i < nr_scalable_vdd; i++) {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (vdd_data_configure(&vdd_info[i]))
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (omap_vdd_data_configure(vdd_info[i]))
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0continue;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vc_init(&vdd_info[i]);
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vp_init(&vdd_info[i]);
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd_debugfs_init(&vdd_info[i]);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_vc_init(vdd_info[i]);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 vp_init(vdd_info[i]);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd_debugfs_init(vdd_info[i]);
+> =A0 =A0 =A0 =A0}
+>
+> =A0 =A0 =A0 =A0return 0;
+> =A0}
+>
+> -/**
+> - * omap_voltage_early_init()- Volatage driver early init
+> - */
+> -static int __init omap_voltage_early_init(void)
+> +/* XXX document */
+> +int __init omap_voltage_early_init(s16 prm_mod, s16 prm_irqst_ocp_mod,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0stru=
+ct omap_vdd_info *omap_vdd_array[],
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0u8 o=
+map_vdd_count)
+> =A0{
+> - =A0 =A0 =A0 if (cpu_is_omap34xx()) {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd_info =3D omap3_vdd_info;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 nr_scalable_vdd =3D OMAP3_NR_SCALABLE_VDD;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vc_init =3D omap3_vc_init;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd_data_configure =3D omap3_vdd_data_confi=
+gure;
+> - =A0 =A0 =A0 } else if (cpu_is_omap44xx()) {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd_info =3D omap4_vdd_info;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 nr_scalable_vdd =3D OMAP4_NR_SCALABLE_VDD;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vc_init =3D omap4_vc_init;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd_data_configure =3D omap4_vdd_data_confi=
+gure;
+> - =A0 =A0 =A0 } else {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_warning("%s: voltage driver support not =
+added\n", __func__);
+> - =A0 =A0 =A0 }
+> -
+> + =A0 =A0 =A0 prm_mod_offs =3D prm_mod;
+> + =A0 =A0 =A0 prm_irqst_ocp_mod_offs =3D prm_irqst_ocp_mod;
+> + =A0 =A0 =A0 vdd_info =3D omap_vdd_array;
+> + =A0 =A0 =A0 nr_scalable_vdd =3D omap_vdd_count;
+> =A0 =A0 =A0 =A0return 0;
+> =A0}
+> -core_initcall(omap_voltage_early_init);
+> diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
+> index 5bd204e..af0cf65 100644
+> --- a/arch/arm/mach-omap2/voltage.h
+> +++ b/arch/arm/mach-omap2/voltage.h
+> @@ -16,9 +16,21 @@
+>
+> =A0#include <linux/err.h>
+>
+> +#include "vc.h"
+> +#include "vp.h"
+> +
+> +/* XXX document */
+> =A0#define VOLTSCALE_VPFORCEUPDATE =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A01
+> =A0#define VOLTSCALE_VCBYPASS =A0 =A0 =A0 =A0 =A0 =A0 2
+>
+> +#define VOLT_DATA_DEFINE(_v_nom, _efuse_offs, _errminlimit, _errgain) =
+=A0\
+> +{ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 \
+> + =A0 =A0 =A0 .volt_nominal =A0 =3D _v_nom, =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0\
+> + =A0 =A0 =A0 .sr_efuse_offs =A0=3D _efuse_offs, =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 \
+> + =A0 =A0 =A0 .sr_errminlimit =3D _errminlimit, =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0\
+> + =A0 =A0 =A0 .vp_errgain =A0 =A0 =3D _errgain =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 \
+> +}
+> +
+> =A0/*
+> =A0* OMAP3 GENERIC setup times. Revisit to see if these needs to be
+> =A0* passed from board or PMIC file
+> @@ -59,6 +71,21 @@
+> =A0#define OMAP4430_VDD_CORE_OPP100_UV =A0 =A0 =A0 =A0 =A0 =A01100000
+>
+> =A0/**
+> + * struct omap_vfsm_instance_data - per-voltage manager FSM register/bit=
+field
+> + * data
+> + * @voltsetup_mask:
+> + * @voltsetup_reg:
+> + * @voltsetup_shift:
+> + *
+> + * XXX What about VOLTOFFSET/VOLTCTRL?
+> + */
+> +struct omap_vfsm_instance_data {
+> + =A0 =A0 =A0 u32 voltsetup_mask;
+> + =A0 =A0 =A0 u8 voltsetup_reg;
+> + =A0 =A0 =A0 u8 voltsetup_shift;
+> +};
+> +
+> +/**
+> =A0* struct voltagedomain - omap voltage domain global structure.
+> =A0* @name: =A0 =A0 =A0Name of the voltage domain which can be used as a =
+unique
+> =A0* =A0 =A0 =A0 =A0 =A0 =A0 identifier.
+> @@ -113,6 +140,42 @@ struct omap_volt_pmic_info {
+> =A0 =A0 =A0 =A0u8 (*uv_to_vsel) (unsigned long uV);
+> =A0};
+>
+> +/**
+> + * omap_vdd_info - Per Voltage Domain info
+> + *
+> + * @volt_data =A0 =A0 =A0 =A0 =A0: voltage table having the distinct vol=
+tages supported
+> + * =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 by the domain and other a=
+ssociated per voltage data.
+> + * @pmic_info =A0 =A0 =A0 =A0 =A0: pmic specific parameters which should=
+ be populted by
+> + * =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 the pmic drivers.
+> + * @vp_data =A0 =A0 =A0 =A0 =A0 =A0: the register values, shifts, masks =
+for various
+> + * =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 vp registers
+> + * @vp_rt_data =A0 =A0 =A0 =A0 =A0: VP data derived at runtime, not pred=
+efined
+> + * @vc_data =A0 =A0 =A0 =A0 =A0 =A0: structure containing various variou=
+s vc registers,
+> + * =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 shifts, masks etc.
+> + * @vfsm =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0: voltage manager FSM data
+> + * @voltdm =A0 =A0 =A0 =A0 =A0 =A0 : pointer to the voltage domain struc=
+ture
+> + * @debug_dir =A0 =A0 =A0 =A0 =A0: debug directory for this voltage doma=
+in.
+> + * @curr_volt =A0 =A0 =A0 =A0 =A0: current voltage for this vdd.
+> + * @vp_enabled =A0 =A0 =A0 =A0 : flag to keep track of whether vp is ena=
+bled or not
+> + * @volt_scale =A0 =A0 =A0 =A0 : API to scale the voltage of the vdd.
+> + */
+> +struct omap_vdd_info {
+> + =A0 =A0 =A0 struct omap_volt_data *volt_data;
+> + =A0 =A0 =A0 struct omap_volt_pmic_info *pmic_info;
+> + =A0 =A0 =A0 struct omap_vp_instance_data *vp_data;
+> + =A0 =A0 =A0 struct omap_vp_runtime_data vp_rt_data;
+> + =A0 =A0 =A0 struct omap_vc_instance_data *vc_data;
+> + =A0 =A0 =A0 const struct omap_vfsm_instance_data *vfsm;
+> + =A0 =A0 =A0 struct voltagedomain voltdm;
+> + =A0 =A0 =A0 struct dentry *debug_dir;
+> + =A0 =A0 =A0 u32 curr_volt;
+> + =A0 =A0 =A0 bool vp_enabled;
+> + =A0 =A0 =A0 u32 (*read_reg) (u16 mod, u8 offset);
+> + =A0 =A0 =A0 void (*write_reg) (u32 val, u16 mod, u8 offset);
+> + =A0 =A0 =A0 int (*volt_scale) (struct omap_vdd_info *vdd,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 unsigned long target_volt);
+> +};
+> +
+> =A0unsigned long omap_vp_get_curr_volt(struct voltagedomain *voltdm);
+> =A0void omap_vp_enable(struct voltagedomain *voltdm);
+> =A0void omap_vp_disable(struct voltagedomain *voltdm);
+> @@ -125,6 +188,9 @@ struct omap_volt_data *omap_voltage_get_voltdata(stru=
+ct voltagedomain *voltdm,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0unsigned long volt);
+> =A0unsigned long omap_voltage_get_nom_volt(struct voltagedomain *voltdm);
+> =A0struct dentry *omap_voltage_get_dbgdir(struct voltagedomain *voltdm);
+> +int __init omap_voltage_early_init(s16 prm_mod, s16 prm_irqst_mod,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0stru=
+ct omap_vdd_info *omap_vdd_array[],
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0u8 o=
+map_vdd_count);
+> =A0#ifdef CONFIG_PM
+> =A0int omap_voltage_register_pmic(struct voltagedomain *voltdm,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0struct omap_volt_pmic_info *pmic_info);
+> diff --git a/arch/arm/mach-omap2/voltagedomains3xxx_data.c b/arch/arm/mac=
+h-omap2/voltagedomains3xxx_data.c
+> new file mode 100644
+> index 0000000..cb92209
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
+> @@ -0,0 +1,104 @@
+> +/*
+> + * OMAP3 voltage domain data
+> + *
+> + * Copyright (C) 2007, 2010 Texas Instruments, Inc.
+> + * Rajendra Nayak <rnayak@ti.com>
+> + * Lesly A M <x0080970@ti.com>
+> + * Thara Gopinath <thara@ti.com>
+> + *
+> + * Copyright (C) 2008, 2011 Nokia Corporation
+> + * Kalle Jokiniemi
+> + * Paul Walmsley
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#include <linux/delay.h>
+> +#include <linux/io.h>
+> +#include <linux/clk.h>
+> +#include <linux/err.h>
+> +#include <linux/debugfs.h>
+> +#include <linux/slab.h>
+> +#include <linux/init.h>
+> +
+> +#include <plat/common.h>
+> +
+> +#include "prm-regbits-34xx.h"
+> +#include "prm-regbits-44xx.h"
+> +#include "prm44xx.h"
+> +#include "prcm44xx.h"
+> +#include "prminst44xx.h"
+> +#include "control.h"
+> +#include "voltage.h"
+> +#include "omap_opp_data.h"
+> +#include "vc.h"
+> +#include "vp.h"
+> +
+> +/*
+> + * VDD data
+> + */
+> +
+> +static const struct omap_vfsm_instance_data omap3_vdd1_vfsm_data =3D {
+> + =A0 =A0 =A0 .voltsetup_reg =3D OMAP3_PRM_VOLTSETUP1_OFFSET,
+> + =A0 =A0 =A0 .voltsetup_shift =3D OMAP3430_SETUP_TIME1_SHIFT,
+> + =A0 =A0 =A0 .voltsetup_mask =3D OMAP3430_SETUP_TIME1_MASK,
+> +};
+> +
+> +static struct omap_vdd_info omap3_vdd1_info =3D {
+> + =A0 =A0 =A0 .vp_data =3D &omap3_vp1_data,
+> + =A0 =A0 =A0 .vc_data =3D &omap3_vc1_data,
+> + =A0 =A0 =A0 .vfsm =3D &omap3_vdd1_vfsm_data,
+> + =A0 =A0 =A0 .voltdm =3D {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .name =3D "mpu",
+> + =A0 =A0 =A0 },
+> +};
+> +
+> +static const struct omap_vfsm_instance_data omap3_vdd2_vfsm_data =3D {
+> + =A0 =A0 =A0 .voltsetup_reg =3D OMAP3_PRM_VOLTSETUP1_OFFSET,
+> + =A0 =A0 =A0 .voltsetup_shift =3D OMAP3430_SETUP_TIME2_SHIFT,
+> + =A0 =A0 =A0 .voltsetup_mask =3D OMAP3430_SETUP_TIME2_MASK,
+> +};
+> +
+> +static struct omap_vdd_info omap3_vdd2_info =3D {
+> + =A0 =A0 =A0 .vp_data =3D &omap3_vp2_data,
+> + =A0 =A0 =A0 .vc_data =3D &omap3_vc2_data,
+> + =A0 =A0 =A0 .vfsm =3D &omap3_vdd2_vfsm_data,
+> + =A0 =A0 =A0 .voltdm =3D {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .name =3D "core",
+> + =A0 =A0 =A0 },
+> +};
+> +
+> +/* OMAP3 VDD sturctures */
+> +static struct omap_vdd_info *omap3_vdd_info[] =3D {
+> + =A0 =A0 =A0 &omap3_vdd1_info,
+> + =A0 =A0 =A0 &omap3_vdd2_info,
+> +};
+> +
+> +/* OMAP3 specific voltage init functions */
+> +static int __init omap3xxx_voltage_early_init(void)
+> +{
+> + =A0 =A0 =A0 s16 prm_mod =3D OMAP3430_GR_MOD;
+> + =A0 =A0 =A0 s16 prm_irqst_ocp_mod =3D OCP_MOD;
+> +
+> + =A0 =A0 =A0 if (!cpu_is_omap34xx())
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return 0;
+> +
+> + =A0 =A0 =A0 /*
+> + =A0 =A0 =A0 =A0* XXX Will depend on the process, validation, and binning
+> + =A0 =A0 =A0 =A0* for the currently-running IC
+> + =A0 =A0 =A0 =A0*/
+> + =A0 =A0 =A0 if (cpu_is_omap3630()) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap3_vdd1_info.volt_data =3D omap36xx_vddm=
+pu_volt_data;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap3_vdd2_info.volt_data =3D omap36xx_vddc=
+ore_volt_data;
+> + =A0 =A0 =A0 } else {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap3_vdd1_info.volt_data =3D omap34xx_vddm=
+pu_volt_data;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap3_vdd2_info.volt_data =3D omap34xx_vddc=
+ore_volt_data;
+> + =A0 =A0 =A0 }
+> +
+> + =A0 =A0 =A0 return omap_voltage_early_init(prm_mod, prm_irqst_ocp_mod,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0omap3_vdd_info,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0ARRAY_SIZE(omap3_vdd_info));
+> +};
+> +core_initcall(omap3xxx_voltage_early_init);
+> diff --git a/arch/arm/mach-omap2/voltagedomains44xx_data.c b/arch/arm/mac=
+h-omap2/voltagedomains44xx_data.c
+> new file mode 100644
+> index 0000000..52bfd8a
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/voltagedomains44xx_data.c
+> @@ -0,0 +1,108 @@
+> +/*
+> + * OMAP3/OMAP4 Voltage Management Routines
+> + *
+> + * Author: Thara Gopinath =A0 =A0 =A0<thara@ti.com>
+> + *
+> + * Copyright (C) 2007 Texas Instruments, Inc.
+> + * Rajendra Nayak <rnayak@ti.com>
+> + * Lesly A M <x0080970@ti.com>
+> + *
+> + * Copyright (C) 2008 Nokia Corporation
+> + * Kalle Jokiniemi
+> + *
+> + * Copyright (C) 2010 Texas Instruments, Inc.
+> + * Thara Gopinath <thara@ti.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#include <linux/delay.h>
+> +#include <linux/io.h>
+> +#include <linux/clk.h>
+> +#include <linux/err.h>
+> +#include <linux/debugfs.h>
+> +#include <linux/slab.h>
+> +
+> +#include <plat/common.h>
+> +
+> +#include "prm-regbits-34xx.h"
+> +#include "prm-regbits-44xx.h"
+> +#include "prm44xx.h"
+> +#include "prcm44xx.h"
+> +#include "prminst44xx.h"
+> +#include "control.h"
+> +#include "voltage.h"
+> +#include "omap_opp_data.h"
+> +#include "vc.h"
+> +#include "vp.h"
+> +
+> +/* OMAP4 VDD sturctures */
+> +static const struct omap_vfsm_instance_data omap4_vdd_mpu_vfsm_data =3D {
+> + =A0 =A0 =A0 .voltsetup_reg =3D OMAP4_PRM_VOLTSETUP_MPU_RET_SLEEP_OFFSET,
+> +};
+> +
+> +static struct omap_vdd_info omap4_vdd_mpu_info =3D {
+> + =A0 =A0 =A0 .vp_data =3D &omap4_vp_mpu_data,
+> + =A0 =A0 =A0 .vc_data =3D &omap4_vc_mpu_data,
+> + =A0 =A0 =A0 .vfsm =3D &omap4_vdd_mpu_vfsm_data,
+> + =A0 =A0 =A0 .voltdm =3D {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .name =3D "mpu",
+> + =A0 =A0 =A0 },
+> +};
+> +
+> +static const struct omap_vfsm_instance_data omap4_vdd_iva_vfsm_data =3D {
+> + =A0 =A0 =A0 .voltsetup_reg =3D OMAP4_PRM_VOLTSETUP_IVA_RET_SLEEP_OFFSET,
+> +};
+> +
+> +static struct omap_vdd_info omap4_vdd_iva_info =3D {
+> + =A0 =A0 =A0 .vp_data =3D &omap4_vp_iva_data,
+> + =A0 =A0 =A0 .vc_data =3D &omap4_vc_iva_data,
+> + =A0 =A0 =A0 .vfsm =3D &omap4_vdd_iva_vfsm_data,
+> + =A0 =A0 =A0 .voltdm =3D {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .name =3D "iva",
+> + =A0 =A0 =A0 },
+> +};
+> +
+> +static const struct omap_vfsm_instance_data omap4_vdd_core_vfsm_data =3D=
+ {
+> + =A0 =A0 =A0 .voltsetup_reg =3D OMAP4_PRM_VOLTSETUP_CORE_RET_SLEEP_OFFSE=
+T,
+> +};
+> +
+> +static struct omap_vdd_info omap4_vdd_core_info =3D {
+> + =A0 =A0 =A0 .vp_data =3D &omap4_vp_core_data,
+> + =A0 =A0 =A0 .vc_data =3D &omap4_vc_core_data,
+> + =A0 =A0 =A0 .vfsm =3D &omap4_vdd_core_vfsm_data,
+> + =A0 =A0 =A0 .voltdm =3D {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .name =3D "core",
+> + =A0 =A0 =A0 },
+> +};
+> +
+> +static struct omap_vdd_info *omap4_vdd_info[] =3D {
+> + =A0 =A0 =A0 &omap4_vdd_mpu_info,
+> + =A0 =A0 =A0 &omap4_vdd_iva_info,
+> + =A0 =A0 =A0 &omap4_vdd_core_info,
+> +};
+> +
+> +/* OMAP4 specific voltage init functions */
+> +static int __init omap44xx_voltage_early_init(void)
+> +{
+> + =A0 =A0 =A0 s16 prm_mod =3D OMAP4430_PRM_DEVICE_INST;
+> + =A0 =A0 =A0 s16 prm_irqst_ocp_mod =3D OMAP4430_PRM_OCP_SOCKET_INST;
+> +
+> + =A0 =A0 =A0 if (!cpu_is_omap44xx())
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return 0;
+> +
+> + =A0 =A0 =A0 /*
+> + =A0 =A0 =A0 =A0* XXX Will depend on the process, validation, and binning
+> + =A0 =A0 =A0 =A0* for the currently-running IC
+> + =A0 =A0 =A0 =A0*/
+> + =A0 =A0 =A0 omap4_vdd_mpu_info.volt_data =3D omap44xx_vdd_mpu_volt_data;
+> + =A0 =A0 =A0 omap4_vdd_iva_info.volt_data =3D omap44xx_vdd_iva_volt_data;
+> + =A0 =A0 =A0 omap4_vdd_core_info.volt_data =3D omap44xx_vdd_core_volt_da=
+ta;
+> +
+> + =A0 =A0 =A0 return omap_voltage_early_init(prm_mod, prm_irqst_ocp_mod,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0omap4_vdd_info,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0ARRAY_SIZE(omap4_vdd_info));
+> +};
+> +core_initcall(omap44xx_voltage_early_init);
+> diff --git a/arch/arm/mach-omap2/vp.h b/arch/arm/mach-omap2/vp.h
+> new file mode 100644
+> index 0000000..7ce134f
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/vp.h
+> @@ -0,0 +1,143 @@
+> +/*
+> + * OMAP3/4 Voltage Processor (VP) structure and macro definitions
+> + *
+> + * Copyright (C) 2007, 2010 Texas Instruments, Inc.
+> + * Rajendra Nayak <rnayak@ti.com>
+> + * Lesly A M <x0080970@ti.com>
+> + * Thara Gopinath <thara@ti.com>
+> + *
+> + * Copyright (C) 2008, 2011 Nokia Corporation
+> + * Kalle Jokiniemi
+> + * Paul Walmsley
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License version
+> + * 2 as published by the Free Software Foundation.
+> + */
+> +#ifndef __ARCH_ARM_MACH_OMAP2_VP_H
+> +#define __ARCH_ARM_MACH_OMAP2_VP_H
+> +
+> +#include <linux/kernel.h>
+> +
+> +/* XXX document */
+> +#define VP_IDLE_TIMEOUT =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0200
+> +#define VP_TRANXDONE_TIMEOUT =A0 300
+> +
+> +
+> +/**
+> + * struct omap_vp_common_data - register data common to all VDDs
+> + * @vpconfig_errorgain_mask: ERRORGAIN bitmask in the PRM_VP*_CONFIG reg
+> + * @vpconfig_initvoltage_mask: INITVOLTAGE bitmask in the PRM_VP*_CONFIG=
+ reg
+> + * @vpconfig_timeouten_mask: TIMEOUT bitmask in the PRM_VP*_CONFIG reg
+> + * @vpconfig_initvdd: INITVDD bitmask in the PRM_VP*_CONFIG reg
+> + * @vpconfig_forceupdate: FORCEUPDATE bitmask in the PRM_VP*_CONFIG reg
+> + * @vpconfig_vpenable: VPENABLE bitmask in the PRM_VP*_CONFIG reg
+> + * @vpconfig_erroroffset_shift: ERROROFFSET field shift in PRM_VP*_CONFI=
+G reg
+> + * @vpconfig_errorgain_shift: ERRORGAIN field shift in PRM_VP*_CONFIG reg
+> + * @vpconfig_initvoltage_shift: INITVOLTAGE field shift in PRM_VP*_CONFI=
+G reg
+> + * @vpconfig_stepmin_shift: VSTEPMIN field shift in the PRM_VP*_VSTEPMIN=
+ reg
+> + * @vpconfig_smpswaittimemin_shift: SMPSWAITTIMEMIN field shift in PRM_V=
+P*_VSTEPMIN reg
+> + * @vpconfig_stepmax_shift: VSTEPMAX field shift in the PRM_VP*_VSTEPMAX=
+ reg
+> + * @vpconfig_smpswaittimemax_shift: SMPSWAITTIMEMAX field shift in PRM_V=
+P*_VSTEPMAX reg
+> + * @vpconfig_vlimitto_vddmin_shift: VDDMIN field shift in PRM_VP*_VLIMIT=
+TO reg
+> + * @vpconfig_vlimitto_vddmax_shift: VDDMAX field shift in PRM_VP*_VLIMIT=
+TO reg
+> + * @vpconfig_vlimitto_timeout_shift: TIMEOUT field shift in PRM_VP*_VLIM=
+ITTO reg
+> + *
+> + * XXX It it not necessary to have both a mask and a shift for the same
+> + * =A0 =A0 bitfield - remove one
+> + * XXX Many of these fields are wrongly named -- e.g., vpconfig_smps* --=
+ fix!
+> + */
+> +struct omap_vp_common_data {
+> + =A0 =A0 =A0 u32 vpconfig_errorgain_mask;
+> + =A0 =A0 =A0 u32 vpconfig_initvoltage_mask;
+> + =A0 =A0 =A0 u32 vpconfig_timeouten;
+> + =A0 =A0 =A0 u32 vpconfig_initvdd;
+> + =A0 =A0 =A0 u32 vpconfig_forceupdate;
+> + =A0 =A0 =A0 u32 vpconfig_vpenable;
+> + =A0 =A0 =A0 u8 vpconfig_erroroffset_shift;
+> + =A0 =A0 =A0 u8 vpconfig_errorgain_shift;
+> + =A0 =A0 =A0 u8 vpconfig_initvoltage_shift;
+> + =A0 =A0 =A0 u8 vstepmin_stepmin_shift;
+> + =A0 =A0 =A0 u8 vstepmin_smpswaittimemin_shift;
+> + =A0 =A0 =A0 u8 vstepmax_stepmax_shift;
+> + =A0 =A0 =A0 u8 vstepmax_smpswaittimemax_shift;
+> + =A0 =A0 =A0 u8 vlimitto_vddmin_shift;
+> + =A0 =A0 =A0 u8 vlimitto_vddmax_shift;
+> + =A0 =A0 =A0 u8 vlimitto_timeout_shift;
+> +};
+> +
+> +/**
+> + * struct omap_vp_prm_irqst_data - PRM_IRQSTATUS_MPU.VP_TRANXDONE_ST data
+> + * @prm_irqst_reg: reg offset for PRM_IRQSTATUS_MPU from top of PRM
+> + * @tranxdone_status: VP_TRANXDONE_ST bitmask in PRM_IRQSTATUS_MPU reg
+> + *
+> + * XXX prm_irqst_reg does not belong here
+> + * XXX Note that on OMAP3, VP_TRANXDONE interrupt may not work due to a
+> + * =A0 =A0 hardware bug
+> + * XXX This structure is probably not needed
+> + */
+> +struct omap_vp_prm_irqst_data {
+> + =A0 =A0 =A0 u8 prm_irqst_reg;
+> + =A0 =A0 =A0 u32 tranxdone_status;
+> +};
+> +
+> +/**
+> + * struct omap_vp_instance_data - VP register offsets (per-VDD)
+> + * @vp_common: pointer to struct omap_vp_common_data * for this SoC
+> + * @prm_irqst_data: pointer to struct omap_vp_prm_irqst_data for this VDD
+> + * @vpconfig: PRM_VP*_CONFIG reg offset from PRM start
+> + * @vstepmin: PRM_VP*_VSTEPMIN reg offset from PRM start
+> + * @vlimitto: PRM_VP*_VLIMITTO reg offset from PRM start
+> + * @vstatus: PRM_VP*_VSTATUS reg offset from PRM start
+> + * @voltage: PRM_VP*_VOLTAGE reg offset from PRM start
+> + *
+> + * XXX vp_common is probably not needed since it is per-SoC
+> + */
+> +struct omap_vp_instance_data {
+> + =A0 =A0 =A0 const struct omap_vp_common_data *vp_common;
+> + =A0 =A0 =A0 const struct omap_vp_prm_irqst_data *prm_irqst_data;
+> + =A0 =A0 =A0 u8 vpconfig;
+> + =A0 =A0 =A0 u8 vstepmin;
+> + =A0 =A0 =A0 u8 vstepmax;
+> + =A0 =A0 =A0 u8 vlimitto;
+> + =A0 =A0 =A0 u8 vstatus;
+> + =A0 =A0 =A0 u8 voltage;
+> +};
+> +
+> +/**
+> + * struct omap_vp_runtime_data - VP data populated at runtime by code
+> + * @vpconfig_erroroffset: value of ERROROFFSET bitfield in PRM_VP*_CONFIG
+> + * @vpconfig_errorgain: value of ERRORGAIN bitfield in PRM_VP*_CONFIG
+> + * @vstepmin_smpswaittimemin: value of SMPSWAITTIMEMIN bitfield in PRM_V=
+P*_VSTEPMIN
+> + * @vstepmax_smpswaittimemax: value of SMPSWAITTIMEMAX bitfield in PRM_V=
+P*_VSTEPMAX
+> + * @vlimitto_timeout: value of TIMEOUT bitfield in PRM_VP*_VLIMITTO
+> + * @vstepmin_stepmin: value of VSTEPMIN bitfield in PRM_VP*_VSTEPMIN
+> + * @vstepmax_stepmax: value of VSTEPMAX bitfield in PRM_VP*_VSTEPMAX
+> + * @vlimitto_vddmin: value of VDDMIN bitfield in PRM_VP*_VLIMITTO
+> + * @vlimitto_vddmax: value of VDDMAX bitfield in PRM_VP*_VLIMITTO
+> + *
+> + * XXX Is this structure really needed? =A0Why not just program the
+> + * device directly? =A0They are in PRM space, therefore in the WKUP
+> + * powerdomain, so register contents should not be lost in off-mode.
+> + * XXX Some of these fields are incorrectly named, e.g., vstep*
+> + */
+> +struct omap_vp_runtime_data {
+> + =A0 =A0 =A0 u32 vpconfig_erroroffset;
+> + =A0 =A0 =A0 u16 vpconfig_errorgain;
+> + =A0 =A0 =A0 u16 vstepmin_smpswaittimemin;
+> + =A0 =A0 =A0 u16 vstepmax_smpswaittimemax;
+> + =A0 =A0 =A0 u16 vlimitto_timeout;
+> + =A0 =A0 =A0 u8 vstepmin_stepmin;
+> + =A0 =A0 =A0 u8 vstepmax_stepmax;
+> + =A0 =A0 =A0 u8 vlimitto_vddmin;
+> + =A0 =A0 =A0 u8 vlimitto_vddmax;
+> +};
+> +
+> +extern struct omap_vp_instance_data omap3_vp1_data;
+> +extern struct omap_vp_instance_data omap3_vp2_data;
+> +
+> +extern struct omap_vp_instance_data omap4_vp_mpu_data;
+> +extern struct omap_vp_instance_data omap4_vp_iva_data;
+> +extern struct omap_vp_instance_data omap4_vp_core_data;
+> +
+> +#endif
+> diff --git a/arch/arm/mach-omap2/vp3xxx_data.c b/arch/arm/mach-omap2/vp3x=
+xx_data.c
+> new file mode 100644
+> index 0000000..6452170
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/vp3xxx_data.c
+> @@ -0,0 +1,82 @@
+> +/*
+> + * OMAP3 Voltage Processor (VP) data
+> + *
+> + * Copyright (C) 2007, 2010 Texas Instruments, Inc.
+> + * Rajendra Nayak <rnayak@ti.com>
+> + * Lesly A M <x0080970@ti.com>
+> + * Thara Gopinath <thara@ti.com>
+> + *
+> + * Copyright (C) 2008, 2011 Nokia Corporation
+> + * Kalle Jokiniemi
+> + * Paul Walmsley
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#include <linux/io.h>
+> +#include <linux/err.h>
+> +#include <linux/init.h>
+> +
+> +#include <plat/common.h>
+> +
+> +#include "prm-regbits-34xx.h"
+> +#include "voltage.h"
+> +
+> +#include "vp.h"
+> +
+> +/*
+> + * VP data common to 34xx/36xx chips
+> + * XXX This stuff presumably belongs in the vp3xxx.c or vp.c file.
+> + */
+> +static const struct omap_vp_common_data omap3_vp_common =3D {
+> + =A0 =A0 =A0 .vpconfig_erroroffset_shift =3D OMAP3430_ERROROFFSET_SHIFT,
+> + =A0 =A0 =A0 .vpconfig_errorgain_mask =3D OMAP3430_ERRORGAIN_MASK,
+> + =A0 =A0 =A0 .vpconfig_errorgain_shift =3D OMAP3430_ERRORGAIN_SHIFT,
+> + =A0 =A0 =A0 .vpconfig_initvoltage_shift =3D OMAP3430_INITVOLTAGE_SHIFT,
+> + =A0 =A0 =A0 .vpconfig_initvoltage_mask =3D OMAP3430_INITVOLTAGE_MASK,
+> + =A0 =A0 =A0 .vpconfig_timeouten =3D OMAP3430_TIMEOUTEN_MASK,
+> + =A0 =A0 =A0 .vpconfig_initvdd =3D OMAP3430_INITVDD_MASK,
+> + =A0 =A0 =A0 .vpconfig_forceupdate =3D OMAP3430_FORCEUPDATE_MASK,
+> + =A0 =A0 =A0 .vpconfig_vpenable =3D OMAP3430_VPENABLE_MASK,
+> + =A0 =A0 =A0 .vstepmin_smpswaittimemin_shift =3D OMAP3430_SMPSWAITTIMEMI=
+N_SHIFT,
+> + =A0 =A0 =A0 .vstepmax_smpswaittimemax_shift =3D OMAP3430_SMPSWAITTIMEMA=
+X_SHIFT,
+> + =A0 =A0 =A0 .vstepmin_stepmin_shift =3D OMAP3430_VSTEPMIN_SHIFT,
+> + =A0 =A0 =A0 .vstepmax_stepmax_shift =3D OMAP3430_VSTEPMAX_SHIFT,
+> + =A0 =A0 =A0 .vlimitto_vddmin_shift =3D OMAP3430_VDDMIN_SHIFT,
+> + =A0 =A0 =A0 .vlimitto_vddmax_shift =3D OMAP3430_VDDMAX_SHIFT,
+> + =A0 =A0 =A0 .vlimitto_timeout_shift =3D OMAP3430_TIMEOUT_SHIFT,
+> +};
+> +
+> +static const struct omap_vp_prm_irqst_data omap3_vp1_prm_irqst_data =3D {
+> + =A0 =A0 =A0 .prm_irqst_reg =3D OMAP3_PRM_IRQSTATUS_MPU_OFFSET,
+> + =A0 =A0 =A0 .tranxdone_status =3D OMAP3430_VP1_TRANXDONE_ST_MASK,
+> +};
+> +
+> +struct omap_vp_instance_data omap3_vp1_data =3D {
+> + =A0 =A0 =A0 .vp_common =3D &omap3_vp_common,
+> + =A0 =A0 =A0 .vpconfig =3D OMAP3_PRM_VP1_CONFIG_OFFSET,
+> + =A0 =A0 =A0 .vstepmin =3D OMAP3_PRM_VP1_VSTEPMIN_OFFSET,
+> + =A0 =A0 =A0 .vstepmax =3D OMAP3_PRM_VP1_VSTEPMAX_OFFSET,
+> + =A0 =A0 =A0 .vlimitto =3D OMAP3_PRM_VP1_VLIMITTO_OFFSET,
+> + =A0 =A0 =A0 .vstatus =3D OMAP3_PRM_VP1_STATUS_OFFSET,
+> + =A0 =A0 =A0 .voltage =3D OMAP3_PRM_VP1_VOLTAGE_OFFSET,
+> + =A0 =A0 =A0 .prm_irqst_data =3D &omap3_vp1_prm_irqst_data,
+> +};
+> +
+> +static const struct omap_vp_prm_irqst_data omap3_vp2_prm_irqst_data =3D {
+> + =A0 =A0 =A0 .prm_irqst_reg =3D OMAP3_PRM_IRQSTATUS_MPU_OFFSET,
+> + =A0 =A0 =A0 .tranxdone_status =3D OMAP3430_VP2_TRANXDONE_ST_MASK,
+> +};
+> +
+> +struct omap_vp_instance_data omap3_vp2_data =3D {
+> + =A0 =A0 =A0 .vp_common =3D &omap3_vp_common,
+> + =A0 =A0 =A0 .vpconfig =3D OMAP3_PRM_VP2_CONFIG_OFFSET,
+> + =A0 =A0 =A0 .vstepmin =3D OMAP3_PRM_VP2_VSTEPMIN_OFFSET,
+> + =A0 =A0 =A0 .vstepmax =3D OMAP3_PRM_VP2_VSTEPMAX_OFFSET,
+> + =A0 =A0 =A0 .vlimitto =3D OMAP3_PRM_VP2_VLIMITTO_OFFSET,
+> + =A0 =A0 =A0 .vstatus =3D OMAP3_PRM_VP2_STATUS_OFFSET,
+> + =A0 =A0 =A0 .voltage =3D OMAP3_PRM_VP2_VOLTAGE_OFFSET,
+> + =A0 =A0 =A0 .prm_irqst_data =3D &omap3_vp2_prm_irqst_data,
+> +};
+> diff --git a/arch/arm/mach-omap2/vp44xx_data.c b/arch/arm/mach-omap2/vp44=
+xx_data.c
+> new file mode 100644
+> index 0000000..7b26f75
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/vp44xx_data.c
+> @@ -0,0 +1,97 @@
+> +/*
+> + * OMAP3 Voltage Processor (VP) data
+> + *
+> + * Copyright (C) 2007, 2010 Texas Instruments, Inc.
+> + * Rajendra Nayak <rnayak@ti.com>
+> + * Lesly A M <x0080970@ti.com>
+> + * Thara Gopinath <thara@ti.com>
+> + *
+> + * Copyright (C) 2008, 2011 Nokia Corporation
+> + * Kalle Jokiniemi
+> + * Paul Walmsley
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#include <linux/io.h>
+> +#include <linux/err.h>
+> +#include <linux/init.h>
+> +
+> +#include <plat/common.h>
+> +
+> +#include "prm44xx.h"
+> +#include "prm-regbits-44xx.h"
+> +#include "voltage.h"
+> +
+> +#include "vp.h"
+> +
+> +/*
+> + * VP data common to 44xx chips
+> + * XXX This stuff presumably belongs in the vp44xx.c or vp.c file.
+> + */
+> +static const struct omap_vp_common_data omap4_vp_data =3D {
+> + =A0 =A0 =A0 .vpconfig_erroroffset_shift =3D OMAP4430_ERROROFFSET_SHIFT,
+> + =A0 =A0 =A0 .vpconfig_errorgain_mask =3D OMAP4430_ERRORGAIN_MASK,
+> + =A0 =A0 =A0 .vpconfig_errorgain_shift =3D OMAP4430_ERRORGAIN_SHIFT,
+> + =A0 =A0 =A0 .vpconfig_initvoltage_shift =3D OMAP4430_INITVOLTAGE_SHIFT,
+> + =A0 =A0 =A0 .vpconfig_initvoltage_mask =3D OMAP4430_INITVOLTAGE_MASK,
+> + =A0 =A0 =A0 .vpconfig_timeouten =3D OMAP4430_TIMEOUTEN_MASK,
+> + =A0 =A0 =A0 .vpconfig_initvdd =3D OMAP4430_INITVDD_MASK,
+> + =A0 =A0 =A0 .vpconfig_forceupdate =3D OMAP4430_FORCEUPDATE_MASK,
+> + =A0 =A0 =A0 .vpconfig_vpenable =3D OMAP4430_VPENABLE_MASK,
+> + =A0 =A0 =A0 .vstepmin_smpswaittimemin_shift =3D OMAP4430_SMPSWAITTIMEMI=
+N_SHIFT,
+> + =A0 =A0 =A0 .vstepmax_smpswaittimemax_shift =3D OMAP4430_SMPSWAITTIMEMA=
+X_SHIFT,
+> + =A0 =A0 =A0 .vstepmin_stepmin_shift =3D OMAP4430_VSTEPMIN_SHIFT,
+> + =A0 =A0 =A0 .vstepmax_stepmax_shift =3D OMAP4430_VSTEPMAX_SHIFT,
+> + =A0 =A0 =A0 .vlimitto_vddmin_shift =3D OMAP4430_VDDMIN_SHIFT,
+> + =A0 =A0 =A0 .vlimitto_vddmax_shift =3D OMAP4430_VDDMAX_SHIFT,
+> + =A0 =A0 =A0 .vlimitto_timeout_shift =3D OMAP4430_TIMEOUT_SHIFT,
+> +};
+> +
+> +static const struct omap_vp_prm_irqst_data omap4_vp_mpu_prm_irqst_data =
+=3D {
+> + =A0 =A0 =A0 .prm_irqst_reg =3D OMAP4_PRM_IRQSTATUS_MPU_2_OFFSET,
+> + =A0 =A0 =A0 .tranxdone_status =3D OMAP4430_VP_MPU_TRANXDONE_ST_MASK,
+> +};
+> +
+> +struct omap_vp_instance_data omap4_vp_mpu_data =3D {
+> + =A0 =A0 =A0 .vpconfig =3D OMAP4_PRM_VP_MPU_CONFIG_OFFSET,
+> + =A0 =A0 =A0 .vstepmin =3D OMAP4_PRM_VP_MPU_VSTEPMIN_OFFSET,
+> + =A0 =A0 =A0 .vstepmax =3D OMAP4_PRM_VP_MPU_VSTEPMAX_OFFSET,
+> + =A0 =A0 =A0 .vlimitto =3D OMAP4_PRM_VP_MPU_VLIMITTO_OFFSET,
+> + =A0 =A0 =A0 .vstatus =3D OMAP4_PRM_VP_MPU_STATUS_OFFSET,
+> + =A0 =A0 =A0 .voltage =3D OMAP4_PRM_VP_MPU_VOLTAGE_OFFSET,
+> + =A0 =A0 =A0 .prm_irqst_data =3D &omap4_vp_mpu_prm_irqst_data,
+> +};
+> +
+> +static const struct omap_vp_prm_irqst_data omap4_vp_iva_prm_irqst_data =
+=3D {
+> + =A0 =A0 =A0 .prm_irqst_reg =3D OMAP4_PRM_IRQSTATUS_MPU_OFFSET,
+> + =A0 =A0 =A0 .tranxdone_status =3D OMAP4430_VP_IVA_TRANXDONE_ST_MASK,
+> +};
+> +
+> +struct omap_vp_instance_data omap4_vp_iva_data =3D {
+> + =A0 =A0 =A0 .vpconfig =3D OMAP4_PRM_VP_IVA_CONFIG_OFFSET,
+> + =A0 =A0 =A0 .vstepmin =3D OMAP4_PRM_VP_IVA_VSTEPMIN_OFFSET,
+> + =A0 =A0 =A0 .vstepmax =3D OMAP4_PRM_VP_IVA_VSTEPMAX_OFFSET,
+> + =A0 =A0 =A0 .vlimitto =3D OMAP4_PRM_VP_IVA_VLIMITTO_OFFSET,
+> + =A0 =A0 =A0 .vstatus =3D OMAP4_PRM_VP_IVA_STATUS_OFFSET,
+> + =A0 =A0 =A0 .voltage =3D OMAP4_PRM_VP_IVA_VOLTAGE_OFFSET,
+> + =A0 =A0 =A0 .prm_irqst_data =3D &omap4_vp_iva_prm_irqst_data,
+> +};
+> +
+> +static const struct omap_vp_prm_irqst_data omap4_vp_core_prm_irqst_data =
+=3D {
+> + =A0 =A0 =A0 .prm_irqst_reg =3D OMAP4_PRM_IRQSTATUS_MPU_OFFSET,
+> + =A0 =A0 =A0 .tranxdone_status =3D OMAP4430_VP_CORE_TRANXDONE_ST_MASK,
+> +};
+> +
+> +struct omap_vp_instance_data omap4_vp_core_data =3D {
+> + =A0 =A0 =A0 .vpconfig =3D OMAP4_PRM_VP_CORE_CONFIG_OFFSET,
+> + =A0 =A0 =A0 .vstepmin =3D OMAP4_PRM_VP_CORE_VSTEPMIN_OFFSET,
+> + =A0 =A0 =A0 .vstepmax =3D OMAP4_PRM_VP_CORE_VSTEPMAX_OFFSET,
+> + =A0 =A0 =A0 .vlimitto =3D OMAP4_PRM_VP_CORE_VLIMITTO_OFFSET,
+> + =A0 =A0 =A0 .vstatus =3D OMAP4_PRM_VP_CORE_STATUS_OFFSET,
+> + =A0 =A0 =A0 .voltage =3D OMAP4_PRM_VP_CORE_VOLTAGE_OFFSET,
+> + =A0 =A0 =A0 .prm_irqst_data =3D &omap4_vp_core_prm_irqst_data,
+> +};
+> +
+>
+>
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
 > the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
 
+
+
+-- =
+
+Thanks,
+Regards,
+Shweta
