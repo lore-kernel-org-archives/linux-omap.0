@@ -1,56 +1,83 @@
-From: "Menon, Nishanth" <nm@ti.com>
-Subject: Re: [PATCH v7 00/12] omap3: pm: TWL4030 power scripts and workaround
- for TWL errata 27
-Date: Mon, 21 Feb 2011 17:50:51 +0530
-Message-ID: <AANLkTikQf4__Oo4FQYy742XKAhyaJrWhyX8SusEUzkpF@mail.gmail.com>
-References: <1298048938-1480-1-git-send-email-leslyam@ti.com>
- <AANLkTinTAVuK=CJaCgve4LQa-4jPhHf1ycUf-BhEz5i0@mail.gmail.com>
- <AANLkTi=O+ouOsgkOHKgPZuDEQO7Nu255dYZvUVyEVV6a@mail.gmail.com> <20110221115709.GJ11250@nokia.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH resend] video: omap24xxcam: Fix compilation
+Date: Mon, 21 Feb 2011 14:21:09 +0200
+Message-ID: <20110221122109.GA23087@legolas.emea.dhcp.ti.com>
+References: <20110215113717.GN2570@legolas.emea.dhcp.ti.com>
+ <4D5A672A.7040000@samsung.com>
+ <4D5A6874.1080705@corscience.de>
+ <20110215115349.GQ2570@legolas.emea.dhcp.ti.com>
+ <4D5A6EEC.5000908@maxwell.research.nokia.com>
+ <AANLkTik+6fguqgH8Bpnpqo7Axmquy3caRMELTZVmuN1j@mail.gmail.com>
+ <20110219150024.GA4487@legolas.emea.dhcp.ti.com>
+ <AANLkTik5dwNZrUxjgjKeAQOsp610d6y_TNGg1b5Vc5Zd@mail.gmail.com>
+ <20110221073640.GA3094@legolas.emea.dhcp.ti.com>
+ <AANLkTinf3Wj=nw_2Sx4r-VSsCH+=fzx-25hynH8hB0d9@mail.gmail.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:39564 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755406Ab1BUMVQ convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 21 Feb 2011 07:21:16 -0500
-Received: by wyb29 with SMTP id 29so1318303wyb.4
-        for <linux-omap@vger.kernel.org>; Mon, 21 Feb 2011 04:21:13 -0800 (PST)
-In-Reply-To: <20110221115709.GJ11250@nokia.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <AANLkTinf3Wj=nw_2Sx4r-VSsCH+=fzx-25hynH8hB0d9@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: David Cohen <dacohen@gmail.com>
+Cc: balbi@ti.com, Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>, Thomas Weber <weber@corscience.de>, Sylwester Nawrocki <s.nawrocki@samsung.com>, linux-omap@vger.kernel.org, Mauro Carvalho Chehab <mchehab@infradead.org>, Hans Verkuil <hverkuil@xs4all.nl>, Tejun Heo <tj@kernel.org>, linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
-Cc: "ext Manuel, Lesly Arackal" <leslyam@ti.com>, Jean Pihet <jean.pihet@newoldbits.com>, linux-omap@vger.kernel.org, David Derrick <dderrick@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
 
-On Mon, Feb 21, 2011 at 17:27, Peter 'p2' De Schrijver
-<peter.de-schrijver@nokia.com> wrote:
-[..]
-> > >> This changes are tested on OMAP3430 & OMAP3630 SDP with off mode=
- enabled in suspend path.
-> > >> =A0 =A0 =A0 =A0Tested with suspend/resume script, which will tes=
-t system suspend in a loop.
-> > >> =A0 =A0 =A0 =A0Tested for more than 1000 iterations.
-> > >
-> > > Good to see the TWL scripts back in the mainline kernel!
-> > > Are the scripts compatible with the OMAP3 Beagleboard? I would li=
-ke to
-> > > test the changes on that board.
+On Mon, Feb 21, 2011 at 02:09:07PM +0200, David Cohen wrote:
+> On Mon, Feb 21, 2011 at 9:36 AM, Felipe Balbi <balbi@ti.com> wrote:
+> > Hi,
 > >
-> > I have not tested on Beagleboard.
-> > I think Beagleboard is using different PM IC TPSxxxx.
-> > If its equivalent to TRITON then this script should work on it.
->
-> As far as I know they are equivalent. I don't know if the errata need=
- to
-> be applied though. Maybe someone from TI can comment?
+> > On Sat, Feb 19, 2011 at 06:04:58PM +0200, David Cohen wrote:
+> >> > I have to disagree. The fundamental problem is the circular depe=
+ndency
+> >> > between those two files:
+> >> >
+> >> > sched.h uses wait_queue_head_t defined in wait.h
+> >> > wait.h uses TASK_* defined in sched.h
+> >> >
+> >> > So, IMO the real fix would be clear out the circular dependency.=
+ Maybe
+> >> > introducing <linux/task.h> to define those TASK_* symbols and in=
+clude
+> >> > that on sched.h and wait.h
+> >> >
+> >> > Just dig a quick and dirty to try it out and works like a charm
+> >>
+> >> We have 2 problems:
+> >> =A0- omap24xxcam compilation broken
+> >> =A0- circular dependency between sched.h and wait.h
+> >>
+> >> To fix the broken compilation we can do what the rest of the kerne=
+l is
+> >> doing, which is to include sched.h.
+> >> Then, the circular dependency is fixed by some different approach
+> >> which would probably change *all* current usage of TASK_*.
+> >
+> > considering that 1 is caused by 2 I would fix 2.
+> >
+> >> IMO, there's no need to create a dependency between those issues.
+> >
+> > There's no dependency between them, it's just that the root cause f=
+or
+> > this problem is a circular dependency between wait.h and sched.h
+>=20
+> I did a try to fix this circular dependency and the comment I got was
+> to include sched.h in omap24xxcam.c file:
+> http://marc.info/?l=3Dlinux-omap&m=3D129828637120270&w=3D2
+>=20
+> I'm working to remove v4l2 internal device interface from omap24xxcam
+> and then I need this driver's compilation fixed.
+> The whole kernel is including sched.h when wake_up*() macro is used,
+> so this should be our first solution IMO.
+> As I said earlier, no need to make this compilation fix be dependent
+> of wait.h fix (if it's really going to be changed).
+>=20
+> I think we should proceed with this patch.
 
-Yes for the impacted revisions.
+I would wait to hear from Ingo or Peter who are the maintainers for tha=
+t
+part, but fine by me.
 
-Regards,
-Nishanth Menon
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--=20
+balbi
