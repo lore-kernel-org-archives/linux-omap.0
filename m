@@ -1,45 +1,55 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v2 1/1] headers: fix circular dependency between
- linux/sched.h and linux/wait.h
-Date: Mon, 21 Feb 2011 19:18:18 +0200
-Message-ID: <20110221171818.GN23087@legolas.emea.dhcp.ti.com>
-References: <1298299131-17695-1-git-send-email-dacohen@gmail.com>
- <1298299131-17695-2-git-send-email-dacohen@gmail.com>
- <1298303677.24121.1.camel@twins>
- <AANLkTimOT6jNG3=TiRMJR0dgEQ6EHjcBPJ1ivCu3Wj5Q@mail.gmail.com>
- <1298305245.24121.7.camel@twins>
- <20110221162939.GK23087@legolas.emea.dhcp.ti.com>
- <1298306607.24121.18.camel@twins>
- <20110221165443.GL23087@legolas.emea.dhcp.ti.com>
- <1298307962.24121.27.camel@twins>
-Reply-To: balbi@ti.com
+From: =?iso-8859-1?Q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>
+Subject: Re: OMAP4: IRQ line of CortexA9 performance monitor
+Date: Mon, 21 Feb 2011 17:18:57 +0000
+Message-ID: <yw1x62sd1f26.fsf@unicorn.mansr.com>
+References: <AANLkTin3q+rv+fcgCE6nwTN+=v_uQzT-Sn++gr6ekXcp@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:53094 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754969Ab1BURSW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 21 Feb 2011 12:18:22 -0500
-Content-Disposition: inline
-In-Reply-To: <1298307962.24121.27.camel@twins>
+Received: from lo.gmane.org ([80.91.229.12]:45640 "EHLO lo.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755010Ab1BURTR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 21 Feb 2011 12:19:17 -0500
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gplao-linux-omap-open-source-moved1@m.gmane.org>)
+	id 1PrZPl-0007Mr-Jv
+	for linux-omap@vger.kernel.org; Mon, 21 Feb 2011 18:19:13 +0100
+Received: from unicorn.mansr.com ([78.86.181.103])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-omap@vger.kernel.org>; Mon, 21 Feb 2011 18:19:13 +0100
+Received: from mans by unicorn.mansr.com with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-omap@vger.kernel.org>; Mon, 21 Feb 2011 18:19:13 +0100
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: balbi@ti.com, David Cohen <dacohen@gmail.com>, linux-kernel@vger.kernel.org, mingo@elte.hu, linux-omap@vger.kernel.org, linux-media@vger.kernel.org, Alexey Dobriyan <adobriyan@gmail.com>, Oleg Nesterov <oleg@redhat.com>
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
 
-On Mon, Feb 21, 2011 at 06:06:02PM +0100, Peter Zijlstra wrote:
-> On Mon, 2011-02-21 at 18:54 +0200, Felipe Balbi wrote:
-> 
-> > What you seem to have missed is that sched.h doesn't include wait.h, it
-> > includes completion.h and completion.h needs wait.h due the
-> > wait_queue_head_t it uses.
-> 
-> Yeah, so? sched.h doesn't need completion.h, but like with wait.h I'd
-> argue the other way around, completion.h would want to include sched.h
+Ming Lei <tom.leiming@gmail.com> writes:
 
-ok, now I get what you proposed. Still, we could have lived without the
-sarcasm, but that's not subject to patching.
+> Hi,
+>
+> From chapter 17 of "Interrupt controller", OMAP4 TRM, I can't
+> find what is the interrupt line of CortexA9 performance monitor
+> in omap4. Seems without this information, we can't use perf on
+> omap4.
+>
+> Any suggestions or ideas about it?
 
--- 
-balbi
+The PMU interrupt is routed through the CTI, which needs to be properly
+configured.  Unfortunately, the CTI is not documented in the public TRM=
+,
+and nobody has seen fit to submit a patch suitable for upstream.  Some
+dirty hacks have been posted, though.
+
+--=20
+M=E5ns Rullg=E5rd
+mans@mansr.com
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
