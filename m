@@ -1,100 +1,122 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: hwmod: multi-omap: disabling smartreflex on AM3517
-Date: Mon, 21 Feb 2011 15:27:21 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024BD4894D@dbde02.ent.ti.com>
-References: <B85A65D85D7EB246BE421B3FB0FBB5930248A017D9@dbde02.ent.ti.com>
- <4D5A75FF.5040703@ti.com>
- <B85A65D85D7EB246BE421B3FB0FBB593024B83BF08@dbde02.ent.ti.com>
+From: Kukjin Kim <kgene.kim@samsung.com>
+Subject: RE: [PATCH 2/6] ARM: pm: add generic CPU suspend/resume support
+Date: Mon, 21 Feb 2011 18:58:25 +0900
+Message-ID: <000301cbd1ad$e67cb130$b3761390$%kim@samsung.com>
+References: <20110211161626.GA31356@n2100.arm.linux.org.uk>
+ <E1Pnvgw-0002yZ-M0@rmk-PC.arm.linux.org.uk>
+ <AANLkTinL0HgSsFmoxyiBuRA6JiWKsHTLW4wFnVDJf_1w@mail.gmail.com>
+ <20110215110453.GB11199@n2100.arm.linux.org.uk>
+ <20110220120039.GA14495@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:56296 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750936Ab1BUJ50 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Feb 2011 04:57:26 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1L9vMs4024663
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Mon, 21 Feb 2011 03:57:25 -0600
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id p1L9vM7e005852
-	for <linux-omap@vger.kernel.org>; Mon, 21 Feb 2011 15:27:22 +0530 (IST)
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593024B83BF08@dbde02.ent.ti.com>
-Content-Language: en-US
+Received: from mailout4.samsung.com ([203.254.224.34]:21356 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753339Ab1BUJ6f convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Feb 2011 04:58:35 -0500
+Received: from epmmp1 (mailout4.samsung.com [203.254.224.34])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
+ 2010)) with ESMTP id <0LGY00158P1L51C0@mailout4.samsung.com> for
+ linux-omap@vger.kernel.org; Mon, 21 Feb 2011 18:58:33 +0900 (KST)
+Received: from DOKGENEKIM02 ([12.23.103.104])
+ by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTPA id <0LGY00BY0P1K8F@mmp1.samsung.com> for
+ linux-omap@vger.kernel.org; Mon, 21 Feb 2011 18:58:33 +0900 (KST)
+In-reply-to: <20110220120039.GA14495@n2100.arm.linux.org.uk>
+Content-language: ko
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>
+To: 'Russell King - ARM Linux' <linux@arm.linux.org.uk>, 'Colin Cross' <ccross@google.com>
+Cc: linux-omap@vger.kernel.org, 'Eric Miao' <eric.y.miao@gmail.com>, linux-arm-kernel@lists.infradead.org
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Premi, Sanjeev
-> Sent: Friday, February 18, 2011 5:43 PM
-> To: Cousson, Benoit
-> Cc: linux-omap@vger.kernel.org
-> Subject: RE: hwmod: multi-omap: disabling smartreflex on AM3517
-> 
-> > -----Original Message-----
-> > From: Cousson, Benoit
-> > Sent: Tuesday, February 15, 2011 6:18 PM
-> > To: Premi, Sanjeev
-> > Cc: linux-omap@vger.kernel.org
-> > Subject: Re: hwmod: multi-omap: disabling smartreflex on AM3517
+Russell King - ARM Linux wrote:
+>=20
+> Kukjin, could you test this update as well please?
+>=20
+No problem :)
+
+It works fine with following.
+
+Thanks.
+
+Best regards,
+Kgene.
+--
+Kukjin Kim <kgene.kim@samsung.com>, Senior Engineer,
+SW Solution Development Team, Samsung Electronics Co., Ltd.
+
+> Thanks.
+>=20
+> On Tue, Feb 15, 2011 at 11:04:53AM +0000, Russell King - ARM Linux wr=
+ote:
+> > On Fri, Feb 11, 2011 at 06:50:57PM -0800, Colin Cross wrote:
+> > > > +ENDPROC(cpu_resume_turn_mmu_on)
+> > > > +cpu_resume_after_mmu:
+> > > > + =A0 =A0 =A0 str =A0 =A0 r5, [r2, r4, lsl #2] =A0 =A0@ restore=
+ old mapping
+> > > > +#ifdef MULTI_CACHE
+> > > > + =A0 =A0 =A0 ldr =A0 =A0 r10, =3Dcpu_cache
+> > > > + =A0 =A0 =A0 ldr =A0 =A0 pc, [r10, #CACHE_FLUSH_KERN_ALL]
+> > > > +#else
+> > > > + =A0 =A0 =A0 b =A0 =A0 =A0 __cpuc_flush_kern_all
+> > > > +#endif
 > >
-> > Hi Sanjeev,
+> > I think we can eliminate this cache flush by delaying the cache ena=
+ble
+> > as below.  Could you see whether Tegra 2 survives this please?
+> > Thanks.
 > >
-> > On 2/15/2011 12:51 PM, Premi, Sanjeev wrote:
-> > > AM3517 doesn't support SmartReflex.
-> > >
-> > > However, these HWMODS are defined in omap3xxxx_hwmods[]:
-> > > 	&omap34xx_sr1_hwmod,
-> > > 	&omap34xx_sr2_hwmod,
-> > > 	&omap36xx_sr1_hwmod,
-> > > 	&omap36xx_sr2_hwmod,
-> > >
-> > > (similar definition in l4_slaves as well)
-> > >
-> > > This leads to crash when booting the kernel on AM3517EVM during
-> > > _setup().
-> > >
-> > > I see the field .omap_chip being initialized; but not used.
+> > diff --git a/arch/arm/kernel/sleep.S b/arch/arm/kernel/sleep.S
+> > index bed1876..193be5f 100644
+> > --- a/arch/arm/kernel/sleep.S
+> > +++ b/arch/arm/kernel/sleep.S
+> > @@ -4,6 +4,7 @@
+> >  #include <asm/assembler.h>
+> >  #include <asm/glue-cache.h>
+> >  #include <asm/glue-proc.h>
+> > +#include <asm/system.h>
+> >  	.text
 > >
-> > Yes, it is. During the hwmod initialization (omap_hwmod_init), only the
-> > hwmods that match the correct chip version are kept.
-> > I guess that your problem is that AM3517 is probably seen as a regular
-> > 3430 for the moment.
+> >  /*
+> > @@ -81,25 +82,22 @@ ENTRY(cpu_resume_mmu)
+> >  	str	r3, [r2, r4, lsl #2]	@ setup 1:1 mapping for mmu code
+> >  	sub	r2, r2, r1
+> >  	ldr	r3, =3Dcpu_resume_after_mmu
+> > +	bic	r1, r0, #CR_C		@ ensure D-cache is disabled
+> >  	b	cpu_resume_turn_mmu_on
+> >  ENDPROC(cpu_resume_mmu)
+> >  	.ltorg
+> >  	.align	5
+> >  cpu_resume_turn_mmu_on:
+> > -	mcr	p15, 0, r0, c1, c0, 0	@ turn on MMU, caches, etc
+> > -	mrc	p15, 0, r0, c0, c0, 0	@ read id reg
+> > -	mov	r0, r0
+> > -	mov	r0, r0
+> > +	mcr	p15, 0, r1, c1, c0, 0	@ turn on MMU, I-cache, etc
+> > +	mrc	p15, 0, r1, c0, c0, 0	@ read id reg
+> > +	mov	r1, r1
+> > +	mov	r1, r1
+> >  	mov	pc, r3			@ jump to virtual address
+> >  ENDPROC(cpu_resume_turn_mmu_on)
+> >  cpu_resume_after_mmu:
+> >  	str	r5, [r2, r4, lsl #2]	@ restore old mapping
+> > -#ifdef MULTI_CACHE
+> > -	ldr	r10, =3Dcpu_cache
+> > -	ldr	pc, [r10, #CACHE_FLUSH_KERN_ALL]
+> > -#else
+> > -	b	__cpuc_flush_kern_all
+> > -#endif
+> > +	mcr	p15, 0, r0, c1, c0, 0	@ turn on D-cache
+> > +	mov	pc, lr
 > >
-> > > If I were to use this - along with cpu_is_omap3517(), I would need
-> > > to define a new flag e.g. CHIP_IS_AM3517 and add it to almost all
-> > > devices defined in omap_hwmod_3xxx_data.c.
-> > >
-> > > Before going all out on making changes, wanted to check if there is
-> > > a better way. Has this/similar possibility been considered earlier?
-> >
-> > Well, this is the best way to do that for my point of view. This
-> > .omap_chip field was done for that purpose.
-> > During device init, the sr code will do query for the smartreflex hwmod
-> > and will failed, thus avoiding to do further initialization.
-> 
-> [sp] Trying to avoid big change, and thinking 'narrowly' about this
->      issue in isolation, I had been mulling adding SmartReflex to
->      the omap3_features; and (somehow) using the same.
-> 
->      But after noticing the patch related to USBOTG on AM35x, I think
->      original proposal is unambiguous and best way forward.
-> 
->      Started working on the patch. Hope to have it ready later tonight
->      or tomorrow.
-> 
+> >  /*
+> >   * Note: Yes, part of the following code is located into the .data
+section.
 
-[sp] Just came across another issue while making this patch:
-     Checking for presence of IVA.
-
-     There is not IVA on AM3517. With existing CHIP_IS_3430 flag, the
-     hwmod for IVA will be initialized.
-
-     Benoit, Any ideas here?
-
-~sanjeev
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
