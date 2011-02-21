@@ -1,201 +1,199 @@
-From: David Cohen <dacohen@gmail.com>
-Subject: [PATCH 1/1] headers: fix circular dependency between linux/sched.h and linux/wait.h
-Date: Mon, 21 Feb 2011 12:20:49 +0200
-Message-ID: <1298283649-24532-2-git-send-email-dacohen@gmail.com>
-References: <1298283649-24532-1-git-send-email-dacohen@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1298283649-24532-1-git-send-email-dacohen@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: mingo@elte.hu, peterz@infradead.org, linux-omap@vger.kernel.org, linux-media@vger.kernel.org, David Cohen <dacohen@gmail.com>
+From: "Manuel, Lesly Arackal" <leslyam@ti.com>
+Subject: Re: [PATCH 09/12] omap3: pm: TWL5030 version checking
+Date: Mon, 21 Feb 2011 15:56:34 +0530
+Message-ID: <AANLkTinWqtgRP5y6sMrGLbSxQ-s4BnycrvBOcUeJBB3J@mail.gmail.com>
+References: <1298048938-1480-1-git-send-email-leslyam@ti.com>
+	<1298048938-1480-10-git-send-email-leslyam@ti.com>
+	<AANLkTimuiYp1k2vMMnD-a=oqh==fkJdqsckTovguwqSO@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:56677 "EHLO
+	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755118Ab1BUK0f convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 21 Feb 2011 05:26:35 -0500
+Received: by mail-vx0-f181.google.com with SMTP id 39so959699vxb.40
+        for <linux-omap@vger.kernel.org>; Mon, 21 Feb 2011 02:26:34 -0800 (PST)
+In-Reply-To: <AANLkTimuiYp1k2vMMnD-a=oqh==fkJdqsckTovguwqSO@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: David Cohen <dacohen@gmail.com>
+Cc: linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>, David Derrick <dderrick@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
 
-Currently sched.h and wait.h have circular dependency between both.
-wait.h defines macros wake_up*() which use macros TASK_* defined by
-sched.h. But as sched.h indirectly includes wait.h, such wait.h header
-file can't include sched.h too. The side effect is when some file
-includes wait.h and tries to use its wake_up*() macros, it's necessary
-to include sched.h also.
-This patch moves all TASK_* macros from linux/sched.h to a new header
-file linux/task_sched.h. This way, both sched.h and wait.h can include
-task_sched.h and fix the circular dependency. No need to include sched.h
-anymore when wake_up*() macros are used.
+Hi David,
 
-Signed-off-by: David Cohen <dacohen@gmail.com>
----
- include/linux/sched.h      |   61 +-----------------------------------------
- include/linux/task_sched.h |   64 ++++++++++++++++++++++++++++++++++++++++++++
- include/linux/wait.h       |    1 +
- 3 files changed, 66 insertions(+), 60 deletions(-)
- create mode 100644 include/linux/task_sched.h
+On Sat, Feb 19, 2011 at 5:21 AM, David Cohen <dacohen@gmail.com> wrote:
+> Hi,
+>
+> On Fri, Feb 18, 2011 at 7:08 PM, Lesly A M <leslyam@ti.com> wrote:
+>> Added api to get the TWL5030 Si version from the IDCODE register.
+>> It is used for enabling the workaround for TWL errata 27.
+>>
+>> Signed-off-by: Lesly A M <leslyam@ti.com>
+>> Cc: Nishanth Menon <nm@ti.com>
+>> Cc: David Derrick <dderrick@ti.com>
+>> Cc: Samuel Ortiz <sameo@linux.intel.com>
+>> ---
+>> =A0drivers/mfd/twl-core.c =A0| =A0 50 ++++++++++++++++++++++++++++++=
++++++++++++++++++
+>> =A0include/linux/i2c/twl.h | =A0 10 +++++++++
+>> =A02 files changed, 60 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
+>> index a35fa7d..211c2cc 100644
+>> --- a/drivers/mfd/twl-core.c
+>> +++ b/drivers/mfd/twl-core.c
+>> @@ -487,6 +487,56 @@ EXPORT_SYMBOL(twl_i2c_read_u8);
+>>
+>> =A0/*---------------------------------------------------------------=
+-------*/
+>>
+>> +/**
+>> + * twl_read_idcode_register - api to read the IDCODE register.
+>> + * @value: returns 32 bit IDCODE register value.
+>> + *
+>> + * Unlocks the IDCODE register and read the 32 bit value.
+>> + */
+>> +int twl_read_idcode_register(u32 *value)
+>> +{
+>> + =A0 =A0 =A0 int err =3D 0;
+>
+> No need to initialize 'ret'.
+Ok
 
-diff --git a/include/linux/sched.h b/include/linux/sched.h
-index d747f94..c60dcee 100644
---- a/include/linux/sched.h
-+++ b/include/linux/sched.h
-@@ -90,6 +90,7 @@ struct sched_param {
- #include <linux/task_io_accounting.h>
- #include <linux/latencytop.h>
- #include <linux/cred.h>
-+#include <linux/task_sched.h>
- 
- #include <asm/processor.h>
- 
-@@ -169,63 +170,6 @@ print_cfs_rq(struct seq_file *m, int cpu, struct cfs_rq *cfs_rq)
- #endif
- 
- /*
-- * Task state bitmask. NOTE! These bits are also
-- * encoded in fs/proc/array.c: get_task_state().
-- *
-- * We have two separate sets of flags: task->state
-- * is about runnability, while task->exit_state are
-- * about the task exiting. Confusing, but this way
-- * modifying one set can't modify the other one by
-- * mistake.
-- */
--#define TASK_RUNNING		0
--#define TASK_INTERRUPTIBLE	1
--#define TASK_UNINTERRUPTIBLE	2
--#define __TASK_STOPPED		4
--#define __TASK_TRACED		8
--/* in tsk->exit_state */
--#define EXIT_ZOMBIE		16
--#define EXIT_DEAD		32
--/* in tsk->state again */
--#define TASK_DEAD		64
--#define TASK_WAKEKILL		128
--#define TASK_WAKING		256
--#define TASK_STATE_MAX		512
--
--#define TASK_STATE_TO_CHAR_STR "RSDTtZXxKW"
--
--extern char ___assert_task_state[1 - 2*!!(
--		sizeof(TASK_STATE_TO_CHAR_STR)-1 != ilog2(TASK_STATE_MAX)+1)];
--
--/* Convenience macros for the sake of set_task_state */
--#define TASK_KILLABLE		(TASK_WAKEKILL | TASK_UNINTERRUPTIBLE)
--#define TASK_STOPPED		(TASK_WAKEKILL | __TASK_STOPPED)
--#define TASK_TRACED		(TASK_WAKEKILL | __TASK_TRACED)
--
--/* Convenience macros for the sake of wake_up */
--#define TASK_NORMAL		(TASK_INTERRUPTIBLE | TASK_UNINTERRUPTIBLE)
--#define TASK_ALL		(TASK_NORMAL | __TASK_STOPPED | __TASK_TRACED)
--
--/* get_task_state() */
--#define TASK_REPORT		(TASK_RUNNING | TASK_INTERRUPTIBLE | \
--				 TASK_UNINTERRUPTIBLE | __TASK_STOPPED | \
--				 __TASK_TRACED)
--
--#define task_is_traced(task)	((task->state & __TASK_TRACED) != 0)
--#define task_is_stopped(task)	((task->state & __TASK_STOPPED) != 0)
--#define task_is_dead(task)	((task)->exit_state != 0)
--#define task_is_stopped_or_traced(task)	\
--			((task->state & (__TASK_STOPPED | __TASK_TRACED)) != 0)
--#define task_contributes_to_load(task)	\
--				((task->state & TASK_UNINTERRUPTIBLE) != 0 && \
--				 (task->flags & PF_FREEZING) == 0)
--
--#define __set_task_state(tsk, state_value)		\
--	do { (tsk)->state = (state_value); } while (0)
--#define set_task_state(tsk, state_value)		\
--	set_mb((tsk)->state, (state_value))
--
--/*
-  * set_current_state() includes a barrier so that the write of current->state
-  * is correctly serialised wrt the caller's subsequent test of whether to
-  * actually sleep:
-@@ -241,9 +185,6 @@ extern char ___assert_task_state[1 - 2*!!(
- #define set_current_state(state_value)		\
- 	set_mb(current->state, (state_value))
- 
--/* Task command name length */
--#define TASK_COMM_LEN 16
--
- #include <linux/spinlock.h>
- 
- /*
-diff --git a/include/linux/task_sched.h b/include/linux/task_sched.h
-new file mode 100644
-index 0000000..3787387
---- /dev/null
-+++ b/include/linux/task_sched.h
-@@ -0,0 +1,64 @@
-+#ifndef _LINUX_TASK_H
-+#define _LINUX_TASK_H
-+
-+/*
-+ * Task state bitmask. NOTE! These bits are also
-+ * encoded in fs/proc/array.c: get_task_state().
-+ *
-+ * We have two separate sets of flags: task->state
-+ * is about runnability, while task->exit_state are
-+ * about the task exiting. Confusing, but this way
-+ * modifying one set can't modify the other one by
-+ * mistake.
-+ */
-+#define TASK_RUNNING		0
-+#define TASK_INTERRUPTIBLE	1
-+#define TASK_UNINTERRUPTIBLE	2
-+#define __TASK_STOPPED		4
-+#define __TASK_TRACED		8
-+/* in tsk->exit_state */
-+#define EXIT_ZOMBIE		16
-+#define EXIT_DEAD		32
-+/* in tsk->state again */
-+#define TASK_DEAD		64
-+#define TASK_WAKEKILL		128
-+#define TASK_WAKING		256
-+#define TASK_STATE_MAX		512
-+
-+#define TASK_STATE_TO_CHAR_STR "RSDTtZXxKW"
-+
-+extern char ___assert_task_state[1 - 2*!!(
-+		sizeof(TASK_STATE_TO_CHAR_STR)-1 != ilog2(TASK_STATE_MAX)+1)];
-+
-+/* Convenience macros for the sake of set_task_state */
-+#define TASK_KILLABLE		(TASK_WAKEKILL | TASK_UNINTERRUPTIBLE)
-+#define TASK_STOPPED		(TASK_WAKEKILL | __TASK_STOPPED)
-+#define TASK_TRACED		(TASK_WAKEKILL | __TASK_TRACED)
-+
-+/* Convenience macros for the sake of wake_up */
-+#define TASK_NORMAL		(TASK_INTERRUPTIBLE | TASK_UNINTERRUPTIBLE)
-+#define TASK_ALL		(TASK_NORMAL | __TASK_STOPPED | __TASK_TRACED)
-+
-+/* get_task_state() */
-+#define TASK_REPORT		(TASK_RUNNING | TASK_INTERRUPTIBLE | \
-+				 TASK_UNINTERRUPTIBLE | __TASK_STOPPED | \
-+				 __TASK_TRACED)
-+
-+#define task_is_traced(task)	((task->state & __TASK_TRACED) != 0)
-+#define task_is_stopped(task)	((task->state & __TASK_STOPPED) != 0)
-+#define task_is_dead(task)	((task)->exit_state != 0)
-+#define task_is_stopped_or_traced(task)	\
-+			((task->state & (__TASK_STOPPED | __TASK_TRACED)) != 0)
-+#define task_contributes_to_load(task)	\
-+				((task->state & TASK_UNINTERRUPTIBLE) != 0 && \
-+				 (task->flags & PF_FREEZING) == 0)
-+
-+#define __set_task_state(tsk, state_value)		\
-+	do { (tsk)->state = (state_value); } while (0)
-+#define set_task_state(tsk, state_value)		\
-+	set_mb((tsk)->state, (state_value))
-+
-+/* Task command name length */
-+#define TASK_COMM_LEN 16
-+
-+#endif
-diff --git a/include/linux/wait.h b/include/linux/wait.h
-index 3efc9f3..cccfdd2 100644
---- a/include/linux/wait.h
-+++ b/include/linux/wait.h
-@@ -22,6 +22,7 @@
- #include <linux/list.h>
- #include <linux/stddef.h>
- #include <linux/spinlock.h>
-+#include <linux/task_sched.h>
- #include <asm/system.h>
- #include <asm/current.h>
- 
--- 
-1.7.1
+>> +
+>> + =A0 =A0 =A0 err =3D twl_i2c_write_u8(TWL4030_MODULE_INTBR, TWL_EEP=
+ROM_R_UNLOCK,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 R_UNLOCK_TEST_REG);
+>> + =A0 =A0 =A0 if (err)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_err("TWL4030 Unable to unlock IDCOD=
+E registers\n");
+>> +
+>> + =A0 =A0 =A0 err =3D twl_i2c_read(TWL4030_MODULE_INTBR, (u8 *)(valu=
+e),
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 0x0, 4);
+>
+> Variable 'err' is being overwritten here.
+>
+>> + =A0 =A0 =A0 if (err)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_err("TWL4030: unable to read IDCODE=
+-%d\n", err);
+>> +
+>> + =A0 =A0 =A0 err =3D twl_i2c_write_u8(TWL4030_MODULE_INTBR, 0x0, R_=
+UNLOCK_TEST_REG);
+>
+> Here again.
+>
+>> + =A0 =A0 =A0 if (err)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_err("TWL4030 Unable to relock IDCOD=
+E registers\n");
+>> +
+>> + =A0 =A0 =A0 return err;
+>
+> And then you're returning 'err'. Unless you care only about the last
+> 'err' assignment, something is wrong here, isn't it? :)
+
+Ok, I will use a label and goto that label if there is some err on any
+i2c_read/write
+
+>
+>> +}
+>> +
+>> +/**
+>> + * twl5030_get_si_ver - api to get TWL5030 Si version.
+>> + * @value: returns Si version from IDCODE.
+>> + *
+>> + * Api to get the TWL5030 Si version from IDCODE value.
+>> + */
+>> +int twl5030_get_si_ver(u32 *value)
+>> +{
+>> + =A0 =A0 =A0 int ret =3D 0;
+>
+> No need to initialize 'ret'.
+Ok
+
+>> + =A0 =A0 =A0 static u32 twl_idcode;
+>> +
+>> + =A0 =A0 =A0 if (twl_idcode =3D=3D 0)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D twl_read_idcode_register(&twl_=
+idcode);
+>> + =A0 =A0 =A0 if (ret)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_err("TWL4030 Unable to check Si ver=
+sion\n");
+>
+> Shouldn't you return error here?
+Yes,
+
+>> +
+>> + =A0 =A0 =A0 if (TWL_SIL_TYPE(twl_idcode) =3D=3D TWL_SIL_5030)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 *value =3D TWL_SIL_REV(twl_idcode);
+>
+> Otherwise, what happens here if twl_read_idcode_register() fails?
+>
+>> +
+>> + =A0 =A0 =A0 return ret;
+>
+> return 0 if the code reaches this point.
+Ok. I will do the changes
+
+Regards,
+Lesly A M
+
+>> +}
+>> +EXPORT_SYMBOL(twl5030_get_si_ver);
+>> +
+>> =A0static struct device *
+>> =A0add_numbered_child(unsigned chip, const char *name, int num,
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0void *pdata, unsigned pdata_len,
+>> diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
+>> index f4bd475..5d3f2bf 100644
+>> --- a/include/linux/i2c/twl.h
+>> +++ b/include/linux/i2c/twl.h
+>> @@ -150,7 +150,15 @@
+>> =A0#define MMC_PU =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (0=
+x1 << 3)
+>> =A0#define MMC_PD =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (0=
+x1 << 2)
+>>
+>> +#define R_UNLOCK_TEST_REG =A0 =A0 =A00x12
+>> +#define TWL_EEPROM_R_UNLOCK =A0 =A00x49
+>>
+>> +#define TWL_SIL_TYPE(rev) =A0 =A0 =A0((rev) & 0x00FFFFFF)
+>> +#define TWL_SIL_REV(rev) =A0 =A0 =A0 ((rev) >> 24)
+>> +#define TWL_SIL_5030 =A0 =A0 =A0 =A0 =A0 0x09002F
+>> +#define TWL5030_REV_1_0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A00x00
+>> +#define TWL5030_REV_1_1 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A00x10
+>> +#define TWL5030_REV_1_2 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A00x30
+>>
+>> =A0#define TWL4030_CLASS_ID =A0 =A0 =A0 =A0 =A0 =A0 =A0 0x4030
+>> =A0#define TWL6030_CLASS_ID =A0 =A0 =A0 =A0 =A0 =A0 =A0 0x6030
+>> @@ -180,6 +188,8 @@ int twl_i2c_read_u8(u8 mod_no, u8 *val, u8 reg);
+>> =A0int twl_i2c_write(u8 mod_no, u8 *value, u8 reg, unsigned num_byte=
+s);
+>> =A0int twl_i2c_read(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes=
+);
+>>
+>> +int twl5030_get_si_ver(u32 *value);
+>> +
+>> =A0int twl6030_interrupt_unmask(u8 bit_mask, u8 offset);
+>> =A0int twl6030_interrupt_mask(u8 bit_mask, u8 offset);
+>>
+>> --
+>> 1.7.1
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap=
+" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>>
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
