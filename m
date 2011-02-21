@@ -1,188 +1,93 @@
-From: David Cohen <dacohen@gmail.com>
-Subject: [PATCH v2 1/1] headers: fix circular dependency between linux/sched.h and linux/wait.h
-Date: Mon, 21 Feb 2011 16:38:51 +0200
-Message-ID: <1298299131-17695-2-git-send-email-dacohen@gmail.com>
-References: <1298299131-17695-1-git-send-email-dacohen@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1298299131-17695-1-git-send-email-dacohen@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: mingo@elte.hu, peterz@infradead.org, linux-omap@vger.kernel.org, linux-media@vger.kernel.org, David Cohen <dacohen@gmail.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH 4/6] omap4: hwmod_data: Add l3 errorlog data to hwmod
+ database.
+Date: Mon, 21 Feb 2011 15:39:51 +0100
+Message-ID: <4D627937.8030309@ti.com>
+References: <1298295990-1070-1-git-send-email-santosh.shilimkar@ti.com> <1298295990-1070-5-git-send-email-santosh.shilimkar@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:40763 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754634Ab1BUOjx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 21 Feb 2011 09:39:53 -0500
+Received: from dlep33.itg.ti.com ([157.170.170.112])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1LEdrXN024515
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Mon, 21 Feb 2011 08:39:53 -0600
+Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
+	by dlep33.itg.ti.com (8.13.7/8.13.7) with ESMTP id p1LEdqam001726
+	for <linux-omap@vger.kernel.org>; Mon, 21 Feb 2011 08:39:52 -0600 (CST)
+In-Reply-To: <1298295990-1070-5-git-send-email-santosh.shilimkar@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Balbi, Felipe" <balbi@ti.com>, "R, Sricharan" <r.sricharan@ti.com>
 
-Currently sched.h and wait.h have circular dependency between both.
-wait.h defines macros wake_up*() which use macros TASK_* defined by
-sched.h. But as sched.h indirectly includes wait.h, such wait.h header
-file can't include sched.h too. The side effect is when some file
-includes wait.h and tries to use its wake_up*() macros, it's necessary
-to include sched.h also.
-This patch moves all TASK_* macros from linux/sched.h to a new header
-file linux/task_state.h. This way, both sched.h and wait.h can include
-task_state.h and fix the circular dependency. No need to include sched.h
-anymore when wake_up*() macros are used.
+Hi Sricharan,
 
-Signed-off-by: David Cohen <dacohen@gmail.com>
----
- include/linux/sched.h      |   58 +-----------------------------------------
- include/linux/task_state.h |   61 ++++++++++++++++++++++++++++++++++++++++++++
- include/linux/wait.h       |    1 +
- 3 files changed, 63 insertions(+), 57 deletions(-)
- create mode 100644 include/linux/task_state.h
+On 2/21/2011 2:46 PM, Shilimkar, Santosh wrote:
+> From: sricharan<r.sricharan@ti.com>
+>
+> Add the error log registers, irqs of the l3 interconnect to the
+> hwmod data. The hwmod change is aligned with Benoit Cousson.
 
-diff --git a/include/linux/sched.h b/include/linux/sched.h
-index d747f94..a75b5ba 100644
---- a/include/linux/sched.h
-+++ b/include/linux/sched.h
-@@ -90,6 +90,7 @@ struct sched_param {
- #include <linux/task_io_accounting.h>
- #include <linux/latencytop.h>
- #include <linux/cred.h>
-+#include <linux/task_state.h>
- 
- #include <asm/processor.h>
- 
-@@ -169,63 +170,6 @@ print_cfs_rq(struct seq_file *m, int cpu, struct cfs_rq *cfs_rq)
- #endif
- 
- /*
-- * Task state bitmask. NOTE! These bits are also
-- * encoded in fs/proc/array.c: get_task_state().
-- *
-- * We have two separate sets of flags: task->state
-- * is about runnability, while task->exit_state are
-- * about the task exiting. Confusing, but this way
-- * modifying one set can't modify the other one by
-- * mistake.
-- */
--#define TASK_RUNNING		0
--#define TASK_INTERRUPTIBLE	1
--#define TASK_UNINTERRUPTIBLE	2
--#define __TASK_STOPPED		4
--#define __TASK_TRACED		8
--/* in tsk->exit_state */
--#define EXIT_ZOMBIE		16
--#define EXIT_DEAD		32
--/* in tsk->state again */
--#define TASK_DEAD		64
--#define TASK_WAKEKILL		128
--#define TASK_WAKING		256
--#define TASK_STATE_MAX		512
--
--#define TASK_STATE_TO_CHAR_STR "RSDTtZXxKW"
--
--extern char ___assert_task_state[1 - 2*!!(
--		sizeof(TASK_STATE_TO_CHAR_STR)-1 != ilog2(TASK_STATE_MAX)+1)];
--
--/* Convenience macros for the sake of set_task_state */
--#define TASK_KILLABLE		(TASK_WAKEKILL | TASK_UNINTERRUPTIBLE)
--#define TASK_STOPPED		(TASK_WAKEKILL | __TASK_STOPPED)
--#define TASK_TRACED		(TASK_WAKEKILL | __TASK_TRACED)
--
--/* Convenience macros for the sake of wake_up */
--#define TASK_NORMAL		(TASK_INTERRUPTIBLE | TASK_UNINTERRUPTIBLE)
--#define TASK_ALL		(TASK_NORMAL | __TASK_STOPPED | __TASK_TRACED)
--
--/* get_task_state() */
--#define TASK_REPORT		(TASK_RUNNING | TASK_INTERRUPTIBLE | \
--				 TASK_UNINTERRUPTIBLE | __TASK_STOPPED | \
--				 __TASK_TRACED)
--
--#define task_is_traced(task)	((task->state & __TASK_TRACED) != 0)
--#define task_is_stopped(task)	((task->state & __TASK_STOPPED) != 0)
--#define task_is_dead(task)	((task)->exit_state != 0)
--#define task_is_stopped_or_traced(task)	\
--			((task->state & (__TASK_STOPPED | __TASK_TRACED)) != 0)
--#define task_contributes_to_load(task)	\
--				((task->state & TASK_UNINTERRUPTIBLE) != 0 && \
--				 (task->flags & PF_FREEZING) == 0)
--
--#define __set_task_state(tsk, state_value)		\
--	do { (tsk)->state = (state_value); } while (0)
--#define set_task_state(tsk, state_value)		\
--	set_mb((tsk)->state, (state_value))
--
--/*
-  * set_current_state() includes a barrier so that the write of current->state
-  * is correctly serialised wrt the caller's subsequent test of whether to
-  * actually sleep:
-diff --git a/include/linux/task_state.h b/include/linux/task_state.h
-new file mode 100644
-index 0000000..36a8db8
---- /dev/null
-+++ b/include/linux/task_state.h
-@@ -0,0 +1,61 @@
-+#ifndef _LINUX_TASK_H
-+#define _LINUX_TASK_H
-+
-+/*
-+ * Task state bitmask. NOTE! These bits are also
-+ * encoded in fs/proc/array.c: get_task_state().
-+ *
-+ * We have two separate sets of flags: task->state
-+ * is about runnability, while task->exit_state are
-+ * about the task exiting. Confusing, but this way
-+ * modifying one set can't modify the other one by
-+ * mistake.
-+ */
-+#define TASK_RUNNING		0
-+#define TASK_INTERRUPTIBLE	1
-+#define TASK_UNINTERRUPTIBLE	2
-+#define __TASK_STOPPED		4
-+#define __TASK_TRACED		8
-+/* in tsk->exit_state */
-+#define EXIT_ZOMBIE		16
-+#define EXIT_DEAD		32
-+/* in tsk->state again */
-+#define TASK_DEAD		64
-+#define TASK_WAKEKILL		128
-+#define TASK_WAKING		256
-+#define TASK_STATE_MAX		512
-+
-+#define TASK_STATE_TO_CHAR_STR "RSDTtZXxKW"
-+
-+extern char ___assert_task_state[1 - 2*!!(
-+		sizeof(TASK_STATE_TO_CHAR_STR)-1 != ilog2(TASK_STATE_MAX)+1)];
-+
-+/* Convenience macros for the sake of set_task_state */
-+#define TASK_KILLABLE		(TASK_WAKEKILL | TASK_UNINTERRUPTIBLE)
-+#define TASK_STOPPED		(TASK_WAKEKILL | __TASK_STOPPED)
-+#define TASK_TRACED		(TASK_WAKEKILL | __TASK_TRACED)
-+
-+/* Convenience macros for the sake of wake_up */
-+#define TASK_NORMAL		(TASK_INTERRUPTIBLE | TASK_UNINTERRUPTIBLE)
-+#define TASK_ALL		(TASK_NORMAL | __TASK_STOPPED | __TASK_TRACED)
-+
-+/* get_task_state() */
-+#define TASK_REPORT		(TASK_RUNNING | TASK_INTERRUPTIBLE | \
-+				 TASK_UNINTERRUPTIBLE | __TASK_STOPPED | \
-+				 __TASK_TRACED)
-+
-+#define task_is_traced(task)	((task->state & __TASK_TRACED) != 0)
-+#define task_is_stopped(task)	((task->state & __TASK_STOPPED) != 0)
-+#define task_is_dead(task)	((task)->exit_state != 0)
-+#define task_is_stopped_or_traced(task)	\
-+			((task->state & (__TASK_STOPPED | __TASK_TRACED)) != 0)
-+#define task_contributes_to_load(task)	\
-+				((task->state & TASK_UNINTERRUPTIBLE) != 0 && \
-+				 (task->flags & PF_FREEZING) == 0)
-+
-+#define __set_task_state(tsk, state_value)		\
-+	do { (tsk)->state = (state_value); } while (0)
-+#define set_task_state(tsk, state_value)		\
-+	set_mb((tsk)->state, (state_value))
-+
-+#endif
-diff --git a/include/linux/wait.h b/include/linux/wait.h
-index 3efc9f3..163c2b8 100644
---- a/include/linux/wait.h
-+++ b/include/linux/wait.h
-@@ -22,6 +22,7 @@
- #include <linux/list.h>
- #include <linux/stddef.h>
- #include <linux/spinlock.h>
-+#include <linux/task_state.h>
- #include <asm/system.h>
- #include <asm/current.h>
- 
--- 
-1.7.2.3
+The change is almost aligned with Benoit Cousson :-)
+
+The subject should be something like: omap4: hwmod data: Add address 
+space and irq in L3 hwmod
+
+There is no errolog data in that patch. The changelog should be updated too.
+
+> Signed-off-by: Santosh Shilimkar<santosh.shilimkar@ti.com>
+> Signed-off-by: sricharan<r.sricharan@ti.com>
+> Tested-by: sricharan<r.sricharan@ti.com>
+> Cc: Benoit Cousson<b-cousson@ti.com>
+> ---
+>   arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   28 ++++++++++++++++++++++++++++
+>   1 files changed, 28 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> index c2806bd..95001d4 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> @@ -229,11 +229,37 @@ static struct omap_hwmod_ocp_if omap44xx_l4_cfg__l3_main_1 = {
+>   	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+>   };
+>
+> +/* L3 target configuration and error log registers */
+> +static struct omap_hwmod_irq_info omap44xx_l3_targ_irqs[] = {
+> +	{ .irq = 9  + OMAP44XX_IRQ_GIC_START },
+> +	{ .irq = 10 + OMAP44XX_IRQ_GIC_START },
+> +};
+> +
+> +static struct omap_hwmod_addr_space omap44xx_l3_targ_addrs[] = {
+> +	{
+> +		.pa_start	= 0x44000000,
+> +		.pa_end		= 0x44100000,
+> +		.flags		= ADDR_TYPE_RT,
+> +	},
+> +	{
+> +		.pa_start	= 0x44800000,
+> +		.pa_end		= 0x44900000,
+> +		.flags		= ADDR_TYPE_RT,
+> +	},
+> +	{
+> +		.pa_start	= 0x45000000,
+> +		.pa_end		= 0x45100000,
+> +		.flags		= ADDR_TYPE_RT,
+
+IIRC, we do have one address space per l3_main instance, and we do have 
+3 instances and thus 3 hwmods.
+So you should potentially duplicate the code below at hwmod structure 
+level and not only at address space level.
+
+In that case, you will re-group the 3 instances in only one omap_device.
+For the IRQ, in theory we should duplicate the same entry 3 times just 
+in case someone want to use only the second instance. But, I'm still not 
+convinced this is the right thing to do... so let's keep it only for 
+l3_main_1 for the moment.
+
+Regards,
+Benoit
