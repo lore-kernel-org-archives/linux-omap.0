@@ -1,61 +1,98 @@
-From: "Semwal, Sumit" <sumit.semwal@ti.com>
-Subject: Re: omapfb: no driver for display
-Date: Mon, 21 Feb 2011 08:10:25 +0530
-Message-ID: <AANLkTin7_0M1EtRk9V=b0sKhSSmuPfiMk99azXVOnrFh@mail.gmail.com>
-References: <AANLkTi=f=SKE=QR97ttPnBrpW=2wNGd03+q4agmu6Uap@mail.gmail.com>
- <AANLkTikpCcpkjb8i_8Gk5ey1FtgsaUenmKNDhrtjLqon@mail.gmail.com>
- <AANLkTinoLOyqBCMNKbpcJMhZHnncX1T07nbfsTThA_a4@mail.gmail.com>
- <4D5DF547.7010703@ti.com> <AANLkTik_H0vAEjB8tOyJNC4oDS1+Tp5ick0mq4jhhqMV@mail.gmail.com>
- <AANLkTimt934X7G8DSnqVQ03fbggD9-SHWW3-QPQp+yAq@mail.gmail.com>
- <AANLkTikSU_QgRNahQU3Rrb1KZ0vCNZ4FTz59hOmDaaUD@mail.gmail.com>
- <AANLkTi=piR+YKvJi+_B4fZk6TtQA_drPEAyKKcMa0oZN@mail.gmail.com>
- <AANLkTinUO69HYZUUQ-NzyB_LDLvvfBnLqtSDKimu0xy3@mail.gmail.com>
- <4D5F9F3B.6000507@ti.com> <AANLkTin1=fQOcUTgWNefW2UC-U3Dx38iJOu_sK_TayBD@mail.gmail.com>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: linux-next: manual merge of the omap_dss2 tree with the omap tree
+Date: Mon, 21 Feb 2011 14:16:50 +1100
+Message-ID: <20110221141650.71b433b7.sfr@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:57288 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754498Ab1BUCkq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Sun, 20 Feb 2011 21:40:46 -0500
-Received: by mail-yw0-f47.google.com with SMTP id 8so365755ywg.20
-        for <linux-omap@vger.kernel.org>; Sun, 20 Feb 2011 18:40:45 -0800 (PST)
-In-Reply-To: <AANLkTin1=fQOcUTgWNefW2UC-U3Dx38iJOu_sK_TayBD@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-next-owner@vger.kernel.org>
+Sender: linux-next-owner@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Senthilvadivu Guruswamy <svadivu@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Ming Lei <tom.leiming@gmail.com>
-Cc: archit taneja <archit@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, Sung Hee Park <shpark7@stanford.edu>, Bryan Wu <bryan.wu@canonical.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
+Hi Tomi,
 
-On Sat, Feb 19, 2011 at 6:10 PM, Ming Lei <tom.leiming@gmail.com> wrote:
-> Hi,
->
-> 2011/2/19 archit taneja <archit@ti.com>:
->> Hi,
->>
->> Which board are you on? For all the display devices you add in the board
->> file, you should have the corresponding drivers in the menuconfig set also.
->
-> Pandaboard.
-DVI support for pandaboard is slated to be in for 2.6.39. There are
-around 6-7 patch series which enable it. You could look at the top
-patches at:
+Today's linux-next merge of the omap_dss2 tree got a conflict in
+arch/arm/mach-omap2/board-3430sdp.c between commits
+e109f171e2f4128e867b3445c369c18830c73751 ("omap3sdp: Fix regulator
+mapping for ads7846 TS controller") and
+6b272c098f64f0451d2b19bb911d65c6cd11cfc7 ("omap3sdp: clean regulator
+supply mapping in board file") from the omap tree and various commits
+from the omap_dss2 tree.
 
-git://dev.omapzoom.org/pub/scm/anand/linux-omap-usb.git, branch:
-display-patches-for-v2.6.38-rc4.
+So, I have no idea how to fix this up ... Can you guys come to some
+argreement about who does what, please?  I have ended up with the merge
+fix below, but I have no idea if it will even build, much less be
+semantically correct, sorry.
 
-Best regards,
-~Sumit.
->
->> For example, in board3430-sdp.c, we add a sharp ls, a dvi and venc panel. We
->> therefore select sharpls and generic dpi panel in menuconfig.
->> and at least DPI and VENC in the interfaces menu.
->
-> I also selected all the options above.
->
-> thanks,
-> --
-> Lei Ming
->
+Do these trees get merged separately by Linus?  If not, then maybe I
+should just be merging the one tree that combines all the omap work and
+let you guys figure out the merge mess.
+
+-- 
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
+
+diff --cc arch/arm/mach-omap2/board-3430sdp.c
+index 76a260f,33ff4f6..0000000
+--- a/arch/arm/mach-omap2/board-3430sdp.c
++++ b/arch/arm/mach-omap2/board-3430sdp.c
+@@@ -307,18 -307,9 +307,6 @@@ static struct omap_dss_board_info sdp34
+  	.default_device	= &sdp3430_lcd_device,
+  };
+  
+- static struct platform_device sdp3430_dss_device = {
+- 	.name		= "omapdss",
+- 	.id		= -1,
+- 	.dev		= {
+- 		.platform_data = &sdp3430_dss_data,
+- 	},
+- };
+- 
+- static struct platform_device *sdp3430_devices[] __initdata = {
+- 	&sdp3430_dss_device,
+- };
+- 
+ -static struct regulator_consumer_supply sdp3430_vdda_dac_supply =
+ -	REGULATOR_SUPPLY("vdda_dac", "omap_venc");
+ -
+  static struct omap_board_config_kernel sdp3430_config[] __initdata = {
+  };
+  
+@@@ -402,34 -413,6 +390,35 @@@ static struct twl4030_madc_platform_dat
+  	.irq_line	= 1,
+  };
+  
+ +/* regulator consumer mappings */
+ +
+ +/* ads7846 on SPI */
+ +static struct regulator_consumer_supply sdp3430_vaux3_supplies[] = {
+ +	REGULATOR_SUPPLY("vcc", "spi1.0"),
+ +};
+ +
+ +static struct regulator_consumer_supply sdp3430_vdda_dac_supplies[] = {
+ +	REGULATOR_SUPPLY("vdda_dac", "omapdss"),
+ +};
+ +
+ +/* VPLL2 for digital video outputs */
+ +static struct regulator_consumer_supply sdp3430_vpll2_supplies[] = {
+ +	REGULATOR_SUPPLY("vdds_dsi", "omapdss"),
+++	REGULATOR_SUPPLY("vdds_dsi", "omap_dsi1"),
+ +};
+ +
+ +static struct regulator_consumer_supply sdp3430_vmmc1_supplies[] = {
+ +	REGULATOR_SUPPLY("vmmc", "mmci-omap-hs.0"),
+ +};
+ +
+ +static struct regulator_consumer_supply sdp3430_vsim_supplies[] = {
+ +	REGULATOR_SUPPLY("vmmc_aux", "mmci-omap-hs.0"),
+ +};
+ +
+ +static struct regulator_consumer_supply sdp3430_vmmc2_supplies[] = {
+ +	REGULATOR_SUPPLY("vmmc", "mmci-omap-hs.1"),
+ +};
+ +
+  /*
+   * Apply all the fixed voltages since most versions of U-Boot
+   * don't bother with that initialization.
