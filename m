@@ -1,41 +1,53 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 1/1] headers: fix circular dependency between
- linux/sched.h and linux/wait.h
-Date: Mon, 21 Feb 2011 14:30:49 +0200
-Message-ID: <20110221123049.GC23087@legolas.emea.dhcp.ti.com>
-References: <1298283649-24532-1-git-send-email-dacohen@gmail.com>
- <1298283649-24532-2-git-send-email-dacohen@gmail.com>
- <AANLkTimwvgLvpvndCqcd_okA2Kk4cu7z4bD3QXTdgWJW@mail.gmail.com>
-Reply-To: balbi@ti.com
+From: Samuel Ortiz <sameo@linux.intel.com>
+Subject: Re: [PATCH v2 1/2] regulator: twl: add clk32kg to twl-regulator
+Date: Mon, 21 Feb 2011 13:34:46 +0100
+Message-ID: <20110221123445.GE10686@sortiz-mobl>
+References: <1297343690-4557-1-git-send-email-balajitk@ti.com>
+ <20110211111906.GF7180@opensource.wolfsonmicro.com>
+ <20110214211558.GL20795@atomide.com>
+ <20110215000143.GV20795@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mga03.intel.com ([143.182.124.21]:36726 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753844Ab1BUMeu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 21 Feb 2011 07:34:50 -0500
 Content-Disposition: inline
-In-Reply-To: <AANLkTimwvgLvpvndCqcd_okA2Kk4cu7z4bD3QXTdgWJW@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: David Cohen <dacohen@gmail.com>, linux-kernel@vger.kernel.org, mingo@elte.hu, peterz@infradead.org, linux-omap@vger.kernel.org, linux-media@vger.kernel.org
+In-Reply-To: <20110215000143.GV20795@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, Balaji T K <balajitk@ti.com>, lrg@slimlogic.co.uk, linux-omap@vger.kernel.org
 
-On Mon, Feb 21, 2011 at 01:05:51PM +0200, Alexey Dobriyan wrote:
-> On Mon, Feb 21, 2011 at 12:20 PM, David Cohen <dacohen@gmail.com> wrote:
-> > Currently sched.h and wait.h have circular dependency between both.
-> > wait.h defines macros wake_up*() which use macros TASK_* defined by
-> > sched.h. But as sched.h indirectly includes wait.h, such wait.h header
-> > file can't include sched.h too. The side effect is when some file
-> > includes wait.h and tries to use its wake_up*() macros, it's necessary
-> > to include sched.h also.
-> > This patch moves all TASK_* macros from linux/sched.h to a new header
-> > file linux/task_sched.h. This way, both sched.h and wait.h can include
-> > task_sched.h and fix the circular dependency. No need to include sched.h
-> > anymore when wake_up*() macros are used.
+Hi Tony,
+
+On Mon, Feb 14, 2011 at 04:01:43PM -0800, Tony Lindgren wrote:
+> * Tony Lindgren <tony@atomide.com> [110214 13:14]:
+> > * Mark Brown <broonie@opensource.wolfsonmicro.com> [110211 03:17]:
+> > > On Thu, Feb 10, 2011 at 06:44:50PM +0530, Balaji T K wrote:
+> > > > In OMAP4 Blaze and Panda, 32KHz clock to WLAN is supplied from Phoenix TWL6030.
+> > > > The 32KHz clock state (ON/OFF) is configured in CLK32KG_CFG_[GRP, TRANS, STATE]
+> > > > register. This follows the same register programming model as other regulators
+> > > > in TWL6030. So add CLK32KG as pseudo regulator.
+> > > > 
+> > > > Signed-off-by: Balaji T K <balajitk@ti.com>
+> > > 
+> > > Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+> > > 
+> > > Though I can see someone wanting an adaption to the clock API on top of
+> > > this at some point.
+> > 
+> > Samuel should queue this one, I'll queue 2/2 of this series. These
+> > can be queued separately.
 > 
-> Just include <linux/sched.h> in your driver.
-> This include splitting in small pieces is troublesome as well.
+> Oops no they can't, the second patch depends on clk32kg. Samuel, can
+> you please queue both? Will reply to the second one with my ack.
+Done, both patches applied with relevant ACKs.
 
-so, simply to call wake_up*() we need to know everything there is to
-know about the scheduler ? I rather have the split done and kill the
-circular dependency. What does Mingo and Peter think about this ?
+Cheers,
+Samuel.
 
 -- 
-balbi
+Intel Open Source Technology Centre
+http://oss.intel.com/
