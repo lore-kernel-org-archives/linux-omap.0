@@ -1,78 +1,107 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: hwmod: multi-omap: disabling smartreflex on AM3517
-Date: Tue, 22 Feb 2011 00:40:16 +0100
-Message-ID: <4D62F7E0.1000102@ti.com>
-References: <B85A65D85D7EB246BE421B3FB0FBB5930248A017D9@dbde02.ent.ti.com> <4D5A75FF.5040703@ti.com> <B85A65D85D7EB246BE421B3FB0FBB593024B83BF08@dbde02.ent.ti.com> <B85A65D85D7EB246BE421B3FB0FBB593024BD4894D@dbde02.ent.ti.com> <4D623ED8.4050906@ti.com> <B85A65D85D7EB246BE421B3FB0FBB593024BD489B1@dbde02.ent.ti.com> <4D6273FE.3000205@ti.com> <B85A65D85D7EB246BE421B3FB0FBB593024BD48BED@dbde02.ent.ti.com>
+From: David Cohen <dacohen@gmail.com>
+Subject: Re: [PATCH v3 2/2] OMAP: IOMMU: add support to callback during fault handling
+Date: Tue, 22 Feb 2011 01:48:23 +0200
+Message-ID: <AANLkTi=ZY_GidTi8b1HGn342H3Us3r0bYNY2Qto7LTjq@mail.gmail.com>
+References: <1297884951-3019-1-git-send-email-dacohen@gmail.com>
+	<1297884951-3019-3-git-send-email-dacohen@gmail.com>
+	<AANLkTikbjZ7GH7+bx94r6saYuGzCt9aito-Y8NS94SoQ@mail.gmail.com>
+	<AANLkTi=rJZo2KwryYznFp6Qq25Oh0+F44OKV-khuQyte@mail.gmail.com>
+	<AANLkTi=ETUza9vYLxucB4hs-7x9+tDTY8mxUPziWvnig@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:43150 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751006Ab1BUXkS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Feb 2011 18:40:18 -0500
-Received: from dlep36.itg.ti.com ([157.170.170.91])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1LNeHkc025853
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Mon, 21 Feb 2011 17:40:17 -0600
-Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
-	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id p1LNeH2F013020
-	for <linux-omap@vger.kernel.org>; Mon, 21 Feb 2011 17:40:17 -0600 (CST)
-Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p1LNeHF8022455
-	for <linux-omap@vger.kernel.org>; Mon, 21 Feb 2011 17:40:17 -0600 (CST)
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593024BD48BED@dbde02.ent.ti.com>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:40146 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750943Ab1BUXsZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Feb 2011 18:48:25 -0500
+Received: by wyb38 with SMTP id 38so1699854wyb.19
+        for <linux-omap@vger.kernel.org>; Mon, 21 Feb 2011 15:48:24 -0800 (PST)
+In-Reply-To: <AANLkTi=ETUza9vYLxucB4hs-7x9+tDTY8mxUPziWvnig@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Premi, Sanjeev" <premi@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Cc: hiroshi.doyu@nokia.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, Felipe Balbi <balbi@ti.com>
 
-On 2/21/2011 4:41 PM, Premi, Sanjeev wrote:
-
-[...]
-
->> The comment is already there BTW, so you just have to replace that by some
->> real code:-)
+On Tue, Feb 22, 2011 at 1:25 AM, Ramirez Luna, Omar <omar.ramirez@ti.co=
+m> wrote:
+> Hi,
 >
-> [sp] I have already added real code, but the problem lies here:
->       On same file (few lines up) omap_chip.oc is assigned value of
->       CHIP_IS_OMAP3430. CHIP_IS_AM3517 now needs to be added to all
->       places where CHIP_IS_OMAP3430ES3_1 is chosen.
+> On Mon, Feb 21, 2011 at 3:12 PM, David Cohen <dacohen@gmail.com> wrot=
+e:
+>> Generic errors codes make easier to threat possible IOMMU users whic=
+h
+>> have (partially or totally) common drivers for different OMAP
+>> versions.
 >
->       All this to support a chip that differs in 4 peripherals and IVA.
->       ... and this is what I was planning to minimize.
+> Agree then.
 
-This is what we've being using for some time to handle small diff 
-between ES.
+Good we agreed on that.
 
->       Leaving aside AM3517; we have AM3703 - same as OMAP3630 but without
->       IVA and SGX. Here obviously hwmods for either of IVA, SGX shouldn't
->       be initialized. Isn't it?
 >
->       Creating CHIP_IS_ ... here would be an overkill. Thoughts?
+>>>> + =C2=A0 =C2=A0 =C2=A0 /* Fault callback or TLB/PTE Dynamic loadin=
+g */
+>>>> + =C2=A0 =C2=A0 =C2=A0 if (obj->isr && !obj->isr(obj, da, errs, ob=
+j->isr_priv))
+>>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0return IRQ_=
+HANDLED;
+>>>
+>>> BTW, why not changing the name isr for cb, it is confusing since th=
+ere
+>>> is another fault_isr called by mmu, AFAIK nobody uses obj->isr
+>>
+>> The main purpose of this function is to be an ISR, not only callback=
+=2E
+>
+> Yep, I just thought it was a bit too much of:
+> (1) The real isr: iommu_fault_handler, set on request_irq
+> (2) A plugged fault_isr for mach specific code: omap2_iommu_fault_isr=
+,
+> for error reporting.
+> (3) And then a plugged custom isr, to be set by the user.
+>
+> Feel free to ignore.
 
-It depends how many variant you plan to do :-) We still have some room 
-for 18 more variants / chip.
+(1) does nothing but to call (2) and then (3) if it exists and print
+error message.
+(2) as you said, it's mach specific and necessary for the generic upper=
+ layer.
+(3) does what the IOMMU user wants and may replace (1) if it returns 0.
 
-You can still create a new CHIP_IS, and add a alias 
-CHIP_IS_OMAP36XX_COMMON = CHIP_IS_OMAP3630 | CHIP_IS_AM3703 and then 
-replace all the existing entry with that alias.
+They belong to different layers and should coexist.
 
-If we want to avoid using these defines, you will have potentially to 
-add a feature entry in every hwmod / clock / power domain entry that 
-already uses the omap_chip today.
-And then during the init we can filter on both the chip revision and 
-chip features.
-The drawback is that we are going to waste at least 300 x 32 bits to 
-store that :-)
-Whereas with the extra CHIP_IS_, it is just a couple of defines... no 
-memory impact.
+>
+>>> So I think the following will be bad practice:
+>>>
+>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0mmu =3D iommu_get("iva2");
+>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0if (!IS_ERR(mmu))
+>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0mmu->isr =3D=
+ mmu_fault_callback;
+>>>
+>>> Shall we think anything to prevent such mis-usage?
+>>
+>> Well, the IOMMU user has access to IOMMU obj, so it can not only
+>> change the (*isr)() but to mess with a lot of other stuff. The only
+>> way to prevent it is to avoid user to have obj. But then, this fix (=
+or
+>> issue) does not belong to this patch.
+>
+> Agree, just pointing out.
 
-In between, you can consider a hwmod class to feature mapping, in order 
-to know what hwmod class will be excluded if the feature is not there 
-during the iteration.
+That's a valid point, but it requires an intrusive approach to prevent
+such mis-usage. For now we must trust the user won't mess with obj.
 
-I think I still prefer the first solution.
+Br,
 
-Regards,
-Benoit
+David
+
+>
+> Regards,
+>
+> Omar
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
