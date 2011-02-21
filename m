@@ -1,53 +1,100 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 1/3] OMAP: smartreflex: move plat/smartreflex.h to	mach-omap2/smartreflex.h
-Date: Mon, 21 Feb 2011 10:55:58 +0100
-Message-ID: <4D6236AE.7000407@ti.com>
-References: <20110221020231.7598.14024.stgit@twilight.localdomain> <20110221020851.7598.57763.stgit@twilight.localdomain>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: hwmod: multi-omap: disabling smartreflex on AM3517
+Date: Mon, 21 Feb 2011 15:27:21 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024BD4894D@dbde02.ent.ti.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB5930248A017D9@dbde02.ent.ti.com>
+ <4D5A75FF.5040703@ti.com>
+ <B85A65D85D7EB246BE421B3FB0FBB593024B83BF08@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:33195 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:56296 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751386Ab1BUJ4E (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 21 Feb 2011 04:56:04 -0500
-In-Reply-To: <20110221020851.7598.57763.stgit@twilight.localdomain>
+	id S1750936Ab1BUJ50 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Feb 2011 04:57:26 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1L9vMs4024663
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Mon, 21 Feb 2011 03:57:25 -0600
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id p1L9vM7e005852
+	for <linux-omap@vger.kernel.org>; Mon, 21 Feb 2011 15:27:22 +0530 (IST)
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593024B83BF08@dbde02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>
 
-Hi Paul,
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Premi, Sanjeev
+> Sent: Friday, February 18, 2011 5:43 PM
+> To: Cousson, Benoit
+> Cc: linux-omap@vger.kernel.org
+> Subject: RE: hwmod: multi-omap: disabling smartreflex on AM3517
+> 
+> > -----Original Message-----
+> > From: Cousson, Benoit
+> > Sent: Tuesday, February 15, 2011 6:18 PM
+> > To: Premi, Sanjeev
+> > Cc: linux-omap@vger.kernel.org
+> > Subject: Re: hwmod: multi-omap: disabling smartreflex on AM3517
+> >
+> > Hi Sanjeev,
+> >
+> > On 2/15/2011 12:51 PM, Premi, Sanjeev wrote:
+> > > AM3517 doesn't support SmartReflex.
+> > >
+> > > However, these HWMODS are defined in omap3xxxx_hwmods[]:
+> > > 	&omap34xx_sr1_hwmod,
+> > > 	&omap34xx_sr2_hwmod,
+> > > 	&omap36xx_sr1_hwmod,
+> > > 	&omap36xx_sr2_hwmod,
+> > >
+> > > (similar definition in l4_slaves as well)
+> > >
+> > > This leads to crash when booting the kernel on AM3517EVM during
+> > > _setup().
+> > >
+> > > I see the field .omap_chip being initialized; but not used.
+> >
+> > Yes, it is. During the hwmod initialization (omap_hwmod_init), only the
+> > hwmods that match the correct chip version are kept.
+> > I guess that your problem is that AM3517 is probably seen as a regular
+> > 3430 for the moment.
+> >
+> > > If I were to use this - along with cpu_is_omap3517(), I would need
+> > > to define a new flag e.g. CHIP_IS_AM3517 and add it to almost all
+> > > devices defined in omap_hwmod_3xxx_data.c.
+> > >
+> > > Before going all out on making changes, wanted to check if there is
+> > > a better way. Has this/similar possibility been considered earlier?
+> >
+> > Well, this is the best way to do that for my point of view. This
+> > .omap_chip field was done for that purpose.
+> > During device init, the sr code will do query for the smartreflex hwmod
+> > and will failed, thus avoiding to do further initialization.
+> 
+> [sp] Trying to avoid big change, and thinking 'narrowly' about this
+>      issue in isolation, I had been mulling adding SmartReflex to
+>      the omap3_features; and (somehow) using the same.
+> 
+>      But after noticing the patch related to USBOTG on AM35x, I think
+>      original proposal is unambiguous and best way forward.
+> 
+>      Started working on the patch. Hope to have it ready later tonight
+>      or tomorrow.
+> 
 
-On 2/21/2011 3:08 AM, Paul Walmsley wrote:
-> There's no reason for this header file to be in
-> plat-omap/include/plat/smartreflex.h.  The hardware devices are in
-> OMAP2+ SoCs only.  Leaving this header file in plat-omap causes
-> problems due to cross-dependencies with other header files that should
-> live in mach-omap2/.
->
-> Signed-off-by: Paul Walmsley<paul@pwsan.com>
-> ---
->   arch/arm/mach-omap2/omap_hwmod_3xxx_data.c    |    2 +-
->   arch/arm/mach-omap2/smartreflex-class3.c      |    2 +-
->   arch/arm/mach-omap2/smartreflex.c             |    2 +-
->   arch/arm/mach-omap2/smartreflex.h             |    0
->   arch/arm/mach-omap2/sr_device.c               |    2 +-
->   5 files changed, 4 insertions(+), 4 deletions(-)
->   rename arch/arm/{plat-omap/include/plat/smartreflex.h =>  mach-omap2/smartreflex.h} (100%)
->
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> index 8d81813..7f0b5e7 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> @@ -21,13 +21,13 @@
->   #include<plat/l4_3xxx.h>
->   #include<plat/i2c.h>
->   #include<plat/gpio.h>
-> -#include<plat/smartreflex.h>
+[sp] Just came across another issue while making this patch:
+     Checking for presence of IVA.
 
-In fact that include is not used for OMAP4 data and does not seems to be 
-used either in this file.
-I guess you can simply remove it.
+     There is not IVA on AM3517. With existing CHIP_IS_3430 flag, the
+     hwmod for IVA will be initialized.
 
-Benoit
+     Benoit, Any ideas here?
+
+~sanjeev
+
