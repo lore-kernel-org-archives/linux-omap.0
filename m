@@ -1,126 +1,219 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: [PATCHv2] omap: rx51: Add SI4713 FM transmitter
-Date: Mon, 21 Feb 2011 10:09:21 +0200
-Message-ID: <1298275761-21486-1-git-send-email-jhnikula@gmail.com>
-References: <20110221095421.6576a98d.jhnikula@gmail.com>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH v3 2/2] OMAP: IOMMU: add support to callback during
+ fault handling
+Date: Mon, 21 Feb 2011 10:18:56 +0200 (EET)
+Message-ID: <20110221.101856.76372714451194378.Hiroshi.DOYU@nokia.com>
+References: <1297884951-3019-1-git-send-email-dacohen@gmail.com>
+	<1297884951-3019-3-git-send-email-dacohen@gmail.com>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ey0-f180.google.com ([209.85.215.180]:45861 "EHLO
-	mail-ey0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752189Ab1BUIIo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Feb 2011 03:08:44 -0500
-Received: by eyg24 with SMTP id 24so92125eyg.11
-        for <linux-omap@vger.kernel.org>; Mon, 21 Feb 2011 00:08:43 -0800 (PST)
-In-Reply-To: <20110221095421.6576a98d.jhnikula@gmail.com>
+Received: from smtp.nokia.com ([147.243.128.26]:27433 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752585Ab1BUITs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 21 Feb 2011 03:19:48 -0500
+In-Reply-To: <1297884951-3019-3-git-send-email-dacohen@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, Varadarajan Charulatha <charu@ti.com>, Jarkko Nikula <jhnikula@gmail.com>
+To: dacohen@gmail.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com
 
-Add SI4713 FM transmitter supplies, platform data and setup to RX-51/N900.
-It is connected to line output signals of TLV320AIC34 codec A part.
-Driver can be either built-in or a module. It can be tuned with v4l2-ctl
-from ivtv-utils. Following examples illustrate the use of it:
+From: David Cohen <dacohen@gmail.com>
+Subject: [PATCH v3 2/2] OMAP: IOMMU: add support to callback during fault handling
+Date: Wed, 16 Feb 2011 21:35:51 +0200
 
-	v4l2-ctl -d /dev/radio0 --set-ctrl=mute=0 (power up)
-	v4l2-ctl -d /dev/radio0 -f 107900 (tune 107.9 MHz)
+> Add support to register an isr for IOMMU fault situations and adapt it
+> to allow such (*isr)() to be used as fault callback. Drivers using IOMMU
+> module might want to be informed when errors happen in order to debug it
+> or react.
+> 
+> Signed-off-by: David Cohen <dacohen@gmail.com>
+> ---
+>  arch/arm/mach-omap2/iommu2.c            |   17 +++++++++-
+>  arch/arm/plat-omap/include/plat/iommu.h |   14 ++++++++-
+>  arch/arm/plat-omap/iommu.c              |   52 ++++++++++++++++++++++---------
+>  3 files changed, 65 insertions(+), 18 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/iommu2.c b/arch/arm/mach-omap2/iommu2.c
+> index 49a1e5e..adb083e 100644
+> --- a/arch/arm/mach-omap2/iommu2.c
+> +++ b/arch/arm/mach-omap2/iommu2.c
+> @@ -146,18 +146,31 @@ static void omap2_iommu_set_twl(struct iommu *obj, bool on)
+>  static u32 omap2_iommu_fault_isr(struct iommu *obj, u32 *ra)
+>  {
+>  	u32 stat, da;
+> +	u32 errs = 0;
+>  
+>  	stat = iommu_read_reg(obj, MMU_IRQSTATUS);
+>  	stat &= MMU_IRQ_MASK;
+> -	if (!stat)
+> +	if (!stat) {
+> +		*ra = 0;
+>  		return 0;
+> +	}
+>  
+>  	da = iommu_read_reg(obj, MMU_FAULT_AD);
+>  	*ra = da;
+>  
+> +	if (stat & MMU_IRQ_TLBMISS)
+> +		errs |= OMAP_IOMMU_ERR_TLB_MISS;
+> +	if (stat & MMU_IRQ_TRANSLATIONFAULT)
+> +		errs |= OMAP_IOMMU_ERR_TRANS_FAULT;
+> +	if (stat & MMU_IRQ_EMUMISS)
+> +		errs |= OMAP_IOMMU_ERR_EMU_MISS;
+> +	if (stat & MMU_IRQ_TABLEWALKFAULT)
+> +		errs |= OMAP_IOMMU_ERR_TBLWALK_FAULT;
+> +	if (stat & MMU_IRQ_MULTIHITFAULT)
+> +		errs |= OMAP_IOMMU_ERR_MULTIHIT_FAULT;
+>  	iommu_write_reg(obj, stat, MMU_IRQSTATUS);
+>  
+> -	return stat;
+> +	return errs;
+>  }
+>  
+>  static void omap2_tlb_read_cr(struct iommu *obj, struct cr_regs *cr)
+> diff --git a/arch/arm/plat-omap/include/plat/iommu.h b/arch/arm/plat-omap/include/plat/iommu.h
+> index 19cbb5e..174f1b9 100644
+> --- a/arch/arm/plat-omap/include/plat/iommu.h
+> +++ b/arch/arm/plat-omap/include/plat/iommu.h
+> @@ -31,6 +31,7 @@ struct iommu {
+>  	struct clk	*clk;
+>  	void __iomem	*regbase;
+>  	struct device	*dev;
+> +	void		*isr_priv;
 
-	v4l2-ctl -d /dev/radio0 --set-ctrl=mute=1 (power down)
+Ideally I'd like to avoid having "isr_priv" in iommu since it's not
+used for iommu but client needs the place to pass its info to its
+custom handler. Any better idea?
 
-Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
----
-v2: Using pr_err instead of printk. Thanks to
-"Varadarajan, Charulatha" <charu@ti.com> for noticing.
----
- arch/arm/mach-omap2/board-rx51-peripherals.c |   44 ++++++++++++++++++++++++++
- 1 files changed, 44 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
-index e75e240..17ef1af 100644
---- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-+++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-@@ -36,6 +36,8 @@
- 
- #include <sound/tlv320aic3x.h>
- #include <sound/tpa6130a2-plat.h>
-+#include <media/radio-si4713.h>
-+#include <media/si4713.h>
- 
- #include <../drivers/staging/iio/light/tsl2563.h>
- 
-@@ -47,6 +49,8 @@
- 
- #define RX51_WL1251_POWER_GPIO		87
- #define RX51_WL1251_IRQ_GPIO		42
-+#define RX51_FMTX_RESET_GPIO		163
-+#define RX51_FMTX_IRQ			53
- 
- /* list all spi devices here */
- enum {
-@@ -357,10 +361,14 @@ static struct regulator_consumer_supply rx51_vio_supplies[] = {
- 	REGULATOR_SUPPLY("DVDD", "2-0018"),
- 	REGULATOR_SUPPLY("IOVDD", "2-0019"),
- 	REGULATOR_SUPPLY("DVDD", "2-0019"),
-+	/* Si4713 IO supply */
-+	REGULATOR_SUPPLY("vio", "2-0063"),
- };
- 
- static struct regulator_consumer_supply rx51_vaux1_consumers[] = {
- 	REGULATOR_SUPPLY("vdds_sdi", "omapdss"),
-+	/* Si4713 supply */
-+	REGULATOR_SUPPLY("vdd", "2-0063"),
- };
- 
- static struct regulator_consumer_supply rx51_vdac_supply[] = {
-@@ -511,6 +519,41 @@ static struct regulator_init_data rx51_vio = {
- 	.consumer_supplies	= rx51_vio_supplies,
- };
- 
-+static struct si4713_platform_data rx51_si4713_i2c_data __initdata_or_module = {
-+	.gpio_reset	= RX51_FMTX_RESET_GPIO,
-+};
-+
-+static struct i2c_board_info rx51_si4713_board_info __initdata_or_module = {
-+	I2C_BOARD_INFO("si4713", SI4713_I2C_ADDR_BUSEN_HIGH),
-+	.platform_data	= &rx51_si4713_i2c_data,
-+};
-+
-+static struct radio_si4713_platform_data rx51_si4713_data __initdata_or_module = {
-+	.i2c_bus	= 2,
-+	.subdev_board_info = &rx51_si4713_board_info,
-+};
-+
-+static struct platform_device rx51_si4713_dev __initdata_or_module = {
-+	.name	= "radio-si4713",
-+	.id	= -1,
-+	.dev	= {
-+		.platform_data	= &rx51_si4713_data,
-+	},
-+};
-+
-+static __init void rx51_init_si4713(void)
-+{
-+	int err;
-+
-+	err = gpio_request_one(RX51_FMTX_IRQ, GPIOF_DIR_IN, "si4713 irq");
-+	if (err) {
-+		pr_err("Cannot request si4713 irq gpio. %d\n", err);
-+		return;
-+	}
-+	rx51_si4713_board_info.irq = gpio_to_irq(RX51_FMTX_IRQ);
-+	platform_device_register(&rx51_si4713_dev);
-+}
-+
- static int rx51_twlgpio_setup(struct device *dev, unsigned gpio, unsigned n)
- {
- 	/* FIXME this gpio setup is just a placeholder for now */
-@@ -921,6 +964,7 @@ void __init rx51_peripherals_init(void)
- 	board_smc91x_init();
- 	rx51_add_gpio_keys();
- 	rx51_init_wl1251();
-+	rx51_init_si4713();
- 	spi_register_board_info(rx51_peripherals_spi_board_info,
- 				ARRAY_SIZE(rx51_peripherals_spi_board_info));
- 
--- 
-1.7.2.3
-
+>  	unsigned int	refcount;
+>  	struct mutex	iommu_lock;	/* global for this whole object */
+> @@ -47,7 +48,7 @@ struct iommu {
+>  	struct list_head	mmap;
+>  	struct mutex		mmap_lock; /* protect mmap */
+>  
+> -	int (*isr)(struct iommu *obj);
+> +	int (*isr)(struct iommu *obj, u32 da, u32 iommu_errs, void *priv);
+>  
+>  	void *ctx; /* iommu context: registres saved area */
+>  	u32 da_start;
+> @@ -109,6 +110,13 @@ struct iommu_platform_data {
+>  	u32 da_end;
+>  };
+>  
+> +/* IOMMU errors */
+> +#define OMAP_IOMMU_ERR_TLB_MISS		(1 << 0)
+> +#define OMAP_IOMMU_ERR_TRANS_FAULT	(1 << 1)
+> +#define OMAP_IOMMU_ERR_EMU_MISS		(1 << 2)
+> +#define OMAP_IOMMU_ERR_TBLWALK_FAULT	(1 << 3)
+> +#define OMAP_IOMMU_ERR_MULTIHIT_FAULT	(1 << 4)
+> +
+>  #if defined(CONFIG_ARCH_OMAP1)
+>  #error "iommu for this processor not implemented yet"
+>  #else
+> @@ -161,6 +169,10 @@ extern size_t iopgtable_clear_entry(struct iommu *obj, u32 iova);
+>  extern int iommu_set_da_range(struct iommu *obj, u32 start, u32 end);
+>  extern struct iommu *iommu_get(const char *name);
+>  extern void iommu_put(struct iommu *obj);
+> +extern int iommu_set_isr(const char *name,
+> +			 int (*isr)(struct iommu *obj, u32 da, u32 iommu_errs,
+> +				    void *priv),
+> +			 void *isr_priv);
+>  
+>  extern void iommu_save_ctx(struct iommu *obj);
+>  extern void iommu_restore_ctx(struct iommu *obj);
+> diff --git a/arch/arm/plat-omap/iommu.c b/arch/arm/plat-omap/iommu.c
+> index f55f458..b0e0efc 100644
+> --- a/arch/arm/plat-omap/iommu.c
+> +++ b/arch/arm/plat-omap/iommu.c
+> @@ -780,25 +780,19 @@ static void iopgtable_clear_entry_all(struct iommu *obj)
+>   */
+>  static irqreturn_t iommu_fault_handler(int irq, void *data)
+>  {
+> -	u32 stat, da;
+> +	u32 da, errs;
+>  	u32 *iopgd, *iopte;
+> -	int err = -EIO;
+>  	struct iommu *obj = data;
+>  
+>  	if (!obj->refcount)
+>  		return IRQ_NONE;
+>  
+> -	/* Dynamic loading TLB or PTE */
+> -	if (obj->isr)
+> -		err = obj->isr(obj);
+> -
+> -	if (!err)
+> -		return IRQ_HANDLED;
+> -
+>  	clk_enable(obj->clk);
+> -	stat = iommu_report_fault(obj, &da);
+> +	errs = iommu_report_fault(obj, &da);
+>  	clk_disable(obj->clk);
+> -	if (!stat)
+> +
+> +	/* Fault callback or TLB/PTE Dynamic loading */
+> +	if (obj->isr && !obj->isr(obj, da, errs, obj->isr_priv))
+>  		return IRQ_HANDLED;
+>  
+>  	iommu_disable(obj);
+> @@ -806,15 +800,16 @@ static irqreturn_t iommu_fault_handler(int irq, void *data)
+>  	iopgd = iopgd_offset(obj, da);
+>  
+>  	if (!iopgd_is_table(*iopgd)) {
+> -		dev_err(obj->dev, "%s: da:%08x pgd:%p *pgd:%08x\n", obj->name,
+> -			da, iopgd, *iopgd);
+> +		dev_err(obj->dev, "%s: errs:0x%08x da:0x%08x pgd:0x%p "
+> +			"*pgd:px%08x\n", obj->name, errs, da, iopgd, *iopgd);
+>  		return IRQ_NONE;
+>  	}
+>  
+>  	iopte = iopte_offset(iopgd, da);
+>  
+> -	dev_err(obj->dev, "%s: da:%08x pgd:%p *pgd:%08x pte:%p *pte:%08x\n",
+> -		obj->name, da, iopgd, *iopgd, iopte, *iopte);
+> +	dev_err(obj->dev, "%s: errs:0x%08x da:0x%08x pgd:0x%p *pgd:0x%08x "
+> +		"pte:0x%p *pte:0x%08x\n", obj->name, errs, da, iopgd, *iopgd,
+> +		iopte, *iopte);
+>  
+>  	return IRQ_NONE;
+>  }
+> @@ -917,6 +912,33 @@ void iommu_put(struct iommu *obj)
+>  }
+>  EXPORT_SYMBOL_GPL(iommu_put);
+>  
+> +int iommu_set_isr(const char *name,
+> +		  int (*isr)(struct iommu *obj, u32 da, u32 iommu_errs,
+> +			     void *priv),
+> +		  void *isr_priv)
+> +{
+> +	struct device *dev;
+> +	struct iommu *obj;
+> +
+> +	dev = driver_find_device(&omap_iommu_driver.driver, NULL, (void *)name,
+> +				 device_match_by_alias);
+> +	if (!dev)
+> +		return -ENODEV;
+> +
+> +	obj = to_iommu(dev);
+> +	mutex_lock(&obj->iommu_lock);
+> +	if (obj->refcount != 0) {
+> +		mutex_unlock(&obj->iommu_lock);
+> +		return -EBUSY;
+> +	}
+> +	obj->isr = isr;
+> +	obj->isr_priv = isr_priv;
+> +	mutex_unlock(&obj->iommu_lock);
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(iommu_set_isr);
+> +
+>  /*
+>   *	OMAP Device MMU(IOMMU) detection
+>   */
+> -- 
+> 1.7.2.3
+> 
