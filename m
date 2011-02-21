@@ -1,216 +1,297 @@
-From: David Cohen <dacohen@gmail.com>
-Subject: Re: [PATCH v3 2/2] OMAP: IOMMU: add support to callback during fault handling
-Date: Mon, 21 Feb 2011 23:12:20 +0200
-Message-ID: <AANLkTi=rJZo2KwryYznFp6Qq25Oh0+F44OKV-khuQyte@mail.gmail.com>
-References: <1297884951-3019-1-git-send-email-dacohen@gmail.com>
-	<1297884951-3019-3-git-send-email-dacohen@gmail.com>
-	<AANLkTikbjZ7GH7+bx94r6saYuGzCt9aito-Y8NS94SoQ@mail.gmail.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [patch-v2.6.39 6/7] OMAP4430: hwmod data: Adding USBOTG
+Date: Mon, 21 Feb 2011 22:36:48 +0100
+Message-ID: <4D62DAF0.9050301@ti.com>
+References: <20110217165953.GR20795@atomide.com> <4D5D5770.9020501@ti.com> <20110217171747.GC14574@legolas.emea.dhcp.ti.com> <4D5D59E5.6020307@ti.com> <20110217173711.GF14574@legolas.emea.dhcp.ti.com> <4D5D5F13.2010602@ti.com> <20110217181849.GV20795@atomide.com> <4D5E7DFF.7020609@ti.com> <20110218154135.GF11151@legolas.emea.dhcp.ti.com> <4D5EA36A.4000903@ti.com> <20110221182213.GD15225@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/mixed;
+	boundary="------------020600090501030202090907"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:52787 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751642Ab1BUVMW convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Feb 2011 16:12:22 -0500
-Received: by wwa36 with SMTP id 36so6551150wwa.1
-        for <linux-omap@vger.kernel.org>; Mon, 21 Feb 2011 13:12:20 -0800 (PST)
-In-Reply-To: <AANLkTikbjZ7GH7+bx94r6saYuGzCt9aito-Y8NS94SoQ@mail.gmail.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43707 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751251Ab1BUVhA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 21 Feb 2011 16:37:00 -0500
+In-Reply-To: <20110221182213.GD15225@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Cc: hiroshi.doyu@nokia.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, Felipe Balbi <balbi@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "Balbi, Felipe" <balbi@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, "Kalliguddi, Hema" <hemahk@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>, "Raja, Govindraj" <govindraj.raja@ti.com>
 
-On Mon, Feb 21, 2011 at 8:43 PM, Ramirez Luna, Omar <omar.ramirez@ti.co=
-m> wrote:
-> Hi,
+--------------020600090501030202090907
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Hi,
-
-Thanks for the comments.
-
->
-> On Wed, Feb 16, 2011 at 1:35 PM, David Cohen <dacohen@gmail.com> wrot=
-e:
->> diff --git a/arch/arm/mach-omap2/iommu2.c b/arch/arm/mach-omap2/iomm=
-u2.c
->> index 49a1e5e..adb083e 100644
->> --- a/arch/arm/mach-omap2/iommu2.c
->> +++ b/arch/arm/mach-omap2/iommu2.c
-> ...
+On 2/21/2011 7:22 PM, Tony Lindgren wrote:
+> * Cousson, Benoit<b-cousson@ti.com>  [110218 08:49]:
+>> ---
+>>  From b2190f0d339c9d843eb5e370d0db8b7090fbcfab Mon Sep 17 00:00:00 2001
+>> From: Benoit Cousson<b-cousson@ti.com>
+>> Date: Fri, 18 Feb 2011 14:01:06 +0100
+>> Subject: [PATCH] OMAP4: hwmod data: Add rev and dev_attr fields in McSPI
 >>
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0da =3D iommu_read_reg(obj, MMU_FAULT_AD);
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0*ra =3D da;
->>
->> + =C2=A0 =C2=A0 =C2=A0 if (stat & MMU_IRQ_TLBMISS)
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 errs |=3D OMAP_IO=
-MMU_ERR_TLB_MISS;
->> + =C2=A0 =C2=A0 =C2=A0 if (stat & MMU_IRQ_TRANSLATIONFAULT)
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 errs |=3D OMAP_IO=
-MMU_ERR_TRANS_FAULT;
->> + =C2=A0 =C2=A0 =C2=A0 if (stat & MMU_IRQ_EMUMISS)
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 errs |=3D OMAP_IO=
-MMU_ERR_EMU_MISS;
->> + =C2=A0 =C2=A0 =C2=A0 if (stat & MMU_IRQ_TABLEWALKFAULT)
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 errs |=3D OMAP_IO=
-MMU_ERR_TBLWALK_FAULT;
->> + =C2=A0 =C2=A0 =C2=A0 if (stat & MMU_IRQ_MULTIHITFAULT)
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 errs |=3D OMAP_IO=
-MMU_ERR_MULTIHIT_FAULT;
->
-> I still don't think this adds any value, "generic layer" and omap
-> errors are the same thing in this case... OTOH OMAP 1710 (not
-> supported by iommu yet) has the following bits:
->
-> 3 Prefetch_err
-> 2 Perm_fault
-> 1 Tlb_miss
-> 0 Trans_fault
->
-> They don't match any of your "generic layer errors" masks for reading=
-,
+>> - Add a rev attribute to identify various McSPI IP version.
+>> - Add a dev_attr structure to provide the number of chipselect
+>>    supported by the instance.
+> 
+> Looks like one seems to be wrapped and does not apply even after unwapping..
 
-Have you noticed:
- 0 =3D OMAP_IOMMU_ERR_TRANS_FAULT
- 1 =3D OMAP_IOMMU_ERR_TLB_MISS
+#$*%&!@ Thunderbird...
 
-2 and 3 could be added.
+Here is the same one without the "enable word wrap" and attached as well just in case.
 
-> hence more generic errors will need to be defined, and then more OMAP=
-#
-> masks... I think we just need to stick with the mach specific errors,
-> and let mach code handle its specifics when reporting.
+It should apply on your omap-for-linus branch at commit df7ffd3.
 
-How many are we talking about? I don't think every new OMAP version it
-would completely re-invent IOMMU faults.
-Generic errors codes make easier to threat possible IOMMU users which
-have (partially or totally) common drivers for different OMAP
-versions.
-Unless it's really an out-of-control number of generic faults, I don't
-see it as a real problem.
+Regards,
+Benoit
 
->
-> But anyway it is just me...
->
->> diff --git a/arch/arm/plat-omap/iommu.c b/arch/arm/plat-omap/iommu.c
->> index f55f458..b0e0efc 100644
->> --- a/arch/arm/plat-omap/iommu.c
->> +++ b/arch/arm/plat-omap/iommu.c
->> @@ -780,25 +780,19 @@ static void iopgtable_clear_entry_all(struct i=
-ommu *obj)
->> =C2=A0*/
->> =C2=A0static irqreturn_t iommu_fault_handler(int irq, void *data)
->> =C2=A0{
->> - =C2=A0 =C2=A0 =C2=A0 u32 stat, da;
->> + =C2=A0 =C2=A0 =C2=A0 u32 da, errs;
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0u32 *iopgd, *iopte;
->> - =C2=A0 =C2=A0 =C2=A0 int err =3D -EIO;
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0struct iommu *obj =3D data;
->>
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0if (!obj->refcount)
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0return IRQ_NO=
-NE;
->>
->> - =C2=A0 =C2=A0 =C2=A0 /* Dynamic loading TLB or PTE */
->> - =C2=A0 =C2=A0 =C2=A0 if (obj->isr)
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 err =3D obj->isr(=
-obj);
->> -
->> - =C2=A0 =C2=A0 =C2=A0 if (!err)
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return IRQ_HANDLE=
-D;
->> -
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0clk_enable(obj->clk);
->> - =C2=A0 =C2=A0 =C2=A0 stat =3D iommu_report_fault(obj, &da);
->> + =C2=A0 =C2=A0 =C2=A0 errs =3D iommu_report_fault(obj, &da);
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0clk_disable(obj->clk);
->> - =C2=A0 =C2=A0 =C2=A0 if (!stat)
->> +
->> + =C2=A0 =C2=A0 =C2=A0 /* Fault callback or TLB/PTE Dynamic loading =
-*/
->> + =C2=A0 =C2=A0 =C2=A0 if (obj->isr && !obj->isr(obj, da, errs, obj-=
->isr_priv))
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0return IRQ_HA=
-NDLED;
->
-> BTW, why not changing the name isr for cb, it is confusing since ther=
-e
-> is another fault_isr called by mmu, AFAIK nobody uses obj->isr
+---
+>From b2190f0d339c9d843eb5e370d0db8b7090fbcfab Mon Sep 17 00:00:00 2001
+From: Benoit Cousson <b-cousson@ti.com>
+Date: Fri, 18 Feb 2011 14:01:06 +0100
+Subject: [PATCH] OMAP4: hwmod data: Add rev and dev_attr fields in McSPI
 
-The main purpose of this function is to be an ISR, not only callback.
-But as you noticed, nobody is using it yet, but OMAP3 ISP should start
-to use it soon.
+- Add a rev attribute to identify various McSPI IP version.
+- Add a dev_attr structure to provide the number of chipselect
+  supported by the instance.
 
->
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0iommu_disable(obj);
->> @@ -806,15 +800,16 @@ static irqreturn_t iommu_fault_handler(int irq=
-, void *data)
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0iopgd =3D iopgd_offset(obj, da);
->>
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0if (!iopgd_is_table(*iopgd)) {
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 dev_err(obj->dev,=
- "%s: da:%08x pgd:%p *pgd:%08x\n", obj->name,
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 da, iopgd, *iopgd);
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 dev_err(obj->dev,=
- "%s: errs:0x%08x da:0x%08x pgd:0x%p "
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 "*pgd:px%08x\n", obj->name, errs, da, iopgd, *iopgd);
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0return IRQ_NO=
-NE;
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0}
->>
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0iopte =3D iopte_offset(iopgd, da);
->>
->> - =C2=A0 =C2=A0 =C2=A0 dev_err(obj->dev, "%s: da:%08x pgd:%p *pgd:%0=
-8x pte:%p *pte:%08x\n",
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 obj->name, da, io=
-pgd, *iopgd, iopte, *iopte);
->> + =C2=A0 =C2=A0 =C2=A0 dev_err(obj->dev, "%s: errs:0x%08x da:0x%08x =
-pgd:0x%p *pgd:0x%08x "
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 "pte:0x%p *pte:0x=
-%08x\n", obj->name, errs, da, iopgd, *iopgd,
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 iopte, *iopte);
->>
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0return IRQ_NONE;
->> =C2=A0}
->> @@ -917,6 +912,33 @@ void iommu_put(struct iommu *obj)
->> =C2=A0}
->> =C2=A0EXPORT_SYMBOL_GPL(iommu_put);
->>
->> +int iommu_set_isr(const char *name,
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 int (*isr)=
-(struct iommu *obj, u32 da, u32 iommu_errs,
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0void *priv),
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 void *isr_=
-priv)
->
-> So I think the following will be bad practice:
->
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0mmu =3D iommu_get("iva2");
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0if (!IS_ERR(mmu))
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0mmu->isr =3D m=
-mu_fault_callback;
->
-> Shall we think anything to prevent such mis-usage?
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Govindraj.R <govindraj.raja@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   26 ++++++++++++++++++++++++++
+ 1 files changed, 26 insertions(+), 0 deletions(-)
 
-Well, the IOMMU user has access to IOMMU obj, so it can not only
-change the (*isr)() but to mess with a lot of other stuff. The only
-way to prevent it is to avoid user to have obj. But then, this fix (or
-issue) does not belong to this patch.
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+index 84e795c..182aa79 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -24,6 +24,7 @@
+ #include <plat/cpu.h>
+ #include <plat/gpio.h>
+ #include <plat/dma.h>
++#include <plat/mcspi.h>
+ 
+ #include "omap_hwmod_common_data.h"
+ 
+@@ -3114,6 +3115,7 @@ static struct omap_hwmod_class_sysconfig omap44xx_mcspi_sysc = {
+ static struct omap_hwmod_class omap44xx_mcspi_hwmod_class = {
+ 	.name	= "mcspi",
+ 	.sysc	= &omap44xx_mcspi_sysc,
++	.rev	= OMAP4_MCSPI_REV,
+ };
+ 
+ /* mcspi1 */
+@@ -3156,6 +3158,11 @@ static struct omap_hwmod_ocp_if *omap44xx_mcspi1_slaves[] = {
+ 	&omap44xx_l4_per__mcspi1,
+ };
+ 
++/* mcspi1 dev_attr */
++static struct omap2_mcspi_dev_attr mcspi1_dev_attr = {
++	.num_chipselect	= 4,
++};
++
+ static struct omap_hwmod omap44xx_mcspi1_hwmod = {
+ 	.name		= "mcspi1",
+ 	.class		= &omap44xx_mcspi_hwmod_class,
+@@ -3169,6 +3176,7 @@ static struct omap_hwmod omap44xx_mcspi1_hwmod = {
+ 			.clkctrl_reg = OMAP4430_CM_L4PER_MCSPI1_CLKCTRL,
+ 		},
+ 	},
++	.dev_attr	= &mcspi1_dev_attr,
+ 	.slaves		= omap44xx_mcspi1_slaves,
+ 	.slaves_cnt	= ARRAY_SIZE(omap44xx_mcspi1_slaves),
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+@@ -3210,6 +3218,11 @@ static struct omap_hwmod_ocp_if *omap44xx_mcspi2_slaves[] = {
+ 	&omap44xx_l4_per__mcspi2,
+ };
+ 
++/* mcspi2 dev_attr */
++static struct omap2_mcspi_dev_attr mcspi2_dev_attr = {
++	.num_chipselect	= 2,
++};
++
+ static struct omap_hwmod omap44xx_mcspi2_hwmod = {
+ 	.name		= "mcspi2",
+ 	.class		= &omap44xx_mcspi_hwmod_class,
+@@ -3223,6 +3236,7 @@ static struct omap_hwmod omap44xx_mcspi2_hwmod = {
+ 			.clkctrl_reg = OMAP4430_CM_L4PER_MCSPI2_CLKCTRL,
+ 		},
+ 	},
++	.dev_attr	= &mcspi2_dev_attr,
+ 	.slaves		= omap44xx_mcspi2_slaves,
+ 	.slaves_cnt	= ARRAY_SIZE(omap44xx_mcspi2_slaves),
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+@@ -3264,6 +3278,11 @@ static struct omap_hwmod_ocp_if *omap44xx_mcspi3_slaves[] = {
+ 	&omap44xx_l4_per__mcspi3,
+ };
+ 
++/* mcspi3 dev_attr */
++static struct omap2_mcspi_dev_attr mcspi3_dev_attr = {
++	.num_chipselect	= 2,
++};
++
+ static struct omap_hwmod omap44xx_mcspi3_hwmod = {
+ 	.name		= "mcspi3",
+ 	.class		= &omap44xx_mcspi_hwmod_class,
+@@ -3277,6 +3296,7 @@ static struct omap_hwmod omap44xx_mcspi3_hwmod = {
+ 			.clkctrl_reg = OMAP4430_CM_L4PER_MCSPI3_CLKCTRL,
+ 		},
+ 	},
++	.dev_attr	= &mcspi3_dev_attr,
+ 	.slaves		= omap44xx_mcspi3_slaves,
+ 	.slaves_cnt	= ARRAY_SIZE(omap44xx_mcspi3_slaves),
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+@@ -3316,6 +3336,11 @@ static struct omap_hwmod_ocp_if *omap44xx_mcspi4_slaves[] = {
+ 	&omap44xx_l4_per__mcspi4,
+ };
+ 
++/* mcspi4 dev_attr */
++static struct omap2_mcspi_dev_attr mcspi4_dev_attr = {
++	.num_chipselect	= 1,
++};
++
+ static struct omap_hwmod omap44xx_mcspi4_hwmod = {
+ 	.name		= "mcspi4",
+ 	.class		= &omap44xx_mcspi_hwmod_class,
+@@ -3329,6 +3354,7 @@ static struct omap_hwmod omap44xx_mcspi4_hwmod = {
+ 			.clkctrl_reg = OMAP4430_CM_L4PER_MCSPI4_CLKCTRL,
+ 		},
+ 	},
++	.dev_attr	= &mcspi4_dev_attr,
+ 	.slaves		= omap44xx_mcspi4_slaves,
+ 	.slaves_cnt	= ARRAY_SIZE(omap44xx_mcspi4_slaves),
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+-- 
+1.7.0.4
 
-Br,
 
-David
 
->
-> Regards,
->
-> Omar
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--------------020600090501030202090907
+Content-Type: text/plain;
+	name="0001-OMAP4-hwmod-data-Add-rev-and-dev_attr-fields-in-McSP.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename*0="0001-OMAP4-hwmod-data-Add-rev-and-dev_attr-fields-in-McSP.pa";
+	filename*1="tch"
+
+>From b2190f0d339c9d843eb5e370d0db8b7090fbcfab Mon Sep 17 00:00:00 2001
+From: Benoit Cousson <b-cousson@ti.com>
+Date: Fri, 18 Feb 2011 14:01:06 +0100
+Subject: [PATCH] OMAP4: hwmod data: Add rev and dev_attr fields in McSPI
+
+- Add a rev attribute to identify various McSPI IP version.
+- Add a dev_attr structure to provide the number of chipselect
+  supported by the instance.
+
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Govindraj.R <govindraj.raja@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   26 ++++++++++++++++++++++++++
+ 1 files changed, 26 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+index 84e795c..182aa79 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -24,6 +24,7 @@
+ #include <plat/cpu.h>
+ #include <plat/gpio.h>
+ #include <plat/dma.h>
++#include <plat/mcspi.h>
+ 
+ #include "omap_hwmod_common_data.h"
+ 
+@@ -3114,6 +3115,7 @@ static struct omap_hwmod_class_sysconfig omap44xx_mcspi_sysc = {
+ static struct omap_hwmod_class omap44xx_mcspi_hwmod_class = {
+ 	.name	= "mcspi",
+ 	.sysc	= &omap44xx_mcspi_sysc,
++	.rev	= OMAP4_MCSPI_REV,
+ };
+ 
+ /* mcspi1 */
+@@ -3156,6 +3158,11 @@ static struct omap_hwmod_ocp_if *omap44xx_mcspi1_slaves[] = {
+ 	&omap44xx_l4_per__mcspi1,
+ };
+ 
++/* mcspi1 dev_attr */
++static struct omap2_mcspi_dev_attr mcspi1_dev_attr = {
++	.num_chipselect	= 4,
++};
++
+ static struct omap_hwmod omap44xx_mcspi1_hwmod = {
+ 	.name		= "mcspi1",
+ 	.class		= &omap44xx_mcspi_hwmod_class,
+@@ -3169,6 +3176,7 @@ static struct omap_hwmod omap44xx_mcspi1_hwmod = {
+ 			.clkctrl_reg = OMAP4430_CM_L4PER_MCSPI1_CLKCTRL,
+ 		},
+ 	},
++	.dev_attr	= &mcspi1_dev_attr,
+ 	.slaves		= omap44xx_mcspi1_slaves,
+ 	.slaves_cnt	= ARRAY_SIZE(omap44xx_mcspi1_slaves),
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+@@ -3210,6 +3218,11 @@ static struct omap_hwmod_ocp_if *omap44xx_mcspi2_slaves[] = {
+ 	&omap44xx_l4_per__mcspi2,
+ };
+ 
++/* mcspi2 dev_attr */
++static struct omap2_mcspi_dev_attr mcspi2_dev_attr = {
++	.num_chipselect	= 2,
++};
++
+ static struct omap_hwmod omap44xx_mcspi2_hwmod = {
+ 	.name		= "mcspi2",
+ 	.class		= &omap44xx_mcspi_hwmod_class,
+@@ -3223,6 +3236,7 @@ static struct omap_hwmod omap44xx_mcspi2_hwmod = {
+ 			.clkctrl_reg = OMAP4430_CM_L4PER_MCSPI2_CLKCTRL,
+ 		},
+ 	},
++	.dev_attr	= &mcspi2_dev_attr,
+ 	.slaves		= omap44xx_mcspi2_slaves,
+ 	.slaves_cnt	= ARRAY_SIZE(omap44xx_mcspi2_slaves),
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+@@ -3264,6 +3278,11 @@ static struct omap_hwmod_ocp_if *omap44xx_mcspi3_slaves[] = {
+ 	&omap44xx_l4_per__mcspi3,
+ };
+ 
++/* mcspi3 dev_attr */
++static struct omap2_mcspi_dev_attr mcspi3_dev_attr = {
++	.num_chipselect	= 2,
++};
++
+ static struct omap_hwmod omap44xx_mcspi3_hwmod = {
+ 	.name		= "mcspi3",
+ 	.class		= &omap44xx_mcspi_hwmod_class,
+@@ -3277,6 +3296,7 @@ static struct omap_hwmod omap44xx_mcspi3_hwmod = {
+ 			.clkctrl_reg = OMAP4430_CM_L4PER_MCSPI3_CLKCTRL,
+ 		},
+ 	},
++	.dev_attr	= &mcspi3_dev_attr,
+ 	.slaves		= omap44xx_mcspi3_slaves,
+ 	.slaves_cnt	= ARRAY_SIZE(omap44xx_mcspi3_slaves),
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+@@ -3316,6 +3336,11 @@ static struct omap_hwmod_ocp_if *omap44xx_mcspi4_slaves[] = {
+ 	&omap44xx_l4_per__mcspi4,
+ };
+ 
++/* mcspi4 dev_attr */
++static struct omap2_mcspi_dev_attr mcspi4_dev_attr = {
++	.num_chipselect	= 1,
++};
++
+ static struct omap_hwmod omap44xx_mcspi4_hwmod = {
+ 	.name		= "mcspi4",
+ 	.class		= &omap44xx_mcspi_hwmod_class,
+@@ -3329,6 +3354,7 @@ static struct omap_hwmod omap44xx_mcspi4_hwmod = {
+ 			.clkctrl_reg = OMAP4430_CM_L4PER_MCSPI4_CLKCTRL,
+ 		},
+ 	},
++	.dev_attr	= &mcspi4_dev_attr,
+ 	.slaves		= omap44xx_mcspi4_slaves,
+ 	.slaves_cnt	= ARRAY_SIZE(omap44xx_mcspi4_slaves),
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+-- 
+1.7.0.4
+
+
+--------------020600090501030202090907--
