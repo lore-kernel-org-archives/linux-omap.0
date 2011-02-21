@@ -1,297 +1,70 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
+From: Tony Lindgren <tony@atomide.com>
 Subject: Re: [patch-v2.6.39 6/7] OMAP4430: hwmod data: Adding USBOTG
-Date: Mon, 21 Feb 2011 22:36:48 +0100
-Message-ID: <4D62DAF0.9050301@ti.com>
-References: <20110217165953.GR20795@atomide.com> <4D5D5770.9020501@ti.com> <20110217171747.GC14574@legolas.emea.dhcp.ti.com> <4D5D59E5.6020307@ti.com> <20110217173711.GF14574@legolas.emea.dhcp.ti.com> <4D5D5F13.2010602@ti.com> <20110217181849.GV20795@atomide.com> <4D5E7DFF.7020609@ti.com> <20110218154135.GF11151@legolas.emea.dhcp.ti.com> <4D5EA36A.4000903@ti.com> <20110221182213.GD15225@atomide.com>
+Date: Mon, 21 Feb 2011 14:08:15 -0800
+Message-ID: <20110221220815.GG15225@atomide.com>
+References: <20110217171747.GC14574@legolas.emea.dhcp.ti.com>
+ <4D5D59E5.6020307@ti.com>
+ <20110217173711.GF14574@legolas.emea.dhcp.ti.com>
+ <4D5D5F13.2010602@ti.com>
+ <20110217181849.GV20795@atomide.com>
+ <4D5E7DFF.7020609@ti.com>
+ <20110218154135.GF11151@legolas.emea.dhcp.ti.com>
+ <4D5EA36A.4000903@ti.com>
+ <20110221182213.GD15225@atomide.com>
+ <4D62DAF0.9050301@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="------------020600090501030202090907"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:43707 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751251Ab1BUVhA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 21 Feb 2011 16:37:00 -0500
-In-Reply-To: <20110221182213.GD15225@atomide.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:37062 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751361Ab1BUWIT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Feb 2011 17:08:19 -0500
+Content-Disposition: inline
+In-Reply-To: <4D62DAF0.9050301@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
+To: "Cousson, Benoit" <b-cousson@ti.com>
 Cc: "Balbi, Felipe" <balbi@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, "Kalliguddi, Hema" <hemahk@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>, "Raja, Govindraj" <govindraj.raja@ti.com>
 
---------------020600090501030202090907
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-
-On 2/21/2011 7:22 PM, Tony Lindgren wrote:
-> * Cousson, Benoit<b-cousson@ti.com>  [110218 08:49]:
->> ---
->>  From b2190f0d339c9d843eb5e370d0db8b7090fbcfab Mon Sep 17 00:00:00 2001
->> From: Benoit Cousson<b-cousson@ti.com>
->> Date: Fri, 18 Feb 2011 14:01:06 +0100
->> Subject: [PATCH] OMAP4: hwmod data: Add rev and dev_attr fields in McSPI
->>
->> - Add a rev attribute to identify various McSPI IP version.
->> - Add a dev_attr structure to provide the number of chipselect
->>    supported by the instance.
+* Cousson, Benoit <b-cousson@ti.com> [110221 13:35]:
+> On 2/21/2011 7:22 PM, Tony Lindgren wrote:
+> >* Cousson, Benoit<b-cousson@ti.com>  [110218 08:49]:
+> >>---
+> >> From b2190f0d339c9d843eb5e370d0db8b7090fbcfab Mon Sep 17 00:00:00 2001
+> >>From: Benoit Cousson<b-cousson@ti.com>
+> >>Date: Fri, 18 Feb 2011 14:01:06 +0100
+> >>Subject: [PATCH] OMAP4: hwmod data: Add rev and dev_attr fields in McSPI
+> >>
+> >>- Add a rev attribute to identify various McSPI IP version.
+> >>- Add a dev_attr structure to provide the number of chipselect
+> >>   supported by the instance.
+> >
+> >Looks like one seems to be wrapped and does not apply even after unwapping..
 > 
-> Looks like one seems to be wrapped and does not apply even after unwapping..
+> #$*%&!@ Thunderbird...
 
-#$*%&!@ Thunderbird...
+:) The earlier one had double spaces in the beginning of each line in
+addition to the line wrapping..
+ 
+> Here is the same one without the "enable word wrap" and attached as well just in case.
+> 
+> It should apply on your omap-for-linus branch at commit df7ffd3.
 
-Here is the same one without the "enable word wrap" and attached as well just in case.
+Thanks, I'll apply it to omap-for-linus. The omap4 hang seems to be
+caused by the timer patch, the following fixes it. How do you want
+to deal with fixing this issue?
 
-It should apply on your omap-for-linus branch at commit df7ffd3.
+Tony
 
-Regards,
-Benoit
 
----
->From b2190f0d339c9d843eb5e370d0db8b7090fbcfab Mon Sep 17 00:00:00 2001
-From: Benoit Cousson <b-cousson@ti.com>
-Date: Fri, 18 Feb 2011 14:01:06 +0100
-Subject: [PATCH] OMAP4: hwmod data: Add rev and dev_attr fields in McSPI
-
-- Add a rev attribute to identify various McSPI IP version.
-- Add a dev_attr structure to provide the number of chipselect
-  supported by the instance.
-
-Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Govindraj.R <govindraj.raja@ti.com>
----
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   26 ++++++++++++++++++++++++++
- 1 files changed, 26 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index 84e795c..182aa79 100644
 --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
 +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -24,6 +24,7 @@
- #include <plat/cpu.h>
- #include <plat/gpio.h>
- #include <plat/dma.h>
-+#include <plat/mcspi.h>
+@@ -5094,7 +5094,7 @@ static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
+ 	&omap44xx_spinlock_hwmod,
  
- #include "omap_hwmod_common_data.h"
- 
-@@ -3114,6 +3115,7 @@ static struct omap_hwmod_class_sysconfig omap44xx_mcspi_sysc = {
- static struct omap_hwmod_class omap44xx_mcspi_hwmod_class = {
- 	.name	= "mcspi",
- 	.sysc	= &omap44xx_mcspi_sysc,
-+	.rev	= OMAP4_MCSPI_REV,
- };
- 
- /* mcspi1 */
-@@ -3156,6 +3158,11 @@ static struct omap_hwmod_ocp_if *omap44xx_mcspi1_slaves[] = {
- 	&omap44xx_l4_per__mcspi1,
- };
- 
-+/* mcspi1 dev_attr */
-+static struct omap2_mcspi_dev_attr mcspi1_dev_attr = {
-+	.num_chipselect	= 4,
-+};
-+
- static struct omap_hwmod omap44xx_mcspi1_hwmod = {
- 	.name		= "mcspi1",
- 	.class		= &omap44xx_mcspi_hwmod_class,
-@@ -3169,6 +3176,7 @@ static struct omap_hwmod omap44xx_mcspi1_hwmod = {
- 			.clkctrl_reg = OMAP4430_CM_L4PER_MCSPI1_CLKCTRL,
- 		},
- 	},
-+	.dev_attr	= &mcspi1_dev_attr,
- 	.slaves		= omap44xx_mcspi1_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_mcspi1_slaves),
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-@@ -3210,6 +3218,11 @@ static struct omap_hwmod_ocp_if *omap44xx_mcspi2_slaves[] = {
- 	&omap44xx_l4_per__mcspi2,
- };
- 
-+/* mcspi2 dev_attr */
-+static struct omap2_mcspi_dev_attr mcspi2_dev_attr = {
-+	.num_chipselect	= 2,
-+};
-+
- static struct omap_hwmod omap44xx_mcspi2_hwmod = {
- 	.name		= "mcspi2",
- 	.class		= &omap44xx_mcspi_hwmod_class,
-@@ -3223,6 +3236,7 @@ static struct omap_hwmod omap44xx_mcspi2_hwmod = {
- 			.clkctrl_reg = OMAP4430_CM_L4PER_MCSPI2_CLKCTRL,
- 		},
- 	},
-+	.dev_attr	= &mcspi2_dev_attr,
- 	.slaves		= omap44xx_mcspi2_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_mcspi2_slaves),
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-@@ -3264,6 +3278,11 @@ static struct omap_hwmod_ocp_if *omap44xx_mcspi3_slaves[] = {
- 	&omap44xx_l4_per__mcspi3,
- };
- 
-+/* mcspi3 dev_attr */
-+static struct omap2_mcspi_dev_attr mcspi3_dev_attr = {
-+	.num_chipselect	= 2,
-+};
-+
- static struct omap_hwmod omap44xx_mcspi3_hwmod = {
- 	.name		= "mcspi3",
- 	.class		= &omap44xx_mcspi_hwmod_class,
-@@ -3277,6 +3296,7 @@ static struct omap_hwmod omap44xx_mcspi3_hwmod = {
- 			.clkctrl_reg = OMAP4430_CM_L4PER_MCSPI3_CLKCTRL,
- 		},
- 	},
-+	.dev_attr	= &mcspi3_dev_attr,
- 	.slaves		= omap44xx_mcspi3_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_mcspi3_slaves),
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-@@ -3316,6 +3336,11 @@ static struct omap_hwmod_ocp_if *omap44xx_mcspi4_slaves[] = {
- 	&omap44xx_l4_per__mcspi4,
- };
- 
-+/* mcspi4 dev_attr */
-+static struct omap2_mcspi_dev_attr mcspi4_dev_attr = {
-+	.num_chipselect	= 1,
-+};
-+
- static struct omap_hwmod omap44xx_mcspi4_hwmod = {
- 	.name		= "mcspi4",
- 	.class		= &omap44xx_mcspi_hwmod_class,
-@@ -3329,6 +3354,7 @@ static struct omap_hwmod omap44xx_mcspi4_hwmod = {
- 			.clkctrl_reg = OMAP4430_CM_L4PER_MCSPI4_CLKCTRL,
- 		},
- 	},
-+	.dev_attr	= &mcspi4_dev_attr,
- 	.slaves		= omap44xx_mcspi4_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_mcspi4_slaves),
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
--- 
-1.7.0.4
-
-
-
---------------020600090501030202090907
-Content-Type: text/plain;
-	name="0001-OMAP4-hwmod-data-Add-rev-and-dev_attr-fields-in-McSP.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename*0="0001-OMAP4-hwmod-data-Add-rev-and-dev_attr-fields-in-McSP.pa";
-	filename*1="tch"
-
->From b2190f0d339c9d843eb5e370d0db8b7090fbcfab Mon Sep 17 00:00:00 2001
-From: Benoit Cousson <b-cousson@ti.com>
-Date: Fri, 18 Feb 2011 14:01:06 +0100
-Subject: [PATCH] OMAP4: hwmod data: Add rev and dev_attr fields in McSPI
-
-- Add a rev attribute to identify various McSPI IP version.
-- Add a dev_attr structure to provide the number of chipselect
-  supported by the instance.
-
-Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Govindraj.R <govindraj.raja@ti.com>
----
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   26 ++++++++++++++++++++++++++
- 1 files changed, 26 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index 84e795c..182aa79 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -24,6 +24,7 @@
- #include <plat/cpu.h>
- #include <plat/gpio.h>
- #include <plat/dma.h>
-+#include <plat/mcspi.h>
- 
- #include "omap_hwmod_common_data.h"
- 
-@@ -3114,6 +3115,7 @@ static struct omap_hwmod_class_sysconfig omap44xx_mcspi_sysc = {
- static struct omap_hwmod_class omap44xx_mcspi_hwmod_class = {
- 	.name	= "mcspi",
- 	.sysc	= &omap44xx_mcspi_sysc,
-+	.rev	= OMAP4_MCSPI_REV,
- };
- 
- /* mcspi1 */
-@@ -3156,6 +3158,11 @@ static struct omap_hwmod_ocp_if *omap44xx_mcspi1_slaves[] = {
- 	&omap44xx_l4_per__mcspi1,
- };
- 
-+/* mcspi1 dev_attr */
-+static struct omap2_mcspi_dev_attr mcspi1_dev_attr = {
-+	.num_chipselect	= 4,
-+};
-+
- static struct omap_hwmod omap44xx_mcspi1_hwmod = {
- 	.name		= "mcspi1",
- 	.class		= &omap44xx_mcspi_hwmod_class,
-@@ -3169,6 +3176,7 @@ static struct omap_hwmod omap44xx_mcspi1_hwmod = {
- 			.clkctrl_reg = OMAP4430_CM_L4PER_MCSPI1_CLKCTRL,
- 		},
- 	},
-+	.dev_attr	= &mcspi1_dev_attr,
- 	.slaves		= omap44xx_mcspi1_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_mcspi1_slaves),
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-@@ -3210,6 +3218,11 @@ static struct omap_hwmod_ocp_if *omap44xx_mcspi2_slaves[] = {
- 	&omap44xx_l4_per__mcspi2,
- };
- 
-+/* mcspi2 dev_attr */
-+static struct omap2_mcspi_dev_attr mcspi2_dev_attr = {
-+	.num_chipselect	= 2,
-+};
-+
- static struct omap_hwmod omap44xx_mcspi2_hwmod = {
- 	.name		= "mcspi2",
- 	.class		= &omap44xx_mcspi_hwmod_class,
-@@ -3223,6 +3236,7 @@ static struct omap_hwmod omap44xx_mcspi2_hwmod = {
- 			.clkctrl_reg = OMAP4430_CM_L4PER_MCSPI2_CLKCTRL,
- 		},
- 	},
-+	.dev_attr	= &mcspi2_dev_attr,
- 	.slaves		= omap44xx_mcspi2_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_mcspi2_slaves),
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-@@ -3264,6 +3278,11 @@ static struct omap_hwmod_ocp_if *omap44xx_mcspi3_slaves[] = {
- 	&omap44xx_l4_per__mcspi3,
- };
- 
-+/* mcspi3 dev_attr */
-+static struct omap2_mcspi_dev_attr mcspi3_dev_attr = {
-+	.num_chipselect	= 2,
-+};
-+
- static struct omap_hwmod omap44xx_mcspi3_hwmod = {
- 	.name		= "mcspi3",
- 	.class		= &omap44xx_mcspi_hwmod_class,
-@@ -3277,6 +3296,7 @@ static struct omap_hwmod omap44xx_mcspi3_hwmod = {
- 			.clkctrl_reg = OMAP4430_CM_L4PER_MCSPI3_CLKCTRL,
- 		},
- 	},
-+	.dev_attr	= &mcspi3_dev_attr,
- 	.slaves		= omap44xx_mcspi3_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_mcspi3_slaves),
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-@@ -3316,6 +3336,11 @@ static struct omap_hwmod_ocp_if *omap44xx_mcspi4_slaves[] = {
- 	&omap44xx_l4_per__mcspi4,
- };
- 
-+/* mcspi4 dev_attr */
-+static struct omap2_mcspi_dev_attr mcspi4_dev_attr = {
-+	.num_chipselect	= 1,
-+};
-+
- static struct omap_hwmod omap44xx_mcspi4_hwmod = {
- 	.name		= "mcspi4",
- 	.class		= &omap44xx_mcspi_hwmod_class,
-@@ -3329,6 +3354,7 @@ static struct omap_hwmod omap44xx_mcspi4_hwmod = {
- 			.clkctrl_reg = OMAP4430_CM_L4PER_MCSPI4_CLKCTRL,
- 		},
- 	},
-+	.dev_attr	= &mcspi4_dev_attr,
- 	.slaves		= omap44xx_mcspi4_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_mcspi4_slaves),
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
--- 
-1.7.0.4
-
-
---------------020600090501030202090907--
+ 	/* timer class */
+-	&omap44xx_timer1_hwmod,
++/*	&omap44xx_timer1_hwmod, */
+ 	&omap44xx_timer2_hwmod,
+ 	&omap44xx_timer3_hwmod,
+ 	&omap44xx_timer4_hwmod,
