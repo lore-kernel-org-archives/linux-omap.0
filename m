@@ -1,71 +1,103 @@
-From: archit taneja <archit@ti.com>
-Subject: Re: [PATCH] omap3: Adding vdd_sdi regulator supply to OMAP3EVM
-Date: Mon, 21 Feb 2011 13:54:00 +0530
-Message-ID: <4D622120.20209@ti.com>
-References: <1297930274-16278-1-git-send-email-bryan.wu@canonical.com> <AANLkTim7Ks2n0CymKWSjpd2ND7ee1H_wKZDANBym7dnZ@mail.gmail.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v3 2/2] OMAP: IOMMU: add support to callback during
+ fault handling
+Date: Mon, 21 Feb 2011 10:22:40 +0200
+Message-ID: <20110221082240.GL3094@legolas.emea.dhcp.ti.com>
+References: <1297884951-3019-1-git-send-email-dacohen@gmail.com>
+ <1297884951-3019-3-git-send-email-dacohen@gmail.com>
+ <20110221.101856.76372714451194378.Hiroshi.DOYU@nokia.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:51597 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753048Ab1BUIWW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 21 Feb 2011 03:22:22 -0500
-In-Reply-To: <AANLkTim7Ks2n0CymKWSjpd2ND7ee1H_wKZDANBym7dnZ@mail.gmail.com>
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:47658 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752019Ab1BUIWp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 21 Feb 2011 03:22:45 -0500
+Received: by bwz13 with SMTP id 13so2070552bwz.17
+        for <linux-omap@vger.kernel.org>; Mon, 21 Feb 2011 00:22:43 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <20110221.101856.76372714451194378.Hiroshi.DOYU@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Bryan Wu <bryan.wu@canonical.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "kernel-team@lists.ubuntu.com" <kernel-team@lists.ubuntu.com>
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: dacohen@gmail.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com
 
 Hi,
 
-On Monday 21 February 2011 12:32 PM, Bryan Wu wrote:
-> Hi, would you guys take a look at this?
->
-> Thanks,
-> -Bryan
->
-> On Thu, Feb 17, 2011 at 4:11 PM, Bryan Wu<bryan.wu@canonical.com>  wrote:
->> From: Mathieu J. Poirier<mathieu.poirier@canonical.com>
->>
->> https://bugs.launchpad.net/bugs/630885
->>
->> When booting, the omapdss subsystem is looking for a regulator named
->> "vdds_sdi". When the regulator is not found the initialisation sequence
->> is aborted resulting in omapfb not finding a display to work with.  This
->> patch allows the omapfb sub system to complete its initialisation
->> properly and enable LCD display. The problem was fixed by lumping a
->> "vdds_sdi" with the already existing "vdds_dsi" regulator. This fix
->> takes its root from work done on the Beagle board and the Pandora board.
->>
->> Signed-off-by: Mathieu Poirier<mathieu.poirier@canonical.com>
->> Signed-off-by: Andy Whitcroft<apw@canonical.com>
->> Signed-off-by: Bryan Wu<bryan.wu@canonical.com>
->> ---
->>   arch/arm/mach-omap2/board-omap3evm.c |   10 ++++++----
->>   1 files changed, 6 insertions(+), 4 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
->> index c2a0fca..8b8eb36 100644
->> --- a/arch/arm/mach-omap2/board-omap3evm.c
->> +++ b/arch/arm/mach-omap2/board-omap3evm.c
->> @@ -521,8 +521,10 @@ static struct regulator_init_data omap3_evm_vdac = {
->>   };
->>
->>   /* VPLL2 for digital video outputs */
->> -static struct regulator_consumer_supply omap3_evm_vpll2_supply =
->> -       REGULATOR_SUPPLY("vdds_dsi", "omapdss");
->> +static struct regulator_consumer_supply omap3_evm_vdds_supplies[] = {
->> +       REGULATOR_SUPPLY("vdds_sdi", "omapdss"),
->> +       REGULATOR_SUPPLY("vdds_dsi", "omapdss"),
->> +};
+On Mon, Feb 21, 2011 at 10:18:56AM +0200, Hiroshi DOYU wrote:
+> From: David Cohen <dacohen@gmail.com>
+> Subject: [PATCH v3 2/2] OMAP: IOMMU: add support to callback during fault handling
+> Date: Wed, 16 Feb 2011 21:35:51 +0200
+> 
+> > Add support to register an isr for IOMMU fault situations and adapt it
+> > to allow such (*isr)() to be used as fault callback. Drivers using IOMMU
+> > module might want to be informed when errors happen in order to debug it
+> > or react.
+> > 
+> > Signed-off-by: David Cohen <dacohen@gmail.com>
+> > ---
+> >  arch/arm/mach-omap2/iommu2.c            |   17 +++++++++-
+> >  arch/arm/plat-omap/include/plat/iommu.h |   14 ++++++++-
+> >  arch/arm/plat-omap/iommu.c              |   52 ++++++++++++++++++++++---------
+> >  3 files changed, 65 insertions(+), 18 deletions(-)
+> > 
+> > diff --git a/arch/arm/mach-omap2/iommu2.c b/arch/arm/mach-omap2/iommu2.c
+> > index 49a1e5e..adb083e 100644
+> > --- a/arch/arm/mach-omap2/iommu2.c
+> > +++ b/arch/arm/mach-omap2/iommu2.c
+> > @@ -146,18 +146,31 @@ static void omap2_iommu_set_twl(struct iommu *obj, bool on)
+> >  static u32 omap2_iommu_fault_isr(struct iommu *obj, u32 *ra)
+> >  {
+> >  	u32 stat, da;
+> > +	u32 errs = 0;
+> >  
+> >  	stat = iommu_read_reg(obj, MMU_IRQSTATUS);
+> >  	stat &= MMU_IRQ_MASK;
+> > -	if (!stat)
+> > +	if (!stat) {
+> > +		*ra = 0;
+> >  		return 0;
+> > +	}
+> >  
+> >  	da = iommu_read_reg(obj, MMU_FAULT_AD);
+> >  	*ra = da;
+> >  
+> > +	if (stat & MMU_IRQ_TLBMISS)
+> > +		errs |= OMAP_IOMMU_ERR_TLB_MISS;
+> > +	if (stat & MMU_IRQ_TRANSLATIONFAULT)
+> > +		errs |= OMAP_IOMMU_ERR_TRANS_FAULT;
+> > +	if (stat & MMU_IRQ_EMUMISS)
+> > +		errs |= OMAP_IOMMU_ERR_EMU_MISS;
+> > +	if (stat & MMU_IRQ_TABLEWALKFAULT)
+> > +		errs |= OMAP_IOMMU_ERR_TBLWALK_FAULT;
+> > +	if (stat & MMU_IRQ_MULTIHITFAULT)
+> > +		errs |= OMAP_IOMMU_ERR_MULTIHIT_FAULT;
+> >  	iommu_write_reg(obj, stat, MMU_IRQSTATUS);
+> >  
+> > -	return stat;
+> > +	return errs;
+> >  }
+> >  
+> >  static void omap2_tlb_read_cr(struct iommu *obj, struct cr_regs *cr)
+> > diff --git a/arch/arm/plat-omap/include/plat/iommu.h b/arch/arm/plat-omap/include/plat/iommu.h
+> > index 19cbb5e..174f1b9 100644
+> > --- a/arch/arm/plat-omap/include/plat/iommu.h
+> > +++ b/arch/arm/plat-omap/include/plat/iommu.h
+> > @@ -31,6 +31,7 @@ struct iommu {
+> >  	struct clk	*clk;
+> >  	void __iomem	*regbase;
+> >  	struct device	*dev;
+> > +	void		*isr_priv;
+> 
+> Ideally I'd like to avoid having "isr_priv" in iommu since it's not
+> used for iommu but client needs the place to pass its info to its
+> custom handler. Any better idea?
 
-I agree that this is needed. Currently, in omap_dss_probe() in core.c we 
-call sdi_init even if its not selected in menuconfig. The same goes for 
-other modules.
+I'm not sure if it makes sense as I don't know the mailbox block, but
+maybe moving to GENIRQ ? Then IRQ subsystem would take care of the
+"dev_id"
 
-There is no harm adding this as. But we will probably need a cleaner way 
-to handle initialization of the DSS interface modules in the DSS2 code.
-
-Regards,
-Archit
+-- 
+balbi
