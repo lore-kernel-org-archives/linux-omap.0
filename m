@@ -1,129 +1,137 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: [PATCH resend] omap: rx51: Add SI4713 FM transmitter
-Date: Mon, 21 Feb 2011 08:42:36 +0200
-Message-ID: <1298270556-11571-1-git-send-email-jhnikula@gmail.com>
-References: <1298040354-1726-1-git-send-email-jhnikula@gmail.com>
+From: "Manuel, Lesly Arackal" <leslyam@ti.com>
+Subject: Re: [PATCH v7 00/12] omap3: pm: TWL4030 power scripts and workaround
+ for TWL errata 27
+Date: Mon, 21 Feb 2011 12:25:01 +0530
+Message-ID: <AANLkTi=O+ouOsgkOHKgPZuDEQO7Nu255dYZvUVyEVV6a@mail.gmail.com>
+References: <1298048938-1480-1-git-send-email-leslyam@ti.com>
+	<AANLkTinTAVuK=CJaCgve4LQa-4jPhHf1ycUf-BhEz5i0@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1298040354-1726-1-git-send-email-jhnikula@gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Jarkko Nikula <jhnikula@gmail.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:40551 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752000Ab1BUGzD convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 21 Feb 2011 01:55:03 -0500
+Received: by mail-vw0-f50.google.com with SMTP id 11so711324vws.37
+        for <linux-omap@vger.kernel.org>; Sun, 20 Feb 2011 22:55:02 -0800 (PST)
+In-Reply-To: <AANLkTinTAVuK=CJaCgve4LQa-4jPhHf1ycUf-BhEz5i0@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>, David Derrick <dderrick@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
 
-Add SI4713 FM transmitter supplies, platform data and setup to RX-51/N900.
-It is connected to line output signals of TLV320AIC34 codec A part.
-Driver can be either built-in or a module. It can be tuned with v4l2-ctl
-from ivtv-utils. Following examples illustrate the use of it:
+Hi Jean,
 
-	v4l2-ctl -d /dev/radio0 --set-ctrl=mute=0 (power up)
-	v4l2-ctl -d /dev/radio0 -f 107900 (tune 107.9 MHz)
+On Fri, Feb 18, 2011 at 10:57 PM, Jean Pihet <jean.pihet@newoldbits.com=
+> wrote:
+> On Fri, Feb 18, 2011 at 6:08 PM, Lesly A M <leslyam@ti.com> wrote:
+>> Patch series for TWL4030 power scripts and workaround for TWL errata=
+ 27.
+>>
+>> Changes for implementing TWL4030 power scripts recommended by hardwa=
+re team.
+>> Introduced a new TWL4030 power script file, which can be used by dif=
+ferent
+>> OMAP3 board with the power companion chip TWL4030.
+>>
+>> Updated the changes for TWL4030 errata 27 & 28, modified the
+>> TWL4030 power script and voltage controller setuptime.
+>> Workaround for TWL4030 errata 27 & 28 is required for
+>> Si version less than or equal to TWL5030 ES1.1.
+>>
+>> TWL4030 script changes rebased on Kevin's PM tree in pm branch.
+>>
+>> Changes in v7:
+>> =A0 =A0 =A0 =A0changes to fix Nishanth Menon's comments
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0i) Added the TWL4030 Errata 27 fix
+>>
+>> =A0 =A0 =A0 =A0split the first patch in v6
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0i) =A0fix for twl4030 script load
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0ii) correct the warning print during =
+script loading
+>>
+>> =A0 =A0 =A0 =A0Added new patch files
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0i) pmic_info struct cleanup
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0ii) changing sys_off signal polarity
+>>
+>> =A0 =A0 =A0 =A0Updated the change logs
+>>
+>> This changes are tested on OMAP3430 & OMAP3630 SDP with off mode ena=
+bled in suspend path.
+>> =A0 =A0 =A0 =A0Tested with suspend/resume script, which will test sy=
+stem suspend in a loop.
+>> =A0 =A0 =A0 =A0Tested for more than 1000 iterations.
+>
+> Good to see the TWL scripts back in the mainline kernel!
+> Are the scripts compatible with the OMAP3 Beagleboard? I would like t=
+o
+> test the changes on that board.
 
-	v4l2-ctl -d /dev/radio0 --set-ctrl=mute=1 (power down)
+I have not tested on Beagleboard.
+I think Beagleboard is using different PM IC TPSxxxx.
+If its equivalent to TRITON then this script should work on it.
 
-Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
----
-Resend = forgot to cc LAKML.
----
- arch/arm/mach-omap2/board-rx51-peripherals.c |   44 ++++++++++++++++++++++++++
- 1 files changed, 44 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
-index e75e240..d0998f8 100644
---- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-+++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-@@ -36,6 +36,8 @@
- 
- #include <sound/tlv320aic3x.h>
- #include <sound/tpa6130a2-plat.h>
-+#include <media/radio-si4713.h>
-+#include <media/si4713.h>
- 
- #include <../drivers/staging/iio/light/tsl2563.h>
- 
-@@ -47,6 +49,8 @@
- 
- #define RX51_WL1251_POWER_GPIO		87
- #define RX51_WL1251_IRQ_GPIO		42
-+#define RX51_FMTX_RESET_GPIO		163
-+#define RX51_FMTX_IRQ			53
- 
- /* list all spi devices here */
- enum {
-@@ -357,10 +361,14 @@ static struct regulator_consumer_supply rx51_vio_supplies[] = {
- 	REGULATOR_SUPPLY("DVDD", "2-0018"),
- 	REGULATOR_SUPPLY("IOVDD", "2-0019"),
- 	REGULATOR_SUPPLY("DVDD", "2-0019"),
-+	/* Si4713 IO supply */
-+	REGULATOR_SUPPLY("vio", "2-0063"),
- };
- 
- static struct regulator_consumer_supply rx51_vaux1_consumers[] = {
- 	REGULATOR_SUPPLY("vdds_sdi", "omapdss"),
-+	/* Si4713 supply */
-+	REGULATOR_SUPPLY("vdd", "2-0063"),
- };
- 
- static struct regulator_consumer_supply rx51_vdac_supply[] = {
-@@ -511,6 +519,41 @@ static struct regulator_init_data rx51_vio = {
- 	.consumer_supplies	= rx51_vio_supplies,
- };
- 
-+static struct si4713_platform_data rx51_si4713_i2c_data __initdata_or_module = {
-+	.gpio_reset	= RX51_FMTX_RESET_GPIO,
-+};
-+
-+static struct i2c_board_info rx51_si4713_board_info __initdata_or_module = {
-+	I2C_BOARD_INFO("si4713", SI4713_I2C_ADDR_BUSEN_HIGH),
-+	.platform_data	= &rx51_si4713_i2c_data,
-+};
-+
-+static struct radio_si4713_platform_data rx51_si4713_data __initdata_or_module = {
-+	.i2c_bus	= 2,
-+	.subdev_board_info = &rx51_si4713_board_info,
-+};
-+
-+static struct platform_device rx51_si4713_dev __initdata_or_module = {
-+	.name	= "radio-si4713",
-+	.id	= -1,
-+	.dev	= {
-+		.platform_data	= &rx51_si4713_data,
-+	},
-+};
-+
-+static __init void rx51_init_si4713(void)
-+{
-+	int err;
-+
-+	err = gpio_request_one(RX51_FMTX_IRQ, GPIOF_DIR_IN, "si4713 irq");
-+	if (err) {
-+		printk(KERN_ERR "Cannot request si4713 irq gpio. %d\n", err);
-+		return;
-+	}
-+	rx51_si4713_board_info.irq = gpio_to_irq(RX51_FMTX_IRQ);
-+	platform_device_register(&rx51_si4713_dev);
-+}
-+
- static int rx51_twlgpio_setup(struct device *dev, unsigned gpio, unsigned n)
- {
- 	/* FIXME this gpio setup is just a placeholder for now */
-@@ -921,6 +964,7 @@ void __init rx51_peripherals_init(void)
- 	board_smc91x_init();
- 	rx51_add_gpio_keys();
- 	rx51_init_wl1251();
-+	rx51_init_si4713();
- 	spi_register_board_info(rx51_peripherals_spi_board_info,
- 				ARRAY_SIZE(rx51_peripherals_spi_board_info));
- 
--- 
-1.7.2.3
+Regards,
+Lesly A M
+>
+>>
+>> Cc: Nishanth Menon <nm@ti.com>
+>> Cc: David Derrick <dderrick@ti.com>
+>> Cc: Samuel Ortiz <sameo@linux.intel.com>
+>> ---
+>> Lesly A M (12):
+>> =A0omap3: pm: Fix for the TRITON sleep/wakeup sequence
+>> =A0omap3: pm: Correct the warning print during script loading
+>> =A0omap3: pm: cleanup pmic_info structure
+>> =A0omap3: pm: Using separate clk/volt setup_time for RET and OFF sta=
+tes
+>> =A0omap3630: pm: Adding voltage controller data
+>> =A0omap3: pm: Correcting the sys_offmode signal polarity
+>> =A0omap3: pm: Re-programing the setup time based on CORE target stat=
+e
+>> =A0omap3: pm: TWL4030 power scripts for OMAP3 boards
+>> =A0omap3: pm: TWL5030 version checking
+>> =A0mfd: TWL4030: changes for TRITON Errata 27 workaround
+>> =A0omap3430: Updating the board file to use TWL4030 scripts
+>> =A0omap3630: Updating the board file to use TWL4030 scripts
+>>
+>> =A0arch/arm/mach-omap2/Makefile =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0=
+ 12 +-
+>> =A0arch/arm/mach-omap2/board-3430sdp.c =A0 =A0 =A0 =A0 =A0| =A0 =A03=
+ +-
+>> =A0arch/arm/mach-omap2/board-zoom-peripherals.c | =A0 =A02 +
+>> =A0arch/arm/mach-omap2/omap_twl.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A03=
+69 +++++++++++++++++++++++---
+>> =A0arch/arm/mach-omap2/pm34xx.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0=
+ 15 +-
+>> =A0arch/arm/mach-omap2/twl4030.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0=
+261 ++++++++++++++++++
+>> =A0arch/arm/mach-omap2/twl4030.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0=
+ 21 ++
+>> =A0arch/arm/mach-omap2/voltage.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0=
+167 +++++++++---
+>> =A0arch/arm/plat-omap/include/plat/voltage.h =A0 =A0| =A0 49 +++-
+>> =A0drivers/mfd/twl-core.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ | =A0 50 ++++
+>> =A0drivers/mfd/twl4030-power.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| =
+=A0 79 ++++++-
+>> =A0include/linux/i2c/twl.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+| =A0 45 +++-
+>> =A012 files changed, 961 insertions(+), 112 deletions(-)
+>> =A0create mode 100644 arch/arm/mach-omap2/twl4030.c
+>> =A0create mode 100644 arch/arm/mach-omap2/twl4030.h
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap=
+" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>>
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
