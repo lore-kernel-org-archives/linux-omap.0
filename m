@@ -1,73 +1,50 @@
-From: Michael Jones <michael.jones@matrix-vision.de>
-Subject: double_buffer_not_ok compile error
-Date: Mon, 21 Feb 2011 13:59:52 +0100
-Message-ID: <4D6261C8.1090605@matrix-vision.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: [PATCH 2/6] omap3: pm: Fix the mmu on sequence in the asm code
+Date: Mon, 21 Feb 2011 18:49:21 +0530
+Message-ID: <1298294365-30770-3-git-send-email-santosh.shilimkar@ti.com>
+References: <1298294365-30770-1-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail2.matrix-vision.com ([85.214.244.251]:54152 "EHLO
-	mail2.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755659Ab1BUNIk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Feb 2011 08:08:40 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:33612 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755962Ab1BUNTe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Feb 2011 08:19:34 -0500
+In-Reply-To: <1298294365-30770-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: khilman@ti.com, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Hi Felipe,
+Add necessary barriers after enabling MMU. Also use the sane way to
+load pc and jump to it instead of executing ldma first up.
 
-In commit 0662481855c389b75a0a54c32870cc90563d80a9, the member
-'double_buffer_not_ok' was added to 'struct musb', but only inside
-#ifdef CONFIG_USB_GADGET_MUSB_HDRC.  In musb_host.c, this member is used
-outside of the same #ifdef, so I get a compile error because I have
-CONFIG_USB_GADGET_MUSB_HDRC=n (because I have CONFIG_USB_GADGET_OMAP=y).
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>
+---
+ arch/arm/mach-omap2/sleep34xx.S |    5 +++++
+ 1 files changed, 5 insertions(+), 0 deletions(-)
 
-here is the error:
-drivers/usb/musb/musb_host.c: In function 'musb_rx_reinit':
-drivers/usb/musb/musb_host.c:612: error: 'struct musb' has no member
-named 'double_buffer_not_ok'
-
-I'm not familiar enough with this to propose a correct patch, but for
-example with the patch below, I can compile the kernel.  Maybe the
-member definition can just be taken out of the #ifdef.
-
-Can you propose a proper fix for this?
-
-thanks,
-Michael Jones
-
-diff --git a/drivers/usb/musb/musb_host.c b/drivers/usb/musb/musb_host.c
-index 0f523d7..809965f 100644
---- a/drivers/usb/musb/musb_host.c
-+++ b/drivers/usb/musb/musb_host.c
-@@ -609,9 +609,11 @@ musb_rx_reinit(struct musb *musb, struct musb_qh *qh, struct musb_hw_ep *ep)
- 	/* Set RXMAXP with the FIFO size of the endpoint
- 	 * to disable double buffer mode.
- 	 */
-+#ifdef CONFIG_USB_GADGET_MUSB_HDRC
- 	if (musb->double_buffer_not_ok)
- 		musb_writew(ep->regs, MUSB_RXMAXP, ep->max_packet_sz_rx);
- 	else
-+#endif
- 		musb_writew(ep->regs, MUSB_RXMAXP,
- 				qh->maxpacket | ((qh->hb_mult - 1) << 11));
+diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
+index db4cc57..4478379 100644
+--- a/arch/arm/mach-omap2/sleep34xx.S
++++ b/arch/arm/mach-omap2/sleep34xx.S
+@@ -591,12 +591,17 @@ usettbr0:
+ 	ldr	r2, cache_pred_disable_mask
+ 	and	r4, r2
+ 	mcr	p15, 0, r4, c1, c0, 0
++	dsb
++	isb
++	ldr     r0, =restoremmu_on
++	bx      r0
  
-@@ -784,10 +786,12 @@ static void musb_ep_program(struct musb *musb, u8 epnum,
- 		/* protocol/endpoint/interval/NAKlimit */
- 		if (epnum) {
- 			musb_writeb(epio, MUSB_TXTYPE, qh->type_reg);
-+#ifdef CONFIG_USB_GADGET_MUSB_HDRC
- 			if (musb->double_buffer_not_ok)
- 				musb_writew(epio, MUSB_TXMAXP,
- 						hw_ep->max_packet_sz_tx);
- 			else
-+#endif
- 				musb_writew(epio, MUSB_TXMAXP,
- 						qh->maxpacket |
- 						((qh->hb_mult - 1) << 11));
+ /*
+  * ==============================
+  * == Exit point from OFF mode ==
+  * ==============================
+  */
++restoremmu_on:
+ 	ldmfd	sp!, {r0-r12, pc}	@ restore regs and return
+ 
+ 
+-- 
+1.6.0.4
 
-
-MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
-Registergericht: Amtsgericht Stuttgart, HRB 271090
-Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner
