@@ -1,29 +1,66 @@
-From: Ming Lei <tom.leiming@gmail.com>
-Subject: OMAP4: IRQ line of CortexA9 performance monitor
-Date: Tue, 22 Feb 2011 00:26:40 +0800
-Message-ID: <AANLkTin3q+rv+fcgCE6nwTN+=v_uQzT-Sn++gr6ekXcp@mail.gmail.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v2 1/1] headers: fix circular dependency between
+ linux/sched.h and linux/wait.h
+Date: Mon, 21 Feb 2011 18:29:39 +0200
+Message-ID: <20110221162939.GK23087@legolas.emea.dhcp.ti.com>
+References: <1298299131-17695-1-git-send-email-dacohen@gmail.com>
+ <1298299131-17695-2-git-send-email-dacohen@gmail.com>
+ <1298303677.24121.1.camel@twins>
+ <AANLkTimOT6jNG3=TiRMJR0dgEQ6EHjcBPJ1ivCu3Wj5Q@mail.gmail.com>
+ <1298305245.24121.7.camel@twins>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:59559 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755035Ab1BUQ0l (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Feb 2011 11:26:41 -0500
-Received: by yxs7 with SMTP id 7so377505yxs.19
-        for <linux-omap@vger.kernel.org>; Mon, 21 Feb 2011 08:26:40 -0800 (PST)
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1298305245.24121.7.camel@twins>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: David Cohen <dacohen@gmail.com>, linux-kernel@vger.kernel.org, mingo@elte.hu, linux-omap@vger.kernel.org, linux-media@vger.kernel.org, Alexey Dobriyan <adobriyan@gmail.com>, Oleg Nesterov <oleg@redhat.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 
 Hi,
 
->From chapter 17 of "Interrupt controller", OMAP4 TRM, I can't
-find what is the interrupt line of CortexA9 performance monitor
-in omap4. Seems without this information, we can't use perf on
-omap4.
+On Mon, Feb 21, 2011 at 05:20:45PM +0100, Peter Zijlstra wrote:
+> > > I think Alexey already told you what you done wrong.
+> > >
+> > > Also, I really don't like the task_state.h header, it assumes a lot of
+> > > things it doesn't include itself and only works because its using macros
+> > > and not inlines at it probably should.
+> > 
+> > Like wait.h I'd say. The main issue is wait.h uses TASK_* macros but
+> > cannot properly include sched.h as it would create a circular
+> > dependency. So a file including wait.h is able to compile because the
+> > dependency of sched.h relies on wake_up*() macros and it's not always
+> > used.
+> > We can still drop everything else from task_state.h but the TASK_*
+> > macros and then the problem you just pointed out won't exist anymore.
+> > What do you think about it?
+> 
+> I'd much rather see a real cleanup.. eg. remove the need for sched.h to
+> include wait.h.
 
-Any suggestions or ideas about it?
+isn't that exactly what he's trying to achieve ? Moving TASK_* to its
+own header is one approach, what other approach do you suggest ?
+
+> afaict its needed because struct signal_struct and struct sighand_struct
+> include a wait_queue_head_t. The inclusion seems to come through
+
+yes.
+
+> completion.h, but afaict we don't actually need to include completion.h
+> because all we have is a pointer to a completion, which is perfectly
+> fine with an incomplete type.
+
+so maybe just dropping completion.h from sched.h would do it.
+
+> This all would suggest we move the signal bits into their own header
+> (include/linux/signal.h already exists and seems inviting).
+> 
+> And then make sched.c include signal.h and completion.h.
+
+you wouldn't prevent the underlying problem which is the need to include
+sched.h whenever you include wait.h and use wake_up*()
 
 -- 
-Lei Ming
+balbi
