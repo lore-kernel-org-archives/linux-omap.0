@@ -1,87 +1,103 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 0/3] OMAP2+: voltage: first pass at cleanup/reorganization
-Date: Sun, 20 Feb 2011 19:08:51 -0700
-Message-ID: <20110221020231.7598.14024.stgit@twilight.localdomain>
+Subject: [PATCH 1/3] OMAP: smartreflex: move plat/smartreflex.h to
+	mach-omap2/smartreflex.h
+Date: Sun, 20 Feb 2011 19:08:55 -0700
+Message-ID: <20110221020851.7598.57763.stgit@twilight.localdomain>
+References: <20110221020231.7598.14024.stgit@twilight.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:59239 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:59242 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752100Ab1BUCMG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 20 Feb 2011 21:12:06 -0500
+	with ESMTP id S1754994Ab1BUCMH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 20 Feb 2011 21:12:07 -0500
+In-Reply-To: <20110221020231.7598.14024.stgit@twilight.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: khilman@ti.com, nm@ti.com, b-cousson@ti.com, mturquette@ti.com
 
-Hello,
+There's no reason for this header file to be in
+plat-omap/include/plat/smartreflex.h.  The hardware devices are in
+OMAP2+ SoCs only.  Leaving this header file in plat-omap causes
+problems due to cross-dependencies with other header files that should
+live in mach-omap2/.
 
-this patch set does an initial round of cleanup on the OMAP "voltage" code
-in arch/arm/mach-omap2/voltage.c.  As part of this process, the header files
-for the voltage code and SmartReflex are moved into arch/arm/mach-omap2, since
-they are currently OMAP2+-specific.
-
-There is still quite a bit of cleanup left to do; hopefully someone else will
-get to it before I do.  More details are in the last patch.
-
-This series was built-tested for an OSK5912-specific config, omap1_defconfig,
-a N800-specific config, omap2plus_defconfig, an OMAP3-specific config, and
-an OMAP4-specific config.  It was boot-tested on an OMAP35xx Beagleboard.
-Further testing assistance is, of course, appreciated.
-
-This series is available from git://git.pwsan.com/linux-2.6 in the
-'voltage_split_2.6.39' branch.
-
-
-- Paul
-
-
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c    |    2 +-
+ arch/arm/mach-omap2/smartreflex-class3.c      |    2 +-
+ arch/arm/mach-omap2/smartreflex.c             |    2 +-
+ arch/arm/mach-omap2/smartreflex.h             |    0 
+ arch/arm/mach-omap2/sr_device.c               |    2 +-
+ 5 files changed, 4 insertions(+), 4 deletions(-)
+ rename arch/arm/{plat-omap/include/plat/smartreflex.h => mach-omap2/smartreflex.h} (100%)
 
-voltage_split_2.6.39
-   text	   data	    bss	    dec	    hex	filename
-5766071	 488104	5596920	11851095	 b4d557	vmlinux.omap2plus_defconfig.orig
-5765631	 487848	5596920	11850399	 b4d29f	vmlinux.omap2plus_defconfig
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+index 8d81813..7f0b5e7 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -21,13 +21,13 @@
+ #include <plat/l4_3xxx.h>
+ #include <plat/i2c.h>
+ #include <plat/gpio.h>
+-#include <plat/smartreflex.h>
+ 
+ #include "omap_hwmod_common_data.h"
+ 
+ #include "prm-regbits-34xx.h"
+ #include "cm-regbits-34xx.h"
+ #include "wd_timer.h"
++#include "smartreflex.h"
+ 
+ /*
+  * OMAP3xxx hardware module integration data
+diff --git a/arch/arm/mach-omap2/smartreflex-class3.c b/arch/arm/mach-omap2/smartreflex-class3.c
+index 60e7055..f438cf4 100644
+--- a/arch/arm/mach-omap2/smartreflex-class3.c
++++ b/arch/arm/mach-omap2/smartreflex-class3.c
+@@ -11,7 +11,7 @@
+  * published by the Free Software Foundation.
+  */
+ 
+-#include <plat/smartreflex.h>
++#include "smartreflex.h"
+ 
+ static int sr_class3_enable(struct voltagedomain *voltdm)
+ {
+diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
+index c37e823..077dfb6 100644
+--- a/arch/arm/mach-omap2/smartreflex.c
++++ b/arch/arm/mach-omap2/smartreflex.c
+@@ -26,9 +26,9 @@
+ #include <linux/pm_runtime.h>
+ 
+ #include <plat/common.h>
+-#include <plat/smartreflex.h>
+ 
+ #include "pm.h"
++#include "smartreflex.h"
+ 
+ #define SMARTREFLEX_NAME_LEN	16
+ #define NVALUE_NAME_LEN		40
+diff --git a/arch/arm/plat-omap/include/plat/smartreflex.h b/arch/arm/mach-omap2/smartreflex.h
+similarity index 100%
+rename from arch/arm/plat-omap/include/plat/smartreflex.h
+rename to arch/arm/mach-omap2/smartreflex.h
+diff --git a/arch/arm/mach-omap2/sr_device.c b/arch/arm/mach-omap2/sr_device.c
+index b1e0af1..a636604 100644
+--- a/arch/arm/mach-omap2/sr_device.c
++++ b/arch/arm/mach-omap2/sr_device.c
+@@ -23,9 +23,9 @@
+ #include <linux/io.h>
+ 
+ #include <plat/omap_device.h>
+-#include <plat/smartreflex.h>
+ #include <plat/voltage.h>
+ 
++#include "smartreflex.h"
+ #include "control.h"
+ #include "pm.h"
+ 
 
-
-Paul Walmsley (3):
-      OMAP: smartreflex: move plat/smartreflex.h to mach-omap2/smartreflex.h
-      OMAP: voltage: move plat/voltage.h to mach-omap2/voltage.h
-      OMAP2+: voltage: reorganize, split code from data
-
-
- arch/arm/mach-omap2/Makefile                  |   20 
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c    |    2 
- arch/arm/mach-omap2/omap_opp_data.h           |   12 
- arch/arm/mach-omap2/omap_twl.c                |    2 
- arch/arm/mach-omap2/opp3xxx_data.c            |   44 +
- arch/arm/mach-omap2/opp4xxx_data.c            |   30 +
- arch/arm/mach-omap2/pm.c                      |    2 
- arch/arm/mach-omap2/smartreflex-class3.c      |    2 
- arch/arm/mach-omap2/smartreflex.c             |    2 
- arch/arm/mach-omap2/smartreflex.h             |    3 
- arch/arm/mach-omap2/sr_device.c               |    4 
- arch/arm/mach-omap2/vc.h                      |   83 ++
- arch/arm/mach-omap2/vc3xxx_data.c             |   63 ++
- arch/arm/mach-omap2/vc44xx_data.c             |   72 ++
- arch/arm/mach-omap2/voltage.c                 | 1019 +++++++------------------
- arch/arm/mach-omap2/voltage.h                 |   66 ++
- arch/arm/mach-omap2/voltagedomains3xxx_data.c |  104 +++
- arch/arm/mach-omap2/voltagedomains44xx_data.c |  108 +++
- arch/arm/mach-omap2/vp.h                      |  143 ++++
- arch/arm/mach-omap2/vp3xxx_data.c             |   82 ++
- arch/arm/mach-omap2/vp44xx_data.c             |   97 ++
- arch/arm/plat-omap/include/plat/omap_hwmod.h  |    1 
- 22 files changed, 1203 insertions(+), 758 deletions(-)
- rename arch/arm/{plat-omap/include/plat/smartreflex.h => mach-omap2/smartreflex.h} (99%)
- create mode 100644 arch/arm/mach-omap2/vc.h
- create mode 100644 arch/arm/mach-omap2/vc3xxx_data.c
- create mode 100644 arch/arm/mach-omap2/vc44xx_data.c
- rename arch/arm/{plat-omap/include/plat/voltage.h => mach-omap2/voltage.h} (68%)
- create mode 100644 arch/arm/mach-omap2/voltagedomains3xxx_data.c
- create mode 100644 arch/arm/mach-omap2/voltagedomains44xx_data.c
- create mode 100644 arch/arm/mach-omap2/vp.h
- create mode 100644 arch/arm/mach-omap2/vp3xxx_data.c
- create mode 100644 arch/arm/mach-omap2/vp44xx_data.c
 
