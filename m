@@ -1,159 +1,83 @@
-From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Subject: Re: [PATCH v3 2/2] OMAP: IOMMU: add support to callback during fault handling
-Date: Mon, 21 Feb 2011 12:43:07 -0600
-Message-ID: <AANLkTikbjZ7GH7+bx94r6saYuGzCt9aito-Y8NS94SoQ@mail.gmail.com>
-References: <1297884951-3019-1-git-send-email-dacohen@gmail.com>
-	<1297884951-3019-3-git-send-email-dacohen@gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 3/3] OMAP2+: voltage: reorganize, split code from data
+Date: Mon, 21 Feb 2011 11:53:27 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1102211034450.22636@utopia.booyaka.com>
+References: <20110221020231.7598.14024.stgit@twilight.localdomain> <20110221020856.7598.34506.stgit@twilight.localdomain> <AANLkTikdx41hE5d5xG8rpB95DUvVu0=VHi6Zj=ePtREb@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-905897584-1298310144=:22636"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:37423 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752039Ab1BUSuY convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 21 Feb 2011 13:50:24 -0500
-Received: by mail-gy0-f182.google.com with SMTP id 4so1289754gyh.41
-        for <linux-omap@vger.kernel.org>; Mon, 21 Feb 2011 10:50:23 -0800 (PST)
-In-Reply-To: <1297884951-3019-3-git-send-email-dacohen@gmail.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:56133 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752195Ab1BUSx2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Feb 2011 13:53:28 -0500
+In-Reply-To: <AANLkTikdx41hE5d5xG8rpB95DUvVu0=VHi6Zj=ePtREb@mail.gmail.com>
+Content-ID: <alpine.DEB.2.00.1102211045140.22636@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Cohen <dacohen@gmail.com>
-Cc: hiroshi.doyu@nokia.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, Felipe Balbi <balbi@ti.com>
+To: "Gulati, Shweta" <shweta.gulati@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi,
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-On Wed, Feb 16, 2011 at 1:35 PM, David Cohen <dacohen@gmail.com> wrote:
-> diff --git a/arch/arm/mach-omap2/iommu2.c b/arch/arm/mach-omap2/iommu=
-2.c
-> index 49a1e5e..adb083e 100644
-> --- a/arch/arm/mach-omap2/iommu2.c
-> +++ b/arch/arm/mach-omap2/iommu2.c
+--155748971-905897584-1298310144=:22636
+Content-Type: TEXT/PLAIN; CHARSET=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-ID: <alpine.DEB.2.00.1102211045141.22636@utopia.booyaka.com>
+
+Hello
+
+On Mon, 21 Feb 2011, Gulati, Shweta wrote:
+
+> On Mon, Feb 21, 2011 at 7:38 AM, Paul Walmsley <paul@pwsan.com> wrote:
+> > diff --git a/arch/arm/mach-omap2/opp3xxx_data.c b/arch/arm/mach-omap2/o=
+pp3xxx_data.c
+> > index 0486fce..3c7f0c0 100644
+> > --- a/arch/arm/mach-omap2/opp3xxx_data.c
+> > +++ b/arch/arm/mach-omap2/opp3xxx_data.c
+
 =2E..
->
-> =A0 =A0 =A0 =A0da =3D iommu_read_reg(obj, MMU_FAULT_AD);
-> =A0 =A0 =A0 =A0*ra =3D da;
->
-> + =A0 =A0 =A0 if (stat & MMU_IRQ_TLBMISS)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 errs |=3D OMAP_IOMMU_ERR_TLB_MISS;
-> + =A0 =A0 =A0 if (stat & MMU_IRQ_TRANSLATIONFAULT)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 errs |=3D OMAP_IOMMU_ERR_TRANS_FAULT;
-> + =A0 =A0 =A0 if (stat & MMU_IRQ_EMUMISS)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 errs |=3D OMAP_IOMMU_ERR_EMU_MISS;
-> + =A0 =A0 =A0 if (stat & MMU_IRQ_TABLEWALKFAULT)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 errs |=3D OMAP_IOMMU_ERR_TBLWALK_FAULT;
-> + =A0 =A0 =A0 if (stat & MMU_IRQ_MULTIHITFAULT)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 errs |=3D OMAP_IOMMU_ERR_MULTIHIT_FAULT=
-;
 
-I still don't think this adds any value, "generic layer" and omap
-errors are the same thing in this case... OTOH OMAP 1710 (not
-supported by iommu yet) has the following bits:
+> > +/* VDD2 */
+> > +struct omap_volt_data omap36xx_vddcore_volt_data[] =3D {
+> > + =A0 =A0 =A0 VOLT_DATA_DEFINE(OMAP3630_VDD_CORE_OPP50_UV, OMAP3630_CON=
+TROL_FUSE_OPP50_VDD2, 0xf4, 0x0c),
+> > + =A0 =A0 =A0 VOLT_DATA_DEFINE(OMAP3630_VDD_CORE_OPP100_UV, OMAP3630_CO=
+NTROL_FUSE_OPP100_VDD2, 0xf9, 0x16),
+> > + =A0 =A0 =A0 VOLT_DATA_DEFINE(0, 0, 0, 0),
+> > +};
+> > +
+> The definition of "VOLT_DATA_DEFINE" is there in voltage.h
+> I think its better to move these Volt_data to voltagedomains files
+> rather than in
+> OPP layer files
 
-3 Prefetch_err
-2 Perm_fault
-1 Tlb_miss
-0 Trans_fault
+opp*_data.c is currently where process/wafer/die-variable parameters go. =
+=20
+The struct omap_volt_data also consists mostly[1] of=20
+process/wafer/die-variable parameters.  So it made sense to group it=20
+there.
 
-They don't match any of your "generic layer errors" masks for reading,
-hence more generic errors will need to be defined, and then more OMAP#
-masks... I think we just need to stick with the mach specific errors,
-and let mach code handle its specifics when reporting.
+In comparison, voltagedomains*_data.c files consist of=20
+process/wafer/die-invariant data, such as register layouts, voltage domain=
+=20
+partitioning, etc.  This is data that we don't expect to ever change over=
+=20
+the lifetime of a production design.
 
-But anyway it is just me...
+You are correct in that there seems to be little point leaving the=20
+VOLT_DATA_DEFINE macro in voltage.h, so I have moved this to=20
+omap_opp_data.h.
 
-> diff --git a/arch/arm/plat-omap/iommu.c b/arch/arm/plat-omap/iommu.c
-> index f55f458..b0e0efc 100644
-> --- a/arch/arm/plat-omap/iommu.c
-> +++ b/arch/arm/plat-omap/iommu.c
-> @@ -780,25 +780,19 @@ static void iopgtable_clear_entry_all(struct io=
-mmu *obj)
-> =A0*/
-> =A0static irqreturn_t iommu_fault_handler(int irq, void *data)
-> =A0{
-> - =A0 =A0 =A0 u32 stat, da;
-> + =A0 =A0 =A0 u32 da, errs;
-> =A0 =A0 =A0 =A0u32 *iopgd, *iopte;
-> - =A0 =A0 =A0 int err =3D -EIO;
-> =A0 =A0 =A0 =A0struct iommu *obj =3D data;
->
-> =A0 =A0 =A0 =A0if (!obj->refcount)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return IRQ_NONE;
->
-> - =A0 =A0 =A0 /* Dynamic loading TLB or PTE */
-> - =A0 =A0 =A0 if (obj->isr)
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 err =3D obj->isr(obj);
-> -
-> - =A0 =A0 =A0 if (!err)
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 return IRQ_HANDLED;
-> -
-> =A0 =A0 =A0 =A0clk_enable(obj->clk);
-> - =A0 =A0 =A0 stat =3D iommu_report_fault(obj, &da);
-> + =A0 =A0 =A0 errs =3D iommu_report_fault(obj, &da);
-> =A0 =A0 =A0 =A0clk_disable(obj->clk);
-> - =A0 =A0 =A0 if (!stat)
-> +
-> + =A0 =A0 =A0 /* Fault callback or TLB/PTE Dynamic loading */
-> + =A0 =A0 =A0 if (obj->isr && !obj->isr(obj, da, errs, obj->isr_priv)=
-)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return IRQ_HANDLED;
 
-BTW, why not changing the name isr for cb, it is confusing since there
-is another fault_isr called by mmu, AFAIK nobody uses obj->isr
+- Paul
 
-> =A0 =A0 =A0 =A0iommu_disable(obj);
-> @@ -806,15 +800,16 @@ static irqreturn_t iommu_fault_handler(int irq,=
- void *data)
-> =A0 =A0 =A0 =A0iopgd =3D iopgd_offset(obj, da);
->
-> =A0 =A0 =A0 =A0if (!iopgd_is_table(*iopgd)) {
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(obj->dev, "%s: da:%08x pgd:%p *=
-pgd:%08x\n", obj->name,
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 da, iopgd, *iopgd);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(obj->dev, "%s: errs:0x%08x da:0=
-x%08x pgd:0x%p "
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "*pgd:px%08x\n", obj->n=
-ame, errs, da, iopgd, *iopgd);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return IRQ_NONE;
-> =A0 =A0 =A0 =A0}
->
-> =A0 =A0 =A0 =A0iopte =3D iopte_offset(iopgd, da);
->
-> - =A0 =A0 =A0 dev_err(obj->dev, "%s: da:%08x pgd:%p *pgd:%08x pte:%p =
-*pte:%08x\n",
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 obj->name, da, iopgd, *iopgd, iopte, *i=
-opte);
-> + =A0 =A0 =A0 dev_err(obj->dev, "%s: errs:0x%08x da:0x%08x pgd:0x%p *=
-pgd:0x%08x "
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 "pte:0x%p *pte:0x%08x\n", obj->name, er=
-rs, da, iopgd, *iopgd,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 iopte, *iopte);
->
-> =A0 =A0 =A0 =A0return IRQ_NONE;
-> =A0}
-> @@ -917,6 +912,33 @@ void iommu_put(struct iommu *obj)
-> =A0}
-> =A0EXPORT_SYMBOL_GPL(iommu_put);
->
-> +int iommu_set_isr(const char *name,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 int (*isr)(struct iommu *obj, u32 d=
-a, u32 iommu_errs,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0void *priv),
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 void *isr_priv)
+1. The SCM register offsets in the struct omap_volt_data don't technically=
+=20
+belong in the process/wafer/die-variable parameters.  It probably would=20
+make sense to replace these with SCM OPP IDs, and then to create an=20
+interface in the SCM code to fetch the SR data from the SCM, given an OPP=
+=20
+ID.
 
-So I think the following will be bad practice:
-
-        mmu =3D iommu_get("iva2");
-        if (!IS_ERR(mmu))
-                mmu->isr =3D mmu_fault_callback;
-
-Shall we think anything to prevent such mis-usage?
-
-Regards,
-
-Omar
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--155748971-905897584-1298310144=:22636--
