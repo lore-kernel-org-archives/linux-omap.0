@@ -1,40 +1,78 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: [PATCH 0/3] OMAP2+ hwmod fixes
-Date: Tue, 22 Feb 2011 12:09:56 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1102221200260.22636@utopia.booyaka.com>
-References: <1297858285-7056-1-git-send-email-rnayak@ti.com> <4D5BCC10.2060301@ti.com> <6cc4b2788ff1e15c22987d5db91f0395@mail.gmail.com> <4D5E85EA.70605@ti.com> <alpine.DEB.2.00.1102210901140.22636@utopia.booyaka.com>
- <e6550ef1ea27499e3bc093e264c54d0f@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Linux-next as of 20110222 broken on OMAP4
+Date: Tue, 22 Feb 2011 11:13:44 -0800
+Message-ID: <20110222191343.GP15225@atomide.com>
+References: <b858222d69a83460e469b80ee13cfbe8@mail.gmail.com>
+ <4D63B160.3010103@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:54343 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751863Ab1BVTJ5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Feb 2011 14:09:57 -0500
-In-Reply-To: <e6550ef1ea27499e3bc093e264c54d0f@mail.gmail.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:14437 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754285Ab1BVTN4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Feb 2011 14:13:56 -0500
+Content-Disposition: inline
+In-Reply-To: <4D63B160.3010103@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "Gadiyar, Anand" <gadiyar@ti.com>, linux-omap <linux-omap@vger.kernel.org>
 
-Hi Rajendra
+* Cousson, Benoit <b-cousson@ti.com> [110222 04:50]:
+> Hi Anand,
+> 
+> On 2/22/2011 10:49 AM, Gadiyar, Anand wrote:
+> > Looks like linux-next as of today is broken on at least OMAP4.
+> > 
+> > Turning on earlyprintk, I get a crash in omap_init_mcspi. Disabling
+> > CONFIG_SPI_OMAP24XX gets me as far as the following lines from my
+> > bootup log, but I haven't attempted to debug further.
+> > 
+> > If there are any patches out there to fix this, let me know.
+> > Else I will debug this sometime tomorrow.
+> 
+> Yes, it was discussed with Tony and temporarily fixed yesterday.
+> 
+> The SPI fix is is already in omap-for-linus, and the timer1 temp fix is below.
+> We need to find a better way to handle timer now that they are initialized pretty soon.
 
-On Tue, 22 Feb 2011, Rajendra Nayak wrote:
+I applied the fix below with Paul's ack from the other thread.
+So linux-next should be working again on omap4 when it gets rebuilt.
 
-> The original behavior of the iterators, to terminate upon
-> encountering an error, seems fine to me. The only problem
-> I faced was that they fail silently and go undetected, unless
-> their user catches the return value and WARN's, which I found
-> was not the case with most users, mainly those of
-> omap_hwmod_for_each_by_class.
-> I was thinking of keeping the behaviour of these iterators
-> same for now and add WARN's in these iterators itself upon
-> an error, so its seen even if the user fails to catch it.
+Regards,
 
-What's your opinion on adding the pr_err() or WARN() into the code that 
-the iterator calls for each hwmod?  That code should know why something 
-fails, so it should be able to provide a more detailed error message.  Of 
-course, it is not as general a solution...
-
-
-- Paul
+Tony
+ 
+> ---
+> From 9a8dc4fdab03d00d556d05ad8b64c547493ad84d Mon Sep 17 00:00:00 2001
+> From: Benoit Cousson <b-cousson@ti.com>
+> Date: Tue, 22 Feb 2011 10:36:27 +0100
+> Subject: [PATCH] OMAP4: hwmod data: Prevent timer1 to be reset and idle during init
+> 
+> Since the timer1 is now started before the hwmod_init, we cannot
+> reset it and idle it anymore.
+> 
+> Add the appropriate flags to prevent the hwmod framework to do that.
+> 
+> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> ---
+>  arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    1 +
+>  1 files changed, 1 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> index 182aa79..79a8601 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> @@ -3989,6 +3989,7 @@ static struct omap_hwmod_ocp_if *omap44xx_timer1_slaves[] = {
+>  static struct omap_hwmod omap44xx_timer1_hwmod = {
+>  	.name		= "timer1",
+>  	.class		= &omap44xx_timer_1ms_hwmod_class,
+> +	.flags		= HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET,
+>  	.mpu_irqs	= omap44xx_timer1_irqs,
+>  	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_timer1_irqs),
+>  	.main_clk	= "timer1_fck",
+> -- 
+> 1.7.0.4
