@@ -1,70 +1,72 @@
-From: Anand Gadiyar <gadiyar@ti.com>
-Subject: RE: gpio126: Multiple gpio paths (2) : CAM_STROBE & SDMMC1_DAT4
-Date: Tue, 22 Feb 2011 15:23:25 +0530
-Message-ID: <d788d25561dc676a189686737c97a95f@mail.gmail.com>
-References: <FCCFB4CDC6E5564B9182F639FC3560870370562CF6@dbde02.ent.ti.com>
+From: Johannes Reif <reif@corscience.de>
+Subject: Re: SDHC card affected by preemption model in 2.6.35
+Date: Tue, 22 Feb 2011 11:03:14 +0100
+Message-ID: <4D6389E2.3090504@corscience.de>
+References: <4D62523D.5080203@corscience.de> <AANLkTi=UMbOYFORyTvicCvAMEd=dig7xaROMLdkcfhGW@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:59759 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753480Ab1BVJx1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 22 Feb 2011 04:53:27 -0500
-Received: by mail-fx0-f42.google.com with SMTP id 20so2202388fxm.1
-        for <linux-omap@vger.kernel.org>; Tue, 22 Feb 2011 01:53:26 -0800 (PST)
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC3560870370562CF6@dbde02.ent.ti.com>
+Received: from moutng.kundenserver.de ([212.227.126.186]:54372 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753617Ab1BVKDS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Feb 2011 05:03:18 -0500
+In-Reply-To: <AANLkTi=UMbOYFORyTvicCvAMEd=dig7xaROMLdkcfhGW@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Abhilash Koyamangalath <abhilash.kv@ti.com>, linux-omap@vger.kernel.org
+To: Dave Hylands <dhylands@gmail.com>
+Cc: "S, Venkatraman" <svenkatr@ti.com>, Mathieu Poirier <mathieu.poirier@canonical.com>, Madhusudhan Chikkature <madhu.cr@ti.com>, Thomas Weber <weber@corscience.de>, linux-omap <linux-omap@vger.kernel.org>
 
-Koyamangalath, Abhilash wrote:
-> There is this boot-time message on the am3517evm (and possibly
-> other omap 35xx based boards as well)
-> [    0.000000] _omap_mux_init_gpio: Multiple gpio paths
->  (2) for gpio126
-> I realized that this happens due to dual mappings for
-> gpio_126 in arch/arm/mach-omap2/mux34xx.c:
+Hi all,
+
+On 22.02.2011 02:43, Dave Hylands wrote:
+
+> Hi guys,
 >
-> static struct omap_mux __initdata omap3_muxmodes[] = {
-> :
-> _OMAP3_MUXENTRY(CAM_STROBE, 126,
->                 "cam_strobe", NULL, NULL, NULL,
->                 "gpio_126", "hw_dbg11", NULL, "safe_mode"),
-> :
-> _OMAP3_MUXENTRY(SDMMC1_DAT4, 126,
->                 "sdmmc1_dat4", NULL, "sim_io", NULL,
->                 "gpio_126", NULL, NULL, "safe_mode"),
-> :
-> #if defined(CONFIG_OMAP_MUX) &&
-> defined(CONFIG_OMAP_PACKAGE_CBB) static struct omap_mux
-> __initdata omap3_cbb_subset[] = {
-> :
->        _OMAP3_MUXENTRY(CAM_STROBE, 126,
->                 "cam_strobe", NULL, NULL, NULL,
->                 "gpio_126", NULL, NULL, "safe_mode"),
+> There is a bug in the kernel workqueues. I observed it in 2.6.36.3 (it
+> seems to have been introduced in 2.6.36 and is still in 2.6.37.1), One
+> of my colleagues was investigating and contacted the author of the
+> workqueue code (Tejun Heo). Tejun sent us the following patch:
 >
-> Removing one instance of CAM_STROBE from omap3_muxmodes rids us
-> of this (pr_info) message and should be fine as this is defined in
-> omap3_xxx_subset as well. But I'm concerned if this would
-> break things
-> on the other omap3 boards?
+> diff --git a/kernel/workqueue.c b/kernel/workqueue.c
+> index 11869fa..90a17ca 100644
+> --- a/kernel/workqueue.c
+> +++ b/kernel/workqueue.c
+> @@ -2047,6 +2047,15 @@ repeat:
+>   				move_linked_works(work, scheduled,&n);
 >
-> For completeness, I've listed my patch (only for the CBB
-> package) below
-> (this also modifies the Mode 5 value of CAM_STROBE from NULL
-> to hw_dbg11
-> in omap3_cbb_subset, which is incorrect right now); please comment:
+>   		process_scheduled_works(rescuer);
+> +
+> +		/*
+> +		 * Leave this gcwq.  If keep_working() is %true, notify a
+> +		 * regular worker; otherwise, we end up with 0 concurrency
+> +		 * and stalling the execution.
+> +		 */
+> +		if (keep_working(gcwq))
+> +			wake_up_worker(gcwq);
+> +
+>   		spin_unlock_irq(&gcwq->lock);
+>   	}
 >
-> ---
+>
+> For us, this was causing card insertion events to not be processed.
+> For us it was a race condition and depended on when the timer tick
+> occured in relation to other processing, and since you're talking
+> about PREEMPTION making a difference, I thought I would throw this out
+> as maybe being relevant.
+>
+> Dave Hylands
 
-The GPIO 126 signal is available on two pads of that package.
-You will therefore need to update the caller to use
-omap_mux_init_signal specifying the full name as "cam_strobe.gpio_126"
-or equivalent.
+unfortunately the cards didn't work with the patch.
 
-I'm not sure if you can do something similar using omap_mux_init_gpio.
+We tried updating from 2.6.37-rc8 to 2.6.38-rc5 and the timeout error still occurs. However the cards get detected after the error and seem to work fine:
 
-Dropping an entry from the table is not the right way to go.
+[    2.456512] Waiting for root device /dev/mmcblk0p2...
+[    4.803375] mmc0: error -110 whilst initialising SD card
+[    5.201019] mmc0: new SD card at address aaaa
+[    5.206665] mmcblk0: mmc0:aaaa SU02G 1.84 GiB
+[    5.214477]  mmcblk0: p1 p2
 
-- Anand
+Regards,
+Johannes
+
