@@ -1,49 +1,33 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: fix build failure
-Date: Tue, 22 Feb 2011 13:57:10 -0800
-Message-ID: <20110222215710.GT15225@atomide.com>
-References: <20110222201842.GB31275@n2100.arm.linux.org.uk>
- <1298406402-31572-1-git-send-email-u.kleine-koenig@pengutronix.de>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: watchdog pdev id set to -1
+Date: Tue, 22 Feb 2011 21:59:23 +0000
+Message-ID: <20110222215923.GB28740@sirena.org.uk>
+References: <FCCFB4CDC6E5564B9182F639FC3560870370061699@dbde02.ent.ti.com> <20110218105635.GB10489@legolas.emea.dhcp.ti.com> <FCCFB4CDC6E5564B9182F639FC35608703700616CE@dbde02.ent.ti.com> <20110218111237.GE10489@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:40550 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751295Ab1BVV5c (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Feb 2011 16:57:32 -0500
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:57410 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750990Ab1BVV7Z (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Feb 2011 16:59:25 -0500
 Content-Disposition: inline
-In-Reply-To: <1298406402-31572-1-git-send-email-u.kleine-koenig@pengutronix.de>
+In-Reply-To: <20110218111237.GE10489@legolas.emea.dhcp.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: "Koyamangalath, Abhilash" <abhilash.kv@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Uwe Kleine-K=C3=B6nig <u.kleine-koenig@pengutronix.de> [110222 12:25]=
-:
-> Commit
->=20
-> 	06824ba (ARM: tlb: delay page freeing for SMP and ARMv7 CPUs)
->=20
-> introduced a build failure for builds with CONFIG_SWAP=3Dn:
->=20
-> 	In file included from arch/arm/mm/init.c:27:
-> 	arch/arm/include/asm/tlb.h: In function 'tlb_flush_mmu':
-> 	arch/arm/include/asm/tlb.h:101: error: implicit declaration of funct=
-ion 'release_pages'
-> 	arch/arm/include/asm/tlb.h: In function 'tlb_remove_page':
-> 	arch/arm/include/asm/tlb.h:165: error: implicit declaration of funct=
-ion 'page_cache_release'
->=20
-> Fix that by #including <linux/pagemap.h> in <asm/pgalloc.h> as it's d=
-one
-> by x86.
->=20
-> Signed-off-by: Uwe Kleine-K=C3=B6nig <u.kleine-koenig@pengutronix.de>
+On Fri, Feb 18, 2011 at 01:12:37PM +0200, Felipe Balbi wrote:
 
-Acked-by: Tony Lindgren <tony@atomide.com>
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> On Fri, Feb 18, 2011 at 04:39:48PM +0530, Koyamangalath, Abhilash wrote:
+> > I understand, but is there a subtle reason why are starting from
+> > an erroneous-looking -1 rather than a more natural 0 (or 1 ?).
+
+> -1 means no ID. The IDs are zero-based, so we can't use zero. Just
+> change that value and see how things change on sysfs and dmesg then you
+> will know what I'm talking about. That's just an implementation decision
+> of using -1 to signify "no ID needed".
+
+Though looking at the report it looks like the omap_device print that's
+done during boot is doing the wrong thing here and displaying the -1
+instead of masking it from the print which is what's expected.
