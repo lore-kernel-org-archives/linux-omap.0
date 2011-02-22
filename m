@@ -1,64 +1,65 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: Fix compile after delay page freeing patch
-Date: Tue, 22 Feb 2011 12:20:23 -0800
-Message-ID: <20110222202023.GS15225@atomide.com>
-References: <20110222194332.GQ15225@atomide.com>
- <20110222195929.GA31275@n2100.arm.linux.org.uk>
+From: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?=
+	<u.kleine-koenig@pengutronix.de>
+Subject: [PATCH] ARM: fix build failure
+Date: Tue, 22 Feb 2011 21:26:42 +0100
+Message-ID: <1298406402-31572-1-git-send-email-u.kleine-koenig@pengutronix.de>
+References: <20110222201842.GB31275@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:65365 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751621Ab1BVUUi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Feb 2011 15:20:38 -0500
-Content-Disposition: inline
-In-Reply-To: <20110222195929.GA31275@n2100.arm.linux.org.uk>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:42590 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750744Ab1BVU1B (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Feb 2011 15:27:01 -0500
+In-Reply-To: <20110222201842.GB31275@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [110222 11:57]:
-> On Tue, Feb 22, 2011 at 11:43:32AM -0800, Tony Lindgren wrote:
-> > Commit 06824ba824b3e9f2fedb38bee79af0643198ed7f
-> > (ARM: tlb: delay page freeing for SMP and ARMv7 CPUs) causes
-> > the following compile error for at least omap1_defconfig:
-> > 
-> > In file included from arch/arm/mm/init.c:27:
-> > arch/arm/include/asm/tlb.h: In function 'tlb_flush_mmu':
-> > arch/arm/include/asm/tlb.h:101: error: implicit declaration of function 'release_pages'
-> > arch/arm/include/asm/tlb.h: In function 'tlb_remove_page':
-> > arch/arm/include/asm/tlb.h:165: error: implicit declaration of function 'page_cache_release'
-> 
-> Grant already mentioned this to me this evening.
-> 
-> This happens if you build with CONFIG_SWAP=n, and is something that the
-> asm-generic/tlb.h also appears to suffer from.  Why no one else has
-> noticed this I've no idea.
-> 
-> Note that linux/swap.h has this comment:
-> 
-> /* only sparc can not include linux/pagemap.h in this file
->  * so leave page_cache_release and release_pages undeclared... */
-> #define free_page_and_swap_cache(page) \
->         page_cache_release(page)
-> #define free_pages_and_swap_cache(pages, nr) \
->         release_pages((pages), (nr), 0);
-> 
-> which is rather annoying, because it makes the build error dependent on
-> the configuration.
-> 
-> So, we should add linux/pagemap.h to both asm-generic/tlb.h and the ARM
-> tlb.h as they both should suffer the same problem.
-> 
-> Note that arch/x86/mm/init.c and arch/x86/mm/pgtable.c both include
-> asm/tlb.h without linux/pagemap.h, and use the generic version.  I bet
-> no one's tried building x86 with CONFIG_SWAP=n yet...
+Commit
 
-Looks like it's in arch/x86/mm/init_[32|64].c and pgtable[32|64].c
-though. So maybe we just need to patch either ARM tlb.h. Or patch
-the necessary .c files to include pagemap.h.
+	06824ba (ARM: tlb: delay page freeing for SMP and ARMv7 CPUs)
 
-Regards,
+introduced a build failure for builds with CONFIG_SWAP=3Dn:
 
-Tony
+	In file included from arch/arm/mm/init.c:27:
+	arch/arm/include/asm/tlb.h: In function 'tlb_flush_mmu':
+	arch/arm/include/asm/tlb.h:101: error: implicit declaration of functio=
+n 'release_pages'
+	arch/arm/include/asm/tlb.h: In function 'tlb_remove_page':
+	arch/arm/include/asm/tlb.h:165: error: implicit declaration of functio=
+n 'page_cache_release'
+
+=46ix that by #including <linux/pagemap.h> in <asm/pgalloc.h> as it's d=
+one
+by x86.
+
+Signed-off-by: Uwe Kleine-K=C3=B6nig <u.kleine-koenig@pengutronix.de>
+---
+ arch/arm/include/asm/pgalloc.h |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/include/asm/pgalloc.h b/arch/arm/include/asm/pgal=
+loc.h
+index 9763be0..22de005 100644
+--- a/arch/arm/include/asm/pgalloc.h
++++ b/arch/arm/include/asm/pgalloc.h
+@@ -10,6 +10,8 @@
+ #ifndef _ASMARM_PGALLOC_H
+ #define _ASMARM_PGALLOC_H
+=20
++#include <linux/pagemap.h>
++
+ #include <asm/domain.h>
+ #include <asm/pgtable-hwdef.h>
+ #include <asm/processor.h>
+--=20
+1.7.2.3
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
