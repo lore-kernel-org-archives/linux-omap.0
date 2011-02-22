@@ -1,75 +1,103 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [GIT PULL]: linux-omap DSS
-Date: Tue, 22 Feb 2011 12:09:39 +0200
-Message-ID: <1298369379.2590.41.camel@deskari>
+From: Govindraj <govindraj.ti@gmail.com>
+Subject: Re: Linux-next as of 20110222 broken on OMAP4
+Date: Tue, 22 Feb 2011 15:54:47 +0530
+Message-ID: <AANLkTikD6ntKWBXRtgPcpkApKkZrnvG8qK1qYEDrdob5@mail.gmail.com>
+References: <b858222d69a83460e469b80ee13cfbe8@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:44395 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752078Ab1BVKJn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 22 Feb 2011 05:09:43 -0500
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:63936 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751568Ab1BVKZI convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Feb 2011 05:25:08 -0500
+Received: by wwb39 with SMTP id 39so38875wwb.1
+        for <linux-omap@vger.kernel.org>; Tue, 22 Feb 2011 02:25:07 -0800 (PST)
+In-Reply-To: <b858222d69a83460e469b80ee13cfbe8@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
+To: Anand Gadiyar <gadiyar@ti.com>
 Cc: linux-omap <linux-omap@vger.kernel.org>
 
-Hi Tony,
-
-The following mach-omap2 patches have been reviewed and are in DSS tree,
-but cause easily conflicts with linux-omap tree.
-
-Would it be possible for you to pull these into linux-omap? 
-
-The patches are based on today's linux-omap/master.
-
- Tomi
+On Tue, Feb 22, 2011 at 3:19 PM, Anand Gadiyar <gadiyar@ti.com> wrote:
+> Looks like linux-next as of today is broken on at least OMAP4.
+>
+> Turning on earlyprintk, I get a crash in omap_init_mcspi. Disabling
+> CONFIG_SPI_OMAP24XX gets me as far as the following lines from my
+> bootup log, but I haven't attempted to debug further.
 
 
-The following changes since commit 35353452eb8b20c424ac4b88ad616f87fa8f5b1b:
+SPI fix is available but yet be merged its discussed in this thread:
 
-  Linux-omap rebuilt: Changes merged for nand, onenand, boards (2011-02-17 16:25:12 -0800)
+http://dchs.spinics.net/lists/linux-omap/msg46446.html
 
-are available in the git repository at:
-
-  git://gitorious.org/linux-omap-dss2/linux.git for-tony
-
-Senthilvadivu Guruswamy (5):
-      OMAP2420: hwmod data: add DSS DISPC RFBI VENC
-      OMAP2430: hwmod data: add DSS DISPC RFBI VENC
-      OMAP3: hwmod data: add DSS DISPC RFBI DSI VENC
-      OMAP2, 3: DSS2: Use Regulator init with driver name
-      OMAP2, 3: DSS2: board files: replace platform_device_register with omap_display_init()
-
-Sumit Semwal (1):
-      OMAP2, 3: DSS2: Create new file display.c for central dss driver registration.
-
- arch/arm/mach-omap2/Makefile               |    3 +
- arch/arm/mach-omap2/board-3430sdp.c        |   14 +-
- arch/arm/mach-omap2/board-am3517evm.c      |   16 +-
- arch/arm/mach-omap2/board-cm-t35.c         |   22 +--
- arch/arm/mach-omap2/board-devkit8000.c     |   10 +-
- arch/arm/mach-omap2/board-igep0020.c       |   16 +-
- arch/arm/mach-omap2/board-omap3beagle.c    |   10 +-
- arch/arm/mach-omap2/board-omap3evm.c       |   20 +--
- arch/arm/mach-omap2/board-omap3pandora.c   |   10 +-
- arch/arm/mach-omap2/board-omap3stalker.c   |   22 +--
- arch/arm/mach-omap2/board-rx51-video.c     |   15 +-
- arch/arm/mach-omap2/board-zoom-display.c   |   15 +-
- arch/arm/mach-omap2/display.c              |   45 +++
- arch/arm/mach-omap2/omap_hwmod_2420_data.c |  310 ++++++++++++++++++++
- arch/arm/mach-omap2/omap_hwmod_2430_data.c |  284 ++++++++++++++++++
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  433 ++++++++++++++++++++++++++++
- arch/arm/plat-omap/include/plat/display.h  |   11 +
- arch/arm/plat-omap/include/plat/l3_2xxx.h  |   20 ++
- arch/arm/plat-omap/include/plat/l3_3xxx.h  |   20 ++
- arch/arm/plat-omap/include/plat/l4_2xxx.h  |   24 ++
- arch/arm/plat-omap/include/plat/l4_3xxx.h  |   10 +
- 21 files changed, 1183 insertions(+), 147 deletions(-)
- create mode 100644 arch/arm/mach-omap2/display.c
- create mode 100644 arch/arm/plat-omap/include/plat/l3_2xxx.h
- create mode 100644 arch/arm/plat-omap/include/plat/l3_3xxx.h
- create mode 100644 arch/arm/plat-omap/include/plat/l4_2xxx.h
+--
+Regards,
+Govindraj.R
 
 
+>
+> If there are any patches out there to fix this, let me know.
+> Else I will debug this sometime tomorrow.
+>
+> - Anand
+>
+>
+> [ =A0 =A00.622802] print_constraints: dummy:
+> [ =A0 =A00.627655] NET: Registered protocol family 16
+> [ =A0 =A00.632537] GPMC revision 6.0
+> [ =A0 =A00.635681] Trying to install interrupt handler for IRQ402
+> [ =A0 =A00.641418] Trying to install interrupt handler for IRQ403
+> [ =A0 =A00.647125] Trying to install interrupt handler for IRQ404
+> [ =A0 =A00.652862] Trying to install interrupt handler for IRQ405
+> [ =A0 =A00.658599] Trying to install interrupt handler for IRQ406
+> [ =A0 =A00.664306] Trying to install interrupt handler for IRQ407
+> [ =A0 =A00.670043] Trying to install interrupt handler for IRQ408
+> [ =A0 =A00.675781] Trying to install type control for IRQ409
+> [ =A0 =A00.681060] Trying to set irq flags for IRQ409
+> [ =A0 =A00.685699] gpmc: irq-20 could not claim: err -22
+> [ =A0 =A00.695556] omap_device: omap_gpio.0: new worst case activate =
+latency
+> 0: 91552
+> [ =A0 =A00.703552] OMAP GPIO hardware version 0.1
+> [ =A0 =A00.708221] OMAP GPIO hardware version 0.1
+> [ =A0 =A00.712890] OMAP GPIO hardware version 0.1
+> [ =A0 =A00.717498] OMAP GPIO hardware version 0.1
+> [ =A0 =A00.722137] OMAP GPIO hardware version 0.1
+> [ =A0 =A00.726776] OMAP GPIO hardware version 0.1[ =A0 =A00.738403] o=
+map_mux_init:
+> Add partition: #1: core, flags: 2
+> [ =A0 =A00.746276] omap_mux_init: Add partition: #2: wkup, flags: 2
+> [ =A0 =A00.752349] error setting wl12xx data
+> [ =A0 =A00.759674] omap_device: omap_uart.0: new worst case deactivat=
+e latency
+> 0: 30517
+> [ =A0 =A00.769805] Failed omap4_twl6030_hsmmc_set_late_init
+> [ =A0 =A00.777587] hw-breakpoint: found 6 breakpoint and 1 watchpoint
+> registers.
+> [ =A0 =A00.784667] hw-breakpoint: 1 breakpoint(s) reserved for watchp=
+oint
+> single-step.
+> [ =A0 =A00.792266] hw-breakpoint: maximum watchpoint size is 4 bytes.
+> [ =A0 =A00.803466] pm_dbg_init: only OMAP3 supported
+> [ =A0 =A00.808441] OMAP DMA hardware revision 0.0
+> [ =A0 =A00.849426] bio: create slab <bio-0> at 0
+> [ =A0 =A00.856201] print_constraints: vwl1271: 1800 mV
+> [ =A0 =A00.864959] SCSI subsystem initialized
+> [ =A0 =A00.870605] usbcore: registered new interface driver usbfs
+> [ =A0 =A00.876739] usbcore: registered new interface driver hub
+> [ =A0 =A00.882751] usbcore: registered new device driver usb
+> [ =A0 =A00.889221] omap_device: omap_i2c.1: new worst case activate l=
+atency 0:
+> 30517
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
