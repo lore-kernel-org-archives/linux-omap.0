@@ -1,49 +1,57 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: Booting n8x0 on mainline without UART
-Date: Tue, 22 Feb 2011 08:41:46 +0200
-Message-ID: <20110222084146.3a3e3cd4.jhnikula@gmail.com>
-References: <3064ff5376f174fcd54b321764d8e2a0@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+From: Balaji T K <balajitk@ti.com>
+Subject: [PATCH] i2c-omap: fix build for !CONFIG_SUSPEND
+Date: Tue, 22 Feb 2011 12:25:39 +0530
+Message-ID: <1298357739-5132-1-git-send-email-balajitk@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:59849 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751274Ab1BVGk6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Feb 2011 01:40:58 -0500
-Received: by eyx24 with SMTP id 24so561946eyx.19
-        for <linux-omap@vger.kernel.org>; Mon, 21 Feb 2011 22:40:56 -0800 (PST)
-In-Reply-To: <3064ff5376f174fcd54b321764d8e2a0@mail.gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:34745 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751578Ab1BVGxL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Feb 2011 01:53:11 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Anand Gadiyar <gadiyar@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>
+To: linux-i2c@vger.kernel.org, ben-linux@fluff.org
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, Balaji T K <balajitk@ti.com>
 
-On Tue, 22 Feb 2011 10:41:16 +0530
-Anand Gadiyar <gadiyar@ti.com> wrote:
+fix the build break when !CONFIG_SUSPEND
 
-> Hi all,
-> 
-> I'm trying to boot up the mainline kernel on an n800 device. I don't have
-> a functional UART up and running - so I cannot see any console messages.
-> 
-FYI, DIY console:
-http://bu3sch.de/joomla/index.php/nokia-n810-serial-console
+drivers/i2c/busses/i2c-omap.c:1173: error: lvalue required as unary '&' operand
+make[3]: *** [drivers/i2c/busses/i2c-omap.o] Error 1
+make[2]: *** [drivers/i2c/busses] Error 2
+make[1]: *** [drivers/i2c] Error 2
+make: *** [drivers] Error 2
 
-> Does anyone have instructions or pointers to any patches that may be
-> needed to get the mainline linux kernel booting to the UI on this
-> platform?
-> 
-Retu watchdog driver is needed since otherwise the retu will kick after
-30 s or so. Those cbus/retu drivers are not in mainline (yet) but
-hopefully they will thanks to Felipe Balbi.
+Signed-off-by: Balaji T K <balajitk@ti.com>
+---
+introduced by commit f6f98d72575031b0c03416a28a0d580128114b74
+applies on i2c-fixes branch
 
-> Alternatively, is there a way to direct the boot logs to the LCD instead
-> of the UART/ttyMTD?
-> 
-It used to work but I think fb was broken a few months ago and I
-haven't checked is working now. Unfortunately I don't have my N810
-nearby so cannot do quick test now.
+ drivers/i2c/busses/i2c-omap.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index 0541df9..adc1ee5 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -1160,8 +1160,9 @@ static struct dev_pm_ops omap_i2c_pm_ops = {
+ 	.suspend = omap_i2c_suspend,
+ 	.resume = omap_i2c_resume,
+ };
++#define OMAP_I2C_PM_OPS (&omap_i2c_pm_ops)
+ #else
+-#define omap_i2c_pm_ops NULL
++#define OMAP_I2C_PM_OPS NULL
+ #endif
+ 
+ static struct platform_driver omap_i2c_driver = {
+@@ -1170,7 +1171,7 @@ static struct platform_driver omap_i2c_driver = {
+ 	.driver		= {
+ 		.name	= "omap_i2c",
+ 		.owner	= THIS_MODULE,
+-		.pm     = &omap_i2c_pm_ops,
++		.pm	= OMAP_I2C_PM_OPS,
+ 	},
+ };
+ 
 -- 
-Jarkko
+1.7.0.4
+
