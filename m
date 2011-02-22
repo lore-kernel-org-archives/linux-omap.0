@@ -1,57 +1,53 @@
-From: Balaji T K <balajitk@ti.com>
-Subject: [PATCH] i2c-omap: fix build for !CONFIG_SUSPEND
-Date: Tue, 22 Feb 2011 12:25:39 +0530
-Message-ID: <1298357739-5132-1-git-send-email-balajitk@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Subject: Re: [PATCH v3 00/13] OMAP: McBSP: hwmod adaptation  and runtime conversion
+Date: Tue, 22 Feb 2011 09:31:29 +0200
+Message-ID: <4D636651.30904@nokia.com>
+References: <1298038948-19871-1-git-send-email-kishon@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:34745 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751578Ab1BVGxL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Feb 2011 01:53:11 -0500
+Received: from smtp.nokia.com ([147.243.128.26]:43398 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753473Ab1BVHbl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 22 Feb 2011 02:31:41 -0500
+In-Reply-To: <1298038948-19871-1-git-send-email-kishon@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-i2c@vger.kernel.org, ben-linux@fluff.org
-Cc: linux-omap@vger.kernel.org, khilman@ti.com, Balaji T K <balajitk@ti.com>
+To: ext Kishon Vijay Abraham I <kishon@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, b-cousson@ti.com, tony@atomide.com, broonie@opensource.wolfsonmicro.com, jhnikula@gmail.com, p-basak2@ti.com, charu@ti.com, shubhrajyoti@ti.com
 
-fix the build break when !CONFIG_SUSPEND
+On 02/18/11 16:22, ext Kishon Vijay Abraham I wrote:
+> Modify OMAP McBSP driver to use omap hwmod framework and pm runtime  =
+APIs.
+>=20
+> Created on top of linux OMAP master (linux-omap-2.6 :master)
+>=20
+> Did digital loopback testing on OMAP4430, OMAP3430, OMAP2430 and OMAP
+> 1710 SDP boards.
+> Tested audio on 3430 SDP board (by me) and N810 (by Jarkko Nikula).
+> Tested PM with audio and verified the patch series does not cause reg=
+ression.
+> PM testing comprises of suspend/resume between consecutive audio play=
+back.
+> Support for suspend/resume in the middle of audio playback will be do=
+ne by
+> audio guys on top of this patch series.
+>=20
+> Patch series requires the following patch to be present
+> http://permalink.gmane.org/gmane.linux.ports.arm.omap/51132
+> http://permalink.gmane.org/gmane.linux.ports.arm.omap/51133
+> http://permalink.gmane.org/gmane.linux.ports.arm.omap/51134
 
-drivers/i2c/busses/i2c-omap.c:1173: error: lvalue required as unary '&' operand
-make[3]: *** [drivers/i2c/busses/i2c-omap.o] Error 1
-make[2]: *** [drivers/i2c/busses] Error 2
-make[1]: *** [drivers/i2c] Error 2
-make: *** [drivers] Error 2
+I don't see further issues with this series.
+Since my ack is already in place on the patches, the only thing I can
+say is:
+Good work, thank you!
 
-Signed-off-by: Balaji T K <balajitk@ti.com>
----
-introduced by commit f6f98d72575031b0c03416a28a0d580128114b74
-applies on i2c-fixes branch
-
- drivers/i2c/busses/i2c-omap.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 0541df9..adc1ee5 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -1160,8 +1160,9 @@ static struct dev_pm_ops omap_i2c_pm_ops = {
- 	.suspend = omap_i2c_suspend,
- 	.resume = omap_i2c_resume,
- };
-+#define OMAP_I2C_PM_OPS (&omap_i2c_pm_ops)
- #else
--#define omap_i2c_pm_ops NULL
-+#define OMAP_I2C_PM_OPS NULL
- #endif
- 
- static struct platform_driver omap_i2c_driver = {
-@@ -1170,7 +1171,7 @@ static struct platform_driver omap_i2c_driver = {
- 	.driver		= {
- 		.name	= "omap_i2c",
- 		.owner	= THIS_MODULE,
--		.pm     = &omap_i2c_pm_ops,
-+		.pm	= OMAP_I2C_PM_OPS,
- 	},
- };
- 
--- 
-1.7.0.4
-
+--=20
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
