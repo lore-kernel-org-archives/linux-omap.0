@@ -1,74 +1,53 @@
-From: Samreen <samreen@ti.com>
-Subject: [PATCH] OMAP2/3/4: DSS2: Enable Display SubSystem as modules
-Date: Wed, 23 Feb 2011 17:52:33 +0530
-Message-ID: <1298463753-24880-1-git-send-email-samreen@ti.com>
+From: Michael Jones <michael.jones@matrix-vision.de>
+Subject: high-speed bus on OMAP w/o TT?
+Date: Wed, 23 Feb 2011 13:49:21 +0100
+Message-ID: <4D650251.3090100@matrix-vision.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:47405 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754558Ab1BWM3M (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Feb 2011 07:29:12 -0500
+Received: from mail2.matrix-vision.com ([85.214.244.251]:39044 "EHLO
+	mail2.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754170Ab1BWMtX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Feb 2011 07:49:23 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>, Paul Mundt <lethal@linux-sh.org>, Samreen <samreen@ti.com>
+To: linux-usb@vger.kernel.org
+Cc: stern@rowland.harvard.edu, linux-omap@vger.kernel.org
 
-Enabling Display options to be built as modules
-Also, the generic dpi, sharp & nec panels are also
-enabled as modules.
+Hi all,
 
-Signed-off-by: Samreen <samreen@ti.com>
----
- Version5:
-        Incorporating the comments from Tony Lindgren, Kevin Hilman,
- Paul Mundt & Tomi Valkeinen to build DSS & panels as modules.
- See: https://patchwork.kernel.org/patch/281492/
+My OMAP37 board started choking on my USB mouse when I updated from
+2.6.37 to 2.6.38rc5.  I've tracked it down to commit
+d199c96d41d80a567493e12b8e96ea056a1350c1, "USB: prevent buggy hubs from
+crashing the USB stack."  If I revert this commit, my mouse works again.
+Otherwise, I get the message:
 
- Version4:
-       Remove the enabling of the display panels by default.
+usb 1-1: new low speed USB device using musb-hdrc and address 33
+usb 1-1: parent hub has no TT
 
- Version3:
-       Eliminate the separate default number of FBs for
- different architecture. Keeping default FBs as 3 as before.
+repeatedly (with 'address' incrementing).
 
- Version2:
-        Enables by default NEC panel used in zoom2/3/3630sdp, instead of
- Sharp LQ043T1DG01 panel enabled in previous version of this patch.
+I'm using the musb-hdrc driver for the OTG USB port in host mode.
 
-Testing:
----------
-The base used for OMAP3 testing is:
-branch: master
-commit: 7c23277
-URL: git://gitorious.org/linux-omap-dss2/linux.git
+some relevant config:
+CONFIG_USB_EHCI_HCD_OMAP=y
+CONFIG_USB_MUSB_HDRC=y
+CONFIG_USB_MUSB_OMAP2PLUS=y
+CONFIG_USB_MUSB_HOST=y
+CONFIG_USB_MUSB_HDRC_HCD=y
+CONFIG_USB_INVENTRA_DMA=y
 
-And OMAP4 testing is on the following branch + few patches to enable DSI taal panel:
-branch: lo-dss2-Feb18
-commit: 67bcb5600
-URL: git://dev.omapzoom.org/pub/scm/axelcx/kernel-display.git
+# lsusb
+Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Bus 002 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
 
-The patch is tested on 3630zoom, 3430sdp & 4430sdp, it was not tested
-on OMAP2 platform due crash seen while boot.
-(See: http://www.mail-archive.com/linux-omap@vger.kernel.org/msg43921.html)
+Any thoughts on how to get around this besides just reverting the
+commit?  Did anybody already encounter this?
 
- arch/arm/configs/omap2plus_defconfig |    5 +++++
- 1 files changed, 5 insertions(+), 0 deletions(-)
+thanks,
+Michael
 
-diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-index ae890ca..ddcae13 100644
---- a/arch/arm/configs/omap2plus_defconfig
-+++ b/arch/arm/configs/omap2plus_defconfig
-@@ -192,6 +192,11 @@ CONFIG_FIRMWARE_EDID=y
- CONFIG_FB_MODE_HELPERS=y
- CONFIG_FB_TILEBLITTING=y
- CONFIG_FB_OMAP_LCD_VGA=y
-+CONFIG_OMAP2_DSS=m
-+CONFIG_FB_OMAP2=m
-+CONFIG_PANEL_GENERIC_DPI=m
-+CONFIG_PANEL_SHARP_LS037V7DW01=m
-+CONFIG_PANEL_NEC_NL8048HL11_01B=m
- CONFIG_BACKLIGHT_LCD_SUPPORT=y
- CONFIG_LCD_CLASS_DEVICE=y
- CONFIG_LCD_PLATFORM=y
--- 
-1.5.6.3
-
+MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
+Registergericht: Amtsgericht Stuttgart, HRB 271090
+Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner
