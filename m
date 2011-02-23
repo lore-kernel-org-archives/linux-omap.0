@@ -1,135 +1,108 @@
-From: Sricharan R <r.sricharan@ti.com>
-Subject: RE: [PATCH 4/6] omap4: hwmod_data: Add l3 errorlog data to hwmod database.
-Date: Wed, 23 Feb 2011 13:44:49 +0530
-Message-ID: <1c7b14958aa88b52095ab07456f96318@mail.gmail.com>
-References: <1298295990-1070-1-git-send-email-santosh.shilimkar@ti.com>
- <1298295990-1070-5-git-send-email-santosh.shilimkar@ti.com>
- <4D627937.8030309@ti.com> 43067ab756e2e48efb745dee3ecc67eb@mail.gmail.com
+From: "Menon, Nishanth" <nm@ti.com>
+Subject: Re: [PATCH 03/19] omap3+: voltage: remove initial voltage
+Date: Wed, 23 Feb 2011 13:48:02 +0530
+Message-ID: <AANLkTinW+ekEy6uSQcFYYFiUkSYi2h9Mp5q_ct3p5nat@mail.gmail.com>
+References: <1298116918-30744-1-git-send-email-nm@ti.com> <1298116918-30744-4-git-send-email-nm@ti.com>
+ <bd6822eaf1535de0f30aa64a31c15f6c@mail.gmail.com> <4D60A2AC.1030704@ti.com> <1000eadc0be6e053b04840566bb7c98a@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:32938 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754619Ab1BWIPA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 23 Feb 2011 03:15:00 -0500
-Received: by eyf5 with SMTP id 5so1376946eyf.29
-        for <linux-omap@vger.kernel.org>; Wed, 23 Feb 2011 00:14:52 -0800 (PST)
-In-Reply-To: 43067ab756e2e48efb745dee3ecc67eb@mail.gmail.com
+Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:52974 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754430Ab1BWISY convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 23 Feb 2011 03:18:24 -0500
+Received: by mail-ww0-f54.google.com with SMTP id 31so8368880wwb.11
+        for <linux-omap@vger.kernel.org>; Wed, 23 Feb 2011 00:18:23 -0800 (PST)
+In-Reply-To: <1000eadc0be6e053b04840566bb7c98a@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>
+To: Vishwanath Sripathy <vishwanath.bs@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>
 
-Hi Benoit,
->-----Original Message-----
->From: Sricharan R [mailto:r.sricharan@ti.com]
->Sent: Wednesday, February 23, 2011 11:09 AM
->To: Benoit Cousson; Santosh Shilimkar
->Cc: 'linux-omap@vger.kernel.org'; Felipe Balbi
->Subject: RE: [PATCH 4/6] omap4: hwmod_data: Add l3 errorlog data to hwmod
->database.
+ Wed, Feb 23, 2011 at 12:24, Vishwanath Sripathy <vishwanath.bs@ti.com>=
+ wrote:
+>> -----Original Message-----
+>> From: Nishanth Menon [mailto:nm@ti.com]
+>> Sent: Sunday, February 20, 2011 10:42 AM
+>> To: Vishwanath Sripathy
+>> Cc: linux-omap; Tony Lindgren; Kevin Hilman
+>> Subject: Re: [PATCH 03/19] omap3+: voltage: remove initial voltage
+>>
+>> Vishwanath Sripathy wrote, on 02/19/2011 06:54 PM:
+>> [..]
+>> >> omap2_set_init_voltage should setup the curr_volt based on which
+>> OPP
+>> >> the system is functioning at. Blindly setting a 1.2v setting in t=
+he
+>> >> initial structure may not even match the default voltages stored =
+in
+>> >> the voltage table which are supported for the domain.
+>> >>
+>> >> For example, OMAP3430 core domain does not use 1.2v and ends up
+>> >> generating a warning on the first transition.
+>> >>
+>> [..]
+>> >> diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-
+>> >> omap2/voltage.c
+>> >> index 12be525..280ee12 100644
+>> >> --- a/arch/arm/mach-omap2/voltage.c
+>> >> +++ b/arch/arm/mach-omap2/voltage.c
+>> [..]
+>> >> =A0 =A0/* Generic voltage parameters */
+>> >> - =A0vdd->curr_volt =3D 1200000;
+>> > Where do you update this parameter upon initialization? Shouldn't =
+you
+>> read
+>> > the VP register and find the actual current voltage and update thi=
+s
+>> param?
+>>
+>> The sequence is as follows:
+>> a) omapx_vdd_data configure is called as part of sr init sequence.
+>> =A0 =A0 =A0 And the curr_volt with this patch is not updated at this=
+ stage.
+>> b) somewhere down in the boot sequence, pm.c's
+>> omap2_set_init_voltage
+>> starts up. This looks up the current clk frequency from clock layer =
+of
+>> the parent device for the domain, picks up the nominal voltages stor=
+ed
+>> in the opp layer, then does a omap_voltage_scale_vdd to that voltage=
+=2E In
+>> omap_voltage_scale_vdd, The current voltage is merely picked off the=
+ vp
+>> (in _pre_volt_scale). the last step it does is to setup vdd->curr_vo=
+lt.
+>> This can then be used by dvfs layer etc to make appropriate decision=
+s.
+>>
+>> So, No, I dont think I need to update it here, it should happen as p=
+art
+>> of the pm init sequence.
+>>
+>> Could you explain what problem do you foresee by doing this?
+> What if omap_voltage_scale_vdd fails when called from
+> omap2_set_init_voltage? Or omap2_set_init_voltage returns error even
+> before calling omap_voltage_scale_vdd because it could not find the
+> matching voltage for the frequency set by bootloader?
 >
->Hi Benoit,
->>-----Original Message-----
->>From: Cousson, Benoit [mailto:b-cousson@ti.com]
->>Sent: Monday, February 21, 2011 8:10 PM
->>To: Shilimkar, Santosh
->>Cc: linux-omap@vger.kernel.org; Balbi, Felipe; R, Sricharan
->>Subject: Re: [PATCH 4/6] omap4: hwmod_data: Add l3 errorlog data to
-hwmod
->>database.
->>
->>Hi Sricharan,
->>
->>On 2/21/2011 2:46 PM, Shilimkar, Santosh wrote:
->>> From: sricharan<r.sricharan@ti.com>
->>>
->>> Add the error log registers, irqs of the l3 interconnect to the
->>> hwmod data. The hwmod change is aligned with Benoit Cousson.
-Hi Benoit,
->>
->>The change is almost aligned with Benoit Cousson :-)
->>
->>The subject should be something like: omap4: hwmod data: Add address
->>space and irq in L3 hwmod
->>
->>There is no errolog data in that patch. The changelog should be updated
->>too.
->Ok. I will change the subject and the change log as well.
->>
-Here is the updated patch as per your suggestions.
+> Your assumption that curr_volt is always set by omap2_set_init_voltag=
+e
+> need not be true always.
 
----------------------
-[PATCH v2 4/6] omap4: hwmod_data: Add address space and irq in L3 hwmod.
+set_init_voltage's job is to set the initial voltage. if it is
+incapable of doing it, I say fix that instead of hacking in some
+random number as curr_volt.
 
-Add the address spaces, irqs of the l3 interconnect to the
-hwmod data. The hwmod change is aligned with Benoit Cousson.
+The logic involved for set_init_voltage is what we need for filling in
+cur_volt. just replicating the logic makes no sense to me.
 
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Signed-off-by: sricharan <r.sricharan@ti.com>
-Tested-by: sricharan <r.sricharan@ti.com>
-Cc: Benoit Cousson <b-cousson@ti.com>
----
-changed the subject line and the changelog
-
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   28
-++++++++++++++++++++++++++++
- 1 files changed, 28 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index c2806bd..95001d4 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -229,11 +229,37 @@ static struct omap_hwmod_ocp_if
-omap44xx_l4_cfg__l3_main_1 = {
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
- };
-
-+/* L3 target configuration and error log registers */
-+static struct omap_hwmod_irq_info omap44xx_l3_targ_irqs[] = {
-+	{ .irq = 9  + OMAP44XX_IRQ_GIC_START },
-+	{ .irq = 10 + OMAP44XX_IRQ_GIC_START },
-+};
-+
-+static struct omap_hwmod_addr_space omap44xx_l3_targ_addrs[] = {
-+	{
-+		.pa_start	= 0x44000000,
-+		.pa_end 	= 0x44100000,
-+		.flags		= ADDR_TYPE_RT,
-+	},
-+	{
-+		.pa_start	= 0x44800000,
-+		.pa_end		= 0x44900000,
-+		.flags		= ADDR_TYPE_RT,
-+	},
-+	{
-+		.pa_start	= 0x45000000,
-+		.pa_end		= 0x45100000,
-+		.flags		= ADDR_TYPE_RT,
-+	},
-+};
-+
- /* mpu -> l3_main_1 */
- static struct omap_hwmod_ocp_if omap44xx_mpu__l3_main_1 = {
- 	.master		= &omap44xx_mpu_hwmod,
- 	.slave		= &omap44xx_l3_main_1_hwmod,
- 	.clk		= "l3_div_ck",
-+	.addr		= omap44xx_l3_targ_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap44xx_l3_targ_addrs),
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
- };
-
-@@ -248,6 +274,8 @@ static struct omap_hwmod_ocp_if
-*omap44xx_l3_main_1_slaves[] = {
- static struct omap_hwmod omap44xx_l3_main_1_hwmod = {
- 	.name		= "l3_main_1",
- 	.class		= &omap44xx_l3_hwmod_class,
-+	.mpu_irqs	= omap44xx_l3_targ_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_l3_targ_irqs),
- 	.slaves		= omap44xx_l3_main_1_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_l3_main_1_slaves),
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
--- 
-1.7.0.4
+Regards,
+Nishanth Menon
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
