@@ -1,125 +1,249 @@
-From: Kishore Kadiyala <kishorek.kadiyala@gmail.com>
-Subject: Re: Linux-next as of 20110222 broken on OMAP4
-Date: Wed, 23 Feb 2011 18:22:15 +0530
-Message-ID: <AANLkTina9+NxE=5J3E8PeaEuX_FXM2k=HCjLL1tyCgTa@mail.gmail.com>
-References: <b858222d69a83460e469b80ee13cfbe8@mail.gmail.com>
- <4D63B160.3010103@ti.com> <20110222191343.GP15225@atomide.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB037A0952FD@dbde02.ent.ti.com>
- <AANLkTikZvYa9Q2n8QK+LRfUbukKwAe3nAY3UkJ0whhi5@mail.gmail.com> <5A47E75E594F054BAF48C5E4FC4B92AB037A09554C@dbde02.ent.ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [PATCH] OMAP: DSS2: Delay regulator_get() calls
+Date: Wed, 23 Feb 2011 15:08:04 +0200
+Message-ID: <1298466484-19324-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:34396 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754182Ab1BWMwg convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Feb 2011 07:52:36 -0500
-Received: by wyg36 with SMTP id 36so789931wyg.19
-        for <linux-omap@vger.kernel.org>; Wed, 23 Feb 2011 04:52:35 -0800 (PST)
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB037A09554C@dbde02.ent.ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:53604 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752080Ab1BWNIR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 23 Feb 2011 08:08:17 -0500
+Received: from dlep36.itg.ti.com ([157.170.170.91])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1ND8Gbd024453
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Wed, 23 Feb 2011 07:08:16 -0600
+Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
+	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id p1ND8GSa006205
+	for <linux-omap@vger.kernel.org>; Wed, 23 Feb 2011 07:08:16 -0600 (CST)
+Received: from dlee74.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p1ND8GxQ028229
+	for <linux-omap@vger.kernel.org>; Wed, 23 Feb 2011 07:08:16 -0600 (CST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Gadiyar, Anand" <gadiyar@ti.com>, linux-omap <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-On Wed, Feb 23, 2011 at 5:50 PM, DebBarma, Tarun Kanti
-<tarun.kanti@ti.com> wrote:
->> -----Original Message-----
->> From: Kishore Kadiyala [mailto:kishorek.kadiyala@gmail.com]
->> Sent: Wednesday, February 23, 2011 5:37 PM
->> To: DebBarma, Tarun Kanti
->> Cc: Tony Lindgren; Cousson, Benoit; Gadiyar, Anand; linux-omap
->> Subject: Re: Linux-next as of 20110222 broken on OMAP4
->>
->> On Wed, Feb 23, 2011 at 10:20 AM, DebBarma, Tarun Kanti
->> <tarun.kanti@ti.com> wrote:
->> >> -----Original Message-----
->> >> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
->> >> owner@vger.kernel.org] On Behalf Of Tony Lindgren
->> >> Sent: Wednesday, February 23, 2011 12:44 AM
->> >> To: Cousson, Benoit
->> >> Cc: Gadiyar, Anand; linux-omap
->> >> Subject: Re: Linux-next as of 20110222 broken on OMAP4
->> >>
->> >> * Cousson, Benoit <b-cousson@ti.com> [110222 04:50]:
->> >> > Hi Anand,
->> >> >
->> >> > On 2/22/2011 10:49 AM, Gadiyar, Anand wrote:
->> >> > > Looks like linux-next as of today is broken on at least OMAP4=
-=2E
->> >> > >
->> >> > > Turning on earlyprintk, I get a crash in omap_init_mcspi. Dis=
-abling
->> >> > > CONFIG_SPI_OMAP24XX gets me as far as the following lines fro=
-m my
->> >> > > bootup log, but I haven't attempted to debug further.
->> >> > >
->> >> > > If there are any patches out there to fix this, let me know.
->> >> > > Else I will debug this sometime tomorrow.
->> >> >
->> >> > Yes, it was discussed with Tony and temporarily fixed yesterday=
-=2E
->> >> >
->> >> > The SPI fix is is already in omap-for-linus, and the timer1 tem=
-p fix
->> is
->> >> below.
->> >> > We need to find a better way to handle timer now that they are
->> >> initialized pretty soon.
->> >>
->> >> I applied the fix below with Paul's ack from the other thread.
->> >> So linux-next should be working again on omap4 when it gets rebui=
-lt.
->> > I have tested on OMAP4 and OMAP3. BTW, it doesn't work on OMAP24xx=
-=2E
->> <snip>
->>
->>
->> The following commit breaks OMAP2420 booting
->>
->> git bisect bad
->> 15490ef8ff8fd22d677cb5d4f6a98e5a79118dba is the first bad commit
->> commit 15490ef8ff8fd22d677cb5d4f6a98e5a79118dba
->> Author: Russell King <rmk+kernel@arm.linux.org.uk>
->> Date: =A0 Wed Feb 9 16:33:46 2011 +0000
->>
->> =A0 =A0ARM: Avoid building unsafe kernels on OMAP2 and MX3
->>
->> =A0 =A0OMAP2 (armv6) and MX3 turn off support for the V6K instructio=
-ns, which
->> =A0 =A0when they include support for SMP kernels means that the resu=
-lting
->> =A0 =A0kernel is unsafe on SMP and can result in corrupted filesyste=
-ms as we
->> =A0 =A0end up using unsafe bitops.
->>
->> =A0 =A0Re-enable the use of V6K instructions on such kernels, and le=
-t such
->> =A0 =A0kernels running on V6 CPUs eat undefined instruction faults w=
-hich will
->> =A0 =A0be much safer than filesystem corruption. =A0Next merge windo=
-w we can fix
->> =A0 =A0this properly (as it requires a much bigger set of changes.)
->>
->> =A0 =A0Acked-by: Tony Lindgren <tony@atomide.com>
->> =A0 =A0Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
->>
->> :040000 040000 48e40d2ece61dfc65cb701841efd31e3f7b2c0ff
->> df6ed06ca039457b7929bdd2fe5ca9ea6a331844 M =A0 =A0 =A0arch
-> I was thinking Paul's patch already tested on N800, OMAP2420!
-> [PATCH 0/8] OMAP2+: hwmod/clockevent: allow late-init of individual =A0=
- =A0 hwmods
-> In other words, Paul's patch fixed the breakage on OMAP24xx.
-> --
-> Tarun
->
+DSS submodules DPI/SDI/DSI/VENC require a regulator to function.
+However, if the board doesn't use, say, SDI, the board shouldn't need to
+configure vdds_sdi regulator required by the SDI module.
 
-Sorry it was on lkml and not on linux-next
+Currently the regulators are acquired when the DSS driver is loaded.
+This means that if the kernel is configured with SDI, vdds_sdi regulator
+is needed for all boards.
 
-Regards,
-Kishore
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This patch changes the DSS driver to acquire the regulators only when a
+display of particular type is initialized. For example, vdds_sdi is
+acquired when sdi_init_display() is called.
+
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+---
+ drivers/video/omap2/dss/dpi.c  |   21 +++++++++++++--------
+ drivers/video/omap2/dss/dsi.c  |   36 +++++++++++++-----------------------
+ drivers/video/omap2/dss/sdi.c  |   18 +++++++++++++-----
+ drivers/video/omap2/dss/venc.c |   31 +++++++++++++------------------
+ 4 files changed, 52 insertions(+), 54 deletions(-)
+
+diff --git a/drivers/video/omap2/dss/dpi.c b/drivers/video/omap2/dss/dpi.c
+index 746f1b6..026702b 100644
+--- a/drivers/video/omap2/dss/dpi.c
++++ b/drivers/video/omap2/dss/dpi.c
+@@ -303,22 +303,27 @@ int dpi_init_display(struct omap_dss_device *dssdev)
+ {
+ 	DSSDBG("init_display\n");
+ 
+-	return 0;
+-}
++	if (cpu_is_omap34xx() && dpi.vdds_dsi_reg == NULL) {
++		struct regulator *vdds_dsi;
+ 
+-int dpi_init(struct platform_device *pdev)
+-{
+-	if (cpu_is_omap34xx()) {
+-		dpi.vdds_dsi_reg = dss_get_vdds_dsi();
+-		if (IS_ERR(dpi.vdds_dsi_reg)) {
++		vdds_dsi = dss_get_vdds_dsi();
++
++		if (IS_ERR(vdds_dsi)) {
+ 			DSSERR("can't get VDDS_DSI regulator\n");
+-			return PTR_ERR(dpi.vdds_dsi_reg);
++			return PTR_ERR(vdds_dsi);
+ 		}
++
++		dpi.vdds_dsi_reg = vdds_dsi;
+ 	}
+ 
+ 	return 0;
+ }
+ 
++int dpi_init(struct platform_device *pdev)
++{
++	return 0;
++}
++
+ void dpi_exit(void)
+ {
+ }
+diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
+index e189e45..0207065 100644
+--- a/drivers/video/omap2/dss/dsi.c
++++ b/drivers/video/omap2/dss/dsi.c
+@@ -291,20 +291,6 @@ static inline u32 dsi_read_reg(const struct dsi_reg idx)
+ 	return __raw_readl(dsi.base + idx.idx);
+ }
+ 
+-static struct regulator *dsi_get_vdds_dsi(void)
+-{
+-	struct regulator *reg;
+-
+-	if (dsi.vdds_dsi_reg != NULL)
+-		return dsi.vdds_dsi_reg;
+-
+-	reg = regulator_get(&dsi.pdev->dev, "vdds_dsi");
+-	if (!IS_ERR(reg))
+-		dsi.vdds_dsi_reg = reg;
+-
+-	return reg;
+-}
+-
+ 
+ void dsi_save_context(void)
+ {
+@@ -3236,6 +3222,19 @@ int dsi_init_display(struct omap_dss_device *dssdev)
+ 	dsi.vc[0].dssdev = dssdev;
+ 	dsi.vc[1].dssdev = dssdev;
+ 
++	if (dsi.vdds_dsi_reg == NULL) {
++		struct regulator *vdds_dsi;
++
++		vdds_dsi = regulator_get(&dsi.pdev->dev, "vdds_dsi");
++
++		if (IS_ERR(vdds_dsi)) {
++			DSSERR("can't get VDDS_DSI regulator\n");
++			return PTR_ERR(vdds_dsi);
++		}
++
++		dsi.vdds_dsi_reg = vdds_dsi;
++	}
++
+ 	return 0;
+ }
+ 
+@@ -3295,13 +3294,6 @@ static int dsi_init(struct platform_device *pdev)
+ 		goto err1;
+ 	}
+ 
+-	dsi.vdds_dsi_reg = dsi_get_vdds_dsi();
+-	if (IS_ERR(dsi.vdds_dsi_reg)) {
+-		DSSERR("can't get VDDS_DSI regulator\n");
+-		r = PTR_ERR(dsi.vdds_dsi_reg);
+-		goto err2;
+-	}
+-
+ 	enable_clocks(1);
+ 
+ 	rev = dsi_read_reg(DSI_REVISION);
+@@ -3311,8 +3303,6 @@ static int dsi_init(struct platform_device *pdev)
+ 	enable_clocks(0);
+ 
+ 	return 0;
+-err2:
+-	iounmap(dsi.base);
+ err1:
+ 	destroy_workqueue(dsi.workqueue);
+ 	return r;
+diff --git a/drivers/video/omap2/dss/sdi.c b/drivers/video/omap2/dss/sdi.c
+index 8272fc1..9f10a0d 100644
+--- a/drivers/video/omap2/dss/sdi.c
++++ b/drivers/video/omap2/dss/sdi.c
+@@ -157,6 +157,19 @@ int sdi_init_display(struct omap_dss_device *dssdev)
+ {
+ 	DSSDBG("SDI init\n");
+ 
++	if (sdi.vdds_sdi_reg == NULL) {
++		struct regulator *vdds_sdi;
++
++		vdds_sdi = dss_get_vdds_sdi();
++
++		if (IS_ERR(vdds_sdi)) {
++			DSSERR("can't get VDDS_SDI regulator\n");
++			return PTR_ERR(vdds_sdi);
++		}
++
++		sdi.vdds_sdi_reg = vdds_sdi;
++	}
++
+ 	return 0;
+ }
+ 
+@@ -165,11 +178,6 @@ int sdi_init(bool skip_init)
+ 	/* we store this for first display enable, then clear it */
+ 	sdi.skip_init = skip_init;
+ 
+-	sdi.vdds_sdi_reg = dss_get_vdds_sdi();
+-	if (IS_ERR(sdi.vdds_sdi_reg)) {
+-		DSSERR("can't get VDDS_SDI regulator\n");
+-		return PTR_ERR(sdi.vdds_sdi_reg);
+-	}
+ 	/*
+ 	 * Enable clocks already here, otherwise there would be a toggle
+ 	 * of them until sdi_display_enable is called.
+diff --git a/drivers/video/omap2/dss/venc.c b/drivers/video/omap2/dss/venc.c
+index 2adae12..9cfcc36 100644
+--- a/drivers/video/omap2/dss/venc.c
++++ b/drivers/video/omap2/dss/venc.c
+@@ -305,17 +305,6 @@ static inline u32 venc_read_reg(int idx)
+ 	return l;
+ }
+ 
+-static struct regulator *venc_get_vdda_dac(void)
+-{
+-	struct regulator *reg;
+-
+-	reg = regulator_get(&venc.pdev->dev, "vdda_dac");
+-	if (!IS_ERR(reg))
+-		venc.vdda_dac_reg = reg;
+-
+-	return reg;
+-}
+-
+ static void venc_write_config(const struct venc_config *config)
+ {
+ 	DSSDBG("write venc conf\n");
+@@ -655,6 +644,19 @@ int venc_init_display(struct omap_dss_device *dssdev)
+ {
+ 	DSSDBG("init_display\n");
+ 
++	if (venc.vdda_dac_reg == NULL) {
++		struct regulator *vdda_dac;
++
++		vdda_dac = regulator_get(&venc.pdev->dev, "vdda_dac");
++
++		if (IS_ERR(vdda_dac)) {
++			DSSERR("can't get VDDA_DAC regulator\n");
++			return PTR_ERR(vdda_dac);
++		}
++
++		venc.vdda_dac_reg = vdda_dac;
++	}
++
+ 	return 0;
+ }
+ 
+@@ -734,13 +736,6 @@ static int omap_venchw_probe(struct platform_device *pdev)
+ 		return -ENOMEM;
+ 	}
+ 
+-	venc.vdda_dac_reg = venc_get_vdda_dac();
+-	if (IS_ERR(venc.vdda_dac_reg)) {
+-		iounmap(venc.base);
+-		DSSERR("can't get VDDA_DAC regulator\n");
+-		return PTR_ERR(venc.vdda_dac_reg);
+-	}
+-
+ 	venc_enable_clocks(1);
+ 
+ 	rev_id = (u8)(venc_read_reg(VENC_REV_ID) & 0xff);
+-- 
+1.7.1
+
