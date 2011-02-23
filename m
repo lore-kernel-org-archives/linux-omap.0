@@ -1,46 +1,52 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] omap: Move omap_hwmod_late_init() to mdesc->timer->init()
- code
-Date: Wed, 23 Feb 2011 00:18:30 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1102230015480.22636@utopia.booyaka.com>
-References: <1298385449-27356-1-git-send-email-santosh.shilimkar@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [GIT PULL]: linux-omap DSS
+Date: Wed, 23 Feb 2011 09:43:17 +0200
+Message-ID: <1298446997.3476.2.camel@deskari>
+References: <1298369379.2590.41.camel@deskari>
+	 <20110222190119.GN15225@atomide.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:55789 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752513Ab1BWHSb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Feb 2011 02:18:31 -0500
-In-Reply-To: <1298385449-27356-1-git-send-email-santosh.shilimkar@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:33592 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753992Ab1BWHnV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Feb 2011 02:43:21 -0500
+In-Reply-To: <20110222190119.GN15225@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Benoit Cousson <b-cousson@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>
 
-Hi Santosh,
-
-On Tue, 22 Feb 2011, Santosh Shilimkar wrote:
-
-> To adhere to recent early_init changes, commit '44dc0' made
-> omap_hwmod_late_init() to core_initcall to avoid ioremap() failures.
+On Tue, 2011-02-22 at 13:01 -0600, Tony Lindgren wrote:
+> Hi,
 > 
-> Later 'e7c7d7' removed _mpu_rt_va population omap_hwmod_late_init()
+> * Tomi Valkeinen <tomi.valkeinen@ti.com> [110222 02:07]:
+> > Hi Tony,
+> > 
+> > The following mach-omap2 patches have been reviewed and are in DSS tree,
+> > but cause easily conflicts with linux-omap tree.
+> > 
+> > Would it be possible for you to pull these into linux-omap? 
 > 
-> So now if we move the  omap_hwmod_late_init() to mdesc->timer->init(),
-> timer1 should work with hwmod instead of any special hwmod settings.
+> Sure, but see below.
+>  
+> > The patches are based on today's linux-omap/master.
 > 
-> This was proposed by Paul Walmsley <paul@pwsan.com>
+> Can you please base thes on current omap-for-linus at
+> 04aa67dec63b61c1a8b9b6d001262250f1a92130? (Just pushed it
+> with the omap4 hwmod fix for timer1)
+> 
+> I can't pull in the master branch into omap-for-linus as that
+> contains years of history of temporary commits.
 
-thanks -- something like this series was what I had in mind to go to 
-mainline:
+Ah, of course. I updated the branch
 
-   http://marc.info/?l=linux-omap&m=129844518908008&w=2
+git://gitorious.org/linux-omap-dss2/linux.git for-tony
 
-This series is also available at the branch "hwmod_clockevent_2.6.39" of 
-git://git.pwsan.com/linux-2.6.
+to be based on omap-for-linus. Minor conflicts in 3430sdp board file,
+otherwise the commits are the same.
 
-Ultimately, of course, it's up to Tony to decide what approach he wants to 
-use...
+ Tomi
 
 
-- Paul
