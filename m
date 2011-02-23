@@ -1,49 +1,62 @@
-From: Shubhrajyoti <shubhrajyoti@ti.com>
-Subject: Re: [PATCH v8 3/3] OMAP4:keypad: PM runtime
-Date: Wed, 23 Feb 2011 19:49:33 +0530
-Message-ID: <4D651775.8030308@ti.com>
-References: <1293429106-16543-1-git-send-email-shubhrajyoti@ti.com> <1293429106-16543-2-git-send-email-shubhrajyoti@ti.com> <1293429106-16543-3-git-send-email-shubhrajyoti@ti.com> <1293429106-16543-4-git-send-email-shubhrajyoti@ti.com> <4D50FF42.1070401@ti.com> <4D5F33E3.7000501@ti.com> <20110219053111.GA6991@core.coreip.homeip.net> <AANLkTikCmiSrOZb3WvMZHcxRsSRxd1zUsWE59aexHdeF@mail.gmail.com> <20110223062900.GB19269@core.coreip.homeip.net>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH] omap: Move omap_hwmod_late_init() to mdesc->timer->init()
+ code
+Date: Wed, 23 Feb 2011 15:20:01 +0100
+Message-ID: <4D651791.8000900@ti.com>
+References: <1298385449-27356-1-git-send-email-santosh.shilimkar@ti.com> <alpine.DEB.2.00.1102230015480.22636@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:40692 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750741Ab1BWOTm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 23 Feb 2011 09:19:42 -0500
-In-Reply-To: <20110223062900.GB19269@core.coreip.homeip.net>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:54771 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751114Ab1BWOUG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 23 Feb 2011 09:20:06 -0500
+In-Reply-To: <alpine.DEB.2.00.1102230015480.22636@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: linux-input@vger.kernel.org, Abraham Arce <x0066660@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>
 
-On Wednesday 23 February 2011 11:59 AM, Dmitry Torokhov wrote:
-> On Sat, Feb 19, 2011 at 01:44:32PM +0530, Datta, Shubhrajyoti wrote:
->> On Sat, Feb 19, 2011 at 11:01 AM, Dmitry Torokhov<dmitry.torokhov@gmail.com
->>> wrote:
->>> Hi Shubhrajyoti,
->>>
->>> On Sat, Feb 19, 2011 at 08:37:15AM +0530, Shubhrajyoti wrote:
->>>> Hello Dmitry,
->>>> If there are no further comments.
->>>> Can it be queued?
->>> I normally try not to merge board code leaving it to arch owner. Can we
->>> at least get arch/board maintainer ACKs on this?
->>>
->>> Also, I am wondering, what is the utility of this patch? Without it,
->>> as far as I understand, runtime PM is disabled for the device. With the
->>> patch we enable runtime PM but immediately bump up usage count, thus
->>> ensuring that the device is always powered on. So what changed? Or am I
->>> missing something?
->>>
->> After the hwmod changes the clocks are cut. So if it is not enabled then the
->> device is not usable.
->>
-> OK, that makes sense. So since we are wiring up runtime PM I think we
-> should go a strep further and do it in open/close methods. Does the
-> patch below still work for you?
-Yes it works I did some basic  testinig it on omap4 sdp. Thanks
-> Thanks.
+Salut Paul,
+
+On 2/23/2011 8:18 AM, Paul Walmsley wrote:
+> Hi Santosh,
 >
+> On Tue, 22 Feb 2011, Santosh Shilimkar wrote:
+>
+>> To adhere to recent early_init changes, commit '44dc0' made
+>> omap_hwmod_late_init() to core_initcall to avoid ioremap() failures.
+>>
+>> Later 'e7c7d7' removed _mpu_rt_va population omap_hwmod_late_init()
+>>
+>> So now if we move the  omap_hwmod_late_init() to mdesc->timer->init(),
+>> timer1 should work with hwmod instead of any special hwmod settings.
+>>
+>> This was proposed by Paul Walmsley<paul@pwsan.com>
+>
+> thanks -- something like this series was what I had in mind to go to
+> mainline:
+>
+>     http://marc.info/?l=linux-omap&m=129844518908008&w=2
+>
+> This series is also available at the branch "hwmod_clockevent_2.6.39" of
+> git://git.pwsan.com/linux-2.6.
+>
+> Ultimately, of course, it's up to Tony to decide what approach he wants to
+> use...
 
+This is indeed a little bit cleaner to init only the timer hwmod in the 
+timer code, but I'm still wondering it it worth the extra complexity.
+
+As soon as we have one hwmod to initialize, why cannot we initialize the 
+whole list like before?
+If tomorrow we want to handle PRCM and control module using hwmod, like 
+I'd like to do, we will have to init these hwmods early as well.
+Even earlier that init_early for the control module at least.
+
+And then we will have a bunch of different init paths from different 
+parts of the boot sequence that might become tricky to handle.
+
+Regards,
+Benoit
