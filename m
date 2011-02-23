@@ -1,131 +1,85 @@
-From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: RE: [PATCH 8/8] OMAP2+: clockevent: late-init GPTIMER clockevent
- hwmodright before timer init
-Date: Wed, 23 Feb 2011 17:18:40 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB037A09552D@dbde02.ent.ti.com>
-References: <20110223070455.5874.51326.stgit@twilight.localdomain>
- <20110223071153.5874.58923.stgit@twilight.localdomain>
- <581270b49665fcf8227a96065dbbc584@mail.gmail.com>
+From: Kishore Kadiyala <kishorek.kadiyala@gmail.com>
+Subject: Re: Linux-next as of 20110222 broken on OMAP4
+Date: Wed, 23 Feb 2011 17:37:22 +0530
+Message-ID: <AANLkTikZvYa9Q2n8QK+LRfUbukKwAe3nAY3UkJ0whhi5@mail.gmail.com>
+References: <b858222d69a83460e469b80ee13cfbe8@mail.gmail.com>
+ <4D63B160.3010103@ti.com> <20110222191343.GP15225@atomide.com> <5A47E75E594F054BAF48C5E4FC4B92AB037A0952FD@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1257
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:45165 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753134Ab1BWLs6 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Feb 2011 06:48:58 -0500
-In-Reply-To: <581270b49665fcf8227a96065dbbc584@mail.gmail.com>
-Content-Language: en-US
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:49495 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753546Ab1BWMHp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Feb 2011 07:07:45 -0500
+Received: by wwb39 with SMTP id 39so1453592wwb.1
+        for <linux-omap@vger.kernel.org>; Wed, 23 Feb 2011 04:07:44 -0800 (PST)
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB037A0952FD@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>
+To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Gadiyar, Anand" <gadiyar@ti.com>, linux-omap <linux-omap@vger.kernel.org>
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Shilimkar, Santosh
-> Sent: Wednesday, February 23, 2011 2:23 PM
-> To: Paul Walmsley; linux-omap@vger.kernel.org; linux-arm-
-> kernel@lists.infradead.org
-> Cc: Tony Lindgren; Hilman, Kevin; Cousson, Benoit
-> Subject: RE: [PATCH 8/8] OMAP2+: clockevent: late-init GPTIMER clocke=
-vent
-> hwmodright before timer init
->=20
-> Paul,
-> > -----Original Message-----
-> > From: Paul Walmsley [mailto:paul@pwsan.com]
-> > Sent: Wednesday, February 23, 2011 12:42 PM
-> > To: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.or=
-g
-> > Cc: Tony Lindgren; Kevin Hilman; Santosh Shilimkar; Beno=EEt Cousso=
-n
-> > Subject: [PATCH 8/8] OMAP2+: clockevent: late-init GPTIMER
-> > clockevent hwmodright before timer init
-> >
-> > Late-initialize the GPTIMER hwmod used for the clockevent source
-> > immediately
-> > before it is used.  This avoids the need to late-initialize all of
-> > the hwmods
-> > until the boot process is further along.  (In general, we want to
-> > defer
-> > as much as possible until late in the boot process.)
-> >
-> > Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> > Cc: Beno=EEt Cousson <b-cousson@ti.com>
-> > Cc: Tony Lindgren <tony@atomide.com>
-> > Cc: Kevin Hilman <khilman@ti.com>
-> > Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> > ---
-> >  arch/arm/mach-omap2/timer-gp.c |    8 +++++++-
-> >  1 files changed, 7 insertions(+), 1 deletions(-)
-> >
-> > diff --git a/arch/arm/mach-omap2/timer-gp.c b/arch/arm/mach-
-> > omap2/timer-gp.c
-> > index 0fc550e..a4e51a2 100644
-> > --- a/arch/arm/mach-omap2/timer-gp.c
-> > +++ b/arch/arm/mach-omap2/timer-gp.c
-> > @@ -40,10 +40,11 @@
-> >  #include <plat/dmtimer.h>
-> >  #include <asm/localtimer.h>
-> >  #include <asm/sched_clock.h>
-> > +#include <plat/common.h>
-> >
-> >  #include "timer-gp.h"
-> > +#include <plat/omap_hwmod.h>
-> >
-> > -#include <plat/common.h>
-> >
-> >  /* MAX_GPTIMER_ID: number of GPTIMERs on the chip */
-> >  #define MAX_GPTIMER_ID		12
-> > @@ -133,9 +134,13 @@ static void __init
-> > omap2_gp_clockevent_init(void)
-> >  {
-> >  	u32 tick_rate;
-> >  	int src;
-> > +	const char *clockevent_hwmod_name;
-> >
-> >  	inited =3D 1;
-> >
-> > +	clockevent_hwmod_name =3D (gptimer_id =3D=3D 12) ? "timer12" :
-> > "timer1";
-> > +	omap_hwmod_late_init_one(clockevent_hwmod_name);
-> > +
->=20
-> Do we need above hard-coding ? This takes away flexibility of
-> choosing system timer from board files, right ?
->=20
-> Am I missing something here?
-Currently, omap_4430sdp_init_early() and omap3_beagle_init_irq() calls
-omap2_gp_clockevent_set_gptimer(id) to set it to 1 and 12 respectively.
-=46or OMAP24xx, the default settings of gptimer_id=3D1 is taken.
-In summary, we are losing the flexibility.
-Instead we could have something like:
-sscanf(clockevent_hwmod_name, "timer%2d", &gptimer_id);
---
-Tarun
->=20
->=20
->=20
-> >  	gptimer =3D omap_dm_timer_request_specific(gptimer_id);
-> >  	BUG_ON(gptimer =3D=3D NULL);
-> >  	gptimer_wakeup =3D gptimer;
-> > @@ -250,6 +255,7 @@ static void __init omap2_gp_timer_init(void)
-> >  		BUG_ON(!twd_base);
-> >  	}
-> >  #endif
-> > +
-> >  	omap_dm_timer_init();
-> >
-> >  	omap2_gp_clockevent_init();
-> >
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Wed, Feb 23, 2011 at 10:20 AM, DebBarma, Tarun Kanti
+<tarun.kanti@ti.com> wrote:
+>> -----Original Message-----
+>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+>> owner@vger.kernel.org] On Behalf Of Tony Lindgren
+>> Sent: Wednesday, February 23, 2011 12:44 AM
+>> To: Cousson, Benoit
+>> Cc: Gadiyar, Anand; linux-omap
+>> Subject: Re: Linux-next as of 20110222 broken on OMAP4
+>>
+>> * Cousson, Benoit <b-cousson@ti.com> [110222 04:50]:
+>> > Hi Anand,
+>> >
+>> > On 2/22/2011 10:49 AM, Gadiyar, Anand wrote:
+>> > > Looks like linux-next as of today is broken on at least OMAP4.
+>> > >
+>> > > Turning on earlyprintk, I get a crash in omap_init_mcspi. Disabling
+>> > > CONFIG_SPI_OMAP24XX gets me as far as the following lines from my
+>> > > bootup log, but I haven't attempted to debug further.
+>> > >
+>> > > If there are any patches out there to fix this, let me know.
+>> > > Else I will debug this sometime tomorrow.
+>> >
+>> > Yes, it was discussed with Tony and temporarily fixed yesterday.
+>> >
+>> > The SPI fix is is already in omap-for-linus, and the timer1 temp fix is
+>> below.
+>> > We need to find a better way to handle timer now that they are
+>> initialized pretty soon.
+>>
+>> I applied the fix below with Paul's ack from the other thread.
+>> So linux-next should be working again on omap4 when it gets rebuilt.
+> I have tested on OMAP4 and OMAP3. BTW, it doesn't work on OMAP24xx.
+<snip>
+
+
+The following commit breaks OMAP2420 booting
+
+git bisect bad
+15490ef8ff8fd22d677cb5d4f6a98e5a79118dba is the first bad commit
+commit 15490ef8ff8fd22d677cb5d4f6a98e5a79118dba
+Author: Russell King <rmk+kernel@arm.linux.org.uk>
+Date:   Wed Feb 9 16:33:46 2011 +0000
+
+   ARM: Avoid building unsafe kernels on OMAP2 and MX3
+
+   OMAP2 (armv6) and MX3 turn off support for the V6K instructions, which
+   when they include support for SMP kernels means that the resulting
+   kernel is unsafe on SMP and can result in corrupted filesystems as we
+   end up using unsafe bitops.
+
+   Re-enable the use of V6K instructions on such kernels, and let such
+   kernels running on V6 CPUs eat undefined instruction faults which will
+   be much safer than filesystem corruption.  Next merge window we can fix
+   this properly (as it requires a much bigger set of changes.)
+
+   Acked-by: Tony Lindgren <tony@atomide.com>
+   Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+
+:040000 040000 48e40d2ece61dfc65cb701841efd31e3f7b2c0ff
+df6ed06ca039457b7929bdd2fe5ca9ea6a331844 M      arch
+
+Regards,
+Kishore
