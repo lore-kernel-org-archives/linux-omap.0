@@ -1,85 +1,76 @@
-From: Kishore Kadiyala <kishorek.kadiyala@gmail.com>
-Subject: Re: Linux-next as of 20110222 broken on OMAP4
-Date: Wed, 23 Feb 2011 17:37:22 +0530
-Message-ID: <AANLkTikZvYa9Q2n8QK+LRfUbukKwAe3nAY3UkJ0whhi5@mail.gmail.com>
-References: <b858222d69a83460e469b80ee13cfbe8@mail.gmail.com>
- <4D63B160.3010103@ti.com> <20110222191343.GP15225@atomide.com> <5A47E75E594F054BAF48C5E4FC4B92AB037A0952FD@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Sanjeev Premi <premi@ti.com>
+Subject: [PATCH] omap2plus: Remove auto selection on PMICs
+Date: Wed, 23 Feb 2011 17:41:12 +0530
+Message-ID: <1298463072-19891-1-git-send-email-premi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:49495 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753546Ab1BWMHp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Feb 2011 07:07:45 -0500
-Received: by wwb39 with SMTP id 39so1453592wwb.1
-        for <linux-omap@vger.kernel.org>; Wed, 23 Feb 2011 04:07:44 -0800 (PST)
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB037A0952FD@dbde02.ent.ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:46462 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754157Ab1BWMNA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Feb 2011 07:13:00 -0500
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1NCCvS7006263
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Wed, 23 Feb 2011 06:12:59 -0600
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Gadiyar, Anand" <gadiyar@ti.com>, linux-omap <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: Sanjeev Premi <premi@ti.com>
 
-On Wed, Feb 23, 2011 at 10:20 AM, DebBarma, Tarun Kanti
-<tarun.kanti@ti.com> wrote:
->> -----Original Message-----
->> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
->> owner@vger.kernel.org] On Behalf Of Tony Lindgren
->> Sent: Wednesday, February 23, 2011 12:44 AM
->> To: Cousson, Benoit
->> Cc: Gadiyar, Anand; linux-omap
->> Subject: Re: Linux-next as of 20110222 broken on OMAP4
->>
->> * Cousson, Benoit <b-cousson@ti.com> [110222 04:50]:
->> > Hi Anand,
->> >
->> > On 2/22/2011 10:49 AM, Gadiyar, Anand wrote:
->> > > Looks like linux-next as of today is broken on at least OMAP4.
->> > >
->> > > Turning on earlyprintk, I get a crash in omap_init_mcspi. Disabling
->> > > CONFIG_SPI_OMAP24XX gets me as far as the following lines from my
->> > > bootup log, but I haven't attempted to debug further.
->> > >
->> > > If there are any patches out there to fix this, let me know.
->> > > Else I will debug this sometime tomorrow.
->> >
->> > Yes, it was discussed with Tony and temporarily fixed yesterday.
->> >
->> > The SPI fix is is already in omap-for-linus, and the timer1 temp fix is
->> below.
->> > We need to find a better way to handle timer now that they are
->> initialized pretty soon.
->>
->> I applied the fix below with Paul's ack from the other thread.
->> So linux-next should be working again on omap4 when it gets rebuilt.
-> I have tested on OMAP4 and OMAP3. BTW, it doesn't work on OMAP24xx.
-<snip>
+The current implementation almost assumes that only
+TWL4030/TWL5030/TWl6030 are (or can be) used with the
+OMAP processors. This is, however, not true.
 
+This patch removes the automatic selection of the PMIC
+from Kconfig. Current defaults are chosen in default
+configuration omap2plus_defconfig and can easily be
+added to configuration for any board, there should be
+no compile/run-time impact.
 
-The following commit breaks OMAP2420 booting
+Signed-off-by: Sanjeev Premi <premi@ti.com>
+---
+Compiled omap2plus-defconfig and boot tested on
+OMAP3EVM Rev G.
 
-git bisect bad
-15490ef8ff8fd22d677cb5d4f6a98e5a79118dba is the first bad commit
-commit 15490ef8ff8fd22d677cb5d4f6a98e5a79118dba
-Author: Russell King <rmk+kernel@arm.linux.org.uk>
-Date:   Wed Feb 9 16:33:46 2011 +0000
+ arch/arm/mach-omap2/Kconfig |    3 ---
+ drivers/mfd/Kconfig         |    4 ++--
+ 2 files changed, 2 insertions(+), 5 deletions(-)
 
-   ARM: Avoid building unsafe kernels on OMAP2 and MX3
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index ae7f47d..9c4f903 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -16,9 +16,6 @@ config ARCH_OMAP2PLUS_TYPICAL
+ 	select I2C
+ 	select I2C_OMAP
+ 	select MFD_SUPPORT
+-	select MENELAUS if ARCH_OMAP2
+-	select TWL4030_CORE if ARCH_OMAP3 || ARCH_OMAP4
+-	select TWL4030_POWER if ARCH_OMAP3 || ARCH_OMAP4
+ 	help
+ 	  Compile a kernel suitable for booting most boards
+ 
+diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
+index fd01836..67dcee4 100644
+--- a/drivers/mfd/Kconfig
++++ b/drivers/mfd/Kconfig
+@@ -155,7 +155,7 @@ config MENELAUS
+ 
+ config TWL4030_CORE
+ 	bool "Texas Instruments TWL4030/TWL5030/TWL6030/TPS659x0 Support"
+-	depends on I2C=y && GENERIC_HARDIRQS
++	depends on I2C=y && GENERIC_HARDIRQS && (ARCH_OMAP3 || ARCH_OMAP4)
+ 	help
+ 	  Say yes here if you have TWL4030 / TWL6030 family chip on your board.
+ 	  This core driver provides register access and IRQ handling
+@@ -169,7 +169,7 @@ config TWL4030_CORE
+ 
+ config TWL4030_POWER
+ 	bool "Support power resources on TWL4030 family chips"
+-	depends on TWL4030_CORE && ARM
++	depends on TWL4030_CORE && (ARCH_OMAP3 || ARCH_OMAP4)
+ 	help
+ 	  Say yes here if you want to use the power resources on the
+ 	  TWL4030 family chips.  Most of these resources are regulators,
+-- 
+1.7.2.2
 
-   OMAP2 (armv6) and MX3 turn off support for the V6K instructions, which
-   when they include support for SMP kernels means that the resulting
-   kernel is unsafe on SMP and can result in corrupted filesystems as we
-   end up using unsafe bitops.
-
-   Re-enable the use of V6K instructions on such kernels, and let such
-   kernels running on V6 CPUs eat undefined instruction faults which will
-   be much safer than filesystem corruption.  Next merge window we can fix
-   this properly (as it requires a much bigger set of changes.)
-
-   Acked-by: Tony Lindgren <tony@atomide.com>
-   Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-
-:040000 040000 48e40d2ece61dfc65cb701841efd31e3f7b2c0ff
-df6ed06ca039457b7929bdd2fe5ca9ea6a331844 M      arch
-
-Regards,
-Kishore
