@@ -1,49 +1,38 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 1/5] ARM: smp: Select local timers vs dummytimersupport runtime
-Date: Wed, 23 Feb 2011 23:28:11 +0530
-Message-ID: <2d63c430d007703753afa4ae98902341@mail.gmail.com>
-References: <1297510187-31547-1-git-send-email-santosh.shilimkar@ti.com>
- <1297510187-31547-2-git-send-email-santosh.shilimkar@ti.com>
- <20110220110341.GA15494@n2100.arm.linux.org.uk> <e3674a4c299e3cc0fad3e15a3cc03db4@mail.gmail.com>
- <20110223163635.GA16041@n2100.arm.linux.org.uk> <780a7a77ef7a93b801ca178e1518e05b@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Sanjeev Premi <premi@ti.com>
+Subject: [RFC 0/3] Support TPS65023 with AM35xx
+Date: Wed, 23 Feb 2011 23:28:30 +0530
+Message-ID: <1298483913-20344-1-git-send-email-premi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:56982 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753914Ab1BWR6P (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 23 Feb 2011 12:58:15 -0500
-Received: by qwk3 with SMTP id 3so2832842qwk.9
-        for <linux-omap@vger.kernel.org>; Wed, 23 Feb 2011 09:58:12 -0800 (PST)
-In-Reply-To: <780a7a77ef7a93b801ca178e1518e05b@mail.gmail.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:41183 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753914Ab1BWR6m (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 23 Feb 2011 12:58:42 -0500
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1NHwd4w032179
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Wed, 23 Feb 2011 11:58:41 -0600
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, linux-arm-kernel@lists.infradead.org, tony@atomide.com, David Brown <davidb@codeaurora.org>, Daniel Walker <dwalker@codeaurora.org>, Bryan Huntsman <bryanh@codeaurora.org>, Kukjin Kim <kgene.kim@samsung.com>, Paul Mundt <lethal@linux-sh.org>, Magnus Damm <magnus.damm@gmail.com>, Colin Cross <ccross@android.com>, Erik Gilling <konkers@android.com>, Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>, Linus Walleij <linus.walleij@stericsson.com>
+To: linux-omap@vger.kernel.org
+Cc: Sanjeev Premi <premi@ti.com>
 
-> -----Original Message-----
-> From: Santosh Shilimkar [mailto:santosh.shilimkar@ti.com]
-> Sent: Wednesday, February 23, 2011 10:09 PM
-> To: Russell King - ARM Linux
-> Cc: linux-omap@vger.kernel.org; Kevin Hilman; linux-arm-
-> kernel@lists.infradead.org; tony@atomide.com; David Brown; Daniel
-> Walker; Bryan Huntsman; Kukjin Kim; Paul Mundt; Magnus Damm; Colin
-> Cross; Erik Gilling; Srinidhi Kasagar; Linus Walleij
-> Subject: RE: [PATCH 1/5] ARM: smp: Select local timers vs
-> dummytimersupport runtime
+Intent of this series is to solicit feedback on
+on adding basic support for AM3517 and TPS65023.
 
-[....]
+This is definitely not the complete support, but
+wanted to get early comments while i continue to
+work.
 
-> >
-> > Grr.  This conflicts horribly with the Versatile stuff.  Can you
-> > recreate
-> > against what currently appears in devel rather than mainline
-> please?
-> Ok. I will pull your devel branch and rebase it
+Sanjeev Premi (3):
+  omap: voltage: Allow custom vp_init() implementation
+  am35xx: voltage: Add basic initialization
+  am35xx: pm: Hook-up with TPS65023
 
-Done.
-Patch 6759/1 and patch 6760/1 in patch system
+ arch/arm/mach-omap2/am3517_tps.c |   96 ++++++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/voltage.c    |   51 +++++++++++++++++++-
+ 2 files changed, 145 insertions(+), 2 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/am3517_tps.c
 
-Regards,
-Santosh
+-- 
+1.7.2.2
+
