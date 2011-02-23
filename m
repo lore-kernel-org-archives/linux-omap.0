@@ -1,159 +1,68 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: hwmod: multi-omap: disabling smartreflex on AM3517
-Date: Tue, 22 Feb 2011 23:53:30 +0100
-Message-ID: <4D643E6A.5020705@ti.com>
-References: <B85A65D85D7EB246BE421B3FB0FBB5930248A017D9@dbde02.ent.ti.com> <4D5A75FF.5040703@ti.com> <B85A65D85D7EB246BE421B3FB0FBB593024B83BF08@dbde02.ent.ti.com> <B85A65D85D7EB246BE421B3FB0FBB593024BD4894D@dbde02.ent.ti.com> <4D623ED8.4050906@ti.com> <B85A65D85D7EB246BE421B3FB0FBB593024BD489B1@dbde02.ent.ti.com> <4D6273FE.3000205@ti.com> <B85A65D85D7EB246BE421B3FB0FBB593024BD48BED@dbde02.ent.ti.com>,<4D62F7E0.1000102@ti.com> <B85A65D85D7EB246BE421B3FB0FBB593024BBE29A4@dbde02.ent.ti.com>
+From: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
+Subject: Re: [PATCH v3 2/2] OMAP: IOMMU: add support to callback during fault handling
+Date: Tue, 22 Feb 2011 19:17:26 -0600
+Message-ID: <AANLkTikZu+pqwpPXExFirPouN+1i3Yp0QHfomHN4decx@mail.gmail.com>
+References: <1297884951-3019-1-git-send-email-dacohen@gmail.com>
+	<1297884951-3019-3-git-send-email-dacohen@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:39965 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750990Ab1BVWxO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 22 Feb 2011 17:53:14 -0500
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593024BBE29A4@dbde02.ent.ti.com>
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:46898 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751467Ab1BWBR2 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 22 Feb 2011 20:17:28 -0500
+Received: by mail-vx0-f170.google.com with SMTP id 39so2431735vxb.29
+        for <linux-omap@vger.kernel.org>; Tue, 22 Feb 2011 17:17:27 -0800 (PST)
+In-Reply-To: <1297884951-3019-3-git-send-email-dacohen@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Premi, Sanjeev" <premi@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>
+To: David Cohen <dacohen@gmail.com>
+Cc: hiroshi.doyu@nokia.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com
 
-On 2/22/2011 2:48 PM, Premi, Sanjeev wrote:
-> On 2/21/2011 4:41 PM, Premi, Sanjeev wrote:
->>
->> [...]
->>
->>>> The comment is already there BTW, so you just have to replace that by some
->>>> real code:-)
->>>
->>> [sp] I have already added real code, but the problem lies here:
->>>        On same file (few lines up) omap_chip.oc is assigned value of
->>>        CHIP_IS_OMAP3430. CHIP_IS_AM3517 now needs to be added to all
->>>        places where CHIP_IS_OMAP3430ES3_1 is chosen.
->>>
->>>        All this to support a chip that differs in 4 peripherals and IVA.
->>>        ... and this is what I was planning to minimize.
->>
->> This is what we've being using for some time to handle small diff
->> between ES.
->>
->>>        Leaving aside AM3517; we have AM3703 - same as OMAP3630 but without
->>>        IVA and SGX. Here obviously hwmods for either of IVA, SGX shouldn't
->>>        be initialized. Isn't it?
->>>
->>>        Creating CHIP_IS_ ... here would be an overkill. Thoughts?
->>
->> It depends how many variant you plan to do :-) We still have some room
->> for 18 more variants / chip.
->>
->> You can still create a new CHIP_IS, and add a alias
->> CHIP_IS_OMAP36XX_COMMON = CHIP_IS_OMAP3630 | CHIP_IS_AM3703 and then
->> replace all the existing entry with that alias.
+On Wed, Feb 16, 2011 at 1:35 PM, David Cohen <dacohen@gmail.com> wrote:
+> Add support to register an isr for IOMMU fault situations and adapt i=
+t
+> to allow such (*isr)() to be used as fault callback. Drivers using IO=
+MMU
+> module might want to be informed when errors happen in order to debug=
+ it
+> or react.
 >
-> [sp] This means we would need 5 bits for AM37xx devices. Adding another
->       5 bits for OMAP35xx and 3 bits for AM35xx device, we are left with
->       only 5. (Assuming no further silicon revisions across these devices)
+> Signed-off-by: David Cohen <dacohen@gmail.com>
+> ---
+> =A0arch/arm/mach-omap2/iommu2.c =A0 =A0 =A0 =A0 =A0 =A0| =A0 17 +++++=
+++++-
+> =A0arch/arm/plat-omap/include/plat/iommu.h | =A0 14 ++++++++-
+> =A0arch/arm/plat-omap/iommu.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 52 +++=
++++++++++++++++++++---------
+> =A03 files changed, 65 insertions(+), 18 deletions(-)
 >
->      We will be short of bits when support for TI814x variants come in.
->      Also, there are going to be too many ORs for the HWMODs that are
->      reused across the ARM Cortex-A8 family.
->
->      In my previous mail, I was proposing simpler scheme where default
->      definition is "inclusive" as now; and then ones not applicable for
->      each specific device is simply "excluded" from consideration before
->      HWMODs are initialized.
->
->>
->> If we want to avoid using these defines, you will have potentially to
->> add a feature entry in every hwmod / clock / power domain entry that
->> already uses the omap_chip today.
->> And then during the init we can filter on both the chip revision and
->> chip features.
->> The drawback is that we are going to waste at least 300 x 32 bits to
->> store that :-)
->> Whereas with the extra CHIP_IS_, it is just a couple of defines... no
->> memory impact.
->
-> [sp] It is not just one additional bit; but 1 bit for the family e.g.
->       CHIP_IS_OMAP36XX_COMMON; and then one per variant.
->
->       Much less than 300x32 but still lot of code changes compared to
->       actual difference between the devices.
->
->>
->> In between, you can consider a hwmod class to feature mapping, in order
->> to know what hwmod class will be excluded if the feature is not there
->> during the iteration.
->
-> [sp] Here is what I had been proposing with one hwmod as example.
->
-> static struct omap_hwmod omap34xx_sr1_hwmod = {
-> 	.name		= "sr1_hwmod",
->
-> ...removed much of code...
->
-> 	.select		= true;		/* new flag. True by default. */
-> };
->
-> Later:
->
-> int __init omap3xxx_hwmod_init(void)
-> {
-> 	if (cpu_is_omap3505()) {
-> 		omap3505_hwmod_select();
-> 	}
-> 	else if (cpu_is_omap3517()) {
-> 		omap3505_hwmod_select();
-> 	}
-> 	else if (cpu_is_omap34xx()) {
-> 		if (cpu_is_omap3503())
-> 			omap3503_hwmod_select();
-> 		else if (cpu_is_omap3515())
-> 			omap3515_hwmod_select();
-> 	}
-> 	...and so on...
->
-> 	return omap_hwmod_init(omap3xxx_hwmods);
-> }
->
-> where,
->
-> void __init omap3505_hwmod_select(void)
-> {
-> 	omap34xx_sr1_hwmod.select = false;
-> 	omap34xx_sr2_hwmod.select = false;
->
-> 	... etc. etc. ...
-> }
->
-> And the omap_hwmod_init() first checks for .select to be true.
-> Current processing works as is.
->
-> This way, we don't need additional bits per chip variant; and
-> we reuse the existing "feature" bits.
+=2E...
 
-Since you have to add some extra fields anyway, I'd rather add a full 
-feature entry.
-It will avoid adding all this code and it will be much more scalable.
-Here you have to update the code and add an extra function for every new 
-variant.
-Do not forget that since OMAP4 we are generating this file, that's why I 
-clearly prefer to rely on data information rather that some function.
+> @@ -917,6 +912,33 @@ void iommu_put(struct iommu *obj)
+> =A0}
+> =A0EXPORT_SYMBOL_GPL(iommu_put);
+>
+> +int iommu_set_isr(const char *name,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 int (*isr)(struct iommu *obj, u32 d=
+a, u32 iommu_errs,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0void *priv),
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 void *isr_priv)
+> +{
+> + =A0 =A0 =A0 struct device *dev;
+> + =A0 =A0 =A0 struct iommu *obj;
+> +
 
-Or, we can potentially consider building severals omapxxxx_hwmods lists 
-and init only the relevant one based on features.
-
-omap_hwmod_init(omap3xxx_hwmods);
-if (omap3_has_smartreflex())
-	omap_hwmod_init(omap3xxx_sr_hwmods);
-if (omap3_has_iva())
-	omap_hwmod_init(omap3xxx_iva_hwmods);
-...
-
-This is still not super scalable for my point of view, but much easier 
-to handle and update. The advantage being, it will not increase the 
-memory usage at all.
-The omap_hwmod_init will just have to be slightly updated to allow 
-multiple init.
+if the driver support multiple user for the same iommu why can only
+one callback be registered? should it support register multiple
+callback function (one per user)?
 
 Regards,
-Benoit
+=46ernando.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
