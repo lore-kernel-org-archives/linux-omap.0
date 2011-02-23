@@ -1,135 +1,83 @@
-From: Sricharan R <r.sricharan@ti.com>
-Subject: RE: [PATCH 4/6] omap4: hwmod_data: Add l3 errorlog data to hwmod database.
-Date: Wed, 23 Feb 2011 13:34:01 +0530
-Message-ID: <29f3552dea661223dcb96d51aa38fbb5@mail.gmail.com>
-References: <1298295990-1070-1-git-send-email-santosh.shilimkar@ti.com>
- <1298295990-1070-5-git-send-email-santosh.shilimkar@ti.com>
- <4D627937.8030309@ti.com> 43067ab756e2e48efb745dee3ecc67eb@mail.gmail.com
+From: "Menon, Nishanth" <nm@ti.com>
+Subject: Re: [PATCH 15/19] omap3+: sr: introduce notifier_control
+Date: Wed, 23 Feb 2011 13:44:10 +0530
+Message-ID: <AANLkTi=ALP8aTTPYW=TC1mu=UZdeWU5h+xt7+=y5+g2_@mail.gmail.com>
+References: <1298116918-30744-1-git-send-email-nm@ti.com> <1298116918-30744-16-git-send-email-nm@ti.com>
+ <765c3f6e8053293455100f296fb76ae5@mail.gmail.com> <4D609D86.8040608@ti.com> <e161df1aa3dda3a792d1db6f93abbf98@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:51880 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750736Ab1BWIEG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 23 Feb 2011 03:04:06 -0500
-Received: by mail-ew0-f46.google.com with SMTP id 6so1374575ewy.19
-        for <linux-omap@vger.kernel.org>; Wed, 23 Feb 2011 00:04:05 -0800 (PST)
-In-Reply-To: 43067ab756e2e48efb745dee3ecc67eb@mail.gmail.com
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:54550 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754174Ab1BWIOc convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 23 Feb 2011 03:14:32 -0500
+Received: by wwb29 with SMTP id 29so139507wwb.18
+        for <linux-omap@vger.kernel.org>; Wed, 23 Feb 2011 00:14:30 -0800 (PST)
+In-Reply-To: <e161df1aa3dda3a792d1db6f93abbf98@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sricharan R <r.sricharan@ti.com>, Benoit Cousson <b-cousson@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>
+To: Vishwanath Sripathy <vishwanath.bs@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>
 
-Hi Benoit,
->-----Original Message-----
->From: Sricharan R [mailto:r.sricharan@ti.com]
->Sent: Wednesday, February 23, 2011 11:09 AM
->To: Benoit Cousson; Santosh Shilimkar
->Cc: 'linux-omap@vger.kernel.org'; Felipe Balbi
->Subject: RE: [PATCH 4/6] omap4: hwmod_data: Add l3 errorlog data to hwmod
->database.
+On Wed, Feb 23, 2011 at 12:16, Vishwanath Sripathy <vishwanath.bs@ti.co=
+m> wrote:
 >
->Hi Benoit,
->>-----Original Message-----
->>From: Cousson, Benoit [mailto:b-cousson@ti.com]
->>Sent: Monday, February 21, 2011 8:10 PM
->>To: Shilimkar, Santosh
->>Cc: linux-omap@vger.kernel.org; Balbi, Felipe; R, Sricharan
->>Subject: Re: [PATCH 4/6] omap4: hwmod_data: Add l3 errorlog data to
-hwmod
->>database.
->>
->>Hi Sricharan,
->>
->>On 2/21/2011 2:46 PM, Shilimkar, Santosh wrote:
->>> From: sricharan<r.sricharan@ti.com>
->>>
->>> Add the error log registers, irqs of the l3 interconnect to the
->>> hwmod data. The hwmod change is aligned with Benoit Cousson.
->>
->>The change is almost aligned with Benoit Cousson :-)
->>
->>The subject should be something like: omap4: hwmod data: Add address
->>space and irq in L3 hwmod
->>
->>There is no errolog data in that patch. The changelog should be updated
->>too.
->Ok. I will change the subject and the change log as well.
+[...]
+> > >> +int sr_notifier_control(struct voltagedomain *voltdm, bool enab=
+le)
+> > >> +{
+> > >> + =A0struct omap_sr *sr =3D _sr_lookup(voltdm);
+> > >> + =A0u32 value =3D 0;
+> > >> + =A0if (IS_ERR_OR_NULL(sr)) {
+> > >> + =A0 =A0 =A0 =A0 =A0pr_warning("%s: sr corresponding to domain =
+not found\n",
+> > >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0__func__);
+> > >> + =A0 =A0 =A0 =A0 =A0return -EINVAL;
+> > >> + =A0}
+> > >> + =A0if (!sr->autocomp_active)
+> > >> + =A0 =A0 =A0 =A0 =A0return -EINVAL;
+> > > Why you do you return here? Class driver should still be able to =
+place
+> > > it's request even if sr is disabled though it will be effective o=
+nly
+> after
+> > > sr is enabled.
+> >
+> > my intents were as following: which useful event would come without=
+ SR
+> > avs being enabled? what kind of event do you expect with the AVS
+> > disabled which is useful for class driver, whose clase init alone w=
+as
+> > called and not class enable?
+> The point I am making here is, why should SR class driver be prevente=
+d to
+> register for some events when SR is disabled? If it is prevented here=
+,
+> then it needs to keep track that the request is denied and needs to m=
+ake
+> the request again when SR is enabled later.
+Let me try another way:
+a) none of the notifications(SR_NOTIFY_MCUACCUM, SR_NOTIFY_MCUVALID,
+SR_NOTIFY_MCUBOUND, SR_NOTIFY_MCUDISACK)
+are possible once the SR class is disabled (class1,1.5,2,3) -
+essentially coz the SR is expected to be disabled after class->deinit
+is called (deinit is called when the autocomp is disabled for the
+class driver).
+b) class drivers are expected to release all resources once class
+deinit is called, essentially meaning that SR module cannot trust to
+have a notifier still capable of handling notifications once the
+deinit is called.
 
-Here is the updated patch as per your suggestion.
----------------
-[PATCH v2 4/6] omap4: hwmod_data: Add address space and irq in L3 hwmod.
+So I come back to my question - "why does SR class driver need to
+enable notification if it was told to be disabled?". Can you
+illustrate with an example what I am missing?
 
-Add the address spaces, irqs of the l3 interconnect to the hwmod data. The
-hwmod change is aligned with Benoit Cousson.
-
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Signed-off-by: sricharan <r.sricharan@ti.com>
-Tested-by: sricharan <r.sricharan@ti.com>
-Cc: Benoit Cousson <b-cousson@ti.com>
----
-changed the subject line and the changelog
-
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   28
-++++++++++++++++++++++++++++
- 1 files changed, 28 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index c2806bd..95001d4 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -229,11 +229,37 @@ static struct omap_hwmod_ocp_if
-omap44xx_l4_cfg__l3_main_1 = {
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
- };
-
-+/* L3 target configuration and error log registers */ static struct
-+omap_hwmod_irq_info omap44xx_l3_targ_irqs[] = {
-+	{ .irq = 9  + OMAP44XX_IRQ_GIC_START },
-+	{ .irq = 10 + OMAP44XX_IRQ_GIC_START }, };
-+
-+static struct omap_hwmod_addr_space omap44xx_l3_targ_addrs[] = {
-+	{
-+		.pa_start	= 0x44000000,
-+		.pa_end 	= 0x44100000,
-+		.flags		= ADDR_TYPE_RT,
-+	},
-+	{
-+		.pa_start	= 0x44800000,
-+		.pa_end		= 0x44900000,
-+		.flags		= ADDR_TYPE_RT,
-+	},
-+	{
-+		.pa_start	= 0x45000000,
-+		.pa_end		= 0x45100000,
-+		.flags		= ADDR_TYPE_RT,
-+	},
-+};
-+
- /* mpu -> l3_main_1 */
- static struct omap_hwmod_ocp_if omap44xx_mpu__l3_main_1 = {
- 	.master		= &omap44xx_mpu_hwmod,
- 	.slave		= &omap44xx_l3_main_1_hwmod,
- 	.clk		= "l3_div_ck",
-+	.addr		= omap44xx_l3_targ_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap44xx_l3_targ_addrs),
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
- };
-
-@@ -248,6 +274,8 @@ static struct omap_hwmod_ocp_if
-*omap44xx_l3_main_1_slaves[] = {  static struct omap_hwmod
-omap44xx_l3_main_1_hwmod = {
- 	.name		= "l3_main_1",
- 	.class		= &omap44xx_l3_hwmod_class,
-+	.mpu_irqs	= omap44xx_l3_targ_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_l3_targ_irqs),
- 	.slaves		= omap44xx_l3_main_1_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_l3_main_1_slaves),
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+Regards,
+Nishanth Menon
 --
-1.7.0.4
-
-Thanks,
- Sricharan
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
