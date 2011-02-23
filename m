@@ -1,52 +1,41 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [GIT PULL]: linux-omap DSS
-Date: Wed, 23 Feb 2011 09:43:17 +0200
-Message-ID: <1298446997.3476.2.camel@deskari>
-References: <1298369379.2590.41.camel@deskari>
-	 <20110222190119.GN15225@atomide.com>
+From: Wim Van Sebroeck <wim@iguana.be>
+Subject: Re: Handling multiple watchdogs
+Date: Wed, 23 Feb 2011 08:55:34 +0100
+Message-ID: <20110223075534.GN3790@infomag.iguana.be>
+References: <4A672B97.1070704@emlix.com> <20090722171920.505ffc4b@lxorguk.ukuu.org.uk> <20090722185232.GK2155@infomag.iguana.be> <20110202111516.0154bb4a@lxorguk.ukuu.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:33592 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753992Ab1BWHnV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Feb 2011 02:43:21 -0500
-In-Reply-To: <20110222190119.GN15225@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20110202111516.0154bb4a@lxorguk.ukuu.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Simon Braunschmidt <sb@emlix.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-watchdog@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>
 
-On Tue, 2011-02-22 at 13:01 -0600, Tony Lindgren wrote:
-> Hi,
+Hi Alan,
+
+> > 1) make sure that we have the new watchdog core infrastructure going in for 2.6.32.
+> > This new core integrates the common code that we use over and over again. I once
+> > wrote code for it and then Alan had different ideas and thoughts and wrote his updated
+> > code. I reviewed that and I am changing some small bits so that we will have the new
 > 
-> * Tomi Valkeinen <tomi.valkeinen@ti.com> [110222 02:07]:
-> > Hi Tony,
-> > 
-> > The following mach-omap2 patches have been reviewed and are in DSS tree,
-> > but cause easily conflicts with linux-omap tree.
-> > 
-> > Would it be possible for you to pull these into linux-omap? 
-> 
-> Sure, but see below.
->  
-> > The patches are based on today's linux-omap/master.
-> 
-> Can you please base thes on current omap-for-linus at
-> 04aa67dec63b61c1a8b9b6d001262250f1a92130? (Just pushed it
-> with the omap4 hwmod fix for timer1)
-> 
-> I can't pull in the master branch into omap-for-linus as that
-> contains years of history of temporary commits.
+> What is the status of this ? I was thinking it had been a while but it
+> seems to be 18 months ago..
 
-Ah, of course. I updated the branch
+I did that dev_* fix as we agreed on sunday.
+I will sent out the code (for additional comments) out tonight to linux-kernel and linux-watchdog mailing lists.
+Aiming to get it in for 2.6.39.
 
-git://gitorious.org/linux-omap-dss2/linux.git for-tony
+Code can allready be looked at, at:
+http://git.kernel.org/?p=linux/kernel/git/wim/linux-2.6-watchdog-next.git;a=shortlog;h=refs/heads/generic-watchdog
 
-to be based on omap-for-linus. Minor conflicts in 3430sdp board file,
-otherwise the commits are the same.
+Open issues: get min adn max timeout in so that the generic code can check the boundarys.
+Need to think about MAGIC_CLOSE_FEATURE. There seem to be people that are surprised that if you do a cat /dev/watchdog that the system reboots. Whiwh is normal: it's an open with a close without the magic character. One solution I see is to add a module_param that can disable magic_close_feature. Default will be on though).
 
- Tomi
+And after that we can consider the read function that you proposed.
 
+And then we need to go for the sysfs interface so that we can support multiple watchdogs via sysfs.
 
+Kind regards,
+Wim.
