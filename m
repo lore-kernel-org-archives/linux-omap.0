@@ -1,51 +1,35 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH v8 3/3] OMAP4:keypad: PM runtime
-Date: Wed, 23 Feb 2011 15:12:06 -0800
-Message-ID: <20110223231206.GA21367@core.coreip.homeip.net>
-References: <1293429106-16543-1-git-send-email-shubhrajyoti@ti.com>
- <1293429106-16543-2-git-send-email-shubhrajyoti@ti.com>
- <1293429106-16543-3-git-send-email-shubhrajyoti@ti.com>
- <1293429106-16543-4-git-send-email-shubhrajyoti@ti.com>
- <4D50FF42.1070401@ti.com>
- <4D5F33E3.7000501@ti.com>
- <20110219053111.GA6991@core.coreip.homeip.net>
- <20110223225817.GD30316@atomide.com>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: State of LDP3430 platform
+Date: Wed, 23 Feb 2011 17:22:43 -0600
+Message-ID: <13B9B4C6EF24D648824FF11BE896716203EFA5CDB2@dlee02.ent.ti.com>
+References: <20101206125526.GC31777@n2100.arm.linux.org.uk>
+ <20110212160216.GA22694@n2100.arm.linux.org.uk>
+ <20110212161053.GA23481@n2100.arm.linux.org.uk>
+ <20110223225022.GC30316@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-input-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20110223225817.GD30316@atomide.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Shubhrajyoti <shubhrajyoti@ti.com>, linux-input@vger.kernel.org, Abraham Arce <x0066660@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:34531 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753982Ab1BWXWy convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Feb 2011 18:22:54 -0500
+In-Reply-To: <20110223225022.GC30316@atomide.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
 
-On Wed, Feb 23, 2011 at 02:58:18PM -0800, Tony Lindgren wrote:
-> * Dmitry Torokhov <dmitry.torokhov@gmail.com> [110218 21:29]:
-> > Hi Shubhrajyoti,
-> > 
-> > On Sat, Feb 19, 2011 at 08:37:15AM +0530, Shubhrajyoti wrote:
-> > > Hello Dmitry,
-> > > If there are no further comments.
-> > > Can it be queued?
-> > 
-> > I normally try not to merge board code leaving it to arch owner. Can we
-> > at least get arch/board maintainer ACKs on this?
-> 
-> The omap4 hwmod data should be now queued so that patch needs
-> to be refreshed to just uncomment omap44xx_kbd_hwmod entry
-> in what we have queued up in the omap tree.
-> 
-> To avoid conflicts there it's probably best that I take the
-> arch/arm/*omap*/* patches.
-> 
-> Patch 3/3 should not do anything until the hwmod changes
-> are merged, so Dmitry can you please take that one?
-> 
+> From: Tony Lindgren [mailto:tony@atomide.com]
+> Sent: Wednesday, February 23, 2011 4:50 PM
 
-OK, I'll queue it for .39.
+> Anybody from TI looking into these?
 
-Thanks.
+I'll poke some folks and check.  I've not booted my LDP for a while.
 
--- 
-Dmitry
+As an older 3430 dev board its lost its shine compared to 3630 and 4430 dev boards.
+
+Regards,
+Richard W.
+
