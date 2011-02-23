@@ -1,48 +1,24 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 5/5] omap2+: board-n8x0: Change the flags for the
- serial pads.
-Date: Wed, 23 Feb 2011 10:49:57 -0800
-Message-ID: <20110223184956.GY15225@atomide.com>
-References: <1296191298-17545-1-git-send-email-r.sricharan@ti.com>
- <1296191298-17545-6-git-send-email-r.sricharan@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 1/5] ARM: smp: Select local timers vs dummytimersupport
+	runtime
+Date: Wed, 23 Feb 2011 19:03:05 +0000
+Message-ID: <20110223190305.GB16041@n2100.arm.linux.org.uk>
+References: <1297510187-31547-1-git-send-email-santosh.shilimkar@ti.com> <1297510187-31547-2-git-send-email-santosh.shilimkar@ti.com> <20110220110341.GA15494@n2100.arm.linux.org.uk> <e3674a4c299e3cc0fad3e15a3cc03db4@mail.gmail.com> <20110223163635.GA16041@n2100.arm.linux.org.uk> <780a7a77ef7a93b801ca178e1518e05b@mail.gmail.com> <2d63c430d007703753afa4ae98902341@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:51428 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932271Ab1BWSt7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Feb 2011 13:49:59 -0500
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:58688 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755596Ab1BWTDV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Feb 2011 14:03:21 -0500
 Content-Disposition: inline
-In-Reply-To: <1296191298-17545-6-git-send-email-r.sricharan@ti.com>
+In-Reply-To: <2d63c430d007703753afa4ae98902341@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: sricharan <r.sricharan@ti.com>
-Cc: linux-omap@vger.kernel.org, santosh.shilimkar@ti.com, paul@pwsan.com
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, linux-arm-kernel@lists.infradead.org, tony@atomide.com, David Brown <davidb@codeaurora.org>, Daniel Walker <dwalker@codeaurora.org>, Bryan Huntsman <bryanh@codeaurora.org>, Kukjin Kim <kgene.kim@samsung.com>, Paul Mundt <lethal@linux-sh.org>, Magnus Damm <magnus.damm@gmail.com>, Colin Cross <ccross@android.com>, Erik Gilling <konkers@android.com>, Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>, Linus Walleij <linus.walleij@stericsson.com>
 
-* sricharan <r.sricharan@ti.com> [110127 21:05]:
-> The flag for remuxing uart3_rx_irxx pad is changed.
-> 
-> Signed-off-by: sricharan <r.sricharan@ti.com>
-> ---
->  arch/arm/mach-omap2/board-n8x0.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-n8x0.c b/arch/arm/mach-omap2/board-n8x0.c
-> index 9b52e2d..bd51356 100644
-> --- a/arch/arm/mach-omap2/board-n8x0.c
-> +++ b/arch/arm/mach-omap2/board-n8x0.c
-> @@ -751,7 +751,7 @@ static struct omap_board_mux board_mux[] __initdata = {
->  static struct omap_device_pad serial2_pads[] __initdata = {
->  	{
->  		.name	= "uart3_rx_irrx.uart3_rx_irrx",
-> -		.flags	= OMAP_DEVICE_PAD_REMUX | OMAP_DEVICE_PAD_WAKEUP,
-> +		.flags	= OMAP_DEVICE_PAD_REMUX_IDLE | OMAP_DEVICE_PAD_WAKEUP,
->  		.enable	= OMAP_MUX_MODE0,
->  		.idle	= OMAP_MUX_MODE3	/* Mux as GPIO for idle */
->  	},
+On Wed, Feb 23, 2011 at 11:28:11PM +0530, Santosh Shilimkar wrote:
+> Patch 6759/1 and patch 6760/1 in patch system
 
-This should not be needed when rebased on my patch to replace patch 1/5.
-
-Regards,
-
-Tony
+Was there any difference between 6760 and 6753 ?
