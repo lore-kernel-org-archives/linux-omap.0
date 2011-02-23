@@ -1,91 +1,95 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH] OMAP2+: clocksource: fix crash on boot when
- !CONFIG_OMAP_32K_TIMER
-Date: Tue, 22 Feb 2011 19:59:49 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1102221958190.22636@utopia.booyaka.com>
+From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Subject: RE: Linux-next as of 20110222 broken on OMAP4
+Date: Wed, 23 Feb 2011 10:20:39 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB037A0952FD@dbde02.ent.ti.com>
+References: <b858222d69a83460e469b80ee13cfbe8@mail.gmail.com>
+ <4D63B160.3010103@ti.com> <20110222191343.GP15225@atomide.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:39549 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751195Ab1BWC7u (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Feb 2011 21:59:50 -0500
+Received: from bear.ext.ti.com ([192.94.94.41]:54328 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753462Ab1BWEur convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Feb 2011 23:50:47 -0500
+In-Reply-To: <20110222191343.GP15225@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "Gadiyar, Anand" <gadiyar@ti.com>, linux-omap <linux-omap@vger.kernel.org>
 
-
-OMAP2+ kernels built without CONFIG_OMAP_32K_TIMER crash on boot after the
-2.6.38 sched_clock changes:
-
-[    0.000000] OMAP clockevent source: GPTIMER1 at 13000000 Hz
-[    0.000000] Unable to handle kernel NULL pointer dereference at virtual address 00000000
-[    0.000000] pgd = c0004000
-[    0.000000] [00000000] *pgd=00000000
-[    0.000000] Internal error: Oops: 80000005 [#1] SMP
-[    0.000000] last sysfs file:
-[    0.000000] Modules linked in:
-[    0.000000] CPU: 0    Not tainted  (2.6.38-rc5-00057-g04aa67d #152)
-[    0.000000] PC is at 0x0
-[    0.000000] LR is at sched_clock_poll+0x2c/0x3c
-
-Without CONFIG_OMAP_32K_TIMER, the kernel has an clockevent and
-clocksource resolution about three orders of magnitude higher than
-with CONFIG_OMAP_32K_TIMER set.  The tradeoff is that the lowest
-power consumption states are not available.
-
-Fix by calling init_sched_clock() from the GPTIMER clocksource init code.
-
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
----
- arch/arm/mach-omap2/timer-gp.c |   13 +++++++++++++
- 1 files changed, 13 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/timer-gp.c b/arch/arm/mach-omap2/timer-gp.c
-index 7b7c268..0fc550e 100644
---- a/arch/arm/mach-omap2/timer-gp.c
-+++ b/arch/arm/mach-omap2/timer-gp.c
-@@ -39,6 +39,7 @@
- #include <asm/mach/time.h>
- #include <plat/dmtimer.h>
- #include <asm/localtimer.h>
-+#include <asm/sched_clock.h>
- 
- #include "timer-gp.h"
- 
-@@ -190,6 +191,7 @@ static void __init omap2_gp_clocksource_init(void)
- /*
-  * clocksource
-  */
-+static DEFINE_CLOCK_DATA(cd);
- static struct omap_dm_timer *gpt_clocksource;
- static cycle_t clocksource_read_cycles(struct clocksource *cs)
- {
-@@ -204,6 +206,15 @@ static struct clocksource clocksource_gpt = {
- 	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
- };
- 
-+static void notrace dmtimer_update_sched_clock(void)
-+{
-+	u32 cyc;
-+
-+	cyc = omap_dm_timer_read_counter(gpt_clocksource);
-+
-+	update_sched_clock(&cd, cyc, (u32)~0);
-+}
-+
- /* Setup free-running counter for clocksource */
- static void __init omap2_gp_clocksource_init(void)
- {
-@@ -224,6 +235,8 @@ static void __init omap2_gp_clocksource_init(void)
- 
- 	omap_dm_timer_set_load_start(gpt, 1, 0);
- 
-+	init_sched_clock(&cd, dmtimer_update_sched_clock, 32, tick_rate);
-+
- 	if (clocksource_register_hz(&clocksource_gpt, tick_rate))
- 		printk(err2, clocksource_gpt.name);
- }
--- 
-1.7.2.3
-
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Tony Lindgren
+> Sent: Wednesday, February 23, 2011 12:44 AM
+> To: Cousson, Benoit
+> Cc: Gadiyar, Anand; linux-omap
+> Subject: Re: Linux-next as of 20110222 broken on OMAP4
+> 
+> * Cousson, Benoit <b-cousson@ti.com> [110222 04:50]:
+> > Hi Anand,
+> >
+> > On 2/22/2011 10:49 AM, Gadiyar, Anand wrote:
+> > > Looks like linux-next as of today is broken on at least OMAP4.
+> > >
+> > > Turning on earlyprintk, I get a crash in omap_init_mcspi. Disabling
+> > > CONFIG_SPI_OMAP24XX gets me as far as the following lines from my
+> > > bootup log, but I haven't attempted to debug further.
+> > >
+> > > If there are any patches out there to fix this, let me know.
+> > > Else I will debug this sometime tomorrow.
+> >
+> > Yes, it was discussed with Tony and temporarily fixed yesterday.
+> >
+> > The SPI fix is is already in omap-for-linus, and the timer1 temp fix is
+> below.
+> > We need to find a better way to handle timer now that they are
+> initialized pretty soon.
+> 
+> I applied the fix below with Paul's ack from the other thread.
+> So linux-next should be working again on omap4 when it gets rebuilt.
+I have tested on OMAP4 and OMAP3. BTW, it doesn't work on OMAP24xx.
+--
+Tarun
+> 
+> > ---
+> > From 9a8dc4fdab03d00d556d05ad8b64c547493ad84d Mon Sep 17 00:00:00 2001
+> > From: Benoit Cousson <b-cousson@ti.com>
+> > Date: Tue, 22 Feb 2011 10:36:27 +0100
+> > Subject: [PATCH] OMAP4: hwmod data: Prevent timer1 to be reset and idle
+> during init
+> >
+> > Since the timer1 is now started before the hwmod_init, we cannot
+> > reset it and idle it anymore.
+> >
+> > Add the appropriate flags to prevent the hwmod framework to do that.
+> >
+> > Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+> > Cc: Tony Lindgren <tony@atomide.com>
+> > Cc: Kevin Hilman <khilman@deeprootsystems.com>
+> > Cc: Paul Walmsley <paul@pwsan.com>
+> > ---
+> >  arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    1 +
+> >  1 files changed, 1 insertions(+), 0 deletions(-)
+> >
+> > diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-
+> omap2/omap_hwmod_44xx_data.c
+> > index 182aa79..79a8601 100644
+> > --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> > +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> > @@ -3989,6 +3989,7 @@ static struct omap_hwmod_ocp_if
+> *omap44xx_timer1_slaves[] = {
+> >  static struct omap_hwmod omap44xx_timer1_hwmod = {
+> >  	.name		= "timer1",
+> >  	.class		= &omap44xx_timer_1ms_hwmod_class,
+> > +	.flags		= HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET,
+> >  	.mpu_irqs	= omap44xx_timer1_irqs,
+> >  	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_timer1_irqs),
+> >  	.main_clk	= "timer1_fck",
+> > --
+> > 1.7.0.4
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
