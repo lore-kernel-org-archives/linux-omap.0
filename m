@@ -1,83 +1,69 @@
-From: Vishwanath Sripathy <vishwanath.bs@ti.com>
-Subject: RE: [PATCH 03/19] omap3+: voltage: remove initial voltage
-Date: Wed, 23 Feb 2011 12:24:07 +0530
-Message-ID: <1000eadc0be6e053b04840566bb7c98a@mail.gmail.com>
-References: <1298116918-30744-1-git-send-email-nm@ti.com> <1298116918-30744-4-git-send-email-nm@ti.com>
- <bd6822eaf1535de0f30aa64a31c15f6c@mail.gmail.com> <4D60A2AC.1030704@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH 0/8] OMAP2+: hwmod/clockevent: allow late-init of individual
+	hwmods
+Date: Wed, 23 Feb 2011 00:11:43 -0700
+Message-ID: <20110223070455.5874.51326.stgit@twilight.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:43032 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752107Ab1BWGyQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 23 Feb 2011 01:54:16 -0500
-Received: by mail-ew0-f54.google.com with SMTP id 28so564675ewy.13
-        for <linux-omap@vger.kernel.org>; Tue, 22 Feb 2011 22:54:15 -0800 (PST)
-In-Reply-To: <4D60A2AC.1030704@ti.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:58746 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752253Ab1BWHNH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Feb 2011 02:13:07 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Kevin Hilman <khilman@ti.com>, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Thara Gopinath <thara@ti.com>, Tarun Kanti DebBarma <tarun.kanti@ti.com>
 
-> -----Original Message-----
-> From: Nishanth Menon [mailto:nm@ti.com]
-> Sent: Sunday, February 20, 2011 10:42 AM
-> To: Vishwanath Sripathy
-> Cc: linux-omap; Tony Lindgren; Kevin Hilman
-> Subject: Re: [PATCH 03/19] omap3+: voltage: remove initial voltage
->
-> Vishwanath Sripathy wrote, on 02/19/2011 06:54 PM:
-> [..]
-> >> omap2_set_init_voltage should setup the curr_volt based on which
-> OPP
-> >> the system is functioning at. Blindly setting a 1.2v setting in the
-> >> initial structure may not even match the default voltages stored in
-> >> the voltage table which are supported for the domain.
-> >>
-> >> For example, OMAP3430 core domain does not use 1.2v and ends up
-> >> generating a warning on the first transition.
-> >>
-> [..]
-> >> diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-
-> >> omap2/voltage.c
-> >> index 12be525..280ee12 100644
-> >> --- a/arch/arm/mach-omap2/voltage.c
-> >> +++ b/arch/arm/mach-omap2/voltage.c
-> [..]
-> >>   	/* Generic voltage parameters */
-> >> -	vdd->curr_volt = 1200000;
-> > Where do you update this parameter upon initialization? Shouldn't you
-> read
-> > the VP register and find the actual current voltage and update this
-> param?
->
-> The sequence is as follows:
-> a) omapx_vdd_data configure is called as part of sr init sequence.
-> 	And the curr_volt with this patch is not updated at this stage.
-> b) somewhere down in the boot sequence, pm.c's
-> omap2_set_init_voltage
-> starts up. This looks up the current clk frequency from clock layer of
-> the parent device for the domain, picks up the nominal voltages stored
-> in the opp layer, then does a omap_voltage_scale_vdd to that voltage. In
-> omap_voltage_scale_vdd, The current voltage is merely picked off the vp
-> (in _pre_volt_scale). the last step it does is to setup vdd->curr_volt.
-> This can then be used by dvfs layer etc to make appropriate decisions.
->
-> So, No, I dont think I need to update it here, it should happen as part
-> of the pm init sequence.
->
-> Could you explain what problem do you foresee by doing this?
-What if omap_voltage_scale_vdd fails when called from
-omap2_set_init_voltage? Or omap2_set_init_voltage returns error even
-before calling omap_voltage_scale_vdd because it could not find the
-matching voltage for the frequency set by bootloader?
+Hello,
 
-Your assumption that curr_volt is always set by omap2_set_init_voltage
-need not be true always.
+This series adds the ability to late-initialize individual
+hwmods.  The goal here is for clockevent (and eventually
+clocksource) hwmods to be late-initialized individually, and
+right before they are needed, in the timer init code.  Then
+omap_hwmod_late_init(), which late-inits the rest of the hwmods,
+is intended to run as an initcall -- much later in the boot
+process.
 
-Vishwa
->
-> --
-> Regards,
-> Nishanth Menon
+This series includes the OMAP2/3 hwmod data for the GPTIMERs that
+Tarun posted earlier.  This data is necessary for this new code
+to avoid warnings during boot.
+
+Boot-tested on N800, OMAP34xx Beagleboard and OMAP4430ES2 Panda.
+Applies on Tony's 04aa67dec63b61c1a8b9b6d001262250f1a92130
+("Merge branch 'for-tony' of git://gitorious.org/usb/usb into omap-for-linus")
+
+
+- Paul
+
+---
+
+hwmod_clockevent_2.6.39
+   text	   data	    bss	    dec	    hex	filename
+5774609	 497512	5596888	11869009	 b51b51	vmlinux.omap2plus_defconfig.orig
+5778597	 504584	5596856	11880037	 b54665	vmlinux.omap2plus_defconfig
+
+
+Paul Walmsley (5):
+      OMAP2+: hwmod: find MPU initiator hwmod during in _register()
+      OMAP2+: hwmod: allow multiple calls to omap_hwmod_init()
+      OMAP2+: hwmod: ignore attempts to re-late-init a hwmod
+      OMAP2+: hwmod: add ability to late-init individual hwmods
+      OMAP2+: clockevent: late-init GPTIMER clockevent hwmod right before timer init
+
+Thara Gopinath (3):
+      OMAP2420: hwmod data: add dmtimer
+      OMAP2430: hwmod data: add dmtimer
+      OMAP3: hwmod data: add dmtimer
+
+
+ arch/arm/mach-omap2/omap_hwmod.c             |  124 +++--
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c   |  634 +++++++++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c   |  633 +++++++++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c   |  649 ++++++++++++++++++++++++++
+ arch/arm/mach-omap2/timer-gp.c               |    8 
+ arch/arm/plat-omap/include/plat/dmtimer.h    |   11 
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |    3 
+ 7 files changed, 2024 insertions(+), 38 deletions(-)
+
