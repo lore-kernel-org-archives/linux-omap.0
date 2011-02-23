@@ -1,130 +1,101 @@
 From: "Menon, Nishanth" <nm@ti.com>
-Subject: Re: [RFC 2/3] am35xx: voltage: Add basic initialization
-Date: Thu, 24 Feb 2011 00:10:48 +0530
-Message-ID: <AANLkTikus4t2Mgzy-DJeXxLF8z4MeciyQ3vo+EwXLPDj@mail.gmail.com>
-References: <1298483913-20344-1-git-send-email-premi@ti.com> <1298483913-20344-3-git-send-email-premi@ti.com>
+Subject: Re: [RFC 3/3] am35xx: pm: Hook-up with TPS65023
+Date: Thu, 24 Feb 2011 00:13:33 +0530
+Message-ID: <AANLkTim3X-k-0HV2wLjSSAmKHQ1kLCYW777s52TyirDU@mail.gmail.com>
+References: <1298483913-20344-1-git-send-email-premi@ti.com> <1298483913-20344-4-git-send-email-premi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:40572 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754665Ab1BWSl6 convert rfc822-to-8bit
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:55714 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755440Ab1BWSny convert rfc822-to-8bit
 	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 23 Feb 2011 13:41:58 -0500
-Received: by mail-ww0-f43.google.com with SMTP id 17so8595962wwi.0
-        for <linux-omap@vger.kernel.org>; Wed, 23 Feb 2011 10:41:36 -0800 (PST)
-In-Reply-To: <1298483913-20344-3-git-send-email-premi@ti.com>
+	Wed, 23 Feb 2011 13:43:54 -0500
+Received: by mail-wy0-f177.google.com with SMTP id 23so2498509wyf.8
+        for <linux-omap@vger.kernel.org>; Wed, 23 Feb 2011 10:43:53 -0800 (PST)
+In-Reply-To: <1298483913-20344-4-git-send-email-premi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Sanjeev Premi <premi@ti.com>
 Cc: linux-omap@vger.kernel.org
 
 On Wed, Feb 23, 2011 at 23:28, Sanjeev Premi <premi@ti.com> wrote:
-> This patch adds basic initialization in
-> the voltage layer for AM35xx processors.
->
-> In absence of AVS, functions vp_init() and
-> vc_init() are empty.
+> Add glue logic to hook-up AM35x processors
+> with TPS65023.
 >
 > Signed-off-by: Sanjeev Premi <premi@ti.com>
-> ---
-> =A0arch/arm/mach-omap2/voltage.c | =A0 45 +++++++++++++++++++++++++++=
-+++++++++++++-
-> =A01 files changed, 44 insertions(+), 1 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/volt=
-age.c
-> index bbc36e7..63dac11 100644
-> --- a/arch/arm/mach-omap2/voltage.c
-> +++ b/arch/arm/mach-omap2/voltage.c
-> @@ -194,6 +194,30 @@ static struct omap_vdd_info omap3_vdd_info[] =3D=
- {
->
-> =A0#define OMAP3_NR_SCALABLE_VDD ARRAY_SIZE(omap3_vdd_info)
->
-> +/*
-> + * AM3517 VDD structures
-> + * TODO: The values in vp_offs are just a copy of OMAP3 for now.
-> + * =A0 =A0 =A0 Assignments need to be looked again; but appears that
-> + * =A0 =A0 =A0 they won't ever be used.
+
+[...]
+> +/**
+> + * TBD: Just a copy of OMAP3 PMIC info.
+> + * =A0 =A0 =A0Many fields below don't make much sense for AM3517,
+> + * =A0 =A0 =A0but keeping them as is for now.
 > + */
-> +static struct omap_vdd_info am3517_vdd_info[] =3D {
-> + =A0 =A0 =A0 =A0{
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.vp_offs =3D {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.vpconfig =A0 =A0 =A0=
- =3D OMAP3_PRM_VP1_CONFIG_OFFSET,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.vstepmin =A0 =A0 =A0=
- =3D OMAP3_PRM_VP1_VSTEPMIN_OFFSET,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.vstepmax =A0 =A0 =A0=
- =3D OMAP3_PRM_VP1_VSTEPMAX_OFFSET,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.vlimitto =A0 =A0 =A0=
- =3D OMAP3_PRM_VP1_VLIMITTO_OFFSET,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.vstatus =A0 =A0 =A0=
- =A0=3D OMAP3_PRM_VP1_STATUS_OFFSET,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.voltage =A0 =A0 =A0=
- =A0=3D OMAP3_PRM_VP1_VOLTAGE_OFFSET,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0},
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.voltdm =3D {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.name =3D "mpu",
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0},
-> + =A0 =A0 =A0 =A0},
+> +static struct omap_volt_pmic_info am3517_volt_info =3D {
+> + =A0 =A0 =A0 .slew_rate =A0 =A0 =A0 =A0 =A0 =A0 =A0=3D 4000,
+> + =A0 =A0 =A0 .step_size =A0 =A0 =A0 =A0 =A0 =A0 =A0=3D 25000,
+> + =A0 =A0 =A0 .on_volt =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=3D 1200000,
+> + =A0 =A0 =A0 .onlp_volt =A0 =A0 =A0 =A0 =A0 =A0 =A0=3D 1000000,
+> + =A0 =A0 =A0 .ret_volt =A0 =A0 =A0 =A0 =A0 =A0 =A0 =3D 975000,
+> + =A0 =A0 =A0 .off_volt =A0 =A0 =A0 =A0 =A0 =A0 =A0 =3D 600000,
+> + =A0 =A0 =A0 .volt_setup_time =A0 =A0 =A0 =A0=3D 0xfff,
+> + =A0 =A0 =A0 .vp_erroroffset =A0 =A0 =A0 =A0 =3D OMAP3_VP_CONFIG_ERR=
+OROFFSET,
+> + =A0 =A0 =A0 .vp_vstepmin =A0 =A0 =A0 =A0 =A0 =A0=3D OMAP3_VP_VSTEPM=
+IN_VSTEPMIN,
+> + =A0 =A0 =A0 .vp_vstepmax =A0 =A0 =A0 =A0 =A0 =A0=3D OMAP3_VP_VSTEPM=
+AX_VSTEPMAX,
+> + =A0 =A0 =A0 .vp_vddmin =A0 =A0 =A0 =A0 =A0 =A0 =A0=3D OMAP3430_VP2_=
+VLIMITTO_VDDMIN,
+> + =A0 =A0 =A0 .vp_vddmax =A0 =A0 =A0 =A0 =A0 =A0 =A0=3D OMAP3430_VP2_=
+VLIMITTO_VDDMAX,
+> + =A0 =A0 =A0 .vp_timeout_us =A0 =A0 =A0 =A0 =A0=3D OMAP3_VP_VLIMITTO=
+_TIMEOUT_US,
+> + =A0 =A0 =A0 .i2c_slave_addr =A0 =A0 =A0 =A0 =3D OMAP3_SRI2C_SLAVE_A=
+DDR,
+> + =A0 =A0 =A0 .pmic_reg =A0 =A0 =A0 =A0 =A0 =A0 =A0 =3D OMAP3_VDD_COR=
+E_SR_CONTROL_REG,
+> + =A0 =A0 =A0 .vsel_to_uv =A0 =A0 =A0 =A0 =A0 =A0 =3D tps65023_vsel_t=
+o_uv,
+> + =A0 =A0 =A0 .uv_to_vsel =A0 =A0 =A0 =A0 =A0 =A0 =3D tps65023_uv_to_=
+vsel,
 > +};
-aah! no potential of scaling for Core domain here? ok, I am starting
-to get the picture of your question in
-http://marc.info/?t=3D129847134400006&r=3D1&w=3D2 with TPS65023.
+I see your point in http://marc.info/?l=3Dlinux-omap&m=3D12984712680565=
+6&w=3D2
+"Check the definition of omap_volt_pmic_info and omap_volt_data.
 
+Just to "hack" support we can fill *don't care* values for the
+fields not supported and wrap processing under if (cpu_is_....())
+checks; but this doesn't appear to be a good solution"
+PMIC specific data:
+> +       .slew_rate              =3D 4000,
+> +       .step_size              =3D 25000,
 
-> +
-> +#define AM3517_NR_SCALABLE_VDD 0
-> +
-> =A0/* OMAP4 VDD sturctures */
-> =A0static struct omap_vdd_info omap4_vdd_info[] =3D {
-> =A0 =A0 =A0 =A0{
-> @@ -1551,11 +1575,30 @@ int __init omap_voltage_late_init(void)
-> =A0}
->
-> =A0/**
-> + * AM35xx - dummy initialization of voltage controller
-> + */
-> +static void __init am3517_vc_init(struct omap_vdd_info *vdd)
-> +{
-> +}
-> +/**
-> + * AM35xx - dummy initialization of voltage processor
-> + */
-> +static void __init am3517_vp_init(struct omap_vdd_info *vdd)
-> +{
-> +}
-> +
-> +/**
-> =A0* omap_voltage_early_init()- Volatage driver early init
-> =A0*/
-> =A0static int __init omap_voltage_early_init(void)
-> =A0{
-> - =A0 =A0 =A0 if (cpu_is_omap34xx()) {
-> + =A0 =A0 =A0 if (cpu_is_omap3505() || cpu_is_omap3517()) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd_info =A0 =A0 =A0 =A0=3D am3517_vdd_=
-info;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 nr_scalable_vdd =3D AM3517_NR_SCALABLE_=
-VDD;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 vc_init =A0 =A0 =A0 =A0 =3D am3517_vc_i=
-nit;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 vp_init =A0 =A0 =A0 =A0 =3D am3517_vp_i=
-nit;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdd_data_configure =3D omap3_vdd_data_c=
-onfigure;
-> + =A0 =A0 =A0 } else if (cpu_is_omap34xx()) {
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0vdd_info =3D omap3_vdd_info;
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0nr_scalable_vdd =3D OMAP3_NR_SCALABLE_=
-VDD;
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0vc_init =3D omap3_vc_init;
-ok I think (maybe wrongly) features is a better mechanism to introduce
-this here. may even be something to look at vc and vp as seperate
-devices even initialized at hwmod level - currently we do not do it
-and we have a messy voltage.c with all kind of offset initialization.
+SoC specific data + PMIC limits:
+> +       .on_volt                =3D 1200000,
+> +       .onlp_volt              =3D 1000000,
+> +       .ret_volt               =3D 975000,
+> +       .off_volt               =3D 600000,
 
+I dont like the following at all!
+> +       .volt_setup_time        =3D 0xfff,
 
+SOC specific
+> +       .vp_erroroffset         =3D OMAP3_VP_CONFIG_ERROROFFSET,
+> +       .vp_vstepmin            =3D OMAP3_VP_VSTEPMIN_VSTEPMIN,
+> +       .vp_vstepmax            =3D OMAP3_VP_VSTEPMAX_VSTEPMAX,
+> +       .vp_vddmin              =3D OMAP3430_VP2_VLIMITTO_VDDMIN,
+> +       .vp_vddmax              =3D OMAP3430_VP2_VLIMITTO_VDDMAX,
+> +       .vp_timeout_us          =3D OMAP3_VP_VLIMITTO_TIMEOUT_US,
+
+PMIC speciic
+> +       .i2c_slave_addr         =3D OMAP3_SRI2C_SLAVE_ADDR,
+> +       .pmic_reg               =3D OMAP3_VDD_CORE_SR_CONTROL_REG,
+> +       .vsel_to_uv             =3D tps65023_vsel_to_uv,
+> +       .uv_to_vsel             =3D tps65023_uv_to_vsel,
+
+Yeah they ought to be split properly IMHO.
 Regards,
 Nishanth Menon
 --
