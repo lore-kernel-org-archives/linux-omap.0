@@ -1,86 +1,109 @@
 From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 4/8] OMAP2+: hwmod: find MPU initiator hwmod during in
- _register()
-Date: Wed, 23 Feb 2011 15:38:20 +0100
-Message-ID: <4D651BDC.8040700@ti.com>
-References: <20110223070455.5874.51326.stgit@twilight.localdomain> <20110223071146.5874.15334.stgit@twilight.localdomain>
+Subject: Re: [PATCH 5/8] OMAP2+: hwmod: allow multiple calls to omap_hwmod_init()
+Date: Wed, 23 Feb 2011 15:46:12 +0100
+Message-ID: <4D651DB4.2060707@ti.com>
+References: <20110223070455.5874.51326.stgit@twilight.localdomain> <20110223071150.5874.58996.stgit@twilight.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8;
 	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:59504 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:56396 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751658Ab1BWOi0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 23 Feb 2011 09:38:26 -0500
-In-Reply-To: <20110223071146.5874.15334.stgit@twilight.localdomain>
+	id S1752224Ab1BWOqS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 23 Feb 2011 09:46:18 -0500
+In-Reply-To: <20110223071150.5874.58996.stgit@twilight.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Paul Walmsley <paul@pwsan.com>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Hilman, Kevin" <khilman@ti.com>
 
 On 2/23/2011 8:11 AM, Paul Walmsley wrote:
-> Move the code that looks for the MPU initiator hwmod to run during
-> the individual hwmod _register() function.  (Previously, it ran after
-> all hwmods were registered in the omap_hwmod_late_init() function.)
+> There's no longer any reason why we should prevent multiple
+> calls to omap_hwmod_init().  It is now simply used to register an
+> array of hwmods.
 >
-> This is done so code can late-initialize a few individual hwmods --
-> for example, for the system timer -- before the entire set of hwmods =
-is
-> initialized later in boot via omap_hwmod_late_init().
+> This should allow a subset of hwmods (e.g., hwmods
+> handling the system clocksource and clockevents) to be registered
+> earlier than the remaining mass of hwmods.
+
+Cool... that one was needed anyway.
+It will allow potentially to split the original omapxxx_hwmod list in=20
+severals parts and thus handle the features or the infrastructure hwmod=
+s=20
+we need to init early od based on the chip capabilities.
+
+I was considering that during the discussion with Sanjeev=20
+(http://www.spinics.net/lists/linux-omap/msg46716.html).
+
+Benoit
+
 >
 > Signed-off-by: Paul Walmsley<paul@pwsan.com>
 > Cc: Beno=C3=AEt Cousson<b-cousson@ti.com>
 > Cc: Kevin Hilman<khilman@ti.com>
 > ---
->   arch/arm/mach-omap2/omap_hwmod.c |   23 +++++++++++++++--------
->   1 files changed, 15 insertions(+), 8 deletions(-)
+>   arch/arm/mach-omap2/omap_hwmod.c |   29 ++++++++++-----------------=
+--
+>   1 files changed, 10 insertions(+), 19 deletions(-)
 >
 > diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/o=
 map_hwmod.c
-> index 9e89a58..41f548e 100644
+> index 41f548e..86eacaf 100644
 > --- a/arch/arm/mach-omap2/omap_hwmod.c
 > +++ b/arch/arm/mach-omap2/omap_hwmod.c
-> @@ -1455,7 +1455,7 @@ static int _setup(struct omap_hwmod *oh, void *=
-data)
+> @@ -162,9 +162,6 @@ static LIST_HEAD(omap_hwmod_list);
+>   /* mpu_oh: used to add/remove MPU initiator from sleepdep list */
+>   static struct omap_hwmod *mpu_oh;
+>
+> -/* inited: 0 if omap_hwmod_init() has not yet been called; 1 otherwi=
+se */
+> -static u8 inited;
+> -
+>
+>   /* Private functions */
+>
+> @@ -1600,26 +1597,20 @@ int omap_hwmod_for_each(int (*fn)(struct omap=
+_hwmod *oh, void *data),
 >    */
->   static int __init _register(struct omap_hwmod *oh)
+>   int __init omap_hwmod_init(struct omap_hwmod **ohs)
 >   {
-> -	int ret, ms_id;
-> +	int ms_id;
+> -	struct omap_hwmod *oh;
+> -	int r;
+> -
+> -	if (inited)
+> -		return -EINVAL;
+> -
+> -	inited =3D 1;
+> +	int r, i;
 >
->   	if (!oh || !oh->name || !oh->class || !oh->class->name ||
->   	    (oh->_state !=3D _HWMOD_STATE_UNKNOWN))
-> @@ -1478,9 +1478,14 @@ static int __init _register(struct omap_hwmod =
-*oh)
+>   	if (!ohs)
+>   		return 0;
 >
->   	oh->_state =3D _HWMOD_STATE_REGISTERED;
+> -	oh =3D *ohs;
+> -	while (oh) {
+> -		if (omap_chip_is(oh->omap_chip)) {
+> -			r =3D _register(oh);
+> -			WARN(r, "omap_hwmod: %s: _register returned "
+> -			     "%d\n", oh->name, r);
+> -		}
+> -		oh =3D *++ohs;
+> -	}
+> +	i =3D 0;
+> +	do {
+> +		if (!omap_chip_is(ohs[i]->omap_chip))
+> +			continue;
+> +
+> +		r =3D _register(ohs[i]);
+> +		WARN(r, "omap_hwmod: %s: _register returned %d\n", ohs[i]->name,
+> +		     r);
+> +	} while (ohs[++i]);
 >
-> -	ret =3D 0;
-> +	/*
-> +	 * XXX Rather than doing a strcmp(), this should test a flag
-> +	 * set in the hwmod data, inserted by the autogenerator code.
-
-What do you mean exactly? Something like a "is_mpu" field set to true=20
-for the mpu?
-Since we are enforcing a consistent naming for every hwmods, that looks=
-=20
-like a duplication of the name.
-We will always named this hwmod "mpu", so the strcmp() should be enough=
-=2E
-
-But, maybe I'm missing your point.
-
-Benoit
-
-> +	 */
-> +	if (!strcmp(oh->name, MPU_INITIATOR_NAME))
-> +		mpu_oh =3D oh;
->
-> -	return ret;
-> +	return 0;
+>   	return 0;
 >   }
 >
+>
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
