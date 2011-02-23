@@ -1,68 +1,91 @@
-From: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
-Subject: Re: [PATCH v3 2/2] OMAP: IOMMU: add support to callback during fault handling
-Date: Tue, 22 Feb 2011 19:17:26 -0600
-Message-ID: <AANLkTikZu+pqwpPXExFirPouN+1i3Yp0QHfomHN4decx@mail.gmail.com>
-References: <1297884951-3019-1-git-send-email-dacohen@gmail.com>
-	<1297884951-3019-3-git-send-email-dacohen@gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH] OMAP2+: clocksource: fix crash on boot when
+ !CONFIG_OMAP_32K_TIMER
+Date: Tue, 22 Feb 2011 19:59:49 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1102221958190.22636@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:46898 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751467Ab1BWBR2 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 22 Feb 2011 20:17:28 -0500
-Received: by mail-vx0-f170.google.com with SMTP id 39so2431735vxb.29
-        for <linux-omap@vger.kernel.org>; Tue, 22 Feb 2011 17:17:27 -0800 (PST)
-In-Reply-To: <1297884951-3019-3-git-send-email-dacohen@gmail.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:39549 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751195Ab1BWC7u (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Feb 2011 21:59:50 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Cohen <dacohen@gmail.com>
-Cc: hiroshi.doyu@nokia.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Wed, Feb 16, 2011 at 1:35 PM, David Cohen <dacohen@gmail.com> wrote:
-> Add support to register an isr for IOMMU fault situations and adapt i=
-t
-> to allow such (*isr)() to be used as fault callback. Drivers using IO=
-MMU
-> module might want to be informed when errors happen in order to debug=
- it
-> or react.
->
-> Signed-off-by: David Cohen <dacohen@gmail.com>
-> ---
-> =A0arch/arm/mach-omap2/iommu2.c =A0 =A0 =A0 =A0 =A0 =A0| =A0 17 +++++=
-++++-
-> =A0arch/arm/plat-omap/include/plat/iommu.h | =A0 14 ++++++++-
-> =A0arch/arm/plat-omap/iommu.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 52 +++=
-+++++++++++++++++++---------
-> =A03 files changed, 65 insertions(+), 18 deletions(-)
->
-=2E...
 
-> @@ -917,6 +912,33 @@ void iommu_put(struct iommu *obj)
-> =A0}
-> =A0EXPORT_SYMBOL_GPL(iommu_put);
->
-> +int iommu_set_isr(const char *name,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 int (*isr)(struct iommu *obj, u32 d=
-a, u32 iommu_errs,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0void *priv),
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 void *isr_priv)
-> +{
-> + =A0 =A0 =A0 struct device *dev;
-> + =A0 =A0 =A0 struct iommu *obj;
-> +
+OMAP2+ kernels built without CONFIG_OMAP_32K_TIMER crash on boot after the
+2.6.38 sched_clock changes:
 
-if the driver support multiple user for the same iommu why can only
-one callback be registered? should it support register multiple
-callback function (one per user)?
+[    0.000000] OMAP clockevent source: GPTIMER1 at 13000000 Hz
+[    0.000000] Unable to handle kernel NULL pointer dereference at virtual address 00000000
+[    0.000000] pgd = c0004000
+[    0.000000] [00000000] *pgd=00000000
+[    0.000000] Internal error: Oops: 80000005 [#1] SMP
+[    0.000000] last sysfs file:
+[    0.000000] Modules linked in:
+[    0.000000] CPU: 0    Not tainted  (2.6.38-rc5-00057-g04aa67d #152)
+[    0.000000] PC is at 0x0
+[    0.000000] LR is at sched_clock_poll+0x2c/0x3c
 
-Regards,
-=46ernando.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Without CONFIG_OMAP_32K_TIMER, the kernel has an clockevent and
+clocksource resolution about three orders of magnitude higher than
+with CONFIG_OMAP_32K_TIMER set.  The tradeoff is that the lowest
+power consumption states are not available.
+
+Fix by calling init_sched_clock() from the GPTIMER clocksource init code.
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap2/timer-gp.c |   13 +++++++++++++
+ 1 files changed, 13 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/timer-gp.c b/arch/arm/mach-omap2/timer-gp.c
+index 7b7c268..0fc550e 100644
+--- a/arch/arm/mach-omap2/timer-gp.c
++++ b/arch/arm/mach-omap2/timer-gp.c
+@@ -39,6 +39,7 @@
+ #include <asm/mach/time.h>
+ #include <plat/dmtimer.h>
+ #include <asm/localtimer.h>
++#include <asm/sched_clock.h>
+ 
+ #include "timer-gp.h"
+ 
+@@ -190,6 +191,7 @@ static void __init omap2_gp_clocksource_init(void)
+ /*
+  * clocksource
+  */
++static DEFINE_CLOCK_DATA(cd);
+ static struct omap_dm_timer *gpt_clocksource;
+ static cycle_t clocksource_read_cycles(struct clocksource *cs)
+ {
+@@ -204,6 +206,15 @@ static struct clocksource clocksource_gpt = {
+ 	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
+ };
+ 
++static void notrace dmtimer_update_sched_clock(void)
++{
++	u32 cyc;
++
++	cyc = omap_dm_timer_read_counter(gpt_clocksource);
++
++	update_sched_clock(&cd, cyc, (u32)~0);
++}
++
+ /* Setup free-running counter for clocksource */
+ static void __init omap2_gp_clocksource_init(void)
+ {
+@@ -224,6 +235,8 @@ static void __init omap2_gp_clocksource_init(void)
+ 
+ 	omap_dm_timer_set_load_start(gpt, 1, 0);
+ 
++	init_sched_clock(&cd, dmtimer_update_sched_clock, 32, tick_rate);
++
+ 	if (clocksource_register_hz(&clocksource_gpt, tick_rate))
+ 		printk(err2, clocksource_gpt.name);
+ }
+-- 
+1.7.2.3
+
