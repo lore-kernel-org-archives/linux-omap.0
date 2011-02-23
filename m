@@ -1,41 +1,116 @@
-From: Wim Van Sebroeck <wim@iguana.be>
-Subject: Re: Handling multiple watchdogs
-Date: Wed, 23 Feb 2011 08:55:34 +0100
-Message-ID: <20110223075534.GN3790@infomag.iguana.be>
-References: <4A672B97.1070704@emlix.com> <20090722171920.505ffc4b@lxorguk.ukuu.org.uk> <20090722185232.GK2155@infomag.iguana.be> <20110202111516.0154bb4a@lxorguk.ukuu.org.uk>
+From: Sricharan R <r.sricharan@ti.com>
+Subject: RE: [PATCH 1/6] omap3: hwmod_data: Add l3 error log data to hwmod database.
+Date: Wed, 23 Feb 2011 13:33:58 +0530
+Message-ID: <b70d156e4cac3e5128f7cac3335514cc@mail.gmail.com>
+References: <1298295990-1070-1-git-send-email-santosh.shilimkar@ti.com> <1298295990-1070-2-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20110202111516.0154bb4a@lxorguk.ukuu.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Simon Braunschmidt <sb@emlix.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-watchdog@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:51847 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750736Ab1BWIED (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 23 Feb 2011 03:04:03 -0500
+Received: by eyf5 with SMTP id 5so1376039eyf.1
+        for <linux-omap@vger.kernel.org>; Wed, 23 Feb 2011 00:04:00 -0800 (PST)
+In-Reply-To: <1298295990-1070-2-git-send-email-santosh.shilimkar@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org
+Cc: Felipe Balbi <balbi@ti.com>, Benoit Cousson <b-cousson@ti.com>
 
-Hi Alan,
+Hi Benoit,
+>-----Original Message-----
+>From: Santosh Shilimkar [mailto:santosh.shilimkar@ti.com]
+>Sent: Monday, February 21, 2011 7:16 PM
+>To: linux-omap@vger.kernel.org
+>Cc: balbi@ti.com; b-cousson@ti.com; r.sricharan@ti.com; Santosh Shilimkar
+>Subject: [PATCH 1/6] omap3: hwmod_data: Add l3 error log data to hwmod
+>database.
+>
+>From: sricharan <r.sricharan@ti.com>
+>
+>Add the error log registers, irqs of the l3 interconnect to the
+>hwmod data. The hwmod changes are aligned with Benoit Cousson.
+>
+Updated the patch as per your comments for omap3.
 
-> > 1) make sure that we have the new watchdog core infrastructure going in for 2.6.32.
-> > This new core integrates the common code that we use over and over again. I once
-> > wrote code for it and then Alan had different ideas and thoughts and wrote his updated
-> > code. I reviewed that and I am changing some small bits so that we will have the new
-> 
-> What is the status of this ? I was thinking it had been a while but it
-> seems to be 18 months ago..
+----------------
+[PATCH v2 1/6] omap3: hwmod_data: Add address space and irq in L3 hwmod.
 
-I did that dev_* fix as we agreed on sunday.
-I will sent out the code (for additional comments) out tonight to linux-kernel and linux-watchdog mailing lists.
-Aiming to get it in for 2.6.39.
+Add the address spaces, irqs of the l3 interconnect to the hwmod data. The
+hwmod changes are aligned with Benoit Cousson.
 
-Code can allready be looked at, at:
-http://git.kernel.org/?p=linux/kernel/git/wim/linux-2.6-watchdog-next.git;a=shortlog;h=refs/heads/generic-watchdog
+Signed-off-by: sricharan <r.sricharan@ti.com>
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Tested-by: sricharan <r.sricharan@ti.com>
+Cc: Benoit Cousson <b-cousson@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   22 ++++++++++++++++++++--
+ arch/arm/plat-omap/include/plat/irqs.h     |    2 ++
+ 2 files changed, 22 insertions(+), 2 deletions(-)
 
-Open issues: get min adn max timeout in so that the generic code can check the boundarys.
-Need to think about MAGIC_CLOSE_FEATURE. There seem to be people that are surprised that if you do a cat /dev/watchdog that the system reboots. Whiwh is normal: it's an open with a close without the magic character. One solution I see is to add a module_param that can disable magic_close_feature. Default will be on though).
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+index 8d81813..9a8f799 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -72,10 +72,26 @@ static struct omap_hwmod_ocp_if
+omap3xxx_l3_main__l4_per = {
+ 	.user	= OCP_USER_MPU | OCP_USER_SDMA,
+ };
 
-And after that we can consider the read function that you proposed.
++/* L3 taret configuration and error log registers */ static struct
++omap_hwmod_irq_info omap3xxx_l3_targ_irqs[] = {
++	{ .irq = INT_34XX_L3_DBG_IRQ },
++	{ .irq = INT_34XX_L3_APP_IRQ },
++};
++
++static struct omap_hwmod_addr_space omap3xxx_l3_targ_addrs[] = {
++	{
++		.pa_start       = 0x68000000,
++		.pa_end         = 0x68100000,
++		.flags          = ADDR_TYPE_RT,
++	},
++};
++
+ /* MPU -> L3 interface */
+ static struct omap_hwmod_ocp_if omap3xxx_mpu__l3_main = {
+-	.master = &omap3xxx_mpu_hwmod,
+-	.slave	= &omap3xxx_l3_main_hwmod,
++	.master   = &omap3xxx_mpu_hwmod,
++	.slave    = &omap3xxx_l3_main_hwmod,
++	.addr     = omap3xxx_l3_targ_addrs,
++	.addr_cnt = ARRAY_SIZE(omap3xxx_l3_targ_addrs),
+ 	.user	= OCP_USER_MPU,
+ };
 
-And then we need to go for the sysfs interface so that we can support multiple watchdogs via sysfs.
+@@ -94,6 +110,8 @@ static struct omap_hwmod_ocp_if
+*omap3xxx_l3_main_masters[] = {  static struct omap_hwmod
+omap3xxx_l3_main_hwmod = {
+ 	.name		= "l3_main",
+ 	.class		= &l3_hwmod_class,
++	.mpu_irqs       = omap3xxx_l3_targ_irqs,
++	.mpu_irqs_cnt   = ARRAY_SIZE(omap3xxx_l3_targ_irqs),
+ 	.masters	= omap3xxx_l3_main_masters,
+ 	.masters_cnt	= ARRAY_SIZE(omap3xxx_l3_main_masters),
+ 	.slaves		= omap3xxx_l3_main_slaves,
+diff --git a/arch/arm/plat-omap/include/plat/irqs.h
+b/arch/arm/plat-omap/include/plat/irqs.h
+index 2910de9..e614de1 100644
+--- a/arch/arm/plat-omap/include/plat/irqs.h
++++ b/arch/arm/plat-omap/include/plat/irqs.h
+@@ -315,6 +315,8 @@
+ #define INT_34XX_SSM_ABORT_IRQ	6
+ #define INT_34XX_SYS_NIRQ	7
+ #define INT_34XX_D2D_FW_IRQ	8
++#define INT_34XX_L3_DBG_IRQ     9
++#define INT_34XX_L3_APP_IRQ     10
+ #define INT_34XX_PRCM_MPU_IRQ	11
+ #define INT_34XX_MCBSP1_IRQ	16
+ #define INT_34XX_MCBSP2_IRQ	17
+--
+1.7.0.4
 
-Kind regards,
-Wim.
+Thanks,
+ sricharan
