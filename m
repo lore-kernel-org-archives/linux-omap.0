@@ -1,45 +1,67 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [024/115] USB: prevent buggy hubs from crashing the USB stack
-Date: Thu, 24 Feb 2011 11:16:38 +0200
-Message-ID: <20110224091638.GH3528@legolas.emea.dhcp.ti.com>
-References: <4D64C81B.5060807@ahsoftware.de>
- <Pine.LNX.4.44L0.1102231021210.2233-100000@iolanthe.rowland.org>
- <20110224085735.GD3528@legolas.emea.dhcp.ti.com>
- <4D6621AB.10205@ahsoftware.de>
-Reply-To: balbi-l0cyMroinI0@public.gmane.org
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 4/8] OMAP2+: hwmod: find MPU initiator hwmod during in
+ _register()
+Date: Thu, 24 Feb 2011 02:16:57 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1102240208160.6198@utopia.booyaka.com>
+References: <20110223070455.5874.51326.stgit@twilight.localdomain> <20110223071146.5874.15334.stgit@twilight.localdomain> <4D651BDC.8040700@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <4D6621AB.10205-SXC+2es9fhnfWeYVQQPykw@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alexander Holler <holler-SXC+2es9fhnfWeYVQQPykw@public.gmane.org>
-Cc: balbi-l0cyMroinI0@public.gmane.org, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Michael Jones <michael.jones-P0pTl12WyEgpBod+wgzj8A@public.gmane.org>, Greg KH <gregkh-l3A5Bk7waGM@public.gmane.org>, Kernel development list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, stable-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, stable-review-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>, USB list <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-885077513-1298539017=:6198"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:38718 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755504Ab1BXJQ6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Feb 2011 04:16:58 -0500
+In-Reply-To: <4D651BDC.8040700@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Hilman, Kevin" <khilman@ti.com>
 
-Hi,
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-On Thu, Feb 24, 2011 at 10:15:23AM +0100, Alexander Holler wrote:
-> >On Wed, Feb 23, 2011 at 10:26:20AM -0500, Alan Stern wrote:
-> >>In both cases, it appears that the problem is caused by the fact that
-> >>the musb host-controller driver doesn't set the hcd->has_tt flag.
-> >>
-> >>Felipe, you should know where it belongs.  It should be easy enough to
-> >>add.
-> >
-> >Sure Alan, it's attached to this mail. Compile tested only though.
-> >Michael, would you care to give your tested-by ?
-> 
-> I can do, I'm using exactly the same patch since yesterday. ;)
-> 
-> Tested-by: Alexander Holler <holler-SXC+2es9fhnfWeYVQQPykw@public.gmane.org>
+--155748971-885077513-1298539017=:6198
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-Thanks a lot Alex, Greg, can you still take this to -rc ? Do you need a
-pull request or you can take this one patch ?
+Hello Beno=C3=AEt,
 
--- 
-balbi
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Wed, 23 Feb 2011, Cousson, Benoit wrote:
+> On 2/23/2011 8:11 AM, Paul Walmsley wrote:
+> > +=09/*
+> > +=09 * XXX Rather than doing a strcmp(), this should test a flag
+> > +=09 * set in the hwmod data, inserted by the autogenerator code.
+>=20
+> What do you mean exactly? Something like a "is_mpu" field set to true=20
+> for the mpu? Since we are enforcing a consistent naming for every=20
+> hwmods, that looks like a duplication of the name. We will always named=
+=20
+> this hwmod "mpu", so the strcmp() should be enough.
+>=20
+> But, maybe I'm missing your point.
+
+I had in mind adding a new flag bit for struct omap_hwmod.flags for this=20
+purpose, mostly for these reasons:
+
+1. Russell indicated a preference to avoid strcmp() for this type of
+   situation during the clock code merge a few years ago
+
+2. Testing a single bit is much more efficient than calling strcmp(),=20
+   which will hopefully make life a little easier when running on an=20
+   FPGA emulator
+
+A separate field would of course work as well, but seems more heavyweight=
+=20
+if there's only one special case.
+
+> > +=09 */
+> > +=09if (!strcmp(oh->name, MPU_INITIATOR_NAME))
+> > +=09=09mpu_oh =3D oh;
+> >=20
+> > -=09return ret;
+> > +=09return 0;
+> >   }
+
+
+- Paul
+--155748971-885077513-1298539017=:6198--
