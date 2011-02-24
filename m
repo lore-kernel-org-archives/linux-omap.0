@@ -1,510 +1,318 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH v3 5/5] OMAP: adapt hsmmc to hwmod framework
-Date: Thu, 24 Feb 2011 12:49:02 +0100
-Message-ID: <4D6645AE.5080506@ti.com>
-References: <1298483231-29622-1-git-send-email-kishore.kadiyala@ti.com> <1298483231-29622-6-git-send-email-kishore.kadiyala@ti.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: RE: [PATCH 0/3] OMAP2+: voltage: first pass at cleanup/reorganization
+Date: Thu, 24 Feb 2011 17:27:52 +0530
+Message-ID: <553cd99ec29ee91e4a4b324d0f4a0be7@mail.gmail.com>
+References: <20110221020231.7598.14024.stgit@twilight.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <1298483231-29622-6-git-send-email-kishore.kadiyala@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: "Kadiyala, Kishore" <kishore.kadiyala@ti.com>
-Cc: "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "cjb@laptop.org" <cjb@laptop.org>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "paul@pwsan.com" <paul@pwsan.com>
+Content-Type: multipart/mixed; boundary=20cf30433eeccc95c2049d05ecaa
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:54470 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751754Ab1BXL6X (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 24 Feb 2011 06:58:23 -0500
+Received: by mail-fx0-f52.google.com with SMTP id 17so521987fxm.39
+        for <linux-omap@vger.kernel.org>; Thu, 24 Feb 2011 03:58:22 -0800 (PST)
+In-Reply-To: <20110221020231.7598.14024.stgit@twilight.localdomain>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Kevin Hilman <khilman@ti.com>, Nishanth Menon <nm@ti.com>, Benoit Cousson <b-cousson@ti.com>, Mike Turquette <mturquette@ti.com>
 
-On 2/23/2011 6:47 PM, Kadiyala, Kishore wrote:
-> Changes involves:
-> 1) Remove controller reset in devices.c which is taken care of
->     by hwmod framework.
-> 2) Removing all base address macro defines except keeping one for OMAP2420.
-> 3) Using omap-device layer to register device and utilizing data from
->     hwmod data file for base address, dma channel number, Irq_number,
->     device attribute.
+--20cf30433eeccc95c2049d05ecaa
+Content-Type: text/plain; charset=ISO-8859-1
+
+Hi Paul,
+
+> -----Original Message-----
+> From: linux-arm-kernel-bounces@lists.infradead.org
+[mailto:linux-arm-kernel-bounces@lists.infradead.org] On Behalf
+> Of Paul Walmsley
+> Sent: Monday, February 21, 2011 7:39 AM
+> To: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
+> Cc: khilman@ti.com; nm@ti.com; b-cousson@ti.com; mturquette@ti.com
+> Subject: [PATCH 0/3] OMAP2+: voltage: first pass at
+cleanup/reorganization
 >
-> Signed-off-by: Paul Walmsley<paul@pwsan.com>
-> Signed-off-by: Kishore Kadiyala<kishore.kadiyala@ti.com>
-> Cc: Benoit Cousson<b-cousson@ti.com>
-> CC: Kevin Hilman<khilman@deeprootsystems.com>
+> Hello,
+>
+> this patch set does an initial round of cleanup on the OMAP "voltage"
+code
+> in arch/arm/mach-omap2/voltage.c.  As part of this process, the header
+files
+> for the voltage code and SmartReflex are moved into arch/arm/mach-omap2,
+since
+> they are currently OMAP2+-specific.
+>
+> There is still quite a bit of cleanup left to do; hopefully someone else
+will
+> get to it before I do.  More details are in the last patch.
+>
+> This series was built-tested for an OSK5912-specific config,
+omap1_defconfig,
+> a N800-specific config, omap2plus_defconfig, an OMAP3-specific config,
+and
+> an OMAP4-specific config.  It was boot-tested on an OMAP35xx
+Beagleboard.
+> Further testing assistance is, of course, appreciated.
+
+I found these abort on my 4430SDP. The below changes I found
+are needed for it to bootup..
+I tested the 'integration-2.6.39' branch of
+git://git.pwsan.com/linux-integration and the patch is
+based on this branch.
+
+---
+>From e3d5e2bb09ecb7a958c1f79b86d1917f0becb8d2 Mon Sep 17 00:00:00 2001
+From: Rajendra Nayak <rnayak@ti.com>
+Date: Thu, 24 Feb 2011 16:42:25 +0530
+Subject: [PATCH] OMAP4: voltage: Populate missing .vp/.vc_common pointers
+
+The common_data for vp and vc on OMAP4 is defined
+but not hooked up with the corresponding
+vp/vc_data.
+This causes an abort at bootup on OMAP4, as the
+framework api's assumes these to be present.
+
+While here, also rename omap4_vp_data to
+omap4_vp_common and omap4_vc_data to
+omap4_vc_common to maintain consistency in
+naming structs across all OMAPs.
+
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+---
+ arch/arm/mach-omap2/vc44xx_data.c |    5 ++++-
+ arch/arm/mach-omap2/vp44xx_data.c |    5 ++++-
+ 2 files changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/vc44xx_data.c
+b/arch/arm/mach-omap2/vc44xx_data.c
+index 548cb06..a98da8d 100644
+--- a/arch/arm/mach-omap2/vc44xx_data.c
++++ b/arch/arm/mach-omap2/vc44xx_data.c
+@@ -30,7 +30,7 @@
+  * VC data common to 44xx chips
+  * XXX This stuff presumably belongs in the vc3xxx.c or vc.c file.
+  */
+-static const struct omap_vc_common_data omap4_vc_data = {
++static const struct omap_vc_common_data omap4_vc_common = {
+ 	.smps_sa_reg = OMAP4_PRM_VC_SMPS_SA_OFFSET,
+ 	.smps_volra_reg = OMAP4_PRM_VC_VAL_SMPS_RA_VOL_OFFSET,
+ 	.bypass_val_reg = OMAP4_PRM_VC_VAL_BYPASS_OFFSET,
+@@ -47,6 +47,7 @@ static const struct omap_vc_common_data omap4_vc_data =
+{
+
+ /* VC instance data for each controllable voltage line */
+ struct omap_vc_instance_data omap4_vc_mpu_data = {
++	.vc_common = &omap4_vc_common,
+ 	.cmdval_reg = OMAP4_PRM_VC_VAL_CMD_VDD_MPU_L_OFFSET,
+ 	.smps_sa_shift = OMAP4430_SA_VDD_MPU_L_PRM_VC_SMPS_SA_SHIFT,
+ 	.smps_sa_mask = OMAP4430_SA_VDD_MPU_L_PRM_VC_SMPS_SA_MASK,
+@@ -55,6 +56,7 @@ struct omap_vc_instance_data omap4_vc_mpu_data = {
+ };
+
+ struct omap_vc_instance_data omap4_vc_iva_data = {
++	.vc_common = &omap4_vc_common,
+ 	.cmdval_reg = OMAP4_PRM_VC_VAL_CMD_VDD_IVA_L_OFFSET,
+ 	.smps_sa_shift = OMAP4430_SA_VDD_IVA_L_PRM_VC_SMPS_SA_SHIFT,
+ 	.smps_sa_mask = OMAP4430_SA_VDD_IVA_L_PRM_VC_SMPS_SA_MASK,
+@@ -63,6 +65,7 @@ struct omap_vc_instance_data omap4_vc_iva_data = {
+ };
+
+ struct omap_vc_instance_data omap4_vc_core_data = {
++	.vc_common = &omap4_vc_common,
+ 	.cmdval_reg = OMAP4_PRM_VC_VAL_CMD_VDD_CORE_L_OFFSET,
+ 	.smps_sa_shift = OMAP4430_SA_VDD_CORE_L_0_6_SHIFT,
+ 	.smps_sa_mask = OMAP4430_SA_VDD_CORE_L_0_6_MASK,
+diff --git a/arch/arm/mach-omap2/vp44xx_data.c
+b/arch/arm/mach-omap2/vp44xx_data.c
+index 7b26f75..65d1ad6 100644
+--- a/arch/arm/mach-omap2/vp44xx_data.c
++++ b/arch/arm/mach-omap2/vp44xx_data.c
+@@ -31,7 +31,7 @@
+  * VP data common to 44xx chips
+  * XXX This stuff presumably belongs in the vp44xx.c or vp.c file.
+  */
+-static const struct omap_vp_common_data omap4_vp_data = {
++static const struct omap_vp_common_data omap4_vp_common = {
+ 	.vpconfig_erroroffset_shift = OMAP4430_ERROROFFSET_SHIFT,
+ 	.vpconfig_errorgain_mask = OMAP4430_ERRORGAIN_MASK,
+ 	.vpconfig_errorgain_shift = OMAP4430_ERRORGAIN_SHIFT,
+@@ -56,6 +56,7 @@ static const struct omap_vp_prm_irqst_data
+omap4_vp_mpu_prm_irqst_data = {
+ };
+
+ struct omap_vp_instance_data omap4_vp_mpu_data = {
++	.vp_common = &omap4_vp_common,
+ 	.vpconfig = OMAP4_PRM_VP_MPU_CONFIG_OFFSET,
+ 	.vstepmin = OMAP4_PRM_VP_MPU_VSTEPMIN_OFFSET,
+ 	.vstepmax = OMAP4_PRM_VP_MPU_VSTEPMAX_OFFSET,
+@@ -71,6 +72,7 @@ static const struct omap_vp_prm_irqst_data
+omap4_vp_iva_prm_irqst_data = {
+ };
+
+ struct omap_vp_instance_data omap4_vp_iva_data = {
++	.vp_common = &omap4_vp_common,
+ 	.vpconfig = OMAP4_PRM_VP_IVA_CONFIG_OFFSET,
+ 	.vstepmin = OMAP4_PRM_VP_IVA_VSTEPMIN_OFFSET,
+ 	.vstepmax = OMAP4_PRM_VP_IVA_VSTEPMAX_OFFSET,
+@@ -86,6 +88,7 @@ static const struct omap_vp_prm_irqst_data
+omap4_vp_core_prm_irqst_data = {
+ };
+
+ struct omap_vp_instance_data omap4_vp_core_data = {
++	.vp_common = &omap4_vp_common,
+ 	.vpconfig = OMAP4_PRM_VP_CORE_CONFIG_OFFSET,
+ 	.vstepmin = OMAP4_PRM_VP_CORE_VSTEPMIN_OFFSET,
+ 	.vstepmax = OMAP4_PRM_VP_CORE_VSTEPMAX_OFFSET,
+-- 
+1.7.0.4
+
+>
+> This series is available from git://git.pwsan.com/linux-2.6 in the
+> 'voltage_split_2.6.39' branch.
+>
+>
+> - Paul
+>
+>
 > ---
->   arch/arm/mach-omap2/devices.c         |  251 ---------------------------------
->   arch/arm/mach-omap2/hsmmc.c           |  153 ++++++++++++++++++--
->   arch/arm/plat-omap/include/plat/mmc.h |   14 --
->   3 files changed, 141 insertions(+), 277 deletions(-)
 >
-> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-> index 7b35c87..2d2deb6 100644
-> --- a/arch/arm/mach-omap2/devices.c
-> +++ b/arch/arm/mach-omap2/devices.c
-> @@ -503,112 +503,6 @@ static inline void omap_init_aes(void) { }
+> voltage_split_2.6.39
+>    text	   data	    bss	    dec	    hex	filename
+> 5766071	 488104	5596920	11851095	 b4d557
+vmlinux.omap2plus_defconfig.orig
+> 5765631	 487848	5596920	11850399	 b4d29f
+vmlinux.omap2plus_defconfig
 >
->   /*-------------------------------------------------------------------------*/
 >
-> -#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
-> -
-> -#define MMCHS_SYSCONFIG                        0x0010
-> -#define MMCHS_SYSCONFIG_SWRESET                (1<<  1)
-> -#define MMCHS_SYSSTATUS                        0x0014
-> -#define MMCHS_SYSSTATUS_RESETDONE      (1<<  0)
-> -
-> -static struct platform_device dummy_pdev = {
-> -       .dev = {
-> -               .bus =&platform_bus_type,
-> -       },
-> -};
-> -
-> -/**
-> - * omap_hsmmc_reset() - Full reset of each HS-MMC controller
-> - *
-> - * Ensure that each MMC controller is fully reset.  Controllers
-> - * left in an unknown state (by bootloader) may prevent retention
-> - * or OFF-mode.  This is especially important in cases where the
-> - * MMC driver is not enabled, _or_ built as a module.
-> - *
-> - * In order for reset to work, interface, functional and debounce
-> - * clocks must be enabled.  The debounce clock comes from func_32k_clk
-> - * and is not under SW control, so we only enable i- and f-clocks.
-> - **/
-> -static void __init omap_hsmmc_reset(void)
-> -{
-> -       u32 i, nr_controllers;
-> -       struct clk *iclk, *fclk;
-> -
-> -       if (cpu_is_omap242x())
-> -               return;
-> -
-> -       nr_controllers = cpu_is_omap44xx() ? OMAP44XX_NR_MMC :
-> -               (cpu_is_omap34xx() ? OMAP34XX_NR_MMC : OMAP24XX_NR_MMC);
-> -
-> -       for (i = 0; i<  nr_controllers; i++) {
-> -               u32 v, base = 0;
-> -               struct device *dev =&dummy_pdev.dev;
-> -
-> -               switch (i) {
-> -               case 0:
-> -                       base = OMAP2_MMC1_BASE;
-> -                       break;
-> -               case 1:
-> -                       base = OMAP2_MMC2_BASE;
-> -                       break;
-> -               case 2:
-> -                       base = OMAP3_MMC3_BASE;
-> -                       break;
-> -               case 3:
-> -                       if (!cpu_is_omap44xx())
-> -                               return;
-> -                       base = OMAP4_MMC4_BASE;
-> -                       break;
-> -               case 4:
-> -                       if (!cpu_is_omap44xx())
-> -                               return;
-> -                       base = OMAP4_MMC5_BASE;
-> -                       break;
-> -               }
-> -
-> -               if (cpu_is_omap44xx())
-> -                       base += OMAP4_MMC_REG_OFFSET;
-> -
-> -               dummy_pdev.id = i;
-> -               dev_set_name(&dummy_pdev.dev, "mmci-omap-hs.%d", i);
-> -               iclk = clk_get(dev, "ick");
-> -               if (IS_ERR(iclk))
-> -                       goto err1;
-> -               if (clk_enable(iclk))
-> -                       goto err2;
-> -
-> -               fclk = clk_get(dev, "fck");
-> -               if (IS_ERR(fclk))
-> -                       goto err3;
-> -               if (clk_enable(fclk))
-> -                       goto err4;
-> -
-> -               omap_writel(MMCHS_SYSCONFIG_SWRESET, base + MMCHS_SYSCONFIG);
-> -               v = omap_readl(base + MMCHS_SYSSTATUS);
-> -               while (!(omap_readl(base + MMCHS_SYSSTATUS)&
-> -                        MMCHS_SYSSTATUS_RESETDONE))
-> -                       cpu_relax();
-> -
-> -               clk_disable(fclk);
-> -               clk_put(fclk);
-> -               clk_disable(iclk);
-> -               clk_put(iclk);
-> -       }
-> -       return;
-> -
-> -err4:
-> -       clk_put(fclk);
-> -err3:
-> -       clk_disable(iclk);
-> -err2:
-> -       clk_put(iclk);
-> -err1:
-> -       printk(KERN_WARNING "%s: Unable to enable clocks for MMC%d, "
-> -                           "cannot reset.\n",  __func__, i);
-> -}
-> -#else
-> -static inline void omap_hsmmc_reset(void) {}
-> -#endif
-> -
->   #if defined(CONFIG_MMC_OMAP) || defined(CONFIG_MMC_OMAP_MODULE)
+> Paul Walmsley (3):
+>       OMAP: smartreflex: move plat/smartreflex.h to
+mach-omap2/smartreflex.h
+>       OMAP: voltage: move plat/voltage.h to mach-omap2/voltage.h
+>       OMAP2+: voltage: reorganize, split code from data
 >
->   static inline void omap242x_mmc_mux(struct omap_mmc_platform_data
-> @@ -665,150 +559,6 @@ void __init omap242x_init_mmc(struct omap_mmc_platform_data **mmc_data)
 >
->   #endif
+>  arch/arm/mach-omap2/Makefile                  |   20
+>  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c    |    2
+>  arch/arm/mach-omap2/omap_opp_data.h           |   12
+>  arch/arm/mach-omap2/omap_twl.c                |    2
+>  arch/arm/mach-omap2/opp3xxx_data.c            |   44 +
+>  arch/arm/mach-omap2/opp4xxx_data.c            |   30 +
+>  arch/arm/mach-omap2/pm.c                      |    2
+>  arch/arm/mach-omap2/smartreflex-class3.c      |    2
+>  arch/arm/mach-omap2/smartreflex.c             |    2
+>  arch/arm/mach-omap2/smartreflex.h             |    3
+>  arch/arm/mach-omap2/sr_device.c               |    4
+>  arch/arm/mach-omap2/vc.h                      |   83 ++
+>  arch/arm/mach-omap2/vc3xxx_data.c             |   63 ++
+>  arch/arm/mach-omap2/vc44xx_data.c             |   72 ++
+>  arch/arm/mach-omap2/voltage.c                 | 1019
++++++++------------------
+>  arch/arm/mach-omap2/voltage.h                 |   66 ++
+>  arch/arm/mach-omap2/voltagedomains3xxx_data.c |  104 +++
+>  arch/arm/mach-omap2/voltagedomains44xx_data.c |  108 +++
+>  arch/arm/mach-omap2/vp.h                      |  143 ++++
+>  arch/arm/mach-omap2/vp3xxx_data.c             |   82 ++
+>  arch/arm/mach-omap2/vp44xx_data.c             |   97 ++
+>  arch/arm/plat-omap/include/plat/omap_hwmod.h  |    1
+>  22 files changed, 1203 insertions(+), 758 deletions(-)
+>  rename arch/arm/{plat-omap/include/plat/smartreflex.h =>
+mach-omap2/smartreflex.h} (99%)
+>  create mode 100644 arch/arm/mach-omap2/vc.h
+>  create mode 100644 arch/arm/mach-omap2/vc3xxx_data.c
+>  create mode 100644 arch/arm/mach-omap2/vc44xx_data.c
+>  rename arch/arm/{plat-omap/include/plat/voltage.h =>
+mach-omap2/voltage.h} (68%)
+>  create mode 100644 arch/arm/mach-omap2/voltagedomains3xxx_data.c
+>  create mode 100644 arch/arm/mach-omap2/voltagedomains44xx_data.c
+>  create mode 100644 arch/arm/mach-omap2/vp.h
+>  create mode 100644 arch/arm/mach-omap2/vp3xxx_data.c
+>  create mode 100644 arch/arm/mach-omap2/vp44xx_data.c
 >
-> -#if defined(CONFIG_MMC_OMAP_HS) || defined(CONFIG_MMC_OMAP_HS_MODULE)
-> -
-> -static inline void omap2_mmc_mux(struct omap_mmc_platform_data *mmc_controller,
-> -                       int controller_nr)
-> -{
-> -       if ((mmc_controller->slots[0].switch_pin>  0)&&  \
-> -               (mmc_controller->slots[0].switch_pin<  OMAP_MAX_GPIO_LINES))
-> -               omap_mux_init_gpio(mmc_controller->slots[0].switch_pin,
-> -                                       OMAP_PIN_INPUT_PULLUP);
-> -       if ((mmc_controller->slots[0].gpio_wp>  0)&&  \
-> -               (mmc_controller->slots[0].gpio_wp<  OMAP_MAX_GPIO_LINES))
-> -               omap_mux_init_gpio(mmc_controller->slots[0].gpio_wp,
-> -                                       OMAP_PIN_INPUT_PULLUP);
-> -       if (cpu_is_omap34xx()) {
-> -               if (controller_nr == 0) {
-> -                       omap_mux_init_signal("sdmmc1_clk",
-> -                               OMAP_PIN_INPUT_PULLUP);
-> -                       omap_mux_init_signal("sdmmc1_cmd",
-> -                               OMAP_PIN_INPUT_PULLUP);
-> -                       omap_mux_init_signal("sdmmc1_dat0",
-> -                               OMAP_PIN_INPUT_PULLUP);
-> -                       if (mmc_controller->slots[0].caps&
-> -                               (MMC_CAP_4_BIT_DATA | MMC_CAP_8_BIT_DATA)) {
-> -                               omap_mux_init_signal("sdmmc1_dat1",
-> -                                       OMAP_PIN_INPUT_PULLUP);
-> -                               omap_mux_init_signal("sdmmc1_dat2",
-> -                                       OMAP_PIN_INPUT_PULLUP);
-> -                               omap_mux_init_signal("sdmmc1_dat3",
-> -                                       OMAP_PIN_INPUT_PULLUP);
-> -                       }
-> -                       if (mmc_controller->slots[0].caps&
-> -                                               MMC_CAP_8_BIT_DATA) {
-> -                               omap_mux_init_signal("sdmmc1_dat4",
-> -                                       OMAP_PIN_INPUT_PULLUP);
-> -                               omap_mux_init_signal("sdmmc1_dat5",
-> -                                       OMAP_PIN_INPUT_PULLUP);
-> -                               omap_mux_init_signal("sdmmc1_dat6",
-> -                                       OMAP_PIN_INPUT_PULLUP);
-> -                               omap_mux_init_signal("sdmmc1_dat7",
-> -                                       OMAP_PIN_INPUT_PULLUP);
-> -                       }
-> -               }
-> -               if (controller_nr == 1) {
-> -                       /* MMC2 */
-> -                       omap_mux_init_signal("sdmmc2_clk",
-> -                               OMAP_PIN_INPUT_PULLUP);
-> -                       omap_mux_init_signal("sdmmc2_cmd",
-> -                               OMAP_PIN_INPUT_PULLUP);
-> -                       omap_mux_init_signal("sdmmc2_dat0",
-> -                               OMAP_PIN_INPUT_PULLUP);
-> -
-> -                       /*
-> -                        * For 8 wire configurations, Lines DAT4, 5, 6 and 7 need to be muxed
-> -                        * in the board-*.c files
-> -                        */
-> -                       if (mmc_controller->slots[0].caps&
-> -                               (MMC_CAP_4_BIT_DATA | MMC_CAP_8_BIT_DATA)) {
-> -                               omap_mux_init_signal("sdmmc2_dat1",
-> -                                       OMAP_PIN_INPUT_PULLUP);
-> -                               omap_mux_init_signal("sdmmc2_dat2",
-> -                                       OMAP_PIN_INPUT_PULLUP);
-> -                               omap_mux_init_signal("sdmmc2_dat3",
-> -                                       OMAP_PIN_INPUT_PULLUP);
-> -                       }
-> -                       if (mmc_controller->slots[0].caps&
-> -                                                       MMC_CAP_8_BIT_DATA) {
-> -                               omap_mux_init_signal("sdmmc2_dat4.sdmmc2_dat4",
-> -                                       OMAP_PIN_INPUT_PULLUP);
-> -                               omap_mux_init_signal("sdmmc2_dat5.sdmmc2_dat5",
-> -                                       OMAP_PIN_INPUT_PULLUP);
-> -                               omap_mux_init_signal("sdmmc2_dat6.sdmmc2_dat6",
-> -                                       OMAP_PIN_INPUT_PULLUP);
-> -                               omap_mux_init_signal("sdmmc2_dat7.sdmmc2_dat7",
-> -                                       OMAP_PIN_INPUT_PULLUP);
-> -                       }
-> -               }
-> -
-> -               /*
-> -                * For MMC3 the pins need to be muxed in the board-*.c files
-> -                */
-> -       }
-> -}
-> -
-> -void __init omap2_init_mmc(struct omap_mmc_platform_data **mmc_data,
-> -                       int nr_controllers)
-> -{
-> -       int i;
-> -       char *name;
-> -
-> -       for (i = 0; i<  nr_controllers; i++) {
-> -               unsigned long base, size;
-> -               unsigned int irq = 0;
-> -
-> -               if (!mmc_data[i])
-> -                       continue;
-> -
-> -               omap2_mmc_mux(mmc_data[i], i);
-> -
-> -               switch (i) {
-> -               case 0:
-> -                       base = OMAP2_MMC1_BASE;
-> -                       irq = INT_24XX_MMC_IRQ;
-> -                       break;
-> -               case 1:
-> -                       base = OMAP2_MMC2_BASE;
-> -                       irq = INT_24XX_MMC2_IRQ;
-> -                       break;
-> -               case 2:
-> -                       if (!cpu_is_omap44xx()&&  !cpu_is_omap34xx())
-> -                               return;
-> -                       base = OMAP3_MMC3_BASE;
-> -                       irq = INT_34XX_MMC3_IRQ;
-> -                       break;
-> -               case 3:
-> -                       if (!cpu_is_omap44xx())
-> -                               return;
-> -                       base = OMAP4_MMC4_BASE;
-> -                       irq = OMAP44XX_IRQ_MMC4;
-> -                       break;
-> -               case 4:
-> -                       if (!cpu_is_omap44xx())
-> -                               return;
-> -                       base = OMAP4_MMC5_BASE;
-> -                       irq = OMAP44XX_IRQ_MMC5;
-> -                       break;
-> -               default:
-> -                       continue;
-> -               }
-> -
-> -               if (cpu_is_omap44xx()) {
-> -                       if (i<  3)
-> -                               irq += OMAP44XX_IRQ_GIC_START;
-> -                       size = OMAP4_HSMMC_SIZE;
-> -                       name = "mmci-omap-hs";
-> -               } else {
-> -                       size = OMAP3_HSMMC_SIZE;
-> -                       name = "mmci-omap-hs";
-> -               }
-> -               omap_mmc_add(name, i, base, size, irq, mmc_data[i]);
-> -       };
-> -}
-> -
-> -#endif
-> -
->   /*-------------------------------------------------------------------------*/
 >
->   #if defined(CONFIG_HDQ_MASTER_OMAP) || defined(CONFIG_HDQ_MASTER_OMAP_MODULE)
-> @@ -878,7 +628,6 @@ static int __init omap2_init_devices(void)
->           * please keep these calls, and their implementations above,
->           * in alphabetical order so they're easier to sort through.
->           */
-> -       omap_hsmmc_reset();
->          omap_init_audio();
->          omap_init_camera();
->          omap_init_mbox();
-> diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc.c
-> index 34272e4..b6e1eae 100644
-> --- a/arch/arm/mach-omap2/hsmmc.c
-> +++ b/arch/arm/mach-omap2/hsmmc.c
-> @@ -16,7 +16,11 @@
->   #include<mach/hardware.h>
->   #include<plat/mmc.h>
->   #include<plat/omap-pm.h>
-> +#include<plat/mux.h>
-> +#include<plat/omap_hwmod.h>
-> +#include<plat/omap_device.h>
->
-> +#include "mux.h"
->   #include "hsmmc.h"
->   #include "control.h"
->
-> @@ -30,7 +34,7 @@ static u16 control_mmc1;
->
->   static struct hsmmc_controller {
->          char                            name[HSMMC_NAME_LEN + 1];
-> -} hsmmc[OMAP34XX_NR_MMC];
-> +} hsmmc[OMAP44XX_NR_MMC];
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
 
-I do not know the details of that driver, so this comment might be 
-completely irrelevant, but in theory, such static table should not be 
-necessary since the driver core already maintain a list of all instances 
-bound to it.
-Because of that, you will have to modify this code for every new OMAP 
-generation each time we add a new instance.
+--20cf30433eeccc95c2049d05ecaa
+Content-Type: application/octet-stream;
+	name="0001-OMAP4-voltage-Populate-missing-.vp-.vc_common-pointe.patch"
+Content-Disposition: attachment;
+	filename="0001-OMAP4-voltage-Populate-missing-.vp-.vc_common-pointe.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: 1b3fedf59da6051c_0.1
 
->
->   #if defined(CONFIG_ARCH_OMAP3)&&  defined(CONFIG_PM)
->
-> @@ -204,7 +208,141 @@ static int nop_mmc_set_power(struct device *dev, int slot, int power_on,
->          return 0;
->   }
->
-> -static struct omap_mmc_platform_data *hsmmc_data[OMAP34XX_NR_MMC] __initdata;
-> +static inline void omap2_mmc_mux(struct omap_mmc_platform_data *mmc_controller,
-> +                       int controller_nr)
-> +{
-> +       if ((mmc_controller->slots[0].switch_pin>  0)&&  \
-> +               (mmc_controller->slots[0].switch_pin<  OMAP_MAX_GPIO_LINES))
-> +               omap_mux_init_gpio(mmc_controller->slots[0].switch_pin,
-> +                                       OMAP_PIN_INPUT_PULLUP);
-> +       if ((mmc_controller->slots[0].gpio_wp>  0)&&  \
-> +               (mmc_controller->slots[0].gpio_wp<  OMAP_MAX_GPIO_LINES))
-> +               omap_mux_init_gpio(mmc_controller->slots[0].gpio_wp,
-> +                                       OMAP_PIN_INPUT_PULLUP);
-> +       if (cpu_is_omap34xx()) {
-> +               if (controller_nr == 0) {
-> +                       omap_mux_init_signal("sdmmc1_clk",
-> +                               OMAP_PIN_INPUT_PULLUP);
-> +                       omap_mux_init_signal("sdmmc1_cmd",
-> +                               OMAP_PIN_INPUT_PULLUP);
-> +                       omap_mux_init_signal("sdmmc1_dat0",
-> +                               OMAP_PIN_INPUT_PULLUP);
-> +                       if (mmc_controller->slots[0].caps&
-> +                               (MMC_CAP_4_BIT_DATA | MMC_CAP_8_BIT_DATA)) {
-> +                               omap_mux_init_signal("sdmmc1_dat1",
-> +                                       OMAP_PIN_INPUT_PULLUP);
-> +                               omap_mux_init_signal("sdmmc1_dat2",
-> +                                       OMAP_PIN_INPUT_PULLUP);
-> +                               omap_mux_init_signal("sdmmc1_dat3",
-> +                                       OMAP_PIN_INPUT_PULLUP);
-> +                       }
-> +                       if (mmc_controller->slots[0].caps&
-> +                                               MMC_CAP_8_BIT_DATA) {
-> +                               omap_mux_init_signal("sdmmc1_dat4",
-> +                                       OMAP_PIN_INPUT_PULLUP);
-> +                               omap_mux_init_signal("sdmmc1_dat5",
-> +                                       OMAP_PIN_INPUT_PULLUP);
-> +                               omap_mux_init_signal("sdmmc1_dat6",
-> +                                       OMAP_PIN_INPUT_PULLUP);
-> +                               omap_mux_init_signal("sdmmc1_dat7",
-> +                                       OMAP_PIN_INPUT_PULLUP);
-> +                       }
-> +               }
-> +               if (controller_nr == 1) {
-> +                       /* MMC2 */
-> +                       omap_mux_init_signal("sdmmc2_clk",
-> +                               OMAP_PIN_INPUT_PULLUP);
-> +                       omap_mux_init_signal("sdmmc2_cmd",
-> +                               OMAP_PIN_INPUT_PULLUP);
-> +                       omap_mux_init_signal("sdmmc2_dat0",
-> +                               OMAP_PIN_INPUT_PULLUP);
-> +
-> +                       /*
-> +                        * For 8 wire configurations, Lines DAT4, 5, 6 and 7
-> +                        * need to be muxed in the board-*.c files
-> +                        */
-> +                       if (mmc_controller->slots[0].caps&
-> +                               (MMC_CAP_4_BIT_DATA | MMC_CAP_8_BIT_DATA)) {
-> +                               omap_mux_init_signal("sdmmc2_dat1",
-> +                                       OMAP_PIN_INPUT_PULLUP);
-> +                               omap_mux_init_signal("sdmmc2_dat2",
-> +                                       OMAP_PIN_INPUT_PULLUP);
-> +                               omap_mux_init_signal("sdmmc2_dat3",
-> +                                       OMAP_PIN_INPUT_PULLUP);
-> +                       }
-> +                       if (mmc_controller->slots[0].caps&
-> +                                                       MMC_CAP_8_BIT_DATA) {
-> +                               omap_mux_init_signal("sdmmc2_dat4.sdmmc2_dat4",
-> +                                       OMAP_PIN_INPUT_PULLUP);
-> +                               omap_mux_init_signal("sdmmc2_dat5.sdmmc2_dat5",
-> +                                       OMAP_PIN_INPUT_PULLUP);
-> +                               omap_mux_init_signal("sdmmc2_dat6.sdmmc2_dat6",
-> +                                       OMAP_PIN_INPUT_PULLUP);
-> +                               omap_mux_init_signal("sdmmc2_dat7.sdmmc2_dat7",
-> +                                       OMAP_PIN_INPUT_PULLUP);
-> +                       }
-> +               }
-> +
-> +               /*
-> +                * For MMC3 the pins need to be muxed in the board-*.c files
-> +                */
-> +       }
-> +}
-> +
-> +static struct omap_mmc_platform_data *hsmmc_data[OMAP44XX_NR_MMC] __initdata;
-
-Same concern than for hsmmc, why do you need static table here?
-And why do you need another structure? The omap2_hsmmc_info should 
-already be in a pdata kind of structure.
-The board file should just populate a table of pdata that you will use 
-during init.
-
-> +
-> +static struct omap_device_pm_latency omap_hsmmc_latency[] = {
-> +       [0] = {
-> +               .deactivate_func = omap_device_idle_hwmods,
-> +               .activate_func   = omap_device_enable_hwmods,
-> +               .flags           = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
-> +       },
-> +       /*
-> +        * XXX There should also be an entry here to power off/on the
-> +        * MMC regulators/PBIAS cells, etc.
-> +        */
-> +};
-> +
-> +static int omap2_mmc_init(struct omap_hwmod *oh, void *hsmmcinfo)
-> +{
-> +       struct omap_device *od;
-> +       struct omap_device_pm_latency *ohl;
-> +       char *name;
-> +       int ohl_cnt = 0;
-> +       struct mmc_dev_attr *mmc_dattr = oh->dev_attr;
-> +       struct omap2_hsmmc_info *c = (struct omap2_hsmmc_info *) hsmmcinfo;
-> +       int idx;
-> +       static int mmc_num;
-> +
-> +       /* Initialization of controllers which are not updated
-> +        * in board file will be skipped here.
-> +        */
-> +       c += mmc_num;
-> +       if (!c->mmc) {
-> +               pr_err("omap_hsmmc_info is not updated in board file\n");
-> +               return 0;
-> +       }
-> +       idx = c->mmc - 1 ;
-> +       name = "mmci-omap-hs";
-
-Could you please rename the device to have something in the form: 
-omap_XXXX? In that case "omap_mmc" should be good. The "hs" is just a 
-indication of one of the mmc instance capability and does not have to be 
-in the device name since there is no none-hs instance.
-
-I know that this is not in your patch and was already there before, but 
-that code is happily mixing MMC or HSMMC everywhere, so having a little 
-bit of consistency will be good. I vote to stick to MMC only.
-The "omap2_" prefix does not seems necessary too for my point of view. 
-"omap_" is good enough.
-
-> +       ohl = omap_hsmmc_latency;
-> +       ohl_cnt = ARRAY_SIZE(omap_hsmmc_latency);
-> +       omap2_mmc_mux(hsmmc_data[idx], idx);
-> +       hsmmc_data[idx]->controller_dev_attr = mmc_dattr->flags;
-
-You should copy the data and not keep a reference to internal hwmod 
-structure. In your case, you should check if dev_attr is not null. It 
-will avoid adding some empty dev_attr structure in the hwmod_data files.
-
-> +       od = omap_device_build(name, idx, oh, hsmmc_data[idx],
-> +               sizeof(struct omap_mmc_platform_data), ohl, ohl_cnt, false);
-> +       if (IS_ERR(od)) {
-> +               WARN(1, "Cant build omap_device for %s:%s.\n",
-> +                                       name, oh->name);
-> +               return PTR_ERR(od);
-> +       }
-> +       /*
-> +        * return device handle to board setup code
-> +        * required to populate for regulator framework structure
-> +        */
-> +       c->dev =&od->pdev.dev;
-> +       mmc_num++;
-> +       return 0;
-> +}
-
-Regards,
-Benoit
+RnJvbSBlM2Q1ZTJiYjA5ZWNiN2E5NThjMWY3OWI4NmQxOTE3ZjBiZWNiOGQyIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBSYWplbmRyYSBOYXlhayA8cm5heWFrQHRpLmNvbT4KRGF0ZTog
+VGh1LCAyNCBGZWIgMjAxMSAxNjo0MjoyNSArMDUzMApTdWJqZWN0OiBbUEFUQ0hdIE9NQVA0OiB2
+b2x0YWdlOiBQb3B1bGF0ZSBtaXNzaW5nIC52cC8udmNfY29tbW9uIHBvaW50ZXJzCgpUaGUgY29t
+bW9uX2RhdGEgZm9yIHZwIGFuZCB2YyBvbiBPTUFQNCBpcyBkZWZpbmVkCmJ1dCBub3QgaG9va2Vk
+IHVwIHdpdGggdGhlIGNvcnJlc3BvbmRpbmcKdnAvdmNfZGF0YS4KVGhpcyBjYXVzZXMgYW4gYWJv
+cnQgYXQgYm9vdHVwIG9uIE9NQVA0LCBhcyB0aGUKZnJhbWV3b3JrIGFwaSdzIGFzc3VtZXMgdGhl
+c2UgdG8gYmUgcHJlc2VudC4KCldoaWxlIGhlcmUsIGFsc28gcmVuYW1lIG9tYXA0X3ZwX2RhdGEg
+dG8Kb21hcDRfdnBfY29tbW9uIGFuZCBvbWFwNF92Y19kYXRhIHRvCm9tYXA0X3ZjX2NvbW1vbiB0
+byBtYWludGFpbiBjb25zaXN0ZW5jeSBpbgpuYW1pbmcgc3RydWN0cyBhY3Jvc3MgYWxsIE9NQVBz
+LgoKU2lnbmVkLW9mZi1ieTogUmFqZW5kcmEgTmF5YWsgPHJuYXlha0B0aS5jb20+Ci0tLQogYXJj
+aC9hcm0vbWFjaC1vbWFwMi92YzQ0eHhfZGF0YS5jIHwgICAgNSArKysrLQogYXJjaC9hcm0vbWFj
+aC1vbWFwMi92cDQ0eHhfZGF0YS5jIHwgICAgNSArKysrLQogMiBmaWxlcyBjaGFuZ2VkLCA4IGlu
+c2VydGlvbnMoKyksIDIgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1v
+bWFwMi92YzQ0eHhfZGF0YS5jIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi92YzQ0eHhfZGF0YS5jCmlu
+ZGV4IDU0OGNiMDYuLmE5OGRhOGQgMTAwNjQ0Ci0tLSBhL2FyY2gvYXJtL21hY2gtb21hcDIvdmM0
+NHh4X2RhdGEuYworKysgYi9hcmNoL2FybS9tYWNoLW9tYXAyL3ZjNDR4eF9kYXRhLmMKQEAgLTMw
+LDcgKzMwLDcgQEAKICAqIFZDIGRhdGEgY29tbW9uIHRvIDQ0eHggY2hpcHMKICAqIFhYWCBUaGlz
+IHN0dWZmIHByZXN1bWFibHkgYmVsb25ncyBpbiB0aGUgdmMzeHh4LmMgb3IgdmMuYyBmaWxlLgog
+ICovCi1zdGF0aWMgY29uc3Qgc3RydWN0IG9tYXBfdmNfY29tbW9uX2RhdGEgb21hcDRfdmNfZGF0
+YSA9IHsKK3N0YXRpYyBjb25zdCBzdHJ1Y3Qgb21hcF92Y19jb21tb25fZGF0YSBvbWFwNF92Y19j
+b21tb24gPSB7CiAJLnNtcHNfc2FfcmVnID0gT01BUDRfUFJNX1ZDX1NNUFNfU0FfT0ZGU0VULAog
+CS5zbXBzX3ZvbHJhX3JlZyA9IE9NQVA0X1BSTV9WQ19WQUxfU01QU19SQV9WT0xfT0ZGU0VULAog
+CS5ieXBhc3NfdmFsX3JlZyA9IE9NQVA0X1BSTV9WQ19WQUxfQllQQVNTX09GRlNFVCwKQEAgLTQ3
+LDYgKzQ3LDcgQEAgc3RhdGljIGNvbnN0IHN0cnVjdCBvbWFwX3ZjX2NvbW1vbl9kYXRhIG9tYXA0
+X3ZjX2RhdGEgPSB7CiAKIC8qIFZDIGluc3RhbmNlIGRhdGEgZm9yIGVhY2ggY29udHJvbGxhYmxl
+IHZvbHRhZ2UgbGluZSAqLwogc3RydWN0IG9tYXBfdmNfaW5zdGFuY2VfZGF0YSBvbWFwNF92Y19t
+cHVfZGF0YSA9IHsKKwkudmNfY29tbW9uID0gJm9tYXA0X3ZjX2NvbW1vbiwKIAkuY21kdmFsX3Jl
+ZyA9IE9NQVA0X1BSTV9WQ19WQUxfQ01EX1ZERF9NUFVfTF9PRkZTRVQsCiAJLnNtcHNfc2Ffc2hp
+ZnQgPSBPTUFQNDQzMF9TQV9WRERfTVBVX0xfUFJNX1ZDX1NNUFNfU0FfU0hJRlQsCiAJLnNtcHNf
+c2FfbWFzayA9IE9NQVA0NDMwX1NBX1ZERF9NUFVfTF9QUk1fVkNfU01QU19TQV9NQVNLLApAQCAt
+NTUsNiArNTYsNyBAQCBzdHJ1Y3Qgb21hcF92Y19pbnN0YW5jZV9kYXRhIG9tYXA0X3ZjX21wdV9k
+YXRhID0gewogfTsKIAogc3RydWN0IG9tYXBfdmNfaW5zdGFuY2VfZGF0YSBvbWFwNF92Y19pdmFf
+ZGF0YSA9IHsKKwkudmNfY29tbW9uID0gJm9tYXA0X3ZjX2NvbW1vbiwKIAkuY21kdmFsX3JlZyA9
+IE9NQVA0X1BSTV9WQ19WQUxfQ01EX1ZERF9JVkFfTF9PRkZTRVQsCiAJLnNtcHNfc2Ffc2hpZnQg
+PSBPTUFQNDQzMF9TQV9WRERfSVZBX0xfUFJNX1ZDX1NNUFNfU0FfU0hJRlQsCiAJLnNtcHNfc2Ff
+bWFzayA9IE9NQVA0NDMwX1NBX1ZERF9JVkFfTF9QUk1fVkNfU01QU19TQV9NQVNLLApAQCAtNjMs
+NiArNjUsNyBAQCBzdHJ1Y3Qgb21hcF92Y19pbnN0YW5jZV9kYXRhIG9tYXA0X3ZjX2l2YV9kYXRh
+ID0gewogfTsKIAogc3RydWN0IG9tYXBfdmNfaW5zdGFuY2VfZGF0YSBvbWFwNF92Y19jb3JlX2Rh
+dGEgPSB7CisJLnZjX2NvbW1vbiA9ICZvbWFwNF92Y19jb21tb24sCiAJLmNtZHZhbF9yZWcgPSBP
+TUFQNF9QUk1fVkNfVkFMX0NNRF9WRERfQ09SRV9MX09GRlNFVCwKIAkuc21wc19zYV9zaGlmdCA9
+IE9NQVA0NDMwX1NBX1ZERF9DT1JFX0xfMF82X1NISUZULAogCS5zbXBzX3NhX21hc2sgPSBPTUFQ
+NDQzMF9TQV9WRERfQ09SRV9MXzBfNl9NQVNLLApkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1v
+bWFwMi92cDQ0eHhfZGF0YS5jIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi92cDQ0eHhfZGF0YS5jCmlu
+ZGV4IDdiMjZmNzUuLjY1ZDFhZDYgMTAwNjQ0Ci0tLSBhL2FyY2gvYXJtL21hY2gtb21hcDIvdnA0
+NHh4X2RhdGEuYworKysgYi9hcmNoL2FybS9tYWNoLW9tYXAyL3ZwNDR4eF9kYXRhLmMKQEAgLTMx
+LDcgKzMxLDcgQEAKICAqIFZQIGRhdGEgY29tbW9uIHRvIDQ0eHggY2hpcHMKICAqIFhYWCBUaGlz
+IHN0dWZmIHByZXN1bWFibHkgYmVsb25ncyBpbiB0aGUgdnA0NHh4LmMgb3IgdnAuYyBmaWxlLgog
+ICovCi1zdGF0aWMgY29uc3Qgc3RydWN0IG9tYXBfdnBfY29tbW9uX2RhdGEgb21hcDRfdnBfZGF0
+YSA9IHsKK3N0YXRpYyBjb25zdCBzdHJ1Y3Qgb21hcF92cF9jb21tb25fZGF0YSBvbWFwNF92cF9j
+b21tb24gPSB7CiAJLnZwY29uZmlnX2Vycm9yb2Zmc2V0X3NoaWZ0ID0gT01BUDQ0MzBfRVJST1JP
+RkZTRVRfU0hJRlQsCiAJLnZwY29uZmlnX2Vycm9yZ2Fpbl9tYXNrID0gT01BUDQ0MzBfRVJST1JH
+QUlOX01BU0ssCiAJLnZwY29uZmlnX2Vycm9yZ2Fpbl9zaGlmdCA9IE9NQVA0NDMwX0VSUk9SR0FJ
+Tl9TSElGVCwKQEAgLTU2LDYgKzU2LDcgQEAgc3RhdGljIGNvbnN0IHN0cnVjdCBvbWFwX3ZwX3By
+bV9pcnFzdF9kYXRhIG9tYXA0X3ZwX21wdV9wcm1faXJxc3RfZGF0YSA9IHsKIH07CiAKIHN0cnVj
+dCBvbWFwX3ZwX2luc3RhbmNlX2RhdGEgb21hcDRfdnBfbXB1X2RhdGEgPSB7CisJLnZwX2NvbW1v
+biA9ICZvbWFwNF92cF9jb21tb24sCiAJLnZwY29uZmlnID0gT01BUDRfUFJNX1ZQX01QVV9DT05G
+SUdfT0ZGU0VULAogCS52c3RlcG1pbiA9IE9NQVA0X1BSTV9WUF9NUFVfVlNURVBNSU5fT0ZGU0VU
+LAogCS52c3RlcG1heCA9IE9NQVA0X1BSTV9WUF9NUFVfVlNURVBNQVhfT0ZGU0VULApAQCAtNzEs
+NiArNzIsNyBAQCBzdGF0aWMgY29uc3Qgc3RydWN0IG9tYXBfdnBfcHJtX2lycXN0X2RhdGEgb21h
+cDRfdnBfaXZhX3BybV9pcnFzdF9kYXRhID0gewogfTsKIAogc3RydWN0IG9tYXBfdnBfaW5zdGFu
+Y2VfZGF0YSBvbWFwNF92cF9pdmFfZGF0YSA9IHsKKwkudnBfY29tbW9uID0gJm9tYXA0X3ZwX2Nv
+bW1vbiwKIAkudnBjb25maWcgPSBPTUFQNF9QUk1fVlBfSVZBX0NPTkZJR19PRkZTRVQsCiAJLnZz
+dGVwbWluID0gT01BUDRfUFJNX1ZQX0lWQV9WU1RFUE1JTl9PRkZTRVQsCiAJLnZzdGVwbWF4ID0g
+T01BUDRfUFJNX1ZQX0lWQV9WU1RFUE1BWF9PRkZTRVQsCkBAIC04Niw2ICs4OCw3IEBAIHN0YXRp
+YyBjb25zdCBzdHJ1Y3Qgb21hcF92cF9wcm1faXJxc3RfZGF0YSBvbWFwNF92cF9jb3JlX3BybV9p
+cnFzdF9kYXRhID0gewogfTsKIAogc3RydWN0IG9tYXBfdnBfaW5zdGFuY2VfZGF0YSBvbWFwNF92
+cF9jb3JlX2RhdGEgPSB7CisJLnZwX2NvbW1vbiA9ICZvbWFwNF92cF9jb21tb24sCiAJLnZwY29u
+ZmlnID0gT01BUDRfUFJNX1ZQX0NPUkVfQ09ORklHX09GRlNFVCwKIAkudnN0ZXBtaW4gPSBPTUFQ
+NF9QUk1fVlBfQ09SRV9WU1RFUE1JTl9PRkZTRVQsCiAJLnZzdGVwbWF4ID0gT01BUDRfUFJNX1ZQ
+X0NPUkVfVlNURVBNQVhfT0ZGU0VULAotLSAKMS43LjAuNAoK
+--20cf30433eeccc95c2049d05ecaa--
