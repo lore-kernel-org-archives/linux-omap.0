@@ -1,70 +1,34 @@
 From: Greg KH <gregkh@suse.de>
 Subject: Re: [024/115] USB: prevent buggy hubs from crashing the USB stack
-Date: Thu, 24 Feb 2011 10:16:14 -0800
-Message-ID: <20110224181614.GA10547@suse.de>
-References: <20110224172327.GF3528@legolas.emea.dhcp.ti.com>
- <Pine.LNX.4.44L0.1102241255100.2084-100000@iolanthe.rowland.org>
- <20110224181246.GA10139@suse.de>
+Date: Thu, 24 Feb 2011 10:24:24 -0800
+Message-ID: <20110224182424.GA19191@suse.de>
+References: <Pine.LNX.4.44L0.1102241255100.2084-100000@iolanthe.rowland.org>
+ <4D669F56.4020303@ahsoftware.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20110224181246.GA10139@suse.de>
+In-Reply-To: <4D669F56.4020303@ahsoftware.de>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Felipe Balbi <balbi@ti.com>, Alexander Holler <holler@ahsoftware.de>, Michael Jones <michael.jones@matrix-vision.de>, Kernel development list <linux-kernel@vger.kernel.org>, stable@kernel.org, stable-review@kernel.org, torvalds@linux-foundation.org, Andrew Morton <akpm@linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, USB list <linux-usb@vger.kernel.org>, linux-omap@vger.kernel.org
+To: Alexander Holler <holler@ahsoftware.de>
+Cc: Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <balbi@ti.com>, Michael Jones <michael.jones@matrix-vision.de>, Kernel development list <linux-kernel@vger.kernel.org>, stable@kernel.org, stable-review@kernel.org, torvalds@linux-foundation.org, Andrew Morton <akpm@linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, USB list <linux-usb@vger.kernel.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Feb 24, 2011 at 10:12:46AM -0800, Greg KH wrote:
-> On Thu, Feb 24, 2011 at 12:57:20PM -0500, Alan Stern wrote:
-> > On Thu, 24 Feb 2011, Felipe Balbi wrote:
-> > 
-> > > On Thu, Feb 24, 2011 at 09:18:14AM -0800, Greg KH wrote:
-> > > > On Thu, Feb 24, 2011 at 11:16:38AM +0200, Felipe Balbi wrote:
-> > > > > Hi,
-> > > > > 
-> > > > > On Thu, Feb 24, 2011 at 10:15:23AM +0100, Alexander Holler wrote:
-> > > > > > >On Wed, Feb 23, 2011 at 10:26:20AM -0500, Alan Stern wrote:
-> > > > > > >>In both cases, it appears that the problem is caused by the fact that
-> > > > > > >>the musb host-controller driver doesn't set the hcd->has_tt flag.
-> > > > > > >>
-> > > > > > >>Felipe, you should know where it belongs.  It should be easy enough to
-> > > > > > >>add.
-> > > > > > >
-> > > > > > >Sure Alan, it's attached to this mail. Compile tested only though.
-> > > > > > >Michael, would you care to give your tested-by ?
-> > > > > > 
-> > > > > > I can do, I'm using exactly the same patch since yesterday. ;)
-> > > > > > 
-> > > > > > Tested-by: Alexander Holler <holler@ahsoftware.de>
-> > > > > 
-> > > > > Thanks a lot Alex, Greg, can you still take this to -rc ? Do you need a
-> > > > > pull request or you can take this one patch ?
-> > > > 
-> > > > Wait, where does this need to go?  For the final 2.6.38 release and then
-> > > > also for .37-stable?
-> > > > 
-> > > > Or just .37-stable?
-> > > > 
-> > > > confused.
-> > > > 
-> > > > And no, I don't need a pull request, I can handle one patch through
-> > > > email :)
-> > > 
-> > > final .38 and .37-stable :-) Thanks Greg :-)
-> > 
-> > It's important that this patch appear in .37-stable at the same time as
-> > the $SUBJECT patch.  If that means delaying $SUBJECT for one release, 
-> > so be it -- it was not a very important change.
+On Thu, Feb 24, 2011 at 07:11:34PM +0100, Alexander Holler wrote:
+> Hello,
 > 
-> Ok, I'll drop this from the next .37-stable release until this happens.
+> Am 24.02.2011 18:57, schrieb Alan Stern:
+> 
+> >It's important that this patch appear in .37-stable at the same time as
+> >the $SUBJECT patch.  If that means delaying $SUBJECT for one release,
+> >so be it -- it was not a very important change.
+> 
+> Too late, 2.6.37.1 is already broken. But the patch could be still
+> applied to 2.6.32-longterm, at least the message I've replied to
+> asked about objections for that version.
 
-Oops, wait, that's going to be hard as it's already in 2.6.37.1.
-
-Oh, I guess I can revert it for the .2 release in a few hours, and then
-add it back in for .3...
-
-I'll go do that.
+It's too late for that release as well, as it's already included in the
+last .32 stable release.  I'll revert it there also for now.
 
 thanks,
 
