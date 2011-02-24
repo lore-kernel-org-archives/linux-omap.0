@@ -1,47 +1,65 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH v10 05/18] OMAP2,3 DSS2 Change driver name to
- omap_display
-Date: Thu, 24 Feb 2011 11:27:23 +0200
-Message-ID: <1298539643.16119.54.camel@deskari>
-References: <1295850125-21405-1-git-send-email-sumit.semwal@ti.com>
-	 <1295850125-21405-6-git-send-email-sumit.semwal@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH v4 01/13] OMAP: hwmod: allow hwmod to provide address space accessible from SDMA
+Date: Thu, 24 Feb 2011 15:16:45 +0530
+Message-ID: <1298540817-15874-2-git-send-email-kishon@ti.com>
+References: <1298540817-15874-1-git-send-email-kishon@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:41070 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:38840 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752966Ab1BXJ1a (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 24 Feb 2011 04:27:30 -0500
-In-Reply-To: <1295850125-21405-6-git-send-email-sumit.semwal@ti.com>
+	id S1755357Ab1BXJwY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 24 Feb 2011 04:52:24 -0500
+In-Reply-To: <1298540817-15874-1-git-send-email-kishon@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Semwal, Sumit" <sumit.semwal@ti.com>, "Taneja, Archit" <archit@ti.com>
-Cc: paul@pwsan.com, khilman@ti.com, hvaibhav@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Senthilvadivu Guruswamy <svadivu@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>
+To: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, b-cousson@ti.com, tony@atomide.com, broonie@opensource.wolfsonmicro.com, jhnikula@gmail.com, peter.ujfalusi@nokia.com
+Cc: p-basak2@ti.com, kishon@ti.com, charu@ti.com, shubhrajyoti@ti.com
 
-Hi,
+Adds support for resource API to get address space info other than just MPU.
+The drivers can now use platform_get_resource_byname() to get resource of
+type 'IORESOURCE_MEM' by name.
 
-On Mon, 2011-01-24 at 11:51 +0530, ext Sumit Semwal wrote:
-> From: Senthilvadivu Guruswamy <svadivu@ti.com>
-> 
-> Change the driver name from omapdss to omap_display as the driver takes care of
-> the display devices ie number of panels, type of panels available in the
-> platform.  Change the device name in the board files and 2420,2430,3xxx clock
-> files from omapdss to omap_display to match the driver name.
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+Acked-by: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap2/omap_hwmod.c             |    1 +
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |    4 +++-
+ 2 files changed, 4 insertions(+), 1 deletions(-)
 
-I just realized that changing the driver name will break all scripts and
-applications using omapdss sysfs files.
-
-How does this sound:
-
-Let's leave the omapdss device name as it is. It represents a "super"
-device, containing the dss sysfs files and upper level dss management.
-
-Name the HW module platform drivers as: omapdss_dss, omapdss_venc,
-omapdss_dispc, etc. This would indicate them to be clearly parts of DSS,
-and would also prevent any possible name conflict if there would happen
-to be a, say, "dsi" block in some other HW component.
-
- Tomi
-
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index d6b8d2e..d72ae5c 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -1919,6 +1919,7 @@ int omap_hwmod_fill_resources(struct omap_hwmod *oh, struct resource *res)
+ 		os = oh->slaves[i];
+ 
+ 		for (j = 0; j < os->addr_cnt; j++) {
++			(res + r)->name = (os->addr + j)->name;
+ 			(res + r)->start = (os->addr + j)->pa_start;
+ 			(res + r)->end = (os->addr + j)->pa_end;
+ 			(res + r)->flags = IORESOURCE_MEM;
+diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+index e50a19a..2b54852 100644
+--- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
++++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+@@ -178,7 +178,8 @@ struct omap_hwmod_omap2_firewall {
+ #define ADDR_TYPE_RT		(1 << 1)
+ 
+ /**
+- * struct omap_hwmod_addr_space - MPU address space handled by the hwmod
++ * struct omap_hwmod_addr_space - address space handled by the hwmod
++ * @name: name of the address space
+  * @pa_start: starting physical address
+  * @pa_end: ending physical address
+  * @flags: (see omap_hwmod_addr_space.flags macros above)
+@@ -187,6 +188,7 @@ struct omap_hwmod_omap2_firewall {
+  * structure.  GPMC is one example.
+  */
+ struct omap_hwmod_addr_space {
++	const char *name;
+ 	u32 pa_start;
+ 	u32 pa_end;
+ 	u8 flags;
+-- 
+1.7.0.4
 
