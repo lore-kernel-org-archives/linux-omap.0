@@ -1,88 +1,45 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH v3 5/5] OMAP: adapt hsmmc to hwmod framework
-Date: Thu, 24 Feb 2011 15:33:20 +0100
-Message-ID: <4D666C30.2000907@ti.com>
-References: <1298483231-29622-1-git-send-email-kishore.kadiyala@ti.com> <1298483231-29622-6-git-send-email-kishore.kadiyala@ti.com> <4D6645AE.5080506@ti.com> <AANLkTimKG_B7LxAf4Ci8mTh8-guYqBfgD2nDN0gA3EQE@mail.gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] Adding help for FB_OMAP_LCD_VGA option
+Date: Thu, 24 Feb 2011 16:38:08 +0200
+Message-ID: <1298558288.16119.97.camel@deskari>
+References: <1298540357-30365-1-git-send-email-mayur@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <AANLkTimKG_B7LxAf4Ci8mTh8-guYqBfgD2nDN0gA3EQE@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: "Kadiyala, Kishore" <kishore.kadiyala@ti.com>
-Cc: "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "cjb@laptop.org" <cjb@laptop.org>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "paul@pwsan.com" <paul@pwsan.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:57210 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755608Ab1BXOiL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 24 Feb 2011 09:38:11 -0500
+Received: from dlep36.itg.ti.com ([157.170.170.91])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1OEcAt0031913
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Thu, 24 Feb 2011 08:38:10 -0600
+Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
+	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id p1OEcAUc021068
+	for <linux-omap@vger.kernel.org>; Thu, 24 Feb 2011 08:38:10 -0600 (CST)
+Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p1OEcAmO012139
+	for <linux-omap@vger.kernel.org>; Thu, 24 Feb 2011 08:38:10 -0600 (CST)
+In-Reply-To: <1298540357-30365-1-git-send-email-mayur@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Janorkar, Mayuresh" <mayur@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On 2/24/2011 2:55 PM, Kadiyala, Kishore wrote:
-> On Thu, Feb 24, 2011 at 5:19 PM, Cousson, Benoit<b-cousson@ti.com>  wrote:
->> On 2/23/2011 6:47 PM, Kadiyala, Kishore wrote:
+On Thu, 2011-02-24 at 03:39 -0600, Janorkar, Mayuresh wrote:
+> CONFIG_FB_OMAP_LCD_VGA option is present in drivers/video/omap
+> There is no explaination about what this flag does.
+> Lets add information about it.
+> 
+> FB_OMAP_LCD_VGA flag sets resolution of display to VGA (640 X 480).
+> The default resolution of 3430 LDP is 320 X 240.
 
-[...]
+Looks fine to me. I'll apply to my tree.
 
->>>   static struct hsmmc_controller {
->>>          char                            name[HSMMC_NAME_LEN + 1];
->>> -} hsmmc[OMAP34XX_NR_MMC];
->>> +} hsmmc[OMAP44XX_NR_MMC];
->>
->> I do not know the details of that driver, so this comment might be
->> completely irrelevant, but in theory, such static table should not be
->> necessary since the driver core already maintain a list of all instances
->> bound to it.
->
-> I agree, but this is used in slot data for the controller and is used
-> in the driver
-> to create a /sys entry.
+In the long run let's try to port the LCD drivers to the new display
+subsystem driver, and remove hacky Kconfigs like this =).
 
-I guess the sysfs should be able to use only the device instance.
+ Tomi
 
-> I will try to avoid the "OMAP44XX_NR_MMC" dependency.
 
-[...]
-
->>> +static struct omap_mmc_platform_data *hsmmc_data[OMAP44XX_NR_MMC]
->>> __initdata;
->>
->> Same concern than for hsmmc, why do you need static table here?
->
-> Agree, will remove static declaration.
->
->> And why do you need another structure? The omap2_hsmmc_info should already
->> be in a pdata kind of structure.
->> The board file should just populate a table of pdata that you will use
->> during init.
->
-> No, omap2_hsmmc_info is intermediate structure used by the boards
-> files to update
-> some basic info of the controller, based on which the pdata is
-> populated in hsmmc.c.
-
-This is the point, I guess you can potentially directly fill partially a 
-pdata with controller information in the board file to avoid that 
-intermediate structure.
-
-[...]
-
->>> +       name = "mmci-omap-hs";
->>
->> Could you please rename the device to have something in the form: omap_XXXX?
->> In that case "omap_mmc" should be good. The "hs" is just a indication of one
->> of the mmc instance capability and does not have to be in the device name
->> since there is no none-hs instance.
->
-> I understood your concern but omap1,omap2420 uses mmc driver while
-> omap2430, omap3 , omap4 has hsmmc driver.
-
-OK, it makes sense then.
-
-> omap1, omap2420 boards have device name as "mmci-omap" currently, but
-> if they undergo
-> the similar change as proposed above then it looks like "omap_mmc"
->
-> Therefore for hsmmc driver, I will be happy to have something like "omap_hsmmc"
->
-> please let me know if this is fine.
-
-Excellent, that's fine for me.
-
-Thanks,
-Benoit
