@@ -1,24 +1,22 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v4 11/13] OMAP: McBSP: APIs to pass DMA params from McBSP driver to client drivers
-Date: Thu, 24 Feb 2011 15:16:55 +0530
-Message-ID: <1298540817-15874-12-git-send-email-kishon@ti.com>
+Subject: [PATCH v4 13/13] OMAP: hwmod: Removal of macros for data that is obtained from hwmod database
+Date: Thu, 24 Feb 2011 15:16:57 +0530
+Message-ID: <1298540817-15874-14-git-send-email-kishon@ti.com>
 References: <1298540817-15874-1-git-send-email-kishon@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:38876 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932166Ab1BXJwl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 24 Feb 2011 04:52:41 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:36672 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932166Ab1BXJwn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Feb 2011 04:52:43 -0500
 In-Reply-To: <1298540817-15874-1-git-send-email-kishon@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, b-cousson@ti.com, tony@atomide.com, broonie@opensource.wolfsonmicro.com, jhnikula@gmail.com, peter.ujfalusi@nokia.com
 Cc: p-basak2@ti.com, kishon@ti.com, charu@ti.com, shubhrajyoti@ti.com
 
-After McBSP driver is hwmod adapted, the information about the hw would be
-obtained from the hwmod database by the mcbsp driver. Since DMA programming is
-handled by the client driver, APIs are provided to pass the DMA channel number
-and base address of data register required by the client driver for DMA
-programming.
+Information like base address and DMA channel nubers should no longer
+be obtained using macros. These information should be obtained from
+hwmod database. Hence the macros that define the base address are removed.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 Signed-off-by: Charulatha V <charu@ti.com>
@@ -26,145 +24,45 @@ Acked-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
 Acked-by: Jarkko Nikula <jhnikula@gmail.com>
 Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
 ---
- arch/arm/mach-omap2/mcbsp.c             |    2 +
- arch/arm/plat-omap/include/plat/mcbsp.h |    7 +++
- arch/arm/plat-omap/mcbsp.c              |   64 +++++++++++++++++++++++++++++++
- 3 files changed, 73 insertions(+), 0 deletions(-)
+ arch/arm/plat-omap/include/plat/mcbsp.h |   25 +------------------------
+ 1 files changed, 1 insertions(+), 24 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/mcbsp.c b/arch/arm/mach-omap2/mcbsp.c
-index 4ada6a9..565b906 100644
---- a/arch/arm/mach-omap2/mcbsp.c
-+++ b/arch/arm/mach-omap2/mcbsp.c
-@@ -126,6 +126,8 @@ static int omap_init_mcbsp(struct omap_hwmod *oh, void *unused)
- 		return -ENOMEM;
- 	}
- 
-+	pdata->mcbsp_config_type = oh->class->rev;
-+
- 	if (oh->class->rev == MCBSP_CONFIG_TYPE3) {
- 		if (id == 2)
- 			/* The FIFO has 1024 + 256 locations */
 diff --git a/arch/arm/plat-omap/include/plat/mcbsp.h b/arch/arm/plat-omap/include/plat/mcbsp.h
-index 964a940..21c9b10 100644
+index 21c9b10..f8f690a 100644
 --- a/arch/arm/plat-omap/include/plat/mcbsp.h
 +++ b/arch/arm/plat-omap/include/plat/mcbsp.h
-@@ -81,6 +81,8 @@ static struct platform_device omap_mcbsp##port_nr = {	\
+@@ -52,30 +52,7 @@ static struct platform_device omap_mcbsp##port_nr = {	\
+ #define OMAP1610_MCBSP2_BASE	0xfffb1000
+ #define OMAP1610_MCBSP3_BASE	0xe1017000
+ 
+-#define OMAP24XX_MCBSP1_BASE	0x48074000
+-#define OMAP24XX_MCBSP2_BASE	0x48076000
+-#define OMAP2430_MCBSP3_BASE	0x4808c000
+-#define OMAP2430_MCBSP4_BASE	0x4808e000
+-#define OMAP2430_MCBSP5_BASE	0x48096000
+-
+-#define OMAP34XX_MCBSP1_BASE	0x48074000
+-#define OMAP34XX_MCBSP2_BASE	0x49022000
+-#define OMAP34XX_MCBSP2_ST_BASE	0x49028000
+-#define OMAP34XX_MCBSP3_BASE	0x49024000
+-#define OMAP34XX_MCBSP3_ST_BASE	0x4902A000
+-#define OMAP34XX_MCBSP3_BASE	0x49024000
+-#define OMAP34XX_MCBSP4_BASE	0x49026000
+-#define OMAP34XX_MCBSP5_BASE	0x48096000
+-
+-#define OMAP44XX_MCBSP1_BASE	0x40122000
+-#define OMAP44XX_MCBSP1_DMA_BASE	0x49022000
+-#define OMAP44XX_MCBSP2_BASE	0x40124000
+-#define OMAP44XX_MCBSP2_DMA_BASE	0x49024000
+-#define OMAP44XX_MCBSP3_BASE	0x40126000
+-#define OMAP44XX_MCBSP3_DMA_BASE	0x49026000
+-#define OMAP44XX_MCBSP4_BASE	0x48096000
+-
+-#if defined(CONFIG_ARCH_OMAP15XX) || defined(CONFIG_ARCH_OMAP16XX) || defined(CONFIG_ARCH_OMAP730) || defined(CONFIG_ARCH_OMAP850)
++#ifdef CONFIG_ARCH_OMAP1
+ 
+ #define OMAP_MCBSP_REG_DRR2	0x00
  #define OMAP_MCBSP_REG_DRR1	0x02
- #define OMAP_MCBSP_REG_DXR2	0x04
- #define OMAP_MCBSP_REG_DXR1	0x06
-+#define OMAP_MCBSP_REG_DRR	0x02
-+#define OMAP_MCBSP_REG_DXR	0x06
- #define OMAP_MCBSP_REG_SPCR2	0x08
- #define OMAP_MCBSP_REG_SPCR1	0x0a
- #define OMAP_MCBSP_REG_RCR2	0x0c
-@@ -423,6 +425,7 @@ struct omap_mcbsp_platform_data {
- 	unsigned long phys_base_st;
- #endif
- 	u16 buffer_size;
-+	unsigned int mcbsp_config_type;
- };
- 
- struct omap_mcbsp_st_data {
-@@ -473,6 +476,7 @@ struct omap_mcbsp {
- 	u16 max_rx_thres;
- #endif
- 	void *reg_cache;
-+	unsigned int mcbsp_config_type;
- };
- 
- /**
-@@ -541,6 +545,9 @@ int omap_mcbsp_set_io_type(unsigned int id, omap_mcbsp_io_type_t io_type);
- void omap2_mcbsp1_mux_clkr_src(u8 mux);
- void omap2_mcbsp1_mux_fsr_src(u8 mux);
- 
-+int omap_mcbsp_dma_ch_params(unsigned int id, unsigned int stream);
-+int omap_mcbsp_dma_reg_params(unsigned int id, unsigned int stream);
-+
- #ifdef CONFIG_ARCH_OMAP3
- /* Sidetone specific API */
- int omap_st_set_chgain(unsigned int id, int channel, s16 chgain);
-diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
-index b1b0a06..2fa96a6 100644
---- a/arch/arm/plat-omap/mcbsp.c
-+++ b/arch/arm/plat-omap/mcbsp.c
-@@ -229,6 +229,69 @@ void omap_mcbsp_config(unsigned int id, const struct omap_mcbsp_reg_cfg *config)
- }
- EXPORT_SYMBOL(omap_mcbsp_config);
- 
-+/**
-+ * omap_mcbsp_dma_params - returns the dma channel number
-+ * @id - mcbsp id
-+ * @stream - indicates the direction of data flow (rx or tx)
-+ *
-+ * Returns the dma channel number for the rx channel or tx channel
-+ * based on the value of @stream for the requested mcbsp given by @id
-+ */
-+int omap_mcbsp_dma_ch_params(unsigned int id, unsigned int stream)
-+{
-+	struct omap_mcbsp *mcbsp;
-+
-+	if (!omap_mcbsp_check_valid_id(id)) {
-+		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
-+		return -ENODEV;
-+	}
-+	mcbsp = id_to_mcbsp_ptr(id);
-+
-+	if (stream)
-+		return mcbsp->dma_rx_sync;
-+	else
-+		return mcbsp->dma_tx_sync;
-+}
-+EXPORT_SYMBOL(omap_mcbsp_dma_ch_params);
-+
-+/**
-+ * omap_mcbsp_dma_reg_params - returns the address of mcbsp data register
-+ * @id - mcbsp id
-+ * @stream - indicates the direction of data flow (rx or tx)
-+ *
-+ * Returns the address of mcbsp data transmit register or data receive register
-+ * to be used by DMA for transferring/receiving data based on the value of
-+ * @stream for the requested mcbsp given by @id
-+ */
-+int omap_mcbsp_dma_reg_params(unsigned int id, unsigned int stream)
-+{
-+	struct omap_mcbsp *mcbsp;
-+	int data_reg;
-+
-+	if (!omap_mcbsp_check_valid_id(id)) {
-+		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
-+		return -ENODEV;
-+	}
-+	mcbsp = id_to_mcbsp_ptr(id);
-+
-+	data_reg = mcbsp->phys_dma_base;
-+
-+	if (mcbsp->mcbsp_config_type < MCBSP_CONFIG_TYPE2) {
-+		if (stream)
-+			data_reg += OMAP_MCBSP_REG_DRR1;
-+		else
-+			data_reg += OMAP_MCBSP_REG_DXR1;
-+	} else {
-+		if (stream)
-+			data_reg += OMAP_MCBSP_REG_DRR;
-+		else
-+			data_reg += OMAP_MCBSP_REG_DXR;
-+	}
-+
-+	return data_reg;
-+}
-+EXPORT_SYMBOL(omap_mcbsp_dma_reg_params);
-+
- #ifdef CONFIG_ARCH_OMAP3
- static struct omap_device *find_omap_device_by_dev(struct device *dev)
- {
-@@ -1848,6 +1911,7 @@ static int __devinit omap_mcbsp_probe(struct platform_device *pdev)
- 	mcbsp->pdata = pdata;
- 	mcbsp->dev = &pdev->dev;
- 	mcbsp_ptr[id] = mcbsp;
-+	mcbsp->mcbsp_config_type = pdata->mcbsp_config_type;
- 	platform_set_drvdata(pdev, mcbsp);
- 	pm_runtime_enable(mcbsp->dev);
- 
 -- 
 1.7.0.4
 
