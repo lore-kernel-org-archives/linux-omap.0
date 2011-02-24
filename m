@@ -1,35 +1,37 @@
-From: Greg KH <gregkh@suse.de>
-Subject: Re: [024/115] USB: prevent buggy hubs from crashing the USB stack
-Date: Thu, 24 Feb 2011 10:24:24 -0800
-Message-ID: <20110224182424.GA19191@suse.de>
-References: <Pine.LNX.4.44L0.1102241255100.2084-100000@iolanthe.rowland.org>
- <4D669F56.4020303@ahsoftware.de>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v4 09/13] OMAP: McBSP: use omap_device APIs to modify
+ SYSCONFIG
+Date: Thu, 24 Feb 2011 11:10:38 -0800
+Message-ID: <20110224191038.GD20560@atomide.com>
+References: <1298540817-15874-1-git-send-email-kishon@ti.com>
+ <1298540817-15874-10-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:39523 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755545Ab1BXTKn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Feb 2011 14:10:43 -0500
 Content-Disposition: inline
-In-Reply-To: <4D669F56.4020303@ahsoftware.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alexander Holler <holler@ahsoftware.de>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <balbi@ti.com>, Michael Jones <michael.jones@matrix-vision.de>, Kernel development list <linux-kernel@vger.kernel.org>, stable@kernel.org, stable-review@kernel.org, torvalds@linux-foundation.org, Andrew Morton <akpm@linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, USB list <linux-usb@vger.kernel.org>, linux-omap@vger.kernel.org
+In-Reply-To: <1298540817-15874-10-git-send-email-kishon@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, b-cousson@ti.com, broonie@opensource.wolfsonmicro.com, jhnikula@gmail.com, peter.ujfalusi@nokia.com, p-basak2@ti.com, charu@ti.com, shubhrajyoti@ti.com
 
-On Thu, Feb 24, 2011 at 07:11:34PM +0100, Alexander Holler wrote:
-> Hello,
-> 
-> Am 24.02.2011 18:57, schrieb Alan Stern:
-> 
-> >It's important that this patch appear in .37-stable at the same time as
-> >the $SUBJECT patch.  If that means delaying $SUBJECT for one release,
-> >so be it -- it was not a very important change.
-> 
-> Too late, 2.6.37.1 is already broken. But the patch could be still
-> applied to 2.6.32-longterm, at least the message I've replied to
-> asked about objections for that version.
+* Kishon Vijay Abraham I <kishon@ti.com> [110224 01:50]:
+> McBSP2/3 in OMAP3 has sidetone feature which requires autoidle
+> to be disabled before starting the sidetone. Also SYSCONFIG
+> register has to be set with smart idle or no idle depending on the
+> dma op mode (threshold or element sync). For doing these operations
+> dynamically at runtime, omap_device APIs are used to modify SYSCONFIG register.
 
-It's too late for that release as well, as it's already included in the
-last .32 stable release.  I'll revert it there also for now.
+I've modified this patch to compile by leaving out the omap_device idle calls.
 
-thanks,
+Please send those changes as a separate patch and coordinate it with
+Kevin's PM changes.
 
-greg k-h
+
+Regards,
+
+Tony
