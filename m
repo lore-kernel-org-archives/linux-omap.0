@@ -1,250 +1,67 @@
-From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Subject: [PATCH v11 5/8] OMAP: dmtimer: platform driver
-Date: Thu, 24 Feb 2011 16:56:48 +0530
-Message-ID: <1298546811-27055-6-git-send-email-tarun.kanti@ti.com>
-References: <1298546811-27055-1-git-send-email-tarun.kanti@ti.com>
+From: David Cohen <dacohen@gmail.com>
+Subject: Re: [PATCH v3 2/2] OMAP: IOMMU: add support to callback during fault handling
+Date: Thu, 24 Feb 2011 13:26:05 +0200
+Message-ID: <AANLkTinh_a81sELdF19ob0A0KbLR+9MUnb0+283NxO2b@mail.gmail.com>
+References: <1297884951-3019-1-git-send-email-dacohen@gmail.com>
+	<1297884951-3019-3-git-send-email-dacohen@gmail.com>
+	<AANLkTikZu+pqwpPXExFirPouN+1i3Yp0QHfomHN4decx@mail.gmail.com>
+	<AANLkTi=C01Yf9rQN1uxMptFyOrwqxJWt+quJ8ipiM+k6@mail.gmail.com>
+	<AANLkTi=s-p3OQfzor27sf-qqqNxipSrOAEQtPQEGaO=L@mail.gmail.com>
+	<4D656961.7080105@maxwell.research.nokia.com>
+	<20110224083518.GC3528@legolas.emea.dhcp.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:46555 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756166Ab1BXLYo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 24 Feb 2011 06:24:44 -0500
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1OBOfiw008295
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 24 Feb 2011 05:24:43 -0600
-In-Reply-To: <1298546811-27055-1-git-send-email-tarun.kanti@ti.com>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:36752 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756073Ab1BXL0I (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Feb 2011 06:26:08 -0500
+Received: by wwb39 with SMTP id 39so592291wwb.1
+        for <linux-omap@vger.kernel.org>; Thu, 24 Feb 2011 03:26:06 -0800 (PST)
+In-Reply-To: <20110224083518.GC3528@legolas.emea.dhcp.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Thara Gopinath <thara@ti.com>, Tarun Kanti DebBarma <tarun.kanti@ti.com>
+To: balbi@ti.com, "Guzman Lugo, Fernando" <fernando.lugo@ti.com>, hiroshi.doyu@nokia.com
+Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com
 
-From: Thara Gopinath <thara@ti.com>
+On Thu, Feb 24, 2011 at 10:35 AM, Felipe Balbi <balbi@ti.com> wrote:
+> Hi,
+>
+> On Wed, Feb 23, 2011 at 10:09:05PM +0200, Sakari Ailus wrote:
+>> > In OMAP4 the cortex M3 is a double core processor and as each core is
+>> > running they own version of the RTOS we threat them independently. So
+>> > our driver which controls the remote processor sees two processor but
+>> > both use the same iommu hw. When a iommu fault happens, at this
+>> > moment, it is consider as a faltal error and it is no managed to
+>> > recover and continue, instead a restart of the processor is needed, if
+>> > the fault happens in core0 we need to reset core1 too and vice versa.
+>> > if the iommu would support several user callbacks, we can register the
+>> > callback which resets core0 and also the callback which resets core1
+>> > and treat them as totally independent processors. Also we have an
+>> > error event notifier driver, which is only in charge of notifying
+>> > error events to userspace, so we would have multiple callbacks we
+>> > could do this
+>>
+>> The original purpose of the patch, as far as I understand, is to allow
+>> getting useful information for debugging purposes should an iommu fault
+>> happen.
+>>
+>> Also, I'm not sure it's necessarily a good idea to just go and reset
+>> the M3 cores in case an iommu fault happens --- this is very probably a
+>> grave bug in the software running on those M3s. It should be fixed
+>> instead of just hiding it. There will be consequences to host side as
+>
+> I have to agree here. Besides the fact that multiple callbacks is
+> outside the scope of this patch.
 
-Add dmtimer platform driver functions which include:
-(1) platform driver initialization
-(2) driver probe function
-(3) driver remove function
+This patch is already acked. What about leave it as it is and discuss
+multiple callbacks before release a new patch to support it?
 
-Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Signed-off-by: Thara Gopinath <thara@ti.com>
-Acked-by: Cousson, Benoit <b-cousson@ti.com>
----
- arch/arm/plat-omap/dmtimer.c              |  167 ++++++++++++++++++++++++++++-
- arch/arm/plat-omap/include/plat/dmtimer.h |    2 +
- 2 files changed, 168 insertions(+), 1 deletions(-)
+Br,
 
-diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
-index 1bfaf09..bfe6fd3 100644
---- a/arch/arm/plat-omap/dmtimer.c
-+++ b/arch/arm/plat-omap/dmtimer.c
-@@ -43,6 +43,9 @@
- #include <linux/delay.h>
- #include <linux/io.h>
- #include <linux/module.h>
-+#include <linux/slab.h>
-+#include <linux/err.h>
-+#include <linux/platform_device.h>
- #include <mach/hardware.h>
- #include <plat/dmtimer.h>
- #include <mach/irqs.h>
-@@ -257,7 +260,8 @@ static struct omap_dm_timer *dm_timers;
- static const char **dm_source_names;
- static struct clk **dm_source_clocks;
- 
--static spinlock_t dm_timer_lock;
-+static LIST_HEAD(omap_timer_list);
-+static DEFINE_SPINLOCK(dm_timer_lock);
- 
- /*
-  * Reads timer registers in posted and non-posted mode. The posted mode bit
-@@ -689,6 +693,167 @@ int omap_dm_timers_active(void)
- }
- EXPORT_SYMBOL_GPL(omap_dm_timers_active);
- 
-+/**
-+ * omap_dm_timer_probe - probe function called for every registered device
-+ * @pdev:	pointer to current timer platform device
-+ *
-+ * Called by driver framework at the end of device registration for all
-+ * timer devices.
-+ */
-+static int __devinit omap_dm_timer_probe(struct platform_device *pdev)
-+{
-+	int ret;
-+	unsigned long flags;
-+	struct omap_dm_timer *timer;
-+	struct resource *mem, *irq, *ioarea;
-+	struct dmtimer_platform_data *pdata = pdev->dev.platform_data;
-+
-+	if (!pdata) {
-+		dev_err(&pdev->dev, "%s: no platform data\n", __func__);
-+		return -ENODEV;
-+	}
-+
-+	spin_lock_irqsave(&dm_timer_lock, flags);
-+	list_for_each_entry(timer, &omap_timer_list, node)
-+		if (!pdata->is_early_init && timer->id == pdev->id) {
-+			timer->pdev = pdev;
-+			spin_unlock_irqrestore(&dm_timer_lock, flags);
-+			dev_dbg(&pdev->dev, "Regular Probed\n");
-+			return 0;
-+		}
-+	spin_unlock_irqrestore(&dm_timer_lock, flags);
-+
-+	irq = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
-+	if (unlikely(!irq)) {
-+		dev_err(&pdev->dev, "%s: no IRQ resource\n", __func__);
-+		ret = -ENODEV;
-+		goto err_free_pdev;
-+	}
-+
-+	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (unlikely(!mem)) {
-+		dev_err(&pdev->dev, "%s: no memory resource\n", __func__);
-+		ret = -ENODEV;
-+		goto err_free_pdev;
-+	}
-+
-+	ioarea = request_mem_region(mem->start, resource_size(mem),
-+			pdev->name);
-+	if (!ioarea) {
-+		dev_err(&pdev->dev, "%s: region already claimed\n", __func__);
-+		ret = -EBUSY;
-+		goto err_free_pdev;
-+	}
-+
-+	timer = kzalloc(sizeof(struct omap_dm_timer), GFP_KERNEL);
-+	if (!timer) {
-+		dev_err(&pdev->dev, "%s: no memory for omap_dm_timer\n",
-+			__func__);
-+		ret = -ENOMEM;
-+		goto err_release_ioregion;
-+	}
-+
-+	timer->io_base = ioremap(mem->start, resource_size(mem));
-+	if (!timer->io_base) {
-+		dev_err(&pdev->dev, "%s: ioremap failed\n", __func__);
-+		ret = -ENOMEM;
-+		goto err_free_mem;
-+	}
-+
-+	/*
-+	 * Following func pointers are required by OMAP1's reset code
-+	 * in mach-omap1/dmtimer.c to access to low level read/write.
-+	 */
-+	if (pdata->is_omap16xx) {
-+		pdata->dm_timer_read_reg = omap_dm_timer_read_reg;
-+		pdata->dm_timer_write_reg = omap_dm_timer_write_reg;
-+		pdata->is_early_init = 0;
-+	}
-+
-+	timer->id = pdev->id;
-+	timer->irq = irq->start;
-+	timer->pdev = pdev;
-+	timer->reserved = 0;
-+
-+	/* add the timer element to the list */
-+	spin_lock_irqsave(&dm_timer_lock, flags);
-+	list_add_tail(&timer->node, &omap_timer_list);
-+	spin_unlock_irqrestore(&dm_timer_lock, flags);
-+
-+	dev_dbg(&pdev->dev, "Early Probed\n");
-+
-+	return 0;
-+
-+err_free_mem:
-+	kfree(timer);
-+
-+err_release_ioregion:
-+	release_mem_region(mem->start, resource_size(mem));
-+
-+err_free_pdev:
-+	kfree(pdata);
-+	platform_device_unregister(pdev);
-+
-+	return ret;
-+}
-+
-+/**
-+ * omap_dm_timer_remove - cleanup a registered timer device
-+ * @pdev:	pointer to current timer platform device
-+ *
-+ * Called by driver framework whenever a timer device is unregistered.
-+ * In addition to freeing platform resources it also deletes the timer
-+ * entry from the local list.
-+ */
-+static int __devexit omap_dm_timer_remove(struct platform_device *pdev)
-+{
-+	struct omap_dm_timer *timer, *tmp;
-+	unsigned long flags;
-+	int ret = -EINVAL;
-+
-+	spin_lock_irqsave(&dm_timer_lock, flags);
-+	list_for_each_entry_safe(timer, tmp, &omap_timer_list, node) {
-+		if (timer->pdev->id == pdev->id) {
-+			kfree(timer->pdev->dev.platform_data);
-+			platform_device_del(timer->pdev);
-+			list_del(&timer->node);
-+			kfree(timer);
-+			ret = 0;
-+			break;
-+		}
-+	}
-+	spin_unlock_irqrestore(&dm_timer_lock, flags);
-+
-+	return ret;
-+}
-+
-+static struct platform_driver omap_dm_timer_driver = {
-+	.probe  = omap_dm_timer_probe,
-+	.remove = omap_dm_timer_remove,
-+	.driver = {
-+		.name   = "omap_timer",
-+	},
-+};
-+
-+static int __init omap_dm_timer_driver_init(void)
-+{
-+	return platform_driver_register(&omap_dm_timer_driver);
-+}
-+
-+static void __exit omap_dm_timer_driver_exit(void)
-+{
-+	platform_driver_unregister(&omap_dm_timer_driver);
-+}
-+
-+early_platform_init("earlytimer", &omap_dm_timer_driver);
-+module_init(omap_dm_timer_driver_init);
-+module_exit(omap_dm_timer_driver_exit);
-+
-+MODULE_DESCRIPTION("OMAP Dual-Mode Timer Driver");
-+MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:" DRIVER_NAME);
-+MODULE_AUTHOR("Texas Instruments Inc");
-+
- int __init omap_dm_timer_init(void)
- {
- 	struct omap_dm_timer *timer;
-diff --git a/arch/arm/plat-omap/include/plat/dmtimer.h b/arch/arm/plat-omap/include/plat/dmtimer.h
-index 4bfbfcc..1a080db 100644
---- a/arch/arm/plat-omap/include/plat/dmtimer.h
-+++ b/arch/arm/plat-omap/include/plat/dmtimer.h
-@@ -59,6 +59,7 @@
- 
- struct omap_dm_timer {
- 	unsigned long phys_base;
-+	int id;
- 	int irq;
- 	struct clk *iclk, *fclk;
- 	void __iomem *io_base;
-@@ -66,6 +67,7 @@ struct omap_dm_timer {
- 	unsigned enabled:1;
- 	unsigned posted:1;
- 	struct platform_device *pdev;
-+	struct list_head node;
- };
- 
- extern struct omap_dm_timer *gptimer_wakeup;
--- 
-1.6.0.4
+David
 
+>
+> --
+> balbi
+>
