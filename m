@@ -1,56 +1,46 @@
-From: =?UTF-8?Q?Radek_=28Mrkva=29_Pila=C5=99?= <mrkva@mrkva.eu>
-Subject: Re: [PATCH 1/2] OMAP3 Touchbook: Fix MMC caps
-Date: Thu, 24 Feb 2011 21:09:00 +0100
-Message-ID: <99a50271913b424eb17354f8b058c8dc@localhost>
-References: <44de2f4c8b17d38df1d25b7236223247@localhost>
- <20110224193441.GF20560@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] OMAP2+: clocksource: fix crash on boot when
+ !CONFIG_OMAP_32K_TIMER
+Date: Thu, 24 Feb 2011 12:21:57 -0800
+Message-ID: <20110224202157.GG20560@atomide.com>
+References: <alpine.DEB.2.00.1102221958190.22636@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mrkva.eu ([83.167.228.102]:45897 "EHLO mrkva.eu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753690Ab1BXUJC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 24 Feb 2011 15:09:02 -0500
-In-Reply-To: <20110224193441.GF20560@atomide.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:32698 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754992Ab1BXUWA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Feb 2011 15:22:00 -0500
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1102221958190.22636@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Well, MMC_CAP_8BIT data is definetely wrong - according to schematics,
-there are only D0-D3 (+CLK and CMD) lines connected. I'm going to test =
-4
-BIT and let you know.
+* Paul Walmsley <paul@pwsan.com> [110222 18:58]:
+> 
+> OMAP2+ kernels built without CONFIG_OMAP_32K_TIMER crash on boot after the
+> 2.6.38 sched_clock changes:
+> 
+> [    0.000000] OMAP clockevent source: GPTIMER1 at 13000000 Hz
+> [    0.000000] Unable to handle kernel NULL pointer dereference at virtual address 00000000
+> [    0.000000] pgd = c0004000
+> [    0.000000] [00000000] *pgd=00000000
+> [    0.000000] Internal error: Oops: 80000005 [#1] SMP
+> [    0.000000] last sysfs file:
+> [    0.000000] Modules linked in:
+> [    0.000000] CPU: 0    Not tainted  (2.6.38-rc5-00057-g04aa67d #152)
+> [    0.000000] PC is at 0x0
+> [    0.000000] LR is at sched_clock_poll+0x2c/0x3c
+> 
+> Without CONFIG_OMAP_32K_TIMER, the kernel has an clockevent and
+> clocksource resolution about three orders of magnitude higher than
+> with CONFIG_OMAP_32K_TIMER set.  The tradeoff is that the lowest
+> power consumption states are not available.
+> 
+> Fix by calling init_sched_clock() from the GPTIMER clocksource init code.
 
-On Thu, 24 Feb 2011 11:34:42 -0800, Tony Lindgren <tony@atomide.com>
-wrote:
-> * Radek (Mrkva) Pila=C5=99 <mrkva@mrkva.eu> [110224 10:02]:
->> MMC controller cannot handle MMC_CAP_4_BIT_DATA nor
->> MMC_CAP_8_BIT_DATA - the card won't be detected (tested with two
->> SDHC cards, both Class6). Thus disabling.
->=20
-> Hmm it might be worth checking that the MMC data lines are muxed
-> correctly. Maybe make sure CONFIG_OMAP_MUX_DEBUG is set in
-> your .config and CONFIG_DEBUG_FS too. Then boot and and mount
-> debugfs with mount -tdebugfs debugfs /sys/kernel/debug.
-> Then you can do:
->=20
-> # grep -i mmc1 /sys/kernel/debug/omap_mux/* | grep dat
->=20
-> And check the settings. Changing the values could cause data
-> corruption, so use a temporary root file system!
->=20
-> Tony
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I'll queue this as a fix as it's a regression.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
