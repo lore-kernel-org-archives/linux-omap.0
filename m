@@ -1,115 +1,47 @@
-From: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
-Subject: Re: [PATCH v2 0/2] OMAP: omap_device: API to modify SYSCONFIG register
-Date: Thu, 24 Feb 2011 14:53:35 +0530
-Message-ID: <AANLkTine6zGO1t6+vqVV6Cz2CG-gMjwvDN52b0_qp4fN@mail.gmail.com>
-References: <1296477288-26253-1-git-send-email-kishon@ti.com>
-	<AANLkTin0kLETwO1MfYLqAoMxfs876mzvvV-HPQz=is1s@mail.gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH v10 05/18] OMAP2,3 DSS2 Change driver name to
+ omap_display
+Date: Thu, 24 Feb 2011 11:27:23 +0200
+Message-ID: <1298539643.16119.54.camel@deskari>
+References: <1295850125-21405-1-git-send-email-sumit.semwal@ti.com>
+	 <1295850125-21405-6-git-send-email-sumit.semwal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:42172 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752966Ab1BXJXg convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 24 Feb 2011 04:23:36 -0500
-Received: by mail-yi0-f46.google.com with SMTP id 19so232579yib.5
-        for <linux-omap@vger.kernel.org>; Thu, 24 Feb 2011 01:23:35 -0800 (PST)
-In-Reply-To: <AANLkTin0kLETwO1MfYLqAoMxfs876mzvvV-HPQz=is1s@mail.gmail.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:41070 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752966Ab1BXJ1a (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 24 Feb 2011 04:27:30 -0500
+In-Reply-To: <1295850125-21405-6-git-send-email-sumit.semwal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: khilman@deeprootsystems.com, paul@pwsan.com, b-cousson@ti.com
-Cc: linux-omap@vger.kernel.org, charu@ti.com, shubhrajyoti@ti.com, p-basak2@ti.com, Kishon Vijay Abraham I <kishon@ti.com>
+To: "Semwal, Sumit" <sumit.semwal@ti.com>, "Taneja, Archit" <archit@ti.com>
+Cc: paul@pwsan.com, khilman@ti.com, hvaibhav@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Senthilvadivu Guruswamy <svadivu@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>
 
-Hi Kevin, Paul, Benoit,
+Hi,
 
-Do you have any comments for this patch series? This series is
-necessary for McBSP hwmod and
-PM runtime patch series to be merged.
+On Mon, 2011-01-24 at 11:51 +0530, ext Sumit Semwal wrote:
+> From: Senthilvadivu Guruswamy <svadivu@ti.com>
+> 
+> Change the driver name from omapdss to omap_display as the driver takes care of
+> the display devices ie number of panels, type of panels available in the
+> platform.  Change the device name in the board files and 2420,2430,3xxx clock
+> files from omapdss to omap_display to match the driver name.
 
-Regards
-Kishon
+I just realized that changing the driver name will break all scripts and
+applications using omapdss sysfs files.
 
-On Tue, Feb 15, 2011 at 12:08 PM, ABRAHAM, KISHON VIJAY <kishon@ti.com>=
- wrote:
-> Kevin, Paul, Benoit,
->
-> Do you have any comments for this patch series?
->
-> -Kishon
->
-> On Mon, Jan 31, 2011 at 6:04 PM, Kishon Vijay Abraham I <kishon@ti.co=
-m> wrote:
->> Certain peripherals require autoidle bits to be disabled before perf=
-orming
->> some operations. This patch series provides APIs in omap_device laye=
-r to
->> modify the SYSCONFIG register.
->>
->> Since current implementation of PM run time framework does not suppo=
-rt
->> changing sysconfig settings during middle of the on going operation,
->> these APIs will support the same.
->>
->> For e.g McBSP 2 and 3 in OMAP3 has sidetone feature which requires
->> autoidle to be disabled before starting the sidetone.
->>
->> McBSP also requires the SYSCONFIG to be in NOIDLE when ELEMENTSYNCH
->> mode is selected for DMA operation.
->>
->> Created on top of linux OMAP master (linux-omap-2.6 :master)
->> Tested on OMAP4430, OMAP3430 and OMAP2430 SDP boards. Verified that =
-this patch
->> series does not break the OMAP1 build.
->>
->> V2:
->> Mutex is replaced with spinlock.
->>
->> V1:
->> * Creates 3 separate API's to change the idle mode to NOIDLE, SMARTI=
-DLE
->> =A0and FORCEIDLE and one more API to change the idlemode to default =
-value
->> =A0based on the hwmod flag. This change is done to align with the di=
-scussion
->> =A0on [3]
->>
->> * Added hwmod mutex in omap hwmod APIs that modifies SYSCONFIG regis=
-ter.
->>
->> * omap_hwmod_set_slave_idlemode() is not modified to take true/false=
- kind-of
->> argument since 3 states are associated with SIDLE bits (force, no an=
-d smart).
->>
->> These changes were made to align with Benoit's and Paul's comments f=
-or a
->> similar patch written by Manjunath [1] for changing MSTANDBY bits.
->>
->> The discussions that happened for the RFC patch can be found at [2]
->>
->> [1]: http://www.mail-archive.com/linux-omap@vger.kernel.org/msg39647=
-=2Ehtml
->> [2]: https://patchwork.kernel.org/patch/134371/
->> [3]: http://www.mail-archive.com/linux-omap@vger.kernel.org/msg39615=
-=2Ehtml
->>
->> Kishon Vijay Abraham I (2):
->> =A0OMAP: hwmod: API to handle autoidle mode
->> =A0OMAP: omap_device: API to modify AUTOIDLE and SMARTIDLE bits
->>
->> =A0arch/arm/mach-omap2/omap_hwmod.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0=
- 36 +++++
->> =A0arch/arm/plat-omap/include/plat/omap_device.h | =A0 =A06 +
->> =A0arch/arm/plat-omap/include/plat/omap_hwmod.h =A0| =A0 =A01 +
->> =A0arch/arm/plat-omap/omap_device.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0=
-176 +++++++++++++++++++++++++
->> =A04 files changed, 219 insertions(+), 0 deletions(-)
->>
->>
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+How does this sound:
+
+Let's leave the omapdss device name as it is. It represents a "super"
+device, containing the dss sysfs files and upper level dss management.
+
+Name the HW module platform drivers as: omapdss_dss, omapdss_venc,
+omapdss_dispc, etc. This would indicate them to be clearly parts of DSS,
+and would also prevent any possible name conflict if there would happen
+to be a, say, "dsi" block in some other HW component.
+
+ Tomi
+
+
