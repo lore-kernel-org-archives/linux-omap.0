@@ -1,151 +1,143 @@
-From: "Reizer, Eyal" <eyalr@ti.com>
-Subject: RE: Re: Ping-> Subject:    [PATCH] omap: omap3evm: add support for
- the WL12xx WLAN module to the omap3evm
-Date: Thu, 24 Feb 2011 08:26:33 +0100
-Message-ID: <EC51CDB0807A51469E0C9CB8CF72D65F0331870D78@dnce02.ent.ti.com>
-References: <EC51CDB0807A51469E0C9CB8CF72D65F032D73AA68@dnce02.ent.ti.com>
- <20110217222027.GD20795@atomide.com>
- <EC51CDB0807A51469E0C9CB8CF72D65F033179C278@dnce02.ent.ti.com>
- <20110223214903.GB30316@atomide.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: RE: [PATCH 8/8] OMAP2+: clockevent: late-init GPTIMER clockevent
+ hwmodright before timer init
+Date: Thu, 24 Feb 2011 01:13:38 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1102240109500.6198@utopia.booyaka.com>
+References: <20110223070455.5874.51326.stgit@twilight.localdomain> <20110223071153.5874.58923.stgit@twilight.localdomain> <581270b49665fcf8227a96065dbbc584@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-1273003510-1298535218=:6198"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:60587 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750975Ab1BXH1H convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Feb 2011 02:27:07 -0500
-In-Reply-To: <20110223214903.GB30316@atomide.com>
-Content-Language: en-US
+Received: from utopia.booyaka.com ([72.9.107.138]:46265 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755250Ab1BXINj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Feb 2011 03:13:39 -0500
+In-Reply-To: <581270b49665fcf8227a96065dbbc584@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Benoit Cousson <b-cousson@ti.com>
 
-Adds platform initialization for working with the WLAN module
-attached to the omap3evm.
-The patch includes MMC2 initialization, SDIO and control pins
-muxing and platform device registration.
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Signed-off-by: Eyal Reizer <eyalr@ti.com>
+--155748971-1273003510-1298535218=:6198
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+
+Hello Santosh,
+
+On Wed, 23 Feb 2011, Santosh Shilimkar wrote:
+
+> > -----Original Message-----
+> > From: Paul Walmsley [mailto:paul@pwsan.com]
+> > Sent: Wednesday, February 23, 2011 12:42 PM
+> >
+> > diff --git a/arch/arm/mach-omap2/timer-gp.c b/arch/arm/mach-
+> > omap2/timer-gp.c
+> > index 0fc550e..a4e51a2 100644
+> > --- a/arch/arm/mach-omap2/timer-gp.c
+> > +++ b/arch/arm/mach-omap2/timer-gp.c
+> > @@ -40,10 +40,11 @@
+> >  #include <plat/dmtimer.h>
+> >  #include <asm/localtimer.h>
+> >  #include <asm/sched_clock.h>
+> > +#include <plat/common.h>
+> >
+> >  #include "timer-gp.h"
+> > +#include <plat/omap_hwmod.h>
+> >
+> > -#include <plat/common.h>
+> >
+> >  /* MAX_GPTIMER_ID: number of GPTIMERs on the chip */
+> >  #define MAX_GPTIMER_ID=09=0912
+> > @@ -133,9 +134,13 @@ static void __init
+> > omap2_gp_clockevent_init(void)
+> >  {
+> >  =09u32 tick_rate;
+> >  =09int src;
+> > +=09const char *clockevent_hwmod_name;
+> >
+> >  =09inited =3D 1;
+> >
+> > +=09clockevent_hwmod_name =3D (gptimer_id =3D=3D 12) ? "timer12" :
+> > "timer1";
+> > +=09omap_hwmod_late_init_one(clockevent_hwmod_name);
+> > +
+>=20
+> Do we need above hard-coding ? This takes away flexibility of
+> choosing system timer from board files, right ?
+>=20
+> Am I missing something here?
+
+You are absolutely right.  That was an error on my part.  I propose the=20
+following change instead - please let me know what you think.
+
+
+- Paul
+
+
+From: Paul Walmsley <paul@pwsan.com>
+Date: Wed, 23 Feb 2011 00:14:08 -0700
+Subject: [PATCH] OMAP2+: clockevent: late-init GPTIMER clockevent hwmod rig=
+ht before timer init
+
+Late-initialize the GPTIMER hwmod used for the clockevent source immediatel=
+y
+before it is used.  This avoids the need to late-initialize all of the hwmo=
+ds
+until the boot process is further along.  (In general, we want to defer
+as much as possible until late in the boot process.)
+
+This second version fixes a bug pointed out by Santosh Shilimkar
+<santosh.shilimkar@ti.com>, that would cause the kernel to use an
+incorrect timer hwmod name if the selected GPTIMER was not 1 or 12 -
+thanks Santosh.  Also, Tarun Kanti DebBarma <tarun.kanti@ti.com>
+pointed out that the original patch did not apply cleanly; this has
+now been fixed.
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Beno=C3=AEt Cousson <b-cousson@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Kevin Hilman <khilman@ti.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>
 ---
- arch/arm/mach-omap2/board-omap3evm.c |   74 ++++++++++++++++++++++++++++++++++
- 1 files changed, 74 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/timer-gp.c |    7 ++++++-
+ 1 files changed, 6 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index 323c380..349aac9 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -30,6 +30,8 @@
- #include <linux/usb/otg.h>
- #include <linux/smsc911x.h>
- 
-+#include <linux/wl12xx.h>
-+#include <linux/regulator/fixed.h>
- #include <linux/regulator/machine.h>
- #include <linux/mmc/host.h>
- 
-@@ -381,6 +383,16 @@ static struct omap2_hsmmc_info mmc[] = {
-                .gpio_cd        = -EINVAL,
-                .gpio_wp        = 63,
-        },
-+#ifdef CONFIG_WL12XX_PLATFORM_DATA
-+       {
-+               .name           = "wl1271",
-+               .mmc            = 2,
-+               .caps           = MMC_CAP_4_BIT_DATA | MMC_CAP_POWER_OFF_CARD,
-+               .gpio_wp        = -EINVAL,
-+               .gpio_cd        = -EINVAL,
-+               .nonremovable   = true,
-+       },
-+#endif
-        {}      /* Terminator */
- };
- 
-@@ -538,6 +550,47 @@ static struct regulator_init_data omap3_evm_vpll2 = {
-        .consumer_supplies      = &omap3_evm_vpll2_supply,
- };
- 
-+#ifdef CONFIG_WL12XX_PLATFORM_DATA
+diff --git a/arch/arm/mach-omap2/timer-gp.c b/arch/arm/mach-omap2/timer-gp.=
+c
+index 7b7c268..d23767f 100644
+--- a/arch/arm/mach-omap2/timer-gp.c
++++ b/arch/arm/mach-omap2/timer-gp.c
+@@ -39,10 +39,11 @@
+ #include <asm/mach/time.h>
+ #include <plat/dmtimer.h>
+ #include <asm/localtimer.h>
++#include <plat/common.h>
++#include <plat/omap_hwmod.h>
+=20
+ #include "timer-gp.h"
+=20
+-#include <plat/common.h>
+=20
+ /* MAX_GPTIMER_ID: number of GPTIMERs on the chip */
+ #define MAX_GPTIMER_ID=09=0912
+@@ -132,9 +133,13 @@ static void __init omap2_gp_clockevent_init(void)
+ {
+ =09u32 tick_rate;
+ =09int src;
++=09char *clockevent_hwmod_name;
+=20
+ =09inited =3D 1;
+=20
++=09sprintf(clockevent_hwmod_name, "timer%d", gptimer_id);
++=09omap_hwmod_late_init_one(clockevent_hwmod_name);
 +
-+#define OMAP3EVM_WLAN_PMENA_GPIO       (150)
-+#define OMAP3EVM_WLAN_IRQ_GPIO         (149)
-+
-+static struct regulator_consumer_supply omap3evm_vmmc2_supply =
-+       REGULATOR_SUPPLY("vmmc", "mmci-omap-hs.1");
-+
-+/* VMMC2 for driving the WL12xx module */
-+static struct regulator_init_data omap3evm_vmmc2 = {
-+       .constraints = {
-+               .valid_ops_mask = REGULATOR_CHANGE_STATUS,
-+       },
-+       .num_consumer_supplies  = 1,
-+       .consumer_supplies = &omap3evm_vmmc2_supply,
-+};
-+
-+static struct fixed_voltage_config omap3evm_vwlan = {
-+       .supply_name            = "vwl1271",
-+       .microvolts             = 1800000, /* 1.80V */
-+       .gpio                   = OMAP3EVM_WLAN_PMENA_GPIO,
-+       .startup_delay          = 70000, /* 70ms */
-+       .enable_high            = 1,
-+       .enabled_at_boot        = 0,
-+       .init_data              = &omap3evm_vmmc2,
-+};
-+
-+static struct platform_device omap3evm_wlan_regulator = {
-+       .name           = "reg-fixed-voltage",
-+       .id             = 1,
-+       .dev = {
-+               .platform_data  = &omap3evm_vwlan,
-+       },
-+};
-+
-+struct wl12xx_platform_data omap3evm_wlan_data __initdata = {
-+       .irq = OMAP_GPIO_IRQ(OMAP3EVM_WLAN_IRQ_GPIO),
-+       .board_ref_clock = 2, /* ref clock is 38.4 MHz */
-+};
-+#endif
-+
- static struct twl4030_platform_data omap3evm_twldata = {
-        .irq_base       = TWL4030_IRQ_BASE,
-        .irq_end        = TWL4030_IRQ_END,
-@@ -658,6 +711,21 @@ static struct omap_board_mux board_mux[] __initdata = {
-                                OMAP_PIN_OFF_WAKEUPENABLE),
-        OMAP3_MUX(MCSPI1_CS1, OMAP_MUX_MODE4 | OMAP_PIN_INPUT_PULLUP |
-                                OMAP_PIN_OFF_INPUT_PULLUP | OMAP_PIN_OFF_OUTPUT_LOW),
-+#ifdef CONFIG_WL12XX_PLATFORM_DATA
-+       /* WLAN IRQ - GPIO 149 */
-+       OMAP3_MUX(UART1_RTS, OMAP_MUX_MODE4 | OMAP_PIN_INPUT),
-+
-+       /* WLAN POWER ENABLE - GPIO 150 */
-+       OMAP3_MUX(UART1_CTS, OMAP_MUX_MODE4 | OMAP_PIN_OUTPUT),
-+
-+       /* MMC2 SDIO pin muxes for WL12xx */
-+       OMAP3_MUX(SDMMC2_CLK, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP),
-+       OMAP3_MUX(SDMMC2_CMD, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP),
-+       OMAP3_MUX(SDMMC2_DAT0, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP),
-+       OMAP3_MUX(SDMMC2_DAT1, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP),
-+       OMAP3_MUX(SDMMC2_DAT2, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP),
-+       OMAP3_MUX(SDMMC2_DAT3, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP),
-+#endif
-        { .reg_offset = OMAP_MUX_TERMINATOR },
- };
- #endif
-@@ -715,6 +783,12 @@ static void __init omap3_evm_init(void)
-        ads7846_dev_init();
-        omap3evm_init_smsc911x();
-        omap3_evm_display_init();
-+#ifdef CONFIG_WL12XX_PLATFORM_DATA
-+       /* WL12xx WLAN Init */
-+       if (wl12xx_set_platform_data(&omap3evm_wlan_data))
-+               pr_err("error setting wl12xx data\n");
-+       platform_device_register(&omap3evm_wlan_regulator);
-+#endif
- }
- 
- MACHINE_START(OMAP3EVM, "OMAP3 EVM")
--- 
-1.7.0.4
+ =09gptimer =3D omap_dm_timer_request_specific(gptimer_id);
+ =09BUG_ON(gptimer =3D=3D NULL);
+ =09gptimer_wakeup =3D gptimer;
+--=20
+1.7.2.3
 
-
+--155748971-1273003510-1298535218=:6198--
