@@ -1,26 +1,47 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v4 00/13] OMAP: McBSP: hwmod adaptation  and runtime
- conversion
-Date: Thu, 24 Feb 2011 11:11:06 -0800
-Message-ID: <20110224191106.GE20560@atomide.com>
-References: <1298540817-15874-1-git-send-email-kishon@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:40394 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755301Ab1BXTLJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Feb 2011 14:11:09 -0500
-Content-Disposition: inline
-In-Reply-To: <1298540817-15874-1-git-send-email-kishon@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Kishore Kadiyala <kishore.kadiyala@ti.com>
+Subject: [PATCH v4 3/6] OMAP4: hwmod data: enable HSMMC
+Date: Fri, 25 Feb 2011 00:56:51 +0530
+Message-ID: <1298575614-9388-4-git-send-email-kishore.kadiyala@ti.com>
+References: <1298575614-9388-1-git-send-email-kishore.kadiyala@ti.com>
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <1298575614-9388-1-git-send-email-kishore.kadiyala@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: tony@atomide.com, cjb@laptop.org, madhu.cr@ti.com, khilman@deeprootsystems.com, paul@pwsan.com, b-cousson@ti.com, Anand Gadiyar <gadiyar@ti.com>, Kishore Kadiyala <kishore.kadiyala@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, b-cousson@ti.com, broonie@opensource.wolfsonmicro.com, jhnikula@gmail.com, peter.ujfalusi@nokia.com, p-basak2@ti.com, charu@ti.com, shubhrajyoti@ti.com
 
-* Kishon Vijay Abraham I <kishon@ti.com> [110224 01:50]:
-> Modify OMAP McBSP driver to use omap hwmod framework and pm runtime  APIs.
+From: Anand Gadiyar <gadiyar@ti.com>
 
-Thanks, applied and pushed to devel-mcbsp branch for the upcoming merge window.
+Enabling hsmmc hwmod for OMAP4
 
-Tony
+Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
+Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
+Acked-by: Benoit Cousson<b-cousson@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   10 +++++-----
+ 1 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+index 79a8601..dd39e75 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -5077,11 +5077,11 @@ static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
+ 	&omap44xx_mcspi4_hwmod,
+ 
+ 	/* mmc class */
+-/*	&omap44xx_mmc1_hwmod, */
+-/*	&omap44xx_mmc2_hwmod, */
+-/*	&omap44xx_mmc3_hwmod, */
+-/*	&omap44xx_mmc4_hwmod, */
+-/*	&omap44xx_mmc5_hwmod, */
++	&omap44xx_mmc1_hwmod,
++	&omap44xx_mmc2_hwmod,
++	&omap44xx_mmc3_hwmod,
++	&omap44xx_mmc4_hwmod,
++	&omap44xx_mmc5_hwmod,
+ 
+ 	/* mpu class */
+ 	&omap44xx_mpu_hwmod,
+-- 
+1.7.1
+
