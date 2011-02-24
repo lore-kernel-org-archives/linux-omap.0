@@ -1,39 +1,93 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v4 5/6] OMAP: adapt hsmmc to hwmod framework
-Date: Thu, 24 Feb 2011 15:32:15 -0800
-Message-ID: <20110224233215.GX20560@atomide.com>
-References: <1298575614-9388-1-git-send-email-kishore.kadiyala@ti.com>
- <1298575614-9388-6-git-send-email-kishore.kadiyala@ti.com>
+From: David Cohen <dacohen@gmail.com>
+Subject: Re: [PATCH resend] video: omap24xxcam: Fix compilation
+Date: Fri, 25 Feb 2011 01:36:44 +0200
+Message-ID: <AANLkTi=4L38=_a4hFyWqBZL1-CPDyp8t3GfW-M1u8wJF@mail.gmail.com>
+References: <20110215113717.GN2570@legolas.emea.dhcp.ti.com>
+	<4D5A672A.7040000@samsung.com>
+	<4D5A6874.1080705@corscience.de>
+	<20110215115349.GQ2570@legolas.emea.dhcp.ti.com>
+	<4D5A6EEC.5000908@maxwell.research.nokia.com>
+	<AANLkTik+6fguqgH8Bpnpqo7Axmquy3caRMELTZVmuN1j@mail.gmail.com>
+	<20110219150024.GA4487@legolas.emea.dhcp.ti.com>
+	<AANLkTik5dwNZrUxjgjKeAQOsp610d6y_TNGg1b5Vc5Zd@mail.gmail.com>
+	<20110221073640.GA3094@legolas.emea.dhcp.ti.com>
+	<AANLkTinf3Wj=nw_2Sx4r-VSsCH+=fzx-25hynH8hB0d9@mail.gmail.com>
+	<20110221122109.GA23087@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:37724 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755944Ab1BXXcU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Feb 2011 18:32:20 -0500
-Content-Disposition: inline
-In-Reply-To: <1298575614-9388-6-git-send-email-kishore.kadiyala@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <20110221122109.GA23087@legolas.emea.dhcp.ti.com>
+Sender: linux-media-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>, Thomas Weber <weber@corscience.de>, Sylwester Nawrocki <s.nawrocki@samsung.com>, linux-omap@vger.kernel.org, Mauro Carvalho Chehab <mchehab@infradead.org>, Hans Verkuil <hverkuil@xs4all.nl>, Tejun Heo <tj@kernel.org>, linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kishore Kadiyala <kishore.kadiyala@ti.com>
-Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, cjb@laptop.org, madhu.cr@ti.com, khilman@deeprootsystems.com, paul@pwsan.com, b-cousson@ti.com
 
-* Kishore Kadiyala <kishore.kadiyala@ti.com> [110224 11:17]:
-> Changes involves:
-> 1) Remove controller reset in devices.c which is taken care of
->    by hwmod framework.
-> 2) Omap2420 platform consists of mmc block as in omap1 and not the
->    hsmmc block as present in omap2430, omap3, omap4 platforms.
->    Removing all base address macro defines except keeping one for OMAP2420.
-> 3) Using omap-device layer to register device and utilizing data from
->    hwmod data file for base address, dma channel number, Irq_number,
->    device attribute.
-> 4) Update the driver to use dev_attr to find whether controller
->    supports dual volt cards
+On Mon, Feb 21, 2011 at 2:21 PM, Felipe Balbi <balbi@ti.com> wrote:
+> On Mon, Feb 21, 2011 at 02:09:07PM +0200, David Cohen wrote:
+>> On Mon, Feb 21, 2011 at 9:36 AM, Felipe Balbi <balbi@ti.com> wrote:
+>> > Hi,
+>> >
+>> > On Sat, Feb 19, 2011 at 06:04:58PM +0200, David Cohen wrote:
+>> >> > I have to disagree. The fundamental problem is the circular dep=
+endency
+>> >> > between those two files:
+>> >> >
+>> >> > sched.h uses wait_queue_head_t defined in wait.h
+>> >> > wait.h uses TASK_* defined in sched.h
+>> >> >
+>> >> > So, IMO the real fix would be clear out the circular dependency=
+=2E Maybe
+>> >> > introducing <linux/task.h> to define those TASK_* symbols and i=
+nclude
+>> >> > that on sched.h and wait.h
+>> >> >
+>> >> > Just dig a quick and dirty to try it out and works like a charm
+>> >>
+>> >> We have 2 problems:
+>> >> =C2=A0- omap24xxcam compilation broken
+>> >> =C2=A0- circular dependency between sched.h and wait.h
+>> >>
+>> >> To fix the broken compilation we can do what the rest of the kern=
+el is
+>> >> doing, which is to include sched.h.
+>> >> Then, the circular dependency is fixed by some different approach
+>> >> which would probably change *all* current usage of TASK_*.
+>> >
+>> > considering that 1 is caused by 2 I would fix 2.
+>> >
+>> >> IMO, there's no need to create a dependency between those issues.
+>> >
+>> > There's no dependency between them, it's just that the root cause =
+for
+>> > this problem is a circular dependency between wait.h and sched.h
+>>
+>> I did a try to fix this circular dependency and the comment I got wa=
+s
+>> to include sched.h in omap24xxcam.c file:
+>> http://marc.info/?l=3Dlinux-omap&m=3D129828637120270&w=3D2
+>>
+>> I'm working to remove v4l2 internal device interface from omap24xxca=
+m
+>> and then I need this driver's compilation fixed.
+>> The whole kernel is including sched.h when wake_up*() macro is used,
+>> so this should be our first solution IMO.
+>> As I said earlier, no need to make this compilation fix be dependent
+>> of wait.h fix (if it's really going to be changed).
+>>
+>> I think we should proceed with this patch.
+>
+> I would wait to hear from Ingo or Peter who are the maintainers for t=
+hat
+> part, but fine by me.
 
-This patch is too hard to read. Can you please split it into 
-more readable patches?
+How about to proceed with this patch?
 
-Thanks,
+Regards,
 
-Tony
+David
+
+>
+> --
+> balbi
+>
