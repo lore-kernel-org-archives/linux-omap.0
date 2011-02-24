@@ -1,206 +1,83 @@
 From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: [PATCH 2/3] OMAP2+: DMA: prevent races while setting M idle mode to nostandby
-Date: Thu, 24 Feb 2011 15:44:34 +0530
-Message-ID: <1298542475-1460-3-git-send-email-manjugk@ti.com>
-References: <1298542475-1460-1-git-send-email-manjugk@ti.com>
+Subject: [PATCH 0/3] OMAP: DMA: mstandby mode and runtime pm support
+Date: Thu, 24 Feb 2011 15:44:32 +0530
+Message-ID: <1298542475-1460-1-git-send-email-manjugk@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:37779 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:37778 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755282Ab1BXKRQ (ORCPT
+	with ESMTP id S1755295Ab1BXKRQ (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Feb 2011 05:17:16 -0500
-In-Reply-To: <1298542475-1460-1-git-send-email-manjugk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: khilman@ti.com, paul@pwsan.com
 
-If two DMA users tries to set no mstandby mode at the same time, a race
-condition would arise. Prevent that by using a spin lock and counting
-up/down the number of times nostandby is set/reset.
+This patch series is remaining part of dma hwmod to support pm runtime 
+and for handling mstandby mode for all applicable DMA mstandby mode errata.
 
-Initial patch is created by Adrian Hunter <adrian.hunter@nokia.com>
-https://patchwork.kernel.org/patch/366831/
+The alignment for pm runtime API's usage is at:
+http://thread.gmane.org/gmane.linux.ports.arm.omap/51588/focus=52493
+http://thread.gmane.org/gmane.linux.ports.arm.omap/50762/focus=50840
 
-Patch reworked to use API implemented at hwmod layer.
+The alignment for handling mstandby mode errata handling is at:
+http://thread.gmane.org/gmane.linux.ports.arm.omap/47398/focus=47426
+http://thread.gmane.org/gmane.linux.ports.arm.omap/47479/focus=47537
 
-Signed-off-by: G, Manjunath Kondaiah <manjugk@ti.com>
-Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
----
- arch/arm/mach-omap1/dma.c             |    1 +
- arch/arm/mach-omap2/dma.c             |   16 +++++++++++++
- arch/arm/plat-omap/dma.c              |   40 +++++++++++++++++++--------------
- arch/arm/plat-omap/include/plat/dma.h |    1 +
- 4 files changed, 41 insertions(+), 17 deletions(-)
+Testing:
+Compile tested for
+ - omap1_defconfig
+ - omap2plus_defconfig
 
-diff --git a/arch/arm/mach-omap1/dma.c b/arch/arm/mach-omap1/dma.c
-index d855934..fa2d1b0 100644
---- a/arch/arm/mach-omap1/dma.c
-+++ b/arch/arm/mach-omap1/dma.c
-@@ -351,6 +351,7 @@ static int __init omap1_system_dma_init(void)
- 	p->dma_write		= dma_write;
- 	p->dma_read		= dma_read;
- 	p->disable_irq_lch	= NULL;
-+	p->midlemode		= NULL;
- 
- 	p->errata = configure_dma_errata();
- 
-diff --git a/arch/arm/mach-omap2/dma.c b/arch/arm/mach-omap2/dma.c
-index 34922b2..6e12e71 100644
---- a/arch/arm/mach-omap2/dma.c
-+++ b/arch/arm/mach-omap2/dma.c
-@@ -36,7 +36,9 @@
- 
- static u32 errata;
- static u8 dma_stride;
-+static u32 midlemode_save_cnt;
- 
-+static struct platform_device *pdev;
- static struct omap_dma_dev_attr *d;
- 
- static enum omap_reg_offsets dma_common_ch_start, dma_common_ch_end;
-@@ -117,6 +119,18 @@ static inline u32 dma_read(int reg, int lch)
- 	return val;
- }
- 
-+static void midlemode_nostandby(bool nostandby)
-+{
-+	/* TODO: midlemode_save_cnt can be moved to hwmod layer? */
-+	if (nostandby) {
-+		omap_device_require_no_mstandby(pdev);
-+		midlemode_save_cnt += 1;
-+	} else {
-+		omap_device_release_no_mstandby(pdev);
-+		midlemode_save_cnt -= 1;
-+	}
-+}
-+
- static inline void omap2_disable_irq_lch(int lch)
- {
- 	u32 val;
-@@ -253,6 +267,7 @@ static int __init omap2_system_dma_init_dev(struct omap_hwmod *oh, void *unused)
- 	p->clear_dma		= omap2_clear_dma;
- 	p->dma_write		= dma_write;
- 	p->dma_read		= dma_read;
-+	p->midlemode		= midlemode_nostandby;
- 
- 	p->clear_lch_regs	= NULL;
- 
-@@ -286,6 +301,7 @@ static int __init omap2_system_dma_init_dev(struct omap_hwmod *oh, void *unused)
- 		dev_err(&od->pdev.dev, "%s: kzalloc fail\n", __func__);
- 		return -ENOMEM;
- 	}
-+	pdev = &od->pdev;
- 	return 0;
- }
- 
-diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-index 8536308..84879eb 100644
---- a/arch/arm/plat-omap/dma.c
-+++ b/arch/arm/plat-omap/dma.c
-@@ -38,8 +38,9 @@
- 
- #include <asm/system.h>
- #include <mach/hardware.h>
--#include <plat/dma.h>
- 
-+#include <plat/dma.h>
-+#include <plat/omap_device.h>
- #include <plat/tc.h>
- 
- #undef DEBUG
-@@ -924,6 +925,7 @@ EXPORT_SYMBOL(omap_start_dma);
- void omap_stop_dma(int lch)
- {
- 	u32 l;
-+	unsigned long flags;
- 
- 	/* Disable all interrupts on the channel */
- 	if (cpu_class_is_omap1())
-@@ -933,14 +935,13 @@ void omap_stop_dma(int lch)
- 	if (IS_DMA_ERRATA(DMA_ERRATA_i541) &&
- 			(l & OMAP_DMA_CCR_SEL_SRC_DST_SYNC)) {
- 		int i = 0;
--		u32 sys_cf;
- 
- 		/* Configure No-Standby */
--		l = p->dma_read(OCP_SYSCONFIG, lch);
--		sys_cf = l;
--		l &= ~DMA_SYSCONFIG_MIDLEMODE_MASK;
--		l |= DMA_SYSCONFIG_MIDLEMODE(DMA_IDLEMODE_NO_IDLE);
--		p->dma_write(l , OCP_SYSCONFIG, 0);
-+		if (p->midlemode) {
-+			spin_lock_irqsave(&dma_chan_lock, flags);
-+			p->midlemode(true);
-+			spin_unlock_irqrestore(&dma_chan_lock, flags);
-+		}
- 
- 		l = p->dma_read(CCR, lch);
- 		l &= ~OMAP_DMA_CCR_EN;
-@@ -958,7 +959,11 @@ void omap_stop_dma(int lch)
- 			printk(KERN_ERR "DMA drain did not complete on "
- 					"lch %d\n", lch);
- 		/* Restore OCP_SYSCONFIG */
--		p->dma_write(sys_cf, OCP_SYSCONFIG, lch);
-+		if (p->midlemode) {
-+			spin_lock_irqsave(&dma_chan_lock, flags);
-+			p->midlemode(false);
-+			spin_unlock_irqrestore(&dma_chan_lock, flags);
-+		}
- 	} else {
- 		l &= ~OMAP_DMA_CCR_EN;
- 		p->dma_write(l, CCR, lch);
-@@ -1610,7 +1615,7 @@ int omap_stop_dma_chain_transfers(int chain_id)
- {
- 	int *channels;
- 	u32 l, i;
--	u32 sys_cf = 0;
-+	unsigned long flags;
- 
- 	/* Check for input params */
- 	if (unlikely((chain_id < 0 || chain_id >= dma_lch_count))) {
-@@ -1625,12 +1630,10 @@ int omap_stop_dma_chain_transfers(int chain_id)
- 	}
- 	channels = dma_linked_lch[chain_id].linked_dmach_q;
- 
--	if (IS_DMA_ERRATA(DMA_ERRATA_i88)) {
--		sys_cf = p->dma_read(OCP_SYSCONFIG, 0);
--		l = sys_cf;
--		/* Middle mode reg set no Standby */
--		l &= ~((1 << 12)|(1 << 13));
--		p->dma_write(l, OCP_SYSCONFIG, 0);
-+	if (IS_DMA_ERRATA(DMA_ERRATA_i88) && p->midlemode) {
-+		spin_lock_irqsave(&dma_chan_lock, flags);
-+		p->midlemode(true);
-+		spin_unlock_irqrestore(&dma_chan_lock, flags);
- 	}
- 
- 	for (i = 0; i < dma_linked_lch[chain_id].no_of_lchs_linked; i++) {
-@@ -1650,8 +1653,11 @@ int omap_stop_dma_chain_transfers(int chain_id)
- 	/* Reset the Queue pointers */
- 	OMAP_DMA_CHAIN_QINIT(chain_id);
- 
--	if (IS_DMA_ERRATA(DMA_ERRATA_i88))
--		p->dma_write(sys_cf, OCP_SYSCONFIG, 0);
-+	if (IS_DMA_ERRATA(DMA_ERRATA_i88 && p->midlemode)) {
-+		spin_lock_irqsave(&dma_chan_lock, flags);
-+		p->midlemode(false);
-+		spin_unlock_irqrestore(&dma_chan_lock, flags);
-+	}
- 
- 	return 0;
- }
-diff --git a/arch/arm/plat-omap/include/plat/dma.h b/arch/arm/plat-omap/include/plat/dma.h
-index d1c916f..b20dc5e 100644
---- a/arch/arm/plat-omap/include/plat/dma.h
-+++ b/arch/arm/plat-omap/include/plat/dma.h
-@@ -435,6 +435,7 @@ struct omap_system_dma_plat_info {
- 	void (*clear_dma)(int lch);
- 	void (*dma_write)(u32 val, int reg, int lch);
- 	u32 (*dma_read)(int reg, int lch);
-+	void (*midlemode)(bool nostandby);
- };
- 
- extern void omap_set_dma_priority(int lch, int dst_port, int priority);
--- 
-1.7.1
+Boot test on:
+ - OMAP1710-H3
+ - OMAP2420-H4
+ - OMAP3430-LDP
+ - OMAP3630-Zoom3
+ - OMAP4430-Blaze
+
+DMA memory to memory test cases(including chaining) are executed for
+all the above boards and for each test case, 
+/sys/devices/platform/omap/omap_dma_system.0/power/runtime_status
+was verified and after completion of the tests, runtime_status will be 
+always suspended.
+
+Apart from that, offmode testing is done for OMAP3430-LDP using the procedure:
+echo 1 > /debug/pm_debug/sleep_while_idle
+echo 1 > /debug/pm_debug/enable_off_mode
+echo 5 > /sys/devices/platform/omap/omap_uart.0/sleep_timeout
+echo 5 > /sys/devices/platform/omap/omap_uart.1/sleep_timeout
+echo 5 > /sys/devices/platform/omap/omap_uart.2/sleep_timeout
+
+With the above steps, core off mode count gets increasing if the the board
+is idle for more than 5 seconds.
+
+Baseline:
+Applies cleanly on top of mainline 2.6.38-rc6:
+git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
+commit f5412be599602124d2bdd49947b231dd77c0bf99
+Author: Linus Torvalds <torvalds@linux-foundation.org>
+Date:   Mon Feb 21 17:25:52 2011 -0800
+
+    Linux 2.6.38-rc6
+
+Note: OMAP1 is tested on top of 2.6.38-rc5 since rc6 is broken for omap1 build
+
+Patch Summary:
+==============
+G, Manjunath Kondaiah (2):
+  OMAP2+: PM: omap device: API's for handling mstandby mode
+  OMAP2+: DMA: prevent races while setting M idle mode to nostandby
+
+Manjunath G Kondaiah (1):
+  OMAP: PM: DMA: Enable runtime pm
+
+ arch/arm/mach-omap1/dma.c                     |    1 +
+ arch/arm/mach-omap2/dma.c                     |   16 ++
+ arch/arm/mach-omap2/omap_hwmod.c              |   42 ++++++
+ arch/arm/plat-omap/dma.c                      |  190 +++++++++++++++++++++----
+ arch/arm/plat-omap/include/plat/dma.h         |    1 +
+ arch/arm/plat-omap/include/plat/omap_device.h |    2 +
+ arch/arm/plat-omap/include/plat/omap_hwmod.h  |    4 +-
+ arch/arm/plat-omap/omap_device.c              |   64 +++++++++
+ 8 files changed, 293 insertions(+), 27 deletions(-)
 
