@@ -1,38 +1,50 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 7/8] OMAP2+: hwmod: add ability to late-init individual
- hwmods
-Date: Thu, 24 Feb 2011 02:06:05 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1102240204190.6198@utopia.booyaka.com>
-References: <20110223070455.5874.51326.stgit@twilight.localdomain> <20110223071152.5874.54222.stgit@twilight.localdomain> <20110223191212.GA15225@atomide.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+From: Mayuresh Janorkar <mayur@ti.com>
+Subject: [PATCH] Adding help for FB_OMAP_LCD_VGA option
+Date: Thu, 24 Feb 2011 15:09:17 +0530
+Message-ID: <1298540357-30365-1-git-send-email-mayur@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:57939 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753699Ab1BXJGG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Feb 2011 04:06:06 -0500
-In-Reply-To: <20110223191212.GA15225@atomide.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:34880 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753907Ab1BXJLU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Feb 2011 04:11:20 -0500
+Received: from dlep36.itg.ti.com ([157.170.170.91])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1O9BKLs013300
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Thu, 24 Feb 2011 03:11:20 -0600
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, =?ISO-8859-15?Q?Beno=EEt_Cousson?= <b-cousson@ti.com>
+To: tomi.valkeinen@ti.com
+Cc: linux-omap@vger.kernel.org, Mayuresh Janorkar <mayur@ti.com>
 
-On Wed, 23 Feb 2011, Tony Lindgren wrote:
+CONFIG_FB_OMAP_LCD_VGA option is present in drivers/video/omap
+There is no explaination about what this flag does.
+Lets add information about it.
 
-> * Paul Walmsley <paul@pwsan.com> [110222 23:11]:
-> > --- a/arch/arm/mach-omap2/omap_hwmod.c
-> > +++ b/arch/arm/mach-omap2/omap_hwmod.c
-> > +int __init omap_hwmod_late_init_one(const char *oh_name)
-> 
-> How about the following naming changes to avoid confusion:
-> 
-> omap_hwmod_init			-> omap_hwmod_register
-> omap_hwmod_late_init		-> omap_hwmod_init
-> omap_hwmod_late_init_one	-> omap_hwmod_init_one
-> 
-> This is because "late_init" gets actually called very early
-> during the boot.
+FB_OMAP_LCD_VGA flag sets resolution of display to VGA (640 X 480).
+The default resolution of 3430 LDP is 320 X 240.
 
-Sounds good to me.  Will write a patch to make this change,
+Signed-off-by: Mayuresh Janorkar <mayur@ti.com>
+---
+ drivers/video/omap/Kconfig |    6 +++++-
+ 1 files changed, 5 insertions(+), 1 deletions(-)
 
-- Paul
+diff --git a/drivers/video/omap/Kconfig b/drivers/video/omap/Kconfig
+index 083c8fe..ff7049b 100644
+--- a/drivers/video/omap/Kconfig
++++ b/drivers/video/omap/Kconfig
+@@ -11,7 +11,11 @@ config FB_OMAP
+ config FB_OMAP_LCD_VGA
+         bool "Use LCD in VGA mode"
+ 	        depends on MACH_OMAP_3430SDP || MACH_OMAP_LDP
+-
++		help
++		  Set LCD resolution as VGA (640 X 480).
++		  Default resolution without this option is QVGA(320 X 240).
++		  Please take a look at drivers/video/omap/lcd_ldp.c file
++		  for lcd driver code.
+ choice
+ 	depends on FB_OMAP && MACH_OVERO
+ 	prompt "Screen resolution"
+-- 
+1.7.1
+
