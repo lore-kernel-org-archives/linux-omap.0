@@ -1,203 +1,129 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v4 03/13] OMAP2420: hwmod data: Add McBSP
-Date: Thu, 24 Feb 2011 15:16:47 +0530
-Message-ID: <1298540817-15874-4-git-send-email-kishon@ti.com>
+Subject: [PATCH v4 06/13] OMAP4: hwmod: Naming of address space
+Date: Thu, 24 Feb 2011 15:16:50 +0530
+Message-ID: <1298540817-15874-7-git-send-email-kishon@ti.com>
 References: <1298540817-15874-1-git-send-email-kishon@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:36652 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756108Ab1BXJwd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Feb 2011 04:52:33 -0500
+Received: from arroyo.ext.ti.com ([192.94.94.40]:34299 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756100Ab1BXJwe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 24 Feb 2011 04:52:34 -0500
 In-Reply-To: <1298540817-15874-1-git-send-email-kishon@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, b-cousson@ti.com, tony@atomide.com, broonie@opensource.wolfsonmicro.com, jhnikula@gmail.com, peter.ujfalusi@nokia.com
 Cc: p-basak2@ti.com, kishon@ti.com, charu@ti.com, shubhrajyoti@ti.com
 
-From: Charulatha V <charu@ti.com>
+Added a name to address space belonging to SDMA and MPU facilitating
+the driver to get the address space info by name. Added a revision
+member inorder to facilitate the driver to differentiate between
+mcbsp in different omap.
+Also added a platform_get_irq in probe to get irq number by index since
+from OMAP4, there will be a single irq line.
 
-Add McBSP hwmod data for OMAP2420.
-
-Also add macros in prcm-common.h for idlest bit of OMAP24XX McBSP devices
-
-Signed-off-by: Charulatha V <charu@ti.com>
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
-Cc: Benoit Cousson <b-cousson@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_2420_data.c |  129 ++++++++++++++++++++++++++++
- arch/arm/mach-omap2/prcm-common.h          |    4 +
- 2 files changed, 133 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    8 ++++++++
+ arch/arm/plat-omap/include/plat/mcbsp.h    |    1 +
+ arch/arm/plat-omap/mcbsp.c                 |    4 ++++
+ 3 files changed, 13 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-index f323c6b..2503e1a 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-@@ -109,6 +109,8 @@ static struct omap_hwmod omap2420_uart2_hwmod;
- static struct omap_hwmod omap2420_uart3_hwmod;
- static struct omap_hwmod omap2420_i2c1_hwmod;
- static struct omap_hwmod omap2420_i2c2_hwmod;
-+static struct omap_hwmod omap2420_mcbsp1_hwmod;
-+static struct omap_hwmod omap2420_mcbsp2_hwmod;
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+index 79a8601..673b011 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -25,6 +25,7 @@
+ #include <plat/gpio.h>
+ #include <plat/dma.h>
+ #include <plat/mcspi.h>
++#include <plat/mcbsp.h>
  
- /* l4 core -> mcspi1 interface */
- static struct omap_hwmod_addr_space omap2420_mcspi1_addr_space[] = {
-@@ -1320,6 +1322,129 @@ static struct omap_hwmod omap2420_mcspi2_hwmod = {
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
+ #include "omap_hwmod_common_data.h"
+ 
+@@ -2737,6 +2738,7 @@ static struct omap_hwmod_class_sysconfig omap44xx_mcbsp_sysc = {
+ static struct omap_hwmod_class omap44xx_mcbsp_hwmod_class = {
+ 	.name	= "mcbsp",
+ 	.sysc	= &omap44xx_mcbsp_sysc,
++	.rev	= MCBSP_CONFIG_TYPE4,
  };
  
-+/*
-+ * 'mcbsp' class
-+ * multi channel buffered serial port controller
-+ */
-+
-+static struct omap_hwmod_class omap2420_mcbsp_hwmod_class = {
-+	.name = "mcbsp",
-+};
-+
-+/* mcbsp1 */
-+static struct omap_hwmod_irq_info omap2420_mcbsp1_irqs[] = {
-+	{ .name = "tx", .irq = 59 },
-+	{ .name = "rx", .irq = 60 },
-+};
-+
-+static struct omap_hwmod_dma_info omap2420_mcbsp1_sdma_chs[] = {
-+	{ .name = "rx", .dma_req = 32 },
-+	{ .name = "tx", .dma_req = 31 },
-+};
-+
-+static struct omap_hwmod_addr_space omap2420_mcbsp1_addrs[] = {
-+	{
-+		.name		= "mpu",
-+		.pa_start	= 0x48074000,
-+		.pa_end		= 0x480740ff,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+};
-+
-+/* l4_core -> mcbsp1 */
-+static struct omap_hwmod_ocp_if omap2420_l4_core__mcbsp1 = {
-+	.master		= &omap2420_l4_core_hwmod,
-+	.slave		= &omap2420_mcbsp1_hwmod,
-+	.clk		= "mcbsp1_ick",
-+	.addr		= omap2420_mcbsp1_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap2420_mcbsp1_addrs),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* mcbsp1 slave ports */
-+static struct omap_hwmod_ocp_if *omap2420_mcbsp1_slaves[] = {
-+	&omap2420_l4_core__mcbsp1,
-+};
-+
-+static struct omap_hwmod omap2420_mcbsp1_hwmod = {
-+	.name		= "mcbsp1",
-+	.class		= &omap2420_mcbsp_hwmod_class,
-+	.mpu_irqs	= omap2420_mcbsp1_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap2420_mcbsp1_irqs),
-+	.sdma_reqs	= omap2420_mcbsp1_sdma_chs,
-+	.sdma_reqs_cnt	= ARRAY_SIZE(omap2420_mcbsp1_sdma_chs),
-+	.main_clk	= "mcbsp1_fck",
-+	.prcm		= {
-+		.omap2 = {
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP24XX_EN_MCBSP1_SHIFT,
-+			.module_offs = CORE_MOD,
-+			.idlest_reg_id = 1,
-+			.idlest_idle_bit = OMAP24XX_ST_MCBSP1_SHIFT,
-+		},
-+	},
-+	.slaves		= omap2420_mcbsp1_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap2420_mcbsp1_slaves),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
-+};
-+
-+/* mcbsp2 */
-+static struct omap_hwmod_irq_info omap2420_mcbsp2_irqs[] = {
-+	{ .name = "tx", .irq = 62 },
-+	{ .name = "rx", .irq = 63 },
-+};
-+
-+static struct omap_hwmod_dma_info omap2420_mcbsp2_sdma_chs[] = {
-+	{ .name = "rx", .dma_req = 34 },
-+	{ .name = "tx", .dma_req = 33 },
-+};
-+
-+static struct omap_hwmod_addr_space omap2420_mcbsp2_addrs[] = {
-+	{
-+		.name		= "mpu",
-+		.pa_start	= 0x48076000,
-+		.pa_end		= 0x480760ff,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+};
-+
-+/* l4_core -> mcbsp2 */
-+static struct omap_hwmod_ocp_if omap2420_l4_core__mcbsp2 = {
-+	.master		= &omap2420_l4_core_hwmod,
-+	.slave		= &omap2420_mcbsp2_hwmod,
-+	.clk		= "mcbsp2_ick",
-+	.addr		= omap2420_mcbsp2_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap2420_mcbsp2_addrs),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* mcbsp2 slave ports */
-+static struct omap_hwmod_ocp_if *omap2420_mcbsp2_slaves[] = {
-+	&omap2420_l4_core__mcbsp2,
-+};
-+
-+static struct omap_hwmod omap2420_mcbsp2_hwmod = {
-+	.name		= "mcbsp2",
-+	.class		= &omap2420_mcbsp_hwmod_class,
-+	.mpu_irqs	= omap2420_mcbsp2_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap2420_mcbsp2_irqs),
-+	.sdma_reqs	= omap2420_mcbsp2_sdma_chs,
-+	.sdma_reqs_cnt	= ARRAY_SIZE(omap2420_mcbsp2_sdma_chs),
-+	.main_clk	= "mcbsp2_fck",
-+	.prcm		= {
-+		.omap2 = {
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP24XX_EN_MCBSP2_SHIFT,
-+			.module_offs = CORE_MOD,
-+			.idlest_reg_id = 1,
-+			.idlest_idle_bit = OMAP24XX_ST_MCBSP2_SHIFT,
-+		},
-+	},
-+	.slaves		= omap2420_mcbsp2_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap2420_mcbsp2_slaves),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
-+};
-+
- static __initdata struct omap_hwmod *omap2420_hwmods[] = {
- 	&omap2420_l3_main_hwmod,
- 	&omap2420_l4_core_hwmod,
-@@ -1348,6 +1473,10 @@ static __initdata struct omap_hwmod *omap2420_hwmods[] = {
- 	/* dma_system class*/
- 	&omap2420_dma_system_hwmod,
+ /* mcbsp1 */
+@@ -2752,6 +2754,7 @@ static struct omap_hwmod_dma_info omap44xx_mcbsp1_sdma_reqs[] = {
  
-+	/* mcbsp class */
-+	&omap2420_mcbsp1_hwmod,
-+	&omap2420_mcbsp2_hwmod,
+ static struct omap_hwmod_addr_space omap44xx_mcbsp1_addrs[] = {
+ 	{
++		.name		= "mpu",
+ 		.pa_start	= 0x40122000,
+ 		.pa_end		= 0x401220ff,
+ 		.flags		= ADDR_TYPE_RT
+@@ -2770,6 +2773,7 @@ static struct omap_hwmod_ocp_if omap44xx_l4_abe__mcbsp1 = {
+ 
+ static struct omap_hwmod_addr_space omap44xx_mcbsp1_dma_addrs[] = {
+ 	{
++		.name		= "dma",
+ 		.pa_start	= 0x49022000,
+ 		.pa_end		= 0x490220ff,
+ 		.flags		= ADDR_TYPE_RT
+@@ -2823,6 +2827,7 @@ static struct omap_hwmod_dma_info omap44xx_mcbsp2_sdma_reqs[] = {
+ 
+ static struct omap_hwmod_addr_space omap44xx_mcbsp2_addrs[] = {
+ 	{
++		.name		= "mpu",
+ 		.pa_start	= 0x40124000,
+ 		.pa_end		= 0x401240ff,
+ 		.flags		= ADDR_TYPE_RT
+@@ -2841,6 +2846,7 @@ static struct omap_hwmod_ocp_if omap44xx_l4_abe__mcbsp2 = {
+ 
+ static struct omap_hwmod_addr_space omap44xx_mcbsp2_dma_addrs[] = {
+ 	{
++		.name		= "dma",
+ 		.pa_start	= 0x49024000,
+ 		.pa_end		= 0x490240ff,
+ 		.flags		= ADDR_TYPE_RT
+@@ -2894,6 +2900,7 @@ static struct omap_hwmod_dma_info omap44xx_mcbsp3_sdma_reqs[] = {
+ 
+ static struct omap_hwmod_addr_space omap44xx_mcbsp3_addrs[] = {
+ 	{
++		.name		= "mpu",
+ 		.pa_start	= 0x40126000,
+ 		.pa_end		= 0x401260ff,
+ 		.flags		= ADDR_TYPE_RT
+@@ -2912,6 +2919,7 @@ static struct omap_hwmod_ocp_if omap44xx_l4_abe__mcbsp3 = {
+ 
+ static struct omap_hwmod_addr_space omap44xx_mcbsp3_dma_addrs[] = {
+ 	{
++		.name		= "dma",
+ 		.pa_start	= 0x49026000,
+ 		.pa_end		= 0x490260ff,
+ 		.flags		= ADDR_TYPE_RT
+diff --git a/arch/arm/plat-omap/include/plat/mcbsp.h b/arch/arm/plat-omap/include/plat/mcbsp.h
+index f084b6a..afcbb7b 100644
+--- a/arch/arm/plat-omap/include/plat/mcbsp.h
++++ b/arch/arm/plat-omap/include/plat/mcbsp.h
+@@ -39,6 +39,7 @@ static struct platform_device omap_mcbsp##port_nr = {	\
+ 
+ #define MCBSP_CONFIG_TYPE2	0x2
+ #define MCBSP_CONFIG_TYPE3	0x3
++#define MCBSP_CONFIG_TYPE4	0x4
+ 
+ #define OMAP7XX_MCBSP1_BASE	0xfffb1000
+ #define OMAP7XX_MCBSP2_BASE	0xfffb1800
+diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
+index 5f25ae5..62bd073 100644
+--- a/arch/arm/plat-omap/mcbsp.c
++++ b/arch/arm/plat-omap/mcbsp.c
+@@ -1812,6 +1812,10 @@ static int __devinit omap_mcbsp_probe(struct platform_device *pdev)
+ 	mcbsp->tx_irq = platform_get_irq_byname(pdev, "tx");
+ 	mcbsp->rx_irq = platform_get_irq_byname(pdev, "rx");
+ 
++	/* From OMAP4 there will be a single irq line */
++	if (mcbsp->tx_irq == -ENXIO)
++		mcbsp->tx_irq = platform_get_irq(pdev, 0);
 +
- 	/* mcspi class */
- 	&omap2420_mcspi1_hwmod,
- 	&omap2420_mcspi2_hwmod,
-diff --git a/arch/arm/mach-omap2/prcm-common.h b/arch/arm/mach-omap2/prcm-common.h
-index 87486f5..d4af21d 100644
---- a/arch/arm/mach-omap2/prcm-common.h
-+++ b/arch/arm/mach-omap2/prcm-common.h
-@@ -121,6 +121,10 @@
- #define OMAP24XX_ST_MCSPI2_MASK				(1 << 18)
- #define OMAP24XX_ST_MCSPI1_SHIFT			17
- #define OMAP24XX_ST_MCSPI1_MASK				(1 << 17)
-+#define OMAP24XX_ST_MCBSP2_SHIFT			16
-+#define OMAP24XX_ST_MCBSP2_MASK				(1 << 16)
-+#define OMAP24XX_ST_MCBSP1_SHIFT			15
-+#define OMAP24XX_ST_MCBSP1_MASK				(1 << 15)
- #define OMAP24XX_ST_GPT12_SHIFT				14
- #define OMAP24XX_ST_GPT12_MASK				(1 << 14)
- #define OMAP24XX_ST_GPT11_SHIFT				13
+ 	res = platform_get_resource_byname(pdev, IORESOURCE_DMA, "rx");
+ 	if (!res) {
+ 		dev_err(&pdev->dev, "%s:mcbsp%d has invalid rx DMA channel\n",
 -- 
 1.7.0.4
 
