@@ -1,68 +1,71 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH] ldp: Fix regulator mapping for ads7846 TS controller
-Date: Thu, 24 Feb 2011 18:26:42 +0530
-Message-ID: <1298552202-28307-1-git-send-email-rnayak@ti.com>
+Subject: RE: State of LDP3430 platform
+Date: Thu, 24 Feb 2011 18:37:59 +0530
+Message-ID: <d4f84e20c15d28a4bd6193bb2a22820e@mail.gmail.com>
+References: <20101206125526.GC31777@n2100.arm.linux.org.uk>
+ <20110212160216.GA22694@n2100.arm.linux.org.uk> <20110212161053.GA23481@n2100.arm.linux.org.uk>
+ <20110223225022.GC30316@atomide.com> <13B9B4C6EF24D648824FF11BE896716203EFA5CDB2@dlee02.ent.ti.com>
+ <1fb43e4e01ba5d40aec63feb9acbfecb@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:47435 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751919Ab1BXM4x (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 24 Feb 2011 07:56:53 -0500
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:41460 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751190Ab1BXNJ3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 24 Feb 2011 08:09:29 -0500
+Received: by fxm19 with SMTP id 19so560324fxm.41
+        for <linux-omap@vger.kernel.org>; Thu, 24 Feb 2011 05:09:26 -0800 (PST)
+In-Reply-To: <1fb43e4e01ba5d40aec63feb9acbfecb@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: tony@atomide.com, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
+To: Rajendra Nayak <rnayak@ti.com>, Richard Woodruff <r-woodruff2@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-On the OMAP3430LDP board, the ads7846 touchscreen controller
-is powered by VAUX1 regulator (supplying 3.0v).
-Fix this mapping in the board file, and hence prevent
-the ads7846 driver init to fail with the below error..
+> -----Original Message-----
+> From: Rajendra Nayak [mailto:rnayak@ti.com]
+> Sent: Thursday, February 24, 2011 12:39 PM
+> To: Richard Woodruff; Tony Lindgren; Russell King - ARM Linux
+> Cc: linux-omap@vger.kernel.org; Paul Walmsley; Santosh Shilimkar
+> Subject: RE: State of LDP3430 platform
+>
+> > -----Original Message-----
+> > From: linux-omap-owner@vger.kernel.org
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Woodruff, Richard
+> > Sent: Thursday, February 24, 2011 4:53 AM
+> > To: Tony Lindgren; Russell King - ARM Linux
+> > Cc: linux-omap@vger.kernel.org; Paul Walmsley; Shilimkar, Santosh
+> > Subject: RE: State of LDP3430 platform
+> >
+> > > From: Tony Lindgren [mailto:tony@atomide.com]
+> > > Sent: Wednesday, February 23, 2011 4:50 PM
+> >
+> > > Anybody from TI looking into these?
+> >
+> > I'll poke some folks and check.  I've not booted my LDP for a while.
+>
+> There was a regulator mapping issue on 3430SDP because of
+> which tocuhscreen was broken and is now fixed with this patch
+> http://marc.info/?l=linux-arm-kernel&m=129673276608954&w=2
+> Looks like the same issue on LDP. Will check it up.
 
-ads7846 spi1.0: unable to get regulator: -19
+This one should now have LDP TS working..
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg45306.html
 
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
----
- arch/arm/mach-omap2/board-ldp.c |   21 +++++++++++++++++++++
- 1 files changed, 21 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
-index a3fae56..9a99cad 100644
---- a/arch/arm/mach-omap2/board-ldp.c
-+++ b/arch/arm/mach-omap2/board-ldp.c
-@@ -329,6 +329,26 @@ static struct regulator_init_data ldp_vmmc1 = {
- 	.consumer_supplies	= &ldp_vmmc1_supply,
- };
- 
-+/* ads7846 on SPI */
-+static struct regulator_consumer_supply ldp_vaux1_supplies[] = {
-+	REGULATOR_SUPPLY("vcc", "spi1.0"),
-+};
-+
-+/* VAUX1 */
-+static struct regulator_init_data ldp_vaux1 = {
-+	.constraints = {
-+		.min_uV			= 3000000,
-+		.max_uV			= 3000000,
-+		.apply_uV		= true,
-+		.valid_modes_mask	= REGULATOR_MODE_NORMAL
-+					| REGULATOR_MODE_STANDBY,
-+		.valid_ops_mask		= REGULATOR_CHANGE_MODE
-+					| REGULATOR_CHANGE_STATUS,
-+	},
-+	.num_consumer_supplies		= ARRAY_SIZE(ldp_vaux1_supplies),
-+	.consumer_supplies		= ldp_vaux1_supplies,
-+};
-+
- static struct twl4030_platform_data ldp_twldata = {
- 	.irq_base	= TWL4030_IRQ_BASE,
- 	.irq_end	= TWL4030_IRQ_END,
-@@ -337,6 +357,7 @@ static struct twl4030_platform_data ldp_twldata = {
- 	.madc		= &ldp_madc_data,
- 	.usb		= &ldp_usb_data,
- 	.vmmc1		= &ldp_vmmc1,
-+	.vaux1		= &ldp_vaux1,
- 	.gpio		= &ldp_gpio_data,
- 	.keypad		= &ldp_kp_twl4030_data,
- };
--- 
-1.7.0.4
-
+>
+> Regards,
+> Rajendra
+>
+> >
+> > As an older 3430 dev board its lost its shine compared to 3630 and
+4430
+> dev boards.
+> >
+> > Regards,
+> > Richard W.
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-omap"
+in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
