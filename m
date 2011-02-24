@@ -1,26 +1,38 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH resend] omap: rx51: Add SI4713 FM transmitter
-Date: Thu, 24 Feb 2011 13:28:52 -0800
-Message-ID: <20110224212852.GO20560@atomide.com>
-References: <1298040354-1726-1-git-send-email-jhnikula@gmail.com>
- <1298270556-11571-1-git-send-email-jhnikula@gmail.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [patch-v2.6.39 08/12] usb: otg: OMAP4430: Introducing suspend
+ function for power management
+Date: Thu, 24 Feb 2011 13:31:43 -0800
+Message-ID: <20110224213142.GP20560@atomide.com>
+References: <1297946329-9353-1-git-send-email-balbi@ti.com>
+ <1297946329-9353-9-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:43242 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756398Ab1BXV24 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Feb 2011 16:28:56 -0500
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1298270556-11571-1-git-send-email-jhnikula@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1297946329-9353-9-git-send-email-balbi-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hema HK <hemahk-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jhnikula@gmail.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Jarkko Nikula <jhnikula@gmail.com> [110220 22:40]:
-> Add SI4713 FM transmitter supplies, platform data and setup to RX-51/N900.
+* Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> [110217 04:37]:
+> From: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
+> 
+> Introduced the suspend/resume function for the OMAP4430 internal PHY.
+> This will be used by the twl6030-usb transceiver driver.
+> Moved the clock enable/disable function calls and power on/off of the PHY
+> code from power on/off functions to suspend/resume function.
+> 
+> Pass the suspend function through board data for OMAP4430sdp and OMAP4panda.
+> This will be used by the twl6030-usb transceiver driver.
+> 
+> Signed-off-by: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
+> Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> Cc: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 
-Thanks adding to devel-board for the upcoming merge window.
-
-Tony
+Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
