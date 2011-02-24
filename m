@@ -1,71 +1,120 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: RE: State of LDP3430 platform
-Date: Thu, 24 Feb 2011 18:37:59 +0530
-Message-ID: <d4f84e20c15d28a4bd6193bb2a22820e@mail.gmail.com>
-References: <20101206125526.GC31777@n2100.arm.linux.org.uk>
- <20110212160216.GA22694@n2100.arm.linux.org.uk> <20110212161053.GA23481@n2100.arm.linux.org.uk>
- <20110223225022.GC30316@atomide.com> <13B9B4C6EF24D648824FF11BE896716203EFA5CDB2@dlee02.ent.ti.com>
- <1fb43e4e01ba5d40aec63feb9acbfecb@mail.gmail.com>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: [RFC 3/3] am35xx: pm: Hook-up with TPS65023
+Date: Thu, 24 Feb 2011 18:50:10 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024BE497E3@dbde02.ent.ti.com>
+References: <1298483913-20344-1-git-send-email-premi@ti.com>
+ <1298483913-20344-4-git-send-email-premi@ti.com>
+ <AANLkTim3X-k-0HV2wLjSSAmKHQ1kLCYW777s52TyirDU@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:41460 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751190Ab1BXNJ3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 24 Feb 2011 08:09:29 -0500
-Received: by fxm19 with SMTP id 19so560324fxm.41
-        for <linux-omap@vger.kernel.org>; Thu, 24 Feb 2011 05:09:26 -0800 (PST)
-In-Reply-To: <1fb43e4e01ba5d40aec63feb9acbfecb@mail.gmail.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43277 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752538Ab1BXNUT convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Feb 2011 08:20:19 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1ODKFqW029800
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Thu, 24 Feb 2011 07:20:18 -0600
+In-Reply-To: <AANLkTim3X-k-0HV2wLjSSAmKHQ1kLCYW777s52TyirDU@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>, Richard Woodruff <r-woodruff2@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+To: "Menon, Nishanth" <nm@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
 > -----Original Message-----
-> From: Rajendra Nayak [mailto:rnayak@ti.com]
-> Sent: Thursday, February 24, 2011 12:39 PM
-> To: Richard Woodruff; Tony Lindgren; Russell King - ARM Linux
-> Cc: linux-omap@vger.kernel.org; Paul Walmsley; Santosh Shilimkar
-> Subject: RE: State of LDP3430 platform
->
-> > -----Original Message-----
-> > From: linux-omap-owner@vger.kernel.org
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Woodruff, Richard
-> > Sent: Thursday, February 24, 2011 4:53 AM
-> > To: Tony Lindgren; Russell King - ARM Linux
-> > Cc: linux-omap@vger.kernel.org; Paul Walmsley; Shilimkar, Santosh
-> > Subject: RE: State of LDP3430 platform
+> From: Menon, Nishanth
+> Sent: Thursday, February 24, 2011 12:14 AM
+> To: Premi, Sanjeev
+> Cc: linux-omap@vger.kernel.org
+> Subject: Re: [RFC 3/3] am35xx: pm: Hook-up with TPS65023
+>=20
+> On Wed, Feb 23, 2011 at 23:28, Sanjeev Premi <premi@ti.com> wrote:
+> > Add glue logic to hook-up AM35x processors
+> > with TPS65023.
 > >
-> > > From: Tony Lindgren [mailto:tony@atomide.com]
-> > > Sent: Wednesday, February 23, 2011 4:50 PM
-> >
-> > > Anybody from TI looking into these?
-> >
-> > I'll poke some folks and check.  I've not booted my LDP for a while.
->
-> There was a regulator mapping issue on 3430SDP because of
-> which tocuhscreen was broken and is now fixed with this patch
-> http://marc.info/?l=linux-arm-kernel&m=129673276608954&w=2
-> Looks like the same issue on LDP. Will check it up.
+> > Signed-off-by: Sanjeev Premi <premi@ti.com>
+>=20
+> [...]
+> > +/**
+> > + * TBD: Just a copy of OMAP3 PMIC info.
+> > + * =A0 =A0 =A0Many fields below don't make much sense for AM3517,
+> > + * =A0 =A0 =A0but keeping them as is for now.
+> > + */
+> > +static struct omap_volt_pmic_info am3517_volt_info =3D {
+> > + =A0 =A0 =A0 .slew_rate =A0 =A0 =A0 =A0 =A0 =A0 =A0=3D 4000,
+> > + =A0 =A0 =A0 .step_size =A0 =A0 =A0 =A0 =A0 =A0 =A0=3D 25000,
+> > + =A0 =A0 =A0 .on_volt =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=3D 1200000,
+> > + =A0 =A0 =A0 .onlp_volt =A0 =A0 =A0 =A0 =A0 =A0 =A0=3D 1000000,
+> > + =A0 =A0 =A0 .ret_volt =A0 =A0 =A0 =A0 =A0 =A0 =A0 =3D 975000,
+> > + =A0 =A0 =A0 .off_volt =A0 =A0 =A0 =A0 =A0 =A0 =A0 =3D 600000,
+> > + =A0 =A0 =A0 .volt_setup_time =A0 =A0 =A0 =A0=3D 0xfff,
+> > + =A0 =A0 =A0 .vp_erroroffset =A0 =A0 =A0 =A0 =3D OMAP3_VP_CONFIG_E=
+RROROFFSET,
+> > + =A0 =A0 =A0 .vp_vstepmin =A0 =A0 =A0 =A0 =A0 =A0=3D OMAP3_VP_VSTE=
+PMIN_VSTEPMIN,
+> > + =A0 =A0 =A0 .vp_vstepmax =A0 =A0 =A0 =A0 =A0 =A0=3D OMAP3_VP_VSTE=
+PMAX_VSTEPMAX,
+> > + =A0 =A0 =A0 .vp_vddmin =A0 =A0 =A0 =A0 =A0 =A0 =A0=3D OMAP3430_VP=
+2_VLIMITTO_VDDMIN,
+> > + =A0 =A0 =A0 .vp_vddmax =A0 =A0 =A0 =A0 =A0 =A0 =A0=3D OMAP3430_VP=
+2_VLIMITTO_VDDMAX,
+> > + =A0 =A0 =A0 .vp_timeout_us =A0 =A0 =A0 =A0 =A0=3D OMAP3_VP_VLIMIT=
+TO_TIMEOUT_US,
+> > + =A0 =A0 =A0 .i2c_slave_addr =A0 =A0 =A0 =A0 =3D OMAP3_SRI2C_SLAVE=
+_ADDR,
+> > + =A0 =A0 =A0 .pmic_reg =A0 =A0 =A0 =A0 =A0 =A0 =A0 =3D OMAP3_VDD_C=
+ORE_SR_CONTROL_REG,
+> > + =A0 =A0 =A0 .vsel_to_uv =A0 =A0 =A0 =A0 =A0 =A0 =3D tps65023_vsel=
+_to_uv,
+> > + =A0 =A0 =A0 .uv_to_vsel =A0 =A0 =A0 =A0 =A0 =A0 =3D tps65023_uv_t=
+o_vsel,
+> > +};
+> I see your point in http://marc.info/?l=3Dlinux-omap&m=3D129847126805=
+656&w=3D2
+> "Check the definition of omap_volt_pmic_info and omap_volt_data.
+>=20
+> Just to "hack" support we can fill *don't care* values for the
+> fields not supported and wrap processing under if (cpu_is_....())
+> checks; but this doesn't appear to be a good solution"
+> PMIC specific data:
+> > +       .slew_rate              =3D 4000,
+> > +       .step_size              =3D 25000,
+>=20
+> SoC specific data + PMIC limits:
+> > +       .on_volt                =3D 1200000,
+> > +       .onlp_volt              =3D 1000000,
+> > +       .ret_volt               =3D 975000,
+> > +       .off_volt               =3D 600000,
+>=20
+> I dont like the following at all!
+> > +       .volt_setup_time        =3D 0xfff,
+>=20
+> SOC specific
+> > +       .vp_erroroffset         =3D OMAP3_VP_CONFIG_ERROROFFSET,
+> > +       .vp_vstepmin            =3D OMAP3_VP_VSTEPMIN_VSTEPMIN,
+> > +       .vp_vstepmax            =3D OMAP3_VP_VSTEPMAX_VSTEPMAX,
+> > +       .vp_vddmin              =3D OMAP3430_VP2_VLIMITTO_VDDMIN,
+> > +       .vp_vddmax              =3D OMAP3430_VP2_VLIMITTO_VDDMAX,
+> > +       .vp_timeout_us          =3D OMAP3_VP_VLIMITTO_TIMEOUT_US,
+>=20
+> PMIC speciic
+> > +       .i2c_slave_addr         =3D OMAP3_SRI2C_SLAVE_ADDR,
+> > +       .pmic_reg               =3D OMAP3_VDD_CORE_SR_CONTROL_REG,
+> > +       .vsel_to_uv             =3D tps65023_vsel_to_uv,
+> > +       .uv_to_vsel             =3D tps65023_uv_to_vsel,
+>=20
+> Yeah they ought to be split properly IMHO.
 
-This one should now have LDP TS working..
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg45306.html
+[sp] Gr8. Good abstraction of PMIC functions and SoC functions
+     related to VC/PC would be necessary. More importantly
+     keeping the interfaces pluggable for different PMICs.
 
->
-> Regards,
-> Rajendra
->
-> >
-> > As an older 3430 dev board its lost its shine compared to 3630 and
-4430
-> dev boards.
-> >
-> > Regards,
-> > Richard W.
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-omap"
-in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+~sanjeev
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
