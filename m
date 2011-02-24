@@ -1,45 +1,39 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] Adding help for FB_OMAP_LCD_VGA option
-Date: Thu, 24 Feb 2011 16:38:08 +0200
-Message-ID: <1298558288.16119.97.camel@deskari>
-References: <1298540357-30365-1-git-send-email-mayur@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: Keerthy <j-keerthy@ti.com>
+Subject: [PATCH 0/2 v2] twl4030-madc driver
+Date: Thu, 24 Feb 2011 20:47:41 +0530
+Message-ID: <1298560661-18749-1-git-send-email-j-keerthy@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:57210 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755608Ab1BXOiL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 24 Feb 2011 09:38:11 -0500
-Received: from dlep36.itg.ti.com ([157.170.170.91])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1OEcAt0031913
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 24 Feb 2011 08:38:10 -0600
-Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
-	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id p1OEcAUc021068
-	for <linux-omap@vger.kernel.org>; Thu, 24 Feb 2011 08:38:10 -0600 (CST)
-Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p1OEcAmO012139
-	for <linux-omap@vger.kernel.org>; Thu, 24 Feb 2011 08:38:10 -0600 (CST)
-In-Reply-To: <1298540357-30365-1-git-send-email-mayur@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:54130 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754260Ab1BXPS4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Feb 2011 10:18:56 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Janorkar, Mayuresh" <mayur@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: lm-sensors@lm-sensors.org, guenter.roeck@ericsson.com, sameo@linux.intel.com, khali@linux-fr.org
+Cc: mikko.k.ylinen@nokia.com, amit.kucheria@canonical.com, linux-omap@vger.kernel.org, j-keerthy@ti.com
 
-On Thu, 2011-02-24 at 03:39 -0600, Janorkar, Mayuresh wrote:
-> CONFIG_FB_OMAP_LCD_VGA option is present in drivers/video/omap
-> There is no explaination about what this flag does.
-> Lets add information about it.
-> 
-> FB_OMAP_LCD_VGA flag sets resolution of display to VGA (640 X 480).
-> The default resolution of 3430 LDP is 320 X 240.
+MADC(Monitoring ADC) driver enables monitoring analog signals using
+analog-to-digital conversion (ADC) on the input source.
+The previous discussion concluded in keeping the generic ADC
+functionality and the hwmon separate. The discussion can be found here:
 
-Looks fine to me. I'll apply to my tree.
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg41805.html
 
-In the long run let's try to port the LCD drivers to the new display
-subsystem driver, and remove hacky Kconfigs like this =).
+Keerthy (2):
+  mfd: twl4030: Driver for twl4030 madc module
+  hwmon: twl4030: Hwmon Driver for TWL4030 MADC
 
- Tomi
-
+ Documentation/hwmon/twl4030-madc-hwmon |   45 ++
+ drivers/hwmon/Kconfig                  |   10 +
+ drivers/hwmon/Makefile                 |    1 +
+ drivers/hwmon/twl4030-madc-hwmon.c     |  153 ++++++
+ drivers/mfd/Kconfig                    |   10 +
+ drivers/mfd/Makefile                   |    1 +
+ drivers/mfd/twl4030-madc.c             |  815 ++++++++++++++++++++++++++++++++
+ include/linux/i2c/twl4030-madc.h       |  142 ++++++
+ 8 files changed, 1177 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/hwmon/twl4030-madc-hwmon
+ create mode 100644 drivers/hwmon/twl4030-madc-hwmon.c
+ create mode 100644 drivers/mfd/twl4030-madc.c
+ create mode 100644 include/linux/i2c/twl4030-madc.h
 
