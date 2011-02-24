@@ -1,62 +1,79 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [024/115] USB: prevent buggy hubs from crashing the USB stack
-Date: Thu, 24 Feb 2011 19:23:27 +0200
-Message-ID: <20110224172327.GF3528@legolas.emea.dhcp.ti.com>
-References: <4D64C81B.5060807@ahsoftware.de>
- <Pine.LNX.4.44L0.1102231021210.2233-100000@iolanthe.rowland.org>
- <20110224085735.GD3528@legolas.emea.dhcp.ti.com>
- <4D6621AB.10205@ahsoftware.de>
- <20110224091638.GH3528@legolas.emea.dhcp.ti.com>
- <20110224171814.GA8376@suse.de>
-Reply-To: balbi@ti.com
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] omap4: Fix ULPI PHY init for ES1.0 SDP (Re: 4430SDP
+ boot failure)
+Date: Thu, 24 Feb 2011 09:38:40 -0800
+Message-ID: <20110224173840.GC20560@atomide.com>
+References: <20110106204053.GA7771@atomide.com>
+ <20110107161230.GR1198@n2100.arm.linux.org.uk>
+ <20110110185209.GC4957@atomide.com>
+ <20110111231611.GX4957@atomide.com>
+ <3c13ae6d9e13b94548bfcaaced7681e8@mail.gmail.com>
+ <20110202011006.GP3358@atomide.com>
+ <81ed58d7158cfa16007e141d0ac1f74c@mail.gmail.com>
+ <20110202194855.GA3322@atomide.com>
+ <cace62268ad657586f07ecbb0e6a99ab@mail.gmail.com>
+ <84fafb82318b1287513d198c6535eb59@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:59780 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751852Ab1BXRXk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 24 Feb 2011 12:23:40 -0500
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:24148 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752573Ab1BXRis (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Feb 2011 12:38:48 -0500
 Content-Disposition: inline
-In-Reply-To: <20110224171814.GA8376@suse.de>
+In-Reply-To: <84fafb82318b1287513d198c6535eb59@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Greg KH <gregkh@suse.de>
-Cc: Felipe Balbi <balbi@ti.com>, Alexander Holler <holler@ahsoftware.de>, Alan Stern <stern@rowland.harvard.edu>, Michael Jones <michael.jones@matrix-vision.de>, Kernel development list <linux-kernel@vger.kernel.org>, stable@kernel.org, stable-review@kernel.org, torvalds@linux-foundation.org, Andrew Morton <akpm@linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, USB list <linux-usb@vger.kernel.org>, linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Anand Gadiyar <gadiyar@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Keshava Munegowda <keshava_mgowda@ti.com>, Felipe Balbi <balbi@ti.com>
 
-On Thu, Feb 24, 2011 at 09:18:14AM -0800, Greg KH wrote:
-> On Thu, Feb 24, 2011 at 11:16:38AM +0200, Felipe Balbi wrote:
-> > Hi,
-> > 
-> > On Thu, Feb 24, 2011 at 10:15:23AM +0100, Alexander Holler wrote:
-> > > >On Wed, Feb 23, 2011 at 10:26:20AM -0500, Alan Stern wrote:
-> > > >>In both cases, it appears that the problem is caused by the fact that
-> > > >>the musb host-controller driver doesn't set the hcd->has_tt flag.
-> > > >>
-> > > >>Felipe, you should know where it belongs.  It should be easy enough to
-> > > >>add.
-> > > >
-> > > >Sure Alan, it's attached to this mail. Compile tested only though.
-> > > >Michael, would you care to give your tested-by ?
-> > > 
-> > > I can do, I'm using exactly the same patch since yesterday. ;)
-> > > 
-> > > Tested-by: Alexander Holler <holler@ahsoftware.de>
-> > 
-> > Thanks a lot Alex, Greg, can you still take this to -rc ? Do you need a
-> > pull request or you can take this one patch ?
+* Santosh Shilimkar <santosh.shilimkar@ti.com> [110212 00:45]:
+> Tony,
+> > -----Original Message-----
+> > From: Santosh Shilimkar [mailto:santosh.shilimkar@ti.com]
+> > Sent: Thursday, February 03, 2011 2:13 PM
+> > To: Tony Lindgren
+> > Cc: Anand Gadiyar; Russell King - ARM Linux; linux-arm-
+> > kernel@lists.infradead.org; linux-omap@vger.kernel.org; Keshava
+> > Munegowda; Felipe Balbi
+> > Subject: RE: [PATCH] omap4: Fix ULPI PHY init for ES1.0 SDP (Re:
+> > 4430SDP boot failure)
+> >
+> > > -----Original Message-----
+> > > From: Tony Lindgren [mailto:tony@atomide.com]
+> > > Sent: Thursday, February 03, 2011 1:19 AM
+> > > To: Santosh Shilimkar
+> > > Cc: Anand Gadiyar; Russell King - ARM Linux; linux-arm-
+> > > kernel@lists.infradead.org; linux-omap@vger.kernel.org; Keshava
+> > > Munegowda; Felipe Balbi
+> > > Subject: Re: [PATCH] omap4: Fix ULPI PHY init for ES1.0 SDP (Re:
+> > > 4430SDP boot failure)
+> > >
+> > > * Santosh Shilimkar <santosh.shilimkar@ti.com> [110201 22:04]:
+> > > > >
+> > > > > It's a ES1.0 blaze, with the patch below it reboots early
+> > > > > during the boot. I also have to disable omap_l2_cache_init
+> > > > > on this board to get it to boot.
+> > > > >
+> > > > Do you still get this problem with 'omap_l2_cache_init' ?
+> > > > As reported earlier, we don't see this issue on ES1.0
+> > > > SDP.
+> > >
+> > > Yeah I do, it rarely makes it to the userspace. Works reliably
+> > > if I disable omap_l2_cache_init.
+> > >
+> > Ok. I shall try few experiments and try to reproduce it
 > 
-> Wait, where does this need to go?  For the final 2.6.38 release and then
-> also for .37-stable?
-> 
-> Or just .37-stable?
-> 
-> confused.
-> 
-> And no, I don't need a pull request, I can handle one patch through
-> email :)
+> Not sure if it's the same issue but I managed to reproduce the
+> issue on ES2.0 itself. And after some experiments, it boiled
+> down to the V6 and V7 issue. By disabling OMAP2 from the build,
+> everything was fine again.
 
-final .38 and .37-stable :-) Thanks Greg :-)
+Was this with linux-omap master branch or mainline?
 
--- 
-balbi
+The V6 vs V7 issues should be sorted out with Russell's patches that
+we also have now in linux-omap master branch.
+
+Regards,
+
+Tony
