@@ -1,680 +1,161 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH v4 08/13] OMAP2+: McBSP: hwmod adaptation for McBSP
-Date: Thu, 24 Feb 2011 15:16:52 +0530
-Message-ID: <1298540817-15874-9-git-send-email-kishon@ti.com>
+Subject: [PATCH v4 10/13] OMAP: McBSP: Add pm runtime support
+Date: Thu, 24 Feb 2011 15:16:54 +0530
+Message-ID: <1298540817-15874-11-git-send-email-kishon@ti.com>
 References: <1298540817-15874-1-git-send-email-kishon@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:42207 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756100Ab1BXJwi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 24 Feb 2011 04:52:38 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:36671 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932172Ab1BXJwm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Feb 2011 04:52:42 -0500
 In-Reply-To: <1298540817-15874-1-git-send-email-kishon@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, b-cousson@ti.com, tony@atomide.com, broonie@opensource.wolfsonmicro.com, jhnikula@gmail.com, peter.ujfalusi@nokia.com
 Cc: p-basak2@ti.com, kishon@ti.com, charu@ti.com, shubhrajyoti@ti.com
 
-Modify OMAP2+ McBSP to use omap hwmod framework APIs
+Add pm runtime support for McBSP driver.
+Reference to fclk is not removed because it is required when the
+functional clock is switched from one source to another.
 
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-Signed-off-by: Charulatha V <charu@ti.com>
-Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
 Acked-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
 Acked-by: Jarkko Nikula <jhnikula@gmail.com>
 Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
 ---
- arch/arm/mach-omap2/mcbsp.c             |  595 +++----------------------------
- arch/arm/plat-omap/include/plat/mcbsp.h |    2 +-
- 2 files changed, 46 insertions(+), 551 deletions(-)
+ arch/arm/mach-omap2/mcbsp.c             |    5 +++--
+ arch/arm/plat-omap/include/plat/mcbsp.h |    1 -
+ arch/arm/plat-omap/mcbsp.c              |   23 ++++++-----------------
+ 3 files changed, 9 insertions(+), 20 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/mcbsp.c b/arch/arm/mach-omap2/mcbsp.c
-index 765ebe7..275d6cf 100644
+index 275d6cf..4ada6a9 100644
 --- a/arch/arm/mach-omap2/mcbsp.c
 +++ b/arch/arm/mach-omap2/mcbsp.c
-@@ -22,10 +22,10 @@
- #include <plat/dma.h>
+@@ -23,6 +23,7 @@
  #include <plat/cpu.h>
  #include <plat/mcbsp.h>
-+#include <plat/omap_device.h>
+ #include <plat/omap_device.h>
++#include <linux/pm_runtime.h>
  
  #include "control.h"
  
--
- /* McBSP internal signal muxing functions */
+@@ -83,7 +84,7 @@ int omap2_mcbsp_set_clks_src(u8 id, u8 fck_src_id)
+ 		return -EINVAL;
+ 	}
  
- void omap2_mcbsp1_mux_clkr_src(u8 mux)
-@@ -101,573 +101,68 @@ int omap2_mcbsp_set_clks_src(u8 id, u8 fck_src_id)
- }
- EXPORT_SYMBOL(omap2_mcbsp_set_clks_src);
+-	clk_disable(mcbsp->fclk);
++	pm_runtime_put_sync(mcbsp->dev);
  
--
--/* Platform data */
--
--#ifdef CONFIG_SOC_OMAP2420
--struct resource omap2420_mcbsp_res[][6] = {
-+struct omap_device_pm_latency omap2_mcbsp_latency[] = {
- 	{
--		{
--			.start = OMAP24XX_MCBSP1_BASE,
--			.end   = OMAP24XX_MCBSP1_BASE + SZ_256,
--			.flags = IORESOURCE_MEM,
--		},
--		{
--			.name  = "rx",
--			.start = INT_24XX_MCBSP1_IRQ_RX,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "tx",
--			.start = INT_24XX_MCBSP1_IRQ_TX,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "rx",
--			.start = OMAP24XX_DMA_MCBSP1_RX,
--			.flags = IORESOURCE_DMA,
--		},
--		{
--			.name  = "tx",
--			.start = OMAP24XX_DMA_MCBSP1_TX,
--			.flags = IORESOURCE_DMA,
--		},
--	},
--	{
--		{
--			.start = OMAP24XX_MCBSP2_BASE,
--			.end   = OMAP24XX_MCBSP2_BASE + SZ_256,
--			.flags = IORESOURCE_MEM,
--		},
--		{
--			.name  = "rx",
--			.start = INT_24XX_MCBSP2_IRQ_RX,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "tx",
--			.start = INT_24XX_MCBSP2_IRQ_TX,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "rx",
--			.start = OMAP24XX_DMA_MCBSP2_RX,
--			.flags = IORESOURCE_DMA,
--		},
--		{
--			.name  = "tx",
--			.start = OMAP24XX_DMA_MCBSP2_TX,
--			.flags = IORESOURCE_DMA,
--		},
-+		.deactivate_func = omap_device_idle_hwmods,
-+		.activate_func   = omap_device_enable_hwmods,
-+		.flags = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
- 	},
- };
--#define OMAP2420_MCBSP_RES_SZ		ARRAY_SIZE(omap2420_mcbsp_res[1])
--#define OMAP2420_MCBSP_COUNT		ARRAY_SIZE(omap2420_mcbsp_res)
--#else
--#define omap2420_mcbsp_res		NULL
--#define OMAP2420_MCBSP_RES_SZ		0
--#define OMAP2420_MCBSP_COUNT		0
--#endif
+ 	r = clk_set_parent(mcbsp->fclk, fck_src);
+ 	if (IS_ERR_VALUE(r)) {
+@@ -93,7 +94,7 @@ int omap2_mcbsp_set_clks_src(u8 id, u8 fck_src_id)
+ 		return -EINVAL;
+ 	}
  
--#define omap2420_mcbsp_pdata		NULL
-+static int omap_init_mcbsp(struct omap_hwmod *oh, void *unused)
-+{
-+	int id, count = 1;
-+	char *name = "omap-mcbsp";
-+	struct omap_hwmod *oh_device[2];
-+	struct omap_mcbsp_platform_data *pdata = NULL;
-+	struct omap_device *od;
+-	clk_enable(mcbsp->fclk);
++	pm_runtime_get_sync(mcbsp->dev);
  
--#ifdef CONFIG_SOC_OMAP2430
--struct resource omap2430_mcbsp_res[][6] = {
--	{
--		{
--			.start = OMAP24XX_MCBSP1_BASE,
--			.end   = OMAP24XX_MCBSP1_BASE + SZ_256,
--			.flags = IORESOURCE_MEM,
--		},
--		{
--			.name  = "rx",
--			.start = INT_24XX_MCBSP1_IRQ_RX,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "tx",
--			.start = INT_24XX_MCBSP1_IRQ_TX,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "rx",
--			.start = OMAP24XX_DMA_MCBSP1_RX,
--			.flags = IORESOURCE_DMA,
--		},
--		{
--			.name  = "tx",
--			.start = OMAP24XX_DMA_MCBSP1_TX,
--			.flags = IORESOURCE_DMA,
--		},
--	},
--	{
--		{
--			.start = OMAP24XX_MCBSP2_BASE,
--			.end   = OMAP24XX_MCBSP2_BASE + SZ_256,
--			.flags = IORESOURCE_MEM,
--		},
--		{
--			.name  = "rx",
--			.start = INT_24XX_MCBSP2_IRQ_RX,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "tx",
--			.start = INT_24XX_MCBSP2_IRQ_TX,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "rx",
--			.start = OMAP24XX_DMA_MCBSP2_RX,
--			.flags = IORESOURCE_DMA,
--		},
--		{
--			.name  = "tx",
--			.start = OMAP24XX_DMA_MCBSP2_TX,
--			.flags = IORESOURCE_DMA,
--		},
--	},
--	{
--		{
--			.start = OMAP2430_MCBSP3_BASE,
--			.end   = OMAP2430_MCBSP3_BASE + SZ_256,
--			.flags = IORESOURCE_MEM,
--		},
--		{
--			.name  = "rx",
--			.start = INT_24XX_MCBSP3_IRQ_RX,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "tx",
--			.start = INT_24XX_MCBSP3_IRQ_TX,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "rx",
--			.start = OMAP24XX_DMA_MCBSP3_RX,
--			.flags = IORESOURCE_DMA,
--		},
--		{
--			.name  = "tx",
--			.start = OMAP24XX_DMA_MCBSP3_TX,
--			.flags = IORESOURCE_DMA,
--		},
--	},
--	{
--		{
--			.start = OMAP2430_MCBSP4_BASE,
--			.end   = OMAP2430_MCBSP4_BASE + SZ_256,
--			.flags = IORESOURCE_MEM,
--		},
--		{
--			.name  = "rx",
--			.start = INT_24XX_MCBSP4_IRQ_RX,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "tx",
--			.start = INT_24XX_MCBSP4_IRQ_TX,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "rx",
--			.start = OMAP24XX_DMA_MCBSP4_RX,
--			.flags = IORESOURCE_DMA,
--		},
--		{
--			.name  = "tx",
--			.start = OMAP24XX_DMA_MCBSP4_TX,
--			.flags = IORESOURCE_DMA,
--		},
--	},
--	{
--		{
--			.start = OMAP2430_MCBSP5_BASE,
--			.end   = OMAP2430_MCBSP5_BASE + SZ_256,
--			.flags = IORESOURCE_MEM,
--		},
--		{
--			.name  = "rx",
--			.start = INT_24XX_MCBSP5_IRQ_RX,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "tx",
--			.start = INT_24XX_MCBSP5_IRQ_TX,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "rx",
--			.start = OMAP24XX_DMA_MCBSP5_RX,
--			.flags = IORESOURCE_DMA,
--		},
--		{
--			.name  = "tx",
--			.start = OMAP24XX_DMA_MCBSP5_TX,
--			.flags = IORESOURCE_DMA,
--		},
--	},
--};
--#define OMAP2430_MCBSP_RES_SZ		ARRAY_SIZE(omap2430_mcbsp_res[1])
--#define OMAP2430_MCBSP_COUNT		ARRAY_SIZE(omap2430_mcbsp_res)
--#else
--#define omap2430_mcbsp_res		NULL
--#define OMAP2430_MCBSP_RES_SZ		0
--#define OMAP2430_MCBSP_COUNT		0
--#endif
-+	sscanf(oh->name, "mcbsp%d", &id);
+ 	clk_put(fck_src);
  
--#define omap2430_mcbsp_pdata		NULL
-+	pdata = kzalloc(sizeof(struct omap_mcbsp_platform_data), GFP_KERNEL);
-+	if (!pdata) {
-+		pr_err("%s: No memory for mcbsp\n", __func__);
-+		return -ENOMEM;
-+	}
- 
--#ifdef CONFIG_ARCH_OMAP3
--struct resource omap34xx_mcbsp_res[][7] = {
--	{
--		{
--			.start = OMAP34XX_MCBSP1_BASE,
--			.end   = OMAP34XX_MCBSP1_BASE + SZ_256,
--			.flags = IORESOURCE_MEM,
--		},
--		{
--			.name  = "rx",
--			.start = INT_24XX_MCBSP1_IRQ_RX,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "tx",
--			.start = INT_24XX_MCBSP1_IRQ_TX,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "rx",
--			.start = OMAP24XX_DMA_MCBSP1_RX,
--			.flags = IORESOURCE_DMA,
--		},
--		{
--			.name  = "tx",
--			.start = OMAP24XX_DMA_MCBSP1_TX,
--			.flags = IORESOURCE_DMA,
--		},
--	},
--	{
--		{
--			.start = OMAP34XX_MCBSP2_BASE,
--			.end   = OMAP34XX_MCBSP2_BASE + SZ_256,
--			.flags = IORESOURCE_MEM,
--		},
--		{
--			.name  = "sidetone",
--			.start = OMAP34XX_MCBSP2_ST_BASE,
--			.end   = OMAP34XX_MCBSP2_ST_BASE + SZ_256,
--			.flags = IORESOURCE_MEM,
--		},
--		{
--			.name  = "rx",
--			.start = INT_24XX_MCBSP2_IRQ_RX,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "tx",
--			.start = INT_24XX_MCBSP2_IRQ_TX,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "rx",
--			.start = OMAP24XX_DMA_MCBSP2_RX,
--			.flags = IORESOURCE_DMA,
--		},
--		{
--			.name  = "tx",
--			.start = OMAP24XX_DMA_MCBSP2_TX,
--			.flags = IORESOURCE_DMA,
--		},
--	},
--	{
--		{
--			.start = OMAP34XX_MCBSP3_BASE,
--			.end   = OMAP34XX_MCBSP3_BASE + SZ_256,
--			.flags = IORESOURCE_MEM,
--		},
--		{
--			.name  = "sidetone",
--			.start = OMAP34XX_MCBSP3_ST_BASE,
--			.end   = OMAP34XX_MCBSP3_ST_BASE + SZ_256,
--			.flags = IORESOURCE_MEM,
--		},
--		{
--			.name  = "rx",
--			.start = INT_24XX_MCBSP3_IRQ_RX,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "tx",
--			.start = INT_24XX_MCBSP3_IRQ_TX,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "rx",
--			.start = OMAP24XX_DMA_MCBSP3_RX,
--			.flags = IORESOURCE_DMA,
--		},
--		{
--			.name  = "tx",
--			.start = OMAP24XX_DMA_MCBSP3_TX,
--			.flags = IORESOURCE_DMA,
--		},
--	},
--	{
--		{
--			.start = OMAP34XX_MCBSP4_BASE,
--			.end   = OMAP34XX_MCBSP4_BASE + SZ_256,
--			.flags = IORESOURCE_MEM,
--		},
--		{
--			.name  = "rx",
--			.start = INT_24XX_MCBSP4_IRQ_RX,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "tx",
--			.start = INT_24XX_MCBSP4_IRQ_TX,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "rx",
--			.start = OMAP24XX_DMA_MCBSP4_RX,
--			.flags = IORESOURCE_DMA,
--		},
--		{
--			.name  = "tx",
--			.start = OMAP24XX_DMA_MCBSP4_TX,
--			.flags = IORESOURCE_DMA,
--		},
--	},
--	{
--		{
--			.start = OMAP34XX_MCBSP5_BASE,
--			.end   = OMAP34XX_MCBSP5_BASE + SZ_256,
--			.flags = IORESOURCE_MEM,
--		},
--		{
--			.name  = "rx",
--			.start = INT_24XX_MCBSP5_IRQ_RX,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "tx",
--			.start = INT_24XX_MCBSP5_IRQ_TX,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "rx",
--			.start = OMAP24XX_DMA_MCBSP5_RX,
--			.flags = IORESOURCE_DMA,
--		},
--		{
--			.name  = "tx",
--			.start = OMAP24XX_DMA_MCBSP5_TX,
--			.flags = IORESOURCE_DMA,
--		},
--	},
--};
-+	if (oh->class->rev == MCBSP_CONFIG_TYPE3) {
-+		if (id == 2)
-+			/* The FIFO has 1024 + 256 locations */
-+			pdata->buffer_size = 0x500;
-+		else
-+			/* The FIFO has 128 locations */
-+			pdata->buffer_size = 0x80;
-+	}
- 
--static struct omap_mcbsp_platform_data omap34xx_mcbsp_pdata[] = {
--	{
--		.buffer_size	= 0x80, /* The FIFO has 128 locations */
--	},
--	{
--		.buffer_size	= 0x500, /* The FIFO has 1024 + 256 locations */
--	},
--	{
--		.buffer_size	= 0x80, /* The FIFO has 128 locations */
--	},
--	{
--		.buffer_size	= 0x80, /* The FIFO has 128 locations */
--	},
--	{
--		.buffer_size	= 0x80, /* The FIFO has 128 locations */
--	},
--};
--#define OMAP34XX_MCBSP_RES_SZ		ARRAY_SIZE(omap34xx_mcbsp_res[1])
--#define OMAP34XX_MCBSP_COUNT		ARRAY_SIZE(omap34xx_mcbsp_res)
--#else
--#define omap34xx_mcbsp_pdata		NULL
--#define omap34XX_mcbsp_res		NULL
--#define OMAP34XX_MCBSP_RES_SZ		0
--#define OMAP34XX_MCBSP_COUNT		0
--#endif
-+	oh_device[0] = oh;
- 
--struct resource omap44xx_mcbsp_res[][6] = {
--	{
--		{
--			.name  = "mpu",
--			.start = OMAP44XX_MCBSP1_BASE,
--			.end   = OMAP44XX_MCBSP1_BASE + SZ_256,
--			.flags = IORESOURCE_MEM,
--		},
--		{
--			.name  = "dma",
--			.start = OMAP44XX_MCBSP1_DMA_BASE,
--			.end   = OMAP44XX_MCBSP1_DMA_BASE + SZ_256,
--			.flags = IORESOURCE_MEM,
--		},
--		{
--			.name  = "rx",
--			.start = 0,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "tx",
--			.start = OMAP44XX_IRQ_MCBSP1,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "rx",
--			.start = OMAP44XX_DMA_MCBSP1_RX,
--			.flags = IORESOURCE_DMA,
--		},
--		{
--			.name  = "tx",
--			.start = OMAP44XX_DMA_MCBSP1_TX,
--			.flags = IORESOURCE_DMA,
--		},
--	},
--	{
--		{
--			.name  = "mpu",
--			.start = OMAP44XX_MCBSP2_BASE,
--			.end   = OMAP44XX_MCBSP2_BASE + SZ_256,
--			.flags = IORESOURCE_MEM,
--		},
--		{
--			.name  = "dma",
--			.start = OMAP44XX_MCBSP2_DMA_BASE,
--			.end   = OMAP44XX_MCBSP2_DMA_BASE + SZ_256,
--			.flags = IORESOURCE_MEM,
--		},
--		{
--			.name  = "rx",
--			.start = 0,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "tx",
--			.start = OMAP44XX_IRQ_MCBSP2,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "rx",
--			.start = OMAP44XX_DMA_MCBSP2_RX,
--			.flags = IORESOURCE_DMA,
--		},
--		{
--			.name  = "tx",
--			.start = OMAP44XX_DMA_MCBSP2_TX,
--			.flags = IORESOURCE_DMA,
--		},
--	},
--	{
--		{
--			.name  = "mpu",
--			.start = OMAP44XX_MCBSP3_BASE,
--			.end   = OMAP44XX_MCBSP3_BASE + SZ_256,
--			.flags = IORESOURCE_MEM,
--		},
--		{
--			.name  = "dma",
--			.start = OMAP44XX_MCBSP3_DMA_BASE,
--			.end   = OMAP44XX_MCBSP3_DMA_BASE + SZ_256,
--			.flags = IORESOURCE_MEM,
--		},
--		{
--			.name  = "rx",
--			.start = 0,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "tx",
--			.start = OMAP44XX_IRQ_MCBSP3,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "rx",
--			.start = OMAP44XX_DMA_MCBSP3_RX,
--			.flags = IORESOURCE_DMA,
--		},
--		{
--			.name  = "tx",
--			.start = OMAP44XX_DMA_MCBSP3_TX,
--			.flags = IORESOURCE_DMA,
--		},
--	},
--	{
--		{
--			.start = OMAP44XX_MCBSP4_BASE,
--			.end   = OMAP44XX_MCBSP4_BASE + SZ_256,
--			.flags = IORESOURCE_MEM,
--		},
--		{
--			.name  = "rx",
--			.start = 0,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "tx",
--			.start = OMAP44XX_IRQ_MCBSP4,
--			.flags = IORESOURCE_IRQ,
--		},
--		{
--			.name  = "rx",
--			.start = OMAP44XX_DMA_MCBSP4_RX,
--			.flags = IORESOURCE_DMA,
--		},
--		{
--			.name  = "tx",
--			.start = OMAP44XX_DMA_MCBSP4_TX,
--			.flags = IORESOURCE_DMA,
--		},
--	},
--};
--#define omap44xx_mcbsp_pdata		NULL
--#define OMAP44XX_MCBSP_RES_SZ		ARRAY_SIZE(omap44xx_mcbsp_res[1])
--#define OMAP44XX_MCBSP_COUNT		ARRAY_SIZE(omap44xx_mcbsp_res)
-+	if (oh->dev_attr) {
-+		oh_device[1] = omap_hwmod_lookup((
-+		(struct omap_mcbsp_dev_attr *)(oh->dev_attr))->sidetone);
-+		count++;
-+	}
-+	od = omap_device_build_ss(name, id, oh_device, count, pdata,
-+				sizeof(*pdata), omap2_mcbsp_latency,
-+				ARRAY_SIZE(omap2_mcbsp_latency), false);
-+	kfree(pdata);
-+	if (IS_ERR(od))  {
-+		pr_err("%s: Cant build omap_device for %s:%s.\n", __func__,
-+					name, oh->name);
-+		return PTR_ERR(od);
-+	}
-+	omap_mcbsp_count++;
-+	return 0;
-+}
- 
- static int __init omap2_mcbsp_init(void)
- {
--	if (cpu_is_omap2420())
--		omap_mcbsp_count = OMAP2420_MCBSP_COUNT;
--	else if (cpu_is_omap2430())
--		omap_mcbsp_count = OMAP2430_MCBSP_COUNT;
--	else if (cpu_is_omap34xx())
--		omap_mcbsp_count = OMAP34XX_MCBSP_COUNT;
--	else if (cpu_is_omap44xx())
--		omap_mcbsp_count = OMAP44XX_MCBSP_COUNT;
-+	omap_hwmod_for_each_by_class("mcbsp", omap_init_mcbsp, NULL);
- 
- 	mcbsp_ptr = kzalloc(omap_mcbsp_count * sizeof(struct omap_mcbsp *),
- 								GFP_KERNEL);
- 	if (!mcbsp_ptr)
- 		return -ENOMEM;
- 
--	if (cpu_is_omap2420())
--		omap_mcbsp_register_board_cfg(omap2420_mcbsp_res[0],
--					OMAP2420_MCBSP_RES_SZ,
--					omap2420_mcbsp_pdata,
--					OMAP2420_MCBSP_COUNT);
--	if (cpu_is_omap2430())
--		omap_mcbsp_register_board_cfg(omap2430_mcbsp_res[0],
--					OMAP2420_MCBSP_RES_SZ,
--					omap2430_mcbsp_pdata,
--					OMAP2430_MCBSP_COUNT);
--	if (cpu_is_omap34xx())
--		omap_mcbsp_register_board_cfg(omap34xx_mcbsp_res[0],
--					OMAP34XX_MCBSP_RES_SZ,
--					omap34xx_mcbsp_pdata,
--					OMAP34XX_MCBSP_COUNT);
--	if (cpu_is_omap44xx())
--		omap_mcbsp_register_board_cfg(omap44xx_mcbsp_res[0],
--					OMAP44XX_MCBSP_RES_SZ,
--					omap44xx_mcbsp_pdata,
--					OMAP44XX_MCBSP_COUNT);
--
- 	return omap_mcbsp_init();
- }
- arch_initcall(omap2_mcbsp_init);
 diff --git a/arch/arm/plat-omap/include/plat/mcbsp.h b/arch/arm/plat-omap/include/plat/mcbsp.h
-index 1fe0637..c6cabfc 100644
+index c6cabfc..964a940 100644
 --- a/arch/arm/plat-omap/include/plat/mcbsp.h
 +++ b/arch/arm/plat-omap/include/plat/mcbsp.h
-@@ -421,8 +421,8 @@ struct omap_mcbsp_platform_data {
+@@ -465,7 +465,6 @@ struct omap_mcbsp {
+ 	/* Protect the field .free, while checking if the mcbsp is in use */
+ 	spinlock_t lock;
+ 	struct omap_mcbsp_platform_data *pdata;
+-	struct clk *iclk;
+ 	struct clk *fclk;
  #ifdef CONFIG_ARCH_OMAP3
- 	/* Sidetone block for McBSP 2 and 3 */
- 	unsigned long phys_base_st;
--	u16 buffer_size;
- #endif
-+	u16 buffer_size;
- };
+ 	struct omap_mcbsp_st_data *st_data;
+diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
+index 30683ce..b1b0a06 100644
+--- a/arch/arm/plat-omap/mcbsp.c
++++ b/arch/arm/plat-omap/mcbsp.c
+@@ -28,6 +28,7 @@
+ #include <plat/dma.h>
+ #include <plat/mcbsp.h>
+ #include <plat/omap_device.h>
++#include <linux/pm_runtime.h>
  
- struct omap_mcbsp_st_data {
+ /* XXX These "sideways" includes are a sign that something is wrong */
+ #include "../mach-omap2/cm2xxx_3xxx.h"
+@@ -770,8 +771,7 @@ int omap_mcbsp_request(unsigned int id)
+ 	if (mcbsp->pdata && mcbsp->pdata->ops && mcbsp->pdata->ops->request)
+ 		mcbsp->pdata->ops->request(id);
+ 
+-	clk_enable(mcbsp->iclk);
+-	clk_enable(mcbsp->fclk);
++	pm_runtime_get_sync(mcbsp->dev);
+ 
+ 	/* Do procedure specific to omap34xx arch, if applicable */
+ 	omap34xx_mcbsp_request(mcbsp);
+@@ -819,8 +819,7 @@ err_clk_disable:
+ 	/* Do procedure specific to omap34xx arch, if applicable */
+ 	omap34xx_mcbsp_free(mcbsp);
+ 
+-	clk_disable(mcbsp->fclk);
+-	clk_disable(mcbsp->iclk);
++	pm_runtime_put_sync(mcbsp->dev);
+ 
+ 	spin_lock(&mcbsp->lock);
+ 	mcbsp->free = true;
+@@ -850,8 +849,7 @@ void omap_mcbsp_free(unsigned int id)
+ 	/* Do procedure specific to omap34xx arch, if applicable */
+ 	omap34xx_mcbsp_free(mcbsp);
+ 
+-	clk_disable(mcbsp->fclk);
+-	clk_disable(mcbsp->iclk);
++	pm_runtime_put_sync(mcbsp->dev);
+ 
+ 	if (mcbsp->io_type == OMAP_MCBSP_IRQ_IO) {
+ 		/* Free IRQs */
+@@ -1840,32 +1838,24 @@ static int __devinit omap_mcbsp_probe(struct platform_device *pdev)
+ 	}
+ 	mcbsp->dma_tx_sync = res->start;
+ 
+-	mcbsp->iclk = clk_get(&pdev->dev, "ick");
+-	if (IS_ERR(mcbsp->iclk)) {
+-		ret = PTR_ERR(mcbsp->iclk);
+-		dev_err(&pdev->dev, "unable to get ick: %d\n", ret);
+-		goto err_res;
+-	}
+-
+ 	mcbsp->fclk = clk_get(&pdev->dev, "fck");
+ 	if (IS_ERR(mcbsp->fclk)) {
+ 		ret = PTR_ERR(mcbsp->fclk);
+ 		dev_err(&pdev->dev, "unable to get fck: %d\n", ret);
+-		goto err_fclk;
++		goto err_res;
+ 	}
+ 
+ 	mcbsp->pdata = pdata;
+ 	mcbsp->dev = &pdev->dev;
+ 	mcbsp_ptr[id] = mcbsp;
+ 	platform_set_drvdata(pdev, mcbsp);
++	pm_runtime_enable(mcbsp->dev);
+ 
+ 	/* Initialize mcbsp properties for OMAP34XX if needed / applicable */
+ 	omap34xx_device_init(mcbsp);
+ 
+ 	return 0;
+ 
+-err_fclk:
+-	clk_put(mcbsp->iclk);
+ err_res:
+ 	iounmap(mcbsp->io_base);
+ err_ioremap:
+@@ -1888,7 +1878,6 @@ static int __devexit omap_mcbsp_remove(struct platform_device *pdev)
+ 		omap34xx_device_exit(mcbsp);
+ 
+ 		clk_put(mcbsp->fclk);
+-		clk_put(mcbsp->iclk);
+ 
+ 		iounmap(mcbsp->io_base);
+ 		kfree(mcbsp);
 -- 
 1.7.0.4
 
