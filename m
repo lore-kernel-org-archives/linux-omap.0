@@ -1,225 +1,206 @@
 From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: [PATCH 1/3] OMAP2+: PM: omap device: API's for handling mstandby mode
-Date: Thu, 24 Feb 2011 15:44:33 +0530
-Message-ID: <1298542475-1460-2-git-send-email-manjugk@ti.com>
+Subject: [PATCH 2/3] OMAP2+: DMA: prevent races while setting M idle mode to nostandby
+Date: Thu, 24 Feb 2011 15:44:34 +0530
+Message-ID: <1298542475-1460-3-git-send-email-manjugk@ti.com>
 References: <1298542475-1460-1-git-send-email-manjugk@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:35488 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755295Ab1BXKRO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 24 Feb 2011 05:17:14 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:37779 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755282Ab1BXKRQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Feb 2011 05:17:16 -0500
 In-Reply-To: <1298542475-1460-1-git-send-email-manjugk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: khilman@ti.com, paul@pwsan.com
 
-Certain errata in OMAP2+ processors will require forcing
-master standby to "no standby" mode before completing on going
-operation. Without this, the results will be unpredictable.
+If two DMA users tries to set no mstandby mode at the same time, a race
+condition would arise. Prevent that by using a spin lock and counting
+up/down the number of times nostandby is set/reset.
 
-Since current implementation of PM run time framework does not support
-changing sysconfig settings during middle of the on going operation,
-these API's will support the same. One API will force the device's
-sysconfig mstandby mode settings to "no standby" and other API will
-release "no standby" mode and sets it to "smart standby" or "no
-standby? depending on HWMOD_SWSUP_MSTANDBY value.
+Initial patch is created by Adrian Hunter <adrian.hunter@nokia.com>
+https://patchwork.kernel.org/patch/366831/
 
-These API's should be used by device drivers only incase of
-erratum applicable to their modules if there is no other methods
-to resolve.
-
-These API's are required for multiple DMA errata which require
-putting DMA controller in no mstandby mode before stopping dma.
-
-The applicable errata:
-1. Erratum ID: i557(Applicable for omap36xx all ES versions)
-The channel hangs when the Pause bit (DMA4_CDPi [7] ) is cleared
-through config port while in Standby.
-
-2. Erratum ID: i541
-sDMA FIFO draining does not finish. Applicable to all omap2+ except
-omap4.
-
-3. Erratum ID:i88
-The sDMA to be put in no mstandby mode before disabling the channel
-after completing the data transfer operation.
-Applicable only for OMAP3430 ES1.0
-
-Also fixes typo HWMOD_SWSUP_MSTDBY to HWMOD_SWSUP_MSTANDBY in
-omap_hwmod.h
+Patch reworked to use API implemented at hwmod layer.
 
 Signed-off-by: G, Manjunath Kondaiah <manjugk@ti.com>
+Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
 ---
- arch/arm/mach-omap2/omap_hwmod.c              |   42 ++++++++++++++++
- arch/arm/plat-omap/include/plat/omap_device.h |    2 +
- arch/arm/plat-omap/include/plat/omap_hwmod.h  |    4 +-
- arch/arm/plat-omap/omap_device.c              |   64 +++++++++++++++++++++++++
- 4 files changed, 111 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap1/dma.c             |    1 +
+ arch/arm/mach-omap2/dma.c             |   16 +++++++++++++
+ arch/arm/plat-omap/dma.c              |   40 +++++++++++++++++++--------------
+ arch/arm/plat-omap/include/plat/dma.h |    1 +
+ 4 files changed, 41 insertions(+), 17 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index e282e35..27eb845 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -1537,6 +1537,48 @@ int omap_hwmod_set_slave_idlemode(struct omap_hwmod *oh, u8 idlemode)
+diff --git a/arch/arm/mach-omap1/dma.c b/arch/arm/mach-omap1/dma.c
+index d855934..fa2d1b0 100644
+--- a/arch/arm/mach-omap1/dma.c
++++ b/arch/arm/mach-omap1/dma.c
+@@ -351,6 +351,7 @@ static int __init omap1_system_dma_init(void)
+ 	p->dma_write		= dma_write;
+ 	p->dma_read		= dma_read;
+ 	p->disable_irq_lch	= NULL;
++	p->midlemode		= NULL;
+ 
+ 	p->errata = configure_dma_errata();
+ 
+diff --git a/arch/arm/mach-omap2/dma.c b/arch/arm/mach-omap2/dma.c
+index 34922b2..6e12e71 100644
+--- a/arch/arm/mach-omap2/dma.c
++++ b/arch/arm/mach-omap2/dma.c
+@@ -36,7 +36,9 @@
+ 
+ static u32 errata;
+ static u8 dma_stride;
++static u32 midlemode_save_cnt;
+ 
++static struct platform_device *pdev;
+ static struct omap_dma_dev_attr *d;
+ 
+ static enum omap_reg_offsets dma_common_ch_start, dma_common_ch_end;
+@@ -117,6 +119,18 @@ static inline u32 dma_read(int reg, int lch)
+ 	return val;
  }
  
- /**
-+ * omap_hwmod_set_master_standbymode - set the hwmod's OCP mstandby mode
-+ * @oh: struct omap_hwmod *
-+ * @midlemode: flag to set mstandby to either "no standby" or "smart standby"
-+ *
-+ * Sets the IP block's OCP mstandby mode in hardware, and updates our
-+ * local copy.  Intended to be used by drivers that have some erratum
-+ * that requires direct manipulation of the MIDLEMODE bits.  Returns
-+ * -EINVAL if @oh is null, or passes along the return value from
-+ * _set_master_standbymode().
-+ *
-+ * Any users of this function should be scrutinized carefully.
-+ */
-+int omap_hwmod_set_master_standbymode(struct omap_hwmod *oh, u8 idlemode)
++static void midlemode_nostandby(bool nostandby)
 +{
-+	u32 v;
-+	u8 sf;
-+	int retval = 0;
-+
-+	if (!oh)
-+		return -EINVAL;
-+
-+	if (!oh->class->sysc)
-+		return -EINVAL;
-+
-+	v = oh->_sysc_cache;
-+	sf = oh->class->sysc->sysc_flags;
-+
-+	if (sf & SYSC_HAS_MIDLEMODE) {
-+		if (idlemode)
-+			idlemode = HWMOD_IDLEMODE_NO;
-+		else
-+			idlemode = (oh->flags & HWMOD_SWSUP_MSTANDBY) ?
-+				HWMOD_IDLEMODE_NO : HWMOD_IDLEMODE_SMART;
++	/* TODO: midlemode_save_cnt can be moved to hwmod layer? */
++	if (nostandby) {
++		omap_device_require_no_mstandby(pdev);
++		midlemode_save_cnt += 1;
++	} else {
++		omap_device_release_no_mstandby(pdev);
++		midlemode_save_cnt -= 1;
 +	}
-+	retval = _set_master_standbymode(oh, idlemode, &v);
-+	if (!retval)
-+		_write_sysconfig(v, oh);
-+
-+	return retval;
 +}
 +
-+/**
-  * omap_hwmod_lookup - look up a registered omap_hwmod by name
-  * @name: name of the omap_hwmod to look up
-  *
-diff --git a/arch/arm/plat-omap/include/plat/omap_device.h b/arch/arm/plat-omap/include/plat/omap_device.h
-index e4c349f..42e0186 100644
---- a/arch/arm/plat-omap/include/plat/omap_device.h
-+++ b/arch/arm/plat-omap/include/plat/omap_device.h
-@@ -117,6 +117,8 @@ int omap_device_enable_hwmods(struct omap_device *od);
- int omap_device_disable_clocks(struct omap_device *od);
- int omap_device_enable_clocks(struct omap_device *od);
+ static inline void omap2_disable_irq_lch(int lch)
+ {
+ 	u32 val;
+@@ -253,6 +267,7 @@ static int __init omap2_system_dma_init_dev(struct omap_hwmod *oh, void *unused)
+ 	p->clear_dma		= omap2_clear_dma;
+ 	p->dma_write		= dma_write;
+ 	p->dma_read		= dma_read;
++	p->midlemode		= midlemode_nostandby;
  
-+int omap_device_require_no_mstandby(struct platform_device *pdev);
-+int omap_device_release_no_mstandby(struct platform_device *pdev);
+ 	p->clear_lch_regs	= NULL;
  
- /*
-  * Entries should be kept in latency order ascending
-diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-index 1eee85a..8a37c6e 100644
---- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
-+++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-@@ -366,7 +366,7 @@ struct omap_hwmod_omap4_prcm {
-  *
-  * HWMOD_SWSUP_SIDLE: omap_hwmod code should manually bring module in and out
-  *     of idle, rather than relying on module smart-idle
-- * HWMOD_SWSUP_MSTDBY: omap_hwmod code should manually bring module in and out
-+ * HWMOD_SWSUP_MSTANDBY: omap_hwmod code should manually bring module in and out
-  *     of standby, rather than relying on module smart-standby
-  * HWMOD_INIT_NO_RESET: don't reset this module at boot - important for
-  *     SDRAM controller, etc. XXX probably belongs outside the main hwmod file
-@@ -556,6 +556,8 @@ int omap_hwmod_disable_clocks(struct omap_hwmod *oh);
- 
- int omap_hwmod_set_slave_idlemode(struct omap_hwmod *oh, u8 idlemode);
- 
-+int omap_hwmod_set_master_standbymode(struct omap_hwmod *oh, u8 idlemode);
-+
- int omap_hwmod_reset(struct omap_hwmod *oh);
- void omap_hwmod_ocp_barrier(struct omap_hwmod *oh);
- 
-diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
-index 57adb27..125cbef 100644
---- a/arch/arm/plat-omap/omap_device.c
-+++ b/arch/arm/plat-omap/omap_device.c
-@@ -612,6 +612,70 @@ int omap_device_idle(struct platform_device *pdev)
+@@ -286,6 +301,7 @@ static int __init omap2_system_dma_init_dev(struct omap_hwmod *oh, void *unused)
+ 		dev_err(&od->pdev.dev, "%s: kzalloc fail\n", __func__);
+ 		return -ENOMEM;
+ 	}
++	pdev = &od->pdev;
+ 	return 0;
  }
  
- /**
-+ * omap_device_require_no_mstandby - set no mstandby mode of an omap_device
-+ * @od: struct omap_device * to idle
-+ *
-+ * Sets the IP block's OCP master standby to no mstandby mode in hardware.
-+ *
-+ * Intended to be used by drivers that have some erratum that requires direct
-+ * manipulation of the MSTANDBYMODE bits. Returns -EINVAL if the
-+ * omap_device is not currently enabled or passes along the return value
-+ * of omap_hwmod_set_master_standbymode().
-+ */
-+int omap_device_require_no_mstandby(struct platform_device *pdev)
-+{
-+	int ret  = 0, i;
-+	struct omap_device *od;
-+	struct omap_hwmod *oh;
-+
-+	od = _find_by_pdev(pdev);
-+	if (od->_state != OMAP_DEVICE_STATE_ENABLED) {
-+		WARN(1, "omap_device: %s.%d: %s() called from invalid state %d\n",
-+		     od->pdev.name, od->pdev.id, __func__, od->_state);
-+		return -EINVAL;
+diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+index 8536308..84879eb 100644
+--- a/arch/arm/plat-omap/dma.c
++++ b/arch/arm/plat-omap/dma.c
+@@ -38,8 +38,9 @@
+ 
+ #include <asm/system.h>
+ #include <mach/hardware.h>
+-#include <plat/dma.h>
+ 
++#include <plat/dma.h>
++#include <plat/omap_device.h>
+ #include <plat/tc.h>
+ 
+ #undef DEBUG
+@@ -924,6 +925,7 @@ EXPORT_SYMBOL(omap_start_dma);
+ void omap_stop_dma(int lch)
+ {
+ 	u32 l;
++	unsigned long flags;
+ 
+ 	/* Disable all interrupts on the channel */
+ 	if (cpu_class_is_omap1())
+@@ -933,14 +935,13 @@ void omap_stop_dma(int lch)
+ 	if (IS_DMA_ERRATA(DMA_ERRATA_i541) &&
+ 			(l & OMAP_DMA_CCR_SEL_SRC_DST_SYNC)) {
+ 		int i = 0;
+-		u32 sys_cf;
+ 
+ 		/* Configure No-Standby */
+-		l = p->dma_read(OCP_SYSCONFIG, lch);
+-		sys_cf = l;
+-		l &= ~DMA_SYSCONFIG_MIDLEMODE_MASK;
+-		l |= DMA_SYSCONFIG_MIDLEMODE(DMA_IDLEMODE_NO_IDLE);
+-		p->dma_write(l , OCP_SYSCONFIG, 0);
++		if (p->midlemode) {
++			spin_lock_irqsave(&dma_chan_lock, flags);
++			p->midlemode(true);
++			spin_unlock_irqrestore(&dma_chan_lock, flags);
++		}
+ 
+ 		l = p->dma_read(CCR, lch);
+ 		l &= ~OMAP_DMA_CCR_EN;
+@@ -958,7 +959,11 @@ void omap_stop_dma(int lch)
+ 			printk(KERN_ERR "DMA drain did not complete on "
+ 					"lch %d\n", lch);
+ 		/* Restore OCP_SYSCONFIG */
+-		p->dma_write(sys_cf, OCP_SYSCONFIG, lch);
++		if (p->midlemode) {
++			spin_lock_irqsave(&dma_chan_lock, flags);
++			p->midlemode(false);
++			spin_unlock_irqrestore(&dma_chan_lock, flags);
++		}
+ 	} else {
+ 		l &= ~OMAP_DMA_CCR_EN;
+ 		p->dma_write(l, CCR, lch);
+@@ -1610,7 +1615,7 @@ int omap_stop_dma_chain_transfers(int chain_id)
+ {
+ 	int *channels;
+ 	u32 l, i;
+-	u32 sys_cf = 0;
++	unsigned long flags;
+ 
+ 	/* Check for input params */
+ 	if (unlikely((chain_id < 0 || chain_id >= dma_lch_count))) {
+@@ -1625,12 +1630,10 @@ int omap_stop_dma_chain_transfers(int chain_id)
+ 	}
+ 	channels = dma_linked_lch[chain_id].linked_dmach_q;
+ 
+-	if (IS_DMA_ERRATA(DMA_ERRATA_i88)) {
+-		sys_cf = p->dma_read(OCP_SYSCONFIG, 0);
+-		l = sys_cf;
+-		/* Middle mode reg set no Standby */
+-		l &= ~((1 << 12)|(1 << 13));
+-		p->dma_write(l, OCP_SYSCONFIG, 0);
++	if (IS_DMA_ERRATA(DMA_ERRATA_i88) && p->midlemode) {
++		spin_lock_irqsave(&dma_chan_lock, flags);
++		p->midlemode(true);
++		spin_unlock_irqrestore(&dma_chan_lock, flags);
+ 	}
+ 
+ 	for (i = 0; i < dma_linked_lch[chain_id].no_of_lchs_linked; i++) {
+@@ -1650,8 +1653,11 @@ int omap_stop_dma_chain_transfers(int chain_id)
+ 	/* Reset the Queue pointers */
+ 	OMAP_DMA_CHAIN_QINIT(chain_id);
+ 
+-	if (IS_DMA_ERRATA(DMA_ERRATA_i88))
+-		p->dma_write(sys_cf, OCP_SYSCONFIG, 0);
++	if (IS_DMA_ERRATA(DMA_ERRATA_i88 && p->midlemode)) {
++		spin_lock_irqsave(&dma_chan_lock, flags);
++		p->midlemode(false);
++		spin_unlock_irqrestore(&dma_chan_lock, flags);
 +	}
-+
-+	oh = *od->hwmods;
-+	for (i = 0; i < od->hwmods_cnt; i++)
-+		ret = omap_hwmod_set_master_standbymode(oh, true);
-+
-+	return ret;
-+}
-+
-+/**
-+ * omap_device_release_no_mstandby - releases no mstandby mode of an omap_device
-+ * @od: struct omap_device * to idle
-+ *
-+ * Release no mstandby mode and sets the master standby to either no standby or
-+ * smart standby in IP block's OCP in hardware depending on status of the flag
-+ * HWMOD_SWSUP_MSTANDBY.
-+ *
-+ * Intended to be used by drivers that have some erratum that requires direct
-+ * manipulation of the MSTANDBYMODE bits. Returns -EINVAL if the
-+ * omap_device is not currently enabled or passes along the return value
-+ * of omap_hwmod_set_master_standbymode().
-+ */
-+int omap_device_release_no_mstandby(struct platform_device *pdev)
-+{
-+	int ret  = 0, i;
-+	struct omap_device *od;
-+	struct omap_hwmod *oh;
-+
-+	od = _find_by_pdev(pdev);
-+	if (od->_state != OMAP_DEVICE_STATE_ENABLED) {
-+		WARN(1, "omap_device: %s.%d: %s() called from invalid state %d\n",
-+		     od->pdev.name, od->pdev.id, __func__, od->_state);
-+		return -EINVAL;
-+	}
-+
-+	oh = *od->hwmods;
-+	for (i = 0; i < od->hwmods_cnt; i++)
-+		ret = omap_hwmod_set_master_standbymode(oh, false);
-+
-+	return ret;
-+}
-+
-+/**
-  * omap_device_shutdown - shut down an omap_device
-  * @od: struct omap_device * to shut down
-  *
+ 
+ 	return 0;
+ }
+diff --git a/arch/arm/plat-omap/include/plat/dma.h b/arch/arm/plat-omap/include/plat/dma.h
+index d1c916f..b20dc5e 100644
+--- a/arch/arm/plat-omap/include/plat/dma.h
++++ b/arch/arm/plat-omap/include/plat/dma.h
+@@ -435,6 +435,7 @@ struct omap_system_dma_plat_info {
+ 	void (*clear_dma)(int lch);
+ 	void (*dma_write)(u32 val, int reg, int lch);
+ 	u32 (*dma_read)(int reg, int lch);
++	void (*midlemode)(bool nostandby);
+ };
+ 
+ extern void omap_set_dma_priority(int lch, int dst_port, int priority);
 -- 
 1.7.1
 
