@@ -1,36 +1,56 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v6] OMAP2/3/4: DSS2: Enable Display SubSystem as modules
-Date: Thu, 24 Feb 2011 13:09:51 -0800
-Message-ID: <20110224210951.GJ20560@atomide.com>
-References: <1298528800-7399-1-git-send-email-samreen@ti.com>
- <1298536312.16119.23.camel@deskari>
+Subject: Re: [PATCH] OMAP2+: clocksource: fix crash on boot when
+ !CONFIG_OMAP_32K_TIMER
+Date: Thu, 24 Feb 2011 13:13:29 -0800
+Message-ID: <20110224211328.GK20560@atomide.com>
+References: <alpine.DEB.2.00.1102221958190.22636@utopia.booyaka.com>
+ <20110224202157.GG20560@atomide.com>
+ <alpine.DEB.2.00.1102241330500.6198@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:13414 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754603Ab1BXVJ5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Feb 2011 16:09:57 -0500
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:13399 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755511Ab1BXVNd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Feb 2011 16:13:33 -0500
 Content-Disposition: inline
-In-Reply-To: <1298536312.16119.23.camel@deskari>
+In-Reply-To: <alpine.DEB.2.00.1102241330500.6198@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: "Nilofer, Samreen" <samreen@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, Paul Mundt <lethal@linux-sh.org>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [110224 00:30]:
-> On Thu, 2011-02-24 at 00:26 -0600, Nilofer, Samreen wrote:
-> > Enabling all the display interface options to be built as module
-> > And enabling all the display panels to be built as modules.
+* Paul Walmsley <paul@pwsan.com> [110224 12:29]:
+> On Thu, 24 Feb 2011, Tony Lindgren wrote:
+> 
+> > * Paul Walmsley <paul@pwsan.com> [110222 18:58]:
+> > > 
+> > > OMAP2+ kernels built without CONFIG_OMAP_32K_TIMER crash on boot after the
+> > > 2.6.38 sched_clock changes:
+> > > 
+> > > [    0.000000] OMAP clockevent source: GPTIMER1 at 13000000 Hz
+> > > [    0.000000] Unable to handle kernel NULL pointer dereference at virtual address 00000000
+> > > [    0.000000] pgd = c0004000
+> > > [    0.000000] [00000000] *pgd=00000000
+> > > [    0.000000] Internal error: Oops: 80000005 [#1] SMP
+> > > [    0.000000] last sysfs file:
+> > > [    0.000000] Modules linked in:
+> > > [    0.000000] CPU: 0    Not tainted  (2.6.38-rc5-00057-g04aa67d #152)
+> > > [    0.000000] PC is at 0x0
+> > > [    0.000000] LR is at sched_clock_poll+0x2c/0x3c
+> > > 
+> > > Without CONFIG_OMAP_32K_TIMER, the kernel has an clockevent and
+> > > clocksource resolution about three orders of magnitude higher than
+> > > with CONFIG_OMAP_32K_TIMER set.  The tradeoff is that the lowest
+> > > power consumption states are not available.
+> > > 
+> > > Fix by calling init_sched_clock() from the GPTIMER clocksource init code.
 > > 
-> > Signed-off-by: Samreen <samreen@ti.com>
+> > I'll queue this as a fix as it's a regression.
 > 
-> This looks good to me.
-> 
-> Tony, want to ack this? This enables all DSS features as modules. This
-> should go through dss tree, as this doesn't work without a fix that is
-> there.
+> Sounds good, I've got one or two other -rc candidates.  Want me to build a 
+> branch with this and the other two?
 
-Sounds good to me:
+Well I already applied this one. But for the two others yes please.
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+Tony
