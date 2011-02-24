@@ -1,136 +1,95 @@
-From: "Kadiyala, Kishore" <kishore.kadiyala@ti.com>
-Subject: Re: [PATCH v3 4/5] OMAP: hwmod data: Add dev_attr and use in the host driver
-Date: Thu, 24 Feb 2011 19:35:28 +0530
-Message-ID: <AANLkTi=Gz2kPE45Y3JaXeBH67ivD4DQEqmZkm1t4ajkR@mail.gmail.com>
-References: <1298483231-29622-1-git-send-email-kishore.kadiyala@ti.com>
- <1298483231-29622-5-git-send-email-kishore.kadiyala@ti.com> <AANLkTimOpry8DrY19cYEoRo=WcFfzLyHHoAT_59Z5nFv@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Hannu Heikkinen <ext-hannu.m.heikkinen@nokia.com>
+Subject: [PATCH 1/1] OMAP: McSPI: Off-by-one error in finding the right divisor
+Date: Thu, 24 Feb 2011 16:13:31 +0200
+Message-ID: <22be8985c86a32b9829ff740ce72bc4bd2e383cf.1298556551.git.ext-hannu.m.heikkinen@nokia.com>
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:47453 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755038Ab1BXOFu convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 24 Feb 2011 09:05:50 -0500
-In-Reply-To: <AANLkTimOpry8DrY19cYEoRo=WcFfzLyHHoAT_59Z5nFv@mail.gmail.com>
+Received: from smtp.nokia.com ([147.243.1.47]:40473 "EHLO mgw-sa01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755740Ab1BXOON (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 24 Feb 2011 09:14:13 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Varadarajan, Charulatha" <charu@ti.com>
-Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com, cjb@laptop.org, madhu.cr@ti.com, khilman@deeprootsystems.com, paul@pwsan.com, Benoit Cousson <b-cousson@ti.com>
+To: linux-omap@vger.kernel.org, spi-devel-general@lists.sourceforge.net, dbrownell@users.sourceforge.net, grant.likely@secretlab.ca
+Cc: ext-phil.2.carmody@nokia.com
 
-On Thu, Feb 24, 2011 at 11:30 AM, Varadarajan, Charulatha <charu@ti.com=
-> wrote:
-> Kishore,
->
-> On Wed, Feb 23, 2011 at 23:17, Kishore Kadiyala <kishore.kadiyala@ti.=
-com> wrote:
->> Add a device attribute to hwmod data of omap2430, omap3, omap4.
->> Currently the device attribute holds information regarding dual volt=
- MMC card
->> support by the controller which will be later passed to the host dri=
-ver via
->> platform data.
->>
->> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
->> Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
->> Cc: Benoit Cousson <b-cousson@ti.com>
->> Cc: Paul Walmsley <paul@pwsan.com>
->> ---
->> =A0arch/arm/mach-omap2/omap_hwmod_2430_data.c | =A0 =A09 +++++++++
->> =A0arch/arm/mach-omap2/omap_hwmod_3xxx_data.c | =A0 12 ++++++++++++
->> =A0arch/arm/mach-omap2/omap_hwmod_44xx_data.c | =A0 16 +++++++++++++=
-+++
->> =A0arch/arm/plat-omap/include/plat/mmc.h =A0 =A0 =A0| =A0 10 +++++++=
-+++
->> =A0drivers/mmc/host/omap_hsmmc.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A0=
-4 ++--
->> =A05 files changed, 49 insertions(+), 2 deletions(-)
->>
->
-> <<snip>>
->
->>
->> diff --git a/arch/arm/plat-omap/include/plat/mmc.h b/arch/arm/plat-o=
-map/include/plat/mmc.h
->> index e5de5d4..7853130 100644
->> --- a/arch/arm/plat-omap/include/plat/mmc.h
->> +++ b/arch/arm/plat-omap/include/plat/mmc.h
->> @@ -43,6 +43,13 @@
->>
->> =A0#define OMAP_MMC_MAX_SLOTS =A0 =A0 2
->>
->> +/* omap_hwmod integration data */
->
-> What is omap_hwmod integration data ? Pls clarify.
->
->> +#define OMAP_HSMMC_SUPPORTS_DUAL_VOLT =A0BIT(1)
->> +
->> +struct mmc_dev_attr {
->> + =A0 =A0 =A0 u8 flags;
->> +};
->> +
->> =A0struct omap_mmc_platform_data {
->> =A0 =A0 =A0 =A0/* back-link to device */
->> =A0 =A0 =A0 =A0struct device *dev;
->> @@ -71,6 +78,9 @@ struct omap_mmc_platform_data {
->>
->> =A0 =A0 =A0 =A0u64 dma_mask;
->>
->> + =A0 =A0 =A0 /* Integrating attributes from the omap_hwmod layer */
->> + =A0 =A0 =A0 u8 controller_dev_attr;
->> +
->> =A0 =A0 =A0 =A0/* Register offset deviation */
->> =A0 =A0 =A0 =A0u16 reg_offset;
->>
->> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_h=
-smmc.c
->> index 078fdf1..160cc95 100644
->> --- a/drivers/mmc/host/omap_hsmmc.c
->> +++ b/drivers/mmc/host/omap_hsmmc.c
->> @@ -1555,7 +1555,7 @@ static void omap_hsmmc_set_ios(struct mmc_host=
- *mmc, struct mmc_ios *ios)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0break;
->> =A0 =A0 =A0 =A0}
->>
->> - =A0 =A0 =A0 if (host->id =3D=3D OMAP_MMC1_DEVID) {
->> + =A0 =A0 =A0 if (host->pdata->controller_dev_attr & OMAP_HSMMC_SUPP=
-ORTS_DUAL_VOLT) {
->
-> Where is pdata->controller_dev_attr getting populated? I don't see th=
-e
-> dev_attr from the
-> hwmod database used anywhere in this patch.
+Off-by-one error, gave erroneous divisor value 16 if speed_hz is over zero but
+less than OMAP2_MCSPI_MAX_FREQ / (1 << 15), that is, [1..1463].
 
-good catch ,
-the changes in the driver should be part of last patch.
+Also few overly complex bit shifts in divisor fixed.
 
->
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0/* Only MMC1 can interface at 3V with=
-out some flavor
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 * of external transceiver; but they =
-all handle 1.8V.
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 */
->> @@ -1647,7 +1647,7 @@ static void omap_hsmmc_conf_bus_power(struct o=
-map_hsmmc_host *host)
->> =A0 =A0 =A0 =A0u32 hctl, capa, value;
->>
->> =A0 =A0 =A0 =A0/* Only MMC1 supports 3.0V */
->> - =A0 =A0 =A0 if (host->id =3D=3D OMAP_MMC1_DEVID) {
->> + =A0 =A0 =A0 if (host->pdata->controller_dev_attr & OMAP_HSMMC_SUPP=
-ORTS_DUAL_VOLT) {
->
-> Ditto.
->
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0hctl =3D SDVS30;
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0capa =3D VS30 | VS18;
->> =A0 =A0 =A0 =A0} else {
->> --
->> 1.7.1
->>
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Also one dev_dgb line fixed, which indicated max speed exceeding transfer speed.
+
+Introducing a new function omap2_mcspi_calc_divisor() for getting the right
+divisor in omap2_mcspi_setup_transfer().
+
+Signed-off-by: Phil Carmody <ext-phil.2.carmody@nokia.com>
+Signed-off-by: Hannu Heikkinen <ext-hannu.m.heikkinen@nokia.com>
+---
+ drivers/spi/omap2_mcspi.c |   29 ++++++++++++++++++-----------
+ 1 files changed, 18 insertions(+), 11 deletions(-)
+
+diff --git a/drivers/spi/omap2_mcspi.c b/drivers/spi/omap2_mcspi.c
+index 36501ad..845248c 100644
+--- a/drivers/spi/omap2_mcspi.c
++++ b/drivers/spi/omap2_mcspi.c
+@@ -631,6 +631,17 @@ out:
+ 	return count - c;
+ }
+ 
++static u32 omap2_mcspi_calc_divisor(u32 speed_hz)
++{
++	u32 div;
++
++	for (div = 0; div < 15; div++)
++		if (speed_hz >= (OMAP2_MCSPI_MAX_FREQ >> div))
++			return div;
++
++	return 15;
++}
++
+ /* called only when no transfer is active to this device */
+ static int omap2_mcspi_setup_transfer(struct spi_device *spi,
+ 		struct spi_transfer *t)
+@@ -653,12 +664,8 @@ static int omap2_mcspi_setup_transfer(struct spi_device *spi,
+ 	if (t && t->speed_hz)
+ 		speed_hz = t->speed_hz;
+ 
+-	if (speed_hz) {
+-		while (div <= 15 && (OMAP2_MCSPI_MAX_FREQ / (1 << div))
+-					> speed_hz)
+-			div++;
+-	} else
+-		div = 15;
++	speed_hz = min(speed_hz, OMAP2_MCSPI_MAX_FREQ);
++	div = omap2_mcspi_calc_divisor(speed_hz);
+ 
+ 	l = mcspi_cached_chconf0(spi);
+ 
+@@ -695,7 +702,7 @@ static int omap2_mcspi_setup_transfer(struct spi_device *spi,
+ 	mcspi_write_chconf0(spi, l);
+ 
+ 	dev_dbg(&spi->dev, "setup: speed %d, sample %s edge, clk %s\n",
+-			OMAP2_MCSPI_MAX_FREQ / (1 << div),
++			OMAP2_MCSPI_MAX_FREQ >> div,
+ 			(spi->mode & SPI_CPHA) ? "trailing" : "leading",
+ 			(spi->mode & SPI_CPOL) ? "inverted" : "normal");
+ 
+@@ -996,10 +1003,10 @@ static int omap2_mcspi_transfer(struct spi_device *spi, struct spi_message *m)
+ 					t->bits_per_word);
+ 			return -EINVAL;
+ 		}
+-		if (t->speed_hz && t->speed_hz < OMAP2_MCSPI_MAX_FREQ/(1<<16)) {
+-			dev_dbg(&spi->dev, "%d Hz max exceeds %d\n",
+-					t->speed_hz,
+-					OMAP2_MCSPI_MAX_FREQ/(1<<16));
++		if (t->speed_hz && t->speed_hz < (OMAP2_MCSPI_MAX_FREQ >> 15)) {
++			dev_dbg(&spi->dev, "speed_hz %d below minimum %d Hz\n",
++				t->speed_hz,
++				OMAP2_MCSPI_MAX_FREQ >> 15);
+ 			return -EINVAL;
+ 		}
+ 
+-- 
+1.7.3
+
