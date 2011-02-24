@@ -1,67 +1,115 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 4/8] OMAP2+: hwmod: find MPU initiator hwmod during in
- _register()
-Date: Thu, 24 Feb 2011 02:16:57 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1102240208160.6198@utopia.booyaka.com>
-References: <20110223070455.5874.51326.stgit@twilight.localdomain> <20110223071146.5874.15334.stgit@twilight.localdomain> <4D651BDC.8040700@ti.com>
+From: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
+Subject: Re: [PATCH v2 0/2] OMAP: omap_device: API to modify SYSCONFIG register
+Date: Thu, 24 Feb 2011 14:53:35 +0530
+Message-ID: <AANLkTine6zGO1t6+vqVV6Cz2CG-gMjwvDN52b0_qp4fN@mail.gmail.com>
+References: <1296477288-26253-1-git-send-email-kishon@ti.com>
+	<AANLkTin0kLETwO1MfYLqAoMxfs876mzvvV-HPQz=is1s@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-885077513-1298539017=:6198"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:38718 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755504Ab1BXJQ6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Feb 2011 04:16:58 -0500
-In-Reply-To: <4D651BDC.8040700@ti.com>
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:42172 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752966Ab1BXJXg convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 24 Feb 2011 04:23:36 -0500
+Received: by mail-yi0-f46.google.com with SMTP id 19so232579yib.5
+        for <linux-omap@vger.kernel.org>; Thu, 24 Feb 2011 01:23:35 -0800 (PST)
+In-Reply-To: <AANLkTin0kLETwO1MfYLqAoMxfs876mzvvV-HPQz=is1s@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Hilman, Kevin" <khilman@ti.com>
+To: khilman@deeprootsystems.com, paul@pwsan.com, b-cousson@ti.com
+Cc: linux-omap@vger.kernel.org, charu@ti.com, shubhrajyoti@ti.com, p-basak2@ti.com, Kishon Vijay Abraham I <kishon@ti.com>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Hi Kevin, Paul, Benoit,
 
---155748971-885077513-1298539017=:6198
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Do you have any comments for this patch series? This series is
+necessary for McBSP hwmod and
+PM runtime patch series to be merged.
 
-Hello Beno=C3=AEt,
+Regards
+Kishon
 
-On Wed, 23 Feb 2011, Cousson, Benoit wrote:
-> On 2/23/2011 8:11 AM, Paul Walmsley wrote:
-> > +=09/*
-> > +=09 * XXX Rather than doing a strcmp(), this should test a flag
-> > +=09 * set in the hwmod data, inserted by the autogenerator code.
->=20
-> What do you mean exactly? Something like a "is_mpu" field set to true=20
-> for the mpu? Since we are enforcing a consistent naming for every=20
-> hwmods, that looks like a duplication of the name. We will always named=
-=20
-> this hwmod "mpu", so the strcmp() should be enough.
->=20
-> But, maybe I'm missing your point.
-
-I had in mind adding a new flag bit for struct omap_hwmod.flags for this=20
-purpose, mostly for these reasons:
-
-1. Russell indicated a preference to avoid strcmp() for this type of
-   situation during the clock code merge a few years ago
-
-2. Testing a single bit is much more efficient than calling strcmp(),=20
-   which will hopefully make life a little easier when running on an=20
-   FPGA emulator
-
-A separate field would of course work as well, but seems more heavyweight=
-=20
-if there's only one special case.
-
-> > +=09 */
-> > +=09if (!strcmp(oh->name, MPU_INITIATOR_NAME))
-> > +=09=09mpu_oh =3D oh;
-> >=20
-> > -=09return ret;
-> > +=09return 0;
-> >   }
-
-
-- Paul
---155748971-885077513-1298539017=:6198--
+On Tue, Feb 15, 2011 at 12:08 PM, ABRAHAM, KISHON VIJAY <kishon@ti.com>=
+ wrote:
+> Kevin, Paul, Benoit,
+>
+> Do you have any comments for this patch series?
+>
+> -Kishon
+>
+> On Mon, Jan 31, 2011 at 6:04 PM, Kishon Vijay Abraham I <kishon@ti.co=
+m> wrote:
+>> Certain peripherals require autoidle bits to be disabled before perf=
+orming
+>> some operations. This patch series provides APIs in omap_device laye=
+r to
+>> modify the SYSCONFIG register.
+>>
+>> Since current implementation of PM run time framework does not suppo=
+rt
+>> changing sysconfig settings during middle of the on going operation,
+>> these APIs will support the same.
+>>
+>> For e.g McBSP 2 and 3 in OMAP3 has sidetone feature which requires
+>> autoidle to be disabled before starting the sidetone.
+>>
+>> McBSP also requires the SYSCONFIG to be in NOIDLE when ELEMENTSYNCH
+>> mode is selected for DMA operation.
+>>
+>> Created on top of linux OMAP master (linux-omap-2.6 :master)
+>> Tested on OMAP4430, OMAP3430 and OMAP2430 SDP boards. Verified that =
+this patch
+>> series does not break the OMAP1 build.
+>>
+>> V2:
+>> Mutex is replaced with spinlock.
+>>
+>> V1:
+>> * Creates 3 separate API's to change the idle mode to NOIDLE, SMARTI=
+DLE
+>> =A0and FORCEIDLE and one more API to change the idlemode to default =
+value
+>> =A0based on the hwmod flag. This change is done to align with the di=
+scussion
+>> =A0on [3]
+>>
+>> * Added hwmod mutex in omap hwmod APIs that modifies SYSCONFIG regis=
+ter.
+>>
+>> * omap_hwmod_set_slave_idlemode() is not modified to take true/false=
+ kind-of
+>> argument since 3 states are associated with SIDLE bits (force, no an=
+d smart).
+>>
+>> These changes were made to align with Benoit's and Paul's comments f=
+or a
+>> similar patch written by Manjunath [1] for changing MSTANDBY bits.
+>>
+>> The discussions that happened for the RFC patch can be found at [2]
+>>
+>> [1]: http://www.mail-archive.com/linux-omap@vger.kernel.org/msg39647=
+=2Ehtml
+>> [2]: https://patchwork.kernel.org/patch/134371/
+>> [3]: http://www.mail-archive.com/linux-omap@vger.kernel.org/msg39615=
+=2Ehtml
+>>
+>> Kishon Vijay Abraham I (2):
+>> =A0OMAP: hwmod: API to handle autoidle mode
+>> =A0OMAP: omap_device: API to modify AUTOIDLE and SMARTIDLE bits
+>>
+>> =A0arch/arm/mach-omap2/omap_hwmod.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0=
+ 36 +++++
+>> =A0arch/arm/plat-omap/include/plat/omap_device.h | =A0 =A06 +
+>> =A0arch/arm/plat-omap/include/plat/omap_hwmod.h =A0| =A0 =A01 +
+>> =A0arch/arm/plat-omap/omap_device.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0=
+176 +++++++++++++++++++++++++
+>> =A04 files changed, 219 insertions(+), 0 deletions(-)
+>>
+>>
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
