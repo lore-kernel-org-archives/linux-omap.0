@@ -1,155 +1,146 @@
 From: Mythri P K <mythripk@ti.com>
-Subject: [PATCH 1/8] OMAP4 : DSS2 : Add display type HDMI to DSS2
-Date: Fri, 25 Feb 2011 19:51:48 +0530
-Message-ID: <1298643715-21540-2-git-send-email-mythripk@ti.com>
+Subject: [PATCH 2/8] OMAP4 : DSS2 : Add display structure in the board file for OMAP4 sdp
+Date: Fri, 25 Feb 2011 19:51:49 +0530
+Message-ID: <1298643715-21540-3-git-send-email-mythripk@ti.com>
 References: <1298643715-21540-1-git-send-email-mythripk@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:46303 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932095Ab1BYNy1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Feb 2011 08:54:27 -0500
-Received: from dlep33.itg.ti.com ([157.170.170.112])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1PDsRTK007148
+Received: from bear.ext.ti.com ([192.94.94.41]:49080 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755493Ab1BYNyd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 25 Feb 2011 08:54:33 -0500
+Received: from dlep35.itg.ti.com ([157.170.170.118])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1PDsXVq030925
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 25 Feb 2011 07:54:27 -0600
+	for <linux-omap@vger.kernel.org>; Fri, 25 Feb 2011 07:54:33 -0600
 In-Reply-To: <1298643715-21540-1-git-send-email-mythripk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: tomi.valkeinen@ti.com, Mythri P K <mythripk@ti.com>
 
-Adding HDMI type in dss_features , overlay and
-the manager so that HDMI type of display will be recognized.
+Adding  board file changes for display which adds the display structure
+with HDMI as the default driver when the display init is called.
+HDMI GPIO configurations are also done in this file.
 
 Signed-off-by: Mythri P K <mythripk@ti.com>
 ---
- arch/arm/plat-omap/include/plat/display.h |    1 +
- drivers/video/omap2/dss/display.c         |    5 +++++
- drivers/video/omap2/dss/dss_features.c    |    2 +-
- drivers/video/omap2/dss/manager.c         |    9 +++++++--
- drivers/video/omap2/dss/overlay.c         |    6 ++++--
- 5 files changed, 18 insertions(+), 5 deletions(-)
+ arch/arm/mach-omap2/board-4430sdp.c |   82 +++++++++++++++++++++++++++++++++++
+ 1 files changed, 82 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/plat/display.h b/arch/arm/plat-omap/include/plat/display.h
-index 4e936bd..e0bab29 100644
---- a/arch/arm/plat-omap/include/plat/display.h
-+++ b/arch/arm/plat-omap/include/plat/display.h
-@@ -60,6 +60,7 @@ enum omap_display_type {
- 	OMAP_DISPLAY_TYPE_SDI		= 1 << 2,
- 	OMAP_DISPLAY_TYPE_DSI		= 1 << 3,
- 	OMAP_DISPLAY_TYPE_VENC		= 1 << 4,
-+	OMAP_DISPLAY_TYPE_HDMI		= 1 << 5,
- };
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+index 07d1b20..334b6fd 100644
+--- a/arch/arm/mach-omap2/board-4430sdp.c
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@ -35,6 +35,7 @@
+ #include <plat/common.h>
+ #include <plat/usb.h>
+ #include <plat/mmc.h>
++#include <plat/display.h>
  
- enum omap_plane {
-diff --git a/drivers/video/omap2/dss/display.c b/drivers/video/omap2/dss/display.c
-index 22dd7a4..e10b303 100644
---- a/drivers/video/omap2/dss/display.c
-+++ b/drivers/video/omap2/dss/display.c
-@@ -345,6 +345,7 @@ int omapdss_default_get_recommended_bpp(struct omap_dss_device *dssdev)
- 			return 16;
- 	case OMAP_DISPLAY_TYPE_VENC:
- 	case OMAP_DISPLAY_TYPE_SDI:
-+	case OMAP_DISPLAY_TYPE_HDMI:
- 		return 24;
- 	default:
- 		BUG();
-@@ -371,6 +372,7 @@ bool dss_use_replication(struct omap_dss_device *dssdev,
- 	case OMAP_DISPLAY_TYPE_DPI:
- 		bpp = dssdev->phy.dpi.data_lines;
- 		break;
-+	case OMAP_DISPLAY_TYPE_HDMI:
- 	case OMAP_DISPLAY_TYPE_VENC:
- 	case OMAP_DISPLAY_TYPE_SDI:
- 		bpp = 24;
-@@ -409,6 +411,9 @@ void dss_init_device(struct platform_device *pdev,
- #ifdef CONFIG_OMAP2_DSS_VENC
- 	case OMAP_DISPLAY_TYPE_VENC:
- #endif
-+#ifdef CONFIG_OMAP2_DSS_HDMI
-+	case OMAP_DISPLAY_TYPE_HDMI:
-+#endif
- 		break;
- 	default:
- 		DSSERR("Support for display '%s' not compiled in.\n",
-diff --git a/drivers/video/omap2/dss/dss_features.c b/drivers/video/omap2/dss/dss_features.c
-index 569eb42..701a2ce 100644
---- a/drivers/video/omap2/dss/dss_features.c
-+++ b/drivers/video/omap2/dss/dss_features.c
-@@ -102,7 +102,7 @@ static const enum omap_display_type omap4_dss_supported_displays[] = {
- 	OMAP_DISPLAY_TYPE_DBI | OMAP_DISPLAY_TYPE_DSI,
+ #include "mux.h"
+ #include "hsmmc.h"
+@@ -47,6 +48,8 @@
+ #define OMAP4SDP_MDM_PWR_EN_GPIO	157
+ #define OMAP4_SFH7741_SENSOR_OUTPUT_GPIO	184
+ #define OMAP4_SFH7741_ENABLE_GPIO		188
++#define HDMI_GPIO_HPD 60 /* Hot plug pin for HDMI */
++#define HDMI_GPIO_LS_OE 41 /* Level shifter for HDMI */
  
- 	/* OMAP_DSS_CHANNEL_DIGIT */
--	OMAP_DISPLAY_TYPE_VENC,
-+	OMAP_DISPLAY_TYPE_VENC | OMAP_DISPLAY_TYPE_HDMI,
- 
- 	/* OMAP_DSS_CHANNEL_LCD2 */
- 	OMAP_DISPLAY_TYPE_DPI | OMAP_DISPLAY_TYPE_DBI |
-diff --git a/drivers/video/omap2/dss/manager.c b/drivers/video/omap2/dss/manager.c
-index 690217b..490c2b8 100644
---- a/drivers/video/omap2/dss/manager.c
-+++ b/drivers/video/omap2/dss/manager.c
-@@ -516,6 +516,8 @@ static int dss_mgr_wait_for_vsync(struct omap_overlay_manager *mgr)
- 
- 	if (mgr->device->type == OMAP_DISPLAY_TYPE_VENC) {
- 		irq = DISPC_IRQ_EVSYNC_ODD;
-+	} else if (mgr->device->type == OMAP_DISPLAY_TYPE_HDMI) {
-+		irq = DISPC_IRQ_EVSYNC_EVEN;
- 	} else {
- 		if (mgr->id == OMAP_DSS_CHANNEL_LCD)
- 			irq = DISPC_IRQ_VSYNC;
-@@ -537,7 +539,8 @@ static int dss_mgr_wait_for_go(struct omap_overlay_manager *mgr)
- 	if (!dssdev || dssdev->state != OMAP_DSS_DISPLAY_ACTIVE)
- 		return 0;
- 
--	if (dssdev->type == OMAP_DISPLAY_TYPE_VENC) {
-+	if (dssdev->type == OMAP_DISPLAY_TYPE_VENC
-+			|| dssdev->type == OMAP_DISPLAY_TYPE_HDMI) {
- 		irq = DISPC_IRQ_EVSYNC_ODD | DISPC_IRQ_EVSYNC_EVEN;
- 	} else {
- 		if (dssdev->caps & OMAP_DSS_DISPLAY_CAP_MANUAL_UPDATE) {
-@@ -614,7 +617,8 @@ int dss_mgr_wait_for_go_ovl(struct omap_overlay *ovl)
- 	if (!dssdev || dssdev->state != OMAP_DSS_DISPLAY_ACTIVE)
- 		return 0;
- 
--	if (dssdev->type == OMAP_DISPLAY_TYPE_VENC) {
-+	if (dssdev->type == OMAP_DISPLAY_TYPE_VENC
-+			|| dssdev->type == OMAP_DISPLAY_TYPE_HDMI) {
- 		irq = DISPC_IRQ_EVSYNC_ODD | DISPC_IRQ_EVSYNC_EVEN;
- 	} else {
- 		if (dssdev->caps & OMAP_DSS_DISPLAY_CAP_MANUAL_UPDATE) {
-@@ -1381,6 +1385,7 @@ static int omap_dss_mgr_apply(struct omap_overlay_manager *mgr)
- 		case OMAP_DISPLAY_TYPE_DBI:
- 		case OMAP_DISPLAY_TYPE_SDI:
- 		case OMAP_DISPLAY_TYPE_VENC:
-+		case OMAP_DISPLAY_TYPE_HDMI:
- 			default_get_overlay_fifo_thresholds(ovl->id, size,
- 					&oc->burst_size, &oc->fifo_low,
- 					&oc->fifo_high);
-diff --git a/drivers/video/omap2/dss/overlay.c b/drivers/video/omap2/dss/overlay.c
-index d558fb6..ea48936 100644
---- a/drivers/video/omap2/dss/overlay.c
-+++ b/drivers/video/omap2/dss/overlay.c
-@@ -737,7 +737,8 @@ void dss_recheck_connections(struct omap_dss_device *dssdev, bool force)
- 			lcd2_mgr->set_device(lcd2_mgr, dssdev);
- 			mgr = lcd2_mgr;
- 		}
--	} else if (dssdev->type != OMAP_DISPLAY_TYPE_VENC) {
-+	} else if (dssdev->type != OMAP_DISPLAY_TYPE_VENC
-+			&& dssdev->type != OMAP_DISPLAY_TYPE_HDMI) {
- 		if (!lcd_mgr->device || force) {
- 			if (lcd_mgr->device)
- 				lcd_mgr->unset_device(lcd_mgr);
-@@ -746,7 +747,8 @@ void dss_recheck_connections(struct omap_dss_device *dssdev, bool force)
- 		}
+ static struct gpio_led sdp4430_gpio_leds[] = {
+ 	{
+@@ -552,6 +555,84 @@ static void __init omap_sfh7741prox_init(void)
  	}
+ }
  
--	if (dssdev->type == OMAP_DISPLAY_TYPE_VENC) {
-+	if (dssdev->type == OMAP_DISPLAY_TYPE_VENC
-+			|| dssdev->type == OMAP_DISPLAY_TYPE_HDMI) {
- 		if (!tv_mgr->device || force) {
- 			if (tv_mgr->device)
- 				tv_mgr->unset_device(tv_mgr);
++static void sdp4430_hdmi_mux_init(void)
++{
++	/* PAD0_HDMI_HPD_PAD1_HDMI_CEC */
++	omap_mux_init_signal("hdmi_hpd",
++			OMAP_PIN_INPUT_PULLUP);
++	omap_mux_init_signal("hdmi_cec",
++			OMAP_PIN_INPUT_PULLUP);
++	/* PAD0_HDMI_DDC_SCL_PAD1_HDMI_DDC_SDA */
++	omap_mux_init_signal("hdmi_ddc_scl",
++			OMAP_PIN_INPUT_PULLUP);
++	omap_mux_init_signal("hdmi_ddc_sda",
++			OMAP_PIN_INPUT_PULLUP);
++}
++
++static int sdp4430_panel_enable_hdmi(struct omap_dss_device *dssdev)
++{
++	int status;
++
++	status = gpio_request_one(HDMI_GPIO_HPD, GPIOF_DIR_OUT,
++							"hdmi_gpio_hpd");
++	if (status) {
++		pr_err("Cannot request GPIO %d\n", HDMI_GPIO_HPD);
++		return status;
++	}
++	status = gpio_request_one(HDMI_GPIO_LS_OE, GPIOF_DIR_OUT,
++							"hdmi_gpio_ls_oe");
++	if (status) {
++		pr_err("Cannot request GPIO %d\n", HDMI_GPIO_LS_OE);
++		goto error1;
++	}
++
++	/* The value set a pulse */
++	gpio_set_value(HDMI_GPIO_HPD, 1);
++	gpio_set_value(HDMI_GPIO_LS_OE, 1);
++	gpio_set_value(HDMI_GPIO_HPD, 0);
++	gpio_set_value(HDMI_GPIO_LS_OE, 0);
++	gpio_set_value(HDMI_GPIO_HPD, 1);
++	gpio_set_value(HDMI_GPIO_LS_OE, 1);
++
++	return 0;
++
++error1:
++	gpio_free(HDMI_GPIO_HPD);
++
++	return status;
++}
++
++static void sdp4430_panel_disable_hdmi(struct omap_dss_device *dssdev)
++{
++	gpio_free(HDMI_GPIO_LS_OE);
++	gpio_free(HDMI_GPIO_HPD);
++}
++
++static struct omap_dss_device sdp4430_hdmi_device = {
++	.name = "hdmi",
++	.driver_name = "hdmi_panel",
++	.type = OMAP_DISPLAY_TYPE_HDMI,
++	.platform_enable = sdp4430_panel_enable_hdmi,
++	.platform_disable = sdp4430_panel_disable_hdmi,
++	.channel = OMAP_DSS_CHANNEL_DIGIT,
++};
++
++static struct omap_dss_device *sdp4430_dss_devices[] = {
++	&sdp4430_hdmi_device,
++};
++
++static struct omap_dss_board_info sdp4430_dss_data = {
++	.num_devices	= ARRAY_SIZE(sdp4430_dss_devices),
++	.devices	= sdp4430_dss_devices,
++	.default_device	= &sdp4430_hdmi_device,
++};
++
++void omap_4430sdp_display_init(void)
++{
++	sdp4430_hdmi_mux_init();
++	omap_display_init(&sdp4430_dss_data);
++}
++
+ #ifdef CONFIG_OMAP_MUX
+ static struct omap_board_mux board_mux[] __initdata = {
+ 	OMAP4_MUX(USBB2_ULPITLL_CLK, OMAP_MUX_MODE4 | OMAP_PIN_OUTPUT),
+@@ -594,6 +675,7 @@ static void __init omap_4430sdp_init(void)
+ 		spi_register_board_info(sdp4430_spi_board_info,
+ 				ARRAY_SIZE(sdp4430_spi_board_info));
+ 	}
++	omap_4430sdp_display_init();
+ }
+ 
+ static void __init omap_4430sdp_map_io(void)
 -- 
 1.5.6.3
 
