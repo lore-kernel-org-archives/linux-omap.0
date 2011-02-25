@@ -1,62 +1,46 @@
-From: Hema HK <hemahk@ti.com>
-Subject: [PATCH 5/5 v2] usb: musb: OMAP4430: Save/restore the context
-Date: Fri, 25 Feb 2011 18:54:06 +0530
-Message-ID: <1298640246-21181-6-git-send-email-hemahk@ti.com>
-References: <1298640246-21181-1-git-send-email-hemahk@ti.com>
+From: Sanjeev Premi <premi@ti.com>
+Subject: [PATCH] omap3: Initialize iva only if available
+Date: Fri, 25 Feb 2011 18:57:20 +0530
+Message-ID: <1298640440-4527-1-git-send-email-premi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:36688 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:52359 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932337Ab1BYNYh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 25 Feb 2011 08:24:37 -0500
-In-Reply-To: <1298640246-21181-1-git-send-email-hemahk@ti.com>
+	id S1755669Ab1BYN11 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 25 Feb 2011 08:27:27 -0500
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1PDRNg1017597
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Fri, 25 Feb 2011 07:27:26 -0600
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-usb@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, Hema HK <hemahk@ti.com>, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
+To: linux-omap@vger.kernel.org
+Cc: Sanjeev Premi <premi@ti.com>
 
-Add the context save restore for the control module register
-used for OMAP4430 musb with UTMI embedded PHY interface.
+IVA device is not present in many OMAP3 variants.
 
-Signed-off-by: Hema HK <hemahk@ti.com>
-Cc: Felipe Balbi <balbi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Paul Walmsley <paul@pwsan.com>
+This patch ensures that initialization is tied to
+the presence of IVA on the device.
+
+Signed-off-by: Sanjeev Premi <premi@ti.com>
 ---
- arch/arm/mach-omap2/omap_phy_internal.c |    7 +++++++
- 1 files changed, 7 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/pm.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_phy_internal.c b/arch/arm/mach-omap2/omap_phy_internal.c
-index c50441f..e2e605f 100644
---- a/arch/arm/mach-omap2/omap_phy_internal.c
-+++ b/arch/arm/mach-omap2/omap_phy_internal.c
-@@ -44,6 +44,7 @@
- 
- static struct clk *phyclk, *clk48m, *clk32k;
- static void __iomem *ctrl_base;
-+static int usbotghs_control;
- 
- int omap4430_phy_init(struct device *dev)
+diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+index d5a102c..6e4eb7f 100644
+--- a/arch/arm/mach-omap2/pm.c
++++ b/arch/arm/mach-omap2/pm.c
+@@ -83,7 +83,9 @@ static int _init_omap_device(char *name, struct device **new_dev)
+ static void omap2_init_processor_devices(void)
  {
-@@ -130,6 +131,9 @@ int omap4430_phy_suspend(struct device *dev, int suspend)
- 		omap4430_phy_set_clk(dev, 0);
- 		/* Power down the phy */
- 		__raw_writel(PHY_PD, ctrl_base + CONTROL_DEV_CONF);
+ 	_init_omap_device("mpu", &mpu_dev);
+-	_init_omap_device("iva", &iva_dev);
++	if (omap3_has_iva())
++		_init_omap_device("iva", &iva_dev);
 +
-+		/* save the context */
-+		usbotghs_control = __raw_readl(ctrl_base + USBOTGHS_CONTROL);
- 	} else {
- 		/* Enable the internel phy clcoks */
- 		omap4430_phy_set_clk(dev, 1);
-@@ -138,6 +142,9 @@ int omap4430_phy_suspend(struct device *dev, int suspend)
- 			__raw_writel(~PHY_PD, ctrl_base + CONTROL_DEV_CONF);
- 			mdelay(200);
- 		}
-+
-+		/* restore the context */
-+		__raw_writel(usbotghs_control, ctrl_base + USBOTGHS_CONTROL);
- 	}
- 
- 	return 0;
+ 	if (cpu_is_omap44xx()) {
+ 		_init_omap_device("l3_main_1", &l3_dev);
+ 		_init_omap_device("dsp", &dsp_dev);
 -- 
-1.7.0.4
+1.7.2.2
 
