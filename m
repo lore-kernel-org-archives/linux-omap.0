@@ -1,290 +1,222 @@
-From: Kishore Kadiyala <kishore.kadiyala@ti.com>
-Subject: [PATCH v5 3/8] OMAP3: hwmod data: Add HSMMC
-Date: Fri, 25 Feb 2011 22:39:38 +0530
-Message-ID: <1298653783-26410-4-git-send-email-kishore.kadiyala@ti.com>
-References: <1298653783-26410-1-git-send-email-kishore.kadiyala@ti.com>
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <1298653783-26410-1-git-send-email-kishore.kadiyala@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: tony@atomide.com, cjb@laptop.org, madhu.cr@ti.com, khilman@deeprootsystems.com, paul@pwsan.com, b-cousson@ti.com, Rajendra Nayak <rnayak@ti.com>, Kishore Kadiyala <kishore.kadiyala@ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [RFC] AM35x: Workaround to use generic OMAP3 hwmods
+Date: Fri, 25 Feb 2011 18:02:56 +0100
+Message-ID: <4D67E0C0.4080805@ti.com>
+References: <1298641689-7417-1-git-send-email-premi@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:33095 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932468Ab1BYRC7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 25 Feb 2011 12:02:59 -0500
+In-Reply-To: <1298641689-7417-1-git-send-email-premi@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Premi, Sanjeev" <premi@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>
 
-From: Paul Walmsley <paul@pwsan.com>
+Hi Sanjeev,
 
-Update the omap3 hwmod data with the HSMMC info.
+On 2/25/2011 2:48 PM, Premi, Sanjeev wrote:
+> This patch implements workaround to reuse the hwmods
+> defined for OMAP3. Else, the master-slave dependency
+> cascades into duplicating all of the hwmods.
+>
+> Without this workaround, the AM3517 EVM fails to boot
+> due to kernel panic while initializing the SR hwmods.
+> Until real solution is implemented, this workaround
+> can be considered.
+>
+> Signed-off-by: Sanjeev Premi<premi@ti.com>
 
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
-Cc: Benoit Cousson <b-cousson@ti.com>
+Could you try to put Paul and me in CC for such hwmod related email?
+I almost missed it due to the increasing rate of email on l-o nowadays.
+
+> ---
+>   arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   66 +++++++++++++++++++++++++++-
+>   1 files changed, 65 insertions(+), 1 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+> index 800eda4..c8854eb 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+> @@ -1670,7 +1670,71 @@ static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
+>   	NULL,
+>   };
+>
+> +/**
+> + * HWMODs specific to AM35x processors
+> + * Though they are quite similar to OMAP34xx definitions,
+> + * having separate array makes customization easy.
+> + */
+> +static __initdata struct omap_hwmod *am35xx_hwmods[] = {
+> +	&omap3xxx_l3_main_hwmod,
+> +	&omap3xxx_l4_core_hwmod,
+> +	&omap3xxx_l4_per_hwmod,
+> +	&omap3xxx_l4_wkup_hwmod,
+> +	&omap3xxx_mpu_hwmod,
+> +	&omap3xxx_wd_timer2_hwmod,
+> +	&omap3xxx_uart1_hwmod,
+> +	&omap3xxx_uart2_hwmod,
+> +	&omap3xxx_uart3_hwmod,
+> +	&omap3xxx_uart4_hwmod,
+> +	&omap3xxx_i2c1_hwmod,
+> +	&omap3xxx_i2c2_hwmod,
+> +	&omap3xxx_i2c3_hwmod,
+> +
+> +	/* gpio class */
+> +	&omap3xxx_gpio1_hwmod,
+> +	&omap3xxx_gpio2_hwmod,
+> +	&omap3xxx_gpio3_hwmod,
+> +	&omap3xxx_gpio4_hwmod,
+> +	&omap3xxx_gpio5_hwmod,
+> +	&omap3xxx_gpio6_hwmod,
+> +
+> +	/* dma_system class*/
+> +	&omap3xxx_dma_system_hwmod,
+> +
+> +	/* mcspi class */
+> +	&omap34xx_mcspi1,
+> +	&omap34xx_mcspi2,
+> +	&omap34xx_mcspi3,
+> +	&omap34xx_mcspi4,
+> +	NULL,
+> +};
+> +
+>   int __init omap3xxx_hwmod_init(void)
+>   {
+> -	return omap_hwmod_init(omap3xxx_hwmods);
+> +	if (cpu_is_omap3505() || cpu_is_omap3517()) {
+> +
+> +		/* TODO: Find better way to get this done.
+> +		 *
+> +		 * AM35xx doesn't support smartreflex. This requires:
+> +		 * 1) Removing related hwmods from the initialization list.
+> +		 *    (done).
+> +		 * 2) Removing omap3_l4_core__sr1 and omap3_l4_core__sr2
+> +		 *    from omap3xxx_l4_core_slaves.
+> +		 *    This, however, has cascading effect on all hwmods,
+> +		 *    due to master-slave relations between these hwmods.
+> +		 *
+> +		 * Instead of duplicating contents of this file, updating
+> +		 * the structure to restrict slave count to 1; and setting
+> +		 * address of omap3_l4_core__sr1&  omap3_l4_core__sr2 to
+> +		 * NULL should be a reasonable workaround.
+> +		 */
+> +		omap3xxx_l4_core_slaves[1] = NULL;
+> +		omap3xxx_l4_core_slaves[2] = NULL;
+
+OK, this is not your fault, but it appears that these entries are wrong 
+in the original omap_hwmod_3xxx_data.c file.
+The l4_core does not have any slave port toward smartreflex, this is the 
+opposite, l4_core does have 2 master ports toward smartreflex.
+
+Since these master ports from interconnect generated some annoying 
+circular reference during OMAP4 generation, I simply removed them.
+There are not used for the moment, and you can still build that relation 
+using the slave port from the IP.
+
+So by removing directly these relations in the original file, that 
+should simplify your life. The patch do fix that is below.
+I just built it so if you can give a try it will be nice.
+
+Thanks,
+Benoit
+
 ---
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  209 ++++++++++++++++++++++++++++
- arch/arm/mach-omap2/prcm-common.h          |    4 +
- 2 files changed, 213 insertions(+), 0 deletions(-)
+ From 09506eedef901af0fa19ddb48f486ce4ef353645 Mon Sep 17 00:00:00 2001
+From: Benoit Cousson <b-cousson@ti.com>
+Date: Fri, 25 Feb 2011 17:46:33 +0100
+Subject: [PATCH] OMAP3: hwmod data: Remove masters port links for 
+interconnects.
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index e9d0012..7726932 100644
+Master ports from interconnect are generating some annoying circular
+references that become tricky to handle if we have to dynamically
+remove some IP on some variant platforms.
+Since they are not used for the moment, and since we can still build
+that relation using the reverse relation (slave port from the IP
+toward master port of the interconnect), let remove them for the
+moment like it is done on OMAP4.
+
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+---
+  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   28 
+----------------------------
+  1 files changed, 0 insertions(+), 28 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c 
+b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+index 7fa2dfb..0e7d43f 100644
 --- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
 +++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -68,6 +68,9 @@ static struct omap_hwmod omap34xx_mcspi1;
- static struct omap_hwmod omap34xx_mcspi2;
- static struct omap_hwmod omap34xx_mcspi3;
- static struct omap_hwmod omap34xx_mcspi4;
-+static struct omap_hwmod omap3xxx_mmc1_hwmod;
-+static struct omap_hwmod omap3xxx_mmc2_hwmod;
-+static struct omap_hwmod omap3xxx_mmc3_hwmod;
- static struct omap_hwmod am35xx_usbhsotg_hwmod;
- 
- static struct omap_hwmod omap3xxx_dma_system_hwmod;
-@@ -158,6 +161,63 @@ static struct omap_hwmod_ocp_if omap3xxx_l4_core__l4_wkup = {
- 	.user	= OCP_USER_MPU | OCP_USER_SDMA,
- };
- 
-+/* L4 CORE -> MMC1 interface */
-+static struct omap_hwmod_addr_space omap3xxx_mmc1_addr_space[] = {
-+	{
-+		.pa_start	= 0x4809c000,
-+		.pa_end		= 0x4809c1ff,
-+		.flags		= ADDR_TYPE_RT,
-+	},
-+};
-+
-+static struct omap_hwmod_ocp_if omap3xxx_l4_core__mmc1 = {
-+	.master		= &omap3xxx_l4_core_hwmod,
-+	.slave		= &omap3xxx_mmc1_hwmod,
-+	.clk		= "mmchs1_ick",
-+	.addr		= omap3xxx_mmc1_addr_space,
-+	.addr_cnt	= ARRAY_SIZE(omap3xxx_mmc1_addr_space),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+	.flags		= OMAP_FIREWALL_L4
-+};
-+
-+/* L4 CORE -> MMC2 interface */
-+static struct omap_hwmod_addr_space omap3xxx_mmc2_addr_space[] = {
-+	{
-+		.pa_start	= 0x480b4000,
-+		.pa_end		= 0x480b41ff,
-+		.flags		= ADDR_TYPE_RT,
-+	},
-+};
-+
-+static struct omap_hwmod_ocp_if omap3xxx_l4_core__mmc2 = {
-+	.master		= &omap3xxx_l4_core_hwmod,
-+	.slave		= &omap3xxx_mmc2_hwmod,
-+	.clk		= "mmchs2_ick",
-+	.addr		= omap3xxx_mmc2_addr_space,
-+	.addr_cnt	= ARRAY_SIZE(omap3xxx_mmc2_addr_space),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+	.flags		= OMAP_FIREWALL_L4
-+};
-+
-+/* L4 CORE -> MMC3 interface */
-+static struct omap_hwmod_addr_space omap3xxx_mmc3_addr_space[] = {
-+	{
-+		.pa_start	= 0x480ad000,
-+		.pa_end		= 0x480ad1ff,
-+		.flags		= ADDR_TYPE_RT,
-+	},
-+};
-+
-+static struct omap_hwmod_ocp_if omap3xxx_l4_core__mmc3 = {
-+	.master		= &omap3xxx_l4_core_hwmod,
-+	.slave		= &omap3xxx_mmc3_hwmod,
-+	.clk		= "mmchs3_ick",
-+	.addr		= omap3xxx_mmc3_addr_space,
-+	.addr_cnt	= ARRAY_SIZE(omap3xxx_mmc3_addr_space),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+	.flags		= OMAP_FIREWALL_L4
-+};
-+
- /* L4 CORE -> UART1 interface */
- static struct omap_hwmod_addr_space omap3xxx_uart1_addr_space[] = {
- 	{
-@@ -2212,11 +2272,160 @@ static struct omap_hwmod am35xx_usbhsotg_hwmod = {
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES3_1)
- };
- 
-+/* MMC/SD/SDIO common */
-+
-+static struct omap_hwmod_class_sysconfig omap34xx_mmc_sysc = {
-+	.rev_offs	= 0x1fc,
-+	.sysc_offs	= 0x10,
-+	.syss_offs	= 0x14,
-+	.sysc_flags	= (SYSC_HAS_CLOCKACTIVITY | SYSC_HAS_SIDLEMODE |
-+			   SYSC_HAS_ENAWAKEUP | SYSC_HAS_SOFTRESET |
-+			   SYSC_HAS_AUTOIDLE | SYSS_HAS_RESET_STATUS),
-+	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
-+	.sysc_fields    = &omap_hwmod_sysc_type1,
-+};
-+
-+static struct omap_hwmod_class omap34xx_mmc_class = {
-+	.name = "mmc",
-+	.sysc = &omap34xx_mmc_sysc,
-+};
-+
-+/* MMC/SD/SDIO1 */
-+
-+static struct omap_hwmod_irq_info omap34xx_mmc1_mpu_irqs[] = {
-+	{ .irq = 83, },
-+};
-+
-+static struct omap_hwmod_dma_info omap34xx_mmc1_sdma_reqs[] = {
-+	{ .name = "tx",	.dma_req = 61, },
-+	{ .name = "rx",	.dma_req = 62, },
-+};
-+
-+static struct omap_hwmod_opt_clk omap34xx_mmc1_opt_clks[] = {
-+	{ .role = "dbck", .clk = "omap_32k_fck", },
-+};
-+
-+static struct omap_hwmod_ocp_if *omap3xxx_mmc1_slaves[] = {
-+	&omap3xxx_l4_core__mmc1,
-+};
-+
-+static struct omap_hwmod omap3xxx_mmc1_hwmod = {
-+	.name		= "mmc1",
-+	.mpu_irqs	= omap34xx_mmc1_mpu_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap34xx_mmc1_mpu_irqs),
-+	.sdma_reqs	= omap34xx_mmc1_sdma_reqs,
-+	.sdma_reqs_cnt	= ARRAY_SIZE(omap34xx_mmc1_sdma_reqs),
-+	.opt_clks	= omap34xx_mmc1_opt_clks,
-+	.opt_clks_cnt	= ARRAY_SIZE(omap34xx_mmc1_opt_clks),
-+	.main_clk	= "mmchs1_fck",
-+	.prcm		= {
-+		.omap2 = {
-+			.module_offs = CORE_MOD,
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP3430_EN_MMC1_SHIFT,
-+			.idlest_reg_id = 1,
-+			.idlest_idle_bit = OMAP3430_ST_MMC1_SHIFT,
-+		},
-+	},
-+	.slaves		= omap3xxx_mmc1_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap3xxx_mmc1_slaves),
-+	.class		= &omap34xx_mmc_class,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+};
-+
-+/* MMC/SD/SDIO2 */
-+
-+static struct omap_hwmod_irq_info omap34xx_mmc2_mpu_irqs[] = {
-+	{ .irq = INT_24XX_MMC2_IRQ, },
-+};
-+
-+static struct omap_hwmod_dma_info omap34xx_mmc2_sdma_reqs[] = {
-+	{ .name = "tx",	.dma_req = 47, },
-+	{ .name = "rx",	.dma_req = 48, },
-+};
-+
-+static struct omap_hwmod_opt_clk omap34xx_mmc2_opt_clks[] = {
-+	{ .role = "dbck", .clk = "omap_32k_fck", },
-+};
-+
-+static struct omap_hwmod_ocp_if *omap3xxx_mmc2_slaves[] = {
-+	&omap3xxx_l4_core__mmc2,
-+};
-+
-+static struct omap_hwmod omap3xxx_mmc2_hwmod = {
-+	.name		= "mmc2",
-+	.mpu_irqs	= omap34xx_mmc2_mpu_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap34xx_mmc2_mpu_irqs),
-+	.sdma_reqs	= omap34xx_mmc2_sdma_reqs,
-+	.sdma_reqs_cnt	= ARRAY_SIZE(omap34xx_mmc2_sdma_reqs),
-+	.opt_clks	= omap34xx_mmc2_opt_clks,
-+	.opt_clks_cnt	= ARRAY_SIZE(omap34xx_mmc2_opt_clks),
-+	.main_clk	= "mmchs2_fck",
-+	.prcm		= {
-+		.omap2 = {
-+			.module_offs = CORE_MOD,
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP3430_EN_MMC2_SHIFT,
-+			.idlest_reg_id = 1,
-+			.idlest_idle_bit = OMAP3430_ST_MMC2_SHIFT,
-+		},
-+	},
-+	.slaves		= omap3xxx_mmc2_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap3xxx_mmc2_slaves),
-+	.class		= &omap34xx_mmc_class,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+};
-+
-+/* MMC/SD/SDIO3 */
-+
-+static struct omap_hwmod_irq_info omap34xx_mmc3_mpu_irqs[] = {
-+	{ .irq = 94, },
-+};
-+
-+static struct omap_hwmod_dma_info omap34xx_mmc3_sdma_reqs[] = {
-+	{ .name = "tx",	.dma_req = 77, },
-+	{ .name = "rx",	.dma_req = 78, },
-+};
-+
-+static struct omap_hwmod_opt_clk omap34xx_mmc3_opt_clks[] = {
-+	{ .role = "dbck", .clk = "omap_32k_fck", },
-+};
-+
-+static struct omap_hwmod_ocp_if *omap3xxx_mmc3_slaves[] = {
-+	&omap3xxx_l4_core__mmc3,
-+};
-+
-+static struct omap_hwmod omap3xxx_mmc3_hwmod = {
-+	.name		= "mmc3",
-+	.mpu_irqs	= omap34xx_mmc3_mpu_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap34xx_mmc3_mpu_irqs),
-+	.sdma_reqs	= omap34xx_mmc3_sdma_reqs,
-+	.sdma_reqs_cnt	= ARRAY_SIZE(omap34xx_mmc3_sdma_reqs),
-+	.opt_clks	= omap34xx_mmc3_opt_clks,
-+	.opt_clks_cnt	= ARRAY_SIZE(omap34xx_mmc3_opt_clks),
-+	.main_clk	= "mmchs3_fck",
-+	.prcm		= {
-+		.omap2 = {
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP3430_EN_MMC3_SHIFT,
-+			.idlest_reg_id = 1,
-+			.idlest_idle_bit = OMAP3430_ST_MMC3_SHIFT,
-+		},
-+	},
-+	.slaves		= omap3xxx_mmc3_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap3xxx_mmc3_slaves),
-+	.class		= &omap34xx_mmc_class,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+};
-+
- static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
- 	&omap3xxx_l3_main_hwmod,
- 	&omap3xxx_l4_core_hwmod,
- 	&omap3xxx_l4_per_hwmod,
- 	&omap3xxx_l4_wkup_hwmod,
-+	&omap3xxx_mmc1_hwmod,
-+	&omap3xxx_mmc2_hwmod,
-+	&omap3xxx_mmc3_hwmod,
- 	&omap3xxx_mpu_hwmod,
- 	&omap3xxx_iva_hwmod,
- 	&omap3xxx_wd_timer2_hwmod,
-diff --git a/arch/arm/mach-omap2/prcm-common.h b/arch/arm/mach-omap2/prcm-common.h
-index 87486f5..098e659 100644
---- a/arch/arm/mach-omap2/prcm-common.h
-+++ b/arch/arm/mach-omap2/prcm-common.h
-@@ -191,6 +191,8 @@
- #define OMAP3430_AUTOIDLE_MASK				(1 << 0)
- 
- /* CM_FCLKEN1_CORE, CM_ICLKEN1_CORE, PM_WKEN1_CORE shared bits */
-+#define OMAP3430_EN_MMC3_MASK				(1 << 30)
-+#define OMAP3430_EN_MMC3_SHIFT				30
- #define OMAP3430_EN_MMC2_MASK				(1 << 25)
- #define OMAP3430_EN_MMC2_SHIFT				25
- #define OMAP3430_EN_MMC1_MASK				(1 << 24)
-@@ -231,6 +233,8 @@
- #define OMAP3430_EN_HSOTGUSB_SHIFT			4
- 
- /* PM_WKST1_CORE, CM_IDLEST1_CORE shared bits */
-+#define OMAP3430_ST_MMC3_SHIFT				30
-+#define OMAP3430_ST_MMC3_MASK				(1 << 30)
- #define OMAP3430_ST_MMC2_SHIFT				25
- #define OMAP3430_ST_MMC2_MASK				(1 << 25)
- #define OMAP3430_ST_MMC1_SHIFT				24
--- 
-1.7.1
+@@ -463,26 +463,12 @@ static struct omap_hwmod_ocp_if 
+*am35xx_usbhsotg_slaves[] = {
+  /* Slave interfaces on the L4_CORE interconnect */
+  static struct omap_hwmod_ocp_if *omap3xxx_l4_core_slaves[] = {
+  	&omap3xxx_l3_main__l4_core,
+-	&omap3_l4_core__sr1,
+-	&omap3_l4_core__sr2,
+-};
+-
+-/* Master interfaces on the L4_CORE interconnect */
+-static struct omap_hwmod_ocp_if *omap3xxx_l4_core_masters[] = {
+-	&omap3xxx_l4_core__l4_wkup,
+-	&omap3_l4_core__uart1,
+-	&omap3_l4_core__uart2,
+-	&omap3_l4_core__i2c1,
+-	&omap3_l4_core__i2c2,
+-	&omap3_l4_core__i2c3,
+  };
 
+  /* L4 CORE */
+  static struct omap_hwmod omap3xxx_l4_core_hwmod = {
+  	.name		= "l4_core",
+  	.class		= &l4_hwmod_class,
+-	.masters	= omap3xxx_l4_core_masters,
+-	.masters_cnt	= ARRAY_SIZE(omap3xxx_l4_core_masters),
+  	.slaves		= omap3xxx_l4_core_slaves,
+  	.slaves_cnt	= ARRAY_SIZE(omap3xxx_l4_core_slaves),
+  	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+@@ -494,18 +480,10 @@ static struct omap_hwmod_ocp_if 
+*omap3xxx_l4_per_slaves[] = {
+  	&omap3xxx_l3_main__l4_per,
+  };
+
+-/* Master interfaces on the L4_PER interconnect */
+-static struct omap_hwmod_ocp_if *omap3xxx_l4_per_masters[] = {
+-	&omap3_l4_per__uart3,
+-	&omap3_l4_per__uart4,
+-};
+-
+  /* L4 PER */
+  static struct omap_hwmod omap3xxx_l4_per_hwmod = {
+  	.name		= "l4_per",
+  	.class		= &l4_hwmod_class,
+-	.masters	= omap3xxx_l4_per_masters,
+-	.masters_cnt	= ARRAY_SIZE(omap3xxx_l4_per_masters),
+  	.slaves		= omap3xxx_l4_per_slaves,
+  	.slaves_cnt	= ARRAY_SIZE(omap3xxx_l4_per_slaves),
+  	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+@@ -517,16 +495,10 @@ static struct omap_hwmod_ocp_if 
+*omap3xxx_l4_wkup_slaves[] = {
+  	&omap3xxx_l4_core__l4_wkup,
+  };
+
+-/* Master interfaces on the L4_WKUP interconnect */
+-static struct omap_hwmod_ocp_if *omap3xxx_l4_wkup_masters[] = {
+-};
+-
+  /* L4 WKUP */
+  static struct omap_hwmod omap3xxx_l4_wkup_hwmod = {
+  	.name		= "l4_wkup",
+  	.class		= &l4_hwmod_class,
+-	.masters	= omap3xxx_l4_wkup_masters,
+-	.masters_cnt	= ARRAY_SIZE(omap3xxx_l4_wkup_masters),
+  	.slaves		= omap3xxx_l4_wkup_slaves,
+  	.slaves_cnt	= ARRAY_SIZE(omap3xxx_l4_wkup_slaves),
+  	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+-- 
+1.7.0.4
