@@ -1,147 +1,52 @@
-From: Mythri P K <mythripk@ti.com>
-Subject: [PATCH 8/8] OMAP4 : DSS2 : Add display structure in the board file for OMAP4 pandaboard
-Date: Fri, 25 Feb 2011 19:51:55 +0530
-Message-ID: <1298643715-21540-9-git-send-email-mythripk@ti.com>
-References: <1298643715-21540-1-git-send-email-mythripk@ti.com>
+From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Subject: RE: [PATCH 8/8] OMAP2+: clockevent: late-init GPTIMER clockevent
+ hwmodright before timer init
+Date: Fri, 25 Feb 2011 19:37:15 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB037A095EA9@dbde02.ent.ti.com>
+References: <20110223070455.5874.51326.stgit@twilight.localdomain>
+ <20110223071153.5874.58923.stgit@twilight.localdomain>
+ <581270b49665fcf8227a96065dbbc584@mail.gmail.com>
+ <alpine.DEB.2.00.1102240109500.6198@utopia.booyaka.com>
+ <alpine.DEB.2.00.1102240114160.6198@utopia.booyaka.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB037A0958B7@dbde02.ent.ti.com>
+ <20110224154108.GB20560@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:46328 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755703Ab1BYNyx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Feb 2011 08:54:53 -0500
-Received: from dlep34.itg.ti.com ([157.170.170.115])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1PDsre2007204
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 25 Feb 2011 07:54:53 -0600
-In-Reply-To: <1298643715-21540-1-git-send-email-mythripk@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:38856 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755669Ab1BYOHZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Feb 2011 09:07:25 -0500
+In-Reply-To: <20110224154108.GB20560@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: tomi.valkeinen@ti.com, Mythri P K <mythripk@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Paul Walmsley <paul@pwsan.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Hilman, Kevin" <khilman@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>
 
-Adding  board file structure for display which adds the display
-structure with HDMI as the default driver when the display init
-is called.
-HDMI GPIO configurations are also done in this file.
-
-Signed-off-by: Mythri P K <mythripk@ti.com>
----
- arch/arm/mach-omap2/board-omap4panda.c |   82 ++++++++++++++++++++++++++++++++
- 1 files changed, 82 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
-index e944025..86ec234 100644
---- a/arch/arm/mach-omap2/board-omap4panda.c
-+++ b/arch/arm/mach-omap2/board-omap4panda.c
-@@ -32,6 +32,7 @@
- #include <asm/mach-types.h>
- #include <asm/mach/arch.h>
- #include <asm/mach/map.h>
-+#include <plat/display.h>
- 
- #include <plat/board.h>
- #include <plat/common.h>
-@@ -45,6 +46,8 @@
- 
- #define GPIO_HUB_POWER		1
- #define GPIO_HUB_NRESET		62
-+#define HDMI_GPIO_HPD 60 /* Hot plug pin for HDMI */
-+#define HDMI_GPIO_LS_OE 41 /* Level shifter for HDMI */
- 
- static struct gpio_led gpio_leds[] = {
- 	{
-@@ -397,6 +400,84 @@ static struct omap_board_mux board_mux[] __initdata = {
- #define board_mux	NULL
- #endif
- 
-+static void sdp4430_hdmi_mux_init(void)
-+{
-+	/* PAD0_HDMI_HPD_PAD1_HDMI_CEC */
-+	omap_mux_init_signal("hdmi_hpd",
-+			OMAP_PIN_INPUT_PULLUP);
-+	omap_mux_init_signal("hdmi_cec",
-+			OMAP_PIN_INPUT_PULLUP);
-+	/* PAD0_HDMI_DDC_SCL_PAD1_HDMI_DDC_SDA */
-+	omap_mux_init_signal("hdmi_ddc_scl",
-+			OMAP_PIN_INPUT_PULLUP);
-+	omap_mux_init_signal("hdmi_ddc_sda",
-+			OMAP_PIN_INPUT_PULLUP);
-+}
-+
-+static int sdp4430_panel_enable_hdmi(struct omap_dss_device *dssdev)
-+{
-+	int status;
-+
-+	status = gpio_request_one(HDMI_GPIO_HPD, GPIOF_DIR_OUT,
-+							"hdmi_gpio_hpd");
-+	if (status) {
-+		pr_err("Cannot request GPIO %d\n", HDMI_GPIO_HPD);
-+		return status;
-+	}
-+	status = gpio_request_one(HDMI_GPIO_LS_OE, GPIOF_DIR_OUT,
-+							"hdmi_gpio_ls_oe");
-+	if (status) {
-+		pr_err("Cannot request GPIO %d\n", HDMI_GPIO_LS_OE);
-+		goto error1;
-+	}
-+
-+	/* The value set a pulse */
-+	gpio_set_value(HDMI_GPIO_HPD, 1);
-+	gpio_set_value(HDMI_GPIO_LS_OE, 1);
-+	gpio_set_value(HDMI_GPIO_HPD, 0);
-+	gpio_set_value(HDMI_GPIO_LS_OE, 0);
-+	gpio_set_value(HDMI_GPIO_HPD, 1);
-+	gpio_set_value(HDMI_GPIO_LS_OE, 1);
-+
-+	return 0;
-+
-+error1:
-+	gpio_free(HDMI_GPIO_HPD);
-+
-+	return status;
-+}
-+
-+static void sdp4430_panel_disable_hdmi(struct omap_dss_device *dssdev)
-+{
-+	gpio_free(HDMI_GPIO_LS_OE);
-+	gpio_free(HDMI_GPIO_HPD);
-+}
-+
-+static struct omap_dss_device sdp4430_hdmi_device = {
-+	.name = "hdmi",
-+	.driver_name = "hdmi_panel",
-+	.type = OMAP_DISPLAY_TYPE_HDMI,
-+	.platform_enable = sdp4430_panel_enable_hdmi,
-+	.platform_disable = sdp4430_panel_disable_hdmi,
-+	.channel = OMAP_DSS_CHANNEL_DIGIT,
-+};
-+
-+static struct omap_dss_device *sdp4430_dss_devices[] = {
-+	&sdp4430_hdmi_device,
-+};
-+
-+static struct omap_dss_board_info sdp4430_dss_data = {
-+	.num_devices	= ARRAY_SIZE(sdp4430_dss_devices),
-+	.devices	= sdp4430_dss_devices,
-+	.default_device	= &sdp4430_hdmi_device,
-+};
-+
-+void omap_panda_display_init(void)
-+{
-+	sdp4430_hdmi_mux_init();
-+	omap_display_init(&sdp4430_dss_data);
-+}
-+
- static void __init omap4_panda_init(void)
- {
- 	int package = OMAP_PACKAGE_CBS;
-@@ -411,6 +492,7 @@ static void __init omap4_panda_init(void)
- 	omap4_twl6030_hsmmc_init(mmc);
- 	omap4_ehci_init();
- 	usb_musb_init(&musb_board_data);
-+	omap_panda_display_init();
- }
- 
- static void __init omap4_panda_map_io(void)
--- 
-1.5.6.3
-
+> -----Original Message-----
+> From: Tony Lindgren [mailto:tony@atomide.com]
+> Sent: Thursday, February 24, 2011 9:11 PM
+> To: DebBarma, Tarun Kanti
+> Cc: Paul Walmsley; Shilimkar, Santosh; linux-omap@vger.kernel.org; linux-
+> arm-kernel@lists.infradead.org; Hilman, Kevin; Cousson, Benoit
+> Subject: Re: [PATCH 8/8] OMAP2+: clockevent: late-init GPTIMER clockevent
+> hwmodright before timer init
+> 
+> * DebBarma, Tarun Kanti <tarun.kanti@ti.com> [110224 00:27]:
+> > I have tested on OMAP3 and works fine.
+> > On OMAP2, I guess there is different issue for which it does not work.
+> 
+> That's because commit 15490ef8ff8fd22d677cb5d4f6a98e5a79118dba changed
+> things to include CONFIG_CPU_32v6K. And this means that omap-for-linus
+> won't boot on omap2 currently using omap2plus_defconfig. The master
+> branch boots because of the patches in omap-testing.
+> 
+> To boot test omap-for-linus, you can temporarily merge in the
+> omap-testing branch that has the pending patches from Russell to
+> make non-6K ARMv6 processors work with CONFIG_CPU_32v6K.
+I have re-based the changes on omap-testing branch and tested on
+OMAP2420 and OMAP2430.
+--
+Tarun
