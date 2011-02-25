@@ -1,52 +1,59 @@
-From: archit taneja <archit@ti.com>
-Subject: Re: [PATCH 3/4] OMAP: DSS2: FEATURES: Remove DSI & SDI from OMAP2
-Date: Fri, 25 Feb 2011 10:36:32 +0530
-Message-ID: <4D6738D8.4050605@ti.com>
-References: <1298554461-9879-1-git-send-email-tomi.valkeinen@ti.com> <1298554461-9879-3-git-send-email-tomi.valkeinen@ti.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: RE: [PATCH 0/3] OMAP2+: voltage: first pass at cleanup/reorganization
+Date: Fri, 25 Feb 2011 11:02:46 +0530
+Message-ID: <152f5892a6651cd0268573cb9b317efa@mail.gmail.com>
+References: <20110221020231.7598.14024.stgit@twilight.localdomain>
+ <553cd99ec29ee91e4a4b324d0f4a0be7@mail.gmail.com> <alpine.DEB.2.00.1102242201410.6198@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48627 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750753Ab1BYFES (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 25 Feb 2011 00:04:18 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1P54FLf002993
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 24 Feb 2011 23:04:17 -0600
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id p1P54EZP014339
-	for <linux-omap@vger.kernel.org>; Fri, 25 Feb 2011 10:34:14 +0530 (IST)
-In-Reply-To: <1298554461-9879-3-git-send-email-tomi.valkeinen@ti.com>
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:39319 "EHLO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751080Ab1BYFcv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 25 Feb 2011 00:32:51 -0500
+Received: by mail-fx0-f42.google.com with SMTP id 20so1221214fxm.29
+        for <linux-omap@vger.kernel.org>; Thu, 24 Feb 2011 21:32:50 -0800 (PST)
+In-Reply-To: <alpine.DEB.2.00.1102242201410.6198@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, Nishanth Menon <nm@ti.com>, Benoit Cousson <b-cousson@ti.com>, Mike Turquette <mturquette@ti.com>
 
-Hi,
+Hi Paul,
 
-On Thursday 24 February 2011 07:04 PM, Valkeinen, Tomi wrote:
-> OMAP2 doesn't support SDI or DSI. Remove them from
-> omap2_dss_supported_displays.
+> -----Original Message-----
+> From: Paul Walmsley [mailto:paul@pwsan.com]
+> Sent: Friday, February 25, 2011 10:33 AM
+> To: Rajendra Nayak
+> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org;
+Kevin Hilman; Nishanth Menon; Benoit Cousson;
+> Mike Turquette
+> Subject: RE: [PATCH 0/3] OMAP2+: voltage: first pass at
+cleanup/reorganization
 >
-> Signed-off-by: Tomi Valkeinen<tomi.valkeinen@ti.com>
-> ---
->   drivers/video/omap2/dss/dss_features.c |    3 +--
->   1 files changed, 1 insertions(+), 2 deletions(-)
+> Hi Rajendra,
 >
-> diff --git a/drivers/video/omap2/dss/dss_features.c b/drivers/video/omap2/dss/dss_features.c
-> index f4367f6..fe22d11 100644
-> --- a/drivers/video/omap2/dss/dss_features.c
-> +++ b/drivers/video/omap2/dss/dss_features.c
-> @@ -66,8 +66,7 @@ static const struct dss_reg_field omap3_dss_reg_fields[] = {
+> On Thu, 24 Feb 2011, Rajendra Nayak wrote:
 >
->   static const enum omap_display_type omap2_dss_supported_displays[] = {
->   	/* OMAP_DSS_CHANNEL_LCD */
-> -	OMAP_DISPLAY_TYPE_DPI | OMAP_DISPLAY_TYPE_DBI |
-> -	OMAP_DISPLAY_TYPE_SDI | OMAP_DISPLAY_TYPE_DSI,
-> +	OMAP_DISPLAY_TYPE_DPI | OMAP_DISPLAY_TYPE_DBI,
+> > I found these abort on my 4430SDP. The below changes I found
+> > are needed for it to bootup..
+> > I tested the 'integration-2.6.39' branch of
+> > git://git.pwsan.com/linux-integration and the patch is
+> > based on this branch.
+>
+> Thanks very much for the patch, this looks right.  Do you mind if I fold
+> it into the "OMAP2+: voltage: reorganize, split code from data" patch
+and
+> credit you appropriately in the patch description?  (That way, there
+won't
+> be any gaps between patches where OMAP4 won't work.)
 
-That's a blunder from my end! Thanks for the fix.
+I agree it makes sense to fold these changes into the original patch.
+Please go ahead.
+Thanks,
+Rajendra
 
-Archit
+>
+>
+> - Paul
