@@ -1,23 +1,23 @@
 From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: RE: [PATCH 3/3] omap2plus: cpufreq: Add SMP support to cater
- OMAP4430
-Date: Fri, 25 Feb 2011 13:40:11 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB037A095CED@dbde02.ent.ti.com>
+Subject: RE: [PATCH 2/3] omap: cpufreq: Split omap1 and omap2plus cpufreq
+ drivers.
+Date: Fri, 25 Feb 2011 13:49:02 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB037A095CF5@dbde02.ent.ti.com>
 References: <1298614239-32196-1-git-send-email-santosh.shilimkar@ti.com>
- <1298614239-32196-4-git-send-email-santosh.shilimkar@ti.com>
+ <1298614239-32196-3-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:56548 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:57095 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754907Ab1BYIKV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Feb 2011 03:10:21 -0500
+	with ESMTP id S1751604Ab1BYITL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Feb 2011 03:19:11 -0500
 Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1P8AIeG032301
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1P8J8pv000838
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 25 Feb 2011 02:10:20 -0600
-In-Reply-To: <1298614239-32196-4-git-send-email-santosh.shilimkar@ti.com>
+	for <linux-omap@vger.kernel.org>; Fri, 25 Feb 2011 02:19:10 -0600
+In-Reply-To: <1298614239-32196-3-git-send-email-santosh.shilimkar@ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -30,183 +30,403 @@ Cc: "Hilman, Kevin" <khilman@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.c
 > Sent: Friday, February 25, 2011 11:41 AM
 > To: linux-omap@vger.kernel.org
 > Cc: Hilman, Kevin; Sripathy, Vishwanath; Shilimkar, Santosh
-> Subject: [PATCH 3/3] omap2plus: cpufreq: Add SMP support to cater OMAP4430
+> Subject: [PATCH 2/3] omap: cpufreq: Split omap1 and omap2plus cpufreq
+> drivers.
 > 
-> On OMAP SMP configuartion, both processors share the voltage
-> and clock. So both CPUs needs to be scaled together and hence
-> needs software co-ordination.
+> This patch is an attempt to cleanup the #ifdeferry in the
+> omap cpufreq drivers.
+> 
+> The split betwenn omap1 and omap2plus is logical because
+Typo: between
+
+> 	- omap1 doesn't support opp layer.
+> 	- omap1 build is seperate from omap2plus.
 > 
 > Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 > Cc: Kevin Hilman <khilman@ti.com>
-> cc: Vishwanath BS <vishwanath.bs@ti.com>
+> Cc: Vishwanath BS <vishwanath.bs@ti.com>
 > ---
->  arch/arm/mach-omap2/omap2plus-cpufreq.c |   71
-> ++++++++++++++++++++++++++----
->  1 files changed, 61 insertions(+), 10 deletions(-)
+>  arch/arm/mach-omap1/Makefile                       |    3 +
+>  .../cpu-omap.c => mach-omap1/omap1-cpufreq.c}      |   70 +++++----------
+> -
+>  arch/arm/mach-omap2/Makefile                       |    3 +
+>  .../cpu-omap.c => mach-omap2/omap2plus-cpufreq.c}  |   87 +++++++++------
+> -----
+>  arch/arm/plat-omap/Makefile                        |    1 -
+>  5 files changed, 67 insertions(+), 97 deletions(-)
+>  copy arch/arm/{plat-omap/cpu-omap.c => mach-omap1/omap1-cpufreq.c} (74%)
+>  rename arch/arm/{plat-omap/cpu-omap.c => mach-omap2/omap2plus-cpufreq.c}
+> (76%)
 > 
-> diff --git a/arch/arm/mach-omap2/omap2plus-cpufreq.c b/arch/arm/mach-
-> omap2/omap2plus-cpufreq.c
-> index 48da867..8c903c1 100644
-> --- a/arch/arm/mach-omap2/omap2plus-cpufreq.c
-> +++ b/arch/arm/mach-omap2/omap2plus-cpufreq.c
-> @@ -26,9 +26,11 @@
->  #include <linux/clk.h>
+> diff --git a/arch/arm/mach-omap1/Makefile b/arch/arm/mach-omap1/Makefile
+> index 6ee1950..02b80f5 100644
+> --- a/arch/arm/mach-omap1/Makefile
+> +++ b/arch/arm/mach-omap1/Makefile
+> @@ -11,6 +11,9 @@ obj-$(CONFIG_OMAP_MCBSP) += mcbsp.o
+>  obj-$(CONFIG_OMAP_MPU_TIMER)	+= time.o
+>  obj-$(CONFIG_OMAP_32K_TIMER)	+= timer32k.o
+> 
+> +# CPUFREQ driver
+> +obj-$(CONFIG_CPU_FREQ) += omap1-cpufreq.o
+> +
+>  # Power Management
+>  obj-$(CONFIG_PM) += pm.o sleep.o pm_bus.o
+> 
+> diff --git a/arch/arm/plat-omap/cpu-omap.c b/arch/arm/mach-omap1/omap1-
+> cpufreq.c
+> similarity index 74%
+> copy from arch/arm/plat-omap/cpu-omap.c
+> copy to arch/arm/mach-omap1/omap1-cpufreq.c
+> index 1c1b80b..64faf3f 100644
+> --- a/arch/arm/plat-omap/cpu-omap.c
+> +++ b/arch/arm/mach-omap1/omap1-cpufreq.c
+> @@ -1,5 +1,5 @@
+>  /*
+> - *  linux/arch/arm/plat-omap/cpu-omap.c
+> + *  OMAP1 cpufreq driver
+>   *
+>   *  CPU frequency scaling for OMAP
+>   *
+> @@ -27,31 +27,18 @@
 >  #include <linux/io.h>
 >  #include <linux/opp.h>
-> +#include <linux/cpu.h>
 > 
+> -#include <mach/hardware.h>
+> -#include <plat/clock.h>
 >  #include <asm/system.h>
->  #include <asm/smp_plat.h>
-> +#include <asm/cpu.h>
 > 
->  #include <plat/clock.h>
+> -#if defined(CONFIG_ARCH_OMAP3) && !defined(CONFIG_OMAP_PM_NONE)
+> +#include <plat/clock.h>
 >  #include <plat/omap-pm.h>
-> @@ -63,7 +65,7 @@ static unsigned int omap_getspeed(unsigned int cpu)
+> -#include <plat/common.h>
+> -#endif
+> +
+> +#include <mach/hardware.h>
+> 
+>  #define VERY_HI_RATE	900000000
+> 
+>  static struct cpufreq_frequency_table *freq_table;
+> -
+> -#ifdef CONFIG_ARCH_OMAP1
+> -#define MPU_CLK		"mpu"
+> -#elif defined(CONFIG_ARCH_OMAP3)
+> -#define MPU_CLK		"arm_fck"
+> -#else
+> -#define MPU_CLK		"virt_prcm_set"
+> -#endif
+> -
+>  static struct clk *mpu_clk;
+> 
+> -/* TODO: Add support for SDRAM timing changes */
+> -
+>  static int omap_verify_speed(struct cpufreq_policy *policy)
 >  {
->  	unsigned long rate;
-> 
-> -	if (cpu)
-> +	if (cpu >= NR_CPUS)
->  		return 0;
-> 
->  	rate = clk_get_rate(mpu_clk) / 1000;
-> @@ -74,9 +76,13 @@ static int omap_target(struct cpufreq_policy *policy,
+>  	if (freq_table)
+> @@ -85,13 +72,7 @@ static int omap_target(struct cpufreq_policy *policy,
 >  		       unsigned int target_freq,
 >  		       unsigned int relation)
 >  {
-> -	int ret = 0;
-> +	int i, ret = 0;
+> -#ifdef CONFIG_ARCH_OMAP1
 >  	struct cpufreq_freqs freqs;
+> -#endif
+> -#if defined(CONFIG_ARCH_OMAP3) && !defined(CONFIG_OMAP_PM_NONE)
+> -	unsigned long freq;
+> -	struct device *mpu_dev = omap2_get_mpuss_device();
+> -#endif
+>  	int ret = 0;
 > 
-> +	/* Wait untill all CPU's are initialized */
-Typo: until
-
-> +	if (is_smp() && (num_online_cpus() < NR_CPUS))
-> +		return ret;
-Does it make sense to add pr_info() or pr_warning() before returning?
-> +
 >  	/* Ensure desired rate is within allowed range.  Some govenors
->  	 * (ondemand) will just pass target_freq=0 to get the minimum. */
->  	if (target_freq < policy->min)
-> @@ -84,15 +90,25 @@ static int omap_target(struct cpufreq_policy *policy,
+> @@ -101,25 +82,22 @@ static int omap_target(struct cpufreq_policy *policy,
 >  	if (target_freq > policy->max)
 >  		target_freq = policy->max;
 > 
-> -	freqs.old = omap_getspeed(0);
-> +	freqs.old = omap_getspeed(policy->cpu);
+> -#ifdef CONFIG_ARCH_OMAP1
+>  	freqs.old = omap_getspeed(0);
 >  	freqs.new = clk_round_rate(mpu_clk, target_freq * 1000) / 1000;
-> -	freqs.cpu = 0;
-> +	freqs.cpu = policy->cpu;
+>  	freqs.cpu = 0;
 > 
 >  	if (freqs.old == freqs.new)
 >  		return ret;
-> 
-> -	cpufreq_notify_transition(&freqs, CPUFREQ_PRECHANGE);
-> +	if (!is_smp()) {
-> +		cpufreq_notify_transition(&freqs, CPUFREQ_PRECHANGE);
-> +		goto set_freq;
-> +	}
 > +
-> +	/* notifiers */
-> +	for_each_cpu(i, policy->cpus) {
-> +		freqs.cpu = i;
-> +		cpufreq_notify_transition(&freqs, CPUFREQ_PRECHANGE);
-> +	}
-> 
-> +set_freq:
+>  	cpufreq_notify_transition(&freqs, CPUFREQ_PRECHANGE);
+> +
 >  #ifdef CONFIG_CPU_FREQ_DEBUG
->  	pr_info("cpufreq-omap: transition: %u --> %u\n", freqs.old,
+> -	printk(KERN_DEBUG "cpufreq-omap: transition: %u --> %u\n",
+> -	       freqs.old, freqs.new);
+> +	pr_info("cpufreq-omap: transition: %u --> %u\n", freqs.old,
 > freqs.new);
 >  #endif
-> @@ -100,6 +116,7 @@ static int omap_target(struct cpufreq_policy *policy,
 >  	ret = clk_set_rate(mpu_clk, freqs.new * 1000);
->  	if (ret)
->  		return ret;
-> +	freqs.new = omap_getspeed(policy->cpu);
-> 
->  	/*
->  	 * Generic CPUFREQ driver jiffy update is under !SMP. So jiffies
-> @@ -107,12 +124,32 @@ static int omap_target(struct cpufreq_policy
-> *policy,
->  	 * CONFIG_SMP enabled. Below code is added only to manage that
->  	 * scenario
->  	 */
-> -	if (!is_smp())
-> +	if (!is_smp()) {
->  		loops_per_jiffy =
->  			 cpufreq_scale(loops_per_jiffy, freqs.old, freqs.new);
-> +		cpufreq_notify_transition(&freqs, CPUFREQ_POSTCHANGE);
-> +		goto skip_lpj;
-> +	}
-> 
 > -	cpufreq_notify_transition(&freqs, CPUFREQ_POSTCHANGE);
-> +#ifdef CONFIG_SMP
-> +	/*
-> +	 * Note that loops_per_jiffy is not updated on SMP systems in
-> +	 * cpufreq driver. So, update the per-CPU loops_per_jiffy value
-> +	 * on frequency transition. We need to update all dependent cpus
-CPUs.
-> +	 */
-> +	for_each_cpu(i, policy->cpus)
-> +		per_cpu(cpu_data, i).loops_per_jiffy =
-> +			cpufreq_scale(per_cpu(cpu_data, i).loops_per_jiffy,
-> +					freqs.old, freqs.new);
-> +#endif
-> +
-> +	/* notifiers */
-> +	for_each_cpu(i, policy->cpus) {
-> +		freqs.cpu = i;
+> -#elif defined(CONFIG_ARCH_OMAP3) && !defined(CONFIG_OMAP_PM_NONE)
+> -	freq = target_freq * 1000;
+> -	if (opp_find_freq_ceil(mpu_dev, &freq))
+> -		omap_pm_cpu_set_freq(freq);
+> -#endif
+> +	if (!ret)
 > +		cpufreq_notify_transition(&freqs, CPUFREQ_POSTCHANGE);
-> +	}
-> 
-> +skip_lpj:
+> +
 >  	return ret;
 >  }
 > 
-> @@ -120,15 +157,16 @@ static int __init omap_cpu_init(struct
-> cpufreq_policy *policy)
+> @@ -127,7 +105,7 @@ static int __init omap_cpu_init(struct cpufreq_policy
+> *policy)
 >  {
 >  	int result = 0;
->  	struct device *mpu_dev;
-> +	static cpumask_var_t cpumask;
 > 
->  	mpu_clk = clk_get(NULL, "cpu_ck");
+> -	mpu_clk = clk_get(NULL, MPU_CLK);
+> +	mpu_clk = clk_get(NULL, "mpu");
 >  	if (IS_ERR(mpu_clk))
 >  		return PTR_ERR(mpu_clk);
 > 
-> -	if (policy->cpu != 0)
-> +	if (policy->cpu >= NR_CPUS)
->  		return -EINVAL;
-> 
-> -	policy->cur = policy->min = policy->max = omap_getspeed(0);
-> +	policy->cur = policy->min = policy->max = omap_getspeed(policy->cpu);
-> 
->  	mpu_dev = omap2_get_mpuss_device();
->  	if (!mpu_dev) {
-> @@ -150,7 +188,20 @@ static int __init omap_cpu_init(struct cpufreq_policy
+> @@ -136,13 +114,7 @@ static int __init omap_cpu_init(struct cpufreq_policy
 > *policy)
 > 
->  	policy->min = policy->cpuinfo.min_freq;
->  	policy->max = policy->cpuinfo.max_freq;
-> -	policy->cur = omap_getspeed(0);
-> +	policy->cur = omap_getspeed(policy->cpu);
+>  	policy->cur = policy->min = policy->max = omap_getspeed(0);
+> 
+> -	if (!cpu_is_omap34xx()) {
+> -		clk_init_cpufreq_table(&freq_table);
+> -	} else {
+> -		struct device *mpu_dev = omap2_get_mpuss_device();
+> -
+> -		opp_init_cpufreq_table(mpu_dev, &freq_table);
+> -	}
+> +	clk_init_cpufreq_table(&freq_table);
+> 
+>  	if (freq_table) {
+>  		result = cpufreq_frequency_table_cpuinfo(policy, freq_table);
+> @@ -184,7 +156,7 @@ static struct cpufreq_driver omap_driver = {
+>  	.get		= omap_getspeed,
+>  	.init		= omap_cpu_init,
+>  	.exit		= omap_cpu_exit,
+> -	.name		= "omap",
+> +	.name		= "omap1",
+>  	.attr		= omap_cpufreq_attr,
+>  };
+> 
+> @@ -193,12 +165,12 @@ static int __init omap_cpufreq_init(void)
+>  	return cpufreq_register_driver(&omap_driver);
+>  }
+> 
+> -late_initcall(omap_cpufreq_init);
+> -
+> -/*
+> - * if ever we want to remove this, upon cleanup call:
+> - *
+> - * cpufreq_unregister_driver()
+> - * cpufreq_frequency_table_put_attr()
+> - */
+> +static void __exit omap_cpufreq_exit(void)
+> +{
+> +	cpufreq_unregister_driver(&omap_driver);
+> +}
+> 
+> +MODULE_DESCRIPTION("cpufreq driver for OMAP1 SOCs");
+> +MODULE_LICENSE("GPL");
+> +module_init(omap_cpufreq_init);
+> +module_exit(omap_cpufreq_exit);
+> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+> index 1c0c2b0..b1187f9 100644
+> --- a/arch/arm/mach-omap2/Makefile
+> +++ b/arch/arm/mach-omap2/Makefile
+> @@ -56,6 +56,9 @@ obj-$(CONFIG_ARCH_OMAP3)		+= opp3xxx_data.o
+>  obj-$(CONFIG_ARCH_OMAP4)		+= opp4xxx_data.o
+>  endif
+> 
+> +# CPUFREQ driver
+> +obj-$(CONFIG_CPU_FREQ)			+= omap2plus-cpufreq.o
+> +
+>  # Power Management
+>  ifeq ($(CONFIG_PM),y)
+>  obj-$(CONFIG_ARCH_OMAP2)		+= pm24xx.o
+> diff --git a/arch/arm/plat-omap/cpu-omap.c b/arch/arm/mach-
+> omap2/omap2plus-cpufreq.c
+> similarity index 76%
+> rename from arch/arm/plat-omap/cpu-omap.c
+> rename to arch/arm/mach-omap2/omap2plus-cpufreq.c
+> index 1c1b80b..48da867 100644
+> --- a/arch/arm/plat-omap/cpu-omap.c
+> +++ b/arch/arm/mach-omap2/omap2plus-cpufreq.c
+> @@ -1,5 +1,5 @@
+>  /*
+> - *  linux/arch/arm/plat-omap/cpu-omap.c
+> + *  OMAP2PLUS cpufreq driver
+>   *
+>   *  CPU frequency scaling for OMAP
+>   *
+> @@ -27,31 +27,20 @@
+>  #include <linux/io.h>
+>  #include <linux/opp.h>
+> 
+> -#include <mach/hardware.h>
+> -#include <plat/clock.h>
+>  #include <asm/system.h>
+> +#include <asm/smp_plat.h>
+> 
+> -#if defined(CONFIG_ARCH_OMAP3) && !defined(CONFIG_OMAP_PM_NONE)
+> +#include <plat/clock.h>
+>  #include <plat/omap-pm.h>
+>  #include <plat/common.h>
+> -#endif
+> +
+> +#include <mach/hardware.h>
+> 
+>  #define VERY_HI_RATE	900000000
+> 
+>  static struct cpufreq_frequency_table *freq_table;
+> -
+> -#ifdef CONFIG_ARCH_OMAP1
+> -#define MPU_CLK		"mpu"
+> -#elif defined(CONFIG_ARCH_OMAP3)
+> -#define MPU_CLK		"arm_fck"
+> -#else
+> -#define MPU_CLK		"virt_prcm_set"
+> -#endif
+> -
+>  static struct clk *mpu_clk;
+> 
+> -/* TODO: Add support for SDRAM timing changes */
+> -
+>  static int omap_verify_speed(struct cpufreq_policy *policy)
+>  {
+>  	if (freq_table)
+> @@ -85,14 +74,8 @@ static int omap_target(struct cpufreq_policy *policy,
+>  		       unsigned int target_freq,
+>  		       unsigned int relation)
+>  {
+> -#ifdef CONFIG_ARCH_OMAP1
+> -	struct cpufreq_freqs freqs;
+> -#endif
+> -#if defined(CONFIG_ARCH_OMAP3) && !defined(CONFIG_OMAP_PM_NONE)
+> -	unsigned long freq;
+> -	struct device *mpu_dev = omap2_get_mpuss_device();
+> -#endif
+>  	int ret = 0;
+> +	struct cpufreq_freqs freqs;
+> 
+>  	/* Ensure desired rate is within allowed range.  Some govenors
+>  	 * (ondemand) will just pass target_freq=0 to get the minimum. */
+> @@ -101,33 +84,44 @@ static int omap_target(struct cpufreq_policy *policy,
+>  	if (target_freq > policy->max)
+>  		target_freq = policy->max;
+> 
+> -#ifdef CONFIG_ARCH_OMAP1
+>  	freqs.old = omap_getspeed(0);
+>  	freqs.new = clk_round_rate(mpu_clk, target_freq * 1000) / 1000;
+>  	freqs.cpu = 0;
+> 
+>  	if (freqs.old == freqs.new)
+>  		return ret;
+> +
+>  	cpufreq_notify_transition(&freqs, CPUFREQ_PRECHANGE);
+> +
+>  #ifdef CONFIG_CPU_FREQ_DEBUG
+> -	printk(KERN_DEBUG "cpufreq-omap: transition: %u --> %u\n",
+> -	       freqs.old, freqs.new);
+> +	pr_info("cpufreq-omap: transition: %u --> %u\n", freqs.old,
+> freqs.new);
+>  #endif
+> +
+>  	ret = clk_set_rate(mpu_clk, freqs.new * 1000);
+> +	if (ret)
+> +		return ret;
+What about pr_warning() before return?
 > +
 > +	/*
-> +	 * On OMAP SMP configuartion, both processors share the voltage
-> +	 * and clock. So both CPUs needs to be scaled together and hence
-> +	 * needs software co-ordination. Use cpufreq affected_cpus
-> +	 * interface to handle this scenario. Additional is_smp() check
-> +	 * is to keep SMP_ON_UP builf working.
-Typo: build
+> +	 * Generic CPUFREQ driver jiffy update is under !SMP. So jiffies
+> +	 * won't get updated when UP machine cpufreq build with
+> +	 * CONFIG_SMP enabled. Below code is added only to manage that
+> +	 * scenario
+Typo: add '.' at the end.
+--
+Tarun
 > +	 */
-> +	if (is_smp()) {
-> +		policy->shared_type = CPUFREQ_SHARED_TYPE_ANY;
-> +		cpumask_or(cpumask, cpumask_of(policy->cpu), cpumask);
-> +		cpumask_copy(policy->cpus, cpumask);
-> +	}
+> +	if (!is_smp())
+> +		loops_per_jiffy =
+> +			 cpufreq_scale(loops_per_jiffy, freqs.old, freqs.new);
+> +
+>  	cpufreq_notify_transition(&freqs, CPUFREQ_POSTCHANGE);
+> -#elif defined(CONFIG_ARCH_OMAP3) && !defined(CONFIG_OMAP_PM_NONE)
+> -	freq = target_freq * 1000;
+> -	if (opp_find_freq_ceil(mpu_dev, &freq))
+> -		omap_pm_cpu_set_freq(freq);
+> -#endif
+> +
+>  	return ret;
+>  }
 > 
->  	/* FIXME: what's the actual transition time? */
->  	policy->cpuinfo.transition_latency = 300 * 1000;
+>  static int __init omap_cpu_init(struct cpufreq_policy *policy)
+>  {
+>  	int result = 0;
+> +	struct device *mpu_dev;
+> 
+> -	mpu_clk = clk_get(NULL, MPU_CLK);
+> +	mpu_clk = clk_get(NULL, "cpu_ck");
+>  	if (IS_ERR(mpu_clk))
+>  		return PTR_ERR(mpu_clk);
+> 
+> @@ -136,13 +130,12 @@ static int __init omap_cpu_init(struct
+> cpufreq_policy *policy)
+> 
+>  	policy->cur = policy->min = policy->max = omap_getspeed(0);
+> 
+> -	if (!cpu_is_omap34xx()) {
+> -		clk_init_cpufreq_table(&freq_table);
+> -	} else {
+> -		struct device *mpu_dev = omap2_get_mpuss_device();
+> -
+> -		opp_init_cpufreq_table(mpu_dev, &freq_table);
+> +	mpu_dev = omap2_get_mpuss_device();
+> +	if (!mpu_dev) {
+> +		pr_warning("%s: unable to get the mpu device\n", __func__);
+> +		return -EINVAL;
+>  	}
+> +	opp_init_cpufreq_table(mpu_dev, &freq_table);
+> 
+>  	if (freq_table) {
+>  		result = cpufreq_frequency_table_cpuinfo(policy, freq_table);
+> @@ -184,7 +177,7 @@ static struct cpufreq_driver omap_driver = {
+>  	.get		= omap_getspeed,
+>  	.init		= omap_cpu_init,
+>  	.exit		= omap_cpu_exit,
+> -	.name		= "omap",
+> +	.name		= "omap2plus",
+>  	.attr		= omap_cpufreq_attr,
+>  };
+> 
+> @@ -193,12 +186,12 @@ static int __init omap_cpufreq_init(void)
+>  	return cpufreq_register_driver(&omap_driver);
+>  }
+> 
+> -late_initcall(omap_cpufreq_init);
+> -
+> -/*
+> - * if ever we want to remove this, upon cleanup call:
+> - *
+> - * cpufreq_unregister_driver()
+> - * cpufreq_frequency_table_put_attr()
+> - */
+> +static void __exit omap_cpufreq_exit(void)
+> +{
+> +	cpufreq_unregister_driver(&omap_driver);
+> +}
+> 
+> +MODULE_DESCRIPTION("cpufreq driver for OMAP2PLUS SOCs");
+> +MODULE_LICENSE("GPL");
+> +module_init(omap_cpufreq_init);
+> +module_exit(omap_cpufreq_exit);
+> diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
+> index a4a1285..ec7862e 100644
+> --- a/arch/arm/plat-omap/Makefile
+> +++ b/arch/arm/plat-omap/Makefile
+> @@ -21,7 +21,6 @@ obj-$(CONFIG_OMAP_MCBSP) += mcbsp.o
+>  obj-$(CONFIG_OMAP_IOMMU) += iommu.o iovmm.o
+>  obj-$(CONFIG_OMAP_IOMMU_DEBUG) += iommu-debug.o
+> 
+> -obj-$(CONFIG_CPU_FREQ) += cpu-omap.o
+>  obj-$(CONFIG_OMAP_DM_TIMER) += dmtimer.o
+>  obj-$(CONFIG_OMAP_DEBUG_DEVICES) += debug-devices.o
+>  obj-$(CONFIG_OMAP_DEBUG_LEDS) += debug-leds.o
 > --
 > 1.6.0.4
 > 
