@@ -1,60 +1,64 @@
-From: Sricharan R <r.sricharan@ti.com>
-Subject: RE: [PATCH 4/5] omap4: board-omap4panda: Initialise the serial pads
-Date: Fri, 25 Feb 2011 18:52:08 +0530
-Message-ID: <6a9ea1b93fa4e06c10a45c8b3da6259b@mail.gmail.com>
-References: <1296191298-17545-1-git-send-email-r.sricharan@ti.com>
- <1296191298-17545-5-git-send-email-r.sricharan@ti.com> <20110223184950.GX15225@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Hema HK <hemahk@ti.com>
+Subject: [PATCH 0/5 v2] usb: musb: Power management support
+Date: Fri, 25 Feb 2011 18:54:01 +0530
+Message-ID: <1298640246-21181-1-git-send-email-hemahk@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:33437 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755636Ab1BYNWN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 25 Feb 2011 08:22:13 -0500
-Received: by mail-vw0-f54.google.com with SMTP id 16so1555650vws.13
-        for <linux-omap@vger.kernel.org>; Fri, 25 Feb 2011 05:22:10 -0800 (PST)
-In-Reply-To: <20110223184950.GX15225@atomide.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:52024 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932182Ab1BYNYP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 25 Feb 2011 08:24:15 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, paul@pwsan.com
+To: linux-usb@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Hema HK <hemahk@ti.com>
 
-Hi Tony,
->-----Original Message-----
->From: Tony Lindgren [mailto:tony@atomide.com]
->Sent: Thursday, February 24, 2011 12:20 AM
->To: sricharan
->Cc: linux-omap@vger.kernel.org; santosh.shilimkar@ti.com; paul@pwsan.com
->Subject: Re: [PATCH 4/5] omap4: board-omap4panda: Initialise the serial
->pads
->
->* sricharan <r.sricharan@ti.com> [110127 21:05]:
->> --- a/arch/arm/mach-omap2/board-omap4panda.c
->> +++ b/arch/arm/mach-omap2/board-omap4panda.c
->> @@ -370,13 +370,83 @@ static int __init omap4_panda_i2c_init(void)
->>  	omap_register_i2c_bus(4, 400, NULL, 0);
->>  	return 0;
->>  }
->> -
->>  #ifdef CONFIG_OMAP_MUX
->>  static struct omap_board_mux board_mux[] __initdata = {
->>  	{ .reg_offset = OMAP_MUX_TERMINATOR },
->>  };
->> +
->> +static struct omap_device_pad serial2_pads[] __initdata = {
->> +	{ .name   = "uart2_cts.uart2_cts",
->> +	  .enable = OMAP_PIN_INPUT_PULLUP | OMAP_MUX_MODE0,
->> +	  .flags  = OMAP_DEVICE_PAD_REMUX_IDLE,
->> +	  .idle   = OMAP_MUX_MODE7,
->> +	},
->
->Here too please check the need for dynamic remuxing and
->update the patch if necessary.
->
-Actually there was not a need for remixing here. I added
-This for testing purpose.i will remove this and send an updated
-Patch.
->Regards,
->
->Tony
+This patch series supports the retention and offmode support in the 
+idle path for musb driver using runtime pm APIs.
+
+This is restricted to support offmode and retention only when device not
+connected.When device/cable connected with gadget driver loaded, configured
+to no idle/standby which will not allow the core transition to retention
+or off.
+
+There is no context save/restore done by hardware for musb in OMAP3
+and OMAP4,driver has to take care of saving and restoring the context
+during offmode.
+
+Musb has a requirement of configuring sysconfig register to force
+idle/standby mode and set the ENABLE_FORCE bit in module STANDBY register
+for retention and offmode support.
+
+Runtime pm and hwmod frameworks will take care of configuring to force
+idle/standby when pm_runtime_put_sync is called and back to no
+idle/standby when pm_runeime_get_sync is called.
+
+Compile, boot tested and also tested the retention in the idle path on
+OMAP3630Zoom3. And tested the global suspend/resume with offmode enabled.
+Usb basic functionality tested on OMAP4430SDP.
+
+There is some problem with idle path offmode in mainline, I could not test
+with offmode. But I have tested this patch with resetting the controller
+in the idle path when wakeup from retention just to make sure that the
+context is lost, and restore path is working fine.
+
+V2 version:
+----------
+Rebased patches on Felipe's musb-hwmod-pm-runtime branch.
+Fixed comments from Felipe.
+
+Hema HK (5):
+  usb: otg: TWL4030: Update the last_event variable.
+  usb: musb: Remove platform context save/restore APIs
+  usb: musb: Idle path retention and offmode support for OMAP3
+  usb: musb: OMAP4430: Power down the PHY during board init
+  usb:musb: OMAP4430: Save/restore the context
+
+ arch/arm/mach-omap2/omap_phy_internal.c |    7 ++++
+ arch/arm/mach-omap2/usb-musb.c          |    4 ++
+ drivers/usb/musb/musb_core.c            |   40 +++++++++++++++++++++++
+ drivers/usb/musb/musb_core.h            |    4 --
+ drivers/usb/musb/musb_gadget.c          |   11 ++++++
+ drivers/usb/musb/omap2430.c             |   54 ++++++++++++++----------------
+ drivers/usb/otg/twl4030-usb.c           |    2 +
+ 7 files changed, 89 insertions(+), 33 deletions(-)
+
