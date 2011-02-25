@@ -1,68 +1,71 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: hwmod: multi-omap: disabling smartreflex on AM3517
-Date: Fri, 25 Feb 2011 13:40:21 +0100
-Message-ID: <4D67A335.3030102@ti.com>
-References: <B85A65D85D7EB246BE421B3FB0FBB5930248A017D9@dbde02.ent.ti.com> <4D5A75FF.5040703@ti.com> <B85A65D85D7EB246BE421B3FB0FBB593024B83BF08@dbde02.ent.ti.com> <B85A65D85D7EB246BE421B3FB0FBB593024BD4894D@dbde02.ent.ti.com> <4D623ED8.4050906@ti.com> <B85A65D85D7EB246BE421B3FB0FBB593024BD489B1@dbde02.ent.ti.com> <4D6273FE.3000205@ti.com> <B85A65D85D7EB246BE421B3FB0FBB593024BD48BED@dbde02.ent.ti.com>,<4D62F7E0.1000102@ti.com> <B85A65D85D7EB246BE421B3FB0FBB593024BBE29A4@dbde02.ent.ti.com>,<4D643E6A.5020705@ti.com> <B85A65D85D7EB246BE421B3FB0FBB593024BBE29B0@dbde02.ent.ti.com> <4D652D3E.7010501@ti.com> <B85A65D85D7EB246BE421B3FB0FBB593024BE49E50@dbde02.ent.ti.com>
+From: "Krishnamoorthy, Balaji T" <balajitk@ti.com>
+Subject: Re: [PATCH v4 5/6] OMAP: adapt hsmmc to hwmod framework
+Date: Fri, 25 Feb 2011 18:20:35 +0530
+Message-ID: <AANLkTikfa5BPUvbRtc12j3=TvW0HG47kT9JET13Kuiud@mail.gmail.com>
+References: <1298575614-9388-1-git-send-email-kishore.kadiyala@ti.com>
+	<1298575614-9388-6-git-send-email-kishore.kadiyala@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:34588 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932091Ab1BYMkY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 25 Feb 2011 07:40:24 -0500
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593024BE49E50@dbde02.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <1298575614-9388-6-git-send-email-kishore.kadiyala@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Kishore Kadiyala <kishore.kadiyala@ti.com>
+Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com, cjb@laptop.org, madhu.cr@ti.com, khilman@deeprootsystems.com, paul@pwsan.com, b-cousson@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: "Premi, Sanjeev" <premi@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>
 
-Hi Sanjeev,
+<snip>
 
-On 2/25/2011 12:39 PM, Premi, Sanjeev wrote:
->> From: Cousson, Benoit
->> Sent: Wednesday, February 23, 2011 9:23 PM
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (cpu_is_omap44xx())
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 mmc->reg_offset =3D OMA=
+P4_MMC_REG_OFFSET;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 else
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 mmc->reg_offset =3D 0;
+> +static struct omap_mmc_platform_data *mmc __initdata;
 
-[...]
+can you pass this *mmc as another argument to omap_hsmmc_pdata_init
+so that this static initdata can be removed ?
 
->> In that case you can handle that using cpu_is_3517().
->>
->> omap_hwmod_init(omap3xxx_common_hwmods);
->> if (omap3_has_smartreflex())
->>           omap_hwmod_init(omap3xxx_sr_hwmods);
->> if (omap3_has_iva())
->>           omap_hwmod_init(omap3xxx_iva_hwmods);
->> if (cpu_is_omap3517())
->>           omap_hwmod_init(omap3xxx_emac_usb_vpfe_hwmods);
->> ...
->>
->> Isn't it enough for your needs?
->>
-> [sp] Removal of smartreflex has more cyclic dependencies than I expected.
-
-I didn't anticipated that either :-(
-
-> Just removing omap34xx_sr1_hwmod, omap34xx_sr2_hwmod isn't sufficient.
-> It leads to:
 >
-> [    0.000000] omap_hwmod: l4_core: cannot clk_get interface_clk sr_l4_ick
-> [    0.000000] omap_hwmod: l4_core: cannot clk_get interface_clk sr_l4_ick
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 mmc->get_context_loss_count =3D hsmmc_g=
+et_context_loss;
+> +static int __init omap_hsmmc_pdata_init(struct omap2_hsmmc_info *c)
+> +{
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 char *hc_name;
 >
-> Now wemoving, omap3_l4_core__sr1 and omap3_l4_core__sr2 from the array
-> omap3xxx_l4_core_slaves[] leads to ripple effect in pretty much all
-> hwmods.
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 mmc->slots[0].switch_pin =3D c->gpio_cd=
+;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 mmc->slots[0].gpio_wp =3D c->gpio_wp;
+> + =A0 =A0 =A0 if (!c->mmc) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_debug("MMC%d: no such controller\n",=
+ c->mmc);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -ENXIO;
+> + =A0 =A0 =A0 }
 >
-> . omap3xxx_l4_core_slaves is referenced in omap3xxx_l4_core_hwmod,
-> . omap3xxx_l4_core_hwmod is referenced in many other hdmods.
-> . and so on.
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 mmc->slots[0].remux =3D c->remux;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 mmc->slots[0].init_card =3D c->init_car=
+d;
+> + =A0 =A0 =A0 hc_name =3D kzalloc(sizeof(char) * (HSMMC_NAME_LEN + 1)=
+, GFP_KERNEL);
+> + =A0 =A0 =A0 if (!hc_name) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_err("Cannot allocate memory for cont=
+roller slot name\n");
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 kfree(hc_name);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -ENOMEM;
+> + =A0 =A0 =A0 }
 >
-> In the end, we might end up making changes to almost all.
-> I will be submitting an updated patch in about an hour.
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (c->cover_only)
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 mmc->slots[0].cover =3D=
+ 1;
+> + =A0 =A0 =A0 if (c->name)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 strncpy(hc_name, c->name, HSMMC_NAME_LE=
+N);
+> + =A0 =A0 =A0 else
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 snprintf(hc_name, (HSMMC_NAME_LEN + 1),=
+ "mmc%islot%i",
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 c->mmc, 1);
+> + =A0 =A0 =A0 mmc->slots[0].name =3D hc_name;
+> + =A0 =A0 =A0 mmc->nr_slots =3D 1;
 
-I'm afraid, we will probably end up with a dynamic binding solution like 
-what we have to do for the clock framework for the similar reason.
-We can optimize the size but it will impact the performance... the usual 
-trade off.
-
-Thanks,
-Benoit
+<snip>
