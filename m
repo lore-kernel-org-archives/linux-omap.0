@@ -1,93 +1,36 @@
-From: David Cohen <dacohen@gmail.com>
-Subject: Re: [PATCH resend] video: omap24xxcam: Fix compilation
-Date: Fri, 25 Feb 2011 01:36:44 +0200
-Message-ID: <AANLkTi=4L38=_a4hFyWqBZL1-CPDyp8t3GfW-M1u8wJF@mail.gmail.com>
-References: <20110215113717.GN2570@legolas.emea.dhcp.ti.com>
-	<4D5A672A.7040000@samsung.com>
-	<4D5A6874.1080705@corscience.de>
-	<20110215115349.GQ2570@legolas.emea.dhcp.ti.com>
-	<4D5A6EEC.5000908@maxwell.research.nokia.com>
-	<AANLkTik+6fguqgH8Bpnpqo7Axmquy3caRMELTZVmuN1j@mail.gmail.com>
-	<20110219150024.GA4487@legolas.emea.dhcp.ti.com>
-	<AANLkTik5dwNZrUxjgjKeAQOsp610d6y_TNGg1b5Vc5Zd@mail.gmail.com>
-	<20110221073640.GA3094@legolas.emea.dhcp.ti.com>
-	<AANLkTinf3Wj=nw_2Sx4r-VSsCH+=fzx-25hynH8hB0d9@mail.gmail.com>
-	<20110221122109.GA23087@legolas.emea.dhcp.ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: RE: [PATCH 0/3] OMAP2+: voltage: first pass at
+ cleanup/reorganization
+Date: Thu, 24 Feb 2011 22:03:28 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1102242201410.6198@utopia.booyaka.com>
+References: <20110221020231.7598.14024.stgit@twilight.localdomain> <553cd99ec29ee91e4a4b324d0f4a0be7@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <20110221122109.GA23087@legolas.emea.dhcp.ti.com>
-Sender: linux-media-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>, Thomas Weber <weber@corscience.de>, Sylwester Nawrocki <s.nawrocki@samsung.com>, linux-omap@vger.kernel.org, Mauro Carvalho Chehab <mchehab@infradead.org>, Hans Verkuil <hverkuil@xs4all.nl>, Tejun Heo <tj@kernel.org>, linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:42578 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750753Ab1BYFD2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Feb 2011 00:03:28 -0500
+In-Reply-To: <553cd99ec29ee91e4a4b324d0f4a0be7@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, Nishanth Menon <nm@ti.com>, Benoit Cousson <b-cousson@ti.com>, Mike Turquette <mturquette@ti.com>
 
-On Mon, Feb 21, 2011 at 2:21 PM, Felipe Balbi <balbi@ti.com> wrote:
-> On Mon, Feb 21, 2011 at 02:09:07PM +0200, David Cohen wrote:
->> On Mon, Feb 21, 2011 at 9:36 AM, Felipe Balbi <balbi@ti.com> wrote:
->> > Hi,
->> >
->> > On Sat, Feb 19, 2011 at 06:04:58PM +0200, David Cohen wrote:
->> >> > I have to disagree. The fundamental problem is the circular dep=
-endency
->> >> > between those two files:
->> >> >
->> >> > sched.h uses wait_queue_head_t defined in wait.h
->> >> > wait.h uses TASK_* defined in sched.h
->> >> >
->> >> > So, IMO the real fix would be clear out the circular dependency=
-=2E Maybe
->> >> > introducing <linux/task.h> to define those TASK_* symbols and i=
-nclude
->> >> > that on sched.h and wait.h
->> >> >
->> >> > Just dig a quick and dirty to try it out and works like a charm
->> >>
->> >> We have 2 problems:
->> >> =C2=A0- omap24xxcam compilation broken
->> >> =C2=A0- circular dependency between sched.h and wait.h
->> >>
->> >> To fix the broken compilation we can do what the rest of the kern=
-el is
->> >> doing, which is to include sched.h.
->> >> Then, the circular dependency is fixed by some different approach
->> >> which would probably change *all* current usage of TASK_*.
->> >
->> > considering that 1 is caused by 2 I would fix 2.
->> >
->> >> IMO, there's no need to create a dependency between those issues.
->> >
->> > There's no dependency between them, it's just that the root cause =
-for
->> > this problem is a circular dependency between wait.h and sched.h
->>
->> I did a try to fix this circular dependency and the comment I got wa=
-s
->> to include sched.h in omap24xxcam.c file:
->> http://marc.info/?l=3Dlinux-omap&m=3D129828637120270&w=3D2
->>
->> I'm working to remove v4l2 internal device interface from omap24xxca=
-m
->> and then I need this driver's compilation fixed.
->> The whole kernel is including sched.h when wake_up*() macro is used,
->> so this should be our first solution IMO.
->> As I said earlier, no need to make this compilation fix be dependent
->> of wait.h fix (if it's really going to be changed).
->>
->> I think we should proceed with this patch.
->
-> I would wait to hear from Ingo or Peter who are the maintainers for t=
-hat
-> part, but fine by me.
+Hi Rajendra,
 
-How about to proceed with this patch?
+On Thu, 24 Feb 2011, Rajendra Nayak wrote:
 
-Regards,
+> I found these abort on my 4430SDP. The below changes I found
+> are needed for it to bootup..
+> I tested the 'integration-2.6.39' branch of
+> git://git.pwsan.com/linux-integration and the patch is
+> based on this branch.
 
-David
+Thanks very much for the patch, this looks right.  Do you mind if I fold 
+it into the "OMAP2+: voltage: reorganize, split code from data" patch and 
+credit you appropriately in the patch description?  (That way, there won't 
+be any gaps between patches where OMAP4 won't work.)
 
->
-> --
-> balbi
->
+
+- Paul
