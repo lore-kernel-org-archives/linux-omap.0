@@ -1,78 +1,44 @@
-From: Thomas Weber <weber@corscience.de>
-Subject: Re: [PATCH resend] video: omap24xxcam: Fix compilation
-Date: Fri, 25 Feb 2011 07:59:06 +0100
-Message-ID: <4D67533A.7010909@corscience.de>
-References: <20110215113717.GN2570@legolas.emea.dhcp.ti.com>	<4D5A672A.7040000@samsung.com>	<4D5A6874.1080705@corscience.de>	<20110215115349.GQ2570@legolas.emea.dhcp.ti.com>	<4D5A6EEC.5000908@maxwell.research.nokia.com>	<AANLkTik+6fguqgH8Bpnpqo7Axmquy3caRMELTZVmuN1j@mail.gmail.com>	<20110219150024.GA4487@legolas.emea.dhcp.ti.com>	<AANLkTik5dwNZrUxjgjKeAQOsp610d6y_TNGg1b5Vc5Zd@mail.gmail.com>	<20110221073640.GA3094@legolas.emea.dhcp.ti.com>	<AANLkTinf3Wj=nw_2Sx4r-VSsCH+=fzx-25hynH8hB0d9@mail.gmail.com>	<20110221122109.GA23087@legolas.emea.dhcp.ti.com> <AANLkTi=4L38=_a4hFyWqBZL1-CPDyp8t3GfW-M1u8wJF@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <AANLkTi=4L38=_a4hFyWqBZL1-CPDyp8t3GfW-M1u8wJF@mail.gmail.com>
-Sender: linux-media-owner@vger.kernel.org
-To: David Cohen <dacohen@gmail.com>
-Cc: balbi@ti.com, Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>, Sylwester Nawrocki <s.nawrocki@samsung.com>, linux-omap@vger.kernel.org, Mauro Carvalho Chehab <mchehab@infradead.org>, Hans Verkuil <hverkuil@xs4all.nl>, Tejun Heo <tj@kernel.org>, linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH] PM: OPP: opp_find_freq_exact documentation fix
+Date: Fri, 25 Feb 2011 12:44:04 +0530
+Message-ID: <1298618044-8292-1-git-send-email-nm@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:43230 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753462Ab1BYHOW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 25 Feb 2011 02:14:22 -0500
+Received: by mail-gw0-f48.google.com with SMTP id 20so717069gwj.21
+        for <linux-omap@vger.kernel.org>; Thu, 24 Feb 2011 23:14:20 -0800 (PST)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-pm <linux-pm@lists.linux-foundation.org>
+Cc: linux-arm <linux-arm-kernel@lists.infradead.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-omap <linux-omap@vger.kernel.org>, Nishanth Menon <nm@ti.com>
 
-Hallo David,
+opp_find_freq_exact documentation has is_available instead
+of available. This also fixes warning with the kernel-doc:
+scripts/kernel-doc drivers/base/power/opp.c >/dev/null
+Warning(drivers/base/power/opp.c:246): No description found for parameter 'available'
+Warning(drivers/base/power/opp.c:246): Excess function parameter 'is_available' description in 'opp_find_freq_exact'
 
-Am 25.02.2011 00:36, schrieb David Cohen:
-> On Mon, Feb 21, 2011 at 2:21 PM, Felipe Balbi <balbi@ti.com> wrote:
->> On Mon, Feb 21, 2011 at 02:09:07PM +0200, David Cohen wrote:
->>> On Mon, Feb 21, 2011 at 9:36 AM, Felipe Balbi <balbi@ti.com> wrote:
->>>> Hi,
->>>>
->>>> On Sat, Feb 19, 2011 at 06:04:58PM +0200, David Cohen wrote:
->>>>>> I have to disagree. The fundamental problem is the circular dependency
->>>>>> between those two files:
->>>>>>
->>>>>> sched.h uses wait_queue_head_t defined in wait.h
->>>>>> wait.h uses TASK_* defined in sched.h
->>>>>>
->>>>>> So, IMO the real fix would be clear out the circular dependency. Maybe
->>>>>> introducing <linux/task.h> to define those TASK_* symbols and include
->>>>>> that on sched.h and wait.h
->>>>>>
->>>>>> Just dig a quick and dirty to try it out and works like a charm
->>>>> We have 2 problems:
->>>>>  - omap24xxcam compilation broken
->>>>>  - circular dependency between sched.h and wait.h
->>>>>
->>>>> To fix the broken compilation we can do what the rest of the kernel is
->>>>> doing, which is to include sched.h.
->>>>> Then, the circular dependency is fixed by some different approach
->>>>> which would probably change *all* current usage of TASK_*.
->>>> considering that 1 is caused by 2 I would fix 2.
->>>>
->>>>> IMO, there's no need to create a dependency between those issues.
->>>> There's no dependency between them, it's just that the root cause for
->>>> this problem is a circular dependency between wait.h and sched.h
->>> I did a try to fix this circular dependency and the comment I got was
->>> to include sched.h in omap24xxcam.c file:
->>> http://marc.info/?l=linux-omap&m=129828637120270&w=2
->>>
->>> I'm working to remove v4l2 internal device interface from omap24xxcam
->>> and then I need this driver's compilation fixed.
->>> The whole kernel is including sched.h when wake_up*() macro is used,
->>> so this should be our first solution IMO.
->>> As I said earlier, no need to make this compilation fix be dependent
->>> of wait.h fix (if it's really going to be changed).
->>>
->>> I think we should proceed with this patch.
->> I would wait to hear from Ingo or Peter who are the maintainers for that
->> part, but fine by me.
-> How about to proceed with this patch?
->
-> Regards,
->
-> David
->
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+ drivers/base/power/opp.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-I got a message that the patch is queued at
+diff --git a/drivers/base/power/opp.c b/drivers/base/power/opp.c
+index 2bb9b4c..56a6899 100644
+--- a/drivers/base/power/opp.c
++++ b/drivers/base/power/opp.c
+@@ -222,7 +222,7 @@ int opp_get_opp_count(struct device *dev)
+  * opp_find_freq_exact() - search for an exact frequency
+  * @dev:		device for which we do this operation
+  * @freq:		frequency to search for
+- * @is_available:	true/false - match for available opp
++ * @available:		true/false - match for available opp
+  *
+  * Searches for exact match in the opp list and returns pointer to the matching
+  * opp if found, else returns ERR_PTR in case of error and should be handled
+-- 
+1.7.1
 
-http://git.linuxtv.org/media_tree.git for_v2.6.39
-
-
-Thanks Mauro.
-
-
-Thomas
