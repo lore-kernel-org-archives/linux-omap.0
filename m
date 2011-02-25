@@ -1,48 +1,42 @@
-From: Hema Kalliguddi <hemahk-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH 0/5] usb: musb: Power management support
-Date: Fri, 25 Feb 2011 16:13:08 +0530
-Message-ID: <749acb6f903e431ee4a10fd0683d90a6@mail.gmail.com>
-References: <1298628663-27650-1-git-send-email-hemahk@ti.com>
- <20110225102112.GC4190@legolas.emea.dhcp.ti.com> <875afd9a6c1e7ccc61c7ff025fd57588@mail.gmail.com>
- <20110225103930.GD4190@legolas.emea.dhcp.ti.com>
+From: Heikki Krogerus <heikki.krogerus@nokia.com>
+Subject: Re: [patch-v2.6.39 12/12] usb: otg: notifier: switch to atomic
+ notifier
+Date: Fri, 25 Feb 2011 12:46:53 +0200
+Message-ID: <20110225104653.GA30637@esdhcp034230>
+References: <1297946329-9353-1-git-send-email-balbi@ti.com>
+ <1297946329-9353-13-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20110225103930.GD4190-UiBtZHVXSwEVvW8u9ZQWYwjfymiNCTlR@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: balbi-l0cyMroinI0@public.gmane.org
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([147.243.1.47]:21905 "EHLO mgw-sa01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754990Ab1BYKrV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 25 Feb 2011 05:47:21 -0500
+Content-Disposition: inline
+In-Reply-To: <1297946329-9353-13-git-send-email-balbi@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: ext Felipe Balbi <balbi@ti.com>
+Cc: Greg KH <greg@kroah.com>, Linux USB Mailing List <linux-usb@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-Hi,
+Hi Felipe,
 
->-----Original Message-----
->From: Felipe Balbi [mailto:balbi-l0cyMroinI0@public.gmane.org]
->Sent: Friday, February 25, 2011 4:10 PM
->To: Hema Kalliguddi
->Cc: balbi-l0cyMroinI0@public.gmane.org; linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->Subject: Re: [PATCH 0/5] usb: musb: Power management support
->
->Hi,
->
->On Fri, Feb 25, 2011 at 03:56:46PM +0530, Hema Kalliguddi wrote:
->> I tried to rebase and found that my hardware mod patches are not
->> in for-next branch. So there will be some conflicts for
->patch 4 and 5.
->> Is there any branch in which you have all the usb and
->platform changes
->> merged?
->
->I just built one, please use musb-hwmod-pm-runtime It has all your
->recent patches plus a few extra ones.
+On Thu, Feb 17, 2011 at 02:38:49PM +0200, ext Felipe Balbi wrote:
+> most of our notifications, will be called from IRQ
+> context, so an atomic notifier suits the job better.
+> 
+> Signed-off-by: Felipe Balbi <balbi@ti.com>
+> ---
+>  drivers/usb/otg/ab8500-usb.c    |    6 +++---
+>  drivers/usb/otg/nop-usb-xceiv.c |    2 +-
+>  drivers/usb/otg/twl4030-usb.c   |    6 +++---
+>  drivers/usb/otg/twl6030-usb.c   |    8 ++++----
+>  include/linux/usb/otg.h         |    6 +++---
+>  5 files changed, 14 insertions(+), 14 deletions(-)
 
-Thanks,
-Hema
->
->--
->balbi
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+You should fix drivers/usb/otg/ab8500-usb.c as well. Also,
+drivers/power/twl4030_charger.c will need to be made atomic notifier
+safe.
+
+-- 
+heikki
