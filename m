@@ -1,42 +1,55 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] omap4: Fix ULPI PHY init for ES1.0 SDP (Re: 4430SDP
- boot failure)
-Date: Fri, 25 Feb 2011 09:49:34 -0800
-Message-ID: <20110225174934.GZ20560@atomide.com>
-References: <20110110185209.GC4957@atomide.com>
- <20110111231611.GX4957@atomide.com>
- <3c13ae6d9e13b94548bfcaaced7681e8@mail.gmail.com>
- <20110202011006.GP3358@atomide.com>
- <81ed58d7158cfa16007e141d0ac1f74c@mail.gmail.com>
- <20110202194855.GA3322@atomide.com>
- <cace62268ad657586f07ecbb0e6a99ab@mail.gmail.com>
- <84fafb82318b1287513d198c6535eb59@mail.gmail.com>
- <20110224173840.GC20560@atomide.com>
- <08df39a319ecf8f67fb87b4ba3af85dd@mail.gmail.com>
+Subject: Re: [PATCH] omap2plus: Remove auto selection on PMICs
+Date: Fri, 25 Feb 2011 10:16:40 -0800
+Message-ID: <20110225181640.GA20560@atomide.com>
+References: <1298463072-19891-1-git-send-email-premi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:28372 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754455Ab1BYRtl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Feb 2011 12:49:41 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:61242 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753577Ab1BYSQn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Feb 2011 13:16:43 -0500
 Content-Disposition: inline
-In-Reply-To: <08df39a319ecf8f67fb87b4ba3af85dd@mail.gmail.com>
+In-Reply-To: <1298463072-19891-1-git-send-email-premi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Anand Gadiyar <gadiyar@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Keshava Munegowda <keshava_mgowda@ti.com>, Felipe Balbi <balbi@ti.com>
+To: Sanjeev Premi <premi@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-* Santosh Shilimkar <santosh.shilimkar@ti.com> [110224 21:31]:
-> >
-> > Was this with linux-omap master branch or mainline?
-> >
-> > The V6 vs V7 issues should be sorted out with Russell's patches that
-> > we also have now in linux-omap master branch.
-> >
-> This was with mainline.
-> Then I applied RMK's series and things were OK.
+* Sanjeev Premi <premi@ti.com> [110223 04:11]:
+> The current implementation almost assumes that only
+> TWL4030/TWL5030/TWl6030 are (or can be) used with the
+> OMAP processors. This is, however, not true.
 
-OK good to hear & thanks for checking that.
+If selecting these on platforms that don't have twl
+causes problems the problem should be fixed.
+
+You can disable CONFIG_ARCH_OMAP2PLUS_TYPICAL, and
+then these don't get selected.
+ 
+> This patch removes the automatic selection of the PMIC
+> from Kconfig. Current defaults are chosen in default
+> configuration omap2plus_defconfig and can easily be
+> added to configuration for any board, there should be
+> no compile/run-time impact.
+
+The reason for CONFIG_ARCH_OMAP2PLUS_TYPICAL is to
+produce a booting kernel if you do the following:
+
+$ echo CONFIG_ARCH_OMAP=y > .config
+$ yes "" | ARCH=arm make oldconfig
+$ ARCH=arm CROSS_COMPILE=mycompiler uImage
+
+So I'd rather keep it around for now. In the long run
+omap2plus_defconfig should build a working kernel with
+everything as modules though..
+
+BTW, looks like small patch is needed with the patches queued
+in omap-for-linus to make the above compile. Will post
+as a reply to this mail.
+
+Regards,
 
 Tony
+
