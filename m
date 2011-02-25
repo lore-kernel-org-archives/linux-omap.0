@@ -1,91 +1,68 @@
-From: Heikki Krogerus <heikki.krogerus@nokia.com>
-Subject: [PATCH 1/1] twl4030_charger: Make the driver atomic notifier safe
-Date: Fri, 25 Feb 2011 13:56:36 +0200
-Message-ID: <1298634996-25722-2-git-send-email-heikki.krogerus@nokia.com>
-References: <1298634996-25722-1-git-send-email-heikki.krogerus@nokia.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: hwmod: multi-omap: disabling smartreflex on AM3517
+Date: Fri, 25 Feb 2011 13:40:21 +0100
+Message-ID: <4D67A335.3030102@ti.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB5930248A017D9@dbde02.ent.ti.com> <4D5A75FF.5040703@ti.com> <B85A65D85D7EB246BE421B3FB0FBB593024B83BF08@dbde02.ent.ti.com> <B85A65D85D7EB246BE421B3FB0FBB593024BD4894D@dbde02.ent.ti.com> <4D623ED8.4050906@ti.com> <B85A65D85D7EB246BE421B3FB0FBB593024BD489B1@dbde02.ent.ti.com> <4D6273FE.3000205@ti.com> <B85A65D85D7EB246BE421B3FB0FBB593024BD48BED@dbde02.ent.ti.com>,<4D62F7E0.1000102@ti.com> <B85A65D85D7EB246BE421B3FB0FBB593024BBE29A4@dbde02.ent.ti.com>,<4D643E6A.5020705@ti.com> <B85A65D85D7EB246BE421B3FB0FBB593024BBE29B0@dbde02.ent.ti.com> <4D652D3E.7010501@ti.com> <B85A65D85D7EB246BE421B3FB0FBB593024BE49E50@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.153]:18516 "EHLO mgw-sa03.nokia.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:34588 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932090Ab1BYMaJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 25 Feb 2011 07:30:09 -0500
-In-Reply-To: <1298634996-25722-1-git-send-email-heikki.krogerus@nokia.com>
+	id S932091Ab1BYMkY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 25 Feb 2011 07:40:24 -0500
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593024BE49E50@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: linux-omap@vger.kernel.org, notasas@gmail.com, cbouatmailru@gmail.com
+To: "Premi, Sanjeev" <premi@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>
 
-This queues work from the otg notification where the
-i2c operations can be safely made. Needed for atomic otg
-notifiers.
+Hi Sanjeev,
 
-Signed-off-by: Heikki Krogerus <heikki.krogerus@nokia.com>
-Cc: Grazvydas Ignotas <notasas@gmail.com>
-Cc: Anton Vorontsov <cbouatmailru@gmail.com>
----
- drivers/power/twl4030_charger.c |   25 +++++++++++++++++++------
- 1 files changed, 19 insertions(+), 6 deletions(-)
+On 2/25/2011 12:39 PM, Premi, Sanjeev wrote:
+>> From: Cousson, Benoit
+>> Sent: Wednesday, February 23, 2011 9:23 PM
 
-diff --git a/drivers/power/twl4030_charger.c b/drivers/power/twl4030_charger.c
-index ff1f423..92c16e1 100644
---- a/drivers/power/twl4030_charger.c
-+++ b/drivers/power/twl4030_charger.c
-@@ -71,8 +71,11 @@ struct twl4030_bci {
- 	struct power_supply	usb;
- 	struct otg_transceiver	*transceiver;
- 	struct notifier_block	otg_nb;
-+	struct work_struct	work;
- 	int			irq_chg;
- 	int			irq_bci;
-+
-+	unsigned long		event;
- };
- 
- /*
-@@ -258,14 +261,11 @@ static irqreturn_t twl4030_bci_interrupt(int irq, void *arg)
- 	return IRQ_HANDLED;
- }
- 
--static int twl4030_bci_usb_ncb(struct notifier_block *nb, unsigned long val,
--			       void *priv)
-+static void twl4030_bci_usb_work(struct work_struct *data)
- {
--	struct twl4030_bci *bci = container_of(nb, struct twl4030_bci, otg_nb);
-+	struct twl4030_bci *bci = container_of(data, struct twl4030_bci, work);
- 
--	dev_dbg(bci->dev, "OTG notify %lu\n", val);
--
--	switch (val) {
-+	switch (bci->event) {
- 	case USB_EVENT_VBUS:
- 	case USB_EVENT_CHARGER:
- 		twl4030_charger_enable_usb(bci, true);
-@@ -274,6 +274,17 @@ static int twl4030_bci_usb_ncb(struct notifier_block *nb, unsigned long val,
- 		twl4030_charger_enable_usb(bci, false);
- 		break;
- 	}
-+}
-+
-+static int twl4030_bci_usb_ncb(struct notifier_block *nb, unsigned long val,
-+			       void *priv)
-+{
-+	struct twl4030_bci *bci = container_of(nb, struct twl4030_bci, otg_nb);
-+
-+	dev_dbg(bci->dev, "OTG notify %lu\n", val);
-+
-+	bci->event = val;
-+	schedule_work(&bci->work);
- 
- 	return NOTIFY_OK;
- }
-@@ -466,6 +477,8 @@ static int __init twl4030_bci_probe(struct platform_device *pdev)
- 		goto fail_bci_irq;
- 	}
- 
-+	INIT_WORK(&bci->work, twl4030_bci_usb_work);
-+
- 	bci->transceiver = otg_get_transceiver();
- 	if (bci->transceiver != NULL) {
- 		bci->otg_nb.notifier_call = twl4030_bci_usb_ncb;
--- 
-1.7.1
+[...]
 
+>> In that case you can handle that using cpu_is_3517().
+>>
+>> omap_hwmod_init(omap3xxx_common_hwmods);
+>> if (omap3_has_smartreflex())
+>>           omap_hwmod_init(omap3xxx_sr_hwmods);
+>> if (omap3_has_iva())
+>>           omap_hwmod_init(omap3xxx_iva_hwmods);
+>> if (cpu_is_omap3517())
+>>           omap_hwmod_init(omap3xxx_emac_usb_vpfe_hwmods);
+>> ...
+>>
+>> Isn't it enough for your needs?
+>>
+> [sp] Removal of smartreflex has more cyclic dependencies than I expected.
+
+I didn't anticipated that either :-(
+
+> Just removing omap34xx_sr1_hwmod, omap34xx_sr2_hwmod isn't sufficient.
+> It leads to:
+>
+> [    0.000000] omap_hwmod: l4_core: cannot clk_get interface_clk sr_l4_ick
+> [    0.000000] omap_hwmod: l4_core: cannot clk_get interface_clk sr_l4_ick
+>
+> Now wemoving, omap3_l4_core__sr1 and omap3_l4_core__sr2 from the array
+> omap3xxx_l4_core_slaves[] leads to ripple effect in pretty much all
+> hwmods.
+>
+> . omap3xxx_l4_core_slaves is referenced in omap3xxx_l4_core_hwmod,
+> . omap3xxx_l4_core_hwmod is referenced in many other hdmods.
+> . and so on.
+>
+> In the end, we might end up making changes to almost all.
+> I will be submitting an updated patch in about an hour.
+
+I'm afraid, we will probably end up with a dynamic binding solution like 
+what we have to do for the clock framework for the similar reason.
+We can optimize the size but it will impact the performance... the usual 
+trade off.
+
+Thanks,
+Benoit
