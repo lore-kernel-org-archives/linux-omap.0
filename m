@@ -1,146 +1,87 @@
 From: Mythri P K <mythripk@ti.com>
-Subject: [PATCH 2/8] OMAP4 : DSS2 : Add display structure in the board file for OMAP4 sdp
-Date: Fri, 25 Feb 2011 19:51:49 +0530
-Message-ID: <1298643715-21540-3-git-send-email-mythripk@ti.com>
+Subject: [PATCH 3/8] OMAP4 : DSS : HDMI: HDMI specific display controller and dss change.
+Date: Fri, 25 Feb 2011 19:51:50 +0530
+Message-ID: <1298643715-21540-4-git-send-email-mythripk@ti.com>
 References: <1298643715-21540-1-git-send-email-mythripk@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:49080 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:53870 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755493Ab1BYNyd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 25 Feb 2011 08:54:33 -0500
-Received: from dlep35.itg.ti.com ([157.170.170.118])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1PDsXVq030925
+	id S1755703Ab1BYNyh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 25 Feb 2011 08:54:37 -0500
+Received: from dlep36.itg.ti.com ([157.170.170.91])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1PDsbDc020957
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 25 Feb 2011 07:54:33 -0600
+	for <linux-omap@vger.kernel.org>; Fri, 25 Feb 2011 07:54:37 -0600
 In-Reply-To: <1298643715-21540-1-git-send-email-mythripk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: tomi.valkeinen@ti.com, Mythri P K <mythripk@ti.com>
 
-Adding  board file changes for display which adds the display structure
-with HDMI as the default driver when the display init is called.
-HDMI GPIO configurations are also done in this file.
+Adding changes to set gamma table bit for TV interface and function to select
+between VENC and HDMI.
 
 Signed-off-by: Mythri P K <mythripk@ti.com>
 ---
- arch/arm/mach-omap2/board-4430sdp.c |   82 +++++++++++++++++++++++++++++++++++
- 1 files changed, 82 insertions(+), 0 deletions(-)
+ drivers/video/omap2/dss/dispc.c |    5 +++++
+ drivers/video/omap2/dss/dss.c   |    7 +++++++
+ drivers/video/omap2/dss/dss.h   |    2 ++
+ 3 files changed, 14 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index 07d1b20..334b6fd 100644
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -35,6 +35,7 @@
- #include <plat/common.h>
- #include <plat/usb.h>
- #include <plat/mmc.h>
-+#include <plat/display.h>
- 
- #include "mux.h"
- #include "hsmmc.h"
-@@ -47,6 +48,8 @@
- #define OMAP4SDP_MDM_PWR_EN_GPIO	157
- #define OMAP4_SFH7741_SENSOR_OUTPUT_GPIO	184
- #define OMAP4_SFH7741_ENABLE_GPIO		188
-+#define HDMI_GPIO_HPD 60 /* Hot plug pin for HDMI */
-+#define HDMI_GPIO_LS_OE 41 /* Level shifter for HDMI */
- 
- static struct gpio_led sdp4430_gpio_leds[] = {
- 	{
-@@ -552,6 +555,84 @@ static void __init omap_sfh7741prox_init(void)
- 	}
+diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
+index 6d9bb17..16f1106 100644
+--- a/drivers/video/omap2/dss/dispc.c
++++ b/drivers/video/omap2/dss/dispc.c
+@@ -1213,6 +1213,11 @@ void dispc_enable_zorder(enum omap_plane plane, bool enable)
+ 	dispc_write_reg(dispc_reg_att[plane], val);
  }
  
-+static void sdp4430_hdmi_mux_init(void)
++void dispc_enable_gamma_table(bool enable)
 +{
-+	/* PAD0_HDMI_HPD_PAD1_HDMI_CEC */
-+	omap_mux_init_signal("hdmi_hpd",
-+			OMAP_PIN_INPUT_PULLUP);
-+	omap_mux_init_signal("hdmi_cec",
-+			OMAP_PIN_INPUT_PULLUP);
-+	/* PAD0_HDMI_DDC_SCL_PAD1_HDMI_DDC_SDA */
-+	omap_mux_init_signal("hdmi_ddc_scl",
-+			OMAP_PIN_INPUT_PULLUP);
-+	omap_mux_init_signal("hdmi_ddc_sda",
-+			OMAP_PIN_INPUT_PULLUP);
++	REG_FLD_MOD(DISPC_CONFIG, enable, 9, 9);
 +}
 +
-+static int sdp4430_panel_enable_hdmi(struct omap_dss_device *dssdev)
-+{
-+	int status;
-+
-+	status = gpio_request_one(HDMI_GPIO_HPD, GPIOF_DIR_OUT,
-+							"hdmi_gpio_hpd");
-+	if (status) {
-+		pr_err("Cannot request GPIO %d\n", HDMI_GPIO_HPD);
-+		return status;
-+	}
-+	status = gpio_request_one(HDMI_GPIO_LS_OE, GPIOF_DIR_OUT,
-+							"hdmi_gpio_ls_oe");
-+	if (status) {
-+		pr_err("Cannot request GPIO %d\n", HDMI_GPIO_LS_OE);
-+		goto error1;
-+	}
-+
-+	/* The value set a pulse */
-+	gpio_set_value(HDMI_GPIO_HPD, 1);
-+	gpio_set_value(HDMI_GPIO_LS_OE, 1);
-+	gpio_set_value(HDMI_GPIO_HPD, 0);
-+	gpio_set_value(HDMI_GPIO_LS_OE, 0);
-+	gpio_set_value(HDMI_GPIO_HPD, 1);
-+	gpio_set_value(HDMI_GPIO_LS_OE, 1);
-+
-+	return 0;
-+
-+error1:
-+	gpio_free(HDMI_GPIO_HPD);
-+
-+	return status;
-+}
-+
-+static void sdp4430_panel_disable_hdmi(struct omap_dss_device *dssdev)
-+{
-+	gpio_free(HDMI_GPIO_LS_OE);
-+	gpio_free(HDMI_GPIO_HPD);
-+}
-+
-+static struct omap_dss_device sdp4430_hdmi_device = {
-+	.name = "hdmi",
-+	.driver_name = "hdmi_panel",
-+	.type = OMAP_DISPLAY_TYPE_HDMI,
-+	.platform_enable = sdp4430_panel_enable_hdmi,
-+	.platform_disable = sdp4430_panel_disable_hdmi,
-+	.channel = OMAP_DSS_CHANNEL_DIGIT,
-+};
-+
-+static struct omap_dss_device *sdp4430_dss_devices[] = {
-+	&sdp4430_hdmi_device,
-+};
-+
-+static struct omap_dss_board_info sdp4430_dss_data = {
-+	.num_devices	= ARRAY_SIZE(sdp4430_dss_devices),
-+	.devices	= sdp4430_dss_devices,
-+	.default_device	= &sdp4430_hdmi_device,
-+};
-+
-+void omap_4430sdp_display_init(void)
-+{
-+	sdp4430_hdmi_mux_init();
-+	omap_display_init(&sdp4430_dss_data);
-+}
-+
- #ifdef CONFIG_OMAP_MUX
- static struct omap_board_mux board_mux[] __initdata = {
- 	OMAP4_MUX(USBB2_ULPITLL_CLK, OMAP_MUX_MODE4 | OMAP_PIN_OUTPUT),
-@@ -594,6 +675,7 @@ static void __init omap_4430sdp_init(void)
- 		spi_register_board_info(sdp4430_spi_board_info,
- 				ARRAY_SIZE(sdp4430_spi_board_info));
- 	}
-+	omap_4430sdp_display_init();
+ static void _dispc_set_vid_color_conv(enum omap_plane plane, bool enable)
+ {
+ 	u32 val;
+diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
+index 99de4e1..127d42e 100644
+--- a/drivers/video/omap2/dss/dss.c
++++ b/drivers/video/omap2/dss/dss.c
+@@ -559,6 +559,13 @@ void dss_set_dac_pwrdn_bgz(bool enable)
+ 	REG_FLD_MOD(DSS_CONTROL, enable, 5, 5);	/* DAC Power-Down Control */
  }
  
- static void __init omap_4430sdp_map_io(void)
++void dss_select_hdmi_venc(bool hdmi)
++{
++	REG_FLD_MOD(DSS_CONTROL, hdmi, 15, 15);	/* 0x1 for HDMI, 0x0 VENC */
++	if (hdmi)
++		REG_FLD_MOD(DSS_CONTROL, 0, 9, 8);
++}
++
+ static int dss_init(bool skip_init)
+ {
+ 	int r;
+diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
+index b6f27fe..d199ba7 100644
+--- a/drivers/video/omap2/dss/dss.h
++++ b/drivers/video/omap2/dss/dss.h
+@@ -209,6 +209,7 @@ void dss_recheck_connections(struct omap_dss_device *dssdev, bool force);
+ int dss_init_platform_driver(void);
+ void dss_uninit_platform_driver(void);
+ 
++void dss_select_hdmi_venc(bool hdmi);
+ void dss_save_context(void);
+ void dss_restore_context(void);
+ void dss_clk_enable(enum dss_clock clks);
+@@ -352,6 +353,7 @@ void dispc_set_plane_pos(enum omap_plane plane, u16 x, u16 y);
+ void dispc_set_plane_size(enum omap_plane plane, u16 width, u16 height);
+ void dispc_set_channel_out(enum omap_plane plane,
+ 		enum omap_channel channel_out);
++void dispc_enable_gamma_table(bool enable);
+ 
+ int dispc_setup_plane(enum omap_plane plane,
+ 		      u32 paddr, u16 screen_width,
 -- 
 1.5.6.3
 
