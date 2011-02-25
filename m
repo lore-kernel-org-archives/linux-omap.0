@@ -1,72 +1,73 @@
-From: Keshava Munegowda <keshava_mgowda@ti.com>
-Subject: [PATCH 01/10] arm: omap: usb: host: add names to resources
-Date: Sat, 26 Feb 2011 04:36:29 +0530
-Message-ID: <1298675198-14214-2-git-send-email-keshava_mgowda@ti.com>
+From: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 03/10] arm: omap2: usb: rename usb-ehci.c to usb-host.c
+Date: Sat, 26 Feb 2011 04:36:31 +0530
+Message-ID: <1298675198-14214-4-git-send-email-keshava_mgowda@ti.com>
 References: <1298675198-14214-1-git-send-email-keshava_mgowda@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:41151 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932869Ab1BYXHI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 25 Feb 2011 18:07:08 -0500
-In-Reply-To: <1298675198-14214-1-git-send-email-keshava_mgowda@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+ <1298675198-14214-2-git-send-email-keshava_mgowda@ti.com>
+ <1298675198-14214-3-git-send-email-keshava_mgowda@ti.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1298675198-14214-3-git-send-email-keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org, gadiyar-l0cyMroinI0@public.gmane.org, p-basak2-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: Keshava Munegowda <keshava_mgowda@ti.com>, balbi@ti.com, gadiyar@ti.com, p-basak2@ti.com
 
-From: Felipe Balbi <balbi@ti.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 
-add names to EHCI and OHCI resources. That will help us
-identify the resource correctly when moving to a setup
-where OHCI and EHCI play well together.
+We already have both EHCI and OHCI there, so let's
+rename to be sure everybody will understand the entire
+USB HOST functionality is setup on this file.
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
+Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/mach-omap2/usb-ehci.c |    9 +++++++++
- 1 files changed, 9 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/Makefile                   |    2 +-
+ arch/arm/mach-omap2/{usb-ehci.c => usb-host.c} |    8 ++++----
+ 2 files changed, 5 insertions(+), 5 deletions(-)
+ rename arch/arm/mach-omap2/{usb-ehci.c => usb-host.c} (98%)
 
-diff --git a/arch/arm/mach-omap2/usb-ehci.c b/arch/arm/mach-omap2/usb-ehci.c
-index 25eeada..2c74fa1 100644
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 1c0c2b0..64dc417 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -229,7 +229,7 @@ usbfs-$(CONFIG_ARCH_OMAP_OTG)		:= usb-fs.o
+ obj-y					+= $(usbfs-m) $(usbfs-y)
+ obj-y					+= usb-musb.o
+ obj-$(CONFIG_MACH_OMAP2_TUSB6010)	+= usb-tusb6010.o
+-obj-y					+= usb-ehci.o
++obj-y					+= usb-host.o
+ 
+ onenand-$(CONFIG_MTD_ONENAND_OMAP2)	:= gpmc-onenand.o
+ obj-y					+= $(onenand-m) $(onenand-y)
+diff --git a/arch/arm/mach-omap2/usb-ehci.c b/arch/arm/mach-omap2/usb-host.c
+similarity index 98%
+rename from arch/arm/mach-omap2/usb-ehci.c
+rename to arch/arm/mach-omap2/usb-host.c
+index 2c74fa1..45f9b80 100644
 --- a/arch/arm/mach-omap2/usb-ehci.c
-+++ b/arch/arm/mach-omap2/usb-ehci.c
-@@ -350,6 +350,11 @@ void __init usb_ehci_init(const struct ehci_hcd_omap_platform_data *pdata)
- 		setup_4430ehci_io_mux(pdata->port_mode);
- 	}
- 
-+	ehci_resources[0].name	= "ehci";
-+	ehci_resources[1].name	= "uhh";
-+	ehci_resources[2].name	= "tll";
-+	ehci_resources[3].name	= "irq";
-+
- 	if (platform_device_register(&ehci_device) < 0) {
- 		printk(KERN_ERR "Unable to register HS-USB (EHCI) device\n");
- 		return;
-@@ -369,21 +374,25 @@ void __init usb_ehci_init(const struct ehci_hcd_omap_platform_data *pdata)
- 
- static struct resource ohci_resources[] = {
- 	{
-+		.name	= "ohci",
- 		.start	= OMAP34XX_OHCI_BASE,
- 		.end	= OMAP34XX_OHCI_BASE + SZ_1K - 1,
- 		.flags	= IORESOURCE_MEM,
- 	},
- 	{
-+		.name	= "uhh",
- 		.start	= OMAP34XX_UHH_CONFIG_BASE,
- 		.end	= OMAP34XX_UHH_CONFIG_BASE + SZ_1K - 1,
- 		.flags	= IORESOURCE_MEM,
- 	},
- 	{
-+		.name	= "tll",
- 		.start	= OMAP34XX_USBTLL_BASE,
- 		.end	= OMAP34XX_USBTLL_BASE + SZ_4K - 1,
- 		.flags	= IORESOURCE_MEM,
- 	},
- 	{	/* general IRQ */
-+		.name	= "irq",
- 		.start	= INT_34XX_OHCI_IRQ,
- 		.flags	= IORESOURCE_IRQ,
- 	}
++++ b/arch/arm/mach-omap2/usb-host.c
+@@ -1,14 +1,14 @@
+ /*
+- * linux/arch/arm/mach-omap2/usb-ehci.c
++ * usb-host.c - OMAP USB Host
+  *
+  * This file will contain the board specific details for the
+- * Synopsys EHCI host controller on OMAP3430
++ * Synopsys EHCI/OHCI host controller on OMAP3430 and onwards
+  *
+- * Copyright (C) 2007 Texas Instruments
++ * Copyright (C) 2007-2011 Texas Instruments
+  * Author: Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>
+  *
+  * Generalization by:
+- * Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
++ * Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 as
 -- 
 1.6.0.4
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
