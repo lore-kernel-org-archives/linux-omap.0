@@ -1,39 +1,56 @@
-From: "Jan, Sebastien" <s-jan@ti.com>
-Subject: Re: [PATCH] OMAP4: PandaBoard: Adding DVI support
-Date: Fri, 25 Feb 2011 19:57:23 +0100
-Message-ID: <AANLkTikQ25tLoRSynp6xjaJPO0sPpY3RFFS52UsgBuvU@mail.gmail.com>
-References: <1297259727-19690-1-git-send-email-raghuveer.murthy@ti.com>
- <AANLkTimwCDYGfeXc=mW-1wyvSj+OGHd_fJMB7Grh60ih@mail.gmail.com>
- <AANLkTimQxC3HgaRs-bBOGChLhvAK69XHCPEGyOcKeOz6@mail.gmail.com> <F55C15BA-2C89-4DB7-9930-5176AA72C2A7@dominion.thruhere.net>
+From: Pavol Kurina <pavol.kurina@emsys.de>
+Subject: Re: [patch-v2.6.39 03/12] usb: musb: gadget: do not poke with gadget's =?utf-8?b?bGlzdF9oZWFk?=
+Date: Fri, 25 Feb 2011 19:41:47 +0000 (UTC)
+Message-ID: <loom.20110225T201502-888@post.gmane.org>
+References: <1297946329-9353-1-git-send-email-balbi@ti.com> <1297946329-9353-4-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:50542 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751325Ab1BYS5j (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 25 Feb 2011 13:57:39 -0500
-Received: by mail-qy0-f181.google.com with SMTP id 14so1738801qyg.5
-        for <linux-omap@vger.kernel.org>; Fri, 25 Feb 2011 10:57:38 -0800 (PST)
-In-Reply-To: <F55C15BA-2C89-4DB7-9930-5176AA72C2A7@dominion.thruhere.net>
+Received: from lo.gmane.org ([80.91.229.12]:33314 "EHLO lo.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932878Ab1BYUAI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 25 Feb 2011 15:00:08 -0500
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gplao-linux-omap-open-source-moved1@m.gmane.org>)
+	id 1Pt3pe-0002ss-7c
+	for linux-omap@vger.kernel.org; Fri, 25 Feb 2011 21:00:06 +0100
+Received: from filterlix.emsys.de ([195.145.211.170])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-omap@vger.kernel.org>; Fri, 25 Feb 2011 21:00:06 +0100
+Received: from pavol.kurina by filterlix.emsys.de with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-omap@vger.kernel.org>; Fri, 25 Feb 2011 21:00:06 +0100
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Koen Kooi <koen@dominion.thruhere.net>
-Cc: Bryan Wu <bryan.wu@canonical.com>, "Gadiyar, Anand" <gadiyar@ti.com>, robertcnelson@gmail.com, Raghuveer Murthy <raghuveer.murthy@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org
 
-On Fri, Feb 11, 2011 at 4:38 PM, Koen Kooi <koen@dominion.thruhere.net> wrote:
->> I fetched this branch which contains 35 patches on top of 2.6.38-rc4.
->> After fixing some conflict, I applied these 35 patches on our Ubuntu
->> ti-omap-dev kernel. With built-in the DSS2 driver and GENERIC_DPI
->> driver, kernel boots fine on my Panda with Ubuntu GUI. But I have to
->> set the kernel boot command args with omapfb.mode=dvi:1024x768MR-24@60
->> omapdss.def_disp=dvi, pointed out by Sebastien. Without this bootargs,
->> no graphic at all. so as Robert concerned, EDID detection doesn't
->> work. Does that related to I2C driver? I2C driver always tell me
->> timeout in dmesg.
->
-> AIUI the i2c bus is only hooked up to the HDMI port, so unless you plug in something there, no dice.
+Felipe Balbi <balbi <at> ti.com> writes:
+> 
+> struct usb_request's list_head is supposed to be
+> used only by gadget drivers, but musb is abusing
+> that. Give struct musb_request its own list_head
+> and prevent musb from poking into other driver's
+> business.
 
-Are you sure? According to the pandaboard user manual, there seem to
-be an i2c connection (i2c3): page 31, fig 9:
-http://pandaboard.org/sites/default/files/board_reference/A1/Panda_Board_Spec_DOC-21010_REV0_6.pdf
+Hi,
+
+I think, the patch misses to fix the usage of 
+"request->list" in musb_gadget_dequeue in 
+musb_gadget.c.
+
+I found out by having troubles with f_mass_storage. 
+It needs musb_gadget_dequeue to work properly...
+
+I backported the patch to android-2.6.35 kernel on a 
+omap4 system and also fixed the musb_gadget_dequeue 
+there so f_mass_storage seem to work at least there 
+now...
+
+Can you check this patch regarding some missing bits
+please?
+
+Thanks,
+Pavol.
+
