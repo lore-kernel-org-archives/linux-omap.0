@@ -1,56 +1,54 @@
-From: Michael Buesch <mb@bu3sch.de>
-Subject: [PATCH] cbus-tahvo: Add battery related register defines
-Date: Sat, 26 Feb 2011 00:23:24 +0100
-Message-ID: <1298676204.27500.9.camel@marge>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH 2/4] OMAP2/3: clockdomains: remove warnings on an OMAP3-only
+	compile
+Date: Fri, 25 Feb 2011 17:20:07 -0700
+Message-ID: <20110226002006.28142.52520.stgit@twilight.localdomain>
+References: <20110226001601.28142.46636.stgit@twilight.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 80-190-117-144.ip-home.de ([80.190.117.144]:43615 "EHLO
-	bu3sch.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932815Ab1BYXX0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 25 Feb 2011 18:23:26 -0500
+Received: from utopia.booyaka.com ([72.9.107.138]:46817 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756576Ab1BZAUt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Feb 2011 19:20:49 -0500
+In-Reply-To: <20110226001601.28142.46636.stgit@twilight.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-This adds battery related register defines to the tahvo driver.
+Resolve these compile-time gcc warnings on OMAP3-only kernel compiles:
 
-Signed-off-by: Michael Buesch <mb@bu3sch.de>
+.../mach-omap2/clockdomains2xxx_3xxx_data.c:95: warning: 'dsp_24xx_wkdeps' defined but not used
+.../mach-omap2/clockdomains2xxx_3xxx_data.c:119: warning: 'mpu_24xx_wkdeps' defined but not used
+.../mach-omap2/clockdomains2xxx_3xxx_data.c:147: warning: 'core_24xx_wkdeps' defined but not used
 
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
+ arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
-The knowledge originates from various reverse engineering efforts.
-So naming might differ from the original unreleased documentation.
-
-Index: linux-omap-2.6/drivers/cbus/tahvo.h
-===================================================================
---- linux-omap-2.6.orig/drivers/cbus/tahvo.h	2011-02-26 00:12:47.660828705 +0100
-+++ linux-omap-2.6/drivers/cbus/tahvo.h	2011-02-26 00:12:52.757873087 +0100
-@@ -30,12 +30,23 @@
- #define TAHVO_REG_IDR		0x01	/* Interrupt ID */
- #define TAHVO_REG_IDSR		0x02	/* Interrupt status */
- #define TAHVO_REG_IMR		0x03	/* Interrupt mask */
-+#define TAHVO_REG_CHGCURR	0x04	/* Charge current control PWM (8-bit) */
- #define TAHVO_REG_LEDPWMR	0x05	/* LED PWM */
- #define TAHVO_REG_USBR		0x06	/* USB control */
-+#define TAHVO_REG_CHGCTL	0x08	/* Charge control register */
-+#define  TAHVO_REG_CHGCTL_EN		0x0001	/* Global charge enable */
-+#define  TAHVO_REG_CHGCTL_PWMOVR	0x0004	/* PWM override. Force charge PWM to 0%/100% duty cycle. */
-+#define  TAHVO_REG_CHGCTL_PWMOVRZERO	0x0008	/* If set, PWM override is 0% (If unset -> 100%) */
-+#define  TAHVO_REG_CHGCTL_CURMEAS	0x0040	/* Enable battery current measurement. */
-+#define  TAHVO_REG_CHGCTL_CURTIMRST	0x0080	/* Current measure timer reset. */
-+#define TAHVO_REG_BATCURRTIMER	0x0c	/* Battery current measure timer (8-bit) */
-+#define TAHVO_REG_BATCURR	0x0d	/* Battery (dis)charge current (signed 16-bit) */
+diff --git a/arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c b/arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c
+index ffdfe54..f9df791 100644
+--- a/arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c
++++ b/arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c
+@@ -89,6 +89,8 @@ static struct clkdm_dep gfx_sgx_wkdeps[] = {
+ 
+ /* 24XX-specific possible dependencies */
+ 
++#ifdef CONFIG_ARCH_OMAP2
 +
- #define TAHVO_REG_MAX		0x0d
+ /* Wakeup dependency source arrays */
  
- /* Interrupt sources */
- #define TAHVO_INT_VBUSON	0
-+#define TAHVO_INT_BATCURR	7 /* Battery current measure timer */
+ /* 2420/2430 PM_WKDEP_DSP: CORE, MPU, WKUP */
+@@ -168,6 +170,8 @@ static struct clkdm_dep core_24xx_wkdeps[] = {
+ 	{ NULL },
+ };
  
- #define MAX_TAHVO_IRQ_HANDLERS	8
++#endif
++
+ 
+ /* 2430-specific possible wakeup dependencies */
  
 
 
