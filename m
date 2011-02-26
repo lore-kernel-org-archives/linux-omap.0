@@ -1,59 +1,62 @@
-From: Sergei Shtylyov <sshtylyov@mvista.com>
-Subject: Re: [PATCH] OMAP2+: sdrc: fix compile break on OMAP4-only config
- on current omap-for-linus
-Date: Sat, 26 Feb 2011 18:05:52 +0300
-Message-ID: <4D6916D0.1080501@ru.mvista.com>
-References: <alpine.DEB.2.00.1102251839360.6198@utopia.booyaka.com>
+From: Matthieu Poullet <matthieu.poullet@gmail.com>
+Subject: Re: git repository that was used to build TI Dev Kit =?utf-8?b?MDFfMDBfMDA=?= android kernel sources
+Date: Sat, 26 Feb 2011 16:00:10 +0000 (UTC)
+Message-ID: <loom.20110226T165438-178@post.gmane.org>
+References: <88190879-4EBA-48AE-AFFD-31152C5B9D94@mac.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:61606 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751212Ab1BZPHO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 26 Feb 2011 10:07:14 -0500
-Received: by ewy6 with SMTP id 6so884762ewy.19
-        for <linux-omap@vger.kernel.org>; Sat, 26 Feb 2011 07:07:13 -0800 (PST)
-In-Reply-To: <alpine.DEB.2.00.1102251839360.6198@utopia.booyaka.com>
+Received: from lo.gmane.org ([80.91.229.12]:54899 "EHLO lo.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750970Ab1BZQFH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 26 Feb 2011 11:05:07 -0500
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gplao-linux-omap-open-source-moved1@m.gmane.org>)
+	id 1PtMdl-0007Ab-If
+	for linux-omap@vger.kernel.org; Sat, 26 Feb 2011 17:05:05 +0100
+Received: from p4FC5CF81.dip.t-dialin.net ([79.197.207.129])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-omap@vger.kernel.org>; Sat, 26 Feb 2011 17:05:05 +0100
+Received: from matthieu.poullet by p4FC5CF81.dip.t-dialin.net with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-omap@vger.kernel.org>; Sat, 26 Feb 2011 17:05:05 +0100
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com
+To: linux-omap@vger.kernel.org
 
-Hello.
+Elvis Dowson <elvis.dowson <at> mac.com> writes:
 
-On 26-02-2011 4:40, Paul Walmsley wrote:
-
-> On non-OMAP2 and non-OMAP3 kernel configs, turn omap2_sdrc_init() into
-> a no-op.  Otherwise, compilation breaks on an OMAP4-only config with
-> the current omap-for-linus branch:
-
-> arch/arm/mach-omap2/built-in.o: In function `omap2_init_common_devices':
-> ../mach-omap2/io.c:421: undefined reference to `omap2_sdrc_init'
-
-> Signed-off-by: Paul Walmsley<paul@pwsan.com>
-> Cc: Tony Lindgren<tony@atomide.com>
-> ---
->   arch/arm/plat-omap/include/plat/sdrc.h |    5 +++++
->   1 files changed, 5 insertions(+), 0 deletions(-)
-
-> diff --git a/arch/arm/plat-omap/include/plat/sdrc.h b/arch/arm/plat-omap/include/plat/sdrc.h
-> index efd87c8..5a44b14 100644
-> --- a/arch/arm/plat-omap/include/plat/sdrc.h
-> +++ b/arch/arm/plat-omap/include/plat/sdrc.h
-> @@ -124,8 +124,13 @@ struct omap_sdrc_params {
->   	u32 mr;
->   };
+> 
+> Hi,
+>         Which repository was used to build the TI Dev Kit 01_00_00 android
+kernel sources located here:
+> 
 >
-> +#if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
->   void __init omap2_sdrc_init(struct omap_sdrc_params *sdrc_cs0,
->   			    struct omap_sdrc_params *sdrc_cs1);
-> +#else
-> +#define omap2_sdrc_init(x, y)		0
+http://software-dl.ti.com/dsps/dsps_public_sw/sdo_tii/TI_Android_DevKit/01_00_00/index_FDS.html
+> 
+>
+http://software-dl.ti.com/dsps/dsps_public_sw/sdo_tii/TI_Android_DevKit/01_00_00/exports/Sources.tar.gz
+> 
+> Elvis Dowson
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo <at> vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
 
-    How about empty inline instead?
+Hi,
 
-> +#endif
-> +
+these DevKits are based on the Rowboat project:
+http://code.google.com/p/rowboat/
 
-WBR, Sergei
+Sources are available here:
+http://gitorious.org/rowboat
+
+Regards,
+Matthieu.
+
+
