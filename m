@@ -1,175 +1,74 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 1/4] OMAP2xxx: clock: remove dsp_irate_ick
-Date: Fri, 25 Feb 2011 17:20:06 -0700
-Message-ID: <20110226002001.28142.32051.stgit@twilight.localdomain>
+Subject: [PATCH 3/4] OMAP2xxx: clock: fix clockdomains on gpt7_ick,
+	2430 mmchs2_fck clocks
+Date: Fri, 25 Feb 2011 17:20:09 -0700
+Message-ID: <20110226002007.28142.46162.stgit@twilight.localdomain>
 References: <20110226001601.28142.46636.stgit@twilight.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:46815 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:46819 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756568Ab1BZAUt (ORCPT
+	with ESMTP id S1756577Ab1BZAUt (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Feb 2011 19:20:49 -0500
 In-Reply-To: <20110226001601.28142.46636.stgit@twilight.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-After commit 81b34fbecbfbf24ed95c2d80d5cb14149652408f ("OMAP2 clock:
-split OMAP2420, OMAP2430 clock data into their own files"), it's
-possible to remove dsp_irate_ick from the OMAP2420 and OMAP2430 clock
-files.  It was originally only needed due to a 2420/2430 clock tree difference,
-and now that the data is in separate files, it's superfluous.
+Add a clockdomain to the GPTIMER7 interface and 2430 HSMMC2 functional
+clocks - both were previously missing them.
+
+Also, the 2430 mmchs1_fck is in core_l3_clkdm, but should be in
+core_l4_clkdm; fix this.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/clock.h             |    1 +
- arch/arm/mach-omap2/clock2420_data.c    |   31 ++++++++-----------------------
- arch/arm/mach-omap2/clock2430_data.c    |   31 ++++++++-----------------------
- arch/arm/mach-omap2/clock_common_data.c |    6 ++++++
- 4 files changed, 23 insertions(+), 46 deletions(-)
+ arch/arm/mach-omap2/clock2420_data.c |    1 +
+ arch/arm/mach-omap2/clock2430_data.c |    4 +++-
+ 2 files changed, 4 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
-index 62cfd6c..e10ff2b 100644
---- a/arch/arm/mach-omap2/clock.h
-+++ b/arch/arm/mach-omap2/clock.h
-@@ -139,6 +139,7 @@ extern struct clk *vclk, *sclk;
- extern const struct clksel_rate gpt_32k_rates[];
- extern const struct clksel_rate gpt_sys_rates[];
- extern const struct clksel_rate gfx_l3_rates[];
-+extern const struct clksel_rate dsp_ick_rates[];
- 
- #if defined(CONFIG_ARCH_OMAP2) && defined(CONFIG_CPU_FREQ)
- extern void omap2_clk_init_cpufreq_table(struct cpufreq_frequency_table **table);
 diff --git a/arch/arm/mach-omap2/clock2420_data.c b/arch/arm/mach-omap2/clock2420_data.c
-index 22eeafc..53bd999 100644
+index 53bd999..5e80d3d 100644
 --- a/arch/arm/mach-omap2/clock2420_data.c
 +++ b/arch/arm/mach-omap2/clock2420_data.c
-@@ -454,36 +454,22 @@ static struct clk dsp_fck = {
- 	.recalc		= &omap2_clksel_recalc,
- };
- 
--/* DSP interface clock */
--static const struct clksel_rate dsp_irate_ick_rates[] = {
--	{ .div = 1, .val = 1, .flags = RATE_IN_24XX },
--	{ .div = 2, .val = 2, .flags = RATE_IN_24XX },
--	{ .div = 0 },
--};
--
--static const struct clksel dsp_irate_ick_clksel[] = {
--	{ .parent = &dsp_fck, .rates = dsp_irate_ick_rates },
-+static const struct clksel dsp_ick_clksel[] = {
-+	{ .parent = &dsp_fck, .rates = dsp_ick_rates },
- 	{ .parent = NULL }
- };
- 
--/* This clock does not exist as such in the TRM. */
--static struct clk dsp_irate_ick = {
--	.name		= "dsp_irate_ick",
--	.ops		= &clkops_null,
--	.parent		= &dsp_fck,
--	.clksel_reg	= OMAP_CM_REGADDR(OMAP24XX_DSP_MOD, CM_CLKSEL),
--	.clksel_mask	= OMAP24XX_CLKSEL_DSP_IF_MASK,
--	.clksel		= dsp_irate_ick_clksel,
--	.recalc		= &omap2_clksel_recalc,
--};
--
--/* 2420 only */
- static struct clk dsp_ick = {
- 	.name		= "dsp_ick",	 /* apparently ipi and isp */
+@@ -987,6 +987,7 @@ static struct clk gpt7_ick = {
+ 	.name		= "gpt7_ick",
  	.ops		= &clkops_omap2_iclk_dflt_wait,
--	.parent		= &dsp_irate_ick,
-+	.parent		= &dsp_fck,
-+	.clkdm_name	= "dsp_clkdm",
- 	.enable_reg	= OMAP_CM_REGADDR(OMAP24XX_DSP_MOD, CM_ICLKEN),
- 	.enable_bit	= OMAP2420_EN_DSP_IPI_SHIFT,	      /* for ipi */
-+	.clksel_reg	= OMAP_CM_REGADDR(OMAP24XX_DSP_MOD, CM_CLKSEL),
-+	.clksel_mask	= OMAP24XX_CLKSEL_DSP_IF_MASK,
-+	.clksel		= dsp_ick_clksel,
-+	.recalc		= &omap2_clksel_recalc,
- };
- 
- /*
-@@ -1812,7 +1798,6 @@ static struct omap_clk omap2420_clks[] = {
- 	CLK(NULL,	"mpu_ck",	&mpu_ck,	CK_242X),
- 	/* dsp domain clocks */
- 	CLK(NULL,	"dsp_fck",	&dsp_fck,	CK_242X),
--	CLK(NULL,	"dsp_irate_ick", &dsp_irate_ick, CK_242X),
- 	CLK(NULL,	"dsp_ick",	&dsp_ick,	CK_242X),
- 	CLK(NULL,	"iva1_ifck",	&iva1_ifck,	CK_242X),
- 	CLK(NULL,	"iva1_mpu_int_ifck", &iva1_mpu_int_ifck, CK_242X),
+ 	.parent		= &l4_ck,
++	.clkdm_name	= "core_l4_clkdm",
+ 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
+ 	.enable_bit	= OMAP24XX_EN_GPT7_SHIFT,
+ 	.recalc		= &followparent_recalc,
 diff --git a/arch/arm/mach-omap2/clock2430_data.c b/arch/arm/mach-omap2/clock2430_data.c
-index df4cac5..36dde26 100644
+index 36dde26..8957fc6 100644
 --- a/arch/arm/mach-omap2/clock2430_data.c
 +++ b/arch/arm/mach-omap2/clock2430_data.c
-@@ -433,37 +433,23 @@ static struct clk dsp_fck = {
- 	.recalc		= &omap2_clksel_recalc,
- };
- 
--/* DSP interface clock */
--static const struct clksel_rate dsp_irate_ick_rates[] = {
--	{ .div = 1, .val = 1, .flags = RATE_IN_24XX },
--	{ .div = 2, .val = 2, .flags = RATE_IN_24XX },
--	{ .div = 3, .val = 3, .flags = RATE_IN_243X },
--	{ .div = 0 },
--};
--
--static const struct clksel dsp_irate_ick_clksel[] = {
--	{ .parent = &dsp_fck, .rates = dsp_irate_ick_rates },
-+static const struct clksel dsp_ick_clksel[] = {
-+	{ .parent = &dsp_fck, .rates = dsp_ick_rates },
- 	{ .parent = NULL }
- };
- 
--/* This clock does not exist as such in the TRM. */
--static struct clk dsp_irate_ick = {
--	.name		= "dsp_irate_ick",
--	.ops		= &clkops_null,
--	.parent		= &dsp_fck,
--	.clksel_reg	= OMAP_CM_REGADDR(OMAP24XX_DSP_MOD, CM_CLKSEL),
--	.clksel_mask	= OMAP24XX_CLKSEL_DSP_IF_MASK,
--	.clksel		= dsp_irate_ick_clksel,
--	.recalc		= &omap2_clksel_recalc,
--};
--
- /* 2430 only - EN_DSP controls both dsp fclk and iclk on 2430 */
- static struct clk iva2_1_ick = {
- 	.name		= "iva2_1_ick",
+@@ -975,6 +975,7 @@ static struct clk gpt7_ick = {
+ 	.name		= "gpt7_ick",
+ 	.ops		= &clkops_omap2_iclk_dflt_wait,
+ 	.parent		= &l4_ck,
++	.clkdm_name	= "core_l4_clkdm",
+ 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
+ 	.enable_bit	= OMAP24XX_EN_GPT7_SHIFT,
+ 	.recalc		= &followparent_recalc,
+@@ -1747,7 +1748,7 @@ static struct clk mmchs1_fck = {
+ 	.name		= "mmchs1_fck",
  	.ops		= &clkops_omap2_dflt_wait,
--	.parent		= &dsp_irate_ick,
-+	.parent		= &dsp_fck,
-+	.clkdm_name	= "dsp_clkdm",
- 	.enable_reg	= OMAP_CM_REGADDR(OMAP24XX_DSP_MOD, CM_FCLKEN),
- 	.enable_bit	= OMAP24XX_CM_FCLKEN_DSP_EN_DSP_SHIFT,
-+	.clksel_reg	= OMAP_CM_REGADDR(OMAP24XX_DSP_MOD, CM_CLKSEL),
-+	.clksel_mask	= OMAP24XX_CLKSEL_DSP_IF_MASK,
-+	.clksel		= dsp_ick_clksel,
-+	.recalc		= &omap2_clksel_recalc,
- };
- 
- /*
-@@ -1900,7 +1886,6 @@ static struct omap_clk omap2430_clks[] = {
- 	CLK(NULL,	"mpu_ck",	&mpu_ck,	CK_243X),
- 	/* dsp domain clocks */
- 	CLK(NULL,	"dsp_fck",	&dsp_fck,	CK_243X),
--	CLK(NULL,	"dsp_irate_ick", &dsp_irate_ick, CK_243X),
- 	CLK(NULL,	"iva2_1_ick",	&iva2_1_ick,	CK_243X),
- 	/* GFX domain clocks */
- 	CLK(NULL,	"gfx_3d_fck",	&gfx_3d_fck,	CK_243X),
-diff --git a/arch/arm/mach-omap2/clock_common_data.c b/arch/arm/mach-omap2/clock_common_data.c
-index 1cf8131..6424d46 100644
---- a/arch/arm/mach-omap2/clock_common_data.c
-+++ b/arch/arm/mach-omap2/clock_common_data.c
-@@ -37,3 +37,9 @@ const struct clksel_rate gfx_l3_rates[] = {
- 	{ .div = 0 }
- };
- 
-+const struct clksel_rate dsp_ick_rates[] = {
-+	{ .div = 1, .val = 1, .flags = RATE_IN_24XX },
-+	{ .div = 2, .val = 2, .flags = RATE_IN_24XX },
-+	{ .div = 3, .val = 3, .flags = RATE_IN_243X },
-+	{ .div = 0 },
-+};
+ 	.parent		= &func_96m_ck,
+-	.clkdm_name	= "core_l3_clkdm",
++	.clkdm_name	= "core_l4_clkdm",
+ 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, OMAP24XX_CM_FCLKEN2),
+ 	.enable_bit	= OMAP2430_EN_MMCHS1_SHIFT,
+ 	.recalc		= &followparent_recalc,
+@@ -1767,6 +1768,7 @@ static struct clk mmchs2_fck = {
+ 	.name		= "mmchs2_fck",
+ 	.ops		= &clkops_omap2_dflt_wait,
+ 	.parent		= &func_96m_ck,
++	.clkdm_name	= "core_l4_clkdm",
+ 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, OMAP24XX_CM_FCLKEN2),
+ 	.enable_bit	= OMAP2430_EN_MMCHS2_SHIFT,
+ 	.recalc		= &followparent_recalc,
 
 
