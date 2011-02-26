@@ -1,80 +1,51 @@
-From: "Kadiyala, Kishore" <kishore.kadiyala@ti.com>
-Subject: Re: [PATCH v5 7/8] OMAP: adapt hsmmc to hwmod framework
-Date: Sat, 26 Feb 2011 16:59:02 +0530
-Message-ID: <AANLkTikXX+jX_3bxkNjRnSfxgGC2gJrkzYP8QRfykzQn@mail.gmail.com>
-References: <1298653783-26410-1-git-send-email-kishore.kadiyala@ti.com>
- <1298653783-26410-8-git-send-email-kishore.kadiyala@ti.com>
- <20110225204343.GD20560@atomide.com> <20110225205711.GE20560@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <20110225205711.GE20560@atomide.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, cjb@laptop.org, madhu.cr@ti.com, khilman@deeprootsystems.com, paul@pwsan.com, b-cousson@ti.com
+From: Lesly A M <leslyam@ti.com>
+Subject: [PATCH 1/8] omap3: pm: Fix for the TRITON sleep/wakeup sequence
+Date: Sat, 26 Feb 2011 17:55:32 +0530
+Message-ID: <1298723139-1693-2-git-send-email-leslyam@ti.com>
+References: <1298723139-1693-1-git-send-email-leslyam@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:51952 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752024Ab1BZMW3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 26 Feb 2011 07:22:29 -0500
+In-Reply-To: <1298723139-1693-1-git-send-email-leslyam@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Lesly A M <leslyam@ti.com>, Nishanth Menon <nm@ti.com>, David Derrick <dderrick@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
 
-Hi Tony,
+Since the function to populate the sleep script is getting called always
+irrespective of the flag "TWL4030_SLEEP_SCRIPT", other scripts data
+is getting over written by the sleep script. Adding the missing brackets for
+if statement to fix the issue.
 
-On Sat, Feb 26, 2011 at 2:27 AM, Tony Lindgren <tony@atomide.com> wrote=
-:
-> * Tony Lindgren <tony@atomide.com> [110225 12:42]:
->> * Kishore Kadiyala <kishore.kadiyala@ti.com> [110225 09:00]:
->> > +static int omap_mmc_init(struct omap_hwmod *oh, void *hsmmcinfo)
->> ...
->>
->> > + =A0 static int mmc_num;
->> > +
->> > + =A0 c +=3D mmc_num;
->>
->> This does not look right..
+Signed-off-by: Lesly A M <leslyam@ti.com>
+Cc: Nishanth Menon <nm@ti.com>
+Cc: David Derrick <dderrick@ti.com>
+Cc: Samuel Ortiz <sameo@linux.intel.com>
+---
+ drivers/mfd/twl4030-power.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-omap2_hsmmc_info is filled in respective board files and will have a ca=
-ll to
-omap2_hsmmc_init [hsmm.c].
-In omap2_hsmmc_init, it will call omap_hwmod_for_each_by_class which
-takes 3 arguments out of which 2nd one is a callback and 3rd one is voi=
-d
-pointer to be passed to call back if necessary.
-With this the callback "omap_mmc_init" will be called multiple times ba=
-sed on
-the class entry in hwmod data file for each controller.
-Say you have 3 controllers as in OMAP3, then "omap_mmc_init" will be
-called thrice.
-Here the argument "hsmmcinfo" needs to be  incremented for each call, s=
-o having
-a static mmc_num and incrementing it on each call.
+diff --git a/drivers/mfd/twl4030-power.c b/drivers/mfd/twl4030-power.c
+index 16422de..2c0d4d1 100644
+--- a/drivers/mfd/twl4030-power.c
++++ b/drivers/mfd/twl4030-power.c
+@@ -447,12 +447,13 @@ static int __init load_twl4030_script(struct twl4030_script *tscript,
+ 		if (err)
+ 			goto out;
+ 	}
+-	if (tscript->flags & TWL4030_SLEEP_SCRIPT)
++	if (tscript->flags & TWL4030_SLEEP_SCRIPT) {
+ 		if (order)
+ 			pr_warning("TWL4030: Bad order of scripts (sleep "\
+ 					"script before wakeup) Leads to boot"\
+ 					"failure on some boards\n");
+ 		err = twl4030_config_sleep_sequence(address);
++	}
+ out:
+ 	return err;
+ }
+-- 
+1.7.0.4
 
->
-> So since mmc_num is static, it gets initialized to 0, then increased
-> for each call.. What if you want to intialize controller 1 and 3 but
-> not 2?
-
-The current implementation for initialization of MMC controllers will w=
-ork
-with any of the below  order of devices:
-1) MMC1, MMC2, MMC3
-2) MMC1, MMC3
-3) MMC2, MMC1
-4) MMC3, MMC2, MMC1
-5) MMC3
-=2E...
-
->
-> Also, why do you pass void *hsmmcinfo to the function and then cast
-> it to struct omap2_hsmmc_inf *? Why not pass struct omap2_hsmmc_info =
-*
-> to start with?
-
-Its because the 3rd argument in omap_hwmod_for_each_by_class is void * =
-=2E
-
->
-> Regards,
->
-> Tony
->
-
-Regards,
-Kishore
