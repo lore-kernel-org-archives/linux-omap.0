@@ -1,72 +1,51 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] MMC: omap_hsmmc: enable interface clock before calling
- mmc_host_enable()
-Date: Fri, 25 Feb 2011 18:26:45 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1102251823540.6198@utopia.booyaka.com>
-References: <alpine.DEB.2.00.1012071624270.13430@utopia.booyaka.com> <AANLkTikMerO+FFsCJkiX7xa5m51zmKhQbikHDxT8GPK8@mail.gmail.com>
+Subject: [PATCH] OMAP2+: sdrc: fix compile break on OMAP4-only config on
+ current omap-for-linus
+Date: Fri, 25 Feb 2011 18:40:22 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1102251839360.6198@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <AANLkTikMerO+FFsCJkiX7xa5m51zmKhQbikHDxT8GPK8@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: linux-mmc@vger.kernel.org, cjb@laptop.org
-Cc: "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, Adrian Hunter <adrian.hunter@nokia.com>, Kishore Kadiyala <kishore.kadiyala@ti.com>, Tero Kristo <Tero.Kristo@nokia.com>, linux-omap@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:38680 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750860Ab1BZBkX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Feb 2011 20:40:23 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com
 
 
-Hi Chris,
+On non-OMAP2 and non-OMAP3 kernel configs, turn omap2_sdrc_init() into
+a no-op.  Otherwise, compilation breaks on an OMAP4-only config with
+the current omap-for-linus branch:
 
-would you like to take this one, or should we merge it through the OMAP 
-tree?
-
-
-- Paul
-
-From: Paul Walmsley <paul@pwsan.com>
-Date: Fri, 25 Feb 2011 18:22:08 -0700
-Subject: [PATCH] MMC: omap_hsmmc: enable interface clock before calling mmc_host_enable()
-
-The code path entered via mmc_host_enable() can include register
-accesses to the HSMMC IP block.  For this to work, both the device
-interface clock and functional clock need to be enabled before
-mmc_host_enable() is called.  However, omap_hsmmc_probe() calls
-mmc_host_enable() before enabling the device interface clock.
-
-Fix by calling mmc_host_enable() after the device interface clock is
-enabled.
+arch/arm/mach-omap2/built-in.o: In function `omap2_init_common_devices':
+../mach-omap2/io.c:421: undefined reference to `omap2_sdrc_init'
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Madhusudhan Chikkature Rajashekar <madhu.cr@ti.com>
-Cc: Adrian Hunter <adrian.hunter@nokia.com>
-Cc: Kishore Kadiyala <kishore.kadiyala@ti.com>
-Cc: Tero Kristo <Tero.Kristo@nokia.com>
-Acked-by: Madhusudhan Chikkature Rajashekar <madhu.cr@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
 ---
- drivers/mmc/host/omap_hsmmc.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ arch/arm/plat-omap/include/plat/sdrc.h |    5 +++++
+ 1 files changed, 5 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 078fdf1..0cf0d89 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -2101,14 +2101,14 @@ static int __init omap_hsmmc_probe(struct platform_device *pdev)
- 	/* we start off in DISABLED state */
- 	host->dpm_state = DISABLED;
+diff --git a/arch/arm/plat-omap/include/plat/sdrc.h b/arch/arm/plat-omap/include/plat/sdrc.h
+index efd87c8..5a44b14 100644
+--- a/arch/arm/plat-omap/include/plat/sdrc.h
++++ b/arch/arm/plat-omap/include/plat/sdrc.h
+@@ -124,8 +124,13 @@ struct omap_sdrc_params {
+ 	u32 mr;
+ };
  
--	if (mmc_host_enable(host->mmc) != 0) {
-+	if (clk_enable(host->iclk) != 0) {
- 		clk_put(host->iclk);
- 		clk_put(host->fclk);
- 		goto err1;
- 	}
- 
--	if (clk_enable(host->iclk) != 0) {
--		mmc_host_disable(host->mmc);
-+	if (mmc_host_enable(host->mmc) != 0) {
-+		clk_disable(host->iclk);
- 		clk_put(host->iclk);
- 		clk_put(host->fclk);
- 		goto err1;
++#if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
+ void __init omap2_sdrc_init(struct omap_sdrc_params *sdrc_cs0,
+ 			    struct omap_sdrc_params *sdrc_cs1);
++#else
++#define omap2_sdrc_init(x, y)		0
++#endif
++
+ int omap2_sdrc_get_params(unsigned long r,
+ 			  struct omap_sdrc_params **sdrc_cs0,
+ 			  struct omap_sdrc_params **sdrc_cs1);
 -- 
 1.7.2.3
 
