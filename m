@@ -1,80 +1,163 @@
-From: Lesly A M <leslyam@ti.com>
-Subject: [PATCH 8/8] omap3630: Updating the board file to use TWL4030 scripts
-Date: Sat, 26 Feb 2011 17:55:39 +0530
-Message-ID: <1298723139-1693-9-git-send-email-leslyam@ti.com>
-References: <1298723139-1693-1-git-send-email-leslyam@ti.com>
+From: Kishore Kadiyala <kishore.kadiyala@ti.com>
+Subject: [RESEND v5 PATCH 5/8] OMAP: hwmod data: Add dev_attr and use in the host driver
+Date: Sat, 26 Feb 2011 18:10:04 +0530
+Message-ID: <1298724004-26018-2-git-send-email-kishore.kadiyala@ti.com>
+References: <1298724004-26018-1-git-send-email-kishore.kadiyala@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:51962 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:55906 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752165Ab1BZMWk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 26 Feb 2011 07:22:40 -0500
-In-Reply-To: <1298723139-1693-1-git-send-email-leslyam@ti.com>
+	id S1752100Ab1BZMc0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 26 Feb 2011 07:32:26 -0500
+In-Reply-To: <1298724004-26018-1-git-send-email-kishore.kadiyala@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Lesly A M <leslyam@ti.com>, Nishanth Menon <nm@ti.com>, David Derrick <dderrick@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
+To: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: tony@atomide.com, cjb@laptop.org, madhu.cr@ti.com, khilman@deeprootsystems.com, paul@pwsan.com, b-cousson@ti.com, Kishore Kadiyala <kishore.kadiyala@ti.com>
 
-Using TWL4030 power scripts to control the LDOs and DCDC regulators
-while going to low power mode.
+Add a device attribute to hwmod data of omap2430, omap3, omap4.
+Currently the device attribute holds information regarding dual volt MMC card
+support by the controller which will be later passed to the host driver via
+platform data.
 
-Signed-off-by: Lesly A M <leslyam@ti.com>
-Cc: Nishanth Menon <nm@ti.com>
-Cc: David Derrick <dderrick@ti.com>
-Cc: Samuel Ortiz <sameo@linux.intel.com>
+Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
+Acked-by: Benoit Cousson<b-cousson@ti.com>
 ---
- arch/arm/mach-omap2/Makefile                 |    9 ++++++---
- arch/arm/mach-omap2/board-zoom-peripherals.c |    2 ++
- 2 files changed, 8 insertions(+), 3 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c |    6 ++++++
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    6 ++++++
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    8 ++++++++
+ arch/arm/plat-omap/include/plat/mmc.h      |    9 +++++++++
+ 4 files changed, 29 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index bb11329..e6d5d27 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -191,18 +191,21 @@ obj-$(CONFIG_MACH_OMAP_ZOOM2)		+= board-zoom.o \
- 					   board-zoom-display.o \
- 					   board-flash.o \
- 					   hsmmc.o \
--					   board-zoom-debugboard.o
-+					   board-zoom-debugboard.o \
-+					   twl4030.o
- obj-$(CONFIG_MACH_OMAP_ZOOM3)		+= board-zoom.o \
- 					   board-zoom-peripherals.o \
- 					   board-zoom-display.o \
- 					   board-flash.o \
- 					   hsmmc.o \
--					   board-zoom-debugboard.o
-+					   board-zoom-debugboard.o \
-+					   twl4030.o
- obj-$(CONFIG_MACH_OMAP_3630SDP)		+= board-3630sdp.o \
- 					   board-zoom-peripherals.o \
- 					   board-zoom-display.o \
- 					   board-flash.o \
--					   hsmmc.o
-+					   hsmmc.o \
-+					   twl4030.o
- obj-$(CONFIG_MACH_CM_T35)		+= board-cm-t35.o \
- 					   hsmmc.o
- obj-$(CONFIG_MACH_CM_T3517)		+= board-cm-t3517.o
-diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c b/arch/arm/mach-omap2/board-zoom-peripherals.c
-index e0e040f..f978f73 100644
---- a/arch/arm/mach-omap2/board-zoom-peripherals.c
-+++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
-@@ -31,6 +31,7 @@
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+index cba1800..d144540 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+@@ -19,6 +19,7 @@
+ #include <plat/i2c.h>
+ #include <plat/gpio.h>
+ #include <plat/mcspi.h>
++#include <plat/mmc.h>
+ #include <plat/l3_2xxx.h>
  
- #include "mux.h"
- #include "hsmmc.h"
-+#include "twl4030.h"
+ #include "omap_hwmod_common_data.h"
+@@ -1585,6 +1586,10 @@ static struct omap_hwmod_ocp_if *omap2430_mmc1_slaves[] = {
+ 	&omap2430_l4_core__mmc1,
+ };
  
- #define OMAP_ZOOM_WLAN_PMENA_GPIO	(101)
- #define OMAP_ZOOM_WLAN_IRQ_GPIO		(162)
-@@ -341,6 +342,7 @@ static struct twl4030_platform_data zoom_twldata = {
- 	.usb		= &zoom_usb_data,
- 	.gpio		= &zoom_gpio_data,
- 	.keypad		= &zoom_kp_twl4030_data,
-+	.power		= &twl4030_generic_script,
- 	.codec		= &zoom_codec_data,
- 	.vmmc1          = &zoom_vmmc1,
- 	.vmmc2          = &zoom_vmmc2,
++static struct omap_mmc_dev_attr mmc1_dev_attr = {
++	.flags = OMAP_HSMMC_SUPPORTS_DUAL_VOLT,
++};
++
+ static struct omap_hwmod omap2430_mmc1_hwmod = {
+ 	.name		= "mmc1",
+ 	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+@@ -1604,6 +1609,7 @@ static struct omap_hwmod omap2430_mmc1_hwmod = {
+ 			.idlest_idle_bit = OMAP2430_ST_MMCHS1_SHIFT,
+ 		},
+ 	},
++	.dev_attr	= &mmc1_dev_attr,
+ 	.slaves		= omap2430_mmc1_slaves,
+ 	.slaves_cnt	= ARRAY_SIZE(omap2430_mmc1_slaves),
+ 	.class		= &omap2430_mmc_class,
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+index 7726932..07065c3 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -22,6 +22,7 @@
+ #include <plat/l4_3xxx.h>
+ #include <plat/i2c.h>
+ #include <plat/gpio.h>
++#include <plat/mmc.h>
+ #include <plat/smartreflex.h>
+ #include <plat/mcspi.h>
+ 
+@@ -2309,6 +2310,10 @@ static struct omap_hwmod_ocp_if *omap3xxx_mmc1_slaves[] = {
+ 	&omap3xxx_l4_core__mmc1,
+ };
+ 
++static struct omap_mmc_dev_attr mmc1_dev_attr = {
++	.flags = OMAP_HSMMC_SUPPORTS_DUAL_VOLT,
++};
++
+ static struct omap_hwmod omap3xxx_mmc1_hwmod = {
+ 	.name		= "mmc1",
+ 	.mpu_irqs	= omap34xx_mmc1_mpu_irqs,
+@@ -2327,6 +2332,7 @@ static struct omap_hwmod omap3xxx_mmc1_hwmod = {
+ 			.idlest_idle_bit = OMAP3430_ST_MMC1_SHIFT,
+ 		},
+ 	},
++	.dev_attr	= &mmc1_dev_attr,
+ 	.slaves		= omap3xxx_mmc1_slaves,
+ 	.slaves_cnt	= ARRAY_SIZE(omap3xxx_mmc1_slaves),
+ 	.class		= &omap34xx_mmc_class,
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+index dd39e75..0f7d02b 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -25,6 +25,7 @@
+ #include <plat/gpio.h>
+ #include <plat/dma.h>
+ #include <plat/mcspi.h>
++#include <plat/mmc.h>
+ 
+ #include "omap_hwmod_common_data.h"
+ 
+@@ -3383,6 +3384,7 @@ static struct omap_hwmod_class omap44xx_mmc_hwmod_class = {
+ };
+ 
+ /* mmc1 */
++
+ static struct omap_hwmod_irq_info omap44xx_mmc1_irqs[] = {
+ 	{ .irq = 83 + OMAP44XX_IRQ_GIC_START },
+ };
+@@ -3420,6 +3422,11 @@ static struct omap_hwmod_ocp_if *omap44xx_mmc1_slaves[] = {
+ 	&omap44xx_l4_per__mmc1,
+ };
+ 
++/* mmc1 dev_attr */
++static struct omap_mmc_dev_attr mmc1_dev_attr = {
++	.flags	= OMAP_HSMMC_SUPPORTS_DUAL_VOLT,
++};
++
+ static struct omap_hwmod omap44xx_mmc1_hwmod = {
+ 	.name		= "mmc1",
+ 	.class		= &omap44xx_mmc_hwmod_class,
+@@ -3433,6 +3440,7 @@ static struct omap_hwmod omap44xx_mmc1_hwmod = {
+ 			.clkctrl_reg = OMAP4430_CM_L3INIT_MMC1_CLKCTRL,
+ 		},
+ 	},
++	.dev_attr	= &mmc1_dev_attr,
+ 	.slaves		= omap44xx_mmc1_slaves,
+ 	.slaves_cnt	= ARRAY_SIZE(omap44xx_mmc1_slaves),
+ 	.masters	= omap44xx_mmc1_masters,
+diff --git a/arch/arm/plat-omap/include/plat/mmc.h b/arch/arm/plat-omap/include/plat/mmc.h
+index e5de5d4..a7afab0 100644
+--- a/arch/arm/plat-omap/include/plat/mmc.h
++++ b/arch/arm/plat-omap/include/plat/mmc.h
+@@ -43,6 +43,12 @@
+ 
+ #define OMAP_MMC_MAX_SLOTS	2
+ 
++#define OMAP_HSMMC_SUPPORTS_DUAL_VOLT	BIT(1)
++
++struct omap_mmc_dev_attr {
++	u8 flags;
++};
++
+ struct omap_mmc_platform_data {
+ 	/* back-link to device */
+ 	struct device *dev;
+@@ -71,6 +77,9 @@ struct omap_mmc_platform_data {
+ 
+ 	u64 dma_mask;
+ 
++	/* Integrating attributes from the omap_hwmod layer */
++	u8 controller_flags;
++
+ 	/* Register offset deviation */
+ 	u16 reg_offset;
+ 
 -- 
-1.7.0.4
+1.7.1
 
