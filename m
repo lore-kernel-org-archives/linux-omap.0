@@ -1,22 +1,23 @@
-From: Eyal Reizer <eyalreizer@googlemail.com>
-Subject: Re: Re: Ping-> Subject:    [PATCH] omap: omap3evm: add support for the WL12xx WLAN module to the omap3evm
-Date: Sun, 27 Feb 2011 12:45:18 +0200
-Message-ID: <1298803518-12095-1-git-send-email-eyalr@ti.com>
-References: <y>
+From: "Reizer, Eyal" <eyalr@ti.com>
+Subject: FW: Re: Ping-> Subject:    [PATCH] omap: omap3evm: add support for
+ the WL12xx WLAN module to the omap3evm
+Date: Sun, 27 Feb 2011 12:00:39 +0100
+Message-ID: <EC51CDB0807A51469E0C9CB8CF72D65F0331930B3F@dnce02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:60418 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751925Ab1B0Kpd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 27 Feb 2011 05:45:33 -0500
-Received: by gyh20 with SMTP id 20so1207430gyh.19
-        for <linux-omap@vger.kernel.org>; Sun, 27 Feb 2011 02:45:32 -0800 (PST)
-In-Reply-To: <y>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:44584 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751925Ab1B0LAw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 27 Feb 2011 06:00:52 -0500
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, linux-omap@vger.kernel.org
-Cc: Eyal Reizer <eyalr@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Reizer, Eyal" <eyalr@ti.com>
 
-This patch is again current omap-for-linus branch
+As asked ,this patch is against current omap-for-linus branch
 
 Adds platform initialization for working with the WLAN module
 attached to the omap3evm.
