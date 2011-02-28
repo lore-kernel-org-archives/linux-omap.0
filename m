@@ -1,78 +1,79 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH v10 05/18] OMAP2,3 DSS2 Change driver name to
- omap_display
-Date: Mon, 28 Feb 2011 09:19:09 +0200
-Message-ID: <1298877549.2096.47.camel@deskari>
-References: <1295850125-21405-1-git-send-email-sumit.semwal@ti.com>
-	 <1295850125-21405-6-git-send-email-sumit.semwal@ti.com>
-	 <1298539643.16119.54.camel@deskari> <1298876015.2096.36.camel@deskari>
-	 <4D6B4A1A.9000304@ti.com>
+From: "Krishnamoorthy, Balaji T" <balajitk@ti.com>
+Subject: Re: [PATCH 5/8] omap3: pm: TWL5030 version checking
+Date: Mon, 28 Feb 2011 12:54:13 +0530
+Message-ID: <AANLkTi=WhX_qcYBcvQB17XSGL7Y1JnAVkjNmQieCyaLR@mail.gmail.com>
+References: <1298723139-1693-1-git-send-email-leslyam@ti.com>
+	<1298723139-1693-6-git-send-email-leslyam@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:46993 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752114Ab1B1HTS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 28 Feb 2011 02:19:18 -0500
-In-Reply-To: <4D6B4A1A.9000304@ti.com>
+Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:58086 "EHLO
+	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750919Ab1B1HYO convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 28 Feb 2011 02:24:14 -0500
+Received: by mail-vx0-f177.google.com with SMTP id 2so4453370vxd.22
+        for <linux-omap@vger.kernel.org>; Sun, 27 Feb 2011 23:24:13 -0800 (PST)
+In-Reply-To: <1298723139-1693-6-git-send-email-leslyam@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Taneja, Archit" <archit@ti.com>
-Cc: "Semwal, Sumit" <sumit.semwal@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "Hilman, Kevin" <khilman@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Guruswamy, Senthilvadivu" <svadivu@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>
+To: Lesly A M <leslyam@ti.com>
+Cc: linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>, David Derrick <dderrick@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
 
-On Mon, 2011-02-28 at 01:09 -0600, Taneja, Archit wrote:
-> Hi,
-> 
-> On Monday 28 February 2011 12:23 PM, Valkeinen, Tomi wrote:
-> > On Thu, 2011-02-24 at 03:27 -0600, Tomi Valkeinen wrote:
-> >> Hi,
-> >>
-> >> On Mon, 2011-01-24 at 11:51 +0530, ext Sumit Semwal wrote:
-> >>> From: Senthilvadivu Guruswamy<svadivu@ti.com>
-> >>>
-> >>> Change the driver name from omapdss to omap_display as the driver takes care of
-> >>> the display devices ie number of panels, type of panels available in the
-> >>> platform.  Change the device name in the board files and 2420,2430,3xxx clock
-> >>> files from omapdss to omap_display to match the driver name.
-> >>
-> >> I just realized that changing the driver name will break all scripts and
-> >> applications using omapdss sysfs files.
-> >>
-> >> How does this sound:
-> >>
-> >> Let's leave the omapdss device name as it is. It represents a "super"
-> >> device, containing the dss sysfs files and upper level dss management.
-> >>
-> >> Name the HW module platform drivers as: omapdss_dss, omapdss_venc,
-> >> omapdss_dispc, etc. This would indicate them to be clearly parts of DSS,
-> >> and would also prevent any possible name conflict if there would happen
-> >> to be a, say, "dsi" block in some other HW component.
-> >
-> > Any comments on this?
-> 
-> I also think we need to stick to the older name, "omapdss_dss" sounds a 
-> bit confusing, and I think one of the previous versions had something 
-> like "dss_dss" in it and it wasn't approved. Does something like 
-> "omapdss_core" or "omapdss_dss_core" make sense, or is it more misleading?
+On Sat, Feb 26, 2011 at 5:55 PM, Lesly A M <leslyam@ti.com> wrote:
 
-It is confusing, but so is the hardware naming =). There is a DSS module
-inside the omap display subsystem. That's why I would like to name it
-"dss", not "core", so it's clear it refers to this DSS module.
+Minor comment you missed version number in subject.
 
-"dss_dss" looks a bit silly, but I think "omapdss_dss" is slightly
-better in the sense that it doesn't repeat the same "dss", and there is
-an "omapdss" device, which acts like "manager" for these module devices.
-But yes, I wouldn't call it perfect either.
+<snip>
 
-"omapdss_dss_core" is one option. But then again, TRM doesn't speak of
-"core". 
+> +/**
+> + * twl_get_si_type - api to get TWL Si type.
+> + *
+> + * Api to get the TWL Si type from IDCODE value.
+> + */
+> +int twl_get_si_type(void)
+> +{
+> + =A0 =A0 =A0 return TWL_SIL_TYPE(twl_idcode);
+> +}
+> +EXPORT_SYMBOL(twl_get_si_type);
+> +
+> +/**
+> + * twl_get_si_version - api to get TWL Si version.
+> + *
+> + * Api to get the TWL Si version from IDCODE value.
+> + */
+> +int twl_get_si_version(void)
+> +{
+> + =A0 =A0 =A0 return TWL_SIL_REV(twl_idcode);
+> +}
+> +EXPORT_SYMBOL(twl_get_si_version);
+> +
+> =A0static struct device *
+> =A0add_numbered_child(unsigned chip, const char *name, int num,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0void *pdata, unsigned pdata_len,
+> @@ -1056,6 +1114,12 @@ twl_probe(struct i2c_client *client, const str=
+uct i2c_device_id *id)
+> =A0 =A0 =A0 =A0/* setup clock framework */
+> =A0 =A0 =A0 =A0clocks_init(&client->dev, pdata->clock);
+>
+> + =A0 =A0 =A0 /* read TWL IDCODE Register */
+> + =A0 =A0 =A0 if (twl_read_idcode_register(&twl_idcode)) {
 
-Also, these HW module devices are not used by the userspace, nor any
-other component inside the kernel than dss. They are quite hidden, and
-so the naming is not that critical. We can easily change these names
-later, if needed.
+Call this function only in case of Triton
 
- Tomi
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_err("TWL4030 Unable to read IDCODE R=
+egister\n");
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EIO;
 
+Do you really want to fail twl_probe due to error in reading IDCODE ?
 
+> + =A0 =A0 =A0 }
+> +
+
+<snip>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
