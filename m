@@ -1,56 +1,39 @@
-From: Heikki Krogerus <heikki.krogerus@nokia.com>
-Subject: Re: [PATCH 0/1] power_supply: twl4030_charger modification
-Date: Mon, 28 Feb 2011 08:05:33 +0200
-Message-ID: <20110228060533.GA2181@esdhcp034230>
-References: <1298634996-25722-1-git-send-email-heikki.krogerus@nokia.com>
- <20110225121234.GI4190@legolas.emea.dhcp.ti.com>
- <AANLkTik_N0Kk7putk+mb__S7NJxCYHSrxCH=DofduGpX@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Keerthy <j-keerthy@ti.com>
+Subject: [PATCH 0/2 v3] twl4030-madc driver
+Date: Mon, 28 Feb 2011 11:35:27 +0530
+Message-ID: <1298873127-5582-1-git-send-email-j-keerthy@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:54205 "EHLO mgw-da02.nokia.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:43555 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750940Ab1B1GFl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 28 Feb 2011 01:05:41 -0500
-Content-Disposition: inline
-In-Reply-To: <AANLkTik_N0Kk7putk+mb__S7NJxCYHSrxCH=DofduGpX@mail.gmail.com>
+	id S1750896Ab1B1GGJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 28 Feb 2011 01:06:09 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: balbi@ti.com, linux-omap@vger.kernel.org, cbouatmailru@gmail.com
+To: lm-sensors@lm-sensors.org, guenter.roeck@ericsson.com, sameo@linux.intel.com
+Cc: mikko.k.ylinen@nokia.com, amit.kucheria@canonical.com, j-keerthy@ti.com, linux-omap@vger.kernel.org
 
-On Sat, Feb 26, 2011 at 08:10:17PM +0200, ext Grazvydas Ignotas wrote:
-> On Fri, Feb 25, 2011 at 2:12 PM, Felipe Balbi <balbi@ti.com> wrote:
-> > On Fri, Feb 25, 2011 at 01:56:35PM +0200, Heikki Krogerus wrote:
-> >> Hi guys,
-> >>
-> >> Grazvydas, I don't have hardware to test this with. If this is OK to
-> >> you, could you test it?
-> 
-> Sure, replied to your patch.
+MADC(Monitoring ADC) driver enables monitoring analog signals using
+analog-to-digital conversion (ADC) on the input source.
+The previous discussion concluded in keeping the generic ADC
+functionality and the hwmon separate. The discussion can be found here:
 
-Thanks!
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg41805.html
 
-> >> Felipe, was the idea that you take this with the atomic notifier
-> >> support for otg patches? I guess this is how it needs to be done in
-> >> order to keep things bisectable, right? Or does this simply go to
-> >> Anton?
-> >
-> > We can't change patches anymore :-( So as long as it goes on the merge
-> > window, we should be ok, hopefully.
-> 
-> Talking about notifiers, do we have away to find the amount of current
-> host can provide yet? I haven't followed USB development closely
-> lately.
+Keerthy (2):
+  hwmon: twl4030: Hwmon Driver for TWL4030 MADC
+  mfd: twl4030: Driver for twl4030 madc module
 
-There is nothing to support this yet. I'm only assuming the ENUMERATED
-event will be used for this. Now with the atomic notifiers it should
-be OK for the controller drivers to send this notification always when
-usb_gadget_vbus_draw() is called.
+ Documentation/hwmon/twl4030-madc-hwmon |   45 ++
+ drivers/hwmon/Kconfig                  |   10 +
+ drivers/hwmon/Makefile                 |    1 +
+ drivers/hwmon/twl4030-madc-hwmon.c     |  153 ++++++
+ drivers/mfd/Kconfig                    |   10 +
+ drivers/mfd/Makefile                   |    1 +
+ drivers/mfd/twl4030-madc.c             |  813 ++++++++++++++++++++++++++++++++
+ include/linux/i2c/twl4030-madc.h       |  142 ++++++
+ 8 files changed, 1175 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/hwmon/twl4030-madc-hwmon
+ create mode 100644 drivers/hwmon/twl4030-madc-hwmon.c
+ create mode 100644 drivers/mfd/twl4030-madc.c
+ create mode 100644 include/linux/i2c/twl4030-madc.h
 
-But Felipe is working with the udc class. Maybe he has some other
-method in mind? For now I think we could send the ENUMERATED
-event from all the controller drivers. Felipe?
-
--- 
-heikki
