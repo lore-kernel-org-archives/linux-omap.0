@@ -1,64 +1,55 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 0/3] OMAP: DSS2: Generalize DSS clock source names
-Date: Mon, 28 Feb 2011 14:29:35 +0200
-Message-ID: <1298896175.9809.33.camel@deskari>
-References: <1298875837-6305-1-git-send-email-archit@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH 1/2] ARM: l2x0: Errata fix for flush by Way operationcan
+ cause data corruption
+Date: Mon, 28 Feb 2011 18:17:07 +0530
+Message-ID: <69dd173e3c7b4d02ef50ceaa19b2343a@mail.gmail.com>
+References: <1298032525-21115-1-git-send-email-santosh.shilimkar@ti.com>
+ <1298032525-21115-2-git-send-email-santosh.shilimkar@ti.com>
+ <20110227120021.GA15314@n2100.arm.linux.org.uk> <20110228101351.GA30781@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:58306 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753195Ab1B1M3j (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Feb 2011 07:29:39 -0500
-Received: from dlep34.itg.ti.com ([157.170.170.115])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1SCTdT2010304
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Mon, 28 Feb 2011 06:29:39 -0600
-Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
-	by dlep34.itg.ti.com (8.13.7/8.13.7) with ESMTP id p1SCTciG014405
-	for <linux-omap@vger.kernel.org>; Mon, 28 Feb 2011 06:29:38 -0600 (CST)
-Received: from dlee74.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p1SCTc68008153
-	for <linux-omap@vger.kernel.org>; Mon, 28 Feb 2011 06:29:38 -0600 (CST)
-In-Reply-To: <1298875837-6305-1-git-send-email-archit@ti.com>
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:45232 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753789Ab1B1MrK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 28 Feb 2011 07:47:10 -0500
+Received: by qyg14 with SMTP id 14so3134832qyg.12
+        for <linux-omap@vger.kernel.org>; Mon, 28 Feb 2011 04:47:09 -0800 (PST)
+In-Reply-To: <20110228101351.GA30781@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Taneja, Archit" <archit@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: tony@atomide.com, catalin.marinas@arm.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi,
+> -----Original Message-----
+> From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk]
+> Sent: Monday, February 28, 2011 3:44 PM
+> To: Santosh Shilimkar
+> Cc: tony@atomide.com; catalin.marinas@arm.com; linux-
+> omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
+> Subject: Re: [PATCH 1/2] ARM: l2x0: Errata fix for flush by Way
+> operationcan cause data corruption
+>
+> On Sun, Feb 27, 2011 at 12:00:21PM +0000, Russell King - ARM Linux
+> wrote:
+> > > +#else
+> > > +/* Optimised out for non-errata case */
+> > > +static inline void debug_writel(unsigned long val)
+> > > +{
+> > >  }
+> >
+> > #define l2x0_set_debug	NULL
+> >
+> > > +#endif
+>
+> I notice you got rid of the inline function.  Have you tried
+> building this without the errata enabled?
 
-On Mon, 2011-02-28 at 00:50 -0600, Taneja, Archit wrote:
-> The OMAP Display Subsystem has multiple clock sources available for its
-> modules. One of these sources has to be selected through a global control
-> register called DSS_CTRL.
-> 
-> For example, on OMAP4, the Display Controller Module's (DISPC) functional
-> clock can be derived from:
-> a) output of DPLL_PER's M5 divisor
-> b) output of DSI1 PLL's M4 divisor
-> c) output of DSI2 PLL's M4 divisor
-> d) output of HDMI PLL
-> 
-> There is, hence, an enum called 'dss_clk_source' which is used throughout
-> DSS2, to select clock sources for various DSS sub modules. These clock
-> source names are currently specific to OMAP2/3 TRM clock names.
-> 
-> All enum members, variables, functions which are based on these clock
-> source names have been made generic such that they can be used for future
-> OMAPs as well.
-> 
-> Archit Taneja (3):
->   OMAP2PLUS: DSS2: Make members of dss_clk_source generic
->   OMAP2PLUS: DSS2: Use dss features to get clock source names of
->     current OMAP
->   OMAP2PLUS: DSS2: DSI: Generalize DSI PLL Clock Naming
+I accidently dropped the inline function while
+incorporating the comment from you. :(
 
-This patch set, and also the two individual patches for using
-dss_features, look ok. However, they don't apply to DSS tree. Can you
-rebase these on top of DSS master branch, please?
+Fixed it. Updated version # 6770/1
 
- Tomi
-
-
+Regards,
+Santosh
