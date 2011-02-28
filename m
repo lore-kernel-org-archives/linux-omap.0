@@ -1,517 +1,116 @@
-From: Archit Taneja <archit@ti.com>
-Subject: [PATCH 3/3] OMAP2PLUS: DSS2: DSI: Generalize DSI PLL Clock Naming
-Date: Mon, 28 Feb 2011 12:20:37 +0530
-Message-ID: <1298875837-6305-4-git-send-email-archit@ti.com>
-References: <1298875837-6305-1-git-send-email-archit@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 5/8] OMAP4 : DSS2 : HDMI: HDMI driver addition in the
+ DSS drivers interface
+Date: Mon, 28 Feb 2011 08:51:39 +0200
+Message-ID: <1298875899.2096.34.camel@deskari>
+References: <1298643715-21540-1-git-send-email-mythripk@ti.com>
+	 <1298643715-21540-6-git-send-email-mythripk@ti.com>
+	 <1298801837.1977.63.camel@deskari>
+	 <AANLkTimiQ2pdvzP0OAnq5YqzkWq_91XLMWSq1K5M_3VH@mail.gmail.com>
+	 <1298874423.2096.11.camel@deskari>
+	 <AANLkTim9Nwst-2cLu5-8Yx9B-fnWO=xeDdMwuh=4pvgJ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:51594 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:51779 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752434Ab1B1GsO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 28 Feb 2011 01:48:14 -0500
+	id S1751061Ab1B1Gvn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 28 Feb 2011 01:51:43 -0500
 Received: from dlep36.itg.ti.com ([157.170.170.91])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1S6mEGv021062
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1S6pgnX021519
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Mon, 28 Feb 2011 00:48:14 -0600
-In-Reply-To: <1298875837-6305-1-git-send-email-archit@ti.com>
+	for <linux-omap@vger.kernel.org>; Mon, 28 Feb 2011 00:51:42 -0600
+Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
+	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id p1S6pgk7024551
+	for <linux-omap@vger.kernel.org>; Mon, 28 Feb 2011 00:51:42 -0600 (CST)
+In-Reply-To: <AANLkTim9Nwst-2cLu5-8Yx9B-fnWO=xeDdMwuh=4pvgJ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@ti.com
-Cc: linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
+To: "K, Mythri P" <mythripk@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-DSI PLL output clock names have been made more generic. The clock name
-describes what the source of the clock and what clock is used for. Some of
-DSI PLL parameters like dividers and DSI PLL source have also been made more
-generic.
+On Mon, 2011-02-28 at 00:30 -0600, K, Mythri P wrote:
+> Hi Tomi,
+> 
+> On Mon, Feb 28, 2011 at 11:57 AM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
+> > On Mon, 2011-02-28 at 00:11 -0600, K, Mythri P wrote:
+> >> Hi Tomi,
+> >>
+> >> On Sun, Feb 27, 2011 at 3:47 PM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
+> >
+> >> >> + * HDMI interface DSS driver setting for TI's OMAP4 family of processor.
+> >> >> + * Copyright (C) 2010-2011 Texas Instruments Incorporated - http://www.ti.com/
+> >> >> + * Authors: Yong Zhi
+> >> >
+> >> > Who is Yong Zhi and where's his signed-off-by?
+> >> Yong zhi had written some of the functions in this file , which was in
+> >> a library.He no longer works on the driver though .
+> >
+> > Ok. Generally there should be a signed-off-by from everybody who has
+> > written the code. It's like "I have written this code and I have
+> > permission to send it upstream" etc.
+> >
+> > His signed-off would be good for this too, but if the code is just based
+> > on his work, and doesn't really resemble it anymore, perhaps you could
+> > then say "Based on code by Yong Zhi", or similar.
+> >
+> sure i shall check with him to add his sign-off.
+> >> >> +
+> >> >> +static inline int hdmi_wait_for_bit_change(const struct hdmi_reg idx,
+> >> >> +                               int b2, int b1, u32 val)
+> >> >> +{
+> >> >> +       u32 t = 0;
+> >> >> +       while (val != FLD_GET(hdmi_read_reg(idx), b2, b1)) {
+> >> >
+> >> > There's REG_GET macro used in other DSS files to read bits from the
+> >> > registers.
+> >> Hmm i see that in dsi.c REG_GET is defined to do the same,
+> >> #define REG_GET(idx, start, end) \
+> >>         FLD_GET(dsi_read_reg(idx), start, end)
+> >> So should this be fine of should i define a new REG_GET ?
+> >
+> > REG_GET() uses the private dsi_read_reg() function, so it has to be
+> > defined again in each interface file. So for HDMI, define REG_REG
+> > similarly with hdmi_read_reg().
+> >
+> But it is used in only one function here , so is it really needed :) ?
 
-dsi1_pll_fclk and dsi2_pll_fclk have been changed as dsi_pll_hsdiv_dispc_clk
-and dsi_pll_hsdiv_dsi_clk respectively. Also, the hsdividers are now named
-regm_dispc and regm_dsi instead of regm3 and regm4.
+There are more than one FLD_GET(hdmi_read_reg()) patterns in hdmi.c,
+which could be replaced with REG_FLD_GET(). But granted, there are still
+not many of them now that I checked. Well, up to you if you want to add
+that or not.
 
-Functions and macros named on the basis of these clock names have also been
-made generic.
+> >> >> +       /* HACK : DDC needs time to stablize */
+> >> >> +       mdelay(10);
+> >> >
+> >> > So what is the reason for this? It's a sleep that for unknown reason
+> >> > make the code work? Or is there an idea why this is needed?
+> >> This is the time it needs to stabilize DDC, else most of the time it
+> >> reads a 0 or
+> >> wrong shifted values , so i have prefixed with a HACK.
+> >
+> > Ok. I'm fine with the hack for now, but I'm just interested: Is the 10ms
+> > just something that happens to work? This sleep is not discussed in any
+> > documentation? Has this been discussed with HW people?
+> 
+> yes i have checked with the silicon validation.
 
-Signed-off-by: Archit Taneja <archit@ti.com>
----
- arch/arm/plat-omap/include/plat/display.h |    4 +-
- drivers/video/omap2/dss/dispc.c           |    2 +-
- drivers/video/omap2/dss/dpi.c             |    4 +-
- drivers/video/omap2/dss/dsi.c             |  134 +++++++++++++++--------------
- drivers/video/omap2/dss/dss.c             |    4 +-
- drivers/video/omap2/dss/dss.h             |   20 ++--
- 6 files changed, 87 insertions(+), 81 deletions(-)
+Hmm. So, it's a HW feature or a HW bug? In either case, it's not a hack
+then. If it's a normal HW feature, you just need to sleep there, simple
+as that. If it's a HW bug, then this is a work-around, and it should be
+mentioned.
 
-diff --git a/arch/arm/plat-omap/include/plat/display.h b/arch/arm/plat-omap/include/plat/display.h
-index 2fb057e..d45f107 100644
---- a/arch/arm/plat-omap/include/plat/display.h
-+++ b/arch/arm/plat-omap/include/plat/display.h
-@@ -401,8 +401,8 @@ struct omap_dss_device {
- 			struct {
- 				u16 regn;
- 				u16 regm;
--				u16 regm3;
--				u16 regm4;
-+				u16 regm_dispc;
-+				u16 regm_dsi;
- 
- 				u16 lp_clk_div;
- 
-diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-index c6392c4..ce11204 100644
---- a/drivers/video/omap2/dss/dispc.c
-+++ b/drivers/video/omap2/dss/dispc.c
-@@ -2345,7 +2345,7 @@ unsigned long dispc_fclk_rate(void)
- 		r = dss_clk_get_rate(DSS_CLK_FCK);
- 	else
- #ifdef CONFIG_OMAP2_DSS_DSI
--		r = dsi_get_dsi1_pll_rate();
-+		r = dsi_get_pll_hsdiv_dispc_rate();
- #else
- 	BUG();
- #endif
-diff --git a/drivers/video/omap2/dss/dpi.c b/drivers/video/omap2/dss/dpi.c
-index 1b2867d..08fed30 100644
---- a/drivers/video/omap2/dss/dpi.c
-+++ b/drivers/video/omap2/dss/dpi.c
-@@ -63,7 +63,7 @@ static int dpi_set_dsi_clk(struct omap_dss_device *dssdev, bool is_tft,
- 	if (r)
- 		return r;
- 
--	*fck = dsi_cinfo.dsi1_pll_fclk;
-+	*fck = dsi_cinfo.dsi_pll_hsdiv_dispc_clk;
- 	*lck_div = dispc_cinfo.lck_div;
- 	*pck_div = dispc_cinfo.pck_div;
- 
-@@ -271,7 +271,7 @@ int dpi_check_timings(struct omap_dss_device *dssdev,
- 		if (r)
- 			return r;
- 
--		fck = dsi_cinfo.dsi1_pll_fclk;
-+		fck = dsi_cinfo.dsi_pll_hsdiv_dispc_clk;
- 		lck_div = dispc_cinfo.lck_div;
- 		pck_div = dispc_cinfo.pck_div;
- 	}
-diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
-index 4009991..cda83b0 100644
---- a/drivers/video/omap2/dss/dsi.c
-+++ b/drivers/video/omap2/dss/dsi.c
-@@ -189,8 +189,8 @@ struct dsi_reg { u16 idx; };
- #define FINT_MIN 750000
- #define REGN_MAX (1 << 7)
- #define REGM_MAX ((1 << 11) - 1)
--#define REGM3_MAX (1 << 4)
--#define REGM4_MAX (1 << 4)
-+#define REGM_DISPC_MAX (1 << 4)
-+#define REGM_DSI_MAX (1 << 4)
- #define LP_DIV_MAX ((1 << 13) - 1)
- 
- enum fifo_size {
-@@ -642,7 +642,7 @@ static void dsi_vc_disable_bta_irq(int channel)
- 	dsi_write_reg(DSI_VC_IRQENABLE(channel), l);
- }
- 
--/* DSI func clock. this could also be DSI2_PLL_FCLK */
-+/* DSI func clock. this could also be dsi_pll_hsdiv_dsi_clk */
- static inline void enable_clocks(bool enable)
- {
- 	if (enable)
-@@ -712,14 +712,14 @@ static inline int dsi_if_enable(bool enable)
- 	return 0;
- }
- 
--unsigned long dsi_get_dsi1_pll_rate(void)
-+unsigned long dsi_get_pll_hsdiv_dispc_rate(void)
- {
--	return dsi.current_cinfo.dsi1_pll_fclk;
-+	return dsi.current_cinfo.dsi_pll_hsdiv_dispc_clk;
- }
- 
--static unsigned long dsi_get_dsi2_pll_rate(void)
-+static unsigned long dsi_get_pll_hsdiv_dsi_rate(void)
- {
--	return dsi.current_cinfo.dsi2_pll_fclk;
-+	return dsi.current_cinfo.dsi_pll_hsdiv_dsi_clk;
- }
- 
- static unsigned long dsi_get_txbyteclkhs(void)
-@@ -732,11 +732,11 @@ static unsigned long dsi_fclk_rate(void)
- 	unsigned long r;
- 
- 	if (dss_get_dsi_clk_source() == DSS_CLK_SRC_FCK) {
--		/* DSI FCLK source is DSS1_ALWON_FCK, which is dss1_fck */
-+		/* DSI FCLK source is DSS_CLK_FCK */
- 		r = dss_clk_get_rate(DSS_CLK_FCK);
- 	} else {
--		/* DSI FCLK source is DSI2_PLL_FCLK */
--		r = dsi_get_dsi2_pll_rate();
-+		/* DSI FCLK source is dsi_pll_hsdiv_dsi_clk */
-+		r = dsi_get_pll_hsdiv_dsi_rate();
- 	}
- 
- 	return r;
-@@ -806,16 +806,16 @@ static int dsi_calc_clock_rates(struct omap_dss_device *dssdev,
- 	if (cinfo->regm == 0 || cinfo->regm > REGM_MAX)
- 		return -EINVAL;
- 
--	if (cinfo->regm3 > REGM3_MAX)
-+	if (cinfo->regm_dispc > REGM_DISPC_MAX)
- 		return -EINVAL;
- 
--	if (cinfo->regm4 > REGM4_MAX)
-+	if (cinfo->regm_dsi > REGM_DSI_MAX)
- 		return -EINVAL;
- 
--	if (cinfo->use_dss2_fck) {
-+	if (cinfo->use_sys_clk) {
- 		cinfo->clkin = dss_clk_get_rate(DSS_CLK_SYSCK);
- 		/* XXX it is unclear if highfreq should be used
--		 * with DSS2_FCK source also */
-+		 * with DSS_SYS_CLK source also */
- 		cinfo->highfreq = 0;
- 	} else {
- 		cinfo->clkin = dispc_pclk_rate(dssdev->manager->id);
-@@ -836,15 +836,17 @@ static int dsi_calc_clock_rates(struct omap_dss_device *dssdev,
- 	if (cinfo->clkin4ddr > 1800 * 1000 * 1000)
- 		return -EINVAL;
- 
--	if (cinfo->regm3 > 0)
--		cinfo->dsi1_pll_fclk = cinfo->clkin4ddr / cinfo->regm3;
-+	if (cinfo->regm_dispc > 0)
-+		cinfo->dsi_pll_hsdiv_dispc_clk =
-+			cinfo->clkin4ddr / cinfo->regm_dispc;
- 	else
--		cinfo->dsi1_pll_fclk = 0;
-+		cinfo->dsi_pll_hsdiv_dispc_clk = 0;
- 
--	if (cinfo->regm4 > 0)
--		cinfo->dsi2_pll_fclk = cinfo->clkin4ddr / cinfo->regm4;
-+	if (cinfo->regm_dsi > 0)
-+		cinfo->dsi_pll_hsdiv_dsi_clk =
-+			cinfo->clkin4ddr / cinfo->regm_dsi;
- 	else
--		cinfo->dsi2_pll_fclk = 0;
-+		cinfo->dsi_pll_hsdiv_dsi_clk = 0;
- 
- 	return 0;
- }
-@@ -857,18 +859,18 @@ int dsi_pll_calc_clock_div_pck(bool is_tft, unsigned long req_pck,
- 	struct dispc_clock_info best_dispc;
- 	int min_fck_per_pck;
- 	int match = 0;
--	unsigned long dss_clk_fck2, max_dss_fck;
-+	unsigned long dss_sys_clk, max_dss_fck;
- 
--	dss_clk_fck2 = dss_clk_get_rate(DSS_CLK_SYSCK);
-+	dss_sys_clk = dss_clk_get_rate(DSS_CLK_SYSCK);
- 
- 	max_dss_fck = dss_feat_get_max_dss_fck();
- 
- 	if (req_pck == dsi.cache_req_pck &&
--			dsi.cache_cinfo.clkin == dss_clk_fck2) {
-+			dsi.cache_cinfo.clkin == dss_sys_clk) {
- 		DSSDBG("DSI clock info found from cache\n");
- 		*dsi_cinfo = dsi.cache_cinfo;
--		dispc_find_clk_divs(is_tft, req_pck, dsi_cinfo->dsi1_pll_fclk,
--				dispc_cinfo);
-+		dispc_find_clk_divs(is_tft, req_pck,
-+			dsi_cinfo->dsi_pll_hsdiv_dispc_clk, dispc_cinfo);
- 		return 0;
- 	}
- 
-@@ -889,8 +891,8 @@ retry:
- 	memset(&best_dispc, 0, sizeof(best_dispc));
- 
- 	memset(&cur, 0, sizeof(cur));
--	cur.clkin = dss_clk_fck2;
--	cur.use_dss2_fck = 1;
-+	cur.clkin = dss_sys_clk;
-+	cur.use_sys_clk = 1;
- 	cur.highfreq = 0;
- 
- 	/* no highfreq: 0.75MHz < Fint = clkin / regn < 2.1MHz */
-@@ -916,30 +918,32 @@ retry:
- 			if (cur.clkin4ddr > 1800 * 1000 * 1000)
- 				break;
- 
--			/* DSI1_PLL_FCLK(MHz) = DSIPHY(MHz) / regm3  < 173MHz */
--			for (cur.regm3 = 1; cur.regm3 < REGM3_MAX;
--					++cur.regm3) {
-+			/* dsi_pll_hsdiv_dispc_clk(MHz) =
-+			 * DSIPHY(MHz) / regm_dispc  < 173MHz/186Mhz */
-+			for (cur.regm_dispc = 1; cur.regm_dispc < REGM_DISPC_MAX;
-+					++cur.regm_dispc) {
- 				struct dispc_clock_info cur_dispc;
--				cur.dsi1_pll_fclk = cur.clkin4ddr / cur.regm3;
-+				cur.dsi_pll_hsdiv_dispc_clk =
-+					cur.clkin4ddr / cur.regm_dispc;
- 
- 				/* this will narrow down the search a bit,
- 				 * but still give pixclocks below what was
- 				 * requested */
--				if (cur.dsi1_pll_fclk  < req_pck)
-+				if (cur.dsi_pll_hsdiv_dispc_clk  < req_pck)
- 					break;
- 
--				if (cur.dsi1_pll_fclk > max_dss_fck)
-+				if (cur.dsi_pll_hsdiv_dispc_clk > max_dss_fck)
- 					continue;
- 
- 				if (min_fck_per_pck &&
--					cur.dsi1_pll_fclk <
-+					cur.dsi_pll_hsdiv_dispc_clk <
- 						req_pck * min_fck_per_pck)
- 					continue;
- 
- 				match = 1;
- 
- 				dispc_find_clk_divs(is_tft, req_pck,
--						cur.dsi1_pll_fclk,
-+						cur.dsi_pll_hsdiv_dispc_clk,
- 						&cur_dispc);
- 
- 				if (abs(cur_dispc.pck - req_pck) <
-@@ -968,9 +972,9 @@ found:
- 		return -EINVAL;
- 	}
- 
--	/* DSI2_PLL_FCLK (regm4) is not used */
--	best.regm4 = 0;
--	best.dsi2_pll_fclk = 0;
-+	/* dsi_pll_hsdiv_dsi_clk (regm_dsi) is not used */
-+	best.regm_dsi = 0;
-+	best.dsi_pll_hsdiv_dsi_clk = 0;
- 
- 	if (dsi_cinfo)
- 		*dsi_cinfo = best;
-@@ -994,18 +998,20 @@ int dsi_pll_set_clock_div(struct dsi_clock_info *cinfo)
- 
- 	dsi.current_cinfo.fint = cinfo->fint;
- 	dsi.current_cinfo.clkin4ddr = cinfo->clkin4ddr;
--	dsi.current_cinfo.dsi1_pll_fclk = cinfo->dsi1_pll_fclk;
--	dsi.current_cinfo.dsi2_pll_fclk = cinfo->dsi2_pll_fclk;
-+	dsi.current_cinfo.dsi_pll_hsdiv_dispc_clk =
-+			cinfo->dsi_pll_hsdiv_dispc_clk;
-+	dsi.current_cinfo.dsi_pll_hsdiv_dsi_clk =
-+			cinfo->dsi_pll_hsdiv_dsi_clk;
- 
- 	dsi.current_cinfo.regn = cinfo->regn;
- 	dsi.current_cinfo.regm = cinfo->regm;
--	dsi.current_cinfo.regm3 = cinfo->regm3;
--	dsi.current_cinfo.regm4 = cinfo->regm4;
-+	dsi.current_cinfo.regm_dispc = cinfo->regm_dispc;
-+	dsi.current_cinfo.regm_dsi = cinfo->regm_dsi;
- 
- 	DSSDBG("DSI Fint %ld\n", cinfo->fint);
- 
- 	DSSDBG("clkin (%s) rate %ld, highfreq %d\n",
--			cinfo->use_dss2_fck ? "dss2_fck" : "pclkfree",
-+			cinfo->use_sys_clk ? "dss_sys_clk" : "pclkfree",
- 			cinfo->clkin,
- 			cinfo->highfreq);
- 
-@@ -1022,14 +1028,14 @@ int dsi_pll_set_clock_div(struct dsi_clock_info *cinfo)
- 
- 	DSSDBG("Clock lane freq %ld Hz\n", cinfo->clkin4ddr / 4);
- 
--	DSSDBG("regm3 = %d, %s (%s) = %lu\n", cinfo->regm3,
-+	DSSDBG("regm_dispc = %d, %s (%s) = %lu\n", cinfo->regm_dispc,
- 		dss_get_generic_clk_source_name(DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC),
- 		dss_feat_get_clk_source_name(DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC),
--		cinfo->dsi1_pll_fclk);
--	DSSDBG("regm4 = %d, %s (%s) = %lu\n", cinfo->regm4,
-+		cinfo->dsi_pll_hsdiv_dispc_clk);
-+	DSSDBG("regm_dsi = %d, %s (%s) = %lu\n", cinfo->regm_dsi,
- 		dss_get_generic_clk_source_name(DSS_CLK_SRC_DSI_PLL_HSDIV_DSI),
- 		dss_feat_get_clk_source_name(DSS_CLK_SRC_DSI_PLL_HSDIV_DSI),
--		cinfo->dsi2_pll_fclk);
-+		cinfo->dsi_pll_hsdiv_dsi_clk);
- 
- 	REG_FLD_MOD(DSI_PLL_CONTROL, 0, 0, 0); /* DSI_PLL_AUTOMODE = manual */
- 
-@@ -1037,9 +1043,9 @@ int dsi_pll_set_clock_div(struct dsi_clock_info *cinfo)
- 	l = FLD_MOD(l, 1, 0, 0);		/* DSI_PLL_STOPMODE */
- 	l = FLD_MOD(l, cinfo->regn - 1, 7, 1);	/* DSI_PLL_REGN */
- 	l = FLD_MOD(l, cinfo->regm, 18, 8);	/* DSI_PLL_REGM */
--	l = FLD_MOD(l, cinfo->regm3 > 0 ? cinfo->regm3 - 1 : 0,
-+	l = FLD_MOD(l, cinfo->regm_dispc > 0 ? cinfo->regm_dispc - 1 : 0,
- 			22, 19);		/* DSI_CLOCK_DIV */
--	l = FLD_MOD(l, cinfo->regm4 > 0 ? cinfo->regm4 - 1 : 0,
-+	l = FLD_MOD(l, cinfo->regm_dsi > 0 ? cinfo->regm_dsi - 1 : 0,
- 			26, 23);		/* DSIPROTO_CLOCK_DIV */
- 	dsi_write_reg(DSI_PLL_CONFIGURATION1, l);
- 
-@@ -1057,7 +1063,7 @@ int dsi_pll_set_clock_div(struct dsi_clock_info *cinfo)
- 
- 	l = dsi_read_reg(DSI_PLL_CONFIGURATION2);
- 	l = FLD_MOD(l, f, 4, 1);		/* DSI_PLL_FREQSEL */
--	l = FLD_MOD(l, cinfo->use_dss2_fck ? 0 : 1,
-+	l = FLD_MOD(l, cinfo->use_sys_clk ? 0 : 1,
- 			11, 11);		/* DSI_PLL_CLKSEL */
- 	l = FLD_MOD(l, cinfo->highfreq,
- 			12, 12);		/* DSI_PLL_HIGHFREQ */
-@@ -1186,26 +1192,26 @@ void dsi_dump_clocks(struct seq_file *s)
- 
- 	seq_printf(s,	"dsi pll source = %s\n",
- 			clksel == 0 ?
--			"dss2_alwon_fclk" : "pclkfree");
-+			"dss_sys_clk" : "pclkfree");
- 
- 	seq_printf(s,	"Fint\t\t%-16luregn %u\n", cinfo->fint, cinfo->regn);
- 
- 	seq_printf(s,	"CLKIN4DDR\t%-16luregm %u\n",
- 			cinfo->clkin4ddr, cinfo->regm);
- 
--	seq_printf(s,	"%s (%s)\t%-16luregm3 %u\t(%s)\n",
-+	seq_printf(s,	"%s (%s)\t%-16luregm_dispc %u\t(%s)\n",
- 			dss_get_generic_clk_source_name(dispc_clk_src),
- 			dss_feat_get_clk_source_name(dispc_clk_src),
--			cinfo->dsi1_pll_fclk,
--			cinfo->regm3,
-+			cinfo->dsi_pll_hsdiv_dispc_clk,
-+			cinfo->regm_dispc,
- 			dispc_clk_src == DSS_CLK_SRC_FCK ?
- 			"off" : "on");
- 
--	seq_printf(s,	"%s (%s)\t%-16luregm4 %u\t(%s)\n",
-+	seq_printf(s,	"%s (%s)\t%-16luregm_dsi %u\t(%s)\n",
- 			dss_get_generic_clk_source_name(dsi_clk_src),
- 			dss_feat_get_clk_source_name(dsi_clk_src),
--			cinfo->dsi2_pll_fclk,
--			cinfo->regm4,
-+			cinfo->dsi_pll_hsdiv_dsi_clk,
-+			cinfo->regm_dsi,
- 			dsi_clk_src == DSS_CLK_SRC_FCK ?
- 			"off" : "on");
- 
-@@ -3003,12 +3009,12 @@ static int dsi_configure_dsi_clocks(struct omap_dss_device *dssdev)
- 	struct dsi_clock_info cinfo;
- 	int r;
- 
--	/* we always use DSS2_FCK as input clock */
--	cinfo.use_dss2_fck = true;
-+	/* we always use DSS_CLK_SYSCK as input clock */
-+	cinfo.use_sys_clk = true;
- 	cinfo.regn  = dssdev->phy.dsi.div.regn;
- 	cinfo.regm  = dssdev->phy.dsi.div.regm;
--	cinfo.regm3 = dssdev->phy.dsi.div.regm3;
--	cinfo.regm4 = dssdev->phy.dsi.div.regm4;
-+	cinfo.regm_dispc = dssdev->phy.dsi.div.regm_dispc;
-+	cinfo.regm_dsi = dssdev->phy.dsi.div.regm_dsi;
- 	r = dsi_calc_clock_rates(dssdev, &cinfo);
- 	if (r) {
- 		DSSERR("Failed to calc dsi clocks\n");
-@@ -3030,7 +3036,7 @@ static int dsi_configure_dispc_clocks(struct omap_dss_device *dssdev)
- 	int r;
- 	unsigned long long fck;
- 
--	fck = dsi_get_dsi1_pll_rate();
-+	fck = dsi_get_pll_hsdiv_dispc_rate();
- 
- 	dispc_cinfo.lck_div = dssdev->phy.dsi.div.lck_div;
- 	dispc_cinfo.pck_div = dssdev->phy.dsi.div.pck_div;
-@@ -3258,7 +3264,7 @@ int dsi_init_display(struct omap_dss_device *dssdev)
- 	return 0;
- }
- 
--void dsi_wait_dsi1_pll_active(void)
-+void dsi_wait_pll_hsdiv_dispc_active(void)
- {
- 	if (wait_for_bit_change(DSI_PLL_STATUS, 7, 1) != 1)
- 		DSSERR("%s (%s) not active\n",
-@@ -3266,7 +3272,7 @@ void dsi_wait_dsi1_pll_active(void)
- 			dss_feat_get_clk_source_name(DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC));
- }
- 
--void dsi_wait_dsi2_pll_active(void)
-+void dsi_wait_pll_hsdiv_dsi_active(void)
- {
- 	if (wait_for_bit_change(DSI_PLL_STATUS, 8, 1) != 1)
- 		DSSERR("%s (%s) not active\n",
-diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
-index 44707a3..53c13bc 100644
---- a/drivers/video/omap2/dss/dss.c
-+++ b/drivers/video/omap2/dss/dss.c
-@@ -293,7 +293,7 @@ void dss_select_dispc_clk_source(enum dss_clk_source clk_src)
- 	b = clk_src == DSS_CLK_SRC_FCK ? 0 : 1;
- 
- 	if (clk_src == DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC)
--		dsi_wait_dsi1_pll_active();
-+		dsi_wait_pll_hsdiv_dispc_active();
- 
- 	REG_FLD_MOD(DSS_CONTROL, b, 0, 0);	/* DISPC_CLK_SWITCH */
- 
-@@ -310,7 +310,7 @@ void dss_select_dsi_clk_source(enum dss_clk_source clk_src)
- 	b = clk_src == DSS_CLK_SRC_FCK ? 0 : 1;
- 
- 	if (clk_src == DSS_CLK_SRC_DSI_PLL_HSDIV_DSI)
--		dsi_wait_dsi2_pll_active();
-+		dsi_wait_pll_hsdiv_dsi_active();
- 
- 	REG_FLD_MOD(DSS_CONTROL, b, 1, 1);	/* DSI_CLK_SWITCH */
- 
-diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-index 42ca70f..20590fb 100644
---- a/drivers/video/omap2/dss/dss.h
-+++ b/drivers/video/omap2/dss/dss.h
-@@ -152,21 +152,21 @@ struct dsi_clock_info {
- 	unsigned long fint;
- 	unsigned long clkin4ddr;
- 	unsigned long clkin;
--	unsigned long dsi1_pll_fclk;
--	unsigned long dsi2_pll_fclk;
-+	unsigned long dsi_pll_hsdiv_dispc_clk;	/* DSI1_PLL_CLK */
-+	unsigned long dsi_pll_hsdiv_dsi_clk;	/* DSI2_PLL_CLK */
- 
- 	unsigned long lp_clk;
- 
- 	/* dividers */
- 	u16 regn;
- 	u16 regm;
--	u16 regm3;
--	u16 regm4;
-+	u16 regm_dispc;	/* REGM3 */
-+	u16 regm_dsi;	/* REGM4 */
- 
- 	u16 lp_clk_div;
- 
- 	u8 highfreq;
--	bool use_dss2_fck;
-+	bool use_sys_clk;
- };
- 
- struct seq_file;
-@@ -278,7 +278,7 @@ void dsi_restore_context(void);
- 
- int dsi_init_display(struct omap_dss_device *display);
- void dsi_irq_handler(void);
--unsigned long dsi_get_dsi1_pll_rate(void);
-+unsigned long dsi_get_pll_hsdiv_dispc_rate(void);
- int dsi_pll_set_clock_div(struct dsi_clock_info *cinfo);
- int dsi_pll_calc_clock_div_pck(bool is_tft, unsigned long req_pck,
- 		struct dsi_clock_info *cinfo,
-@@ -289,8 +289,8 @@ void dsi_pll_uninit(void);
- void dsi_get_overlay_fifo_thresholds(enum omap_plane plane,
- 		u32 fifo_size, enum omap_burst_size *burst_size,
- 		u32 *fifo_low, u32 *fifo_high);
--void dsi_wait_dsi1_pll_active(void);
--void dsi_wait_dsi2_pll_active(void);
-+void dsi_wait_pll_hsdiv_dispc_active(void);
-+void dsi_wait_pll_hsdiv_dsi_active(void);
- #else
- static inline int dsi_init_platform_driver(void)
- {
-@@ -299,10 +299,10 @@ static inline int dsi_init_platform_driver(void)
- static inline void dsi_uninit_platform_driver(void)
- {
- }
--static inline void dsi_wait_dsi1_pll_active(void)
-+static inline void dsi_wait_pll_hsdiv_dispc_active(void)
- {
- }
--static inline void dsi_wait_dsi2_pll_active(void)
-+static inline void dsi_wait_pll_hsdiv_dsi_active(void)
- {
- }
- #endif
--- 
-1.7.1
+Generally code like this should have a bit more explanation whether it's
+a HW bug, HW feature, SW hack that magically makes it work, SW hack made
+to get difficult thing done quickly and to be replaced later, etc. The
+reader should understand what's going on here, and what can be done for
+the code.
+
+Also, I only now noticed that it's a mdelay, not msleep. 10ms mdelay
+sounds very bad, don't do that. Use msleep. mdelay is basically a 10ms
+busy loop.
+
+ Tomi
+
 
