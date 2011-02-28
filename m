@@ -1,74 +1,39 @@
-From: "Kadiyala, Kishore" <kishore.kadiyala@ti.com>
-Subject: Re: [PATCH v5 7/8] OMAP: adapt hsmmc to hwmod framework
-Date: Mon, 28 Feb 2011 14:39:29 +0530
-Message-ID: <AANLkTi=ca9QM3wCTten3iMZ8V+KDCL=y7tfDywcqTJeq@mail.gmail.com>
-References: <1298653783-26410-1-git-send-email-kishore.kadiyala@ti.com>
- <1298653783-26410-8-git-send-email-kishore.kadiyala@ti.com>
- <20110225204343.GD20560@atomide.com> <20110225205711.GE20560@atomide.com> <AANLkTikXX+jX_3bxkNjRnSfxgGC2gJrkzYP8QRfykzQn@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <AANLkTikXX+jX_3bxkNjRnSfxgGC2gJrkzYP8QRfykzQn@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, cjb@laptop.org, madhu.cr@ti.com, khilman@deeprootsystems.com, paul@pwsan.com, b-cousson@ti.com
+From: Keerthy <j-keerthy@ti.com>
+Subject: [PATCH 0/2 v4] twl4030-madc driver
+Date: Mon, 28 Feb 2011 15:16:54 +0530
+Message-ID: <1298886414-14947-1-git-send-email-j-keerthy@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:50545 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752387Ab1B1Jss (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Feb 2011 04:48:48 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: lm-sensors@lm-sensors.org, guenter.roeck@ericsson.com, sameo@linux.intel.com, khali@linux-fr.org
+Cc: mikko.k.ylinen@nokia.com, amit.kucheria@canonical.com, linux-omap@vger.kernel.org, j-keerthy@ti.com
 
-Hi Tony,
+MADC(Monitoring ADC) driver enables monitoring analog signals using
+analog-to-digital conversion (ADC) on the input source.
+The previous discussion concluded in keeping the generic ADC
+functionality and the hwmon separate. The discussion can be found here:
 
-On Sat, Feb 26, 2011 at 4:59 PM, Kadiyala, Kishore
-<kishore.kadiyala@ti.com> wrote:
-> Hi Tony,
->
-> On Sat, Feb 26, 2011 at 2:27 AM, Tony Lindgren <tony@atomide.com> wro=
-te:
->> * Tony Lindgren <tony@atomide.com> [110225 12:42]:
->>> * Kishore Kadiyala <kishore.kadiyala@ti.com> [110225 09:00]:
->>> > +static int omap_mmc_init(struct omap_hwmod *oh, void *hsmmcinfo)
->>> ...
->>>
->>> > + =A0 static int mmc_num;
->>> > +
->>> > + =A0 c +=3D mmc_num;
->>>
->>> This does not look right..
->
-> omap2_hsmmc_info is filled in respective board files and will have a =
-call to
-> omap2_hsmmc_init [hsmm.c].
-> In omap2_hsmmc_init, it will call omap_hwmod_for_each_by_class which
-> takes 3 arguments out of which 2nd one is a callback and 3rd one is v=
-oid
-> pointer to be passed to call back if necessary.
-> With this the callback "omap_mmc_init" will be called multiple times =
-based on
-> the class entry in hwmod data file for each controller.
-> Say you have 3 controllers as in OMAP3, then "omap_mmc_init" will be
-> called thrice.
-> Here the argument "hsmmcinfo" needs to be =A0incremented for each cal=
-l, so having
-> a static mmc_num and incrementing it on each call.
->
->>
->> So since mmc_num is static, it gets initialized to 0, then increased
->> for each call.. What if you want to intialize controller 1 and 3 but
->> not 2?
->
-> The current implementation for initialization of MMC controllers will=
- work
-> with any of the below =A0order of devices:
-> 1) MMC1, MMC2, MMC3
-> 2) MMC1, MMC3
-> 3) MMC2, MMC1
-> 4) MMC3, MMC2, MMC1
-> 5) MMC3
-> ....
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg41805.html
 
-Sorry , you are correct the current implementation will not work for
-above mentioned scenarios.
-I will fix this and post updated series
+Keerthy (2):
+  hwmon: twl4030: Hwmon Driver for TWL4030 MADC
+  mfd: twl4030: Driver for twl4030 madc module
 
+ Documentation/hwmon/twl4030-madc-hwmon |   45 ++
+ drivers/hwmon/Kconfig                  |   10 +
+ drivers/hwmon/Makefile                 |    1 +
+ drivers/hwmon/twl4030-madc-hwmon.c     |  153 ++++++
+ drivers/mfd/Kconfig                    |   10 +
+ drivers/mfd/Makefile                   |    1 +
+ drivers/mfd/twl4030-madc.c             |  812 ++++++++++++++++++++++++++++++++
+ include/linux/i2c/twl4030-madc.h       |  142 ++++++
+ 8 files changed, 1174 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/hwmon/twl4030-madc-hwmon
+ create mode 100644 drivers/hwmon/twl4030-madc-hwmon.c
+ create mode 100644 drivers/mfd/twl4030-madc.c
+ create mode 100644 include/linux/i2c/twl4030-madc.h
 
-Regards,
-Kishore
