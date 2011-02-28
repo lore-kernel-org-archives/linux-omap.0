@@ -1,1080 +1,1721 @@
 From: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 04/10 v1] arm: omap: usb: create common enums and structures for ehci and ohci
-Date: Mon, 28 Feb 2011 22:01:46 +0530
-Message-ID: <1298910712-2051-5-git-send-email-keshava_mgowda@ti.com>
+Subject: [PATCH 09/10 v1] usb: host: omap: ehci and ohci simplification
+Date: Mon, 28 Feb 2011 22:01:51 +0530
+Message-ID: <1298910712-2051-10-git-send-email-keshava_mgowda@ti.com>
 References: <1298910712-2051-1-git-send-email-keshava_mgowda@ti.com>
  <1298910712-2051-2-git-send-email-keshava_mgowda@ti.com>
  <1298910712-2051-3-git-send-email-keshava_mgowda@ti.com>
  <1298910712-2051-4-git-send-email-keshava_mgowda@ti.com>
+ <1298910712-2051-5-git-send-email-keshava_mgowda@ti.com>
+ <1298910712-2051-6-git-send-email-keshava_mgowda@ti.com>
+ <1298910712-2051-7-git-send-email-keshava_mgowda@ti.com>
+ <1298910712-2051-8-git-send-email-keshava_mgowda@ti.com>
+ <1298910712-2051-9-git-send-email-keshava_mgowda@ti.com>
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1298910712-2051-4-git-send-email-keshava_mgowda-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <1298910712-2051-9-git-send-email-keshava_mgowda-l0cyMroinI0@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org, gadiyar-l0cyMroinI0@public.gmane.org, p-basak2-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Create the ehci and ohci specific platform data structures.
-The port enum values are made common for both ehci and ohci.
+The ehci and ohci drivers are simplified; Since
+UHH and TLL initialization, clock handling are
+done by common usbhs core driver, these fucntionalities
+are removed from ehci and ohci drivers.
 
 Signed-off-by: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/mach-omap2/board-3430sdp.c        |   10 +++---
- arch/arm/mach-omap2/board-3630sdp.c        |   10 +++---
- arch/arm/mach-omap2/board-4430sdp.c        |   10 +++---
- arch/arm/mach-omap2/board-am3517crane.c    |   10 +++---
- arch/arm/mach-omap2/board-am3517evm.c      |   12 +++---
- arch/arm/mach-omap2/board-cm-t35.c         |   10 +++---
- arch/arm/mach-omap2/board-cm-t3517.c       |    8 ++--
- arch/arm/mach-omap2/board-devkit8000.c     |   10 +++---
- arch/arm/mach-omap2/board-igep0020.c       |   10 +++---
- arch/arm/mach-omap2/board-igep0030.c       |   10 +++---
- arch/arm/mach-omap2/board-omap3beagle.c    |   10 +++---
- arch/arm/mach-omap2/board-omap3evm.c       |   14 ++++----
- arch/arm/mach-omap2/board-omap3pandora.c   |   10 +++---
- arch/arm/mach-omap2/board-omap3stalker.c   |   10 +++---
- arch/arm/mach-omap2/board-omap3touchbook.c |   10 +++---
- arch/arm/mach-omap2/board-omap4panda.c     |   10 +++---
- arch/arm/mach-omap2/board-overo.c          |   10 +++---
- arch/arm/mach-omap2/board-zoom.c           |   10 +++---
- arch/arm/mach-omap2/usb-host.c             |   50 +++++++++++++-------------
- arch/arm/plat-omap/include/plat/usb.h      |   54 ++++++++++++++++++----------
- drivers/usb/host/ehci-omap.c               |   42 +++++++++++-----------
- drivers/usb/host/ohci-omap3.c              |   22 ++++++------
- 22 files changed, 184 insertions(+), 168 deletions(-)
+ drivers/usb/host/ehci-omap.c  |  877 ++++-------------------------------------
+ drivers/usb/host/ohci-omap3.c |  584 +++-------------------------
+ 2 files changed, 130 insertions(+), 1331 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
-index d4e41ef..a991aeb 100644
---- a/arch/arm/mach-omap2/board-3430sdp.c
-+++ b/arch/arm/mach-omap2/board-3430sdp.c
-@@ -653,11 +653,11 @@ static void enable_board_wakeup_source(void)
- 		OMAP_WAKEUP_EN | OMAP_PIN_INPUT_PULLUP);
- }
- 
--static const struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
-+static const struct usbhs_omap_board_data usbhs_bdata __initconst = {
- 
--	.port_mode[0] = EHCI_HCD_OMAP_MODE_PHY,
--	.port_mode[1] = EHCI_HCD_OMAP_MODE_PHY,
--	.port_mode[2] = EHCI_HCD_OMAP_MODE_UNKNOWN,
-+	.port_mode[0] = OMAP_EHCI_PORT_MODE_PHY,
-+	.port_mode[1] = OMAP_EHCI_PORT_MODE_PHY,
-+	.port_mode[2] = OMAP_USBHS_PORT_MODE_UNUSED,
- 
- 	.phy_reset  = true,
- 	.reset_gpio_port[0]  = 57,
-@@ -816,7 +816,7 @@ static void __init omap_3430sdp_init(void)
- 	board_flash_init(sdp_flash_partitions, chip_sel_3430);
- 	sdp3430_display_init();
- 	enable_board_wakeup_source();
--	usb_ehci_init(&ehci_pdata);
-+	usb_ehci_init(&usbhs_bdata);
- }
- 
- MACHINE_START(OMAP_3430SDP, "OMAP3430 3430SDP board")
-diff --git a/arch/arm/mach-omap2/board-3630sdp.c b/arch/arm/mach-omap2/board-3630sdp.c
-index 6264564..03fd8ac 100644
---- a/arch/arm/mach-omap2/board-3630sdp.c
-+++ b/arch/arm/mach-omap2/board-3630sdp.c
-@@ -54,11 +54,11 @@ static void enable_board_wakeup_source(void)
- 		OMAP_WAKEUP_EN | OMAP_PIN_INPUT_PULLUP);
- }
- 
--static const struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
-+static const struct usbhs_omap_board_data usbhs_bdata __initconst = {
- 
--	.port_mode[0] = EHCI_HCD_OMAP_MODE_PHY,
--	.port_mode[1] = EHCI_HCD_OMAP_MODE_PHY,
--	.port_mode[2] = EHCI_HCD_OMAP_MODE_UNKNOWN,
-+	.port_mode[0] = OMAP_EHCI_PORT_MODE_PHY,
-+	.port_mode[1] = OMAP_EHCI_PORT_MODE_PHY,
-+	.port_mode[2] = OMAP_USBHS_PORT_MODE_UNUSED,
- 
- 	.phy_reset  = true,
- 	.reset_gpio_port[0]  = 126,
-@@ -211,7 +211,7 @@ static void __init omap_sdp_init(void)
- 	board_smc91x_init();
- 	board_flash_init(sdp_flash_partitions, chip_sel_sdp);
- 	enable_board_wakeup_source();
--	usb_ehci_init(&ehci_pdata);
-+	usb_ehci_init(&usbhs_bdata);
- }
- 
- MACHINE_START(OMAP_3630SDP, "OMAP 3630SDP board")
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index 07d1b20..1f59e8d 100644
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -251,10 +251,10 @@ static void __init omap_4430sdp_init_irq(void)
- 	gic_init_irq();
- }
- 
--static const struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
--	.port_mode[0]	= EHCI_HCD_OMAP_MODE_PHY,
--	.port_mode[1]	= EHCI_HCD_OMAP_MODE_UNKNOWN,
--	.port_mode[2]	= EHCI_HCD_OMAP_MODE_UNKNOWN,
-+static const struct usbhs_omap_board_data usbhs_bdata __initconst = {
-+	.port_mode[0]	= OMAP_EHCI_PORT_MODE_PHY,
-+	.port_mode[1]	= OMAP_USBHS_PORT_MODE_UNUSED,
-+	.port_mode[2]	= OMAP_USBHS_PORT_MODE_UNUSED,
- 	.phy_reset	= false,
- 	.reset_gpio_port[0]  = -EINVAL,
- 	.reset_gpio_port[1]  = -EINVAL,
-@@ -583,7 +583,7 @@ static void __init omap_4430sdp_init(void)
- 	else
- 		gpio_direction_output(OMAP4SDP_MDM_PWR_EN_GPIO, 1);
- 
--	usb_ehci_init(&ehci_pdata);
-+	usb_ehci_init(&usbhs_bdata);
- 	usb_musb_init(&musb_board_data);
- 
- 	status = omap_ethernet_init();
-diff --git a/arch/arm/mach-omap2/board-am3517crane.c b/arch/arm/mach-omap2/board-am3517crane.c
-index 71acb5a..1b825a0 100644
---- a/arch/arm/mach-omap2/board-am3517crane.c
-+++ b/arch/arm/mach-omap2/board-am3517crane.c
-@@ -59,10 +59,10 @@ static void __init am3517_crane_init_irq(void)
- 	omap_init_irq();
- }
- 
--static struct ehci_hcd_omap_platform_data ehci_pdata __initdata = {
--	.port_mode[0] = EHCI_HCD_OMAP_MODE_PHY,
--	.port_mode[1] = EHCI_HCD_OMAP_MODE_UNKNOWN,
--	.port_mode[2] = EHCI_HCD_OMAP_MODE_UNKNOWN,
-+static struct usbhs_omap_board_data usbhs_bdata __initdata = {
-+	.port_mode[0] = OMAP_EHCI_PORT_MODE_PHY,
-+	.port_mode[1] = OMAP_USBHS_PORT_MODE_UNUSED,
-+	.port_mode[2] = OMAP_USBHS_PORT_MODE_UNUSED,
- 
- 	.phy_reset  = true,
- 	.reset_gpio_port[0]  = GPIO_USB_NRESET,
-@@ -103,7 +103,7 @@ static void __init am3517_crane_init(void)
- 		return;
- 	}
- 
--	usb_ehci_init(&ehci_pdata);
-+	usb_ehci_init(&usbhs_bdata);
- }
- 
- MACHINE_START(CRANEBOARD, "AM3517/05 CRANEBOARD")
-diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
-index 10d60b7..f5bc1c6 100644
---- a/arch/arm/mach-omap2/board-am3517evm.c
-+++ b/arch/arm/mach-omap2/board-am3517evm.c
-@@ -430,15 +430,15 @@ static __init void am3517_evm_musb_init(void)
- 	usb_musb_init(&musb_board_data);
- }
- 
--static const struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
--	.port_mode[0] = EHCI_HCD_OMAP_MODE_PHY,
-+static const struct usbhs_omap_board_data usbhs_bdata __initconst = {
-+	.port_mode[0] = OMAP_EHCI_PORT_MODE_PHY,
- #if defined(CONFIG_PANEL_SHARP_LQ043T1DG01) || \
- 		defined(CONFIG_PANEL_SHARP_LQ043T1DG01_MODULE)
--	.port_mode[1] = EHCI_HCD_OMAP_MODE_UNKNOWN,
-+	.port_mode[1] = OMAP_USBHS_PORT_MODE_UNUSED,
- #else
--	.port_mode[1] = EHCI_HCD_OMAP_MODE_PHY,
-+	.port_mode[1] = OMAP_EHCI_PORT_MODE_PHY,
- #endif
--	.port_mode[2] = EHCI_HCD_OMAP_MODE_UNKNOWN,
-+	.port_mode[2] = OMAP_USBHS_PORT_MODE_UNUSED,
- 
- 	.phy_reset  = true,
- 	.reset_gpio_port[0]  = 57,
-@@ -502,7 +502,7 @@ static void __init am3517_evm_init(void)
- 
- 	/* Configure GPIO for EHCI port */
- 	omap_mux_init_gpio(57, OMAP_PIN_OUTPUT);
--	usb_ehci_init(&ehci_pdata);
-+	usb_ehci_init(&usbhs_bdata);
- 	am3517_evm_hecc_init(&am3517_evm_hecc_pdata);
- 	/* DSS */
- 	am3517_evm_display_init();
-diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
-index dac1416..c79aa9b 100644
---- a/arch/arm/mach-omap2/board-cm-t35.c
-+++ b/arch/arm/mach-omap2/board-cm-t35.c
-@@ -605,10 +605,10 @@ static struct omap2_hsmmc_info mmc[] = {
- 	{}	/* Terminator */
- };
- 
--static struct ehci_hcd_omap_platform_data ehci_pdata __initdata = {
--	.port_mode[0] = EHCI_HCD_OMAP_MODE_PHY,
--	.port_mode[1] = EHCI_HCD_OMAP_MODE_PHY,
--	.port_mode[2] = EHCI_HCD_OMAP_MODE_UNKNOWN,
-+static struct usbhs_omap_board_data usbhs_bdata __initdata = {
-+	.port_mode[0] = OMAP_EHCI_PORT_MODE_PHY,
-+	.port_mode[1] = OMAP_EHCI_PORT_MODE_PHY,
-+	.port_mode[2] = OMAP_USBHS_PORT_MODE_UNUSED,
- 
- 	.phy_reset  = true,
- 	.reset_gpio_port[0]  = OMAP_MAX_GPIO_LINES + 6,
-@@ -810,7 +810,7 @@ static void __init cm_t35_init(void)
- 	cm_t35_init_display();
- 
- 	usb_musb_init(&musb_board_data);
--	usb_ehci_init(&ehci_pdata);
-+	usb_ehci_init(&usbhs_bdata);
- }
- 
- MACHINE_START(CM_T35, "Compulab CM-T35")
-diff --git a/arch/arm/mach-omap2/board-cm-t3517.c b/arch/arm/mach-omap2/board-cm-t3517.c
-index 8f9a64d..8288a0b 100644
---- a/arch/arm/mach-omap2/board-cm-t3517.c
-+++ b/arch/arm/mach-omap2/board-cm-t3517.c
-@@ -167,10 +167,10 @@ static inline void cm_t3517_init_rtc(void) {}
- #define HSUSB2_RESET_GPIO	(147)
- #define USB_HUB_RESET_GPIO	(152)
- 
--static struct ehci_hcd_omap_platform_data cm_t3517_ehci_pdata __initdata = {
--	.port_mode[0] = EHCI_HCD_OMAP_MODE_PHY,
--	.port_mode[1] = EHCI_HCD_OMAP_MODE_PHY,
--	.port_mode[2] = EHCI_HCD_OMAP_MODE_UNKNOWN,
-+static struct usbhs_omap_board_data cm_t3517_ehci_pdata __initdata = {
-+	.port_mode[0] = OMAP_EHCI_PORT_MODE_PHY,
-+	.port_mode[1] = OMAP_EHCI_PORT_MODE_PHY,
-+	.port_mode[2] = OMAP_USBHS_PORT_MODE_UNUSED,
- 
- 	.phy_reset  = true,
- 	.reset_gpio_port[0]  = HSUSB1_RESET_GPIO,
-diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
-index 9a2a31e..e0131dd 100644
---- a/arch/arm/mach-omap2/board-devkit8000.c
-+++ b/arch/arm/mach-omap2/board-devkit8000.c
-@@ -620,11 +620,11 @@ static struct omap_musb_board_data musb_board_data = {
- 	.power			= 100,
- };
- 
--static const struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
-+static const struct usbhs_omap_board_data usbhs_bdata __initconst = {
- 
--	.port_mode[0] = EHCI_HCD_OMAP_MODE_PHY,
--	.port_mode[1] = EHCI_HCD_OMAP_MODE_UNKNOWN,
--	.port_mode[2] = EHCI_HCD_OMAP_MODE_UNKNOWN,
-+	.port_mode[0] = OMAP_EHCI_PORT_MODE_PHY,
-+	.port_mode[1] = OMAP_USBHS_PORT_MODE_UNUSED,
-+	.port_mode[2] = OMAP_USBHS_PORT_MODE_UNUSED,
- 
- 	.phy_reset  = true,
- 	.reset_gpio_port[0]  = -EINVAL,
-@@ -803,7 +803,7 @@ static void __init devkit8000_init(void)
- 	devkit8000_ads7846_init();
- 
- 	usb_musb_init(&musb_board_data);
--	usb_ehci_init(&ehci_pdata);
-+	usb_ehci_init(&usbhs_bdata);
- 	devkit8000_flash_init();
- 
- 	/* Ensure SDRC pins are mux'd for self-refresh */
-diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
-index 3be85a1..a9d7d1d 100644
---- a/arch/arm/mach-omap2/board-igep0020.c
-+++ b/arch/arm/mach-omap2/board-igep0020.c
-@@ -627,10 +627,10 @@ static struct omap_musb_board_data musb_board_data = {
- 	.power			= 100,
- };
- 
--static const struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
--	.port_mode[0] = EHCI_HCD_OMAP_MODE_PHY,
--	.port_mode[1] = EHCI_HCD_OMAP_MODE_UNKNOWN,
--	.port_mode[2] = EHCI_HCD_OMAP_MODE_UNKNOWN,
-+static const struct usbhs_omap_board_data usbhs_bdata __initconst = {
-+	.port_mode[0] = OMAP_EHCI_PORT_MODE_PHY,
-+	.port_mode[1] = OMAP_USBHS_PORT_MODE_UNUSED,
-+	.port_mode[2] = OMAP_USBHS_PORT_MODE_UNUSED,
- 
- 	.phy_reset = true,
- 	.reset_gpio_port[0] = IGEP2_GPIO_USBH_NRESET,
-@@ -699,7 +699,7 @@ static void __init igep2_init(void)
- 	platform_add_devices(igep2_devices, ARRAY_SIZE(igep2_devices));
- 	omap_serial_init();
- 	usb_musb_init(&musb_board_data);
--	usb_ehci_init(&ehci_pdata);
-+	usb_ehci_init(&usbhs_bdata);
- 
- 	igep2_flash_init();
- 	igep2_leds_init();
-diff --git a/arch/arm/mach-omap2/board-igep0030.c b/arch/arm/mach-omap2/board-igep0030.c
-index 4dc62a9..1b441ea 100644
---- a/arch/arm/mach-omap2/board-igep0030.c
-+++ b/arch/arm/mach-omap2/board-igep0030.c
-@@ -408,10 +408,10 @@ static void __init igep3_wifi_bt_init(void)
- void __init igep3_wifi_bt_init(void) {}
- #endif
- 
--static const struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
--	.port_mode[0] = EHCI_HCD_OMAP_MODE_UNKNOWN,
--	.port_mode[1] = EHCI_HCD_OMAP_MODE_PHY,
--	.port_mode[2] = EHCI_HCD_OMAP_MODE_UNKNOWN,
-+static const struct usbhs_omap_board_data usbhs_bdata __initconst = {
-+	.port_mode[0] = OMAP_USBHS_PORT_MODE_UNUSED,
-+	.port_mode[1] = OMAP_EHCI_PORT_MODE_PHY,
-+	.port_mode[2] = OMAP_USBHS_PORT_MODE_UNUSED,
- 
- 	.phy_reset = true,
- 	.reset_gpio_port[0] = -EINVAL,
-@@ -435,7 +435,7 @@ static void __init igep3_init(void)
- 	platform_add_devices(igep3_devices, ARRAY_SIZE(igep3_devices));
- 	omap_serial_init();
- 	usb_musb_init(&musb_board_data);
--	usb_ehci_init(&ehci_pdata);
-+	usb_ehci_init(&usbhs_bdata);
- 
- 	igep3_flash_init();
- 	igep3_leds_init();
-diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index 46d814a..b84a641 100644
---- a/arch/arm/mach-omap2/board-omap3beagle.c
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -586,11 +586,11 @@ static void __init omap3beagle_flash_init(void)
- 	}
- }
- 
--static const struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
-+static const struct usbhs_omap_board_data usbhs_bdata __initconst = {
- 
--	.port_mode[0] = EHCI_HCD_OMAP_MODE_PHY,
--	.port_mode[1] = EHCI_HCD_OMAP_MODE_PHY,
--	.port_mode[2] = EHCI_HCD_OMAP_MODE_UNKNOWN,
-+	.port_mode[0] = OMAP_EHCI_PORT_MODE_PHY,
-+	.port_mode[1] = OMAP_EHCI_PORT_MODE_PHY,
-+	.port_mode[2] = OMAP_USBHS_PORT_MODE_UNUSED,
- 
- 	.phy_reset  = true,
- 	.reset_gpio_port[0]  = -EINVAL,
-@@ -625,7 +625,7 @@ static void __init omap3_beagle_init(void)
- 	gpio_direction_output(170, true);
- 
- 	usb_musb_init(&musb_board_data);
--	usb_ehci_init(&ehci_pdata);
-+	usb_ehci_init(&usbhs_bdata);
- 	omap3beagle_flash_init();
- 
- 	/* Ensure SDRC pins are mux'd for self-refresh */
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index 323c380..ed5e411 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -638,11 +638,11 @@ static struct platform_device *omap3_evm_devices[] __initdata = {
- 	&omap3_evm_dss_device,
- };
- 
--static struct ehci_hcd_omap_platform_data ehci_pdata __initdata = {
-+static struct usbhs_omap_board_data usbhs_bdata __initdata = {
- 
--	.port_mode[0] = EHCI_HCD_OMAP_MODE_UNKNOWN,
--	.port_mode[1] = EHCI_HCD_OMAP_MODE_PHY,
--	.port_mode[2] = EHCI_HCD_OMAP_MODE_UNKNOWN,
-+	.port_mode[0] = OMAP_USBHS_PORT_MODE_UNUSED,
-+	.port_mode[1] = OMAP_EHCI_PORT_MODE_PHY,
-+	.port_mode[2] = OMAP_USBHS_PORT_MODE_UNUSED,
- 
- 	.phy_reset  = true,
- 	/* PHY reset GPIO will be runtime programmed based on EVM version */
-@@ -700,7 +700,7 @@ static void __init omap3_evm_init(void)
- 
- 		/* setup EHCI phy reset config */
- 		omap_mux_init_gpio(21, OMAP_PIN_INPUT_PULLUP);
--		ehci_pdata.reset_gpio_port[1] = 21;
-+		usbhs_bdata.reset_gpio_port[1] = 21;
- 
- 		/* EVM REV >= E can supply 500mA with EXTVBUS programming */
- 		musb_board_data.power = 500;
-@@ -708,10 +708,10 @@ static void __init omap3_evm_init(void)
- 	} else {
- 		/* setup EHCI phy reset on MDC */
- 		omap_mux_init_gpio(135, OMAP_PIN_OUTPUT);
--		ehci_pdata.reset_gpio_port[1] = 135;
-+		usbhs_bdata.reset_gpio_port[1] = 135;
- 	}
- 	usb_musb_init(&musb_board_data);
--	usb_ehci_init(&ehci_pdata);
-+	usb_ehci_init(&usbhs_bdata);
- 	ads7846_dev_init();
- 	omap3evm_init_smsc911x();
- 	omap3_evm_display_init();
-diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
-index 0b34bed..241e632 100644
---- a/arch/arm/mach-omap2/board-omap3pandora.c
-+++ b/arch/arm/mach-omap2/board-omap3pandora.c
-@@ -681,11 +681,11 @@ static struct platform_device *omap3pandora_devices[] __initdata = {
- 	&pandora_vwlan_device,
- };
- 
--static const struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
-+static const struct usbhs_omap_board_data usbhs_bdata __initconst = {
- 
--	.port_mode[0] = EHCI_HCD_OMAP_MODE_PHY,
--	.port_mode[1] = EHCI_HCD_OMAP_MODE_UNKNOWN,
--	.port_mode[2] = EHCI_HCD_OMAP_MODE_UNKNOWN,
-+	.port_mode[0] = OMAP_EHCI_PORT_MODE_PHY,
-+	.port_mode[1] = OMAP_USBHS_PORT_MODE_UNUSED,
-+	.port_mode[2] = OMAP_USBHS_PORT_MODE_UNUSED,
- 
- 	.phy_reset  = true,
- 	.reset_gpio_port[0]  = 16,
-@@ -716,7 +716,7 @@ static void __init omap3pandora_init(void)
- 	spi_register_board_info(omap3pandora_spi_board_info,
- 			ARRAY_SIZE(omap3pandora_spi_board_info));
- 	omap3pandora_ads7846_init();
--	usb_ehci_init(&ehci_pdata);
-+	usb_ehci_init(&usbhs_bdata);
- 	usb_musb_init(&musb_board_data);
- 	gpmc_nand_init(&pandora_nand_data);
- 
-diff --git a/arch/arm/mach-omap2/board-omap3stalker.c b/arch/arm/mach-omap2/board-omap3stalker.c
-index 2a2dad4..eaad924 100644
---- a/arch/arm/mach-omap2/board-omap3stalker.c
-+++ b/arch/arm/mach-omap2/board-omap3stalker.c
-@@ -608,10 +608,10 @@ static struct platform_device *omap3_stalker_devices[] __initdata = {
- 	&keys_gpio,
- };
- 
--static struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
--	.port_mode[0] = EHCI_HCD_OMAP_MODE_UNKNOWN,
--	.port_mode[1] = EHCI_HCD_OMAP_MODE_PHY,
--	.port_mode[2] = EHCI_HCD_OMAP_MODE_UNKNOWN,
-+static struct usbhs_omap_board_data usbhs_bdata __initconst = {
-+	.port_mode[0] = OMAP_USBHS_PORT_MODE_UNUSED,
-+	.port_mode[1] = OMAP_EHCI_PORT_MODE_PHY,
-+	.port_mode[2] = OMAP_USBHS_PORT_MODE_UNUSED,
- 
- 	.phy_reset = true,
- 	.reset_gpio_port[0] = -EINVAL,
-@@ -649,7 +649,7 @@ static void __init omap3_stalker_init(void)
- 
- 	omap_serial_init();
- 	usb_musb_init(&musb_board_data);
--	usb_ehci_init(&ehci_pdata);
-+	usb_ehci_init(&usbhs_bdata);
- 	ads7846_dev_init();
- 
- 	omap_mux_init_gpio(21, OMAP_PIN_OUTPUT);
-diff --git a/arch/arm/mach-omap2/board-omap3touchbook.c b/arch/arm/mach-omap2/board-omap3touchbook.c
-index db1f74f..4e3a1ae 100644
---- a/arch/arm/mach-omap2/board-omap3touchbook.c
-+++ b/arch/arm/mach-omap2/board-omap3touchbook.c
-@@ -468,11 +468,11 @@ static void __init omap3touchbook_flash_init(void)
- 	}
- }
- 
--static const struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
-+static const struct usbhs_omap_board_data usbhs_bdata __initconst = {
- 
--	.port_mode[0] = EHCI_HCD_OMAP_MODE_PHY,
--	.port_mode[1] = EHCI_HCD_OMAP_MODE_PHY,
--	.port_mode[2] = EHCI_HCD_OMAP_MODE_UNKNOWN,
-+	.port_mode[0] = OMAP_EHCI_PORT_MODE_PHY,
-+	.port_mode[1] = OMAP_EHCI_PORT_MODE_PHY,
-+	.port_mode[2] = OMAP_USBHS_PORT_MODE_UNUSED,
- 
- 	.phy_reset  = true,
- 	.reset_gpio_port[0]  = -EINVAL,
-@@ -527,7 +527,7 @@ static void __init omap3_touchbook_init(void)
- 				ARRAY_SIZE(omap3_ads7846_spi_board_info));
- 	omap3_ads7846_init();
- 	usb_musb_init(&musb_board_data);
--	usb_ehci_init(&ehci_pdata);
-+	usb_ehci_init(&usbhs_bdata);
- 	omap3touchbook_flash_init();
- 
- 	/* Ensure SDRC pins are mux'd for self-refresh */
-diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
-index e944025..7a570d8 100644
---- a/arch/arm/mach-omap2/board-omap4panda.c
-+++ b/arch/arm/mach-omap2/board-omap4panda.c
-@@ -83,10 +83,10 @@ static void __init omap4_panda_init_irq(void)
- 	gic_init_irq();
- }
- 
--static const struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
--	.port_mode[0] = EHCI_HCD_OMAP_MODE_PHY,
--	.port_mode[1] = EHCI_HCD_OMAP_MODE_UNKNOWN,
--	.port_mode[2] = EHCI_HCD_OMAP_MODE_UNKNOWN,
-+static const struct usbhs_omap_board_data usbhs_bdata __initconst = {
-+	.port_mode[0] = OMAP_EHCI_PORT_MODE_PHY,
-+	.port_mode[1] = OMAP_USBHS_PORT_MODE_UNUSED,
-+	.port_mode[2] = OMAP_USBHS_PORT_MODE_UNUSED,
- 	.phy_reset  = false,
- 	.reset_gpio_port[0]  = -EINVAL,
- 	.reset_gpio_port[1]  = -EINVAL,
-@@ -128,7 +128,7 @@ static void __init omap4_ehci_init(void)
- 	gpio_set_value(GPIO_HUB_NRESET, 0);
- 	gpio_set_value(GPIO_HUB_NRESET, 1);
- 
--	usb_ehci_init(&ehci_pdata);
-+	usb_ehci_init(&usbhs_bdata);
- 
- 	/* enable power to hub */
- 	gpio_set_value(GPIO_HUB_POWER, 1);
-diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
-index cb26e5d..f78b74c 100644
---- a/arch/arm/mach-omap2/board-overo.c
-+++ b/arch/arm/mach-omap2/board-overo.c
-@@ -423,10 +423,10 @@ static struct platform_device *overo_devices[] __initdata = {
- 	&overo_lcd_device,
- };
- 
--static const struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
--	.port_mode[0] = EHCI_HCD_OMAP_MODE_UNKNOWN,
--	.port_mode[1] = EHCI_HCD_OMAP_MODE_PHY,
--	.port_mode[2] = EHCI_HCD_OMAP_MODE_UNKNOWN,
-+static const struct usbhs_omap_board_data usbhs_bdata __initconst = {
-+	.port_mode[0] = OMAP_USBHS_PORT_MODE_UNUSED,
-+	.port_mode[1] = OMAP_EHCI_PORT_MODE_PHY,
-+	.port_mode[2] = OMAP_USBHS_PORT_MODE_UNUSED,
- 
- 	.phy_reset  = true,
- 	.reset_gpio_port[0]  = -EINVAL,
-@@ -454,7 +454,7 @@ static void __init overo_init(void)
- 	omap_serial_init();
- 	overo_flash_init();
- 	usb_musb_init(&musb_board_data);
--	usb_ehci_init(&ehci_pdata);
-+	usb_ehci_init(&usbhs_bdata);
- 	overo_ads7846_init();
- 	overo_init_smsc911x();
- 
-diff --git a/arch/arm/mach-omap2/board-zoom.c b/arch/arm/mach-omap2/board-zoom.c
-index e26754c..19b9912 100644
---- a/arch/arm/mach-omap2/board-zoom.c
-+++ b/arch/arm/mach-omap2/board-zoom.c
-@@ -106,10 +106,10 @@ static struct mtd_partition zoom_nand_partitions[] = {
- 	},
- };
- 
--static const struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
--	.port_mode[0]		= EHCI_HCD_OMAP_MODE_UNKNOWN,
--	.port_mode[1]		= EHCI_HCD_OMAP_MODE_PHY,
--	.port_mode[2]		= EHCI_HCD_OMAP_MODE_UNKNOWN,
-+static const struct usbhs_omap_board_data usbhs_bdata __initconst = {
-+	.port_mode[0]		= OMAP_USBHS_PORT_MODE_UNUSED,
-+	.port_mode[1]		= OMAP_EHCI_PORT_MODE_PHY,
-+	.port_mode[2]		= OMAP_USBHS_PORT_MODE_UNUSED,
- 	.phy_reset		= true,
- 	.reset_gpio_port[0]	= -EINVAL,
- 	.reset_gpio_port[1]	= ZOOM3_EHCI_RESET_GPIO,
-@@ -123,7 +123,7 @@ static void __init omap_zoom_init(void)
- 	} else if (machine_is_omap_zoom3()) {
- 		omap3_mux_init(board_mux, OMAP_PACKAGE_CBP);
- 		omap_mux_init_gpio(ZOOM3_EHCI_RESET_GPIO, OMAP_PIN_OUTPUT);
--		usb_ehci_init(&ehci_pdata);
-+		usb_ehci_init(&usbhs_bdata);
- 	}
- 
- 	board_nand_init(zoom_nand_partitions,
-diff --git a/arch/arm/mach-omap2/usb-host.c b/arch/arm/mach-omap2/usb-host.c
-index 45f9b80..b04ce6f 100644
---- a/arch/arm/mach-omap2/usb-host.c
-+++ b/arch/arm/mach-omap2/usb-host.c
-@@ -64,10 +64,10 @@ static struct platform_device ehci_device = {
- /*
-  * setup_ehci_io_mux - initialize IO pad mux for USBHOST
-  */
--static void setup_ehci_io_mux(const enum ehci_hcd_omap_mode *port_mode)
-+static void setup_ehci_io_mux(const enum usbhs_omap_port_mode *port_mode)
- {
- 	switch (port_mode[0]) {
--	case EHCI_HCD_OMAP_MODE_PHY:
-+	case OMAP_EHCI_PORT_MODE_PHY:
- 		omap_mux_init_signal("hsusb1_stp", OMAP_PIN_OUTPUT);
- 		omap_mux_init_signal("hsusb1_clk", OMAP_PIN_OUTPUT);
- 		omap_mux_init_signal("hsusb1_dir", OMAP_PIN_INPUT_PULLDOWN);
-@@ -81,7 +81,7 @@ static void setup_ehci_io_mux(const enum ehci_hcd_omap_mode *port_mode)
- 		omap_mux_init_signal("hsusb1_data6", OMAP_PIN_INPUT_PULLDOWN);
- 		omap_mux_init_signal("hsusb1_data7", OMAP_PIN_INPUT_PULLDOWN);
- 		break;
--	case EHCI_HCD_OMAP_MODE_TLL:
-+	case OMAP_EHCI_PORT_MODE_TLL:
- 		omap_mux_init_signal("hsusb1_tll_stp",
- 			OMAP_PIN_INPUT_PULLUP);
- 		omap_mux_init_signal("hsusb1_tll_clk",
-@@ -107,14 +107,14 @@ static void setup_ehci_io_mux(const enum ehci_hcd_omap_mode *port_mode)
- 		omap_mux_init_signal("hsusb1_tll_data7",
- 			OMAP_PIN_INPUT_PULLDOWN);
- 		break;
--	case EHCI_HCD_OMAP_MODE_UNKNOWN:
-+	case OMAP_USBHS_PORT_MODE_UNUSED:
- 		/* FALLTHROUGH */
- 	default:
- 		break;
- 	}
- 
- 	switch (port_mode[1]) {
--	case EHCI_HCD_OMAP_MODE_PHY:
-+	case OMAP_EHCI_PORT_MODE_PHY:
- 		omap_mux_init_signal("hsusb2_stp", OMAP_PIN_OUTPUT);
- 		omap_mux_init_signal("hsusb2_clk", OMAP_PIN_OUTPUT);
- 		omap_mux_init_signal("hsusb2_dir", OMAP_PIN_INPUT_PULLDOWN);
-@@ -136,7 +136,7 @@ static void setup_ehci_io_mux(const enum ehci_hcd_omap_mode *port_mode)
- 		omap_mux_init_signal("hsusb2_data7",
- 			OMAP_PIN_INPUT_PULLDOWN);
- 		break;
--	case EHCI_HCD_OMAP_MODE_TLL:
-+	case OMAP_EHCI_PORT_MODE_TLL:
- 		omap_mux_init_signal("hsusb2_tll_stp",
- 			OMAP_PIN_INPUT_PULLUP);
- 		omap_mux_init_signal("hsusb2_tll_clk",
-@@ -162,17 +162,17 @@ static void setup_ehci_io_mux(const enum ehci_hcd_omap_mode *port_mode)
- 		omap_mux_init_signal("hsusb2_tll_data7",
- 			OMAP_PIN_INPUT_PULLDOWN);
- 		break;
--	case EHCI_HCD_OMAP_MODE_UNKNOWN:
-+	case OMAP_USBHS_PORT_MODE_UNUSED:
- 		/* FALLTHROUGH */
- 	default:
- 		break;
- 	}
- 
- 	switch (port_mode[2]) {
--	case EHCI_HCD_OMAP_MODE_PHY:
-+	case OMAP_EHCI_PORT_MODE_PHY:
- 		printk(KERN_WARNING "Port3 can't be used in PHY mode\n");
- 		break;
--	case EHCI_HCD_OMAP_MODE_TLL:
-+	case OMAP_EHCI_PORT_MODE_TLL:
- 		omap_mux_init_signal("hsusb3_tll_stp",
- 			OMAP_PIN_INPUT_PULLUP);
- 		omap_mux_init_signal("hsusb3_tll_clk",
-@@ -198,7 +198,7 @@ static void setup_ehci_io_mux(const enum ehci_hcd_omap_mode *port_mode)
- 		omap_mux_init_signal("hsusb3_tll_data7",
- 			OMAP_PIN_INPUT_PULLDOWN);
- 		break;
--	case EHCI_HCD_OMAP_MODE_UNKNOWN:
-+	case OMAP_USBHS_PORT_MODE_UNUSED:
- 		/* FALLTHROUGH */
- 	default:
- 		break;
-@@ -207,10 +207,10 @@ static void setup_ehci_io_mux(const enum ehci_hcd_omap_mode *port_mode)
- 	return;
- }
- 
--static void setup_4430ehci_io_mux(const enum ehci_hcd_omap_mode *port_mode)
-+static void setup_4430ehci_io_mux(const enum usbhs_omap_port_mode *port_mode)
- {
- 	switch (port_mode[0]) {
--	case EHCI_HCD_OMAP_MODE_PHY:
-+	case OMAP_EHCI_PORT_MODE_PHY:
- 		omap_mux_init_signal("usbb1_ulpiphy_stp",
- 			OMAP_PIN_OUTPUT);
- 		omap_mux_init_signal("usbb1_ulpiphy_clk",
-@@ -236,7 +236,7 @@ static void setup_4430ehci_io_mux(const enum ehci_hcd_omap_mode *port_mode)
- 		omap_mux_init_signal("usbb1_ulpiphy_dat7",
- 			OMAP_PIN_INPUT_PULLDOWN);
- 			break;
--	case EHCI_HCD_OMAP_MODE_TLL:
-+	case OMAP_EHCI_PORT_MODE_TLL:
- 		omap_mux_init_signal("usbb1_ulpitll_stp",
- 			OMAP_PIN_INPUT_PULLUP);
- 		omap_mux_init_signal("usbb1_ulpitll_clk",
-@@ -262,12 +262,12 @@ static void setup_4430ehci_io_mux(const enum ehci_hcd_omap_mode *port_mode)
- 		omap_mux_init_signal("usbb1_ulpitll_dat7",
- 			OMAP_PIN_INPUT_PULLDOWN);
- 			break;
--	case EHCI_HCD_OMAP_MODE_UNKNOWN:
-+	case OMAP_USBHS_PORT_MODE_UNUSED:
- 	default:
- 			break;
- 	}
- 	switch (port_mode[1]) {
--	case EHCI_HCD_OMAP_MODE_PHY:
-+	case OMAP_EHCI_PORT_MODE_PHY:
- 		omap_mux_init_signal("usbb2_ulpiphy_stp",
- 			OMAP_PIN_OUTPUT);
- 		omap_mux_init_signal("usbb2_ulpiphy_clk",
-@@ -293,7 +293,7 @@ static void setup_4430ehci_io_mux(const enum ehci_hcd_omap_mode *port_mode)
- 		omap_mux_init_signal("usbb2_ulpiphy_dat7",
- 			OMAP_PIN_INPUT_PULLDOWN);
- 			break;
--	case EHCI_HCD_OMAP_MODE_TLL:
-+	case OMAP_EHCI_PORT_MODE_TLL:
- 		omap_mux_init_signal("usbb2_ulpitll_stp",
- 			OMAP_PIN_INPUT_PULLUP);
- 		omap_mux_init_signal("usbb2_ulpitll_clk",
-@@ -319,13 +319,13 @@ static void setup_4430ehci_io_mux(const enum ehci_hcd_omap_mode *port_mode)
- 		omap_mux_init_signal("usbb2_ulpitll_dat7",
- 			OMAP_PIN_INPUT_PULLDOWN);
- 			break;
--	case EHCI_HCD_OMAP_MODE_UNKNOWN:
-+	case OMAP_USBHS_PORT_MODE_UNUSED:
- 	default:
- 			break;
- 	}
- }
- 
--void __init usb_ehci_init(const struct ehci_hcd_omap_platform_data *pdata)
-+void __init usb_ehci_init(const struct usbhs_omap_board_data *pdata)
- {
- 	platform_device_add_data(&ehci_device, pdata, sizeof(*pdata));
- 
-@@ -363,7 +363,7 @@ void __init usb_ehci_init(const struct ehci_hcd_omap_platform_data *pdata)
- 
- #else
- 
--void __init usb_ehci_init(const struct ehci_hcd_omap_platform_data *pdata)
-+void __init usb_ehci_init(const struct usbhs_omap_board_data *pdata)
- 
- {
- }
-@@ -411,7 +411,7 @@ static struct platform_device ohci_device = {
- 	.resource	= ohci_resources,
- };
- 
--static void setup_ohci_io_mux(const enum ohci_omap3_port_mode *port_mode)
-+static void setup_ohci_io_mux(const enum usbhs_omap_port_mode *port_mode)
- {
- 	switch (port_mode[0]) {
- 	case OMAP_OHCI_PORT_MODE_PHY_6PIN_DATSE0:
-@@ -439,7 +439,7 @@ static void setup_ohci_io_mux(const enum ohci_omap3_port_mode *port_mode)
- 		omap_mux_init_signal("mm1_txdat",
- 			OMAP_PIN_INPUT_PULLDOWN);
- 		break;
--	case OMAP_OHCI_PORT_MODE_UNUSED:
-+	case OMAP_USBHS_PORT_MODE_UNUSED:
- 		/* FALLTHROUGH */
- 	default:
- 		break;
-@@ -470,7 +470,7 @@ static void setup_ohci_io_mux(const enum ohci_omap3_port_mode *port_mode)
- 		omap_mux_init_signal("mm2_txdat",
- 			OMAP_PIN_INPUT_PULLDOWN);
- 		break;
--	case OMAP_OHCI_PORT_MODE_UNUSED:
-+	case OMAP_USBHS_PORT_MODE_UNUSED:
- 		/* FALLTHROUGH */
- 	default:
- 		break;
-@@ -501,14 +501,14 @@ static void setup_ohci_io_mux(const enum ohci_omap3_port_mode *port_mode)
- 		omap_mux_init_signal("mm3_txdat",
- 			OMAP_PIN_INPUT_PULLDOWN);
- 		break;
--	case OMAP_OHCI_PORT_MODE_UNUSED:
-+	case OMAP_USBHS_PORT_MODE_UNUSED:
- 		/* FALLTHROUGH */
- 	default:
- 		break;
- 	}
- }
- 
--void __init usb_ohci_init(const struct ohci_hcd_omap_platform_data *pdata)
-+void __init usb_ohci_init(const struct usbhs_omap_board_data *pdata)
- {
- 	platform_device_add_data(&ohci_device, pdata, sizeof(*pdata));
- 
-@@ -524,7 +524,7 @@ void __init usb_ohci_init(const struct ohci_hcd_omap_platform_data *pdata)
- 
- #else
- 
--void __init usb_ohci_init(const struct ohci_hcd_omap_platform_data *pdata)
-+void __init usb_ohci_init(const struct usbhs_omap_board_data *pdata)
- {
- }
- 
-diff --git a/arch/arm/plat-omap/include/plat/usb.h b/arch/arm/plat-omap/include/plat/usb.h
-index 450a332..dc6ef62 100644
---- a/arch/arm/plat-omap/include/plat/usb.h
-+++ b/arch/arm/plat-omap/include/plat/usb.h
-@@ -7,15 +7,12 @@
- #include <plat/board.h>
- 
- #define OMAP3_HS_USB_PORTS	3
--enum ehci_hcd_omap_mode {
--	EHCI_HCD_OMAP_MODE_UNKNOWN,
--	EHCI_HCD_OMAP_MODE_PHY,
--	EHCI_HCD_OMAP_MODE_TLL,
--	EHCI_HCD_OMAP_MODE_HSIC,
--};
- 
--enum ohci_omap3_port_mode {
--	OMAP_OHCI_PORT_MODE_UNUSED,
-+enum usbhs_omap_port_mode {
-+	OMAP_USBHS_PORT_MODE_UNUSED,
-+	OMAP_EHCI_PORT_MODE_PHY,
-+	OMAP_EHCI_PORT_MODE_TLL,
-+	OMAP_EHCI_PORT_MODE_HSIC,
- 	OMAP_OHCI_PORT_MODE_PHY_6PIN_DATSE0,
- 	OMAP_OHCI_PORT_MODE_PHY_6PIN_DPDM,
- 	OMAP_OHCI_PORT_MODE_PHY_3PIN_DATSE0,
-@@ -25,24 +22,45 @@ enum ohci_omap3_port_mode {
- 	OMAP_OHCI_PORT_MODE_TLL_3PIN_DATSE0,
- 	OMAP_OHCI_PORT_MODE_TLL_4PIN_DPDM,
- 	OMAP_OHCI_PORT_MODE_TLL_2PIN_DATSE0,
--	OMAP_OHCI_PORT_MODE_TLL_2PIN_DPDM,
-+	OMAP_OHCI_PORT_MODE_TLL_2PIN_DPDM
- };
- 
--struct ehci_hcd_omap_platform_data {
--	enum ehci_hcd_omap_mode		port_mode[OMAP3_HS_USB_PORTS];
--	unsigned			phy_reset:1;
-+struct usbhs_omap_board_data {
-+	enum usbhs_omap_port_mode	port_mode[OMAP3_HS_USB_PORTS];
- 
- 	/* have to be valid if phy_reset is true and portx is in phy mode */
- 	int	reset_gpio_port[OMAP3_HS_USB_PORTS];
-+
-+	/* Set this to true for ES2.x silicon */
-+	unsigned			es2_compatibility:1;
-+
-+	unsigned			phy_reset:1;
-+
-+	/*
-+	 * Regulators for USB PHYs.
-+	 * Each PHY can have a separate regulator.
-+	 */
-+	struct regulator		*regulator[OMAP3_HS_USB_PORTS];
- };
- 
--struct ohci_hcd_omap_platform_data {
--	enum ohci_omap3_port_mode	port_mode[OMAP3_HS_USB_PORTS];
-+struct ehci_hcd_omap_platform_data {
-+	enum usbhs_omap_port_mode	port_mode[OMAP3_HS_USB_PORTS];
-+	int				reset_gpio_port[OMAP3_HS_USB_PORTS];
-+	struct regulator		*regulator[OMAP3_HS_USB_PORTS];
-+	unsigned			phy_reset:1;
-+};
- 
--	/* Set this to true for ES2.x silicon */
-+struct ohci_hcd_omap_platform_data {
-+	enum usbhs_omap_port_mode	port_mode[OMAP3_HS_USB_PORTS];
- 	unsigned			es2_compatibility:1;
- };
- 
-+struct usbhs_omap_platform_data {
-+	enum usbhs_omap_port_mode		port_mode[OMAP3_HS_USB_PORTS];
-+
-+	struct ehci_hcd_omap_platform_data	*ehci_data;
-+	struct ohci_hcd_omap_platform_data	*ohci_data;
-+};
- /*-------------------------------------------------------------------------*/
- 
- #define OMAP1_OTG_BASE			0xfffb0400
-@@ -80,18 +98,16 @@ enum musb_interface    {MUSB_INTERFACE_ULPI, MUSB_INTERFACE_UTMI};
- 
- extern void usb_musb_init(struct omap_musb_board_data *board_data);
- 
--extern void usb_ehci_init(const struct ehci_hcd_omap_platform_data *pdata);
-+extern void usb_ehci_init(const struct usbhs_omap_board_data *pdata);
- 
--extern void usb_ohci_init(const struct ohci_hcd_omap_platform_data *pdata);
-+extern void usb_ohci_init(const struct usbhs_omap_board_data *pdata);
- 
- extern int omap4430_phy_power(struct device *dev, int ID, int on);
- extern int omap4430_phy_set_clk(struct device *dev, int on);
- extern int omap4430_phy_init(struct device *dev);
- extern int omap4430_phy_exit(struct device *dev);
--
- #endif
- 
--
- /*
-  * FIXME correct answer depends on hmc_mode,
-  * as does (on omap1) any nonzero value for config->otg port number
 diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
-index 37cf12b..77e9906 100644
+index 77e9906..583dafe 100644
 --- a/drivers/usb/host/ehci-omap.c
 +++ b/drivers/usb/host/ehci-omap.c
-@@ -155,9 +155,9 @@
- #define is_omap_ehci_rev1(x)	(x->omap_ehci_rev == OMAP_EHCI_REV1)
- #define is_omap_ehci_rev2(x)	(x->omap_ehci_rev == OMAP_EHCI_REV2)
+@@ -4,9 +4,10 @@
+  * Bus Glue for the EHCI controllers in OMAP3/4
+  * Tested on several OMAP3 boards, and OMAP4 Pandaboard
+  *
+- * Copyright (C) 2007-2010 Texas Instruments, Inc.
++ * Copyright (C) 2007-2011 Texas Instruments, Inc.
+  *	Author: Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>
+  *	Author: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
++ *	Author: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+  *
+  * Copyright (C) 2009 Nokia Corporation
+  *	Contact: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+@@ -27,116 +28,19 @@
+  * along with this program; if not, write to the Free Software
+  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+  *
+- * TODO (last updated Nov 21, 2010):
++ * TODO (last updated Feb 27, 2010):
+  *	- add kernel-doc
+  *	- enable AUTOIDLE
+  *	- add suspend/resume
+- *	- move workarounds to board-files
+- *	- factor out code common to OHCI
+  *	- add HSIC and TLL support
+  *	- convert to use hwmod and runtime PM
+  */
  
--#define is_ehci_phy_mode(x)	(x == EHCI_HCD_OMAP_MODE_PHY)
--#define is_ehci_tll_mode(x)	(x == EHCI_HCD_OMAP_MODE_TLL)
--#define is_ehci_hsic_mode(x)	(x == EHCI_HCD_OMAP_MODE_HSIC)
-+#define is_ehci_phy_mode(x)	(x == OMAP_EHCI_PORT_MODE_PHY)
-+#define is_ehci_tll_mode(x)	(x == OMAP_EHCI_PORT_MODE_TLL)
-+#define is_ehci_hsic_mode(x)	(x == OMAP_EHCI_PORT_MODE_HSIC)
+ #include <linux/platform_device.h>
+-#include <linux/clk.h>
+-#include <linux/gpio.h>
+-#include <linux/regulator/consumer.h>
+ #include <linux/slab.h>
+ #include <linux/usb/ulpi.h>
+ #include <plat/usb.h>
+ 
+-/*
+- * OMAP USBHOST Register addresses: VIRTUAL ADDRESSES
+- *	Use ehci_omap_readl()/ehci_omap_writel() functions
+- */
+-
+-/* TLL Register Set */
+-#define	OMAP_USBTLL_REVISION				(0x00)
+-#define	OMAP_USBTLL_SYSCONFIG				(0x10)
+-#define	OMAP_USBTLL_SYSCONFIG_CACTIVITY			(1 << 8)
+-#define	OMAP_USBTLL_SYSCONFIG_SIDLEMODE			(1 << 3)
+-#define	OMAP_USBTLL_SYSCONFIG_ENAWAKEUP			(1 << 2)
+-#define	OMAP_USBTLL_SYSCONFIG_SOFTRESET			(1 << 1)
+-#define	OMAP_USBTLL_SYSCONFIG_AUTOIDLE			(1 << 0)
+-
+-#define	OMAP_USBTLL_SYSSTATUS				(0x14)
+-#define	OMAP_USBTLL_SYSSTATUS_RESETDONE			(1 << 0)
+-
+-#define	OMAP_USBTLL_IRQSTATUS				(0x18)
+-#define	OMAP_USBTLL_IRQENABLE				(0x1C)
+-
+-#define	OMAP_TLL_SHARED_CONF				(0x30)
+-#define	OMAP_TLL_SHARED_CONF_USB_90D_DDR_EN		(1 << 6)
+-#define	OMAP_TLL_SHARED_CONF_USB_180D_SDR_EN		(1 << 5)
+-#define	OMAP_TLL_SHARED_CONF_USB_DIVRATION		(1 << 2)
+-#define	OMAP_TLL_SHARED_CONF_FCLK_REQ			(1 << 1)
+-#define	OMAP_TLL_SHARED_CONF_FCLK_IS_ON			(1 << 0)
+-
+-#define	OMAP_TLL_CHANNEL_CONF(num)			(0x040 + 0x004 * num)
+-#define	OMAP_TLL_CHANNEL_CONF_ULPINOBITSTUFF		(1 << 11)
+-#define	OMAP_TLL_CHANNEL_CONF_ULPI_ULPIAUTOIDLE		(1 << 10)
+-#define	OMAP_TLL_CHANNEL_CONF_UTMIAUTOIDLE		(1 << 9)
+-#define	OMAP_TLL_CHANNEL_CONF_ULPIDDRMODE		(1 << 8)
+-#define	OMAP_TLL_CHANNEL_CONF_CHANEN			(1 << 0)
+-
+-#define	OMAP_TLL_ULPI_FUNCTION_CTRL(num)		(0x804 + 0x100 * num)
+-#define	OMAP_TLL_ULPI_INTERFACE_CTRL(num)		(0x807 + 0x100 * num)
+-#define	OMAP_TLL_ULPI_OTG_CTRL(num)			(0x80A + 0x100 * num)
+-#define	OMAP_TLL_ULPI_INT_EN_RISE(num)			(0x80D + 0x100 * num)
+-#define	OMAP_TLL_ULPI_INT_EN_FALL(num)			(0x810 + 0x100 * num)
+-#define	OMAP_TLL_ULPI_INT_STATUS(num)			(0x813 + 0x100 * num)
+-#define	OMAP_TLL_ULPI_INT_LATCH(num)			(0x814 + 0x100 * num)
+-#define	OMAP_TLL_ULPI_DEBUG(num)			(0x815 + 0x100 * num)
+-#define	OMAP_TLL_ULPI_SCRATCH_REGISTER(num)		(0x816 + 0x100 * num)
+-
+-#define OMAP_TLL_CHANNEL_COUNT				3
+-#define OMAP_TLL_CHANNEL_1_EN_MASK			(1 << 0)
+-#define OMAP_TLL_CHANNEL_2_EN_MASK			(1 << 1)
+-#define OMAP_TLL_CHANNEL_3_EN_MASK			(1 << 2)
+-
+-/* UHH Register Set */
+-#define	OMAP_UHH_REVISION				(0x00)
+-#define	OMAP_UHH_SYSCONFIG				(0x10)
+-#define	OMAP_UHH_SYSCONFIG_MIDLEMODE			(1 << 12)
+-#define	OMAP_UHH_SYSCONFIG_CACTIVITY			(1 << 8)
+-#define	OMAP_UHH_SYSCONFIG_SIDLEMODE			(1 << 3)
+-#define	OMAP_UHH_SYSCONFIG_ENAWAKEUP			(1 << 2)
+-#define	OMAP_UHH_SYSCONFIG_SOFTRESET			(1 << 1)
+-#define	OMAP_UHH_SYSCONFIG_AUTOIDLE			(1 << 0)
+-
+-#define	OMAP_UHH_SYSSTATUS				(0x14)
+-#define	OMAP_UHH_HOSTCONFIG				(0x40)
+-#define	OMAP_UHH_HOSTCONFIG_ULPI_BYPASS			(1 << 0)
+-#define	OMAP_UHH_HOSTCONFIG_ULPI_P1_BYPASS		(1 << 0)
+-#define	OMAP_UHH_HOSTCONFIG_ULPI_P2_BYPASS		(1 << 11)
+-#define	OMAP_UHH_HOSTCONFIG_ULPI_P3_BYPASS		(1 << 12)
+-#define OMAP_UHH_HOSTCONFIG_INCR4_BURST_EN		(1 << 2)
+-#define OMAP_UHH_HOSTCONFIG_INCR8_BURST_EN		(1 << 3)
+-#define OMAP_UHH_HOSTCONFIG_INCR16_BURST_EN		(1 << 4)
+-#define OMAP_UHH_HOSTCONFIG_INCRX_ALIGN_EN		(1 << 5)
+-#define OMAP_UHH_HOSTCONFIG_P1_CONNECT_STATUS		(1 << 8)
+-#define OMAP_UHH_HOSTCONFIG_P2_CONNECT_STATUS		(1 << 9)
+-#define OMAP_UHH_HOSTCONFIG_P3_CONNECT_STATUS		(1 << 10)
+-
+-/* OMAP4-specific defines */
+-#define OMAP4_UHH_SYSCONFIG_IDLEMODE_CLEAR		(3 << 2)
+-#define OMAP4_UHH_SYSCONFIG_NOIDLE			(1 << 2)
+-
+-#define OMAP4_UHH_SYSCONFIG_STDBYMODE_CLEAR		(3 << 4)
+-#define OMAP4_UHH_SYSCONFIG_NOSTDBY			(1 << 4)
+-#define OMAP4_UHH_SYSCONFIG_SOFTRESET			(1 << 0)
+-
+-#define OMAP4_P1_MODE_CLEAR				(3 << 16)
+-#define OMAP4_P1_MODE_TLL				(1 << 16)
+-#define OMAP4_P1_MODE_HSIC				(3 << 16)
+-#define OMAP4_P2_MODE_CLEAR				(3 << 18)
+-#define OMAP4_P2_MODE_TLL				(1 << 18)
+-#define OMAP4_P2_MODE_HSIC				(3 << 18)
+-
+-#define OMAP_REV2_TLL_CHANNEL_COUNT			2
+-
+-#define	OMAP_UHH_DEBUG_CSR				(0x44)
+-
+ /* EHCI Register Set */
+ #define EHCI_INSNREG04					(0xA0)
+ #define EHCI_INSNREG04_DISABLE_UNSUSPEND		(1 << 5)
+@@ -148,18 +52,10 @@
+ #define	EHCI_INSNREG05_ULPI_EXTREGADD_SHIFT		8
+ #define	EHCI_INSNREG05_ULPI_WRDATA_SHIFT		0
+ 
+-/* Values of UHH_REVISION - Note: these are not given in the TRM */
+-#define OMAP_EHCI_REV1	0x00000010	/* OMAP3 */
+-#define OMAP_EHCI_REV2	0x50700100	/* OMAP4 */
++/*-------------------------------------------------------------------------*/
+ 
+-#define is_omap_ehci_rev1(x)	(x->omap_ehci_rev == OMAP_EHCI_REV1)
+-#define is_omap_ehci_rev2(x)	(x->omap_ehci_rev == OMAP_EHCI_REV2)
++static const struct hc_driver ehci_omap_hc_driver;
+ 
+-#define is_ehci_phy_mode(x)	(x == OMAP_EHCI_PORT_MODE_PHY)
+-#define is_ehci_tll_mode(x)	(x == OMAP_EHCI_PORT_MODE_TLL)
+-#define is_ehci_hsic_mode(x)	(x == OMAP_EHCI_PORT_MODE_HSIC)
+-
+-/*-------------------------------------------------------------------------*/
+ 
+ static inline void ehci_omap_writel(void __iomem *base, u32 reg, u32 val)
+ {
+@@ -171,114 +67,9 @@ static inline u32 ehci_omap_readl(void __iomem *base, u32 reg)
+ 	return __raw_readl(base + reg);
+ }
+ 
+-static inline void ehci_omap_writeb(void __iomem *base, u8 reg, u8 val)
+-{
+-	__raw_writeb(val, base + reg);
+-}
+-
+-static inline u8 ehci_omap_readb(void __iomem *base, u8 reg)
+-{
+-	return __raw_readb(base + reg);
+-}
+-
+-/*-------------------------------------------------------------------------*/
+-
+-struct ehci_hcd_omap {
+-	struct ehci_hcd		*ehci;
+-	struct device		*dev;
+-
+-	struct clk		*usbhost_ick;
+-	struct clk		*usbhost_hs_fck;
+-	struct clk		*usbhost_fs_fck;
+-	struct clk		*usbtll_fck;
+-	struct clk		*usbtll_ick;
+-	struct clk		*xclk60mhsp1_ck;
+-	struct clk		*xclk60mhsp2_ck;
+-	struct clk		*utmi_p1_fck;
+-	struct clk		*utmi_p2_fck;
+-
+-	/* FIXME the following two workarounds are
+-	 * board specific not silicon-specific so these
+-	 * should be moved to board-file instead.
+-	 *
+-	 * Maybe someone from TI will know better which
+-	 * board is affected and needs the workarounds
+-	 * to be applied
+-	 */
+-
+-	/* gpio for resetting phy */
+-	int			reset_gpio_port[OMAP3_HS_USB_PORTS];
+-
+-	/* phy reset workaround */
+-	int			phy_reset;
+-
+-	/* IP revision */
+-	u32			omap_ehci_rev;
+-
+-	/* desired phy_mode: TLL, PHY */
+-	enum usbhs_omap_port_mode	port_mode[OMAP3_HS_USB_PORTS];
+-
+-	void __iomem		*uhh_base;
+-	void __iomem		*tll_base;
+-	void __iomem		*ehci_base;
+-
+-	/* Regulators for USB PHYs.
+-	 * Each PHY can have a separate regulator.
+-	 */
+-	struct regulator        *regulator[OMAP3_HS_USB_PORTS];
+-};
+-
+-/*-------------------------------------------------------------------------*/
+-
+-static void omap_usb_utmi_init(struct ehci_hcd_omap *omap, u8 tll_channel_mask,
+-				u8 tll_channel_count)
+-{
+-	unsigned reg;
+-	int i;
+-
+-	/* Program the 3 TLL channels upfront */
+-	for (i = 0; i < tll_channel_count; i++) {
+-		reg = ehci_omap_readl(omap->tll_base, OMAP_TLL_CHANNEL_CONF(i));
+-
+-		/* Disable AutoIdle, BitStuffing and use SDR Mode */
+-		reg &= ~(OMAP_TLL_CHANNEL_CONF_UTMIAUTOIDLE
+-				| OMAP_TLL_CHANNEL_CONF_ULPINOBITSTUFF
+-				| OMAP_TLL_CHANNEL_CONF_ULPIDDRMODE);
+-		ehci_omap_writel(omap->tll_base, OMAP_TLL_CHANNEL_CONF(i), reg);
+-	}
+-
+-	/* Program Common TLL register */
+-	reg = ehci_omap_readl(omap->tll_base, OMAP_TLL_SHARED_CONF);
+-	reg |= (OMAP_TLL_SHARED_CONF_FCLK_IS_ON
+-			| OMAP_TLL_SHARED_CONF_USB_DIVRATION
+-			| OMAP_TLL_SHARED_CONF_USB_180D_SDR_EN);
+-	reg &= ~OMAP_TLL_SHARED_CONF_USB_90D_DDR_EN;
+-
+-	ehci_omap_writel(omap->tll_base, OMAP_TLL_SHARED_CONF, reg);
+-
+-	/* Enable channels now */
+-	for (i = 0; i < tll_channel_count; i++) {
+-		reg = ehci_omap_readl(omap->tll_base, OMAP_TLL_CHANNEL_CONF(i));
+-
+-		/* Enable only the reg that is needed */
+-		if (!(tll_channel_mask & 1<<i))
+-			continue;
+-
+-		reg |= OMAP_TLL_CHANNEL_CONF_CHANEN;
+-		ehci_omap_writel(omap->tll_base, OMAP_TLL_CHANNEL_CONF(i), reg);
+-
+-		ehci_omap_writeb(omap->tll_base,
+-				OMAP_TLL_ULPI_SCRATCH_REGISTER(i), 0xbe);
+-		dev_dbg(omap->dev, "ULPI_SCRATCH_REG[ch=%d]= 0x%02x\n",
+-				i+1, ehci_omap_readb(omap->tll_base,
+-				OMAP_TLL_ULPI_SCRATCH_REGISTER(i)));
+-	}
+-}
+-
+-/*-------------------------------------------------------------------------*/
+-
+-static void omap_ehci_soft_phy_reset(struct ehci_hcd_omap *omap, u8 port)
++static void omap_ehci_soft_phy_reset(struct platform_device *pdev, u8 port)
+ {
++	struct usb_hcd	*hcd = dev_get_drvdata(&pdev->dev);
+ 	unsigned long timeout = jiffies + msecs_to_jiffies(1000);
+ 	unsigned reg = 0;
+ 
+@@ -292,266 +83,88 @@ static void omap_ehci_soft_phy_reset(struct ehci_hcd_omap *omap, u8 port)
+ 		/* start ULPI access*/
+ 		| (1 << EHCI_INSNREG05_ULPI_CONTROL_SHIFT);
+ 
+-	ehci_omap_writel(omap->ehci_base, EHCI_INSNREG05_ULPI, reg);
++	ehci_omap_writel(hcd->regs, EHCI_INSNREG05_ULPI, reg);
+ 
+ 	/* Wait for ULPI access completion */
+-	while ((ehci_omap_readl(omap->ehci_base, EHCI_INSNREG05_ULPI)
++	while ((ehci_omap_readl(hcd->regs, EHCI_INSNREG05_ULPI)
+ 			& (1 << EHCI_INSNREG05_ULPI_CONTROL_SHIFT))) {
+ 		cpu_relax();
+ 
+ 		if (time_after(jiffies, timeout)) {
+-			dev_dbg(omap->dev, "phy reset operation timed out\n");
++			dev_dbg(&pdev->dev, "phy reset operation timed out\n");
+ 			break;
+ 		}
+ 	}
+ }
+ 
+-/* omap_start_ehc
+- *	- Start the TI USBHOST controller
+- */
+-static int omap_start_ehc(struct ehci_hcd_omap *omap, struct usb_hcd *hcd)
+-{
+-	unsigned long timeout = jiffies + msecs_to_jiffies(1000);
+-	u8 tll_ch_mask = 0;
+-	unsigned reg = 0;
+-	int ret = 0;
+-
+-	dev_dbg(omap->dev, "starting TI EHCI USB Controller\n");
+ 
+-	/* Enable Clocks for USBHOST */
+-	omap->usbhost_ick = clk_get(omap->dev, "usbhost_ick");
+-	if (IS_ERR(omap->usbhost_ick)) {
+-		ret =  PTR_ERR(omap->usbhost_ick);
+-		goto err_host_ick;
+-	}
+-	clk_enable(omap->usbhost_ick);
+-
+-	omap->usbhost_hs_fck = clk_get(omap->dev, "hs_fck");
+-	if (IS_ERR(omap->usbhost_hs_fck)) {
+-		ret = PTR_ERR(omap->usbhost_hs_fck);
+-		goto err_host_120m_fck;
+-	}
+-	clk_enable(omap->usbhost_hs_fck);
++/* configure so an HC device and id are always provided */
++/* always called with process context; sleeping is OK */
+ 
+-	omap->usbhost_fs_fck = clk_get(omap->dev, "fs_fck");
+-	if (IS_ERR(omap->usbhost_fs_fck)) {
+-		ret = PTR_ERR(omap->usbhost_fs_fck);
+-		goto err_host_48m_fck;
+-	}
+-	clk_enable(omap->usbhost_fs_fck);
+-
+-	if (omap->phy_reset) {
+-		/* Refer: ISSUE1 */
+-		if (gpio_is_valid(omap->reset_gpio_port[0])) {
+-			gpio_request(omap->reset_gpio_port[0],
+-						"USB1 PHY reset");
+-			gpio_direction_output(omap->reset_gpio_port[0], 0);
+-		}
++/**
++ * ehci_hcd_omap_probe - initialize TI-based HCDs
++ *
++ * Allocates basic resources for this USB host controller, and
++ * then invokes the start() method for the HCD associated with it
++ * through the hotplug entry's driver_data.
++ */
++static int ehci_hcd_omap_probe(struct platform_device *pdev)
++{
++	struct device				*dev = &pdev->dev;
++	struct ehci_hcd_omap_platform_data	*pdata = dev->platform_data;
++	struct resource				*res;
++	struct usb_hcd				*hcd;
++	void __iomem				*regs;
++	struct ehci_hcd				*omap_ehci;
++	int					ret = -ENODEV;
++	int					irq;
+ 
+-		if (gpio_is_valid(omap->reset_gpio_port[1])) {
+-			gpio_request(omap->reset_gpio_port[1],
+-						"USB2 PHY reset");
+-			gpio_direction_output(omap->reset_gpio_port[1], 0);
+-		}
++	if (usb_disabled())
++		return -ENODEV;
+ 
+-		/* Hold the PHY in RESET for enough time till DIR is high */
+-		udelay(10);
++	if (!dev->parent) {
++		dev_err(dev, "Missing parent device\n");
++		return -ENODEV;
+ 	}
+ 
+-	/* Configure TLL for 60Mhz clk for ULPI */
+-	omap->usbtll_fck = clk_get(omap->dev, "usbtll_fck");
+-	if (IS_ERR(omap->usbtll_fck)) {
+-		ret = PTR_ERR(omap->usbtll_fck);
+-		goto err_tll_fck;
++	irq = platform_get_irq_byname(pdev, "ehci-irq");
++	if (irq < 0) {
++		dev_err(dev, "EHCI irq failed\n");
++		return -ENODEV;
+ 	}
+-	clk_enable(omap->usbtll_fck);
+ 
+-	omap->usbtll_ick = clk_get(omap->dev, "usbtll_ick");
+-	if (IS_ERR(omap->usbtll_ick)) {
+-		ret = PTR_ERR(omap->usbtll_ick);
+-		goto err_tll_ick;
++	res =  platform_get_resource_byname(pdev,
++				IORESOURCE_MEM, "ehci");
++	if (!res) {
++		dev_err(dev, "UHH EHCI get resource failed\n");
++		return -ENODEV;
+ 	}
+-	clk_enable(omap->usbtll_ick);
+-
+-	omap->omap_ehci_rev = ehci_omap_readl(omap->uhh_base,
+-						OMAP_UHH_REVISION);
+-	dev_dbg(omap->dev, "OMAP UHH_REVISION 0x%x\n",
+-					omap->omap_ehci_rev);
+ 
+-	/*
+-	 * Enable per-port clocks as needed (newer controllers only).
+-	 * - External ULPI clock for PHY mode
+-	 * - Internal clocks for TLL and HSIC modes (TODO)
+-	 */
+-	if (is_omap_ehci_rev2(omap)) {
+-		switch (omap->port_mode[0]) {
+-		case OMAP_EHCI_PORT_MODE_PHY:
+-			omap->xclk60mhsp1_ck = clk_get(omap->dev,
+-							"xclk60mhsp1_ck");
+-			if (IS_ERR(omap->xclk60mhsp1_ck)) {
+-				ret = PTR_ERR(omap->xclk60mhsp1_ck);
+-				dev_err(omap->dev,
+-					"Unable to get Port1 ULPI clock\n");
+-			}
+-
+-			omap->utmi_p1_fck = clk_get(omap->dev,
+-							"utmi_p1_gfclk");
+-			if (IS_ERR(omap->utmi_p1_fck)) {
+-				ret = PTR_ERR(omap->utmi_p1_fck);
+-				dev_err(omap->dev,
+-					"Unable to get utmi_p1_fck\n");
+-			}
+-
+-			ret = clk_set_parent(omap->utmi_p1_fck,
+-						omap->xclk60mhsp1_ck);
+-			if (ret != 0) {
+-				dev_err(omap->dev,
+-					"Unable to set P1 f-clock\n");
+-			}
+-			break;
+-		case OMAP_EHCI_PORT_MODE_TLL:
+-			/* TODO */
+-		default:
+-			break;
+-		}
+-		switch (omap->port_mode[1]) {
+-		case OMAP_EHCI_PORT_MODE_PHY:
+-			omap->xclk60mhsp2_ck = clk_get(omap->dev,
+-							"xclk60mhsp2_ck");
+-			if (IS_ERR(omap->xclk60mhsp2_ck)) {
+-				ret = PTR_ERR(omap->xclk60mhsp2_ck);
+-				dev_err(omap->dev,
+-					"Unable to get Port2 ULPI clock\n");
+-			}
+-
+-			omap->utmi_p2_fck = clk_get(omap->dev,
+-							"utmi_p2_gfclk");
+-			if (IS_ERR(omap->utmi_p2_fck)) {
+-				ret = PTR_ERR(omap->utmi_p2_fck);
+-				dev_err(omap->dev,
+-					"Unable to get utmi_p2_fck\n");
+-			}
+-
+-			ret = clk_set_parent(omap->utmi_p2_fck,
+-						omap->xclk60mhsp2_ck);
+-			if (ret != 0) {
+-				dev_err(omap->dev,
+-					"Unable to set P2 f-clock\n");
+-			}
+-			break;
+-		case OMAP_EHCI_PORT_MODE_TLL:
+-			/* TODO */
+-		default:
+-			break;
+-		}
++	regs = ioremap(res->start, resource_size(res));
++	if (!regs) {
++		dev_err(dev, "UHH EHCI ioremap failed\n");
++		return -ENOMEM;
+ 	}
+ 
+ 
+-	/* perform TLL soft reset, and wait until reset is complete */
+-	ehci_omap_writel(omap->tll_base, OMAP_USBTLL_SYSCONFIG,
+-			OMAP_USBTLL_SYSCONFIG_SOFTRESET);
+-
+-	/* Wait for TLL reset to complete */
+-	while (!(ehci_omap_readl(omap->tll_base, OMAP_USBTLL_SYSSTATUS)
+-			& OMAP_USBTLL_SYSSTATUS_RESETDONE)) {
+-		cpu_relax();
+-
+-		if (time_after(jiffies, timeout)) {
+-			dev_dbg(omap->dev, "operation timed out\n");
+-			ret = -EINVAL;
+-			goto err_sys_status;
+-		}
++	hcd = usb_create_hcd(&ehci_omap_hc_driver, dev,
++			dev_name(dev));
++	if (!hcd) {
++		dev_err(dev, "failed to create hcd with err %d\n", ret);
++		ret = -ENOMEM;
++		goto err_io;
+ 	}
+ 
+-	dev_dbg(omap->dev, "TLL RESET DONE\n");
+-
+-	/* (1<<3) = no idle mode only for initial debugging */
+-	ehci_omap_writel(omap->tll_base, OMAP_USBTLL_SYSCONFIG,
+-			OMAP_USBTLL_SYSCONFIG_ENAWAKEUP |
+-			OMAP_USBTLL_SYSCONFIG_SIDLEMODE |
+-			OMAP_USBTLL_SYSCONFIG_CACTIVITY);
+-
+-
+-	/* Put UHH in NoIdle/NoStandby mode */
+-	reg = ehci_omap_readl(omap->uhh_base, OMAP_UHH_SYSCONFIG);
+-	if (is_omap_ehci_rev1(omap)) {
+-		reg |= (OMAP_UHH_SYSCONFIG_ENAWAKEUP
+-				| OMAP_UHH_SYSCONFIG_SIDLEMODE
+-				| OMAP_UHH_SYSCONFIG_CACTIVITY
+-				| OMAP_UHH_SYSCONFIG_MIDLEMODE);
+-		reg &= ~OMAP_UHH_SYSCONFIG_AUTOIDLE;
+-
++	hcd->rsrc_start = res->start;
++	hcd->rsrc_len = resource_size(res);
++	hcd->regs = regs;
+ 
+-	} else if (is_omap_ehci_rev2(omap)) {
+-		reg &= ~OMAP4_UHH_SYSCONFIG_IDLEMODE_CLEAR;
+-		reg |= OMAP4_UHH_SYSCONFIG_NOIDLE;
+-		reg &= ~OMAP4_UHH_SYSCONFIG_STDBYMODE_CLEAR;
+-		reg |= OMAP4_UHH_SYSCONFIG_NOSTDBY;
+-	}
+-	ehci_omap_writel(omap->uhh_base, OMAP_UHH_SYSCONFIG, reg);
+-
+-	reg = ehci_omap_readl(omap->uhh_base, OMAP_UHH_HOSTCONFIG);
+-
+-	/* setup ULPI bypass and burst configurations */
+-	reg |= (OMAP_UHH_HOSTCONFIG_INCR4_BURST_EN
+-			| OMAP_UHH_HOSTCONFIG_INCR8_BURST_EN
+-			| OMAP_UHH_HOSTCONFIG_INCR16_BURST_EN);
+-	reg &= ~OMAP_UHH_HOSTCONFIG_INCRX_ALIGN_EN;
+-
+-	if (is_omap_ehci_rev1(omap)) {
+-		if (omap->port_mode[0] == OMAP_USBHS_PORT_MODE_UNUSED)
+-			reg &= ~OMAP_UHH_HOSTCONFIG_P1_CONNECT_STATUS;
+-		if (omap->port_mode[1] == OMAP_USBHS_PORT_MODE_UNUSED)
+-			reg &= ~OMAP_UHH_HOSTCONFIG_P2_CONNECT_STATUS;
+-		if (omap->port_mode[2] == OMAP_USBHS_PORT_MODE_UNUSED)
+-			reg &= ~OMAP_UHH_HOSTCONFIG_P3_CONNECT_STATUS;
+-
+-		/* Bypass the TLL module for PHY mode operation */
+-		if (cpu_is_omap3430() && (omap_rev() <= OMAP3430_REV_ES2_1)) {
+-			dev_dbg(omap->dev, "OMAP3 ES version <= ES2.1\n");
+-			if (is_ehci_phy_mode(omap->port_mode[0]) ||
+-				is_ehci_phy_mode(omap->port_mode[1]) ||
+-					is_ehci_phy_mode(omap->port_mode[2]))
+-				reg &= ~OMAP_UHH_HOSTCONFIG_ULPI_BYPASS;
+-			else
+-				reg |= OMAP_UHH_HOSTCONFIG_ULPI_BYPASS;
+-		} else {
+-			dev_dbg(omap->dev, "OMAP3 ES version > ES2.1\n");
+-			if (is_ehci_phy_mode(omap->port_mode[0]))
+-				reg &= ~OMAP_UHH_HOSTCONFIG_ULPI_P1_BYPASS;
+-			else if (is_ehci_tll_mode(omap->port_mode[0]))
+-				reg |= OMAP_UHH_HOSTCONFIG_ULPI_P1_BYPASS;
+-
+-			if (is_ehci_phy_mode(omap->port_mode[1]))
+-				reg &= ~OMAP_UHH_HOSTCONFIG_ULPI_P2_BYPASS;
+-			else if (is_ehci_tll_mode(omap->port_mode[1]))
+-				reg |= OMAP_UHH_HOSTCONFIG_ULPI_P2_BYPASS;
+-
+-			if (is_ehci_phy_mode(omap->port_mode[2]))
+-				reg &= ~OMAP_UHH_HOSTCONFIG_ULPI_P3_BYPASS;
+-			else if (is_ehci_tll_mode(omap->port_mode[2]))
+-				reg |= OMAP_UHH_HOSTCONFIG_ULPI_P3_BYPASS;
+-		}
+-	} else if (is_omap_ehci_rev2(omap)) {
+-		/* Clear port mode fields for PHY mode*/
+-		reg &= ~OMAP4_P1_MODE_CLEAR;
+-		reg &= ~OMAP4_P2_MODE_CLEAR;
+-
+-		if (is_ehci_tll_mode(omap->port_mode[0]))
+-			reg |= OMAP4_P1_MODE_TLL;
+-		else if (is_ehci_hsic_mode(omap->port_mode[0]))
+-			reg |= OMAP4_P1_MODE_HSIC;
+-
+-		if (is_ehci_tll_mode(omap->port_mode[1]))
+-			reg |= OMAP4_P2_MODE_TLL;
+-		else if (is_ehci_hsic_mode(omap->port_mode[1]))
+-			reg |= OMAP4_P2_MODE_HSIC;
++	ret = omap_usbhs_enable(dev);
++	if (ret) {
++		dev_err(dev, "failed to start usbhs with err %d\n", ret);
++		goto err_enable;
+ 	}
+ 
+-	ehci_omap_writel(omap->uhh_base, OMAP_UHH_HOSTCONFIG, reg);
+-	dev_dbg(omap->dev, "UHH setup done, uhh_hostconfig=%x\n", reg);
+-
+-
+ 	/*
+ 	 * An undocumented "feature" in the OMAP3 EHCI controller,
+ 	 * causes suspended ports to be taken out of suspend when
+@@ -561,363 +174,50 @@ static int omap_start_ehc(struct ehci_hcd_omap *omap, struct usb_hcd *hcd)
+ 	 * to suspend. Writing 1 to this undocumented register bit
+ 	 * disables this feature and restores normal behavior.
+ 	 */
+-	ehci_omap_writel(omap->ehci_base, EHCI_INSNREG04,
++	ehci_omap_writel(regs, EHCI_INSNREG04,
+ 				EHCI_INSNREG04_DISABLE_UNSUSPEND);
+ 
+-	if ((omap->port_mode[0] == OMAP_EHCI_PORT_MODE_TLL) ||
+-		(omap->port_mode[1] == OMAP_EHCI_PORT_MODE_TLL) ||
+-			(omap->port_mode[2] == OMAP_EHCI_PORT_MODE_TLL)) {
+-
+-		if (omap->port_mode[0] == OMAP_EHCI_PORT_MODE_TLL)
+-			tll_ch_mask |= OMAP_TLL_CHANNEL_1_EN_MASK;
+-		if (omap->port_mode[1] == OMAP_EHCI_PORT_MODE_TLL)
+-			tll_ch_mask |= OMAP_TLL_CHANNEL_2_EN_MASK;
+-		if (omap->port_mode[2] == OMAP_EHCI_PORT_MODE_TLL)
+-			tll_ch_mask |= OMAP_TLL_CHANNEL_3_EN_MASK;
+-
+-		/* Enable UTMI mode for required TLL channels */
+-		omap_usb_utmi_init(omap, tll_ch_mask, OMAP_TLL_CHANNEL_COUNT);
+-	}
+-
+-	if (omap->phy_reset) {
+-		/* Refer ISSUE1:
+-		 * Hold the PHY in RESET for enough time till
+-		 * PHY is settled and ready
+-		 */
+-		udelay(10);
+-
+-		if (gpio_is_valid(omap->reset_gpio_port[0]))
+-			gpio_set_value(omap->reset_gpio_port[0], 1);
+-
+-		if (gpio_is_valid(omap->reset_gpio_port[1]))
+-			gpio_set_value(omap->reset_gpio_port[1], 1);
+-	}
+-
+ 	/* Soft reset the PHY using PHY reset command over ULPI */
+-	if (omap->port_mode[0] == OMAP_EHCI_PORT_MODE_PHY)
+-		omap_ehci_soft_phy_reset(omap, 0);
+-	if (omap->port_mode[1] == OMAP_EHCI_PORT_MODE_PHY)
+-		omap_ehci_soft_phy_reset(omap, 1);
+-
+-	return 0;
+-
+-err_sys_status:
+-	clk_disable(omap->utmi_p2_fck);
+-	clk_put(omap->utmi_p2_fck);
+-	clk_disable(omap->xclk60mhsp2_ck);
+-	clk_put(omap->xclk60mhsp2_ck);
+-	clk_disable(omap->utmi_p1_fck);
+-	clk_put(omap->utmi_p1_fck);
+-	clk_disable(omap->xclk60mhsp1_ck);
+-	clk_put(omap->xclk60mhsp1_ck);
+-	clk_disable(omap->usbtll_ick);
+-	clk_put(omap->usbtll_ick);
+-
+-err_tll_ick:
+-	clk_disable(omap->usbtll_fck);
+-	clk_put(omap->usbtll_fck);
+-
+-err_tll_fck:
+-	clk_disable(omap->usbhost_fs_fck);
+-	clk_put(omap->usbhost_fs_fck);
+-
+-	if (omap->phy_reset) {
+-		if (gpio_is_valid(omap->reset_gpio_port[0]))
+-			gpio_free(omap->reset_gpio_port[0]);
+-
+-		if (gpio_is_valid(omap->reset_gpio_port[1]))
+-			gpio_free(omap->reset_gpio_port[1]);
+-	}
+-
+-err_host_48m_fck:
+-	clk_disable(omap->usbhost_hs_fck);
+-	clk_put(omap->usbhost_hs_fck);
++	if (pdata->port_mode[0] == OMAP_EHCI_PORT_MODE_PHY)
++		omap_ehci_soft_phy_reset(pdev, 0);
++	if (pdata->port_mode[1] == OMAP_EHCI_PORT_MODE_PHY)
++		omap_ehci_soft_phy_reset(pdev, 1);
+ 
+-err_host_120m_fck:
+-	clk_disable(omap->usbhost_ick);
+-	clk_put(omap->usbhost_ick);
+-
+-err_host_ick:
+-	return ret;
+-}
+-
+-static void omap_stop_ehc(struct ehci_hcd_omap *omap, struct usb_hcd *hcd)
+-{
+-	unsigned long timeout = jiffies + msecs_to_jiffies(100);
+-
+-	dev_dbg(omap->dev, "stopping TI EHCI USB Controller\n");
+-
+-	/* Reset OMAP modules for insmod/rmmod to work */
+-	ehci_omap_writel(omap->uhh_base, OMAP_UHH_SYSCONFIG,
+-			is_omap_ehci_rev2(omap) ?
+-			OMAP4_UHH_SYSCONFIG_SOFTRESET :
+-			OMAP_UHH_SYSCONFIG_SOFTRESET);
+-	while (!(ehci_omap_readl(omap->uhh_base, OMAP_UHH_SYSSTATUS)
+-				& (1 << 0))) {
+-		cpu_relax();
+-
+-		if (time_after(jiffies, timeout))
+-			dev_dbg(omap->dev, "operation timed out\n");
+-	}
+-
+-	while (!(ehci_omap_readl(omap->uhh_base, OMAP_UHH_SYSSTATUS)
+-				& (1 << 1))) {
+-		cpu_relax();
+-
+-		if (time_after(jiffies, timeout))
+-			dev_dbg(omap->dev, "operation timed out\n");
+-	}
+-
+-	while (!(ehci_omap_readl(omap->uhh_base, OMAP_UHH_SYSSTATUS)
+-				& (1 << 2))) {
+-		cpu_relax();
+-
+-		if (time_after(jiffies, timeout))
+-			dev_dbg(omap->dev, "operation timed out\n");
+-	}
+-
+-	ehci_omap_writel(omap->tll_base, OMAP_USBTLL_SYSCONFIG, (1 << 1));
+-
+-	while (!(ehci_omap_readl(omap->tll_base, OMAP_USBTLL_SYSSTATUS)
+-				& (1 << 0))) {
+-		cpu_relax();
+-
+-		if (time_after(jiffies, timeout))
+-			dev_dbg(omap->dev, "operation timed out\n");
+-	}
+-
+-	if (omap->usbtll_fck != NULL) {
+-		clk_disable(omap->usbtll_fck);
+-		clk_put(omap->usbtll_fck);
+-		omap->usbtll_fck = NULL;
+-	}
+-
+-	if (omap->usbhost_ick != NULL) {
+-		clk_disable(omap->usbhost_ick);
+-		clk_put(omap->usbhost_ick);
+-		omap->usbhost_ick = NULL;
+-	}
+-
+-	if (omap->usbhost_fs_fck != NULL) {
+-		clk_disable(omap->usbhost_fs_fck);
+-		clk_put(omap->usbhost_fs_fck);
+-		omap->usbhost_fs_fck = NULL;
+-	}
+-
+-	if (omap->usbhost_hs_fck != NULL) {
+-		clk_disable(omap->usbhost_hs_fck);
+-		clk_put(omap->usbhost_hs_fck);
+-		omap->usbhost_hs_fck = NULL;
+-	}
+-
+-	if (omap->usbtll_ick != NULL) {
+-		clk_disable(omap->usbtll_ick);
+-		clk_put(omap->usbtll_ick);
+-		omap->usbtll_ick = NULL;
+-	}
+-
+-	if (is_omap_ehci_rev2(omap)) {
+-		if (omap->xclk60mhsp1_ck != NULL) {
+-			clk_disable(omap->xclk60mhsp1_ck);
+-			clk_put(omap->xclk60mhsp1_ck);
+-			omap->xclk60mhsp1_ck = NULL;
+-		}
+-
+-		if (omap->utmi_p1_fck != NULL) {
+-			clk_disable(omap->utmi_p1_fck);
+-			clk_put(omap->utmi_p1_fck);
+-			omap->utmi_p1_fck = NULL;
+-		}
+-
+-		if (omap->xclk60mhsp2_ck != NULL) {
+-			clk_disable(omap->xclk60mhsp2_ck);
+-			clk_put(omap->xclk60mhsp2_ck);
+-			omap->xclk60mhsp2_ck = NULL;
+-		}
+-
+-		if (omap->utmi_p2_fck != NULL) {
+-			clk_disable(omap->utmi_p2_fck);
+-			clk_put(omap->utmi_p2_fck);
+-			omap->utmi_p2_fck = NULL;
+-		}
+-	}
+-
+-	if (omap->phy_reset) {
+-		if (gpio_is_valid(omap->reset_gpio_port[0]))
+-			gpio_free(omap->reset_gpio_port[0]);
+-
+-		if (gpio_is_valid(omap->reset_gpio_port[1]))
+-			gpio_free(omap->reset_gpio_port[1]);
+-	}
+-
+-	dev_dbg(omap->dev, "Clock to USB host has been disabled\n");
+-}
+-
+-/*-------------------------------------------------------------------------*/
+-
+-static const struct hc_driver ehci_omap_hc_driver;
+-
+-/* configure so an HC device and id are always provided */
+-/* always called with process context; sleeping is OK */
+-
+-/**
+- * ehci_hcd_omap_probe - initialize TI-based HCDs
+- *
+- * Allocates basic resources for this USB host controller, and
+- * then invokes the start() method for the HCD associated with it
+- * through the hotplug entry's driver_data.
+- */
+-static int ehci_hcd_omap_probe(struct platform_device *pdev)
+-{
+-	struct usbhs_omap_board_data *pdata = pdev->dev.platform_data;
+-	struct ehci_hcd_omap *omap;
+-	struct resource *res;
+-	struct usb_hcd *hcd;
+-
+-	int irq = platform_get_irq(pdev, 0);
+-	int ret = -ENODEV;
+-	int i;
+-	char supply[7];
+-
+-	if (!pdata) {
+-		dev_dbg(&pdev->dev, "missing platform_data\n");
+-		goto err_pdata;
+-	}
+-
+-	if (usb_disabled())
+-		goto err_disabled;
+-
+-	omap = kzalloc(sizeof(*omap), GFP_KERNEL);
+-	if (!omap) {
+-		ret = -ENOMEM;
+-		goto err_disabled;
+-	}
+-
+-	hcd = usb_create_hcd(&ehci_omap_hc_driver, &pdev->dev,
+-			dev_name(&pdev->dev));
+-	if (!hcd) {
+-		dev_err(&pdev->dev, "failed to create hcd with err %d\n", ret);
+-		ret = -ENOMEM;
+-		goto err_create_hcd;
+-	}
+-
+-	platform_set_drvdata(pdev, omap);
+-	omap->dev		= &pdev->dev;
+-	omap->phy_reset		= pdata->phy_reset;
+-	omap->reset_gpio_port[0]	= pdata->reset_gpio_port[0];
+-	omap->reset_gpio_port[1]	= pdata->reset_gpio_port[1];
+-	omap->reset_gpio_port[2]	= pdata->reset_gpio_port[2];
+-	omap->port_mode[0]		= pdata->port_mode[0];
+-	omap->port_mode[1]		= pdata->port_mode[1];
+-	omap->port_mode[2]		= pdata->port_mode[2];
+-	omap->ehci		= hcd_to_ehci(hcd);
+-	omap->ehci->sbrn	= 0x20;
+-
+-	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "ehci");
+-
+-	hcd->rsrc_start = res->start;
+-	hcd->rsrc_len = resource_size(res);
+-
+-	hcd->regs = ioremap(hcd->rsrc_start, hcd->rsrc_len);
+-	if (!hcd->regs) {
+-		dev_err(&pdev->dev, "EHCI ioremap failed\n");
+-		ret = -ENOMEM;
+-		goto err_ioremap;
+-	}
++	omap_ehci = hcd_to_ehci(hcd);
++	omap_ehci->sbrn = 0x20;
+ 
+ 	/* we know this is the memory we want, no need to ioremap again */
+-	omap->ehci->caps = hcd->regs;
+-	omap->ehci_base = hcd->regs;
+-
+-	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "uhh");
+-	omap->uhh_base = ioremap(res->start, resource_size(res));
+-	if (!omap->uhh_base) {
+-		dev_err(&pdev->dev, "UHH ioremap failed\n");
+-		ret = -ENOMEM;
+-		goto err_uhh_ioremap;
+-	}
+-
+-	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "tll");
+-	omap->tll_base = ioremap(res->start, resource_size(res));
+-	if (!omap->tll_base) {
+-		dev_err(&pdev->dev, "TLL ioremap failed\n");
+-		ret = -ENOMEM;
+-		goto err_tll_ioremap;
+-	}
+-
+-	/* get ehci regulator and enable */
+-	for (i = 0 ; i < OMAP3_HS_USB_PORTS ; i++) {
+-		if (omap->port_mode[i] != OMAP_EHCI_PORT_MODE_PHY) {
+-			omap->regulator[i] = NULL;
+-			continue;
+-		}
+-		snprintf(supply, sizeof(supply), "hsusb%d", i);
+-		omap->regulator[i] = regulator_get(omap->dev, supply);
+-		if (IS_ERR(omap->regulator[i])) {
+-			omap->regulator[i] = NULL;
+-			dev_dbg(&pdev->dev,
+-			"failed to get ehci port%d regulator\n", i);
+-		} else {
+-			regulator_enable(omap->regulator[i]);
+-		}
+-	}
+-
+-	ret = omap_start_ehc(omap, hcd);
+-	if (ret) {
+-		dev_err(&pdev->dev, "failed to start ehci with err %d\n", ret);
+-		goto err_start;
+-	}
++	omap_ehci->caps = hcd->regs;
++	omap_ehci->regs = hcd->regs
++			+ HC_LENGTH(readl(&omap_ehci->caps->hc_capbase));
+ 
+-	omap->ehci->regs = hcd->regs
+-		+ HC_LENGTH(readl(&omap->ehci->caps->hc_capbase));
+-
+-	dbg_hcs_params(omap->ehci, "reset");
+-	dbg_hcc_params(omap->ehci, "reset");
++	dbg_hcs_params(omap_ehci, "reset");
++	dbg_hcc_params(omap_ehci, "reset");
+ 
+ 	/* cache this readonly data; minimize chip reads */
+-	omap->ehci->hcs_params = readl(&omap->ehci->caps->hcs_params);
++	omap_ehci->hcs_params = readl(&omap_ehci->caps->hcs_params);
+ 
+ 	ret = usb_add_hcd(hcd, irq, IRQF_DISABLED | IRQF_SHARED);
+ 	if (ret) {
+-		dev_err(&pdev->dev, "failed to add hcd with err %d\n", ret);
++		dev_err(dev, "failed to add hcd with err %d\n", ret);
+ 		goto err_add_hcd;
+ 	}
+ 
+ 	/* root ports should always stay powered */
+-	ehci_port_power(omap->ehci, 1);
++	ehci_port_power(omap_ehci, 1);
+ 
+ 	return 0;
+ 
+ err_add_hcd:
+-	omap_stop_ehc(omap, hcd);
++	omap_usbhs_disable(dev);
+ 
+-err_start:
+-	for (i = 0 ; i < OMAP3_HS_USB_PORTS ; i++) {
+-		if (omap->regulator[i]) {
+-			regulator_disable(omap->regulator[i]);
+-			regulator_put(omap->regulator[i]);
+-		}
+-	}
+-	iounmap(omap->tll_base);
+-
+-err_tll_ioremap:
+-	iounmap(omap->uhh_base);
+-
+-err_uhh_ioremap:
+-	iounmap(hcd->regs);
+-
+-err_ioremap:
++err_enable:
+ 	usb_put_hcd(hcd);
+ 
+-err_create_hcd:
+-	kfree(omap);
+-err_disabled:
+-err_pdata:
++err_io:
+ 	return ret;
+ }
+ 
+-/* may be called without controller electrically present */
+-/* may be called with controller, bus, and devices active */
+ 
+ /**
+  * ehci_hcd_omap_remove - shutdown processing for EHCI HCDs
+@@ -929,31 +229,18 @@ err_pdata:
+  */
+ static int ehci_hcd_omap_remove(struct platform_device *pdev)
+ {
+-	struct ehci_hcd_omap *omap = platform_get_drvdata(pdev);
+-	struct usb_hcd *hcd = ehci_to_hcd(omap->ehci);
+-	int i;
++	struct device *dev	= &pdev->dev;
++	struct usb_hcd *hcd	= dev_get_drvdata(dev);
+ 
+ 	usb_remove_hcd(hcd);
+-	omap_stop_ehc(omap, hcd);
+-	iounmap(hcd->regs);
+-	for (i = 0 ; i < OMAP3_HS_USB_PORTS ; i++) {
+-		if (omap->regulator[i]) {
+-			regulator_disable(omap->regulator[i]);
+-			regulator_put(omap->regulator[i]);
+-		}
+-	}
+-	iounmap(omap->tll_base);
+-	iounmap(omap->uhh_base);
++	omap_usbhs_disable(dev);
+ 	usb_put_hcd(hcd);
+-	kfree(omap);
+-
+ 	return 0;
+ }
+ 
+ static void ehci_hcd_omap_shutdown(struct platform_device *pdev)
+ {
+-	struct ehci_hcd_omap *omap = platform_get_drvdata(pdev);
+-	struct usb_hcd *hcd = ehci_to_hcd(omap->ehci);
++	struct usb_hcd *hcd = dev_get_drvdata(&pdev->dev);
+ 
+ 	if (hcd->driver->shutdown)
+ 		hcd->driver->shutdown(hcd);
+diff --git a/drivers/usb/host/ohci-omap3.c b/drivers/usb/host/ohci-omap3.c
+index 3f9db87..6048f2f 100644
+--- a/drivers/usb/host/ohci-omap3.c
++++ b/drivers/usb/host/ohci-omap3.c
+@@ -7,6 +7,7 @@
+  * Copyright (C) 2007-2010 Texas Instruments, Inc.
+  * Author: Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>
+  * Author: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
++ * Author: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+  *
+  * Based on ehci-omap.c and some other ohci glue layers
+  *
+@@ -24,150 +25,15 @@
+  * along with this program; if not, write to the Free Software
+  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+  *
+- * TODO (last updated Mar 10th, 2010):
++ * TODO (last updated Feb 27, 2011):
+  *	- add kernel-doc
+- *	- Factor out code common to EHCI to a separate file
+- *	- Make EHCI and OHCI coexist together
+- *	  - needs newer silicon versions to actually work
+- *	  - the last one to be loaded currently steps on the other's toes
+- *	- Add hooks for configuring transceivers, etc. at init/exit
+- *	- Add aggressive clock-management code
+  */
+ 
+ #include <linux/platform_device.h>
+-#include <linux/clk.h>
+-
+ #include <plat/usb.h>
+ 
+-/*
+- * OMAP USBHOST Register addresses: VIRTUAL ADDRESSES
+- *	Use ohci_omap_readl()/ohci_omap_writel() functions
+- */
+-
+-/* TLL Register Set */
+-#define	OMAP_USBTLL_REVISION				(0x00)
+-#define	OMAP_USBTLL_SYSCONFIG				(0x10)
+-#define	OMAP_USBTLL_SYSCONFIG_CACTIVITY			(1 << 8)
+-#define	OMAP_USBTLL_SYSCONFIG_SIDLEMODE			(1 << 3)
+-#define	OMAP_USBTLL_SYSCONFIG_ENAWAKEUP			(1 << 2)
+-#define	OMAP_USBTLL_SYSCONFIG_SOFTRESET			(1 << 1)
+-#define	OMAP_USBTLL_SYSCONFIG_AUTOIDLE			(1 << 0)
+-
+-#define	OMAP_USBTLL_SYSSTATUS				(0x14)
+-#define	OMAP_USBTLL_SYSSTATUS_RESETDONE			(1 << 0)
+-
+-#define	OMAP_USBTLL_IRQSTATUS				(0x18)
+-#define	OMAP_USBTLL_IRQENABLE				(0x1C)
+-
+-#define	OMAP_TLL_SHARED_CONF				(0x30)
+-#define	OMAP_TLL_SHARED_CONF_USB_90D_DDR_EN		(1 << 6)
+-#define	OMAP_TLL_SHARED_CONF_USB_180D_SDR_EN		(1 << 5)
+-#define	OMAP_TLL_SHARED_CONF_USB_DIVRATION		(1 << 2)
+-#define	OMAP_TLL_SHARED_CONF_FCLK_REQ			(1 << 1)
+-#define	OMAP_TLL_SHARED_CONF_FCLK_IS_ON			(1 << 0)
+-
+-#define	OMAP_TLL_CHANNEL_CONF(num)			(0x040 + 0x004 * num)
+-#define OMAP_TLL_CHANNEL_CONF_FSLSMODE_SHIFT		24
+-#define	OMAP_TLL_CHANNEL_CONF_ULPINOBITSTUFF		(1 << 11)
+-#define	OMAP_TLL_CHANNEL_CONF_ULPI_ULPIAUTOIDLE		(1 << 10)
+-#define	OMAP_TLL_CHANNEL_CONF_UTMIAUTOIDLE		(1 << 9)
+-#define	OMAP_TLL_CHANNEL_CONF_ULPIDDRMODE		(1 << 8)
+-#define OMAP_TLL_CHANNEL_CONF_CHANMODE_FSLS		(1 << 1)
+-#define	OMAP_TLL_CHANNEL_CONF_CHANEN			(1 << 0)
+-
+-#define OMAP_TLL_CHANNEL_COUNT				3
+-
+-/* UHH Register Set */
+-#define	OMAP_UHH_REVISION				(0x00)
+-#define	OMAP_UHH_SYSCONFIG				(0x10)
+-#define	OMAP_UHH_SYSCONFIG_MIDLEMODE			(1 << 12)
+-#define	OMAP_UHH_SYSCONFIG_CACTIVITY			(1 << 8)
+-#define	OMAP_UHH_SYSCONFIG_SIDLEMODE			(1 << 3)
+-#define	OMAP_UHH_SYSCONFIG_ENAWAKEUP			(1 << 2)
+-#define	OMAP_UHH_SYSCONFIG_SOFTRESET			(1 << 1)
+-#define	OMAP_UHH_SYSCONFIG_AUTOIDLE			(1 << 0)
+-
+-#define	OMAP_UHH_SYSSTATUS				(0x14)
+-#define OMAP_UHH_SYSSTATUS_UHHRESETDONE			(1 << 0)
+-#define OMAP_UHH_SYSSTATUS_OHCIRESETDONE		(1 << 1)
+-#define OMAP_UHH_SYSSTATUS_EHCIRESETDONE		(1 << 2)
+-#define	OMAP_UHH_HOSTCONFIG				(0x40)
+-#define	OMAP_UHH_HOSTCONFIG_ULPI_BYPASS			(1 << 0)
+-#define	OMAP_UHH_HOSTCONFIG_ULPI_P1_BYPASS		(1 << 0)
+-#define	OMAP_UHH_HOSTCONFIG_ULPI_P2_BYPASS		(1 << 11)
+-#define	OMAP_UHH_HOSTCONFIG_ULPI_P3_BYPASS		(1 << 12)
+-#define OMAP_UHH_HOSTCONFIG_INCR4_BURST_EN		(1 << 2)
+-#define OMAP_UHH_HOSTCONFIG_INCR8_BURST_EN		(1 << 3)
+-#define OMAP_UHH_HOSTCONFIG_INCR16_BURST_EN		(1 << 4)
+-#define OMAP_UHH_HOSTCONFIG_INCRX_ALIGN_EN		(1 << 5)
+-#define OMAP_UHH_HOSTCONFIG_P1_CONNECT_STATUS		(1 << 8)
+-#define OMAP_UHH_HOSTCONFIG_P2_CONNECT_STATUS		(1 << 9)
+-#define OMAP_UHH_HOSTCONFIG_P3_CONNECT_STATUS		(1 << 10)
+-
+-#define	OMAP_UHH_DEBUG_CSR				(0x44)
+-
+ /*-------------------------------------------------------------------------*/
+ 
+-static inline void ohci_omap_writel(void __iomem *base, u32 reg, u32 val)
+-{
+-	__raw_writel(val, base + reg);
+-}
+-
+-static inline u32 ohci_omap_readl(void __iomem *base, u32 reg)
+-{
+-	return __raw_readl(base + reg);
+-}
+-
+-static inline void ohci_omap_writeb(void __iomem *base, u8 reg, u8 val)
+-{
+-	__raw_writeb(val, base + reg);
+-}
+-
+-static inline u8 ohci_omap_readb(void __iomem *base, u8 reg)
+-{
+-	return __raw_readb(base + reg);
+-}
+-
+-/*-------------------------------------------------------------------------*/
+-
+-struct ohci_hcd_omap3 {
+-	struct ohci_hcd		*ohci;
+-	struct device		*dev;
+-
+-	struct clk		*usbhost_ick;
+-	struct clk		*usbhost2_120m_fck;
+-	struct clk		*usbhost1_48m_fck;
+-	struct clk		*usbtll_fck;
+-	struct clk		*usbtll_ick;
+-
+-	/* port_mode: TLL/PHY, 2/3/4/6-PIN, DP-DM/DAT-SE0 */
+-	enum usbhs_omap_port_mode	port_mode[OMAP3_HS_USB_PORTS];
+-	void __iomem		*uhh_base;
+-	void __iomem		*tll_base;
+-	void __iomem		*ohci_base;
+-
+-	unsigned		es2_compatibility:1;
+-};
+-
+-/*-------------------------------------------------------------------------*/
+-
+-static void ohci_omap3_clock_power(struct ohci_hcd_omap3 *omap, int on)
+-{
+-	if (on) {
+-		clk_enable(omap->usbtll_ick);
+-		clk_enable(omap->usbtll_fck);
+-		clk_enable(omap->usbhost_ick);
+-		clk_enable(omap->usbhost1_48m_fck);
+-		clk_enable(omap->usbhost2_120m_fck);
+-	} else {
+-		clk_disable(omap->usbhost2_120m_fck);
+-		clk_disable(omap->usbhost1_48m_fck);
+-		clk_disable(omap->usbhost_ick);
+-		clk_disable(omap->usbtll_fck);
+-		clk_disable(omap->usbtll_ick);
+-	}
+-}
+-
+ static int ohci_omap3_init(struct usb_hcd *hcd)
+ {
+ 	dev_dbg(hcd->self.controller, "starting OHCI controller\n");
+@@ -175,7 +41,6 @@ static int ohci_omap3_init(struct usb_hcd *hcd)
+ 	return ohci_init(hcd_to_ohci(hcd));
+ }
+ 
+-
+ /*-------------------------------------------------------------------------*/
+ 
+ static int ohci_omap3_start(struct usb_hcd *hcd)
+@@ -202,325 +67,6 @@ static int ohci_omap3_start(struct usb_hcd *hcd)
  
  /*-------------------------------------------------------------------------*/
  
-@@ -216,7 +216,7 @@ struct ehci_hcd_omap {
- 	u32			omap_ehci_rev;
- 
- 	/* desired phy_mode: TLL, PHY */
--	enum ehci_hcd_omap_mode	port_mode[OMAP3_HS_USB_PORTS];
-+	enum usbhs_omap_port_mode	port_mode[OMAP3_HS_USB_PORTS];
- 
- 	void __iomem		*uhh_base;
- 	void __iomem		*tll_base;
-@@ -385,7 +385,7 @@ static int omap_start_ehc(struct ehci_hcd_omap *omap, struct usb_hcd *hcd)
- 	 */
- 	if (is_omap_ehci_rev2(omap)) {
- 		switch (omap->port_mode[0]) {
--		case EHCI_HCD_OMAP_MODE_PHY:
-+		case OMAP_EHCI_PORT_MODE_PHY:
- 			omap->xclk60mhsp1_ck = clk_get(omap->dev,
- 							"xclk60mhsp1_ck");
- 			if (IS_ERR(omap->xclk60mhsp1_ck)) {
-@@ -409,13 +409,13 @@ static int omap_start_ehc(struct ehci_hcd_omap *omap, struct usb_hcd *hcd)
- 					"Unable to set P1 f-clock\n");
- 			}
- 			break;
--		case EHCI_HCD_OMAP_MODE_TLL:
-+		case OMAP_EHCI_PORT_MODE_TLL:
- 			/* TODO */
- 		default:
- 			break;
- 		}
- 		switch (omap->port_mode[1]) {
--		case EHCI_HCD_OMAP_MODE_PHY:
-+		case OMAP_EHCI_PORT_MODE_PHY:
- 			omap->xclk60mhsp2_ck = clk_get(omap->dev,
- 							"xclk60mhsp2_ck");
- 			if (IS_ERR(omap->xclk60mhsp2_ck)) {
-@@ -439,7 +439,7 @@ static int omap_start_ehc(struct ehci_hcd_omap *omap, struct usb_hcd *hcd)
- 					"Unable to set P2 f-clock\n");
- 			}
- 			break;
--		case EHCI_HCD_OMAP_MODE_TLL:
-+		case OMAP_EHCI_PORT_MODE_TLL:
- 			/* TODO */
- 		default:
- 			break;
-@@ -499,11 +499,11 @@ static int omap_start_ehc(struct ehci_hcd_omap *omap, struct usb_hcd *hcd)
- 	reg &= ~OMAP_UHH_HOSTCONFIG_INCRX_ALIGN_EN;
- 
- 	if (is_omap_ehci_rev1(omap)) {
--		if (omap->port_mode[0] == EHCI_HCD_OMAP_MODE_UNKNOWN)
-+		if (omap->port_mode[0] == OMAP_USBHS_PORT_MODE_UNUSED)
- 			reg &= ~OMAP_UHH_HOSTCONFIG_P1_CONNECT_STATUS;
--		if (omap->port_mode[1] == EHCI_HCD_OMAP_MODE_UNKNOWN)
-+		if (omap->port_mode[1] == OMAP_USBHS_PORT_MODE_UNUSED)
- 			reg &= ~OMAP_UHH_HOSTCONFIG_P2_CONNECT_STATUS;
--		if (omap->port_mode[2] == EHCI_HCD_OMAP_MODE_UNKNOWN)
-+		if (omap->port_mode[2] == OMAP_USBHS_PORT_MODE_UNUSED)
- 			reg &= ~OMAP_UHH_HOSTCONFIG_P3_CONNECT_STATUS;
- 
- 		/* Bypass the TLL module for PHY mode operation */
-@@ -564,15 +564,15 @@ static int omap_start_ehc(struct ehci_hcd_omap *omap, struct usb_hcd *hcd)
- 	ehci_omap_writel(omap->ehci_base, EHCI_INSNREG04,
- 				EHCI_INSNREG04_DISABLE_UNSUSPEND);
- 
--	if ((omap->port_mode[0] == EHCI_HCD_OMAP_MODE_TLL) ||
--		(omap->port_mode[1] == EHCI_HCD_OMAP_MODE_TLL) ||
--			(omap->port_mode[2] == EHCI_HCD_OMAP_MODE_TLL)) {
-+	if ((omap->port_mode[0] == OMAP_EHCI_PORT_MODE_TLL) ||
-+		(omap->port_mode[1] == OMAP_EHCI_PORT_MODE_TLL) ||
-+			(omap->port_mode[2] == OMAP_EHCI_PORT_MODE_TLL)) {
- 
--		if (omap->port_mode[0] == EHCI_HCD_OMAP_MODE_TLL)
-+		if (omap->port_mode[0] == OMAP_EHCI_PORT_MODE_TLL)
- 			tll_ch_mask |= OMAP_TLL_CHANNEL_1_EN_MASK;
--		if (omap->port_mode[1] == EHCI_HCD_OMAP_MODE_TLL)
-+		if (omap->port_mode[1] == OMAP_EHCI_PORT_MODE_TLL)
- 			tll_ch_mask |= OMAP_TLL_CHANNEL_2_EN_MASK;
--		if (omap->port_mode[2] == EHCI_HCD_OMAP_MODE_TLL)
-+		if (omap->port_mode[2] == OMAP_EHCI_PORT_MODE_TLL)
- 			tll_ch_mask |= OMAP_TLL_CHANNEL_3_EN_MASK;
- 
- 		/* Enable UTMI mode for required TLL channels */
-@@ -594,9 +594,9 @@ static int omap_start_ehc(struct ehci_hcd_omap *omap, struct usb_hcd *hcd)
- 	}
- 
- 	/* Soft reset the PHY using PHY reset command over ULPI */
--	if (omap->port_mode[0] == EHCI_HCD_OMAP_MODE_PHY)
-+	if (omap->port_mode[0] == OMAP_EHCI_PORT_MODE_PHY)
- 		omap_ehci_soft_phy_reset(omap, 0);
--	if (omap->port_mode[1] == EHCI_HCD_OMAP_MODE_PHY)
-+	if (omap->port_mode[1] == OMAP_EHCI_PORT_MODE_PHY)
- 		omap_ehci_soft_phy_reset(omap, 1);
- 
- 	return 0;
-@@ -769,7 +769,7 @@ static const struct hc_driver ehci_omap_hc_driver;
-  */
- static int ehci_hcd_omap_probe(struct platform_device *pdev)
- {
--	struct ehci_hcd_omap_platform_data *pdata = pdev->dev.platform_data;
-+	struct usbhs_omap_board_data *pdata = pdev->dev.platform_data;
- 	struct ehci_hcd_omap *omap;
- 	struct resource *res;
- 	struct usb_hcd *hcd;
-@@ -847,7 +847,7 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
- 
- 	/* get ehci regulator and enable */
- 	for (i = 0 ; i < OMAP3_HS_USB_PORTS ; i++) {
--		if (omap->port_mode[i] != EHCI_HCD_OMAP_MODE_PHY) {
-+		if (omap->port_mode[i] != OMAP_EHCI_PORT_MODE_PHY) {
- 			omap->regulator[i] = NULL;
- 			continue;
- 		}
-diff --git a/drivers/usb/host/ohci-omap3.c b/drivers/usb/host/ohci-omap3.c
-index 32f56bb..3f9db87 100644
---- a/drivers/usb/host/ohci-omap3.c
-+++ b/drivers/usb/host/ohci-omap3.c
-@@ -141,7 +141,7 @@ struct ohci_hcd_omap3 {
- 	struct clk		*usbtll_ick;
- 
- 	/* port_mode: TLL/PHY, 2/3/4/6-PIN, DP-DM/DAT-SE0 */
--	enum ohci_omap3_port_mode	port_mode[OMAP3_HS_USB_PORTS];
-+	enum usbhs_omap_port_mode	port_mode[OMAP3_HS_USB_PORTS];
- 	void __iomem		*uhh_base;
- 	void __iomem		*tll_base;
- 	void __iomem		*ohci_base;
-@@ -206,10 +206,10 @@ static int ohci_omap3_start(struct usb_hcd *hcd)
-  * convert the port-mode enum to a value we can use in the FSLSMODE
-  * field of USBTLL_CHANNEL_CONF
-  */
--static unsigned ohci_omap3_fslsmode(enum ohci_omap3_port_mode mode)
-+static unsigned ohci_omap3_fslsmode(enum usbhs_omap_port_mode mode)
- {
- 	switch (mode) {
--	case OMAP_OHCI_PORT_MODE_UNUSED:
-+	case OMAP_USBHS_PORT_MODE_UNUSED:
- 	case OMAP_OHCI_PORT_MODE_PHY_6PIN_DATSE0:
- 		return 0x0;
- 
-@@ -266,7 +266,7 @@ static void ohci_omap3_tll_config(struct ohci_hcd_omap3 *omap)
- 	for (i = 0; i < OMAP_TLL_CHANNEL_COUNT; i++) {
- 
- 		/* Enable only those channels that are actually used */
--		if (omap->port_mode[i] == OMAP_OHCI_PORT_MODE_UNUSED)
-+		if (omap->port_mode[i] == OMAP_USBHS_PORT_MODE_UNUSED)
- 			continue;
- 
- 		reg = ohci_omap_readl(omap->tll_base, OMAP_TLL_CHANNEL_CONF(i));
-@@ -382,11 +382,11 @@ static int omap3_start_ohci(struct ohci_hcd_omap3 *omap, struct usb_hcd *hcd)
- 	 *
- 	 * For now, turn off all the Pi_CONNECT_STATUS bits
- 	 *
--	if (omap->port_mode[0] == OMAP_OHCI_PORT_MODE_UNUSED)
-+	if (omap->port_mode[0] == OMAP_USBHS_PORT_MODE_UNUSED)
- 		reg &= ~OMAP_UHH_HOSTCONFIG_P1_CONNECT_STATUS;
--	if (omap->port_mode[1] == OMAP_OHCI_PORT_MODE_UNUSED)
-+	if (omap->port_mode[1] == OMAP_USBHS_PORT_MODE_UNUSED)
- 		reg &= ~OMAP_UHH_HOSTCONFIG_P2_CONNECT_STATUS;
--	if (omap->port_mode[2] == OMAP_OHCI_PORT_MODE_UNUSED)
-+	if (omap->port_mode[2] == OMAP_USBHS_PORT_MODE_UNUSED)
- 		reg &= ~OMAP_UHH_HOSTCONFIG_P3_CONNECT_STATUS;
- 	 */
- 	reg &= ~OMAP_UHH_HOSTCONFIG_P1_CONNECT_STATUS;
-@@ -403,17 +403,17 @@ static int omap3_start_ohci(struct ohci_hcd_omap3 *omap, struct usb_hcd *hcd)
- 		reg |= OMAP_UHH_HOSTCONFIG_ULPI_BYPASS;
- 	} else {
- 		dev_dbg(omap->dev, "OMAP3 ES version > ES2.1\n");
--		if (omap->port_mode[0] == OMAP_OHCI_PORT_MODE_UNUSED)
-+		if (omap->port_mode[0] == OMAP_USBHS_PORT_MODE_UNUSED)
- 			reg &= ~OMAP_UHH_HOSTCONFIG_ULPI_P1_BYPASS;
- 		else
- 			reg |= OMAP_UHH_HOSTCONFIG_ULPI_P1_BYPASS;
- 
--		if (omap->port_mode[1] == OMAP_OHCI_PORT_MODE_UNUSED)
-+		if (omap->port_mode[1] == OMAP_USBHS_PORT_MODE_UNUSED)
- 			reg &= ~OMAP_UHH_HOSTCONFIG_ULPI_P2_BYPASS;
- 		else
- 			reg |= OMAP_UHH_HOSTCONFIG_ULPI_P2_BYPASS;
- 
--		if (omap->port_mode[2] == OMAP_OHCI_PORT_MODE_UNUSED)
-+		if (omap->port_mode[2] == OMAP_USBHS_PORT_MODE_UNUSED)
- 			reg &= ~OMAP_UHH_HOSTCONFIG_ULPI_P3_BYPASS;
- 		else
- 			reg |= OMAP_UHH_HOSTCONFIG_ULPI_P3_BYPASS;
-@@ -580,7 +580,7 @@ static const struct hc_driver ohci_omap3_hc_driver = {
+-/*
+- * convert the port-mode enum to a value we can use in the FSLSMODE
+- * field of USBTLL_CHANNEL_CONF
+- */
+-static unsigned ohci_omap3_fslsmode(enum usbhs_omap_port_mode mode)
+-{
+-	switch (mode) {
+-	case OMAP_USBHS_PORT_MODE_UNUSED:
+-	case OMAP_OHCI_PORT_MODE_PHY_6PIN_DATSE0:
+-		return 0x0;
+-
+-	case OMAP_OHCI_PORT_MODE_PHY_6PIN_DPDM:
+-		return 0x1;
+-
+-	case OMAP_OHCI_PORT_MODE_PHY_3PIN_DATSE0:
+-		return 0x2;
+-
+-	case OMAP_OHCI_PORT_MODE_PHY_4PIN_DPDM:
+-		return 0x3;
+-
+-	case OMAP_OHCI_PORT_MODE_TLL_6PIN_DATSE0:
+-		return 0x4;
+-
+-	case OMAP_OHCI_PORT_MODE_TLL_6PIN_DPDM:
+-		return 0x5;
+-
+-	case OMAP_OHCI_PORT_MODE_TLL_3PIN_DATSE0:
+-		return 0x6;
+-
+-	case OMAP_OHCI_PORT_MODE_TLL_4PIN_DPDM:
+-		return 0x7;
+-
+-	case OMAP_OHCI_PORT_MODE_TLL_2PIN_DATSE0:
+-		return 0xA;
+-
+-	case OMAP_OHCI_PORT_MODE_TLL_2PIN_DPDM:
+-		return 0xB;
+-	default:
+-		pr_warning("Invalid port mode, using default\n");
+-		return 0x0;
+-	}
+-}
+-
+-static void ohci_omap3_tll_config(struct ohci_hcd_omap3 *omap)
+-{
+-	u32 reg;
+-	int i;
+-
+-	/* Program TLL SHARED CONF */
+-	reg = ohci_omap_readl(omap->tll_base, OMAP_TLL_SHARED_CONF);
+-	reg &= ~OMAP_TLL_SHARED_CONF_USB_90D_DDR_EN;
+-	reg &= ~OMAP_TLL_SHARED_CONF_USB_180D_SDR_EN;
+-	reg |= OMAP_TLL_SHARED_CONF_USB_DIVRATION;
+-	reg |= OMAP_TLL_SHARED_CONF_FCLK_IS_ON;
+-	ohci_omap_writel(omap->tll_base, OMAP_TLL_SHARED_CONF, reg);
+-
+-	/* Program each TLL channel */
+-	/*
+-	 * REVISIT: Only the 3-pin and 4-pin PHY modes have
+-	 * actually been tested.
+-	 */
+-	for (i = 0; i < OMAP_TLL_CHANNEL_COUNT; i++) {
+-
+-		/* Enable only those channels that are actually used */
+-		if (omap->port_mode[i] == OMAP_USBHS_PORT_MODE_UNUSED)
+-			continue;
+-
+-		reg = ohci_omap_readl(omap->tll_base, OMAP_TLL_CHANNEL_CONF(i));
+-		reg |= ohci_omap3_fslsmode(omap->port_mode[i])
+-				<< OMAP_TLL_CHANNEL_CONF_FSLSMODE_SHIFT;
+-		reg |= OMAP_TLL_CHANNEL_CONF_CHANMODE_FSLS;
+-		reg |= OMAP_TLL_CHANNEL_CONF_CHANEN;
+-		ohci_omap_writel(omap->tll_base, OMAP_TLL_CHANNEL_CONF(i), reg);
+-	}
+-}
+-
+-/* omap3_start_ohci
+- *	- Start the TI USBHOST controller
+- */
+-static int omap3_start_ohci(struct ohci_hcd_omap3 *omap, struct usb_hcd *hcd)
+-{
+-	unsigned long timeout = jiffies + msecs_to_jiffies(1000);
+-	u32 reg = 0;
+-	int ret = 0;
+-
+-	dev_dbg(omap->dev, "starting TI OHCI USB Controller\n");
+-
+-	/* Get all the clock handles we need */
+-	omap->usbhost_ick = clk_get(omap->dev, "usbhost_ick");
+-	if (IS_ERR(omap->usbhost_ick)) {
+-		dev_err(omap->dev, "could not get usbhost_ick\n");
+-		ret =  PTR_ERR(omap->usbhost_ick);
+-		goto err_host_ick;
+-	}
+-
+-	omap->usbhost2_120m_fck = clk_get(omap->dev, "usbhost_120m_fck");
+-	if (IS_ERR(omap->usbhost2_120m_fck)) {
+-		dev_err(omap->dev, "could not get usbhost_120m_fck\n");
+-		ret = PTR_ERR(omap->usbhost2_120m_fck);
+-		goto err_host_120m_fck;
+-	}
+-
+-	omap->usbhost1_48m_fck = clk_get(omap->dev, "usbhost_48m_fck");
+-	if (IS_ERR(omap->usbhost1_48m_fck)) {
+-		dev_err(omap->dev, "could not get usbhost_48m_fck\n");
+-		ret = PTR_ERR(omap->usbhost1_48m_fck);
+-		goto err_host_48m_fck;
+-	}
+-
+-	omap->usbtll_fck = clk_get(omap->dev, "usbtll_fck");
+-	if (IS_ERR(omap->usbtll_fck)) {
+-		dev_err(omap->dev, "could not get usbtll_fck\n");
+-		ret = PTR_ERR(omap->usbtll_fck);
+-		goto err_tll_fck;
+-	}
+-
+-	omap->usbtll_ick = clk_get(omap->dev, "usbtll_ick");
+-	if (IS_ERR(omap->usbtll_ick)) {
+-		dev_err(omap->dev, "could not get usbtll_ick\n");
+-		ret = PTR_ERR(omap->usbtll_ick);
+-		goto err_tll_ick;
+-	}
+-
+-	/* Now enable all the clocks in the correct order */
+-	ohci_omap3_clock_power(omap, 1);
+-
+-	/* perform TLL soft reset, and wait until reset is complete */
+-	ohci_omap_writel(omap->tll_base, OMAP_USBTLL_SYSCONFIG,
+-			OMAP_USBTLL_SYSCONFIG_SOFTRESET);
+-
+-	/* Wait for TLL reset to complete */
+-	while (!(ohci_omap_readl(omap->tll_base, OMAP_USBTLL_SYSSTATUS)
+-			& OMAP_USBTLL_SYSSTATUS_RESETDONE)) {
+-		cpu_relax();
+-
+-		if (time_after(jiffies, timeout)) {
+-			dev_dbg(omap->dev, "operation timed out\n");
+-			ret = -EINVAL;
+-			goto err_sys_status;
+-		}
+-	}
+-
+-	dev_dbg(omap->dev, "TLL reset done\n");
+-
+-	/* (1<<3) = no idle mode only for initial debugging */
+-	ohci_omap_writel(omap->tll_base, OMAP_USBTLL_SYSCONFIG,
+-			OMAP_USBTLL_SYSCONFIG_ENAWAKEUP |
+-			OMAP_USBTLL_SYSCONFIG_SIDLEMODE |
+-			OMAP_USBTLL_SYSCONFIG_CACTIVITY);
+-
+-
+-	/* Put UHH in NoIdle/NoStandby mode */
+-	reg = ohci_omap_readl(omap->uhh_base, OMAP_UHH_SYSCONFIG);
+-	reg |= (OMAP_UHH_SYSCONFIG_ENAWAKEUP
+-			| OMAP_UHH_SYSCONFIG_SIDLEMODE
+-			| OMAP_UHH_SYSCONFIG_CACTIVITY
+-			| OMAP_UHH_SYSCONFIG_MIDLEMODE);
+-	reg &= ~OMAP_UHH_SYSCONFIG_AUTOIDLE;
+-	reg &= ~OMAP_UHH_SYSCONFIG_SOFTRESET;
+-
+-	ohci_omap_writel(omap->uhh_base, OMAP_UHH_SYSCONFIG, reg);
+-
+-	reg = ohci_omap_readl(omap->uhh_base, OMAP_UHH_HOSTCONFIG);
+-
+-	/* setup ULPI bypass and burst configurations */
+-	reg |= (OMAP_UHH_HOSTCONFIG_INCR4_BURST_EN
+-			| OMAP_UHH_HOSTCONFIG_INCR8_BURST_EN
+-			| OMAP_UHH_HOSTCONFIG_INCR16_BURST_EN);
+-	reg &= ~OMAP_UHH_HOSTCONFIG_INCRX_ALIGN_EN;
+-
+-	/*
+-	 * REVISIT: Pi_CONNECT_STATUS controls MStandby
+-	 * assertion and Swakeup generation - let us not
+-	 * worry about this for now. OMAP HWMOD framework
+-	 * might take care of this later. If not, we can
+-	 * update these registers when adding aggressive
+-	 * clock management code.
+-	 *
+-	 * For now, turn off all the Pi_CONNECT_STATUS bits
+-	 *
+-	if (omap->port_mode[0] == OMAP_USBHS_PORT_MODE_UNUSED)
+-		reg &= ~OMAP_UHH_HOSTCONFIG_P1_CONNECT_STATUS;
+-	if (omap->port_mode[1] == OMAP_USBHS_PORT_MODE_UNUSED)
+-		reg &= ~OMAP_UHH_HOSTCONFIG_P2_CONNECT_STATUS;
+-	if (omap->port_mode[2] == OMAP_USBHS_PORT_MODE_UNUSED)
+-		reg &= ~OMAP_UHH_HOSTCONFIG_P3_CONNECT_STATUS;
+-	 */
+-	reg &= ~OMAP_UHH_HOSTCONFIG_P1_CONNECT_STATUS;
+-	reg &= ~OMAP_UHH_HOSTCONFIG_P2_CONNECT_STATUS;
+-	reg &= ~OMAP_UHH_HOSTCONFIG_P3_CONNECT_STATUS;
+-
+-	 if (omap->es2_compatibility) {
+-		/*
+-		 * All OHCI modes need to go through the TLL,
+-		 * unlike in the EHCI case. So use UTMI mode
+-		 * for all ports for OHCI, on ES2.x silicon
+-		 */
+-		dev_dbg(omap->dev, "OMAP3 ES version <= ES2.1\n");
+-		reg |= OMAP_UHH_HOSTCONFIG_ULPI_BYPASS;
+-	} else {
+-		dev_dbg(omap->dev, "OMAP3 ES version > ES2.1\n");
+-		if (omap->port_mode[0] == OMAP_USBHS_PORT_MODE_UNUSED)
+-			reg &= ~OMAP_UHH_HOSTCONFIG_ULPI_P1_BYPASS;
+-		else
+-			reg |= OMAP_UHH_HOSTCONFIG_ULPI_P1_BYPASS;
+-
+-		if (omap->port_mode[1] == OMAP_USBHS_PORT_MODE_UNUSED)
+-			reg &= ~OMAP_UHH_HOSTCONFIG_ULPI_P2_BYPASS;
+-		else
+-			reg |= OMAP_UHH_HOSTCONFIG_ULPI_P2_BYPASS;
+-
+-		if (omap->port_mode[2] == OMAP_USBHS_PORT_MODE_UNUSED)
+-			reg &= ~OMAP_UHH_HOSTCONFIG_ULPI_P3_BYPASS;
+-		else
+-			reg |= OMAP_UHH_HOSTCONFIG_ULPI_P3_BYPASS;
+-
+-	}
+-	ohci_omap_writel(omap->uhh_base, OMAP_UHH_HOSTCONFIG, reg);
+-	dev_dbg(omap->dev, "UHH setup done, uhh_hostconfig=%x\n", reg);
+-
+-	ohci_omap3_tll_config(omap);
+-
+-	return 0;
+-
+-err_sys_status:
+-	ohci_omap3_clock_power(omap, 0);
+-	clk_put(omap->usbtll_ick);
+-
+-err_tll_ick:
+-	clk_put(omap->usbtll_fck);
+-
+-err_tll_fck:
+-	clk_put(omap->usbhost1_48m_fck);
+-
+-err_host_48m_fck:
+-	clk_put(omap->usbhost2_120m_fck);
+-
+-err_host_120m_fck:
+-	clk_put(omap->usbhost_ick);
+-
+-err_host_ick:
+-	return ret;
+-}
+-
+-static void omap3_stop_ohci(struct ohci_hcd_omap3 *omap, struct usb_hcd *hcd)
+-{
+-	unsigned long timeout = jiffies + msecs_to_jiffies(100);
+-
+-	dev_dbg(omap->dev, "stopping TI EHCI USB Controller\n");
+-
+-	/* Reset USBHOST for insmod/rmmod to work */
+-	ohci_omap_writel(omap->uhh_base, OMAP_UHH_SYSCONFIG,
+-			OMAP_UHH_SYSCONFIG_SOFTRESET);
+-	while (!(ohci_omap_readl(omap->uhh_base, OMAP_UHH_SYSSTATUS)
+-				& OMAP_UHH_SYSSTATUS_UHHRESETDONE)) {
+-		cpu_relax();
+-
+-		if (time_after(jiffies, timeout))
+-			dev_dbg(omap->dev, "operation timed out\n");
+-	}
+-
+-	while (!(ohci_omap_readl(omap->uhh_base, OMAP_UHH_SYSSTATUS)
+-				& OMAP_UHH_SYSSTATUS_OHCIRESETDONE)) {
+-		cpu_relax();
+-
+-		if (time_after(jiffies, timeout))
+-			dev_dbg(omap->dev, "operation timed out\n");
+-	}
+-
+-	while (!(ohci_omap_readl(omap->uhh_base, OMAP_UHH_SYSSTATUS)
+-				& OMAP_UHH_SYSSTATUS_EHCIRESETDONE)) {
+-		cpu_relax();
+-
+-		if (time_after(jiffies, timeout))
+-			dev_dbg(omap->dev, "operation timed out\n");
+-	}
+-
+-	ohci_omap_writel(omap->tll_base, OMAP_USBTLL_SYSCONFIG, (1 << 1));
+-
+-	while (!(ohci_omap_readl(omap->tll_base, OMAP_USBTLL_SYSSTATUS)
+-				& (1 << 0))) {
+-		cpu_relax();
+-
+-		if (time_after(jiffies, timeout))
+-			dev_dbg(omap->dev, "operation timed out\n");
+-	}
+-
+-	ohci_omap3_clock_power(omap, 0);
+-
+-	if (omap->usbtll_fck != NULL) {
+-		clk_put(omap->usbtll_fck);
+-		omap->usbtll_fck = NULL;
+-	}
+-
+-	if (omap->usbhost_ick != NULL) {
+-		clk_put(omap->usbhost_ick);
+-		omap->usbhost_ick = NULL;
+-	}
+-
+-	if (omap->usbhost1_48m_fck != NULL) {
+-		clk_put(omap->usbhost1_48m_fck);
+-		omap->usbhost1_48m_fck = NULL;
+-	}
+-
+-	if (omap->usbhost2_120m_fck != NULL) {
+-		clk_put(omap->usbhost2_120m_fck);
+-		omap->usbhost2_120m_fck = NULL;
+-	}
+-
+-	if (omap->usbtll_ick != NULL) {
+-		clk_put(omap->usbtll_ick);
+-		omap->usbtll_ick = NULL;
+-	}
+-
+-	dev_dbg(omap->dev, "Clock to USB host has been disabled\n");
+-}
+-
+-/*-------------------------------------------------------------------------*/
+-
+ static const struct hc_driver ohci_omap3_hc_driver = {
+ 	.description =		hcd_name,
+ 	.product_desc =		"OMAP3 OHCI Host Controller",
+@@ -580,107 +126,77 @@ static const struct hc_driver ohci_omap3_hc_driver = {
   */
  static int __devinit ohci_hcd_omap3_probe(struct platform_device *pdev)
  {
--	struct ohci_hcd_omap_platform_data *pdata = pdev->dev.platform_data;
-+	struct usbhs_omap_board_data *pdata = pdev->dev.platform_data;
- 	struct ohci_hcd_omap3 *omap;
- 	struct resource *res;
- 	struct usb_hcd *hcd;
+-	struct usbhs_omap_board_data *pdata = pdev->dev.platform_data;
+-	struct ohci_hcd_omap3 *omap;
+-	struct resource *res;
+-	struct usb_hcd *hcd;
+-	int ret = -ENODEV;
+-	int irq;
++	struct device		*dev = &pdev->dev;
++	struct usb_hcd		*hcd = NULL;
++	void __iomem		*regs = NULL;
++	struct resource		*res;
++	int			ret = -ENODEV;
++	int			irq;
+ 
+ 	if (usb_disabled())
+-		goto err_disabled;
++		goto err_end;
+ 
+-	if (!pdata) {
+-		dev_dbg(&pdev->dev, "missing platform_data\n");
+-		goto err_pdata;
++	if (!dev->parent) {
++		dev_err(dev, "Missing parent device\n");
++		return -ENODEV;
+ 	}
+ 
+-	irq = platform_get_irq(pdev, 0);
++	irq = platform_get_irq_byname(pdev, "ohci-irq");
++	if (irq < 0) {
++		dev_err(dev, "OHCI irq failed\n");
++		return -ENODEV;
++	}
+ 
+-	omap = kzalloc(sizeof(*omap), GFP_KERNEL);
+-	if (!omap) {
+-		ret = -ENOMEM;
+-		goto err_disabled;
++	res = platform_get_resource_byname(pdev,
++				IORESOURCE_MEM, "ohci");
++	if (!ret) {
++		dev_err(dev, "UHH OHCI get resource failed\n");
++		return -ENOMEM;
+ 	}
+ 
+-	hcd = usb_create_hcd(&ohci_omap3_hc_driver, &pdev->dev,
+-			dev_name(&pdev->dev));
+-	if (!hcd) {
+-		ret = -ENOMEM;
+-		goto err_create_hcd;
++	regs = ioremap(res->start, resource_size(res));
++	if (!regs) {
++		dev_err(dev, "UHH OHCI ioremap failed\n");
++		return -ENOMEM;
+ 	}
+ 
+-	platform_set_drvdata(pdev, omap);
+-	omap->dev		= &pdev->dev;
+-	omap->port_mode[0]	= pdata->port_mode[0];
+-	omap->port_mode[1]	= pdata->port_mode[1];
+-	omap->port_mode[2]	= pdata->port_mode[2];
+-	omap->es2_compatibility	= pdata->es2_compatibility;
+-	omap->ohci		= hcd_to_ohci(hcd);
+ 
+-	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "ohci");
++	hcd = usb_create_hcd(&ohci_omap3_hc_driver, dev,
++			dev_name(dev));
++	if (!hcd) {
++		dev_err(dev, "usb_create_hcd failed\n");
++		goto err_io;
++	}
+ 
+ 	hcd->rsrc_start = res->start;
+ 	hcd->rsrc_len = resource_size(res);
++	hcd->regs =  regs;
+ 
+-	hcd->regs = ioremap(hcd->rsrc_start, hcd->rsrc_len);
+-	if (!hcd->regs) {
+-		dev_err(&pdev->dev, "OHCI ioremap failed\n");
+-		ret = -ENOMEM;
+-		goto err_ioremap;
+-	}
+-
+-	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "uhh");
+-	omap->uhh_base = ioremap(res->start, resource_size(res));
+-	if (!omap->uhh_base) {
+-		dev_err(&pdev->dev, "UHH ioremap failed\n");
+-		ret = -ENOMEM;
+-		goto err_uhh_ioremap;
+-	}
+-
+-	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "tll");
+-	omap->tll_base = ioremap(res->start, resource_size(res));
+-	if (!omap->tll_base) {
+-		dev_err(&pdev->dev, "TLL ioremap failed\n");
+-		ret = -ENOMEM;
+-		goto err_tll_ioremap;
+-	}
+-
+-	ret = omap3_start_ohci(omap, hcd);
++	ret = omap_usbhs_enable(dev);
+ 	if (ret) {
+-		dev_dbg(&pdev->dev, "failed to start ohci\n");
+-		goto err_start;
++		dev_dbg(dev, "failed to start ohci\n");
++		goto err_end;
+ 	}
+ 
+-	ohci_hcd_init(omap->ohci);
++	ohci_hcd_init(hcd_to_ohci(hcd));
+ 
+ 	ret = usb_add_hcd(hcd, irq, IRQF_DISABLED);
+ 	if (ret) {
+-		dev_dbg(&pdev->dev, "failed to add hcd with err %d\n", ret);
++		dev_dbg(dev, "failed to add hcd with err %d\n", ret);
+ 		goto err_add_hcd;
+ 	}
+ 
+ 	return 0;
+ 
+ err_add_hcd:
+-	omap3_stop_ohci(omap, hcd);
+-
+-err_start:
+-	iounmap(omap->tll_base);
+-
+-err_tll_ioremap:
+-	iounmap(omap->uhh_base);
+-
+-err_uhh_ioremap:
+-	iounmap(hcd->regs);
++	omap_usbhs_disable(dev);
+ 
+-err_ioremap:
++err_end:
+ 	usb_put_hcd(hcd);
+ 
+-err_create_hcd:
+-	kfree(omap);
+-err_pdata:
+-err_disabled:
++err_io:
++	iounmap(regs);
++
+ 	return ret;
+ }
+ 
+@@ -699,24 +215,20 @@ err_disabled:
+  */
+ static int __devexit ohci_hcd_omap3_remove(struct platform_device *pdev)
+ {
+-	struct ohci_hcd_omap3 *omap = platform_get_drvdata(pdev);
+-	struct usb_hcd *hcd = ohci_to_hcd(omap->ohci);
++	struct device *dev	= &pdev->dev;
++	struct usb_hcd *hcd	= dev_get_drvdata(dev);
+ 
+-	usb_remove_hcd(hcd);
+-	omap3_stop_ohci(omap, hcd);
+ 	iounmap(hcd->regs);
+-	iounmap(omap->tll_base);
+-	iounmap(omap->uhh_base);
++	usb_remove_hcd(hcd);
++	omap_usbhs_disable(dev);
+ 	usb_put_hcd(hcd);
+-	kfree(omap);
+ 
+ 	return 0;
+ }
+ 
+ static void ohci_hcd_omap3_shutdown(struct platform_device *pdev)
+ {
+-	struct ohci_hcd_omap3 *omap = platform_get_drvdata(pdev);
+-	struct usb_hcd *hcd = ohci_to_hcd(omap->ohci);
++	struct usb_hcd *hcd = dev_get_drvdata(&pdev->dev);
+ 
+ 	if (hcd->driver->shutdown)
+ 		hcd->driver->shutdown(hcd);
 -- 
 1.6.0.4
 
