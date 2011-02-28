@@ -1,51 +1,71 @@
-From: Michael Buesch <mb@bu3sch.de>
-Subject: Nokia n810 LCD (MIPID/blizzard) on 2.6.38
-Date: Mon, 28 Feb 2011 21:45:43 +0100
-Message-ID: <1298925943.16391.19.camel@marge>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH v2 0/9] OMAP2+: hwmod/clockevent: allow hwmods to be set up
+	individually
+Date: Mon, 28 Feb 2011 14:12:02 -0700
+Message-ID: <20110228210858.15286.3200.stgit@twilight.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 80-190-117-144.ip-home.de ([80.190.117.144]:35668 "EHLO
-	bu3sch.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754014Ab1B1Upq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 28 Feb 2011 15:45:46 -0500
+Received: from utopia.booyaka.com ([72.9.107.138]:50081 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754662Ab1B1VOT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Feb 2011 16:14:19 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
-Cc: Felipe Balbi <balbi@ti.com>, Varadarajan Charulatha <charu@ti.com>
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-The n810 LCD does not work on the 2.6.38(-rc6) kernel
-due to changes in the OMAP GPIO-hwmod code.
+Hello,
 
-The hwmod code performs a soft-reset on the GPIO
-module. The first GPIO module carries the MIPID
-"nreset" line, which is toggled due to the hwmod soft reset.
-This resets Blizzard and breaks it, because
-it assumes the LCD was left in the state that the
-bootloader initialized it to:
+This series adds the ability to set up (formerly known
+as "late-initialize") individual hwmods, rather than doing them
+all at once.  The goal here is for clockevent (and eventually
+clocksource) hwmods to be set up right before they are needed, in
+the timer init code.  Then omap_hwmod_setup_all(), which
+sets up the rest of the hwmods, is intended to run as an
+initcall -- much later in the boot process.
 
-	if (!(blizzard_read_reg(BLIZZARD_PLL_DIV) & 0x80)) {
-		dev_err(fbdev->dev,
-			  "controller not initialized by the bootloader\n");
-		r = -ENODEV;
-		goto err3;
-	}
+This series includes the OMAP2/3 hwmod data for the GPTIMERs that
+Tarun posted earlier.  This data is necessary for this new code
+to avoid warnings during boot.
 
-My temporary workaround to this issue is to disable
-soft reset for the first GPIO module:
-
-	static struct omap_hwmod omap2420_gpio1_hwmod = {
-		.name           = "gpio1",
-		.flags          = HWMOD_INIT_NO_RESET, /* Workaround: Don't reset the n810 MIPID */
-
-I'm wondering if a better fix suitable for the mainline
-kernel inclusion could be found.
-Any ideas?
-
--- 
-Greetings, Michael.
+Boot-tested on OMAP34xx Beagleboard and OMAP4430ES2 Panda.
+Applies on Tony's 7cab8713b1ed0dab08ad6458f92a40b7ff4be619
+("Merge branch 'for-tony' of
+git://gitorious.org/linux-omap-dss2/linux into omap-for-linus")
 
 
+- Paul
 
+---
+
+hwmod_clockevent_2.6.39
+   text	   data	    bss	    dec	    hex	filename
+5781261	 484056	5598712	11864029	 b507dd	vmlinux.omap2plus_defconfig.orig
+5785233	 491096	5598680	11875009	 b532c1	vmlinux.omap2plus_defconfig
+
+Paul Walmsley (6):
+      OMAP2+: hwmod: allow multiple calls to omap_hwmod_init()
+      OMAP2+: hwmod: rename some init functions
+      OMAP2+: hwmod: find MPU initiator hwmod during in _register()
+      OMAP2+: hwmod: ignore attempts to re-setup a hwmod
+      OMAP2+: hwmod: add ability to setup individual hwmods
+      OMAP2+: clockevent: set up GPTIMER clockevent hwmod right before timer init
+
+Thara Gopinath (3):
+      OMAP2420: hwmod data: add dmtimer
+      OMAP2430: hwmod data: add dmtimer
+      OMAP3: hwmod data: add dmtimer
+
+
+ arch/arm/mach-omap2/omap_hwmod.c             |  154 ++++--
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c   |  636 +++++++++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c   |  635 +++++++++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c   |  651 ++++++++++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c   |    2 
+ arch/arm/mach-omap2/serial.c                 |    2 
+ arch/arm/mach-omap2/timer-gp.c               |    7 
+ arch/arm/plat-omap/include/plat/dmtimer.h    |   11 
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |    9 
+ 9 files changed, 2045 insertions(+), 62 deletions(-)
 
