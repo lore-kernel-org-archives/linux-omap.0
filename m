@@ -1,34 +1,80 @@
-From: Samuel Ortiz <sameo@linux.intel.com>
-Subject: Re: [PATCH] mfd: twl4030: Enabling twl4030_wdt and pwrbutton only
- for Triton
-Date: Mon, 28 Feb 2011 02:05:06 +0100
-Message-ID: <20110228010505.GF2749@sortiz-mobl>
-References: <1298458614-22366-1-git-send-email-j-keerthy@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 0/8] OMAP2+: hwmod/clockevent: allow late-init of individual
+ hwmods
+Date: Sun, 27 Feb 2011 19:31:47 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1102271928550.505@utopia.booyaka.com>
+References: <20110223070455.5874.51326.stgit@twilight.localdomain> <4D651998.3040002@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-871082634-1298860307=:505"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:10630 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752292Ab1B1BFI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 27 Feb 2011 20:05:08 -0500
-Content-Disposition: inline
-In-Reply-To: <1298458614-22366-1-git-send-email-j-keerthy@ti.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:40233 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752079Ab1B1Cbs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 27 Feb 2011 21:31:48 -0500
+In-Reply-To: <4D651998.3040002@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: "Cousson, Benoit" <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Hilman, Kevin" <khilman@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Gopinath, Thara" <thara@ti.com>, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
 
-Hi Keerthy,
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-On Wed, Feb 23, 2011 at 04:26:54PM +0530, Keerthy wrote:
-> Enabling twl4030_wdt and twl4030_pwrbutton only for Triton i.e for
-> TWL4030 and TWL5030. This is to be excluded for Phoenix TWL6030.
-> Tested OMAP4 blaze, OMAP2430, OMAP3630 boot up.
-Patch applied, thanks.
+--155748971-871082634-1298860307=:505
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-Cheers,
-Samuel.
+Salut Beno=C3=AEt,
 
--- 
-Intel Open Source Technology Centre
-http://oss.intel.com/
+On Wed, 23 Feb 2011, Cousson, Benoit wrote:
+
+> On 2/23/2011 8:11 AM, Paul Walmsley wrote:
+> > This series adds the ability to late-initialize individual
+> > hwmods.  The goal here is for clockevent (and eventually
+> > clocksource) hwmods to be late-initialized individually, and
+> > right before they are needed, in the timer init code.  Then
+> > omap_hwmod_late_init(), which late-inits the rest of the hwmods,
+> > is intended to run as an initcall -- much later in the boot
+> > process.
+> >=20
+> > This series includes the OMAP2/3 hwmod data for the GPTIMERs that
+> > Tarun posted earlier.  This data is necessary for this new code
+> > to avoid warnings during boot.
+> >=20
+> > Boot-tested on N800, OMAP34xx Beagleboard and OMAP4430ES2 Panda.
+>=20
+> I'm testing it on 4430sdp, and I have the following warning:
+>=20
+> [    0.000000] omap_hwmod: dpll_mpu_m2_ck: missing clockdomain for dpll_m=
+pu_m2_ck.
+> [    0.000000] ------------[ cut here ]------------
+> [    0.000000] WARNING: at arch/arm/mach-omap2/timer-gp.c:157 omap2_gp_ti=
+mer_init+0x80/0x190()
+> [    0.000000] timer-gp: omap_dm_timer_set_source() failed
+> [    0.000000] Modules linked in:
+> [    0.000000] [<c0062a6c>] (unwind_backtrace+0x0/0xec) from [<c009422c>]=
+ (warn_slowpath_common+0x4c/0x64)
+> [    0.000000] [<c009422c>] (warn_slowpath_common+0x4c/0x64) from [<c0094=
+2c4>] (warn_slowpath_fmt+0x2c/0x3c)
+> [    0.000000] [<c00942c4>] (warn_slowpath_fmt+0x2c/0x3c) from [<c0010e30=
+>] (omap2_gp_timer_init+0x80/0x190)
+> [    0.000000] [<c0010e30>] (omap2_gp_timer_init+0x80/0x190) from [<c000c=
+0dc>] (time_init+0x20/0x30)
+> [    0.000000] [<c000c0dc>] (time_init+0x20/0x30) from [<c0008cbc>] (star=
+t_kernel+0x1a4/0x30c)
+> [    0.000000] [<c0008cbc>] (start_kernel+0x1a4/0x30c) from [<80008038>] =
+(0x80008038)
+> [    0.000000] ---[ end trace 1b75b31a2719ed1c ]---
+> [    0.000000] OMAP clockevent source: GPTIMER1 at 32768 Hz
+
+This is due to commit 3b03b58dab847883e6b9a431558c7d8e43fa94c6 ("OMAP4:=20
+hwmod data: Prevent timer1 to be reset and idle during init").  Could you=
+=20
+please try reverting this and see if the warning disappears?
+
+Tony, I guess the omap-for-linus branch will probably need to get rebuilt=
+=20
+to drop that patch, once this series is merged...
+
+- Paul
+--155748971-871082634-1298860307=:505--
