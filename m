@@ -1,139 +1,122 @@
-From: Matthieu Poullet <matthieu.poullet@gmail.com>
-Subject: Re: git repository that was used to build TI Dev Kit =?utf-8?b?MDFfMDBfMDA=?= android kernel sources
-Date: Mon, 28 Feb 2011 09:10:42 +0000 (UTC)
-Message-ID: <loom.20110228T100904-885@post.gmane.org>
-References: <88190879-4EBA-48AE-AFFD-31152C5B9D94@mac.com> <loom.20110226T165438-178@post.gmane.org> <2D309E71-7539-4310-B08A-DE2CB9D7DD23@mac.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [Patch 1/2] OMAP2PLUS: DSS2: Add dss_opt_clk_roles in pdata
+Date: Mon, 28 Feb 2011 11:10:49 +0200
+Message-ID: <1298884249.9809.8.camel@deskari>
+References: <1298622470-10558-1-git-send-email-sumit.semwal@ti.com>
+	 <1298622470-10558-2-git-send-email-sumit.semwal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from lo.gmane.org ([80.91.229.12]:51046 "EHLO lo.gmane.org"
+Received: from bear.ext.ti.com ([192.94.94.41]:52783 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752995Ab1B1JKy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 28 Feb 2011 04:10:54 -0500
-Received: from list by lo.gmane.org with local (Exim 4.69)
-	(envelope-from <gplao-linux-omap-open-source-moved1@m.gmane.org>)
-	id 1Ptz81-0008DO-5d
-	for linux-omap@vger.kernel.org; Mon, 28 Feb 2011 10:10:53 +0100
-Received: from proxye.avm.de ([212.42.244.241])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-omap@vger.kernel.org>; Mon, 28 Feb 2011 10:10:53 +0100
-Received: from matthieu.poullet by proxye.avm.de with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-omap@vger.kernel.org>; Mon, 28 Feb 2011 10:10:53 +0100
+	id S1752985Ab1B1JKx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 28 Feb 2011 04:10:53 -0500
+Received: from dlep33.itg.ti.com ([157.170.170.112])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1S9AqZN011701
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Mon, 28 Feb 2011 03:10:52 -0600
+Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
+	by dlep33.itg.ti.com (8.13.7/8.13.7) with ESMTP id p1S9AqOn002256
+	for <linux-omap@vger.kernel.org>; Mon, 28 Feb 2011 03:10:52 -0600 (CST)
+In-Reply-To: <1298622470-10558-2-git-send-email-sumit.semwal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: "Semwal, Sumit" <sumit.semwal@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Guruswamy, Senthilvadivu" <svadivu@ti.com>
 
-Elvis Dowson <elvis.dowson <at> mac.com> writes:
+On Fri, 2011-02-25 at 02:27 -0600, Semwal, Sumit wrote:
+> Provide dss_opt_clks roles in pdata, so that it can be retrieved
+> in dss driver, thus avoiding the hardcoding of clock role names.
+> 
+> Signed-off-by: Senthilvadivu Guruswamy <svadivu@ti.com>
+> (based on implementation from Senthil)
+> 
+> Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
+> ---
+>  arch/arm/mach-omap2/display.c             |   41 ++++++++++++++++++++++++++++-
+>  arch/arm/plat-omap/include/plat/display.h |    3 +-
+>  2 files changed, 42 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
+> index cc7b4f3..f189c07 100644
+> --- a/arch/arm/mach-omap2/display.c
+> +++ b/arch/arm/mach-omap2/display.c
+> @@ -21,6 +21,7 @@
+>  #include <linux/io.h>
+>  #include <linux/clk.h>
+>  #include <linux/err.h>
+> +#include <linux/slab.h>
+>  
+>  #include <plat/display.h>
+>  #include <plat/omap_hwmod.h>
+> @@ -48,6 +49,7 @@ int __init omap_display_init(struct omap_dss_board_info
+>  	int r = 0;
+>  	struct omap_hwmod *oh;
+>  	struct omap_device *od;
+> +	struct omap_hwmod_opt_clk *oc = NULL;
+>  	int i;
+>  	struct omap_display_platform_data pdata;
+>  
+> @@ -61,7 +63,7 @@ int __init omap_display_init(struct omap_dss_board_info
+>  				"dss_dsi2", "dss_hdmi"};
+>  	char *dev_name[] = {"omap_dss", "omap_dispc", "omap_rfbi", "omap_venc", "omap_dsi1",
+>  				"omap_dsi2", "omap_hdmi"};
+> -	int oh_count;
+> +	int oh_count, oc_count;
+>  
+>  	memset(&pdata, 0, sizeof(pdata));
+>  
+> @@ -74,7 +76,44 @@ int __init omap_display_init(struct omap_dss_board_info
+>  		oh_count = ARRAY_SIZE(oh_name) - 2;
+>  		/* last 2 hwmod dev in oh_name are not available for omap3 */
+>  
+> +	/* opt_clks are always associated with dss hwmod */
+> +	oh = omap_hwmod_lookup("dss_core");
+> +	if (!oh) {
+> +		pr_err("Could not look up %s\n", oh_name[0]);
+> +		return -ENODEV;
+> +	}
+> +	oc = oh->opt_clks;
+> +	oc_count = oh->opt_clks_cnt;
+> +
+> +	/* copy roles of opt_clocks available from hwmod into pdata */
+> +	pdata.dss_opt_clk_roles = kzalloc(sizeof(char *) * oc_count,
+> +					  GFP_KERNEL);
+> +	if (!pdata.dss_opt_clk_roles) {
+> +		pr_err("could not allocate memory for dss_opt_clk_roles\n");
+> +		return -ENOMEM;
+> +	}
+> +
+> +	for (i = 0; i < oc_count; i++) {
+> +		int oc_length = strlen(oc[i].role);
+> +
+> +		pdata.dss_opt_clk_roles[i] = kzalloc(oc_length + 1,
+> +						     GFP_KERNEL);
+> +		if (!pdata.dss_opt_clk_roles[i]) {
+> +			int j = i - 1;
+> +
+> +			pr_err("kzalloc failed for dss_opt_clk[%i]\n", i);
+> +			for (; j >= 0; j--)
+> +				kfree(pdata.dss_opt_clk_roles[j]);
+> +
+> +			kfree(pdata.dss_opt_clk_roles);
+> +
+> +			return -ENOMEM;
+> +		}
+> +
+> +		strncpy(pdata.dss_opt_clk_roles[i], oc[i].role, oc_length+1);
+> +	}
 
->=20
-> Hi Matthieu,
->                           Thanks for the reply.
->=20
-> On Feb 26, 2011, at 8:00 PM, Matthieu Poullet wrote:
->=20
-> >
-http://software-dl.ti.com/dsps/dsps_public_sw/sdo_tii/TI_Android_DevKit=
-/01_00_00/index_FDS.html
-> >>=20
-> >>=20
-> >
-http://software-dl.ti.com/dsps/dsps_public_sw/sdo_tii/TI_Android_DevKit=
-/01_00_00/exports/Sources.tar.gz
-> >=20
-> > Hi,
-> >=20
-> > these DevKits are based on the Rowboat project:
-> > http://code.google.com/p/rowboat/
-> >=20
-> > Sources are available here:
-> > http://gitorious.org/rowboat
->=20
-> The rowboat-eclair-2.6.32 branch doesn't have a commit tag correspond=
-ing to
-the DevKit 01_00_00 release
->=20
-> http://gitorious.org/rowboat/kernel/commits/rowboat-eclair-2.6.32
->=20
-> However, looking at the platform manifest, I was able to get the comm=
-it id for
-this release: 6bee57941d45c55ceecc5364590cb1c4ebeda053
->=20
-> http://gitorious.org/rowboat/manifest/blobs/master/TI-Android-Eclair-=
-DevKit-V1.xml
->=20
-> #01:  I found a bunch of differences between the source snapshot and =
-the
-rowboat-eclair-2.6.32 branch head
-> 2 months ago, and wasn't sure which git repository the dev kit source
-snapshots were being generated from.
->=20
-> If you look at the release notes
->=20
-> http://processors.wiki.ti.com/index.php/TI-Android-=C3=89clair-DevKit=
--V1_ReleaseNotes
->=20
-> the commit id mentioned in the release notes is :
-b263debb4bd3565f4550bd27cf4bb78ae44ef8c3
->=20
-> and that in the platform manifest is : 6bee57941d45c55ceecc5364590cb1=
-c4ebeda053
->=20
-> #02: Another mis-match is that the release notes mention that the ker=
-nel
-branch used is
-> android-eclair-2.6.32 and that used in the actual platform manifest f=
-or DevKit
-v1 is android-eclair
-> (which is probably 2.6.29, I guess).
->=20
-> http://gitorious.org/rowboat/manifest/blobs/master/TI-Android-Eclair-=
-DevKit-V1.xml
->=20
-> Best regards,
->=20
-> Elvis Dowson
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo <at> vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->=20
->=20
+Do you actually need to copy the role strings? Can they every change? If
+they are const data, you could just point to the original strings.
 
-Hi Elvis,
+And is there even need to create clk_roles array. If I'm not mistaken,
+the only use for this data is for the opt_clock_available() function. We
+could just have an opt_clock_available() function pointer in the
+omap_display_platform_data, and the function itself would be in
+display.c. And the function could use the original hwmod data.
 
-I work on a custom-board with a custom kernel, so I haven't worked with=
- the
-standard Eclair stuff since October.
-The best place to ask is, I think, the Rowboat mailing list, not this l=
-ist:
-http://groups.google.com/group/rowboat
-
-and/or to ping people on IRC (#rowboat on freenode), e.g. Khasim Syed M=
-ohammed.
-
-=46YI here are the Release threads:
-
-TI Android Eclair DevKit V1.0 Release thread:
-http://groups.google.com/group/rowboat/browse_thread/thread/6c61b3d06ae=
-e3860/73322b710d25ee0c
-TI Android Eclair DevKit V2.0 Release thread:
-http://groups.google.com/group/rowboat/browse_thread/thread/d0eeaa2f423=
-c661a/5b5ac2039637f99c
-TI Android Eclair DevKit V2.2 Release thread:
-http://groups.google.com/group/rowboat/browse_thread/thread/38e5370b8a0=
-7cfe6/46258591b47ea46d
-
-Regards,
-Matthieu,
+ Tomi
 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
