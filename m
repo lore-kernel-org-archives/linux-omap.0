@@ -1,53 +1,218 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH 0/3] OMAP: DSS2: Generalize DSS clock source names
-Date: Mon, 28 Feb 2011 12:20:34 +0530
-Message-ID: <1298875837-6305-1-git-send-email-archit@ti.com>
+Subject: [PATCH 1/3] OMAP2PLUS: DSS2: Make members of dss_clk_source generic
+Date: Mon, 28 Feb 2011 12:20:35 +0530
+Message-ID: <1298875837-6305-2-git-send-email-archit@ti.com>
+References: <1298875837-6305-1-git-send-email-archit@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:51582 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:51587 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751061Ab1B1GsA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 28 Feb 2011 01:48:00 -0500
-Received: from dlep33.itg.ti.com ([157.170.170.112])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1S6lx4N021029
+	id S1751061Ab1B1GsE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 28 Feb 2011 01:48:04 -0500
+Received: from dlep35.itg.ti.com ([157.170.170.118])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1S6m40l021044
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Mon, 28 Feb 2011 00:47:59 -0600
+	for <linux-omap@vger.kernel.org>; Mon, 28 Feb 2011 00:48:04 -0600
+In-Reply-To: <1298875837-6305-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com
 Cc: linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-The OMAP Display Subsystem has multiple clock sources available for its
-modules. One of these sources has to be selected through a global control
-register called DSS_CTRL.
+The enum members of 'dss_clk_source' have clock source names specific to
+OMAP2/3. Change the names to more generic terms such that they now describe
+where the clocks come from and what they are used for.
 
-For example, on OMAP4, the Display Controller Module's (DISPC) functional
-clock can be derived from:
-a) output of DPLL_PER's M5 divisor
-b) output of DSI1 PLL's M4 divisor
-c) output of DSI2 PLL's M4 divisor
-d) output of HDMI PLL
+Also, change the enum member names to have "DSS_CLK_SRC" instead of "DSS_SRC"
+for more clarity.
 
-There is, hence, an enum called 'dss_clk_source' which is used throughout
-DSS2, to select clock sources for various DSS sub modules. These clock
-source names are currently specific to OMAP2/3 TRM clock names.
+Signed-off-by: Archit Taneja <archit@ti.com>
+---
+ drivers/video/omap2/dss/dispc.c |    4 ++--
+ drivers/video/omap2/dss/dpi.c   |    4 ++--
+ drivers/video/omap2/dss/dsi.c   |   20 ++++++++++----------
+ drivers/video/omap2/dss/dss.c   |   20 ++++++++++----------
+ drivers/video/omap2/dss/dss.h   |    6 +++---
+ 5 files changed, 27 insertions(+), 27 deletions(-)
 
-All enum members, variables, functions which are based on these clock
-source names have been made generic such that they can be used for future
-OMAPs as well.
-
-Archit Taneja (3):
-  OMAP2PLUS: DSS2: Make members of dss_clk_source generic
-  OMAP2PLUS: DSS2: Use dss features to get clock source names of
-    current OMAP
-  OMAP2PLUS: DSS2: DSI: Generalize DSI PLL Clock Naming
-
- arch/arm/plat-omap/include/plat/display.h |    4 +-
- drivers/video/omap2/dss/dispc.c           |   11 +-
- drivers/video/omap2/dss/dpi.c             |    8 +-
- drivers/video/omap2/dss/dsi.c             |  178 ++++++++++++++++-------------
- drivers/video/omap2/dss/dss.c             |   43 +++++---
- drivers/video/omap2/dss/dss.h             |   33 ++++--
- drivers/video/omap2/dss/dss_features.c    |   23 ++++
- drivers/video/omap2/dss/dss_features.h    |    1 +
- 8 files changed, 185 insertions(+), 116 deletions(-)
+diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
+index 3616302..7563f12 100644
+--- a/drivers/video/omap2/dss/dispc.c
++++ b/drivers/video/omap2/dss/dispc.c
+@@ -2341,7 +2341,7 @@ unsigned long dispc_fclk_rate(void)
+ {
+ 	unsigned long r = 0;
+ 
+-	if (dss_get_dispc_clk_source() == DSS_SRC_DSS1_ALWON_FCLK)
++	if (dss_get_dispc_clk_source() == DSS_CLK_SRC_FCK)
+ 		r = dss_clk_get_rate(DSS_CLK_FCK);
+ 	else
+ #ifdef CONFIG_OMAP2_DSS_DSI
+@@ -2393,7 +2393,7 @@ void dispc_dump_clocks(struct seq_file *s)
+ 	seq_printf(s, "- DISPC -\n");
+ 
+ 	seq_printf(s, "dispc fclk source = %s\n",
+-			dss_get_dispc_clk_source() == DSS_SRC_DSS1_ALWON_FCLK ?
++			dss_get_dispc_clk_source() == DSS_CLK_SRC_FCK ?
+ 			"dss1_alwon_fclk" : "dsi1_pll_fclk");
+ 
+ 	seq_printf(s, "fck\t\t%-16lu\n", dispc_fclk_rate());
+diff --git a/drivers/video/omap2/dss/dpi.c b/drivers/video/omap2/dss/dpi.c
+index 026702b..1b2867d 100644
+--- a/drivers/video/omap2/dss/dpi.c
++++ b/drivers/video/omap2/dss/dpi.c
+@@ -57,7 +57,7 @@ static int dpi_set_dsi_clk(struct omap_dss_device *dssdev, bool is_tft,
+ 	if (r)
+ 		return r;
+ 
+-	dss_select_dispc_clk_source(DSS_SRC_DSI1_PLL_FCLK);
++	dss_select_dispc_clk_source(DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC);
+ 
+ 	r = dispc_set_clock_div(dssdev->manager->id, &dispc_cinfo);
+ 	if (r)
+@@ -217,7 +217,7 @@ void omapdss_dpi_display_disable(struct omap_dss_device *dssdev)
+ 	dssdev->manager->disable(dssdev->manager);
+ 
+ #ifdef CONFIG_OMAP2_DSS_USE_DSI_PLL
+-	dss_select_dispc_clk_source(DSS_SRC_DSS1_ALWON_FCLK);
++	dss_select_dispc_clk_source(DSS_CLK_SRC_FCK);
+ 	dsi_pll_uninit();
+ 	dss_clk_disable(DSS_CLK_SYSCK);
+ #endif
+diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
+index 2e92888..964dbd5 100644
+--- a/drivers/video/omap2/dss/dsi.c
++++ b/drivers/video/omap2/dss/dsi.c
+@@ -731,7 +731,7 @@ static unsigned long dsi_fclk_rate(void)
+ {
+ 	unsigned long r;
+ 
+-	if (dss_get_dsi_clk_source() == DSS_SRC_DSS1_ALWON_FCLK) {
++	if (dss_get_dsi_clk_source() == DSS_CLK_SRC_FCK) {
+ 		/* DSI FCLK source is DSS1_ALWON_FCK, which is dss1_fck */
+ 		r = dss_clk_get_rate(DSS_CLK_FCK);
+ 	} else {
+@@ -1188,19 +1188,19 @@ void dsi_dump_clocks(struct seq_file *s)
+ 	seq_printf(s,	"dsi1_pll_fck\t%-16luregm3 %u\t(%s)\n",
+ 			cinfo->dsi1_pll_fclk,
+ 			cinfo->regm3,
+-			dss_get_dispc_clk_source() == DSS_SRC_DSS1_ALWON_FCLK ?
++			dss_get_dispc_clk_source() == DSS_CLK_SRC_FCK ?
+ 			"off" : "on");
+ 
+ 	seq_printf(s,	"dsi2_pll_fck\t%-16luregm4 %u\t(%s)\n",
+ 			cinfo->dsi2_pll_fclk,
+ 			cinfo->regm4,
+-			dss_get_dsi_clk_source() == DSS_SRC_DSS1_ALWON_FCLK ?
++			dss_get_dsi_clk_source() == DSS_CLK_SRC_FCK ?
+ 			"off" : "on");
+ 
+ 	seq_printf(s,	"- DSI -\n");
+ 
+ 	seq_printf(s,	"dsi fclk source = %s\n",
+-			dss_get_dsi_clk_source() == DSS_SRC_DSS1_ALWON_FCLK ?
++			dss_get_dsi_clk_source() == DSS_CLK_SRC_FCK ?
+ 			"dss1_alwon_fclk" : "dsi2_pll_fclk");
+ 
+ 	seq_printf(s,	"DSI_FCLK\t%lu\n", dsi_fclk_rate());
+@@ -3052,8 +3052,8 @@ static int dsi_display_init_dsi(struct omap_dss_device *dssdev)
+ 	if (r)
+ 		goto err1;
+ 
+-	dss_select_dispc_clk_source(DSS_SRC_DSI1_PLL_FCLK);
+-	dss_select_dsi_clk_source(DSS_SRC_DSI2_PLL_FCLK);
++	dss_select_dispc_clk_source(DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC);
++	dss_select_dsi_clk_source(DSS_CLK_SRC_DSI_PLL_HSDIV_DSI);
+ 
+ 	DSSDBG("PLL OK\n");
+ 
+@@ -3089,8 +3089,8 @@ static int dsi_display_init_dsi(struct omap_dss_device *dssdev)
+ err3:
+ 	dsi_complexio_uninit();
+ err2:
+-	dss_select_dispc_clk_source(DSS_SRC_DSS1_ALWON_FCLK);
+-	dss_select_dsi_clk_source(DSS_SRC_DSS1_ALWON_FCLK);
++	dss_select_dispc_clk_source(DSS_CLK_SRC_FCK);
++	dss_select_dsi_clk_source(DSS_CLK_SRC_FCK);
+ err1:
+ 	dsi_pll_uninit();
+ err0:
+@@ -3106,8 +3106,8 @@ static void dsi_display_uninit_dsi(struct omap_dss_device *dssdev)
+ 	dsi_vc_enable(2, 0);
+ 	dsi_vc_enable(3, 0);
+ 
+-	dss_select_dispc_clk_source(DSS_SRC_DSS1_ALWON_FCLK);
+-	dss_select_dsi_clk_source(DSS_SRC_DSS1_ALWON_FCLK);
++	dss_select_dispc_clk_source(DSS_CLK_SRC_FCK);
++	dss_select_dsi_clk_source(DSS_CLK_SRC_FCK);
+ 	dsi_complexio_uninit();
+ 	dsi_pll_uninit();
+ }
+diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
+index a73dbab..1225979 100644
+--- a/drivers/video/omap2/dss/dss.c
++++ b/drivers/video/omap2/dss/dss.c
+@@ -272,12 +272,12 @@ void dss_select_dispc_clk_source(enum dss_clk_source clk_src)
+ {
+ 	int b;
+ 
+-	BUG_ON(clk_src != DSS_SRC_DSI1_PLL_FCLK &&
+-			clk_src != DSS_SRC_DSS1_ALWON_FCLK);
++	BUG_ON(clk_src != DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC &&
++			clk_src != DSS_CLK_SRC_FCK);
+ 
+-	b = clk_src == DSS_SRC_DSS1_ALWON_FCLK ? 0 : 1;
++	b = clk_src == DSS_CLK_SRC_FCK ? 0 : 1;
+ 
+-	if (clk_src == DSS_SRC_DSI1_PLL_FCLK)
++	if (clk_src == DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC)
+ 		dsi_wait_dsi1_pll_active();
+ 
+ 	REG_FLD_MOD(DSS_CONTROL, b, 0, 0);	/* DISPC_CLK_SWITCH */
+@@ -289,12 +289,12 @@ void dss_select_dsi_clk_source(enum dss_clk_source clk_src)
+ {
+ 	int b;
+ 
+-	BUG_ON(clk_src != DSS_SRC_DSI2_PLL_FCLK &&
+-			clk_src != DSS_SRC_DSS1_ALWON_FCLK);
++	BUG_ON(clk_src != DSS_CLK_SRC_DSI_PLL_HSDIV_DSI &&
++			clk_src != DSS_CLK_SRC_FCK);
+ 
+-	b = clk_src == DSS_SRC_DSS1_ALWON_FCLK ? 0 : 1;
++	b = clk_src == DSS_CLK_SRC_FCK ? 0 : 1;
+ 
+-	if (clk_src == DSS_SRC_DSI2_PLL_FCLK)
++	if (clk_src == DSS_CLK_SRC_DSI_PLL_HSDIV_DSI)
+ 		dsi_wait_dsi2_pll_active();
+ 
+ 	REG_FLD_MOD(DSS_CONTROL, b, 1, 1);	/* DSI_CLK_SWITCH */
+@@ -595,8 +595,8 @@ static int dss_init(bool skip_init)
+ 		}
+ 	}
+ 
+-	dss.dsi_clk_source = DSS_SRC_DSS1_ALWON_FCLK;
+-	dss.dispc_clk_source = DSS_SRC_DSS1_ALWON_FCLK;
++	dss.dsi_clk_source = DSS_CLK_SRC_FCK;
++	dss.dispc_clk_source = DSS_CLK_SRC_FCK;
+ 
+ 	dss_save_context();
+ 
+diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
+index 7fe32d1..a166ff3 100644
+--- a/drivers/video/omap2/dss/dss.h
++++ b/drivers/video/omap2/dss/dss.h
+@@ -118,9 +118,9 @@ enum dss_clock {
+ };
+ 
+ enum dss_clk_source {
+-	DSS_SRC_DSI1_PLL_FCLK,
+-	DSS_SRC_DSI2_PLL_FCLK,
+-	DSS_SRC_DSS1_ALWON_FCLK,
++	DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC,	/* DSI1_PLL_FCLK */
++	DSS_CLK_SRC_DSI_PLL_HSDIV_DSI,		/* DSI2_PLL_FCLK */
++	DSS_CLK_SRC_FCK,			/* DSS1_ALWON_FCLK */
+ };
+ 
+ struct dss_clock_info {
+-- 
+1.7.1
 
