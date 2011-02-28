@@ -1,86 +1,83 @@
-From: jean.pihet@newoldbits.com
-Subject: [PATCH 3/3] OMAP: use PM QOS for wake-up constraints from I2C
-Date: Mon, 28 Feb 2011 18:41:24 +0100
-Message-ID: <1298914884-16468-4-git-send-email-j-pihet@ti.com>
-References: <1298914884-16468-1-git-send-email-j-pihet@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH v3 2/5] ARM: pm: add generic CPU suspend/resume support
+Date: Mon, 28 Feb 2011 23:47:39 +0530
+Message-ID: <8d16615a6ede144f074a3c7387e70b2c@mail.gmail.com>
+References: <E1PmA28-0000AC-2t@rmk-PC.arm.linux.org.uk> <20110207120103.GC31929@n2100.arm.linux.org.uk>
+ <20110207121052.GD31929@n2100.arm.linux.org.uk> <AANLkTintBD2Gfb3pkPZPe2mreU5EatUnNwUqR-id7q+M@mail.gmail.com>
+ <20110207133457.GE31929@n2100.arm.linux.org.uk> <AANLkTi=B45PuOErxR49Gfhfq6-=y_NugbWBLBo0MEoCt@mail.gmail.com>
+ <20110207141734.GG31929@n2100.arm.linux.org.uk> <AANLkTimCtaSZ=CHT5snWZ496_bi4sH=0LU7vJ-Jfh=dP@mail.gmail.com>
+ <20110211115853.GC23404@n2100.arm.linux.org.uk> <998315b4ab88b66cc0e32e73d10a0015@mail.gmail.com>
+ <20110212145010.GK15616@n2100.arm.linux.org.uk> <3f574626437da8db9f7844d5bb031046@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:65329 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752850Ab1B1Rlq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Feb 2011 12:41:46 -0500
-Received: by mail-ew0-f46.google.com with SMTP id 6so1371532ewy.19
-        for <linux-omap@vger.kernel.org>; Mon, 28 Feb 2011 09:41:46 -0800 (PST)
-In-Reply-To: <1298914884-16468-1-git-send-email-j-pihet@ti.com>
+Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:36078 "EHLO
+	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752805Ab1B1SRl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 28 Feb 2011 13:17:41 -0500
+Received: by mail-qw0-f43.google.com with SMTP id 7so3585208qwb.30
+        for <linux-omap@vger.kernel.org>; Mon, 28 Feb 2011 10:17:40 -0800 (PST)
+In-Reply-To: <3f574626437da8db9f7844d5bb031046@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, vishwanath.bs@ti.com
-Cc: Jean Pihet <j-pihet@ti.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Colin Cross <ccross@google.com>, Kukjin Kim <kgene.kim@samsung.com>, saeed bishara <saeed.bishara@gmail.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-From: Jean Pihet <j-pihet@ti.com>
++ linux-omap on this thread.
 
-Implements the PM QOS API for the wake-up constraints on the MPU.
-
-Note: the caller shall allocate and store the PM QOS handle for future use
-(update/removal of the constraint).
-
-Based on the original patch from Vishwanath,
-cf. https://patchwork.kernel.org/patch/327312/
-
-Cc: Vishwanath BS <vishwanath.bs@ti.com>
-
-Signed-off-by: Jean Pihet <j-pihet@ti.com>
----
- arch/arm/plat-omap/i2c.c |   22 +++++++++++++++++++++-
- 1 files changed, 21 insertions(+), 1 deletions(-)
-
-diff --git a/arch/arm/plat-omap/i2c.c b/arch/arm/plat-omap/i2c.c
-index 3341ca4..207a320 100644
---- a/arch/arm/plat-omap/i2c.c
-+++ b/arch/arm/plat-omap/i2c.c
-@@ -117,10 +117,15 @@ static inline int omap1_i2c_add_bus(int bus_id)
-  * XXX This function is a temporary compatibility wrapper - only
-  * needed until the I2C driver can be converted to call
-  * omap_pm_set_max_dev_wakeup_lat() and handle a return code.
-+ *
-+ * The PM QOS handle is stored in the corresponding omap_device struct.
-  */
- static void omap_pm_set_max_mpu_wakeup_lat_compat(struct device *dev, long t)
- {
--	omap_pm_set_max_mpu_wakeup_lat(dev, t);
-+	struct omap_device *od = to_omap_device(to_platform_device(dev));
-+
-+	if (od->pm_qos_request)
-+		omap_pm_set_max_mpu_wakeup_lat(od->pm_qos_request, t);
- }
- 
- static struct omap_device_pm_latency omap_i2c_latency[] = {
-@@ -160,11 +165,26 @@ static inline int omap2_i2c_add_bus(int bus_id)
- 	 */
- 	if (cpu_is_omap34xx())
- 		pdata->set_mpu_wkup_lat = omap_pm_set_max_mpu_wakeup_lat_compat;
-+
- 	od = omap_device_build(name, bus_id, oh, pdata,
- 			sizeof(struct omap_i2c_bus_platform_data),
- 			omap_i2c_latency, ARRAY_SIZE(omap_i2c_latency), 0);
- 	WARN(IS_ERR(od), "Could not build omap_device for %s\n", name);
- 
-+	/* Allocate the PM QOS handle and initialize it */
-+	if ((!(IS_ERR(od))) && cpu_is_omap34xx()) {
-+		od->pm_qos_request = kzalloc(sizeof(struct pm_qos_request_list),
-+				       GFP_KERNEL);
-+		if (od->pm_qos_request) {
-+			pm_qos_add_request(od->pm_qos_request,
-+					   PM_QOS_CPU_DMA_LATENCY,
-+					   PM_QOS_DEFAULT_VALUE);
-+		} else {
-+			WARN(1, "%s: could not reserve memory for "
-+			     "pm_qos_request\n", __func__);
-+		}
-+	}
-+
- 	return PTR_ERR(od);
- }
- #else
--- 
-1.7.2.3
-
+> -----Original Message-----
+> From: Santosh Shilimkar [mailto:santosh.shilimkar@ti.com]
+> Sent: Saturday, February 12, 2011 8:40 PM
+> To: Russell King - ARM Linux
+> Cc: Colin Cross; Kukjin Kim; saeed bishara; linux-arm-
+> kernel@lists.infradead.org
+> Subject: RE: [PATCH v3 2/5] ARM: pm: add generic CPU suspend/resume
+> support
+>
+> > -----Original Message-----
+> > From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk]
+> > Sent: Saturday, February 12, 2011 8:20 PM
+> > To: Santosh Shilimkar
+> > Cc: Colin Cross; Kukjin Kim; saeed bishara; linux-arm-
+> > kernel@lists.infradead.org
+> > Subject: Re: [PATCH v3 2/5] ARM: pm: add generic CPU
+> suspend/resume
+> > support
+> >
+> > On Fri, Feb 11, 2011 at 05:37:04PM +0530, Santosh Shilimkar wrote:
+> > > There is a Monitor secure API, needs to be called from non-
+> secure
+> > > software to set this diagnostic registers in resume path.
+> >
+> > It would be an idea to get the OMAP sleep code up to date so that
+> I
+> > can
+> > look at OMAPs requirements for this to be useful.
+> >
+> > As the current code stands, I don't see any reason why the
+> sleep34xx
+> > code
+> > can't use this infrastructure, but I'm loathed to start modifying
+> > that if there's outstanding code changes in that area.
+>
+> Yep. There are few issues out there with sleep34xx code.
+> 	- Secure APIs
+> 	- Current code needs to be cleaned up to remove
+> 	unwanted registers save restore
+> 	- Some part of the code on OMAP3 must be run from
+> 	SRAM. It can't run from DDR
+> 	- AUXCTLR, Diagnostic registers aren't accessible
+> 	in secure mode.
+> 	- L2 cache needs to be handled with secure APIs.
+> 	- Code sequence needs to handle errata's handling
+> 	which accesses OMAP PM registers.
+>
+> Few of the above are getting addressed for this merge window.
+>
+> So my plan was to take a look at generic suspend after the
+> merge window. By that time your generic stuff and omap
+> cleanup would have got merged hopefully.
+>
+> Regards,
+> Santosh
