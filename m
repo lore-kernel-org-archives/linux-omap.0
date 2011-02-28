@@ -1,91 +1,34 @@
-From: John Ogness <john.ogness@linutronix.de>
-Subject: [PATCH v2 1/1] omap3: nand: report corrected ecc errors
-Date: Mon, 28 Feb 2011 13:12:46 +0100
-Message-ID: <87y650pdc1.fsf_-_@vostro.fn.ogness.net>
-References: <87oc64qr5b.fsf@vostro.fn.ogness.net>
-	<1298631549.2798.56.camel@localhost>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH v10 05/18] OMAP2,3 DSS2 Change driver name to
+	omap_display
+Date: Mon, 28 Feb 2011 12:13:21 +0000
+Message-ID: <20110228121321.GB30781@n2100.arm.linux.org.uk>
+References: <1295850125-21405-1-git-send-email-sumit.semwal@ti.com> <1295850125-21405-6-git-send-email-sumit.semwal@ti.com> <1298539643.16119.54.camel@deskari> <1298876015.2096.36.camel@deskari> <4D6B4A1A.9000304@ti.com> <1298877549.2096.47.camel@deskari> <4D6B88BB.5010200@ti.com> <1298895026.9809.27.camel@deskari>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1298631549.2798.56.camel@localhost> (Artem Bityutskiy's message of "Fri\, 25 Feb 2011 12\:59\:09 +0200")
-Sender: linux-kernel-owner@vger.kernel.org
-To: dedekind1@gmail.com
-Cc: linux-omap@vger.kernel.org, s-ghorai@ti.com, David Woodhouse <dwmw2@infradead.org>, linux-mtd@lists.infradead.org, linux-kernel@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:37543 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753829Ab1B1MNg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Feb 2011 07:13:36 -0500
+Content-Disposition: inline
+In-Reply-To: <1298895026.9809.27.camel@deskari>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "Semwal, Sumit" <sumit.semwal@ti.com>, "Guruswamy, Senthilvadivu" <svadivu@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Taneja, Archit" <archit@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-From: John Ogness <john.ogness@linutronix.de>
+On Mon, Feb 28, 2011 at 02:10:26PM +0200, Tomi Valkeinen wrote:
+> On Mon, 2011-02-28 at 05:36 -0600, Cousson, Benoit wrote:
+> > Cannot you use a device hierarchy then to do that?
+> >   omap_dss/core
+> >   omap_dss/dsi
+> >   omap_dss/venc
+> > 
+> > This is moreover the way the HW is done.
+> 
+> Hmm, how would that work? The devices are platform devices, and they
+> have a unique global name, which is used to match the driver for the
+> device.
 
-The number of corrected ECC errors should be reported since other MTD
-systems make use of this information (such as UBI data scrubbing).
-
-Signed-off-by: John Ogness <john.ogness@linutronix.de>
----
-Patch v2:
-o Patch against linux-next-20110225.
-o Added comments explaining return codes.
-
- drivers/mtd/nand/omap2.c |   16 ++++++++++++----
- 1 files changed, 12 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-index 4e33972..6324230 100644
---- a/drivers/mtd/nand/omap2.c
-+++ b/drivers/mtd/nand/omap2.c
-@@ -668,6 +668,8 @@ static void gen_true_ecc(u8 *ecc_buf)
-  *
-  * This function compares two ECC's and indicates if there is an error.
-  * If the error can be corrected it will be corrected to the buffer.
-+ * If there is no error, %0 is returned. If there is an error but it
-+ * was corrected, %1 is returned. Otherwise, %-1 is returned.
-  */
- static int omap_compare_ecc(u8 *ecc_data1,	/* read from NAND memory */
- 			    u8 *ecc_data2,	/* read from register */
-@@ -773,7 +775,7 @@ static int omap_compare_ecc(u8 *ecc_data1,	/* read from NAND memory */
- 
- 		page_data[find_byte] ^= (1 << find_bit);
- 
--		return 0;
-+		return 1;
- 	default:
- 		if (isEccFF) {
- 			if (ecc_data2[0] == 0 &&
-@@ -794,8 +796,11 @@ static int omap_compare_ecc(u8 *ecc_data1,	/* read from NAND memory */
-  * @calc_ecc: ecc read from HW ECC registers
-  *
-  * Compares the ecc read from nand spare area with ECC registers values
-- * and if ECC's mismached, it will call 'omap_compare_ecc' for error detection
-- * and correction.
-+ * and if ECC's mismatched, it will call 'omap_compare_ecc' for error
-+ * detection and correction. If there are no errors, %0 is returned. If
-+ * there were errors and all of the errors were corrected, the number of
-+ * corrected errors is returned. If uncorrectable errors exist, %-1 is
-+ * returned.
-  */
- static int omap_correct_data(struct mtd_info *mtd, u_char *dat,
- 				u_char *read_ecc, u_char *calc_ecc)
-@@ -803,6 +808,7 @@ static int omap_correct_data(struct mtd_info *mtd, u_char *dat,
- 	struct omap_nand_info *info = container_of(mtd, struct omap_nand_info,
- 							mtd);
- 	int blockCnt = 0, i = 0, ret = 0;
-+	int stat = 0;
- 
- 	/* Ex NAND_ECC_HW12_2048 */
- 	if ((info->nand.ecc.mode == NAND_ECC_HW) &&
-@@ -816,12 +822,14 @@ static int omap_correct_data(struct mtd_info *mtd, u_char *dat,
- 			ret = omap_compare_ecc(read_ecc, calc_ecc, dat);
- 			if (ret < 0)
- 				return ret;
-+			/* keep track of the number of corrected errors */
-+			stat += ret;
- 		}
- 		read_ecc += 3;
- 		calc_ecc += 3;
- 		dat      += 512;
- 	}
--	return 0;
-+	return stat;
- }
- 
- /**
--- 
-1.5.6.5
+And not forgetting that '/' is not permitted in device or driver names.
