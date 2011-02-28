@@ -1,111 +1,102 @@
-From: "K, Mythri P" <mythripk@ti.com>
-Subject: Re: [PATCH 3/8] OMAP4 : DSS : HDMI: HDMI specific display controller
- and dss change.
-Date: Mon, 28 Feb 2011 11:51:20 +0530
-Message-ID: <AANLkTi=1xrEzjVA9Z+a2_ZXmhgQTr=08saosGWWdhXaB@mail.gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 5/8] OMAP4 : DSS2 : HDMI: HDMI driver addition in the
+ DSS drivers interface
+Date: Mon, 28 Feb 2011 08:27:03 +0200
+Message-ID: <1298874423.2096.11.camel@deskari>
 References: <1298643715-21540-1-git-send-email-mythripk@ti.com>
-	<1298643715-21540-4-git-send-email-mythripk@ti.com>
-	<1298798583.1977.13.camel@deskari>
+	 <1298643715-21540-6-git-send-email-mythripk@ti.com>
+	 <1298801837.1977.63.camel@deskari>
+	 <AANLkTimiQ2pdvzP0OAnq5YqzkWq_91XLMWSq1K5M_3VH@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:45085 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752600Ab1B1GVW convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 28 Feb 2011 01:21:22 -0500
-Received: by mail-vw0-f51.google.com with SMTP id 18so2991094vws.38
-        for <linux-omap@vger.kernel.org>; Sun, 27 Feb 2011 22:21:21 -0800 (PST)
-In-Reply-To: <1298798583.1977.13.camel@deskari>
+Received: from bear.ext.ti.com ([192.94.94.41]:44447 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751591Ab1B1G1G (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 28 Feb 2011 01:27:06 -0500
+Received: from dlep34.itg.ti.com ([157.170.170.115])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1S6R68f024676
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Mon, 28 Feb 2011 00:27:06 -0600
+Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
+	by dlep34.itg.ti.com (8.13.7/8.13.7) with ESMTP id p1S6R51Z016199
+	for <linux-omap@vger.kernel.org>; Mon, 28 Feb 2011 00:27:05 -0600 (CST)
+In-Reply-To: <AANLkTimiQ2pdvzP0OAnq5YqzkWq_91XLMWSq1K5M_3VH@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: "K, Mythri P" <mythripk@ti.com>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Tomi,
+On Mon, 2011-02-28 at 00:11 -0600, K, Mythri P wrote:
+> Hi Tomi,
+> 
+> On Sun, Feb 27, 2011 at 3:47 PM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
 
-On Sun, Feb 27, 2011 at 2:53 PM, Tomi Valkeinen <tomi.valkeinen@ti.com>=
- wrote:
-> On Fri, 2011-02-25 at 08:21 -0600, K, Mythri P wrote:
->> Adding changes to set gamma table bit for TV interface and function =
-to select
->> between VENC and HDMI.
->>
->> Signed-off-by: Mythri P K <mythripk@ti.com>
->> ---
->> =A0drivers/video/omap2/dss/dispc.c | =A0 =A05 +++++
->> =A0drivers/video/omap2/dss/dss.c =A0 | =A0 =A07 +++++++
->> =A0drivers/video/omap2/dss/dss.h =A0 | =A0 =A02 ++
->> =A03 files changed, 14 insertions(+), 0 deletions(-)
->>
->> diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/d=
-ss/dispc.c
->> index 6d9bb17..16f1106 100644
->> --- a/drivers/video/omap2/dss/dispc.c
->> +++ b/drivers/video/omap2/dss/dispc.c
->> @@ -1213,6 +1213,11 @@ void dispc_enable_zorder(enum omap_plane plan=
-e, bool enable)
->> =A0 =A0 =A0 dispc_write_reg(dispc_reg_att[plane], val);
->> =A0}
->>
->> +void dispc_enable_gamma_table(bool enable)
->> +{
->> + =A0 =A0 REG_FLD_MOD(DISPC_CONFIG, enable, 9, 9);
->> +}
->> +
->> =A0static void _dispc_set_vid_color_conv(enum omap_plane plane, bool=
- enable)
->> =A0{
->> =A0 =A0 =A0 u32 val;
->> diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss=
-/dss.c
->> index 99de4e1..127d42e 100644
->> --- a/drivers/video/omap2/dss/dss.c
->> +++ b/drivers/video/omap2/dss/dss.c
->> @@ -559,6 +559,13 @@ void dss_set_dac_pwrdn_bgz(bool enable)
->> =A0 =A0 =A0 REG_FLD_MOD(DSS_CONTROL, enable, 5, 5); /* DAC Power-Dow=
-n Control */
->> =A0}
->>
->> +void dss_select_hdmi_venc(bool hdmi)
->> +{
->> + =A0 =A0 REG_FLD_MOD(DSS_CONTROL, hdmi, 15, 15); /* 0x1 for HDMI, 0=
-x0 VENC */
->> + =A0 =A0 if (hdmi)
->> + =A0 =A0 =A0 =A0 =A0 =A0 REG_FLD_MOD(DSS_CONTROL, 0, 9, 8);
->> +}
->
-> bool argument for this function is very confusing. Which one is true?
-> Perhaps this could use an enum.
-I have added a comment , 1 is for HDMI and 0 for VENC.
->
-> I've tried to keep the habit of having the name of the register field=
- in
-> comments to make the code easier to read. For example, /*
-> VENC_HDMI_SWITCH */ for the bit 15.
-I can add this.
->
-> The bits 8 and 9 are FCK_CLK_SWITCH. Why do you set it here? Looks
-> rather dangerous to change the clock source like that.
->
-This is to select what would be the clock source to DISPC, HDMI would
-need the DISPC
-to run at the rate of pixel clock (TMDS if deep color is set ) required=
- by HDMI.
-Where as DSI does not have any such constraint( correct me if i am wron=
-g).
-I suppose we can have a patch to select the correct clock source to
-DISPC dynamically
-based on what panels are connected later on ?
+> >> + * HDMI interface DSS driver setting for TI's OMAP4 family of processor.
+> >> + * Copyright (C) 2010-2011 Texas Instruments Incorporated - http://www.ti.com/
+> >> + * Authors: Yong Zhi
+> >
+> > Who is Yong Zhi and where's his signed-off-by?
+> Yong zhi had written some of the functions in this file , which was in
+> a library.He no longer works on the driver though .
 
-> =A0Tomi
->
->
->
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Ok. Generally there should be a signed-off-by from everybody who has
+written the code. It's like "I have written this code and I have
+permission to send it upstream" etc.
+
+His signed-off would be good for this too, but if the code is just based
+on his work, and doesn't really resemble it anymore, perhaps you could
+then say "Based on code by Yong Zhi", or similar.
+
+> >> +
+> >> +static inline int hdmi_wait_for_bit_change(const struct hdmi_reg idx,
+> >> +                               int b2, int b1, u32 val)
+> >> +{
+> >> +       u32 t = 0;
+> >> +       while (val != FLD_GET(hdmi_read_reg(idx), b2, b1)) {
+> >
+> > There's REG_GET macro used in other DSS files to read bits from the
+> > registers.
+> Hmm i see that in dsi.c REG_GET is defined to do the same,
+> #define REG_GET(idx, start, end) \
+>         FLD_GET(dsi_read_reg(idx), start, end)
+> So should this be fine of should i define a new REG_GET ?
+
+REG_GET() uses the private dsi_read_reg() function, so it has to be
+defined again in each interface file. So for HDMI, define REG_REG
+similarly with hdmi_read_reg().
+
+> >> +       /* HACK : DDC needs time to stablize */
+> >> +       mdelay(10);
+> >
+> > So what is the reason for this? It's a sleep that for unknown reason
+> > make the code work? Or is there an idea why this is needed?
+> This is the time it needs to stabilize DDC, else most of the time it
+> reads a 0 or
+> wrong shifted values , so i have prefixed with a HACK.
+
+Ok. I'm fine with the hack for now, but I'm just interested: Is the 10ms
+just something that happens to work? This sleep is not discussed in any
+documentation? Has this been discussed with HW people?
+
+> >> +static inline void print_omap_video_timings(struct omap_video_timings *timings)
+> >
+> > Why is this inline?
+> Its only a print function , called many times by the driver. Do you
+> see any reason not to make it inline?
+
+Well, generally you shouldn't use inline. I think that's the basic rule.
+Compiler usually makes better choices than humans. I have used them for
+xxx_read_reg() and xxx_write_reg(), although I'm not quite sure if even
+that is needed.
+
+And in this case the function is quite long. I'm guessing here, but most
+likely the code runs faster if it's _not_ inlined, because not inlining
+reduces the size of the code. Also, print functions are on the slower
+side anyway, so the overhead of calling this function is probably
+negligible compared to the contents of the function. 
+
+ Tomi
+
+
