@@ -1,86 +1,57 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [patch-v2.6.39 03/12] usb: musb: gadget: do not poke with
- gadget's list_head
-Date: Mon, 28 Feb 2011 10:43:11 +0200
-Message-ID: <20110228084311.GJ2459@legolas.emea.dhcp.ti.com>
-References: <1297946329-9353-1-git-send-email-balbi@ti.com>
- <1297946329-9353-4-git-send-email-balbi@ti.com>
- <loom.20110225T201502-888@post.gmane.org>
-Reply-To: balbi@ti.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Archit Taneja <archit@ti.com>
+Subject: [PATCH 0/3]OMAP: DSS2: Abstract away DSI VC information from dsi panel drivers
+Date: Mon, 28 Feb 2011 14:17:26 +0530
+Message-ID: <1298882849-7432-1-git-send-email-archit@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:37589 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752677Ab1B1InQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 28 Feb 2011 03:43:16 -0500
-Received: by bwz8 with SMTP id 8so4492728bwz.35
-        for <linux-omap@vger.kernel.org>; Mon, 28 Feb 2011 00:43:14 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <loom.20110225T201502-888@post.gmane.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:47100 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752268Ab1B1Iox (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Feb 2011 03:44:53 -0500
+Received: from dlep34.itg.ti.com ([157.170.170.115])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1S8iqZs017305
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Mon, 28 Feb 2011 02:44:52 -0600
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Pavol Kurina <pavol.kurina@emsys.de>
-Cc: linux-omap@vger.kernel.org
+To: tomi.valkeinen@ti.com
+Cc: linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-On Fri, Feb 25, 2011 at 07:41:47PM +0000, Pavol Kurina wrote:
-> Felipe Balbi <balbi <at> ti.com> writes:
-> > 
-> > struct usb_request's list_head is supposed to be
-> > used only by gadget drivers, but musb is abusing
-> > that. Give struct musb_request its own list_head
-> > and prevent musb from poking into other driver's
-> > business.
-> 
-> Hi,
-> 
-> I think, the patch misses to fix the usage of 
-> "request->list" in musb_gadget_dequeue in 
-> musb_gadget.c.
-> 
-> I found out by having troubles with f_mass_storage. 
-> It needs musb_gadget_dequeue to work properly...
-> 
-> I backported the patch to android-2.6.35 kernel on a 
-> omap4 system and also fixed the musb_gadget_dequeue 
-> there so f_mass_storage seem to work at least there 
-> now...
-> 
-> Can you check this patch regarding some missing bits
-> please?
+The current DSI driver design requires the DSI panel driver to specify the
+DSI Virtual Channel and the Panel Virtual Channel ID for the transfer of
+commands and frame data. Out of these, only the second parameter is a property
+of the Panel.
 
-Looks like we need some extra tests to be added to g_zero, I tested with
-g_zero and it didn't find that problem. Anyway, here's a patch which
-probably fixes what you need to be fixed. Would you test it for me ?
+The DSI Virtual Channel in use by the panel driver ideally shouldn't be provided
+by the panel driver. The current design leads to the following issues:
+-Multiple panels connected to the same DSI interface would be unaware of the
+VC's in use.
+-Hard coded Virtual Channel numbers in panel drivers which is not generic.
+-No clean way of configuring DSI for panels which need atleast 2 DSI Virtual
+Channels.
+-No clean way of configuring DSI for the special case where a panel may have 2
+or VC ID's corresponding to it.
 
-diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_gadget.c
-index da8c93b..bf88a61 100644
---- a/drivers/usb/musb/musb_gadget.c
-+++ b/drivers/usb/musb/musb_gadget.c
-@@ -1274,7 +1274,8 @@ cleanup:
- static int musb_gadget_dequeue(struct usb_ep *ep, struct usb_request *request)
- {
-        struct musb_ep          *musb_ep = to_musb_ep(ep);
--       struct usb_request      *r;
-+       struct musb_request     req = to_musb_request(request);
-+       struct musb_request     *r;
-        unsigned long           flags;
-        int                     status = 0;
-        struct musb             *musb = musb_ep->musb;
-@@ -1285,10 +1286,10 @@ static int musb_gadget_dequeue(struct usb_ep *ep, struct usb_request *request)
-        spin_lock_irqsave(&musb->lock, flags);
- 
-        list_for_each_entry(r, &musb_ep->req_list, list) {
--               if (r == request)
-+               if (r == req)
-                        break;
-        }
--       if (r != request) {
-+       if (r != req) {
-                DBG(3, "request %p not queued to %s\n", request, ep->name);
-                status = -EINVAL;
-                goto done;
+The panel driver should, instead, request for, and release DSI Virtual Channels
+through calls to the DSI driver. The DSI driver should return VC numbers which
+the panel can use. The panel driver then uses this VC to either send pixel data,
+send commands and receive data from the panel. The DSI driver then automatically
+configures the Virtual Channel source to either Video Port or L4 Slave Port.
 
--- 
-balbi
+This patch set tries to achieve the above design, and make Panel Taal driver use
+this approach.
+
+Note:
+Patches can be tested on:
+http://dev.omapzoom.org/?p=axelcx/kernel-display.git;a=shortlog;h=refs/heads/lo-dss2-Feb25
+
+Archit Taneja (3):
+  OMAP: DSS2: Functions to request/release DSI VCs
+  OMAP: DSS2: Use request / release calls in Taal for DSI Virtual
+    Channels.
+  OMAP: DSS2: Taal: Use 2 DSI Virtual Channels for Taal
+
+ arch/arm/plat-omap/include/plat/display.h |    3 +
+ drivers/video/omap2/displays/panel-taal.c |  121 +++++++++++++++++------------
+ drivers/video/omap2/dss/dsi.c             |   58 ++++++++++++--
+ 3 files changed, 124 insertions(+), 58 deletions(-)
+
