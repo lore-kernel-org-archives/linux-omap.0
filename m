@@ -1,28 +1,26 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH] OMAP: DSS2: Use dss_features for DISPC overlay code cleanup
-Date: Mon, 28 Feb 2011 12:11:51 +0530
-Message-ID: <1298875311-5870-1-git-send-email-archit@ti.com>
+Subject: [PATCH] OMAP: DSS2: Use dss features to provide the max fck supported
+Date: Mon, 28 Feb 2011 12:13:41 +0530
+Message-ID: <1298875421-5933-1-git-send-email-archit@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:53412 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:51256 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752485Ab1B1GjP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 28 Feb 2011 01:39:15 -0500
-Received: from dlep33.itg.ti.com ([157.170.170.112])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1S6dFHG013762
+	id S1752520Ab1B1GlF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 28 Feb 2011 01:41:05 -0500
+Received: from dlep35.itg.ti.com ([157.170.170.118])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1S6f40q019954
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Mon, 28 Feb 2011 00:39:15 -0600
+	for <linux-omap@vger.kernel.org>; Mon, 28 Feb 2011 00:41:04 -0600
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com
 Cc: linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-Add dss_features and register fields to incorporate changes in DISPC pipelines
-between OMAP3 and OMAP4.
+The maximum supported frequency for DSS has increased from 173 to 186 Mhz on
+OMAP4.
 
-Register fields added: FEAT_REG_HORIZONTALACCU, FEAT_REG_VERTICALACCU
-DSS Features added: FEAT_LINEBUFFERSPLIT, FEAT_ROWREPEATENABLE, FEAT_RESIZECONF
-
-_dispc_set_scaling() and _dispc_set_rotation_attrs() have been cleaned up.
+Introduce a dss feature function to get the max_fck to replace DISPC_MAX_FCK
+macro.
 
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
@@ -30,221 +28,187 @@ Note:
 Patch can be tested on:
 http://dev.omapzoom.org/?p=axelcx/kernel-display.git;a=shortlog;h=refs/heads/lo-dss2-Feb25
 
- drivers/video/omap2/dss/dispc.c        |   52 ++++++++++++++++++++++---------
- drivers/video/omap2/dss/dss_features.c |   31 +++++++++++++++----
- drivers/video/omap2/dss/dss_features.h |    5 +++
- 3 files changed, 67 insertions(+), 21 deletions(-)
+ drivers/video/omap2/dss/dsi.c          |    9 ++++++---
+ drivers/video/omap2/dss/dss.c          |    9 ++++++---
+ drivers/video/omap2/dss/dss.h          |    2 --
+ drivers/video/omap2/dss/dss_features.c |   11 +++++++++++
+ drivers/video/omap2/dss/dss_features.h |    1 +
+ 5 files changed, 24 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-index a34ca69..0b6bbd1 100644
---- a/drivers/video/omap2/dss/dispc.c
-+++ b/drivers/video/omap2/dss/dispc.c
-@@ -1137,10 +1137,16 @@ static void _dispc_set_vid_accu0(enum omap_plane plane, int haccu, int vaccu)
- 	u32 val;
- 	const struct dispc_reg ac0_reg[] = { DISPC_VID_ACCU0(0),
- 				      DISPC_VID_ACCU0(1) };
-+	u8 hor_start, hor_end, vert_start, vert_end;
+diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
+index 2444404..2e92888 100644
+--- a/drivers/video/omap2/dss/dsi.c
++++ b/drivers/video/omap2/dss/dsi.c
+@@ -38,6 +38,7 @@
+ #include <plat/clock.h>
  
- 	BUG_ON(plane == OMAP_DSS_GFX);
+ #include "dss.h"
++#include "dss_features.h"
  
--	val = FLD_VAL(vaccu, 25, 16) | FLD_VAL(haccu, 9, 0);
-+	dss_feat_get_reg_field(FEAT_REG_HORIZONTALACCU, &hor_start, &hor_end);
-+	dss_feat_get_reg_field(FEAT_REG_VERTICALACCU, &vert_start, &vert_end);
+ /*#define VERBOSE_IRQ*/
+ #define DSI_CATCH_MISSING_TE
+@@ -856,10 +857,12 @@ int dsi_pll_calc_clock_div_pck(bool is_tft, unsigned long req_pck,
+ 	struct dispc_clock_info best_dispc;
+ 	int min_fck_per_pck;
+ 	int match = 0;
+-	unsigned long dss_clk_fck2;
++	unsigned long dss_clk_fck2, max_dss_fck;
+ 
+ 	dss_clk_fck2 = dss_clk_get_rate(DSS_CLK_SYSCK);
+ 
++	max_dss_fck = dss_feat_get_max_dss_fck();
 +
-+	val = FLD_VAL(vaccu, vert_start, vert_end) |
-+			FLD_VAL(haccu, hor_start, hor_end);
+ 	if (req_pck == dsi.cache_req_pck &&
+ 			dsi.cache_cinfo.clkin == dss_clk_fck2) {
+ 		DSSDBG("DSI clock info found from cache\n");
+@@ -872,7 +875,7 @@ int dsi_pll_calc_clock_div_pck(bool is_tft, unsigned long req_pck,
+ 	min_fck_per_pck = CONFIG_OMAP2_DSS_MIN_FCK_PER_PCK;
+ 
+ 	if (min_fck_per_pck &&
+-		req_pck * min_fck_per_pck > DISPC_MAX_FCK) {
++		req_pck * min_fck_per_pck > max_dss_fck) {
+ 		DSSERR("Requested pixel clock not possible with the current "
+ 				"OMAP2_DSS_MIN_FCK_PER_PCK setting. Turning "
+ 				"the constraint off.\n");
+@@ -925,7 +928,7 @@ retry:
+ 				if (cur.dsi1_pll_fclk  < req_pck)
+ 					break;
+ 
+-				if (cur.dsi1_pll_fclk > DISPC_MAX_FCK)
++				if (cur.dsi1_pll_fclk > max_dss_fck)
+ 					continue;
+ 
+ 				if (min_fck_per_pck &&
+diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
+index 5a93e66..a73dbab 100644
+--- a/drivers/video/omap2/dss/dss.c
++++ b/drivers/video/omap2/dss/dss.c
+@@ -32,6 +32,7 @@
+ #include <plat/display.h>
+ #include <plat/clock.h>
+ #include "dss.h"
++#include "dss_features.h"
+ 
+ #define DSS_SZ_REGS			SZ_512
+ 
+@@ -380,7 +381,7 @@ int dss_calc_clock_div(bool is_tft, unsigned long req_pck,
+ 	struct dss_clock_info best_dss;
+ 	struct dispc_clock_info best_dispc;
+ 
+-	unsigned long fck;
++	unsigned long fck, max_dss_fck;
+ 
+ 	u16 fck_div;
+ 
+@@ -389,6 +390,8 @@ int dss_calc_clock_div(bool is_tft, unsigned long req_pck,
+ 
+ 	prate = dss_get_dpll4_rate();
+ 
++	max_dss_fck = dss_feat_get_max_dss_fck();
 +
- 	dispc_write_reg(ac0_reg[plane-1], val);
- }
+ 	fck = dss_clk_get_rate(DSS_CLK_FCK);
+ 	if (req_pck == dss.cache_req_pck &&
+ 			((cpu_is_omap34xx() && prate == dss.cache_prate) ||
+@@ -402,7 +405,7 @@ int dss_calc_clock_div(bool is_tft, unsigned long req_pck,
+ 	min_fck_per_pck = CONFIG_OMAP2_DSS_MIN_FCK_PER_PCK;
  
-@@ -1149,10 +1155,16 @@ static void _dispc_set_vid_accu1(enum omap_plane plane, int haccu, int vaccu)
- 	u32 val;
- 	const struct dispc_reg ac1_reg[] = { DISPC_VID_ACCU1(0),
- 				      DISPC_VID_ACCU1(1) };
-+	u8 hor_start, hor_end, vert_start, vert_end;
+ 	if (min_fck_per_pck &&
+-		req_pck * min_fck_per_pck > DISPC_MAX_FCK) {
++		req_pck * min_fck_per_pck > max_dss_fck) {
+ 		DSSERR("Requested pixel clock not possible with the current "
+ 				"OMAP2_DSS_MIN_FCK_PER_PCK setting. Turning "
+ 				"the constraint off.\n");
+@@ -438,7 +441,7 @@ retry:
+ 			else
+ 				fck = prate / fck_div * 2;
  
- 	BUG_ON(plane == OMAP_DSS_GFX);
+-			if (fck > DISPC_MAX_FCK)
++			if (fck > max_dss_fck)
+ 				continue;
  
--	val = FLD_VAL(vaccu, 25, 16) | FLD_VAL(haccu, 9, 0);
-+	dss_feat_get_reg_field(FEAT_REG_HORIZONTALACCU, &hor_start, &hor_end);
-+	dss_feat_get_reg_field(FEAT_REG_VERTICALACCU, &vert_start, &vert_end);
-+
-+	val = FLD_VAL(vaccu, vert_start, vert_end) |
-+			FLD_VAL(haccu, hor_start, hor_end);
-+
- 	dispc_write_reg(ac1_reg[plane-1], val);
- }
+ 			if (min_fck_per_pck &&
+diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
+index 4b02e07..7fe32d1 100644
+--- a/drivers/video/omap2/dss/dss.h
++++ b/drivers/video/omap2/dss/dss.h
+@@ -97,8 +97,6 @@ extern unsigned int dss_debug;
+ #define FLD_MOD(orig, val, start, end) \
+ 	(((orig) & ~FLD_MASK(start, end)) | FLD_VAL(val, start, end))
  
-@@ -1190,16 +1202,25 @@ static void _dispc_set_scaling(enum omap_plane plane,
- 	_dispc_set_fir(plane, fir_hinc, fir_vinc);
- 
- 	l = dispc_read_reg(dispc_reg_att[plane]);
--	l &= ~((0x0f << 5) | (0x3 << 21));
- 
-+	/* RESIZEENABLE and VERTICALTAPS */
-+	l &= ~((0x3 << 5) | (0x1 << 21));
- 	l |= fir_hinc ? (1 << 5) : 0;
- 	l |= fir_vinc ? (1 << 6) : 0;
-+	l |= five_taps ? (1 << 21) : 0;
- 
--	l |= hscaleup ? 0 : (1 << 7);
--	l |= vscaleup ? 0 : (1 << 8);
-+	/* VRESIZECONF and HRESIZECONF */
-+	if (dss_has_feature(FEAT_RESIZECONF)) {
-+		l &= ~(0x3 << 7);
-+		l |= hscaleup ? 0 : (1 << 7);
-+		l |= vscaleup ? 0 : (1 << 8);
-+	}
- 
--	l |= five_taps ? (1 << 21) : 0;
--	l |= five_taps ? (1 << 22) : 0;
-+	/* LINEBUFFERSPLIT */
-+	if (dss_has_feature(FEAT_LINEBUFFERSPLIT)) {
-+		l &= ~(0x1 << 22);
-+		l |= five_taps ? (1 << 22) : 0;
-+	}
- 
- 	dispc_write_reg(dispc_reg_att[plane], l);
- 
-@@ -1223,9 +1244,11 @@ static void _dispc_set_scaling(enum omap_plane plane,
- static void _dispc_set_rotation_attrs(enum omap_plane plane, u8 rotation,
- 		bool mirroring, enum omap_color_mode color_mode)
- {
-+	bool row_repeat = false;
-+	int vidrot = 0;
-+
- 	if (color_mode == OMAP_DSS_COLOR_YUV2 ||
- 			color_mode == OMAP_DSS_COLOR_UYVY) {
--		int vidrot = 0;
- 
- 		if (mirroring) {
- 			switch (rotation) {
-@@ -1259,16 +1282,15 @@ static void _dispc_set_rotation_attrs(enum omap_plane plane, u8 rotation,
- 			}
- 		}
- 
--		REG_FLD_MOD(dispc_reg_att[plane], vidrot, 13, 12);
+-#define DISPC_MAX_FCK 173000000
 -
- 		if (rotation == OMAP_DSS_ROT_90 || rotation == OMAP_DSS_ROT_270)
--			REG_FLD_MOD(dispc_reg_att[plane], 0x1, 18, 18);
-+			row_repeat = true;
- 		else
--			REG_FLD_MOD(dispc_reg_att[plane], 0x0, 18, 18);
--	} else {
--		REG_FLD_MOD(dispc_reg_att[plane], 0, 13, 12);
--		REG_FLD_MOD(dispc_reg_att[plane], 0, 18, 18);
-+			row_repeat = false;
- 	}
-+
-+	REG_FLD_MOD(dispc_reg_att[plane], vidrot, 13, 12);
-+	if (dss_has_feature(FEAT_ROWREPEATENABLE))
-+		REG_FLD_MOD(dispc_reg_att[plane], row_repeat ? 1 : 0, 18, 18);
- }
- 
- static int color_mode_to_bpp(enum omap_color_mode color_mode)
+ enum omap_burst_size {
+ 	OMAP_DSS_BURST_4x32 = 0,
+ 	OMAP_DSS_BURST_8x32 = 1,
 diff --git a/drivers/video/omap2/dss/dss_features.c b/drivers/video/omap2/dss/dss_features.c
-index 0f2e6a9..f6f319d 100644
+index f6f319d..6a52d52 100644
 --- a/drivers/video/omap2/dss/dss_features.c
 +++ b/drivers/video/omap2/dss/dss_features.c
-@@ -54,6 +54,8 @@ static const struct dss_reg_field omap2_dss_reg_fields[] = {
- 	{ FEAT_REG_FIFOLOWTHRESHOLD, 8, 0 },
- 	{ FEAT_REG_FIFOHIGHTHRESHOLD, 24, 16 },
- 	{ FEAT_REG_FIFOSIZE, 8, 0 },
-+	{ FEAT_REG_HORIZONTALACCU, 9, 0 },
-+	{ FEAT_REG_VERTICALACCU, 25, 16 },
+@@ -41,6 +41,7 @@ struct omap_dss_features {
+ 
+ 	const int num_mgrs;
+ 	const int num_ovls;
++	const unsigned long max_dss_fck;
+ 	const enum omap_display_type *supported_displays;
+ 	const enum omap_color_mode *supported_color_modes;
  };
+@@ -160,6 +161,7 @@ static struct omap_dss_features omap2_dss_features = {
  
- static const struct dss_reg_field omap3_dss_reg_fields[] = {
-@@ -62,6 +64,18 @@ static const struct dss_reg_field omap3_dss_reg_fields[] = {
- 	{ FEAT_REG_FIFOLOWTHRESHOLD, 11, 0 },
- 	{ FEAT_REG_FIFOHIGHTHRESHOLD, 27, 16 },
- 	{ FEAT_REG_FIFOSIZE, 10, 0 },
-+	{ FEAT_REG_HORIZONTALACCU, 9, 0 },
-+	{ FEAT_REG_VERTICALACCU, 25, 16 },
-+};
-+
-+static const struct dss_reg_field omap4_dss_reg_fields[] = {
-+	{ FEAT_REG_FIRHINC, 12, 0 },
-+	{ FEAT_REG_FIRVINC, 28, 16 },
-+	{ FEAT_REG_FIFOLOWTHRESHOLD, 15, 0 },
-+	{ FEAT_REG_FIFOHIGHTHRESHOLD, 31, 16 },
-+	{ FEAT_REG_FIFOSIZE, 15, 0 },
-+	{ FEAT_REG_HORIZONTALACCU, 10, 0 },
-+	{ FEAT_REG_VERTICALACCU, 26, 16 },
+ 	.num_mgrs = 2,
+ 	.num_ovls = 3,
++	.max_dss_fck = 173000000,
+ 	.supported_displays = omap2_dss_supported_displays,
+ 	.supported_color_modes = omap2_dss_supported_color_modes,
  };
- 
- static const enum omap_display_type omap2_dss_supported_displays[] = {
-@@ -141,7 +155,8 @@ static struct omap_dss_features omap2_dss_features = {
- 
- 	.has_feature	=
- 		FEAT_LCDENABLEPOL | FEAT_LCDENABLESIGNAL |
--		FEAT_PCKFREEENABLE | FEAT_FUNCGATED,
-+		FEAT_PCKFREEENABLE | FEAT_FUNCGATED |
-+		FEAT_ROWREPEATENABLE | FEAT_RESIZECONF,
+@@ -177,6 +179,7 @@ static struct omap_dss_features omap3430_dss_features = {
  
  	.num_mgrs = 2,
  	.num_ovls = 3,
-@@ -157,7 +172,8 @@ static struct omap_dss_features omap3430_dss_features = {
- 	.has_feature	=
- 		FEAT_GLOBAL_ALPHA | FEAT_LCDENABLEPOL |
- 		FEAT_LCDENABLESIGNAL | FEAT_PCKFREEENABLE |
--		FEAT_FUNCGATED,
-+		FEAT_FUNCGATED | FEAT_ROWREPEATENABLE |
-+		FEAT_LINEBUFFERSPLIT | FEAT_RESIZECONF,
++	.max_dss_fck = 173000000,
+ 	.supported_displays = omap3_dss_supported_displays,
+ 	.supported_color_modes = omap3_dss_supported_color_modes,
+ };
+@@ -194,6 +197,7 @@ static struct omap_dss_features omap3630_dss_features = {
  
  	.num_mgrs = 2,
  	.num_ovls = 3,
-@@ -172,7 +188,9 @@ static struct omap_dss_features omap3630_dss_features = {
- 	.has_feature    =
- 		FEAT_GLOBAL_ALPHA | FEAT_LCDENABLEPOL |
- 		FEAT_LCDENABLESIGNAL | FEAT_PCKFREEENABLE |
--		FEAT_PRE_MULT_ALPHA | FEAT_FUNCGATED,
-+		FEAT_PRE_MULT_ALPHA | FEAT_FUNCGATED |
-+		FEAT_ROWREPEATENABLE | FEAT_LINEBUFFERSPLIT |
-+		FEAT_RESIZECONF,
- 
- 	.num_mgrs = 2,
- 	.num_ovls = 3,
-@@ -182,12 +200,13 @@ static struct omap_dss_features omap3630_dss_features = {
- 
- /* OMAP4 DSS Features */
- static struct omap_dss_features omap4_dss_features = {
--	.reg_fields = omap3_dss_reg_fields,
--	.num_reg_fields = ARRAY_SIZE(omap3_dss_reg_fields),
-+	.reg_fields = omap4_dss_reg_fields,
-+	.num_reg_fields = ARRAY_SIZE(omap4_dss_reg_fields),
- 
- 	.has_feature	=
- 		FEAT_GLOBAL_ALPHA | FEAT_PRE_MULT_ALPHA |
--		FEAT_MGR_LCD2 | FEAT_CORE_CLK_DIV,
-+		FEAT_MGR_LCD2 | FEAT_CORE_CLK_DIV |
-+		FEAT_GLOBAL_ALPHA_VID1,
++	.max_dss_fck = 173000000,
+ 	.supported_displays = omap3_dss_supported_displays,
+ 	.supported_color_modes = omap3_dss_supported_color_modes,
+ };
+@@ -210,6 +214,7 @@ static struct omap_dss_features omap4_dss_features = {
  
  	.num_mgrs = 3,
  	.num_ovls = 3,
++	.max_dss_fck = 186000000,
+ 	.supported_displays = omap4_dss_supported_displays,
+ 	.supported_color_modes = omap3_dss_supported_color_modes,
+ };
+@@ -225,6 +230,12 @@ int dss_feat_get_num_ovls(void)
+ 	return omap_current_dss_features->num_ovls;
+ }
+ 
++/* Max supported DSS FCK in Hz */
++unsigned long dss_feat_get_max_dss_fck(void)
++{
++	return omap_current_dss_features->max_dss_fck;
++}
++
+ enum omap_display_type dss_feat_get_supported_displays(enum omap_channel channel)
+ {
+ 	return omap_current_dss_features->supported_displays[channel];
 diff --git a/drivers/video/omap2/dss/dss_features.h b/drivers/video/omap2/dss/dss_features.h
-index 24fcef5..61c05c7 100644
+index 61c05c7..b983c21 100644
 --- a/drivers/video/omap2/dss/dss_features.h
 +++ b/drivers/video/omap2/dss/dss_features.h
-@@ -35,6 +35,9 @@ enum dss_feat_id {
- 	FEAT_MGR_LCD2		= 1 << 7,
- 	/* Independent core clk divider */
- 	FEAT_CORE_CLK_DIV	= 1 << 8,
-+	FEAT_LINEBUFFERSPLIT	= 1 << 9,
-+	FEAT_ROWREPEATENABLE	= 1 << 10,
-+	FEAT_RESIZECONF		= 1 << 11,
- };
- 
- /* DSS register field id */
-@@ -44,6 +47,8 @@ enum dss_feat_reg_field {
- 	FEAT_REG_FIFOHIGHTHRESHOLD,
- 	FEAT_REG_FIFOLOWTHRESHOLD,
- 	FEAT_REG_FIFOSIZE,
-+	FEAT_REG_HORIZONTALACCU,
-+	FEAT_REG_VERTICALACCU,
- };
- 
+@@ -54,6 +54,7 @@ enum dss_feat_reg_field {
  /* DSS Feature Functions */
+ int dss_feat_get_num_mgrs(void);
+ int dss_feat_get_num_ovls(void);
++unsigned long dss_feat_get_max_dss_fck(void);
+ enum omap_display_type dss_feat_get_supported_displays(enum omap_channel channel);
+ enum omap_color_mode dss_feat_get_supported_color_modes(enum omap_plane plane);
+ bool dss_feat_color_mode_supported(enum omap_plane plane,
 -- 
 1.7.1
 
