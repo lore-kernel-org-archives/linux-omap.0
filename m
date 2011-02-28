@@ -1,63 +1,47 @@
-From: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 0/5 v3] usb: musb: Power management support
-Date: Mon, 28 Feb 2011 06:20:30 -0800
-Message-ID: <20110228142030.GA25724@kroah.com>
-References: <1298882976-4997-1-git-send-email-hemahk@ti.com>
- <20110228085611.GL2459@legolas.emea.dhcp.ti.com>
+From: Anton Vorontsov <cbouatmailru@gmail.com>
+Subject: Re: [PATCH 1/1] twl4030_charger: Make the driver atomic notifier
+ safe
+Date: Mon, 28 Feb 2011 17:32:44 +0300
+Message-ID: <20110228143244.GA1074@oksana.dev.rtsoft.ru>
+References: <1298634996-25722-1-git-send-email-heikki.krogerus@nokia.com>
+ <1298634996-25722-2-git-send-email-heikki.krogerus@nokia.com>
+ <AANLkTin81FMA-hA5C_1m0XTDkAozceLXdDbqhvqhqt31@mail.gmail.com>
+ <20110228062953.GB2181@esdhcp034230>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:42615 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754221Ab1B1Ocs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Feb 2011 09:32:48 -0500
+Received: by eyx24 with SMTP id 24so1304152eyx.19
+        for <linux-omap@vger.kernel.org>; Mon, 28 Feb 2011 06:32:47 -0800 (PST)
 Content-Disposition: inline
-In-Reply-To: <20110228085611.GL2459-UiBtZHVXSwEVvW8u9ZQWYwjfymiNCTlR@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <20110228062953.GB2181@esdhcp034230>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Heikki Krogerus <heikki.krogerus@nokia.com>
+Cc: Grazvydas Ignotas <notasas@gmail.com>, balbi@ti.com, linux-omap@vger.kernel.org
 
-On Mon, Feb 28, 2011 at 10:56:11AM +0200, Felipe Balbi wrote:
-> Hi,
+On Mon, Feb 28, 2011 at 08:29:53AM +0200, Heikki Krogerus wrote:
+> On Sat, Feb 26, 2011 at 07:53:03PM +0200, ext Grazvydas Ignotas wrote:
+> > On Fri, Feb 25, 2011 at 1:56 PM, Heikki Krogerus
+> > <heikki.krogerus@nokia.com> wrote:
+> > > This queues work from the otg notification where the
+> > > i2c operations can be safely made. Needed for atomic otg
+> > > notifiers.
+> > >
+> > > Signed-off-by: Heikki Krogerus <heikki.krogerus@nokia.com>
+> > > Cc: Grazvydas Ignotas <notasas@gmail.com>
+> > > Cc: Anton Vorontsov <cbouatmailru@gmail.com>
+> > 
+> > seems to work fine.
+> > Tested-by: Grazvydas Ignotas <notasas@gmail.com>
 > 
-> On Mon, Feb 28, 2011 at 02:19:31PM +0530, Hema HK wrote:
-> > This patch series supports the retention and offmode support in the 
-> > idle path for musb driver using runtime pm APIs.
-> > 
-> > This is restricted to support offmode and retention only when device not
-> > connected.When device/cable connected with gadget driver loaded, configured
-> > to no idle/standby which will not allow the core transition to retention
-> > or off.
-> > 
-> > There is no context save/restore done by hardware for musb in OMAP3
-> > and OMAP4,driver has to take care of saving and restoring the context
-> > during offmode.
-> > 
-> > Musb has a requirement of configuring sysconfig register to force
-> > idle/standby mode and set the ENABLE_FORCE bit in module STANDBY register
-> > for retention and offmode support.
-> > 
-> > Runtime pm and hwmod frameworks will take care of configuring to force
-> > idle/standby when pm_runtime_put_sync is called and back to no
-> > idle/standby when pm_runeime_get_sync is called.
-> > 
-> > Compile, boot tested and also tested the retention in the idle path on
-> > OMAP3630Zoom3. And tested the global suspend/resume with offmode enabled.
-> > Usb basic functionality tested on OMAP4430SDP.
-> > 
-> > There is some problem with idle path offmode in mainline, I could not test
-> > with offmode. But I have tested this patch with resetting the controller
-> > in the idle path when wakeup from retention just to make sure that the
-> > context is lost, and restore path is working fine.
-> 
-> Tony and Greg, how do we handle this one ? Who should take my pull request
-> for this series ? I hope we still have a little time to get this into
-> 2.6.39, but if we don't I can hold on to them until 2.6.40.
+> Anton, can you take this?
 
-Doesn't bother me which tree they go through, I can take them, or, if
-it's easier due to omap merges, Tony can.
+Applied, thanks!
 
-thanks,
-
-greg k-h
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Anton Vorontsov
+Email: cbouatmailru@gmail.com
