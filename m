@@ -1,62 +1,102 @@
-From: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 5/5 v3] usb: otg: OMAP4430: Save/restore the context
-Date: Mon, 28 Feb 2011 14:19:36 +0530
-Message-ID: <1298882976-4997-6-git-send-email-hemahk@ti.com>
-References: <1298882976-4997-1-git-send-email-hemahk@ti.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1298882976-4997-1-git-send-email-hemahk-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hema HK <hemahk-l0cyMroinI0@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: [omap-for-linus] Un-used DSS regulator data
+Date: Mon, 28 Feb 2011 14:20:18 +0530
+Message-ID: <a46904cc06b5f68124e65086b9961d02@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary=0015175cd308047215049d53c5f6
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:39376 "EHLO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752924Ab1B1IuV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 28 Feb 2011 03:50:21 -0500
+Received: by qyk2 with SMTP id 2so2794285qyk.9
+        for <linux-omap@vger.kernel.org>; Mon, 28 Feb 2011 00:50:20 -0800 (PST)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tomi.valkeinen@ti.com, Sumit Semwal <sumit.semwal@ti.com>
+Cc: "Guruswamy, Senthilvadivu" <svadivu@ti.com>, linux-omap@vger.kernel.org, tony@atomide.com
 
-Add the context save/restore for the control module register
-used for OMAP4430 musb with UTMI embedded PHY interface.
+--0015175cd308047215049d53c5f6
+Content-Type: text/plain; charset=ISO-8859-1
 
-Signed-off-by: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
-Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Tomi/Sumit,
+
+Today while building Tony's 'omap-for-linus' branch I came
+across below build warning.
+warning: 'sdp3430_vdda_dac_supply' defined but not used
+
+It seems the DSS regulator data is not being used. Are you missing
+any patch which will use it eventually?
+
+If not I propose to remove that data to kill the warning.
+Below is the patch for the same. Also attached the same
+
+Regards,
+Santosh
+
+>From 037f1122d0bfe77883e6cf937009fd955be253a0 Mon Sep 17 00:00:00 2001
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Date: Mon, 28 Feb 2011 13:54:19 +0530
+Subject: [PATCH] omap: 3430sdp-board: Fix warning:
+'sdp3430_vdda_dac_supply' defined but not used
+
+The DSS regulator data not seems to be used. So remove the
+un-used sdp3430_vdda_dac_supply to avoid build warning
+
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Senthilvadivu Guruswamy <svadivu@ti.com>
+Cc: Sumit Semwal <sumit.semwal@ti.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- arch/arm/mach-omap2/omap_phy_internal.c |    7 +++++++
- 1 files changed, 7 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/board-3430sdp.c |    3 ---
+ 1 files changed, 0 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_phy_internal.c b/arch/arm/mach-omap2/omap_phy_internal.c
-index c50441f..e2e605f 100644
---- a/arch/arm/mach-omap2/omap_phy_internal.c
-+++ b/arch/arm/mach-omap2/omap_phy_internal.c
-@@ -44,6 +44,7 @@
- 
- static struct clk *phyclk, *clk48m, *clk32k;
- static void __iomem *ctrl_base;
-+static int usbotghs_control;
- 
- int omap4430_phy_init(struct device *dev)
- {
-@@ -130,6 +131,9 @@ int omap4430_phy_suspend(struct device *dev, int suspend)
- 		omap4430_phy_set_clk(dev, 0);
- 		/* Power down the phy */
- 		__raw_writel(PHY_PD, ctrl_base + CONTROL_DEV_CONF);
-+
-+		/* save the context */
-+		usbotghs_control = __raw_readl(ctrl_base + USBOTGHS_CONTROL);
- 	} else {
- 		/* Enable the internel phy clcoks */
- 		omap4430_phy_set_clk(dev, 1);
-@@ -138,6 +142,9 @@ int omap4430_phy_suspend(struct device *dev, int suspend)
- 			__raw_writel(~PHY_PD, ctrl_base + CONTROL_DEV_CONF);
- 			mdelay(200);
- 		}
-+
-+		/* restore the context */
-+		__raw_writel(usbotghs_control, ctrl_base + USBOTGHS_CONTROL);
- 	}
- 
- 	return 0;
+diff --git a/arch/arm/mach-omap2/board-3430sdp.c
+b/arch/arm/mach-omap2/board-3430sdp.c
+index 8950ecc..19a36a3 100644
+--- a/arch/arm/mach-omap2/board-3430sdp.c
++++ b/arch/arm/mach-omap2/board-3430sdp.c
+@@ -307,9 +307,6 @@ static struct omap_dss_board_info sdp3430_dss_data = {
+ 	.default_device	= &sdp3430_lcd_device,
+ };
+
+-static struct regulator_consumer_supply sdp3430_vdda_dac_supply =
+-	REGULATOR_SUPPLY("vdda_dac", "omapdss");
+-
+ static struct omap_board_config_kernel sdp3430_config[] __initdata = {
+ };
+
 -- 
-1.7.0.4
+1.6.0.4
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--0015175cd308047215049d53c5f6
+Content-Type: application/octet-stream;
+	name="0001-omap-3430sdp-board-Fix-warning-sdp3430_vdda_dac_.patch"
+Content-Disposition: attachment;
+	filename="0001-omap-3430sdp-board-Fix-warning-sdp3430_vdda_dac_.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: 10e932623b34bb5f_0.1
+
+RnJvbSAwMzdmMTEyMmQwYmZlNzc4ODNlNmNmOTM3MDA5ZmQ5NTViZTI1M2EwIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBTYW50b3NoIFNoaWxpbWthciA8c2FudG9zaC5zaGlsaW1rYXJA
+dGkuY29tPgpEYXRlOiBNb24sIDI4IEZlYiAyMDExIDEzOjU0OjE5ICswNTMwClN1YmplY3Q6IFtQ
+QVRDSF0gb21hcDogMzQzMHNkcC1ib2FyZDogRml4IHdhcm5pbmc6ICdzZHAzNDMwX3ZkZGFfZGFj
+X3N1cHBseScgZGVmaW5lZCBidXQgbm90IHVzZWQKClRoZSBEU1MgcmVndWxhdG9yIGRhdGEgbm90
+IHNlZW1zIHRvIGJlIHVzZWQuIFNvIHJlbW92ZSB0aGUKdW4tdXNlZCBzZHAzNDMwX3ZkZGFfZGFj
+X3N1cHBseSB0byBhdm9pZCBidWlsZCB3YXJuaW5nCgpTaWduZWQtb2ZmLWJ5OiBTYW50b3NoIFNo
+aWxpbWthciA8c2FudG9zaC5zaGlsaW1rYXJAdGkuY29tPgpDYzogU2VudGhpbHZhZGl2dSBHdXJ1
+c3dhbXkgPHN2YWRpdnVAdGkuY29tPgpDYzogU3VtaXQgU2Vtd2FsIDxzdW1pdC5zZW13YWxAdGku
+Y29tPgpDYzogVG9taSBWYWxrZWluZW4gPHRvbWkudmFsa2VpbmVuQHRpLmNvbT4KLS0tCiBhcmNo
+L2FybS9tYWNoLW9tYXAyL2JvYXJkLTM0MzBzZHAuYyB8ICAgIDMgLS0tCiAxIGZpbGVzIGNoYW5n
+ZWQsIDAgaW5zZXJ0aW9ucygrKSwgMyBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9hcmNoL2Fy
+bS9tYWNoLW9tYXAyL2JvYXJkLTM0MzBzZHAuYyBiL2FyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQt
+MzQzMHNkcC5jCmluZGV4IDg5NTBlY2MuLjE5YTM2YTMgMTAwNjQ0Ci0tLSBhL2FyY2gvYXJtL21h
+Y2gtb21hcDIvYm9hcmQtMzQzMHNkcC5jCisrKyBiL2FyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQt
+MzQzMHNkcC5jCkBAIC0zMDcsOSArMzA3LDYgQEAgc3RhdGljIHN0cnVjdCBvbWFwX2Rzc19ib2Fy
+ZF9pbmZvIHNkcDM0MzBfZHNzX2RhdGEgPSB7CiAJLmRlZmF1bHRfZGV2aWNlCT0gJnNkcDM0MzBf
+bGNkX2RldmljZSwKIH07CiAKLXN0YXRpYyBzdHJ1Y3QgcmVndWxhdG9yX2NvbnN1bWVyX3N1cHBs
+eSBzZHAzNDMwX3ZkZGFfZGFjX3N1cHBseSA9Ci0JUkVHVUxBVE9SX1NVUFBMWSgidmRkYV9kYWMi
+LCAib21hcGRzcyIpOwotCiBzdGF0aWMgc3RydWN0IG9tYXBfYm9hcmRfY29uZmlnX2tlcm5lbCBz
+ZHAzNDMwX2NvbmZpZ1tdIF9faW5pdGRhdGEgPSB7CiB9OwogCi0tIAoxLjYuMC40Cgo=
+--0015175cd308047215049d53c5f6--
