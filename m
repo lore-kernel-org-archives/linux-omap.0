@@ -1,138 +1,250 @@
-From: "K, Mythri P" <mythripk@ti.com>
-Subject: Re: [PATCH 5/8] OMAP4 : DSS2 : HDMI: HDMI driver addition in the DSS
- drivers interface
-Date: Mon, 28 Feb 2011 12:00:39 +0530
-Message-ID: <AANLkTim9Nwst-2cLu5-8Yx9B-fnWO=xeDdMwuh=4pvgJ@mail.gmail.com>
-References: <1298643715-21540-1-git-send-email-mythripk@ti.com>
-	<1298643715-21540-6-git-send-email-mythripk@ti.com>
-	<1298801837.1977.63.camel@deskari>
-	<AANLkTimiQ2pdvzP0OAnq5YqzkWq_91XLMWSq1K5M_3VH@mail.gmail.com>
-	<1298874423.2096.11.camel@deskari>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Archit Taneja <archit@ti.com>
+Subject: [PATCH] OMAP: DSS2: Use dss_features for DISPC overlay code cleanup
+Date: Mon, 28 Feb 2011 12:11:51 +0530
+Message-ID: <1298875311-5870-1-git-send-email-archit@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:35190 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752413Ab1B1Gam convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 28 Feb 2011 01:30:42 -0500
-Received: by mail-vw0-f45.google.com with SMTP id 19so3876168vws.18
-        for <linux-omap@vger.kernel.org>; Sun, 27 Feb 2011 22:30:40 -0800 (PST)
-In-Reply-To: <1298874423.2096.11.camel@deskari>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:53412 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752485Ab1B1GjP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 28 Feb 2011 01:39:15 -0500
+Received: from dlep33.itg.ti.com ([157.170.170.112])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1S6dFHG013762
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Mon, 28 Feb 2011 00:39:15 -0600
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: tomi.valkeinen@ti.com
+Cc: linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-Hi Tomi,
+Add dss_features and register fields to incorporate changes in DISPC pipelines
+between OMAP3 and OMAP4.
 
-On Mon, Feb 28, 2011 at 11:57 AM, Tomi Valkeinen <tomi.valkeinen@ti.com=
-> wrote:
-> On Mon, 2011-02-28 at 00:11 -0600, K, Mythri P wrote:
->> Hi Tomi,
->>
->> On Sun, Feb 27, 2011 at 3:47 PM, Tomi Valkeinen <tomi.valkeinen@ti.c=
-om> wrote:
->
->> >> + * HDMI interface DSS driver setting for TI's OMAP4 family of pr=
-ocessor.
->> >> + * Copyright (C) 2010-2011 Texas Instruments Incorporated - http=
-://www.ti.com/
->> >> + * Authors: Yong Zhi
->> >
->> > Who is Yong Zhi and where's his signed-off-by?
->> Yong zhi had written some of the functions in this file , which was =
-in
->> a library.He no longer works on the driver though .
->
-> Ok. Generally there should be a signed-off-by from everybody who has
-> written the code. It's like "I have written this code and I have
-> permission to send it upstream" etc.
->
-> His signed-off would be good for this too, but if the code is just ba=
-sed
-> on his work, and doesn't really resemble it anymore, perhaps you coul=
-d
-> then say "Based on code by Yong Zhi", or similar.
->
-sure i shall check with him to add his sign-off.
->> >> +
->> >> +static inline int hdmi_wait_for_bit_change(const struct hdmi_reg=
- idx,
->> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 int=
- b2, int b1, u32 val)
->> >> +{
->> >> + =A0 =A0 =A0 u32 t =3D 0;
->> >> + =A0 =A0 =A0 while (val !=3D FLD_GET(hdmi_read_reg(idx), b2, b1)=
-) {
->> >
->> > There's REG_GET macro used in other DSS files to read bits from th=
-e
->> > registers.
->> Hmm i see that in dsi.c REG_GET is defined to do the same,
->> #define REG_GET(idx, start, end) \
->> =A0 =A0 =A0 =A0 FLD_GET(dsi_read_reg(idx), start, end)
->> So should this be fine of should i define a new REG_GET ?
->
-> REG_GET() uses the private dsi_read_reg() function, so it has to be
-> defined again in each interface file. So for HDMI, define REG_REG
-> similarly with hdmi_read_reg().
->
-But it is used in only one function here , so is it really needed :) ?
+Register fields added: FEAT_REG_HORIZONTALACCU, FEAT_REG_VERTICALACCU
+DSS Features added: FEAT_LINEBUFFERSPLIT, FEAT_ROWREPEATENABLE, FEAT_RESIZECONF
 
->> >> + =A0 =A0 =A0 /* HACK : DDC needs time to stablize */
->> >> + =A0 =A0 =A0 mdelay(10);
->> >
->> > So what is the reason for this? It's a sleep that for unknown reas=
-on
->> > make the code work? Or is there an idea why this is needed?
->> This is the time it needs to stabilize DDC, else most of the time it
->> reads a 0 or
->> wrong shifted values , so i have prefixed with a HACK.
->
-> Ok. I'm fine with the hack for now, but I'm just interested: Is the 1=
-0ms
-> just something that happens to work? This sleep is not discussed in a=
-ny
-> documentation? Has this been discussed with HW people?
+_dispc_set_scaling() and _dispc_set_rotation_attrs() have been cleaned up.
 
-yes i have checked with the silicon validation.
->
->> >> +static inline void print_omap_video_timings(struct omap_video_ti=
-mings *timings)
->> >
->> > Why is this inline?
->> Its only a print function , called many times by the driver. Do you
->> see any reason not to make it inline?
->
-> Well, generally you shouldn't use inline. I think that's the basic ru=
-le.
-> Compiler usually makes better choices than humans. I have used them f=
-or
-> xxx_read_reg() and xxx_write_reg(), although I'm not quite sure if ev=
-en
-> that is needed.
->
-> And in this case the function is quite long. I'm guessing here, but m=
-ost
-> likely the code runs faster if it's _not_ inlined, because not inlini=
-ng
-> reduces the size of the code. Also, print functions are on the slower
-> side anyway, so the overhead of calling this function is probably
-> negligible compared to the contents of the function.
->
-ok i shall change.
+Signed-off-by: Archit Taneja <archit@ti.com>
+---
+Note:
+Patch can be tested on:
+http://dev.omapzoom.org/?p=axelcx/kernel-display.git;a=shortlog;h=refs/heads/lo-dss2-Feb25
 
-> =A0Tomi
->
->
->
+ drivers/video/omap2/dss/dispc.c        |   52 ++++++++++++++++++++++---------
+ drivers/video/omap2/dss/dss_features.c |   31 +++++++++++++++----
+ drivers/video/omap2/dss/dss_features.h |    5 +++
+ 3 files changed, 67 insertions(+), 21 deletions(-)
 
-Thanks and regards,
-Mythri.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
+index a34ca69..0b6bbd1 100644
+--- a/drivers/video/omap2/dss/dispc.c
++++ b/drivers/video/omap2/dss/dispc.c
+@@ -1137,10 +1137,16 @@ static void _dispc_set_vid_accu0(enum omap_plane plane, int haccu, int vaccu)
+ 	u32 val;
+ 	const struct dispc_reg ac0_reg[] = { DISPC_VID_ACCU0(0),
+ 				      DISPC_VID_ACCU0(1) };
++	u8 hor_start, hor_end, vert_start, vert_end;
+ 
+ 	BUG_ON(plane == OMAP_DSS_GFX);
+ 
+-	val = FLD_VAL(vaccu, 25, 16) | FLD_VAL(haccu, 9, 0);
++	dss_feat_get_reg_field(FEAT_REG_HORIZONTALACCU, &hor_start, &hor_end);
++	dss_feat_get_reg_field(FEAT_REG_VERTICALACCU, &vert_start, &vert_end);
++
++	val = FLD_VAL(vaccu, vert_start, vert_end) |
++			FLD_VAL(haccu, hor_start, hor_end);
++
+ 	dispc_write_reg(ac0_reg[plane-1], val);
+ }
+ 
+@@ -1149,10 +1155,16 @@ static void _dispc_set_vid_accu1(enum omap_plane plane, int haccu, int vaccu)
+ 	u32 val;
+ 	const struct dispc_reg ac1_reg[] = { DISPC_VID_ACCU1(0),
+ 				      DISPC_VID_ACCU1(1) };
++	u8 hor_start, hor_end, vert_start, vert_end;
+ 
+ 	BUG_ON(plane == OMAP_DSS_GFX);
+ 
+-	val = FLD_VAL(vaccu, 25, 16) | FLD_VAL(haccu, 9, 0);
++	dss_feat_get_reg_field(FEAT_REG_HORIZONTALACCU, &hor_start, &hor_end);
++	dss_feat_get_reg_field(FEAT_REG_VERTICALACCU, &vert_start, &vert_end);
++
++	val = FLD_VAL(vaccu, vert_start, vert_end) |
++			FLD_VAL(haccu, hor_start, hor_end);
++
+ 	dispc_write_reg(ac1_reg[plane-1], val);
+ }
+ 
+@@ -1190,16 +1202,25 @@ static void _dispc_set_scaling(enum omap_plane plane,
+ 	_dispc_set_fir(plane, fir_hinc, fir_vinc);
+ 
+ 	l = dispc_read_reg(dispc_reg_att[plane]);
+-	l &= ~((0x0f << 5) | (0x3 << 21));
+ 
++	/* RESIZEENABLE and VERTICALTAPS */
++	l &= ~((0x3 << 5) | (0x1 << 21));
+ 	l |= fir_hinc ? (1 << 5) : 0;
+ 	l |= fir_vinc ? (1 << 6) : 0;
++	l |= five_taps ? (1 << 21) : 0;
+ 
+-	l |= hscaleup ? 0 : (1 << 7);
+-	l |= vscaleup ? 0 : (1 << 8);
++	/* VRESIZECONF and HRESIZECONF */
++	if (dss_has_feature(FEAT_RESIZECONF)) {
++		l &= ~(0x3 << 7);
++		l |= hscaleup ? 0 : (1 << 7);
++		l |= vscaleup ? 0 : (1 << 8);
++	}
+ 
+-	l |= five_taps ? (1 << 21) : 0;
+-	l |= five_taps ? (1 << 22) : 0;
++	/* LINEBUFFERSPLIT */
++	if (dss_has_feature(FEAT_LINEBUFFERSPLIT)) {
++		l &= ~(0x1 << 22);
++		l |= five_taps ? (1 << 22) : 0;
++	}
+ 
+ 	dispc_write_reg(dispc_reg_att[plane], l);
+ 
+@@ -1223,9 +1244,11 @@ static void _dispc_set_scaling(enum omap_plane plane,
+ static void _dispc_set_rotation_attrs(enum omap_plane plane, u8 rotation,
+ 		bool mirroring, enum omap_color_mode color_mode)
+ {
++	bool row_repeat = false;
++	int vidrot = 0;
++
+ 	if (color_mode == OMAP_DSS_COLOR_YUV2 ||
+ 			color_mode == OMAP_DSS_COLOR_UYVY) {
+-		int vidrot = 0;
+ 
+ 		if (mirroring) {
+ 			switch (rotation) {
+@@ -1259,16 +1282,15 @@ static void _dispc_set_rotation_attrs(enum omap_plane plane, u8 rotation,
+ 			}
+ 		}
+ 
+-		REG_FLD_MOD(dispc_reg_att[plane], vidrot, 13, 12);
+-
+ 		if (rotation == OMAP_DSS_ROT_90 || rotation == OMAP_DSS_ROT_270)
+-			REG_FLD_MOD(dispc_reg_att[plane], 0x1, 18, 18);
++			row_repeat = true;
+ 		else
+-			REG_FLD_MOD(dispc_reg_att[plane], 0x0, 18, 18);
+-	} else {
+-		REG_FLD_MOD(dispc_reg_att[plane], 0, 13, 12);
+-		REG_FLD_MOD(dispc_reg_att[plane], 0, 18, 18);
++			row_repeat = false;
+ 	}
++
++	REG_FLD_MOD(dispc_reg_att[plane], vidrot, 13, 12);
++	if (dss_has_feature(FEAT_ROWREPEATENABLE))
++		REG_FLD_MOD(dispc_reg_att[plane], row_repeat ? 1 : 0, 18, 18);
+ }
+ 
+ static int color_mode_to_bpp(enum omap_color_mode color_mode)
+diff --git a/drivers/video/omap2/dss/dss_features.c b/drivers/video/omap2/dss/dss_features.c
+index 0f2e6a9..f6f319d 100644
+--- a/drivers/video/omap2/dss/dss_features.c
++++ b/drivers/video/omap2/dss/dss_features.c
+@@ -54,6 +54,8 @@ static const struct dss_reg_field omap2_dss_reg_fields[] = {
+ 	{ FEAT_REG_FIFOLOWTHRESHOLD, 8, 0 },
+ 	{ FEAT_REG_FIFOHIGHTHRESHOLD, 24, 16 },
+ 	{ FEAT_REG_FIFOSIZE, 8, 0 },
++	{ FEAT_REG_HORIZONTALACCU, 9, 0 },
++	{ FEAT_REG_VERTICALACCU, 25, 16 },
+ };
+ 
+ static const struct dss_reg_field omap3_dss_reg_fields[] = {
+@@ -62,6 +64,18 @@ static const struct dss_reg_field omap3_dss_reg_fields[] = {
+ 	{ FEAT_REG_FIFOLOWTHRESHOLD, 11, 0 },
+ 	{ FEAT_REG_FIFOHIGHTHRESHOLD, 27, 16 },
+ 	{ FEAT_REG_FIFOSIZE, 10, 0 },
++	{ FEAT_REG_HORIZONTALACCU, 9, 0 },
++	{ FEAT_REG_VERTICALACCU, 25, 16 },
++};
++
++static const struct dss_reg_field omap4_dss_reg_fields[] = {
++	{ FEAT_REG_FIRHINC, 12, 0 },
++	{ FEAT_REG_FIRVINC, 28, 16 },
++	{ FEAT_REG_FIFOLOWTHRESHOLD, 15, 0 },
++	{ FEAT_REG_FIFOHIGHTHRESHOLD, 31, 16 },
++	{ FEAT_REG_FIFOSIZE, 15, 0 },
++	{ FEAT_REG_HORIZONTALACCU, 10, 0 },
++	{ FEAT_REG_VERTICALACCU, 26, 16 },
+ };
+ 
+ static const enum omap_display_type omap2_dss_supported_displays[] = {
+@@ -141,7 +155,8 @@ static struct omap_dss_features omap2_dss_features = {
+ 
+ 	.has_feature	=
+ 		FEAT_LCDENABLEPOL | FEAT_LCDENABLESIGNAL |
+-		FEAT_PCKFREEENABLE | FEAT_FUNCGATED,
++		FEAT_PCKFREEENABLE | FEAT_FUNCGATED |
++		FEAT_ROWREPEATENABLE | FEAT_RESIZECONF,
+ 
+ 	.num_mgrs = 2,
+ 	.num_ovls = 3,
+@@ -157,7 +172,8 @@ static struct omap_dss_features omap3430_dss_features = {
+ 	.has_feature	=
+ 		FEAT_GLOBAL_ALPHA | FEAT_LCDENABLEPOL |
+ 		FEAT_LCDENABLESIGNAL | FEAT_PCKFREEENABLE |
+-		FEAT_FUNCGATED,
++		FEAT_FUNCGATED | FEAT_ROWREPEATENABLE |
++		FEAT_LINEBUFFERSPLIT | FEAT_RESIZECONF,
+ 
+ 	.num_mgrs = 2,
+ 	.num_ovls = 3,
+@@ -172,7 +188,9 @@ static struct omap_dss_features omap3630_dss_features = {
+ 	.has_feature    =
+ 		FEAT_GLOBAL_ALPHA | FEAT_LCDENABLEPOL |
+ 		FEAT_LCDENABLESIGNAL | FEAT_PCKFREEENABLE |
+-		FEAT_PRE_MULT_ALPHA | FEAT_FUNCGATED,
++		FEAT_PRE_MULT_ALPHA | FEAT_FUNCGATED |
++		FEAT_ROWREPEATENABLE | FEAT_LINEBUFFERSPLIT |
++		FEAT_RESIZECONF,
+ 
+ 	.num_mgrs = 2,
+ 	.num_ovls = 3,
+@@ -182,12 +200,13 @@ static struct omap_dss_features omap3630_dss_features = {
+ 
+ /* OMAP4 DSS Features */
+ static struct omap_dss_features omap4_dss_features = {
+-	.reg_fields = omap3_dss_reg_fields,
+-	.num_reg_fields = ARRAY_SIZE(omap3_dss_reg_fields),
++	.reg_fields = omap4_dss_reg_fields,
++	.num_reg_fields = ARRAY_SIZE(omap4_dss_reg_fields),
+ 
+ 	.has_feature	=
+ 		FEAT_GLOBAL_ALPHA | FEAT_PRE_MULT_ALPHA |
+-		FEAT_MGR_LCD2 | FEAT_CORE_CLK_DIV,
++		FEAT_MGR_LCD2 | FEAT_CORE_CLK_DIV |
++		FEAT_GLOBAL_ALPHA_VID1,
+ 
+ 	.num_mgrs = 3,
+ 	.num_ovls = 3,
+diff --git a/drivers/video/omap2/dss/dss_features.h b/drivers/video/omap2/dss/dss_features.h
+index 24fcef5..61c05c7 100644
+--- a/drivers/video/omap2/dss/dss_features.h
++++ b/drivers/video/omap2/dss/dss_features.h
+@@ -35,6 +35,9 @@ enum dss_feat_id {
+ 	FEAT_MGR_LCD2		= 1 << 7,
+ 	/* Independent core clk divider */
+ 	FEAT_CORE_CLK_DIV	= 1 << 8,
++	FEAT_LINEBUFFERSPLIT	= 1 << 9,
++	FEAT_ROWREPEATENABLE	= 1 << 10,
++	FEAT_RESIZECONF		= 1 << 11,
+ };
+ 
+ /* DSS register field id */
+@@ -44,6 +47,8 @@ enum dss_feat_reg_field {
+ 	FEAT_REG_FIFOHIGHTHRESHOLD,
+ 	FEAT_REG_FIFOLOWTHRESHOLD,
+ 	FEAT_REG_FIFOSIZE,
++	FEAT_REG_HORIZONTALACCU,
++	FEAT_REG_VERTICALACCU,
+ };
+ 
+ /* DSS Feature Functions */
+-- 
+1.7.1
+
