@@ -1,89 +1,101 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 0/8] OMAP2+: hwmod/clockevent: allow late-init of individual
- hwmods
-Date: Mon, 28 Feb 2011 12:17:46 +0100
-Message-ID: <4D6B845A.9000900@ti.com>
-References: <20110223070455.5874.51326.stgit@twilight.localdomain> <4D651998.3040002@ti.com> <alpine.DEB.2.00.1102271928550.505@utopia.booyaka.com>
+From: "Krishnamoorthy, Balaji T" <balajitk@ti.com>
+Subject: Re: [PATCH 5/8] omap3: pm: TWL5030 version checking
+Date: Mon, 28 Feb 2011 16:54:42 +0530
+Message-ID: <AANLkTikq3Ou_n5mAWSRJC3=nNntXWd0EvsRxFmWOMSus@mail.gmail.com>
+References: <1298723139-1693-1-git-send-email-leslyam@ti.com>
+	<1298723139-1693-6-git-send-email-leslyam@ti.com>
+	<AANLkTi=WhX_qcYBcvQB17XSGL7Y1JnAVkjNmQieCyaLR@mail.gmail.com>
+	<AANLkTimRQqYNaD_8a3ig4k9os--EJOpwx303Zj2fraOF@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:55226 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752878Ab1B1LRx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Feb 2011 06:17:53 -0500
-In-Reply-To: <alpine.DEB.2.00.1102271928550.505@utopia.booyaka.com>
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:58565 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753546Ab1B1LZb convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 28 Feb 2011 06:25:31 -0500
+Received: by vxb39 with SMTP id 39so3057650vxb.29
+        for <linux-omap@vger.kernel.org>; Mon, 28 Feb 2011 03:25:29 -0800 (PST)
+In-Reply-To: <AANLkTimRQqYNaD_8a3ig4k9os--EJOpwx303Zj2fraOF@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Hilman, Kevin" <khilman@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Gopinath, Thara" <thara@ti.com>, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+To: "Manuel, Lesly Arackal" <leslyam@ti.com>
+Cc: linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>, David Derrick <dderrick@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
 
-Salut Paul,
-
-On 2/28/2011 3:31 AM, Paul Walmsley wrote:
-> Salut Beno=C3=AEt,
+On Mon, Feb 28, 2011 at 4:34 PM, Manuel, Lesly Arackal <leslyam@ti.com>=
+ wrote:
+> Hi Balaji,
 >
-> On Wed, 23 Feb 2011, Cousson, Benoit wrote:
->
->> On 2/23/2011 8:11 AM, Paul Walmsley wrote:
->>> This series adds the ability to late-initialize individual
->>> hwmods.  The goal here is for clockevent (and eventually
->>> clocksource) hwmods to be late-initialized individually, and
->>> right before they are needed, in the timer init code.  Then
->>> omap_hwmod_late_init(), which late-inits the rest of the hwmods,
->>> is intended to run as an initcall -- much later in the boot
->>> process.
->>>
->>> This series includes the OMAP2/3 hwmod data for the GPTIMERs that
->>> Tarun posted earlier.  This data is necessary for this new code
->>> to avoid warnings during boot.
->>>
->>> Boot-tested on N800, OMAP34xx Beagleboard and OMAP4430ES2 Panda.
+> On Mon, Feb 28, 2011 at 12:54 PM, Krishnamoorthy, Balaji T
+> <balajitk@ti.com> wrote:
+>> On Sat, Feb 26, 2011 at 5:55 PM, Lesly A M <leslyam@ti.com> wrote:
 >>
->> I'm testing it on 4430sdp, and I have the following warning:
+>> Minor comment you missed version number in subject.
 >>
->> [    0.000000] omap_hwmod: dpll_mpu_m2_ck: missing clockdomain for d=
-pll_mpu_m2_ck.
->> [    0.000000] ------------[ cut here ]------------
->> [    0.000000] WARNING: at arch/arm/mach-omap2/timer-gp.c:157 omap2_=
-gp_timer_init+0x80/0x190()
->> [    0.000000] timer-gp: omap_dm_timer_set_source() failed
->> [    0.000000] Modules linked in:
->> [    0.000000] [<c0062a6c>] (unwind_backtrace+0x0/0xec) from [<c0094=
-22c>] (warn_slowpath_common+0x4c/0x64)
->> [    0.000000] [<c009422c>] (warn_slowpath_common+0x4c/0x64) from [<=
-c00942c4>] (warn_slowpath_fmt+0x2c/0x3c)
->> [    0.000000] [<c00942c4>] (warn_slowpath_fmt+0x2c/0x3c) from [<c00=
-10e30>] (omap2_gp_timer_init+0x80/0x190)
->> [    0.000000] [<c0010e30>] (omap2_gp_timer_init+0x80/0x190) from [<=
-c000c0dc>] (time_init+0x20/0x30)
->> [    0.000000] [<c000c0dc>] (time_init+0x20/0x30) from [<c0008cbc>] =
-(start_kernel+0x1a4/0x30c)
->> [    0.000000] [<c0008cbc>] (start_kernel+0x1a4/0x30c) from [<800080=
-38>] (0x80008038)
->> [    0.000000] ---[ end trace 1b75b31a2719ed1c ]---
->> [    0.000000] OMAP clockevent source: GPTIMER1 at 32768 Hz
+>> <snip>
+>>
+>>> +/**
+>>> + * twl_get_si_type - api to get TWL Si type.
+>>> + *
+>>> + * Api to get the TWL Si type from IDCODE value.
+>>> + */
+>>> +int twl_get_si_type(void)
+>>> +{
+>>> + =A0 =A0 =A0 return TWL_SIL_TYPE(twl_idcode);
+>>> +}
+>>> +EXPORT_SYMBOL(twl_get_si_type);
+>>> +
+>>> +/**
+>>> + * twl_get_si_version - api to get TWL Si version.
+>>> + *
+>>> + * Api to get the TWL Si version from IDCODE value.
+>>> + */
+>>> +int twl_get_si_version(void)
+>>> +{
+>>> + =A0 =A0 =A0 return TWL_SIL_REV(twl_idcode);
+>>> +}
+>>> +EXPORT_SYMBOL(twl_get_si_version);
+>>> +
+>>> =A0static struct device *
+>>> =A0add_numbered_child(unsigned chip, const char *name, int num,
+>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0void *pdata, unsigned pdata_len,
+>>> @@ -1056,6 +1114,12 @@ twl_probe(struct i2c_client *client, const s=
+truct i2c_device_id *id)
+>>> =A0 =A0 =A0 =A0/* setup clock framework */
+>>> =A0 =A0 =A0 =A0clocks_init(&client->dev, pdata->clock);
+>>>
+>>> + =A0 =A0 =A0 /* read TWL IDCODE Register */
+>>> + =A0 =A0 =A0 if (twl_read_idcode_register(&twl_idcode)) {
+>>
+>> Call this function only in case of Triton
 >
-> This is due to commit 3b03b58dab847883e6b9a431558c7d8e43fa94c6 ("OMAP=
-4:
-> hwmod data: Prevent timer1 to be reset and idle during init").  Could=
- you
-> please try reverting this and see if the warning disappears?
+> How do I check it ?
+> using if (twl_id =3D=3D TWL4030_CLASS_ID)
 
-Thanks, this is indeed fixing this warning. I didn't see these two=20
-patches were exclusive.
-
-Thanks,
-Benoit
+yes
 
 >
-> Tony, I guess the omap-for-linus branch will probably need to get reb=
-uilt
-> to drop that patch, once this series is merged...
+>>
+>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_err("TWL4030 Unable to read IDCODE=
+ Register\n");
+>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EIO;
+>>
+>> Do you really want to fail twl_probe due to error in reading IDCODE =
+?
 >
-> - Paul
+> Is the twl_probe function expected to continue, if the i2c read/write
+> on twl itself is failing ?
 
+I don't want to fail twl_probe completely due to one occasional i2c fai=
+lures.
+Even this pr_err is not needed as you do that inside
+twl_read_idcode_register
+
+>
+> Regards,
+> Lesly A M
+>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
