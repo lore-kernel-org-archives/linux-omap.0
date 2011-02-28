@@ -1,80 +1,41 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 0/8] OMAP2+: hwmod/clockevent: allow late-init of individual
- hwmods
-Date: Sun, 27 Feb 2011 19:31:47 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1102271928550.505@utopia.booyaka.com>
-References: <20110223070455.5874.51326.stgit@twilight.localdomain> <4D651998.3040002@ti.com>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Subject: Re: [PATCH 2/2 v2] hwmon: twl4030: Hwmon Driver for TWL4030 MADC
+Date: Sun, 27 Feb 2011 19:41:08 -0800
+Message-ID: <20110228034108.GA2584@ericsson.com>
+References: <1298560730-18826-1-git-send-email-j-keerthy@ti.com>
+ <20110228010306.GE2749@sortiz-mobl>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-871082634-1298860307=:505"
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:40233 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752079Ab1B1Cbs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 27 Feb 2011 21:31:48 -0500
-In-Reply-To: <4D651998.3040002@ti.com>
+Received: from imr4.ericy.com ([198.24.6.8]:39819 "EHLO imr4.ericy.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752209Ab1B1DmK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 27 Feb 2011 22:42:10 -0500
+Content-Disposition: inline
+In-Reply-To: <20110228010306.GE2749@sortiz-mobl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Hilman, Kevin" <khilman@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Gopinath, Thara" <thara@ti.com>, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+To: Samuel Ortiz <sameo@linux.intel.com>
+Cc: Keerthy <j-keerthy@ti.com>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "khali@linux-fr.org" <khali@linux-fr.org>, "mikko.k.ylinen@nokia.com" <mikko.k.ylinen@nokia.com>, "amit.kucheria@canonical.com" <amit.kucheria@canonical.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+On Sun, Feb 27, 2011 at 08:03:07PM -0500, Samuel Ortiz wrote:
+> Hi Keerthy,
+> 
+> On Thu, Feb 24, 2011 at 08:48:50PM +0530, Keerthy wrote:
+> > This driver exposes the sysfs nodes of the TWL4030 MADC module.
+> > All the voltage channel values are expressed in terms of mV. Channel 13
+> > and channel 14 are reserved. There are channels which represent
+> > temperature and current the output is represented by celcius
+> > and mA respectively.
+> It would make sense for me to carry both patches through the MFD tree, but
+> I'd like to get Guenter's ACK before pushing it upstream.
+> 
+Main problem I have with the hwmon part is the sensor index value
+and how it maps to adc channels. Specifically, channels 13 and 14 are
+listed as reserved, yet index value 13 is used without further explanation
+as bit map value passed on to twl4030_madc_conversion() to obtain the value
+for channel 15. Either this is wrong, or it asks for a detailed explanation.
+I didn't have time to track down which one it is. And even if it isn't wrong,
+it doesn't seem to be the right thing to do since it adds a lot of confusion.
 
---155748971-871082634-1298860307=:505
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-
-Salut Beno=C3=AEt,
-
-On Wed, 23 Feb 2011, Cousson, Benoit wrote:
-
-> On 2/23/2011 8:11 AM, Paul Walmsley wrote:
-> > This series adds the ability to late-initialize individual
-> > hwmods.  The goal here is for clockevent (and eventually
-> > clocksource) hwmods to be late-initialized individually, and
-> > right before they are needed, in the timer init code.  Then
-> > omap_hwmod_late_init(), which late-inits the rest of the hwmods,
-> > is intended to run as an initcall -- much later in the boot
-> > process.
-> >=20
-> > This series includes the OMAP2/3 hwmod data for the GPTIMERs that
-> > Tarun posted earlier.  This data is necessary for this new code
-> > to avoid warnings during boot.
-> >=20
-> > Boot-tested on N800, OMAP34xx Beagleboard and OMAP4430ES2 Panda.
->=20
-> I'm testing it on 4430sdp, and I have the following warning:
->=20
-> [    0.000000] omap_hwmod: dpll_mpu_m2_ck: missing clockdomain for dpll_m=
-pu_m2_ck.
-> [    0.000000] ------------[ cut here ]------------
-> [    0.000000] WARNING: at arch/arm/mach-omap2/timer-gp.c:157 omap2_gp_ti=
-mer_init+0x80/0x190()
-> [    0.000000] timer-gp: omap_dm_timer_set_source() failed
-> [    0.000000] Modules linked in:
-> [    0.000000] [<c0062a6c>] (unwind_backtrace+0x0/0xec) from [<c009422c>]=
- (warn_slowpath_common+0x4c/0x64)
-> [    0.000000] [<c009422c>] (warn_slowpath_common+0x4c/0x64) from [<c0094=
-2c4>] (warn_slowpath_fmt+0x2c/0x3c)
-> [    0.000000] [<c00942c4>] (warn_slowpath_fmt+0x2c/0x3c) from [<c0010e30=
->] (omap2_gp_timer_init+0x80/0x190)
-> [    0.000000] [<c0010e30>] (omap2_gp_timer_init+0x80/0x190) from [<c000c=
-0dc>] (time_init+0x20/0x30)
-> [    0.000000] [<c000c0dc>] (time_init+0x20/0x30) from [<c0008cbc>] (star=
-t_kernel+0x1a4/0x30c)
-> [    0.000000] [<c0008cbc>] (start_kernel+0x1a4/0x30c) from [<80008038>] =
-(0x80008038)
-> [    0.000000] ---[ end trace 1b75b31a2719ed1c ]---
-> [    0.000000] OMAP clockevent source: GPTIMER1 at 32768 Hz
-
-This is due to commit 3b03b58dab847883e6b9a431558c7d8e43fa94c6 ("OMAP4:=20
-hwmod data: Prevent timer1 to be reset and idle during init").  Could you=
-=20
-please try reverting this and see if the warning disappears?
-
-Tony, I guess the omap-for-linus branch will probably need to get rebuilt=
-=20
-to drop that patch, once this series is merged...
-
-- Paul
---155748971-871082634-1298860307=:505--
+Guenter
