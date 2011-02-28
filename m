@@ -1,74 +1,47 @@
-From: "Krishnamoorthy, Balaji T" <balajitk@ti.com>
-Subject: Re: [PATCH 2/2 v4] mfd: twl4030: Driver for twl4030 madc module
-Date: Mon, 28 Feb 2011 20:30:02 +0530
-Message-ID: <AANLkTikybUp1iV-CVjJJ7kUZyM8socfoQON6AkjyQMdz@mail.gmail.com>
-References: <1298886492-15039-1-git-send-email-j-keerthy@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: base64
+From: Sumit Semwal <sumit.semwal@ti.com>
+Subject: [Patch v2 0/2] OMAP2PLUS:DSS2: use opt-clocks information from hwmod.
+Date: Mon, 28 Feb 2011 20:32:41 +0530
+Message-ID: <1298905363-28871-1-git-send-email-sumit.semwal@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:33417 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754611Ab1B1PAT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 28 Feb 2011 10:00:19 -0500
-Received: by mail-vx0-f175.google.com with SMTP id 7so3164585vxd.6
-        for <linux-omap@vger.kernel.org>; Mon, 28 Feb 2011 07:00:02 -0800 (PST)
-In-Reply-To: <1298886492-15039-1-git-send-email-j-keerthy@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:50282 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754484Ab1B1PDM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 28 Feb 2011 10:03:12 -0500
+Received: from dlep35.itg.ti.com ([157.170.170.118])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p1SF3BrV029697
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Mon, 28 Feb 2011 09:03:11 -0600
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: sameo@linux.intel.com, linux-omap@vger.kernel.org
+To: tomi.valkeinen@ti.com, linux-omap@vger.kernel.org
+Cc: Sumit Semwal <sumit.semwal@ti.com>
 
-T24gTW9uLCBGZWIgMjgsIDIwMTEgYXQgMzoxOCBQTSwgS2VlcnRoeSA8ai1rZWVydGh5QHRpLmNv
-bT4gd3JvdGU6Cj4gK3N0YXRpYyBpbnQgdHdsNDAzMF9tYWRjX3JlYWRfY2hhbm5lbHMoc3RydWN0
-IHR3bDQwMzBfbWFkY19kYXRhICptYWRjLAo+ICsgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCg
-IKAgoCCgIKAgdTggcmVnX2Jhc2UsIHVuc2lnbmVkCj4gKyCgIKAgoCCgIKAgoCCgIKAgoCCgIKAg
-oCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgbG9uZyBjaGFubmVscywgaW50ICpidWYpCj4gK3sKPiAr
-IKAgoCCgIGludCBjb3VudCA9IDAsIGNvdW50X3JlcSA9IDAsIGk7Cj4gKyCgIKAgoCB1OCByZWc7
-Cj4gKwo+ICsgoCCgIKAgZm9yX2VhY2hfc2V0X2JpdChpLCAmY2hhbm5lbHMsIFRXTDQwMzBfTUFE
-Q19NQVhfQ0hBTk5FTFMpIHsKPiArIKAgoCCgIKAgoCCgIKAgcmVnID0gcmVnX2Jhc2UgKyAyICog
-aTsKPiArIKAgoCCgIKAgoCCgIKAgYnVmW2ldID0gdHdsNDAzMF9tYWRjX2NoYW5uZWxfcmF3X3Jl
-YWQobWFkYywgcmVnKTsKPiArIKAgoCCgIKAgoCCgIKAgaWYgKGJ1ZltpXSA8IDApIHsKPiArIKAg
-oCCgIKAgoCCgIKAgoCCgIKAgoCBkZXZfZXJyKG1hZGMtPmRldiwKPiArIKAgoCCgIKAgoCCgIKAg
-oCCgIKAgoCAiVW5hYmxlIHRvIHJlYWQgcmVnaXN0ZXIgMHglWFxuIiwgcmVnKTsKPiArIKAgoCCg
-IKAgoCCgIKAgoCCgIKAgoCBjb3VudF9yZXErKzsKPiArIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCBj
-b250aW51ZTsKPiArIKAgoCCgIKAgoCCgIKAgfQo+ICsgoCCgIKAgoCCgIKAgoCBzd2l0Y2ggKGkp
-IHsKPiArIKAgoCCgIKAgoCCgIKAgY2FzZSAxMDoKPiArIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCBi
-dWZbaV0gPQo+ICsgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgdHdsNDAzMGJhdHRlcnlf
-Y3VycmVudChidWZbaV0pOwoKUG9zc2libHkgZml4IHRoZXNlIGJyZWFrcyBpbiBzdGF0ZW1lbnRz
-IHdoZXJlIGFwcGxpY2FibGUuCgo+ICsgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIGlmIChidWZbaV0g
-PCAwKSB7Cj4gKyCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCBkZXZfZXJyKG1hZGMtPmRl
-diwKPiArIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgICJlcnJvciByZWFkaW5nIGN1cnJl
-bnQiKTsKPiArIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIGNvdW50X3JlcSsrOwo+ICsg
-oCCgIKAgoCCgIKAgoCCgIKAgoCCgIH0gZWxzZSB7Cj4gKyCgIKAgoCCgIKAgoCCgIKAgoCCgIKAg
-oCCgIKAgoCBjb3VudCsrOwo+ICsgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgYnVmW2ld
-ID0gYnVmW2ldIC0gNzUwOwo+ICsgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIH0KPiArIKAgoCCgIKAg
-oCCgIKAgoCCgIKAgoCBicmVhazsKPiArIKAgoCCgIKAgoCCgIKAgY2FzZSAxOgo+ICsgoCCgIKAg
-oCCgIKAgoCCgIKAgoCCgIGJ1ZltpXSA9Cj4gKyCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgdHdsNDAz
-MGJhdHRlcnlfdGVtcGVyYXR1cmUoYnVmW2ldKTsKPiArIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCBp
-ZiAoYnVmW2ldIDwgMCkgewo+ICsgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgZGV2X2Vy
-cihtYWRjLT5kZXYsCj4gKyCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCAiZXJyb3IgcmVh
-ZGluZyB0ZW1wZXJhdHVyZSIpOwo+ICsgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgY291
-bnRfcmVxKys7Cj4gKyCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgfSBlbHNlIHsKPiArIKAgoCCgIKAg
-oCCgIKAgoCCgIKAgoCCgIKAgoCCgIGNvdW50Kys7Cj4gKyCgIKAgoCCgIKAgoCCgIKAgoCCgIKAg
-fQo+ICsgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIGJyZWFrOwo+ICsgoCCgIKAgoCCgIKAgoCBkZWZh
-dWx0Ogo+ICsgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIGNvdW50Kys7Cj4gKyCgIKAgoCCgIKAgoCCg
-IKAgoCCgIKAgLyogQW5hbG9nIElucHV0IChWKSA9IGNvbnZfcmVzdWx0ICoKPiArIKAgoCCgIKAg
-oCCgIKAgoCCgIKAgoCCgKiCgIKAgoCCgIKAgoCCgIKAgoCCgIKBzdGVwX3NpemUgLyBSCj4gKyCg
-IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCogY29udl9yZXN1bHQgPSBkZWNpbWFsIHZhbHVlCj4gKyCg
-IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCogoCCgIKAgoCCgIKAgoCBvZiAxMC1iaXQgY29udmVyc2lv
-bgo+ICsgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAqIKAgoCCgIKAgoCCgIKAgcmVzdWx0Cj4gKyCg
-IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCogc3RlcCBzaXplID0gMS41IC8gKDIgXiAxMCAtMSkKPiAr
-IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgKiBSID0gUHJlc2NhbGVyIHJhdGlvIGZvciBpbnB1dAo+
-ICsgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAqIKAgoCCgY2hhbm5lbHMKPiArIKAgoCCgIKAgoCCg
-IKAgoCCgIKAgoCCgKiBSZXN1bHQgZ2l2ZW4gaW4gbVYgaGVuY2UgbXVsdGlwbGllZAo+ICsgoCCg
-IKAgoCCgIKAgoCCgIKAgoCCgIKAqIKAgoCCgYnkgMTAwMAo+ICsgoCCgIKAgoCCgIKAgoCCgIKAg
-oCCgIKAqLwo+ICsgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIGJ1ZltpXSA9IChidWZbaV0gKiAzICog
-MTAwMCAqCj4gKyCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgdHdsNDAzMF9kaXZpZGVyX3JhdGlvc1tp
-XS5kZW5vbWluYXRvcikKPiArIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIC8gKDIgKiAx
-MDIzICoKPiArIKAgoCCgIKAgoCCgIKAgdHdsNDAzMF9kaXZpZGVyX3JhdGlvc1tpXS5udW1lcmF0
-b3IpOwo+ICsgoCCgIKAgoCCgIKAgoCB9Cj4gKyCgIKAgoCB9Cj4gKyCgIKAgoCBpZiAoY291bnRf
-cmVxKQo+ICsgoCCgIKAgoCCgIKAgoCBkZXZfZGJnKG1hZGMtPmRldiwgIiVkIGNoYW5uZWwgY29u
-dmVyc2lvbiBmYWlsZWRcbiIsIGNvdW50X3JlcSk7Cj4gKwo+ICsgoCCgIKAgcmV0dXJuIGNvdW50
-Owo+ICt9Cj4gKwo=
+This series uses information about opt-clocks provided by omap_hwmod framework
+to select which of the non-mandatory DSS clocks are available on a given
+platform.
+
+A function pointer opt_clock_available is exported via pdata, which checks the
+clock roles returned by hwmod database.
+In the driver, while doing clk-get, it is checked if as per hwmod a given clock
+is an opt-clock or not, and is handled accordingly.
+
+Tested on: OMAP3430sdp
+
+Sumit Semwal (2):
+  OMAP2PLUS:DSS2: add opt_clock_available in pdata
+  OMAP2PLUS:DSS2: Use opt_clock_available from pdata
+
+changes from v1:
+- made opt_clock_available a function pointer in the omap_display_platform_data
+  to avoid having to copy the opt-clock role names.
+
+Based on top of:
+http://gitorious.org/linux-omap-dss2/linux/commits/master
+commit: ad1c76c: OMAP: Overo Palo43 LCD support
+
+
+ arch/arm/mach-omap2/display.c             |   20 ++++++++++++
+ arch/arm/plat-omap/include/plat/display.h |    2 +
+ drivers/video/omap2/dss/dss.c             |   46 +++++++++++++++++++----------
+ 3 files changed, 52 insertions(+), 16 deletions(-)
+
