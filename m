@@ -1,242 +1,182 @@
-From: Kishore Kadiyala <kishore.kadiyala@ti.com>
-Subject: [PATCH v6 6/8] OMAP: hsmmc: Move mux configuration to hsmmc.c
-Date: Mon, 28 Feb 2011 20:48:03 +0530
-Message-ID: <1298906285-29895-7-git-send-email-kishore.kadiyala@ti.com>
-References: <1298906285-29895-1-git-send-email-kishore.kadiyala@ti.com>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Subject: Re: [PATCH 1/2 v3] hwmon: twl4030: Hwmon Driver for TWL4030 MADC
+Date: Mon, 28 Feb 2011 07:11:24 -0800
+Message-ID: <20110228151124.GA3882@ericsson.com>
+References: <1298873141-5617-1-git-send-email-j-keerthy@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:50991 "EHLO arroyo.ext.ti.com"
+Received: from imr4.ericy.com ([198.24.6.8]:40636 "EHLO imr4.ericy.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754545Ab1B1PKt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 28 Feb 2011 10:10:49 -0500
-In-Reply-To: <1298906285-29895-1-git-send-email-kishore.kadiyala@ti.com>
+	id S1754330Ab1B1PMP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 28 Feb 2011 10:12:15 -0500
+Content-Disposition: inline
+In-Reply-To: <1298873141-5617-1-git-send-email-j-keerthy@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: tony@atomide.com, cjb@laptop.org, madhu.cr@ti.com, khilman@deeprootsystems.com, paul@pwsan.com, b-cousson@ti.com, Kishore Kadiyala <kishore.kadiyala@ti.com>
+To: Keerthy <j-keerthy@ti.com>
+Cc: "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "mikko.k.ylinen@nokia.com" <mikko.k.ylinen@nokia.com>, "amit.kucheria@canonical.com" <amit.kucheria@canonical.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Moving the definition of mux setting API from devices.c to hsmmc.c
-and renaming it from "omap2_mmc_mux" to "omap_hsmmc_mux".
-Also calling "omap_hsmmc_mux" from omap2_hsmmc_init.
+Hi,
 
-Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
-Cc: Chris Ball <cjb@laptop.org
-Cc: Tony Lindgren <tony@atomide.com
----
- arch/arm/mach-omap2/devices.c |   83 ----------------------------------------
- arch/arm/mach-omap2/hsmmc.c   |   84 +++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 84 insertions(+), 83 deletions(-)
+On Mon, Feb 28, 2011 at 01:05:41AM -0500, Keerthy wrote:
+> This driver exposes the sysfs nodes of the TWL4030 MADC module.
+> All the voltage channel values are expressed in terms of mV. Channel 13
+> and channel 14 are reserved. There are channels which represent
+> temperature and current the output is represented by celcius
+> and mA respectively.
+> 
+> Signed-off-by: Keerthy <j-keerthy@ti.com>
+> ---
+> V3:
+> Corrected channel 15 index
+> 
+> V2:
+> Changed the names of the sysfs attributes compliant to current,
+> voltage and temperature attributes.
+> 
+> V1:
+> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg44542.html
+> 
+>  Documentation/hwmon/twl4030-madc-hwmon |   45 +++++++++
+>  drivers/hwmon/Kconfig                  |   10 ++
+>  drivers/hwmon/Makefile                 |    1 +
+>  drivers/hwmon/twl4030-madc-hwmon.c     |  153 ++++++++++++++++++++++++++++++++
+>  4 files changed, 209 insertions(+), 0 deletions(-)
+>  create mode 100644 Documentation/hwmon/twl4030-madc-hwmon
+>  create mode 100644 drivers/hwmon/twl4030-madc-hwmon.c
+> 
+> diff --git a/Documentation/hwmon/twl4030-madc-hwmon b/Documentation/hwmon/twl4030-madc-hwmon
+> new file mode 100644
+> index 0000000..ef79843
+> --- /dev/null
+> +++ b/Documentation/hwmon/twl4030-madc-hwmon
+> @@ -0,0 +1,45 @@
+> +Kernel driver twl4030-madc
+> +=========================
+> +
+> +Supported chips:
+> +	* Texas Instruments TWL4030
+> +	Prefix: 'twl4030-madc'
+> +
+> +
+> +Authors:
+> +	J Keerthy <j-keerthy@ti.com>
+> +
+> +Description
+> +-----------
+> +
+> +The Texas Instruments TWL4030 is a Power Management and Audio Circuit. Among
+> +other things it contains a 10-bit A/D converter MADC. The converter has 16
+> +channels which can be used in different modes.
+> +
+> +
+> +See this table for the meaning of the different channels
+> +
+> +Channel Signal
+> +------------------------------------------
+> +0	Battery type(BTYPE)
+> +1	BCI: Battery temperature (BTEMP)
+> +2	GP analog input
+> +3	GP analog input
+> +4	GP analog input
+> +5	GP analog input
+> +6	GP analog input
+> +7	GP analog input
+> +8	BCI: VBUS voltage(VBUS)
+> +9	Backup Battery voltage (VBKP)
+> +10	BCI: Battery charger current (ICHG)
+> +11	BCI: Battery charger voltage (VCHG)
+> +12	BCI: Main battery voltage (VBAT)
+> +13	Reserved
+> +14	Reserved
+> +15	VRUSB Supply/Speaker left/Speaker right polarization level
+> +
+> +
+> +The Sysfs nodes will represent the voltage in the units of mV,
+> +the temperature channel shows the converted temperature in
+> +degree celcius. The Battery charging current channel represents
+> +battery charging current in mA.
+> diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+> index 297bc9a..cb3d895 100644
+> --- a/drivers/hwmon/Kconfig
+> +++ b/drivers/hwmon/Kconfig
+> @@ -941,6 +941,16 @@ config SENSORS_TMP421
+>  	  This driver can also be built as a module.  If so, the module
+>  	  will be called tmp421.
+>  
+> +config SENSORS_TWL4030_MADC
+> +	tristate "Texas Instruments TWL4030 MADC Hwmon"
+> +	depends on TWL4030_MADC
+> +	help
+> +	If you say yes here you get hwmon support for triton
+> +	TWL4030-MADC.
+> +
+> +	This driver can also be built as a module. If so it will be called
+> +	twl4030-madc-hwmon.
+> +
+>  config SENSORS_VIA_CPUTEMP
+>  	tristate "VIA CPU temperature sensor"
+>  	depends on X86
+> diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
+> index dde02d9..bc7d740 100644
+> --- a/drivers/hwmon/Makefile
+> +++ b/drivers/hwmon/Makefile
+> @@ -102,6 +102,7 @@ obj-$(CONFIG_SENSORS_THMC50)	+= thmc50.o
+>  obj-$(CONFIG_SENSORS_TMP102)	+= tmp102.o
+>  obj-$(CONFIG_SENSORS_TMP401)	+= tmp401.o
+>  obj-$(CONFIG_SENSORS_TMP421)	+= tmp421.o
+> +obj-$(CONFIG_SENSORS_TWL4030_MADC)+= twl4030-madc-hwmon.o
+>  obj-$(CONFIG_SENSORS_VIA_CPUTEMP)+= via-cputemp.o
+>  obj-$(CONFIG_SENSORS_VIA686A)	+= via686a.o
+>  obj-$(CONFIG_SENSORS_VT1211)	+= vt1211.o
+> diff --git a/drivers/hwmon/twl4030-madc-hwmon.c b/drivers/hwmon/twl4030-madc-hwmon.c
+> new file mode 100644
+> index 0000000..5eb563f
+> --- /dev/null
+> +++ b/drivers/hwmon/twl4030-madc-hwmon.c
+> @@ -0,0 +1,153 @@
+> +/*
+> + *
+> + * TWL4030 MADC Hwmon driver-This driver monitors the real time
+> + * conversion of analog signals like battery temperature,
+> + * battery type, battery level etc. User can ask for the conversion on a
+> + * particular channel using the sysfs nodes.
+> + *
+> + * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
+> + * J Keerthy <j-keerthy@ti.com>
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License
+> + * version 2 as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful, but
+> + * WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> + * General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+> + * 02110-1301 USA
+> + *
+> + */
+> +
+> +#include <linux/platform_device.h>
+> +#include <linux/i2c/twl.h>
+> +#include <linux/i2c/twl4030-madc.h>
 
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index 100bb42..2f4a598 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -708,87 +708,6 @@ void __init omap242x_init_mmc(struct omap_mmc_platform_data **mmc_data)
- 
- #if defined(CONFIG_MMC_OMAP_HS) || defined(CONFIG_MMC_OMAP_HS_MODULE)
- 
--static inline void omap2_mmc_mux(struct omap_mmc_platform_data *mmc_controller,
--			int controller_nr)
--{
--	if ((mmc_controller->slots[0].switch_pin > 0) && \
--		(mmc_controller->slots[0].switch_pin < OMAP_MAX_GPIO_LINES))
--		omap_mux_init_gpio(mmc_controller->slots[0].switch_pin,
--					OMAP_PIN_INPUT_PULLUP);
--	if ((mmc_controller->slots[0].gpio_wp > 0) && \
--		(mmc_controller->slots[0].gpio_wp < OMAP_MAX_GPIO_LINES))
--		omap_mux_init_gpio(mmc_controller->slots[0].gpio_wp,
--					OMAP_PIN_INPUT_PULLUP);
--	if (cpu_is_omap34xx()) {
--		if (controller_nr == 0) {
--			omap_mux_init_signal("sdmmc1_clk",
--				OMAP_PIN_INPUT_PULLUP);
--			omap_mux_init_signal("sdmmc1_cmd",
--				OMAP_PIN_INPUT_PULLUP);
--			omap_mux_init_signal("sdmmc1_dat0",
--				OMAP_PIN_INPUT_PULLUP);
--			if (mmc_controller->slots[0].caps &
--				(MMC_CAP_4_BIT_DATA | MMC_CAP_8_BIT_DATA)) {
--				omap_mux_init_signal("sdmmc1_dat1",
--					OMAP_PIN_INPUT_PULLUP);
--				omap_mux_init_signal("sdmmc1_dat2",
--					OMAP_PIN_INPUT_PULLUP);
--				omap_mux_init_signal("sdmmc1_dat3",
--					OMAP_PIN_INPUT_PULLUP);
--			}
--			if (mmc_controller->slots[0].caps &
--						MMC_CAP_8_BIT_DATA) {
--				omap_mux_init_signal("sdmmc1_dat4",
--					OMAP_PIN_INPUT_PULLUP);
--				omap_mux_init_signal("sdmmc1_dat5",
--					OMAP_PIN_INPUT_PULLUP);
--				omap_mux_init_signal("sdmmc1_dat6",
--					OMAP_PIN_INPUT_PULLUP);
--				omap_mux_init_signal("sdmmc1_dat7",
--					OMAP_PIN_INPUT_PULLUP);
--			}
--		}
--		if (controller_nr == 1) {
--			/* MMC2 */
--			omap_mux_init_signal("sdmmc2_clk",
--				OMAP_PIN_INPUT_PULLUP);
--			omap_mux_init_signal("sdmmc2_cmd",
--				OMAP_PIN_INPUT_PULLUP);
--			omap_mux_init_signal("sdmmc2_dat0",
--				OMAP_PIN_INPUT_PULLUP);
--
--			/*
--			 * For 8 wire configurations, Lines DAT4, 5, 6 and 7 need to be muxed
--			 * in the board-*.c files
--			 */
--			if (mmc_controller->slots[0].caps &
--				(MMC_CAP_4_BIT_DATA | MMC_CAP_8_BIT_DATA)) {
--				omap_mux_init_signal("sdmmc2_dat1",
--					OMAP_PIN_INPUT_PULLUP);
--				omap_mux_init_signal("sdmmc2_dat2",
--					OMAP_PIN_INPUT_PULLUP);
--				omap_mux_init_signal("sdmmc2_dat3",
--					OMAP_PIN_INPUT_PULLUP);
--			}
--			if (mmc_controller->slots[0].caps &
--							MMC_CAP_8_BIT_DATA) {
--				omap_mux_init_signal("sdmmc2_dat4.sdmmc2_dat4",
--					OMAP_PIN_INPUT_PULLUP);
--				omap_mux_init_signal("sdmmc2_dat5.sdmmc2_dat5",
--					OMAP_PIN_INPUT_PULLUP);
--				omap_mux_init_signal("sdmmc2_dat6.sdmmc2_dat6",
--					OMAP_PIN_INPUT_PULLUP);
--				omap_mux_init_signal("sdmmc2_dat7.sdmmc2_dat7",
--					OMAP_PIN_INPUT_PULLUP);
--			}
--		}
--
--		/*
--		 * For MMC3 the pins need to be muxed in the board-*.c files
--		 */
--	}
--}
--
- void __init omap2_init_mmc(struct omap_mmc_platform_data **mmc_data,
- 			int nr_controllers)
- {
-@@ -802,8 +721,6 @@ void __init omap2_init_mmc(struct omap_mmc_platform_data **mmc_data,
- 		if (!mmc_data[i])
- 			continue;
- 
--		omap2_mmc_mux(mmc_data[i], i);
--
- 		switch (i) {
- 		case 0:
- 			base = OMAP2_MMC1_BASE;
-diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc.c
-index 5496bc7..1348ac3 100644
---- a/arch/arm/mach-omap2/hsmmc.c
-+++ b/arch/arm/mach-omap2/hsmmc.c
-@@ -16,7 +16,9 @@
- #include <mach/hardware.h>
- #include <plat/mmc.h>
- #include <plat/omap-pm.h>
-+#include <plat/mux.h>
- 
-+#include "mux.h"
- #include "hsmmc.h"
- #include "control.h"
- 
-@@ -204,6 +206,87 @@ static int nop_mmc_set_power(struct device *dev, int slot, int power_on,
- 	return 0;
- }
- 
-+static inline void omap_hsmmc_mux(struct omap_mmc_platform_data *mmc_controller,
-+			int controller_nr)
-+{
-+	if ((mmc_controller->slots[0].switch_pin > 0) && \
-+		(mmc_controller->slots[0].switch_pin < OMAP_MAX_GPIO_LINES))
-+		omap_mux_init_gpio(mmc_controller->slots[0].switch_pin,
-+					OMAP_PIN_INPUT_PULLUP);
-+	if ((mmc_controller->slots[0].gpio_wp > 0) && \
-+		(mmc_controller->slots[0].gpio_wp < OMAP_MAX_GPIO_LINES))
-+		omap_mux_init_gpio(mmc_controller->slots[0].gpio_wp,
-+					OMAP_PIN_INPUT_PULLUP);
-+	if (cpu_is_omap34xx()) {
-+		if (controller_nr == 0) {
-+			omap_mux_init_signal("sdmmc1_clk",
-+				OMAP_PIN_INPUT_PULLUP);
-+			omap_mux_init_signal("sdmmc1_cmd",
-+				OMAP_PIN_INPUT_PULLUP);
-+			omap_mux_init_signal("sdmmc1_dat0",
-+				OMAP_PIN_INPUT_PULLUP);
-+			if (mmc_controller->slots[0].caps &
-+				(MMC_CAP_4_BIT_DATA | MMC_CAP_8_BIT_DATA)) {
-+				omap_mux_init_signal("sdmmc1_dat1",
-+					OMAP_PIN_INPUT_PULLUP);
-+				omap_mux_init_signal("sdmmc1_dat2",
-+					OMAP_PIN_INPUT_PULLUP);
-+				omap_mux_init_signal("sdmmc1_dat3",
-+					OMAP_PIN_INPUT_PULLUP);
-+			}
-+			if (mmc_controller->slots[0].caps &
-+						MMC_CAP_8_BIT_DATA) {
-+				omap_mux_init_signal("sdmmc1_dat4",
-+					OMAP_PIN_INPUT_PULLUP);
-+				omap_mux_init_signal("sdmmc1_dat5",
-+					OMAP_PIN_INPUT_PULLUP);
-+				omap_mux_init_signal("sdmmc1_dat6",
-+					OMAP_PIN_INPUT_PULLUP);
-+				omap_mux_init_signal("sdmmc1_dat7",
-+					OMAP_PIN_INPUT_PULLUP);
-+			}
-+		}
-+		if (controller_nr == 1) {
-+			/* MMC2 */
-+			omap_mux_init_signal("sdmmc2_clk",
-+				OMAP_PIN_INPUT_PULLUP);
-+			omap_mux_init_signal("sdmmc2_cmd",
-+				OMAP_PIN_INPUT_PULLUP);
-+			omap_mux_init_signal("sdmmc2_dat0",
-+				OMAP_PIN_INPUT_PULLUP);
-+
-+			/*
-+			 * For 8 wire configurations, Lines DAT4, 5, 6 and 7
-+			 * need to be muxed in the board-*.c files
-+			 */
-+			if (mmc_controller->slots[0].caps &
-+				(MMC_CAP_4_BIT_DATA | MMC_CAP_8_BIT_DATA)) {
-+				omap_mux_init_signal("sdmmc2_dat1",
-+					OMAP_PIN_INPUT_PULLUP);
-+				omap_mux_init_signal("sdmmc2_dat2",
-+					OMAP_PIN_INPUT_PULLUP);
-+				omap_mux_init_signal("sdmmc2_dat3",
-+					OMAP_PIN_INPUT_PULLUP);
-+			}
-+			if (mmc_controller->slots[0].caps &
-+							MMC_CAP_8_BIT_DATA) {
-+				omap_mux_init_signal("sdmmc2_dat4.sdmmc2_dat4",
-+					OMAP_PIN_INPUT_PULLUP);
-+				omap_mux_init_signal("sdmmc2_dat5.sdmmc2_dat5",
-+					OMAP_PIN_INPUT_PULLUP);
-+				omap_mux_init_signal("sdmmc2_dat6.sdmmc2_dat6",
-+					OMAP_PIN_INPUT_PULLUP);
-+				omap_mux_init_signal("sdmmc2_dat7.sdmmc2_dat7",
-+					OMAP_PIN_INPUT_PULLUP);
-+			}
-+		}
-+
-+		/*
-+		 * For MMC3 the pins need to be muxed in the board-*.c files
-+		 */
-+	}
-+}
-+
- static struct omap_mmc_platform_data *hsmmc_data[OMAP34XX_NR_MMC] __initdata;
- 
- void __init omap2_hsmmc_init(struct omap2_hsmmc_info *controllers)
-@@ -361,6 +444,7 @@ void __init omap2_hsmmc_init(struct omap2_hsmmc_info *controllers)
- 			continue;
- 		}
- 		hsmmc_data[c->mmc - 1] = mmc;
-+		omap_hsmmc_mux(hsmmc_data[c->mmc - 1], (c->mmc - 1));
- 	}
- 
- 	omap2_init_mmc(hsmmc_data, OMAP34XX_NR_MMC);
--- 
-1.7.1
+You are including a file which is only introduced in a subsequent patch. This would break 
+the ability to bisect if patches are applied in that order. Please reorder your patches.
 
+> +#include <linux/hwmon.h>
+> +#include <linux/hwmon-sysfs.h>
+
+The driver uses information from <linux/init.h>, <linux/stddef.h>,
+<linux/sysfs.h>, <linux/module.h>, <linux/err.h>, <linux/kernel.h>,
+and possibly others I might have missed. You should include those files
+explicitly and not depend on other include files to do it for you.
+
+See Linux "Kernel patch submission checklist" in SubmittingPatches, item #1.
+
+Guenter
