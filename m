@@ -1,110 +1,49 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [PATCH] perf: add OMAP support for the new power events
-Date: Mon, 28 Feb 2011 17:33:31 +0100
-Message-ID: <AANLkTikgi_MpkPvhzMbnq_F6MbZE0W7+5OnWr=6WgtTn@mail.gmail.com>
-References: <1298052645-4164-1-git-send-email-j-pihet@ti.com>
-	<ec45f3f591691ce6a5253dfb70cc8e90@mail.gmail.com>
-	<AANLkTiktdLja39dC38E_LciYZK7+pTp3_Sgm9jf5FA4R@mail.gmail.com>
-	<5dad46ab75a15145f907aeca53f769c1@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: jean.pihet@newoldbits.com
+Subject: [PATCH 0/3] OMAP PM: implement the wake-up latency constraints using PM QOS
+Date: Mon, 28 Feb 2011 18:41:21 +0100
+Message-ID: <1298914884-16468-1-git-send-email-j-pihet@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:38725 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755064Ab1B1Qdc convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Feb 2011 11:33:32 -0500
-Received: by qwd7 with SMTP id 7so2957267qwd.19
-        for <linux-omap@vger.kernel.org>; Mon, 28 Feb 2011 08:33:31 -0800 (PST)
-In-Reply-To: <5dad46ab75a15145f907aeca53f769c1@mail.gmail.com>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:65329 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752850Ab1B1Rlm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Feb 2011 12:41:42 -0500
+Received: by ewy6 with SMTP id 6so1371532ewy.19
+        for <linux-omap@vger.kernel.org>; Mon, 28 Feb 2011 09:41:41 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@ti.com>
-Cc: Thomas Renninger <trenn@suse.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Jean Pihet-XID <j-pihet@ti.com>
+To: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, vishwanath.bs@ti.com
+Cc: Jean Pihet <j-pihet@ti.com>
 
-Hi Kevin,
+From: Jean Pihet <j-pihet@ti.com>
 
-Can you please check this patch? From the previous discussions I
-understood it was OK.
-This one has been submitted to and l-o and l-a-k MLs. How will this
-one be merged in?
+Use the PM QOS framework to set wake-up latency constraints on the MPU and DMA.
+Cpuidle for OMAP34xx uses PM QOS to retreive the strongest constraint and to
+determine the next state for the MPU and CORE power domains.
 
-Thanks,
-Jean
+As of today only I2C is requesting a constraint, but every omap_device
+should be able to do so.
 
-On Mon, Feb 21, 2011 at 9:53 AM, Santosh Shilimkar
-<santosh.shilimkar@ti.com> wrote:
->> -----Original Message-----
->> From: Jean Pihet [mailto:jean.pihet@newoldbits.com]
->> Sent: Monday, February 21, 2011 2:14 PM
->> To: Santosh Shilimkar
->> Cc: Kevin Hilman; Thomas Renninger; linux-omap@vger.kernel.org;
->> linux-arm-kernel@lists.infradead.org; Jean Pihet-XID
->> Subject: Re: [PATCH] perf: add OMAP support for the new power events
->>
->> Hi Santosh,
->>
->
-> [...]
->
->> >> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-
->> >> omap2/pm34xx.c
->> >> index 2f864e4..d1cc3f4 100644
->> >> --- a/arch/arm/mach-omap2/pm34xx.c
->> >> +++ b/arch/arm/mach-omap2/pm34xx.c
->> >> @@ -29,6 +29,7 @@
->> >> =A0#include <linux/delay.h>
->> >> =A0#include <linux/slab.h>
->> >> =A0#include <linux/console.h>
->> >> +#include <trace/events/power.h>
->> >>
->> >> =A0#include <plat/sram.h>
->> >> =A0#include "clockdomain.h"
->> >> @@ -519,8 +520,14 @@ static void omap3_pm_idle(void)
->> >> =A0 =A0 =A0 if (omap_irq_pending() || need_resched())
->> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto out;
->> >>
->> >> + =A0 =A0 trace_power_start(POWER_CSTATE, 1, smp_processor_id());
->> >> + =A0 =A0 trace_cpu_idle(1, smp_processor_id());
->> >> +
->> >
->> > This default idle code won't be used when you enable the
->> > CONFIG_CPUIDLE. That case the cpuidle34xx.c idle code gets
->> > registered.
->> That is correct. OMAP has a default idle handler (omap3_pm_idle) and
->> a
->> cpuidle handler (omap3_enter_idle in
->> arch/arm/mach-omap2/cpuidle34xx.c).
->>
->> > Shouldn't you patch that code instead? This is more or less
->> > dead code and it is just like default idle code when idle
->> > drivers isn't registered.
->> The cpuidle framework already is instrumented in a generic way. This
->> code adds the instrumentation to the default idle handler so that
->> all
->> cases are covered. BTW the patch description gives that information.
->>
->> If there is dead code then it is not only the code from this patch
->> but
->> all the code for the default idle handler.
->>
-> I read your change log. It says.
->
->>> The trace points are for:
->>> - default idle handler. Since the cpuidle framework is
->>> =A0 instrumented in the generic way there is no need to
->>> =A0 add trace points in the OMAP specific cpuidle handler;
-> Now code in cpuilde34xx.c is also OMAP specific and hence the
-> confusion at least for me.
-> Regarding dead code, I meant existing code of default handler.
->
-> Thanks for clarification.
->
-> Regards,
-> Santosh
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Note: To be replaced by a more generic solution which allows every
+ device to put a constraint, and which can control all power
+ domains in the system. This solution is currently under
+ investigation.
+
+Jean Pihet (3):
+  OMAP PM: create a PM layer plugin for the devices wakeup latency
+    constraints
+  OMAP: implement MPU and DMA wake-up constraints using PM_QOS
+  OMAP: use PM QOS for wake-up constraints from I2C
+
+ arch/arm/plat-omap/Kconfig                    |    7 +
+ arch/arm/plat-omap/Makefile                   |    1 +
+ arch/arm/plat-omap/i2c.c                      |   22 ++-
+ arch/arm/plat-omap/include/plat/omap-pm.h     |   96 ++++---
+ arch/arm/plat-omap/include/plat/omap_device.h |    1 +
+ arch/arm/plat-omap/omap-pm-constraints.c      |  349 +++++++++++++++++++++++++
+ arch/arm/plat-omap/omap-pm-noop.c             |   70 +++---
+ 7 files changed, 469 insertions(+), 77 deletions(-)
+ create mode 100644 arch/arm/plat-omap/omap-pm-constraints.c
+
+-- 
+1.7.2.3
+
