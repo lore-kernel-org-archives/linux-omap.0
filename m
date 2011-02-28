@@ -1,70 +1,83 @@
-From: Maxime Coquelin <maxime.coquelin-nonst@stericsson.com>
-Subject: Re: [PATCHv5 0/3] Introduce the /proc/socinfo and use it to export
- OMAP data
-Date: Mon, 28 Feb 2011 11:28:15 +0100
-Message-ID: <4D6B78BF.1020102@stericsson.com>
-References: <1273587331-24604-1-git-send-email-eduardo.valentin@nokia.com> <AANLkTin7vRMreG3hOAk95MYZUCV-Kr6ac7gD7jgvX6Gf@mail.gmail.com> <20110216115729.GA29817@besouro.research.nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Charulatha V <charu@ti.com>
+Subject: [PATCH 0/5] OMAP: GPIO: use PM runtime framework
+Date: Mon, 28 Feb 2011 16:27:45 +0530
+Message-ID: <1298890670-5481-1-git-send-email-charu@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from eu1sys200aog102.obsmtp.com ([207.126.144.113]:36445 "EHLO
-	eu1sys200aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752706Ab1B1KdY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 28 Feb 2011 05:33:24 -0500
-In-Reply-To: <20110216115729.GA29817@besouro.research.nokia.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:54282 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752740Ab1B1K4b (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Feb 2011 05:56:31 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>
-Cc: ext Linus Walleij <linus.walleij@linaro.org>, LKML <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux-OMAP <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, ext Tony Lindgren <tony@atomide.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, Peter De-Schrijver <Peter.De-Schrijver@nokia.com>, "santosh.shilimkar@ti.com" <santosh.shilimkar@ti.com>, Ambresh <a0393775@ti.com>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, Jouni Hogander <jouni.hogander@nokia.com>, Paul Mundt <lethal@linux-sh.org>, Lee Jones <Lee.Jones@linaro.org>, Jonas ABERG <jonas.aberg@stericsson.com>, ext Nishanth Menon <nm@ti.com>, loic.pallardy@stericsson.com
+To: linux-omap@vger.kernel.org
+Cc: khilman@ti.com, tony@atomide.com, paul@pwsan.com, Charulatha V <charu@ti.com>
 
-Hello Eduardo,
+Use PM runtime framework in OMAP GPIO driver.
 
-On 02/16/2011 12:57 PM, Eduardo Valentin wrote:
-> Hello Linus,
->
-> On Tue, Feb 15, 2011 at 01:58:00PM +0100, ext Linus Walleij wrote:
->> 2010/5/11 Eduardo Valentin<eduardo.valentin@nokia.com>:
->>
->>> Here is the version 5 of the change to export OMAP data to userspace
->>> (name, revision, id code, production id and die id).
->>>
->>> Basically, this version is still attempting to create a new file under /proc.
->>> It is the /proc/socinfo, which should be used to export bits which are SoC specific
->>> (not CPU related, nor machine related).
->>>
->>> So, differences between previous version are:
->>> - merged patch 02/04 with 03/04 to avoid compilation breakages.
->>> - simplified the seq_file usage by using the single_open and single_release functions
->>> - exported a function to register a seq_operation .show callback
->>> - adapted the changes accordingly
->>>
->>> As usual, comments are welcome.
->> Eduardo, what has happened to this patchset?
-> Got forgotten :-(. Unfortunately I didn't pushed it hard enough.
-  I propose to refactor your patchset, moving from procfs to sysfs.
->> Do you want help in picking it up and try to polish it up?
-> Yeah, but it would need a refactoring. IIRC, result of last discussion was that
-> we should not mess with /proc. So, maybe moving back to something under sysfs.
-> Perhaps /sys/devices/soc or so?
-About the location of this new sysfs entry, where do you think it should be?
-I propose to create a new directory named "soc" in /sys/devices/system/.
+Patch series is based on LO Kernel omap_for_linus branch.
 
-As platform vendors have several/different kind of IDs to export to 
-sysfs, I propose each vendor to create file entries related to their IDs 
-(eg. /sys/devices/system/soc/idcode for OMAP platforms).
+Dependency patches to test system wide suspend on omap_for_linus branch:
+https://patchwork.kernel.org/patch/550551/
+https://patchwork.kernel.org/patch/513481/
 
-However, I think we should have a common file entry to export the unique 
-ID of the platforms. Indeed, user-space applications should have a 
-unified way to get this kind of ID, regardless of the platform (eg. 
-/sys/devices/system/soc/unique_id).
+Compile tested for:
+ - omap1_defconfig
+ - omap2plus_defconfig
 
-Do you agree with my proposal?
+Boot test (success on the following boards):
+ - OMAP1710-H3
+ - OMAP2420-H4
+ - OMAP2430-SDP (Tested-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>)
+ - OMAP3430-SDP
+ - OMAP3630-Zoom3
+ - OMAP4430-Blaze
+ - OMAP4430-SDP
 
-Thanks for your comments.
+GPIO module functionality testing (success on the following boards):
+ - OMAP2420-H4
+ - OMAP2430-SDP (Tested-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>)
+ - OMAP3430-SDP
+ - OMAP3630-Zoom3
+ - OMAP4430-Blaze
+ - OMAP4430-SDP
 
-Regards,
+PM Testing:
+OMAP3430-SDP(success):
+ - retention
+ - off_mode
+ - system_wide suspend
+OMAP3630-Zoom3(success):
+ - retention
+ - off_mode
+ - system_wide suspend
+ - wakeup test
 
-Maxime Coquelin
+using the following:
+echo 5 > /sys/devices/platform/omap/omap_uart.0/sleep_timeout
+echo 5 > /sys/devices/platform/omap/omap_uart.1/sleep_timeout
+echo 5 > /sys/devices/platform/omap/omap_uart.2/sleep_timeout
+echo '3' > /debug/pm_debug/wakeup_timer_seconds
+echo 1 > /debug/pm_debug/sleep_while_idle
+echo 1 > /debug/pm_debug/enable_off_mode
+echo mem > /sys/power/state
+cat /debug/pm_debug/count
+
+Link to previous patch series for GPIO PM runtime framework adaptation
+as part of GPIO hwmod adaptation series:
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg35123.html
+https://patchwork.kernel.org/patch/189832/
+
+Charulatha V (5):
+  OMAP: GPIO: Make gpio_context part of gpio_bank structure
+  OMAP: GPIO: Use pwrdmn name to find wkup dmn GPIO
+  OMAP4: GPIO: Save/restore context
+  OMAP: GPIO: handle save/restore ctxt in GPIO driver
+  OMAP: GPIO: Use PM runtime framework
+
+ arch/arm/mach-omap2/gpio.c             |    6 +
+ arch/arm/mach-omap2/pm24xx.c           |    2 +-
+ arch/arm/mach-omap2/pm34xx.c           |   20 +-
+ arch/arm/plat-omap/gpio.c              |  563 ++++++++++++++++++--------------
+ arch/arm/plat-omap/include/plat/gpio.h |    5 +-
+ 5 files changed, 330 insertions(+), 266 deletions(-)
 
