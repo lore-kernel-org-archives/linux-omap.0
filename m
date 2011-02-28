@@ -1,44 +1,72 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 00/10 v1] EHCI and OHCI patches of OMAP3 and OMAP4
-Date: Mon, 28 Feb 2011 21:11:43 +0200
-Message-ID: <20110228191143.GT2459@legolas.emea.dhcp.ti.com>
-References: <1298910712-2051-1-git-send-email-keshava_mgowda@ti.com>
-Reply-To: balbi-l0cyMroinI0@public.gmane.org
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL] omap fixes for v2.6.38-rc6
+Date: Mon, 28 Feb 2011 11:41:51 -0800
+Message-ID: <20110228194151.GJ20560@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:15429 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754580Ab1B1Tlz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Feb 2011 14:41:55 -0500
 Content-Disposition: inline
-In-Reply-To: <1298910712-2051-1-git-send-email-keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, gadiyar-l0cyMroinI0@public.gmane.org, p-basak2-l0cyMroinI0@public.gmane.org, Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Mon, Feb 28, 2011 at 10:01:42PM +0530, Keshava Munegowda wrote:
-> this is how it EHCI/OHCI code re oraganize look like:
-> 	. we have EHCI and OHCI be children of a usbhs "core driver"
-> 		which will take care of all accesses to
-> 		UHH and TLL bases. 
-> 
-> 	. we pass enable/disable functions down from EHCI and OHCI drivers.
-> 		to USBHS driver.
-> 
-> 	. UHH and TLL power management will eventually move to
-> 		omap-usb-host.c
+Hi Linus,
 
-Anand, I'm not taking this directly. I need a pull request from you in
-order for me to send a pull request to Greg. Bear in mind we have little
-time for this merge window, I'll wait until tomorrow and if I have no
-reply, this won't be going into this merge window. Sorry but I also have
-other MUSB patches which will be waiting until tomorrow due to these
-EHCI/OHCI patches.
+Please pull omap fixes from:
 
-Greg, I'll be sending a pull request for you tomorrow with or without
-these patches.
+git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes-for-linus
 
--- 
-balbi
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This contains one more timer regression fix, a DPLL rate fix,
+and a mailbox NULL pointer fix that would be good to get
+in for 2.6.38. The series also removes world-writable flag for
+some debugfs entries.
+
+Other than I believe that's it for omap fixes for v2.6.38.
+
+Regards,
+
+Tony
+
+
+The following changes since commit f5412be599602124d2bdd49947b231dd77c0bf99:
+
+  Linux 2.6.38-rc6 (2011-02-21 17:25:52 -0800)
+
+are available in the git repository at:
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes-for-linus
+
+John Ogness (1):
+      OMAP2/3: clock: fix fint calculation for DPLL_FREQSEL
+
+Kevin Hilman (2):
+      OMAP2420: mailbox: fix IVA vs DSP IRQ numbering
+      OMAP2+: mailbox: fix lookups for multiple mailboxes
+
+Paul Walmsley (1):
+      OMAP2+: clocksource: fix crash on boot when !CONFIG_OMAP_32K_TIMER
+
+Santosh Shilimkar (1):
+      omap4: prcm: Fix the CPUx clockdomain offsets
+
+Tony Lindgren (1):
+      Merge branch 'patches_for_2.6.38rc' of git://git.pwsan.com/linux-2.6 into devel-fixes
+
+Vasiliy Kulikov (3):
+      mach-omap2: mux: world-writable debugfs files
+      mach-omap2: pm: world-writable debugfs timer files
+      mach-omap2: smartreflex: world-writable debugfs voltage files
+
+ arch/arm/mach-omap2/clkt_dpll.c    |    2 +-
+ arch/arm/mach-omap2/mailbox.c      |    2 +-
+ arch/arm/mach-omap2/mux.c          |    2 +-
+ arch/arm/mach-omap2/pm-debug.c     |    8 ++++----
+ arch/arm/mach-omap2/prcm_mpu44xx.h |    4 ++--
+ arch/arm/mach-omap2/smartreflex.c  |    4 ++--
+ arch/arm/mach-omap2/timer-gp.c     |   13 +++++++++++++
+ arch/arm/plat-omap/mailbox.c       |   11 +++++++----
+ 8 files changed, 31 insertions(+), 15 deletions(-)
