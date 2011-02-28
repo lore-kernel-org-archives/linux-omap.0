@@ -1,71 +1,95 @@
-From: Keshava Munegowda <keshava_mgowda@ti.com>
-Subject: [PATCH 00/10 v1] EHCI and OHCI patches of OMAP3 and OMAP4
-Date: Mon, 28 Feb 2011 22:01:42 +0530
-Message-ID: <1298910712-2051-1-git-send-email-keshava_mgowda@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:49512 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753116Ab1B1QcU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 28 Feb 2011 11:32:20 -0500
-Sender: linux-omap-owner@vger.kernel.org
+From: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 02/10 v1] usb: host: omap: switch to platform_get_resource_byname
+Date: Mon, 28 Feb 2011 22:01:44 +0530
+Message-ID: <1298910712-2051-3-git-send-email-keshava_mgowda@ti.com>
+References: <1298910712-2051-1-git-send-email-keshava_mgowda@ti.com>
+ <1298910712-2051-2-git-send-email-keshava_mgowda@ti.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1298910712-2051-2-git-send-email-keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org, gadiyar-l0cyMroinI0@public.gmane.org, p-basak2-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: Keshava Munegowda <keshava_mgowda@ti.com>, balbi@ti.com, gadiyar@ti.com, p-basak2@ti.com
 
-this is how it EHCI/OHCI code re oraganize look like:
-	. we have EHCI and OHCI be children of a usbhs "core driver"
-		which will take care of all accesses to
-		UHH and TLL bases. 
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 
-	. we pass enable/disable functions down from EHCI and OHCI drivers.
-		to USBHS driver.
+now that we have names on all memory bases, we can
+switch to use platform_get_resource_byname() which
+will make it simpler when we move to a setup where
+OHCI and EHCI on OMAP play well together.
 
-	. UHH and TLL power management will eventually move to
-		omap-usb-host.c
+Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+---
+ drivers/usb/host/ehci-omap.c  |    6 +++---
+ drivers/usb/host/ohci-omap3.c |    6 +++---
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-Felipe Balbi (3):
-  arm: omap: usb: host: add names to resources
-  usb: host: omap: switch to platform_get_resource_byname
-  arm: omap2: usb: rename usb-ehci.c to usb-host.c
+diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
+index f784ceb..37cf12b 100644
+--- a/drivers/usb/host/ehci-omap.c
++++ b/drivers/usb/host/ehci-omap.c
+@@ -813,7 +813,7 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
+ 	omap->ehci		= hcd_to_ehci(hcd);
+ 	omap->ehci->sbrn	= 0x20;
+ 
+-	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "ehci");
+ 
+ 	hcd->rsrc_start = res->start;
+ 	hcd->rsrc_len = resource_size(res);
+@@ -829,7 +829,7 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
+ 	omap->ehci->caps = hcd->regs;
+ 	omap->ehci_base = hcd->regs;
+ 
+-	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
++	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "uhh");
+ 	omap->uhh_base = ioremap(res->start, resource_size(res));
+ 	if (!omap->uhh_base) {
+ 		dev_err(&pdev->dev, "UHH ioremap failed\n");
+@@ -837,7 +837,7 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
+ 		goto err_uhh_ioremap;
+ 	}
+ 
+-	res = platform_get_resource(pdev, IORESOURCE_MEM, 2);
++	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "tll");
+ 	omap->tll_base = ioremap(res->start, resource_size(res));
+ 	if (!omap->tll_base) {
+ 		dev_err(&pdev->dev, "TLL ioremap failed\n");
+diff --git a/drivers/usb/host/ohci-omap3.c b/drivers/usb/host/ohci-omap3.c
+index a37d599..32f56bb 100644
+--- a/drivers/usb/host/ohci-omap3.c
++++ b/drivers/usb/host/ohci-omap3.c
+@@ -618,7 +618,7 @@ static int __devinit ohci_hcd_omap3_probe(struct platform_device *pdev)
+ 	omap->es2_compatibility	= pdata->es2_compatibility;
+ 	omap->ohci		= hcd_to_ohci(hcd);
+ 
+-	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "ohci");
+ 
+ 	hcd->rsrc_start = res->start;
+ 	hcd->rsrc_len = resource_size(res);
+@@ -630,7 +630,7 @@ static int __devinit ohci_hcd_omap3_probe(struct platform_device *pdev)
+ 		goto err_ioremap;
+ 	}
+ 
+-	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
++	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "uhh");
+ 	omap->uhh_base = ioremap(res->start, resource_size(res));
+ 	if (!omap->uhh_base) {
+ 		dev_err(&pdev->dev, "UHH ioremap failed\n");
+@@ -638,7 +638,7 @@ static int __devinit ohci_hcd_omap3_probe(struct platform_device *pdev)
+ 		goto err_uhh_ioremap;
+ 	}
+ 
+-	res = platform_get_resource(pdev, IORESOURCE_MEM, 2);
++	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "tll");
+ 	omap->tll_base = ioremap(res->start, resource_size(res));
+ 	if (!omap->tll_base) {
+ 		dev_err(&pdev->dev, "TLL ioremap failed\n");
+-- 
+1.6.0.4
 
-Keshava Munegowda (7):
-  arm: omap: usb: create common enums and structures for ehci and ohci
-  usb: host: omap: common usb host core driver
-  arm: omap: usb: usbhs core device initialization
-  arm: omap: usb: Invoke usbhs core device initialization
-  arm: omap: usb: cleanup ehci and ohci resources and devices
-  usb: host: omap: ehci and ohci simplification
-  arm: omap: usb: clock entries for omap3 and omap4
-
- arch/arm/mach-omap2/Makefile                   |    2 +-
- arch/arm/mach-omap2/board-3430sdp.c            |   10 +-
- arch/arm/mach-omap2/board-3630sdp.c            |   10 +-
- arch/arm/mach-omap2/board-4430sdp.c            |   10 +-
- arch/arm/mach-omap2/board-am3517crane.c        |   10 +-
- arch/arm/mach-omap2/board-am3517evm.c          |   12 +-
- arch/arm/mach-omap2/board-cm-t35.c             |   10 +-
- arch/arm/mach-omap2/board-cm-t3517.c           |   10 +-
- arch/arm/mach-omap2/board-devkit8000.c         |   10 +-
- arch/arm/mach-omap2/board-igep0020.c           |   10 +-
- arch/arm/mach-omap2/board-igep0030.c           |   10 +-
- arch/arm/mach-omap2/board-omap3beagle.c        |   10 +-
- arch/arm/mach-omap2/board-omap3evm.c           |   14 +-
- arch/arm/mach-omap2/board-omap3pandora.c       |   10 +-
- arch/arm/mach-omap2/board-omap3stalker.c       |   10 +-
- arch/arm/mach-omap2/board-omap3touchbook.c     |   10 +-
- arch/arm/mach-omap2/board-omap4panda.c         |   10 +-
- arch/arm/mach-omap2/board-overo.c              |   10 +-
- arch/arm/mach-omap2/board-zoom.c               |   10 +-
- arch/arm/mach-omap2/clock3xxx_data.c           |   14 +-
- arch/arm/mach-omap2/clock44xx_data.c           |   10 +-
- arch/arm/mach-omap2/{usb-ehci.c => usb-host.c} |  307 +++++---
- arch/arm/plat-omap/include/plat/usb.h          |   55 +-
- drivers/mfd/Kconfig                            |    9 +
- drivers/mfd/Makefile                           |    1 +
- drivers/mfd/omap-usb-host.c                    |  981 ++++++++++++++++++++++++
- drivers/usb/host/ehci-omap.c                   |  877 ++-------------------
- drivers/usb/host/ohci-omap3.c                  |  584 ++-------------
- 28 files changed, 1445 insertions(+), 1581 deletions(-)
- rename arch/arm/mach-omap2/{usb-ehci.c => usb-host.c} (68%)
- create mode 100644 drivers/mfd/omap-usb-host.c
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
