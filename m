@@ -1,163 +1,106 @@
 From: "Govindraj.R" <govindraj.raja@ti.com>
-Subject: [PATCH 7/7] Serial: OMAP2+: Make the RX_TIMEOUT for DMA configurable for each UART
-Date: Mon, 28 Feb 2011 20:09:18 +0530
-Message-ID: <1298903958-6496-8-git-send-email-govindraj.raja@ti.com>
-References: <1298903958-6496-1-git-send-email-govindraj.raja@ti.com>
+Subject: [PATCH 0/7] OMAP2+: UART: runtime conversion + cleanup.
+Date: Mon, 28 Feb 2011 20:09:11 +0530
+Message-ID: <1298903958-6496-1-git-send-email-govindraj.raja@ti.com>
 Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <1298903958-6496-1-git-send-email-govindraj.raja@ti.com>
 Sender: linux-serial-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Jon Hunter <jon-hunter@ti.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Rajendra Nayak <rnayak@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>
+Cc: "Govindraj.R" <govindraj.raja@ti.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Rajendra Nayak <rnayak@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Jon Hunter <jon-hunter@ti.com>
+Converting uart driver to adapt to pm runtime api's.
+Changes involves:
+================
+1.) Cleaning up certain uart calls from sram_idle func but still 
+    retaining the prepare_idle/resume_idle func calls because as
+    of today uart module level wakeup doesn't seem to work. 
+    We have informed the hardware folks about this and discussion
+    is in progress. So until we have a workaround for this we have to
+    depend on prepare/resume calls to cut uart clock and wakeup based
+    on io-daisy chain mechanism using uart_rx padconf.
+2.) Removed all types of uart clock handling code from serial.c
+    file and now onwards serial.c file is used only for device registration 
+    and to probe early uart and pass some uart board data which
+    can be passed as pdata to driver. Also cleaned up direct padconf usage.
+3.) Using hwmod_mux api enable wakeup capability for uart pad during
+    hwmod_idle state i.e., when uart clocks are disabled we can enable
+    io-pad wakeup capability for uart if mux_data is available for 
+    given uart. Also during during resume from idle call to uart we need
+    to enable clocks back conditionally and this can be done only when io-pad
+    wakeup event bit is set for uart_rx pad. So we need a hwmod api
+    which can probe the uart pad and let us know whether a uart wakeup
+    happened. So omap_hmwod_pad_wakeup_status api is added to meet this 
+    requirement.
+3.) Adapted omap-serial driver to use runtime api's.
+4.) Modify serial_init calls to accept certain dma based uart parameters
+5.) Minor cleanups and rename uart_rx_dma api.
 
-When using DMA there are two timeouts defined. The first timeout,
-rx_timeout, is really a polling rate in which software polls the
-DMA status to see if the DMA has finished. This is necessary for
-the RX side because we do not know how much data we will receive.
-The secound timeout, RX_TIMEOUT, is a timeout after which the
-DMA will be stopped if no more data is received. To make this
-clearer, rename rx_timeout as rx_poll_rate and rename the
-function serial_omap_rx_timeout() to serial_omap_rxdma_poll().
+Patch series is based on LO Kernel omap_for_linus branch.
+Commit-id: 7cab8713b1ed0dab08ad6458f92a40b7ff4be619
+Dependency patches needed to test system wide suspend on omap_for_linus branch.
+https://patchwork.kernel.org/patch/550551/
+https://patchwork.kernel.org/patch/513481/
+https://patchwork.kernel.org/patch/501211/
 
-The OMAP-Serial driver defines an RX_TIMEOUT of 3 seconds that is
-used to indicate when the DMA for UART can be stopped if no more
-data is received. The value is a global definition that is applied
-to all instances of the UART.
+Testing updates:
+----------------
+3430SDP, ZOOM2: retention, off_mode, system_wide suspend is tested.
+OMAP3630 - Zoom3: pm-retention checked, off mode for per domain checked.
+	[uart3/uart4 in per domain on omap3630].
+OMAP4430[Blaze]: Boot tested.
+OMAP2420/2430SDP: Boot tested
 
-Each UART may be used for a different purpose and so the timeout
-required may differ. Make this value configurable for each UART so
-that this value can be optimised for power savings.
+Govindraj.R (5):
+  OMAP2+ : hwmod_data: update uart hwmod data.
+  OMAP2+: mux: Enable wakeup for wakeup enable requested pads.
+  OMAP2+: UART: Remove certain uart calls from sram_idle.
+  OMAP2+: UART: Remove uart clock handling code serial.c
+  Serial: OMAP: add runtime pm support for omap-serial driver
 
-Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
-Signed-off-by: Jon Hunter <jon-hunter@ti.com>
----
- arch/arm/mach-omap2/serial.c                  |    2 ++
- arch/arm/plat-omap/include/plat/omap-serial.h |    6 ++++--
- drivers/tty/serial/omap-serial.c              |   15 ++++++++-------
- 3 files changed, 14 insertions(+), 9 deletions(-)
+Jon Hunter (2):
+  OMAP: Serial: Allow UART parameters to be configured from board file
+  Serial: OMAP2+: Make the RX_TIMEOUT for DMA configurable for each
+    UART
 
-diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-index 530e9e3..ff52442 100644
---- a/arch/arm/mach-omap2/serial.c
-+++ b/arch/arm/mach-omap2/serial.c
-@@ -48,6 +48,7 @@ static struct omap_uart_port_info omap_serial_default_info[] = {
- 	{
- 		.dma_enabled	= 0,
- 		.dma_rx_buf_size = DEFAULT_RXDMA_BUFSIZE,
-+		.dma_rx_poll_rate = DEFAULT_RXDMA_POLLRATE,
- 		.dma_rx_timeout = DEFAULT_RXDMA_TIMEOUT,
- 		.idle_timeout	= DEFAULT_IDLE_TIMEOUT,
- 	},
-@@ -268,6 +269,7 @@ void __init omap_serial_init_port(struct omap_board_data *bdata,
- 	pdata->flags = UPF_BOOT_AUTOCONF;
- 	pdata->dma_enabled = info->dma_enabled;
- 	pdata->dma_rx_buf_size = info->dma_rx_buf_size;
-+	pdata->dma_rx_poll_rate = info->dma_rx_poll_rate;
- 	pdata->dma_rx_timeout = info->dma_rx_timeout;
- 	pdata->idle_timeout = info->idle_timeout;
- 	if (bdata->id == omap_uart_con_id)
-diff --git a/arch/arm/plat-omap/include/plat/omap-serial.h b/arch/arm/plat-omap/include/plat/omap-serial.h
-index 4f12d6c..e338f4e 100644
---- a/arch/arm/plat-omap/include/plat/omap-serial.h
-+++ b/arch/arm/plat-omap/include/plat/omap-serial.h
-@@ -51,8 +51,8 @@
- 
- #define OMAP_UART_DMA_CH_FREE	-1
- 
--#define RX_TIMEOUT		(3 * HZ)	/* RX DMA timeout (jiffies) */
--#define DEFAULT_RXDMA_TIMEOUT	1		/* RX DMA polling rate (us) */
-+#define DEFAULT_RXDMA_TIMEOUT	(3 * HZ)	/* RX DMA timeout (jiffies) */
-+#define DEFAULT_RXDMA_POLLRATE	1		/* RX DMA polling rate (us) */
- #define DEFAULT_RXDMA_BUFSIZE	4096		/* RX DMA buffer size */
- #define DEFAULT_IDLE_TIMEOUT	(5 * HZ)	/* UART idle timeout (secs) */
- 
-@@ -70,6 +70,7 @@ struct omap_uart_port_info {
- 	unsigned int		console_uart;
- 	unsigned int		dma_rx_buf_size;/* DMA Rx Buffer Size */
- 	unsigned int		dma_rx_timeout;	/* DMA RX timeout */
-+	unsigned int		dma_rx_poll_rate;	/* DMA RX timeout */
- 	unsigned int		idle_timeout;	/* OMAP UART idle timeout */
- 
- 	void __iomem *wk_st;
-@@ -99,6 +100,7 @@ struct uart_omap_dma {
- 	/* timer to poll activity on rx dma */
- 	struct timer_list	rx_timer;
- 	unsigned int		rx_buf_size;
-+	unsigned int		rx_poll_rate;
- 	unsigned int		rx_timeout;
- };
- 
-diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-index 008645c..5c3d2fc 100644
---- a/drivers/tty/serial/omap-serial.c
-+++ b/drivers/tty/serial/omap-serial.c
-@@ -51,7 +51,7 @@ static struct uart_omap_port *ui[OMAP_MAX_HSUART_PORTS];
- 
- /* Forward declaration of functions */
- static void uart_tx_dma_callback(int lch, u16 ch_status, void *data);
--static void serial_omap_rx_timeout(unsigned long uart_no);
-+static void serial_omap_rxdma_poll(unsigned long uart_no);
- static int serial_omap_start_rxdma(struct uart_omap_port *up);
- static void omap_uart_mdr1_errataset(struct uart_omap_port *up);
- 
-@@ -589,7 +589,7 @@ static int serial_omap_startup(struct uart_port *port)
- 			(dma_addr_t *)&(up->uart_dma.tx_buf_dma_phys),
- 			0);
- 		init_timer(&(up->uart_dma.rx_timer));
--		up->uart_dma.rx_timer.function = serial_omap_rx_timeout;
-+		up->uart_dma.rx_timer.function = serial_omap_rxdma_poll;
- 		up->uart_dma.rx_timer.data = up->pdev->id;
- 		/* Currently the buffer size is 4KB. Can increase it */
- 		up->uart_dma.rx_buf = dma_alloc_coherent(NULL,
-@@ -1191,7 +1191,7 @@ static int serial_omap_resume(struct device *dev)
- 	return 0;
- }
- 
--static void serial_omap_rx_timeout(unsigned long uart_no)
-+static void serial_omap_rxdma_poll(unsigned long uart_no)
- {
- 	struct uart_omap_port *up = ui[uart_no];
- 	unsigned int curr_dma_pos, curr_transmitted_size;
-@@ -1201,9 +1201,9 @@ static void serial_omap_rx_timeout(unsigned long uart_no)
- 	if ((curr_dma_pos == up->uart_dma.prev_rx_dma_pos) ||
- 			     (curr_dma_pos == 0)) {
- 		if (jiffies_to_msecs(jiffies - up->port_activity) <
--							RX_TIMEOUT) {
-+						up->uart_dma.rx_timeout) {
- 			mod_timer(&up->uart_dma.rx_timer, jiffies +
--				usecs_to_jiffies(up->uart_dma.rx_timeout));
-+				usecs_to_jiffies(up->uart_dma.rx_poll_rate));
- 		} else {
- 			serial_omap_stop_rxdma(up);
- 			up->ier |= (UART_IER_RDI | UART_IER_RLSI);
-@@ -1232,7 +1232,7 @@ static void serial_omap_rx_timeout(unsigned long uart_no)
- 		}
- 	} else  {
- 		mod_timer(&up->uart_dma.rx_timer, jiffies +
--			usecs_to_jiffies(up->uart_dma.rx_timeout));
-+			usecs_to_jiffies(up->uart_dma.rx_poll_rate));
- 	}
- 	up->port_activity = jiffies;
- }
-@@ -1270,7 +1270,7 @@ static int serial_omap_start_rxdma(struct uart_omap_port *up)
- 	/* FIXME: Cache maintenance needed here? */
- 	omap_start_dma(up->uart_dma.rx_dma_channel);
- 	mod_timer(&up->uart_dma.rx_timer, jiffies +
--				usecs_to_jiffies(up->uart_dma.rx_timeout));
-+				usecs_to_jiffies(up->uart_dma.rx_poll_rate));
- 	up->uart_dma.rx_dma_used = true;
- 	return ret;
- }
-@@ -1412,6 +1412,7 @@ static int serial_omap_probe(struct platform_device *pdev)
- 		up->use_dma = 1;
- 		up->uart_dma.rx_buf_size = omap_up_info->dma_rx_buf_size;
- 		up->uart_dma.rx_timeout = omap_up_info->dma_rx_timeout;
-+		up->uart_dma.rx_poll_rate = omap_up_info->dma_rx_poll_rate;
- 		spin_lock_init(&(up->uart_dma.tx_lock));
- 		spin_lock_init(&(up->uart_dma.rx_lock));
- 		up->uart_dma.tx_dma_channel = OMAP_UART_DMA_CH_FREE;
--- 
-1.7.1
+ arch/arm/mach-omap2/board-2430sdp.c           |    3 +-
+ arch/arm/mach-omap2/board-3430sdp.c           |    4 +-
+ arch/arm/mach-omap2/board-4430sdp.c           |    3 +-
+ arch/arm/mach-omap2/board-am3517evm.c         |    3 +-
+ arch/arm/mach-omap2/board-apollon.c           |    3 +-
+ arch/arm/mach-omap2/board-cm-t35.c            |    3 +-
+ arch/arm/mach-omap2/board-cm-t3517.c          |    3 +-
+ arch/arm/mach-omap2/board-devkit8000.c        |    3 +-
+ arch/arm/mach-omap2/board-generic.c           |    3 +-
+ arch/arm/mach-omap2/board-h4.c                |    3 +-
+ arch/arm/mach-omap2/board-igep0020.c          |    3 +-
+ arch/arm/mach-omap2/board-igep0030.c          |    3 +-
+ arch/arm/mach-omap2/board-ldp.c               |    3 +-
+ arch/arm/mach-omap2/board-n8x0.c              |    9 +-
+ arch/arm/mach-omap2/board-omap3beagle.c       |    3 +-
+ arch/arm/mach-omap2/board-omap3evm.c          |    3 +-
+ arch/arm/mach-omap2/board-omap3logic.c        |    3 +-
+ arch/arm/mach-omap2/board-omap3pandora.c      |    3 +-
+ arch/arm/mach-omap2/board-omap3stalker.c      |    3 +-
+ arch/arm/mach-omap2/board-omap3touchbook.c    |    3 +-
+ arch/arm/mach-omap2/board-omap4panda.c        |    3 +-
+ arch/arm/mach-omap2/board-overo.c             |    3 +-
+ arch/arm/mach-omap2/board-rm680.c             |    3 +-
+ arch/arm/mach-omap2/board-rx51.c              |    3 +-
+ arch/arm/mach-omap2/board-ti8168evm.c         |    2 +-
+ arch/arm/mach-omap2/board-zoom-peripherals.c  |    3 +-
+ arch/arm/mach-omap2/mux.c                     |   23 +
+ arch/arm/mach-omap2/mux.h                     |   13 +
+ arch/arm/mach-omap2/omap_hwmod.c              |   13 +
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c    |    3 +
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c    |    3 +
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c    |    4 +
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c    |    4 +
+ arch/arm/mach-omap2/pm24xx.c                  |   11 -
+ arch/arm/mach-omap2/pm34xx.c                  |   16 -
+ arch/arm/mach-omap2/serial.c                  |  845 +++++--------------------
+ arch/arm/plat-omap/include/plat/omap-serial.h |   37 +-
+ arch/arm/plat-omap/include/plat/omap_hwmod.h  |    1 +
+ arch/arm/plat-omap/include/plat/serial.h      |   10 +-
+ drivers/tty/serial/omap-serial.c              |  323 +++++++++-
+ 40 files changed, 601 insertions(+), 789 deletions(-)
 
