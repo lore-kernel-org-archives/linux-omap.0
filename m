@@ -1,102 +1,58 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [omap-for-linus] Un-used DSS regulator data
-Date: Mon, 28 Feb 2011 14:20:18 +0530
-Message-ID: <a46904cc06b5f68124e65086b9961d02@mail.gmail.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 0/5 v3] usb: musb: Power management support
+Date: Mon, 28 Feb 2011 10:56:11 +0200
+Message-ID: <20110228085611.GL2459@legolas.emea.dhcp.ti.com>
+References: <1298882976-4997-1-git-send-email-hemahk@ti.com>
+Reply-To: balbi-l0cyMroinI0@public.gmane.org
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary=0015175cd308047215049d53c5f6
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:39376 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752924Ab1B1IuV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 28 Feb 2011 03:50:21 -0500
-Received: by qyk2 with SMTP id 2so2794285qyk.9
-        for <linux-omap@vger.kernel.org>; Mon, 28 Feb 2011 00:50:20 -0800 (PST)
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1298882976-4997-1-git-send-email-hemahk-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@ti.com, Sumit Semwal <sumit.semwal@ti.com>
-Cc: "Guruswamy, Senthilvadivu" <svadivu@ti.com>, linux-omap@vger.kernel.org, tony@atomide.com
 
---0015175cd308047215049d53c5f6
-Content-Type: text/plain; charset=ISO-8859-1
+Hi,
 
-Tomi/Sumit,
+On Mon, Feb 28, 2011 at 02:19:31PM +0530, Hema HK wrote:
+> This patch series supports the retention and offmode support in the 
+> idle path for musb driver using runtime pm APIs.
+> 
+> This is restricted to support offmode and retention only when device not
+> connected.When device/cable connected with gadget driver loaded, configured
+> to no idle/standby which will not allow the core transition to retention
+> or off.
+> 
+> There is no context save/restore done by hardware for musb in OMAP3
+> and OMAP4,driver has to take care of saving and restoring the context
+> during offmode.
+> 
+> Musb has a requirement of configuring sysconfig register to force
+> idle/standby mode and set the ENABLE_FORCE bit in module STANDBY register
+> for retention and offmode support.
+> 
+> Runtime pm and hwmod frameworks will take care of configuring to force
+> idle/standby when pm_runtime_put_sync is called and back to no
+> idle/standby when pm_runeime_get_sync is called.
+> 
+> Compile, boot tested and also tested the retention in the idle path on
+> OMAP3630Zoom3. And tested the global suspend/resume with offmode enabled.
+> Usb basic functionality tested on OMAP4430SDP.
+> 
+> There is some problem with idle path offmode in mainline, I could not test
+> with offmode. But I have tested this patch with resetting the controller
+> in the idle path when wakeup from retention just to make sure that the
+> context is lost, and restore path is working fine.
 
-Today while building Tony's 'omap-for-linus' branch I came
-across below build warning.
-warning: 'sdp3430_vdda_dac_supply' defined but not used
-
-It seems the DSS regulator data is not being used. Are you missing
-any patch which will use it eventually?
-
-If not I propose to remove that data to kill the warning.
-Below is the patch for the same. Also attached the same
-
-Regards,
-Santosh
-
->From 037f1122d0bfe77883e6cf937009fd955be253a0 Mon Sep 17 00:00:00 2001
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Date: Mon, 28 Feb 2011 13:54:19 +0530
-Subject: [PATCH] omap: 3430sdp-board: Fix warning:
-'sdp3430_vdda_dac_supply' defined but not used
-
-The DSS regulator data not seems to be used. So remove the
-un-used sdp3430_vdda_dac_supply to avoid build warning
-
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Senthilvadivu Guruswamy <svadivu@ti.com>
-Cc: Sumit Semwal <sumit.semwal@ti.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
----
- arch/arm/mach-omap2/board-3430sdp.c |    3 ---
- 1 files changed, 0 insertions(+), 3 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-3430sdp.c
-b/arch/arm/mach-omap2/board-3430sdp.c
-index 8950ecc..19a36a3 100644
---- a/arch/arm/mach-omap2/board-3430sdp.c
-+++ b/arch/arm/mach-omap2/board-3430sdp.c
-@@ -307,9 +307,6 @@ static struct omap_dss_board_info sdp3430_dss_data = {
- 	.default_device	= &sdp3430_lcd_device,
- };
-
--static struct regulator_consumer_supply sdp3430_vdda_dac_supply =
--	REGULATOR_SUPPLY("vdda_dac", "omapdss");
--
- static struct omap_board_config_kernel sdp3430_config[] __initdata = {
- };
+Tony and Greg, how do we handle this one ? Who should take my pull request
+for this series ? I hope we still have a little time to get this into
+2.6.39, but if we don't I can hold on to them until 2.6.40.
 
 -- 
-1.6.0.4
-
---0015175cd308047215049d53c5f6
-Content-Type: application/octet-stream;
-	name="0001-omap-3430sdp-board-Fix-warning-sdp3430_vdda_dac_.patch"
-Content-Disposition: attachment;
-	filename="0001-omap-3430sdp-board-Fix-warning-sdp3430_vdda_dac_.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: 10e932623b34bb5f_0.1
-
-RnJvbSAwMzdmMTEyMmQwYmZlNzc4ODNlNmNmOTM3MDA5ZmQ5NTViZTI1M2EwIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBTYW50b3NoIFNoaWxpbWthciA8c2FudG9zaC5zaGlsaW1rYXJA
-dGkuY29tPgpEYXRlOiBNb24sIDI4IEZlYiAyMDExIDEzOjU0OjE5ICswNTMwClN1YmplY3Q6IFtQ
-QVRDSF0gb21hcDogMzQzMHNkcC1ib2FyZDogRml4IHdhcm5pbmc6ICdzZHAzNDMwX3ZkZGFfZGFj
-X3N1cHBseScgZGVmaW5lZCBidXQgbm90IHVzZWQKClRoZSBEU1MgcmVndWxhdG9yIGRhdGEgbm90
-IHNlZW1zIHRvIGJlIHVzZWQuIFNvIHJlbW92ZSB0aGUKdW4tdXNlZCBzZHAzNDMwX3ZkZGFfZGFj
-X3N1cHBseSB0byBhdm9pZCBidWlsZCB3YXJuaW5nCgpTaWduZWQtb2ZmLWJ5OiBTYW50b3NoIFNo
-aWxpbWthciA8c2FudG9zaC5zaGlsaW1rYXJAdGkuY29tPgpDYzogU2VudGhpbHZhZGl2dSBHdXJ1
-c3dhbXkgPHN2YWRpdnVAdGkuY29tPgpDYzogU3VtaXQgU2Vtd2FsIDxzdW1pdC5zZW13YWxAdGku
-Y29tPgpDYzogVG9taSBWYWxrZWluZW4gPHRvbWkudmFsa2VpbmVuQHRpLmNvbT4KLS0tCiBhcmNo
-L2FybS9tYWNoLW9tYXAyL2JvYXJkLTM0MzBzZHAuYyB8ICAgIDMgLS0tCiAxIGZpbGVzIGNoYW5n
-ZWQsIDAgaW5zZXJ0aW9ucygrKSwgMyBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9hcmNoL2Fy
-bS9tYWNoLW9tYXAyL2JvYXJkLTM0MzBzZHAuYyBiL2FyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQt
-MzQzMHNkcC5jCmluZGV4IDg5NTBlY2MuLjE5YTM2YTMgMTAwNjQ0Ci0tLSBhL2FyY2gvYXJtL21h
-Y2gtb21hcDIvYm9hcmQtMzQzMHNkcC5jCisrKyBiL2FyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQt
-MzQzMHNkcC5jCkBAIC0zMDcsOSArMzA3LDYgQEAgc3RhdGljIHN0cnVjdCBvbWFwX2Rzc19ib2Fy
-ZF9pbmZvIHNkcDM0MzBfZHNzX2RhdGEgPSB7CiAJLmRlZmF1bHRfZGV2aWNlCT0gJnNkcDM0MzBf
-bGNkX2RldmljZSwKIH07CiAKLXN0YXRpYyBzdHJ1Y3QgcmVndWxhdG9yX2NvbnN1bWVyX3N1cHBs
-eSBzZHAzNDMwX3ZkZGFfZGFjX3N1cHBseSA9Ci0JUkVHVUxBVE9SX1NVUFBMWSgidmRkYV9kYWMi
-LCAib21hcGRzcyIpOwotCiBzdGF0aWMgc3RydWN0IG9tYXBfYm9hcmRfY29uZmlnX2tlcm5lbCBz
-ZHAzNDMwX2NvbmZpZ1tdIF9faW5pdGRhdGEgPSB7CiB9OwogCi0tIAoxLjYuMC40Cgo=
---0015175cd308047215049d53c5f6--
+balbi
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
