@@ -1,95 +1,110 @@
-From: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 02/10 v1] usb: host: omap: switch to platform_get_resource_byname
-Date: Mon, 28 Feb 2011 22:01:44 +0530
-Message-ID: <1298910712-2051-3-git-send-email-keshava_mgowda@ti.com>
-References: <1298910712-2051-1-git-send-email-keshava_mgowda@ti.com>
- <1298910712-2051-2-git-send-email-keshava_mgowda@ti.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1298910712-2051-2-git-send-email-keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org, gadiyar-l0cyMroinI0@public.gmane.org, p-basak2-l0cyMroinI0@public.gmane.org
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [PATCH] perf: add OMAP support for the new power events
+Date: Mon, 28 Feb 2011 17:33:31 +0100
+Message-ID: <AANLkTikgi_MpkPvhzMbnq_F6MbZE0W7+5OnWr=6WgtTn@mail.gmail.com>
+References: <1298052645-4164-1-git-send-email-j-pihet@ti.com>
+	<ec45f3f591691ce6a5253dfb70cc8e90@mail.gmail.com>
+	<AANLkTiktdLja39dC38E_LciYZK7+pTp3_Sgm9jf5FA4R@mail.gmail.com>
+	<5dad46ab75a15145f907aeca53f769c1@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:38725 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755064Ab1B1Qdc convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Feb 2011 11:33:32 -0500
+Received: by qwd7 with SMTP id 7so2957267qwd.19
+        for <linux-omap@vger.kernel.org>; Mon, 28 Feb 2011 08:33:31 -0800 (PST)
+In-Reply-To: <5dad46ab75a15145f907aeca53f769c1@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@ti.com>
+Cc: Thomas Renninger <trenn@suse.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Jean Pihet-XID <j-pihet@ti.com>
 
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Hi Kevin,
 
-now that we have names on all memory bases, we can
-switch to use platform_get_resource_byname() which
-will make it simpler when we move to a setup where
-OHCI and EHCI on OMAP play well together.
+Can you please check this patch? From the previous discussions I
+understood it was OK.
+This one has been submitted to and l-o and l-a-k MLs. How will this
+one be merged in?
 
-Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
----
- drivers/usb/host/ehci-omap.c  |    6 +++---
- drivers/usb/host/ohci-omap3.c |    6 +++---
- 2 files changed, 6 insertions(+), 6 deletions(-)
+Thanks,
+Jean
 
-diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
-index f784ceb..37cf12b 100644
---- a/drivers/usb/host/ehci-omap.c
-+++ b/drivers/usb/host/ehci-omap.c
-@@ -813,7 +813,7 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
- 	omap->ehci		= hcd_to_ehci(hcd);
- 	omap->ehci->sbrn	= 0x20;
- 
--	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "ehci");
- 
- 	hcd->rsrc_start = res->start;
- 	hcd->rsrc_len = resource_size(res);
-@@ -829,7 +829,7 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
- 	omap->ehci->caps = hcd->regs;
- 	omap->ehci_base = hcd->regs;
- 
--	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
-+	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "uhh");
- 	omap->uhh_base = ioremap(res->start, resource_size(res));
- 	if (!omap->uhh_base) {
- 		dev_err(&pdev->dev, "UHH ioremap failed\n");
-@@ -837,7 +837,7 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
- 		goto err_uhh_ioremap;
- 	}
- 
--	res = platform_get_resource(pdev, IORESOURCE_MEM, 2);
-+	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "tll");
- 	omap->tll_base = ioremap(res->start, resource_size(res));
- 	if (!omap->tll_base) {
- 		dev_err(&pdev->dev, "TLL ioremap failed\n");
-diff --git a/drivers/usb/host/ohci-omap3.c b/drivers/usb/host/ohci-omap3.c
-index a37d599..32f56bb 100644
---- a/drivers/usb/host/ohci-omap3.c
-+++ b/drivers/usb/host/ohci-omap3.c
-@@ -618,7 +618,7 @@ static int __devinit ohci_hcd_omap3_probe(struct platform_device *pdev)
- 	omap->es2_compatibility	= pdata->es2_compatibility;
- 	omap->ohci		= hcd_to_ohci(hcd);
- 
--	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "ohci");
- 
- 	hcd->rsrc_start = res->start;
- 	hcd->rsrc_len = resource_size(res);
-@@ -630,7 +630,7 @@ static int __devinit ohci_hcd_omap3_probe(struct platform_device *pdev)
- 		goto err_ioremap;
- 	}
- 
--	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
-+	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "uhh");
- 	omap->uhh_base = ioremap(res->start, resource_size(res));
- 	if (!omap->uhh_base) {
- 		dev_err(&pdev->dev, "UHH ioremap failed\n");
-@@ -638,7 +638,7 @@ static int __devinit ohci_hcd_omap3_probe(struct platform_device *pdev)
- 		goto err_uhh_ioremap;
- 	}
- 
--	res = platform_get_resource(pdev, IORESOURCE_MEM, 2);
-+	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "tll");
- 	omap->tll_base = ioremap(res->start, resource_size(res));
- 	if (!omap->tll_base) {
- 		dev_err(&pdev->dev, "TLL ioremap failed\n");
--- 
-1.6.0.4
-
+On Mon, Feb 21, 2011 at 9:53 AM, Santosh Shilimkar
+<santosh.shilimkar@ti.com> wrote:
+>> -----Original Message-----
+>> From: Jean Pihet [mailto:jean.pihet@newoldbits.com]
+>> Sent: Monday, February 21, 2011 2:14 PM
+>> To: Santosh Shilimkar
+>> Cc: Kevin Hilman; Thomas Renninger; linux-omap@vger.kernel.org;
+>> linux-arm-kernel@lists.infradead.org; Jean Pihet-XID
+>> Subject: Re: [PATCH] perf: add OMAP support for the new power events
+>>
+>> Hi Santosh,
+>>
+>
+> [...]
+>
+>> >> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-
+>> >> omap2/pm34xx.c
+>> >> index 2f864e4..d1cc3f4 100644
+>> >> --- a/arch/arm/mach-omap2/pm34xx.c
+>> >> +++ b/arch/arm/mach-omap2/pm34xx.c
+>> >> @@ -29,6 +29,7 @@
+>> >> =A0#include <linux/delay.h>
+>> >> =A0#include <linux/slab.h>
+>> >> =A0#include <linux/console.h>
+>> >> +#include <trace/events/power.h>
+>> >>
+>> >> =A0#include <plat/sram.h>
+>> >> =A0#include "clockdomain.h"
+>> >> @@ -519,8 +520,14 @@ static void omap3_pm_idle(void)
+>> >> =A0 =A0 =A0 if (omap_irq_pending() || need_resched())
+>> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto out;
+>> >>
+>> >> + =A0 =A0 trace_power_start(POWER_CSTATE, 1, smp_processor_id());
+>> >> + =A0 =A0 trace_cpu_idle(1, smp_processor_id());
+>> >> +
+>> >
+>> > This default idle code won't be used when you enable the
+>> > CONFIG_CPUIDLE. That case the cpuidle34xx.c idle code gets
+>> > registered.
+>> That is correct. OMAP has a default idle handler (omap3_pm_idle) and
+>> a
+>> cpuidle handler (omap3_enter_idle in
+>> arch/arm/mach-omap2/cpuidle34xx.c).
+>>
+>> > Shouldn't you patch that code instead? This is more or less
+>> > dead code and it is just like default idle code when idle
+>> > drivers isn't registered.
+>> The cpuidle framework already is instrumented in a generic way. This
+>> code adds the instrumentation to the default idle handler so that
+>> all
+>> cases are covered. BTW the patch description gives that information.
+>>
+>> If there is dead code then it is not only the code from this patch
+>> but
+>> all the code for the default idle handler.
+>>
+> I read your change log. It says.
+>
+>>> The trace points are for:
+>>> - default idle handler. Since the cpuidle framework is
+>>> =A0 instrumented in the generic way there is no need to
+>>> =A0 add trace points in the OMAP specific cpuidle handler;
+> Now code in cpuilde34xx.c is also OMAP specific and hence the
+> confusion at least for me.
+> Regarding dead code, I meant existing code of default handler.
+>
+> Thanks for clarification.
+>
+> Regards,
+> Santosh
+>
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
