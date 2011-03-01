@@ -1,54 +1,54 @@
-From: Felipe Balbi <balbi@ti.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 Subject: Re: [PATCH 0/5 v3] usb: musb: Power management support
-Date: Tue, 1 Mar 2011 11:32:11 +0200
-Message-ID: <20110301093211.GD2942@legolas.emea.dhcp.ti.com>
+Date: Tue, 1 Mar 2011 11:37:26 +0200
+Message-ID: <20110301093726.GE2942@legolas.emea.dhcp.ti.com>
 References: <1298882976-4997-1-git-send-email-hemahk@ti.com>
- <20110228085611.GL2459@legolas.emea.dhcp.ti.com>
- <20110228142030.GA25724@kroah.com>
- <20110228212227.GK20560@atomide.com>
- <20110301092656.GC2942@legolas.emea.dhcp.ti.com>
-Reply-To: balbi@ti.com
+Reply-To: balbi-l0cyMroinI0@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:34618 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754721Ab1CAJcP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Mar 2011 04:32:15 -0500
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20110301092656.GC2942@legolas.emea.dhcp.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1298882976-4997-1-git-send-email-hemahk-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Greg KH <greg@kroah.com>, Hema HK <hemahk@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 
-On Tue, Mar 01, 2011 at 11:26:56AM +0200, Felipe Balbi wrote:
-> On Mon, Feb 28, 2011 at 01:22:28PM -0800, Tony Lindgren wrote:
-> > * Greg KH <greg@kroah.com> [110228 06:21]:
-> > > On Mon, Feb 28, 2011 at 10:56:11AM +0200, Felipe Balbi wrote:
-> > > > On Mon, Feb 28, 2011 at 02:19:31PM +0530, Hema HK wrote:
-> > > > > 
-> > > > > There is some problem with idle path offmode in mainline, I could not test
-> > > > > with offmode. But I have tested this patch with resetting the controller
-> > > > > in the idle path when wakeup from retention just to make sure that the
-> > > > > context is lost, and restore path is working fine.
-> > > > 
-> > > > Tony and Greg, how do we handle this one ? Who should take my pull request
-> > > > for this series ? I hope we still have a little time to get this into
-> > > > 2.6.39, but if we don't I can hold on to them until 2.6.40.
-> > > 
-> > > Doesn't bother me which tree they go through, I can take them, or, if
-> > > it's easier due to omap merges, Tony can.
-> > 
-> > I prefer Greg's queue unless there's some dependency issue to the
-> > patches we have in omap-for-linus.
+On Mon, Feb 28, 2011 at 02:19:31PM +0530, Hema HK wrote:
+> This patch series supports the retention and offmode support in the 
+> idle path for musb driver using runtime pm APIs.
 > 
-> Turns out I can easily split what's supposed to go for you and what's
-> supposed to go for Greg, so I'll do it. Tony which commit can I use for
-> your tree ? Is mainline 2.6.38-rc6 ok ?
+> This is restricted to support offmode and retention only when device not
+> connected.When device/cable connected with gadget driver loaded, configured
+> to no idle/standby which will not allow the core transition to retention
+> or off.
+> 
+> There is no context save/restore done by hardware for musb in OMAP3
+> and OMAP4,driver has to take care of saving and restoring the context
+> during offmode.
+> 
+> Musb has a requirement of configuring sysconfig register to force
+> idle/standby mode and set the ENABLE_FORCE bit in module STANDBY register
+> for retention and offmode support.
+> 
+> Runtime pm and hwmod frameworks will take care of configuring to force
+> idle/standby when pm_runtime_put_sync is called and back to no
+> idle/standby when pm_runeime_get_sync is called.
+> 
+> Compile, boot tested and also tested the retention in the idle path on
+> OMAP3630Zoom3. And tested the global suspend/resume with offmode enabled.
+> Usb basic functionality tested on OMAP4430SDP.
+> 
+> There is some problem with idle path offmode in mainline, I could not test
+> with offmode. But I have tested this patch with resetting the controller
+> in the idle path when wakeup from retention just to make sure that the
+> context is lost, and restore path is working fine.
 
-Forget it, there's a dependency on a patch which is in Greg's queue, so
-I'll send them all through Greg.
+applied, thanks
 
 -- 
 balbi
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
