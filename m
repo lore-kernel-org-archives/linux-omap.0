@@ -1,155 +1,97 @@
 From: Mythri P K <mythripk@ti.com>
-Subject: [PATCH v2 1/8] OMAP4 : DSS2 : Add display type HDMI to DSS2
-Date: Tue,  1 Mar 2011 19:46:21 +0530
-Message-ID: <1298988988-28429-2-git-send-email-mythripk@ti.com>
+Subject: [PATCH v2 2/8] OMAP4 : DSS2 : HDMI: HDMI specific display controller and dss change.
+Date: Tue,  1 Mar 2011 19:46:22 +0530
+Message-ID: <1298988988-28429-3-git-send-email-mythripk@ti.com>
 References: <1298988988-28429-1-git-send-email-mythripk@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:58574 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753415Ab1CANti (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 1 Mar 2011 08:49:38 -0500
-Received: from dlep33.itg.ti.com ([157.170.170.112])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p21DncIC031270
+Received: from devils.ext.ti.com ([198.47.26.153]:54301 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753415Ab1CANtl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Mar 2011 08:49:41 -0500
+Received: from dlep36.itg.ti.com ([157.170.170.91])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p21Dnf1t007997
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 1 Mar 2011 07:49:38 -0600
+	for <linux-omap@vger.kernel.org>; Tue, 1 Mar 2011 07:49:41 -0600
 In-Reply-To: <1298988988-28429-1-git-send-email-mythripk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: tomi.valkeinen@ti.com, Mythri P K <mythripk@ti.com>
 
-Adding HDMI type in dss_features , overlay and
-the manager so that HDMI type of display will be recognized.
+Adding changes to set gamma table bit for TV interface and function to select
+between VENC and HDMI.
 
 Signed-off-by: Mythri P K <mythripk@ti.com>
 ---
- arch/arm/plat-omap/include/plat/display.h |    1 +
- drivers/video/omap2/dss/display.c         |    5 +++++
- drivers/video/omap2/dss/dss_features.c    |    2 +-
- drivers/video/omap2/dss/manager.c         |    9 +++++++--
- drivers/video/omap2/dss/overlay.c         |    6 ++++--
- 5 files changed, 18 insertions(+), 5 deletions(-)
+ drivers/video/omap2/dss/dispc.c |    5 +++++
+ drivers/video/omap2/dss/dss.c   |    5 +++++
+ drivers/video/omap2/dss/dss.h   |    7 +++++++
+ 3 files changed, 17 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/plat/display.h b/arch/arm/plat-omap/include/plat/display.h
-index 4e936bd..e0bab29 100644
---- a/arch/arm/plat-omap/include/plat/display.h
-+++ b/arch/arm/plat-omap/include/plat/display.h
-@@ -60,6 +60,7 @@ enum omap_display_type {
- 	OMAP_DISPLAY_TYPE_SDI		= 1 << 2,
- 	OMAP_DISPLAY_TYPE_DSI		= 1 << 3,
- 	OMAP_DISPLAY_TYPE_VENC		= 1 << 4,
-+	OMAP_DISPLAY_TYPE_HDMI		= 1 << 5,
+diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
+index 69e1e9d..cf385f8 100644
+--- a/drivers/video/omap2/dss/dispc.c
++++ b/drivers/video/omap2/dss/dispc.c
+@@ -1224,6 +1224,11 @@ void dispc_enable_zorder(enum omap_plane plane, bool enable)
+ 	dispc_write_reg(dispc_reg_att[plane], val);
+ }
+ 
++void dispc_enable_gamma_table(bool enable)
++{
++	REG_FLD_MOD(DISPC_CONFIG, enable, 9, 9);
++}
++
+ static void _dispc_set_vid_color_conv(enum omap_plane plane, bool enable)
+ {
+ 	u32 val;
+diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
+index 99de4e1..ca76e68 100644
+--- a/drivers/video/omap2/dss/dss.c
++++ b/drivers/video/omap2/dss/dss.c
+@@ -559,6 +559,11 @@ void dss_set_dac_pwrdn_bgz(bool enable)
+ 	REG_FLD_MOD(DSS_CONTROL, enable, 5, 5);	/* DAC Power-Down Control */
+ }
+ 
++void dss_select_hdmi_venc(enum dss_hdmi_venc_select hdmi)
++{
++	REG_FLD_MOD(DSS_CONTROL, hdmi, 15, 15);	/* 0x1 for HDMI, 0x0 VENC */
++}
++
+ static int dss_init(bool skip_init)
+ {
+ 	int r;
+diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
+index b6f27fe..5b5b90c 100644
+--- a/drivers/video/omap2/dss/dss.h
++++ b/drivers/video/omap2/dss/dss.h
+@@ -123,6 +123,11 @@ enum dss_clk_source {
+ 	DSS_SRC_DSS1_ALWON_FCLK,
  };
  
- enum omap_plane {
-diff --git a/drivers/video/omap2/dss/display.c b/drivers/video/omap2/dss/display.c
-index 22dd7a4..e10b303 100644
---- a/drivers/video/omap2/dss/display.c
-+++ b/drivers/video/omap2/dss/display.c
-@@ -345,6 +345,7 @@ int omapdss_default_get_recommended_bpp(struct omap_dss_device *dssdev)
- 			return 16;
- 	case OMAP_DISPLAY_TYPE_VENC:
- 	case OMAP_DISPLAY_TYPE_SDI:
-+	case OMAP_DISPLAY_TYPE_HDMI:
- 		return 24;
- 	default:
- 		BUG();
-@@ -371,6 +372,7 @@ bool dss_use_replication(struct omap_dss_device *dssdev,
- 	case OMAP_DISPLAY_TYPE_DPI:
- 		bpp = dssdev->phy.dpi.data_lines;
- 		break;
-+	case OMAP_DISPLAY_TYPE_HDMI:
- 	case OMAP_DISPLAY_TYPE_VENC:
- 	case OMAP_DISPLAY_TYPE_SDI:
- 		bpp = 24;
-@@ -409,6 +411,9 @@ void dss_init_device(struct platform_device *pdev,
- #ifdef CONFIG_OMAP2_DSS_VENC
- 	case OMAP_DISPLAY_TYPE_VENC:
- #endif
-+#ifdef CONFIG_OMAP2_DSS_HDMI
-+	case OMAP_DISPLAY_TYPE_HDMI:
-+#endif
- 		break;
- 	default:
- 		DSSERR("Support for display '%s' not compiled in.\n",
-diff --git a/drivers/video/omap2/dss/dss_features.c b/drivers/video/omap2/dss/dss_features.c
-index 569eb42..701a2ce 100644
---- a/drivers/video/omap2/dss/dss_features.c
-+++ b/drivers/video/omap2/dss/dss_features.c
-@@ -102,7 +102,7 @@ static const enum omap_display_type omap4_dss_supported_displays[] = {
- 	OMAP_DISPLAY_TYPE_DBI | OMAP_DISPLAY_TYPE_DSI,
++enum dss_hdmi_venc_select {
++	DSS_VENC_SELECT,	/* Select VENC */
++	DSS_HDMI_SELECT,	/* Select HDMI */
++};
++
+ struct dss_clock_info {
+ 	/* rates that we get with dividers below */
+ 	unsigned long fck;
+@@ -209,6 +214,7 @@ void dss_recheck_connections(struct omap_dss_device *dssdev, bool force);
+ int dss_init_platform_driver(void);
+ void dss_uninit_platform_driver(void);
  
- 	/* OMAP_DSS_CHANNEL_DIGIT */
--	OMAP_DISPLAY_TYPE_VENC,
-+	OMAP_DISPLAY_TYPE_VENC | OMAP_DISPLAY_TYPE_HDMI,
++void dss_select_hdmi_venc(enum dss_hdmi_venc_select hdmi);
+ void dss_save_context(void);
+ void dss_restore_context(void);
+ void dss_clk_enable(enum dss_clock clks);
+@@ -352,6 +358,7 @@ void dispc_set_plane_pos(enum omap_plane plane, u16 x, u16 y);
+ void dispc_set_plane_size(enum omap_plane plane, u16 width, u16 height);
+ void dispc_set_channel_out(enum omap_plane plane,
+ 		enum omap_channel channel_out);
++void dispc_enable_gamma_table(bool enable);
  
- 	/* OMAP_DSS_CHANNEL_LCD2 */
- 	OMAP_DISPLAY_TYPE_DPI | OMAP_DISPLAY_TYPE_DBI |
-diff --git a/drivers/video/omap2/dss/manager.c b/drivers/video/omap2/dss/manager.c
-index 690217b..490c2b8 100644
---- a/drivers/video/omap2/dss/manager.c
-+++ b/drivers/video/omap2/dss/manager.c
-@@ -516,6 +516,8 @@ static int dss_mgr_wait_for_vsync(struct omap_overlay_manager *mgr)
- 
- 	if (mgr->device->type == OMAP_DISPLAY_TYPE_VENC) {
- 		irq = DISPC_IRQ_EVSYNC_ODD;
-+	} else if (mgr->device->type == OMAP_DISPLAY_TYPE_HDMI) {
-+		irq = DISPC_IRQ_EVSYNC_EVEN;
- 	} else {
- 		if (mgr->id == OMAP_DSS_CHANNEL_LCD)
- 			irq = DISPC_IRQ_VSYNC;
-@@ -537,7 +539,8 @@ static int dss_mgr_wait_for_go(struct omap_overlay_manager *mgr)
- 	if (!dssdev || dssdev->state != OMAP_DSS_DISPLAY_ACTIVE)
- 		return 0;
- 
--	if (dssdev->type == OMAP_DISPLAY_TYPE_VENC) {
-+	if (dssdev->type == OMAP_DISPLAY_TYPE_VENC
-+			|| dssdev->type == OMAP_DISPLAY_TYPE_HDMI) {
- 		irq = DISPC_IRQ_EVSYNC_ODD | DISPC_IRQ_EVSYNC_EVEN;
- 	} else {
- 		if (dssdev->caps & OMAP_DSS_DISPLAY_CAP_MANUAL_UPDATE) {
-@@ -614,7 +617,8 @@ int dss_mgr_wait_for_go_ovl(struct omap_overlay *ovl)
- 	if (!dssdev || dssdev->state != OMAP_DSS_DISPLAY_ACTIVE)
- 		return 0;
- 
--	if (dssdev->type == OMAP_DISPLAY_TYPE_VENC) {
-+	if (dssdev->type == OMAP_DISPLAY_TYPE_VENC
-+			|| dssdev->type == OMAP_DISPLAY_TYPE_HDMI) {
- 		irq = DISPC_IRQ_EVSYNC_ODD | DISPC_IRQ_EVSYNC_EVEN;
- 	} else {
- 		if (dssdev->caps & OMAP_DSS_DISPLAY_CAP_MANUAL_UPDATE) {
-@@ -1381,6 +1385,7 @@ static int omap_dss_mgr_apply(struct omap_overlay_manager *mgr)
- 		case OMAP_DISPLAY_TYPE_DBI:
- 		case OMAP_DISPLAY_TYPE_SDI:
- 		case OMAP_DISPLAY_TYPE_VENC:
-+		case OMAP_DISPLAY_TYPE_HDMI:
- 			default_get_overlay_fifo_thresholds(ovl->id, size,
- 					&oc->burst_size, &oc->fifo_low,
- 					&oc->fifo_high);
-diff --git a/drivers/video/omap2/dss/overlay.c b/drivers/video/omap2/dss/overlay.c
-index d558fb6..ea48936 100644
---- a/drivers/video/omap2/dss/overlay.c
-+++ b/drivers/video/omap2/dss/overlay.c
-@@ -737,7 +737,8 @@ void dss_recheck_connections(struct omap_dss_device *dssdev, bool force)
- 			lcd2_mgr->set_device(lcd2_mgr, dssdev);
- 			mgr = lcd2_mgr;
- 		}
--	} else if (dssdev->type != OMAP_DISPLAY_TYPE_VENC) {
-+	} else if (dssdev->type != OMAP_DISPLAY_TYPE_VENC
-+			&& dssdev->type != OMAP_DISPLAY_TYPE_HDMI) {
- 		if (!lcd_mgr->device || force) {
- 			if (lcd_mgr->device)
- 				lcd_mgr->unset_device(lcd_mgr);
-@@ -746,7 +747,8 @@ void dss_recheck_connections(struct omap_dss_device *dssdev, bool force)
- 		}
- 	}
- 
--	if (dssdev->type == OMAP_DISPLAY_TYPE_VENC) {
-+	if (dssdev->type == OMAP_DISPLAY_TYPE_VENC
-+			|| dssdev->type == OMAP_DISPLAY_TYPE_HDMI) {
- 		if (!tv_mgr->device || force) {
- 			if (tv_mgr->device)
- 				tv_mgr->unset_device(tv_mgr);
+ int dispc_setup_plane(enum omap_plane plane,
+ 		      u32 paddr, u16 screen_width,
 -- 
 1.5.6.3
 
