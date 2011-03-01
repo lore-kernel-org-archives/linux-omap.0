@@ -1,44 +1,37 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH v2 4/8] OMAP4 : DSS2 : HDMI: HDMI driver addition in
- the DSS drivers interface
-Date: Tue, 1 Mar 2011 19:37:24 +0200
-Message-ID: <1299001044.2049.46.camel@deskari>
-References: <1298988988-28429-1-git-send-email-mythripk@ti.com>
-	 <1298988988-28429-5-git-send-email-mythripk@ti.com>
+From: Aaro Koskinen <aaro.koskinen@nokia.com>
+Subject: Re: [GIT PULL] omap fixes for v2.6.38-rc6
+Date: Tue, 1 Mar 2011 19:39:01 +0200 (EET)
+Message-ID: <alpine.DEB.1.10.1103011931380.27610@esdhcp041196.research.nokia.com>
+References: <20110228194151.GJ20560@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:45994 "EHLO bear.ext.ti.com"
+Received: from smtp.nokia.com ([147.243.1.48]:54677 "EHLO mgw-sa02.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752175Ab1CARh0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 1 Mar 2011 12:37:26 -0500
-Received: from dlep35.itg.ti.com ([157.170.170.118])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p21HbQ8k002805
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 1 Mar 2011 11:37:26 -0600
-Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
-	by dlep35.itg.ti.com (8.13.7/8.13.7) with ESMTP id p21HbPKA026106
-	for <linux-omap@vger.kernel.org>; Tue, 1 Mar 2011 11:37:26 -0600 (CST)
-In-Reply-To: <1298988988-28429-5-git-send-email-mythripk@ti.com>
+	id S1751773Ab1CARlG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 1 Mar 2011 12:41:06 -0500
+In-Reply-To: <20110228194151.GJ20560@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "K, Mythri P" <mythripk@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Tue, 2011-03-01 at 08:16 -0600, K, Mythri P wrote:
-> Adding the hdmi interface driver(hdmi.c) to the dss driver.
-> It configures the audio and video portion of HDMI in the
-> display header file to be accessed by the panels.
+Hi,
 
-Check once more if the private functions and variables are marked as
-static.
+On Mon, 28 Feb 2011, Tony Lindgren wrote:
+> Please pull omap fixes from:
+>
+> git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes-for-linus
+>
+> This contains one more timer regression fix, a DPLL rate fix,
+> and a mailbox NULL pointer fix that would be good to get
+> in for 2.6.38. The series also removes world-writable flag for
+> some debugfs entries.
+>
+> Other than I believe that's it for omap fixes for v2.6.38.
 
-The edid variables should be in the hdmi struct. The constant data
-arrays should be const.
+I wonder what happened to this patch:
 
-hdmi_power_on() leaves clocks on in case of error.
+ 	http://marc.info/?l=linux-omap&m=129772313519005&w=2
 
- Tomi
-
-
+A.
