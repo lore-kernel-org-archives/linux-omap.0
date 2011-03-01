@@ -1,32 +1,28 @@
-From: Keshava Munegowda <keshava_mgowda@ti.com>
+From: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
 Subject: RE: [PATCH 04/10 v1] arm: omap: usb: create common enums and
  structures for ehci and ohci
-Date: Tue, 1 Mar 2011 17:01:31 +0530
-Message-ID: <ee4f0a3aed348a1ce99c0a35deac07e4@mail.gmail.com>
+Date: Tue, 1 Mar 2011 17:07:34 +0530
+Message-ID: <d228b38c51a625e4a8aa37aaa9253d70@mail.gmail.com>
 References: <1298910712-2051-1-git-send-email-keshava_mgowda@ti.com>
  <1298910712-2051-2-git-send-email-keshava_mgowda@ti.com> <1298910712-2051-3-git-send-email-keshava_mgowda@ti.com>
  <1298910712-2051-4-git-send-email-keshava_mgowda@ti.com> <1298910712-2051-5-git-send-email-keshava_mgowda@ti.com>
  <20110301104940.GS2942@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:49337 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756124Ab1CALbj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Mar 2011 06:31:39 -0500
-In-Reply-To: <20110301104940.GS2942@legolas.emea.dhcp.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20110301104940.GS2942-UiBtZHVXSwEVvW8u9ZQWYwjfymiNCTlR@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>, Partha Basak <p-basak2-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Anand Gadiyar <gadiyar@ti.com>, Partha Basak <p-basak2@ti.com>
 
 > -----Original Message-----
-> From: Felipe Balbi [mailto:balbi@ti.com]
+> From: Felipe Balbi [mailto:balbi-l0cyMroinI0@public.gmane.org]
 > Sent: Tuesday, March 01, 2011 4:20 PM
 > To: Keshava Munegowda
-> Cc: linux-usb@vger.kernel.org; linux-omap@vger.kernel.org; balbi@ti.com;
-gadiyar@ti.com; p-
-> basak2@ti.com
+> Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; balbi-l0cyMroinI0@public.gmane.org;
+gadiyar-l0cyMroinI0@public.gmane.org; p-
+> basak2-l0cyMroinI0@public.gmane.org
 > Subject: Re: [PATCH 04/10 v1] arm: omap: usb: create common enums and
 structures for ehci and ohci
 >
@@ -34,7 +30,7 @@ structures for ehci and ohci
 > > Create the ehci and ohci specific platform data structures.
 > > The port enum values are made common for both ehci and ohci.
 > >
-> > Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
+> > Signed-off-by: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
 >
 > Applying: arm: omap: usb: create common enums and structures for ehci
 and ohci
@@ -49,9 +45,25 @@ for ehci and ohci
 > Which tree did you use as base for these patches ? I'm trying to apply
 > on top of v.2.6.38-rc6
 
-I will check this and send the rebased patches to you in next 2 hrs.
+Balbi
+
+I tried at my side on l2.6.38-rc6 , it dint see any failures its working.
+
+These patches are apply correctly on l2.6.38-rc6
+Commit id: f5412be599602124d2bdd49947b231dd77c0bf99
+
+Please check; its working my side.
+
+---
+Keshava Munegowda
+
+
 
 
 >
 > --
 > balbi
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
