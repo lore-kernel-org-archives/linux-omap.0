@@ -1,19 +1,20 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v7 0/8] omap3: pm: TWL4030 power scripts and workaround for TWL errata 27
-Date: Tue, 01 Mar 2011 14:31:50 -0800
-Message-ID: <87vd02fp61.fsf@ti.com>
+Subject: Re: [PATCH 1/8] omap3: pm: Fix for the TRITON sleep/wakeup sequence
+Date: Tue, 01 Mar 2011 14:33:39 -0800
+Message-ID: <87pqqafp30.fsf@ti.com>
 References: <1298723139-1693-1-git-send-email-leslyam@ti.com>
+	<1298723139-1693-2-git-send-email-leslyam@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:52696 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755815Ab1CAWby (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Mar 2011 17:31:54 -0500
-Received: by iyj12 with SMTP id 12so5321110iyj.41
-        for <linux-omap@vger.kernel.org>; Tue, 01 Mar 2011 14:31:53 -0800 (PST)
-In-Reply-To: <1298723139-1693-1-git-send-email-leslyam@ti.com> (Lesly A. M.'s
-	message of "Sat, 26 Feb 2011 17:55:31 +0530")
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:35253 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756526Ab1CAWdm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Mar 2011 17:33:42 -0500
+Received: by mail-iw0-f176.google.com with SMTP id 19so5597959iwr.21
+        for <linux-omap@vger.kernel.org>; Tue, 01 Mar 2011 14:33:41 -0800 (PST)
+In-Reply-To: <1298723139-1693-2-git-send-email-leslyam@ti.com> (Lesly A. M.'s
+	message of "Sat, 26 Feb 2011 17:55:32 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Lesly A M <leslyam@ti.com>
@@ -21,80 +22,41 @@ Cc: linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>, David Derrick <dderr
 
 Lesly A M <leslyam@ti.com> writes:
 
-> Patch series for TWL4030 power scripts and workaround for TWL errata 27.
->
-> Changes for implementing TWL4030 power scripts recommended by hardware team.
-> Introduced a new TWL4030 power script file, which can be used by different
-> OMAP3 board with the power companion chip TWL4030.
->
-> Updated the changes for TWL4030 errata 27 & 28, and modified the
-> TWL4030 power script.
-> Workaround for TWL4030 errata 27 & 28 is required for
-> Si version less than or equal to TWL5030 ES1.1.
->
-> TWL4030 script changes rebased on Kevin's PM tree in pm branch.
->
-> Changes in v7:
+> Since the function to populate the sleep script is getting called always
+> irrespective of the flag "TWL4030_SLEEP_SCRIPT", other scripts data
+> is getting over written by the sleep script. Adding the missing brackets for
+> if statement to fix the issue.
 
-> 	changes to fix Nishanth Menon's comments
-> 		i) Added the TWL4030 Errata 27 fix
->   
-> 	split the first patch in v6
-> 		i)  fix for twl4030 script load
-> 		ii) correct the warning print during script loading
->
-> 	Added new patch files
-> 		i) changing sys_off signal polarity
->
-> 	Updated the change logs
->
-> Since the voltage layer is evolving to a new design, the voltage dependant
-> changes required for the TRITON script are not incorporated in the patch series.
+This is still a confusing changelog.  How about simply:
 
-A v8 should've been done here to be clear that this is an updated
-series, since the first v7 was a 12-patch series and this one is an
-8-patch series.
+Only write the sleep script when TWL4030_SLEEP_SCRIPT is set.
 
 Kevin
 
-
-> So this TRITON script patch series can be tested with a separate patch for
-> voltage layer changes.
->
-> 	lnk: http://pastebin.mozilla.org/1102845 
->
-> This changes are tested on OMAP3430 & OMAP3630 SDP with off mode enabled in suspend path.
-> 	Tested with suspend/resume script, which will test system suspend in a loop.
-> 	Tested for more than 1000 iterations.
->
+> Signed-off-by: Lesly A M <leslyam@ti.com>
 > Cc: Nishanth Menon <nm@ti.com>
 > Cc: David Derrick <dderrick@ti.com>
 > Cc: Samuel Ortiz <sameo@linux.intel.com>
 > ---
-> Lesly A M (8):
->   omap3: pm: Fix for the TRITON sleep/wakeup sequence
->   omap3: pm: Correct the warning print during script loading
->   omap3: pm: Correcting the sys_offmode signal polarity
->   omap3: pm: TWL4030 power scripts for OMAP3 boards
->   omap3: pm: TWL5030 version checking
->   mfd: TWL4030: changes for TRITON Errata 27 workaround
->   omap3430: Updating the board file to use TWL4030 scripts
->   omap3630: Updating the board file to use TWL4030 scripts
+>  drivers/mfd/twl4030-power.c |    3 ++-
+>  1 files changed, 2 insertions(+), 1 deletions(-)
 >
->  arch/arm/mach-omap2/Makefile                 |   12 +-
->  arch/arm/mach-omap2/board-3430sdp.c          |   93 +---------
->  arch/arm/mach-omap2/board-zoom-peripherals.c |    2 +
->  arch/arm/mach-omap2/pm34xx.c                 |    4 +
->  arch/arm/mach-omap2/twl4030.c                |  259 ++++++++++++++++++++++++++
->  arch/arm/mach-omap2/twl4030.h                |   20 ++
->  drivers/mfd/twl-core.c                       |   64 +++++++
->  drivers/mfd/twl4030-power.c                  |   69 +++++++-
->  include/linux/i2c/twl.h                      |   51 +++++-
->  9 files changed, 473 insertions(+), 101 deletions(-)
->  create mode 100644 arch/arm/mach-omap2/twl4030.c
->  create mode 100644 arch/arm/mach-omap2/twl4030.h
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> diff --git a/drivers/mfd/twl4030-power.c b/drivers/mfd/twl4030-power.c
+> index 16422de..2c0d4d1 100644
+> --- a/drivers/mfd/twl4030-power.c
+> +++ b/drivers/mfd/twl4030-power.c
+> @@ -447,12 +447,13 @@ static int __init load_twl4030_script(struct twl4030_script *tscript,
+>  		if (err)
+>  			goto out;
+>  	}
+> -	if (tscript->flags & TWL4030_SLEEP_SCRIPT)
+> +	if (tscript->flags & TWL4030_SLEEP_SCRIPT) {
+>  		if (order)
+>  			pr_warning("TWL4030: Bad order of scripts (sleep "\
+>  					"script before wakeup) Leads to boot"\
+>  					"failure on some boards\n");
+>  		err = twl4030_config_sleep_sequence(address);
+> +	}
+>  out:
+>  	return err;
+>  }
