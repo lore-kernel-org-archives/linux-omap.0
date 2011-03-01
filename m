@@ -1,17 +1,17 @@
 From: Archit Taneja <archit@ti.com>
 Subject: [PATCH 2/3] OMAP: DSS2: Use request / release calls in Taal for DSI Virtual Channels.
-Date: Tue,  1 Mar 2011 18:02:21 +0530
-Message-ID: <1298982743-6771-3-git-send-email-archit@ti.com>
+Date: Tue,  1 Mar 2011 18:02:22 +0530
+Message-ID: <1298982743-6771-4-git-send-email-archit@ti.com>
 References: <1298982743-6771-1-git-send-email-archit@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:34658 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:59651 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753982Ab1CAM3s (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 1 Mar 2011 07:29:48 -0500
-Received: from dlep33.itg.ti.com ([157.170.170.112])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p21CTmh8020045
+	id S1754503Ab1CAM3x (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 1 Mar 2011 07:29:53 -0500
+Received: from dlep34.itg.ti.com ([157.170.170.115])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p21CTqQt009599
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 1 Mar 2011 06:29:48 -0600
+	for <linux-omap@vger.kernel.org>; Tue, 1 Mar 2011 06:29:52 -0600
 In-Reply-To: <1298982743-6771-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -27,7 +27,7 @@ and data to the Panel. The DSI driver automatically configures the Virtual
 Channel's source to either Video Port or L4 Slave port based on what the panel
 driver is using it for.
 
-The driver uses omap_dsi_release_vc() to free the VC specified by the panel.
+The driver uses omap_dsi_release_vc() to free all the VC's requested by it in
 taal_remove() or when a request_vc() call fails.
 
 Signed-off-by: Archit Taneja <archit@ti.com>
