@@ -1,123 +1,66 @@
-From: Pavol Kurina <pavol.kurina@emsys.de>
-Subject: Re: [patch-v2.6.39 03/12] usb: musb: gadget: do not poke with gadget's
- list_head
-Date: Tue, 01 Mar 2011 16:36:53 +0100
-Message-ID: <4D6D1295.1020809@emsys.de>
-References: <1297946329-9353-1-git-send-email-balbi@ti.com> <1297946329-9353-4-git-send-email-balbi@ti.com> <loom.20110225T201502-888@post.gmane.org> <20110228084311.GJ2459@legolas.emea.dhcp.ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH v2 0/3]OMAP: DSS2: Abstract away DSI VC information
+ from dsi panel drivers
+Date: Tue, 1 Mar 2011 17:56:42 +0200
+Message-ID: <1298995002.2049.8.camel@deskari>
+References: <1298982743-6771-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from dagedig.emsys.de ([195.145.211.174]:36800 "EHLO
-	dagedig.emsys.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753912Ab1CAPrF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Mar 2011 10:47:05 -0500
-In-Reply-To: <20110228084311.GJ2459@legolas.emea.dhcp.ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:48172 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756539Ab1CAP4o (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 1 Mar 2011 10:56:44 -0500
+Received: from dlep33.itg.ti.com ([157.170.170.112])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p21Fui87016469
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Tue, 1 Mar 2011 09:56:44 -0600
+Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
+	by dlep33.itg.ti.com (8.13.7/8.13.7) with ESMTP id p21Fui7F013947
+	for <linux-omap@vger.kernel.org>; Tue, 1 Mar 2011 09:56:44 -0600 (CST)
+Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p21FuipA028124
+	for <linux-omap@vger.kernel.org>; Tue, 1 Mar 2011 09:56:44 -0600 (CST)
+In-Reply-To: <1298982743-6771-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: linux-omap@vger.kernel.org
+To: "Taneja, Archit" <archit@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Am 28.02.2011 09:43, schrieb Felipe Balbi:
-> On Fri, Feb 25, 2011 at 07:41:47PM +0000, Pavol Kurina wrote:
->> Felipe Balbi<balbi<at>  ti.com>  writes:
->>> struct usb_request's list_head is supposed to be
->>> used only by gadget drivers, but musb is abusing
->>> that. Give struct musb_request its own list_head
->>> and prevent musb from poking into other driver's
->>> business.
->> Hi,
->>
->> I think, the patch misses to fix the usage of
->> "request->list" in musb_gadget_dequeue in
->> musb_gadget.c.
->>
->> I found out by having troubles with f_mass_storage.
->> It needs musb_gadget_dequeue to work properly...
->>
->> I backported the patch to android-2.6.35 kernel on a
->> omap4 system and also fixed the musb_gadget_dequeue
->> there so f_mass_storage seem to work at least there
->> now...
->>
->> Can you check this patch regarding some missing bits
->> please?
-> Looks like we need some extra tests to be added to g_zero, I tested with
-> g_zero and it didn't find that problem. Anyway, here's a patch which
-> probably fixes what you need to be fixed. Would you test it for me ?
->
-> diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_gadget.c
-> index da8c93b..bf88a61 100644
-> --- a/drivers/usb/musb/musb_gadget.c
-> +++ b/drivers/usb/musb/musb_gadget.c
-> @@ -1274,7 +1274,8 @@ cleanup:
->   static int musb_gadget_dequeue(struct usb_ep *ep, struct usb_request *request)
->   {
->          struct musb_ep          *musb_ep = to_musb_ep(ep);
-> -       struct usb_request      *r;
-> +       struct musb_request     req = to_musb_request(request);
-> +       struct musb_request     *r;
->          unsigned long           flags;
->          int                     status = 0;
->          struct musb             *musb = musb_ep->musb;
-> @@ -1285,10 +1286,10 @@ static int musb_gadget_dequeue(struct usb_ep *ep, struct usb_request *request)
->          spin_lock_irqsave(&musb->lock, flags);
->
->          list_for_each_entry(r,&musb_ep->req_list, list) {
-> -               if (r == request)
-> +               if (r == req)
->                          break;
->          }
-> -       if (r != request) {
-> +       if (r != req) {
->                  DBG(3, "request %p not queued to %s\n", request, ep->name);
->                  status = -EINVAL;
->                  goto done;
->
+On Tue, 2011-03-01 at 06:32 -0600, Taneja, Archit wrote:
+> The current DSI driver design requires the DSI panel driver to specify the
+> DSI Virtual Channel and the Panel Virtual Channel ID for the transfer of
+> commands and frame data. Out of these, only the second parameter is a property
+> of the Panel.
+> 
+> The DSI Virtual Channel in use by the panel driver ideally shouldn't be provided
+> by the panel driver. The current design leads to the following issues:
+> -Multiple panels connected to the same DSI interface would be unaware of the
+> VC's in use.
+> -Hard coded Virtual Channel numbers in panel drivers which is not generic.
+> -No clean way of configuring DSI for panels which need atleast 2 DSI Virtual
+> Channels.
+> -No clean way of configuring DSI for the special case where a panel may have 2
+> or VC ID's corresponding to it.
+> 
+> The panel driver should, instead, request for, and release DSI Virtual Channels
+> through calls to the DSI driver. The DSI driver should return VC numbers which
+> the panel can use. The panel driver then uses this VC to either send pixel data,
+> send commands and receive data from the panel. The DSI driver then automatically
+> configures the Virtual Channel source to either Video Port or L4 Slave Port.
+> 
+> This patch set tries to achieve the above design, and make Panel Taal driver use
+> this approach.
 
-I've tested this on my omap4 system with the android-2.6.35 kernel. It 
-seems like f_mass_storage and the f_adb
-work fine.
+This patch set doesn't apply, and seems not to be based on Linus',
+Tony's or my tree. What is it based on?
 
-I've added one more change to your patch.
+You should always base the patches on top of a public tree before
+sending the patches. Otherwise it is difficult to apply those patches.
+Or clearly say the required patch sets, which have previously been sent
+for review, but not yet applied.
 
-diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_gadget.c
-index a1e1d24..7877ccc 100755
---- a/drivers/usb/musb/musb_gadget.c
-+++ b/drivers/usb/musb/musb_gadget.c
-@@ -1250,7 +1250,8 @@ cleanup:
-  static int musb_gadget_dequeue(struct usb_ep *ep, struct usb_request 
-*request)
-  {
-         struct musb_ep          *musb_ep = to_musb_ep(ep);
--       struct usb_request      *r;
-+       struct musb_request     *req = to_musb_request(request);
-+       struct musb_request     *r;
-         unsigned long           flags;
-         int                     status = 0;
-         struct musb             *musb = musb_ep->musb;
-@@ -1261,17 +1262,17 @@ static int musb_gadget_dequeue(struct usb_ep 
-*ep, struct usb_request *request)
-         spin_lock_irqsave(&musb->lock, flags);
+ Tomi
 
-         list_for_each_entry(r, &musb_ep->req_list, list) {
--               if (r == request)
-+               if (r == req)
-                         break;
-         }
--       if (r != request) {
-+       if (r != req) {
-                 DBG(3, "request %p not queued to %s\n", request, ep->name);
-                 status = -EINVAL;
-                 goto done;
-         }
-
-         /* if the hardware doesn't have the request, easy ... */
--       if (musb_ep->req_list.next != &request->list || musb_ep->busy)
-+       if (musb_ep->req_list.next != &req->list || musb_ep->busy)
-                 musb_g_giveback(musb_ep, request, -ECONNRESET);
-
-
-Best regards,
-Pavol.
 
