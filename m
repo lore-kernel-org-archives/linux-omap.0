@@ -1,48 +1,53 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [Patch v3 0/2] OMAP2PLUS:DSS2: use opt-clocks information from
- hwmod.
-Date: Tue, 1 Mar 2011 18:26:21 +0200
-Message-ID: <1298996781.2049.18.camel@deskari>
-References: <1298968934-22697-1-git-send-email-sumit.semwal@ti.com>
+From: Michael =?ISO-8859-1?Q?B=FCsch?= <mb@bu3sch.de>
+Subject: Re: Nokia n810 LCD (MIPID/blizzard) on 2.6.38
+Date: Tue, 01 Mar 2011 17:29:41 +0100
+Message-ID: <1298996981.6461.5.camel@maggie>
+References: <1298925943.16391.19.camel@marge>
+	 <AANLkTikmwLoUPJrFZ2o7qsO8MbxBLe2hMbetwxeToW-Z@mail.gmail.com>
+	 (sfid-20110301_172419_032506_64300D9A)
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50951 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755922Ab1CAQ0Y (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 1 Mar 2011 11:26:24 -0500
-Received: from dlep34.itg.ti.com ([157.170.170.115])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p21GQOQJ022506
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 1 Mar 2011 10:26:24 -0600
-Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
-	by dlep34.itg.ti.com (8.13.7/8.13.7) with ESMTP id p21GQONO000769
-	for <linux-omap@vger.kernel.org>; Tue, 1 Mar 2011 10:26:24 -0600 (CST)
-In-Reply-To: <1298968934-22697-1-git-send-email-sumit.semwal@ti.com>
+Received: from 80-190-117-144.ip-home.de ([80.190.117.144]:57774 "EHLO
+	bu3sch.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756298Ab1CAQ3r (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 1 Mar 2011 11:29:47 -0500
+In-Reply-To: <AANLkTikmwLoUPJrFZ2o7qsO8MbxBLe2hMbetwxeToW-Z@mail.gmail.com> (sfid-20110301_172419_032506_64300D9A)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Semwal, Sumit" <sumit.semwal@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Varadarajan, Charulatha" <charu@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
 
-On Tue, 2011-03-01 at 02:42 -0600, Semwal, Sumit wrote:
-> This series uses information about opt-clocks provided by omap_hwmod framework
-> to select which of the non-mandatory DSS clocks are available on a given
-> platform.
+On Tue, 2011-03-01 at 11:23 -0500, Varadarajan, Charulatha wrote: 
+> > My temporary workaround to this issue is to disable
+> > soft reset for the first GPIO module:
+> >
+> >        static struct omap_hwmod omap2420_gpio1_hwmod = {
+> >                .name           = "gpio1",
+> >                .flags          = HWMOD_INIT_NO_RESET, /* Workaround: Don't reset the n810 MIPID */
 > 
-> A function pointer opt_clock_available is exported via pdata, which checks the
-> clock roles returned by hwmod database.
-> In the driver, while doing clk-get, it is checked if as per hwmod a given clock
-> is an opt-clock or not, and is handled accordingly.
+> NACK.
 > 
-> Tested on: OMAP3430sdp
+> As the problem is specific to the board settings, this shall be handled
+> in the board file itself.
+
+Yeah, sure. But how can I handle this in the board file? Is
+there a hwmod API for this?
+
+> > I'm wondering if a better fix suitable for the mainline
+> > kernel inclusion could be found.
+> > Any ideas?
 > 
-> Sumit Semwal (2):
->   OMAP2PLUS:DSS2: add opt_clock_available in pdata
->   OMAP2PLUS:DSS2: Use opt_clock_available from pdata
+> Re-initialize the  "nreset" line of the Blizzard in the
+> corresponding board file.
 
-I think this set looks fine now. Applying.
+That is not sufficient. The blizzard chip has to be reinitialized
+completely.
+Code for that doesn't exist in the current driver. It currently depends
+on the bootloader doing the lowlevel init. As long as I don't have
+documentation for that chip, I'm stuck with that.
 
- Tomi
-
+-- 
+Greetings Michael.
 
