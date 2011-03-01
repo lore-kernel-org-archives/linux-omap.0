@@ -1,44 +1,229 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 04/10 v1] arm: omap: usb: create common enums and
- structures for ehci and ohci
-Date: Tue, 1 Mar 2011 12:49:40 +0200
-Message-ID: <20110301104940.GS2942@legolas.emea.dhcp.ti.com>
-References: <1298910712-2051-1-git-send-email-keshava_mgowda@ti.com>
- <1298910712-2051-2-git-send-email-keshava_mgowda@ti.com>
- <1298910712-2051-3-git-send-email-keshava_mgowda@ti.com>
- <1298910712-2051-4-git-send-email-keshava_mgowda@ti.com>
- <1298910712-2051-5-git-send-email-keshava_mgowda@ti.com>
-Reply-To: balbi-l0cyMroinI0@public.gmane.org
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH v2 2/2] OMAP: omap_device: API to modify AUTOIDLE and
+ SMARTIDLE bits
+Date: Tue, 1 Mar 2011 12:17:44 +0100
+Message-ID: <4D6CD5D8.6010006@ti.com>
+References: <1296477288-26253-1-git-send-email-kishon@ti.com> <1296477288-26253-3-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1298910712-2051-5-git-send-email-keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, gadiyar-l0cyMroinI0@public.gmane.org, p-basak2-l0cyMroinI0@public.gmane.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:51276 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755822Ab1CALRt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 1 Mar 2011 06:17:49 -0500
+In-Reply-To: <1296477288-26253-3-git-send-email-kishon@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Varadarajan, Charulatha" <charu@ti.com>, "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "paul@pwsan.com" <paul@pwsan.com>, "Basak, Partha" <p-basak2@ti.com>
 
-On Mon, Feb 28, 2011 at 10:01:46PM +0530, Keshava Munegowda wrote:
-> Create the ehci and ohci specific platform data structures.
-> The port enum values are made common for both ehci and ohci.
-> 
-> Signed-off-by: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Hi Kishon,
 
-Applying: arm: omap: usb: create common enums and structures for ehci and ohci
-error: patch failed: drivers/usb/host/ehci-omap.c:409
-error: drivers/usb/host/ehci-omap.c: patch does not apply
-Patch failed at 0005 arm: omap: usb: create common enums and structures for ehci and ohci
-When you have resolved this problem run "git am --resolved".
-If you would prefer to skip this patch, instead run "git am --skip".
-To restore the original branch and stop patching run "git am --abort".
+Sorry for this late reply.
 
-Which tree did you use as base for these patches ? I'm trying to apply
-on top of v.2.6.38-rc6
+I'm fine with this omap_device API which is well aligned with the 
+discussion we had. I just have few minor comments about the split 
+omap_hwmod / omap_device.
 
--- 
-balbi
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To summarize, you should not hack directly hwmod internal attributes 
+from the upper layer.
+
+You should simply expose the same number of API at hwmod level instead 
+of relying on a single omap_hwmod_set_slave_idlemode with miscellaneous 
+parameters.
+
+On 1/31/2011 1:34 PM, ABRAHAM, KISHON VIJAY wrote:
+> Provide APIs to be used by the driver in order to modify AUTOIDLE
+> and SIDLE bits. These APIs in turn call hwmod APIs to modify the
+> SYSCONFIG register.
+>
+> Signed-off-by: Kishon Vijay Abraham I<kishon@ti.com>
+> Signed-off-by: Benoit Cousson<b-cousson@ti.com>
+> Cc: Paul Walmsley<paul@pwsan.com>
+> ---
+>   arch/arm/plat-omap/include/plat/omap_device.h |    6 +
+>   arch/arm/plat-omap/omap_device.c              |  176 +++++++++++++++++++++++++
+>   2 files changed, 182 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/plat-omap/include/plat/omap_device.h b/arch/arm/plat-omap/include/plat/omap_device.h
+> index e4c349f..47ad0ab 100644
+> --- a/arch/arm/plat-omap/include/plat/omap_device.h
+> +++ b/arch/arm/plat-omap/include/plat/omap_device.h
+> @@ -110,6 +110,12 @@ struct powerdomain *omap_device_get_pwrdm(struct omap_device *od);
+>   u32 omap_device_get_context_loss_count(struct platform_device *pdev);
+>
+>   /* Other */
+> +int omap_device_noidle(struct omap_device *od);
+> +int omap_device_smartidle(struct omap_device *od);
+> +int omap_device_forceidle(struct omap_device *od);
+> +int omap_device_default_idle(struct omap_device *od);
+> +int omap_device_enable_autoidle(struct omap_device *od);
+> +int omap_device_disable_autoidle(struct omap_device *od);
+>
+>   int omap_device_idle_hwmods(struct omap_device *od);
+>   int omap_device_enable_hwmods(struct omap_device *od);
+> diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
+> index 57adb27..da8609a 100644
+> --- a/arch/arm/plat-omap/omap_device.c
+> +++ b/arch/arm/plat-omap/omap_device.c
+> @@ -726,6 +726,182 @@ void __iomem *omap_device_get_rt_va(struct omap_device *od)
+>   	return omap_hwmod_get_mpu_rt_va(od->hwmods[0]);
+>   }
+>
+> +/**
+> + * omap_device_noidle - set the device's slave idlemode to no idle
+> + * @od: struct omap_device *
+> + *
+> + * Sets the IP block's OCP slave idlemode in hardware to no idle.
+> + * Intended to be used by drivers that have some erratum that requires direct
+> + * manipulation of the SIDLEMODE bits.  Returns -EINVAL if @od is in invalid
+> + * state, or passes along the return value from
+> + * omap_hwmod_set_slave_idlemode().
+> + */
+> +int omap_device_noidle(struct omap_device *od)
+> +{
+> +	int retval = 0, i;
+> +
+> +	if (od->_state != OMAP_DEVICE_STATE_ENABLED) {
+> +		WARN(1, "omap_device: %s.%d: %s() called from invalid state "
+> +			"%d\n", od->pdev.name, od->pdev.id, __func__,
+> +			od->_state);
+> +		return -EINVAL;
+> +	}
+> +
+> +	for (i = 0; i<  od->hwmods_cnt; i++)
+> +		retval |= omap_hwmod_set_slave_idlemode(od->hwmods[i],
+> +					HWMOD_IDLEMODE_NO);
+> +
+> +	return retval;
+> +}
+> +
+> +
+> +/**
+> + * omap_device_smartidle - set the device's slave idlemode to smart idle
+> + * @od: struct omap_device *
+> + *
+> + * Sets the IP block's OCP slave idlemode in hardware to smart idle.
+> + * Intended to be used by drivers that have some erratum that requires direct
+> + * manipulation of the SIDLEMODE bits.  Returns -EINVAL if @od is in invalid
+> + * state, or passes along the return value from
+> + * omap_hwmod_set_slave_idlemode().
+> + */
+> +int omap_device_smartidle(struct omap_device *od)
+> +{
+> +	int retval = 0, i;
+> +
+> +	if (od->_state != OMAP_DEVICE_STATE_ENABLED) {
+> +		WARN(1, "omap_device: %s.%d: %s() called from invalid state "
+> +			"%d\n", od->pdev.name, od->pdev.id, __func__,
+> +			od->_state);
+> +		return -EINVAL;
+> +	}
+> +
+> +	for (i = 0; i<  od->hwmods_cnt; i++)
+> +		retval |= omap_hwmod_set_slave_idlemode(od->hwmods[i],
+> +					HWMOD_IDLEMODE_SMART);
+> +
+> +	return retval;
+> +}
+> +
+> +
+> +/**
+> + * omap_device_forceidle - set the device's slave idlemode to force idle
+> + * @od: struct omap_device *
+> + *
+> + * Sets the IP block's OCP slave idlemode in hardware to force idle.
+> + * Intended to be used by drivers that have some erratum that requires direct
+> + * manipulation of the SIDLEMODE bits.  Returns -EINVAL if @od is in invalid
+> + * state, or passes along the return value from
+> + * omap_hwmod_set_slave_idlemode().
+> + */
+> +int omap_device_forceidle(struct omap_device *od)
+> +{
+> +	int retval = 0, i;
+> +
+> +	if (od->_state != OMAP_DEVICE_STATE_ENABLED) {
+> +		WARN(1, "omap_device: %s.%d: %s() called from invalid state "
+> +			"%d\n", od->pdev.name, od->pdev.id, __func__,
+> +			od->_state);
+> +		return -EINVAL;
+> +	}
+> +
+> +	for (i = 0; i<  od->hwmods_cnt; i++)
+> +		retval |= omap_hwmod_set_slave_idlemode(od->hwmods[i],
+> +					HWMOD_IDLEMODE_FORCE);
+> +
+> +	return retval;
+> +}
+> +
+> +/**
+> + * omap_device_default_idle - set the device's slave idlemode to no idle or
+> + * smart idle based on the hwmod flag
+> + * @od: struct omap_device *
+> + *
+> + * Sets the IP block's OCP slave idlemode in hardware to no idle or smart idle
+> + * depending on status of the flag HWMOD_SWSUP_SIDLE.
+> + * Intended to be used by drivers that have some erratum that requires direct
+> + * manipulation of the SIDLEMODE bits.  Returns -EINVAL if @od is in invalid
+> + * state, or passes along the return value from
+> + * omap_hwmod_set_slave_idlemode().
+> + */
+> +int omap_device_default_idle(struct omap_device *od)
+> +{
+> +	int retval = 0, i;
+> +	u8 idlemode;
+> +
+> +	if (od->_state != OMAP_DEVICE_STATE_ENABLED) {
+> +		WARN(1, "omap_device: %s.%d: %s() called from invalid state "
+> +			"%d\n", od->pdev.name, od->pdev.id, __func__,
+> +		od->_state);
+> +		return -EINVAL;
+> +	}
+> +
+> +	for (i = 0; i<  od->hwmods_cnt; i++) {
+> +		idlemode = (od->hwmods[i]->flags&  HWMOD_SWSUP_SIDLE) ?
+> +				HWMOD_IDLEMODE_NO : HWMOD_IDLEMODE_SMART;
+> +		retval |= omap_hwmod_set_slave_idlemode(od->hwmods[i],
+> +				idlemode);
+
+That one is the worst :-) You should definitively not hack directly 
+hwmod internal attributes from the upper layer.
+
+> +	}
+> +
+> +	return retval;
+> +}
+> +
+> +/*
+> + * omap_device_enable_autoidle - enable the device's OCP slave autoidle
+> + * @od: struct omap_device *
+> + *
+> + * Sets the IP block's OCP slave autoidle in hardware.
+> + * Intended to be used by drivers that have some erratum that requires direct
+> + * manipulation of the AUTOIDLE bits.  Returns -EINVAL if @od is in invalid
+> + * state, or passes along the return value from
+> + * omap_hwmod_set_slave_autoidle().
+> + */
+> +int omap_device_enable_autoidle(struct omap_device *od)
+> +{
+> +	int retval = 0, i;
+> +
+> +	if (od->_state != OMAP_DEVICE_STATE_ENABLED) {
+> +		WARN(1, "omap_device: %s.%d: %s() called from invalid state "
+> +			"%d\n", od->pdev.name, od->pdev.id, __func__,
+> +			od->_state);
+> +		return -EINVAL;
+> +	}
+> +
+> +	for (i = 0; i<  od->hwmods_cnt; i++)
+> +		retval |= omap_hwmod_set_slave_autoidle(od->hwmods[i],
+> +					true);
+
+You are using the same API to send either HWMOD_XXX flags or boolean, 
+and that's quite confusing.
+
+As I said, you'd better duplicate these APIs at hwmod level.
+
+Benoit
+
