@@ -1,291 +1,69 @@
 From: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 06/10 v2] arm: omap: usb: usbhs core device initialization
-Date: Tue,  1 Mar 2011 20:08:18 +0530
-Message-ID: <1298990302-30475-7-git-send-email-keshava_mgowda@ti.com>
-References: <1298990302-30475-1-git-send-email-keshava_mgowda@ti.com>
- <1298990302-30475-2-git-send-email-keshava_mgowda@ti.com>
- <1298990302-30475-3-git-send-email-keshava_mgowda@ti.com>
- <1298990302-30475-4-git-send-email-keshava_mgowda@ti.com>
- <1298990302-30475-5-git-send-email-keshava_mgowda@ti.com>
- <1298990302-30475-6-git-send-email-keshava_mgowda@ti.com>
+Subject: [PATCH 00/10 v2] EHCI and OHCI patches of OMAP3 and OMAP4
+Date: Tue,  1 Mar 2011 20:08:12 +0530
+Message-ID: <1298990302-30475-1-git-send-email-keshava_mgowda@ti.com>
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1298990302-30475-6-git-send-email-keshava_mgowda-l0cyMroinI0@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org, gadiyar-l0cyMroinI0@public.gmane.org, p-basak2-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-A new usbhs platform device is defined;
-this device will be the parent device of ehci and
-ohci platform devices. the usbhs_init function
-is defined which does the usbhs device initialization
-and I/O mux of ehci and ohci.
+this is how it EHCI/OHCI code re oraganize look like:
+	. we have EHCI and OHCI be children of a usbhs "core driver"
+		which will take care of all accesses to
+		UHH and TLL bases. 
 
-Signed-off-by: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
----
- arch/arm/mach-omap2/usb-host.c        |  195 ++++++++++++++++++++++++++++++---
- arch/arm/plat-omap/include/plat/usb.h |    2 +
- 2 files changed, 183 insertions(+), 14 deletions(-)
+	. we pass enable/disable functions down from EHCI and OHCI drivers.
+		to USBHS driver.
 
-diff --git a/arch/arm/mach-omap2/usb-host.c b/arch/arm/mach-omap2/usb-host.c
-index b04ce6f..ab06382 100644
---- a/arch/arm/mach-omap2/usb-host.c
-+++ b/arch/arm/mach-omap2/usb-host.c
-@@ -6,6 +6,7 @@
-  *
-  * Copyright (C) 2007-2011 Texas Instruments
-  * Author: Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>
-+ * Author: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
-  *
-  * Generalization by:
-  * Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-@@ -19,7 +20,7 @@
- #include <linux/errno.h>
- #include <linux/delay.h>
- #include <linux/platform_device.h>
--#include <linux/clk.h>
-+#include <linux/slab.h>
- #include <linux/dma-mapping.h>
- 
- #include <asm/io.h>
-@@ -30,7 +31,7 @@
- 
- #include "mux.h"
- 
--#if defined(CONFIG_USB_EHCI_HCD) || defined(CONFIG_USB_EHCI_HCD_MODULE)
-+#ifdef CONFIG_MFD_OMAP_USB_HOST
- 
- static struct resource ehci_resources[] = {
- 	{
-@@ -361,17 +362,6 @@ void __init usb_ehci_init(const struct usbhs_omap_board_data *pdata)
- 	}
- }
- 
--#else
--
--void __init usb_ehci_init(const struct usbhs_omap_board_data *pdata)
--
--{
--}
--
--#endif /* CONFIG_USB_EHCI_HCD */
--
--#if defined(CONFIG_USB_OHCI_HCD) || defined(CONFIG_USB_OHCI_HCD_MODULE)
--
- static struct resource ohci_resources[] = {
- 	{
- 		.name	= "ohci",
-@@ -508,6 +498,77 @@ static void setup_ohci_io_mux(const enum usbhs_omap_port_mode *port_mode)
- 	}
- }
- 
-+static void setup_4430ohci_io_mux(const enum usbhs_omap_port_mode *port_mode)
-+{
-+	switch (port_mode[0]) {
-+	case OMAP_OHCI_PORT_MODE_PHY_6PIN_DATSE0:
-+	case OMAP_OHCI_PORT_MODE_PHY_6PIN_DPDM:
-+	case OMAP_OHCI_PORT_MODE_TLL_6PIN_DATSE0:
-+	case OMAP_OHCI_PORT_MODE_TLL_6PIN_DPDM:
-+		omap_mux_init_signal("usbb1_mm_rxdp",
-+			OMAP_PIN_INPUT_PULLDOWN);
-+		omap_mux_init_signal("usbb1_mm_rxdm",
-+			OMAP_PIN_INPUT_PULLDOWN);
-+
-+	case OMAP_OHCI_PORT_MODE_PHY_4PIN_DPDM:
-+	case OMAP_OHCI_PORT_MODE_TLL_4PIN_DPDM:
-+		omap_mux_init_signal("usbb1_mm_rxrcv",
-+			OMAP_PIN_INPUT_PULLDOWN);
-+
-+	case OMAP_OHCI_PORT_MODE_PHY_3PIN_DATSE0:
-+	case OMAP_OHCI_PORT_MODE_TLL_3PIN_DATSE0:
-+		omap_mux_init_signal("usbb1_mm_txen",
-+			OMAP_PIN_INPUT_PULLDOWN);
-+
-+
-+	case OMAP_OHCI_PORT_MODE_TLL_2PIN_DATSE0:
-+	case OMAP_OHCI_PORT_MODE_TLL_2PIN_DPDM:
-+		omap_mux_init_signal("usbb1_mm_txdat",
-+			OMAP_PIN_INPUT_PULLDOWN);
-+		omap_mux_init_signal("usbb1_mm_txse0",
-+			OMAP_PIN_INPUT_PULLDOWN);
-+		break;
-+
-+	case OMAP_USBHS_PORT_MODE_UNUSED:
-+	default:
-+		break;
-+	}
-+
-+	switch (port_mode[1]) {
-+	case OMAP_OHCI_PORT_MODE_PHY_6PIN_DATSE0:
-+	case OMAP_OHCI_PORT_MODE_PHY_6PIN_DPDM:
-+	case OMAP_OHCI_PORT_MODE_TLL_6PIN_DATSE0:
-+	case OMAP_OHCI_PORT_MODE_TLL_6PIN_DPDM:
-+		omap_mux_init_signal("usbb2_mm_rxdp",
-+			OMAP_PIN_INPUT_PULLDOWN);
-+		omap_mux_init_signal("usbb2_mm_rxdm",
-+			OMAP_PIN_INPUT_PULLDOWN);
-+
-+	case OMAP_OHCI_PORT_MODE_PHY_4PIN_DPDM:
-+	case OMAP_OHCI_PORT_MODE_TLL_4PIN_DPDM:
-+		omap_mux_init_signal("usbb2_mm_rxrcv",
-+			OMAP_PIN_INPUT_PULLDOWN);
-+
-+	case OMAP_OHCI_PORT_MODE_PHY_3PIN_DATSE0:
-+	case OMAP_OHCI_PORT_MODE_TLL_3PIN_DATSE0:
-+		omap_mux_init_signal("usbb2_mm_txen",
-+			OMAP_PIN_INPUT_PULLDOWN);
-+
-+
-+	case OMAP_OHCI_PORT_MODE_TLL_2PIN_DATSE0:
-+	case OMAP_OHCI_PORT_MODE_TLL_2PIN_DPDM:
-+		omap_mux_init_signal("usbb2_mm_txdat",
-+			OMAP_PIN_INPUT_PULLDOWN);
-+		omap_mux_init_signal("usbb2_mm_txse0",
-+			OMAP_PIN_INPUT_PULLDOWN);
-+		break;
-+
-+	case OMAP_USBHS_PORT_MODE_UNUSED:
-+	default:
-+		break;
-+	}
-+}
-+
- void __init usb_ohci_init(const struct usbhs_omap_board_data *pdata)
- {
- 	platform_device_add_data(&ohci_device, pdata, sizeof(*pdata));
-@@ -522,10 +583,116 @@ void __init usb_ohci_init(const struct usbhs_omap_board_data *pdata)
- 	}
- }
- 
-+#define OMAP_USBHS_DEVICE	"usbhs-omap"
-+
-+static struct resource usbhs_resources[] = {
-+	{
-+		.name	= "uhh",
-+		.flags	= IORESOURCE_MEM,
-+	},
-+	{
-+		.name	= "tll",
-+		.flags	= IORESOURCE_MEM,
-+	},
-+	{
-+		.name	= "ehci",
-+		.flags	= IORESOURCE_MEM,
-+	},
-+	{
-+		.name	= "ehci-irq",
-+		.flags	= IORESOURCE_IRQ,
-+	},
-+	{
-+		.name	= "ohci",
-+		.flags	= IORESOURCE_MEM,
-+	},
-+	{
-+		.name	= "ohci-irq",
-+		.flags	= IORESOURCE_IRQ,
-+	}
-+};
-+
-+static struct platform_device usbhs_device = {
-+	.name		= OMAP_USBHS_DEVICE,
-+	.id		= 0,
-+	.num_resources	= ARRAY_SIZE(usbhs_resources),
-+	.resource	= usbhs_resources,
-+};
-+
-+static struct usbhs_omap_platform_data		usbhs_data;
-+static struct ehci_hcd_omap_platform_data	ehci_data;
-+static struct ohci_hcd_omap_platform_data	ohci_data;
-+
-+void __init usbhs_init(const struct usbhs_omap_board_data *pdata)
-+{
-+	int	i;
-+
-+	for (i = 0; i < OMAP3_HS_USB_PORTS; i++) {
-+		usbhs_data.port_mode[i] = pdata->port_mode[i];
-+		ohci_data.port_mode[i] = pdata->port_mode[i];
-+		ehci_data.port_mode[i] = pdata->port_mode[i];
-+		ehci_data.reset_gpio_port[i] = pdata->reset_gpio_port[i];
-+		ehci_data.regulator[i] = pdata->regulator[i];
-+	}
-+	ehci_data.phy_reset = pdata->phy_reset;
-+	ohci_data.es2_compatibility = pdata->es2_compatibility;
-+	usbhs_data.ehci_data = &ehci_data;
-+	usbhs_data.ohci_data = &ohci_data;
-+
-+	if (cpu_is_omap34xx()) {
-+		usbhs_resources[0].start = OMAP34XX_UHH_CONFIG_BASE;
-+		usbhs_resources[0].end = OMAP34XX_UHH_CONFIG_BASE + SZ_1K - 1;
-+		usbhs_resources[1].start = OMAP34XX_USBTLL_BASE;
-+		usbhs_resources[1].end = OMAP34XX_USBTLL_BASE + SZ_4K - 1;
-+		usbhs_resources[2].start	= OMAP34XX_EHCI_BASE;
-+		usbhs_resources[2].end	= OMAP34XX_EHCI_BASE + SZ_1K - 1;
-+		usbhs_resources[3].start = INT_34XX_EHCI_IRQ;
-+		usbhs_resources[4].start	= OMAP34XX_OHCI_BASE;
-+		usbhs_resources[4].end	= OMAP34XX_OHCI_BASE + SZ_1K - 1;
-+		usbhs_resources[5].start = INT_34XX_OHCI_IRQ;
-+		setup_ehci_io_mux(pdata->port_mode);
-+		setup_ohci_io_mux(pdata->port_mode);
-+	} else if (cpu_is_omap44xx()) {
-+		usbhs_resources[0].start = OMAP44XX_UHH_CONFIG_BASE;
-+		usbhs_resources[0].end = OMAP44XX_UHH_CONFIG_BASE + SZ_1K - 1;
-+		usbhs_resources[1].start = OMAP44XX_USBTLL_BASE;
-+		usbhs_resources[1].end = OMAP44XX_USBTLL_BASE + SZ_4K - 1;
-+		usbhs_resources[2].start = OMAP44XX_HSUSB_EHCI_BASE;
-+		usbhs_resources[2].end = OMAP44XX_HSUSB_EHCI_BASE + SZ_1K - 1;
-+		usbhs_resources[3].start = OMAP44XX_IRQ_EHCI;
-+		usbhs_resources[4].start = OMAP44XX_HSUSB_OHCI_BASE;
-+		usbhs_resources[4].end = OMAP44XX_HSUSB_OHCI_BASE + SZ_1K - 1;
-+		usbhs_resources[5].start = OMAP44XX_IRQ_OHCI;
-+		setup_4430ehci_io_mux(pdata->port_mode);
-+		setup_4430ohci_io_mux(pdata->port_mode);
-+	}
-+
-+	if (platform_device_add_data(&usbhs_device,
-+				&usbhs_data, sizeof(usbhs_data)) < 0) {
-+		printk(KERN_ERR "USBHS platform_device_add_data failed\n");
-+		goto init_end;
-+	}
-+
-+	if (platform_device_register(&usbhs_device) < 0)
-+		printk(KERN_ERR "USBHS platform_device_register failed\n");
-+
-+init_end:
-+	return;
-+}
-+
- #else
- 
-+void __init usbhs_init(const struct usbhs_omap_board_data *pdata)
-+{
-+}
-+
- void __init usb_ohci_init(const struct usbhs_omap_board_data *pdata)
- {
- }
- 
--#endif /* CONFIG_USB_OHCI_HCD */
-+void __init usb_ehci_init(const struct usbhs_omap_board_data *pdata)
-+{
-+}
-+#endif
-+
-+
-diff --git a/arch/arm/plat-omap/include/plat/usb.h b/arch/arm/plat-omap/include/plat/usb.h
-index 7aeaa76..aab707a 100644
---- a/arch/arm/plat-omap/include/plat/usb.h
-+++ b/arch/arm/plat-omap/include/plat/usb.h
-@@ -102,6 +102,8 @@ extern void usb_ehci_init(const struct usbhs_omap_board_data *pdata);
- 
- extern void usb_ohci_init(const struct usbhs_omap_board_data *pdata);
- 
-+extern void usbhs_init(const struct usbhs_omap_board_data *pdata);
-+
- extern int omap_usbhs_enable(struct device *dev);
- extern void omap_usbhs_disable(struct device *dev);
- 
--- 
-1.6.0.4
+	. UHH and TLL power management will eventually move to
+		omap-usb-host.c
+
+Felipe Balbi (3):
+  arm: omap: usb: host: add names to resources
+  usb: host: omap: switch to platform_get_resource_byname
+  arm: omap2: usb: rename usb-ehci.c to usb-host.c
+
+Keshava Munegowda (7):
+  arm: omap: usb: create common enums and structures for ehci and ohci
+  usb: host: omap: common usb host core driver
+  arm: omap: usb: usbhs core device initialization
+  arm: omap: usb: Invoke usbhs core device initialization
+  arm: omap: usb: cleanup ehci and ohci resources and devices
+  usb: host: omap: ehci and ohci simplification
+  arm: omap: usb: clock entries for omap3 and omap4
+
+ arch/arm/mach-omap2/Makefile                   |    2 +-
+ arch/arm/mach-omap2/board-3430sdp.c            |   10 +-
+ arch/arm/mach-omap2/board-3630sdp.c            |   10 +-
+ arch/arm/mach-omap2/board-4430sdp.c            |   10 +-
+ arch/arm/mach-omap2/board-am3517crane.c        |   10 +-
+ arch/arm/mach-omap2/board-am3517evm.c          |   12 +-
+ arch/arm/mach-omap2/board-cm-t35.c             |   10 +-
+ arch/arm/mach-omap2/board-cm-t3517.c           |   10 +-
+ arch/arm/mach-omap2/board-devkit8000.c         |   10 +-
+ arch/arm/mach-omap2/board-igep0020.c           |   10 +-
+ arch/arm/mach-omap2/board-igep0030.c           |   10 +-
+ arch/arm/mach-omap2/board-omap3beagle.c        |   10 +-
+ arch/arm/mach-omap2/board-omap3evm.c           |   14 +-
+ arch/arm/mach-omap2/board-omap3pandora.c       |   10 +-
+ arch/arm/mach-omap2/board-omap3stalker.c       |   10 +-
+ arch/arm/mach-omap2/board-omap3touchbook.c     |   10 +-
+ arch/arm/mach-omap2/board-omap4panda.c         |   10 +-
+ arch/arm/mach-omap2/board-overo.c              |   10 +-
+ arch/arm/mach-omap2/board-zoom.c               |   10 +-
+ arch/arm/mach-omap2/clock3xxx_data.c           |   19 +-
+ arch/arm/mach-omap2/clock44xx_data.c           |   10 +-
+ arch/arm/mach-omap2/{usb-ehci.c => usb-host.c} |  306 ++++---
+ arch/arm/plat-omap/include/plat/usb.h          |   55 +-
+ drivers/mfd/Kconfig                            |    9 +
+ drivers/mfd/Makefile                           |    1 +
+ drivers/mfd/omap-usb-host.c                    | 1061 ++++++++++++++++++++++++
+ drivers/usb/host/ehci-omap.c                   | 1016 ++---------------------
+ drivers/usb/host/ohci-omap3.c                  |  584 ++------------
+ 28 files changed, 1531 insertions(+), 1718 deletions(-)
+ rename arch/arm/mach-omap2/{usb-ehci.c => usb-host.c} (68%)
+ create mode 100644 drivers/mfd/omap-usb-host.c
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-usb" in
