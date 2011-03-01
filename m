@@ -1,95 +1,67 @@
-From: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 02/10 v2] usb: host: omap: switch to platform_get_resource_byname
-Date: Tue,  1 Mar 2011 20:08:14 +0530
-Message-ID: <1298990302-30475-3-git-send-email-keshava_mgowda@ti.com>
-References: <1298990302-30475-1-git-send-email-keshava_mgowda@ti.com>
- <1298990302-30475-2-git-send-email-keshava_mgowda@ti.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1298990302-30475-2-git-send-email-keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org, gadiyar-l0cyMroinI0@public.gmane.org, p-basak2-l0cyMroinI0@public.gmane.org
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: Nokia n810 LCD (MIPID/blizzard) on 2.6.38
+Date: Tue, 1 Mar 2011 16:39:15 +0200
+Message-ID: <20110301143915.GD12368@legolas.emea.dhcp.ti.com>
+References: <1298925943.16391.19.camel@marge>
+ <20110301092057.GA2942@legolas.emea.dhcp.ti.com>
+ <1298989395.6461.2.camel@maggie>
+Reply-To: balbi@ti.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:44461 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756500Ab1CAOjT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Mar 2011 09:39:19 -0500
+Received: by mail-bw0-f44.google.com with SMTP id 13so5351971bwz.31
+        for <linux-omap@vger.kernel.org>; Tue, 01 Mar 2011 06:39:17 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <1298989395.6461.2.camel@maggie>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Michael =?iso-8859-1?Q?B=FCsch?= <mb@bu3sch.de>
+Cc: balbi@ti.com, linux-omap <linux-omap@vger.kernel.org>, Varadarajan Charulatha <charu@ti.com>, Kai Svahn <kai.svahn@nokia.com>
 
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+On Tue, Mar 01, 2011 at 03:23:15PM +0100, Michael B=FCsch wrote:
+> On Tue, 2011-03-01 at 11:20 +0200, Felipe Balbi wrote:=20
+> > On Mon, Feb 28, 2011 at 09:45:43PM +0100, Michael Buesch wrote:
+> > > The n810 LCD does not work on the 2.6.38(-rc6) kernel
+> > > due to changes in the OMAP GPIO-hwmod code.
+> > >=20
+> > > The hwmod code performs a soft-reset on the GPIO
+> > > module. The first GPIO module carries the MIPID
+> > > "nreset" line, which is toggled due to the hwmod soft reset.
+> > > This resets Blizzard and breaks it, because
+> > > it assumes the LCD was left in the state that the
+> > > bootloader initialized it to:
+> >=20
+> > so that's the bug which needs to be fixed. Unfortunately I don't ha=
+ve
+> > any documentation available anymore. Maybe someone from Nokia would=
+ fix
+> > that ?
+> >=20
+> > > I'm wondering if a better fix suitable for the mainline
+> > > kernel inclusion could be found.
+> > > Any ideas?
+> >=20
+> > Don't depend on the bootloader :-)
+>=20
+> Yeah that's the obvious fix, of course. However, it requires
+> deep knowledge of the device and/or hardware documentation. Both
+> of which I don't have.
+> The driver also doesn't seem to have a maintainer.
+>=20
+> If someone can get me documentation, I'm willing to implement
+> the required bits to remove the bootloader dependency.
 
-now that we have names on all memory bases, we can
-switch to use platform_get_resource_byname() which
-will make it simpler when we move to a setup where
-OHCI and EHCI on OMAP play well together.
+Someone from Nokia might be able to help. Kai ??
 
-Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
----
- drivers/usb/host/ehci-omap.c  |    6 +++---
- drivers/usb/host/ohci-omap3.c |    6 +++---
- 2 files changed, 6 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
-index d7e223b..1527721 100644
---- a/drivers/usb/host/ehci-omap.c
-+++ b/drivers/usb/host/ehci-omap.c
-@@ -947,7 +947,7 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
- 	omap->ehci		= hcd_to_ehci(hcd);
- 	omap->ehci->sbrn	= 0x20;
- 
--	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "ehci");
- 
- 	hcd->rsrc_start = res->start;
- 	hcd->rsrc_len = resource_size(res);
-@@ -963,7 +963,7 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
- 	omap->ehci->caps = hcd->regs;
- 	omap->ehci_base = hcd->regs;
- 
--	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
-+	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "uhh");
- 	omap->uhh_base = ioremap(res->start, resource_size(res));
- 	if (!omap->uhh_base) {
- 		dev_err(&pdev->dev, "UHH ioremap failed\n");
-@@ -971,7 +971,7 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
- 		goto err_uhh_ioremap;
- 	}
- 
--	res = platform_get_resource(pdev, IORESOURCE_MEM, 2);
-+	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "tll");
- 	omap->tll_base = ioremap(res->start, resource_size(res));
- 	if (!omap->tll_base) {
- 		dev_err(&pdev->dev, "TLL ioremap failed\n");
-diff --git a/drivers/usb/host/ohci-omap3.c b/drivers/usb/host/ohci-omap3.c
-index a37d599..32f56bb 100644
---- a/drivers/usb/host/ohci-omap3.c
-+++ b/drivers/usb/host/ohci-omap3.c
-@@ -618,7 +618,7 @@ static int __devinit ohci_hcd_omap3_probe(struct platform_device *pdev)
- 	omap->es2_compatibility	= pdata->es2_compatibility;
- 	omap->ohci		= hcd_to_ohci(hcd);
- 
--	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "ohci");
- 
- 	hcd->rsrc_start = res->start;
- 	hcd->rsrc_len = resource_size(res);
-@@ -630,7 +630,7 @@ static int __devinit ohci_hcd_omap3_probe(struct platform_device *pdev)
- 		goto err_ioremap;
- 	}
- 
--	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
-+	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "uhh");
- 	omap->uhh_base = ioremap(res->start, resource_size(res));
- 	if (!omap->uhh_base) {
- 		dev_err(&pdev->dev, "UHH ioremap failed\n");
-@@ -638,7 +638,7 @@ static int __devinit ohci_hcd_omap3_probe(struct platform_device *pdev)
- 		goto err_uhh_ioremap;
- 	}
- 
--	res = platform_get_resource(pdev, IORESOURCE_MEM, 2);
-+	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "tll");
- 	omap->tll_base = ioremap(res->start, resource_size(res));
- 	if (!omap->tll_base) {
- 		dev_err(&pdev->dev, "TLL ioremap failed\n");
--- 
-1.6.0.4
-
+--=20
+balbi
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
