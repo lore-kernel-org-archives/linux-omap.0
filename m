@@ -1,38 +1,44 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: [TLV320AIC23] [AM3517EVM][AUDIO] codec name mis-match in
- soc_bind_dai_link
-Date: Tue, 1 Mar 2011 12:42:43 +0200
-Message-ID: <20110301124243.6c329c74.jhnikula@gmail.com>
-References: <FCCFB4CDC6E5564B9182F639FC3560870370776EC3@dbde02.ent.ti.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 04/10 v1] arm: omap: usb: create common enums and
+ structures for ehci and ohci
+Date: Tue, 1 Mar 2011 12:49:40 +0200
+Message-ID: <20110301104940.GS2942@legolas.emea.dhcp.ti.com>
+References: <1298910712-2051-1-git-send-email-keshava_mgowda@ti.com>
+ <1298910712-2051-2-git-send-email-keshava_mgowda@ti.com>
+ <1298910712-2051-3-git-send-email-keshava_mgowda@ti.com>
+ <1298910712-2051-4-git-send-email-keshava_mgowda@ti.com>
+ <1298910712-2051-5-git-send-email-keshava_mgowda@ti.com>
+Reply-To: balbi-l0cyMroinI0@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:48722 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751011Ab1CAKl2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Mar 2011 05:41:28 -0500
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC3560870370776EC3@dbde02.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1298910712-2051-5-git-send-email-keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, gadiyar-l0cyMroinI0@public.gmane.org, p-basak2-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: "Koyamangalath, Abhilash" <abhilash.kv@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "alsa-devel@vger.kernel.org" <alsa-devel@vger.kernel.org>
 
-On Tue, 1 Mar 2011 15:22:29 +0530
-"Koyamangalath, Abhilash" <abhilash.kv@ti.com> wrote:
-
-> Now, if I change the dai-link->codec_name to force-match by appending 2-001a to the codec_name in (sound/soc/omap/am3517evm.c):
-> 	static struct snd_soc_dai_link am3517evm_dai = {
-> 			:
->       	  .codec_name = "tlv320aic23-codec.2-001a ",
-> 			:
-> 	};
+On Mon, Feb 28, 2011 at 10:01:46PM +0530, Keshava Munegowda wrote:
+> Create the ehci and ohci specific platform data structures.
+> The port enum values are made common for both ehci and ohci.
 > 
-> the registration proceeds smoothly and I can see device nodes getting created. 
-> Since now there is no way to provide a customized i2c device name to a client device (or so I believe), what could be the best solution to this problem ?
-> 
-The fix above. Care to check also osk5912.c?
+> Signed-off-by: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
 
+Applying: arm: omap: usb: create common enums and structures for ehci and ohci
+error: patch failed: drivers/usb/host/ehci-omap.c:409
+error: drivers/usb/host/ehci-omap.c: patch does not apply
+Patch failed at 0005 arm: omap: usb: create common enums and structures for ehci and ohci
+When you have resolved this problem run "git am --resolved".
+If you would prefer to skip this patch, instead run "git am --skip".
+To restore the original branch and stop patching run "git am --abort".
+
+Which tree did you use as base for these patches ? I'm trying to apply
+on top of v.2.6.38-rc6
 
 -- 
-Jarkko
+balbi
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
