@@ -1,86 +1,48 @@
-From: "Varadarajan, Charulatha" <charu@ti.com>
-Subject: Re: Nokia n810 LCD (MIPID/blizzard) on 2.6.38
-Date: Tue, 1 Mar 2011 11:23:31 -0500
-Message-ID: <AANLkTikmwLoUPJrFZ2o7qsO8MbxBLe2hMbetwxeToW-Z@mail.gmail.com>
-References: <1298925943.16391.19.camel@marge>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [Patch v3 0/2] OMAP2PLUS:DSS2: use opt-clocks information from
+ hwmod.
+Date: Tue, 1 Mar 2011 18:26:21 +0200
+Message-ID: <1298996781.2049.18.camel@deskari>
+References: <1298968934-22697-1-git-send-email-sumit.semwal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:34885 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756417Ab1CAQYM convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 1 Mar 2011 11:24:12 -0500
-Received: by mail-gx0-f174.google.com with SMTP id 8so2700647gxk.5
-        for <linux-omap@vger.kernel.org>; Tue, 01 Mar 2011 08:24:11 -0800 (PST)
-In-Reply-To: <1298925943.16391.19.camel@marge>
+Received: from comal.ext.ti.com ([198.47.26.152]:50951 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755922Ab1CAQ0Y (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 1 Mar 2011 11:26:24 -0500
+Received: from dlep34.itg.ti.com ([157.170.170.115])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p21GQOQJ022506
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Tue, 1 Mar 2011 10:26:24 -0600
+Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
+	by dlep34.itg.ti.com (8.13.7/8.13.7) with ESMTP id p21GQONO000769
+	for <linux-omap@vger.kernel.org>; Tue, 1 Mar 2011 10:26:24 -0600 (CST)
+In-Reply-To: <1298968934-22697-1-git-send-email-sumit.semwal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Michael Buesch <mb@bu3sch.de>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
+To: "Semwal, Sumit" <sumit.semwal@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
+On Tue, 2011-03-01 at 02:42 -0600, Semwal, Sumit wrote:
+> This series uses information about opt-clocks provided by omap_hwmod framework
+> to select which of the non-mandatory DSS clocks are available on a given
+> platform.
+> 
+> A function pointer opt_clock_available is exported via pdata, which checks the
+> clock roles returned by hwmod database.
+> In the driver, while doing clk-get, it is checked if as per hwmod a given clock
+> is an opt-clock or not, and is handled accordingly.
+> 
+> Tested on: OMAP3430sdp
+> 
+> Sumit Semwal (2):
+>   OMAP2PLUS:DSS2: add opt_clock_available in pdata
+>   OMAP2PLUS:DSS2: Use opt_clock_available from pdata
 
-On Mon, Feb 28, 2011 at 15:45, Michael Buesch <mb@bu3sch.de> wrote:
-> The n810 LCD does not work on the 2.6.38(-rc6) kernel
-> due to changes in the OMAP GPIO-hwmod code.
->
-> The hwmod code performs a soft-reset on the GPIO
-> module. The first GPIO module carries the MIPID
-> "nreset" line, which is toggled due to the hwmod soft reset.
-> This resets Blizzard and breaks it, because
-> it assumes the LCD was left in the state that the
-> bootloader initialized it to:
+I think this set looks fine now. Applying.
 
-It is the design of hwmod framework that all the omap devices
-should be reset independent of bootloader settings. The
-corresponding board file/ the driver should take care of init settings
-of the device based on the requirement. Avoid dependency on
-bootloader.
+ Tomi
 
->
-> =A0 =A0 =A0 =A0if (!(blizzard_read_reg(BLIZZARD_PLL_DIV) & 0x80)) {
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0dev_err(fbdev->dev,
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"controller not in=
-itialized by the bootloader\n");
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0r =3D -ENODEV;
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0goto err3;
-> =A0 =A0 =A0 =A0}
->
-> My temporary workaround to this issue is to disable
-> soft reset for the first GPIO module:
->
-> =A0 =A0 =A0 =A0static struct omap_hwmod omap2420_gpio1_hwmod =3D {
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.name =A0 =A0 =A0 =A0 =A0 =3D "gpio1",
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.flags =A0 =A0 =A0 =A0 =A0=3D HWMOD_IN=
-IT_NO_RESET, /* Workaround: Don't reset the n810 MIPID */
 
-NACK.
-
-As the problem is specific to the board settings, this shall be handled
-in the board file itself.
-
->
-> I'm wondering if a better fix suitable for the mainline
-> kernel inclusion could be found.
-> Any ideas?
-
-Re-initialize the  "nreset" line of the Blizzard in the
-corresponding board file.
-
-- V Charulatha
-
->
-> --
-> Greetings, Michael.
->
->
->
->
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
