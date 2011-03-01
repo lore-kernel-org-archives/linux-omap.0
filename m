@@ -1,53 +1,46 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: [PATCH] omapfb: Fix linker error in drivers/video/omap/lcd_2430sdp.c
-Date: Tue,  1 Mar 2011 10:40:37 +0200
-Message-ID: <1298968837-13584-1-git-send-email-jhnikula@gmail.com>
-References: <1298905757.9809.135.camel@deskari>
+From: Sumit Semwal <sumit.semwal@ti.com>
+Subject: [Patch v3 0/2] OMAP2PLUS:DSS2: use opt-clocks information from hwmod.
+Date: Tue,  1 Mar 2011 14:12:12 +0530
+Message-ID: <1298968934-22697-1-git-send-email-sumit.semwal@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:56987 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755365Ab1CAIjb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Mar 2011 03:39:31 -0500
-In-Reply-To: <1298905757.9809.135.camel@deskari>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:48777 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755757Ab1CAIm2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 1 Mar 2011 03:42:28 -0500
+Received: from dlep35.itg.ti.com ([157.170.170.118])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p218gRpn001031
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Tue, 1 Mar 2011 02:42:27 -0600
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-fbdev@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, Jarkko Nikula <jhnikula@gmail.com>
+To: tomi.valkeinen@ti.com, linux-omap@vger.kernel.org
+Cc: Sumit Semwal <sumit.semwal@ti.com>
 
-There is a linker error from lcd_2430sdp.c if CONFIG_TWL4030_CORE is not
-set. This can be triggered on OMAP2 builds when OMAP3 or OMAP4 are not set.
+This series uses information about opt-clocks provided by omap_hwmod framework
+to select which of the non-mandatory DSS clocks are available on a given
+platform.
 
-drivers/built-in.o: In function `sdp2430_panel_disable':
-drivers/video/omap/lcd_2430sdp.c:123: undefined reference to `twl_i2c_write_u8'
-drivers/video/omap/lcd_2430sdp.c:124: undefined reference to `twl_i2c_write_u8'
-drivers/built-in.o: In function `sdp2430_panel_enable':
-drivers/video/omap/lcd_2430sdp.c:110: undefined reference to `twl_i2c_write_u8'
-drivers/video/omap/lcd_2430sdp.c:112: undefined reference to `twl_i2c_write_u8'
+A function pointer opt_clock_available is exported via pdata, which checks the
+clock roles returned by hwmod database.
+In the driver, while doing clk-get, it is checked if as per hwmod a given clock
+is an opt-clock or not, and is handled accordingly.
 
-Fix this by selecting the TWL4030_CORE for MACH_OMAP_2430SDP when building
-with CONFIG_FB_OMAP as there is no own Kconfig entry for lcd_2430 and it is
-compiled always when both MACH_OMAP_2430SDP and FB_OMAP are set.
+Tested on: OMAP3430sdp
 
-Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
----
-Quite old issue probably. I don't think any fancier fix is required as this
-is legacy omapfb code?
----
- drivers/video/omap/Kconfig |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+Sumit Semwal (2):
+  OMAP2PLUS:DSS2: add opt_clock_available in pdata
+  OMAP2PLUS:DSS2: Use opt_clock_available from pdata
 
-diff --git a/drivers/video/omap/Kconfig b/drivers/video/omap/Kconfig
-index 083c8fe..c981249 100644
---- a/drivers/video/omap/Kconfig
-+++ b/drivers/video/omap/Kconfig
-@@ -5,6 +5,7 @@ config FB_OMAP
- 	select FB_CFB_FILLRECT
- 	select FB_CFB_COPYAREA
- 	select FB_CFB_IMAGEBLIT
-+	select TWL4030_CORE if MACH_OMAP_2430SDP
- 	help
-           Frame buffer driver for OMAP based boards.
- 
--- 
-1.7.2.3
+changes from v2:
+- made oh_core a static variable, looked up only once in omap_display_init.
+
+changes from v1:
+- made opt_clock_available a function pointer in the omap_display_platform_data
+  to avoid having to copy the opt-clock role names.
+
+
+ arch/arm/mach-omap2/display.c             |   22 ++++++++++++++
+ arch/arm/plat-omap/include/plat/display.h |    2 +
+ drivers/video/omap2/dss/dss.c             |   46 +++++++++++++++++++----------
+ 3 files changed, 54 insertions(+), 16 deletions(-)
 
