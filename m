@@ -1,62 +1,148 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 0/3] OMAP2+ hwmod fixes
-Date: Tue, 1 Mar 2011 17:57:45 +0100
-Message-ID: <4D6D2589.3090505@ti.com>
-References: <1297858285-7056-1-git-send-email-rnayak@ti.com> <4D5BCC10.2060301@ti.com> <6cc4b2788ff1e15c22987d5db91f0395@mail.gmail.com> <4D5E85EA.70605@ti.com> <alpine.DEB.2.00.1102210901140.22636@utopia.booyaka.com> <e6550ef1ea27499e3bc093e264c54d0f@mail.gmail.com> <alpine.DEB.2.00.1102221200260.22636@utopia.booyaka.com> <19850e063c924a8a30c69ac02621a659@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+From: tom.leiming@gmail.com
+Subject: [patch v1 3/3] arm: omap4: support pmu
+Date: Wed,  2 Mar 2011 00:58:31 +0800
+Message-ID: <1298998711-8165-4-git-send-email-tom.leiming@gmail.com>
+References: <1298998711-8165-1-git-send-email-tom.leiming@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:43317 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752551Ab1CAQ5v (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 1 Mar 2011 11:57:51 -0500
-In-Reply-To: <19850e063c924a8a30c69ac02621a659@mail.gmail.com>
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:61743 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752466Ab1CAQ7T (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Mar 2011 11:59:19 -0500
+Received: by pzk35 with SMTP id 35so831401pzk.19
+        for <linux-omap@vger.kernel.org>; Tue, 01 Mar 2011 08:59:19 -0800 (PST)
+In-Reply-To: <1298998711-8165-1-git-send-email-tom.leiming@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Nayak, Rajendra" <rnayak@ti.com>, Paul Walmsley <paul@pwsan.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: linux@arm.linux.org.uk
+Cc: linux-arm-kernel@lists.infradead.org, will.deacon@arm.com, Ming Lei <tom.leiming@gmail.com>, Woodruff Richard <r-woodruff2@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-Hi Paul,
+From: Ming Lei <tom.leiming@gmail.com>
 
-On 2/23/2011 11:05 AM, Nayak, Rajendra wrote:
-> Hi Paul,
->
->> From: Paul Walmsley [mailto:paul@pwsan.com]
->> Sent: Wednesday, February 23, 2011 12:40 AM
->>
->> Hi Rajendra
->>
->> On Tue, 22 Feb 2011, Rajendra Nayak wrote:
->>
->>> The original behavior of the iterators, to terminate upon
->>> encountering an error, seems fine to me. The only problem
->>> I faced was that they fail silently and go undetected, unless
->>> their user catches the return value and WARN's, which I found
->>> was not the case with most users, mainly those of
->>> omap_hwmod_for_each_by_class.
->>> I was thinking of keeping the behaviour of these iterators
->>> same for now and add WARN's in these iterators itself upon
->>> an error, so its seen even if the user fails to catch it.
->>
->> What's your opinion on adding the pr_err() or WARN() into the code that
->> the iterator calls for each hwmod?  That code should know why something
->> fails, so it should be able to provide a more detailed error message.
-> Of
->> course, it is not as general a solution...
->
-> I agree, if the callback functions are written with proper errors
-> or WARN's, they are the right place where most of the details'
-> exist. So maybe we don't need these in the iterator's after all.
+This patch supports pmu irq routed from CTI, so
+make pmu/perf working on OMAP4.
 
-So to conclude, I will drop the #3 and just push #1 and #2.
+The idea is from Woodruff Richard in the disscussion
+"Oprofile on Pandaboard / Omap4" of pandaboard@googlegroups.com.
 
-#1 is fine with addition of the WARN.
-#2 does return an error but does not print anything, but since each call 
-(_init_main_clk, _init_interface_clks, _init_opt_clks) does report
-some pr_warn in case of error, this is fine.
+Cc: Woodruff Richard <r-woodruff2@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
+Signed-off-by: Ming Lei <tom.leiming@gmail.com>
+---
+ arch/arm/mach-omap2/dbg44xx.h |   18 +++++++++++++
+ arch/arm/mach-omap2/devices.c |   55 ++++++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 72 insertions(+), 1 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/dbg44xx.h
 
-
-Regards,
-Benoit
+diff --git a/arch/arm/mach-omap2/dbg44xx.h b/arch/arm/mach-omap2/dbg44xx.h
+new file mode 100644
+index 0000000..e447ad5
+--- /dev/null
++++ b/arch/arm/mach-omap2/dbg44xx.h
+@@ -0,0 +1,18 @@
++/*
++ * OMAP44xx on-chip debug support
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * XXX This file needs to be updated to align on one of "OMAP4", "OMAP44XX",
++ *     or "OMAP4430".
++ */
++
++#ifndef __ARCH_ARM_MACH_OMAP2_DBG44XX_H
++#define __ARCH_ARM_MACH_OMAP2_DBG44XX_H
++
++#define OMAP44XX_CTI0_BASE		0x54148000
++#define OMAP44XX_CTI1_BASE		0x54149000
++
++#endif
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index d216976..0420a58 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -35,6 +35,7 @@
+ 
+ #include "mux.h"
+ #include "control.h"
++#include "dbg44xx.h"
+ 
+ #if defined(CONFIG_VIDEO_OMAP2) || defined(CONFIG_VIDEO_OMAP2_MODULE)
+ 
+@@ -322,19 +323,71 @@ static struct resource omap3_pmu_resource = {
+ 	.flags	= IORESOURCE_IRQ,
+ };
+ 
++static struct resource omap4_pmu_resource[] = {
++	{
++	.start	= OMAP44XX_IRQ_CTI0,
++	.end	= OMAP44XX_IRQ_CTI0,
++	.flags	= IORESOURCE_IRQ,
++	},
++	{
++	.start	= OMAP44XX_IRQ_CTI1,
++	.end	= OMAP44XX_IRQ_CTI1,
++	.flags	= IORESOURCE_IRQ,
++	}
++};
++
+ static struct platform_device omap_pmu_device = {
+ 	.name		= "arm-pmu",
+ 	.id		= ARM_PMU_DEVICE_CPU,
+ 	.num_resources	= 1,
+ };
+ 
++struct arm_pmu_platdata omap4_pmu_data;
++
++static void omap4_configure_pmu_irq(void)
++{
++	void *base0;
++	void *base1;
++
++	base0 = ioremap(OMAP44XX_CTI0_BASE, 4096);
++	base1 = ioremap(OMAP44XX_CTI1_BASE, 4096);
++	if (!base0 && !base1) {
++		pr_err("ioremap for omap4 CTI failed\n");
++		return;
++	}
++
++	/*configure CTI0 for pmu irq routing*/
++	cti_init(&omap4_pmu_data.cti[0], base0,
++			OMAP44XX_IRQ_CTI0, 6);
++	cti_unlock(&omap4_pmu_data.cti[0]);
++	cti_map_trigger(&omap4_pmu_data.cti[0],
++			1, 6, 2);
++
++	/*configure CTI1 for pmu irq routing*/
++	cti_init(&omap4_pmu_data.cti[1], base1,
++			OMAP44XX_IRQ_CTI1, 6);
++	cti_unlock(&omap4_pmu_data.cti[1]);
++	cti_map_trigger(&omap4_pmu_data.cti[1],
++			1, 6, 3);
++
++	omap4_pmu_data.cti_cnt = 2;
++	omap4_pmu_data.use_cti_irq = 1;
++	omap4_pmu_data.handle_irq = NULL;
++}
++
+ static void omap_init_pmu(void)
+ {
+ 	if (cpu_is_omap24xx())
+ 		omap_pmu_device.resource = &omap2_pmu_resource;
+ 	else if (cpu_is_omap34xx())
+ 		omap_pmu_device.resource = &omap3_pmu_resource;
+-	else
++	else if (cpu_is_omap44xx()) {
++		omap_pmu_device.resource = omap4_pmu_resource;
++		omap_pmu_device.num_resources = 2;
++		platform_set_drvdata(&omap_pmu_device, &omap4_pmu_data);
++
++		omap4_configure_pmu_irq();
++	} else
+ 		return;
+ 
+ 	platform_device_register(&omap_pmu_device);
+-- 
+1.7.3
 
