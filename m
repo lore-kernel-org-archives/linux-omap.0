@@ -1,129 +1,53 @@
-From: archit taneja <archit@ti.com>
-Subject: Re: [PATCH 4/4] OMAP: DSS2: Check for SDI HW before accessing SDI
- registers
-Date: Tue, 1 Mar 2011 14:02:39 +0530
-Message-ID: <4D6CAF27.9040800@ti.com>
-References: <1298554461-9879-1-git-send-email-tomi.valkeinen@ti.com>	 <1298554461-9879-4-git-send-email-tomi.valkeinen@ti.com>	 <4D6C96E9.20206@ti.com> <1298965117.2011.17.camel@deskari>	 <4D6CA460.7080002@ti.com> <1298966418.2011.34.camel@deskari>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: [PATCH] omapfb: Fix linker error in drivers/video/omap/lcd_2430sdp.c
+Date: Tue,  1 Mar 2011 10:40:37 +0200
+Message-ID: <1298968837-13584-1-git-send-email-jhnikula@gmail.com>
+References: <1298905757.9809.135.camel@deskari>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:48141 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754364Ab1CAI3u (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 1 Mar 2011 03:29:50 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p218TlSx025698
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 1 Mar 2011 02:29:49 -0600
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id p218Tlxf012391
-	for <linux-omap@vger.kernel.org>; Tue, 1 Mar 2011 13:59:47 +0530 (IST)
-In-Reply-To: <1298966418.2011.34.camel@deskari>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:56987 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755365Ab1CAIjb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Mar 2011 03:39:31 -0500
+In-Reply-To: <1298905757.9809.135.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-fbdev@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, Jarkko Nikula <jhnikula@gmail.com>
 
-On Tuesday 01 March 2011 01:30 PM, Valkeinen, Tomi wrote:
-> On Tue, 2011-03-01 at 01:46 -0600, Taneja, Archit wrote:
->> Hi,
->>
->> On Tuesday 01 March 2011 01:08 PM, Valkeinen, Tomi wrote:
->>> On Tue, 2011-03-01 at 00:49 -0600, Taneja, Archit wrote:
->>>> Hi,
->>>>
->>>> On Thursday 24 February 2011 07:04 PM, Valkeinen, Tomi wrote:
->>>>> Only OMAP 3430 hardware has SDI support. The availability of SDI HW can
->>>>> be found out by checking if the LCD channel supports SDI displays.
->>>>>
->>>>> This patch checks for SDI HW support before accessing SDI registers,
->>>>> which fixes a crash on OMAP4 when SDI SW support is compiled in.
->>>>>
->>>>> Signed-off-by: Tomi Valkeinen<tomi.valkeinen@ti.com>
->>>>> ---
->>>>>     drivers/video/omap2/dss/display.c |   10 ++++++++++
->>>>>     drivers/video/omap2/dss/dss.c     |   29 ++++++++++++++++++-----------
->>>>>     2 files changed, 28 insertions(+), 11 deletions(-)
->>>>>
->>>>> diff --git a/drivers/video/omap2/dss/display.c b/drivers/video/omap2/dss/display.c
->>>>> index 3f4fa0b..58459f4 100644
->>>>> --- a/drivers/video/omap2/dss/display.c
->>>>> +++ b/drivers/video/omap2/dss/display.c
->>>>> @@ -30,6 +30,7 @@
->>>>>
->>>>>     #include<plat/display.h>
->>>>>     #include "dss.h"
->>>>> +#include "dss_features.h"
->>>>>
->>>>>     static LIST_HEAD(display_list);
->>>>>
->>>>> @@ -392,6 +393,15 @@ void dss_init_device(struct platform_device *pdev,
->>>>>     	struct device_attribute *attr;
->>>>>     	int i;
->>>>>     	int r;
->>>>> +	enum omap_display_type supported;
->>>>> +
->>>>> +	supported = dss_feat_get_supported_displays(dssdev->channel);
->>>>> +
->>>>> +	if (!(supported&    dssdev->type)) {
->>>>> +		DSSERR("Unsupported display interface for display '%s'.\n",
->>>>> +				dssdev->name);
->>>>> +		return;
->>>>> +	}
->>>>
->>>> This would make it necessary to specify the channel in the board file,
->>>> especially digit. I think this patch should also add the channel
->>>> parameters for all board files which add a tv display.
->>>
->>> Argh. You're right, dssdev->channel is not what I thought it is. That is
->>> rather confusing. I remember this was discussed when that
->>> dssdev->channel was introduced.
->>>
->>> I believe this should work if I change dssdev->channel to
->>> dssdev->manager->id.
->>>
->>
->> I am not sure it will work, dss_init_device is called before
->> dss_recheck_connections which sets the manager for the display.
->>
->> Hence, dssdev->manager will be NULL.
->
-> True.
->
->>> But this dssdev->channel has to be fixed somehow, I'm 100% sure this
->>> won't be the last time somebody tries to use it =).
->>>
->>
->> I think after the managers are set, we should somehow make the channel
->> parameter "void".
->
-> Perhaps not. It is a valid piece of information, isn't it? It tells to
-> which output channel this device is connected on the hardware level.
-> That and display type is needed to describe how the panel is connected
-> and how the DSS outputs should be set up.
->
-> Looking at manager.c:omap_dss_set_device, which checks if a device can
-> be attached to a manager, it only checks:
->
-> 	if ((mgr->supported_displays&  dssdev->type) == 0) {
->
-> Which means it doesn't work properly for OMAP4. Here we would also need
-> the dssdev->channel information, wouldn't we?
+There is a linker error from lcd_2430sdp.c if CONFIG_TWL4030_CORE is not
+set. This can be triggered on OMAP2 builds when OMAP3 or OMAP4 are not set.
 
-We have already done the check with dssdev->channel before calling 
-omap_dss_set_device in dss_recheck_connections in overlay.c, but since 
-dss_recheck_connections is a one time affair, and set_device / 
-unset_device can be called later on, I agree that it would be a better 
-idea to move the dssdev->channel checks into omap_dss_set_device rather 
-than keeping it recheck_connections.
+drivers/built-in.o: In function `sdp2430_panel_disable':
+drivers/video/omap/lcd_2430sdp.c:123: undefined reference to `twl_i2c_write_u8'
+drivers/video/omap/lcd_2430sdp.c:124: undefined reference to `twl_i2c_write_u8'
+drivers/built-in.o: In function `sdp2430_panel_enable':
+drivers/video/omap/lcd_2430sdp.c:110: undefined reference to `twl_i2c_write_u8'
+drivers/video/omap/lcd_2430sdp.c:112: undefined reference to `twl_i2c_write_u8'
 
->
-> But this seems a bit confusing to me. I need to study this more.
->
-> For the time being, I think I can just remove the piece of code above,
-> as 1) it doesn't work right and 2) it's only needed in case the board
-> file is set up wrong.
->
+Fix this by selecting the TWL4030_CORE for MACH_OMAP_2430SDP when building
+with CONFIG_FB_OMAP as there is no own Kconfig entry for lcd_2430 and it is
+compiled always when both MACH_OMAP_2430SDP and FB_OMAP are set.
 
-Okay.
+Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
+---
+Quite old issue probably. I don't think any fancier fix is required as this
+is legacy omapfb code?
+---
+ drivers/video/omap/Kconfig |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/video/omap/Kconfig b/drivers/video/omap/Kconfig
+index 083c8fe..c981249 100644
+--- a/drivers/video/omap/Kconfig
++++ b/drivers/video/omap/Kconfig
+@@ -5,6 +5,7 @@ config FB_OMAP
+ 	select FB_CFB_FILLRECT
+ 	select FB_CFB_COPYAREA
+ 	select FB_CFB_IMAGEBLIT
++	select TWL4030_CORE if MACH_OMAP_2430SDP
+ 	help
+           Frame buffer driver for OMAP based boards.
+ 
+-- 
+1.7.2.3
+
