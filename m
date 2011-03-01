@@ -1,53 +1,62 @@
-From: Michael =?ISO-8859-1?Q?B=FCsch?= <mb@bu3sch.de>
-Subject: Re: Nokia n810 LCD (MIPID/blizzard) on 2.6.38
-Date: Tue, 01 Mar 2011 17:29:41 +0100
-Message-ID: <1298996981.6461.5.camel@maggie>
-References: <1298925943.16391.19.camel@marge>
-	 <AANLkTikmwLoUPJrFZ2o7qsO8MbxBLe2hMbetwxeToW-Z@mail.gmail.com>
-	 (sfid-20110301_172419_032506_64300D9A)
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH 0/3] OMAP2+ hwmod fixes
+Date: Tue, 1 Mar 2011 17:57:45 +0100
+Message-ID: <4D6D2589.3090505@ti.com>
+References: <1297858285-7056-1-git-send-email-rnayak@ti.com> <4D5BCC10.2060301@ti.com> <6cc4b2788ff1e15c22987d5db91f0395@mail.gmail.com> <4D5E85EA.70605@ti.com> <alpine.DEB.2.00.1102210901140.22636@utopia.booyaka.com> <e6550ef1ea27499e3bc093e264c54d0f@mail.gmail.com> <alpine.DEB.2.00.1102221200260.22636@utopia.booyaka.com> <19850e063c924a8a30c69ac02621a659@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 80-190-117-144.ip-home.de ([80.190.117.144]:57774 "EHLO
-	bu3sch.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756298Ab1CAQ3r (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 1 Mar 2011 11:29:47 -0500
-In-Reply-To: <AANLkTikmwLoUPJrFZ2o7qsO8MbxBLe2hMbetwxeToW-Z@mail.gmail.com> (sfid-20110301_172419_032506_64300D9A)
+Received: from bear.ext.ti.com ([192.94.94.41]:43317 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752551Ab1CAQ5v (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 1 Mar 2011 11:57:51 -0500
+In-Reply-To: <19850e063c924a8a30c69ac02621a659@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Varadarajan, Charulatha" <charu@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
+To: "Nayak, Rajendra" <rnayak@ti.com>, Paul Walmsley <paul@pwsan.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Tue, 2011-03-01 at 11:23 -0500, Varadarajan, Charulatha wrote: 
-> > My temporary workaround to this issue is to disable
-> > soft reset for the first GPIO module:
-> >
-> >        static struct omap_hwmod omap2420_gpio1_hwmod = {
-> >                .name           = "gpio1",
-> >                .flags          = HWMOD_INIT_NO_RESET, /* Workaround: Don't reset the n810 MIPID */
-> 
-> NACK.
-> 
-> As the problem is specific to the board settings, this shall be handled
-> in the board file itself.
+Hi Paul,
 
-Yeah, sure. But how can I handle this in the board file? Is
-there a hwmod API for this?
+On 2/23/2011 11:05 AM, Nayak, Rajendra wrote:
+> Hi Paul,
+>
+>> From: Paul Walmsley [mailto:paul@pwsan.com]
+>> Sent: Wednesday, February 23, 2011 12:40 AM
+>>
+>> Hi Rajendra
+>>
+>> On Tue, 22 Feb 2011, Rajendra Nayak wrote:
+>>
+>>> The original behavior of the iterators, to terminate upon
+>>> encountering an error, seems fine to me. The only problem
+>>> I faced was that they fail silently and go undetected, unless
+>>> their user catches the return value and WARN's, which I found
+>>> was not the case with most users, mainly those of
+>>> omap_hwmod_for_each_by_class.
+>>> I was thinking of keeping the behaviour of these iterators
+>>> same for now and add WARN's in these iterators itself upon
+>>> an error, so its seen even if the user fails to catch it.
+>>
+>> What's your opinion on adding the pr_err() or WARN() into the code that
+>> the iterator calls for each hwmod?  That code should know why something
+>> fails, so it should be able to provide a more detailed error message.
+> Of
+>> course, it is not as general a solution...
+>
+> I agree, if the callback functions are written with proper errors
+> or WARN's, they are the right place where most of the details'
+> exist. So maybe we don't need these in the iterator's after all.
 
-> > I'm wondering if a better fix suitable for the mainline
-> > kernel inclusion could be found.
-> > Any ideas?
-> 
-> Re-initialize the  "nreset" line of the Blizzard in the
-> corresponding board file.
+So to conclude, I will drop the #3 and just push #1 and #2.
 
-That is not sufficient. The blizzard chip has to be reinitialized
-completely.
-Code for that doesn't exist in the current driver. It currently depends
-on the bootloader doing the lowlevel init. As long as I don't have
-documentation for that chip, I'm stuck with that.
+#1 is fine with addition of the WARN.
+#2 does return an error but does not print anything, but since each call 
+(_init_main_clk, _init_interface_clks, _init_opt_clks) does report
+some pr_warn in case of error, this is fine.
 
--- 
-Greetings Michael.
+
+Regards,
+Benoit
 
