@@ -1,55 +1,48 @@
-From: Abhilash K V <abhilash.kv@ti.com>
-Subject: [PATCH] audio:am3517evm support for AIC23
-Date: Tue,  1 Mar 2011 21:13:38 +0530
-Message-ID: <1298994218-30610-1-git-send-email-abhilash.kv@ti.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org
-Cc: Abhilash K V <abhilash.kv@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [patch-v2.6.39 03/12] usb: musb: gadget: do not poke with
+ gadget's list_head
+Date: Tue, 1 Mar 2011 17:44:44 +0200
+Message-ID: <20110301154444.GI12368@legolas.emea.dhcp.ti.com>
+References: <1297946329-9353-1-git-send-email-balbi@ti.com>
+ <1297946329-9353-4-git-send-email-balbi@ti.com>
+ <loom.20110225T201502-888@post.gmane.org>
+ <20110228084311.GJ2459@legolas.emea.dhcp.ti.com>
+ <4D6D1295.1020809@emsys.de>
+ <20110301153918.GF12368@legolas.emea.dhcp.ti.com>
+ <20110301154059.GG12368@legolas.emea.dhcp.ti.com>
+Reply-To: balbi@ti.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:51811 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756678Ab1CAPos (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Mar 2011 10:44:48 -0500
+Received: by mail-bw0-f45.google.com with SMTP id 16so5686215bwz.18
+        for <linux-omap@vger.kernel.org>; Tue, 01 Mar 2011 07:44:47 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <20110301154059.GG12368@legolas.emea.dhcp.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Pavol Kurina <pavol.kurina@emsys.de>, linux-omap@vger.kernel.org
 
-This patch aims to fix the registration of the AIC23-based audio
-module on the AM3517-EVM, with the following two changes:
+On Tue, Mar 01, 2011 at 05:40:59PM +0200, Felipe Balbi wrote:
+> Hi,
+> 
+> On Tue, Mar 01, 2011 at 05:39:18PM +0200, Felipe Balbi wrote:
+> > >         /* if the hardware doesn't have the request, easy ... */
+> > > -       if (musb_ep->req_list.next != &request->list || musb_ep->busy)
+> > > +       if (musb_ep->req_list.next != &req->list || musb_ep->busy)
+> > >                 musb_g_giveback(musb_ep, request, -ECONNRESET);
+> > > 
+> > 
+> > I'll fix it before Greg pulls, thanks
+> 
+> fixed and pushed to for-next. Greg, now it seems to be safe to pull.
 
-1. The i2c_board_info entry supporting aic23 codec was added into
-   the i2c2 bus.
-2. The i2c client device name (".2-001a" in this case, including
-   the separator period) was appended to the codec_name member of
-   am3517evm_dai to resolve the names mismatch happening in
-   soc_bind_dai_link().
+to late, please send me a patch fixing that when we're in -rc. I'm not
+sending pull requests for the merge window anymore :-(
 
-Signed-off-by: Abhilash K V <abhilash.kv@ti.com>
----
- arch/arm/mach-omap2/board-am3517evm.c |    3 +++
- sound/soc/omap/am3517evm.c            |    2 +-
- 2 files changed, 4 insertions(+), 1 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
-index ad71cbf..8da8d20 100644
---- a/arch/arm/mach-omap2/board-am3517evm.c
-+++ b/arch/arm/mach-omap2/board-am3517evm.c
-@@ -358,6 +358,9 @@ static struct pca953x_platform_data am3517evm_gpio_expander_info_0 = {
- };
- static struct i2c_board_info __initdata am3517evm_i2c2_boardinfo[] = {
- 	{
-+		I2C_BOARD_INFO("tlv320aic23", 0x1A),
-+	},
-+	{
- 		I2C_BOARD_INFO("tca6416", 0x21),
- 		.platform_data = &am3517evm_gpio_expander_info_0,
- 	},
-diff --git a/sound/soc/omap/am3517evm.c b/sound/soc/omap/am3517evm.c
-index 979dd50..ddbd2a1 100644
---- a/sound/soc/omap/am3517evm.c
-+++ b/sound/soc/omap/am3517evm.c
-@@ -139,7 +139,7 @@ static struct snd_soc_dai_link am3517evm_dai = {
- 	.cpu_dai_name ="omap-mcbsp-dai.0",
- 	.codec_dai_name = "tlv320aic23-hifi",
- 	.platform_name = "omap-pcm-audio",
--	.codec_name = "tlv320aic23-codec",
-+	.codec_name = "tlv320aic23-codec.2-001a",
- 	.init = am3517evm_aic23_init,
- 	.ops = &am3517evm_ops,
- };
 -- 
-1.6.2.4
+balbi
