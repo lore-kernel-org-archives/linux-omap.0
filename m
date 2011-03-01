@@ -1,128 +1,92 @@
-From: sricharan <r.sricharan@ti.com>
-Subject: [PATCH v3 4/5] omap4: board-omap4panda: Initialise the serial pads.
-Date: Tue,  1 Mar 2011 23:47:23 +0530
-Message-ID: <1299003443-32192-1-git-send-email-r.sricharan@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48443 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756491Ab1CASQT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 1 Mar 2011 13:16:19 -0500
-Sender: linux-omap-owner@vger.kernel.org
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: Re: [PATCH] audio:am3517evm support for AIC23
+Date: Tue, 1 Mar 2011 20:37:22 +0200
+Message-ID: <20110301203722.3ba044e5.jhnikula@gmail.com>
+References: <1298994218-30610-1-git-send-email-abhilash.kv@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <1298994218-30610-1-git-send-email-abhilash.kv@ti.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Abhilash K V <abhilash.kv@ti.com>
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: tony@atomide.com, b-cousson@ti.com, paul@pswan.com, santosh.shilimkar@ti.com
 
-Use the mux framework to initialise the serial pads.
+Hi
 
-Signed-off-by: sricharan <r.sricharan@ti.com>
----
-v1: Initial patch
-v2: Remove flags that were to be used for only testing.
-v3: Add dummy initialisation for uart0.
+On Tue,  1 Mar 2011 21:13:38 +0530
+Abhilash K V <abhilash.kv@ti.com> wrote:
 
- arch/arm/mach-omap2/board-omap4panda.c |   80 +++++++++++++++++++++++++++++++-
- 1 files changed, 79 insertions(+), 1 deletions(-)
+> This patch aims to fix the registration of the AIC23-based audio
+> module on the AM3517-EVM, with the following two changes:
+> 
+> 1. The i2c_board_info entry supporting aic23 codec was added into
+>    the i2c2 bus.
+> 2. The i2c client device name (".2-001a" in this case, including
+>    the separator period) was appended to the codec_name member of
+>    am3517evm_dai to resolve the names mismatch happening in
+>    soc_bind_dai_link().
+> 
+> Signed-off-by: Abhilash K V <abhilash.kv@ti.com>
+> ---
+>  arch/arm/mach-omap2/board-am3517evm.c |    3 +++
+>  sound/soc/omap/am3517evm.c            |    2 +-
+>  2 files changed, 4 insertions(+), 1 deletions(-)
+> 
+First, your patch does the correct things.
 
-diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
-index 3dd241b..0794d3c 100644
---- a/arch/arm/mach-omap2/board-omap4panda.c
-+++ b/arch/arm/mach-omap2/board-omap4panda.c
-@@ -452,8 +452,86 @@ static struct omap_board_mux board_mux[] __initdata = {
- 	OMAP4_MUX(SDMMC5_DAT3, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP),
- 	{ .reg_offset = OMAP_MUX_TERMINATOR },
- };
-+
-+
-+static struct omap_device_pad serial2_pads[] __initdata = {
-+	{ .name   = "uart2_cts.uart2_cts",
-+	  .enable = OMAP_PIN_INPUT_PULLUP | OMAP_MUX_MODE0,
-+	},
-+	{ .name   = "uart2_rts.uart2_rts",
-+	  .enable = OMAP_PIN_OUTPUT | OMAP_MUX_MODE0,
-+	},
-+	{ .name   = "uart2_rx.uart2_rx",
-+	  .enable = OMAP_PIN_INPUT_PULLUP | OMAP_MUX_MODE0,
-+	},
-+	{ .name   = "uart2_tx.uart2_tx",
-+	  .enable = OMAP_PIN_OUTPUT | OMAP_MUX_MODE0,
-+	},
-+};
-+
-+static struct omap_device_pad serial3_pads[] __initdata = {
-+	{ .name   = "uart3_cts_rctx.uart3_cts_rctx",
-+	  .enable = OMAP_PIN_INPUT_PULLUP | OMAP_MUX_MODE0,
-+	},
-+	{ .name   = "uart3_rts_sd.uart3_rts_sd",
-+	  .enable = OMAP_PIN_OUTPUT | OMAP_MUX_MODE0,
-+	},
-+	{ .name   = "uart3_rx_irrx.uart3_rx_irrx",
-+	  .enable = OMAP_PIN_INPUT | OMAP_MUX_MODE0,
-+	},
-+	{ .name   = "uart3_tx_irtx.uart3_tx_irtx",
-+	  .enable = OMAP_PIN_OUTPUT | OMAP_MUX_MODE0,
-+	},
-+};
-+
-+static struct omap_device_pad serial4_pads[] __initdata = {
-+	{ .name   = "uart4_rx.uart4_rx",
-+	.enable = OMAP_PIN_INPUT | OMAP_MUX_MODE0,
-+	},
-+	{ .name   = "uart4_tx.uart4_tx",
-+	  .enable = OMAP_PIN_OUTPUT | OMAP_MUX_MODE0,
-+	},
-+};
-+
-+static struct omap_board_data serial2_data = {
-+	.id             = 1,
-+	.pads           = serial2_pads,
-+	.pads_cnt       = ARRAY_SIZE(serial2_pads),
-+};
-+
-+static struct omap_board_data serial3_data = {
-+	.id             = 2,
-+	.pads           = serial3_pads,
-+	.pads_cnt       = ARRAY_SIZE(serial3_pads),
-+};
-+
-+static struct omap_board_data serial4_data = {
-+	.id             = 3,
-+	.pads           = serial4_pads,
-+	.pads_cnt       = ARRAY_SIZE(serial4_pads),
-+};
-+
-+static inline void board_serial_init(void)
-+{
-+	struct omap_board_data bdata;
-+	bdata.flags     = 0;
-+	bdata.pads      = NULL;
-+	bdata.pads_cnt  = 0;
-+	bdata.id        = 0;
-+	/* pass dummy data for UART1 */
-+	omap_serial_init_port(&bdata);
-+
-+	omap_serial_init_port(&serial2_data);
-+	omap_serial_init_port(&serial3_data);
-+	omap_serial_init_port(&serial4_data);
-+}
- #else
- #define board_mux	NULL
-+
-+static inline void board_serial_init(void)
-+{
-+	omap_serial_init();
-+}
- #endif
- 
- static void __init omap4_panda_init(void)
-@@ -470,7 +548,7 @@ static void __init omap4_panda_init(void)
- 	omap4_panda_i2c_init();
- 	platform_add_devices(panda_devices, ARRAY_SIZE(panda_devices));
- 	platform_device_register(&omap_vwlan_device);
--	omap_serial_init();
-+	board_serial_init();
- 	omap4_twl6030_hsmmc_init(mmc);
- 	omap4_ehci_init();
- 	usb_musb_init(&musb_board_data);
--- 
-1.7.0.4
+I investigated a bit and it looks like the sound/soc/omap/am3517evm.c
+never worked in mainline since the patch below adding codec to
+board-am3517evm.c wasn't applied by reason or another.
 
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg18470.html
+
+This means that you should split this patch into two and they can be
+sent as independent patches. am3517evm.c change via alsa-devel
+and board-am3517evm.c via linux-omap & linux-arm-kernel. Some comments
+below.
+
+> diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
+> index ad71cbf..8da8d20 100644
+> --- a/arch/arm/mach-omap2/board-am3517evm.c
+> +++ b/arch/arm/mach-omap2/board-am3517evm.c
+> @@ -358,6 +358,9 @@ static struct pca953x_platform_data am3517evm_gpio_expander_info_0 = {
+>  };
+>  static struct i2c_board_info __initdata am3517evm_i2c2_boardinfo[] = {
+>  	{
+> +		I2C_BOARD_INFO("tlv320aic23", 0x1A),
+> +	},
+> +	{
+
+This is ok and don't need anything else as the rest pieces from
+original missing patch are added by another patches.
+
+> --- a/sound/soc/omap/am3517evm.c
+> +++ b/sound/soc/omap/am3517evm.c
+> @@ -139,7 +139,7 @@ static struct snd_soc_dai_link am3517evm_dai = {
+>  	.cpu_dai_name ="omap-mcbsp-dai.0",
+>  	.codec_dai_name = "tlv320aic23-hifi",
+>  	.platform_name = "omap-pcm-audio",
+> -	.codec_name = "tlv320aic23-codec",
+> +	.codec_name = "tlv320aic23-codec.2-001a",
+>  	.init = am3517evm_aic23_init,
+>  	.ops = &am3517evm_ops,
+>  };
+
+Subject for this part could be something like
+"ASoC: AM3517: Update codec name after multi-component update".
+
+Remember to cc ASoC maintainers Mark Brown and Liam Girdwood.
+
+You could add my acks to splitted patches.
+
+Acked-by: Jarkko Nikula <jhnikula@gmail.com>
