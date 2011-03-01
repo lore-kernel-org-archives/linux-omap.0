@@ -1,67 +1,82 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH] OMAP2+: PM: Warn users of sleep_while_idle if !CONFIG_CPU_IDLE
-Date: Tue, 01 Mar 2011 13:54:17 -0800
-Message-ID: <87sjv6h5h2.fsf@ti.com>
-References: <1297857860-3713-1-git-send-email-rnayak@ti.com>
+Subject: Re: [PATCH 3/4] OMAP: Voltage: add ABB structures and data
+Date: Tue, 01 Mar 2011 14:05:56 -0800
+Message-ID: <87mxleh4xn.fsf@ti.com>
+References: <1298020853-13761-1-git-send-email-mturquette@ti.com>
+	<1298020853-13761-3-git-send-email-mturquette@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:35258 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753068Ab1CAVyU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Mar 2011 16:54:20 -0500
-Received: by mail-iy0-f176.google.com with SMTP id 12so5146144iyj.7
-        for <linux-omap@vger.kernel.org>; Tue, 01 Mar 2011 13:54:20 -0800 (PST)
-In-Reply-To: <1297857860-3713-1-git-send-email-rnayak@ti.com> (Rajendra
-	Nayak's message of "Wed, 16 Feb 2011 17:34:20 +0530")
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:43784 "EHLO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753055Ab1CAWGA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Mar 2011 17:06:00 -0500
+Received: by iwr19 with SMTP id 19so5773205iwr.2
+        for <linux-omap@vger.kernel.org>; Tue, 01 Mar 2011 14:05:59 -0800 (PST)
+In-Reply-To: <1298020853-13761-3-git-send-email-mturquette@ti.com> (Mike
+	Turquette's message of "Fri, 18 Feb 2011 03:20:52 -0600")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Mike Turquette <mturquette@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-Rajendra Nayak <rnayak@ti.com> writes:
+Hi Mike,
 
-> This should help users who do a
-> 'echo 1 > /debug/pm_debug/sleep_while_idle' with a
-> config which has !CONFIG_CPU_IDLE and wonder
-> why OMAP is'nt sleeping in idle.
+Mike Turquette <mturquette@ti.com> writes:
 
-This isn't quite right, as 'sleep_while_idle' is actually a flag for
-whether or not to call omap_sram_idle() at all.
+> OMAP3630 and OMAP4 support an Adaptive Body-Bias LDO on some voltage domains
+> which effects voltage supplied to PMOS back-gates.  These LDOs have
+> different operating modes which correspond to the voltage of each VDD.
+>
+> This patch introduces the data structures needed to represent the ABB LDOs
+> in the voltage layer, and populates the appropriate data for 3630 and OMAP4.
+> Note that OMAP34XX does not have this LDO, so any data for that chip has
+> been initialized as zero.
+>
+> Signed-off-by: Mike Turquette <mturquette@ti.com>
 
-Even without CPUidle, WFI will still be attempted.
+This patch (and this series) should be updated based on Paul's split-up
+of the voltage code & data series:
+
+   http://marc.info/?l=linux-arm-kernel&m=129825439819340&w=2
+
+> ---
+>  arch/arm/mach-omap2/voltage.c             |  137 ++++++++++++++++++++++-------
+>  arch/arm/plat-omap/include/plat/voltage.h |   28 ++++++
+>  2 files changed, 133 insertions(+), 32 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
+> index 0cbc58a..6ede092 100644
+> --- a/arch/arm/mach-omap2/voltage.c
+> +++ b/arch/arm/mach-omap2/voltage.c
+> @@ -39,6 +39,10 @@
+>  #define VP_TRANXDONE_TIMEOUT	300
+>  #define VOLTAGE_DIR_SIZE	16
+>  
+> +#define ABB_TRANXDONE_TIMEOUT	30
+> +#define FAST_OPP		0x1
+> +#define NOMINAL_OPP		0x0
+> +
+>  static struct omap_vdd_info *vdd_info;
+>  /*
+>   * Number of scalable voltage domains.
+> @@ -59,6 +63,17 @@ static struct omap_vdd_info omap3_vdd_info[] = {
+>  		.voltdm = {
+>  			.name = "mpu",
+>  		},
+> +		.abb = {
+> +			.setup_offs	= OMAP3_PRM_LDO_ABB_SETUP_OFFSET,
+> +			.ctrl_offs	= OMAP3_PRM_LDO_ABB_CTRL_OFFSET,
+> +			.irqstatus_mpu_offs
+> +					= OMAP3_PRM_IRQSTATUS_MPU_OFFSET,
+> +			.done_st_shift	= OMAP3630_ABB_LDO_TRANXDONE_ST_SHIFT,
+> +			.done_st_mask	= OMAP3630_ABB_LDO_TRANXDONE_ST_MASK,
+> +			.configure	= NULL,
+> +			.nb_handler	= NULL,
+> +			.set_opp	= NULL,
+
+NULL assignments are redundant.
+
+[...]
 
 Kevin
-
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> ---
->  arch/arm/mach-omap2/pm-debug.c |    9 +++++++++
->  1 files changed, 9 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
-> index 125f565..1e722a0 100644
-> --- a/arch/arm/mach-omap2/pm-debug.c
-> +++ b/arch/arm/mach-omap2/pm-debug.c
-> @@ -569,6 +569,10 @@ static int option_get(void *data, u64 *val)
->  
->  	*val = *option;
->  
-> +#ifndef CONFIG_CPU_IDLE
-> +	if (option == &sleep_while_idle)
-> +		pr_warn("CONFIG_CPU_IDLE is not enabled\n");
-> +#endif
->  	return 0;
->  }
->  
-> @@ -581,6 +585,11 @@ static int option_set(void *data, u64 val)
->  
->  	*option = val;
->  
-> +#ifndef CONFIG_CPU_IDLE
-> +	if (option == &sleep_while_idle)
-> +		pr_warn("CONFIG_CPU_IDLE is not enabled\n");
-> +#endif
-> +
->  	if (option == &enable_off_mode) {
->  		if (val)
->  			omap_pm_enable_off_mode();
