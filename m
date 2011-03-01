@@ -1,67 +1,102 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: Nokia n810 LCD (MIPID/blizzard) on 2.6.38
-Date: Tue, 1 Mar 2011 16:39:15 +0200
-Message-ID: <20110301143915.GD12368@legolas.emea.dhcp.ti.com>
-References: <1298925943.16391.19.camel@marge>
- <20110301092057.GA2942@legolas.emea.dhcp.ti.com>
- <1298989395.6461.2.camel@maggie>
-Reply-To: balbi@ti.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Subject: [patch-v2.6.39 00/19] OMAP USB + MUSB patches
+Date: Tue,  1 Mar 2011 17:15:21 +0200
+Message-ID: <1298992540-5984-1-git-send-email-balbi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:44461 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756500Ab1CAOjT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Mar 2011 09:39:19 -0500
-Received: by mail-bw0-f44.google.com with SMTP id 13so5351971bwz.31
-        for <linux-omap@vger.kernel.org>; Tue, 01 Mar 2011 06:39:17 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <1298989395.6461.2.camel@maggie>
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:55085 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755100Ab1CAPQI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Mar 2011 10:16:08 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Michael =?iso-8859-1?Q?B=FCsch?= <mb@bu3sch.de>
-Cc: balbi@ti.com, linux-omap <linux-omap@vger.kernel.org>, Varadarajan Charulatha <charu@ti.com>, Kai Svahn <kai.svahn@nokia.com>
+To: Greg KH <greg@kroah.com>
+Cc: Linux USB Mailing List <linux-usb@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Anand Gadiyar <gadiyar@ti.com>, Felipe Balbi <balbi@ti.com>
 
-On Tue, Mar 01, 2011 at 03:23:15PM +0100, Michael B=FCsch wrote:
-> On Tue, 2011-03-01 at 11:20 +0200, Felipe Balbi wrote:=20
-> > On Mon, Feb 28, 2011 at 09:45:43PM +0100, Michael Buesch wrote:
-> > > The n810 LCD does not work on the 2.6.38(-rc6) kernel
-> > > due to changes in the OMAP GPIO-hwmod code.
-> > >=20
-> > > The hwmod code performs a soft-reset on the GPIO
-> > > module. The first GPIO module carries the MIPID
-> > > "nreset" line, which is toggled due to the hwmod soft reset.
-> > > This resets Blizzard and breaks it, because
-> > > it assumes the LCD was left in the state that the
-> > > bootloader initialized it to:
-> >=20
-> > so that's the bug which needs to be fixed. Unfortunately I don't ha=
-ve
-> > any documentation available anymore. Maybe someone from Nokia would=
- fix
-> > that ?
-> >=20
-> > > I'm wondering if a better fix suitable for the mainline
-> > > kernel inclusion could be found.
-> > > Any ideas?
-> >=20
-> > Don't depend on the bootloader :-)
->=20
-> Yeah that's the obvious fix, of course. However, it requires
-> deep knowledge of the device and/or hardware documentation. Both
-> of which I don't have.
-> The driver also doesn't seem to have a maintainer.
->=20
-> If someone can get me documentation, I'm willing to implement
-> the required bits to remove the bootloader dependency.
+Hi Greg,
 
-Someone from Nokia might be able to help. Kai ??
+This is my last pull request for this merge window. I tested that
+it merges cleanly on today's linus/master. There's a conflict with
+linux-omap's for-next branch but I'll be sending a resolution still
+today for that.
 
---=20
-balbi
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Patches are also sent as a reply to this mail. Pull request is below.
+
+The following changes since commit d105e74eff7f8197b4d8e104e347ffbc5c3989b8:
+
+  USB: ffs-test: fix header path (2011-02-28 19:27:12 -0800)
+
+are available in the git repository at:
+  git://gitorious.org/usb/usb.git for-next
+
+Anand Gadiyar (1):
+      usb: ehci: omap: add support for TLL mode on OMAP4
+
+Felipe Balbi (4):
+      usb: musb: gadget: fix list_head usage
+      arm: omap: usb: host: add names to resources
+      usb: host: omap: switch to platform_get_resource_byname
+      arm: omap2: usb: rename usb-ehci.c to usb-host.c
+
+Hema HK (6):
+      usb: musb: Remove platform context save/restore API
+      usb: musb: Idle path retention and offmode support for OMAP3
+      usb: otg: TWL4030: Update the last_event variable.
+      usb: otg: OMAP4430: Save/restore the context
+      usb: musb: OMAP4430: Power down the PHY during board init
+      usb: musb: OMAP3xxx: Fix device detection in otg & host mode
+
+Huzaifa Sidhpurwala (1):
+      usb: musb: tusb: Fix possible null pointer dereference in tusb6010_omap.c
+
+Keshava Munegowda (7):
+      arm: omap: usb: create common enums and structures for ehci and ohci
+      usb: host: omap: common usb host core driver
+      arm: omap: usb: usbhs core device initialization
+      arm: omap: usb: Invoke usbhs core device initialization
+      arm: omap: usb: cleanup ehci and ohci resources and devices
+      usb: host: omap: ehci and ohci simplification
+      arm: omap: usb: clock entries for omap3 and omap4
+
+ arch/arm/mach-omap2/Makefile                   |    2 +-
+ arch/arm/mach-omap2/board-3430sdp.c            |   10 +-
+ arch/arm/mach-omap2/board-3630sdp.c            |   10 +-
+ arch/arm/mach-omap2/board-4430sdp.c            |   10 +-
+ arch/arm/mach-omap2/board-am3517crane.c        |   10 +-
+ arch/arm/mach-omap2/board-am3517evm.c          |   12 +-
+ arch/arm/mach-omap2/board-cm-t35.c             |   10 +-
+ arch/arm/mach-omap2/board-cm-t3517.c           |   10 +-
+ arch/arm/mach-omap2/board-devkit8000.c         |   10 +-
+ arch/arm/mach-omap2/board-igep0020.c           |   10 +-
+ arch/arm/mach-omap2/board-igep0030.c           |   10 +-
+ arch/arm/mach-omap2/board-omap3beagle.c        |   10 +-
+ arch/arm/mach-omap2/board-omap3evm.c           |   14 +-
+ arch/arm/mach-omap2/board-omap3pandora.c       |   10 +-
+ arch/arm/mach-omap2/board-omap3stalker.c       |   10 +-
+ arch/arm/mach-omap2/board-omap3touchbook.c     |   10 +-
+ arch/arm/mach-omap2/board-omap4panda.c         |   10 +-
+ arch/arm/mach-omap2/board-overo.c              |   10 +-
+ arch/arm/mach-omap2/board-zoom.c               |   10 +-
+ arch/arm/mach-omap2/clock3xxx_data.c           |   19 +-
+ arch/arm/mach-omap2/clock44xx_data.c           |   10 +-
+ arch/arm/mach-omap2/omap_phy_internal.c        |    7 +
+ arch/arm/mach-omap2/{usb-ehci.c => usb-host.c} |  306 ++++---
+ arch/arm/mach-omap2/usb-musb.c                 |    4 +
+ arch/arm/plat-omap/include/plat/usb.h          |   55 +-
+ drivers/mfd/Kconfig                            |    9 +
+ drivers/mfd/Makefile                           |    1 +
+ drivers/mfd/omap-usb-host.c                    | 1061 ++++++++++++++++++++++++
+ drivers/usb/host/ehci-omap.c                   |  882 ++------------------
+ drivers/usb/host/ohci-omap3.c                  |  584 ++------------
+ drivers/usb/musb/musb_core.c                   |   40 +
+ drivers/usb/musb/musb_core.h                   |    4 -
+ drivers/usb/musb/musb_gadget.c                 |   18 +-
+ drivers/usb/musb/omap2430.c                    |   70 +-
+ drivers/usb/musb/tusb6010_omap.c               |    4 +-
+ drivers/usb/otg/twl4030-usb.c                  |    2 +
+ 36 files changed, 1630 insertions(+), 1634 deletions(-)
+ rename arch/arm/mach-omap2/{usb-ehci.c => usb-host.c} (68%)
+ create mode 100644 drivers/mfd/omap-usb-host.c
+
+-- 
+1.7.4.rc2
+
