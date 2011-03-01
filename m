@@ -1,7 +1,7 @@
 From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: [patch-v2.6.39 11/19] usb: host: omap: switch to platform_get_resource_byname
-Date: Tue,  1 Mar 2011 17:15:32 +0200
-Message-ID: <1298992540-5984-12-git-send-email-balbi@ti.com>
+Subject: [patch-v2.6.39 10/19] arm: omap: usb: host: add names to resources
+Date: Tue,  1 Mar 2011 17:15:31 +0200
+Message-ID: <1298992540-5984-11-git-send-email-balbi@ti.com>
 References: <1298992540-5984-1-git-send-email-balbi@ti.com>
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1298992540-5984-1-git-send-email-balbi-l0cyMroinI0@public.gmane.org>
@@ -10,79 +10,57 @@ To: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
 Cc: Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-now that we have names on all memory bases, we can
-switch to use platform_get_resource_byname() which
-will make it simpler when we move to a setup where
-OHCI and EHCI on OMAP play well together.
+add names to EHCI and OHCI resources. That will help us
+identify the resource correctly when moving to a setup
+where OHCI and EHCI play well together.
 
 Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 ---
- drivers/usb/host/ehci-omap.c  |    6 +++---
- drivers/usb/host/ohci-omap3.c |    6 +++---
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ arch/arm/mach-omap2/usb-ehci.c |    9 +++++++++
+ 1 files changed, 9 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
-index d7e223b..1527721 100644
---- a/drivers/usb/host/ehci-omap.c
-+++ b/drivers/usb/host/ehci-omap.c
-@@ -947,7 +947,7 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
- 	omap->ehci		= hcd_to_ehci(hcd);
- 	omap->ehci->sbrn	= 0x20;
- 
--	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "ehci");
- 
- 	hcd->rsrc_start = res->start;
- 	hcd->rsrc_len = resource_size(res);
-@@ -963,7 +963,7 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
- 	omap->ehci->caps = hcd->regs;
- 	omap->ehci_base = hcd->regs;
- 
--	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
-+	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "uhh");
- 	omap->uhh_base = ioremap(res->start, resource_size(res));
- 	if (!omap->uhh_base) {
- 		dev_err(&pdev->dev, "UHH ioremap failed\n");
-@@ -971,7 +971,7 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
- 		goto err_uhh_ioremap;
+diff --git a/arch/arm/mach-omap2/usb-ehci.c b/arch/arm/mach-omap2/usb-ehci.c
+index 25eeada..2c74fa1 100644
+--- a/arch/arm/mach-omap2/usb-ehci.c
++++ b/arch/arm/mach-omap2/usb-ehci.c
+@@ -350,6 +350,11 @@ void __init usb_ehci_init(const struct ehci_hcd_omap_platform_data *pdata)
+ 		setup_4430ehci_io_mux(pdata->port_mode);
  	}
  
--	res = platform_get_resource(pdev, IORESOURCE_MEM, 2);
-+	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "tll");
- 	omap->tll_base = ioremap(res->start, resource_size(res));
- 	if (!omap->tll_base) {
- 		dev_err(&pdev->dev, "TLL ioremap failed\n");
-diff --git a/drivers/usb/host/ohci-omap3.c b/drivers/usb/host/ohci-omap3.c
-index a37d599..32f56bb 100644
---- a/drivers/usb/host/ohci-omap3.c
-+++ b/drivers/usb/host/ohci-omap3.c
-@@ -618,7 +618,7 @@ static int __devinit ohci_hcd_omap3_probe(struct platform_device *pdev)
- 	omap->es2_compatibility	= pdata->es2_compatibility;
- 	omap->ohci		= hcd_to_ohci(hcd);
++	ehci_resources[0].name	= "ehci";
++	ehci_resources[1].name	= "uhh";
++	ehci_resources[2].name	= "tll";
++	ehci_resources[3].name	= "irq";
++
+ 	if (platform_device_register(&ehci_device) < 0) {
+ 		printk(KERN_ERR "Unable to register HS-USB (EHCI) device\n");
+ 		return;
+@@ -369,21 +374,25 @@ void __init usb_ehci_init(const struct ehci_hcd_omap_platform_data *pdata)
  
--	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "ohci");
- 
- 	hcd->rsrc_start = res->start;
- 	hcd->rsrc_len = resource_size(res);
-@@ -630,7 +630,7 @@ static int __devinit ohci_hcd_omap3_probe(struct platform_device *pdev)
- 		goto err_ioremap;
+ static struct resource ohci_resources[] = {
+ 	{
++		.name	= "ohci",
+ 		.start	= OMAP34XX_OHCI_BASE,
+ 		.end	= OMAP34XX_OHCI_BASE + SZ_1K - 1,
+ 		.flags	= IORESOURCE_MEM,
+ 	},
+ 	{
++		.name	= "uhh",
+ 		.start	= OMAP34XX_UHH_CONFIG_BASE,
+ 		.end	= OMAP34XX_UHH_CONFIG_BASE + SZ_1K - 1,
+ 		.flags	= IORESOURCE_MEM,
+ 	},
+ 	{
++		.name	= "tll",
+ 		.start	= OMAP34XX_USBTLL_BASE,
+ 		.end	= OMAP34XX_USBTLL_BASE + SZ_4K - 1,
+ 		.flags	= IORESOURCE_MEM,
+ 	},
+ 	{	/* general IRQ */
++		.name	= "irq",
+ 		.start	= INT_34XX_OHCI_IRQ,
+ 		.flags	= IORESOURCE_IRQ,
  	}
- 
--	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
-+	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "uhh");
- 	omap->uhh_base = ioremap(res->start, resource_size(res));
- 	if (!omap->uhh_base) {
- 		dev_err(&pdev->dev, "UHH ioremap failed\n");
-@@ -638,7 +638,7 @@ static int __devinit ohci_hcd_omap3_probe(struct platform_device *pdev)
- 		goto err_uhh_ioremap;
- 	}
- 
--	res = platform_get_resource(pdev, IORESOURCE_MEM, 2);
-+	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "tll");
- 	omap->tll_base = ioremap(res->start, resource_size(res));
- 	if (!omap->tll_base) {
- 		dev_err(&pdev->dev, "TLL ioremap failed\n");
 -- 
 1.7.4.rc2
 
