@@ -1,49 +1,63 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: watchdog pdev id set to -1
-Date: Mon, 28 Feb 2011 16:35:06 -0800
-Message-ID: <87hbbnlltx.fsf@ti.com>
-References: <FCCFB4CDC6E5564B9182F639FC3560870370061699@dbde02.ent.ti.com>
-	<20110218105635.GB10489@legolas.emea.dhcp.ti.com>
-	<FCCFB4CDC6E5564B9182F639FC35608703700616CE@dbde02.ent.ti.com>
-	<20110218111237.GE10489@legolas.emea.dhcp.ti.com>
-	<20110222215923.GB28740@sirena.org.uk>
+From: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] i2c-omap: fix build for !CONFIG_SUSPEND
+Date: Mon, 28 Feb 2011 16:48:35 -0800
+Message-ID: <87bp1vll7g.fsf@ti.com>
+References: <1298357739-5132-1-git-send-email-balajitk@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:53430 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753620Ab1CAAfK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 28 Feb 2011 19:35:10 -0500
-Received: by mail-yw0-f42.google.com with SMTP id 1so2239171ywh.1
-        for <linux-omap@vger.kernel.org>; Mon, 28 Feb 2011 16:35:09 -0800 (PST)
-In-Reply-To: <20110222215923.GB28740@sirena.org.uk> (Mark Brown's message of
-	"Tue, 22 Feb 2011 21:59:23 +0000")
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1298357739-5132-1-git-send-email-balajitk-l0cyMroinI0@public.gmane.org> (Balaji
+	T. K.'s message of "Tue, 22 Feb 2011 12:25:39 +0530")
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Felipe Balbi <balbi@ti.com>, "Koyamangalath, Abhilash" <abhilash.kv@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Mark Brown <broonie@opensource.wolfsonmicro.com> writes:
+Balaji T K <balajitk-l0cyMroinI0@public.gmane.org> writes:
 
-> On Fri, Feb 18, 2011 at 01:12:37PM +0200, Felipe Balbi wrote:
+> fix the build break when !CONFIG_SUSPEND
 >
->> On Fri, Feb 18, 2011 at 04:39:48PM +0530, Koyamangalath, Abhilash wrote:
->> > I understand, but is there a subtle reason why are starting from
->> > an erroneous-looking -1 rather than a more natural 0 (or 1 ?).
+> drivers/i2c/busses/i2c-omap.c:1173: error: lvalue required as unary '&' operand
+> make[3]: *** [drivers/i2c/busses/i2c-omap.o] Error 1
+> make[2]: *** [drivers/i2c/busses] Error 2
+> make[1]: *** [drivers/i2c] Error 2
+> make: *** [drivers] Error 2
 >
->> -1 means no ID. The IDs are zero-based, so we can't use zero. Just
->> change that value and see how things change on sysfs and dmesg then you
->> will know what I'm talking about. That's just an implementation decision
->> of using -1 to signify "no ID needed".
->
-> Though looking at the report it looks like the omap_device print that's
-> done during boot is doing the wrong thing here and displaying the -1
-> instead of masking it from the print which is what's expected.
+> Signed-off-by: Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>
 
-Agreed.
+Acked-by: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
 
-Abhilash, Just send a patch to fix the omap_device printk which is the
-confusing part.
+Ben, feel free to fold into original patch if preferred.
 
 Kevin
+
+> ---
+> introduced by commit f6f98d72575031b0c03416a28a0d580128114b74
+> applies on i2c-fixes branch
+>
+>  drivers/i2c/busses/i2c-omap.c |    5 +++--
+>  1 files changed, 3 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> index 0541df9..adc1ee5 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -1160,8 +1160,9 @@ static struct dev_pm_ops omap_i2c_pm_ops = {
+>  	.suspend = omap_i2c_suspend,
+>  	.resume = omap_i2c_resume,
+>  };
+> +#define OMAP_I2C_PM_OPS (&omap_i2c_pm_ops)
+>  #else
+> -#define omap_i2c_pm_ops NULL
+> +#define OMAP_I2C_PM_OPS NULL
+>  #endif
+>  
+>  static struct platform_driver omap_i2c_driver = {
+> @@ -1170,7 +1171,7 @@ static struct platform_driver omap_i2c_driver = {
+>  	.driver		= {
+>  		.name	= "omap_i2c",
+>  		.owner	= THIS_MODULE,
+> -		.pm     = &omap_i2c_pm_ops,
+> +		.pm	= OMAP_I2C_PM_OPS,
+>  	},
+>  };
