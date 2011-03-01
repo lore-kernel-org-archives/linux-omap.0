@@ -1,82 +1,203 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 3/4] OMAP: Voltage: add ABB structures and data
-Date: Tue, 01 Mar 2011 14:05:56 -0800
-Message-ID: <87mxleh4xn.fsf@ti.com>
+Subject: Re: [PATCH 1/4] OMAP: voltage: pre- and post-transition notifiers
+Date: Tue, 01 Mar 2011 14:06:46 -0800
+Message-ID: <87hbbmh4w9.fsf@ti.com>
 References: <1298020853-13761-1-git-send-email-mturquette@ti.com>
-	<1298020853-13761-3-git-send-email-mturquette@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:43784 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753055Ab1CAWGA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Mar 2011 17:06:00 -0500
-Received: by iwr19 with SMTP id 19so5773205iwr.2
-        for <linux-omap@vger.kernel.org>; Tue, 01 Mar 2011 14:05:59 -0800 (PST)
-In-Reply-To: <1298020853-13761-3-git-send-email-mturquette@ti.com> (Mike
-	Turquette's message of "Fri, 18 Feb 2011 03:20:52 -0600")
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:45194 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755613Ab1CAWGu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Mar 2011 17:06:50 -0500
+Received: by mail-iw0-f172.google.com with SMTP id 42so6737288iwl.17
+        for <linux-omap@vger.kernel.org>; Tue, 01 Mar 2011 14:06:50 -0800 (PST)
+In-Reply-To: <1298020853-13761-1-git-send-email-mturquette@ti.com> (Mike
+	Turquette's message of "Fri, 18 Feb 2011 03:20:50 -0600")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Mike Turquette <mturquette@ti.com>
 Cc: linux-omap@vger.kernel.org
 
-Hi Mike,
-
 Mike Turquette <mturquette@ti.com> writes:
 
-> OMAP3630 and OMAP4 support an Adaptive Body-Bias LDO on some voltage domains
-> which effects voltage supplied to PMOS back-gates.  These LDOs have
-> different operating modes which correspond to the voltage of each VDD.
->
-> This patch introduces the data structures needed to represent the ABB LDOs
-> in the voltage layer, and populates the appropriate data for 3630 and OMAP4.
-> Note that OMAP34XX does not have this LDO, so any data for that chip has
-> been initialized as zero.
+> Introduce notifier infrastructure for VDD voltage transitions.  Users can
+> register a notifier prior to a VDD's volt_scale function getting called
+> (VOLTSCALE_PRECHANGE) or after the VDD has been scaled
+> (VOLTSCALE_POSTCHANGE).
 >
 > Signed-off-by: Mike Turquette <mturquette@ti.com>
-
-This patch (and this series) should be updated based on Paul's split-up
-of the voltage code & data series:
-
-   http://marc.info/?l=linux-arm-kernel&m=129825439819340&w=2
-
 > ---
->  arch/arm/mach-omap2/voltage.c             |  137 ++++++++++++++++++++++-------
->  arch/arm/plat-omap/include/plat/voltage.h |   28 ++++++
->  2 files changed, 133 insertions(+), 32 deletions(-)
+> All patches in this series based on PM branch (b6fb54b) plus Vishwa's 13
+> OMAP3 DVFS patches (http://marc.info/?l=linux-omap&m=129561825804975&w=2).
+> Only validated on Zoom3 since OMAP4 DVFS patches were not available.
+>
+>  arch/arm/mach-omap2/voltage.c             |   47 ++++++++++++++++++++++++++++-
+>  arch/arm/plat-omap/include/plat/voltage.h |   30 ++++++++++++++++++
+>  2 files changed, 76 insertions(+), 1 deletions(-)
 >
 > diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
-> index 0cbc58a..6ede092 100644
+> index a0bd73b..0cbc58a 100644
 > --- a/arch/arm/mach-omap2/voltage.c
 > +++ b/arch/arm/mach-omap2/voltage.c
-> @@ -39,6 +39,10 @@
->  #define VP_TRANXDONE_TIMEOUT	300
->  #define VOLTAGE_DIR_SIZE	16
+> @@ -729,6 +729,9 @@ static int __init omap3_vdd_data_configure(struct omap_vdd_info *vdd)
+>  		return -EINVAL;
+>  	}
 >  
-> +#define ABB_TRANXDONE_TIMEOUT	30
-> +#define FAST_OPP		0x1
-> +#define NOMINAL_OPP		0x0
+> +	/* initialize the voltage change notifier chain */
+> +	srcu_init_notifier_head(&vdd->volt_change_notify_chain);
 > +
->  static struct omap_vdd_info *vdd_info;
->  /*
->   * Number of scalable voltage domains.
-> @@ -59,6 +63,17 @@ static struct omap_vdd_info omap3_vdd_info[] = {
->  		.voltdm = {
->  			.name = "mpu",
->  		},
-> +		.abb = {
-> +			.setup_offs	= OMAP3_PRM_LDO_ABB_SETUP_OFFSET,
-> +			.ctrl_offs	= OMAP3_PRM_LDO_ABB_CTRL_OFFSET,
-> +			.irqstatus_mpu_offs
-> +					= OMAP3_PRM_IRQSTATUS_MPU_OFFSET,
-> +			.done_st_shift	= OMAP3630_ABB_LDO_TRANXDONE_ST_SHIFT,
-> +			.done_st_mask	= OMAP3630_ABB_LDO_TRANXDONE_ST_MASK,
-> +			.configure	= NULL,
-> +			.nb_handler	= NULL,
-> +			.set_opp	= NULL,
 
-NULL assignments are redundant.
-
-[...]
+An explanation for the choice of SRCU notifiers would be useful.
 
 Kevin
+
+>  	if (!strcmp(vdd->voltdm.name, "mpu")) {
+>  		if (cpu_is_omap3630()) {
+>  			vdd->volt_data = omap36xx_vddmpu_volt_data;
+> @@ -912,6 +915,9 @@ static int __init omap4_vdd_data_configure(struct omap_vdd_info *vdd)
+>  		return -EINVAL;
+>  	}
+>  
+> +	/* initialize the voltage change notifier chain */
+> +	srcu_init_notifier_head(&vdd->volt_change_notify_chain);
+> +
+>  	if (!strcmp(vdd->voltdm.name, "mpu")) {
+>  		vdd->volt_data = omap44xx_vdd_mpu_volt_data;
+>  		vdd->vp_reg.tranxdone_status =
+> @@ -1201,7 +1207,9 @@ void omap_vp_disable(struct voltagedomain *voltdm)
+>  int omap_voltage_scale_vdd(struct voltagedomain *voltdm,
+>  		unsigned long target_volt)
+>  {
+> +	int ret;
+>  	struct omap_vdd_info *vdd;
+> +	struct omap_volt_change_info v_info;
+>  
+>  	if (!voltdm || IS_ERR(voltdm)) {
+>  		pr_warning("%s: VDD specified does not exist!\n", __func__);
+> @@ -1216,7 +1224,20 @@ int omap_voltage_scale_vdd(struct voltagedomain *voltdm,
+>  		return -ENODATA;
+>  	}
+>  
+> -	return vdd->volt_scale(vdd, target_volt);
+> +	/* load notifier chain data */
+> +	v_info.target_volt = target_volt;
+> +	v_info.vdd = vdd;
+> +
+> +	srcu_notifier_call_chain(&vdd->volt_change_notify_chain,
+> +			VOLTSCALE_PRECHANGE, (void *)&v_info);
+> +
+> +	ret = vdd->volt_scale(vdd, target_volt);
+> +
+> +	if (!ret)
+> +		srcu_notifier_call_chain(&vdd->volt_change_notify_chain,
+> +				VOLTSCALE_POSTCHANGE, (void *)&v_info);
+> +
+> +	return ret;
+>  }
+>  
+>  /**
+> @@ -1437,6 +1458,30 @@ struct voltagedomain *omap_voltage_domain_lookup(char *name)
+>  	return ERR_PTR(-EINVAL);
+>  }
+>  
+> +int omap_voltage_register_notifier(struct omap_vdd_info *vdd,
+> +		struct notifier_block *nb)
+> +{
+> +	if (!vdd || IS_ERR(vdd)) {
+> +		pr_warning("%s: invalid VDD specified\n", __func__);
+> +		return -EINVAL;
+> +	}
+> +
+> +	return srcu_notifier_chain_register(&vdd->volt_change_notify_chain,
+> +			nb);
+> +}
+> +
+> +int omap_voltage_unregister_notifier(struct omap_vdd_info *vdd,
+> +		struct notifier_block *nb)
+> +{
+> +	if (!vdd || IS_ERR(vdd)) {
+> +		pr_warning("%s: invalid VDD specified\n", __func__);
+> +		return -EINVAL;
+> +	}
+> +
+> +	return srcu_notifier_chain_unregister(&vdd->volt_change_notify_chain,
+> +			nb);
+> +}
+> +
+>  /**
+>   * omap_voltage_late_init() - Init the various voltage parameters
+>   *
+> diff --git a/arch/arm/plat-omap/include/plat/voltage.h b/arch/arm/plat-omap/include/plat/voltage.h
+> index e0b7f22..017e65b 100644
+> --- a/arch/arm/plat-omap/include/plat/voltage.h
+> +++ b/arch/arm/plat-omap/include/plat/voltage.h
+> @@ -15,10 +15,14 @@
+>  #define __ARCH_ARM_MACH_OMAP2_VOLTAGE_H
+>  
+>  #include <linux/err.h>
+> +#include <linux/notifier.h>
+>  
+>  #define VOLTSCALE_VPFORCEUPDATE		1
+>  #define VOLTSCALE_VCBYPASS		2
+>  
+> +#define VOLTSCALE_PRECHANGE		0
+> +#define VOLTSCALE_POSTCHANGE		1
+> +
+>  /*
+>   * OMAP3 GENERIC setup times. Revisit to see if these needs to be
+>   * passed from board or PMIC file
+> @@ -249,6 +253,7 @@ struct omap_vdd_info {
+>  	struct vc_reg_info vc_reg;
+>  	struct voltagedomain voltdm;
+>  	struct omap_vdd_dep_info *dep_vdd_info;
+> +	struct srcu_notifier_head volt_change_notify_chain;
+>  	int nr_dep_vdd;
+>  	struct dentry *debug_dir;
+>  	u32 curr_volt;
+> @@ -261,6 +266,17 @@ struct omap_vdd_info {
+>  		unsigned long target_volt);
+>  };
+>  
+> +/**
+> + * omap_volt_change_info - container used by voltage notifier chain
+> + *
+> + * @vdd_info		: the voltage domain affected by the transition
+> + * @target_volt		: voltage the affected domain is transitioning to
+> + */
+> +struct omap_volt_change_info {
+> +	unsigned long target_volt;
+> +	struct omap_vdd_info *vdd;
+> +};
+> +
+>  unsigned long omap_vp_get_curr_volt(struct voltagedomain *voltdm);
+>  void omap_vp_enable(struct voltagedomain *voltdm);
+>  void omap_vp_disable(struct voltagedomain *voltdm);
+> @@ -280,6 +296,10 @@ void omap_change_voltscale_method(struct voltagedomain *voltdm,
+>  		int voltscale_method);
+>  /* API to get the voltagedomain pointer */
+>  struct voltagedomain *omap_voltage_domain_lookup(char *name);
+> +int omap_voltage_register_notifier(struct omap_vdd_info *vdd,
+> +		struct notifier_block *nb);
+> +int omap_voltage_unregister_notifier(struct omap_vdd_info *vdd,
+> +		struct notifier_block *nb);
+>  
+>  int omap_voltage_late_init(void);
+>  #else
+> @@ -298,6 +318,16 @@ static inline struct voltagedomain *omap_voltage_domain_lookup(char *name)
+>  {
+>  	return ERR_PTR(-EINVAL);
+>  }
+> +static inline int omap_voltage_register_notifier(struct omap_vdd_info *vdd,
+> +		struct notifier block *nb)
+> +{
+> +	return 0;
+> +}
+> +static inline int omap_voltage_unregister_notifier(struct omap_vdd_info *vdd,
+> +		struct notifier block *nb)
+> +{
+> +	return 0;
+> +}
+>  #endif
+>  
+>  #endif
