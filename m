@@ -1,71 +1,69 @@
-From: archit taneja <archit@ti.com>
-Subject: Re: [PATCH 1/3] OMAP: DSS2: Functions to request/release DSI VCs
-Date: Tue, 1 Mar 2011 10:51:48 +0530
-Message-ID: <4D6C826C.4050403@ti.com>
-References: <1298882849-7432-1-git-send-email-archit@ti.com>	 <1298882849-7432-2-git-send-email-archit@ti.com> <1298902214.9809.109.camel@deskari>
+From: "Gulati, Shweta" <shweta.gulati@ti.com>
+Subject: Re: [PATCH 0/3]: Update OPP Table and Voltage Rail Values
+Date: Tue, 1 Mar 2011 11:02:30 +0530
+Message-ID: <AANLkTin1kzuwZtDhkhhYr3Xjr7SBViEtzDAL-8w8V+2o@mail.gmail.com>
+References: <1297836995-8747-1-git-send-email-shweta.gulati@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:56752 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753851Ab1CAFTA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Mar 2011 00:19:00 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p215IvLO011715
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Mon, 28 Feb 2011 23:18:59 -0600
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id p215IufI027003
-	for <linux-omap@vger.kernel.org>; Tue, 1 Mar 2011 10:48:56 +0530 (IST)
-In-Reply-To: <1298902214.9809.109.camel@deskari>
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:50159 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750938Ab1CAFcc convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 1 Mar 2011 00:32:32 -0500
+Received: by mail-bw0-f44.google.com with SMTP id 13so4986942bwz.31
+        for <linux-omap@vger.kernel.org>; Mon, 28 Feb 2011 21:32:30 -0800 (PST)
+In-Reply-To: <1297836995-8747-1-git-send-email-shweta.gulati@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: Shweta Gulati <shweta.gulati@ti.com>
 
 Hi,
 
-On Monday 28 February 2011 07:40 PM, Valkeinen, Tomi wrote:
-> On Mon, 2011-02-28 at 02:47 -0600, Taneja, Archit wrote:
->> Introduce functions which request and release VC's. This will be used in panel
->> drivers in their probes.
->>
->> omap_dsi_request_vc() takes in the pointer to the omap_dss_device, the VC_ID
->> parameter which goes into the header of the DSI packets, and returns a Virtual
->> channel number (or virtual channel register set) which it can use.
->>
->> omap_dsi_releae_vc() takes the omap_dss_device pointer and frees all VCs which
->> were used by that device.
->>
->> Initialisation of VC parameters is done in dsi_init().
->>
->> Signed-off-by: Archit Taneja<archit@ti.com>
->> ---
->>   arch/arm/plat-omap/include/plat/display.h |    3 ++
->>   drivers/video/omap2/dss/dsi.c             |   55 ++++++++++++++++++++++++++---
->>   2 files changed, 53 insertions(+), 5 deletions(-)
->>
->> diff --git a/arch/arm/plat-omap/include/plat/display.h b/arch/arm/plat-omap/include/plat/display.h
->> index d45f107..0057259 100644
->> --- a/arch/arm/plat-omap/include/plat/display.h
->> +++ b/arch/arm/plat-omap/include/plat/display.h
->> @@ -560,6 +560,9 @@ int omap_dsi_update(struct omap_dss_device *dssdev,
->>   		int channel,
->>   		u16 x, u16 y, u16 w, u16 h,
->>   		void (*callback)(int, void *), void *data);
->> +int omap_dsi_request_vc(struct omap_dss_device *dssdev, int vc_id,
->> +		int *channel);
+On Wed, Feb 16, 2011 at 11:46 AM, Shweta Gulati <shweta.gulati@ti.com> =
+wrote:
+> The series mainly does below:
 >
-> One more thing:
+> OMAP4 only
+> =A0 =A0 =A0 - Update MPU VOltage rail values for all OPPs
+> =A0 =A0 =A0 - Enable OPP-Nitro and OPP-Turbo for all boards
+> OMAP2PLUS
+> =A0 =A0 =A0 -Replace hardcoded Voltage values in OPP Table
+> =A0 =A0 =A0 =A0with Voltage Macros.
 >
-> In theory the vc_id could be given per transmission, when calling
-> dsi_vc_send_xxx() functions, like it is currently.
+> Baseline:
+> git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.g=
+it
+> Branch: pm
 >
-> But as the vc_id changes (probably) very rarely, it could be stored like
-> you do. But we should still have a separate function to set the vc_id,
-> without having to release and request the vc.
+> Tested on OMAP4430 SDP, OMAP3630 SDP and OMAP3430 SDP.
+>
+> Shweta Gulati (2):
+> =A0OMAP4: Revise MPU Voltage rail values.
+> =A0OMAP4: Enable Turbo and Nitro OPP for OMAP4
+>
+> Vishwanath BS (1):
+> =A0OMAP2+: Replace Voltage values with Macros.
+>
+> =A0arch/arm/mach-omap2/opp3xxx_data.c =A0 =A0 =A0 =A0| =A0 47 +++++++=
+++++++++--------------
+> =A0arch/arm/mach-omap2/opp4xxx_data.c =A0 =A0 =A0 =A0| =A0 13 ++++---=
+-
+> =A0arch/arm/plat-omap/include/plat/voltage.h | =A0 =A08 ++--
+> =A03 files changed, 35 insertions(+), 33 deletions(-)
+>
+>
+Any Comments on this Patch Series.
 
-I agree with this. Will make the change.
 
-Archit
+--=20
+Thanks,
+Regards,
+Shweta
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
