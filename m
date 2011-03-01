@@ -1,113 +1,95 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: RE: Integration branch base switchover to Tony's omap-for-linus branch
-Date: Tue, 1 Mar 2011 18:08:35 +0530
-Message-ID: <3f332cbd75f835ca119bdeccd72c4bb2@mail.gmail.com>
-References: <alpine.DEB.2.00.1102251722450.6198@utopia.booyaka.com>
+From: Keshava Munegowda <keshava_mgowda@ti.com>
+Subject: RE: [PATCH 04/10 v1] arm: omap: usb: create common enums and
+ structures for ehci and ohci
+Date: Tue, 1 Mar 2011 18:13:29 +0530
+Message-ID: <47bb1092522c195a91f292c701d9aad3@mail.gmail.com>
+References: <1298910712-2051-1-git-send-email-keshava_mgowda@ti.com>
+ <1298910712-2051-2-git-send-email-keshava_mgowda@ti.com> <1298910712-2051-3-git-send-email-keshava_mgowda@ti.com>
+ <1298910712-2051-4-git-send-email-keshava_mgowda@ti.com> <1298910712-2051-5-git-send-email-keshava_mgowda@ti.com>
+ <20110301104940.GS2942@legolas.emea.dhcp.ti.com> <d228b38c51a625e4a8aa37aaa9253d70@mail.gmail.com>
+ <20110301123543.GY2942@legolas.emea.dhcp.ti.com> <20110301123758.GZ2942@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:40676 "EHLO
-	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754842Ab1CAMj1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Mar 2011 07:39:27 -0500
-Received: by mail-qw0-f47.google.com with SMTP id 2so3525654qwi.6
-        for <linux-omap@vger.kernel.org>; Tue, 01 Mar 2011 04:39:17 -0800 (PST)
-In-Reply-To: <alpine.DEB.2.00.1102251722450.6198@utopia.booyaka.com>
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:32988 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754585Ab1CAMnb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Mar 2011 07:43:31 -0500
+In-Reply-To: <20110301123758.GZ2942@legolas.emea.dhcp.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, Rajendra Nayak <rnayak@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: balbi@ti.com
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Anand Gadiyar <gadiyar@ti.com>, Partha Basak <p-basak2@ti.com>
 
-Pual,
 > -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Paul Walmsley
-> Sent: Saturday, February 26, 2011 5:56 AM
-> To: linux-omap@vger.kernel.org
-> Subject: Integration branch base switchover to Tony's omap-for-linus
-> branch
+> From: Felipe Balbi [mailto:balbi@ti.com]
+> Sent: Tuesday, March 01, 2011 6:08 PM
+> To: Felipe Balbi
+> Cc: Keshava Munegowda; linux-usb@vger.kernel.org;
+linux-omap@vger.kernel.org; Anand Gadiyar; Partha
+> Basak
+> Subject: Re: [PATCH 04/10 v1] arm: omap: usb: create common enums and
+structures for ehci and ohci
 >
+> On Tue, Mar 01, 2011 at 02:35:43PM +0200, Felipe Balbi wrote:
+> > On Tue, Mar 01, 2011 at 05:07:34PM +0530, Keshava Munegowda wrote:
+> > > > -----Original Message-----
+> > > > From: Felipe Balbi [mailto:balbi@ti.com]
+> > > > Sent: Tuesday, March 01, 2011 4:20 PM
+> > > > To: Keshava Munegowda
+> > > > Cc: linux-usb@vger.kernel.org; linux-omap@vger.kernel.org;
+balbi@ti.com;
+> > > gadiyar@ti.com; p-
+> > > > basak2@ti.com
+> > > > Subject: Re: [PATCH 04/10 v1] arm: omap: usb: create common enums
+and
+> > > structures for ehci and ohci
+> > > >
+> > > > On Mon, Feb 28, 2011 at 10:01:46PM +0530, Keshava Munegowda wrote:
+> > > > > Create the ehci and ohci specific platform data structures.
+> > > > > The port enum values are made common for both ehci and ohci.
+> > > > >
+> > > > > Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
+> > > >
+> > > > Applying: arm: omap: usb: create common enums and structures for
+ehci
+> > > and ohci
+> > > > error: patch failed: drivers/usb/host/ehci-omap.c:409
+> > > > error: drivers/usb/host/ehci-omap.c: patch does not apply
+> > > > Patch failed at 0005 arm: omap: usb: create common enums and
+structures
+> > > for ehci and ohci
+> > > > When you have resolved this problem run "git am --resolved".
+> > > > If you would prefer to skip this patch, instead run "git am
+--skip".
+> > > > To restore the original branch and stop patching run "git am
+--abort".
+> > > >
+> > > > Which tree did you use as base for these patches ? I'm trying to
+apply
+> > > > on top of v.2.6.38-rc6
+> > >
+> > > Balbi
+> > >
+> > > I tried at my side on l2.6.38-rc6 , it dint see any failures its
+working.
+> > >
+> > > These patches are apply correctly on l2.6.38-rc6
+> > > Commit id: f5412be599602124d2bdd49947b231dd77c0bf99
+> > >
+> > > Please check; its working my side.
+> >
+> > You have to rebase on top of this patch which is going to mainline:
 >
-> Hi,
->
-> this is a quick note for anyone using the integration-2.6.39 branch
-> on
-> git://git.pwsan.com/linux-2.6: I've switched the base over from
-> mainline to Tony's omap-for-linus branch.
->
+> BTW, bear in mind you should not cause a regression of that patch. A
+> simple rebase is easy to do, but you cannot remove that feature
+> introduced by Anand.
 
-I observed an issue when integrated omap-for-linus + your branch
-+ OMAP4 PM patches. After debugging this with Rajendra, it seems
-that issue is seen only when static dependency between MPU
-and L4PER clock-domain is cleared _and_ L4_PER clock-domain
-is programmed to HW_SUP.
+Yes, I will do the rebase, and I will send patches soon.
 
-Since the issue is observed with only I2C IP block from L4_PER
-and none of the other modules are affected, the suspect is I2C
-IP block. The hardware team is investigating this issue.
 
-So for now, to avoid this abort, there are two options
-	- Remove HW_SUP from L4_PER CD
-	- Keep MPU<->L4_PER static dependency.
 
-We tried both the options and they seems to work.
-Which one you prefer till we have hardware root-cause
-of this issue?
 
-Regards,
-Santosh
 
-----
-Power Management for TI OMAP4.
-clock: disabling unused clocks to save power
-omap_device: omap_i2c.1: new worst case activate latency 0: 3143310
-Unhandled fault: imprecise external abort (0x1406) at 0x3df31eef
-Internal error: : 1406 [#1] SMP
-last sysfs file:
-Modules linked in:
-CPU: 0    Not tainted  (2.6.38-rc6-00023-g0752c56-dirty #280)
-PC is at omap_i2c_xfer+0x28/0x320
-LR is at omap_i2c_wait_for_bb+0x18/0x7c
-pc : [<c031e0dc>]    lr : [<c031d9b8>]    psr: 40000013
-sp : ef833f08  ip : 000038ae  fp : c05e1906
-r10: 00000002  r9 : ef9d1cb0  r8 : 00000002
-r7 : ef9d1c00  r6 : ffff6b4b  r5 : 00000000  r4 : c0b44b9c
-r3 : 0000001f  r2 : 00000028  r1 : 83126e98  r0 : 00000000
-Flags: nZcv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
-Control: 10c53c7d  Table: 8000404a  DAC: 00000015
-Process swapper (pid: 1, stack limit = 0xef8322f8)
-Stack: (0xef833f08 to 0xef834000)
-3f00:                   ef9d1c60 c0b44b9c 00000002 ef9d1c60 00000000
-ffff6b4b
-3f20: c0b44b9c 00000002 00000001 00000000 c05e1906 c031c25c ef9d1800
-00000000
-3f40: c0b44bb4 c0b44b94 c0b44b90 00000000 c0b44b94 c0299784 0000005c
-ef833f97
-3f60: efa9d874 8c000013 efa9d874 efa9d800 efa9d870 c05dc73c 00000000
-00000000
-3f80: 00000000 00000000 00000000 c02658d0 efa9d800 22222222 ffffffd0
-c0265984
-3fa0: efa9d800 c00260ac c00334dc c0026034 00000002 c00505cc 00000000
-c0160000
-3fc0: c04f4a05 00000198 c0594350 c00334dc c0594350 00000002 00000013
-00000000
-3fe0: 00000000 c0008540 00000000 c00083f4 c005b520 c005b520 e72105ac
-04088b22
-[<c031e0dc>] (omap_i2c_xfer+0x28/0x320) from [<c031c25c>]
-(i2c_transfer+0xbc/0x10c)
-[<c031c25c>] (i2c_transfer+0xbc/0x10c) from [<c0299784>]
-(twl_i2c_read+0xe0/0x12c)
-[<c0299784>] (twl_i2c_read+0xe0/0x12c) from [<c02658d0>]
-(twlreg_grp+0x18/0x24)
-[<c02658d0>] (twlreg_grp+0x18/0x24) from [<c0265984>]
-(twlreg_is_enabled+0x8/0x30)
-[<c0265984>] (twlreg_is_enabled+0x8/0x30) from [<c00260ac>]
-(regulator_init_complete+0x78/0x148)
-[<c00260ac>] (regulator_init_complete+0x78/0x148) from [<c00505cc>]
-(do_one_initcall+0xcc/0x1a4)
-[<c00505cc>] (do_one_initcall+0xcc/0x1a4) from [<c0008540>]
-(kernel_init+0x14c/0x214)
-[<c0008540>] (kernel_init+0x14c/0x214) from [<c005b520>]
-(kernel_thread_exit+0x0/0x8)
-Code: e1a07000 ebfffe51 e1a00007 ebfffe30 (e2506000)
----[ end trace ccd8ab0702d3ee85 ]---
+> --
+> balbi
