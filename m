@@ -1,63 +1,36 @@
-From: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] i2c-omap: fix build for !CONFIG_SUSPEND
-Date: Mon, 28 Feb 2011 16:48:35 -0800
-Message-ID: <87bp1vll7g.fsf@ti.com>
-References: <1298357739-5132-1-git-send-email-balajitk@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH resend] omap: Fix linker error in
+ drivers/video/omap/lcd_2430sdp.c
+Date: Mon, 28 Feb 2011 17:39:28 -0800
+Message-ID: <20110301013928.GL20560@atomide.com>
+References: <1298193466-29534-1-git-send-email-jhnikula@gmail.com>
+ <1298232248-347-1-git-send-email-jhnikula@gmail.com>
+ <20110224212644.GN20560@atomide.com>
+ <20110228164715.e34a965e.jhnikula@gmail.com>
+ <1298905757.9809.135.camel@deskari>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1298357739-5132-1-git-send-email-balajitk-l0cyMroinI0@public.gmane.org> (Balaji
-	T. K.'s message of "Tue, 22 Feb 2011 12:25:39 +0530")
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:18178 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753645Ab1CABjg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Feb 2011 20:39:36 -0500
+Content-Disposition: inline
+In-Reply-To: <1298905757.9809.135.camel@deskari>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Jarkko Nikula <jhnikula@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Balaji T K <balajitk-l0cyMroinI0@public.gmane.org> writes:
+* Tomi Valkeinen <tomi.valkeinen@ti.com> [110228 07:07]:
+> 
+> Well, it's a bit ugly, but I'm fine with it. It's for the old omapfb,
+> which hopefully nobody uses anymore (right =), and there's no simple way
+> to make it modular and neat.
 
-> fix the build break when !CONFIG_SUSPEND
->
-> drivers/i2c/busses/i2c-omap.c:1173: error: lvalue required as unary '&' operand
-> make[3]: *** [drivers/i2c/busses/i2c-omap.o] Error 1
-> make[2]: *** [drivers/i2c/busses] Error 2
-> make[1]: *** [drivers/i2c] Error 2
-> make: *** [drivers] Error 2
->
-> Signed-off-by: Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>
+How about let's make mach-omap2 boards all use the new code?
+That way the old code can be omap1 only.
 
-Acked-by: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+Regards,
 
-Ben, feel free to fold into original patch if preferred.
-
-Kevin
-
-> ---
-> introduced by commit f6f98d72575031b0c03416a28a0d580128114b74
-> applies on i2c-fixes branch
->
->  drivers/i2c/busses/i2c-omap.c |    5 +++--
->  1 files changed, 3 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> index 0541df9..adc1ee5 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -1160,8 +1160,9 @@ static struct dev_pm_ops omap_i2c_pm_ops = {
->  	.suspend = omap_i2c_suspend,
->  	.resume = omap_i2c_resume,
->  };
-> +#define OMAP_I2C_PM_OPS (&omap_i2c_pm_ops)
->  #else
-> -#define omap_i2c_pm_ops NULL
-> +#define OMAP_I2C_PM_OPS NULL
->  #endif
->  
->  static struct platform_driver omap_i2c_driver = {
-> @@ -1170,7 +1171,7 @@ static struct platform_driver omap_i2c_driver = {
->  	.driver		= {
->  		.name	= "omap_i2c",
->  		.owner	= THIS_MODULE,
-> -		.pm     = &omap_i2c_pm_ops,
-> +		.pm	= OMAP_I2C_PM_OPS,
->  	},
->  };
+Tony
