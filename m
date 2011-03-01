@@ -1,475 +1,240 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH 2/3] OMAP: DSS2: Use request / release calls in Taal for DSI Virtual Channels.
-Date: Tue,  1 Mar 2011 18:02:22 +0530
-Message-ID: <1298982743-6771-4-git-send-email-archit@ti.com>
+Subject: [PATCH 3/3] OMAP: DSS2: Taal: Use 2 DSI Virtual Channels for Taal
+Date: Tue,  1 Mar 2011 18:02:23 +0530
+Message-ID: <1298982743-6771-5-git-send-email-archit@ti.com>
 References: <1298982743-6771-1-git-send-email-archit@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59651 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:34672 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754503Ab1CAM3x (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 1 Mar 2011 07:29:53 -0500
-Received: from dlep34.itg.ti.com ([157.170.170.115])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p21CTqQt009599
+	id S1754503Ab1CAM35 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 1 Mar 2011 07:29:57 -0500
+Received: from dlep36.itg.ti.com ([157.170.170.91])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p21CTuhh020069
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 1 Mar 2011 06:29:52 -0600
+	for <linux-omap@vger.kernel.org>; Tue, 1 Mar 2011 06:29:56 -0600
 In-Reply-To: <1298982743-6771-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com
 Cc: linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-Taal driver used to take a hard coded Macro for Virtual Channel and the VC_ID.
-The Taal panel driver now requests for a Virtual channel through the
-omap_dsi_request_vc() call in taal_probe().
+Request 2 DSI Virtual channels for the Taal Panel. The first channel is used to
+send control related commands to the Panel. The second is used to send the Pixel
+data to the Panel through calling omap_dsi_update().
 
-The channel number returned by the request_vc() call is used for sending command
-and data to the Panel. The DSI driver automatically configures the Virtual
-Channel's source to either Video Port or L4 Slave port based on what the panel
-driver is using it for.
-
-The driver uses omap_dsi_release_vc() to free all the VC's requested by it in
-taal_remove() or when a request_vc() call fails.
+The 2 channels are named in the struct 'taal_data' as config_channel and
+update_channel for sending control commands and pixel data respectively.
 
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/video/omap2/displays/panel-taal.c |  123 +++++++++++++++++------------
- drivers/video/omap2/dss/dsi.c             |    3 -
- 2 files changed, 71 insertions(+), 55 deletions(-)
+ drivers/video/omap2/displays/panel-taal.c |   72 +++++++++++++++++++----------
+ 1 files changed, 47 insertions(+), 25 deletions(-)
 
 diff --git a/drivers/video/omap2/displays/panel-taal.c b/drivers/video/omap2/displays/panel-taal.c
-index 61026f9..abdfdd8 100644
+index abdfdd8..20f48d4 100644
 --- a/drivers/video/omap2/displays/panel-taal.c
 +++ b/drivers/video/omap2/displays/panel-taal.c
-@@ -218,6 +218,8 @@ struct taal_data {
+@@ -218,7 +218,8 @@ struct taal_data {
  		u16 w;
  		u16 h;
  	} update_region;
-+	int channel;
-+
+-	int channel;
++	int config_channel;
++	int update_channel;
+ 
  	struct delayed_work te_timeout_work;
  
- 	bool use_dsi_bl;
-@@ -257,12 +259,12 @@ static void hw_guard_wait(struct taal_data *td)
- 	}
- }
- 
--static int taal_dcs_read_1(u8 dcs_cmd, u8 *data)
-+static int taal_dcs_read_1(struct taal_data *td, u8 dcs_cmd, u8 *data)
- {
+@@ -264,7 +265,7 @@ static int taal_dcs_read_1(struct taal_data *td, u8 dcs_cmd, u8 *data)
  	int r;
  	u8 buf[1];
  
--	r = dsi_vc_dcs_read(TCH, dcs_cmd, buf, 1);
-+	r = dsi_vc_dcs_read(td->channel, dcs_cmd, buf, 1);
+-	r = dsi_vc_dcs_read(td->channel, dcs_cmd, buf, 1);
++	r = dsi_vc_dcs_read(td->config_channel, dcs_cmd, buf, 1);
  
  	if (r < 0)
  		return r;
-@@ -272,17 +274,17 @@ static int taal_dcs_read_1(u8 dcs_cmd, u8 *data)
- 	return 0;
+@@ -276,7 +277,7 @@ static int taal_dcs_read_1(struct taal_data *td, u8 dcs_cmd, u8 *data)
+ 
+ static int taal_dcs_write_0(struct taal_data *td, u8 dcs_cmd)
+ {
+-	return dsi_vc_dcs_write(td->channel, &dcs_cmd, 1);
++	return dsi_vc_dcs_write(td->config_channel, &dcs_cmd, 1);
  }
  
--static int taal_dcs_write_0(u8 dcs_cmd)
-+static int taal_dcs_write_0(struct taal_data *td, u8 dcs_cmd)
- {
--	return dsi_vc_dcs_write(TCH, &dcs_cmd, 1);
-+	return dsi_vc_dcs_write(td->channel, &dcs_cmd, 1);
- }
- 
--static int taal_dcs_write_1(u8 dcs_cmd, u8 param)
-+static int taal_dcs_write_1(struct taal_data *td, u8 dcs_cmd, u8 param)
- {
+ static int taal_dcs_write_1(struct taal_data *td, u8 dcs_cmd, u8 param)
+@@ -284,7 +285,7 @@ static int taal_dcs_write_1(struct taal_data *td, u8 dcs_cmd, u8 param)
  	u8 buf[2];
  	buf[0] = dcs_cmd;
  	buf[1] = param;
--	return dsi_vc_dcs_write(TCH, buf, 2);
-+	return dsi_vc_dcs_write(td->channel, buf, 2);
+-	return dsi_vc_dcs_write(td->channel, buf, 2);
++	return dsi_vc_dcs_write(td->config_channel, buf, 2);
  }
  
  static int taal_sleep_in(struct taal_data *td)
-@@ -294,7 +296,7 @@ static int taal_sleep_in(struct taal_data *td)
+@@ -296,7 +297,7 @@ static int taal_sleep_in(struct taal_data *td)
  	hw_guard_wait(td);
  
  	cmd = DCS_SLEEP_IN;
--	r = dsi_vc_dcs_write_nosync(TCH, &cmd, 1);
-+	r = dsi_vc_dcs_write_nosync(td->channel, &cmd, 1);
+-	r = dsi_vc_dcs_write_nosync(td->channel, &cmd, 1);
++	r = dsi_vc_dcs_write_nosync(td->config_channel, &cmd, 1);
  	if (r)
  		return r;
  
-@@ -312,7 +314,7 @@ static int taal_sleep_out(struct taal_data *td)
- 
- 	hw_guard_wait(td);
- 
--	r = taal_dcs_write_0(DCS_SLEEP_OUT);
-+	r = taal_dcs_write_0(td, DCS_SLEEP_OUT);
- 	if (r)
- 		return r;
- 
-@@ -324,30 +326,30 @@ static int taal_sleep_out(struct taal_data *td)
- 	return 0;
- }
- 
--static int taal_get_id(u8 *id1, u8 *id2, u8 *id3)
-+static int taal_get_id(struct taal_data *td, u8 *id1, u8 *id2, u8 *id3)
- {
- 	int r;
- 
--	r = taal_dcs_read_1(DCS_GET_ID1, id1);
-+	r = taal_dcs_read_1(td, DCS_GET_ID1, id1);
- 	if (r)
- 		return r;
--	r = taal_dcs_read_1(DCS_GET_ID2, id2);
-+	r = taal_dcs_read_1(td, DCS_GET_ID2, id2);
- 	if (r)
- 		return r;
--	r = taal_dcs_read_1(DCS_GET_ID3, id3);
-+	r = taal_dcs_read_1(td, DCS_GET_ID3, id3);
- 	if (r)
- 		return r;
- 
- 	return 0;
- }
- 
--static int taal_set_addr_mode(u8 rotate, bool mirror)
-+static int taal_set_addr_mode(struct taal_data *td, u8 rotate, bool mirror)
- {
- 	int r;
- 	u8 mode;
- 	int b5, b6, b7;
- 
--	r = taal_dcs_read_1(DCS_READ_MADCTL, &mode);
-+	r = taal_dcs_read_1(td, DCS_READ_MADCTL, &mode);
- 	if (r)
- 		return r;
- 
-@@ -381,10 +383,11 @@ static int taal_set_addr_mode(u8 rotate, bool mirror)
- 	mode &= ~((1<<7) | (1<<6) | (1<<5));
- 	mode |= (b7 << 7) | (b6 << 6) | (b5 << 5);
- 
--	return taal_dcs_write_1(DCS_MEM_ACC_CTRL, mode);
-+	return taal_dcs_write_1(td, DCS_MEM_ACC_CTRL, mode);
- }
- 
--static int taal_set_update_window(u16 x, u16 y, u16 w, u16 h)
-+static int taal_set_update_window(struct taal_data *td,
-+		u16 x, u16 y, u16 w, u16 h)
- {
- 	int r;
- 	u16 x1 = x;
-@@ -399,7 +402,7 @@ static int taal_set_update_window(u16 x, u16 y, u16 w, u16 h)
+@@ -402,7 +403,7 @@ static int taal_set_update_window(struct taal_data *td,
  	buf[3] = (x2 >> 8) & 0xff;
  	buf[4] = (x2 >> 0) & 0xff;
  
--	r = dsi_vc_dcs_write_nosync(TCH, buf, sizeof(buf));
-+	r = dsi_vc_dcs_write_nosync(td->channel, buf, sizeof(buf));
+-	r = dsi_vc_dcs_write_nosync(td->channel, buf, sizeof(buf));
++	r = dsi_vc_dcs_write_nosync(td->config_channel, buf, sizeof(buf));
  	if (r)
  		return r;
  
-@@ -409,11 +412,11 @@ static int taal_set_update_window(u16 x, u16 y, u16 w, u16 h)
+@@ -412,11 +413,11 @@ static int taal_set_update_window(struct taal_data *td,
  	buf[3] = (y2 >> 8) & 0xff;
  	buf[4] = (y2 >> 0) & 0xff;
  
--	r = dsi_vc_dcs_write_nosync(TCH, buf, sizeof(buf));
-+	r = dsi_vc_dcs_write_nosync(td->channel, buf, sizeof(buf));
+-	r = dsi_vc_dcs_write_nosync(td->channel, buf, sizeof(buf));
++	r = dsi_vc_dcs_write_nosync(td->config_channel, buf, sizeof(buf));
  	if (r)
  		return r;
  
--	dsi_vc_send_bta_sync(TCH);
-+	dsi_vc_send_bta_sync(td->channel);
+-	dsi_vc_send_bta_sync(td->channel);
++	dsi_vc_send_bta_sync(td->config_channel);
  
  	return r;
  }
-@@ -439,7 +442,7 @@ static int taal_bl_update_status(struct backlight_device *dev)
- 	if (td->use_dsi_bl) {
- 		if (td->enabled) {
- 			dsi_bus_lock();
--			r = taal_dcs_write_1(DCS_BRIGHTNESS, level);
-+			r = taal_dcs_write_1(td, DCS_BRIGHTNESS, level);
- 			dsi_bus_unlock();
- 		} else {
- 			r = 0;
-@@ -502,7 +505,7 @@ static ssize_t taal_num_errors_show(struct device *dev,
- 
- 	if (td->enabled) {
- 		dsi_bus_lock();
--		r = taal_dcs_read_1(DCS_READ_NUM_ERRORS, &errors);
-+		r = taal_dcs_read_1(td, DCS_READ_NUM_ERRORS, &errors);
- 		dsi_bus_unlock();
- 	} else {
- 		r = -ENODEV;
-@@ -528,7 +531,7 @@ static ssize_t taal_hw_revision_show(struct device *dev,
- 
- 	if (td->enabled) {
- 		dsi_bus_lock();
--		r = taal_get_id(&id1, &id2, &id3);
-+		r = taal_get_id(td, &id1, &id2, &id3);
- 		dsi_bus_unlock();
- 	} else {
- 		r = -ENODEV;
-@@ -590,7 +593,7 @@ static ssize_t store_cabc_mode(struct device *dev,
- 	if (td->enabled) {
- 		dsi_bus_lock();
- 		if (!td->cabc_broken)
--			taal_dcs_write_1(DCS_WRITE_CABC, i);
-+			taal_dcs_write_1(td, DCS_WRITE_CABC, i);
- 		dsi_bus_unlock();
- 	}
- 
-@@ -774,14 +777,29 @@ static int taal_probe(struct omap_dss_device *dssdev)
+@@ -777,29 +778,47 @@ static int taal_probe(struct omap_dss_device *dssdev)
  		dev_dbg(&dssdev->dev, "Using GPIO TE\n");
  	}
  
-+	r = omap_dsi_request_vc(dssdev, &td->channel);
+-	r = omap_dsi_request_vc(dssdev, &td->channel);
++	r = omap_dsi_request_vc(dssdev, &td->config_channel);
+ 	if (r) {
+ 		dev_err(&dssdev->dev, "failed to get virtual channel\n");
+-		goto err_req_vc;
++		goto err_req_vc_config;
+ 	}
+ 
+-	r = omap_dsi_set_vc_id(dssdev, td->channel, TCH);
++	r = omap_dsi_set_vc_id(dssdev, td->config_channel, TCH);
+ 	if (r) {
+-		dev_err(&dssdev->dev, "failed to set VC_ID\n");
+-		goto err_vc_id;
++		dev_err(&dssdev->dev,
++			"failed to set VC_ID for virtual_channel %d\n",
++			td->config_channel);
++		goto err_vc_id_config;
++	}
++
++	r = omap_dsi_request_vc(dssdev, &td->update_channel);
 +	if (r) {
 +		dev_err(&dssdev->dev, "failed to get virtual channel\n");
-+		goto err_req_vc;
++		goto err_vc_id_config;
 +	}
 +
-+	r = omap_dsi_set_vc_id(dssdev, td->channel, TCH);
++	r = omap_dsi_set_vc_id(dssdev, td->update_channel, TCH);
 +	if (r) {
-+		dev_err(&dssdev->dev, "failed to set VC_ID\n");
-+		goto err_vc_id;
-+	}
-+
++		dev_err(&dssdev->dev,
++			"failed to set VC_ID for virtual channel %d\n",
++			td->update_channel);
++		goto err_vc_id_upd;
+ 	}
+ 
  	r = sysfs_create_group(&dssdev->dev.kobj, &taal_attr_group);
  	if (r) {
  		dev_err(&dssdev->dev, "failed to create sysfs files\n");
--		goto err_sysfs;
-+		goto err_vc_id;
+-		goto err_vc_id;
++		goto err_vc_id_upd;
  	}
  
  	return 0;
--err_sysfs:
-+
-+err_vc_id:
-+	omap_dsi_release_vc(dssdev, td->channel);
-+err_req_vc:
+ 
+-err_vc_id:
+-	omap_dsi_release_vc(dssdev, td->channel);
+-err_req_vc:
++err_vc_id_upd:
++	omap_dsi_release_vc(dssdev, td->update_channel);
++err_vc_id_config:
++	omap_dsi_release_vc(dssdev, td->config_channel);
++err_req_vc_config:
  	if (panel_data->use_ext_te)
  		free_irq(gpio_to_irq(panel_data->ext_te_gpio), dssdev);
  err_irq:
-@@ -808,6 +826,7 @@ static void taal_remove(struct omap_dss_device *dssdev)
+@@ -826,7 +845,8 @@ static void taal_remove(struct omap_dss_device *dssdev)
  	dev_dbg(&dssdev->dev, "remove\n");
  
  	sysfs_remove_group(&dssdev->dev.kobj, &taal_attr_group);
-+	omap_dsi_release_vc(dssdev, td->channel);
+-	omap_dsi_release_vc(dssdev, td->channel);
++	omap_dsi_release_vc(dssdev, td->config_channel);
++	omap_dsi_release_vc(dssdev, td->update_channel);
  
  	if (panel_data->use_ext_te) {
  		int gpio = panel_data->ext_te_gpio;
-@@ -846,13 +865,13 @@ static int taal_power_on(struct omap_dss_device *dssdev)
+@@ -865,7 +885,8 @@ static int taal_power_on(struct omap_dss_device *dssdev)
  
  	taal_hw_reset(dssdev);
  
--	omapdss_dsi_vc_enable_hs(TCH, false);
-+	omapdss_dsi_vc_enable_hs(td->channel, false);
+-	omapdss_dsi_vc_enable_hs(td->channel, false);
++	omapdss_dsi_vc_enable_hs(td->config_channel, false);
++	omapdss_dsi_vc_enable_hs(td->update_channel, false);
  
  	r = taal_sleep_out(td);
  	if (r)
- 		goto err;
- 
--	r = taal_get_id(&id1, &id2, &id3);
-+	r = taal_get_id(td, &id1, &id2, &id3);
- 	if (r)
- 		goto err;
- 
-@@ -861,30 +880,30 @@ static int taal_power_on(struct omap_dss_device *dssdev)
- 		(id2 == 0x00 || id2 == 0xff || id2 == 0x81))
- 		td->cabc_broken = true;
- 
--	r = taal_dcs_write_1(DCS_BRIGHTNESS, 0xff);
-+	r = taal_dcs_write_1(td, DCS_BRIGHTNESS, 0xff);
- 	if (r)
- 		goto err;
- 
--	r = taal_dcs_write_1(DCS_CTRL_DISPLAY,
-+	r = taal_dcs_write_1(td, DCS_CTRL_DISPLAY,
- 			(1<<2) | (1<<5));	/* BL | BCTRL */
- 	if (r)
- 		goto err;
- 
--	r = taal_dcs_write_1(DCS_PIXEL_FORMAT, 0x7); /* 24bit/pixel */
-+	r = taal_dcs_write_1(td, DCS_PIXEL_FORMAT, 0x7); /* 24bit/pixel */
- 	if (r)
- 		goto err;
- 
--	r = taal_set_addr_mode(td->rotate, td->mirror);
-+	r = taal_set_addr_mode(td, td->rotate, td->mirror);
- 	if (r)
- 		goto err;
- 
- 	if (!td->cabc_broken) {
--		r = taal_dcs_write_1(DCS_WRITE_CABC, td->cabc_mode);
-+		r = taal_dcs_write_1(td, DCS_WRITE_CABC, td->cabc_mode);
- 		if (r)
- 			goto err;
- 	}
- 
--	r = taal_dcs_write_0(DCS_DISPLAY_ON);
-+	r = taal_dcs_write_0(td, DCS_DISPLAY_ON);
- 	if (r)
- 		goto err;
- 
-@@ -903,7 +922,7 @@ static int taal_power_on(struct omap_dss_device *dssdev)
+@@ -922,7 +943,8 @@ static int taal_power_on(struct omap_dss_device *dssdev)
  		td->intro_printed = true;
  	}
  
--	omapdss_dsi_vc_enable_hs(TCH, true);
-+	omapdss_dsi_vc_enable_hs(td->channel, true);
+-	omapdss_dsi_vc_enable_hs(td->channel, true);
++	omapdss_dsi_vc_enable_hs(td->config_channel, true);
++	omapdss_dsi_vc_enable_hs(td->update_channel, true);
  
  	return 0;
  err:
-@@ -921,7 +940,7 @@ static void taal_power_off(struct omap_dss_device *dssdev)
- 	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
- 	int r;
- 
--	r = taal_dcs_write_0(DCS_DISPLAY_OFF);
-+	r = taal_dcs_write_0(td, DCS_DISPLAY_OFF);
- 	if (!r) {
- 		r = taal_sleep_in(td);
- 		/* HACK: wait a bit so that the message goes through */
-@@ -1089,7 +1108,7 @@ static irqreturn_t taal_te_isr(int irq, void *data)
+@@ -1108,7 +1130,7 @@ static irqreturn_t taal_te_isr(int irq, void *data)
  	if (old) {
  		cancel_delayed_work(&td->te_timeout_work);
  
--		r = omap_dsi_update(dssdev, TCH,
-+		r = omap_dsi_update(dssdev, td->channel,
+-		r = omap_dsi_update(dssdev, td->channel,
++		r = omap_dsi_update(dssdev, td->update_channel,
  				td->update_region.x,
  				td->update_region.y,
  				td->update_region.w,
-@@ -1139,7 +1158,7 @@ static int taal_update(struct omap_dss_device *dssdev,
- 	if (r)
- 		goto err;
- 
--	r = taal_set_update_window(x, y, w, h);
-+	r = taal_set_update_window(td, x, y, w, h);
- 	if (r)
- 		goto err;
- 
-@@ -1153,7 +1172,7 @@ static int taal_update(struct omap_dss_device *dssdev,
+@@ -1172,7 +1194,7 @@ static int taal_update(struct omap_dss_device *dssdev,
  				msecs_to_jiffies(250));
  		atomic_set(&td->do_update, 1);
  	} else {
--		r = omap_dsi_update(dssdev, TCH, x, y, w, h,
-+		r = omap_dsi_update(dssdev, td->channel, x, y, w, h,
+-		r = omap_dsi_update(dssdev, td->channel, x, y, w, h,
++		r = omap_dsi_update(dssdev, td->update_channel, x, y, w, h,
  				taal_framedone_cb, dssdev);
  		if (r)
  			goto err;
-@@ -1191,9 +1210,9 @@ static int _taal_enable_te(struct omap_dss_device *dssdev, bool enable)
- 	int r;
+@@ -1425,7 +1447,7 @@ static int taal_memory_read(struct omap_dss_device *dssdev,
  
- 	if (enable)
--		r = taal_dcs_write_1(DCS_TEAR_ON, 0);
-+		r = taal_dcs_write_1(td, DCS_TEAR_ON, 0);
- 	else
--		r = taal_dcs_write_0(DCS_TEAR_OFF);
-+		r = taal_dcs_write_0(td, DCS_TEAR_OFF);
+ 	taal_set_update_window(td, x, y, w, h);
  
- 	if (!panel_data->use_ext_te)
- 		omapdss_dsi_enable_te(dssdev, enable);
-@@ -1263,7 +1282,7 @@ static int taal_rotate(struct omap_dss_device *dssdev, u8 rotate)
- 	dsi_bus_lock();
- 
- 	if (td->enabled) {
--		r = taal_set_addr_mode(rotate, td->mirror);
-+		r = taal_set_addr_mode(td, rotate, td->mirror);
- 		if (r)
- 			goto err;
- 	}
-@@ -1306,7 +1325,7 @@ static int taal_mirror(struct omap_dss_device *dssdev, bool enable)
- 
- 	dsi_bus_lock();
- 	if (td->enabled) {
--		r = taal_set_addr_mode(td->rotate, enable);
-+		r = taal_set_addr_mode(td, td->rotate, enable);
- 		if (r)
- 			goto err;
- 	}
-@@ -1350,13 +1369,13 @@ static int taal_run_test(struct omap_dss_device *dssdev, int test_num)
- 
- 	dsi_bus_lock();
- 
--	r = taal_dcs_read_1(DCS_GET_ID1, &id1);
-+	r = taal_dcs_read_1(td, DCS_GET_ID1, &id1);
- 	if (r)
- 		goto err2;
--	r = taal_dcs_read_1(DCS_GET_ID2, &id2);
-+	r = taal_dcs_read_1(td, DCS_GET_ID2, &id2);
- 	if (r)
- 		goto err2;
--	r = taal_dcs_read_1(DCS_GET_ID3, &id3);
-+	r = taal_dcs_read_1(td, DCS_GET_ID3, &id3);
+-	r = dsi_vc_set_max_rx_packet_size(td->channel, plen);
++	r = dsi_vc_set_max_rx_packet_size(td->config_channel, plen);
  	if (r)
  		goto err2;
  
-@@ -1404,9 +1423,9 @@ static int taal_memory_read(struct omap_dss_device *dssdev,
- 	else
- 		plen = 2;
- 
--	taal_set_update_window(x, y, w, h);
-+	taal_set_update_window(td, x, y, w, h);
- 
--	r = dsi_vc_set_max_rx_packet_size(TCH, plen);
-+	r = dsi_vc_set_max_rx_packet_size(td->channel, plen);
- 	if (r)
- 		goto err2;
- 
-@@ -1414,7 +1433,7 @@ static int taal_memory_read(struct omap_dss_device *dssdev,
+@@ -1433,7 +1455,7 @@ static int taal_memory_read(struct omap_dss_device *dssdev,
  		u8 dcs_cmd = first ? 0x2e : 0x3e;
  		first = 0;
  
--		r = dsi_vc_dcs_read(TCH, dcs_cmd,
-+		r = dsi_vc_dcs_read(td->channel, dcs_cmd,
+-		r = dsi_vc_dcs_read(td->channel, dcs_cmd,
++		r = dsi_vc_dcs_read(td->config_channel, dcs_cmd,
  				buf + buf_used, size - buf_used);
  
  		if (r < 0) {
-@@ -1440,7 +1459,7 @@ static int taal_memory_read(struct omap_dss_device *dssdev,
+@@ -1459,7 +1481,7 @@ static int taal_memory_read(struct omap_dss_device *dssdev,
  	r = buf_used;
  
  err3:
--	dsi_vc_set_max_rx_packet_size(TCH, 1);
-+	dsi_vc_set_max_rx_packet_size(td->channel, 1);
+-	dsi_vc_set_max_rx_packet_size(td->channel, 1);
++	dsi_vc_set_max_rx_packet_size(td->config_channel, 1);
  err2:
  	dsi_bus_unlock();
  err1:
-@@ -1466,7 +1485,7 @@ static void taal_esd_work(struct work_struct *work)
- 
- 	dsi_bus_lock();
- 
--	r = taal_dcs_read_1(DCS_RDDSDR, &state1);
-+	r = taal_dcs_read_1(td, DCS_RDDSDR, &state1);
- 	if (r) {
- 		dev_err(&dssdev->dev, "failed to read Taal status\n");
- 		goto err;
-@@ -1479,7 +1498,7 @@ static void taal_esd_work(struct work_struct *work)
- 		goto err;
- 	}
- 
--	r = taal_dcs_read_1(DCS_RDDSDR, &state2);
-+	r = taal_dcs_read_1(td, DCS_RDDSDR, &state2);
- 	if (r) {
- 		dev_err(&dssdev->dev, "failed to read Taal status\n");
- 		goto err;
-@@ -1495,7 +1514,7 @@ static void taal_esd_work(struct work_struct *work)
- 	/* Self-diagnostics result is also shown on TE GPIO line. We need
- 	 * to re-enable TE after self diagnostics */
- 	if (td->te_enabled && panel_data->use_ext_te) {
--		r = taal_dcs_write_1(DCS_TEAR_ON, 0);
-+		r = taal_dcs_write_1(td, DCS_TEAR_ON, 0);
- 		if (r)
- 			goto err;
- 	}
-diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
-index 7758c80..cbfa514 100644
---- a/drivers/video/omap2/dss/dsi.c
-+++ b/drivers/video/omap2/dss/dsi.c
-@@ -3244,9 +3244,6 @@ int dsi_init_display(struct omap_dss_device *dssdev)
- 	dssdev->caps = OMAP_DSS_DISPLAY_CAP_MANUAL_UPDATE |
- 		OMAP_DSS_DISPLAY_CAP_TEAR_ELIM;
- 
--	dsi.vc[0].dssdev = dssdev;
--	dsi.vc[1].dssdev = dssdev;
--
- 	if (dsi.vdds_dsi_reg == NULL) {
- 		struct regulator *vdds_dsi;
- 
 -- 
 1.7.1
 
