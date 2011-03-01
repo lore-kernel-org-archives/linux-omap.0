@@ -1,121 +1,293 @@
-From: Keshava Munegowda <keshava_mgowda@ti.com>
-Subject: [PATCH 10/10 v2] arm: omap: usb: clock entries for omap3 and omap4
-Date: Tue,  1 Mar 2011 20:08:22 +0530
-Message-ID: <1298990302-30475-11-git-send-email-keshava_mgowda@ti.com>
+From: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 06/10 v2] arm: omap: usb: usbhs core device initialization
+Date: Tue,  1 Mar 2011 20:08:18 +0530
+Message-ID: <1298990302-30475-7-git-send-email-keshava_mgowda@ti.com>
 References: <1298990302-30475-1-git-send-email-keshava_mgowda@ti.com>
  <1298990302-30475-2-git-send-email-keshava_mgowda@ti.com>
  <1298990302-30475-3-git-send-email-keshava_mgowda@ti.com>
  <1298990302-30475-4-git-send-email-keshava_mgowda@ti.com>
  <1298990302-30475-5-git-send-email-keshava_mgowda@ti.com>
  <1298990302-30475-6-git-send-email-keshava_mgowda@ti.com>
- <1298990302-30475-7-git-send-email-keshava_mgowda@ti.com>
- <1298990302-30475-8-git-send-email-keshava_mgowda@ti.com>
- <1298990302-30475-9-git-send-email-keshava_mgowda@ti.com>
- <1298990302-30475-10-git-send-email-keshava_mgowda@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:33390 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754345Ab1CAOiv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 1 Mar 2011 09:38:51 -0500
-In-Reply-To: <1298990302-30475-10-git-send-email-keshava_mgowda@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1298990302-30475-6-git-send-email-keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org, gadiyar-l0cyMroinI0@public.gmane.org, p-basak2-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: Keshava Munegowda <keshava_mgowda@ti.com>, balbi@ti.com, gadiyar@ti.com, p-basak2@ti.com
 
-The devices of clocks are set to usbhs, so that
-only usbhs common driver can invoke these clocks.
-The dummy per port clocks are added to omap3
-clock data base. This helps to invoke common
-clock get APIs for omap3 and omap4.
+A new usbhs platform device is defined;
+this device will be the parent device of ehci and
+ohci platform devices. the usbhs_init function
+is defined which does the usbhs device initialization
+and I/O mux of ehci and ohci.
 
-Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
+Signed-off-by: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/mach-omap2/clock3xxx_data.c |   19 ++++++++++++++-----
- arch/arm/mach-omap2/clock44xx_data.c |   10 +++++-----
- 2 files changed, 19 insertions(+), 10 deletions(-)
+ arch/arm/mach-omap2/usb-host.c        |  195 ++++++++++++++++++++++++++++++---
+ arch/arm/plat-omap/include/plat/usb.h |    2 +
+ 2 files changed, 183 insertions(+), 14 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
-index 403a4a1..fbb1e30 100644
---- a/arch/arm/mach-omap2/clock3xxx_data.c
-+++ b/arch/arm/mach-omap2/clock3xxx_data.c
-@@ -3286,7 +3286,7 @@ static struct omap_clk omap3xxx_clks[] = {
- 	CLK(NULL,	"cpefuse_fck",	&cpefuse_fck,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
- 	CLK(NULL,	"ts_fck",	&ts_fck,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
- 	CLK(NULL,	"usbtll_fck",	&usbtll_fck,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
--	CLK("ehci-omap.0",	"usbtll_fck",	&usbtll_fck,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
-+	CLK("usbhs-omap.0",	"usbtll_fck",	&usbtll_fck,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
- 	CLK("omap-mcbsp.1",	"prcm_fck",	&core_96m_fck,	CK_3XXX),
- 	CLK("omap-mcbsp.5",	"prcm_fck",	&core_96m_fck,	CK_3XXX),
- 	CLK(NULL,	"core_96m_fck",	&core_96m_fck,	CK_3XXX),
-@@ -3322,7 +3322,7 @@ static struct omap_clk omap3xxx_clks[] = {
- 	CLK(NULL,	"pka_ick",	&pka_ick,	CK_34XX | CK_36XX),
- 	CLK(NULL,	"core_l4_ick",	&core_l4_ick,	CK_3XXX),
- 	CLK(NULL,	"usbtll_ick",	&usbtll_ick,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
--	CLK("ehci-omap.0",	"usbtll_ick",	&usbtll_ick,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
-+	CLK("usbhs-omap.0",	"usbtll_ick",	&usbtll_ick,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
- 	CLK("mmci-omap-hs.2",	"ick",	&mmchs3_ick,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
- 	CLK(NULL,	"icr_ick",	&icr_ick,	CK_34XX | CK_36XX),
- 	CLK("omap-aes",	"ick",	&aes2_ick,	CK_34XX | CK_36XX),
-@@ -3368,11 +3368,20 @@ static struct omap_clk omap3xxx_clks[] = {
- 	CLK(NULL,	"cam_ick",	&cam_ick,	CK_34XX | CK_36XX),
- 	CLK(NULL,	"csi2_96m_fck",	&csi2_96m_fck,	CK_34XX | CK_36XX),
- 	CLK(NULL,	"usbhost_120m_fck", &usbhost_120m_fck, CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
--	CLK("ehci-omap.0",	"hs_fck", &usbhost_120m_fck, CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
-+	CLK("usbhs-omap.0",	"hs_fck", &usbhost_120m_fck, CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
- 	CLK(NULL,	"usbhost_48m_fck", &usbhost_48m_fck, CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
--	CLK("ehci-omap.0",	"fs_fck", &usbhost_48m_fck, CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
-+	CLK("usbhs-omap.0",	"fs_fck", &usbhost_48m_fck, CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
- 	CLK(NULL,	"usbhost_ick",	&usbhost_ick,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
--	CLK("ehci-omap.0",	"usbhost_ick",	&usbhost_ick,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
-+	CLK("usbhs-omap.0",	"usbhost_ick",	&usbhost_ick,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
-+	CLK("usbhs-omap.0",	"utmi_p1_gfclk",	&dummy_ck,	CK_3XXX),
-+	CLK("usbhs-omap.0",	"utmi_p2_gfclk",	&dummy_ck,	CK_3XXX),
-+	CLK("usbhs-omap.0",	"xclk60mhsp1_ck",	&dummy_ck,	CK_3XXX),
-+	CLK("usbhs-omap.0",	"xclk60mhsp2_ck",	&dummy_ck,	CK_3XXX),
-+	CLK("usbhs-omap.0",	"usb_host_hs_utmi_p1_clk",	&dummy_ck,	CK_3XXX),
-+	CLK("usbhs-omap.0",	"usb_host_hs_utmi_p2_clk",	&dummy_ck,	CK_3XXX),
-+	CLK("usbhs-omap.0",	"usb_tll_hs_usb_ch0_clk",	&dummy_ck,	CK_3XXX),
-+	CLK("usbhs-omap.0",	"usb_tll_hs_usb_ch1_clk",	&dummy_ck,	CK_3XXX),
-+	CLK("usbhs-omap.0",	"init_60m_fclk",	&dummy_ck,	CK_3XXX),
- 	CLK(NULL,	"usim_fck",	&usim_fck,	CK_3430ES2PLUS | CK_36XX),
- 	CLK(NULL,	"gpt1_fck",	&gpt1_fck,	CK_3XXX),
- 	CLK(NULL,	"wkup_32k_fck",	&wkup_32k_fck,	CK_3XXX),
-diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
-index de9ec8d..46fd3f6 100644
---- a/arch/arm/mach-omap2/clock44xx_data.c
-+++ b/arch/arm/mach-omap2/clock44xx_data.c
-@@ -3197,7 +3197,7 @@ static struct omap_clk omap44xx_clks[] = {
- 	CLK(NULL,	"uart3_fck",			&uart3_fck,	CK_443X),
- 	CLK(NULL,	"uart4_fck",			&uart4_fck,	CK_443X),
- 	CLK(NULL,	"usb_host_fs_fck",		&usb_host_fs_fck,	CK_443X),
--	CLK("ehci-omap.0",	"fs_fck",		&usb_host_fs_fck,	CK_443X),
-+	CLK("usbhs-omap.0",	"fs_fck",		&usb_host_fs_fck,	CK_443X),
- 	CLK(NULL,	"utmi_p1_gfclk",		&utmi_p1_gfclk,	CK_443X),
- 	CLK(NULL,	"usb_host_hs_utmi_p1_clk",	&usb_host_hs_utmi_p1_clk,	CK_443X),
- 	CLK(NULL,	"utmi_p2_gfclk",		&utmi_p2_gfclk,	CK_443X),
-@@ -3209,8 +3209,8 @@ static struct omap_clk omap44xx_clks[] = {
- 	CLK(NULL,	"usb_host_hs_hsic480m_p2_clk",	&usb_host_hs_hsic480m_p2_clk,	CK_443X),
- 	CLK(NULL,	"usb_host_hs_func48mclk",	&usb_host_hs_func48mclk,	CK_443X),
- 	CLK(NULL,	"usb_host_hs_fck",		&usb_host_hs_fck,	CK_443X),
--	CLK("ehci-omap.0",	"hs_fck",		&usb_host_hs_fck,	CK_443X),
--	CLK("ehci-omap.0",	"usbhost_ick",		&dummy_ck,		CK_443X),
-+	CLK("usbhs-omap.0",	"hs_fck",		&usb_host_hs_fck,	CK_443X),
-+	CLK("usbhs-omap.0",	"usbhost_ick",		&dummy_ck,		CK_443X),
- 	CLK(NULL,	"otg_60m_gfclk",		&otg_60m_gfclk,	CK_443X),
- 	CLK(NULL,	"usb_otg_hs_xclk",		&usb_otg_hs_xclk,	CK_443X),
- 	CLK("musb-omap2430",	"ick",				&usb_otg_hs_ick,	CK_443X),
-@@ -3219,8 +3219,8 @@ static struct omap_clk omap44xx_clks[] = {
- 	CLK(NULL,	"usb_tll_hs_usb_ch0_clk",	&usb_tll_hs_usb_ch0_clk,	CK_443X),
- 	CLK(NULL,	"usb_tll_hs_usb_ch1_clk",	&usb_tll_hs_usb_ch1_clk,	CK_443X),
- 	CLK(NULL,	"usb_tll_hs_ick",		&usb_tll_hs_ick,	CK_443X),
--	CLK("ehci-omap.0",	"usbtll_ick",		&usb_tll_hs_ick,	CK_443X),
--	CLK("ehci-omap.0",	"usbtll_fck",		&dummy_ck,	CK_443X),
-+	CLK("usbhs-omap.0",	"usbtll_ick",		&usb_tll_hs_ick,	CK_443X),
-+	CLK("usbhs-omap.0",	"usbtll_fck",		&dummy_ck,	CK_443X),
- 	CLK(NULL,	"usim_ck",			&usim_ck,	CK_443X),
- 	CLK(NULL,	"usim_fclk",			&usim_fclk,	CK_443X),
- 	CLK(NULL,	"usim_fck",			&usim_fck,	CK_443X),
+diff --git a/arch/arm/mach-omap2/usb-host.c b/arch/arm/mach-omap2/usb-host.c
+index b04ce6f..ab06382 100644
+--- a/arch/arm/mach-omap2/usb-host.c
++++ b/arch/arm/mach-omap2/usb-host.c
+@@ -6,6 +6,7 @@
+  *
+  * Copyright (C) 2007-2011 Texas Instruments
+  * Author: Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>
++ * Author: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+  *
+  * Generalization by:
+  * Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+@@ -19,7 +20,7 @@
+ #include <linux/errno.h>
+ #include <linux/delay.h>
+ #include <linux/platform_device.h>
+-#include <linux/clk.h>
++#include <linux/slab.h>
+ #include <linux/dma-mapping.h>
+ 
+ #include <asm/io.h>
+@@ -30,7 +31,7 @@
+ 
+ #include "mux.h"
+ 
+-#if defined(CONFIG_USB_EHCI_HCD) || defined(CONFIG_USB_EHCI_HCD_MODULE)
++#ifdef CONFIG_MFD_OMAP_USB_HOST
+ 
+ static struct resource ehci_resources[] = {
+ 	{
+@@ -361,17 +362,6 @@ void __init usb_ehci_init(const struct usbhs_omap_board_data *pdata)
+ 	}
+ }
+ 
+-#else
+-
+-void __init usb_ehci_init(const struct usbhs_omap_board_data *pdata)
+-
+-{
+-}
+-
+-#endif /* CONFIG_USB_EHCI_HCD */
+-
+-#if defined(CONFIG_USB_OHCI_HCD) || defined(CONFIG_USB_OHCI_HCD_MODULE)
+-
+ static struct resource ohci_resources[] = {
+ 	{
+ 		.name	= "ohci",
+@@ -508,6 +498,77 @@ static void setup_ohci_io_mux(const enum usbhs_omap_port_mode *port_mode)
+ 	}
+ }
+ 
++static void setup_4430ohci_io_mux(const enum usbhs_omap_port_mode *port_mode)
++{
++	switch (port_mode[0]) {
++	case OMAP_OHCI_PORT_MODE_PHY_6PIN_DATSE0:
++	case OMAP_OHCI_PORT_MODE_PHY_6PIN_DPDM:
++	case OMAP_OHCI_PORT_MODE_TLL_6PIN_DATSE0:
++	case OMAP_OHCI_PORT_MODE_TLL_6PIN_DPDM:
++		omap_mux_init_signal("usbb1_mm_rxdp",
++			OMAP_PIN_INPUT_PULLDOWN);
++		omap_mux_init_signal("usbb1_mm_rxdm",
++			OMAP_PIN_INPUT_PULLDOWN);
++
++	case OMAP_OHCI_PORT_MODE_PHY_4PIN_DPDM:
++	case OMAP_OHCI_PORT_MODE_TLL_4PIN_DPDM:
++		omap_mux_init_signal("usbb1_mm_rxrcv",
++			OMAP_PIN_INPUT_PULLDOWN);
++
++	case OMAP_OHCI_PORT_MODE_PHY_3PIN_DATSE0:
++	case OMAP_OHCI_PORT_MODE_TLL_3PIN_DATSE0:
++		omap_mux_init_signal("usbb1_mm_txen",
++			OMAP_PIN_INPUT_PULLDOWN);
++
++
++	case OMAP_OHCI_PORT_MODE_TLL_2PIN_DATSE0:
++	case OMAP_OHCI_PORT_MODE_TLL_2PIN_DPDM:
++		omap_mux_init_signal("usbb1_mm_txdat",
++			OMAP_PIN_INPUT_PULLDOWN);
++		omap_mux_init_signal("usbb1_mm_txse0",
++			OMAP_PIN_INPUT_PULLDOWN);
++		break;
++
++	case OMAP_USBHS_PORT_MODE_UNUSED:
++	default:
++		break;
++	}
++
++	switch (port_mode[1]) {
++	case OMAP_OHCI_PORT_MODE_PHY_6PIN_DATSE0:
++	case OMAP_OHCI_PORT_MODE_PHY_6PIN_DPDM:
++	case OMAP_OHCI_PORT_MODE_TLL_6PIN_DATSE0:
++	case OMAP_OHCI_PORT_MODE_TLL_6PIN_DPDM:
++		omap_mux_init_signal("usbb2_mm_rxdp",
++			OMAP_PIN_INPUT_PULLDOWN);
++		omap_mux_init_signal("usbb2_mm_rxdm",
++			OMAP_PIN_INPUT_PULLDOWN);
++
++	case OMAP_OHCI_PORT_MODE_PHY_4PIN_DPDM:
++	case OMAP_OHCI_PORT_MODE_TLL_4PIN_DPDM:
++		omap_mux_init_signal("usbb2_mm_rxrcv",
++			OMAP_PIN_INPUT_PULLDOWN);
++
++	case OMAP_OHCI_PORT_MODE_PHY_3PIN_DATSE0:
++	case OMAP_OHCI_PORT_MODE_TLL_3PIN_DATSE0:
++		omap_mux_init_signal("usbb2_mm_txen",
++			OMAP_PIN_INPUT_PULLDOWN);
++
++
++	case OMAP_OHCI_PORT_MODE_TLL_2PIN_DATSE0:
++	case OMAP_OHCI_PORT_MODE_TLL_2PIN_DPDM:
++		omap_mux_init_signal("usbb2_mm_txdat",
++			OMAP_PIN_INPUT_PULLDOWN);
++		omap_mux_init_signal("usbb2_mm_txse0",
++			OMAP_PIN_INPUT_PULLDOWN);
++		break;
++
++	case OMAP_USBHS_PORT_MODE_UNUSED:
++	default:
++		break;
++	}
++}
++
+ void __init usb_ohci_init(const struct usbhs_omap_board_data *pdata)
+ {
+ 	platform_device_add_data(&ohci_device, pdata, sizeof(*pdata));
+@@ -522,10 +583,116 @@ void __init usb_ohci_init(const struct usbhs_omap_board_data *pdata)
+ 	}
+ }
+ 
++#define OMAP_USBHS_DEVICE	"usbhs-omap"
++
++static struct resource usbhs_resources[] = {
++	{
++		.name	= "uhh",
++		.flags	= IORESOURCE_MEM,
++	},
++	{
++		.name	= "tll",
++		.flags	= IORESOURCE_MEM,
++	},
++	{
++		.name	= "ehci",
++		.flags	= IORESOURCE_MEM,
++	},
++	{
++		.name	= "ehci-irq",
++		.flags	= IORESOURCE_IRQ,
++	},
++	{
++		.name	= "ohci",
++		.flags	= IORESOURCE_MEM,
++	},
++	{
++		.name	= "ohci-irq",
++		.flags	= IORESOURCE_IRQ,
++	}
++};
++
++static struct platform_device usbhs_device = {
++	.name		= OMAP_USBHS_DEVICE,
++	.id		= 0,
++	.num_resources	= ARRAY_SIZE(usbhs_resources),
++	.resource	= usbhs_resources,
++};
++
++static struct usbhs_omap_platform_data		usbhs_data;
++static struct ehci_hcd_omap_platform_data	ehci_data;
++static struct ohci_hcd_omap_platform_data	ohci_data;
++
++void __init usbhs_init(const struct usbhs_omap_board_data *pdata)
++{
++	int	i;
++
++	for (i = 0; i < OMAP3_HS_USB_PORTS; i++) {
++		usbhs_data.port_mode[i] = pdata->port_mode[i];
++		ohci_data.port_mode[i] = pdata->port_mode[i];
++		ehci_data.port_mode[i] = pdata->port_mode[i];
++		ehci_data.reset_gpio_port[i] = pdata->reset_gpio_port[i];
++		ehci_data.regulator[i] = pdata->regulator[i];
++	}
++	ehci_data.phy_reset = pdata->phy_reset;
++	ohci_data.es2_compatibility = pdata->es2_compatibility;
++	usbhs_data.ehci_data = &ehci_data;
++	usbhs_data.ohci_data = &ohci_data;
++
++	if (cpu_is_omap34xx()) {
++		usbhs_resources[0].start = OMAP34XX_UHH_CONFIG_BASE;
++		usbhs_resources[0].end = OMAP34XX_UHH_CONFIG_BASE + SZ_1K - 1;
++		usbhs_resources[1].start = OMAP34XX_USBTLL_BASE;
++		usbhs_resources[1].end = OMAP34XX_USBTLL_BASE + SZ_4K - 1;
++		usbhs_resources[2].start	= OMAP34XX_EHCI_BASE;
++		usbhs_resources[2].end	= OMAP34XX_EHCI_BASE + SZ_1K - 1;
++		usbhs_resources[3].start = INT_34XX_EHCI_IRQ;
++		usbhs_resources[4].start	= OMAP34XX_OHCI_BASE;
++		usbhs_resources[4].end	= OMAP34XX_OHCI_BASE + SZ_1K - 1;
++		usbhs_resources[5].start = INT_34XX_OHCI_IRQ;
++		setup_ehci_io_mux(pdata->port_mode);
++		setup_ohci_io_mux(pdata->port_mode);
++	} else if (cpu_is_omap44xx()) {
++		usbhs_resources[0].start = OMAP44XX_UHH_CONFIG_BASE;
++		usbhs_resources[0].end = OMAP44XX_UHH_CONFIG_BASE + SZ_1K - 1;
++		usbhs_resources[1].start = OMAP44XX_USBTLL_BASE;
++		usbhs_resources[1].end = OMAP44XX_USBTLL_BASE + SZ_4K - 1;
++		usbhs_resources[2].start = OMAP44XX_HSUSB_EHCI_BASE;
++		usbhs_resources[2].end = OMAP44XX_HSUSB_EHCI_BASE + SZ_1K - 1;
++		usbhs_resources[3].start = OMAP44XX_IRQ_EHCI;
++		usbhs_resources[4].start = OMAP44XX_HSUSB_OHCI_BASE;
++		usbhs_resources[4].end = OMAP44XX_HSUSB_OHCI_BASE + SZ_1K - 1;
++		usbhs_resources[5].start = OMAP44XX_IRQ_OHCI;
++		setup_4430ehci_io_mux(pdata->port_mode);
++		setup_4430ohci_io_mux(pdata->port_mode);
++	}
++
++	if (platform_device_add_data(&usbhs_device,
++				&usbhs_data, sizeof(usbhs_data)) < 0) {
++		printk(KERN_ERR "USBHS platform_device_add_data failed\n");
++		goto init_end;
++	}
++
++	if (platform_device_register(&usbhs_device) < 0)
++		printk(KERN_ERR "USBHS platform_device_register failed\n");
++
++init_end:
++	return;
++}
++
+ #else
+ 
++void __init usbhs_init(const struct usbhs_omap_board_data *pdata)
++{
++}
++
+ void __init usb_ohci_init(const struct usbhs_omap_board_data *pdata)
+ {
+ }
+ 
+-#endif /* CONFIG_USB_OHCI_HCD */
++void __init usb_ehci_init(const struct usbhs_omap_board_data *pdata)
++{
++}
++#endif
++
++
+diff --git a/arch/arm/plat-omap/include/plat/usb.h b/arch/arm/plat-omap/include/plat/usb.h
+index 7aeaa76..aab707a 100644
+--- a/arch/arm/plat-omap/include/plat/usb.h
++++ b/arch/arm/plat-omap/include/plat/usb.h
+@@ -102,6 +102,8 @@ extern void usb_ehci_init(const struct usbhs_omap_board_data *pdata);
+ 
+ extern void usb_ohci_init(const struct usbhs_omap_board_data *pdata);
+ 
++extern void usbhs_init(const struct usbhs_omap_board_data *pdata);
++
+ extern int omap_usbhs_enable(struct device *dev);
+ extern void omap_usbhs_disable(struct device *dev);
+ 
 -- 
 1.6.0.4
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
