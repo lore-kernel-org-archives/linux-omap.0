@@ -1,57 +1,47 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 3/8] omap3: pm: Correcting the sys_offmode signal polarity
-Date: Tue, 01 Mar 2011 14:35:04 -0800
-Message-ID: <87k4gifp0n.fsf@ti.com>
-References: <1298723139-1693-1-git-send-email-leslyam@ti.com>
-	<1298723139-1693-4-git-send-email-leslyam@ti.com>
+Subject: Re: [GIT PULL] omap fixes for v2.6.38-rc6
+Date: Tue, 01 Mar 2011 14:48:45 -0800
+Message-ID: <87aahefodu.fsf@ti.com>
+References: <20110228194151.GJ20560@atomide.com>
+	<alpine.DEB.1.10.1103011931380.27610@esdhcp041196.research.nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:56343 "EHLO
+Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:40275 "EHLO
 	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756168Ab1CAWfK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Mar 2011 17:35:10 -0500
-Received: by mail-pz0-f42.google.com with SMTP id 12so1466196pzk.15
-        for <linux-omap@vger.kernel.org>; Tue, 01 Mar 2011 14:35:07 -0800 (PST)
-In-Reply-To: <1298723139-1693-4-git-send-email-leslyam@ti.com> (Lesly A. M.'s
-	message of "Sat, 26 Feb 2011 17:55:34 +0530")
+	by vger.kernel.org with ESMTP id S1753233Ab1CAWss (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Mar 2011 17:48:48 -0500
+In-Reply-To: <alpine.DEB.1.10.1103011931380.27610@esdhcp041196.research.nokia.com>
+	(Aaro Koskinen's message of "Tue, 1 Mar 2011 19:39:01 +0200 (EET)")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Lesly A M <leslyam@ti.com>
-Cc: linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>, David Derrick <dderrick@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
+To: Aaro Koskinen <aaro.koskinen@nokia.com>
+Cc: Tony Lindgren <tony@atomide.com>, Linus Torvalds <torvalds@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Lesly A M <leslyam@ti.com> writes:
+Aaro Koskinen <aaro.koskinen@nokia.com> writes:
 
-> Changing the polarity of the sys_offmode signal to active low,
-> to get a High to Low transition on the NSLEEP1 of PM IC when OMAP is
-> entering offmode. Because on PM IC the power resources (LDO, DCDC regulators)
-> associated with P1 group which is controlled by NSLEEP1 are set to sleep,
-> when there is transition form High to Low.
+> Hi,
 >
-> Signed-off-by: Lesly A M <leslyam@ti.com>
-> Cc: Nishanth Menon <nm@ti.com>
-> Cc: David Derrick <dderrick@ti.com>
-> Cc: Samuel Ortiz <sameo@linux.intel.com>
-> ---
->  arch/arm/mach-omap2/pm34xx.c |    4 ++++
->  1 files changed, 4 insertions(+), 0 deletions(-)
+> On Mon, 28 Feb 2011, Tony Lindgren wrote:
+>> Please pull omap fixes from:
+>>
+>> git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes-for-linus
+>>
+>> This contains one more timer regression fix, a DPLL rate fix,
+>> and a mailbox NULL pointer fix that would be good to get
+>> in for 2.6.38. The series also removes world-writable flag for
+>> some debugfs entries.
+>>
+>> Other than I believe that's it for omap fixes for v2.6.38.
 >
-> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> index e46f4b5..8a7c756 100644
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -1034,6 +1034,10 @@ static int __init omap3_pm_init(void)
->  
->  	printk(KERN_ERR "Power Management for TI OMAP3.\n");
->  
-> +	/* Changing the polarity of the sys_offmode signal to active low */
-> +	omap2_prm_clear_mod_reg_bits(OMAP3430_OFFMODE_POL_MASK,
-> +			OMAP3430_GR_MOD, OMAP3_PRM_POLCTRL_OFFSET);
-> +
+> I wonder what happened to this patch:
+>
+> 	http://marc.info/?l=linux-omap&m=129772313519005&w=2
+>
 
-This change belongs in voltage code.
+I have it queued with some other PM fixes that I haven't (yet) pushed to
+Tony due to being on vacation.
+
+Will take care of that today or tomorrow at the latest.
 
 Kevin
->  	/* XXX prcm_setup_regs needs to be before enabling hw
->  	 * supervised mode for powerdomains */
->  	prcm_setup_regs();
