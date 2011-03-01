@@ -1,124 +1,143 @@
-From: archit taneja <archit@ti.com>
-Subject: Re: [PATCH 1/3] OMAP: DSS2: Functions to request/release DSI VCs
-Date: Tue, 1 Mar 2011 19:06:00 +0530
-Message-ID: <4D6CF640.8010301@ti.com>
-References: <1298982743-6771-1-git-send-email-archit@ti.com> <1298982743-6771-2-git-send-email-archit@ti.com> <5A47E75E594F054BAF48C5E4FC4B92AB037A21436B@dbde02.ent.ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH 3/3] arm: omap4: support pmu
+Date: Tue, 1 Mar 2011 19:06:46 +0530
+Message-ID: <98808a1e9a0e0409013a83a66c3847e7@mail.gmail.com>
+References: <1298985434-3009-1-git-send-email-tom.leiming@gmail.com> <1298985434-3009-4-git-send-email-tom.leiming@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:37935 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752075Ab1CANdK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 1 Mar 2011 08:33:10 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p21DX7VD026973
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 1 Mar 2011 07:33:09 -0600
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id p21DX6um021531
-	for <linux-omap@vger.kernel.org>; Tue, 1 Mar 2011 19:03:06 +0530 (IST)
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB037A21436B@dbde02.ent.ti.com>
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:50899 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753139Ab1CANgt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Mar 2011 08:36:49 -0500
+Received: by mail-qy0-f174.google.com with SMTP id 7so3248215qyk.19
+        for <linux-omap@vger.kernel.org>; Tue, 01 Mar 2011 05:36:48 -0800 (PST)
+In-Reply-To: <1298985434-3009-4-git-send-email-tom.leiming@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Cc: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: tom.leiming@gmail.com, linux@arm.linux.org.uk
+Cc: linux-arm-kernel@lists.infradead.org, Richard Woodruff <r-woodruff2@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-Hi,
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of tom.leiming@gmail.com
+> Sent: Tuesday, March 01, 2011 6:47 PM
+> To: linux@arm.linux.org.uk
+> Cc: linux-arm-kernel@lists.infradead.org; Ming Lei; Woodruff
+> Richard; Tony Lindgren; linux-omap@vger.kernel.org
+> Subject: [PATCH 3/3] arm: omap4: support pmu
+>
+> From: Ming Lei <tom.leiming@gmail.com>
+>
+> This patch supports pmu irq routed from CTI, so
+> make pmu/perf working on OMAP4.
+>
+> The idea is from Woodruff Richard in the disscussion
+> "Oprofile on Pandaboard / Omap4" of pandaboard@googlegroups.com.
+>
+> Cc: Woodruff Richard <r-woodruff2@ti.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: linux-omap@vger.kernel.org
+> Signed-off-by: Ming Lei <tom.leiming@gmail.com>
+> ---
 
-On Tuesday 01 March 2011 06:50 PM, DebBarma, Tarun Kanti wrote:
->> -----Original Message-----
->> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
->> owner@vger.kernel.org] On Behalf Of Taneja, Archit
->> Sent: Tuesday, March 01, 2011 6:02 PM
->> To: Valkeinen, Tomi
->> Cc: linux-omap@vger.kernel.org; Taneja, Archit
->> Subject: [PATCH 1/3] OMAP: DSS2: Functions to request/release DSI VCs
->>
->> Introduce functions which request and release VC's. This will be used in
->> panel
->> drivers in their probes.
->>
->> omap_dsi_request_vc() takes in the pointer to the omap_dss_device, the
->> VC_ID
->> parameter which goes into the header of the DSI packets, and returns a
->> Virtual
->> channel number (or virtual channel register set) which it can use.
->>
->> omap_dsi_set_vc_id() takes the omap_dss_device pointer, the Virtual
->> Channel
->> number and the VC_ID that needs to be set for the specifed Virtual
->> Channel.
->>
->> omap_dsi_releae_vc() takes the omap_dss_device pointer and the Virtual
->> Channel
->> number that needs to be made free.
->>
->> Initialisation of VC parameters is done in dsi_init().
->>
->> Signed-off-by: Archit Taneja<archit@ti.com>
+Thanks Mein Lei for this.
 
-<snip>
-
->> +int omap_dsi_request_vc(struct omap_dss_device *dssdev, int *channel)
-> Since this is an export function it might be good to have standard comment
-> Header.
-
-Its meant to be used by another folder which is also a part of DSS2, 
-other functions exported in this file don't have comments on them 
-either. Not totally sure if comments are needed for this or not.
-
->> +{
->> +	int i;
->> +
->> +	for (i = 0; i<  4; i++) {
-> Does it make sense to use a constant instead of hard coding 4?
-
-This is a property of DSI HW which is quite unlikely to change with 
-later version of OMAPs.
-
->> +		if (!dsi.vc[i].dssdev) {
->> +			dsi.vc[i].dssdev = dssdev;
->> +			*channel = i;
->> +			return 0;
->> +		}
->> +	}
->> +
->> +	DSSERR("cannot get VC for display %s", dssdev->name);
->> +	return -ENOSPC;
->> +}
->> +EXPORT_SYMBOL(omap_dsi_request_vc);
->> +
->> +int omap_dsi_set_vc_id(struct omap_dss_device *dssdev, int channel, int
->> vc_id)
->> +{
->> +	if (vc_id<  0 || vc_id>  4) {
->> +		DSSERR("VC ID out of range\n");
->> +		return -EINVAL;
->> +	}
->> +
->> +	if (dsi.vc[channel].dssdev == dssdev) {
->> +		dsi.vc[channel].vc_id = vc_id;
->> +		return 0;
->> +	}
->> +
-> Might be a good idea to print some type of error message here?
-
-The user of this function checks for errors and prints an error message 
-very similar to what we would print here. Thats why I decided to skip here.
-
->> +	return -EINVAL;
->> +}
->> +EXPORT_SYMBOL(omap_dsi_set_vc_id);
->> +
->> +void omap_dsi_release_vc(struct omap_dss_device *dssdev, int channel)
->> +{
->> +	if (dsi.vc[channel].dssdev == dssdev) {
->> +		dsi.vc[channel].dssdev = NULL;
-> Don't we have to free dssdev? Unless it is getting freed else where?
-
-Its not really allocated at boot time, its a static structure filled up 
-in the board file, setting to NULL just lets omap_dsi_request_vc() reuse it.
-
-Thanks,
-Archit
+>  arch/arm/mach-omap2/devices.c |   54
+> ++++++++++++++++++++++++++++++++++++++++-
+>  1 files changed, 53 insertions(+), 1 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-
+> omap2/devices.c
+> index 71f099b..54e9705 100644
+> --- a/arch/arm/mach-omap2/devices.c
+> +++ b/arch/arm/mach-omap2/devices.c
+> @@ -34,6 +34,7 @@
+>
+>  #include "mux.h"
+>  #include "control.h"
+> +#include "dbg44xx.h"
+>
+>  #if defined(CONFIG_VIDEO_OMAP2) ||
+> defined(CONFIG_VIDEO_OMAP2_MODULE)
+>
+> @@ -347,19 +348,70 @@ static struct resource omap3_pmu_resource = {
+>  	.flags	= IORESOURCE_IRQ,
+>  };
+>
+> +static struct resource omap4_pmu_resource[] = {
+> +	{
+> +	.start	= OMAP44XX_IRQ_CTI0,
+> +	.end	= OMAP44XX_IRQ_CTI0,
+> +	.flags	= IORESOURCE_IRQ,
+> +	},
+> +	{
+> +	.start	= OMAP44XX_IRQ_CTI1,
+> +	.end	= OMAP44XX_IRQ_CTI1,
+> +	.flags	= IORESOURCE_IRQ,
+> +	}
+> +};
+> +
+>  static struct platform_device omap_pmu_device = {
+>  	.name		= "arm-pmu",
+>  	.id		= ARM_PMU_DEVICE_CPU,
+>  	.num_resources	= 1,
+>  };
+>
+> +struct pmu_platform_data omap4_pmu_data;
+> +
+> +static void omap4_configure_pmu_irq(void)
+> +{
+> +	void *base0;
+> +	void *base1;
+> +
+> +	base0 = ioremap(OMAP4430_CTI0_BASE, 4096);
+> +	base1 = ioremap(OMAP4430_CTI1_BASE, 4096);
+> +	if (!base0 && !base1) {
+> +		pr_err("ioremap for omap4 CTI failed\n");
+> +		return;
+> +	}
+> +
+> +	/*configure CTI0 for pmu irq routing*/
+> +	cti_init(&omap4_pmu_data.cti[0], base0,
+> +			OMAP44XX_IRQ_CTI0, 6);
+> +	cti_unlock(&omap4_pmu_data.cti[0]);
+> +	cti_map_trigger(&omap4_pmu_data.cti[0],
+> +			1, 6, 2);
+> +
+> +	/*configure CTI1 for pmu irq routing*/
+> +	cti_init(&omap4_pmu_data.cti[1], base1,
+> +			OMAP44XX_IRQ_CTI1, 6);
+> +	cti_unlock(&omap4_pmu_data.cti[1]);
+> +	cti_map_trigger(&omap4_pmu_data.cti[1],
+> +			1, 6, 3);
+> +
+> +	omap4_pmu_data.cti_cnt = 2;
+> +	omap4_pmu_data.use_cti_irq = 1;
+> +}
+> +
+>  static void omap_init_pmu(void)
+>  {
+>  	if (cpu_is_omap24xx())
+>  		omap_pmu_device.resource = &omap2_pmu_resource;
+>  	else if (cpu_is_omap34xx())
+>  		omap_pmu_device.resource = &omap3_pmu_resource;
+> -	else
+> +	else if (cpu_is_omap44xx()) {
+> +		omap_pmu_device.resource = omap4_pmu_resource;
+> +		omap_pmu_device.num_resources = 2;
+> +		omap_pmu_device.dev.platform_data = &omap4_pmu_data;
+> +
+> +		omap4_configure_pmu_irq();
+> +	} else
+>  		return;
+>
+>  	platform_device_register(&omap_pmu_device);
+> --
+> 1.7.3
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-
+> omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
