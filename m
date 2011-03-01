@@ -1,62 +1,145 @@
-From: Saravana Kannan <skannan@codeaurora.org>
-Subject: Re: [PATCHv5 0/3] Introduce the /proc/socinfo and use it to export
- OMAP data
-Date: Mon, 28 Feb 2011 20:51:34 -0800
-Message-ID: <4D6C7B56.9060109@codeaurora.org>
-References: <1273587331-24604-1-git-send-email-eduardo.valentin@nokia.com>	<AANLkTin7vRMreG3hOAk95MYZUCV-Kr6ac7gD7jgvX6Gf@mail.gmail.com>	<20110216115729.GA29817@besouro.research.nokia.com> <4D6B78BF.1020102@stericsson.com>
+From: archit taneja <archit@ti.com>
+Subject: Re: [PATCH 1/3] OMAP: DSS2: Functions to request/release DSI VCs
+Date: Tue, 1 Mar 2011 10:47:00 +0530
+Message-ID: <4D6C814C.5070307@ti.com>
+References: <1298882849-7432-1-git-send-email-archit@ti.com>	 <1298882849-7432-2-git-send-email-archit@ti.com> <1298897516.9809.48.camel@deskari>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-msm-owner@vger.kernel.org>
-In-Reply-To: <4D6B78BF.1020102@stericsson.com>
-Sender: linux-arm-msm-owner@vger.kernel.org
-To: Maxime Coquelin <maxime.coquelin-nonst@stericsson.com>
-Cc: "eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>, ext Nishanth Menon <nm@ti.com>, Russell King <linux@arm.linux.org.uk>, Jonas ABERG <jonas.aberg@stericsson.com>, ext Tony Lindgren <tony@atomide.com>, Peter De-Schrijver <Peter.De-Schrijver@nokia.com>, ext Linus Walleij <linus.walleij@linaro.org>, LKML <linux-kernel@vger.kernel.org>, Jouni Hogander <jouni.hogander@nokia.com>, Ambresh <a0393775@ti.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, Paul Mundt <lethal@linux-sh.org>, "santosh.shilimkar@ti.com" <santosh.shilimkar@ti.com>, loic.pallardy@stericsson.com, Andrew Morton <akpm@linux-foundation.org>, Linux-OMAP <linux-omap@vger.kernel.org>, Lee Jones <Lee.Jones@linaro.org>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-arm-msm@vger.kernel.orgDavid Brown <da>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:41491 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750848Ab1CAFON (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 1 Mar 2011 00:14:13 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p215EAs7000335
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Mon, 28 Feb 2011 23:14:12 -0600
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id p215E9SG025646
+	for <linux-omap@vger.kernel.org>; Tue, 1 Mar 2011 10:44:10 +0530 (IST)
+In-Reply-To: <1298897516.9809.48.camel@deskari>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On 02/28/2011 02:28 AM, Maxime Coquelin wrote:
-> Hello Eduardo,
+Hi,
+
+On Monday 28 February 2011 06:21 PM, Valkeinen, Tomi wrote:
+> On Mon, 2011-02-28 at 02:47 -0600, Taneja, Archit wrote:
+>> Introduce functions which request and release VC's. This will be used in panel
+>> drivers in their probes.
+>>
+>> omap_dsi_request_vc() takes in the pointer to the omap_dss_device, the VC_ID
+>> parameter which goes into the header of the DSI packets, and returns a Virtual
+>> channel number (or virtual channel register set) which it can use.
+>>
+>> omap_dsi_releae_vc() takes the omap_dss_device pointer and frees all VCs which
+>> were used by that device.
+>>
+>> Initialisation of VC parameters is done in dsi_init().
+>>
+>> Signed-off-by: Archit Taneja<archit@ti.com>
+>> ---
+>>   arch/arm/plat-omap/include/plat/display.h |    3 ++
+>>   drivers/video/omap2/dss/dsi.c             |   55 ++++++++++++++++++++++++++---
+>>   2 files changed, 53 insertions(+), 5 deletions(-)
+>>
+>> diff --git a/arch/arm/plat-omap/include/plat/display.h b/arch/arm/plat-omap/include/plat/display.h
+>> index d45f107..0057259 100644
+>> --- a/arch/arm/plat-omap/include/plat/display.h
+>> +++ b/arch/arm/plat-omap/include/plat/display.h
+>> @@ -560,6 +560,9 @@ int omap_dsi_update(struct omap_dss_device *dssdev,
+>>   		int channel,
+>>   		u16 x, u16 y, u16 w, u16 h,
+>>   		void (*callback)(int, void *), void *data);
+>> +int omap_dsi_request_vc(struct omap_dss_device *dssdev, int vc_id,
+>> +		int *channel);
+>> +void omap_dsi_release_vc(struct omap_dss_device *dssdev);
 >
-> On 02/16/2011 12:57 PM, Eduardo Valentin wrote:
->>> Eduardo, what has happened to this patchset?
->> Got forgotten :-(. Unfortunately I didn't pushed it hard enough.
-> I propose to refactor your patchset, moving from procfs to sysfs.
-
->>> Do you want help in picking it up and try to polish it up?
->> Yeah, but it would need a refactoring. IIRC, result of last discussion
->> was that we should not mess with /proc. So, maybe moving back
- >> to something under sysfs. Perhaps /sys/devices/soc or so?
-> About the location of this new sysfs entry, where do you think it should
-> be?
-> I propose to create a new directory named "soc" in /sys/devices/system/.
+> The release function is misnamed. It's actually release_all_vcs.
+> However, I think the request and release functions should match:
+> request/release one vc.
 >
-> As platform vendors have several/different kind of IDs to export to
-> sysfs, I propose each vendor to create file entries related to their IDs
-> (eg. /sys/devices/system/soc/idcode for OMAP platforms).
+> So perhaps something like:
+>
+> void omap_dsi_release_vc(struct omap_dss_device *dssdev, int channel);
+>
+> dssdev is not really needed there, but can be used for checking validity
+> of the release call.
 
-I think the path /sys/devices/system/soc/ will work for the MSM too. I 
-would have ideally liked it to be /sys/devices/system/soc/msm, 
-/sys/devices/system/soc/omap, etc, but we can't get to pick names for 
-devices under a class. So, we can make do with /sys/devices/system/soc/.
+Yes, this is better.
 
-> However, I think we should have a common file entry to export the unique
-> ID of the platforms. Indeed, user-space applications should have a
-> unified way to get this kind of ID, regardless of the platform (eg.
-> /sys/devices/system/soc/unique_id).
+>
+> Also, about the returned channel value. It is something that the panel
+> driver should not use for anything else than to pass to DSI functions.
+> Perhaps this would be a good case for typedeffing (see CodingStyle,
+> chapter 5, part a). dsi_channel_t? Well, we can think about this later.
+>
+> In the future we could possibly encode the DSI module number in the
+> channel also.
+>
 
-I like the idea of have a common file across all implementations that 
-will let user space identify what implementation is exporting the other 
-files and how to interpret them.
+That's a good idea.
 
-I would like to propose an "arch" file to identify the arch the soc info 
-file are for. I'm guessing within an arch, the soc files would mostly be 
-the same? If there are other minor differences, we can let the arch 
-specific code deal with how the files are interpreted.
 
-Does "arch" work for everyone?
+<snip>
 
-Thanks,
-Saravana
--- 
-Sent by an employee of the Qualcomm Innovation Center, Inc.
-The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
+>>   }
+>>
+>> +int omap_dsi_request_vc(struct omap_dss_device *dssdev, int vc_id, int *channel)
+>> +{
+>> +	int p = dsi.num_vc_used;
+>> +
+>> +	if (p>= 4) {
+>> +		DSSERR("cannot get VC for display %s", dssdev->name);
+>> +		return -EINVAL;
+>> +	}
+>> +
+>> +	dsi.vc[p].dssdev = dssdev;
+>> +	dsi.vc[p].vc_id = vc_id;
+>> +	*channel = p;
+>> +
+>> +	dsi.num_vc_used += 1;
+>> +
+>> +	return 0;
+>> +}
+>> +EXPORT_SYMBOL(omap_dsi_request_vc);
+>> +
+>> +void omap_dsi_release_vc(struct omap_dss_device *dssdev)
+>> +{
+>> +	int i, num_vc_used_disp = 0;
+>> +
+>> +	for (i = 0; i<  4; i++) {
+>> +		if (dsi.vc[i].dssdev == dssdev) {
+>> +			dsi.vc[i].dssdev = NULL;
+>> +			dsi.vc[i].vc_id = 0;
+>> +			dsi.vc[i].mode = DSI_VC_MODE_L4;
+>> +			num_vc_used_disp++;
+>> +		}
+>> +	}
+>> +
+>> +	dsi.num_vc_used -= num_vc_used_disp;
+>> +}
+>> +EXPORT_SYMBOL(omap_dsi_release_vc);
+>
+> I don't think these work quite right. What happens if there are two
+> panel drivers, both have allocated one channel. Then the first channel
+> is released. At this point num_vc_used is 1. Next request would allocate
+> channel number 1, which is still in use.
+>
+
+This is quite silly of me. I think I made this thinking that the 
+sequence of releases by panels will happen in opposite order to sequence 
+of requests. But that won't be the case at all when the panels are 
+inserted as modules
+
+> I think the code will be cleaner and simpler if you removed num_vc_used,
+> and loop through the 4 channels when allocating, trying to find a free
+> one. It's just 4 iterations.
+>
+
+I will make this change.
+
+Archit
