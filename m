@@ -1,51 +1,49 @@
-From: Felipe Balbi <balbi@ti.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 Subject: Re: [PATCH 0/5 v3] usb: musb: Power management support
-Date: Tue, 1 Mar 2011 11:21:28 +0200
-Message-ID: <20110301092128.GB2942@legolas.emea.dhcp.ti.com>
+Date: Tue, 1 Mar 2011 11:26:56 +0200
+Message-ID: <20110301092656.GC2942@legolas.emea.dhcp.ti.com>
 References: <1298882976-4997-1-git-send-email-hemahk@ti.com>
  <20110228085611.GL2459@legolas.emea.dhcp.ti.com>
  <20110228142030.GA25724@kroah.com>
  <20110228212227.GK20560@atomide.com>
- <20110228213640.GA13219@kroah.com>
-Reply-To: balbi@ti.com
+Reply-To: balbi-l0cyMroinI0@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:52358 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753313Ab1CAJVb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Mar 2011 04:21:31 -0500
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20110228213640.GA13219@kroah.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20110228212227.GK20560-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Hema HK <hemahk-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, Hema HK <hemahk@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 
-On Mon, Feb 28, 2011 at 01:36:40PM -0800, Greg KH wrote:
-> On Mon, Feb 28, 2011 at 01:22:28PM -0800, Tony Lindgren wrote:
-> > * Greg KH <greg@kroah.com> [110228 06:21]:
-> > > On Mon, Feb 28, 2011 at 10:56:11AM +0200, Felipe Balbi wrote:
-> > > > On Mon, Feb 28, 2011 at 02:19:31PM +0530, Hema HK wrote:
-> > > > > 
-> > > > > There is some problem with idle path offmode in mainline, I could not test
-> > > > > with offmode. But I have tested this patch with resetting the controller
-> > > > > in the idle path when wakeup from retention just to make sure that the
-> > > > > context is lost, and restore path is working fine.
+On Mon, Feb 28, 2011 at 01:22:28PM -0800, Tony Lindgren wrote:
+> * Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org> [110228 06:21]:
+> > On Mon, Feb 28, 2011 at 10:56:11AM +0200, Felipe Balbi wrote:
+> > > On Mon, Feb 28, 2011 at 02:19:31PM +0530, Hema HK wrote:
 > > > > 
-> > > > Tony and Greg, how do we handle this one ? Who should take my pull request
-> > > > for this series ? I hope we still have a little time to get this into
-> > > > 2.6.39, but if we don't I can hold on to them until 2.6.40.
+> > > > There is some problem with idle path offmode in mainline, I could not test
+> > > > with offmode. But I have tested this patch with resetting the controller
+> > > > in the idle path when wakeup from retention just to make sure that the
+> > > > context is lost, and restore path is working fine.
 > > > 
-> > > Doesn't bother me which tree they go through, I can take them, or, if
-> > > it's easier due to omap merges, Tony can.
+> > > Tony and Greg, how do we handle this one ? Who should take my pull request
+> > > for this series ? I hope we still have a little time to get this into
+> > > 2.6.39, but if we don't I can hold on to them until 2.6.40.
 > > 
-> > I prefer Greg's queue unless there's some dependency issue to the
-> > patches we have in omap-for-linus.
+> > Doesn't bother me which tree they go through, I can take them, or, if
+> > it's easier due to omap merges, Tony can.
 > 
-> If not, Felipe, send them on to me :)
+> I prefer Greg's queue unless there's some dependency issue to the
+> patches we have in omap-for-linus.
 
-I'll prepare it today and clear any dependencies if there are any :-)
+Turns out I can easily split what's supposed to go for you and what's
+supposed to go for Greg, so I'll do it. Tony which commit can I use for
+your tree ? Is mainline 2.6.38-rc6 ok ?
 
 -- 
 balbi
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
