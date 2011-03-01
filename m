@@ -1,45 +1,45 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 00/10 v1] EHCI and OHCI patches of OMAP3 and OMAP4
-Date: Tue, 1 Mar 2011 11:38:47 +0200
-Message-ID: <20110301093847.GG2942@legolas.emea.dhcp.ti.com>
-References: <1298910712-2051-1-git-send-email-keshava_mgowda@ti.com>
- <20110228191143.GT2459@legolas.emea.dhcp.ti.com>
-Reply-To: balbi@ti.com
+From: "Koyamangalath, Abhilash" <abhilash.kv@ti.com>
+Subject: [TLV320AIC23] [AM3517EVM][AUDIO] codec name mis-match in
+ soc_bind_dai_link
+Date: Tue, 1 Mar 2011 15:22:29 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC3560870370776EC3@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:57039 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753517Ab1CAJix (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Mar 2011 04:38:53 -0500
-Content-Disposition: inline
-In-Reply-To: <20110228191143.GT2459@legolas.emea.dhcp.ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:42013 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756084Ab1CAJwe convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Mar 2011 04:52:34 -0500
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Keshava Munegowda <keshava_mgowda@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, gadiyar@ti.com, p-basak2@ti.com, Greg KH <greg@kroah.com>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "alsa-devel@vger.kernel.org" <alsa-devel@vger.kernel.org>
 
-On Mon, Feb 28, 2011 at 09:11:43PM +0200, Felipe Balbi wrote:
-> On Mon, Feb 28, 2011 at 10:01:42PM +0530, Keshava Munegowda wrote:
-> > this is how it EHCI/OHCI code re oraganize look like:
-> > 	. we have EHCI and OHCI be children of a usbhs "core driver"
-> > 		which will take care of all accesses to
-> > 		UHH and TLL bases. 
-> > 
-> > 	. we pass enable/disable functions down from EHCI and OHCI drivers.
-> > 		to USBHS driver.
-> > 
-> > 	. UHH and TLL power management will eventually move to
-> > 		omap-usb-host.c
-> 
-> Anand, I'm not taking this directly. I need a pull request from you in
-> order for me to send a pull request to Greg. Bear in mind we have little
-> time for this merge window, I'll wait until tomorrow and if I have no
-> reply, this won't be going into this merge window. Sorry but I also have
-> other MUSB patches which will be waiting until tomorrow due to these
-> EHCI/OHCI patches.
+While trying to register the sound card on the AM3517EVM (which uses a tlv320aic23 codec), with the 2.6.37 kernel I get the following error message:
+	CODEC tlv320aic23-codec not registered
+This is despite having gotten previously:
+	Registered codec 'tlv320aic23-codec.2-001a'
+I realized that there was a names' mismatch in soc_bind_dai_link():
+	In fn soc_bind_dai_link:1249:codec->name is tlv320aic23-codec.2-001a, dai_link->codec_name is tlv320aic23-codec
 
-@Anand: ping...
+The 2-001a is the <i2c_bus>-<i2c_address> pair as defined in arch/arm/mach-omap2/board-am3517evm.c:
+	static struct i2c_board_info __initdata am3517evm_i2c2_boardinfo[] = {
+       {
+               I2C_BOARD_INFO("tlv320aic23", 0x1A),
+       },
+This is the device name of the i2c client set automatically by i2c_new_device() when __process_new_driver() on the device is called, in response to a i2c_register_driver() request.
+Now, all devices with names in <i2c_bus>-<i2c_address> are assumed to be i2c clients by snd_soc_register_codec() and so <driver_name>.<dev_name> is the name supplied to the codec.
+Now, if I change the dai-link->codec_name to force-match by appending 2-001a to the codec_name in (sound/soc/omap/am3517evm.c):
+	static struct snd_soc_dai_link am3517evm_dai = {
+			:
+      	  .codec_name = "tlv320aic23-codec.2-001a ",
+			:
+	};
 
--- 
-balbi
+the registration proceeds smoothly and I can see device nodes getting created. 
+Since now there is no way to provide a customized i2c device name to a client device (or so I believe), what could be the best solution to this problem ?
+
+-Abhilash
+PS: OMAP3 evm does not have this problem as the audio codec twl4030 is on platform bus, I believe.
+
