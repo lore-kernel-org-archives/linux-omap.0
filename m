@@ -1,139 +1,54 @@
-From: Mythri P K <mythripk@ti.com>
-Subject: [PATCH v2 8/8] OMAP4 : HDMI : Add HDMI structure in the board file for OMAP4 PANDA
-Date: Tue,  1 Mar 2011 19:46:28 +0530
-Message-ID: <1298988988-28429-9-git-send-email-mythripk@ti.com>
-References: <1298988988-28429-1-git-send-email-mythripk@ti.com>
+From: Michael =?ISO-8859-1?Q?B=FCsch?= <mb@bu3sch.de>
+Subject: Re: Nokia n810 LCD (MIPID/blizzard) on 2.6.38
+Date: Tue, 01 Mar 2011 15:23:15 +0100
+Message-ID: <1298989395.6461.2.camel@maggie>
+References: <1298925943.16391.19.camel@marge>
+	 <20110301092057.GA2942@legolas.emea.dhcp.ti.com>
+	 (sfid-20110301_102108_023001_FFFFFFFFACB50B7A)
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:58599 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754345Ab1CANuA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 1 Mar 2011 08:50:00 -0500
-Received: from dlep36.itg.ti.com ([157.170.170.91])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p21Dnxns031321
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 1 Mar 2011 07:49:59 -0600
-In-Reply-To: <1298988988-28429-1-git-send-email-mythripk@ti.com>
+Received: from 80-190-117-144.ip-home.de ([80.190.117.144]:49211 "EHLO
+	bu3sch.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753724Ab1CAOXV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 1 Mar 2011 09:23:21 -0500
+In-Reply-To: <20110301092057.GA2942@legolas.emea.dhcp.ti.com> (sfid-20110301_102108_023001_FFFFFFFFACB50B7A)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: tomi.valkeinen@ti.com, Mythri P K <mythripk@ti.com>
+To: balbi@ti.com
+Cc: linux-omap <linux-omap@vger.kernel.org>, Varadarajan Charulatha <charu@ti.com>
 
-Adding  board file structure for display which adds the display
-structure with HDMI as the default driver when the display init
-is called.
-HDMI GPIO configurations are also done in this file.
+On Tue, 2011-03-01 at 11:20 +0200, Felipe Balbi wrote: 
+> On Mon, Feb 28, 2011 at 09:45:43PM +0100, Michael Buesch wrote:
+> > The n810 LCD does not work on the 2.6.38(-rc6) kernel
+> > due to changes in the OMAP GPIO-hwmod code.
+> > 
+> > The hwmod code performs a soft-reset on the GPIO
+> > module. The first GPIO module carries the MIPID
+> > "nreset" line, which is toggled due to the hwmod soft reset.
+> > This resets Blizzard and breaks it, because
+> > it assumes the LCD was left in the state that the
+> > bootloader initialized it to:
+> 
+> so that's the bug which needs to be fixed. Unfortunately I don't have
+> any documentation available anymore. Maybe someone from Nokia would fix
+> that ?
+> 
+> > I'm wondering if a better fix suitable for the mainline
+> > kernel inclusion could be found.
+> > Any ideas?
+> 
+> Don't depend on the bootloader :-)
 
-Signed-off-by: Mythri P K <mythripk@ti.com>
----
- arch/arm/mach-omap2/board-omap4panda.c |   74 ++++++++++++++++++++++++++++++++
- 1 files changed, 74 insertions(+), 0 deletions(-)
+Yeah that's the obvious fix, of course. However, it requires
+deep knowledge of the device and/or hardware documentation. Both
+of which I don't have.
+The driver also doesn't seem to have a maintainer.
 
-diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
-index e944025..f744b0b 100644
---- a/arch/arm/mach-omap2/board-omap4panda.c
-+++ b/arch/arm/mach-omap2/board-omap4panda.c
-@@ -32,6 +32,7 @@
- #include <asm/mach-types.h>
- #include <asm/mach/arch.h>
- #include <asm/mach/map.h>
-+#include <plat/display.h>
- 
- #include <plat/board.h>
- #include <plat/common.h>
-@@ -45,6 +46,8 @@
- 
- #define GPIO_HUB_POWER		1
- #define GPIO_HUB_NRESET		62
-+#define HDMI_GPIO_HPD 60 /* Hot plug pin for HDMI */
-+#define HDMI_GPIO_LS_OE 41 /* Level shifter for HDMI */
- 
- static struct gpio_led gpio_leds[] = {
- 	{
-@@ -397,6 +400,76 @@ static struct omap_board_mux board_mux[] __initdata = {
- #define board_mux	NULL
- #endif
- 
-+static void sdp4430_hdmi_mux_init(void)
-+{
-+	/* PAD0_HDMI_HPD_PAD1_HDMI_CEC */
-+	omap_mux_init_signal("hdmi_hpd",
-+			OMAP_PIN_INPUT_PULLUP);
-+	omap_mux_init_signal("hdmi_cec",
-+			OMAP_PIN_INPUT_PULLUP);
-+	/* PAD0_HDMI_DDC_SCL_PAD1_HDMI_DDC_SDA */
-+	omap_mux_init_signal("hdmi_ddc_scl",
-+			OMAP_PIN_INPUT_PULLUP);
-+	omap_mux_init_signal("hdmi_ddc_sda",
-+			OMAP_PIN_INPUT_PULLUP);
-+}
-+
-+static int sdp4430_panel_enable_hdmi(struct omap_dss_device *dssdev)
-+{
-+	int status;
-+
-+	status = gpio_request_one(HDMI_GPIO_HPD, GPIOF_OUT_INIT_HIGH,
-+							"hdmi_gpio_hpd");
-+	if (status) {
-+		pr_err("Cannot request GPIO %d\n", HDMI_GPIO_HPD);
-+		return status;
-+	}
-+	status = gpio_request_one(HDMI_GPIO_LS_OE, GPIOF_OUT_INIT_HIGH,
-+							"hdmi_gpio_ls_oe");
-+	if (status) {
-+		pr_err("Cannot request GPIO %d\n", HDMI_GPIO_LS_OE);
-+		goto error1;
-+	}
-+
-+	return 0;
-+
-+error1:
-+	gpio_free(HDMI_GPIO_HPD);
-+
-+	return status;
-+}
-+
-+static void sdp4430_panel_disable_hdmi(struct omap_dss_device *dssdev)
-+{
-+	gpio_free(HDMI_GPIO_LS_OE);
-+	gpio_free(HDMI_GPIO_HPD);
-+}
-+
-+static struct omap_dss_device sdp4430_hdmi_device = {
-+	.name = "hdmi",
-+	.driver_name = "hdmi_panel",
-+	.type = OMAP_DISPLAY_TYPE_HDMI,
-+	.platform_enable = sdp4430_panel_enable_hdmi,
-+	.platform_disable = sdp4430_panel_disable_hdmi,
-+	.channel = OMAP_DSS_CHANNEL_DIGIT,
-+};
-+
-+static struct omap_dss_device *sdp4430_dss_devices[] = {
-+	&sdp4430_hdmi_device,
-+};
-+
-+static struct omap_dss_board_info sdp4430_dss_data = {
-+	.num_devices	= ARRAY_SIZE(sdp4430_dss_devices),
-+	.devices	= sdp4430_dss_devices,
-+	.default_device	= &sdp4430_hdmi_device,
-+};
-+
-+void omap_panda_display_init(void)
-+{
-+	sdp4430_hdmi_mux_init();
-+	omap_display_init(&sdp4430_dss_data);
-+}
-+
- static void __init omap4_panda_init(void)
- {
- 	int package = OMAP_PACKAGE_CBS;
-@@ -411,6 +484,7 @@ static void __init omap4_panda_init(void)
- 	omap4_twl6030_hsmmc_init(mmc);
- 	omap4_ehci_init();
- 	usb_musb_init(&musb_board_data);
-+	omap_panda_display_init();
- }
- 
- static void __init omap4_panda_map_io(void)
+If someone can get me documentation, I'm willing to implement
+the required bits to remove the bootloader dependency.
+
 -- 
-1.5.6.3
+Greetings Michael.
 
