@@ -1,38 +1,49 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 2/4] OMAP2/3: clockdomains: remove warnings on an OMAP3-only
- compile
-Date: Mon, 28 Feb 2011 17:17:38 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1102281716460.29478@utopia.booyaka.com>
-References: <20110226001601.28142.46636.stgit@twilight.localdomain> <20110226002006.28142.52520.stgit@twilight.localdomain>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: watchdog pdev id set to -1
+Date: Mon, 28 Feb 2011 16:35:06 -0800
+Message-ID: <87hbbnlltx.fsf@ti.com>
+References: <FCCFB4CDC6E5564B9182F639FC3560870370061699@dbde02.ent.ti.com>
+	<20110218105635.GB10489@legolas.emea.dhcp.ti.com>
+	<FCCFB4CDC6E5564B9182F639FC35608703700616CE@dbde02.ent.ti.com>
+	<20110218111237.GE10489@legolas.emea.dhcp.ti.com>
+	<20110222215923.GB28740@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:40112 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753143Ab1CAARj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Feb 2011 19:17:39 -0500
-In-Reply-To: <20110226002006.28142.52520.stgit@twilight.localdomain>
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:53430 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753620Ab1CAAfK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 28 Feb 2011 19:35:10 -0500
+Received: by mail-yw0-f42.google.com with SMTP id 1so2239171ywh.1
+        for <linux-omap@vger.kernel.org>; Mon, 28 Feb 2011 16:35:09 -0800 (PST)
+In-Reply-To: <20110222215923.GB28740@sirena.org.uk> (Mark Brown's message of
+	"Tue, 22 Feb 2011 21:59:23 +0000")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Felipe Balbi <balbi@ti.com>, "Koyamangalath, Abhilash" <abhilash.kv@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Fri, 25 Feb 2011, Paul Walmsley wrote:
+Mark Brown <broonie@opensource.wolfsonmicro.com> writes:
 
-> Resolve these compile-time gcc warnings on OMAP3-only kernel compiles:
-> 
-> .../mach-omap2/clockdomains2xxx_3xxx_data.c:95: warning: 'dsp_24xx_wkdeps' defined but not used
-> .../mach-omap2/clockdomains2xxx_3xxx_data.c:119: warning: 'mpu_24xx_wkdeps' defined but not used
-> .../mach-omap2/clockdomains2xxx_3xxx_data.c:147: warning: 'core_24xx_wkdeps' defined but not used
-> 
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> ---
->  arch/arm/mach-omap2/clockdomains2xxx_3xxx_data.c |    4 ++++
->  1 files changed, 4 insertions(+), 0 deletions(-)
+> On Fri, Feb 18, 2011 at 01:12:37PM +0200, Felipe Balbi wrote:
+>
+>> On Fri, Feb 18, 2011 at 04:39:48PM +0530, Koyamangalath, Abhilash wrote:
+>> > I understand, but is there a subtle reason why are starting from
+>> > an erroneous-looking -1 rather than a more natural 0 (or 1 ?).
+>
+>> -1 means no ID. The IDs are zero-based, so we can't use zero. Just
+>> change that value and see how things change on sysfs and dmesg then you
+>> will know what I'm talking about. That's just an implementation decision
+>> of using -1 to signify "no ID needed".
+>
+> Though looking at the report it looks like the omap_device print that's
+> done during boot is doing the wrong thing here and displaying the -1
+> instead of masking it from the print which is what's expected.
 
-For the archives, I've dropped this patch and replaced it with Sanjeev's 
-patch here:
+Agreed.
 
-    http://marc.info/?l=linux-omap&m=129893821929982&w=2
+Abhilash, Just send a patch to fix the omap_device printk which is the
+confusing part.
 
-
-- Paul
+Kevin
