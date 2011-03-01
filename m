@@ -1,91 +1,38 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH v10 05/18] OMAP2,3 DSS2 Change driver name to omap_display
-Date: Tue, 1 Mar 2011 11:18:08 +0100
-Message-ID: <4D6CC7E0.9010209@ti.com>
-References: <1295850125-21405-1-git-send-email-sumit.semwal@ti.com>	 <1295850125-21405-6-git-send-email-sumit.semwal@ti.com>	 <1298539643.16119.54.camel@deskari> <1298876015.2096.36.camel@deskari>	 <4D6B4A1A.9000304@ti.com> <1298877549.2096.47.camel@deskari>	 <4D6B88BB.5010200@ti.com> <1298895026.9809.27.camel@deskari>	 <4D6BAA8C.2020203@ti.com> <1298905056.9809.128.camel@deskari>
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: Re: [TLV320AIC23] [AM3517EVM][AUDIO] codec name mis-match in
+ soc_bind_dai_link
+Date: Tue, 1 Mar 2011 12:42:43 +0200
+Message-ID: <20110301124243.6c329c74.jhnikula@gmail.com>
+References: <FCCFB4CDC6E5564B9182F639FC3560870370776EC3@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48112 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755638Ab1CAKSP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 1 Mar 2011 05:18:15 -0500
-In-Reply-To: <1298905056.9809.128.camel@deskari>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:48722 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751011Ab1CAKl2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Mar 2011 05:41:28 -0500
+In-Reply-To: <FCCFB4CDC6E5564B9182F639FC3560870370776EC3@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
-Cc: "Taneja, Archit" <archit@ti.com>, "Semwal, Sumit" <sumit.semwal@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "Hilman, Kevin" <khilman@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Guruswamy, Senthilvadivu" <svadivu@ti.com>
+To: "Koyamangalath, Abhilash" <abhilash.kv@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "alsa-devel@vger.kernel.org" <alsa-devel@vger.kernel.org>
 
-On 2/28/2011 3:57 PM, Valkeinen, Tomi wrote:
-> On Mon, 2011-02-28 at 08:00 -0600, Cousson, Benoit wrote:
->> On 2/28/2011 1:10 PM, Valkeinen, Tomi wrote:
->>> On Mon, 2011-02-28 at 05:36 -0600, Cousson, Benoit wrote:
->>>> Hi Tomi,
->>>>
->>>> On 2/28/2011 8:19 AM, Valkeinen, Tomi wrote:
->>>>> On Mon, 2011-02-28 at 01:09 -0600, Taneja, Archit wrote:
->>>>>> Hi,
->>>>>>
->>>>>> On Monday 28 February 2011 12:23 PM, Valkeinen, Tomi wrote:
->>>>>>> On Thu, 2011-02-24 at 03:27 -0600, Tomi Valkeinen wrote:
->>>>>>>> Hi,
->>>>>>>>
->>>>>>>> On Mon, 2011-01-24 at 11:51 +0530, ext Sumit Semwal wrote:
->>>>>>>>> From: Senthilvadivu Guruswamy<svadivu@ti.com>
->>>>>>>>>
->>>>>>>>> Change the driver name from omapdss to omap_display as the driver takes care of
->>>>>>>>> the display devices ie number of panels, type of panels available in the
->>>>>>>>> platform.  Change the device name in the board files and 2420,2430,3xxx clock
->>>>>>>>> files from omapdss to omap_display to match the driver name.
->>>>>>>>
->>>>>>>> I just realized that changing the driver name will break all scripts and
->>>>>>>> applications using omapdss sysfs files.
->>>>>>>>
->>>>>>>> How does this sound:
->>>>>>>>
->>>>>>>> Let's leave the omapdss device name as it is. It represents a "super"
->>>>>>>> device, containing the dss sysfs files and upper level dss management.
->>>>
->>>> This is the case for all the drivers migrated to omap_device anyway due
->>>> to the change in the top level hierarchy. Everything is below
->>>> platform/omap now.
->>>
->>> The HW module drivers are under platform/omap/, but omapdss is in
->>> platform/. Do you mean that omapdss should also be under platform/omap/?
->>
->> This is because you are probably not using omap_device yet. is should
->> happen when you will change your platform_device to be omap_device.
->
-> Hmm. The HW module devices use omap_device. But we have also a
-> "management" device, omapdss, which is doesn't match directly to any HW
-> component but manages the HW module drivers. It contains, so to say, the
-> HW module drivers.
+On Tue, 1 Mar 2011 15:22:29 +0530
+"Koyamangalath, Abhilash" <abhilash.kv@ti.com> wrote:
 
-OK, so you will have two different paths. omapdss will be directly below 
-platform whereas all the omap_device based DSS IPs will be below 
-platform/omap.
+> Now, if I change the dai-link->codec_name to force-match by appending 2-001a to the codec_name in (sound/soc/omap/am3517evm.c):
+> 	static struct snd_soc_dai_link am3517evm_dai = {
+> 			:
+>       	  .codec_name = "tlv320aic23-codec.2-001a ",
+> 			:
+> 	};
+> 
+> the registration proceeds smoothly and I can see device nodes getting created. 
+> Since now there is no way to provide a customized i2c device name to a client device (or so I believe), what could be the best solution to this problem ?
+> 
+The fix above. Care to check also osk5912.c?
 
-> Should this device also be a omap_device? What does omap_device actually
-> represent? My understanding is that omap_device is a linux device for a
-> HW block inside OMAP. omapdss doesn't quite match that definition.
 
-Yep, in that case you do not need an omap_device since you do not have 
-any hwmod to map to.
-The only weird thing is the different root paths you will have for the 
-various devices. But it looks like the only one you have to expose is 
-the omapdss.
-
->>> The reason I'm unwilling to change omapdss name, or location, is that
->>> omapdss directory contains lots of DSS configuration files, used by
->>> scripts and programs.
->>
->> Is that used for debug only?
->
-> Unfortunately no. DSS contains many features which cannot be exported to
-> userspace via the framebuffer device. While I'm not really happy with
-> the current omapdss sysfs interface, it's the best we've come up with.
-
-OK, then, something you will be able to fix in the DSS3:-)
-
-Benoit
+-- 
+Jarkko
