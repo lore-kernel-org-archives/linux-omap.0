@@ -1,53 +1,101 @@
-From: Colin Cross <ccross@google.com>
-Subject: Common suspend and resume with L2 cache on
-Date: Tue, 1 Mar 2011 18:23:13 -0800
-Message-ID: <AANLkTimxDjSun5+gaU5fMNf2KMVTNbfdq-D=0iU6tYZg@mail.gmail.com>
+From: Saravana Kannan <skannan@codeaurora.org>
+Subject: Re: [PATCHv5 0/3] Introduce the /proc/socinfo and use it to export
+	OMAP data
+Date: Tue, 01 Mar 2011 18:23:32 -0800
+Message-ID: <4D6DAA24.3000204@codeaurora.org>
+References: <1273587331-24604-1-git-send-email-eduardo.valentin@nokia.com>	<AANLkTin7vRMreG3hOAk95MYZUCV-Kr6ac7gD7jgvX6Gf@mail.gmail.com>	<20110216115729.GA29817@besouro.research.nokia.com>	<4D6B78BF.1020102@stericsson.com>	<4D6C7B56.9060109@codeaurora.org>	<AANLkTikvhj49DftS9c_NouASY9_MbYPCfmSUdJg6pf-5@mail.gmail.com>	<4D6D9B10.9000606@codeaurora.org>	<4D6D9D06.2020204@bluewatersys.com>	<4D6D9FC7.1090206@codeaurora.org>
+	<4D6DA290.2010607@bluewatersys.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:54185 "EHLO
-	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751754Ab1CBCXR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Mar 2011 21:23:17 -0500
-Received: from kpbe16.cbf.corp.google.com (kpbe16.cbf.corp.google.com [172.25.105.80])
-	by smtp-out.google.com with ESMTP id p222NFlM009514
-	for <linux-omap@vger.kernel.org>; Tue, 1 Mar 2011 18:23:15 -0800
-Received: from ywg8 (ywg8.prod.google.com [10.192.7.8])
-	by kpbe16.cbf.corp.google.com with ESMTP id p222NDma023646
-	(version=TLSv1/SSLv3 cipher=RC4-SHA bits=128 verify=NOT)
-	for <linux-omap@vger.kernel.org>; Tue, 1 Mar 2011 18:23:14 -0800
-Received: by ywg8 with SMTP id 8so2173007ywg.20
-        for <linux-omap@vger.kernel.org>; Tue, 01 Mar 2011 18:23:13 -0800 (PST)
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <4D6DA290.2010607@bluewatersys.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Ryan Mallon <ryan@bluewatersys.com>
+Cc: ext Nishanth Menon <nm@ti.com>, ext Tony Lindgren <tony@atomide.com>, Peter De-Schrijver <Peter.De-Schrijver@nokia.com>, ext Linus Walleij <linus.walleij@linaro.org>, Ambresh <a0393775@ti.com>, Andrei Warkentin <andreiw@motorola.com>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, Lee Jones <Lee.Jones@linaro.org>, Russell King <linux@arm.linux.org.uk>, Jonas ABERG <jonas.aberg@stericsson.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, David Brown <davidb@codeaurora.org>, Maxime Coquelin <maxime.coquelin-nonst@stericsson.com>, linux-arm-msm@vger.kernel.org, loic.pallardy@stericsson.com, "eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Daniel Walker <dwalker@codeaurora.org>, LKML <linux-kernel@vger.kernel.org>, Jouni Hogander <joun>
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Linux Tegra Mailing List <linux-tegra@vger.kernel.org>, linux-omap@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Now that common suspend helpers are in linux-next, I'm going back to
-trying to use them with the L2 cache on, which is required when
-implementing cpuidle states that put a cpu in reset in an SMP system.
+On 03/01/2011 05:51 PM, Ryan Mallon wrote:
+> On 03/02/2011 02:39 PM, Saravana Kannan wrote:
+>> On 03/01/2011 05:27 PM, Ryan Mallon wrote:
+>>> On 03/02/2011 02:19 PM, Saravana Kannan wrote:
+>>>> On 03/01/2011 05:13 PM, Andrei Warkentin wrote:
+>>>>> On Mon, Feb 28, 2011 at 10:51 PM, Saravana Kannan
+>>>>> <skannan@codeaurora.org>    wrote:
+>>>
+>>> <snip>
+>>>
+>>>>> What would an "arch" file mean? The name of the soc platform?
+>>>>
+>>>> The arch file would pretty much be the "xxxx" from arch/arm/mach-xxxx or
+>>>> similar paths. If that info is already available elsewhere, then that
+>>>> file is not needed. I proposed using the arch since that will remove the
+>>>> need to maintain some database of unique/reserved names/numbers for each
+>>>> implementation of socinfo (like the machinetypes list we have).
+>>>
+>>> /proc/cpuinfo already tells you what the CPU is, which gives more
+>>> information than just the architecture name.
+>>>
+>>> Why is the arch information even required by userspace?
+>>
+>> The socinfo exported by each soc is different. If userspace is trying to
+>> make decisions based on socinfo, it will need to know what type of soc
+>> (really what type of socinfo implementation) it is before trying to
+>> interpret the rest of the socinfo files. Keep in mind that cpuinfo is
+>> different from socinfo -- the cpu is just a small part of a soc.
+>
+> I understand that having a socinfo file for obtaining information about
+> a particular SoC would be useful. A similar discussion came up a few
+> years ago when we talked about having a socinfo file for exposing the
+> ep93xx Maverick crunch id, but nothing ever came out of it.
+>
+> What I don't understand is why you want the 'arch' file (ie the
+> mach-xxxx) name. /proc/cpuinfo already gives you more information than
+> an 'arch' file would. I also can't think of a particularly good
+> situation why userspace would need to know at runtime what the
+> architecture is.
+>
+> Have a socinfo file to expose implementation details of the particular
+> SoC I am fine with (assuming those details are useful to userspace),
+> having an 'arch' file to expose the architecture I am against.
 
-There are a few obvious requirements - the stack pointer, stack
-contents, and page tables must be flushed in the L2 during suspend.
+You probably already understood this, but just to be sure, when I say 
+"socinfo implementation" I mean the various ways the socinfo data should 
+be interpreted by userspace. "socid" of 1 would mean a different thing 
+depending on whether it's for omap, msm, kirkwood, etc.
 
-There is one trickier problem. The current resume sequence starts from
-reset, with cache and MMU off:
-   Restore cpu registers, including TTBR0, but not SCTLR
-   Rewrite the page table to map the MMU trampoline VA=PA
-   Restore SCTLR with dcache bit off (enables MMU)
-   Jump to virtual address
-   Restore SCTLR with original dcache bit
+I don't have any attachment to the "arch" file suggestion. If there is a 
+better solution to identify the different implementations of socinfo 
+without having to maintain some "unique id" list in the kernel, then I'm 
+all for it. But cpuinfo is not it.
 
-The page table is rewritten with the temporary mapping with the cache
-off, so the write goes directly to memory.  When the MMU is enabled,
-the TTBR0 RGN and IRGN bits determine the cachability attributes of
-the page table walk memory accesses.  These bits are normally set to
-cachable, so when the MMU is turned on, the page table walks can hit
-the L2 instead of memory.  If a stale entry for the temporary mapping
-is in the L2, which can happen if it is prefetched by the other cpu
-during suspend, the page table walk will not see the new mapping.
+Which data listed in cpuinfo do you think will let you identify the 
+socinfo implementation in a unique manner? The only thing that's even 
+remotely possible is vendor_id, but I'm not sure what it's supposed to 
+be if the CPU core is licensed from some vendor and used in a SOC by 
+another vendor. What is a Samsung with an ARM11 core supposed to list 
+for vendor_id? What if the another Samsung SOC has a Samsung's own CPU 
+core? What about non-ARM architectures? I would rather not add implicit 
+dependency on cpuinfo that's hard to maintain or guarantee and instead 
+have the socinfo implementation explicitly exported.
 
-This could be fixed by restoring the TTBR0 register with caching
-disabled, and re-enabling caching after the page table entry is
-restored, or by switching to a custom page table prepared during init
-to avoid any writes while the cache is off.
+The "arch" filename and what it's supposed to contain was just a 
+suggestion. Another alternative might be to call it soc-family and the a 
+general guideline to keep it as close as possible to the mach-xxxx name. 
+For example, omap3 and omap4 might not care for having different socinfo 
+implementations and can decide to use the socfamily name of "omap".
+
+Thanks,
+Saravana
+
+-- 
+Sent by an employee of the Qualcomm Innovation Center, Inc.
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
