@@ -1,42 +1,50 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/2] twl4030_codec cleanup
-Date: Wed, 2 Mar 2011 09:21:44 -0800
-Message-ID: <20110302172144.GT20560@atomide.com>
-References: <1299072246-26402-1-git-send-email-ilkka.koskinen@nokia.com>
-	<20110302143433.GM16181@sortiz-mobl>
+Subject: Re: [PATCH resend] omap: Fix linker error in
+ drivers/video/omap/lcd_2430sdp.c
+Date: Wed, 2 Mar 2011 09:36:10 -0800
+Message-ID: <20110302173610.GV20560@atomide.com>
+References: <1298193466-29534-1-git-send-email-jhnikula@gmail.com>
+ <1298232248-347-1-git-send-email-jhnikula@gmail.com>
+ <20110224212644.GN20560@atomide.com>
+ <20110228164715.e34a965e.jhnikula@gmail.com>
+ <1298905757.9809.135.camel@deskari>
+ <20110301013928.GL20560@atomide.com>
+ <1298960962.2011.11.camel@deskari>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:16080 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756287Ab1CBRgQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Mar 2011 12:36:16 -0500
 Content-Disposition: inline
-In-Reply-To: <20110302143433.GM16181@sortiz-mobl>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Samuel Ortiz <sameo@linux.intel.com>
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, broonie@opensource.wolfsonmicro.com, peter.ujfalusi@nokia.com, linux-kernel@vger.kernel.org, Ilkka Koskinen <ilkka.koskinen@nokia.com>, lrg@slimlogic.co.uk
+In-Reply-To: <1298960962.2011.11.camel@deskari>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Jarkko Nikula <jhnikula@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi Samuel,
-
-* Samuel Ortiz <sameo@linux.intel.com> [110302 06:32]:
-> Hi Ilkka,
-> 
-> On Wed, Mar 02, 2011 at 03:24:04PM +0200, Ilkka Koskinen wrote:
-> > This series of patches removes duplicate audio_mclk fields from
-> > twl4030_codec driver.
+* Tomi Valkeinen <tomi.valkeinen@ti.com> [110228 22:27]:
+> On Mon, 2011-02-28 at 19:39 -0600, Tony Lindgren wrote:
+> > * Tomi Valkeinen <tomi.valkeinen@ti.com> [110228 07:07]:
+> > > 
+> > > Well, it's a bit ugly, but I'm fine with it. It's for the old omapfb,
+> > > which hopefully nobody uses anymore (right =), and there's no simple way
+> > > to make it modular and neat.
 > > 
-> > The patches have been compiled on sound-2.6/for-2.6.39 branch.
-> > I haven't tested them on any target board though.
-> I'm fine with the twl.h changes, but I think it would make sense for Tony to
-> take this patchset. Tony, is that ok with you ?
+> > How about let's make mach-omap2 boards all use the new code?
+> > That way the old code can be omap1 only.
+> 
+> That has been my long term plan, but I've never had time to start
+> working on it. Some (many?) of the old panel drivers are trivial to
+> port, needs just copying the panel timings. 
 
-Sure if you prefer that.
+OK, that will probably make things a lot easier in the long run.
+ 
+> Some are much more complex, and porting them without having the hardware
+> may be a bit of a guesswork. But perhaps we can find testers for those
+> after the code has been ported.
+
+Sure, once we get one working others should be easy..
 
 Tony
