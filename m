@@ -1,126 +1,60 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH v2 14/18] omap3+: sr: introduce notifier_control
-Date: Wed,  2 Mar 2011 16:25:27 +0530
-Message-ID: <1299063331-27968-15-git-send-email-nm@ti.com>
+Subject: [PATCH v2 15/18] omap3+: sr: disable spamming interrupts
+Date: Wed,  2 Mar 2011 16:25:28 +0530
+Message-ID: <1299063331-27968-16-git-send-email-nm@ti.com>
 References: <1299063331-27968-1-git-send-email-nm@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:42544 "EHLO
-	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757116Ab1CBK5n (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Mar 2011 05:57:43 -0500
-Received: by yxl31 with SMTP id 31so2696026yxl.13
-        for <linux-omap@vger.kernel.org>; Wed, 02 Mar 2011 02:57:42 -0800 (PST)
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:46853 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757116Ab1CBK5v (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Mar 2011 05:57:51 -0500
+Received: by mail-yx0-f171.google.com with SMTP id 35so3110861yxh.2
+        for <linux-omap@vger.kernel.org>; Wed, 02 Mar 2011 02:57:50 -0800 (PST)
 In-Reply-To: <1299063331-27968-1-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
 Cc: Kevin H <khilman@ti.com>, Tony L <tony@atomide.com>, linux-arm <linux-arm-kernel@lists.infradead.org>, Nishanth Menon <nm@ti.com>
 
-We need some mechanism from class drivers to control when notifiers
-should be triggered and when not, currently we have none, which makes
-Class driver usage of the interrupt events almost impossible.
-Introduce an smartreflex driver api for doing the same.
+At times with bad SR configurations especially during silicon bringups,
+we could get continuous spurious interrupts which end up hanging the
+platform in the form of an ISR call for status bits that are
+automatically enabled by the h/w without any s/w clearing option.
+
+If we detect scenarios where isr was called without the corresponding
+notification bit being set, instead of hanging up the system,
+we will disable interrupt after noting the event in the system log
+to try and keep system sanity and allow developer to debug and fix
+the condition.
 
 Signed-off-by: Nishanth Menon <nm@ti.com>
 ---
- arch/arm/mach-omap2/smartreflex.c             |   57 +++++++++++++++++++++++++
- arch/arm/plat-omap/include/plat/smartreflex.h |    8 ++++
- 2 files changed, 65 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/smartreflex.c |   12 ++++++++++--
+ 1 files changed, 10 insertions(+), 2 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
-index 2657ba1..49a04ea 100644
+index 49a04ea..d62da3d 100644
 --- a/arch/arm/mach-omap2/smartreflex.c
 +++ b/arch/arm/mach-omap2/smartreflex.c
-@@ -704,6 +704,63 @@ void sr_disable(struct voltagedomain *voltdm)
+@@ -209,8 +209,16 @@ static irqreturn_t sr_interrupt(int irq, void *data)
+ 		value = irqstat_to_notifier_v2(status);
+ 	}
+ 
+-	if (sr_class->notify)
+-		sr_class->notify(sr_info->voltdm, value);
++	/* Attempt some resemblence of recovery! */
++	if (!value) {
++		dev_err(&sr_info->pdev->dev, "%s: Spurious interrupt!"
++			"status = 0x%08x. Disabling to prevent spamming!!\n",
++			__func__, status);
++		disable_irq_nosync(sr_info->irq);
++	} else {
++		if (sr_class->notify)
++			sr_class->notify(sr_info->voltdm, value);
++	}
+ 
+ 	return IRQ_HANDLED;
  }
- 
- /**
-+ * sr_notifier_control() - control the notifier mechanism
-+ * @voltdm:	VDD pointer to which the SR module to be configured belongs to.
-+ * @enable:	true to enable notifiers and false to disable the same
-+ *
-+ * SR modules allow an MCU interrupt mechanism that vary based on the IP
-+ * revision, we allow the system to generate interrupt if the class driver
-+ * has capability to handle the same. it is upto the class driver to ensure
-+ * the proper sequencing and handling for a clean implementation. returns
-+ * 0 if all goes fine, else returns failure results
-+ */
-+int sr_notifier_control(struct voltagedomain *voltdm, bool enable)
-+{
-+	struct omap_sr *sr = _sr_lookup(voltdm);
-+	u32 value = 0;
-+	if (IS_ERR_OR_NULL(sr)) {
-+		pr_warning("%s: sr corresponding to domain not found\n",
-+				__func__);
-+		return -EINVAL;
-+	}
-+	if (!sr->autocomp_active)
-+		return -EINVAL;
-+
-+	/* if I could never register an isr, why bother?? */
-+	if (!(sr_class && sr_class->notify && sr_class->notify_flags &&
-+			sr->irq)) {
-+		dev_warn(&sr->pdev->dev,
-+			"%s: unable to setup irq without handling mechanism\n",
-+			__func__);
-+		return -EINVAL;
-+	}
-+
-+	switch (sr->ip_type) {
-+	case SR_TYPE_V1:
-+		value = notifier_to_irqen_v1(sr_class->notify_flags);
-+		sr_modify_reg(sr, ERRCONFIG_V1, value,
-+				(enable) ? value : 0);
-+		break;
-+	case SR_TYPE_V2:
-+		value = notifier_to_irqen_v2(sr_class->notify_flags);
-+		sr_write_reg(sr, (enable) ? IRQENABLE_SET : IRQENABLE_CLR,
-+				value);
-+		break;
-+	default:
-+		 dev_warn(&sr->pdev->dev, "%s: unknown type of sr??\n",
-+				 __func__);
-+		return -EINVAL;
-+	}
-+
-+	if (enable)
-+		enable_irq(sr->irq);
-+	else
-+		disable_irq_nosync(sr->irq);
-+
-+	return 0;
-+}
-+
-+/**
-  * sr_register_class() - API to register a smartreflex class parameters.
-  * @class_data:	The structure containing various sr class specific data.
-  *
-diff --git a/arch/arm/plat-omap/include/plat/smartreflex.h b/arch/arm/plat-omap/include/plat/smartreflex.h
-index ff07d1e..d420f44 100644
---- a/arch/arm/plat-omap/include/plat/smartreflex.h
-+++ b/arch/arm/plat-omap/include/plat/smartreflex.h
-@@ -242,6 +242,7 @@ void omap_sr_register_pmic(struct omap_sr_pmic_data *pmic_data);
- /* Smartreflex driver hooks to be called from Smartreflex class driver */
- int sr_enable(struct voltagedomain *voltdm, unsigned long volt);
- void sr_disable(struct voltagedomain *voltdm);
-+int sr_notifier_control(struct voltagedomain *voltdm, bool enable);
- int sr_configure_errgen(struct voltagedomain *voltdm);
- int sr_configure_minmax(struct voltagedomain *voltdm);
- 
-@@ -250,6 +251,13 @@ int sr_register_class(struct omap_sr_class_data *class_data);
- #else
- static inline void omap_sr_enable(struct voltagedomain *voltdm) {}
- static inline void omap_sr_disable(struct voltagedomain *voltdm) {}
-+
-+static inline int sr_notifier_control(struct voltagedomain *voltdm,
-+		bool enable)
-+{
-+	return -EINVAL;
-+}
-+
- static inline void omap_sr_disable_reset_volt(
- 		struct voltagedomain *voltdm) {}
- static inline void omap_sr_register_pmic(
 -- 
 1.7.1
 
