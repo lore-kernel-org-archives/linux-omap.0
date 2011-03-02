@@ -1,24 +1,27 @@
 From: Michael Buesch <mb@bu3sch.de>
-Subject: [PATCH] cbus-retu-wdt: Fix bitfield access
-Date: Wed, 02 Mar 2011 17:11:53 +0100
-Message-ID: <1299082313.13604.13.camel@marge>
+Subject: [PATCH] cbus-retu-wdt: Remove unused nonstandard interfaces
+Date: Wed, 02 Mar 2011 17:11:58 +0100
+Message-ID: <1299082318.13604.14.camel@marge>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 80-190-117-144.ip-home.de ([80.190.117.144]:45230 "EHLO
+Received: from 80-190-117-144.ip-home.de ([80.190.117.144]:45233 "EHLO
 	bu3sch.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752603Ab1CBQLz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 2 Mar 2011 11:11:55 -0500
+	id S1754507Ab1CBQMC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 2 Mar 2011 11:12:02 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: Felipe Balbi <balbi@ti.com>, linux-omap <linux-omap@vger.kernel.org>
 
-An unsigned int pointer must not be casted to an unsigned
-long pointer before use. Convert the bitfield to unsigned long
-to fix this.
-Also use clear_bit() in the release path.
+This removes nonstandard interfaces from the WDT driver.
+/dev/watchdog should be used to access the watchdog, only.
+
+It removes the sysfs interface.
+It also removes the "counter_param" module parameter, which
+currently is broken anyway (doesn't work, because the value
+is overridden right away).
 
 Signed-off-by: Michael Buesch <mb@bu3sch.de>
 
@@ -26,45 +29,201 @@ Signed-off-by: Michael Buesch <mb@bu3sch.de>
 
 Index: linux-2.6.38-rc6/drivers/cbus/retu-wdt.c
 ===================================================================
---- linux-2.6.38-rc6.orig/drivers/cbus/retu-wdt.c	2011-03-02 16:46:24.574676092 +0100
-+++ linux-2.6.38-rc6/drivers/cbus/retu-wdt.c	2011-03-02 16:48:17.469807413 +0100
-@@ -56,7 +56,7 @@ static int counter_param = RETU_WDT_MAX_
+--- linux-2.6.38-rc6.orig/drivers/cbus/retu-wdt.c	2011-03-02 16:49:51.231863891 +0100
++++ linux-2.6.38-rc6/drivers/cbus/retu-wdt.c	2011-03-02 16:53:47.189454637 +0100
+@@ -52,7 +52,6 @@ static DEFINE_MUTEX(retu_wdt_mutex);
+ 
+ /* Current period of watchdog */
+ static unsigned int period_val = RETU_WDT_DEFAULT_TIMER;
+-static int counter_param = RETU_WDT_MAX_TIMER;
  
  struct retu_wdt_dev {
  	struct device		*dev;
--	int			users;
-+	unsigned long		users;
- 	struct miscdevice	retu_wdt_miscdev;
- 	struct delayed_work	ping_work;
- };
-@@ -161,7 +161,7 @@ static DEVICE_ATTR(counter, S_IRUGO, ret
+@@ -109,56 +108,6 @@ static void retu_wdt_ping_work(struct wo
+ 	retu_wdt_ping_enable(wdev);
+ }
  
+-static ssize_t retu_wdt_period_show(struct device *dev,
+-				struct device_attribute *attr, char *buf)
+-{
+-	/* Show current max counter */
+-	return sprintf(buf, "%u\n", (u16)period_val);
+-}
+-
+-/*
+- * Note: This inteface is non-standard and likely to disappear!
+- * Use /dev/watchdog instead, that's the standard.
+- */
+-static ssize_t retu_wdt_period_store(struct device *dev,
+-				struct device_attribute *attr,
+-				const char *buf, size_t count)
+-{
+-	unsigned int new_period;
+-	int ret;
+-
+-#ifdef CONFIG_WATCHDOG_NOWAYOUT
+-	retu_wdt_ping_disable(retu_wdt);
+-#endif
+-
+-	if (sscanf(buf, "%u", &new_period) != 1) {
+-		printk(KERN_ALERT "retu_wdt_period_store: Invalid input\n");
+-		return -EINVAL;
+-	}
+-
+-	ret = retu_modify_counter(new_period);
+-	if (ret < 0)
+-		return ret;
+-
+-	return strnlen(buf, count);
+-}
+-
+-static ssize_t retu_wdt_counter_show(struct device *dev,
+-				struct device_attribute *attr, char *buf)
+-{
+-	u16 counter;
+-
+-	/* Show current value in watchdog counter */
+-	counter = retu_read_reg(dev, RETU_REG_WATCHDOG);
+-
+-	/* Only the 5 LSB are important */
+-	return snprintf(buf, PAGE_SIZE, "%u\n", (counter & 0x3F));
+-}
+-
+-static DEVICE_ATTR(period, S_IRUGO | S_IWUSR, retu_wdt_period_show, \
+-			retu_wdt_period_store);
+-static DEVICE_ATTR(counter, S_IRUGO, retu_wdt_counter_show, NULL);
+-
  static int retu_wdt_open(struct inode *inode, struct file *file)
  {
--	if (test_and_set_bit(1, (unsigned long *)&(retu_wdt->users)))
-+	if (test_and_set_bit(0, &retu_wdt->users))
- 		return -EBUSY;
+ 	if (test_and_set_bit(0, &retu_wdt->users))
+@@ -175,9 +124,9 @@ static int retu_wdt_release(struct inode
+ 	struct retu_wdt_dev *wdev = file->private_data;
  
- 	file->private_data = (void *)retu_wdt;
-@@ -177,7 +177,7 @@ static int retu_wdt_release(struct inode
  #ifndef CONFIG_WATCHDOG_NOWAYOUT
- 	retu_wdt_ping_enable(retu_wdt);
+-	retu_wdt_ping_enable(retu_wdt);
++	retu_wdt_ping_enable(wdev);
  #endif
--	wdev->users = 0;
-+	clear_bit(0, &retu_wdt->users);
+-	clear_bit(0, &retu_wdt->users);
++	clear_bit(0, &wdev->users);
  
  	return 0;
  }
-@@ -264,7 +264,6 @@ static int __init retu_wdt_probe(struct
- 		return -ENOMEM;
+@@ -232,18 +181,6 @@ static long retu_wdt_ioctl(struct file *
+ 	return 0;
+ }
+ 
+-/* Start kicking retu watchdog until user space starts doing the kicking */
+-static int __devinit retu_wdt_ping(void)
+-{
+-#ifdef CONFIG_WATCHDOG_NOWAYOUT
+-	retu_modify_counter(RETU_WDT_MAX_TIMER);
+-#else
+-	retu_wdt_ping_enable(retu_wdt);
+-#endif
+-
+-	return 0;
+-}
+-
+ static const struct file_operations retu_wdt_fops = {
+ 	.owner		= THIS_MODULE,
+ 	.write		= retu_wdt_write,
+@@ -252,8 +189,6 @@ static const struct file_operations retu
+ 	.release	= retu_wdt_release,
+ };
+ 
+-/*----------------------------------------------------------------------------*/
+-
+ static int __init retu_wdt_probe(struct platform_device *pdev)
+ {
+ 	struct retu_wdt_dev *wdev;
+@@ -265,18 +200,6 @@ static int __init retu_wdt_probe(struct
  
  	wdev->dev = &pdev->dev;
--	wdev->users = 0;
  
- 	ret = device_create_file(&pdev->dev, &dev_attr_period);
- 	if (ret) {
+-	ret = device_create_file(&pdev->dev, &dev_attr_period);
+-	if (ret) {
+-		dev_err(&pdev->dev, "Error creating sysfs period\n");
+-		goto free1;
+-	}
+-
+-	ret = device_create_file(&pdev->dev, &dev_attr_counter);
+-	if (ret) {
+-		dev_err(&pdev->dev, "Error creating sysfs counter\n");
+-		goto free2;
+-	}
+-
+ 	platform_set_drvdata(pdev, wdev);
+ 	retu_wdt = wdev;
+ 	wdev->retu_wdt_miscdev.parent = &pdev->dev;
+@@ -286,38 +209,21 @@ static int __init retu_wdt_probe(struct
+ 
+ 	ret = misc_register(&(wdev->retu_wdt_miscdev));
+ 	if (ret)
+-		goto free3;
++		goto err_free_wdev;
+ 
+ 	INIT_DELAYED_WORK(&wdev->ping_work, retu_wdt_ping_work);
+ 
+-	/* passed as module parameter? */
+-	ret = retu_modify_counter(counter_param);
+-	if (ret == -EINVAL) {
+-		ret = retu_modify_counter(RETU_WDT_DEFAULT_TIMER);
+-		dev_dbg(&pdev->dev, "Initializing to default value\n");
+-	}
+-
+-	/* Kick the watchdog for kernel booting to finish */
++	/* Kick the watchdog for kernel booting to finish.
++	 * If nowayout is not set, we start the ping work. */
++#ifdef CONFIG_WATCHDOG_NOWAYOUT
+ 	retu_modify_counter(RETU_WDT_MAX_TIMER);
+-
+-	ret = retu_wdt_ping();
+-	if (ret < 0) {
+-		dev_err(&pdev->dev, "Failed to ping\n");
+-		goto free4;
+-	}
++#else
++	retu_wdt_ping_enable(retu_wdt);
++#endif
+ 
+ 	return 0;
+ 
+-free4:
+-	misc_deregister(&wdev->retu_wdt_miscdev);
+-
+-free3:
+-	device_remove_file(&pdev->dev, &dev_attr_counter);
+-
+-free2:
+-	device_remove_file(&pdev->dev, &dev_attr_period);
+-
+-free1:
++err_free_wdev:
+ 	kfree(wdev);
+ 
+ 	return ret;
+@@ -329,8 +235,6 @@ static int __devexit retu_wdt_remove(str
+ 
+ 	wdev = platform_get_drvdata(pdev);
+ 	misc_deregister(&wdev->retu_wdt_miscdev);
+-	device_remove_file(&pdev->dev, &dev_attr_period);
+-	device_remove_file(&pdev->dev, &dev_attr_counter);
+ 	cancel_delayed_work_sync(&wdev->ping_work);
+ 	kfree(wdev);
+ 
+@@ -356,9 +260,7 @@ static void __exit retu_wdt_exit(void)
+ 
+ module_init(retu_wdt_init);
+ module_exit(retu_wdt_exit);
+-module_param(counter_param, int, 0);
+ 
+ MODULE_DESCRIPTION("Retu WatchDog");
+ MODULE_AUTHOR("Amit Kucheria");
+ MODULE_LICENSE("GPL");
+-
 
 -- 
 Greetings, Michael.
+
 
 
