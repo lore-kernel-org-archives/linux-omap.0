@@ -1,47 +1,74 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: linux-next: manual merge of the usb tree with the omap tree
-Date: Wed, 2 Mar 2011 16:58:05 +1100
-Message-ID: <20110302165805.65d55351.sfr@canb.auug.org.au>
+From: "Manuel, Lesly Arackal" <leslyam@ti.com>
+Subject: Re: [PATCH 1/8] omap3: pm: Fix for the TRITON sleep/wakeup sequence
+Date: Wed, 2 Mar 2011 11:38:14 +0530
+Message-ID: <AANLkTik_5e6mKJMNJKgqzFhZj1qU=1qZmASLTKkw2cX4@mail.gmail.com>
+References: <1298723139-1693-1-git-send-email-leslyam@ti.com>
+	<1298723139-1693-2-git-send-email-leslyam@ti.com>
+	<87pqqafp30.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from chilli.pcug.org.au ([203.10.76.44]:52002 "EHLO smtps.tip.net.au"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757987Ab1CBF6H (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 2 Mar 2011 00:58:07 -0500
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:58847 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752590Ab1CBGIQ convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 2 Mar 2011 01:08:16 -0500
+Received: by vxc38 with SMTP id 38so4822928vxc.10
+        for <linux-omap@vger.kernel.org>; Tue, 01 Mar 2011 22:08:15 -0800 (PST)
+In-Reply-To: <87pqqafp30.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Keshava Munegowda <keshava_mgowda@ti.com>, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>, David Derrick <dderrick@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
 
-Hi Greg,
+Hi Kevin,
 
-Today's linux-next merge of the usb tree got a conflict in
-arch/arm/mach-omap2/clock3xxx_data.c between commit
-0005ae73cfe44ee42d0be12a12cc82bf982f518e ("OMAP: hsmmc: Rename the device
-and driver") from the omap tree and commit
-53689ac1b677532be666a779e24b0ac9bd266354 ("arm: omap: usb: clock entries
-for omap3 and omap4") from the usb tree.
+On Wed, Mar 2, 2011 at 4:03 AM, Kevin Hilman <khilman@ti.com> wrote:
+> Lesly A M <leslyam@ti.com> writes:
+>
+>> Since the function to populate the sleep script is getting called al=
+ways
+>> irrespective of the flag "TWL4030_SLEEP_SCRIPT", other scripts data
+>> is getting over written by the sleep script. Adding the missing brac=
+kets for
+>> if statement to fix the issue.
+>
+> This is still a confusing changelog. =A0How about simply:
+>
+> Only write the sleep script when TWL4030_SLEEP_SCRIPT is set.
+>
 
-Just context changes.  I have fixed it up (see below) and can carry the
-fix as necessary.
--- 
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
+Yes, I agree
 
-diff --cc arch/arm/mach-omap2/clock3xxx_data.c
-index f43e7ec,fbb1e30..0000000
---- a/arch/arm/mach-omap2/clock3xxx_data.c
-+++ b/arch/arm/mach-omap2/clock3xxx_data.c
-@@@ -3322,8 -3322,8 +3322,8 @@@ static struct omap_clk omap3xxx_clks[] 
-  	CLK(NULL,	"pka_ick",	&pka_ick,	CK_34XX | CK_36XX),
-  	CLK(NULL,	"core_l4_ick",	&core_l4_ick,	CK_3XXX),
-  	CLK(NULL,	"usbtll_ick",	&usbtll_ick,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
-- 	CLK("ehci-omap.0",	"usbtll_ick",	&usbtll_ick,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
-+ 	CLK("usbhs-omap.0",	"usbtll_ick",	&usbtll_ick,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
- -	CLK("mmci-omap-hs.2",	"ick",	&mmchs3_ick,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
- +	CLK("omap_hsmmc.2",	"ick",	&mmchs3_ick,	CK_3430ES2PLUS | CK_AM35XX | CK_36XX),
-  	CLK(NULL,	"icr_ick",	&icr_ick,	CK_34XX | CK_36XX),
-  	CLK("omap-aes",	"ick",	&aes2_ick,	CK_34XX | CK_36XX),
-  	CLK("omap-sham",	"ick",	&sha12_ick,	CK_34XX | CK_36XX),
+Only configure sleep script when the flag is TWL4030_SLEEP_SCRIPT.
+
+Regards,
+Lesly A M
+
+< ... >
+
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (err)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto out;
+>> =A0 =A0 =A0 }
+>> - =A0 =A0 if (tscript->flags & TWL4030_SLEEP_SCRIPT)
+>> + =A0 =A0 if (tscript->flags & TWL4030_SLEEP_SCRIPT) {
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (order)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_warning("TWL4030: Bad=
+ order of scripts (sleep "\
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 "script before wakeup) Leads to boot"\
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 "failure on some boards\n");
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 err =3D twl4030_config_sleep_sequence(ad=
+dress);
+>> + =A0 =A0 }
+>> =A0out:
+>> =A0 =A0 =A0 return err;
+>> =A0}
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
