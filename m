@@ -1,50 +1,79 @@
 From: Stephen Rothwell <sfr@canb.auug.org.au>
 Subject: linux-next: manual merge of the usb tree with the omap tree
-Date: Wed, 2 Mar 2011 16:57:55 +1100
-Message-ID: <20110302165755.b45124c8.sfr@canb.auug.org.au>
+Date: Wed, 2 Mar 2011 16:58:09 +1100
+Message-ID: <20110302165809.583a12a9.sfr@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA1";
- boundary="Signature=_Wed__2_Mar_2011_16_57_55_+1100_CzyKTeIU9uK3tpna"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Anand Gadiyar <gadiyar@ti.com>, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Keshava Munegowda <keshava_mgowda@ti.com>
-List-Id: linux-omap@vger.kernel.org
-
---Signature=_Wed__2_Mar_2011_16_57_55_+1100_CzyKTeIU9uK3tpna
 Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-next-owner@vger.kernel.org>
+Sender: linux-next-owner@vger.kernel.org
+To: Greg KH <greg@kroah.com>
+Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Hema HK <hemahk@ti.com>, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 
 Hi Greg,
 
 Today's linux-next merge of the usb tree got a conflict in
-arch/arm/mach-omap2/board-4430sdp.c between commit
-1dbea0f5e23b6c647db72fa4a048cb7140625e13 ("arm: omap4: 4430sdp: drop ehci
-support") from the omap tree and commit
-181b250cf53233a7a7c6d7e1e9df402506712e93 ("arm: omap: usb: create common
-enums and structures for ehci and ohci") from the usb tree.
+arch/arm/mach-omap2/usb-musb.c between commit
+18a26892d62d2786c2b259ba4605ee10bba0ba13 ("OMAP2+: musb: hwmod adaptation
+for musb registration") from the omap tree and commit
+fb91cde49c327ff957c55d91805bc6abda59b311 ("usb: musb: OMAP4430: Power
+down the PHY during board init") from the usb tree.
 
-The former removed the code modified by the latter, so I did that.
---=20
+Just context changes.  I fixed it up (see below) and can carry the fix as
+necessary.
+
+Interestingly, the patch in the usb tree looks as though it would have
+been broken as the "dev" variable passed to omap4430_phy_init() does not
+exist in the version of that file in the usb tree.
+
+-- 
 Cheers,
 Stephen Rothwell                    sfr@canb.auug.org.au
-http://www.canb.auug.org.au/~sfr/
 
---Signature=_Wed__2_Mar_2011_16_57_55_+1100_CzyKTeIU9uK3tpna
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQEcBAEBAgAGBQJNbdxkAAoJEDMEi1NhKgbs7qQH/ixKes0qi1MAw0NKFEK0AOZb
-BvPWfv5f+b4929JeklVxlnTTzc8PAXd6qKkUNT+9N0S7yWuYHoKlFKIeeB4rlGin
-lzeDuzw6BEWgES0UynrfwBg7R0L0xnAIaF/dkfuPZCD9efN2acKy/M9MJH/Bd/1C
-KAg0mA2Q0ngVtQOVShHZSCKvWQhzAqhytSsVuqPCE91/7QjfzEtxKvI/1s5YhD0g
-dszk4eS+UHRj7h6Nx7X6xd/RIeAvq0q4ZQl/vMVJP11cXvivTPSd7DfgwWTUdGuX
-/NbndtDctBaANeOSCHyYeaBk5i9xns6pPL7eLUxJloCsJczAa1C56rwRX3RXg1Y=
-=dfVb
------END PGP SIGNATURE-----
-
---Signature=_Wed__2_Mar_2011_16_57_55_+1100_CzyKTeIU9uK3tpna--
+diff --cc arch/arm/mach-omap2/usb-musb.c
+index a9d4d14,241fc94..0000000
+--- a/arch/arm/mach-omap2/usb-musb.c
++++ b/arch/arm/mach-omap2/usb-musb.c
+@@@ -132,35 -212,12 +132,39 @@@ void __init usb_musb_init(struct omap_m
+  	musb_plat.mode = board_data->mode;
+  	musb_plat.extvbus = board_data->extvbus;
+  
+ -	if (platform_device_register(&musb_device) < 0)
+ -		printk(KERN_ERR "Unable to register HS-USB (MUSB) device\n");
+ +	if (cpu_is_omap3517() || cpu_is_omap3505()) {
+ +		oh_name = "am35x_otg_hs";
+ +		name = "musb-am35x";
+ +	} else {
+ +		oh_name = "usb_otg_hs";
+ +		name = "musb-omap2430";
+ +	}
+ +
+ +	oh = omap_hwmod_lookup(oh_name);
+ +	if (!oh) {
+ +		pr_err("Could not look up %s\n", oh_name);
+ +		return;
+ +	}
+ +
+ +	od = omap_device_build(name, bus_id, oh, &musb_plat,
+ +			       sizeof(musb_plat), omap_musb_latency,
+ +			       ARRAY_SIZE(omap_musb_latency), false);
+ +	if (IS_ERR(od)) {
+ +		pr_err("Could not build omap_device for %s %s\n",
+ +						name, oh_name);
+ +		return;
+ +	}
+ +
+ +	pdev = &od->pdev;
+ +	dev = &pdev->dev;
+ +	get_device(dev);
+ +	dev->dma_mask = &musb_dmamask;
+ +	dev->coherent_dma_mask = musb_dmamask;
+ +	put_device(dev);
++ 
++ 	if (cpu_is_omap44xx())
++ 		omap4430_phy_init(dev);
++ 
+  }
+  
+  #else
