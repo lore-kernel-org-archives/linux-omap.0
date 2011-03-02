@@ -1,98 +1,146 @@
-From: "Menon, Nishanth" <nm@ti.com>
-Subject: Re: [PATCH 1/3] OMAP4: Revise MPU Voltage rail values.
-Date: Wed, 2 Mar 2011 13:02:58 +0530
-Message-ID: <AANLkTikOpNk_6r0xGe=2EAduFxw_7JzjpYcvtR4STQX_@mail.gmail.com>
-References: <1297837046-8831-1-git-send-email-shweta.gulati@ti.com>
+From: Govindraj <govindraj.ti@gmail.com>
+Subject: Re: [PATCH 6/7] OMAP: Serial: Allow UART parameters to be configured
+ from board file
+Date: Wed, 2 Mar 2011 13:10:58 +0530
+Message-ID: <AANLkTimD9rOC=4P6Vy2jzvcXZ-gZmF42Te4CBjS8AJLT@mail.gmail.com>
+References: <1298903958-6496-1-git-send-email-govindraj.raja@ti.com>
+ <1298903958-6496-7-git-send-email-govindraj.raja@ti.com> <056ac5e848953fa5c37f7ed7a8cc1050@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:53881 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751526Ab1CBHdT convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 2 Mar 2011 02:33:19 -0500
-Received: by mail-ww0-f46.google.com with SMTP id 33so7189599wwc.15
-        for <linux-omap@vger.kernel.org>; Tue, 01 Mar 2011 23:33:18 -0800 (PST)
-In-Reply-To: <1297837046-8831-1-git-send-email-shweta.gulati@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <056ac5e848953fa5c37f7ed7a8cc1050@mail.gmail.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Sricharan R <r.sricharan@ti.com>
+Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Jon Hunter <jon-hunter@ti.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Rajendra Nayak <rnayak@ti.com>, Deepak Kattungal <deepak.k@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Shweta Gulati <shweta.gulati@ti.com>
-Cc: linux-omap@vger.kernel.org
 
-On Wed, Feb 16, 2011 at 11:47, Shweta Gulati <shweta.gulati@ti.com> wro=
-te:
->
-> MPU voltage rail values are updated according to
-> latest OMAP4430 Data Manual Operating Condition Addendum.
+On Wed, Mar 2, 2011 at 12:46 AM, Sricharan R <r.sricharan@ti.com> wrote=
+:
+> Hi,
+>>diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/seria=
+l.c
+>>index 755f4aa..530e9e3 100644
+>>--- a/arch/arm/mach-omap2/serial.c
+>>+++ b/arch/arm/mach-omap2/serial.c
+>>@@ -44,6 +44,15 @@
+>>
+>> static int omap_uart_con_id __initdata =3D -1;
+>>
+>>+static struct omap_uart_port_info omap_serial_default_info[] =3D {
+>>+ =A0 =A0 =A0{
+>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.dma_enabled =A0 =A0=3D 0,
+>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.dma_rx_buf_size =3D DEFAULT_RXDMA_BUFSI=
+ZE,
+>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.dma_rx_timeout =3D DEFAULT_RXDMA_TIMEOU=
+T,
+>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.idle_timeout =A0 =3D DEFAULT_IDLE_TIMEO=
+UT,
+>>+ =A0 =A0 =A0},
+>>+};
+>>+
+>> static int uart_idle_hwmod(struct omap_device *od)
+>> {
+>> =A0 =A0 =A0 omap_hwmod_idle(od->hwmods[0]);
+>>@@ -66,6 +75,54 @@ static struct omap_device_pm_latency
+> omap_uart_latency[]
+>>=3D {
+>> =A0 =A0 =A0 },
+>> };
+>>
+>>+#ifdef CONFIG_OMAP_MUX
+>>+static struct omap_device_pad default_serial0_pads[] __initdata =3D =
+{
+>>+ =A0 =A0 =A0{
+>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.name =A0 =3D "uart1_rx.uart1_rx",
+>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.flags =A0=3D OMAP_DEVICE_PAD_REMUX | OM=
+AP_DEVICE_PAD_WAKEUP,
+>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.enable =3D OMAP_MUX_MODE0,
+>>+ =A0 =A0 =A0},
+>>+};
+>>+
+>>+static struct omap_device_pad default_serial1_pads[] __initdata =3D =
+{
+>>+ =A0 =A0 =A0{
+>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.name =A0 =3D "uart2_rx.uart2_rx",
+>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.flags =A0=3D OMAP_DEVICE_PAD_REMUX | OM=
+AP_DEVICE_PAD_WAKEUP,
+>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.enable =3D OMAP_MUX_MODE0,
+>>+ =A0 =A0 =A0},
+>>+};
+>>+
+>>+static struct omap_device_pad default_serial2_pads[] __initdata =3D =
+{
+>>+ =A0 =A0 =A0{
+>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.name =A0 =3D "uart3_rx_irrx.uart3_rx_ir=
+rx",
+>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.flags =A0=3D OMAP_DEVICE_PAD_REMUX | OM=
+AP_DEVICE_PAD_WAKEUP,
+>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.enable =3D OMAP_MUX_MODE0,
+>>+ =A0 =A0 =A0},
+>>+};
+>>+
+>>+static struct omap_device_pad default_omap36xx_serial3_pads[] __init=
+data
+> =3D
+>>{
+>>+ =A0 =A0 =A0{
+>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.name =A0 =3D "gpmc_wait3.uart4_rx",
+>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.flags =A0=3D OMAP_DEVICE_PAD_REMUX | OM=
+AP_DEVICE_PAD_WAKEUP,
+>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.enable =3D OMAP_MUX_MODE2,
+>>+ =A0 =A0 =A0},
+>>+};
+>>+
+>>+static struct omap_device_pad default_omap4_serial3_pads[] __initdat=
+a =3D
+> {
+>>+ =A0 =A0 =A0{
+>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.name =A0 =3D "uart4_rx.uart4_rx",
+>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.flags =A0=3D OMAP_DEVICE_PAD_REMUX | OM=
+AP_DEVICE_PAD_WAKEUP,
+>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.enable =3D OMAP_MUX_MODE0,
+>>+ =A0 =A0 =A0},
+>>+};
+> Here only the UART RX pins are muxed, so what about the cts, rts, tx =
+pins?
 
-looks like the latest is evolving :(. I just checked against 0.3 of
-the data manual operating conditions:
+The intention here is to enable wakeup capabilities for uart rx pad.
 
-This patch does the following:
-MPU:
-#define OMAP4430_VDD_MPU_OPP50_UV               1025000
-#define OMAP4430_VDD_MPU_OPP100_UV              1200000
-#define OMAP4430_VDD_MPU_OPPTURBO_UV            1313000
-#define OMAP4430_VDD_MPU_OPPNITRO_UV            1375000
-Verified - ok
+AFAIK most of the boards are currently dependent on bootloader for
+uart-muxing if any board is not dependent on bootloader then we
+can use omap_serial_init_port along with board_mux_info from board.
 
-IVA currently:
-#define OMAP4430_VDD_IVA_OPP50_UV               930000
-#define OMAP4430_VDD_IVA_OPP100_UV              1100000
-#define OMAP4430_VDD_IVA_OPPTURBO_UV            1260000
-Should be:
-#define OMAP4430_VDD_IVA_OPP50_UV               1013000
-#define OMAP4430_VDD_IVA_OPP100_UV              1188000
-#define OMAP4430_VDD_IVA_OPPTURBO_UV            1300000
+Prior to this change uart wakeup is based on rx_pad and we were populat=
+ing
+offset and using omap_ctrl api's to read/write which is cleaned up now.
+Most of boards are dependent on uart-rx wakeup to avoid breaking any
+board support we
+are using omap_serial_init by filling default values, which provides
+us with same
+environment but with right approach towards handling mux data with a
+handshake with
+hwmod framework.
 
-Core currently - matches with the values in DM 0.3.
-#define OMAP4430_VDD_CORE_OPP50_UV              930000
-#define OMAP4430_VDD_CORE_OPP100_UV             1100000
-
-Should we just have one patch to update both mpu and iva voltages?
-
-Regards,
-Nishanth Menon
+So if any board needs specific mux they can go ahead and add required
+mux data in
+board file and use map_serial_init_port instead of current omap_serial_=
+init.
 
 
->
-> Signed-off-by: Shweta Gulati <shweta.gulati@ti.com>
-> ---
-> =A0arch/arm/plat-omap/include/plat/voltage.h | =A0 =A08 ++++----
-> =A01 files changed, 4 insertions(+), 4 deletions(-)
->
-> diff --git a/arch/arm/plat-omap/include/plat/voltage.h b/arch/arm/pla=
-t-omap/include/plat/voltage.h
-> index 5bd204e..4d9bab1 100644
-> --- a/arch/arm/plat-omap/include/plat/voltage.h
-> +++ b/arch/arm/plat-omap/include/plat/voltage.h
-> @@ -46,10 +46,10 @@
-> =A0#define OMAP3630_VDD_CORE_OPP50_UV =A0 =A0 =A0 =A0 =A0 =A0 1000000
-> =A0#define OMAP3630_VDD_CORE_OPP100_UV =A0 =A0 =A0 =A0 =A0 =A01200000
->
-> -#define OMAP4430_VDD_MPU_OPP50_UV =A0 =A0 =A0 =A0 =A0 =A0 =A0930000
-> -#define OMAP4430_VDD_MPU_OPP100_UV =A0 =A0 =A0 =A0 =A0 =A0 1100000
-> -#define OMAP4430_VDD_MPU_OPPTURBO_UV =A0 =A0 =A0 =A0 =A0 1260000
-> -#define OMAP4430_VDD_MPU_OPPNITRO_UV =A0 =A0 =A0 =A0 =A0 1350000
-> +#define OMAP4430_VDD_MPU_OPP50_UV =A0 =A0 =A0 =A0 =A0 =A0 =A01025000
-> +#define OMAP4430_VDD_MPU_OPP100_UV =A0 =A0 =A0 =A0 =A0 =A0 1200000
-> +#define OMAP4430_VDD_MPU_OPPTURBO_UV =A0 =A0 =A0 =A0 =A0 1313000
-> +#define OMAP4430_VDD_MPU_OPPNITRO_UV =A0 =A0 =A0 =A0 =A0 1375000
->
-> =A0#define OMAP4430_VDD_IVA_OPP50_UV =A0 =A0 =A0 =A0 =A0 =A0 =A093000=
-0
-> =A0#define OMAP4430_VDD_IVA_OPP100_UV =A0 =A0 =A0 =A0 =A0 =A0 1100000
-> --
-> 1.7.0.4
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+> Is it consistent that across all socs that only UART3 would have UART=
+/IRDA
+> functions capability so that serial2 pads can always be called "rx_ir=
+xx"
+> ?.
+
+Yes from OMAP2420 to OMAP4430 uart3 can used as irda.
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
+Thanks,
+Govindraj.R
+--
+To unsubscribe from this list: send the line "unsubscribe linux-serial"=
+ in
 the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
