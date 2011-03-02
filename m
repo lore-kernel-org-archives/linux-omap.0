@@ -1,74 +1,51 @@
-From: archit taneja <archit@ti.com>
-Subject: Re: [PATCH v2 0/3]OMAP: DSS2: Abstract away DSI VC information from
- dsi panel drivers
-Date: Wed, 2 Mar 2011 11:10:35 +0530
-Message-ID: <4D6DD853.7050707@ti.com>
-References: <1298982743-6771-1-git-send-email-archit@ti.com> <1298995002.2049.8.camel@deskari>
+From: "Manuel, Lesly Arackal" <leslyam@ti.com>
+Subject: Re: [PATCH v7 00/12] omap3: pm: TWL4030 power scripts and workaround
+ for TWL errata 27
+Date: Wed, 2 Mar 2011 11:24:08 +0530
+Message-ID: <AANLkTinkeZrJD+6hyQeTLK1VSEYDhXe3=y4yJ_7byCOQ@mail.gmail.com>
+References: <1298048938-1480-1-git-send-email-leslyam@ti.com>
+	<8739n6h43i.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:52423 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751384Ab1CBFho (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Mar 2011 00:37:44 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p225bfTC001833
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 1 Mar 2011 23:37:43 -0600
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id p225bejc008139
-	for <linux-omap@vger.kernel.org>; Wed, 2 Mar 2011 11:07:40 +0530 (IST)
-In-Reply-To: <1298995002.2049.8.camel@deskari>
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:52866 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751526Ab1CBFyK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Mar 2011 00:54:10 -0500
+Received: by mail-vw0-f48.google.com with SMTP id 20so5887654vws.7
+        for <linux-omap@vger.kernel.org>; Tue, 01 Mar 2011 21:54:08 -0800 (PST)
+In-Reply-To: <8739n6h43i.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>, David Derrick <dderrick@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
 
-Hi,
+Hi Kevin,
 
-On Tuesday 01 March 2011 09:26 PM, Valkeinen, Tomi wrote:
-> On Tue, 2011-03-01 at 06:32 -0600, Taneja, Archit wrote:
->> The current DSI driver design requires the DSI panel driver to specify the
->> DSI Virtual Channel and the Panel Virtual Channel ID for the transfer of
->> commands and frame data. Out of these, only the second parameter is a property
->> of the Panel.
+On Wed, Mar 2, 2011 at 3:54 AM, Kevin Hilman <khilman@ti.com> wrote:
+> Lesly A M <leslyam@ti.com> writes:
+>
+>> Patch series for TWL4030 power scripts and workaround for TWL errata 27.
 >>
->> The DSI Virtual Channel in use by the panel driver ideally shouldn't be provided
->> by the panel driver. The current design leads to the following issues:
->> -Multiple panels connected to the same DSI interface would be unaware of the
->> VC's in use.
->> -Hard coded Virtual Channel numbers in panel drivers which is not generic.
->> -No clean way of configuring DSI for panels which need atleast 2 DSI Virtual
->> Channels.
->> -No clean way of configuring DSI for the special case where a panel may have 2
->> or VC ID's corresponding to it.
+>> Changes for implementing TWL4030 power scripts recommended by hardware team.
+>> Introduced a new TWL4030 power script file, which can be used by different
+>> OMAP3 board with the power companion chip TWL4030.
 >>
->> The panel driver should, instead, request for, and release DSI Virtual Channels
->> through calls to the DSI driver. The DSI driver should return VC numbers which
->> the panel can use. The panel driver then uses this VC to either send pixel data,
->> send commands and receive data from the panel. The DSI driver then automatically
->> configures the Virtual Channel source to either Video Port or L4 Slave Port.
+>> Updated the changes for TWL4030 errata 27 & 28, modified the
+>> TWL4030 power script and voltage controller setuptime.
+>> Workaround for TWL4030 errata 27 & 28 is required for
+>> Si version less than or equal to TWL5030 ES1.1.
 >>
->> This patch set tries to achieve the above design, and make Panel Taal driver use
->> this approach.
+>> TWL4030 script changes rebased on Kevin's PM tree in pm branch.
 >
-> This patch set doesn't apply, and seems not to be based on Linus',
-> Tony's or my tree. What is it based on?
+> What is the dependency on my PM branch?
 >
-
-This is based on your master with a few patches I posted on l-o before 
-which haven't been applied yet. I will make sure I mention the pending 
-patches required when I post the next version.
-
-Archit
-
-> You should always base the patches on top of a public tree before
-> sending the patches. Otherwise it is difficult to apply those patches.
-> Or clearly say the required patch sets, which have previously been sent
-> for review, but not yet applied.
->
->   Tomi
->
+> It looks like this can be based on mainline or l-o master.
 >
 
+OFFMODE was not working on mainline and l-o master.
+
+Regards,
+Lesly A M
+
+< ... >
