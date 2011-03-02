@@ -1,52 +1,63 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH v2 18/18] omap3430: sr: class3: restrict cpu to run on
-Date: Wed,  2 Mar 2011 16:25:31 +0530
-Message-ID: <1299063331-27968-19-git-send-email-nm@ti.com>
-References: <1299063331-27968-1-git-send-email-nm@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:47082 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757116Ab1CBK6V (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Mar 2011 05:58:21 -0500
-Received: by mail-yx0-f171.google.com with SMTP id 35so3110861yxh.2
-        for <linux-omap@vger.kernel.org>; Wed, 02 Mar 2011 02:58:20 -0800 (PST)
-In-Reply-To: <1299063331-27968-1-git-send-email-nm@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Maxime Coquelin <maxime.coquelin-nonst@stericsson.com>
+Subject: Re: [PATCHv5 0/3] Introduce the /proc/socinfo and use it to export
+	OMAP data
+Date: Wed, 2 Mar 2011 11:53:03 +0100
+Message-ID: <4D6E218F.2020804@stericsson.com>
+References: <1273587331-24604-1-git-send-email-eduardo.valentin@nokia.com>	<AANLkTin7vRMreG3hOAk95MYZUCV-Kr6ac7gD7jgvX6Gf@mail.gmail.com>	<20110216115729.GA29817@besouro.research.nokia.com>	<4D6B78BF.1020102@stericsson.com>	<4D6C7B56.9060109@codeaurora.org>	<AANLkTikvhj49DftS9c_NouASY9_MbYPCfmSUdJg6pf-5@mail.gmail.com>	<4D6D9B10.9000606@codeaurora.org>	<4D6D9D06.2020204@bluewatersys.com>	<4D6D9FC7.1090206@codeaurora.org>	<4D6DA290.2010607@bluewatersys.com>	<4D6DAA24.3000204@codeaurora.org>	<4D6DAE6E.4030701@bluewatersys.com>	<4D6DB1B1.4060908@codeaurora.org>	<4D6DFE67.3020801@stericsson.com>
+	<AANLkTimJh_uGP6SYo=9ndz4xiUs1Tbg7z70ng0aFcWyG@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <AANLkTimJh_uGP6SYo=9ndz4xiUs1Tbg7z70ng0aFcWyG@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: ext Nishanth Menon <nm@ti.com>, ext Tony Lindgren <tony@atomide.com>, Peter De-Schrijver <Peter.De-Schrijver@nokia.com>, Ambresh <a0393775@ti.com>, Saravana Kannan <skannan@codeaurora.org>, Jouni Hogander <jouni.hogander@nokia.com>, Lee Jones <Lee.Jones@linaro.org>, Rabin VINCENT <rabin.vincent@stericsson.com>, Russell King <linux@arm.linux.org.uk>, Jonas ABERG <jonas.aberg@stericsson.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, David Brown <davidb@codeaurora.org>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, Loic PALLARDY <loic.pallardy@stericsson.com>, "eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>, Ryan Mallon <ryan@bluewatersys.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Daniel Walker <dwalker@codeaurora.org>, LKML <linux-kernel@vger.kernel.o>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
-Cc: Kevin H <khilman@ti.com>, Tony L <tony@atomide.com>, linux-arm <linux-arm-kernel@lists.infradead.org>, Nishanth Menon <nm@ti.com>
 
-Use SmartReflex AVS Class3 initialization only for OMAP343x family of
-processors.
+On 03/02/2011 11:36 AM, Linus Walleij wrote:
+> On Wed, Mar 2, 2011 at 9:23 AM, Maxime Coquelin
+> <maxime.coquelin-nonst@stericsson.com>  wrote:
+>
+>> I think we should have a tree like this :
+>>
+>> /sys/devices/system/soc/
+>> /sys/devices/system/soc/unique_id<- Unified way to export an ID for all machs
+> Arbitrary number of bits? Some will have a 64-bit ID, some will have 32-bit
+> etc.
 
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
- arch/arm/mach-omap2/smartreflex-class3.c |    5 +++++
- 1 files changed, 5 insertions(+), 0 deletions(-)
+Yes, here is the difficulty. For example, in our case, the SoC unique ID 
+is 160 bits long.
+Maybe it would be a better solution to get rid of this unified file, and 
+keep only mach specific entries? I mean :
 
-diff --git a/arch/arm/mach-omap2/smartreflex-class3.c b/arch/arm/mach-omap2/smartreflex-class3.c
-index 5f7a33e..f99e517 100644
---- a/arch/arm/mach-omap2/smartreflex-class3.c
-+++ b/arch/arm/mach-omap2/smartreflex-class3.c
-@@ -11,6 +11,7 @@
-  * published by the Free Software Foundation.
-  */
- 
-+#include <plat/cpu.h>
- #include <plat/smartreflex.h>
- 
- static int sr_class3_enable(struct voltagedomain *voltdm,
-@@ -49,6 +50,10 @@ static struct omap_sr_class_data class3_data = {
- /* Smartreflex Class3 init API to be called from board file */
- static int __init sr_class3_init(void)
- {
-+	/* Enable this class only for OMAP343x */
-+	if (!cpu_is_omap343x())
-+		return -EINVAL;
-+
- 	pr_info("SmartReflex Class3 initialized\n");
- 	return sr_register_class(&class3_data);
- }
--- 
-1.7.1
+/sys/devices/system/soc/
+/sys/devices/system/soc/mach_name
+/sys/devices/system/soc/foo_id
+/sys/devices/system/soc/bar_id
 
+
+> Should we say it's a hex string of 64 bits?
+>
+>> /sys/devices/system/soc/mach/
+>> /sys/devices/system/soc/mach/name<- Name of the mach
+>> /sys/devices/system/soc/mach/foo_id
+>> /sys/devices/system/soc/mach/bar_id<- Vendors may have several/different IDs
+>> to export (IDCODE for OMAP, Production ID...)
+> For Ux500 we can export the stuff we print today in mach-ux500/id.c,
+> put in place earlier by Rabin, I'd prefer if you hook in the new ID stuff
+> there as well, since it's so little platform code, and a logical place to
+> have it in.
+
+I agree.
+
+Regards,
+Maxime
