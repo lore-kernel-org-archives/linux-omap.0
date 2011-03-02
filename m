@@ -1,80 +1,78 @@
 From: Lesly A M <leslyam@ti.com>
-Subject: [PATCH v8 7/7] omap3630: Updating the board file to use TWL4030 scripts
-Date: Wed,  2 Mar 2011 19:00:53 +0530
-Message-ID: <1299072653-13414-8-git-send-email-leslyam@ti.com>
-References: <1299072653-13414-1-git-send-email-leslyam@ti.com>
+Subject: [PATCH v8 0/8] omap3: pm: TWL4030 power scripts and workaround for TWL errata 27
+Date: Wed,  2 Mar 2011 19:00:46 +0530
+Message-ID: <1299072653-13414-1-git-send-email-leslyam@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:51150 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:51138 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754656Ab1CBNbM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 2 Mar 2011 08:31:12 -0500
-In-Reply-To: <1299072653-13414-1-git-send-email-leslyam@ti.com>
+	id S1752647Ab1CBNbI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 2 Mar 2011 08:31:08 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Lesly A M <leslyam@ti.com>, Nishanth Menon <nm@ti.com>, David Derrick <dderrick@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
 
-Using TWL4030 power scripts to control the LDOs and DCDC regulators
-while going to low power mode.
+Patch series for TWL4030 power scripts and workaround for TWL errata 27.
 
-Signed-off-by: Lesly A M <leslyam@ti.com>
+Changes for implementing TWL4030 power scripts recommended by hardware team.
+Introduced a new TWL4030 power script file, which can be used by different
+OMAP3 board with the power companion chip TWL4030.
+
+Updated the changes for TWL4030 errata 27 & 28, and modified the
+TWL4030 power script.
+Workaround for TWL4030 errata 27 & 28 is required for
+Si version less than or equal to TWL5030 ES1.1.
+
+TWL4030 script changes rebased on Kevin's PM tree in pm branch.
+
+Changes in v7:
+	changes to fix Nishanth Menon's comments
+		i) Added the TWL4030 Errata 27 fix
+  
+	split the first patch in v6
+		i)  fix for twl4030 script load
+		ii) correct the warning print during script loading
+
+	Added new patch files
+		i) changing sys_off signal polarity
+
+Changes in v8:
+	updated the change logs
+	moving the TWL IDCODE checking to twl-core.c
+
+Since the voltage layer is evolving to a new design, the voltage dependant
+changes required for the TRITON script are not incorporated in the patch series.
+So this TRITON script patch series can be tested with a separate patch for
+voltage layer changes.
+
+	lnk: http://pastebin.mozilla.org/1118306
+
+This changes are tested on OMAP3430 & OMAP3630 SDP with off mode enabled in suspend path.
+	Tested with suspend/resume script, which will test system suspend in a loop.
+	Tested for more than 1000 iterations.
+
 Cc: Nishanth Menon <nm@ti.com>
 Cc: David Derrick <dderrick@ti.com>
 Cc: Samuel Ortiz <sameo@linux.intel.com>
 ---
- arch/arm/mach-omap2/Makefile                 |    9 ++++++---
- arch/arm/mach-omap2/board-zoom-peripherals.c |    2 ++
- 2 files changed, 8 insertions(+), 3 deletions(-)
+Lesly A M (7):
+  omap3: pm: Fix for the TRITON sleep/wakeup sequence
+  omap3: pm: Correct the warning print during script loading
+  omap3: pm: TWL4030 power scripts for OMAP3 boards
+  omap3: pm: TWL5030 version checking
+  mfd: TWL4030: changes for TRITON Errata 27 workaround
+  omap3430: Updating the board file to use TWL4030 scripts
+  omap3630: Updating the board file to use TWL4030 scripts
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index bb11329..e6d5d27 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -191,18 +191,21 @@ obj-$(CONFIG_MACH_OMAP_ZOOM2)		+= board-zoom.o \
- 					   board-zoom-display.o \
- 					   board-flash.o \
- 					   hsmmc.o \
--					   board-zoom-debugboard.o
-+					   board-zoom-debugboard.o \
-+					   twl4030.o
- obj-$(CONFIG_MACH_OMAP_ZOOM3)		+= board-zoom.o \
- 					   board-zoom-peripherals.o \
- 					   board-zoom-display.o \
- 					   board-flash.o \
- 					   hsmmc.o \
--					   board-zoom-debugboard.o
-+					   board-zoom-debugboard.o \
-+					   twl4030.o
- obj-$(CONFIG_MACH_OMAP_3630SDP)		+= board-3630sdp.o \
- 					   board-zoom-peripherals.o \
- 					   board-zoom-display.o \
- 					   board-flash.o \
--					   hsmmc.o
-+					   hsmmc.o \
-+					   twl4030.o
- obj-$(CONFIG_MACH_CM_T35)		+= board-cm-t35.o \
- 					   hsmmc.o
- obj-$(CONFIG_MACH_CM_T3517)		+= board-cm-t3517.o
-diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c b/arch/arm/mach-omap2/board-zoom-peripherals.c
-index e0e040f..f978f73 100644
---- a/arch/arm/mach-omap2/board-zoom-peripherals.c
-+++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
-@@ -31,6 +31,7 @@
- 
- #include "mux.h"
- #include "hsmmc.h"
-+#include "twl4030.h"
- 
- #define OMAP_ZOOM_WLAN_PMENA_GPIO	(101)
- #define OMAP_ZOOM_WLAN_IRQ_GPIO		(162)
-@@ -341,6 +342,7 @@ static struct twl4030_platform_data zoom_twldata = {
- 	.usb		= &zoom_usb_data,
- 	.gpio		= &zoom_gpio_data,
- 	.keypad		= &zoom_kp_twl4030_data,
-+	.power		= &twl4030_generic_script,
- 	.codec		= &zoom_codec_data,
- 	.vmmc1          = &zoom_vmmc1,
- 	.vmmc2          = &zoom_vmmc2,
--- 
-1.7.1
+ arch/arm/mach-omap2/Makefile                 |   12 +-
+ arch/arm/mach-omap2/board-3430sdp.c          |   93 +---------
+ arch/arm/mach-omap2/board-zoom-peripherals.c |    2 +
+ arch/arm/mach-omap2/twl4030.c                |  259 ++++++++++++++++++++++++++
+ arch/arm/mach-omap2/twl4030.h                |   20 ++
+ drivers/mfd/twl-core.c                       |   61 ++++++
+ drivers/mfd/twl4030-power.c                  |   69 +++++++-
+ include/linux/i2c/twl.h                      |   51 +++++-
+ 8 files changed, 466 insertions(+), 101 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/twl4030.c
+ create mode 100644 arch/arm/mach-omap2/twl4030.h
 
