@@ -1,8 +1,7 @@
-From: Ilkka Koskinen <ilkka.koskinen@nokia.com>
-Subject: [PATCH 2/2] mfd: twl4030_codec: Remove unused and
-	duplicate audio_mclk fields
-Date: Wed,  2 Mar 2011 15:24:06 +0200
-Message-ID: <1299072246-26402-3-git-send-email-ilkka.koskinen@nokia.com>
+From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Subject: Re: [PATCH 0/2] twl4030_codec cleanup
+Date: Wed, 02 Mar 2011 15:28:14 +0200
+Message-ID: <4D6E45EE.2000605@nokia.com>
 References: <1299072246-26402-1-git-send-email-ilkka.koskinen@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -18,38 +17,38 @@ List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
 	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
 Sender: alsa-devel-bounces@alsa-project.org
 Errors-To: alsa-devel-bounces@alsa-project.org
-To: peter.ujfalusi@nokia.com, tony@atomide.com, sameo@linux.intel.com, broonie@opensource.wolfsonmicro.com, lrg@slimlogic.co.uk
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Ilkka Koskinen <ilkka.koskinen@nokia.com>
+Cc: alsa-devel@alsa-project.org, sameo@linux.intel.com, tony@atomide.com, broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, lrg@slimlogic.co.uk
 List-Id: linux-omap@vger.kernel.org
 
-audio_mclk can be queried from mfd driver. Therefore, it is not
-needed in twl4030_codec_audio_data or in twl4030_codec_vibra_data
-anymore.
+On 03/02/11 15:24, Ilkka Koskinen wrote:
+> This series of patches removes duplicate audio_mclk fields from
+> twl4030_codec driver.
+> 
+> The patches have been compiled on sound-2.6/for-2.6.39 branch.
+> I haven't tested them on any target board though.
+> 
+> Ilkka Koskinen (2):
+>   omap: Remove unnecessary twl4030_codec_audio settings from board
+>     files
+>   mfd: twl4030_codec: Remove unused and duplicate audio_mclk fields
+> 
+>  arch/arm/mach-omap2/board-3430sdp.c          |    4 +---
+>  arch/arm/mach-omap2/board-devkit8000.c       |    4 +---
+>  arch/arm/mach-omap2/board-igep0020.c         |    4 +---
+>  arch/arm/mach-omap2/board-omap3beagle.c      |    4 +---
+>  arch/arm/mach-omap2/board-omap3evm.c         |    4 +---
+>  arch/arm/mach-omap2/board-omap3pandora.c     |    4 +---
+>  arch/arm/mach-omap2/board-omap3stalker.c     |    4 +---
+>  arch/arm/mach-omap2/board-omap3touchbook.c   |    4 +---
+>  arch/arm/mach-omap2/board-overo.c            |    4 +---
+>  arch/arm/mach-omap2/board-zoom-peripherals.c |    4 +---
+>  include/linux/i2c/twl.h                      |    2 --
+>  11 files changed, 10 insertions(+), 32 deletions(-)
+> 
 
-Signed-off-by: Ilkka Koskinen <ilkka.koskinen@nokia.com>
----
- include/linux/i2c/twl.h |    2 --
- 1 files changed, 0 insertions(+), 2 deletions(-)
+Thanks Ilkka!
+This was in my to do list, now I can remove this item.
 
-diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
-index 61b9609..9d88b71 100644
---- a/include/linux/i2c/twl.h
-+++ b/include/linux/i2c/twl.h
-@@ -637,7 +637,6 @@ extern void twl4030_power_init(struct twl4030_power_data *triton2_scripts);
- extern int twl4030_remove_script(u8 flags);
- 
- struct twl4030_codec_audio_data {
--	unsigned int audio_mclk; /* not used, will be removed */
- 	unsigned int digimic_delay; /* in ms */
- 	unsigned int ramp_delay_value;
- 	unsigned int offset_cncl_path;
-@@ -648,7 +647,6 @@ struct twl4030_codec_audio_data {
- };
- 
- struct twl4030_codec_vibra_data {
--	unsigned int	audio_mclk;
- 	unsigned int	coexist;
- };
- 
--- 
-1.7.0.4
+All:
+Acked-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
