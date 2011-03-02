@@ -1,65 +1,101 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCHv5 0/3] Introduce the /proc/socinfo and use it to export
-	OMAP data
-Date: Wed, 2 Mar 2011 11:36:38 +0100
-Message-ID: <AANLkTimJh_uGP6SYo=9ndz4xiUs1Tbg7z70ng0aFcWyG@mail.gmail.com>
-References: <1273587331-24604-1-git-send-email-eduardo.valentin@nokia.com>
-	<AANLkTin7vRMreG3hOAk95MYZUCV-Kr6ac7gD7jgvX6Gf@mail.gmail.com>
-	<20110216115729.GA29817@besouro.research.nokia.com>
-	<4D6B78BF.1020102@stericsson.com> <4D6C7B56.9060109@codeaurora.org>
-	<AANLkTikvhj49DftS9c_NouASY9_MbYPCfmSUdJg6pf-5@mail.gmail.com>
-	<4D6D9B10.9000606@codeaurora.org>
-	<4D6D9D06.2020204@bluewatersys.com>
-	<4D6D9FC7.1090206@codeaurora.org>
-	<4D6DA290.2010607@bluewatersys.com>
-	<4D6DAA24.3000204@codeaurora.org>
-	<4D6DAE6E.4030701@bluewatersys.com>
-	<4D6DB1B1.4060908@codeaurora.org> <4D6DFE67.3020801@stericsson.com>
+From: Govindraj <govindraj.ti@gmail.com>
+Subject: Re: [PATCH 2/7] OMAP2+: mux: Enable wakeup for wakeup enable
+ requested pads
+Date: Wed, 2 Mar 2011 16:10:10 +0530
+Message-ID: <AANLkTimvDp_W8Kei=RreXtaBZ+879dBuTvj4K2j+Ve6W@mail.gmail.com>
+References: <1298903958-6496-1-git-send-email-govindraj.raja@ti.com>
+ <1298903958-6496-3-git-send-email-govindraj.raja@ti.com> <AANLkTim8tTO5wDvzXxy8G35vYMBsXP2fJu=KHDHpw7aC@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <4D6DFE67.3020801@stericsson.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Maxime Coquelin <maxime.coquelin-nonst@stericsson.com>, Rabin VINCENT <rabin.vincent@stericsson.com>
-Cc: ext Nishanth Menon <nm@ti.com>, ext Tony Lindgren <tony@atomide.com>, Peter De-Schrijver <Peter.De-Schrijver@nokia.com>, Ambresh <a0393775@ti.com>, Saravana Kannan <skannan@codeaurora.org>, Jouni Hogander <jouni.hogander@nokia.com>, Lee Jones <Lee.Jones@linaro.org>, Russell King <linux@arm.linux.org.uk>, Jonas ABERG <jonas.aberg@stericsson.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, David Brown <davidb@codeaurora.org>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, Loic PALLARDY <loic.pallardy@stericsson.com>, "eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>, Ryan Mallon <ryan@bluewatersys.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Daniel Walker <dwalker@codeaurora.org>, LKML <linux-kernel@vger.kernel.org>, Andrei Warkentin <andreiw@motorola.com>P
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <AANLkTim8tTO5wDvzXxy8G35vYMBsXP2fJu=KHDHpw7aC@mail.gmail.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: "Varadarajan, Charulatha" <charu@ti.com>
+Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Rajendra Nayak <rnayak@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Mar 2, 2011 at 9:23 AM, Maxime Coquelin
-<maxime.coquelin-nonst@stericsson.com> wrote:
-
-> I think we should have a tree like this :
+On Wed, Mar 2, 2011 at 10:19 AM, Varadarajan, Charulatha <charu@ti.com>=
+ wrote:
+> Govind,
 >
-> /sys/devices/system/soc/
-> /sys/devices/system/soc/unique_id<- Unified way to export an ID for all machs
+> Couple of minor comments.
+>
+> On Mon, Feb 28, 2011 at 20:09, Govindraj.R <govindraj.raja@ti.com> wr=
+ote:
+>> For device pads which have OMAP_DEVICE_PAD_WAKEUP set (which means t=
+hey
+>> are wakeup capable) enable the IO-daisy wakeup capability.
+>> During re-muxing avoid direct write with val as this can disturb if =
+any
+>> mux done at bootloader level so read the pad then write back.
+>>
+>> Also add a api to fetch the wake-up status bit is set for given omap=
+-hwmod
+>
+> %s/a api/an API/
+>
+>> device using available mux info which is added during omap_hwmod_mux=
+_init.
+>> Wakeup status bit is needed for uart_resume_idle call from sram_idle=
+ path
+>> based on wake-up event has occurred for given uart we can enable clo=
+cks back.
+>>
+>> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+>> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
+>> ---
+>> =A0arch/arm/mach-omap2/mux.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+| =A0 23 +++++++++++++++++++++++
+>> =A0arch/arm/mach-omap2/mux.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+| =A0 13 +++++++++++++
+>> =A0arch/arm/mach-omap2/omap_hwmod.c =A0 =A0 =A0 =A0 =A0 =A0 | =A0 13=
+ +++++++++++++
+>> =A0arch/arm/plat-omap/include/plat/omap_hwmod.h | =A0 =A01 +
+>> =A04 files changed, 50 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+>> index 98148b6..5338b93 100644
+>> --- a/arch/arm/mach-omap2/mux.c
+>> +++ b/arch/arm/mach-omap2/mux.c
+>> @@ -317,6 +317,24 @@ err1:
+>> =A0 =A0 =A0 =A0return NULL;
+>> =A0}
+>>
+>> +/* Gets the wakeup status of given pad from omap-hwmod */
+>> +int omap_hwmod_mux_wakeup(struct omap_hwmod_mux_info *hmux)
+>> +{
+>> + =A0 =A0 =A0 int i;
+>> + =A0 =A0 =A0 unsigned int val =3D -EINVAL;
+>> +
+>> + =A0 =A0 =A0 for (i =3D 0; i < hmux->nr_pads; i++) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 struct omap_device_pad *pad =3D &hmux-=
+>pads[i];
+>> +
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 val =3D omap_mux_read(pad->partition, =
+pad->mux->reg_offset);
+>> + =A0 =A0 =A0 }
+>> +
+>> + =A0 =A0 =A0 if (val > 0 && val & OMAP_WAKEUP_EVENT)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return 1;
+>> + =A0 =A0 =A0 else
+>
+> No need of else here.
 
-Arbitrary number of bits? Some will have a 64-bit ID, some will have 32-bit
-etc.
+Yes correct.
 
-Should we say it's a hex string of 64 bits?
+I am resending this patch with some more modifications
+to fix one more issue in the above loop.
 
-> /sys/devices/system/soc/mach/
-> /sys/devices/system/soc/mach/name<- Name of the mach
-> /sys/devices/system/soc/mach/foo_id
-> /sys/devices/system/soc/mach/bar_id<- Vendors may have several/different IDs
-> to export (IDCODE for OMAP, Production ID...)
+--
+Thanks,
+Govindraj.R
 
-For Ux500 we can export the stuff we print today in mach-ux500/id.c,
-put in place earlier by Rabin, I'd prefer if you hook in the new ID stuff
-there as well, since it's so little platform code, and a logical place to
-have it in.
 
-> Linus, do you agree?
 
-Yeah, sounds good.
-
-Yours,
-Linus Walleij
+<<SNIP>>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-serial"=
+ in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
