@@ -1,64 +1,116 @@
-From: Jamie Iles <jamie@jamieiles.com>
-Subject: Re: [PATCHv5 0/3] Introduce the /proc/socinfo and use it to export
-	OMAP data
-Date: Wed, 2 Mar 2011 11:38:23 +0000
-Message-ID: <20110302113823.GB2728@pulham.picochip.com>
-References: <AANLkTikvhj49DftS9c_NouASY9_MbYPCfmSUdJg6pf-5@mail.gmail.com>
-	<4D6D9B10.9000606@codeaurora.org>
-	<4D6D9D06.2020204@bluewatersys.com>
-	<4D6D9FC7.1090206@codeaurora.org>
-	<4D6DA290.2010607@bluewatersys.com>
-	<4D6DAA24.3000204@codeaurora.org>
-	<4D6DAE6E.4030701@bluewatersys.com>
-	<4D6DB1B1.4060908@codeaurora.org> <4D6DFE67.3020801@stericsson.com>
-	<AANLkTimJh_uGP6SYo=9ndz4xiUs1Tbg7z70ng0aFcWyG@mail.gmail.com>
+From: David Cohen <dacohen@gmail.com>
+Subject: Re: [PATCH] omap:iommu-added cache flushing operation for L2 cache
+Date: Wed, 2 Mar 2011 13:58:58 +0200
+Message-ID: <AANLkTi=ULWw2CsZgcYpkXrA+qQe3ufDhW5es0dwe66ph@mail.gmail.com>
+References: <1299008793-27428-1-git-send-email-fernando.lugo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <AANLkTimJh_uGP6SYo=9ndz4xiUs1Tbg7z70ng0aFcWyG@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: ext Nishanth Menon <nm@ti.com>, ext Tony Lindgren <tony@atomide.com>, Peter De-Schrijver <Peter.De-Schrijver@nokia.com>, Ambresh <a0393775@ti.com>, Saravana Kannan <skannan@codeaurora.org>, Andrei Warkentin <andreiw@motorola.com>, Lee Jones <Lee.Jones@linaro.org>, Rabin VINCENT <rabin.vincent@stericsson.com>, Russell King <linux@arm.linux.org.uk>, Jonas ABERG <jonas.aberg@stericsson.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, David Brown <davidb@codeaurora.org>, Maxime Coquelin <maxime.coquelin-nonst@stericsson.com>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, Loic PALLARDY <loic.pallardy@stericsson.com>, "eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>, Ryan Mallon <ryan@bluewatersys.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Daniel Walker <dwal>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1299008793-27428-1-git-send-email-fernando.lugo@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Fernando Guzman Lugo <fernando.lugo@ti.com>
+Cc: hiroshi.doyu@nokia.com, tony@atomide.com, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Ramesh Gupta <grgupta@ti.com>, Hari Kanigeri <h-kanigeri2@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Mar 02, 2011 at 11:36:38AM +0100, Linus Walleij wrote:
-> On Wed, Mar 2, 2011 at 9:23 AM, Maxime Coquelin
-> <maxime.coquelin-nonst@stericsson.com> wrote:
-> 
-> > I think we should have a tree like this :
-> >
-> > /sys/devices/system/soc/
-> > /sys/devices/system/soc/unique_id<- Unified way to export an ID for all machs
-> 
-> Arbitrary number of bits? Some will have a 64-bit ID, some will have 32-bit
-> etc.
-> 
-> Should we say it's a hex string of 64 bits?
+Hi,
 
-Could we provide hooks for the platform that takes the buffer and length 
-and let the platform do the snprintf()?  Our devices have a 128-bit 
-serial number and I'm sure there must be others.
+On Tue, Mar 1, 2011 at 9:46 PM, Fernando Guzman Lugo
+<fernando.lugo@ti.com> wrote:
+> From: Ramesh Gupta <grgupta@ti.com>
 
-> > /sys/devices/system/soc/mach/
-> > /sys/devices/system/soc/mach/name<- Name of the mach
-> > /sys/devices/system/soc/mach/foo_id
-> > /sys/devices/system/soc/mach/bar_id<- Vendors may have several/different IDs
-> > to export (IDCODE for OMAP, Production ID...)
+No patch body description at all?
+Can we get at least something here?
 
-Do we need a way to allow platforms to specify additional attributes to 
-co into the socinfo?  For our devices we can boot in different modes and 
-how we boot determines how the firmware is upgraded.  In the case above 
-the platform could specify that it needs foo_id and bar_id and the 
-callbacks to fill them in.
+Regards,
 
-Jamie
+David
+
+>
+> Signed-off-by: Ramesh Gupta <grgupta@ti.com>
+> Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
+> ---
+> =C2=A0arch/arm/plat-omap/iommu.c | =C2=A0 22 ++++++++--------------
+> =C2=A01 files changed, 8 insertions(+), 14 deletions(-)
+>
+> diff --git a/arch/arm/plat-omap/iommu.c b/arch/arm/plat-omap/iommu.c
+> index e3eb038..aeb2c33 100644
+> --- a/arch/arm/plat-omap/iommu.c
+> +++ b/arch/arm/plat-omap/iommu.c
+> @@ -471,22 +471,15 @@ EXPORT_SYMBOL_GPL(foreach_iommu_device);
+> =C2=A0*/
+> =C2=A0static void flush_iopgd_range(u32 *first, u32 *last)
+> =C2=A0{
+> - =C2=A0 =C2=A0 =C2=A0 /* FIXME: L2 cache should be taken care of if =
+it exists */
+> - =C2=A0 =C2=A0 =C2=A0 do {
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 asm("mcr =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0p15, 0, %0, c7, c10, 1 @ flush_pgd"
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 : : =
+"r" (first));
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 first +=3D L1_CACH=
+E_BYTES / sizeof(*first);
+> - =C2=A0 =C2=A0 =C2=A0 } while (first <=3D last);
+> + =C2=A0 =C2=A0 =C2=A0 dmac_flush_range(first, last);
+> + =C2=A0 =C2=A0 =C2=A0 outer_flush_range(virt_to_phys(first), virt_to=
+_phys(last));
+> =C2=A0}
+>
+> +
+> =C2=A0static void flush_iopte_range(u32 *first, u32 *last)
+> =C2=A0{
+> - =C2=A0 =C2=A0 =C2=A0 /* FIXME: L2 cache should be taken care of if =
+it exists */
+> - =C2=A0 =C2=A0 =C2=A0 do {
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 asm("mcr =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0p15, 0, %0, c7, c10, 1 @ flush_pte"
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 : : =
+"r" (first));
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 first +=3D L1_CACH=
+E_BYTES / sizeof(*first);
+> - =C2=A0 =C2=A0 =C2=A0 } while (first <=3D last);
+> + =C2=A0 =C2=A0 =C2=A0 dmac_flush_range(first, last);
+> + =C2=A0 =C2=A0 =C2=A0 outer_flush_range(virt_to_phys(first), virt_to=
+_phys(last));
+> =C2=A0}
+>
+> =C2=A0static void iopte_free(u32 *iopte)
+> @@ -750,7 +743,7 @@ size_t iopgtable_clear_entry(struct iommu *obj, u=
+32 da)
+> =C2=A0}
+> =C2=A0EXPORT_SYMBOL_GPL(iopgtable_clear_entry);
+>
+> -static void iopgtable_clear_entry_all(struct iommu *obj)
+> +void iopgtable_clear_entry_all(struct iommu *obj)
+> =C2=A0{
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0int i;
+>
+> @@ -777,7 +770,7 @@ static void iopgtable_clear_entry_all(struct iomm=
+u *obj)
+>
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0spin_unlock(&obj->page_table_lock);
+> =C2=A0}
+> -
+> +EXPORT_SYMBOL_GPL(iopgtable_clear_entry_all);
+> =C2=A0/*
+> =C2=A0* =C2=A0 =C2=A0 Device IOMMU generic operations
+> =C2=A0*/
+> @@ -1068,6 +1061,7 @@ static void iopte_cachep_ctor(void *iopte)
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0clean_dcache_area(iopte, IOPTE_TABLE_SIZE)=
+;
+> =C2=A0}
+>
+> +
+> =C2=A0static int __init omap_iommu_init(void)
+> =C2=A0{
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0struct kmem_cache *p;
+> --
+> 1.7.0.4
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =C2=A0http://vger.kernel.org/majordomo-info.ht=
+ml
+>
