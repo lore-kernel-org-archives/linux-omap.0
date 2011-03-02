@@ -1,54 +1,50 @@
-From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Subject: Re: [PATCH 0/2] twl4030_codec cleanup
-Date: Wed, 02 Mar 2011 15:28:14 +0200
-Message-ID: <4D6E45EE.2000605@nokia.com>
-References: <1299072246-26402-1-git-send-email-ilkka.koskinen@nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <1299072246-26402-1-git-send-email-ilkka.koskinen@nokia.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Ilkka Koskinen <ilkka.koskinen@nokia.com>
-Cc: alsa-devel@alsa-project.org, sameo@linux.intel.com, tony@atomide.com, broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, lrg@slimlogic.co.uk
+From: Lesly A M <leslyam@ti.com>
+Subject: [PATCH v8 1/7] omap3: pm: Fix for the TRITON sleep/wakeup sequence
+Date: Wed,  2 Mar 2011 19:00:47 +0530
+Message-ID: <1299072653-13414-2-git-send-email-leslyam@ti.com>
+References: <1299072653-13414-1-git-send-email-leslyam@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:51139 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752442Ab1CBNbI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 2 Mar 2011 08:31:08 -0500
+In-Reply-To: <1299072653-13414-1-git-send-email-leslyam@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Lesly A M <leslyam@ti.com>, Nishanth Menon <nm@ti.com>, David Derrick <dderrick@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
 
-On 03/02/11 15:24, Ilkka Koskinen wrote:
-> This series of patches removes duplicate audio_mclk fields from
-> twl4030_codec driver.
-> 
-> The patches have been compiled on sound-2.6/for-2.6.39 branch.
-> I haven't tested them on any target board though.
-> 
-> Ilkka Koskinen (2):
->   omap: Remove unnecessary twl4030_codec_audio settings from board
->     files
->   mfd: twl4030_codec: Remove unused and duplicate audio_mclk fields
-> 
->  arch/arm/mach-omap2/board-3430sdp.c          |    4 +---
->  arch/arm/mach-omap2/board-devkit8000.c       |    4 +---
->  arch/arm/mach-omap2/board-igep0020.c         |    4 +---
->  arch/arm/mach-omap2/board-omap3beagle.c      |    4 +---
->  arch/arm/mach-omap2/board-omap3evm.c         |    4 +---
->  arch/arm/mach-omap2/board-omap3pandora.c     |    4 +---
->  arch/arm/mach-omap2/board-omap3stalker.c     |    4 +---
->  arch/arm/mach-omap2/board-omap3touchbook.c   |    4 +---
->  arch/arm/mach-omap2/board-overo.c            |    4 +---
->  arch/arm/mach-omap2/board-zoom-peripherals.c |    4 +---
->  include/linux/i2c/twl.h                      |    2 --
->  11 files changed, 10 insertions(+), 32 deletions(-)
-> 
+Only configure sleep script when the flag is TWL4030_SLEEP_SCRIPT.
 
-Thanks Ilkka!
-This was in my to do list, now I can remove this item.
+Adding the missing brackets for fixing the issue.
 
-All:
-Acked-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Signed-off-by: Lesly A M <leslyam@ti.com>
+Cc: Nishanth Menon <nm@ti.com>
+Cc: David Derrick <dderrick@ti.com>
+Cc: Samuel Ortiz <sameo@linux.intel.com>
+---
+ drivers/mfd/twl4030-power.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/mfd/twl4030-power.c b/drivers/mfd/twl4030-power.c
+index 16422de..2c0d4d1 100644
+--- a/drivers/mfd/twl4030-power.c
++++ b/drivers/mfd/twl4030-power.c
+@@ -447,12 +447,13 @@ static int __init load_twl4030_script(struct twl4030_script *tscript,
+ 		if (err)
+ 			goto out;
+ 	}
+-	if (tscript->flags & TWL4030_SLEEP_SCRIPT)
++	if (tscript->flags & TWL4030_SLEEP_SCRIPT) {
+ 		if (order)
+ 			pr_warning("TWL4030: Bad order of scripts (sleep "\
+ 					"script before wakeup) Leads to boot"\
+ 					"failure on some boards\n");
+ 		err = twl4030_config_sleep_sequence(address);
++	}
+ out:
+ 	return err;
+ }
+-- 
+1.7.1
+
