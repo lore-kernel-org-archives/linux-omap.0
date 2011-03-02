@@ -1,41 +1,183 @@
-From: <Tero.Kristo@nokia.com>
-Subject: RE: [PATCH 0/2] OMAP3: cpuidle: prevent CORE pwrdm from entering
-	low-power state when DSS active
-Date: Wed, 2 Mar 2011 08:18:29 +0000
-Message-ID: <854C6400F5AA6644BA6FE7953F3E769B0380D180@008-AM1MPN1-013.mgdnok.nokia.com>
-References: <20110301220833.32613.54669.stgit@twilight.localdomain>
+From: Sricharan R <r.sricharan@ti.com>
+Subject: RE: [PATCH 6/7] OMAP: Serial: Allow UART parameters to be configured
+ from board file
+Date: Wed, 2 Mar 2011 13:49:41 +0530
+Message-ID: <8ab9882cd92792e9bf2b836c0ec9c7fe@mail.gmail.com>
+References: <1298903958-6496-1-git-send-email-govindraj.raja@ti.com>
+ <1298903958-6496-7-git-send-email-govindraj.raja@ti.com> <056ac5e848953fa5c37f7ed7a8cc1050@mail.gmail.com>
+ <AANLkTimD9rOC=4P6Vy2jzvcXZ-gZmF42Te4CBjS8AJLT@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:31821 "EHLO mgw-da02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754083Ab1CBISl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 2 Mar 2011 03:18:41 -0500
-In-Reply-To: <20110301220833.32613.54669.stgit@twilight.localdomain>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <AANLkTimD9rOC=4P6Vy2jzvcXZ-gZmF42Te4CBjS8AJLT@mail.gmail.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Govindraj <govindraj.ti@gmail.com>
+Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Jon Hunter <jon-hunter@ti.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Rajendra Nayak <rnayak@ti.com>, Deepak Kattungal <deepak.k@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-DQoNCj4tLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPkZyb206IGV4dCBQYXVsIFdhbG1zbGV5
-IFttYWlsdG86cGF1bEBwd3Nhbi5jb21dDQo+U2VudDogMDIgTWFyY2gsIDIwMTEgMDA6NDkNCj5U
-bzogbGludXgtb21hcEB2Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5m
-cmFkZWFkLm9yZzsNCj5LcmlzdG8gVGVybyAoTm9raWEtTVMvVGFtcGVyZSkNCj5TdWJqZWN0OiBb
-UEFUQ0ggMC8yXSBPTUFQMzogY3B1aWRsZTogcHJldmVudCBDT1JFIHB3cmRtIGZyb20gZW50ZXJp
-bmcNCj5sb3ctcG93ZXIgc3RhdGUgd2hlbiBEU1MgYWN0aXZlDQo+DQo+VGhpcyBzZXJpZXMgcHJl
-dmVudHMgdGhlIE9NQVAzIENQVUlkbGUgY29kZSBmcm9tIHByb2dyYW1taW5nIHRoZSBDT1JFDQo+
-cG93ZXJkb21haW4gdG8gZW50ZXIgYW55IHBvd2VyIHN0YXRlIGxvd2VyIHRoYW4gT04gd2hlbiB0
-aGUgRFNTIHBvd2VyDQo+ZG9tYWluDQo+aXMgT04uICAoVGhlIGFzc3VtcHRpb24gaXMgdGhhdCBp
-biB0aGlzIGNhc2UsIHRoZSBEU1MgaXMgYWN0aXZlLCBETUEnaW5nDQo+bGluZXMgZnJvbSBSQU0g
-YW5kIGRpc3BsYXlpbmcgdGhlbSBzb21ld2hlcmUuKQ0KPg0KPlRlcm8sIHBsZWFzZSBkb24ndCBo
-ZXNpdGF0ZSB0byBjb21tZW50IG9uIHRoZSBwYXRjaCBmcm9tIHlvdSBpZiBJIGdvdA0KPnRoZQ0K
-PmNvbW1pdCBtZXNzYWdlIHdyb25nLg0KDQpIaSBQYXVsLA0KDQpJdCBsb29rcyBnb29kIHRvIG1l
-Lg0KDQoNCj4NCj4NCj4tIFBhdWwNCj4NCj4tLS0NCj4NCj5UZXJvIEtyaXN0byAoMSk6DQo+ICAg
-ICAgT01BUDM6IGNwdWlkbGU6IHByZXZlbnQgQ09SRSBwb3dlciBkb21haW4gZnJvbSBnb2luZyB0
-byBSRVQgb3IgT0ZGDQo+d2hlbiBEU1MgaXMgb24NCj4NCj5QYXVsIFdhbG1zbGV5ICgxKToNCj4g
-ICAgICBPTUFQMzogY3B1aWRsZTogYWRkIG1vcmUgZGV0YWlscyB0byB0aGUgRFNTLXJlbGF0ZWQg
-Q09SRSBwb3dlcg0KPmRvbWFpbiBzdGF0ZSByZXN0cmljdGlvbg0KPg0KPg0KPiBhcmNoL2FybS9t
-YWNoLW9tYXAyL2NwdWlkbGUzNHh4LmMgfCAgIDM2DQo+KysrKysrKysrKysrKysrKysrKysrKysr
-KysrKysrKysrKy0tDQo+IDEgZmlsZXMgY2hhbmdlZCwgMzQgaW5zZXJ0aW9ucygrKSwgMiBkZWxl
-dGlvbnMoLSkNCg0K
+Hi,
+>-----Original Message-----
+>From: Govindraj [mailto:govindraj.ti@gmail.com]
+>Sent: Wednesday, March 02, 2011 1:11 PM
+>To: Sricharan R
+>Cc: Govindraj.R; linux-omap@vger.kernel.org;
+linux-serial@vger.kernel.org;
+>linux-arm-kernel@lists.infradead.org; Jon Hunter; Tony Lindgren; Benoi=
+t
+>Cousson; Kevin Hilman; Paul Walmsley; Rajendra Nayak; Deepak Kattungal
+>Subject: Re: [PATCH 6/7] OMAP: Serial: Allow UART parameters to be
+>configured from board file
+>
+>On Wed, Mar 2, 2011 at 12:46 AM, Sricharan R <r.sricharan@ti.com> wrot=
+e:
+>> Hi,
+>>>diff --git a/arch/arm/mach-omap2/serial.c
+b/arch/arm/mach-omap2/serial.c
+>>>index 755f4aa..530e9e3 100644
+>>>--- a/arch/arm/mach-omap2/serial.c
+>>>+++ b/arch/arm/mach-omap2/serial.c
+>>>@@ -44,6 +44,15 @@
+>>>
+>>> static int omap_uart_con_id __initdata =3D -1;
+>>>
+>>>+static struct omap_uart_port_info omap_serial_default_info[] =3D {
+>>>+ =A0 =A0 =A0{
+>>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.dma_enabled =A0 =A0=3D 0,
+>>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.dma_rx_buf_size =3D DEFAULT_RXDMA_BUFS=
+IZE,
+>>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.dma_rx_timeout =3D DEFAULT_RXDMA_TIMEO=
+UT,
+>>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.idle_timeout =A0 =3D DEFAULT_IDLE_TIME=
+OUT,
+>>>+ =A0 =A0 =A0},
+>>>+};
+>>>+
+>>> static int uart_idle_hwmod(struct omap_device *od)
+>>> {
+>>> =A0 =A0 =A0 omap_hwmod_idle(od->hwmods[0]);
+>>>@@ -66,6 +75,54 @@ static struct omap_device_pm_latency
+>> omap_uart_latency[]
+>>>=3D {
+>>> =A0 =A0 =A0 },
+>>> };
+>>>
+>>>+#ifdef CONFIG_OMAP_MUX
+>>>+static struct omap_device_pad default_serial0_pads[] __initdata =3D=
+ {
+>>>+ =A0 =A0 =A0{
+>>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.name =A0 =3D "uart1_rx.uart1_rx",
+>>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.flags =A0=3D OMAP_DEVICE_PAD_REMUX |
+OMAP_DEVICE_PAD_WAKEUP,
+>>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.enable =3D OMAP_MUX_MODE0,
+>>>+ =A0 =A0 =A0},
+>>>+};
+>>>+
+>>>+static struct omap_device_pad default_serial1_pads[] __initdata =3D=
+ {
+>>>+ =A0 =A0 =A0{
+>>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.name =A0 =3D "uart2_rx.uart2_rx",
+>>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.flags =A0=3D OMAP_DEVICE_PAD_REMUX |
+OMAP_DEVICE_PAD_WAKEUP,
+>>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.enable =3D OMAP_MUX_MODE0,
+>>>+ =A0 =A0 =A0},
+>>>+};
+>>>+
+>>>+static struct omap_device_pad default_serial2_pads[] __initdata =3D=
+ {
+>>>+ =A0 =A0 =A0{
+>>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.name =A0 =3D "uart3_rx_irrx.uart3_rx_i=
+rrx",
+>>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.flags =A0=3D OMAP_DEVICE_PAD_REMUX |
+OMAP_DEVICE_PAD_WAKEUP,
+>>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.enable =3D OMAP_MUX_MODE0,
+>>>+ =A0 =A0 =A0},
+>>>+};
+>>>+
+>>>+static struct omap_device_pad default_omap36xx_serial3_pads[]
+__initdata
+>> =3D
+>>>{
+>>>+ =A0 =A0 =A0{
+>>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.name =A0 =3D "gpmc_wait3.uart4_rx",
+>>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.flags =A0=3D OMAP_DEVICE_PAD_REMUX |
+OMAP_DEVICE_PAD_WAKEUP,
+>>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.enable =3D OMAP_MUX_MODE2,
+>>>+ =A0 =A0 =A0},
+>>>+};
+>>>+
+>>>+static struct omap_device_pad default_omap4_serial3_pads[] __initda=
+ta
+=3D
+>> {
+>>>+ =A0 =A0 =A0{
+>>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.name =A0 =3D "uart4_rx.uart4_rx",
+>>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.flags =A0=3D OMAP_DEVICE_PAD_REMUX |
+OMAP_DEVICE_PAD_WAKEUP,
+>>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.enable =3D OMAP_MUX_MODE0,
+>>>+ =A0 =A0 =A0},
+>>>+};
+>> Here only the UART RX pins are muxed, so what about the cts, rts, tx
+>pins?
+>
+>The intention here is to enable wakeup capabilities for uart rx pad.
+>
+>AFAIK most of the boards are currently dependent on bootloader for
+>uart-muxing if any board is not dependent on bootloader then we
+>can use omap_serial_init_port along with board_mux_info from board.
+>
+Yes. The idea is to be independent of the bootloaders for mux settings.
+
+>Prior to this change uart wakeup is based on rx_pad and we were
+populating
+>offset and using omap_ctrl api's to read/write which is cleaned up now=
+=2E
+>Most of boards are dependent on uart-rx wakeup to avoid breaking any
+>board support we
+>are using omap_serial_init by filling default values, which provides
+>us with same
+>environment but with right approach towards handling mux data with a
+>handshake with
+>hwmod framework.
+>
+Now, in this change only the RX pin is configured. So if some board use=
+s
+omap_serial_init then only the RX is going to be configured.
+How will they configure the rest of the pins?
+They cannot call omap_serial_init_port after this just to configure the
+rest of the mux pins( cts, rts, tx).
+
+So data which is passed from omap_serial_init should have the
+configuration
+for all the pins, and this default data should be consistent across
+atleast
+some boards, so that they can use this. This will reduce the data
+duplication across board files.
+
+If this is not true, then all the pads can be configured from the board
+files itself using omap_serial_init_port and you can set the required
+RX wakeup capability there as well.
+
+>So if any board needs specific mux they can go ahead and add required
+>mux data in
+>board file and use map_serial_init_port instead of current
+>omap_serial_init.
+>
+>
+>> Is it consistent that across all socs that only UART3 would have
+>UART/IRDA
+>> functions capability so that serial2 pads can always be called
+"rx_irxx"
+>> ?.
+>
+>Yes from OMAP2420 to OMAP4430 uart3 can used as irda.
+>
+Ok.
+>--
+>Thanks,
+>Govindraj.R
+--
+To unsubscribe from this list: send the line "unsubscribe linux-serial"=
+ in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
