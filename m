@@ -1,95 +1,62 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] HACK: OMAP: DSS2: Fix OMAP2_DSS_USE_DSI_PLL
-Date: Wed, 2 Mar 2011 10:37:38 +0200
-Message-ID: <1299055058.2226.54.camel@deskari>
-References: <1299054015-1070-1-git-send-email-tomi.valkeinen@ti.com>
-	 <AANLkTin9L6YWG5j=OsjBzhvtaVTttYdE_Xs8G-xs2Kip@mail.gmail.com>
+From: Maxime Coquelin <maxime.coquelin-nonst@stericsson.com>
+Subject: Re: [PATCHv5 0/3] Introduce the /proc/socinfo and use it to export
+	OMAP data
+Date: Wed, 2 Mar 2011 09:50:39 +0100
+Message-ID: <4D6E04DF.3070905@stericsson.com>
+References: <1273587331-24604-1-git-send-email-eduardo.valentin@nokia.com>	<AANLkTin7vRMreG3hOAk95MYZUCV-Kr6ac7gD7jgvX6Gf@mail.gmail.com>	<20110216115729.GA29817@besouro.research.nokia.com>	<4D6B78BF.1020102@stericsson.com>	<4D6C7B56.9060109@codeaurora.org>	<AANLkTikvhj49DftS9c_NouASY9_MbYPCfmSUdJg6pf-5@mail.gmail.com>	<4D6D9B10.9000606@codeaurora.org>	<4D6D9D06.2020204@bluewatersys.com>	<4D6D9FC7.1090206@codeaurora.org>	<4D6DA290.2010607@bluewatersys.com>	<4D6DAA24.3000204@codeaurora.org>	<4D6DAE6E.4030701@bluewatersys.com>	<4D6DB1B1.4060908@codeaurora.org>	<4D6DB566.4090908@bluewatersys.com>	<4D6DB7CB.7070701@codeaurora.org>
+	<4D6DBAED.7070805@bluewatersys.com> <4D6DBD8C.70904@codeaurora.org>
+	<4D6DBF59.2050005@bluewatersys.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:33001 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752982Ab1CBIhn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Mar 2011 03:37:43 -0500
-In-Reply-To: <AANLkTin9L6YWG5j=OsjBzhvtaVTttYdE_Xs8G-xs2Kip@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <4D6DBF59.2050005@bluewatersys.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Ryan Mallon <ryan@bluewatersys.com>
+Cc: ext Nishanth Menon <nm@ti.com>, ext Tony Lindgren <tony@atomide.com>, Peter De-Schrijver <Peter.De-Schrijver@nokia.com>, ext Linus Walleij <linus.walleij@linaro.org>, Ambresh <a0393775@ti.com>, Saravana Kannan <skannan@codeaurora.org>, Jouni Hogander <jouni.hogander@nokia.com>, Lee Jones <Lee.Jones@linaro.org>, Russell King <linux@arm.linux.org.uk>, Jonas ABERG <jonas.aberg@stericsson.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, David Brown <davidb@codeaurora.org>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, Loic PALLARDY <loic.pallardy@stericsson.com>, "eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Daniel Walker <dwalker@codeaurora.org>, LKML <linux-kernel@vger.kernel.org>, Andrei Warkentin <andreiw@motorol>
 List-Id: linux-omap@vger.kernel.org
-To: John S <john.schi15@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "steve@sakoman.com" <steve@sakoman.com>
 
-On Wed, 2011-03-02 at 02:30 -0600, John S wrote:
-> On Wed, Mar 2, 2011 at 1:50 PM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
-> >
-> > When using OMAP2_DSS_USE_DSI_PLL, which selects DSI PLL as source clock
-> > for DISPC, the DSI needs the vdds_dsi regulator. Latest regulator
-> > changes broke this, causing the the code to not acquire the regulator
-> > when using OMAP2_DSS_USE_DSI_PLL.
-> >
-> > This patch acquires the vdds_dsi regulator in dsi_pll_init(), fixing the
-> > issue. This is is just a quick hack to get the OMAP2_DSS_USE_DSI_PLL
-> > option working. There shouldn't be any other downside in this solution
-> > than some extra lines of code.
-> >
-> > OMAP2_DSS_USE_DSI_PLL is itself a big hack, and should be removed, and
-> > the feature itself should be implemented in a more sane way. However,
-> > the solution is not trivial, and people are using DSI PLL to get more
-> > exact pixel clocks, so this hack is an acceptable temporary solution for
-> > the time being.
-> >
-> > Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> > ---
-> >  drivers/video/omap2/dss/dsi.c |   20 ++++++++++++++++++++
-> >  1 files changed, 20 insertions(+), 0 deletions(-)
-> >
-> > diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
-> > index c3019d9..6f4f19d 100644
-> > --- a/drivers/video/omap2/dss/dsi.c
-> > +++ b/drivers/video/omap2/dss/dsi.c
-> > @@ -1105,6 +1105,26 @@ int dsi_pll_init(struct omap_dss_device *dssdev, bool enable_hsclk,
-> >
-> >        DSSDBG("PLL init\n");
-> >
-> > +#ifdef CONFIG_OMAP2_DSS_USE_DSI_PLL
-> > +       /*
-> > +        * HACK: this is just a quick hack to get the USE_DSI_PLL
-> > +        * option working. USE_DSI_PLL is itself a big hack, and
-> > +        * should be removed.
-> > +        */
-> > +       if (dsi.vdds_dsi_reg == NULL) {
-> > +               struct regulator *vdds_dsi;
-> > +
-> > +               vdds_dsi = regulator_get(&dsi.pdev->dev, "vdds_dsi");
-> > +
-> > +               if (IS_ERR(vdds_dsi)) {
-> > +                       DSSERR("can't get VDDS_DSI regulator\n");
-> > +                       return PTR_ERR(vdds_dsi);
-> > +               }
-> > +
-> > +               dsi.vdds_dsi_reg = vdds_dsi;
-> > +       }
-> > +#endif
-> > +
-> >        enable_clocks(1);
-> >        dsi_enable_pll_clock(1);
-> >
-> 
-> The hack might be temporarily acceptable.
-> But I think there should be a matching regulator_put in dsi_pll_uinit.
+On 03/02/2011 04:54 AM, Ryan Mallon wrote:
+> On 03/02/2011 04:46 PM, Saravana Kannan wrote:
+>> On 03/01/2011 07:35 PM, Ryan Mallon wrote:
+>>> The only real objection I have to adding the SoC family information is
+>>> basically to discourage it being abused by userspace. I can see it being
+>>> useful in debug situations, but I can also see stupid userspace
+>>> applications explicitly testing for some particular SoC, rather than
+>>> more correctly (IMHO) checking for presence of certain drivers etc.
+>> True, but so many other things could be misused by stupid userspace
+>> programs. When there are legitimate usecases, I think we shouldn't
+>> prevent them just because we think a stupid userspace program could
+>> misuse it.
+>>
+>> Again, although you might not be gung-ho about this, I think I have at
+>> least made you indifferent/mildly supportive to adding socinfo. If you
+>> don't mind, I would like to wait for others to chime in before
+>> continuing this discussion.
+> Agreed.
+>
+> In general I am in support of having the SoC information exposed
+> somewhere. I think we just want to be careful that it doesn't become a
+> dumping ground for anything and everything SoC related whether the
+> information is useful or not. I think each piece of exposed information
+> should have a genuine use case, not just "because we can".
+I definitely agree we should not export every SoC-related information 
+just because we can do it.
+The first goal of this interface was to export some SoCs IDs, as we need 
+this kind of information for some user-space tools.
+Does someone need to export other information than the mach name and 
+some IDs?
 
-The regulator_put() is in dsi_exit().
+As proposed in my previous mail, do you agree to have a unified file for 
+all vendors, which exports the unique silicon ID of the chip?
 
-The reasoning here is that we only want to get the regulator if the DSI
-is actually used. Otherwise every board file should define all the
-regulators, even if the board in question wouldn't even use DSI. Thus we
-cannot regulator_get() in the probe of DSI driver, but only later when a
-display actually uses DSI.
-
-But when we have the regulator, we keep a reference to it until the DSI
-driver is unloaded (dsi_exit). It is asymmetric, but I don't see any
-reason to release the regulator when, for example, the display is
-blanked.
-
- Tomi
-
-
+Regards,
+Maxime
