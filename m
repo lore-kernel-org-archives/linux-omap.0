@@ -1,180 +1,182 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH v2 16/18] omap3+: sr: make enable path use volt_data pointer
-Date: Wed,  2 Mar 2011 16:25:29 +0530
-Message-ID: <1299063331-27968-17-git-send-email-nm@ti.com>
-References: <1299063331-27968-1-git-send-email-nm@ti.com>
+From: tom.leiming@gmail.com
+Subject: [patch v2 3/3] arm: omap4: support pmu
+Date: Wed,  2 Mar 2011 18:57:00 +0800
+Message-ID: <1299063420-22203-4-git-send-email-tom.leiming@gmail.com>
+References: <1299063420-22203-1-git-send-email-tom.leiming@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:58170 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757116Ab1CBK6B (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Mar 2011 05:58:01 -0500
-Received: by yxe1 with SMTP id 1so5029143yxe.25
-        for <linux-omap@vger.kernel.org>; Wed, 02 Mar 2011 02:57:59 -0800 (PST)
-In-Reply-To: <1299063331-27968-1-git-send-email-nm@ti.com>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:34010 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757116Ab1CBK6J (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Mar 2011 05:58:09 -0500
+Received: by iyb26 with SMTP id 26so4791822iyb.19
+        for <linux-omap@vger.kernel.org>; Wed, 02 Mar 2011 02:58:08 -0800 (PST)
+In-Reply-To: <1299063420-22203-1-git-send-email-tom.leiming@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
-Cc: Kevin H <khilman@ti.com>, Tony L <tony@atomide.com>, linux-arm <linux-arm-kernel@lists.infradead.org>, Nishanth Menon <nm@ti.com>
+To: linux@arm.linux.org.uk
+Cc: linux-arm-kernel@lists.infradead.org, will.deacon@arm.com, Ming Lei <tom.leiming@gmail.com>, Woodruff Richard <r-woodruff2@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-Passing the volt_data pointers accross allows us to save us the effort
-of looking up the voltage data pointer from the voltage value at
-multiple layers, we need to look at the voltage data in dvfs layer
-for further processing, so modify the APIs to pass the voltage data
-pointer all the way through to lower layers to the smartreflex class
-drivers.
+From: Ming Lei <tom.leiming@gmail.com>
 
-Signed-off-by: Nishanth Menon <nm@ti.com>
+This patch supports pmu irq routed from CTI, so
+make pmu/perf working on OMAP4.
+
+The idea is from Woodruff Richard in the disscussion
+about "Oprofile on Pandaboard / Omap4" on pandaboard@googlegroups.com.
+
+Cc: Woodruff Richard <r-woodruff2@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
+Signed-off-by: Ming Lei <tom.leiming@gmail.com>
 ---
- arch/arm/mach-omap2/smartreflex-class3.c      |   13 +++----------
- arch/arm/mach-omap2/smartreflex.c             |   25 ++++++++++++-------------
- arch/arm/plat-omap/include/plat/smartreflex.h |    8 +++++---
- 3 files changed, 20 insertions(+), 26 deletions(-)
+ arch/arm/mach-omap2/dbg44xx.h |   18 +++++++++
+ arch/arm/mach-omap2/devices.c |   83 +++++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 98 insertions(+), 3 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/dbg44xx.h
 
-diff --git a/arch/arm/mach-omap2/smartreflex-class3.c b/arch/arm/mach-omap2/smartreflex-class3.c
-index 2195668..7ac88da 100644
---- a/arch/arm/mach-omap2/smartreflex-class3.c
-+++ b/arch/arm/mach-omap2/smartreflex-class3.c
-@@ -13,19 +13,12 @@
+diff --git a/arch/arm/mach-omap2/dbg44xx.h b/arch/arm/mach-omap2/dbg44xx.h
+new file mode 100644
+index 0000000..e447ad5
+--- /dev/null
++++ b/arch/arm/mach-omap2/dbg44xx.h
+@@ -0,0 +1,18 @@
++/*
++ * OMAP44xx on-chip debug support
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * XXX This file needs to be updated to align on one of "OMAP4", "OMAP44XX",
++ *     or "OMAP4430".
++ */
++
++#ifndef __ARCH_ARM_MACH_OMAP2_DBG44XX_H
++#define __ARCH_ARM_MACH_OMAP2_DBG44XX_H
++
++#define OMAP44XX_CTI0_BASE		0x54148000
++#define OMAP44XX_CTI1_BASE		0x54149000
++
++#endif
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index d216976..bae02d5 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -22,6 +22,7 @@
+ #include <asm/mach-types.h>
+ #include <asm/mach/map.h>
+ #include <asm/pmu.h>
++#include <asm/cti.h>
  
- #include <plat/smartreflex.h>
+ #include <plat/tc.h>
+ #include <plat/board.h>
+@@ -35,6 +36,7 @@
  
--static int sr_class3_enable(struct voltagedomain *voltdm)
-+static int sr_class3_enable(struct voltagedomain *voltdm,
-+		struct omap_volt_data *volt_data)
- {
--	unsigned long volt = omap_get_operation_voltage(
--		omap_voltage_get_nom_volt(voltdm));
--
--	if (!volt) {
--		pr_warning("%s: Curr voltage unknown. Cannot enable sr_%s\n",
--				__func__, voltdm->name);
--		return -ENODATA;
--	}
+ #include "mux.h"
+ #include "control.h"
++#include "dbg44xx.h"
  
- 	omap_vp_enable(voltdm);
--	return sr_enable(voltdm, volt);
-+	return sr_enable(voltdm, volt_data);
- }
+ #if defined(CONFIG_VIDEO_OMAP2) || defined(CONFIG_VIDEO_OMAP2_MODULE)
  
- static int sr_class3_disable(struct voltagedomain *voltdm, int is_volt_reset)
-diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
-index d62da3d..9b9d380 100644
---- a/arch/arm/mach-omap2/smartreflex.c
-+++ b/arch/arm/mach-omap2/smartreflex.c
-@@ -302,7 +302,8 @@ static void sr_start_vddautocomp(struct omap_sr *sr)
- 		return;
- 	}
- 
--	if (!sr_class->enable(sr->voltdm))
-+	if (!sr_class->enable(sr->voltdm,
-+			omap_voltage_get_nom_volt(sr->voltdm)))
- 		sr->autocomp_active = true;
- }
- 
-@@ -618,7 +619,7 @@ int sr_configure_minmax(struct voltagedomain *voltdm)
- /**
-  * sr_enable() - Enables the smartreflex module.
-  * @voltdm:	VDD pointer to which the SR module to be configured belongs to.
-- * @volt:	The voltage at which the Voltage domain associated with
-+ * @volt_data:	The voltage at which the Voltage domain associated with
-  *		the smartreflex module is operating at.
-  *		This is required only to program the correct Ntarget value.
-  *
-@@ -626,10 +627,9 @@ int sr_configure_minmax(struct voltagedomain *voltdm)
-  * enable a smartreflex module. Returns 0 on success. Returns error
-  * value if the voltage passed is wrong or if ntarget value is wrong.
-  */
--int sr_enable(struct voltagedomain *voltdm, unsigned long volt)
-+int sr_enable(struct voltagedomain *voltdm, struct omap_volt_data *volt_data)
- {
- 	u32 nvalue_reciprocal;
--	struct omap_volt_data *volt_data;
- 	struct omap_sr *sr = _sr_lookup(voltdm);
- 	int ret;
- 
-@@ -639,19 +639,16 @@ int sr_enable(struct voltagedomain *voltdm, unsigned long volt)
- 		return -EINVAL;
- 	}
- 
--	volt_data = omap_voltage_get_voltdata(sr->voltdm, volt);
--
--	if (IS_ERR(volt_data)) {
--		dev_warn(&sr->pdev->dev, "%s: Unable to get voltage table"
--			"for nominal voltage %ld\n", __func__, volt);
--		return -ENODATA;
-+	if (IS_ERR_OR_NULL(volt_data)) {
-+		dev_warn(&sr->pdev->dev, "%s: bad voltage data\n", __func__);
-+		return -EINVAL;
- 	}
- 
- 	nvalue_reciprocal = sr_retrieve_nvalue(sr, volt_data->sr_efuse_offs);
- 
- 	if (!nvalue_reciprocal) {
- 		dev_warn(&sr->pdev->dev, "%s: NVALUE = 0 at voltage %ld\n",
--			__func__, volt);
-+			__func__, omap_get_operation_voltage(volt_data));
- 		return -ENODATA;
- 	}
- 
-@@ -808,13 +805,15 @@ int sr_register_class(struct omap_sr_class_data *class_data)
-  * omap_sr_enable() -  API to enable SR clocks and to call into the
-  *			registered smartreflex class enable API.
-  * @voltdm:	VDD pointer to which the SR module to be configured belongs to.
-+ * @volt_data:	Voltage data to go to
-  *
-  * This API is to be called from the kernel in order to enable
-  * a particular smartreflex module. This API will do the initial
-  * configurations to turn on the smartreflex module and in turn call
-  * into the registered smartreflex class enable API.
-  */
--void omap_sr_enable(struct voltagedomain *voltdm)
-+void omap_sr_enable(struct voltagedomain *voltdm,
-+			struct omap_volt_data *volt_data)
- {
- 	struct omap_sr *sr = _sr_lookup(voltdm);
- 
-@@ -833,7 +832,7 @@ void omap_sr_enable(struct voltagedomain *voltdm)
- 		return;
- 	}
- 
--	sr_class->enable(voltdm);
-+	sr_class->enable(voltdm, volt_data);
- }
- 
- /**
-diff --git a/arch/arm/plat-omap/include/plat/smartreflex.h b/arch/arm/plat-omap/include/plat/smartreflex.h
-index d420f44..07f35b2 100644
---- a/arch/arm/plat-omap/include/plat/smartreflex.h
-+++ b/arch/arm/plat-omap/include/plat/smartreflex.h
-@@ -185,7 +185,8 @@ struct omap_sr_pmic_data {
-  * @class_priv_data:	Class specific private data (optional)
-  */
- struct omap_sr_class_data {
--	int (*enable)(struct voltagedomain *voltdm);
-+	int (*enable)(struct voltagedomain *voltdm,
-+			struct omap_volt_data *volt_data);
- 	int (*disable)(struct voltagedomain *voltdm, int is_volt_reset);
- 	int (*class_init)(struct voltagedomain *voltdm, void *class_priv_data);
- 	int (*class_deinit)(struct voltagedomain *voltdm,
-@@ -232,7 +233,8 @@ struct omap_sr_data {
+@@ -322,20 +324,95 @@ static struct resource omap3_pmu_resource = {
+ 	.flags	= IORESOURCE_IRQ,
  };
  
- /* Smartreflex module enable/disable interface */
--void omap_sr_enable(struct voltagedomain *voltdm);
-+void omap_sr_enable(struct voltagedomain *voltdm,
-+			struct omap_volt_data *volt_data);
- void omap_sr_disable(struct voltagedomain *voltdm);
- void omap_sr_disable_reset_volt(struct voltagedomain *voltdm);
++static struct resource omap4_pmu_resource[] = {
++	{
++		.start	= OMAP44XX_IRQ_CTI0,
++		.end	= OMAP44XX_IRQ_CTI0,
++		.flags	= IORESOURCE_IRQ,
++	},
++	{
++		.start	= OMAP44XX_IRQ_CTI1,
++		.end	= OMAP44XX_IRQ_CTI1,
++		.flags	= IORESOURCE_IRQ,
++	}
++};
++
+ static struct platform_device omap_pmu_device = {
+ 	.name		= "arm-pmu",
+ 	.id		= ARM_PMU_DEVICE_CPU,
+ 	.num_resources	= 1,
+ };
  
-@@ -240,7 +242,7 @@ void omap_sr_disable_reset_volt(struct voltagedomain *voltdm);
- void omap_sr_register_pmic(struct omap_sr_pmic_data *pmic_data);
++static struct arm_pmu_platdata omap4_pmu_data;
++static struct cti omap4_cti[2];
++
++static void omap4_enable_cti(int irq)
++{
++	if (irq == OMAP44XX_IRQ_CTI0)
++		cti_enable(&omap4_cti[0]);
++	else if (irq == OMAP44XX_IRQ_CTI1)
++		cti_enable(&omap4_cti[1]);
++}
++
++static void omap4_disable_cti(int irq)
++{
++	if (irq == OMAP44XX_IRQ_CTI0)
++		cti_disable(&omap4_cti[0]);
++	else if (irq == OMAP44XX_IRQ_CTI1)
++		cti_disable(&omap4_cti[1]);
++}
++
++static irqreturn_t omap4_pmu_handler(int irq, void *dev, irq_handler_t handler)
++{
++	if (irq == OMAP44XX_IRQ_CTI0)
++		cti_irq_ack(&omap4_cti[0]);
++	else if (irq == OMAP44XX_IRQ_CTI1)
++		cti_irq_ack(&omap4_cti[1]);
++
++	return handler(irq, dev);
++}
++
++static void omap4_configure_pmu_irq(void)
++{
++	void *base0;
++	void *base1;
++
++	base0 = ioremap(OMAP44XX_CTI0_BASE, 4096);
++	base1 = ioremap(OMAP44XX_CTI1_BASE, 4096);
++	if (!base0 && !base1) {
++		pr_err("ioremap for omap4 CTI failed\n");
++		return;
++	}
++
++	/*configure CTI0 for pmu irq routing*/
++	cti_init(&omap4_cti[0], base0, OMAP44XX_IRQ_CTI0, 6);
++	cti_unlock(&omap4_cti[0]);
++	cti_map_trigger(&omap4_cti[0], 1, 6, 2);
++
++	/*configure CTI1 for pmu irq routing*/
++	cti_init(&omap4_cti[1], base1, OMAP44XX_IRQ_CTI1, 6);
++	cti_unlock(&omap4_cti[1]);
++	cti_map_trigger(&omap4_cti[1], 1, 6, 2);
++
++	omap4_pmu_data.handle_irq = omap4_pmu_handler;
++	omap4_pmu_data.enable_irq = omap4_enable_cti;
++	omap4_pmu_data.disable_irq = omap4_disable_cti;
++}
++
+ static void omap_init_pmu(void)
+ {
+-	if (cpu_is_omap24xx())
++	if (cpu_is_omap24xx()) {
+ 		omap_pmu_device.resource = &omap2_pmu_resource;
+-	else if (cpu_is_omap34xx())
++	} else if (cpu_is_omap34xx()) {
+ 		omap_pmu_device.resource = &omap3_pmu_resource;
+-	else
++	} else if (cpu_is_omap44xx()) {
++		omap_pmu_device.resource = omap4_pmu_resource;
++		omap_pmu_device.num_resources = 2;
++		omap_pmu_device.dev.platform_data = &omap4_pmu_data;
++		omap4_configure_pmu_irq();
++	} else {
+ 		return;
++	}
  
- /* Smartreflex driver hooks to be called from Smartreflex class driver */
--int sr_enable(struct voltagedomain *voltdm, unsigned long volt);
-+int sr_enable(struct voltagedomain *voltdm, struct omap_volt_data *volt_data);
- void sr_disable(struct voltagedomain *voltdm);
- int sr_notifier_control(struct voltagedomain *voltdm, bool enable);
- int sr_configure_errgen(struct voltagedomain *voltdm);
+ 	platform_device_register(&omap_pmu_device);
+ }
 -- 
-1.7.1
+1.7.3
 
