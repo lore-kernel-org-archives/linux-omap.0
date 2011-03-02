@@ -1,78 +1,167 @@
 From: Lesly A M <leslyam@ti.com>
-Subject: [PATCH v8 0/8] omap3: pm: TWL4030 power scripts and workaround for TWL errata 27
-Date: Wed,  2 Mar 2011 19:00:46 +0530
-Message-ID: <1299072653-13414-1-git-send-email-leslyam@ti.com>
+Subject: [PATCH v8 4/7] omap3: pm: TWL5030 version checking
+Date: Wed,  2 Mar 2011 19:00:50 +0530
+Message-ID: <1299072653-13414-5-git-send-email-leslyam@ti.com>
+References: <1299072653-13414-1-git-send-email-leslyam@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:51138 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752647Ab1CBNbI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 2 Mar 2011 08:31:08 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:46328 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752803Ab1CBNbJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Mar 2011 08:31:09 -0500
+In-Reply-To: <1299072653-13414-1-git-send-email-leslyam@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Lesly A M <leslyam@ti.com>, Nishanth Menon <nm@ti.com>, David Derrick <dderrick@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
 
-Patch series for TWL4030 power scripts and workaround for TWL errata 27.
+Added api to get the TWL5030 Si version from the IDCODE register.
+It is used for enabling the workaround for TWL errata 27.
 
-Changes for implementing TWL4030 power scripts recommended by hardware team.
-Introduced a new TWL4030 power script file, which can be used by different
-OMAP3 board with the power companion chip TWL4030.
-
-Updated the changes for TWL4030 errata 27 & 28, and modified the
-TWL4030 power script.
-Workaround for TWL4030 errata 27 & 28 is required for
-Si version less than or equal to TWL5030 ES1.1.
-
-TWL4030 script changes rebased on Kevin's PM tree in pm branch.
-
-Changes in v7:
-	changes to fix Nishanth Menon's comments
-		i) Added the TWL4030 Errata 27 fix
-  
-	split the first patch in v6
-		i)  fix for twl4030 script load
-		ii) correct the warning print during script loading
-
-	Added new patch files
-		i) changing sys_off signal polarity
-
-Changes in v8:
-	updated the change logs
-	moving the TWL IDCODE checking to twl-core.c
-
-Since the voltage layer is evolving to a new design, the voltage dependant
-changes required for the TRITON script are not incorporated in the patch series.
-So this TRITON script patch series can be tested with a separate patch for
-voltage layer changes.
-
-	lnk: http://pastebin.mozilla.org/1118306
-
-This changes are tested on OMAP3430 & OMAP3630 SDP with off mode enabled in suspend path.
-	Tested with suspend/resume script, which will test system suspend in a loop.
-	Tested for more than 1000 iterations.
-
+Signed-off-by: Lesly A M <leslyam@ti.com>
 Cc: Nishanth Menon <nm@ti.com>
 Cc: David Derrick <dderrick@ti.com>
 Cc: Samuel Ortiz <sameo@linux.intel.com>
 ---
-Lesly A M (7):
-  omap3: pm: Fix for the TRITON sleep/wakeup sequence
-  omap3: pm: Correct the warning print during script loading
-  omap3: pm: TWL4030 power scripts for OMAP3 boards
-  omap3: pm: TWL5030 version checking
-  mfd: TWL4030: changes for TRITON Errata 27 workaround
-  omap3430: Updating the board file to use TWL4030 scripts
-  omap3630: Updating the board file to use TWL4030 scripts
+ drivers/mfd/twl-core.c  |   61 +++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/i2c/twl.h |   17 ++++++++++++-
+ 2 files changed, 77 insertions(+), 1 deletions(-)
 
- arch/arm/mach-omap2/Makefile                 |   12 +-
- arch/arm/mach-omap2/board-3430sdp.c          |   93 +---------
- arch/arm/mach-omap2/board-zoom-peripherals.c |    2 +
- arch/arm/mach-omap2/twl4030.c                |  259 ++++++++++++++++++++++++++
- arch/arm/mach-omap2/twl4030.h                |   20 ++
- drivers/mfd/twl-core.c                       |   61 ++++++
- drivers/mfd/twl4030-power.c                  |   69 +++++++-
- include/linux/i2c/twl.h                      |   51 +++++-
- 8 files changed, 466 insertions(+), 101 deletions(-)
- create mode 100644 arch/arm/mach-omap2/twl4030.c
- create mode 100644 arch/arm/mach-omap2/twl4030.h
+diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
+index a35fa7d..5e706d7 100644
+--- a/drivers/mfd/twl-core.c
++++ b/drivers/mfd/twl-core.c
+@@ -229,6 +229,9 @@
+ /* is driver active, bound to a chip? */
+ static bool inuse;
+ 
++/* TWL IDCODE Register value */
++static u32 twl_idcode;
++
+ static unsigned int twl_id;
+ unsigned int twl_rev(void)
+ {
+@@ -487,6 +490,61 @@ EXPORT_SYMBOL(twl_i2c_read_u8);
+ 
+ /*----------------------------------------------------------------------*/
+ 
++/**
++ * twl_read_idcode_register - api to read the IDCODE register.
++ * @value: returns 32 bit IDCODE register value.
++ *
++ * Unlocks the IDCODE register and read the 32 bit value.
++ */
++int twl_read_idcode_register(void)
++{
++	int err;
++
++	err = twl_i2c_write_u8(TWL4030_MODULE_INTBR, TWL_EEPROM_R_UNLOCK,
++						REG_UNLOCK_TEST_REG);
++	if (err) {
++		pr_err("TWL4030 Unable to unlock IDCODE registers\n");
++		goto fail;
++	}
++
++	err = twl_i2c_read(TWL4030_MODULE_INTBR, (u8 *)(&twl_idcode),
++						REG_IDCODE_7_0, 4);
++	if (err) {
++		pr_err("TWL4030: unable to read IDCODE -%d\n", err);
++		goto fail;
++	}
++
++	err = twl_i2c_write_u8(TWL4030_MODULE_INTBR, 0x0, REG_UNLOCK_TEST_REG);
++	if (err) {
++		pr_err("TWL4030 Unable to relock IDCODE registers\n");
++		goto fail;
++	}
++fail:
++	return err;
++}
++
++/**
++ * twl_get_si_type - api to get TWL Si type.
++ *
++ * Api to get the TWL Si type from IDCODE value.
++ */
++int twl_get_si_type(void)
++{
++	return TWL_SIL_TYPE(twl_idcode);
++}
++EXPORT_SYMBOL(twl_get_si_type);
++
++/**
++ * twl_get_si_version - api to get TWL Si version.
++ *
++ * Api to get the TWL Si version from IDCODE value.
++ */
++int twl_get_si_version(void)
++{
++	return TWL_SIL_REV(twl_idcode);
++}
++EXPORT_SYMBOL(twl_get_si_version);
++
+ static struct device *
+ add_numbered_child(unsigned chip, const char *name, int num,
+ 		void *pdata, unsigned pdata_len,
+@@ -1056,6 +1114,9 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 	/* setup clock framework */
+ 	clocks_init(&client->dev, pdata->clock);
+ 
++	/* read TWL IDCODE Register */
++	twl_read_idcode_register();
++
+ 	/* load power event scripts */
+ 	if (twl_has_power() && pdata->power)
+ 		twl4030_power_init(pdata->power);
+diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
+index f4bd475..d3cc2ac 100644
+--- a/include/linux/i2c/twl.h
++++ b/include/linux/i2c/twl.h
+@@ -150,7 +150,12 @@
+ #define MMC_PU				(0x1 << 3)
+ #define MMC_PD				(0x1 << 2)
+ 
+-
++#define TWL_SIL_TYPE(rev)		((rev) & 0x00FFFFFF)
++#define TWL_SIL_REV(rev)		((rev) >> 24)
++#define TWL_SIL_5030			0x09002F
++#define TWL5030_REV_1_0			0x00
++#define TWL5030_REV_1_1			0x10
++#define TWL5030_REV_1_2			0x30
+ 
+ #define TWL4030_CLASS_ID 		0x4030
+ #define TWL6030_CLASS_ID 		0x6030
+@@ -180,6 +185,9 @@ int twl_i2c_read_u8(u8 mod_no, u8 *val, u8 reg);
+ int twl_i2c_write(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes);
+ int twl_i2c_read(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes);
+ 
++int twl_get_si_type(void);
++int twl_get_si_version(void);
++
+ int twl6030_interrupt_unmask(u8 bit_mask, u8 offset);
+ int twl6030_interrupt_mask(u8 bit_mask, u8 offset);
+ 
+@@ -279,7 +287,12 @@ static inline int twl6030_mmc_card_detect(struct device *dev, int slot)
+  *(Use TWL_4030_MODULE_INTBR)
+  */
+ 
++#define REG_IDCODE_7_0			0x00
++#define REG_IDCODE_15_8			0x01
++#define REG_IDCODE_16_23		0x02
++#define REG_IDCODE_31_24		0x03
+ #define REG_GPPUPDCTR1			0x0F
++#define REG_UNLOCK_TEST_REG		0x12
+ 
+ /*I2C1 and I2C4(SR) SDA/SCL pull-up control bits */
+ 
+@@ -288,6 +301,8 @@ static inline int twl6030_mmc_card_detect(struct device *dev, int slot)
+ #define SR_I2C_SCL_CTRL_PU		BIT(4)
+ #define SR_I2C_SDA_CTRL_PU		BIT(6)
+ 
++#define TWL_EEPROM_R_UNLOCK		0x49
++
+ /*----------------------------------------------------------------------*/
+ 
+ /*
+-- 
+1.7.1
 
