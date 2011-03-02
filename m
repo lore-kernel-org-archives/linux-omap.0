@@ -1,41 +1,41 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] omapfb: Fix linker error in
- drivers/video/omap/lcd_2430sdp.c
-Date: Wed, 2 Mar 2011 09:58:49 +0200
-Message-ID: <1299052729.2226.44.camel@deskari>
-References: <1298905757.9809.135.camel@deskari>
-	 <1298968837-13584-1-git-send-email-jhnikula@gmail.com>
+From: <Tero.Kristo@nokia.com>
+Subject: RE: [PATCH 0/2] OMAP3: cpuidle: prevent CORE pwrdm from entering
+	low-power state when DSS active
+Date: Wed, 2 Mar 2011 08:18:29 +0000
+Message-ID: <854C6400F5AA6644BA6FE7953F3E769B0380D180@008-AM1MPN1-013.mgdnok.nokia.com>
+References: <20110301220833.32613.54669.stgit@twilight.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:34590 "EHLO bear.ext.ti.com"
+Received: from smtp.nokia.com ([147.243.128.26]:31821 "EHLO mgw-da02.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755622Ab1CBH6x (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 2 Mar 2011 02:58:53 -0500
-In-Reply-To: <1298968837-13584-1-git-send-email-jhnikula@gmail.com>
+	id S1754083Ab1CBISl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 2 Mar 2011 03:18:41 -0500
+In-Reply-To: <20110301220833.32613.54669.stgit@twilight.localdomain>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jhnikula@gmail.com>
-Cc: "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Tue, 2011-03-01 at 02:40 -0600, Jarkko Nikula wrote:
-> There is a linker error from lcd_2430sdp.c if CONFIG_TWL4030_CORE is not
-> set. This can be triggered on OMAP2 builds when OMAP3 or OMAP4 are not set.
-> 
-> drivers/built-in.o: In function `sdp2430_panel_disable':
-> drivers/video/omap/lcd_2430sdp.c:123: undefined reference to `twl_i2c_write_u8'
-> drivers/video/omap/lcd_2430sdp.c:124: undefined reference to `twl_i2c_write_u8'
-> drivers/built-in.o: In function `sdp2430_panel_enable':
-> drivers/video/omap/lcd_2430sdp.c:110: undefined reference to `twl_i2c_write_u8'
-> drivers/video/omap/lcd_2430sdp.c:112: undefined reference to `twl_i2c_write_u8'
-> 
-> Fix this by selecting the TWL4030_CORE for MACH_OMAP_2430SDP when building
-> with CONFIG_FB_OMAP as there is no own Kconfig entry for lcd_2430 and it is
-> compiled always when both MACH_OMAP_2430SDP and FB_OMAP are set.
-
-Thanks, applied.
-
- Tomi
-
-
+DQoNCj4tLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPkZyb206IGV4dCBQYXVsIFdhbG1zbGV5
+IFttYWlsdG86cGF1bEBwd3Nhbi5jb21dDQo+U2VudDogMDIgTWFyY2gsIDIwMTEgMDA6NDkNCj5U
+bzogbGludXgtb21hcEB2Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5m
+cmFkZWFkLm9yZzsNCj5LcmlzdG8gVGVybyAoTm9raWEtTVMvVGFtcGVyZSkNCj5TdWJqZWN0OiBb
+UEFUQ0ggMC8yXSBPTUFQMzogY3B1aWRsZTogcHJldmVudCBDT1JFIHB3cmRtIGZyb20gZW50ZXJp
+bmcNCj5sb3ctcG93ZXIgc3RhdGUgd2hlbiBEU1MgYWN0aXZlDQo+DQo+VGhpcyBzZXJpZXMgcHJl
+dmVudHMgdGhlIE9NQVAzIENQVUlkbGUgY29kZSBmcm9tIHByb2dyYW1taW5nIHRoZSBDT1JFDQo+
+cG93ZXJkb21haW4gdG8gZW50ZXIgYW55IHBvd2VyIHN0YXRlIGxvd2VyIHRoYW4gT04gd2hlbiB0
+aGUgRFNTIHBvd2VyDQo+ZG9tYWluDQo+aXMgT04uICAoVGhlIGFzc3VtcHRpb24gaXMgdGhhdCBp
+biB0aGlzIGNhc2UsIHRoZSBEU1MgaXMgYWN0aXZlLCBETUEnaW5nDQo+bGluZXMgZnJvbSBSQU0g
+YW5kIGRpc3BsYXlpbmcgdGhlbSBzb21ld2hlcmUuKQ0KPg0KPlRlcm8sIHBsZWFzZSBkb24ndCBo
+ZXNpdGF0ZSB0byBjb21tZW50IG9uIHRoZSBwYXRjaCBmcm9tIHlvdSBpZiBJIGdvdA0KPnRoZQ0K
+PmNvbW1pdCBtZXNzYWdlIHdyb25nLg0KDQpIaSBQYXVsLA0KDQpJdCBsb29rcyBnb29kIHRvIG1l
+Lg0KDQoNCj4NCj4NCj4tIFBhdWwNCj4NCj4tLS0NCj4NCj5UZXJvIEtyaXN0byAoMSk6DQo+ICAg
+ICAgT01BUDM6IGNwdWlkbGU6IHByZXZlbnQgQ09SRSBwb3dlciBkb21haW4gZnJvbSBnb2luZyB0
+byBSRVQgb3IgT0ZGDQo+d2hlbiBEU1MgaXMgb24NCj4NCj5QYXVsIFdhbG1zbGV5ICgxKToNCj4g
+ICAgICBPTUFQMzogY3B1aWRsZTogYWRkIG1vcmUgZGV0YWlscyB0byB0aGUgRFNTLXJlbGF0ZWQg
+Q09SRSBwb3dlcg0KPmRvbWFpbiBzdGF0ZSByZXN0cmljdGlvbg0KPg0KPg0KPiBhcmNoL2FybS9t
+YWNoLW9tYXAyL2NwdWlkbGUzNHh4LmMgfCAgIDM2DQo+KysrKysrKysrKysrKysrKysrKysrKysr
+KysrKysrKysrKy0tDQo+IDEgZmlsZXMgY2hhbmdlZCwgMzQgaW5zZXJ0aW9ucygrKSwgMiBkZWxl
+dGlvbnMoLSkNCg0K
