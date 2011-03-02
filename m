@@ -1,217 +1,64 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: RE: [patch v2 3/3] arm: omap4: support pmu
-Date: Wed, 2 Mar 2011 18:13:27 +0530
-Message-ID: <1ffdf40ec6b200ebafe165d4008d0297@mail.gmail.com>
-References: <1299063420-22203-1-git-send-email-tom.leiming@gmail.com> <1299063420-22203-4-git-send-email-tom.leiming@gmail.com>
+Subject: RE: [PATCH] omap:iommu-added cache flushing operation for L2 cache
+Date: Wed, 2 Mar 2011 18:18:05 +0530
+Message-ID: <1dc497a090414bf80ff588791d6db5cc@mail.gmail.com>
+References: <1299008793-27428-1-git-send-email-fernando.lugo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:43145 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756182Ab1CBMnb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Mar 2011 07:43:31 -0500
-Received: by qyj19 with SMTP id 19so3795770qyj.9
-        for <linux-omap@vger.kernel.org>; Wed, 02 Mar 2011 04:43:29 -0800 (PST)
-In-Reply-To: <1299063420-22203-4-git-send-email-tom.leiming@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1299008793-27428-1-git-send-email-fernando.lugo@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Fernando Guzman Lugo <fernando.lugo@ti.com>, hiroshi.doyu@nokia.com
+Cc: tony@atomide.com, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Ramesh Gupta <grgupta@ti.com>, Hari Kanigeri <h-kanigeri2@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: tom.leiming@gmail.com, linux@arm.linux.org.uk
-Cc: Richard Woodruff <r-woodruff2@ti.com>, Tony Lindgren <tony@atomide.com>, will.deacon@arm.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Tom,
+Hello,
 > -----Original Message-----
-> From: linux-arm-kernel-bounces@lists.infradead.org [mailto:linux-
-> arm-kernel-bounces@lists.infradead.org] On Behalf Of
-> tom.leiming@gmail.com
-> Sent: Wednesday, March 02, 2011 4:27 PM
-> To: linux@arm.linux.org.uk
-> Cc: Woodruff Richard; Tony Lindgren; Ming Lei; will.deacon@arm.com;
-> linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
-> Subject: [patch v2 3/3] arm: omap4: support pmu
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Fernando Guzman Lugo
+> Sent: Wednesday, March 02, 2011 1:17 AM
+> To: hiroshi.doyu@nokia.com
+> Cc: tony@atomide.com; linux@arm.linux.org.uk; linux-
+> omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org; linux-
+> kernel@vger.kernel.org; Ramesh Gupta; Hari Kanigeri
+> Subject: [PATCH] omap:iommu-added cache flushing operation for L2
+> cache
 >
-> From: Ming Lei <tom.leiming@gmail.com>
+> From: Ramesh Gupta <grgupta@ti.com>
 >
-> This patch supports pmu irq routed from CTI, so
-> make pmu/perf working on OMAP4.
->
-> The idea is from Woodruff Richard in the disscussion
-> about "Oprofile on Pandaboard / Omap4" on
-> pandaboard@googlegroups.com.
->
-> Cc: Woodruff Richard <r-woodruff2@ti.com>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: linux-omap@vger.kernel.org
-> Signed-off-by: Ming Lei <tom.leiming@gmail.com>
+> Signed-off-by: Ramesh Gupta <grgupta@ti.com>
+> Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
 > ---
-Few comments.
-
->  arch/arm/mach-omap2/dbg44xx.h |   18 +++++++++
->  arch/arm/mach-omap2/devices.c |   83
-> +++++++++++++++++++++++++++++++++++++++-
->  2 files changed, 98 insertions(+), 3 deletions(-)
->  create mode 100644 arch/arm/mach-omap2/dbg44xx.h
+>  arch/arm/plat-omap/iommu.c |   22 ++++++++--------------
+>  1 files changed, 8 insertions(+), 14 deletions(-)
 >
-> diff --git a/arch/arm/mach-omap2/dbg44xx.h b/arch/arm/mach-
-> omap2/dbg44xx.h
-> new file mode 100644
-> index 0000000..e447ad5
-> --- /dev/null
-> +++ b/arch/arm/mach-omap2/dbg44xx.h
-> @@ -0,0 +1,18 @@
-> +/*
-> + * OMAP44xx on-chip debug support
-> + *
-> + * This program is free software; you can redistribute it and/or
-> modify
-> + * it under the terms of the GNU General Public License version 2
-> as
-> + * published by the Free Software Foundation.
-> + *
-> + * XXX This file needs to be updated to align on one of "OMAP4",
-> "OMAP44XX",
-> + *     or "OMAP4430".
-> + */
-> +
-> +#ifndef __ARCH_ARM_MACH_OMAP2_DBG44XX_H
-> +#define __ARCH_ARM_MACH_OMAP2_DBG44XX_H
-> +
-> +#define OMAP44XX_CTI0_BASE		0x54148000
-> +#define OMAP44XX_CTI1_BASE		0x54149000
-> +
-> +#endif
-You don't need this file. Move this base addresses to
-arch/arm/plat-omap/include/plat/omap44xx.h
-
-> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-
-> omap2/devices.c
-> index d216976..bae02d5 100644
-> --- a/arch/arm/mach-omap2/devices.c
-> +++ b/arch/arm/mach-omap2/devices.c
-> @@ -22,6 +22,7 @@
->  #include <asm/mach-types.h>
->  #include <asm/mach/map.h>
->  #include <asm/pmu.h>
-> +#include <asm/cti.h>
->
->  #include <plat/tc.h>
->  #include <plat/board.h>
-> @@ -35,6 +36,7 @@
->
->  #include "mux.h"
->  #include "control.h"
-> +#include "dbg44xx.h"
->
->  #if defined(CONFIG_VIDEO_OMAP2) ||
-> defined(CONFIG_VIDEO_OMAP2_MODULE)
->
-> @@ -322,20 +324,95 @@ static struct resource omap3_pmu_resource = {
->  	.flags	= IORESOURCE_IRQ,
->  };
->
-> +static struct resource omap4_pmu_resource[] = {
-> +	{
-> +		.start	= OMAP44XX_IRQ_CTI0,
-> +		.end	= OMAP44XX_IRQ_CTI0,
-> +		.flags	= IORESOURCE_IRQ,
-> +	},
-> +	{
-> +		.start	= OMAP44XX_IRQ_CTI1,
-> +		.end	= OMAP44XX_IRQ_CTI1,
-> +		.flags	= IORESOURCE_IRQ,
-> +	}
-> +};
-> +
->  static struct platform_device omap_pmu_device = {
->  	.name		= "arm-pmu",
->  	.id		= ARM_PMU_DEVICE_CPU,
->  	.num_resources	= 1,
->  };
->
-> +static struct arm_pmu_platdata omap4_pmu_data;
-> +static struct cti omap4_cti[2];
-> +
-> +static void omap4_enable_cti(int irq)
-> +{
-> +	if (irq == OMAP44XX_IRQ_CTI0)
-> +		cti_enable(&omap4_cti[0]);
-> +	else if (irq == OMAP44XX_IRQ_CTI1)
-> +		cti_enable(&omap4_cti[1]);
-> +}
-> +
-> +static void omap4_disable_cti(int irq)
-> +{
-> +	if (irq == OMAP44XX_IRQ_CTI0)
-> +		cti_disable(&omap4_cti[0]);
-> +	else if (irq == OMAP44XX_IRQ_CTI1)
-> +		cti_disable(&omap4_cti[1]);
-> +}
-> +
-> +static irqreturn_t omap4_pmu_handler(int irq, void *dev,
-> irq_handler_t handler)
-> +{
-> +	if (irq == OMAP44XX_IRQ_CTI0)
-> +		cti_irq_ack(&omap4_cti[0]);
-> +	else if (irq == OMAP44XX_IRQ_CTI1)
-> +		cti_irq_ack(&omap4_cti[1]);
-> +
-> +	return handler(irq, dev);
-> +}
-> +
-> +static void omap4_configure_pmu_irq(void)
-> +{
-> +	void *base0;
-> +	void *base1;
-s/ void *base/ void __iomem *base
-> +
-> +	base0 = ioremap(OMAP44XX_CTI0_BASE, 4096);
-s/4096/SZ_4K
-> +	base1 = ioremap(OMAP44XX_CTI1_BASE, 4096);
-> +	if (!base0 && !base1) {
-> +		pr_err("ioremap for omap4 CTI failed\n");
-s/omap4/OMAP4
-> +		return;
-> +	}
-> +
-> +	/*configure CTI0 for pmu irq routing*/
-> +	cti_init(&omap4_cti[0], base0, OMAP44XX_IRQ_CTI0, 6);
-> +	cti_unlock(&omap4_cti[0]);
-> +	cti_map_trigger(&omap4_cti[0], 1, 6, 2);
-> +
-> +	/*configure CTI1 for pmu irq routing*/
-> +	cti_init(&omap4_cti[1], base1, OMAP44XX_IRQ_CTI1, 6);
-> +	cti_unlock(&omap4_cti[1]);
-> +	cti_map_trigger(&omap4_cti[1], 1, 6, 2);
-> +
-> +	omap4_pmu_data.handle_irq = omap4_pmu_handler;
-> +	omap4_pmu_data.enable_irq = omap4_enable_cti;
-> +	omap4_pmu_data.disable_irq = omap4_disable_cti;
-> +}
-> +
->  static void omap_init_pmu(void)
+> diff --git a/arch/arm/plat-omap/iommu.c b/arch/arm/plat-omap/iommu.c
+> index e3eb038..aeb2c33 100644
+> --- a/arch/arm/plat-omap/iommu.c
+> +++ b/arch/arm/plat-omap/iommu.c
+> @@ -471,22 +471,15 @@ EXPORT_SYMBOL_GPL(foreach_iommu_device);
+>   */
+>  static void flush_iopgd_range(u32 *first, u32 *last)
 >  {
-> -	if (cpu_is_omap24xx())
-> +	if (cpu_is_omap24xx()) {
->  		omap_pmu_device.resource = &omap2_pmu_resource;
-> -	else if (cpu_is_omap34xx())
-> +	} else if (cpu_is_omap34xx()) {
->  		omap_pmu_device.resource = &omap3_pmu_resource;
-> -	else
-> +	} else if (cpu_is_omap44xx()) {
-> +		omap_pmu_device.resource = omap4_pmu_resource;
-> +		omap_pmu_device.num_resources = 2;
-> +		omap_pmu_device.dev.platform_data = &omap4_pmu_data;
-> +		omap4_configure_pmu_irq();
-> +	} else {
->  		return;
-> +	}
->
->  	platform_device_register(&omap_pmu_device);
+> -	/* FIXME: L2 cache should be taken care of if it exists */
+> -	do {
+> -		asm("mcr	p15, 0, %0, c7, c10, 1 @ flush_pgd"
+> -		    : : "r" (first));
+> -		first += L1_CACHE_BYTES / sizeof(*first);
+> -	} while (first <= last);
+> +	dmac_flush_range(first, last);
+
+There is note just above this API.
+/*
+ * These are private to the dma-mapping API.  Do not use directly.
+ * Their sole purpose is to ensure that data held in the cache
+ * is visible to DMA, or data written by DMA to system memory is
+ * visible to the CPU.
+ */
+#define dmac_map_area                   cpu_cache.dma_map_area
+#define dmac_unmap_area         cpu_cache.dma_unmap_area
+#define dmac_flush_range                cpu_cache.dma_flush_range
+
+> +	outer_flush_range(virt_to_phys(first), virt_to_phys(last));
 >  }
-> --
-> 1.7.3
 >
->
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
