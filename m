@@ -1,144 +1,131 @@
-From: "Govindraj.R" <govindraj.raja@ti.com>
-Subject: [PATCH 2/7] OMAP2+: mux: Enable wakeup for wakeup enable requested pads
-Date: Wed,  2 Mar 2011 16:42:23 +0530
-Message-ID: <1299064343-28534-1-git-send-email-govindraj.raja@ti.com>
-Return-path: <linux-serial-owner@vger.kernel.org>
-Sender: linux-serial-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: "Govindraj.R" <govindraj.raja@ti.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Rajendra Nayak <rnayak@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH v2 00/18] OMAP3+: PM: introduce SR class 1.5
+Date: Wed,  2 Mar 2011 16:25:13 +0530
+Message-ID: <1299063331-27968-1-git-send-email-nm@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:48598 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756723Ab1CBKzn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Mar 2011 05:55:43 -0500
+Received: by yxd5 with SMTP id 5so3214828yxd.7
+        for <linux-omap@vger.kernel.org>; Wed, 02 Mar 2011 02:55:41 -0800 (PST)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Kevin H <khilman@ti.com>, Tony L <tony@atomide.com>, linux-arm <linux-arm-kernel@lists.infradead.org>, Nishanth Menon <nm@ti.com>
 
-For device pads which have OMAP_DEVICE_PAD_WAKEUP set (which means they
-are wakeup capable) enable the IO-daisy wakeup capability.
-During re-muxing avoid direct write with val as this can disturb if any
-mux done at bootloader level so read the pad then write back.
+Hi,
 
-Also add an API to fetch the wake-up status bit is set for given omap-hwmod
-device using available mux info which is added during omap_hwmod_mux_init.
-Wakeup status bit is needed for uart_resume_idle call from sram_idle path
-based on wake-up event has occurred for given uart we can enable clocks back.
+This series intends to introduce SmartReflex AVS Class 1.5 support which
+is now the recommended AVS class for usage in OMAP3630, OMAP4 and potentially
+in later generation of silicon as well. Smartreflex class 1.5 is a software
+controlled hardware calibration mechanism designed to improve dvfs latencies
+and system performance as well as helping bring in additional benefits to the
+system from h/w perspective. The corresponding patch has details on this class
+and the implementation as well.
 
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
----
- arch/arm/mach-omap2/mux.c                    |   28 ++++++++++++++++++++++++++
- arch/arm/mach-omap2/mux.h                    |   13 ++++++++++++
- arch/arm/mach-omap2/omap_hwmod.c             |   13 ++++++++++++
- arch/arm/plat-omap/include/plat/omap_hwmod.h |    1 +
- 4 files changed, 55 insertions(+), 0 deletions(-)
+The series eventually results in OMAP343x based platforms using class3 and
+OMAP3630, OMAP4 platforms using class1.5 automatically without modifications
+or additions to board files.
 
-diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
-index 98148b6..50edcea 100644
---- a/arch/arm/mach-omap2/mux.c
-+++ b/arch/arm/mach-omap2/mux.c
-@@ -317,6 +317,29 @@ err1:
- 	return NULL;
- }
- 
-+/* Gets the wakeup status of given pad from omap-hwmod */
-+int omap_hwmod_mux_wakeup(struct omap_hwmod_mux_info *hmux)
-+{
-+	int i;
-+	unsigned int val;
-+	u8 ret = 0;
-+
-+	for (i = 0; i < hmux->nr_pads; i++) {
-+		struct omap_device_pad *pad = &hmux->pads[i];
-+
-+		if (pad->flags & OMAP_DEVICE_PAD_WAKEUP) {
-+			val = omap_mux_read(pad->partition,
-+						pad->mux->reg_offset);
-+			if (val & OMAP_WAKEUP_EVENT) {
-+				ret = 1;
-+				break;
-+			}
-+		}
-+	}
-+
-+	return ret;
-+}
-+
- /* Assumes the calling function takes care of locking */
- void omap_hwmod_mux(struct omap_hwmod_mux_info *hmux, u8 state)
- {
-@@ -342,6 +365,9 @@ void omap_hwmod_mux(struct omap_hwmod_mux_info *hmux, u8 state)
- 				break;
- 			flags &= ~OMAP_DEVICE_PAD_ENABLED;
- 			val = pad->idle;
-+			if (flags & OMAP_DEVICE_PAD_WAKEUP)
-+				val |= OMAP_WAKEUP_EN;
-+
- 			pr_debug("%s: Idling %s %x\n", __func__,
- 					pad->name, val);
- 			break;
-@@ -358,6 +384,8 @@ void omap_hwmod_mux(struct omap_hwmod_mux_info *hmux, u8 state)
- 		};
- 
- 		if (val >= 0) {
-+			val |= omap_mux_read(pad->partition,
-+						pad->mux->reg_offset);
- 			omap_mux_write(pad->partition, val,
- 					pad->mux->reg_offset);
- 			pad->flags = flags;
-diff --git a/arch/arm/mach-omap2/mux.h b/arch/arm/mach-omap2/mux.h
-index a4ab17a..84a8fc2 100644
---- a/arch/arm/mach-omap2/mux.h
-+++ b/arch/arm/mach-omap2/mux.h
-@@ -220,8 +220,21 @@ omap_hwmod_mux_init(struct omap_device_pad *bpads, int nr_pads);
-  */
- void omap_hwmod_mux(struct omap_hwmod_mux_info *hmux, u8 state);
- 
-+
-+/**
-+ * omap_hwmod_mux_wakeup - omap hwmod check given pad had wakeup event
-+ * @hmux:		Pads for a hwmod
-+ *
-+ * Called only from omap_hwmod.c, do not use.
-+ */
-+int omap_hwmod_mux_wakeup(struct omap_hwmod_mux_info *hmux);
- #else
- 
-+static inline int omap_hwmod_mux_wakeup(struct omap_hwmod_mux_info *hmux)
-+{
-+	return 0;
-+}
-+
- static inline int omap_mux_init_gpio(int gpio, int val)
- {
- 	return 0;
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 9e89a58..893dae1 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -2239,3 +2239,16 @@ u32 omap_hwmod_get_context_loss_count(struct omap_hwmod *oh)
- 
- 	return ret;
- }
-+
-+/**
-+ * omap_hwmod_pad_wakeup_status - get pad wakeup status if mux is available.
-+ * @oh: struct omap_hwmod *
-+ *
-+ * Returns the wake_up status bit of available pad mux pin.
-+ */
-+int omap_hmwod_pad_wakeup_status(struct omap_hwmod *oh)
-+{
-+	if (oh->mux)
-+		return omap_hwmod_mux_wakeup(oh->mux);
-+	return -EINVAL;
-+}
-diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-index fedd829..4100be0 100644
---- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
-+++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-@@ -588,6 +588,7 @@ int omap_hwmod_for_each_by_class(const char *classname,
- int omap_hwmod_set_postsetup_state(struct omap_hwmod *oh, u8 state);
- u32 omap_hwmod_get_context_loss_count(struct omap_hwmod *oh);
- 
-+int omap_hmwod_pad_wakeup_status(struct omap_hwmod *oh);
- /*
-  * Chip variant-specific hwmod init routines - XXX should be converted
-  * to use initcalls once the initial boot ordering is straightened out
--- 
-1.7.1
+This series is Based on:
+a) k.org 2.6.38-rc7 (b2.6.38-rc7)
+b) The following branches Kevin Hilman's tree: (pm-base-v2)
+ 'pm/for_2.6.38/pm-fixes', 'pm/for_2.6.39/pm-misc' and 'pm/pm-wip/cpufreq'
+ http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git;a=summary
+ Rationale: there are some sr-cleanups done here which makes at least 1 patch
+ create a minor conflict (kasprintf for sr name), but should reasonably
+ apply to k.org as well, and since this series is targeted for 39-rc1, builds
+ on previously accepted patches.
 
+Some good fixes needed are here (optional):
+c) sr-fixes: (sr-baseline-v2)
+	http://marc.info/?l=linux-omap&m=129783708019505&w=2
+	http://marc.info/?l=linux-omap&m=129679846322563&w=2
+
+Other interesting series:
+i) http://marc.info/?t=129825445100003&r=1&w=2 cleanups of voltage.c
+	- rebase should be minor effort
+ii) http://marc.info/?l=linux-omap&m=129783700319445&w=2 fixes for omap4
+	- might conflict on macro cleanup with (i)
+	- should not conflict with the current series.
+
+This series is also available at:
+	git://gitorious.org/linux-omap-nm-sr/linux-omap-sr.git
+	Branch: sr-1.5-v2
+
+Note: There is also a branch dvfs-test-v2 in my tree which contains the test
+version of code for OMAP3 based on Vishwa's DVFS series which is currently
+being revamped. if run on OMAP4, it just throws up a bit of warnings, but
+wont crash.
+
+The series contains a bunch of bugfixes and improvements needed to introduce
+Smartreflex class 1.5.
+
+Changes in v2 since v1:
+* I dropped patch 2/19 for 3630 ES revision, based on the discussion in:
+	http://marc.info/?t=129811710300003&r=1&w=2
+  NOTE: 3630 ES revision fixes need to be cleanly done at a later point,
+  and there is not much use doing a temporary hackup job just for SR. Since
+  it ain't broke atm for higher ES revs for SR, I will leave it alone.
+* Fixed the bug exposed by bootloaders which setup an OPP which is not enabled
+  in kernel http://marc.info/?t=129811710500010&r=1&w=2
+  - parameter checks were necessary, impacted  patches 5 and 17
+* Documentation update following the explanation required for
+  http://marc.info/?t=129811710300007&r=1&w=2 for patch 5
+  - example provided in the discussion is useful for reviewer perspective in
+    commit message
+Comments not incorporated from v1:
+* http://marc.info/?t=129811710500007&r=1&w=2 - there is no reason to allow
+  sr notifiers after class has been deinitialized, so not allowing it.
+* http://marc.info/?t=129811710300004&r=1&w=2 - the omap2_init_voltage fix
+  is not the intent of this series. infact handling of mpurate and
+  omap2_init_voltage needs to be merged in at some future point of time.
+
+v1: http://marc.info/?l=linux-omap&m=129811693118173&w=2
+
+Nishanth Menon (18):
+  omap3: hwmod: add smartreflex irqs
+  omap3+: voltage: remove initial voltage
+  omap3+: voltage: remove spurious pr_notice for debugfs
+  omap3+: voltage: use IS_ERR_OR_NULL
+  omap3+: voltage: use volt_data pointer instead values
+  omap3+: voltage: add transdone apis
+  omap3+: sr: make notify independent of class
+  omap3+: sr: introduce class init,deinit and priv data
+  omap3+: sr: fix cosmetic indentation
+  omap3+: sr: call handler with interrupt disabled
+  omap3+: sr: disable interrupt by default
+  omap3+: sr: enable/disable SR only on need
+  omap3+: sr: introduce notifiers flags
+  omap3+: sr: introduce notifier_control
+  omap3+: sr: disable spamming interrupts
+  omap3+: sr: make enable path use volt_data pointer
+  omap3630+: sr: add support for class 1.5
+  omap3430: sr: class3: restrict cpu to run on
+
+ arch/arm/mach-omap2/Makefile                  |    1 +
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c    |   17 +
+ arch/arm/mach-omap2/pm.c                      |    3 +-
+ arch/arm/mach-omap2/smartreflex-class1p5.c    |  582 +++++++++++++++++++++++++
+ arch/arm/mach-omap2/smartreflex-class3.c      |   21 +-
+ arch/arm/mach-omap2/smartreflex.c             |  249 +++++++++--
+ arch/arm/mach-omap2/voltage.c                 |  251 ++++++++---
+ arch/arm/plat-omap/Kconfig                    |   17 +
+ arch/arm/plat-omap/include/plat/smartreflex.h |   42 ++-
+ arch/arm/plat-omap/include/plat/voltage.h     |   36 ++-
+ 10 files changed, 1097 insertions(+), 122 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/smartreflex-class1p5.c
+
+Testing performed:
+Testing with dvfs-test-v2 - http://pastebin.mozilla.org/1117872
+	- transitions from all opps to all other opps,sr enabled, disable
+	- platforms: SDP3430(OMAP3430), SDP3630(OMAP3630)
+	(note: dvfs series does'nt support OMAP4 yet)
+Testing with sr-1.5-v2 - http://pastebin.mozilla.org/1117880
+	- enable disable in domain combinations, test the new debugfs entries
+	  etc..
+	- platforms: SDP3430(OMAP3430), SDP3630(OMAP3630), PandaBoard(OMAP4430)
+
+Regards,
+Nishanth Menon
