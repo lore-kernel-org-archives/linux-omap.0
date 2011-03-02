@@ -1,63 +1,78 @@
-From: Maxime Coquelin <maxime.coquelin-nonst@stericsson.com>
-Subject: Re: [PATCHv5 0/3] Introduce the /proc/socinfo and use it to export
-	OMAP data
-Date: Wed, 2 Mar 2011 11:53:03 +0100
-Message-ID: <4D6E218F.2020804@stericsson.com>
-References: <1273587331-24604-1-git-send-email-eduardo.valentin@nokia.com>	<AANLkTin7vRMreG3hOAk95MYZUCV-Kr6ac7gD7jgvX6Gf@mail.gmail.com>	<20110216115729.GA29817@besouro.research.nokia.com>	<4D6B78BF.1020102@stericsson.com>	<4D6C7B56.9060109@codeaurora.org>	<AANLkTikvhj49DftS9c_NouASY9_MbYPCfmSUdJg6pf-5@mail.gmail.com>	<4D6D9B10.9000606@codeaurora.org>	<4D6D9D06.2020204@bluewatersys.com>	<4D6D9FC7.1090206@codeaurora.org>	<4D6DA290.2010607@bluewatersys.com>	<4D6DAA24.3000204@codeaurora.org>	<4D6DAE6E.4030701@bluewatersys.com>	<4D6DB1B1.4060908@codeaurora.org>	<4D6DFE67.3020801@stericsson.com>
-	<AANLkTimJh_uGP6SYo=9ndz4xiUs1Tbg7z70ng0aFcWyG@mail.gmail.com>
+From: "Menon, Nishanth" <nm@ti.com>
+Subject: Re: [PATCH 3/3] OMAP4: Enable Turbo and Nitro OPP for OMAP4
+Date: Wed, 2 Mar 2011 16:58:23 +0530
+Message-ID: <AANLkTiny+AM9p-AsmJwsJttxuuUoDwceZL=7TWRCmphR@mail.gmail.com>
+References: <1297837112-8924-1-git-send-email-shweta.gulati@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <AANLkTimJh_uGP6SYo=9ndz4xiUs1Tbg7z70ng0aFcWyG@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: ext Nishanth Menon <nm@ti.com>, ext Tony Lindgren <tony@atomide.com>, Peter De-Schrijver <Peter.De-Schrijver@nokia.com>, Ambresh <a0393775@ti.com>, Saravana Kannan <skannan@codeaurora.org>, Jouni Hogander <jouni.hogander@nokia.com>, Lee Jones <Lee.Jones@linaro.org>, Rabin VINCENT <rabin.vincent@stericsson.com>, Russell King <linux@arm.linux.org.uk>, Jonas ABERG <jonas.aberg@stericsson.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, David Brown <davidb@codeaurora.org>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, Loic PALLARDY <loic.pallardy@stericsson.com>, "eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>, Ryan Mallon <ryan@bluewatersys.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Daniel Walker <dwalker@codeaurora.org>, LKML <linux-kernel@vger.kernel.o>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:52349 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753556Ab1CBL2p convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 2 Mar 2011 06:28:45 -0500
+Received: by wwe15 with SMTP id 15so6412378wwe.24
+        for <linux-omap@vger.kernel.org>; Wed, 02 Mar 2011 03:28:43 -0800 (PST)
+In-Reply-To: <1297837112-8924-1-git-send-email-shweta.gulati@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Shweta Gulati <shweta.gulati@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-On 03/02/2011 11:36 AM, Linus Walleij wrote:
-> On Wed, Mar 2, 2011 at 9:23 AM, Maxime Coquelin
-> <maxime.coquelin-nonst@stericsson.com>  wrote:
+On Wed, Feb 16, 2011 at 11:48, Shweta Gulati <shweta.gulati@ti.com> wro=
+te:
+> All OMAP4 boards support OPP-Turbo (800M) and OPP-Nitro (1G).
+s/All OMAP4/Almost all/ - there are a minority of boards that use
+OMAP4430-800 device instead of the OMAP4430-1000 device.
+Also please use the full term 1GHz instead of 1G
+> Enable them by default in OPPTable. For 800Mhz devices where
+s/For 800Mhz/For the small minority of boards which use OMAP4430-800
+(800MHz device),
+> OPP-Nitro is not supported, OPP-Nitro should be disabled
+> from board file.
+
+even though the TI documentation terminology is Turbo, Nitro etc.., I
+suggest using frequencies to better map things historically.
 >
->> I think we should have a tree like this :
->>
->> /sys/devices/system/soc/
->> /sys/devices/system/soc/unique_id<- Unified way to export an ID for all machs
-> Arbitrary number of bits? Some will have a 64-bit ID, some will have 32-bit
-> etc.
-
-Yes, here is the difficulty. For example, in our case, the SoC unique ID 
-is 160 bits long.
-Maybe it would be a better solution to get rid of this unified file, and 
-keep only mach specific entries? I mean :
-
-/sys/devices/system/soc/
-/sys/devices/system/soc/mach_name
-/sys/devices/system/soc/foo_id
-/sys/devices/system/soc/bar_id
-
-
-> Should we say it's a hex string of 64 bits?
+> Signed-off-by: Shweta Gulati <shweta.gulati@ti.com>
+> ---
+> =A0arch/arm/mach-omap2/opp4xxx_data.c | =A0 =A04 ++--
+> =A01 files changed, 2 insertions(+), 2 deletions(-)
 >
->> /sys/devices/system/soc/mach/
->> /sys/devices/system/soc/mach/name<- Name of the mach
->> /sys/devices/system/soc/mach/foo_id
->> /sys/devices/system/soc/mach/bar_id<- Vendors may have several/different IDs
->> to export (IDCODE for OMAP, Production ID...)
-> For Ux500 we can export the stuff we print today in mach-ux500/id.c,
-> put in place earlier by Rabin, I'd prefer if you hook in the new ID stuff
-> there as well, since it's so little platform code, and a logical place to
-> have it in.
+> diff --git a/arch/arm/mach-omap2/opp4xxx_data.c b/arch/arm/mach-omap2=
+/opp4xxx_data.c
+> index 705fe9a..48d79e5 100644
+> --- a/arch/arm/mach-omap2/opp4xxx_data.c
+> +++ b/arch/arm/mach-omap2/opp4xxx_data.c
+> @@ -31,9 +31,9 @@ static struct omap_opp_def __initdata omap44xx_opp_=
+def_list[] =3D {
+> =A0 =A0 =A0 =A0/* MPU OPP2 - OPP100 */
+> =A0 =A0 =A0 =A0OPP_INITIALIZER("mpu", true, 600000000, OMAP4430_VDD_M=
+PU_OPP100_UV),
+> =A0 =A0 =A0 =A0/* MPU OPP3 - OPP-Turbo */
+> - =A0 =A0 =A0 OPP_INITIALIZER("mpu", false, 800000000, OMAP4430_VDD_M=
+PU_OPPTURBO_UV),
+> + =A0 =A0 =A0 OPP_INITIALIZER("mpu", true, 800000000, OMAP4430_VDD_MP=
+U_OPPTURBO_UV),
+> =A0 =A0 =A0 =A0/* MPU OPP4 - OPP-SB */
+> - =A0 =A0 =A0 OPP_INITIALIZER("mpu", false, 1008000000, OMAP4430_VDD_=
+MPU_OPPNITRO_UV),
+> + =A0 =A0 =A0 OPP_INITIALIZER("mpu", true, 1008000000, OMAP4430_VDD_M=
+PU_OPPNITRO_UV),
+> =A0 =A0 =A0 =A0/* L3 OPP1 - OPP50 */
+> =A0 =A0 =A0 =A0OPP_INITIALIZER("l3_main_1", true, 100000000, OMAP4430=
+_VDD_CORE_OPP50_UV),
+> =A0 =A0 =A0 =A0/* L3 OPP2 - OPP100, OPP-Turbo, OPP-SB */
+> --
+> 1.7.0.4
 
-I agree.
+I am ok with the overall patch - with the minor suggestions above.
 
 Regards,
-Maxime
+Nishanth Menon
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
