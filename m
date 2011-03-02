@@ -1,41 +1,45 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Nokia n810 LCD (MIPID/blizzard) on 2.6.38
-Date: Wed, 2 Mar 2011 10:30:33 -0800
-Message-ID: <20110302183033.GD20560@atomide.com>
-References: <1298925943.16391.19.camel@marge>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: State of SDP4430 platform
+Date: Wed, 2 Mar 2011 11:50:03 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1103021149450.16349@utopia.booyaka.com>
+References: <20110116010936.GA21795@n2100.arm.linux.org.uk> <alpine.DEB.2.00.1101152255100.13225@utopia.booyaka.com> <a40bc7a304b60cef73a3a0cfb84b2ee8@mail.gmail.com> <ceedbf20a12a6e821fda1496b10297a2@mail.gmail.com> <alpine.DEB.2.00.1101171611270.13225@utopia.booyaka.com>
+ <AANLkTinYuEoKNQZ_WRQ6Sd1S0CU4OKNGnxc6_Do3BW+M@mail.gmail.com> <alpine.DEB.2.00.1101191625590.7359@utopia.booyaka.com> <alpine.DEB.2.00.1101191626570.7359@utopia.booyaka.com> <alpine.DEB.2.00.1102071647100.21991@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:54670 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755579Ab1CBSai (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Mar 2011 13:30:38 -0500
-Content-Disposition: inline
-In-Reply-To: <1298925943.16391.19.camel@marge>
+Received: from utopia.booyaka.com ([72.9.107.138]:51768 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752168Ab1CBSuE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Mar 2011 13:50:04 -0500
+In-Reply-To: <alpine.DEB.2.00.1102071647100.21991@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Michael Buesch <mb@bu3sch.de>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Varadarajan Charulatha <charu@ti.com>, Paul Walmsley <paul@pwsan.com>
+To: "Krishnamoorthy, Balaji T" <balajitk@ti.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org
 
-* Michael Buesch <mb@bu3sch.de> [110228 12:43]:
+Balaji,
+
+On Mon, 7 Feb 2011, Paul Walmsley wrote:
+
+> On Wed, 19 Jan 2011, Paul Walmsley wrote:
 > 
-> The hwmod code performs a soft-reset on the GPIO
-> module. The first GPIO module carries the MIPID
-> "nreset" line, which is toggled due to the hwmod soft reset.
-> This resets Blizzard and breaks it, because
-> it assumes the LCD was left in the state that the
-> bootloader initialized it to:
+> > On Wed, 19 Jan 2011, Paul Walmsley wrote:
+> > 
+> > > On Wed, 19 Jan 2011, Krishnamoorthy, Balaji T wrote:
+> > > 
+> > > > in ES1, timeouts were observed only with RTC.
+> > > > I2C burst access to IRQ registers and bq24156 were OK
+> > > 
+> > > Was an errata generated for this bug?
+> > 
+> > er, erratum, pardon me...
+> 
+> Is an erratum present for this bug?
+> 
+> Also, will you generate a patch for this to at least warn the user when 
+> this situation occurs?
 
-The long term solution is to allow passing options to the
-hwmod framework to not reset pins from both board-*.c
-files and from cmdline.
+Still waiting for a response to this.
 
-For this case it would be nice to pass info from the board-*.c
-file to hwmod so it knows to skip reset only for this GPIO.
 
-For booting Linux from other OS, something like
-hwmod.reset_disable=all is needed to keep the LCD on.
-
-Regrads,
-
-Tony
+- Paul
