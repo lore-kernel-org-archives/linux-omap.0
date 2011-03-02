@@ -1,62 +1,237 @@
-From: Maxime Coquelin <maxime.coquelin-nonst@stericsson.com>
-Subject: Re: [PATCHv5 0/3] Introduce the /proc/socinfo and use it to export
-	OMAP data
-Date: Wed, 2 Mar 2011 09:50:39 +0100
-Message-ID: <4D6E04DF.3070905@stericsson.com>
-References: <1273587331-24604-1-git-send-email-eduardo.valentin@nokia.com>	<AANLkTin7vRMreG3hOAk95MYZUCV-Kr6ac7gD7jgvX6Gf@mail.gmail.com>	<20110216115729.GA29817@besouro.research.nokia.com>	<4D6B78BF.1020102@stericsson.com>	<4D6C7B56.9060109@codeaurora.org>	<AANLkTikvhj49DftS9c_NouASY9_MbYPCfmSUdJg6pf-5@mail.gmail.com>	<4D6D9B10.9000606@codeaurora.org>	<4D6D9D06.2020204@bluewatersys.com>	<4D6D9FC7.1090206@codeaurora.org>	<4D6DA290.2010607@bluewatersys.com>	<4D6DAA24.3000204@codeaurora.org>	<4D6DAE6E.4030701@bluewatersys.com>	<4D6DB1B1.4060908@codeaurora.org>	<4D6DB566.4090908@bluewatersys.com>	<4D6DB7CB.7070701@codeaurora.org>
-	<4D6DBAED.7070805@bluewatersys.com> <4D6DBD8C.70904@codeaurora.org>
-	<4D6DBF59.2050005@bluewatersys.com>
+From: Govindraj <govindraj.ti@gmail.com>
+Subject: Re: [PATCH 6/7] OMAP: Serial: Allow UART parameters to be configured
+ from board file
+Date: Wed, 2 Mar 2011 15:37:11 +0530
+Message-ID: <AANLkTi=MJigLvbJrRJ4CpyDcGd8sZXB7-1nFYup6EeDm@mail.gmail.com>
+References: <1298903958-6496-1-git-send-email-govindraj.raja@ti.com>
+ <1298903958-6496-7-git-send-email-govindraj.raja@ti.com> <056ac5e848953fa5c37f7ed7a8cc1050@mail.gmail.com>
+ <AANLkTimD9rOC=4P6Vy2jzvcXZ-gZmF42Te4CBjS8AJLT@mail.gmail.com> <8ab9882cd92792e9bf2b836c0ec9c7fe@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <4D6DBF59.2050005@bluewatersys.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Ryan Mallon <ryan@bluewatersys.com>
-Cc: ext Nishanth Menon <nm@ti.com>, ext Tony Lindgren <tony@atomide.com>, Peter De-Schrijver <Peter.De-Schrijver@nokia.com>, ext Linus Walleij <linus.walleij@linaro.org>, Ambresh <a0393775@ti.com>, Saravana Kannan <skannan@codeaurora.org>, Jouni Hogander <jouni.hogander@nokia.com>, Lee Jones <Lee.Jones@linaro.org>, Russell King <linux@arm.linux.org.uk>, Jonas ABERG <jonas.aberg@stericsson.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, David Brown <davidb@codeaurora.org>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, Loic PALLARDY <loic.pallardy@stericsson.com>, "eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Daniel Walker <dwalker@codeaurora.org>, LKML <linux-kernel@vger.kernel.org>, Andrei Warkentin <andreiw@motorol>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <8ab9882cd92792e9bf2b836c0ec9c7fe@mail.gmail.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Sricharan R <r.sricharan@ti.com>
+Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Jon Hunter <jon-hunter@ti.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Rajendra Nayak <rnayak@ti.com>, Deepak Kattungal <deepak.k@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 03/02/2011 04:54 AM, Ryan Mallon wrote:
-> On 03/02/2011 04:46 PM, Saravana Kannan wrote:
->> On 03/01/2011 07:35 PM, Ryan Mallon wrote:
->>> The only real objection I have to adding the SoC family information is
->>> basically to discourage it being abused by userspace. I can see it being
->>> useful in debug situations, but I can also see stupid userspace
->>> applications explicitly testing for some particular SoC, rather than
->>> more correctly (IMHO) checking for presence of certain drivers etc.
->> True, but so many other things could be misused by stupid userspace
->> programs. When there are legitimate usecases, I think we shouldn't
->> prevent them just because we think a stupid userspace program could
->> misuse it.
+On Wed, Mar 2, 2011 at 1:49 PM, Sricharan R <r.sricharan@ti.com> wrote:
+> Hi,
+>>-----Original Message-----
+>>From: Govindraj [mailto:govindraj.ti@gmail.com]
+>>Sent: Wednesday, March 02, 2011 1:11 PM
+>>To: Sricharan R
+>>Cc: Govindraj.R; linux-omap@vger.kernel.org;
+> linux-serial@vger.kernel.org;
+>>linux-arm-kernel@lists.infradead.org; Jon Hunter; Tony Lindgren; Beno=
+it
+>>Cousson; Kevin Hilman; Paul Walmsley; Rajendra Nayak; Deepak Kattunga=
+l
+>>Subject: Re: [PATCH 6/7] OMAP: Serial: Allow UART parameters to be
+>>configured from board file
 >>
->> Again, although you might not be gung-ho about this, I think I have at
->> least made you indifferent/mildly supportive to adding socinfo. If you
->> don't mind, I would like to wait for others to chime in before
->> continuing this discussion.
-> Agreed.
+>>On Wed, Mar 2, 2011 at 12:46 AM, Sricharan R <r.sricharan@ti.com> wro=
+te:
+>>> Hi,
+>>>>diff --git a/arch/arm/mach-omap2/serial.c
+> b/arch/arm/mach-omap2/serial.c
+>>>>index 755f4aa..530e9e3 100644
+>>>>--- a/arch/arm/mach-omap2/serial.c
+>>>>+++ b/arch/arm/mach-omap2/serial.c
+>>>>@@ -44,6 +44,15 @@
+>>>>
+>>>> static int omap_uart_con_id __initdata =3D -1;
+>>>>
+>>>>+static struct omap_uart_port_info omap_serial_default_info[] =3D {
+>>>>+ =A0 =A0 =A0{
+>>>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.dma_enabled =A0 =A0=3D 0,
+>>>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.dma_rx_buf_size =3D DEFAULT_RXDMA_BUF=
+SIZE,
+>>>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.dma_rx_timeout =3D DEFAULT_RXDMA_TIME=
+OUT,
+>>>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.idle_timeout =A0 =3D DEFAULT_IDLE_TIM=
+EOUT,
+>>>>+ =A0 =A0 =A0},
+>>>>+};
+>>>>+
+>>>> static int uart_idle_hwmod(struct omap_device *od)
+>>>> {
+>>>> =A0 =A0 =A0 omap_hwmod_idle(od->hwmods[0]);
+>>>>@@ -66,6 +75,54 @@ static struct omap_device_pm_latency
+>>> omap_uart_latency[]
+>>>>=3D {
+>>>> =A0 =A0 =A0 },
+>>>> };
+>>>>
+>>>>+#ifdef CONFIG_OMAP_MUX
+>>>>+static struct omap_device_pad default_serial0_pads[] __initdata =3D=
+ {
+>>>>+ =A0 =A0 =A0{
+>>>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.name =A0 =3D "uart1_rx.uart1_rx",
+>>>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.flags =A0=3D OMAP_DEVICE_PAD_REMUX |
+> OMAP_DEVICE_PAD_WAKEUP,
+>>>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.enable =3D OMAP_MUX_MODE0,
+>>>>+ =A0 =A0 =A0},
+>>>>+};
+>>>>+
+>>>>+static struct omap_device_pad default_serial1_pads[] __initdata =3D=
+ {
+>>>>+ =A0 =A0 =A0{
+>>>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.name =A0 =3D "uart2_rx.uart2_rx",
+>>>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.flags =A0=3D OMAP_DEVICE_PAD_REMUX |
+> OMAP_DEVICE_PAD_WAKEUP,
+>>>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.enable =3D OMAP_MUX_MODE0,
+>>>>+ =A0 =A0 =A0},
+>>>>+};
+>>>>+
+>>>>+static struct omap_device_pad default_serial2_pads[] __initdata =3D=
+ {
+>>>>+ =A0 =A0 =A0{
+>>>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.name =A0 =3D "uart3_rx_irrx.uart3_rx_=
+irrx",
+>>>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.flags =A0=3D OMAP_DEVICE_PAD_REMUX |
+> OMAP_DEVICE_PAD_WAKEUP,
+>>>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.enable =3D OMAP_MUX_MODE0,
+>>>>+ =A0 =A0 =A0},
+>>>>+};
+>>>>+
+>>>>+static struct omap_device_pad default_omap36xx_serial3_pads[]
+> __initdata
+>>> =3D
+>>>>{
+>>>>+ =A0 =A0 =A0{
+>>>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.name =A0 =3D "gpmc_wait3.uart4_rx",
+>>>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.flags =A0=3D OMAP_DEVICE_PAD_REMUX |
+> OMAP_DEVICE_PAD_WAKEUP,
+>>>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.enable =3D OMAP_MUX_MODE2,
+>>>>+ =A0 =A0 =A0},
+>>>>+};
+>>>>+
+>>>>+static struct omap_device_pad default_omap4_serial3_pads[] __initd=
+ata
+> =3D
+>>> {
+>>>>+ =A0 =A0 =A0{
+>>>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.name =A0 =3D "uart4_rx.uart4_rx",
+>>>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.flags =A0=3D OMAP_DEVICE_PAD_REMUX |
+> OMAP_DEVICE_PAD_WAKEUP,
+>>>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.enable =3D OMAP_MUX_MODE0,
+>>>>+ =A0 =A0 =A0},
+>>>>+};
+>>> Here only the UART RX pins are muxed, so what about the cts, rts, t=
+x
+>>pins?
+>>
+>>The intention here is to enable wakeup capabilities for uart rx pad.
+>>
+>>AFAIK most of the boards are currently dependent on bootloader for
+>>uart-muxing if any board is not dependent on bootloader then we
+>>can use omap_serial_init_port along with board_mux_info from board.
+>>
+> Yes. The idea is to be independent of the bootloaders for mux setting=
+s.
 >
-> In general I am in support of having the SoC information exposed
-> somewhere. I think we just want to be careful that it doesn't become a
-> dumping ground for anything and everything SoC related whether the
-> information is useful or not. I think each piece of exposed information
-> should have a genuine use case, not just "because we can".
-I definitely agree we should not export every SoC-related information 
-just because we can do it.
-The first goal of this interface was to export some SoCs IDs, as we need 
-this kind of information for some user-space tools.
-Does someone need to export other information than the mach name and 
-some IDs?
+>>Prior to this change uart wakeup is based on rx_pad and we were
+> populating
+>>offset and using omap_ctrl api's to read/write which is cleaned up no=
+w.
+>>Most of boards are dependent on uart-rx wakeup to avoid breaking any
+>>board support we
+>>are using omap_serial_init by filling default values, which provides
+>>us with same
+>>environment but with right approach towards handling mux data with a
+>>handshake with
+>>hwmod framework.
+>>
+> Now, in this change only the RX pin is configured. So if some board u=
+ses
+> omap_serial_init then only the RX is going to be configured.
+> How will they configure the rest of the pins?
 
-As proposed in my previous mail, do you agree to have a unified file for 
-all vendors, which exports the unique silicon ID of the chip?
 
-Regards,
-Maxime
+They should call omap_serial_init_port to configure each individual uar=
+t with
+mux_info filled and not use omap_serial_init.
+
+If any board is not dependent for mux from u-boot then they use above s=
+aid
+init_port func.
+
+
+> They cannot call omap_serial_init_port after this just to configure t=
+he
+> rest of the mux pins( cts, rts, tx).
+
+No. You need to use either omap_serial_init_port or omap_serial_init
+you cannot call both apis from board file please refer to both func
+documentation.
+
+Also please note i am not configuring all uart pins for pullups and pul=
+l downs
+with this patch series and its not related to this patch series.
+I am only enabling wakeup-enable pin for rx as it was done before.
+
+> So data which is passed from omap_serial_init should have the
+> configuration
+> for all the pins, and this default data should be consistent across
+> atleast
+> some boards, so that they can use this. This will reduce the data
+> duplication across board files.
+>
+> If this is not true, then all the pads can be configured from the boa=
+rd
+> files itself using omap_serial_init_port and you can set the required
+> RX wakeup capability there as well.
+>
+
+Yes that be done but currently but that is not in my intention here
+with my patch
+I just want to retain rx wakeup by default to avoid breaking support
+for any board.
+
+Adding pin mux for each individual pin is a separate activity where I a=
+lso
+need access to various boards So I am leaving that to developers who
+want to configure
+for the corresponding boards using init_port api.
+
+Removing mux from u-boot level and adding it to board file is beyond
+the scope of this
+patch series and is a separate topic of discussion, as current patch se=
+ries
+assumes that uarts are muxed from u-boot level and needs to only enable=
+ wakeup
+capability for rx-pin.
+
+Hope this clarifies.
+
+--
+Thanks,
+Govindraj.R
+
+
+>>So if any board needs specific mux they can go ahead and add required
+>>mux data in
+>>board file and use map_serial_init_port instead of current
+>>omap_serial_init.
+>>
+>>
+>>> Is it consistent that across all socs that only UART3 would have
+>>UART/IRDA
+>>> functions capability so that serial2 pads can always be called
+> "rx_irxx"
+>>> ?.
+>>
+>>Yes from OMAP2420 to OMAP4430 uart3 can used as irda.
+>>
+> Ok.
+>>--
+>>Thanks,
+>>Govindraj.R
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-serial"=
+ in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
