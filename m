@@ -1,81 +1,94 @@
 From: "Varadarajan, Charulatha" <charu@ti.com>
-Subject: Re: Nokia n810 LCD (MIPID/blizzard) on 2.6.38
-Date: Wed, 2 Mar 2011 10:11:29 +0530
-Message-ID: <AANLkTimJi6y8zUVzV6_e9RKb6=54-JzNMkbkjwPfc-81@mail.gmail.com>
-References: <1298925943.16391.19.camel@marge> <AANLkTikmwLoUPJrFZ2o7qsO8MbxBLe2hMbetwxeToW-Z@mail.gmail.com>
- <1298996981.6461.5.camel@maggie>
+Subject: Re: [PATCH 2/7] OMAP2+: mux: Enable wakeup for wakeup enable
+ requested pads
+Date: Wed, 2 Mar 2011 10:19:58 +0530
+Message-ID: <AANLkTim8tTO5wDvzXxy8G35vYMBsXP2fJu=KHDHpw7aC@mail.gmail.com>
+References: <1298903958-6496-1-git-send-email-govindraj.raja@ti.com> <1298903958-6496-3-git-send-email-govindraj.raja@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:35233 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757565Ab1CBEmL convert rfc822-to-8bit
+Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:49366 "EHLO
+	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757925Ab1CBEuj convert rfc822-to-8bit
 	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 1 Mar 2011 23:42:11 -0500
-Received: by mail-gx0-f181.google.com with SMTP id 3so820041gxk.40
-        for <linux-omap@vger.kernel.org>; Tue, 01 Mar 2011 20:42:09 -0800 (PST)
-In-Reply-To: <1298996981.6461.5.camel@maggie>
+	Tue, 1 Mar 2011 23:50:39 -0500
+In-Reply-To: <1298903958-6496-3-git-send-email-govindraj.raja@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?ISO-8859-1?Q?Michael_B=FCsch?= <mb@bu3sch.de>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
+To: "Govindraj.R" <govindraj.raja@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Rajendra Nayak <rnayak@ti.com>
 
-On Tue, Mar 1, 2011 at 21:59, Michael B=FCsch <mb@bu3sch.de> wrote:
-> On Tue, 2011-03-01 at 11:23 -0500, Varadarajan, Charulatha wrote:
->> > My temporary workaround to this issue is to disable
->> > soft reset for the first GPIO module:
->> >
->> > =A0 =A0 =A0 =A0static struct omap_hwmod omap2420_gpio1_hwmod =3D {
->> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.name =A0 =A0 =A0 =A0 =A0 =3D "gpio=
-1",
->> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.flags =A0 =A0 =A0 =A0 =A0=3D HWMOD=
-_INIT_NO_RESET, /* Workaround: Don't reset the n810 MIPID */
->>
->> NACK.
->>
->> As the problem is specific to the board settings, this shall be hand=
-led
->> in the board file itself.
+Govind,
+
+Couple of minor comments.
+
+On Mon, Feb 28, 2011 at 20:09, Govindraj.R <govindraj.raja@ti.com> wrot=
+e:
+> For device pads which have OMAP_DEVICE_PAD_WAKEUP set (which means th=
+ey
+> are wakeup capable) enable the IO-daisy wakeup capability.
+> During re-muxing avoid direct write with val as this can disturb if a=
+ny
+> mux done at bootloader level so read the pad then write back.
 >
-> Yeah, sure. But how can I handle this in the board file? Is
-> there a hwmod API for this?
+> Also add a api to fetch the wake-up status bit is set for given omap-=
+hwmod
+
+%s/a api/an API/
+
+> device using available mux info which is added during omap_hwmod_mux_=
+init.
+> Wakeup status bit is needed for uart_resume_idle call from sram_idle =
+path
+> based on wake-up event has occurred for given uart we can enable cloc=
+ks back.
 >
->> > I'm wondering if a better fix suitable for the mainline
->> > kernel inclusion could be found.
->> > Any ideas?
->>
->> Re-initialize the =A0"nreset" line of the Blizzard in the
->> corresponding board file.
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
+> ---
+> =A0arch/arm/mach-omap2/mux.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0|=
+ =A0 23 +++++++++++++++++++++++
+> =A0arch/arm/mach-omap2/mux.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0|=
+ =A0 13 +++++++++++++
+> =A0arch/arm/mach-omap2/omap_hwmod.c =A0 =A0 =A0 =A0 =A0 =A0 | =A0 13 =
++++++++++++++
+> =A0arch/arm/plat-omap/include/plat/omap_hwmod.h | =A0 =A01 +
+> =A04 files changed, 50 insertions(+), 0 deletions(-)
 >
-> That is not sufficient. The blizzard chip has to be reinitialized
-> completely.
-
-Yes. I meant the same but did not mention it clearly :-(
-
-> Code for that doesn't exist in the current driver. It currently depen=
-ds
-> on the bootloader doing the lowlevel init. As long as I don't have
-> documentation for that chip, I'm stuck with that.
-
-How about the following driver?
-drivers/video/omap/blizzard.c
-
-I guess this is the same Blizzard  LCD driver.
-
-You may also be interested in the following which I came across while
-searching for Blizzard LCD.
-
-https://dev.openwrt.org/browser/trunk/target/linux/omap24xx/patches-2.6=
-=2E36/300-nokia-board.patch?rev=3D23082
-
--V Charulatha
-
+> diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+> index 98148b6..5338b93 100644
+> --- a/arch/arm/mach-omap2/mux.c
+> +++ b/arch/arm/mach-omap2/mux.c
+> @@ -317,6 +317,24 @@ err1:
+> =A0 =A0 =A0 =A0return NULL;
+> =A0}
 >
-> --
-> Greetings Michael.
->
->
+> +/* Gets the wakeup status of given pad from omap-hwmod */
+> +int omap_hwmod_mux_wakeup(struct omap_hwmod_mux_info *hmux)
+> +{
+> + =A0 =A0 =A0 int i;
+> + =A0 =A0 =A0 unsigned int val =3D -EINVAL;
+> +
+> + =A0 =A0 =A0 for (i =3D 0; i < hmux->nr_pads; i++) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 struct omap_device_pad *pad =3D &hmux->=
+pads[i];
+> +
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 val =3D omap_mux_read(pad->partition, p=
+ad->mux->reg_offset);
+> + =A0 =A0 =A0 }
+> +
+> + =A0 =A0 =A0 if (val > 0 && val & OMAP_WAKEUP_EVENT)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return 1;
+> + =A0 =A0 =A0 else
+
+No need of else here.
+
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return 0;
+> +}
+> +
+
+- V Charulatha
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
