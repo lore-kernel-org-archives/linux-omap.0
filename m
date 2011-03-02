@@ -1,67 +1,135 @@
-From: Maxime Coquelin <maxime.coquelin-nonst@stericsson.com>
-Subject: Re: [PATCHv5 0/3] Introduce the /proc/socinfo and use it to export
-	OMAP data
-Date: Wed, 2 Mar 2011 13:17:18 +0100
-Message-ID: <4D6E354E.5010208@stericsson.com>
-References: <AANLkTikvhj49DftS9c_NouASY9_MbYPCfmSUdJg6pf-5@mail.gmail.com>
-	<4D6D9B10.9000606@codeaurora.org>
-	<4D6D9D06.2020204@bluewatersys.com>
-	<4D6D9FC7.1090206@codeaurora.org>
-	<4D6DA290.2010607@bluewatersys.com>
-	<4D6DAA24.3000204@codeaurora.org>
-	<4D6DAE6E.4030701@bluewatersys.com>
-	<4D6DB1B1.4060908@codeaurora.org> <4D6DFE67.3020801@stericsson.com>
-	<AANLkTimJh_uGP6SYo=9ndz4xiUs1Tbg7z70ng0aFcWyG@mail.gmail.com>
-	<20110302113823.GB2728@pulham.picochip.com>
+From: David Cohen <dacohen@gmail.com>
+Subject: Re: [PATCH] OMAP:iommu - pgd and pte entries weren't getting flushed out
+Date: Wed, 2 Mar 2011 14:42:36 +0200
+Message-ID: <AANLkTince7L2uRog-nCJa14GH6ieKw2hEfEfWNZeGgNj@mail.gmail.com>
+References: <1299008793-27428-1-git-send-email-fernando.lugo@ti.com>
+	<1299008793-27428-2-git-send-email-fernando.lugo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20110302113823.GB2728@pulham.picochip.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Jamie Iles <jamie@jamieiles.com>
-Cc: ext Nishanth Menon <nm@ti.com>, ext Tony Lindgren <tony@atomide.com>, Peter De-Schrijver <Peter.De-Schrijver@nokia.com>, Linus Walleij <linus.walleij@linaro.org>, Ambresh <a0393775@ti.com>, Saravana Kannan <skannan@codeaurora.org>, Andrei Warkentin <andreiw@motorola.com>, Lee Jones <Lee.Jones@linaro.org>, Rabin VINCENT <rabin.vincent@stericsson.com>, Russell King <linux@arm.linux.org.uk>, Jonas ABERG <jonas.aberg@stericsson.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, David Brown <davidb@codeaurora.org>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, Loic PALLARDY <loic.pallardy@stericsson.com>, "eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>, Ryan Mallon <ryan@bluewatersys.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Daniel Walker <dwalker@codeaurora>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ww0-f42.google.com ([74.125.82.42]:46127 "EHLO
+	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755269Ab1CBMmh convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Mar 2011 07:42:37 -0500
+In-Reply-To: <1299008793-27428-2-git-send-email-fernando.lugo@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Fernando Guzman Lugo <fernando.lugo@ti.com>
+Cc: hiroshi.doyu@nokia.com, tony@atomide.com, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Hari Kanigeri <h-kanigeri2@ti.com>
 
-On 03/02/2011 12:38 PM, Jamie Iles wrote:
-> On Wed, Mar 02, 2011 at 11:36:38AM +0100, Linus Walleij wrote:
->> On Wed, Mar 2, 2011 at 9:23 AM, Maxime Coquelin
->> <maxime.coquelin-nonst@stericsson.com>  wrote:
->>
->>> I think we should have a tree like this :
->>>
->>> /sys/devices/system/soc/
->>> /sys/devices/system/soc/unique_id<- Unified way to export an ID for all machs
->> Arbitrary number of bits? Some will have a 64-bit ID, some will have 32-bit
->> etc.
->>
->> Should we say it's a hex string of 64 bits?
-> Could we provide hooks for the platform that takes the buffer and length
-> and let the platform do the snprintf()?  Our devices have a 128-bit
-> serial number and I'm sure there must be others.
+Hi,
 
-This is one possibility, another one is to let the platform specify how 
-it exports this serial, as you proposed bellow.
+On Tue, Mar 1, 2011 at 9:46 PM, Fernando Guzman Lugo
+<fernando.lugo@ti.com> wrote:
+> From: Hari Kanigeri <h-kanigeri2@ti.com>
+>
+> pgd and pte entries weren't getting flushed out leading to MMU faults=
+=2E
 
->>> /sys/devices/system/soc/mach/
->>> /sys/devices/system/soc/mach/name<- Name of the mach
->>> /sys/devices/system/soc/mach/foo_id
->>> /sys/devices/system/soc/mach/bar_id<- Vendors may have several/different IDs
->>> to export (IDCODE for OMAP, Production ID...)
-> Do we need a way to allow platforms to specify additional attributes to
-> co into the socinfo?  For our devices we can boot in different modes and
-> how we boot determines how the firmware is upgraded.  In the case above
-> the platform could specify that it needs foo_id and bar_id and the
-> callbacks to fill them in.
+May I ask you to add to the patch body description why it's wrong and
+why your solution is necessary?
 
-Yes it was what I thought with the foo and bar IDs exports.
+Br,
 
-Maxime
+David
+
+>
+> Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
+> ---
+> =C2=A0arch/arm/plat-omap/iommu.c | =C2=A0 12 ++++++------
+> =C2=A01 files changed, 6 insertions(+), 6 deletions(-)
+>
+> diff --git a/arch/arm/plat-omap/iommu.c b/arch/arm/plat-omap/iommu.c
+> index aeb2c33..e9473ff 100644
+> --- a/arch/arm/plat-omap/iommu.c
+> +++ b/arch/arm/plat-omap/iommu.c
+> @@ -508,7 +508,7 @@ static u32 *iopte_alloc(struct iommu *obj, u32 *i=
+opgd, u32 da)
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0return ERR_PTR(-ENOMEM);
+>
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0*iopgd =3D vir=
+t_to_phys(iopte) | IOPGD_TABLE;
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 flush_iopgd_range(=
+iopgd, iopgd);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 flush_iopgd_range(=
+iopgd, iopgd + 1);
+>
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0dev_vdbg(obj->=
+dev, "%s: a new pte:%p\n", __func__, iopte);
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0} else {
+> @@ -537,7 +537,7 @@ static int iopgd_alloc_section(struct iommu *obj,=
+ u32 da, u32 pa, u32 prot)
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0}
+>
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0*iopgd =3D (pa & IOSECTION_MASK) | prot | =
+IOPGD_SECTION;
+> - =C2=A0 =C2=A0 =C2=A0 flush_iopgd_range(iopgd, iopgd);
+> + =C2=A0 =C2=A0 =C2=A0 flush_iopgd_range(iopgd, iopgd + 1);
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0return 0;
+> =C2=A0}
+>
+> @@ -554,7 +554,7 @@ static int iopgd_alloc_super(struct iommu *obj, u=
+32 da, u32 pa, u32 prot)
+>
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0for (i =3D 0; i < 16; i++)
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0*(iopgd + i) =3D=
+ (pa & IOSUPER_MASK) | prot | IOPGD_SUPER;
+> - =C2=A0 =C2=A0 =C2=A0 flush_iopgd_range(iopgd, iopgd + 15);
+> + =C2=A0 =C2=A0 =C2=A0 flush_iopgd_range(iopgd, iopgd + 16);
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0return 0;
+> =C2=A0}
+>
+> @@ -567,7 +567,7 @@ static int iopte_alloc_page(struct iommu *obj, u3=
+2 da, u32 pa, u32 prot)
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0return PTR_ERR=
+(iopte);
+>
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0*iopte =3D (pa & IOPAGE_MASK) | prot | IOP=
+TE_SMALL;
+> - =C2=A0 =C2=A0 =C2=A0 flush_iopte_range(iopte, iopte);
+> + =C2=A0 =C2=A0 =C2=A0 flush_iopte_range(iopte, iopte + 1);
+>
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0dev_vdbg(obj->dev, "%s: da:%08x pa:%08x pt=
+e:%p *pte:%08x\n",
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 __func__, da,=
+ pa, iopte, *iopte);
+> @@ -592,7 +592,7 @@ static int iopte_alloc_large(struct iommu *obj, u=
+32 da, u32 pa, u32 prot)
+>
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0for (i =3D 0; i < 16; i++)
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0*(iopte + i) =3D=
+ (pa & IOLARGE_MASK) | prot | IOPTE_LARGE;
+> - =C2=A0 =C2=A0 =C2=A0 flush_iopte_range(iopte, iopte + 15);
+> + =C2=A0 =C2=A0 =C2=A0 flush_iopte_range(iopte, iopte + 16);
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0return 0;
+> =C2=A0}
+>
+> @@ -763,7 +763,7 @@ void iopgtable_clear_entry_all(struct iommu *obj)
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0iopte_free(iopte_offset(iopgd, 0));
+>
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0*iopgd =3D 0;
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 flush_iopgd_range(=
+iopgd, iopgd);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 flush_iopgd_range(=
+iopgd, iopgd + 1);
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0}
+>
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0flush_iotlb_all(obj);
+> --
+> 1.7.0.4
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =C2=A0http://vger.kernel.org/majordomo-info.ht=
+ml
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
