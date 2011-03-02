@@ -1,60 +1,83 @@
-From: Ryan Mallon <ryan@bluewatersys.com>
-Subject: Re: [PATCHv5 0/3] Introduce the /proc/socinfo and use it to export
- OMAP data
-Date: Wed, 02 Mar 2011 16:54:01 +1300
-Message-ID: <4D6DBF59.2050005@bluewatersys.com>
-References: <1273587331-24604-1-git-send-email-eduardo.valentin@nokia.com>	<AANLkTin7vRMreG3hOAk95MYZUCV-Kr6ac7gD7jgvX6Gf@mail.gmail.com>	<20110216115729.GA29817@besouro.research.nokia.com>	<4D6B78BF.1020102@stericsson.com>	<4D6C7B56.9060109@codeaurora.org>	<AANLkTikvhj49DftS9c_NouASY9_MbYPCfmSUdJg6pf-5@mail.gmail.com>	<4D6D9B10.9000606@codeaurora.org>	<4D6D9D06.2020204@bluewatersys.com>	<4D6D9FC7.1090206@codeaurora.org>	<4D6DA290.2010607@bluewatersys.com>	<4D6DAA24.3000204@codeaurora.org>	<4D6DAE6E.4030701@bluewatersys.com>	<4D6DB1B1.4060908@codeaurora.org>	<4D6DB566.4090908@bluewatersys.com>	<4D6DB7CB.7070701@codeaurora.org> <4D6DBAED.7070805@bluewatersys.com> <4D6DBD8C.70904@codeaurora.org>
+From: "Varadarajan, Charulatha" <charu@ti.com>
+Subject: Re: Nokia n810 LCD (MIPID/blizzard) on 2.6.38
+Date: Wed, 2 Mar 2011 10:11:29 +0530
+Message-ID: <AANLkTimJi6y8zUVzV6_e9RKb6=54-JzNMkbkjwPfc-81@mail.gmail.com>
+References: <1298925943.16391.19.camel@marge> <AANLkTikmwLoUPJrFZ2o7qsO8MbxBLe2hMbetwxeToW-Z@mail.gmail.com>
+ <1298996981.6461.5.camel@maggie>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-msm-owner@vger.kernel.org>
-In-Reply-To: <4D6DBD8C.70904@codeaurora.org>
-Sender: linux-arm-msm-owner@vger.kernel.org
-To: Saravana Kannan <skannan@codeaurora.org>
-Cc: ext Nishanth Menon <nm@ti.com>, ext Tony Lindgren <tony@atomide.com>, Peter De-Schrijver <Peter.De-Schrijver@nokia.com>, ext Linus Walleij <linus.walleij@linaro.org>, Ambresh <a0393775@ti.com>, Andrei Warkentin <andreiw@motorola.com>, Lee Jones <Lee.Jones@linaro.org>, Russell King <linux@arm.linux.org.uk>, Jonas ABERG <jonas.aberg@stericsson.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, David Brown <davidb@codeaurora.org>, Maxime Coquelin <maxime.coquelin-nonst@stericsson.com>, linux-arm-msm@vger.kernel.org, loic.pallardy@stericsson.com, "eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Daniel Walker <dwalker@codeaurora.org>, LKML <linux-kernel@vger.kernel.org>, Jouni Hogander <jouni.hogander@nokia.com>, Paul Mundt <lethal@linux>
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:35233 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757565Ab1CBEmL convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 1 Mar 2011 23:42:11 -0500
+Received: by mail-gx0-f181.google.com with SMTP id 3so820041gxk.40
+        for <linux-omap@vger.kernel.org>; Tue, 01 Mar 2011 20:42:09 -0800 (PST)
+In-Reply-To: <1298996981.6461.5.camel@maggie>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: =?ISO-8859-1?Q?Michael_B=FCsch?= <mb@bu3sch.de>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
 
-On 03/02/2011 04:46 PM, Saravana Kannan wrote:
-> On 03/01/2011 07:35 PM, Ryan Mallon wrote:
->> On 03/02/2011 04:21 PM, Saravana Kannan wrote:
->>> On 03/01/2011 07:11 PM, Ryan Mallon wrote:
->>>> On 03/02/2011 03:55 PM, Saravana Kannan wrote:
->>>>> On 03/01/2011 06:41 PM, Ryan Mallon wrote:
->>>>>> On 03/02/2011 03:23 PM, Saravana Kannan wrote:
+On Tue, Mar 1, 2011 at 21:59, Michael B=FCsch <mb@bu3sch.de> wrote:
+> On Tue, 2011-03-01 at 11:23 -0500, Varadarajan, Charulatha wrote:
+>> > My temporary workaround to this issue is to disable
+>> > soft reset for the first GPIO module:
+>> >
+>> > =A0 =A0 =A0 =A0static struct omap_hwmod omap2420_gpio1_hwmod =3D {
+>> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.name =A0 =A0 =A0 =A0 =A0 =3D "gpio=
+1",
+>> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.flags =A0 =A0 =A0 =A0 =A0=3D HWMOD=
+_INIT_NO_RESET, /* Workaround: Don't reset the n810 MIPID */
+>>
+>> NACK.
+>>
+>> As the problem is specific to the board settings, this shall be hand=
+led
+>> in the board file itself.
+>
+> Yeah, sure. But how can I handle this in the board file? Is
+> there a hwmod API for this?
+>
+>> > I'm wondering if a better fix suitable for the mainline
+>> > kernel inclusion could be found.
+>> > Any ideas?
+>>
+>> Re-initialize the =A0"nreset" line of the Blizzard in the
+>> corresponding board file.
+>
+> That is not sufficient. The blizzard chip has to be reinitialized
+> completely.
 
-<snip>
+Yes. I meant the same but did not mention it clearly :-(
 
->> The only real objection I have to adding the SoC family information is
->> basically to discourage it being abused by userspace. I can see it being
->> useful in debug situations, but I can also see stupid userspace
->> applications explicitly testing for some particular SoC, rather than
->> more correctly (IMHO) checking for presence of certain drivers etc.
-> 
-> True, but so many other things could be misused by stupid userspace
-> programs. When there are legitimate usecases, I think we shouldn't
-> prevent them just because we think a stupid userspace program could
-> misuse it.
-> 
-> Again, although you might not be gung-ho about this, I think I have at
-> least made you indifferent/mildly supportive to adding socinfo. If you
-> don't mind, I would like to wait for others to chime in before
-> continuing this discussion.
+> Code for that doesn't exist in the current driver. It currently depen=
+ds
+> on the bootloader doing the lowlevel init. As long as I don't have
+> documentation for that chip, I'm stuck with that.
 
-Agreed.
+How about the following driver?
+drivers/video/omap/blizzard.c
 
-In general I am in support of having the SoC information exposed
-somewhere. I think we just want to be careful that it doesn't become a
-dumping ground for anything and everything SoC related whether the
-information is useful or not. I think each piece of exposed information
-should have a genuine use case, not just "because we can".
+I guess this is the same Blizzard  LCD driver.
 
-~Ryan
+You may also be interested in the following which I came across while
+searching for Blizzard LCD.
 
--- 
-Bluewater Systems Ltd - ARM Technology Solution Centre
+https://dev.openwrt.org/browser/trunk/target/linux/omap24xx/patches-2.6=
+=2E36/300-nokia-board.patch?rev=3D23082
 
-Ryan Mallon         		5 Amuri Park, 404 Barbadoes St
-ryan@bluewatersys.com         	PO Box 13 889, Christchurch 8013
-http://www.bluewatersys.com	New Zealand
-Phone: +64 3 3779127		Freecall: Australia 1800 148 751
-Fax:   +64 3 3779135			  USA 1800 261 2934
+-V Charulatha
+
+>
+> --
+> Greetings Michael.
+>
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
