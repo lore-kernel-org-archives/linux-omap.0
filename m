@@ -1,46 +1,66 @@
-From: Armando Uribe <x0095078@ti.com>
-Subject: [PATCHv2] omap:mailbox: resolve hang issue
-Date: Wed,  2 Mar 2011 16:14:18 -0600
-Message-ID: <1299104058-28565-1-git-send-email-x0095078@ti.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: hiroshi.doyu@nokia.com
-Cc: ohad@wizery.com, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Hari Kanigeri <h-kanigeri2@ti.com>, Armando Uribe <x0095078@ti.com>, Fernando Guzman Lugo <fernando.lugo@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH 03/17] omap4: Export scu base address
+Date: Wed, 02 Mar 2011 13:58:43 -0800
+Message-ID: <87lj0x6v70.fsf@ti.com>
+References: <1298112158-28469-1-git-send-email-santosh.shilimkar@ti.com>
+	<1298112158-28469-4-git-send-email-santosh.shilimkar@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:59248 "EHLO
+	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757791Ab1CBV6s (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Mar 2011 16:58:48 -0500
+Received: by mail-iw0-f173.google.com with SMTP id 42so433324iwl.18
+        for <linux-omap@vger.kernel.org>; Wed, 02 Mar 2011 13:58:46 -0800 (PST)
+In-Reply-To: <1298112158-28469-4-git-send-email-santosh.shilimkar@ti.com>
+	(Santosh Shilimkar's message of "Sat, 19 Feb 2011 16:12:24 +0530")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-From: Hari Kanigeri <h-kanigeri2@ti.com>
+Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
 
-omap4 interrupt disable bits is different. On rx kfifo full, the mbox rx
-interrupts wasn't getting disabled, and this is causing the rcm stress tests
-to hang.
+> The scu base address needs to be accessed in cpu hotplug
+> for power management. Hence export the same
 
-Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
-Signed-off-by: Armando Uribe <x0095078@ti.com>
-Signed-off-by: Fernando Guzman Lugo <fernando.lugo@ti.com>
----
- arch/arm/mach-omap2/mailbox.c |   10 ++++++----
- 1 files changed, 6 insertions(+), 4 deletions(-)
+As with previous patch, rather than export the base address itself, it
+should export a helper function to get the base address
 
-diff --git a/arch/arm/mach-omap2/mailbox.c b/arch/arm/mach-omap2/mailbox.c
-index 394413d..011ca50 100644
---- a/arch/arm/mach-omap2/mailbox.c
-+++ b/arch/arm/mach-omap2/mailbox.c
-@@ -193,10 +193,12 @@ static void omap2_mbox_disable_irq(struct omap_mbox *mbox,
- 		omap_mbox_type_t irq)
- {
- 	struct omap_mbox2_priv *p = mbox->priv;
--	u32 l, bit = (irq == IRQ_TX) ? p->notfull_bit : p->newmsg_bit;
--	l = mbox_read_reg(p->irqdisable);
--	l &= ~bit;
--	mbox_write_reg(l, p->irqdisable);
-+	u32 bit = (irq == IRQ_TX) ? p->notfull_bit : p->newmsg_bit;
-+
-+	if (!cpu_is_omap44xx())
-+		bit = mbox_read_reg(p->irqdisable) & ~bit;
-+
-+	mbox_write_reg(bit, p->irqdisable);
- }
- 
- static void omap2_mbox_ack_irq(struct omap_mbox *mbox,
--- 
-1.7.0.4
+Kevin
+
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Reviewed-by: Kevin Hilman <khilman@ti.com>
+> ---
+>  arch/arm/mach-omap2/include/mach/omap4-common.h |    4 ++++
+>  arch/arm/mach-omap2/omap-smp.c                  |    2 +-
+>  2 files changed, 5 insertions(+), 1 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/include/mach/omap4-common.h b/arch/arm/mach-omap2/include/mach/omap4-common.h
+> index 5b0270b..0e5edd8 100644
+> --- a/arch/arm/mach-omap2/include/mach/omap4-common.h
+> +++ b/arch/arm/mach-omap2/include/mach/omap4-common.h
+> @@ -26,6 +26,10 @@ extern void __iomem *l2cache_base;
+>  
+>  extern void __iomem *gic_dist_base_addr;
+>  
+> +#ifdef CONFIG_SMP
+> +extern void __iomem *scu_base;
+> +#endif
+> +
+>  extern void __init gic_init_irq(void);
+>  extern void omap_smc1(u32 fn, u32 arg);
+>  
+> diff --git a/arch/arm/mach-omap2/omap-smp.c b/arch/arm/mach-omap2/omap-smp.c
+> index b66cfe8..b105a29 100644
+> --- a/arch/arm/mach-omap2/omap-smp.c
+> +++ b/arch/arm/mach-omap2/omap-smp.c
+> @@ -26,7 +26,7 @@
+>  #include <mach/omap4-common.h>
+>  
+>  /* SCU base address */
+> -static void __iomem *scu_base;
+> +void __iomem *scu_base;
+>  
+>  static DEFINE_SPINLOCK(boot_lock);
