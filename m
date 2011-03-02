@@ -1,87 +1,105 @@
-From: Maxime Coquelin <maxime.coquelin-nonst@stericsson.com>
-Subject: Re: [PATCHv5 0/3] Introduce the /proc/socinfo and use it to export
-	OMAP data
-Date: Wed, 2 Mar 2011 09:23:03 +0100
-Message-ID: <4D6DFE67.3020801@stericsson.com>
-References: <1273587331-24604-1-git-send-email-eduardo.valentin@nokia.com>	<AANLkTin7vRMreG3hOAk95MYZUCV-Kr6ac7gD7jgvX6Gf@mail.gmail.com>	<20110216115729.GA29817@besouro.research.nokia.com>	<4D6B78BF.1020102@stericsson.com>	<4D6C7B56.9060109@codeaurora.org>	<AANLkTikvhj49DftS9c_NouASY9_MbYPCfmSUdJg6pf-5@mail.gmail.com>	<4D6D9B10.9000606@codeaurora.org>	<4D6D9D06.2020204@bluewatersys.com>	<4D6D9FC7.1090206@codeaurora.org>	<4D6DA290.2010607@bluewatersys.com>	<4D6DAA24.3000204@codeaurora.org>
-	<4D6DAE6E.4030701@bluewatersys.com>
-	<4D6DB1B1.4060908@codeaurora.org>
+From: John S <john.schi15@gmail.com>
+Subject: Re: [PATCH] HACK: OMAP: DSS2: Fix OMAP2_DSS_USE_DSI_PLL
+Date: Wed, 2 Mar 2011 14:00:10 +0530
+Message-ID: <AANLkTin9L6YWG5j=OsjBzhvtaVTttYdE_Xs8G-xs2Kip@mail.gmail.com>
+References: <1299054015-1070-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <4D6DB1B1.4060908@codeaurora.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Saravana Kannan <skannan@codeaurora.org>
-Cc: ext Nishanth Menon <nm@ti.com>, ext Tony Lindgren <tony@atomide.com>, Peter De-Schrijver <Peter.De-Schrijver@nokia.com>, ext Linus Walleij <linus.walleij@linaro.org>, Ambresh <a0393775@ti.com>, Jouni Hogander <jouni.hogander@nokia.com>, Lee Jones <Lee.Jones@linaro.org>, Russell King <linux@arm.linux.org.uk>, Jonas ABERG <jonas.aberg@stericsson.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, David Brown <davidb@codeaurora.org>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, Loic PALLARDY <loic.pallardy@stericsson.com>, "eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>, Ryan Mallon <ryan@bluewatersys.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Daniel Walker <dwalker@codeaurora.org>, LKML <linux-kernel@vger.kernel.org>, Andrei Warkentin <andreiw@motorola.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:36009 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755779Ab1CBIaM convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Mar 2011 03:30:12 -0500
+Received: by pwi15 with SMTP id 15so1045620pwi.19
+        for <linux-omap@vger.kernel.org>; Wed, 02 Mar 2011 00:30:11 -0800 (PST)
+In-Reply-To: <1299054015-1070-1-git-send-email-tomi.valkeinen@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, steve@sakoman.com
 
-On 03/02/2011 03:55 AM, Saravana Kannan wrote:
-> On 03/01/2011 06:41 PM, Ryan Mallon wrote:
->> On 03/02/2011 03:23 PM, Saravana Kannan wrote:
->>> I don't have any attachment to the "arch" file suggestion. If there is a
->>> better solution to identify the different implementations of socinfo
->>> without having to maintain some "unique id" list in the kernel, then I'm
->>> all for it. But cpuinfo is not it.
->> Sorry I am confusing the 'arch' and 'mach' bits here. I definitely have
->> an objection to having an 'arch' file (i.e. ARM). A 'mach' (i.e. omap)
->> file makes a bit more sense, but should probably be called 'mach' rather
->> than 'arch' to avoid this confusion :-).
-> Sorry for the confusion. Sure, I don't care much for the filename as
-> long as we can all agree on it. I care more about the content of the
-> file (using names very close to xxxx in mach-xxxx). I like "soc-family"
-> better since it's generic enough to not force, say omap3 and omap4, to
-> report different values.
+On Wed, Mar 2, 2011 at 1:50 PM, Tomi Valkeinen <tomi.valkeinen@ti.com> =
+wrote:
 >
-> Linus Walleij, Eduardo, Maxime, Andrei,
+> When using OMAP2_DSS_USE_DSI_PLL, which selects DSI PLL as source clo=
+ck
+> for DISPC, the DSI needs the vdds_dsi regulator. Latest regulator
+> changes broke this, causing the the code to not acquire the regulator
+> when using OMAP2_DSS_USE_DSI_PLL.
 >
-> Would like to hear your opinion on the file name (soc-family vs. mach vs
-> <somethingelse>) and the path /sys/devices/system/soc/.
+> This patch acquires the vdds_dsi regulator in dsi_pll_init(), fixing =
+the
+> issue. This is is just a quick hack to get the OMAP2_DSS_USE_DSI_PLL
+> option working. There shouldn't be any other downside in this solutio=
+n
+> than some extra lines of code.
 >
-> If we settle on this, may be it would be easier to get this through.
+> OMAP2_DSS_USE_DSI_PLL is itself a big hack, and should be removed, an=
+d
+> the feature itself should be implemented in a more sane way. However,
+> the solution is not trivial, and people are using DSI PLL to get more
+> exact pixel clocks, so this hack is an acceptable temporary solution =
+for
+> the time being.
+>
+> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> ---
+> =A0drivers/video/omap2/dss/dsi.c | =A0 20 ++++++++++++++++++++
+> =A01 files changed, 20 insertions(+), 0 deletions(-)
+>
+> diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/=
+dsi.c
+> index c3019d9..6f4f19d 100644
+> --- a/drivers/video/omap2/dss/dsi.c
+> +++ b/drivers/video/omap2/dss/dsi.c
+> @@ -1105,6 +1105,26 @@ int dsi_pll_init(struct omap_dss_device *dssde=
+v, bool enable_hsclk,
+>
+> =A0 =A0 =A0 =A0DSSDBG("PLL init\n");
+>
+> +#ifdef CONFIG_OMAP2_DSS_USE_DSI_PLL
+> + =A0 =A0 =A0 /*
+> + =A0 =A0 =A0 =A0* HACK: this is just a quick hack to get the USE_DSI=
+_PLL
+> + =A0 =A0 =A0 =A0* option working. USE_DSI_PLL is itself a big hack, =
+and
+> + =A0 =A0 =A0 =A0* should be removed.
+> + =A0 =A0 =A0 =A0*/
+> + =A0 =A0 =A0 if (dsi.vdds_dsi_reg =3D=3D NULL) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 struct regulator *vdds_dsi;
+> +
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 vdds_dsi =3D regulator_get(&dsi.pdev->d=
+ev, "vdds_dsi");
+> +
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (IS_ERR(vdds_dsi)) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 DSSERR("can't get VDDS_=
+DSI regulator\n");
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return PTR_ERR(vdds_dsi=
+);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
+> +
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dsi.vdds_dsi_reg =3D vdds_dsi;
+> + =A0 =A0 =A0 }
+> +#endif
+> +
+> =A0 =A0 =A0 =A0enable_clocks(1);
+> =A0 =A0 =A0 =A0dsi_enable_pll_clock(1);
 >
 
-I think we should have a tree like this :
+The hack might be temporarily acceptable.
+But I think there should be a matching regulator_put in dsi_pll_uinit.
 
-/sys/devices/system/soc/
-/sys/devices/system/soc/unique_id<- Unified way to export an ID for all machs
-/sys/devices/system/soc/mach/
-/sys/devices/system/soc/mach/name<- Name of the mach
-/sys/devices/system/soc/mach/foo_id
-/sys/devices/system/soc/mach/bar_id<- Vendors may have several/different IDs to export (IDCODE for OMAP, Production ID...)
-
-Linus, do you agree?
-
->> I still think it is a solution in search of a problem though. What
->> userspace programs need to know what specific SoC they are on? My
->> feeling is that if userspace needs to know this information, then it is
->> probably dicking around with things that should be managed by the
->> kernel. Differences in available peripherals, etc can be determined by
->> looking at existing sysfs files.
-> I certainly have seen several use cases. Couple of easy examples:
+> --
+> 1.7.1
 >
-> * A lot of test scripts would find this very useful. For example, some
-> clock (present is all/most MSMs) shouldn't be tested on some SOCs as it
-> would lock up the system if you try to turn it off while the CPU is running.
->
-> * Some of the user space tools might want to report different "product
-> id/type" (nothing to do with USB, etc) depending on what SOC it is
-> running on.
->
-
-For example, we have some user-space tools which need to have serial 
-number to write it in logs.
-
-> Thank,
-> Saravana
-> P.S: Removed felipe.balbi@nokia.com<felipe.balbi@nokia.com>  since I
-> keep getting delivery failure emails.
->
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
