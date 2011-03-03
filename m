@@ -1,189 +1,162 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: [PATCH] perf: add OMAP support for the new power events
-Date: Thu,  3 Mar 2011 11:25:43 +0100
-Message-ID: <1299147943-2929-1-git-send-email-j-pihet@ti.com>
-References: <1298052645-4164-1-git-send-email-j-pihet@ti.com>
+From: tom.leiming@gmail.com
+Subject: [patch v3 3/3] arm: omap4: support pmu
+Date: Thu,  3 Mar 2011 18:53:53 +0800
+Message-ID: <1299149633-699-4-git-send-email-tom.leiming@gmail.com>
+References: <1299149633-699-1-git-send-email-tom.leiming@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:54585 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758017Ab1CCK0D (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Mar 2011 05:26:03 -0500
-Received: by wyg36 with SMTP id 36so887221wyg.19
-        for <linux-omap@vger.kernel.org>; Thu, 03 Mar 2011 02:26:02 -0800 (PST)
-In-Reply-To: <1298052645-4164-1-git-send-email-j-pihet@ti.com>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:35184 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751832Ab1CCKyy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Mar 2011 05:54:54 -0500
+Received: by iwn34 with SMTP id 34so822839iwn.19
+        for <linux-omap@vger.kernel.org>; Thu, 03 Mar 2011 02:54:53 -0800 (PST)
+In-Reply-To: <1299149633-699-1-git-send-email-tom.leiming@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>
-Cc: Jean Pihet <j-pihet@ti.com>
+To: linux@arm.linux.org.uk
+Cc: linux-arm-kernel@lists.infradead.org, will.deacon@arm.com, Ming Lei <tom.leiming@gmail.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Woodruff Richard <r-woodruff2@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-The patch adds the new power management trace points for
-the OMAP architecture.
+From: Ming Lei <tom.leiming@gmail.com>
 
-The trace points are for:
-- default idle handler. Since the cpuidle framework is
-  instrumented in the generic way there is no need to
-  add trace points in the OMAP specific cpuidle handler;
-- cpufreq (DVFS),
-- SoC clocks changes (enable, disable, set_rate),
-- power domain states: the desired target state and -if different-
-  the actually hit state.
+This patch supports pmu irq routed from CTI, so
+make pmu/perf working on OMAP4.
 
-Because of the generic nature of the changes, OMAP3 and OMAP4 are supported.
+The idea is from Woodruff Richard in the disscussion
+about "Oprofile on Pandaboard / Omap4" on pandaboard@googlegroups.com.
 
-Tested on OMAP3 with suspend/resume, cpuidle, basic DVFS.
-
-Signed-off-by: Jean Pihet <j-pihet@ti.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Woodruff Richard <r-woodruff2@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
+Signed-off-by: Ming Lei <tom.leiming@gmail.com>
 ---
- arch/arm/mach-omap2/clock.c       |   11 +++++++++--
- arch/arm/mach-omap2/pm34xx.c      |    7 +++++++
- arch/arm/mach-omap2/powerdomain.c |   26 +++++++++++++++++++++++---
- 3 files changed, 39 insertions(+), 5 deletions(-)
+ arch/arm/mach-omap2/devices.c              |   82 +++++++++++++++++++++++++++-
+ arch/arm/plat-omap/include/plat/omap44xx.h |    2 +
+ 2 files changed, 81 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index 46d03cc..180299e 100644
---- a/arch/arm/mach-omap2/clock.c
-+++ b/arch/arm/mach-omap2/clock.c
-@@ -22,7 +22,9 @@
- #include <linux/clk.h>
- #include <linux/io.h>
- #include <linux/bitops.h>
-+#include <trace/events/power.h>
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index d216976..d97bb5a 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -22,6 +22,7 @@
+ #include <asm/mach-types.h>
+ #include <asm/mach/map.h>
+ #include <asm/pmu.h>
++#include <asm/cti.h>
  
-+#include <asm/cpu.h>
- #include <plat/clock.h>
- #include "clockdomain.h"
- #include <plat/cpu.h>
-@@ -261,8 +263,10 @@ void omap2_clk_disable(struct clk *clk)
+ #include <plat/tc.h>
+ #include <plat/board.h>
+@@ -322,20 +323,95 @@ static struct resource omap3_pmu_resource = {
+ 	.flags	= IORESOURCE_IRQ,
+ };
  
- 	pr_debug("clock: %s: disabling in hardware\n", clk->name);
- 
--	if (clk->ops && clk->ops->disable)
-+	if (clk->ops && clk->ops->disable) {
-+		trace_clock_disable(clk->name, 0, smp_processor_id());
- 		clk->ops->disable(clk);
++static struct resource omap4_pmu_resource[] = {
++	{
++		.start	= OMAP44XX_IRQ_CTI0,
++		.end	= OMAP44XX_IRQ_CTI0,
++		.flags	= IORESOURCE_IRQ,
++	},
++	{
++		.start	= OMAP44XX_IRQ_CTI1,
++		.end	= OMAP44XX_IRQ_CTI1,
++		.flags	= IORESOURCE_IRQ,
 +	}
++};
++
+ static struct platform_device omap_pmu_device = {
+ 	.name		= "arm-pmu",
+ 	.id		= ARM_PMU_DEVICE_CPU,
+ 	.num_resources	= 1,
+ };
  
- 	if (clk->clkdm)
- 		clkdm_clk_disable(clk->clkdm, clk);
-@@ -314,6 +318,7 @@ int omap2_clk_enable(struct clk *clk)
- 	}
- 
- 	if (clk->ops && clk->ops->enable) {
-+		trace_clock_enable(clk->name, 1, smp_processor_id());
- 		ret = clk->ops->enable(clk);
- 		if (ret) {
- 			WARN(1, "clock: %s: could not enable: %d\n",
-@@ -353,8 +358,10 @@ int omap2_clk_set_rate(struct clk *clk, unsigned long rate)
- 	pr_debug("clock: set_rate for clock %s to rate %ld\n", clk->name, rate);
- 
- 	/* dpll_ck, core_ck, virt_prcm_set; plus all clksel clocks */
--	if (clk->set_rate)
-+	if (clk->set_rate) {
-+		trace_clock_set_rate(clk->name, rate, smp_processor_id());
- 		ret = clk->set_rate(clk, rate);
++static struct arm_pmu_platdata omap4_pmu_data;
++static struct cti omap4_cti[2];
++
++static void omap4_enable_cti(int irq)
++{
++	if (irq == OMAP44XX_IRQ_CTI0)
++		cti_enable(&omap4_cti[0]);
++	else if (irq == OMAP44XX_IRQ_CTI1)
++		cti_enable(&omap4_cti[1]);
++}
++
++static void omap4_disable_cti(int irq)
++{
++	if (irq == OMAP44XX_IRQ_CTI0)
++		cti_disable(&omap4_cti[0]);
++	else if (irq == OMAP44XX_IRQ_CTI1)
++		cti_disable(&omap4_cti[1]);
++}
++
++static irqreturn_t omap4_pmu_handler(int irq, void *dev, irq_handler_t handler)
++{
++	if (irq == OMAP44XX_IRQ_CTI0)
++		cti_irq_ack(&omap4_cti[0]);
++	else if (irq == OMAP44XX_IRQ_CTI1)
++		cti_irq_ack(&omap4_cti[1]);
++
++	return handler(irq, dev);
++}
++
++static void omap4_configure_pmu_irq(void)
++{
++	void __iomem *base0;
++	void __iomem *base1;
++
++	base0 = ioremap(OMAP44XX_CTI0_BASE, SZ_4K);
++	base1 = ioremap(OMAP44XX_CTI1_BASE, SZ_4K);
++	if (!base0 && !base1) {
++		pr_err("ioremap for OMAP4 CTI failed\n");
++		return;
 +	}
- 
- 	return ret;
- }
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index bd610bc..d46b9ff 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -29,6 +29,7 @@
- #include <linux/delay.h>
- #include <linux/slab.h>
- #include <linux/console.h>
-+#include <trace/events/power.h>
- 
- #include <plat/sram.h>
- #include "clockdomain.h"
-@@ -514,8 +515,14 @@ static void omap3_pm_idle(void)
- 	if (omap_irq_pending() || need_resched())
- 		goto out;
- 
-+	trace_power_start(POWER_CSTATE, 1, smp_processor_id());
-+	trace_cpu_idle(1, smp_processor_id());
 +
- 	omap_sram_idle();
- 
-+	trace_power_end(smp_processor_id());
-+	trace_cpu_idle(PWR_EVENT_EXIT, smp_processor_id());
++	/*configure CTI0 for pmu irq routing*/
++	cti_init(&omap4_cti[0], base0, OMAP44XX_IRQ_CTI0, 6);
++	cti_unlock(&omap4_cti[0]);
++	cti_map_trigger(&omap4_cti[0], 1, 6, 2);
 +
- out:
- 	local_fiq_enable();
- 	local_irq_enable();
-diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-index eaed0df..1495eed 100644
---- a/arch/arm/mach-omap2/powerdomain.c
-+++ b/arch/arm/mach-omap2/powerdomain.c
-@@ -19,12 +19,15 @@
- #include <linux/list.h>
- #include <linux/errno.h>
- #include <linux/string.h>
-+#include <trace/events/power.h>
++	/*configure CTI1 for pmu irq routing*/
++	cti_init(&omap4_cti[1], base1, OMAP44XX_IRQ_CTI1, 6);
++	cti_unlock(&omap4_cti[1]);
++	cti_map_trigger(&omap4_cti[1], 1, 6, 2);
 +
- #include "cm2xxx_3xxx.h"
- #include "prcm44xx.h"
- #include "cm44xx.h"
- #include "prm2xxx_3xxx.h"
- #include "prm44xx.h"
- 
-+#include <asm/cpu.h>
- #include <plat/cpu.h>
- #include "powerdomain.h"
- #include "clockdomain.h"
-@@ -32,6 +35,8 @@
- 
- #include "pm.h"
- 
-+#define PWRDM_TRACE_STATES_FLAG	(1<<31)
++	omap4_pmu_data.handle_irq = omap4_pmu_handler;
++	omap4_pmu_data.enable_irq = omap4_enable_cti;
++	omap4_pmu_data.disable_irq = omap4_disable_cti;
++}
 +
- enum {
- 	PWRDM_STATE_NOW = 0,
- 	PWRDM_STATE_PREV,
-@@ -130,8 +135,7 @@ static void _update_logic_membank_counters(struct powerdomain *pwrdm)
- static int _pwrdm_state_switch(struct powerdomain *pwrdm, int flag)
+ static void omap_init_pmu(void)
  {
- 
--	int prev;
--	int state;
-+	int prev, state, trace_state = 0;
- 
- 	if (pwrdm == NULL)
- 		return -EINVAL;
-@@ -148,6 +152,17 @@ static int _pwrdm_state_switch(struct powerdomain *pwrdm, int flag)
- 			pwrdm->state_counter[prev]++;
- 		if (prev == PWRDM_POWER_RET)
- 			_update_logic_membank_counters(pwrdm);
-+		/*
-+		 * If the power domain did not hit the desired state,
-+		 * generate a trace event with both the desired and hit states
-+		 */
-+		if (state != prev) {
-+			trace_state = (PWRDM_TRACE_STATES_FLAG |
-+				       ((state & OMAP_POWERSTATE_MASK) << 8) |
-+				       ((prev & OMAP_POWERSTATE_MASK) << 0));
-+			trace_power_domain_target(pwrdm->name, trace_state,
-+						  smp_processor_id());
-+		}
- 		break;
- 	default:
- 		return -EINVAL;
-@@ -406,8 +421,13 @@ int pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst)
- 	pr_debug("powerdomain: setting next powerstate for %s to %0x\n",
- 		 pwrdm->name, pwrst);
- 
--	if (arch_pwrdm && arch_pwrdm->pwrdm_set_next_pwrst)
-+	if (arch_pwrdm && arch_pwrdm->pwrdm_set_next_pwrst) {
-+		/* Trace the pwrdm desired target state */
-+		trace_power_domain_target(pwrdm->name, pwrst,
-+					  smp_processor_id());
-+		/* Program the pwrdm desired target state */
- 		ret = arch_pwrdm->pwrdm_set_next_pwrst(pwrdm, pwrst);
+-	if (cpu_is_omap24xx())
++	if (cpu_is_omap24xx()) {
+ 		omap_pmu_device.resource = &omap2_pmu_resource;
+-	else if (cpu_is_omap34xx())
++	} else if (cpu_is_omap34xx()) {
+ 		omap_pmu_device.resource = &omap3_pmu_resource;
+-	else
++	} else if (cpu_is_omap44xx()) {
++		omap_pmu_device.resource = omap4_pmu_resource;
++		omap_pmu_device.num_resources = 2;
++		omap_pmu_device.dev.platform_data = &omap4_pmu_data;
++		omap4_configure_pmu_irq();
++	} else {
+ 		return;
 +	}
  
- 	return ret;
+ 	platform_device_register(&omap_pmu_device);
  }
+diff --git a/arch/arm/plat-omap/include/plat/omap44xx.h b/arch/arm/plat-omap/include/plat/omap44xx.h
+index ea2b8a6..b127a16 100644
+--- a/arch/arm/plat-omap/include/plat/omap44xx.h
++++ b/arch/arm/plat-omap/include/plat/omap44xx.h
+@@ -57,5 +57,7 @@
+ #define OMAP44XX_HSUSB_OHCI_BASE	(L4_44XX_BASE + 0x64800)
+ #define OMAP44XX_HSUSB_EHCI_BASE	(L4_44XX_BASE + 0x64C00)
+ 
++#define OMAP44XX_CTI0_BASE		0x54148000
++#define OMAP44XX_CTI1_BASE		0x54149000
+ #endif /* __ASM_ARCH_OMAP44XX_H */
+ 
 -- 
-1.7.2.3
+1.7.3
 
