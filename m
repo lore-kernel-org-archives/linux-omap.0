@@ -1,44 +1,68 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH v3 0/3] OMAP: DSS2: Fix for DISPC core functional clock
- divider
-Date: Thu, 3 Mar 2011 18:12:56 +0200
-Message-ID: <1299168776.2615.154.camel@deskari>
-References: <1299166080-15380-1-git-send-email-raghuveer.murthy@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH 04/17] omap4: pm: Add CPUx OFF mode support
+Date: Thu, 3 Mar 2011 21:44:23 +0530
+Message-ID: <f53cb17bd85faa93de4367e6db88e1e2@mail.gmail.com>
+References: <1298112158-28469-1-git-send-email-santosh.shilimkar@ti.com><1298112158-28469-5-git-send-email-santosh.shilimkar@ti.com>
+ <87wrkh5fz4.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:47792 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758196Ab1CCQND (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Mar 2011 11:13:03 -0500
-In-Reply-To: <1299166080-15380-1-git-send-email-raghuveer.murthy@ti.com>
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:47946 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755670Ab1CCQOZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Mar 2011 11:14:25 -0500
+Received: by mail-qy0-f182.google.com with SMTP id 27so1077624qyk.13
+        for <linux-omap@vger.kernel.org>; Thu, 03 Mar 2011 08:14:24 -0800 (PST)
+In-reply-to: <87wrkh5fz4.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Murthy, Raghuveer" <raghuveer.murthy@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Thu, 2011-03-03 at 09:27 -0600, Murthy, Raghuveer wrote:
-> OMAP4 has 2 LCD channels and corresponding DISPC_DIVISOR1 and DISPC_DIVISOR2
-> registers to configure the pixel clock frequency, for the respective LCD
-> displays.
-> 
-> There is also DISPC_DIVISOR register, which by default has the ENABLE bit
-> set to zero, for backward compatibility mode. Hence the logical clock divider of
-> DISPC_DIVISOR1.LCD, gets used for core func clk configuration. The default value
-> of DISPC_DIVISOR1.LCD is 4.
-> 
-> If only the secondary LCD is enabled, at high pixel resolutions the core clk 
-> lags behind the pixel clock, causing stair-step effect (diagonal lines with
-> tearing) on the display.
-> 
-> Hence DISPC_DIVISOR.ENABLE is set to 1, and the core functional clock is set 
-> independently and exclusively in DISPC_DIVISOR.LCD.
-> 
-> - Added the above as dss_features
+> -----Original Message-----
+> From: Kevin Hilman [mailto:khilman@ti.com]
+> Sent: Thursday, March 03, 2011 3:43 AM
+> To: Santosh Shilimkar
+> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
+> Subject: Re: [PATCH 04/17] omap4: pm: Add CPUx OFF mode support
+>
+> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
+>
+> > This patch adds the CPU0 and CPU1 off mode support. CPUX close
+> switch
+>
+> s/CPUX/CPUx/
+>
+> > retention (CSWR) is not supported by hardware design.
+> >
+> > The CPUx OFF mode isn't supported on OMAP4430 ES1.0
+> >
+> > CPUx sleep code is common for hotplug, suspend and cpuilde.
+>
+> s/cpuilde/CPUidle/
+>
+> > Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> > Reviewed-by: Kevin Hilman <khilman@ti.com>
+>
+> > ---
+Fixed all the comments on this patch.
 
-Thanks, applied.
+[....]
 
- Tomi
+> > +++ b/arch/arm/mach-omap2/sleep44xx.S
+[....]
 
+>
+> I didn't do a detailed review of the below assembly since you're
+> much more knowlegable there than me.
+>
+> However, will the assembly code here work in Thumb-2 mode?  Dave
+> Martin
+> has been working on that for OMAP3, but we should make sure the
+> OMAP4 stuff is Thumb-2 ready out of the box.
+>
+The code as such builds for THUMB2 as I tried last time. At least
+I have tried not to break it for THUMB2 anywhere.
 
+Regards,
+Santosh
