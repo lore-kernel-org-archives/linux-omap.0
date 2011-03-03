@@ -1,30 +1,35 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ldp: Fix regulator mapping for ads7846 TS controller
-Date: Wed, 2 Mar 2011 17:00:03 -0800
-Message-ID: <20110303010002.GF20560@atomide.com>
-References: <1298552202-28307-1-git-send-email-rnayak@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH 00/19] OMAP3+: introduce SR class 1.5
+Date: Wed, 02 Mar 2011 17:00:31 -0800
+Message-ID: <8762s1t3v4.fsf@ti.com>
+References: <1298116918-30744-1-git-send-email-nm@ti.com>
+	<87aahdujox.fsf@ti.com> <4D6EE2D5.7040900@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:29977 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752871Ab1CCBAJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Mar 2011 20:00:09 -0500
-Content-Disposition: inline
-In-Reply-To: <1298552202-28307-1-git-send-email-rnayak@ti.com>
+Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:35570 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752871Ab1CCBAe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Mar 2011 20:00:34 -0500
+Received: by mail-iy0-f170.google.com with SMTP id 12so554845iyb.15
+        for <linux-omap@vger.kernel.org>; Wed, 02 Mar 2011 17:00:34 -0800 (PST)
+In-Reply-To: <4D6EE2D5.7040900@ti.com> (Nishanth Menon's message of "Thu, 03
+	Mar 2011 06:07:41 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Nishanth Menon <nm@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 
-* Rajendra Nayak <rnayak@ti.com> [110224 04:54]:
-> On the OMAP3430LDP board, the ads7846 touchscreen controller
-> is powered by VAUX1 regulator (supplying 3.0v).
-> Fix this mapping in the board file, and hence prevent
-> the ads7846 driver init to fail with the below error..
-> 
-> ads7846 spi1.0: unable to get regulator: -19
+Nishanth Menon <nm@ti.com> writes:
 
-Applying for the merge window.
+>>
+>> - Please Cc linux-arm-kernel for patches intended for mainline.  Because
+>>    of this, I didn't (yet) queue the ones I said I would queue.
+> done that with v2 which I had happened to have posted yesterday :(:
+> http://marc.info/?l=linux-omap&m=129906334611444&w=2
 
-Tony
+Doh, sorry.  
+
+My backlog is deep enough that I hadn't seen your v2 yet. :/
+
+Kevin
