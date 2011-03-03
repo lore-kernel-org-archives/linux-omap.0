@@ -1,133 +1,80 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [RFC] AM35x: Workaround to use generic OMAP3 hwmods
-Date: Thu, 3 Mar 2011 16:15:51 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1103031614440.10981@utopia.booyaka.com>
-References: <1298641689-7417-1-git-send-email-premi@ti.com> <4D67E0C0.4080805@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH 1/2] OMAP3: cpuidle: prevent CORE power domain from going to RET or OFF when DSS is on
+Date: Thu, 03 Mar 2011 15:24:48 -0800
+Message-ID: <87pqq7pz27.fsf@ti.com>
+References: <20110301220833.32613.54669.stgit@twilight.localdomain>
+	<20110301224918.32613.95176.stgit@twilight.localdomain>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-968895443-1299194151=:10981"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:35487 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758989Ab1CCXPw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Mar 2011 18:15:52 -0500
-In-Reply-To: <4D67E0C0.4080805@ti.com>
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:43232 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758773Ab1CCXYw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Mar 2011 18:24:52 -0500
+Received: by mail-pw0-f54.google.com with SMTP id 8so412633pwj.27
+        for <linux-omap@vger.kernel.org>; Thu, 03 Mar 2011 15:24:51 -0800 (PST)
+In-Reply-To: <20110301224918.32613.95176.stgit@twilight.localdomain> (Paul
+	Walmsley's message of "Tue, 01 Mar 2011 15:49:24 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "Premi, Sanjeev" <premi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tero Kristo <tero.kristo@nokia.com>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Paul Walmsley <paul@pwsan.com> writes:
 
---155748971-968895443-1299194151=:10981
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+> From: Tero Kristo <tero.kristo@nokia.com>
+>
+> Prevent the CORE power domain from entering RETENTION or OFF when DSS
+> is on.  Otherwise, the display FIFO(s) may underflow due to the time
+> needed for the CORE to wake back up, causing tearing and unnecessary
+> interrupts.
+>
+> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+> [paul@pwsan.com: wrote commit message]
+> Signed-off-by: Paul Walmsley <paul@pwsan.com>
 
-Hi Beno=EEt,
+This isn't quite ready for merge, and needs a little more testing with
+current DSS driver and mainline.
 
-one question about this.
-
-On Fri, 25 Feb 2011, Cousson, Benoit wrote:
-
-> From 09506eedef901af0fa19ddb48f486ce4ef353645 Mon Sep 17 00:00:00 2001
-> From: Benoit Cousson <b-cousson@ti.com>
-> Date: Fri, 25 Feb 2011 17:46:33 +0100
-> Subject: [PATCH] OMAP3: hwmod data: Remove masters port links for
-> interconnects.
->=20
-> Master ports from interconnect are generating some annoying circular
-> references that become tricky to handle if we have to dynamically
-> remove some IP on some variant platforms.
-> Since they are not used for the moment, and since we can still build
-> that relation using the reverse relation (slave port from the IP
-> toward master port of the interconnect), let remove them for the
-> moment like it is done on OMAP4.
->=20
-> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-> Cc: Paul Walmsley <paul@pwsan.com>
 > ---
->  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   28
-> ----------------------------
->  1 files changed, 0 insertions(+), 28 deletions(-)
->=20
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> index 7fa2dfb..0e7d43f 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> @@ -463,26 +463,12 @@ static struct omap_hwmod_ocp_if
-> *am35xx_usbhsotg_slaves[] =3D {
->  /* Slave interfaces on the L4_CORE interconnect */
->  static struct omap_hwmod_ocp_if *omap3xxx_l4_core_slaves[] =3D {
->  =09&omap3xxx_l3_main__l4_core,
-> -=09&omap3_l4_core__sr1,
-> -=09&omap3_l4_core__sr2,
+>  arch/arm/mach-omap2/cpuidle34xx.c |   10 ++++++++--
+>  1 files changed, 8 insertions(+), 2 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
+> index 0335cd8..d1b7789 100644
+> --- a/arch/arm/mach-omap2/cpuidle34xx.c
+> +++ b/arch/arm/mach-omap2/cpuidle34xx.c
+> @@ -9,8 +9,9 @@
+>   * Copyright (C) 2007 Texas Instruments, Inc.
+>   * Karthik Dasu <karthik-dp@ti.com>
+>   *
+> - * Copyright (C) 2006 Nokia Corporation
+> + * Copyright (C) 2006, 2011 Nokia Corporation
+>   * Tony Lindgren <tony@atomide.com>
+> + * Tero Kristo <tero.kristo@nokia.com>
+>   *
+>   * Copyright (C) 2005 Texas Instruments, Inc.
+>   * Richard Woodruff <r-woodruff2@ti.com>
+> @@ -268,6 +269,12 @@ static int omap3_enter_idle_bm(struct cpuidle_device *dev,
+>  		goto select_state;
+>  	}
+>  
+> +	/* If DSS is active, prevent CORE RET/OFF */
+> +	dss_state = pwrdm_read_pwrst(dss_pd);
+> +	if (dss_state == PWRDM_POWER_ON &&
+> +	    core_next_state != PWRDM_POWER_ON)
+> +		core_next_state = PWRDM_POWER_INACTIVE;
+> +
 
-Is there some reason why these SR OCP slaves are removed?
+Due to sleepdeps/autodeps, when this code runs, DSS powerdomain is
+always on.  The result is that CORE is always set to INACTIVE.
 
-> -};
-> -
-> -/* Master interfaces on the L4_CORE interconnect */
-> -static struct omap_hwmod_ocp_if *omap3xxx_l4_core_masters[] =3D {
-> -=09&omap3xxx_l4_core__l4_wkup,
-> -=09&omap3_l4_core__uart1,
-> -=09&omap3_l4_core__uart2,
-> -=09&omap3_l4_core__i2c1,
-> -=09&omap3_l4_core__i2c2,
-> -=09&omap3_l4_core__i2c3,
->  };
->=20
->  /* L4 CORE */
->  static struct omap_hwmod omap3xxx_l4_core_hwmod =3D {
->  =09.name=09=09=3D "l4_core",
->  =09.class=09=09=3D &l4_hwmod_class,
-> -=09.masters=09=3D omap3xxx_l4_core_masters,
-> -=09.masters_cnt=09=3D ARRAY_SIZE(omap3xxx_l4_core_masters),
->  =09.slaves=09=09=3D omap3xxx_l4_core_slaves,
->  =09.slaves_cnt=09=3D ARRAY_SIZE(omap3xxx_l4_core_slaves),
->  =09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-> @@ -494,18 +480,10 @@ static struct omap_hwmod_ocp_if
-> *omap3xxx_l4_per_slaves[] =3D {
->  =09&omap3xxx_l3_main__l4_per,
->  };
->=20
-> -/* Master interfaces on the L4_PER interconnect */
-> -static struct omap_hwmod_ocp_if *omap3xxx_l4_per_masters[] =3D {
-> -=09&omap3_l4_per__uart3,
-> -=09&omap3_l4_per__uart4,
-> -};
-> -
->  /* L4 PER */
->  static struct omap_hwmod omap3xxx_l4_per_hwmod =3D {
->  =09.name=09=09=3D "l4_per",
->  =09.class=09=09=3D &l4_hwmod_class,
-> -=09.masters=09=3D omap3xxx_l4_per_masters,
-> -=09.masters_cnt=09=3D ARRAY_SIZE(omap3xxx_l4_per_masters),
->  =09.slaves=09=09=3D omap3xxx_l4_per_slaves,
->  =09.slaves_cnt=09=3D ARRAY_SIZE(omap3xxx_l4_per_slaves),
->  =09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-> @@ -517,16 +495,10 @@ static struct omap_hwmod_ocp_if
-> *omap3xxx_l4_wkup_slaves[] =3D {
->  =09&omap3xxx_l4_core__l4_wkup,
->  };
->=20
-> -/* Master interfaces on the L4_WKUP interconnect */
-> -static struct omap_hwmod_ocp_if *omap3xxx_l4_wkup_masters[] =3D {
-> -};
-> -
->  /* L4 WKUP */
->  static struct omap_hwmod omap3xxx_l4_wkup_hwmod =3D {
->  =09.name=09=09=3D "l4_wkup",
->  =09.class=09=09=3D &l4_hwmod_class,
-> -=09.masters=09=3D omap3xxx_l4_wkup_masters,
-> -=09.masters_cnt=09=3D ARRAY_SIZE(omap3xxx_l4_wkup_masters),
->  =09.slaves=09=09=3D omap3xxx_l4_wkup_slaves,
->  =09.slaves_cnt=09=3D ARRAY_SIZE(omap3xxx_l4_wkup_slaves),
->  =09.omap_chip=09=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-> --=20
-> 1.7.0.4
->=20
+A side effect of this problem is exposing a known issue with PER wakeups
+(UART3, GPIO).  Since CORE never goes to retention/off, IO-pad
+wakeups are never enabled, so PER wakeups do not work.
 
+I think we need a different way of checking for DSS activity.
 
-- Paul
---155748971-968895443-1299194151=:10981--
+Sounds like another usecase for idle notifiers.
+
+Kevin
