@@ -1,151 +1,50 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [RFC 3/3] omap3+: sr: Reuse sr_[start|stop]_vddautocomp functions
-Date: Thu, 03 Mar 2011 06:22:36 +0530
-Message-ID: <4D6EE654.1090207@ti.com>
-References: <1299081445-27938-1-git-send-email-jhnikula@gmail.com>	<1299081445-27938-4-git-send-email-jhnikula@gmail.com>	<4D6E775D.7040107@ti.com> <87vd01t4ex.fsf@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH 03/19] omap3+: voltage: remove initial voltage
+Date: Wed, 02 Mar 2011 16:53:27 -0800
+Message-ID: <87r5apt46w.fsf@ti.com>
+References: <1298116918-30744-1-git-send-email-nm@ti.com>
+	<1298116918-30744-4-git-send-email-nm@ti.com>
+	<bd6822eaf1535de0f30aa64a31c15f6c@mail.gmail.com>
+	<4D60A2AC.1030704@ti.com>
+	<1000eadc0be6e053b04840566bb7c98a@mail.gmail.com>
+	<AANLkTinW+ekEy6uSQcFYYFiUkSYi2h9Mp5q_ct3p5nat@mail.gmail.com>
+	<fee6fa5d6bc637b4f2cd778235fbb01b@mail.gmail.com>
+	<AANLkTi=ofKtTZjSjEaPyeK52isPZhaVK8_cb1-LZ1qUT@mail.gmail.com>
+	<8762s1xep6.fsf@ti.com> <4D6EE248.3010205@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:42014 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752316Ab1CCAwo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Mar 2011 19:52:44 -0500
-Received: by mail-vx0-f175.google.com with SMTP id 7so554867vxd.20
-        for <linux-omap@vger.kernel.org>; Wed, 02 Mar 2011 16:52:43 -0800 (PST)
-In-Reply-To: <87vd01t4ex.fsf@ti.com>
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:34810 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752608Ab1CCAxb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Mar 2011 19:53:31 -0500
+Received: by gxk21 with SMTP id 21so209111gxk.36
+        for <linux-omap@vger.kernel.org>; Wed, 02 Mar 2011 16:53:30 -0800 (PST)
+In-Reply-To: <4D6EE248.3010205@ti.com> (Nishanth Menon's message of "Thu, 03
+	Mar 2011 06:05:20 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Jarkko Nikula <jhnikula@gmail.com>, linux-omap@vger.kernel.org, Thara Gopinath <thara@ti.com>
+To: Nishanth Menon <nm@ti.com>
+Cc: Vishwanath Sripathy <vishwanath.bs@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 
-Kevin Hilman wrote, on 03/03/2011 06:18 AM:
-> Nishanth Menon<nm@ti.com>  writes:
+Nishanth Menon <nm@ti.com> writes:
+
+[...]
+
 >
->> Jarkko Nikula wrote, on 03/02/2011 09:27 PM:
->>> sr_start_vddautocomp and sr_stop_autocomp functions can be reused from
->>> omap_sr_enable, omap_sr_disable and omap_sr_disable_reset_volt and by
->>> adding one additional argument sr_stop_autocomp.
->>>
->>> Signed-off-by: Jarkko Nikula<jhnikula@gmail.com>
->>> ---
->>>    arch/arm/mach-omap2/smartreflex.c |   41 ++++++------------------------------
->>>    1 files changed, 7 insertions(+), 34 deletions(-)
->>>
->>> diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
->>> index 11741d8..7e6002f 100644
->>> --- a/arch/arm/mach-omap2/smartreflex.c
->>> +++ b/arch/arm/mach-omap2/smartreflex.c
->>> @@ -227,7 +227,7 @@ static void sr_start_vddautocomp(struct omap_sr *sr)
->>>    		sr->autocomp_active = true;
->>>    }
->>>
->>> -static void sr_stop_vddautocomp(struct omap_sr *sr)
->>> +static void sr_stop_vddautocomp(struct omap_sr *sr, int is_volt_reset)
->>>    {
->>>    	if (!sr->autocomp_active)
->>>    		return;
->>> @@ -239,7 +239,7 @@ static void sr_stop_vddautocomp(struct omap_sr *sr)
->>>    		return;
->>>    	}
->>>
->>> -	if (!sr_class->disable(sr->voltdm, 1))
->>> +	if (!sr_class->disable(sr->voltdm, is_volt_reset))
->>>    		sr->autocomp_active = false;
->>>    }
->>>
->>> @@ -681,16 +681,7 @@ void omap_sr_enable(struct voltagedomain *voltdm)
->>>    		return;
->>>    	}
->>>
->>> -	if (!sr->autocomp_active)
->>> -		return;
->>> -
->>> -	if (!sr_class || !(sr_class->enable) || !(sr_class->configure)) {
->>> -		dev_warn(&sr->pdev->dev, "%s: smartreflex class driver not"
->>> -			"registered\n", __func__);
->>> -		return;
->>> -	}
->>> -
->>> -	sr_class->enable(voltdm);
->>> +	sr_start_vddautocomp(sr);
->>>    }
->>>
->>>    /**
->>> @@ -714,16 +705,7 @@ void omap_sr_disable(struct voltagedomain *voltdm)
->>>    		return;
->>>    	}
->>>
->>> -	if (!sr->autocomp_active)
->>> -		return;
->>> -
->>> -	if (!sr_class || !(sr_class->disable)) {
->>> -		dev_warn(&sr->pdev->dev, "%s: smartreflex class driver not"
->>> -			"registered\n", __func__);
->>> -		return;
->>> -	}
->>> -
->>> -	sr_class->disable(voltdm, 0);
->>> +	sr_stop_vddautocomp(sr, 0);
->>>    }
->>>
->>>    /**
->>> @@ -747,16 +729,7 @@ void omap_sr_disable_reset_volt(struct voltagedomain *voltdm)
->>>    		return;
->>>    	}
->>>
->>> -	if (!sr->autocomp_active)
->>> -		return;
->>> -
->>> -	if (!sr_class || !(sr_class->disable)) {
->>> -		dev_warn(&sr->pdev->dev, "%s: smartreflex class driver not"
->>> -			"registered\n", __func__);
->>> -		return;
->>> -	}
->>> -
->>> -	sr_class->disable(voltdm, 1);
->>> +	sr_stop_vddautocomp(sr, 1);
->>>    }
->>>
->>>    /**
->>> @@ -809,7 +782,7 @@ static int omap_sr_autocomp_store(void *data, u64 val)
->>>    	}
->>>
->>>    	if (!val)
->>> -		sr_stop_vddautocomp(sr_info);
->>> +		sr_stop_vddautocomp(sr_info, 1);
->>>    	else
->>>    		sr_start_vddautocomp(sr_info);
->>>
->>> @@ -976,7 +949,7 @@ static int __devexit omap_sr_remove(struct platform_device *pdev)
->>>    	}
->>>
->>>    	if (sr_info->autocomp_active)
->>> -		sr_stop_vddautocomp(sr_info);
->>> +		sr_stop_vddautocomp(sr_info, 1);
->>>
->>>    	list_del(&sr_info->node);
->>>    	iounmap(sr_info->base);
->>
->> Looks like a nice cleanup to me.
->>
->> if the motivation of patch 1/3 is to do this cleanup, I am altogether
->> for it (lesser code == lesser bugs ;) ). btw, this should not impact
->> class1.5 either - core sr.c sequencing has not been modified in sr1.5
->> :)
->>
->> Depending on Kevin's views, either you or I or both of us can rebase
->> depending on whose ever series gets pulled in first.. (either should
->> be a very minimal effort).
+> Does the following sound any better?:
+
+Yes, thanks.
+
+> Blindly setting a 1.2v setting in the initial structure may not even
+> match the default voltages stored in the voltage table which are
+> supported for the domain. For example, OMAP3430 core domain does not
+> use 1.2v and ends up generating a warning on the first transition.
 >
-> Nishanth,
->
-> I'd prefer if you handle these.  You can add them to the fixup/cleanup
-> part of your SR1.5 series.
-
-ok will pull this in as part of sr1.5 series if no further review comments.
-
-
--- 
-Regards,
-Nishanth Menon
+> Further, since omap2_set_init_voltage is called as part of the pm
+> framework's initialization sequence to configure the voltage required
+> for the current OPP, the call does(and has to) setup the system
+> voltage(curr_volt as a result) using the right mechanisms appropriate
+> for the system at that point of time. This also overrides
+> initialization we are currently doing in voltage.c  making it
+> redundant. So remove the wrong and useless initialization.
