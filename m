@@ -1,72 +1,137 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 12/17] omap4: pm-debug: Add wakeup timer and debug counters
-Date: Thu, 03 Mar 2011 09:05:51 -0800
-Message-ID: <87r5aoqgls.fsf@ti.com>
-References: <1298112158-28469-1-git-send-email-santosh.shilimkar@ti.com>
-	<1298112158-28469-13-git-send-email-santosh.shilimkar@ti.com>
-	<87hbbl2l1y.fsf@ti.com>
-	<ff69224b634bfd89405d29a720755b64@mail.gmail.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: linux-next: manual merge of the usb tree with the omap tree
+Date: Thu, 3 Mar 2011 19:39:42 +0200
+Message-ID: <20110303173942.GA2293@legolas.emea.dhcp.ti.com>
+References: <20110302165755.b45124c8.sfr@canb.auug.org.au>
+ <20110303084829.GB2644@legolas.emea.dhcp.ti.com>
+ <20110303160209.GB13709@kroah.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:35338 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758221Ab1CCRFz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Mar 2011 12:05:55 -0500
-Received: by mail-qw0-f44.google.com with SMTP id 6so1298273qwh.17
-        for <linux-omap@vger.kernel.org>; Thu, 03 Mar 2011 09:05:54 -0800 (PST)
-In-Reply-To: <ff69224b634bfd89405d29a720755b64@mail.gmail.com> (Santosh
-	Shilimkar's message of "Thu, 3 Mar 2011 22:04:27 +0530")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="ZPt4rx8FFjLCG7dd"
+Return-path: <linux-next-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20110303160209.GB13709@kroah.com>
+Sender: linux-next-owner@vger.kernel.org
+To: Greg KH <greg@kroah.com>
+Cc: Felipe Balbi <balbi@ti.com>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Anand Gadiyar <gadiyar@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Keshava Munegowda <keshava_mgowda@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
 
->> -----Original Message-----
->> From: Kevin Hilman [mailto:khilman@ti.com]
->> Sent: Thursday, March 03, 2011 4:21 AM
->> To: Santosh Shilimkar
->> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
->> Subject: Re: [PATCH 12/17] omap4: pm-debug: Add wakeup timer and
->> debug counters
->>
->> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
->>
->> > This patch adds configurable wakeup timer support in suspend. Also
->> > for statistics pm counter support is added.
->> >
->> > Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->> > Reviewed-by: Kevin Hilman <khilman@ti.com>
->> > ---
->> >  arch/arm/mach-omap2/omap4-mpuss-lowpower.c |    8 ++++++++
->> >  arch/arm/mach-omap2/pm-debug.c             |    6 ++++--
->> >  arch/arm/mach-omap2/pm44xx.c               |    5 +++++
->> >  3 files changed, 17 insertions(+), 2 deletions(-)
->> >
->> > diff --git a/arch/arm/mach-omap2/omap4-mpuss-lowpower.c
->> b/arch/arm/mach-omap2/omap4-mpuss-lowpower.c
->> > index ab2e101..5e0141e 100644
->> > --- a/arch/arm/mach-omap2/omap4-mpuss-lowpower.c
->> > +++ b/arch/arm/mach-omap2/omap4-mpuss-lowpower.c
->> > @@ -287,6 +287,10 @@ int omap4_enter_lowpower(unsigned int cpu,
->> unsigned int power_state)
->> >  	if (cpu)
->> >  		goto cpu_prepare;
->> >
->> > +#ifdef CONFIG_PM_DEBUG
->> > +	pwrdm_pre_transition();
->> > +#endif
->>
->> Why the #ifdef?
->>
-> Because these stats updates are quite expensive
-> in low power code and for the production kernel
-> you don't need this extra penalty.
+--ZPt4rx8FFjLCG7dd
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-OK, then please fix this in the powerdomain code (or header.)
+On Thu, Mar 03, 2011 at 08:02:09AM -0800, Greg KH wrote:
+> On Thu, Mar 03, 2011 at 10:48:29AM +0200, Felipe Balbi wrote:
+> > On Wed, Mar 02, 2011 at 04:57:55PM +1100, Stephen Rothwell wrote:
+> > > Hi Greg,
+> > > 
+> > > Today's linux-next merge of the usb tree got a conflict in
+> > > arch/arm/mach-omap2/board-4430sdp.c between commit
+> > > 1dbea0f5e23b6c647db72fa4a048cb7140625e13 ("arm: omap4: 4430sdp: drop ehci
+> > > support") from the omap tree and commit
+> > > 181b250cf53233a7a7c6d7e1e9df402506712e93 ("arm: omap: usb: create common
+> > > enums and structures for ehci and ohci") from the usb tree.
+> > > 
+> > > The former removed the code modified by the latter, so I did that.
+> > 
+> > This can be fixed if Greg applies this patch:
+> > 
+> > commit 076bfacd5bba0f2e419474488c8f8c060c7799d8
+> > Author: Anand Gadiyar <gadiyar@ti.com>
+> > Date:   Wed Feb 16 16:47:19 2011 +0530
+> 
+> Care to provide it to me in a format that I can apply it?  :)
 
-c.f. "#ifdefs are ugly" section of Documentation/SubmittingPatches
+heh, my bad. It's attached.
 
-Kevin
+-- 
+balbi
+
+--ZPt4rx8FFjLCG7dd
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: attachment; filename="0001-arm-omap4-4430sdp-drop-ehci-support.diff"
+
+>From 076bfacd5bba0f2e419474488c8f8c060c7799d8 Mon Sep 17 00:00:00 2001
+From: Anand Gadiyar <gadiyar@ti.com>
+Date: Wed, 16 Feb 2011 16:47:19 +0530
+Subject: [PATCH] arm: omap4: 4430sdp: drop ehci support
+Organization: Texas Instruments\n
+
+Most revisions of the OMAP4 Blaze/SDP platform do not have
+the EHCI signals routed by default. The pads are routed
+for the alternate HSI functionality instead, and explicit
+board modifications are needed to route the signals to
+the USB PHY on the board.
+
+Also, turning on the PHY connected to the EHCI port causes
+a board reboot during bootup due to an unintended short
+on the rails - this affects many initial revisions of the
+board, and needs a minor board mod to fix (or as a
+workaround, one should not attempt to power on the
+USB PHY).
+
+Given that these boards need explicit board mods to even
+get EHCI working (separate from the accidental short above),
+we should not attempt to enable EHCI by default.
+
+So drop the EHCI support from the board files for the
+Blaze/SDP platforms.
+
+Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
+Cc: Keshava Munegowda <keshava_mgowda@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+---
+ arch/arm/mach-omap2/board-4430sdp.c |   19 -------------------
+ 1 files changed, 0 insertions(+), 19 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+index 1230121..f603f3b 100644
+--- a/arch/arm/mach-omap2/board-4430sdp.c
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@ -44,7 +44,6 @@
+ #define ETH_KS8851_IRQ			34
+ #define ETH_KS8851_POWER_ON		48
+ #define ETH_KS8851_QUART		138
+-#define OMAP4SDP_MDM_PWR_EN_GPIO	157
+ #define OMAP4_SFH7741_SENSOR_OUTPUT_GPIO	184
+ #define OMAP4_SFH7741_ENABLE_GPIO		188
+ 
+@@ -251,16 +250,6 @@ static void __init omap_4430sdp_init_irq(void)
+ 	gic_init_irq();
+ }
+ 
+-static const struct usbhs_omap_board_data usbhs_bdata __initconst = {
+-	.port_mode[0]	= OMAP_EHCI_PORT_MODE_PHY,
+-	.port_mode[1]	= OMAP_USBHS_PORT_MODE_UNUSED,
+-	.port_mode[2]	= OMAP_USBHS_PORT_MODE_UNUSED,
+-	.phy_reset	= false,
+-	.reset_gpio_port[0]  = -EINVAL,
+-	.reset_gpio_port[1]  = -EINVAL,
+-	.reset_gpio_port[2]  = -EINVAL,
+-};
+-
+ static struct omap_musb_board_data musb_board_data = {
+ 	.interface_type		= MUSB_INTERFACE_UTMI,
+ 	.mode			= MUSB_OTG,
+@@ -577,14 +566,6 @@ static void __init omap_4430sdp_init(void)
+ 	omap_serial_init();
+ 	omap4_twl6030_hsmmc_init(mmc);
+ 
+-	/* Power on the ULPI PHY */
+-	status = gpio_request(OMAP4SDP_MDM_PWR_EN_GPIO, "USBB1 PHY VMDM_3V3");
+-	if (status)
+-		pr_err("%s: Could not get USBB1 PHY GPIO\n", __func__);
+-	else
+-		gpio_direction_output(OMAP4SDP_MDM_PWR_EN_GPIO, 1);
+-
+-	usbhs_init(&usbhs_bdata);
+ 	usb_musb_init(&musb_board_data);
+ 
+ 	status = omap_ethernet_init();
+-- 
+1.7.4.rc2
+
+
+--ZPt4rx8FFjLCG7dd--
