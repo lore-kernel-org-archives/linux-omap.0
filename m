@@ -1,41 +1,250 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 0/4] OMAP: DSS2: Cleanup patches
-Date: Thu, 3 Mar 2011 10:35:24 +0200
-Message-ID: <1299141328-12880-1-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 1/4] OMAP: DSS2: Remove FB_OMAP_BOOTLOADER_INIT support
+Date: Thu, 3 Mar 2011 10:35:25 +0200
+Message-ID: <1299141328-12880-2-git-send-email-tomi.valkeinen@ti.com>
+References: <1299141328-12880-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38948 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:55082 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757253Ab1CCIff (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 3 Mar 2011 03:35:35 -0500
-Received: from dlep36.itg.ti.com ([157.170.170.91])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p238ZZbf027331
+	id S1757735Ab1CCIfg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 3 Mar 2011 03:35:36 -0500
+Received: from dlep35.itg.ti.com ([157.170.170.118])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p238Za7i026706
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 3 Mar 2011 02:35:35 -0600
+	for <linux-omap@vger.kernel.org>; Thu, 3 Mar 2011 02:35:36 -0600
 Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
-	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id p238ZYPW005504
-	for <linux-omap@vger.kernel.org>; Thu, 3 Mar 2011 02:35:34 -0600 (CST)
-Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p238ZYHH005541
-	for <linux-omap@vger.kernel.org>; Thu, 3 Mar 2011 02:35:34 -0600 (CST)
+	by dlep35.itg.ti.com (8.13.7/8.13.7) with ESMTP id p238ZZDH000451
+	for <linux-omap@vger.kernel.org>; Thu, 3 Mar 2011 02:35:35 -0600 (CST)
+Received: from dlee74.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p238ZZ9L005555
+	for <linux-omap@vger.kernel.org>; Thu, 3 Mar 2011 02:35:35 -0600 (CST)
+In-Reply-To: <1299141328-12880-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Here are some patches to cleanup the DSS init a bit. 
+FB_OMAP_BOOTLOADER_INIT does not work, and it was only partially
+implemented for SDI.
 
-Tomi Valkeinen (4):
-  OMAP: DSS2: Remove FB_OMAP_BOOTLOADER_INIT support
-  OMAP: DSS2: Remove pdev argument from dpi_init
-  OMAP: DSS2: Move DPI & SDI init into DSS plat driver
-  OMAP: DSS2: Remove unneeded cpu_is_xxx checks
+This patch removes support for FB_OMAP_BOOTLOADER_INIT to clean up the
+code and to remove any assumptions that FB_OMAP_BOOTLOADER_INIT would
+work.
 
- drivers/video/omap2/dss/core.c |   43 ++++-------------------------
- drivers/video/omap2/dss/dpi.c  |    2 +-
- drivers/video/omap2/dss/dss.c  |   58 ++++++++++++++++++++++------------------
- drivers/video/omap2/dss/dss.h  |    8 +++---
- drivers/video/omap2/dss/sdi.c  |   40 ++++++---------------------
- 5 files changed, 52 insertions(+), 99 deletions(-)
+Proper implementation is much more complex, requiring early boot time
+register and clock handling to keep the DSS running.
+
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+---
+ drivers/video/omap2/dss/core.c |    8 +------
+ drivers/video/omap2/dss/dss.c  |   41 +++++++++++++++------------------------
+ drivers/video/omap2/dss/dss.h  |    4 +-
+ drivers/video/omap2/dss/sdi.c  |   40 ++++++++------------------------------
+ 4 files changed, 28 insertions(+), 65 deletions(-)
+
+diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/core.c
+index bcf69a4..02db5f1 100644
+--- a/drivers/video/omap2/dss/core.c
++++ b/drivers/video/omap2/dss/core.c
+@@ -166,7 +166,6 @@ static inline void dss_uninitialize_debugfs(void)
+ static int omap_dss_probe(struct platform_device *pdev)
+ {
+ 	struct omap_dss_board_info *pdata = pdev->dev.platform_data;
+-	int skip_init = 0;
+ 	int r;
+ 	int i;
+ 
+@@ -210,13 +209,8 @@ static int omap_dss_probe(struct platform_device *pdev)
+ 		goto err_venc;
+ 	}
+ 
+-#ifdef CONFIG_FB_OMAP_BOOTLOADER_INIT
+-	/* DISPC_CONTROL */
+-	if (omap_readl(0x48050440) & 1)	/* LCD enabled? */
+-		skip_init = 1;
+-#endif
+ 	if (cpu_is_omap34xx()) {
+-		r = sdi_init(skip_init);
++		r = sdi_init();
+ 		if (r) {
+ 			DSSERR("Failed to initialize SDI\n");
+ 			goto err_sdi;
+diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
+index 5c6805b..4025a14 100644
+--- a/drivers/video/omap2/dss/dss.c
++++ b/drivers/video/omap2/dss/dss.c
+@@ -559,7 +559,7 @@ void dss_set_dac_pwrdn_bgz(bool enable)
+ 	REG_FLD_MOD(DSS_CONTROL, enable, 5, 5);	/* DAC Power-Down Control */
+ }
+ 
+-static int dss_init(bool skip_init)
++static int dss_init(void)
+ {
+ 	int r;
+ 	u32 rev;
+@@ -578,22 +578,20 @@ static int dss_init(bool skip_init)
+ 		goto fail0;
+ 	}
+ 
+-	if (!skip_init) {
+-		/* disable LCD and DIGIT output. This seems to fix the synclost
+-		 * problem that we get, if the bootloader starts the DSS and
+-		 * the kernel resets it */
+-		omap_writel(omap_readl(0x48050440) & ~0x3, 0x48050440);
+-
+-		/* We need to wait here a bit, otherwise we sometimes start to
+-		 * get synclost errors, and after that only power cycle will
+-		 * restore DSS functionality. I have no idea why this happens.
+-		 * And we have to wait _before_ resetting the DSS, but after
+-		 * enabling clocks.
+-		 */
+-		msleep(50);
+-
+-		_omap_dss_reset();
+-	}
++	/* disable LCD and DIGIT output. This seems to fix the synclost
++	 * problem that we get, if the bootloader starts the DSS and
++	 * the kernel resets it */
++	omap_writel(omap_readl(0x48050440) & ~0x3, 0x48050440);
++
++	/* We need to wait here a bit, otherwise we sometimes start to
++	 * get synclost errors, and after that only power cycle will
++	 * restore DSS functionality. I have no idea why this happens.
++	 * And we have to wait _before_ resetting the DSS, but after
++	 * enabling clocks.
++	 */
++	msleep(50);
++
++	_omap_dss_reset();
+ 
+ 	/* autoidle */
+ 	REG_FLD_MOD(DSS_SYSCONFIG, 1, 0, 0);
+@@ -954,7 +952,6 @@ void dss_debug_dump_clocks(struct seq_file *s)
+ static int omap_dsshw_probe(struct platform_device *pdev)
+ {
+ 	int r;
+-	int skip_init = 0;
+ 
+ 	dss.pdev = pdev;
+ 
+@@ -967,13 +964,7 @@ static int omap_dsshw_probe(struct platform_device *pdev)
+ 	dss.ctx_id = dss_get_ctx_id();
+ 	DSSDBG("initial ctx id %u\n", dss.ctx_id);
+ 
+-#ifdef CONFIG_FB_OMAP_BOOTLOADER_INIT
+-	/* DISPC_CONTROL */
+-	if (omap_readl(0x48050440) & 1)	/* LCD enabled? */
+-		skip_init = 1;
+-#endif
+-
+-	r = dss_init(skip_init);
++	r = dss_init();
+ 	if (r) {
+ 		DSSERR("Failed to initialize DSS\n");
+ 		goto err_dss;
+diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
+index 20590fb..069fcc7 100644
+--- a/drivers/video/omap2/dss/dss.h
++++ b/drivers/video/omap2/dss/dss.h
+@@ -251,11 +251,11 @@ int dss_calc_clock_div(bool is_tft, unsigned long req_pck,
+ 
+ /* SDI */
+ #ifdef CONFIG_OMAP2_DSS_SDI
+-int sdi_init(bool skip_init);
++int sdi_init(void);
+ void sdi_exit(void);
+ int sdi_init_display(struct omap_dss_device *display);
+ #else
+-static inline int sdi_init(bool skip_init)
++static inline int sdi_init(void)
+ {
+ 	return 0;
+ }
+diff --git a/drivers/video/omap2/dss/sdi.c b/drivers/video/omap2/dss/sdi.c
+index 9f10a0d..54a53e6 100644
+--- a/drivers/video/omap2/dss/sdi.c
++++ b/drivers/video/omap2/dss/sdi.c
+@@ -30,7 +30,6 @@
+ #include "dss.h"
+ 
+ static struct {
+-	bool skip_init;
+ 	bool update_enabled;
+ 	struct regulator *vdds_sdi_reg;
+ } sdi;
+@@ -68,9 +67,7 @@ int omapdss_sdi_display_enable(struct omap_dss_device *dssdev)
+ 	if (r)
+ 		goto err1;
+ 
+-	/* In case of skip_init sdi_init has already enabled the clocks */
+-	if (!sdi.skip_init)
+-		dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK);
++	dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK);
+ 
+ 	sdi_basic_init(dssdev);
+ 
+@@ -80,14 +77,8 @@ int omapdss_sdi_display_enable(struct omap_dss_device *dssdev)
+ 	dispc_set_pol_freq(dssdev->manager->id, dssdev->panel.config,
+ 			dssdev->panel.acbi, dssdev->panel.acb);
+ 
+-	if (!sdi.skip_init) {
+-		r = dss_calc_clock_div(1, t->pixel_clock * 1000,
+-				&dss_cinfo, &dispc_cinfo);
+-	} else {
+-		r = dss_get_clock_div(&dss_cinfo);
+-		r = dispc_get_clock_div(dssdev->manager->id, &dispc_cinfo);
+-	}
+-
++	r = dss_calc_clock_div(1, t->pixel_clock * 1000,
++			&dss_cinfo, &dispc_cinfo);
+ 	if (r)
+ 		goto err2;
+ 
+@@ -116,18 +107,14 @@ int omapdss_sdi_display_enable(struct omap_dss_device *dssdev)
+ 	if (r)
+ 		goto err2;
+ 
+-	if (!sdi.skip_init) {
+-		dss_sdi_init(dssdev->phy.sdi.datapairs);
+-		r = dss_sdi_enable();
+-		if (r)
+-			goto err1;
+-		mdelay(2);
+-	}
++	dss_sdi_init(dssdev->phy.sdi.datapairs);
++	r = dss_sdi_enable();
++	if (r)
++		goto err1;
++	mdelay(2);
+ 
+ 	dssdev->manager->enable(dssdev->manager);
+ 
+-	sdi.skip_init = 0;
+-
+ 	return 0;
+ err2:
+ 	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK);
+@@ -173,17 +160,8 @@ int sdi_init_display(struct omap_dss_device *dssdev)
+ 	return 0;
+ }
+ 
+-int sdi_init(bool skip_init)
++int sdi_init(void)
+ {
+-	/* we store this for first display enable, then clear it */
+-	sdi.skip_init = skip_init;
+-
+-	/*
+-	 * Enable clocks already here, otherwise there would be a toggle
+-	 * of them until sdi_display_enable is called.
+-	 */
+-	if (skip_init)
+-		dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK);
+ 	return 0;
+ }
+ 
+-- 
+1.7.1
 
