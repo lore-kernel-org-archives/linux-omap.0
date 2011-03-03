@@ -1,46 +1,149 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 14/19] omap3+: sr: introduce notifiers flags
-Date: Thu, 03 Mar 2011 06:17:00 +0530
-Message-ID: <4D6EE504.8030100@ti.com>
-References: <1298116918-30744-1-git-send-email-nm@ti.com>	<1298116918-30744-15-git-send-email-nm@ti.com> <87vd01ukek.fsf@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [RFC 3/3] omap3+: sr: Reuse sr_[start|stop]_vddautocomp functions
+Date: Wed, 02 Mar 2011 16:48:38 -0800
+Message-ID: <87vd01t4ex.fsf@ti.com>
+References: <1299081445-27938-1-git-send-email-jhnikula@gmail.com>
+	<1299081445-27938-4-git-send-email-jhnikula@gmail.com>
+	<4D6E775D.7040107@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:55725 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756658Ab1CCArf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Mar 2011 19:47:35 -0500
-Received: by mail-vw0-f49.google.com with SMTP id 7so554727vws.8
-        for <linux-omap@vger.kernel.org>; Wed, 02 Mar 2011 16:47:34 -0800 (PST)
-In-Reply-To: <87vd01ukek.fsf@ti.com>
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:44014 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753539Ab1CCAsm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Mar 2011 19:48:42 -0500
+Received: by gye5 with SMTP id 5so247427gye.38
+        for <linux-omap@vger.kernel.org>; Wed, 02 Mar 2011 16:48:41 -0800 (PST)
+In-Reply-To: <4D6E775D.7040107@ti.com> (Nishanth Menon's message of "Wed, 02
+	Mar 2011 22:29:09 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
+To: Nishanth Menon <nm@ti.com>
+Cc: Jarkko Nikula <jhnikula@gmail.com>, linux-omap@vger.kernel.org, Thara Gopinath <thara@ti.com>
 
-Kevin Hilman wrote, on 03/03/2011 05:47 AM:
-[..]
->
->> diff --git a/arch/arm/plat-omap/include/plat/smartreflex.h b/arch/arm/plat-omap/include/plat/smartreflex.h
->> index 8b6ecd9..ff07d1e 100644
->> --- a/arch/arm/plat-omap/include/plat/smartreflex.h
->> +++ b/arch/arm/plat-omap/include/plat/smartreflex.h
->> @@ -141,6 +141,12 @@
->>   #define OMAP3430_SR_ERRWEIGHT		0x04
->>   #define OMAP3430_SR_ERRMAXLIMIT		0x02
+Nishanth Menon <nm@ti.com> writes:
+
+> Jarkko Nikula wrote, on 03/02/2011 09:27 PM:
+>> sr_start_vddautocomp and sr_stop_autocomp functions can be reused from
+>> omap_sr_enable, omap_sr_disable and omap_sr_disable_reset_volt and by
+>> adding one additional argument sr_stop_autocomp.
 >>
->> +/* Smart reflex notifiers for class drivers to use */
->> +#define SR_NOTIFY_MCUACCUM     (0x1<<  0)
->> +#define SR_NOTIFY_MCUVALID     (0x1<<  1)
->> +#define SR_NOTIFY_MCUBOUND     (0x1<<  2)
->> +#define SR_NOTIFY_MCUDISACK    (0x1<<  3)
->> +
+>> Signed-off-by: Jarkko Nikula<jhnikula@gmail.com>
+>> ---
+>>   arch/arm/mach-omap2/smartreflex.c |   41 ++++++------------------------------
+>>   1 files changed, 7 insertions(+), 34 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
+>> index 11741d8..7e6002f 100644
+>> --- a/arch/arm/mach-omap2/smartreflex.c
+>> +++ b/arch/arm/mach-omap2/smartreflex.c
+>> @@ -227,7 +227,7 @@ static void sr_start_vddautocomp(struct omap_sr *sr)
+>>   		sr->autocomp_active = true;
+>>   }
+>>
+>> -static void sr_stop_vddautocomp(struct omap_sr *sr)
+>> +static void sr_stop_vddautocomp(struct omap_sr *sr, int is_volt_reset)
+>>   {
+>>   	if (!sr->autocomp_active)
+>>   		return;
+>> @@ -239,7 +239,7 @@ static void sr_stop_vddautocomp(struct omap_sr *sr)
+>>   		return;
+>>   	}
+>>
+>> -	if (!sr_class->disable(sr->voltdm, 1))
+>> +	if (!sr_class->disable(sr->voltdm, is_volt_reset))
+>>   		sr->autocomp_active = false;
+>>   }
+>>
+>> @@ -681,16 +681,7 @@ void omap_sr_enable(struct voltagedomain *voltdm)
+>>   		return;
+>>   	}
+>>
+>> -	if (!sr->autocomp_active)
+>> -		return;
+>> -
+>> -	if (!sr_class || !(sr_class->enable) || !(sr_class->configure)) {
+>> -		dev_warn(&sr->pdev->dev, "%s: smartreflex class driver not"
+>> -			"registered\n", __func__);
+>> -		return;
+>> -	}
+>> -
+>> -	sr_class->enable(voltdm);
+>> +	sr_start_vddautocomp(sr);
+>>   }
+>>
+>>   /**
+>> @@ -714,16 +705,7 @@ void omap_sr_disable(struct voltagedomain *voltdm)
+>>   		return;
+>>   	}
+>>
+>> -	if (!sr->autocomp_active)
+>> -		return;
+>> -
+>> -	if (!sr_class || !(sr_class->disable)) {
+>> -		dev_warn(&sr->pdev->dev, "%s: smartreflex class driver not"
+>> -			"registered\n", __func__);
+>> -		return;
+>> -	}
+>> -
+>> -	sr_class->disable(voltdm, 0);
+>> +	sr_stop_vddautocomp(sr, 0);
+>>   }
+>>
+>>   /**
+>> @@ -747,16 +729,7 @@ void omap_sr_disable_reset_volt(struct voltagedomain *voltdm)
+>>   		return;
+>>   	}
+>>
+>> -	if (!sr->autocomp_active)
+>> -		return;
+>> -
+>> -	if (!sr_class || !(sr_class->disable)) {
+>> -		dev_warn(&sr->pdev->dev, "%s: smartreflex class driver not"
+>> -			"registered\n", __func__);
+>> -		return;
+>> -	}
+>> -
+>> -	sr_class->disable(voltdm, 1);
+>> +	sr_stop_vddautocomp(sr, 1);
+>>   }
+>>
+>>   /**
+>> @@ -809,7 +782,7 @@ static int omap_sr_autocomp_store(void *data, u64 val)
+>>   	}
+>>
+>>   	if (!val)
+>> -		sr_stop_vddautocomp(sr_info);
+>> +		sr_stop_vddautocomp(sr_info, 1);
+>>   	else
+>>   		sr_start_vddautocomp(sr_info);
+>>
+>> @@ -976,7 +949,7 @@ static int __devexit omap_sr_remove(struct platform_device *pdev)
+>>   	}
+>>
+>>   	if (sr_info->autocomp_active)
+>> -		sr_stop_vddautocomp(sr_info);
+>> +		sr_stop_vddautocomp(sr_info, 1);
+>>
+>>   	list_del(&sr_info->node);
+>>   	iounmap(sr_info->base);
 >
-> Please use BIT(x)
+> Looks like a nice cleanup to me.
+>
+> if the motivation of patch 1/3 is to do this cleanup, I am altogether
+> for it (lesser code == lesser bugs ;) ). btw, this should not impact
+> class1.5 either - core sr.c sequencing has not been modified in sr1.5
+> :)
+>
+> Depending on Kevin's views, either you or I or both of us can rebase
+> depending on whose ever series gets pulled in first.. (either should
+> be a very minimal effort).
 
-Ack.
+Nishanth,
 
--- 
-Regards,
-Nishanth Menon
+I'd prefer if you handle these.  You can add them to the fixup/cleanup
+part of your SR1.5 series.
+
+Thanks,
+
+Kevin
