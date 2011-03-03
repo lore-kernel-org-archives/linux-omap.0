@@ -1,35 +1,28 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 00/19] OMAP3+: introduce SR class 1.5
-Date: Wed, 02 Mar 2011 17:00:31 -0800
-Message-ID: <8762s1t3v4.fsf@ti.com>
-References: <1298116918-30744-1-git-send-email-nm@ti.com>
-	<87aahdujox.fsf@ti.com> <4D6EE2D5.7040900@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] omap: panda: Add TI-ST driver support
+Date: Wed, 2 Mar 2011 17:00:42 -0800
+Message-ID: <20110303010042.GG20560@atomide.com>
+References: <1298616755-10192-1-git-send-email-guy@wizery.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:35570 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752871Ab1CCBAe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Mar 2011 20:00:34 -0500
-Received: by mail-iy0-f170.google.com with SMTP id 12so554845iyb.15
-        for <linux-omap@vger.kernel.org>; Wed, 02 Mar 2011 17:00:34 -0800 (PST)
-In-Reply-To: <4D6EE2D5.7040900@ti.com> (Nishanth Menon's message of "Thu, 03
-	Mar 2011 06:07:41 +0530")
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:28511 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752871Ab1CCBAs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Mar 2011 20:00:48 -0500
+Content-Disposition: inline
+In-Reply-To: <1298616755-10192-1-git-send-email-guy@wizery.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
+To: Guy Eilam <guy@wizery.com>
+Cc: linux-omap@vger.kernel.org
 
-Nishanth Menon <nm@ti.com> writes:
+* Guy Eilam <guy@wizery.com> [110224 22:52]:
+> Added the KIM (Kernel initialization module for the
+> Shared Transport driver) device entry in the board file
+> 
+> Only the Blutooth enable GPIO is set for now
 
->>
->> - Please Cc linux-arm-kernel for patches intended for mainline.  Because
->>    of this, I didn't (yet) queue the ones I said I would queue.
-> done that with v2 which I had happened to have posted yesterday :(:
-> http://marc.info/?l=linux-omap&m=129906334611444&w=2
+Adding for the merge window.
 
-Doh, sorry.  
-
-My backlog is deep enough that I hadn't seen your v2 yet. :/
-
-Kevin
+Tony
