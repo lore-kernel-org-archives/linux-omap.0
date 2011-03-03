@@ -1,72 +1,65 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v2] OMAP2+: fix incorrect computation of autoidle_mask
-Date: Thu, 3 Mar 2011 11:22:09 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1103031121290.10981@utopia.booyaka.com>
-References: <1294139013-18737-1-git-send-email-tarun.kanti@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 5/6] omap4: Initialise the l3 device with the hwmod
+ data.
+Date: Thu, 3 Mar 2011 10:31:11 -0800
+Message-ID: <20110303183111.GO20560@atomide.com>
+References: <1298295990-1070-1-git-send-email-santosh.shilimkar@ti.com>
+ <1298295990-1070-6-git-send-email-santosh.shilimkar@ti.com>
+ <4D62AAAA.40104@ti.com>
+ <295be59bd43a2e9f0961c10263ce19c0@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:54691 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758598Ab1CCSWK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Mar 2011 13:22:10 -0500
-In-Reply-To: <1294139013-18737-1-git-send-email-tarun.kanti@ti.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:40121 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751133Ab1CCSbP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Mar 2011 13:31:15 -0500
+Content-Disposition: inline
+In-Reply-To: <295be59bd43a2e9f0961c10263ce19c0@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Benoit Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Sricharan R <r.sricharan@ti.com>
 
-Hello Tarun,
+* Santosh Shilimkar <santosh.shilimkar@ti.com> [110221 11:01]:
+> > -----Original Message-----
+> > From: Cousson, Benoit [mailto:b-cousson@ti.com]
+> > Sent: Monday, February 21, 2011 11:41 PM
+> > To: Shilimkar, Santosh
+> > Cc: linux-omap@vger.kernel.org; Balbi, Felipe; R, Sricharan
+> > Subject: Re: [PATCH 5/6] omap4: Initialise the l3 device with the
+> > hwmod data.
+> >
+> > On 2/21/2011 2:46 PM, Shilimkar, Santosh wrote:
+> > > From: sricharan<r.sricharan@ti.com>
+> > >
+> > > The l3 interconnect device is build with all the data required
+> > > to handle the error logging. The data is extracted from the
+> > > hwmod data base.
+> > >
+> > > Signed-off-by: sricharan<r.sricharan@ti.com>
+> > > Signed-off-by: sricharan<r.sricharan@ti.com>
+> > > Tested-by: sricharan<r.sricharan@ti.com>
+> >
+> > Mmm, I'm not sure the tested-by is meaningfull in your case, since
+> > you wrote the code and so everybody will assume you tested it.
+> > One s-o-b should be probably enough.
+> >
+> 
+> Well he tested whole series including the patch from Felipe.
+> So a tested-by on whole series doesn't hurt, right ?
+> 
+> Just for record, I have seen tested by applied on whole series
+> Where as some of the patches in this series are just comment
+> updates.
 
-On Tue, 4 Jan 2011, Tarun Kanti DebBarma wrote:
+Well Signed-off-by also means Tested-by. If not, it should
+be specifically mentioned when the patch is posted. Something
+like "PLEASE NOTE THAT THIS PATCH IS COMPLETELY UNTESTED".
 
-> Autoidle is a single bit, TIOCP_CFG[0], setting on OMAP1/2/3/4 platforms.
-> In _set_module_autoidle() I am seeing 0x3 value where the mask is computed.
-> This should be 0x1.
-> 
-> v2:
-> (1) Modified the subject.
-> (2) Modified the description with further specific information.
-> 
-> Baseline:
-> git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
-> 
-> Tested Info:
-> Boot tested on OMAP 1/2/3/4.
-> 
-> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-> Acked-by: Rajendra Nayak <rnayak@ti.com>
-> Acked-by: Benoit Cousson <b-cousson@ti.com>
+Also one Signed-off-by is enough like Benoit pointed out :)
 
-Thanks, nice catch.  Queued for 2.6.39.
+Tony
 
-
-- Paul
-
-> ---
->  arch/arm/mach-omap2/omap_hwmod.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-> index 5a30658..da49b56 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod.c
-> @@ -373,7 +373,7 @@ static int _set_module_autoidle(struct omap_hwmod *oh, u8 autoidle,
->  	}
->  
->  	autoidle_shift = oh->class->sysc->sysc_fields->autoidle_shift;
-> -	autoidle_mask = (0x3 << autoidle_shift);
-> +	autoidle_mask = (0x1 << autoidle_shift);
->  
->  	*v &= ~autoidle_mask;
->  	*v |= autoidle << autoidle_shift;
-> -- 
-> 1.6.0.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
 
 
