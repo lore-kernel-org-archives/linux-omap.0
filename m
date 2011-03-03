@@ -1,39 +1,72 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [patch v3 3/3] arm: omap4: support pmu
-Date: Thu, 3 Mar 2011 10:20:49 -0800
-Message-ID: <20110303182049.GN20560@atomide.com>
-References: <1299149633-699-1-git-send-email-tom.leiming@gmail.com>
- <1299149633-699-4-git-send-email-tom.leiming@gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH v2] OMAP2+: fix incorrect computation of autoidle_mask
+Date: Thu, 3 Mar 2011 11:22:09 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1103031121290.10981@utopia.booyaka.com>
+References: <1294139013-18737-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:54177 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758598Ab1CCSVD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Mar 2011 13:21:03 -0500
-Content-Disposition: inline
-In-Reply-To: <1299149633-699-4-git-send-email-tom.leiming@gmail.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:54691 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758598Ab1CCSWK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Mar 2011 13:22:10 -0500
+In-Reply-To: <1294139013-18737-1-git-send-email-tarun.kanti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tom.leiming@gmail.com
-Cc: linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, will.deacon@arm.com, Santosh Shilimkar <santosh.shilimkar@ti.com>, Woodruff Richard <r-woodruff2@ti.com>, linux-omap@vger.kernel.org
+To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@vger.kernel.org
 
-* tom.leiming@gmail.com <tom.leiming@gmail.com> [110303 02:52]:
-> From: Ming Lei <tom.leiming@gmail.com>
-> 
-> This patch supports pmu irq routed from CTI, so
-> make pmu/perf working on OMAP4.
-> 
-> The idea is from Woodruff Richard in the disscussion
-> about "Oprofile on Pandaboard / Omap4" on pandaboard@googlegroups.com.
-> 
-> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Cc: Woodruff Richard <r-woodruff2@ti.com>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: linux-omap@vger.kernel.org
-> Signed-off-by: Ming Lei <tom.leiming@gmail.com>
+Hello Tarun,
 
-You'll probably want to queue this along with the to other
-patches via the Russell, so:
+On Tue, 4 Jan 2011, Tarun Kanti DebBarma wrote:
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+> Autoidle is a single bit, TIOCP_CFG[0], setting on OMAP1/2/3/4 platforms.
+> In _set_module_autoidle() I am seeing 0x3 value where the mask is computed.
+> This should be 0x1.
+> 
+> v2:
+> (1) Modified the subject.
+> (2) Modified the description with further specific information.
+> 
+> Baseline:
+> git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
+> 
+> Tested Info:
+> Boot tested on OMAP 1/2/3/4.
+> 
+> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+> Acked-by: Rajendra Nayak <rnayak@ti.com>
+> Acked-by: Benoit Cousson <b-cousson@ti.com>
+
+Thanks, nice catch.  Queued for 2.6.39.
+
+
+- Paul
+
+> ---
+>  arch/arm/mach-omap2/omap_hwmod.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+> index 5a30658..da49b56 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod.c
+> @@ -373,7 +373,7 @@ static int _set_module_autoidle(struct omap_hwmod *oh, u8 autoidle,
+>  	}
+>  
+>  	autoidle_shift = oh->class->sysc->sysc_fields->autoidle_shift;
+> -	autoidle_mask = (0x3 << autoidle_shift);
+> +	autoidle_mask = (0x1 << autoidle_shift);
+>  
+>  	*v &= ~autoidle_mask;
+>  	*v |= autoidle << autoidle_shift;
+> -- 
+> 1.6.0.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
+
