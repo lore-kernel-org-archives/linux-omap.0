@@ -1,301 +1,135 @@
-From: Steve Sakoman <steve@sakoman.com>
-Subject: [PATCH 1/2] OMAP: DSS2: Add support for LG Philips LB035Q02 panel
-Date: Thu,  3 Mar 2011 15:46:19 -0800
-Message-ID: <1299195980-17057-2-git-send-email-steve@sakoman.com>
-References: <1299195980-17057-1-git-send-email-steve@sakoman.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCHv2] OMAP3: CPUIdle: prevent CORE from going off if doing
+ so would reset an active clockdomain
+Date: Thu, 03 Mar 2011 15:48:36 -0800
+Message-ID: <1299196116.3989.423.camel@vence>
+References: <1295606225-11834-1-git-send-email-tero.kristo@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:58376 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758886Ab1CCXqk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Mar 2011 18:46:40 -0500
-Received: by mail-ew0-f46.google.com with SMTP id 6so540285ewy.19
-        for <linux-omap@vger.kernel.org>; Thu, 03 Mar 2011 15:46:39 -0800 (PST)
-In-Reply-To: <1299195980-17057-1-git-send-email-steve@sakoman.com>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:54869 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759055Ab1CCXsm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Mar 2011 18:48:42 -0500
+Received: by vws12 with SMTP id 12so1533419vws.19
+        for <linux-omap@vger.kernel.org>; Thu, 03 Mar 2011 15:48:41 -0800 (PST)
+In-Reply-To: <1295606225-11834-1-git-send-email-tero.kristo@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: tomi.valkeinen@ti.com, Steve Sakoman <steve@sakoman.com>
+To: Tero Kristo <tero.kristo@nokia.com>
+Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>
 
-This patch adds support for the Gumstix Palo35 expansion board
-which utilizes the 320 x 240 pixel LG.Philips LB035Q02 LCD Panel
+Hi Tero,
 
-Signed-off-by: Steve Sakoman <steve@sakoman.com>
----
- drivers/video/omap2/displays/Kconfig               |    6 +
- drivers/video/omap2/displays/Makefile              |    1 +
- .../omap2/displays/panel-lgphilips-lb035q02.c      |  236 ++++++++++++++++++++
- 3 files changed, 243 insertions(+), 0 deletions(-)
- create mode 100644 drivers/video/omap2/displays/panel-lgphilips-lb035q02.c
+On Fri, 2011-01-21 at 12:37 +0200, Tero Kristo wrote:
+> On OMAP3 SoCs, if the CORE powerdomain enters off-mode, many other
+> parts of the chip will be reset.  If those parts of the chip are busy,
+> the reset will disrupt them, causing unpredictable and generally
+> undesirable results. This reset is caused by the core domain wakeup
+> (COREDOMAINWKUP_RST), and it can occur for example in a case where
+> some peripheral domain is in retention or inactive state and core
+> enters off. This will result in the peripheral domain being reset.
 
-diff --git a/drivers/video/omap2/displays/Kconfig b/drivers/video/omap2/displays/Kconfig
-index 940cab3..d18ad6b 100644
---- a/drivers/video/omap2/displays/Kconfig
-+++ b/drivers/video/omap2/displays/Kconfig
-@@ -9,6 +9,12 @@ config PANEL_GENERIC_DPI
- 	  Supports LCD Panel used in TI SDP3430 and EVM boards,
- 	  OMAP3517 EVM boards and CM-T35.
- 
-+config PANEL_LGPHILIPS_LB035Q02
-+	tristate "LG.Philips LB035Q02 LCD Panel"
-+	depends on OMAP2_DSS && SPI
-+	help
-+	  LCD Panel used on the Gumstix Overo Palo35
-+
- config PANEL_SHARP_LS037V7DW01
-         tristate "Sharp LS037V7DW01 LCD Panel"
-         depends on OMAP2_DSS
-diff --git a/drivers/video/omap2/displays/Makefile b/drivers/video/omap2/displays/Makefile
-index 861f025..0f601ab 100644
---- a/drivers/video/omap2/displays/Makefile
-+++ b/drivers/video/omap2/displays/Makefile
-@@ -1,4 +1,5 @@
- obj-$(CONFIG_PANEL_GENERIC_DPI) += panel-generic-dpi.o
-+obj-$(CONFIG_PANEL_LGPHILIPS_LB035Q02) += panel-lgphilips-lb035q02.o
- obj-$(CONFIG_PANEL_SHARP_LS037V7DW01) += panel-sharp-ls037v7dw01.o
- obj-$(CONFIG_PANEL_NEC_NL8048HL11_01B) += panel-nec-nl8048hl11-01b.o
- 
-diff --git a/drivers/video/omap2/displays/panel-lgphilips-lb035q02.c b/drivers/video/omap2/displays/panel-lgphilips-lb035q02.c
-new file mode 100644
-index 0000000..55fcd31
---- /dev/null
-+++ b/drivers/video/omap2/displays/panel-lgphilips-lb035q02.c
-@@ -0,0 +1,236 @@
-+/*
-+ * LCD panel driver for LG.Philips LB035Q02
-+ *
-+ * Author: Steve Sakoman <steve@sakoman.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License version 2 as published by
-+ * the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but WITHOUT
-+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-+ * more details.
-+ *
-+ * You should have received a copy of the GNU General Public License along with
-+ * this program.  If not, see <http://www.gnu.org/licenses/>.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/delay.h>
-+#include <linux/spi/spi.h>
-+
-+#include <plat/display.h>
-+
-+static struct omap_video_timings lb035q02_timings = {
-+	.x_res = 320,
-+	.y_res = 240,
-+
-+	.pixel_clock	= 6500,
-+
-+	.hsw		= 2,
-+	.hfp		= 20,
-+	.hbp		= 68,
-+
-+	.vsw		= 2,
-+	.vfp		= 4,
-+	.vbp		= 18,
-+};
-+
-+static int lb035q02_panel_power_on(struct omap_dss_device *dssdev)
-+{
-+	int r;
-+
-+	if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE)
-+		return 0;
-+
-+	r = omapdss_dpi_display_enable(dssdev);
-+	if (r)
-+		goto err0;
-+
-+	if (dssdev->platform_enable) {
-+		r = dssdev->platform_enable(dssdev);
-+		if (r)
-+			goto err1;
-+	}
-+
-+	return 0;
-+err1:
-+	omapdss_dpi_display_disable(dssdev);
-+err0:
-+	return r;
-+}
-+
-+static void lb035q02_panel_power_off(struct omap_dss_device *dssdev)
-+{
-+	if (dssdev->state != OMAP_DSS_DISPLAY_ACTIVE)
-+		return;
-+
-+	if (dssdev->platform_disable)
-+		dssdev->platform_disable(dssdev);
-+
-+	omapdss_dpi_display_disable(dssdev);
-+}
-+
-+static int lb035q02_panel_probe(struct omap_dss_device *dssdev)
-+{
-+	dssdev->panel.config = OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
-+		OMAP_DSS_LCD_IHS;
-+	dssdev->panel.timings = lb035q02_timings;
-+
-+	return 0;
-+}
-+
-+static void lb035q02_panel_remove(struct omap_dss_device *dssdev)
-+{
-+}
-+
-+static int lb035q02_panel_enable(struct omap_dss_device *dssdev)
-+{
-+	int r = 0;
-+
-+	r = lb035q02_panel_power_on(dssdev);
-+	if (r)
-+		return r;
-+
-+	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
-+
-+	return 0;
-+}
-+
-+static void lb035q02_panel_disable(struct omap_dss_device *dssdev)
-+{
-+	lb035q02_panel_power_off(dssdev);
-+
-+	dssdev->state = OMAP_DSS_DISPLAY_DISABLED;
-+}
-+
-+static int lb035q02_panel_suspend(struct omap_dss_device *dssdev)
-+{
-+	lb035q02_panel_disable(dssdev);
-+	dssdev->state = OMAP_DSS_DISPLAY_SUSPENDED;
-+	return 0;
-+}
-+
-+static int lb035q02_panel_resume(struct omap_dss_device *dssdev)
-+{
-+	int r;
-+
-+	r = lb035q02_panel_power_on(dssdev);
-+	if (r)
-+		return r;
-+
-+	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
-+
-+	return 0;
-+}
-+
-+static struct omap_dss_driver lb035q02_driver = {
-+	.probe		= lb035q02_panel_probe,
-+	.remove		= lb035q02_panel_remove,
-+
-+	.enable		= lb035q02_panel_enable,
-+	.disable	= lb035q02_panel_disable,
-+	.suspend	= lb035q02_panel_suspend,
-+	.resume		= lb035q02_panel_resume,
-+
-+	.driver         = {
-+		.name   = "lgphilips_lb035q02_panel",
-+		.owner  = THIS_MODULE,
-+	},
-+};
-+
-+static int lb035q02_write_reg(struct spi_device *spi, u8 reg, u16 val)
-+{
-+	struct spi_message msg;
-+	struct spi_transfer index_xfer = {
-+		.len		= 3,
-+		.cs_change	= 1,
-+	};
-+	struct spi_transfer value_xfer = {
-+		.len		= 3,
-+	};
-+	u8	buffer[16];
-+
-+	spi_message_init(&msg);
-+
-+	/* register index */
-+	buffer[0] = 0x70;
-+	buffer[1] = 0x00;
-+	buffer[2] = reg & 0x7f;
-+	index_xfer.tx_buf = buffer;
-+	spi_message_add_tail(&index_xfer, &msg);
-+
-+	/* register value */
-+	buffer[4] = 0x72;
-+	buffer[5] = val >> 8;
-+	buffer[6] = val;
-+	value_xfer.tx_buf = buffer + 4;
-+	spi_message_add_tail(&value_xfer, &msg);
-+
-+	return spi_sync(spi, &msg);
-+}
-+
-+static void init_lb035q02_panel(struct spi_device *spi)
-+{
-+	/* Init sequence from page 28 of the lb035q02 spec */
-+	lb035q02_write_reg(spi, 0x01, 0x6300);
-+	lb035q02_write_reg(spi, 0x02, 0x0200);
-+	lb035q02_write_reg(spi, 0x03, 0x0177);
-+	lb035q02_write_reg(spi, 0x04, 0x04c7);
-+	lb035q02_write_reg(spi, 0x05, 0xffc0);
-+	lb035q02_write_reg(spi, 0x06, 0xe806);
-+	lb035q02_write_reg(spi, 0x0a, 0x4008);
-+	lb035q02_write_reg(spi, 0x0b, 0x0000);
-+	lb035q02_write_reg(spi, 0x0d, 0x0030);
-+	lb035q02_write_reg(spi, 0x0e, 0x2800);
-+	lb035q02_write_reg(spi, 0x0f, 0x0000);
-+	lb035q02_write_reg(spi, 0x16, 0x9f80);
-+	lb035q02_write_reg(spi, 0x17, 0x0a0f);
-+	lb035q02_write_reg(spi, 0x1e, 0x00c1);
-+	lb035q02_write_reg(spi, 0x30, 0x0300);
-+	lb035q02_write_reg(spi, 0x31, 0x0007);
-+	lb035q02_write_reg(spi, 0x32, 0x0000);
-+	lb035q02_write_reg(spi, 0x33, 0x0000);
-+	lb035q02_write_reg(spi, 0x34, 0x0707);
-+	lb035q02_write_reg(spi, 0x35, 0x0004);
-+	lb035q02_write_reg(spi, 0x36, 0x0302);
-+	lb035q02_write_reg(spi, 0x37, 0x0202);
-+	lb035q02_write_reg(spi, 0x3a, 0x0a0d);
-+	lb035q02_write_reg(spi, 0x3b, 0x0806);
-+}
-+
-+static int __devinit lb035q02_panel_spi_probe(struct spi_device *spi)
-+{
-+	init_lb035q02_panel(spi);
-+	return omap_dss_register_driver(&lb035q02_driver);
-+}
-+
-+static int __devexit lb035q02_panel_spi_remove(struct spi_device *spi)
-+{
-+	omap_dss_unregister_driver(&lb035q02_driver);
-+	return 0;
-+}
-+
-+static struct spi_driver lb035q02_spi_driver = {
-+	.driver		= {
-+		.name	= "lgphilips_lb035q02_panel-spi",
-+		.owner	= THIS_MODULE,
-+	},
-+	.probe		= lb035q02_panel_spi_probe,
-+	.remove		= __devexit_p(lb035q02_panel_spi_remove),
-+};
-+
-+static int __init lb035q02_panel_drv_init(void)
-+{
-+	return spi_register_driver(&lb035q02_spi_driver);
-+}
-+
-+static void __exit lb035q02_panel_drv_exit(void)
-+{
-+	spi_unregister_driver(&lb035q02_spi_driver);
-+}
-+
-+module_init(lb035q02_panel_drv_init);
-+module_exit(lb035q02_panel_drv_exit);
-+MODULE_LICENSE("GPL");
--- 
-1.7.0.4
+Found a minor bug here...
+
+> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Cc: Vishwanath Sripathy <vishwanath.bs@ti.com>
+> ---
+>  arch/arm/mach-omap2/cpuidle34xx.c |   40 +++++++++++++++++++++++++++++++++++-
+>  1 files changed, 38 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
+> index f3e043f..d31b858 100644
+> --- a/arch/arm/mach-omap2/cpuidle34xx.c
+> +++ b/arch/arm/mach-omap2/cpuidle34xx.c
+> @@ -61,7 +61,7 @@ struct omap3_processor_cx {
+>  struct omap3_processor_cx omap3_power_states[OMAP3_MAX_STATES];
+>  struct omap3_processor_cx current_cx_state;
+>  struct powerdomain *mpu_pd, *core_pd, *per_pd;
+> -struct powerdomain *cam_pd;
+> +struct powerdomain *cam_pd, *dss_pd, *iva2_pd, *sgx_pd, *usb_pd;
+>  
+>  /*
+>   * The latencies/thresholds for various C states have
+> @@ -235,7 +235,7 @@ static int omap3_enter_idle_bm(struct cpuidle_device *dev,
+>  {
+>  	struct cpuidle_state *new_state = next_valid_state(dev, state);
+>  	u32 core_next_state, per_next_state = 0, per_saved_state = 0;
+> -	u32 cam_state;
+> +	u32 cam_state, dss_state, iva2_state, sgx_state, usb_state;
+>  	struct omap3_processor_cx *cx;
+>  	int ret;
+>  
+> @@ -256,6 +256,8 @@ static int omap3_enter_idle_bm(struct cpuidle_device *dev,
+>  	 *        its own code.
+>  	 */
+>  
+> +	/* XXX Add CORE-active check here */
+> +
+>  	/*
+>  	 * Prevent idle completely if CAM is active.
+>  	 * CAM does not have wakeup capability in OMAP3.
+> @@ -275,6 +277,36 @@ static int omap3_enter_idle_bm(struct cpuidle_device *dev,
+>  	    (core_next_state > PWRDM_POWER_RET))
+>  		per_next_state = PWRDM_POWER_RET;
+>  
+> +	/* XXX Add prevent-PER-off check here */
+> +
+> +	/*
+> +	 * If we are attempting CORE off, check if any other powerdomains
+> +	 * are at retention or higher. CORE off causes chipwide reset which
+> +	 * would reset these domains also.
+> +	 */
+> +	if (core_next_state == PWRDM_POWER_OFF) {
+> +		iva2_state = pwrdm_read_pwrst(iva2_pd);
+> +		sgx_state = pwrdm_read_pwrst(sgx_pd);
+> +		usb_state = pwrdm_read_pwrst(usb_pd);
+> +		dss_state = pwrdm_read_pwrst(dss_pd);
+> +
+> +		if (cam_state > PWRDM_POWER_OFF ||
+> +		    dss_state > PWRDM_POWER_OFF ||
+> +		    iva2_state > PWRDM_POWER_OFF ||
+> +		    per_next_state > PWRDM_POWER_OFF ||
+> +		    sgx_state > PWRDM_POWER_OFF ||
+> +		    usb_state > PWRDM_POWER_OFF)
+> +			core_next_state = PWRDM_POWER_RET;
+> +	}
+> +
+> +	/* Fallback to new target core/mpu state */
+> +	while (cx->core_state < core_next_state) {
+> +		state--;
+
+This can potentially pick a state that has its 'valid' flag set to zero,
+for example, a state with MPU/CORE set to off-mode, but
+enable_off_mode=0.
+
+The fix is to also add a check for cx->valid in the while test.  Will
+fold that fix into original patch and queue for 2.6.39.
+
+Kevin
+
+> +		cx = cpuidle_get_statedata(state);
+> +	}
+> +
+> +	new_state = state;
+> +
+>  	/* Are we changing PER target state? */
+>  	if (per_next_state != per_saved_state)
+>  		pwrdm_set_next_pwrst(per_pd, per_next_state);
+> @@ -489,6 +521,10 @@ int __init omap3_idle_init(void)
+>  	core_pd = pwrdm_lookup("core_pwrdm");
+>  	per_pd = pwrdm_lookup("per_pwrdm");
+>  	cam_pd = pwrdm_lookup("cam_pwrdm");
+> +	dss_pd = pwrdm_lookup("dss_pwrdm");
+> +	iva2_pd = pwrdm_lookup("iva2_pwrdm");
+> +	sgx_pd = pwrdm_lookup("sgx_pwrdm");
+> +	usb_pd = pwrdm_lookup("usbhost_pwrdm");
+>  
+>  	omap_init_power_states();
+>  	cpuidle_register_driver(&omap3_idle_driver);
+
 
