@@ -1,103 +1,84 @@
-From: "Menon, Nishanth" <nm@ti.com>
-Subject: Re: [PATCH] OMAP4: Add IVA OPP enteries with Updated Voltage Rail Values.
-Date: Thu, 3 Mar 2011 15:04:09 +0530
-Message-ID: <AANLkTimb4_EXmMwyBfR52Zx9nhZy25W3OZhQy9nKcQZ4@mail.gmail.com>
-References: <1299144429-20942-1-git-send-email-shweta.gulati@ti.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH] OMAP2+: PM: Warn users of sleep_while_idle if !CONFIG_CPU_IDLE
+Date: Thu, 03 Mar 2011 15:02:15 +0530
+Message-ID: <4D6F601F.60002@ti.com>
+References: <1297857860-3713-1-git-send-email-rnayak@ti.com> <87sjv6h5h2.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:37938 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757760Ab1CCJea convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 3 Mar 2011 04:34:30 -0500
-Received: by mail-ww0-f46.google.com with SMTP id 33so1087622wwc.15
-        for <linux-omap@vger.kernel.org>; Thu, 03 Mar 2011 01:34:29 -0800 (PST)
-In-Reply-To: <1299144429-20942-1-git-send-email-shweta.gulati@ti.com>
+Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:42492 "EHLO
+	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757949Ab1CCJfy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Mar 2011 04:35:54 -0500
+Received: by gyd5 with SMTP id 5so678108gyd.25
+        for <linux-omap@vger.kernel.org>; Thu, 03 Mar 2011 01:35:53 -0800 (PST)
+In-Reply-To: <87sjv6h5h2.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Shweta Gulati <shweta.gulati@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Thu, Mar 3, 2011 at 14:57, Shweta Gulati <shweta.gulati@ti.com> wrot=
-e:
+On Wednesday 02 March 2011 03:24 AM, Kevin Hilman wrote:
+> Rajendra Nayak<rnayak@ti.com>  writes:
 >
-> This Patch adds OPP enteries for IVA =A0in OMAP4 OPP Table
-> and updates IVA voltage Rail values obtained from latest
-> OMAP4430 Data Manual Operating Condition Addendum.
-Do you think  we should add the version of the document in the commit
-message - it looks like every "latest" version we look at has some
-update, so we'd know what baseline the code currently maps to when we
-do a git blame at a later point of time
+>> This should help users who do a
+>> 'echo 1>  /debug/pm_debug/sleep_while_idle' with a
+>> config which has !CONFIG_CPU_IDLE and wonder
+>> why OMAP is'nt sleeping in idle.
+>
+> This isn't quite right, as 'sleep_while_idle' is actually a flag for
+> whether or not to call omap_sram_idle() at all.
 
-Regards,
-Nishanth Menon
+Hi Kevin,
+
+I know this is used in 'omap3_pm_idle' as well
+to decide whether or not to call omap_sram_idle() but
+I was'nt quite sure what omap3_pm_idle is expected to do
+in the first place.
+We end up calling omap_sram_idle here without really
+programming any target state. Do we really need this to
+happen, instead can't we just rely on ARM generic code
+to do a WFI in case we don't have cpuidle support enabled?
+
+regards,
+Rajendra
 
 >
-> Tested on OMAP4430 SDP Board.
+> Even without CPUidle, WFI will still be attempted.
 >
-> Signed-off-by: Shweta Gulati <shweta.gulati@ti.com>
-> ---
-> =A0arch/arm/mach-omap2/opp4xxx_data.c =A0 =A0 =A0 =A0| =A0 =A08 +++++=
-++-
-> =A0arch/arm/plat-omap/include/plat/voltage.h | =A0 =A06 +++---
-> =A02 files changed, 10 insertions(+), 4 deletions(-)
+> Kevin
 >
-> diff --git a/arch/arm/mach-omap2/opp4xxx_data.c b/arch/arm/mach-omap2=
-/opp4xxx_data.c
-> index 48d79e5..3e0fbdc 100644
-> --- a/arch/arm/mach-omap2/opp4xxx_data.c
-> +++ b/arch/arm/mach-omap2/opp4xxx_data.c
-> @@ -38,7 +38,13 @@ static struct omap_opp_def __initdata omap44xx_opp=
-_def_list[] =3D {
-> =A0 =A0 =A0 =A0OPP_INITIALIZER("l3_main_1", true, 100000000, OMAP4430=
-_VDD_CORE_OPP50_UV),
-> =A0 =A0 =A0 =A0/* L3 OPP2 - OPP100, OPP-Turbo, OPP-SB */
-> =A0 =A0 =A0 =A0OPP_INITIALIZER("l3_main_1", true, 200000000, OMAP4430=
-_VDD_CORE_OPP100_UV),
-> - =A0 =A0 =A0 /* TODO: add IVA, DSP, aess, fdif, gpu */
-> + =A0 =A0 =A0 /* IVA OPP1 - OPP50 */
-> + =A0 =A0 =A0 OPP_INITIALIZER("iva", true, 133000000, OMAP4430_VDD_IV=
-A_OPP50_UV),
-> + =A0 =A0 =A0 /* IVA OPP2 - OPP100 */
-> + =A0 =A0 =A0 OPP_INITIALIZER("iva", true, 266100000, OMAP4430_VDD_IV=
-A_OPP100_UV),
-> + =A0 =A0 =A0 /* IVA OPP3 - OPP-Turbo */
-> + =A0 =A0 =A0 OPP_INITIALIZER("iva", false, 332000000, OMAP4430_VDD_I=
-VA_OPPTURBO_UV),
-> + =A0 =A0 =A0 /* TODO: add DSP, aess, fdif, gpu */
-> =A0};
->
-> =A0/**
-> diff --git a/arch/arm/plat-omap/include/plat/voltage.h b/arch/arm/pla=
-t-omap/include/plat/voltage.h
-> index 4d9bab1..27555ce 100644
-> --- a/arch/arm/plat-omap/include/plat/voltage.h
-> +++ b/arch/arm/plat-omap/include/plat/voltage.h
-> @@ -51,9 +51,9 @@
-> =A0#define OMAP4430_VDD_MPU_OPPTURBO_UV =A0 =A0 =A0 =A0 =A0 1313000
-> =A0#define OMAP4430_VDD_MPU_OPPNITRO_UV =A0 =A0 =A0 =A0 =A0 1375000
->
-> -#define OMAP4430_VDD_IVA_OPP50_UV =A0 =A0 =A0 =A0 =A0 =A0 =A0930000
-> -#define OMAP4430_VDD_IVA_OPP100_UV =A0 =A0 =A0 =A0 =A0 =A0 1100000
-> -#define OMAP4430_VDD_IVA_OPPTURBO_UV =A0 =A0 =A0 =A0 =A0 1260000
-> +#define OMAP4430_VDD_IVA_OPP50_UV =A0 =A0 =A0 =A0 =A0 =A0 =A01013000
-> +#define OMAP4430_VDD_IVA_OPP100_UV =A0 =A0 =A0 =A0 =A0 =A0 1188000
-> +#define OMAP4430_VDD_IVA_OPPTURBO_UV =A0 =A0 =A0 =A0 =A0 1300000
->
-> =A0#define OMAP4430_VDD_CORE_OPP50_UV =A0 =A0 =A0 =A0 =A0 =A0 930000
-> =A0#define OMAP4430_VDD_CORE_OPP100_UV =A0 =A0 =A0 =A0 =A0 =A01100000
-> --
-> 1.7.0.4
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> Signed-off-by: Rajendra Nayak<rnayak@ti.com>
+>> ---
+>>   arch/arm/mach-omap2/pm-debug.c |    9 +++++++++
+>>   1 files changed, 9 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
+>> index 125f565..1e722a0 100644
+>> --- a/arch/arm/mach-omap2/pm-debug.c
+>> +++ b/arch/arm/mach-omap2/pm-debug.c
+>> @@ -569,6 +569,10 @@ static int option_get(void *data, u64 *val)
+>>
+>>   	*val = *option;
+>>
+>> +#ifndef CONFIG_CPU_IDLE
+>> +	if (option ==&sleep_while_idle)
+>> +		pr_warn("CONFIG_CPU_IDLE is not enabled\n");
+>> +#endif
+>>   	return 0;
+>>   }
+>>
+>> @@ -581,6 +585,11 @@ static int option_set(void *data, u64 val)
+>>
+>>   	*option = val;
+>>
+>> +#ifndef CONFIG_CPU_IDLE
+>> +	if (option ==&sleep_while_idle)
+>> +		pr_warn("CONFIG_CPU_IDLE is not enabled\n");
+>> +#endif
+>> +
+>>   	if (option ==&enable_off_mode) {
+>>   		if (val)
+>>   			omap_pm_enable_off_mode();
+
