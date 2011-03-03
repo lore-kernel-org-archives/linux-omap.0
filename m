@@ -1,46 +1,50 @@
 From: "K, Mythri P" <mythripk@ti.com>
-Subject: Re: [PATCH v2 5/8] OMAP4 : DSS2 : HDMI: HDMI panel driver addition in
- the DSS
-Date: Thu, 3 Mar 2011 09:58:41 +0530
-Message-ID: <AANLkTinfjZBum5s6Dujta5LiVsXtzn99ePH-acrLouVx@mail.gmail.com>
+Subject: Re: [PATCH v2 4/8] OMAP4 : DSS2 : HDMI: HDMI driver addition in the
+ DSS drivers interface
+Date: Thu, 3 Mar 2011 10:05:53 +0530
+Message-ID: <AANLkTinM2QM2mcjKR3+BvXiyDv+9sHLq7HnsysRRauo+@mail.gmail.com>
 References: <1298988988-28429-1-git-send-email-mythripk@ti.com>
-	<1298988988-28429-6-git-send-email-mythripk@ti.com>
-	<1298999470.2049.37.camel@deskari>
+	<1298988988-28429-5-git-send-email-mythripk@ti.com>
+	<1299001044.2049.46.camel@deskari>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:36730 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758123Ab1CCE2m convert rfc822-to-8bit
+Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:56649 "EHLO
+	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756041Ab1CCEfy convert rfc822-to-8bit
 	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 2 Mar 2011 23:28:42 -0500
-Received: by mail-vx0-f170.google.com with SMTP id 39so1119504vxb.1
-        for <linux-omap@vger.kernel.org>; Wed, 02 Mar 2011 20:28:41 -0800 (PST)
-In-Reply-To: <1298999470.2049.37.camel@deskari>
+	Wed, 2 Mar 2011 23:35:54 -0500
+Received: by mail-vw0-f47.google.com with SMTP id 4so811269vws.34
+        for <linux-omap@vger.kernel.org>; Wed, 02 Mar 2011 20:35:53 -0800 (PST)
+In-Reply-To: <1299001044.2049.46.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tomi Valkeinen <tomi.valkeinen@ti.com>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Tue, Mar 1, 2011 at 10:41 PM, Tomi Valkeinen <tomi.valkeinen@ti.com>=
+Hi Tomi,
+I have checked for static functions :) .
+Ok i will revisit the global variables to either move it to hdmi
+struct or make it const.
+
+Thanks and regards,
+Mythri.
+
+On Tue, Mar 1, 2011 at 11:07 PM, Tomi Valkeinen <tomi.valkeinen@ti.com>=
  wrote:
 > On Tue, 2011-03-01 at 08:16 -0600, K, Mythri P wrote:
->> The panel driver(hdmi_omap4_panel.c) in dss file acts as a controlle=
-r
->> to manage the enable and disable requests and synchronize audio and =
-video.
->> Also the header file to export the hdmi registers is added in the
->> plat-omap , so that it can be accessed by audio driver.
+>> Adding the hdmi interface driver(hdmi.c) to the dss driver.
+>> It configures the audio and video portion of HDMI in the
+>> display header file to be accessed by the panels.
 >
-> Could you review the description. The panel driver is not in "dss fil=
-e"
-> and there's no header in this patch.
+> Check once more if the private functions and variables are marked as
+> static.
 >
-> The locking is broken in this patch. You cannot return from the funct=
-ion
-> while holding the lock.
-I shall fix the lock and describe appropriately.
+> The edid variables should be in the hdmi struct. The constant data
+> arrays should be const.
+>
+> hdmi_power_on() leaves clocks on in case of error.
 >
 > =A0Tomi
 >
