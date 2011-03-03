@@ -1,30 +1,58 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v6 0/8]  OMAP: HSMMC: hwmod adaptation
-Date: Wed, 2 Mar 2011 17:42:29 -0800
-Message-ID: <20110303014229.GK20560@atomide.com>
-References: <1298906285-29895-1-git-send-email-kishore.kadiyala@ti.com>
- <878vwx9qah.fsf@ti.com>
+Subject: Re: [PATCHv2] omap:mailbox: resolve hang issue
+Date: Wed, 2 Mar 2011 17:44:16 -0800
+Message-ID: <20110303014416.GL20560@atomide.com>
+References: <1299104058-28565-1-git-send-email-x0095078@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <878vwx9qah.fsf@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Kishore Kadiyala <kishore.kadiyala@ti.com>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, cjb@laptop.org, madhu.cr@ti.com, paul@pwsan.com, b-cousson@ti.com
+In-Reply-To: <1299104058-28565-1-git-send-email-x0095078@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Armando Uribe <x0095078@ti.com>
+Cc: hiroshi.doyu@nokia.com, ohad@wizery.com, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Hari Kanigeri <h-kanigeri2@ti.com>, Fernando Guzman Lugo <fernando.lugo@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Kevin Hilman <khilman@ti.com> [110302 13:14]:
-> Kishore Kadiyala <kishore.kadiyala@ti.com> writes:
+* Armando Uribe <x0095078@ti.com> [110302 13:54]:
+> From: Hari Kanigeri <h-kanigeri2@ti.com>
 > 
-> > Adding hwmod data for hsmmc device on OMAP2430/OMAP3/OMAP4.
-> > Adapting the omap_hsmmc driver to hwmod framework.
+> omap4 interrupt disable bits is different. On rx kfifo full, the mbox rx
+> interrupts wasn't getting disabled, and this is causing the rcm stress tests
+> to hang.
 > 
-> Looks OK to me.
-> 
-> Reviewed-by: Kevin Hilman <khilman@ti.com>
+> Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
+> Signed-off-by: Armando Uribe <x0095078@ti.com>
+> Signed-off-by: Fernando Guzman Lugo <fernando.lugo@ti.com>
 
-Sorry just missed it, got it all merged into omap-for-linus already
-and rather not start messing with it any longer.
+Should we merge this as a fix for the 2.6.38 still?
 
 Tony
+
+> ---
+>  arch/arm/mach-omap2/mailbox.c |   10 ++++++----
+>  1 files changed, 6 insertions(+), 4 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/mailbox.c b/arch/arm/mach-omap2/mailbox.c
+> index 394413d..011ca50 100644
+> --- a/arch/arm/mach-omap2/mailbox.c
+> +++ b/arch/arm/mach-omap2/mailbox.c
+> @@ -193,10 +193,12 @@ static void omap2_mbox_disable_irq(struct omap_mbox *mbox,
+>  		omap_mbox_type_t irq)
+>  {
+>  	struct omap_mbox2_priv *p = mbox->priv;
+> -	u32 l, bit = (irq == IRQ_TX) ? p->notfull_bit : p->newmsg_bit;
+> -	l = mbox_read_reg(p->irqdisable);
+> -	l &= ~bit;
+> -	mbox_write_reg(l, p->irqdisable);
+> +	u32 bit = (irq == IRQ_TX) ? p->notfull_bit : p->newmsg_bit;
+> +
+> +	if (!cpu_is_omap44xx())
+> +		bit = mbox_read_reg(p->irqdisable) & ~bit;
+> +
+> +	mbox_write_reg(bit, p->irqdisable);
+>  }
+>  
+>  static void omap2_mbox_ack_irq(struct omap_mbox *mbox,
+> -- 
+> 1.7.0.4
+> 
