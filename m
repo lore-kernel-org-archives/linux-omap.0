@@ -1,59 +1,65 @@
-From: "Krishnamoorthy, Balaji T" <balajitk@ti.com>
-Subject: Re: State of SDP4430 platform
-Date: Thu, 3 Mar 2011 20:53:38 +0530
-Message-ID: <AANLkTim2KXZBac_4oBYKkjbebtxmvWAnNAyZUYPecpgm@mail.gmail.com>
-References: <20110116010936.GA21795@n2100.arm.linux.org.uk>
-	<alpine.DEB.2.00.1101152255100.13225@utopia.booyaka.com>
-	<a40bc7a304b60cef73a3a0cfb84b2ee8@mail.gmail.com>
-	<ceedbf20a12a6e821fda1496b10297a2@mail.gmail.com>
-	<alpine.DEB.2.00.1101171611270.13225@utopia.booyaka.com>
-	<AANLkTinYuEoKNQZ_WRQ6Sd1S0CU4OKNGnxc6_Do3BW+M@mail.gmail.com>
-	<alpine.DEB.2.00.1101191625590.7359@utopia.booyaka.com>
-	<alpine.DEB.2.00.1101191626570.7359@utopia.booyaka.com>
-	<alpine.DEB.2.00.1102071647100.21991@utopia.booyaka.com>
-	<alpine.DEB.2.00.1103021149450.16349@utopia.booyaka.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Raghuveer Murthy <raghuveer.murthy@ti.com>
+Subject: [PATCH v3 1/3] OMAP: DSS2: Adding dss_features for independent core clk divider
+Date: Thu,  3 Mar 2011 20:57:58 +0530
+Message-ID: <1299166080-15380-2-git-send-email-raghuveer.murthy@ti.com>
+References: <1299166080-15380-1-git-send-email-raghuveer.murthy@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:51797 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758190Ab1CCPXk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Mar 2011 10:23:40 -0500
-Received: by vws11 with SMTP id 11so1261476vws.37
-        for <linux-omap@vger.kernel.org>; Thu, 03 Mar 2011 07:23:38 -0800 (PST)
-In-Reply-To: <alpine.DEB.2.00.1103021149450.16349@utopia.booyaka.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:48816 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758261Ab1CCP1k (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 3 Mar 2011 10:27:40 -0500
+In-Reply-To: <1299166080-15380-1-git-send-email-raghuveer.murthy@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org
+To: tomi.valkeinen@ti.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
->> > > > in ES1, timeouts were observed only with RTC.
->> > > > I2C burst access to IRQ registers and bq24156 were OK
->> > >
->> > > Was an errata generated for this bug?
->> >
->> > er, erratum, pardon me...
->>
->> Is an erratum present for this bug?
->>
->> Also, will you generate a patch for this to at least warn the user when
->> this situation occurs?
->
-> Still waiting for a response to this.
+In OMAP3xxx DISPC_DIVISOR register has a logical clock divisor (lcd_div)
+field. The lcd_div is common, for deciding the DISPC core functional clock
+frequency, and the final pixel clock frequency for LCD display.
 
-Apologies for the delay
+In OMAP4, there are 2 LCD channels, hence two divisor registers, DISPC_DIVISOR1
+and DISPC_DIVISOR2. Also, there is a third register DISPC_DIVISOR.
 
-Could only find Phoenix TWL6030 - ProDB00107890 for this errata
-This is not related to I2C module on OMAP4 so fixing in twl-core.c
+The DISPC_DIVISOR in OMAP4 is used to configure lcd_div exclusively for core
+functional clock configuration. For pixel clock configuration of primary and
+secondary LCDs, lcd_div of DISPC_DIVISOR1 and DISPC_DIVISOR2 are used
+respectively
 
-Description:
-I2C FS burst mode not functional
-Glitch in the I2C Data line when the I2C controller does a Burst Read
+Signed-off-by: Archit Taneja <archit@ti.com>
+Signed-off-by: Raghuveer Murthy <raghuveer.murthy@ti.com>
+---
+ drivers/video/omap2/dss/dss_features.c |    3 ++-
+ drivers/video/omap2/dss/dss_features.h |    2 ++
+ 2 files changed, 4 insertions(+), 1 deletions(-)
 
-Have tried to workaround by using single byte read for Phoenix ES1.0
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg46054.html
+diff --git a/drivers/video/omap2/dss/dss_features.c b/drivers/video/omap2/dss/dss_features.c
+index ccae57b..dc170ad 100644
+--- a/drivers/video/omap2/dss/dss_features.c
++++ b/drivers/video/omap2/dss/dss_features.c
+@@ -234,7 +234,8 @@ static struct omap_dss_features omap4_dss_features = {
+ 
+ 	.has_feature	=
+ 		FEAT_GLOBAL_ALPHA | FEAT_PRE_MULT_ALPHA |
+-		FEAT_MGR_LCD2 | FEAT_GLOBAL_ALPHA_VID1,
++		FEAT_MGR_LCD2 | FEAT_GLOBAL_ALPHA_VID1 |
++		FEAT_CORE_CLK_DIV,
+ 
+ 	.num_mgrs = 3,
+ 	.num_ovls = 3,
+diff --git a/drivers/video/omap2/dss/dss_features.h b/drivers/video/omap2/dss/dss_features.h
+index 65d6de7..569d1b2 100644
+--- a/drivers/video/omap2/dss/dss_features.h
++++ b/drivers/video/omap2/dss/dss_features.h
+@@ -36,6 +36,8 @@ enum dss_feat_id {
+ 	FEAT_LINEBUFFERSPLIT	= 1 << 8,
+ 	FEAT_ROWREPEATENABLE	= 1 << 9,
+ 	FEAT_RESIZECONF		= 1 << 10,
++	/* Independent core clk divider */
++	FEAT_CORE_CLK_DIV	= 1 << 11,
+ };
+ 
+ /* DSS register field id */
+-- 
+1.7.0.4
 
->
->
-> - Paul
->
