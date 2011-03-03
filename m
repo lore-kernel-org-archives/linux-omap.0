@@ -1,147 +1,81 @@
-From: "K, Mythri P" <mythripk@ti.com>
-Subject: Re: [PATCH v2 2/8] OMAP4 : DSS2 : HDMI: HDMI specific display
- controller and dss change.
-Date: Thu, 3 Mar 2011 10:59:13 +0530
-Message-ID: <AANLkTikzAD-B9LcK30v8J6MeMPHZ2FDRYcp5VFPR47TY@mail.gmail.com>
-References: <1298988988-28429-1-git-send-email-mythripk@ti.com>
-	<1298988988-28429-3-git-send-email-mythripk@ti.com>
-	<1298998905.2049.34.camel@deskari>
-	<AANLkTikVsqLdRKPwQoeyOMqH+yiLfoGWcjvQDuEO=wYD@mail.gmail.com>
+From: Saravana Kannan <skannan@codeaurora.org>
+Subject: Re: [PATCHv5 0/3] Introduce the /proc/socinfo and use it to export
+	OMAP data
+Date: Wed, 02 Mar 2011 21:55:39 -0800
+Message-ID: <4D6F2D5B.10009@codeaurora.org>
+References: <1273587331-24604-1-git-send-email-eduardo.valentin@nokia.com>	<AANLkTin7vRMreG3hOAk95MYZUCV-Kr6ac7gD7jgvX6Gf@mail.gmail.com>	<20110216115729.GA29817@besouro.research.nokia.com>	<4D6B78BF.1020102@stericsson.com>	<4D6C7B56.9060109@codeaurora.org>	<AANLkTikvhj49DftS9c_NouASY9_MbYPCfmSUdJg6pf-5@mail.gmail.com>	<4D6D9B10.9000606@codeaurora.org>	<4D6D9D06.2020204@bluewatersys.com>	<4D6D9FC7.1090206@codeaurora.org>	<4D6DA290.2010607@bluewatersys.com>	<4D6DAA24.3000204@codeaurora.org>	<4D6DAE6E.4030701@bluewatersys.com>	<4D6DB1B1.4060908@codeaurora.org>	<4D6DFE67.3020801@stericsson.com>	<AANLkTimJh_uGP6SYo=9ndz4xiUs1Tbg7z70ng0aFcWyG@mail.gmail.com>
+	<4D6E218F.2020804@stericsson.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:51609 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750773Ab1CCF3O convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 3 Mar 2011 00:29:14 -0500
-Received: by mail-vx0-f171.google.com with SMTP id 40so763985vxc.30
-        for <linux-omap@vger.kernel.org>; Wed, 02 Mar 2011 21:29:13 -0800 (PST)
-In-Reply-To: <AANLkTikVsqLdRKPwQoeyOMqH+yiLfoGWcjvQDuEO=wYD@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <4D6E218F.2020804@stericsson.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Maxime Coquelin <maxime.coquelin-nonst@stericsson.com>, Ryan Mallon <ryan@bluewatersys.com>
+Cc: ext Nishanth Menon <nm@ti.com>, ext Tony Lindgren <tony@atomide.com>, Peter De-Schrijver <Peter.De-Schrijver@nokia.com>, Linus Walleij <linus.walleij@linaro.org>, Ambresh <a0393775@ti.com>, Andrei Warkentin <andreiw@motorola.com>, Lee Jones <Lee.Jones@linaro.org>, Rabin VINCENT <rabin.vincent@stericsson.com>, Russell King <linux@arm.linux.org.uk>, Jonas ABERG <jonas.aberg@stericsson.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, David Brown <davidb@codeaurora.org>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, Loic PALLARDY <loic.pallardy@stericsson.com>, "eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Daniel Walker <dwalker@codeaurora.org>, LKML <linux-kernel@vger.kernel.org>, Jouni Hogander <jouni.hogander@noki>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Tomi,
-I just rechecked the TRM.
-The TRM description of the bit is VENC_HDMI_switch , Wouldnt it be
-appropriate to have the same
-name for the enum and the variables as suggested by you.
-
-Thanks and regards,
-Mythri.
-
-On Thu, Mar 3, 2011 at 9:57 AM, K, Mythri P <mythripk@ti.com> wrote:
-> Hi Tomi,
+On 03/02/2011 02:53 AM, Maxime Coquelin wrote:
+> On 03/02/2011 11:36 AM, Linus Walleij wrote:
+>> On Wed, Mar 2, 2011 at 9:23 AM, Maxime Coquelin
+>> <maxime.coquelin-nonst@stericsson.com> wrote:
+>>
+>>> I think we should have a tree like this :
+>>>
+>>> /sys/devices/system/soc/
+>>> /sys/devices/system/soc/unique_id<- Unified way to export an ID for
+>>> all machs
+>> Arbitrary number of bits? Some will have a 64-bit ID, some will have
+>> 32-bit
+>> etc.
 >
-> On Tue, Mar 1, 2011 at 10:31 PM, Tomi Valkeinen <tomi.valkeinen@ti.co=
-m> wrote:
->> On Tue, 2011-03-01 at 08:16 -0600, K, Mythri P wrote:
->>> Adding changes to set gamma table bit for TV interface and function=
- to select
->>> between VENC and HDMI.
->>>
->>> Signed-off-by: Mythri P K <mythripk@ti.com>
->>> ---
->>> =A0drivers/video/omap2/dss/dispc.c | =A0 =A05 +++++
->>> =A0drivers/video/omap2/dss/dss.c =A0 | =A0 =A05 +++++
->>> =A0drivers/video/omap2/dss/dss.h =A0 | =A0 =A07 +++++++
->>> =A03 files changed, 17 insertions(+), 0 deletions(-)
->>>
->>> diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/=
-dss/dispc.c
->>> index 69e1e9d..cf385f8 100644
->>> --- a/drivers/video/omap2/dss/dispc.c
->>> +++ b/drivers/video/omap2/dss/dispc.c
->>> @@ -1224,6 +1224,11 @@ void dispc_enable_zorder(enum omap_plane pla=
-ne, bool enable)
->>> =A0 =A0 =A0 dispc_write_reg(dispc_reg_att[plane], val);
->>> =A0}
->>>
->>> +void dispc_enable_gamma_table(bool enable)
->>> +{
->>> + =A0 =A0 REG_FLD_MOD(DISPC_CONFIG, enable, 9, 9);
->>> +}
->>
->> I would separate the gamma function out from this patch. These two
->> things are not related in any way.
->>
->> And I'm not quite happy with this partial gamma implementation, as o=
-nly
->> the enable function is implemented. At the minimum, put BUG_ON(enabl=
-e);
->> there, and a comment that this can currently only be used to disable
->> gamma support.
-> I shall separate these out.
->>
->>> +
->>> =A0static void _dispc_set_vid_color_conv(enum omap_plane plane, boo=
-l enable)
->>> =A0{
->>> =A0 =A0 =A0 u32 val;
->>> diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/ds=
-s/dss.c
->>> index 99de4e1..ca76e68 100644
->>> --- a/drivers/video/omap2/dss/dss.c
->>> +++ b/drivers/video/omap2/dss/dss.c
->>> @@ -559,6 +559,11 @@ void dss_set_dac_pwrdn_bgz(bool enable)
->>> =A0 =A0 =A0 REG_FLD_MOD(DSS_CONTROL, enable, 5, 5); /* DAC Power-Do=
-wn Control */
->>> =A0}
->>>
->>> +void dss_select_hdmi_venc(enum dss_hdmi_venc_select hdmi)
->>> +{
->>> + =A0 =A0 REG_FLD_MOD(DSS_CONTROL, hdmi, 15, 15); /* 0x1 for HDMI, =
-0x0 VENC */
->>
->> That comment is not needed, but you could put "VENC_HDMI_SWITCH" the=
-re
->> in the comments.
->>
->>> +}
->>> +
->>> =A0static int dss_init(bool skip_init)
->>> =A0{
->>> =A0 =A0 =A0 int r;
->>> diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/ds=
-s/dss.h
->>> index b6f27fe..5b5b90c 100644
->>> --- a/drivers/video/omap2/dss/dss.h
->>> +++ b/drivers/video/omap2/dss/dss.h
->>> @@ -123,6 +123,11 @@ enum dss_clk_source {
->>> =A0 =A0 =A0 DSS_SRC_DSS1_ALWON_FCLK,
->>> =A0};
->>>
->>> +enum dss_hdmi_venc_select {
->>> + =A0 =A0 DSS_VENC_SELECT, =A0 =A0 =A0 =A0/* Select VENC */
->>> + =A0 =A0 DSS_HDMI_SELECT, =A0 =A0 =A0 =A0/* Select HDMI */
->>> +};
->>
->> If the integer value of the enum is important, like in this case, yo=
-u
->> need to define the value: DSS_VENC_SELECT =3D 0.
->>
->> Also, the comments are not needed, they just say the same thing as t=
-he
->> enum itself.
->>
->> And only now I realized that this is a clock source switch. The enum=
- and
->> the function should be named appropriately, for example enum
->> dss_tv_clk_out_source. And the sources are TV_CLK and HDMI_M_PCLK, s=
-o
->> the the enum values should use those as part of their name.
->>
-> ok i shall name them appropriately.
->> =A0Tomi
->>
->>
->>
+> Yes, here is the difficulty. For example, in our case, the SoC unique ID
+> is 160 bits long.
+> Maybe it would be a better solution to get rid of this unified file, and
+> keep only mach specific entries? I mean :
 >
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> /sys/devices/system/soc/
+> /sys/devices/system/soc/mach_name
+> /sys/devices/system/soc/foo_id
+> /sys/devices/system/soc/bar_id
+
+Sorry for the late reply guys. Got wrapped up is some other stuff.
+
+I'm with Maxime on getting rid of the unique id file. It's not as if 
+it's unique across all machs and archs. Any user space caring to look at 
+the id will anyway have to check the mach/family first. So, there is no 
+point in having this unique id file. It just adds more weirdness and 
+complexity to deal with the different formats or ways each family wants 
+to export the id. Actually, in the case of MSM, we don't have any need 
+to export unique id. We just want to export what type of soc it is 
+within the MSM family.
+
+As for the path, it's not clear we have settled on the final path. I see 
+us ping-pong between /sys/devices/system/soc/ and 
+/sys/devices/system/soc/mach/. Can we drop the "mach" subdir? Seems 
+pointless.
+
+The mandatory file, I would like to call it "family", since "mach" is 
+too specific (omap3 and omap4 is my usual example -- they can have one 
+implementation of socinfo and report the family as "omap"). We don't 
+want people to misunderstand "mach" to be an accurate representation of 
+the xxxx in mach-xxxx.
+
+The patch that adds this should probably allow each socinfo 
+implementation to specify the family name and an array of attributes 
+(struct attribute *) that can be used to expose whatever else they want 
+to export.
+
+Thanks,
+Saravana
+-- 
+Sent by an employee of the Qualcomm Innovation Center, Inc.
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
