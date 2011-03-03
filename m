@@ -1,278 +1,147 @@
-From: Sricharan R <r.sricharan@ti.com>
-Subject: RE: [PATCH 6/7] OMAP: Serial: Allow UART parameters to be configured
- from board file
-Date: Thu, 3 Mar 2011 10:38:12 +0530
-Message-ID: <0dac991a1fbbf1d4bccd8fd259a28f35@mail.gmail.com>
-References: <1298903958-6496-1-git-send-email-govindraj.raja@ti.com>
- <1298903958-6496-7-git-send-email-govindraj.raja@ti.com> <056ac5e848953fa5c37f7ed7a8cc1050@mail.gmail.com>
- <AANLkTimD9rOC=4P6Vy2jzvcXZ-gZmF42Te4CBjS8AJLT@mail.gmail.com>
- <8ab9882cd92792e9bf2b836c0ec9c7fe@mail.gmail.com> <AANLkTi=MJigLvbJrRJ4CpyDcGd8sZXB7-1nFYup6EeDm@mail.gmail.com>
+From: "K, Mythri P" <mythripk@ti.com>
+Subject: Re: [PATCH v2 2/8] OMAP4 : DSS2 : HDMI: HDMI specific display
+ controller and dss change.
+Date: Thu, 3 Mar 2011 10:59:13 +0530
+Message-ID: <AANLkTikzAD-B9LcK30v8J6MeMPHZ2FDRYcp5VFPR47TY@mail.gmail.com>
+References: <1298988988-28429-1-git-send-email-mythripk@ti.com>
+	<1298988988-28429-3-git-send-email-mythripk@ti.com>
+	<1298998905.2049.34.camel@deskari>
+	<AANLkTikVsqLdRKPwQoeyOMqH+yiLfoGWcjvQDuEO=wYD@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <AANLkTi=MJigLvbJrRJ4CpyDcGd8sZXB7-1nFYup6EeDm@mail.gmail.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: Govindraj <govindraj.ti@gmail.com>
-Cc: Govindraj Raja <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Jon Hunter <jon-hunter@ti.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Rajendra Nayak <rnayak@ti.com>, Deepak Kattungal <deepak.k@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:51609 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750773Ab1CCF3O convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 3 Mar 2011 00:29:14 -0500
+Received: by mail-vx0-f171.google.com with SMTP id 40so763985vxc.30
+        for <linux-omap@vger.kernel.org>; Wed, 02 Mar 2011 21:29:13 -0800 (PST)
+In-Reply-To: <AANLkTikVsqLdRKPwQoeyOMqH+yiLfoGWcjvQDuEO=wYD@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
->-----Original Message-----
->From: Govindraj [mailto:govindraj.ti@gmail.com]
->Sent: Wednesday, March 02, 2011 3:37 PM
->To: Sricharan R
->Cc: Govindraj.R; linux-omap@vger.kernel.org;
-linux-serial@vger.kernel.org;
->linux-arm-kernel@lists.infradead.org; Jon Hunter; Tony Lindgren; Benoi=
-t
->Cousson; Kevin Hilman; Paul Walmsley; Rajendra Nayak; Deepak Kattungal
->Subject: Re: [PATCH 6/7] OMAP: Serial: Allow UART parameters to be
->configured from board file
+Hi Tomi,
+I just rechecked the TRM.
+The TRM description of the bit is VENC_HDMI_switch , Wouldnt it be
+appropriate to have the same
+name for the enum and the variables as suggested by you.
+
+Thanks and regards,
+Mythri.
+
+On Thu, Mar 3, 2011 at 9:57 AM, K, Mythri P <mythripk@ti.com> wrote:
+> Hi Tomi,
 >
->On Wed, Mar 2, 2011 at 1:49 PM, Sricharan R <r.sricharan@ti.com> wrote=
-:
->> Hi,
->>>-----Original Message-----
->>>From: Govindraj [mailto:govindraj.ti@gmail.com]
->>>Sent: Wednesday, March 02, 2011 1:11 PM
->>>To: Sricharan R
->>>Cc: Govindraj.R; linux-omap@vger.kernel.org;
->> linux-serial@vger.kernel.org;
->>>linux-arm-kernel@lists.infradead.org; Jon Hunter; Tony Lindgren; Ben=
-oit
->>>Cousson; Kevin Hilman; Paul Walmsley; Rajendra Nayak; Deepak Kattung=
-al
->>>Subject: Re: [PATCH 6/7] OMAP: Serial: Allow UART parameters to be
->>>configured from board file
+> On Tue, Mar 1, 2011 at 10:31 PM, Tomi Valkeinen <tomi.valkeinen@ti.co=
+m> wrote:
+>> On Tue, 2011-03-01 at 08:16 -0600, K, Mythri P wrote:
+>>> Adding changes to set gamma table bit for TV interface and function=
+ to select
+>>> between VENC and HDMI.
 >>>
->>>On Wed, Mar 2, 2011 at 12:46 AM, Sricharan R <r.sricharan@ti.com>
-wrote:
->>>> Hi,
->>>>>diff --git a/arch/arm/mach-omap2/serial.c
->> b/arch/arm/mach-omap2/serial.c
->>>>>index 755f4aa..530e9e3 100644
->>>>>--- a/arch/arm/mach-omap2/serial.c
->>>>>+++ b/arch/arm/mach-omap2/serial.c
->>>>>@@ -44,6 +44,15 @@
->>>>>
->>>>> static int omap_uart_con_id __initdata =3D -1;
->>>>>
->>>>>+static struct omap_uart_port_info omap_serial_default_info[] =3D =
-{
->>>>>+ =A0 =A0 =A0{
->>>>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.dma_enabled =A0 =A0=3D 0,
->>>>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.dma_rx_buf_size =3D DEFAULT_RXDMA_BU=
-=46SIZE,
->>>>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.dma_rx_timeout =3D DEFAULT_RXDMA_TIM=
-EOUT,
->>>>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.idle_timeout =A0 =3D DEFAULT_IDLE_TI=
-MEOUT,
->>>>>+ =A0 =A0 =A0},
->>>>>+};
->>>>>+
->>>>> static int uart_idle_hwmod(struct omap_device *od)
->>>>> {
->>>>> =A0 =A0 =A0 omap_hwmod_idle(od->hwmods[0]);
->>>>>@@ -66,6 +75,54 @@ static struct omap_device_pm_latency
->>>> omap_uart_latency[]
->>>>>=3D {
->>>>> =A0 =A0 =A0 },
->>>>> };
->>>>>
->>>>>+#ifdef CONFIG_OMAP_MUX
->>>>>+static struct omap_device_pad default_serial0_pads[] __initdata =3D=
- {
->>>>>+ =A0 =A0 =A0{
->>>>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.name =A0 =3D "uart1_rx.uart1_rx",
->>>>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.flags =A0=3D OMAP_DEVICE_PAD_REMUX |
->> OMAP_DEVICE_PAD_WAKEUP,
->>>>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.enable =3D OMAP_MUX_MODE0,
->>>>>+ =A0 =A0 =A0},
->>>>>+};
->>>>>+
->>>>>+static struct omap_device_pad default_serial1_pads[] __initdata =3D=
- {
->>>>>+ =A0 =A0 =A0{
->>>>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.name =A0 =3D "uart2_rx.uart2_rx",
->>>>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.flags =A0=3D OMAP_DEVICE_PAD_REMUX |
->> OMAP_DEVICE_PAD_WAKEUP,
->>>>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.enable =3D OMAP_MUX_MODE0,
->>>>>+ =A0 =A0 =A0},
->>>>>+};
->>>>>+
->>>>>+static struct omap_device_pad default_serial2_pads[] __initdata =3D=
- {
->>>>>+ =A0 =A0 =A0{
->>>>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.name =A0 =3D "uart3_rx_irrx.uart3_rx=
-_irrx",
->>>>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.flags =A0=3D OMAP_DEVICE_PAD_REMUX |
->> OMAP_DEVICE_PAD_WAKEUP,
->>>>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.enable =3D OMAP_MUX_MODE0,
->>>>>+ =A0 =A0 =A0},
->>>>>+};
->>>>>+
->>>>>+static struct omap_device_pad default_omap36xx_serial3_pads[]
->> __initdata
->>>> =3D
->>>>>{
->>>>>+ =A0 =A0 =A0{
->>>>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.name =A0 =3D "gpmc_wait3.uart4_rx",
->>>>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.flags =A0=3D OMAP_DEVICE_PAD_REMUX |
->> OMAP_DEVICE_PAD_WAKEUP,
->>>>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.enable =3D OMAP_MUX_MODE2,
->>>>>+ =A0 =A0 =A0},
->>>>>+};
->>>>>+
->>>>>+static struct omap_device_pad default_omap4_serial3_pads[]
-__initdata
->> =3D
->>>> {
->>>>>+ =A0 =A0 =A0{
->>>>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.name =A0 =3D "uart4_rx.uart4_rx",
->>>>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.flags =A0=3D OMAP_DEVICE_PAD_REMUX |
->> OMAP_DEVICE_PAD_WAKEUP,
->>>>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.enable =3D OMAP_MUX_MODE0,
->>>>>+ =A0 =A0 =A0},
->>>>>+};
->>>> Here only the UART RX pins are muxed, so what about the cts, rts, =
-tx
->>>pins?
+>>> Signed-off-by: Mythri P K <mythripk@ti.com>
+>>> ---
+>>> =A0drivers/video/omap2/dss/dispc.c | =A0 =A05 +++++
+>>> =A0drivers/video/omap2/dss/dss.c =A0 | =A0 =A05 +++++
+>>> =A0drivers/video/omap2/dss/dss.h =A0 | =A0 =A07 +++++++
+>>> =A03 files changed, 17 insertions(+), 0 deletions(-)
 >>>
->>>The intention here is to enable wakeup capabilities for uart rx pad.
+>>> diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/=
+dss/dispc.c
+>>> index 69e1e9d..cf385f8 100644
+>>> --- a/drivers/video/omap2/dss/dispc.c
+>>> +++ b/drivers/video/omap2/dss/dispc.c
+>>> @@ -1224,6 +1224,11 @@ void dispc_enable_zorder(enum omap_plane pla=
+ne, bool enable)
+>>> =A0 =A0 =A0 dispc_write_reg(dispc_reg_att[plane], val);
+>>> =A0}
 >>>
->>>AFAIK most of the boards are currently dependent on bootloader for
->>>uart-muxing if any board is not dependent on bootloader then we
->>>can use omap_serial_init_port along with board_mux_info from board.
->>>
->> Yes. The idea is to be independent of the bootloaders for mux settin=
-gs.
+>>> +void dispc_enable_gamma_table(bool enable)
+>>> +{
+>>> + =A0 =A0 REG_FLD_MOD(DISPC_CONFIG, enable, 9, 9);
+>>> +}
 >>
->>>Prior to this change uart wakeup is based on rx_pad and we were
->> populating
->>>offset and using omap_ctrl api's to read/write which is cleaned up n=
-ow.
->>>Most of boards are dependent on uart-rx wakeup to avoid breaking any
->>>board support we
->>>are using omap_serial_init by filling default values, which provides
->>>us with same
->>>environment but with right approach towards handling mux data with a
->>>handshake with
->>>hwmod framework.
->>>
->> Now, in this change only the RX pin is configured. So if some board
-uses
->> omap_serial_init then only the RX is going to be configured.
->> How will they configure the rest of the pins?
->
->
->They should call omap_serial_init_port to configure each individual ua=
-rt
->with
->mux_info filled and not use omap_serial_init.
->
->If any board is not dependent for mux from u-boot then they use above
-said
->init_port func.
->
->
->> They cannot call omap_serial_init_port after this just to configure =
-the
->> rest of the mux pins( cts, rts, tx).
->
->No. You need to use either omap_serial_init_port or omap_serial_init
->you cannot call both apis from board file please refer to both func
->documentation.
->
->Also please note i am not configuring all uart pins for pullups and pu=
-ll
->downs
->with this patch series and its not related to this patch series.
->I am only enabling wakeup-enable pin for rx as it was done before.
->
->> So data which is passed from omap_serial_init should have the
->> configuration
->> for all the pins, and this default data should be consistent across
->> atleast
->> some boards, so that they can use this. This will reduce the data
->> duplication across board files.
+>> I would separate the gamma function out from this patch. These two
+>> things are not related in any way.
 >>
->> If this is not true, then all the pads can be configured from the bo=
-ard
->> files itself using omap_serial_init_port and you can set the require=
-d
->> RX wakeup capability there as well.
+>> And I'm not quite happy with this partial gamma implementation, as o=
+nly
+>> the enable function is implemented. At the minimum, put BUG_ON(enabl=
+e);
+>> there, and a comment that this can currently only be used to disable
+>> gamma support.
+> I shall separate these out.
+>>
+>>> +
+>>> =A0static void _dispc_set_vid_color_conv(enum omap_plane plane, boo=
+l enable)
+>>> =A0{
+>>> =A0 =A0 =A0 u32 val;
+>>> diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/ds=
+s/dss.c
+>>> index 99de4e1..ca76e68 100644
+>>> --- a/drivers/video/omap2/dss/dss.c
+>>> +++ b/drivers/video/omap2/dss/dss.c
+>>> @@ -559,6 +559,11 @@ void dss_set_dac_pwrdn_bgz(bool enable)
+>>> =A0 =A0 =A0 REG_FLD_MOD(DSS_CONTROL, enable, 5, 5); /* DAC Power-Do=
+wn Control */
+>>> =A0}
+>>>
+>>> +void dss_select_hdmi_venc(enum dss_hdmi_venc_select hdmi)
+>>> +{
+>>> + =A0 =A0 REG_FLD_MOD(DSS_CONTROL, hdmi, 15, 15); /* 0x1 for HDMI, =
+0x0 VENC */
+>>
+>> That comment is not needed, but you could put "VENC_HDMI_SWITCH" the=
+re
+>> in the comments.
+>>
+>>> +}
+>>> +
+>>> =A0static int dss_init(bool skip_init)
+>>> =A0{
+>>> =A0 =A0 =A0 int r;
+>>> diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/ds=
+s/dss.h
+>>> index b6f27fe..5b5b90c 100644
+>>> --- a/drivers/video/omap2/dss/dss.h
+>>> +++ b/drivers/video/omap2/dss/dss.h
+>>> @@ -123,6 +123,11 @@ enum dss_clk_source {
+>>> =A0 =A0 =A0 DSS_SRC_DSS1_ALWON_FCLK,
+>>> =A0};
+>>>
+>>> +enum dss_hdmi_venc_select {
+>>> + =A0 =A0 DSS_VENC_SELECT, =A0 =A0 =A0 =A0/* Select VENC */
+>>> + =A0 =A0 DSS_HDMI_SELECT, =A0 =A0 =A0 =A0/* Select HDMI */
+>>> +};
+>>
+>> If the integer value of the enum is important, like in this case, yo=
+u
+>> need to define the value: DSS_VENC_SELECT =3D 0.
+>>
+>> Also, the comments are not needed, they just say the same thing as t=
+he
+>> enum itself.
+>>
+>> And only now I realized that this is a clock source switch. The enum=
+ and
+>> the function should be named appropriately, for example enum
+>> dss_tv_clk_out_source. And the sources are TV_CLK and HDMI_M_PCLK, s=
+o
+>> the the enum values should use those as part of their name.
+>>
+> ok i shall name them appropriately.
+>> =A0Tomi
+>>
+>>
 >>
 >
->Yes that be done but currently but that is not in my intention here
->with my patch
->I just want to retain rx wakeup by default to avoid breaking support
->for any board.
->
->Adding pin mux for each individual pin is a separate activity where I
-also
->need access to various boards So I am leaving that to developers who
->want to configure
->for the corresponding boards using init_port api.
->
->Removing mux from u-boot level and adding it to board file is beyond
->the scope of this
->patch series and is a separate topic of discussion, as current patch
-series
->assumes that uarts are muxed from u-boot level and needs to only enabl=
-e
->wakeup
->capability for rx-pin.
->
->Hope this clarifies.
->
-It is true that this patch is not intending to configure the pads.
-
-But my question is, after this patch say
-   1) some board file calls omap_serial_port.
-   2) As a result , all the uarts devices are build and only the Rx pad=
- is
-configured for each device.
-   3) After this there will be no way of configuring the rest of the pa=
-ds
-??
-      That should not happen. Also relying that the bootloaders are goi=
-ng
-      to do the configuration is not correct.
-
-      So if some board calls omap_serial_port then there should be defa=
-ult
-values for all pads which a board can use, otherwise the board calls
-omap_serial_init_port for each of the device.
-
-
->--
->Thanks,
->Govindraj.R
->
->
->>>So if any board needs specific mux they can go ahead and add require=
-d
->>>mux data in
->>>board file and use map_serial_init_port instead of current
->>>omap_serial_init.
->>>
->>>
->>>> Is it consistent that across all socs that only UART3 would have
->>>UART/IRDA
->>>> functions capability so that serial2 pads can always be called
->> "rx_irxx"
->>>> ?.
->>>
->>>Yes from OMAP2420 to OMAP4430 uart3 can used as irda.
->>>
->> Ok.
->>>--
->>>Thanks,
->>>Govindraj.R
->>
 --
-To unsubscribe from this list: send the line "unsubscribe linux-serial"=
- in
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
 the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
