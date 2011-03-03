@@ -1,123 +1,152 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 00/19] OMAP3+: introduce SR class 1.5
-Date: Wed, 02 Mar 2011 16:33:18 -0800
-Message-ID: <87aahdujox.fsf@ti.com>
-References: <1298116918-30744-1-git-send-email-nm@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 03/19] omap3+: voltage: remove initial voltage
+Date: Thu, 03 Mar 2011 06:05:20 +0530
+Message-ID: <4D6EE248.3010205@ti.com>
+References: <1298116918-30744-1-git-send-email-nm@ti.com>	<1298116918-30744-4-git-send-email-nm@ti.com>	<bd6822eaf1535de0f30aa64a31c15f6c@mail.gmail.com>	<4D60A2AC.1030704@ti.com>	<1000eadc0be6e053b04840566bb7c98a@mail.gmail.com>	<AANLkTinW+ekEy6uSQcFYYFiUkSYi2h9Mp5q_ct3p5nat@mail.gmail.com>	<fee6fa5d6bc637b4f2cd778235fbb01b@mail.gmail.com>	<AANLkTi=ofKtTZjSjEaPyeK52isPZhaVK8_cb1-LZ1qUT@mail.gmail.com> <8762s1xep6.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:47058 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752734Ab1CCAdV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Mar 2011 19:33:21 -0500
-Received: by mail-iw0-f169.google.com with SMTP id 42so622436iwl.14
-        for <linux-omap@vger.kernel.org>; Wed, 02 Mar 2011 16:33:20 -0800 (PST)
-In-Reply-To: <1298116918-30744-1-git-send-email-nm@ti.com> (Nishanth Menon's
-	message of "Sat, 19 Feb 2011 17:31:39 +0530")
+Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:51249 "EHLO
+	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753300Ab1CCAfa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Mar 2011 19:35:30 -0500
+Received: by mail-ey0-f172.google.com with SMTP id 13so216348eye.31
+        for <linux-omap@vger.kernel.org>; Wed, 02 Mar 2011 16:35:29 -0800 (PST)
+In-Reply-To: <8762s1xep6.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
+To: Kevin Hilman <khilman@ti.com>
+Cc: Vishwanath Sripathy <vishwanath.bs@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 
-Hi Nishanth,
-
-Nishanth Menon <nm@ti.com> writes:
-
-> Hi,
-> This series intends to introduce SmartReflex AVS Class 1.5 support which
-> is now the recommended AVS class for usage in OMAP3630, OMAP4 an potentially
-> in later generation of silicon as well. Smartreflex class 1.5 is a software
-> controlled hardware calibration mechanism designed to improve dvfs latencies
-> and system performance as well as helping bring in additional benefits to the
-> system from h/w perspective. The corresponding patch has details on this class
-> and the implementation as well.
-
-In addition to some specific comments given on individual patches, I
-a couple of general, nit-picky comments:
-
-- Please capitalize acronyms throughout the
-  subjects/comments/changelogs.  This series tends to mix lower-case and
-  upper case acronyms
-
-- Please Cc linux-arm-kernel for patches intended for mainline.  Because
-  of this, I didn't (yet) queue the ones I said I would queue. 
-
-- Please rebase this on top of my pm-core branch (or Paul's
-  integration-2.6.39 branch if you prefer.)  There are some important
-  voltage related re-organization happening there that affects your code.
-
-Kevin
-
-> The series eventually results in OMAP343x based platforms using class3 and
-> OMAP3630, OMAP4 platforms using class1.5 automatically without modifications
-> or additions to board files.
+Kevin Hilman wrote, on 03/03/2011 05:22 AM:
+> "Menon, Nishanth"<nm@ti.com>  writes:
 >
-> This series is Based on:
-> a) k.org 2.6.38-rc5 (b2.6.38-rc5)
-> b) The following branches Kevin Hilman's tree: (pm-base)
->  'pm/for_2.6.38/pm-fixes', 'pm/for_2.6.39/pm-misc' and 'pm/pm-wip/cpufreq'
->  http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git;a=summary
-> c) sr-fixes: (sr-baseline)
-> 	http://marc.info/?l=linux-omap&m=129783708019505&w=2
-> 	http://marc.info/?l=linux-omap&m=129679846322563&w=2
+>> On Wed, Feb 23, 2011 at 14:29, Vishwanath Sripathy<vishwanath.bs@ti.com>  wrote:
+>>>> -----Original Message-----
+>>>> From: Menon, Nishanth [mailto:nm@ti.com]
+>>>> Sent: Wednesday, February 23, 2011 1:48 PM
+>>>> To: Vishwanath Sripathy
+>>>> Cc: linux-omap; Tony Lindgren; Kevin Hilman
+>>>> Subject: Re: [PATCH 03/19] omap3+: voltage: remove initial voltage
+>>>>
+>>>>   Wed, Feb 23, 2011 at 12:24, Vishwanath Sripathy
+>>>> <vishwanath.bs@ti.com>  wrote:
+>>>>>> -----Original Message-----
+>>>>>> From: Nishanth Menon [mailto:nm@ti.com]
+>>>>>> Sent: Sunday, February 20, 2011 10:42 AM
+>>>>>> To: Vishwanath Sripathy
+>>>>>> Cc: linux-omap; Tony Lindgren; Kevin Hilman
+>>>>>> Subject: Re: [PATCH 03/19] omap3+: voltage: remove initial voltage
+>>>>>>
+>>>>>> Vishwanath Sripathy wrote, on 02/19/2011 06:54 PM:
+>>>>>> [..]
+>>>>>>>> omap2_set_init_voltage should setup the curr_volt based on
+>>>> which
+>>>>>> OPP
+>>>>>>>> the system is functioning at. Blindly setting a 1.2v setting in
+>>> the
+>>>>>>>> initial structure may not even match the default voltages stored
+>>>> in
+>>>>>>>> the voltage table which are supported for the domain.
+>>>>>>>>
+>>>>>>>> For example, OMAP3430 core domain does not use 1.2v and ends
+>>>> up
+>>>>>>>> generating a warning on the first transition.
+>>>>>>>>
+>>>>>> [..]
+>>>>>>>> diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-
+>>>>>>>> omap2/voltage.c
+>>>>>>>> index 12be525..280ee12 100644
+>>>>>>>> --- a/arch/arm/mach-omap2/voltage.c
+>>>>>>>> +++ b/arch/arm/mach-omap2/voltage.c
+>>>>>> [..]
+>>>>>>>>     /* Generic voltage parameters */
+>>>>>>>> -  vdd->curr_volt = 1200000;
+>>>>>>> Where do you update this parameter upon initialization? Shouldn't
+>>>> you
+>>>>>> read
+>>>>>>> the VP register and find the actual current voltage and update this
+>>>>>> param?
+>>>>>>
+>>>>>> The sequence is as follows:
+>>>>>> a) omapx_vdd_data configure is called as part of sr init sequence.
+>>>>>>        And the curr_volt with this patch is not updated at this stage.
+>>>>>> b) somewhere down in the boot sequence, pm.c's
+>>>>>> omap2_set_init_voltage
+>>>>>> starts up. This looks up the current clk frequency from clock layer
+>>> of
+>>>>>> the parent device for the domain, picks up the nominal voltages
+>>>> stored
+>>>>>> in the opp layer, then does a omap_voltage_scale_vdd to that
+>>>> voltage. In
+>>>>>> omap_voltage_scale_vdd, The current voltage is merely picked off
+>>>> the vp
+>>>>>> (in _pre_volt_scale). the last step it does is to setup
+>>> vdd->curr_volt.
+>>>>>> This can then be used by dvfs layer etc to make appropriate
+>>>> decisions.
+>>>>>>
+>>>>>> So, No, I dont think I need to update it here, it should happen as
+>>>> part
+>>>>>> of the pm init sequence.
+>>>>>>
+>>>>>> Could you explain what problem do you foresee by doing this?
+>>>>> What if omap_voltage_scale_vdd fails when called from
+>>>>> omap2_set_init_voltage? Or omap2_set_init_voltage returns error
+>>>> even
+>>>>> before calling omap_voltage_scale_vdd because it could not find the
+>>>>> matching voltage for the frequency set by bootloader?
+>>>>>
+>>>>> Your assumption that curr_volt is always set by
+>>>> omap2_set_init_voltage
+>>>>> need not be true always.
+>>>>
+>>>> set_init_voltage's job is to set the initial voltage. if it is
+>>>> incapable of doing it, I say fix that instead of hacking in some
+>>>> random number as curr_volt.
+>>> I never said to use random numbers. All I suggested was that instead of
+>>> relying on some others function's behavior, read the VP register to fill
+>>> in the right values. If set_init_voltage succeeds, it will anyway update
+>>> with right voltage.
+>> OK, lets take this argument for a moment.
+>> Q: which voltage to set as curr_volt?
+>> a) what if the update was done over vcbypass by bootloader? Cannot
+>> trust the vp register for the value.
+>> b) what if the voltage was updated over i2c1 to the PMIC by
+>> bootloader? cant trust vp register again.
+>> c) use some number like 1.2v - which we are aligned is wrong.
+>>
+>> in short, what should we do for a accurate curr_volt? vp register may
+>> not be correct, instead, the right steps to do:
+>> find my current freq, check the OPP table for the voltage needed,
+>> setup the voltage for it, update curr_volt for it. this is trust
+>> worthy, rest are not.
+>>
+>> This is what set_init_voltage does, replicating that logic in
+>> voltage.c makes no sense again to me.
 >
-> This series is also available at:
-> 	git://gitorious.org/linux-omap-nm-sr/linux-omap-sr.git
-> 	Branch: sr-1.5-v1
+> Agreed.
 >
-> Note: There is also a branch sr-dvfs-1.5 in my tree which contains the test
-> version of code which is based off Vishwa's DVFS series which is currently
-> being revamped. it may need few handtweaking for testing (esp selecting class
-> at menuconfig level or by commenting out appropriate late_init).
+> Please update the changelog with a summary of how curr_volt is properly
+> updated so it's clear that you're not removing something that isn't
+> updated elsewhere.
 >
-> The series contains a bunch of bugfixes and improvements needed to introduce
-> Smartreflex class 1.5.
 
-> Nishanth Menon (19):
->   omap3: hwmod: add smartreflex irqs
->   omap3630: hwmod: sr: enable for higher ES
->   omap3+: voltage: remove initial voltage
->   omap3+: voltage: remove spurious pr_notice for debugfs
->   omap3+: voltage: use IS_ERR_OR_NULL
->   omap3+: voltage: use volt_data pointer instead values
->   omap3+: voltage: add transdone apis
->   omap3+: sr: make notify independent of class
->   omap3+: sr: introduce class init,deinit and priv data
->   omap3+: sr: fix cosmetic indentation
->   omap3+: sr: call handler with interrupt disabled
->   omap3+: sr: disable interrupt by default
->   omap3+: sr: enable/disable SR only on need
->   omap3+: sr: introduce notifiers flags
->   omap3+: sr: introduce notifier_control
->   omap3+: sr: disable spamming interrupts
->   omap3+: sr: make enable path use volt_data pointer
->   omap3630+: sr: add support for class 1.5
->   omap3430: sr: class3: restrict cpu to run on
->
->  arch/arm/mach-omap2/Makefile                  |    1 +
->  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c    |   25 +-
->  arch/arm/mach-omap2/pm.c                      |    3 +-
->  arch/arm/mach-omap2/smartreflex-class1p5.c    |  556 +++++++++++++++++++++++++
->  arch/arm/mach-omap2/smartreflex-class3.c      |   21 +-
->  arch/arm/mach-omap2/smartreflex.c             |  249 ++++++++++--
->  arch/arm/mach-omap2/voltage.c                 |  236 ++++++++---
->  arch/arm/plat-omap/Kconfig                    |   17 +
->  arch/arm/plat-omap/include/plat/smartreflex.h |   42 ++-
->  arch/arm/plat-omap/include/plat/voltage.h     |   36 ++-
->  10 files changed, 1062 insertions(+), 124 deletions(-)
->  create mode 100644 arch/arm/mach-omap2/smartreflex-class1p5.c
->
-> Testing performed:
-> - basic boot tests on SDP3630 and SDP3430 - with bare series
-> - Detailed dvfs tests with Viswha's series on SDP3430 and SDP3630
-> - OMAP4 was'nt supported yet by dvfs series, so very restricted tests.
-> - Build tests with and without each of SR classes, SMARTREFLEX enabled.
->
-> Test Script: http://pastebin.mozilla.org/1080985
->
-> I request any additional tests on Panda, BeagleXM, EVM platforms that folks
-> may have. please feel free to comment and provide tested-by/Acked-by feedback
-> before I take this ahead including l-a.
->
-> Regards,
-> Nishanth Menon
+Does the following sound any better?:
+Blindly setting a 1.2v setting in the initial structure may not even 
+match the default voltages stored in the voltage table which are 
+supported for the domain. For example, OMAP3430 core domain does not use 
+1.2v and ends up generating a warning on the first transition.
+
+Further, since omap2_set_init_voltage is called as part of the pm 
+framework's initialization sequence to configure the voltage required 
+for the current OPP, the call does(and has to) setup the system 
+voltage(curr_volt as a result) using the right mechanisms appropriate 
+for the system at that point of time. This also overrides initialization 
+we are currently doing in voltage.c  making it redundant. So remove the 
+wrong and useless initialization.
+
+-- 
+Regards,
+Nishanth Menon
