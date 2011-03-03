@@ -1,40 +1,99 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: linux-next: manual merge of the usb tree with the omap tree
-Date: Thu, 3 Mar 2011 08:02:09 -0800
-Message-ID: <20110303160209.GB13709@kroah.com>
-References: <20110302165755.b45124c8.sfr@canb.auug.org.au>
- <20110303084829.GB2644@legolas.emea.dhcp.ti.com>
+From: Michael Jones <michael.jones@matrix-vision.de>
+Subject: Re: omap3isp cache error when unloading
+Date: Thu, 03 Mar 2011 17:06:23 +0100
+Message-ID: <4D6FBC7F.1080500@matrix-vision.de>
+References: <4D6D219D.7020605@matrix-vision.de> <201103022018.23446.laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-next-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20110303084829.GB2644@legolas.emea.dhcp.ti.com>
-Sender: linux-next-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Anand Gadiyar <gadiyar@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Keshava Munegowda <keshava_mgowda@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <201103022018.23446.laurent.pinchart@ideasonboard.com>
+Sender: linux-media-owner@vger.kernel.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, fernando.lugo@ti.com
+Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>, Linux Media Mailing List <linux-media@vger.kernel.org>, linux-omap@vger.kernel.org, Hiroshi.DOYU@nokia.com
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Mar 03, 2011 at 10:48:29AM +0200, Felipe Balbi wrote:
-> On Wed, Mar 02, 2011 at 04:57:55PM +1100, Stephen Rothwell wrote:
-> > Hi Greg,
-> > 
-> > Today's linux-next merge of the usb tree got a conflict in
-> > arch/arm/mach-omap2/board-4430sdp.c between commit
-> > 1dbea0f5e23b6c647db72fa4a048cb7140625e13 ("arm: omap4: 4430sdp: drop ehci
-> > support") from the omap tree and commit
-> > 181b250cf53233a7a7c6d7e1e9df402506712e93 ("arm: omap: usb: create common
-> > enums and structures for ehci and ohci") from the usb tree.
-> > 
-> > The former removed the code modified by the latter, so I did that.
+On 03/02/2011 08:18 PM, Laurent Pinchart wrote:
+> Hi Michael,
 > 
-> This can be fixed if Greg applies this patch:
+> On Tuesday 01 March 2011 17:41:01 Michael Jones wrote:
+>> Hi all,
+>>
+>> I get a warning about a cache error with the following steps:
+>>
+>> 0. load omap3-isp
+>> 1. set up media broken media pipeline. (e.g. set different formats on
+>> opposite ends of a link, as will be the case for using the lane shifter)
+>> 2. try to capture images.  isp_video_streamon() returns -EPIPE from the
+>> failed isp_video_validate_pipeline() call.
+>> 3. unload omap3-isp module
+>>
+>> then I get the following from kmem_cache_destroy():
+>>
+>> slab error in kmem_cache_destroy(): cache `iovm_area_cache': Can't free all
+>> objects [<c0040318>] (unwind_backtrace+0x0/0xec) from [<c00bfe14>]
+>> (kmem_cache_destroy+0x88/0xf4) [<c00bfe14>] (kmem_cache_destroy+0x88/0xf4)
+>> from [<c00861f8>] (sys_delete_module+0x1c4/0x230) [<c00861f8>]
+>> (sys_delete_module+0x1c4/0x230) from [<c003b680>]
+>> (ret_fast_syscall+0x0/0x30)
+>>
+>> Then, when reloading the module:
+>> SLAB: cache with size 32 has lost its name
+>>
+>> Can somebody else confirm that they also observe this behavior?
 > 
-> commit 076bfacd5bba0f2e419474488c8f8c060c7799d8
-> Author: Anand Gadiyar <gadiyar@ti.com>
-> Date:   Wed Feb 16 16:47:19 2011 +0530
+> I can't reproduce that (tried both 2.6.32 and 2.6.37). Could you give me some 
+> more details about your exact test procedure (such as how you configure the 
+> pipeline) ?
+> 
 
-Care to provide it to me in a format that I can apply it?  :)
+Sorry, I should've mentioned: I'm using your media-0005-omap3isp branch
+based on 2.6.38-rc5.  I didn't have the problem with 2.6.37, either.
+It's actually not related to mis-configuring the ISP pipeline like I
+thought at first- it also happens after I have successfully captured images.
 
-thanks,
+I've since tracked down the problem, although I don't understand the
+cache management well enough to be sure it's a proper fix, so hopefully
+some new recipients on this can make suggestions/comments.
 
-greg k-h
+The patch below solves the problem, which modifies a commit by Fernando
+Guzman Lugo from December.
+
+-Michael
+
+>From db35fb8edca2a4f8fd37197d77fd58676cb1dcac Mon Sep 17 00:00:00 2001
+From: Michael Jones <michael.jones@matrix-vision.de>
+Date: Thu, 3 Mar 2011 16:50:39 +0100
+Subject: [PATCH] fix iovmm slab cache error on module unload
+
+modify "OMAP: iommu: create new api to set valid da range"
+
+This modifies commit c7f4ab26e3bcdaeb3e19ec658e3ad9092f1a6ceb.
+---
+ arch/arm/plat-omap/iovmm.c |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
+index 6dc1296..2fba6f1 100644
+--- a/arch/arm/plat-omap/iovmm.c
++++ b/arch/arm/plat-omap/iovmm.c
+@@ -280,7 +280,10 @@ static struct iovm_struct *alloc_iovm_area(struct iommu *obj, u32 da,
+ 	alignement = PAGE_SIZE;
+ 
+ 	if (flags & IOVMF_DA_ANON) {
+-		start = obj->da_start;
++		/*
++		 * Reserve the first page for NULL
++		 */
++		start = obj->da_start + PAGE_SIZE;
+ 
+ 		if (flags & IOVMF_LINEAR)
+ 			alignement = iopgsz_max(bytes);
+-- 
+1.7.4.1
+
+
+
+MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
+Registergericht: Amtsgericht Stuttgart, HRB 271090
+Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner
