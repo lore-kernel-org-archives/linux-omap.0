@@ -1,161 +1,58 @@
 From: Raghuveer Murthy <raghuveer.murthy@ti.com>
-Subject: [PATCH v3 2/3] OMAP: DSS2: Renaming register macro DISPC_DIVISOR(ch)
-Date: Thu,  3 Mar 2011 20:57:59 +0530
-Message-ID: <1299166080-15380-3-git-send-email-raghuveer.murthy@ti.com>
-References: <1299166080-15380-1-git-send-email-raghuveer.murthy@ti.com>
+Subject: [PATCH v3 0/3] OMAP: DSS2: Fix for DISPC core functional clock divider
+Date: Thu,  3 Mar 2011 20:57:57 +0530
+Message-ID: <1299166080-15380-1-git-send-email-raghuveer.murthy@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48818 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:48817 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758341Ab1CCP1l (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 3 Mar 2011 10:27:41 -0500
-In-Reply-To: <1299166080-15380-1-git-send-email-raghuveer.murthy@ti.com>
+	id S1758261Ab1CCP1k (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 3 Mar 2011 10:27:40 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-The OMAP4 DISPC_DIVISOR1 is backward compatible to OMAP3xxx DISPC_DIVISOR.
-However DISPC_DIVISOR is also provided in OMAP4, to control DISPC_CORE_CLK
-independent of Primary and Secondary display clocks.
+OMAP4 has 2 LCD channels and corresponding DISPC_DIVISOR1 and DISPC_DIVISOR2
+registers to configure the pixel clock frequency, for the respective LCD
+displays.
 
-Renamed DISPC_DIVISOR(ch) to DISPC_DIVISORo(ch), to facilitate introduction
-of DISPC_DIVISOR register, which is specific for OMAP4. OMAP4 has 3 registers
-DISPC_DIVISOR, DISPC_DIVISOR1 and DISPC_DIVISOR2.
+There is also DISPC_DIVISOR register, which by default has the ENABLE bit
+set to zero, for backward compatibility mode. Hence the logical clock divider of
+DISPC_DIVISOR1.LCD, gets used for core func clk configuration. The default value
+of DISPC_DIVISOR1.LCD is 4.
 
-Also updated, all the usages of DISPC_DIVISOR(ch) to DISPC_DIVISORo(ch).
-Use DISPC_DIVISORo(ch) when DISPC_DIVISOR1 or DISPC_DIVISOR2 has to be
-configured
+If only the secondary LCD is enabled, at high pixel resolutions the core clk 
+lags behind the pixel clock, causing stair-step effect (diagonal lines with
+tearing) on the display.
 
-OMAP4 TRM uses DISPC_DIVISORo generically to refer to DISPC_DIVISOR1 and
-DISPC_DIVISOR2
+Hence DISPC_DIVISOR.ENABLE is set to 1, and the core functional clock is set 
+independently and exclusively in DISPC_DIVISOR.LCD.
 
-Signed-off-by: Raghuveer Murthy <raghuveer.murthy@ti.com>
----
- drivers/video/omap2/dss/dispc.c |   27 ++++++++++++++-------------
- 1 files changed, 14 insertions(+), 13 deletions(-)
+- Added the above as dss_features
 
-diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-index 9fb11c1..a3dff5f 100644
---- a/drivers/video/omap2/dss/dispc.c
-+++ b/drivers/video/omap2/dss/dispc.c
-@@ -73,7 +73,7 @@ struct dispc_reg { u16 idx; };
- #define DISPC_TIMING_H(ch)		DISPC_REG(ch != 2 ? 0x0064 : 0x0400)
- #define DISPC_TIMING_V(ch)		DISPC_REG(ch != 2 ? 0x0068 : 0x0404)
- #define DISPC_POL_FREQ(ch)		DISPC_REG(ch != 2 ? 0x006C : 0x0408)
--#define DISPC_DIVISOR(ch)		DISPC_REG(ch != 2 ? 0x0070 : 0x040C)
-+#define DISPC_DIVISORo(ch)		DISPC_REG(ch != 2 ? 0x0070 : 0x040C)
- #define DISPC_GLOBAL_ALPHA		DISPC_REG(0x0074)
- #define DISPC_SIZE_DIG			DISPC_REG(0x0078)
- #define DISPC_SIZE_LCD(ch)		DISPC_REG(ch != 2 ? 0x007C : 0x03CC)
-@@ -128,6 +128,7 @@ struct dispc_reg { u16 idx; };
- 
- #define DISPC_VID_PRELOAD(n)		DISPC_REG(0x230 + (n)*0x04)
- 
-+#define DISPC_DIVISOR			DISPC_REG(0x0804)
- 
- #define DISPC_IRQ_MASK_ERROR            (DISPC_IRQ_GFX_FIFO_UNDERFLOW | \
- 					 DISPC_IRQ_OCP_ERR | \
-@@ -231,7 +232,7 @@ void dispc_save_context(void)
- 	SR(TIMING_H(0));
- 	SR(TIMING_V(0));
- 	SR(POL_FREQ(0));
--	SR(DIVISOR(0));
-+	SR(DIVISORo(0));
- 	SR(GLOBAL_ALPHA);
- 	SR(SIZE_DIG);
- 	SR(SIZE_LCD(0));
-@@ -243,7 +244,7 @@ void dispc_save_context(void)
- 		SR(TIMING_H(2));
- 		SR(TIMING_V(2));
- 		SR(POL_FREQ(2));
--		SR(DIVISOR(2));
-+		SR(DIVISORo(2));
- 		SR(CONFIG2);
- 	}
- 
-@@ -390,7 +391,7 @@ void dispc_restore_context(void)
- 	RR(TIMING_H(0));
- 	RR(TIMING_V(0));
- 	RR(POL_FREQ(0));
--	RR(DIVISOR(0));
-+	RR(DIVISORo(0));
- 	RR(GLOBAL_ALPHA);
- 	RR(SIZE_DIG);
- 	RR(SIZE_LCD(0));
-@@ -401,7 +402,7 @@ void dispc_restore_context(void)
- 		RR(TIMING_H(2));
- 		RR(TIMING_V(2));
- 		RR(POL_FREQ(2));
--		RR(DIVISOR(2));
-+		RR(DIVISORo(2));
- 		RR(CONFIG2);
- 	}
- 
-@@ -2316,7 +2317,7 @@ static void dispc_set_lcd_divisor(enum omap_channel channel, u16 lck_div,
- 	BUG_ON(pck_div < 2);
- 
- 	enable_clocks(1);
--	dispc_write_reg(DISPC_DIVISOR(channel),
-+	dispc_write_reg(DISPC_DIVISORo(channel),
- 			FLD_VAL(lck_div, 23, 16) | FLD_VAL(pck_div, 7, 0));
- 	enable_clocks(0);
- }
-@@ -2325,7 +2326,7 @@ static void dispc_get_lcd_divisor(enum omap_channel channel, int *lck_div,
- 		int *pck_div)
- {
- 	u32 l;
--	l = dispc_read_reg(DISPC_DIVISOR(channel));
-+	l = dispc_read_reg(DISPC_DIVISORo(channel));
- 	*lck_div = FLD_GET(l, 23, 16);
- 	*pck_div = FLD_GET(l, 7, 0);
- }
-@@ -2351,7 +2352,7 @@ unsigned long dispc_lclk_rate(enum omap_channel channel)
- 	unsigned long r;
- 	u32 l;
- 
--	l = dispc_read_reg(DISPC_DIVISOR(channel));
-+	l = dispc_read_reg(DISPC_DIVISORo(channel));
- 
- 	lcd = FLD_GET(l, 23, 16);
- 
-@@ -2366,7 +2367,7 @@ unsigned long dispc_pclk_rate(enum omap_channel channel)
- 	unsigned long r;
- 	u32 l;
- 
--	l = dispc_read_reg(DISPC_DIVISOR(channel));
-+	l = dispc_read_reg(DISPC_DIVISORo(channel));
- 
- 	lcd = FLD_GET(l, 23, 16);
- 	pcd = FLD_GET(l, 7, 0);
-@@ -2483,7 +2484,7 @@ void dispc_dump_regs(struct seq_file *s)
- 	DUMPREG(DISPC_TIMING_H(0));
- 	DUMPREG(DISPC_TIMING_V(0));
- 	DUMPREG(DISPC_POL_FREQ(0));
--	DUMPREG(DISPC_DIVISOR(0));
-+	DUMPREG(DISPC_DIVISORo(0));
- 	DUMPREG(DISPC_GLOBAL_ALPHA);
- 	DUMPREG(DISPC_SIZE_DIG);
- 	DUMPREG(DISPC_SIZE_LCD(0));
-@@ -2495,7 +2496,7 @@ void dispc_dump_regs(struct seq_file *s)
- 		DUMPREG(DISPC_TIMING_H(2));
- 		DUMPREG(DISPC_TIMING_V(2));
- 		DUMPREG(DISPC_POL_FREQ(2));
--		DUMPREG(DISPC_DIVISOR(2));
-+		DUMPREG(DISPC_DIVISORo(2));
- 		DUMPREG(DISPC_SIZE_LCD(2));
- 	}
- 
-@@ -2737,8 +2738,8 @@ int dispc_get_clock_div(enum omap_channel channel,
- 
- 	fck = dispc_fclk_rate();
- 
--	cinfo->lck_div = REG_GET(DISPC_DIVISOR(channel), 23, 16);
--	cinfo->pck_div = REG_GET(DISPC_DIVISOR(channel), 7, 0);
-+	cinfo->lck_div = REG_GET(DISPC_DIVISORo(channel), 23, 16);
-+	cinfo->pck_div = REG_GET(DISPC_DIVISORo(channel), 7, 0);
- 
- 	cinfo->lck = fck / cinfo->lck_div;
- 	cinfo->pck = cinfo->lck / cinfo->pck_div;
--- 
-1.7.0.4
+-----------------------------------------------------
+History
+-------
+Changes from previous version (v1)
+- Fixed comments from Tomi Valkeinen <tomi.valkeinen@ti.com>
+
+Changes from previous version (v2)
+- Rebased against the DSS2 master to avoid conflicts 
+
+Base
+----
+url = git://gitorious.org/linux-omap-dss2/linux.git
+branch "master"
+commit a2792bb44d45ef97963e67565ad1e1dd5bf0cbd7
+
+-----------------------------------------------------
+Raghuveer Murthy (3):
+  OMAP: DSS2: Adding dss_features for independent core clk divider
+  OMAP: DSS2: Renaming register macro DISPC_DIVISOR(ch)
+  OMAP4: DSS2: Using dss_features to set independent core clock divider
+
+ drivers/video/omap2/dss/dispc.c        |   51 +++++++++++++++++++++++--------
+ drivers/video/omap2/dss/dss_features.c |    3 +-
+ drivers/video/omap2/dss/dss_features.h |    2 +
+ 3 files changed, 42 insertions(+), 14 deletions(-)
 
