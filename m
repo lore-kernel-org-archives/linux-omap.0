@@ -1,20 +1,20 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 12/19] omap3+: sr: disable interrupt by default
-Date: Wed, 02 Mar 2011 16:15:15 -0800
-Message-ID: <8739n5vz3g.fsf@ti.com>
+Subject: Re: [PATCH 14/19] omap3+: sr: introduce notifiers flags
+Date: Wed, 02 Mar 2011 16:17:55 -0800
+Message-ID: <87vd01ukek.fsf@ti.com>
 References: <1298116918-30744-1-git-send-email-nm@ti.com>
-	<1298116918-30744-13-git-send-email-nm@ti.com>
+	<1298116918-30744-15-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:37098 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754487Ab1CCAPU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Mar 2011 19:15:20 -0500
-Received: by yia13 with SMTP id 13so187059yia.30
-        for <linux-omap@vger.kernel.org>; Wed, 02 Mar 2011 16:15:18 -0800 (PST)
-In-Reply-To: <1298116918-30744-13-git-send-email-nm@ti.com> (Nishanth Menon's
-	message of "Sat, 19 Feb 2011 17:31:51 +0530")
+Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:39169 "EHLO
+	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752897Ab1CCAR7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Mar 2011 19:17:59 -0500
+Received: by gxk7 with SMTP id 7so211374gxk.13
+        for <linux-omap@vger.kernel.org>; Wed, 02 Mar 2011 16:17:58 -0800 (PST)
+In-Reply-To: <1298116918-30744-15-git-send-email-nm@ti.com> (Nishanth Menon's
+	message of "Sat, 19 Feb 2011 17:31:53 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Nishanth Menon <nm@ti.com>
@@ -22,32 +22,41 @@ Cc: linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 
 Nishanth Menon <nm@ti.com> writes:
 
-> We will enable and disable interrupt on a need basis in the class
-> driver. we need to keep the irq disabled by default else the
-> forceupdate or vcbypass events could trigger events that we dont
-> need/expect to handle.
+> SmartReflex IP v1 and v2 have different registers and offsets.
+> Currently, we pass the status as is to the class driver. However,
+> since we dont pass the version of the underlying SR hardware
+> to the Class driver, it will not be unable to make consistent
+> sense of the status bits coming over to it.
+>
+> A class driver should be able to function without dependency
+> on the exact IP version it is actually running on. We hence
+> introduce our own translation in s/w level for a generic
+> notification flag.
+>
+> As part of this change, we will now call the notifier iff we get
+> a match with the notifier flags that the class driver requested.
+>
+> Signed-off-by: Nishanth Menon <nm@ti.com>
 
-It's not clear from the patch where the IRQ is re-enabled.  For example,
-without knowing better, I would expect a corresponding change to the
-Class 3 driver to enable/disable the IRQ as needed.
+Looks fine, minor comment below...
+
+[...]
+
+> diff --git a/arch/arm/plat-omap/include/plat/smartreflex.h b/arch/arm/plat-omap/include/plat/smartreflex.h
+> index 8b6ecd9..ff07d1e 100644
+> --- a/arch/arm/plat-omap/include/plat/smartreflex.h
+> +++ b/arch/arm/plat-omap/include/plat/smartreflex.h
+> @@ -141,6 +141,12 @@
+>  #define OMAP3430_SR_ERRWEIGHT		0x04
+>  #define OMAP3430_SR_ERRMAXLIMIT		0x02
+>  
+> +/* Smart reflex notifiers for class drivers to use */
+> +#define SR_NOTIFY_MCUACCUM     (0x1 << 0)
+> +#define SR_NOTIFY_MCUVALID     (0x1 << 1)
+> +#define SR_NOTIFY_MCUBOUND     (0x1 << 2)
+> +#define SR_NOTIFY_MCUDISACK    (0x1 << 3)
+> +
+
+Please use BIT(x)
 
 Kevin
-
-
-> Signed-off-by: Nishanth Menon <nm@ti.com>
-> ---
->  arch/arm/mach-omap2/smartreflex.c |    1 +
->  1 files changed, 1 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
-> index 7931fcd..9c61ab0 100644
-> --- a/arch/arm/mach-omap2/smartreflex.c
-> +++ b/arch/arm/mach-omap2/smartreflex.c
-> @@ -281,6 +281,7 @@ static int sr_late_init(struct omap_sr *sr_info)
->  				IRQF_DISABLED, name, (void *)sr_info);
->  		if (ret)
->  			goto error;
-> +		disable_irq(sr_info->irq);
->  	}
->  
->  	if (pdata && pdata->enable_on_init)
