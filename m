@@ -1,88 +1,52 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 0/6] omap3: pm: Fixes for low power code
-Date: Wed, 02 Mar 2011 17:22:50 -0800
-Message-ID: <87k4ghro9h.fsf@ti.com>
-References: <1298294365-30770-1-git-send-email-santosh.shilimkar@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 12/19] omap3+: sr: disable interrupt by default
+Date: Thu, 03 Mar 2011 06:53:22 +0530
+Message-ID: <4D6EED8A.7000809@ti.com>
+References: <1298116918-30744-1-git-send-email-nm@ti.com>	<1298116918-30744-13-git-send-email-nm@ti.com> <8739n5vz3g.fsf@ti.com>	<4D6EE04D.600@ti.com> <87ei6pt3ws.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:45623 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754658Ab1CCBWx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Mar 2011 20:22:53 -0500
-Received: by pxi20 with SMTP id 20so101272pxi.13
-        for <linux-omap@vger.kernel.org>; Wed, 02 Mar 2011 17:22:53 -0800 (PST)
-In-Reply-To: <1298294365-30770-1-git-send-email-santosh.shilimkar@ti.com>
-	(Santosh Shilimkar's message of "Mon, 21 Feb 2011 18:49:19 +0530")
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:34848 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756100Ab1CCBXa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Mar 2011 20:23:30 -0500
+Received: by mail-vw0-f49.google.com with SMTP id 7so575140vws.8
+        for <linux-omap@vger.kernel.org>; Wed, 02 Mar 2011 17:23:29 -0800 (PST)
+In-Reply-To: <87ei6pt3ws.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 
-Hi Santosh,
-
-Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
-
-> The series does below fixes to the omap3 low power code.
-> 	1. Use supported ARMv7 instructions instead of the legacy ones
-> 	2. Fix the MMU on sequence
-> 	3. Fix the cache flush scenario when only L1 lost.
-> 	4. Remove all un-necessary context save registers
-> 	5. Disable C-bit before cache clean
-> 	6. Use set_cr() exported API instead of custom one. 
-
-Look like good cleanups, thanks.
-
-> It's generated against mainline and tested with OMAP3630 ZOOM3.
-> 	1. Renetion and off-mode mode in suspend - ok.
-> 	2. Retention in idle - ok
-
-Testing this series along with other PM changes queued up for mainline
-(my pm-core branch), this doesn't work for me on 3630/Zoom3 (but works
-fine on 3430/n900.)
-
-Here's what I did using omap2plus_defconfig + enabling CPUidle
-
-First tested suspend:
-
-echo 4 > /debug/pm_debug/wakeup_timer_seconds 
-echo mem > /sys/power/state
-
-then, setup UART idle/wakeup:
-
-echo 5 > /sys/devices/platform/omap/omap_uart.0/sleep_timeout 
-echo 5 > /sys/devices/platform/omap/omap_uart.1/sleep_timeout 
-echo 5 > /sys/devices/platform/omap/omap_uart.2/sleep_timeout 
-echo 5 > /sys/devices/platform/omap/omap_uart.3/sleep_timeout 
-echo enabled > /sys/devices/platform/serial8250.0/tty/ttyS0/power/wakeup 
-
-then enabled idle:
-
-echo 1 > /debug/pm_debug/sleep_while_idle  
-
-As soon as I do this, it hangs.
-
-Without your series, it's working fine for me.  Only after merging your
-series it hangs.
-
-Kevin
-
-
-> The following changes since commit 85e2efbb1db9a18d218006706d6e4fbeb0216213:
->   Linus Torvalds (1):
->         Linux 2.6.38-rc5
+Kevin Hilman wrote, on 03/03/2011 06:29 AM:
+> Nishanth Menon<nm@ti.com>  writes:
 >
-> Santosh Shilimkar (6):
->   omap3: pm: Use amrv7 supported instructions instead of legacy cp15
->     ones
->   omap3: pm: Fix the mmu on sequence in the asm code
->   omap3: pm: Allow the cache clean when L1 is lost.
->   omap3: pm: Remove un-necessary cp15 registers form low power cpu
->     context
->   omap3: pm: Clear the SCTLR C bit in asm code to prevent data cache
->     allocation
->   omap3: pm: Use exported set_cr() instead of a custom one.
+>> Kevin Hilman wrote, on 03/03/2011 05:45 AM:
+>>> Nishanth Menon<nm@ti.com>   writes:
+>>>
+>>>> We will enable and disable interrupt on a need basis in the class
+>>>> driver. we need to keep the irq disabled by default else the
+>>>> forceupdate or vcbypass events could trigger events that we dont
+>>>> need/expect to handle.
+>>>
+>>> It's not clear from the patch where the IRQ is re-enabled.  For example,
+>>> without knowing better, I would expect a corresponding change to the
+>>> Class 3 driver to enable/disable the IRQ as needed.
+>>
+>> Why would that be?
+>> a) class 3 driver does not request for any notifiers
+>> b) class 3 does'nt need interrupts.
+>> c) each class driver can choose to enable when it needs it - class3 does'nt.
+>>
+>> is it fine if I add a "this is a preperation for class drivers such as
+>> class 2 and class 1.5 which would need to use interrupts" in commit
+>> message?
 >
->  arch/arm/mach-omap2/pm34xx.c    |    7 +-
->  arch/arm/mach-omap2/sleep34xx.S |  223 ++++++++++++++-------------------------
->  2 files changed, 78 insertions(+), 152 deletions(-)
+> Yes, also stating/summarizing that existing class driver (e.g. class 3)
+> does not use interrupts would be helpful.
+Ack. will do in v3.
+
+-- 
+Regards,
+Nishanth Menon
