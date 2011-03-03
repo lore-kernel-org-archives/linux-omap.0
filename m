@@ -1,29 +1,30 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] cbus-retu-wdt: Make the watchdog driver fully
- preemptible
-Date: Wed, 2 Mar 2011 17:33:08 -0800
-Message-ID: <20110303013308.GI20560@atomide.com>
-References: <1299082307.13604.12.camel@marge>
+Subject: Re: [PATCH v6 0/8]  OMAP: HSMMC: hwmod adaptation
+Date: Wed, 2 Mar 2011 17:42:29 -0800
+Message-ID: <20110303014229.GK20560@atomide.com>
+References: <1298906285-29895-1-git-send-email-kishore.kadiyala@ti.com>
+ <878vwx9qah.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:45943 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752871Ab1CCBdR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Mar 2011 20:33:17 -0500
+Return-path: <linux-mmc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1299082307.13604.12.camel@marge>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <878vwx9qah.fsf@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: Kishore Kadiyala <kishore.kadiyala@ti.com>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, cjb@laptop.org, madhu.cr@ti.com, paul@pwsan.com, b-cousson@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Michael Buesch <mb@bu3sch.de>
-Cc: Felipe Balbi <balbi@ti.com>, linux-omap <linux-omap@vger.kernel.org>
 
-* Michael Buesch <mb@bu3sch.de> [110302 08:09]:
-> Make the WDT driver fully preemptible.
-> This is required in order to apply a locking fix to retu_write_reg.
-> It also improves power management by using round_relative_jiffies().
+* Kevin Hilman <khilman@ti.com> [110302 13:14]:
+> Kishore Kadiyala <kishore.kadiyala@ti.com> writes:
+> 
+> > Adding hwmod data for hsmmc device on OMAP2430/OMAP3/OMAP4.
+> > Adapting the omap_hsmmc driver to hwmod framework.
+> 
+> Looks OK to me.
+> 
+> Reviewed-by: Kevin Hilman <khilman@ti.com>
 
-Thanks, seems to stay running, so applying all your remaining patches
-to the cbus branch.
+Sorry just missed it, got it all merged into omap-for-linus already
+and rather not start messing with it any longer.
 
 Tony
