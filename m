@@ -1,80 +1,88 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 09/19] omap3+: sr: introduce class init,deinit and priv
- data
-Date: Thu, 03 Mar 2011 06:52:08 +0530
-Message-ID: <4D6EED40.6000702@ti.com>
-References: <1298116918-30744-1-git-send-email-nm@ti.com>	<1298116918-30744-10-git-send-email-nm@ti.com> <87r5apvzfc.fsf@ti.com>	<4D6EE3C0.8060202@ti.com> <87k4ght402.fsf@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH 0/6] omap3: pm: Fixes for low power code
+Date: Wed, 02 Mar 2011 17:22:50 -0800
+Message-ID: <87k4ghro9h.fsf@ti.com>
+References: <1298294365-30770-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:49760 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754658Ab1CCBWP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Mar 2011 20:22:15 -0500
-Received: by mail-vx0-f177.google.com with SMTP id 2so692518vxd.22
-        for <linux-omap@vger.kernel.org>; Wed, 02 Mar 2011 17:22:14 -0800 (PST)
-In-Reply-To: <87k4ght402.fsf@ti.com>
+Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:45623 "EHLO
+	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754658Ab1CCBWx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Mar 2011 20:22:53 -0500
+Received: by pxi20 with SMTP id 20so101272pxi.13
+        for <linux-omap@vger.kernel.org>; Wed, 02 Mar 2011 17:22:53 -0800 (PST)
+In-Reply-To: <1298294365-30770-1-git-send-email-santosh.shilimkar@ti.com>
+	(Santosh Shilimkar's message of "Mon, 21 Feb 2011 18:49:19 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Kevin Hilman wrote, on 03/03/2011 06:27 AM:
-> Nishanth Menon<nm@ti.com>  writes:
->
->> Kevin Hilman wrote, on 03/03/2011 05:38 AM:
->>> Nishanth Menon<nm@ti.com>   writes:
->>>
->>>> Certain class drivers such as class 1.5 drivers, will need specific
->>>> notification that they have to be started up or stopped independent
->>>> of smart reflex operation. They also may need private data to be
->>>> used for operations of their own, provide the same.
->>>>
->>>> Signed-off-by: Nishanth Menon<nm@ti.com>
->>>
->>> Basic principle looks fine, but some naming comments below...
->> k, thx.
->>
->>>
->>> [...]
->>>
->>>> diff --git a/arch/arm/plat-omap/include/plat/smartreflex.h b/arch/arm/plat-omap/include/plat/smartreflex.h
->>>> index 6568c88..8b6ecd9 100644
->>>> --- a/arch/arm/plat-omap/include/plat/smartreflex.h
->>>> +++ b/arch/arm/plat-omap/include/plat/smartreflex.h
->>>> @@ -167,6 +167,8 @@ struct omap_sr_pmic_data {
->>>>     *
->>>>     * @enable:		API to enable a particular class smaartreflex.
->>>>     * @disable:		API to disable a particular class smartreflex.
->>>> + * @class_init:		API to do class specific initialization (optional)
->>>> + * @class_deinit:	API to do class specific initialization (optional)
->>>
->>> The 'class_' prefix here is not needed.
->> ack.
->>
->>>
->>> The changelog uses 'start' and 'stop' instead of init&   deinit.  I
->>> prefer those names to [de]init.
->>
->> Would'nt start and stop cause confusion when mixed with existing
->> enable/disable? does enable/start actually start the SR? intent here
->> with init/deinit is to do class specific initialization or
->> deinitialization.
->
-> Well, one way or another, make the changelog consistent with the
-> function names.
->
-> To me though, start/stop has more meaning.  They are called from
-> sr_[start|stop]_vddautocomp, so using start/stop is consistent there.
-> Also, init is usually something done once (and doesn't have a de-init
-> counterpart) but here we're talking about something done for each
-> sr_[start|stop]_vddautocomp()
+Hi Santosh,
 
-fair enough - unless there are other dissenting voices, will switch to 
-start/stop for the api name and add documentation in code to explain the 
-need.
+Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
 
--- 
-Regards,
-Nishanth Menon
+> The series does below fixes to the omap3 low power code.
+> 	1. Use supported ARMv7 instructions instead of the legacy ones
+> 	2. Fix the MMU on sequence
+> 	3. Fix the cache flush scenario when only L1 lost.
+> 	4. Remove all un-necessary context save registers
+> 	5. Disable C-bit before cache clean
+> 	6. Use set_cr() exported API instead of custom one. 
+
+Look like good cleanups, thanks.
+
+> It's generated against mainline and tested with OMAP3630 ZOOM3.
+> 	1. Renetion and off-mode mode in suspend - ok.
+> 	2. Retention in idle - ok
+
+Testing this series along with other PM changes queued up for mainline
+(my pm-core branch), this doesn't work for me on 3630/Zoom3 (but works
+fine on 3430/n900.)
+
+Here's what I did using omap2plus_defconfig + enabling CPUidle
+
+First tested suspend:
+
+echo 4 > /debug/pm_debug/wakeup_timer_seconds 
+echo mem > /sys/power/state
+
+then, setup UART idle/wakeup:
+
+echo 5 > /sys/devices/platform/omap/omap_uart.0/sleep_timeout 
+echo 5 > /sys/devices/platform/omap/omap_uart.1/sleep_timeout 
+echo 5 > /sys/devices/platform/omap/omap_uart.2/sleep_timeout 
+echo 5 > /sys/devices/platform/omap/omap_uart.3/sleep_timeout 
+echo enabled > /sys/devices/platform/serial8250.0/tty/ttyS0/power/wakeup 
+
+then enabled idle:
+
+echo 1 > /debug/pm_debug/sleep_while_idle  
+
+As soon as I do this, it hangs.
+
+Without your series, it's working fine for me.  Only after merging your
+series it hangs.
+
+Kevin
+
+
+> The following changes since commit 85e2efbb1db9a18d218006706d6e4fbeb0216213:
+>   Linus Torvalds (1):
+>         Linux 2.6.38-rc5
+>
+> Santosh Shilimkar (6):
+>   omap3: pm: Use amrv7 supported instructions instead of legacy cp15
+>     ones
+>   omap3: pm: Fix the mmu on sequence in the asm code
+>   omap3: pm: Allow the cache clean when L1 is lost.
+>   omap3: pm: Remove un-necessary cp15 registers form low power cpu
+>     context
+>   omap3: pm: Clear the SCTLR C bit in asm code to prevent data cache
+>     allocation
+>   omap3: pm: Use exported set_cr() instead of a custom one.
+>
+>  arch/arm/mach-omap2/pm34xx.c    |    7 +-
+>  arch/arm/mach-omap2/sleep34xx.S |  223 ++++++++++++++-------------------------
+>  2 files changed, 78 insertions(+), 152 deletions(-)
