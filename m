@@ -1,99 +1,84 @@
-From: Michael Jones <michael.jones@matrix-vision.de>
-Subject: Re: omap3isp cache error when unloading
-Date: Thu, 03 Mar 2011 17:06:23 +0100
-Message-ID: <4D6FBC7F.1080500@matrix-vision.de>
-References: <4D6D219D.7020605@matrix-vision.de> <201103022018.23446.laurent.pinchart@ideasonboard.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH 02/17] omap4: pm: Add SAR RAM support
+Date: Thu, 3 Mar 2011 21:38:12 +0530
+Message-ID: <2a3493e9e5af3821f8b43c4c136c04db@mail.gmail.com>
+References: <1298112158-28469-1-git-send-email-santosh.shilimkar@ti.com><1298112158-28469-3-git-send-email-santosh.shilimkar@ti.com>
+ <87vd016vaa.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <201103022018.23446.laurent.pinchart@ideasonboard.com>
-Sender: linux-media-owner@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, fernando.lugo@ti.com
-Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>, Linux Media Mailing List <linux-media@vger.kernel.org>, linux-omap@vger.kernel.org, Hiroshi.DOYU@nokia.com
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:59207 "EHLO
+	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758196Ab1CCQIO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Mar 2011 11:08:14 -0500
+Received: by mail-qw0-f47.google.com with SMTP id 2so1067049qwi.34
+        for <linux-omap@vger.kernel.org>; Thu, 03 Mar 2011 08:08:13 -0800 (PST)
+In-reply-to: <87vd016vaa.fsf@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 03/02/2011 08:18 PM, Laurent Pinchart wrote:
-> Hi Michael,
-> 
-> On Tuesday 01 March 2011 17:41:01 Michael Jones wrote:
->> Hi all,
->>
->> I get a warning about a cache error with the following steps:
->>
->> 0. load omap3-isp
->> 1. set up media broken media pipeline. (e.g. set different formats on
->> opposite ends of a link, as will be the case for using the lane shifter)
->> 2. try to capture images.  isp_video_streamon() returns -EPIPE from the
->> failed isp_video_validate_pipeline() call.
->> 3. unload omap3-isp module
->>
->> then I get the following from kmem_cache_destroy():
->>
->> slab error in kmem_cache_destroy(): cache `iovm_area_cache': Can't free all
->> objects [<c0040318>] (unwind_backtrace+0x0/0xec) from [<c00bfe14>]
->> (kmem_cache_destroy+0x88/0xf4) [<c00bfe14>] (kmem_cache_destroy+0x88/0xf4)
->> from [<c00861f8>] (sys_delete_module+0x1c4/0x230) [<c00861f8>]
->> (sys_delete_module+0x1c4/0x230) from [<c003b680>]
->> (ret_fast_syscall+0x0/0x30)
->>
->> Then, when reloading the module:
->> SLAB: cache with size 32 has lost its name
->>
->> Can somebody else confirm that they also observe this behavior?
-> 
-> I can't reproduce that (tried both 2.6.32 and 2.6.37). Could you give me some 
-> more details about your exact test procedure (such as how you configure the 
-> pipeline) ?
-> 
+> -----Original Message-----
+> From: Kevin Hilman [mailto:khilman@ti.com]
+> Sent: Thursday, March 03, 2011 3:27 AM
+> To: Santosh Shilimkar
+> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
+> Subject: Re: [PATCH 02/17] omap4: pm: Add SAR RAM support
+>
+[..]
 
-Sorry, I should've mentioned: I'm using your media-0005-omap3isp branch
-based on 2.6.38-rc5.  I didn't have the problem with 2.6.37, either.
-It's actually not related to mis-configuring the ISP pipeline like I
-thought at first- it also happens after I have successfully captured images.
+> > +
+> > +	/* Static mapping, never released */
+> > +	sar_ram_base = ioremap(OMAP44XX_SAR_RAM_BASE, SZ_8K);
+> > +	BUG_ON(!sar_ram_base);
+>
+> Again, a BUG is not approprate here.
+>
+> Instead, other code needs to properly handle when sar_ram_base ==
+> NULL
+>
+Fixed.
 
-I've since tracked down the problem, although I don't understand the
-cache management well enough to be sure it's a proper fix, so hopefully
-some new recipients on this can make suggestions/comments.
+> > +	return 0;
+> > +}
+> > +early_initcall(omap4_sar_ram_init);
+> > diff --git a/arch/arm/mach-omap2/omap4-sar-layout.h
+> b/arch/arm/mach-omap2/omap4-sar-layout.h
+> > new file mode 100644
+> > index 0000000..bb66816
+> > --- /dev/null
+> > +++ b/arch/arm/mach-omap2/omap4-sar-layout.h
+> > @@ -0,0 +1,24 @@
 
-The patch below solves the problem, which modifies a commit by Fernando
-Guzman Lugo from December.
+[....]
+> > +
+> > +extern void __iomem *sar_ram_base;
+>
+> This patch creates this as global, but has no global users.
+>
+> Also, personally, I don't like these 'base address as global
+> pointer'
+> that are appearing throughout the OMAP4 code.  This one is
+> continuing
+> the pattern of some others (gic_dist_base_addr, gic_cpu_base) etc.,
+> but
+> I'm not crazy about them.  BTW, the gic* ones also suffer from the
+> BUG
+> problem and do not properly handle error conditions.
+>
+> It would be much cleaner to keep this base address static (and
+> local)
+> and just create some sar_read/write helpers that can be used from
+> other code.
+>
+I have fixed all of these in one patch and added helper functions
+to get the address. Also removed BUG_ON() from gic_*() functions
+as well.
 
--Michael
+> Hmm, I see the assembly code uses this base address to.  For that, a
+> helper function to get the base address could be created.
+>
 
->From db35fb8edca2a4f8fd37197d77fd58676cb1dcac Mon Sep 17 00:00:00 2001
-From: Michael Jones <michael.jones@matrix-vision.de>
-Date: Thu, 3 Mar 2011 16:50:39 +0100
-Subject: [PATCH] fix iovmm slab cache error on module unload
-
-modify "OMAP: iommu: create new api to set valid da range"
-
-This modifies commit c7f4ab26e3bcdaeb3e19ec658e3ad9092f1a6ceb.
----
- arch/arm/plat-omap/iovmm.c |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletions(-)
-
-diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
-index 6dc1296..2fba6f1 100644
---- a/arch/arm/plat-omap/iovmm.c
-+++ b/arch/arm/plat-omap/iovmm.c
-@@ -280,7 +280,10 @@ static struct iovm_struct *alloc_iovm_area(struct iommu *obj, u32 da,
- 	alignement = PAGE_SIZE;
- 
- 	if (flags & IOVMF_DA_ANON) {
--		start = obj->da_start;
-+		/*
-+		 * Reserve the first page for NULL
-+		 */
-+		start = obj->da_start + PAGE_SIZE;
- 
- 		if (flags & IOVMF_LINEAR)
- 			alignement = iopgsz_max(bytes);
--- 
-1.7.4.1
-
-
-
-MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
-Registergericht: Amtsgericht Stuttgart, HRB 271090
-Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner
+Regards,
+Santosh
