@@ -1,137 +1,142 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: linux-next: manual merge of the usb tree with the omap tree
-Date: Thu, 3 Mar 2011 19:39:42 +0200
-Message-ID: <20110303173942.GA2293@legolas.emea.dhcp.ti.com>
-References: <20110302165755.b45124c8.sfr@canb.auug.org.au>
- <20110303084829.GB2644@legolas.emea.dhcp.ti.com>
- <20110303160209.GB13709@kroah.com>
-Reply-To: balbi@ti.com
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH 1/4] OMAP3 and 4 hwmod I2C units only allow 16 bit access
+Date: Thu, 3 Mar 2011 18:42:10 +0100
+Message-ID: <4D6FD2F2.8050701@ti.com>
+References: <20110303134744.30648.91218.stgit@otae.warmcat.com> <20110303135022.30648.8996.stgit@otae.warmcat.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="ZPt4rx8FFjLCG7dd"
-Return-path: <linux-next-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20110303160209.GB13709@kroah.com>
-Sender: linux-next-owner@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: Felipe Balbi <balbi@ti.com>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Anand Gadiyar <gadiyar@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Keshava Munegowda <keshava_mgowda@ti.com>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:53838 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758196Ab1CCRmS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Mar 2011 12:42:18 -0500
+In-Reply-To: <20110303135022.30648.8996.stgit@otae.warmcat.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Andy Green <andy@warmcat.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "patches@linaro.org" <patches@linaro.org>, Andy Green <andy.green@linaro.org>, paul Walmsley <paul@pwsan.com>
 
+On 3/3/2011 2:50 PM, Andy Green wrote:
+> Peter Maydell noticed when running under QEMU he was getting
+> errors reporting 32-bit access to I2C peripheral unit registers
+> that are documented to be 8 or 16-bit only[1][2]
 
---ZPt4rx8FFjLCG7dd
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Well, in that case, it is more a QEMU bug since the HW is working fine 
+with 32 bits access to sysconfig :-)
 
-On Thu, Mar 03, 2011 at 08:02:09AM -0800, Greg KH wrote:
-> On Thu, Mar 03, 2011 at 10:48:29AM +0200, Felipe Balbi wrote:
-> > On Wed, Mar 02, 2011 at 04:57:55PM +1100, Stephen Rothwell wrote:
-> > > Hi Greg,
-> > > 
-> > > Today's linux-next merge of the usb tree got a conflict in
-> > > arch/arm/mach-omap2/board-4430sdp.c between commit
-> > > 1dbea0f5e23b6c647db72fa4a048cb7140625e13 ("arm: omap4: 4430sdp: drop ehci
-> > > support") from the omap tree and commit
-> > > 181b250cf53233a7a7c6d7e1e9df402506712e93 ("arm: omap: usb: create common
-> > > enums and structures for ehci and ohci") from the usb tree.
-> > > 
-> > > The former removed the code modified by the latter, so I did that.
-> > 
-> > This can be fixed if Greg applies this patch:
-> > 
-> > commit 076bfacd5bba0f2e419474488c8f8c060c7799d8
-> > Author: Anand Gadiyar <gadiyar@ti.com>
-> > Date:   Wed Feb 16 16:47:19 2011 +0530
-> 
-> Care to provide it to me in a format that I can apply it?  :)
+> The I2C driver is blameless as it wraps its accesses in a
+> function using __raw_writew and __raw_readw, it turned out it
+> is the hwmod stuff.
+>
+> However the hwmod code already has a flag to force a
+> perhipheral unit to only be accessed using 16-bit operations..
 
-heh, my bad. It's attached.
+In fact that flag was added because 32 bits access to I2C sysconfig was 
+generating bus abort on 2420 only: 
+(2004290f55f03c52e22044a5843928cf0f6cc56a).
 
--- 
-balbi
+Since 2430, OMAP3 and OMAP4 are working fine with 32 bits, we were lazy 
+and didn't add that flag.
 
---ZPt4rx8FFjLCG7dd
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: attachment; filename="0001-arm-omap4-4430sdp-drop-ehci-support.diff"
+Did you check this patch on a real HW? Since this was reported using 
+QEMU only.
 
->From 076bfacd5bba0f2e419474488c8f8c060c7799d8 Mon Sep 17 00:00:00 2001
-From: Anand Gadiyar <gadiyar@ti.com>
-Date: Wed, 16 Feb 2011 16:47:19 +0530
-Subject: [PATCH] arm: omap4: 4430sdp: drop ehci support
-Organization: Texas Instruments\n
+Otherwise, I'm fine with that patch, it will not change anything but 
+will improve the consistency across SoC version.
 
-Most revisions of the OMAP4 Blaze/SDP platform do not have
-the EHCI signals routed by default. The pads are routed
-for the alternate HSI functionality instead, and explicit
-board modifications are needed to route the signals to
-the USB PHY on the board.
+BTW, It will be good if you could update the omap_hwmod_2430_data.c file 
+as well.
 
-Also, turning on the PHY connected to the EHCI port causes
-a board reboot during bootup due to an unintended short
-on the rails - this affects many initial revisions of the
-board, and needs a minor board mod to fix (or as a
-workaround, one should not attempt to power on the
-USB PHY).
+Thanks,
+Benoit
 
-Given that these boards need explicit board mods to even
-get EHCI working (separate from the accidental short above),
-we should not attempt to enable EHCI by default.
+> This patch applies the 16-bit only flag to the OMAP3xxx and
+> OMAP44xx hwmod structs.
+>
+> [1] OMAP4430 Technical reference manual section 23.1.6.2
+> [2] OMAP3530 Techincal reference manual section 18.6
+>
+> Cc: patches@linaro.org
+> Reported-by: Peter Maydell<peter.maydell@linaro.org>
+> Signed-off-by: Andy Green<andy.green@linaro.org>
+> ---
+>
+>   arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    3 +++
+>   arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    8 ++++----
+>   2 files changed, 7 insertions(+), 4 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+> index 541092c..1409779 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+> @@ -1170,6 +1170,7 @@ static struct omap_hwmod_ocp_if *omap3xxx_i2c1_slaves[] = {
+>
+>   static struct omap_hwmod omap3xxx_i2c1_hwmod = {
+>   	.name		= "i2c1",
+> +	.flags		= HWMOD_16BIT_REG,
+>   	.mpu_irqs	= i2c1_mpu_irqs,
+>   	.mpu_irqs_cnt	= ARRAY_SIZE(i2c1_mpu_irqs),
+>   	.sdma_reqs	= i2c1_sdma_reqs,
+> @@ -1212,6 +1213,7 @@ static struct omap_hwmod_ocp_if *omap3xxx_i2c2_slaves[] = {
+>
+>   static struct omap_hwmod omap3xxx_i2c2_hwmod = {
+>   	.name		= "i2c2",
+> +	.flags		= HWMOD_16BIT_REG,
+>   	.mpu_irqs	= i2c2_mpu_irqs,
+>   	.mpu_irqs_cnt	= ARRAY_SIZE(i2c2_mpu_irqs),
+>   	.sdma_reqs	= i2c2_sdma_reqs,
+> @@ -1254,6 +1256,7 @@ static struct omap_hwmod_ocp_if *omap3xxx_i2c3_slaves[] = {
+>
+>   static struct omap_hwmod omap3xxx_i2c3_hwmod = {
+>   	.name		= "i2c3",
+> +	.flags		= HWMOD_16BIT_REG,
+>   	.mpu_irqs	= i2c3_mpu_irqs,
+>   	.mpu_irqs_cnt	= ARRAY_SIZE(i2c3_mpu_irqs),
+>   	.sdma_reqs	= i2c3_sdma_reqs,
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> index ce646f2..c500416 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> @@ -2280,7 +2280,7 @@ static struct omap_hwmod_ocp_if *omap44xx_i2c1_slaves[] = {
+>   static struct omap_hwmod omap44xx_i2c1_hwmod = {
+>   	.name		= "i2c1",
+>   	.class		=&omap44xx_i2c_hwmod_class,
+> -	.flags		= HWMOD_INIT_NO_RESET,
+> +	.flags		= HWMOD_INIT_NO_RESET | HWMOD_16BIT_REG,
+>   	.mpu_irqs	= omap44xx_i2c1_irqs,
+>   	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_i2c1_irqs),
+>   	.sdma_reqs	= omap44xx_i2c1_sdma_reqs,
+> @@ -2396,7 +2396,7 @@ static struct omap_hwmod_ocp_if *omap44xx_i2c2_slaves[] = {
+>   static struct omap_hwmod omap44xx_i2c2_hwmod = {
+>   	.name		= "i2c2",
+>   	.class		=&omap44xx_i2c_hwmod_class,
+> -	.flags		= HWMOD_INIT_NO_RESET,
+> +	.flags		= HWMOD_INIT_NO_RESET | HWMOD_16BIT_REG,
+>   	.mpu_irqs	= omap44xx_i2c2_irqs,
+>   	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_i2c2_irqs),
+>   	.sdma_reqs	= omap44xx_i2c2_sdma_reqs,
+> @@ -2449,7 +2449,7 @@ static struct omap_hwmod_ocp_if *omap44xx_i2c3_slaves[] = {
+>   static struct omap_hwmod omap44xx_i2c3_hwmod = {
+>   	.name		= "i2c3",
+>   	.class		=&omap44xx_i2c_hwmod_class,
+> -	.flags		= HWMOD_INIT_NO_RESET,
+> +	.flags		= HWMOD_INIT_NO_RESET | HWMOD_16BIT_REG,
+>   	.mpu_irqs	= omap44xx_i2c3_irqs,
+>   	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_i2c3_irqs),
+>   	.sdma_reqs	= omap44xx_i2c3_sdma_reqs,
+> @@ -2502,7 +2502,7 @@ static struct omap_hwmod_ocp_if *omap44xx_i2c4_slaves[] = {
+>   static struct omap_hwmod omap44xx_i2c4_hwmod = {
+>   	.name		= "i2c4",
+>   	.class		=&omap44xx_i2c_hwmod_class,
+> -	.flags		= HWMOD_INIT_NO_RESET,
+> +	.flags		= HWMOD_INIT_NO_RESET | HWMOD_16BIT_REG,
+>   	.mpu_irqs	= omap44xx_i2c4_irqs,
+>   	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_i2c4_irqs),
+>   	.sdma_reqs	= omap44xx_i2c4_sdma_reqs,
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-So drop the EHCI support from the board files for the
-Blaze/SDP platforms.
-
-Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
-Cc: Keshava Munegowda <keshava_mgowda@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
- arch/arm/mach-omap2/board-4430sdp.c |   19 -------------------
- 1 files changed, 0 insertions(+), 19 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index 1230121..f603f3b 100644
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -44,7 +44,6 @@
- #define ETH_KS8851_IRQ			34
- #define ETH_KS8851_POWER_ON		48
- #define ETH_KS8851_QUART		138
--#define OMAP4SDP_MDM_PWR_EN_GPIO	157
- #define OMAP4_SFH7741_SENSOR_OUTPUT_GPIO	184
- #define OMAP4_SFH7741_ENABLE_GPIO		188
- 
-@@ -251,16 +250,6 @@ static void __init omap_4430sdp_init_irq(void)
- 	gic_init_irq();
- }
- 
--static const struct usbhs_omap_board_data usbhs_bdata __initconst = {
--	.port_mode[0]	= OMAP_EHCI_PORT_MODE_PHY,
--	.port_mode[1]	= OMAP_USBHS_PORT_MODE_UNUSED,
--	.port_mode[2]	= OMAP_USBHS_PORT_MODE_UNUSED,
--	.phy_reset	= false,
--	.reset_gpio_port[0]  = -EINVAL,
--	.reset_gpio_port[1]  = -EINVAL,
--	.reset_gpio_port[2]  = -EINVAL,
--};
--
- static struct omap_musb_board_data musb_board_data = {
- 	.interface_type		= MUSB_INTERFACE_UTMI,
- 	.mode			= MUSB_OTG,
-@@ -577,14 +566,6 @@ static void __init omap_4430sdp_init(void)
- 	omap_serial_init();
- 	omap4_twl6030_hsmmc_init(mmc);
- 
--	/* Power on the ULPI PHY */
--	status = gpio_request(OMAP4SDP_MDM_PWR_EN_GPIO, "USBB1 PHY VMDM_3V3");
--	if (status)
--		pr_err("%s: Could not get USBB1 PHY GPIO\n", __func__);
--	else
--		gpio_direction_output(OMAP4SDP_MDM_PWR_EN_GPIO, 1);
--
--	usbhs_init(&usbhs_bdata);
- 	usb_musb_init(&musb_board_data);
- 
- 	status = omap_ethernet_init();
--- 
-1.7.4.rc2
-
-
---ZPt4rx8FFjLCG7dd--
