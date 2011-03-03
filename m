@@ -1,77 +1,39 @@
-From: Andy Green <andy@warmcat.com>
-Subject: Re: [PATCH 1/4] OMAP3 and 4 hwmod I2C units only allow 16 bit access
-Date: Thu, 03 Mar 2011 17:56:12 +0000
-Message-ID: <4D6FD63C.6000102@linaro.org>
-References: <20110303134744.30648.91218.stgit@otae.warmcat.com> <20110303135022.30648.8996.stgit@otae.warmcat.com> <4D6FD2F2.8050701@ti.com>
-Reply-To: andy.green@linaro.org
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [patch v3 3/3] arm: omap4: support pmu
+Date: Thu, 3 Mar 2011 10:20:49 -0800
+Message-ID: <20110303182049.GN20560@atomide.com>
+References: <1299149633-699-1-git-send-email-tom.leiming@gmail.com>
+ <1299149633-699-4-git-send-email-tom.leiming@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:63988 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932353Ab1CCR4Q (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Mar 2011 12:56:16 -0500
-Received: by wwb22 with SMTP id 22so1678257wwb.1
-        for <linux-omap@vger.kernel.org>; Thu, 03 Mar 2011 09:56:15 -0800 (PST)
-In-Reply-To: <4D6FD2F2.8050701@ti.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:54177 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758598Ab1CCSVD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Mar 2011 13:21:03 -0500
+Content-Disposition: inline
+In-Reply-To: <1299149633-699-4-git-send-email-tom.leiming@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "patches@linaro.org" <patches@linaro.org>, paul Walmsley <paul@pwsan.com>
+To: tom.leiming@gmail.com
+Cc: linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, will.deacon@arm.com, Santosh Shilimkar <santosh.shilimkar@ti.com>, Woodruff Richard <r-woodruff2@ti.com>, linux-omap@vger.kernel.org
 
-On 03/03/2011 05:42 PM, Somebody in the thread at some point said:
-> On 3/3/2011 2:50 PM, Andy Green wrote:
+* tom.leiming@gmail.com <tom.leiming@gmail.com> [110303 02:52]:
+> From: Ming Lei <tom.leiming@gmail.com>
+> 
+> This patch supports pmu irq routed from CTI, so
+> make pmu/perf working on OMAP4.
+> 
+> The idea is from Woodruff Richard in the disscussion
+> about "Oprofile on Pandaboard / Omap4" on pandaboard@googlegroups.com.
+> 
+> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Cc: Woodruff Richard <r-woodruff2@ti.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: linux-omap@vger.kernel.org
+> Signed-off-by: Ming Lei <tom.leiming@gmail.com>
 
-Hi -
+You'll probably want to queue this along with the to other
+patches via the Russell, so:
 
-Thanks for the reply.
-
->> Peter Maydell noticed when running under QEMU he was getting
->> errors reporting 32-bit access to I2C peripheral unit registers
->> that are documented to be 8 or 16-bit only[1][2]
->
-> Well, in that case, it is more a QEMU bug since the HW is working fine
-> with 32 bits access to sysconfig :-)
-
-Actually it's documented in TI documentation, as noted:
-
- >> [1] OMAP4430 Technical reference manual section 23.1.6.2
- >> [2] OMAP3530 Techincal reference manual section 18.6
-
-With the following warning in a nice big grey box -->
-
-''CAUTION
-The I2Ci registers are limited to 16 bit and 8 bit data accesses, 32 bit 
-data access is not allowed and can corrupt register content.''
-
-So, as a side-issue it can be worth confirming with the author of the 
-warning if it still holds or not and letting Qemu guys know if it's not 
-actually true what is written in the TI docs about that.
-
-> In fact that flag was added because 32 bits access to I2C sysconfig was
-> generating bus abort on 2420 only:
-> (2004290f55f03c52e22044a5843928cf0f6cc56a).
->
-> Since 2430, OMAP3 and OMAP4 are working fine with 32 bits, we were lazy
-> and didn't add that flag.
-
-There is no bus abort.  However if the warning in the documentation is 
-true, it'd be better that there was a bus abort.
-
-> Did you check this patch on a real HW? Since this was reported using
-> QEMU only.
-
-I checked my patched code works OK on both IGEP2 (OMAP3) and Panda 
-(OMAP4), there's no visible symptom without the patch it's true.
-
-> Otherwise, I'm fine with that patch, it will not change anything but
-> will improve the consistency across SoC version.
->
-> BTW, It will be good if you could update the omap_hwmod_2430_data.c file
-> as well.
-
-I left it because I can't test it, but I'll happily do it additionally 
-if you can test it on some OMAP2 hardware.
-
--Andy
+Acked-by: Tony Lindgren <tony@atomide.com>
