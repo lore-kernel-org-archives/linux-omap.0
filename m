@@ -1,70 +1,343 @@
-From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: RE: [PATCH v11 7/8] OMAP: dmtimer: pm_runtime support
-Date: Sat, 5 Mar 2011 01:22:19 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB037A3605C4@dbde02.ent.ti.com>
-References: <1298546811-27055-1-git-send-email-tarun.kanti@ti.com>
- <1298546811-27055-8-git-send-email-tarun.kanti@ti.com>
- <878vwvn0gr.fsf@ti.com> <20110304172832.GZ20560@atomide.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB037A3605AE@dbde02.ent.ti.com>
- <20110304193746.GG20560@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Steve Sakoman <steve@sakoman.com>
+Subject: [PATCH v2 1/2] OMAP: DSS2: Add support for LG Philips LB035Q02 panel
+Date: Fri,  4 Mar 2011 12:52:19 -0800
+Message-ID: <1299271940-4286-2-git-send-email-steve@sakoman.com>
+References: <1299271940-4286-1-git-send-email-steve@sakoman.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:53125 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751417Ab1CDTw0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Mar 2011 14:52:26 -0500
-In-Reply-To: <20110304193746.GG20560@atomide.com>
-Content-Language: en-US
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:65271 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760065Ab1CDUwe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Mar 2011 15:52:34 -0500
+Received: by fxm17 with SMTP id 17so2557996fxm.19
+        for <linux-omap@vger.kernel.org>; Fri, 04 Mar 2011 12:52:33 -0800 (PST)
+In-Reply-To: <1299271940-4286-1-git-send-email-steve@sakoman.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "Hilman, Kevin" <khilman@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Basak, Partha" <p-basak2@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: tomi.valkeinen@ti.com, Steve Sakoman <steve@sakoman.com>
 
-Tony, Kevin,
-[...]
-> > >
-> > > * Kevin Hilman <khilman@ti.com> [110303 17:22]:
-> > > > Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
-> > > >
-> > > > > Add pm_runtime support to dmtimer. Since dmtimer is used during
-> > > > > early boot before pm_runtime is initialized completely there are
-> > > > > provisions to enable/disable clocks directly in the code during
-> > > > > early boot.
-> > > >
-> > > > I'm still not crazy about the duplicate logic (both early & normal)
-> in
-> > > > all the enable/disable functions.
-> > > >
-> > > > As I've suggested in the past, why not just do a clk_get, clk_enable
-> in
-> > > > when the early timers are initialized, then do a clk_disable,
-> clk_put()
-> > > > as soon as the "normal" device is ready and PM runtime is enabled.
-> > >
-> > > Even better would be to have separate handling for the system timer
-> > > with minimal dependencies to anything.
-> > >
-> > > > That will greatly simplify the code and eliminate the unnecessary
-> checks
-> > > > for ->is_early_device which will always be false except for in early
-> > > > boot (when these functions are not likely to be called anyways.)
-> > >
-> > > And please note that only the system timer needs to be initialized
-> early.
-> > > We might as well treat the system timer separately to avoid these
-> issues.
-> > >
-> > Yes, this is applicable normally for the system timer only.
-> > But as I said earlier, we are giving flexibility whereby any one of the
-> GPTs
-> > Can be system timer.
-> 
-> Any one of them can be used, but no need to register the others this
-> early.
-In that case we have to associate probably a dev attribute to system timer.
-Do you have alternate proposal?
+This patch adds support for the Gumstix Palo35 expansion board
+which utilizes the 320 x 240 pixel LG.Philips LB035Q02 LCD Panel
 
-> 
-> Tony
+Signed-off-by: Steve Sakoman <steve@sakoman.com>
+---
+ drivers/video/omap2/displays/Kconfig               |    6 +
+ drivers/video/omap2/displays/Makefile              |    1 +
+ .../omap2/displays/panel-lgphilips-lb035q02.c      |  278 ++++++++++++++++++++
+ 3 files changed, 285 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/video/omap2/displays/panel-lgphilips-lb035q02.c
+
+diff --git a/drivers/video/omap2/displays/Kconfig b/drivers/video/omap2/displays/Kconfig
+index 940cab3..d18ad6b 100644
+--- a/drivers/video/omap2/displays/Kconfig
++++ b/drivers/video/omap2/displays/Kconfig
+@@ -9,6 +9,12 @@ config PANEL_GENERIC_DPI
+ 	  Supports LCD Panel used in TI SDP3430 and EVM boards,
+ 	  OMAP3517 EVM boards and CM-T35.
+ 
++config PANEL_LGPHILIPS_LB035Q02
++	tristate "LG.Philips LB035Q02 LCD Panel"
++	depends on OMAP2_DSS && SPI
++	help
++	  LCD Panel used on the Gumstix Overo Palo35
++
+ config PANEL_SHARP_LS037V7DW01
+         tristate "Sharp LS037V7DW01 LCD Panel"
+         depends on OMAP2_DSS
+diff --git a/drivers/video/omap2/displays/Makefile b/drivers/video/omap2/displays/Makefile
+index 861f025..0f601ab 100644
+--- a/drivers/video/omap2/displays/Makefile
++++ b/drivers/video/omap2/displays/Makefile
+@@ -1,4 +1,5 @@
+ obj-$(CONFIG_PANEL_GENERIC_DPI) += panel-generic-dpi.o
++obj-$(CONFIG_PANEL_LGPHILIPS_LB035Q02) += panel-lgphilips-lb035q02.o
+ obj-$(CONFIG_PANEL_SHARP_LS037V7DW01) += panel-sharp-ls037v7dw01.o
+ obj-$(CONFIG_PANEL_NEC_NL8048HL11_01B) += panel-nec-nl8048hl11-01b.o
+ 
+diff --git a/drivers/video/omap2/displays/panel-lgphilips-lb035q02.c b/drivers/video/omap2/displays/panel-lgphilips-lb035q02.c
+new file mode 100644
+index 0000000..5d5921f
+--- /dev/null
++++ b/drivers/video/omap2/displays/panel-lgphilips-lb035q02.c
+@@ -0,0 +1,278 @@
++/*
++ * LCD panel driver for LG.Philips LB035Q02
++ *
++ * Author: Steve Sakoman <steve@sakoman.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License along with
++ * this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#include <linux/module.h>
++#include <linux/delay.h>
++#include <linux/spi/spi.h>
++#include <linux/mutex.h>
++
++#include <plat/display.h>
++
++struct lb035q02_data {
++	struct mutex lock;
++}
++
++static struct omap_video_timings lb035q02_timings = {
++	.x_res = 320,
++	.y_res = 240,
++
++	.pixel_clock	= 6500,
++
++	.hsw		= 2,
++	.hfp		= 20,
++	.hbp		= 68,
++
++	.vsw		= 2,
++	.vfp		= 4,
++	.vbp		= 18,
++};
++
++static int lb035q02_panel_power_on(struct omap_dss_device *dssdev)
++{
++	int r;
++
++	if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE)
++		return 0;
++
++	r = omapdss_dpi_display_enable(dssdev);
++	if (r)
++		goto err0;
++
++	if (dssdev->platform_enable) {
++		r = dssdev->platform_enable(dssdev);
++		if (r)
++			goto err1;
++	}
++
++	return 0;
++err1:
++	omapdss_dpi_display_disable(dssdev);
++err0:
++	return r;
++}
++
++static void lb035q02_panel_power_off(struct omap_dss_device *dssdev)
++{
++	if (dssdev->state != OMAP_DSS_DISPLAY_ACTIVE)
++		return;
++
++	if (dssdev->platform_disable)
++		dssdev->platform_disable(dssdev);
++
++	omapdss_dpi_display_disable(dssdev);
++}
++
++static int lb035q02_panel_probe(struct omap_dss_device *dssdev)
++{
++	struct lb035q02_data *ld;
++
++	dssdev->panel.config = OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
++		OMAP_DSS_LCD_IHS;
++	dssdev->panel.timings = lb035q02_timings;
++
++	ld = kzalloc(sizeof(*ld), GFP_KERNEL);
++	if (!ld) {
++		r = -ENOMEM;
++		goto err;
++	}
++	mutex_init(&ld->lock);
++	dev_set_drvdata(&dssdev->dev, ld);
++	return 0;
++err:
++	return r;
++}
++
++static void lb035q02_panel_remove(struct omap_dss_device *dssdev)
++{
++	struct lb035q02_data *ld = dev_get_drvdata(&dssdev->dev);
++
++	kfree(ld);
++}
++
++static int lb035q02_panel_enable(struct omap_dss_device *dssdev)
++{
++	struct lb035q02_data *ld = dev_get_drvdata(&dssdev->dev);
++	int r;
++
++	mutex_lock(&ld->lock);
++
++	r = lb035q02_panel_power_on(dssdev);
++	if (r)
++		goto err;
++	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
++
++	mutex_unlock(&ld->lock);
++	return 0;
++err:
++	mutex_unlock(&ld->lock);
++	return r;
++}
++
++static void lb035q02_panel_disable(struct omap_dss_device *dssdev)
++{
++	struct lb035q02_data *ld = dev_get_drvdata(&dssdev->dev);
++
++	mutex_lock(&ld->lock);
++
++	lb035q02_panel_power_off(dssdev);
++	dssdev->state = OMAP_DSS_DISPLAY_DISABLED;
++
++	mutex_unlock(&ld->lock);
++}
++
++static int lb035q02_panel_suspend(struct omap_dss_device *dssdev)
++{
++	struct lb035q02_data *ld = dev_get_drvdata(&dssdev->dev);
++
++	mutex_lock(&ld->lock);
++
++	lb035q02_panel_power_off(dssdev);
++	dssdev->state = OMAP_DSS_DISPLAY_SUSPENDED;
++
++	mutex_unlock(&ld->lock);
++	return 0;
++}
++
++static int lb035q02_panel_resume(struct omap_dss_device *dssdev)
++{
++	struct lb035q02_data *ld = dev_get_drvdata(&dssdev->dev);
++	int r;
++
++	mutex_lock(&ld->lock);
++
++	r = lb035q02_panel_power_on(dssdev);
++	if (r)
++		goto err;
++	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
++
++	mutex_unlock(&ld->lock);
++	return 0;
++err:
++	mutex_unlock(&ld->lock);
++	return r;
++}
++
++static struct omap_dss_driver lb035q02_driver = {
++	.probe		= lb035q02_panel_probe,
++	.remove		= lb035q02_panel_remove,
++
++	.enable		= lb035q02_panel_enable,
++	.disable	= lb035q02_panel_disable,
++	.suspend	= lb035q02_panel_suspend,
++	.resume		= lb035q02_panel_resume,
++
++	.driver         = {
++		.name   = "lgphilips_lb035q02_panel",
++		.owner  = THIS_MODULE,
++	},
++};
++
++static int lb035q02_write_reg(struct spi_device *spi, u8 reg, u16 val)
++{
++	struct spi_message msg;
++	struct spi_transfer index_xfer = {
++		.len		= 3,
++		.cs_change	= 1,
++	};
++	struct spi_transfer value_xfer = {
++		.len		= 3,
++	};
++	u8	buffer[16];
++
++	spi_message_init(&msg);
++
++	/* register index */
++	buffer[0] = 0x70;
++	buffer[1] = 0x00;
++	buffer[2] = reg & 0x7f;
++	index_xfer.tx_buf = buffer;
++	spi_message_add_tail(&index_xfer, &msg);
++
++	/* register value */
++	buffer[4] = 0x72;
++	buffer[5] = val >> 8;
++	buffer[6] = val;
++	value_xfer.tx_buf = buffer + 4;
++	spi_message_add_tail(&value_xfer, &msg);
++
++	return spi_sync(spi, &msg);
++}
++
++static void init_lb035q02_panel(struct spi_device *spi)
++{
++	/* Init sequence from page 28 of the lb035q02 spec */
++	lb035q02_write_reg(spi, 0x01, 0x6300);
++	lb035q02_write_reg(spi, 0x02, 0x0200);
++	lb035q02_write_reg(spi, 0x03, 0x0177);
++	lb035q02_write_reg(spi, 0x04, 0x04c7);
++	lb035q02_write_reg(spi, 0x05, 0xffc0);
++	lb035q02_write_reg(spi, 0x06, 0xe806);
++	lb035q02_write_reg(spi, 0x0a, 0x4008);
++	lb035q02_write_reg(spi, 0x0b, 0x0000);
++	lb035q02_write_reg(spi, 0x0d, 0x0030);
++	lb035q02_write_reg(spi, 0x0e, 0x2800);
++	lb035q02_write_reg(spi, 0x0f, 0x0000);
++	lb035q02_write_reg(spi, 0x16, 0x9f80);
++	lb035q02_write_reg(spi, 0x17, 0x0a0f);
++	lb035q02_write_reg(spi, 0x1e, 0x00c1);
++	lb035q02_write_reg(spi, 0x30, 0x0300);
++	lb035q02_write_reg(spi, 0x31, 0x0007);
++	lb035q02_write_reg(spi, 0x32, 0x0000);
++	lb035q02_write_reg(spi, 0x33, 0x0000);
++	lb035q02_write_reg(spi, 0x34, 0x0707);
++	lb035q02_write_reg(spi, 0x35, 0x0004);
++	lb035q02_write_reg(spi, 0x36, 0x0302);
++	lb035q02_write_reg(spi, 0x37, 0x0202);
++	lb035q02_write_reg(spi, 0x3a, 0x0a0d);
++	lb035q02_write_reg(spi, 0x3b, 0x0806);
++}
++
++static int __devinit lb035q02_panel_spi_probe(struct spi_device *spi)
++{
++	init_lb035q02_panel(spi);
++	return omap_dss_register_driver(&lb035q02_driver);
++}
++
++static int __devexit lb035q02_panel_spi_remove(struct spi_device *spi)
++{
++	omap_dss_unregister_driver(&lb035q02_driver);
++	return 0;
++}
++
++static struct spi_driver lb035q02_spi_driver = {
++	.driver		= {
++		.name	= "lgphilips_lb035q02_panel-spi",
++		.owner	= THIS_MODULE,
++	},
++	.probe		= lb035q02_panel_spi_probe,
++	.remove		= __devexit_p(lb035q02_panel_spi_remove),
++};
++
++static int __init lb035q02_panel_drv_init(void)
++{
++	return spi_register_driver(&lb035q02_spi_driver);
++}
++
++static void __exit lb035q02_panel_drv_exit(void)
++{
++	spi_unregister_driver(&lb035q02_spi_driver);
++}
++
++module_init(lb035q02_panel_drv_init);
++module_exit(lb035q02_panel_drv_exit);
++MODULE_LICENSE("GPL");
+-- 
+1.7.0.4
+
