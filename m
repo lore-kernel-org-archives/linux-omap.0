@@ -1,115 +1,100 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH v11 2/8] OMAP4: hwmod data: add dmtimer version information
-Date: Fri, 4 Mar 2011 12:16:50 +0100
-Message-ID: <4D70CA22.8040001@ti.com>
-References: <1298546811-27055-1-git-send-email-tarun.kanti@ti.com>	<1298546811-27055-3-git-send-email-tarun.kanti@ti.com> <871v2npwb8.fsf@ti.com>
+From: "Gulati, Shweta" <shweta.gulati@ti.com>
+Subject: Re: [PATCH] OMAP4: Add IVA OPP enteries with Updated Voltage Rail Values.
+Date: Fri, 4 Mar 2011 17:50:18 +0530
+Message-ID: <AANLkTimV1gNtng_4K-QonddimmREpHFnjVnDPN6YkSxt@mail.gmail.com>
+References: <1299144429-20942-1-git-send-email-shweta.gulati@ti.com>
+	<AANLkTimb4_EXmMwyBfR52Zx9nhZy25W3OZhQy9nKcQZ4@mail.gmail.com>
+	<AANLkTi=HKUn5VK2KkXCMSHMDoRsgSB98LJnSYJCUgHc5@mail.gmail.com>
+	<AANLkTi=xTJbbDF34Yzf54r5=ZigA=hzpkuo=cOjHH8ot@mail.gmail.com>
+	<AANLkTikN8S4UEkvzBF_cJ+7+iFvYgJTiqPuZ1-uei3pQ@mail.gmail.com>
+	<4D6FA891.6080403@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:49531 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752011Ab1CDLQw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 4 Mar 2011 06:16:52 -0500
-Received: from dlep34.itg.ti.com ([157.170.170.115])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p24BGqRY014320
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 4 Mar 2011 05:16:52 -0600
-Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
-	by dlep34.itg.ti.com (8.13.7/8.13.7) with ESMTP id p24BGppe011924
-	for <linux-omap@vger.kernel.org>; Fri, 4 Mar 2011 05:16:51 -0600 (CST)
-In-Reply-To: <871v2npwb8.fsf@ti.com>
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:42343 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1759400Ab1CDMUT convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 4 Mar 2011 07:20:19 -0500
+Received: by mail-bw0-f51.google.com with SMTP id 10so2142409bwz.24
+        for <linux-omap@vger.kernel.org>; Fri, 04 Mar 2011 04:20:18 -0800 (PST)
+In-Reply-To: <4D6FA891.6080403@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hilman, Kevin" <khilman@ti.com>, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Nishanth Menon <nm@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-On 3/4/2011 1:24 AM, Hilman, Kevin wrote:
-> Tarun Kanti DebBarma<tarun.kanti@ti.com>  writes:
->
->> OMAP4 has two groups of timers: version 1 timers are 1, 2, 10,
->> while the rest of the timers, 3-9, 11 are version 2 timers.
->> The version information is required by the driver so that they
->> could be handled correctly by it.
->>
->> Signed-off-by: Tarun Kanti DebBarma<tarun.kanti@ti.com>
->
-> Minor comment below, also needs an ack from Beno=C3=AEt...
+Hi,
 
-Oops, I missed that one.
-
-Tarun,
-I will be good to add me in Cc in order to avoid that.
-In general it is always good to Cc the maintainers.
-
-Once the tabs are fixed;
-Acked-by: Benoit Cousson <b-cousson@ti.com>
-
->
->> ---
->>   arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    3 +++
->>   arch/arm/plat-omap/include/plat/dmtimer.h  |    2 ++
->>   2 files changed, 5 insertions(+), 0 deletions(-)
+On Thu, Mar 3, 2011 at 8:11 PM, Nishanth Menon <nm@ti.com> wrote:
+> Gulati, Shweta wrote, on 03/03/2011 07:37 PM:
 >>
->> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/m=
-ach-omap2/omap_hwmod_44xx_data.c
->> index 79a8601..ee57742 100644
->> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
->> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
->> @@ -25,6 +25,7 @@
->>   #include<plat/gpio.h>
->>   #include<plat/dma.h>
->>   #include<plat/mcspi.h>
->> +#include<plat/dmtimer.h>
+>> Hi,
 >>
->>   #include "omap_hwmod_common_data.h"
+>> On Thu, Mar 3, 2011 at 3:53 PM, Menon, Nishanth<nm@ti.com> =A0wrote:
+>>>
+>>> On Thu, Mar 3, 2011 at 15:39, Gulati, Shweta<shweta.gulati@ti.com>
+>>> =A0wrote:
+>>>>
+>>>> Hi,
+>>>>
+>>>> On Thu, Mar 3, 2011 at 3:04 PM, Menon, Nishanth<nm@ti.com> =A0wrot=
+e:
+>>>>>
+>>>>> On Thu, Mar 3, 2011 at 14:57, Shweta Gulati<shweta.gulati@ti.com>
+>>>>> =A0wrote:
+>>>>>>
+>>>>>> This Patch adds OPP enteries for IVA =A0in OMAP4 OPP Table
+>>>>>> and updates IVA voltage Rail values obtained from latest
+>>>>>> OMAP4430 Data Manual Operating Condition Addendum.
+>>>>>
+>>>>> Do you think =A0we should add the version of the document in the =
+commit
+>>>>> message - it looks like every "latest" version we look at has som=
+e
+>>>>> update, so we'd know what baseline the code currently maps to whe=
+n we
+>>>>> do a git blame at a later point of time
+>>>>
+>>>> Ok, Will do.
+>>>
+>>> Sorry, one more tiny point I missed - for the sake of ensuring the
+>>> functional bisectability - could you do the following:
+>>> a) update voltages (MPU,IVA) for doc 0.3
+>>> b) introduce IVA OPPs
 >>
->> @@ -3940,6 +3941,7 @@ static struct omap_hwmod_class_sysconfig omap4=
-4xx_timer_1ms_sysc =3D {
->>   static struct omap_hwmod_class omap44xx_timer_1ms_hwmod_class =3D =
-{
->>   	.name	=3D "timer",
->>   	.sysc	=3D&omap44xx_timer_1ms_sysc,
->> +	.rev =3D OMAP_TIMER_IP_VERSION_1,
->
-> Please use tab and align '=3D' with above lines.
->
->>   };
+>>> what do you think?
 >>
->>   static struct omap_hwmod_class_sysconfig omap44xx_timer_sysc =3D {
->> @@ -3955,6 +3957,7 @@ static struct omap_hwmod_class_sysconfig omap4=
-4xx_timer_sysc =3D {
->>   static struct omap_hwmod_class omap44xx_timer_hwmod_class =3D {
->>   	.name	=3D "timer",
->>   	.sysc	=3D&omap44xx_timer_sysc,
->> +	.rev =3D OMAP_TIMER_IP_VERSION_2,
+>> I think its better to submit MPU and IVA domain Patches seperately
+>> The way I have done:
+>> 1. Patch Series that has =A0MPU OPP Table and Voltage Rail Value cha=
+nges.
+>> 2. Patch which adds IVA OPP Entries and updates Voltage Rail values.
 >
-> ditto
->
->>   };
->>
->>   /* timer1 */
->> diff --git a/arch/arm/plat-omap/include/plat/dmtimer.h b/arch/arm/pl=
-at-omap/include/plat/dmtimer.h
->> index d6c70d2..05a967e 100644
->> --- a/arch/arm/plat-omap/include/plat/dmtimer.h
->> +++ b/arch/arm/plat-omap/include/plat/dmtimer.h
->> @@ -55,6 +55,8 @@
->>    * in OMAP4 can be distinguished.
->>    */
->>   #define OMAP_TIMER_IP_VERSION_1                        0x1
->> +#define OMAP_TIMER_IP_VERSION_2                        0x2
->> +
->>   struct omap_dm_timer;
->>   extern struct omap_dm_timer *gptimer_wakeup;
->>   extern struct sys_timer omap_timer;
+> Thank you, but I had already understood what had been done. I was won=
+dering
+> if there is a reason why not we do:
+> a) voltage updates on the code we already have - this categorizes as =
+a fix
+> b) introduce OPP entries for IVA - this in a way categorizes as a "fe=
+ature
+> addition"
+Ok, will do this way, rebasing all the patches to pm-core branch and
+including all comments
+received and putting features and fixes in different patches of a new
+series.Thanks.
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Regards,
+> Nishanth Menon
+>
 
+
+
+--=20
+Thanks,
+Regards,
+Shweta
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
