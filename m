@@ -1,86 +1,61 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: omap3isp cache error when unloading
-Date: Fri, 04 Mar 2011 12:07:36 +0200 (EET)
-Message-ID: <20110304.120736.177982315275204354.Hiroshi.DOYU@nokia.com>
-References: <201103022018.23446.laurent.pinchart@ideasonboard.com>
-	<4D6FBC7F.1080500@matrix-vision.de>
-	<4D7096EE.8090105@maxwell.research.nokia.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH] OMAP2/3: VENC hwmod: add OCPIF_SWSUP_IDLE flag to interface
+Date: Fri, 4 Mar 2011 11:57:56 +0100
+Message-ID: <4D70C5B4.3080401@ti.com>
+References: <alpine.DEB.2.00.1103032300480.10981@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-15"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <4D7096EE.8090105@maxwell.research.nokia.com>
-Sender: linux-media-owner@vger.kernel.org
-To: sakari.ailus@maxwell.research.nokia.com
-Cc: michael.jones@matrix-vision.de, laurent.pinchart@ideasonboard.com, fernando.lugo@ti.com, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, david.cohen@nokia.com
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:48835 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752084Ab1CDK6F (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 4 Mar 2011 05:58:05 -0500
+In-Reply-To: <alpine.DEB.2.00.1103032300480.10981@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>, "Semwal, Sumit" <sumit.semwal@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "tony@atomide.com" <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "Guruswamy, Senthilvadivu" <svadivu@ti.com>, "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
 
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: Re: omap3isp cache error when unloading
-Date: Fri, 4 Mar 2011 09:38:22 +0200
++ Tomi
 
-> Hi Michael,
-> 
-> Michael Jones wrote:
->> On 03/02/2011 08:18 PM, Laurent Pinchart wrote:
->>> Hi Michael,
->>>
->>> On Tuesday 01 March 2011 17:41:01 Michael Jones wrote:
->>>> Hi all,
->>>>
->>>> I get a warning about a cache error with the following steps:
->>>>
->>>> 0. load omap3-isp
->>>> 1. set up media broken media pipeline. (e.g. set different formats on
->>>> opposite ends of a link, as will be the case for using the lane shifter)
->>>> 2. try to capture images.  isp_video_streamon() returns -EPIPE from the
->>>> failed isp_video_validate_pipeline() call.
->>>> 3. unload omap3-isp module
->>>>
->>>> then I get the following from kmem_cache_destroy():
->>>>
->>>> slab error in kmem_cache_destroy(): cache `iovm_area_cache': Can't free all
->>>> objects [<c0040318>] (unwind_backtrace+0x0/0xec) from [<c00bfe14>]
->>>> (kmem_cache_destroy+0x88/0xf4) [<c00bfe14>] (kmem_cache_destroy+0x88/0xf4)
->>>> from [<c00861f8>] (sys_delete_module+0x1c4/0x230) [<c00861f8>]
->>>> (sys_delete_module+0x1c4/0x230) from [<c003b680>]
->>>> (ret_fast_syscall+0x0/0x30)
->>>>
->>>> Then, when reloading the module:
->>>> SLAB: cache with size 32 has lost its name
->>>>
->>>> Can somebody else confirm that they also observe this behavior?
->>>
->>> I can't reproduce that (tried both 2.6.32 and 2.6.37). Could you give me some 
->>> more details about your exact test procedure (such as how you configure the 
->>> pipeline) ?
->>>
->> 
->> Sorry, I should've mentioned: I'm using your media-0005-omap3isp branch
->> based on 2.6.38-rc5.  I didn't have the problem with 2.6.37, either.
->> It's actually not related to mis-configuring the ISP pipeline like I
->> thought at first- it also happens after I have successfully captured images.
->> 
->> I've since tracked down the problem, although I don't understand the
->> cache management well enough to be sure it's a proper fix, so hopefully
->> some new recipients on this can make suggestions/comments.
->> 
->> The patch below solves the problem, which modifies a commit by Fernando
->> Guzman Lugo from December.
-> 
-> Thanks for the patch.
-> 
-> It looks like this patch from Fernando, perhaps unintentionally, also
-> makes the first page mappable so the NULL address is also valid. The
-> NULL address isn't considered valid by the ISP driver which thus does
-> not iommu_vunmap() the NULL address.
-> 
-> Hiroshi, David, what do you think? I think the patch is correct so it
-> could be applied with description changed to mention it disallows
-> mapping the first page again.
+Hi Paul,
+
+On 3/4/2011 7:02 AM, Paul Walmsley wrote:
 >
-> Or is there a reason to allow mapping the first page automatically? I
-> personally don't see any.
+> According to the hwmod interface data, the DSS submodule "VENC" uses a
+> clock, "dss_54m_fck"/"dss_tv_fck", which the PRCM cannot autoidle.  By
+> default, the hwmod code assumes that interface clocks can be autoidled
+> by the PRCM.  When the interface clock can't be autoidled by the PRCM,
+> those interfaces must be marked with the OCPIF_SWSUP_IDLE flag.
+> Otherwise, the "interface clock" will always have a non-zero use
+> count, and the device won't enter idle.  This problem was observed on
+> N8x0.
+>
+> Fix the immediate problem by marking the VENC interface with the
+> OCPIF_SWSUP_IDLE flag.  But it's not clear that
+> "dss_54m_fck"/"dss_tv_fck" is really the correct interface clock for
+> VENC.  It may be that the VENC interface should use a
+> hardware-autoidling interface clock.  This is the situation on OMAP4,
+> which uses "l3_div_ck" as the VENC interface clock, which can be
+> autoidled by the PRCM.  Clarification from TI is needed.
 
-I think that was done "unintentionally". The invalid first page may be
-quite reasonable generally.
+Yep, this is clearly wrong, all DSS modules are using the same 
+interconnect port from the L4, thus they should all use the dss_ick as 
+interface clock and not the functional clock dss_tv_fck.
+
+There is something strange with that module because the main_clk is 
+attached to dss1_alwon_fck instead of dss_tv_fck.
+
+I'm quite sure that both are needed to make that module work and that's 
+why it was added as an interface clock.
+In theory, one of them should be an optional clock like on OMAP4.
+
+
+Sumit,
+
+Could you explain the rational behind the usage of dss_tv_fck as an iclk 
+and dss1_alwon_fck as a fclk?
+
+Thanks,
+Benoit
