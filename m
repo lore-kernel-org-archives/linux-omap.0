@@ -1,43 +1,40 @@
-From: Steve Sakoman <sakoman@gmail.com>
-Subject: Re: [PATCH 1/2] OMAP: DSS2: Add support for LG Philips LB035Q02 panel
-Date: Fri, 4 Mar 2011 09:08:07 -0800
-Message-ID: <AANLkTinkMAU1aDLRC416bvSCbNvAoYedq2y5VTJeL=uv@mail.gmail.com>
-References: <1299195980-17057-1-git-send-email-steve@sakoman.com>
-	<1299195980-17057-2-git-send-email-steve@sakoman.com>
-	<1299225323.2196.20.camel@deskari>
-	<AANLkTinTUtC_XDgCe79Aju4rdsDYHDWa9N682PDDEL5C@mail.gmail.com>
-	<1299253262.2053.15.camel@deskari>
+From: Ben Dooks <ben-SMNkleLxa3Z6Wcw2j4pizdi2O/JbrIOy@public.gmane.org>
+Subject: Re: [PATCH] i2c-omap: Program I2C_WE on OMAP4 to enable i2c wakeup
+Date: Fri, 4 Mar 2011 17:17:23 +0000
+Message-ID: <20110304171723.GF17460@trinity.fluff.org>
+References: <1299245544-23790-1-git-send-email-rnayak@ti.com> <87ei6mizxr.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:50244 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756379Ab1CDRII (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Mar 2011 12:08:08 -0500
-Received: by vxi39 with SMTP id 39so2183351vxi.19
-        for <linux-omap@vger.kernel.org>; Fri, 04 Mar 2011 09:08:07 -0800 (PST)
-In-Reply-To: <1299253262.2053.15.camel@deskari>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <87ei6mizxr.fsf-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+Cc: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, santosh.shilimkar-l0cyMroinI0@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Fri, Mar 4, 2011 at 7:41 AM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
-> On Fri, 2011-03-04 at 09:29 -0600, Steve Sakoman wrote:
->> Do you want me to try to address this in this initial submission, or
->> is it something we can revisit in a subsequent "fix-it" patch for all
->> panels with SPI init?
->
-> If you have extra time and a good solution, then of course I want you to
-> address it =). But most likely we'll just revisit it later. It's not
-> critical now and we may also have to look at how DSS manages the panel
-> drivers.
+On Fri, Mar 04, 2011 at 09:00:00AM -0800, Kevin Hilman wrote:
+> Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org> writes:
+> 
+> > For the I2C module to be wakeup capable, programming I2C_WE
+> > register (which was skipped for OMAP4430) is needed
+> > even on OMAP4.
+> > This fixes i2c controller timeouts which were seen recently
+> > with the static dependency being cleared between MPU and
+> > L4PER clockdomains.
+> >
+> > Signed-off-by: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
+> > ---
+> > Patch is based on 2.6.38-rc7 kernel.
+> 
+> Acked-by: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+> 
+> Ben, looks like another fix that should be queued for 2.6.38-rc.
 
-Not a lot of extra time right now :-)
+I'll put together the couple of fixes I've got and send them to Linus
+at the end of the weekend.
 
-Let's try to get Overo DSS2 support in this merge window and revisit
-all of the SPI config panels later.
+-- 
+Ben Dooks, ben-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, http://www.fluff.org/ben/
 
-I'll submit a V2 that addresses the locking issue later today.
-
-Steve
+Large Hadron Colada: A large Pina Colada that makes the universe disappear.
