@@ -1,46 +1,222 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 2/2] OMAP: DSS2: Add DSS2 support for Overo
-Date: Fri, 4 Mar 2011 17:30:14 +0200
-Message-ID: <1299252614.2053.5.camel@deskari>
-References: <1299195980-17057-1-git-send-email-steve@sakoman.com>
-	 <1299195980-17057-3-git-send-email-steve@sakoman.com>
-	 <1299225648.2196.25.camel@deskari>
-	 <AANLkTikSq+9A_HVy0dk2coYb9AvVRgHZOG1q0RRCJtV1@mail.gmail.com>
+From: Michael Buesch <mb@bu3sch.de>
+Subject: [PATCH] cbus-retu-wdt: Store all data in device struct
+Date: Fri, 04 Mar 2011 16:32:59 +0100
+Message-ID: <1299252779.21644.11.camel@marge>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:36806 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751953Ab1CDPaW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Mar 2011 10:30:22 -0500
-In-Reply-To: <AANLkTikSq+9A_HVy0dk2coYb9AvVRgHZOG1q0RRCJtV1@mail.gmail.com>
+Received: from 80-190-117-144.ip-home.de ([80.190.117.144]:45703 "EHLO
+	bu3sch.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759459Ab1CDPdF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 4 Mar 2011 10:33:05 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Steve Sakoman <sakoman@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Felipe Balbi <balbi@ti.com>, linux-omap <linux-omap@vger.kernel.org>
 
-On Fri, 2011-03-04 at 09:25 -0600, Steve Sakoman wrote:
-> On Fri, Mar 4, 2011 at 12:00 AM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
-> 
-> > Why check for CONFIG_PANEL_LGPHILIPS_LB035Q02, but not for the lcd43?
-> >
-> > And is that even necessary? Of course it would make the kernel very
-> > slightly smaller if you leave some code out, but otherwise does that
-> > help? If you have the device definitions there, but the user doesn't
-> > load the driver, they wouldn't do anything, would they?
-> >
-> > For me the ifdefs just make the code harder to read, but I'm not sure if
-> > there's some standard custom to have these.
+Get rid of all static global variables and store all
+information in the device structure. This cleans up
+the random mixup of information storage (struct vs static).
 
-<snip>
+Signed-off-by: Michael Buesch <mb@bu3sch.de>
 
-> The spidev driver turns out to be useful for a lot of embedded
-> applications, so I would prefer to leave the check in place if you
-> agree that this could be useful.
+---
 
-Yes, sounds like a valid reason to me.
+Index: linux-2.6.38-rc6/drivers/cbus/retu-wdt.c
+===================================================================
+--- linux-2.6.38-rc6.orig/drivers/cbus/retu-wdt.c	2011-03-04 16:22:03.524019824 +0100
++++ linux-2.6.38-rc6/drivers/cbus/retu-wdt.c	2011-03-04 16:22:31.186357952 +0100
+@@ -7,6 +7,8 @@
+  *
+  * Written by Amit Kucheria <amit.kucheria@nokia.com>
+  *
++ * Cleanups by Michael Buesch <mb@bu3sch.de> (C) 2011
++ *
+  * This file is subject to the terms and conditions of the GNU General
+  * Public License. See the file "COPYING" in the main directory of this
+  * archive for more details.
+@@ -48,37 +50,31 @@
+ #define RETU_WDT_DEFAULT_TIMER 32
+ #define RETU_WDT_MAX_TIMER 63
+ 
+-static DEFINE_MUTEX(retu_wdt_mutex);
+-
+-/* Current period of watchdog */
+-static unsigned int period_val = RETU_WDT_DEFAULT_TIMER;
+-
+ struct retu_wdt_dev {
+ 	struct device		*dev;
++	unsigned int		period_val;	/* Current period of watchdog */
+ 	unsigned long		users;
+-	struct miscdevice	retu_wdt_miscdev;
++	struct miscdevice	miscdev;
+ 	struct delayed_work	ping_work;
++	struct mutex		mutex;
+ };
+ 
+-static struct retu_wdt_dev *retu_wdt;
+ 
+-static int _retu_modify_counter(unsigned int new)
++static inline void _retu_modify_counter(struct retu_wdt_dev *wdev,
++					unsigned int new)
+ {
+-	if (retu_wdt)
+-		retu_write_reg(retu_wdt->dev, RETU_REG_WATCHDOG, (u16)new);
+-
+-	return 0;
++	retu_write_reg(wdev->dev, RETU_REG_WATCHDOG, (u16)new);
+ }
+ 
+-static int retu_modify_counter(unsigned int new)
++static int retu_modify_counter(struct retu_wdt_dev *wdev, unsigned int new)
+ {
+ 	if (new < RETU_WDT_MIN_TIMER || new > RETU_WDT_MAX_TIMER)
+ 		return -EINVAL;
+ 
+-	mutex_lock(&retu_wdt_mutex);
+-	period_val = new;
+-	_retu_modify_counter(period_val);
+-	mutex_unlock(&retu_wdt_mutex);
++	mutex_lock(&wdev->mutex);
++	wdev->period_val = new;
++	_retu_modify_counter(wdev, wdev->period_val);
++	mutex_unlock(&wdev->mutex);
+ 
+ 	return 0;
+ }
+@@ -90,14 +86,14 @@ static int retu_modify_counter(unsigned
+  */
+ static void retu_wdt_ping_enable(struct retu_wdt_dev *wdev)
+ {
+-	_retu_modify_counter(RETU_WDT_MAX_TIMER);
++	_retu_modify_counter(wdev, RETU_WDT_MAX_TIMER);
+ 	schedule_delayed_work(&wdev->ping_work,
+ 			      round_jiffies_relative(RETU_WDT_DEFAULT_TIMER * HZ));
+ }
+ 
+ static void retu_wdt_ping_disable(struct retu_wdt_dev *wdev)
+ {
+-	_retu_modify_counter(RETU_WDT_MAX_TIMER);
++	_retu_modify_counter(wdev, RETU_WDT_MAX_TIMER);
+ 	cancel_delayed_work_sync(&wdev->ping_work);
+ }
+ 
+@@ -110,18 +106,21 @@ static void retu_wdt_ping_work(struct wo
+ 
+ static int retu_wdt_open(struct inode *inode, struct file *file)
+ {
+-	if (test_and_set_bit(0, &retu_wdt->users))
++	struct miscdevice *mdev = file->private_data;
++	struct retu_wdt_dev *wdev = container_of(mdev, struct retu_wdt_dev, miscdev);
++
++	if (test_and_set_bit(0, &wdev->users))
+ 		return -EBUSY;
+ 
+-	file->private_data = (void *)retu_wdt;
+-	retu_wdt_ping_disable(retu_wdt);
++	retu_wdt_ping_disable(wdev);
+ 
+ 	return nonseekable_open(inode, file);
+ }
+ 
+ static int retu_wdt_release(struct inode *inode, struct file *file)
+ {
+-	struct retu_wdt_dev *wdev = file->private_data;
++	struct miscdevice *mdev = file->private_data;
++	struct retu_wdt_dev *wdev = container_of(mdev, struct retu_wdt_dev, miscdev);
+ 
+ #ifndef CONFIG_WATCHDOG_NOWAYOUT
+ 	retu_wdt_ping_enable(wdev);
+@@ -134,8 +133,11 @@ static int retu_wdt_release(struct inode
+ static ssize_t retu_wdt_write(struct file *file, const char __user *data,
+ 						size_t len, loff_t *ppos)
+ {
++	struct miscdevice *mdev = file->private_data;
++	struct retu_wdt_dev *wdev = container_of(mdev, struct retu_wdt_dev, miscdev);
++
+ 	if (len)
+-		retu_modify_counter(RETU_WDT_MAX_TIMER);
++		retu_modify_counter(wdev, RETU_WDT_MAX_TIMER);
+ 
+ 	return len;
+ }
+@@ -143,6 +145,8 @@ static ssize_t retu_wdt_write(struct fil
+ static long retu_wdt_ioctl(struct file *file, unsigned int cmd,
+ 			   unsigned long arg)
+ {
++	struct miscdevice *mdev = file->private_data;
++	struct retu_wdt_dev *wdev = container_of(mdev, struct retu_wdt_dev, miscdev);
+ 	int new_margin;
+ 
+ 	static struct watchdog_info ident = {
+@@ -167,15 +171,15 @@ static long retu_wdt_ioctl(struct file *
+ 			return put_user(omap_prcm_get_reset_sources(),
+ 					(int __user *)arg);
+ 	case WDIOC_KEEPALIVE:
+-		retu_modify_counter(RETU_WDT_MAX_TIMER);
++		retu_modify_counter(wdev, RETU_WDT_MAX_TIMER);
+ 		break;
+ 	case WDIOC_SETTIMEOUT:
+ 		if (get_user(new_margin, (int __user *)arg))
+ 			return -EFAULT;
+-		retu_modify_counter(new_margin);
++		retu_modify_counter(wdev, new_margin);
+ 		/* Fall through */
+ 	case WDIOC_GETTIMEOUT:
+-		return put_user(period_val, (int __user *)arg);
++		return put_user(wdev->period_val, (int __user *)arg);
+ 	}
+ 
+ 	return 0;
+@@ -199,15 +203,17 @@ static int __init retu_wdt_probe(struct
+ 		return -ENOMEM;
+ 
+ 	wdev->dev = &pdev->dev;
++	wdev->period_val = RETU_WDT_DEFAULT_TIMER;
++	mutex_init(&wdev->mutex);
+ 
+ 	platform_set_drvdata(pdev, wdev);
+-	retu_wdt = wdev;
+-	wdev->retu_wdt_miscdev.parent = &pdev->dev;
+-	wdev->retu_wdt_miscdev.minor = WATCHDOG_MINOR;
+-	wdev->retu_wdt_miscdev.name = "watchdog";
+-	wdev->retu_wdt_miscdev.fops = &retu_wdt_fops;
+ 
+-	ret = misc_register(&(wdev->retu_wdt_miscdev));
++	wdev->miscdev.parent = &pdev->dev;
++	wdev->miscdev.minor = WATCHDOG_MINOR;
++	wdev->miscdev.name = "watchdog";
++	wdev->miscdev.fops = &retu_wdt_fops;
++
++	ret = misc_register(&wdev->miscdev);
+ 	if (ret)
+ 		goto err_free_wdev;
+ 
+@@ -216,9 +222,9 @@ static int __init retu_wdt_probe(struct
+ 	/* Kick the watchdog for kernel booting to finish.
+ 	 * If nowayout is not set, we start the ping work. */
+ #ifdef CONFIG_WATCHDOG_NOWAYOUT
+-	retu_modify_counter(RETU_WDT_MAX_TIMER);
++	retu_modify_counter(wdev, RETU_WDT_MAX_TIMER);
+ #else
+-	retu_wdt_ping_enable(retu_wdt);
++	retu_wdt_ping_enable(wdev);
+ #endif
+ 
+ 	return 0;
+@@ -234,7 +240,7 @@ static int __devexit retu_wdt_remove(str
+ 	struct retu_wdt_dev *wdev;
+ 
+ 	wdev = platform_get_drvdata(pdev);
+-	misc_deregister(&wdev->retu_wdt_miscdev);
++	misc_deregister(&wdev->miscdev);
+ 	cancel_delayed_work_sync(&wdev->ping_work);
+ 	kfree(wdev);
+ 
 
- Tomi
+
+-- 
+Greetings, Michael.
 
 
