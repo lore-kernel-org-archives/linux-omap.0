@@ -1,54 +1,47 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 00/17] omap4: pm: suspend, hotplug and cpuilde support
-Date: Fri, 4 Mar 2011 22:50:23 +0530
-Message-ID: <aac02e1097a15c84cf795db5bfc49b48@mail.gmail.com>
-References: <1298112158-28469-1-git-send-email-santosh.shilimkar@ti.com> <87oc5txf0d.fsf@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v11 6/8] dmtimer: switch-over to platform device driver
+Date: Fri, 4 Mar 2011 09:23:21 -0800
+Message-ID: <20110304172320.GY20560@atomide.com>
+References: <1298546811-27055-1-git-send-email-tarun.kanti@ti.com>
+ <1298546811-27055-7-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:36165 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759851Ab1CDRUd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Mar 2011 12:20:33 -0500
-Received: by mail-qw0-f41.google.com with SMTP id 7so1927671qwd.28
-        for <linux-omap@vger.kernel.org>; Fri, 04 Mar 2011 09:20:31 -0800 (PST)
-In-reply-to: <87oc5txf0d.fsf@ti.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:32682 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759907Ab1CDRXe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Mar 2011 12:23:34 -0500
+Content-Disposition: inline
+In-Reply-To: <1298546811-27055-7-git-send-email-tarun.kanti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-> -----Original Message-----
-> From: Kevin Hilman [mailto:khilman@ti.com]
-> Sent: Thursday, March 03, 2011 5:16 AM
-> To: Santosh Shilimkar
-> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
-> Subject: Re: [PATCH 00/17] omap4: pm: suspend, hotplug and cpuilde
-> support
->
-> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
->
-> > This series adds OMAP4 suspend and cpuidle support till MPU
-> subsystem
-> > (MPUSS) off-mode. The suspend on SMP machines uses cpu-hotplug
-> > infrastructure to take down the non-boot CPUs. We put secondary
-> > CPU(CPU1 in OMAP4) to OFF state via cpu-hotplug.
-> > In cpuidle too, low power states are attempted only when the
-> > CPU1 is put to OFF state via cpu-hotplug because of hardware
-> > constraints.
->
-> Minor nit on patch subjects:  both OMAP and PM are acronyms, please
-> capitalize.
->
-> Also, can you rebase this on Paul's integration-2.6.39 branch?
-> There
-> are several things in this series that conflict with changes there.
->
+* Tarun Kanti DebBarma <tarun.kanti@ti.com> [110224 03:23]:
+> --- a/arch/arm/mach-omap2/dmtimer.c
+> +++ b/arch/arm/mach-omap2/dmtimer.c
+> @@ -197,3 +197,64 @@ static int __init omap_timer_init(struct omap_hwmod *oh, void *unused)
+>  
+>  	return ret;
+>  }
+> +
+> +/**
+> + * omap2_dm_timer_early_init - top level early timer initialization
+> + * called in the last part of omap2_init_common_hw
+> + *
+> + * Uses dedicated hwmod api to parse through hwmod database for
+> + * given class name and then build and register the timer device.
+> + * At the end driver is registered and early probe initiated.
+> + */
+> +void __init omap2_dm_timer_early_init(void)
+> +{
+> +	int ret = omap_hwmod_for_each_by_class("timer",
+> +			omap_timer_init, NULL);
 
-Rebased branch against your pm-core.
-
-git://dev.omapzoom.org/pub/scm/santosh/kernel-omap4-base.git
-omap4_pm_for-next
+Here we really only want to initialize the system timer. The rest we
+want to do later, so let's not init all of them early.
 
 Regards,
-Santosh
+
+Tony
