@@ -1,65 +1,43 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH] i2c-omap: Program I2C_WE on OMAP4 to enable i2c wakeup
-Date: Fri, 04 Mar 2011 09:00:00 -0800
-Message-ID: <87ei6mizxr.fsf@ti.com>
-References: <1299245544-23790-1-git-send-email-rnayak@ti.com>
+From: Steve Sakoman <sakoman@gmail.com>
+Subject: Re: [PATCH 1/2] OMAP: DSS2: Add support for LG Philips LB035Q02 panel
+Date: Fri, 4 Mar 2011 09:08:07 -0800
+Message-ID: <AANLkTinkMAU1aDLRC416bvSCbNvAoYedq2y5VTJeL=uv@mail.gmail.com>
+References: <1299195980-17057-1-git-send-email-steve@sakoman.com>
+	<1299195980-17057-2-git-send-email-steve@sakoman.com>
+	<1299225323.2196.20.camel@deskari>
+	<AANLkTinTUtC_XDgCe79Aju4rdsDYHDWa9N682PDDEL5C@mail.gmail.com>
+	<1299253262.2053.15.camel@deskari>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1299245544-23790-1-git-send-email-rnayak@ti.com> (Rajendra
-	Nayak's message of "Fri, 4 Mar 2011 19:02:24 +0530")
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Rajendra Nayak <rnayak@ti.com>, ben-linux@fluff.org
-Cc: paul@pwsan.com, linux-omap@vger.kernel.org, santosh.shilimkar@ti.com, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:50244 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756379Ab1CDRII (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Mar 2011 12:08:08 -0500
+Received: by vxi39 with SMTP id 39so2183351vxi.19
+        for <linux-omap@vger.kernel.org>; Fri, 04 Mar 2011 09:08:07 -0800 (PST)
+In-Reply-To: <1299253262.2053.15.camel@deskari>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Rajendra Nayak <rnayak@ti.com> writes:
-
-> For the I2C module to be wakeup capable, programming I2C_WE
-> register (which was skipped for OMAP4430) is needed
-> even on OMAP4.
-> This fixes i2c controller timeouts which were seen recently
-> with the static dependency being cleared between MPU and
-> L4PER clockdomains.
+On Fri, Mar 4, 2011 at 7:41 AM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
+> On Fri, 2011-03-04 at 09:29 -0600, Steve Sakoman wrote:
+>> Do you want me to try to address this in this initial submission, or
+>> is it something we can revisit in a subsequent "fix-it" patch for all
+>> panels with SPI init?
 >
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> ---
-> Patch is based on 2.6.38-rc7 kernel.
+> If you have extra time and a good solution, then of course I want you to
+> address it =). But most likely we'll just revisit it later. It's not
+> critical now and we may also have to look at how DSS manages the panel
+> drivers.
 
-Acked-by: Kevin Hilman <khilman@ti.com>
+Not a lot of extra time right now :-)
 
-Ben, looks like another fix that should be queued for 2.6.38-rc.
+Let's try to get Overo DSS2 support in this merge window and revisit
+all of the SPI config panels later.
 
-Thanks,
+I'll submit a V2 that addresses the locking issue later today.
 
-Kevin
-
-
->
->  drivers/i2c/busses/i2c-omap.c |    4 +---
->  1 files changed, 1 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> index 829a2a1..58a58c7 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -378,9 +378,7 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
->  			 * REVISIT: Some wkup sources might not be needed.
->  			 */
->  			dev->westate = OMAP_I2C_WE_ALL;
-> -			if (dev->rev < OMAP_I2C_REV_ON_4430)
-> -				omap_i2c_write_reg(dev, OMAP_I2C_WE_REG,
-> -								dev->westate);
-> +			omap_i2c_write_reg(dev, OMAP_I2C_WE_REG, dev->westate);
->  		}
->  	}
->  	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
+Steve
