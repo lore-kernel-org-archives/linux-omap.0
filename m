@@ -1,42 +1,74 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [RFC] AM35x: Workaround to use generic OMAP3 hwmods
-Date: Fri, 4 Mar 2011 10:23:06 +0100
-Message-ID: <4D70AF7A.90009@ti.com>
-References: <1298641689-7417-1-git-send-email-premi@ti.com> <4D67E0C0.4080805@ti.com> <alpine.DEB.2.00.1103031614440.10981@utopia.booyaka.com> <alpine.DEB.2.00.1103031652500.10981@utopia.booyaka.com>
+From: Ben Tucker <btucker@mpcdata.com>
+Subject: RE: OMAP2,3: DSS2: Report -EBUSY when to many registered isr
+Date: Fri, 4 Mar 2011 09:32:37 -0000
+Message-ID: <30fa969aa5e0ff131b9af03df567437b@mail.gmail.com>
+References: <1295585610-24179-1-git-send-email-btucker@mpcdata.com> <1298280509.4931.36.camel@deskari>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:53292 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751790Ab1CDJXK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 4 Mar 2011 04:23:10 -0500
-In-Reply-To: <alpine.DEB.2.00.1103031652500.10981@utopia.booyaka.com>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:60995 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751834Ab1CDJcf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Mar 2011 04:32:35 -0500
+Received: by eyx24 with SMTP id 24so631671eyx.19
+        for <linux-omap@vger.kernel.org>; Fri, 04 Mar 2011 01:32:34 -0800 (PST)
+In-Reply-To: <1298280509.4931.36.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "Premi, Sanjeev" <premi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, Ben Tucker <btucker@mpc-data.co.uk>
 
-Hi Paul,
+Thankyou Tomi. Please go ahead and fix the bug yourself.
 
-On 3/4/2011 12:53 AM, Paul Walmsley wrote:
-> On Thu, 3 Mar 2011, Paul Walmsley wrote:
+Ben
+
+
+> -----Original Message-----
+> From: Tomi Valkeinen [mailto:tomi.valkeinen@ti.com]
+> Sent: 21 February 2011 09:28
+> To: Ben Tucker
+> Cc: linux-omap@vger.kernel.org; Ben Tucker
+> Subject: Re: OMAP2,3: DSS2: Report -EBUSY when to many registered isr
 >
->> On Fri, 25 Feb 2011, Cousson, Benoit wrote:
->>
->>>   static struct omap_hwmod_ocp_if *omap3xxx_l4_core_slaves[] = {
->>>   	&omap3xxx_l3_main__l4_core,
->>> -	&omap3_l4_core__sr1,
->>> -	&omap3_l4_core__sr2,
+> Hi,
 >
-> Never mind, I see the issue now...
-
-It was simply wrong as explained in the answer to Sanjeev.
-I do agree that the changelog does not say anything about it, sorry 
-about that.
-
-BTW, do you want me to re-send that patch properly and not hidden in 
-previous email thread with Sanjeev?
-
-Thanks
-Benoit
+> On Fri, 2011-01-21 at 04:53 +0000, Ben Tucker wrote:
+> > From: Ben Tucker <btucker@mpc-data.co.uk>
+> >
+> > This patch fixes a problem with map_dispc_register_isr() where it
+> > fails to return -EBUSY if it has no more space for registrations.
+>
+> Looks correct, but a couple of things:
+> - Missing signed-off
+> - Indentation is wrong
+> - Don't use { } when there's just one line in the if block
+>
+> Please fix those, or alternatively I can fix the bug myself and add you
+> as reported-by.
+>
+>  Tomi
+>
+>
+> >
+> > ---
+> > drivers/video/omap2/dss/dispc.c |    4 ++++
+> >  1 files changed, 4 insertions(+), 0 deletions(-)
+> >
+> > diff --git a/drivers/video/omap2/dss/dispc.c
+> b/drivers/video/omap2/dss/dispc.c
+> > index e0e8275..f566177 100644
+> > --- a/drivers/video/omap2/dss/dispc.c
+> > +++ b/drivers/video/omap2/dss/dispc.c
+> > @@ -2579,6 +2579,10 @@ int omap_dispc_register_isr(omap_dispc_isr_t
+> isr, void *arg, u32 mask)
+> >  		break;
+> >  	}
+> >
+> > +    if (ret) {
+> > +        goto err;
+> > +    }
+> > +
+> >  	_omap_dispc_set_irqs();
+> >
+> >  	spin_unlock_irqrestore(&dispc.irq_lock, flags);
+>
