@@ -1,89 +1,106 @@
-From: David Cohen <dacohen@gmail.com>
-Subject: Re: omap3isp cache error when unloading
-Date: Fri, 4 Mar 2011 15:12:26 +0200
-Message-ID: <AANLkTikAKy=CzTqEv-UGBQ1EavqmCStPNFZ5vs7vH5VK@mail.gmail.com>
-References: <4D6D219D.7020605@matrix-vision.de>
-	<201103022018.23446.laurent.pinchart@ideasonboard.com>
-	<4D6FBC7F.1080500@matrix-vision.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: [PATCH] OMAP4: clockdomain: Follow recommended enable sequence
+Date: Fri,  4 Mar 2011 18:55:23 +0530
+Message-ID: <1299245123-23444-1-git-send-email-rnayak@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:41132 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758463Ab1CDNM1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Mar 2011 08:12:27 -0500
-In-Reply-To: <4D6FBC7F.1080500@matrix-vision.de>
+Received: from devils.ext.ti.com ([198.47.26.153]:57969 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758463Ab1CDNZi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Mar 2011 08:25:38 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Michael Jones <michael.jones@matrix-vision.de>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, fernando.lugo@ti.com, Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>, Linux Media Mailing List <linux-media@vger.kernel.org>, linux-omap@vger.kernel.org, Hiroshi.DOYU@nokia.com
+To: linux-omap@vger.kernel.org
+Cc: paul@pwsan.com, b-cousson@ti.com, khilman@ti.com, santosh.shilimkar@ti.com, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
 
-Hi,
+On OMAP4, the PRCM recommended sequence for enabling
+a module after power-on-reset is
+-1- Force clkdm to SW_WKUP
+-2- Configure desired module mode to "enable" or "auto"
+-3- Wait for the desired module idle status to be FUNC
+-4- Program clkdm in HW_AUTO(if supported)
 
-[snip]
+This sequence applies to all older OMAPs' as well,
+however since they use autodeps, it makes sure that
+no clkdm is in IDLE, and hence not requiring a force
+SW_WKUP when a module is being enabled.
 
-> Sorry, I should've mentioned: I'm using your media-0005-omap3isp bran=
-ch
-> based on 2.6.38-rc5. =C2=A0I didn't have the problem with 2.6.37, eit=
-her.
-> It's actually not related to mis-configuring the ISP pipeline like I
-> thought at first- it also happens after I have successfully captured =
-images.
->
-> I've since tracked down the problem, although I don't understand the
-> cache management well enough to be sure it's a proper fix, so hopeful=
-ly
-> some new recipients on this can make suggestions/comments.
->
-> The patch below solves the problem, which modifies a commit by Fernan=
-do
-> Guzman Lugo from December.
->
-> -Michael
->
-> From db35fb8edca2a4f8fd37197d77fd58676cb1dcac Mon Sep 17 00:00:00 200=
-1
-> From: Michael Jones <michael.jones@matrix-vision.de>
-> Date: Thu, 3 Mar 2011 16:50:39 +0100
-> Subject: [PATCH] fix iovmm slab cache error on module unload
->
-> modify "OMAP: iommu: create new api to set valid da range"
->
-> This modifies commit c7f4ab26e3bcdaeb3e19ec658e3ad9092f1a6ceb.
-> ---
-> =C2=A0arch/arm/plat-omap/iovmm.c | =C2=A0 =C2=A05 ++++-
-> =C2=A01 files changed, 4 insertions(+), 1 deletions(-)
->
-> diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
-> index 6dc1296..2fba6f1 100644
-> --- a/arch/arm/plat-omap/iovmm.c
-> +++ b/arch/arm/plat-omap/iovmm.c
-> @@ -280,7 +280,10 @@ static struct iovm_struct *alloc_iovm_area(struc=
-t iommu *obj, u32 da,
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0alignement =3D PAGE_SIZE;
->
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0if (flags & IOVMF_DA_ANON) {
-> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 start =3D obj->da_=
-start;
-> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 /*
-> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0* Reserve th=
-e first page for NULL
-> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0*/
-> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 start =3D obj->da_=
-start + PAGE_SIZE;
+OMAP4 does not need to support autodeps, because
+of the dyanamic dependency feature, wherein
+the HW takes care of waking up a clockdomain from
+idle and hence the module, whenever an interconnect
+access happens to the given module.
+Autodeps were mainly needed on older OMAPs' as
+this was not the case back then, and a module
+access with the module/clkdm in idle would cause
+an abort.
 
-IMO if obj->da_start !=3D 0, no need to add PAGE_SIZE. Otherwise, it
-does make sense to correct wrong obj->da_start =3D=3D 0. Another thing =
-is
-this piece of code is using alignement (alignment) variable instead of
-PAGE_SIZE (which is the same value).
+Fix the clkdm_clk_enable api to handle
+this sequence on OMAP4.
 
-Br,
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+---
+The patch is based on 'integration-2.6.39' branch
+of git://git.pwsan.com/linux-integration because
+of dependencies with other patches in the branch.
 
-David
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ arch/arm/mach-omap2/clock.c           |    4 ++++
+ arch/arm/mach-omap2/clockdomain.c     |    7 ++++++-
+ arch/arm/mach-omap2/clockdomain44xx.c |    9 ++-------
+ 3 files changed, 12 insertions(+), 8 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+index 46d03cc..1cf6786 100644
+--- a/arch/arm/mach-omap2/clock.c
++++ b/arch/arm/mach-omap2/clock.c
+@@ -322,6 +322,10 @@ int omap2_clk_enable(struct clk *clk)
+ 		}
+ 	}
+ 
++	/* If clockdomain supports hardware control, enable it */
++	if (clk->clkdm)
++		clkdm_allow_idle(clk->clkdm);
++
+ 	return 0;
+ 
+ oce_err3:
+diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
+index a0341de..9e1164f 100644
+--- a/arch/arm/mach-omap2/clockdomain.c
++++ b/arch/arm/mach-omap2/clockdomain.c
+@@ -825,7 +825,12 @@ int clkdm_clk_enable(struct clockdomain *clkdm, struct clk *clk)
+ 	if (!arch_clkdm || !arch_clkdm->clkdm_clk_enable)
+ 		return -EINVAL;
+ 
+-	if (atomic_inc_return(&clkdm->usecount) > 1)
++	/*
++	 * For arch's with no autodeps, clkcm_clk_enable
++	 * should be called for every clock instance that is
++	 * enabled, so the clkdm can be force woken up.
++	 */
++	if ((atomic_inc_return(&clkdm->usecount) > 1) && autodeps)
+ 		return 0;
+ 
+ 	/* Clockdomain now has one enabled downstream clock */
+diff --git a/arch/arm/mach-omap2/clockdomain44xx.c b/arch/arm/mach-omap2/clockdomain44xx.c
+index a1a4ecd..6f38d47 100644
+--- a/arch/arm/mach-omap2/clockdomain44xx.c
++++ b/arch/arm/mach-omap2/clockdomain44xx.c
+@@ -95,13 +95,8 @@ static void omap4_clkdm_deny_idle(struct clockdomain *clkdm)
+ 
+ static int omap4_clkdm_clk_enable(struct clockdomain *clkdm)
+ {
+-	bool hwsup = false;
+-
+-	hwsup = omap4_cminst_is_clkdm_in_hwsup(clkdm->prcm_partition,
+-					clkdm->cm_inst, clkdm->clkdm_offs);
+-
+-	if (!hwsup)
+-		clkdm_wakeup(clkdm);
++	/* For every clock enable, force wakeup the clkdm */
++	clkdm_wakeup(clkdm);
+ 
+ 	return 0;
+ }
+-- 
+1.7.0.4
+
