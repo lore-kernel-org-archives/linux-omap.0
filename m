@@ -1,73 +1,63 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH v5 REPOST 0/5] ARM: omap[34]: Thumb-2 compatibility fixes
-Date: Fri, 4 Mar 2011 23:08:17 +0530
-Message-ID: <7b1ef0e49e8b8c1c20b0965a58c4fe73@mail.gmail.com>
-References: <1299252837-18074-1-git-send-email-dave.martin@linaro.org> <AANLkTimz0Ko9GFtLTcBQVV_c2DAPU5XhV47xT+R9Q7mv@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] omap2+: mux: Initialise the static pads.
+Date: Fri, 4 Mar 2011 09:43:01 -0800
+Message-ID: <20110304174301.GA20560@atomide.com>
+References: <1299003360-32120-1-git-send-email-r.sricharan@ti.com>
+ <20110304022832.GR20560@atomide.com>
+ <44e29d555f2b399b7067d827603897cc@mail.gmail.com>
+ <20110304162858.GW20560@atomide.com>
+ <4ad439dff008aeca2a058207ef744650@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:43504 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758463Ab1CDRiT convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 4 Mar 2011 12:38:19 -0500
-Received: by mail-qy0-f169.google.com with SMTP id 2so414807qyk.0
-        for <linux-omap@vger.kernel.org>; Fri, 04 Mar 2011 09:38:18 -0800 (PST)
-In-reply-to: <AANLkTimz0Ko9GFtLTcBQVV_c2DAPU5XhV47xT+R9Q7mv@mail.gmail.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:31860 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751790Ab1CDRnQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Mar 2011 12:43:16 -0500
+Content-Disposition: inline
+In-Reply-To: <4ad439dff008aeca2a058207ef744650@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dave Martin <dave.martin@linaro.org>, linux-arm-kernel@lists.infradead.org
-Cc: patches@linaro.org, Tony Lindgren <tony@atomide.com>, Jean Pihet-XID <j-pihet@ti.com>, Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, Nicolas Pitre <nicolas.pitre@linaro.org>, linaro-dev@lists.linaro.org
+To: Sricharan R <r.sricharan@ti.com>
+Cc: linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>, paul@pswan.com, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Dave,
-> -----Original Message-----
-> From: Dave Martin [mailto:dave.martin@linaro.org]
-> Sent: Friday, March 04, 2011 11:05 PM
-> To: linux-arm-kernel@lists.infradead.org
-> Cc: patches@linaro.org; Tony Lindgren; Santosh Shilimkar; Jean
-> Pihet; Kevin Hilman; linux-omap@vger.kernel.org; Nicolas Pitre;
-> linaro-dev@lists.linaro.org
-> Subject: Re: [PATCH v5 REPOST 0/5] ARM: omap[34]: Thumb-2
-> compatibility fixes
->
-> On Fri, Mar 4, 2011 at 3:33 PM, Dave Martin <dave.martin@linaro.org>
-> wrote:
-> > This set of patches, along with some other patches under
-> > discussion on alkml, should enable omap3 and omap4 kernels to be
-> > built with CONFIG_THUMB2_KERNEL.
+* Sricharan R <r.sricharan@ti.com> [110304 09:31]:
+> Hi Tony,
+> 
+> >Hmm it's there as commit 93c5f165e10c21a3813a687204388a34072b2a62
+> 
+> >in devel-mux branch. Can you please update your patch against
+> 
+> >that commit so it's easier to see what your changes are?
+> 
 > >
-> > This patch set builds on recent cleanup done by the omap
-> > maintainers.
+> 
+> >BTW, the patch you posted got trashed by your email client
+> 
+> >or server..
+> 
 > >
-> > At least some of this code definitely works, most features have
-> > been tested successfully. =A0Further testing, especially of Thumb-2
-> > behaviour, is still welcome.
-> >
-> > In particular, I still have no Ack/Tested-by on the following
-> > patches, so it would be great if anyone who has an opportunity
-> > to do a final review / re-test can do so.
-> >
-> > =A0* ARM: omap3: Convert END() to ENDPROC() for correct linkage wit=
-h
-> CONFIG_THUMB2_KERNEL
-> > =A0* ARM: omap3: Thumb-2 compatibility for sram34xx.S
-> > =A0* ARM: omap3: Thumb-2 compatibility for sleep34xx.S
->
-> Following up on this, it looks like I have some locally-recorded
-> acks
-> which didn't make it into my posting ...
->
-> The one patch I currently have no feedback on is this one:
->
->   * ARM: omap4: Provide do_wfi() for Thumb-2
->
-You can drop this one since do_wfi()  won't be needed
-anymore after my recent series.
+> 
+> Here is the updated patch on top of your previous patch.
 
-http://www.spinics.net/lists/linux-omap/msg46495.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The patch formatting is still trashed, notice the double line
+spacing..
+ 
+> +++ b/arch/arm/mach-omap2/mux.c
+> 
+> @@ -359,7 +359,6 @@ void omap_hwmod_mux(struct omap_hwmod_mux_info *hmux, u8
+> state)
+
+..and the line wrapping of the patch lines.
+
+> 
+> +     if ((state == _HWMOD_STATE_ENABLED) && hmux->pads_dynamic
+> 
+> +                             && hmux->enabled) {
+
+Yes I see that might allow removing the idle flag. Will give it
+a try with my testcase once you get your mail issue sorted out
+and can post a patch that applies.
+
+Tony
+ 
