@@ -1,100 +1,62 @@
-From: <Tero.Kristo@nokia.com>
-Subject: RE: [PATCH 1/2] OMAP3: cpuidle: prevent CORE power domain from
- going to RET or OFF when DSS is on
-Date: Fri, 4 Mar 2011 08:14:07 +0000
-Message-ID: <854C6400F5AA6644BA6FE7953F3E769B0380F12F@008-AM1MPN1-013.mgdnok.nokia.com>
-References: <20110301220833.32613.54669.stgit@twilight.localdomain>
-	<20110301224918.32613.95176.stgit@twilight.localdomain>
- <87pqq7pz27.fsf@ti.com>
+From: Andy Green <andy@warmcat.com>
+Subject: Re: [PATCH 2/4] OMAP3 I2C document why cpu type and not peripheral
+ unit ID used to probe
+Date: Fri, 04 Mar 2011 08:25:51 +0000
+Message-ID: <4D70A20F.6070508@linaro.org>
+References: <20110303134744.30648.91218.stgit@otae.warmcat.com> <20110303135030.30648.14923.stgit@otae.warmcat.com> <4D700441.50206@ti.com>
+Reply-To: andy.green@linaro.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:42951 "EHLO mgw-sa01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752688Ab1CDIO1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Mar 2011 03:14:27 -0500
-In-Reply-To: <87pqq7pz27.fsf@ti.com>
-Content-Language: en-US
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:55278 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751338Ab1CDIZz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Mar 2011 03:25:55 -0500
+Received: by wwb22 with SMTP id 22so2413513wwb.1
+        for <linux-omap@vger.kernel.org>; Fri, 04 Mar 2011 00:25:54 -0800 (PST)
+In-Reply-To: <4D700441.50206@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: khilman@ti.com, paul@pwsan.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "patches@linaro.org" <patches@linaro.org>
 
-Hi Kevin,
+On 03/03/2011 09:12 PM, Somebody in the thread at some point said:
 
->-----Original Message-----
->From: ext Kevin Hilman [mailto:khilman@ti.com]
->Sent: 04 March, 2011 01:25
->To: Paul Walmsley
->Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org;
->Kristo Tero (Nokia-MS/Tampere)
->Subject: Re: [PATCH 1/2] OMAP3: cpuidle: prevent CORE power domain from
->going to RET or OFF when DSS is on
+Hi -
+
+Thanks for your comments.
+
+> The issue is that this revision field is not really documented in OMAP4
+> TRM, so you should not rely on it. Moreover, as you already noticed, the
+> revision number is not even accurate. OMAP3 and 4 are using a different
+> programming model but this is not reflected in this field.
+
+OK.
+
+> Since that issue is quite common in many OMAP IPs, we introduced a SW
+> field in hwmod_class that should reflect the change in IP programming
+> model. For the moment it is a simple integer that we increment each time
+> there is change in a programming model that will impact the driver.
 >
->Paul Walmsley <paul@pwsan.com> writes:
->
->> From: Tero Kristo <tero.kristo@nokia.com>
->>
->> Prevent the CORE power domain from entering RETENTION or OFF when DSS
->> is on.  Otherwise, the display FIFO(s) may underflow due to the time
->> needed for the CORE to wake back up, causing tearing and unnecessary
->> interrupts.
->>
->> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
->> [paul@pwsan.com: wrote commit message]
->> Signed-off-by: Paul Walmsley <paul@pwsan.com>
->
->This isn't quite ready for merge, and needs a little more testing with
->current DSS driver and mainline.
->
->> ---
->>  arch/arm/mach-omap2/cpuidle34xx.c |   10 ++++++++--
->>  1 files changed, 8 insertions(+), 2 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-
->omap2/cpuidle34xx.c
->> index 0335cd8..d1b7789 100644
->> --- a/arch/arm/mach-omap2/cpuidle34xx.c
->> +++ b/arch/arm/mach-omap2/cpuidle34xx.c
->> @@ -9,8 +9,9 @@
->>   * Copyright (C) 2007 Texas Instruments, Inc.
->>   * Karthik Dasu <karthik-dp@ti.com>
->>   *
->> - * Copyright (C) 2006 Nokia Corporation
->> + * Copyright (C) 2006, 2011 Nokia Corporation
->>   * Tony Lindgren <tony@atomide.com>
->> + * Tero Kristo <tero.kristo@nokia.com>
->>   *
->>   * Copyright (C) 2005 Texas Instruments, Inc.
->>   * Richard Woodruff <r-woodruff2@ti.com>
->> @@ -268,6 +269,12 @@ static int omap3_enter_idle_bm(struct
->cpuidle_device *dev,
->>  		goto select_state;
->>  	}
->>
->> +	/* If DSS is active, prevent CORE RET/OFF */
->> +	dss_state = pwrdm_read_pwrst(dss_pd);
->> +	if (dss_state == PWRDM_POWER_ON &&
->> +	    core_next_state != PWRDM_POWER_ON)
->> +		core_next_state = PWRDM_POWER_INACTIVE;
+> You can check how it was done for the timer for example:
+
+Alright.  In I2C case the path is hwmod class -> platform data though 
+since hwmod content directly is not used in the driver, but platform 
+data is.
+
 >> +
+>> if (cpu_is_omap44xx())
+>> dev->regs = (u8 *) omap4_reg_map;
 >
->Due to sleepdeps/autodeps, when this code runs, DSS powerdomain is
->always on.  The result is that CORE is always set to INACTIVE.
+> OK, this is not part of your patch, but any call to cpu_is are forbidden
+> from the driver. As soon as you have the revision field from hwmod you
+> can get rid of all that code.
 
-Now I recall that someone was asking about a patch similar to this earlier, and had the same issue with DSS sleepdep collision.
+Well, as you point out they are not forbidden enough since I was just 
+working with what was already there.
 
-What is the reason for having the sleepdep for DSS powerdomain anyway? At least I can't see any reason why the sleepdep for DSS should be set. In my opinion it should be perfectly okay for DSS domain to idle independently of MPU/CORE, as this is going to be better for power consumption also.
+However this hwmod scheme will cover it all AFAICS, so I will extend the 
+patches to nuke all cpu_is... from the driver.
 
-
->
->A side effect of this problem is exposing a known issue with PER wakeups
->(UART3, GPIO).  Since CORE never goes to retention/off, IO-pad
->wakeups are never enabled, so PER wakeups do not work.
->
->I think we need a different way of checking for DSS activity.
->
->Sounds like another usecase for idle notifiers.
->
->Kevin
+-Andy
