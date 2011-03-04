@@ -1,37 +1,41 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 5/6] omap4: Initialise the l3 device with the hwmod
- data.
-Date: Fri, 4 Mar 2011 10:08:17 -0800
-Message-ID: <20110304180817.GC20560@atomide.com>
-References: <1298295990-1070-1-git-send-email-santosh.shilimkar@ti.com>
- <1298295990-1070-6-git-send-email-santosh.shilimkar@ti.com>
- <4D62AAAA.40104@ti.com>
- <295be59bd43a2e9f0961c10263ce19c0@mail.gmail.com>
- <20110303183111.GO20560@atomide.com>
- <f52bf1c89b7c7c9d6d0281b1a200d5c1@mail.gmail.com>
+From: Dave Martin <dave.martin@linaro.org>
+Subject: Re: [PATCH v5 REPOST 0/5] ARM: omap[34]: Thumb-2 compatibility fixes
+Date: Fri, 4 Mar 2011 18:16:13 +0000
+Message-ID: <AANLkTi=UCk5thBSM_JpFPRAr_POtx-DphP-DrVLBNyMG@mail.gmail.com>
+References: <1299252837-18074-1-git-send-email-dave.martin@linaro.org>
+	<AANLkTimz0Ko9GFtLTcBQVV_c2DAPU5XhV47xT+R9Q7mv@mail.gmail.com>
+	<7b1ef0e49e8b8c1c20b0965a58c4fe73@mail.gmail.com>
+	<20110304174709.GB20560@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:42294 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751790Ab1CDSIa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Mar 2011 13:08:30 -0500
-Content-Disposition: inline
-In-Reply-To: <f52bf1c89b7c7c9d6d0281b1a200d5c1@mail.gmail.com>
+Received: from mail-gw0-f51.google.com ([74.125.83.51]:64311 "EHLO
+	mail-gw0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752229Ab1CDSQO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Mar 2011 13:16:14 -0500
+Received: by gwb15 with SMTP id 15so1301810gwb.10
+        for <linux-omap@vger.kernel.org>; Fri, 04 Mar 2011 10:16:13 -0800 (PST)
+In-Reply-To: <20110304174709.GB20560@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Benoit Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Sricharan R <r.sricharan@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org, patches@linaro.org, Jean Pihet-XID <j-pihet@ti.com>, Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, Nicolas Pitre <nicolas.pitre@linaro.org>, linaro-dev@lists.linaro.org
 
-* Santosh Shilimkar <santosh.shilimkar@ti.com> [110303 22:19]:
-> > From: Tony Lindgren [mailto:tony@atomide.com]
-> > Also one Signed-off-by is enough like Benoit pointed out :)
-> >
-> Ohhh... I missed this I first comment :)
-> One SOB is enough.
+On Fri, Mar 4, 2011 at 5:47 PM, Tony Lindgren <tony@atomide.com> wrote:
+> * Santosh Shilimkar <santosh.shilimkar@ti.com> [110304 09:36]:
+>> >
+>> > Following up on this, it looks like I have some locally-recorded
+>> > acks
+>> > which didn't make it into my posting ...
+>
+> To me looks like this is ready to go, but I'd like to see Kevin's
+> acks on this one as this touches the PM code.
+>
+> Or if Kevin wants to take the series, here's my ack for the series:
+>
+> Acked-by: Tony Lindgren <tony@atomide.com>
 
-Santosh, can you do a pull request for me on this series
-when the issues are fixed? Against omap-for-linus branch
-please.
+Thanks -- I'll wait for Kevin to comment also.
 
-Tony
+Cheers
+---Dave
