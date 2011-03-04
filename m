@@ -1,49 +1,57 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v11 7/8] OMAP: dmtimer: pm_runtime support
-Date: Fri, 4 Mar 2011 09:28:32 -0800
-Message-ID: <20110304172832.GZ20560@atomide.com>
-References: <1298546811-27055-1-git-send-email-tarun.kanti@ti.com>
- <1298546811-27055-8-git-send-email-tarun.kanti@ti.com>
- <878vwvn0gr.fsf@ti.com>
+From: Dave Martin <dave.martin@linaro.org>
+Subject: Re: [PATCH v5 REPOST 0/5] ARM: omap[34]: Thumb-2 compatibility fixes
+Date: Fri, 4 Mar 2011 17:35:01 +0000
+Message-ID: <AANLkTimz0Ko9GFtLTcBQVV_c2DAPU5XhV47xT+R9Q7mv@mail.gmail.com>
+References: <1299252837-18074-1-git-send-email-dave.martin@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:42016 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759665Ab1CDR2q (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Mar 2011 12:28:46 -0500
-Content-Disposition: inline
-In-Reply-To: <878vwvn0gr.fsf@ti.com>
+Received: from mail-yi0-f46.google.com ([209.85.218.46]:56117 "EHLO
+	mail-yi0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752121Ab1CDRfD convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Mar 2011 12:35:03 -0500
+Received: by yia27 with SMTP id 27so848112yia.19
+        for <linux-omap@vger.kernel.org>; Fri, 04 Mar 2011 09:35:01 -0800 (PST)
+In-Reply-To: <1299252837-18074-1-git-send-email-dave.martin@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>, linux-omap@vger.kernel.org, Partha Basak <p-basak2@ti.com>
+To: linux-arm-kernel@lists.infradead.org
+Cc: patches@linaro.org, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Jean Pihet <j-pihet@ti.com>, Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, Nicolas Pitre <nicolas.pitre@linaro.org>, linaro-dev@lists.linaro.org
 
-* Kevin Hilman <khilman@ti.com> [110303 17:22]:
-> Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
-> 
-> > Add pm_runtime support to dmtimer. Since dmtimer is used during
-> > early boot before pm_runtime is initialized completely there are
-> > provisions to enable/disable clocks directly in the code during
-> > early boot.
-> 
-> I'm still not crazy about the duplicate logic (both early & normal) in
-> all the enable/disable functions.
-> 
-> As I've suggested in the past, why not just do a clk_get, clk_enable in
-> when the early timers are initialized, then do a clk_disable, clk_put()
-> as soon as the "normal" device is ready and PM runtime is enabled.
+On Fri, Mar 4, 2011 at 3:33 PM, Dave Martin <dave.martin@linaro.org> wr=
+ote:
+> This set of patches, along with some other patches under
+> discussion on alkml, should enable omap3 and omap4 kernels to be
+> built with CONFIG_THUMB2_KERNEL.
+>
+> This patch set builds on recent cleanup done by the omap
+> maintainers.
+>
+> At least some of this code definitely works, most features have
+> been tested successfully. =A0Further testing, especially of Thumb-2
+> behaviour, is still welcome.
+>
+> In particular, I still have no Ack/Tested-by on the following
+> patches, so it would be great if anyone who has an opportunity
+> to do a final review / re-test can do so.
+>
+> =A0* ARM: omap3: Convert END() to ENDPROC() for correct linkage with =
+CONFIG_THUMB2_KERNEL
+> =A0* ARM: omap3: Thumb-2 compatibility for sram34xx.S
+> =A0* ARM: omap3: Thumb-2 compatibility for sleep34xx.S
 
-Even better would be to have separate handling for the system timer
-with minimal dependencies to anything.
+=46ollowing up on this, it looks like I have some locally-recorded acks
+which didn't make it into my posting ...
 
-> That will greatly simplify the code and eliminate the unnecessary checks
-> for ->is_early_device which will always be false except for in early
-> boot (when these functions are not likely to be called anyways.)
+The one patch I currently have no feedback on is this one:
 
-And please note that only the system timer needs to be initialized early.
-We might as well treat the system timer separately to avoid these issues.
+  * ARM: omap4: Provide do_wfi() for Thumb-2
 
-Regards,
-
-Tony
+Cheers
+---Dave
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
