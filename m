@@ -1,41 +1,121 @@
-From: Michael Buesch <mb@bu3sch.de>
-Subject: [PATCH] cbus-retu-wdt: Constify watchdog_info structure
-Date: Fri, 04 Mar 2011 16:33:27 +0100
-Message-ID: <1299252807.21644.12.camel@marge>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: Dave Martin <dave.martin@linaro.org>
+Subject: [PATCH v5 REPOST 0/5] ARM: omap[34]: Thumb-2 compatibility fixes
+Date: Fri,  4 Mar 2011 15:33:52 +0000
+Message-ID: <1299252837-18074-1-git-send-email-dave.martin@linaro.org>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 80-190-117-144.ip-home.de ([80.190.117.144]:45706 "EHLO
-	bu3sch.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750800Ab1CDPda (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 4 Mar 2011 10:33:30 -0500
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:58050 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758521Ab1CDPeS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Mar 2011 10:34:18 -0500
+Received: by wyg36 with SMTP id 36so2192950wyg.19
+        for <linux-omap@vger.kernel.org>; Fri, 04 Mar 2011 07:34:17 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Felipe Balbi <balbi@ti.com>, linux-omap <linux-omap@vger.kernel.org>
+To: linux-arm-kernel@lists.infradead.org
+Cc: patches@linaro.org, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Jean Pihet <j-pihet@ti.com>, Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, Nicolas Pitre <nicolas.pitre@linaro.org>, linaro-dev@lists.linaro.org
 
-Nobody modifies the watchdog_info structure, so make it const.
+This set of patches, along with some other patches under
+discussion on alkml, should enable omap3 and omap4 kernels to be
+built with CONFIG_THUMB2_KERNEL.
 
-Signed-off-by: Michael Buesch <mb@bu3sch.de>
+This patch set builds on recent cleanup done by the omap
+maintainers.
 
----
+At least some of this code definitely works, most features have
+been tested successfully.  Further testing, especially of Thumb-2
+behaviour, is still welcome.
 
-Index: linux-2.6.38-rc6/drivers/cbus/retu-wdt.c
-===================================================================
---- linux-2.6.38-rc6.orig/drivers/cbus/retu-wdt.c	2011-03-04 16:21:39.106113985 +0100
-+++ linux-2.6.38-rc6/drivers/cbus/retu-wdt.c	2011-03-04 16:21:48.503540758 +0100
-@@ -149,7 +149,7 @@ static long retu_wdt_ioctl(struct file *
- 	struct retu_wdt_dev *wdev = container_of(mdev, struct retu_wdt_dev, miscdev);
- 	int new_margin;
- 
--	static struct watchdog_info ident = {
-+	static const struct watchdog_info ident = {
- 		.identity = "Retu Watchdog",
- 		.options = WDIOF_SETTIMEOUT,
- 		.firmware_version = 0,
+In particular, I still have no Ack/Tested-by on the following
+patches, so it would be great if anyone who has an opportunity
+to do a final review / re-test can do so.
 
--- 
-Greetings, Michael.
+ * ARM: omap3: Convert END() to ENDPROC() for correct linkage with CONFIG_THUMB2_KERNEL
+ * ARM: omap3: Thumb-2 compatibility for sram34xx.S
+ * ARM: omap3: Thumb-2 compatibility for sleep34xx.S
 
+
+Seems to work with CONFIG_SMP_ON_UP and CONFIG_THUMB2_KERNEL
+enabled on Beagle xM A2 and Panda A1.
+
+Thanks also to Santosh Shilimkar and Kevin Hilman for their help
+with testing so far.
+
+
+v3:
+    * make SMC instruction syntax more consistent
+    * remove do_wfi() in favour of the generic wfi() macro
+
+v4:
+    * revert to the OMAP-specific do_wfi() implementation, pending
+      discussion of how generic macros can/should be provided
+
+v5:
+    * use ARM for low-level code in mach-omap2/*34xx.S, for
+      correct interoperation with non-Thumb-capable firmware.
+
+I've stripped the Acked/Tested-bys from the major patches to
+mach-omap2/*34xx.S, since the reversion to ARM constitutes a
+significant change -- I would be grateful if people could re-
+test / re-review if they have the chance.
+
+For best future compatibility, I've left the changes which
+avoid architecturally deprecated features.
+
+
+Details below.
+
+Cheers,
+Dave
+
+
+The patches can be found, along with a buildable working tree,
+in the following repo:
+
+git://git.linaro.org/people/dmart/linux-2.6-arm.git
+
+ * arm/omap-thumb2: has the patches proposed here
+ * arm/omap-thumb2+merged: additionally has some patches cherry-
+        picked from other trees which are needed in order for the
+        patches on arm/omap-thumb2 to work usefully.
+ * dirty/arm/omap-thumb2+merged: buildable test tree, which adds
+        2 local patches to work around a toolchain bug.
+
+A working kernel config for this tree is here:
+http://people.linaro.org/~dmart/arm_omap-thumb2+v2_config :
+
+  CONFIG_SMP_ON_UP=y
+  CONFIG_THUMB2_KERNEL=y
+  CONFIG_SERIAL_OMAP=y (to avoid garbage on xM; for Panda use console=ttyS2)
+
+(The config is derived from the linaro omap config and so turns on
+loads of modules -- don't feel you have to build them all...)
+
+
+Cherry-picked patches originated from Russell's devel tree
+and Tony Lindgren's omap-testing tree:
+
+http://ftp.arm.linux.org.uk/pub/linux/arm/kernel/git-cur/linux-2.6-arm.git devel
+
+git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-testing
+
+This series also depends on one un-merged patch to generic-ise
+the wfi() macro:
+
+git://git.linaro.org/people/dmart/linux-2.6-arm.git arm/wfi-macro
+
+
+Dave Martin (5):
+  ARM: omap4: Provide do_wfi() for Thumb-2
+  ARM: omap4: Convert END() to ENDPROC() for correct linkage with
+    CONFIG_THUMB2_KERNEL
+  ARM: omap3: Remove hand-encoded SMC instructions
+  ARM: omap3: Thumb-2 compatibility for sram34xx.S
+  ARM: omap3: Thumb-2 compatibility for sleep34xx.S
+
+ arch/arm/mach-omap2/include/mach/omap4-common.h |    4 ++
+ arch/arm/mach-omap2/omap-headsmp.S              |    2 +-
+ arch/arm/mach-omap2/omap44xx-smc.S              |    8 ++--
+ arch/arm/mach-omap2/sleep34xx.S                 |   62 ++++++++++++++++++----
+ arch/arm/mach-omap2/sram34xx.S                  |   36 ++++++++++---
+ 5 files changed, 87 insertions(+), 25 deletions(-)
 
