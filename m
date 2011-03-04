@@ -1,96 +1,98 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v11 2/8] OMAP4: hwmod data: add dmtimer version information
-Date: Thu, 03 Mar 2011 16:24:11 -0800
-Message-ID: <871v2npwb8.fsf@ti.com>
+Subject: Re: [PATCH v11 5/8] OMAP: dmtimer: platform driver
+Date: Thu, 03 Mar 2011 16:35:03 -0800
+Message-ID: <87mxlboh8o.fsf@ti.com>
 References: <1298546811-27055-1-git-send-email-tarun.kanti@ti.com>
-	<1298546811-27055-3-git-send-email-tarun.kanti@ti.com>
+	<1298546811-27055-6-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:37520 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751120Ab1CDAYP convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 3 Mar 2011 19:24:15 -0500
-Received: by pve39 with SMTP id 39so243780pve.3
-        for <linux-omap@vger.kernel.org>; Thu, 03 Mar 2011 16:24:14 -0800 (PST)
-In-Reply-To: <1298546811-27055-3-git-send-email-tarun.kanti@ti.com> (Tarun
-	Kanti DebBarma's message of "Thu, 24 Feb 2011 16:56:45 +0530")
+Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:48132 "EHLO
+	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758891Ab1CDAfH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Mar 2011 19:35:07 -0500
+Received: by mail-gw0-f50.google.com with SMTP id a20so890579gwa.9
+        for <linux-omap@vger.kernel.org>; Thu, 03 Mar 2011 16:35:06 -0800 (PST)
+In-Reply-To: <1298546811-27055-6-git-send-email-tarun.kanti@ti.com> (Tarun
+	Kanti DebBarma's message of "Thu, 24 Feb 2011 16:56:48 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Cc: linux-omap@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Thara Gopinath <thara@ti.com>
 
 Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
 
-> OMAP4 has two groups of timers: version 1 timers are 1, 2, 10,
-> while the rest of the timers, 3-9, 11 are version 2 timers.
-> The version information is required by the driver so that they
-> could be handled correctly by it.
+> From: Thara Gopinath <thara@ti.com>
+>
+> Add dmtimer platform driver functions which include:
+> (1) platform driver initialization
+> (2) driver probe function
+> (3) driver remove function
 >
 > Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+> Signed-off-by: Thara Gopinath <thara@ti.com>
+> Acked-by: Cousson, Benoit <b-cousson@ti.com>
 
-Minor comment below, also needs an ack from Beno=C3=AEt...
+Some locking issues below...
 
 > ---
->  arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    3 +++
->  arch/arm/plat-omap/include/plat/dmtimer.h  |    2 ++
->  2 files changed, 5 insertions(+), 0 deletions(-)
+>  arch/arm/plat-omap/dmtimer.c              |  167 ++++++++++++++++++++++++++++-
+>  arch/arm/plat-omap/include/plat/dmtimer.h |    2 +
+>  2 files changed, 168 insertions(+), 1 deletions(-)
 >
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/ma=
-ch-omap2/omap_hwmod_44xx_data.c
-> index 79a8601..ee57742 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> @@ -25,6 +25,7 @@
->  #include <plat/gpio.h>
->  #include <plat/dma.h>
->  #include <plat/mcspi.h>
-> +#include <plat/dmtimer.h>
-> =20
->  #include "omap_hwmod_common_data.h"
-> =20
-> @@ -3940,6 +3941,7 @@ static struct omap_hwmod_class_sysconfig omap44=
-xx_timer_1ms_sysc =3D {
->  static struct omap_hwmod_class omap44xx_timer_1ms_hwmod_class =3D {
->  	.name	=3D "timer",
->  	.sysc	=3D &omap44xx_timer_1ms_sysc,
-> +	.rev =3D OMAP_TIMER_IP_VERSION_1,
+> diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
+> index 1bfaf09..bfe6fd3 100644
+> --- a/arch/arm/plat-omap/dmtimer.c
+> +++ b/arch/arm/plat-omap/dmtimer.c
+> @@ -43,6 +43,9 @@
+>  #include <linux/delay.h>
+>  #include <linux/io.h>
+>  #include <linux/module.h>
+> +#include <linux/slab.h>
+> +#include <linux/err.h>
+> +#include <linux/platform_device.h>
+>  #include <mach/hardware.h>
+>  #include <plat/dmtimer.h>
+>  #include <mach/irqs.h>
+> @@ -257,7 +260,8 @@ static struct omap_dm_timer *dm_timers;
+>  static const char **dm_source_names;
+>  static struct clk **dm_source_clocks;
+>  
+> -static spinlock_t dm_timer_lock;
+> +static LIST_HEAD(omap_timer_list);
+> +static DEFINE_SPINLOCK(dm_timer_lock);
 
-Please use tab and align '=3D' with above lines.
+This spinlock is being used as a mutex.  Please use a mutex instead.
 
->  };
-> =20
->  static struct omap_hwmod_class_sysconfig omap44xx_timer_sysc =3D {
-> @@ -3955,6 +3957,7 @@ static struct omap_hwmod_class_sysconfig omap44=
-xx_timer_sysc =3D {
->  static struct omap_hwmod_class omap44xx_timer_hwmod_class =3D {
->  	.name	=3D "timer",
->  	.sysc	=3D &omap44xx_timer_sysc,
-> +	.rev =3D OMAP_TIMER_IP_VERSION_2,
-
-ditto
-
->  };
-> =20
->  /* timer1 */
-> diff --git a/arch/arm/plat-omap/include/plat/dmtimer.h b/arch/arm/pla=
-t-omap/include/plat/dmtimer.h
-> index d6c70d2..05a967e 100644
-> --- a/arch/arm/plat-omap/include/plat/dmtimer.h
-> +++ b/arch/arm/plat-omap/include/plat/dmtimer.h
-> @@ -55,6 +55,8 @@
->   * in OMAP4 can be distinguished.
->   */
->  #define OMAP_TIMER_IP_VERSION_1                        0x1
-> +#define OMAP_TIMER_IP_VERSION_2                        0x2
+>  /*
+>   * Reads timer registers in posted and non-posted mode. The posted mode bit
+> @@ -689,6 +693,167 @@ int omap_dm_timers_active(void)
+>  }
+>  EXPORT_SYMBOL_GPL(omap_dm_timers_active);
+>  
+> +/**
+> + * omap_dm_timer_probe - probe function called for every registered device
+> + * @pdev:	pointer to current timer platform device
+> + *
+> + * Called by driver framework at the end of device registration for all
+> + * timer devices.
+> + */
+> +static int __devinit omap_dm_timer_probe(struct platform_device *pdev)
+> +{
+> +	int ret;
+> +	unsigned long flags;
+> +	struct omap_dm_timer *timer;
+> +	struct resource *mem, *irq, *ioarea;
+> +	struct dmtimer_platform_data *pdata = pdev->dev.platform_data;
 > +
->  struct omap_dm_timer;
->  extern struct omap_dm_timer *gptimer_wakeup;
->  extern struct sys_timer omap_timer;
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> +	if (!pdata) {
+> +		dev_err(&pdev->dev, "%s: no platform data\n", __func__);
+> +		return -ENODEV;
+> +	}
+> +
+> +	spin_lock_irqsave(&dm_timer_lock, flags);
+
+Why do you need IRQ versions of the locks?   This lock is never used in
+interrupt context.
+
+Kevin
