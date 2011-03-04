@@ -1,23 +1,21 @@
 From: Michael Buesch <mb@bu3sch.de>
-Subject: [PATCH] cbus-retu-wdt: Store all data in device struct
-Date: Fri, 04 Mar 2011 16:32:59 +0100
-Message-ID: <1299252779.21644.11.camel@marge>
+Subject: [PATCH] cbus-retu-wdt: Constify watchdog_info structure
+Date: Fri, 04 Mar 2011 16:33:27 +0100
+Message-ID: <1299252807.21644.12.camel@marge>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 80-190-117-144.ip-home.de ([80.190.117.144]:45703 "EHLO
+Received: from 80-190-117-144.ip-home.de ([80.190.117.144]:45706 "EHLO
 	bu3sch.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759459Ab1CDPdF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 4 Mar 2011 10:33:05 -0500
+	id S1750800Ab1CDPda (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 4 Mar 2011 10:33:30 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: Felipe Balbi <balbi@ti.com>, linux-omap <linux-omap@vger.kernel.org>
 
-Get rid of all static global variables and store all
-information in the device structure. This cleans up
-the random mixup of information storage (struct vs static).
+Nobody modifies the watchdog_info structure, so make it const.
 
 Signed-off-by: Michael Buesch <mb@bu3sch.de>
 
@@ -25,196 +23,17 @@ Signed-off-by: Michael Buesch <mb@bu3sch.de>
 
 Index: linux-2.6.38-rc6/drivers/cbus/retu-wdt.c
 ===================================================================
---- linux-2.6.38-rc6.orig/drivers/cbus/retu-wdt.c	2011-03-04 16:22:03.524019824 +0100
-+++ linux-2.6.38-rc6/drivers/cbus/retu-wdt.c	2011-03-04 16:22:31.186357952 +0100
-@@ -7,6 +7,8 @@
-  *
-  * Written by Amit Kucheria <amit.kucheria@nokia.com>
-  *
-+ * Cleanups by Michael Buesch <mb@bu3sch.de> (C) 2011
-+ *
-  * This file is subject to the terms and conditions of the GNU General
-  * Public License. See the file "COPYING" in the main directory of this
-  * archive for more details.
-@@ -48,37 +50,31 @@
- #define RETU_WDT_DEFAULT_TIMER 32
- #define RETU_WDT_MAX_TIMER 63
- 
--static DEFINE_MUTEX(retu_wdt_mutex);
--
--/* Current period of watchdog */
--static unsigned int period_val = RETU_WDT_DEFAULT_TIMER;
--
- struct retu_wdt_dev {
- 	struct device		*dev;
-+	unsigned int		period_val;	/* Current period of watchdog */
- 	unsigned long		users;
--	struct miscdevice	retu_wdt_miscdev;
-+	struct miscdevice	miscdev;
- 	struct delayed_work	ping_work;
-+	struct mutex		mutex;
- };
- 
--static struct retu_wdt_dev *retu_wdt;
- 
--static int _retu_modify_counter(unsigned int new)
-+static inline void _retu_modify_counter(struct retu_wdt_dev *wdev,
-+					unsigned int new)
- {
--	if (retu_wdt)
--		retu_write_reg(retu_wdt->dev, RETU_REG_WATCHDOG, (u16)new);
--
--	return 0;
-+	retu_write_reg(wdev->dev, RETU_REG_WATCHDOG, (u16)new);
- }
- 
--static int retu_modify_counter(unsigned int new)
-+static int retu_modify_counter(struct retu_wdt_dev *wdev, unsigned int new)
- {
- 	if (new < RETU_WDT_MIN_TIMER || new > RETU_WDT_MAX_TIMER)
- 		return -EINVAL;
- 
--	mutex_lock(&retu_wdt_mutex);
--	period_val = new;
--	_retu_modify_counter(period_val);
--	mutex_unlock(&retu_wdt_mutex);
-+	mutex_lock(&wdev->mutex);
-+	wdev->period_val = new;
-+	_retu_modify_counter(wdev, wdev->period_val);
-+	mutex_unlock(&wdev->mutex);
- 
- 	return 0;
- }
-@@ -90,14 +86,14 @@ static int retu_modify_counter(unsigned
-  */
- static void retu_wdt_ping_enable(struct retu_wdt_dev *wdev)
- {
--	_retu_modify_counter(RETU_WDT_MAX_TIMER);
-+	_retu_modify_counter(wdev, RETU_WDT_MAX_TIMER);
- 	schedule_delayed_work(&wdev->ping_work,
- 			      round_jiffies_relative(RETU_WDT_DEFAULT_TIMER * HZ));
- }
- 
- static void retu_wdt_ping_disable(struct retu_wdt_dev *wdev)
- {
--	_retu_modify_counter(RETU_WDT_MAX_TIMER);
-+	_retu_modify_counter(wdev, RETU_WDT_MAX_TIMER);
- 	cancel_delayed_work_sync(&wdev->ping_work);
- }
- 
-@@ -110,18 +106,21 @@ static void retu_wdt_ping_work(struct wo
- 
- static int retu_wdt_open(struct inode *inode, struct file *file)
- {
--	if (test_and_set_bit(0, &retu_wdt->users))
-+	struct miscdevice *mdev = file->private_data;
-+	struct retu_wdt_dev *wdev = container_of(mdev, struct retu_wdt_dev, miscdev);
-+
-+	if (test_and_set_bit(0, &wdev->users))
- 		return -EBUSY;
- 
--	file->private_data = (void *)retu_wdt;
--	retu_wdt_ping_disable(retu_wdt);
-+	retu_wdt_ping_disable(wdev);
- 
- 	return nonseekable_open(inode, file);
- }
- 
- static int retu_wdt_release(struct inode *inode, struct file *file)
- {
--	struct retu_wdt_dev *wdev = file->private_data;
-+	struct miscdevice *mdev = file->private_data;
-+	struct retu_wdt_dev *wdev = container_of(mdev, struct retu_wdt_dev, miscdev);
- 
- #ifndef CONFIG_WATCHDOG_NOWAYOUT
- 	retu_wdt_ping_enable(wdev);
-@@ -134,8 +133,11 @@ static int retu_wdt_release(struct inode
- static ssize_t retu_wdt_write(struct file *file, const char __user *data,
- 						size_t len, loff_t *ppos)
- {
-+	struct miscdevice *mdev = file->private_data;
-+	struct retu_wdt_dev *wdev = container_of(mdev, struct retu_wdt_dev, miscdev);
-+
- 	if (len)
--		retu_modify_counter(RETU_WDT_MAX_TIMER);
-+		retu_modify_counter(wdev, RETU_WDT_MAX_TIMER);
- 
- 	return len;
- }
-@@ -143,6 +145,8 @@ static ssize_t retu_wdt_write(struct fil
- static long retu_wdt_ioctl(struct file *file, unsigned int cmd,
- 			   unsigned long arg)
- {
-+	struct miscdevice *mdev = file->private_data;
-+	struct retu_wdt_dev *wdev = container_of(mdev, struct retu_wdt_dev, miscdev);
+--- linux-2.6.38-rc6.orig/drivers/cbus/retu-wdt.c	2011-03-04 16:21:39.106113985 +0100
++++ linux-2.6.38-rc6/drivers/cbus/retu-wdt.c	2011-03-04 16:21:48.503540758 +0100
+@@ -149,7 +149,7 @@ static long retu_wdt_ioctl(struct file *
+ 	struct retu_wdt_dev *wdev = container_of(mdev, struct retu_wdt_dev, miscdev);
  	int new_margin;
  
- 	static struct watchdog_info ident = {
-@@ -167,15 +171,15 @@ static long retu_wdt_ioctl(struct file *
- 			return put_user(omap_prcm_get_reset_sources(),
- 					(int __user *)arg);
- 	case WDIOC_KEEPALIVE:
--		retu_modify_counter(RETU_WDT_MAX_TIMER);
-+		retu_modify_counter(wdev, RETU_WDT_MAX_TIMER);
- 		break;
- 	case WDIOC_SETTIMEOUT:
- 		if (get_user(new_margin, (int __user *)arg))
- 			return -EFAULT;
--		retu_modify_counter(new_margin);
-+		retu_modify_counter(wdev, new_margin);
- 		/* Fall through */
- 	case WDIOC_GETTIMEOUT:
--		return put_user(period_val, (int __user *)arg);
-+		return put_user(wdev->period_val, (int __user *)arg);
- 	}
- 
- 	return 0;
-@@ -199,15 +203,17 @@ static int __init retu_wdt_probe(struct
- 		return -ENOMEM;
- 
- 	wdev->dev = &pdev->dev;
-+	wdev->period_val = RETU_WDT_DEFAULT_TIMER;
-+	mutex_init(&wdev->mutex);
- 
- 	platform_set_drvdata(pdev, wdev);
--	retu_wdt = wdev;
--	wdev->retu_wdt_miscdev.parent = &pdev->dev;
--	wdev->retu_wdt_miscdev.minor = WATCHDOG_MINOR;
--	wdev->retu_wdt_miscdev.name = "watchdog";
--	wdev->retu_wdt_miscdev.fops = &retu_wdt_fops;
- 
--	ret = misc_register(&(wdev->retu_wdt_miscdev));
-+	wdev->miscdev.parent = &pdev->dev;
-+	wdev->miscdev.minor = WATCHDOG_MINOR;
-+	wdev->miscdev.name = "watchdog";
-+	wdev->miscdev.fops = &retu_wdt_fops;
-+
-+	ret = misc_register(&wdev->miscdev);
- 	if (ret)
- 		goto err_free_wdev;
- 
-@@ -216,9 +222,9 @@ static int __init retu_wdt_probe(struct
- 	/* Kick the watchdog for kernel booting to finish.
- 	 * If nowayout is not set, we start the ping work. */
- #ifdef CONFIG_WATCHDOG_NOWAYOUT
--	retu_modify_counter(RETU_WDT_MAX_TIMER);
-+	retu_modify_counter(wdev, RETU_WDT_MAX_TIMER);
- #else
--	retu_wdt_ping_enable(retu_wdt);
-+	retu_wdt_ping_enable(wdev);
- #endif
- 
- 	return 0;
-@@ -234,7 +240,7 @@ static int __devexit retu_wdt_remove(str
- 	struct retu_wdt_dev *wdev;
- 
- 	wdev = platform_get_drvdata(pdev);
--	misc_deregister(&wdev->retu_wdt_miscdev);
-+	misc_deregister(&wdev->miscdev);
- 	cancel_delayed_work_sync(&wdev->ping_work);
- 	kfree(wdev);
- 
-
+-	static struct watchdog_info ident = {
++	static const struct watchdog_info ident = {
+ 		.identity = "Retu Watchdog",
+ 		.options = WDIOF_SETTIMEOUT,
+ 		.firmware_version = 0,
 
 -- 
 Greetings, Michael.
