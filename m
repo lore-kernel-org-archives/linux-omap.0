@@ -1,45 +1,28 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH] OMAP4: DSS2: Clock source changes for OMAP4
-Date: Fri,  4 Mar 2011 16:32:44 +0530
-Message-ID: <1299236564-1021-1-git-send-email-archit@ti.com>
+Subject: [PATCH] OMAP: DSS2: FEATURES: DSI PLL parameter cleanup
+Date: Fri,  4 Mar 2011 16:33:45 +0530
+Message-ID: <1299236625-1057-1-git-send-email-archit@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51907 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752084Ab1CDK7d (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Mar 2011 05:59:33 -0500
-Received: from dlep36.itg.ti.com ([157.170.170.91])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p24AxWpH008157
+Received: from comal.ext.ti.com ([198.47.26.152]:40665 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752084Ab1CDLAg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 4 Mar 2011 06:00:36 -0500
+Received: from dlep34.itg.ti.com ([157.170.170.115])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p24B0ZLX031016
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 4 Mar 2011 04:59:32 -0600
+	for <linux-omap@vger.kernel.org>; Fri, 4 Mar 2011 05:00:36 -0600
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com
 Cc: linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-On OMAP3, the pixel clock for the LCD manager was derived through DISPC_FCLK as:
+The DSI PLL parameters (regm, regn, regm_dispc, regm_dsi, fint) have different
+fields and also different Max values on OMAP3 and OMAP4. Use dss features to
+calculate the register fields and Max values based on current OMAP revision
 
-Lcd Pixel clock = DISPC_FCLK / lcd / pcd
-
-Where lcd and pcd are divisors in the DISPC_DIVISOR register.
-
-On OMAP4, the pixel clocks for LCD1 and LCD2 managers are derived from 2 new
-clocks named LCD1_CLK and LCD2_CLK. The pixel clocks are calculated as:
-
-Lcd_o Pixel clock = LCDo_CLK / lcdo /pcdo, o = 1, 2
-
-Where lcdo and pcdo registers are divisors in DISPC_DIVISORo registers.
-
-LCD1_CLK and LCD2_CLK can have DSS_FCLK, and the M4 divider clocks of DSI1 PLL
-and DSI2 PLL as clock sources respectively. Introduce functions to select and
-get the clock source for these new clocks. Modify DISPC functions get the
-correct lck and pck rates based on the clock source of these clocks.
-
-Currently, LCD2_CLK can only have DSS_FCLK as its clock source as DSI2 PLL
-functionality hasn't been introduced yet. BUG for now if DSI2 PLL is selected as
-clock.
-
-Also, clean up some of the DSS functions which select clock sources to switch on
-clock source members as more clock sources will be introduced later on.
+Also, introduce a new function in dss_features "dss_feat_get_param_range" which
+returns the maximum and minimum values supported by the parameter for
+the current OMAP revision.
 
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
@@ -47,389 +30,334 @@ Note: Applies over:
 
 http://gitorious.org/linux-omap-dss2/linux/commits/master
 
- drivers/video/omap2/dss/dispc.c        |   48 ++++++++++++++++---
- drivers/video/omap2/dss/dss.c          |   78 ++++++++++++++++++++++++++------
- drivers/video/omap2/dss/dss.h          |   26 +++++++----
- drivers/video/omap2/dss/dss_features.c |   13 +++++-
- drivers/video/omap2/dss/dss_features.h |    3 +
- 5 files changed, 135 insertions(+), 33 deletions(-)
+and the patch submitted on l-o:
+OMAP4: DSS2: Clock source changes for OMAP4
 
-diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-index dae9686..7b4392b 100644
---- a/drivers/video/omap2/dss/dispc.c
-+++ b/drivers/video/omap2/dss/dispc.c
-@@ -2341,14 +2341,21 @@ unsigned long dispc_fclk_rate(void)
- {
- 	unsigned long r = 0;
+ drivers/video/omap2/dss/dsi.c          |   75 +++++++++++++++++++++++---------
+ drivers/video/omap2/dss/dss_features.c |   40 +++++++++++++++++
+ drivers/video/omap2/dss/dss_features.h |    9 ++++
+ 3 files changed, 103 insertions(+), 21 deletions(-)
+
+diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
+index be7694f..e7d6169 100644
+--- a/drivers/video/omap2/dss/dsi.c
++++ b/drivers/video/omap2/dss/dsi.c
+@@ -185,13 +185,8 @@ struct dsi_reg { u16 idx; };
+ #define DSI_DT_RX_SHORT_READ_1		0x21
+ #define DSI_DT_RX_SHORT_READ_2		0x22
  
--	if (dss_get_dispc_clk_source() == DSS_CLK_SRC_FCK)
-+	switch (dss_get_dispc_clk_source()) {
-+	case DSS_CLK_SRC_FCK:
- 		r = dss_clk_get_rate(DSS_CLK_FCK);
--	else
-+		break;
- #ifdef CONFIG_OMAP2_DSS_DSI
-+	case DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC:
- 		r = dsi_get_pll_hsdiv_dispc_rate();
-+		break;
- #else
--	BUG();
-+	case DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC:
-+		BUG();
+-#define FINT_MAX 2100000
+-#define FINT_MIN 750000
+-#define REGN_MAX (1 << 7)
+-#define REGM_MAX ((1 << 11) - 1)
+-#define REGM_DISPC_MAX (1 << 4)
+-#define REGM_DSI_MAX (1 << 4)
+ #define LP_DIV_MAX ((1 << 13) - 1)
++#define DSI_PARAM_MAX(start, end)	((1 << (start - end + 1)) - 1)
+ 
+ enum fifo_size {
+ 	DSI_FIFO_SIZE_0		= 0,
+@@ -277,6 +272,10 @@ static struct
+ 	spinlock_t irq_stats_lock;
+ 	struct dsi_irq_stats irq_stats;
  #endif
-+	default:
-+		BUG();
-+	}
- 	return r;
- }
++	/* DSI PLL Parameter Ranges */
++	int regm_max, regn_max;
++	int regm_dispc_max, regm_dsi_max;
++	int fint_min, fint_max;
+ } dsi;
  
-@@ -2362,25 +2369,35 @@ unsigned long dispc_lclk_rate(enum omap_channel channel)
- 
- 	lcd = FLD_GET(l, 23, 16);
- 
--	r = dispc_fclk_rate();
-+	if (dss_has_feature(FEAT_LCD_CLK_SRC)) {
-+		if (dss_get_lcd_clk_source(channel) == DSS_CLK_SRC_FCK)
-+			r = dss_clk_get_rate(DSS_CLK_FCK);
-+		else
-+#ifdef CONFIG_OMAP2_DSS_DSI
-+			r = dsi_get_pll_hsdiv_dispc_rate();
-+#else
-+			BUG();
-+#endif
-+	} else {
-+		r = dispc_fclk_rate();
-+	}
- 
- 	return r / lcd;
- }
- 
- unsigned long dispc_pclk_rate(enum omap_channel channel)
+ #ifdef DEBUG
+@@ -801,16 +800,16 @@ static int dsi_pll_power(enum dsi_pll_power_state state)
+ static int dsi_calc_clock_rates(struct omap_dss_device *dssdev,
+ 		struct dsi_clock_info *cinfo)
  {
--	int lcd, pcd;
-+	int pcd;
- 	unsigned long r;
+-	if (cinfo->regn == 0 || cinfo->regn > REGN_MAX)
++	if (cinfo->regn == 0 || cinfo->regn > dsi.regn_max)
+ 		return -EINVAL;
+ 
+-	if (cinfo->regm == 0 || cinfo->regm > REGM_MAX)
++	if (cinfo->regm == 0 || cinfo->regm > dsi.regm_max)
+ 		return -EINVAL;
+ 
+-	if (cinfo->regm_dispc > REGM_DISPC_MAX)
++	if (cinfo->regm_dispc > dsi.regm_dispc_max)
+ 		return -EINVAL;
+ 
+-	if (cinfo->regm_dsi > REGM_DSI_MAX)
++	if (cinfo->regm_dsi > dsi.regm_dsi_max)
+ 		return -EINVAL;
+ 
+ 	if (cinfo->use_sys_clk) {
+@@ -829,7 +828,7 @@ static int dsi_calc_clock_rates(struct omap_dss_device *dssdev,
+ 
+ 	cinfo->fint = cinfo->clkin / (cinfo->regn * (cinfo->highfreq ? 2 : 1));
+ 
+-	if (cinfo->fint > FINT_MAX || cinfo->fint < FINT_MIN)
++	if (cinfo->fint > dsi.fint_max || cinfo->fint < dsi.fint_min)
+ 		return -EINVAL;
+ 
+ 	cinfo->clkin4ddr = 2 * cinfo->regm * cinfo->fint;
+@@ -899,17 +898,17 @@ retry:
+ 	/* no highfreq: 0.75MHz < Fint = clkin / regn < 2.1MHz */
+ 	/* highfreq: 0.75MHz < Fint = clkin / (2*regn) < 2.1MHz */
+ 	/* To reduce PLL lock time, keep Fint high (around 2 MHz) */
+-	for (cur.regn = 1; cur.regn < REGN_MAX; ++cur.regn) {
++	for (cur.regn = 1; cur.regn < dsi.regn_max; ++cur.regn) {
+ 		if (cur.highfreq == 0)
+ 			cur.fint = cur.clkin / cur.regn;
+ 		else
+ 			cur.fint = cur.clkin / (2 * cur.regn);
+ 
+-		if (cur.fint > FINT_MAX || cur.fint < FINT_MIN)
++		if (cur.fint > dsi.fint_max || cur.fint < dsi.fint_min)
+ 			continue;
+ 
+ 		/* DSIPHY(MHz) = (2 * regm / regn) * (clkin / (highfreq + 1)) */
+-		for (cur.regm = 1; cur.regm < REGM_MAX; ++cur.regm) {
++		for (cur.regm = 1; cur.regm < dsi.regm_max; ++cur.regm) {
+ 			unsigned long a, b;
+ 
+ 			a = 2 * cur.regm * (cur.clkin/1000);
+@@ -921,8 +920,8 @@ retry:
+ 
+ 			/* dsi_pll_hsdiv_dispc_clk(MHz) =
+ 			 * DSIPHY(MHz) / regm_dispc  < 173MHz/186Mhz */
+-			for (cur.regm_dispc = 1; cur.regm_dispc < REGM_DISPC_MAX;
+-					++cur.regm_dispc) {
++			for (cur.regm_dispc = 1; cur.regm_dispc <
++					dsi.regm_dispc_max; ++cur.regm_dispc) {
+ 				struct dispc_clock_info cur_dispc;
+ 				cur.dsi_pll_hsdiv_dispc_clk =
+ 					cur.clkin4ddr / cur.regm_dispc;
+@@ -994,6 +993,8 @@ int dsi_pll_set_clock_div(struct dsi_clock_info *cinfo)
+ 	int r = 0;
  	u32 l;
+ 	int f;
++	u8 regn_start, regn_end, regm_start, regm_end;
++	u8 regm_dispc_start, regm_dispc_end, regm_dsi_start, regm_dsi_end;
  
- 	l = dispc_read_reg(DISPC_DIVISORo(channel));
+ 	DSSDBGF();
  
--	lcd = FLD_GET(l, 23, 16);
- 	pcd = FLD_GET(l, 7, 0);
+@@ -1038,19 +1039,30 @@ int dsi_pll_set_clock_div(struct dsi_clock_info *cinfo)
+ 		dss_feat_get_clk_source_name(DSS_CLK_SRC_DSI_PLL_HSDIV_DSI),
+ 		cinfo->dsi_pll_hsdiv_dsi_clk);
  
--	r = dispc_fclk_rate();
-+	r = dispc_lclk_rate(channel);
++	dss_feat_get_reg_field(FEAT_REG_DSIPLL_REGN, &regn_start, &regn_end);
++	dss_feat_get_reg_field(FEAT_REG_DSIPLL_REGM, &regm_start, &regm_end);
++	dss_feat_get_reg_field(FEAT_REG_DSIPLL_REGM_DISPC, &regm_dispc_start,
++			&regm_dispc_end);
++	dss_feat_get_reg_field(FEAT_REG_DSIPLL_REGM_DSI, &regm_dsi_start,
++			&regm_dsi_end);
++
+ 	REG_FLD_MOD(DSI_PLL_CONTROL, 0, 0, 0); /* DSI_PLL_AUTOMODE = manual */
  
--	return r / lcd / pcd;
-+	return r / pcd;
+ 	l = dsi_read_reg(DSI_PLL_CONFIGURATION1);
+ 	l = FLD_MOD(l, 1, 0, 0);		/* DSI_PLL_STOPMODE */
+-	l = FLD_MOD(l, cinfo->regn - 1, 7, 1);	/* DSI_PLL_REGN */
+-	l = FLD_MOD(l, cinfo->regm, 18, 8);	/* DSI_PLL_REGM */
++	/* DSI_PLL_REGN */
++	l = FLD_MOD(l, cinfo->regn - 1, regn_start, regn_end);
++	/* DSI_PLL_REGM */
++	l = FLD_MOD(l, cinfo->regm, regm_start, regm_end);
++	/* DSI_CLOCK_DIV */
+ 	l = FLD_MOD(l, cinfo->regm_dispc > 0 ? cinfo->regm_dispc - 1 : 0,
+-			22, 19);		/* DSI_CLOCK_DIV */
++			regm_dispc_start, regm_dispc_end);
++	/* DSIPROTO_CLOCK_DIV */
+ 	l = FLD_MOD(l, cinfo->regm_dsi > 0 ? cinfo->regm_dsi - 1 : 0,
+-			26, 23);		/* DSIPROTO_CLOCK_DIV */
++			regm_dsi_start, regm_dsi_end);
+ 	dsi_write_reg(DSI_PLL_CONFIGURATION1, l);
+ 
+-	BUG_ON(cinfo->fint < 750000 || cinfo->fint > 2100000);
++	BUG_ON(cinfo->fint < dsi.fint_min || cinfo->fint > dsi.fint_max);
+ 	if (cinfo->fint < 1000000)
+ 		f = 0x3;
+ 	else if (cinfo->fint < 1250000)
+@@ -3333,6 +3345,25 @@ void dsi_wait_pll_hsdiv_dsi_active(void)
+ 			dss_feat_get_clk_source_name(DSS_CLK_SRC_DSI_PLL_HSDIV_DSI));
  }
  
- void dispc_dump_clocks(struct seq_file *s)
-@@ -2388,6 +2405,7 @@ void dispc_dump_clocks(struct seq_file *s)
- 	int lcd, pcd;
- 	u32 l;
- 	enum dss_clk_source dispc_clk_src = dss_get_dispc_clk_source();
-+	enum dss_clk_source lcd_clk_src;
- 
- 	enable_clocks(1);
- 
-@@ -2409,6 +2427,14 @@ void dispc_dump_clocks(struct seq_file *s)
- 	}
- 	seq_printf(s, "- LCD1 -\n");
- 
-+	if (dss_has_feature(FEAT_LCD_CLK_SRC)) {
-+		lcd_clk_src = dss_get_lcd_clk_source(OMAP_DSS_CHANNEL_LCD);
-+
-+		seq_printf(s, "lcd1_clk source = %s (%s)\n",
-+			dss_get_generic_clk_source_name(lcd_clk_src),
-+			dss_feat_get_clk_source_name(lcd_clk_src));
-+	}
-+
- 	dispc_get_lcd_divisor(OMAP_DSS_CHANNEL_LCD, &lcd, &pcd);
- 
- 	seq_printf(s, "lck\t\t%-16lulck div\t%u\n",
-@@ -2418,6 +2444,12 @@ void dispc_dump_clocks(struct seq_file *s)
- 	if (dss_has_feature(FEAT_MGR_LCD2)) {
- 		seq_printf(s, "- LCD2 -\n");
- 
-+		lcd_clk_src = dss_get_lcd_clk_source(OMAP_DSS_CHANNEL_LCD2);
-+
-+		seq_printf(s, "lcd2_clk source = %s (%s)\n",
-+			dss_get_generic_clk_source_name(lcd_clk_src),
-+			dss_feat_get_clk_source_name(lcd_clk_src));
-+
- 		dispc_get_lcd_divisor(OMAP_DSS_CHANNEL_LCD2, &lcd, &pcd);
- 
- 		seq_printf(s, "lck\t\t%-16lulck div\t%u\n",
-diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
-index 2be4d03..cfffa88 100644
---- a/drivers/video/omap2/dss/dss.c
-+++ b/drivers/video/omap2/dss/dss.c
-@@ -77,6 +77,7 @@ static struct {
- 
- 	enum dss_clk_source dsi_clk_source;
- 	enum dss_clk_source dispc_clk_source;
-+	enum dss_clk_source lcd_clk_source[MAX_DSS_LCD_MANAGERS];
- 
- 	u32		ctx[DSS_SZ_REGS / sizeof(u32)];
- } dss;
-@@ -292,16 +293,23 @@ void dss_dump_regs(struct seq_file *s)
- void dss_select_dispc_clk_source(enum dss_clk_source clk_src)
- {
- 	int b;
--
--	BUG_ON(clk_src != DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC &&
--			clk_src != DSS_CLK_SRC_FCK);
--
--	b = clk_src == DSS_CLK_SRC_FCK ? 0 : 1;
--
--	if (clk_src == DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC)
++static void dsi_calc_clock_param_ranges(void)
++{
 +	u8 start, end;
 +
-+	switch (clk_src) {
-+	case DSS_CLK_SRC_FCK:
-+		b = 0;
-+		break;
-+	case DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC:
-+		b = 1;
- 		dsi_wait_pll_hsdiv_dispc_active();
-+		break;
-+	default:
-+		BUG();
-+	}
++	dss_feat_get_reg_field(FEAT_REG_DSIPLL_REGM, &start, &end);
++	dsi.regm_max = DSI_PARAM_MAX(start, end);
 +
-+	dss_feat_get_reg_field(FEAT_REG_DISPC_CLK_SWITCH, &start, &end);
- 
--	REG_FLD_MOD(DSS_CONTROL, b, 0, 0);	/* DISPC_CLK_SWITCH */
-+	REG_FLD_MOD(DSS_CONTROL, b, start, end);	/* DISPC_CLK_SWITCH */
- 
- 	dss.dispc_clk_source = clk_src;
- }
-@@ -310,19 +318,50 @@ void dss_select_dsi_clk_source(enum dss_clk_source clk_src)
- {
- 	int b;
- 
--	BUG_ON(clk_src != DSS_CLK_SRC_DSI_PLL_HSDIV_DSI &&
--			clk_src != DSS_CLK_SRC_FCK);
--
--	b = clk_src == DSS_CLK_SRC_FCK ? 0 : 1;
--
--	if (clk_src == DSS_CLK_SRC_DSI_PLL_HSDIV_DSI)
-+	switch (clk_src) {
-+	case DSS_CLK_SRC_FCK:
-+		b = 0;
-+		break;
-+	case DSS_CLK_SRC_DSI_PLL_HSDIV_DSI:
-+		b = 1;
- 		dsi_wait_pll_hsdiv_dsi_active();
-+		break;
-+	default:
-+		BUG();
-+	}
- 
- 	REG_FLD_MOD(DSS_CONTROL, b, 1, 1);	/* DSI_CLK_SWITCH */
- 
- 	dss.dsi_clk_source = clk_src;
- }
- 
-+void dss_select_lcd_clk_source(enum omap_channel channel,
-+		enum dss_clk_source clk_src)
-+{
-+	int b, ix, pos;
++	dss_feat_get_reg_field(FEAT_REG_DSIPLL_REGN, &start, &end);
++	dsi.regn_max = DSI_PARAM_MAX(start, end);
 +
-+	switch (clk_src) {
-+	case DSS_CLK_SRC_FCK:
-+		b = 0;
-+		break;
-+	case DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC:
-+		BUG_ON(channel != OMAP_DSS_CHANNEL_LCD);
-+		b = 1;
-+		dsi_wait_pll_hsdiv_dispc_active();
-+		break;
-+	default:
-+		BUG();
-+	}
++	dss_feat_get_reg_field(FEAT_REG_DSIPLL_REGM_DISPC, &start, &end);
++	dsi.regm_dispc_max = DSI_PARAM_MAX(start, end);
 +
-+	pos = channel == OMAP_DSS_CHANNEL_LCD ? 0 : 12;
++	dss_feat_get_reg_field(FEAT_REG_DSIPLL_REGM_DSI, &start, &end);
++	dsi.regm_dsi_max = DSI_PARAM_MAX(start, end);
 +
-+	REG_FLD_MOD(DSS_CONTROL, b, pos, pos);	/* LCDx_CLK_SWITCH */
-+
-+	ix = channel == OMAP_DSS_CHANNEL_LCD ? 0 : 1;
-+
-+	dss.lcd_clk_source[ix] = clk_src;
++	dss_feat_get_param_range(FEAT_DSI_FINT, &dsi.fint_min, &dsi.fint_max);
 +}
 +
- enum dss_clk_source dss_get_dispc_clk_source(void)
+ static int dsi_init(struct platform_device *pdev)
  {
- 	return dss.dispc_clk_source;
-@@ -333,6 +372,12 @@ enum dss_clk_source dss_get_dsi_clk_source(void)
- 	return dss.dsi_clk_source;
- }
+ 	u32 rev;
+@@ -3397,6 +3428,8 @@ static int dsi_init(struct platform_device *pdev)
+ 		dsi.vc[i].vc_id = 0;
+ 	}
  
-+enum dss_clk_source dss_get_lcd_clk_source(enum omap_channel channel)
-+{
-+	int ix = channel == OMAP_DSS_CHANNEL_LCD ? 0 : 1;
-+	return dss.lcd_clk_source[ix];
-+}
++	dsi_calc_clock_param_ranges();
 +
- /* calculate clock rates using dividers in cinfo */
- int dss_calc_clock_rates(struct dss_clock_info *cinfo)
- {
-@@ -617,6 +662,11 @@ static int dss_init(void)
- 	dss.dsi_clk_source = DSS_CLK_SRC_FCK;
- 	dss.dispc_clk_source = DSS_CLK_SRC_FCK;
+ 	enable_clocks(1);
  
-+	if (dss_has_feature(FEAT_LCD_CLK_SRC)) {
-+		dss.lcd_clk_source[0] = DSS_CLK_SRC_FCK;
-+		dss.lcd_clk_source[1] = DSS_CLK_SRC_FCK;
-+	}
-+
- 	dss_save_context();
- 
- 	rev = dss_read_reg(DSS_REVISION);
-diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-index 85d4141..8d5c2a4 100644
---- a/drivers/video/omap2/dss/dss.h
-+++ b/drivers/video/omap2/dss/dss.h
-@@ -118,9 +118,12 @@ enum dss_clock {
- };
- 
- enum dss_clk_source {
--	DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC,	/* DSI1_PLL_FCLK */
--	DSS_CLK_SRC_DSI_PLL_HSDIV_DSI,		/* DSI2_PLL_FCLK */
--	DSS_CLK_SRC_FCK,			/* DSS1_ALWON_FCLK */
-+	DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC,	/* OMAP3: DSI1_PLL_FCLK
-+						 * OMAP4: PLL1_CLK1 */
-+	DSS_CLK_SRC_DSI_PLL_HSDIV_DSI,		/* OMAP3: DSI2_PLL_FCLK
-+						 * OMAP4: PLL1_CLK2 */
-+	DSS_CLK_SRC_FCK,			/* OMAP2/3: DSS1_ALWON_FCLK
-+						 * OMAP4: DSS_FCLK */
- };
- 
- /* Correlates clock source name and dss_clk_source member */
-@@ -152,17 +155,19 @@ struct dsi_clock_info {
- 	unsigned long fint;
- 	unsigned long clkin4ddr;
- 	unsigned long clkin;
--	unsigned long dsi_pll_hsdiv_dispc_clk;	/* DSI1_PLL_CLK */
--	unsigned long dsi_pll_hsdiv_dsi_clk;	/* DSI2_PLL_CLK */
--
-+	unsigned long dsi_pll_hsdiv_dispc_clk;	/* OMAP3: DSI1_PLL_CLK
-+						 * OMAP4: PLLx_CLK1 */
-+	unsigned long dsi_pll_hsdiv_dsi_clk;	/* OMAP3: DSI2_PLL_CLK
-+						 * OMAP4: PLLx_CLK2 */
- 	unsigned long lp_clk;
- 
- 	/* dividers */
- 	u16 regn;
- 	u16 regm;
--	u16 regm_dispc;	/* REGM3 */
--	u16 regm_dsi;	/* REGM4 */
--
-+	u16 regm_dispc;	/* OMAP3: REGM3
-+			 * OMAP4: REGM4 */
-+	u16 regm_dsi;	/* OMAP3: REGM4
-+			 * OMAP4: REGM5 */
- 	u16 lp_clk_div;
- 
- 	u8 highfreq;
-@@ -235,8 +240,11 @@ void dss_sdi_disable(void);
- 
- void dss_select_dispc_clk_source(enum dss_clk_source clk_src);
- void dss_select_dsi_clk_source(enum dss_clk_source clk_src);
-+void dss_select_lcd_clk_source(enum omap_channel channel,
-+		enum dss_clk_source clk_src);
- enum dss_clk_source dss_get_dispc_clk_source(void);
- enum dss_clk_source dss_get_dsi_clk_source(void);
-+enum dss_clk_source dss_get_lcd_clk_source(enum omap_channel channel);
- 
- void dss_set_venc_output(enum omap_dss_venc_type type);
- void dss_set_dac_pwrdn_bgz(bool enable);
+ 	rev = dsi_read_reg(DSI_REVISION);
 diff --git a/drivers/video/omap2/dss/dss_features.c b/drivers/video/omap2/dss/dss_features.c
-index dc170ad..6eb6ec6 100644
+index 6eb6ec6..d458da0 100644
 --- a/drivers/video/omap2/dss/dss_features.c
 +++ b/drivers/video/omap2/dss/dss_features.c
-@@ -59,6 +59,7 @@ static const struct dss_reg_field omap2_dss_reg_fields[] = {
- 	{ FEAT_REG_FIFOSIZE, 8, 0 },
+@@ -34,6 +34,11 @@ struct dss_reg_field {
+ 	u8 start, end;
+ };
+ 
++struct dss_param_range {
++	enum dss_range_param param;
++	int min, max;
++};
++
+ struct omap_dss_features {
+ 	const struct dss_reg_field *reg_fields;
+ 	const int num_reg_fields;
+@@ -46,6 +51,7 @@ struct omap_dss_features {
+ 	const enum omap_display_type *supported_displays;
+ 	const enum omap_color_mode *supported_color_modes;
+ 	const struct dss_clk_source_name *clksrc_names;
++	const struct dss_param_range *dss_params;
+ };
+ 
+ /* This struct is assigned to one of the below during initialization */
+@@ -60,6 +66,10 @@ static const struct dss_reg_field omap2_dss_reg_fields[] = {
  	{ FEAT_REG_HORIZONTALACCU, 9, 0 },
  	{ FEAT_REG_VERTICALACCU, 25, 16 },
-+	{ FEAT_REG_DISPC_CLK_SWITCH, 0, 0 },
+ 	{ FEAT_REG_DISPC_CLK_SWITCH, 0, 0 },
++	{ FEAT_REG_DSIPLL_REGM, 0, 0 },
++	{ FEAT_REG_DSIPLL_REGN, 0, 0 },
++	{ FEAT_REG_DSIPLL_REGM_DISPC, 0, 0 },
++	{ FEAT_REG_DSIPLL_REGM_DSI, 0, 0 },
  };
  
  static const struct dss_reg_field omap3_dss_reg_fields[] = {
-@@ -69,6 +70,7 @@ static const struct dss_reg_field omap3_dss_reg_fields[] = {
- 	{ FEAT_REG_FIFOSIZE, 10, 0 },
+@@ -71,6 +81,10 @@ static const struct dss_reg_field omap3_dss_reg_fields[] = {
  	{ FEAT_REG_HORIZONTALACCU, 9, 0 },
  	{ FEAT_REG_VERTICALACCU, 25, 16 },
-+	{ FEAT_REG_DISPC_CLK_SWITCH, 0, 0 },
+ 	{ FEAT_REG_DISPC_CLK_SWITCH, 0, 0 },
++	{ FEAT_REG_DSIPLL_REGM, 18, 8 },
++	{ FEAT_REG_DSIPLL_REGN, 7, 1 },
++	{ FEAT_REG_DSIPLL_REGM_DISPC, 22, 19 },
++	{ FEAT_REG_DSIPLL_REGM_DSI, 26, 23 },
  };
  
  static const struct dss_reg_field omap4_dss_reg_fields[] = {
-@@ -79,6 +81,7 @@ static const struct dss_reg_field omap4_dss_reg_fields[] = {
- 	{ FEAT_REG_FIFOSIZE, 15, 0 },
+@@ -82,6 +96,10 @@ static const struct dss_reg_field omap4_dss_reg_fields[] = {
  	{ FEAT_REG_HORIZONTALACCU, 10, 0 },
  	{ FEAT_REG_VERTICALACCU, 26, 16 },
-+	{ FEAT_REG_DISPC_CLK_SWITCH, 9, 8 },
+ 	{ FEAT_REG_DISPC_CLK_SWITCH, 9, 8 },
++	{ FEAT_REG_DSIPLL_REGM, 20, 9 },
++	{ FEAT_REG_DSIPLL_REGN, 8, 1 },
++	{ FEAT_REG_DSIPLL_REGM_DISPC, 25, 21 },
++	{ FEAT_REG_DSIPLL_REGM_DSI, 30, 26 },
  };
  
  static const enum omap_display_type omap2_dss_supported_displays[] = {
-@@ -171,6 +174,12 @@ static const struct dss_clk_source_name omap3_dss_clk_source_names[] = {
- 	{ DSS_CLK_SRC_FCK, "DSS1_ALWON_FCLK" },
+@@ -180,6 +198,18 @@ static const struct dss_clk_source_name omap4_dss_clk_source_names[] = {
+ 	{ DSS_CLK_SRC_FCK, "DSS_FCLK" },
  };
  
-+static const struct dss_clk_source_name omap4_dss_clk_source_names[] = {
-+	{ DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC, "PLL1_CLK1" },
-+	{ DSS_CLK_SRC_DSI_PLL_HSDIV_DSI, "PLL1_CLK2" },
-+	{ DSS_CLK_SRC_FCK, "DSS_FCLK" },
++static const struct dss_param_range omap2_dss_param_range[] = {
++	{ FEAT_DSI_FINT, 0, 0 },
++};
++
++static const struct dss_param_range omap3_dss_param_range[] = {
++	{ FEAT_DSI_FINT, 750000, 2100000 },
++};
++
++static const struct dss_param_range omap4_dss_param_range[] = {
++	{ FEAT_DSI_FINT, 500000, 2500000 },
 +};
 +
  /* OMAP2 DSS Features */
  static struct omap_dss_features omap2_dss_features = {
  	.reg_fields = omap2_dss_reg_fields,
-@@ -235,14 +244,14 @@ static struct omap_dss_features omap4_dss_features = {
- 	.has_feature	=
- 		FEAT_GLOBAL_ALPHA | FEAT_PRE_MULT_ALPHA |
- 		FEAT_MGR_LCD2 | FEAT_GLOBAL_ALPHA_VID1 |
--		FEAT_CORE_CLK_DIV,
-+		FEAT_CORE_CLK_DIV | FEAT_LCD_CLK_SRC,
+@@ -196,6 +226,7 @@ static struct omap_dss_features omap2_dss_features = {
+ 	.supported_displays = omap2_dss_supported_displays,
+ 	.supported_color_modes = omap2_dss_supported_color_modes,
+ 	.clksrc_names = omap2_dss_clk_source_names,
++	.dss_params = omap2_dss_param_range,
+ };
  
- 	.num_mgrs = 3,
- 	.num_ovls = 3,
- 	.max_dss_fck = 186000000,
+ /* OMAP3 DSS Features */
+@@ -215,6 +246,7 @@ static struct omap_dss_features omap3430_dss_features = {
+ 	.supported_displays = omap3430_dss_supported_displays,
+ 	.supported_color_modes = omap3_dss_supported_color_modes,
+ 	.clksrc_names = omap3_dss_clk_source_names,
++	.dss_params = omap3_dss_param_range,
+ };
+ 
+ static struct omap_dss_features omap3630_dss_features = {
+@@ -234,6 +266,7 @@ static struct omap_dss_features omap3630_dss_features = {
+ 	.supported_displays = omap3630_dss_supported_displays,
+ 	.supported_color_modes = omap3_dss_supported_color_modes,
+ 	.clksrc_names = omap3_dss_clk_source_names,
++	.dss_params = omap3_dss_param_range,
+ };
+ 
+ /* OMAP4 DSS Features */
+@@ -252,6 +285,7 @@ static struct omap_dss_features omap4_dss_features = {
  	.supported_displays = omap4_dss_supported_displays,
  	.supported_color_modes = omap3_dss_supported_color_modes,
--	.clksrc_names = omap3_dss_clk_source_names,
-+	.clksrc_names = omap4_dss_clk_source_names,
+ 	.clksrc_names = omap4_dss_clk_source_names,
++	.dss_params = omap4_dss_param_range,
  };
  
  /* Functions returning values related to a DSS feature */
+@@ -293,6 +327,12 @@ const char *dss_feat_get_clk_source_name(enum dss_clk_source id)
+ 	return omap_current_dss_features->clksrc_names[id].clksrc_name;
+ }
+ 
++void dss_feat_get_param_range(enum dss_range_param param, int *min, int *max)
++{
++	*min = omap_current_dss_features->dss_params[param].min;
++	*max = omap_current_dss_features->dss_params[param].max;
++}
++
+ /* DSS has_feature check */
+ bool dss_has_feature(enum dss_feat_id id)
+ {
 diff --git a/drivers/video/omap2/dss/dss_features.h b/drivers/video/omap2/dss/dss_features.h
-index 569d1b2..3302247 100644
+index 3302247..78b51a9 100644
 --- a/drivers/video/omap2/dss/dss_features.h
 +++ b/drivers/video/omap2/dss/dss_features.h
-@@ -22,6 +22,7 @@
- 
- #define MAX_DSS_MANAGERS	3
- #define MAX_DSS_OVERLAYS	3
-+#define MAX_DSS_LCD_MANAGERS	(MAX_DSS_MANAGERS - 1)
- 
- /* DSS has feature id */
- enum dss_feat_id {
-@@ -38,6 +39,7 @@ enum dss_feat_id {
- 	FEAT_RESIZECONF		= 1 << 10,
- 	/* Independent core clk divider */
- 	FEAT_CORE_CLK_DIV	= 1 << 11,
-+	FEAT_LCD_CLK_SRC	= 1 << 12,
- };
- 
- /* DSS register field id */
-@@ -49,6 +51,7 @@ enum dss_feat_reg_field {
- 	FEAT_REG_FIFOSIZE,
+@@ -52,6 +52,14 @@ enum dss_feat_reg_field {
  	FEAT_REG_HORIZONTALACCU,
  	FEAT_REG_VERTICALACCU,
-+	FEAT_REG_DISPC_CLK_SWITCH,
+ 	FEAT_REG_DISPC_CLK_SWITCH,
++	FEAT_REG_DSIPLL_REGM,
++	FEAT_REG_DSIPLL_REGN,
++	FEAT_REG_DSIPLL_REGM_DISPC,
++	FEAT_REG_DSIPLL_REGM_DSI,
++};
++
++enum dss_range_param {
++	FEAT_DSI_FINT,
  };
  
  /* DSS Feature Functions */
+@@ -63,6 +71,7 @@ enum omap_color_mode dss_feat_get_supported_color_modes(enum omap_plane plane);
+ bool dss_feat_color_mode_supported(enum omap_plane plane,
+ 		enum omap_color_mode color_mode);
+ const char *dss_feat_get_clk_source_name(enum dss_clk_source id);
++void dss_feat_get_param_range(enum dss_range_param param, int *min, int *max);
+ 
+ bool dss_has_feature(enum dss_feat_id id);
+ void dss_feat_get_reg_field(enum dss_feat_reg_field id, u8 *start, u8 *end);
 -- 
 1.7.1
 
