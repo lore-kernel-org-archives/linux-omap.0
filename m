@@ -1,63 +1,38 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] omap2+: mux: Initialise the static pads.
-Date: Fri, 4 Mar 2011 09:43:01 -0800
-Message-ID: <20110304174301.GA20560@atomide.com>
-References: <1299003360-32120-1-git-send-email-r.sricharan@ti.com>
- <20110304022832.GR20560@atomide.com>
- <44e29d555f2b399b7067d827603897cc@mail.gmail.com>
- <20110304162858.GW20560@atomide.com>
- <4ad439dff008aeca2a058207ef744650@mail.gmail.com>
+Subject: Re: [PATCH v5 REPOST 0/5] ARM: omap[34]: Thumb-2 compatibility
+ fixes
+Date: Fri, 4 Mar 2011 09:47:10 -0800
+Message-ID: <20110304174709.GB20560@atomide.com>
+References: <1299252837-18074-1-git-send-email-dave.martin@linaro.org>
+ <AANLkTimz0Ko9GFtLTcBQVV_c2DAPU5XhV47xT+R9Q7mv@mail.gmail.com>
+ <7b1ef0e49e8b8c1c20b0965a58c4fe73@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:31860 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751790Ab1CDRnQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Mar 2011 12:43:16 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:12395 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751790Ab1CDRr0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Mar 2011 12:47:26 -0500
 Content-Disposition: inline
-In-Reply-To: <4ad439dff008aeca2a058207ef744650@mail.gmail.com>
+In-Reply-To: <7b1ef0e49e8b8c1c20b0965a58c4fe73@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sricharan R <r.sricharan@ti.com>
-Cc: linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>, paul@pswan.com, Santosh Shilimkar <santosh.shilimkar@ti.com>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Dave Martin <dave.martin@linaro.org>, linux-arm-kernel@lists.infradead.org, patches@linaro.org, Jean Pihet-XID <j-pihet@ti.com>, Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, Nicolas Pitre <nicolas.pitre@linaro.org>, linaro-dev@lists.linaro.org
 
-* Sricharan R <r.sricharan@ti.com> [110304 09:31]:
-> Hi Tony,
-> 
-> >Hmm it's there as commit 93c5f165e10c21a3813a687204388a34072b2a62
-> 
-> >in devel-mux branch. Can you please update your patch against
-> 
-> >that commit so it's easier to see what your changes are?
-> 
+* Santosh Shilimkar <santosh.shilimkar@ti.com> [110304 09:36]:
 > >
-> 
-> >BTW, the patch you posted got trashed by your email client
-> 
-> >or server..
-> 
-> >
-> 
-> Here is the updated patch on top of your previous patch.
+> > Following up on this, it looks like I have some locally-recorded
+> > acks
+> > which didn't make it into my posting ...
 
-The patch formatting is still trashed, notice the double line
-spacing..
- 
-> +++ b/arch/arm/mach-omap2/mux.c
-> 
-> @@ -359,7 +359,6 @@ void omap_hwmod_mux(struct omap_hwmod_mux_info *hmux, u8
-> state)
+To me looks like this is ready to go, but I'd like to see Kevin's
+acks on this one as this touches the PM code.
 
-..and the line wrapping of the patch lines.
+Or if Kevin wants to take the series, here's my ack for the series:
 
-> 
-> +     if ((state == _HWMOD_STATE_ENABLED) && hmux->pads_dynamic
-> 
-> +                             && hmux->enabled) {
+Acked-by: Tony Lindgren <tony@atomide.com>
 
-Yes I see that might allow removing the idle flag. Will give it
-a try with my testcase once you get your mail issue sorted out
-and can post a patch that applies.
+Regards,
 
 Tony
- 
