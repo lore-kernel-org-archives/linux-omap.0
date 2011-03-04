@@ -1,39 +1,86 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 1/4] OMAP3 and 4 hwmod I2C units only allow 16 bit access
-Date: Fri, 4 Mar 2011 11:05:46 +0100
-Message-ID: <4D70B97A.7000200@ti.com>
-References: <20110303134744.30648.91218.stgit@otae.warmcat.com> <20110303135022.30648.8996.stgit@otae.warmcat.com> <4D6FD2F2.8050701@ti.com> <4D6FD63C.6000102@linaro.org> <4D6FFCC0.8000007@ti.com> <4D70A3E0.6030509@linaro.org>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: omap3isp cache error when unloading
+Date: Fri, 04 Mar 2011 12:07:36 +0200 (EET)
+Message-ID: <20110304.120736.177982315275204354.Hiroshi.DOYU@nokia.com>
+References: <201103022018.23446.laurent.pinchart@ideasonboard.com>
+	<4D6FBC7F.1080500@matrix-vision.de>
+	<4D7096EE.8090105@maxwell.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:49600 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751914Ab1CDKFw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Mar 2011 05:05:52 -0500
-In-Reply-To: <4D70A3E0.6030509@linaro.org>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <4D7096EE.8090105@maxwell.research.nokia.com>
+Sender: linux-media-owner@vger.kernel.org
+To: sakari.ailus@maxwell.research.nokia.com
+Cc: michael.jones@matrix-vision.de, laurent.pinchart@ideasonboard.com, fernando.lugo@ti.com, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, david.cohen@nokia.com
 List-Id: linux-omap@vger.kernel.org
-To: "andy.green@linaro.org" <andy.green@linaro.org>
-Cc: Andy Green <andy@warmcat.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "patches@linaro.org" <patches@linaro.org>, paul Walmsley <paul@pwsan.com>
 
-On 3/4/2011 9:33 AM, Andy Green wrote:
-> On 03/03/2011 08:40 PM, Somebody in the thread at some point said:
->
-> Hi -
->
->>>> BTW, It will be good if you could update the omap_hwmod_2430_data.c file
->>>> as well.
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: Re: omap3isp cache error when unloading
+Date: Fri, 4 Mar 2011 09:38:22 +0200
+
+> Hi Michael,
+> 
+> Michael Jones wrote:
+>> On 03/02/2011 08:18 PM, Laurent Pinchart wrote:
+>>> Hi Michael,
 >>>
->>> I left it because I can't test it, but I'll happily do it additionally
->>> if you can test it on some OMAP2 hardware.
->>
->> Don't hesitate to do it, and clearly add in the cover-letter that it was
->> tested on 3430 and 4430 only.
->> Someone from TI should be able to test it on 2430.
+>>> On Tuesday 01 March 2011 17:41:01 Michael Jones wrote:
+>>>> Hi all,
+>>>>
+>>>> I get a warning about a cache error with the following steps:
+>>>>
+>>>> 0. load omap3-isp
+>>>> 1. set up media broken media pipeline. (e.g. set different formats on
+>>>> opposite ends of a link, as will be the case for using the lane shifter)
+>>>> 2. try to capture images.  isp_video_streamon() returns -EPIPE from the
+>>>> failed isp_video_validate_pipeline() call.
+>>>> 3. unload omap3-isp module
+>>>>
+>>>> then I get the following from kmem_cache_destroy():
+>>>>
+>>>> slab error in kmem_cache_destroy(): cache `iovm_area_cache': Can't free all
+>>>> objects [<c0040318>] (unwind_backtrace+0x0/0xec) from [<c00bfe14>]
+>>>> (kmem_cache_destroy+0x88/0xf4) [<c00bfe14>] (kmem_cache_destroy+0x88/0xf4)
+>>>> from [<c00861f8>] (sys_delete_module+0x1c4/0x230) [<c00861f8>]
+>>>> (sys_delete_module+0x1c4/0x230) from [<c003b680>]
+>>>> (ret_fast_syscall+0x0/0x30)
+>>>>
+>>>> Then, when reloading the module:
+>>>> SLAB: cache with size 32 has lost its name
+>>>>
+>>>> Can somebody else confirm that they also observe this behavior?
+>>>
+>>> I can't reproduce that (tried both 2.6.32 and 2.6.37). Could you give me some 
+>>> more details about your exact test procedure (such as how you configure the 
+>>> pipeline) ?
+>>>
+>> 
+>> Sorry, I should've mentioned: I'm using your media-0005-omap3isp branch
+>> based on 2.6.38-rc5.  I didn't have the problem with 2.6.37, either.
+>> It's actually not related to mis-configuring the ISP pipeline like I
+>> thought at first- it also happens after I have successfully captured images.
+>> 
+>> I've since tracked down the problem, although I don't understand the
+>> cache management well enough to be sure it's a proper fix, so hopefully
+>> some new recipients on this can make suggestions/comments.
+>> 
+>> The patch below solves the problem, which modifies a commit by Fernando
+>> Guzman Lugo from December.
+> 
+> Thanks for the patch.
+> 
+> It looks like this patch from Fernando, perhaps unintentionally, also
+> makes the first page mappable so the NULL address is also valid. The
+> NULL address isn't considered valid by the ISP driver which thus does
+> not iommu_vunmap() the NULL address.
+> 
+> Hiroshi, David, what do you think? I think the patch is correct so it
+> could be applied with description changed to mention it disallows
+> mapping the first page again.
 >
-> Alright I will extend the patch series to cover 2430 for this and note
-> it is untested.
+> Or is there a reason to allow mapping the first page automatically? I
+> personally don't see any.
 
-Cool, thanks for that.
-Benoit
+I think that was done "unintentionally". The invalid first page may be
+quite reasonable generally.
