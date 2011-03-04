@@ -1,57 +1,94 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: [PATCH 0/2] OMAP: PM: implement devices wakeup latency constraints APIs
-Date: Fri,  4 Mar 2011 15:52:53 +0100
-Message-ID: <1299250375-26134-1-git-send-email-j-pihet@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: RE: Integration branch base switchover to Tony's omap-for-linus branch
+Date: Fri, 4 Mar 2011 20:31:59 +0530
+Message-ID: <4837f9c890c8a6c38d346cac73d9cec6@mail.gmail.com>
+References: <alpine.DEB.2.00.1102251722450.6198@utopia.booyaka.com>
+ <3f332cbd75f835ca119bdeccd72c4bb2@mail.gmail.com> <alpine.DEB.2.00.1103011431240.16349@utopia.booyaka.com>
+ <4D6F89FB.7080201@ti.com> <4D70F25C.4040206@ti.com> <4D70FE4A.8060600@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:38774 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759044Ab1CDPBM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Mar 2011 10:01:12 -0500
-Received: by wyg36 with SMTP id 36so2160153wyg.19
-        for <linux-omap@vger.kernel.org>; Fri, 04 Mar 2011 07:01:11 -0800 (PST)
+Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:48622 "EHLO
+	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752435Ab1CDPCI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Mar 2011 10:02:08 -0500
+Received: by mail-gw0-f51.google.com with SMTP id 15so1209791gwb.10
+        for <linux-omap@vger.kernel.org>; Fri, 04 Mar 2011 07:02:06 -0800 (PST)
+In-reply-to: <4D70FE4A.8060600@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>
-Cc: Jean Pihet <j-pihet@ti.com>
+To: Benoit Cousson <b-cousson@ti.com>, Rajendra Nayak <rnayak@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org
 
-Implement OMAP PM layer omap_pm_set_max_dev_wakeup_lat API by
-creating similar APIs at the omap_device and omap_hwmod levels. The
-omap_hwmod level call is the layer with access to the powerdomain
-core, so it is the place where the powerdomain is queried to set and
-release the constraints.
-
-NOTE: only works for devices which have been converted to use
-      omap_device/omap_hwmod.
-
-Longer term, we could possibly remove this API from the OMAP PM layer,
-and instead directly use the device level API.
-
-The power domains get the next power state programmed directly in
-the registers via pwrdm_wakeuplat_update_pwrst.
-
-Note about PM QOS: the MPU and CORE power domains get the next power
-state via cpuidle, which get the strongest wake-up latency constraint
-by querying PM QOS. The usage of PM QOS is temporary, until a generic
-solution is in place.
-
-Jean Pihet (2):
-  OMAP PM: create a PM layer plugin for the devices wakeup latency
-    constraints
-  OMAP: PM: implement devices wakeup latency constraints APIs
-
- arch/arm/mach-omap2/omap_hwmod.c              |   62 +++++-
- arch/arm/mach-omap2/powerdomain.c             |  197 ++++++++++++++
- arch/arm/mach-omap2/powerdomain.h             |   39 +++-
- arch/arm/mach-omap2/powerdomains3xxx_data.c   |   60 ++++
- arch/arm/plat-omap/Kconfig                    |    7 +
- arch/arm/plat-omap/Makefile                   |    1 +
- arch/arm/plat-omap/include/plat/omap_device.h |    2 +
- arch/arm/plat-omap/include/plat/omap_hwmod.h  |    2 +
- arch/arm/plat-omap/omap-pm-constraints.c      |  358 +++++++++++++++++++++++++
- arch/arm/plat-omap/omap_device.c              |   28 ++
- 10 files changed, 754 insertions(+), 2 deletions(-)
- create mode 100644 arch/arm/plat-omap/omap-pm-constraints.c
-
--- 
-1.7.2.3
-
+> -----Original Message-----
+> From: Cousson, Benoit [mailto:b-cousson@ti.com]
+> Sent: Friday, March 04, 2011 8:29 PM
+> To: Nayak, Rajendra
+> Cc: Paul Walmsley; Shilimkar, Santosh; linux-omap@vger.kernel.org
+> Subject: Re: Integration branch base switchover to Tony's omap-for-
+> linus branch
+>
+> Hi Rajendra,
+>
+> On 3/4/2011 3:08 PM, Nayak, Rajendra wrote:
+> > Hi Paul,
+>
+> [...]
+>
+> > This however is still not rootcaused and is not the same as the
+> issue
+> > seen with i2c as the WE for GPT1 is already programmed for
+> enabling
+> > wakeup.
+> >
+> > The one way to fix this for now is to put GPT1 block in software
+> > controlled idle as was done by your test patch for i2c.
+> >
+> > ---
+> >   From fde94c22bb2db233b0b0cc4c2024d6f4e9f95257 Mon Sep 17
+> 00:00:00 2001
+> > From: Rajendra Nayak<rnayak@ti.com>
+> > Date: Fri, 4 Mar 2011 19:33:45 +0530
+> > Subject: [PATCH] OMAP4: hwmod: Disable hardware-controlled idle
+> for GPT1
+>
+> Maybe we should emphasis the temporary need for this commit to avoid
+> forgetting it?
+>
+> > Some issues seen (which cause lockups in suspend) with GPT1
+> > after the MPU<->L4_WKUP static dependency was cleared can be
+> > Worked-around for now by forcing GPT1 in software
+> > controlled idle.
+> >
+> > Signed-off-by: Rajendra Nayak<rnayak@ti.com>
+> > ---
+> >    arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    2 +-
+> >    1 files changed, 1 insertions(+), 1 deletions(-)
+> >
+> > diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> > b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> > index 2c58827..9317a05 100644
+> > --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> > +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> > @@ -3989,7 +3989,7 @@ static struct omap_hwmod_ocp_if
+> > *omap44xx_timer1_slaves[] = {
+> >    static struct omap_hwmod omap44xx_timer1_hwmod = {
+> >           .name           = "timer1",
+> >           .class          =&omap44xx_timer_1ms_hwmod_class,
+> > -       .flags          = HWMOD_INIT_NO_IDLE |
+> HWMOD_INIT_NO_RESET,
+> > +       .flags          = HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET
+> |
+> > HWMOD_SWSUP_SIDLE,
+>
+> I was wondering why the previous flags were still there, but it
+> looks
+> like the revert was not done.
+>
+> I'll push it with the revert for the flags.
+>
+> Where is the Santosh's branch that should be rebased on top of that
+> one?
+>
+I am trying to rebase it on Kevin's pm-core branch. Will cherry pick
+these patches
