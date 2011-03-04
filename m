@@ -1,85 +1,113 @@
 From: Dave Martin <dave.martin@linaro.org>
-Subject: [PATCH v5 2/5] ARM: omap4: Convert END() to ENDPROC() for correct linkage with CONFIG_THUMB2_KERNEL
-Date: Fri,  4 Mar 2011 15:33:54 +0000
-Message-ID: <1299252837-18074-3-git-send-email-dave.martin@linaro.org>
+Subject: [PATCH v5 4/5] ARM: omap3: Thumb-2 compatibility for sram34xx.S
+Date: Fri,  4 Mar 2011 15:33:56 +0000
+Message-ID: <1299252837-18074-5-git-send-email-dave.martin@linaro.org>
 References: <1299252837-18074-1-git-send-email-dave.martin@linaro.org>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:58050 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759459Ab1CDPeY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Mar 2011 10:34:24 -0500
-Received: by mail-wy0-f174.google.com with SMTP id 36so2192950wyg.19
-        for <linux-omap@vger.kernel.org>; Fri, 04 Mar 2011 07:34:24 -0800 (PST)
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:59135 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759459Ab1CDPea (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Mar 2011 10:34:30 -0500
+Received: by mail-ww0-f44.google.com with SMTP id 22so2834143wwb.1
+        for <linux-omap@vger.kernel.org>; Fri, 04 Mar 2011 07:34:30 -0800 (PST)
 In-Reply-To: <1299252837-18074-1-git-send-email-dave.martin@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
 Cc: patches@linaro.org, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Jean Pihet <j-pihet@ti.com>, Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, Nicolas Pitre <nicolas.pitre@linaro.org>, linaro-dev@lists.linaro.org
 
-Code marked with ENTRY() also needs a matching ENDPROC() directive,
-in order to ensure that the type and instruction set of the
-symbol are correctly annotated.
+ * Build unconditionally as ARM for correct interoperation with
+   OMAP firmware.
 
-ENDPROC() tags the affected symbol as a function symbol, which will
-ensure that link-time fixups don't accidentally switch to the
-wrong instruction set.
+ * Remove deprecated PC-relative stores
+
+ * Add the required ENDPROC() directive for each ENTRY().
+
+ * .align before data words
 
 Signed-off-by: Dave Martin <dave.martin@linaro.org>
-Tested-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- arch/arm/mach-omap2/omap-headsmp.S |    2 +-
- arch/arm/mach-omap2/omap44xx-smc.S |    8 ++++----
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ arch/arm/mach-omap2/sram34xx.S |   36 ++++++++++++++++++++++++++++--------
+ 1 files changed, 28 insertions(+), 8 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap-headsmp.S b/arch/arm/mach-omap2/omap-headsmp.S
-index 6ae937a..4ee6aec 100644
---- a/arch/arm/mach-omap2/omap-headsmp.S
-+++ b/arch/arm/mach-omap2/omap-headsmp.S
-@@ -45,5 +45,5 @@ hold:	ldr	r12,=0x103
- 	 * should now contain the SVC stack for this core
- 	 */
- 	b	secondary_startup
--END(omap_secondary_startup)
-+ENDPROC(omap_secondary_startup)
+diff --git a/arch/arm/mach-omap2/sram34xx.S b/arch/arm/mach-omap2/sram34xx.S
+index 7f893a2..fd1531c 100644
+--- a/arch/arm/mach-omap2/sram34xx.S
++++ b/arch/arm/mach-omap2/sram34xx.S
+@@ -34,6 +34,12 @@
+ #include "sdrc.h"
+ #include "cm2xxx_3xxx.h"
  
-diff --git a/arch/arm/mach-omap2/omap44xx-smc.S b/arch/arm/mach-omap2/omap44xx-smc.S
-index 1980dc3..e69d37d 100644
---- a/arch/arm/mach-omap2/omap44xx-smc.S
-+++ b/arch/arm/mach-omap2/omap44xx-smc.S
-@@ -29,7 +29,7 @@ ENTRY(omap_smc1)
- 	dsb
- 	smc	#0
- 	ldmfd   sp!, {r2-r12, pc}
--END(omap_smc1)
-+ENDPROC(omap_smc1)
++/*
++ * This file needs be built unconditionally as ARM to interoperate correctly
++ * with non-Thumb-2-capable firmware. 
++ */
++	.arm
++
+ 	.text
  
- ENTRY(omap_modify_auxcoreboot0)
- 	stmfd   sp!, {r1-r12, lr}
-@@ -37,7 +37,7 @@ ENTRY(omap_modify_auxcoreboot0)
- 	dsb
- 	smc	#0
- 	ldmfd   sp!, {r1-r12, pc}
--END(omap_modify_auxcoreboot0)
-+ENDPROC(omap_modify_auxcoreboot0)
+ /* r1 parameters */
+@@ -116,24 +122,36 @@ ENTRY(omap3_sram_configure_core_dpll)
  
- ENTRY(omap_auxcoreboot_addr)
- 	stmfd   sp!, {r2-r12, lr}
-@@ -45,7 +45,7 @@ ENTRY(omap_auxcoreboot_addr)
- 	dsb
- 	smc	#0
- 	ldmfd   sp!, {r2-r12, pc}
--END(omap_auxcoreboot_addr)
-+ENDPROC(omap_auxcoreboot_addr)
+ 					@ pull the extra args off the stack
+ 					@  and store them in SRAM
++
++/*
++ * PC-relative stores are deprecated in ARMv7 and lead to undefined behaviour
++ * in Thumb-2: use a r7 as a base instead.
++ * Be careful not to clobber r7 when maintaing this file.
++ */
++ THUMB(	adr	r7, omap3_sram_configure_core_dpll			)
++	.macro strtext Rt:req, label:req
++ ARM(	str	\Rt, \label						)
++ THUMB(	str	\Rt, [r7, \label - omap3_sram_configure_core_dpll]	)
++	.endm
++
+ 	ldr	r4, [sp, #52]
+-	str     r4, omap_sdrc_rfr_ctrl_0_val
++	strtext	r4, omap_sdrc_rfr_ctrl_0_val
+ 	ldr	r4, [sp, #56]
+-	str     r4, omap_sdrc_actim_ctrl_a_0_val
++	strtext	r4, omap_sdrc_actim_ctrl_a_0_val
+ 	ldr	r4, [sp, #60]
+-	str     r4, omap_sdrc_actim_ctrl_b_0_val
++	strtext	r4, omap_sdrc_actim_ctrl_b_0_val
+ 	ldr	r4, [sp, #64]
+-	str     r4, omap_sdrc_mr_0_val
++	strtext	r4, omap_sdrc_mr_0_val
+ 	ldr	r4, [sp, #68]
+-	str     r4, omap_sdrc_rfr_ctrl_1_val
++	strtext	r4, omap_sdrc_rfr_ctrl_1_val
+ 	cmp	r4, #0			@ if SDRC_RFR_CTRL_1 is 0,
+ 	beq	skip_cs1_params		@  do not use cs1 params
+ 	ldr	r4, [sp, #72]
+-	str     r4, omap_sdrc_actim_ctrl_a_1_val
++	strtext	r4, omap_sdrc_actim_ctrl_a_1_val
+ 	ldr	r4, [sp, #76]
+-	str     r4, omap_sdrc_actim_ctrl_b_1_val
++	strtext	r4, omap_sdrc_actim_ctrl_b_1_val
+ 	ldr	r4, [sp, #80]
+-	str     r4, omap_sdrc_mr_1_val
++	strtext	r4, omap_sdrc_mr_1_val
+ skip_cs1_params:
+ 	mrc	p15, 0, r8, c1, c0, 0	@ read ctrl register
+ 	bic	r10, r8, #0x800		@ clear Z-bit, disable branch prediction
+@@ -271,6 +289,7 @@ skip_cs1_prog:
+ 	ldr	r12, [r11]		@ posted-write barrier for SDRC
+ 	bx	lr
  
- ENTRY(omap_read_auxcoreboot0)
- 	stmfd   sp!, {r2-r12, lr}
-@@ -54,4 +54,4 @@ ENTRY(omap_read_auxcoreboot0)
- 	smc	#0
- 	mov	r0, r0, lsr #9
- 	ldmfd   sp!, {r2-r12, pc}
--END(omap_read_auxcoreboot0)
-+ENDPROC(omap_read_auxcoreboot0)
++	.align
+ omap3_sdrc_power:
+ 	.word OMAP34XX_SDRC_REGADDR(SDRC_POWER)
+ omap3_cm_clksel1_pll:
+@@ -319,6 +338,7 @@ omap3_sdrc_dlla_ctrl:
+ 	.word OMAP34XX_SDRC_REGADDR(SDRC_DLLA_CTRL)
+ core_m2_mask_val:
+ 	.word 0x07FFFFFF
++ENDPROC(omap3_sram_configure_core_dpll)
+ 
+ ENTRY(omap3_sram_configure_core_dpll_sz)
+ 	.word	. - omap3_sram_configure_core_dpll
 -- 
 1.7.1
 
