@@ -1,40 +1,54 @@
-From: Ben Dooks <ben-SMNkleLxa3Z6Wcw2j4pizdi2O/JbrIOy@public.gmane.org>
-Subject: Re: [PATCH] i2c-omap: Program I2C_WE on OMAP4 to enable i2c wakeup
-Date: Fri, 4 Mar 2011 17:17:23 +0000
-Message-ID: <20110304171723.GF17460@trinity.fluff.org>
-References: <1299245544-23790-1-git-send-email-rnayak@ti.com> <87ei6mizxr.fsf@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH 00/17] omap4: pm: suspend, hotplug and cpuilde support
+Date: Fri, 4 Mar 2011 22:50:23 +0530
+Message-ID: <aac02e1097a15c84cf795db5bfc49b48@mail.gmail.com>
+References: <1298112158-28469-1-git-send-email-santosh.shilimkar@ti.com> <87oc5txf0d.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <87ei6mizxr.fsf-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
-Cc: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, santosh.shilimkar-l0cyMroinI0@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:36165 "EHLO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1759851Ab1CDRUd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Mar 2011 12:20:33 -0500
+Received: by mail-qw0-f41.google.com with SMTP id 7so1927671qwd.28
+        for <linux-omap@vger.kernel.org>; Fri, 04 Mar 2011 09:20:31 -0800 (PST)
+In-reply-to: <87oc5txf0d.fsf@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Fri, Mar 04, 2011 at 09:00:00AM -0800, Kevin Hilman wrote:
-> Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org> writes:
-> 
-> > For the I2C module to be wakeup capable, programming I2C_WE
-> > register (which was skipped for OMAP4430) is needed
-> > even on OMAP4.
-> > This fixes i2c controller timeouts which were seen recently
-> > with the static dependency being cleared between MPU and
-> > L4PER clockdomains.
-> >
-> > Signed-off-by: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
-> > ---
-> > Patch is based on 2.6.38-rc7 kernel.
-> 
-> Acked-by: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
-> 
-> Ben, looks like another fix that should be queued for 2.6.38-rc.
+> -----Original Message-----
+> From: Kevin Hilman [mailto:khilman@ti.com]
+> Sent: Thursday, March 03, 2011 5:16 AM
+> To: Santosh Shilimkar
+> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
+> Subject: Re: [PATCH 00/17] omap4: pm: suspend, hotplug and cpuilde
+> support
+>
+> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
+>
+> > This series adds OMAP4 suspend and cpuidle support till MPU
+> subsystem
+> > (MPUSS) off-mode. The suspend on SMP machines uses cpu-hotplug
+> > infrastructure to take down the non-boot CPUs. We put secondary
+> > CPU(CPU1 in OMAP4) to OFF state via cpu-hotplug.
+> > In cpuidle too, low power states are attempted only when the
+> > CPU1 is put to OFF state via cpu-hotplug because of hardware
+> > constraints.
+>
+> Minor nit on patch subjects:  both OMAP and PM are acronyms, please
+> capitalize.
+>
+> Also, can you rebase this on Paul's integration-2.6.39 branch?
+> There
+> are several things in this series that conflict with changes there.
+>
 
-I'll put together the couple of fixes I've got and send them to Linus
-at the end of the weekend.
+Rebased branch against your pm-core.
 
--- 
-Ben Dooks, ben-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, http://www.fluff.org/ben/
+git://dev.omapzoom.org/pub/scm/santosh/kernel-omap4-base.git
+omap4_pm_for-next
 
-Large Hadron Colada: A large Pina Colada that makes the universe disappear.
+Regards,
+Santosh
