@@ -1,208 +1,53 @@
-From: Dave Martin <dave.martin@linaro.org>
-Subject: [PATCH v5 5/5] ARM: omap3: Thumb-2 compatibility for sleep34xx.S
-Date: Fri,  4 Mar 2011 15:33:57 +0000
-Message-ID: <1299252837-18074-6-git-send-email-dave.martin@linaro.org>
-References: <1299252837-18074-1-git-send-email-dave.martin@linaro.org>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH] omap3: Initialize iva only if available
+Date: Fri, 04 Mar 2011 07:35:28 -0800
+Message-ID: <87d3m6lwzj.fsf@ti.com>
+References: <1298640440-4527-1-git-send-email-premi@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:58050 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759459Ab1CDPed (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Mar 2011 10:34:33 -0500
-Received: by mail-wy0-f174.google.com with SMTP id 36so2192950wyg.19
-        for <linux-omap@vger.kernel.org>; Fri, 04 Mar 2011 07:34:33 -0800 (PST)
-In-Reply-To: <1299252837-18074-1-git-send-email-dave.martin@linaro.org>
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:57797 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1759144Ab1CDPfc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Mar 2011 10:35:32 -0500
+Received: by mail-gy0-f171.google.com with SMTP id 12so1085144gyd.16
+        for <linux-omap@vger.kernel.org>; Fri, 04 Mar 2011 07:35:31 -0800 (PST)
+In-Reply-To: <1298640440-4527-1-git-send-email-premi@ti.com> (Sanjeev Premi's
+	message of "Fri, 25 Feb 2011 18:57:20 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: patches@linaro.org, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Jean Pihet <j-pihet@ti.com>, Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, Nicolas Pitre <nicolas.pitre@linaro.org>, linaro-dev@lists.linaro.org
+To: Sanjeev Premi <premi@ti.com>
+Cc: linux-omap@vger.kernel.org
 
- * Build unconditionally as ARM for correct interoperation with
-   OMAP firmware.
+Sanjeev Premi <premi@ti.com> writes:
 
- * Fix an out-of-range ADR when building for ARM.
+> IVA device is not present in many OMAP3 variants.
+>
+> This patch ensures that initialization is tied to
+> the presence of IVA on the device.
+>
+> Signed-off-by: Sanjeev Premi <premi@ti.com>
 
- * Remove deprecated PC-relative stores.
+Thanks, queuing for 2.6.39 (branch: for_2.6.39/pm-misc)
 
- * Add the required ENDPROC() directive for each ENTRY().
+Kevin
 
- * .align before data words.
-
- * Handle non-interworking return from v7_flush_dcache_all.
-
-Signed-off-by: Dave Martin <dave.martin@linaro.org>
----
- arch/arm/mach-omap2/sleep34xx.S |   48 ++++++++++++++++++++++++++++++++++----
- 1 files changed, 43 insertions(+), 5 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
-index a05c348..f377724 100644
---- a/arch/arm/mach-omap2/sleep34xx.S
-+++ b/arch/arm/mach-omap2/sleep34xx.S
-@@ -64,6 +64,11 @@
- #define SDRC_DLLA_STATUS_V	OMAP34XX_SDRC_REGADDR(SDRC_DLLA_STATUS)
- #define SDRC_DLLA_CTRL_V	OMAP34XX_SDRC_REGADDR(SDRC_DLLA_CTRL)
- 
-+/*
-+ * This file needs be built unconditionally as ARM to interoperate correctly
-+ * with non-Thumb-2-capable firmware. 
-+ */
-+	.arm
- 
- /*
-  * API functions
-@@ -82,6 +87,8 @@ ENTRY(get_restore_pointer)
- 	stmfd	sp!, {lr}	@ save registers on stack
- 	adr	r0, restore
- 	ldmfd	sp!, {pc}	@ restore regs and return
-+ENDPROC(get_restore_pointer)
-+	.align
- ENTRY(get_restore_pointer_sz)
- 	.word	. - get_restore_pointer
- 
-@@ -91,6 +98,8 @@ ENTRY(get_omap3630_restore_pointer)
- 	stmfd	sp!, {lr}	@ save registers on stack
- 	adr	r0, restore_3630
- 	ldmfd	sp!, {pc}	@ restore regs and return
-+ENDPROC(get_omap3630_restore_pointer)
-+	.align
- ENTRY(get_omap3630_restore_pointer_sz)
- 	.word	. - get_omap3630_restore_pointer
- 
-@@ -100,6 +109,8 @@ ENTRY(get_es3_restore_pointer)
- 	stmfd	sp!, {lr}	@ save registers on stack
- 	adr	r0, restore_es3
- 	ldmfd	sp!, {pc}	@ restore regs and return
-+ENDPROC(get_es3_restore_pointer)
-+	.align
- ENTRY(get_es3_restore_pointer_sz)
- 	.word	. - get_es3_restore_pointer
- 
-@@ -113,8 +124,10 @@ ENTRY(enable_omap3630_toggle_l2_on_restore)
- 	stmfd	sp!, {lr}	@ save registers on stack
- 	/* Setup so that we will disable and enable l2 */
- 	mov	r1, #0x1
--	str	r1, l2dis_3630
-+	adrl	r2, l2dis_3630	@ may be too distant for plain adr
-+	str	r1, [r2]
- 	ldmfd	sp!, {pc}	@ restore regs and return
-+ENDPROC(enable_omap3630_toggle_l2_on_restore)
- 
- 	.text
- /* Function to call rom code to save secure ram context */
-@@ -139,12 +152,14 @@ ENTRY(save_secure_ram_context)
- 	nop
- 	nop
- 	ldmfd	sp!, {r1-r12, pc}
-+	.align
- sram_phy_addr_mask:
- 	.word	SRAM_BASE_P
- high_mask:
- 	.word	0xffff
- api_params:
- 	.word	0x4, 0x0, 0x0, 0x1, 0x1
-+ENDPROC(save_secure_ram_context)
- ENTRY(save_secure_ram_context_sz)
- 	.word	. - save_secure_ram_context
- 
-@@ -279,8 +294,18 @@ clean_l2:
- 	 *  - 'might' have to copy address, load and jump to it
- 	 */
- 	ldr	r1, kernel_flush
--	mov	lr, pc
--	bx	r1
-+	blx	r1
-+	/*
-+	 * The kernel doesn't interwork: v7_flush_dcache_all in particluar will
-+	 * always return in Thumb state when CONFIG_THUMB2_KERNEL is enabled.
-+	 * This sequence switches back to ARM.  Note that .align may insert a
-+	 * nop: bx pc needs to be word-aligned in order to work.
-+	 */
-+ THUMB(	.thumb		)
-+ THUMB(	.align		)
-+ THUMB(	bx	pc	)
-+ THUMB(	nop		)
-+	.arm
- 
- omap3_do_wfi:
- 	ldr	r4, sdrc_power		@ read the SDRC_POWER register
-@@ -438,6 +463,7 @@ skipl2dis:
- #endif
- 	b	logic_l1_restore
- 
-+	.align
- l2_inv_api_params:
- 	.word	0x1, 0x00
- l2_inv_gp:
-@@ -607,6 +633,7 @@ usettbr0:
- 
- /* This function implements the erratum ID i443 WA, applies to 34xx >= ES3.0 */
- 	.text
-+	.align	3
- ENTRY(es3_sdrc_fix)
- 	ldr	r4, sdrc_syscfg		@ get config addr
- 	ldr	r5, [r4]		@ get value
-@@ -634,6 +661,7 @@ ENTRY(es3_sdrc_fix)
- 	str	r5, [r4]		@ kick off refreshes
- 	bx	lr
- 
-+	.align
- sdrc_syscfg:
- 	.word	SDRC_SYSCONFIG_P
- sdrc_mr_0:
-@@ -648,6 +676,7 @@ sdrc_emr2_1:
- 	.word	SDRC_EMR2_1_P
- sdrc_manual_1:
- 	.word	SDRC_MANUAL_1_P
-+ENDPROC(es3_sdrc_fix)
- ENTRY(es3_sdrc_fix_sz)
- 	.word	. - es3_sdrc_fix
- 
-@@ -682,6 +711,12 @@ wait_sdrc_ready:
- 	bic	r5, r5, #0x40
- 	str	r5, [r4]
- 
-+/*
-+ * PC-relative stores lead to undefined behaviour in Thumb-2: use a r7 as a
-+ * base instead.
-+ * Be careful not to clobber r7 when maintaing this code.
-+ */
-+
- is_dll_in_lock_mode:
- 	/* Is dll in lock mode? */
- 	ldr	r4, sdrc_dlla_ctrl
-@@ -689,10 +724,11 @@ is_dll_in_lock_mode:
- 	tst	r5, #0x4
- 	bxne	lr			@ Return if locked
- 	/* wait till dll locks */
-+	adr	r7, kick_counter
- wait_dll_lock_timed:
- 	ldr	r4, wait_dll_lock_counter
- 	add	r4, r4, #1
--	str	r4, wait_dll_lock_counter
-+	str	r4, [r7, #wait_dll_lock_counter - kick_counter]
- 	ldr	r4, sdrc_dlla_status
- 	/* Wait 20uS for lock */
- 	mov	r6, #8
-@@ -718,9 +754,10 @@ kick_dll:
- 	dsb
- 	ldr	r4, kick_counter
- 	add	r4, r4, #1
--	str	r4, kick_counter
-+	str	r4, [r7]		@ kick_counter
- 	b	wait_dll_lock_timed
- 
-+	.align
- cm_idlest1_core:
- 	.word	CM_IDLEST1_CORE_V
- cm_idlest_ckgen:
-@@ -763,6 +800,7 @@ kick_counter:
- 	.word	0
- wait_dll_lock_counter:
- 	.word	0
-+ENDPROC(omap34xx_cpu_suspend)
- 
- ENTRY(omap34xx_cpu_suspend_sz)
- 	.word	. - omap34xx_cpu_suspend
--- 
-1.7.1
-
+> ---
+>  arch/arm/mach-omap2/pm.c |    4 +++-
+>  1 files changed, 3 insertions(+), 1 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+> index d5a102c..6e4eb7f 100644
+> --- a/arch/arm/mach-omap2/pm.c
+> +++ b/arch/arm/mach-omap2/pm.c
+> @@ -83,7 +83,9 @@ static int _init_omap_device(char *name, struct device **new_dev)
+>  static void omap2_init_processor_devices(void)
+>  {
+>  	_init_omap_device("mpu", &mpu_dev);
+> -	_init_omap_device("iva", &iva_dev);
+> +	if (omap3_has_iva())
+> +		_init_omap_device("iva", &iva_dev);
+> +
+>  	if (cpu_is_omap44xx()) {
+>  		_init_omap_device("l3_main_1", &l3_dev);
+>  		_init_omap_device("dsp", &dsp_dev);
