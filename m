@@ -1,52 +1,115 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 08/17] omap4: pm: Add GIC save/restore support
-Date: Fri, 4 Mar 2011 14:09:18 +0530
-Message-ID: <20b497dc6e31dd5eb91b2a11002966c2@mail.gmail.com>
-References: <1298112158-28469-1-git-send-email-santosh.shilimkar@ti.com><1298112158-28469-9-git-send-email-santosh.shilimkar@ti.com>
- <8739n55f75.fsf@ti.com>
+From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Subject: RE: [PATCH v11 5/8] OMAP: dmtimer: platform driver
+Date: Fri, 4 Mar 2011 14:37:09 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB037A360437@dbde02.ent.ti.com>
+References: <1298546811-27055-1-git-send-email-tarun.kanti@ti.com>
+	<1298546811-27055-6-git-send-email-tarun.kanti@ti.com>
+ <87mxlboh8o.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:54620 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754878Ab1CDIjU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Mar 2011 03:39:20 -0500
-Received: by mail-qy0-f171.google.com with SMTP id 19so579201qyj.9
-        for <linux-omap@vger.kernel.org>; Fri, 04 Mar 2011 00:39:19 -0800 (PST)
-In-reply-to: <8739n55f75.fsf@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43922 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754031Ab1CDJHT convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Mar 2011 04:07:19 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p2497F1J001802
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Fri, 4 Mar 2011 03:07:17 -0600
+In-Reply-To: <87mxlboh8o.fsf@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: "Hilman, Kevin" <khilman@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gopinath, Thara" <thara@ti.com>
 
 > -----Original Message-----
-> From: Kevin Hilman [mailto:khilman@ti.com]
-> Sent: Thursday, March 03, 2011 4:00 AM
-> To: Santosh Shilimkar
-> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
-> Subject: Re: [PATCH 08/17] omap4: pm: Add GIC save/restore support
->
-> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
->
+> From: Hilman, Kevin
+> Sent: Friday, March 04, 2011 6:05 AM
+> To: DebBarma, Tarun Kanti
+> Cc: linux-omap@vger.kernel.org; Gopinath, Thara
+> Subject: Re: [PATCH v11 5/8] OMAP: dmtimer: platform driver
+> 
+> Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
+> 
+> > From: Thara Gopinath <thara@ti.com>
+> >
+> > Add dmtimer platform driver functions which include:
+> > (1) platform driver initialization
+> > (2) driver probe function
+> > (3) driver remove function
+> >
+> > Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+> > Signed-off-by: Thara Gopinath <thara@ti.com>
+> > Acked-by: Cousson, Benoit <b-cousson@ti.com>
+> 
+> Some locking issues below...
+> 
+> > ---
+> >  arch/arm/plat-omap/dmtimer.c              |  167
+> ++++++++++++++++++++++++++++-
+> >  arch/arm/plat-omap/include/plat/dmtimer.h |    2 +
+> >  2 files changed, 168 insertions(+), 1 deletions(-)
+> >
+> > diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
+> > index 1bfaf09..bfe6fd3 100644
+> > --- a/arch/arm/plat-omap/dmtimer.c
+> > +++ b/arch/arm/plat-omap/dmtimer.c
+> > @@ -43,6 +43,9 @@
+> >  #include <linux/delay.h>
+> >  #include <linux/io.h>
+> >  #include <linux/module.h>
+> > +#include <linux/slab.h>
+> > +#include <linux/err.h>
+> > +#include <linux/platform_device.h>
+> >  #include <mach/hardware.h>
+> >  #include <plat/dmtimer.h>
+> >  #include <mach/irqs.h>
+> > @@ -257,7 +260,8 @@ static struct omap_dm_timer *dm_timers;
+> >  static const char **dm_source_names;
+> >  static struct clk **dm_source_clocks;
+> >
+> > -static spinlock_t dm_timer_lock;
+> > +static LIST_HEAD(omap_timer_list);
+> > +static DEFINE_SPINLOCK(dm_timer_lock);
+> 
+> This spinlock is being used as a mutex.  Please use a mutex instead.
+Alright, I will use mutex instead.
 
-[...]
-
-> > +	/*
-> > +	 * Find out how many interrupts are supported.
-> > +	 * OMAP4 supports max of 128 SPIs where as GIC can support
-> > +	 * up to 1020 interrupt sources.
-> > +	 */
-> > +	max_spi_reg = __raw_readl(gic_dist_base_addr + GIC_DIST_CTR) &
-> 0x1f;
-> > +	max_spi_irq = max_spi_reg * 32;
->
-> Based on the spec, this should also be max'd at 1020 so you never
-> write the reserved values after 1020.
->
-
-That's correct as per generic GIC specs. On OMAP4, the maximum IRQs
-already fused in "DIST_CTR"  bit-fields and fixed. Hence we don't
-need that additional comparison.
-
-Regards
-Santosh
+> 
+> >  /*
+> >   * Reads timer registers in posted and non-posted mode. The posted mode
+> bit
+> > @@ -689,6 +693,167 @@ int omap_dm_timers_active(void)
+> >  }
+> >  EXPORT_SYMBOL_GPL(omap_dm_timers_active);
+> >
+> > +/**
+> > + * omap_dm_timer_probe - probe function called for every registered
+> device
+> > + * @pdev:	pointer to current timer platform device
+> > + *
+> > + * Called by driver framework at the end of device registration for all
+> > + * timer devices.
+> > + */
+> > +static int __devinit omap_dm_timer_probe(struct platform_device *pdev)
+> > +{
+> > +	int ret;
+> > +	unsigned long flags;
+> > +	struct omap_dm_timer *timer;
+> > +	struct resource *mem, *irq, *ioarea;
+> > +	struct dmtimer_platform_data *pdata = pdev->dev.platform_data;
+> > +
+> > +	if (!pdata) {
+> > +		dev_err(&pdev->dev, "%s: no platform data\n", __func__);
+> > +		return -ENODEV;
+> > +	}
+> > +
+> > +	spin_lock_irqsave(&dm_timer_lock, flags);
+> 
+> Why do you need IRQ versions of the locks?   This lock is never used in
+> interrupt context.
+Yes.
+> 
+> Kevin
