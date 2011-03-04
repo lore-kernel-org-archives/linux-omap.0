@@ -1,85 +1,117 @@
-From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: RE: [PATCH v11 6/8] dmtimer: switch-over to platform device driver
-Date: Fri, 4 Mar 2011 12:27:28 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB037A3603C0@dbde02.ent.ti.com>
-References: <1298546811-27055-1-git-send-email-tarun.kanti@ti.com>
-	<1298546811-27055-7-git-send-email-tarun.kanti@ti.com>
- <87y64vllrh.fsf@ti.com>
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: Re: omap3isp cache error when unloading
+Date: Fri, 04 Mar 2011 09:38:22 +0200
+Message-ID: <4D7096EE.8090105@maxwell.research.nokia.com>
+References: <4D6D219D.7020605@matrix-vision.de> <201103022018.23446.laurent.pinchart@ideasonboard.com> <4D6FBC7F.1080500@matrix-vision.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:57052 "EHLO comal.ext.ti.com"
+Received: from smtp.nokia.com ([147.243.1.47]:44793 "EHLO mgw-sa01.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758960Ab1CDG5g convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Mar 2011 01:57:36 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p246vXxe002396
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 4 Mar 2011 00:57:35 -0600
-In-Reply-To: <87y64vllrh.fsf@ti.com>
-Content-Language: en-US
+	id S1752009Ab1CDHie (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 4 Mar 2011 02:38:34 -0500
+In-Reply-To: <4D6FBC7F.1080500@matrix-vision.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hilman, Kevin" <khilman@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Michael Jones <michael.jones@matrix-vision.de>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, fernando.lugo@ti.com, Linux Media Mailing List <linux-media@vger.kernel.org>, linux-omap@vger.kernel.org, Hiroshi.DOYU@nokia.com, Cohen David Abraham <david.cohen@nokia.com>
 
-> -----Original Message-----
-> From: Hilman, Kevin
-> Sent: Friday, March 04, 2011 6:56 AM
-> To: DebBarma, Tarun Kanti
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: [PATCH v11 6/8] dmtimer: switch-over to platform device
-> driver
-> 
-> Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
-> 
-> > switch-over to platform device driver through following changes:
-> > (a) initiate dmtimer early initialization from omap2_gp_timer_init()
-> > in timer-gp.c. This is equivalent of timer_init()->timer->init().
-> > (b) modify plat-omap/dmtimer routines to use new register map and
-> > platform data.
-> >
-> > Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-> > Acked-by: Cousson, Benoit <b-cousson@ti.com>
-> 
-> [...]
-> 
-> > @@ -507,20 +394,22 @@ EXPORT_SYMBOL_GPL(omap_dm_timer_start);
-> >  void omap_dm_timer_stop(struct omap_dm_timer *timer)
-> >  {
-> >  	u32 l;
-> > +	struct dmtimer_platform_data *pdata = timer->pdev->dev.platform_data;
-> >
-> >  	l = omap_dm_timer_read_reg(timer, OMAP_TIMER_CTRL_REG);
-> >  	if (l & OMAP_TIMER_CTRL_ST) {
-> >  		l &= ~0x1;
-> >  		omap_dm_timer_write_reg(timer, OMAP_TIMER_CTRL_REG, l);
-> > -#ifdef CONFIG_ARCH_OMAP2PLUS
-> > -		/* Readback to make sure write has completed */
-> > -		omap_dm_timer_read_reg(timer, OMAP_TIMER_CTRL_REG);
-> > -		 /*
-> > -		  * Wait for functional clock period x 3.5 to make sure that
-> > -		  * timer is stopped
-> > -		  */
-> > -		udelay(3500000 / clk_get_rate(timer->fclk) + 1);
-> > -#endif
-> > +
-> > +		if (!pdata->is_omap16xx) {
-> > +			/* Readback to make sure write has completed */
-> > +			omap_dm_timer_read_reg(timer, OMAP_TIMER_CTRL_REG);
-> > +			/*
-> > +			 * Wait for functional clock period x 3.5 to make
-> > +			 * sure that timer is stopped
-> > +			 */
-> > +			udelay(3500000 / clk_get_rate(timer->fclk) + 1);
-> > +		}
-> 
-> Can't this 'is_omap16xx' check just be using the IP revision?
-OK, I will introduce a new version to cover this.
+Hi Michael,
 
+Michael Jones wrote:
+> On 03/02/2011 08:18 PM, Laurent Pinchart wrote:
+>> Hi Michael,
+>>
+>> On Tuesday 01 March 2011 17:41:01 Michael Jones wrote:
+>>> Hi all,
+>>>
+>>> I get a warning about a cache error with the following steps:
+>>>
+>>> 0. load omap3-isp
+>>> 1. set up media broken media pipeline. (e.g. set different formats on
+>>> opposite ends of a link, as will be the case for using the lane shifter)
+>>> 2. try to capture images.  isp_video_streamon() returns -EPIPE from the
+>>> failed isp_video_validate_pipeline() call.
+>>> 3. unload omap3-isp module
+>>>
+>>> then I get the following from kmem_cache_destroy():
+>>>
+>>> slab error in kmem_cache_destroy(): cache `iovm_area_cache': Can't free all
+>>> objects [<c0040318>] (unwind_backtrace+0x0/0xec) from [<c00bfe14>]
+>>> (kmem_cache_destroy+0x88/0xf4) [<c00bfe14>] (kmem_cache_destroy+0x88/0xf4)
+>>> from [<c00861f8>] (sys_delete_module+0x1c4/0x230) [<c00861f8>]
+>>> (sys_delete_module+0x1c4/0x230) from [<c003b680>]
+>>> (ret_fast_syscall+0x0/0x30)
+>>>
+>>> Then, when reloading the module:
+>>> SLAB: cache with size 32 has lost its name
+>>>
+>>> Can somebody else confirm that they also observe this behavior?
+>>
+>> I can't reproduce that (tried both 2.6.32 and 2.6.37). Could you give me some 
+>> more details about your exact test procedure (such as how you configure the 
+>> pipeline) ?
+>>
 > 
+> Sorry, I should've mentioned: I'm using your media-0005-omap3isp branch
+> based on 2.6.38-rc5.  I didn't have the problem with 2.6.37, either.
+> It's actually not related to mis-configuring the ISP pipeline like I
+> thought at first- it also happens after I have successfully captured images.
 > 
-> >  	}
+> I've since tracked down the problem, although I don't understand the
+> cache management well enough to be sure it's a proper fix, so hopefully
+> some new recipients on this can make suggestions/comments.
 > 
-> Kevin
+> The patch below solves the problem, which modifies a commit by Fernando
+> Guzman Lugo from December.
+
+Thanks for the patch.
+
+It looks like this patch from Fernando, perhaps unintentionally, also
+makes the first page mappable so the NULL address is also valid. The
+NULL address isn't considered valid by the ISP driver which thus does
+not iommu_vunmap() the NULL address.
+
+Hiroshi, David, what do you think? I think the patch is correct so it
+could be applied with description changed to mention it disallows
+mapping the first page again.
+
+Or is there a reason to allow mapping the first page automatically? I
+personally don't see any.
+
+Cheers,
+
+> From db35fb8edca2a4f8fd37197d77fd58676cb1dcac Mon Sep 17 00:00:00 2001
+> From: Michael Jones <michael.jones@matrix-vision.de>
+> Date: Thu, 3 Mar 2011 16:50:39 +0100
+> Subject: [PATCH] fix iovmm slab cache error on module unload
+> 
+> modify "OMAP: iommu: create new api to set valid da range"
+> 
+> This modifies commit c7f4ab26e3bcdaeb3e19ec658e3ad9092f1a6ceb.
+> ---
+>  arch/arm/plat-omap/iovmm.c |    5 ++++-
+>  1 files changed, 4 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
+> index 6dc1296..2fba6f1 100644
+> --- a/arch/arm/plat-omap/iovmm.c
+> +++ b/arch/arm/plat-omap/iovmm.c
+> @@ -280,7 +280,10 @@ static struct iovm_struct *alloc_iovm_area(struct iommu *obj, u32 da,
+>  	alignement = PAGE_SIZE;
+>  
+>  	if (flags & IOVMF_DA_ANON) {
+> -		start = obj->da_start;
+> +		/*
+> +		 * Reserve the first page for NULL
+> +		 */
+> +		start = obj->da_start + PAGE_SIZE;
+>  
+>  		if (flags & IOVMF_LINEAR)
+>  			alignement = iopgsz_max(bytes);
+
+
+-- 
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
