@@ -1,71 +1,158 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v11 6/8] dmtimer: switch-over to platform device driver
-Date: Thu, 03 Mar 2011 17:25:38 -0800
-Message-ID: <87y64vllrh.fsf@ti.com>
-References: <1298546811-27055-1-git-send-email-tarun.kanti@ti.com>
-	<1298546811-27055-7-git-send-email-tarun.kanti@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH v2] OMAP2PLUS: Replace voltage values with Macros
+Date: Fri,  4 Mar 2011 06:58:47 +0530
+Message-ID: <1299202127-28863-1-git-send-email-nm@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:38185 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759050Ab1CDBZ5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Mar 2011 20:25:57 -0500
-Received: by gxk21 with SMTP id 21so649374gxk.36
-        for <linux-omap@vger.kernel.org>; Thu, 03 Mar 2011 17:25:56 -0800 (PST)
-In-Reply-To: <1298546811-27055-7-git-send-email-tarun.kanti@ti.com> (Tarun
-	Kanti DebBarma's message of "Thu, 24 Feb 2011 16:56:49 +0530")
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:36002 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1759073Ab1CDB25 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Mar 2011 20:28:57 -0500
+Received: by pzk30 with SMTP id 30so362936pzk.17
+        for <linux-omap@vger.kernel.org>; Thu, 03 Mar 2011 17:28:56 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Kevin H <khilman@ti.com>, Tony L <tony@atomide.com>, linux-arm <linux-arm-kernel@lists.infradead.org>, Vishwanath BS <vishwanath.bs@ti.com>
 
-Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
+From: Vishwanath BS <vishwanath.bs@ti.com>
 
-> switch-over to platform device driver through following changes:
-> (a) initiate dmtimer early initialization from omap2_gp_timer_init()
-> in timer-gp.c. This is equivalent of timer_init()->timer->init().
-> (b) modify plat-omap/dmtimer routines to use new register map and
-> platform data.
->
-> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-> Acked-by: Cousson, Benoit <b-cousson@ti.com>
+Since all voltage data is now centralized in oppxxx_data.c, we can remove
+the replace the values in the opp table with the macros used for voltage
+values.  This will avoid opp table and voltage layer having conflicting
+values.
 
-[...]
+Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
+---
+This patch has 3 line over 80 char warning. This is retained for readability
+purposes.
 
-> @@ -507,20 +394,22 @@ EXPORT_SYMBOL_GPL(omap_dm_timer_start);
->  void omap_dm_timer_stop(struct omap_dm_timer *timer)
->  {
->  	u32 l;
-> +	struct dmtimer_platform_data *pdata = timer->pdev->dev.platform_data;
->  
->  	l = omap_dm_timer_read_reg(timer, OMAP_TIMER_CTRL_REG);
->  	if (l & OMAP_TIMER_CTRL_ST) {
->  		l &= ~0x1;
->  		omap_dm_timer_write_reg(timer, OMAP_TIMER_CTRL_REG, l);
-> -#ifdef CONFIG_ARCH_OMAP2PLUS
-> -		/* Readback to make sure write has completed */
-> -		omap_dm_timer_read_reg(timer, OMAP_TIMER_CTRL_REG);
-> -		 /*
-> -		  * Wait for functional clock period x 3.5 to make sure that
-> -		  * timer is stopped
-> -		  */
-> -		udelay(3500000 / clk_get_rate(timer->fclk) + 1);
-> -#endif
-> +
-> +		if (!pdata->is_omap16xx) {
-> +			/* Readback to make sure write has completed */
-> +			omap_dm_timer_read_reg(timer, OMAP_TIMER_CTRL_REG);
-> +			/*
-> +			 * Wait for functional clock period x 3.5 to make
-> +			 * sure that timer is stopped
-> +			 */
-> +			udelay(3500000 / clk_get_rate(timer->fclk) + 1);
-> +		}
+v2: Rebased to pm-core (since pm-core now has voltage layer cleanups)
 
-Can't this 'is_omap16xx' check just be using the IP revision?
+v1: http://marc.info/?l=linux-omap&m=129683786100355&w=2
 
+ arch/arm/mach-omap2/opp3xxx_data.c |   46 ++++++++++++++++++------------------
+ arch/arm/mach-omap2/opp4xxx_data.c |   12 ++++----
+ 2 files changed, 29 insertions(+), 29 deletions(-)
 
->  	}
+diff --git a/arch/arm/mach-omap2/opp3xxx_data.c b/arch/arm/mach-omap2/opp3xxx_data.c
+index d2bd1bd..d95f3f9 100644
+--- a/arch/arm/mach-omap2/opp3xxx_data.c
++++ b/arch/arm/mach-omap2/opp3xxx_data.c
+@@ -89,15 +89,15 @@ struct omap_volt_data omap36xx_vddcore_volt_data[] = {
+ 
+ static struct omap_opp_def __initdata omap34xx_opp_def_list[] = {
+ 	/* MPU OPP1 */
+-	OPP_INITIALIZER("mpu", true, 125000000, 975000),
++	OPP_INITIALIZER("mpu", true, 125000000, OMAP3430_VDD_MPU_OPP1_UV),
+ 	/* MPU OPP2 */
+-	OPP_INITIALIZER("mpu", true, 250000000, 1075000),
++	OPP_INITIALIZER("mpu", true, 250000000, OMAP3430_VDD_MPU_OPP2_UV),
+ 	/* MPU OPP3 */
+-	OPP_INITIALIZER("mpu", true, 500000000, 1200000),
++	OPP_INITIALIZER("mpu", true, 500000000, OMAP3430_VDD_MPU_OPP3_UV),
+ 	/* MPU OPP4 */
+-	OPP_INITIALIZER("mpu", true, 550000000, 1270000),
++	OPP_INITIALIZER("mpu", true, 550000000, OMAP3430_VDD_MPU_OPP4_UV),
+ 	/* MPU OPP5 */
+-	OPP_INITIALIZER("mpu", true, 600000000, 1350000),
++	OPP_INITIALIZER("mpu", true, 600000000, OMAP3430_VDD_MPU_OPP5_UV),
+ 
+ 	/*
+ 	 * L3 OPP1 - 41.5 MHz is disabled because: The voltage for that OPP is
+@@ -107,47 +107,47 @@ static struct omap_opp_def __initdata omap34xx_opp_def_list[] = {
+ 	 * impact that frequency will do to the MPU and the whole system in
+ 	 * general.
+ 	 */
+-	OPP_INITIALIZER("l3_main", false, 41500000, 975000),
++	OPP_INITIALIZER("l3_main", false, 41500000, OMAP3430_VDD_CORE_OPP1_UV),
+ 	/* L3 OPP2 */
+-	OPP_INITIALIZER("l3_main", true, 83000000, 1050000),
++	OPP_INITIALIZER("l3_main", true, 83000000, OMAP3430_VDD_CORE_OPP2_UV),
+ 	/* L3 OPP3 */
+-	OPP_INITIALIZER("l3_main", true, 166000000, 1150000),
++	OPP_INITIALIZER("l3_main", true, 166000000, OMAP3430_VDD_CORE_OPP3_UV),
+ 
+ 	/* DSP OPP1 */
+-	OPP_INITIALIZER("iva", true, 90000000, 975000),
++	OPP_INITIALIZER("iva", true, 90000000, OMAP3430_VDD_MPU_OPP1_UV),
+ 	/* DSP OPP2 */
+-	OPP_INITIALIZER("iva", true, 180000000, 1075000),
++	OPP_INITIALIZER("iva", true, 180000000, OMAP3430_VDD_MPU_OPP2_UV),
+ 	/* DSP OPP3 */
+-	OPP_INITIALIZER("iva", true, 360000000, 1200000),
++	OPP_INITIALIZER("iva", true, 360000000, OMAP3430_VDD_MPU_OPP3_UV),
+ 	/* DSP OPP4 */
+-	OPP_INITIALIZER("iva", true, 400000000, 1270000),
++	OPP_INITIALIZER("iva", true, 400000000, OMAP3430_VDD_MPU_OPP4_UV),
+ 	/* DSP OPP5 */
+-	OPP_INITIALIZER("iva", true, 430000000, 1350000),
++	OPP_INITIALIZER("iva", true, 430000000, OMAP3430_VDD_MPU_OPP5_UV),
+ };
+ 
+ static struct omap_opp_def __initdata omap36xx_opp_def_list[] = {
+ 	/* MPU OPP1 - OPP50 */
+-	OPP_INITIALIZER("mpu", true,  300000000, 1012500),
++	OPP_INITIALIZER("mpu", true,  300000000, OMAP3630_VDD_MPU_OPP50_UV),
+ 	/* MPU OPP2 - OPP100 */
+-	OPP_INITIALIZER("mpu", true,  600000000, 1200000),
++	OPP_INITIALIZER("mpu", true,  600000000, OMAP3630_VDD_MPU_OPP100_UV),
+ 	/* MPU OPP3 - OPP-Turbo */
+-	OPP_INITIALIZER("mpu", false, 800000000, 1325000),
++	OPP_INITIALIZER("mpu", false, 800000000, OMAP3630_VDD_MPU_OPP120_UV),
+ 	/* MPU OPP4 - OPP-SB */
+-	OPP_INITIALIZER("mpu", false, 1000000000, 1375000),
++	OPP_INITIALIZER("mpu", false, 1000000000, OMAP3630_VDD_MPU_OPP1G_UV),
+ 
+ 	/* L3 OPP1 - OPP50 */
+-	OPP_INITIALIZER("l3_main", true, 100000000, 1000000),
++	OPP_INITIALIZER("l3_main", true, 100000000, OMAP3630_VDD_CORE_OPP50_UV),
+ 	/* L3 OPP2 - OPP100, OPP-Turbo, OPP-SB */
+-	OPP_INITIALIZER("l3_main", true, 200000000, 1200000),
++	OPP_INITIALIZER("l3_main", true, 200000000, OMAP3630_VDD_CORE_OPP100_UV),
+ 
+ 	/* DSP OPP1 - OPP50 */
+-	OPP_INITIALIZER("iva", true,  260000000, 1012500),
++	OPP_INITIALIZER("iva", true,  260000000, OMAP3630_VDD_MPU_OPP50_UV),
+ 	/* DSP OPP2 - OPP100 */
+-	OPP_INITIALIZER("iva", true,  520000000, 1200000),
++	OPP_INITIALIZER("iva", true,  520000000, OMAP3630_VDD_MPU_OPP100_UV),
+ 	/* DSP OPP3 - OPP-Turbo */
+-	OPP_INITIALIZER("iva", false, 660000000, 1325000),
++	OPP_INITIALIZER("iva", false, 660000000, OMAP3630_VDD_MPU_OPP120_UV),
+ 	/* DSP OPP4 - OPP-SB */
+-	OPP_INITIALIZER("iva", false, 800000000, 1375000),
++	OPP_INITIALIZER("iva", false, 800000000, OMAP3630_VDD_MPU_OPP1G_UV),
+ };
+ 
+ /**
+diff --git a/arch/arm/mach-omap2/opp4xxx_data.c b/arch/arm/mach-omap2/opp4xxx_data.c
+index 5030794..57f1498 100644
+--- a/arch/arm/mach-omap2/opp4xxx_data.c
++++ b/arch/arm/mach-omap2/opp4xxx_data.c
+@@ -67,17 +67,17 @@ struct omap_volt_data omap44xx_vdd_core_volt_data[] = {
+ 
+ static struct omap_opp_def __initdata omap44xx_opp_def_list[] = {
+ 	/* MPU OPP1 - OPP50 */
+-	OPP_INITIALIZER("mpu", true, 300000000, 1100000),
++	OPP_INITIALIZER("mpu", true, 300000000, OMAP4430_VDD_MPU_OPP50_UV),
+ 	/* MPU OPP2 - OPP100 */
+-	OPP_INITIALIZER("mpu", true, 600000000, 1200000),
++	OPP_INITIALIZER("mpu", true, 600000000, OMAP4430_VDD_MPU_OPP100_UV),
+ 	/* MPU OPP3 - OPP-Turbo */
+-	OPP_INITIALIZER("mpu", false, 800000000, 1260000),
++	OPP_INITIALIZER("mpu", false, 800000000, OMAP4430_VDD_MPU_OPPTURBO_UV),
+ 	/* MPU OPP4 - OPP-SB */
+-	OPP_INITIALIZER("mpu", false, 1008000000, 1350000),
++	OPP_INITIALIZER("mpu", false, 1008000000, OMAP4430_VDD_MPU_OPPNITRO_UV),
+ 	/* L3 OPP1 - OPP50 */
+-	OPP_INITIALIZER("l3_main_1", true, 100000000, 930000),
++	OPP_INITIALIZER("l3_main_1", true, 100000000, OMAP4430_VDD_CORE_OPP50_UV),
+ 	/* L3 OPP2 - OPP100, OPP-Turbo, OPP-SB */
+-	OPP_INITIALIZER("l3_main_1", true, 200000000, 1100000),
++	OPP_INITIALIZER("l3_main_1", true, 200000000, OMAP4430_VDD_CORE_OPP100_UV),
+ 	/* TODO: add IVA, DSP, aess, fdif, gpu */
+ };
+ 
+-- 
+1.7.1
 
-Kevin
