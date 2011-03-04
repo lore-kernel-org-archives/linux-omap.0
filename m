@@ -1,69 +1,37 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 08/17] omap4: pm: Add GIC save/restore support
-Date: Fri, 4 Mar 2011 21:44:48 +0530
-Message-ID: <80e67b305c809bfd218fff06ad27b97a@mail.gmail.com>
-References: <1298112158-28469-1-git-send-email-santosh.shilimkar@ti.com><1298112158-28469-9-git-send-email-santosh.shilimkar@ti.com><8739n55f75.fsf@ti.com><20b497dc6e31dd5eb91b2a11002966c2@mail.gmail.com>
- <87ipvykgq9.fsf@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/8] OMAP2+: hwmod/clockevent: allow late-init of
+ individual hwmods
+Date: Fri, 4 Mar 2011 08:19:33 -0800
+Message-ID: <20110304161933.GV20560@atomide.com>
+References: <20110223070455.5874.51326.stgit@twilight.localdomain>
+ <4D651998.3040002@ti.com>
+ <alpine.DEB.2.00.1102271928550.505@utopia.booyaka.com>
+ <4D6B845A.9000900@ti.com>
+ <20110302175422.GY20560@atomide.com>
+ <4D6F7723.5040001@ti.com>
+ <4D70FC5B.9040701@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:40438 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759270Ab1CDQOy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Mar 2011 11:14:54 -0500
-Received: by mail-qw0-f53.google.com with SMTP id 9so2000456qwc.26
-        for <linux-omap@vger.kernel.org>; Fri, 04 Mar 2011 08:14:49 -0800 (PST)
-In-reply-to: <87ipvykgq9.fsf@ti.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:17675 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759698Ab1CDQTs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Mar 2011 11:19:48 -0500
+Content-Disposition: inline
+In-Reply-To: <4D70FC5B.9040701@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Hilman, Kevin" <khilman@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Gopinath, Thara" <thara@ti.com>, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>
 
-> -----Original Message-----
-> From: Kevin Hilman [mailto:khilman@ti.com]
-> Sent: Friday, March 04, 2011 9:42 PM
-> To: Santosh Shilimkar
-> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
-> Subject: Re: [PATCH 08/17] omap4: pm: Add GIC save/restore support
->
-> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
->
-> >> -----Original Message-----
-> >> From: Kevin Hilman [mailto:khilman@ti.com]
-> >> Sent: Thursday, March 03, 2011 4:00 AM
-> >> To: Santosh Shilimkar
-> >> Cc: linux-omap@vger.kernel.org; linux-arm-
-> kernel@lists.infradead.org
-> >> Subject: Re: [PATCH 08/17] omap4: pm: Add GIC save/restore
-> support
-> >>
-> >> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
-> >>
-> >
-> > [...]
-> >
-> >> > +	/*
-> >> > +	 * Find out how many interrupts are supported.
-> >> > +	 * OMAP4 supports max of 128 SPIs where as GIC can
-> support
-> >> > +	 * up to 1020 interrupt sources.
-> >> > +	 */
-> >> > +	max_spi_reg = __raw_readl(gic_dist_base_addr +
-> GIC_DIST_CTR) &
-> >> 0x1f;
-> >> > +	max_spi_irq = max_spi_reg * 32;
-> >>
-> >> Based on the spec, this should also be max'd at 1020 so you never
-> >> write the reserved values after 1020.
-> >>
-> >
-> > That's correct as per generic GIC specs. On OMAP4, the maximum
-> IRQs
-> > already fused in "DIST_CTR"  bit-fields and fixed. Hence we don't
-> > need that additional comparison.
-> >
->
-> OK, clarifiying this in the comment above would avoid confusion for
-> anyone looking at this code in combination with the spec.
->
-Ok. Will update it
+* Cousson, Benoit <b-cousson@ti.com> [110304 06:49]:
+> 
+> Tony,
+> Do you plan to re-merge this branch or should I just send a revert
+> on top of it?
+
+Please just provide a patch.
+
+Regards,
+
+Tony
