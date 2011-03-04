@@ -1,180 +1,76 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: RE: [patch v3 3/3] arm: omap4: support pmu
-Date: Fri, 4 Mar 2011 11:46:07 +0530
-Message-ID: <3734c031c0714f7f6bea072bb8b75a02@mail.gmail.com>
-References: <1299149633-699-1-git-send-email-tom.leiming@gmail.com> <1299149633-699-4-git-send-email-tom.leiming@gmail.com>
+Subject: RE: [PATCH 5/6] omap4: Initialise the l3 device with the hwmod data.
+Date: Fri, 4 Mar 2011 11:50:57 +0530
+Message-ID: <f52bf1c89b7c7c9d6d0281b1a200d5c1@mail.gmail.com>
+References: <1298295990-1070-1-git-send-email-santosh.shilimkar@ti.com>
+ <1298295990-1070-6-git-send-email-santosh.shilimkar@ti.com>
+ <4D62AAAA.40104@ti.com> <295be59bd43a2e9f0961c10263ce19c0@mail.gmail.com> <20110303183111.GO20560@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:49965 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751099Ab1CDGQJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Mar 2011 01:16:09 -0500
-Received: by mail-qw0-f47.google.com with SMTP id 2so1426937qwi.6
-        for <linux-omap@vger.kernel.org>; Thu, 03 Mar 2011 22:16:07 -0800 (PST)
-In-reply-to: <1299149633-699-4-git-send-email-tom.leiming@gmail.com>
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:53791 "EHLO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750809Ab1CDGU7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Mar 2011 01:20:59 -0500
+Received: by qwc9 with SMTP id 9so1629356qwc.26
+        for <linux-omap@vger.kernel.org>; Thu, 03 Mar 2011 22:20:58 -0800 (PST)
+In-reply-to: <20110303183111.GO20560@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tom.leiming@gmail.com, linux@arm.linux.org.uk
-Cc: linux-arm-kernel@lists.infradead.org, will.deacon@arm.com, Richard Woodruff <r-woodruff2@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Benoit Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Sricharan R <r.sricharan@ti.com>
 
 > -----Original Message-----
-> From: tom.leiming@gmail.com [mailto:tom.leiming@gmail.com]
-> Sent: Thursday, March 03, 2011 4:24 PM
-> To: linux@arm.linux.org.uk
-> Cc: linux-arm-kernel@lists.infradead.org; will.deacon@arm.com; Ming
-> Lei; Santosh Shilimkar; Woodruff Richard; Tony Lindgren; linux-
-> omap@vger.kernel.org
-> Subject: [patch v3 3/3] arm: omap4: support pmu
+> From: Tony Lindgren [mailto:tony@atomide.com]
+> Sent: Friday, March 04, 2011 12:01 AM
+> To: Santosh Shilimkar
+> Cc: Benoit Cousson; linux-omap@vger.kernel.org; Felipe Balbi;
+> Sricharan R
+> Subject: Re: [PATCH 5/6] omap4: Initialise the l3 device with the
+> hwmod data.
 >
-> From: Ming Lei <tom.leiming@gmail.com>
+> * Santosh Shilimkar <santosh.shilimkar@ti.com> [110221 11:01]:
+> > > -----Original Message-----
+> > > From: Cousson, Benoit [mailto:b-cousson@ti.com]
+> > > Sent: Monday, February 21, 2011 11:41 PM
+> > > To: Shilimkar, Santosh
+> > > Cc: linux-omap@vger.kernel.org; Balbi, Felipe; R, Sricharan
+> > > Subject: Re: [PATCH 5/6] omap4: Initialise the l3 device with
+> the
+> > > hwmod data.
+> > >
+> > > On 2/21/2011 2:46 PM, Shilimkar, Santosh wrote:
+> > > > From: sricharan<r.sricharan@ti.com>
+> > > >
+> > > > The l3 interconnect device is build with all the data required
+> > > > to handle the error logging. The data is extracted from the
+> > > > hwmod data base.
+> > > >
+> > > > Signed-off-by: sricharan<r.sricharan@ti.com>
+> > > > Signed-off-by: sricharan<r.sricharan@ti.com>
+> > > > Tested-by: sricharan<r.sricharan@ti.com>
+> > >
+> > > Mmm, I'm not sure the tested-by is meaningfull in your case,
+> since
+> > > you wrote the code and so everybody will assume you tested it.
+> > > One s-o-b should be probably enough.
+> > >
+> >
+> > Well he tested whole series including the patch from Felipe.
+> > So a tested-by on whole series doesn't hurt, right ?
+> >
+> > Just for record, I have seen tested by applied on whole series
+> > Where as some of the patches in this series are just comment
+> > updates.
 >
-> This patch supports pmu irq routed from CTI, so
-> make pmu/perf working on OMAP4.
+> Well Signed-off-by also means Tested-by. If not, it should
+> be specifically mentioned when the patch is posted. Something
+> like "PLEASE NOTE THAT THIS PATCH IS COMPLETELY UNTESTED".
 >
-> The idea is from Woodruff Richard in the disscussion
-> about "Oprofile on Pandaboard / Omap4" on
-> pandaboard@googlegroups.com.
->
-> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Cc: Woodruff Richard <r-woodruff2@ti.com>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: linux-omap@vger.kernel.org
-> Signed-off-by: Ming Lei <tom.leiming@gmail.com>
-> ---
-Looks good.
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Sure.
 
->  arch/arm/mach-omap2/devices.c              |   82
-> +++++++++++++++++++++++++++-
->  arch/arm/plat-omap/include/plat/omap44xx.h |    2 +
->  2 files changed, 81 insertions(+), 3 deletions(-)
+
+> Also one Signed-off-by is enough like Benoit pointed out :)
 >
-> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-
-> omap2/devices.c
-> index d216976..d97bb5a 100644
-> --- a/arch/arm/mach-omap2/devices.c
-> +++ b/arch/arm/mach-omap2/devices.c
-> @@ -22,6 +22,7 @@
->  #include <asm/mach-types.h>
->  #include <asm/mach/map.h>
->  #include <asm/pmu.h>
-> +#include <asm/cti.h>
->
->  #include <plat/tc.h>
->  #include <plat/board.h>
-> @@ -322,20 +323,95 @@ static struct resource omap3_pmu_resource = {
->  	.flags	= IORESOURCE_IRQ,
->  };
->
-> +static struct resource omap4_pmu_resource[] = {
-> +	{
-> +		.start	= OMAP44XX_IRQ_CTI0,
-> +		.end	= OMAP44XX_IRQ_CTI0,
-> +		.flags	= IORESOURCE_IRQ,
-> +	},
-> +	{
-> +		.start	= OMAP44XX_IRQ_CTI1,
-> +		.end	= OMAP44XX_IRQ_CTI1,
-> +		.flags	= IORESOURCE_IRQ,
-> +	}
-> +};
-> +
->  static struct platform_device omap_pmu_device = {
->  	.name		= "arm-pmu",
->  	.id		= ARM_PMU_DEVICE_CPU,
->  	.num_resources	= 1,
->  };
->
-> +static struct arm_pmu_platdata omap4_pmu_data;
-> +static struct cti omap4_cti[2];
-> +
-> +static void omap4_enable_cti(int irq)
-> +{
-> +	if (irq == OMAP44XX_IRQ_CTI0)
-> +		cti_enable(&omap4_cti[0]);
-> +	else if (irq == OMAP44XX_IRQ_CTI1)
-> +		cti_enable(&omap4_cti[1]);
-> +}
-> +
-> +static void omap4_disable_cti(int irq)
-> +{
-> +	if (irq == OMAP44XX_IRQ_CTI0)
-> +		cti_disable(&omap4_cti[0]);
-> +	else if (irq == OMAP44XX_IRQ_CTI1)
-> +		cti_disable(&omap4_cti[1]);
-> +}
-> +
-> +static irqreturn_t omap4_pmu_handler(int irq, void *dev,
-> irq_handler_t handler)
-> +{
-> +	if (irq == OMAP44XX_IRQ_CTI0)
-> +		cti_irq_ack(&omap4_cti[0]);
-> +	else if (irq == OMAP44XX_IRQ_CTI1)
-> +		cti_irq_ack(&omap4_cti[1]);
-> +
-> +	return handler(irq, dev);
-> +}
-> +
-> +static void omap4_configure_pmu_irq(void)
-> +{
-> +	void __iomem *base0;
-> +	void __iomem *base1;
-> +
-> +	base0 = ioremap(OMAP44XX_CTI0_BASE, SZ_4K);
-> +	base1 = ioremap(OMAP44XX_CTI1_BASE, SZ_4K);
-> +	if (!base0 && !base1) {
-> +		pr_err("ioremap for OMAP4 CTI failed\n");
-> +		return;
-> +	}
-> +
-> +	/*configure CTI0 for pmu irq routing*/
-> +	cti_init(&omap4_cti[0], base0, OMAP44XX_IRQ_CTI0, 6);
-> +	cti_unlock(&omap4_cti[0]);
-> +	cti_map_trigger(&omap4_cti[0], 1, 6, 2);
-> +
-> +	/*configure CTI1 for pmu irq routing*/
-> +	cti_init(&omap4_cti[1], base1, OMAP44XX_IRQ_CTI1, 6);
-> +	cti_unlock(&omap4_cti[1]);
-> +	cti_map_trigger(&omap4_cti[1], 1, 6, 2);
-> +
-> +	omap4_pmu_data.handle_irq = omap4_pmu_handler;
-> +	omap4_pmu_data.enable_irq = omap4_enable_cti;
-> +	omap4_pmu_data.disable_irq = omap4_disable_cti;
-> +}
-> +
->  static void omap_init_pmu(void)
->  {
-> -	if (cpu_is_omap24xx())
-> +	if (cpu_is_omap24xx()) {
->  		omap_pmu_device.resource = &omap2_pmu_resource;
-> -	else if (cpu_is_omap34xx())
-> +	} else if (cpu_is_omap34xx()) {
->  		omap_pmu_device.resource = &omap3_pmu_resource;
-> -	else
-> +	} else if (cpu_is_omap44xx()) {
-> +		omap_pmu_device.resource = omap4_pmu_resource;
-> +		omap_pmu_device.num_resources = 2;
-> +		omap_pmu_device.dev.platform_data = &omap4_pmu_data;
-> +		omap4_configure_pmu_irq();
-> +	} else {
->  		return;
-> +	}
->
->  	platform_device_register(&omap_pmu_device);
->  }
-> diff --git a/arch/arm/plat-omap/include/plat/omap44xx.h
-> b/arch/arm/plat-omap/include/plat/omap44xx.h
-> index ea2b8a6..b127a16 100644
-> --- a/arch/arm/plat-omap/include/plat/omap44xx.h
-> +++ b/arch/arm/plat-omap/include/plat/omap44xx.h
-> @@ -57,5 +57,7 @@
->  #define OMAP44XX_HSUSB_OHCI_BASE	(L4_44XX_BASE + 0x64800)
->  #define OMAP44XX_HSUSB_EHCI_BASE	(L4_44XX_BASE + 0x64C00)
->
-> +#define OMAP44XX_CTI0_BASE		0x54148000
-> +#define OMAP44XX_CTI1_BASE		0x54149000
->  #endif /* __ASM_ARCH_OMAP44XX_H */
->
-> --
-> 1.7.3
+Ohhh... I missed this I first comment :)
+One SOB is enough.
