@@ -1,46 +1,94 @@
-From: Shweta Gulati <shweta.gulati@ti.com>
-Subject: [PATCH V2 3/3] OMAP4: Add IVA OPP enteries.
-Date: Sat,  5 Mar 2011 15:22:26 +0530
-Message-ID: <1299318746-21438-1-git-send-email-shweta.gulati@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: pm-core: recursive dependency on config
+Date: Sat, 5 Mar 2011 09:57:47 +0000
+Message-ID: <20110305095747.GA2400@n2100.arm.linux.org.uk>
+References: <AANLkTi=wNSOmZ8TcWGUoPmdaC5ga9NrzsXhULnUxLMGk@mail.gmail.com> <ea74188f9e010d45c0c8ba15ab6b2617@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:48768 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751126Ab1CEJwd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 5 Mar 2011 04:52:33 -0500
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:57877 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751140Ab1CEJ56 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 5 Mar 2011 04:57:58 -0500
+Content-Disposition: inline
+In-Reply-To: <ea74188f9e010d45c0c8ba15ab6b2617@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Shweta Gulati <shweta.gulati@ti.com>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Nishanth Menon <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>
 
-This Patch adds OPP enteries for IVA  in OMAP4 OPP Table
+On Sat, Mar 05, 2011 at 02:11:29PM +0530, Santosh Shilimkar wrote:
+> + Russell,
+> 
+> > -----Original Message-----
+> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> > owner@vger.kernel.org] On Behalf Of Menon, Nishanth
+> > Sent: Saturday, March 05, 2011 1:51 PM
+> > To: linux-omap
+> > Subject: pm-core: recursive dependency on config
+> >
+> > Folks,
+> > Dumb question:
+> > Some one seen this one? is there a patch in the pipe for the fix?
+> >
+> > scripts/kconfig/conf --silentoldconfig Kconfig
+> > arch/arm/Kconfig:1277:error: recursive dependency detected!
+> > arch/arm/Kconfig:1277:	symbol SMP depends on CPU_V6K
+> > arch/arm/mm/Kconfig:407:	symbol CPU_V6K depends on SMP
+> >
+> I saw this one too. This is because of resent changes to
+> ensure that CPU_32v6K is always enabled with SMP builds.
+> 
+> This is tricky dependency. May be RMK has better way to deal
+> with this.
+> 
+> Two relevant commit on this are '85a11f52' and  '15490ef8'
 
-Tested on OMAP4430 SDP Board.
+What is 85a11f52 ?
 
-Signed-off-by: Shweta Gulati <shweta.gulati@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org 
----
- arch/arm/mach-omap2/opp4xxx_data.c |    8 +++++++-
- 1 files changed, 7 insertions(+), 1 deletions(-)
+15490ef8 (in mainline) is:
 
-diff --git a/arch/arm/mach-omap2/opp4xxx_data.c b/arch/arm/mach-omap2/opp4xxx_data.c
-index 36a4517..ba5eddd 100644
---- a/arch/arm/mach-omap2/opp4xxx_data.c
-+++ b/arch/arm/mach-omap2/opp4xxx_data.c
-@@ -78,7 +78,13 @@ static struct omap_opp_def __initdata omap44xx_opp_def_list[] = {
- 	OPP_INITIALIZER("l3_main_1", true, 100000000, OMAP4430_VDD_CORE_OPP50_UV),
- 	/* L3 OPP2 - OPP100, OPP-Turbo, OPP-SB */
- 	OPP_INITIALIZER("l3_main_1", true, 200000000, OMAP4430_VDD_CORE_OPP100_UV),
--	/* TODO: add IVA, DSP, aess, fdif, gpu */
-+	/* IVA OPP1 - OPP50 */
-+	OPP_INITIALIZER("iva", true, 133000000, OMAP4430_VDD_IVA_OPP50_UV),
-+	/* IVA OPP2 - OPP100 */
-+	OPP_INITIALIZER("iva", true, 266100000, OMAP4430_VDD_IVA_OPP100_UV),
-+	/* IVA OPP3 - OPP-Turbo */
-+	OPP_INITIALIZER("iva", false, 332000000, OMAP4430_VDD_IVA_OPPTURBO_UV),
-+	/* TODO: add DSP, aess, fdif, gpu */
- };
- 
- /**
--- 
-1.7.0.4
+ config CPU_32v6K
+        bool "Support ARM V6K processor extensions" if !SMP
+        depends on CPU_V6 || CPU_V7
+-       default y if SMP && !(ARCH_MX3 || ARCH_OMAP2)
++       default y if SMP
 
+fbb4ddac (ARM: v6k: only allow SMP if we have v6k or v7 CPU) does this:
+
+ config SMP
+        bool "Symmetric Multi-Processing (EXPERIMENTAL)"
+        depends on EXPERIMENTAL
++       depends on CPU_V6K || CPU_V7
+
+which I assume is 85a11f52 in Tony's tree.
+However, e399b1a4e (ARM: v6k: introduce CPU_V6K option) does this:
+
+-config CPU_32v6K
+-       bool "Support ARM V6K processor extensions" if !SMP
+-       depends on CPU_V6 || CPU_V7
+-       default y if SMP && !(ARCH_MX3 || ARCH_OMAP2)
+-       help
+-         Say Y here if your ARMv6 processor supports the 'K' extension.
+-         This enables the kernel to use some instructions not present
+-         on previous processors, and as such a kernel build with this
+-         enabled will not boot on processors with do not support these
+-         instructions.
++config CPU_V6K
++       bool "Support ARM V6K processor" if ARCH_INTEGRATOR || MACH_REALVIEW_EB
++       select CPU_32v6
++       select CPU_32v6K if !ARCH_OMAP2
++       select CPU_ABRT_EV6
++       select CPU_PABRT_V6
++       select CPU_CACHE_V6
++       select CPU_CACHE_VIPT
++       select CPU_CP15_MMU
++       select CPU_HAS_ASID if MMU
++       select CPU_COPY_V6 if MMU
++       select CPU_TLB_V6 if MMU
+
+which conflicts with 15490ef8.
+
+So I suspect that a merge conflict hasn't been resolved correctly.  I'm
+not going to worry about that because I have the merge conflict resolution
+here already as part of my tree.
