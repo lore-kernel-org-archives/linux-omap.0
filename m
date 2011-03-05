@@ -1,48 +1,48 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 5/6] omap4: Initialise the l3 device with the hwmod data.
-Date: Sat, 5 Mar 2011 13:16:31 +0530
-Message-ID: <ff61f6200034b982e8f17858cc54d04e@mail.gmail.com>
+Subject: RE: [PATCH 4/6] omap4: hwmod_data: Add l3 errorlog data to hwmod database.
+Date: Sat, 5 Mar 2011 13:21:15 +0530
+Message-ID: <9057634c170299e3738666505b7fd9cf@mail.gmail.com>
 References: <1298295990-1070-1-git-send-email-santosh.shilimkar@ti.com>
- <1298295990-1070-6-git-send-email-santosh.shilimkar@ti.com>
- <4D62AAAA.40104@ti.com> <295be59bd43a2e9f0961c10263ce19c0@mail.gmail.com>
- <20110303183111.GO20560@atomide.com> <f52bf1c89b7c7c9d6d0281b1a200d5c1@mail.gmail.com>
- <20110304180817.GC20560@atomide.com>
+ <1298295990-1070-5-git-send-email-santosh.shilimkar@ti.com>
+ <4D627937.8030309@ti.com> 43067ab756e2e48efb745dee3ecc67eb@mail.gmail.com
+ <29f3552dea661223dcb96d51aa38fbb5@mail.gmail.com> <74583B8642AB8841B30447520659FCA901F9F3BB72@dnce01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:41082 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750971Ab1CEHqd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 5 Mar 2011 02:46:33 -0500
-Received: by qyk7 with SMTP id 7so748767qyk.12
-        for <linux-omap@vger.kernel.org>; Fri, 04 Mar 2011 23:46:32 -0800 (PST)
-In-Reply-To: <20110304180817.GC20560@atomide.com>
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:38488 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751093Ab1CEHvS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 5 Mar 2011 02:51:18 -0500
+Received: by qyj19 with SMTP id 19so815299qyj.16
+        for <linux-omap@vger.kernel.org>; Fri, 04 Mar 2011 23:51:16 -0800 (PST)
+In-Reply-To: <74583B8642AB8841B30447520659FCA901F9F3BB72@dnce01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Benoit Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Sricharan R <r.sricharan@ti.com>
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Sricharan R <r.sricharan@ti.com>
+
+Benoit,
 
 > -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com]
-> Sent: Friday, March 04, 2011 11:38 PM
-> To: Santosh Shilimkar
-> Cc: Benoit Cousson; linux-omap@vger.kernel.org; Felipe Balbi;
-> Sricharan R
-> Subject: Re: [PATCH 5/6] omap4: Initialise the l3 device with the
-> hwmod data.
+> From: Cousson, Benoit [mailto:b-cousson@ti.com]
+> Sent: Saturday, March 05, 2011 3:04 AM
+> To: R, Sricharan; Shilimkar, Santosh
+> Cc: linux-omap@vger.kernel.org; Balbi, Felipe
+> Subject: RE: [PATCH 4/6] omap4: hwmod_data: Add l3 errorlog data to
+> hwmod database.
 >
-> * Santosh Shilimkar <santosh.shilimkar@ti.com> [110303 22:19]:
-> > > From: Tony Lindgren [mailto:tony@atomide.com]
-> > > Also one Signed-off-by is enough like Benoit pointed out :)
-> > >
-> > Ohhh... I missed this I first comment :)
-> > One SOB is enough.
+> Hi Sricharan,
 >
-> Santosh, can you do a pull request for me on this series
-> when the issues are fixed? Against omap-for-linus branch
-> please.
+> I think you missed some of my feedbacks.
 >
-Sure will do.
+
+Will fix your remarks on this one.
+Can you also confirm your file name preference?
+
+Once you confirm that I will rebase this series
+against omap-for-linus, and send pull request to
+Tony.
+
 
 Regards,
 Santosh
