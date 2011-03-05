@@ -1,671 +1,548 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 5/7] Serial: OMAP: add runtime pm support for omap-serial driver
-Date: Fri, 04 Mar 2011 17:59:54 -0800
-Message-ID: <87r5am499h.fsf@ti.com>
-References: <1298903958-6496-1-git-send-email-govindraj.raja@ti.com>
-	<1298903958-6496-6-git-send-email-govindraj.raja@ti.com>
+From: "Varadarajan, Charulatha" <charu@ti.com>
+Subject: Re: [PATCH 5/5] OMAP: GPIO: use PM runtime framework
+Date: Sat, 5 Mar 2011 09:40:12 +0430
+Message-ID: <AANLkTi=Sd0zJwnx1DHCCOr9ncHv1ZP1EworoJex7NLEK@mail.gmail.com>
+References: <1298890670-5481-1-git-send-email-charu@ti.com>
+ <1298890670-5481-6-git-send-email-charu@ti.com> <87mxlabih5.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <1298903958-6496-6-git-send-email-govindraj.raja@ti.com>
-	(Govindraj R.'s message of "Mon, 28 Feb 2011 20:09:16 +0530")
-Sender: linux-serial-owner@vger.kernel.org
-To: "Govindraj.R" <govindraj.raja@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Rajendra Nayak <rnayak@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:35937 "EHLO
+	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751323Ab1CEFKz convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 5 Mar 2011 00:10:55 -0500
+Received: by fxm8 with SMTP id 8so3412590fxm.34
+        for <linux-omap@vger.kernel.org>; Fri, 04 Mar 2011 21:10:52 -0800 (PST)
+In-Reply-To: <87mxlabih5.fsf@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com, Tarun Kanti DebBarma <tarun.kanti@ti.com>
 
-"Govindraj.R" <govindraj.raja@ti.com> writes:
+Hi Kevin,
 
-> Adapts omap-serial driver to use pm_runtime api's.
+Thanks for the detailed review.
+
+On Sat, Mar 5, 2011 at 03:29, Kevin Hilman <khilman@ti.com> wrote:
+> Charulatha V <charu@ti.com> writes:
 >
-> 1.) Populate reg values to uart port which can be used for context restore.
-> 2.) Moved Erratum handling func to driver from serial.c
-> 3.) adding port_enable/disable func to enable/disable given uart port.
-> 4.) using prepare/resume api's to cut and enable back uart func_clks.
-> 5.) using timer to set flag to cut uart clocks based on this flag in
->     sram_idle path.
-
-At least the errata handling should be in a separate patch as it's not
-related to runtime PM.
-
-Also, please be sure to test building this driver as a module.  Because
-of direct access to hwmod in this patch, it will currently build as a module.
-
-> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
-> ---
->  drivers/tty/serial/omap-serial.c |  304 +++++++++++++++++++++++++++++++++++---
->  1 files changed, 283 insertions(+), 21 deletions(-)
+>> Call runtime pm APIs pm_runtime_put_sync() and pm_runtime_get()
 >
-> diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-> index d40924a..bc877b9 100644
-> --- a/drivers/tty/serial/omap-serial.c
-> +++ b/drivers/tty/serial/omap-serial.c
-> @@ -33,10 +33,21 @@
->  #include <linux/clk.h>
->  #include <linux/serial_core.h>
->  #include <linux/irq.h>
-> +#include <linux/pm_runtime.h>
->  
->  #include <plat/dma.h>
->  #include <plat/dmtimer.h>
->  #include <plat/omap-serial.h>
-> +#include <plat/serial.h>
-> +#include <plat/omap_device.h>
-> +
-> +#ifdef CONFIG_SERIAL_OMAP_CONSOLE
-> +#define omap_uart_console(port) ((port)->cons && (port)->cons->index == (port)->line)
-> +#else
-> +#define omap_uart_console(port)	NULL
-> +#endif
-> +
-> +#define OMAP_UART_CLK_PUT_DELAY (5 * HZ)
->  
->  static struct uart_omap_port *ui[OMAP_MAX_HSUART_PORTS];
->  
-> @@ -44,6 +55,7 @@ static struct uart_omap_port *ui[OMAP_MAX_HSUART_PORTS];
->  static void uart_tx_dma_callback(int lch, u16 ch_status, void *data);
->  static void serial_omap_rx_timeout(unsigned long uart_no);
->  static int serial_omap_start_rxdma(struct uart_omap_port *up);
-> +static void omap_uart_mdr1_errataset(struct uart_omap_port *up);
->  
->  static inline unsigned int serial_in(struct uart_omap_port *up, int offset)
->  {
-> @@ -90,6 +102,73 @@ serial_omap_get_divisor(struct uart_port *port, unsigned int baud)
->  	return port->uartclk/(baud * divisor);
->  }
->  
-> +static void omap_uart_smart_idle(struct uart_omap_port *up)
-> +{
-> +	struct platform_device *pdev = up->pdev;
-> +	struct omap_device *od = container_of(pdev, struct omap_device, pdev);
-> +
-> +	omap_hwmod_set_slave_idlemode(od->hwmods[0], HWMOD_IDLEMODE_SMART);
-> +}
-> +
-> +static void serial_omap_port_disable(struct uart_omap_port *up)
-> +{
-> +	if (!pm_runtime_suspended(&up->pdev->dev)) {
-> +		del_timer(&up->inactivity_timer);
-> +		if (omap_uart_console(&up->port))
-> +			console_stop(up->port.cons);
-> +
-> +		pm_runtime_put_sync(&up->pdev->dev);
-> +	}
-> +}
+> Minor: I think you mean _get_sync() and _put()
 
-This function should not be needed.
+Yes, thanks for catching it. It was a typo  :-(
 
-The timer should be replaced by the auto-suspend feature of runtime PM.
+>
+>> for enabling/disabling the clocks, sysconfig settings instead of usi=
+ng
+>> clock FW APIs.
+>> Note: OMAP16xx & OMAP2 has interface and functional clocks whereas
+>> OMAP3&4 has interface and debounce clocks.
+>>
+>> GPIO driver is modified to use dev_pm_ops instead of sysdev_class.
+>> With this approach, gpio_bank_suspend() & gpio_bank_resume()
+>> are not part of sys_dev_class.
+>>
+>> Usage of PM runtime get/put APIs in GPIO driver is as given below:
+>> pm_runtime_get_sync():
+>> * In the probe before accessing the GPIO registers
+>> * at the beginning of omap_gpio_request()
+>> =A0 =A0 =A0 -only when one of the gpios is requested on a bank, in w=
+hich,
+>> =A0 =A0 =A0 =A0no other gpio is being used (when mod_usage becomes n=
+on-zero).
+>
+> When using runtime PM, bank->mod_usage acutally becomes redundant wit=
+h
+> usage counting already done at the runtime PM level. =A0IOW, checking
+> bank->mod_usage is he equivalent of checking pm_runtime_suspended(), =
+so
+> I think you can totally get rid of bank->mod_usage.
 
-Instead of calling omap_port_disable() callers should call
-pm_runtime_put_autosuspend(), and the console_stop() should be part of
-the ->runtime_suspend() callback.
+I wish to differ here. bank->mod_usage is filled for each GPIO pin in a=
+ bank.
+Hence during request/free if pm_runtime_get_sync() is called for each G=
+PIO
+pin, then the count gets increased for each GPIO pin in a bank. But
+gpio_prepare_for_idle/suspend calls pm_runtime_put() only once for
+each bank. Hence there will be a count mismatch and hence this will lea=
+d
+to problems and never a bank will get suspended.
 
-Also, why do you check for pm_runtime_suspended()?  Just call it for
-every time and we get runtime PM use-counting and statistics for free
-and the ->runtime_suspend() callback will be called when the usecount
-goes to zero.
+IMO it is required to have bank->mod_usage checks. Please correct
+me if I am wrong.
 
-> +static void serial_omap_inactivity_timer(unsigned long uart_no)
-> +{
-> +	struct uart_omap_port *up = ui[uart_no];
-> +
-> +	up->can_sleep = 1;
-> +	omap_uart_smart_idle(up);
-> +}
+>
+> pm_runtime_get* on an already active device is harmless and will just
+> increment the runtime PM internal use counting. =A0It does however ha=
+ve
+> the additional benefit of taking advantage of the runtime PM statisti=
+cs
+> so using tools like powertop, we will be able to see stats for *all*
+> GPIO users, not just the first (and last) ones to use a given bank.
+> IMO, This is a big win for PM debug.
+>
+> More on the implementation of this below...
+>
+>> * at the beginning of gpio_resume_after_idle()
+>> =A0 =A0 =A0 - only if the GPIO bank is under use
+>> =A0 =A0 =A0 (and)
+>> =A0 =A0 =A0 - if the bank is in non-wkup power domain
+>> * at the beginning of gpio_irq_handler()
+>> =A0 =A0 =A0 - only if the specific GPIO bank is pm_runtime_suspended=
+()
+>> * at the beginning of omap_gpio_resume()
+>> =A0 =A0 =A0 - only if the GPIO bank is under use
+>>
+>> pm_runtime_put():
+>> * In the probe after completing GPIO register access
+>> * at the end of omap_gpio_free()
+>> =A0 =A0 =A0 - only when the last used gpio in the gpio bank is
+>> =A0 =A0 =A0 =A0 freed (when mod_usage becomes 0).
+>> * at the end of gpio_prepare_for_idle()
+>> =A0 =A0 =A0 - only if the GPIO bank is under use
+>> =A0 =A0 =A0 (and)
+>> =A0 =A0 =A0 - if the bank is in non-wkup power domain
+>> * at the end of gpio_irq_handler()
+>> =A0 =A0 =A0 - only if a corresponding pm_runtime_get_sync() was done
+>> =A0 =A0 =A0 =A0 in gpio_irq_handler()
+>> * at the end of omap_gpio_suspend()
+>> =A0 =A0 =A0 - only if the GPIO bank is under use
+>>
+>> OMAP GPIO Request/ Free:
+>> *During a gpio_request when mod_usage becomes non-zero, the bank
+>> =A0registers are configured with init time configurations inorder to
+>> =A0make sure that the GPIO init time configurations are not lost if
+>> =A0the context was earlier lost when the GPIO bank was not in use.
+>>
+>> =A0TODO:
+>> =A0Cleanup GPIO driver to avoid usage of gpio_bank_count &
+>> =A0cpu_is_* checks
+>>
+>> Signed-off-by: Charulatha V <charu@ti.com>
+>> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+>> ---
+>> =A0arch/arm/plat-omap/gpio.c | =A0305 +++++++++++++++++++++++++-----=
+---------------
+>> =A01 files changed, 167 insertions(+), 138 deletions(-)
+>>
+>> diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+>> index 10792b6..908bad2 100644
+>> --- a/arch/arm/plat-omap/gpio.c
+>> +++ b/arch/arm/plat-omap/gpio.c
+>> @@ -177,6 +177,7 @@ struct gpio_bank {
+>>
+>> =A0static void omap_gpio_save_context(struct gpio_bank *bank);
+>> =A0static void omap_gpio_restore_context(struct gpio_bank *bank);
+>> +static void omap_gpio_mod_init(struct gpio_bank *bank, int id);
+>>
+>> =A0/*
+>> =A0 * TODO: Cleanup gpio_bank usage as it is having information
+>> @@ -1042,8 +1043,28 @@ static int omap_gpio_request(struct gpio_chip=
+ *chip, unsigned offset)
+>> =A0 =A0 =A0 struct gpio_bank *bank =3D container_of(chip, struct gpi=
+o_bank, chip);
+>> =A0 =A0 =A0 unsigned long flags;
+>>
+>> + =A0 =A0 /*
+>> + =A0 =A0 =A0* If this is the first gpio_request for the bank,
+>> + =A0 =A0 =A0* enable the bank module
+>> + =A0 =A0 =A0*/
+>> + =A0 =A0 if (!bank->mod_usage) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 struct platform_device *pdev =3D to_platfo=
+rm_device(bank->dev);
+>> +
+>> + =A0 =A0 =A0 =A0 =A0 =A0 if (unlikely(pm_runtime_get_sync(bank->dev=
+) < 0)) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(bank->dev, "%s: GP=
+IO bank %d "
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 "pm_runtime_get_sync failed\n",
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 __func__, pdev->id);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 }
+>> +
+>> + =A0 =A0 =A0 =A0 =A0 =A0 /* Initialize the gpio bank registers to i=
+nit time value */
+>> + =A0 =A0 =A0 =A0 =A0 =A0 omap_gpio_mod_init(bank, pdev->id);
+>> + =A0 =A0 }
+>> +
+>
+> This could all be replaced by:
+> =A0 =A0 =A0 =A0if (!pm_runtime_get_sync(bank->dev))
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap_gpio_mod_init(bank, pdev->id);
+>
+> since the first 'get' that actually resumes the device will return ze=
+ro,
+> all the others will return 1.
+>
+> Actually, even better (and my prefernce) would be to just do the
+> _get_sync() for every request as above, but put the omap_gpio_mod_ini=
+t()
+> in the ->runtime_resume() hook so it gets called whenever the first G=
+PIO
+> in the bank is activated.
 
-This will not be needed if using the autosuspend feature.
+The problem is only about the count mismatch I mentioned above.
 
-> +static void serial_omap_port_enable(struct uart_omap_port *up)
-> +{
-> +	if (pm_runtime_suspended(&up->pdev->dev)) {
-> +		if (omap_uart_console(&up->port))
-> +			console_start(up->port.cons);
-> +
-> +		pm_runtime_get_sync(&up->pdev->dev);
-> +	}
-> +
-> +	up->can_sleep = 0;
-> +	mod_timer(&up->inactivity_timer, jiffies + OMAP_UART_CLK_PUT_DELAY);
-> +}
+>
+>
+>> =A0 =A0 =A0 spin_lock_irqsave(&bank->lock, flags);
+>>
+>> + =A0 =A0 bank->mod_usage |=3D 1 << offset;
+>> +
+>
+>> =A0 =A0 =A0 /* Set trigger to none. You need to enable the desired t=
+rigger with
+>> =A0 =A0 =A0 =A0* request_irq() or set_irq_type().
+>> =A0 =A0 =A0 =A0*/
+>> @@ -1058,22 +1079,7 @@ static int omap_gpio_request(struct gpio_chip=
+ *chip, unsigned offset)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 __raw_writel(__raw_readl(reg) | (1 << of=
+fset), reg);
+>> =A0 =A0 =A0 }
+>> =A0#endif
+>> - =A0 =A0 if (!cpu_class_is_omap1()) {
+>> - =A0 =A0 =A0 =A0 =A0 =A0 if (!bank->mod_usage) {
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 void __iomem *reg =3D bank=
+->base;
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 u32 ctrl;
+>> -
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (cpu_is_omap24xx() || c=
+pu_is_omap34xx())
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 reg +=3D O=
+MAP24XX_GPIO_CTRL;
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 else if (cpu_is_omap44xx()=
+)
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 reg +=3D O=
+MAP4_GPIO_CTRL;
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ctrl =3D __raw_readl(reg);
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* Module is enabled, cloc=
+ks are not gated */
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ctrl &=3D 0xFFFFFFFE;
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 __raw_writel(ctrl, reg);
+>> - =A0 =A0 =A0 =A0 =A0 =A0 }
+>> - =A0 =A0 =A0 =A0 =A0 =A0 bank->mod_usage |=3D 1 << offset;
+>> - =A0 =A0 }
+>
+> Where did this code go? =A0I expected it to be moved, but not removed=
+ completely.
 
-Similarily to the disable side, callers of this function should call
-pm_runtime_get_sync() and the console_start() should be in the
-->runtime_resume method.
+It is only moved and not removed.
+bank->mod_usage |=3D 1 << offset; is done above and the rest is done be=
+low.
 
-Again, no need to check pm_runtime_suspended() since the runtime PM core
-does usecounting already.
+> This code also belongs in the ->runtime_resume() method so it happens
+> when the first GPIO in a bank is activated.
 
-> +void omap_uart_prepare_idle(int num)
-> +{
-> +	struct uart_omap_port *up = ui[num];
-> +
-> +	if (up && up->can_sleep)
-> +		serial_omap_port_disable(up);
+Okay.
 
-		pm_runtime_put_autosuspend()
+>
+>> +
+>> =A0 =A0 =A0 spin_unlock_irqrestore(&bank->lock, flags);
+>>
+>> =A0 =A0 =A0 return 0;
+>> @@ -1106,24 +1112,39 @@ static void omap_gpio_free(struct gpio_chip =
+*chip, unsigned offset)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 __raw_writel(1 << offset, reg);
+>> =A0 =A0 =A0 }
+>> =A0#endif
+>> - =A0 =A0 if (!cpu_class_is_omap1()) {
+>> - =A0 =A0 =A0 =A0 =A0 =A0 bank->mod_usage &=3D ~(1 << offset);
+>> - =A0 =A0 =A0 =A0 =A0 =A0 if (!bank->mod_usage) {
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 void __iomem *reg =3D bank=
+->base;
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 u32 ctrl;
+>> -
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (cpu_is_omap24xx() || c=
+pu_is_omap34xx())
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 reg +=3D O=
+MAP24XX_GPIO_CTRL;
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 else if (cpu_is_omap44xx()=
+)
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 reg +=3D O=
+MAP4_GPIO_CTRL;
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ctrl =3D __raw_readl(reg);
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* Module is disabled, clo=
+cks are gated */
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ctrl |=3D 1;
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 __raw_writel(ctrl, reg);
+>> - =A0 =A0 =A0 =A0 =A0 =A0 }
+>> + =A0 =A0 bank->mod_usage &=3D ~(1 << offset);
+>> + =A0 =A0 if (!bank->mod_usage) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 void __iomem *reg =3D bank->base;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 u32 ctrl;
+>> +
+>> + =A0 =A0 =A0 =A0 =A0 =A0 if (bank->method =3D=3D METHOD_GPIO_24XX)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 reg +=3D OMAP24XX_GPIO_CTR=
+L;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 else if (bank->method =3D=3D METHOD_GPIO_4=
+4XX)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 reg +=3D OMAP4_GPIO_CTRL;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 else
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto reset_gpio;
+>> +
+>> + =A0 =A0 =A0 =A0 =A0 =A0 ctrl =3D __raw_readl(reg);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 /* Module is disabled, clocks are gated */
+>> + =A0 =A0 =A0 =A0 =A0 =A0 ctrl |=3D 1;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 __raw_writel(ctrl, reg);
+>
+> And here, rather than updating bank->mod_usage, just move this code
+> into a ->runtime_suspend hook which will then be called whenever the
+> bank is actually suspended.
 
-> +}
-> +
-> +void omap_uart_resume_idle(int num)
-> +{
-> +	struct uart_omap_port *up = ui[num];
-> +	struct omap_device *od;
-> +	struct platform_device *pdev;
-> +
-> +	if (!up)
-> +		return;
-> +
-> +	pdev = up->pdev;
-> +	od = container_of(pdev, struct omap_device, pdev);
+Pls see above explanation for bank->mod_usage.
 
-	od = to_omap_device(pdev);
+>
+>> =A0 =A0 =A0 }
+>> +reset_gpio:
+>> =A0 =A0 =A0 _reset_gpio(bank, bank->chip.base + offset);
+>> =A0 =A0 =A0 spin_unlock_irqrestore(&bank->lock, flags);
+>> +
+>> + =A0 =A0 /*
+>> + =A0 =A0 =A0* If this is the last gpio to be freed in the bank,
+>> + =A0 =A0 =A0* disable the bank module
+>> + =A0 =A0 =A0*/
+>> + =A0 =A0 if (!bank->mod_usage) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 if (unlikely(pm_runtime_put(bank->dev) < 0=
+)) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 struct platform_device *pd=
+ev =3D
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 to_platform_device(bank->dev);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(bank->dev, "%s: GP=
+IO bank %d pm_runtime_put "
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 "failed\n", __func__, pdev->id);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 }
+>> + =A0 =A0 }
+>
+> and this can just be a pm_runtime_put(bank->dev)
 
-> +	if (omap_hmwod_pad_wakeup_status(od->hwmods[0]) == true)
-> +		serial_omap_port_enable(up);
-> +
-> +	if (up->wk_st && (__raw_readl(up->wk_st) & up->wk_mask))
-> +		serial_omap_port_enable(up);
-> +}
+ditto.
 
-c.f. comments from PATCH 2/7
+>
+>> =A0}
+>>
+>> =A0/*
+>> @@ -1143,10 +1164,17 @@ static void gpio_irq_handler(unsigned int ir=
+q, struct irq_desc *desc)
+>> =A0 =A0 =A0 struct gpio_bank *bank;
+>> =A0 =A0 =A0 u32 retrigger =3D 0;
+>> =A0 =A0 =A0 int unmasked =3D 0;
+>> + =A0 =A0 int enable_gpio =3D 0;
+>>
+>> =A0 =A0 =A0 desc->irq_data.chip->irq_ack(&desc->irq_data);
+>>
+>> =A0 =A0 =A0 bank =3D get_irq_data(irq);
+>> +
+>> + =A0 =A0 if (pm_runtime_suspended(bank->dev)) {
+>
+> Why do you need the check here?
+>
+> If the device is already suspended, and you call _get_sync(), it
+> just increments the usecount, and returns.
 
-Also, direct hwmod access and PRCM accesses do not belong in drivers.
+Yes, you are right. I will remove pm_runtime_suspended() checks
+and also the enable_gpio flag.
 
-Until it is understood why wakeups are not working, these hacks should
-stay in mach-omap2/serial.c
+>
+>> + =A0 =A0 =A0 =A0 =A0 =A0 if (unlikely(pm_runtime_get_sync(bank->dev=
+) =3D=3D 0))
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 enable_gpio =3D 1;
+>> + =A0 =A0 }
+>> +
+>> =A0#ifdef CONFIG_ARCH_OMAP1
+>> =A0 =A0 =A0 if (bank->method =3D=3D METHOD_MPUIO)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 isr_reg =3D bank->base +
+>> @@ -1238,6 +1266,9 @@ static void gpio_irq_handler(unsigned int irq,=
+ struct irq_desc *desc)
+>> =A0exit:
+>> =A0 =A0 =A0 if (!unmasked)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 desc->irq_data.chip->irq_unmask(&desc->i=
+rq_data);
+>> +
+>> + =A0 =A0 if (enable_gpio)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 pm_runtime_put(bank->dev);
+>
+> Likewise, I think you could just always do a 'put' here without havin=
+g
+> to have a flag.
 
->  static void serial_omap_stop_rxdma(struct uart_omap_port *up)
->  {
->  	if (up->uart_dma.rx_dma_used) {
-> @@ -105,6 +184,7 @@ static void serial_omap_enable_ms(struct uart_port *port)
->  {
->  	struct uart_omap_port *up = (struct uart_omap_port *)port;
->  
-> +	serial_omap_port_enable(up);
+Sure, will change this.
 
-	pm_runtime_put_autosuspend()
+>
+>> =A0}
+>>
+>> =A0static void gpio_irq_shutdown(struct irq_data *d)
+>> @@ -1742,126 +1773,121 @@ static int __devinit omap_gpio_probe(struc=
+t platform_device *pdev)
+>> =A0 =A0 =A0 }
+>>
+>> =A0 =A0 =A0 pm_runtime_enable(bank->dev);
+>> - =A0 =A0 pm_runtime_get_sync(bank->dev);
+>> + =A0 =A0 pm_runtime_irq_safe(bank->dev);
+>> +
+>> + =A0 =A0 if (unlikely(pm_runtime_get_sync(bank->dev) < 0)) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 dev_err(bank->dev, "%s: GPIO bank %d pm_ru=
+ntime_get_sync "
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "failed\n"=
+, __func__, id);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 iounmap(bank->base);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
+>> + =A0 =A0 }
+>>
+>> - =A0 =A0 omap_gpio_mod_init(bank, id);
+>> =A0 =A0 =A0 omap_gpio_chip_init(bank);
+>> =A0 =A0 =A0 omap_gpio_show_rev(bank);
+>>
+>> + =A0 =A0 if (unlikely(pm_runtime_put(bank->dev) < 0)) {
+>
+> use IS_ERR_VALUE() instead of '< 0'
 
-similarily for all calls to omap_port_enable()
+Okay.
 
->  	dev_dbg(up->port.dev, "serial_omap_enable_ms+%d\n", up->pdev->id);
->  	up->ier |= UART_IER_MSI;
->  	serial_out(up, UART_IER, up->ier);
-> @@ -114,6 +194,7 @@ static void serial_omap_stop_tx(struct uart_port *port)
->  {
->  	struct uart_omap_port *up = (struct uart_omap_port *)port;
->  
-> +	serial_omap_port_enable(up);
->  	if (up->use_dma &&
->  		up->uart_dma.tx_dma_channel != OMAP_UART_DMA_CH_FREE) {
->  		/*
-> @@ -137,6 +218,7 @@ static void serial_omap_stop_rx(struct uart_port *port)
->  {
->  	struct uart_omap_port *up = (struct uart_omap_port *)port;
->  
-> +	serial_omap_port_enable(up);
->  	if (up->use_dma)
->  		serial_omap_stop_rxdma(up);
->  	up->ier &= ~UART_IER_RLSI;
-> @@ -258,6 +340,7 @@ static void serial_omap_start_tx(struct uart_port *port)
->  	unsigned int start;
->  	int ret = 0;
->  
-> +	serial_omap_port_enable(up);
->  	if (!up->use_dma) {
->  		serial_omap_enable_ier_thri(up);
->  		return;
-> @@ -351,6 +434,7 @@ static inline irqreturn_t serial_omap_irq(int irq, void *dev_id)
->  	unsigned int iir, lsr;
->  	unsigned long flags;
->  
-> +	serial_omap_port_enable(up);
->  	iir = serial_in(up, UART_IIR);
->  	if (iir & UART_IIR_NO_INT)
->  		return IRQ_NONE;
-> @@ -385,6 +469,7 @@ static unsigned int serial_omap_tx_empty(struct uart_port *port)
->  	unsigned long flags = 0;
->  	unsigned int ret = 0;
->  
-> +	serial_omap_port_enable(up);
->  	dev_dbg(up->port.dev, "serial_omap_tx_empty+%d\n", up->pdev->id);
->  	spin_lock_irqsave(&up->port.lock, flags);
->  	ret = serial_in(up, UART_LSR) & UART_LSR_TEMT ? TIOCSER_TEMT : 0;
-> @@ -399,6 +484,7 @@ static unsigned int serial_omap_get_mctrl(struct uart_port *port)
->  	unsigned char status;
->  	unsigned int ret = 0;
->  
-> +	serial_omap_port_enable(up);
->  	status = check_modem_status(up);
->  	dev_dbg(up->port.dev, "serial_omap_get_mctrl+%d\n", up->pdev->id);
->  
-> @@ -419,6 +505,7 @@ static void serial_omap_set_mctrl(struct uart_port *port, unsigned int mctrl)
->  	unsigned char mcr = 0;
->  
->  	dev_dbg(up->port.dev, "serial_omap_set_mctrl+%d\n", up->pdev->id);
-> +	serial_omap_port_enable(up);
->  	if (mctrl & TIOCM_RTS)
->  		mcr |= UART_MCR_RTS;
->  	if (mctrl & TIOCM_DTR)
-> @@ -440,6 +527,7 @@ static void serial_omap_break_ctl(struct uart_port *port, int break_state)
->  	unsigned long flags = 0;
->  
->  	dev_dbg(up->port.dev, "serial_omap_break_ctl+%d\n", up->pdev->id);
-> +	serial_omap_port_enable(up);
->  	spin_lock_irqsave(&up->port.lock, flags);
->  	if (break_state == -1)
->  		up->lcr |= UART_LCR_SBC;
-> @@ -465,6 +553,7 @@ static int serial_omap_startup(struct uart_port *port)
->  
->  	dev_dbg(up->port.dev, "serial_omap_startup+%d\n", up->pdev->id);
->  
-> +	serial_omap_port_enable(up);
->  	/*
->  	 * Clear the FIFO buffers and disable them.
->  	 * (they will be reenabled in set_termios())
-> @@ -530,6 +619,8 @@ static void serial_omap_shutdown(struct uart_port *port)
->  	unsigned long flags = 0;
->  
->  	dev_dbg(up->port.dev, "serial_omap_shutdown+%d\n", up->pdev->id);
-> +
-> +	serial_omap_port_enable(up);
->  	/*
->  	 * Disable interrupts from this port
->  	 */
-> @@ -668,6 +759,10 @@ serial_omap_set_termios(struct uart_port *port, struct ktermios *termios,
->  	baud = uart_get_baud_rate(port, termios, old, 0, port->uartclk/13);
->  	quot = serial_omap_get_divisor(port, baud);
->  
-> +	up->dll = quot & 0xff;
-> +	up->dlh = quot >> 8;
-> +	up->mdr1 = UART_OMAP_MDR1_DISABLE;
-> +
->  	up->fcr = UART_FCR_R_TRIG_01 | UART_FCR_T_TRIG_01 |
->  			UART_FCR_ENABLE_FIFO;
->  	if (up->use_dma)
-> @@ -677,6 +772,7 @@ serial_omap_set_termios(struct uart_port *port, struct ktermios *termios,
->  	 * Ok, we're now changing the port state. Do it with
->  	 * interrupts disabled.
->  	 */
-> +	serial_omap_port_enable(up);
->  	spin_lock_irqsave(&up->port.lock, flags);
->  
->  	/*
-> @@ -755,8 +851,11 @@ serial_omap_set_termios(struct uart_port *port, struct ktermios *termios,
->  	serial_out(up, UART_MCR, up->mcr);
->  
->  	/* Protocol, Baud Rate, and Interrupt Settings */
-> +	if (up->errata & UART_ERRATA_i202_MDR1_ACCESS)
-> +		omap_uart_mdr1_errataset(up);
-> +	else
-> +		serial_out(up, UART_OMAP_MDR1, up->mdr1);
->  
-> -	serial_out(up, UART_OMAP_MDR1, UART_OMAP_MDR1_DISABLE);
->  	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_B);
->  
->  	up->efr = serial_in(up, UART_EFR);
-> @@ -766,8 +865,8 @@ serial_omap_set_termios(struct uart_port *port, struct ktermios *termios,
->  	serial_out(up, UART_IER, 0);
->  	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_B);
->  
-> -	serial_out(up, UART_DLL, quot & 0xff);          /* LS of divisor */
-> -	serial_out(up, UART_DLM, quot >> 8);            /* MS of divisor */
-> +	serial_out(up, UART_DLL, up->dll);	/* LS of divisor */
-> +	serial_out(up, UART_DLM, up->dlh);	/* MS of divisor */
->  
->  	serial_out(up, UART_LCR, 0);
->  	serial_out(up, UART_IER, up->ier);
-> @@ -777,9 +876,14 @@ serial_omap_set_termios(struct uart_port *port, struct ktermios *termios,
->  	serial_out(up, UART_LCR, cval);
->  
->  	if (baud > 230400 && baud != 3000000)
-> -		serial_out(up, UART_OMAP_MDR1, UART_OMAP_MDR1_13X_MODE);
-> +		up->mdr1 = UART_OMAP_MDR1_13X_MODE;
-> +	else
-> +		up->mdr1 = UART_OMAP_MDR1_16X_MODE;
-> +
-> +	if (up->errata & UART_ERRATA_i202_MDR1_ACCESS)
-> +		omap_uart_mdr1_errataset(up);
->  	else
-> -		serial_out(up, UART_OMAP_MDR1, UART_OMAP_MDR1_16X_MODE);
-> +		serial_out(up, UART_OMAP_MDR1, up->mdr1);
->  
->  	/* Hardware Flow Control Configuration */
->  
-> @@ -818,6 +922,8 @@ serial_omap_pm(struct uart_port *port, unsigned int state,
->  	unsigned char efr;
->  
->  	dev_dbg(up->port.dev, "serial_omap_pm+%d\n", up->pdev->id);
-> +
-> +	serial_omap_port_enable(up);
->  	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_B);
->  	efr = serial_in(up, UART_EFR);
->  	serial_out(up, UART_EFR, efr | UART_EFR_ECB);
-> @@ -827,6 +933,8 @@ serial_omap_pm(struct uart_port *port, unsigned int state,
->  	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_B);
->  	serial_out(up, UART_EFR, efr);
->  	serial_out(up, UART_LCR, 0);
-> +	if (state)
-> +		serial_omap_port_disable(up);
+>
+>> + =A0 =A0 =A0 =A0 =A0 =A0 dev_err(bank->dev, "%s: GPIO bank %d pm_ru=
+ntime_put "
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "failed\n"=
+, __func__, id);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 iounmap(bank->base);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
+>> + =A0 =A0 }
+>> +
+>> =A0 =A0 =A0 if (!gpio_init_done)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 gpio_init_done =3D 1;
+>>
+>> =A0 =A0 =A0 return 0;
+>> =A0}
+>>
+>> -#if defined(CONFIG_ARCH_OMAP16XX) || defined(CONFIG_ARCH_OMAP2PLUS)
+>> -static int omap_gpio_suspend(struct sys_device *dev, pm_message_t m=
+esg)
+>> +static int omap_gpio_suspend(struct device *dev)
+>> =A0{
+>> - =A0 =A0 int i;
+>> + =A0 =A0 struct platform_device *pdev =3D to_platform_device(dev);
+>> + =A0 =A0 void __iomem *wake_status;
+>> + =A0 =A0 void __iomem *wake_clear;
+>> + =A0 =A0 void __iomem *wake_set;
+>> + =A0 =A0 unsigned long flags;
+>> + =A0 =A0 struct gpio_bank *bank =3D &gpio_bank[pdev->id];
+>>
+>> - =A0 =A0 if (!cpu_class_is_omap2() && !cpu_is_omap16xx())
+>> + =A0 =A0 /* If the gpio bank is not used, do nothing */
+>> + =A0 =A0 if (!bank->mod_usage)
+>
+> =A0 =A0 =A0 =A0if (pm_runtime_suspended(bank-dev))
+>
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 return 0;
+>>
+>> - =A0 =A0 for (i =3D 0; i < gpio_bank_count; i++) {
+>> - =A0 =A0 =A0 =A0 =A0 =A0 struct gpio_bank *bank =3D &gpio_bank[i];
+>> - =A0 =A0 =A0 =A0 =A0 =A0 void __iomem *wake_status;
+>> - =A0 =A0 =A0 =A0 =A0 =A0 void __iomem *wake_clear;
+>> - =A0 =A0 =A0 =A0 =A0 =A0 void __iomem *wake_set;
+>> - =A0 =A0 =A0 =A0 =A0 =A0 unsigned long flags;
+>> + =A0 =A0 switch (bank->method) {
+>> + =A0 =A0 case METHOD_GPIO_1610:
+>> + =A0 =A0 =A0 =A0 =A0 =A0 wake_status =3D bank->base + OMAP1610_GPIO=
+_WAKEUPENABLE;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 wake_clear =3D bank->base + OMAP1610_GPIO_=
+CLEAR_WAKEUPENA;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 wake_set =3D bank->base + OMAP1610_GPIO_SE=
+T_WAKEUPENA;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 break;
+>> + =A0 =A0 case METHOD_GPIO_24XX:
+>> + =A0 =A0 =A0 =A0 =A0 =A0 wake_status =3D bank->base + OMAP24XX_GPIO=
+_WAKE_EN;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 wake_clear =3D bank->base + OMAP24XX_GPIO_=
+CLEARWKUENA;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 wake_set =3D bank->base + OMAP24XX_GPIO_SE=
+TWKUENA;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 break;
+>> + =A0 =A0 case METHOD_GPIO_44XX:
+>> + =A0 =A0 =A0 =A0 =A0 =A0 wake_status =3D bank->base + OMAP4_GPIO_IR=
+QWAKEN0;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 wake_clear =3D bank->base + OMAP4_GPIO_IRQ=
+WAKEN0;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 wake_set =3D bank->base + OMAP4_GPIO_IRQWA=
+KEN0;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 break;
+>> + =A0 =A0 default:
+>> + =A0 =A0 =A0 =A0 =A0 =A0 return 0;
+>> + =A0 =A0 }
+>>
+>> - =A0 =A0 =A0 =A0 =A0 =A0 switch (bank->method) {
+>> -#ifdef CONFIG_ARCH_OMAP16XX
+>> - =A0 =A0 =A0 =A0 =A0 =A0 case METHOD_GPIO_1610:
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 wake_status =3D bank->base=
+ + OMAP1610_GPIO_WAKEUPENABLE;
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 wake_clear =3D bank->base =
++ OMAP1610_GPIO_CLEAR_WAKEUPENA;
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 wake_set =3D bank->base + =
+OMAP1610_GPIO_SET_WAKEUPENA;
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+>> -#endif
+>> -#if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
+>> - =A0 =A0 =A0 =A0 =A0 =A0 case METHOD_GPIO_24XX:
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 wake_status =3D bank->base=
+ + OMAP24XX_GPIO_WAKE_EN;
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 wake_clear =3D bank->base =
++ OMAP24XX_GPIO_CLEARWKUENA;
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 wake_set =3D bank->base + =
+OMAP24XX_GPIO_SETWKUENA;
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+>> -#endif
+>> -#ifdef CONFIG_ARCH_OMAP4
+>> - =A0 =A0 =A0 =A0 =A0 =A0 case METHOD_GPIO_44XX:
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 wake_status =3D bank->base=
+ + OMAP4_GPIO_IRQWAKEN0;
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 wake_clear =3D bank->base =
++ OMAP4_GPIO_IRQWAKEN0;
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 wake_set =3D bank->base + =
+OMAP4_GPIO_IRQWAKEN0;
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+>> -#endif
+>> - =A0 =A0 =A0 =A0 =A0 =A0 default:
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 continue;
+>> - =A0 =A0 =A0 =A0 =A0 =A0 }
+>> + =A0 =A0 if (strcmp(bank->pwrdm_name, "wkup_pwrdm"))
+>> + =A0 =A0 =A0 =A0 =A0 =A0 omap_gpio_save_context(bank);
+>
+> see comments on patch 2.
 
-FYI... this change doesn't apply when basing on the commit you mentioned
-in PATCH 0/7.
+I agree.
 
->  }
->  
->  static void serial_omap_release_port(struct uart_port *port)
-> @@ -904,6 +1012,8 @@ static inline void wait_for_xmitr(struct uart_omap_port *up)
->  static void serial_omap_poll_put_char(struct uart_port *port, unsigned char ch)
->  {
->  	struct uart_omap_port *up = (struct uart_omap_port *)port;
-> +
-> +	serial_omap_port_enable(up);
->  	wait_for_xmitr(up);
->  	serial_out(up, UART_TX, ch);
->  }
-> @@ -911,8 +1021,10 @@ static void serial_omap_poll_put_char(struct uart_port *port, unsigned char ch)
->  static int serial_omap_poll_get_char(struct uart_port *port)
->  {
->  	struct uart_omap_port *up = (struct uart_omap_port *)port;
-> -	unsigned int status = serial_in(up, UART_LSR);
-> +	unsigned int status;
->  
-> +	serial_omap_port_enable(up);
-> +	status = serial_in(up, UART_LSR);
->  	if (!(status & UART_LSR_DR))
->  		return NO_POLL_CHAR;
->  
-> @@ -922,7 +1034,6 @@ static int serial_omap_poll_get_char(struct uart_port *port)
->  #endif /* CONFIG_CONSOLE_POLL */
->  
->  #ifdef CONFIG_SERIAL_OMAP_CONSOLE
-> -
->  static struct uart_omap_port *serial_omap_console_ports[4];
->  
->  static struct uart_driver serial_omap_reg;
-> @@ -931,6 +1042,7 @@ static void serial_omap_console_putchar(struct uart_port *port, int ch)
->  {
->  	struct uart_omap_port *up = (struct uart_omap_port *)port;
->  
-> +	serial_omap_port_enable(up);
->  	wait_for_xmitr(up);
->  	serial_out(up, UART_TX, ch);
->  }
-> @@ -944,6 +1056,7 @@ serial_omap_console_write(struct console *co, const char *s,
->  	unsigned int ier;
->  	int locked = 1;
->  
-> +	serial_omap_port_enable(up);
->  	local_irq_save(flags);
->  	if (up->port.sysrq)
->  		locked = 0;
-> @@ -1058,22 +1171,25 @@ static struct uart_driver serial_omap_reg = {
->  	.cons		= OMAP_CONSOLE,
->  };
->  
-> -static int
-> -serial_omap_suspend(struct platform_device *pdev, pm_message_t state)
-> +static int serial_omap_suspend(struct device *dev)
->  {
-> -	struct uart_omap_port *up = platform_get_drvdata(pdev);
-> +	struct uart_omap_port *up = dev_get_drvdata(dev);
->  
-> -	if (up)
-> +	if (up) {
->  		uart_suspend_port(&serial_omap_reg, &up->port);
-> +		serial_omap_port_disable(up);
-> +	}
-> +
->  	return 0;
->  }
->  
-> -static int serial_omap_resume(struct platform_device *dev)
-> +static int serial_omap_resume(struct device *dev)
->  {
-> -	struct uart_omap_port *up = platform_get_drvdata(dev);
-> +	struct uart_omap_port *up = dev_get_drvdata(dev);
->  
->  	if (up)
->  		uart_resume_port(&serial_omap_reg, &up->port);
-> +
->  	return 0;
->  }
->  
-> @@ -1221,9 +1337,10 @@ static void uart_tx_dma_callback(int lch, u16 ch_status, void *data)
->  
->  static int serial_omap_probe(struct platform_device *pdev)
->  {
-> -	struct uart_omap_port	*up;
-> +	struct uart_omap_port	*up = NULL;
->  	struct resource		*mem, *irq, *dma_tx, *dma_rx;
->  	struct omap_uart_port_info *omap_up_info = pdev->dev.platform_data;
-> +	struct omap_device *od;
->  	int ret = -ENOSPC;
->  
->  	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> @@ -1273,12 +1390,23 @@ static int serial_omap_probe(struct platform_device *pdev)
->  	up->port.ops = &serial_omap_pops;
->  	up->port.line = pdev->id;
->  
-> -	up->port.membase = omap_up_info->membase;
-> -	up->port.mapbase = omap_up_info->mapbase;
-> +	up->port.mapbase = mem->start;
-> +	up->port.membase = ioremap(mem->start, mem->end - mem->start);
-> +
-> +	if (!up->port.membase) {
-> +		dev_err(&pdev->dev, "can't ioremap UART\n");
-> +		ret = -ENOMEM;
-> +		goto err1;
-> +	}
-> +
->  	up->port.flags = omap_up_info->flags;
-> -	up->port.irqflags = omap_up_info->irqflags;
->  	up->port.uartclk = omap_up_info->uartclk;
->  	up->uart_dma.uart_base = mem->start;
-> +	up->errata = omap_up_info->errata;
-> +
-> +	up->wk_st = omap_up_info->wk_st;
-> +	up->wk_en = omap_up_info->wk_en;
-> +	up->wk_mask = omap_up_info->wk_mask;
->  
->  	if (omap_up_info->dma_enabled) {
->  		up->uart_dma.uart_dma_tx = dma_tx->start;
-> @@ -1291,19 +1419,35 @@ static int serial_omap_probe(struct platform_device *pdev)
->  		up->uart_dma.tx_dma_channel = OMAP_UART_DMA_CH_FREE;
->  		up->uart_dma.rx_dma_channel = OMAP_UART_DMA_CH_FREE;
->  	}
-> +	init_timer(&(up->inactivity_timer));
-> +	up->inactivity_timer.function = serial_omap_inactivity_timer;
-> +	up->inactivity_timer.data = up->pdev->id;
-> +
-> +	pm_runtime_enable(&pdev->dev);
-> +	pm_runtime_irq_safe(&pdev->dev);
+>
+>> - =A0 =A0 =A0 =A0 =A0 =A0 spin_lock_irqsave(&bank->lock, flags);
+>> - =A0 =A0 =A0 =A0 =A0 =A0 bank->saved_wakeup =3D __raw_readl(wake_st=
+atus);
+>> - =A0 =A0 =A0 =A0 =A0 =A0 __raw_writel(0xffffffff, wake_clear);
+>> - =A0 =A0 =A0 =A0 =A0 =A0 __raw_writel(bank->suspend_wakeup, wake_se=
+t);
+>> - =A0 =A0 =A0 =A0 =A0 =A0 spin_unlock_irqrestore(&bank->lock, flags)=
+;
+>> - =A0 =A0 }
+>> + =A0 =A0 spin_lock_irqsave(&bank->lock, flags);
+>> + =A0 =A0 bank->saved_wakeup =3D __raw_readl(wake_status);
+>> + =A0 =A0 __raw_writel(0xffffffff, wake_clear);
+>> + =A0 =A0 __raw_writel(bank->suspend_wakeup, wake_set);
+>> + =A0 =A0 spin_unlock_irqrestore(&bank->lock, flags);
+>> +
+>> + =A0 =A0 if (unlikely(pm_runtime_put(bank->dev) < 0))
+>> + =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
+>>
+>> =A0 =A0 =A0 return 0;
+>> =A0}
+>>
 
-The changelog should describe why the IRQ-safe mode is needed.
-
-> +	if (omap_up_info->console_uart) {
-> +		od = container_of(pdev, struct omap_device, pdev);
-> +		omap_hwmod_idle(od->hwmods[0]);
-
-This was only in mach-omap2/serial.c because the early UART probing was
-accessing registers.  With this driver becoming runtime PM aware, this
-hack should not be needed, and the
-
-	oh->flags |= HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET;
-
-should be removed from mach-omap2/serial.c
-
-> +		serial_omap_port_enable(up);
-> +	}
->  
->  	ui[pdev->id] = up;
->  	serial_omap_add_console_port(up);
->  
->  	ret = uart_add_one_port(&serial_omap_reg, &up->port);
->  	if (ret != 0)
-> -		goto do_release_region;
-> +		goto err1;
->  
-> +	dev_set_drvdata(&pdev->dev, up);
->  	platform_set_drvdata(pdev, up);
-> +
->  	return 0;
->  err:
->  	dev_err(&pdev->dev, "[UART%d]: failure [%s]: %d\n",
->  				pdev->id, __func__, ret);
-> +err1:
-> +	kfree(up);
->  do_release_region:
->  	release_mem_region(mem->start, (mem->end - mem->start) + 1);
->  	return ret;
-> @@ -1315,20 +1459,138 @@ static int serial_omap_remove(struct platform_device *dev)
->  
->  	platform_set_drvdata(dev, NULL);
->  	if (up) {
-> +		pm_runtime_disable(&up->pdev->dev);
->  		uart_remove_one_port(&serial_omap_reg, &up->port);
->  		kfree(up);
->  	}
->  	return 0;
->  }
->  
-> +/*
-> + * Work Around for Errata i202 (3430 - 1.12, 3630 - 1.6)
-> + * The access to uart register after MDR1 Access
-> + * causes UART to corrupt data.
-> + *
-> + * Need a delay =
-> + * 5 L4 clock cycles + 5 UART functional clock cycle (@48MHz = ~0.2uS)
-> + * give 10 times as much
-> + */
-> +static void omap_uart_mdr1_errataset(struct uart_omap_port *up)
-> +{
-> +	u8 timeout = 255;
-> +
-> +	serial_out(up, UART_OMAP_MDR1, up->mdr1);
-> +	udelay(2);
-> +	serial_out(up, UART_FCR, up->fcr | UART_FCR_CLEAR_XMIT |
-> +			UART_FCR_CLEAR_RCVR);
-> +	/*
-> +	 * Wait for FIFO to empty: when empty, RX_FIFO_E bit is 0 and
-> +	 * TX_FIFO_E bit is 1.
-> +	 */
-> +	while (UART_LSR_THRE != (serial_in(up, UART_LSR) &
-> +				(UART_LSR_THRE | UART_LSR_DR))) {
-> +		timeout--;
-> +		if (!timeout) {
-> +			/* Should *never* happen. we warn and carry on */
-> +			dev_crit(&up->pdev->dev, "Errata i202: timedout %x\n",
-> +			serial_in(up, UART_LSR));
-> +			break;
-> +		}
-> +		udelay(1);
-> +	}
-> +}
-> +
-> +static void omap_uart_restore_context(struct uart_omap_port *up)
-> +{
-> +	u16 efr = 0;
-> +
-> +	if (up->errata & UART_ERRATA_i202_MDR1_ACCESS)
-> +		omap_uart_mdr1_errataset(up);
-> +	else
-> +		serial_out(up, UART_OMAP_MDR1, up->mdr1);
-> +	serial_out(up, UART_LCR, 0xBF); /* Config B mode */
-> +	efr = serial_in(up, UART_EFR);
-> +	serial_out(up, UART_EFR, UART_EFR_ECB);
-> +	serial_out(up, UART_LCR, 0x0); /* Operational mode */
-> +	serial_out(up, UART_IER, 0x0);
-> +	serial_out(up, UART_LCR, 0xBF); /* Config B mode */
-> +	serial_out(up, UART_DLL, up->dll);
-> +	serial_out(up, UART_DLM, up->dlh);
-> +	serial_out(up, UART_LCR, 0x0); /* Operational mode */
-> +	serial_out(up, UART_IER, up->ier);
-> +	serial_out(up, UART_FCR, up->fcr);
-> +	serial_out(up, UART_LCR, 0x80);
-> +	serial_out(up, UART_MCR, up->mcr);
-> +	serial_out(up, UART_LCR, 0xBF); /* Config B mode */
-> +	serial_out(up, UART_EFR, efr);
-> +	serial_out(up, UART_LCR, UART_LCR_WLEN8);
-> +	if (up->errata & UART_ERRATA_i202_MDR1_ACCESS)
-> +		omap_uart_mdr1_errataset(up);
-> +	else
-> +		/* UART 16x mode */
-> +		serial_out(up, UART_OMAP_MDR1, up->mdr1);
-> +}
-> +
-> +static void omap_uart_enable_wakeup(struct uart_omap_port *up)
-> +{
-> +	/* Set wake-enable bit */
-> +	if (up->wk_en && up->wk_mask) {
-> +		u32 v = __raw_readl(up->wk_en);
-> +		v |= up->wk_mask;
-> +		__raw_writel(v, up->wk_en);
-> +	}
-> +}
-> +
-> +static void omap_uart_disable_wakeup(struct uart_omap_port *up)
-> +{
-> +	/* Clear wake-enable bit */
-> +	if (up->wk_en && up->wk_mask) {
-> +		u32 v = __raw_readl(up->wk_en);
-> +		v &= ~up->wk_mask;
-> +		__raw_writel(v, up->wk_en);
-> +	}
-> +}
-
-Again, driver should not be doing direct PRCM accesses here. 
-
-For now, how about leaving these also in mach-omap2/serial.c and calling
-them via pdata function pointers:
-
-  if (pdata->enable_wakeup)
-      pdata->enable_wakeup()
-
-> +static int omap_serial_runtime_suspend(struct device *dev)
-> +{
-> +	struct uart_omap_port *up = dev_get_drvdata(dev);
-> +
-> +	if (!up)
-> +		goto done;
-> +
-> +	if (device_may_wakeup(&up->pdev->dev))
-> +		omap_uart_enable_wakeup(up);
-> +	else
-> +		omap_uart_disable_wakeup(up);
-> +done:
-> +	return 0;
-> +}
-> +
-> +static int omap_serial_runtime_resume(struct device *dev)
-> +{
-> +	struct uart_omap_port *up = dev_get_drvdata(dev);
-> +
-> +	if (!up)
-> +		goto done;
-> +
-> +	omap_uart_restore_context(up);
-> +done:
-> +	return 0;
-> +}
-> +
-> +static const struct dev_pm_ops omap_serial_dev_pm_ops = {
-> +	.suspend = serial_omap_suspend,
-> +	.resume	= serial_omap_resume,
-> +	.runtime_suspend = omap_serial_runtime_suspend,
-> +	.runtime_resume = omap_serial_runtime_resume,
-> +};
-> +
->  static struct platform_driver serial_omap_driver = {
->  	.probe          = serial_omap_probe,
->  	.remove         = serial_omap_remove,
-> -
-> -	.suspend	= serial_omap_suspend,
-> -	.resume		= serial_omap_resume,
->  	.driver		= {
->  		.name	= DRIVER_NAME,
-> +		.pm = &omap_serial_dev_pm_ops,
->  	},
->  };
-
-Kevin
+<<snip>>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
