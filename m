@@ -1,95 +1,48 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH] OMAP: McSPI: catch xfers of non-multiple SPI word size
-Date: Fri, 4 Mar 2011 22:26:06 -0700
-Message-ID: <20110305052606.GL7579@angua.secretlab.ca>
-References: <1298649311-9201-1-git-send-email-michael.jones@matrix-vision.de>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH 5/6] omap4: Initialise the l3 device with the hwmod data.
+Date: Sat, 5 Mar 2011 13:16:31 +0530
+Message-ID: <ff61f6200034b982e8f17858cc54d04e@mail.gmail.com>
+References: <1298295990-1070-1-git-send-email-santosh.shilimkar@ti.com>
+ <1298295990-1070-6-git-send-email-santosh.shilimkar@ti.com>
+ <4D62AAAA.40104@ti.com> <295be59bd43a2e9f0961c10263ce19c0@mail.gmail.com>
+ <20110303183111.GO20560@atomide.com> <f52bf1c89b7c7c9d6d0281b1a200d5c1@mail.gmail.com>
+ <20110304180817.GC20560@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:50975 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750696Ab1CEF0J (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 5 Mar 2011 00:26:09 -0500
-Received: by iwn34 with SMTP id 34so2490243iwn.19
-        for <linux-omap@vger.kernel.org>; Fri, 04 Mar 2011 21:26:09 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <1298649311-9201-1-git-send-email-michael.jones@matrix-vision.de>
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:41082 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750971Ab1CEHqd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 5 Mar 2011 02:46:33 -0500
+Received: by qyk7 with SMTP id 7so748767qyk.12
+        for <linux-omap@vger.kernel.org>; Fri, 04 Mar 2011 23:46:32 -0800 (PST)
+In-Reply-To: <20110304180817.GC20560@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Michael Jones <michael.jones@matrix-vision.de>
-Cc: linux-omap@vger.kernel.org, spi-devel-general@lists.sourceforge.net
+To: Tony Lindgren <tony@atomide.com>
+Cc: Benoit Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Sricharan R <r.sricharan@ti.com>
 
-On Fri, Feb 25, 2011 at 04:55:11PM +0100, Michael Jones wrote:
-> If an SPI access was not a multiple of the SPI word size,
-> the while() loop would spin and the rx/tx ptrs would be incremented
-> indefinitely.
-> 
-> Signed-off-by: Michael Jones <michael.jones@matrix-vision.de>
+> -----Original Message-----
+> From: Tony Lindgren [mailto:tony@atomide.com]
+> Sent: Friday, March 04, 2011 11:38 PM
+> To: Santosh Shilimkar
+> Cc: Benoit Cousson; linux-omap@vger.kernel.org; Felipe Balbi;
+> Sricharan R
+> Subject: Re: [PATCH 5/6] omap4: Initialise the l3 device with the
+> hwmod data.
+>
+> * Santosh Shilimkar <santosh.shilimkar@ti.com> [110303 22:19]:
+> > > From: Tony Lindgren [mailto:tony@atomide.com]
+> > > Also one Signed-off-by is enough like Benoit pointed out :)
+> > >
+> > Ohhh... I missed this I first comment :)
+> > One SOB is enough.
+>
+> Santosh, can you do a pull request for me on this series
+> when the issues are fixed? Against omap-for-linus branch
+> please.
+>
+Sure will do.
 
-Applied, thanks.
-
-g.
-
-> ---
->  drivers/spi/omap2_mcspi.c |    9 ++++++---
->  1 files changed, 6 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/spi/omap2_mcspi.c b/drivers/spi/omap2_mcspi.c
-> index abb1ffb..9e439be 100644
-> --- a/drivers/spi/omap2_mcspi.c
-> +++ b/drivers/spi/omap2_mcspi.c
-> @@ -487,6 +487,9 @@ omap2_mcspi_txrx_pio(struct spi_device *spi, struct spi_transfer *xfer)
->  	rx_reg		= base + OMAP2_MCSPI_RX0;
->  	chstat_reg	= base + OMAP2_MCSPI_CHSTAT0;
->  
-> +	if (c < (word_len>>3))
-> +		return 0;
-> +
->  	if (word_len <= 8) {
->  		u8		*rx;
->  		const u8	*tx;
-> @@ -534,7 +537,7 @@ omap2_mcspi_txrx_pio(struct spi_device *spi, struct spi_transfer *xfer)
->  				dev_vdbg(&spi->dev, "read-%d %02x\n",
->  						word_len, *(rx - 1));
->  			}
-> -		} while (c);
-> +		} while (c > (word_len>>3));
->  	} else if (word_len <= 16) {
->  		u16		*rx;
->  		const u16	*tx;
-> @@ -581,7 +584,7 @@ omap2_mcspi_txrx_pio(struct spi_device *spi, struct spi_transfer *xfer)
->  				dev_vdbg(&spi->dev, "read-%d %04x\n",
->  						word_len, *(rx - 1));
->  			}
-> -		} while (c);
-> +		} while (c > (word_len>>3));
->  	} else if (word_len <= 32) {
->  		u32		*rx;
->  		const u32	*tx;
-> @@ -628,7 +631,7 @@ omap2_mcspi_txrx_pio(struct spi_device *spi, struct spi_transfer *xfer)
->  				dev_vdbg(&spi->dev, "read-%d %08x\n",
->  						word_len, *(rx - 1));
->  			}
-> -		} while (c);
-> +		} while (c > (word_len>>3));
->  	}
->  
->  	/* for TX_ONLY mode, be sure all words have shifted out */
-> -- 
-> 1.7.4.1
-> 
-> 
-> MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
-> Registergericht: Amtsgericht Stuttgart, HRB 271090
-> Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner
-> 
-> ------------------------------------------------------------------------------
-> Free Software Download: Index, Search & Analyze Logs and other IT data in 
-> Real-Time with Splunk. Collect, index and harness all the fast moving IT data 
-> generated by your applications, servers and devices whether physical, virtual
-> or in the cloud. Deliver compliance at lower cost and gain new business 
-> insights. http://p.sf.net/sfu/splunk-dev2dev 
-> _______________________________________________
-> spi-devel-general mailing list
-> spi-devel-general@lists.sourceforge.net
-> https://lists.sourceforge.net/lists/listinfo/spi-devel-general
+Regards,
+Santosh
