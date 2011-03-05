@@ -1,344 +1,90 @@
-From: Steve Sakoman <steve@sakoman.com>
-Subject: [PATCH v3 1/2] OMAP: DSS2: Add support for LG Philips LB035Q02 panel
-Date: Sat,  5 Mar 2011 05:58:38 -0800
-Message-ID: <1299333519-11467-2-git-send-email-steve@sakoman.com>
-References: <1299333519-11467-1-git-send-email-steve@sakoman.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: [PM-CORE RFC] OMAP2+: make CONFIG_PM selectable
+Date: Sat,  5 Mar 2011 19:39:18 +0530
+Message-ID: <1299334158-26844-1-git-send-email-nm@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yi0-f46.google.com ([209.85.218.46]:58802 "EHLO
-	mail-yi0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750982Ab1CEN6v (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 5 Mar 2011 08:58:51 -0500
-Received: by yia27 with SMTP id 27so1093115yia.19
-        for <linux-omap@vger.kernel.org>; Sat, 05 Mar 2011 05:58:50 -0800 (PST)
-In-Reply-To: <1299333519-11467-1-git-send-email-steve@sakoman.com>
+Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:47167 "EHLO
+	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751219Ab1CEOJa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 5 Mar 2011 09:09:30 -0500
+Received: by mail-yx0-f181.google.com with SMTP id 8so1309677yxm.26
+        for <linux-omap@vger.kernel.org>; Sat, 05 Mar 2011 06:09:28 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: tomi.valkeinen@ti.com, Steve Sakoman <steve@sakoman.com>
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Nishanth Menon <nm@ti.com>, Paul <paul@pwsan.com>, Tony <tony@atomide.com>, Kevin <khilman@ti.com>
 
-This patch adds support for the Gumstix Palo35 expansion board
-which utilizes the 320 x 240 pixel LG.Philips LB035Q02 LCD Panel
+Allow build with CONFIG_PM disabled. Esp when bringing up new
+Silicon, this is a useful and often important requirement.
 
-Signed-off-by: Steve Sakoman <steve@sakoman.com>
+Instead we allow for CONFIG_PM to be selectable as desired.
+Currently voltage files messup the build
+
+Note: this is just a proposal - I have'nt actually done a clean build,
+testing etc.. and was hoping to get some opinions why we have a hard
+dependency on PM for OMAP2
+
+Cc: Paul <paul@pwsan.com>
+Cc: Tony <tony@atomide.com>
+Cc: Kevin <khilman@ti.com>
+
 ---
- drivers/video/omap2/displays/Kconfig               |    6 +
- drivers/video/omap2/displays/Makefile              |    1 +
- .../omap2/displays/panel-lgphilips-lb035q02.c      |  279 ++++++++++++++++++++
- 3 files changed, 286 insertions(+), 0 deletions(-)
- create mode 100644 drivers/video/omap2/displays/panel-lgphilips-lb035q02.c
+patch approx based on pm-core
 
-diff --git a/drivers/video/omap2/displays/Kconfig b/drivers/video/omap2/displays/Kconfig
-index 940cab3..d18ad6b 100644
---- a/drivers/video/omap2/displays/Kconfig
-+++ b/drivers/video/omap2/displays/Kconfig
-@@ -9,6 +9,12 @@ config PANEL_GENERIC_DPI
- 	  Supports LCD Panel used in TI SDP3430 and EVM boards,
- 	  OMAP3517 EVM boards and CM-T35.
+ arch/arm/mach-omap2/Kconfig  |    2 --
+ arch/arm/mach-omap2/Makefile |   12 ++++++++----
+ 2 files changed, 8 insertions(+), 6 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index b9d8a7b..1c99a01 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -7,8 +7,6 @@ config ARCH_OMAP2PLUS_TYPICAL
+ 	default y
+ 	select AEABI
+ 	select REGULATOR
+-	select PM
+-	select PM_RUNTIME
+ 	select VFP
+ 	select NEON if ARCH_OMAP3 || ARCH_OMAP4
+ 	select SERIAL_OMAP
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 1d4d2ff..6d7f155 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -79,8 +79,7 @@ endif
  
-+config PANEL_LGPHILIPS_LB035Q02
-+	tristate "LG.Philips LB035Q02 LCD Panel"
-+	depends on OMAP2_DSS && SPI
-+	help
-+	  LCD Panel used on the Gumstix Overo Palo35
+ # PRCM
+ obj-$(CONFIG_ARCH_OMAP2)		+= prcm.o cm2xxx_3xxx.o prm2xxx_3xxx.o
+-obj-$(CONFIG_ARCH_OMAP3)		+= prcm.o cm2xxx_3xxx.o prm2xxx_3xxx.o \
+-					   vc3xxx_data.o vp3xxx_data.o
++obj-$(CONFIG_ARCH_OMAP3)		+= prcm.o cm2xxx_3xxx.o prm2xxx_3xxx.o
+ obj-$(CONFIG_ARCH_OMAP4)		+= prcm.o cminst44xx.o cm44xx.o \
+ 					   prcm_mpu44xx.o prminst44xx.o
+ # XXX The presence of cm2xxx_3xxx.o on the line below is temporary and
+@@ -88,8 +87,12 @@ obj-$(CONFIG_ARCH_OMAP4)		+= prcm.o cminst44xx.o cm44xx.o \
+ # use OMAP4-specific PRCM functions.
+ obj-$(CONFIG_ARCH_OMAP4)		+= prcm.o cm2xxx_3xxx.o cminst44xx.o \
+ 					   cm44xx.o prcm_mpu44xx.o \
+-					   prminst44xx.o vc44xx_data.o \
+-					   vp44xx_data.o
++					   prminst44xx.o
 +
- config PANEL_SHARP_LS037V7DW01
-         tristate "Sharp LS037V7DW01 LCD Panel"
-         depends on OMAP2_DSS
-diff --git a/drivers/video/omap2/displays/Makefile b/drivers/video/omap2/displays/Makefile
-index 861f025..0f601ab 100644
---- a/drivers/video/omap2/displays/Makefile
-+++ b/drivers/video/omap2/displays/Makefile
-@@ -1,4 +1,5 @@
- obj-$(CONFIG_PANEL_GENERIC_DPI) += panel-generic-dpi.o
-+obj-$(CONFIG_PANEL_LGPHILIPS_LB035Q02) += panel-lgphilips-lb035q02.o
- obj-$(CONFIG_PANEL_SHARP_LS037V7DW01) += panel-sharp-ls037v7dw01.o
- obj-$(CONFIG_PANEL_NEC_NL8048HL11_01B) += panel-nec-nl8048hl11-01b.o
++ifeq ($(CONFIG_PM),y)
++# OMAP Voltage h/w module specific
++obj-$(CONFIG_ARCH_OMAP3)		+= vc3xxx_data.o vp3xxx_data.o
++obj-$(CONFIG_ARCH_OMAP4)		+= vc44xx_data.o vp44xx_data.o
  
-diff --git a/drivers/video/omap2/displays/panel-lgphilips-lb035q02.c b/drivers/video/omap2/displays/panel-lgphilips-lb035q02.c
-new file mode 100644
-index 0000000..271324d
---- /dev/null
-+++ b/drivers/video/omap2/displays/panel-lgphilips-lb035q02.c
-@@ -0,0 +1,279 @@
-+/*
-+ * LCD panel driver for LG.Philips LB035Q02
-+ *
-+ * Author: Steve Sakoman <steve@sakoman.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License version 2 as published by
-+ * the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but WITHOUT
-+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-+ * more details.
-+ *
-+ * You should have received a copy of the GNU General Public License along with
-+ * this program.  If not, see <http://www.gnu.org/licenses/>.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/delay.h>
-+#include <linux/spi/spi.h>
-+#include <linux/mutex.h>
-+
-+#include <plat/display.h>
-+
-+struct lb035q02_data {
-+	struct mutex lock;
-+};
-+
-+static struct omap_video_timings lb035q02_timings = {
-+	.x_res = 320,
-+	.y_res = 240,
-+
-+	.pixel_clock	= 6500,
-+
-+	.hsw		= 2,
-+	.hfp		= 20,
-+	.hbp		= 68,
-+
-+	.vsw		= 2,
-+	.vfp		= 4,
-+	.vbp		= 18,
-+};
-+
-+static int lb035q02_panel_power_on(struct omap_dss_device *dssdev)
-+{
-+	int r;
-+
-+	if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE)
-+		return 0;
-+
-+	r = omapdss_dpi_display_enable(dssdev);
-+	if (r)
-+		goto err0;
-+
-+	if (dssdev->platform_enable) {
-+		r = dssdev->platform_enable(dssdev);
-+		if (r)
-+			goto err1;
-+	}
-+
-+	return 0;
-+err1:
-+	omapdss_dpi_display_disable(dssdev);
-+err0:
-+	return r;
-+}
-+
-+static void lb035q02_panel_power_off(struct omap_dss_device *dssdev)
-+{
-+	if (dssdev->state != OMAP_DSS_DISPLAY_ACTIVE)
-+		return;
-+
-+	if (dssdev->platform_disable)
-+		dssdev->platform_disable(dssdev);
-+
-+	omapdss_dpi_display_disable(dssdev);
-+}
-+
-+static int lb035q02_panel_probe(struct omap_dss_device *dssdev)
-+{
-+	struct lb035q02_data *ld;
-+	int r;
-+
-+	dssdev->panel.config = OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
-+		OMAP_DSS_LCD_IHS;
-+	dssdev->panel.timings = lb035q02_timings;
-+
-+	ld = kzalloc(sizeof(*ld), GFP_KERNEL);
-+	if (!ld) {
-+		r = -ENOMEM;
-+		goto err;
-+	}
-+	mutex_init(&ld->lock);
-+	dev_set_drvdata(&dssdev->dev, ld);
-+	return 0;
-+err:
-+	return r;
-+}
-+
-+static void lb035q02_panel_remove(struct omap_dss_device *dssdev)
-+{
-+	struct lb035q02_data *ld = dev_get_drvdata(&dssdev->dev);
-+
-+	kfree(ld);
-+}
-+
-+static int lb035q02_panel_enable(struct omap_dss_device *dssdev)
-+{
-+	struct lb035q02_data *ld = dev_get_drvdata(&dssdev->dev);
-+	int r;
-+
-+	mutex_lock(&ld->lock);
-+
-+	r = lb035q02_panel_power_on(dssdev);
-+	if (r)
-+		goto err;
-+	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
-+
-+	mutex_unlock(&ld->lock);
-+	return 0;
-+err:
-+	mutex_unlock(&ld->lock);
-+	return r;
-+}
-+
-+static void lb035q02_panel_disable(struct omap_dss_device *dssdev)
-+{
-+	struct lb035q02_data *ld = dev_get_drvdata(&dssdev->dev);
-+
-+	mutex_lock(&ld->lock);
-+
-+	lb035q02_panel_power_off(dssdev);
-+	dssdev->state = OMAP_DSS_DISPLAY_DISABLED;
-+
-+	mutex_unlock(&ld->lock);
-+}
-+
-+static int lb035q02_panel_suspend(struct omap_dss_device *dssdev)
-+{
-+	struct lb035q02_data *ld = dev_get_drvdata(&dssdev->dev);
-+
-+	mutex_lock(&ld->lock);
-+
-+	lb035q02_panel_power_off(dssdev);
-+	dssdev->state = OMAP_DSS_DISPLAY_SUSPENDED;
-+
-+	mutex_unlock(&ld->lock);
-+	return 0;
-+}
-+
-+static int lb035q02_panel_resume(struct omap_dss_device *dssdev)
-+{
-+	struct lb035q02_data *ld = dev_get_drvdata(&dssdev->dev);
-+	int r;
-+
-+	mutex_lock(&ld->lock);
-+
-+	r = lb035q02_panel_power_on(dssdev);
-+	if (r)
-+		goto err;
-+	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
-+
-+	mutex_unlock(&ld->lock);
-+	return 0;
-+err:
-+	mutex_unlock(&ld->lock);
-+	return r;
-+}
-+
-+static struct omap_dss_driver lb035q02_driver = {
-+	.probe		= lb035q02_panel_probe,
-+	.remove		= lb035q02_panel_remove,
-+
-+	.enable		= lb035q02_panel_enable,
-+	.disable	= lb035q02_panel_disable,
-+	.suspend	= lb035q02_panel_suspend,
-+	.resume		= lb035q02_panel_resume,
-+
-+	.driver         = {
-+		.name   = "lgphilips_lb035q02_panel",
-+		.owner  = THIS_MODULE,
-+	},
-+};
-+
-+static int lb035q02_write_reg(struct spi_device *spi, u8 reg, u16 val)
-+{
-+	struct spi_message msg;
-+	struct spi_transfer index_xfer = {
-+		.len		= 3,
-+		.cs_change	= 1,
-+	};
-+	struct spi_transfer value_xfer = {
-+		.len		= 3,
-+	};
-+	u8	buffer[16];
-+
-+	spi_message_init(&msg);
-+
-+	/* register index */
-+	buffer[0] = 0x70;
-+	buffer[1] = 0x00;
-+	buffer[2] = reg & 0x7f;
-+	index_xfer.tx_buf = buffer;
-+	spi_message_add_tail(&index_xfer, &msg);
-+
-+	/* register value */
-+	buffer[4] = 0x72;
-+	buffer[5] = val >> 8;
-+	buffer[6] = val;
-+	value_xfer.tx_buf = buffer + 4;
-+	spi_message_add_tail(&value_xfer, &msg);
-+
-+	return spi_sync(spi, &msg);
-+}
-+
-+static void init_lb035q02_panel(struct spi_device *spi)
-+{
-+	/* Init sequence from page 28 of the lb035q02 spec */
-+	lb035q02_write_reg(spi, 0x01, 0x6300);
-+	lb035q02_write_reg(spi, 0x02, 0x0200);
-+	lb035q02_write_reg(spi, 0x03, 0x0177);
-+	lb035q02_write_reg(spi, 0x04, 0x04c7);
-+	lb035q02_write_reg(spi, 0x05, 0xffc0);
-+	lb035q02_write_reg(spi, 0x06, 0xe806);
-+	lb035q02_write_reg(spi, 0x0a, 0x4008);
-+	lb035q02_write_reg(spi, 0x0b, 0x0000);
-+	lb035q02_write_reg(spi, 0x0d, 0x0030);
-+	lb035q02_write_reg(spi, 0x0e, 0x2800);
-+	lb035q02_write_reg(spi, 0x0f, 0x0000);
-+	lb035q02_write_reg(spi, 0x16, 0x9f80);
-+	lb035q02_write_reg(spi, 0x17, 0x0a0f);
-+	lb035q02_write_reg(spi, 0x1e, 0x00c1);
-+	lb035q02_write_reg(spi, 0x30, 0x0300);
-+	lb035q02_write_reg(spi, 0x31, 0x0007);
-+	lb035q02_write_reg(spi, 0x32, 0x0000);
-+	lb035q02_write_reg(spi, 0x33, 0x0000);
-+	lb035q02_write_reg(spi, 0x34, 0x0707);
-+	lb035q02_write_reg(spi, 0x35, 0x0004);
-+	lb035q02_write_reg(spi, 0x36, 0x0302);
-+	lb035q02_write_reg(spi, 0x37, 0x0202);
-+	lb035q02_write_reg(spi, 0x3a, 0x0a0d);
-+	lb035q02_write_reg(spi, 0x3b, 0x0806);
-+}
-+
-+static int __devinit lb035q02_panel_spi_probe(struct spi_device *spi)
-+{
-+	init_lb035q02_panel(spi);
-+	return omap_dss_register_driver(&lb035q02_driver);
-+}
-+
-+static int __devexit lb035q02_panel_spi_remove(struct spi_device *spi)
-+{
-+	omap_dss_unregister_driver(&lb035q02_driver);
-+	return 0;
-+}
-+
-+static struct spi_driver lb035q02_spi_driver = {
-+	.driver		= {
-+		.name	= "lgphilips_lb035q02_panel-spi",
-+		.owner	= THIS_MODULE,
-+	},
-+	.probe		= lb035q02_panel_spi_probe,
-+	.remove		= __devexit_p(lb035q02_panel_spi_remove),
-+};
-+
-+static int __init lb035q02_panel_drv_init(void)
-+{
-+	return spi_register_driver(&lb035q02_spi_driver);
-+}
-+
-+static void __exit lb035q02_panel_drv_exit(void)
-+{
-+	spi_unregister_driver(&lb035q02_spi_driver);
-+}
-+
-+module_init(lb035q02_panel_drv_init);
-+module_exit(lb035q02_panel_drv_exit);
-+MODULE_LICENSE("GPL");
+ # OMAP voltage domains
+ voltagedomain-common			:= voltage.o
+@@ -98,6 +101,7 @@ obj-$(CONFIG_ARCH_OMAP3)		+= $(voltagedomain-common) \
+ 					   voltagedomains3xxx_data.o
+ obj-$(CONFIG_ARCH_OMAP4)		+= $(voltagedomain-common) \
+ 					   voltagedomains44xx_data.o
++endif
+ 
+ # OMAP powerdomain framework
+ powerdomain-common			+= powerdomain.o powerdomain-common.o
 -- 
-1.7.0.4
+1.7.1
 
