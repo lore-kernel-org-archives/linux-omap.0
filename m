@@ -1,48 +1,40 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: RE: pm-core: recursive dependency on config
-Date: Sat, 5 Mar 2011 14:11:29 +0530
-Message-ID: <ea74188f9e010d45c0c8ba15ab6b2617@mail.gmail.com>
-References: <AANLkTi=wNSOmZ8TcWGUoPmdaC5ga9NrzsXhULnUxLMGk@mail.gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH v2 1/2] OMAP: DSS2: Add support for LG Philips LB035Q02
+ panel
+Date: Sat, 5 Mar 2011 11:18:02 +0200
+Message-ID: <1299316682.2311.0.camel@deskari>
+References: <1299271940-4286-1-git-send-email-steve@sakoman.com>
+	 <1299271940-4286-2-git-send-email-steve@sakoman.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:48003 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750821Ab1CEIld (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 5 Mar 2011 03:41:33 -0500
-Received: by qyk7 with SMTP id 7so2357820qyk.10
-        for <linux-omap@vger.kernel.org>; Sat, 05 Mar 2011 00:41:31 -0800 (PST)
-In-Reply-To: <AANLkTi=wNSOmZ8TcWGUoPmdaC5ga9NrzsXhULnUxLMGk@mail.gmail.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:47942 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751069Ab1CEJSH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 5 Mar 2011 04:18:07 -0500
+In-Reply-To: <1299271940-4286-2-git-send-email-steve@sakoman.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King <linux@arm.linux.org.uk>
-Cc: Nishanth Menon <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>
+To: Steve Sakoman <steve@sakoman.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-+ Russell,
+Hi,
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Menon, Nishanth
-> Sent: Saturday, March 05, 2011 1:51 PM
-> To: linux-omap
-> Subject: pm-core: recursive dependency on config
->
-> Folks,
-> Dumb question:
-> Some one seen this one? is there a patch in the pipe for the fix?
->
-> scripts/kconfig/conf --silentoldconfig Kconfig
-> arch/arm/Kconfig:1277:error: recursive dependency detected!
-> arch/arm/Kconfig:1277:	symbol SMP depends on CPU_V6K
-> arch/arm/mm/Kconfig:407:	symbol CPU_V6K depends on SMP
->
-I saw this one too. This is because of resent changes to
-ensure that CPU_32v6K is always enabled with SMP builds.
+On Fri, 2011-03-04 at 14:52 -0600, Steve Sakoman wrote:
+> This patch adds support for the Gumstix Palo35 expansion board
+> which utilizes the 320 x 240 pixel LG.Philips LB035Q02 LCD Panel
+> 
+> Signed-off-by: Steve Sakoman <steve@sakoman.com>
+> ---
+>  drivers/video/omap2/displays/Kconfig               |    6 +
+>  drivers/video/omap2/displays/Makefile              |    1 +
+>  .../omap2/displays/panel-lgphilips-lb035q02.c      |  278 ++++++++++++++++++++
+>  3 files changed, 285 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/video/omap2/displays/panel-lgphilips-lb035q02.c
 
-This is tricky dependency. May be RMK has better way to deal
-with this.
+This doesn't compile.
 
-Two relevant commit on this are '85a11f52' and  '15490ef8'
+ Tomi
 
-Regards,
-Santosh
+
