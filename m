@@ -1,368 +1,344 @@
 From: Steve Sakoman <steve@sakoman.com>
-Subject: [PATCH v3 2/2] OMAP: DSS2: Add DSS2 support for Overo
-Date: Sat,  5 Mar 2011 05:58:39 -0800
-Message-ID: <1299333519-11467-3-git-send-email-steve@sakoman.com>
+Subject: [PATCH v3 1/2] OMAP: DSS2: Add support for LG Philips LB035Q02 panel
+Date: Sat,  5 Mar 2011 05:58:38 -0800
+Message-ID: <1299333519-11467-2-git-send-email-steve@sakoman.com>
 References: <1299333519-11467-1-git-send-email-steve@sakoman.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gw0-f51.google.com ([74.125.83.51]:59717 "EHLO
-	mail-gw0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750982Ab1CEN6w (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 5 Mar 2011 08:58:52 -0500
-Received: by mail-gw0-f51.google.com with SMTP id 15so1662600gwb.10
-        for <linux-omap@vger.kernel.org>; Sat, 05 Mar 2011 05:58:52 -0800 (PST)
+Received: from mail-yi0-f46.google.com ([209.85.218.46]:58802 "EHLO
+	mail-yi0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750982Ab1CEN6v (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 5 Mar 2011 08:58:51 -0500
+Received: by yia27 with SMTP id 27so1093115yia.19
+        for <linux-omap@vger.kernel.org>; Sat, 05 Mar 2011 05:58:50 -0800 (PST)
 In-Reply-To: <1299333519-11467-1-git-send-email-steve@sakoman.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: tomi.valkeinen@ti.com, Steve Sakoman <steve@sakoman.com>
 
-This patch adds DSS2 support for DVI, S-video, the 480x272 Samsung
-LTE430WQ-F0C panel, and the 320x240 LG.Philips LB035Q02 panel.
+This patch adds support for the Gumstix Palo35 expansion board
+which utilizes the 320 x 240 pixel LG.Philips LB035Q02 LCD Panel
 
 Signed-off-by: Steve Sakoman <steve@sakoman.com>
 ---
- arch/arm/mach-omap2/board-overo.c |  239 +++++++++++++++++++++++++++++++------
- 1 files changed, 202 insertions(+), 37 deletions(-)
+ drivers/video/omap2/displays/Kconfig               |    6 +
+ drivers/video/omap2/displays/Makefile              |    1 +
+ .../omap2/displays/panel-lgphilips-lb035q02.c      |  279 ++++++++++++++++++++
+ 3 files changed, 286 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/video/omap2/displays/panel-lgphilips-lb035q02.c
 
-diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
-index a33ec0e..a2c17c9 100644
---- a/arch/arm/mach-omap2/board-overo.c
-+++ b/arch/arm/mach-omap2/board-overo.c
-@@ -28,6 +28,7 @@
- #include <linux/platform_device.h>
- #include <linux/i2c/twl.h>
- #include <linux/regulator/machine.h>
+diff --git a/drivers/video/omap2/displays/Kconfig b/drivers/video/omap2/displays/Kconfig
+index 940cab3..d18ad6b 100644
+--- a/drivers/video/omap2/displays/Kconfig
++++ b/drivers/video/omap2/displays/Kconfig
+@@ -9,6 +9,12 @@ config PANEL_GENERIC_DPI
+ 	  Supports LCD Panel used in TI SDP3430 and EVM boards,
+ 	  OMAP3517 EVM boards and CM-T35.
+ 
++config PANEL_LGPHILIPS_LB035Q02
++	tristate "LG.Philips LB035Q02 LCD Panel"
++	depends on OMAP2_DSS && SPI
++	help
++	  LCD Panel used on the Gumstix Overo Palo35
++
+ config PANEL_SHARP_LS037V7DW01
+         tristate "Sharp LS037V7DW01 LCD Panel"
+         depends on OMAP2_DSS
+diff --git a/drivers/video/omap2/displays/Makefile b/drivers/video/omap2/displays/Makefile
+index 861f025..0f601ab 100644
+--- a/drivers/video/omap2/displays/Makefile
++++ b/drivers/video/omap2/displays/Makefile
+@@ -1,4 +1,5 @@
+ obj-$(CONFIG_PANEL_GENERIC_DPI) += panel-generic-dpi.o
++obj-$(CONFIG_PANEL_LGPHILIPS_LB035Q02) += panel-lgphilips-lb035q02.o
+ obj-$(CONFIG_PANEL_SHARP_LS037V7DW01) += panel-sharp-ls037v7dw01.o
+ obj-$(CONFIG_PANEL_NEC_NL8048HL11_01B) += panel-nec-nl8048hl11-01b.o
+ 
+diff --git a/drivers/video/omap2/displays/panel-lgphilips-lb035q02.c b/drivers/video/omap2/displays/panel-lgphilips-lb035q02.c
+new file mode 100644
+index 0000000..271324d
+--- /dev/null
++++ b/drivers/video/omap2/displays/panel-lgphilips-lb035q02.c
+@@ -0,0 +1,279 @@
++/*
++ * LCD panel driver for LG.Philips LB035Q02
++ *
++ * Author: Steve Sakoman <steve@sakoman.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License along with
++ * this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#include <linux/module.h>
++#include <linux/delay.h>
 +#include <linux/spi/spi.h>
- 
- #include <linux/mtd/mtd.h>
- #include <linux/mtd/nand.h>
-@@ -41,10 +42,14 @@
- 
- #include <plat/board.h>
- #include <plat/common.h>
++#include <linux/mutex.h>
++
 +#include <plat/display.h>
-+#include <plat/panel-generic-dpi.h>
- #include <mach/gpio.h>
- #include <plat/gpmc.h>
- #include <mach/hardware.h>
- #include <plat/nand.h>
-+#include <plat/mcspi.h>
-+#include <plat/mux.h>
- #include <plat/usb.h>
- 
- #include "mux.h"
-@@ -68,8 +73,6 @@
- #if defined(CONFIG_TOUCHSCREEN_ADS7846) || \
- 	defined(CONFIG_TOUCHSCREEN_ADS7846_MODULE)
- 
--#include <plat/mcspi.h>
--#include <linux/spi/spi.h>
- #include <linux/spi/ads7846.h>
- 
- static struct omap2_mcspi_device_config ads7846_mcspi_config = {
-@@ -94,18 +97,6 @@ static struct ads7846_platform_data ads7846_config = {
- 	.keep_vref_on		= 1,
- };
- 
--static struct spi_board_info overo_spi_board_info[] __initdata = {
--	{
--		.modalias		= "ads7846",
--		.bus_num		= 1,
--		.chip_select		= 0,
--		.max_speed_hz		= 1500000,
--		.controller_data	= &ads7846_mcspi_config,
--		.irq			= OMAP_GPIO_IRQ(OVERO_GPIO_PENDOWN),
--		.platform_data		= &ads7846_config,
--	}
--};
--
- static void __init overo_ads7846_init(void)
- {
- 	if ((gpio_request(OVERO_GPIO_PENDOWN, "ADS7846_PENDOWN") == 0) &&
-@@ -115,9 +106,6 @@ static void __init overo_ads7846_init(void)
- 		printk(KERN_ERR "could not obtain gpio for ADS7846_PENDOWN\n");
- 		return;
- 	}
--
--	spi_register_board_info(overo_spi_board_info,
--			ARRAY_SIZE(overo_spi_board_info));
- }
- 
- #else
-@@ -233,6 +221,137 @@ static inline void __init overo_init_smsc911x(void)
- static inline void __init overo_init_smsc911x(void) { return; }
- #endif
- 
-+/* DSS */
-+static int lcd_enabled;
-+static int dvi_enabled;
 +
-+#define OVERO_GPIO_LCD_EN 144
-+#define OVERO_GPIO_LCD_BL 145
-+
-+static void __init overo_display_init(void)
-+{
-+	if ((gpio_request(OVERO_GPIO_LCD_EN, "OVERO_GPIO_LCD_EN") == 0) &&
-+	    (gpio_direction_output(OVERO_GPIO_LCD_EN, 1) == 0))
-+		gpio_export(OVERO_GPIO_LCD_EN, 0);
-+	else
-+		printk(KERN_ERR "could not obtain gpio for "
-+					"OVERO_GPIO_LCD_EN\n");
-+
-+	if ((gpio_request(OVERO_GPIO_LCD_BL, "OVERO_GPIO_LCD_BL") == 0) &&
-+	    (gpio_direction_output(OVERO_GPIO_LCD_BL, 1) == 0))
-+		gpio_export(OVERO_GPIO_LCD_BL, 0);
-+	else
-+		printk(KERN_ERR "could not obtain gpio for "
-+					"OVERO_GPIO_LCD_BL\n");
-+}
-+
-+static int overo_panel_enable_dvi(struct omap_dss_device *dssdev)
-+{
-+	if (lcd_enabled) {
-+		printk(KERN_ERR "cannot enable DVI, LCD is enabled\n");
-+		return -EINVAL;
-+	}
-+	dvi_enabled = 1;
-+
-+	return 0;
-+}
-+
-+static void overo_panel_disable_dvi(struct omap_dss_device *dssdev)
-+{
-+	dvi_enabled = 0;
-+}
-+
-+static struct panel_generic_dpi_data dvi_panel = {
-+	.name			= "generic",
-+	.platform_enable	= overo_panel_enable_dvi,
-+	.platform_disable	= overo_panel_disable_dvi,
++struct lb035q02_data {
++	struct mutex lock;
 +};
 +
-+static struct omap_dss_device overo_dvi_device = {
-+	.name			= "dvi",
-+	.type			= OMAP_DISPLAY_TYPE_DPI,
-+	.driver_name		= "generic_dpi_panel",
-+	.data			= &dvi_panel,
-+	.phy.dpi.data_lines	= 24,
++static struct omap_video_timings lb035q02_timings = {
++	.x_res = 320,
++	.y_res = 240,
++
++	.pixel_clock	= 6500,
++
++	.hsw		= 2,
++	.hfp		= 20,
++	.hbp		= 68,
++
++	.vsw		= 2,
++	.vfp		= 4,
++	.vbp		= 18,
 +};
 +
-+static struct omap_dss_device overo_tv_device = {
-+	.name = "tv",
-+	.driver_name = "venc",
-+	.type = OMAP_DISPLAY_TYPE_VENC,
-+	.phy.venc.type = OMAP_DSS_VENC_TYPE_SVIDEO,
-+};
-+
-+static int overo_panel_enable_lcd(struct omap_dss_device *dssdev)
++static int lb035q02_panel_power_on(struct omap_dss_device *dssdev)
 +{
-+	if (dvi_enabled) {
-+		printk(KERN_ERR "cannot enable LCD, DVI is enabled\n");
-+		return -EINVAL;
++	int r;
++
++	if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE)
++		return 0;
++
++	r = omapdss_dpi_display_enable(dssdev);
++	if (r)
++		goto err0;
++
++	if (dssdev->platform_enable) {
++		r = dssdev->platform_enable(dssdev);
++		if (r)
++			goto err1;
 +	}
 +
-+	gpio_set_value(OVERO_GPIO_LCD_EN, 1);
-+	gpio_set_value(OVERO_GPIO_LCD_BL, 1);
-+	lcd_enabled = 1;
++	return 0;
++err1:
++	omapdss_dpi_display_disable(dssdev);
++err0:
++	return r;
++}
++
++static void lb035q02_panel_power_off(struct omap_dss_device *dssdev)
++{
++	if (dssdev->state != OMAP_DSS_DISPLAY_ACTIVE)
++		return;
++
++	if (dssdev->platform_disable)
++		dssdev->platform_disable(dssdev);
++
++	omapdss_dpi_display_disable(dssdev);
++}
++
++static int lb035q02_panel_probe(struct omap_dss_device *dssdev)
++{
++	struct lb035q02_data *ld;
++	int r;
++
++	dssdev->panel.config = OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
++		OMAP_DSS_LCD_IHS;
++	dssdev->panel.timings = lb035q02_timings;
++
++	ld = kzalloc(sizeof(*ld), GFP_KERNEL);
++	if (!ld) {
++		r = -ENOMEM;
++		goto err;
++	}
++	mutex_init(&ld->lock);
++	dev_set_drvdata(&dssdev->dev, ld);
++	return 0;
++err:
++	return r;
++}
++
++static void lb035q02_panel_remove(struct omap_dss_device *dssdev)
++{
++	struct lb035q02_data *ld = dev_get_drvdata(&dssdev->dev);
++
++	kfree(ld);
++}
++
++static int lb035q02_panel_enable(struct omap_dss_device *dssdev)
++{
++	struct lb035q02_data *ld = dev_get_drvdata(&dssdev->dev);
++	int r;
++
++	mutex_lock(&ld->lock);
++
++	r = lb035q02_panel_power_on(dssdev);
++	if (r)
++		goto err;
++	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
++
++	mutex_unlock(&ld->lock);
++	return 0;
++err:
++	mutex_unlock(&ld->lock);
++	return r;
++}
++
++static void lb035q02_panel_disable(struct omap_dss_device *dssdev)
++{
++	struct lb035q02_data *ld = dev_get_drvdata(&dssdev->dev);
++
++	mutex_lock(&ld->lock);
++
++	lb035q02_panel_power_off(dssdev);
++	dssdev->state = OMAP_DSS_DISPLAY_DISABLED;
++
++	mutex_unlock(&ld->lock);
++}
++
++static int lb035q02_panel_suspend(struct omap_dss_device *dssdev)
++{
++	struct lb035q02_data *ld = dev_get_drvdata(&dssdev->dev);
++
++	mutex_lock(&ld->lock);
++
++	lb035q02_panel_power_off(dssdev);
++	dssdev->state = OMAP_DSS_DISPLAY_SUSPENDED;
++
++	mutex_unlock(&ld->lock);
 +	return 0;
 +}
 +
-+static void overo_panel_disable_lcd(struct omap_dss_device *dssdev)
++static int lb035q02_panel_resume(struct omap_dss_device *dssdev)
 +{
-+	gpio_set_value(OVERO_GPIO_LCD_EN, 0);
-+	gpio_set_value(OVERO_GPIO_LCD_BL, 0);
-+	lcd_enabled = 0;
++	struct lb035q02_data *ld = dev_get_drvdata(&dssdev->dev);
++	int r;
++
++	mutex_lock(&ld->lock);
++
++	r = lb035q02_panel_power_on(dssdev);
++	if (r)
++		goto err;
++	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
++
++	mutex_unlock(&ld->lock);
++	return 0;
++err:
++	mutex_unlock(&ld->lock);
++	return r;
 +}
 +
-+static struct panel_generic_dpi_data lcd43_panel = {
-+	.name			= "samsung_lte430wq_f0c",
-+	.platform_enable	= overo_panel_enable_lcd,
-+	.platform_disable	= overo_panel_disable_lcd,
-+};
++static struct omap_dss_driver lb035q02_driver = {
++	.probe		= lb035q02_panel_probe,
++	.remove		= lb035q02_panel_remove,
 +
-+static struct omap_dss_device overo_lcd43_device = {
-+	.name			= "lcd43",
-+	.type			= OMAP_DISPLAY_TYPE_DPI,
-+	.driver_name		= "generic_dpi_panel",
-+	.data			= &lcd43_panel,
-+	.phy.dpi.data_lines	= 24,
-+};
++	.enable		= lb035q02_panel_enable,
++	.disable	= lb035q02_panel_disable,
++	.suspend	= lb035q02_panel_suspend,
++	.resume		= lb035q02_panel_resume,
 +
-+#if defined(CONFIG_PANEL_LGPHILIPS_LB035Q02) || \
-+	defined(CONFIG_PANEL_LGPHILIPS_LB035Q02_MODULE)
-+static struct omap_dss_device overo_lcd35_device = {
-+	.type			= OMAP_DISPLAY_TYPE_DPI,
-+	.name			= "lcd35",
-+	.driver_name		= "lgphilips_lb035q02_panel",
-+	.phy.dpi.data_lines	= 24,
-+	.platform_enable	= overo_panel_enable_lcd,
-+	.platform_disable	= overo_panel_disable_lcd,
-+};
-+#endif
-+
-+static struct omap_dss_device *overo_dss_devices[] = {
-+	&overo_dvi_device,
-+	&overo_tv_device,
-+#if defined(CONFIG_PANEL_LGPHILIPS_LB035Q02) || \
-+	defined(CONFIG_PANEL_LGPHILIPS_LB035Q02_MODULE)
-+	&overo_lcd35_device,
-+#endif
-+	&overo_lcd43_device,
-+};
-+
-+static struct omap_dss_board_info overo_dss_data = {
-+	.num_devices	= ARRAY_SIZE(overo_dss_devices),
-+	.devices	= overo_dss_devices,
-+	.default_device	= &overo_dvi_device,
-+};
-+
-+static struct regulator_consumer_supply overo_vdda_dac_supply =
-+	REGULATOR_SUPPLY("vdda_dac", "omapdss_venc");
-+
-+static struct regulator_consumer_supply overo_vdds_dsi_supply[] = {
-+	REGULATOR_SUPPLY("vdds_dsi", "omapdss"),
-+	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dsi1"),
-+};
-+
- static struct mtd_partition overo_nand_partitions[] = {
- 	{
- 		.name           = "xloader",
-@@ -358,6 +477,37 @@ static struct regulator_init_data overo_vmmc1 = {
- 	.consumer_supplies	= &overo_vmmc1_supply,
- };
- 
-+/* VDAC for DSS driving S-Video (8 mA unloaded, max 65 mA) */
-+static struct regulator_init_data overo_vdac = {
-+	.constraints = {
-+		.min_uV			= 1800000,
-+		.max_uV			= 1800000,
-+		.valid_modes_mask	= REGULATOR_MODE_NORMAL
-+					| REGULATOR_MODE_STANDBY,
-+		.valid_ops_mask		= REGULATOR_CHANGE_MODE
-+					| REGULATOR_CHANGE_STATUS,
++	.driver         = {
++		.name   = "lgphilips_lb035q02_panel",
++		.owner  = THIS_MODULE,
 +	},
-+	.num_consumer_supplies	= 1,
-+	.consumer_supplies	= &overo_vdda_dac_supply,
 +};
 +
-+/* VPLL2 for digital video outputs */
-+static struct regulator_init_data overo_vpll2 = {
-+	.constraints = {
-+		.name			= "VDVI",
-+		.min_uV			= 1800000,
-+		.max_uV			= 1800000,
-+		.valid_modes_mask	= REGULATOR_MODE_NORMAL
-+					| REGULATOR_MODE_STANDBY,
-+		.valid_ops_mask		= REGULATOR_CHANGE_MODE
-+					| REGULATOR_CHANGE_STATUS,
-+	},
-+	.num_consumer_supplies	= ARRAY_SIZE(overo_vdds_dsi_supply),
-+	.consumer_supplies	= overo_vdds_dsi_supply,
-+};
-+
-+/* mmc2 (WLAN) and Bluetooth don't use twl4030 regulators */
-+
- static struct twl4030_codec_audio_data overo_audio_data = {
- 	.audio_mclk = 26000000,
- };
-@@ -367,8 +517,6 @@ static struct twl4030_codec_data overo_codec_data = {
- 	.audio = &overo_audio_data,
- };
- 
--/* mmc2 (WLAN) and Bluetooth don't use twl4030 regulators */
--
- static struct twl4030_platform_data overo_twldata = {
- 	.irq_base	= TWL4030_IRQ_BASE,
- 	.irq_end	= TWL4030_IRQ_END,
-@@ -376,6 +524,8 @@ static struct twl4030_platform_data overo_twldata = {
- 	.usb		= &overo_usb_data,
- 	.codec		= &overo_codec_data,
- 	.vmmc1		= &overo_vmmc1,
-+	.vdac		= &overo_vdac,
-+	.vpll2		= &overo_vpll2,
- };
- 
- static struct i2c_board_info __initdata overo_i2c_boardinfo[] = {
-@@ -396,32 +546,46 @@ static int __init overo_i2c_init(void)
- 	return 0;
- }
- 
--static struct platform_device overo_lcd_device = {
--	.name		= "overo_lcd",
--	.id		= -1,
--};
--
--static struct omap_lcd_config overo_lcd_config __initdata = {
--	.ctrl_name	= "internal",
-+static struct spi_board_info overo_spi_board_info[] __initdata = {
-+#if defined(CONFIG_TOUCHSCREEN_ADS7846) || \
-+	defined(CONFIG_TOUCHSCREEN_ADS7846_MODULE)
-+	{
-+		.modalias		= "ads7846",
-+		.bus_num		= 1,
-+		.chip_select		= 0,
-+		.max_speed_hz		= 1500000,
-+		.controller_data	= &ads7846_mcspi_config,
-+		.irq			= OMAP_GPIO_IRQ(OVERO_GPIO_PENDOWN),
-+		.platform_data		= &ads7846_config,
-+	},
-+#endif
-+#if defined(CONFIG_PANEL_LGPHILIPS_LB035Q02) || \
-+	defined(CONFIG_PANEL_LGPHILIPS_LB035Q02_MODULE)
-+	{
-+		.modalias		= "lgphilips_lb035q02_panel-spi",
-+		.bus_num		= 1,
-+		.chip_select		= 1,
-+		.max_speed_hz		= 500000,
-+		.mode			= SPI_MODE_3,
-+	},
-+#endif
- };
- 
--static struct omap_board_config_kernel overo_config[] __initdata = {
--	{ OMAP_TAG_LCD,		&overo_lcd_config },
--};
-+static int __init overo_spi_init(void)
++static int lb035q02_write_reg(struct spi_device *spi, u8 reg, u16 val)
 +{
-+	overo_ads7846_init();
-+	spi_register_board_info(overo_spi_board_info,
-+			ARRAY_SIZE(overo_spi_board_info));
++	struct spi_message msg;
++	struct spi_transfer index_xfer = {
++		.len		= 3,
++		.cs_change	= 1,
++	};
++	struct spi_transfer value_xfer = {
++		.len		= 3,
++	};
++	u8	buffer[16];
++
++	spi_message_init(&msg);
++
++	/* register index */
++	buffer[0] = 0x70;
++	buffer[1] = 0x00;
++	buffer[2] = reg & 0x7f;
++	index_xfer.tx_buf = buffer;
++	spi_message_add_tail(&index_xfer, &msg);
++
++	/* register value */
++	buffer[4] = 0x72;
++	buffer[5] = val >> 8;
++	buffer[6] = val;
++	value_xfer.tx_buf = buffer + 4;
++	spi_message_add_tail(&value_xfer, &msg);
++
++	return spi_sync(spi, &msg);
++}
++
++static void init_lb035q02_panel(struct spi_device *spi)
++{
++	/* Init sequence from page 28 of the lb035q02 spec */
++	lb035q02_write_reg(spi, 0x01, 0x6300);
++	lb035q02_write_reg(spi, 0x02, 0x0200);
++	lb035q02_write_reg(spi, 0x03, 0x0177);
++	lb035q02_write_reg(spi, 0x04, 0x04c7);
++	lb035q02_write_reg(spi, 0x05, 0xffc0);
++	lb035q02_write_reg(spi, 0x06, 0xe806);
++	lb035q02_write_reg(spi, 0x0a, 0x4008);
++	lb035q02_write_reg(spi, 0x0b, 0x0000);
++	lb035q02_write_reg(spi, 0x0d, 0x0030);
++	lb035q02_write_reg(spi, 0x0e, 0x2800);
++	lb035q02_write_reg(spi, 0x0f, 0x0000);
++	lb035q02_write_reg(spi, 0x16, 0x9f80);
++	lb035q02_write_reg(spi, 0x17, 0x0a0f);
++	lb035q02_write_reg(spi, 0x1e, 0x00c1);
++	lb035q02_write_reg(spi, 0x30, 0x0300);
++	lb035q02_write_reg(spi, 0x31, 0x0007);
++	lb035q02_write_reg(spi, 0x32, 0x0000);
++	lb035q02_write_reg(spi, 0x33, 0x0000);
++	lb035q02_write_reg(spi, 0x34, 0x0707);
++	lb035q02_write_reg(spi, 0x35, 0x0004);
++	lb035q02_write_reg(spi, 0x36, 0x0302);
++	lb035q02_write_reg(spi, 0x37, 0x0202);
++	lb035q02_write_reg(spi, 0x3a, 0x0a0d);
++	lb035q02_write_reg(spi, 0x3b, 0x0806);
++}
++
++static int __devinit lb035q02_panel_spi_probe(struct spi_device *spi)
++{
++	init_lb035q02_panel(spi);
++	return omap_dss_register_driver(&lb035q02_driver);
++}
++
++static int __devexit lb035q02_panel_spi_remove(struct spi_device *spi)
++{
++	omap_dss_unregister_driver(&lb035q02_driver);
 +	return 0;
 +}
- 
- static void __init overo_init_early(void)
- {
--	omap_board_config = overo_config;
--	omap_board_config_size = ARRAY_SIZE(overo_config);
- 	omap2_init_common_infrastructure();
- 	omap2_init_common_devices(mt46h32m32lf6_sdrc_params,
- 				  mt46h32m32lf6_sdrc_params);
- }
- 
--static struct platform_device *overo_devices[] __initdata = {
--	&overo_lcd_device,
--};
--
- static const struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
- 	.port_mode[0] = EHCI_HCD_OMAP_MODE_UNKNOWN,
- 	.port_mode[1] = EHCI_HCD_OMAP_MODE_PHY,
-@@ -449,13 +613,14 @@ static void __init overo_init(void)
- {
- 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
- 	overo_i2c_init();
--	platform_add_devices(overo_devices, ARRAY_SIZE(overo_devices));
-+	omap_display_init(&overo_dss_data);
- 	omap_serial_init();
- 	overo_flash_init();
- 	usb_musb_init(&musb_board_data);
- 	usb_ehci_init(&ehci_pdata);
--	overo_ads7846_init();
-+	overo_spi_init();
- 	overo_init_smsc911x();
-+	overo_display_init();
- 
- 	/* Ensure SDRC pins are mux'd for self-refresh */
- 	omap_mux_init_signal("sdrc_cke0", OMAP_PIN_OUTPUT);
++
++static struct spi_driver lb035q02_spi_driver = {
++	.driver		= {
++		.name	= "lgphilips_lb035q02_panel-spi",
++		.owner	= THIS_MODULE,
++	},
++	.probe		= lb035q02_panel_spi_probe,
++	.remove		= __devexit_p(lb035q02_panel_spi_remove),
++};
++
++static int __init lb035q02_panel_drv_init(void)
++{
++	return spi_register_driver(&lb035q02_spi_driver);
++}
++
++static void __exit lb035q02_panel_drv_exit(void)
++{
++	spi_unregister_driver(&lb035q02_spi_driver);
++}
++
++module_init(lb035q02_panel_drv_init);
++module_exit(lb035q02_panel_drv_exit);
++MODULE_LICENSE("GPL");
 -- 
 1.7.0.4
 
