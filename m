@@ -1,67 +1,159 @@
-From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: RE: [PATCH v11 7/8] OMAP: dmtimer: pm_runtime support
-Date: Sat, 5 Mar 2011 05:52:57 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB037A3605E5@dbde02.ent.ti.com>
-References: <1298546811-27055-1-git-send-email-tarun.kanti@ti.com>
- <1298546811-27055-8-git-send-email-tarun.kanti@ti.com>
- <878vwvn0gr.fsf@ti.com> <20110304172832.GZ20560@atomide.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB037A3605AE@dbde02.ent.ti.com>
- <20110304193746.GG20560@atomide.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB037A3605C4@dbde02.ent.ti.com>
- <20110305000156.GI20560@atomide.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH 2/7] OMAP2+: mux: Enable wakeup for wakeup enable requested pads
+Date: Fri, 04 Mar 2011 17:27:00 -0800
+Message-ID: <87bp1q5pcr.fsf@ti.com>
+References: <1299064343-28534-1-git-send-email-govindraj.raja@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:38347 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750864Ab1CEAXE convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Mar 2011 19:23:04 -0500
-In-Reply-To: <20110305000156.GI20560@atomide.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <1299064343-28534-1-git-send-email-govindraj.raja@ti.com>
+	(Govindraj R.'s message of "Wed, 2 Mar 2011 16:42:23 +0530")
+Sender: linux-serial-owner@vger.kernel.org
+To: "Govindraj.R" <govindraj.raja@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Rajendra Nayak <rnayak@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "Hilman, Kevin" <khilman@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Basak, Partha" <p-basak2@ti.com>
 
-> -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com]
-> Sent: Saturday, March 05, 2011 5:32 AM
-> To: DebBarma, Tarun Kanti
-> Cc: Hilman, Kevin; linux-omap@vger.kernel.org; Basak, Partha
-> Subject: Re: [PATCH v11 7/8] OMAP: dmtimer: pm_runtime support
-> 
-> * DebBarma, Tarun Kanti <tarun.kanti@ti.com> [110304 11:50]:
-> >
-> > In that case we have to associate probably a dev attribute to system
-> timer.
-> > Do you have alternate proposal?
-> 
-> No need for that. Keep the system timer code to the minimum so
-> it does not have any unnecessary dependencies. That code needs to
-> be running early and efficient, while the other timers should
-> really be a device driver.
-> 
-> You can have shared timer read/write functions that don't depend
-> on dev. And you can just tag the pysical timer used for system
-> timer as reserved.
-> 
-> Then you can initialize the other timers later on and skip the
-> system timer. For the other timers you can have dev oriented
-> timer read/write wrapper functions for the other timers.
-There is a single timer list created during driver probe.
-It can not be done separately for system timer except through
-Common build and probe. If we try other way it would get complicated
-I believe with the current design because clockevent management code
-in timer-gp.c calls common exported APIs.
+"Govindraj.R" <govindraj.raja@ti.com> writes:
 
-Now, coming back to our present requirement where we initialize
-Only the system timer early and is skipped later, here is the plan:
+> For device pads which have OMAP_DEVICE_PAD_WAKEUP set (which means they
+> are wakeup capable) enable the IO-daisy wakeup capability.
+> During re-muxing avoid direct write with val as this can disturb if any
+> mux done at bootloader level so read the pad then write back.
+>
+> Also add an API to fetch the wake-up status bit is set for given omap-hwmod
+> device using available mux info which is added during omap_hwmod_mux_init.
+> Wakeup status bit is needed for uart_resume_idle call from sram_idle path
+> based on wake-up event has occurred for given uart we can enable clocks back.
+>
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
 
-(1) Have a separate class in hwmod database with unique name "system_timer"
-(2) Initialize just this one during early init
+Another issue with this patch...
 
-> 
-> Cheers,
-> 
-> Tony
+This actually is a change in behavior from the previous code.  The
+current code (albiet hacky) only enables IO-ring wakeups when
+device_may_wakeup() == true.
+
+This code should probably also do the same.
+
+Kevin
+
+> ---
+>  arch/arm/mach-omap2/mux.c                    |   28 ++++++++++++++++++++++++++
+>  arch/arm/mach-omap2/mux.h                    |   13 ++++++++++++
+>  arch/arm/mach-omap2/omap_hwmod.c             |   13 ++++++++++++
+>  arch/arm/plat-omap/include/plat/omap_hwmod.h |    1 +
+>  4 files changed, 55 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+> index 98148b6..50edcea 100644
+> --- a/arch/arm/mach-omap2/mux.c
+> +++ b/arch/arm/mach-omap2/mux.c
+> @@ -317,6 +317,29 @@ err1:
+>  	return NULL;
+>  }
+>  
+> +/* Gets the wakeup status of given pad from omap-hwmod */
+> +int omap_hwmod_mux_wakeup(struct omap_hwmod_mux_info *hmux)
+> +{
+> +	int i;
+> +	unsigned int val;
+> +	u8 ret = 0;
+> +
+> +	for (i = 0; i < hmux->nr_pads; i++) {
+> +		struct omap_device_pad *pad = &hmux->pads[i];
+> +
+> +		if (pad->flags & OMAP_DEVICE_PAD_WAKEUP) {
+> +			val = omap_mux_read(pad->partition,
+> +						pad->mux->reg_offset);
+> +			if (val & OMAP_WAKEUP_EVENT) {
+> +				ret = 1;
+> +				break;
+> +			}
+> +		}
+> +	}
+> +
+> +	return ret;
+> +}
+> +
+>  /* Assumes the calling function takes care of locking */
+>  void omap_hwmod_mux(struct omap_hwmod_mux_info *hmux, u8 state)
+>  {
+> @@ -342,6 +365,9 @@ void omap_hwmod_mux(struct omap_hwmod_mux_info *hmux, u8 state)
+>  				break;
+>  			flags &= ~OMAP_DEVICE_PAD_ENABLED;
+>  			val = pad->idle;
+> +			if (flags & OMAP_DEVICE_PAD_WAKEUP)
+> +				val |= OMAP_WAKEUP_EN;
+> +
+>  			pr_debug("%s: Idling %s %x\n", __func__,
+>  					pad->name, val);
+>  			break;
+> @@ -358,6 +384,8 @@ void omap_hwmod_mux(struct omap_hwmod_mux_info *hmux, u8 state)
+>  		};
+>  
+>  		if (val >= 0) {
+> +			val |= omap_mux_read(pad->partition,
+> +						pad->mux->reg_offset);
+>  			omap_mux_write(pad->partition, val,
+>  					pad->mux->reg_offset);
+>  			pad->flags = flags;
+> diff --git a/arch/arm/mach-omap2/mux.h b/arch/arm/mach-omap2/mux.h
+> index a4ab17a..84a8fc2 100644
+> --- a/arch/arm/mach-omap2/mux.h
+> +++ b/arch/arm/mach-omap2/mux.h
+> @@ -220,8 +220,21 @@ omap_hwmod_mux_init(struct omap_device_pad *bpads, int nr_pads);
+>   */
+>  void omap_hwmod_mux(struct omap_hwmod_mux_info *hmux, u8 state);
+>  
+> +
+> +/**
+> + * omap_hwmod_mux_wakeup - omap hwmod check given pad had wakeup event
+> + * @hmux:		Pads for a hwmod
+> + *
+> + * Called only from omap_hwmod.c, do not use.
+> + */
+> +int omap_hwmod_mux_wakeup(struct omap_hwmod_mux_info *hmux);
+>  #else
+>  
+> +static inline int omap_hwmod_mux_wakeup(struct omap_hwmod_mux_info *hmux)
+> +{
+> +	return 0;
+> +}
+> +
+>  static inline int omap_mux_init_gpio(int gpio, int val)
+>  {
+>  	return 0;
+> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+> index 9e89a58..893dae1 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod.c
+> @@ -2239,3 +2239,16 @@ u32 omap_hwmod_get_context_loss_count(struct omap_hwmod *oh)
+>  
+>  	return ret;
+>  }
+> +
+> +/**
+> + * omap_hwmod_pad_wakeup_status - get pad wakeup status if mux is available.
+> + * @oh: struct omap_hwmod *
+> + *
+> + * Returns the wake_up status bit of available pad mux pin.
+> + */
+> +int omap_hmwod_pad_wakeup_status(struct omap_hwmod *oh)
+> +{
+> +	if (oh->mux)
+> +		return omap_hwmod_mux_wakeup(oh->mux);
+> +	return -EINVAL;
+> +}
+> diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+> index fedd829..4100be0 100644
+> --- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
+> +++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+> @@ -588,6 +588,7 @@ int omap_hwmod_for_each_by_class(const char *classname,
+>  int omap_hwmod_set_postsetup_state(struct omap_hwmod *oh, u8 state);
+>  u32 omap_hwmod_get_context_loss_count(struct omap_hwmod *oh);
+>  
+> +int omap_hmwod_pad_wakeup_status(struct omap_hwmod *oh);
+>  /*
+>   * Chip variant-specific hwmod init routines - XXX should be converted
+>   * to use initcalls once the initial boot ordering is straightened out
