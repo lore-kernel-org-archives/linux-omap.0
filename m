@@ -1,45 +1,108 @@
-From: Sergei Shtylyov <sshtylyov@mvista.com>
-Subject: Re: [PATCH V3 03/19] OMAP3+: voltage: remove initial voltage
-Date: Sun, 06 Mar 2011 16:37:08 +0300
-Message-ID: <4D738E04.5090207@ru.mvista.com>
-References: <1299338962-5602-1-git-send-email-nm@ti.com> <1299338962-5602-4-git-send-email-nm@ti.com>
+From: Michael Buesch <mb@bu3sch.de>
+Subject: [PATCH] cbus: Removed unused ioctl interface header
+Date: Sun, 06 Mar 2011 16:17:16 +0100
+Message-ID: <1299424636.1292.2.camel@marge>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:56891 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752451Ab1CFNib (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 6 Mar 2011 08:38:31 -0500
-Received: by fxm17 with SMTP id 17so3390147fxm.19
-        for <linux-omap@vger.kernel.org>; Sun, 06 Mar 2011 05:38:30 -0800 (PST)
-In-Reply-To: <1299338962-5602-4-git-send-email-nm@ti.com>
+Received: from 80-190-117-144.ip-home.de ([80.190.117.144]:59246 "EHLO
+	bu3sch.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752186Ab1CFPRW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 6 Mar 2011 10:17:22 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@ti.com>, Tony <tony@atomide.com>, Paul <paul@pwsan.com>, linux-arm <linux-arm-kernel@lists.infradead.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Felipe Balbi <balbi@ti.com>, linux-omap <linux-omap@vger.kernel.org>
 
-Hello.
+The deprecated ioctl interface was removed. Also remove the header.
 
-On 05-03-2011 18:29, Nishanth Menon wrote:
+Signed-off-by: Michael Buesch <mb@bu3sch.de>
 
-> Blindly setting a 1.2V setting
+---
 
-    Hm, seems tautological...
+Index: linux-omap-2.6/drivers/cbus/user_retu_tahvo.h
+===================================================================
+--- linux-omap-2.6.orig/drivers/cbus/user_retu_tahvo.h	2011-03-06 16:14:56.248545711 +0100
++++ /dev/null	1970-01-01 00:00:00.000000000 +0000
+@@ -1,75 +0,0 @@
+-/**
+- * drivers/cbus/user_retu_tahvo.h
+- *
+- * Copyright (C) 2004, 2005 Nokia Corporation
+- *
+- * Written by Mikko Ylinen <mikko.k.ylinen@nokia.com>
+- *
+- * Definitions and types used by both retu-user and tahvo-user.
+- *
+- * This file is subject to the terms and conditions of the GNU General
+- * Public License. See the file "COPYING" in the main directory of this
+- * archive for more details.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+-
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+- */
+-
+-#ifndef _USER_RETU_TAHVO_H
+-#define _USER_RETU_TAHVO_H
+-
+-/* Chip IDs */
+-#define CHIP_RETU	1
+-#define CHIP_TAHVO	2
+-
+-/* Register access type bits */
+-#define READ_ONLY		1
+-#define WRITE_ONLY		2
+-#define READ_WRITE		3
+-#define TOGGLE			4
+-
+-#define MASK(field)		((u16)(field & 0xFFFF))
+-#define REG(field)		((u16)((field >> 16) & 0x3F))
+-
+-/*** IOCTL definitions. These should be kept in sync with user space **********/
+-
+-#define URT_IOC_MAGIC '`'
+-
+-/*
+- * IOCTL function naming conventions:
+- * ==================================
+- *  0 -- No argument and return value
+- *  S -- Set through a pointer
+- *  T -- Tell directly with the argument value
+- *  G -- Reply by setting through a pointer
+- *  Q -- response is on the return value
+- *  X -- S and G atomically
+- *  H -- T and Q atomically
+- */
+-
+-/* General */
+-#define URT_IOCT_IRQ_SUBSCR		_IO(URT_IOC_MAGIC, 0)
+-
+-/* RETU */
+-#define RETU_IOCH_READ			_IO(URT_IOC_MAGIC, 1)
+-#define RETU_IOCX_WRITE			_IO(URT_IOC_MAGIC, 2)
+-#define RETU_IOCH_ADC_READ		_IO(URT_IOC_MAGIC, 3)
+-
+-/* TAHVO */
+-#define TAHVO_IOCH_READ			_IO(URT_IOC_MAGIC, 4)
+-#define TAHVO_IOCX_WRITE		_IO(URT_IOC_MAGIC, 5)
+-
+-/* This structure is used for writing RETU/TAHVO registers */
+-struct retu_tahvo_write_parms {
+-    u32	field;
+-    u16	value;
+-    u8	result;
+-};
+-
+-#endif
 
-> in the initial structure may not even
-> match the default voltages stored in the voltage table which are
-> supported for the domain. For example, OMAP3430 core domain does not
-> use 1.2V and ends up generating a warning on the first transition.
+-- 
+Greetings, Michael.
 
-> Further, since omap2_set_init_voltage is called as part of the pm
-> framework's initialization sequence to configure the voltage required
-> for the current OPP, the call does(and has to) setup the system
-> voltage(curr_volt as a result) using the right mechanisms appropriate
-> for the system at that point of time. This also overrides
-> initialization we are currently doing in voltage.c making it
-> redundant. So, remove the wrong and redundant initialization.
 
-> Signed-off-by: Nishanth Menon<nm@ti.com>
-
-WBR, Sergei
