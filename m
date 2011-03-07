@@ -1,137 +1,142 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCHv2] OMAP3: CPUIdle: prevent CORE from going off if doing so would reset an active clockdomain
-Date: Mon, 07 Mar 2011 13:51:04 -0800
-Message-ID: <87sjuy1tx3.fsf@ti.com>
-References: <1295606225-11834-1-git-send-email-tero.kristo@nokia.com>
+Subject: Re: [PATCH v5 REPOST 0/5] ARM: omap[34]: Thumb-2 compatibility fixes
+Date: Mon, 07 Mar 2011 14:09:03 -0800
+Message-ID: <87fwqy1t34.fsf@ti.com>
+References: <1299252837-18074-1-git-send-email-dave.martin@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:41931 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756377Ab1CGVvK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Mar 2011 16:51:10 -0500
-Received: by mail-qy0-f178.google.com with SMTP id 2so4425823qyk.2
-        for <linux-omap@vger.kernel.org>; Mon, 07 Mar 2011 13:51:09 -0800 (PST)
-In-Reply-To: <1295606225-11834-1-git-send-email-tero.kristo@nokia.com> (Tero
-	Kristo's message of "Fri, 21 Jan 2011 12:37:05 +0200")
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:45919 "EHLO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753067Ab1CGWJI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Mar 2011 17:09:08 -0500
+Received: by mail-qy0-f171.google.com with SMTP id 19so2437593qyj.16
+        for <linux-omap@vger.kernel.org>; Mon, 07 Mar 2011 14:09:07 -0800 (PST)
+In-Reply-To: <1299252837-18074-1-git-send-email-dave.martin@linaro.org> (Dave
+	Martin's message of "Fri, 4 Mar 2011 15:33:52 +0000")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <tero.kristo@nokia.com>
-Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>
+To: Dave Martin <dave.martin@linaro.org>
+Cc: linux-arm-kernel@lists.infradead.org, patches@linaro.org, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Jean Pihet <j-pihet@ti.com>, linux-omap@vger.kernel.org, Nicolas Pitre <nicolas.pitre@linaro.org>, linaro-dev@lists.linaro.org
 
-Hi Tero,
+Dave Martin <dave.martin@linaro.org> writes:
 
-Tero Kristo <tero.kristo@nokia.com> writes:
-
-> On OMAP3 SoCs, if the CORE powerdomain enters off-mode, many other
-> parts of the chip will be reset.  If those parts of the chip are busy,
-> the reset will disrupt them, causing unpredictable and generally
-> undesirable results. This reset is caused by the core domain wakeup
-> (COREDOMAINWKUP_RST), and it can occur for example in a case where
-> some peripheral domain is in retention or inactive state and core
-> enters off. This will result in the peripheral domain being reset.
+> This set of patches, along with some other patches under
+> discussion on alkml, should enable omap3 and omap4 kernels to be
+> built with CONFIG_THUMB2_KERNEL.
 >
-> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Cc: Kevin Hilman <khilman@deeprootsystems.com>
-> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Cc: Vishwanath Sripathy <vishwanath.bs@ti.com>
-> ---
+> This patch set builds on recent cleanup done by the omap
+> maintainers.
+>
+> At least some of this code definitely works, most features have
+> been tested successfully.  Further testing, especially of Thumb-2
+> behaviour, is still welcome.
+>
+> In particular, I still have no Ack/Tested-by on the following
+> patches, so it would be great if anyone who has an opportunity
+> to do a final review / re-test can do so.
+>
+>  * ARM: omap3: Convert END() to ENDPROC() for correct linkage with CONFIG_THUMB2_KERNEL
+>  * ARM: omap3: Thumb-2 compatibility for sram34xx.S
+>  * ARM: omap3: Thumb-2 compatibility for sleep34xx.S
 
-Turns out this one suffers from same problem as the the other DSS one
-because of sleepdeps.  
+Jean Pihet and I have now done both retention and off-mode testing
+of these, so I'll add a Tested-by for the last two for Jean and queue
+these for 2.6.39 in my PM queue
 
-In today's linux-omap because of sleepdeps, at least DSS will always
-report ON during this check, and I think USB does as well.  The result
-is that core powerdomain will never hit off-mode.
+  git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git for_2.6.39/pm-misc
 
-I'm going to drop this one from my 2.6.39 queue for now as well until
-we have a cleaner way to check powerdomain idle status.
+If you want to do sanity checking with all the other OMAP PM stuff that
+is queued for 2.6.39, feel free to test with my pm-core branch in the
+tree above.  This has all OMAP PM related changes that will be queued
+for 2.6.39 integrated.
+
+FWIW, I also tested on 3430/n900 (retention and off-mode) and 3630/Zoom3
+(retention-only, since the Si rev have has off-mode errata.)
 
 Kevin
 
->  arch/arm/mach-omap2/cpuidle34xx.c |   40 +++++++++++++++++++++++++++++++++++-
->  1 files changed, 38 insertions(+), 2 deletions(-)
+> Seems to work with CONFIG_SMP_ON_UP and CONFIG_THUMB2_KERNEL
+> enabled on Beagle xM A2 and Panda A1.
 >
-> diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
-> index f3e043f..d31b858 100644
-> --- a/arch/arm/mach-omap2/cpuidle34xx.c
-> +++ b/arch/arm/mach-omap2/cpuidle34xx.c
-> @@ -61,7 +61,7 @@ struct omap3_processor_cx {
->  struct omap3_processor_cx omap3_power_states[OMAP3_MAX_STATES];
->  struct omap3_processor_cx current_cx_state;
->  struct powerdomain *mpu_pd, *core_pd, *per_pd;
-> -struct powerdomain *cam_pd;
-> +struct powerdomain *cam_pd, *dss_pd, *iva2_pd, *sgx_pd, *usb_pd;
->  
->  /*
->   * The latencies/thresholds for various C states have
-> @@ -235,7 +235,7 @@ static int omap3_enter_idle_bm(struct cpuidle_device *dev,
->  {
->  	struct cpuidle_state *new_state = next_valid_state(dev, state);
->  	u32 core_next_state, per_next_state = 0, per_saved_state = 0;
-> -	u32 cam_state;
-> +	u32 cam_state, dss_state, iva2_state, sgx_state, usb_state;
->  	struct omap3_processor_cx *cx;
->  	int ret;
->  
-> @@ -256,6 +256,8 @@ static int omap3_enter_idle_bm(struct cpuidle_device *dev,
->  	 *        its own code.
->  	 */
->  
-> +	/* XXX Add CORE-active check here */
-> +
->  	/*
->  	 * Prevent idle completely if CAM is active.
->  	 * CAM does not have wakeup capability in OMAP3.
-> @@ -275,6 +277,36 @@ static int omap3_enter_idle_bm(struct cpuidle_device *dev,
->  	    (core_next_state > PWRDM_POWER_RET))
->  		per_next_state = PWRDM_POWER_RET;
->  
-> +	/* XXX Add prevent-PER-off check here */
-> +
-> +	/*
-> +	 * If we are attempting CORE off, check if any other powerdomains
-> +	 * are at retention or higher. CORE off causes chipwide reset which
-> +	 * would reset these domains also.
-> +	 */
-> +	if (core_next_state == PWRDM_POWER_OFF) {
-> +		iva2_state = pwrdm_read_pwrst(iva2_pd);
-> +		sgx_state = pwrdm_read_pwrst(sgx_pd);
-> +		usb_state = pwrdm_read_pwrst(usb_pd);
-> +		dss_state = pwrdm_read_pwrst(dss_pd);
-
-Because of existing sleepdeps, some of these may be still on during the
-idle path  (especially DSS and USB in mainline kernels.)
-
-> +		if (cam_state > PWRDM_POWER_OFF ||
-> +		    dss_state > PWRDM_POWER_OFF ||
-> +		    iva2_state > PWRDM_POWER_OFF ||
-> +		    per_next_state > PWRDM_POWER_OFF ||
-> +		    sgx_state > PWRDM_POWER_OFF ||
-> +		    usb_state > PWRDM_POWER_OFF)
-> +			core_next_state = PWRDM_POWER_RET;
-> +	}
-> +
-> +	/* Fallback to new target core/mpu state */
-> +	while (cx->core_state < core_next_state) {
-> +		state--;
-> +		cx = cpuidle_get_statedata(state);
-> +	}
-> +
-> +	new_state = state;
-> +
->  	/* Are we changing PER target state? */
->  	if (per_next_state != per_saved_state)
->  		pwrdm_set_next_pwrst(per_pd, per_next_state);
-> @@ -489,6 +521,10 @@ int __init omap3_idle_init(void)
->  	core_pd = pwrdm_lookup("core_pwrdm");
->  	per_pd = pwrdm_lookup("per_pwrdm");
->  	cam_pd = pwrdm_lookup("cam_pwrdm");
-> +	dss_pd = pwrdm_lookup("dss_pwrdm");
-> +	iva2_pd = pwrdm_lookup("iva2_pwrdm");
-> +	sgx_pd = pwrdm_lookup("sgx_pwrdm");
-> +	usb_pd = pwrdm_lookup("usbhost_pwrdm");
->  
->  	omap_init_power_states();
->  	cpuidle_register_driver(&omap3_idle_driver);
+> Thanks also to Santosh Shilimkar and Kevin Hilman for their help
+> with testing so far.
+>
+>
+> v3:
+>     * make SMC instruction syntax more consistent
+>     * remove do_wfi() in favour of the generic wfi() macro
+>
+> v4:
+>     * revert to the OMAP-specific do_wfi() implementation, pending
+>       discussion of how generic macros can/should be provided
+>
+> v5:
+>     * use ARM for low-level code in mach-omap2/*34xx.S, for
+>       correct interoperation with non-Thumb-capable firmware.
+>
+> I've stripped the Acked/Tested-bys from the major patches to
+> mach-omap2/*34xx.S, since the reversion to ARM constitutes a
+> significant change -- I would be grateful if people could re-
+> test / re-review if they have the chance.
+>
+> For best future compatibility, I've left the changes which
+> avoid architecturally deprecated features.
+>
+>
+> Details below.
+>
+> Cheers,
+> Dave
+>
+>
+> The patches can be found, along with a buildable working tree,
+> in the following repo:
+>
+> git://git.linaro.org/people/dmart/linux-2.6-arm.git
+>
+>  * arm/omap-thumb2: has the patches proposed here
+>  * arm/omap-thumb2+merged: additionally has some patches cherry-
+>         picked from other trees which are needed in order for the
+>         patches on arm/omap-thumb2 to work usefully.
+>  * dirty/arm/omap-thumb2+merged: buildable test tree, which adds
+>         2 local patches to work around a toolchain bug.
+>
+> A working kernel config for this tree is here:
+> http://people.linaro.org/~dmart/arm_omap-thumb2+v2_config :
+>
+>   CONFIG_SMP_ON_UP=y
+>   CONFIG_THUMB2_KERNEL=y
+>   CONFIG_SERIAL_OMAP=y (to avoid garbage on xM; for Panda use console=ttyS2)
+>
+> (The config is derived from the linaro omap config and so turns on
+> loads of modules -- don't feel you have to build them all...)
+>
+>
+> Cherry-picked patches originated from Russell's devel tree
+> and Tony Lindgren's omap-testing tree:
+>
+> http://ftp.arm.linux.org.uk/pub/linux/arm/kernel/git-cur/linux-2.6-arm.git devel
+>
+> git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-testing
+>
+> This series also depends on one un-merged patch to generic-ise
+> the wfi() macro:
+>
+> git://git.linaro.org/people/dmart/linux-2.6-arm.git arm/wfi-macro
+>
+>
+> Dave Martin (5):
+>   ARM: omap4: Provide do_wfi() for Thumb-2
+>   ARM: omap4: Convert END() to ENDPROC() for correct linkage with
+>     CONFIG_THUMB2_KERNEL
+>   ARM: omap3: Remove hand-encoded SMC instructions
+>   ARM: omap3: Thumb-2 compatibility for sram34xx.S
+>   ARM: omap3: Thumb-2 compatibility for sleep34xx.S
+>
+>  arch/arm/mach-omap2/include/mach/omap4-common.h |    4 ++
+>  arch/arm/mach-omap2/omap-headsmp.S              |    2 +-
+>  arch/arm/mach-omap2/omap44xx-smc.S              |    8 ++--
+>  arch/arm/mach-omap2/sleep34xx.S                 |   62 ++++++++++++++++++----
+>  arch/arm/mach-omap2/sram34xx.S                  |   36 ++++++++++---
+>  5 files changed, 87 insertions(+), 25 deletions(-)
