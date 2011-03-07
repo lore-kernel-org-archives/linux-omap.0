@@ -1,59 +1,75 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH] omap: iommu: disallow mapping NULL address
-Date: Mon, 7 Mar 2011 22:19:32 +0100
-Message-ID: <201103072219.32938.laurent.pinchart@ideasonboard.com>
-References: <4D6D219D.7020605@matrix-vision.de> <AANLkTi=KncNfW0NEEoV+mrT_Ft2j-c=rQG=qbeR6tLQK@mail.gmail.com> <AANLkTimac512Gu0_vyPjThvNxXHsXTRD73B0d1bHnnAg@mail.gmail.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH v8 0/8] omap3: pm: TWL4030 power scripts and workaround for TWL errata 27
+Date: Mon, 07 Mar 2011 13:25:09 -0800
+Message-ID: <87lj0q39oq.fsf@ti.com>
+References: <1299072653-13414-1-git-send-email-leslyam@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:42565 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752008Ab1CGVTs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Mar 2011 16:19:48 -0500
-In-Reply-To: <AANLkTimac512Gu0_vyPjThvNxXHsXTRD73B0d1bHnnAg@mail.gmail.com>
+Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:59171 "EHLO
+	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756288Ab1CGVZN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Mar 2011 16:25:13 -0500
+Received: by mail-yi0-f41.google.com with SMTP id 2so2309324yib.14
+        for <linux-omap@vger.kernel.org>; Mon, 07 Mar 2011 13:25:12 -0800 (PST)
+In-Reply-To: <1299072653-13414-1-git-send-email-leslyam@ti.com> (Lesly A. M.'s
+	message of "Wed, 2 Mar 2011 19:00:46 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Cohen <dacohen@gmail.com>
-Cc: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>, Hiroshi.DOYU@nokia.com, Michael Jones <michael.jones@matrix-vision.de>, Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>, Linux Media Mailing List <linux-media@vger.kernel.org>, linux-omap@vger.kernel.org
+To: Lesly A M <leslyam@ti.com>
+Cc: linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>, David Derrick <dderrick@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
 
-Hi David,
+Lesly A M <leslyam@ti.com> writes:
 
-On Monday 07 March 2011 20:41:21 David Cohen wrote:
-> On Mon, Mar 7, 2011 at 9:25 PM, Guzman Lugo, Fernando wrote:
-> > On Mon, Mar 7, 2011 at 1:19 PM, David Cohen wrote:
-> >> On Mon, Mar 7, 2011 at 9:17 PM, Guzman Lugo, Fernando wrote:
-> >>> On Mon, Mar 7, 2011 at 7:10 AM, Michael Jones wrote:
-> >>>> From e7dbe4c4b64eb114f9b0804d6af3a3ca0e78acc8 Mon Sep 17 00:00:00 2001
-> >>>> From: Michael Jones <michael.jones@matrix-vision.de>
-> >>>> Date: Mon, 7 Mar 2011 13:36:15 +0100
-> >>>> Subject: [PATCH] omap: iommu: disallow mapping NULL address
-> >>>> 
-> >>>> commit c7f4ab26e3bcdaeb3e19ec658e3ad9092f1a6ceb allowed mapping
-> >>>> the NULL address if da_start==0.  Force da_start to exclude the
-> >>>> first page.
-> >>> 
-> >>> what about devices that uses page 0? ipu after reset always starts
-> >>> from 0x00000000 how could we map that address??
-> >> 
-> >> from 0x0? The driver sees da == 0 as error. May I ask you why do you
-> >> want it?
-> > 
-> > unlike DSP that you can load a register with the addres the DSP will
-> > boot, IPU core always starts from address 0x00000000, so if you take
-> > IPU out of reset it will try to access address 0x0 if not map it,
-> > there will be a mmu fault.
-> 
-> Hm. Looks like the iommu should not restrict any da. The valid da
-> range should rely only on pdata.
-> Michael, what about just update ISP's da_start on omap-iommu.c file?
-> Set it to 0x1000.
+> Patch series for TWL4030 power scripts and workaround for TWL errata 27.
+>
+> Changes for implementing TWL4030 power scripts recommended by hardware team.
+> Introduced a new TWL4030 power script file, which can be used by different
+> OMAP3 board with the power companion chip TWL4030.
+>
+> Updated the changes for TWL4030 errata 27 & 28, and modified the
+> TWL4030 power script.
+> Workaround for TWL4030 errata 27 & 28 is required for
+> Si version less than or equal to TWL5030 ES1.1.
+>
+> TWL4030 script changes rebased on Kevin's PM tree in pm branch.
 
-What about patching the OMAP3 ISP driver to use a non-zero value (maybe -1) as 
-an invalid/freed pointer ?
+This doesn't apply to the current PM branch.  I dropped the old scripts
+from the PM branch some time back.  It should be a simple rebase, and
+only affects PATCH 6/8.  After the rebase, it will only add the new
+stuff to the 3430SDP board file instead of also delete the old scripts.
 
--- 
-Regards,
+Also, minor nit: please consistenly capitlize acronyms: API, OMAP, etc,
+and the singular for errata is erattum.  This affects subjects,
+changelogs comments etc.
 
-Laurent Pinchart
+> Changes in v7:
+> 	changes to fix Nishanth Menon's comments
+> 		i) Added the TWL4030 Errata 27 fix
+>   
+> 	split the first patch in v6
+> 		i)  fix for twl4030 script load
+> 		ii) correct the warning print during script loading
+>
+> 	Added new patch files
+> 		i) changing sys_off signal polarity
+>
+> Changes in v8:
+> 	updated the change logs
+> 	moving the TWL IDCODE checking to twl-core.c
+>
+> Since the voltage layer is evolving to a new design, the voltage dependant
+> changes required for the TRITON script are not incorporated in the patch series.
+> So this TRITON script patch series can be tested with a separate patch for
+> voltage layer changes.
+>
+> 	lnk: http://pastebin.mozilla.org/1118306
+
+I'm OK with leaving the voltage layer changes for a separate series, but
+in order to test this should also be rebased against my current PM branch.
+
+For future reference, my pm-core branch includes only patches/series
+that are already queued for upstream, or will be queued for the next
+merge window.
+
+Kevin
