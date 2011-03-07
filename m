@@ -1,69 +1,69 @@
-From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Subject: Re: [PATCH v2 2/4] OMAP4: hwmod data: add mmu hwmod for ipu and dsp
-Date: Mon, 7 Mar 2011 13:01:16 -0600
-Message-ID: <AANLkTimfSfCc3Pvf_=2MKnHTiC9gVw-_xohHczTUHroH@mail.gmail.com>
-References: <1299484388-16205-1-git-send-email-omar.ramirez@ti.com>
-	<1299484388-16205-3-git-send-email-omar.ramirez@ti.com>
-	<4D74D5B9.2070907@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH 0/3] OMAP: DMA: mstandby mode and runtime pm support
+Date: Mon, 07 Mar 2011 11:04:29 -0800
+Message-ID: <87bp1m7nwi.fsf@ti.com>
+References: <1298542475-1460-1-git-send-email-manjugk@ti.com>
+	<87hbbkqcgk.fsf@ti.com> <20110304041826.GA7025@m-desktop>
+	<20110307110611.GA8743@m-desktop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:44626 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753464Ab1CGTBX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Mar 2011 14:01:23 -0500
-Received: by pvg16 with SMTP id 16so850410pvg.29
-        for <linux-omap@vger.kernel.org>; Mon, 07 Mar 2011 11:01:16 -0800 (PST)
-In-Reply-To: <4D74D5B9.2070907@ti.com>
+Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:50113 "EHLO
+	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752747Ab1CGTEd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Mar 2011 14:04:33 -0500
+Received: by mail-yw0-f41.google.com with SMTP id 5so2249951yws.14
+        for <linux-omap@vger.kernel.org>; Mon, 07 Mar 2011 11:04:33 -0800 (PST)
+In-Reply-To: <20110307110611.GA8743@m-desktop> (Manjunath Kondaiah G.'s
+	message of "Mon, 7 Mar 2011 16:36:12 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Kevin Hilman <khilman@deeprootsystems.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, lo <linux-omap@vger.kernel.org>, lak <linux-arm-kernel@lists.infradead.org>
+To: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, paul@pwsan.com
 
-Hi Benoit,
+"G, Manjunath Kondaiah" <manjugk@ti.com> writes:
 
-On Mon, Mar 7, 2011 at 6:55 AM, Cousson, Benoit <b-cousson@ti.com> wrote:
-> Hi Omar,
+> On Fri, Mar 04, 2011 at 09:48:26AM +0530, G, Manjunath Kondaiah wrote:
+>> On Thu, Mar 03, 2011 at 10:35:23AM -0800, Kevin Hilman wrote:
+>> > "G, Manjunath Kondaiah" <manjugk@ti.com> writes:
+>> > 
+>> > > This patch series is remaining part of dma hwmod to support pm runtime 
+>> > > and for handling mstandby mode for all applicable DMA mstandby mode errata.
+>> > 
+>> > This is still not runtime-suspending when I use my DMA test in linking
+>> > mode.
+>> > 
+>> > If I put a large enough period between transfers, it should autosuspend
+>> > during transfers.  It seems to do auto-suspend and resume once, but then
+>> > it never suspends again.
+>> > 
+>> > I tested with my dmatest module[1], and loaded with:
+>> > 
+>> >   # insmod ./dmatest.ko linking=1 forever=1 forever_period=1024
+>> > 
+>> > Not only does it not auto-suspend between transfers (which I expected),
+>> > it also doesn't suspend after removing the module which stops all active
+>> > channels.
+>> 
+>> The normal chaining test cases are executed and which used to show the
+>> proper status. Let me reproduce this issue with your test procedure.
 >
-> I have some concern about the introduction of a hwmod that does not match
-> the actual HW capability. MMU does exist, but there is no SW control for it.
+> ok. I am able to reproduce this issue and fixed _get_sync usage in
+> omap_start_dma if channel linking is used. Earlier it was handled for
+> the cases with chaining API's. If linking is done without chaining
+> API's, it will result in _get_sync and _put mismatch.
 
-Maybe I'm missing something, but iommu (driver) is meant to control
-isp, iva, ipu and dsp MMUs; even with a simple driver interfaced with
-iommu, that had nothing to do with the modules mentioned, you could
-still deassert the reset, enable the clocks, create your tables and
-add entries, and so on... not that it would be useful for anybody
-other than the real HW containing the MMU subsystem.
+Great, glad you found it.
 
-> In fact the only control available is for mmu + cache + logic, and that's
-> why the MMU is handle today under the main DSP/IPU hwmod.
+My DMA test module predates the existence of a chaining API, so I guess
+that's part of the problem.  Glad it helped though.
 
-AFAIK, sysc configuration is missing from the old hwmods, I thought
-separate hwmods gave:
+> Thanks for the test case and I will be re posting the patches with the 
+> above fix.
 
-- flexibility: so the system wouldn't dump_stack trying to read mmu
-registers, because the user doesn't know ipu/dsp code should handle
-the reset first.
-- clarity: so iommu handles its own mmu hwmods instead of hard coding
-the names of the pseudo hwmods containing the mmu.
+Thanks,
 
-> Here you are just duplicating dsp_hwmod and ipu_hwmod with dsp_mmu_hwmod /
-> ipu_mmu_hwmod and adding some memory space for the mmu part.
->
-> In that case, you can still use the previous name and add the missing
-> entries in it.
->
-> The only advantage I can see is the usage of a common class that will allow
-> you to handle both DSP and IPU using the same "MMU" driver.
->
-> So, what are you going to do with the remaining entries for dsp_hwmod and
-> ipu_hwmod?
+Kevin
 
-I think these can be removed, and iommu code can handle its own
-hwmods; but if you want to update the old ones, that can be done too,
-the tradeoff would be that iommu needs to know the name of the hwmods
-with mmu data.
 
-Regards,
 
-Omar
