@@ -1,158 +1,116 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v2] cbus-retu-wdt: Remove unused nonstandard interfaces
-Date: Mon, 7 Mar 2011 09:47:26 +0200
-Message-ID: <20110307074726.GG2522@legolas.emea.dhcp.ti.com>
-References: <1299250349.21644.4.camel@marge>
-Reply-To: balbi@ti.com
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] OMAP: DSS2: FEATURES: DSI PLL parameter cleanup
+Date: Mon, 7 Mar 2011 09:54:31 +0200
+Message-ID: <1299484471.2281.50.camel@deskari>
+References: <1299236625-1057-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:33387 "EHLO
-	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750972Ab1CGHre (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Mar 2011 02:47:34 -0500
-Received: by fxm16 with SMTP id 16so5574976fxm.22
-        for <linux-omap@vger.kernel.org>; Sun, 06 Mar 2011 23:47:31 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <1299250349.21644.4.camel@marge>
+Received: from comal.ext.ti.com ([198.47.26.152]:44414 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751289Ab1CGHyf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 7 Mar 2011 02:54:35 -0500
+Received: from dlep34.itg.ti.com ([157.170.170.115])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p277sZxW012400
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Mon, 7 Mar 2011 01:54:35 -0600
+Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
+	by dlep34.itg.ti.com (8.13.7/8.13.7) with ESMTP id p277sY8H002966
+	for <linux-omap@vger.kernel.org>; Mon, 7 Mar 2011 01:54:34 -0600 (CST)
+Received: from dlee74.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p277sY99005885
+	for <linux-omap@vger.kernel.org>; Mon, 7 Mar 2011 01:54:34 -0600 (CST)
+In-Reply-To: <1299236625-1057-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Michael Buesch <mb@bu3sch.de>
-Cc: Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, linux-omap <linux-omap@vger.kernel.org>
+To: "Taneja, Archit" <archit@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Fri, Mar 04, 2011 at 03:52:29PM +0100, Michael Buesch wrote:
-> Index: linux-2.6.38-rc6/drivers/cbus/retu-wdt.c
-> ===================================================================
-> --- linux-2.6.38-rc6.orig/drivers/cbus/retu-wdt.c	2011-03-04 15:45:37.533948567 +0100
-> +++ linux-2.6.38-rc6/drivers/cbus/retu-wdt.c	2011-03-04 15:46:21.312816961 +0100
-> @@ -52,7 +52,6 @@ static DEFINE_MUTEX(retu_wdt_mutex);
->  
->  /* Current period of watchdog */
->  static unsigned int period_val = RETU_WDT_DEFAULT_TIMER;
-> -static int counter_param = RETU_WDT_MAX_TIMER;
->  
->  struct retu_wdt_dev {
->  	struct device		*dev;
-> @@ -109,56 +108,6 @@ static void retu_wdt_ping_work(struct wo
->  	retu_wdt_ping_enable(wdev);
->  }
->  
-> -static ssize_t retu_wdt_period_show(struct device *dev,
-> -				struct device_attribute *attr, char *buf)
-> -{
-> -	/* Show current max counter */
-> -	return sprintf(buf, "%u\n", (u16)period_val);
-> -}
-> -
-> -/*
-> - * Note: This inteface is non-standard and likely to disappear!
-> - * Use /dev/watchdog instead, that's the standard.
-> - */
-> -static ssize_t retu_wdt_period_store(struct device *dev,
-> -				struct device_attribute *attr,
-> -				const char *buf, size_t count)
-> -{
-> -	unsigned int new_period;
-> -	int ret;
-> -
-> -#ifdef CONFIG_WATCHDOG_NOWAYOUT
-> -	retu_wdt_ping_disable(retu_wdt);
-> -#endif
-> -
-> -	if (sscanf(buf, "%u", &new_period) != 1) {
-> -		printk(KERN_ALERT "retu_wdt_period_store: Invalid input\n");
-> -		return -EINVAL;
-> -	}
-> -
-> -	ret = retu_modify_counter(new_period);
-> -	if (ret < 0)
-> -		return ret;
-> -
-> -	return strnlen(buf, count);
-> -}
-> -
-> -static ssize_t retu_wdt_counter_show(struct device *dev,
-> -				struct device_attribute *attr, char *buf)
-> -{
-> -	u16 counter;
-> -
-> -	/* Show current value in watchdog counter */
-> -	counter = retu_read_reg(dev, RETU_REG_WATCHDOG);
-> -
-> -	/* Only the 5 LSB are important */
-> -	return snprintf(buf, PAGE_SIZE, "%u\n", (counter & 0x3F));
-> -}
-> -
-> -static DEVICE_ATTR(period, S_IRUGO | S_IWUSR, retu_wdt_period_show, \
-> -			retu_wdt_period_store);
-> -static DEVICE_ATTR(counter, S_IRUGO, retu_wdt_counter_show, NULL);
-> -
->  static int retu_wdt_open(struct inode *inode, struct file *file)
+On Fri, 2011-03-04 at 05:03 -0600, Taneja, Archit wrote:
+> The DSI PLL parameters (regm, regn, regm_dispc, regm_dsi, fint) have different
+> fields and also different Max values on OMAP3 and OMAP4. Use dss features to
+> calculate the register fields and Max values based on current OMAP revision
+> 
+> Also, introduce a new function in dss_features "dss_feat_get_param_range" which
+> returns the maximum and minimum values supported by the parameter for
+> the current OMAP revision.
+
+See comment about "also" in the last mail =). You are introducing a new
+kind of dss feature as a sidenote. I think it should clearly be a
+separate patch.
+
+<snip>
+
+> +void dss_feat_get_param_range(enum dss_range_param param, int *min, int *max)
+> +{
+> +	*min = omap_current_dss_features->dss_params[param].min;
+> +	*max = omap_current_dss_features->dss_params[param].max;
+
+This isn't right. Here you're using the param as index, but in the param
+array itself the param is just part of the struct. So it's just luck
+that the index is correct.
+
+This is actually wrong with the reg fields and clock sources also...
+
+I believe there was a way to give entries in an array by the index.
+Something like:
+
+static struct foo bar[] = {
+	[0] = { stuff },
+	[1] = { stuff },
+};
+
+In that solution it's not necessary to have the index in the struct
+itself, like now.
+
+Alternatively, with the current struct, we could iterate through the
+array to find a matching id.
+
+> +}
+> +
+>  /* DSS has_feature check */
+>  bool dss_has_feature(enum dss_feat_id id)
 >  {
->  	if (test_and_set_bit(0, &retu_wdt->users))
-> @@ -232,18 +181,6 @@ static long retu_wdt_ioctl(struct file *
->  	return 0;
->  }
->  
-> -/* Start kicking retu watchdog until user space starts doing the kicking */
-> -static int __devinit retu_wdt_ping(void)
-> -{
-> -#ifdef CONFIG_WATCHDOG_NOWAYOUT
-> -	retu_modify_counter(RETU_WDT_MAX_TIMER);
-> -#else
-> -	retu_wdt_ping_enable(retu_wdt);
-> -#endif
-> -
-> -	return 0;
-> -}
-
-is this part of this patch ? Also, I guess other watchdog drivers have
-similar tricks to kick the watchdog.
-
-> @@ -252,8 +189,6 @@ static const struct file_operations retu
->  	.release	= retu_wdt_release,
+> diff --git a/drivers/video/omap2/dss/dss_features.h b/drivers/video/omap2/dss/dss_features.h
+> index 3302247..78b51a9 100644
+> --- a/drivers/video/omap2/dss/dss_features.h
+> +++ b/drivers/video/omap2/dss/dss_features.h
+> @@ -52,6 +52,14 @@ enum dss_feat_reg_field {
+>  	FEAT_REG_HORIZONTALACCU,
+>  	FEAT_REG_VERTICALACCU,
+>  	FEAT_REG_DISPC_CLK_SWITCH,
+> +	FEAT_REG_DSIPLL_REGM,
+> +	FEAT_REG_DSIPLL_REGN,
+> +	FEAT_REG_DSIPLL_REGM_DISPC,
+> +	FEAT_REG_DSIPLL_REGM_DSI,
+> +};
+> +
+> +enum dss_range_param {
+> +	FEAT_DSI_FINT,
 >  };
 >  
-> -/*----------------------------------------------------------------------------*/
-> -
+>  /* DSS Feature Functions */
+> @@ -63,6 +71,7 @@ enum omap_color_mode dss_feat_get_supported_color_modes(enum omap_plane plane);
+>  bool dss_feat_color_mode_supported(enum omap_plane plane,
+>  		enum omap_color_mode color_mode);
+>  const char *dss_feat_get_clk_source_name(enum dss_clk_source id);
+> +void dss_feat_get_param_range(enum dss_range_param param, int *min, int *max);
 
-trailing change.
+Currently used only for fint, but if it's supposed to handle clock
+rates, unsigned long instead of int could be better.
 
-> @@ -286,38 +209,21 @@ static int __init retu_wdt_probe(struct
->  
->  	ret = misc_register(&(wdev->retu_wdt_miscdev));
->  	if (ret)
-> -		goto free3;
-> +		goto err_free_wdev;
->  
->  	INIT_DELAYED_WORK(&wdev->ping_work, retu_wdt_ping_work);
->  
-> -	/* passed as module parameter? */
-> -	ret = retu_modify_counter(counter_param);
-> -	if (ret == -EINVAL) {
-> -		ret = retu_modify_counter(RETU_WDT_DEFAULT_TIMER);
-> -		dev_dbg(&pdev->dev, "Initializing to default value\n");
-> -	}
-> -
-> -	/* Kick the watchdog for kernel booting to finish */
-> +	/* Kick the watchdog for kernel booting to finish.
-> +	 * If nowayout is not set, we start the ping work. */
+I was also thinking that we now have dss_feat_get_max_dss_fck(), which
+is somewhat similar to this.
 
-multiline comment style is wrong.
+Could something like this work:
 
-> +#ifdef CONFIG_WATCHDOG_NOWAYOUT
->  	retu_modify_counter(RETU_WDT_MAX_TIMER);
-> -
-> -	ret = retu_wdt_ping();
-> -	if (ret < 0) {
-> -		dev_err(&pdev->dev, "Failed to ping\n");
-> -		goto free4;
-> -	}
-> +#else
-> +	retu_wdt_ping_enable(retu_wdt);
-> +#endif
+unsigned long dss_feat_get_param_min(enum dss_range_param param);
+unsigned long dss_feat_get_param_max(enum dss_range_param param);
 
-Rather, keep that function and call it here.
+That would make the usage cleaner for cases where you're only interested
+in the max.
 
--- 
-balbi
+ Tomi
+
+
