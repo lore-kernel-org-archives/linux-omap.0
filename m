@@ -1,67 +1,30 @@
-From: Vishwanath Sripathy <vishwanath.bs@ti.com>
-Subject: RE: [RFC 3/3] am35xx: pm: Hook-up with TPS65023
-Date: Mon, 7 Mar 2011 22:01:24 +0530
-Message-ID: <c8691dfff1a8ded9676c2f63d8e896c0@mail.gmail.com>
-References: <1298483913-20344-1-git-send-email-premi@ti.com>
- <1298483913-20344-4-git-send-email-premi@ti.com> <6356620acee7ee78af7da3906b0ea78a@mail.gmail.com>
- <B85A65D85D7EB246BE421B3FB0FBB593024C0E5D33@dbde02.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: pm-core: recursive dependency on config
+Date: Mon, 7 Mar 2011 08:55:49 -0800
+Message-ID: <20110307165549.GB19315@atomide.com>
+References: <AANLkTi=wNSOmZ8TcWGUoPmdaC5ga9NrzsXhULnUxLMGk@mail.gmail.com>
+ <ea74188f9e010d45c0c8ba15ab6b2617@mail.gmail.com>
+ <20110305095747.GA2400@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:52446 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751184Ab1CGQb1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Mar 2011 11:31:27 -0500
-Received: by mail-vw0-f44.google.com with SMTP id 6so4507110vws.31
-        for <linux-omap@vger.kernel.org>; Mon, 07 Mar 2011 08:31:26 -0800 (PST)
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593024C0E5D33@dbde02.ent.ti.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:61553 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751413Ab1CGQz7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Mar 2011 11:55:59 -0500
+Content-Disposition: inline
+In-Reply-To: <20110305095747.GA2400@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sanjeev Premi <premi@ti.com>, linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Nishanth Menon <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>
 
-> -----Original Message-----
-> From: Premi, Sanjeev [mailto:premi@ti.com]
-> Sent: Monday, March 07, 2011 8:51 PM
-> To: Sripathy, Vishwanath; linux-omap@vger.kernel.org
-> Subject: RE: [RFC 3/3] am35xx: pm: Hook-up with TPS65023
->
-> > -----Original Message-----
-> > From: Sripathy, Vishwanath
-> > Sent: Thursday, February 24, 2011 3:35 PM
-> > To: Premi, Sanjeev; linux-omap@vger.kernel.org
-> > Subject: RE: [RFC 3/3] am35xx: pm: Hook-up with TPS65023
-> >
-> > Sanjeev,
-> >
-> > > -----Original Message-----
-> > > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> > > owner@vger.kernel.org] On Behalf Of Sanjeev Premi
-> > > Sent: Wednesday, February 23, 2011 11:29 PM
-> > > To: linux-omap@vger.kernel.org
-> > > Cc: Sanjeev Premi
-> > > Subject: [RFC 3/3] am35xx: pm: Hook-up with TPS65023
-> > >
-> > > Add glue logic to hook-up AM35x processors
-> > > with TPS65023.
-> > It seems that you are not really using Voltage layer for any
-interaction
-> > with TPS65023 as you are not using VP and VC. Then what is the
-> purpose of
-> > registering this PMIC with Voltage layer. I fail to understand the
-> purpose
-> > of this patch series.
->
-> [sp] Then, can you suggest how do I get the AM35x EVM to boot? Given
-> the
->      current limitation of all voltage related data being "extracted"
-from
->      the voltage layer - which expects only TWLx0y0 PMICs.
-Pls use regulator framework for setting the voltage for your PMIC.
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [110305 01:55]:
+> 
+> So I suspect that a merge conflict hasn't been resolved correctly.  I'm
+> not going to worry about that because I have the merge conflict resolution
+> here already as part of my tree.
 
-Vishwa
+Sounds like that's the case, I'll take a look.
 
->
-> >
-> > Vishwa
-> > >
-> > > Signed-off-by: Sanjeev Premi <premi@ti.com>
+Tony
