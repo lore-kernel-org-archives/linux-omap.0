@@ -1,45 +1,31 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: USB issues with 2.6.38-rc7?
-Date: Mon, 7 Mar 2011 09:37:50 +0200
-Message-ID: <20110307073750.GB2522@legolas.emea.dhcp.ti.com>
-References: <AANLkTi=icn1QeM7pTZhVNLAcsHaJO-eyp-EHm5QWVvOf@mail.gmail.com>
+Subject: Re: [PATCH] cbus-retu-wdt: Constify watchdog_info structure
+Date: Mon, 7 Mar 2011 09:39:56 +0200
+Message-ID: <20110307073956.GD2522@legolas.emea.dhcp.ti.com>
+References: <1299252807.21644.12.camel@marge>
 Reply-To: balbi@ti.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:54233 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752252Ab1CGHhy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Mar 2011 02:37:54 -0500
-Received: by mail-fx0-f42.google.com with SMTP id 20so6489226fxm.1
-        for <linux-omap@vger.kernel.org>; Sun, 06 Mar 2011 23:37:52 -0800 (PST)
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:52971 "EHLO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751097Ab1CGHkA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Mar 2011 02:40:00 -0500
+Received: by mail-fx0-f45.google.com with SMTP id 11so3984833fxm.32
+        for <linux-omap@vger.kernel.org>; Sun, 06 Mar 2011 23:39:59 -0800 (PST)
 Content-Disposition: inline
-In-Reply-To: <AANLkTi=icn1QeM7pTZhVNLAcsHaJO-eyp-EHm5QWVvOf@mail.gmail.com>
+In-Reply-To: <1299252807.21644.12.camel@marge>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Steve Sakoman <sakoman@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: Michael Buesch <mb@bu3sch.de>
+Cc: Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, linux-omap <linux-omap@vger.kernel.org>
 
-On Sun, Mar 06, 2011 at 08:58:47PM -0800, Steve Sakoman wrote:
-> I began working with mainline 2.6.38-rc7 on Overo this past week in an
-> attempt to get a few patches submitted in time for the 2.6.39 merge
-> window.
+On Fri, Mar 04, 2011 at 04:33:27PM +0100, Michael Buesch wrote:
+> Nobody modifies the watchdog_info structure, so make it const.
 > 
-> One thing I've noticed is that neither musb nor ehci USB support are
-> working for me.  I'm using the same config options as I did for
-> 2.6.37.
-> 
-> Have there been changes made to the USB subsystem that require board
-> file or config changes?  A search of this list hasn't turned up any
-> likely candidates, but it wouldn't be the first time my search skills
-> failed me!
+> Signed-off-by: Michael Buesch <mb@bu3sch.de>
 
-Many changes on MUSB at least. EHCI/OHCI changes are going into merge
-window. Do you have your .config available so I can check if there's
-anything obvious ?
-
-Does the driver probe at least ? What does 'dmesg | grep -i usb' return
-?
+Acked-by: Felipe Balbi <balbi@ti.com>
 
 -- 
 balbi
