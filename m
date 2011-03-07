@@ -1,73 +1,81 @@
-From: <Tero.Kristo@nokia.com>
-Subject: RE: [PATCH 1/2] OMAP3: cpuidle: prevent CORE power domain from
- going to RET or OFF when DSS is on
-Date: Mon, 7 Mar 2011 12:02:22 +0000
-Message-ID: <854C6400F5AA6644BA6FE7953F3E769B0380FE45@008-AM1MPN1-013.mgdnok.nokia.com>
-References: <20110301220833.32613.54669.stgit@twilight.localdomain>
-	<20110301224918.32613.95176.stgit@twilight.localdomain>
-	<87pqq7pz27.fsf@ti.com>
-	<854C6400F5AA6644BA6FE7953F3E769B0380F12F@008-AM1MPN1-013.mgdnok.nokia.com>
- <87lj0uj048.fsf@ti.com>
+From: "Will Deacon" <will.deacon@arm.com>
+Subject: RE: [PATCH 1/2] ARM: l2x0: Errata fix for flush by Way
+	operationcan	cause data corruption
+Date: Mon, 7 Mar 2011 12:07:32 -0000
+Message-ID: <17812.0359233164$1299499705@news.gmane.org>
+References: <1298032525-21115-1-git-send-email-santosh.shilimkar@ti.com>	<1298032525-21115-2-git-send-email-santosh.shilimkar@ti.com>	<20110227120021.GA15314@n2100.arm.linux.org.uk>	<20110228101351.GA30781@n2100.arm.linux.org.uk>
+	<69dd173e3c7b4d02ef50ceaa19b2343a@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.24]:34183 "EHLO mgw-da01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752061Ab1CGMCk convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Mar 2011 07:02:40 -0500
-In-Reply-To: <87lj0uj048.fsf@ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <69dd173e3c7b4d02ef50ceaa19b2343a@mail.gmail.com>
+Content-Language: en-gb
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: 'Santosh Shilimkar' <santosh.shilimkar@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: tony@atomide.com, Catalin Marinas <Catalin.Marinas@arm.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: khilman@ti.com
-Cc: paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+
+Hi Santosh,
+
+> > On Sun, Feb 27, 2011 at 12:00:21PM +0000, Russell King - ARM Linux
+> > wrote:
+> > > > +#else
+> > > > +/* Optimised out for non-errata case */
+> > > > +static inline void debug_writel(unsigned long val)
+> > > > +{
+> > > >  }
+> > >
+> > > #define l2x0_set_debug	NULL
+> > >
+> > > > +#endif
+> >
+> > I notice you got rid of the inline function.  Have you tried
+> > building this without the errata enabled?
+> 
+> I accidently dropped the inline function while
+> incorporating the comment from you. :(
+> 
+> Fixed it. Updated version # 6770/1
+
+This version of the patch (as it appears in -next) is broken:
 
 
++#define debug_writel(val)	outer_cache.set_debug(val)
++
++static void l2x0_set_debug(unsigned long val)
++{
++	writel(val, l2x0_base + L2X0_DEBUG_CTRL);
+ }
 
->-----Original Message-----
->From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
->owner@vger.kernel.org] On Behalf Of ext Kevin Hilman
->Sent: 04 March, 2011 18:56
->To: Kristo Tero (Nokia-MS/Tampere)
->Cc: paul@pwsan.com; linux-omap@vger.kernel.org; linux-arm-
->kernel@lists.infradead.org
->Subject: Re: [PATCH 1/2] OMAP3: cpuidle: prevent CORE power domain from
->going to RET or OFF when DSS is on
->
->Hi Tero,
->
-><Tero.Kristo@nokia.com> writes:
->
->[...]
->
->>>>
->>>> +	/* If DSS is active, prevent CORE RET/OFF */
->>>> +	dss_state = pwrdm_read_pwrst(dss_pd);
->>>> +	if (dss_state == PWRDM_POWER_ON &&
->>>> +	    core_next_state != PWRDM_POWER_ON)
->>>> +		core_next_state = PWRDM_POWER_INACTIVE;
->>>> +
->>>
->>>Due to sleepdeps/autodeps, when this code runs, DSS powerdomain is
->>>always on.  The result is that CORE is always set to INACTIVE.
->>
->> Now I recall that someone was asking about a patch similar to this
->> earlier, and had the same issue with DSS sleepdep collision.
->
->>
->> What is the reason for having the sleepdep for DSS powerdomain anyway?
->> At least I can't see any reason why the sleepdep for DSS should be
->> set. In my opinion it should be perfectly okay for DSS domain to idle
->> independently of MPU/CORE, as this is going to be better for power
->> consumption also.
->
->Agreed, but currently the sleepdeps with MPU are automatically managed
->(by clkdm autodeps and hwmod initiator deps.)  Until we have merged a
->solution to more selectively enable sleepdeps (or remove them) $SUBJECT
->patch cannot be merged.
+[...]
 
-Ok I thought this is the case... it would be possible to implement a temporary/permanent solution that uses idle status check instead of pwrdm state check, and prevent core idle if dss is not going to idle. What is the current status with those idlest patches anyway?
+@@ -119,9 +120,11 @@ static void l2x0_flush_all(void)
+ 
+ 	/* clean all ways */
+ 	spin_lock_irqsave(&l2x0_lock, flags);
++	debug_writel(0x03);
+ 	writel_relaxed(l2x0_way_mask, l2x0_base + L2X0_CLEAN_INV_WAY);
+ 	cache_wait_way(l2x0_base + L2X0_CLEAN_INV_WAY, l2x0_way_mask);
+ 	cache_sync();
++	debug_writel(0x00);
+ 	spin_unlock_irqrestore(&l2x0_lock, flags);
+ }
 
--Tero
 
+This deadlocks because the writel forces an outer cache sync, which
+then tries to acquire the spinlock which is held by the calling
+function.
+
+If you change l2x0_set_debug to use writel_relaxed then you can avoid
+the problem.
+
+Will
