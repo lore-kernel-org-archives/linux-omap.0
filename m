@@ -1,45 +1,45 @@
-From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Subject: Re: [PATCH] OMAP2+: hwmod: use status bit info for reset line
-Date: Mon, 7 Mar 2011 01:25:00 -0600
-Message-ID: <AANLkTimA3ZUUh=yDJ3n=R+6vmx9Eboe-t_veN+EQrYTA@mail.gmail.com>
-References: <1299026809-32168-1-git-send-email-omar.ramirez@ti.com>
-	<alpine.DEB.2.00.1103041326200.10981@utopia.booyaka.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: USB issues with 2.6.38-rc7?
+Date: Mon, 7 Mar 2011 09:37:50 +0200
+Message-ID: <20110307073750.GB2522@legolas.emea.dhcp.ti.com>
+References: <AANLkTi=icn1QeM7pTZhVNLAcsHaJO-eyp-EHm5QWVvOf@mail.gmail.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:41238 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751289Ab1CGHZC convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 7 Mar 2011 02:25:02 -0500
-Received: by pve39 with SMTP id 39so966500pve.17
-        for <linux-omap@vger.kernel.org>; Sun, 06 Mar 2011 23:25:01 -0800 (PST)
-In-Reply-To: <alpine.DEB.2.00.1103041326200.10981@utopia.booyaka.com>
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:54233 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752252Ab1CGHhy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Mar 2011 02:37:54 -0500
+Received: by mail-fx0-f42.google.com with SMTP id 20so6489226fxm.1
+        for <linux-omap@vger.kernel.org>; Sun, 06 Mar 2011 23:37:52 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <AANLkTi=icn1QeM7pTZhVNLAcsHaJO-eyp-EHm5QWVvOf@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, lo <linux-omap@vger.kernel.org>, lak <linux-arm-kernel@lists.infradead.org>
+To: Steve Sakoman <sakoman@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
-Hi Paul
+On Sun, Mar 06, 2011 at 08:58:47PM -0800, Steve Sakoman wrote:
+> I began working with mainline 2.6.38-rc7 on Overo this past week in an
+> attempt to get a few patches submitted in time for the 2.6.39 merge
+> window.
+> 
+> One thing I've noticed is that neither musb nor ehci USB support are
+> working for me.  I'm using the same config options as I did for
+> 2.6.37.
+> 
+> Have there been changes made to the USB subsystem that require board
+> file or config changes?  A search of this list hasn't turned up any
+> likely candidates, but it wouldn't be the first time my search skills
+> failed me!
 
-On Fri, Mar 4, 2011 at 3:36 PM, Paul Walmsley <paul@pwsan.com> wrote:
-> It's after our -rc6 cutoff, but I'll take it anyway for 2.6.39. =A0Ma=
-de a
-> few minor changes -- updated patch below -- if you have a chance, ple=
-ase
-> give it a quick test. =A0The 'integration-2.6.39' branch at
-> git://git.pwsan.com/linux-integration now contains it. =A0Or if you h=
-ave any
-> comments about the changes, those are welcome too.
+Many changes on MUSB at least. EHCI/OHCI changes are going into merge
+window. Do you have your .config available so I can check if there's
+anything obvious ?
 
-Agree with changes, didn't see any issue either while testing.
+Does the driver probe at least ? What does 'dmesg | grep -i usb' return
+?
 
-Regards,
-
-Omar
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+balbi
