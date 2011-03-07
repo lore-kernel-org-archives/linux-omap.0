@@ -1,137 +1,58 @@
-From: David Cohen <dacohen@gmail.com>
-Subject: Re: [PATCH] omap: iommu: disallow mapping NULL address
-Date: Mon, 7 Mar 2011 21:41:21 +0200
-Message-ID: <AANLkTimac512Gu0_vyPjThvNxXHsXTRD73B0d1bHnnAg@mail.gmail.com>
-References: <4D6D219D.7020605@matrix-vision.de>
-	<201103022018.23446.laurent.pinchart@ideasonboard.com>
-	<4D6FBC7F.1080500@matrix-vision.de>
-	<AANLkTikAKy=CzTqEv-UGBQ1EavqmCStPNFZ5vs7vH5VK@mail.gmail.com>
-	<4D70F985.8030902@matrix-vision.de>
-	<AANLkTinSJpjPXWHWduLbRSmb=La3sv82ufwgsq-uR7S2@mail.gmail.com>
-	<AANLkTi=8Sss-5xfgPmgx=J_T__=hrC1rQU-xBOdKC8Ve@mail.gmail.com>
-	<4D74D94F.7040702@matrix-vision.de>
-	<AANLkTikokA2hGMYA3vfBOxa0jPr0tjbLfYW603+zicry@mail.gmail.com>
-	<AANLkTikzAjUrec+c6zcSCx6auaR9QvbWwwTbXpGYuOoZ@mail.gmail.com>
-	<AANLkTi=KncNfW0NEEoV+mrT_Ft2j-c=rQG=qbeR6tLQK@mail.gmail.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH v8 6/7] omap3430: Updating the board file to use TWL4030 scripts
+Date: Mon, 07 Mar 2011 11:42:16 -0800
+Message-ID: <87sjuy67l3.fsf@ti.com>
+References: <1299072653-13414-1-git-send-email-leslyam@ti.com>
+	<1299072653-13414-7-git-send-email-leslyam@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:59738 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755888Ab1CGTlX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Mar 2011 14:41:23 -0500
-In-Reply-To: <AANLkTi=KncNfW0NEEoV+mrT_Ft2j-c=rQG=qbeR6tLQK@mail.gmail.com>
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:40644 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755820Ab1CGTmV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Mar 2011 14:42:21 -0500
+Received: by mail-yx0-f171.google.com with SMTP id 35so2138618yxh.16
+        for <linux-omap@vger.kernel.org>; Mon, 07 Mar 2011 11:42:20 -0800 (PST)
+In-Reply-To: <1299072653-13414-7-git-send-email-leslyam@ti.com> (Lesly A. M.'s
+	message of "Wed, 2 Mar 2011 19:00:52 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>, Hiroshi.DOYU@nokia.com, Michael Jones <michael.jones@matrix-vision.de>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>, Linux Media Mailing List <linux-media@vger.kernel.org>, linux-omap@vger.kernel.org
+To: Lesly A M <leslyam@ti.com>
+Cc: linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>, David Derrick <dderrick@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
 
-On Mon, Mar 7, 2011 at 9:25 PM, Guzman Lugo, Fernando
-<fernando.lugo@ti.com> wrote:
-> On Mon, Mar 7, 2011 at 1:19 PM, David Cohen <dacohen@gmail.com> wrote=
-:
->> On Mon, Mar 7, 2011 at 9:17 PM, Guzman Lugo, Fernando
->> <fernando.lugo@ti.com> wrote:
->>> On Mon, Mar 7, 2011 at 7:10 AM, Michael Jones
->>> <michael.jones@matrix-vision.de> wrote:
->>>> From e7dbe4c4b64eb114f9b0804d6af3a3ca0e78acc8 Mon Sep 17 00:00:00 =
-2001
->>>> From: Michael Jones <michael.jones@matrix-vision.de>
->>>> Date: Mon, 7 Mar 2011 13:36:15 +0100
->>>> Subject: [PATCH] omap: iommu: disallow mapping NULL address
->>>>
->>>> commit c7f4ab26e3bcdaeb3e19ec658e3ad9092f1a6ceb allowed mapping
->>>> the NULL address if da_start=3D=3D0. =C2=A0Force da_start to exclu=
-de the
->>>> first page.
->>>
->>> what about devices that uses page 0? ipu after reset always starts
->>> from 0x00000000 how could we map that address??
->>
->> from 0x0? The driver sees da =3D=3D 0 as error. May I ask you why do=
- you want it?
+Lesly A M <leslyam@ti.com> writes:
+
+> Using TWL4030 power scripts to control the LDOs and DCDC regulators
+> while going to low power mode.
 >
-> unlike DSP that you can load a register with the addres the DSP will
-> boot, IPU core always starts from address 0x00000000, so if you take
-> IPU out of reset it will try to access address 0x0 if not map it,
-> there will be a mmu fault.
+> Signed-off-by: Lesly A M <leslyam@ti.com>
 
-Hm. Looks like the iommu should not restrict any da. The valid da
-range should rely only on pdata.
-Michael, what about just update ISP's da_start on omap-iommu.c file?
-Set it to 0x1000.
+Minor: Re: Subject: OMAP is an acronym, please capitalize.
 
-Hiroshi, any opinion?
-
-Br,
-
-David
-
+> Cc: Nishanth Menon <nm@ti.com>
+> Cc: David Derrick <dderrick@ti.com>
+> Cc: Samuel Ortiz <sameo@linux.intel.com>
+> ---
+>  arch/arm/mach-omap2/Makefile        |    3 +-
+>  arch/arm/mach-omap2/board-3430sdp.c |   93 +----------------------------------
+>  2 files changed, 4 insertions(+), 92 deletions(-)
 >
-> Regards,
-> Fernando.
->
->>
->> Br,
->>
->> David
->>
->>>
->>> Regards,
->>> Fernando.
->>>
->>>>
->>>> Signed-off-by: Michael Jones <michael.jones@matrix-vision.de>
->>>> ---
->>>> =C2=A0arch/arm/plat-omap/iommu.c | =C2=A0 =C2=A06 ++++--
->>>> =C2=A01 files changed, 4 insertions(+), 2 deletions(-)
->>>>
->>>> diff --git a/arch/arm/plat-omap/iommu.c b/arch/arm/plat-omap/iommu=
-=2Ec
->>>> index 5990ea6..dcb5513 100644
->>>> --- a/arch/arm/plat-omap/iommu.c
->>>> +++ b/arch/arm/plat-omap/iommu.c
->>>> @@ -850,7 +850,7 @@ int iommu_set_da_range(struct iommu *obj, u32 =
-start, u32 end)
->>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0if (end < start || !PAGE_ALIGN(start | =
-end))
->>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0return -EIN=
-VAL;
->>>>
->>>> - =C2=A0 =C2=A0 =C2=A0 obj->da_start =3D start;
->>>> + =C2=A0 =C2=A0 =C2=A0 obj->da_start =3D max(start, (u32)PAGE_SIZE=
-);
->>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0obj->da_end =3D end;
->>>>
->>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0return 0;
->>>> @@ -950,7 +950,9 @@ static int __devinit omap_iommu_probe(struct p=
-latform_device *pdev)
->>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0obj->name =3D pdata->name;
->>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0obj->dev =3D &pdev->dev;
->>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0obj->ctx =3D (void *)obj + sizeof(*obj)=
-;
->>>> - =C2=A0 =C2=A0 =C2=A0 obj->da_start =3D pdata->da_start;
->>>> +
->>>> + =C2=A0 =C2=A0 =C2=A0 /* reserve the first page for NULL */
->>>> + =C2=A0 =C2=A0 =C2=A0 obj->da_start =3D max(pdata->da_start, (u32=
-)PAGE_SIZE);
->>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0obj->da_end =3D pdata->da_end;
->>>>
->>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0mutex_init(&obj->iommu_lock);
->>>> --
->>>> 1.7.4.1
->>>>
->>>>
->>>> MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
->>>> Registergericht: Amtsgericht Stuttgart, HRB 271090
->>>> Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner
->>>>
->>>
->>
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+> index 742ca67..bb11329 100644
+> --- a/arch/arm/mach-omap2/Makefile
+> +++ b/arch/arm/mach-omap2/Makefile
+> @@ -175,7 +175,8 @@ obj-$(CONFIG_MACH_OMAP3_PANDORA)	+= board-omap3pandora.o \
+>  					   hsmmc.o
+>  obj-$(CONFIG_MACH_OMAP_3430SDP)		+= board-3430sdp.o \
+>  					   hsmmc.o \
+> -					   board-flash.o
+> +					   board-flash.o \
+> +					   twl4030.o
+
+This should not be board-specific in the Makefile, otherwise it will
+have to be added for every single board that uses it.
+
+Rather, it should probably be built as long as CONFIG_TWL4030_POWER=y.
+Also, please be sure to build test when that option is disabled as well.
+
+Kevin
