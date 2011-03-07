@@ -1,35 +1,49 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Problem with DSS clocks & accessing registers
-Date: Mon, 7 Mar 2011 10:22:29 +0200
-Message-ID: <1299486149.2281.77.camel@deskari>
+Subject: Re: [PATCH v3 0/9] OMAP4 : DSS2 : HDMI support on OMAP4
+Date: Mon, 7 Mar 2011 10:40:05 +0200
+Message-ID: <1299487205.2281.81.camel@deskari>
+References: <1299224907-11354-1-git-send-email-mythripk@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:43842 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:46918 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753839Ab1CGIWf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 7 Mar 2011 03:22:35 -0500
+	id S1751895Ab1CGIkK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 7 Mar 2011 03:40:10 -0500
+Received: from dlep35.itg.ti.com ([157.170.170.118])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p278e9pu018685
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Mon, 7 Mar 2011 02:40:09 -0600
+Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
+	by dlep35.itg.ti.com (8.13.7/8.13.7) with ESMTP id p278e9jI016670
+	for <linux-omap@vger.kernel.org>; Mon, 7 Mar 2011 02:40:09 -0600 (CST)
+In-Reply-To: <1299224907-11354-1-git-send-email-mythripk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, "Hilman, Kevin" <khilman@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, "Taneja, Archit" <archit@ti.com>, "Semwal, Sumit" <sumit.semwal@ti.com>
+To: "K, Mythri P" <mythripk@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Kevin, Paul,
+On Fri, 2011-03-04 at 01:48 -0600, K, Mythri P wrote:
+> Adding HDMI support on OMAP4.
+> 
+> HDMI is a driver that is similar to the VENC or the DSI driver to support
+> HDMI/DVI sink device.
 
-We currently have a small problem with OMAP4 DSS. When we enable the DSS
-clocks, it seems that the DSS registers are not always accessible right
-after the clock enable.
+<snip>
 
-I understood that on OMAP4 the clock framework doesn't guarantee that
-the registers are accessible after enabling clocks, and pm_runtime will
-handle this. Is this correct?
+> 1. v10 of omap2,3 hwmod DSS adaptation:
+> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg42914.html
+> 2. v3 of OMAP2PLUS: DSS: Generalize clock names
+> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg43338.html
+> 3. v3 of OMAP4: hwmod DSS support:
+> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg43177.html
+> 4. OMAP: DSS2: Adding dss_features for independent core clk divider 
+> https://patchwork.kernel.org/patch/529561/
+> 5. OMAP2PLUS-DSS2-Make-members-of-dss_clk_source-generic
 
-I have made a small hack fix for this. I added udelay(10) in the DSS
-code which enables the clocks and this seem to remove the problem. The
-delay is only called when DSS thinks the clocks have been off, so in
-practice the delay shouldn't be visible. Is this fix acceptable for now,
-until we get pm_runtime support to DSS? 
+I believe all these are now in DSS2 tree's master branch, so can you
+rebase the next version on top of the master branch?
 
  Tomi
 
