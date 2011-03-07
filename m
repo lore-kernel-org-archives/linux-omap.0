@@ -1,70 +1,57 @@
-From: Dave Martin <dave.martin@linaro.org>
-Subject: Re: [PATCH v5 REPOST 0/5] ARM: omap[34]: Thumb-2 compatibility fixes
-Date: Mon, 7 Mar 2011 10:26:03 +0000
-Message-ID: <AANLkTimV_mygA+2iBLPO2WvLBGTjEfUTHjCyMFn6wuYj@mail.gmail.com>
-References: <1299252837-18074-1-git-send-email-dave.martin@linaro.org>
-	<AANLkTimz0Ko9GFtLTcBQVV_c2DAPU5XhV47xT+R9Q7mv@mail.gmail.com>
-	<7b1ef0e49e8b8c1c20b0965a58c4fe73@mail.gmail.com>
-	<20110304174709.GB20560@atomide.com>
-	<AANLkTi=UCk5thBSM_JpFPRAr_POtx-DphP-DrVLBNyMG@mail.gmail.com>
-	<87r5amftpx.fsf@ti.com>
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: Re: [PATCH 0/3] OMAP: DMA: mstandby mode and runtime pm support
+Date: Mon, 7 Mar 2011 16:36:12 +0530
+Message-ID: <20110307110611.GA8743@m-desktop>
+References: <1298542475-1460-1-git-send-email-manjugk@ti.com>
+ <87hbbkqcgk.fsf@ti.com>
+ <20110304041826.GA7025@m-desktop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:43302 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752589Ab1CGK0E convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Mar 2011 05:26:04 -0500
-Received: by yxs7 with SMTP id 7so1557592yxs.19
-        for <linux-omap@vger.kernel.org>; Mon, 07 Mar 2011 02:26:03 -0800 (PST)
-In-Reply-To: <87r5amftpx.fsf@ti.com>
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:40190 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751895Ab1CGLIm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Mar 2011 06:08:42 -0500
+Received: by mail-yx0-f181.google.com with SMTP id 8so2723833yxm.40
+        for <linux-omap@vger.kernel.org>; Mon, 07 Mar 2011 03:08:40 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <20110304041826.GA7025@m-desktop>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org, patches@linaro.org, Jean Pihet-XID <j-pihet@ti.com>, linux-omap@vger.kernel.org, Nicolas Pitre <nicolas.pitre@linaro.org>, linaro-dev@lists.linaro.org
+To: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, paul@pwsan.com
 
-On Fri, Mar 4, 2011 at 9:42 PM, Kevin Hilman <khilman@ti.com> wrote:
-> Dave Martin <dave.martin@linaro.org> writes:
->
->> On Fri, Mar 4, 2011 at 5:47 PM, Tony Lindgren <tony@atomide.com> wro=
-te:
->>> * Santosh Shilimkar <santosh.shilimkar@ti.com> [110304 09:36]:
->>>> >
->>>> > Following up on this, it looks like I have some locally-recorded
->>>> > acks
->>>> > which didn't make it into my posting ...
->>>
->>> To me looks like this is ready to go, but I'd like to see Kevin's
->>> acks on this one as this touches the PM code.
->>>
->>> Or if Kevin wants to take the series, here's my ack for the series:
->>>
->>> Acked-by: Tony Lindgren <tony@atomide.com>
->
-> Yeah, I'll queue this series.
->
->> Thanks -- I'll wait for Kevin to comment also.
->
-> I have to give one more round of sanity testing to this series, but
-> otherwise I have no outstanding issues. =A0I also need to coordinate =
-with
-> Santosh on this because he has an additional cleanup series that touc=
-hes
-> the same code.
->
-> Dave, just to confirm something The outstanding toolchain bugs only
-> affect compiling in Thumb-2 mode, right? =A0IOW, if I merge just this
-> series (without having the other toolchain workaround patches) we sho=
-uld
-> still be able to compile/run fine in ARM mode, correct?
+On Fri, Mar 04, 2011 at 09:48:26AM +0530, G, Manjunath Kondaiah wrote:
+> On Thu, Mar 03, 2011 at 10:35:23AM -0800, Kevin Hilman wrote:
+> > "G, Manjunath Kondaiah" <manjugk@ti.com> writes:
+> > 
+> > > This patch series is remaining part of dma hwmod to support pm runtime 
+> > > and for handling mstandby mode for all applicable DMA mstandby mode errata.
+> > 
+> > This is still not runtime-suspending when I use my DMA test in linking
+> > mode.
+> > 
+> > If I put a large enough period between transfers, it should autosuspend
+> > during transfers.  It seems to do auto-suspend and resume once, but then
+> > it never suspends again.
+> > 
+> > I tested with my dmatest module[1], and loaded with:
+> > 
+> >   # insmod ./dmatest.ko linking=1 forever=1 forever_period=1024
+> > 
+> > Not only does it not auto-suspend between transfers (which I expected),
+> > it also doesn't suspend after removing the module which stops all active
+> > channels.
+> 
+> The normal chaining test cases are executed and which used to show the
+> proper status. Let me reproduce this issue with your test procedure.
 
-Yes, that's right.
+ok. I am able to reproduce this issue and fixed _get_sync usage in
+omap_start_dma if channel linking is used. Earlier it was handled for
+the cases with chaining API's. If linking is done without chaining
+API's, it will result in _get_sync and _put mismatch.
 
-Cheers
----Dave
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks for the test case and I will be re posting the patches with the 
+above fix.
+
+-Manjunath
