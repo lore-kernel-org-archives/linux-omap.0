@@ -1,87 +1,88 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v5 REPOST 0/5] ARM: omap[34]: Thumb-2 compatibility fixes
-Date: Mon, 07 Mar 2011 13:35:19 -0800
-Message-ID: <87d3m2397s.fsf@ti.com>
-References: <1299252837-18074-1-git-send-email-dave.martin@linaro.org>
-	<AANLkTimz0Ko9GFtLTcBQVV_c2DAPU5XhV47xT+R9Q7mv@mail.gmail.com>
-	<7b1ef0e49e8b8c1c20b0965a58c4fe73@mail.gmail.com>
+From: David Cohen <dacohen@gmail.com>
+Subject: Re: [PATCH] omap: iommu: disallow mapping NULL address
+Date: Mon, 7 Mar 2011 23:35:31 +0200
+Message-ID: <AANLkTi=9CYUbkxaSit76OwFR=4PpH+0nDzg5vQLaV51s@mail.gmail.com>
+References: <4D6D219D.7020605@matrix-vision.de>
+	<AANLkTi=KncNfW0NEEoV+mrT_Ft2j-c=rQG=qbeR6tLQK@mail.gmail.com>
+	<AANLkTimac512Gu0_vyPjThvNxXHsXTRD73B0d1bHnnAg@mail.gmail.com>
+	<201103072219.32938.laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:42343 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754763Ab1CGVfa convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 7 Mar 2011 16:35:30 -0500
-Received: by yxl31 with SMTP id 31so2439823yxl.27
-        for <linux-omap@vger.kernel.org>; Mon, 07 Mar 2011 13:35:28 -0800 (PST)
-In-Reply-To: <7b1ef0e49e8b8c1c20b0965a58c4fe73@mail.gmail.com> (Santosh
-	Shilimkar's message of "Fri, 4 Mar 2011 23:08:17 +0530")
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:55644 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756183Ab1CGVfd convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Mar 2011 16:35:33 -0500
+In-Reply-To: <201103072219.32938.laurent.pinchart@ideasonboard.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Dave Martin <dave.martin@linaro.org>, linux-arm-kernel@lists.infradead.org, patches@linaro.org, Tony Lindgren <tony@atomide.com>, Jean Pihet-XID <j-pihet@ti.com>, linux-omap@vger.kernel.org, Nicolas Pitre <nicolas.pitre@linaro.org>, linaro-dev@lists.linaro.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>, Hiroshi.DOYU@nokia.com, Michael Jones <michael.jones@matrix-vision.de>, Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>, Linux Media Mailing List <linux-media@vger.kernel.org>, linux-omap@vger.kernel.org
 
-Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
+On Mon, Mar 7, 2011 at 11:19 PM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hi David,
 
-> Dave,
->> -----Original Message-----
->> From: Dave Martin [mailto:dave.martin@linaro.org]
->> Sent: Friday, March 04, 2011 11:05 PM
->> To: linux-arm-kernel@lists.infradead.org
->> Cc: patches@linaro.org; Tony Lindgren; Santosh Shilimkar; Jean
->> Pihet; Kevin Hilman; linux-omap@vger.kernel.org; Nicolas Pitre;
->> linaro-dev@lists.linaro.org
->> Subject: Re: [PATCH v5 REPOST 0/5] ARM: omap[34]: Thumb-2
->> compatibility fixes
->>
->> On Fri, Mar 4, 2011 at 3:33 PM, Dave Martin <dave.martin@linaro.org>
->> wrote:
->> > This set of patches, along with some other patches under
->> > discussion on alkml, should enable omap3 and omap4 kernels to be
->> > built with CONFIG_THUMB2_KERNEL.
->> >
->> > This patch set builds on recent cleanup done by the omap
->> > maintainers.
->> >
->> > At least some of this code definitely works, most features have
->> > been tested successfully. =C2=A0Further testing, especially of Thu=
-mb-2
->> > behaviour, is still welcome.
->> >
->> > In particular, I still have no Ack/Tested-by on the following
->> > patches, so it would be great if anyone who has an opportunity
->> > to do a final review / re-test can do so.
->> >
->> > =C2=A0* ARM: omap3: Convert END() to ENDPROC() for correct linkage=
- with
->> CONFIG_THUMB2_KERNEL
->> > =C2=A0* ARM: omap3: Thumb-2 compatibility for sram34xx.S
->> > =C2=A0* ARM: omap3: Thumb-2 compatibility for sleep34xx.S
->>
->> Following up on this, it looks like I have some locally-recorded
->> acks
->> which didn't make it into my posting ...
->>
->> The one patch I currently have no feedback on is this one:
->>
->>   * ARM: omap4: Provide do_wfi() for Thumb-2
->>
-> You can drop this one since do_wfi()  won't be needed
-> anymore after my recent series.
+Hi Laurent,
+
 >
-> http://www.spinics.net/lists/linux-omap/msg46495.html
+> On Monday 07 March 2011 20:41:21 David Cohen wrote:
+>> On Mon, Mar 7, 2011 at 9:25 PM, Guzman Lugo, Fernando wrote:
+>> > On Mon, Mar 7, 2011 at 1:19 PM, David Cohen wrote:
+>> >> On Mon, Mar 7, 2011 at 9:17 PM, Guzman Lugo, Fernando wrote:
+>> >>> On Mon, Mar 7, 2011 at 7:10 AM, Michael Jones wrote:
+>> >>>> From e7dbe4c4b64eb114f9b0804d6af3a3ca0e78acc8 Mon Sep 17 00:00:=
+00 2001
+>> >>>> From: Michael Jones <michael.jones@matrix-vision.de>
+>> >>>> Date: Mon, 7 Mar 2011 13:36:15 +0100
+>> >>>> Subject: [PATCH] omap: iommu: disallow mapping NULL address
+>> >>>>
+>> >>>> commit c7f4ab26e3bcdaeb3e19ec658e3ad9092f1a6ceb allowed mapping
+>> >>>> the NULL address if da_start=3D=3D0. =C2=A0Force da_start to ex=
+clude the
+>> >>>> first page.
+>> >>>
+>> >>> what about devices that uses page 0? ipu after reset always star=
+ts
+>> >>> from 0x00000000 how could we map that address??
+>> >>
+>> >> from 0x0? The driver sees da =3D=3D 0 as error. May I ask you why=
+ do you
+>> >> want it?
+>> >
+>> > unlike DSP that you can load a register with the addres the DSP wi=
+ll
+>> > boot, IPU core always starts from address 0x00000000, so if you ta=
+ke
+>> > IPU out of reset it will try to access address 0x0 if not map it,
+>> > there will be a mmu fault.
+>>
+>> Hm. Looks like the iommu should not restrict any da. The valid da
+>> range should rely only on pdata.
+>> Michael, what about just update ISP's da_start on omap-iommu.c file?
+>> Set it to 0x1000.
+>
+> What about patching the OMAP3 ISP driver to use a non-zero value (may=
+be -1) as
+> an invalid/freed pointer ?
 
-Santosh,
+I wouldn't be comfortable to use 0 (or NULL) value as valid address on
+ISP driver. The 'da' range (da_start and da_end) is defined per VM and
+specified as platform data. IMO, to set da_start =3D 0x1000 seems to be
+a correct approach for ISP as it's the only client for its IOMMU
+instance.
 
-I'm planning to queue/merge Dave's series as-is for 2.6.39, since it ha=
-s
-already received significan review & testing.
+Regards,
 
-When you update your OMAP4 series, feel free to drop it as needed.
+David
 
-Kevin
+>
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
