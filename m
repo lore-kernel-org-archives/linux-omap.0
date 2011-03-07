@@ -1,61 +1,137 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH] staging: tidspbridge: protect dmm_map properly
-Date: Mon, 7 Mar 2011 23:48:33 +0200
-Message-ID: <AANLkTikEn5ZS1D8LhVLepMLHxyOki0q8Qy-k9SwjNgse@mail.gmail.com>
-References: <1292865120-24020-1-git-send-email-felipe.contreras@nokia.com>
-	<AANLkTi=w=5L8tbjGDCgoRpjRXYrNxsfWaE2SL4XG9+pY@mail.gmail.com>
-	<AANLkTimsrmGdBEEpV7OPFtGG=yRfeVBPxGP5y8gkUHfJ@mail.gmail.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCHv2] OMAP3: CPUIdle: prevent CORE from going off if doing so would reset an active clockdomain
+Date: Mon, 07 Mar 2011 13:51:04 -0800
+Message-ID: <87sjuy1tx3.fsf@ti.com>
+References: <1295606225-11834-1-git-send-email-tero.kristo@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:62024 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756287Ab1CGVse (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Mar 2011 16:48:34 -0500
-In-Reply-To: <AANLkTimsrmGdBEEpV7OPFtGG=yRfeVBPxGP5y8gkUHfJ@mail.gmail.com>
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:41931 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756377Ab1CGVvK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Mar 2011 16:51:10 -0500
+Received: by mail-qy0-f178.google.com with SMTP id 2so4425823qyk.2
+        for <linux-omap@vger.kernel.org>; Mon, 07 Mar 2011 13:51:09 -0800 (PST)
+In-Reply-To: <1295606225-11834-1-git-send-email-tero.kristo@nokia.com> (Tero
+	Kristo's message of "Fri, 21 Jan 2011 12:37:05 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Cc: Felipe Contreras <felipe.contreras@nokia.com>, linux-main <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Greg KH <greg@kroah.com>, Ohad Ben-Cohen <ohad@wizery.com>, Fernando Guzman Lugo <fernando.lugo@ti.com>, Nishanth Menon <nm@ti.com>, Ameya Palande <ameya.palande@nokia.com>
+To: Tero Kristo <tero.kristo@nokia.com>
+Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>
 
-On Mon, Mar 7, 2011 at 9:29 PM, Ramirez Luna, Omar <omar.ramirez@ti.com> wrote:
-> On Mon, Mar 7, 2011 at 12:02 PM, Felipe Contreras
-> <felipe.contreras@gmail.com> wrote:
->> On Mon, Dec 20, 2010 at 7:12 PM, Felipe Contreras
->> <felipe.contreras@nokia.com> wrote:
->>> We need to protect not only the dmm_map list, but the individual
->>> map_obj's, otherwise, we might be building the scatter-gather list with
->>> garbage. So, use the existing proc_lock for that.
->>>
->>> I observed race conditions which caused kernel panics while running
->>> stress tests. This patch fixes those.
->>
->> I just heard that Tuomas Kulve is getting a lot of panics on Gumstix
->> Overo. I propose we apply this patch on the stable tree ASAP, and if
->> there's no better proposals, also on .38.
+Hi Tero,
+
+Tero Kristo <tero.kristo@nokia.com> writes:
+
+> On OMAP3 SoCs, if the CORE powerdomain enters off-mode, many other
+> parts of the chip will be reset.  If those parts of the chip are busy,
+> the reset will disrupt them, causing unpredictable and generally
+> undesirable results. This reset is caused by the core domain wakeup
+> (COREDOMAINWKUP_RST), and it can occur for example in a case where
+> some peripheral domain is in retention or inactive state and core
+> enters off. This will result in the peripheral domain being reset.
 >
-> Can you or Tuomas share the bug report data (panic log, test case
-> maybe)? I would like to discard issues affected by timing that could
-> be hidden with this patch.
+> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Cc: Vishwanath Sripathy <vishwanath.bs@ti.com>
+> ---
 
-I got this from Tuomas:
-http://pastie.org/1643677
+Turns out this one suffers from same problem as the the other DSS one
+because of sleepdeps.  
 
-It seems it's very easy to reproduce on Gumstix Overo with a
-gst-launch command. The way I reproduced it was very tedious; running
-a full blown Maemo test suite with GBs of clips.
+In today's linux-omap because of sleepdeps, at least DSS will always
+report ON during this check, and I think USB does as well.  The result
+is that core powerdomain will never hit off-mode.
 
-I think the issue is very clear; if you build a sg list with garbage
-memory, problems are expected =/
+I'm going to drop this one from my 2.6.39 queue for now as well until
+we have a cleaner way to check powerdomain idle status.
 
-> I agree that for the time being this needs to be sent upstream, even
-> if in paper Ohad's patch solves the issue without side effects of
-> locking.
+Kevin
 
-Perhaps. I don't remember if I ack'ed Ohad's patch, but even if it's
-ok, I think it can be applied on top of my patch.
+>  arch/arm/mach-omap2/cpuidle34xx.c |   40 +++++++++++++++++++++++++++++++++++-
+>  1 files changed, 38 insertions(+), 2 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
+> index f3e043f..d31b858 100644
+> --- a/arch/arm/mach-omap2/cpuidle34xx.c
+> +++ b/arch/arm/mach-omap2/cpuidle34xx.c
+> @@ -61,7 +61,7 @@ struct omap3_processor_cx {
+>  struct omap3_processor_cx omap3_power_states[OMAP3_MAX_STATES];
+>  struct omap3_processor_cx current_cx_state;
+>  struct powerdomain *mpu_pd, *core_pd, *per_pd;
+> -struct powerdomain *cam_pd;
+> +struct powerdomain *cam_pd, *dss_pd, *iva2_pd, *sgx_pd, *usb_pd;
+>  
+>  /*
+>   * The latencies/thresholds for various C states have
+> @@ -235,7 +235,7 @@ static int omap3_enter_idle_bm(struct cpuidle_device *dev,
+>  {
+>  	struct cpuidle_state *new_state = next_valid_state(dev, state);
+>  	u32 core_next_state, per_next_state = 0, per_saved_state = 0;
+> -	u32 cam_state;
+> +	u32 cam_state, dss_state, iva2_state, sgx_state, usb_state;
+>  	struct omap3_processor_cx *cx;
+>  	int ret;
+>  
+> @@ -256,6 +256,8 @@ static int omap3_enter_idle_bm(struct cpuidle_device *dev,
+>  	 *        its own code.
+>  	 */
+>  
+> +	/* XXX Add CORE-active check here */
+> +
+>  	/*
+>  	 * Prevent idle completely if CAM is active.
+>  	 * CAM does not have wakeup capability in OMAP3.
+> @@ -275,6 +277,36 @@ static int omap3_enter_idle_bm(struct cpuidle_device *dev,
+>  	    (core_next_state > PWRDM_POWER_RET))
+>  		per_next_state = PWRDM_POWER_RET;
+>  
+> +	/* XXX Add prevent-PER-off check here */
+> +
+> +	/*
+> +	 * If we are attempting CORE off, check if any other powerdomains
+> +	 * are at retention or higher. CORE off causes chipwide reset which
+> +	 * would reset these domains also.
+> +	 */
+> +	if (core_next_state == PWRDM_POWER_OFF) {
+> +		iva2_state = pwrdm_read_pwrst(iva2_pd);
+> +		sgx_state = pwrdm_read_pwrst(sgx_pd);
+> +		usb_state = pwrdm_read_pwrst(usb_pd);
+> +		dss_state = pwrdm_read_pwrst(dss_pd);
 
-Cheers.
+Because of existing sleepdeps, some of these may be still on during the
+idle path  (especially DSS and USB in mainline kernels.)
 
--- 
-Felipe Contreras
+> +		if (cam_state > PWRDM_POWER_OFF ||
+> +		    dss_state > PWRDM_POWER_OFF ||
+> +		    iva2_state > PWRDM_POWER_OFF ||
+> +		    per_next_state > PWRDM_POWER_OFF ||
+> +		    sgx_state > PWRDM_POWER_OFF ||
+> +		    usb_state > PWRDM_POWER_OFF)
+> +			core_next_state = PWRDM_POWER_RET;
+> +	}
+> +
+> +	/* Fallback to new target core/mpu state */
+> +	while (cx->core_state < core_next_state) {
+> +		state--;
+> +		cx = cpuidle_get_statedata(state);
+> +	}
+> +
+> +	new_state = state;
+> +
+>  	/* Are we changing PER target state? */
+>  	if (per_next_state != per_saved_state)
+>  		pwrdm_set_next_pwrst(per_pd, per_next_state);
+> @@ -489,6 +521,10 @@ int __init omap3_idle_init(void)
+>  	core_pd = pwrdm_lookup("core_pwrdm");
+>  	per_pd = pwrdm_lookup("per_pwrdm");
+>  	cam_pd = pwrdm_lookup("cam_pwrdm");
+> +	dss_pd = pwrdm_lookup("dss_pwrdm");
+> +	iva2_pd = pwrdm_lookup("iva2_pwrdm");
+> +	sgx_pd = pwrdm_lookup("sgx_pwrdm");
+> +	usb_pd = pwrdm_lookup("usbhost_pwrdm");
+>  
+>  	omap_init_power_states();
+>  	cpuidle_register_driver(&omap3_idle_driver);
