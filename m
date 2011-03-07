@@ -1,39 +1,36 @@
-From: Orjan Friberg <of@flatfrog.com>
-Subject: Re: OMAP 3730 200 MHz SDRAM config
-Date: Mon, 7 Mar 2011 16:33:33 +0100
-Message-ID: <4D74FACD.2040500@flatfrog.com>
-References: <4D74EFB8.9030406@flatfrog.com> <6B47CFCE-FBCF-4CED-A1AB-E43C619FD174@mac.com>
+From: Sergei Shtylyov <sshtylyov@mvista.com>
+Subject: Re: [PATCH V3 03/19] OMAP3+: voltage: remove initial voltage
+Date: Mon, 07 Mar 2011 19:23:15 +0300
+Message-ID: <4D750673.702@ru.mvista.com>
+References: <1299338962-5602-1-git-send-email-nm@ti.com> <1299338962-5602-4-git-send-email-nm@ti.com> <4D738E04.5090207@ru.mvista.com> <4D744870.20909@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from hd5b91d02.k46641.sta.perspektivbredband.net ([213.185.29.2]:56335
-	"EHLO fg-dc1.flatfrog.local" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751160Ab1CGPde (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Mar 2011 10:33:34 -0500
-In-Reply-To: <6B47CFCE-FBCF-4CED-A1AB-E43C619FD174@mac.com>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:63196 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750877Ab1CGQYq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Mar 2011 11:24:46 -0500
+Received: by fxm17 with SMTP id 17so4229990fxm.19
+        for <linux-omap@vger.kernel.org>; Mon, 07 Mar 2011 08:24:45 -0800 (PST)
+In-Reply-To: <4D744870.20909@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Elvis Dowson <elvis.dowson@mac.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Nishanth Menon <nm@ti.com>
+Cc: Sergei Shtylyov <sshtylyov@mvista.com>, linux-omap <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@ti.com>, Tony <tony@atomide.com>, Paul <paul@pwsan.com>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-On 2011-03-07 16:19, Elvis Dowson wrote:
-> You probably need update x-loader. Try using the beagleboard x-loader project located at gitorious (v1.44) or the ti arago one (1.48, but not quite the latest in terms of support for beagleboard xm parts).
->
-> Looking at board/omap3530beagle/omap3530beagle.c for the memory part definitions. For the XM, the Numonyx part is at 165Mhz, and the Micron part is at 200Mhz.
+Hello.
 
-I'm using u-boot with a configuration header, and there I have set the 
-new CTRLA, CTRLB and RFR values (and I did compare the values with the 
-Micron data sheet; apart from the TCKE value they are all identical).
+On 07-03-2011 5:52, Nishanth Menon wrote:
 
-But are you saying that the values set by the boot loader are preserved 
-by the kernel?  (In that case I wonder what the sdram-micron header file 
-is for :)
+>>> Blindly setting a 1.2V setting
 
+>> Hm, seems tautological...
 
-Thanks,
-Orjan
+> As a non native English speaker, I would like to understand how we could
+> improve this. I suppose you mean "Blindly setting 1.2V" is better here. Am i
+> correct?
 
--- 
-Orjan Friberg
-FlatFrog Laboratories AB
+    Yes.
+
+WBR, Sergei
