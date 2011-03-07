@@ -1,71 +1,130 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 5/6] omap4: Initialise the l3 device with the hwmod data.
-Date: Mon, 7 Mar 2011 16:49:06 +0530
-Message-ID: <435c01d5b0d5a1448f64bc1129fe348f@mail.gmail.com>
-References: <1298295990-1070-1-git-send-email-santosh.shilimkar@ti.com>
- <1298295990-1070-6-git-send-email-santosh.shilimkar@ti.com>
- <4D62AAAA.40104@ti.com> <295be59bd43a2e9f0961c10263ce19c0@mail.gmail.com> <4D74B1D6.8020708@ti.com>
+From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Subject: RE: [PATCH v11 2/8] OMAP4: hwmod data: add dmtimer version
+ information
+Date: Mon, 7 Mar 2011 16:49:09 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB037A360A1B@dbde02.ent.ti.com>
+References: <1298546811-27055-1-git-send-email-tarun.kanti@ti.com>
+	<1298546811-27055-3-git-send-email-tarun.kanti@ti.com>
+ <871v2npwb8.fsf@ti.com> <4D70CA22.8040001@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:38683 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755492Ab1CGLTJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Mar 2011 06:19:09 -0500
-Received: by mail-qw0-f49.google.com with SMTP id 9so3204734qwj.36
-        for <linux-omap@vger.kernel.org>; Mon, 07 Mar 2011 03:19:08 -0800 (PST)
-In-Reply-To: <4D74B1D6.8020708@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:38506 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755492Ab1CGLTS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Mar 2011 06:19:18 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p27BJEYD031569
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Mon, 7 Mar 2011 05:19:17 -0600
+In-Reply-To: <4D70CA22.8040001@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Sricharan R <r.sricharan@ti.com>
+To: "Cousson, Benoit" <b-cousson@ti.com>, "Hilman, Kevin" <khilman@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
 > -----Original Message-----
-> From: Cousson, Benoit [mailto:b-cousson@ti.com]
-> Sent: Monday, March 07, 2011 3:52 PM
-> To: Shilimkar, Santosh
-> Cc: linux-omap@vger.kernel.org; Balbi, Felipe; R, Sricharan
-> Subject: Re: [PATCH 5/6] omap4: Initialise the l3 device with the
-> hwmod data.
->
-> On 2/21/2011 8:03 PM, Shilimkar, Santosh wrote:
-[....]
-
-> >> In order to stick to the OMAP device naming convention and to
-> have
-> >> something not dependent of the chip version, I think we'd better
-> >> name
-> >> the device like that: "omap_l3_noc". Since it is a Arteris
-> "Network
-> >> On
-> >> Chip" on OMAP4. We will not have to change it for OMAP5 then.
-> >> On OMAP3 the name can then be "omap_l3_smx" for the Sonics MX
-> >> interconnect.
+> From: Cousson, Benoit
+> Sent: Friday, March 04, 2011 4:47 PM
+> To: Hilman, Kevin; DebBarma, Tarun Kanti
+> Cc: linux-omap@vger.kernel.org
+> Subject: Re: [PATCH v11 2/8] OMAP4: hwmod data: add dmtimer version
+> information
+>=20
+> On 3/4/2011 1:24 AM, Hilman, Kevin wrote:
+> > Tarun Kanti DebBarma<tarun.kanti@ti.com>  writes:
+> >
+> >> OMAP4 has two groups of timers: version 1 timers are 1, 2, 10,
+> >> while the rest of the timers, 3-9, 11 are version 2 timers.
+> >> The version information is required by the driver so that they
+> >> could be handled correctly by it.
 > >>
-> > Device name changes are fine but file name changes as per this.
-> > dosn't look right if they are like
-> > omap_l3_noc.c
-> > omap_l3_smx.c
->
-> Why do you think that does not look right?
->
-No strong preference but noc, smx didn't look ok to
-me.
-> > May be we can rename them like below
-> > omap_l3_3xxx.c
-> > omap_l3_4xxx.c
->
-> The point is that it will really depend of the amount of SoC
-> specifics
-> data are in this file. If most of the code is reusable on OMAP5 for
-> example, then it makes sense to use the name of the IP.
-> If that's not the case, then you'd better use the SoC name.
->
-Ok. So let's go with the IP names then.
-New file names will be as above.
+> >> Signed-off-by: Tarun Kanti DebBarma<tarun.kanti@ti.com>
+> >
+> > Minor comment below, also needs an ack from Beno=EEt...
+>=20
+> Oops, I missed that one.
+>=20
+> Tarun,
+> I will be good to add me in Cc in order to avoid that.
+> In general it is always good to Cc the maintainers.
+>=20
+> Once the tabs are fixed;
+> Acked-by: Benoit Cousson <b-cousson@ti.com>
+I will Cc. Thanks.
+--
+Tarun
+>=20
+> >
+> >> ---
+> >>   arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    3 +++
+> >>   arch/arm/plat-omap/include/plat/dmtimer.h  |    2 ++
+> >>   2 files changed, 5 insertions(+), 0 deletions(-)
+> >>
+> >> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> >> index 79a8601..ee57742 100644
+> >> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> >> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> >> @@ -25,6 +25,7 @@
+> >>   #include<plat/gpio.h>
+> >>   #include<plat/dma.h>
+> >>   #include<plat/mcspi.h>
+> >> +#include<plat/dmtimer.h>
+> >>
+> >>   #include "omap_hwmod_common_data.h"
+> >>
+> >> @@ -3940,6 +3941,7 @@ static struct omap_hwmod_class_sysconfig
+> omap44xx_timer_1ms_sysc =3D {
+> >>   static struct omap_hwmod_class omap44xx_timer_1ms_hwmod_class =3D=
+ {
+> >>   	.name	=3D "timer",
+> >>   	.sysc	=3D&omap44xx_timer_1ms_sysc,
+> >> +	.rev =3D OMAP_TIMER_IP_VERSION_1,
+> >
+> > Please use tab and align '=3D' with above lines.
+> >
+> >>   };
+> >>
+> >>   static struct omap_hwmod_class_sysconfig omap44xx_timer_sysc =3D=
+ {
+> >> @@ -3955,6 +3957,7 @@ static struct omap_hwmod_class_sysconfig
+> omap44xx_timer_sysc =3D {
+> >>   static struct omap_hwmod_class omap44xx_timer_hwmod_class =3D {
+> >>   	.name	=3D "timer",
+> >>   	.sysc	=3D&omap44xx_timer_sysc,
+> >> +	.rev =3D OMAP_TIMER_IP_VERSION_2,
+> >
+> > ditto
+> >
+> >>   };
+> >>
+> >>   /* timer1 */
+> >> diff --git a/arch/arm/plat-omap/include/plat/dmtimer.h b/arch/arm/=
+plat-
+> omap/include/plat/dmtimer.h
+> >> index d6c70d2..05a967e 100644
+> >> --- a/arch/arm/plat-omap/include/plat/dmtimer.h
+> >> +++ b/arch/arm/plat-omap/include/plat/dmtimer.h
+> >> @@ -55,6 +55,8 @@
+> >>    * in OMAP4 can be distinguished.
+> >>    */
+> >>   #define OMAP_TIMER_IP_VERSION_1                        0x1
+> >> +#define OMAP_TIMER_IP_VERSION_2                        0x2
+> >> +
+> >>   struct omap_dm_timer;
+> >>   extern struct omap_dm_timer *gptimer_wakeup;
+> >>   extern struct sys_timer omap_timer;
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-oma=
+p" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-omap_l3_3xxx.c
-omap_l3_4xxx.c
-
-Regards,
-Santosh
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
