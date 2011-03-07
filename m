@@ -1,129 +1,107 @@
-From: archit taneja <archit@ti.com>
-Subject: Re: [PATCH] OMAP: DSS2: FEATURES: DSI PLL parameter cleanup
-Date: Mon, 7 Mar 2011 14:47:51 +0530
-Message-ID: <4D74A2BF.3050908@ti.com>
-References: <1299236625-1057-1-git-send-email-archit@ti.com> <1299484471.2281.50.camel@deskari>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: [PATCH] omap2plus: Remove auto selection on PMICs
+Date: Mon, 7 Mar 2011 15:03:02 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024C0E5AED@dbde02.ent.ti.com>
+References: <1298463072-19891-1-git-send-email-premi@ti.com>
+ <20110225181640.GA20560@atomide.com>
+ <B85A65D85D7EB246BE421B3FB0FBB593024BE4A01B@dbde02.ent.ti.com>
+ <20110302180428.GZ20560@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:60852 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754055Ab1CGJON (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 7 Mar 2011 04:14:13 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p279EAqG017367
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Mon, 7 Mar 2011 03:14:12 -0600
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id p279E9Jh028548
-	for <linux-omap@vger.kernel.org>; Mon, 7 Mar 2011 14:44:09 +0530 (IST)
-In-Reply-To: <1299484471.2281.50.camel@deskari>
+Received: from devils.ext.ti.com ([198.47.26.153]:59975 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754919Ab1CGJdI convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Mar 2011 04:33:08 -0500
+In-Reply-To: <20110302180428.GZ20560@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
+To: Tony Lindgren <tony@atomide.com>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
+> -----Original Message-----
+> From: Tony Lindgren [mailto:tony@atomide.com]
+> Sent: Wednesday, March 02, 2011 11:34 PM
+> To: Premi, Sanjeev
+> Cc: linux-omap@vger.kernel.org
+> Subject: Re: [PATCH] omap2plus: Remove auto selection on PMICs
+> 
+> * Premi, Sanjeev <premi@ti.com> [110226 00:27]:
+> > > -----Original Message-----
+> > > From: Tony Lindgren [mailto:tony@atomide.com]
+> > > Sent: Friday, February 25, 2011 11:47 PM
+> > > To: Premi, Sanjeev
+> > > Cc: linux-omap@vger.kernel.org
+> > > Subject: Re: [PATCH] omap2plus: Remove auto selection on PMICs
+> > >
+> > > * Sanjeev Premi <premi@ti.com> [110223 04:11]:
+> > > > The current implementation almost assumes that only
+> > > > TWL4030/TWL5030/TWl6030 are (or can be) used with the
+> > > > OMAP processors. This is, however, not true.
+> > >
+> > > If selecting these on platforms that don't have twl
+> > > causes problems the problem should be fixed.
+> > >
+> > > You can disable CONFIG_ARCH_OMAP2PLUS_TYPICAL, and
+> > > then these don't get selected.
+> >
+> > [sp] But this means MUTLI_OMAP breaks. And same uImage
+> >      won't run on the AM3517 EVM.
+> >
+> >      If I remember, the problem is caused due to twl specific
+> >      functions called even if it isn't present. And there is
+> >      implicit assumption on TWL in most of code.
+> 
+> Then let's fix that problem instead. The TWL functions should
+> not get called (or at least they should not do anything)
+> unless the TWL chip is there.
 
-On Monday 07 March 2011 01:24 PM, Valkeinen, Tomi wrote:
-> On Fri, 2011-03-04 at 05:03 -0600, Taneja, Archit wrote:
->> The DSI PLL parameters (regm, regn, regm_dispc, regm_dsi, fint) have different
->> fields and also different Max values on OMAP3 and OMAP4. Use dss features to
->> calculate the register fields and Max values based on current OMAP revision
->>
->> Also, introduce a new function in dss_features "dss_feat_get_param_range" which
->> returns the maximum and minimum values supported by the parameter for
->> the current OMAP revision.
->
-> See comment about "also" in the last mail =). You are introducing a new
-> kind of dss feature as a sidenote. I think it should clearly be a
-> separate patch.
->
-> <snip>
->
->> +void dss_feat_get_param_range(enum dss_range_param param, int *min, int *max)
->> +{
->> +	*min = omap_current_dss_features->dss_params[param].min;
->> +	*max = omap_current_dss_features->dss_params[param].max;
->
-> This isn't right. Here you're using the param as index, but in the param
-> array itself the param is just part of the struct. So it's just luck
-> that the index is correct.
+[sp] Agree. Driver needs to be fixed. But, will take longer and
+     AM35x will continue to suffer. Will start on this... 
 
-The param part of the struct is just for readability, and possibly more 
-thorough checking for later on.
+> 
+> > [sp] I will be away from work for next week; may not
+> >      be able to try this; but don't you think dependency
+> >      on ARM is too generic? And this should still be fixed..
 
-The index isn't correct by luck, its mainly because during defining the 
-array, we fill it up in the sequence in which the enum is defined.
+[sp] I haven't yet tried it myself. Need to clear lot of regular
+     backlog before I can try this later this week.
 
->
-> This is actually wrong with the reg fields and clock sources also...
->
-> I believe there was a way to give entries in an array by the index.
-> Something like:
->
-> static struct foo bar[] = {
-> 	[0] = { stuff },
-> 	[1] = { stuff },
-> };
+> >
+> > -	depends on TWL4030_CORE && ARM
+> > +	depends on TWL4030_CORE && (ARCH_OMAP3 || ARCH_OMAP4)
+> 
+> Well in theory all the drivers should just build on whatever
+> platform. I don't know if changing that really improves things,
+> we should improve the driver instead.
+> 
+> Note for example how the tps65010.c driver also builds on x86.
+> That allows people doing Linux generic changes to build test
+> those changes:
+[sp] Agree. But TPS6510 is far more generic PMIC than TWL4030 or
+     others in the same family.
 
-I agree this is better , I didn't know we could use this.
+     Going by the argument, we should then be removing processor
+     dependency altogether, i.e:
+ -	depends on TWL4030_CORE && ARM
+ +	depends on TWL4030_CORE
 
->
-> In that solution it's not necessary to have the index in the struct
-> itself, like now.
->
-> Alternatively, with the current struct, we could iterate through the
-> array to find a matching id.
-
-Yes, my earlier patch for dss features used a list and we iterated to 
-get the matching id, but that was bit of an overkill.
-
->
->> +}
->> +
->>   /* DSS has_feature check */
->>   bool dss_has_feature(enum dss_feat_id id)
->>   {
->> diff --git a/drivers/video/omap2/dss/dss_features.h b/drivers/video/omap2/dss/dss_features.h
->> index 3302247..78b51a9 100644
->> --- a/drivers/video/omap2/dss/dss_features.h
->> +++ b/drivers/video/omap2/dss/dss_features.h
->> @@ -52,6 +52,14 @@ enum dss_feat_reg_field {
->>   	FEAT_REG_HORIZONTALACCU,
->>   	FEAT_REG_VERTICALACCU,
->>   	FEAT_REG_DISPC_CLK_SWITCH,
->> +	FEAT_REG_DSIPLL_REGM,
->> +	FEAT_REG_DSIPLL_REGN,
->> +	FEAT_REG_DSIPLL_REGM_DISPC,
->> +	FEAT_REG_DSIPLL_REGM_DSI,
->> +};
->> +
->> +enum dss_range_param {
->> +	FEAT_DSI_FINT,
->>   };
->>
->>   /* DSS Feature Functions */
->> @@ -63,6 +71,7 @@ enum omap_color_mode dss_feat_get_supported_color_modes(enum omap_plane plane);
->>   bool dss_feat_color_mode_supported(enum omap_plane plane,
->>   		enum omap_color_mode color_mode);
->>   const char *dss_feat_get_clk_source_name(enum dss_clk_source id);
->> +void dss_feat_get_param_range(enum dss_range_param param, int *min, int *max);
->
-> Currently used only for fint, but if it's supposed to handle clock
-> rates, unsigned long instead of int could be better.
->
-> I was also thinking that we now have dss_feat_get_max_dss_fck(), which
-> is somewhat similar to this.
->
-> Could something like this work:
->
-> unsigned long dss_feat_get_param_min(enum dss_range_param param);
-> unsigned long dss_feat_get_param_max(enum dss_range_param param);
->
-
-I agree. Should we remove the max_dss_fck patch since we are moving to 
-this approach?
-
-Archit
+> 
+> $git log --pretty=oneline drivers/mfd/tps65010.c
+> 77b22897da093e80c40f03e8d83bf23e756b9fba mfd: Include <linux/gpio.h>
+> instead of
+> afdb32f2e463a195c104555ac9a8cdd39a2b6561 mfd: update workqueue usages
+> fbae3fb1546e199ab0cd185348f8124411a1ca9d i2c: Remove all
+> i2c_set_clientdata(clie
+> f322d5f0097333343bfd92b47258ee997c889263 mfd: Fix dangling
+> pointersRegards,
+> ...
+> 
+> So instead of breakage for the tps65010 driver we instead got
+> the above changes compile tested as an extra bonus.
+> 
+> Regards,
+> 
+> Tony
