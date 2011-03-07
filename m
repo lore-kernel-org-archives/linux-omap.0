@@ -1,30 +1,29 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: pm-core: recursive dependency on config
-Date: Mon, 7 Mar 2011 08:55:49 -0800
-Message-ID: <20110307165549.GB19315@atomide.com>
-References: <AANLkTi=wNSOmZ8TcWGUoPmdaC5ga9NrzsXhULnUxLMGk@mail.gmail.com>
- <ea74188f9e010d45c0c8ba15ab6b2617@mail.gmail.com>
- <20110305095747.GA2400@n2100.arm.linux.org.uk>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH] staging: tidspbridge: protect dmm_map properly
+Date: Mon, 7 Mar 2011 20:02:44 +0200
+Message-ID: <AANLkTi=w=5L8tbjGDCgoRpjRXYrNxsfWaE2SL4XG9+pY@mail.gmail.com>
+References: <1292865120-24020-1-git-send-email-felipe.contreras@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:61553 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751413Ab1CGQz7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Mar 2011 11:55:59 -0500
-Content-Disposition: inline
-In-Reply-To: <20110305095747.GA2400@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1292865120-24020-1-git-send-email-felipe.contreras@nokia.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Contreras <felipe.contreras@nokia.com>
+Cc: linux-main <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Greg KH <greg@kroah.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, Fernando Guzman Lugo <fernando.lugo@ti.com>, Nishanth Menon <nm@ti.com>, Ameya Palande <ameya.palande@nokia.com>
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Nishanth Menon <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [110305 01:55]:
-> 
-> So I suspect that a merge conflict hasn't been resolved correctly.  I'm
-> not going to worry about that because I have the merge conflict resolution
-> here already as part of my tree.
+On Mon, Dec 20, 2010 at 7:12 PM, Felipe Contreras
+<felipe.contreras@nokia.com> wrote:
+> We need to protect not only the dmm_map list, but the individual
+> map_obj's, otherwise, we might be building the scatter-gather list with
+> garbage. So, use the existing proc_lock for that.
+>
+> I observed race conditions which caused kernel panics while running
+> stress tests. This patch fixes those.
 
-Sounds like that's the case, I'll take a look.
+I just heard that Tuomas Kulve is getting a lot of panics on Gumstix
+Overo. I propose we apply this patch on the stable tree ASAP, and if
+there's no better proposals, also on .38.
 
-Tony
+-- 
+Felipe Contreras
