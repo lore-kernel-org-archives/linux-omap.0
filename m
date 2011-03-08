@@ -1,129 +1,75 @@
-From: David Cohen <dacohen@gmail.com>
-Subject: Re: [PATCH 1/3] omap: iovmm: disallow mapping NULL address
-Date: Tue, 8 Mar 2011 21:06:20 +0200
-Message-ID: <AANLkTikH=oYFOuvvG2y4yj=6UUnPCyEtq8AMc9bF9VrH@mail.gmail.com>
-References: <1299588365-2749-1-git-send-email-dacohen@gmail.com>
-	<1299588365-2749-2-git-send-email-dacohen@gmail.com>
-	<AANLkTikkUYFuhH-b2vKX8jVoT18wH_+WPzGbfFNWQK6K@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 2/7] OMAP2+: mux: Enable wakeup for wakeup enable requested
+ pads
+Date: Tue, 8 Mar 2011 12:16:54 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1103081211170.10981@utopia.booyaka.com>
+References: <1299064343-28534-1-git-send-email-govindraj.raja@ti.com> <87lj0u8mrf.fsf@ti.com> <87tyfi49cs.fsf@ti.com> <AANLkTiknEQrqUt1-sY6-aDw4R5ZMP2uErSjRNB5Yex_v@mail.gmail.com> <20110308172625.GE26463@atomide.com> <87k4g9qxa9.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <AANLkTikkUYFuhH-b2vKX8jVoT18wH_+WPzGbfFNWQK6K@mail.gmail.com>
-Sender: linux-media-owner@vger.kernel.org
-To: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
-Cc: Hiroshi.DOYU@nokia.com, linux-omap@vger.kernel.org, linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com, sakari.ailus@maxwell.research.nokia.com, Michael Jones <michael.jones@matrix-vision.de>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <87k4g9qxa9.fsf@ti.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Govindraj <govindraj.ti@gmail.com>, "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>, Rajendra Nayak <rnayak@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Mar 8, 2011 at 8:06 PM, Guzman Lugo, Fernando
-<fernando.lugo@ti.com> wrote:
-> On Tue, Mar 8, 2011 at 6:46 AM, David Cohen <dacohen@gmail.com> wrote=
-:
->> From: Michael Jones <michael.jones@matrix-vision.de>
->>
->> commit c7f4ab26e3bcdaeb3e19ec658e3ad9092f1a6ceb allowed mapping
->> the NULL address if da_start=3D=3D0, which would then not get unmapp=
-ed.
->> Disallow this again. =C2=A0And spell variable 'alignment' correctly.
->>
->> Signed-off-by: Michael Jones <michael.jones@matrix-vision.de>
->> ---
->> =C2=A0arch/arm/plat-omap/iovmm.c | =C2=A0 16 ++++++++++------
->> =C2=A01 files changed, 10 insertions(+), 6 deletions(-)
->>
->> diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
->> index 6dc1296..11c9b76 100644
->> --- a/arch/arm/plat-omap/iovmm.c
->> +++ b/arch/arm/plat-omap/iovmm.c
->> @@ -271,20 +271,24 @@ static struct iovm_struct *alloc_iovm_area(str=
-uct iommu *obj, u32 da,
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
-=C2=A0 size_t bytes, u32 flags)
->> =C2=A0{
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0struct iovm_struct *new, *tmp;
->> - =C2=A0 =C2=A0 =C2=A0 u32 start, prev_end, alignement;
->> + =C2=A0 =C2=A0 =C2=A0 u32 start, prev_end, alignment;
->>
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0if (!obj || !bytes)
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0return ERR_PT=
-R(-EINVAL);
->>
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0start =3D da;
->> - =C2=A0 =C2=A0 =C2=A0 alignement =3D PAGE_SIZE;
->> + =C2=A0 =C2=A0 =C2=A0 alignment =3D PAGE_SIZE;
->>
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0if (flags & IOVMF_DA_ANON) {
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 start =3D obj->da=
-_start;
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 /* Don't map addr=
-ess 0 */
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (obj->da_start=
-)
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 start =3D obj->da_start;
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 else
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 start =3D obj->da_start + alignment;
->
-> else part obj->da_star is always 0, so why not?
-> start =3D alignment;
+Hi
 
-The patch is not from me, but I can fix it if Michael agrees.
+On Tue, 8 Mar 2011, Kevin Hilman wrote:
 
->
-> so, why I understand, it now it is possible mapp address 0x0 only if
-> IOVMF_DA_ANON is not set, right? maybe that would be mention in the
-> patch.
+> Tony Lindgren <tony@atomide.com> writes:
+> 
+> > * Govindraj <govindraj.ti@gmail.com> [110308 03:43]:
+> >> 
+> >> I am not sure whether now we can control read/writes to pad_mux from any driver
+> >> interface and I think we have to go through mux framework for any
+> >> read/writes to mux.
+> >
+> > Sure, the drivers should not mess with those registers directly.
+> >
+> >> with this I cant control pad wake up capabilities with sysfs as done
+> >> earlier in serial.c
+> >> now control to read/write to pad is outside scope of the driver
+> >> interface as omap_hwmod_mux
+> >> is the one that takes decision for driver with mux values provided
+> >> during omap_hwmod_mux_init.
+> >
+> > The sysfs interface to control this should still be from the drivers.
+> > Sounds like we need some way to set the wakeup flags before pm_runtime_put
+> > is called.
+> 
+> Exactly.  Driver's can currently check device_may_wakeup(dev) to
+> determine if they *should* set wakeup flags, but currently, we don't
+> have a clean way to pass the info down to core code.
+> 
+> One possible option (albeit hacky) is for the omap_hwmod_mux code to
+> check device_may_wakeup() itself, and set the bits accordingly.  This
+> means drivers don't have to do anything, but drivers also loose control
+> of enabling/disabling wakeups.
+> 
+> I think what we need are two omap_device-level APIs for wakeups.
+> 
+> One for enable/disable of wakeups (both module-level and IO-ring, the 
+> driver should not care about the difference between the two):
 
-Indeed address 0x0 was never meant to be mapped. The mentioned commit
-on the patch's description did that without noticing. But the new
-change is documented in the code by the comment "Don't map address 0"
-and it's also mentioned on the patch description. Is it OK for you?
+Probably this should only control IO-ring/chain wakeups.  Enabling 
+asynchronous wakeups will need to be handled differently...
 
-Regards,
+> int omap_device_[enable|disable](struct platform_device *pdev);
+> 
+> bool omap_device_wakeup_occured(struct platform_device *pdev);
+> 
+> As OMAP-specific APIs, both of these should of course be called through
+> pdata function pointers.
 
-David Cohen
+Looks good to me, modulo the obvious corrections, although the names of 
+these functions should probably say "ioring_wakeup" rather than just 
+"wakeup" to make it clear what exactly they are intended to do.
 
->
-> Regards,
-> Fernando.
->
->>
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0if (flags & I=
-OVMF_LINEAR)
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 alignement =3D iopgsz_max(bytes);
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 start =3D roundup=
-(start, alignement);
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 alignment =3D iopgsz_max(bytes);
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 start =3D roundup=
-(start, alignment);
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0} else if (start < obj->da_start || start=
- > obj->da_end ||
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0o=
-bj->da_end - start < bytes) {
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0return ERR_PT=
-R(-EINVAL);
->> @@ -304,7 +308,7 @@ static struct iovm_struct *alloc_iovm_area(struc=
-t iommu *obj, u32 da,
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0goto found;
->>
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0if (tmp->da_e=
-nd >=3D start && flags & IOVMF_DA_ANON)
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 start =3D roundup(tmp->da_end + 1, alignement);
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 start =3D roundup(tmp->da_end + 1, alignment);
->>
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0prev_end =3D =
-tmp->da_end;
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0}
->> --
->> 1.7.0.4
->>
->>
->
+As we discussed in chat, we can drop the existing 
+omap_hwmod_{enable,disable}_wakeup() functions, since these were 
+effectively obsoleted by commit 9980ce53 ("OMAP: hwmod: Enable module 
+wakeup if in smartidle").
+
+
+- Paul
