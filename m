@@ -1,480 +1,80 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 2/3] OMAP2+: powerdomain: fix bank power state bitfields
-Date: Mon, 07 Mar 2011 19:15:51 -0700
-Message-ID: <20110308021550.31946.31935.stgit@twilight.localdomain>
-References: <20110308021018.31946.29962.stgit@twilight.localdomain>
+Subject: Re: [PATCH 2/5] OMAP: GPIO: use pwrdmn name to find wkup dmn GPIO
+Date: Mon, 7 Mar 2011 19:25:31 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1103071635410.10981@utopia.booyaka.com>
+References: <1298890670-5481-1-git-send-email-charu@ti.com> <1298890670-5481-3-git-send-email-charu@ti.com> <8762ryftbs.fsf@ti.com> <AANLkTikziwQBwPVOMxbQaTj5Oa-UAc38Eb87jq_QAHSD@mail.gmail.com> <87k4ga7o9b.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-381206735-1299540983=:10981"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:33949 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:54955 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755269Ab1CHCRU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Mar 2011 21:17:20 -0500
-In-Reply-To: <20110308021018.31946.29962.stgit@twilight.localdomain>
+	with ESMTP id S1753604Ab1CHCZc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Mar 2011 21:25:32 -0500
+In-Reply-To: <87k4ga7o9b.fsf@ti.com>
+Content-ID: <alpine.DEB.2.00.1103071639570.10981@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, =?utf-8?q?Beno=C3=AEt?= Cousson <b-cousson@ti.com>
+To: "Varadarajan\\, Charulatha" <charu@ti.com>, Kevin Hilman <khilman@ti.com>
+Cc: Benoit Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, tony@atomide.com
 
-The bank power state bitfields in the powerdomain data are
-encoded incorrectly.  These fields are intended to be bitfields,
-representing a set of power states that the memory banks support.
-However, when only one power state was supported by a given bank,
-the field was incorrectly set to the bit shift -- not the mask.
-While here, update some file copyrights.
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-The OMAP4 autogeneration scripts have been updated accordingly.
+--155748971-381206735-1299540983=:10981
+Content-Type: TEXT/PLAIN; CHARSET=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-ID: <alpine.DEB.2.00.1103071639571.10981@utopia.booyaka.com>
 
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Beno=C3=AEt Cousson <b-cousson@ti.com>
-Cc: Rajendra Nayak <rnayak@ti.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
----
- arch/arm/mach-omap2/powerdomains2xxx_3xxx_data.c |    6 +-
- arch/arm/mach-omap2/powerdomains2xxx_data.c      |   18 ++---
- arch/arm/mach-omap2/powerdomains3xxx_data.c      |   38 +++++-----
- arch/arm/mach-omap2/powerdomains44xx_data.c      |   84 +++++++++++---=
---------
- 4 files changed, 73 insertions(+), 73 deletions(-)
+Hi
 
-diff --git a/arch/arm/mach-omap2/powerdomains2xxx_3xxx_data.c b/arch/ar=
-m/mach-omap2/powerdomains2xxx_3xxx_data.c
-index 96cda13..4210c33 100644
---- a/arch/arm/mach-omap2/powerdomains2xxx_3xxx_data.c
-+++ b/arch/arm/mach-omap2/powerdomains2xxx_3xxx_data.c
-@@ -62,13 +62,13 @@ struct powerdomain gfx_omap2_pwrdm =3D {
- 	.omap_chip	  =3D OMAP_CHIP_INIT(CHIP_IS_OMAP24XX |
- 					   CHIP_IS_OMAP3430ES1),
- 	.pwrsts		  =3D PWRSTS_OFF_RET_ON,
--	.pwrsts_logic_ret =3D PWRDM_POWER_RET,
-+	.pwrsts_logic_ret =3D PWRSTS_RET,
- 	.banks		  =3D 1,
- 	.pwrsts_mem_ret	  =3D {
--		[0] =3D PWRDM_POWER_RET, /* MEMRETSTATE */
-+		[0] =3D PWRSTS_RET, /* MEMRETSTATE */
- 	},
- 	.pwrsts_mem_on	  =3D {
--		[0] =3D PWRDM_POWER_ON,  /* MEMONSTATE */
-+		[0] =3D PWRSTS_ON,  /* MEMONSTATE */
- 	},
- };
+On Mon, 7 Mar 2011, Kevin Hilman wrote:
+
+> "Varadarajan, Charulatha" <charu@ti.com> writes:
+>=20
+> > On Sat, Mar 5, 2011 at 02:21, Kevin Hilman <khilman@ti.com> wrote:
+> >> Charulatha V <charu@ti.com> writes:
+> >>>
+> >>> + =A0 =A0 =A0 =A0 =A0 =A0 if (!strcmp(bank->pwrdm_name, "wkup_pwrdm")=
+)
+> >>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 continue;
+> >>> +
+> >>
+> >> This adds a string compare for every bank during every idle
+> >> transistion (and every resume.) =A0That's a lot of unneeded overhead.
+> >>
+> >> I'd rather see a per-bank flag 'looses_context' or something that can =
+be
+> >> checked more efficiently in this fast path. =A0This flag can be set ba=
+sed
+> >> on the powerdomain name in the device init code.
+> >
+> > This looks better. Will do the needful.
+> > One question, can "looses_context" be made as part of dev_attr?
+>=20
+> I guess that's up to Beno=EEt.
+>=20
+> But, I don't think that's necessary. It should be easy to set at runtime
+> just doing a strcmp on the powerdomain during the device init,
+> omap_device_build phase.
+
+It shouldn't be part of .dev_attr, since it's not a IP block-specific=20
+attribute, it's a powerdomain-specific attribute.  The same hwmod=20
+structure might be used on another OMAP chip that places the device in a=20
+different powerdomain.
+
+It would also be good to avoid doing strcmp()s here.  The powerdomain name=
 =20
-diff --git a/arch/arm/mach-omap2/powerdomains2xxx_data.c b/arch/arm/mac=
-h-omap2/powerdomains2xxx_data.c
-index 78739e1..cc389fb 100644
---- a/arch/arm/mach-omap2/powerdomains2xxx_data.c
-+++ b/arch/arm/mach-omap2/powerdomains2xxx_data.c
-@@ -2,7 +2,7 @@
-  * OMAP2XXX powerdomain definitions
-  *
-  * Copyright (C) 2007-2008 Texas Instruments, Inc.
-- * Copyright (C) 2007-2010 Nokia Corporation
-+ * Copyright (C) 2007-2011 Nokia Corporation
-  *
-  * Paul Walmsley, Jouni H=C3=B6gander
-  *
-@@ -30,13 +30,13 @@ static struct powerdomain dsp_pwrdm =3D {
- 	.prcm_offs	  =3D OMAP24XX_DSP_MOD,
- 	.omap_chip	  =3D OMAP_CHIP_INIT(CHIP_IS_OMAP24XX),
- 	.pwrsts		  =3D PWRSTS_OFF_RET_ON,
--	.pwrsts_logic_ret =3D PWRDM_POWER_RET,
-+	.pwrsts_logic_ret =3D PWRSTS_RET,
- 	.banks		  =3D 1,
- 	.pwrsts_mem_ret	  =3D {
--		[0] =3D PWRDM_POWER_RET,
-+		[0] =3D PWRSTS_RET,
- 	},
- 	.pwrsts_mem_on	  =3D {
--		[0] =3D PWRDM_POWER_ON,
-+		[0] =3D PWRSTS_ON,
- 	},
- };
+string, like any name string, should basically be opaque to code.
+
+In this case, the best approach is probably for the subarch integration=20
+code to ask the powerdomain code whether the hwmod's powerdomain can ever=
 =20
-@@ -48,10 +48,10 @@ static struct powerdomain mpu_24xx_pwrdm =3D {
- 	.pwrsts_logic_ret =3D PWRSTS_OFF_RET,
- 	.banks		  =3D 1,
- 	.pwrsts_mem_ret	  =3D {
--		[0] =3D PWRDM_POWER_RET,
-+		[0] =3D PWRSTS_RET,
- 	},
- 	.pwrsts_mem_on	  =3D {
--		[0] =3D PWRDM_POWER_ON,
-+		[0] =3D PWRSTS_ON,
- 	},
- };
+lose context.  I just posted a patch series to do this[1], so I'd suggest=
 =20
-@@ -87,13 +87,13 @@ static struct powerdomain mdm_pwrdm =3D {
- 	.prcm_offs	  =3D OMAP2430_MDM_MOD,
- 	.omap_chip	  =3D OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
- 	.pwrsts		  =3D PWRSTS_OFF_RET_ON,
--	.pwrsts_logic_ret =3D PWRDM_POWER_RET,
-+	.pwrsts_logic_ret =3D PWRSTS_RET,
- 	.banks		  =3D 1,
- 	.pwrsts_mem_ret	  =3D {
--		[0] =3D PWRDM_POWER_RET, /* MEMRETSTATE */
-+		[0] =3D PWRSTS_RET, /* MEMRETSTATE */
- 	},
- 	.pwrsts_mem_on	  =3D {
--		[0] =3D PWRDM_POWER_ON,  /* MEMONSTATE */
-+		[0] =3D PWRSTS_ON,  /* MEMONSTATE */
- 	},
- };
-=20
-diff --git a/arch/arm/mach-omap2/powerdomains3xxx_data.c b/arch/arm/mac=
-h-omap2/powerdomains3xxx_data.c
-index e1bec56..9c9c113 100644
---- a/arch/arm/mach-omap2/powerdomains3xxx_data.c
-+++ b/arch/arm/mach-omap2/powerdomains3xxx_data.c
-@@ -2,7 +2,7 @@
-  * OMAP3 powerdomain definitions
-  *
-  * Copyright (C) 2007-2008 Texas Instruments, Inc.
-- * Copyright (C) 2007-2010 Nokia Corporation
-+ * Copyright (C) 2007-2011 Nokia Corporation
-  *
-  * Paul Walmsley, Jouni H=C3=B6gander
-  *
-@@ -47,10 +47,10 @@ static struct powerdomain iva2_pwrdm =3D {
- 		[3] =3D PWRSTS_OFF_RET,
- 	},
- 	.pwrsts_mem_on	  =3D {
--		[0] =3D PWRDM_POWER_ON,
--		[1] =3D PWRDM_POWER_ON,
-+		[0] =3D PWRSTS_ON,
-+		[1] =3D PWRSTS_ON,
- 		[2] =3D PWRSTS_OFF_ON,
--		[3] =3D PWRDM_POWER_ON,
-+		[3] =3D PWRSTS_ON,
- 	},
- };
-=20
-@@ -128,13 +128,13 @@ static struct powerdomain dss_pwrdm =3D {
- 	.omap_chip	  =3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
- 	.prcm_offs	  =3D OMAP3430_DSS_MOD,
- 	.pwrsts		  =3D PWRSTS_OFF_RET_ON,
--	.pwrsts_logic_ret =3D PWRDM_POWER_RET,
-+	.pwrsts_logic_ret =3D PWRSTS_RET,
- 	.banks		  =3D 1,
- 	.pwrsts_mem_ret	  =3D {
--		[0] =3D PWRDM_POWER_RET, /* MEMRETSTATE */
-+		[0] =3D PWRSTS_RET, /* MEMRETSTATE */
- 	},
- 	.pwrsts_mem_on	  =3D {
--		[0] =3D PWRDM_POWER_ON,  /* MEMONSTATE */
-+		[0] =3D PWRSTS_ON,  /* MEMONSTATE */
- 	},
- };
-=20
-@@ -149,13 +149,13 @@ static struct powerdomain sgx_pwrdm =3D {
- 	.omap_chip	  =3D OMAP_CHIP_INIT(CHIP_GE_OMAP3430ES2),
- 	/* XXX This is accurate for 3430 SGX, but what about GFX? */
- 	.pwrsts		  =3D PWRSTS_OFF_ON,
--	.pwrsts_logic_ret =3D PWRDM_POWER_RET,
-+	.pwrsts_logic_ret =3D PWRSTS_RET,
- 	.banks		  =3D 1,
- 	.pwrsts_mem_ret	  =3D {
--		[0] =3D PWRDM_POWER_RET, /* MEMRETSTATE */
-+		[0] =3D PWRSTS_RET, /* MEMRETSTATE */
- 	},
- 	.pwrsts_mem_on	  =3D {
--		[0] =3D PWRDM_POWER_ON,  /* MEMONSTATE */
-+		[0] =3D PWRSTS_ON,  /* MEMONSTATE */
- 	},
- };
-=20
-@@ -164,13 +164,13 @@ static struct powerdomain cam_pwrdm =3D {
- 	.omap_chip	  =3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
- 	.prcm_offs	  =3D OMAP3430_CAM_MOD,
- 	.pwrsts		  =3D PWRSTS_OFF_RET_ON,
--	.pwrsts_logic_ret =3D PWRDM_POWER_RET,
-+	.pwrsts_logic_ret =3D PWRSTS_RET,
- 	.banks		  =3D 1,
- 	.pwrsts_mem_ret	  =3D {
--		[0] =3D PWRDM_POWER_RET, /* MEMRETSTATE */
-+		[0] =3D PWRSTS_RET, /* MEMRETSTATE */
- 	},
- 	.pwrsts_mem_on	  =3D {
--		[0] =3D PWRDM_POWER_ON,  /* MEMONSTATE */
-+		[0] =3D PWRSTS_ON,  /* MEMONSTATE */
- 	},
- };
-=20
-@@ -182,10 +182,10 @@ static struct powerdomain per_pwrdm =3D {
- 	.pwrsts_logic_ret =3D PWRSTS_OFF_RET,
- 	.banks		  =3D 1,
- 	.pwrsts_mem_ret	  =3D {
--		[0] =3D PWRDM_POWER_RET, /* MEMRETSTATE */
-+		[0] =3D PWRSTS_RET, /* MEMRETSTATE */
- 	},
- 	.pwrsts_mem_on	  =3D {
--		[0] =3D PWRDM_POWER_ON,  /* MEMONSTATE */
-+		[0] =3D PWRSTS_ON,  /* MEMONSTATE */
- 	},
- };
-=20
-@@ -200,7 +200,7 @@ static struct powerdomain neon_pwrdm =3D {
- 	.prcm_offs	  =3D OMAP3430_NEON_MOD,
- 	.omap_chip	  =3D OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
- 	.pwrsts		  =3D PWRSTS_OFF_RET_ON,
--	.pwrsts_logic_ret =3D PWRDM_POWER_RET,
-+	.pwrsts_logic_ret =3D PWRSTS_RET,
- };
-=20
- static struct powerdomain usbhost_pwrdm =3D {
-@@ -208,7 +208,7 @@ static struct powerdomain usbhost_pwrdm =3D {
- 	.prcm_offs	  =3D OMAP3430ES2_USBHOST_MOD,
- 	.omap_chip	  =3D OMAP_CHIP_INIT(CHIP_GE_OMAP3430ES2),
- 	.pwrsts		  =3D PWRSTS_OFF_RET_ON,
--	.pwrsts_logic_ret =3D PWRDM_POWER_RET,
-+	.pwrsts_logic_ret =3D PWRSTS_RET,
- 	/*
- 	 * REVISIT: Enabling usb host save and restore mechanism seems to
- 	 * leave the usb host domain permanently in ACTIVE mode after
-@@ -218,10 +218,10 @@ static struct powerdomain usbhost_pwrdm =3D {
- 	/*.flags	  =3D PWRDM_HAS_HDWR_SAR,*/ /* for USBHOST ctrlr only */
- 	.banks		  =3D 1,
- 	.pwrsts_mem_ret	  =3D {
--		[0] =3D PWRDM_POWER_RET, /* MEMRETSTATE */
-+		[0] =3D PWRSTS_RET, /* MEMRETSTATE */
- 	},
- 	.pwrsts_mem_on	  =3D {
--		[0] =3D PWRDM_POWER_ON,  /* MEMONSTATE */
-+		[0] =3D PWRSTS_ON,  /* MEMONSTATE */
- 	},
- };
-=20
-diff --git a/arch/arm/mach-omap2/powerdomains44xx_data.c b/arch/arm/mac=
-h-omap2/powerdomains44xx_data.c
-index 226e01a..c4222c7 100644
---- a/arch/arm/mach-omap2/powerdomains44xx_data.c
-+++ b/arch/arm/mach-omap2/powerdomains44xx_data.c
-@@ -2,7 +2,7 @@
-  * OMAP4 Power domains framework
-  *
-  * Copyright (C) 2009-2010 Texas Instruments, Inc.
-- * Copyright (C) 2009-2010 Nokia Corporation
-+ * Copyright (C) 2009-2011 Nokia Corporation
-  *
-  * Abhijit Pagare (abhijitpagare@ti.com)
-  * Benoit Cousson (b-cousson@ti.com)
-@@ -40,18 +40,18 @@ static struct powerdomain core_44xx_pwrdm =3D {
- 	.pwrsts_logic_ret =3D PWRSTS_OFF_RET,
- 	.banks		  =3D 5,
- 	.pwrsts_mem_ret	=3D {
--		[0] =3D PWRDM_POWER_OFF,	/* core_nret_bank */
-+		[0] =3D PWRSTS_OFF,	/* core_nret_bank */
- 		[1] =3D PWRSTS_OFF_RET,	/* core_ocmram */
--		[2] =3D PWRDM_POWER_RET,	/* core_other_bank */
-+		[2] =3D PWRSTS_RET,	/* core_other_bank */
- 		[3] =3D PWRSTS_OFF_RET,	/* ducati_l2ram */
- 		[4] =3D PWRSTS_OFF_RET,	/* ducati_unicache */
- 	},
- 	.pwrsts_mem_on	=3D {
--		[0] =3D PWRDM_POWER_ON,	/* core_nret_bank */
-+		[0] =3D PWRSTS_ON,	/* core_nret_bank */
- 		[1] =3D PWRSTS_OFF_RET,	/* core_ocmram */
--		[2] =3D PWRDM_POWER_ON,	/* core_other_bank */
--		[3] =3D PWRDM_POWER_ON,	/* ducati_l2ram */
--		[4] =3D PWRDM_POWER_ON,	/* ducati_unicache */
-+		[2] =3D PWRSTS_ON,	/* core_other_bank */
-+		[3] =3D PWRSTS_ON,	/* ducati_l2ram */
-+		[4] =3D PWRSTS_ON,	/* ducati_unicache */
- 	},
- 	.flags		=3D PWRDM_HAS_LOWPOWERSTATECHANGE,
- };
-@@ -65,10 +65,10 @@ static struct powerdomain gfx_44xx_pwrdm =3D {
- 	.pwrsts		  =3D PWRSTS_OFF_ON,
- 	.banks		  =3D 1,
- 	.pwrsts_mem_ret	=3D {
--		[0] =3D PWRDM_POWER_OFF,	/* gfx_mem */
-+		[0] =3D PWRSTS_OFF,	/* gfx_mem */
- 	},
- 	.pwrsts_mem_on	=3D {
--		[0] =3D PWRDM_POWER_ON,	/* gfx_mem */
-+		[0] =3D PWRSTS_ON,	/* gfx_mem */
- 	},
- 	.flags		=3D PWRDM_HAS_LOWPOWERSTATECHANGE,
- };
-@@ -83,12 +83,12 @@ static struct powerdomain abe_44xx_pwrdm =3D {
- 	.pwrsts_logic_ret =3D PWRSTS_OFF,
- 	.banks		  =3D 2,
- 	.pwrsts_mem_ret	=3D {
--		[0] =3D PWRDM_POWER_RET,	/* aessmem */
--		[1] =3D PWRDM_POWER_OFF,	/* periphmem */
-+		[0] =3D PWRSTS_RET,	/* aessmem */
-+		[1] =3D PWRSTS_OFF,	/* periphmem */
- 	},
- 	.pwrsts_mem_on	=3D {
--		[0] =3D PWRDM_POWER_ON,	/* aessmem */
--		[1] =3D PWRDM_POWER_ON,	/* periphmem */
-+		[0] =3D PWRSTS_ON,	/* aessmem */
-+		[1] =3D PWRSTS_ON,	/* periphmem */
- 	},
- 	.flags		=3D PWRDM_HAS_LOWPOWERSTATECHANGE,
- };
-@@ -103,10 +103,10 @@ static struct powerdomain dss_44xx_pwrdm =3D {
- 	.pwrsts_logic_ret =3D PWRSTS_OFF,
- 	.banks		  =3D 1,
- 	.pwrsts_mem_ret	=3D {
--		[0] =3D PWRDM_POWER_OFF,	/* dss_mem */
-+		[0] =3D PWRSTS_OFF,	/* dss_mem */
- 	},
- 	.pwrsts_mem_on	=3D {
--		[0] =3D PWRDM_POWER_ON,	/* dss_mem */
-+		[0] =3D PWRSTS_ON,	/* dss_mem */
- 	},
- 	.flags		=3D PWRDM_HAS_LOWPOWERSTATECHANGE,
- };
-@@ -121,14 +121,14 @@ static struct powerdomain tesla_44xx_pwrdm =3D {
- 	.pwrsts_logic_ret =3D PWRSTS_OFF_RET,
- 	.banks		  =3D 3,
- 	.pwrsts_mem_ret	=3D {
--		[0] =3D PWRDM_POWER_RET,	/* tesla_edma */
-+		[0] =3D PWRSTS_RET,	/* tesla_edma */
- 		[1] =3D PWRSTS_OFF_RET,	/* tesla_l1 */
- 		[2] =3D PWRSTS_OFF_RET,	/* tesla_l2 */
- 	},
- 	.pwrsts_mem_on	=3D {
--		[0] =3D PWRDM_POWER_ON,	/* tesla_edma */
--		[1] =3D PWRDM_POWER_ON,	/* tesla_l1 */
--		[2] =3D PWRDM_POWER_ON,	/* tesla_l2 */
-+		[0] =3D PWRSTS_ON,	/* tesla_edma */
-+		[1] =3D PWRSTS_ON,	/* tesla_l1 */
-+		[2] =3D PWRSTS_ON,	/* tesla_l2 */
- 	},
- 	.flags		=3D PWRDM_HAS_LOWPOWERSTATECHANGE,
- };
-@@ -142,10 +142,10 @@ static struct powerdomain wkup_44xx_pwrdm =3D {
- 	.pwrsts		  =3D PWRSTS_ON,
- 	.banks		  =3D 1,
- 	.pwrsts_mem_ret	=3D {
--		[0] =3D PWRDM_POWER_OFF,	/* wkup_bank */
-+		[0] =3D PWRSTS_OFF,	/* wkup_bank */
- 	},
- 	.pwrsts_mem_on	=3D {
--		[0] =3D PWRDM_POWER_ON,	/* wkup_bank */
-+		[0] =3D PWRSTS_ON,	/* wkup_bank */
- 	},
- };
-=20
-@@ -162,7 +162,7 @@ static struct powerdomain cpu0_44xx_pwrdm =3D {
- 		[0] =3D PWRSTS_OFF_RET,	/* cpu0_l1 */
- 	},
- 	.pwrsts_mem_on	=3D {
--		[0] =3D PWRDM_POWER_ON,	/* cpu0_l1 */
-+		[0] =3D PWRSTS_ON,	/* cpu0_l1 */
- 	},
- };
-=20
-@@ -179,7 +179,7 @@ static struct powerdomain cpu1_44xx_pwrdm =3D {
- 		[0] =3D PWRSTS_OFF_RET,	/* cpu1_l1 */
- 	},
- 	.pwrsts_mem_on	=3D {
--		[0] =3D PWRDM_POWER_ON,	/* cpu1_l1 */
-+		[0] =3D PWRSTS_ON,	/* cpu1_l1 */
- 	},
- };
-=20
-@@ -192,10 +192,10 @@ static struct powerdomain emu_44xx_pwrdm =3D {
- 	.pwrsts		  =3D PWRSTS_OFF_ON,
- 	.banks		  =3D 1,
- 	.pwrsts_mem_ret	=3D {
--		[0] =3D PWRDM_POWER_OFF,	/* emu_bank */
-+		[0] =3D PWRSTS_OFF,	/* emu_bank */
- 	},
- 	.pwrsts_mem_on	=3D {
--		[0] =3D PWRDM_POWER_ON,	/* emu_bank */
-+		[0] =3D PWRSTS_ON,	/* emu_bank */
- 	},
- };
-=20
-@@ -211,12 +211,12 @@ static struct powerdomain mpu_44xx_pwrdm =3D {
- 	.pwrsts_mem_ret	=3D {
- 		[0] =3D PWRSTS_OFF_RET,	/* mpu_l1 */
- 		[1] =3D PWRSTS_OFF_RET,	/* mpu_l2 */
--		[2] =3D PWRDM_POWER_RET,	/* mpu_ram */
-+		[2] =3D PWRSTS_RET,	/* mpu_ram */
- 	},
- 	.pwrsts_mem_on	=3D {
--		[0] =3D PWRDM_POWER_ON,	/* mpu_l1 */
--		[1] =3D PWRDM_POWER_ON,	/* mpu_l2 */
--		[2] =3D PWRDM_POWER_ON,	/* mpu_ram */
-+		[0] =3D PWRSTS_ON,	/* mpu_l1 */
-+		[1] =3D PWRSTS_ON,	/* mpu_l2 */
-+		[2] =3D PWRSTS_ON,	/* mpu_ram */
- 	},
- };
-=20
-@@ -230,16 +230,16 @@ static struct powerdomain ivahd_44xx_pwrdm =3D {
- 	.pwrsts_logic_ret =3D PWRSTS_OFF,
- 	.banks		  =3D 4,
- 	.pwrsts_mem_ret	=3D {
--		[0] =3D PWRDM_POWER_OFF,	/* hwa_mem */
-+		[0] =3D PWRSTS_OFF,	/* hwa_mem */
- 		[1] =3D PWRSTS_OFF_RET,	/* sl2_mem */
- 		[2] =3D PWRSTS_OFF_RET,	/* tcm1_mem */
- 		[3] =3D PWRSTS_OFF_RET,	/* tcm2_mem */
- 	},
- 	.pwrsts_mem_on	=3D {
--		[0] =3D PWRDM_POWER_ON,	/* hwa_mem */
--		[1] =3D PWRDM_POWER_ON,	/* sl2_mem */
--		[2] =3D PWRDM_POWER_ON,	/* tcm1_mem */
--		[3] =3D PWRDM_POWER_ON,	/* tcm2_mem */
-+		[0] =3D PWRSTS_ON,	/* hwa_mem */
-+		[1] =3D PWRSTS_ON,	/* sl2_mem */
-+		[2] =3D PWRSTS_ON,	/* tcm1_mem */
-+		[3] =3D PWRSTS_ON,	/* tcm2_mem */
- 	},
- 	.flags		=3D PWRDM_HAS_LOWPOWERSTATECHANGE,
- };
-@@ -253,10 +253,10 @@ static struct powerdomain cam_44xx_pwrdm =3D {
- 	.pwrsts		  =3D PWRSTS_OFF_ON,
- 	.banks		  =3D 1,
- 	.pwrsts_mem_ret	=3D {
--		[0] =3D PWRDM_POWER_OFF,	/* cam_mem */
-+		[0] =3D PWRSTS_OFF,	/* cam_mem */
- 	},
- 	.pwrsts_mem_on	=3D {
--		[0] =3D PWRDM_POWER_ON,	/* cam_mem */
-+		[0] =3D PWRSTS_ON,	/* cam_mem */
- 	},
- 	.flags		=3D PWRDM_HAS_LOWPOWERSTATECHANGE,
- };
-@@ -271,10 +271,10 @@ static struct powerdomain l3init_44xx_pwrdm =3D {
- 	.pwrsts_logic_ret =3D PWRSTS_OFF_RET,
- 	.banks		  =3D 1,
- 	.pwrsts_mem_ret	=3D {
--		[0] =3D PWRDM_POWER_OFF,	/* l3init_bank1 */
-+		[0] =3D PWRSTS_OFF,	/* l3init_bank1 */
- 	},
- 	.pwrsts_mem_on	=3D {
--		[0] =3D PWRDM_POWER_ON,	/* l3init_bank1 */
-+		[0] =3D PWRSTS_ON,	/* l3init_bank1 */
- 	},
- 	.flags		=3D PWRDM_HAS_LOWPOWERSTATECHANGE,
- };
-@@ -289,12 +289,12 @@ static struct powerdomain l4per_44xx_pwrdm =3D {
- 	.pwrsts_logic_ret =3D PWRSTS_OFF_RET,
- 	.banks		  =3D 2,
- 	.pwrsts_mem_ret	=3D {
--		[0] =3D PWRDM_POWER_OFF,	/* nonretained_bank */
--		[1] =3D PWRDM_POWER_RET,	/* retained_bank */
-+		[0] =3D PWRSTS_OFF,	/* nonretained_bank */
-+		[1] =3D PWRSTS_RET,	/* retained_bank */
- 	},
- 	.pwrsts_mem_on	=3D {
--		[0] =3D PWRDM_POWER_ON,	/* nonretained_bank */
--		[1] =3D PWRDM_POWER_ON,	/* retained_bank */
-+		[0] =3D PWRSTS_ON,	/* nonretained_bank */
-+		[1] =3D PWRSTS_ON,	/* retained_bank */
- 	},
- 	.flags		=3D PWRDM_HAS_LOWPOWERSTATECHANGE,
- };
+you use the function that it exports.
 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+- Paul
+
+1. http://marc.info/?l=3Dlinux-omap&m=3D129955064112024&w=3D2
+--155748971-381206735-1299540983=:10981--
