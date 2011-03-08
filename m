@@ -1,60 +1,78 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 0/2] omap_wdt: fix interface clock handling
-Date: Tue, 08 Mar 2011 09:08:11 -0800
-Message-ID: <87bp1lv8uc.fsf@ti.com>
-References: <1299589583-22632-1-git-send-email-kalle.jokiniemi@nokia.com>
+From: David Cohen <dacohen@gmail.com>
+Subject: Re: [PATCH 2/3] omap3: change ISP's IOMMU da_start address
+Date: Tue, 8 Mar 2011 19:15:27 +0200
+Message-ID: <AANLkTimBxYqSuBCPzmJUWa7KZzvt4SaPwOwXHhqciYBe@mail.gmail.com>
+References: <1299588365-2749-1-git-send-email-dacohen@gmail.com>
+	<1299588365-2749-3-git-send-email-dacohen@gmail.com>
+	<4D7637D0.4010402@maxwell.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:36038 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754587Ab1CHRIQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Mar 2011 12:08:16 -0500
-Received: by mail-pv0-f177.google.com with SMTP id 11so1047685pvh.8
-        for <linux-omap@vger.kernel.org>; Tue, 08 Mar 2011 09:08:14 -0800 (PST)
-In-Reply-To: <1299589583-22632-1-git-send-email-kalle.jokiniemi@nokia.com>
-	(Kalle Jokiniemi's message of "Tue, 8 Mar 2011 15:06:21 +0200")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <4D7637D0.4010402@maxwell.research.nokia.com>
+Sender: linux-media-owner@vger.kernel.org
+To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Cc: Hiroshi.DOYU@nokia.com, linux-omap@vger.kernel.org, fernando.lugo@ti.com, linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
 List-Id: linux-omap@vger.kernel.org
-To: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, ilkka.koskinen@nokia.com, wim@iguana.be
 
-Kalle Jokiniemi <kalle.jokiniemi@nokia.com> writes:
+Hi Sakari,
 
-> The runtime PM does not offer enough granularity to control
-> individual clocks separately as needed. Current pm implementation
-> of omap_wdt blocks the CORE power domain from idling in
-> OMAP SoC, as it keeps the interface clock of the watchdog always
-> on. This causes severe power leakage in devices where 
-> the omap watchdog is in active use.
-
-The iclk remains active because it's in hardware-controlled
-auto-idle mode.  
-
-I believe if you set the WDT hwmod to software-supported idle
-(OCPIF_SWSUP_IDLE), the runtime PM idle (which calls omap_device idle,
-then omap_hwmod_idle) should also gate the interface clock.
-
-> This patch set reverts the omap_wdt move to runtime_pm and
-> introduces a tight control of the interface clock in the driver
-> to only enable it when registers are accessed. The patch is
-> based on earlier patch by Atal Shargorodsky.
+On Tue, Mar 8, 2011 at 4:06 PM, Sakari Ailus
+<sakari.ailus@maxwell.research.nokia.com> wrote:
+> David Cohen wrote:
+>> ISP doesn't consider 0x0 as a valid address, so it should explicitly
+>> exclude first page from allowed 'da' range.
+>>
+>> Signed-off-by: David Cohen <dacohen@gmail.com>
+>> ---
+>> =C2=A0arch/arm/mach-omap2/omap-iommu.c | =C2=A0 =C2=A02 +-
+>> =C2=A01 files changed, 1 insertions(+), 1 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/omap-iommu.c b/arch/arm/mach-omap2/=
+omap-iommu.c
+>> index 3fc5dc7..3bea489 100644
+>> --- a/arch/arm/mach-omap2/omap-iommu.c
+>> +++ b/arch/arm/mach-omap2/omap-iommu.c
+>> @@ -33,7 +33,7 @@ static struct iommu_device omap3_devices[] =3D {
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 .name =3D "isp",
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 .nr_tlb_entries =3D 8,
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 .clk_name =3D "cam_ick",
+>> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 .da_start =3D 0x0,
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 .da_start =3D 0x1000,
 >
-> If anyone has good suggestions how to fix this with runtime_pm,
-> feel free to propose patches. Otherwise I suggest we revert
-> back to something that works.
+> The NULL address is still valid for the MMU. Can the IOVMF_DA_ANON
+> mapping be specified by the API to be always non-NULL?
 
-Can you try with software-supported idle and just making the runtime PM
-calls more granular?
+The patch 1/3 does that :)
 
-Kevin
-
-> Tested with RX-51 S4.0 Macroboard, linux-omap-pm/pm branch and
-> MeeGo armv7l release.
 >
-> Kalle Jokiniemi (2):
->   Revert "OMAP: WDT: Use PM runtime APIs instead of clk FW APIs"
->   Watchdog: omap_wdt: fix interface clock handling
+> This way it would be possible to combine IOVMF_DA_FIXED and
+> IOVMF_DA_ANON mappings in the same IOMMU while still being able to re=
+ly
+> that IOVMF_DA_ANON mappings would always be non-NULL.
+
+Indeed the IOMMU driver supports it. The flag is set by iovm area and
+each IOMMU instance supports a mix of mappings with fixed da or not.
+By changing the OMAP3 "isp" IOMMU pdata's da_start to 0x1000, we're
+explicitly saying that iovm areas with fixed 'da' or not will never
+map first page to OMAP3 ISP driver, what is the behavior it expects.
+Without this patch, thanks to patch 1/3 the IOMMU driver will not map
+address 0x0 to OMAP3 ISP anyway. But then ISP will be passing wrong
+information that it would be fine to map first page. :)
+
+Kind regards,
+
+David Cohen
+
 >
->  drivers/watchdog/omap_wdt.c |   64 +++++++++++++++++++++++++++++++++++++------
->  1 files changed, 55 insertions(+), 9 deletions(-)
+> Regards,
+>
+> --
+> Sakari Ailus
+> sakari.ailus@maxwell.research.nokia.com
+>
