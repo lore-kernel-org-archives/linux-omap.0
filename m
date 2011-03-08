@@ -1,101 +1,54 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] omap: overo: Add regulator for ads7846
-Date: Tue, 8 Mar 2011 15:16:16 -0800
-Message-ID: <20110308231615.GH26463@atomide.com>
-References: <1299341546-17289-1-git-send-email-steve@sakoman.com>
+From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Subject: Re: [PATCH v2 2/4] OMAP4: hwmod data: add mmu hwmod for ipu and dsp
+Date: Tue, 8 Mar 2011 17:21:07 -0600
+Message-ID: <AANLkTi=hJU7RUjBcsu3mb-yAdx2SzRwOVM7wERoyzWWw@mail.gmail.com>
+References: <1299484388-16205-1-git-send-email-omar.ramirez@ti.com>
+	<1299484388-16205-3-git-send-email-omar.ramirez@ti.com>
+	<4D74D5B9.2070907@ti.com>
+	<AANLkTimfSfCc3Pvf_=2MKnHTiC9gVw-_xohHczTUHroH@mail.gmail.com>
+	<4D769FCB.4040907@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:21098 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755024Ab1CHXQ3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Mar 2011 18:16:29 -0500
-Content-Disposition: inline
-In-Reply-To: <1299341546-17289-1-git-send-email-steve@sakoman.com>
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:54212 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756170Ab1CHXVI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Mar 2011 18:21:08 -0500
+Received: by mail-pz0-f52.google.com with SMTP id 36so1713382pzk.11
+        for <linux-omap@vger.kernel.org>; Tue, 08 Mar 2011 15:21:08 -0800 (PST)
+In-Reply-To: <4D769FCB.4040907@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Steve Sakoman <steve@sakoman.com>
-Cc: linux-omap@vger.kernel.org, tomi.valkeinen@ti.com
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Kevin Hilman <khilman@deeprootsystems.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, lo <linux-omap@vger.kernel.org>, lak <linux-arm-kernel@lists.infradead.org>
 
-* Steve Sakoman <steve@sakoman.com> [110305 08:10]:
-> The ads7846 driver now requires a regulator.  This patch adds the
-> necessary regulator to the overo board file.  Without it, the
-> following error occurs (and the touchscreen will not function):
-> 
-> ads7846 spi1.0: unable to get regulator: -19
-> 
-> Signed-off-by: Steve Sakoman <steve@sakoman.com>
-> ---
-> Note: this patch should be applied after the "[PATCH v3 0/2] Add DSS2
-> support on Overo" series.
+Hi Benoit,
 
-Tomi can you please take this one to avoid merge conflicts?
+On Tue, Mar 8, 2011 at 3:29 PM, Cousson, Benoit <b-cousson@ti.com> wrote:
+> What I meant is that the mmu does not have any explicit PRCM module enable
+> control. The PRCM does control only the DSP as a whole. Since hwmods are
+> generated with a PRCM granularity, any sub module will not be exposed by
+> default.
 
-Acked-by: Tony Lindgren <tony@atomide.com>
- 
->  arch/arm/mach-omap2/board-overo.c |   31 +++++++++++++++++++++++++++++++
->  1 files changed, 31 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
-> index a2c17c9..1aee5b7 100644
-> --- a/arch/arm/mach-omap2/board-overo.c
-> +++ b/arch/arm/mach-omap2/board-overo.c
-> @@ -28,6 +28,7 @@
->  #include <linux/platform_device.h>
->  #include <linux/i2c/twl.h>
->  #include <linux/regulator/machine.h>
-> +#include <linux/regulator/fixed.h>
->  #include <linux/spi/spi.h>
->  
->  #include <linux/mtd/mtd.h>
-> @@ -97,6 +98,34 @@ static struct ads7846_platform_data ads7846_config = {
->  	.keep_vref_on		= 1,
->  };
->  
-> +/* fixed regulator for ads7846 */
-> +static struct regulator_consumer_supply ads7846_supply =
-> +	REGULATOR_SUPPLY("vcc", "spi1.0");
-> +
-> +static struct regulator_init_data vads7846_regulator = {
-> +	.constraints = {
-> +		.valid_ops_mask		= REGULATOR_CHANGE_STATUS,
-> +	},
-> +	.num_consumer_supplies	= 1,
-> +	.consumer_supplies	= &ads7846_supply,
-> +};
-> +
-> +static struct fixed_voltage_config vads7846 = {
-> +	.supply_name		= "vads7846",
-> +	.microvolts		= 3300000, /* 3.3V */
-> +	.gpio			= -EINVAL,
-> +	.startup_delay		= 0,
-> +	.init_data		= &vads7846_regulator,
-> +};
-> +
-> +static struct platform_device vads7846_device = {
-> +	.name		= "reg-fixed-voltage",
-> +	.id		= 1,
-> +	.dev = {
-> +		.platform_data = &vads7846,
-> +	},
-> +};
-> +
->  static void __init overo_ads7846_init(void)
->  {
->  	if ((gpio_request(OVERO_GPIO_PENDOWN, "ADS7846_PENDOWN") == 0) &&
-> @@ -106,6 +135,8 @@ static void __init overo_ads7846_init(void)
->  		printk(KERN_ERR "could not obtain gpio for ADS7846_PENDOWN\n");
->  		return;
->  	}
-> +
-> +	platform_device_register(&vads7846_device);
->  }
->  
->  #else
-> -- 
-> 1.7.0.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Ok, got it. Thanks for the reply.
+
+> I've checked both IPU and DSP HW specs, and in the both cases, the mmu IP is
+> the only module with OCP port from the MPU in the relevant subsystem.
+> In that case, it is easier for me to remove that DSP and IPU hwmods and move
+> everything under the MMUs hwmods.
+> It will then highlight the re-use of the same IP in two different
+> subsystems.
+>
+> I have now to modify the OMAP4 generator in order to provide the correct
+> data in the right format.
+>
+> I'll try to do that before the end of this week. This will not have any real
+> impact for you except for the name change (mmu_ipu and mmu_dsp).
+>
+> Is that OK for you?
+
+No problem, once it is ready I'll update OMAP3 to mimic the name style.
+
+Thanks,
+
+Omar
