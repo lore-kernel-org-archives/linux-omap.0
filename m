@@ -1,601 +1,414 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [PATCH 2/2] OMAP: PM: implement devices wakeup latency
- constraints APIs
-Date: Tue, 8 Mar 2011 16:54:48 +0100
-Message-ID: <AANLkTinKmQztha_tKM0zB7CWMqbCLtsaYxZrdX3RVvW+@mail.gmail.com>
-References: <1299250375-26134-1-git-send-email-j-pihet@ti.com>
-	<1299250375-26134-3-git-send-email-j-pihet@ti.com>
-	<87aah6xsqk.fsf@ti.com>
+From: "Menon, Nishanth" <nm@ti.com>
+Subject: Re: [PATCH v8 3/7] omap3: pm: TWL4030 power scripts for OMAP3 boards
+Date: Tue, 8 Mar 2011 21:33:32 +0530
+Message-ID: <AANLkTikW_cgeh+YXLMfxex-AHY+PSCkj92tLwOdWh0zb@mail.gmail.com>
+References: <1299072653-13414-1-git-send-email-leslyam@ti.com> <1299072653-13414-4-git-send-email-leslyam@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f181.google.com ([209.85.216.181]:55105 "EHLO
-	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752695Ab1CHPyt convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Mar 2011 10:54:49 -0500
-Received: by qyg14 with SMTP id 14so4774865qyg.19
-        for <linux-omap@vger.kernel.org>; Tue, 08 Mar 2011 07:54:48 -0800 (PST)
-In-Reply-To: <87aah6xsqk.fsf@ti.com>
+Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:51377 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754782Ab1CHQDy convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 8 Mar 2011 11:03:54 -0500
+Received: by wyb34 with SMTP id 34so193602wyb.1
+        for <linux-omap@vger.kernel.org>; Tue, 08 Mar 2011 08:03:52 -0800 (PST)
+In-Reply-To: <1299072653-13414-4-git-send-email-leslyam@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Jean Pihet <j-pihet@ti.com>, Vibhore Vardhan <vvardhan@ti.com>
+To: Lesly A M <leslyam@ti.com>
+Cc: linux-omap@vger.kernel.org, David Derrick <dderrick@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
 
-On Tue, Mar 8, 2011 at 3:15 AM, Kevin Hilman <khilman@ti.com> wrote:
-> Jean Pihet <jean.pihet@newoldbits.com> writes:
->
->> Implement OMAP PM layer omap_pm_set_max_dev_wakeup_lat API by
->> creating similar APIs at the omap_device and omap_hwmod levels. The
->> omap_hwmod level call is the layer with access to the powerdomain
->> core, so it is the place where the powerdomain is queried to set and
->> release the constraints.
->>
->> NOTE: only works for devices which have been converted to use
->> =A0 =A0 =A0 omap_device/omap_hwmod.
->>
->> Longer term, we could possibly remove this API from the OMAP PM laye=
-r,
->> and instead directly use the device level API.
->>
->> The power domains get the next power state programmed directly in
->> the registers via pwrdm_wakeuplat_update_pwrst.
->>
->> Note about PM QOS: the MPU and CORE power domains get the next power
->> state via cpuidle, which get the strongest wake-up latency constrain=
-t
->> by querying PM QOS. The usage of PM QOS is temporary, until a generi=
-c
->> solution is in place.
->>
->> Based on Vibhore's original patch, adapted to omap_device, omap_hwmo=
-d
->> and PM QOS frameworks.
->
-> I haven't got to a detailed review of this code yet, but did do some
-> experiements and have some general comments on the code/design to get
-> started.
->
-> Also, I had a problem doing a real dumb test until I figured out the
-> problem with the init sequence. =A0I tried setting a constraint in th=
-e
-> device init code for UART (mach-omap2/serial.c:omap_serial_init_port(=
-)),
-> and then I realized that that runs before
-> mach-omap2/pm34xx.c:pwrdms_setup() which also calls
-> omap_set_pwrdm_state() for each powerdomain to initialize.
-Do we need to change the behavior at init?
+On Wed, Mar 2, 2011 at 19:00, Lesly A M <leslyam@ti.com> wrote:
+[...]
+> diff --git a/arch/arm/mach-omap2/twl4030.c b/arch/arm/mach-omap2/twl4=
+030.c
+> new file mode 100644
+> index 0000000..ff344b3
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/twl4030.c
+> @@ -0,0 +1,145 @@
+> +/*
+> + * OMAP power script for PMIC TWL4030
+> + *
+> + * Author: Lesly A M <leslyam@ti.com>
+> + *
+> + * Copyright (C) 2010 Texas Instruments, Inc.
+> + * Lesly A M <leslyam@ti.com>
+> + *
+> + * This program is free software; you can redistribute it and/or mod=
+ify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#ifdef CONFIG_TWL4030_POWER
 
-> Also, for debug purposes, it might be useful to have a per-device sys=
-fs
-> interface to setting this wakeup latency constraint. =A0Something lik=
-e
->
-> =A0 /sys/devices/platform/omap/.../power/wakeup_latency
-I do not see this as a debug interface but rather an API to the user sp=
-ace.
-If that is the case there are some issues to deal with, cf. below.
+Why?
 
-> I'm not sure exactly what to set the requesting device to though.
-And also, how to track the requesters? PM QOS is using a /dev node
-that must be kept open as long as the constraints remains valid.
+> +
+> +#include "twl4030.h"
+> +
+> +/*
+> + * Sequence to control the TRITON Power resources,
+> + * when the system goes into sleep.
+> + * Executed upon P1_P2/P3 transition for sleep.
+> + */
+try this:
+=2E/scripts/kernel-doc --text arch/arm/mach-omap2/twl4030.c
+Warning(arch/arm/mach-omap2/twl4030.c): no structured comments found
 
-> As far as implementation goes, you've so far implemented only wakeup
-> latencies, but not througput. =A0When you implement throughput you wi=
-ll
-> have to duplicate large parts of this code and data structures for
-> throughput, and if ever add some other constraint (frequency, voltage=
-)
-> it would need to be duplicated again.
->
-> Maybe now is the time to consider an interface to add a generic
-> per-device constraint, with a type (latency, throughput, etc.), or
-> "class" as it's called in PM QoS. =A0For now the type/class does not =
-need
-> to be exposed externally, but will make implementing new constraint
-> types much easer.
-Ok that makes sense.
-In the current patch the constraints plist is stored inside the
-powerdomain structure. This does not apply to throughput, frequency
-and voltage constraints.
-Should the list constraint be managed in the OMAP PM layer instead of
-in the power domain code? If so where to store the constraints?
+err... mebbe we need kernel doc styled comments here?
 
-> Some other comments below...
->
->> Signed-off-by: Jean Pihet <j-pihet@ti.com>
->> Cc: Vibhore Vardhan <vvardhan@ti.com>
->> ---
->> Based on khilman's pm-core branch
->>
->> =A0arch/arm/mach-omap2/omap_hwmod.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0=
- 62 ++++++++-
->> =A0arch/arm/mach-omap2/powerdomain.c =A0 =A0 =A0 =A0 =A0 =A0 | =A019=
-7 +++++++++++++++++++++++++
->> =A0arch/arm/mach-omap2/powerdomain.h =A0 =A0 =A0 =A0 =A0 =A0 | =A0 3=
-9 +++++-
->> =A0arch/arm/mach-omap2/powerdomains3xxx_data.c =A0 | =A0 60 ++++++++
->> =A0arch/arm/plat-omap/include/plat/omap_device.h | =A0 =A02 +
->> =A0arch/arm/plat-omap/include/plat/omap_hwmod.h =A0| =A0 =A02 +
->> =A0arch/arm/plat-omap/omap-pm-constraints.c =A0 =A0 =A0| =A0121 ++++=
-+++--------
->> =A0arch/arm/plat-omap/omap_device.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0=
- 28 ++++
->> =A08 files changed, 446 insertions(+), 65 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/=
-omap_hwmod.c
->> index 028efda..bad8248 100644
->> --- a/arch/arm/mach-omap2/omap_hwmod.c
->> +++ b/arch/arm/mach-omap2/omap_hwmod.c
->> @@ -142,6 +142,7 @@
->> =A0#include "powerdomain.h"
->> =A0#include <plat/clock.h>
->> =A0#include <plat/omap_hwmod.h>
->> +#include <plat/omap_device.h>
->> =A0#include <plat/prcm.h>
->>
->> =A0#include "cm2xxx_3xxx.h"
->> @@ -2267,10 +2268,69 @@ ohsps_unlock:
->> =A0}
->>
->> =A0/**
->> + * omap_hwmod_set_max_dev_wakeup_lat - set a device wake-up constra=
-int
->> + * @oh: the device of @oh to set a constraint on.
->> + * @req_oh: the device of @req_oh is the requester of the constrain=
-t.
->> + * @t: wakeup latency constraint (us). -1 removes the existing cons=
-traint.
->> + *
->> + * Query the powerdomain of @oh to set/release the wake-up constrai=
-nt.
->> + * @oh is used to determine which power domain to set a constraint =
-on.
->> + * @req_oh is used to record the requester for later update or remo=
-val
->> + * of a constraint.
->> + *
->> + * Returns -EINVAL if @oh or @req_oh have no power domain, or the r=
-eturn
->> + * code from the pwrdm function (pwrdm_wakeuplat_set/release_constr=
-aint)
->> + * of the powerdomain assocated with @oh.
->> + */
->> +int omap_hwmod_set_max_dev_wakeup_lat(struct omap_hwmod *req_oh,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- struct omap_hwmod *oh, long t)
->> +{
->> + =A0 =A0 struct device *req_dev;
->> + =A0 =A0 struct platform_device *req_pdev;
->> + =A0 =A0 struct powerdomain *pwrdm;
->> +
->> + =A0 =A0 pwrdm =3D omap_hwmod_get_pwrdm(oh);
->> +
->> + =A0 =A0 /* Catch devices with undefined powerdomains */
->> + =A0 =A0 if (!PTR_ERR(pwrdm)) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 pr_err("omap_hwmod: Error: could not find =
-parent "
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "powerdomain for %s\n", oh=
-->name);
->> + =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
->> + =A0 =A0 }
->> +
->> + =A0 =A0 req_pdev =3D &(req_oh->od->pdev);
->> + =A0 =A0 if (!PTR_ERR(req_pdev)) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 pr_err("omap_hwmod: Error: pdev not found =
-for oh %s\n",
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0oh->name);
->> + =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
->> + =A0 =A0 }
->> +
->> + =A0 =A0 req_dev =3D &(req_pdev->dev);
->> + =A0 =A0 if (!PTR_ERR(req_dev)) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 pr_err("omap_hwmod: Error: device not foun=
-d for oh %s\n",
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0oh->name);
->> + =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
->> + =A0 =A0 }
->> +
->> + =A0 =A0 /* Call set/release_constraint for the given pwrdm */
->> + =A0 =A0 if (t =3D=3D -1) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 pr_debug("omap_hwmod: remove max device la=
-tency constraint: "
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"oh %s, pwrdm %s, req b=
-y oh %s\n",
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0oh->name, pwrdm->name, =
-req_oh->name);
->> + =A0 =A0 } else {
->> + =A0 =A0 =A0 =A0 =A0 =A0 pr_debug("omap_hwmod: add max device laten=
-cy constraint: "
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"oh %s, t =3D %ld usec,=
- pwrdm %s, req by oh %s\n",
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0oh->name, t, pwrdm->nam=
-e, req_oh->name);
->> + =A0 =A0 }
->> +
->> + =A0 =A0 return pwrdm_wakeuplat_set_constraint(pwrdm, req_dev, t);
->> +}
->> +
->> +/**
->> =A0 * omap_hwmod_get_context_loss_count - get lost context count
->> =A0 * @oh: struct omap_hwmod *
->> =A0 *
->> - * Query the powerdomain of of @oh to get the context loss
->> + * Query the powerdomain of @oh to get the context loss
->> =A0 * count for this device.
->> =A0 *
->> =A0 * Returns the context loss count of the powerdomain assocated wi=
-th @oh
->> diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2=
-/powerdomain.c
->> index eaed0df..6fb4741 100644
->> --- a/arch/arm/mach-omap2/powerdomain.c
->> +++ b/arch/arm/mach-omap2/powerdomain.c
->> @@ -19,6 +19,8 @@
->> =A0#include <linux/list.h>
->> =A0#include <linux/errno.h>
->> =A0#include <linux/string.h>
->> +#include <linux/slab.h>
->> +
->> =A0#include "cm2xxx_3xxx.h"
->> =A0#include "prcm44xx.h"
->> =A0#include "cm44xx.h"
->> @@ -103,6 +105,13 @@ static int _pwrdm_register(struct powerdomain *=
-pwrdm)
->> =A0 =A0 =A0 pwrdm->state =3D pwrdm_read_pwrst(pwrdm);
->> =A0 =A0 =A0 pwrdm->state_counter[pwrdm->state] =3D 1;
->>
->> + =A0 =A0 /* Initialize priority ordered list for wakeup latency con=
-straint */
->> + =A0 =A0 spin_lock_init(&pwrdm->wakeuplat_lock);
->> + =A0 =A0 plist_head_init(&pwrdm->wakeuplat_dev_list, &pwrdm->wakeup=
-lat_lock);
->> +
->> + =A0 =A0 /* res_mutex protects res_list add and del ops */
->> + =A0 =A0 mutex_init(&pwrdm->wakeuplat_mutex);
->> +
->> =A0 =A0 =A0 pr_debug("powerdomain: registered %s\n", pwrdm->name);
->>
->> =A0 =A0 =A0 return 0;
->> @@ -176,6 +185,74 @@ static int _pwrdm_post_transition_cb(struct pow=
-erdomain *pwrdm, void *unused)
->> =A0 =A0 =A0 return 0;
->> =A0}
->>
->> +/**
->> + * pwrdm_wakeuplat_update_pwrst - Update power domain power state i=
-f needed
->> + * @pwrdm: struct powerdomain * to which requesting device belongs =
-to.
->> + *
->> + * Finds the minimum allowed wake-up latency value from all entries
->> + * in the list and the power domain power state needing the constra=
-int.
->> + * Programs a new target state if it is different from current powe=
-r state.
->> + *
->> + * Only OMAP3xxx is supported for now
->> + *
->> + * Returns 0 upon success.
->> + */
->> +static int pwrdm_wakeuplat_update_pwrst(struct powerdomain *pwrdm)
->> +{
->> + =A0 =A0 struct plist_node *node;
->> + =A0 =A0 int ret =3D 0, new_state;
->> + =A0 =A0 long min_latency =3D -1;
->> +
->> + =A0 =A0 /* Find the strongest constraint from the plist */
->> + =A0 =A0 if (!plist_head_empty(&pwrdm->wakeuplat_dev_list)) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 node =3D plist_first(&pwrdm->wakeuplat_dev=
-_list);
->> + =A0 =A0 =A0 =A0 =A0 =A0 min_latency =3D node->prio;
->> + =A0 =A0 }
->> +
->> + =A0 =A0 /* Find power state with wakeup latency < minimum constrai=
-nt. */
->> + =A0 =A0 for (new_state =3D 0x0; new_state < PWRDM_MAX_PWRSTS; new_=
-state++) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 if (min_latency =3D=3D -1 ||
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 pwrdm->wakeup_lat[new_state] <=3D =
-min_latency)
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
->> + =A0 =A0 }
->> +
->> + =A0 =A0 switch (new_state) {
->> + =A0 =A0 case PWRDM_FUNC_PWRST_OFF:
->> + =A0 =A0 =A0 =A0 =A0 =A0 new_state =3D PWRDM_POWER_OFF;
->> + =A0 =A0 =A0 =A0 =A0 =A0 break;
->> + =A0 =A0 case PWRDM_FUNC_PWRST_OSWR:
->> + =A0 =A0 =A0 =A0 =A0 =A0 if (cpu_is_omap34xx())
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 pwrdm_set_logic_retst(pwrd=
-m, PWRDM_POWER_OFF);
->
-> cpu_is_* checks here aren't right.
->
-> You should use SoC specific function pointers as are done for many of=
- the
-> other powerdomain calls after Rajendra's splitup series.
-The cpu_is_* tests are not related to the SoC specific function
-pointers but rather to the comment in the function description 'Only
-OMAP3xxx is supported for now'.
-In fact the function that are conditionally called
-(pwrdm_set_logic_retst and omap_set_pwrdm_state) are correctly using
-the SoC specific pointers.
+> +static struct twl4030_ins __initdata sleep_on_seq[] =3D {
+does this sequence get triggered for RET or OFF from OMAP perspective?
 
-Is this test needed? If so is it the correct way to do it?
+> + =A0 =A0 =A0 /* Broadcast message to put res to sleep */
+> + =A0 =A0 =A0 {MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, =
+RES_TYPE2_R1,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 RES_STATE_SLEEP), 2},
+At this point - we expect .type=3D0 and .type2=3D1 to go to sleep rt?
+NRESPWRON is the only one that matched this criteria.
 
+> + =A0 =A0 =A0 {MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, =
+RES_TYPE2_R2,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 RES_STATE_SLEEP), 2},
+At this point - we expect .type=3D0 and .type2=3D1 to go to sleep rt?
+HFCLKOUT, VINTANA2 matches this criteria
+
+Which rails are impacted by this? I tried mapping to a spread sheet
+and may be lost :(
+mebbe documenting it with reasoning why they are chosen will help
+reviewers and future
+code users understand this better.
+
+> +};
+> +
+> +static struct twl4030_script sleep_on_script __initdata =3D {
+> + =A0 =A0 =A0 .script =3D sleep_on_seq,
+> + =A0 =A0 =A0 .size =A0 =3D ARRAY_SIZE(sleep_on_seq),
+> + =A0 =A0 =A0 .flags =A0=3D TWL4030_SLEEP_SCRIPT,
+> +};
+> +
+> +/*
+> + * Sequence to control the TRITON Power resources,
+> + * when the system wakeup from sleep.
+> + * Executed upon P1_P2 transition for wakeup.
+> + */
+> +static struct twl4030_ins wakeup_p12_seq[] __initdata =3D {
+> + =A0 =A0 =A0 /* Broadcast message to put res to active */
+> + =A0 =A0 =A0 {MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, =
+RES_TYPE2_R1,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 RES_STATE_ACTIVE), 2},
+=2Etype=3D0 and .type2=3D1 are woken up rt?
+NRESPWRON wokeup but we put HFCLKOUT and VINTANA2 to sleep - no wakeup
+for those?
+
+> +};
+> +
+> +static struct twl4030_script wakeup_p12_script __initdata =3D {
+> + =A0 =A0 =A0 .script =3D wakeup_p12_seq,
+> + =A0 =A0 =A0 .size =A0 =3D ARRAY_SIZE(wakeup_p12_seq),
+> + =A0 =A0 =A0 .flags =A0=3D TWL4030_WAKEUP12_SCRIPT,
+> +};
+> +
+> +/*
+> + * Sequence to control the TRITON Power resources,
+> + * when the system wakeup from sleep.
+> + * Executed upon P3 transition for wakeup.
+
+I need a bit of dumbing it down here - what is P3 transition? is it
+waking from OFF/RET? is it follow on from P12 then P3?
+
+> + */
+> +static struct twl4030_ins wakeup_p3_seq[] __initdata =3D {
+> + =A0 =A0 =A0 /* Broadcast message to put res to active */
+> + =A0 =A0 =A0 {MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, =
+RES_TYPE2_R2,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 RES_STATE_ACTIVE), 2},
+ok - so we wakeup HFCLKOUT and VINTANA2 here - makes me wonder why we
+chose VINTANA2 and not VINTANA1.
+
+> +};
+> +
+> +static struct twl4030_script wakeup_p3_script __initdata =3D {
+> + =A0 =A0 =A0 .script =3D wakeup_p3_seq,
+> + =A0 =A0 =A0 .size =A0 =3D ARRAY_SIZE(wakeup_p3_seq),
+> + =A0 =A0 =A0 .flags =A0=3D TWL4030_WAKEUP3_SCRIPT,
+> +};
+> +
+> +/*
+> + * Sequence to reset the TRITON Power resources,
+> + * when the system gets warm reset.
+> + * Executed upon warm reset signal.
+this one makes sense to me thanks.
+> + */
+> +static struct twl4030_ins wrst_seq[] __initdata =3D {
+> +/*
+> + * Reset twl4030.
+Why should I reset twl4030 on warm reset? cant I just let the scripts
+sit there while I detect (using some mechanism) that i have already
+programmed the scripts, hence dont need to reprogram them again?
+
+> + * Reset Main_Ref.
+> + * Reset All type2_group2.
+> + * Reset VUSB_3v1.
+> + * Reset All type2_group1.
+> + * Reset RC.
+what is RC?
+> + * Reenable twl4030.
+re-enable?
+
+but, I dont understand: why are these rails chosen? are *all*
+platforms having the same rails? would there be variances?
+
+> + */
+> + =A0 =A0 =A0 {MSG_SINGULAR(DEV_GRP_NULL, RES_RESET, RES_STATE_OFF), =
+2},
+> + =A0 =A0 =A0 {MSG_SINGULAR(DEV_GRP_NULL, RES_Main_Ref, RES_STATE_WRS=
+T), 2},
+s/RES_Main_Ref/RES_MAIN_REF ?
+
+> + =A0 =A0 =A0 {MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, =
+RES_TYPE2_R2,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 RES_STATE_WRST), 2},
+> + =A0 =A0 =A0 {MSG_SINGULAR(DEV_GRP_NULL, RES_VUSB_3V1, RES_STATE_WRS=
+T), 2},
+> + =A0 =A0 =A0 {MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, =
+RES_TYPE2_R1,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 RES_STATE_WRST), 2},
+> + =A0 =A0 =A0 {MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_RC, RES_TYPE_ALL, =
+RES_TYPE2_R0,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 RES_STATE_WRST), 2},
+> + =A0 =A0 =A0 {MSG_SINGULAR(DEV_GRP_NULL, RES_RESET, RES_STATE_ACTIVE=
+), 2},
+
+I dont understand this sequence unfortunately. need documentation to
+help me here.
+
+> +};
+> +
+> +static struct twl4030_script wrst_script __initdata =3D {
+> + =A0 =A0 =A0 .script =3D wrst_seq,
+> + =A0 =A0 =A0 .size =A0 =3D ARRAY_SIZE(wrst_seq),
+> + =A0 =A0 =A0 .flags =A0=3D TWL4030_WRST_SCRIPT,
+> +};
+> +
+> +/* TRITON script for sleep, wakeup & warm_reset */
+> +static struct twl4030_script *twl4030_scripts[] __initdata =3D {
+> + =A0 =A0 =A0 &wakeup_p12_script,
+> + =A0 =A0 =A0 &wakeup_p3_script,
+> + =A0 =A0 =A0 &sleep_on_script,
+> + =A0 =A0 =A0 &wrst_script,
+> +};
+> +
+> +static struct twl4030_resconfig twl4030_rconfig[] =3D {
+overall, I recommend being explicit for the rails  -I believe VPLLs
+are an example of that. rationale: imagine doing a OTA update: you'd
+have the old scripts programmed in by the previous kernel, then the
+new kernel starts up since we do a OMAP restart and not really a TWL
+restart, we'd end up with a mixture of scripts in the system.  - this
+is definitely a scenario to avoid - things like broadcast events like
+those above going through to rails in the wrong groups can have
+havoc..
+
+> + =A0 =A0 =A0 { .resource =3D RES_VPLL1, .devgroup =3D DEV_GRP_P1, .t=
+ype =3D 3,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .type2 =3D 1, .remap_sleep =3D RES_STAT=
+E_OFF },
+> + =A0 =A0 =A0 { .resource =3D RES_VINTANA1, .devgroup =3D DEV_GRP_ALL=
+, .type =3D 1,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .type2 =3D 2, .remap_sleep =3D RES_STAT=
+E_SLEEP },
+> + =A0 =A0 =A0 { .resource =3D RES_VINTANA2, .devgroup =3D DEV_GRP_ALL=
+, .type =3D 0,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .type2 =3D 2, .remap_sleep =3D RES_STAT=
+E_SLEEP },
+> + =A0 =A0 =A0 { .resource =3D RES_VINTDIG, .devgroup =3D DEV_GRP_ALL,=
+ .type =3D 1,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .type2 =3D 2, .remap_sleep =3D RES_STAT=
+E_SLEEP },
+> + =A0 =A0 =A0 { .resource =3D RES_VIO, .devgroup =3D DEV_GRP_ALL, .ty=
+pe =3D 2,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .type2 =3D 2, .remap_sleep =3D RES_STAT=
+E_SLEEP },
+> + =A0 =A0 =A0 { .resource =3D RES_VDD1, .devgroup =3D DEV_GRP_P1,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .type =3D 4, .type2 =3D 1, .remap_sleep=
+ =3D RES_STATE_OFF },
+> + =A0 =A0 =A0 { .resource =3D RES_VDD2, .devgroup =3D DEV_GRP_P1,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .type =3D 3, .type2 =3D 1, .remap_sleep=
+ =3D RES_STATE_OFF },
+> + =A0 =A0 =A0 { .resource =3D RES_REGEN, .devgroup =3D DEV_GRP_ALL, .=
+type =3D 2,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .type2 =3D 1, .remap_sleep =3D RES_STAT=
+E_SLEEP },
+> + =A0 =A0 =A0 { .resource =3D RES_NRES_PWRON, .devgroup =3D DEV_GRP_A=
+LL, .type =3D 0,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .type2 =3D 1, .remap_sleep =3D RES_STAT=
+E_SLEEP },
+> + =A0 =A0 =A0 { .resource =3D RES_CLKEN, .devgroup =3D DEV_GRP_ALL, .=
+type =3D 3,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .type2 =3D 2, .remap_sleep =3D RES_STAT=
+E_SLEEP },
+> + =A0 =A0 =A0 { .resource =3D RES_SYSEN, .devgroup =3D DEV_GRP_ALL, .=
+type =3D 6,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .type2 =3D 1, .remap_sleep =3D RES_STAT=
+E_SLEEP },
+> + =A0 =A0 =A0 { .resource =3D RES_HFCLKOUT, .devgroup =3D DEV_GRP_P3,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .type =3D 0, .type2 =3D 2, .remap_sleep=
+ =3D RES_STATE_SLEEP },
+> + =A0 =A0 =A0 { 0, 0},
+
+Dumb q:  vpll2, vaux1-3, vmmc1-2,vsim,vdac,vsub1.5,1.8,3.1, regen,
+32KHzclk, triton_ref and main_ref are other resources not covered in
+the sequence? I think you either need to cover them OR document why
+not and probably stuff like vaux, vmmc1-2 are responsibility of
+drivers needs to be clearly stated.
+
+> +};
+> +
+> +struct twl4030_power_data __initdata twl4030_generic_script =3D {
+> + =A0 =A0 =A0 .scripts =A0 =A0 =A0 =A0=3D twl4030_scripts,
+> + =A0 =A0 =A0 .num =A0 =A0 =A0 =A0 =A0 =A0=3D ARRAY_SIZE(twl4030_scri=
+pts),
+> + =A0 =A0 =A0 .resource_config =3D twl4030_rconfig,
+> +};
+> +#endif
+> diff --git a/arch/arm/mach-omap2/twl4030.h b/arch/arm/mach-omap2/twl4=
+030.h
+> new file mode 100644
+> index 0000000..ee66e7d
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/twl4030.h
+> @@ -0,0 +1,20 @@
+> +/*
+> + * OMAP TWL4030 power scripts header file
+> + *
+> + * Author: Lesly A M <x0080970@ti.com>
+> + *
+> + * Copyright (C) 2010 Texas Instruments, Inc.
+> + * Lesly A M <x0080970@ti.com>
+> + *
+> + * This program is free software; you can redistribute it and/or mod=
+ify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#ifndef __ARCH_ARM_MACH_OMAP3_TWL4030_SCRIPT_H
+> +#define __ARCH_ARM_MACH_OMAP3_TWL4030_SCRIPT_H
+> +
+> +#include <linux/i2c/twl.h>
+mebbe Kevin can comment if including header in header file is a good id=
+ea..
+
+> +
+> +extern struct twl4030_power_data twl4030_generic_script;
+what if TWL4030 was disabled?
+
+> +#endif
+> diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
+> index 61b9609..f4bd475 100644
+> --- a/include/linux/i2c/twl.h
+> +++ b/include/linux/i2c/twl.h
+> @@ -436,9 +436,23 @@ static inline int twl6030_mmc_card_detect(struct=
+ device *dev, int slot)
 >
->> + =A0 =A0 =A0 =A0 =A0 =A0 new_state =3D PWRDM_POWER_RET;
->> + =A0 =A0 =A0 =A0 =A0 =A0 break;
->> + =A0 =A0 case PWRDM_FUNC_PWRST_CSWR:
->> + =A0 =A0 =A0 =A0 =A0 =A0 if (cpu_is_omap34xx())
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 pwrdm_set_logic_retst(pwrd=
-m, PWRDM_POWER_RET);
->> + =A0 =A0 =A0 =A0 =A0 =A0 new_state =3D PWRDM_POWER_RET;
->> + =A0 =A0 =A0 =A0 =A0 =A0 break;
->> + =A0 =A0 case PWRDM_FUNC_PWRST_ON:
->> + =A0 =A0 =A0 =A0 =A0 =A0 new_state =3D PWRDM_POWER_ON;
->> + =A0 =A0 =A0 =A0 =A0 =A0 break;
->> + =A0 =A0 default:
->> + =A0 =A0 =A0 =A0 =A0 =A0 pr_warn("powerdomain: requested latency co=
-nstraint not "
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "supported %s set to ON st=
-ate\n", pwrdm->name);
->> + =A0 =A0 =A0 =A0 =A0 =A0 new_state =3D PWRDM_POWER_ON;
->> + =A0 =A0 =A0 =A0 =A0 =A0 break;
->> + =A0 =A0 }
->> +
->> + =A0 =A0 if (pwrdm_read_pwrst(pwrdm) !=3D new_state) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 if (cpu_is_omap34xx())
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D omap_set_pwrdm_sta=
-te(pwrdm, new_state);
->> + =A0 =A0 }
->> +
->> + =A0 =A0 pr_debug("powerdomain: %s pwrst: curr=3D%d, prev=3D%d next=
-=3D%d "
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0"min_latency=3D%ld, set_state=3D%d\n", =
-pwrdm->name,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0pwrdm_read_pwrst(pwrdm), pwrdm_read_pre=
-v_pwrst(pwrdm),
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0pwrdm_read_next_pwrst(pwrdm), min_laten=
-cy, new_state);
->> +
->> + =A0 =A0 return ret;
->> +}
->> +
+> =A0/* Power bus message definitions */
 >
-> [...]
+> -/* The TWL4030/5030 splits its power-management resources (the vario=
+us
+> - * regulators, clock and reset lines) into 3 processor groups - P1, =
+P2 and
+> - * P3. These groups can then be configured to transition between sle=
+ep, wait-on
+> +/*
+> + * The TWL4030/5030 splits its power-management resources (the vario=
+us
+> + * regulators, clock and reset lines) into 3 processor groups - P1, =
+P2 and P3.
+> + *
+> + * Resources attached to device group P1 is managed depending on the=
+ state of
+> + * NSLEEP1 pin of TRITON, which is connected to sys_off signal from =
+OMAP
+> + *
+> + * Resources attached to device group P2 is managed depending on the=
+ state of
+> + * NSLEEP2 pin of TRITON, which is can be connected to a modem or
+> + * some other processor
+how do these map to OMAP - remember - most of us are familiar with
+OMAP and not TWL4030 :(
+
+> + *
+> + * Resources attached to device group P3 is managed depending on the=
+ state of
+> + * CLKREQ pin of TRITON, which is connected to clk request signal fr=
+om OMAP
+> + *
+> + * If required these resources can be attached to combination of P1/=
+P2/P3.
+> + *
+> + * These groups can then be configured to transition between sleep, =
+wait-on
+> =A0* and active states by sending messages to the power bus. =A0See S=
+ection 5.4.2
+> =A0* Power Resources of TWL4030 TRM
+> =A0*/
+> @@ -448,7 +462,17 @@ static inline int twl6030_mmc_card_detect(struct=
+ device *dev, int slot)
+> =A0#define DEV_GRP_P1 =A0 =A0 =A0 =A0 =A0 =A0 0x1 =A0 =A0 /* P1: all =
+OMAP devices */
+> =A0#define DEV_GRP_P2 =A0 =A0 =A0 =A0 =A0 =A0 0x2 =A0 =A0 /* P2: all =
+Modem devices */
+> =A0#define DEV_GRP_P3 =A0 =A0 =A0 =A0 =A0 =A0 0x4 =A0 =A0 /* P3: all =
+peripheral devices */
+> +#define DEV_GRP_ALL =A0 =A0 =A0 =A0 =A0 =A00x7 =A0 =A0 /* P1/P2/P3: =
+all devices */
 >
->> diff --git a/arch/arm/mach-omap2/powerdomains3xxx_data.c b/arch/arm/=
-mach-omap2/powerdomains3xxx_data.c
->> index e1bec56..4f7e44d 100644
->> --- a/arch/arm/mach-omap2/powerdomains3xxx_data.c
->> +++ b/arch/arm/mach-omap2/powerdomains3xxx_data.c
->> @@ -52,6 +52,12 @@ static struct powerdomain iva2_pwrdm =3D {
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 [2] =3D PWRSTS_OFF_ON,
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 [3] =3D PWRDM_POWER_ON,
->> =A0 =A0 =A0 },
->> + =A0 =A0 .wakeup_lat =3D {
->> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_OFF] =3D 1100,
->> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_OSWR] =3D UNSUP_STATE,
->> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_CSWR] =3D 350,
->> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_ON] =3D 0,
->> + =A0 =A0 },
->> =A0};
->>
->> =A0static struct powerdomain mpu_3xxx_pwrdm =3D {
->> @@ -68,6 +74,12 @@ static struct powerdomain mpu_3xxx_pwrdm =3D {
->> =A0 =A0 =A0 .pwrsts_mem_on =A0 =A0=3D {
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 [0] =3D PWRSTS_OFF_ON,
->> =A0 =A0 =A0 },
->> + =A0 =A0 .wakeup_lat =3D {
->> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_OFF] =3D 95,
->> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_OSWR] =3D UNSUP_STATE,
->> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_CSWR] =3D 45,
->> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_ON] =3D 0,
->> + =A0 =A0 },
->> =A0};
->>
->> =A0/*
->> @@ -98,6 +110,12 @@ static struct powerdomain core_3xxx_pre_es3_1_pw=
-rdm =3D {
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 [0] =3D PWRSTS_OFF_RET_ON, /* MEM1ONSTAT=
-E */
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 [1] =3D PWRSTS_OFF_RET_ON, /* MEM2ONSTAT=
-E */
->> =A0 =A0 =A0 },
->> + =A0 =A0 .wakeup_lat =3D {
->> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_OFF] =3D 100,
->> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_OSWR] =3D UNSUP_STATE,
->> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_CSWR] =3D 60,
->> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_ON] =3D 0,
->> + =A0 =A0 },
->> =A0};
->>
->> =A0static struct powerdomain core_3xxx_es3_1_pwrdm =3D {
->> @@ -121,6 +139,12 @@ static struct powerdomain core_3xxx_es3_1_pwrdm=
- =3D {
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 [0] =3D PWRSTS_OFF_RET_ON, /* MEM1ONSTAT=
-E */
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 [1] =3D PWRSTS_OFF_RET_ON, /* MEM2ONSTAT=
-E */
->> =A0 =A0 =A0 },
->> + =A0 =A0 .wakeup_lat =3D {
->> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_OFF] =3D 100,
->> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_OSWR] =3D UNSUP_STATE,
->> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_CSWR] =3D 60,
->> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_ON] =3D 0,
->> + =A0 =A0 },
->> =A0};
->>
->> =A0static struct powerdomain dss_pwrdm =3D {
->> @@ -136,6 +160,12 @@ static struct powerdomain dss_pwrdm =3D {
->> =A0 =A0 =A0 .pwrsts_mem_on =A0 =A0=3D {
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 [0] =3D PWRDM_POWER_ON, =A0/* MEMONSTATE=
+> +/*
+> + * The 27 power resources in TRITON is again divided into
+> + * analog resources:
+> + * =A0 =A0 Power Providers - LDO regulators, dc-to-dc regulators
+> + * =A0 =A0 Power Reference - analog reference
+> + *
+> + * and digital resources:
+> + * =A0 =A0 Reset & Clock - reset and clock signals.
+> + */
+> =A0/* Resource groups */
+> =A0#define RES_GRP_RES =A0 =A0 =A0 =A0 =A0 =A00x0 =A0 =A0 /* Reserved=
  */
->> =A0 =A0 =A0 },
->> + =A0 =A0 .wakeup_lat =3D {
->> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_OFF] =3D 70,
->> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_OSWR] =3D UNSUP_STATE,
->> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_CSWR] =3D 20,
->> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_ON] =3D 0,
->> + =A0 =A0 },
->> =A0};
->>
->> =A0/*
->> @@ -157,6 +187,12 @@ static struct powerdomain sgx_pwrdm =3D {
->> =A0 =A0 =A0 .pwrsts_mem_on =A0 =A0=3D {
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 [0] =3D PWRDM_POWER_ON, =A0/* MEMONSTATE=
- */
->> =A0 =A0 =A0 },
->> + =A0 =A0 .wakeup_lat =3D {
->> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_OFF] =3D 1000,
->> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_OSWR] =3D UNSUP_STATE,
->> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_CSWR] =3D UNSUP_STATE,
->> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_ON] =3D 0,
->> + =A0 =A0 },
->> =A0};
->>
->> =A0static struct powerdomain cam_pwrdm =3D {
->> @@ -172,6 +208,12 @@ static struct powerdomain cam_pwrdm =3D {
->> =A0 =A0 =A0 .pwrsts_mem_on =A0 =A0=3D {
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 [0] =3D PWRDM_POWER_ON, =A0/* MEMONSTATE=
- */
->> =A0 =A0 =A0 },
->> + =A0 =A0 .wakeup_lat =3D {
->> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_OFF] =3D 850,
->> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_OSWR] =3D UNSUP_STATE,
->> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_CSWR] =3D 35,
->> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_ON] =3D 0,
->> + =A0 =A0 },
->> =A0};
->>
->> =A0static struct powerdomain per_pwrdm =3D {
->> @@ -187,6 +229,12 @@ static struct powerdomain per_pwrdm =3D {
->> =A0 =A0 =A0 .pwrsts_mem_on =A0 =A0=3D {
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 [0] =3D PWRDM_POWER_ON, =A0/* MEMONSTATE=
- */
->> =A0 =A0 =A0 },
->> + =A0 =A0 .wakeup_lat =3D {
->> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_OFF] =3D 200,
->> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_OSWR] =3D UNSUP_STATE,
->> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_CSWR] =3D 110,
->> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_ON] =3D 0,
->> + =A0 =A0 },
->> =A0};
->>
->> =A0static struct powerdomain emu_pwrdm =3D {
->> @@ -201,6 +249,12 @@ static struct powerdomain neon_pwrdm =3D {
->> =A0 =A0 =A0 .omap_chip =A0 =A0 =A0 =A0=3D OMAP_CHIP_INIT(CHIP_IS_OMA=
-P3430),
->> =A0 =A0 =A0 .pwrsts =A0 =A0 =A0 =A0 =A0 =3D PWRSTS_OFF_RET_ON,
->> =A0 =A0 =A0 .pwrsts_logic_ret =3D PWRDM_POWER_RET,
->> + =A0 =A0 .wakeup_lat =3D {
->> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_OFF] =3D 200,
->> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_OSWR] =3D UNSUP_STATE,
->> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_CSWR] =3D 35,
->> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_ON] =3D 0,
->> + =A0 =A0 },
->> =A0};
->>
->> =A0static struct powerdomain usbhost_pwrdm =3D {
->> @@ -223,6 +277,12 @@ static struct powerdomain usbhost_pwrdm =3D {
->> =A0 =A0 =A0 .pwrsts_mem_on =A0 =A0=3D {
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 [0] =3D PWRDM_POWER_ON, =A0/* MEMONSTATE=
- */
->> =A0 =A0 =A0 },
->> + =A0 =A0 .wakeup_lat =3D {
->> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_OFF] =3D 800,
->> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_OSWR] =3D UNSUP_STATE,
->> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_CSWR] =3D 150,
->> + =A0 =A0 =A0 =A0 =A0 =A0 [PWRDM_FUNC_PWRST_ON] =3D 0,
->> + =A0 =A0 },
->> =A0};
+> =A0#define RES_GRP_PP =A0 =A0 =A0 =A0 =A0 =A0 0x1 =A0 =A0 /* Power pr=
+oviders */
+> @@ -460,7 +484,10 @@ static inline int twl6030_mmc_card_detect(struct=
+ device *dev, int slot)
+> =A0#define RES_GRP_ALL =A0 =A0 =A0 =A0 =A0 =A00x7 =A0 =A0 /* All reso=
+urce groups */
 >
-> A summary about where the latency numbers for each powerdomain come f=
-rom
-> would be useful.
-Ok
-
+> =A0#define RES_TYPE2_R0 =A0 =A0 =A0 =A0 =A0 0x0
+> +#define RES_TYPE2_R1 =A0 =A0 =A0 =A0 =A0 0x1
+> +#define RES_TYPE2_R2 =A0 =A0 =A0 =A0 =A0 0x2
 >
-> [...]
+> +#define RES_TYPE_R0 =A0 =A0 =A0 =A0 =A0 =A00x0
+> =A0#define RES_TYPE_ALL =A0 =A0 =A0 =A0 =A0 0x7
 >
->> @@ -87,64 +60,86 @@ int omap_pm_set_min_bus_tput(struct device *dev,=
- u8 agent_id, unsigned long r)
->> =A0 =A0 =A0 return 0;
->> =A0}
->>
->> +/*
->> + * omap_pm_set_max_dev_wakeup_lat - set/release devices wake-up lat=
-ency
->> + * constraints
->> + */
->> =A0int omap_pm_set_max_dev_wakeup_lat(struct device *req_dev, struct=
- device *dev,
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0l=
-ong t)
->> =A0{
->> + =A0 =A0 struct platform_device *pdev, *req_pdev;
->> + =A0 =A0 int ret =3D 0;
->> +
->> =A0 =A0 =A0 if (!req_dev || !dev || t < -1) {
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 WARN(1, "OMAP PM: %s: invalid parameter(=
-s)", __func__);
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
->> + =A0 =A0 }
->> +
->> + =A0 =A0 /* Look for the platform devices */
->> + =A0 =A0 pdev =3D to_platform_device(dev);
->> + =A0 =A0 req_pdev =3D to_platform_device(req_dev);
->> +
->> + =A0 =A0 /* Try to catch non platform devices. */
->> + =A0 =A0 if ((pdev->name =3D=3D NULL) || (req_pdev->name =3D=3D NUL=
-L)) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 pr_err("OMAP-PM set_wakeup_lat: Error: pla=
-tform devices "
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"not valid\n");
->> + =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
->> + =A0 =A0 } else {
->> + =A0 =A0 =A0 =A0 =A0 =A0 /* Call the omap_device API */
->> + =A0 =A0 =A0 =A0 =A0 =A0 ret =3D omap_device_set_max_dev_wakeup_lat=
-(req_pdev, pdev, t);
->> + =A0 =A0 }
+> =A0/* Resource states */
+> --
+> 1.7.1
 >
-> I don't think a NULL name check is the right sanity check here. =A0WH=
-at
-> you really need to know is whether the target device is an omap_devic=
-e.
-> The requesting device can be anything (I think.)
->
-> Here's a simpler check:
->
-> =A0 =A0 =A0 =A0if (pdev->dev->parent =3D=3D &omap_device_parent)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0ret =3D omap_device_set_max_dev_wakeup=
-_lat(req_pdev, pdev, t);
-> =A0 =A0 =A0 =A0else
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0...
-Ok I will use this test. Note: the dev parameter is already checked
-for NULL above.
-
-Also I think the requester parameter needs to keep the device* type
-across all layers. In any case only this type is used by the low level
-code (in powerdomain.c). This allows for any device (i.e. that does
-not necessarily have an associated omap_device) to request
-constraints.
-What do you think?
-
->
->
->> + =A0 =A0 return ret;
->> +}
->
-> Kevin
 >
 
-Thanks for reviewing the code.
 
-Jean
+Regards,
+Nishanth Menon
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
