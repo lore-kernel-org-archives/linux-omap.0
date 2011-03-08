@@ -1,37 +1,40 @@
 From: David Cohen <dacohen@gmail.com>
-Subject: [PATCH v2 0/3] omap: iovmm: Fix IOVMM check for fixed 'da'
-Date: Tue,  8 Mar 2011 22:15:13 +0200
-Message-ID: <1299615316-17512-1-git-send-email-dacohen@gmail.com>
+Subject: [PATCH v2 2/3] omap3: change ISP's IOMMU da_start address
+Date: Tue,  8 Mar 2011 22:15:15 +0200
+Message-ID: <1299615316-17512-3-git-send-email-dacohen@gmail.com>
+References: <1299615316-17512-1-git-send-email-dacohen@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-ey0-f174.google.com ([209.85.215.174]:48929 "EHLO
 	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755628Ab1CHUP3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Mar 2011 15:15:29 -0500
+	with ESMTP id S1756090Ab1CHUPf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Mar 2011 15:15:35 -0500
+In-Reply-To: <1299615316-17512-1-git-send-email-dacohen@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Hiroshi.DOYU@nokia.com
 Cc: linux-omap@vger.kernel.org, fernando.lugo@ti.com, linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com, sakari.ailus@maxwell.research.nokia.com, David Cohen <dacohen@gmail.com>
 
-IOVMM driver checks input 'da == 0' when mapping address to determine whether
-user wants fixed 'da' or not. At the same time, it doesn't disallow address
-0x0 to be used, what creates an ambiguous situation. This patch set moves
-fixed 'da' check to the input flags.
-It also fixes da_start value for ISP IOMMU instance.
+ISP doesn't consider 0x0 as a valid address, so it should explicitly
+exclude first page from allowed 'da' range.
 
-Br,
-
-David Cohen
+Signed-off-by: David Cohen <dacohen@gmail.com>
 ---
+ arch/arm/mach-omap2/omap-iommu.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-David Cohen (2):
-  omap3: change ISP's IOMMU da_start address
-  omap: iovmm: don't check 'da' to set IOVMF_DA_FIXED flag
-
-Michael Jones (1):
-  omap: iovmm: disallow mapping NULL address when IOVMF_DA_ANON is set
-
- arch/arm/mach-omap2/omap-iommu.c        |    2 +-
- arch/arm/plat-omap/include/plat/iovmm.h |    2 --
- arch/arm/plat-omap/iovmm.c              |   30 +++++++++++++++---------------
- 3 files changed, 16 insertions(+), 18 deletions(-)
+diff --git a/arch/arm/mach-omap2/omap-iommu.c b/arch/arm/mach-omap2/omap-iommu.c
+index 3fc5dc7..3bea489 100644
+--- a/arch/arm/mach-omap2/omap-iommu.c
++++ b/arch/arm/mach-omap2/omap-iommu.c
+@@ -33,7 +33,7 @@ static struct iommu_device omap3_devices[] = {
+ 			.name = "isp",
+ 			.nr_tlb_entries = 8,
+ 			.clk_name = "cam_ick",
+-			.da_start = 0x0,
++			.da_start = 0x1000,
+ 			.da_end = 0xFFFFF000,
+ 		},
+ 	},
+-- 
+1.7.0.4
 
