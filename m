@@ -1,57 +1,43 @@
-From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: RE: [PATCH v11 7/8] OMAP: dmtimer: pm_runtime support
-Date: Tue, 8 Mar 2011 05:43:30 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB037A360BF7@dbde02.ent.ti.com>
-References: <1298546811-27055-1-git-send-email-tarun.kanti@ti.com>
- <1298546811-27055-8-git-send-email-tarun.kanti@ti.com>
- <878vwvn0gr.fsf@ti.com> <20110304172832.GZ20560@atomide.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB037A3605AE@dbde02.ent.ti.com>
- <20110304193746.GG20560@atomide.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB037A3605C4@dbde02.ent.ti.com>
- <20110305000156.GI20560@atomide.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB037A3605E5@dbde02.ent.ti.com>
- <20110308001002.GB26463@atomide.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH v3] OMAP3+: OPP: Replace voltage values with Macros
+Date: Tue, 08 Mar 2011 05:47:04 +0530
+Message-ID: <4D757580.6050507@ti.com>
+References: <1299320842-2503-1-git-send-email-nm@ti.com> <874o7e1ss2.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:54526 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754459Ab1CHANf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Mar 2011 19:13:35 -0500
-In-Reply-To: <20110308001002.GB26463@atomide.com>
-Content-Language: en-US
+Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:53236 "EHLO
+	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750754Ab1CHARN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Mar 2011 19:17:13 -0500
+Received: by mail-vw0-f42.google.com with SMTP id 10so4291973vws.29
+        for <linux-omap@vger.kernel.org>; Mon, 07 Mar 2011 16:17:12 -0800 (PST)
+In-Reply-To: <874o7e1ss2.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "Hilman, Kevin" <khilman@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Basak, Partha" <p-basak2@ti.com>
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Tony <tony@atomide.com>, Vishwanath BS <vishwanath.bs@ti.com>
 
-> -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com]
-> Sent: Tuesday, March 08, 2011 5:40 AM
-> To: DebBarma, Tarun Kanti
-> Cc: Hilman, Kevin; linux-omap@vger.kernel.org; Basak, Partha
-> Subject: Re: [PATCH v11 7/8] OMAP: dmtimer: pm_runtime support
-> 
-> * DebBarma, Tarun Kanti <tarun.kanti@ti.com> [110304 16:20]:
-> >
-> > Now, coming back to our present requirement where we initialize
-> > Only the system timer early and is skipped later, here is the plan:
-> >
-> > (1) Have a separate class in hwmod database with unique name
-> "system_timer"
-> > (2) Initialize just this one during early init
-> 
-> Let's keep the system timer code completely separate. For the
-> system timer we really just need to implement one function to
-> reprogram one timer.
-> 
-> What you've implemented is pretty much done for the rest of
-> the timers and allows us to turn them into a regular device
-> driver eventually.
-YES. So, this proposal of mine can be ignored now. 
+Kevin Hilman wrote, on 03/08/2011 03:45 AM:
+> Nishanth Menon<nm@ti.com>  writes:
+>
+>> From: Vishwanath BS<vishwanath.bs@ti.com>
+>>
+>> Since all voltage data is now centralized in oppxxx_data.c, we can replace
+>> the values in the opp table with the macros used for voltage values.
+>>
+>> This will avoid opp table and voltage layer having conflicting values.
+>>
+>> Signed-off-by: Vishwanath BS<vishwanath.bs@ti.com>
+>
+> As you are now on the delivery path too, this should have your sign-off.
+>
+> Assuming this is a simple oversight, I added your signoff and queued for
+> 2.6.39 (branch: for_2.6.39/pm-misc)
 
-> 
-> Regards,
-> 
-> Tony
+thanks.
+
+-- 
+Regards,
+Nishanth Menon
