@@ -1,73 +1,42 @@
-From: David Cohen <dacohen@gmail.com>
-Subject: [PATCH 3/3] omap: iovmm: don't check 'da' to set IOVMF_DA_FIXED/IOVMF_DA_ANON flags
-Date: Tue,  8 Mar 2011 14:46:05 +0200
-Message-ID: <1299588365-2749-4-git-send-email-dacohen@gmail.com>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH 0/3] omap: iovmm: Fix IOVMM check for fixed 'da'
+Date: Tue, 08 Mar 2011 14:49:52 +0200 (EET)
+Message-ID: <20110308.144952.775404351479802545.Hiroshi.DOYU@nokia.com>
 References: <1299588365-2749-1-git-send-email-dacohen@gmail.com>
-Return-path: <linux-media-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([147.243.128.24]:33959 "EHLO mgw-da01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753528Ab1CHMw7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 8 Mar 2011 07:52:59 -0500
 In-Reply-To: <1299588365-2749-1-git-send-email-dacohen@gmail.com>
-Sender: linux-media-owner@vger.kernel.org
-To: Hiroshi.DOYU@nokia.com
-Cc: linux-omap@vger.kernel.org, fernando.lugo@ti.com, linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com, sakari.ailus@maxwell.research.nokia.com, David Cohen <dacohen@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: dacohen@gmail.com, tony@atomide.com
+Cc: linux-omap@vger.kernel.org, fernando.lugo@ti.com, linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com, sakari.ailus@maxwell.research.nokia.com
 
-Currently IOVMM driver sets IOVMF_DA_FIXED/IOVMF_DA_ANON flags according
-to input 'da' address when mapping memory:
-da == 0: IOVMF_DA_ANON
-da != 0: IOVMF_DA_FIXED
+From: ext David Cohen <dacohen@gmail.com>
+Subject: [PATCH 0/3] omap: iovmm: Fix IOVMM check for fixed 'da'
+Date: Tue, 8 Mar 2011 14:46:02 +0200
 
-It prevents IOMMU to map first page with fixed 'da'. To avoid such
-issue, IOVMM will not automatically set IOVMF_DA_FIXED. It should now
-come from the user. IOVMF_DA_ANON will be automatically set if
-IOVMF_DA_FIXED isn't set.
+> IOVMM driver checks input 'da == 0' when mapping address to determine whether
+> user wants fixed 'da' or not. At the same time, it doesn't disallow address
+> 0x0 to be used, what creates an ambiguous situation. This patch set moves
+> fixed 'da' check to the input flags.
+> It also fixes da_start value for ISP IOMMU instance.
+> 
+> David Cohen (2):
+>   omap3: change ISP's IOMMU da_start address
+>   omap: iovmm: don't check 'da' to set IOVMF_DA_FIXED/IOVMF_DA_ANON
+>     flags
+> 
+> Michael Jones (1):
+>   omap: iovmm: disallow mapping NULL address
+> 
+>  arch/arm/mach-omap2/omap-iommu.c |    2 +-
+>  arch/arm/plat-omap/iovmm.c       |   28 ++++++++++++++++++----------
+>  2 files changed, 19 insertions(+), 11 deletions(-)
 
-Signed-off-by: David Cohen <dacohen@gmail.com>
----
- arch/arm/plat-omap/iovmm.c |   12 ++++++++----
- 1 files changed, 8 insertions(+), 4 deletions(-)
-
-diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
-index 11c9b76..dde9cb0 100644
---- a/arch/arm/plat-omap/iovmm.c
-+++ b/arch/arm/plat-omap/iovmm.c
-@@ -654,7 +654,8 @@ u32 iommu_vmap(struct iommu *obj, u32 da, const struct sg_table *sgt,
- 	flags &= IOVMF_HW_MASK;
- 	flags |= IOVMF_DISCONT;
- 	flags |= IOVMF_MMIO;
--	flags |= (da ? IOVMF_DA_FIXED : IOVMF_DA_ANON);
-+	if (~flags & IOVMF_DA_FIXED)
-+		flags |= IOVMF_DA_ANON;
- 
- 	da = __iommu_vmap(obj, da, sgt, va, bytes, flags);
- 	if (IS_ERR_VALUE(da))
-@@ -713,7 +714,8 @@ u32 iommu_vmalloc(struct iommu *obj, u32 da, size_t bytes, u32 flags)
- 	flags &= IOVMF_HW_MASK;
- 	flags |= IOVMF_DISCONT;
- 	flags |= IOVMF_ALLOC;
--	flags |= (da ? IOVMF_DA_FIXED : IOVMF_DA_ANON);
-+	if (~flags & IOVMF_DA_FIXED)
-+		flags |= IOVMF_DA_ANON;
- 
- 	sgt = sgtable_alloc(bytes, flags, da, 0);
- 	if (IS_ERR(sgt)) {
-@@ -803,7 +805,8 @@ u32 iommu_kmap(struct iommu *obj, u32 da, u32 pa, size_t bytes,
- 	flags &= IOVMF_HW_MASK;
- 	flags |= IOVMF_LINEAR;
- 	flags |= IOVMF_MMIO;
--	flags |= (da ? IOVMF_DA_FIXED : IOVMF_DA_ANON);
-+	if (~flags & IOVMF_DA_FIXED)
-+		flags |= IOVMF_DA_ANON;
- 
- 	da = __iommu_kmap(obj, da, pa, va, bytes, flags);
- 	if (IS_ERR_VALUE(da))
-@@ -862,7 +865,8 @@ u32 iommu_kmalloc(struct iommu *obj, u32 da, size_t bytes, u32 flags)
- 	flags &= IOVMF_HW_MASK;
- 	flags |= IOVMF_LINEAR;
- 	flags |= IOVMF_ALLOC;
--	flags |= (da ? IOVMF_DA_FIXED : IOVMF_DA_ANON);
-+	if (~flags & IOVMF_DA_FIXED)
-+		flags |= IOVMF_DA_ANON;
- 
- 	da = __iommu_kmap(obj, da, pa, va, bytes, flags);
- 	if (IS_ERR_VALUE(da))
--- 
-1.7.0.4
+Based on the previous discussion, those look ok for me.
