@@ -1,68 +1,73 @@
 From: David Cohen <dacohen@gmail.com>
-Subject: [PATCH 1/3] omap: iovmm: disallow mapping NULL address
-Date: Tue,  8 Mar 2011 14:46:03 +0200
-Message-ID: <1299588365-2749-2-git-send-email-dacohen@gmail.com>
+Subject: [PATCH 3/3] omap: iovmm: don't check 'da' to set IOVMF_DA_FIXED/IOVMF_DA_ANON flags
+Date: Tue,  8 Mar 2011 14:46:05 +0200
+Message-ID: <1299588365-2749-4-git-send-email-dacohen@gmail.com>
 References: <1299588365-2749-1-git-send-email-dacohen@gmail.com>
 Return-path: <linux-media-owner@vger.kernel.org>
 In-Reply-To: <1299588365-2749-1-git-send-email-dacohen@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 To: Hiroshi.DOYU@nokia.com
-Cc: linux-omap@vger.kernel.org, fernando.lugo@ti.com, linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com, sakari.ailus@maxwell.research.nokia.com, Michael Jones <michael.jones@matrix-vision.de>
+Cc: linux-omap@vger.kernel.org, fernando.lugo@ti.com, linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com, sakari.ailus@maxwell.research.nokia.com, David Cohen <dacohen@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Michael Jones <michael.jones@matrix-vision.de>
+Currently IOVMM driver sets IOVMF_DA_FIXED/IOVMF_DA_ANON flags according
+to input 'da' address when mapping memory:
+da == 0: IOVMF_DA_ANON
+da != 0: IOVMF_DA_FIXED
 
-commit c7f4ab26e3bcdaeb3e19ec658e3ad9092f1a6ceb allowed mapping
-the NULL address if da_start==0, which would then not get unmapped.
-Disallow this again.  And spell variable 'alignment' correctly.
+It prevents IOMMU to map first page with fixed 'da'. To avoid such
+issue, IOVMM will not automatically set IOVMF_DA_FIXED. It should now
+come from the user. IOVMF_DA_ANON will be automatically set if
+IOVMF_DA_FIXED isn't set.
 
-Signed-off-by: Michael Jones <michael.jones@matrix-vision.de>
+Signed-off-by: David Cohen <dacohen@gmail.com>
 ---
- arch/arm/plat-omap/iovmm.c |   16 ++++++++++------
- 1 files changed, 10 insertions(+), 6 deletions(-)
+ arch/arm/plat-omap/iovmm.c |   12 ++++++++----
+ 1 files changed, 8 insertions(+), 4 deletions(-)
 
 diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
-index 6dc1296..11c9b76 100644
+index 11c9b76..dde9cb0 100644
 --- a/arch/arm/plat-omap/iovmm.c
 +++ b/arch/arm/plat-omap/iovmm.c
-@@ -271,20 +271,24 @@ static struct iovm_struct *alloc_iovm_area(struct iommu *obj, u32 da,
- 					   size_t bytes, u32 flags)
- {
- 	struct iovm_struct *new, *tmp;
--	u32 start, prev_end, alignement;
-+	u32 start, prev_end, alignment;
+@@ -654,7 +654,8 @@ u32 iommu_vmap(struct iommu *obj, u32 da, const struct sg_table *sgt,
+ 	flags &= IOVMF_HW_MASK;
+ 	flags |= IOVMF_DISCONT;
+ 	flags |= IOVMF_MMIO;
+-	flags |= (da ? IOVMF_DA_FIXED : IOVMF_DA_ANON);
++	if (~flags & IOVMF_DA_FIXED)
++		flags |= IOVMF_DA_ANON;
  
- 	if (!obj || !bytes)
- 		return ERR_PTR(-EINVAL);
+ 	da = __iommu_vmap(obj, da, sgt, va, bytes, flags);
+ 	if (IS_ERR_VALUE(da))
+@@ -713,7 +714,8 @@ u32 iommu_vmalloc(struct iommu *obj, u32 da, size_t bytes, u32 flags)
+ 	flags &= IOVMF_HW_MASK;
+ 	flags |= IOVMF_DISCONT;
+ 	flags |= IOVMF_ALLOC;
+-	flags |= (da ? IOVMF_DA_FIXED : IOVMF_DA_ANON);
++	if (~flags & IOVMF_DA_FIXED)
++		flags |= IOVMF_DA_ANON;
  
- 	start = da;
--	alignement = PAGE_SIZE;
-+	alignment = PAGE_SIZE;
+ 	sgt = sgtable_alloc(bytes, flags, da, 0);
+ 	if (IS_ERR(sgt)) {
+@@ -803,7 +805,8 @@ u32 iommu_kmap(struct iommu *obj, u32 da, u32 pa, size_t bytes,
+ 	flags &= IOVMF_HW_MASK;
+ 	flags |= IOVMF_LINEAR;
+ 	flags |= IOVMF_MMIO;
+-	flags |= (da ? IOVMF_DA_FIXED : IOVMF_DA_ANON);
++	if (~flags & IOVMF_DA_FIXED)
++		flags |= IOVMF_DA_ANON;
  
- 	if (flags & IOVMF_DA_ANON) {
--		start = obj->da_start;
-+		/* Don't map address 0 */
-+		if (obj->da_start)
-+			start = obj->da_start;
-+		else
-+			start = obj->da_start + alignment;
+ 	da = __iommu_kmap(obj, da, pa, va, bytes, flags);
+ 	if (IS_ERR_VALUE(da))
+@@ -862,7 +865,8 @@ u32 iommu_kmalloc(struct iommu *obj, u32 da, size_t bytes, u32 flags)
+ 	flags &= IOVMF_HW_MASK;
+ 	flags |= IOVMF_LINEAR;
+ 	flags |= IOVMF_ALLOC;
+-	flags |= (da ? IOVMF_DA_FIXED : IOVMF_DA_ANON);
++	if (~flags & IOVMF_DA_FIXED)
++		flags |= IOVMF_DA_ANON;
  
- 		if (flags & IOVMF_LINEAR)
--			alignement = iopgsz_max(bytes);
--		start = roundup(start, alignement);
-+			alignment = iopgsz_max(bytes);
-+		start = roundup(start, alignment);
- 	} else if (start < obj->da_start || start > obj->da_end ||
- 					obj->da_end - start < bytes) {
- 		return ERR_PTR(-EINVAL);
-@@ -304,7 +308,7 @@ static struct iovm_struct *alloc_iovm_area(struct iommu *obj, u32 da,
- 			goto found;
- 
- 		if (tmp->da_end >= start && flags & IOVMF_DA_ANON)
--			start = roundup(tmp->da_end + 1, alignement);
-+			start = roundup(tmp->da_end + 1, alignment);
- 
- 		prev_end = tmp->da_end;
- 	}
+ 	da = __iommu_kmap(obj, da, pa, va, bytes, flags);
+ 	if (IS_ERR_VALUE(da))
 -- 
 1.7.0.4
