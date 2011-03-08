@@ -1,368 +1,311 @@
-From: Archit Taneja <archit@ti.com>
-Subject: [PATCH v2 2/2] OMAP4: DSS2: Clock source changes for OMAP4
-Date: Tue,  8 Mar 2011 17:20:35 +0530
-Message-ID: <1299585035-26931-3-git-send-email-archit@ti.com>
-References: <1299585035-26931-1-git-send-email-archit@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:49415 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753828Ab1CHLq7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 8 Mar 2011 06:46:59 -0500
-Received: from dlep34.itg.ti.com ([157.170.170.115])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p28BkwiV027533
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 8 Mar 2011 05:46:58 -0600
-In-Reply-To: <1299585035-26931-1-git-send-email-archit@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Govindraj <govindraj.ti@gmail.com>
+Subject: Re: [PATCH 2/7] OMAP2+: mux: Enable wakeup for wakeup enable
+ requested pads
+Date: Tue, 8 Mar 2011 17:49:31 +0530
+Message-ID: <AANLkTin2f7n-v5Hg7NHB8a4fEmpzt_07xy-M1wjnKHtU@mail.gmail.com>
+References: <1299064343-28534-1-git-send-email-govindraj.raja@ti.com> <87lj0u8mrf.fsf@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <87lj0u8mrf.fsf@ti.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Rajendra Nayak <rnayak@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@ti.com
-Cc: linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-On OMAP3, the pixel clock for the LCD manager was derived through DISPC_FCLK as:
+On Sat, Mar 5, 2011 at 5:24 AM, Kevin Hilman <khilman@ti.com> wrote:
+> Hi Govindraj,
+>
+> "Govindraj.R" <govindraj.raja@ti.com> writes:
+>
+>> For device pads which have OMAP_DEVICE_PAD_WAKEUP set (which means t=
+hey
+>> are wakeup capable) enable the IO-daisy wakeup capability.
+>> During re-muxing avoid direct write with val as this can disturb if =
+any
+>> mux done at bootloader level so read the pad then write back.
+>>
+>> Also add an API to fetch the wake-up status bit is set for given oma=
+p-hwmod
+>> device using available mux info which is added during omap_hwmod_mux=
+_init.
+>> Wakeup status bit is needed for uart_resume_idle call from sram_idle=
+ path
+>> based on wake-up event has occurred for given uart we can enable clo=
+cks back.
+>>
+>> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+>> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
+>> ---
+>> =A0arch/arm/mach-omap2/mux.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+| =A0 28 ++++++++++++++++++++++++++
+>> =A0arch/arm/mach-omap2/mux.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+| =A0 13 ++++++++++++
+>> =A0arch/arm/mach-omap2/omap_hwmod.c =A0 =A0 =A0 =A0 =A0 =A0 | =A0 13=
+ ++++++++++++
+>> =A0arch/arm/plat-omap/include/plat/omap_hwmod.h | =A0 =A01 +
+>> =A04 files changed, 55 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+>> index 98148b6..50edcea 100644
+>> --- a/arch/arm/mach-omap2/mux.c
+>> +++ b/arch/arm/mach-omap2/mux.c
+>> @@ -317,6 +317,29 @@ err1:
+>> =A0 =A0 =A0 return NULL;
+>> =A0}
+>>
+>> +/* Gets the wakeup status of given pad from omap-hwmod */
+>> +int omap_hwmod_mux_wakeup(struct omap_hwmod_mux_info *hmux)
+>
+> should return a bool
+>
+> Also, documentation should be clear that it returns true if *any* pad
+> associated with this device has a wakeup event.
+>
+> Also a name reflecting the get/check/status nature of this function
+> would help readability, maybe:
+>
+> bool omap_hwmod_mux_wakeup_event(struct omap_hwmod_mux_info *hmux)
 
-Lcd Pixel clock = DISPC_FCLK / lcd / pcd
+Yes sure will modify.
 
-Where lcd and pcd are divisors in the DISPC_DIVISOR register.
+>
+>> +{
+>> + =A0 =A0 int i;
+>> + =A0 =A0 unsigned int val;
+>> + =A0 =A0 u8 ret =3D 0;
+>> +
+>> + =A0 =A0 for (i =3D 0; i < hmux->nr_pads; i++) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 struct omap_device_pad *pad =3D &hmux->pad=
+s[i];
+>> +
+>> + =A0 =A0 =A0 =A0 =A0 =A0 if (pad->flags & OMAP_DEVICE_PAD_WAKEUP) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 val =3D omap_mux_read(pad-=
+>partition,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 pad->mux->reg_offset);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (val & OMAP_WAKEUP_EVEN=
+T) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D 1;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
+>> + =A0 =A0 =A0 =A0 =A0 =A0 }
+>> + =A0 =A0 }
+>> +
+>> + =A0 =A0 return ret;
+>> +}
+>> +
+>> =A0/* Assumes the calling function takes care of locking */
+>> =A0void omap_hwmod_mux(struct omap_hwmod_mux_info *hmux, u8 state)
+>> =A0{
+>> @@ -342,6 +365,9 @@ void omap_hwmod_mux(struct omap_hwmod_mux_info *=
+hmux, u8 state)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 flags &=3D ~OMAP_DEVICE_=
+PAD_ENABLED;
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 val =3D pad->idle;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (flags & OMAP_DEVICE_PA=
+D_WAKEUP)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 val |=3D O=
+MAP_WAKEUP_EN;
+>> +
+>
+> Is this needed on every idle transition?
+>
+> You're currently setting it on every idle transition, but never clear=
+ing
+> it. =A0If it is to be a one-time thing, then move it to the early ini=
+t of
+> the mux.
 
-On OMAP4, the pixel clocks for LCD1 and LCD2 managers are derived from 2 new
-clocks named LCD1_CLK and LCD2_CLK. The pixel clocks are calculated as:
+I will be removing this as said in earlier mail.
 
-Lcd_o Pixel clock = LCDo_CLK / lcdo /pcdo, o = 1, 2
 
-Where lcdo and pcdo registers are divisors in DISPC_DIVISORo registers.
+>
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_debug("%s: Idling %s =
+%x\n", __func__,
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 pad->name, val);
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+>> @@ -358,6 +384,8 @@ void omap_hwmod_mux(struct omap_hwmod_mux_info *=
+hmux, u8 state)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 };
+>>
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (val >=3D 0) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 val |=3D omap_mux_read(pad=
+->partition,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 pad->mux->reg_offset);
+>
+> I don't think this is doing what you expect, and will lead to very
+> difficult to find bugs. =A0Since your OR'ing in bits from the current
+> value, you will never be able to clear any bits in this register.
+>
+> As just a dumb example, consider the enable case where
+> pad->enable=3DMUX_MODE0 (0x0). =A0If the bootloader has initialized t=
+his pad
+> to MUX_MODE7 (0x7), this code will never set it to MUX_MODE0, since t=
+his
+> read and OR of the existing value will always set it back to MUX_MODE=
+7.
+>
+> At a minimum, this change should be a separate patch with a more
+> detailed description.
+>
 
-LCD1_CLK and LCD2_CLK can have DSS_FCLK, and the M4 divider clocks of DSI1 PLL
-and DSI2 PLL as clock sources respectively. Introduce functions to select and
-get the clock source for these new clocks. Modify DISPC functions get the
-correct lck and pck rates based on the clock source of these clocks. Since
-OMAP2/3 don't have these clocks, force OMAP2/3 to always have the LCD_CLK source
-as DSS_CLK_SRC_FCK by introducing a dss feature.
+Also this is change will be removed and default serial_pad
+reg will have proper values for .enable and .idle fields using
+which it will muxed accordingly
+[snip of default rx serial reg given in previous mail.]
 
-Introduce clock source names for OMAP4 and some register field changes in
-DSS_CTRL on OMAP4.
+>
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_mux_write(pad->part=
+ition, val,
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 pad->mux->reg_offset);
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 pad->flags =3D flags;
+>> diff --git a/arch/arm/mach-omap2/mux.h b/arch/arm/mach-omap2/mux.h
+>> index a4ab17a..84a8fc2 100644
+>> --- a/arch/arm/mach-omap2/mux.h
+>> +++ b/arch/arm/mach-omap2/mux.h
+>> @@ -220,8 +220,21 @@ omap_hwmod_mux_init(struct omap_device_pad *bpa=
+ds, int nr_pads);
+>> =A0 */
+>> =A0void omap_hwmod_mux(struct omap_hwmod_mux_info *hmux, u8 state);
+>>
+>> +
+>> +/**
+>> + * omap_hwmod_mux_wakeup - omap hwmod check given pad had wakeup ev=
+ent
+>> + * @hmux: =A0 =A0 =A0 =A0 =A0 =A0Pads for a hwmod
+>> + *
+>> + * Called only from omap_hwmod.c, do not use.
+>> + */
+>> +int omap_hwmod_mux_wakeup(struct omap_hwmod_mux_info *hmux);
+>> =A0#else
+>>
+>> +static inline int omap_hwmod_mux_wakeup(struct omap_hwmod_mux_info =
+*hmux)
+>> +{
+>> + =A0 =A0 return 0;
+>> +}
+>> +
+>> =A0static inline int omap_mux_init_gpio(int gpio, int val)
+>> =A0{
+>> =A0 =A0 =A0 return 0;
+>> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/=
+omap_hwmod.c
+>> index 9e89a58..893dae1 100644
+>> --- a/arch/arm/mach-omap2/omap_hwmod.c
+>> +++ b/arch/arm/mach-omap2/omap_hwmod.c
+>> @@ -2239,3 +2239,16 @@ u32 omap_hwmod_get_context_loss_count(struct =
+omap_hwmod *oh)
+>>
+>> =A0 =A0 =A0 return ret;
+>> =A0}
+>> +
+>> +/**
+>> + * omap_hwmod_pad_wakeup_status - get pad wakeup status if mux is a=
+vailable.
+>> + * @oh: struct omap_hwmod *
+>> + *
+>> + * Returns the wake_up status bit of available pad mux pin.
+>> + */
+>> +int omap_hmwod_pad_wakeup_status(struct omap_hwmod *oh)
+>
+> Again, naming here could improve readability. =A0Maybe:
+>
+> bool omap_hmwod_get_io_wakeup_status(struct omap_hwmod *oh)
+>
+> From the name and the bool return, it should be clear that this is ju=
+st
+> checking for the wakeup event. =A0I also think it should be clear tha=
+t
+> this is checking for IO-ring wakeups, not module wakeups.
+>
+> Also, in PATCH 5/7, you're calling this hwmod API directly from a
+> driver. =A0Drivers should not know anything about hwmods. =A0Any
+> OMAP-specific hooks must be called through pdata function pointers.
+> Also, they should go through omap_device, which would then call
+> omap_hwmod.
+>
 
-Currently, LCD2_CLK can only have DSS_FCLK as its clock source as DSI2 PLL
-functionality hasn't been introduced yet. BUG for now if DSI2 PLL is selected as
-clock.
+Agree omap-device level api to pad wakeup check is better.
 
-Signed-off-by: Archit Taneja <archit@ti.com>
----
- drivers/video/omap2/dss/dispc.c        |   31 +++++++++++++++++++----
- drivers/video/omap2/dss/dss.c          |   42 +++++++++++++++++++++++++++++++-
- drivers/video/omap2/dss/dss.h          |   26 +++++++++++++-------
- drivers/video/omap2/dss/dss_features.c |   13 ++++++++-
- drivers/video/omap2/dss/dss_features.h |    3 ++
- 5 files changed, 98 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-index b66df40..6e51f07 100644
---- a/drivers/video/omap2/dss/dispc.c
-+++ b/drivers/video/omap2/dss/dispc.c
-@@ -2365,25 +2365,33 @@ unsigned long dispc_lclk_rate(enum omap_channel channel)
- 
- 	lcd = FLD_GET(l, 23, 16);
- 
--	r = dispc_fclk_rate();
-+	switch (dss_get_lcd_clk_source(channel)) {
-+	case DSS_CLK_SRC_FCK:
-+		r = dss_clk_get_rate(DSS_CLK_FCK);
-+		break;
-+	case DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC:
-+		r = dsi_get_pll_hsdiv_dispc_rate();
-+		break;
-+	default:
-+		BUG();
-+	}
- 
- 	return r / lcd;
+> Thinking more about this (and how you use it in PATCH 5/7), what is
+> needed is an omap_device level API to check if a wakeup occured for t=
+hat
+> device. =A0That function would check for either module-level wakeup o=
+r IO
+> pad wakeup. =A0The driver should not need to care about how the wakeu=
+p
+> occurred.
+>
+
+Module level wakeup doesn't seem to work and only
+way it seem to wakeup is through using resume_idle
+from sram_idle.
+
+One simple way to reproduce the problem with
+existing code base also is adding this patch which
+will enable module level wakeup always.
+
+https://patchwork.kernel.org/patch/501211/
+
+and with below change.
+
+govindraj@Linux-BSP-Server:~/clones/linux-omap-2.6$ gd
+diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.=
+c
+index 47eef48..6343773 100644
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -380,6 +380,7 @@ static void omap_uart_allow_sleep(struct
+omap_uart_state *uart)
+        omap_uart_smart_idle_enable(uart, 1);
+        uart->can_sleep =3D 1;
+        del_timer(&uart->timer);
++       omap_uart_disable_clocks(uart);
  }
- 
- unsigned long dispc_pclk_rate(enum omap_channel channel)
- {
--	int lcd, pcd;
-+	int pcd;
- 	unsigned long r;
- 	u32 l;
- 
- 	l = dispc_read_reg(DISPC_DIVISORo(channel));
- 
--	lcd = FLD_GET(l, 23, 16);
- 	pcd = FLD_GET(l, 7, 0);
- 
--	r = dispc_fclk_rate();
-+	r = dispc_lclk_rate(channel);
- 
--	return r / lcd / pcd;
-+	return r / pcd;
- }
- 
- void dispc_dump_clocks(struct seq_file *s)
-@@ -2391,6 +2399,7 @@ void dispc_dump_clocks(struct seq_file *s)
- 	int lcd, pcd;
- 	u32 l;
- 	enum dss_clk_source dispc_clk_src = dss_get_dispc_clk_source();
-+	enum dss_clk_source lcd_clk_src;
- 
- 	enable_clocks(1);
- 
-@@ -2412,6 +2421,12 @@ void dispc_dump_clocks(struct seq_file *s)
- 	}
- 	seq_printf(s, "- LCD1 -\n");
- 
-+	lcd_clk_src = dss_get_lcd_clk_source(OMAP_DSS_CHANNEL_LCD);
-+
-+	seq_printf(s, "lcd1_clk source = %s (%s)\n",
-+		dss_get_generic_clk_source_name(lcd_clk_src),
-+		dss_feat_get_clk_source_name(lcd_clk_src));
-+
- 	dispc_get_lcd_divisor(OMAP_DSS_CHANNEL_LCD, &lcd, &pcd);
- 
- 	seq_printf(s, "lck\t\t%-16lulck div\t%u\n",
-@@ -2421,6 +2436,12 @@ void dispc_dump_clocks(struct seq_file *s)
- 	if (dss_has_feature(FEAT_MGR_LCD2)) {
- 		seq_printf(s, "- LCD2 -\n");
- 
-+		lcd_clk_src = dss_get_lcd_clk_source(OMAP_DSS_CHANNEL_LCD2);
-+
-+		seq_printf(s, "lcd2_clk source = %s (%s)\n",
-+			dss_get_generic_clk_source_name(lcd_clk_src),
-+			dss_feat_get_clk_source_name(lcd_clk_src));
-+
- 		dispc_get_lcd_divisor(OMAP_DSS_CHANNEL_LCD2, &lcd, &pcd);
- 
- 		seq_printf(s, "lck\t\t%-16lulck div\t%u\n",
-diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
-index 93813fd..aed9345 100644
---- a/drivers/video/omap2/dss/dss.c
-+++ b/drivers/video/omap2/dss/dss.c
-@@ -77,6 +77,7 @@ static struct {
- 
- 	enum dss_clk_source dsi_clk_source;
- 	enum dss_clk_source dispc_clk_source;
-+	enum dss_clk_source lcd_clk_source[MAX_DSS_LCD_MANAGERS];
- 
- 	u32		ctx[DSS_SZ_REGS / sizeof(u32)];
- } dss;
-@@ -292,6 +293,7 @@ void dss_dump_regs(struct seq_file *s)
- void dss_select_dispc_clk_source(enum dss_clk_source clk_src)
- {
- 	int b;
-+	u8 start, end;
- 
- 	switch (clk_src) {
- 	case DSS_CLK_SRC_FCK:
-@@ -305,7 +307,9 @@ void dss_select_dispc_clk_source(enum dss_clk_source clk_src)
- 		BUG();
- 	}
- 
--	REG_FLD_MOD(DSS_CONTROL, b, 0, 0);	/* DISPC_CLK_SWITCH */
-+	dss_feat_get_reg_field(FEAT_REG_DISPC_CLK_SWITCH, &start, &end);
-+
-+	REG_FLD_MOD(DSS_CONTROL, b, start, end);	/* DISPC_CLK_SWITCH */
- 
- 	dss.dispc_clk_source = clk_src;
- }
-@@ -331,6 +335,34 @@ void dss_select_dsi_clk_source(enum dss_clk_source clk_src)
- 	dss.dsi_clk_source = clk_src;
- }
- 
-+void dss_select_lcd_clk_source(enum omap_channel channel,
-+		enum dss_clk_source clk_src)
-+{
-+	int b, ix, pos;
-+
-+	if (!dss_has_feature(FEAT_LCD_CLK_SRC))
-+		return;
-+
-+	switch (clk_src) {
-+	case DSS_CLK_SRC_FCK:
-+		b = 0;
-+		break;
-+	case DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC:
-+		BUG_ON(channel != OMAP_DSS_CHANNEL_LCD);
-+		b = 1;
-+		dsi_wait_pll_hsdiv_dispc_active();
-+		break;
-+	default:
-+		BUG();
-+	}
-+
-+	pos = channel == OMAP_DSS_CHANNEL_LCD ? 0 : 12;
-+	REG_FLD_MOD(DSS_CONTROL, b, pos, pos);	/* LCDx_CLK_SWITCH */
-+
-+	ix = channel == OMAP_DSS_CHANNEL_LCD ? 0 : 1;
-+	dss.lcd_clk_source[ix] = clk_src;
-+}
-+
- enum dss_clk_source dss_get_dispc_clk_source(void)
- {
- 	return dss.dispc_clk_source;
-@@ -341,6 +373,12 @@ enum dss_clk_source dss_get_dsi_clk_source(void)
- 	return dss.dsi_clk_source;
- }
- 
-+enum dss_clk_source dss_get_lcd_clk_source(enum omap_channel channel)
-+{
-+	int ix = channel == OMAP_DSS_CHANNEL_LCD ? 0 : 1;
-+	return dss.lcd_clk_source[ix];
-+}
-+
- /* calculate clock rates using dividers in cinfo */
- int dss_calc_clock_rates(struct dss_clock_info *cinfo)
- {
-@@ -624,6 +662,8 @@ static int dss_init(void)
- 
- 	dss.dsi_clk_source = DSS_CLK_SRC_FCK;
- 	dss.dispc_clk_source = DSS_CLK_SRC_FCK;
-+	dss.lcd_clk_source[0] = DSS_CLK_SRC_FCK;
-+	dss.lcd_clk_source[1] = DSS_CLK_SRC_FCK;
- 
- 	dss_save_context();
- 
-diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-index fc41b3f..b845468 100644
---- a/drivers/video/omap2/dss/dss.h
-+++ b/drivers/video/omap2/dss/dss.h
-@@ -118,9 +118,12 @@ enum dss_clock {
- };
- 
- enum dss_clk_source {
--	DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC,	/* DSI1_PLL_FCLK */
--	DSS_CLK_SRC_DSI_PLL_HSDIV_DSI,		/* DSI2_PLL_FCLK */
--	DSS_CLK_SRC_FCK,			/* DSS1_ALWON_FCLK */
-+	DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC,	/* OMAP3: DSI1_PLL_FCLK
-+						 * OMAP4: PLL1_CLK1 */
-+	DSS_CLK_SRC_DSI_PLL_HSDIV_DSI,		/* OMAP3: DSI2_PLL_FCLK
-+						 * OMAP4: PLL1_CLK2 */
-+	DSS_CLK_SRC_FCK,			/* OMAP2/3: DSS1_ALWON_FCLK
-+						 * OMAP4: DSS_FCLK */
- };
- 
- /* Correlates clock source name and dss_clk_source member */
-@@ -152,17 +155,19 @@ struct dsi_clock_info {
- 	unsigned long fint;
- 	unsigned long clkin4ddr;
- 	unsigned long clkin;
--	unsigned long dsi_pll_hsdiv_dispc_clk;	/* DSI1_PLL_CLK */
--	unsigned long dsi_pll_hsdiv_dsi_clk;	/* DSI2_PLL_CLK */
--
-+	unsigned long dsi_pll_hsdiv_dispc_clk;	/* OMAP3: DSI1_PLL_CLK
-+						 * OMAP4: PLLx_CLK1 */
-+	unsigned long dsi_pll_hsdiv_dsi_clk;	/* OMAP3: DSI2_PLL_CLK
-+						 * OMAP4: PLLx_CLK2 */
- 	unsigned long lp_clk;
- 
- 	/* dividers */
- 	u16 regn;
- 	u16 regm;
--	u16 regm_dispc;	/* REGM3 */
--	u16 regm_dsi;	/* REGM4 */
--
-+	u16 regm_dispc;	/* OMAP3: REGM3
-+			 * OMAP4: REGM4 */
-+	u16 regm_dsi;	/* OMAP3: REGM4
-+			 * OMAP4: REGM5 */
- 	u16 lp_clk_div;
- 
- 	u8 highfreq;
-@@ -235,8 +240,11 @@ void dss_sdi_disable(void);
- 
- void dss_select_dispc_clk_source(enum dss_clk_source clk_src);
- void dss_select_dsi_clk_source(enum dss_clk_source clk_src);
-+void dss_select_lcd_clk_source(enum omap_channel channel,
-+		enum dss_clk_source clk_src);
- enum dss_clk_source dss_get_dispc_clk_source(void);
- enum dss_clk_source dss_get_dsi_clk_source(void);
-+enum dss_clk_source dss_get_lcd_clk_source(enum omap_channel channel);
- 
- void dss_set_venc_output(enum omap_dss_venc_type type);
- void dss_set_dac_pwrdn_bgz(bool enable);
-diff --git a/drivers/video/omap2/dss/dss_features.c b/drivers/video/omap2/dss/dss_features.c
-index dc170ad..6eb6ec6 100644
---- a/drivers/video/omap2/dss/dss_features.c
-+++ b/drivers/video/omap2/dss/dss_features.c
-@@ -59,6 +59,7 @@ static const struct dss_reg_field omap2_dss_reg_fields[] = {
- 	{ FEAT_REG_FIFOSIZE, 8, 0 },
- 	{ FEAT_REG_HORIZONTALACCU, 9, 0 },
- 	{ FEAT_REG_VERTICALACCU, 25, 16 },
-+	{ FEAT_REG_DISPC_CLK_SWITCH, 0, 0 },
- };
- 
- static const struct dss_reg_field omap3_dss_reg_fields[] = {
-@@ -69,6 +70,7 @@ static const struct dss_reg_field omap3_dss_reg_fields[] = {
- 	{ FEAT_REG_FIFOSIZE, 10, 0 },
- 	{ FEAT_REG_HORIZONTALACCU, 9, 0 },
- 	{ FEAT_REG_VERTICALACCU, 25, 16 },
-+	{ FEAT_REG_DISPC_CLK_SWITCH, 0, 0 },
- };
- 
- static const struct dss_reg_field omap4_dss_reg_fields[] = {
-@@ -79,6 +81,7 @@ static const struct dss_reg_field omap4_dss_reg_fields[] = {
- 	{ FEAT_REG_FIFOSIZE, 15, 0 },
- 	{ FEAT_REG_HORIZONTALACCU, 10, 0 },
- 	{ FEAT_REG_VERTICALACCU, 26, 16 },
-+	{ FEAT_REG_DISPC_CLK_SWITCH, 9, 8 },
- };
- 
- static const enum omap_display_type omap2_dss_supported_displays[] = {
-@@ -171,6 +174,12 @@ static const struct dss_clk_source_name omap3_dss_clk_source_names[] = {
- 	{ DSS_CLK_SRC_FCK, "DSS1_ALWON_FCLK" },
- };
- 
-+static const struct dss_clk_source_name omap4_dss_clk_source_names[] = {
-+	{ DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC, "PLL1_CLK1" },
-+	{ DSS_CLK_SRC_DSI_PLL_HSDIV_DSI, "PLL1_CLK2" },
-+	{ DSS_CLK_SRC_FCK, "DSS_FCLK" },
-+};
-+
- /* OMAP2 DSS Features */
- static struct omap_dss_features omap2_dss_features = {
- 	.reg_fields = omap2_dss_reg_fields,
-@@ -235,14 +244,14 @@ static struct omap_dss_features omap4_dss_features = {
- 	.has_feature	=
- 		FEAT_GLOBAL_ALPHA | FEAT_PRE_MULT_ALPHA |
- 		FEAT_MGR_LCD2 | FEAT_GLOBAL_ALPHA_VID1 |
--		FEAT_CORE_CLK_DIV,
-+		FEAT_CORE_CLK_DIV | FEAT_LCD_CLK_SRC,
- 
- 	.num_mgrs = 3,
- 	.num_ovls = 3,
- 	.max_dss_fck = 186000000,
- 	.supported_displays = omap4_dss_supported_displays,
- 	.supported_color_modes = omap3_dss_supported_color_modes,
--	.clksrc_names = omap3_dss_clk_source_names,
-+	.clksrc_names = omap4_dss_clk_source_names,
- };
- 
- /* Functions returning values related to a DSS feature */
-diff --git a/drivers/video/omap2/dss/dss_features.h b/drivers/video/omap2/dss/dss_features.h
-index 569d1b2..729b5f1 100644
---- a/drivers/video/omap2/dss/dss_features.h
-+++ b/drivers/video/omap2/dss/dss_features.h
-@@ -22,6 +22,7 @@
- 
- #define MAX_DSS_MANAGERS	3
- #define MAX_DSS_OVERLAYS	3
-+#define MAX_DSS_LCD_MANAGERS	2
- 
- /* DSS has feature id */
- enum dss_feat_id {
-@@ -38,6 +39,7 @@ enum dss_feat_id {
- 	FEAT_RESIZECONF		= 1 << 10,
- 	/* Independent core clk divider */
- 	FEAT_CORE_CLK_DIV	= 1 << 11,
-+	FEAT_LCD_CLK_SRC	= 1 << 12,
- };
- 
- /* DSS register field id */
-@@ -49,6 +51,7 @@ enum dss_feat_reg_field {
- 	FEAT_REG_FIFOSIZE,
- 	FEAT_REG_HORIZONTALACCU,
- 	FEAT_REG_VERTICALACCU,
-+	FEAT_REG_DISPC_CLK_SWITCH,
- };
- 
- /* DSS Feature Functions */
--- 
-1.7.1
 
+We can see module level wakeup doesn't wakeup the uart.
+once we set sleep_timeout for uart and timer starts.
+
+
+>> +{
+>> + =A0 =A0 if (oh->mux)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 return omap_hwmod_mux_wakeup(oh->mux);
+>> + =A0 =A0 return -EINVAL;
+>> +}
+>> diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm=
+/plat-omap/include/plat/omap_hwmod.h
+>> index fedd829..4100be0 100644
+>> --- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
+>> +++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+>> @@ -588,6 +588,7 @@ int omap_hwmod_for_each_by_class(const char *cla=
+ssname,
+>> =A0int omap_hwmod_set_postsetup_state(struct omap_hwmod *oh, u8 stat=
+e);
+>> =A0u32 omap_hwmod_get_context_loss_count(struct omap_hwmod *oh);
+>>
+>> +int omap_hmwod_pad_wakeup_status(struct omap_hwmod *oh);
+>> =A0/*
+>> =A0 * Chip variant-specific hwmod init routines - XXX should be conv=
+erted
+>> =A0 * to use initcalls once the initial boot ordering is straightene=
+d out
+>
+> Kevin
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-seria=
+l" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-serial"=
+ in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
