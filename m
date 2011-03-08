@@ -1,113 +1,58 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 0/2] omap_wdt: fix interface clock handling
-Date: Tue, 8 Mar 2011 16:01:36 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1103081543430.10981@utopia.booyaka.com>
-References: <1299589583-22632-1-git-send-email-kalle.jokiniemi@nokia.com> <87bp1lv8uc.fsf@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] cbus-retu-wdt: Remove unused nonstandard interfaces
+Date: Tue, 8 Mar 2011 15:02:35 -0800
+Message-ID: <20110308230234.GF26463@atomide.com>
+References: <1299082318.13604.14.camel@marge>
+ <20110303094251.GG2644@legolas.emea.dhcp.ti.com>
+ <1299161893.31972.0.camel@maggie>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:57027 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755904Ab1CHXBi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Mar 2011 18:01:38 -0500
-In-Reply-To: <87bp1lv8uc.fsf@ti.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:14683 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754800Ab1CHXCu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Mar 2011 18:02:50 -0500
+Content-Disposition: inline
+In-Reply-To: <1299161893.31972.0.camel@maggie>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
-Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, tony@atomide.com, b-cousson@ti.com, ilkka.koskinen@nokia.com, Charulatha Varadarajan <charu@ti.com>, wim@iguana.be
+To: Michael =?utf-8?B?QsO8c2No?= <mb@bu3sch.de>
+Cc: balbi@ti.com, linux-omap <linux-omap@vger.kernel.org>
 
-Hi,
+* Michael B=C3=BCsch <mb@bu3sch.de> [110303 06:16]:
+> On Thu, 2011-03-03 at 11:42 +0200, Felipe Balbi wrote:=20
+> > On Wed, Mar 02, 2011 at 05:11:58PM +0100, Michael Buesch wrote:
+> > > @@ -175,9 +124,9 @@ static int retu_wdt_release(struct inode
+> > >  	struct retu_wdt_dev *wdev =3D file->private_data;
+> > > =20
+> > >  #ifndef CONFIG_WATCHDOG_NOWAYOUT
+> > > -	retu_wdt_ping_enable(retu_wdt);
+> > > +	retu_wdt_ping_enable(wdev);
+> > >  #endif
+> > > -	clear_bit(0, &retu_wdt->users);
+> > > +	clear_bit(0, &wdev->users);
+> >=20
+> > this hunk isn't part of this patch.
+>=20
+> Well, it's a compiler warning cleanup, so I thought it would be fine
+> to go with the big cleanup patch.
+> Is it necessary to do a separate patch for this?
 
-On Tue, 8 Mar 2011, Kevin Hilman wrote:
+Well looks like I already applied some earlier version of
+this.. Sorry.
 
-> Kalle Jokiniemi <kalle.jokiniemi@nokia.com> writes:
-> 
-> > The runtime PM does not offer enough granularity to control
-> > individual clocks separately as needed. Current pm implementation
-> > of omap_wdt blocks the CORE power domain from idling in
-> > OMAP SoC, as it keeps the interface clock of the watchdog always
-> > on. This causes severe power leakage in devices where 
-> > the omap watchdog is in active use.
-> 
-> The iclk remains active because it's in hardware-controlled
-> auto-idle mode.  
+Anyways, can you please check what's still missing from
+the cbus branch? I've now applied the ones Felipe acked.
 
-... and we think that the interface clock never enters auto-idle because 
-the WDT doesn't SIdleAck to the PRCM until the special sequence has been 
-written to the WDT registers to disable it.  So even if its *CLKEN bits 
-are set to zero, the WDT prevents the system from going idle.
+At least this patch needs to be refreshed to apply on
+top of the cbus branch.
 
-> I believe if you set the WDT hwmod to software-supported idle
-> (OCPIF_SWSUP_IDLE), the runtime PM idle (which calls omap_device idle,
-> then omap_hwmod_idle) should also gate the interface clock.
+Regards,
 
-Agreed.
-
-Kalle, since you requested patches, here's one that implements Kevin's 
-first suggestion.  I will reply to your second patch with its equivalent 
-for PM runtime.  The patches have been compile-tested only.  Perhaps you 
-could see if they solve your problem?
-
-
-regards,
-
-- Paul
-
----
- arch/arm/mach-omap2/omap_hwmod_2420_data.c |    1 +
- arch/arm/mach-omap2/omap_hwmod_2430_data.c |    1 +
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    1 +
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    1 +
- 4 files changed, 4 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-index 1611f74..df4950d 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-@@ -974,6 +974,7 @@ static struct omap_hwmod_ocp_if omap2420_l4_wkup__wd_timer2 = {
- 	.clk		= "mpu_wdt_ick",
- 	.addr		= omap2420_wd_timer2_addrs,
- 	.addr_cnt	= ARRAY_SIZE(omap2420_wd_timer2_addrs),
-+	.flags		= OCPIF_SWSUP_IDLE,
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
- };
- 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-index 809424f..21fc908 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-@@ -1074,6 +1074,7 @@ static struct omap_hwmod_ocp_if omap2430_l4_wkup__wd_timer2 = {
- 	.clk		= "mpu_wdt_ick",
- 	.addr		= omap2430_wd_timer2_addrs,
- 	.addr_cnt	= ARRAY_SIZE(omap2430_wd_timer2_addrs),
-+	.flags		= OCPIF_SWSUP_IDLE,
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
- };
- 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index 457df3e..7ae2dab 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -1234,6 +1234,7 @@ static struct omap_hwmod_ocp_if omap3xxx_l4_wkup__wd_timer2 = {
- 	.clk		= "wdt2_ick",
- 	.addr		= omap3xxx_wd_timer2_addrs,
- 	.addr_cnt	= ARRAY_SIZE(omap3xxx_wd_timer2_addrs),
-+	.flags		= OCPIF_SWSUP_IDLE,
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
- };
- 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index 7b72316..2038813 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -4901,6 +4901,7 @@ static struct omap_hwmod_ocp_if omap44xx_l4_wkup__wd_timer2 = {
- 	.clk		= "l4_wkup_clk_mux_ck",
- 	.addr		= omap44xx_wd_timer2_addrs,
- 	.addr_cnt	= ARRAY_SIZE(omap44xx_wd_timer2_addrs),
-+	.flags		= OCPIF_SWSUP_IDLE,
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
- };
- 
--- 
-1.7.2.3
-
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
