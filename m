@@ -1,74 +1,80 @@
-From: David Cohen <dacohen@gmail.com>
-Subject: [PATCH v2 1/3] omap: iovmm: disallow mapping NULL address when IOVMF_DA_ANON is set
-Date: Tue,  8 Mar 2011 22:15:14 +0200
-Message-ID: <1299615316-17512-2-git-send-email-dacohen@gmail.com>
-References: <1299615316-17512-1-git-send-email-dacohen@gmail.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH] omap: iommu: disallow mapping NULL address
+Date: Tue, 8 Mar 2011 21:31:06 +0100
+Message-ID: <201103082131.06761.laurent.pinchart@ideasonboard.com>
+References: <4D6D219D.7020605@matrix-vision.de> <201103072219.32938.laurent.pinchart@ideasonboard.com> <AANLkTi=9CYUbkxaSit76OwFR=4PpH+0nDzg5vQLaV51s@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:48929 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755784Ab1CHUPa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Mar 2011 15:15:30 -0500
-In-Reply-To: <1299615316-17512-1-git-send-email-dacohen@gmail.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:38518 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755597Ab1CHUan (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Mar 2011 15:30:43 -0500
+In-Reply-To: <AANLkTi=9CYUbkxaSit76OwFR=4PpH+0nDzg5vQLaV51s@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hiroshi.DOYU@nokia.com
-Cc: linux-omap@vger.kernel.org, fernando.lugo@ti.com, linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com, sakari.ailus@maxwell.research.nokia.com, Michael Jones <michael.jones@matrix-vision.de>
+To: David Cohen <dacohen@gmail.com>
+Cc: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>, Hiroshi.DOYU@nokia.com, Michael Jones <michael.jones@matrix-vision.de>, Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>, Linux Media Mailing List <linux-media@vger.kernel.org>, linux-omap@vger.kernel.org
 
-From: Michael Jones <michael.jones@matrix-vision.de>
+Hi David,
 
-commit c7f4ab26e3bcdaeb3e19ec658e3ad9092f1a6ceb allowed mapping the NULL
-address if da_start==0, which would then not get unmapped. Disallow
-this again if IOVMF_DA_ANON is set. And spell variable 'alignment'
-correctly.
+On Monday 07 March 2011 22:35:31 David Cohen wrote:
+> On Mon, Mar 7, 2011 at 11:19 PM, Laurent Pinchart wrote:
+> > On Monday 07 March 2011 20:41:21 David Cohen wrote:
+> >> On Mon, Mar 7, 2011 at 9:25 PM, Guzman Lugo, Fernando wrote:
+> >> > On Mon, Mar 7, 2011 at 1:19 PM, David Cohen wrote:
+> >> >> On Mon, Mar 7, 2011 at 9:17 PM, Guzman Lugo, Fernando wrote:
+> >> >>> On Mon, Mar 7, 2011 at 7:10 AM, Michael Jones wrote:
+> >> >>>> From e7dbe4c4b64eb114f9b0804d6af3a3ca0e78acc8 Mon Sep 17 00:00:00
+> >> >>>> 2001 From: Michael Jones <michael.jones@matrix-vision.de>
+> >> >>>> Date: Mon, 7 Mar 2011 13:36:15 +0100
+> >> >>>> Subject: [PATCH] omap: iommu: disallow mapping NULL address
+> >> >>>> 
+> >> >>>> commit c7f4ab26e3bcdaeb3e19ec658e3ad9092f1a6ceb allowed mapping
+> >> >>>> the NULL address if da_start==0.  Force da_start to exclude the
+> >> >>>> first page.
+> >> >>> 
+> >> >>> what about devices that uses page 0? ipu after reset always starts
+> >> >>> from 0x00000000 how could we map that address??
+> >> >> 
+> >> >> from 0x0? The driver sees da == 0 as error. May I ask you why do you
+> >> >> want it?
+> >> > 
+> >> > unlike DSP that you can load a register with the addres the DSP will
+> >> > boot, IPU core always starts from address 0x00000000, so if you take
+> >> > IPU out of reset it will try to access address 0x0 if not map it,
+> >> > there will be a mmu fault.
+> >> 
+> >> Hm. Looks like the iommu should not restrict any da. The valid da
+> >> range should rely only on pdata.
+> >> Michael, what about just update ISP's da_start on omap-iommu.c file?
+> >> Set it to 0x1000.
+> > 
+> > What about patching the OMAP3 ISP driver to use a non-zero value (maybe
+> > -1) as an invalid/freed pointer ?
+> 
+> I wouldn't be comfortable to use 0 (or NULL) value as valid address on
+> ISP driver.
 
-Signed-off-by: Michael Jones <michael.jones@matrix-vision.de>
----
- arch/arm/plat-omap/iovmm.c |   16 ++++++++++------
- 1 files changed, 10 insertions(+), 6 deletions(-)
+Why not ? The IOMMUs can use 0x00000000 as a valid address. Whether we allow 
+it or not is a software architecture decision, not influenced by the IOMMU 
+hardware. As some peripherals (namely IPU) require mapping memory to 
+0x00000000, the IOMMU layer must support it and not treat 0x00000000 
+specially. All da == 0 checks to aim at catching invalid address values must 
+be removed, both from the IOMMU API and the IOMMU internals.
 
-diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
-index 6dc1296..e5f8341 100644
---- a/arch/arm/plat-omap/iovmm.c
-+++ b/arch/arm/plat-omap/iovmm.c
-@@ -271,20 +271,24 @@ static struct iovm_struct *alloc_iovm_area(struct iommu *obj, u32 da,
- 					   size_t bytes, u32 flags)
- {
- 	struct iovm_struct *new, *tmp;
--	u32 start, prev_end, alignement;
-+	u32 start, prev_end, alignment;
- 
- 	if (!obj || !bytes)
- 		return ERR_PTR(-EINVAL);
- 
- 	start = da;
--	alignement = PAGE_SIZE;
-+	alignment = PAGE_SIZE;
- 
- 	if (flags & IOVMF_DA_ANON) {
--		start = obj->da_start;
-+		/* Don't map address 0 */
-+		if (obj->da_start)
-+			start = obj->da_start;
-+		else
-+			start = alignment;
- 
- 		if (flags & IOVMF_LINEAR)
--			alignement = iopgsz_max(bytes);
--		start = roundup(start, alignement);
-+			alignment = iopgsz_max(bytes);
-+		start = roundup(start, alignment);
- 	} else if (start < obj->da_start || start > obj->da_end ||
- 					obj->da_end - start < bytes) {
- 		return ERR_PTR(-EINVAL);
-@@ -304,7 +308,7 @@ static struct iovm_struct *alloc_iovm_area(struct iommu *obj, u32 da,
- 			goto found;
- 
- 		if (tmp->da_end >= start && flags & IOVMF_DA_ANON)
--			start = roundup(tmp->da_end + 1, alignement);
-+			start = roundup(tmp->da_end + 1, alignment);
- 
- 		prev_end = tmp->da_end;
- 	}
+> The 'da' range (da_start and da_end) is defined per VM and specified as
+> platform data. IMO, to set da_start = 0x1000 seems to be> a correct approach
+> for ISP as it's the only client for its IOMMU instance.
+
+We can do that, and then use 0 as an invalid pointer in the ISP driver. As the 
+IOMMU API will use another value (what about 0xffffffff, as for the userspace 
+mmap() call ?) to mean "invalid pointer", it might be better to use the same 
+value in the ISP driver.
+
 -- 
-1.7.0.4
+Regards,
 
+Laurent Pinchart
