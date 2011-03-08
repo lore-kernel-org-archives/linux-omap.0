@@ -1,61 +1,81 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH v2 0/2] OMAP2PLUS: DSS2: Clock Source Changes
-Date: Tue, 8 Mar 2011 18:24:07 +0200
-Message-ID: <1299601447.2131.16.camel@deskari>
-References: <1299585035-26931-1-git-send-email-archit@ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: Integration branch base switchover to Tony's omap-for-linus branch
+Date: Tue, 8 Mar 2011 17:28:10 +0100
+Message-ID: <4D76591A.7060508@ti.com>
+References: <alpine.DEB.2.00.1102251722450.6198@utopia.booyaka.com> <3f332cbd75f835ca119bdeccd72c4bb2@mail.gmail.com> <alpine.DEB.2.00.1103011431240.16349@utopia.booyaka.com> <4D6F89FB.7080201@ti.com> <4D70F25C.4040206@ti.com> <58ec7480fe87b4d64c33cb2c4454a805@mail.gmail.com> <02124a94c82909eff5a589819ec86357@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59599 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:59864 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752078Ab1CHQYM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 8 Mar 2011 11:24:12 -0500
-Received: from dlep36.itg.ti.com ([157.170.170.91])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p28GOC5k019139
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 8 Mar 2011 10:24:12 -0600
-Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
-	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id p28GOCik001146
-	for <linux-omap@vger.kernel.org>; Tue, 8 Mar 2011 10:24:12 -0600 (CST)
-Received: from dlee74.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p28GOCYJ005334
-	for <linux-omap@vger.kernel.org>; Tue, 8 Mar 2011 10:24:12 -0600 (CST)
-In-Reply-To: <1299585035-26931-1-git-send-email-archit@ti.com>
+	id S1751634Ab1CHQ2P (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 8 Mar 2011 11:28:15 -0500
+In-Reply-To: <02124a94c82909eff5a589819ec86357@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Taneja, Archit" <archit@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nayak, Rajendra" <rnayak@ti.com>, "Hilman, Kevin" <khilman@ti.com>
 
-On Tue, 2011-03-08 at 05:50 -0600, Taneja, Archit wrote:
-> There are clocks on OMAP4 within DSS2 which can have multiple clock sources.
-> This cleans up the existing way of selecting/getting the clock sources and add
-> some of the new clock sources for OMAP4.
-> 
-> Applies over:
-> http://gitorious.org/linux-omap-dss2/linux/commits/master
-> 
-> Archit Taneja (2):
->   OMAP2PLUS: DSS2: Cleanup clock source related code
->   OMAP4: DSS2: Clock source changes for OMAP4
+On 3/8/2011 4:16 PM, Shilimkar, Santosh wrote:
+> Paul,
+>> -----Original Message-----
+>> From: Santosh Shilimkar [mailto:santosh.shilimkar@ti.com]
+>> Sent: Friday, March 04, 2011 10:14 PM
+>> To: Rajendra Nayak
+>> Cc: linux-omap@vger.kernel.org; Benoit Cousson; Paul Walmsley
+>> Subject: RE: Integration branch base switchover to Tony's omap-for-
+>> linus branch
+>>
+>
+>   [....]
+>
+>>> Some more debugging by the Hardware team and analyzing
+>>> the register dumps showed that the I2C_WE register of the i2c
+>>> modules needs to be programmed correctly for i2c wakeups to
+>>> function as expected.
+>>> This turned out to be the root cause for the i2c issues observed
+>>> by clearing the staticdeps and a patch has been posted
+>>> to address this...
+>>> http://marc.info/?l=linux-omap&m=129924557219813&w=2
+>>>
+>>>>
+>>>> Also some more testing showed up a lockup in suspend on OMAP4
+>>> which I
+>>>> could narrow down to a similar case with GPT1. Either keeping
+>> the
+>>>> staticdep between MPU and L4_WKUP _or_ forcing GPT1 to use
+>>> software
+>>>> idle control seems to help.
+>>>
+>>> This however is still not rootcaused and is not the same as the
+>>> issue
+>>> seen with i2c as the WE for GPT1 is already programmed for
+>> enabling
+>>> wakeup.
+>>>
+>>> The one way to fix this for now is to put GPT1 block in software
+>>> controlled idle as was done by your test patch for i2c.
+>>>
+>> I tried all the floating patches for static dependency. It did
+>> worked when CPU RET was tried but with MPU OFF I see the hang.
+>>
+>> Below is the global hack I have which works as expected for
+>> all cases.
+>>
+> Thanks to Rajendra for isolating the OMAP4 MPU OFF issue
+> with static dependency series. The issue is isolated
+> to MPU<->  EMIF clock dependency.  There issue appears
+> if we clear this static dependency.
+>
+> I have posted a patch to work-around this issue till its
+> being root-caused with help of hardware team so that
+> OMAP4 PM series continue to work.
+>
+> 'OMAP4: PM: Set static dependency between MPUSS and EMIF'
+> http://www.listware.net/201103/linux-omap/2628-patch-omap4-pm-set-static-d
+> ependency-between-mpuss-and-emif.html
 
-The set looks good. I'll apply it tomorrow morning after some testing.
+Cool, so the timer1 fix is not longer needed?
 
-But something for future patches:
-
-The naming of the functions could be made clearer. We have logic clock
-for the LCD outputs but also for DISPC. So for example dispc_lclk_rate()
-could be dispc_lcd_lclk_rate(), to make sure it's not called when the
-caller needs to know the lclk of dispc. And it looks too similar to
-dispc_fclk_rate() which returns clock for dispc core, easily giving the
-impression that these two are linked.
-
-And similarly dispc_pclk_rate() could be dispc_lcd_pclk_rate(), to make
-clear that it's not for example venc pixel clock.
-
-Perhaps there are also other functions whose name could be more specific
-now that we have separate clocks for dispc core and the lcd paths.
-
- Tomi
-
-
+Benoit
