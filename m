@@ -1,133 +1,41 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH v2 1/2] OMAP2PLUS: DSS2: Cleanup clock source related code
-Date: Tue,  8 Mar 2011 17:20:34 +0530
-Message-ID: <1299585035-26931-2-git-send-email-archit@ti.com>
-References: <1299585035-26931-1-git-send-email-archit@ti.com>
+Subject: [PATCH v2 0/2] OMAP2PLUS: DSS2: Clock Source Changes
+Date: Tue,  8 Mar 2011 17:20:33 +0530
+Message-ID: <1299585035-26931-1-git-send-email-archit@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:59711 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754287Ab1CHLqz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Mar 2011 06:46:55 -0500
-Received: from dlep36.itg.ti.com ([157.170.170.91])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p28BksD7030539
+Received: from arroyo.ext.ti.com ([192.94.94.40]:42149 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753828Ab1CHLqv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 8 Mar 2011 06:46:51 -0500
+Received: from dlep33.itg.ti.com ([157.170.170.112])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p28Bkp4X005419
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 8 Mar 2011 05:46:55 -0600
-In-Reply-To: <1299585035-26931-1-git-send-email-archit@ti.com>
+	for <linux-omap@vger.kernel.org>; Tue, 8 Mar 2011 05:46:51 -0600
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com
 Cc: linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-Clean up some of the DSS functions which select/get clock sources, use switch
-to select the clock source members since more clock sources will be introduced
-later on.
+There are clocks on OMAP4 within DSS2 which can have multiple clock sources.
+This cleans up the existing way of selecting/getting the clock sources and add
+some of the new clock sources for OMAP4.
 
-Remove the use of macro CONFIG_OMAP2_DSS_DSI in dispc_fclk_rate, use a dummy
-inline for function for dsi_get_pll_hsdiv_dispc_rate() instead for code clarity.
+Applies over:
+http://gitorious.org/linux-omap-dss2/linux/commits/master
 
-Signed-off-by: Archit Taneja <archit@ti.com>
----
- drivers/video/omap2/dss/dispc.c |   15 +++++++++------
- drivers/video/omap2/dss/dss.c   |   32 ++++++++++++++++++++------------
- drivers/video/omap2/dss/dss.h   |    5 +++++
- 3 files changed, 34 insertions(+), 18 deletions(-)
+Archit Taneja (2):
+  OMAP2PLUS: DSS2: Cleanup clock source related code
+  OMAP4: DSS2: Clock source changes for OMAP4
 
-diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-index 4a368c4..b66df40 100644
---- a/drivers/video/omap2/dss/dispc.c
-+++ b/drivers/video/omap2/dss/dispc.c
-@@ -2341,14 +2341,17 @@ unsigned long dispc_fclk_rate(void)
- {
- 	unsigned long r = 0;
- 
--	if (dss_get_dispc_clk_source() == DSS_CLK_SRC_FCK)
-+	switch (dss_get_dispc_clk_source()) {
-+	case DSS_CLK_SRC_FCK:
- 		r = dss_clk_get_rate(DSS_CLK_FCK);
--	else
--#ifdef CONFIG_OMAP2_DSS_DSI
-+		break;
-+	case DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC:
- 		r = dsi_get_pll_hsdiv_dispc_rate();
--#else
--	BUG();
--#endif
-+		break;
-+	default:
-+		BUG();
-+	}
-+
- 	return r;
- }
- 
-diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
-index 2be4d03..93813fd 100644
---- a/drivers/video/omap2/dss/dss.c
-+++ b/drivers/video/omap2/dss/dss.c
-@@ -293,13 +293,17 @@ void dss_select_dispc_clk_source(enum dss_clk_source clk_src)
- {
- 	int b;
- 
--	BUG_ON(clk_src != DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC &&
--			clk_src != DSS_CLK_SRC_FCK);
--
--	b = clk_src == DSS_CLK_SRC_FCK ? 0 : 1;
--
--	if (clk_src == DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC)
-+	switch (clk_src) {
-+	case DSS_CLK_SRC_FCK:
-+		b = 0;
-+		break;
-+	case DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC:
-+		b = 1;
- 		dsi_wait_pll_hsdiv_dispc_active();
-+		break;
-+	default:
-+		BUG();
-+	}
- 
- 	REG_FLD_MOD(DSS_CONTROL, b, 0, 0);	/* DISPC_CLK_SWITCH */
- 
-@@ -310,13 +314,17 @@ void dss_select_dsi_clk_source(enum dss_clk_source clk_src)
- {
- 	int b;
- 
--	BUG_ON(clk_src != DSS_CLK_SRC_DSI_PLL_HSDIV_DSI &&
--			clk_src != DSS_CLK_SRC_FCK);
--
--	b = clk_src == DSS_CLK_SRC_FCK ? 0 : 1;
--
--	if (clk_src == DSS_CLK_SRC_DSI_PLL_HSDIV_DSI)
-+	switch (clk_src) {
-+	case DSS_CLK_SRC_FCK:
-+		b = 0;
-+		break;
-+	case DSS_CLK_SRC_DSI_PLL_HSDIV_DSI:
-+		b = 1;
- 		dsi_wait_pll_hsdiv_dsi_active();
-+		break;
-+	default:
-+		BUG();
-+	}
- 
- 	REG_FLD_MOD(DSS_CONTROL, b, 1, 1);	/* DSI_CLK_SWITCH */
- 
-diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-index 85d4141..fc41b3f 100644
---- a/drivers/video/omap2/dss/dss.h
-+++ b/drivers/video/omap2/dss/dss.h
-@@ -299,6 +299,11 @@ static inline int dsi_init_platform_driver(void)
- static inline void dsi_uninit_platform_driver(void)
- {
- }
-+static inline unsigned long dsi_get_pll_hsdiv_dispc_rate(void)
-+{
-+	WARN("%s: DSI not compiled in, returning rate as 0\n", __func__);
-+	return 0;
-+}
- static inline void dsi_wait_pll_hsdiv_dispc_active(void)
- {
- }
--- 
-1.7.1
-
+ drivers/video/omap2/dss/dispc.c        |   46 +++++++++++++++-----
+ drivers/video/omap2/dss/dss.c          |   76 ++++++++++++++++++++++++++------
+ drivers/video/omap2/dss/dss.h          |   31 +++++++++----
+ drivers/video/omap2/dss/dss_features.c |   13 +++++-
+ drivers/video/omap2/dss/dss_features.h |    3 +
+ 5 files changed, 133 insertions(+), 36 deletions(-)
+--
+v2:
+-Split cleanup and OMAP4 changes into 2 patches
+-Don't use CONFIG_OMAP2_DSS_DSI macro
+-Let LCDx_CLK clock source be used for OMAP2/3, but keep it always as
+DSS_CLK_SRC_FCK
