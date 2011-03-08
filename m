@@ -1,56 +1,101 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 2 01/18] I2C: OMAP2+: Set hwmod flags to only allow 16-bit
- accesses to i2c
-Date: Tue, 8 Mar 2011 16:14:29 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1103081613580.15132@utopia.booyaka.com>
-References: <20110308105934.23531.83540.stgit@otae.warmcat.com> <20110308110727.23531.15577.stgit@otae.warmcat.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] omap: overo: Add regulator for ads7846
+Date: Tue, 8 Mar 2011 15:16:16 -0800
+Message-ID: <20110308231615.GH26463@atomide.com>
+References: <1299341546-17289-1-git-send-email-steve@sakoman.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:47199 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756518Ab1CHXOa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Mar 2011 18:14:30 -0500
-In-Reply-To: <20110308110727.23531.15577.stgit@otae.warmcat.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:21098 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755024Ab1CHXQ3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Mar 2011 18:16:29 -0500
+Content-Disposition: inline
+In-Reply-To: <1299341546-17289-1-git-send-email-steve@sakoman.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Andy Green <andy@warmcat.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, patches@linaro.org, Ben Dooks <ben-linux@fluff.org>, Andy Green <andy.green@linaro.org>
+To: Steve Sakoman <steve@sakoman.com>
+Cc: linux-omap@vger.kernel.org, tomi.valkeinen@ti.com
 
-On Tue, 8 Mar 2011, Andy Green wrote:
+* Steve Sakoman <steve@sakoman.com> [110305 08:10]:
+> The ads7846 driver now requires a regulator.  This patch adds the
+> necessary regulator to the overo board file.  Without it, the
+> following error occurs (and the touchscreen will not function):
+> 
+> ads7846 spi1.0: unable to get regulator: -19
+> 
+> Signed-off-by: Steve Sakoman <steve@sakoman.com>
+> ---
+> Note: this patch should be applied after the "[PATCH v3 0/2] Add DSS2
+> support on Overo" series.
 
-> Peter Maydell noticed when running under QEMU he was getting
-> errors reporting 32-bit access to I2C peripheral unit registers
-> that are documented to be 8 or 16-bit only[1][2]
-> 
-> The I2C driver is blameless as it wraps its accesses in a
-> function using __raw_writew and __raw_readw, it turned out it
-> is the hwmod stuff.
-> 
-> However the hwmod code already has a flag to force a
-> perhipheral unit to only be accessed using 16-bit operations.
-> 
-> This patch applies the 16-bit only flag to the 2430,
-> OMAP3xxx and OMAP44xx hwmod structs.  2420 was already
-> correctly marked up as 16-bit.
-> 
-> The 2430 change will need testing by TI as arranged
-> in the comments to the previous patch version.
-> 
-> When the 16-bit flag is or-ed with other flags, it is placed
-> first as requested in comments.
-> 
-> [1] OMAP4430 Technical reference manual section 23.1.6.2
-> [2] OMAP3530 Techincal reference manual section 18.6
-> 
-> Cc: patches@linaro.org
-> Cc: Ben Dooks <ben-linux@fluff.org>
-> Reported-by: Peter Maydell <peter.maydell@linaro.org>
-> Signed-off-by: Andy Green <andy.green@linaro.org>
+Tomi can you please take this one to avoid merge conflicts?
 
-For the OMAP2/3 hwmod data changes, makes sense to me.  
-
-Acked-by: Paul Walmsley <paul@pwsan.com>
-
-
-- Paul
+Acked-by: Tony Lindgren <tony@atomide.com>
+ 
+>  arch/arm/mach-omap2/board-overo.c |   31 +++++++++++++++++++++++++++++++
+>  1 files changed, 31 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
+> index a2c17c9..1aee5b7 100644
+> --- a/arch/arm/mach-omap2/board-overo.c
+> +++ b/arch/arm/mach-omap2/board-overo.c
+> @@ -28,6 +28,7 @@
+>  #include <linux/platform_device.h>
+>  #include <linux/i2c/twl.h>
+>  #include <linux/regulator/machine.h>
+> +#include <linux/regulator/fixed.h>
+>  #include <linux/spi/spi.h>
+>  
+>  #include <linux/mtd/mtd.h>
+> @@ -97,6 +98,34 @@ static struct ads7846_platform_data ads7846_config = {
+>  	.keep_vref_on		= 1,
+>  };
+>  
+> +/* fixed regulator for ads7846 */
+> +static struct regulator_consumer_supply ads7846_supply =
+> +	REGULATOR_SUPPLY("vcc", "spi1.0");
+> +
+> +static struct regulator_init_data vads7846_regulator = {
+> +	.constraints = {
+> +		.valid_ops_mask		= REGULATOR_CHANGE_STATUS,
+> +	},
+> +	.num_consumer_supplies	= 1,
+> +	.consumer_supplies	= &ads7846_supply,
+> +};
+> +
+> +static struct fixed_voltage_config vads7846 = {
+> +	.supply_name		= "vads7846",
+> +	.microvolts		= 3300000, /* 3.3V */
+> +	.gpio			= -EINVAL,
+> +	.startup_delay		= 0,
+> +	.init_data		= &vads7846_regulator,
+> +};
+> +
+> +static struct platform_device vads7846_device = {
+> +	.name		= "reg-fixed-voltage",
+> +	.id		= 1,
+> +	.dev = {
+> +		.platform_data = &vads7846,
+> +	},
+> +};
+> +
+>  static void __init overo_ads7846_init(void)
+>  {
+>  	if ((gpio_request(OVERO_GPIO_PENDOWN, "ADS7846_PENDOWN") == 0) &&
+> @@ -106,6 +135,8 @@ static void __init overo_ads7846_init(void)
+>  		printk(KERN_ERR "could not obtain gpio for ADS7846_PENDOWN\n");
+>  		return;
+>  	}
+> +
+> +	platform_device_register(&vads7846_device);
+>  }
+>  
+>  #else
+> -- 
+> 1.7.0.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
