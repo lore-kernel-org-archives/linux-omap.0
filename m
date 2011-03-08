@@ -1,78 +1,79 @@
 From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Subject: [PATCH v12 7/9] OMAP: dmtimer: pm_runtime support
-Date: Wed,  9 Mar 2011 05:15:46 +0530
-Message-ID: <1299627948-20040-8-git-send-email-tarun.kanti@ti.com>
+Subject: [PATCH v12 2/9] OMAP4: hwmod data: add dmtimer version information
+Date: Wed,  9 Mar 2011 05:15:41 +0530
+Message-ID: <1299627948-20040-3-git-send-email-tarun.kanti@ti.com>
 References: <1299627948-20040-1-git-send-email-tarun.kanti@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:51428 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:36425 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756734Ab1CHXnb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 8 Mar 2011 18:43:31 -0500
+	id S1756388Ab1CHXnc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 8 Mar 2011 18:43:32 -0500
 Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p28NhSaF025333
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p28NhSIc030857
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 8 Mar 2011 17:43:30 -0600
+	for <linux-omap@vger.kernel.org>; Tue, 8 Mar 2011 17:43:31 -0600
 In-Reply-To: <1299627948-20040-1-git-send-email-tarun.kanti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>, Partha Basak <p-basak2@ti.com>
+Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>
 
-Add pm_runtime feature to dmtimer whereby _get_sync() is called within
-omap_dm_timer_enable(), _put_sync() is called in omap_dm_timer_disable().
-As part of this, I am getting rid of the 'enabled' flag since this is
-no longer needed. This has been replaced by pm_runtime_suspended() check.
+OMAP4 has two groups of timers: version 1 timers are 1, 2, 10,
+while the rest of the timers, 3-9, 11 are version 2 timers.
+The version information is required by the driver so that they
+could be handled correctly by it.
 
 Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-[p-basak2@ti.com: added pm_runtime logic in probe()]
-Signed-off-by: Partha Basak <p-basak2@ti.com>
-Reviewed-by: Varadarajan, Charulatha <charu@ti.com>
 Acked-by: Cousson, Benoit <b-cousson@ti.com>
+Cc: Cousson, Benoit <b-cousson@ti.com>
 ---
- arch/arm/plat-omap/dmtimer.c |    9 +++++++--
- 1 files changed, 7 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    3 +++
+ arch/arm/plat-omap/include/plat/dmtimer.h  |    4 +++-
+ 2 files changed, 6 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
-index 6ac6ce7..29d675e 100644
---- a/arch/arm/plat-omap/dmtimer.c
-+++ b/arch/arm/plat-omap/dmtimer.c
-@@ -39,6 +39,7 @@
- #include <linux/delay.h>
- #include <linux/io.h>
- #include <linux/slab.h>
-+#include <linux/pm_runtime.h>
- #include <linux/err.h>
- #include <linux/platform_device.h>
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+index 7dbcdf7..9a34e20 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -27,6 +27,7 @@
+ #include <plat/mcspi.h>
+ #include <plat/mcbsp.h>
+ #include <plat/mmc.h>
++#include <plat/dmtimer.h>
  
-@@ -335,7 +336,7 @@ void omap_dm_timer_enable(struct omap_dm_timer *timer)
- 	if (timer->enabled)
- 		return;
+ #include "omap_hwmod_common_data.h"
  
--	clk_enable(timer->fclk);
-+	pm_runtime_get_sync(&timer->pdev->dev);
+@@ -3956,6 +3957,7 @@ static struct omap_hwmod_class_sysconfig omap44xx_timer_1ms_sysc = {
+ static struct omap_hwmod_class omap44xx_timer_1ms_hwmod_class = {
+ 	.name	= "timer",
+ 	.sysc	= &omap44xx_timer_1ms_sysc,
++	.rev	= OMAP_TIMER_IP_VERSION_1,
+ };
  
- 	timer->enabled = 1;
- }
-@@ -346,7 +347,7 @@ void omap_dm_timer_disable(struct omap_dm_timer *timer)
- 	if (!timer->enabled)
- 		return;
+ static struct omap_hwmod_class_sysconfig omap44xx_timer_sysc = {
+@@ -3971,6 +3973,7 @@ static struct omap_hwmod_class_sysconfig omap44xx_timer_sysc = {
+ static struct omap_hwmod_class omap44xx_timer_hwmod_class = {
+ 	.name	= "timer",
+ 	.sysc	= &omap44xx_timer_sysc,
++	.rev	= OMAP_TIMER_IP_VERSION_2,
+ };
  
--	clk_disable(timer->fclk);
-+	pm_runtime_put_sync(&timer->pdev->dev);
- 
- 	timer->enabled = 0;
- }
-@@ -690,6 +691,10 @@ static int __devinit omap_dm_timer_probe(struct platform_device *pdev)
- 	timer->pdev = pdev;
- 	timer->reserved = 0;
- 
-+	 /* Skip pm_runtime_enable during early boot and for OMAP1 */
-+	if (!pdata->is_early_init && !pdata->needs_manual_reset)
-+		pm_runtime_enable(&pdev->dev);
+ /* timer1 */
+diff --git a/arch/arm/plat-omap/include/plat/dmtimer.h b/arch/arm/plat-omap/include/plat/dmtimer.h
+index d6c70d2..e3d477d 100644
+--- a/arch/arm/plat-omap/include/plat/dmtimer.h
++++ b/arch/arm/plat-omap/include/plat/dmtimer.h
+@@ -54,7 +54,9 @@
+  * IP revision identifier so that Highlander IP
+  * in OMAP4 can be distinguished.
+  */
+-#define OMAP_TIMER_IP_VERSION_1                        0x1
++#define OMAP_TIMER_IP_VERSION_1			0x1
++#define OMAP_TIMER_IP_VERSION_2			0x2
 +
- 	/* add the timer element to the list */
- 	spin_lock_irqsave(&dm_timer_lock, flags);
- 	list_add_tail(&timer->node, &omap_timer_list);
+ struct omap_dm_timer;
+ extern struct omap_dm_timer *gptimer_wakeup;
+ extern struct sys_timer omap_timer;
 -- 
 1.6.0.4
 
