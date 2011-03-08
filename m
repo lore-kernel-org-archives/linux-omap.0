@@ -1,99 +1,100 @@
-From: David Cohen <dacohen@gmail.com>
-Subject: Re: [PATCH] omap: iommu: disallow mapping NULL address
-Date: Tue, 8 Mar 2011 11:55:27 +0200
-Message-ID: <AANLkTi=DYfXubPH0fkwFQSHHqW64tQ11K-yKCfx9PVMv@mail.gmail.com>
-References: <4D6D219D.7020605@matrix-vision.de>
-	<201103022018.23446.laurent.pinchart@ideasonboard.com>
-	<4D6FBC7F.1080500@matrix-vision.de>
-	<AANLkTikAKy=CzTqEv-UGBQ1EavqmCStPNFZ5vs7vH5VK@mail.gmail.com>
-	<4D70F985.8030902@matrix-vision.de>
-	<AANLkTinSJpjPXWHWduLbRSmb=La3sv82ufwgsq-uR7S2@mail.gmail.com>
-	<AANLkTi=8Sss-5xfgPmgx=J_T__=hrC1rQU-xBOdKC8Ve@mail.gmail.com>
-	<4D74D94F.7040702@matrix-vision.de>
-	<AANLkTikokA2hGMYA3vfBOxa0jPr0tjbLfYW603+zicry@mail.gmail.com>
-	<AANLkTikzAjUrec+c6zcSCx6auaR9QvbWwwTbXpGYuOoZ@mail.gmail.com>
-	<AANLkTi=KncNfW0NEEoV+mrT_Ft2j-c=rQG=qbeR6tLQK@mail.gmail.com>
-	<4D75F343.8090505@maxwell.research.nokia.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: Problem with DSS clocks & accessing registers
+Date: Tue, 8 Mar 2011 11:22:42 +0100
+Message-ID: <4D760372.3020005@ti.com>
+References: <1299486149.2281.77.camel@deskari>  <4D74E2D5.2000705@ti.com> <1299510200.2281.199.camel@deskari>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:58087 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752597Ab1CHJz3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Mar 2011 04:55:29 -0500
-In-Reply-To: <4D75F343.8090505@maxwell.research.nokia.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:56140 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753893Ab1CHKWq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Mar 2011 05:22:46 -0500
+In-Reply-To: <1299510200.2281.199.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
-Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>, Michael Jones <michael.jones@matrix-vision.de>, Hiroshi.DOYU@nokia.com, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Linux Media Mailing List <linux-media@vger.kernel.org>, linux-omap@vger.kernel.org
+To: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, Paul Walmsley <paul@pwsan.com>
+Cc: "Nayak, Rajendra" <rnayak@ti.com>, "Hilman, Kevin" <khilman@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "Taneja, Archit" <archit@ti.com>, "Semwal, Sumit" <sumit.semwal@ti.com>
 
-Hi Fernando,
-
-On Tue, Mar 8, 2011 at 11:13 AM, Sakari Ailus
-<sakari.ailus@maxwell.research.nokia.com> wrote:
-> Guzman Lugo, Fernando wrote:
->> On Mon, Mar 7, 2011 at 1:19 PM, David Cohen <dacohen@gmail.com> wrot=
-e:
->>> On Mon, Mar 7, 2011 at 9:17 PM, Guzman Lugo, Fernando
->>> <fernando.lugo@ti.com> wrote:
->>>> On Mon, Mar 7, 2011 at 7:10 AM, Michael Jones
->>>> <michael.jones@matrix-vision.de> wrote:
->>>>> From e7dbe4c4b64eb114f9b0804d6af3a3ca0e78acc8 Mon Sep 17 00:00:00=
- 2001
->>>>> From: Michael Jones <michael.jones@matrix-vision.de>
->>>>> Date: Mon, 7 Mar 2011 13:36:15 +0100
->>>>> Subject: [PATCH] omap: iommu: disallow mapping NULL address
->>>>>
->>>>> commit c7f4ab26e3bcdaeb3e19ec658e3ad9092f1a6ceb allowed mapping
->>>>> the NULL address if da_start=3D=3D0. =C2=A0Force da_start to excl=
-ude the
->>>>> first page.
->>>>
->>>> what about devices that uses page 0? ipu after reset always starts
->>>> from 0x00000000 how could we map that address??
->>>
->>> from 0x0? The driver sees da =3D=3D 0 as error. May I ask you why d=
-o you want it?
+On 3/7/2011 4:03 PM, Valkeinen, Tomi wrote:
+> On Mon, 2011-03-07 at 07:51 -0600, Cousson, Benoit wrote:
+>> + Rajendra
 >>
->> unlike DSP that you can load a register with the addres the DSP will
->> boot, IPU core always starts from address 0x00000000, so if you take
->> IPU out of reset it will try to access address 0x0 if not map it,
->> there will be a mmu fault.
+>> Hi Tomi,
+>>
+>> On 3/7/2011 9:22 AM, Valkeinen, Tomi wrote:
+>>> Hi Kevin, Paul,
+>>>
+>>> We currently have a small problem with OMAP4 DSS. When we enable the DSS
+>>> clocks, it seems that the DSS registers are not always accessible right
+>>> after the clock enable.
+>>
+>> What clocks are you talking about? As you know, the DSS has a bunch of
+>> functional clocks available depending of the use case.
 >
-> I think the driver for IPU (what is it, btw.?) must map the NULL addr=
-ess
-> explicitly. It cannot rely on automatic allocation of the NULL addres=
-s
-> by the iommu even if it was the first allocation.
-
-That's an interesting question. My first thought was "it's not
-automatic allocation", because it seems you know the specific 'da' IPU
-needs. But then, looking into the driver's API, the automatic
-allocation is defined whether the argument da =3D=3D 0 (automatic
-allocation) or da !=3D 0 (fixed da). So, by default, the IOMMU driver
-does not see da =3D=3D 0 as valid address for fixed da. Then, why only
-automatic allocation should use such address? My second point is: if
-you're using automatic allocation, you *cannot* rely on specific da to
-be used, as it would be up to IOMMU driver to choose. So, doesn't
-matter the option, your driver seems to be wrong, unless I'm missing
-something. If you were using fixed da passing da =3D 0, you were just
-being lucky that it was the first request and automatic allocation
-returned da =3D=3D 0.
-IMO either first page is not allowed at all or OMAP's IOMMU API should
-change the way it checks if it's fixed da or not.
-
-Kind regards,
-
-David
-
+> In this case the clocks for DISPC, iclk and fclk. On OMAP4 fclk is
+> DSS_FCLK and iclk is not used, I believe. The problem is probably also
+> in all the other DSS modules.
 >
-> --
-> Sakari Ailus
-> sakari.ailus@maxwell.research.nokia.com
+>>> I understood that on OMAP4 the clock framework doesn't guarantee that
+>>> the registers are accessible after enabling clocks, and pm_runtime will
+>>> handle this. Is this correct?
+>>
+>> The point is that there is no status at clock level but only one status
+>> at module level. That's why this check does not have anything to do at
+>> clock level.
+>> So hwmod with handle that status (OMAP4430_CM_DSS_DSS_CLKCTRL) during
+>> the hwmod_enable that is indirectly called by pm_runtime, through
+>> omap_device API.
 >
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Ah. Ok. How does CM_DSS_DSS_CLKCTRL show that the DSS module is ready?
+> IDLEST is 0?
+
+Yep, or 2 if only the interface clock is idle and a separate functional 
+clock is running, which is the case of the DSS. You can check the 
+function used in hwmod: omap4_cm_wait_module_ready in cminst44xx.c.
+
+- 0x0 func: Module is fully functional, including OCP
+- 0x2 idle: Module is in Idle mode (only OCP part). It is functional if 
+using separate functional clock
+
+>>> I have made a small hack fix for this. I added udelay(10) in the DSS
+>>> code which enables the clocks and this seem to remove the problem. The
+>>> delay is only called when DSS thinks the clocks have been off, so in
+>>> practice the delay shouldn't be visible. Is this fix acceptable for now,
+>>> until we get pm_runtime support to DSS?
+>>
+>> Cannot you use omap_device for the moment? Relying on a udelay is not a
+>> very safe method, even temporally.
+>
+> Yes, udelay is not very good option even as a hack, except if we can
+> wait some amount of time which we know will always be enough. Can we?
+
+You should really avoid that, because we really don't have any good way 
+to get a good number.
+
+> I have to say I'm not very familiar with omap_device, as I haven't been
+> really working with them (nor hwmods). Sumit or Archit can perhaps fill
+> in, but my understanding is that work on that area is going on, but it's
+> not ready yet. So I'm looking for some temporary quick solution for this
+> so that DSS driver doesn't randomly crash on OMAP4.
+
+Adding the check in the clock framework for DSS clock nodes only might 
+be the cleanest way to do that right now.
+
+You can map clock nodes to clkops_omap2_dflt_wait clkops instead of the 
+clkops_omap2_dflt currently used. But then you will have to add the 
+support for OMAP4, since for the moment the function seems to work only 
+for OMAP2 & 3 (omap2_clk_dflt_find_idlest).
+
+It is a little bit more complex than the current WA but should not be 
+that hard either to do.
+This is a much cleaner WA before having the full hwmod support for the 
+DSS for my point of view.
+
+Paul,
+Any thoughts?
+
+Regards,
+Benoit
