@@ -1,44 +1,33 @@
-From: Abhilash K V <abhilash.kv@ti.com>
-Subject: [PATCH] ASoC: AM3517: Update codec name after multi-component update
-Date: Tue,  8 Mar 2011 21:02:43 +0530
-Message-ID: <1299598363-32656-1-git-send-email-abhilash.kv@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:45546 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751254Ab1CHPdK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Mar 2011 10:33:10 -0500
-Sender: linux-omap-owner@vger.kernel.org
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH] ASoC: AM3517: Update codec name after
+ multi-component update
+Date: Tue, 8 Mar 2011 15:34:03 +0000
+Message-ID: <20110308153402.GA21538@opensource.wolfsonmicro.com>
+References: <1299598363-32656-1-git-send-email-abhilash.kv@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Disposition: inline
+In-Reply-To: <1299598363-32656-1-git-send-email-abhilash.kv@ti.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Abhilash K V <abhilash.kv@ti.com>
+Cc: alsa-devel@alsa-project.org, tiwai@suse.de, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, lrg@slimlogic.co.uk
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org
-Cc: jhnikula@gmail.com, lrg@slimlogic.co.uk, broonie@opensource.wolfsonmicro.com, perex@perex.cz, tiwai@suse.de, Abhilash K V <abhilash.kv@ti.com>
 
-The i2c client device name (".2-001a" in this case, including
-the separator period) for the AIC23 codec on the TI AM3517-EVM
-was appended to the codec_name member of am3517evm_dai to
-resolve the names mismatch happening in soc_bind_dai_link(),
-due to which the card was not getting registered.
+On Tue, Mar 08, 2011 at 09:02:43PM +0530, Abhilash K V wrote:
+> The i2c client device name (".2-001a" in this case, including
+> the separator period) for the AIC23 codec on the TI AM3517-EVM
+> was appended to the codec_name member of am3517evm_dai to
+> resolve the names mismatch happening in soc_bind_dai_link(),
+> due to which the card was not getting registered.
 
-Signed-off-by: Abhilash K V <abhilash.kv@ti.com>
-
-Acked-by: Jarkko Nikula <jhnikula@gmail.com>
-
----
- sound/soc/omap/am3517evm.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/sound/soc/omap/am3517evm.c b/sound/soc/omap/am3517evm.c
-index 979dd50..ddbd2a1 100644
---- a/sound/soc/omap/am3517evm.c
-+++ b/sound/soc/omap/am3517evm.c
-@@ -139,7 +139,7 @@ static struct snd_soc_dai_link am3517evm_dai = {
- 	.cpu_dai_name ="omap-mcbsp-dai.0",
- 	.codec_dai_name = "tlv320aic23-hifi",
- 	.platform_name = "omap-pcm-audio",
--	.codec_name = "tlv320aic23-codec",
-+	.codec_name = "tlv320aic23-codec.2-001a",
- 	.init = am3517evm_aic23_init,
- 	.ops = &am3517evm_ops,
- };
--- 
-1.6.2.4
-
+Ached-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
