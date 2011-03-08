@@ -1,164 +1,54 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 2/2] Watchdog: omap_wdt: fix interface clock handling
-Date: Tue, 8 Mar 2011 16:04:03 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1103081602020.15132@utopia.booyaka.com>
-References: <1299589583-22632-1-git-send-email-kalle.jokiniemi@nokia.com> <1299589583-22632-3-git-send-email-kalle.jokiniemi@nokia.com>
+Subject: Re: [PATCH 0/2] omap_wdt: fix interface clock handling
+Date: Tue, 8 Mar 2011 16:10:47 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1103081605460.15132@utopia.booyaka.com>
+References: <1299589583-22632-1-git-send-email-kalle.jokiniemi@nokia.com> <87bp1lv8uc.fsf@ti.com> <alpine.DEB.2.00.1103081543430.10981@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:45606 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:38444 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755939Ab1CHXEE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Mar 2011 18:04:04 -0500
-In-Reply-To: <1299589583-22632-3-git-send-email-kalle.jokiniemi@nokia.com>
+	with ESMTP id S1756311Ab1CHXKs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Mar 2011 18:10:48 -0500
+In-Reply-To: <alpine.DEB.2.00.1103081543430.10981@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
-Cc: linux-omap@vger.kernel.org, khilman@ti.com, tony@atomide.com, ilkka.koskinen@nokia.com, wim@iguana.be, Atal Shargorodsky <ext-atal.shargorodsky@nokia.com>
+Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, tony@atomide.com, b-cousson@ti.com, ilkka.koskinen@nokia.com, Charulatha Varadarajan <charu@ti.com>, wim@iguana.be
 
-On Tue, 8 Mar 2011, Kalle Jokiniemi wrote:
+Hi
 
-> Keeping the omap watchdog interface clock always enabled
-> blocks OMAP CORE power domain from sleeping. Introduce
-> fine grain clock control to fix the issue.
+On Tue, 8 Mar 2011, Paul Walmsley wrote:
+
+> On Tue, 8 Mar 2011, Kevin Hilman wrote:
 > 
-> This patch is based on a patch created by Atal
-> Shargorodsky: http://lkml.org/lkml/2009/3/10/266.
+> > Kalle Jokiniemi <kalle.jokiniemi@nokia.com> writes:
+> > 
+> > > The runtime PM does not offer enough granularity to control
+> > > individual clocks separately as needed. Current pm implementation
+> > > of omap_wdt blocks the CORE power domain from idling in
+> > > OMAP SoC, as it keeps the interface clock of the watchdog always
+> > > on. This causes severe power leakage in devices where 
+> > > the omap watchdog is in active use.
+> > 
+> > The iclk remains active because it's in hardware-controlled
+> > auto-idle mode.  
 > 
-> Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
-> Cc: Atal Shargorodsky <ext-atal.shargorodsky@nokia.com>
+> ... and we think that the interface clock never enters auto-idle because 
+> the WDT doesn't SIdleAck to the PRCM until the special sequence has been 
+> written to the WDT registers to disable it.  So even if its *CLKEN bits 
+> are set to zero, the WDT prevents the system from going idle.
 
-This should be the equivalent of the original patch, but using PM runtime 
-instead.  Perhaps you could see if this, plus the hwmod data patch, fixes 
-the problem that you're reporting?
+Actually, thinking about this further, I think this statement must be 
+wrong.  The WDT may actually SIdleAck even when it's enabled.  Otherwise, 
+how could disabling the clocks save much power?  The WDT shouldn't need 
+its interface clock to be enabled in order to keep its timer ticking or to 
+reset the system.  
 
-Compile-tested only, but I did check the diff line-by-line against your 
-version of Atal's patch.
+So this first patch might not even be necessary.
+
+Kalle, if both patches work, perhaps you might try dropping this one and 
+see if the problem is still there?
 
 
 - Paul
-
-
----
- drivers/watchdog/omap_wdt.c |   25 +++++++++++++++++++++++--
- 1 files changed, 23 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/watchdog/omap_wdt.c b/drivers/watchdog/omap_wdt.c
-index 3dd4971..2b4acb8 100644
---- a/drivers/watchdog/omap_wdt.c
-+++ b/drivers/watchdog/omap_wdt.c
-@@ -124,6 +124,8 @@ static void omap_wdt_set_timeout(struct omap_wdt_dev *wdev)
- 	u32 pre_margin = GET_WLDR_VAL(timer_margin);
- 	void __iomem *base = wdev->base;
- 
-+	pm_runtime_get_sync(wdev->dev);
-+
- 	/* just count up at 32 KHz */
- 	while (__raw_readl(base + OMAP_WATCHDOG_WPS) & 0x04)
- 		cpu_relax();
-@@ -131,6 +133,8 @@ static void omap_wdt_set_timeout(struct omap_wdt_dev *wdev)
- 	__raw_writel(pre_margin, base + OMAP_WATCHDOG_LDR);
- 	while (__raw_readl(base + OMAP_WATCHDOG_WPS) & 0x04)
- 		cpu_relax();
-+
-+	pm_runtime_put_sync(wdev->dev);
- }
- 
- /*
-@@ -160,6 +164,8 @@ static int omap_wdt_open(struct inode *inode, struct file *file)
- 	omap_wdt_ping(wdev); /* trigger loading of new timeout value */
- 	omap_wdt_enable(wdev);
- 
-+	pm_runtime_put_sync(wdev->dev);
-+
- 	return nonseekable_open(inode, file);
- }
- 
-@@ -171,6 +177,7 @@ static int omap_wdt_release(struct inode *inode, struct file *file)
- 	 *      Shut off the timer unless NOWAYOUT is defined.
- 	 */
- #ifndef CONFIG_WATCHDOG_NOWAYOUT
-+	pm_runtime_get_sync(wdev->dev);
- 
- 	omap_wdt_disable(wdev);
- 
-@@ -190,9 +197,11 @@ static ssize_t omap_wdt_write(struct file *file, const char __user *data,
- 
- 	/* Refresh LOAD_TIME. */
- 	if (len) {
-+		pm_runtime_get_sync(wdev->dev);
- 		spin_lock(&wdt_lock);
- 		omap_wdt_ping(wdev);
- 		spin_unlock(&wdt_lock);
-+		pm_runtime_put_sync(wdev->dev);
- 	}
- 	return len;
- }
-@@ -224,15 +233,18 @@ static long omap_wdt_ioctl(struct file *file, unsigned int cmd,
- 			return put_user(omap_prcm_get_reset_sources(),
- 					(int __user *)arg);
- 	case WDIOC_KEEPALIVE:
-+		pm_runtime_get_sync(wdev->dev);
- 		spin_lock(&wdt_lock);
- 		omap_wdt_ping(wdev);
- 		spin_unlock(&wdt_lock);
-+		pm_runtime_put_sync(wdev->dev);
- 		return 0;
- 	case WDIOC_SETTIMEOUT:
- 		if (get_user(new_margin, (int __user *)arg))
- 			return -EFAULT;
- 		omap_wdt_adjust_timeout(new_margin);
- 
-+		pm_runtime_get_sync(wdev->dev);
- 		spin_lock(&wdt_lock);
- 		omap_wdt_disable(wdev);
- 		omap_wdt_set_timeout(wdev);
-@@ -240,6 +252,7 @@ static long omap_wdt_ioctl(struct file *file, unsigned int cmd,
- 
- 		omap_wdt_ping(wdev);
- 		spin_unlock(&wdt_lock);
-+		pm_runtime_put_sync(wdev->dev);
- 		/* Fall */
- 	case WDIOC_GETTIMEOUT:
- 		return put_user(timer_margin, (int __user *)arg);
-@@ -345,8 +358,11 @@ static void omap_wdt_shutdown(struct platform_device *pdev)
- {
- 	struct omap_wdt_dev *wdev = platform_get_drvdata(pdev);
- 
--	if (wdev->omap_wdt_users)
-+	if (wdev->omap_wdt_users) {
-+		pm_runtime_get_sync(wdev->dev);
- 		omap_wdt_disable(wdev);
-+		pm_runtime_put_sync(wdev->dev);
-+	}
- }
- 
- static int __devexit omap_wdt_remove(struct platform_device *pdev)
-@@ -381,8 +397,11 @@ static int omap_wdt_suspend(struct platform_device *pdev, pm_message_t state)
- {
- 	struct omap_wdt_dev *wdev = platform_get_drvdata(pdev);
- 
--	if (wdev->omap_wdt_users)
-+	if (wdev->omap_wdt_users) {
-+		pm_runtime_get_sync(wdev->dev);
- 		omap_wdt_disable(wdev);
-+		pm_runtime_put_sync(wdev->dev);
-+	}
- 
- 	return 0;
- }
-@@ -392,8 +411,10 @@ static int omap_wdt_resume(struct platform_device *pdev)
- 	struct omap_wdt_dev *wdev = platform_get_drvdata(pdev);
- 
- 	if (wdev->omap_wdt_users) {
-+		pm_runtime_get_sync(wdev->dev);
- 		omap_wdt_enable(wdev);
- 		omap_wdt_ping(wdev);
-+		pm_runtime_put_sync(wdev->dev);
- 	}
- 
- 	return 0;
--- 
-1.7.2.3
-
-
