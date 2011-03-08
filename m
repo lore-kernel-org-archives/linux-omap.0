@@ -1,84 +1,131 @@
-From: David Cohen <dacohen@gmail.com>
-Subject: Re: [PATCH 3/3] omap: iovmm: don't check 'da' to set
- IOVMF_DA_FIXED/IOVMF_DA_ANON flags
-Date: Tue, 8 Mar 2011 21:51:23 +0200
-Message-ID: <AANLkTik7m6AoxmWT-PcCvuKTCWHTfwXk0O5UquXM15iG@mail.gmail.com>
+From: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
+Subject: Re: [PATCH 1/3] omap: iovmm: disallow mapping NULL address
+Date: Tue, 8 Mar 2011 13:53:36 -0600
+Message-ID: <AANLkTim6rGp54i9cT0FMoRniiF4umKK5+agOSkfKvZAT@mail.gmail.com>
 References: <1299588365-2749-1-git-send-email-dacohen@gmail.com>
-	<1299588365-2749-4-git-send-email-dacohen@gmail.com>
-	<AANLkTikvUah8LPXCeV4Opi09DJ4ZoHAc2xUVTcDhNK=Q@mail.gmail.com>
-	<20110308.200901.212929907269368357.Hiroshi.DOYU@nokia.com>
-	<AANLkTi=E+9sjGEpCmHPFLFRGTQujDv8747Jf8=ukU1hC@mail.gmail.com>
-	<AANLkTikmWdQZZJHTmJsDTrSX434pKfpqJWZ6RWGB7ec6@mail.gmail.com>
-	<AANLkTimcSRB+AS=UEAtfc6D=BYWB7Nedj3LQyCnG4bVf@mail.gmail.com>
-	<AANLkTik9H1H5AfWX-aAh7+7Ghx0i0ADLT6sq4FtG8c1e@mail.gmail.com>
+	<1299588365-2749-2-git-send-email-dacohen@gmail.com>
+	<AANLkTikkUYFuhH-b2vKX8jVoT18wH_+WPzGbfFNWQK6K@mail.gmail.com>
+	<AANLkTikH=oYFOuvvG2y4yj=6UUnPCyEtq8AMc9bF9VrH@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <AANLkTik9H1H5AfWX-aAh7+7Ghx0i0ADLT6sq4FtG8c1e@mail.gmail.com>
+In-Reply-To: <AANLkTikH=oYFOuvvG2y4yj=6UUnPCyEtq8AMc9bF9VrH@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
-To: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
-Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, linux-omap@vger.kernel.org, linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com, sakari.ailus@maxwell.research.nokia.com
+To: David Cohen <dacohen@gmail.com>
+Cc: Hiroshi.DOYU@nokia.com, linux-omap@vger.kernel.org, linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com, sakari.ailus@maxwell.research.nokia.com, Michael Jones <michael.jones@matrix-vision.de>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Mar 8, 2011 at 9:46 PM, David Cohen <dacohen@gmail.com> wrote:
-> [snip]
->
->>>>>>> - =C2=A0 =C2=A0 =C2=A0 flags |=3D (da ? IOVMF_DA_FIXED : IOVMF_=
-DA_ANON);
->>>>>>> + =C2=A0 =C2=A0 =C2=A0 if (~flags & IOVMF_DA_FIXED)
->>>>>>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 flags |=3D I=
-OVMF_DA_ANON;
->>>>>>
->>>>>> could we use only one? both are mutual exclusive, what happen if=
- flag
->>>>>> is IOVMF_DA_FIXED | IOVMF_DA_ANON? so, I suggest to get rid of
->>>>>> IOVMF_DA_ANON.
->>>>>
->>>>> Then, what about introducing some MACRO? Better names?
->>>>>
->>>>> #define set_iovmf_da_anon(flags)
->>>>> #define set_iovmf_da_fix(flags)
->>>>> #define set_iovmf_mmio(flags)
->>>>
->>>> will they be used by the users?
->>>>
->>>> I think people are more used to use
->>>>
->>>> iommu_vmap(obj, da, sgt, IOVMF_MMIO | IOVMF_DA_ANON);
+On Tue, Mar 8, 2011 at 1:06 PM, David Cohen <dacohen@gmail.com> wrote:
+> On Tue, Mar 8, 2011 at 8:06 PM, Guzman Lugo, Fernando
+> <fernando.lugo@ti.com> wrote:
+>> On Tue, Mar 8, 2011 at 6:46 AM, David Cohen <dacohen@gmail.com> wrot=
+e:
+>>> From: Michael Jones <michael.jones@matrix-vision.de>
 >>>
->>> I'd be happier with this approach, instead of the macros. :)
->>> It's intuitive and very common on kernel.
+>>> commit c7f4ab26e3bcdaeb3e19ec658e3ad9092f1a6ceb allowed mapping
+>>> the NULL address if da_start=3D=3D0, which would then not get unmap=
+ped.
+>>> Disallow this again. =A0And spell variable 'alignment' correctly.
 >>>
->>>>
->>>> than
->>>>
->>>> set_iovmf_da_anon(flags)
->>>> set_iovmf_mmio(flags)
->>>> iommu_vmap(obj, da, sgt, flags);
->>>>
->>>> I don't have problem with the change, but I think how it is now is=
- ok,
->>>> just that we don't we two bits to handle anon/fixed da, it can be
->>>> managed it only 1 bit (one flag), or is there a issue?
+>>> Signed-off-by: Michael Jones <michael.jones@matrix-vision.de>
+>>> ---
+>>> =A0arch/arm/plat-omap/iovmm.c | =A0 16 ++++++++++------
+>>> =A01 files changed, 10 insertions(+), 6 deletions(-)
 >>>
->>> We can exclude IOVMF_DA_ANON and stick with IOVMF_DA_FIXED only.
->>> I can resend my patch if we agree it's OK.
+>>> diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.=
+c
+>>> index 6dc1296..11c9b76 100644
+>>> --- a/arch/arm/plat-omap/iovmm.c
+>>> +++ b/arch/arm/plat-omap/iovmm.c
+>>> @@ -271,20 +271,24 @@ static struct iovm_struct *alloc_iovm_area(st=
+ruct iommu *obj, u32 da,
+>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 size_t bytes, u32 flags)
+>>> =A0{
+>>> =A0 =A0 =A0 =A0struct iovm_struct *new, *tmp;
+>>> - =A0 =A0 =A0 u32 start, prev_end, alignement;
+>>> + =A0 =A0 =A0 u32 start, prev_end, alignment;
+>>>
+>>> =A0 =A0 =A0 =A0if (!obj || !bytes)
+>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return ERR_PTR(-EINVAL);
+>>>
+>>> =A0 =A0 =A0 =A0start =3D da;
+>>> - =A0 =A0 =A0 alignement =3D PAGE_SIZE;
+>>> + =A0 =A0 =A0 alignment =3D PAGE_SIZE;
+>>>
+>>> =A0 =A0 =A0 =A0if (flags & IOVMF_DA_ANON) {
+>>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 start =3D obj->da_start;
+>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* Don't map address 0 */
+>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (obj->da_start)
+>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 start =3D obj->da_sta=
+rt;
+>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 else
+>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 start =3D obj->da_sta=
+rt + alignment;
 >>
->> sounds perfect to me.
+>> else part obj->da_star is always 0, so why not?
+>> start =3D alignment;
 >
-> Not sure indeed if this change fits to this same patch. Looks like a
-> 4th patch sounds better.
-
-Indeed not. :)
-A new set is coming soon.
-
-Br,
-
-David
-
+> The patch is not from me, but I can fix it if Michael agrees.
 >
-> Br,
+>>
+>> so, why I understand, it now it is possible mapp address 0x0 only if
+>> IOVMF_DA_ANON is not set, right? maybe that would be mention in the
+>> patch.
+>
+> Indeed address 0x0 was never meant to be mapped. The mentioned commit
+> on the patch's description did that without noticing. But the new
+> change is documented in the code by the comment "Don't map address 0"
+
+yeah, but it only applies when "flags & IOVMF_DA_ANON", So if I use
+IOVMF_DA_FIXED and da_start =3D=3D 0, I will be able to map some area
+which starts from address 0x0, right?  if so, that looks good to me
+and the description should mention that if is disallowing mapping
+address 0x0 when IOVMF_DA_ANON is used.
+
+Regards,
+=46ernando.
+
+> and it's also mentioned on the patch description. Is it OK for you?
+>
+> Regards,
 >
 > David Cohen
+>
+>>
+>> Regards,
+>> Fernando.
+>>
+>>>
+>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (flags & IOVMF_LINEAR)
+>>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 alignement =3D iopgsz=
+_max(bytes);
+>>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 start =3D roundup(start, alignement);
+>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 alignment =3D iopgsz_=
+max(bytes);
+>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 start =3D roundup(start, alignment);
+>>> =A0 =A0 =A0 =A0} else if (start < obj->da_start || start > obj->da_=
+end ||
+>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0obj->da_end - start < bytes) {
+>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return ERR_PTR(-EINVAL);
+>>> @@ -304,7 +308,7 @@ static struct iovm_struct *alloc_iovm_area(stru=
+ct iommu *obj, u32 da,
+>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0goto found;
+>>>
+>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (tmp->da_end >=3D start && flags =
+& IOVMF_DA_ANON)
+>>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 start =3D roundup(tmp=
+->da_end + 1, alignement);
+>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 start =3D roundup(tmp=
+->da_end + 1, alignment);
+>>>
+>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0prev_end =3D tmp->da_end;
+>>> =A0 =A0 =A0 =A0}
+>>> --
+>>> 1.7.0.4
+>>>
+>>>
+>>
 >
