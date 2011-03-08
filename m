@@ -1,43 +1,445 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH v3] OMAP3+: OPP: Replace voltage values with Macros
-Date: Tue, 08 Mar 2011 05:47:04 +0530
-Message-ID: <4D757580.6050507@ti.com>
-References: <1299320842-2503-1-git-send-email-nm@ti.com> <874o7e1ss2.fsf@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH 1/2] OMAP PM: create a PM layer plugin for the devices wakeup latency constraints
+Date: Mon, 07 Mar 2011 17:09:32 -0800
+Message-ID: <87r5aizacz.fsf@ti.com>
+References: <1299250375-26134-1-git-send-email-j-pihet@ti.com>
+	<1299250375-26134-2-git-send-email-j-pihet@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:53236 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750754Ab1CHARN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Mar 2011 19:17:13 -0500
-Received: by mail-vw0-f42.google.com with SMTP id 10so4291973vws.29
-        for <linux-omap@vger.kernel.org>; Mon, 07 Mar 2011 16:17:12 -0800 (PST)
-In-Reply-To: <874o7e1ss2.fsf@ti.com>
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:58593 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756604Ab1CHBJi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Mar 2011 20:09:38 -0500
+Received: by mail-yw0-f51.google.com with SMTP id 4so2152268ywg.38
+        for <linux-omap@vger.kernel.org>; Mon, 07 Mar 2011 17:09:35 -0800 (PST)
+In-Reply-To: <1299250375-26134-2-git-send-email-j-pihet@ti.com> (Jean Pihet's
+	message of "Fri, 4 Mar 2011 15:52:54 +0100")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Tony <tony@atomide.com>, Vishwanath BS <vishwanath.bs@ti.com>
+To: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Jean Pihet <j-pihet@ti.com>, Vishwanath BS <vishwanath.bs@ti.com>
 
-Kevin Hilman wrote, on 03/08/2011 03:45 AM:
-> Nishanth Menon<nm@ti.com>  writes:
->
->> From: Vishwanath BS<vishwanath.bs@ti.com>
->>
->> Since all voltage data is now centralized in oppxxx_data.c, we can replace
->> the values in the opp table with the macros used for voltage values.
->>
->> This will avoid opp table and voltage layer having conflicting values.
->>
->> Signed-off-by: Vishwanath BS<vishwanath.bs@ti.com>
->
-> As you are now on the delivery path too, this should have your sign-off.
->
-> Assuming this is a simple oversight, I added your signoff and queued for
-> 2.6.39 (branch: for_2.6.39/pm-misc)
+Jean Pihet <jean.pihet@newoldbits.com> writes:
 
-thanks.
+> Created arch/arm/plat-omap/omap-pm-constraints.c file from
+> arch/arm/plat-omap/omap-pm-noop.c and the associated Kconfig option
+> OMAP_PM_CONSTRAINTS.
+>
+> Based on the original patch from Vishwanath,
+> cf. https://patchwork.kernel.org/patch/327312/
+>
+> Cc: Vishwanath BS <vishwanath.bs@ti.com>
+>
+> Signed-off-by: Jean Pihet <j-pihet@ti.com>
+> ---
+> Based on khilman's pm-core branch
+>
+>  arch/arm/plat-omap/Kconfig               |    7 +
+>  arch/arm/plat-omap/Makefile              |    1 +
+>  arch/arm/plat-omap/omap-pm-constraints.c |  363 ++++++++++++++++++++++++++++++
+>  3 files changed, 371 insertions(+), 0 deletions(-)
+>  create mode 100644 arch/arm/plat-omap/omap-pm-constraints.c
+>
+> diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+> index b6333ae..b8f51e3 100644
+> --- a/arch/arm/plat-omap/Kconfig
+> +++ b/arch/arm/plat-omap/Kconfig
+> @@ -215,6 +215,13 @@ config OMAP_PM_NONE
+>  config OMAP_PM_NOOP
+>  	bool "No-op/debug PM layer"
+>  
+> +config OMAP_PM_CONSTRAINTS
+> +	depends on PM
+> +	bool "OMAP PM layer implementation, devices wakeup latency constraints"
 
--- 
-Regards,
-Nishanth Menon
+Minor: The 'OMAP PM layer implmentatin' is redundant here as it's a sub-choice
+of the OMAP PM layer menu.  How abou just "per-device constraint
+
+Kevin
+
+> +	help
+> +	  Select this option to enable the PM layer plugin for
+> +	  the devices wakeup latency constraints support
+> +
+>  endchoice
+>  
+>  endmenu
+> diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
+> index a4a1285..a293367 100644
+> --- a/arch/arm/plat-omap/Makefile
+> +++ b/arch/arm/plat-omap/Makefile
+> @@ -32,3 +32,4 @@ obj-y += $(i2c-omap-m) $(i2c-omap-y)
+>  obj-$(CONFIG_OMAP_MBOX_FWK) += mailbox.o
+>  
+>  obj-$(CONFIG_OMAP_PM_NOOP) += omap-pm-noop.o
+> +obj-$(CONFIG_OMAP_PM_CONSTRAINTS) += omap-pm-constraints.o
+> diff --git a/arch/arm/plat-omap/omap-pm-constraints.c b/arch/arm/plat-omap/omap-pm-constraints.c
+> new file mode 100644
+> index 0000000..c8b4e4c
+> --- /dev/null
+> +++ b/arch/arm/plat-omap/omap-pm-constraints.c
+> @@ -0,0 +1,363 @@
+> +/*
+> + * omap-pm.c - OMAP power management interface
+> + *
+> + * This code implements the OMAP power management interface to
+> + * drivers, CPUIdle, CPUFreq, and DSP Bridge.
+> + *
+> + * Copyright (C) 2008-2009 Texas Instruments, Inc.
+> + * Copyright (C) 2008-2009 Nokia Corporation
+> + * Paul Walmsley
+> + *
+> + * Interface developed by (in alphabetical order):
+> + * Karthik Dasu, Tony Lindgren, Jean Pihet, Rajendra Nayak, Sakari Poussa,
+> + * Veeramanikandan Raju, Anand Sawant, Igor Stoppa, Paul Walmsley,
+> + * Richard Woodruff
+> + */
+> +
+> +#undef DEBUG
+> +
+> +#include <linux/init.h>
+> +#include <linux/cpufreq.h>
+> +#include <linux/device.h>
+> +#include <linux/platform_device.h>
+> +
+> +/* Interface documentation is in mach/omap-pm.h */
+> +#include <plat/omap-pm.h>
+> +#include <plat/omap_device.h>
+> +
+> +static bool off_mode_enabled;
+> +static u32 dummy_context_loss_counter;
+> +
+> +/*
+> + * Device-driver-originated constraints (via board-*.c files)
+> + */
+> +
+> +int omap_pm_set_max_mpu_wakeup_lat(struct device *dev, long t)
+> +{
+> +	if (!dev || t < -1) {
+> +		WARN(1, "OMAP PM: %s: invalid parameter(s)", __func__);
+> +		return -EINVAL;
+> +	};
+> +
+> +	if (t == -1)
+> +		pr_debug("OMAP PM: remove max MPU wakeup latency constraint: "
+> +			 "dev %s\n", dev_name(dev));
+> +	else
+> +		pr_debug("OMAP PM: add max MPU wakeup latency constraint: "
+> +			 "dev %s, t = %ld usec\n", dev_name(dev), t);
+> +
+> +	/*
+> +	 * For current Linux, this needs to map the MPU to a
+> +	 * powerdomain, then go through the list of current max lat
+> +	 * constraints on the MPU and find the smallest.  If
+> +	 * the latency constraint has changed, the code should
+> +	 * recompute the state to enter for the next powerdomain
+> +	 * state.
+> +	 *
+> +	 * TI CDP code can call constraint_set here.
+> +	 */
+> +
+> +	return 0;
+> +}
+> +
+> +int omap_pm_set_min_bus_tput(struct device *dev, u8 agent_id, unsigned long r)
+> +{
+> +	if (!dev || (agent_id != OCP_INITIATOR_AGENT &&
+> +	    agent_id != OCP_TARGET_AGENT)) {
+> +		WARN(1, "OMAP PM: %s: invalid parameter(s)", __func__);
+> +		return -EINVAL;
+> +	};
+> +
+> +	if (r == 0)
+> +		pr_debug("OMAP PM: remove min bus tput constraint: "
+> +			 "dev %s for agent_id %d\n", dev_name(dev), agent_id);
+> +	else
+> +		pr_debug("OMAP PM: add min bus tput constraint: "
+> +			 "dev %s for agent_id %d: rate %ld KiB\n",
+> +			 dev_name(dev), agent_id, r);
+> +
+> +	/*
+> +	 * This code should model the interconnect and compute the
+> +	 * required clock frequency, convert that to a VDD2 OPP ID, then
+> +	 * set the VDD2 OPP appropriately.
+> +	 *
+> +	 * TI CDP code can call constraint_set here on the VDD2 OPP.
+> +	 */
+> +
+> +	return 0;
+> +}
+> +
+> +int omap_pm_set_max_dev_wakeup_lat(struct device *req_dev, struct device *dev,
+> +				   long t)
+> +{
+> +	if (!req_dev || !dev || t < -1) {
+> +		WARN(1, "OMAP PM: %s: invalid parameter(s)", __func__);
+> +		return -EINVAL;
+> +	};
+> +
+> +	if (t == -1)
+> +		pr_debug("OMAP PM: remove max device latency constraint: "
+> +			 "dev %s\n", dev_name(dev));
+> +	else
+> +		pr_debug("OMAP PM: add max device latency constraint: "
+> +			 "dev %s, t = %ld usec\n", dev_name(dev), t);
+> +
+> +	/*
+> +	 * For current Linux, this needs to map the device to a
+> +	 * powerdomain, then go through the list of current max lat
+> +	 * constraints on that powerdomain and find the smallest.  If
+> +	 * the latency constraint has changed, the code should
+> +	 * recompute the state to enter for the next powerdomain
+> +	 * state.  Conceivably, this code should also determine
+> +	 * whether to actually disable the device clocks or not,
+> +	 * depending on how long it takes to re-enable the clocks.
+> +	 *
+> +	 * TI CDP code can call constraint_set here.
+> +	 */
+> +
+> +	return 0;
+> +}
+> +
+> +int omap_pm_set_max_sdma_lat(struct device *dev, long t)
+> +{
+> +	if (!dev || t < -1) {
+> +		WARN(1, "OMAP PM: %s: invalid parameter(s)", __func__);
+> +		return -EINVAL;
+> +	};
+> +
+> +	if (t == -1)
+> +		pr_debug("OMAP PM: remove max DMA latency constraint: "
+> +			 "dev %s\n", dev_name(dev));
+> +	else
+> +		pr_debug("OMAP PM: add max DMA latency constraint: "
+> +			 "dev %s, t = %ld usec\n", dev_name(dev), t);
+> +
+> +	/*
+> +	 * For current Linux PM QOS params, this code should scan the
+> +	 * list of maximum CPU and DMA latencies and select the
+> +	 * smallest, then set cpu_dma_latency pm_qos_param
+> +	 * accordingly.
+> +	 *
+> +	 * For future Linux PM QOS params, with separate CPU and DMA
+> +	 * latency params, this code should just set the dma_latency param.
+> +	 *
+> +	 * TI CDP code can call constraint_set here.
+> +	 */
+> +
+> +	return 0;
+> +}
+> +
+> +int omap_pm_set_min_clk_rate(struct device *dev, struct clk *c, long r)
+> +{
+> +	if (!dev || !c || r < 0) {
+> +		WARN(1, "OMAP PM: %s: invalid parameter(s)", __func__);
+> +		return -EINVAL;
+> +	}
+> +
+> +	if (r == 0)
+> +		pr_debug("OMAP PM: remove min clk rate constraint: "
+> +			 "dev %s\n", dev_name(dev));
+> +	else
+> +		pr_debug("OMAP PM: add min clk rate constraint: "
+> +			 "dev %s, rate = %ld Hz\n", dev_name(dev), r);
+> +
+> +	/*
+> +	 * Code in a real implementation should keep track of these
+> +	 * constraints on the clock, and determine the highest minimum
+> +	 * clock rate.  It should iterate over each OPP and determine
+> +	 * whether the OPP will result in a clock rate that would
+> +	 * satisfy this constraint (and any other PM constraint in effect
+> +	 * at that time).  Once it finds the lowest-voltage OPP that
+> +	 * meets those conditions, it should switch to it, or return
+> +	 * an error if the code is not capable of doing so.
+> +	 */
+> +
+> +	return 0;
+> +}
+> +
+> +/*
+> + * DSP Bridge-specific constraints
+> + */
+> +
+> +const struct omap_opp *omap_pm_dsp_get_opp_table(void)
+> +{
+> +	pr_debug("OMAP PM: DSP request for OPP table\n");
+> +
+> +	/*
+> +	 * Return DSP frequency table here:  The final item in the
+> +	 * array should have .rate = .opp_id = 0.
+> +	 */
+> +
+> +	return NULL;
+> +}
+> +
+> +void omap_pm_dsp_set_min_opp(u8 opp_id)
+> +{
+> +	if (opp_id == 0) {
+> +		WARN_ON(1);
+> +		return;
+> +	}
+> +
+> +	pr_debug("OMAP PM: DSP requests minimum VDD1 OPP to be %d\n", opp_id);
+> +
+> +	/*
+> +	 *
+> +	 * For l-o dev tree, our VDD1 clk is keyed on OPP ID, so we
+> +	 * can just test to see which is higher, the CPU's desired OPP
+> +	 * ID or the DSP's desired OPP ID, and use whichever is
+> +	 * highest.
+> +	 *
+> +	 * In CDP12.14+, the VDD1 OPP custom clock that controls the DSP
+> +	 * rate is keyed on MPU speed, not the OPP ID.  So we need to
+> +	 * map the OPP ID to the MPU speed for use with clk_set_rate()
+> +	 * if it is higher than the current OPP clock rate.
+> +	 *
+> +	 */
+> +}
+> +
+> +
+> +u8 omap_pm_dsp_get_opp(void)
+> +{
+> +	pr_debug("OMAP PM: DSP requests current DSP OPP ID\n");
+> +
+> +	/*
+> +	 * For l-o dev tree, call clk_get_rate() on VDD1 OPP clock
+> +	 *
+> +	 * CDP12.14+:
+> +	 * Call clk_get_rate() on the OPP custom clock, map that to an
+> +	 * OPP ID using the tables defined in board-*.c/chip-*.c files.
+> +	 */
+> +
+> +	return 0;
+> +}
+> +
+> +/*
+> + * CPUFreq-originated constraint
+> + *
+> + * In the future, this should be handled by custom OPP clocktype
+> + * functions.
+> + */
+> +
+> +struct cpufreq_frequency_table **omap_pm_cpu_get_freq_table(void)
+> +{
+> +	pr_debug("OMAP PM: CPUFreq request for frequency table\n");
+> +
+> +	/*
+> +	 * Return CPUFreq frequency table here: loop over
+> +	 * all VDD1 clkrates, pull out the mpu_ck frequencies, build
+> +	 * table
+> +	 */
+> +
+> +	return NULL;
+> +}
+> +
+> +void omap_pm_cpu_set_freq(unsigned long f)
+> +{
+> +	if (f == 0) {
+> +		WARN_ON(1);
+> +		return;
+> +	}
+> +
+> +	pr_debug("OMAP PM: CPUFreq requests CPU frequency to be set to %lu\n",
+> +		 f);
+> +
+> +	/*
+> +	 * For l-o dev tree, determine whether MPU freq or DSP OPP id
+> +	 * freq is higher.  Find the OPP ID corresponding to the
+> +	 * higher frequency.  Call clk_round_rate() and clk_set_rate()
+> +	 * on the OPP custom clock.
+> +	 *
+> +	 * CDP should just be able to set the VDD1 OPP clock rate here.
+> +	 */
+> +}
+> +
+> +unsigned long omap_pm_cpu_get_freq(void)
+> +{
+> +	pr_debug("OMAP PM: CPUFreq requests current CPU frequency\n");
+> +
+> +	/*
+> +	 * Call clk_get_rate() on the mpu_ck.
+> +	 */
+> +
+> +	return 0;
+> +}
+> +
+> +/**
+> + * omap_pm_enable_off_mode - notify OMAP PM that off-mode is enabled
+> + *
+> + * Intended for use only by OMAP PM core code to notify this layer
+> + * that off mode has been enabled.
+> + */
+> +void omap_pm_enable_off_mode(void)
+> +{
+> +	off_mode_enabled = true;
+> +}
+> +
+> +/**
+> + * omap_pm_disable_off_mode - notify OMAP PM that off-mode is disabled
+> + *
+> + * Intended for use only by OMAP PM core code to notify this layer
+> + * that off mode has been disabled.
+> + */
+> +void omap_pm_disable_off_mode(void)
+> +{
+> +	off_mode_enabled = false;
+> +}
+> +
+> +/*
+> + * Device context loss tracking
+> + */
+> +
+> +#ifdef CONFIG_ARCH_OMAP2PLUS
+> +
+> +u32 omap_pm_get_dev_context_loss_count(struct device *dev)
+> +{
+> +	struct platform_device *pdev = to_platform_device(dev);
+> +	u32 count;
+> +
+> +	if (WARN_ON(!dev))
+> +		return 0;
+> +
+> +	if (dev->parent == &omap_device_parent) {
+> +		count = omap_device_get_context_loss_count(pdev);
+> +	} else {
+> +		WARN_ONCE(off_mode_enabled, "omap_pm: using dummy context "
+> +			  "loss counter; device %s should be converted to "
+> +			  "omap_device", dev_name(dev));
+> +		if (off_mode_enabled)
+> +			dummy_context_loss_counter++;
+> +		count = dummy_context_loss_counter;
+> +	}
+> +
+> +	pr_debug("OMAP PM: context loss count for dev %s = %d\n",
+> +		 dev_name(dev), count);
+> +
+> +	return count;
+> +}
+> +
+> +#else
+> +
+> +u32 omap_pm_get_dev_context_loss_count(struct device *dev)
+> +{
+> +	return dummy_context_loss_counter;
+> +}
+> +
+> +#endif
+> +
+> +/* Should be called before clk framework init */
+> +int __init omap_pm_if_early_init(void)
+> +{
+> +	return 0;
+> +}
+> +
+> +/* Must be called after clock framework is initialized */
+> +int __init omap_pm_if_init(void)
+> +{
+> +	return 0;
+> +}
+> +
+> +void omap_pm_if_exit(void)
+> +{
+> +	/* Deallocate CPUFreq frequency table here */
+> +}
+> +
