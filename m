@@ -1,133 +1,133 @@
-From: Govindraj <govindraj.ti@gmail.com>
-Subject: Re: [PATCH 2/7] OMAP2+: mux: Enable wakeup for wakeup enable
- requested pads
-Date: Tue, 8 Mar 2011 17:14:29 +0530
-Message-ID: <AANLkTiknEQrqUt1-sY6-aDw4R5ZMP2uErSjRNB5Yex_v@mail.gmail.com>
-References: <1299064343-28534-1-git-send-email-govindraj.raja@ti.com>
- <87lj0u8mrf.fsf@ti.com> <87tyfi49cs.fsf@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Archit Taneja <archit@ti.com>
+Subject: [PATCH v2 1/2] OMAP2PLUS: DSS2: Cleanup clock source related code
+Date: Tue,  8 Mar 2011 17:20:34 +0530
+Message-ID: <1299585035-26931-2-git-send-email-archit@ti.com>
+References: <1299585035-26931-1-git-send-email-archit@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:52742 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754356Ab1CHLpJ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Mar 2011 06:45:09 -0500
-In-Reply-To: <87tyfi49cs.fsf@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:59711 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754287Ab1CHLqz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Mar 2011 06:46:55 -0500
+Received: from dlep36.itg.ti.com ([157.170.170.91])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p28BksD7030539
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Tue, 8 Mar 2011 05:46:55 -0600
+In-Reply-To: <1299585035-26931-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Rajendra Nayak <rnayak@ti.com>
+To: tomi.valkeinen@ti.com
+Cc: linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-> On Sat, Mar 5, 2011 at 7:27 AM, Kevin Hilman <khilman@ti.com> wrote:
-> Kevin Hilman <khilman@ti.com> writes:
->
->> "Govindraj.R" <govindraj.raja@ti.com> writes:
->
-> [...]
->
->>> =A0/* Assumes the calling function takes care of locking */
->>> =A0void omap_hwmod_mux(struct omap_hwmod_mux_info *hmux, u8 state)
->>> =A0{
->>> @@ -342,6 +365,9 @@ void omap_hwmod_mux(struct omap_hwmod_mux_info =
-*hmux, u8 state)
->>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0break;
->>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0flags &=3D ~OMAP_DEVICE_=
-PAD_ENABLED;
->>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0val =3D pad->idle;
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (flags & OMAP_DEVICE_PA=
-D_WAKEUP)
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0val |=3D O=
-MAP_WAKEUP_EN;
->>> +
->>
->> Is this needed on every idle transition?
->>
->> You're currently setting it on every idle transition, but never clea=
-ring
->> it. =A0If it is to be a one-time thing, then move it to the early in=
-it of
->> the mux.
->
-> Just to clarify...
->
-> So as soon as the hwmod is first idled, IO-ring wakeups are enabled f=
-or
-> any pads that have OMAP_DEVICE_PAD_WAKEUP.
->
-> The problem here (compared with behavior of existing code) is that th=
-ere
-> is no provision for disabling IO-ring wakeups.
->
-> For example, with current code, you can disable wakeups from userspac=
-e
-> using the sysfs control file /sys/devices/.../power/wakeup, whose val=
-ue
-> can be checked using device_may_wakeup(), like current
-> mach-omap2/serial.c code does.
->
-> With this patch, IO-ring wakeups are always enabled, and never disabl=
-ed.
+Clean up some of the DSS functions which select/get clock sources, use switch
+to select the clock source members since more clock sources will be introduced
+later on.
 
-I am reworking on this patch with new patch this will not have below tw=
-o snip
-changes and will be removed.
+Remove the use of macro CONFIG_OMAP2_DSS_DSI in dispc_fclk_rate, use a dummy
+inline for function for dsi_get_pll_hsdiv_dispc_rate() instead for code clarity.
 
-+                       if (flags & OMAP_DEVICE_PAD_WAKEUP)
-+                               val |=3D OMAP_WAKEUP_EN;
+Signed-off-by: Archit Taneja <archit@ti.com>
+---
+ drivers/video/omap2/dss/dispc.c |   15 +++++++++------
+ drivers/video/omap2/dss/dss.c   |   32 ++++++++++++++++++++------------
+ drivers/video/omap2/dss/dss.h   |    5 +++++
+ 3 files changed, 34 insertions(+), 18 deletions(-)
+
+diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
+index 4a368c4..b66df40 100644
+--- a/drivers/video/omap2/dss/dispc.c
++++ b/drivers/video/omap2/dss/dispc.c
+@@ -2341,14 +2341,17 @@ unsigned long dispc_fclk_rate(void)
+ {
+ 	unsigned long r = 0;
+ 
+-	if (dss_get_dispc_clk_source() == DSS_CLK_SRC_FCK)
++	switch (dss_get_dispc_clk_source()) {
++	case DSS_CLK_SRC_FCK:
+ 		r = dss_clk_get_rate(DSS_CLK_FCK);
+-	else
+-#ifdef CONFIG_OMAP2_DSS_DSI
++		break;
++	case DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC:
+ 		r = dsi_get_pll_hsdiv_dispc_rate();
+-#else
+-	BUG();
+-#endif
++		break;
++	default:
++		BUG();
++	}
 +
+ 	return r;
+ }
+ 
+diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
+index 2be4d03..93813fd 100644
+--- a/drivers/video/omap2/dss/dss.c
++++ b/drivers/video/omap2/dss/dss.c
+@@ -293,13 +293,17 @@ void dss_select_dispc_clk_source(enum dss_clk_source clk_src)
+ {
+ 	int b;
+ 
+-	BUG_ON(clk_src != DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC &&
+-			clk_src != DSS_CLK_SRC_FCK);
+-
+-	b = clk_src == DSS_CLK_SRC_FCK ? 0 : 1;
+-
+-	if (clk_src == DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC)
++	switch (clk_src) {
++	case DSS_CLK_SRC_FCK:
++		b = 0;
++		break;
++	case DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC:
++		b = 1;
+ 		dsi_wait_pll_hsdiv_dispc_active();
++		break;
++	default:
++		BUG();
++	}
+ 
+ 	REG_FLD_MOD(DSS_CONTROL, b, 0, 0);	/* DISPC_CLK_SWITCH */
+ 
+@@ -310,13 +314,17 @@ void dss_select_dsi_clk_source(enum dss_clk_source clk_src)
+ {
+ 	int b;
+ 
+-	BUG_ON(clk_src != DSS_CLK_SRC_DSI_PLL_HSDIV_DSI &&
+-			clk_src != DSS_CLK_SRC_FCK);
+-
+-	b = clk_src == DSS_CLK_SRC_FCK ? 0 : 1;
+-
+-	if (clk_src == DSS_CLK_SRC_DSI_PLL_HSDIV_DSI)
++	switch (clk_src) {
++	case DSS_CLK_SRC_FCK:
++		b = 0;
++		break;
++	case DSS_CLK_SRC_DSI_PLL_HSDIV_DSI:
++		b = 1;
+ 		dsi_wait_pll_hsdiv_dsi_active();
++		break;
++	default:
++		BUG();
++	}
+ 
+ 	REG_FLD_MOD(DSS_CONTROL, b, 1, 1);	/* DSI_CLK_SWITCH */
+ 
+diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
+index 85d4141..fc41b3f 100644
+--- a/drivers/video/omap2/dss/dss.h
++++ b/drivers/video/omap2/dss/dss.h
+@@ -299,6 +299,11 @@ static inline int dsi_init_platform_driver(void)
+ static inline void dsi_uninit_platform_driver(void)
+ {
+ }
++static inline unsigned long dsi_get_pll_hsdiv_dispc_rate(void)
++{
++	WARN("%s: DSI not compiled in, returning rate as 0\n", __func__);
++	return 0;
++}
+ static inline void dsi_wait_pll_hsdiv_dispc_active(void)
+ {
+ }
+-- 
+1.7.1
 
-and
-
-+                       val |=3D omap_mux_read(pad->partition,
-+                                               pad->mux->reg_offset);
-
-some more changes I have added for default rx serial pad as below
-[this will be done in patch 6/7]
-
-+       {
-+               .name   =3D "uart1_rx.uart1_rx",
-+               .flags  =3D OMAP_DEVICE_PAD_REMUX | OMAP_DEVICE_PAD_WAK=
-EUP,
-+               .enable =3D OMAP_PIN_INPUT_PULLUP | OMAP_MUX_MODE0,
-+               .idle   =3D OMAP_WAKEUP_EN,
-+       },
-+};
-
-
-So with this change it will enable io-pad wakeup once we disable
-clocks based on
-=2Eidle values and remux back to .enable values once we enable clocks b=
-ack.
-so io-pad wakeup for rx will be enabled only when I do put_sync.
-[I verified this with lauterbach also]
-
-I am not sure whether now we can control read/writes to pad_mux from an=
-y driver
-interface and I think we have to go through mux framework for any
-read/writes to mux.
-with this I cant control pad wake up capabilities with sysfs as done
-earlier in serial.c
-now control to read/write to pad is outside scope of the driver
-interface as omap_hwmod_mux
-is the one that takes decision for driver with mux values provided
-during omap_hwmod_mux_init.
-
---
-Thanks,
-Govindraj.R
-
-
->
-> Kevin
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-seria=
-l" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
