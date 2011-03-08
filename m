@@ -1,100 +1,77 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: Problem with DSS clocks & accessing registers
-Date: Tue, 8 Mar 2011 11:22:42 +0100
-Message-ID: <4D760372.3020005@ti.com>
-References: <1299486149.2281.77.camel@deskari>  <4D74E2D5.2000705@ti.com> <1299510200.2281.199.camel@deskari>
+From: Andy Green <andy@warmcat.com>
+Subject: [PATCH 2 00/18] I2C: OMAP: Fixes and removal of cpu_... from driver
+Date: Tue, 08 Mar 2011 11:07:17 +0000
+Message-ID: <20110308105934.23531.83540.stgit@otae.warmcat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:56140 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753893Ab1CHKWq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Mar 2011 05:22:46 -0500
-In-Reply-To: <1299510200.2281.199.camel@deskari>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:52226 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752972Ab1CHLHX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Mar 2011 06:07:23 -0500
+Received: by wwa36 with SMTP id 36so951436wwa.1
+        for <linux-omap@vger.kernel.org>; Tue, 08 Mar 2011 03:07:22 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, Paul Walmsley <paul@pwsan.com>
-Cc: "Nayak, Rajendra" <rnayak@ti.com>, "Hilman, Kevin" <khilman@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "Taneja, Archit" <archit@ti.com>, "Semwal, Sumit" <sumit.semwal@ti.com>
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On 3/7/2011 4:03 PM, Valkeinen, Tomi wrote:
-> On Mon, 2011-03-07 at 07:51 -0600, Cousson, Benoit wrote:
->> + Rajendra
->>
->> Hi Tomi,
->>
->> On 3/7/2011 9:22 AM, Valkeinen, Tomi wrote:
->>> Hi Kevin, Paul,
->>>
->>> We currently have a small problem with OMAP4 DSS. When we enable the DSS
->>> clocks, it seems that the DSS registers are not always accessible right
->>> after the clock enable.
->>
->> What clocks are you talking about? As you know, the DSS has a bunch of
->> functional clocks available depending of the use case.
->
-> In this case the clocks for DISPC, iclk and fclk. On OMAP4 fclk is
-> DSS_FCLK and iclk is not used, I believe. The problem is probably also
-> in all the other DSS modules.
->
->>> I understood that on OMAP4 the clock framework doesn't guarantee that
->>> the registers are accessible after enabling clocks, and pm_runtime will
->>> handle this. Is this correct?
->>
->> The point is that there is no status at clock level but only one status
->> at module level. That's why this check does not have anything to do at
->> clock level.
->> So hwmod with handle that status (OMAP4430_CM_DSS_DSS_CLKCTRL) during
->> the hwmod_enable that is indirectly called by pm_runtime, through
->> omap_device API.
->
-> Ah. Ok. How does CM_DSS_DSS_CLKCTRL show that the DSS module is ready?
-> IDLEST is 0?
+The following series removes cpu_...() usage completely from the
+omap-i2c driver by having decisions about functional implementation
+choices in the SoC held in cpu-specific hwmod tables that are
+already established, or for OMAP1 where there is no hwmod, set at
+OMAP1-specific i2c bus addition time.
 
-Yep, or 2 if only the interface clock is idle and a separate functional 
-clock is running, which is the case of the DSS. You can check the 
-function used in hwmod: omap4_cm_wait_module_ready in cminst44xx.c.
+Along the way it solves two issues with the existing implementation,
+that only 16-bit accesses are documented to be allowed to the I2C
+peripheral unit, and that due to a confusion in the existing driver
+about whether it is faced with a newer IP version on OMAP3530, currently
+it writes to a random non-existent I2C register at times on that
+platform.
 
-- 0x0 func: Module is fully functional, including OCP
-- 0x2 idle: Module is in Idle mode (only OCP part). It is functional if 
-using separate functional clock
+The patch series is quite extended from the first try thanks to
+comments from Benoit Cousson.
 
->>> I have made a small hack fix for this. I added udelay(10) in the DSS
->>> code which enables the clocks and this seem to remove the problem. The
->>> delay is only called when DSS thinks the clocks have been off, so in
->>> practice the delay shouldn't be visible. Is this fix acceptable for now,
->>> until we get pm_runtime support to DSS?
->>
->> Cannot you use omap_device for the moment? Relying on a udelay is not a
->> very safe method, even temporally.
->
-> Yes, udelay is not very good option even as a hack, except if we can
-> wait some amount of time which we know will always be enough. Can we?
+Patches are tested on OMAP3530 and OMAP4430 I have but will need
+confirming they don't break anything on OMAP1xxx and OMAP2xxx as
+agreed with Benoit.
 
-You should really avoid that, because we really don't have any good way 
-to get a good number.
+Cc: patches@linaro.org
+Cc: Ben Dooks <ben-linux@fluff.org>
+Reported-by: Peter Maydell <peter.maydell@linaro.org>
 
-> I have to say I'm not very familiar with omap_device, as I haven't been
-> really working with them (nor hwmods). Sumit or Archit can perhaps fill
-> in, but my understanding is that work on that area is going on, but it's
-> not ready yet. So I'm looking for some temporary quick solution for this
-> so that DSS driver doesn't randomly crash on OMAP4.
+---
 
-Adding the check in the clock framework for DSS clock nodes only might 
-be the cleanest way to do that right now.
+Andy Green (18):
+      I2C: OMAP1/OMAP2+: prepend I2C IP version to probed version shown in dev_info
+      I2C: OMAP2+: Convert omap I2C driver to use feature implementation flags from platform data
+      I2C: OMAP1: set i2c unit feature implementation flags in platform data
+      I2C: OMAP2+: add correct functionality flags to all omap2plus i2c dev_attr
+      I2C: OMAP1/OMAP2+: create omap I2C functionality flags for each cpu_... test
+      I2C: OMAP2+: Pass flags up to omap i2c platform_data as well
+      I2C: OMAP1/OMAP2+: add flags field to omap i2c platform data
+      I2C: OMAP2+: increase omap_i2c_dev_attr flags from u8 to u32
+      I2C: OMAP2+: address confused probed version naming
+      I2C: OMAP2+: Solve array bounds overflow error on i2c idle
+      I2C: OMAP2+: use platform_data ip revision to select register map
+      I2C: OMAP2+: Pass hwmod rev knowledge via platform_data when i2c bus added
+      I2C: OMAP1: set IP revision in platform data
+      I2C: OMAP: add rev to omap i2c platform data
+      I2C: OMAP2+: Tag all OMAP2+ hwmod defintions with I2C IP revision
+      I2C: OMAP2+:  Introduce I2C IP versioning constants
+      I2C: OMAP2+: Name registers in I2C IP V2 only accordingly
+      I2C: OMAP2+: Set hwmod flags to only allow 16-bit accesses to i2c
 
-You can map clock nodes to clkops_omap2_dflt_wait clkops instead of the 
-clkops_omap2_dflt currently used. But then you will have to add the 
-support for OMAP4, since for the moment the function seems to work only 
-for OMAP2 & 3 (omap2_clk_dflt_find_idlest).
 
-It is a little bit more complex than the current WA but should not be 
-that hard either to do.
-This is a much cleaner WA before having the full hwmod support for the 
-DSS for my point of view.
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c |    8 ++
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c |    6 ++
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   13 ++++
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   18 ++++-
+ arch/arm/plat-omap/i2c.c                   |   27 ++++++++
+ arch/arm/plat-omap/include/plat/i2c.h      |    3 +
+ drivers/i2c/busses/i2c-omap.c              |   98 +++++++++++++++-------------
+ include/linux/i2c-omap.h                   |   29 ++++++++
+ 8 files changed, 151 insertions(+), 51 deletions(-)
 
-Paul,
-Any thoughts?
-
-Regards,
-Benoit
+-- 
+Signature
