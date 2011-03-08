@@ -1,128 +1,97 @@
-From: "Varadarajan, Charulatha" <charu@ti.com>
-Subject: Re: [PATCH 3/3] OMAP2+: powerdomain: add pwrdm_can_ever_lose_context()
-Date: Tue, 8 Mar 2011 14:46:04 +0530
-Message-ID: <AANLkTimuYVuxiqifxPEqfxyVuSYcKL563TZCP5uNM8Ss@mail.gmail.com>
-References: <20110308021018.31946.29962.stgit@twilight.localdomain> <20110308021551.31946.19903.stgit@twilight.localdomain>
+From: David Cohen <dacohen@gmail.com>
+Subject: Re: [PATCH] omap: iommu: disallow mapping NULL address
+Date: Tue, 8 Mar 2011 11:55:27 +0200
+Message-ID: <AANLkTi=DYfXubPH0fkwFQSHHqW64tQ11K-yKCfx9PVMv@mail.gmail.com>
+References: <4D6D219D.7020605@matrix-vision.de>
+	<201103022018.23446.laurent.pinchart@ideasonboard.com>
+	<4D6FBC7F.1080500@matrix-vision.de>
+	<AANLkTikAKy=CzTqEv-UGBQ1EavqmCStPNFZ5vs7vH5VK@mail.gmail.com>
+	<4D70F985.8030902@matrix-vision.de>
+	<AANLkTinSJpjPXWHWduLbRSmb=La3sv82ufwgsq-uR7S2@mail.gmail.com>
+	<AANLkTi=8Sss-5xfgPmgx=J_T__=hrC1rQU-xBOdKC8Ve@mail.gmail.com>
+	<4D74D94F.7040702@matrix-vision.de>
+	<AANLkTikokA2hGMYA3vfBOxa0jPr0tjbLfYW603+zicry@mail.gmail.com>
+	<AANLkTikzAjUrec+c6zcSCx6auaR9QvbWwwTbXpGYuOoZ@mail.gmail.com>
+	<AANLkTi=KncNfW0NEEoV+mrT_Ft2j-c=rQG=qbeR6tLQK@mail.gmail.com>
+	<4D75F343.8090505@maxwell.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:46410 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750769Ab1CHJQp convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 8 Mar 2011 04:16:45 -0500
-Received: by mail-fx0-f49.google.com with SMTP id 16so5505657fxm.36
-        for <linux-omap@vger.kernel.org>; Tue, 08 Mar 2011 01:16:44 -0800 (PST)
-In-Reply-To: <20110308021551.31946.19903.stgit@twilight.localdomain>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:58087 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752597Ab1CHJz3 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Mar 2011 04:55:29 -0500
+In-Reply-To: <4D75F343.8090505@maxwell.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
+Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>, Michael Jones <michael.jones@matrix-vision.de>, Hiroshi.DOYU@nokia.com, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Linux Media Mailing List <linux-media@vger.kernel.org>, linux-omap@vger.kernel.org
 
-On Tue, Mar 8, 2011 at 07:45, Paul Walmsley <paul@pwsan.com> wrote:
-> Some drivers wish to know whether the device that they control can
-> ever lose context, for example, when the device's enclosing
-> powerdomain loses power. =A0They can use this information to determin=
-e
-> whether it is necessary to save and restore device context, or whethe=
-r
-> it can be skipped. =A0Implement the powerdomain portion of this by
-> adding the function pwrdm_can_ever_lose_context(). =A0This is not for
-> use directly from driver code, but instead is intended to be called
-> from driver-subarch integration code (i.e., arch/arm/*omap* code).
->
-> Currently, the result from this function should be passed into the
-> driver code via struct platform_data, but at some point this should
-> be part of some common or OMAP-specific device code.
->
-> While here, update file copyrights.
->
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> ---
-> =A0arch/arm/mach-omap2/powerdomain.c | =A0 43 +++++++++++++++++++++++=
-+++++++++++++-
-> =A0arch/arm/mach-omap2/powerdomain.h | =A0 18 +++++++--------
-> =A02 files changed, 50 insertions(+), 11 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/=
-powerdomain.c
-> index eaed0df..a11be81 100644
-> --- a/arch/arm/mach-omap2/powerdomain.c
-> +++ b/arch/arm/mach-omap2/powerdomain.c
-> @@ -2,7 +2,7 @@
-> =A0* OMAP powerdomain control
-> =A0*
-> =A0* Copyright (C) 2007-2008 Texas Instruments, Inc.
-> - * Copyright (C) 2007-2009 Nokia Corporation
-> + * Copyright (C) 2007-2011 Nokia Corporation
-> =A0*
-> =A0* Written by Paul Walmsley
-> =A0* Added OMAP4 specific support by Abhijit Pagare <abhijitpagare@ti=
-=2Ecom>
-> @@ -938,3 +938,44 @@ u32 pwrdm_get_context_loss_count(struct powerdom=
-ain *pwrdm)
->
-> =A0 =A0 =A0 =A0return count;
-> =A0}
-> +
-> +/**
-> + * pwrdm_can_ever_lose_context - can this powerdomain ever lose cont=
-ext?
-> + * @pwrdm: struct powerdomain *
-> + *
-> + * Given a struct powerdomain * @pwrdm, returns 1 if the powerdomain
-> + * can lose either memory or logic context or if @pwrdm is invalid, =
-or
-> + * returns 0 otherwise. =A0This function is not concerned with how t=
-he
-> + * powerdomain registers are programmed (i.e., to go off or not); it=
-'s
-> + * concerned with whether it's ever possible for this powerdomain to
-> + * go off while some other part of the chip is active. =A0This funct=
-ion
-> + * assumes that every powerdomain can go to either ON or INACTIVE.
-> + */
-> +bool pwrdm_can_ever_lose_context(struct powerdomain *pwrdm)
-> +{
-> + =A0 =A0 =A0 int i;
-> +
-> + =A0 =A0 =A0 if (IS_ERR_OR_NULL(pwrdm)) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_debug("powerdomain: %s: invalid powe=
-rdomain pointer\n",
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0__func__);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return 1;
+Hi Fernando,
 
-Do you really want to return 1 in case of invalid powerdomain pointer?
+On Tue, Mar 8, 2011 at 11:13 AM, Sakari Ailus
+<sakari.ailus@maxwell.research.nokia.com> wrote:
+> Guzman Lugo, Fernando wrote:
+>> On Mon, Mar 7, 2011 at 1:19 PM, David Cohen <dacohen@gmail.com> wrot=
+e:
+>>> On Mon, Mar 7, 2011 at 9:17 PM, Guzman Lugo, Fernando
+>>> <fernando.lugo@ti.com> wrote:
+>>>> On Mon, Mar 7, 2011 at 7:10 AM, Michael Jones
+>>>> <michael.jones@matrix-vision.de> wrote:
+>>>>> From e7dbe4c4b64eb114f9b0804d6af3a3ca0e78acc8 Mon Sep 17 00:00:00=
+ 2001
+>>>>> From: Michael Jones <michael.jones@matrix-vision.de>
+>>>>> Date: Mon, 7 Mar 2011 13:36:15 +0100
+>>>>> Subject: [PATCH] omap: iommu: disallow mapping NULL address
+>>>>>
+>>>>> commit c7f4ab26e3bcdaeb3e19ec658e3ad9092f1a6ceb allowed mapping
+>>>>> the NULL address if da_start=3D=3D0. =C2=A0Force da_start to excl=
+ude the
+>>>>> first page.
+>>>>
+>>>> what about devices that uses page 0? ipu after reset always starts
+>>>> from 0x00000000 how could we map that address??
+>>>
+>>> from 0x0? The driver sees da =3D=3D 0 as error. May I ask you why d=
+o you want it?
+>>
+>> unlike DSP that you can load a register with the addres the DSP will
+>> boot, IPU core always starts from address 0x00000000, so if you take
+>> IPU out of reset it will try to access address 0x0 if not map it,
+>> there will be a mmu fault.
+>
+> I think the driver for IPU (what is it, btw.?) must map the NULL addr=
+ess
+> explicitly. It cannot rely on automatic allocation of the NULL addres=
+s
+> by the iommu even if it was the first allocation.
 
--V Charulatha
+That's an interesting question. My first thought was "it's not
+automatic allocation", because it seems you know the specific 'da' IPU
+needs. But then, looking into the driver's API, the automatic
+allocation is defined whether the argument da =3D=3D 0 (automatic
+allocation) or da !=3D 0 (fixed da). So, by default, the IOMMU driver
+does not see da =3D=3D 0 as valid address for fixed da. Then, why only
+automatic allocation should use such address? My second point is: if
+you're using automatic allocation, you *cannot* rely on specific da to
+be used, as it would be up to IOMMU driver to choose. So, doesn't
+matter the option, your driver seems to be wrong, unless I'm missing
+something. If you were using fixed da passing da =3D 0, you were just
+being lucky that it was the first request and automatic allocation
+returned da =3D=3D 0.
+IMO either first page is not allowed at all or OMAP's IOMMU API should
+change the way it checks if it's fixed da or not.
 
-> + =A0 =A0 =A0 }
-> +
-> + =A0 =A0 =A0 if (pwrdm->pwrsts & PWRSTS_OFF)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return 1;
-> +
-> + =A0 =A0 =A0 if (pwrdm->pwrsts & PWRSTS_RET) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (pwrdm->pwrsts_logic_ret & PWRSTS_OF=
-=46)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return 1;
-> +
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 for (i =3D 0; i < pwrdm->banks; i++)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (pwrdm->pwrsts_mem_r=
-et[i] & PWRSTS_OFF)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return =
-1;
-> + =A0 =A0 =A0 }
-> +
-> + =A0 =A0 =A0 for (i =3D 0; i < pwrdm->banks; i++)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (pwrdm->pwrsts_mem_on[i] & PWRSTS_OF=
-=46)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return 1;
-> +
-> + =A0 =A0 =A0 return 0;
-> +}
+Kind regards,
 
-<<snip>>
+David
+
+>
+> --
+> Sakari Ailus
+> sakari.ailus@maxwell.research.nokia.com
+>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
