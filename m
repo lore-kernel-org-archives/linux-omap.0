@@ -1,94 +1,109 @@
 From: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
-Subject: Re: [PATCH 3/3] omap: iovmm: don't check 'da' to set
- IOVMF_DA_FIXED/IOVMF_DA_ANON flags
-Date: Tue, 8 Mar 2011 11:59:43 -0600
-Message-ID: <AANLkTikvUah8LPXCeV4Opi09DJ4ZoHAc2xUVTcDhNK=Q@mail.gmail.com>
+Subject: Re: [PATCH 1/3] omap: iovmm: disallow mapping NULL address
+Date: Tue, 8 Mar 2011 12:06:18 -0600
+Message-ID: <AANLkTikkUYFuhH-b2vKX8jVoT18wH_+WPzGbfFNWQK6K@mail.gmail.com>
 References: <1299588365-2749-1-git-send-email-dacohen@gmail.com>
-	<1299588365-2749-4-git-send-email-dacohen@gmail.com>
+	<1299588365-2749-2-git-send-email-dacohen@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <1299588365-2749-4-git-send-email-dacohen@gmail.com>
-Sender: linux-media-owner@vger.kernel.org
-To: David Cohen <dacohen@gmail.com>
-Cc: Hiroshi.DOYU@nokia.com, linux-omap@vger.kernel.org, linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com, sakari.ailus@maxwell.research.nokia.com
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:60036 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752849Ab1CHSGZ convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 8 Mar 2011 13:06:25 -0500
+In-Reply-To: <1299588365-2749-2-git-send-email-dacohen@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: David Cohen <dacohen@gmail.com>
+Cc: Hiroshi.DOYU@nokia.com, linux-omap@vger.kernel.org, linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com, sakari.ailus@maxwell.research.nokia.com, Michael Jones <michael.jones@matrix-vision.de>
 
 On Tue, Mar 8, 2011 at 6:46 AM, David Cohen <dacohen@gmail.com> wrote:
-> Currently IOVMM driver sets IOVMF_DA_FIXED/IOVMF_DA_ANON flags accord=
-ing
-> to input 'da' address when mapping memory:
-> da =3D=3D 0: IOVMF_DA_ANON
-> da !=3D 0: IOVMF_DA_FIXED
+> From: Michael Jones <michael.jones@matrix-vision.de>
 >
-> It prevents IOMMU to map first page with fixed 'da'. To avoid such
-> issue, IOVMM will not automatically set IOVMF_DA_FIXED. It should now
-> come from the user. IOVMF_DA_ANON will be automatically set if
-> IOVMF_DA_FIXED isn't set.
+> commit c7f4ab26e3bcdaeb3e19ec658e3ad9092f1a6ceb allowed mapping
+> the NULL address if da_start=3D=3D0, which would then not get unmappe=
+d.
+> Disallow this again. =A0And spell variable 'alignment' correctly.
 >
-> Signed-off-by: David Cohen <dacohen@gmail.com>
+> Signed-off-by: Michael Jones <michael.jones@matrix-vision.de>
 > ---
-> =A0arch/arm/plat-omap/iovmm.c | =A0 12 ++++++++----
-> =A01 files changed, 8 insertions(+), 4 deletions(-)
+> =A0arch/arm/plat-omap/iovmm.c | =A0 16 ++++++++++------
+> =A01 files changed, 10 insertions(+), 6 deletions(-)
 >
 > diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
-> index 11c9b76..dde9cb0 100644
+> index 6dc1296..11c9b76 100644
 > --- a/arch/arm/plat-omap/iovmm.c
 > +++ b/arch/arm/plat-omap/iovmm.c
-> @@ -654,7 +654,8 @@ u32 iommu_vmap(struct iommu *obj, u32 da, const s=
-truct sg_table *sgt,
-> =A0 =A0 =A0 =A0flags &=3D IOVMF_HW_MASK;
-> =A0 =A0 =A0 =A0flags |=3D IOVMF_DISCONT;
-> =A0 =A0 =A0 =A0flags |=3D IOVMF_MMIO;
-> - =A0 =A0 =A0 flags |=3D (da ? IOVMF_DA_FIXED : IOVMF_DA_ANON);
-> + =A0 =A0 =A0 if (~flags & IOVMF_DA_FIXED)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 flags |=3D IOVMF_DA_ANON;
+> @@ -271,20 +271,24 @@ static struct iovm_struct *alloc_iovm_area(stru=
+ct iommu *obj, u32 da,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 size_t bytes, u32 flags)
+> =A0{
+> =A0 =A0 =A0 =A0struct iovm_struct *new, *tmp;
+> - =A0 =A0 =A0 u32 start, prev_end, alignement;
+> + =A0 =A0 =A0 u32 start, prev_end, alignment;
+>
+> =A0 =A0 =A0 =A0if (!obj || !bytes)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return ERR_PTR(-EINVAL);
+>
+> =A0 =A0 =A0 =A0start =3D da;
+> - =A0 =A0 =A0 alignement =3D PAGE_SIZE;
+> + =A0 =A0 =A0 alignment =3D PAGE_SIZE;
+>
+> =A0 =A0 =A0 =A0if (flags & IOVMF_DA_ANON) {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 start =3D obj->da_start;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* Don't map address 0 */
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (obj->da_start)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 start =3D obj->da_start=
+;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 else
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 start =3D obj->da_start=
+ + alignment;
 
-could we use only one? both are mutual exclusive, what happen if flag
-is IOVMF_DA_FIXED | IOVMF_DA_ANON? so, I suggest to get rid of
-IOVMF_DA_ANON.
+else part obj->da_star is always 0, so why not?
+start =3D alignment;
+
+so, why I understand, it now it is possible mapp address 0x0 only if
+IOVMF_DA_ANON is not set, right? maybe that would be mention in the
+patch.
 
 Regards,
 =46ernando.
 
 >
-> =A0 =A0 =A0 =A0da =3D __iommu_vmap(obj, da, sgt, va, bytes, flags);
-> =A0 =A0 =A0 =A0if (IS_ERR_VALUE(da))
-> @@ -713,7 +714,8 @@ u32 iommu_vmalloc(struct iommu *obj, u32 da, size=
-_t bytes, u32 flags)
-> =A0 =A0 =A0 =A0flags &=3D IOVMF_HW_MASK;
-> =A0 =A0 =A0 =A0flags |=3D IOVMF_DISCONT;
-> =A0 =A0 =A0 =A0flags |=3D IOVMF_ALLOC;
-> - =A0 =A0 =A0 flags |=3D (da ? IOVMF_DA_FIXED : IOVMF_DA_ANON);
-> + =A0 =A0 =A0 if (~flags & IOVMF_DA_FIXED)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 flags |=3D IOVMF_DA_ANON;
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (flags & IOVMF_LINEAR)
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 alignement =3D iopgsz_m=
+ax(bytes);
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 start =3D roundup(start, alignement);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 alignment =3D iopgsz_ma=
+x(bytes);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 start =3D roundup(start, alignment);
+> =A0 =A0 =A0 =A0} else if (start < obj->da_start || start > obj->da_en=
+d ||
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0obj->da_end - start < bytes) {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return ERR_PTR(-EINVAL);
+> @@ -304,7 +308,7 @@ static struct iovm_struct *alloc_iovm_area(struct=
+ iommu *obj, u32 da,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0goto found;
 >
-> =A0 =A0 =A0 =A0sgt =3D sgtable_alloc(bytes, flags, da, 0);
-> =A0 =A0 =A0 =A0if (IS_ERR(sgt)) {
-> @@ -803,7 +805,8 @@ u32 iommu_kmap(struct iommu *obj, u32 da, u32 pa,=
- size_t bytes,
-> =A0 =A0 =A0 =A0flags &=3D IOVMF_HW_MASK;
-> =A0 =A0 =A0 =A0flags |=3D IOVMF_LINEAR;
-> =A0 =A0 =A0 =A0flags |=3D IOVMF_MMIO;
-> - =A0 =A0 =A0 flags |=3D (da ? IOVMF_DA_FIXED : IOVMF_DA_ANON);
-> + =A0 =A0 =A0 if (~flags & IOVMF_DA_FIXED)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 flags |=3D IOVMF_DA_ANON;
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (tmp->da_end >=3D start && flags & =
+IOVMF_DA_ANON)
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 start =3D roundup(tmp->=
+da_end + 1, alignement);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 start =3D roundup(tmp->=
+da_end + 1, alignment);
 >
-> =A0 =A0 =A0 =A0da =3D __iommu_kmap(obj, da, pa, va, bytes, flags);
-> =A0 =A0 =A0 =A0if (IS_ERR_VALUE(da))
-> @@ -862,7 +865,8 @@ u32 iommu_kmalloc(struct iommu *obj, u32 da, size=
-_t bytes, u32 flags)
-> =A0 =A0 =A0 =A0flags &=3D IOVMF_HW_MASK;
-> =A0 =A0 =A0 =A0flags |=3D IOVMF_LINEAR;
-> =A0 =A0 =A0 =A0flags |=3D IOVMF_ALLOC;
-> - =A0 =A0 =A0 flags |=3D (da ? IOVMF_DA_FIXED : IOVMF_DA_ANON);
-> + =A0 =A0 =A0 if (~flags & IOVMF_DA_FIXED)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 flags |=3D IOVMF_DA_ANON;
->
-> =A0 =A0 =A0 =A0da =3D __iommu_kmap(obj, da, pa, va, bytes, flags);
-> =A0 =A0 =A0 =A0if (IS_ERR_VALUE(da))
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0prev_end =3D tmp->da_end;
+> =A0 =A0 =A0 =A0}
 > --
 > 1.7.0.4
 >
 >
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
