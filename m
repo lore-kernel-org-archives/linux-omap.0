@@ -1,104 +1,61 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [RFC 3/3] am35xx: pm: Hook-up with TPS65023
-Date: Tue, 08 Mar 2011 08:08:57 -0800
-Message-ID: <87tyfdvbl2.fsf@ti.com>
-References: <1298483913-20344-1-git-send-email-premi@ti.com>
-	<1298483913-20344-4-git-send-email-premi@ti.com>
-	<6356620acee7ee78af7da3906b0ea78a@mail.gmail.com>
-	<B85A65D85D7EB246BE421B3FB0FBB593024C0E5D33@dbde02.ent.ti.com>
-	<c8691dfff1a8ded9676c2f63d8e896c0@mail.gmail.com>
-	<B85A65D85D7EB246BE421B3FB0FBB593024C0E6349@dbde02.ent.ti.com>
-	<4D762512.6060503@ti.com>
-	<B85A65D85D7EB246BE421B3FB0FBB593024C0E6385@dbde02.ent.ti.com>
-	<AANLkTikaY5kjbFJtUcnwTOoZJjn6BL8oqXN+B6x_fxav@mail.gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH v2 0/2] OMAP2PLUS: DSS2: Clock Source Changes
+Date: Tue, 8 Mar 2011 18:24:07 +0200
+Message-ID: <1299601447.2131.16.camel@deskari>
+References: <1299585035-26931-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:47804 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754588Ab1CHQJA convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 8 Mar 2011 11:09:00 -0500
-Received: by mail-pv0-f169.google.com with SMTP id 4so1367353pvg.14
-        for <linux-omap@vger.kernel.org>; Tue, 08 Mar 2011 08:08:59 -0800 (PST)
-In-Reply-To: <AANLkTikaY5kjbFJtUcnwTOoZJjn6BL8oqXN+B6x_fxav@mail.gmail.com>
-	(Nishanth Menon's message of "Tue, 8 Mar 2011 18:57:36 +0530")
+Received: from arroyo.ext.ti.com ([192.94.94.40]:59599 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752078Ab1CHQYM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 8 Mar 2011 11:24:12 -0500
+Received: from dlep36.itg.ti.com ([157.170.170.91])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p28GOC5k019139
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Tue, 8 Mar 2011 10:24:12 -0600
+Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
+	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id p28GOCik001146
+	for <linux-omap@vger.kernel.org>; Tue, 8 Mar 2011 10:24:12 -0600 (CST)
+Received: from dlee74.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p28GOCYJ005334
+	for <linux-omap@vger.kernel.org>; Tue, 8 Mar 2011 10:24:12 -0600 (CST)
+In-Reply-To: <1299585035-26931-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>
-Cc: "Premi, Sanjeev" <premi@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Taneja, Archit" <archit@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-"Menon, Nishanth" <nm@ti.com> writes:
+On Tue, 2011-03-08 at 05:50 -0600, Taneja, Archit wrote:
+> There are clocks on OMAP4 within DSS2 which can have multiple clock sources.
+> This cleans up the existing way of selecting/getting the clock sources and add
+> some of the new clock sources for OMAP4.
+> 
+> Applies over:
+> http://gitorious.org/linux-omap-dss2/linux/commits/master
+> 
+> Archit Taneja (2):
+>   OMAP2PLUS: DSS2: Cleanup clock source related code
+>   OMAP4: DSS2: Clock source changes for OMAP4
 
-> On Tue, Mar 8, 2011 at 18:48, Premi, Sanjeev <premi@ti.com> wrote:
-> [...]
->>> Thinking from a generic soln perspective, lets try and split this i=
-nto
->>> multiple issues:
->>> a) OPP and Voltage layer voltages - these need to be PMIC aware as =
-well.
->>> See my comment on http://marc.info/?l=3Dlinux-omap&m=3D129955003611=
-548&w=3D2
->>> -> essentially means that pmic_voltage information should be regist=
-ered
->>> earlier to opp init
->>>
->>> b) split up structure information for voltage layer - this should b=
-e
->>> done in a manner to make PMIC, Board and OMAP SoC information indep=
-endent.
->>>
->>> c) Ability to plug in multiple PMICs in two manners:
->>> =C2=A0 =C2=A0 i) use PMIC with VC/VP/SR combinations.
->>> =C2=A0 =C2=A0 ii) use PMIC which is plugged on regulator frameworks=
-=2E
->>>
->>> If anyone is attempting cleanups, it might be a good idea to base o=
-n the
->>> accepted cleanups from pm-core branch which is planned for 39-rc1 t=
-o
->>> prevent any surprises ;)
->>
->> [sp] Without trying to understand much internal details on the propo=
-sed
->> =C2=A0 =C2=A0 solution, workaround is necessary to get AM35x platfor=
-ms to even boot
->> =C2=A0 =C2=A0 on current baselines.
->>
->> =C2=A0 =C2=A0 Using regulator framework etc. are long poles; that ca=
-n easily be
->> =C2=A0 =C2=A0 avoided; and this RFC was meant for that.
->>
->> =C2=A0 =C2=A0 Knowing that there is already a clean-up effort; simpl=
-e workaround
->> =C2=A0 =C2=A0 makes even better proposition.
-> Personally speaking, it is better we do the cleanup and integrate to
-> mainline. since we are in the process of cleaning up, it might be a
-> good idea for contributions from you and all interested folks to
-> ensure that the final code will support the configurations we all nee=
-d
+The set looks good. I'll apply it tomorrow morning after some testing.
 
-We have kwown for a long time that we have hard-coded PMIC assumptions
-in the current code.  We have slowly added some minimal ways to make
-PMIC-variable things pluggable, but indeed it has only ever been tested
-with TWL* PMICs.
+But something for future patches:
 
-The best way to fix this going forward is for those who are adding
-support for other PMICs to propose solutions that will make this scale
-to other PMICs.
+The naming of the functions could be made clearer. We have logic clock
+for the LCD outputs but also for DISPC. So for example dispc_lclk_rate()
+could be dispc_lcd_lclk_rate(), to make sure it's not called when the
+caller needs to know the lclk of dispc. And it looks too similar to
+dispc_fclk_rate() which returns clock for dispc core, easily giving the
+impression that these two are linked.
 
-If that involves short-term hacks/workarounds to get things
-building/booting on non-TWL4030 platforms, that is OK with me.  But I
-would also like to be sure that efforts are underway to do it the right
-way in parallel.
+And similarly dispc_pclk_rate() could be dispc_lcd_pclk_rate(), to make
+clear that it's not for example venc pixel clock.
 
-Kevin
+Perhaps there are also other functions whose name could be more specific
+now that we have separate clocks for dispc core and the lcd paths.
+
+ Tomi
 
 
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
