@@ -1,67 +1,177 @@
-From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: Re: [PATCH 0/3] OMAP: DMA: mstandby mode and runtime pm support
-Date: Tue, 8 Mar 2011 19:54:45 +0530
-Message-ID: <20110308141002.GA19004@m-desktop>
-References: <1298542475-1460-1-git-send-email-manjugk@ti.com>
- <87hbbkqcgk.fsf@ti.com>
- <20110304041826.GA7025@m-desktop>
- <20110307110611.GA8743@m-desktop>
+From: "Varadarajan, Charulatha" <charu@ti.com>
+Subject: Re: [PATCH 5/5] OMAP: GPIO: use PM runtime framework
+Date: Tue, 8 Mar 2011 20:35:24 +0530
+Message-ID: <AANLkTikecqDALXQYd=oLJrFstQZaEG0wH1txzUUyGc-m@mail.gmail.com>
+References: <1298890670-5481-1-git-send-email-charu@ti.com>
+ <1298890670-5481-6-git-send-email-charu@ti.com> <87mxlabih5.fsf@ti.com>
+ <AANLkTi=Sd0zJwnx1DHCCOr9ncHv1ZP1EworoJex7NLEK@mail.gmail.com> <87vczu7ocb.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:57151 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751945Ab1CHO1G (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Mar 2011 09:27:06 -0500
-Received: by ywl2 with SMTP id 2so3492160ywl.40
-        for <linux-omap@vger.kernel.org>; Tue, 08 Mar 2011 06:27:04 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <20110307110611.GA8743@m-desktop>
+Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:59758 "EHLO
+	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754904Ab1CHPGG convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 8 Mar 2011 10:06:06 -0500
+Received: by mail-fx0-f46.google.com with SMTP id 17so5185178fxm.19
+        for <linux-omap@vger.kernel.org>; Tue, 08 Mar 2011 07:06:04 -0800 (PST)
+In-Reply-To: <87vczu7ocb.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, paul@pwsan.com
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com, Tarun Kanti DebBarma <tarun.kanti@ti.com>
 
-On Mon, Mar 07, 2011 at 04:36:12PM +0530, G, Manjunath Kondaiah wrote:
-> On Fri, Mar 04, 2011 at 09:48:26AM +0530, G, Manjunath Kondaiah wrote:
-> > On Thu, Mar 03, 2011 at 10:35:23AM -0800, Kevin Hilman wrote:
-> > > "G, Manjunath Kondaiah" <manjugk@ti.com> writes:
-> > > 
-> > > > This patch series is remaining part of dma hwmod to support pm runtime 
-> > > > and for handling mstandby mode for all applicable DMA mstandby mode errata.
-> > > 
-> > > This is still not runtime-suspending when I use my DMA test in linking
-> > > mode.
-> > > 
-> > > If I put a large enough period between transfers, it should autosuspend
-> > > during transfers.  It seems to do auto-suspend and resume once, but then
-> > > it never suspends again.
-> > > 
-> > > I tested with my dmatest module[1], and loaded with:
-> > > 
-> > >   # insmod ./dmatest.ko linking=1 forever=1 forever_period=1024
-> > > 
-> > > Not only does it not auto-suspend between transfers (which I expected),
-> > > it also doesn't suspend after removing the module which stops all active
-> > > channels.
-> > 
-> > The normal chaining test cases are executed and which used to show the
-> > proper status. Let me reproduce this issue with your test procedure.
-> 
-> ok. I am able to reproduce this issue and fixed _get_sync usage in
-> omap_start_dma if channel linking is used. Earlier it was handled for
-> the cases with chaining API's. If linking is done without chaining
-> API's, it will result in _get_sync and _put mismatch.
-> 
-> Thanks for the test case and I will be re posting the patches with the 
-> above fix.
-While testing your test case with off mode for scenario:
-insmod ./dmatest.ko linking=1 forever=1 forever_period=1024 debug=1
+Kevin,
 
-the transfer after timer expiry will get corrupted once it comes out of
-off mode. Debugging offmode issue... 
+On Tue, Mar 8, 2011 at 00:25, Kevin Hilman <khilman@ti.com> wrote:
+> "Varadarajan, Charulatha" <charu@ti.com> writes:
+>
+> [...]
+>
+>>>> GPIO driver is modified to use dev_pm_ops instead of sysdev_class.
+>>>> With this approach, gpio_bank_suspend() & gpio_bank_resume()
+>>>> are not part of sys_dev_class.
+>>>>
+>>>> Usage of PM runtime get/put APIs in GPIO driver is as given below:
+>>>> pm_runtime_get_sync():
+>>>> * In the probe before accessing the GPIO registers
+>>>> * at the beginning of omap_gpio_request()
+>>>> =A0 =A0 =A0 -only when one of the gpios is requested on a bank, in=
+ which,
+>>>> =A0 =A0 =A0 =A0no other gpio is being used (when mod_usage becomes=
+ non-zero).
+>>>
+>>> When using runtime PM, bank->mod_usage acutally becomes redundant w=
+ith
+>>> usage counting already done at the runtime PM level. =A0IOW, checki=
+ng
+>>> bank->mod_usage is he equivalent of checking pm_runtime_suspended()=
+, so
+>>> I think you can totally get rid of bank->mod_usage.
+>>
+>> I wish to differ here. bank->mod_usage is filled for each GPIO pin i=
+n a bank.
+>> Hence during request/free if pm_runtime_get_sync() is called for eac=
+h GPIO
+>> pin, then the count gets increased for each GPIO pin in a bank. But
+>> gpio_prepare_for_idle/suspend calls pm_runtime_put() only once for
+>> each bank. Hence there will be a count mismatch and hence this will =
+lead
+>> to problems and never a bank will get suspended.
+>>
+>> IMO it is required to have bank->mod_usage checks. Please correct
+>> me if I am wrong.
+>
+> You're right, I see what you're saying now. =A0Thanks for clarifying.
 
-Trying to use omap_pm_get_dev_context_loss_count(dev) for checking
-offmode count for context restore in omap_start_dma.
+Okay.
 
--Manjunath
+>
+> In that case, keeping bank->mod_usage should be OK for now.
+
+Okay.
+
+>
+> That being said, as I'm looking at the idle prepare/resume hooks
+> something else came to mind.
+>
+> Most of what the idle prepare/resume mehods do should actually be don=
+e
+> in the ->runtime_suspend() and ->runtime_resume() hooks (e.g. debounc=
+e
+> clock disable, edge-detect stuff, context save/restore). =A0IOW, that
+> stuff does not need to be done until the bank is actually
+> disabled/enabled. =A0For example, prepare_for_idle itself could be a
+> relatively simple check for bank->mod_usage and a call to
+> pm_runtime_put_sync().
+>
+> What do you think?
+
+I also thought about this and my very old implementation with hwmod
+series was like this. But,
+a. prepare_for_idle has an Erratum 1.101 handling, debounce clock disab=
+le,
+   context save based on offmode flag
+b. omap_gpio_suspend has wkup related code handling in it along
+   with context save w/o any flag
+c. gpio_free need not do any of the above mentioned stuff.
+
+Similar for resume_after_idle, gpio_request, omap_resume.
+
+But the runtime_suspend/resume hooks would be called for all the above.
+Hence I thought that it might not be correct to move all the code from
+prepare_for_idle() to runtime_suspend hook of GPIO. Similar for
+resume_after_idle()
+and runtime_resume hook.
+
+Also, from implementation point of view it needs to be taken care to
+pass off_mode
+flag to runtime_suspend hook and use it only for prepare_for idle and
+not for other
+cases (omap_gpio_suspend/gpio_free).
+
+Do you still think that it is appropriate to do this code movement  fro=
+m
+prepare_for_idle() to GPIO's runtime_suspend?
+
+>
+> [...]
+>
+>>>> @@ -1058,22 +1079,7 @@ static int omap_gpio_request(struct gpio_ch=
+ip *chip, unsigned offset)
+>>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 __raw_writel(__raw_readl(reg) | (1 << =
+offset), reg);
+>>>> =A0 =A0 =A0 }
+>>>> =A0#endif
+>>>> - =A0 =A0 if (!cpu_class_is_omap1()) {
+>>>> - =A0 =A0 =A0 =A0 =A0 =A0 if (!bank->mod_usage) {
+>>>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 void __iomem *reg =3D ba=
+nk->base;
+>>>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 u32 ctrl;
+>>>> -
+>>>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (cpu_is_omap24xx() ||=
+ cpu_is_omap34xx())
+>>>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 reg +=3D=
+ OMAP24XX_GPIO_CTRL;
+>>>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 else if (cpu_is_omap44xx=
+())
+>>>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 reg +=3D=
+ OMAP4_GPIO_CTRL;
+>>>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ctrl =3D __raw_readl(reg=
+);
+>>>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* Module is enabled, cl=
+ocks are not gated */
+>>>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ctrl &=3D 0xFFFFFFFE;
+>>>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 __raw_writel(ctrl, reg);
+>>>> - =A0 =A0 =A0 =A0 =A0 =A0 }
+>>>> - =A0 =A0 =A0 =A0 =A0 =A0 bank->mod_usage |=3D 1 << offset;
+>>>> - =A0 =A0 }
+>>>
+>>> Where did this code go? =A0I expected it to be moved, but not remov=
+ed completely.
+>>
+>> It is only moved and not removed.
+>> bank->mod_usage |=3D 1 << offset; is done above and the rest is done=
+ below.
+>
+> I found the set of bank->mod_usage, but I do not see the clock un-gat=
+ing
+> in the resulting code. =A0Can you please share the line number in the
+> resulting code where this is done? =A0 I just grep'd for 'Module is
+> enabled' and the 'ctrl &=3D 0xFFFFFFFE' line and could not find them.
+
+This is done as part of omap_gpio_mod_init() (which writes zero into
+ctrl register)
+and it is called from omap_gpio_request().
+
+-V Charulatha
+
+>
+> Kevin
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
