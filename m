@@ -1,66 +1,90 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 2/7] OMAP2+: mux: Enable wakeup for wakeup enable requested pads
-Date: Tue, 08 Mar 2011 10:31:26 -0800
-Message-ID: <87k4g9qxa9.fsf@ti.com>
-References: <1299064343-28534-1-git-send-email-govindraj.raja@ti.com>
-	<87lj0u8mrf.fsf@ti.com> <87tyfi49cs.fsf@ti.com>
-	<AANLkTiknEQrqUt1-sY6-aDw4R5ZMP2uErSjRNB5Yex_v@mail.gmail.com>
-	<20110308172625.GE26463@atomide.com>
+From: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
+Subject: Re: [PATCH 3/3] omap: iovmm: don't check 'da' to set
+ IOVMF_DA_FIXED/IOVMF_DA_ANON flags
+Date: Tue, 8 Mar 2011 12:53:30 -0600
+Message-ID: <AANLkTi=E+9sjGEpCmHPFLFRGTQujDv8747Jf8=ukU1hC@mail.gmail.com>
+References: <1299588365-2749-1-git-send-email-dacohen@gmail.com>
+	<1299588365-2749-4-git-send-email-dacohen@gmail.com>
+	<AANLkTikvUah8LPXCeV4Opi09DJ4ZoHAc2xUVTcDhNK=Q@mail.gmail.com>
+	<20110308.200901.212929907269368357.Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:59821 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753439Ab1CHSb3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Mar 2011 13:31:29 -0500
-In-Reply-To: <20110308172625.GE26463@atomide.com> (Tony Lindgren's message of
-	"Tue, 8 Mar 2011 09:26:25 -0800")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <20110308.200901.212929907269368357.Hiroshi.DOYU@nokia.com>
+Sender: linux-media-owner@vger.kernel.org
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: dacohen@gmail.com, linux-omap@vger.kernel.org, linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com, sakari.ailus@maxwell.research.nokia.com
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Govindraj <govindraj.ti@gmail.com>, "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Rajendra Nayak <rnayak@ti.com>
 
-Tony Lindgren <tony@atomide.com> writes:
-
-> * Govindraj <govindraj.ti@gmail.com> [110308 03:43]:
->> 
->> I am not sure whether now we can control read/writes to pad_mux from any driver
->> interface and I think we have to go through mux framework for any
->> read/writes to mux.
+On Tue, Mar 8, 2011 at 12:09 PM, Hiroshi DOYU <Hiroshi.DOYU@nokia.com> =
+wrote:
+> From: "ext Guzman Lugo, Fernando" <fernando.lugo@ti.com>
+> Subject: Re: [PATCH 3/3] omap: iovmm: don't check 'da' to set IOVMF_D=
+A_FIXED/IOVMF_DA_ANON flags
+> Date: Tue, 8 Mar 2011 11:59:43 -0600
 >
-> Sure, the drivers should not mess with those registers directly.
+>> On Tue, Mar 8, 2011 at 6:46 AM, David Cohen <dacohen@gmail.com> wrot=
+e:
+>>> Currently IOVMM driver sets IOVMF_DA_FIXED/IOVMF_DA_ANON flags acco=
+rding
+>>> to input 'da' address when mapping memory:
+>>> da =3D=3D 0: IOVMF_DA_ANON
+>>> da !=3D 0: IOVMF_DA_FIXED
+>>>
+>>> It prevents IOMMU to map first page with fixed 'da'. To avoid such
+>>> issue, IOVMM will not automatically set IOVMF_DA_FIXED. It should n=
+ow
+>>> come from the user. IOVMF_DA_ANON will be automatically set if
+>>> IOVMF_DA_FIXED isn't set.
+>>>
+>>> Signed-off-by: David Cohen <dacohen@gmail.com>
+>>> ---
+>>> =A0arch/arm/plat-omap/iovmm.c | =A0 12 ++++++++----
+>>> =A01 files changed, 8 insertions(+), 4 deletions(-)
+>>>
+>>> diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.=
+c
+>>> index 11c9b76..dde9cb0 100644
+>>> --- a/arch/arm/plat-omap/iovmm.c
+>>> +++ b/arch/arm/plat-omap/iovmm.c
+>>> @@ -654,7 +654,8 @@ u32 iommu_vmap(struct iommu *obj, u32 da, const=
+ struct sg_table *sgt,
+>>> =A0 =A0 =A0 =A0flags &=3D IOVMF_HW_MASK;
+>>> =A0 =A0 =A0 =A0flags |=3D IOVMF_DISCONT;
+>>> =A0 =A0 =A0 =A0flags |=3D IOVMF_MMIO;
+>>> - =A0 =A0 =A0 flags |=3D (da ? IOVMF_DA_FIXED : IOVMF_DA_ANON);
+>>> + =A0 =A0 =A0 if (~flags & IOVMF_DA_FIXED)
+>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 flags |=3D IOVMF_DA_ANON;
+>>
+>> could we use only one? both are mutual exclusive, what happen if fla=
+g
+>> is IOVMF_DA_FIXED | IOVMF_DA_ANON? so, I suggest to get rid of
+>> IOVMF_DA_ANON.
 >
->> with this I cant control pad wake up capabilities with sysfs as done
->> earlier in serial.c
->> now control to read/write to pad is outside scope of the driver
->> interface as omap_hwmod_mux
->> is the one that takes decision for driver with mux values provided
->> during omap_hwmod_mux_init.
+> Then, what about introducing some MACRO? Better names?
 >
-> The sysfs interface to control this should still be from the drivers.
-> Sounds like we need some way to set the wakeup flags before pm_runtime_put
-> is called.
+> #define set_iovmf_da_anon(flags)
+> #define set_iovmf_da_fix(flags)
+> #define set_iovmf_mmio(flags)
 
-Exactly.  Driver's can currently check device_may_wakeup(dev) to
-determine if they *should* set wakeup flags, but currently, we don't
-have a clean way to pass the info down to core code.
+will they be used by the users?
 
-One possible option (albeit hacky) is for the omap_hwmod_mux code to
-check device_may_wakeup() itself, and set the bits accordingly.  This
-means drivers don't have to do anything, but drivers also loose control
-of enabling/disabling wakeups.
+I think people are more used to use
 
-I think what we need are two omap_device-level APIs for wakeups.
+iommu_vmap(obj, da, sgt, IOVMF_MMIO | IOVMF_DA_ANON);
 
-One for enable/disable of wakeups (both module-level and IO-ring, the 
-driver should not care about the difference between the two):
+than
 
-int omap_device_[enable|disable](struct platform_device *pdev);
+set_iovmf_da_anon(flags)
+set_iovmf_mmio(flags)
+iommu_vmap(obj, da, sgt, flags);
 
-bool omap_device_wakeup_occured(struct platform_device *pdev);
+I don't have problem with the change, but I think how it is now is ok,
+just that we don't we two bits to handle anon/fixed da, it can be
+managed it only 1 bit (one flag), or is there a issue?
 
-As OMAP-specific APIs, both of these should of course be called through
-pdata function pointers.
-
-Kevin
-
+Regards,
+=46ernando.
+> ......
+>
