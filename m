@@ -1,78 +1,41 @@
-From: David Cohen <dacohen@gmail.com>
-Subject: Re: [PATCH 2/3] omap3: change ISP's IOMMU da_start address
-Date: Tue, 8 Mar 2011 19:15:27 +0200
-Message-ID: <AANLkTimBxYqSuBCPzmJUWa7KZzvt4SaPwOwXHhqciYBe@mail.gmail.com>
-References: <1299588365-2749-1-git-send-email-dacohen@gmail.com>
-	<1299588365-2749-3-git-send-email-dacohen@gmail.com>
-	<4D7637D0.4010402@maxwell.research.nokia.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 2/7] OMAP2+: mux: Enable wakeup for wakeup enable
+ requested pads
+Date: Tue, 8 Mar 2011 09:26:25 -0800
+Message-ID: <20110308172625.GE26463@atomide.com>
+References: <1299064343-28534-1-git-send-email-govindraj.raja@ti.com>
+ <87lj0u8mrf.fsf@ti.com>
+ <87tyfi49cs.fsf@ti.com>
+ <AANLkTiknEQrqUt1-sY6-aDw4R5ZMP2uErSjRNB5Yex_v@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <4D7637D0.4010402@maxwell.research.nokia.com>
-Sender: linux-media-owner@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Cc: Hiroshi.DOYU@nokia.com, linux-omap@vger.kernel.org, fernando.lugo@ti.com, linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-serial-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <AANLkTiknEQrqUt1-sY6-aDw4R5ZMP2uErSjRNB5Yex_v@mail.gmail.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Govindraj <govindraj.ti@gmail.com>
+Cc: Kevin Hilman <khilman@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Rajendra Nayak <rnayak@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Sakari,
+* Govindraj <govindraj.ti@gmail.com> [110308 03:43]:
+> 
+> I am not sure whether now we can control read/writes to pad_mux from any driver
+> interface and I think we have to go through mux framework for any
+> read/writes to mux.
 
-On Tue, Mar 8, 2011 at 4:06 PM, Sakari Ailus
-<sakari.ailus@maxwell.research.nokia.com> wrote:
-> David Cohen wrote:
->> ISP doesn't consider 0x0 as a valid address, so it should explicitly
->> exclude first page from allowed 'da' range.
->>
->> Signed-off-by: David Cohen <dacohen@gmail.com>
->> ---
->> =C2=A0arch/arm/mach-omap2/omap-iommu.c | =C2=A0 =C2=A02 +-
->> =C2=A01 files changed, 1 insertions(+), 1 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/omap-iommu.c b/arch/arm/mach-omap2/=
-omap-iommu.c
->> index 3fc5dc7..3bea489 100644
->> --- a/arch/arm/mach-omap2/omap-iommu.c
->> +++ b/arch/arm/mach-omap2/omap-iommu.c
->> @@ -33,7 +33,7 @@ static struct iommu_device omap3_devices[] =3D {
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 .name =3D "isp",
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 .nr_tlb_entries =3D 8,
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 .clk_name =3D "cam_ick",
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 .da_start =3D 0x0,
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 .da_start =3D 0x1000,
->
-> The NULL address is still valid for the MMU. Can the IOVMF_DA_ANON
-> mapping be specified by the API to be always non-NULL?
+Sure, the drivers should not mess with those registers directly.
 
-The patch 1/3 does that :)
+> with this I cant control pad wake up capabilities with sysfs as done
+> earlier in serial.c
+> now control to read/write to pad is outside scope of the driver
+> interface as omap_hwmod_mux
+> is the one that takes decision for driver with mux values provided
+> during omap_hwmod_mux_init.
 
->
-> This way it would be possible to combine IOVMF_DA_FIXED and
-> IOVMF_DA_ANON mappings in the same IOMMU while still being able to re=
-ly
-> that IOVMF_DA_ANON mappings would always be non-NULL.
+The sysfs interface to control this should still be from the drivers.
+Sounds like we need some way to set the wakeup flags before pm_runtime_put
+is called.
 
-Indeed the IOMMU driver supports it. The flag is set by iovm area and
-each IOMMU instance supports a mix of mappings with fixed da or not.
-By changing the OMAP3 "isp" IOMMU pdata's da_start to 0x1000, we're
-explicitly saying that iovm areas with fixed 'da' or not will never
-map first page to OMAP3 ISP driver, what is the behavior it expects.
-Without this patch, thanks to patch 1/3 the IOMMU driver will not map
-address 0x0 to OMAP3 ISP anyway. But then ISP will be passing wrong
-information that it would be fine to map first page. :)
+Regards,
 
-Kind regards,
-
-David Cohen
-
->
-> Regards,
->
-> --
-> Sakari Ailus
-> sakari.ailus@maxwell.research.nokia.com
->
+Tony
