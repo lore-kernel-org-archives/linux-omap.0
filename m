@@ -1,54 +1,37 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 0/2] omap_wdt: fix interface clock handling
-Date: Tue, 8 Mar 2011 16:10:47 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1103081605460.15132@utopia.booyaka.com>
-References: <1299589583-22632-1-git-send-email-kalle.jokiniemi@nokia.com> <87bp1lv8uc.fsf@ti.com> <alpine.DEB.2.00.1103081543430.10981@utopia.booyaka.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] OMAP1: McBSP: fix build break for non-multi-OMAP1
+ configs
+Date: Tue, 8 Mar 2011 15:11:49 -0800
+Message-ID: <20110308231149.GG26463@atomide.com>
+References: <alpine.DEB.2.00.1103041535150.10981@utopia.booyaka.com>
+ <20110307163047.a65c51d2.jhnikula@gmail.com>
+ <alpine.DEB.2.00.1103071933350.10981@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:38444 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756311Ab1CHXKs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Mar 2011 18:10:48 -0500
-In-Reply-To: <alpine.DEB.2.00.1103081543430.10981@utopia.booyaka.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:28215 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755891Ab1CHXMG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Mar 2011 18:12:06 -0500
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1103071933350.10981@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
-Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, tony@atomide.com, b-cousson@ti.com, ilkka.koskinen@nokia.com, Charulatha Varadarajan <charu@ti.com>, wim@iguana.be
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Jarkko Nikula <jhnikula@gmail.com>, linux-omap@vger.kernel.org, Kishon Vijay Abraham I <kishon@ti.com>, linux-arm-kernel@lists.infradead.org
 
-Hi
-
-On Tue, 8 Mar 2011, Paul Walmsley wrote:
-
-> On Tue, 8 Mar 2011, Kevin Hilman wrote:
+* Paul Walmsley <paul@pwsan.com> [110307 18:32]:
+> On Mon, 7 Mar 2011, Jarkko Nikula wrote:
 > 
-> > Kalle Jokiniemi <kalle.jokiniemi@nokia.com> writes:
+> > omapxxx_mcbsp_res_0 doesn't look the best here in readability point of
+> > view but provides the smallest fix as no need to rename array and
+> > modify the _RES_SZ and _COUNT macros. So this fix is needed here and a
+> > small readability update can be done later.
 > > 
-> > > The runtime PM does not offer enough granularity to control
-> > > individual clocks separately as needed. Current pm implementation
-> > > of omap_wdt blocks the CORE power domain from idling in
-> > > OMAP SoC, as it keeps the interface clock of the watchdog always
-> > > on. This causes severe power leakage in devices where 
-> > > the omap watchdog is in active use.
-> > 
-> > The iclk remains active because it's in hardware-controlled
-> > auto-idle mode.  
+> > Acked-by: Jarkko Nikula <jhnikula@gmail.com>
 > 
-> ... and we think that the interface clock never enters auto-idle because 
-> the WDT doesn't SIdleAck to the PRCM until the special sequence has been 
-> written to the WDT registers to disable it.  So even if its *CLKEN bits 
-> are set to zero, the WDT prevents the system from going idle.
+> Thanks Jarkko.  For what it's worth, I agree it's an ugly patch.
 
-Actually, thinking about this further, I think this statement must be 
-wrong.  The WDT may actually SIdleAck even when it's enabled.  Otherwise, 
-how could disabling the clocks save much power?  The WDT shouldn't need 
-its interface clock to be enabled in order to keep its timer ticking or to 
-reset the system.  
+Applying.
 
-So this first patch might not even be necessary.
-
-Kalle, if both patches work, perhaps you might try dropping this one and 
-see if the problem is still there?
-
-
-- Paul
+Tony
