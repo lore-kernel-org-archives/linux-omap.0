@@ -1,114 +1,83 @@
-From: David Cohen <dacohen@gmail.com>
-Subject: Re: [PATCH v2 2/3] omap3: change ISP's IOMMU da_start address
-Date: Wed, 9 Mar 2011 10:19:43 +0200
-Message-ID: <AANLkTi=ARF3zyFWOXwoyobUeKsN8HzTtd5TkxNSV+srO@mail.gmail.com>
-References: <1299615316-17512-1-git-send-email-dacohen@gmail.com>
-	<1299615316-17512-3-git-send-email-dacohen@gmail.com>
-	<4D772FB0.4020804@maxwell.research.nokia.com>
+From: <kalle.jokiniemi@nokia.com>
+Subject: RE: [PATCH 0/2] omap_wdt: fix interface clock handling
+Date: Wed, 9 Mar 2011 09:02:35 +0000
+Message-ID: <9D0D31AA57AAF5499AFDC63D6472631B0652E1@008-AM1MPN1-036.mgdnok.nokia.com>
+References: <1299589583-22632-1-git-send-email-kalle.jokiniemi@nokia.com>
+ <87bp1lv8uc.fsf@ti.com>
+ <alpine.DEB.2.00.1103081543430.10981@utopia.booyaka.com>
+ <alpine.DEB.2.00.1103081605460.15132@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:64470 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756484Ab1CIITp convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Mar 2011 03:19:45 -0500
-In-Reply-To: <4D772FB0.4020804@maxwell.research.nokia.com>
+Received: from smtp.nokia.com ([147.243.1.48]:42575 "EHLO mgw-sa02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756811Ab1CIJCu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Mar 2011 04:02:50 -0500
+In-Reply-To: <alpine.DEB.2.00.1103081605460.15132@utopia.booyaka.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Cc: Hiroshi.DOYU@nokia.com, linux-omap@vger.kernel.org, fernando.lugo@ti.com, linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
+To: paul@pwsan.com
+Cc: khilman@ti.com, linux-omap@vger.kernel.org, tony@atomide.com, b-cousson@ti.com, ilkka.koskinen@nokia.com, charu@ti.com, wim@iguana.be
 
-On Wed, Mar 9, 2011 at 9:43 AM, Sakari Ailus
-<sakari.ailus@maxwell.research.nokia.com> wrote:
-> David Cohen wrote:
->> ISP doesn't consider 0x0 as a valid address, so it should explicitly
->> exclude first page from allowed 'da' range.
->>
->> Signed-off-by: David Cohen <dacohen@gmail.com>
->> ---
->> =C2=A0arch/arm/mach-omap2/omap-iommu.c | =C2=A0 =C2=A02 +-
->> =C2=A01 files changed, 1 insertions(+), 1 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/omap-iommu.c b/arch/arm/mach-omap2/=
-omap-iommu.c
->> index 3fc5dc7..3bea489 100644
->> --- a/arch/arm/mach-omap2/omap-iommu.c
->> +++ b/arch/arm/mach-omap2/omap-iommu.c
->> @@ -33,7 +33,7 @@ static struct iommu_device omap3_devices[] =3D {
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 .name =3D "isp",
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 .nr_tlb_entries =3D 8,
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 .clk_name =3D "cam_ick",
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 .da_start =3D 0x0,
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 .da_start =3D 0x1000,
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 .da_end =3D 0xFFFFF000,
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 },
->> =C2=A0 =C2=A0 =C2=A0 },
->
-> Hi David!
 
-Hi Sakari,
 
->
-> Thanks for the patch.
+> -----Original Message-----
+> From: ext Paul Walmsley [mailto:paul@pwsan.com]
+> Sent: 9. maaliskuuta 2011 1:11
+> To: Jokiniemi Kalle (Nokia-MS/Tampere)
+> Cc: Kevin Hilman; linux-omap@vger.kernel.org; tony@atomide.com; b-
+> cousson@ti.com; Koskinen Ilkka (Nokia-MS/Tampere); Charulatha
+> Varadarajan; wim@iguana.be
+> Subject: Re: [PATCH 0/2] omap_wdt: fix interface clock handling
+> 
+> Hi
+> 
+> On Tue, 8 Mar 2011, Paul Walmsley wrote:
+> 
+> > On Tue, 8 Mar 2011, Kevin Hilman wrote:
+> >
+> > > Kalle Jokiniemi <kalle.jokiniemi@nokia.com> writes:
+> > >
+> > > > The runtime PM does not offer enough granularity to control
+> > > > individual clocks separately as needed. Current pm implementation
+> > > > of omap_wdt blocks the CORE power domain from idling in OMAP SoC,
+> > > > as it keeps the interface clock of the watchdog always on. This
+> > > > causes severe power leakage in devices where the omap watchdog is
+> > > > in active use.
+> > >
+> > > The iclk remains active because it's in hardware-controlled
+> > > auto-idle mode.
+> >
+> > ... and we think that the interface clock never enters auto-idle
+> > because the WDT doesn't SIdleAck to the PRCM until the special
+> > sequence has been written to the WDT registers to disable it.  So even
+> > if its *CLKEN bits are set to zero, the WDT prevents the system from going
+> idle.
+> 
+> Actually, thinking about this further, I think this statement must be wrong.
+> The WDT may actually SIdleAck even when it's enabled.  Otherwise, how
+> could disabling the clocks save much power?  The WDT shouldn't need its
+> interface clock to be enabled in order to keep its timer ticking or to reset the
+> system.
 
-And thanks for the comments. :)
+Yes, the interface clock is not needed for the WDTIMER to work, and disabling the interface clock allows the sleeping to happen. This is what I observed. To my understanding, the pm_runtime calls automatically disable also the functional clock. I know the WDTIMER won't stop by just disabling the fclk bit, but it does not seem correct operation to assume this. This is why I reverted the runtime_pm patches. Can we somehow control only the iclk via runtime-pm?
 
->
-> My question is once again: is this necessary? My understanding is tha=
-t
-> the IOMMU allows mapping the NULL address if the user wishes to map i=
-t
-> explicitly. da_end specifies the real hardware limit for the mapped t=
-op
-> address, da_start should do the same for bottom.
+> 
+> So this first patch might not even be necessary.
+> 
+> Kalle, if both patches work, perhaps you might try dropping this one and see
+> if the problem is still there?
 
-Hm. da_start/da_end in this case belong to OMAP3 IOMMU ISP VM. It
-means they're related to OMAP3 ISP only. But they do not reflect the
-hw limit, as the range limit is anything which fits in u32. They say
-what's the range OMAP3 ISP is expecting to have mapped. And the answer
-to this question is the first page is not expected. Then, why say the
-opposite in da_start?
+Ok, I tried them both: first both individually, and then combined. No luck, CORE power domain still remains ON with all combinations.
 
->
-> I think that the IOMMU users should be either able to rely that they =
-get
-> no NULL allocated automatically for them. Do we want or not want it t=
-o
-> be part of the API? I don't think the ISP driver is a special case of
-> all the possible drivers using the IOMMU.
+Looking at the registers dump, the clock bits are disabled as one would expect, however this does not seem to help in getting CORE to sleep. Actually, with the working clk_enable/disable approach, both fclk and iclk clocks are shown as enabled, though I guess this is due to the clk_disable(iclk) only allowing HW power domain state transition to disable the interface clock (not to disable it immediately). Maybe the transition goes somehow sour with r-pm, as both clocks seem disabled, while the wdt is internally still ticking (due to the special disable sequence not done, and it should not be done, as we need the watchdog).
 
-My understanding after this discussion is address 0x0 should be
-allowed (what is done by patch 3/3 of this set). But as a safer
-choice, it won't be returned without explicitly request (what is done
-in path 1/3). Because of that, I'm OK in drop this patch 2/3. But then
-there's one question which is the motivation for this change:
-If the current OMAP3 ISP driver doesn't want the first page, (1)
-should we pass a generic information and expect IOVMM driver to
-correct it to ISP need or (2) should we pass the information which
-reflects the real ISP driver's need?
-My understanding is (2). But I'm fine with (1) as it will lead to the
-same result.
+This gets us back to square one, how to use the runtime-pm to only disable the iclk (or more precisely allow the device to sleep, when wdt is used)? Is it out of the question to use direct clock control via clock framework? It "just works" :)
 
->
-> On the other hand, probably there will be an API change at some point
-> for the IOMMU since as far as I remember, there are somewhat
-> established APIs for IOMMUs in existence.
+- Kalle
 
-At some point we need to find a standard for many IOMMU drivers. But
-for now we need to stick with what we have. :)
-
-Regards,
-
-David Cohen
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
+> - Paul
