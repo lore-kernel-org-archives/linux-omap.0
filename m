@@ -1,89 +1,49 @@
-From: Steve Sakoman <steve@sakoman.com>
-Subject: [PATCH 2/2] OMAP: Add gpio-keys support for Overo
-Date: Wed,  9 Mar 2011 12:20:55 -0800
-Message-ID: <1299702055-12480-3-git-send-email-steve@sakoman.com>
-References: <1299702055-12480-1-git-send-email-steve@sakoman.com>
+From: Steve Sakoman <sakoman@gmail.com>
+Subject: Re: [PATCH] omap: overo: Add regulator for ads7846
+Date: Wed, 9 Mar 2011 12:22:47 -0800
+Message-ID: <AANLkTi=ThYs5dP-qN0=AxbdSja7tc55ert=eb5nmZqCH@mail.gmail.com>
+References: <1299341546-17289-1-git-send-email-steve@sakoman.com>
+	<20110308231615.GH26463@atomide.com>
+	<AANLkTi=3D+fnZsFaYqFf1xeCBwuDHT4vv9S4ySH3k9Tf@mail.gmail.com>
+	<20110309191820.GN26463@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:45276 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750818Ab1CIUVq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Mar 2011 15:21:46 -0500
-Received: by mail-fx0-f46.google.com with SMTP id 17so872047fxm.19
-        for <linux-omap@vger.kernel.org>; Wed, 09 Mar 2011 12:21:46 -0800 (PST)
-In-Reply-To: <1299702055-12480-1-git-send-email-steve@sakoman.com>
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:64319 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751214Ab1CIUWs convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Mar 2011 15:22:48 -0500
+Received: by vxi39 with SMTP id 39so842763vxi.19
+        for <linux-omap@vger.kernel.org>; Wed, 09 Mar 2011 12:22:47 -0800 (PST)
+In-Reply-To: <20110309191820.GN26463@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: tomi.valkeinen@ti.com, Steve Sakoman <steve@sakoman.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, tomi.valkeinen@ti.com
 
-This patch adds support for the standard push buttons available on
-Overo expansion boards.
+On Wed, Mar 9, 2011 at 11:18 AM, Tony Lindgren <tony@atomide.com> wrote=
+:
+> * Steve Sakoman <steve@sakoman.com> [110308 16:13]:
+>>
+>> Tony: I have a couple more patches queued up to add gpio-led and
+>> gpio-keys support to Overo. =A0I've been holding off submitting beca=
+use
+>> I haven't been quite sure what branch to base them on to minimize
+>> merge conflicts. For the moment they are based on Tomi's branch and
+>> sitting in the for-tomba branch. =A0Any suggestions?
+>
+> Getting those merged via Tomi's branch sounds =A0fine to me for trivi=
+al
+> things like that. Please just make sure they get properly posted
+> for review to linux-omap and linux-arm-kernel lists.
 
-Signed-off-by: Steve Sakoman <steve@sakoman.com>
----
- arch/arm/mach-omap2/board-overo.c |   42 +++++++++++++++++++++++++++++++++++++
- 1 files changed, 42 insertions(+), 0 deletions(-)
+Thanks.  I just sent the patch series to the linux-omap and
+linux-arm-kernel lists.
 
-diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
-index adc204b..f39d983 100644
---- a/arch/arm/mach-omap2/board-overo.c
-+++ b/arch/arm/mach-omap2/board-overo.c
-@@ -519,6 +519,47 @@ static void __init overo_init_led(void)
- static inline void __init overo_init_led(void) { return; }
- #endif
- 
-+#if defined(CONFIG_KEYBOARD_GPIO) || defined(CONFIG_KEYBOARD_GPIO_MODULE)
-+#include <linux/input.h>
-+#include <linux/gpio_keys.h>
-+
-+static struct gpio_keys_button gpio_buttons[] = {
-+	{
-+		.code			= BTN_0,
-+		.gpio			= 23,
-+		.desc			= "button0",
-+		.wakeup			= 1,
-+	},
-+	{
-+		.code			= BTN_1,
-+		.gpio			= 14,
-+		.desc			= "button1",
-+		.wakeup			= 1,
-+	},
-+};
-+
-+static struct gpio_keys_platform_data gpio_keys_pdata = {
-+	.buttons	= gpio_buttons,
-+	.nbuttons	= ARRAY_SIZE(gpio_buttons),
-+};
-+
-+static struct platform_device gpio_keys_device = {
-+	.name	= "gpio-keys",
-+	.id	= -1,
-+	.dev	= {
-+		.platform_data	= &gpio_keys_pdata,
-+	},
-+};
-+
-+static void __init overo_init_keys(void)
-+{
-+	platform_device_register(&gpio_keys_device);
-+}
-+
-+#else
-+static inline void __init overo_init_keys(void) { return; }
-+#endif
-+
- static int overo_twl_gpio_setup(struct device *dev,
- 		unsigned gpio, unsigned ngpio)
- {
-@@ -699,6 +740,7 @@ static void __init overo_init(void)
- 	overo_init_smsc911x();
- 	overo_display_init();
- 	overo_init_led();
-+	overo_init_keys();
- 
- 	/* Ensure SDRC pins are mux'd for self-refresh */
- 	omap_mux_init_signal("sdrc_cke0", OMAP_PIN_OUTPUT);
--- 
-1.7.0.4
-
+Steve
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
