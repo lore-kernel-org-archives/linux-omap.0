@@ -1,7 +1,7 @@
 From: Mythri P K <mythripk@ti.com>
-Subject: [PATCH v4 8/9] OMAP4 : HDMI : Add HDMI structure in the board file for OMAP4 SDP
-Date: Wed,  9 Mar 2011 17:15:17 +0530
-Message-ID: <1299671118-20839-9-git-send-email-mythripk@ti.com>
+Subject: [PATCH v4 9/9] OMAP4 : HDMI : Add HDMI structure in the board file for OMAP4 PANDA
+Date: Wed,  9 Mar 2011 17:15:18 +0530
+Message-ID: <1299671118-20839-10-git-send-email-mythripk@ti.com>
 References: <1299671118-20839-1-git-send-email-mythripk@ti.com>
  <1299671118-20839-2-git-send-email-mythripk@ti.com>
  <1299671118-20839-3-git-send-email-mythripk@ti.com>
@@ -10,16 +10,17 @@ References: <1299671118-20839-1-git-send-email-mythripk@ti.com>
  <1299671118-20839-6-git-send-email-mythripk@ti.com>
  <1299671118-20839-7-git-send-email-mythripk@ti.com>
  <1299671118-20839-8-git-send-email-mythripk@ti.com>
+ <1299671118-20839-9-git-send-email-mythripk@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60704 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60705 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756909Ab1CILv6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 9 Mar 2011 06:51:58 -0500
+	id S1756738Ab1CILv5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 9 Mar 2011 06:51:57 -0500
 Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p29Bpsvn020041
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p29BpsMu020042
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Wed, 9 Mar 2011 05:51:56 -0600
-In-Reply-To: <1299671118-20839-8-git-send-email-mythripk@ti.com>
+	for <linux-omap@vger.kernel.org>; Wed, 9 Mar 2011 05:51:57 -0600
+In-Reply-To: <1299671118-20839-9-git-send-email-mythripk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, tomi.valkeinen@ti.com
@@ -32,33 +33,33 @@ HDMI GPIO configurations are also done in this file.
 
 Signed-off-by: Mythri P K <mythripk@ti.com>
 ---
- arch/arm/mach-omap2/board-4430sdp.c |   75 +++++++++++++++++++++++++++++++++++
- 1 files changed, 75 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/board-omap4panda.c |   74 ++++++++++++++++++++++++++++++++
+ 1 files changed, 74 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index 85805d4..f5fcc5f 100644
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -36,6 +36,7 @@
- #include <plat/usb.h>
- #include <plat/mmc.h>
- #include <plat/omap4-keypad.h>
+diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+index a94ce07..4869c0f 100644
+--- a/arch/arm/mach-omap2/board-omap4panda.c
++++ b/arch/arm/mach-omap2/board-omap4panda.c
+@@ -34,6 +34,7 @@
+ #include <asm/mach-types.h>
+ #include <asm/mach/arch.h>
+ #include <asm/mach/map.h>
 +#include <plat/display.h>
  
- #include "mux.h"
- #include "hsmmc.h"
-@@ -47,6 +48,8 @@
- #define ETH_KS8851_QUART		138
- #define OMAP4_SFH7741_SENSOR_OUTPUT_GPIO	184
- #define OMAP4_SFH7741_ENABLE_GPIO		188
+ #include <plat/board.h>
+ #include <plat/common.h>
+@@ -49,6 +50,8 @@
+ #define GPIO_HUB_NRESET		62
+ #define GPIO_WIFI_PMENA		43
+ #define GPIO_WIFI_IRQ		53
 +#define HDMI_GPIO_HPD 60 /* Hot plug pin for HDMI */
 +#define HDMI_GPIO_LS_OE 41 /* Level shifter for HDMI */
  
- static const int sdp4430_keymap[] = {
- 	KEY(0, 0, KEY_E),
-@@ -620,6 +623,76 @@ static void __init omap_sfh7741prox_init(void)
- 	}
- }
+ /* wl127x BT, FM, GPS connectivity chip */
+ static int wl1271_gpios[] = {46, -1, -1};
+@@ -467,6 +470,76 @@ static struct omap_board_mux board_mux[] __initdata = {
+ #define board_mux	NULL
+ #endif
  
 +static void sdp4430_hdmi_mux_init(void)
 +{
@@ -124,24 +125,23 @@ index 85805d4..f5fcc5f 100644
 +	.default_device	= &sdp4430_hdmi_device,
 +};
 +
-+void omap_4430sdp_display_init(void)
++void omap_panda_display_init(void)
 +{
 +	sdp4430_hdmi_mux_init();
 +	omap_display_init(&sdp4430_dss_data);
 +}
 +
- #ifdef CONFIG_OMAP_MUX
- static struct omap_board_mux board_mux[] __initdata = {
- 	OMAP4_MUX(USBB2_ULPITLL_CLK, OMAP_MUX_MODE4 | OMAP_PIN_OUTPUT),
-@@ -661,6 +734,8 @@ static void __init omap_4430sdp_init(void)
- 	status = omap4_keyboard_init(&sdp4430_keypad_data);
- 	if (status)
- 		pr_err("Keypad initialization failed: %d\n", status);
-+
-+	omap_4430sdp_display_init();
+ static void __init omap4_panda_init(void)
+ {
+ 	int package = OMAP_PACKAGE_CBS;
+@@ -485,6 +558,7 @@ static void __init omap4_panda_init(void)
+ 	omap4_twl6030_hsmmc_init(mmc);
+ 	omap4_ehci_init();
+ 	usb_musb_init(&musb_board_data);
++	omap_panda_display_init();
  }
  
- static void __init omap_4430sdp_map_io(void)
+ static void __init omap4_panda_map_io(void)
 -- 
 1.5.6.3
 
