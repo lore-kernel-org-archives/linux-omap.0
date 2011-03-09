@@ -1,73 +1,65 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 5/6] OMAP: DSS2: DSI: catch DSI errors in send_bta_sync
-Date: Wed, 9 Mar 2011 09:21:27 +0200
-Message-ID: <1299655288-7121-6-git-send-email-tomi.valkeinen@ti.com>
-References: <1299655288-7121-1-git-send-email-tomi.valkeinen@ti.com>
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: Re: [PATCH v2 2/3] omap3: change ISP's IOMMU da_start address
+Date: Wed, 09 Mar 2011 09:43:44 +0200
+Message-ID: <4D772FB0.4020804@maxwell.research.nokia.com>
+References: <1299615316-17512-1-git-send-email-dacohen@gmail.com> <1299615316-17512-3-git-send-email-dacohen@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:57395 "EHLO comal.ext.ti.com"
+Received: from smtp.nokia.com ([147.243.128.26]:18060 "EHLO mgw-da02.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754463Ab1CIHVr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 9 Mar 2011 02:21:47 -0500
-In-Reply-To: <1299655288-7121-1-git-send-email-tomi.valkeinen@ti.com>
+	id S1751348Ab1CIHoR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 9 Mar 2011 02:44:17 -0500
+In-Reply-To: <1299615316-17512-3-git-send-email-dacohen@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: David Cohen <dacohen@gmail.com>
+Cc: Hiroshi.DOYU@nokia.com, linux-omap@vger.kernel.org, fernando.lugo@ti.com, linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
 
-dsi_vc_send_bta_sync() waits for BTA interrupt with a 500ms timeout. If
-a DSI error happens, no BTA is received and the timeout triggers. This
-could be handled much faster by listening to DSI errors also.
+David Cohen wrote:
+> ISP doesn't consider 0x0 as a valid address, so it should explicitly
+> exclude first page from allowed 'da' range.
+> 
+> Signed-off-by: David Cohen <dacohen@gmail.com>
+> ---
+>  arch/arm/mach-omap2/omap-iommu.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/omap-iommu.c b/arch/arm/mach-omap2/omap-iommu.c
+> index 3fc5dc7..3bea489 100644
+> --- a/arch/arm/mach-omap2/omap-iommu.c
+> +++ b/arch/arm/mach-omap2/omap-iommu.c
+> @@ -33,7 +33,7 @@ static struct iommu_device omap3_devices[] = {
+>  			.name = "isp",
+>  			.nr_tlb_entries = 8,
+>  			.clk_name = "cam_ick",
+> -			.da_start = 0x0,
+> +			.da_start = 0x1000,
+>  			.da_end = 0xFFFFF000,
+>  		},
+>  	},
 
-This patch uses the ISR support to notice DSI errors while waiting for
-the BTA, thus speeding up the fail-path considerably.
+Hi David!
 
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
----
- drivers/video/omap2/dss/dsi.c |   15 +++++++++++----
- 1 files changed, 11 insertions(+), 4 deletions(-)
+Thanks for the patch.
 
-diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
-index 5672e40..ec5b879 100644
---- a/drivers/video/omap2/dss/dsi.c
-+++ b/drivers/video/omap2/dss/dsi.c
-@@ -2230,24 +2230,31 @@ int dsi_vc_send_bta_sync(int channel)
- 	if (r)
- 		goto err0;
- 
--	r = dsi_vc_send_bta(channel);
-+	r = dsi_register_isr(dsi_completion_handler, &completion,
-+			DSI_IRQ_ERROR_MASK);
- 	if (r)
- 		goto err1;
- 
-+	r = dsi_vc_send_bta(channel);
-+	if (r)
-+		goto err2;
-+
- 	if (wait_for_completion_timeout(&completion,
- 				msecs_to_jiffies(500)) == 0) {
- 		DSSERR("Failed to receive BTA\n");
- 		r = -EIO;
--		goto err1;
-+		goto err2;
- 	}
- 
- 	err = dsi_get_errors();
- 	if (err) {
- 		DSSERR("Error while sending BTA: %x\n", err);
- 		r = -EIO;
--		goto err1;
-+		goto err2;
- 	}
--
-+err2:
-+	dsi_unregister_isr(dsi_completion_handler, &completion,
-+			DSI_IRQ_ERROR_MASK);
- err1:
- 	dsi_unregister_isr_vc(channel, dsi_completion_handler,
- 			&completion, DSI_VC_IRQ_BTA);
+My question is once again: is this necessary? My understanding is that
+the IOMMU allows mapping the NULL address if the user wishes to map it
+explicitly. da_end specifies the real hardware limit for the mapped top
+address, da_start should do the same for bottom.
+
+I think that the IOMMU users should be either able to rely that they get
+no NULL allocated automatically for them. Do we want or not want it to
+be part of the API? I don't think the ISP driver is a special case of
+all the possible drivers using the IOMMU.
+
+On the other hand, probably there will be an API change at some point
+for the IOMMU since as far as I remember, there are somewhat
+established APIs for IOMMUs in existence.
+
+Regards,
+
 -- 
-1.7.1
-
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
