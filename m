@@ -1,49 +1,79 @@
-From: Steve Sakoman <sakoman@gmail.com>
-Subject: Re: [PATCH] omap: overo: Add regulator for ads7846
-Date: Wed, 9 Mar 2011 12:22:47 -0800
-Message-ID: <AANLkTi=ThYs5dP-qN0=AxbdSja7tc55ert=eb5nmZqCH@mail.gmail.com>
-References: <1299341546-17289-1-git-send-email-steve@sakoman.com>
-	<20110308231615.GH26463@atomide.com>
-	<AANLkTi=3D+fnZsFaYqFf1xeCBwuDHT4vv9S4ySH3k9Tf@mail.gmail.com>
-	<20110309191820.GN26463@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH] omap2+: mux: Add macro for configuring static with
+ omap_hwmod_mux_init (Re: [PATCH] omap2+: mux: Remove the use of IDLE flag)
+Date: Wed, 9 Mar 2011 12:32:00 -0800
+Message-ID: <20110309203200.GP26463@atomide.com>
+References: <1299472552-22017-1-git-send-email-r.sricharan@ti.com>
+ <20110308164033.GC26463@atomide.com>
+ <b76e32aff88265d31cc1b7b2fc502a32@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:64319 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751214Ab1CIUWs convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Mar 2011 15:22:48 -0500
-Received: by vxi39 with SMTP id 39so842763vxi.19
-        for <linux-omap@vger.kernel.org>; Wed, 09 Mar 2011 12:22:47 -0800 (PST)
-In-Reply-To: <20110309191820.GN26463@atomide.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:23634 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752016Ab1CIUcF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Mar 2011 15:32:05 -0500
+Content-Disposition: inline
+In-Reply-To: <b76e32aff88265d31cc1b7b2fc502a32@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, tomi.valkeinen@ti.com
+To: Sricharan R <r.sricharan@ti.com>
+Cc: linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, paul@pswan.com, linux-arm-kernel@lists.infradead.org
 
-On Wed, Mar 9, 2011 at 11:18 AM, Tony Lindgren <tony@atomide.com> wrote=
-:
-> * Steve Sakoman <steve@sakoman.com> [110308 16:13]:
->>
->> Tony: I have a couple more patches queued up to add gpio-led and
->> gpio-keys support to Overo. =A0I've been holding off submitting beca=
-use
->> I haven't been quite sure what branch to base them on to minimize
->> merge conflicts. For the moment they are based on Tomi's branch and
->> sitting in the for-tomba branch. =A0Any suggestions?
->
-> Getting those merged via Tomi's branch sounds =A0fine to me for trivi=
-al
-> things like that. Please just make sure they get properly posted
-> for review to linux-omap and linux-arm-kernel lists.
+* Sricharan R <r.sricharan@ti.com> [110309 03:47]:
+> 
+> Btw,I have fixed the comments on the below patches that
+> I sent for configuring the serial pads.
+> 
+> 4430sdp:
+> http://marc.info/?l=linux-omap&m=129900334420003&w=2
+> 
+> omap4panda:
+> http://marc.info/?l=linux-omap&m=129900338520082&w=2
+> 
+> 3430sdp:
+> http://marc.info/?l=linux-omap&m=129619117726479&w=2
+> 
+> Can you please check if they are ok?
 
-Thanks.  I just sent the patch series to the linux-omap and
-linux-arm-kernel lists.
+Look OK to me, but let's make things a bit easier to read
+and maintain with the following patch. Can you please
+update your patches to use this macro?
 
-Steve
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Each line then just becomes something like:
+
+OMAP_MUX_STATIC("uart3_tx_irtx.uart3_tx_irtx",
+		OMAP_PIN_OUTPUT | OMAP_MUX_MODE0),
+
+Regards,
+
+Tony
+
+
+From: Tony Lindgren <tony@atomide.com>
+Date: Wed, 9 Mar 2011 12:14:04 -0800
+Subject: [PATCH] omap2+: mux: Add macro for configuring static with omap_hwmod_mux_init
+
+Add macro for defining static pins in the board file.
+
+We can now start implementing pin multiplexing in the platform init
+code for devices that call omap_hwmod_mux_init. Currently that is
+only implemented for serial.c.
+
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+--- a/arch/arm/mach-omap2/mux.h
++++ b/arch/arm/mach-omap2/mux.h
+@@ -186,6 +186,12 @@ struct omap_device_pad {
+ 
+ struct omap_hwmod_mux_info;
+ 
++#define OMAP_MUX_STATIC(signal, mode)					\
++{									\
++	.name	= (signal),						\
++	.enable	= (mode),						\
++}
++
+ #if defined(CONFIG_OMAP_MUX)
+ 
+ /**
