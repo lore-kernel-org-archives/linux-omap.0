@@ -1,44 +1,42 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: [PATCH v4 4/9] OMAP4 : DSS2 : HDMI: HDMI driver header file
- addition
-Date: Wed, 9 Mar 2011 21:26:05 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024C1922C2@dbde02.ent.ti.com>
-References: <1299671118-20839-1-git-send-email-mythripk@ti.com>
- <1299671118-20839-2-git-send-email-mythripk@ti.com>
- <1299671118-20839-3-git-send-email-mythripk@ti.com>
- <1299671118-20839-4-git-send-email-mythripk@ti.com>
- <1299671118-20839-5-git-send-email-mythripk@ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH 2 14/18] I2C: OMAP1/OMAP2+: create omap I2C functionality
+ flags for each cpu_... test
+Date: Wed, 9 Mar 2011 16:56:17 +0100
+Message-ID: <4D77A321.4070804@ti.com>
+References: <20110308105934.23531.83540.stgit@otae.warmcat.com>	<20110308110904.23531.66727.stgit@otae.warmcat.com> <AANLkTi=KjWq9B9Bt90Th72=tXF2BfEv1p1Z-0=Sk1Z+t@mail.gmail.com> <4D779A33.9070905@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:46444 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:56403 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756596Ab1CIP4N convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Mar 2011 10:56:13 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p29FuAaw011318
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Wed, 9 Mar 2011 09:56:13 -0600
-In-Reply-To: <1299671118-20839-5-git-send-email-mythripk@ti.com>
-Content-Language: en-US
+	id S1757069Ab1CIP4k (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 9 Mar 2011 10:56:40 -0500
+In-Reply-To: <4D779A33.9070905@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "K, Mythri P" <mythripk@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
+To: "andy.green@linaro.org" <andy.green@linaro.org>
+Cc: Andy Green <andy@warmcat.com>, "Krishnamoorthy, Balaji T" <balajitk@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "patches@linaro.org" <patches@linaro.org>, Ben Dooks <ben-linux@fluff.org>
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of K, Mythri P
-> Sent: Wednesday, March 09, 2011 5:15 PM
-> To: linux-omap@vger.kernel.org; Valkeinen, Tomi
-> Cc: K, Mythri P
-> Subject: [PATCH v4 4/9] OMAP4 : DSS2 : HDMI: HDMI driver header file
-> addition
-> 
-> Adding the hdmi interface driver header file (hdmi.h) to the dss driver.
-> Register and structure declaration done here.
+On 3/9/2011 4:18 PM, Andy Green wrote:
+> On 03/09/2011 02:31 PM, Somebody in the thread at some point said:
+>
+> Hi -
+>
+>> Minor comment, Can you use
+>> BIT(0) for 1, BIT(1) for 2 ... BIT (8) for 0x100
+>
+> OK, I agree it will be nicer.  Thanks for the comment.
+>
+> I guess I can just change this and issue just this guy as try 3 rather
+> than sending the whole series mostly unchanged.  In that case, I'll take
+> care of Benoit's member re-ordering to match the scripts at the same
+> time and issue that guy as try 3 as well.
 
-[sp] Any specific reason to keep header file in separate patch?
+It is up to Ben, but maybe it will be less confusing to re-send the 
+whole series, since you have at least two patches to update.
 
-> 
-[snip]...[snip]
+Maybe, just wait a little bit in case someone else has something to say 
+about this series.
+
+Benoit
