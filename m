@@ -1,65 +1,73 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 6/6] OMAP: DSS2: DSI: fix IRQ debug prints
-Date: Wed, 9 Mar 2011 09:21:28 +0200
-Message-ID: <1299655288-7121-7-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 5/6] OMAP: DSS2: DSI: catch DSI errors in send_bta_sync
+Date: Wed, 9 Mar 2011 09:21:27 +0200
+Message-ID: <1299655288-7121-6-git-send-email-tomi.valkeinen@ti.com>
 References: <1299655288-7121-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:48213 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:57395 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755467Ab1CIHVt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 9 Mar 2011 02:21:49 -0500
+	id S1754463Ab1CIHVr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 9 Mar 2011 02:21:47 -0500
 In-Reply-To: <1299655288-7121-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-print_irq_status functions can be called with empty irq status when full
-irq debugging is enabled. This patch makes print_irq_status functions
-return immediately when given an empty irq status to lessen the debug
-spam slightly.
+dsi_vc_send_bta_sync() waits for BTA interrupt with a 500ms timeout. If
+a DSI error happens, no BTA is received and the timeout triggers. This
+could be handled much faster by listening to DSI errors also.
+
+This patch uses the ISR support to notice DSI errors while waiting for
+the BTA, thus speeding up the fail-path considerably.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/dss/dsi.c |    9 +++++++++
- 1 files changed, 9 insertions(+), 0 deletions(-)
+ drivers/video/omap2/dss/dsi.c |   15 +++++++++++----
+ 1 files changed, 11 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
-index ec5b879..f6733b5 100644
+index 5672e40..ec5b879 100644
 --- a/drivers/video/omap2/dss/dsi.c
 +++ b/drivers/video/omap2/dss/dsi.c
-@@ -412,6 +412,9 @@ static void dsi_perf_show(const char *name)
+@@ -2230,24 +2230,31 @@ int dsi_vc_send_bta_sync(int channel)
+ 	if (r)
+ 		goto err0;
  
- static void print_irq_status(u32 status)
- {
-+	if (status == 0)
-+		return;
+-	r = dsi_vc_send_bta(channel);
++	r = dsi_register_isr(dsi_completion_handler, &completion,
++			DSI_IRQ_ERROR_MASK);
+ 	if (r)
+ 		goto err1;
+ 
++	r = dsi_vc_send_bta(channel);
++	if (r)
++		goto err2;
 +
- #ifndef VERBOSE_IRQ
- 	if ((status & ~DSI_IRQ_CHANNEL_MASK) == 0)
- 		return;
-@@ -447,6 +450,9 @@ static void print_irq_status(u32 status)
+ 	if (wait_for_completion_timeout(&completion,
+ 				msecs_to_jiffies(500)) == 0) {
+ 		DSSERR("Failed to receive BTA\n");
+ 		r = -EIO;
+-		goto err1;
++		goto err2;
+ 	}
  
- static void print_irq_status_vc(int channel, u32 status)
- {
-+	if (status == 0)
-+		return;
-+
- #ifndef VERBOSE_IRQ
- 	if ((status & ~DSI_VC_IRQ_PACKET_SENT) == 0)
- 		return;
-@@ -473,6 +479,9 @@ static void print_irq_status_vc(int channel, u32 status)
- 
- static void print_irq_status_cio(u32 status)
- {
-+	if (status == 0)
-+		return;
-+
- 	printk(KERN_DEBUG "DSI CIO IRQ 0x%x: ", status);
- 
- #define PIS(x) \
+ 	err = dsi_get_errors();
+ 	if (err) {
+ 		DSSERR("Error while sending BTA: %x\n", err);
+ 		r = -EIO;
+-		goto err1;
++		goto err2;
+ 	}
+-
++err2:
++	dsi_unregister_isr(dsi_completion_handler, &completion,
++			DSI_IRQ_ERROR_MASK);
+ err1:
+ 	dsi_unregister_isr_vc(channel, dsi_completion_handler,
+ 			&completion, DSI_VC_IRQ_BTA);
 -- 
 1.7.1
 
