@@ -1,72 +1,61 @@
-From: Michael Buesch <mb@bu3sch.de>
-Subject: [PATCH RFC] n810 USB: Initialize USB-FS
-Date: Wed, 09 Mar 2011 19:20:41 +0100
-Message-ID: <1299694841.1911.23.camel@marge>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 2 00/18] I2C: OMAP: Fixes and removal of cpu_... from
+ driver
+Date: Wed, 9 Mar 2011 11:11:16 -0800
+Message-ID: <20110309191115.GM26463@atomide.com>
+References: <20110308105934.23531.83540.stgit@otae.warmcat.com>
+ <4D76A164.2060801@ti.com>
+ <20110308233820.GJ26463@atomide.com>
+ <4D778873.4070308@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 80-190-117-144.ip-home.de ([80.190.117.144]:55926 "EHLO
-	bu3sch.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751302Ab1CISUq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 9 Mar 2011 13:20:46 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:45574 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750776Ab1CITL0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Mar 2011 14:11:26 -0500
+Content-Disposition: inline
+In-Reply-To: <4D778873.4070308@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Felipe Balbi <balbi@ti.com>, linux-omap <linux-omap@vger.kernel.org>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: Andy Green <andy@warmcat.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Ben Dooks <ben-linux@fluff.org>, Paul Walmsley <paul@pwsan.com>
 
-The "omap_otg" platform device has to be registered in order
-to get USB working on the n810.
-I currently do this by calling the USB-FS init, which in turn
-registers the omap_otg platform device.
+* Cousson, Benoit <b-cousson@ti.com> [110309 06:00]:
+> Hi Tony,
+> 
+> On 3/9/2011 12:38 AM, Tony Lindgren wrote:
+> >* Cousson, Benoit<b-cousson@ti.com>  [110308 13:34]:
+> >>Hi Andy,
+> >>
+> >>Thanks for that really fast update. That looks pretty good at first
+> >>glance. I still have to review in details.
+> >
+> >Yes nice job!
+> >
+> >>And we need to find some volunteers for OMAP1&  2 testing.
+> >
+> >I gave it a quick try on osk5912, seems to work just fine.
+> >Will apply these for testing purposes to linux-omap tree while
+> >waiting for the minor fixes.
+> >
+> >Looks like Benoit should take the arch/arm/*omap*/*hwmod*
+> >patches, the rest should go throug Ben. So for all of them:
+> 
+> Paul and I already acked the hwmod data, but the whole series should
+> maybe go through Ben, because the hwmod files will need some defines
+> added in the i2c header file. So we cannot separate the hwmod*
+> patches from the driver files patches.
 
-The omap_usb_config structure values were copied from n770 code, so
-I have no idea whether this is correct or not.
+Unfortunately the hwmod patches depend on omap-for-linus branch..
 
-However, with all the patches I just sent (including this one),
-I get USB working properly on the n810.
-
-Not-yet-signed-off-by: Michael Buesch <mb@bu3sch.de>
-
----
-
-Index: linux-2.6.38-rc7/arch/arm/mach-omap2/board-n8x0.c
-===================================================================
---- linux-2.6.38-rc7.orig/arch/arm/mach-omap2/board-n8x0.c	2011-03-09 18:47:07.749508720 +0100
-+++ linux-2.6.38-rc7/arch/arm/mach-omap2/board-n8x0.c	2011-03-09 18:59:14.355835051 +0100
-@@ -40,6 +40,7 @@
- #include <plat/serial.h>
- #include <plat/cbus.h>
- #include <plat/gpio-switch.h>
-+#include <plat/usb.h>
+Considering this, it's probably best that I queue the whole series
+assuming we get acks from Ben for the driver related changes.
  
- #include "mux.h"
- 
-@@ -395,6 +396,14 @@ static struct musb_hdrc_platform_data tu
- 	.config		= &musb_config,
- };
- 
-+static struct omap_usb_config n8x0_omap_usb_config __initdata = {
-+	.otg		= 1,
-+	.register_host	= 1,
-+	.register_dev	= 1,
-+	.hmc_mode	= 16,
-+	.pins[0]	= 6,
-+};
-+
- static void __init n8x0_usb_init(void)
- {
- 	int ret = 0;
-@@ -417,6 +426,8 @@ static void __init n8x0_usb_init(void)
- 	if (ret != 0)
- 		goto err;
- 
-+	omap2_usbfs_init(&n8x0_omap_usb_config);
-+
- 	printk(announce);
- 
- 	return;
+> I just have one minor comment to keep the OMAP4 data in sync with
+> the autogen, but if Andy does not have any important update to do on
+> that series, I can potentially fix that later.
 
--- 
-Greetings, Michael.
+OK
 
+Tony
