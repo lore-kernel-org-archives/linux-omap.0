@@ -1,145 +1,118 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 4/6] OMAP: DSS2: DSI: use ISR for BTA in framedone
-Date: Wed, 9 Mar 2011 09:21:26 +0200
-Message-ID: <1299655288-7121-5-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 3/6] OMAP: DSS2: DSI: use ISR in send_bta_sync
+Date: Wed, 9 Mar 2011 09:21:25 +0200
+Message-ID: <1299655288-7121-4-git-send-email-tomi.valkeinen@ti.com>
 References: <1299655288-7121-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:39589 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754181Ab1CIHVq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Mar 2011 02:21:46 -0500
+Received: from arroyo.ext.ti.com ([192.94.94.40]:48212 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754463Ab1CIHVp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 9 Mar 2011 02:21:45 -0500
 In-Reply-To: <1299655288-7121-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Remove bta_callback from the interrupt handler, and use ISR support
-instead.
+Remove bta_completion handling from the interrupt handler, and use ISR
+support instead.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/dss/dsi.c |   57 +++++++++++------------------------------
- 1 files changed, 15 insertions(+), 42 deletions(-)
+ drivers/video/omap2/dss/dsi.c |   32 ++++++++++++++++++--------------
+ 1 files changed, 18 insertions(+), 14 deletions(-)
 
 diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
-index a4d47dd..5672e40 100644
+index 9aea9a7..a4d47dd 100644
 --- a/drivers/video/omap2/dss/dsi.c
 +++ b/drivers/video/omap2/dss/dsi.c
-@@ -257,8 +257,6 @@ static struct
+@@ -257,7 +257,6 @@ static struct
  
  	unsigned pll_locked;
  
--	void (*bta_callback)(void);
--
+-	struct completion bta_completion;
+ 	void (*bta_callback)(void);
+ 
  	spinlock_t irq_lock;
- 	struct dsi_isr_tables isr_tables;
- 	/* space for a copy used by the interrupt handler */
-@@ -641,16 +639,6 @@ static irqreturn_t omap_dsi_irq_handler(int irq, void *arg)
- 		del_timer(&dsi.te_timer);
- #endif
- 
--	for (i = 0; i < 4; ++i) {
--		if (vcstatus[i] == 0)
--			continue;
--
--		if (vcstatus[i] & DSI_VC_IRQ_BTA) {
--			if (dsi.bta_callback)
--				dsi.bta_callback();
--		}
--	}
--
- 	/* make a copy and unlock, so that isrs can unregister
- 	 * themselves */
- 	memcpy(&dsi.isr_tables_copy, &dsi.isr_tables, sizeof(dsi.isr_tables));
-@@ -924,26 +912,6 @@ static u32 dsi_get_errors(void)
- 	return e;
+@@ -341,6 +340,11 @@ static bool dsi_bus_is_locked(void)
+ 	return dsi.bus_lock.count == 0;
  }
  
--static void dsi_vc_enable_bta_irq(int channel)
--{
--	u32 l;
--
--	dsi_write_reg(DSI_VC_IRQSTATUS(channel), DSI_VC_IRQ_BTA);
--
--	l = dsi_read_reg(DSI_VC_IRQENABLE(channel));
--	l |= DSI_VC_IRQ_BTA;
--	dsi_write_reg(DSI_VC_IRQENABLE(channel), l);
--}
--
--static void dsi_vc_disable_bta_irq(int channel)
--{
--	u32 l;
--
--	l = dsi_read_reg(DSI_VC_IRQENABLE(channel));
--	l &= ~DSI_VC_IRQ_BTA;
--	dsi_write_reg(DSI_VC_IRQENABLE(channel), l);
--}
--
- /* DSI func clock. this could also be dsi_pll_hsdiv_dsi_clk */
- static inline void enable_clocks(bool enable)
- {
-@@ -3097,19 +3065,20 @@ static void dsi_te_timeout(unsigned long arg)
- }
- #endif
- 
-+static void dsi_framedone_bta_callback(void *data, u32 mask);
++static void dsi_completion_handler(void *data, u32 mask)
++{
++	complete((struct completion *)data);
++}
 +
- static void dsi_handle_framedone(int error)
+ static inline int wait_for_bit_change(const struct dsi_reg idx, int bitnum,
+ 		int value)
  {
- 	const int channel = dsi.update_channel;
+@@ -642,8 +646,6 @@ static irqreturn_t omap_dsi_irq_handler(int irq, void *arg)
+ 			continue;
  
--	cancel_delayed_work(&dsi.framedone_timeout_work);
-+	dsi_unregister_isr_vc(channel, dsi_framedone_bta_callback,
-+			NULL, DSI_VC_IRQ_BTA);
- 
--	dsi_vc_disable_bta_irq(channel);
-+	cancel_delayed_work(&dsi.framedone_timeout_work);
- 
- 	/* SIDLEMODE back to smart-idle */
- 	dispc_enable_sidle();
- 
--	dsi.bta_callback = NULL;
+ 		if (vcstatus[i] & DSI_VC_IRQ_BTA) {
+-			complete(&dsi.bta_completion);
 -
- 	if (dsi.te_enabled) {
- 		/* enable LP_RX_TO again after the TE */
- 		REG_FLD_MOD(DSI_TIMING2, 1, 15, 15); /* LP_RX_TO */
-@@ -3143,7 +3112,7 @@ static void dsi_framedone_timeout_work_callback(struct work_struct *work)
- 	dsi_handle_framedone(-ETIMEDOUT);
- }
+ 			if (dsi.bta_callback)
+ 				dsi.bta_callback();
+ 		}
+@@ -2251,33 +2253,37 @@ static int dsi_vc_send_bta(int channel)
  
--static void dsi_framedone_bta_callback(void)
-+static void dsi_framedone_bta_callback(void *data, u32 mask)
+ int dsi_vc_send_bta_sync(int channel)
  {
- 	dsi_handle_framedone(0);
++	DECLARE_COMPLETION_ONSTACK(completion);
+ 	int r = 0;
+ 	u32 err;
  
-@@ -3183,15 +3152,19 @@ static void dsi_framedone_irq_callback(void *data, u32 mask)
- 	 * asynchronously.
- 	 * */
- 
--	dsi.bta_callback = dsi_framedone_bta_callback;
--
--	barrier();
+-	INIT_COMPLETION(dsi.bta_completion);
 -
 -	dsi_vc_enable_bta_irq(channel);
-+	r = dsi_register_isr_vc(channel, dsi_framedone_bta_callback,
-+			NULL, DSI_VC_IRQ_BTA);
-+	if (r) {
-+		DSSERR("Failed to register BTA ISR\n");
-+		dsi_handle_framedone(-EIO);
-+		return;
-+	}
++	r = dsi_register_isr_vc(channel, dsi_completion_handler,
++			&completion, DSI_VC_IRQ_BTA);
++	if (r)
++		goto err0;
  
  	r = dsi_vc_send_bta(channel);
- 	if (r) {
- 		DSSERR("BTA after framedone failed\n");
-+		dsi_unregister_isr_vc(channel, dsi_framedone_bta_callback,
-+				NULL, DSI_VC_IRQ_BTA);
- 		dsi_handle_framedone(-EIO);
+ 	if (r)
+-		goto err;
++		goto err1;
+ 
+-	if (wait_for_completion_timeout(&dsi.bta_completion,
++	if (wait_for_completion_timeout(&completion,
+ 				msecs_to_jiffies(500)) == 0) {
+ 		DSSERR("Failed to receive BTA\n");
+ 		r = -EIO;
+-		goto err;
++		goto err1;
  	}
+ 
+ 	err = dsi_get_errors();
+ 	if (err) {
+ 		DSSERR("Error while sending BTA: %x\n", err);
+ 		r = -EIO;
+-		goto err;
++		goto err1;
+ 	}
+-err:
+-	dsi_vc_disable_bta_irq(channel);
+ 
++err1:
++	dsi_unregister_isr_vc(channel, dsi_completion_handler,
++			&completion, DSI_VC_IRQ_BTA);
++err0:
+ 	return r;
  }
+ EXPORT_SYMBOL(dsi_vc_send_bta_sync);
+@@ -3647,8 +3653,6 @@ static int dsi_init(struct platform_device *pdev)
+ 	dsi.irq_stats.last_reset = jiffies;
+ #endif
+ 
+-	init_completion(&dsi.bta_completion);
+-
+ 	mutex_init(&dsi.lock);
+ 	sema_init(&dsi.bus_lock, 1);
+ 
 -- 
 1.7.1
 
