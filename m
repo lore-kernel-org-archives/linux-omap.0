@@ -1,252 +1,211 @@
-From: "Varadarajan, Charulatha" <charu@ti.com>
-Subject: Re: [PATCH 5/5] OMAP: GPIO: use PM runtime framework
-Date: Wed, 9 Mar 2011 15:53:23 +0530
-Message-ID: <AANLkTinO_CjTwxMvMr4te1D8YngcrtkOfS=SANz_s6VZ@mail.gmail.com>
-References: <1298890670-5481-1-git-send-email-charu@ti.com>
- <1298890670-5481-6-git-send-email-charu@ti.com> <87mxlabih5.fsf@ti.com>
- <AANLkTi=Sd0zJwnx1DHCCOr9ncHv1ZP1EworoJex7NLEK@mail.gmail.com>
- <87vczu7ocb.fsf@ti.com> <AANLkTikecqDALXQYd=oLJrFstQZaEG0wH1txzUUyGc-m@mail.gmail.com>
- <8739mxsc89.fsf@ti.com> <AANLkTi=S4L7yGwCuxtZnR0N-+DDN7yQYHqeFF+TXK0ZR@mail.gmail.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH] OMAP4: clockdomain: Follow recommended enable sequence
+Date: Wed, 09 Mar 2011 15:49:04 +0530
+Message-ID: <4D775418.6050105@ti.com>
+References: <1299245123-23444-1-git-send-email-rnayak@ti.com> <alpine.DEB.2.00.1103081937100.15132@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:40677 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757099Ab1CIKYH convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 9 Mar 2011 05:24:07 -0500
-Received: by bwz15 with SMTP id 15so533604bwz.19
-        for <linux-omap@vger.kernel.org>; Wed, 09 Mar 2011 02:24:03 -0800 (PST)
-In-Reply-To: <AANLkTi=S4L7yGwCuxtZnR0N-+DDN7yQYHqeFF+TXK0ZR@mail.gmail.com>
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:45891 "EHLO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757160Ab1CIKYp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Mar 2011 05:24:45 -0500
+Received: by mail-yw0-f51.google.com with SMTP id 4so208775ywg.24
+        for <linux-omap@vger.kernel.org>; Wed, 09 Mar 2011 02:24:44 -0800 (PST)
+In-Reply-To: <alpine.DEB.2.00.1103081937100.15132@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com, Tarun Kanti DebBarma <tarun.kanti@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, b-cousson@ti.com, khilman@ti.com, santosh.shilimkar@ti.com, linux-arm-kernel@lists.infradead.org
 
-Kevin,
+Hi Paul,
 
-On Wed, Mar 9, 2011 at 06:54, Varadarajan, Charulatha <charu@ti.com> wr=
-ote:
-> On Tue, Mar 8, 2011 at 13:23, Kevin Hilman <khilman@ti.com> wrote:
->>> On Tue, Mar 8, 2011 at 00:25, Kevin Hilman <khilman@ti.com> wrote:
->>>> "Varadarajan, Charulatha" <charu@ti.com> writes:
->>>>
->>>> [...]
->>>>
->>>>>>> GPIO driver is modified to use dev_pm_ops instead of sysdev_cla=
-ss.
->>>>>>> With this approach, gpio_bank_suspend() & gpio_bank_resume()
->>>>>>> are not part of sys_dev_class.
->>>>>>>
->>>>>>> Usage of PM runtime get/put APIs in GPIO driver is as given bel=
-ow:
->>>>>>> pm_runtime_get_sync():
->>>>>>> * In the probe before accessing the GPIO registers
->>>>>>> * at the beginning of omap_gpio_request()
->>>>>>> =A0 =A0 =A0 -only when one of the gpios is requested on a bank,=
- in which,
->>>>>>> =A0 =A0 =A0 =A0no other gpio is being used (when mod_usage beco=
-mes non-zero).
->>>>>>
->>>>>> When using runtime PM, bank->mod_usage acutally becomes redundan=
-t with
->>>>>> usage counting already done at the runtime PM level. =A0IOW, che=
-cking
->>>>>> bank->mod_usage is he equivalent of checking pm_runtime_suspende=
-d(), so
->>>>>> I think you can totally get rid of bank->mod_usage.
->>>>>
->>>>> I wish to differ here. bank->mod_usage is filled for each GPIO pi=
-n in a bank.
->>>>> Hence during request/free if pm_runtime_get_sync() is called for =
-each GPIO
->>>>> pin, then the count gets increased for each GPIO pin in a bank. B=
-ut
->>>>> gpio_prepare_for_idle/suspend calls pm_runtime_put() only once fo=
-r
->>>>> each bank. Hence there will be a count mismatch and hence this wi=
-ll lead
->>>>> to problems and never a bank will get suspended.
->>>>>
->>>>> IMO it is required to have bank->mod_usage checks. Please correct
->>>>> me if I am wrong.
->>>>
->>>> You're right, I see what you're saying now. =A0Thanks for clarifyi=
-ng.
->>>
->>> Okay.
->>>
->>>>
->>>> In that case, keeping bank->mod_usage should be OK for now.
->>>
->>> Okay.
->>>
->>>>
->>>> That being said, as I'm looking at the idle prepare/resume hooks
->>>> something else came to mind.
->>>>
->>>> Most of what the idle prepare/resume mehods do should actually be =
-done
->>>> in the ->runtime_suspend() and ->runtime_resume() hooks (e.g. debo=
-unce
->>>> clock disable, edge-detect stuff, context save/restore). =A0IOW, t=
-hat
->>>> stuff does not need to be done until the bank is actually
->>>> disabled/enabled. =A0For example, prepare_for_idle itself could be=
- a
->>>> relatively simple check for bank->mod_usage and a call to
->>>> pm_runtime_put_sync().
->>>>
->>>> What do you think?
->>>
->>> I also thought about this and my very old implementation with hwmod
->>> series was like this. But,
->>> a. prepare_for_idle has an Erratum 1.101 handling, debounce clock d=
-isable,
->>> =A0 =A0context save based on offmode flag
->>> b. omap_gpio_suspend has wkup related code handling in it along
->>> =A0 =A0with context save w/o any flag
->>
->> Don't forget that the suspend path also calls prepare_for_idle (and
->> resume path calls resume_from_idle) so that (b) actually includes (a=
-).
->> In fact, looking closer at the code, it appears we save context twic=
-e on
->> a static suspend.
+On Wednesday 09 March 2011 09:20 AM, Paul Walmsley wrote:
+> Hi Rajendra,
 >
-> Yes. You are right. Will modify this.
+> A few questions...
 >
->>
->>> c. gpio_free need not do any of the above mentioned stuff.
->>
->> But it would be harmless if the ->runtime_suspend/resume methods wer=
-e
->> called. =A0If bank->mod_usage were zero, these hooks would just retu=
-rn.
->>
->>> Similar for resume_after_idle, gpio_request, omap_resume.
->>>
->>> But the runtime_suspend/resume hooks would be called for all the ab=
-ove.
->>>
->>> Hence I thought that it might not be correct to move all the code f=
-rom
->>> prepare_for_idle() to runtime_suspend hook of GPIO. Similar for
->>> resume_after_idle()
->>> and runtime_resume hook.
->>
->> You're right, there are currently different paths for the 3 differen=
-t
->> users of the runtime PM API (your a, b & c above), but to me that le=
-ads
->> to serious readability problems. =A0 (NOTE: this isn't your fault, t=
-he
->> current code suffers from this already, I'm just hoping we can clean=
- it
->> up with the runtime PM conversion.)
->>
->> I think this could be much cleaner if everything was moved to the
->> ->runtime_suspend/resume hooks and a couple checks were added. =A0Fo=
-r
->> example, the runtime_suspend would look like:
->>
->> =A0for each bank:
->>
->> =A0 =A0/* this handles the gpio_free case */
->> =A0 =A0if (!bank->mod_usage)
->> =A0 =A0 =A0 continue;
->>
->> =A0 =A0/* debounce clock disable */
->>
->> =A0 =A0/* off-mode: remove triggering */
->>
->> =A0 =A0/* save context */
->>
->> =A0 =A0/* Extra stuff for static suspend */
->> =A0 =A0if (bank->is_suspending)
->> =A0 =A0 =A0/* set wakeup bits */
+> On Fri, 4 Mar 2011, Rajendra Nayak wrote:
 >
-> Okay. But I felt that adding more flags to manage this might look
-> ugly. But yes, this is better in terms of readability. Will do the
-> needful.
+>> On OMAP4, the PRCM recommended sequence for enabling
+>> a module after power-on-reset is
+>> -1- Force clkdm to SW_WKUP
+>> -2- Configure desired module mode to "enable" or "auto"
+>> -3- Wait for the desired module idle status to be FUNC
+>> -4- Program clkdm in HW_AUTO(if supported)
+>>
+>> This sequence applies to all older OMAPs' as well,
+>> however since they use autodeps, it makes sure that
+>> no clkdm is in IDLE, and hence not requiring a force
+>> SW_WKUP when a module is being enabled.
+>>
+>> OMAP4 does not need to support autodeps, because
+>> of the dyanamic dependency feature, wherein
+>> the HW takes care of waking up a clockdomain from
+>> idle and hence the module, whenever an interconnect
+>> access happens to the given module.
+>> Autodeps were mainly needed on older OMAPs' as
+>> this was not the case back then, and a module
+>> access with the module/clkdm in idle would cause
+>> an abort.
 >
->>
->>> Also, from implementation point of view it needs to be taken care t=
-o
->>> pass off_mode flag to runtime_suspend hook and use it only for
->>> prepare_for idle and not for other cases
->>> (omap_gpio_suspend/gpio_free).
->>
->> Actually, I'm not a big fan of the off_mode flag passed from the PM
->> core.
->>
->> Here's what would be much nicer. =A0Each bank can get it's pwrdm fro=
-m its
->> hwmod. =A0So the ->runtime_suspend method should just read the next_=
-state
->> of its powerdomain to see if it's going off, and save context (and d=
-o
->> errata workarounds) accordingly.
+> Hmmm.  For OMAP3, I was under the impression that the PRCM would request
+> that a target module exit idle via SIdleReq when the module's main
+> functional clock was enabled.  (Assuming that the interface clock was
+> enabled and in auto-idle.)  We would see this happen in the clock code by
+> waiting for the CM_IDLEST* bits to change -- apparently these represented
+> SIdleReq signals.
+>
+> The PRCM would wake up the module's functional and interface clockdomains
+> if they were in hardware-supervised mode and INACTIVE.  Then the module
+> would exit idle and signal the PRCM via SIdleAck.
 
-To read the next_state, the driver needs to be aware of the power
-domain ptr and the power domain states. With this change, the
-omap_gpio_runtime_suspend() would look like this:
-{
-          ...
-          ...
-          pdev =3D to_platform_device(bank->dev);
-          od =3D to_omap_device(pdev);
-          pwrdm =3D omap_device_get_pwrdm (od);
-          /* or get the pwrdm via pdata during probe */
+PRCM waking up the module's clockdomains when in hardware-supervised
+and INACTIVE, atleast does not seem to be true for OMAP4 and does seem
+to be documented atleast in the func specs (need to see if its
+in TRM, else I will raise a request to include it) Chapter 11 to 23,
+Section Chapter#.5.2.1: Enabling one <clockdomain name> module after
+power-on-reset.
+This seems to suggest that the clockdomains have to be force woken-up
+using SW_WKUP, and can then be programmed in HW_AUTO once the module
+is accessible.
+ From what I know this was true on OMAP3 as well and maybe on OMAP2,
+and thinking of why we might not have seen any issues with them, I
+realized, because of the autodeps of all clockdomains with MPU, they
+would never be in INACTIVE while a module is being enabled, even if
+the clockdomain was in HW_AUTO.
 
-          nxt_state =3D pwrdm_read_next_pwrst(pwrdm);
-          if (next_state =3D=3D PWRDM_POWER_OFF) {
-                    ....
-                    ...
-                    save_context();
-          }
-          ....
-          ....
-}
-
-IMO, the above doesn't look nice in a driver, as driver should not be
-aware of power states. Also, a similar approach was taken in the
-previous GPIO hwmod & PM runtime series and it was rejected.
-
-Pls provide me some pointers on this.
-
-Thanks,
-V Charulatha
 
 >
-> Ok. I will modify the GPIO driver to access these APIs directly
-> from runtime_suspend hook of GPIO to read the next_state
-> of its powerdomain.
+> Then the processor could read and write module registers, etc.
 >
->> In addition, it will
->> _get_context_loss_count() and store the counter. =A0The resume metho=
-d then
->> does _get_context_loss_count() again and compare to see if context n=
-eeds
->> to be restored.
+> Later, when the processor was finished, it would disable the module's main
+> functional clock.  The PRCM would request the module to go idle via
+> SIdleReq.  If the module's internal state allowed it to go idle, it would
+> do so and use its SIdleAck signal to notify the PRCM.  The PRCM could then
+> allow the clockdomains to go INACTIVE if the clocks were not needed.
 >
-> Okay.
+> Is this theory of operation correct?  If so, then it would seem that as
+> long as a module's interface clock and main functional clock are enabled,
+> module accesses should succeed, with no abort.
+>
+> On the other hand, reading the 34xx TRM Rev. ZH section 4.12.2.4.6
+> "CM_CLKSTCTRL_<domain name>  (Clock State Control Register)", it appears
+> that some clockdomains don't take target module idle states into account.
+> For example, DSS and USBHOST both contain target modules, but the
+> paragraphs on DSS and USBHOST don't mention target module idle states at
+> all.  (This section also does not mention SGX or CAM for some reason.)
+> Do these clockdomains disregard target idle states when determining
+> whether to go INACTIVE?  If so, that would certainly create a need
+> to add a sleep dependency whenever a processor wished to access a module.
+
+hmm.. I am not sure if this is a TRM bug, but FWIK, no clockdomains
+should go to INACTIVE without taking into account the target idle
+state. All targets should be sent a idlereq and only on a idleack from
+all of them, should the clockdomain transition to INACTIVE. If the
+clockdomain hits INACTIVE just based on its initiators asserting
+standby, it does not seem right.
+
+Btw, the patch does not change the behaviour/sequence followed on OMAP3,
+it just affects OMAP4.
+
+>
+> Or is some other phenomenon happening?
+>
+>> Fix the clkdm_clk_enable api to handle
+>> this sequence on OMAP4.
+>
+> In terms of triage, does this patch fix something that currently doesn't
+> work (meaning that we should try to merge it for 2.6.39)?  Or can we plan
+> to merge this during the 2.6.40 time frame?  It would be ideal, of course,
+> if we could wait until 2.6.40, given how close we are to the merge window
+> opening.
+
+Since no clockdomains on OMAP4 were programmed in HW_AUTO untill now,
+we did not have any issues, but with the recent series from Santosh
+(which adds mpu ret/off support in idle/suspend) programming the
+clockdomains to HW_AUTO did show issues/aborts, and this patch
+fixes them.
+
+regards,
+Rajendra
+
 >
 >>
->>> Do you still think that it is appropriate to do this code movement =
-=A0from
->>> prepare_for_idle() to GPIO's runtime_suspend?
+>> Signed-off-by: Rajendra Nayak<rnayak@ti.com>
+>> ---
+>> The patch is based on 'integration-2.6.39' branch
+>> of git://git.pwsan.com/linux-integration because
+>> of dependencies with other patches in the branch.
 >>
->> Based on the above suggestions, yes.
+>>   arch/arm/mach-omap2/clock.c           |    4 ++++
+>>   arch/arm/mach-omap2/clockdomain.c     |    7 ++++++-
+>>   arch/arm/mach-omap2/clockdomain44xx.c |    9 ++-------
+>>   3 files changed, 12 insertions(+), 8 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+>> index 46d03cc..1cf6786 100644
+>> --- a/arch/arm/mach-omap2/clock.c
+>> +++ b/arch/arm/mach-omap2/clock.c
+>> @@ -322,6 +322,10 @@ int omap2_clk_enable(struct clk *clk)
+>>   		}
+>>   	}
+>>
+>> +	/* If clockdomain supports hardware control, enable it */
+>> +	if (clk->clkdm)
+>> +		clkdm_allow_idle(clk->clkdm);
+>> +
+>>   	return 0;
+>>
+>>   oce_err3:
+>> diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
+>> index a0341de..9e1164f 100644
+>> --- a/arch/arm/mach-omap2/clockdomain.c
+>> +++ b/arch/arm/mach-omap2/clockdomain.c
+>> @@ -825,7 +825,12 @@ int clkdm_clk_enable(struct clockdomain *clkdm, struct clk *clk)
+>>   	if (!arch_clkdm || !arch_clkdm->clkdm_clk_enable)
+>>   		return -EINVAL;
+>>
+>> -	if (atomic_inc_return(&clkdm->usecount)>  1)
+>> +	/*
+>> +	 * For arch's with no autodeps, clkcm_clk_enable
+>> +	 * should be called for every clock instance that is
+>> +	 * enabled, so the clkdm can be force woken up.
+>> +	 */
+>> +	if ((atomic_inc_return(&clkdm->usecount)>  1)&&  autodeps)
+>>   		return 0;
+>>
+>>   	/* Clockdomain now has one enabled downstream clock */
+>> diff --git a/arch/arm/mach-omap2/clockdomain44xx.c b/arch/arm/mach-omap2/clockdomain44xx.c
+>> index a1a4ecd..6f38d47 100644
+>> --- a/arch/arm/mach-omap2/clockdomain44xx.c
+>> +++ b/arch/arm/mach-omap2/clockdomain44xx.c
+>> @@ -95,13 +95,8 @@ static void omap4_clkdm_deny_idle(struct clockdomain *clkdm)
+>>
+>>   static int omap4_clkdm_clk_enable(struct clockdomain *clkdm)
+>>   {
+>> -	bool hwsup = false;
+>> -
+>> -	hwsup = omap4_cminst_is_clkdm_in_hwsup(clkdm->prcm_partition,
+>> -					clkdm->cm_inst, clkdm->clkdm_offs);
+>> -
+>> -	if (!hwsup)
+>> -		clkdm_wakeup(clkdm);
+>> +	/* For every clock enable, force wakeup the clkdm */
+>> +	clkdm_wakeup(clkdm);
+>>
+>>   	return 0;
+>>   }
+>> --
+>> 1.7.0.4
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
 >
-> Thanks,
-> V Charulatha
 >
-> <<snip>>
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> - Paul
+
