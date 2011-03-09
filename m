@@ -1,126 +1,104 @@
-From: David Cohen <dacohen@gmail.com>
-Subject: [PATCH v3 2/2] omap: iovmm: don't check 'da' to set IOVMF_DA_FIXED flag
-Date: Wed,  9 Mar 2011 11:17:33 +0200
-Message-ID: <1299662253-29817-3-git-send-email-dacohen@gmail.com>
-References: <1299662253-29817-1-git-send-email-dacohen@gmail.com>
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <1299662253-29817-1-git-send-email-dacohen@gmail.com>
-Sender: linux-media-owner@vger.kernel.org
-To: Hiroshi.DOYU@nokia.com
-Cc: linux-omap@vger.kernel.org, linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com, sakari.ailus@maxwell.research.nokia.com, fernando.lugo@ti.com, David Cohen <dacohen@gmail.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH 0/2] omap_wdt: fix interface clock handling
+Date: Wed, 9 Mar 2011 11:02:41 +0100
+Message-ID: <4D775041.9030606@ti.com>
+References: <1299589583-22632-1-git-send-email-kalle.jokiniemi@nokia.com> <87bp1lv8uc.fsf@ti.com> <alpine.DEB.2.00.1103081543430.10981@utopia.booyaka.com> <alpine.DEB.2.00.1103081605460.15132@utopia.booyaka.com> <9D0D31AA57AAF5499AFDC63D6472631B0652E1@008-AM1MPN1-036.mgdnok.nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:36907 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757080Ab1CIKC4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 9 Mar 2011 05:02:56 -0500
+In-Reply-To: <9D0D31AA57AAF5499AFDC63D6472631B0652E1@008-AM1MPN1-036.mgdnok.nokia.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "kalle.jokiniemi@nokia.com" <kalle.jokiniemi@nokia.com>
+Cc: "paul@pwsan.com" <paul@pwsan.com>, "Hilman, Kevin" <khilman@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "ilkka.koskinen@nokia.com" <ilkka.koskinen@nokia.com>, "Varadarajan, Charulatha" <charu@ti.com>, "wim@iguana.be" <wim@iguana.be>
 
-Currently IOVMM driver sets IOVMF_DA_FIXED/IOVMF_DA_ANON flags according
-to input 'da' address when mapping memory:
-da == 0: IOVMF_DA_ANON
-da != 0: IOVMF_DA_FIXED
+Hi Kalle,
 
-It prevents IOMMU to map first page with fixed 'da'. To avoid such
-issue, IOVMM will not automatically set IOVMF_DA_FIXED. It should now
-come from the user throught 'flags' parameter when mapping memory.
-As IOVMF_DA_ANON and IOVMF_DA_FIXED are mutually exclusive, IOVMF_DA_ANON
-can be removed. The driver will now check internally if IOVMF_DA_FIXED
-is set or not.
+On 3/9/2011 10:02 AM, kalle.jokiniemi@nokia.com wrote:
+>
+>> [mailto:paul@pwsan.com] Sent: 9. maaliskuuta 2011 1:11 To:
+>> Jokiniemi Kalle (Nokia-MS/Tampere) Cc: Kevin Hilman;
+>> linux-omap@vger.kernel.org; tony@atomide.com; b- cousson@ti.com;
+>> Koskinen Ilkka (Nokia-MS/Tampere); Charulatha Varadarajan;
+>> wim@iguana.be Subject: Re: [PATCH 0/2] omap_wdt: fix interface
+>> clock handling
+>>
+>> Hi
+>>
+>> On Tue, 8 Mar 2011, Paul Walmsley wrote:
+>>
+>>> On Tue, 8 Mar 2011, Kevin Hilman wrote:
+>>>
+>>>> Kalle Jokiniemi<kalle.jokiniemi@nokia.com>  writes:
+>>>>
+>>>>> The runtime PM does not offer enough granularity to control
+>>>>> individual clocks separately as needed. Current pm
+>>>>> implementation of omap_wdt blocks the CORE power domain from
+>>>>> idling in OMAP SoC, as it keeps the interface clock of the
+>>>>> watchdog always on. This causes severe power leakage in
+>>>>> devices where the omap watchdog is in active use.
+>>>>
+>>>> The iclk remains active because it's in hardware-controlled
+>>>> auto-idle mode.
+>>>
+>>> ... and we think that the interface clock never enters auto-idle
+>>> because the WDT doesn't SIdleAck to the PRCM until the special
+>>> sequence has been written to the WDT registers to disable it.  So
+>>> even if its *CLKEN bits are set to zero, the WDT prevents the
+>>> system from going
+>> idle.
+>>
+>> Actually, thinking about this further, I think this statement must
+>> be wrong. The WDT may actually SIdleAck even when it's enabled.
+>> Otherwise, how could disabling the clocks save much power?  The WDT
+>> shouldn't need its interface clock to be enabled in order to keep
+>> its timer ticking or to reset the system.
+>
+> Yes, the interface clock is not needed for the WDTIMER to work, and
+> disabling the interface clock allows the sleeping to happen. This is
+> what I observed. To my understanding, the pm_runtime calls
+> automatically disable also the functional clock. I know the WDTIMER
+> won't stop by just disabling the fclk bit, but it does not seem
+> correct operation to assume this. This is why I reverted the
+> runtime_pm patches. Can we somehow control only the iclk via
+> runtime-pm?
+>
+>>
+>> So this first patch might not even be necessary.
+>>
+>> Kalle, if both patches work, perhaps you might try dropping this
+>> one and see if the problem is still there?
+>
+> Ok, I tried them both: first both individually, and then combined. No
+> luck, CORE power domain still remains ON with all combinations.
+>
+> Looking at the registers dump, the clock bits are disabled as one
+> would expect, however this does not seem to help in getting CORE to
+> sleep. Actually, with the working clk_enable/disable approach, both
+> fclk and iclk clocks are shown as enabled, though I guess this is due
+> to the clk_disable(iclk) only allowing HW power domain state
+> transition to disable the interface clock (not to disable it
+> immediately). Maybe the transition goes somehow sour with r-pm, as
+> both clocks seem disabled, while the wdt is internally still ticking
+> (due to the special disable sequence not done, and it should not be
+> done, as we need the watchdog).
+>
+> This gets us back to square one, how to use the runtime-pm to only
+> disable the iclk (or more precisely allow the device to sleep, when
+> wdt is used)? Is it out of the question to use direct clock control
+> via clock framework? It "just works" :)
 
-Signed-off-by: David Cohen <dacohen@gmail.com>
----
- arch/arm/plat-omap/include/plat/iovmm.h |    2 --
- arch/arm/plat-omap/iovmm.c              |   14 +++++---------
- 2 files changed, 5 insertions(+), 11 deletions(-)
+In theory, you should not have to disable the interface clock at all.
+Assuming that the smartidle is working properly, the iclk should be 
+gated during clock domain transition automagically.
+The only thing that can prevent that is potentially a wrong setting in 
+the clockactivity bits? It should be 0x2, meaning fclk is active but 
+iclk can be gated.
 
-diff --git a/arch/arm/plat-omap/include/plat/iovmm.h b/arch/arm/plat-omap/include/plat/iovmm.h
-index bdc7ce5..32a2f6c 100644
---- a/arch/arm/plat-omap/include/plat/iovmm.h
-+++ b/arch/arm/plat-omap/include/plat/iovmm.h
-@@ -71,8 +71,6 @@ struct iovm_struct {
- #define IOVMF_LINEAR_MASK	(3 << (2 + IOVMF_SW_SHIFT))
- 
- #define IOVMF_DA_FIXED		(1 << (4 + IOVMF_SW_SHIFT))
--#define IOVMF_DA_ANON		(2 << (4 + IOVMF_SW_SHIFT))
--#define IOVMF_DA_MASK		(3 << (4 + IOVMF_SW_SHIFT))
- 
- 
- extern struct iovm_struct *find_iovm_area(struct iommu *obj, u32 da);
-diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
-index ea7eab9..51ef43e 100644
---- a/arch/arm/plat-omap/iovmm.c
-+++ b/arch/arm/plat-omap/iovmm.c
-@@ -279,7 +279,7 @@ static struct iovm_struct *alloc_iovm_area(struct iommu *obj, u32 da,
- 	start = da;
- 	alignment = PAGE_SIZE;
- 
--	if (flags & IOVMF_DA_ANON) {
-+	if (~flags & IOVMF_DA_FIXED) {
- 		/* Don't map address 0 */
- 		start = obj->da_start ? obj->da_start : alignment;
- 
-@@ -304,7 +304,7 @@ static struct iovm_struct *alloc_iovm_area(struct iommu *obj, u32 da,
- 		if (tmp->da_start > start && (tmp->da_start - start) >= bytes)
- 			goto found;
- 
--		if (tmp->da_end >= start && flags & IOVMF_DA_ANON)
-+		if (tmp->da_end >= start && ~flags & IOVMF_DA_FIXED)
- 			start = roundup(tmp->da_end + 1, alignment);
- 
- 		prev_end = tmp->da_end;
-@@ -651,7 +651,6 @@ u32 iommu_vmap(struct iommu *obj, u32 da, const struct sg_table *sgt,
- 	flags &= IOVMF_HW_MASK;
- 	flags |= IOVMF_DISCONT;
- 	flags |= IOVMF_MMIO;
--	flags |= (da ? IOVMF_DA_FIXED : IOVMF_DA_ANON);
- 
- 	da = __iommu_vmap(obj, da, sgt, va, bytes, flags);
- 	if (IS_ERR_VALUE(da))
-@@ -691,7 +690,7 @@ EXPORT_SYMBOL_GPL(iommu_vunmap);
-  * @flags:	iovma and page property
-  *
-  * Allocate @bytes linearly and creates 1-n-1 mapping and returns
-- * @da again, which might be adjusted if 'IOVMF_DA_ANON' is set.
-+ * @da again, which might be adjusted if 'IOVMF_DA_FIXED' is not set.
-  */
- u32 iommu_vmalloc(struct iommu *obj, u32 da, size_t bytes, u32 flags)
- {
-@@ -710,7 +709,6 @@ u32 iommu_vmalloc(struct iommu *obj, u32 da, size_t bytes, u32 flags)
- 	flags &= IOVMF_HW_MASK;
- 	flags |= IOVMF_DISCONT;
- 	flags |= IOVMF_ALLOC;
--	flags |= (da ? IOVMF_DA_FIXED : IOVMF_DA_ANON);
- 
- 	sgt = sgtable_alloc(bytes, flags, da, 0);
- 	if (IS_ERR(sgt)) {
-@@ -781,7 +779,7 @@ static u32 __iommu_kmap(struct iommu *obj, u32 da, u32 pa, void *va,
-  * @flags:	iovma and page property
-  *
-  * Creates 1-1-1 mapping and returns @da again, which can be
-- * adjusted if 'IOVMF_DA_ANON' is set.
-+ * adjusted if 'IOVMF_DA_FIXED' is not set.
-  */
- u32 iommu_kmap(struct iommu *obj, u32 da, u32 pa, size_t bytes,
- 		 u32 flags)
-@@ -800,7 +798,6 @@ u32 iommu_kmap(struct iommu *obj, u32 da, u32 pa, size_t bytes,
- 	flags &= IOVMF_HW_MASK;
- 	flags |= IOVMF_LINEAR;
- 	flags |= IOVMF_MMIO;
--	flags |= (da ? IOVMF_DA_FIXED : IOVMF_DA_ANON);
- 
- 	da = __iommu_kmap(obj, da, pa, va, bytes, flags);
- 	if (IS_ERR_VALUE(da))
-@@ -839,7 +836,7 @@ EXPORT_SYMBOL_GPL(iommu_kunmap);
-  * @flags:	iovma and page property
-  *
-  * Allocate @bytes linearly and creates 1-1-1 mapping and returns
-- * @da again, which might be adjusted if 'IOVMF_DA_ANON' is set.
-+ * @da again, which might be adjusted if 'IOVMF_DA_FIXED' is not set.
-  */
- u32 iommu_kmalloc(struct iommu *obj, u32 da, size_t bytes, u32 flags)
- {
-@@ -859,7 +856,6 @@ u32 iommu_kmalloc(struct iommu *obj, u32 da, size_t bytes, u32 flags)
- 	flags &= IOVMF_HW_MASK;
- 	flags |= IOVMF_LINEAR;
- 	flags |= IOVMF_ALLOC;
--	flags |= (da ? IOVMF_DA_FIXED : IOVMF_DA_ANON);
- 
- 	da = __iommu_kmap(obj, da, pa, va, bytes, flags);
- 	if (IS_ERR_VALUE(da))
--- 
-1.7.4.1
+Regards,
+Benoit
