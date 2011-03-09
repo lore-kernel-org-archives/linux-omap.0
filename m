@@ -1,39 +1,56 @@
-From: Liam Girdwood <lrg@slimlogic.co.uk>
-Subject: Re: [PATCH] ASoC: AM3517: Update codec name after multi-component
- update
-Date: Wed, 09 Mar 2011 11:55:45 +0000
-Message-ID: <1299671745.3360.90.camel@odin>
-References: <1299598363-32656-1-git-send-email-abhilash.kv@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: [GIT PULL] OMAP: L3 error handling driver for for 2.6.39
+Date: Wed,  9 Mar 2011 17:35:50 +0530
+Message-ID: <1299672350-17397-1-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:64211 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756912Ab1CILzw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Mar 2011 06:55:52 -0500
-In-Reply-To: <1299598363-32656-1-git-send-email-abhilash.kv@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:53774 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932113Ab1CIMGD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Mar 2011 07:06:03 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Abhilash K V <abhilash.kv@ti.com>
-Cc: linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org, jhnikula@gmail.com, broonie@opensource.wolfsonmicro.com, perex@perex.cz, tiwai@suse.de
+To: tony@atomide.com
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, r.sricharan@ti.com, balbi@ti.com, b-cousson@ti.com, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-On Tue, 2011-03-08 at 21:02 +0530, Abhilash K V wrote:
-> The i2c client device name (".2-001a" in this case, including
-> the separator period) for the AIC23 codec on the TI AM3517-EVM
-> was appended to the codec_name member of am3517evm_dai to
-> resolve the names mismatch happening in soc_bind_dai_link(),
-> due to which the card was not getting registered.
-> 
-> Signed-off-by: Abhilash K V <abhilash.kv@ti.com>
-> 
-> Acked-by: Jarkko Nikula <jhnikula@gmail.com>
-> 
-> ---
+Hi Tony,
 
-Applied.
+Here is the pull-request for OMAP3 and OMAP4 L3 error handling driver.
+It's based on the latest omap-for-linus branch of yours.
 
-Thanks
+The following changes since commit 0640b436e410290193f554dcfd777bcdeee59697:
+  Abhilash Vadakkepat Koyamangalath (1):
+        audio : AM3517 : Adding i2c info for AIC23 codec
 
-Liam
+are available in the git repository at:
 
+  git://dev.omapzoom.org/pub/scm/santosh/kernel-omap4-base.git omap-l3-for-next
+
+Felipe Balbi (1):
+      OMAP3: l3: Introduce l3-interconnect error handling driver
+
+Santosh Shilimkar (1):
+      OMAP4: l3: Introduce l3-interconnect error handling driver
+
+sricharan (4):
+      OMAP3: hwmod_data: Add address space and irq in L3 hwmod.
+      OMAP3: devices: Initialise the l3 device with the hwmod data.
+      OMAP4: hwmod_data: Add address space and irq in L3 hwmod.
+      OMAP4: Initialise the l3 device with the hwmod data.
+
+ arch/arm/mach-omap2/Makefile               |    4 +
+ arch/arm/mach-omap2/devices.c              |   64 ++++++
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   22 ++-
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   38 +++
+ arch/arm/mach-omap2/omap_l3_noc.c          |  253 +++++++++++++++++++++
+ arch/arm/mach-omap2/omap_l3_noc.h          |  132 +++++++++++
+ arch/arm/mach-omap2/omap_l3_smx.c          |  314 ++++++++++++++++++++++++++
+ arch/arm/mach-omap2/omap_l3_smx.h          |  338 ++++++++++++++++++++++++++++
+ arch/arm/plat-omap/include/plat/irqs.h     |    2 +
+ 9 files changed, 1165 insertions(+), 2 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/omap_l3_noc.c
+ create mode 100644 arch/arm/mach-omap2/omap_l3_noc.h
+ create mode 100644 arch/arm/mach-omap2/omap_l3_smx.c
+ create mode 100644 arch/arm/mach-omap2/omap_l3_smx.h
+ 
+ Regards
+ Santosh
