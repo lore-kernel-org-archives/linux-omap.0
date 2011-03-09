@@ -1,95 +1,114 @@
-From: Michael Jones <michael.jones@matrix-vision.de>
-Subject: Re: [PATCH v2 1/3] omap: iovmm: disallow mapping NULL address when
- IOVMF_DA_ANON is set
-Date: Wed, 09 Mar 2011 08:56:44 +0100
-Message-ID: <4D7732BC.4050307@matrix-vision.de>
-References: <1299615316-17512-1-git-send-email-dacohen@gmail.com>	<1299615316-17512-2-git-send-email-dacohen@gmail.com> <AANLkTintZ6vphJqM54SxFeKtk=6CuDQJTUpk-7jFRDeA@mail.gmail.com>
+From: David Cohen <dacohen@gmail.com>
+Subject: Re: [PATCH v2 2/3] omap3: change ISP's IOMMU da_start address
+Date: Wed, 9 Mar 2011 10:19:43 +0200
+Message-ID: <AANLkTi=ARF3zyFWOXwoyobUeKsN8HzTtd5TkxNSV+srO@mail.gmail.com>
+References: <1299615316-17512-1-git-send-email-dacohen@gmail.com>
+	<1299615316-17512-3-git-send-email-dacohen@gmail.com>
+	<4D772FB0.4020804@maxwell.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <AANLkTintZ6vphJqM54SxFeKtk=6CuDQJTUpk-7jFRDeA@mail.gmail.com>
-Sender: linux-media-owner@vger.kernel.org
-To: David Cohen <dacohen@gmail.com>
-Cc: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>, Hiroshi.DOYU@nokia.com, linux-omap@vger.kernel.org, linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com, sakari.ailus@maxwell.research.nokia.com
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:64470 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756484Ab1CIITp convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Mar 2011 03:19:45 -0500
+In-Reply-To: <4D772FB0.4020804@maxwell.research.nokia.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Cc: Hiroshi.DOYU@nokia.com, linux-omap@vger.kernel.org, fernando.lugo@ti.com, linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
 
-On 03/08/2011 09:31 PM, Guzman Lugo, Fernando wrote:
-> On Tue, Mar 8, 2011 at 2:15 PM, David Cohen <dacohen@gmail.com> wrote:
->> From: Michael Jones <michael.jones@matrix-vision.de>
+On Wed, Mar 9, 2011 at 9:43 AM, Sakari Ailus
+<sakari.ailus@maxwell.research.nokia.com> wrote:
+> David Cohen wrote:
+>> ISP doesn't consider 0x0 as a valid address, so it should explicitly
+>> exclude first page from allowed 'da' range.
 >>
->> commit c7f4ab26e3bcdaeb3e19ec658e3ad9092f1a6ceb allowed mapping the NULL
->> address if da_start==0, which would then not get unmapped. Disallow
->> this again if IOVMF_DA_ANON is set. And spell variable 'alignment'
->> correctly.
->>
->> Signed-off-by: Michael Jones <michael.jones@matrix-vision.de>
+>> Signed-off-by: David Cohen <dacohen@gmail.com>
 >> ---
->>  arch/arm/plat-omap/iovmm.c |   16 ++++++++++------
->>  1 files changed, 10 insertions(+), 6 deletions(-)
+>> =C2=A0arch/arm/mach-omap2/omap-iommu.c | =C2=A0 =C2=A02 +-
+>> =C2=A01 files changed, 1 insertions(+), 1 deletions(-)
 >>
->> diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
->> index 6dc1296..e5f8341 100644
->> --- a/arch/arm/plat-omap/iovmm.c
->> +++ b/arch/arm/plat-omap/iovmm.c
->> @@ -271,20 +271,24 @@ static struct iovm_struct *alloc_iovm_area(struct iommu *obj, u32 da,
->>                                           size_t bytes, u32 flags)
->>  {
->>        struct iovm_struct *new, *tmp;
->> -       u32 start, prev_end, alignement;
->> +       u32 start, prev_end, alignment;
->>
->>        if (!obj || !bytes)
->>                return ERR_PTR(-EINVAL);
->>
->>        start = da;
->> -       alignement = PAGE_SIZE;
->> +       alignment = PAGE_SIZE;
->>
->>        if (flags & IOVMF_DA_ANON) {
->> -               start = obj->da_start;
->> +               /* Don't map address 0 */
->> +               if (obj->da_start)
->> +                       start = obj->da_start;
->> +               else
->> +                       start = alignment;
-> 
-> looks good to me, just a nitpick comment, that would look better
-> 
->                   start = (obj->da_start) ? obj->da_start : alignment;
-> 
-> Regards,
-> Fernando.
-> 
->>
->>                if (flags & IOVMF_LINEAR)
->> -                       alignement = iopgsz_max(bytes);
->> -               start = roundup(start, alignement);
->> +                       alignment = iopgsz_max(bytes);
->> +               start = roundup(start, alignment);
->>        } else if (start < obj->da_start || start > obj->da_end ||
->>                                        obj->da_end - start < bytes) {
->>                return ERR_PTR(-EINVAL);
->> @@ -304,7 +308,7 @@ static struct iovm_struct *alloc_iovm_area(struct iommu *obj, u32 da,
->>                        goto found;
->>
->>                if (tmp->da_end >= start && flags & IOVMF_DA_ANON)
->> -                       start = roundup(tmp->da_end + 1, alignement);
->> +                       start = roundup(tmp->da_end + 1, alignment);
->>
->>                prev_end = tmp->da_end;
->>        }
->> --
->> 1.7.0.4
->>
+>> diff --git a/arch/arm/mach-omap2/omap-iommu.c b/arch/arm/mach-omap2/=
+omap-iommu.c
+>> index 3fc5dc7..3bea489 100644
+>> --- a/arch/arm/mach-omap2/omap-iommu.c
+>> +++ b/arch/arm/mach-omap2/omap-iommu.c
+>> @@ -33,7 +33,7 @@ static struct iommu_device omap3_devices[] =3D {
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 .name =3D "isp",
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 .nr_tlb_entries =3D 8,
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 .clk_name =3D "cam_ick",
+>> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 .da_start =3D 0x0,
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 .da_start =3D 0x1000,
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 .da_end =3D 0xFFFFF000,
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 },
+>> =C2=A0 =C2=A0 =C2=A0 },
+>
+> Hi David!
 
-Hi David,
+Hi Sakari,
 
-These changes to my patch are fine with me.  If you want to incorporate
-Fernando's recommendation above, too, go ahead.
+>
+> Thanks for the patch.
 
--Michael
+And thanks for the comments. :)
 
-MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
-Registergericht: Amtsgericht Stuttgart, HRB 271090
-Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner
+>
+> My question is once again: is this necessary? My understanding is tha=
+t
+> the IOMMU allows mapping the NULL address if the user wishes to map i=
+t
+> explicitly. da_end specifies the real hardware limit for the mapped t=
+op
+> address, da_start should do the same for bottom.
+
+Hm. da_start/da_end in this case belong to OMAP3 IOMMU ISP VM. It
+means they're related to OMAP3 ISP only. But they do not reflect the
+hw limit, as the range limit is anything which fits in u32. They say
+what's the range OMAP3 ISP is expecting to have mapped. And the answer
+to this question is the first page is not expected. Then, why say the
+opposite in da_start?
+
+>
+> I think that the IOMMU users should be either able to rely that they =
+get
+> no NULL allocated automatically for them. Do we want or not want it t=
+o
+> be part of the API? I don't think the ISP driver is a special case of
+> all the possible drivers using the IOMMU.
+
+My understanding after this discussion is address 0x0 should be
+allowed (what is done by patch 3/3 of this set). But as a safer
+choice, it won't be returned without explicitly request (what is done
+in path 1/3). Because of that, I'm OK in drop this patch 2/3. But then
+there's one question which is the motivation for this change:
+If the current OMAP3 ISP driver doesn't want the first page, (1)
+should we pass a generic information and expect IOVMM driver to
+correct it to ISP need or (2) should we pass the information which
+reflects the real ISP driver's need?
+My understanding is (2). But I'm fine with (1) as it will lead to the
+same result.
+
+>
+> On the other hand, probably there will be an API change at some point
+> for the IOMMU since as far as I remember, there are somewhat
+> established APIs for IOMMUs in existence.
+
+At some point we need to find a standard for many IOMMU drivers. But
+for now we need to stick with what we have. :)
+
+Regards,
+
+David Cohen
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
