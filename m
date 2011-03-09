@@ -1,41 +1,60 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH] OMAP4: clockdomain: Follow recommended enable sequence
-Date: Wed, 09 Mar 2011 08:28:45 -0800
-Message-ID: <87zkp4dzr6.fsf@ti.com>
-References: <1299245123-23444-1-git-send-email-rnayak@ti.com>
-	<alpine.DEB.2.00.1103081937100.15132@utopia.booyaka.com>
-	<4D775418.6050105@ti.com>
+From: Maxime Coquelin <maxime.coquelin-nonst@stericsson.com>
+Subject: [RFC PATCHv1 0/2] Export SoC info through sysfs
+Date: Wed, 9 Mar 2011 17:59:19 +0100
+Message-ID: <1299689961-5028-1-git-send-email-maxime.coquelin-nonst@stericsson.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:39141 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755047Ab1CIQ2z (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Mar 2011 11:28:55 -0500
-Received: by mail-yx0-f172.google.com with SMTP id 30so418849yxk.17
-        for <linux-omap@vger.kernel.org>; Wed, 09 Mar 2011 08:28:51 -0800 (PST)
-In-Reply-To: <4D775418.6050105@ti.com> (Rajendra Nayak's message of "Wed, 09
-	Mar 2011 15:49:04 +0530")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-arm-msm-owner@vger.kernel.org>
+Sender: linux-arm-msm-owner@vger.kernel.org
+To: LKML <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>, Sarava
+Cc: maxime_coquelin@yahoo.fr, ext Nishanth Menon <nm@ti.com>, ext Tony Lindgren <tony@atomide.com>, Peter De-Schrijver <Peter.De-Schrijver@nokia.com>, Ambresh <a0393775@ti.com>, Jouni Hogander <jouni.hogander@nokia.com>, Lee Jones <Lee.Jones@linaro.org>, Rabin VINCENT <rabin.vincent@stericsson.com>, Russell King <linux@arm.linux.org.uk>, Jonas ABERG <jonas.aberg@stericsson.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, David Brown <davidb@codeaurora.org>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, Loic PALLARDY <loic.pallardy@stericsson.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Daniel Walker <dwalker@codeaurora.org>, Andrei Warkentin <andreiw@motorola.com>, Paul Mundt <lethal@linux-sh.org>, "santosh.shilimkar@ti.com" <santosh.shilimkar@ti.com>, Andrew Morton <akpm@linux-foundation.org>, Maxime Coquelin <maxime.coquelin-nonst@stericss>
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, b-cousson@ti.com, santosh.shilimkar@ti.com, linux-arm-kernel@lists.infradead.org
 
-Rajendra Nayak <rnayak@ti.com> writes:
+Here is the first version of the proposal to export SoC related information to user-space through sysFS interface.
 
->> In terms of triage, does this patch fix something that currently doesn't
->> work (meaning that we should try to merge it for 2.6.39)?  Or can we plan
->> to merge this during the 2.6.40 time frame?  It would be ideal, of course,
->> if we could wait until 2.6.40, given how close we are to the merge window
->> opening.
->
-> Since no clockdomains on OMAP4 were programmed in HW_AUTO untill now,
-> we did not have any issues, but with the recent series from Santosh
-> (which adds mpu ret/off support in idle/suspend) programming the
-> clockdomains to HW_AUTO did show issues/aborts, and this patch
-> fixes them.
+This serie is to continue what has been discussed on the "socinfo" thread created by Eduardo Valentin:
+https://lkml.org/lkml/2010/5/11/364
 
-FWIW, I was planning to merge the OMAP4 MPU ret/off series from Santosh
-for 2.6.39, so this patch would be required for that to series to work.
+The first patch introduces the common part, which provides an interface to the platform to register its name, and exports platform-defined IDs to user-space.
+The IDs strings can be provided in two ways: either with a pointer to the string, or by a callback returning the string.
 
-Kevin
+The second patch is given as example for the ux500 architecture. It registers with the machine name "DB8500", and exports 3 informations (SoC unique ID, sili
+con revision and silicon process).
+
+Here is the output for DB8500:
+root@ME:/sys/devices/system/soc ls -l
+-r--r--r--    1 root     root         4096 Jan 11 02:43 mach_name
+-r--r--r--    1 root     root         4096 Jan 11 02:43 process
+-r--r--r--    1 root     root         4096 Jan 11 02:43 revision
+-r--r--r--    1 root     root         4096 Jan 11 02:43 soc_id
+root@ME:/sys/devices/system/soc cat mach_name
+DB8500
+root@ME:/sys/devices/system/soc cat process
+Standard
+root@ME:/sys/devices/system/soc cat revision
+2.0
+root@ME:/sys/devices/system/soc cat soc_id
+2ba07ce9e5835d6185321e9577462ef2ea2129cf
+
+Any comments are welcome.
+
+Note that I will be off from 13th to 21th of March.
+
+Regards,
+Maxime
+
+-------------------------------------------------------------------------------
+
+Maxime Coquelin (2):
+  Export SoC info through sysfs
+  ux500: Export U8500 SoC info through sysfs
+
+ arch/arm/mach-ux500/id.c |   96 ++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/base/Kconfig     |    4 ++
+ drivers/base/Makefile    |    1 +
+ drivers/base/soc.c       |   88 ++++++++++++++++++++++++++++++++++++++++++
+ include/linux/sys_soc.h  |   33 ++++++++++++++++
+ 5 files changed, 222 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/base/soc.c
+ create mode 100644 include/linux/sys_soc.h
+
