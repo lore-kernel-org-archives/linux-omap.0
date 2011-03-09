@@ -1,81 +1,141 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH v2] OMAP4: PM: Set static dependency between MPUSS and EMIF
-Date: Wed,  9 Mar 2011 11:32:41 +0530
-Message-ID: <1299650561-26162-1-git-send-email-santosh.shilimkar@ti.com>
+From: <kalle.jokiniemi@nokia.com>
+Subject: RE: [PATCH 0/2] omap_wdt: fix interface clock handling
+Date: Wed, 9 Mar 2011 06:35:50 +0000
+Message-ID: <9D0D31AA57AAF5499AFDC63D6472631B06518F@008-AM1MPN1-036.mgdnok.nokia.com>
+References: <1299589583-22632-1-git-send-email-kalle.jokiniemi@nokia.com>
+ <87bp1lv8uc.fsf@ti.com>
+ <alpine.DEB.2.00.1103081543430.10981@utopia.booyaka.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40493 "EHLO bear.ext.ti.com"
+Received: from smtp.nokia.com ([147.243.1.47]:39152 "EHLO mgw-sa01.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752298Ab1CIGCw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 9 Mar 2011 01:02:52 -0500
+	id S1752169Ab1CIGgt convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Mar 2011 01:36:49 -0500
+In-Reply-To: <alpine.DEB.2.00.1103081543430.10981@utopia.booyaka.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Rajendra Nayak <rnayak@ti.com>, Kevin Hilman <khilman@ti.com>
+To: paul@pwsan.com
+Cc: khilman@ti.com, linux-omap@vger.kernel.org, tony@atomide.com, b-cousson@ti.com, ilkka.koskinen@nokia.com, charu@ti.com, wim@iguana.be
 
-As per OMAP4430 TRM, the dynamic dependency between MEMIF and MPUSS
-clockdomains is enable by default. Refer register CM_MPU_DYNAMICDEP
-description for details.
 
-But it doesn't seems to work as expected and MPUSS doesn't wakeup
-from off-mode if the static dependency is not set between MPUSS and
-EMIF clockdomains. i.e CM_MPU_STATICDEP.MEMIF_STATDEP = 0
 
-The issue is under investigation with hardware team.
+> -----Original Message-----
+> From: ext Paul Walmsley [mailto:paul@pwsan.com]
+> Sent: 9. maaliskuuta 2011 1:02
+> To: Jokiniemi Kalle (Nokia-MS/Tampere)
+> Cc: Kevin Hilman; linux-omap@vger.kernel.org; tony@atomide.com; b-
+> cousson@ti.com; Koskinen Ilkka (Nokia-MS/Tampere); Charulatha
+> Varadarajan; wim@iguana.be
+> Subject: Re: [PATCH 0/2] omap_wdt: fix interface clock handling
+> 
+> Hi,
+> 
+> On Tue, 8 Mar 2011, Kevin Hilman wrote:
+> 
+> > Kalle Jokiniemi <kalle.jokiniemi@nokia.com> writes:
+> >
+> > > The runtime PM does not offer enough granularity to control
+> > > individual clocks separately as needed. Current pm implementation of
+> > > omap_wdt blocks the CORE power domain from idling in OMAP SoC, as it
+> > > keeps the interface clock of the watchdog always on. This causes
+> > > severe power leakage in devices where the omap watchdog is in active
+> > > use.
+> >
+> > The iclk remains active because it's in hardware-controlled auto-idle
+> > mode.
+> 
+> ... and we think that the interface clock never enters auto-idle because the
+> WDT doesn't SIdleAck to the PRCM until the special sequence has been
+> written to the WDT registers to disable it.  So even if its *CLKEN bits are set to
+> zero, the WDT prevents the system from going idle.
+> 
+> > I believe if you set the WDT hwmod to software-supported idle
+> > (OCPIF_SWSUP_IDLE), the runtime PM idle (which calls omap_device idle,
+> > then omap_hwmod_idle) should also gate the interface clock.
+> 
+> Agreed.
+> 
+> Kalle, since you requested patches, here's one that implements Kevin's first
+> suggestion.  I will reply to your second patch with its equivalent for PM
+> runtime.  The patches have been compile-tested only.  Perhaps you could
+> see if they solve your problem?
 
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Acked-by: Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@ti.com>
----
-v2: Added a pr_info() suggested by Paul Walmsley
+Thanks Paul, I'll try these out.
 
-Patch applies on top of OMAP4 PM series.
-Relevant thread on this issue:
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg46173.html
+- Kalle
 
- arch/arm/mach-omap2/pm44xx.c |   22 ++++++++++++++++++++++
- 1 files changed, 22 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
-index d4ad31e..b3ce1b1 100644
---- a/arch/arm/mach-omap2/pm44xx.c
-+++ b/arch/arm/mach-omap2/pm44xx.c
-@@ -198,6 +198,7 @@ void omap4_pm_off_mode_enable(int enable)
- static int __init omap4_pm_init(void)
- {
- 	int ret;
-+	struct clockdomain *emif_clkdm, *mpuss_clkdm;
- 
- 	if (!cpu_is_omap44xx())
- 		return -ENODEV;
-@@ -213,6 +214,27 @@ static int __init omap4_pm_init(void)
- 
- 	(void) clkdm_for_each(clkdms_setup, NULL);
- 
-+	/*
-+	 * FIXME: Remove the MPUSS <-> EMIF static dependency once the
-+	 * dynamic dependency issue is root-caused.
-+	 * The dynamic dependency between MEMIF and MPUSS doesn't seems to
-+	 * work as expected and MPUSS does not wakeup from off-mode if
-+	 * the static dependency is not set between them.
-+	 * i.e. CM_MPU_STATICDEP.MEMIF_STATDEP = 0
-+	 */
-+	mpuss_clkdm = clkdm_lookup("mpuss_clkdm");
-+	emif_clkdm = clkdm_lookup("l3_emif_clkdm");
-+	if ((!mpuss_clkdm) || (!emif_clkdm))
-+		goto err2;
-+
-+	ret = clkdm_add_wkdep(mpuss_clkdm, emif_clkdm);
-+	if (ret) {
-+		pr_err("Failed to add MPUSS <-> EMIF wakeup dependency\n");
-+		goto err2;
-+	}
-+	
-+	pr_info("OMAP4 PM: Temporary static dependency added between EMIF and MPUSS\n");
-+
- 	ret = omap4_mpuss_init();
- 	if (ret) {
- 		pr_err("Failed to initialise OMAP4 MPUSS\n");
--- 
-1.6.0.4
+> 
+> 
+> regards,
+> 
+> - Paul
+> 
+> ---
+>  arch/arm/mach-omap2/omap_hwmod_2420_data.c |    1 +
+>  arch/arm/mach-omap2/omap_hwmod_2430_data.c |    1 +
+>  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    1 +
+>  arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    1 +
+>  4 files changed, 4 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+> b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+> index 1611f74..df4950d 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+> @@ -974,6 +974,7 @@ static struct omap_hwmod_ocp_if
+> omap2420_l4_wkup__wd_timer2 = {
+>  	.clk		= "mpu_wdt_ick",
+>  	.addr		= omap2420_wd_timer2_addrs,
+>  	.addr_cnt	= ARRAY_SIZE(omap2420_wd_timer2_addrs),
+> +	.flags		= OCPIF_SWSUP_IDLE,
+>  	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+>  };
+> 
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+> b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+> index 809424f..21fc908 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+> @@ -1074,6 +1074,7 @@ static struct omap_hwmod_ocp_if
+> omap2430_l4_wkup__wd_timer2 = {
+>  	.clk		= "mpu_wdt_ick",
+>  	.addr		= omap2430_wd_timer2_addrs,
+>  	.addr_cnt	= ARRAY_SIZE(omap2430_wd_timer2_addrs),
+> +	.flags		= OCPIF_SWSUP_IDLE,
+>  	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+>  };
+> 
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+> b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+> index 457df3e..7ae2dab 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+> @@ -1234,6 +1234,7 @@ static struct omap_hwmod_ocp_if
+> omap3xxx_l4_wkup__wd_timer2 = {
+>  	.clk		= "wdt2_ick",
+>  	.addr		= omap3xxx_wd_timer2_addrs,
+>  	.addr_cnt	= ARRAY_SIZE(omap3xxx_wd_timer2_addrs),
+> +	.flags		= OCPIF_SWSUP_IDLE,
+>  	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+>  };
+> 
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> index 7b72316..2038813 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> @@ -4901,6 +4901,7 @@ static struct omap_hwmod_ocp_if
+> omap44xx_l4_wkup__wd_timer2 = {
+>  	.clk		= "l4_wkup_clk_mux_ck",
+>  	.addr		= omap44xx_wd_timer2_addrs,
+>  	.addr_cnt	= ARRAY_SIZE(omap44xx_wd_timer2_addrs),
+> +	.flags		= OCPIF_SWSUP_IDLE,
+>  	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+>  };
+> 
+> --
+> 1.7.2.3
 
