@@ -1,65 +1,101 @@
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: Re: [PATCH v2 2/3] omap3: change ISP's IOMMU da_start address
-Date: Wed, 09 Mar 2011 09:43:44 +0200
-Message-ID: <4D772FB0.4020804@maxwell.research.nokia.com>
-References: <1299615316-17512-1-git-send-email-dacohen@gmail.com> <1299615316-17512-3-git-send-email-dacohen@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: sricharan <r.sricharan@ti.com>
+Subject: [PATCH] omap2+: mux: Remove the use of IDLE flag.
+Date: Wed,  9 Mar 2011 13:15:38 +0530
+Message-ID: <1299656738-7885-1-git-send-email-r.sricharan@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:18060 "EHLO mgw-da02.nokia.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:49193 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751348Ab1CIHoR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 9 Mar 2011 02:44:17 -0500
-In-Reply-To: <1299615316-17512-3-git-send-email-dacohen@gmail.com>
+	id S1751348Ab1CIHpQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 9 Mar 2011 02:45:16 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Cohen <dacohen@gmail.com>
-Cc: Hiroshi.DOYU@nokia.com, linux-omap@vger.kernel.org, fernando.lugo@ti.com, linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, tony@atomide.com, b-cousson@ti.com, santosh.shilimkar@ti.com
 
-David Cohen wrote:
-> ISP doesn't consider 0x0 as a valid address, so it should explicitly
-> exclude first page from allowed 'da' range.
-> 
-> Signed-off-by: David Cohen <dacohen@gmail.com>
-> ---
->  arch/arm/mach-omap2/omap-iommu.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/omap-iommu.c b/arch/arm/mach-omap2/omap-iommu.c
-> index 3fc5dc7..3bea489 100644
-> --- a/arch/arm/mach-omap2/omap-iommu.c
-> +++ b/arch/arm/mach-omap2/omap-iommu.c
-> @@ -33,7 +33,7 @@ static struct iommu_device omap3_devices[] = {
->  			.name = "isp",
->  			.nr_tlb_entries = 8,
->  			.clk_name = "cam_ick",
-> -			.da_start = 0x0,
-> +			.da_start = 0x1000,
->  			.da_end = 0xFFFFF000,
->  		},
->  	},
+Currently OMAP_DEVICE_PAD_IDLE flag is used to mux pins
+dynamically. This can be simplified by using the enabled
+state variable of each pad. This also fixes the issue of
+the static pads not getting muxed after idling and
+disable/enable state transitions.
 
-Hi David!
+Signed-off-by: sricharan <r.sricharan@ti.com>
+---
+ arch/arm/mach-omap2/mux.c |   19 +++++++------------
+ arch/arm/mach-omap2/mux.h |    1 -
+ 2 files changed, 7 insertions(+), 13 deletions(-)
 
-Thanks for the patch.
-
-My question is once again: is this necessary? My understanding is that
-the IOMMU allows mapping the NULL address if the user wishes to map it
-explicitly. da_end specifies the real hardware limit for the mapped top
-address, da_start should do the same for bottom.
-
-I think that the IOMMU users should be either able to rely that they get
-no NULL allocated automatically for them. Do we want or not want it to
-be part of the API? I don't think the ISP driver is a special case of
-all the possible drivers using the IOMMU.
-
-On the other hand, probably there will be an API change at some point
-for the IOMMU since as far as I remember, there are somewhat
-established APIs for IOMMUs in existence.
-
-Regards,
-
+diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+index 8717370..bb043cb 100644
+--- a/arch/arm/mach-omap2/mux.c
++++ b/arch/arm/mach-omap2/mux.c
+@@ -359,7 +359,6 @@ void omap_hwmod_mux(struct omap_hwmod_mux_info *hmux, u8 state)
+ 			struct omap_device_pad *pad = hmux->pads_dynamic[i];
+ 			int val = -EINVAL;
+ 
+-			pad->flags |= OMAP_DEVICE_PAD_IDLE;
+ 			val = pad->idle;
+ 			omap_mux_write(pad->partition, val,
+ 					pad->mux->reg_offset);
+@@ -369,25 +368,18 @@ void omap_hwmod_mux(struct omap_hwmod_mux_info *hmux, u8 state)
+ 	}
+ 
+ 	/* Runtime enabling of dynamic pads */
+-	if ((state == _HWMOD_STATE_ENABLED) && hmux->pads_dynamic) {
+-		int idled = 0;
+-
++	if ((state == _HWMOD_STATE_ENABLED) && hmux->pads_dynamic
++					&& hmux->enabled) {
+ 		for (i = 0; i < hmux->nr_pads_dynamic; i++) {
+ 			struct omap_device_pad *pad = hmux->pads_dynamic[i];
+ 			int val = -EINVAL;
+ 
+-			if (!(pad->flags & OMAP_DEVICE_PAD_IDLE))
+-				continue;
+-
+-			pad->flags &= ~OMAP_DEVICE_PAD_IDLE;
+ 			val = pad->enable;
+ 			omap_mux_write(pad->partition, val,
+ 					pad->mux->reg_offset);
+-			idled++;
+ 		}
+ 
+-		if (idled)
+-			return;
++		return;
+ 	}
+ 
+ 	/* Enabling or disabling of all pads */
+@@ -404,7 +396,6 @@ void omap_hwmod_mux(struct omap_hwmod_mux_info *hmux, u8 state)
+ 					pad->name, val);
+ 			break;
+ 		case _HWMOD_STATE_DISABLED:
+-		default:
+ 			/* Use safe mode unless OMAP_DEVICE_PAD_REMUX */
+ 			if (flags & OMAP_DEVICE_PAD_REMUX)
+ 				val = pad->off;
+@@ -412,6 +403,10 @@ void omap_hwmod_mux(struct omap_hwmod_mux_info *hmux, u8 state)
+ 				val = OMAP_MUX_MODE7;
+ 			pr_debug("%s: Disabling %s %x\n", __func__,
+ 					pad->name, val);
++			break;
++		default:
++			/* Nothing to be done */
++			break;
+ 		};
+ 
+ 		if (val >= 0) {
+diff --git a/arch/arm/mach-omap2/mux.h b/arch/arm/mach-omap2/mux.h
+index 1d5bf42..8920fa4 100644
+--- a/arch/arm/mach-omap2/mux.h
++++ b/arch/arm/mach-omap2/mux.h
+@@ -159,7 +159,6 @@ struct omap_board_mux {
+ 	u16	value;
+ };
+ 
+-#define OMAP_DEVICE_PAD_IDLE		BIT(7)	/* Not needed for board-*.c */
+ #define OMAP_DEVICE_PAD_REMUX		BIT(1)	/* Dynamically remux a pad,
+ 						   needs enable, idle and off
+ 						   values */
 -- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
+1.7.0.4
+
