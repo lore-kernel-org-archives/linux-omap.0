@@ -1,112 +1,150 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: [PATCH v4 3/9] OMAP4 : DSS2 : HDMI: HDMI dispc gamma table
- disable.
-Date: Wed, 9 Mar 2011 20:19:08 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024C192274@dbde02.ent.ti.com>
-References: <1299671118-20839-1-git-send-email-mythripk@ti.com>
- <1299671118-20839-2-git-send-email-mythripk@ti.com>
- <1299671118-20839-3-git-send-email-mythripk@ti.com>
- <1299671118-20839-4-git-send-email-mythripk@ti.com>
+From: Govindraj <govindraj.ti@gmail.com>
+Subject: Re: [PATCH 5/7] Serial: OMAP: add runtime pm support for omap-serial driver
+Date: Wed, 9 Mar 2011 20:37:11 +0530
+Message-ID: <AANLkTim0Xuu8Bs4tzyH1kQp2eS5nUq8stQX4MGzELEE6@mail.gmail.com>
+References: <1298903958-6496-1-git-send-email-govindraj.raja@ti.com>
+ <1298903958-6496-6-git-send-email-govindraj.raja@ti.com> <87r5am499h.fsf@ti.com>
+ <AANLkTim35McK1cFFEXyS49D6b8CT+4pQfmKAswOn3e7_@mail.gmail.com> <87hbbdjc7y.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:41768 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932695Ab1CIOtR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Mar 2011 09:49:17 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p29EnEVS032004
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Wed, 9 Mar 2011 08:49:16 -0600
-In-Reply-To: <1299671118-20839-4-git-send-email-mythripk@ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <87hbbdjc7y.fsf@ti.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Rajendra Nayak <rnayak@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: "K, Mythri P" <mythripk@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of K, Mythri P
-> Sent: Wednesday, March 09, 2011 5:15 PM
-> To: linux-omap@vger.kernel.org; Valkeinen, Tomi
-> Cc: K, Mythri P
-> Subject: [PATCH v4 3/9] OMAP4 : DSS2 : HDMI: HDMI dispc gamma table
-> disable.
-[sp] HDMI seems repetitive in the subject in this and some of the subsequent
-     Patches.
-> 
-> Adding changes to set gamma table bit for TV interface to make sure it is
-> disabled
+On Wed, Mar 9, 2011 at 7:18 AM, Kevin Hilman <khilman@ti.com> wrote:
+> Govindraj <govindraj.ti@gmail.com> writes:
+>
+> [...]
+>
+>>> This function should not be needed.
+>>>
+>>> The timer should be replaced by the auto-suspend feature of runtime=
+ PM.
+>>
+>> If I use autosuspend based on timer runtime framework
+>> will disable clocks based on autosuspend timeout.
+>>
+>> But if I cut clocks outside sram idle path module level wakeup
+>> will not work.
+>> if I cut func clocks outside prepare for idle
+>> wake_up is a problem.
+>
+> As I mentioned in the other thread, module wakeups are not the proble=
+m,
+> rather the module generating the interrupt is the problem. =A0So cutt=
+ing
+> clocks outside prepare_for_idle path is not the problem. =A0It's the
+> re-enabling of the clocks that is important.
+>
+>> So I am going with existing model where we are cutting clocks in
+>> prepare idle and enabling the clock back in resume_idle based on
+>> wakeup event as any other combination doesn't seem to work.
+>>
+>> [As stated in other thread to reproduce the issue
+>> with module level wakeup]
+>>
+>> Even with existing framework if I try to experiment
+>> by cutting clocks after uart timeout in allow_sleep
+>> func, module level wakeup doesn't seem to happen.
+>>>
+>>> Instead of calling omap_port_disable() callers should call
+>>> pm_runtime_put_autosuspend(), and the console_stop() should be part=
+ of
+>>> the ->runtime_suspend() callback.
+>>>
+>>> Also, why do you check for pm_runtime_suspended()? =A0Just call it =
+for
+>>> every time and we get runtime PM use-counting and statistics for fr=
+ee
+>>> and the ->runtime_suspend() callback will be called when the usecou=
+nt
+>>> goes to zero.
+>>>
+>>
+>> Yes correct, but I can't balance the put_sync and get_sync
+>> as said above. I can call put_sync only once in prepare_idle
+>> to cut clocks. But having put_sync outside prepare_idle, if
+>> clocks are cut module level wakeup doesn't seem to happen.
+>>
+>>
+>>>> +static void serial_omap_inactivity_timer(unsigned long uart_no)
+>>>> +{
+>>>> + =A0 =A0 struct uart_omap_port *up =3D ui[uart_no];
+>>>> +
+>>>> + =A0 =A0 up->can_sleep =3D 1;
+>>>> + =A0 =A0 omap_uart_smart_idle(up);
+>>>> +}
+>>>
+>>> This will not be needed if using the autosuspend feature.
+>>
+>> Using autosuspend, module level wakeup will not happen
+>> since autosuspend cuts clocks outside prepare_idle
+>> based on autosuspend timeout.
+>
+> OK, I get the point. =A0You mentioned module level wakeups about 10 t=
+imes
+> in this message. =A0;)
+>
+> However, rather than continue to hack around this problem we need to
+> understand the root cause. =A0Thanks to Paul, I think I undersand the=
+ root
+> cause as explained in the other thread, and I think there's a relativ=
+ely
+> easy way to make them work.
+>
+> So here's an experiment to try with autosuspend. =A0I suspect this wi=
+ll
+> work, just hack it up to prove the concept. =A0If it works, we can ma=
+ke
+> something more generic. =A0Here are a few alternatives to try. =A0I m=
+ay
+> experiment with some of them tomorrow as well, but please let me know
+> what you try:
+>
+> Using autosuspend, clocks will get cut independently of the idle path=
+=2E
+> Then, use the PRCM ISR detection of UART module wakeups to call the
+> UART's interrupt handler. =A0The interrupt handler will pm_runtime_ge=
+t(),
+> enable the clocks, and then take care of the interrupt. =A0Done.
+>
+> Alternatively, you could test it on current code by simply removing t=
+he
+> resume_from_idle call from the idle path and calling it instead from =
+the
+> PRCM ISR when UART module wakeups are detected.
 
-[sp] Is this bit expected to be "enabled" by default? If no, how can/would
-     this bit get enabled.
+I remember doing similar experiment didn't seem to help,
 
-     The subject and description of the patch doesn't match the contents.
-     The patch is adding a function that can *both* enable/disable gamma
-     table - not just disable.
+>
+> Another option to experiment with: use PRCM ISR to trigger a SW
+> interrupt of the UART IRQ (cf. MPU_INTC.INTCPS_ISR_SETn registers.)
+> This may be the cleanest approach, and not require calling into the
+> driver, but I'm not sure if the normal interrupt clearing process wil=
+l
+> also clear the SW interrupt.
 
-> 
-> Signed-off-by: Mythri P K <mythripk@ti.com>
-> ---
->  drivers/video/omap2/dss/dispc.c |   10 ++++++++++
->  drivers/video/omap2/dss/dss.h   |    1 +
->  2 files changed, 11 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/video/omap2/dss/dispc.c
-> b/drivers/video/omap2/dss/dispc.c
-> index 4a368c4..0defe16 100644
-> --- a/drivers/video/omap2/dss/dispc.c
-> +++ b/drivers/video/omap2/dss/dispc.c
-> @@ -1008,6 +1008,16 @@ void dispc_set_burst_size(enum omap_plane plane,
->  	enable_clocks(0);
->  }
-> 
-> +void dispc_enable_gamma_table(bool enable)
-> +{
-> +	/* This is partially implemented to support only
-> +	 *  disabling of the gamma table.
-> +	 */
-> +	BUG_ON(enable);
-[sp] Is BUG_ON really needed. Can't this be a WARN or equiv?
+need to check this.
 
-> +
-> +	REG_FLD_MOD(DISPC_CONFIG, enable, 9, 9);
+>
+> The best longer-term solution is will be to use the chained PRCM
+> interrupt handler[1] (not yet finished.) =A0Using that, drivers could
+> directly register for their individual module wakeup interrupts.
 
-[sp] I don't understand HDMI much, but if enabling gamma causes BUG_ON,
-     then why would we need implementation to disable it.
+Agree.
 
-     Instead, shouldn't the function be empty - if it can't be avoided
-     altogether?
-
-> +}
-> +
->  static void _dispc_set_vid_color_conv(enum omap_plane plane, bool enable)
->  {
->  	u32 val;
-> diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-> index 29f31fd..008cbf4 100644
-> --- a/drivers/video/omap2/dss/dss.h
-> +++ b/drivers/video/omap2/dss/dss.h
-> @@ -363,6 +363,7 @@ void dispc_set_plane_size(enum omap_plane plane, u16
-> width, u16 height);
->  void dispc_set_channel_out(enum omap_plane plane,
->  		enum omap_channel channel_out);
-> 
-> +void dispc_enable_gamma_table(bool enable);
-
-[sp] Is this patch really standalone? I suggest merging it with the patch
-     where the API is actually used.
-
-     In effect, nothing gets disabled in this patch.
-
->  int dispc_setup_plane(enum omap_plane plane,
->  		      u32 paddr, u16 screen_width,
->  		      u16 pos_x, u16 pos_y,
-> --
-> 1.5.6.3
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+> Kevin
+>
+> [1] http://marc.info/?l=3Dlinux-omap&m=3D129258489308837&w=3D2
+>
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-serial"=
+ in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
