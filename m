@@ -1,96 +1,48 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH] OMAP2+: clockdomain: add flag that will block autodeps from
- being added for a clockdomain
-Date: Tue, 8 Mar 2011 16:56:53 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1103081654200.15132@utopia.booyaka.com>
+Subject: RE: [PATCH 1/2] OMAP3: cpuidle: prevent CORE power domain from going
+ to RET or OFF when DSS is on
+Date: Tue, 8 Mar 2011 17:04:51 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1103081659350.15132@utopia.booyaka.com>
+References: <20110301220833.32613.54669.stgit@twilight.localdomain> <20110301224918.32613.95176.stgit@twilight.localdomain> <87pqq7pz27.fsf@ti.com> <854C6400F5AA6644BA6FE7953F3E769B0380F12F@008-AM1MPN1-013.mgdnok.nokia.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:55984 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:46425 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756423Ab1CHX4y (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Mar 2011 18:56:54 -0500
+	with ESMTP id S1756423Ab1CIAEw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Mar 2011 19:04:52 -0500
+In-Reply-To: <854C6400F5AA6644BA6FE7953F3E769B0380F12F@008-AM1MPN1-013.mgdnok.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
+To: Tero.Kristo@nokia.com
+Cc: khilman@ti.com, b-cousson@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
+Hi,
 
-Add a new clockdomain flag, CLKDM_NO_AUTODEPS, which, when marked on a
-clockdomain, will prevent "autodeps" from being associated with the
-clockdomain.  ("Autodeps" are sleep dependencies and wakeup
-dependencies from/to processor modules that are automatically added to
-a clockdomain when it is in hardware-supervised idle mode.  They are
-deprecated -- a relic from the old CDP trees -- but are still in use
-for OMAP3.)  Autodeps are presumably only needed due to hardware bugs
-where a device goes idle unexpectedly.
+On Fri, 4 Mar 2011, Tero.Kristo@nokia.com wrote:
 
-This patch should allow easy testing of which clockdomains actually
-still need autodeps.  Add the flag to the struct clockdomain you wish to 
-test, compile, boot, see if system still works :-)
+> What is the reason for having the sleepdep for DSS powerdomain anyway? 
+> At least I can't see any reason why the sleepdep for DSS should be set. 
+> In my opinion it should be perfectly okay for DSS domain to idle 
+> independently of MPU/CORE, as this is going to be better for power 
+> consumption also.
 
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
----
- arch/arm/mach-omap2/clockdomain.c |    4 ++--
- arch/arm/mach-omap2/clockdomain.h |   12 ++++++++++--
- 2 files changed, 12 insertions(+), 4 deletions(-)
+Those autodeps are only there because one of the old CDP trees had them in 
+there.  Talking with some people at TI, as I understand it, they are only 
+useful for working around hardware bugs.  As far as I know, as long as a 
+target module has its main clock and interface clock enabled, the PRCM 
+should not assert its SIdleReq line to the module, and so the module 
+should never enter idle.  
 
-diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
-index 58e42f7..2b4ab0b 100644
---- a/arch/arm/mach-omap2/clockdomain.c
-+++ b/arch/arm/mach-omap2/clockdomain.c
-@@ -181,7 +181,7 @@ static void _clkdm_add_autodeps(struct clockdomain *clkdm)
- {
- 	struct clkdm_autodep *autodep;
- 
--	if (!autodeps)
-+	if (!autodeps || clkdm->flags & CLKDM_NO_AUTODEPS)
- 		return;
- 
- 	for (autodep = autodeps; autodep->clkdm.ptr; autodep++) {
-@@ -215,7 +215,7 @@ static void _clkdm_del_autodeps(struct clockdomain *clkdm)
- {
- 	struct clkdm_autodep *autodep;
- 
--	if (!autodeps)
-+	if (!autodeps || clkdm->flags & CLKDM_NO_AUTODEPS)
- 		return;
- 
- 	for (autodep = autodeps; autodep->clkdm.ptr; autodep++) {
-diff --git a/arch/arm/mach-omap2/clockdomain.h b/arch/arm/mach-omap2/clockdomain.h
-index 9b459c2..5add071 100644
---- a/arch/arm/mach-omap2/clockdomain.h
-+++ b/arch/arm/mach-omap2/clockdomain.h
-@@ -4,7 +4,7 @@
-  * OMAP2/3 clockdomain framework functions
-  *
-  * Copyright (C) 2008 Texas Instruments, Inc.
-- * Copyright (C) 2008-2010 Nokia Corporation
-+ * Copyright (C) 2008-2011 Nokia Corporation
-  *
-  * Paul Walmsley
-  *
-@@ -22,11 +22,19 @@
- #include <plat/clock.h>
- #include <plat/cpu.h>
- 
--/* Clockdomain capability flags */
-+/*
-+ * Clockdomain flags
-+ *
-+ * XXX Document CLKDM_CAN_* flags
-+ *
-+ * CLKDM_NO_AUTODEPS: Prevent "autodeps" from being added/removed from this
-+ *     clockdomain.  (Currently, this applies to OMAP3 clockdomains only.)
-+ */
- #define CLKDM_CAN_FORCE_SLEEP			(1 << 0)
- #define CLKDM_CAN_FORCE_WAKEUP			(1 << 1)
- #define CLKDM_CAN_ENABLE_AUTO			(1 << 2)
- #define CLKDM_CAN_DISABLE_AUTO			(1 << 3)
-+#define CLKDM_NO_AUTODEPS			(1 << 4)
- 
- #define CLKDM_CAN_HWSUP		(CLKDM_CAN_ENABLE_AUTO | CLKDM_CAN_DISABLE_AUTO)
- #define CLKDM_CAN_SWSUP		(CLKDM_CAN_FORCE_SLEEP | CLKDM_CAN_FORCE_WAKEUP)
--- 
-1.7.2.3
+But no one seems to have an authoritative idea of which autodeps are still 
+needed, and which are not. Perhaps you, or someone else, might like to try 
+seeing which ones can be safely removed?  After applying this patch here:
 
+   http://marc.info/?l=linux-omap&m=129962861605157&w=2
+
+it should be possible to simply set a CLKDM_NO_AUTODEPS flag on a struct 
+clockdomain, and then no autodep will be added.
+
+regards
+
+- Paul
