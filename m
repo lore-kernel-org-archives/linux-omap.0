@@ -1,114 +1,138 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH v4 6/9] OMAP4 : DSS2 : HDMI: HDMI panel driver addition
- in the DSS
-Date: Thu, 10 Mar 2011 11:19:05 +0200
-Message-ID: <1299748745.2017.66.camel@deskari>
-References: <1299671118-20839-1-git-send-email-mythripk@ti.com>
-	 <1299671118-20839-2-git-send-email-mythripk@ti.com>
-	 <1299671118-20839-3-git-send-email-mythripk@ti.com>
-	 <1299671118-20839-4-git-send-email-mythripk@ti.com>
-	 <1299671118-20839-5-git-send-email-mythripk@ti.com>
-	 <1299671118-20839-6-git-send-email-mythripk@ti.com>
-	 <1299671118-20839-7-git-send-email-mythripk@ti.com>
-	 <1299743573.2017.16.camel@deskari>
-	 <AANLkTin4Uzt8Np9hgbZDSA7UBQo1dC9E7qxOa3W19JjH@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH v2 1/2] OMAP: hwmod: API to handle autoidle mode
+Date: Thu, 10 Mar 2011 02:24:15 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1103100216360.15132@utopia.booyaka.com>
+References: <1296477288-26253-1-git-send-email-kishon@ti.com> <1296477288-26253-2-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:55033 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751240Ab1CJJTI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 10 Mar 2011 04:19:08 -0500
-Received: from dlep36.itg.ti.com ([157.170.170.91])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p2A9J7i1019374
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 10 Mar 2011 03:19:07 -0600
-Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
-	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id p2A9J7G4015928
-	for <linux-omap@vger.kernel.org>; Thu, 10 Mar 2011 03:19:07 -0600 (CST)
-In-Reply-To: <AANLkTin4Uzt8Np9hgbZDSA7UBQo1dC9E7qxOa3W19JjH@mail.gmail.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:47348 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752272Ab1CJJYQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Mar 2011 04:24:16 -0500
+In-Reply-To: <1296477288-26253-2-git-send-email-kishon@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "K, Mythri P" <mythripk@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: linux-omap@vger.kernel.org, charu@ti.com, shubhrajyoti@ti.com, b-cousson@ti.com, khilman@deeprootsystems.com, p-basak2@ti.com
 
-On Thu, 2011-03-10 at 03:00 -0600, K, Mythri P wrote:
-> Hi Tomi,
+On Mon, 31 Jan 2011, Kishon Vijay Abraham I wrote:
+
+> Create a new API that forms a wrapper to _set_module_autoidle()
+> to modify the AUTOIDLE bit.
 > 
-> On Thu, Mar 10, 2011 at 1:22 PM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
-> > On Wed, 2011-03-09 at 05:45 -0600, K, Mythri P wrote:
-> >> The panel driver(hdmi_omap4_panel.c) in omap2/dss acts as a controller
-> >> to manage the enable and disable requests and synchronize audio and video.
-> >>
-> >> Signed-off-by: Mythri P K <mythripk@ti.com>
-> >
-> > <snip>
-> >
-> >> +static int hdmi_panel_probe(struct omap_dss_device *dssdev)
-> >> +{
-> >> +     DSSDBG("ENTER hdmi_panel_probe\n");
-> >> +
-> >> +     dssdev->panel.config = OMAP_DSS_LCD_TFT |
-> >> +                     OMAP_DSS_LCD_IVS | OMAP_DSS_LCD_IHS;
-> >> +
-> >> +     /*
-> >> +      * Initialize the timings to 1920 * 1080
-> >> +      * This is only for framebuffer update not for TV timing setting
-> >> +      * Setting TV timing will be done only on enable
-> >> +      */
-> >> +     dssdev->panel.timings.x_res = 1920;
-> >> +     dssdev->panel.timings.y_res = 1080;
-> >
-> > This will cause the framebuffer to be initialized to 1920x1080,
-> > regardless of the timings the hdmi driver will select.
+> This API is intended to be used by drivers that requires direct
+> manipulation of the AUTOIDLE bits in SYSCONFIG register.
+> McBSP driver requires autoidle bit to be enabled/disabled while
+> using sidetone feature.
 > 
-> I have set it to VGA , But anyways we need to fix FB to take the
-> feedback from the driver
-> for the timing , atleast when you disable the overlay set manager and
-> enable it again.
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Cc: Benoit Cousson <b-cousson@ti.com>
 
-No, the FB cannot do anything with that information. FB driver can't
-change the resolution by itself. It has to happen on some upper level,
-in the user space.
+I've made some changes to this patch.
 
-The only case when the FB can select the resolution is when the driver
-is loading. At that point nobody is using the framebuffer, as it didn't
-even exist earlier. That's why I suggested reading the EDID in the
-probe.
+I don't think this bit is slave-specific.  For example 34xx TRM Rev. ZH 
+Table 15-155 "DISPC_SYSCONFIG" refers to both the L3 and L4 interface 
+clock gating strategy.  So I've renamed the function to 
+omap_hwmod_set_ocp_autoidle().
 
-> > I think you should either probe the display here to find what it
-> > supports, and initialize the size accordingly, or if the display is not
-> > connected, use some safe resolution most of the displays should support.
-> > VGA probably.
-> >
-> > And the timings selected here should also be used by the hdmi driver.
-> > What happens now with my monitor is that I get a fb of 1920x1028, but
-> > the hdmi driver doesn't like the modes my monitor gives via EDID, and
-> > falls back to VGA -> messed up display.
-> >
-> > Also, I'm getting "timeout waiting for EVSYNC" when I load or unload the
-> > driver.
-> >
-> This is ok, I have not seen any issue because of this warning,
+Also I think the only valid hwmod state that this function could be called 
+in is ENABLED, so I've restricted its use to that state.  Please advise if 
+this is not correct.
 
-It's an error, it's not ok =).
+I've also cleaned up a few minor issues with the code and comments.  I'm 
+not entirely sure this function the best approach going forward, but it 
+should do for now.
 
-> Also we need to understand the rationale as to why the wait_timeout was added
-> in the code "dispc_enable_digit_out", It seems more like a hack, and
-> not necessarily needed?
+Updated patch below, queued for 2.6.39,
 
-When disabling, the point is to wait until the DISPC has really turned
-off the output. For VENC this needed waiting for EVSYNC_EVEN and ODD. I
-don't remember why the same code is ran when enabling.
 
-HDMI may work differently, so it is possible that the function needs to
-be fixed. But I wonder why it gives timeouts when enabling HDMI also...
-Shouldn't the EVSYNCs happen with HDMI too?
+- Paul
 
-We can look at that later, presuming the timeout doesn't cause any
-problems.
 
- Tomi
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Date: Mon, 31 Jan 2011 12:34:47 +0000
+Subject: [PATCH] OMAP2+: hwmod: add API to handle autoidle mode
 
+Create a new API that forms a wrapper to _set_module_autoidle()
+to modify the AUTOIDLE bit.
+
+This API is intended to be used by drivers that requires direct
+manipulation of the AUTOIDLE bits in SYSCONFIG register.
+McBSP driver requires autoidle bit to be enabled/disabled while
+using sidetone feature.
+
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Benoit Cousson <b-cousson@ti.com>
+[paul@pwsan.com: restrict the hwmod states that the autoidle bit can be changed
+ in; changed function name; dropped "int" from "unsigned int long"]
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap2/omap_hwmod.c             |   36 ++++++++++++++++++++++++++
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |    1 +
+ 2 files changed, 37 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index 816aeb9..a68a2cf 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -1288,6 +1288,42 @@ static int _idle(struct omap_hwmod *oh)
+ }
+ 
+ /**
++ * omap_hwmod_set_ocp_autoidle - set the hwmod's OCP autoidle bit
++ * @oh: struct omap_hwmod *
++ * @autoidle: desired AUTOIDLE bitfield value (0 or 1)
++ *
++ * Sets the IP block's OCP autoidle bit in hardware, and updates our
++ * local copy. Intended to be used by drivers that require
++ * direct manipulation of the AUTOIDLE bits.
++ * Returns -EINVAL if @oh is null or is not in the ENABLED state, or passes
++ * along the return value from _set_module_autoidle().
++ *
++ * Any users of this function should be scrutinized carefully.
++ */
++int omap_hwmod_set_ocp_autoidle(struct omap_hwmod *oh, u8 autoidle)
++{
++	u32 v;
++	int retval = 0;
++	unsigned long flags;
++
++	if (!oh || oh->_state != _HWMOD_STATE_ENABLED)
++		return -EINVAL;
++
++	spin_lock_irqsave(&oh->_lock, flags);
++
++	v = oh->_sysc_cache;
++
++	retval = _set_module_autoidle(oh, autoidle, &v);
++
++	if (!retval)
++		_write_sysconfig(v, oh);
++
++	spin_unlock_irqrestore(&oh->_lock, flags);
++
++	return retval;
++}
++
++/**
+  * _shutdown - shutdown an omap_hwmod
+  * @oh: struct omap_hwmod *
+  *
+diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+index bba2343..98f7f61 100644
+--- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
++++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+@@ -555,6 +555,7 @@ int omap_hwmod_enable_clocks(struct omap_hwmod *oh);
+ int omap_hwmod_disable_clocks(struct omap_hwmod *oh);
+ 
+ int omap_hwmod_set_slave_idlemode(struct omap_hwmod *oh, u8 idlemode);
++int omap_hwmod_set_ocp_autoidle(struct omap_hwmod *oh, u8 autoidle);
+ 
+ int omap_hwmod_reset(struct omap_hwmod *oh);
+ void omap_hwmod_ocp_barrier(struct omap_hwmod *oh);
+-- 
+1.7.2.3
 
