@@ -1,48 +1,33 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: Problem with DSS clocks & accessing registers
-Date: Thu, 10 Mar 2011 08:07:16 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1103100803020.15132@utopia.booyaka.com>
-References: <1299486149.2281.77.camel@deskari>  <4D74E2D5.2000705@ti.com> <1299510200.2281.199.camel@deskari> <4D760372.3020005@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [RFC PATCHv1 1/2] Export SoC info through sysfs
+Date: Thu, 10 Mar 2011 15:10:14 +0000
+Message-ID: <20110310151014.GA826@n2100.arm.linux.org.uk>
+References: <1299689961-5028-1-git-send-email-maxime.coquelin-nonst@stericsson.com>
+	<201103101529.25661.arnd@arndb.de>
+	<20110310144455.GG22195@opensource.wolfsonmicro.com>
+	<201103101602.19241.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:38231 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751788Ab1CJPHR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Mar 2011 10:07:17 -0500
-In-Reply-To: <4D760372.3020005@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <201103101602.19241.arnd@arndb.de>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: ext Nishanth Menon <nm@ti.com>, ext Tony Lindgren <tony@atomide.com>, Peter De-Schrijver <Peter.De-Schrijver@nokia.com>, Ambresh <a0393775@ti.com>, Saravana Kannan <skannan@codeaurora.org>, Jouni Hogander <jouni.hogander@nokia.com>, Lee Jones <Lee.Jones@linaro.org>, Rabin VINCENT <rabin.vincent@stericsson.com>, Jonas ABERG <jonas.aberg@stericsson.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, David Brown <davidb@codeaurora.org>, Maxime Coquelin <maxime.coquelin-nonst@stericsson.com>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, Loic PALLARDY <loic.pallardy@stericsson.com>, "eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>, maxime_coquelin@yahoo.fr, Ryan Mallon <ryan@bluewatersys.com>, Linux-OMAP <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, Daniel Walker <dwalker@codeaurora.org>, Linus Walleij <linus.ml.walleij>
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Hilman, Kevin" <khilman@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "Taneja, Archit" <archit@ti.com>, "Semwal, Sumit" <sumit.semwal@ti.com>
 
-Hi,
+On Thu, Mar 10, 2011 at 04:02:18PM +0100, Arnd Bergmann wrote:
+> The one thing that really doesn't belong in /sys/devices/platform/
+> however are devices that are clearly children of some other
+> device, e.g. a UART behind MFD behind I2C behind AHB.
 
-On Tue, 8 Mar 2011, Cousson, Benoit wrote:
-
-> Adding the check in the clock framework for DSS clock nodes only might be the
-> cleanest way to do that right now.
-> 
-> You can map clock nodes to clkops_omap2_dflt_wait clkops instead of the
-> clkops_omap2_dflt currently used. But then you will have to add the support
-> for OMAP4, since for the moment the function seems to work only for OMAP2 & 3
-> (omap2_clk_dflt_find_idlest).
-> 
-> It is a little bit more complex than the current WA but should not be that
-> hard either to do.
-> This is a much cleaner WA before having the full hwmod support for the DSS for
-> my point of view.
-> 
-> Paul,
-> Any thoughts?
-
-Tomi, unless you have the time to try implementing it via the clock 
-framework, I'd suggest that the udelay() is probably the best approach to 
-get something into 2.6.39.  I don't like the udelay() either, and I'd 
-suggest marking it with a #warning or a big fat comment. 
-
-Unfortunately I've run out of time to do any additional work for this 
-merge window.
-
-
-- Paul
+Who ever thought about putting a UART behind I2C ?  That's insane!
