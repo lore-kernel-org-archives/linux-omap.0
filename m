@@ -1,167 +1,214 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH v2 00/19] OMAP4: PM: Suspend, CPU-hotplug and CPUilde support.
-Date: Thu, 10 Mar 2011 19:37:56 +0530
-Message-ID: <1299766095-23879-1-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH v2 13/19] OMAP4: suspend: Add MPUSS RET and OFF support
+Date: Thu, 10 Mar 2011 19:38:09 +0530
+Message-ID: <1299766095-23879-14-git-send-email-santosh.shilimkar@ti.com>
+References: <1299766095-23879-1-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52812 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:52811 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752367Ab1CJOI3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1752210Ab1CJOI3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Thu, 10 Mar 2011 09:08:29 -0500
+In-Reply-To: <1299766095-23879-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: khilman@ti.com, rnayak@ti.com, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-V2 updates:
-Rebased on latest pm-core branch and fixes below comments
-from Kevin Hilman <khilman@ti.com>. 
-- All acronym fixes
-- Use WARN_ON() instead of BUG_ON() with graceful exit.
-- Export omap4_get_base*() rather than global address pointers
-- CPUidle prepare() hook + hotplug notifier to manage C-state dynamically.
-- Dropped debugfs way of changing C-state valid flags in favor of above.
+This patch adds MPUSS(MPU Sub System) RET and OFF mode support
+to suspend path. For both MPUSS RET and OFF support, CPUs are
+programmed to OFF state.
 
-Full series with cherry-picked dependencies are available on below
-git branch. 
+Only MPUSS RET and OFF supported at this point of time. CORE RET
+will be added subsequently.
 
-git://dev.omapzoom.org/pub/scm/santosh/kernel-omap4-base.git
-omap4_pm_for-next_v2
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>
+---
+ arch/arm/mach-omap2/omap4-mpuss-lowpower.c |    6 ++-
+ arch/arm/mach-omap2/pm-debug.c             |    2 +
+ arch/arm/mach-omap2/pm.h                   |    1 +
+ arch/arm/mach-omap2/pm44xx.c               |   84 ++++++++++++++++++++++++++-
+ 4 files changed, 88 insertions(+), 5 deletions(-)
 
-This series adds OMAP4 suspend and cpuidle support till MPU subsystem
-(MPUSS) off-mode. The suspend on SMP machines uses cpu-hotplug 
-infrastructure to take down the non-boot CPUs. We put secondary
-CPU(CPU1 in OMAP4) to OFF state via cpu-hotplug.
-In cpuidle too, low power states are attempted only when the
-CPU1 is put to OFF state via cpu-hotplug because of hardware
-constraints.
-
-Timer wakeup from suspend, debug pm counters and enable_off_mode
-provisions are supported as well.
-
-Special thanks to Kevin Hilman <khilman@ti.com> for doing detail
-off-the list reviews.
-
-The patches are generated against mainline 2.6.38-rc5 and tested with
-OMAP4430 SDP and OMAP4 PANDA board. Any OMAP4 board with ES2.X silicon,
-below features should work with this series. On ES1.0, these PM 
-features are not supported.
-	1. CPU hotplug (CPU is put into off-mode)
-	2. Suspend (Both CPUs put to off-mode and MPUSS to OFF/RET)
-	3. CPUILDE with below C-states.
-		C1 - CPU0 ON + CPU1 ON/OFF + MPU ON + CORE ON
-		C2 - CPU0 ON + CPU1 OFF + MPU ON + CORE ON
-		C3 - CPU0 OFF + CPU1 OFF + MPU CSWR + CORE ON
-		C4 - CPU0 OFF + CPU1 OFF + MPU OFF + CORE ON
-
-In OMAP4 mpuss consist of dual Cortex-A9 with per-cpu local timers
-GIC(Generic Interrupt Controller), SCU(Snoop Control Unit) and PL310
-L2 cache controller and  CPU0/CPU1 LPRM modules.
-CPU0, CPU1 and MPUSS have there own power domain and hence multiple
-low power state combinations are possible. The CPU10 and CPU1
-Close switch Retention(CSWR) isn't supported by hardware.
-Based on various studies, measurements, hardware constraints
-and recommendations from hardware team, only below low power
-modes are supported on OMAP4.
-----------------------------------------
-CPU0		CPU1		MPUSS
-----------------------------------------
-ON		ON		ON
-OFF		OFF		CSWR
-OFF		OFF		OSWR 
-OFF		OFF		OFF
------------------------------------------
-Note: CPU0 is the master core and it is the last CPU to go down
-and first to wake-up when MPUSS low power states are attempted
-
-OSWR(Open Switch Retention) is not added as part of this series
-because it needs some power domain level support which isn't ready
-yet.
-	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg38667.html
-
-Powerdomain INACTIVE support is also dropped because of its 
-inconsistency between OMAP4 and OMAP3.
-More information  on this thread -
-	http://www.spinics.net/lists/linux-omap/msg45370.html
-
-This series has a dependency on few patches from below series.
-	- GIC and SCU patches from [1] (queued up in RMK's for-next)
-	- Local Timer patches from [2] (queued up in RMK's for-next)
-	- Not clearing the static deps hack which is getting sorted out.
-
-The cpu-hotplug and suspend works with omap2plus_defconfig. Not to damage
-your file system with current omap2plus_defconfig, disable ARCH_OMAP2 so
-that V6 and V7 support is not built together with SMP.
-To tryout cpuidle, CONFIG_CPU_IDLE needs to be enabled in the build.
-
-CPU-HOTPLUG commands :
-	offline : $echo 0 > /sys/devices/system/cpu/cpu1/online
-	online : $echo 1 > /sys/devices/system/cpu/cpu1/online
-
-Suspend :$echo mem > /sys/power/state
-
-cpuilde : To trigger cpuidle deeper C-states on OMAP4, CPU1 needs
-	to be offlied
-	$echo 0 > /sys/devices/system/cpu/cpu1/online
-
-To see PM debug counters,
-	$mount -t debugfs debugfs /proc/sys/debug/
-	$cat /proc/sys/debug/pm_debug/count
-off-mode debugfs control:
-	enable: $echo 1 > /proc/sys/debug/pm_debug/enable_off_mode
-	disable: $echo 0 > /proc/sys/debug/pm_debug/enable_off_mode
-
-Summary:
-
-Rajendra Nayak (1):
-  OMAP4: cpuidle: Basic CPUidle support
-
-Santosh Shilimkar (18):
-  OMAP4: PM: Add omap WakeupGen module support
-  OMAP4: Use WARN_ON() instead of BUG_ON() with graceful exit
-  OMAP4: PM: Export omap4_get_base*() rather than global address
-    pointers
-  OMAP4: PM: Add SAR RAM support
-  OMAP4: PM: Add CPUX OFF mode support
-  OMAP4: PM: Initialise all the clockdomains to supported states
-  OMAP4: PM: Program CPU1 to hit OFF when off-lined
-  OMAP4: PM: CPU1 wakeup workaround from Low power modes
-  OMAP4: PM: Add GIC distributor and interface enable/disable accessory
-    api
-  OMAP4: PM: Add GIC save/restore support
-  OMAP4: PM: Add WakeupGen save/restore support
-  OMAP4: PM: Add L2 cache lowpower support
-  OMAP4: suspend: Add MPUSS RET and OFF support
-  OMAP4: pm-debug: Add wakeup timer and debug counters
-  OMAP4: cpuidle: Add MPUSS RET OFF states
-  OMAP4: cpuidle: Switch to gptimer from twd in deeper C-states.
-  OMAP4: cpuidle: Add CPU hotplug notifier and prepare() hook.
-  OMAP4: Remove un-used do_wfi() macro.
-
- arch/arm/mach-omap2/Makefile                      |    8 +-
- arch/arm/mach-omap2/cpuidle44xx.c                 |  352 ++++++++++++++++
- arch/arm/mach-omap2/include/mach/omap-wakeupgen.h |   41 ++
- arch/arm/mach-omap2/include/mach/omap4-common.h   |   73 +++-
- arch/arm/mach-omap2/omap-hotplug.c                |   30 ++-
- arch/arm/mach-omap2/omap-smp.c                    |   32 ++-
- arch/arm/mach-omap2/omap-wakeupgen.c              |  319 +++++++++++++++
- arch/arm/mach-omap2/omap4-common.c                |   85 ++++-
- arch/arm/mach-omap2/omap4-mpuss-lowpower.c        |  451 +++++++++++++++++++++
- arch/arm/mach-omap2/omap4-sar-layout.h            |   66 +++
- arch/arm/mach-omap2/pm-debug.c                    |   12 +-
- arch/arm/mach-omap2/pm.h                          |    2 +
- arch/arm/mach-omap2/pm44xx.c                      |  119 ++++++-
- arch/arm/mach-omap2/sleep44xx.S                   |  400 ++++++++++++++++++
- arch/arm/plat-omap/include/plat/omap44xx.h        |    1 +
- 15 files changed, 1958 insertions(+), 33 deletions(-)
- create mode 100644 arch/arm/mach-omap2/cpuidle44xx.c
- create mode 100644 arch/arm/mach-omap2/include/mach/omap-wakeupgen.h
- create mode 100644 arch/arm/mach-omap2/omap-wakeupgen.c
- create mode 100644 arch/arm/mach-omap2/omap4-mpuss-lowpower.c
- create mode 100644 arch/arm/mach-omap2/omap4-sar-layout.h
- create mode 100644 arch/arm/mach-omap2/sleep44xx.S
+diff --git a/arch/arm/mach-omap2/omap4-mpuss-lowpower.c b/arch/arm/mach-omap2/omap4-mpuss-lowpower.c
+index 026c955..7348d29 100644
+--- a/arch/arm/mach-omap2/omap4-mpuss-lowpower.c
++++ b/arch/arm/mach-omap2/omap4-mpuss-lowpower.c
+@@ -25,7 +25,7 @@
+  *	ON(Inactive)	OFF		ON(Inactive)
+  *	OFF		OFF		CSWR
+  *	OFF		OFF		OSWR (*TBD)
+- *	OFF		OFF		OFF* (*TBD)
++ *	OFF		OFF		OFF
+  *	----------------------------------------------
+  *
+  * Note: CPU0 is the master core and it is the last CPU to go down
+@@ -293,6 +293,7 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
+ 	 * Check MPUSS next state and save GIC if needed
+ 	 * GIC lost during MPU OFF and OSWR
+ 	 */
++	pwrdm_clear_all_prev_pwrst(mpuss_pd);
+ 	if (pwrdm_read_next_pwrst(mpuss_pd) == PWRDM_POWER_OFF) {
+ 		omap_wakeupgen_save();
+ 		gic_save_context();
+@@ -414,6 +415,9 @@ int __init omap4_mpuss_init(void)
+ 		return -ENODEV;
+ 	}
  
-Regrads,
-Santosh
-[1] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg42939.html
-[2] http://www.spinics.net/lists/linux-omap/msg45710.html
++	/* Clear CPU previous power domain state */
++	pwrdm_clear_all_prev_pwrst(mpuss_pd);
++
+ 	/*
+ 	 * Find out how many interrupts are supported.
+ 	 * OMAP4 supports max of 128 SPIs where as GIC can support
+diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
+index a5a83b3..34f0e5d 100644
+--- a/arch/arm/mach-omap2/pm-debug.c
++++ b/arch/arm/mach-omap2/pm-debug.c
+@@ -588,6 +588,8 @@ static int option_set(void *data, u64 val)
+ 			omap_pm_disable_off_mode();
+ 		if (cpu_is_omap34xx())
+ 			omap3_pm_off_mode_enable(val);
++		else if (cpu_is_omap44xx())
++			omap4_pm_off_mode_enable(val);
+ 	}
+ 
+ 	return 0;
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index 797bfd1..ec5a36f 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -17,6 +17,7 @@
+ 
+ extern void *omap3_secure_ram_storage;
+ extern void omap3_pm_off_mode_enable(int);
++extern void omap4_pm_off_mode_enable(int);
+ extern void omap_sram_idle(void);
+ extern int omap3_can_sleep(void);
+ extern int omap_set_pwrdm_state(struct powerdomain *pwrdm, u32 state);
+diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
+index d55a9b8..0d1f33a 100644
+--- a/arch/arm/mach-omap2/pm44xx.c
++++ b/arch/arm/mach-omap2/pm44xx.c
+@@ -1,8 +1,9 @@
+ /*
+  * OMAP4 Power Management Routines
+  *
+- * Copyright (C) 2010 Texas Instruments, Inc.
++ * Copyright (C) 2010-2011 Texas Instruments, Inc.
+  * Rajendra Nayak <rnayak@ti.com>
++ * Santosh Shilimkar <santosh.shilimkar@ti.com>
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 as
+@@ -20,6 +21,7 @@
+ 
+ #include "powerdomain.h"
+ #include "clockdomain.h"
++#include "pm.h"
+ 
+ struct power_state {
+ 	struct powerdomain *pwrdm;
+@@ -35,7 +37,48 @@ static LIST_HEAD(pwrst_list);
+ #ifdef CONFIG_SUSPEND
+ static int omap4_pm_suspend(void)
+ {
+-	do_wfi();
++	struct power_state *pwrst;
++	int state, ret = 0;
++	u32 cpu_id = smp_processor_id();
++
++	/* Save current powerdomain state */
++	list_for_each_entry(pwrst, &pwrst_list, node) {
++		pwrst->saved_state = pwrdm_read_next_pwrst(pwrst->pwrdm);
++	}
++
++	/* Set targeted power domain states by suspend */
++	list_for_each_entry(pwrst, &pwrst_list, node) {
++		omap_set_pwrdm_state(pwrst->pwrdm, pwrst->next_state);
++	}
++
++	/*
++	 * For MPUSS to hit power domain retention(CSWR or OSWR),
++	 * CPU0 and CPU1 power domain needs to be in OFF or DORMANT
++	 * state. For MPUSS to reach off-mode. CPU0 and CPU1 power domain
++	 * should be in off state.
++	 * Only master CPU followes suspend path. All other CPUs follow
++	 * cpu-hotplug path in system wide suspend. On OMAP4, CPU power
++	 * domain CSWR is not supported by hardware.
++	 * More details can be found in OMAP4430 TRM section 4.3.4.2.
++	 */
++	omap4_enter_lowpower(cpu_id, PWRDM_POWER_OFF);
++
++	/* Restore next powerdomain state */
++	list_for_each_entry(pwrst, &pwrst_list, node) {
++		state = pwrdm_read_prev_pwrst(pwrst->pwrdm);
++		if (state > pwrst->next_state) {
++			pr_info("Powerdomain (%s) didn't enter "
++			       "target state %d\n",
++			       pwrst->pwrdm->name, pwrst->next_state);
++			ret = -1;
++		}
++		omap_set_pwrdm_state(pwrst->pwrdm, pwrst->saved_state);
++	}
++	if (ret)
++		pr_err("Could not enter target state in pm_suspend\n");
++	else
++		pr_err("Successfully put all powerdomains to target state\n");
++
+ 	return 0;
+ }
+ 
+@@ -98,14 +141,47 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
+ 	if (!pwrdm->pwrsts)
+ 		return 0;
+ 
++	/*
++	 * Skip CPU0 and CPU1 power domains. CPU1 is programmed
++	 * through hotplug path and CPU0 explicitly programmed
++	 * further down in the code path
++	 */
++	if ((!strcmp(pwrdm->name, "cpu0_pwrdm")) ||
++		(!strcmp(pwrdm->name, "cpu1_pwrdm")))
++		return 0;
++
++	/*
++	 * FIXME: Remove this check when core retention is supported
++	 * Only MPUSS power domain is added in the list.
++	 */
++	if (strcmp(pwrdm->name, "mpu_pwrdm"))
++		return 0;
++
+ 	pwrst = kmalloc(sizeof(struct power_state), GFP_ATOMIC);
+ 	if (!pwrst)
+ 		return -ENOMEM;
++
+ 	pwrst->pwrdm = pwrdm;
+-	pwrst->next_state = PWRDM_POWER_ON;
++	pwrst->next_state = PWRDM_POWER_RET;
+ 	list_add(&pwrst->node, &pwrst_list);
+ 
+-	return pwrdm_set_next_pwrst(pwrst->pwrdm, pwrst->next_state);
++	return omap_set_pwrdm_state(pwrst->pwrdm, pwrst->next_state);
++}
++
++void omap4_pm_off_mode_enable(int enable)
++{
++	struct power_state *pwrst;
++	u32 state;
++
++	if (enable)
++		state = PWRDM_POWER_OFF;
++	else
++		state = PWRDM_POWER_RET;
++
++	list_for_each_entry(pwrst, &pwrst_list, node) {
++		pwrst->next_state = state;
++		omap_set_pwrdm_state(pwrst->pwrdm, state);
++	}
+ }
+ 
+ /**
+-- 
+1.6.0.4
 
