@@ -1,107 +1,202 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH] omap2plus: smartreflex: remove sr debug directory in omap_sr_remove()
-Date: Wed, 09 Mar 2011 15:42:18 -0800
-Message-ID: <87fwqvvp2d.fsf@ti.com>
-References: <1297958250-13612-1-git-send-email-sawant@ti.com>
+Subject: Re: [PATCH] perf: add OMAP support for the new power events
+Date: Wed, 09 Mar 2011 16:08:00 -0800
+Message-ID: <878vwnvnvj.fsf@ti.com>
+References: <1298052645-4164-1-git-send-email-j-pihet@ti.com>
+	<1299147943-2929-1-git-send-email-j-pihet@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:42708 "EHLO
-	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751249Ab1CIXmX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Mar 2011 18:42:23 -0500
-Received: by mail-px0-f177.google.com with SMTP id 10so205406pxi.36
-        for <linux-omap@vger.kernel.org>; Wed, 09 Mar 2011 15:42:21 -0800 (PST)
-In-Reply-To: <1297958250-13612-1-git-send-email-sawant@ti.com>
-	(sawant@ti.com's message of "Thu, 17 Feb 2011 21:27:30 +0530")
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:39511 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751712Ab1CJAIG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Mar 2011 19:08:06 -0500
+Received: by mail-gw0-f52.google.com with SMTP id 15so271135gwj.39
+        for <linux-omap@vger.kernel.org>; Wed, 09 Mar 2011 16:08:04 -0800 (PST)
+In-Reply-To: <1299147943-2929-1-git-send-email-j-pihet@ti.com> (Jean Pihet's
+	message of "Thu, 3 Mar 2011 11:25:43 +0100")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: sawant@ti.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: Thomas Renninger <trenn@suse.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Jean Pihet <j-pihet@ti.com>
 
-sawant@ti.com writes:
+Jean Pihet <jean.pihet@newoldbits.com> writes:
 
-> From: Anand S Sawant <sawant@ti.com>
+> The patch adds the new power management trace points for
+> the OMAP architecture.
 >
-> omap_sr_probe() creates the smartreflex debug directory and its
-> underlying nvalue debug directory. These directories are removed in
-> omap_sr_remove().
->
-> Basic smartreflex functionality tested on OMAP3630 Zoom3 & OMAP4430 SDP
->
-> Signed-off-by: Anand S Sawant <sawant@ti.com>
+> The trace points are for:
+> - default idle handler. Since the cpuidle framework is
+>   instrumented in the generic way there is no need to
+>   add trace points in the OMAP specific cpuidle handler;
+> - cpufreq (DVFS),
 
-Thanks, queuing for 2.6.39 (branch: for_2.6.39/pm-misc)
+Minor: AFAICT, this patch doesn't instrument CPUfreq.
+
+> - SoC clocks changes (enable, disable, set_rate),
+> - power domain states: the desired target state and -if different-
+>   the actually hit state.
+>
+> Because of the generic nature of the changes, OMAP3 and OMAP4 are supported.
+>
+> Tested on OMAP3 with suspend/resume, cpuidle, basic DVFS.
+>
+> Signed-off-by: Jean Pihet <j-pihet@ti.com>
+
+With Paul's ack on the powerdomain changes, I'll queue this for 2.6.39
+after making the above change in the changelog.
 
 Kevin
 
+
 > ---
-> Rebased on the latest Kevin's pm branch 
-> (commit id: b6fb54bc4bfc396a9b982d76c1c954c974290a1a)
+>  arch/arm/mach-omap2/clock.c       |   11 +++++++++--
+>  arch/arm/mach-omap2/pm34xx.c      |    7 +++++++
+>  arch/arm/mach-omap2/powerdomain.c |   26 +++++++++++++++++++++++---
+>  3 files changed, 39 insertions(+), 5 deletions(-)
 >
->  arch/arm/mach-omap2/smartreflex.c |   23 +++++++++++++----------
->  1 files changed, 13 insertions(+), 10 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
-> index a1f532e..dc19f17 100644
-> --- a/arch/arm/mach-omap2/smartreflex.c
-> +++ b/arch/arm/mach-omap2/smartreflex.c
-> @@ -54,6 +54,7 @@ struct omap_sr {
->  	struct list_head		node;
->  	struct omap_sr_nvalue_table	*nvalue_table;
->  	struct voltagedomain		*voltdm;
-> +	struct dentry			*dbg_dir;
->  };
+> diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+> index 46d03cc..180299e 100644
+> --- a/arch/arm/mach-omap2/clock.c
+> +++ b/arch/arm/mach-omap2/clock.c
+> @@ -22,7 +22,9 @@
+>  #include <linux/clk.h>
+>  #include <linux/io.h>
+>  #include <linux/bitops.h>
+> +#include <trace/events/power.h>
 >  
->  /* sr_list contains all the instances of smartreflex module */
-> @@ -822,7 +823,7 @@ static int __init omap_sr_probe(struct platform_device *pdev)
->  	struct omap_sr *sr_info = kzalloc(sizeof(struct omap_sr), GFP_KERNEL);
->  	struct omap_sr_data *pdata = pdev->dev.platform_data;
->  	struct resource *mem, *irq;
-> -	struct dentry *vdd_dbg_dir, *dbg_dir, *nvalue_dir;
-> +	struct dentry *vdd_dbg_dir, *nvalue_dir;
->  	struct omap_volt_data *volt_data;
->  	int i, ret = 0;
+> +#include <asm/cpu.h>
+>  #include <plat/clock.h>
+>  #include "clockdomain.h"
+>  #include <plat/cpu.h>
+> @@ -261,8 +263,10 @@ void omap2_clk_disable(struct clk *clk)
 >  
-> @@ -895,23 +896,23 @@ static int __init omap_sr_probe(struct platform_device *pdev)
->  	if (!vdd_dbg_dir)
->  		return -EINVAL;
+>  	pr_debug("clock: %s: disabling in hardware\n", clk->name);
 >  
-> -	dbg_dir = debugfs_create_dir("smartreflex", vdd_dbg_dir);
-> -	if (IS_ERR(dbg_dir)) {
-> +	sr_info->dbg_dir = debugfs_create_dir("smartreflex", vdd_dbg_dir);
-> +	if (IS_ERR(sr_info->dbg_dir)) {
->  		dev_err(&pdev->dev, "%s: Unable to create debugfs directory\n",
->  			__func__);
-> -		return PTR_ERR(dbg_dir);
-> +		return PTR_ERR(sr_info->dbg_dir);
+> -	if (clk->ops && clk->ops->disable)
+> +	if (clk->ops && clk->ops->disable) {
+> +		trace_clock_disable(clk->name, 0, smp_processor_id());
+>  		clk->ops->disable(clk);
+> +	}
+>  
+>  	if (clk->clkdm)
+>  		clkdm_clk_disable(clk->clkdm, clk);
+> @@ -314,6 +318,7 @@ int omap2_clk_enable(struct clk *clk)
 >  	}
 >  
-> -	(void) debugfs_create_file("autocomp", S_IRUGO | S_IWUSR, dbg_dir,
-> -				(void *)sr_info, &pm_sr_fops);
-> -	(void) debugfs_create_x32("errweight", S_IRUGO, dbg_dir,
-> +	(void) debugfs_create_file("autocomp", S_IRUGO | S_IWUSR,
-> +			sr_info->dbg_dir, (void *)sr_info, &pm_sr_fops);
-> +	(void) debugfs_create_x32("errweight", S_IRUGO, sr_info->dbg_dir,
->  			&sr_info->err_weight);
-> -	(void) debugfs_create_x32("errmaxlimit", S_IRUGO, dbg_dir,
-> +	(void) debugfs_create_x32("errmaxlimit", S_IRUGO, sr_info->dbg_dir,
->  			&sr_info->err_maxlimit);
-> -	(void) debugfs_create_x32("errminlimit", S_IRUGO, dbg_dir,
-> +	(void) debugfs_create_x32("errminlimit", S_IRUGO, sr_info->dbg_dir,
->  			&sr_info->err_minlimit);
+>  	if (clk->ops && clk->ops->enable) {
+> +		trace_clock_enable(clk->name, 1, smp_processor_id());
+>  		ret = clk->ops->enable(clk);
+>  		if (ret) {
+>  			WARN(1, "clock: %s: could not enable: %d\n",
+> @@ -353,8 +358,10 @@ int omap2_clk_set_rate(struct clk *clk, unsigned long rate)
+>  	pr_debug("clock: set_rate for clock %s to rate %ld\n", clk->name, rate);
 >  
-> -	nvalue_dir = debugfs_create_dir("nvalue", dbg_dir);
-> +	nvalue_dir = debugfs_create_dir("nvalue", sr_info->dbg_dir);
->  	if (IS_ERR(nvalue_dir)) {
->  		dev_err(&pdev->dev, "%s: Unable to create debugfs directory"
->  			"for n-values\n", __func__);
-> @@ -975,6 +976,8 @@ static int __devexit omap_sr_remove(struct platform_device *pdev)
+>  	/* dpll_ck, core_ck, virt_prcm_set; plus all clksel clocks */
+> -	if (clk->set_rate)
+> +	if (clk->set_rate) {
+> +		trace_clock_set_rate(clk->name, rate, smp_processor_id());
+>  		ret = clk->set_rate(clk, rate);
+> +	}
 >  
->  	if (sr_info->autocomp_active)
->  		sr_stop_vddautocomp(sr_info);
-> +	if (sr_info->dbg_dir)
-> +		debugfs_remove_recursive(sr_info->dbg_dir);
+>  	return ret;
+>  }
+> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+> index bd610bc..d46b9ff 100644
+> --- a/arch/arm/mach-omap2/pm34xx.c
+> +++ b/arch/arm/mach-omap2/pm34xx.c
+> @@ -29,6 +29,7 @@
+>  #include <linux/delay.h>
+>  #include <linux/slab.h>
+>  #include <linux/console.h>
+> +#include <trace/events/power.h>
 >  
->  	list_del(&sr_info->node);
->  	iounmap(sr_info->base);
+>  #include <plat/sram.h>
+>  #include "clockdomain.h"
+> @@ -514,8 +515,14 @@ static void omap3_pm_idle(void)
+>  	if (omap_irq_pending() || need_resched())
+>  		goto out;
+>  
+> +	trace_power_start(POWER_CSTATE, 1, smp_processor_id());
+> +	trace_cpu_idle(1, smp_processor_id());
+> +
+>  	omap_sram_idle();
+>  
+> +	trace_power_end(smp_processor_id());
+> +	trace_cpu_idle(PWR_EVENT_EXIT, smp_processor_id());
+> +
+>  out:
+>  	local_fiq_enable();
+>  	local_irq_enable();
+> diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+> index eaed0df..1495eed 100644
+> --- a/arch/arm/mach-omap2/powerdomain.c
+> +++ b/arch/arm/mach-omap2/powerdomain.c
+> @@ -19,12 +19,15 @@
+>  #include <linux/list.h>
+>  #include <linux/errno.h>
+>  #include <linux/string.h>
+> +#include <trace/events/power.h>
+> +
+>  #include "cm2xxx_3xxx.h"
+>  #include "prcm44xx.h"
+>  #include "cm44xx.h"
+>  #include "prm2xxx_3xxx.h"
+>  #include "prm44xx.h"
+>  
+> +#include <asm/cpu.h>
+>  #include <plat/cpu.h>
+>  #include "powerdomain.h"
+>  #include "clockdomain.h"
+> @@ -32,6 +35,8 @@
+>  
+>  #include "pm.h"
+>  
+> +#define PWRDM_TRACE_STATES_FLAG	(1<<31)
+> +
+>  enum {
+>  	PWRDM_STATE_NOW = 0,
+>  	PWRDM_STATE_PREV,
+> @@ -130,8 +135,7 @@ static void _update_logic_membank_counters(struct powerdomain *pwrdm)
+>  static int _pwrdm_state_switch(struct powerdomain *pwrdm, int flag)
+>  {
+>  
+> -	int prev;
+> -	int state;
+> +	int prev, state, trace_state = 0;
+>  
+>  	if (pwrdm == NULL)
+>  		return -EINVAL;
+> @@ -148,6 +152,17 @@ static int _pwrdm_state_switch(struct powerdomain *pwrdm, int flag)
+>  			pwrdm->state_counter[prev]++;
+>  		if (prev == PWRDM_POWER_RET)
+>  			_update_logic_membank_counters(pwrdm);
+> +		/*
+> +		 * If the power domain did not hit the desired state,
+> +		 * generate a trace event with both the desired and hit states
+> +		 */
+> +		if (state != prev) {
+> +			trace_state = (PWRDM_TRACE_STATES_FLAG |
+> +				       ((state & OMAP_POWERSTATE_MASK) << 8) |
+> +				       ((prev & OMAP_POWERSTATE_MASK) << 0));
+> +			trace_power_domain_target(pwrdm->name, trace_state,
+> +						  smp_processor_id());
+> +		}
+>  		break;
+>  	default:
+>  		return -EINVAL;
+> @@ -406,8 +421,13 @@ int pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst)
+>  	pr_debug("powerdomain: setting next powerstate for %s to %0x\n",
+>  		 pwrdm->name, pwrst);
+>  
+> -	if (arch_pwrdm && arch_pwrdm->pwrdm_set_next_pwrst)
+> +	if (arch_pwrdm && arch_pwrdm->pwrdm_set_next_pwrst) {
+> +		/* Trace the pwrdm desired target state */
+> +		trace_power_domain_target(pwrdm->name, pwrst,
+> +					  smp_processor_id());
+> +		/* Program the pwrdm desired target state */
+>  		ret = arch_pwrdm->pwrdm_set_next_pwrst(pwrdm, pwrst);
+> +	}
+>  
+>  	return ret;
+>  }
