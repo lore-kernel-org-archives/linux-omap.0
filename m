@@ -1,48 +1,40 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH v5 00/10] OMAP4 : DSS2 : HDMI support on OMAP4
-Date: Thu, 10 Mar 2011 16:51:15 +0200
-Message-ID: <1299768675.2017.230.camel@deskari>
-References: <1299753858-12222-1-git-send-email-mythripk@ti.com>
-	 <1299764643.2017.177.camel@deskari>  <4D78E3F5.2090600@openelec.tv>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 2/2] OMAP3: wdtimer: Fix CORE idle transition
+Date: Thu, 10 Mar 2011 07:52:55 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1103100752370.15132@utopia.booyaka.com>
+References: <1299759058-26342-1-git-send-email-kalle.jokiniemi@nokia.com> <1299759058-26342-3-git-send-email-kalle.jokiniemi@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:43049 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751137Ab1CJOvT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 10 Mar 2011 09:51:19 -0500
-In-Reply-To: <4D78E3F5.2090600@openelec.tv>
+Received: from utopia.booyaka.com ([72.9.107.138]:33912 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753032Ab1CJOw4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Mar 2011 09:52:56 -0500
+In-Reply-To: <1299759058-26342-3-git-send-email-kalle.jokiniemi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Stephan Raue <mailinglists@openelec.tv>
-Cc: "K, Mythri P" <mythripk@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
+Cc: linux-watchdog@vger.kernel.org, wim@iguana.be, khilman@ti.com, linux-omap@vger.kernel.org, tony@atomide.com, jhnikula@gmail.com, ilkka.koskinen@nokia.com, Benoit Cousson <b-cousson@ti.com>
 
-On Thu, 2011-03-10 at 08:45 -0600, Stephan Raue wrote:
-> Hi,
+On Thu, 10 Mar 2011, Kalle Jokiniemi wrote:
+
+> From: Paul Walmsley <paul@pwsan.com>
 > 
-> if i try this patch series the boot stops after (seeing via serial console):
+> The HW superwised smart idle for wdtimer in OMAP3 prevents
+> CORE power domain idle transitions. Disable it by swithing
+> to SW supervised transitions.
 > 
->    Starting kernel ...
+> This could be a hardware bug in the OMAP3 wdtimer2 block.
 > 
->    Uncompressing Linux... done, booting the kernel.
-> 
-> without this patch series i can see the boot to th OS. I am using this 
-> patches on top of
-> 
->    http://gitorious.org/linux-omap-dss2/linux/commits/master
-> 
-> Do i anything wrong or do i use a wrong git repo (the patches apply 
-> cleanly)? Her my kernel config: http://fpaste.org/9Esw/
+> Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
+> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+> Cc: Benoit Cousson <b-cousson@ti.com>
 
-Ah, I guess you hit one yet unsolved problem on on omap4: VENC register
-access fails. 
+I've queued this one for 2.6.39, since it seems pretty clear that
+target smart-idle mode doesn't work with this IP block.
 
-Can you try switching this off: CONFIG_OMAP2_DSS_VENC.
-
-I need to make some quick hack to get VENC disabled on OMAP4 until we
-find the solution for this.
-
- Tomi
+Probably we'll need to do the same thing for OMAP2420/2430, but I'm not   
+going to touch those right now, since we're so close to the merge window.
 
 
+- Paul
