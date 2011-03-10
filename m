@@ -1,49 +1,63 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [RFC] AM35x: Workaround to use generic OMAP3 hwmods
-Date: Thu, 10 Mar 2011 09:39:31 +0100
-Message-ID: <4D788E43.4040201@ti.com>
-References: <1298641689-7417-1-git-send-email-premi@ti.com> <4D67E0C0.4080805@ti.com> <alpine.DEB.2.00.1103091933260.15132@utopia.booyaka.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] OMAP4: hwmod: Disable hardware-controlled idle for
+ GPT1
+Date: Thu, 10 Mar 2011 01:45:28 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1103100143230.15132@utopia.booyaka.com>
+References: <alpine.DEB.2.00.1103091847150.15132@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-731033937-1299746728=:15132"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:34884 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750760Ab1CJIj3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Mar 2011 03:39:29 -0500
-In-Reply-To: <alpine.DEB.2.00.1103091933260.15132@utopia.booyaka.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:55029 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750819Ab1CJIp3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Mar 2011 03:45:29 -0500
+In-Reply-To: <alpine.DEB.2.00.1103091847150.15132@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "Premi, Sanjeev" <premi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Rajendra Nayak <rnayak@ti.com>, =?ISO-8859-15?Q?Beno=EEt_Cousson?= <b-cousson@ti.com>
 
-Salut Paul,
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-On 3/10/2011 3:37 AM, Paul Walmsley wrote:
->
-> Hi,
->
-> I just queued a patch to fix the SmartReflex problem.  It's the part =
-that
-> fixes the incorrect data:
->
->      http://marc.info/?l=3Dlinux-omap&m=3D129972435510631&w=3D2
->
-> Beno=EEt, if you are happy with it, care to send an Acked-by:?  Also,=
- I
-> guess we should revisit the other part of your patch at some point.
+--155748971-731033937-1299746728=:15132
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-I'm almost fine with it, but if you do not want to remove the other=20
-masters ports of the interconnect, then you should move SR ocp_if from=20
-slaves to masters first, like it was supposed to be during the=20
-introduction of the SR data?
+On Wed, 9 Mar 2011, Paul Walmsley wrote:
 
-And then remove all the interconnect master list in a second patch?
+> From: Rajendra Nayak <rnayak@ti.com>
+>=20
+> Some issues seen (which cause lockups in suspend) with GPT1
+> after the MPU<->L4_WKUP static dependency was cleared can be
+> Worked-around for now by forcing GPT1 in software
+> controlled idle.
+>=20
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> Signed-off-by: Beno=EEt Cousson <b-cousson@ti.com>
+> Signed-off-by: Paul Walmsley <paul@pwsan.com>
 
-Benoit
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Just a quick note, I missed Beno=EEt's update of the commit message:
+
+    http://www.spinics.net/linux/lists/linux-omap/msg48008.html
+
+and he's the maintainer of this so we should use his instead.  The revised=
+=20
+message is below.
+
+
+- Paul
+
+OMAP4: hwmod data: Temporarily disable hardware-controlled idle for timer1
+   =20
+Some issues seen (which cause lockups in suspend) with timer1
+after the MPU<->L4_WKUP static dependency was cleared can be
+Worked-around for now by forcing timer1 in software
+controlled idle.
+   =20
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+[b-cousson: Update the changelog and the subject]
+Signed-off-by: Beno=EEt Cousson <b-cousson@ti.com>
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+
+--155748971-731033937-1299746728=:15132--
