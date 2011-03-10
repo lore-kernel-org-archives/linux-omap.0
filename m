@@ -1,41 +1,45 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [RFC PATCHv1 1/2] Export SoC info through sysfs
-Date: Thu, 10 Mar 2011 16:19:18 +0000
-Message-ID: <20110310161917.GD27206@opensource.wolfsonmicro.com>
-References: <1299689961-5028-1-git-send-email-maxime.coquelin-nonst@stericsson.com>
-	<201103101602.19241.arnd@arndb.de>
-	<20110310152011.GH22195@opensource.wolfsonmicro.com>
-	<201103101711.59544.arnd@arndb.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <201103101711.59544.arnd@arndb.de>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: ext Nishanth Menon <nm@ti.com>, ext Tony Lindgren <tony@atomide.com>, Peter De-Schrijver <Peter.De-Schrijver@nokia.com>, Ambresh <a0393775@ti.com>, Saravana Kannan <skannan@codeaurora.org>, Jouni Hogander <jouni.hogander@nokia.com>, Lee Jones <Lee.Jones@linaro.org>, Rabin VINCENT <rabin.vincent@stericsson.com>, Russell King <linux@arm.linux.org.uk>, Jonas ABERG <jonas.aberg@stericsson.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, David Brown <davidb@codeaurora.org>, Maxime Coquelin <maxime.coquelin-nonst@stericsson.com>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, Loic PALLARDY <loic.pallardy@stericsson.com>, "eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>, maxime_coquelin@yahoo.fr, Ryan Mallon <ryan@bluewatersys.com>, Linux-OMAP <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, Daniel Walker <dwalker@codeauror>
+From: Abhilash K V <abhilash.kv@ti.com>
+Subject: [PATCH] can : TI_HECC : Unintialized variables
+Date: Thu, 10 Mar 2011 21:51:27 +0530
+Message-ID: <1299774087-8532-1-git-send-email-abhilash.kv@ti.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: socketcan-core@lists.berlios.de, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: wg@grandegger.com, linux-omap@vger.kernel.org, Abhilash K V <abhilash.kv@ti.com>, Vaibhav Hiremath <hvaibhav@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Mar 10, 2011 at 05:11:59PM +0100, Arnd Bergmann wrote:
-> On Thursday 10 March 2011, Mark Brown wrote:
+1. In ti_hecc_xmit(), "data" is not initialized, causing
+   undesirable effects like setting the RTR field for every
+   transmit.
+2. In ti_hecc_probe(), the spinlock  priv->mbx_lock is not
+   inited, causing a spinlock lockup BUG.
 
-> > You could, though the bus will just be a noop.  Typically it's more than
-> > one bus but software basically can't tell.
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+Acked-by: Anant Gole <anantgole@ti.com>
+Signed-off-by: Abhilash K V <abhilash.kv@ti.com>
+---
+ drivers/net/can/ti_hecc.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-> Yes. The main reason for representing such a bus in sysfs would be
-> to match the SOC's block diagram with the structure in the kernel.
-
-If you're doing that things like power domains tend to be a lot more
-interesting since you can do something meaningful with them in software.
-The non-visible buses aren't reliably documented anyway and the first
-procesor datasheet I just pulled up had a whole bunch of devices that
-span multiple buses anyway :)
+diff --git a/drivers/net/can/ti_hecc.c b/drivers/net/can/ti_hecc.c
+index 4d07f1e..73c6025 100644
+--- a/drivers/net/can/ti_hecc.c
++++ b/drivers/net/can/ti_hecc.c
+@@ -503,6 +503,7 @@ static netdev_tx_t ti_hecc_xmit(struct sk_buff *skb, struct net_device *ndev)
+ 	spin_unlock_irqrestore(&priv->mbx_lock, flags);
+ 
+ 	/* Prepare mailbox for transmission */
++	data = cf->can_dlc;
+ 	if (cf->can_id & CAN_RTR_FLAG) /* Remote transmission request */
+ 		data |= HECC_CANMCF_RTR;
+ 	data |= get_tx_head_prio(priv) << 8;
+@@ -923,6 +924,7 @@ static int ti_hecc_probe(struct platform_device *pdev)
+ 	priv->can.do_get_state = ti_hecc_get_state;
+ 	priv->can.ctrlmode_supported = CAN_CTRLMODE_3_SAMPLES;
+ 
++	spin_lock_init(&priv->mbx_lock);
+ 	ndev->irq = irq->start;
+ 	ndev->flags |= IFF_ECHO;
+ 	platform_set_drvdata(pdev, ndev);
+-- 
+1.6.2.4
