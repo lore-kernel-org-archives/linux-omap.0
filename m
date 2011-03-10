@@ -1,56 +1,79 @@
-From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: RE: [PATCH v12 4/9] OMAP2+: dmtimer: convert to platform devices
-Date: Thu, 10 Mar 2011 20:59:19 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB037A4DD855@dbde02.ent.ti.com>
-References: <1299627948-20040-1-git-send-email-tarun.kanti@ti.com>
- <1299627948-20040-5-git-send-email-tarun.kanti@ti.com>
- <20110309214215.GQ26463@atomide.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [RFC PATCHv1 1/2] Export SoC info through sysfs
+Date: Thu, 10 Mar 2011 17:05:56 +0100
+Message-ID: <AANLkTinCCZE5hPC+L6_Uw9UTZekzkTGpW5xxBfzTYa7b@mail.gmail.com>
+References: <1299689961-5028-1-git-send-email-maxime.coquelin-nonst@stericsson.com>
+	<201103092058.34236.arnd@arndb.de>
+	<AANLkTikFCAC-hdv0Q_9eQs31XHHEc4wYqRjfY0S=FYcz@mail.gmail.com>
+	<201103101523.27181.arnd@arndb.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:57457 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752979Ab1CJP3Y convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Mar 2011 10:29:24 -0500
-In-Reply-To: <20110309214215.GQ26463@atomide.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <201103101523.27181.arnd@arndb.de>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: ext Nishanth Menon <nm@ti.com>, ext Tony Lindgren <tony@atomide.com>, Peter De-Schrijver <Peter.De-Schrijver@nokia.com>, Ambresh <a0393775@ti.com>, Saravana Kannan <skannan@codeaurora.org>, Andrei Warkentin <andreiw@motorola.com>, Lee Jones <Lee.Jones@linaro.org>, Rabin VINCENT <rabin.vincent@stericsson.com>, Russell King <linux@arm.linux.org.uk>, Jonas ABERG <jonas.aberg@stericsson.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, David Brown <davidb@codeaurora.org>, Maxime Coquelin <maxime.coquelin-nonst@stericsson.com>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, Loic PALLARDY <loic.pallardy@stericsson.com>, "eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>, maxime_coquelin@yahoo.fr, Ryan Mallon <ryan@bluewatersys.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gopinath, Thara" <thara@ti.com>
 
-> -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com]
-> Sent: Thursday, March 10, 2011 3:12 AM
-> To: DebBarma, Tarun Kanti
-> Cc: linux-omap@vger.kernel.org; Gopinath, Thara
-> Subject: Re: [PATCH v12 4/9] OMAP2+: dmtimer: convert to platform devices
-> 
-> * Tarun Kanti DebBarma <tarun.kanti@ti.com> [110308 15:41]:
-> > Add routines to converts dmtimers to platform devices. The device data
-> > is obtained from hwmod database of respective platform and is registered
-> > to device model after successful binding to driver. It also provides
-> > provision to access timers during early boot when pm_runtime framework
-> > is not completely up and running.
-> > +	 common.o gpio.o dma.o wd_timer.o dmtimer.o
-> 
-> > new file mode 100755
-> > index 0000000..60c410b
-> > --- /dev/null
-> > +++ b/arch/arm/mach-omap2/dmtimer.c
-> 
-> Uhh please check the mode changes for this series..
-> 
-> > new file mode 100755
-> > index 0000000..4cfd580
-> > --- /dev/null
-> > +++ b/arch/arm/mach-omap2/dmtimer.h
-> 
-> Here too and maybe other places also.
-Sorry for the mistake. I will correct and repost. Thanks.
---
-Tarun
+On Thu, Mar 10, 2011 at 3:23 PM, Arnd Bergmann <arnd@arndb.de> wrote:
+> On Thursday 10 March 2011, Linus Walleij wrote:
+>> So platform is just the platform bus, not the, you know,
+>> *platform*. There are competing on-chip busses not just one.
+>
+> Good point. Note that I did not mean to put the attributes
+> directly under /sys/platform/, but under /sys/platform/foo/,
+> where foo is the main bus that is used between the CPU core
+> and all the SOC components.
+>
+> This may of course not be easy. If you have an AMBA or PCI
+> bus, you might want to have it represented as
+> /sys/devices/pci0 and /sys/devices/amba0 instead of
+> /sys/devices/platform/foo/amba0/.
 
-> 
-> Tony
+Userspace app doing something needs the name and some
+unique number to be looked up. The first iteration of this
+patch (for the OMAPs) put it in /proc/socinfo with all the
+expected fuzz that this should go into sysfs as result.
+
+So: where do we suggest Maxime actually put this then?
+
+> Making up a pseudo-device that does not refer to any hardware
+> in particular is against the 'devices are only "devices"'
+> rule in Documentation/sysfs-rules.txt.
+
+Fine then I think we agree this can not realistically be
+under /sys/devices/* unless we first refactor all platforms
+that want to use this mechanism to have top-level-devices.
+
+> If you really want that, it should be in /sys/kernel/,
+> /sys/firmware/ or a new top-level directory in sysfs.
+>
+> I think putting it in /sys/devices is good, but it has
+> to be an attribute of an actual device, not an empty
+> one that does not even have any child devices. If the
+> device represents the soc, then every other device
+> that is found in the soc should be a child of this one.
+
+IMO this is not good for socinfo, what is good for apps that
+want socinfo is to just attempt to open+read these file paths.
+Not to invoke libsysfs and start parsing the file tree to see if
+they can find some socinfo somewhere.
+
+What about we just put it in
+/sys/socinfo/* then, and we have a simple,
+easy-to-understand way for apps that want socinfo to
+read it out?
+
+Everyone happy with this?
+
+Yours,
+Linus Walleij
