@@ -1,38 +1,40 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] OMAP4: clockdomain: Follow recommended enable sequence
-Date: Thu, 10 Mar 2011 06:16:45 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1103100616240.15132@utopia.booyaka.com>
-References: <1299245123-23444-1-git-send-email-rnayak@ti.com> <alpine.DEB.2.00.1103081937100.15132@utopia.booyaka.com> <4D775418.6050105@ti.com> <alpine.DEB.2.00.1103100514210.15132@utopia.booyaka.com> <4D78CAFC.4080502@ti.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [RFC PATCHv1 1/2] Export SoC info through sysfs
+Date: Thu, 10 Mar 2011 13:18:28 +0000
+Message-ID: <20110310131828.GA7411@sirena.org.uk>
+References: <1299689961-5028-1-git-send-email-maxime.coquelin-nonst@stericsson.com>
+	<1299689961-5028-2-git-send-email-maxime.coquelin-nonst@stericsson.com>
+	<20110309174752.GC1225@sirena.org.uk>
+	<4D78A0CC.1030705@stericsson.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:35416 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751456Ab1CJNQq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Mar 2011 08:16:46 -0500
-In-Reply-To: <4D78CAFC.4080502@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <4D78A0CC.1030705@stericsson.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Maxime Coquelin <maxime.coquelin-nonst@stericsson.com>
+Cc: ext Nishanth Menon <nm@ti.com>, ext Tony Lindgren <tony@atomide.com>, Peter De-Schrijver <Peter.De-Schrijver@nokia.com>, Linus Walleij <linus.walleij@linaro.org>, Ambresh <a0393775@ti.com>, Saravana Kannan <skannan@codeaurora.org>, Jouni Hogander <jouni.hogander@nokia.com>, Lee Jones <Lee.Jones@linaro.org>, Rabin VINCENT <rabin.vincent@stericsson.com>, Russell King <linux@arm.linux.org.uk>, Jonas ABERG <jonas.aberg@stericsson.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, David Brown <davidb@codeaurora.org>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, Loic PALLARDY <loic.pallardy@stericsson.com>, "eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>, "maxime_coquelin@yahoo.fr" <maxime_coquelin@yahoo.fr>, Ryan Mallon <ryan@bluewatersys.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kern>
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: linux-omap@vger.kernel.org, b-cousson@ti.com, khilman@ti.com, santosh.shilimkar@ti.com, linux-arm-kernel@lists.infradead.org
 
-On Thu, 10 Mar 2011, Rajendra Nayak wrote:
+On Thu, Mar 10, 2011 at 10:58:36AM +0100, Maxime Coquelin wrote:
+> On 03/09/2011 06:47 PM, Mark Brown wrote:
 
-> On Thursday 10 March 2011 05:48 PM, Paul Walmsley wrote:
-> > This patch is currently breaking boot on OMAP4430 ES2.0 Pandaboard,
-> > so I've dropped it from the integration branch until it can be
-> > debugged.  Could you check it, please?
-> > 
-> > The tag "integration-2.6.39-20110310-008" of
-> > git://git.pwsan.com/linux-integration boots fine; it's got everything
-> > but this patch.  Then when this patch is applied, I2C problems show
-> > up, and root (on MMC) doesn't mount.
-> 
-> Looks like you are missing this patch which should fix the i2c
-> timeouts..
-> http://marc.info/?l=linux-omap&m=129924561819873&w=2
+>> Would it not be better for this to depend on a symbol that systems can
+>> select when they add useful output?  If there's nothing that generates
+>> information for it on a given platform there's no point in enabling it.
 
-Thanks, let's see if Ben is planning to merge it for 2.6.39.
+> It is deactivated by default when "default" parameter is not mentioned.
 
-
-- Paul
+That's not the point - if the user sees the option and turns it on then
+there won't be anything they can actually do with it unless some other
+bit of software creates some data.  No sense in offering them an option
+they can't actually use.
