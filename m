@@ -1,77 +1,54 @@
-From: Shweta Gulati <shweta.gulati@ti.com>
-Subject: [PATCH V3 2/3] OMAP4: Update Voltage Rail Values for MPU, IVA and CORE
-Date: Thu, 10 Mar 2011 10:23:49 +0530
-Message-ID: <1299732829-3376-1-git-send-email-shweta.gulati@ti.com>
+From: "K, Mythri P" <mythripk@ti.com>
+Subject: Re: [PATCH v4 4/9] OMAP4 : DSS2 : HDMI: HDMI driver header file addition
+Date: Thu, 10 Mar 2011 10:32:22 +0530
+Message-ID: <AANLkTimyrak4WfxWuiVvGT21k9jc0G6gz=R6=P8osvVj@mail.gmail.com>
+References: <1299671118-20839-1-git-send-email-mythripk@ti.com>
+	<1299671118-20839-2-git-send-email-mythripk@ti.com>
+	<1299671118-20839-3-git-send-email-mythripk@ti.com>
+	<1299671118-20839-4-git-send-email-mythripk@ti.com>
+	<1299671118-20839-5-git-send-email-mythripk@ti.com>
+	<B85A65D85D7EB246BE421B3FB0FBB593024C1922C2@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:56331 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750908Ab1CJEyD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 9 Mar 2011 23:54:03 -0500
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:52372 "EHLO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750699Ab1CJFCY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 10 Mar 2011 00:02:24 -0500
+Received: by vxb39 with SMTP id 39so1229829vxb.29
+        for <linux-omap@vger.kernel.org>; Wed, 09 Mar 2011 21:02:22 -0800 (PST)
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593024C1922C2@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Shweta Gulati <shweta.gulati@ti.com>
+To: "Premi, Sanjeev" <premi@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
 
-Update MPU, IVA and CORE voltage Rail values obtained from
-OMAP4430 Data Manual Operating Condition Addendum_v0.4.
+Hi Sanjeev,
 
-Tested on OMAP4430 SDP Board.
+On Wed, Mar 9, 2011 at 9:26 PM, Premi, Sanjeev <premi@ti.com> wrote:
+>> -----Original Message-----
+>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+>> owner@vger.kernel.org] On Behalf Of K, Mythri P
+>> Sent: Wednesday, March 09, 2011 5:15 PM
+>> To: linux-omap@vger.kernel.org; Valkeinen, Tomi
+>> Cc: K, Mythri P
+>> Subject: [PATCH v4 4/9] OMAP4 : DSS2 : HDMI: HDMI driver header file
+>> addition
+>>
+>> Adding the hdmi interface driver header file (hdmi.h) to the dss driver.
+>> Register and structure declaration done here.
+>
+> [sp] Any specific reason to keep header file in separate patch?
+>
+When i had posted it earlier there were several compliants  that the
+patch is huge,
+if i include header file with the corresponding c file , and hence
+difficult to review. So it just to make
+reviewers job easy.
 
-Signed-off-by: Shweta Gulati <shweta.gulati@ti.com>
----
-V3:
-Update CORE Voltages as well
-in sync with V0.4 of OMAP4 Data Manual.
-
-V2:
-Fixed Comments from Nishanth Menon. 
-
- arch/arm/mach-omap2/opp4xxx_data.c |   18 +++++++++---------
- 1 files changed, 9 insertions(+), 9 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/opp4xxx_data.c b/arch/arm/mach-omap2/opp4xxx_data.c
-index ed0efdb..aa624d1 100644
---- a/arch/arm/mach-omap2/opp4xxx_data.c
-+++ b/arch/arm/mach-omap2/opp4xxx_data.c
-@@ -30,10 +30,10 @@
-  * voltage dependent data for each VDD.
-  */
- 
--#define OMAP4430_VDD_MPU_OPP50_UV		930000
--#define OMAP4430_VDD_MPU_OPP100_UV		1100000
--#define OMAP4430_VDD_MPU_OPPTURBO_UV		1260000
--#define OMAP4430_VDD_MPU_OPPNITRO_UV		1350000
-+#define OMAP4430_VDD_MPU_OPP50_UV		1025000
-+#define OMAP4430_VDD_MPU_OPP100_UV		1200000
-+#define OMAP4430_VDD_MPU_OPPTURBO_UV		1313000
-+#define OMAP4430_VDD_MPU_OPPNITRO_UV		1375000
- 
- struct omap_volt_data omap44xx_vdd_mpu_volt_data[] = {
- 	VOLT_DATA_DEFINE(OMAP4430_VDD_MPU_OPP50_UV, OMAP44XX_CONTROL_FUSE_MPU_OPP50, 0xf4, 0x0c),
-@@ -43,9 +43,9 @@ struct omap_volt_data omap44xx_vdd_mpu_volt_data[] = {
- 	VOLT_DATA_DEFINE(0, 0, 0, 0),
- };
- 
--#define OMAP4430_VDD_IVA_OPP50_UV		930000
--#define OMAP4430_VDD_IVA_OPP100_UV		1100000
--#define OMAP4430_VDD_IVA_OPPTURBO_UV		1260000
-+#define OMAP4430_VDD_IVA_OPP50_UV		1013000
-+#define OMAP4430_VDD_IVA_OPP100_UV		1188000
-+#define OMAP4430_VDD_IVA_OPPTURBO_UV		1300000
- 
- struct omap_volt_data omap44xx_vdd_iva_volt_data[] = {
- 	VOLT_DATA_DEFINE(OMAP4430_VDD_IVA_OPP50_UV, OMAP44XX_CONTROL_FUSE_IVA_OPP50, 0xf4, 0x0c),
-@@ -54,8 +54,8 @@ struct omap_volt_data omap44xx_vdd_iva_volt_data[] = {
- 	VOLT_DATA_DEFINE(0, 0, 0, 0),
- };
- 
--#define OMAP4430_VDD_CORE_OPP50_UV		930000
--#define OMAP4430_VDD_CORE_OPP100_UV		1100000
-+#define OMAP4430_VDD_CORE_OPP50_UV		1025000
-+#define OMAP4430_VDD_CORE_OPP100_UV		1200000
- 
- struct omap_volt_data omap44xx_vdd_core_volt_data[] = {
- 	VOLT_DATA_DEFINE(OMAP4430_VDD_CORE_OPP50_UV, OMAP44XX_CONTROL_FUSE_CORE_OPP50, 0xf4, 0x0c),
--- 
-1.7.0.4
-
+>>
+> [snip]...[snip]
+>
+Thanks and regards,
+Mythri.
