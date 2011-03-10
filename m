@@ -1,56 +1,73 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 2/2] OMAP: PM: implement devices constraints APIs
-Date: Thu, 10 Mar 2011 11:51:58 -0800
-Message-ID: <87y64mbvoh.fsf@ti.com>
-References: <1299250375-26134-1-git-send-email-j-pihet@ti.com>
-	<1299698346-2768-1-git-send-email-j-pihet@ti.com>
-	<AANLkTikQOfsteZUAzSWjO-BbAW=ZEX22mhRUFHBMeFTR@mail.gmail.com>
+Subject: Re: [PATCH v2 0/5] OMAP3: PM: Fixes for low power code
+Date: Thu, 10 Mar 2011 12:24:39 -0800
+Message-ID: <87ei6eiv08.fsf@ti.com>
+References: <1299740837-27881-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:38885 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751664Ab1CJTwD convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 10 Mar 2011 14:52:03 -0500
-Received: by mail-px0-f169.google.com with SMTP id 9so487014pxi.0
-        for <linux-omap@vger.kernel.org>; Thu, 10 Mar 2011 11:52:01 -0800 (PST)
-In-Reply-To: <AANLkTikQOfsteZUAzSWjO-BbAW=ZEX22mhRUFHBMeFTR@mail.gmail.com>
-	(Jean Pihet's message of "Wed, 9 Mar 2011 20:37:51 +0100")
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:50465 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751768Ab1CJUYn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 10 Mar 2011 15:24:43 -0500
+Received: by mail-qw0-f41.google.com with SMTP id 7so2022326qwd.0
+        for <linux-omap@vger.kernel.org>; Thu, 10 Mar 2011 12:24:42 -0800 (PST)
+In-Reply-To: <1299740837-27881-1-git-send-email-santosh.shilimkar@ti.com>
+	(Santosh Shilimkar's message of "Thu, 10 Mar 2011 12:37:12 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, paul@pwsan.com, Jean Pihet <j-pihet@ti.com>, Vibhore Vardhan <vvardhan@ti.com>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Jean Pihet <jean.pihet@newoldbits.com> writes:
+Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
 
-[...]
-
->> + =C2=A0 =C2=A0 =C2=A0 if (pwrdm_read_pwrst(pwrdm) !=3D new_state) {
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 ret =3D omap_set_=
-pwrdm_state(pwrdm, new_state);
+> The series does below fixes to the omap3 low power code.
+> 	1. Use supported ARMv7 instructions instead of the legacy ones
+> 	2. Fix the MMU on sequence
+> 	3. Fix the cache flush scenario when only L1 lost.
+> 	4. Remove all un-necessary context save registers
+> 	5. Disable C-bit before cache clean
 >
-> The function pwrdms_setup (called from omap3_pm_init for every pwrdm)
-> runs late in the boot process and so it overwrites the registers
-> values programmed by omap_set_pwrdm_state with the default values.
-> Could the default values get written earlier in the boot process (e.g=
-=2E
-> at hwmod init) before the devices can put constraints on the power
-> domains?
+> V2:
+> - Rebased series on top of pm-core branch where the Dave Martin's
+>   Thumb2 patches are merged.
+> - Dropped set_cr() patch since it's already merged in pm-core branch
+> - Fixed the hang issue reported by Kevin Hilman with OMAP3630
 
-Yes, default vaules for each power domain's next state should probably
-be written earlier in the boot.  Probably when the powerdomain is
-initialized, or at least when this constraints framework is initialized=
-=2E
+Thanks for the updates.
 
-Then, the initial states set in omap3_pm_init() can just be removed.
+I've been testing the previous series along with Paul's integration
+branch and things look good.
+
+Will re-test with this updated version and queue for 2.6.39 (branch:
+for_2.6.39/pm-misc)
+
+Thanks,
 
 Kevin
 
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> It's generated against latest pm-core branch and tested suspend
+> and cpuilde on OMAP3630 ZOOM.
+>
+> The following changes since commit 7d6d079fbd46aee85e9b5de1d67de15b85e50b04:
+>   Kevin Hilman (1):
+>         Merge branch 'for_2.6.39/pm-voltage' into pm-reset
+>
+> are available in the git repository at:
+>
+>   git://dev.omapzoom.org/pub/scm/santosh/kernel-omap4-base.git
+> pm-core-omap3-asm_v2
+>
+> Santosh Shilimkar (5):
+>   OMAP3: PM: Use ARMv7 supported instructions instead of legacy CP15
+>     ones
+>   OMAP3: PM: Fix the MMU on sequence in the asm code
+>   OMAP3: PM: Allow the cache clean when L1 is lost.
+>   OMAP3: PM: Remove un-necessary cp15 registers form low power cpu
+>     context
+>   OMAP3: PM: Clear the SCTLR C bit in asm code to prevent data cache
+>     allocation
+>
+>  arch/arm/mach-omap2/sleep34xx.S |  224 +++++++++++++++------------------------
+>  1 files changed, 85 insertions(+), 139 deletions(-)
