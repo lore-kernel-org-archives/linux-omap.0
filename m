@@ -1,67 +1,76 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH v2 3/5] OMAP3: PM: Allow the cache clean when L1 is lost.
-Date: Thu, 10 Mar 2011 12:37:15 +0530
-Message-ID: <1299740837-27881-4-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH v2 5/5] OMAP3: PM: Clear the SCTLR C bit in asm code to prevent data cache allocation
+Date: Thu, 10 Mar 2011 12:37:17 +0530
+Message-ID: <1299740837-27881-6-git-send-email-santosh.shilimkar@ti.com>
 References: <1299740837-27881-1-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:33920 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:35431 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751592Ab1CJHH0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 10 Mar 2011 02:07:26 -0500
+	id S1752259Ab1CJHH1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 10 Mar 2011 02:07:27 -0500
 In-Reply-To: <1299740837-27881-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: khilman@ti.com, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-When L1 cache is suppose to be lost, it needs to be cleaned before
-entrering to the low power mode.
+On the newer ARM processors like CortexA8, CortexA9, the caches can be
+speculatively loaded while they are getting flushed.
 
-While at this, also fix few comments and remove un-necessary
-clean_l2 lable.
+Clear the SCTLR C bit to prevent further data cache allocation as
+part of cache clean routine
 
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Cc: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/sleep34xx.S |   15 +++------------
- 1 files changed, 3 insertions(+), 12 deletions(-)
+ arch/arm/mach-omap2/sleep34xx.S |   27 +++++++++++++++++++++++++++
+ 1 files changed, 27 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
-index e58ec7d..7f13336 100644
+index d29476e..63f1066 100644
 --- a/arch/arm/mach-omap2/sleep34xx.S
 +++ b/arch/arm/mach-omap2/sleep34xx.S
-@@ -190,12 +190,12 @@ ENTRY(omap34xx_cpu_suspend)
- 	stmfd	sp!, {r0-r12, lr}	@ save registers on stack
- 
- 	/*
--	 * r0 contains restore pointer in sdram
-+	 * r0 contains CPU context save/restore pointer in sdram
- 	 * r1 contains information about saving context:
- 	 *   0 - No context lost
- 	 *   1 - Only L1 and logic lost
--	 *   2 - Only L2 lost
--	 *   3 - Both L1 and L2 lost
-+	 *   2 - Only L2 lost (Even L1 is retained we clean it along with L2)
-+	 *   3 - Both L1 and L2 lost and logic lost
- 	 */
- 
- 	/* Directly jump to WFI is the context save is not required */
-@@ -280,15 +280,6 @@ l1_logic_lost:
- 
- clean_caches:
- 	/*
--	 * Clean Data or unified cache to POU
--	 * How to invalidate only L1 cache???? - #FIX_ME#
--	 * mcr	p15, 0, r11, c7, c11, 1
--	 */
--	cmp	r1, #0x1 		@ Check whether L2 inval is required
--	beq	omap3_do_wfi
--
--clean_l2:
--	/*
- 	 * jump out to kernel flush routine
- 	 *  - reuse that code is better
+@@ -248,6 +248,27 @@ clean_caches:
  	 *  - it executes in a cached space so is faster than refetch per-block
+ 	 *  - should be faster and will change with kernel
+ 	 *  - 'might' have to copy address, load and jump to it
++	 * Flush all data from the L1 data cache before disabling
++	 * SCTLR.C bit.
++	 */
++	ldr	r1, kernel_flush
++	mov	lr, pc
++	bx	r1
++
++	/*
++	 * Clear the SCTLR.C bit to prevent further data cache
++	 * allocation. Clearing SCTLR.C would make all the data accesses
++	 * strongly ordered and would not hit the cache.
++	 */
++	mrc	p15, 0, r0, c1, c0, 0
++	bic	r0, r0, #(1 << 2)	@ Disable the C bit
++	mcr	p15, 0, r0, c1, c0, 0
++	isb
++
++	/*
++	 * Invalidate L1 data cache. Even though only invalidate is
++	 * necessary exported flush API is used here. Doing clean
++	 * on already clean cache would be almost NOP.
+ 	 */
+ 	ldr	r1, kernel_flush
+ 	blx	r1
+@@ -297,6 +318,12 @@ omap3_do_wfi:
+ 	nop
+ 	bl wait_sdrc_ok
+ 
++	mrc	p15, 0, r0, c1, c0, 0
++	tst	r0, #(1 << 2)		@ Check C bit enabled?
++	orreq	r0, r0, #(1 << 2)	@ Enable the C bit if cleared
++	mcreq	p15, 0, r0, c1, c0, 0
++	isb
++
+ /*
+  * ===================================
+  * == Exit point from non-OFF modes ==
 -- 
 1.6.0.4
 
