@@ -1,70 +1,148 @@
 From: Mythri P K <mythripk@ti.com>
-Subject: [PATCH v5 03/10] OMAP4 : DSS2 : HDMI: Dispc gamma enable set/reset function for TV.
-Date: Thu, 10 Mar 2011 16:14:11 +0530
-Message-ID: <1299753858-12222-4-git-send-email-mythripk@ti.com>
+Subject: [PATCH v5 10/10] OMAP4 : HDMI : Add HDMI structure in the board file for OMAP4 PANDA
+Date: Thu, 10 Mar 2011 16:14:18 +0530
+Message-ID: <1299753858-12222-11-git-send-email-mythripk@ti.com>
 References: <1299753858-12222-1-git-send-email-mythripk@ti.com>
  <1299753858-12222-2-git-send-email-mythripk@ti.com>
  <1299753858-12222-3-git-send-email-mythripk@ti.com>
+ <1299753858-12222-4-git-send-email-mythripk@ti.com>
+ <1299753858-12222-5-git-send-email-mythripk@ti.com>
+ <1299753858-12222-6-git-send-email-mythripk@ti.com>
+ <1299753858-12222-7-git-send-email-mythripk@ti.com>
+ <1299753858-12222-8-git-send-email-mythripk@ti.com>
+ <1299753858-12222-9-git-send-email-mythripk@ti.com>
+ <1299753858-12222-10-git-send-email-mythripk@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:44169 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:44173 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751368Ab1CJKu4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 10 Mar 2011 05:50:56 -0500
+	id S1752014Ab1CJKu6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 10 Mar 2011 05:50:58 -0500
 Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p2AAor3D021442
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p2AAotLp021448
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 10 Mar 2011 04:50:55 -0600
-In-Reply-To: <1299753858-12222-3-git-send-email-mythripk@ti.com>
+	for <linux-omap@vger.kernel.org>; Thu, 10 Mar 2011 04:50:57 -0600
+In-Reply-To: <1299753858-12222-10-git-send-email-mythripk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, tomi.valkeinen@ti.com
 Cc: Mythri P K <mythripk@ti.com>
 
-Adding function to reset/set gamma table bit for TV interface
-currentl only support for disabled is added.
+Adding  board file structure for display which adds the display
+structure with HDMI as the default driver when the display init
+is called.
+HDMI GPIO configurations are also done in this file.
 
 Signed-off-by: Mythri P K <mythripk@ti.com>
 ---
- drivers/video/omap2/dss/dispc.c |   13 +++++++++++++
- drivers/video/omap2/dss/dss.h   |    1 +
- 2 files changed, 14 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/board-omap4panda.c |   74 ++++++++++++++++++++++++++++++++
+ 1 files changed, 74 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-index b8c576a..9b86f5f 100644
---- a/drivers/video/omap2/dss/dispc.c
-+++ b/drivers/video/omap2/dss/dispc.c
-@@ -1008,6 +1008,19 @@ void dispc_set_burst_size(enum omap_plane plane,
- 	enable_clocks(0);
- }
+diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+index a94ce07..4869c0f 100644
+--- a/arch/arm/mach-omap2/board-omap4panda.c
++++ b/arch/arm/mach-omap2/board-omap4panda.c
+@@ -34,6 +34,7 @@
+ #include <asm/mach-types.h>
+ #include <asm/mach/arch.h>
+ #include <asm/mach/map.h>
++#include <plat/display.h>
  
-+void dispc_enable_gamma_table(bool enable)
+ #include <plat/board.h>
+ #include <plat/common.h>
+@@ -49,6 +50,8 @@
+ #define GPIO_HUB_NRESET		62
+ #define GPIO_WIFI_PMENA		43
+ #define GPIO_WIFI_IRQ		53
++#define HDMI_GPIO_HPD 60 /* Hot plug pin for HDMI */
++#define HDMI_GPIO_LS_OE 41 /* Level shifter for HDMI */
+ 
+ /* wl127x BT, FM, GPS connectivity chip */
+ static int wl1271_gpios[] = {46, -1, -1};
+@@ -467,6 +470,76 @@ static struct omap_board_mux board_mux[] __initdata = {
+ #define board_mux	NULL
+ #endif
+ 
++static void sdp4430_hdmi_mux_init(void)
 +{
-+	/* This is partially implemented to support only
-+	 *  disabling of the gamma table.
-+	 */
-+	if (enable) {
-+		DSSWARN("Gamma table enabling for TV not yet supported");
-+		return;
-+	}
-+
-+	REG_FLD_MOD(DISPC_CONFIG, enable, 9, 9);
++	/* PAD0_HDMI_HPD_PAD1_HDMI_CEC */
++	omap_mux_init_signal("hdmi_hpd",
++			OMAP_PIN_INPUT_PULLUP);
++	omap_mux_init_signal("hdmi_cec",
++			OMAP_PIN_INPUT_PULLUP);
++	/* PAD0_HDMI_DDC_SCL_PAD1_HDMI_DDC_SDA */
++	omap_mux_init_signal("hdmi_ddc_scl",
++			OMAP_PIN_INPUT_PULLUP);
++	omap_mux_init_signal("hdmi_ddc_sda",
++			OMAP_PIN_INPUT_PULLUP);
 +}
 +
- static void _dispc_set_vid_color_conv(enum omap_plane plane, bool enable)
++static int sdp4430_panel_enable_hdmi(struct omap_dss_device *dssdev)
++{
++	int status;
++
++	status = gpio_request_one(HDMI_GPIO_HPD, GPIOF_OUT_INIT_HIGH,
++							"hdmi_gpio_hpd");
++	if (status) {
++		pr_err("Cannot request GPIO %d\n", HDMI_GPIO_HPD);
++		return status;
++	}
++	status = gpio_request_one(HDMI_GPIO_LS_OE, GPIOF_OUT_INIT_HIGH,
++							"hdmi_gpio_ls_oe");
++	if (status) {
++		pr_err("Cannot request GPIO %d\n", HDMI_GPIO_LS_OE);
++		goto error1;
++	}
++
++	return 0;
++
++error1:
++	gpio_free(HDMI_GPIO_HPD);
++
++	return status;
++}
++
++static void sdp4430_panel_disable_hdmi(struct omap_dss_device *dssdev)
++{
++	gpio_free(HDMI_GPIO_LS_OE);
++	gpio_free(HDMI_GPIO_HPD);
++}
++
++static struct omap_dss_device sdp4430_hdmi_device = {
++	.name = "hdmi",
++	.driver_name = "hdmi_panel",
++	.type = OMAP_DISPLAY_TYPE_HDMI,
++	.platform_enable = sdp4430_panel_enable_hdmi,
++	.platform_disable = sdp4430_panel_disable_hdmi,
++	.channel = OMAP_DSS_CHANNEL_DIGIT,
++};
++
++static struct omap_dss_device *sdp4430_dss_devices[] = {
++	&sdp4430_hdmi_device,
++};
++
++static struct omap_dss_board_info sdp4430_dss_data = {
++	.num_devices	= ARRAY_SIZE(sdp4430_dss_devices),
++	.devices	= sdp4430_dss_devices,
++	.default_device	= &sdp4430_hdmi_device,
++};
++
++void omap_panda_display_init(void)
++{
++	sdp4430_hdmi_mux_init();
++	omap_display_init(&sdp4430_dss_data);
++}
++
+ static void __init omap4_panda_init(void)
  {
- 	u32 val;
-diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-index c2c0fcf..9f563a6 100644
---- a/drivers/video/omap2/dss/dss.h
-+++ b/drivers/video/omap2/dss/dss.h
-@@ -376,6 +376,7 @@ void dispc_set_plane_size(enum omap_plane plane, u16 width, u16 height);
- void dispc_set_channel_out(enum omap_plane plane,
- 		enum omap_channel channel_out);
+ 	int package = OMAP_PACKAGE_CBS;
+@@ -485,6 +558,7 @@ static void __init omap4_panda_init(void)
+ 	omap4_twl6030_hsmmc_init(mmc);
+ 	omap4_ehci_init();
+ 	usb_musb_init(&musb_board_data);
++	omap_panda_display_init();
+ }
  
-+void dispc_enable_gamma_table(bool enable);
- int dispc_setup_plane(enum omap_plane plane,
- 		      u32 paddr, u16 screen_width,
- 		      u16 pos_x, u16 pos_y,
+ static void __init omap4_panda_map_io(void)
 -- 
 1.5.6.3
 
