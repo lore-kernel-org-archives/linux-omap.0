@@ -1,153 +1,50 @@
 From: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
-Subject: [PATCH 1/2] Watchdog: omap_wdt: add fine grain runtime-pm
-Date: Thu, 10 Mar 2011 14:10:57 +0200
-Message-ID: <1299759058-26342-2-git-send-email-kalle.jokiniemi@nokia.com>
+Subject: [PATCH 2/2] OMAP3: wdtimer: Fix CORE idle transition
+Date: Thu, 10 Mar 2011 14:10:58 +0200
+Message-ID: <1299759058-26342-3-git-send-email-kalle.jokiniemi@nokia.com>
 References: <1299759058-26342-1-git-send-email-kalle.jokiniemi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.24]:31040 "EHLO mgw-da01.nokia.com"
+Received: from smtp.nokia.com ([147.243.128.24]:31036 "EHLO mgw-da01.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752626Ab1CJMMv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1752517Ab1CJMMv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Thu, 10 Mar 2011 07:12:51 -0500
 In-Reply-To: <1299759058-26342-1-git-send-email-kalle.jokiniemi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-watchdog@vger.kernel.org, wim@iguana.be, khilman@ti.com, linux-omap@vger.kernel.org, tony@atomide.com
-Cc: jhnikula@gmail.com, ilkka.koskinen@nokia.com, Paul Walmsley <paul@pwsan.com>, Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
+Cc: jhnikula@gmail.com, ilkka.koskinen@nokia.com, Paul Walmsley <paul@pwsan.com>, Kalle Jokiniemi <kalle.jokiniemi@nokia.com>, Benoit Cousson <b-cousson@ti.com>
 
 From: Paul Walmsley <paul@pwsan.com>
 
-The omap_wdt should only be in full active state when the
-registers are being accessed. Otherwise the device can be
-on lower power mode.
+The HW superwised smart idle for wdtimer in OMAP3 prevents
+CORE power domain idle transitions. Disable it by swithing
+to SW supervised transitions.
 
-This patch is based on a patch created by Kalle Jokiniemi:
-https://patchwork.kernel.org/patch/618231/
-which is itself based on a patch created by Atal
-Shargorodsky: http://lkml.org/lkml/2009/3/10/266.
+This could be a hardware bug in the OMAP3 wdtimer2 block.
 
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
 Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
-Tested-by: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
-Cc: Wim Van Sebroeck <wim@iguana.be>
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Benoit Cousson <b-cousson@ti.com>
 ---
- drivers/watchdog/omap_wdt.c |   25 +++++++++++++++++++++++--
- 1 files changed, 23 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    5 +++++
+ 1 files changed, 5 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/watchdog/omap_wdt.c b/drivers/watchdog/omap_wdt.c
-index 3dd4971..2b4acb8 100644
---- a/drivers/watchdog/omap_wdt.c
-+++ b/drivers/watchdog/omap_wdt.c
-@@ -124,6 +124,8 @@ static void omap_wdt_set_timeout(struct omap_wdt_dev *wdev)
- 	u32 pre_margin = GET_WLDR_VAL(timer_margin);
- 	void __iomem *base = wdev->base;
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+index 196a834..ebd3309 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -1293,6 +1293,11 @@ static struct omap_hwmod omap3xxx_wd_timer2_hwmod = {
+ 	.slaves		= omap3xxx_wd_timer2_slaves,
+ 	.slaves_cnt	= ARRAY_SIZE(omap3xxx_wd_timer2_slaves),
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++	/*
++	 * XXX: Use software supervised mode, HW supervised smartidle seems to
++	 * block CORE power domain idle transitions. Maybe a HW bug in wdt2?
++	 */
++	.flags		= HWMOD_SWSUP_SIDLE,
+ };
  
-+	pm_runtime_get_sync(wdev->dev);
-+
- 	/* just count up at 32 KHz */
- 	while (__raw_readl(base + OMAP_WATCHDOG_WPS) & 0x04)
- 		cpu_relax();
-@@ -131,6 +133,8 @@ static void omap_wdt_set_timeout(struct omap_wdt_dev *wdev)
- 	__raw_writel(pre_margin, base + OMAP_WATCHDOG_LDR);
- 	while (__raw_readl(base + OMAP_WATCHDOG_WPS) & 0x04)
- 		cpu_relax();
-+
-+	pm_runtime_put_sync(wdev->dev);
- }
- 
- /*
-@@ -160,6 +164,8 @@ static int omap_wdt_open(struct inode *inode, struct file *file)
- 	omap_wdt_ping(wdev); /* trigger loading of new timeout value */
- 	omap_wdt_enable(wdev);
- 
-+	pm_runtime_put_sync(wdev->dev);
-+
- 	return nonseekable_open(inode, file);
- }
- 
-@@ -171,6 +177,7 @@ static int omap_wdt_release(struct inode *inode, struct file *file)
- 	 *      Shut off the timer unless NOWAYOUT is defined.
- 	 */
- #ifndef CONFIG_WATCHDOG_NOWAYOUT
-+	pm_runtime_get_sync(wdev->dev);
- 
- 	omap_wdt_disable(wdev);
- 
-@@ -190,9 +197,11 @@ static ssize_t omap_wdt_write(struct file *file, const char __user *data,
- 
- 	/* Refresh LOAD_TIME. */
- 	if (len) {
-+		pm_runtime_get_sync(wdev->dev);
- 		spin_lock(&wdt_lock);
- 		omap_wdt_ping(wdev);
- 		spin_unlock(&wdt_lock);
-+		pm_runtime_put_sync(wdev->dev);
- 	}
- 	return len;
- }
-@@ -224,15 +233,18 @@ static long omap_wdt_ioctl(struct file *file, unsigned int cmd,
- 			return put_user(omap_prcm_get_reset_sources(),
- 					(int __user *)arg);
- 	case WDIOC_KEEPALIVE:
-+		pm_runtime_get_sync(wdev->dev);
- 		spin_lock(&wdt_lock);
- 		omap_wdt_ping(wdev);
- 		spin_unlock(&wdt_lock);
-+		pm_runtime_put_sync(wdev->dev);
- 		return 0;
- 	case WDIOC_SETTIMEOUT:
- 		if (get_user(new_margin, (int __user *)arg))
- 			return -EFAULT;
- 		omap_wdt_adjust_timeout(new_margin);
- 
-+		pm_runtime_get_sync(wdev->dev);
- 		spin_lock(&wdt_lock);
- 		omap_wdt_disable(wdev);
- 		omap_wdt_set_timeout(wdev);
-@@ -240,6 +252,7 @@ static long omap_wdt_ioctl(struct file *file, unsigned int cmd,
- 
- 		omap_wdt_ping(wdev);
- 		spin_unlock(&wdt_lock);
-+		pm_runtime_put_sync(wdev->dev);
- 		/* Fall */
- 	case WDIOC_GETTIMEOUT:
- 		return put_user(timer_margin, (int __user *)arg);
-@@ -345,8 +358,11 @@ static void omap_wdt_shutdown(struct platform_device *pdev)
- {
- 	struct omap_wdt_dev *wdev = platform_get_drvdata(pdev);
- 
--	if (wdev->omap_wdt_users)
-+	if (wdev->omap_wdt_users) {
-+		pm_runtime_get_sync(wdev->dev);
- 		omap_wdt_disable(wdev);
-+		pm_runtime_put_sync(wdev->dev);
-+	}
- }
- 
- static int __devexit omap_wdt_remove(struct platform_device *pdev)
-@@ -381,8 +397,11 @@ static int omap_wdt_suspend(struct platform_device *pdev, pm_message_t state)
- {
- 	struct omap_wdt_dev *wdev = platform_get_drvdata(pdev);
- 
--	if (wdev->omap_wdt_users)
-+	if (wdev->omap_wdt_users) {
-+		pm_runtime_get_sync(wdev->dev);
- 		omap_wdt_disable(wdev);
-+		pm_runtime_put_sync(wdev->dev);
-+	}
- 
- 	return 0;
- }
-@@ -392,8 +411,10 @@ static int omap_wdt_resume(struct platform_device *pdev)
- 	struct omap_wdt_dev *wdev = platform_get_drvdata(pdev);
- 
- 	if (wdev->omap_wdt_users) {
-+		pm_runtime_get_sync(wdev->dev);
- 		omap_wdt_enable(wdev);
- 		omap_wdt_ping(wdev);
-+		pm_runtime_put_sync(wdev->dev);
- 	}
- 
- 	return 0;
+ /* UART common */
 -- 
 1.7.1
 
