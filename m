@@ -1,93 +1,67 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH] OMAP4: Intialize IVA Device in addition to DSP device.
-Date: Thu, 10 Mar 2011 19:25:44 +0530
-Message-ID: <4D78D860.2050609@ti.com>
-References: <1299738148-28557-1-git-send-email-shweta.gulati@ti.com> <fc1162b5d4e1a7deb77aa800a3e8fdb3@mail.gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH v5 05/10] OMAP4 : DSS2 : HDMI: HDMI driver addition in
+ the DSS
+Date: Thu, 10 Mar 2011 15:58:43 +0200
+Message-ID: <1299765523.2017.192.camel@deskari>
+References: <1299753858-12222-1-git-send-email-mythripk@ti.com>
+	 <1299753858-12222-2-git-send-email-mythripk@ti.com>
+	 <1299753858-12222-3-git-send-email-mythripk@ti.com>
+	 <1299753858-12222-4-git-send-email-mythripk@ti.com>
+	 <1299753858-12222-5-git-send-email-mythripk@ti.com>
+	 <1299753858-12222-6-git-send-email-mythripk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:33703 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751125Ab1CJNzw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 10 Mar 2011 08:55:52 -0500
-Received: by mail-vw0-f42.google.com with SMTP id 10so2984359vws.1
-        for <linux-omap@vger.kernel.org>; Thu, 10 Mar 2011 05:55:51 -0800 (PST)
-In-Reply-To: <fc1162b5d4e1a7deb77aa800a3e8fdb3@mail.gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:52307 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751796Ab1CJN6o (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 10 Mar 2011 08:58:44 -0500
+Received: from dlep36.itg.ti.com ([157.170.170.91])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p2ADwihU009696
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Thu, 10 Mar 2011 07:58:44 -0600
+Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
+	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id p2ADwihY024640
+	for <linux-omap@vger.kernel.org>; Thu, 10 Mar 2011 07:58:44 -0600 (CST)
+In-Reply-To: <1299753858-12222-6-git-send-email-mythripk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vishwanath Sripathy <vishwanath.bs@ti.com>
-Cc: Shweta Gulati <shweta.gulati@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: "K, Mythri P" <mythripk@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Few cosmetic comments follow:
-Vishwanath Sripathy wrote, on 03/10/2011 02:36 PM:
->> -----Original Message-----
->> From: linux-arm-kernel-bounces@lists.infradead.org [mailto:linux-arm-
->> kernel-bounces@lists.infradead.org] On Behalf Of Shweta Gulati
->> Sent: Thursday, March 10, 2011 11:52 AM
->> To: linux-omap@vger.kernel.org
->> Cc: Shweta Gulati; linux-arm-kernel@lists.infradead.org
->> Subject: [PATCH] OMAP4: Intialize IVA Device in addition to DSP device.
->>
->> OMAP4 has two different Devices IVA and DSP. DSP is bound
->> with MPU for DVFS and IVA has its own well defined OPPs.
-> DSP is not in MPU voltage domain. DSP(Tesla) and IVAHD are in the same
-> voltage domain. Pls correct this in the commit log.
-True for OMAP4 - DSP and MPU DVFS are independent, in OMAP3, they were 
-scaled together ;)
+On Thu, 2011-03-10 at 04:44 -0600, K, Mythri P wrote:
+> Adding the hdmi interface driver(hdmi.c) to the dss driver.
+> It configures the audio and video portion of HDMI based on
+> functionality called by the  panel driver.
+> 
+> Signed-off-by: Mythri P K <mythripk@ti.com>
+>                 Yong Zhi <y-zhi@ti.com>
 
-[...]
->> This Patch adds IVA init to 'omap2_init_processor_devices'
->> and make sure that API 'omap2_set_init_voltage' is called
->> for apt dev pointer.
+This isn't the correct way to have signed off. Each person should be in
+its own signed-off-by: line.
 
-set_init_voltage error is just one symptom of the problem. infact, if we 
-wanted to do anything with iva - e.g. dvfs, we would'nt have been able 
-to without the device being registered.
+<snip>
 
->>
->> It fixes Error logs:
-"This also fixes the following error seen during boot as 
-omap2_set_init_voltage can now find the iva device" is better than the 
-"This patch...."?
->>
->> 	omap2_set_init_voltage: Invalid parameters!
->> 	omap2_set_init_voltage: Unable to put vdd_iva to its init voltage
+> +/*
+> + * Logic for the below structure :
+> + * user enters the CEA or VESA timings by specifying the HDMI/DVI code.
+> + * There is a correspondence between CEA/VESA timing and code , Please
+> + * refer to section 6.3 in HDMI 1.3 specification for timing code.
+> + * In the below structure, cea_vesa_timings corresponds to all OMAP4
+> + * supported CEA and VESA timing values.
+> + * code_cea corresponds to the CEA code , It is used to get the timing
+> + * from cea_vesa_timing array. Similarly with code_vesa.
+> + * code_index is used for back mapping, That is once EDID is read from
+> + * the TV, EDID is parsed to find the timing values and then map it to
+> + * corresponding CEA or VESA index.
+> + */
 
-Thanks for catching and fixing this - I had noticed this in my SR 1.5 
-testing(should have posted as well), but had'nt tried to dig further.
+This comment is still rather messy. Check capital letters, periods,
+spaces before commas. Also, if you divide text into paragraphs, use an
+empty line between the paragraphs. If you don't divide into paragraphs,
+then the text should be evenly formatted.
 
->>
->> Tested on OMAP4430 SDP Board.
->> Baseline:
->> http://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-
->> pm.git
->> Branch :pm-core
-Do you really want this information in commit log? I suggest you move 
-this to the diffstat section.
-
->>
->> Signed-off-by: Shweta Gulati<shweta.gulati@ti.com>
->> ---
->>   arch/arm/mach-omap2/pm.c |    1 +
->>   1 files changed, 1 insertions(+), 0 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
->> index 30af335..49486f5 100644
->> --- a/arch/arm/mach-omap2/pm.c
->> +++ b/arch/arm/mach-omap2/pm.c
->> @@ -89,6 +89,7 @@ static void omap2_init_processor_devices(void)
->>   	if (cpu_is_omap44xx()) {
->>   		_init_omap_device("l3_main_1",&l3_dev);
->>   		_init_omap_device("dsp",&dsp_dev);
->> +		_init_omap_device("iva",&iva_dev);
->>   	} else {
->>   		_init_omap_device("l3_main",&l3_dev);
->>   	}
+ Tomi
 
 
-
--- 
-Regards,
-Nishanth Menon
