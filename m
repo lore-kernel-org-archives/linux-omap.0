@@ -1,45 +1,48 @@
-From: Maxime Coquelin <maxime.coquelin-nonst@stericsson.com>
-Subject: Re: [RFC PATCHv1 0/2] Export SoC info through sysfs
-Date: Thu, 10 Mar 2011 14:36:27 +0100
-Message-ID: <4D78D3DB.90708@stericsson.com>
-References: <1299689961-5028-1-git-send-email-maxime.coquelin-nonst@stericsson.com>
-	<20110310130527.GA2154@besouro.research.nokia.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH v5 00/10] OMAP4 : DSS2 : HDMI support on OMAP4
+Date: Thu, 10 Mar 2011 15:44:03 +0200
+Message-ID: <1299764643.2017.177.camel@deskari>
+References: <1299753858-12222-1-git-send-email-mythripk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20110310130527.GA2154@besouro.research.nokia.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>
-Cc: ext Nishanth Menon <nm@ti.com>, ext Tony Lindgren <tony@atomide.com>, Peter De-Schrijver <Peter.De-Schrijver@nokia.com>, Linus Walleij <linus.walleij@linaro.org>, Ambresh <a0393775@ti.com>, Saravana Kannan <skannan@codeaurora.org>, Andrei Warkentin <andreiw@motorola.com>, Lee Jones <Lee.Jones@linaro.org>, Rabin VINCENT <rabin.vincent@stericsson.com>, Russell King <linux@arm.linux.org.uk>, Jonas ABERG <jonas.aberg@stericsson.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, David Brown <davidb@codeaurora.org>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, Loic PALLARDY <loic.pallardy@stericsson.com>, "maxime_coquelin@yahoo.fr" <maxime_coquelin@yahoo.fr>, Ryan Mallon <ryan@bluewatersys.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Daniel Walker <dwalker@codeaurora.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:39129 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752597Ab1CJNoF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 10 Mar 2011 08:44:05 -0500
+Received: from dlep35.itg.ti.com ([157.170.170.118])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p2ADi5Vs016597
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Thu, 10 Mar 2011 07:44:05 -0600
+Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
+	by dlep35.itg.ti.com (8.13.7/8.13.7) with ESMTP id p2ADi4nF026004
+	for <linux-omap@vger.kernel.org>; Thu, 10 Mar 2011 07:44:04 -0600 (CST)
+In-Reply-To: <1299753858-12222-1-git-send-email-mythripk@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "K, Mythri P" <mythripk@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Eduardo,
+On Thu, 2011-03-10 at 04:44 -0600, K, Mythri P wrote:
+> Adding HDMI support on OMAP4.
+> 
+> HDMI is a driver that is similar to the VENC or the DSI driver to support
+> HDMI/DVI sink device.
+> 
+> The current design adheres to the DSS2 architecture.
+> 
+> It is split into the HDMI DSS driver and HDMI panel driver.
 
-On 03/10/2011 02:05 PM, Eduardo Valentin wrote:
->
->> The first patch introduces the common part, which provides an interface to the platform to register its name, and exports platform-defined IDs to user-space.
->> The IDs strings can be provided in two ways: either with a pointer to the string, or by a callback returning the string.
-> Do you mind refreshing my memory why we need two ways of providing data to these attributes?
-> I mean, I think if we provide the attribute value during registration time should be enough
-> and simpler.
->
-> Unless you guys are talking about attributes with changes over the time, I don't really see
-> the need for the callback there. At least from the original scope, I don't see any attributes
-> which would be exported under soc info which would change over the time.
->
-> Or am I missing something?
+I think this version is good. It works for me, at least =).
+
+Any Panda or Blaze owners reading this want to give this a try?
+
+There are a couple of cosmetic fixes you could still do, I'll email
+about those separately. But they are just about comments/descriptions,
+you can fix them and email me a tarball for the patches, no need to spam
+the mailing list.
+
+ Tomi
 
 
-It would be simpler indeed. But I don't know what are other SoC vendors 
-needs, does someone need to export a piece of information which may 
-change at runtime? If we all agree that providing a string at 
-registration is enough, I'll remove it.
