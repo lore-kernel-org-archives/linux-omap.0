@@ -1,71 +1,40 @@
-From: "K, Mythri P" <mythripk@ti.com>
-Subject: Re: [PATCH v4 0/9] OMAP4 : DSS2 : HDMI support on OMAP4
-Date: Thu, 10 Mar 2011 10:57:55 +0530
-Message-ID: <AANLkTi==-RuvQBgQedJjrhdORf3NAjue_QnaihRw5mME@mail.gmail.com>
-References: <1299671118-20839-1-git-send-email-mythripk@ti.com>
-	<1299680106.2151.91.camel@deskari>
+From: Michael =?ISO-8859-1?Q?B=FCsch?= <mb@bu3sch.de>
+Subject: Re: Nokia n810 LCD (MIPID/blizzard) on 2.6.38
+Date: Thu, 10 Mar 2011 06:49:46 +0100
+Message-ID: <1299736186.10251.3.camel@maggie>
+References: <1298925943.16391.19.camel@marge>
+	 <alpine.DEB.2.00.1103091807050.15132@utopia.booyaka.com>
+	 (sfid-20110310_021859_499343_FFFFFFFF9C481C65)
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:52694 "EHLO
-	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751022Ab1CJF14 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 10 Mar 2011 00:27:56 -0500
-Received: by mail-vw0-f48.google.com with SMTP id 20so1321489vws.7
-        for <linux-omap@vger.kernel.org>; Wed, 09 Mar 2011 21:27:55 -0800 (PST)
-In-Reply-To: <1299680106.2151.91.camel@deskari>
+Received: from 80-190-117-144.ip-home.de ([80.190.117.144]:60284 "EHLO
+	bu3sch.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750699Ab1CJFtx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 10 Mar 2011 00:49:53 -0500
+In-Reply-To: <alpine.DEB.2.00.1103091807050.15132@utopia.booyaka.com> (sfid-20110310_021859_499343_FFFFFFFF9C481C65)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Varadarajan Charulatha <charu@ti.com>
 
-Hi Tomi,
-yes This is based off your tree.
+On Wed, 2011-03-09 at 18:18 -0700, Paul Walmsley wrote: 
+> Perhaps this patch will do:
+> 
+>    http://marc.info/?l=linux-omap&m=129971920806386&w=2
+> 
+> Afterwards, it should be possible to look up the GPIO1 hwmod in 
+> mach-omap2/board-n8x0.c after the call to 
+> omap2_init_common_infrastructure(), and then to call 
+> omap_hwmod_no_setup_reset() on it.  Perhaps you might wish to try it?
 
-Thanks and regards,
-Mythri.
+Yep, this looks like the short-term fix I was looking for.
 
-On Wed, Mar 9, 2011 at 7:45 PM, Tomi Valkeinen <tomi.valkeinen@ti.com> =
-wrote:
-> On Wed, 2011-03-09 at 05:45 -0600, K, Mythri P wrote:
->> Adding HDMI support on OMAP4.
->>
->> HDMI is a driver that is similar to the VENC or the DSI driver to su=
-pport
->> HDMI/DVI sink device.
->>
->> The current design adheres to the DSS2 architecture.
->>
->> It is split into the HDMI DSS driver and HDMI panel driver.
->
-> This doesn't apply to my tree. Are you sure it's based on DSS master
-> branch?
->
-> Applying: OMAP4 : DSS2 : Add display type HDMI to DSS2
-> Applying: OMAP4 : DSS2 : HDMI: Select between HDMI VENC clock source.
-> Applying: OMAP4 : DSS2 : HDMI: HDMI dispc gamma table disable.
-> Applying: OMAP4 : DSS2 : HDMI: HDMI driver header file addition
-> Applying: OMAP4 : DSS2 : HDMI: HDMI driver addition in the DSS
-> fatal: sha1 information is lacking or useless (drivers/video/omap2/ds=
-s/dss.h).
-> Repository lacks necessary blobs to fall back on 3-way merge.
-> Cannot fall back to three-way merge.
-> Patch failed at 0005 OMAP4 : DSS2 : HDMI: HDMI driver addition in the=
- DSS
-> When you have resolved this problem run "git am -3 --resolved".
-> If you would prefer to skip this patch, instead run "git am -3 --skip=
-".
-> To restore the original branch and stop patching run "git am -3 --abo=
-rt".
->
-> =A0Tomi
->
->
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+We're still working on a possible long-term fix by fixing up
+the blizzard driver, but that will eventually take some time, if
+we finally get it sorted out...
+
+-- 
+Greetings Michael.
+
