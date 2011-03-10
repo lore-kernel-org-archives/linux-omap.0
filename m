@@ -1,63 +1,51 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH v2 02/19] OMAP4: Use WARN_ON() instead of BUG_ON() with graceful exit
-Date: Thu, 10 Mar 2011 19:37:58 +0530
-Message-ID: <1299766095-23879-3-git-send-email-santosh.shilimkar@ti.com>
-References: <1299766095-23879-1-git-send-email-santosh.shilimkar@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:40521 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752433Ab1CJOIh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 10 Mar 2011 09:08:37 -0500
-In-Reply-To: <1299766095-23879-1-git-send-email-santosh.shilimkar@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [RFC PATCHv1 1/2] Export SoC info through sysfs
+Date: Thu, 10 Mar 2011 14:08:08 +0000
+Message-ID: <20110310140807.GB7411@sirena.org.uk>
+References: <1299689961-5028-1-git-send-email-maxime.coquelin-nonst@stericsson.com>
+	<1299689961-5028-2-git-send-email-maxime.coquelin-nonst@stericsson.com>
+	<201103092058.34236.arnd@arndb.de>
+	<AANLkTikFCAC-hdv0Q_9eQs31XHHEc4wYqRjfY0S=FYcz@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <AANLkTikFCAC-hdv0Q_9eQs31XHHEc4wYqRjfY0S=FYcz@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Linus Walleij <linus.ml.walleij@gmail.com>
+Cc: ext Nishanth Menon <nm@ti.com>, ext Tony Lindgren <tony@atomide.com>, Peter De-Schrijver <Peter.De-Schrijver@nokia.com>, Ambresh <a0393775@ti.com>, Saravana Kannan <skannan@codeaurora.org>, Andrei Warkentin <andreiw@motorola.com>, Lee Jones <Lee.Jones@linaro.org>, Rabin VINCENT <rabin.vincent@stericsson.com>, Russell King <linux@arm.linux.org.uk>, Jonas ABERG <jonas.aberg@stericsson.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, David Brown <davidb@codeaurora.org>, Maxime Coquelin <maxime.coquelin-nonst@stericsson.com>, Arnd Bergmann <arnd@arndb.de>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, Loic PALLARDY <loic.pallardy@stericsson.com>, "eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>, maxime_coquelin@yahoo.fr, Ryan Mallon <ryan@bluewatersys.com>, Linux-OMAP <linux-omap@vger.kernel.org>"linux-arm-kernel@lists.infradead.org" <l>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: khilman@ti.com, rnayak@ti.com, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-OMAP L2X0 and GIC initialisation code uses BUG_ON() for the
-ioremap() failure scenarios.
+On Thu, Mar 10, 2011 at 02:25:19PM +0100, Linus Walleij wrote:
 
-Use WARN_ON() instead and allow graceful function exits.
+> "platform" means "platform bus" in this context, does it not?
+> So your reasoning is that since on SoC:s there is one dominant
+> bus called the platform bus that should also hold a reference to the
+> SoC-specific stuff.
 
-This was suggsted by Kevin Hilman <khilman@ti.com> during
-OMAP4 PM code review.
+Lots of stuff (like the MFD children of I2C devices) gets shoved on the
+platform bus on Linux - every time someone considers creating a new bus
+type for trivial devices the discussion ends up saying that the code
+will end up being pretty much identical to the platform bus as it's so
+straightforward so there's no point in cut'n'pasting the code.
 
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Kevin Hilman <khilman@ti.com>
----
- arch/arm/mach-omap2/omap4-common.c |    9 ++++++---
- 1 files changed, 6 insertions(+), 3 deletions(-)
+> So standardizing the location here,
+> /sys/devices/system contain these more neutral things:
 
-diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
-index 559d227..8f9b97d 100644
---- a/arch/arm/mach-omap2/omap4-common.c
-+++ b/arch/arm/mach-omap2/omap4-common.c
-@@ -36,11 +36,13 @@ void __init gic_init_irq(void)
- 
- 	/* Static mapping, never released */
- 	gic_dist_base_addr = ioremap(OMAP44XX_GIC_DIST_BASE, SZ_4K);
--	BUG_ON(!gic_dist_base_addr);
-+	if (WARN_ON(!gic_dist_base_addr))
-+		return;
- 
- 	/* Static mapping, never released */
- 	gic_cpu_base = ioremap(OMAP44XX_GIC_CPU_BASE, SZ_512);
--	BUG_ON(!gic_cpu_base);
-+	if (WARN_ON(!gic_cpu_base))
-+		return;
- 
- 	omap_wakeupgen_init();
- 
-@@ -68,7 +70,8 @@ static int __init omap_l2_cache_init(void)
- 
- 	/* Static mapping, never released */
- 	l2cache_base = ioremap(OMAP44XX_L2CACHE_BASE, SZ_4K);
--	BUG_ON(!l2cache_base);
-+	if (WARN_ON(!l2cache_base))
-+		return -ENODEV;
- 
- 	/*
- 	 * 16-way associativity, parity disabled
--- 
-1.6.0.4
+> /sys/devices/system ls
+> clocksource  cpu          timekeeping  timer
 
+> IMHO socinfo fits here, just as it is in the patch.
+
+There's a general idea to kill of the system devices as the fact that
+they do special magic and don't have things like a struct device creates
+integration problems.
