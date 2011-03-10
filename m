@@ -1,43 +1,95 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [RFC PATCHv1 1/2] Export SoC info through sysfs
-Date: Thu, 10 Mar 2011 15:20:11 +0000
-Message-ID: <20110310152011.GH22195@opensource.wolfsonmicro.com>
-References: <1299689961-5028-1-git-send-email-maxime.coquelin-nonst@stericsson.com>
-	<201103101529.25661.arnd@arndb.de>
-	<20110310144455.GG22195@opensource.wolfsonmicro.com>
-	<201103101602.19241.arnd@arndb.de>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH 0/2] OMAP3: wdtimer: fix wdtimer blocking CORE idle
+Date: Thu, 10 Mar 2011 16:25:51 +0100
+Message-ID: <4D78ED7F.1020307@ti.com>
+References: <1299749569-22673-1-git-send-email-kalle.jokiniemi@nokia.com> <alpine.DEB.2.00.1103100247190.15132@utopia.booyaka.com> <9D0D31AA57AAF5499AFDC63D6472631B065E79@008-AM1MPN1-036.mgdnok.nokia.com> <4D78B290.7070905@ti.com> <alpine.DEB.2.00.1103100604460.15132@utopia.booyaka.com> <4D78D803.6080309@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <201103101602.19241.arnd@arndb.de>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: ext Nishanth Menon <nm@ti.com>, ext Tony Lindgren <tony@atomide.com>, Peter De-Schrijver <Peter.De-Schrijver@nokia.com>, Ambresh <a0393775@ti.com>, Saravana Kannan <skannan@codeaurora.org>, Jouni Hogander <jouni.hogander@nokia.com>, Lee Jones <Lee.Jones@linaro.org>, Rabin VINCENT <rabin.vincent@stericsson.com>, Russell King <linux@arm.linux.org.uk>, Jonas ABERG <jonas.aberg@stericsson.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, David Brown <davidb@codeaurora.org>, Maxime Coquelin <maxime.coquelin-nonst@stericsson.com>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, Loic PALLARDY <loic.pallardy@stericsson.com>, "eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>, maxime_coquelin@yahoo.fr, Ryan Mallon <ryan@bluewatersys.com>, Linux-OMAP <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, Daniel Walker <dwalker@codeauror>
+Content-Type: text/plain; charset=ISO-8859-1;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58529 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752460Ab1CJPZ7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 10 Mar 2011 10:25:59 -0500
+In-Reply-To: <4D78D803.6080309@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "kalle.jokiniemi@nokia.com" <kalle.jokiniemi@nokia.com>, "Hilman, Kevin" <khilman@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "ilkka.koskinen@nokia.com" <ilkka.koskinen@nokia.com>, "jhnikula@gmail.com" <jhnikula@gmail.com>
 
-On Thu, Mar 10, 2011 at 04:02:18PM +0100, Arnd Bergmann wrote:
+Paul,
 
-> I can accept that it's reasonable to put all devices under
-> /sys/devices/platform/ that are on the same top-level AHB or APB bus,
-> although I also don't see a reason against making that bus a single
-> device.
+On 3/10/2011 2:54 PM, Cousson, Benoit wrote:
+> On 3/10/2011 2:08 PM, Paul Walmsley wrote:
+>> Hi Beno=EEt,
+>>
+>> On Thu, 10 Mar 2011, Cousson, Benoit wrote:
+>>
+>>> On 3/10/2011 11:28 AM, kalle.jokiniemi@nokia.com wrote:
+>>>>
+>>>>> From: ext Paul Walmsley [mailto:paul@pwsan.com]
+>>>>> Sent: 10. maaliskuuta 2011 11:50
+>>>>>
+>>>>> Thanks Kalle for tracking this down,
+>>>>>
+>>>>> could you try this patch along with the patch from this message:
+>>>>>
+>>>>>      http://www.spinics.net/lists/linux-omap/msg48115.html
+>>>
+>>> I have some question with that patch.
+>>> By using pm_runtime API, you are suppose to idle the whole IP.
+>>> In this case, just because you cannot idle a wdt that is running, i=
+t works,
+>>> but the point is that the pm_runtime state will not reflect the HW =
+state.
+>>> For pm_runtime point of view, the wdt is supposed to be fully idle =
+(both fclk
+>>> and iclk). Whereas in that case, only the iclk will be gated.
+>>>
+>>> Did I miss something?
+>>
+>> Looking at it, I don't know how the old driver managed to work at al=
+l.
+>> Commit 7ec5ad0f3c1e28b693185c35f768953c5db32291 ("OMAP: WDT: Use PM
+>> runtime APIs instead of clk FW APIs") removed this from omap_wdt_pro=
+be():
+>>
+>> -       /* autogate OCP interface clock */
+>> -       __raw_writel(0x01, wdev->base + OMAP_WATCHDOG_SYS_CONFIG);
+>>
+>> This would put the WDTIMER into force-idle, and nothing ever took it=
+ out
+>> of force-idle.  So I don't quite understand why the PRCM wouldn't ju=
+st
+>> turn off the functional clock to the WDTIMER at this point.  Any tho=
+ughts
+>> on this?
+>
+> The idle definition of the PRCM is just: idle of the ocp clock (iclk)=
+=2E
+> The fclk can be active while the module is "idle" for the PRCM point =
+of
+> view.
+> That's why we have a mismatch in that case with the pm_runtime idle
+> definition, where the module should be fully idle.
+>
+> In that case, since the WDT is in the wakeup domain, we do not even h=
+ave
+> to re-enable the iclk since the wakeup domain is always on whenever t=
+he
+> MPU is running.
+>
+> That fact that we have to explicitly do a force idle, probably means
+> that the autoidle is broken in the IP.
 
-You could, though the bus will just be a noop.  Typically it's more than
-one bus but software basically can't tell.
+Meanwhile, this patch is probably the best approach anyway.
+I do not like going backward with a clock level management solution.
 
-> The one thing that really doesn't belong in /sys/devices/platform/
-> however are devices that are clearly children of some other
-> device, e.g. a UART behind MFD behind I2C behind AHB.
-
-Right, and we seem to be fairly good at squashing such bugs when people
-notice them.
+Regards,
+Benoit
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
