@@ -1,279 +1,70 @@
 From: Mythri P K <mythripk@ti.com>
-Subject: [PATCH v5 06/10] OMAP4 : DSS2 : HDMI: HDMI panel driver addition in the DSS
-Date: Thu, 10 Mar 2011 16:14:14 +0530
-Message-ID: <1299753858-12222-7-git-send-email-mythripk@ti.com>
+Subject: [PATCH v5 03/10] OMAP4 : DSS2 : HDMI: Dispc gamma enable set/reset function for TV.
+Date: Thu, 10 Mar 2011 16:14:11 +0530
+Message-ID: <1299753858-12222-4-git-send-email-mythripk@ti.com>
 References: <1299753858-12222-1-git-send-email-mythripk@ti.com>
  <1299753858-12222-2-git-send-email-mythripk@ti.com>
  <1299753858-12222-3-git-send-email-mythripk@ti.com>
- <1299753858-12222-4-git-send-email-mythripk@ti.com>
- <1299753858-12222-5-git-send-email-mythripk@ti.com>
- <1299753858-12222-6-git-send-email-mythripk@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:59385 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:44169 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751807Ab1CJKu5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 10 Mar 2011 05:50:57 -0500
+	id S1751368Ab1CJKu4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 10 Mar 2011 05:50:56 -0500
 Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p2AAosCZ029893
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p2AAor3D021442
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 10 Mar 2011 04:50:56 -0600
-In-Reply-To: <1299753858-12222-6-git-send-email-mythripk@ti.com>
+	for <linux-omap@vger.kernel.org>; Thu, 10 Mar 2011 04:50:55 -0600
+In-Reply-To: <1299753858-12222-3-git-send-email-mythripk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, tomi.valkeinen@ti.com
 Cc: Mythri P K <mythripk@ti.com>
 
-The panel driver(hdmi_omap4_panel.c) in omap2/dss acts as a controller
-to manage the enable and disable requests and synchronize audio and video.
+Adding function to reset/set gamma table bit for TV interface
+currentl only support for disabled is added.
 
 Signed-off-by: Mythri P K <mythripk@ti.com>
 ---
- drivers/video/omap2/dss/dss.h              |    2 +
- drivers/video/omap2/dss/hdmi_omap4_panel.c |  222 ++++++++++++++++++++++++++++
- 2 files changed, 224 insertions(+), 0 deletions(-)
- create mode 100644 drivers/video/omap2/dss/hdmi_omap4_panel.c
+ drivers/video/omap2/dss/dispc.c |   13 +++++++++++++
+ drivers/video/omap2/dss/dss.h   |    1 +
+ 2 files changed, 14 insertions(+), 0 deletions(-)
 
+diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
+index b8c576a..9b86f5f 100644
+--- a/drivers/video/omap2/dss/dispc.c
++++ b/drivers/video/omap2/dss/dispc.c
+@@ -1008,6 +1008,19 @@ void dispc_set_burst_size(enum omap_plane plane,
+ 	enable_clocks(0);
+ }
+ 
++void dispc_enable_gamma_table(bool enable)
++{
++	/* This is partially implemented to support only
++	 *  disabling of the gamma table.
++	 */
++	if (enable) {
++		DSSWARN("Gamma table enabling for TV not yet supported");
++		return;
++	}
++
++	REG_FLD_MOD(DISPC_CONFIG, enable, 9, 9);
++}
++
+ static void _dispc_set_vid_color_conv(enum omap_plane plane, bool enable)
+ {
+ 	u32 val;
 diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-index 6bf923c..05ccd00 100644
+index c2c0fcf..9f563a6 100644
 --- a/drivers/video/omap2/dss/dss.h
 +++ b/drivers/video/omap2/dss/dss.h
-@@ -483,6 +483,8 @@ void omapdss_hdmi_display_disable(struct omap_dss_device *dssdev);
- void omapdss_hdmi_display_set_timing(struct omap_dss_device *dssdev);
- int omapdss_hdmi_display_check_timing(struct omap_dss_device *dssdev,
- 					struct omap_video_timings *timings);
-+int hdmi_panel_init(void);
-+void hdmi_panel_exit(void);
+@@ -376,6 +376,7 @@ void dispc_set_plane_size(enum omap_plane plane, u16 width, u16 height);
+ void dispc_set_channel_out(enum omap_plane plane,
+ 		enum omap_channel channel_out);
  
- /* RFBI */
- #ifdef CONFIG_OMAP2_DSS_RFBI
-diff --git a/drivers/video/omap2/dss/hdmi_omap4_panel.c b/drivers/video/omap2/dss/hdmi_omap4_panel.c
-new file mode 100644
-index 0000000..ffb5de9
---- /dev/null
-+++ b/drivers/video/omap2/dss/hdmi_omap4_panel.c
-@@ -0,0 +1,222 @@
-+/*
-+ * hdmi_omap4_panel.c
-+ *
-+ * HDMI library support functions for TI OMAP4 processors.
-+ *
-+ * Copyright (C) 2010-2011 Texas Instruments Incorporated - http://www.ti.com/
-+ * Authors:	Mythri P k <mythripk@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License version 2 as published by
-+ * the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but WITHOUT
-+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-+ * more details.
-+ *
-+ * You should have received a copy of the GNU General Public License along with
-+ * this program.  If not, see <http://www.gnu.org/licenses/>.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/err.h>
-+#include <linux/io.h>
-+#include <linux/mutex.h>
-+#include <linux/module.h>
-+#include <plat/display.h>
-+
-+#include "dss.h"
-+
-+static struct {
-+	struct mutex hdmi_lock;
-+} hdmi;
-+
-+
-+static int hdmi_panel_probe(struct omap_dss_device *dssdev)
-+{
-+	DSSDBG("ENTER hdmi_panel_probe\n");
-+
-+	dssdev->panel.config = OMAP_DSS_LCD_TFT |
-+			OMAP_DSS_LCD_IVS | OMAP_DSS_LCD_IHS;
-+
-+	/*
-+	 * Initialize the timings to 640 * 480
-+	 * This is only for framebuffer update not for TV timing setting
-+	 * Setting TV timing will be done only on enable
-+	 */
-+	dssdev->panel.timings.x_res = 640;
-+	dssdev->panel.timings.y_res = 480;
-+
-+	DSSDBG("hdmi_panel_probe x_res= %d y_res = %d\n",
-+		dssdev->panel.timings.x_res,
-+		dssdev->panel.timings.y_res);
-+	return 0;
-+}
-+
-+static void hdmi_panel_remove(struct omap_dss_device *dssdev)
-+{
-+
-+}
-+
-+static int hdmi_panel_enable(struct omap_dss_device *dssdev)
-+{
-+	int r = 0;
-+	DSSDBG("ENTER hdmi_panel_enable\n");
-+
-+	mutex_lock(&hdmi.hdmi_lock);
-+
-+	if (dssdev->state != OMAP_DSS_DISPLAY_DISABLED) {
-+		r = -EINVAL;
-+		goto err;
-+	}
-+
-+	r = omapdss_hdmi_display_enable(dssdev);
-+	if (r) {
-+		DSSERR("failed to power on\n");
-+		goto err;
-+	}
-+
-+	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
-+
-+err:
-+	mutex_unlock(&hdmi.hdmi_lock);
-+
-+	return r;
-+}
-+
-+static void hdmi_panel_disable(struct omap_dss_device *dssdev)
-+{
-+	mutex_lock(&hdmi.hdmi_lock);
-+
-+	if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE)
-+		omapdss_hdmi_display_disable(dssdev);
-+
-+	dssdev->state = OMAP_DSS_DISPLAY_DISABLED;
-+
-+	mutex_unlock(&hdmi.hdmi_lock);
-+}
-+
-+static int hdmi_panel_suspend(struct omap_dss_device *dssdev)
-+{
-+	int r = 0;
-+
-+	mutex_lock(&hdmi.hdmi_lock);
-+
-+	if (dssdev->state != OMAP_DSS_DISPLAY_ACTIVE) {
-+		r = -EINVAL;
-+		goto err;
-+	}
-+
-+	dssdev->state = OMAP_DSS_DISPLAY_SUSPENDED;
-+
-+	omapdss_hdmi_display_disable(dssdev);
-+
-+err:
-+	mutex_unlock(&hdmi.hdmi_lock);
-+
-+	return r;
-+}
-+
-+static int hdmi_panel_resume(struct omap_dss_device *dssdev)
-+{
-+	int r = 0;
-+
-+	mutex_lock(&hdmi.hdmi_lock);
-+
-+	if (dssdev->state != OMAP_DSS_DISPLAY_SUSPENDED) {
-+		r = -EINVAL;
-+		goto err;
-+	}
-+
-+	r = omapdss_hdmi_display_enable(dssdev);
-+	if (r) {
-+		DSSERR("failed to power on\n");
-+		goto err;
-+	}
-+
-+	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
-+
-+err:
-+	mutex_unlock(&hdmi.hdmi_lock);
-+
-+	return r;
-+}
-+
-+static void hdmi_get_timings(struct omap_dss_device *dssdev,
-+			struct omap_video_timings *timings)
-+{
-+	mutex_lock(&hdmi.hdmi_lock);
-+
-+	*timings = dssdev->panel.timings;
-+
-+	mutex_unlock(&hdmi.hdmi_lock);
-+}
-+
-+static void hdmi_set_timings(struct omap_dss_device *dssdev,
-+			struct omap_video_timings *timings)
-+{
-+	DSSDBG("hdmi_set_timings\n");
-+
-+	mutex_lock(&hdmi.hdmi_lock);
-+
-+	dssdev->panel.timings = *timings;
-+
-+	if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE) {
-+		/* turn the hdmi off and on to get new timings to use */
-+		omapdss_hdmi_display_disable(dssdev);
-+		omapdss_hdmi_display_set_timing(dssdev);
-+	}
-+
-+	mutex_unlock(&hdmi.hdmi_lock);
-+}
-+
-+static int hdmi_check_timings(struct omap_dss_device *dssdev,
-+			struct omap_video_timings *timings)
-+{
-+	int r = 0;
-+
-+	DSSDBG("hdmi_check_timings\n");
-+
-+	mutex_lock(&hdmi.hdmi_lock);
-+
-+	r = omapdss_hdmi_display_check_timing(dssdev, timings);
-+	if (r) {
-+		DSSERR("Timing cannot be applied\n");
-+		goto err;
-+	}
-+err:
-+	mutex_unlock(&hdmi.hdmi_lock);
-+	return r;
-+}
-+
-+static struct omap_dss_driver hdmi_driver = {
-+	.probe		= hdmi_panel_probe,
-+	.remove		= hdmi_panel_remove,
-+	.enable		= hdmi_panel_enable,
-+	.disable	= hdmi_panel_disable,
-+	.suspend	= hdmi_panel_suspend,
-+	.resume		= hdmi_panel_resume,
-+	.get_timings	= hdmi_get_timings,
-+	.set_timings	= hdmi_set_timings,
-+	.check_timings	= hdmi_check_timings,
-+	.driver			= {
-+		.name   = "hdmi_panel",
-+		.owner  = THIS_MODULE,
-+	},
-+};
-+
-+int hdmi_panel_init(void)
-+{
-+	mutex_init(&hdmi.hdmi_lock);
-+
-+	omap_dss_register_driver(&hdmi_driver);
-+
-+	return 0;
-+}
-+
-+void hdmi_panel_exit(void)
-+{
-+	omap_dss_unregister_driver(&hdmi_driver);
-+
-+}
++void dispc_enable_gamma_table(bool enable);
+ int dispc_setup_plane(enum omap_plane plane,
+ 		      u32 paddr, u16 screen_width,
+ 		      u16 pos_x, u16 pos_y,
 -- 
 1.5.6.3
 
