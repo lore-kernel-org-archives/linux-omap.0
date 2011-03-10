@@ -1,368 +1,243 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH v2 01/19] OMAP4: PM: Add omap WakeupGen module support
-Date: Thu, 10 Mar 2011 19:37:57 +0530
-Message-ID: <1299766095-23879-2-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH v2 15/19] OMAP4: cpuidle: Basic CPUidle support
+Date: Thu, 10 Mar 2011 19:38:11 +0530
+Message-ID: <1299766095-23879-16-git-send-email-santosh.shilimkar@ti.com>
 References: <1299766095-23879-1-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:50203 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752487Ab1CJOIo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Mar 2011 09:08:44 -0500
+Received: from arroyo.ext.ti.com ([192.94.94.40]:53986 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752210Ab1CJOId (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 10 Mar 2011 09:08:33 -0500
 In-Reply-To: <1299766095-23879-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: khilman@ti.com, rnayak@ti.com, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-This patch adds OMAP WakeupGen support. The WakeupGen unit is responsible
-for generating wakeup event from the incoming interrupts and enable bits.
-The WakeupGen is implemented in MPU Always-On power domain. During normal
-operation, WakeupGen delivers external interrupts directly to the GIC.
-When the CPUx asserts StandbyWFI, indicating it wants to enter lowpower
-state, the Standby Controller checks with the WakeupGen unit using the
-idlereq/idleack handshake to make sure there is no incoming interrupts.
-The GIC and WakeupGen needs to be kept in synchronisation for proper
-interrupt functioning.
+From: Rajendra Nayak <rnayak@ti.com>
 
-Hence this patch hooks up the omap WakeupGen mask/unmask along with GIC using
-architecture specific hooks.
+The patch adds a basic CPUidle driver for OMAP4. Just
+one C state is registered for CPU0 which does a WFI.
+CPU1 is left with defualt idle and the low power state
+for it is managed via cpu-hotplug.
 
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Cc: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/Makefile                      |    3 +-
- arch/arm/mach-omap2/include/mach/omap-wakeupgen.h |   40 ++++
- arch/arm/mach-omap2/omap-wakeupgen.c              |  238 +++++++++++++++++++++
- arch/arm/mach-omap2/omap4-common.c                |    3 +
- 4 files changed, 283 insertions(+), 1 deletions(-)
- create mode 100644 arch/arm/mach-omap2/include/mach/omap-wakeupgen.h
- create mode 100644 arch/arm/mach-omap2/omap-wakeupgen.c
+ arch/arm/mach-omap2/Makefile      |    3 +-
+ arch/arm/mach-omap2/cpuidle44xx.c |  161 +++++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/pm.h          |    1 +
+ arch/arm/mach-omap2/pm44xx.c      |    2 +
+ 4 files changed, 166 insertions(+), 1 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/cpuidle44xx.c
 
 diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 4edac5d..1bf9cd2 100644
+index 04b97bb..c003435 100644
 --- a/arch/arm/mach-omap2/Makefile
 +++ b/arch/arm/mach-omap2/Makefile
-@@ -24,7 +24,8 @@ obj-$(CONFIG_TWL4030_CORE) += omap_twl.o
- obj-$(CONFIG_SMP)			+= omap-smp.o omap-headsmp.o
- obj-$(CONFIG_LOCAL_TIMERS)		+= timer-mpu.o
- obj-$(CONFIG_HOTPLUG_CPU)		+= omap-hotplug.o
--obj-$(CONFIG_ARCH_OMAP4)		+= omap44xx-smc.o omap4-common.o
-+obj-$(CONFIG_ARCH_OMAP4)		+= omap44xx-smc.o omap4-common.o \
-+					   omap-wakeupgen.o
- 
- plus_sec := $(call as-instr,.arch_extension sec,+sec)
- AFLAGS_omap-headsmp.o			:=-Wa,-march=armv7-a$(plus_sec)
-diff --git a/arch/arm/mach-omap2/include/mach/omap-wakeupgen.h b/arch/arm/mach-omap2/include/mach/omap-wakeupgen.h
+@@ -64,7 +64,8 @@ obj-$(CONFIG_ARCH_OMAP2)		+= sleep24xx.o pm_bus.o
+ obj-$(CONFIG_ARCH_OMAP3)		+= pm34xx.o sleep34xx.o \
+ 					   cpuidle34xx.o pm_bus.o
+ obj-$(CONFIG_ARCH_OMAP4)		+= pm44xx.o pm_bus.o \
+-					   omap4-mpuss-lowpower.o sleep44xx.o
++					   omap4-mpuss-lowpower.o sleep44xx.o \
++					   cpuidle44xx.o
+ obj-$(CONFIG_PM_DEBUG)			+= pm-debug.o
+ obj-$(CONFIG_OMAP_SMARTREFLEX)          += sr_device.o smartreflex.o
+ obj-$(CONFIG_OMAP_SMARTREFLEX_CLASS3)	+= smartreflex-class3.o
+diff --git a/arch/arm/mach-omap2/cpuidle44xx.c b/arch/arm/mach-omap2/cpuidle44xx.c
 new file mode 100644
-index 0000000..f10d106
+index 0000000..270404f
 --- /dev/null
-+++ b/arch/arm/mach-omap2/include/mach/omap-wakeupgen.h
-@@ -0,0 +1,40 @@
++++ b/arch/arm/mach-omap2/cpuidle44xx.c
+@@ -0,0 +1,161 @@
 +/*
-+ * OMAP WakeupGen header file
++ * OMAP4 CPU idle Routines
 + *
 + * Copyright (C) 2011 Texas Instruments, Inc.
-+ * Written by Santosh Shilimkar <santosh.shilimkar@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+#ifndef OMAP_ARCH_WAKEUPGEN_H
-+#define OMAP_ARCH_WAKEUPGEN_H
-+
-+#define OMAP_WKG_CONTROL_0			0x00
-+#define OMAP_WKG_ENB_A_0			0x10
-+#define OMAP_WKG_ENB_B_0			0x14
-+#define OMAP_WKG_ENB_C_0			0x18
-+#define OMAP_WKG_ENB_D_0			0x1c
-+#define OMAP_WKG_ENB_SECURE_A_0			0x20
-+#define OMAP_WKG_ENB_SECURE_B_0			0x24
-+#define OMAP_WKG_ENB_SECURE_C_0			0x28
-+#define OMAP_WKG_ENB_SECURE_D_0			0x2c
-+#define OMAP_WKG_ENB_A_1			0x410
-+#define OMAP_WKG_ENB_B_1			0x414
-+#define OMAP_WKG_ENB_C_1			0x418
-+#define OMAP_WKG_ENB_D_1			0x41c
-+#define OMAP_WKG_ENB_SECURE_A_1			0x420
-+#define OMAP_WKG_ENB_SECURE_B_1			0x424
-+#define OMAP_WKG_ENB_SECURE_C_1			0x428
-+#define OMAP_WKG_ENB_SECURE_D_1			0x42c
-+#define OMAP_AUX_CORE_BOOT_0			0x800
-+#define OMAP_AUX_CORE_BOOT_1			0x804
-+#define OMAP_PTMSYNCREQ_MASK			0xc00
-+#define OMAP_PTMSYNCREQ_EN			0xc04
-+#define OMAP_TIMESTAMPCYCLELO			0xc08
-+#define OMAP_TIMESTAMPCYCLEHI			0xc0c
-+
-+extern int __init omap_wakeupgen_init(void);
-+extern void omap_wakeupgen_irqmask_all(unsigned int cpu, unsigned int set);
-+#endif
-diff --git a/arch/arm/mach-omap2/omap-wakeupgen.c b/arch/arm/mach-omap2/omap-wakeupgen.c
-new file mode 100644
-index 0000000..43ebd22
---- /dev/null
-+++ b/arch/arm/mach-omap2/omap-wakeupgen.c
-@@ -0,0 +1,238 @@
-+/*
-+ * OMAP WakeupGen Source file
-+ *
-+ * The WakeupGen unit is responsible for generating wakeup event from the
-+ * incoming interrupts and enable bits. The WakeupGen is implemented in MPU
-+ * always-On power domain. The WakeupGen consists of two sub-units, one for
-+ * each CPU and manages only SPI interrupts. Hardware requirements is that
-+ * the GIC and WakeupGen should be kept in sync for proper operation.
-+ *
-+ * Copyright (C) 2011 Texas Instruments, Inc.
-+ * Written by Santosh Shilimkar <santosh.shilimkar@ti.com>
++ * Rajendra Nayak <rnayak@ti.com>
 + *
 + * This program is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License version 2 as
 + * published by the Free Software Foundation.
 + */
 +
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/io.h>
-+#include <linux/irq.h>
-+#include <linux/platform_device.h>
++#include <linux/sched.h>
++#include <linux/cpuidle.h>
 +
-+#include <asm/hardware/gic.h>
++#include <asm/proc-fns.h>
 +
-+#include <mach/omap-wakeupgen.h>
++#include <mach/omap4-common.h>
 +
-+#define NR_BANKS		4
-+#define MAX_IRQS		128
-+#define WKG_MASK_ALL		0x00000000
-+#define WKG_UNMASK_ALL		0xffffffff
-+#define CPU_ENA_OFFSET		0x400
-+#define CPU0_ID			0x0
-+#define CPU1_ID			0x1
++#include "pm.h"
 +
-+/* WakeupGen Base addres */
-+static void __iomem *wakeupgen_base;
-+static DEFINE_PER_CPU(u32 [NR_BANKS], irqmasks);
-+static DEFINE_SPINLOCK(wakeupgen_lock);
++#ifdef CONFIG_CPU_IDLE
 +
-+/*
-+ * Static helper functions
-+ */
++#define OMAP4_MAX_STATES	1
++/* C1 - CPU0 ON + + CPU1 ON + MPU ON + CORE ON */
++#define OMAP4_STATE_C1		0
 +
-+static inline u32 wakeupgen_readl(u8 idx, u32 cpu)
-+{
-+	return __raw_readl(wakeupgen_base + OMAP_WKG_ENB_A_0 +
-+				(cpu * CPU_ENA_OFFSET) + (idx * 4));
-+}
++struct omap4_processor_cx {
++	u8 valid;
++	u8 type;
++	u32 sleep_latency;
++	u32 wakeup_latency;
++	u32 cpu0_state;
++	u32 mpu_state;
++	u32 core_state;
++	u32 threshold;
++	u32 flags;
++};
 +
-+static inline void wakeupgen_writel(u32 val, u8 idx, u32 cpu)
-+{
-+	__raw_writel(val, wakeupgen_base + OMAP_WKG_ENB_A_0 +
-+				(cpu * CPU_ENA_OFFSET) + (idx * 4));
-+}
++struct omap4_processor_cx omap4_power_states[OMAP4_MAX_STATES];
 +
-+static void _wakeupgen_set_all(unsigned int cpu, unsigned int reg)
-+{
-+	u8 i;
-+
-+	for (i = 0; i < NR_BANKS; i++)
-+		wakeupgen_writel(reg, i, cpu);
-+}
-+
-+static int inline _wakeupgen_get_irq_info(u32 irq, u32 *bit_posn, u8 *reg_index)
-+{
-+	unsigned int spi_irq;
-+
-+	/*
-+	 * PPIs and SGIs are not supported
-+	 */
-+	if (irq < OMAP44XX_IRQ_GIC_START)
-+		return -EINVAL;
-+
-+	/*
-+	 * Subtract the GIC offset
-+	 */
-+	spi_irq = irq - OMAP44XX_IRQ_GIC_START;
-+	if (spi_irq > MAX_IRQS) {
-+		pr_err("omap wakeupGen: Invalid IRQ%d\n", irq);
-+		return -EINVAL;
-+	}
-+
-+	/*
-+	 * Each wakeup gen register controls 32
-+	 * interrupts. i.e 1 bit per SPI IRQ
-+	 */
-+	*reg_index = spi_irq >> 5;
-+	*bit_posn = spi_irq %= 32;
-+
-+	return 0;
-+}
-+
-+static void _wakeupgen_clear(unsigned int irq)
-+{
-+	unsigned int cpu = smp_processor_id();
-+	u32 val, bit_number;
-+	u8 i;
-+
-+	if (_wakeupgen_get_irq_info(irq, &bit_number, &i))
-+		return;
-+
-+	val = wakeupgen_readl(i, cpu);
-+	val &= ~BIT(bit_number);
-+	wakeupgen_writel(val, i, cpu);
-+}
-+
-+static void _wakeupgen_set(unsigned int irq)
-+{
-+	unsigned int cpu = smp_processor_id();
-+	u32 val, bit_number;
-+	u8 i;
-+
-+	if (_wakeupgen_get_irq_info(irq, &bit_number, &i))
-+		return;
-+
-+	val = wakeupgen_readl(i, cpu);
-+	val |= BIT(bit_number);
-+	wakeupgen_writel(val, i, cpu);
-+}
-+
-+static void _wakeupgen_save_masks(unsigned int cpu)
-+{
-+	u8 i;
-+
-+	for (i = 0; i < NR_BANKS; i++)
-+		per_cpu(irqmasks, cpu)[i] = wakeupgen_readl(i, cpu);
-+}
-+
-+static void _wakeupgen_restore_masks(unsigned int cpu)
-+{
-+	u8 i;
-+
-+	for (i = 0; i < NR_BANKS; i++)
-+		wakeupgen_writel(per_cpu(irqmasks, cpu)[i], i, cpu);
-+}
-+
-+/*
-+ * Architecture specific Mask extensiom
-+ */
-+static void wakeupgen_mask(struct irq_data *d)
-+{
-+	spin_lock(&wakeupgen_lock);
-+	_wakeupgen_clear(d->irq);
-+	spin_unlock(&wakeupgen_lock);
-+}
-+
-+/*
-+ * Architecture specific Unmask extensiom
-+ */
-+static void wakeupgen_unmask(struct irq_data *d)
-+{
-+
-+	spin_lock(&wakeupgen_lock);
-+	_wakeupgen_set(d->irq);
-+	spin_unlock(&wakeupgen_lock);
-+}
-+
-+#ifdef CONFIG_PM
-+/*
-+ * Architecture specific set_wake extension
-+ */
-+static int wakeupgen_set_wake(struct irq_data *d, unsigned int on)
-+{
-+	spin_lock(&wakeupgen_lock);
-+	if (on)
-+		_wakeupgen_set(d->irq);
-+	else
-+		_wakeupgen_clear(d->irq);
-+	spin_unlock(&wakeupgen_lock);
-+
-+	return 0;
-+}
-+
-+#else
-+#define wakeupgen_set_wake	NULL
-+#endif
++static struct cpuidle_params cpuidle_params_table[] = {
++	/* C1 */
++	{1, 2, 2, 5},
++};
 +
 +/**
-+ * omap_wakeupgen_irqmask_all() -  Mask or unmask interrupts
-+ * @cpu - CPU ID
-+ * @set - The IRQ register mask.
-+ *	0 = Mask all interrupts on the 'cpu'
-+ *	1 = Unmask all interrupts on the 'cpu'
++ * omap4_enter_idle - Programs OMAP4 to enter the specified state
++ * @dev: cpuidle device
++ * @state: The target state to be programmed
 + *
-+ * Ensure that the initial mask is maintained. This is faster than
-+ * iterating through GIC rgeisters to arrive at the correct masks
++ * Called from the CPUidle framework to program the device to the
++ * specified low power state selected by the governor.
++ * Returns the amount of time spent in the low power state.
 + */
-+void omap_wakeupgen_irqmask_all(unsigned int cpu, unsigned int set)
++static int omap4_enter_idle(struct cpuidle_device *dev,
++			struct cpuidle_state *state)
 +{
-+	if (omap_rev() == OMAP4430_REV_ES1_0)
-+		return;
++	struct timespec ts_preidle, ts_postidle, ts_idle;
 +
-+	spin_lock(&wakeupgen_lock);
-+	if (set) {
-+		_wakeupgen_save_masks(cpu);
-+		_wakeupgen_set_all(cpu, WKG_MASK_ALL);
-+	} else {
-+		_wakeupgen_set_all(cpu, WKG_UNMASK_ALL);
-+		_wakeupgen_restore_masks(cpu);
-+	}
-+	spin_unlock(&wakeupgen_lock);
++	/* Used to keep track of the total time in idle */
++	getnstimeofday(&ts_preidle);
++
++	local_irq_disable();
++	local_fiq_disable();
++
++	cpu_do_idle();
++
++	getnstimeofday(&ts_postidle);
++	ts_idle = timespec_sub(ts_postidle, ts_preidle);
++
++	local_irq_enable();
++	local_fiq_enable();
++
++	return ts_idle.tv_nsec / NSEC_PER_USEC + ts_idle.tv_sec * USEC_PER_SEC;
 +}
 +
-+/*
-+ * Initialse the wakeupgen module
++DEFINE_PER_CPU(struct cpuidle_device, omap4_idle_dev);
++
++/**
++ * omap4_init_power_states - Initialises the OMAP4 specific C states.
++ *
++ * Below is the desciption of each C state.
++ * C1 : CPUx wfi + MPU inative + Core inactive
 + */
-+int __init omap_wakeupgen_init(void)
++void omap4_init_power_states(void)
 +{
-+	u8 i;
-+
-+	/* Not supported on on OMAP4 ES1.0 silicon */
-+	if (omap_rev() == OMAP4430_REV_ES1_0) {
-+		WARN(1, "WakeupGen: Not supported on OMAP4430 ES1.0\n");
-+		return -EPERM;
-+	}
-+
-+	/* Static mapping, never released */
-+	wakeupgen_base = ioremap(OMAP44XX_WKUPGEN_BASE, SZ_4K);
-+	if (WARN_ON(!wakeupgen_base))
-+		return -ENODEV;
-+
-+	/* Clear all IRQ bitmasks at wakeupGen level */
-+	for (i = 0; i < NR_BANKS; i++) {
-+		wakeupgen_writel(0, i, CPU0_ID);
-+		wakeupgen_writel(0, i, CPU1_ID);
-+	}
-+
 +	/*
-+	 * Override gic architecture specific fucntioms to add
-+	 * OMAP WakeupGen interrupt controller along with GIC
++	 * C1 - CPU0 ON + + CPU1 ON + MPU ON + CORE ON
 +	 */
-+	gic_arch_extn.irq_mask = wakeupgen_mask;
-+	gic_arch_extn.irq_unmask = wakeupgen_unmask;
-+	gic_arch_extn.irq_set_wake = wakeupgen_set_wake;
++	omap4_power_states[OMAP4_STATE_C1].valid =
++			cpuidle_params_table[OMAP4_STATE_C1].valid;
++	omap4_power_states[OMAP4_STATE_C1].type = OMAP4_STATE_C1;
++	omap4_power_states[OMAP4_STATE_C1].sleep_latency =
++			cpuidle_params_table[OMAP4_STATE_C1].sleep_latency;
++	omap4_power_states[OMAP4_STATE_C1].wakeup_latency =
++			cpuidle_params_table[OMAP4_STATE_C1].wake_latency;
++	omap4_power_states[OMAP4_STATE_C1].threshold =
++			cpuidle_params_table[OMAP4_STATE_C1].threshold;
++	omap4_power_states[OMAP4_STATE_C1].mpu_state = PWRDM_POWER_ON;
++	omap4_power_states[OMAP4_STATE_C1].core_state = PWRDM_POWER_ON;
++	omap4_power_states[OMAP4_STATE_C1].flags = CPUIDLE_FLAG_TIME_VALID;
++
++}
++
++struct cpuidle_driver omap4_idle_driver = {
++	.name =		"omap4_idle",
++	.owner =	THIS_MODULE,
++};
++
++/**
++ * omap4_idle_init - Init routine for OMAP4 idle
++ *
++ * Registers the OMAP4 specific cpuidle driver with the cpuidle
++ * framework with the valid set of states.
++ */
++int __init omap4_idle_init(void)
++{
++	int cpu_id = 0, i, count = 0;
++	struct omap4_processor_cx *cx;
++	struct cpuidle_state *state;
++	struct cpuidle_device *dev;
++
++	omap4_init_power_states();
++	cpuidle_register_driver(&omap4_idle_driver);
++
++	dev = &per_cpu(omap4_idle_dev, cpu_id);
++	dev->cpu = cpu_id;
++	count = 0;
++	for (i = OMAP4_STATE_C1; i < OMAP4_MAX_STATES; i++) {
++		cx = &omap4_power_states[i];
++		state = &dev->states[count];
++
++		if (!cx->valid)
++			continue;
++		cpuidle_set_statedata(state, cx);
++		state->exit_latency = cx->sleep_latency +
++						cx->wakeup_latency;
++		state->target_residency = cx->threshold;
++		state->flags = cx->flags;
++		state->enter = omap4_enter_idle;
++		sprintf(state->name, "C%d", count+1);
++		count++;
++	}
++
++	if (!count)
++		return -EINVAL;
++	dev->state_count = count;
++
++	if (cpuidle_register_device(dev)) {
++		pr_err("%s: CPUidle register device failed\n", __func__);
++			return -EIO;
++		}
 +
 +	return 0;
 +}
-diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
-index 1926864..559d227 100644
---- a/arch/arm/mach-omap2/omap4-common.c
-+++ b/arch/arm/mach-omap2/omap4-common.c
-@@ -21,6 +21,7 @@
++#else
++int __init omap4_idle_init(void)
++{
++	return 0;
++}
++#endif /* CONFIG_CPU_IDLE */
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index ec5a36f..36cc2cf 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -22,6 +22,7 @@ extern void omap_sram_idle(void);
+ extern int omap3_can_sleep(void);
+ extern int omap_set_pwrdm_state(struct powerdomain *pwrdm, u32 state);
+ extern int omap3_idle_init(void);
++extern int omap4_idle_init(void);
  
- #include <mach/hardware.h>
- #include <mach/omap4-common.h>
-+#include <mach/omap-wakeupgen.h>
+ #if defined(CONFIG_PM_OPP)
+ extern int omap3_opp_init(void);
+diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
+index 14d4229..d4ad31e 100644
+--- a/arch/arm/mach-omap2/pm44xx.c
++++ b/arch/arm/mach-omap2/pm44xx.c
+@@ -224,6 +224,8 @@ static int __init omap4_pm_init(void)
+ 	suspend_set_ops(&omap_pm_ops);
+ #endif /* CONFIG_SUSPEND */
  
- #ifdef CONFIG_CACHE_L2X0
- void __iomem *l2cache_base;
-@@ -41,6 +42,8 @@ void __init gic_init_irq(void)
- 	gic_cpu_base = ioremap(OMAP44XX_GIC_CPU_BASE, SZ_512);
- 	BUG_ON(!gic_cpu_base);
- 
-+	omap_wakeupgen_init();
++	omap4_idle_init();
 +
- 	gic_init(0, 29, gic_dist_base_addr, gic_cpu_base);
+ err2:
+ 	return ret;
  }
- 
 -- 
 1.6.0.4
 
