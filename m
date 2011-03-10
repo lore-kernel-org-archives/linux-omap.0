@@ -1,50 +1,29 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [RFC PATCHv1 1/2] Export SoC info through sysfs
-Date: Thu, 10 Mar 2011 17:54:07 +0100
-Message-ID: <201103101754.07679.arnd@arndb.de>
-References: <1299689961-5028-1-git-send-email-maxime.coquelin-nonst@stericsson.com>
-	<201103101711.59544.arnd@arndb.de>
-	<20110310161917.GD27206@opensource.wolfsonmicro.com>
+From: Aaro Koskinen <aaro.koskinen@nokia.com>
+Subject: Re: [PATCH v5 01/10] OMAP4 : DSS2 : Add display type HDMI to DSS2
+Date: Thu, 10 Mar 2011 18:53:43 +0200 (EET)
+Message-ID: <alpine.DEB.1.10.1103101844270.23039@esdhcp041196.research.nokia.com>
+References: <1299753858-12222-1-git-send-email-mythripk@ti.com>  <1299753858-12222-2-git-send-email-mythripk@ti.com> <1299764919.2017.181.camel@deskari>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20110310161917.GD27206@opensource.wolfsonmicro.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: ext Nishanth Menon <nm@ti.com>, ext Tony Lindgren <tony@atomide.com>, Peter De-Schrijver <Peter.De-Schrijver@nokia.com>, Ambresh <a0393775@ti.com>, Saravana Kannan <skannan@codeaurora.org>, Jouni Hogander <jouni.hogander@nokia.com>, Lee Jones <Lee.Jones@linaro.org>, Rabin VINCENT <rabin.vincent@stericsson.com>, Russell King <linux@arm.linux.org.uk>, Jonas ABERG <jonas.aberg@stericsson.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, David Brown <davidb@codeaurora.org>, Maxime Coquelin <maxime.coquelin-nonst@stericsson.com>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, Loic PALLARDY <loic.pallardy@stericsson.com>, "eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>, maxime_coquelin@yahoo.fr, Ryan Mallon <ryan@bluewatersys.com>, Linux-OMAP <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, Daniel Walker <dwalker@codeauror>
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([147.243.128.24]:31765 "EHLO mgw-da01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753531Ab1CJQzw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 10 Mar 2011 11:55:52 -0500
+In-Reply-To: <1299764919.2017.181.camel@deskari>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: "K, Mythri P" <mythripk@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thursday 10 March 2011, Mark Brown wrote:
-> On Thu, Mar 10, 2011 at 05:11:59PM +0100, Arnd Bergmann wrote:
-> > On Thursday 10 March 2011, Mark Brown wrote:
-> 
-> > > You could, though the bus will just be a noop.  Typically it's more than
-> > > one bus but software basically can't tell.
-> 
-> > Yes. The main reason for representing such a bus in sysfs would be
-> > to match the SOC's block diagram with the structure in the kernel.
-> 
-> If you're doing that things like power domains tend to be a lot more
-> interesting since you can do something meaningful with them in software.
-> The non-visible buses aren't reliably documented anyway and the first
-> procesor datasheet I just pulled up had a whole bunch of devices that
-> span multiple buses anyway :)
+Hi,
 
-Yes, I'm aware that devices are not alwasy in a clear hierarchy and
-that you have bus addressing, device driver, clock, power and interrupt
-(and possibly more) trees that often don't match up.
+On Thu, 10 Mar 2011, Tomi Valkeinen wrote:
+> Generally, split the lines at column, say, 78.
 
-My point is simply that we should still try to find a helpful tree
-representation in these cases, even if it's not perfect. Almost anything
-is better than having lots of unrelated devices in a flat directory.
+I think it should be 75 at most, which is also default for "fmt".
 
-	Arnd
+"git log" idents the comment by 4 spaces, and it would be nice to have
+logs readable with an 80-column screen.
+
+A.
