@@ -1,42 +1,81 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [RFC PATCHv1 1/2] Export SoC info through sysfs
-Date: Thu, 10 Mar 2011 16:02:18 +0100
-Message-ID: <201103101602.19241.arnd@arndb.de>
-References: <1299689961-5028-1-git-send-email-maxime.coquelin-nonst@stericsson.com>
-	<201103101529.25661.arnd@arndb.de>
-	<20110310144455.GG22195@opensource.wolfsonmicro.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH v5 00/10] OMAP4 : DSS2 : HDMI support on OMAP4
+Date: Thu, 10 Mar 2011 17:06:20 +0200
+Message-ID: <1299769580.2017.235.camel@deskari>
+References: <1299753858-12222-1-git-send-email-mythripk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20110310144455.GG22195@opensource.wolfsonmicro.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: ext Nishanth Menon <nm@ti.com>, ext Tony Lindgren <tony@atomide.com>, Peter De-Schrijver <Peter.De-Schrijver@nokia.com>, Ambresh <a0393775@ti.com>, Saravana Kannan <skannan@codeaurora.org>, Jouni Hogander <jouni.hogander@nokia.com>, Lee Jones <Lee.Jones@linaro.org>, Rabin VINCENT <rabin.vincent@stericsson.com>, Russell King <linux@arm.linux.org.uk>, Jonas ABERG <jonas.aberg@stericsson.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, David Brown <davidb@codeaurora.org>, Maxime Coquelin <maxime.coquelin-nonst@stericsson.com>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, Loic PALLARDY <loic.pallardy@stericsson.com>, "eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>, maxime_coquelin@yahoo.fr, Ryan Mallon <ryan@bluewatersys.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Daniel Walker <dwalker@codeaurora.org>, Linus Walleij <linus.ml.wallei>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:53584 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751798Ab1CJPG0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Mar 2011 10:06:26 -0500
+Received: from dlep34.itg.ti.com ([157.170.170.115])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p2AF6NUL029299
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Thu, 10 Mar 2011 09:06:23 -0600
+Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
+	by dlep34.itg.ti.com (8.13.7/8.13.7) with ESMTP id p2AF6NiC002577
+	for <linux-omap@vger.kernel.org>; Thu, 10 Mar 2011 09:06:23 -0600 (CST)
+In-Reply-To: <1299753858-12222-1-git-send-email-mythripk@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "K, Mythri P" <mythripk@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thursday 10 March 2011, Mark Brown wrote:
-> Most of the devices doing that on ARMs tend to be devices where there's
-> no bus that it's meaningful to expose to software - they'll typically be
-> hanging off an AHB or APB bus which has either no real software control
-> or control which is very heavily tied into the overall system control
-> and so is better treated over the whole SoC rather than the bus.
+Hi Mythri,
 
-I can accept that it's reasonable to put all devices under
-/sys/devices/platform/ that are on the same top-level AHB or APB bus,
-although I also don't see a reason against making that bus a single
-device.
+On Thu, 2011-03-10 at 04:44 -0600, K, Mythri P wrote:
+> Adding HDMI support on OMAP4.
+> 
+> HDMI is a driver that is similar to the VENC or the DSI driver to support
+> HDMI/DVI sink device.
+> 
+> The current design adheres to the DSS2 architecture.
 
-The one thing that really doesn't belong in /sys/devices/platform/
-however are devices that are clearly children of some other
-device, e.g. a UART behind MFD behind I2C behind AHB.
+I was testing this on Blaze, with VENC enabled in Kconfig and a small
+hack in venc.c which skips registering the venc device on omap4.
 
-	Arnd
+I haven't seen these earlier, so it may just be I've been lucky, or
+enabling VENC affected this.
+
+I've seen this twice when loading the modules:
+
+[   23.007690] omapdss HDMI: no valid timing found , falling back to VGA
+[   23.040161] omapdss HDMI error: PLL GO bit not set
+[   23.045196] omapdss HDMI error: failed to power on device
+[   23.050964] omapdss error: failed to power on
+[   23.055572] omapfb omapfb: Failed to enable display 'hdmi'
+[   23.066162] omapfb omapfb: failed to setup omapfb
+[   23.071166] omapfb: probe of omapfb failed with error -5
+
+And I've seen this once when unloading modules:
+
+[  126.473419] omapdss DISPC error: SYNC_LOST_DIGIT, disabling TV
+[  126.569244] omapdss DISPC error: timeout waiting for EVSYNC
+[  126.670776] omapdss DISPC error: timeout waiting for EVSYNC
+[  126.773376] omapdss HDMI: no valid timing found , falling back to VGA
+[  126.881896] omapdss DISPC error: timeout waiting for EVSYNC
+[  126.983367] omapdss DISPC error: timeout waiting for EVSYNC
+rmmod: can't unload 'omapdss': Resource temporarily unavailable
+
+This looks a bit bad, as it sounds to me that when an error happened,
+some code path returned too early and the omapdss driver could not
+unload.
+
+There is this code in dss.c:
+
+#ifdef CONFIG_OMAP2_DSS_VENC
+        REG_FLD_MOD(DSS_CONTROL, 1, 4, 4);      /* venc dac demen */
+        REG_FLD_MOD(DSS_CONTROL, 1, 3, 3);      /* venc clock 4x enable */
+        REG_FLD_MOD(DSS_CONTROL, 0, 2, 2);      /* venc clock mode = normal */
+#endif
+
+They don't sound like they would affect HDMI, but that was the only
+difference I found (between VENC enabled and disabled) with a quick
+search.
+
+ Tomi
+
+
