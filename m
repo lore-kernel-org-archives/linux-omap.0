@@ -1,60 +1,68 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: [PATCH v4 4/9] OMAP4 : DSS2 : HDMI: HDMI driver header file
- addition
-Date: Thu, 10 Mar 2011 14:22:59 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024C19269B@dbde02.ent.ti.com>
-References: <1299671118-20839-1-git-send-email-mythripk@ti.com>
-	<1299671118-20839-2-git-send-email-mythripk@ti.com>
-	<1299671118-20839-3-git-send-email-mythripk@ti.com>
-	<1299671118-20839-4-git-send-email-mythripk@ti.com>
-	<1299671118-20839-5-git-send-email-mythripk@ti.com>
-	<B85A65D85D7EB246BE421B3FB0FBB593024C1922C2@dbde02.ent.ti.com>
- <AANLkTimyrak4WfxWuiVvGT21k9jc0G6gz=R6=P8osvVj@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: RE: [PATCH] omap: wd_timer: Fix crash frm wdt_probe when
+ !CONFIG_RUNTIME_PM
+Date: Thu, 10 Mar 2011 01:54:10 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1103100148530.15132@utopia.booyaka.com>
+References: <1294234855-6623-1-git-send-email-santosh.shilimkar@ti.com> <alpine.DEB.2.00.1101061120480.31961@utopia.booyaka.com> <007049e3361a3c4d0e7d2cfa105e2e67@mail.gmail.com> <f0b57f3b0e11566d8c1864d3388ce5e6@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:53694 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751950Ab1CJIxI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Mar 2011 03:53:08 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p2A8r5LM016125
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 10 Mar 2011 02:53:07 -0600
-In-Reply-To: <AANLkTimyrak4WfxWuiVvGT21k9jc0G6gz=R6=P8osvVj@mail.gmail.com>
-Content-Language: en-US
+Received: from utopia.booyaka.com ([72.9.107.138]:53157 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751292Ab1CJIyL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Mar 2011 03:54:11 -0500
+In-Reply-To: <f0b57f3b0e11566d8c1864d3388ce5e6@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "K, Mythri P" <mythripk@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
+To: Sricharan R <r.sricharan@ti.com>, paul@pwsan.com
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-> -----Original Message-----
-> From: K, Mythri P
-> Sent: Thursday, March 10, 2011 10:32 AM
-> To: Premi, Sanjeev
-> Cc: linux-omap@vger.kernel.org; Valkeinen, Tomi
-> Subject: Re: [PATCH v4 4/9] OMAP4 : DSS2 : HDMI: HDMI driver header file
-> addition
+On Thu, 24 Feb 2011, Sricharan R wrote:
+
+> In the case of !CONFIG_PM_RUNTIME and !CONFIG_OMAP_WATCHDOG, if
+> the boot loader or hwmod enables the watchdog, then it generates
+> an un wanted reset.
 > 
+> So to avoid this in the case of !CONFIG_OMAP_WATCHDOG then the
+> watchdog should always be disabled.
+> 
+> So there are two cases:
+>    Case 1: (!CONFIG_OMAP_WATCHDOG and !CONFIG_PM_RUNTIME)
+>              Watchdog should be disabled.
+> 
+>    Case 2: (!CONFIG_PM_RUNTIME) and ( driver is present and board file
+> enables it)
+> 		 Watchdog should run.
+> 
+>    Solution1:
+>           Introduce a new hwmod watchdog reset function, by populating
+>           the .reset entry of the hwmod.
+>           This function is called during the hwmod init.
+>           This function resets the watchdog always and also
+>           disables it if !CONFIG_OMAP_WATCHDOG.
+> 
+>         ( or )
+> 
+>   Solution2:
+>           Introduce a state variable to differentiate if
+>           hwmod post_setup_state is set to enabled by
+>           by board file or io.c file.
+> 
+>           Use this state variable in the reset function as
+> 
+>           If it is enabled by io.c then disable watchdog
+>           Otherwise if it is set to enabled by board file
+>           then enable watchdog.
+> 
+> The below is the patch for solution1, that I have mentioned.
+> Please suggest which would be the right approach ?
 
-[snip]...[snip]
+I don't think either of these seem right.  At this point, I think the best 
+way is to add a function pointer that can be used to quiesce IP blocks 
+that become active after being reset, and to add a flag that board files 
+can set to skip that quiescing process.  We're so close to the merge 
+window opening, though, that I think the best time to deal with this will 
+be after 2.6.40 is released.
 
-> >
-> > [sp] Any specific reason to keep header file in separate patch?
-> >
-> When i had posted it earlier there were several compliants  that the
-> patch is huge,
-> if i include header file with the corresponding c file , and hence
-> difficult to review. So it just to make
-> reviewers job easy.
 
-[sp] Final say on the issue rests with the maintainer. But it I found it
-     difficult to review the .c file with when looking for structure
-     definitions, members etc.
-
-     If they were together, we wouldn't need this in a separate patch:
-     [PATCH v4 7/9] OMAP4 : DSS : HDMI: Call to HDMI module init to...
-
-~sanjeev
-
+- Paul
