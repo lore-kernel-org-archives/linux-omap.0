@@ -1,97 +1,104 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH v2 09/19] OMAP4: PM: Add GIC distributor and interface enable/disable accessory API
-Date: Thu, 10 Mar 2011 19:38:05 +0530
-Message-ID: <1299766095-23879-10-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH v2 14/19] OMAP4: pm-debug: Add wakeup timer and debug counters
+Date: Thu, 10 Mar 2011 19:38:10 +0530
+Message-ID: <1299766095-23879-15-git-send-email-santosh.shilimkar@ti.com>
 References: <1299766095-23879-1-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:50201 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:50197 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752487Ab1CJOIn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Mar 2011 09:08:43 -0500
+	with ESMTP id S1752487Ab1CJOIk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Mar 2011 09:08:40 -0500
 In-Reply-To: <1299766095-23879-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: khilman@ti.com, rnayak@ti.com, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: khilman@ti.com, rnayak@ti.com, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-The power management code needs to have access to enable/disable the
-gic cpu interface and distributor based on targetted low power
-states.
-
-These APIs are suppose to me moved to common ARM GIC library and patch
-for the same was posted earlier. The GIC code refactoring is ongoing
-and hence for time being this is kept under OMAP code so that OMAP4
-PM can continue to work.
-
-Discussion thread:
-	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg42940.html
+This patch adds configurable wakeup timer support in suspend. Also
+for statistics pm counter support is added.
 
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Cc: Kevin Hilman <khilman@ti.com>
-Cc: Russell King <rmk+kernel@arm.linux.org.uk>
 ---
- arch/arm/mach-omap2/include/mach/omap4-common.h |    5 +++-
- arch/arm/mach-omap2/omap4-common.c              |   24 +++++++++++++++++++++++
- 2 files changed, 28 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/omap4-mpuss-lowpower.c |    4 ++++
+ arch/arm/mach-omap2/pm-debug.c             |   10 ++++++++--
+ arch/arm/mach-omap2/pm44xx.c               |    5 +++++
+ 3 files changed, 17 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/include/mach/omap4-common.h b/arch/arm/mach-omap2/include/mach/omap4-common.h
-index a6ce905..a4b3beb 100644
---- a/arch/arm/mach-omap2/include/mach/omap4-common.h
-+++ b/arch/arm/mach-omap2/include/mach/omap4-common.h
-@@ -44,6 +44,10 @@ extern void __iomem *omap4_get_gic_dist_base(void);
- extern void __iomem *omap4_get_gic_cpu_base(void);
- extern void __iomem *omap4_get_sar_ram_base(void);
- extern void __init gic_init_irq(void);
-+extern void gic_cpu_enable(void);
-+extern void gic_cpu_disable(void);
-+extern void gic_dist_enable(void);
-+extern void gic_dist_disable(void);
- extern void omap_smc1(u32 fn, u32 arg);
+diff --git a/arch/arm/mach-omap2/omap4-mpuss-lowpower.c b/arch/arm/mach-omap2/omap4-mpuss-lowpower.c
+index 7348d29..3cd9e8b 100644
+--- a/arch/arm/mach-omap2/omap4-mpuss-lowpower.c
++++ b/arch/arm/mach-omap2/omap4-mpuss-lowpower.c
+@@ -289,6 +289,8 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
+ 	if (cpu)
+ 		goto cpu_prepare;
  
- /*
-@@ -64,7 +68,6 @@ extern int omap4_mpuss_init(void);
- extern int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state);
- extern void omap4_cpu_suspend(unsigned int cpu, unsigned int save_state);
- extern void omap4_cpu_resume(void);
--
- #else
++	pwrdm_pre_transition();
++
+ 	/*
+ 	 * Check MPUSS next state and save GIC if needed
+ 	 * GIC lost during MPU OFF and OSWR
+@@ -334,6 +336,8 @@ cpu_prepare:
+ 		gic_dist_enable();
+ 	}
  
- static inline int omap4_enter_lowpower(unsigned int cpu,
-diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
-index 97d7d8a..9dd50b7 100644
---- a/arch/arm/mach-omap2/omap4-common.c
-+++ b/arch/arm/mach-omap2/omap4-common.c
-@@ -61,6 +61,30 @@ void __init gic_init_irq(void)
- 	gic_init(0, 29, gic_dist_base_addr, gic_cpu_base);
++	pwrdm_post_transition();
++
+ ret:
+ 	return 0;
  }
+diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
+index 34f0e5d..c83a0f6 100644
+--- a/arch/arm/mach-omap2/pm-debug.c
++++ b/arch/arm/mach-omap2/pm-debug.c
+@@ -606,9 +606,11 @@ static int __init pm_dbg_init(void)
+ 	if (pm_dbg_init_done)
+ 		return 0;
  
-+/*
-+ * FIXME: Remove this GIC APIs once common GIG library starts
-+ * supporting it.
-+ */
-+void gic_cpu_enable(void)
-+{
-+	__raw_writel(0xf0, gic_cpu_base + GIC_CPU_PRIMASK);
-+	__raw_writel(1, gic_cpu_base + GIC_CPU_CTRL);
-+}
-+
-+void gic_cpu_disable(void)
-+{
-+	__raw_writel(0, gic_cpu_base + GIC_CPU_CTRL);
-+}
-+
-+void gic_dist_enable(void)
-+{
-+	__raw_writel(0x1, gic_dist_base_addr + GIC_DIST_CTRL);
-+}
-+void gic_dist_disable(void)
-+{
-+	__raw_writel(0, gic_dist_base_addr + GIC_CPU_CTRL);
-+}
-+
- #ifdef CONFIG_CACHE_L2X0
+-	if (cpu_is_omap34xx())
++	if (cpu_is_omap34xx()) {
+ 		pm_dbg_reg_modules = omap3_pm_reg_modules;
+-	else {
++	} else if (cpu_is_omap44xx()) {
++		/* Allow pm_dbg_init on OMAP4. */
++	} else {
+ 		printk(KERN_ERR "%s: only OMAP3 supported\n", __func__);
+ 		return -ENODEV;
+ 	}
+@@ -624,6 +626,9 @@ static int __init pm_dbg_init(void)
  
- void __iomem *omap4_get_l2cache_base(void)
+ 	pwrdm_for_each(pwrdms_setup, (void *)d);
+ 
++	if (cpu_is_omap44xx())
++		goto skip_reg_debufs;
++
+ 	pm_dbg_dir = debugfs_create_dir("registers", d);
+ 	if (IS_ERR(pm_dbg_dir))
+ 		return PTR_ERR(pm_dbg_dir);
+@@ -638,6 +643,7 @@ static int __init pm_dbg_init(void)
+ 				pm_dbg_dir, (void *)(i+1), &debug_reg_fops);
+ 
+ 		}
++skip_reg_debufs:
+ 
+ 	(void) debugfs_create_file("enable_off_mode", S_IRUGO | S_IWUSR, d,
+ 				   &enable_off_mode, &pm_dbg_option_fops);
+diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
+index 0d1f33a..14d4229 100644
+--- a/arch/arm/mach-omap2/pm44xx.c
++++ b/arch/arm/mach-omap2/pm44xx.c
+@@ -41,6 +41,11 @@ static int omap4_pm_suspend(void)
+ 	int state, ret = 0;
+ 	u32 cpu_id = smp_processor_id();
+ 
++	/* Wakeup timer from suspend */
++	if (wakeup_timer_seconds || wakeup_timer_milliseconds)
++		omap2_pm_wakeup_on_timer(wakeup_timer_seconds,
++					 wakeup_timer_milliseconds);
++
+ 	/* Save current powerdomain state */
+ 	list_for_each_entry(pwrst, &pwrst_list, node) {
+ 		pwrst->saved_state = pwrdm_read_next_pwrst(pwrst->pwrdm);
 -- 
 1.6.0.4
 
