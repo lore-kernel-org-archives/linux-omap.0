@@ -1,53 +1,48 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [RFC PATCHv1 1/2] Export SoC info through sysfs
-Date: Thu, 10 Mar 2011 14:44:55 +0000
-Message-ID: <20110310144455.GG22195@opensource.wolfsonmicro.com>
-References: <1299689961-5028-1-git-send-email-maxime.coquelin-nonst@stericsson.com>
-	<AANLkTikFCAC-hdv0Q_9eQs31XHHEc4wYqRjfY0S=FYcz@mail.gmail.com>
-	<20110310140807.GB7411@sirena.org.uk>
-	<201103101529.25661.arnd@arndb.de>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH v5 00/10] OMAP4 : DSS2 : HDMI support on OMAP4
+Date: Thu, 10 Mar 2011 16:51:15 +0200
+Message-ID: <1299768675.2017.230.camel@deskari>
+References: <1299753858-12222-1-git-send-email-mythripk@ti.com>
+	 <1299764643.2017.177.camel@deskari>  <4D78E3F5.2090600@openelec.tv>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <201103101529.25661.arnd@arndb.de>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: ext Nishanth Menon <nm@ti.com>, ext Tony Lindgren <tony@atomide.com>, Peter De-Schrijver <Peter.De-Schrijver@nokia.com>, Ambresh <a0393775@ti.com>, Saravana Kannan <skannan@codeaurora.org>, Andrei Warkentin <andreiw@motorola.com>, Lee Jones <Lee.Jones@linaro.org>, Rabin VINCENT <rabin.vincent@stericsson.com>, Russell King <linux@arm.linux.org.uk>, Jonas ABERG <jonas.aberg@stericsson.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, David Brown <davidb@codeaurora.org>, Maxime Coquelin <maxime.coquelin-nonst@stericsson.com>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, Loic PALLARDY <loic.pallardy@stericsson.com>, "eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>, maxime_coquelin@yahoo.fr, Ryan Mallon <ryan@bluewatersys.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:43049 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751137Ab1CJOvT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 10 Mar 2011 09:51:19 -0500
+In-Reply-To: <4D78E3F5.2090600@openelec.tv>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Stephan Raue <mailinglists@openelec.tv>
+Cc: "K, Mythri P" <mythripk@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, Mar 10, 2011 at 03:29:25PM +0100, Arnd Bergmann wrote:
-> On Thursday 10 March 2011, Mark Brown wrote:
+On Thu, 2011-03-10 at 08:45 -0600, Stephan Raue wrote:
+> Hi,
+> 
+> if i try this patch series the boot stops after (seeing via serial console):
+> 
+>    Starting kernel ...
+> 
+>    Uncompressing Linux... done, booting the kernel.
+> 
+> without this patch series i can see the boot to th OS. I am using this 
+> patches on top of
+> 
+>    http://gitorious.org/linux-omap-dss2/linux/commits/master
+> 
+> Do i anything wrong or do i use a wrong git repo (the patches apply 
+> cleanly)? Her my kernel config: http://fpaste.org/9Esw/
 
-> > Lots of stuff (like the MFD children of I2C devices) gets shoved on the
-> > platform bus on Linux - every time someone considers creating a new bus
-> > type for trivial devices the discussion ends up saying that the code
-> > will end up being pretty much identical to the platform bus as it's so
-> > straightforward so there's no point in cut'n'pasting the code.
+Ah, I guess you hit one yet unsolved problem on on omap4: VENC register
+access fails. 
 
-> Note that there is a difference between using top-level platform
-> devices (the ones that show up in /sys/devices/platform/) and platform
-> devices that are children of others (all the others that are in
-> /sys/bus/platform).
+Can you try switching this off: CONFIG_OMAP2_DSS_VENC.
 
-Sure.
+I need to make some quick hack to get VENC disabled on OMAP4 until we
+find the solution for this.
 
-> What some broken drivers do is to create platform devices ad hoc
-> and just put them into /sys/platform/ directly although the
-> devices clearly have a parent somewhere. These are bugs that should
-> be fixed.
+ Tomi
 
-Most of the devices doing that on ARMs tend to be devices where there's
-no bus that it's meaningful to expose to software - they'll typically be
-hanging off an AHB or APB bus which has either no real software control
-or control which is very heavily tied into the overall system control
-and so is better treated over the whole SoC rather than the bus.
+
