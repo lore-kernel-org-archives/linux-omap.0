@@ -1,86 +1,56 @@
-From: Linus Walleij <linus.ml.walleij@gmail.com>
-Subject: Re: [RFC PATCHv1 1/2] Export SoC info through sysfs
-Date: Thu, 10 Mar 2011 14:25:19 +0100
-Message-ID: <AANLkTikFCAC-hdv0Q_9eQs31XHHEc4wYqRjfY0S=FYcz@mail.gmail.com>
-References: <1299689961-5028-1-git-send-email-maxime.coquelin-nonst@stericsson.com>
-	<1299689961-5028-2-git-send-email-maxime.coquelin-nonst@stericsson.com>
-	<201103092058.34236.arnd@arndb.de>
+From: Ben Dooks <ben-i2c-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
+Subject: Re: [PATCH] OMAP4: clockdomain: Follow recommended enable sequence
+Date: Thu, 10 Mar 2011 13:34:54 +0000
+Message-ID: <20110310133454.GF15795@trinity.fluff.org>
+References: <1299245123-23444-1-git-send-email-rnayak@ti.com> <alpine.DEB.2.00.1103081937100.15132@utopia.booyaka.com> <4D775418.6050105@ti.com> <alpine.DEB.2.00.1103100514210.15132@utopia.booyaka.com> <4D78CAFC.4080502@ti.com> <alpine.DEB.2.00.1103100609080.15132@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <201103092058.34236.arnd@arndb.de>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: ext Nishanth Menon <nm@ti.com>, ext Tony Lindgren <tony@atomide.com>, Peter De-Schrijver <Peter.De-Schrijver@nokia.com>, Ambresh <a0393775@ti.com>, Saravana Kannan <skannan@codeaurora.org>, Jouni Hogander <jouni.hogander@nokia.com>, Lee Jones <Lee.Jones@linaro.org>, Rabin VINCENT <rabin.vincent@stericsson.com>, Russell King <linux@arm.linux.org.uk>, Jonas ABERG <jonas.aberg@stericsson.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, David Brown <davidb@codeaurora.org>, Maxime Coquelin <maxime.coquelin-nonst@stericsson.com>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, Loic PALLARDY <loic.pallardy@stericsson.com>, "eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>, maxime_coquelin@yahoo.fr, Ryan Mallon <ryan@bluewatersys.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infrade>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1103100609080.15132-rwI8Ez+7Ko+d5PgPZx9QOdBPR1lH4CV8@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Cc: ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, khilman-l0cyMroinI0@public.gmane.org, santosh.shilimkar-l0cyMroinI0@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-2011/3/9 Arnd Bergmann <arnd@arndb.de>:
-> On Wednesday 09 March 2011 17:59:20 Maxime Coquelin wrote:
->> Common base to export System-on-Chip related informations through sysfs.
->>
->> Creation of a "soc" directory under /sys/devices/system/.
->
-> Why under system?
->
-> As far as I can tell, the SOC already exists as a platform device
-> under /sys/devices/platform,
+On Thu, Mar 10, 2011 at 06:17:02AM -0700, Paul Walmsley wrote:
+> Hi Ben,
+> 
+> On Thu, 10 Mar 2011, Rajendra Nayak wrote:
+> 
+> > On Thursday 10 March 2011 05:48 PM, Paul Walmsley wrote:
+> > > This patch is currently breaking boot on OMAP4430 ES2.0 Pandaboard,
+> > > so I've dropped it from the integration branch until it can be
+> > > debugged.  Could you check it, please?
+> > > 
+> > > The tag "integration-2.6.39-20110310-008" of
+> > > git://git.pwsan.com/linux-integration boots fine; it's got everything
+> > > but this patch.  Then when this patch is applied, I2C problems show
+> > > up, and root (on MMC) doesn't mount.
+> > 
+> > Looks like you are missing this patch which should fix the i2c
+> > timeouts..
+> 
+> Do you think you'll merge this patch:
+> 
+>    http://marc.info/?l=linux-omap&m=129924561819873&w=2
+> 
+> during the 2.6.39 window?  If so, then I'll add Rajendra's clockdomain 
+> patch back in to my 2.6.39 queue here; it seems to depend on the I2C 
+> driver patch.
 
-This is from U8500:
+see
+http://git.fluff.org/gitweb?p=bjdooks/linux.git;a=shortlog;h=refs/heads/for-2639-rc7/i2c-fixes
 
-/sys/devices/platform ls
+awaiting linus.
 
-ab8500-i2c.0   gpio.0         gpio.5         nmk-i2c.0      uevent
-arm-pmu.0      gpio.1         gpio.6         nmk-i2c.1
-cpufreq-u8500  gpio.2         gpio.7         nmk-i2c.2
-dma40.0        gpio.3         gpio.8         nmk-i2c.3
-gpio-keys.0    gpio.4         musb-ux500.0   reg-dummy
+> - Paul
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-i2c" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-In our case the above are platform_device:s and also MFD cells,
-children of I2C devices (anything prefixed with ab8500-*) which
-have absolutely *nothing* to do with what is inside the SoC.
+-- 
+Ben Dooks, ben-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, http://www.fluff.org/ben/
 
-Further these SoC entries don't even have a device of *any* kind tied
-to them. It's just hooks reading binary right out of some extremely
-system-specific memory locations and producing matching strings.
-
-"platform" means "platform bus" in this context, does it not?
-So your reasoning is that since on SoC:s there is one dominant
-bus called the platform bus that should also hold a reference to the
-SoC-specific stuff.
-
-On the ARM Versatiles this isn't even true: there the dominant
-bus is the AMBA (PrimeCell) bus, and the U8500 uses a mixture
-of both. AMBA devices incidentally turn up as entries directly
-in /sys/devices:
-
-/sys/devices ls
-platform   sdi0       sdi4       system     uart1      virtual
-rtc-pl031  sdi2       ssp0       uart0      uart2
-
-The sdi, uart & rtc you see here are AMBA devices.
-
-So platform is just the platform bus, not the, you know,
-*platform*. There are competing on-chip busses not just one.
-
-So standardizing the location here,
-/sys/devices/system contain these more neutral things:
-
-/sys/devices/system ls
-clocksource  cpu          timekeeping  timer
-
-IMHO socinfo fits here, just as it is in the patch.
-
-This might be a bit of bikeshed-color discussion but I
-happen to like this black color sooooo much...
-
-Just my =800.01
-Linus Walleij
+Large Hadron Colada: A large Pina Colada that makes the universe disappear.
