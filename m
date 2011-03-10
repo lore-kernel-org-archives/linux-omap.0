@@ -1,40 +1,64 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 2/2] OMAP3: wdtimer: Fix CORE idle transition
-Date: Thu, 10 Mar 2011 07:52:55 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1103100752370.15132@utopia.booyaka.com>
-References: <1299759058-26342-1-git-send-email-kalle.jokiniemi@nokia.com> <1299759058-26342-3-git-send-email-kalle.jokiniemi@nokia.com>
+From: Stephan Raue <mailinglists@openelec.tv>
+Subject: Re: [PATCH v5 00/10] OMAP4 : DSS2 : HDMI support on OMAP4
+Date: Thu, 10 Mar 2011 15:45:09 +0100
+Message-ID: <4D78E3F5.2090600@openelec.tv>
+References: <1299753858-12222-1-git-send-email-mythripk@ti.com> <1299764643.2017.177.camel@deskari>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:33912 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753032Ab1CJOw4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Mar 2011 09:52:56 -0500
-In-Reply-To: <1299759058-26342-3-git-send-email-kalle.jokiniemi@nokia.com>
+Received: from mail04.solnet.ch ([212.101.4.138]:50314 "EHLO mail04.solnet.ch"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752324Ab1CJOy0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 10 Mar 2011 09:54:26 -0500
+In-Reply-To: <1299764643.2017.177.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
-Cc: linux-watchdog@vger.kernel.org, wim@iguana.be, khilman@ti.com, linux-omap@vger.kernel.org, tony@atomide.com, jhnikula@gmail.com, ilkka.koskinen@nokia.com, Benoit Cousson <b-cousson@ti.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: "K, Mythri P" <mythripk@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, 10 Mar 2011, Kalle Jokiniemi wrote:
+Hi,
 
-> From: Paul Walmsley <paul@pwsan.com>
-> 
-> The HW superwised smart idle for wdtimer in OMAP3 prevents
-> CORE power domain idle transitions. Disable it by swithing
-> to SW supervised transitions.
-> 
-> This could be a hardware bug in the OMAP3 wdtimer2 block.
-> 
-> Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> Cc: Benoit Cousson <b-cousson@ti.com>
+if i try this patch series the boot stops after (seeing via serial console):
 
-I've queued this one for 2.6.39, since it seems pretty clear that
-target smart-idle mode doesn't work with this IP block.
+   Starting kernel ...
 
-Probably we'll need to do the same thing for OMAP2420/2430, but I'm not   
-going to touch those right now, since we're so close to the merge window.
+   Uncompressing Linux... done, booting the kernel.
 
+without this patch series i can see the boot to th OS. I am using this 
+patches on top of
 
-- Paul
+   http://gitorious.org/linux-omap-dss2/linux/commits/master
+
+Do i anything wrong or do i use a wrong git repo (the patches apply 
+cleanly)? Her my kernel config: http://fpaste.org/9Esw/
+
+Stephan
+
+Am 10.03.2011 14:44, schrieb Tomi Valkeinen:
+> On Thu, 2011-03-10 at 04:44 -0600, K, Mythri P wrote:
+>> Adding HDMI support on OMAP4.
+>>
+>> HDMI is a driver that is similar to the VENC or the DSI driver to support
+>> HDMI/DVI sink device.
+>>
+>> The current design adheres to the DSS2 architecture.
+>>
+>> It is split into the HDMI DSS driver and HDMI panel driver.
+> I think this version is good. It works for me, at least =).
+>
+> Any Panda or Blaze owners reading this want to give this a try?
+>
+> There are a couple of cosmetic fixes you could still do, I'll email
+> about those separately. But they are just about comments/descriptions,
+> you can fix them and email me a tarball for the patches, no need to spam
+> the mailing list.
+>
+>   Tomi
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
