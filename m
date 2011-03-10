@@ -1,64 +1,42 @@
-From: Stephan Raue <mailinglists@openelec.tv>
-Subject: Re: [PATCH v5 00/10] OMAP4 : DSS2 : HDMI support on OMAP4
-Date: Thu, 10 Mar 2011 15:45:09 +0100
-Message-ID: <4D78E3F5.2090600@openelec.tv>
-References: <1299753858-12222-1-git-send-email-mythripk@ti.com> <1299764643.2017.177.camel@deskari>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [RFC PATCHv1 1/2] Export SoC info through sysfs
+Date: Thu, 10 Mar 2011 16:02:18 +0100
+Message-ID: <201103101602.19241.arnd@arndb.de>
+References: <1299689961-5028-1-git-send-email-maxime.coquelin-nonst@stericsson.com>
+	<201103101529.25661.arnd@arndb.de>
+	<20110310144455.GG22195@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail04.solnet.ch ([212.101.4.138]:50314 "EHLO mail04.solnet.ch"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752324Ab1CJOy0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 10 Mar 2011 09:54:26 -0500
-In-Reply-To: <1299764643.2017.177.camel@deskari>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20110310144455.GG22195@opensource.wolfsonmicro.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: ext Nishanth Menon <nm@ti.com>, ext Tony Lindgren <tony@atomide.com>, Peter De-Schrijver <Peter.De-Schrijver@nokia.com>, Ambresh <a0393775@ti.com>, Saravana Kannan <skannan@codeaurora.org>, Jouni Hogander <jouni.hogander@nokia.com>, Lee Jones <Lee.Jones@linaro.org>, Rabin VINCENT <rabin.vincent@stericsson.com>, Russell King <linux@arm.linux.org.uk>, Jonas ABERG <jonas.aberg@stericsson.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, David Brown <davidb@codeaurora.org>, Maxime Coquelin <maxime.coquelin-nonst@stericsson.com>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, Loic PALLARDY <loic.pallardy@stericsson.com>, "eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>, maxime_coquelin@yahoo.fr, Ryan Mallon <ryan@bluewatersys.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Daniel Walker <dwalker@codeaurora.org>, Linus Walleij <linus.ml.wallei>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: "K, Mythri P" <mythripk@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
+On Thursday 10 March 2011, Mark Brown wrote:
+> Most of the devices doing that on ARMs tend to be devices where there's
+> no bus that it's meaningful to expose to software - they'll typically be
+> hanging off an AHB or APB bus which has either no real software control
+> or control which is very heavily tied into the overall system control
+> and so is better treated over the whole SoC rather than the bus.
 
-if i try this patch series the boot stops after (seeing via serial console):
+I can accept that it's reasonable to put all devices under
+/sys/devices/platform/ that are on the same top-level AHB or APB bus,
+although I also don't see a reason against making that bus a single
+device.
 
-   Starting kernel ...
+The one thing that really doesn't belong in /sys/devices/platform/
+however are devices that are clearly children of some other
+device, e.g. a UART behind MFD behind I2C behind AHB.
 
-   Uncompressing Linux... done, booting the kernel.
-
-without this patch series i can see the boot to th OS. I am using this 
-patches on top of
-
-   http://gitorious.org/linux-omap-dss2/linux/commits/master
-
-Do i anything wrong or do i use a wrong git repo (the patches apply 
-cleanly)? Her my kernel config: http://fpaste.org/9Esw/
-
-Stephan
-
-Am 10.03.2011 14:44, schrieb Tomi Valkeinen:
-> On Thu, 2011-03-10 at 04:44 -0600, K, Mythri P wrote:
->> Adding HDMI support on OMAP4.
->>
->> HDMI is a driver that is similar to the VENC or the DSI driver to support
->> HDMI/DVI sink device.
->>
->> The current design adheres to the DSS2 architecture.
->>
->> It is split into the HDMI DSS driver and HDMI panel driver.
-> I think this version is good. It works for me, at least =).
->
-> Any Panda or Blaze owners reading this want to give this a try?
->
-> There are a couple of cosmetic fixes you could still do, I'll email
-> about those separately. But they are just about comments/descriptions,
-> you can fix them and email me a tarball for the patches, no need to spam
-> the mailing list.
->
->   Tomi
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+	Arnd
