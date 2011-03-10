@@ -1,18 +1,20 @@
-From: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+From: Paul Walmsley <paul@pwsan.com>
 Subject: Re: [PATCH] OMAP4: clockdomain: Follow recommended enable sequence
-Date: Thu, 10 Mar 2011 06:17:02 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1103100609080.15132@utopia.booyaka.com>
+Date: Thu, 10 Mar 2011 06:16:45 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1103100616240.15132@utopia.booyaka.com>
 References: <1299245123-23444-1-git-send-email-rnayak@ti.com> <alpine.DEB.2.00.1103081937100.15132@utopia.booyaka.com> <4D775418.6050105@ti.com> <alpine.DEB.2.00.1103100514210.15132@utopia.booyaka.com> <4D78CAFC.4080502@ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4D78CAFC.4080502-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org
-Cc: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, khilman-l0cyMroinI0@public.gmane.org, santosh.shilimkar-l0cyMroinI0@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:35416 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751456Ab1CJNQq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Mar 2011 08:16:46 -0500
+In-Reply-To: <4D78CAFC.4080502@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-
-Hi Ben,
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org, b-cousson@ti.com, khilman@ti.com, santosh.shilimkar@ti.com, linux-arm-kernel@lists.infradead.org
 
 On Thu, 10 Mar 2011, Rajendra Nayak wrote:
 
@@ -28,14 +30,9 @@ On Thu, 10 Mar 2011, Rajendra Nayak wrote:
 > 
 > Looks like you are missing this patch which should fix the i2c
 > timeouts..
+> http://marc.info/?l=linux-omap&m=129924561819873&w=2
 
-Do you think you'll merge this patch:
-
-   http://marc.info/?l=linux-omap&m=129924561819873&w=2
-
-during the 2.6.39 window?  If so, then I'll add Rajendra's clockdomain 
-patch back in to my 2.6.39 queue here; it seems to depend on the I2C 
-driver patch.
+Thanks, let's see if Ben is planning to merge it for 2.6.39.
 
 
 - Paul
