@@ -1,60 +1,56 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: Nokia n810 LCD (MIPID/blizzard) on 2.6.38
-Date: Wed, 9 Mar 2011 18:18:56 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1103091807050.15132@utopia.booyaka.com>
-References: <1298925943.16391.19.camel@marge>
+Subject: [PATCH] OMAP4: hwmod: Disable hardware-controlled idle for GPT1
+Date: Wed, 9 Mar 2011 18:48:24 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1103091847150.15132@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-107851298-1299721704=:15132"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:60139 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:54450 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751807Ab1CJBS6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Mar 2011 20:18:58 -0500
-In-Reply-To: <1298925943.16391.19.camel@marge>
+	with ESMTP id S1751313Ab1CJBsZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Mar 2011 20:48:25 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Michael Buesch <mb@bu3sch.de>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Varadarajan Charulatha <charu@ti.com>
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Rajendra Nayak <rnayak@ti.com>, =?ISO-8859-15?Q?Beno=EEt_Cousson?= <b-cousson@ti.com>
 
-Greetings Michael,
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-On Mon, 28 Feb 2011, Michael Buesch wrote:
+--155748971-107851298-1299721704=:15132
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-> The n810 LCD does not work on the 2.6.38(-rc6) kernel
-> due to changes in the OMAP GPIO-hwmod code.
-> 
-> The hwmod code performs a soft-reset on the GPIO
-> module. The first GPIO module carries the MIPID
-> "nreset" line, which is toggled due to the hwmod soft reset.
-> This resets Blizzard and breaks it, because
-> it assumes the LCD was left in the state that the
-> bootloader initialized it to:
 
-...
+From: Rajendra Nayak <rnayak@ti.com>
 
-> My temporary workaround to this issue is to disable
-> soft reset for the first GPIO module:
+Some issues seen (which cause lockups in suspend) with GPT1
+after the MPU<->L4_WKUP static dependency was cleared can be
+Worked-around for now by forcing GPT1 in software
+controlled idle.
 
-...
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Signed-off-by: Beno=EEt Cousson <b-cousson@ti.com>
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-> I'm wondering if a better fix suitable for the mainline
-> kernel inclusion could be found.
-> Any ideas?
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-oma=
+p2/omap_hwmod_44xx_data.c
+index 7b72316..cfe957a 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -4005,6 +4005,7 @@ static struct omap_hwmod_ocp_if *omap44xx_timer1_slav=
+es[] =3D {
+ static struct omap_hwmod omap44xx_timer1_hwmod =3D {
+ =09.name=09=09=3D "timer1",
+ =09.class=09=09=3D &omap44xx_timer_1ms_hwmod_class,
++=09.flags=09=09=3D HWMOD_SWSUP_SIDLE,
+ =09.mpu_irqs=09=3D omap44xx_timer1_irqs,
+ =09.mpu_irqs_cnt=09=3D ARRAY_SIZE(omap44xx_timer1_irqs),
+ =09.main_clk=09=3D "timer1_fck",
+--=20
+1.7.2.3
 
-Perhaps this patch will do:
-
-   http://marc.info/?l=linux-omap&m=129971920806386&w=2
-
-Afterwards, it should be possible to look up the GPIO1 hwmod in 
-mach-omap2/board-n8x0.c after the call to 
-omap2_init_common_infrastructure(), and then to call 
-omap_hwmod_no_setup_reset() on it.  Perhaps you might wish to try it?
-
-...
-
-Thanks for maintaining your N810 pages, they have proven quite useful over 
-the years,
-
-MfG,
-
-- Paul
+--155748971-107851298-1299721704=:15132--
