@@ -1,59 +1,50 @@
-From: Abhilash K V <abhilash.kv@ti.com>
-Subject: [PATCH] can : AM3517EVM : add platform specific init
-Date: Thu, 10 Mar 2011 22:09:13 +0530
-Message-ID: <1299775153-16766-1-git-send-email-abhilash.kv@ti.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-Cc: tony@atomide.com, linux@arm.linux.org.uk, Abhilash K V <abhilash.kv@ti.com>, Sriramakrishnan <srk@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [RFC PATCHv1 1/2] Export SoC info through sysfs
+Date: Thu, 10 Mar 2011 17:54:07 +0100
+Message-ID: <201103101754.07679.arnd@arndb.de>
+References: <1299689961-5028-1-git-send-email-maxime.coquelin-nonst@stericsson.com>
+	<201103101711.59544.arnd@arndb.de>
+	<20110310161917.GD27206@opensource.wolfsonmicro.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20110310161917.GD27206@opensource.wolfsonmicro.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: ext Nishanth Menon <nm@ti.com>, ext Tony Lindgren <tony@atomide.com>, Peter De-Schrijver <Peter.De-Schrijver@nokia.com>, Ambresh <a0393775@ti.com>, Saravana Kannan <skannan@codeaurora.org>, Jouni Hogander <jouni.hogander@nokia.com>, Lee Jones <Lee.Jones@linaro.org>, Rabin VINCENT <rabin.vincent@stericsson.com>, Russell King <linux@arm.linux.org.uk>, Jonas ABERG <jonas.aberg@stericsson.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, David Brown <davidb@codeaurora.org>, Maxime Coquelin <maxime.coquelin-nonst@stericsson.com>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, Loic PALLARDY <loic.pallardy@stericsson.com>, "eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>, maxime_coquelin@yahoo.fr, Ryan Mallon <ryan@bluewatersys.com>, Linux-OMAP <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, Daniel Walker <dwalker@codeauror>
 List-Id: linux-omap@vger.kernel.org
 
-CAN module on AM3517 requires programming of IO expander
-as part of init sequence. Added transceiver_switch
-callback to handle this.
+On Thursday 10 March 2011, Mark Brown wrote:
+> On Thu, Mar 10, 2011 at 05:11:59PM +0100, Arnd Bergmann wrote:
+> > On Thursday 10 March 2011, Mark Brown wrote:
+> 
+> > > You could, though the bus will just be a noop.  Typically it's more than
+> > > one bus but software basically can't tell.
+> 
+> > Yes. The main reason for representing such a bus in sysfs would be
+> > to match the SOC's block diagram with the structure in the kernel.
+> 
+> If you're doing that things like power domains tend to be a lot more
+> interesting since you can do something meaningful with them in software.
+> The non-visible buses aren't reliably documented anyway and the first
+> procesor datasheet I just pulled up had a whole bunch of devices that
+> span multiple buses anyway :)
 
-Signed-off-by: Sriramakrishnan <srk@ti.com>
-Reviewed-by:  Vaibhav Hiremath <hvaibhav@ti.com>
-Signed-off-by: Abhilash K V <abhilash.kv@ti.com>
----
- arch/arm/mach-omap2/board-am3517evm.c |   18 ++++++++++++++++++
- 1 files changed, 18 insertions(+), 0 deletions(-)
+Yes, I'm aware that devices are not alwasy in a clear hierarchy and
+that you have bus addressing, device driver, clock, power and interrupt
+(and possibly more) trees that often don't match up.
 
-diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
-index 2e4aad2..782d72d 100644
---- a/arch/arm/mach-omap2/board-am3517evm.c
-+++ b/arch/arm/mach-omap2/board-am3517evm.c
-@@ -734,6 +734,23 @@ static struct omap_board_mux board_mux[] __initdata = {
- };
- #endif
- 
-+/*
-+ * HECC information
-+ */
-+
-+#define CAN_STB         214
-+static void hecc_phy_control(int on)
-+{
-+        int r;
-+
-+        r = gpio_request(CAN_STB, "can_stb");
-+        if (r) {
-+                printk(KERN_ERR "failed to get can_stb \n");
-+                return;
-+        }
-+
-+        gpio_direction_output(CAN_STB, (on==1)?0:1);
-+}
- 
- static struct resource am3517_hecc_resources[] = {
- 	{
-@@ -762,6 +779,7 @@ static struct ti_hecc_platform_data am3517_evm_hecc_pdata = {
- 	.mbx_offset		= AM35XX_HECC_MBOX_OFFSET,
- 	.int_line		= AM35XX_HECC_INT_LINE,
- 	.version		= AM35XX_HECC_VERSION,
-+	.transceiver_switch     = hecc_phy_control,
- };
- 
- static void am3517_evm_hecc_init(struct ti_hecc_platform_data *pdata)
--- 
-1.6.2.4
+My point is simply that we should still try to find a helpful tree
+representation in these cases, even if it's not perfect. Almost anything
+is better than having lots of unrelated devices in a flat directory.
+
+	Arnd
