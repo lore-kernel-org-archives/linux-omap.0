@@ -1,81 +1,40 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [PATCH] perf: add OMAP support for the new power events
-Date: Thu, 10 Mar 2011 09:17:00 +0100
-Message-ID: <AANLkTi=4PXfF9upXi4hJ5unVyhWSzLBdejbitydy2vpn@mail.gmail.com>
-References: <1298052645-4164-1-git-send-email-j-pihet@ti.com>
-	<1299147943-2929-1-git-send-email-j-pihet@ti.com>
-	<alpine.DEB.2.00.1103091759300.15132@utopia.booyaka.com>
+From: <kalle.jokiniemi@nokia.com>
+Subject: RE: [PATCH 0/2] omap_wdt: fix interface clock handling
+Date: Thu, 10 Mar 2011 08:20:57 +0000
+Message-ID: <9D0D31AA57AAF5499AFDC63D6472631B065C38@008-AM1MPN1-036.mgdnok.nokia.com>
+References: <1299589583-22632-1-git-send-email-kalle.jokiniemi@nokia.com>
+ <87bp1lv8uc.fsf@ti.com>
+ <alpine.DEB.2.00.1103081543430.10981@utopia.booyaka.com>
+ <alpine.DEB.2.00.1103081605460.15132@utopia.booyaka.com>
+ <9D0D31AA57AAF5499AFDC63D6472631B0652E1@008-AM1MPN1-036.mgdnok.nokia.com>
+ <4D775041.9030606@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f181.google.com ([209.85.216.181]:39461 "EHLO
-	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751041Ab1CJIRB convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Mar 2011 03:17:01 -0500
-Received: by qyg14 with SMTP id 14so1201410qyg.19
-        for <linux-omap@vger.kernel.org>; Thu, 10 Mar 2011 00:17:00 -0800 (PST)
-In-Reply-To: <alpine.DEB.2.00.1103091759300.15132@utopia.booyaka.com>
+Received: from smtp.nokia.com ([147.243.128.24]:65292 "EHLO mgw-da01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752181Ab1CJIWO convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Mar 2011 03:22:14 -0500
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Thomas Renninger <trenn@suse.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, Jean Pihet <j-pihet@ti.com>
+To: b-cousson@ti.com, khilman@ti.com, paul@pwsan.com
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, ilkka.koskinen@nokia.com, charu@ti.com, wim@iguana.be
 
-Hi Paul,
+Hi,
 
-On Thu, Mar 10, 2011 at 2:04 AM, Paul Walmsley <paul@pwsan.com> wrote:
-> On Thu, 3 Mar 2011, Jean Pihet wrote:
+> -----Original Message-----
+> From: Jokiniemi Kalle (Nokia-MS/Tampere)
 >
->> The patch adds the new power management trace points for
->> the OMAP architecture.
->>
->> The trace points are for:
->> - default idle handler. Since the cpuidle framework is
->> =A0 instrumented in the generic way there is no need to
->> =A0 add trace points in the OMAP specific cpuidle handler;
->> - cpufreq (DVFS),
->> - SoC clocks changes (enable, disable, set_rate),
->> - power domain states: the desired target state and -if different-
->> =A0 the actually hit state.
->>
->> Because of the generic nature of the changes, OMAP3 and OMAP4 are su=
-pported.
->>
->> Tested on OMAP3 with suspend/resume, cpuidle, basic DVFS.
->>
->> Signed-off-by: Jean Pihet <j-pihet@ti.com>
 >
-> In terms of tracing powerdomain state changes, since OMAP powerdomain=
-s can
-> potentially transition without the MPU knowing about it, some powerdo=
-main
-> transitions will be missed by these. =A0(The software counters miss t=
-hem
-> too.) =A0The only way to be certain about these is to watch the debug
-> observability lines. =A0Still, it is the rare board that brings out d=
-ebobs
-> lines. =A0So this seems reasonable, as long as people don't expect 10=
-0%
-> coverage.
-OK that is correct. The events are tracing SW events only, i.e. a
-trace is generated when a decision is made wrt next power states,
-clock changes etc.
-A remark: the OMAP4+ HW tracing modules do support the changes of
-power domains states. There definitely is more to come on that topic!
+> Well, the difference is that the iclk enable bit is toggled to disabled, but now
+> I'm very puzzled why I still see it as enabled in the PRCM register dump...
+> One last lead is that the reverted pm-runtime patch actually puts the
+> WDTIMER2 into force idle mode rather than smart idle mode. Have to try this
+> one, maybe that helps.
+> 
 
-Thanks for reviewing!
-Jean
+That was it. Patch coming soon, requires some changes on the way idle mode is set in the hd_mod code.
 
->
-> For the clock and powerdomain changes,
->
-> Acked-by: Paul Walmsley <paul@pwsan.com>
->
->
-> - Paul
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+- Kalle
