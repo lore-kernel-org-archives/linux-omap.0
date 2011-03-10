@@ -1,185 +1,184 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH v4 6/9] OMAP4 : DSS2 : HDMI: HDMI panel driver addition
- in the DSS
-Date: Thu, 10 Mar 2011 15:09:59 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739404E1F5296F@dbde02.ent.ti.com>
-References: <1299671118-20839-1-git-send-email-mythripk@ti.com>
-	<1299671118-20839-2-git-send-email-mythripk@ti.com>
-	<1299671118-20839-3-git-send-email-mythripk@ti.com>
-	<1299671118-20839-4-git-send-email-mythripk@ti.com>
-	<1299671118-20839-5-git-send-email-mythripk@ti.com>
-	<1299671118-20839-6-git-send-email-mythripk@ti.com>
-	<1299671118-20839-7-git-send-email-mythripk@ti.com>
-	<1299743573.2017.16.camel@deskari>
-	<AANLkTin4Uzt8Np9hgbZDSA7UBQo1dC9E7qxOa3W19JjH@mail.gmail.com>
-	<1299748745.2017.66.camel@deskari>
- <AANLkTi=xCtzgnP8e0NOWu6PZu3qB9FKbe34YYX36e1+U@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] OMAP2+: clockdomain: add flag that will block autodeps
+ from being added for a clockdomain
+Date: Thu, 10 Mar 2011 02:41:20 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1103100230110.15132@utopia.booyaka.com>
+References: <alpine.DEB.2.00.1103081654200.15132@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:37792 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751022Ab1CJJkI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Mar 2011 04:40:08 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p2A9e4bo023392
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 10 Mar 2011 03:40:06 -0600
-In-Reply-To: <AANLkTi=xCtzgnP8e0NOWu6PZu3qB9FKbe34YYX36e1+U@mail.gmail.com>
-Content-Language: en-US
+Received: from utopia.booyaka.com ([72.9.107.138]:36007 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751710Ab1CJJlV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Mar 2011 04:41:21 -0500
+In-Reply-To: <alpine.DEB.2.00.1103081654200.15132@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "K, Mythri P" <mythripk@ti.com>, "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, khilman@ti.com
+
+Hi,
+
+On Tue, 8 Mar 2011, Paul Walmsley wrote:
+
+> Add a new clockdomain flag, CLKDM_NO_AUTODEPS, which, when marked on a
+> clockdomain, will prevent "autodeps" from being associated with the
+> clockdomain.  ("Autodeps" are sleep dependencies and wakeup
+> dependencies from/to processor modules that are automatically added to
+> a clockdomain when it is in hardware-supervised idle mode.  They are
+> deprecated -- a relic from the old CDP trees -- but are still in use
+> for OMAP3.)  Autodeps are presumably only needed due to hardware bugs
+> where a device goes idle unexpectedly.
+> 
+> This patch should allow easy testing of which clockdomains actually
+> still need autodeps.  Add the flag to the struct clockdomain you wish to 
+> test, compile, boot, see if system still works :-)
+> 
+> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+
+Kevin observed that this patch misses the sleepdeps that are automatically 
+added for hwmods.  Thanks Kevin.  Here's an updated version that deals 
+with that.
+
+These functions, _add_initiator_dep() and _del_initiator_dep(), apparently 
+only need to run on OMAP2/3, but adding code for that is a more disruptive 
+change, so I'll wait on that part until 2.6.40.
 
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of K, Mythri P
-> Sent: Thursday, March 10, 2011 3:03 PM
-> To: Valkeinen, Tomi
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: [PATCH v4 6/9] OMAP4 : DSS2 : HDMI: HDMI panel driver
-> addition in the DSS
->=20
-> Hi Tomi,
->=20
-> On Thu, Mar 10, 2011 at 2:49 PM, Tomi Valkeinen <tomi.valkeinen@ti.co=
-m>
-> wrote:
-> > On Thu, 2011-03-10 at 03:00 -0600, K, Mythri P wrote:
-> >> Hi Tomi,
-> >>
-> >> On Thu, Mar 10, 2011 at 1:22 PM, Tomi Valkeinen <tomi.valkeinen@ti=
-=2Ecom>
-> wrote:
-> >> > On Wed, 2011-03-09 at 05:45 -0600, K, Mythri P wrote:
-> >> >> The panel driver(hdmi_omap4_panel.c) in omap2/dss acts as a
-> controller
-> >> >> to manage the enable and disable requests and synchronize audio=
- and
-> video.
-> >> >>
-> >> >> Signed-off-by: Mythri P K <mythripk@ti.com>
-> >> >
-> >> > <snip>
-> >> >
-<snip>
-> >>
-> >> I have set it to VGA , But anyways we need to fix FB to take the
-> >> feedback from the driver
-> >> for the timing , atleast when you disable the overlay set manager =
-and
-> >> enable it again.
-> >
-> > No, the FB cannot do anything with that information. FB driver can'=
-t
-> > change the resolution by itself. It has to happen on some upper lev=
-el,
-> > in the user space.
-> >
-> > The only case when the FB can select the resolution is when the dri=
-ver
-> > is loading. At that point nobody is using the framebuffer, as it di=
-dn't
-> > even exist earlier. That's why I suggested reading the EDID in the
-> > probe.
->=20
-> Reading the EDID during probe is not feasible ,
-> 1. To read EDID we have to enable clocks and configure HDMI , which
-> may not be intended - as probe does not mean
-> that the user would want to enable HDMI.
-> 2. If HDMI is  not connected at boot up , but the cable is plugged in
-> later on we will run into issues.
-> There are mechanisms in v4l2 to reconfigure the overlay size and its
-> own parameters , Even if a notification is sent there is no
-> mechanism today in FB to do it.
-> What happens if FB is switched from one manager to other with
-> resolution ?
-[Hiremath, Vaibhav] Isn't we get interrupt on HDMI connection back to C=
-PU?
+- Paul
 
-> There is not neat way to do it today, So i think a more reasonable wa=
-y
-> is to find a way to atleast
-> let the user space change the virtual size of FB dynamically given
-> there is enough VRAM allocated.
->=20
-[Hiremath, Vaibhav] I think let default VRAM allocation be minimal and =
-let user configure omapfb.vram using bootargs (or IOCTL) based on his r=
-equirement.
 
-Thanks,
-Vaibhav
+From: Paul Walmsley <paul@pwsan.com>
+Date: Tue, 8 Mar 2011 16:25:42 -0700
+Subject: [PATCH] OMAP2+: clockdomain: add flag that will block autodeps from being added for a clockdomain
 
->=20
-> >
-> >> > I think you should either probe the display here to find what it
-> >> > supports, and initialize the size accordingly, or if the display=
- is
-> not
-> >> > connected, use some safe resolution most of the displays should
-> support.
-> >> > VGA probably.
-> >> >
-> >> > And the timings selected here should also be used by the hdmi dr=
-iver.
-> >> > What happens now with my monitor is that I get a fb of 1920x1028=
-, but
-> >> > the hdmi driver doesn't like the modes my monitor gives via EDID=
-, and
-> >> > falls back to VGA -> messed up display.
-> >> >
-> >> > Also, I'm getting "timeout waiting for EVSYNC" when I load or un=
-load
-> the
-> >> > driver.
-> >> >
-> >> This is ok, I have not seen any issue because of this warning,
-> >
-> > It's an error, it's not ok =3D).
-> >
-> >> Also we need to understand the rationale as to why the wait_timeou=
-t was
-> added
-> >> in the code "dispc_enable_digit_out", It seems more like a hack, a=
-nd
-> >> not necessarily needed?
-> >
-> > When disabling, the point is to wait until the DISPC has really tur=
-ned
-> > off the output. For VENC this needed waiting for EVSYNC_EVEN and OD=
-D. I
-> > don't remember why the same code is ran when enabling.
-> >
-> > HDMI may work differently, so it is possible that the function need=
-s to
-> > be fixed. But I wonder why it gives timeouts when enabling HDMI als=
-o...
-> > Shouldn't the EVSYNCs happen with HDMI too?
-> >
-> > We can look at that later, presuming the timeout doesn't cause any
-> > problems.
-> >
-> HDMI is not dependent on the EVSYNC_ODD , but on EVSYNC EVEN,
-> it has never needed to wait and has not caused any issue for last 8-1=
-0
-> months it is being used :).
-> Why the same function was used ? Because it is a generic digit_out
-> function to do a TVENABLE.
->=20
-> > =A0Tomi
-> >
-> >
-> >
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Add a new clockdomain flag, CLKDM_NO_AUTODEPS, which, when marked on a
+clockdomain, will prevent "autodeps" from being associated with the
+clockdomain.  ("Autodeps" are sleep dependencies and wakeup
+dependencies from/to processor modules that are automatically added to
+a clockdomain when it is in hardware-supervised idle mode.  They are
+deprecated -- a relic from the old CDP trees -- but are still in use
+for OMAP3.)
+
+Also, prevent the hwmod code from adding or removing initiator 
+dependencies for clockdomains with this flag set.
+
+This patch should allow others to test which clockdomains actually
+still need autodeps.
+
+Thanks to Kevin Hilman <khilman@ti.com> for noting that the original 
+version should also modify the hwmod code.
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@ti.com>
+---
+ arch/arm/mach-omap2/clockdomain.c |    4 ++--
+ arch/arm/mach-omap2/clockdomain.h |   12 ++++++++++--
+ arch/arm/mach-omap2/omap_hwmod.c  |   16 ++++++++++++----
+ 3 files changed, 24 insertions(+), 8 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
+index 58e42f7..2b4ab0b 100644
+--- a/arch/arm/mach-omap2/clockdomain.c
++++ b/arch/arm/mach-omap2/clockdomain.c
+@@ -181,7 +181,7 @@ static void _clkdm_add_autodeps(struct clockdomain *clkdm)
+ {
+ 	struct clkdm_autodep *autodep;
+ 
+-	if (!autodeps)
++	if (!autodeps || clkdm->flags & CLKDM_NO_AUTODEPS)
+ 		return;
+ 
+ 	for (autodep = autodeps; autodep->clkdm.ptr; autodep++) {
+@@ -215,7 +215,7 @@ static void _clkdm_del_autodeps(struct clockdomain *clkdm)
+ {
+ 	struct clkdm_autodep *autodep;
+ 
+-	if (!autodeps)
++	if (!autodeps || clkdm->flags & CLKDM_NO_AUTODEPS)
+ 		return;
+ 
+ 	for (autodep = autodeps; autodep->clkdm.ptr; autodep++) {
+diff --git a/arch/arm/mach-omap2/clockdomain.h b/arch/arm/mach-omap2/clockdomain.h
+index 9b459c2..5add071 100644
+--- a/arch/arm/mach-omap2/clockdomain.h
++++ b/arch/arm/mach-omap2/clockdomain.h
+@@ -4,7 +4,7 @@
+  * OMAP2/3 clockdomain framework functions
+  *
+  * Copyright (C) 2008 Texas Instruments, Inc.
+- * Copyright (C) 2008-2010 Nokia Corporation
++ * Copyright (C) 2008-2011 Nokia Corporation
+  *
+  * Paul Walmsley
+  *
+@@ -22,11 +22,19 @@
+ #include <plat/clock.h>
+ #include <plat/cpu.h>
+ 
+-/* Clockdomain capability flags */
++/*
++ * Clockdomain flags
++ *
++ * XXX Document CLKDM_CAN_* flags
++ *
++ * CLKDM_NO_AUTODEPS: Prevent "autodeps" from being added/removed from this
++ *     clockdomain.  (Currently, this applies to OMAP3 clockdomains only.)
++ */
+ #define CLKDM_CAN_FORCE_SLEEP			(1 << 0)
+ #define CLKDM_CAN_FORCE_WAKEUP			(1 << 1)
+ #define CLKDM_CAN_ENABLE_AUTO			(1 << 2)
+ #define CLKDM_CAN_DISABLE_AUTO			(1 << 3)
++#define CLKDM_NO_AUTODEPS			(1 << 4)
+ 
+ #define CLKDM_CAN_HWSUP		(CLKDM_CAN_ENABLE_AUTO | CLKDM_CAN_DISABLE_AUTO)
+ #define CLKDM_CAN_SWSUP		(CLKDM_CAN_FORCE_SLEEP | CLKDM_CAN_FORCE_WAKEUP)
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index a68a2cf..2dd1ea9 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -460,14 +460,18 @@ static int _disable_wakeup(struct omap_hwmod *oh, u32 *v)
+  * will be accessed by a particular initiator (e.g., if a module will
+  * be accessed by the IVA, there should be a sleepdep between the IVA
+  * initiator and the module).  Only applies to modules in smart-idle
+- * mode.  Returns -EINVAL upon error or passes along
+- * clkdm_add_sleepdep() value upon success.
++ * mode.  If the clockdomain is marked as not needing autodeps, return
++ * 0 without doing anything.  Otherwise, returns -EINVAL upon error or
++ * passes along clkdm_add_sleepdep() value upon success.
+  */
+ static int _add_initiator_dep(struct omap_hwmod *oh, struct omap_hwmod *init_oh)
+ {
+ 	if (!oh->_clk)
+ 		return -EINVAL;
+ 
++	if (oh->_clk->clkdm && oh->_clk->clkdm->flags & CLKDM_NO_AUTODEPS)
++		return 0;
++
+ 	return clkdm_add_sleepdep(oh->_clk->clkdm, init_oh->_clk->clkdm);
+ }
+ 
+@@ -480,14 +484,18 @@ static int _add_initiator_dep(struct omap_hwmod *oh, struct omap_hwmod *init_oh)
+  * be accessed by a particular initiator (e.g., if a module will not
+  * be accessed by the IVA, there should be no sleepdep between the IVA
+  * initiator and the module).  Only applies to modules in smart-idle
+- * mode.  Returns -EINVAL upon error or passes along
+- * clkdm_del_sleepdep() value upon success.
++ * mode.  If the clockdomain is marked as not needing autodeps, return
++ * 0 without doing anything.  Returns -EINVAL upon error or passes
++ * along clkdm_del_sleepdep() value upon success.
+  */
+ static int _del_initiator_dep(struct omap_hwmod *oh, struct omap_hwmod *init_oh)
+ {
+ 	if (!oh->_clk)
+ 		return -EINVAL;
+ 
++	if (oh->_clk->clkdm && oh->_clk->clkdm->flags & CLKDM_NO_AUTODEPS)
++		return 0;
++
+ 	return clkdm_del_sleepdep(oh->_clk->clkdm, init_oh->_clk->clkdm);
+ }
+ 
+-- 
+1.7.2.3
+
