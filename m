@@ -1,50 +1,52 @@
-From: Shweta Gulati <shweta.gulati@ti.com>
-Subject: [PATCH] OMAP4: Intialize IVA Device in addition to DSP device.
-Date: Thu, 10 Mar 2011 11:52:28 +0530
-Message-ID: <1299738148-28557-1-git-send-email-shweta.gulati@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: [PATCH v2 0/5] OMAP3: PM: Fixes for low power code
+Date: Thu, 10 Mar 2011 12:37:12 +0530
+Message-ID: <1299740837-27881-1-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:46930 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:48972 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750893Ab1CJGWi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 10 Mar 2011 01:22:38 -0500
+	id S1750994Ab1CJHHZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 10 Mar 2011 02:07:25 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Shweta Gulati <shweta.gulati@ti.com>
+Cc: khilman@ti.com, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-OMAP4 has two different Devices IVA and DSP. DSP is bound
-with MPU for DVFS and IVA has its own well defined OPPs.
-This Patch adds IVA init to 'omap2_init_processor_devices'
-and make sure that API 'omap2_set_init_voltage' is called
-for apt dev pointer.
+The series does below fixes to the omap3 low power code.
+	1. Use supported ARMv7 instructions instead of the legacy ones
+	2. Fix the MMU on sequence
+	3. Fix the cache flush scenario when only L1 lost.
+	4. Remove all un-necessary context save registers
+	5. Disable C-bit before cache clean
 
-It fixes Error logs:
+V2:
+- Rebased series on top of pm-core branch where the Dave Martin's
+  Thumb2 patches are merged.
+- Dropped set_cr() patch since it's already merged in pm-core branch
+- Fixed the hang issue reported by Kevin Hilman with OMAP3630
 
-	omap2_set_init_voltage: Invalid parameters!
-	omap2_set_init_voltage: Unable to put vdd_iva to its init voltage
+It's generated against latest pm-core branch and tested suspend
+and cpuilde on OMAP3630 ZOOM.
 
-Tested on OMAP4430 SDP Board.
-Baseline:
-http://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git
-Branch :pm-core
+The following changes since commit 7d6d079fbd46aee85e9b5de1d67de15b85e50b04:
+  Kevin Hilman (1):
+        Merge branch 'for_2.6.39/pm-voltage' into pm-reset
 
-Signed-off-by: Shweta Gulati <shweta.gulati@ti.com>
----
- arch/arm/mach-omap2/pm.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+are available in the git repository at:
 
-diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-index 30af335..49486f5 100644
---- a/arch/arm/mach-omap2/pm.c
-+++ b/arch/arm/mach-omap2/pm.c
-@@ -89,6 +89,7 @@ static void omap2_init_processor_devices(void)
- 	if (cpu_is_omap44xx()) {
- 		_init_omap_device("l3_main_1", &l3_dev);
- 		_init_omap_device("dsp", &dsp_dev);
-+		_init_omap_device("iva", &iva_dev);
- 	} else {
- 		_init_omap_device("l3_main", &l3_dev);
- 	}
--- 
-1.7.0.4
+  git://dev.omapzoom.org/pub/scm/santosh/kernel-omap4-base.git
+pm-core-omap3-asm_v2
+
+Santosh Shilimkar (5):
+  OMAP3: PM: Use ARMv7 supported instructions instead of legacy CP15
+    ones
+  OMAP3: PM: Fix the MMU on sequence in the asm code
+  OMAP3: PM: Allow the cache clean when L1 is lost.
+  OMAP3: PM: Remove un-necessary cp15 registers form low power cpu
+    context
+  OMAP3: PM: Clear the SCTLR C bit in asm code to prevent data cache
+    allocation
+
+ arch/arm/mach-omap2/sleep34xx.S |  224 +++++++++++++++------------------------
+ 1 files changed, 85 insertions(+), 139 deletions(-)
 
