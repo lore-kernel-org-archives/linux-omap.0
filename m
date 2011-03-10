@@ -1,70 +1,92 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH] OMAP4: hwmod: Disable hardware-controlled idle for GPT1
-Date: Thu, 10 Mar 2011 21:57:08 +0530
-Message-ID: <9c47364db2da7c8bcec3e21463f001fe@mail.gmail.com>
-References: <alpine.DEB.2.00.1103091847150.15132@utopia.booyaka.com>
- <alpine.DEB.2.00.1103100143230.15132@utopia.booyaka.com> <3b8b985f13158fbcd110cf45ed7035ad@mail.gmail.com>
- <alpine.DEB.2.00.1103100744500.15132@utopia.booyaka.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [RFC PATCHv1 1/2] Export SoC info through sysfs
+Date: Thu, 10 Mar 2011 17:32:33 +0100
+Message-ID: <201103101732.34127.arnd@arndb.de>
+References: <1299689961-5028-1-git-send-email-maxime.coquelin-nonst@stericsson.com>
+	<201103101523.27181.arnd@arndb.de>
+	<AANLkTinCCZE5hPC+L6_Uw9UTZekzkTGpW5xxBfzTYa7b@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:44896 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751363Ab1CJQ1O (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 10 Mar 2011 11:27:14 -0500
-Received: by qwb7 with SMTP id 7so1585783qwb.30
-        for <linux-omap@vger.kernel.org>; Thu, 10 Mar 2011 08:27:13 -0800 (PST)
-In-Reply-To: <alpine.DEB.2.00.1103100744500.15132@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <AANLkTinCCZE5hPC+L6_Uw9UTZekzkTGpW5xxBfzTYa7b@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: ext Nishanth Menon <nm@ti.com>, ext Tony Lindgren <tony@atomide.com>, Peter De-Schrijver <Peter.De-Schrijver@nokia.com>, Ambresh <a0393775@ti.com>, Saravana Kannan <skannan@codeaurora.org>, Andrei Warkentin <andreiw@motorola.com>, Lee Jones <Lee.Jones@linaro.org>, Rabin VINCENT <rabin.vincent@stericsson.com>, Russell King <linux@arm.linux.org.uk>, Jonas ABERG <jonas.aberg@stericsson.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, David Brown <davidb@codeaurora.org>, Maxime Coquelin <maxime.coquelin-nonst@stericsson.com>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, Loic PALLARDY <loic.pallardy@stericsson.com>, "eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>, maxime_coquelin@yahoo.fr, Ryan Mallon <ryan@bluewatersys.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Benoit Cousson <b-cousson@ti.com>, Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>
 
-> -----Original Message-----
-> From: Paul Walmsley [mailto:paul@pwsan.com]
-> Sent: Thursday, March 10, 2011 8:15 PM
-> To: Santosh Shilimkar
-> Cc: Benoit Cousson; Rajendra Nayak; linux-omap@vger.kernel.org;
-> linux-arm-kernel@lists.infradead.org; Kevin Hilman
-> Subject: RE: [PATCH] OMAP4: hwmod: Disable hardware-controlled idle
-> for GPT1
->
-> On Thu, 10 Mar 2011, Santosh Shilimkar wrote:
->
-> > We continued further debug on the static dependency issues with
-> > OMAP4 PM series.
-> > So far from the findings what I have, this timer patch is actually
-> not
-> > needed and can be dropped. Infact the patch is not really
-> effective
-> > because current timer driver(not hwmod adapted yet) puts timer1
-> > in smart idle again.
+On Thursday 10 March 2011, Linus Walleij wrote:
+> On Thu, Mar 10, 2011 at 3:23 PM, Arnd Bergmann <arnd@arndb.de> wrote:
+> > On Thursday 10 March 2011, Linus Walleij wrote:
+> >> So platform is just the platform bus, not the, you know,
+> >> *platform*. There are competing on-chip busses not just one.
 > >
-> > There is another static dep. just like MPUSS<-->EMIF seems to
-> create
-> > an issue. The lock-up is not very consistently reproducible so
-> it's
-> > very easy to get miss-leading results. Timer patch was one of
-> those
-> > observations. With or without timer patch I can reproduce the hang
-> > with long duration test.
+> > Good point. Note that I did not mean to put the attributes
+> > directly under /sys/platform/, but under /sys/platform/foo/,
+> > where foo is the main bus that is used between the CPU core
+> > and all the SOC components.
 > >
-> > Will keep narrowing down the next offending static dependency but
-> > in mean time I suggest you to drop this patch.
->
-> Okay, dropped.
->
-Managed to narrow down the issue with below two offender.
-1) MPUSS <--> MEMIF_STATDEP
-2) MPUSS <--> L3_1_STATDEP
+> > This may of course not be easy. If you have an AMBA or PCI
+> > bus, you might want to have it represented as
+> > /sys/devices/pci0 and /sys/devices/amba0 instead of
+> > /sys/devices/platform/foo/amba0/.
+> 
+> Userspace app doing something needs the name and some
+> unique number to be looked up. The first iteration of this
+> patch (for the OMAPs) put it in /proc/socinfo with all the
+> expected fuzz that this should go into sysfs as result.
+> 
+> So: where do we suggest Maxime actually put this then?
 
-If we keep both of these static deps, then I don't see any
-issues. Will give a overnight run to check the stability.
+I'm not sure we even need to define something really new.
+Ideally, it could just be properties of the devices in
+the device tree, but obviously we're not there yet and
+may not even want to go there for all platforms.
 
-Will update the below patch to include L3_1 CD and
-repost the same.
-https://patchwork.kernel.org/patch/620351/
+> > Making up a pseudo-device that does not refer to any hardware
+> > in particular is against the 'devices are only "devices"'
+> > rule in Documentation/sysfs-rules.txt.
+> 
+> Fine then I think we agree this can not realistically be
+> under /sys/devices/* unless we first refactor all platforms
+> that want to use this mechanism to have top-level-devices.
 
-Regards
-Santosh
+Not much refactoring required there, just register one
+(platform or top-level, I don't care) device named "soc",
+and make all platform devices of the soc have a .parent
+pointer to that device.
+
+Then you can add attributes to the device.
+
+> > If you really want that, it should be in /sys/kernel/,
+> > /sys/firmware/ or a new top-level directory in sysfs.
+> >
+> > I think putting it in /sys/devices is good, but it has
+> > to be an attribute of an actual device, not an empty
+> > one that does not even have any child devices. If the
+> > device represents the soc, then every other device
+> > that is found in the soc should be a child of this one.
+> 
+> IMO this is not good for socinfo, what is good for apps that
+> want socinfo is to just attempt to open+read these file paths.
+> Not to invoke libsysfs and start parsing the file tree to see if
+> they can find some socinfo somewhere.
+> 
+> What about we just put it in
+> /sys/socinfo/* then, and we have a simple,
+> easy-to-understand way for apps that want socinfo to
+> read it out?
+
+Possible, but I'd be less happy with this. It's a bit
+of duplication of the information that is already present
+in both /sys/devices and /sys/firmware.
+
+	Arnd
