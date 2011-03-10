@@ -1,93 +1,77 @@
-From: Sricharan R <r.sricharan@ti.com>
-Subject: RE: [PATCH] omap2+: mux: Add macro for configuring static with
- omap_hwmod_mux_init (Re: [PATCH] omap2+: mux: Remove the use of IDLE flag)
-Date: Thu, 10 Mar 2011 09:56:20 +0530
-Message-ID: <48ce1c025ceaf65d610ce5eaa6ea99e4@mail.gmail.com>
-References: <1299472552-22017-1-git-send-email-r.sricharan@ti.com>
- <20110308164033.GC26463@atomide.com> <b76e32aff88265d31cc1b7b2fc502a32@mail.gmail.com>
- <20110309203200.GP26463@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Shweta Gulati <shweta.gulati@ti.com>
+Subject: [PATCH V3 2/3] OMAP4: Update Voltage Rail Values for MPU, IVA and CORE
+Date: Thu, 10 Mar 2011 10:23:49 +0530
+Message-ID: <1299732829-3376-1-git-send-email-shweta.gulati@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:38176 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751421Ab1CJE0X (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Mar 2011 23:26:23 -0500
-Received: by mail-vx0-f182.google.com with SMTP id 34so1880228vxc.27
-        for <linux-omap@vger.kernel.org>; Wed, 09 Mar 2011 20:26:22 -0800 (PST)
-In-Reply-To: <20110309203200.GP26463@atomide.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:56331 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750908Ab1CJEyD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 9 Mar 2011 23:54:03 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, paul@pswan.com, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Shweta Gulati <shweta.gulati@ti.com>
 
-Tony,
->-----Original Message-----
->From: Tony Lindgren [mailto:tony@atomide.com]
->Sent: Thursday, March 10, 2011 2:02 AM
->To: Sricharan R
->Cc: linux-omap@vger.kernel.org; Benoit Cousson; Santosh Shilimkar;
->paul@pswan.com; linux-arm-kernel@lists.infradead.org
->Subject: [PATCH] omap2+: mux: Add macro for configuring static with
->omap_hwmod_mux_init (Re: [PATCH] omap2+: mux: Remove the use of IDLE
-flag)
->
->* Sricharan R <r.sricharan@ti.com> [110309 03:47]:
->>
->> Btw,I have fixed the comments on the below patches that
->> I sent for configuring the serial pads.
->>
->> 4430sdp:
->> http://marc.info/?l=linux-omap&m=129900334420003&w=2
->>
->> omap4panda:
->> http://marc.info/?l=linux-omap&m=129900338520082&w=2
->>
->> 3430sdp:
->> http://marc.info/?l=linux-omap&m=129619117726479&w=2
->>
->> Can you please check if they are ok?
->
->Look OK to me, but let's make things a bit easier to read
->and maintain with the following patch. Can you please
->update your patches to use this macro?
->
->Each line then just becomes something like:
->
->OMAP_MUX_STATIC("uart3_tx_irtx.uart3_tx_irtx",
->		OMAP_PIN_OUTPUT | OMAP_MUX_MODE0),
->
-Ok thanks. I will update and send again.
->Regards,
->
->Tony
->
->
->From: Tony Lindgren <tony@atomide.com>
->Date: Wed, 9 Mar 2011 12:14:04 -0800
->Subject: [PATCH] omap2+: mux: Add macro for configuring static with
->omap_hwmod_mux_init
->
->Add macro for defining static pins in the board file.
->
->We can now start implementing pin multiplexing in the platform init
->code for devices that call omap_hwmod_mux_init. Currently that is
->only implemented for serial.c.
->
->Signed-off-by: Tony Lindgren <tony@atomide.com>
->
->--- a/arch/arm/mach-omap2/mux.h
->+++ b/arch/arm/mach-omap2/mux.h
->@@ -186,6 +186,12 @@ struct omap_device_pad {
->
-> struct omap_hwmod_mux_info;
->
->+#define OMAP_MUX_STATIC(signal, mode)					\
->+{									\
->+	.name	= (signal),						\
->+	.enable	= (mode),						\
->+}
->+
-> #if defined(CONFIG_OMAP_MUX)
->
-> /**
+Update MPU, IVA and CORE voltage Rail values obtained from
+OMAP4430 Data Manual Operating Condition Addendum_v0.4.
+
+Tested on OMAP4430 SDP Board.
+
+Signed-off-by: Shweta Gulati <shweta.gulati@ti.com>
+---
+V3:
+Update CORE Voltages as well
+in sync with V0.4 of OMAP4 Data Manual.
+
+V2:
+Fixed Comments from Nishanth Menon. 
+
+ arch/arm/mach-omap2/opp4xxx_data.c |   18 +++++++++---------
+ 1 files changed, 9 insertions(+), 9 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/opp4xxx_data.c b/arch/arm/mach-omap2/opp4xxx_data.c
+index ed0efdb..aa624d1 100644
+--- a/arch/arm/mach-omap2/opp4xxx_data.c
++++ b/arch/arm/mach-omap2/opp4xxx_data.c
+@@ -30,10 +30,10 @@
+  * voltage dependent data for each VDD.
+  */
+ 
+-#define OMAP4430_VDD_MPU_OPP50_UV		930000
+-#define OMAP4430_VDD_MPU_OPP100_UV		1100000
+-#define OMAP4430_VDD_MPU_OPPTURBO_UV		1260000
+-#define OMAP4430_VDD_MPU_OPPNITRO_UV		1350000
++#define OMAP4430_VDD_MPU_OPP50_UV		1025000
++#define OMAP4430_VDD_MPU_OPP100_UV		1200000
++#define OMAP4430_VDD_MPU_OPPTURBO_UV		1313000
++#define OMAP4430_VDD_MPU_OPPNITRO_UV		1375000
+ 
+ struct omap_volt_data omap44xx_vdd_mpu_volt_data[] = {
+ 	VOLT_DATA_DEFINE(OMAP4430_VDD_MPU_OPP50_UV, OMAP44XX_CONTROL_FUSE_MPU_OPP50, 0xf4, 0x0c),
+@@ -43,9 +43,9 @@ struct omap_volt_data omap44xx_vdd_mpu_volt_data[] = {
+ 	VOLT_DATA_DEFINE(0, 0, 0, 0),
+ };
+ 
+-#define OMAP4430_VDD_IVA_OPP50_UV		930000
+-#define OMAP4430_VDD_IVA_OPP100_UV		1100000
+-#define OMAP4430_VDD_IVA_OPPTURBO_UV		1260000
++#define OMAP4430_VDD_IVA_OPP50_UV		1013000
++#define OMAP4430_VDD_IVA_OPP100_UV		1188000
++#define OMAP4430_VDD_IVA_OPPTURBO_UV		1300000
+ 
+ struct omap_volt_data omap44xx_vdd_iva_volt_data[] = {
+ 	VOLT_DATA_DEFINE(OMAP4430_VDD_IVA_OPP50_UV, OMAP44XX_CONTROL_FUSE_IVA_OPP50, 0xf4, 0x0c),
+@@ -54,8 +54,8 @@ struct omap_volt_data omap44xx_vdd_iva_volt_data[] = {
+ 	VOLT_DATA_DEFINE(0, 0, 0, 0),
+ };
+ 
+-#define OMAP4430_VDD_CORE_OPP50_UV		930000
+-#define OMAP4430_VDD_CORE_OPP100_UV		1100000
++#define OMAP4430_VDD_CORE_OPP50_UV		1025000
++#define OMAP4430_VDD_CORE_OPP100_UV		1200000
+ 
+ struct omap_volt_data omap44xx_vdd_core_volt_data[] = {
+ 	VOLT_DATA_DEFINE(OMAP4430_VDD_CORE_OPP50_UV, OMAP44XX_CONTROL_FUSE_CORE_OPP50, 0xf4, 0x0c),
+-- 
+1.7.0.4
+
