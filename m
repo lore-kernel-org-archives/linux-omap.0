@@ -1,113 +1,29 @@
 From: Steve Sakoman <steve@sakoman.com>
-Subject: [PATCH v2 1/2] OMAP: Add gpio-leds support for Overo
-Date: Wed,  9 Mar 2011 16:08:05 -0800
-Message-ID: <1299715686-3920-2-git-send-email-steve@sakoman.com>
-References: <1299715686-3920-1-git-send-email-steve@sakoman.com>
+Subject: [PATCH v2 0/2] OMAP: Overo: Add gpio-leds and gpio-keys support
+Date: Wed,  9 Mar 2011 16:08:04 -0800
+Message-ID: <1299715686-3920-1-git-send-email-steve@sakoman.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-vw0-f46.google.com ([209.85.212.46]:65211 "EHLO
 	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752990Ab1CJAIR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Mar 2011 19:08:17 -0500
-Received: by mail-vw0-f46.google.com with SMTP id 12so1043567vws.19
-        for <linux-omap@vger.kernel.org>; Wed, 09 Mar 2011 16:08:17 -0800 (PST)
-In-Reply-To: <1299715686-3920-1-git-send-email-steve@sakoman.com>
+	with ESMTP id S1751712Ab1CJAIP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Mar 2011 19:08:15 -0500
+Received: by vws12 with SMTP id 12so1043567vws.19
+        for <linux-omap@vger.kernel.org>; Wed, 09 Mar 2011 16:08:14 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: tomi.valkeinen@ti.com, Steve Sakoman <steve@sakoman.com>
 
-This patch adds support for the standard LEDs on the Overo COM and expansion boards
+Overo COMs and expansion boards have three LEDS and 2 push button switches
+connected to GPIO pins.  This patch series adds support for utilizing
+them with gpio-keys and gpio-leds.
 
-Signed-off-by: Steve Sakoman <steve@sakoman.com>
----
- arch/arm/mach-omap2/board-overo.c |   53 +++++++++++++++++++++++++++++++++++++
- 1 files changed, 53 insertions(+), 0 deletions(-)
+Changes from version 1: Guard gpio_leds assignment with CONFIG_LEDS_GPIO check
 
-diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
-index 4278ecb..e694ebd 100644
---- a/arch/arm/mach-omap2/board-overo.c
-+++ b/arch/arm/mach-omap2/board-overo.c
-@@ -473,6 +473,52 @@ static struct regulator_consumer_supply overo_vmmc1_supply = {
- 	.supply			= "vmmc",
- };
- 
-+#if defined(CONFIG_LEDS_GPIO) || defined(CONFIG_LEDS_GPIO_MODULE)
-+#include <linux/leds.h>
-+
-+static struct gpio_led gpio_leds[] = {
-+	{
-+		.name			= "overo:red:gpio21",
-+		.default_trigger	= "heartbeat",
-+		.gpio			= 21,
-+		.active_low		= true,
-+	},
-+	{
-+		.name			= "overo:blue:gpio22",
-+		.default_trigger	= "none",
-+		.gpio			= 22,
-+		.active_low		= true,
-+	},
-+	{
-+		.name			= "overo:blue:COM",
-+		.default_trigger	= "mmc0",
-+		.gpio			= -EINVAL,	/* gets replaced */
-+		.active_low		= true,
-+	},
-+};
-+
-+static struct gpio_led_platform_data gpio_leds_pdata = {
-+	.leds		= gpio_leds,
-+	.num_leds	= ARRAY_SIZE(gpio_leds),
-+};
-+
-+static struct platform_device gpio_leds_device = {
-+	.name	= "leds-gpio",
-+	.id	= -1,
-+	.dev	= {
-+		.platform_data	= &gpio_leds_pdata,
-+	},
-+};
-+
-+static void __init overo_init_led(void)
-+{
-+	platform_device_register(&gpio_leds_device);
-+}
-+
-+#else
-+static inline void __init overo_init_led(void) { return; }
-+#endif
-+
- static int overo_twl_gpio_setup(struct device *dev,
- 		unsigned gpio, unsigned ngpio)
- {
-@@ -480,6 +526,11 @@ static int overo_twl_gpio_setup(struct device *dev,
- 
- 	overo_vmmc1_supply.dev = mmc[0].dev;
- 
-+#if defined(CONFIG_LEDS_GPIO) || defined(CONFIG_LEDS_GPIO_MODULE)
-+	/* TWL4030_GPIO_MAX + 1 == ledB, PMU_STAT (out, active low LED) */
-+	gpio_leds[2].gpio = gpio + TWL4030_GPIO_MAX + 1;
-+#endif
-+
- 	return 0;
- }
- 
-@@ -487,6 +538,7 @@ static struct twl4030_gpio_platform_data overo_gpio_data = {
- 	.gpio_base	= OMAP_MAX_GPIO_LINES,
- 	.irq_base	= TWL4030_GPIO_IRQ_BASE,
- 	.irq_end	= TWL4030_GPIO_IRQ_END,
-+	.use_leds	= true,
- 	.setup		= overo_twl_gpio_setup,
- };
- 
-@@ -648,6 +700,7 @@ static void __init overo_init(void)
- 	overo_spi_init();
- 	overo_init_smsc911x();
- 	overo_display_init();
-+	overo_init_led();
- 
- 	/* Ensure SDRC pins are mux'd for self-refresh */
- 	omap_mux_init_signal("sdrc_cke0", OMAP_PIN_OUTPUT);
--- 
-1.7.0.4
+Steve Sakoman (2):
+  OMAP: Add gpio-leds support for Overo
+  OMAP: Add gpio-keys support for Overo
+
+ arch/arm/mach-omap2/board-overo.c |   95 +++++++++++++++++++++++++++++++++++++
+ 1 files changed, 95 insertions(+), 0 deletions(-)
 
