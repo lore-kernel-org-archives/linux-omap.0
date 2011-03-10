@@ -1,202 +1,113 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH] perf: add OMAP support for the new power events
-Date: Wed, 09 Mar 2011 16:08:00 -0800
-Message-ID: <878vwnvnvj.fsf@ti.com>
-References: <1298052645-4164-1-git-send-email-j-pihet@ti.com>
-	<1299147943-2929-1-git-send-email-j-pihet@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Steve Sakoman <steve@sakoman.com>
+Subject: [PATCH v2 1/2] OMAP: Add gpio-leds support for Overo
+Date: Wed,  9 Mar 2011 16:08:05 -0800
+Message-ID: <1299715686-3920-2-git-send-email-steve@sakoman.com>
+References: <1299715686-3920-1-git-send-email-steve@sakoman.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:39511 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751712Ab1CJAIG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Mar 2011 19:08:06 -0500
-Received: by mail-gw0-f52.google.com with SMTP id 15so271135gwj.39
-        for <linux-omap@vger.kernel.org>; Wed, 09 Mar 2011 16:08:04 -0800 (PST)
-In-Reply-To: <1299147943-2929-1-git-send-email-j-pihet@ti.com> (Jean Pihet's
-	message of "Thu, 3 Mar 2011 11:25:43 +0100")
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:65211 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752990Ab1CJAIR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Mar 2011 19:08:17 -0500
+Received: by mail-vw0-f46.google.com with SMTP id 12so1043567vws.19
+        for <linux-omap@vger.kernel.org>; Wed, 09 Mar 2011 16:08:17 -0800 (PST)
+In-Reply-To: <1299715686-3920-1-git-send-email-steve@sakoman.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: Thomas Renninger <trenn@suse.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Jean Pihet <j-pihet@ti.com>
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: tomi.valkeinen@ti.com, Steve Sakoman <steve@sakoman.com>
 
-Jean Pihet <jean.pihet@newoldbits.com> writes:
+This patch adds support for the standard LEDs on the Overo COM and expansion boards
 
-> The patch adds the new power management trace points for
-> the OMAP architecture.
->
-> The trace points are for:
-> - default idle handler. Since the cpuidle framework is
->   instrumented in the generic way there is no need to
->   add trace points in the OMAP specific cpuidle handler;
-> - cpufreq (DVFS),
+Signed-off-by: Steve Sakoman <steve@sakoman.com>
+---
+ arch/arm/mach-omap2/board-overo.c |   53 +++++++++++++++++++++++++++++++++++++
+ 1 files changed, 53 insertions(+), 0 deletions(-)
 
-Minor: AFAICT, this patch doesn't instrument CPUfreq.
+diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
+index 4278ecb..e694ebd 100644
+--- a/arch/arm/mach-omap2/board-overo.c
++++ b/arch/arm/mach-omap2/board-overo.c
+@@ -473,6 +473,52 @@ static struct regulator_consumer_supply overo_vmmc1_supply = {
+ 	.supply			= "vmmc",
+ };
+ 
++#if defined(CONFIG_LEDS_GPIO) || defined(CONFIG_LEDS_GPIO_MODULE)
++#include <linux/leds.h>
++
++static struct gpio_led gpio_leds[] = {
++	{
++		.name			= "overo:red:gpio21",
++		.default_trigger	= "heartbeat",
++		.gpio			= 21,
++		.active_low		= true,
++	},
++	{
++		.name			= "overo:blue:gpio22",
++		.default_trigger	= "none",
++		.gpio			= 22,
++		.active_low		= true,
++	},
++	{
++		.name			= "overo:blue:COM",
++		.default_trigger	= "mmc0",
++		.gpio			= -EINVAL,	/* gets replaced */
++		.active_low		= true,
++	},
++};
++
++static struct gpio_led_platform_data gpio_leds_pdata = {
++	.leds		= gpio_leds,
++	.num_leds	= ARRAY_SIZE(gpio_leds),
++};
++
++static struct platform_device gpio_leds_device = {
++	.name	= "leds-gpio",
++	.id	= -1,
++	.dev	= {
++		.platform_data	= &gpio_leds_pdata,
++	},
++};
++
++static void __init overo_init_led(void)
++{
++	platform_device_register(&gpio_leds_device);
++}
++
++#else
++static inline void __init overo_init_led(void) { return; }
++#endif
++
+ static int overo_twl_gpio_setup(struct device *dev,
+ 		unsigned gpio, unsigned ngpio)
+ {
+@@ -480,6 +526,11 @@ static int overo_twl_gpio_setup(struct device *dev,
+ 
+ 	overo_vmmc1_supply.dev = mmc[0].dev;
+ 
++#if defined(CONFIG_LEDS_GPIO) || defined(CONFIG_LEDS_GPIO_MODULE)
++	/* TWL4030_GPIO_MAX + 1 == ledB, PMU_STAT (out, active low LED) */
++	gpio_leds[2].gpio = gpio + TWL4030_GPIO_MAX + 1;
++#endif
++
+ 	return 0;
+ }
+ 
+@@ -487,6 +538,7 @@ static struct twl4030_gpio_platform_data overo_gpio_data = {
+ 	.gpio_base	= OMAP_MAX_GPIO_LINES,
+ 	.irq_base	= TWL4030_GPIO_IRQ_BASE,
+ 	.irq_end	= TWL4030_GPIO_IRQ_END,
++	.use_leds	= true,
+ 	.setup		= overo_twl_gpio_setup,
+ };
+ 
+@@ -648,6 +700,7 @@ static void __init overo_init(void)
+ 	overo_spi_init();
+ 	overo_init_smsc911x();
+ 	overo_display_init();
++	overo_init_led();
+ 
+ 	/* Ensure SDRC pins are mux'd for self-refresh */
+ 	omap_mux_init_signal("sdrc_cke0", OMAP_PIN_OUTPUT);
+-- 
+1.7.0.4
 
-> - SoC clocks changes (enable, disable, set_rate),
-> - power domain states: the desired target state and -if different-
->   the actually hit state.
->
-> Because of the generic nature of the changes, OMAP3 and OMAP4 are supported.
->
-> Tested on OMAP3 with suspend/resume, cpuidle, basic DVFS.
->
-> Signed-off-by: Jean Pihet <j-pihet@ti.com>
-
-With Paul's ack on the powerdomain changes, I'll queue this for 2.6.39
-after making the above change in the changelog.
-
-Kevin
-
-
-> ---
->  arch/arm/mach-omap2/clock.c       |   11 +++++++++--
->  arch/arm/mach-omap2/pm34xx.c      |    7 +++++++
->  arch/arm/mach-omap2/powerdomain.c |   26 +++++++++++++++++++++++---
->  3 files changed, 39 insertions(+), 5 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-> index 46d03cc..180299e 100644
-> --- a/arch/arm/mach-omap2/clock.c
-> +++ b/arch/arm/mach-omap2/clock.c
-> @@ -22,7 +22,9 @@
->  #include <linux/clk.h>
->  #include <linux/io.h>
->  #include <linux/bitops.h>
-> +#include <trace/events/power.h>
->  
-> +#include <asm/cpu.h>
->  #include <plat/clock.h>
->  #include "clockdomain.h"
->  #include <plat/cpu.h>
-> @@ -261,8 +263,10 @@ void omap2_clk_disable(struct clk *clk)
->  
->  	pr_debug("clock: %s: disabling in hardware\n", clk->name);
->  
-> -	if (clk->ops && clk->ops->disable)
-> +	if (clk->ops && clk->ops->disable) {
-> +		trace_clock_disable(clk->name, 0, smp_processor_id());
->  		clk->ops->disable(clk);
-> +	}
->  
->  	if (clk->clkdm)
->  		clkdm_clk_disable(clk->clkdm, clk);
-> @@ -314,6 +318,7 @@ int omap2_clk_enable(struct clk *clk)
->  	}
->  
->  	if (clk->ops && clk->ops->enable) {
-> +		trace_clock_enable(clk->name, 1, smp_processor_id());
->  		ret = clk->ops->enable(clk);
->  		if (ret) {
->  			WARN(1, "clock: %s: could not enable: %d\n",
-> @@ -353,8 +358,10 @@ int omap2_clk_set_rate(struct clk *clk, unsigned long rate)
->  	pr_debug("clock: set_rate for clock %s to rate %ld\n", clk->name, rate);
->  
->  	/* dpll_ck, core_ck, virt_prcm_set; plus all clksel clocks */
-> -	if (clk->set_rate)
-> +	if (clk->set_rate) {
-> +		trace_clock_set_rate(clk->name, rate, smp_processor_id());
->  		ret = clk->set_rate(clk, rate);
-> +	}
->  
->  	return ret;
->  }
-> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> index bd610bc..d46b9ff 100644
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -29,6 +29,7 @@
->  #include <linux/delay.h>
->  #include <linux/slab.h>
->  #include <linux/console.h>
-> +#include <trace/events/power.h>
->  
->  #include <plat/sram.h>
->  #include "clockdomain.h"
-> @@ -514,8 +515,14 @@ static void omap3_pm_idle(void)
->  	if (omap_irq_pending() || need_resched())
->  		goto out;
->  
-> +	trace_power_start(POWER_CSTATE, 1, smp_processor_id());
-> +	trace_cpu_idle(1, smp_processor_id());
-> +
->  	omap_sram_idle();
->  
-> +	trace_power_end(smp_processor_id());
-> +	trace_cpu_idle(PWR_EVENT_EXIT, smp_processor_id());
-> +
->  out:
->  	local_fiq_enable();
->  	local_irq_enable();
-> diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-> index eaed0df..1495eed 100644
-> --- a/arch/arm/mach-omap2/powerdomain.c
-> +++ b/arch/arm/mach-omap2/powerdomain.c
-> @@ -19,12 +19,15 @@
->  #include <linux/list.h>
->  #include <linux/errno.h>
->  #include <linux/string.h>
-> +#include <trace/events/power.h>
-> +
->  #include "cm2xxx_3xxx.h"
->  #include "prcm44xx.h"
->  #include "cm44xx.h"
->  #include "prm2xxx_3xxx.h"
->  #include "prm44xx.h"
->  
-> +#include <asm/cpu.h>
->  #include <plat/cpu.h>
->  #include "powerdomain.h"
->  #include "clockdomain.h"
-> @@ -32,6 +35,8 @@
->  
->  #include "pm.h"
->  
-> +#define PWRDM_TRACE_STATES_FLAG	(1<<31)
-> +
->  enum {
->  	PWRDM_STATE_NOW = 0,
->  	PWRDM_STATE_PREV,
-> @@ -130,8 +135,7 @@ static void _update_logic_membank_counters(struct powerdomain *pwrdm)
->  static int _pwrdm_state_switch(struct powerdomain *pwrdm, int flag)
->  {
->  
-> -	int prev;
-> -	int state;
-> +	int prev, state, trace_state = 0;
->  
->  	if (pwrdm == NULL)
->  		return -EINVAL;
-> @@ -148,6 +152,17 @@ static int _pwrdm_state_switch(struct powerdomain *pwrdm, int flag)
->  			pwrdm->state_counter[prev]++;
->  		if (prev == PWRDM_POWER_RET)
->  			_update_logic_membank_counters(pwrdm);
-> +		/*
-> +		 * If the power domain did not hit the desired state,
-> +		 * generate a trace event with both the desired and hit states
-> +		 */
-> +		if (state != prev) {
-> +			trace_state = (PWRDM_TRACE_STATES_FLAG |
-> +				       ((state & OMAP_POWERSTATE_MASK) << 8) |
-> +				       ((prev & OMAP_POWERSTATE_MASK) << 0));
-> +			trace_power_domain_target(pwrdm->name, trace_state,
-> +						  smp_processor_id());
-> +		}
->  		break;
->  	default:
->  		return -EINVAL;
-> @@ -406,8 +421,13 @@ int pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst)
->  	pr_debug("powerdomain: setting next powerstate for %s to %0x\n",
->  		 pwrdm->name, pwrst);
->  
-> -	if (arch_pwrdm && arch_pwrdm->pwrdm_set_next_pwrst)
-> +	if (arch_pwrdm && arch_pwrdm->pwrdm_set_next_pwrst) {
-> +		/* Trace the pwrdm desired target state */
-> +		trace_power_domain_target(pwrdm->name, pwrst,
-> +					  smp_processor_id());
-> +		/* Program the pwrdm desired target state */
->  		ret = arch_pwrdm->pwrdm_set_next_pwrst(pwrdm, pwrst);
-> +	}
->  
->  	return ret;
->  }
