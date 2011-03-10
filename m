@@ -1,75 +1,71 @@
-From: Vishwanath Sripathy <vishwanath.bs@ti.com>
-Subject: RE: [PATCH] OMAP4: Intialize IVA Device in addition to DSP device.
-Date: Thu, 10 Mar 2011 14:36:55 +0530
-Message-ID: <fc1162b5d4e1a7deb77aa800a3e8fdb3@mail.gmail.com>
-References: <1299738148-28557-1-git-send-email-shweta.gulati@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: RE: [PATCH v4 4/9] OMAP4 : DSS2 : HDMI: HDMI driver header file
+ addition
+Date: Thu, 10 Mar 2011 11:07:32 +0200
+Message-ID: <1299748052.2017.52.camel@deskari>
+References: <1299671118-20839-1-git-send-email-mythripk@ti.com>
+	 <1299671118-20839-2-git-send-email-mythripk@ti.com>
+	 <1299671118-20839-3-git-send-email-mythripk@ti.com>
+	 <1299671118-20839-4-git-send-email-mythripk@ti.com>
+	 <1299671118-20839-5-git-send-email-mythripk@ti.com>
+	 <B85A65D85D7EB246BE421B3FB0FBB593024C1922C2@dbde02.ent.ti.com>
+	 <AANLkTimyrak4WfxWuiVvGT21k9jc0G6gz=R6=P8osvVj@mail.gmail.com>
+	 <B85A65D85D7EB246BE421B3FB0FBB593024C19269B@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:45779 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751762Ab1CJJG5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 10 Mar 2011 04:06:57 -0500
-Received: by mail-vw0-f47.google.com with SMTP id 4so1571004vws.34
-        for <linux-omap@vger.kernel.org>; Thu, 10 Mar 2011 01:06:56 -0800 (PST)
-In-Reply-To: <1299738148-28557-1-git-send-email-shweta.gulati@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:36185 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752250Ab1CJJHf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Mar 2011 04:07:35 -0500
+Received: from dlep36.itg.ti.com ([157.170.170.91])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p2A97ZjJ019316
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Thu, 10 Mar 2011 03:07:35 -0600
+Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
+	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id p2A97YPf011680
+	for <linux-omap@vger.kernel.org>; Thu, 10 Mar 2011 03:07:34 -0600 (CST)
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593024C19269B@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Shweta Gulati <shweta.gulati@ti.com>, linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
+To: "Premi, Sanjeev" <premi@ti.com>
+Cc: "K, Mythri P" <mythripk@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-> -----Original Message-----
-> From: linux-arm-kernel-bounces@lists.infradead.org [mailto:linux-arm-
-> kernel-bounces@lists.infradead.org] On Behalf Of Shweta Gulati
-> Sent: Thursday, March 10, 2011 11:52 AM
-> To: linux-omap@vger.kernel.org
-> Cc: Shweta Gulati; linux-arm-kernel@lists.infradead.org
-> Subject: [PATCH] OMAP4: Intialize IVA Device in addition to DSP device.
->
-> OMAP4 has two different Devices IVA and DSP. DSP is bound
-> with MPU for DVFS and IVA has its own well defined OPPs.
-DSP is not in MPU voltage domain. DSP(Tesla) and IVAHD are in the same
-voltage domain. Pls correct this in the commit log.
+On Thu, 2011-03-10 at 02:52 -0600, Premi, Sanjeev wrote:
+> > -----Original Message-----
+> > From: K, Mythri P
+> > Sent: Thursday, March 10, 2011 10:32 AM
+> > To: Premi, Sanjeev
+> > Cc: linux-omap@vger.kernel.org; Valkeinen, Tomi
+> > Subject: Re: [PATCH v4 4/9] OMAP4 : DSS2 : HDMI: HDMI driver header file
+> > addition
+> > 
+> 
+> [snip]...[snip]
+> 
+> > >
+> > > [sp] Any specific reason to keep header file in separate patch?
+> > >
+> > When i had posted it earlier there were several compliants  that the
+> > patch is huge,
+> > if i include header file with the corresponding c file , and hence
+> > difficult to review. So it just to make
+> > reviewers job easy.
+> 
+> [sp] Final say on the issue rests with the maintainer. But it I found it
+>      difficult to review the .c file with when looking for structure
+>      definitions, members etc.
+> 
+>      If they were together, we wouldn't need this in a separate patch:
+>      [PATCH v4 7/9] OMAP4 : DSS : HDMI: Call to HDMI module init to...
 
-Vishwa
-> This Patch adds IVA init to 'omap2_init_processor_devices'
-> and make sure that API 'omap2_set_init_voltage' is called
-> for apt dev pointer.
->
-> It fixes Error logs:
->
-> 	omap2_set_init_voltage: Invalid parameters!
-> 	omap2_set_init_voltage: Unable to put vdd_iva to its init voltage
->
-> Tested on OMAP4430 SDP Board.
-> Baseline:
-> http://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-
-> pm.git
-> Branch :pm-core
->
-> Signed-off-by: Shweta Gulati <shweta.gulati@ti.com>
-> ---
->  arch/arm/mach-omap2/pm.c |    1 +
->  1 files changed, 1 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-> index 30af335..49486f5 100644
-> --- a/arch/arm/mach-omap2/pm.c
-> +++ b/arch/arm/mach-omap2/pm.c
-> @@ -89,6 +89,7 @@ static void omap2_init_processor_devices(void)
->  	if (cpu_is_omap44xx()) {
->  		_init_omap_device("l3_main_1", &l3_dev);
->  		_init_omap_device("dsp", &dsp_dev);
-> +		_init_omap_device("iva", &iva_dev);
->  	} else {
->  		_init_omap_device("l3_main", &l3_dev);
->  	}
-> --
-> 1.7.0.4
->
->
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+It's not a clear thing, but I find it easier to review the patches, if
+new large files are added as separate patches.
+
+But it's true that that introduces the need to do some cross checking
+between patches, so it's a compromise.
+
+ Tomi
+
+
