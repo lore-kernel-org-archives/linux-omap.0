@@ -1,137 +1,65 @@
-From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: Re: [PATCH v12 6/9] dmtimer: switch-over to platform device driver
-Date: Fri, 11 Mar 2011 18:15:33 +0530
-Message-ID: <20110311124533.GA7492@m-desktop>
-References: <1299627948-20040-1-git-send-email-tarun.kanti@ti.com>
- <1299627948-20040-7-git-send-email-tarun.kanti@ti.com>
- <20110309220241.GR26463@atomide.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB037A4DD852@dbde02.ent.ti.com>
- <20110310175611.GV26463@atomide.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB037A4DD9D2@dbde02.ent.ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH v5 00/10] OMAP4 : DSS2 : HDMI support on OMAP4
+Date: Fri, 11 Mar 2011 15:22:54 +0200
+Message-ID: <1299849774.2479.3.camel@deskari>
+References: <1299753858-12222-1-git-send-email-mythripk@ti.com>
+	 <1299764643.2017.177.camel@deskari>  <4D78E3F5.2090600@openelec.tv>
+	 <1299827578.2567.1.camel@deskari>  <4D79E0A0.9040900@openelec.tv>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:44841 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753265Ab1CKMrc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 11 Mar 2011 07:47:32 -0500
-Received: by mail-yx0-f180.google.com with SMTP id 1so1383796yxe.39
-        for <linux-omap@vger.kernel.org>; Fri, 11 Mar 2011 04:47:31 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB037A4DD9D2@dbde02.ent.ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:56277 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750738Ab1CKNXD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 11 Mar 2011 08:23:03 -0500
+In-Reply-To: <4D79E0A0.9040900@openelec.tv>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Stephan Raue <mailinglists@openelec.tv>
+Cc: "K, Mythri P" <mythripk@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Fri, Mar 11, 2011 at 11:05:25AM +0530, DebBarma, Tarun Kanti wrote:
-> [...]
-> > > >
-> > > > * Tarun Kanti DebBarma <tarun.kanti@ti.com> [110308 15:41]:
-> > > > > switch-over to platform device driver through following changes:
-> > > > > (a) initiate dmtimer early initialization from omap2_gp_timer_init()
-> > > > > in timer-gp.c. This is equivalent of timer_init()->timer->init().
-> > > > > (b) modify plat-omap/dmtimer routines to use new register map and
-> > > > > platform data.
-> > > >
-> > > > This patch breaks booting for 2420 and makes boot hang early
-> > > > on 2430. Note that to test with omap-for-linus branch you need
-> > > > to disable the following in omap2plus_defconfig:
-> > > >
-> > > > CONFIG_ARCH_OMAP3
-> > > > CONFIG_ARCH_OMAP4
-> > > > CONFIG_CPU_32v6K
-> > > I disabled above options on omap-for-linus *WITHOUT* my patch series.
-> > > I am still seeing crash. Here is the log.
-> > > I tried on two different setups. Not sure if I am missing something.
-> > 
-> > Hmm sounds like H4 needs some attention. Can you try the following
-> > completely untested patch?
-> 
-> This works fine!
+On Fri, 2011-03-11 at 02:43 -0600, Stephan Raue wrote:
+> Am 11.03.2011 08:12, schrieb Tomi Valkeinen:
+> > On Thu, 2011-03-10 at 08:45 -0600, Stephan Raue wrote:
+> >> Hi,
+> >>
+> >> if i try this patch series the boot stops after (seeing via serial console):
+> >>
+> >>     Starting kernel ...
+> >>
+> >>     Uncompressing Linux... done, booting the kernel.
+> >>
+> >> without this patch series i can see the boot to th OS. I am using this
+> >> patches on top of
+> >>
+> >>     http://gitorious.org/linux-omap-dss2/linux/commits/master
+> >>
+> >> Do i anything wrong or do i use a wrong git repo (the patches apply
+> >> cleanly)? Her my kernel config: http://fpaste.org/9Esw/
+> > Hmm, I cannot even compile the kernel with that config:
+> >
+> >    CC      arch/arm/mach-omap2/io.o
+> > In file included from arch/arm/mm/init.c:27:0:
+> > /home/tomba/work/linux/arch/arm/include/asm/tlb.h: In function 'tlb_flush_mmu':
+> > /home/tomba/work/linux/arch/arm/include/asm/tlb.h:104:3: error: implicit declaration of function 'release_pages'
+> > In file included from arch/arm/mm/init.c:27:0:
+> > /home/tomba/work/linux/arch/arm/include/asm/tlb.h: In function 'tlb_remove_page':
+> > /home/tomba/work/linux/arch/arm/include/asm/tlb.h:168:3: error: implicit declaration of function 'page_cache_release'
+> > make[1]: *** [arch/arm/mm/init.o] Error 1
+> > make: *** [arch/arm/mm] Error 2
+> > make: *** Waiting for unfinished jobs....
+> >
+> >   Tomi
+> >
+> please enable swap support or try: 
+> http://ftp.arm.linux.org.uk/git/?p=linux-2.6-arm.git;a=commit;h=97594b0f35c0708cb9551c070b9693a52ec24ebf 
+> which is fixed in 2.6.38-rc8
 
-I tried to use below patch for booting  OMAP2420 H4 on top of:
-git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
-Branch: omap-for-linus
-commit 94a06b74e724caabcf0464c81527cfbcae0c8aff
-Merge: 0dde52a 9062511
-Author: Tony Lindgren <tony@atomide.com>
-Merge branch 'for_2.6.39/pm-misc' of
-ssh://master.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm
-into omap-for-linus
+Ok. So you didn't have just my master branch and the HDMI patch set? I
+see that the config you gave is for rc8, and mine is rc7, so I guess you
+also merged rc8 into your tree?
 
-Looks like it stops after uncompressing kernel. Same setup works fine
-with tag v2.6.37.
+ Tomi
 
-OMAP242x H4 # boot                                                              
-Using MAC Address 10:20:30:40:50:61                                             
-TFTP from server 10.24.244.97; our IP address is 10.24.244.196                  
-Filename 'uImage'.                                                              
-Load address: 0x80300000                                                        
-Loading:
-#################################################################      
-         #################################################################      
-         #################################################################      
-         #################################################################      
-         #################################################################      
-         #################################################################      
-         #################################################################      
-         #################################################################      
-         #########################################################              
-done                                                                            
-Bytes transferred = 2950216 (2d0448 hex)                                        
-## Booting image at 80300000 ...                                                
-   Image Name:   Linux-2.6.38-rc8-00188-g94a06b7-                               
-   Image Type:   ARM Linux Kernel Image (uncompressed)                          
-   Data Size:    2950152 Bytes =  2.8 MB                                        
-   Load Address: 80008000                                                       
-   Entry Point:  80008000                                                       
-   Verifying Checksum ... OK                                                    
-OK                                                                              
-                                                                                
-Starting kernel ...                                                             
-                                                                                
-Uncompressing Linux... done, booting the kernel.                                
 
--Manjunath
-
-> --
-> Tarun
-> 
-> > 
-> > Tony
-> > 
-> > From: Tony Lindgren <tony@atomide.com>
-> > Date: Thu, 10 Mar 2011 09:51:29 -0800
-> > Subject: [PATCH] omap: Fix H4 init_irq to not call h4_init_flash
-> > 
-> > There should be no reason to call h4_init_flash this
-> > early. It causes problems as things are not yet initialized.
-> > 
-> > Note: This patch has not been tested.
-> > 
-> > Not-Yet-Signed-off-by: Tony Lindgren <tony@atomide.com>
-> > 
-> > --- a/arch/arm/mach-omap2/board-h4.c
-> > +++ b/arch/arm/mach-omap2/board-h4.c
-> > @@ -299,7 +299,6 @@ static void __init omap_h4_init_early(void)
-> >  static void __init omap_h4_init_irq(void)
-> >  {
-> >  	omap_init_irq();
-> > -	h4_init_flash();
-> >  }
-> > 
-> >  static struct at24_platform_data m24c01 = {
-> > @@ -372,6 +371,7 @@ static void __init omap_h4_init(void)
-> >  	platform_add_devices(h4_devices, ARRAY_SIZE(h4_devices));
-> >  	omap2_usbfs_init(&h4_usb_config);
-> >  	omap_serial_init();
-> > +	h4_init_flash();
-> >  }
-> > 
-> >  static void __init omap_h4_map_io(void)
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
