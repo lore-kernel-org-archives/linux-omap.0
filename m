@@ -1,99 +1,73 @@
-From: Denis Karpov <ext-denis.2.karpov@nokia.com>
-Subject: [PATCH 1/2] input: twl4030-pwrbutton: add support for platform data
-Date: Fri, 11 Mar 2011 18:37:29 +0200
-Message-ID: <078f4a01fa523a0f9e0033c52f52413d60cc5431.1299860654.git.ext-denis.2.karpov@nokia.com>
-References: <1299861450-19914-1-git-send-email-ext-denis.2.karpov@nokia.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH] OMAP4: clockdomain: Follow recommended enable sequence
+Date: Fri, 11 Mar 2011 08:47:53 -0800
+Message-ID: <871v2dbo3q.fsf@ti.com>
+References: <1299245123-23444-1-git-send-email-rnayak@ti.com>
+	<alpine.DEB.2.00.1103081937100.15132@utopia.booyaka.com>
+	<4D775418.6050105@ti.com>
+	<alpine.DEB.2.00.1103100514210.15132@utopia.booyaka.com>
+	<alpine.DEB.2.00.1103100734490.15132@utopia.booyaka.com>
+	<4D7A22F6.5050806@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.48]:25733 "EHLO mgw-sa02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754390Ab1CKQhm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 11 Mar 2011 11:37:42 -0500
-In-Reply-To: <1299861450-19914-1-git-send-email-ext-denis.2.karpov@nokia.com>
+Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:54924 "EHLO
+	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751542Ab1CKQr6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 11 Mar 2011 11:47:58 -0500
+Received: by mail-pw0-f52.google.com with SMTP id 4so940337pwi.11
+        for <linux-omap@vger.kernel.org>; Fri, 11 Mar 2011 08:47:56 -0800 (PST)
+In-Reply-To: <4D7A22F6.5050806@ti.com> (Rajendra Nayak's message of "Fri, 11
+	Mar 2011 18:56:14 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, b-cousson@ti.com, santosh.shilimkar@ti.com, linux-arm-kernel@lists.infradead.org
 
-From: Denis Karpov <ext-denis.2.karpov@nokia.com>
+Rajendra Nayak <rnayak@ti.com> writes:
 
-Adds support for TWL4030 power button platform data. Currently the only
-field is the flag to optionally generate repeat input events from a button
-press.
+[...]
 
-Signed-off-by: Denis Karpov <ext-denis.2.karpov@nokia.com>
----
- drivers/input/misc/twl4030-pwrbutton.c |    8 ++++++++
- drivers/mfd/twl-core.c                 |    4 +++-
- include/linux/i2c/twl.h                |    5 +++++
- 3 files changed, 16 insertions(+), 1 deletions(-)
+>>
+>> It's also breaking boot on OMAP35xx BeagleBoard rev C2.  The kernel
+>> boot messages are below - omap2plus_defconfig + DEBUG_LL.  Reverting
+>> the patch fixes it.  Could you please take a look?
+>
+> I got hold of a Beagle, a sticker on which says rev C1D.
+> Not sure if there is a better way to identify the rev, but
+> this one seems to boot fine for me even with this patch.
+> I just applied this one patch on top of the the tag
+> 'integration-2.6.39-20110310-008' of git://git.pwsan.com/linux-
+> integration.
 
-diff --git a/drivers/input/misc/twl4030-pwrbutton.c b/drivers/input/misc/twl4030-pwrbutton.c
-index f16972b..c380b83 100644
---- a/drivers/input/misc/twl4030-pwrbutton.c
-+++ b/drivers/input/misc/twl4030-pwrbutton.c
-@@ -54,9 +54,14 @@ static irqreturn_t powerbutton_irq(int irq, void *_pwr)
- 
- static int __init twl4030_pwrbutton_probe(struct platform_device *pdev)
- {
-+	struct twl4030_pwrbutton_data *pdata = pdev->dev.platform_data;
- 	struct input_dev *pwr;
- 	int irq = platform_get_irq(pdev, 0);
- 	int err;
-+	bool repeat = false;
-+
-+	if (pdata)
-+		repeat = pdata->rep;
- 
- 	pwr = input_allocate_device();
- 	if (!pwr) {
-@@ -70,6 +75,9 @@ static int __init twl4030_pwrbutton_probe(struct platform_device *pdev)
- 	pwr->phys = "twl4030_pwrbutton/input0";
- 	pwr->dev.parent = &pdev->dev;
- 
-+	if (repeat)
-+		__set_bit(EV_REP, pwr->evbit);
-+
- 	err = request_threaded_irq(irq, NULL, powerbutton_irq,
- 			IRQF_TRIGGER_FALLING | IRQF_TRIGGER_RISING,
- 			"twl4030_pwrbutton", pwr);
-diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-index a35fa7d..fd75ee9 100644
---- a/drivers/mfd/twl-core.c
-+++ b/drivers/mfd/twl-core.c
-@@ -729,7 +729,9 @@ add_children(struct twl4030_platform_data *pdata, unsigned long features)
- 
- 	if (twl_has_pwrbutton()) {
- 		child = add_child(1, "twl4030_pwrbutton",
--				NULL, 0, true, pdata->irq_base + 8 + 0, 0);
-+				pdata->pwrbutton,
-+				sizeof(*pdata->pwrbutton),
-+				true, pdata->irq_base + 8 + 0, 0);
- 		if (IS_ERR(child))
- 			return PTR_ERR(child);
- 	}
-diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
-index 9d88b71..60e48fa 100644
---- a/include/linux/i2c/twl.h
-+++ b/include/linux/i2c/twl.h
-@@ -586,6 +586,10 @@ struct twl4030_keypad_data {
- 	bool rep;
- };
- 
-+struct twl4030_pwrbutton_data {
-+	bool rep;
-+};
-+
- enum twl4030_usb_mode {
- 	T2_USB_MODE_ULPI = 1,
- 	T2_USB_MODE_CEA2011_3PIN = 2,
-@@ -667,6 +671,7 @@ struct twl4030_platform_data {
- 	struct twl4030_gpio_platform_data	*gpio;
- 	struct twl4030_madc_platform_data	*madc;
- 	struct twl4030_keypad_data		*keypad;
-+	struct twl4030_pwrbutton_data		*pwrbutton;
- 	struct twl4030_usb_data			*usb;
- 	struct twl4030_power_data		*power;
- 	struct twl4030_codec_data		*codec;
--- 
-1.7.1
+In the process of testing Santosh's OMAP4 PM series (which includes
+$SUBJECT patch) on OMAP3, I also noticed some problems on beagle (mine
+is a C3.)
 
+Specifially, with $SUBJECT patch applied, none of the powerdomains ever
+reach inactive or RET during idle (suspend seems to work fine.)
+
+Just reverting $SUBJECT patch makes things go back to working normally.
+
+I pushed the test branch I used which is a merge of Santosh's v3 branch
+with my pm branch (branch: tmp/santosh-omap4-pm)
+
+I tested by first doing a suspend test and confirming all the
+powerdomains hit retention.  That worked fine.  Then I did an idle test:
+
+  echo 5 > /sys/devices/platform/omap/omap_uart.0/sleep_timeout               
+  echo 5 > /sys/devices/platform/omap/omap_uart.1/sleep_timeout               
+  echo 5 > /sys/devices/platform/omap/omap_uart.2/sleep_timeout               
+  echo 1 > /debug/pm_debug/sleep_while_idle
+
+and waited for the UARTs to timeout.
+
+Well after the UART timeouts expired, I do not see any powerdomains
+transitioning from ON.
+
+What's even more strange is that the same thing is working fine on all
+the other OMAP3 platforms I tested: 3430/n900, 3630/zoom3 and even a
+different 3530-based platform, the OMAP3EVM.
+
+Kevin
