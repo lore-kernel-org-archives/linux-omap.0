@@ -1,74 +1,81 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v2 00/19] OMAP4: PM: Suspend, CPU-hotplug and CPUilde support.
-Date: Fri, 11 Mar 2011 07:56:19 -0800
-Message-ID: <87pqpxbqho.fsf@ti.com>
-References: <1299766095-23879-1-git-send-email-santosh.shilimkar@ti.com>
-	<87d3lycu0h.fsf@ti.com>
-	<49a5273c412bf9193a9f930e990d22d4@mail.gmail.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [RFC PATCHv1 1/2] Export SoC info through sysfs
+Date: Fri, 11 Mar 2011 17:14:12 +0100
+Message-ID: <201103111714.12332.arnd@arndb.de>
+References: <1299689961-5028-1-git-send-email-maxime.coquelin-nonst@stericsson.com>
+	<201103101732.34127.arnd@arndb.de>
+	<AANLkTin=Octa0BsxAh2QPsJXVCOKNrzELkcNJO88J+pN@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:33090 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755485Ab1CKP4X (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 11 Mar 2011 10:56:23 -0500
-Received: by mail-gw0-f45.google.com with SMTP id 19so1181570gwb.4
-        for <linux-omap@vger.kernel.org>; Fri, 11 Mar 2011 07:56:22 -0800 (PST)
-In-Reply-To: <49a5273c412bf9193a9f930e990d22d4@mail.gmail.com> (Santosh
-	Shilimkar's message of "Fri, 11 Mar 2011 18:01:12 +0530")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <AANLkTin=Octa0BsxAh2QPsJXVCOKNrzELkcNJO88J+pN@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: ext Nishanth Menon <nm@ti.com>, ext Tony Lindgren <tony@atomide.com>, Peter De-Schrijver <Peter.De-Schrijver@nokia.com>, Ambresh <a0393775@ti.com>, Saravana Kannan <skannan@codeaurora.org>, Andrei Warkentin <andreiw@motorola.com>, Lee Jones <Lee.Jones@linaro.org>, Rabin VINCENT <rabin.vincent@stericsson.com>, Russell King <linux@arm.linux.org.uk>, Jonas ABERG <jonas.aberg@stericsson.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, Greg KH <greg@kroah.com>, David Brown <davidb@codeaurora.org>, Maxime Coquelin <maxime.coquelin-nonst@stericsson.com>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, Loic PALLARDY <loic.pallardy@stericsson.com>, "eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>, maxime_coquelin@yahoo.fr, Ryan Mallon <ryan@bluewatersys.com>, Linux-OMAP <linux-omap@vger.kernel.org>"linux-arm-kernel@lists.infradead.org" <linux-a>
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-omap@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, linux-arm-kernel@lists.infradead.org
 
-Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
+On Thursday 10 March 2011, Linus Walleij wrote:
+> What I'm trying to get at is that the user of this
+> info isn't really interested in any device tree structure,
+> it just becomes an obstacle s/he has to overcome
+> to get this info out.
+> 
+> But there may be a compromise: if we create the
+> socinfo in one place in the device tree (possibly the
+> top node, or a dedicated device) then class it?
+> 
+> /sys/class/soc/soc0 -> ../../devices/platform/top-node
+> 
+> Then you find your entries easily by opening
+> /sys/class/soc/soc0/* ?
 
-[...]
+That would be one way of finding all soc nodes, in
+case we want to have multiple ones. Similarly,
+it could be done based on
 
->> >
->> > This series doesn't boot on ES1 (boot log below.)  Do we need to
->> > totally prevent WFI on ES1?
->> >
-> Nope. WFI is ok.
-> The ES1.0 boot issue on pm-core branch doesn't seems to
-> be related to this series. Without this series as well
-> OMAP4 ES1.0 is not booting for me. When I disable
-> CONFIG_PM + WATCHDOG fix, it booted ok. I will
-> git-bisect this later on pm-core branch.
->
->> > Also, if we want a CPUidle enabled kernel to boot on all silicon,
->> > it will need a omap_rev() check during init to ensure it doesn't
->> > override the default idle path.
->> >
-> OMAP4 PM series already takes care of not overriding
-> the default idle path for ES1.0. The omap4_mpuss_init()
-> fails on ES1.0 and hence the CPUidle init is skipped in
-> that case.
->
-> Just to further check, I pulled the latest omap-for-linus
-> branch and merged Paul's pull-request into it. Then
-> applied OMAP4 PM series and I got a boot crash, a different
-> one. This was again related to clock-domain initialization
-> and static deps. I fixed this issue by avoiding omap4_pm_init()
-> code running on ES1.0. With this boot on ES1.0 works fine now
-> with OMAP4 PM series.
+1. the name under /sys/devices/platform:
 
-Thanks for finding this.  I just tested your v3 branch together with my
-pm-core and it's now booting fine on ES1.
+/sys/devices/platform/soc0
+/sys/devices/platform/soc1
+/sys/devices/platform/soc2
 
-Kevin
+2. a new bus_type for soc devices, with bus_attributes:
 
-> Posted the patch for the same.
-> https://patchwork.kernel.org/patch/628231/
->
->
-> The rebased series against
-> 	Latest 'omap-for-linus + Paul's pull-request'
-> have pushed to below branch.
->
-> git://dev.omapzoom.org/pub/scm/santosh/kernel-omap4-base.git
-> omap4_pm_for-next_v3
->
-> Regards,
-> Santosh
+/sys/bus/soc/devices/foo0 -> ../../../devices/platform/foo0
+/sys/bus/soc/devices/bar0 -> ../../../devices/platform/bar0
+/sys/bus/soc/devices/bar1 -> ../../../devices/platform/bar1
+
+3. A new top-level device besides /sys/devices/platform (like PCI):
+
+/sys/devices/soc0
+/sys/devices/soc1
+/sys/devices/soc2
+
+> If the socinfo interface is singleton (and why should
+> it not be) then:
+> 
+> /sys/class/soc -> ../devices/platfom/top-node
+> 
+> Or is this thing too trivial to have it's own class?
+
+In case of a singleton, I'd just use a fixed device as
+the parent:
+
+/sys/devices/platform/soc/
+
+or
+
+/sys/devices/soc/
+
+And pass that as the parent for all devices under it.
+
+	Arnd
