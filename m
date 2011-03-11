@@ -1,74 +1,137 @@
-From: Maxime Coquelin <maxime.coquelin-nonst@stericsson.com>
-Subject: [RFC PATCHv2 0/2] Export SoC info through sysfs
-Date: Fri, 11 Mar 2011 13:35:09 +0100
-Message-ID: <1299846911-15782-1-git-send-email-maxime.coquelin-nonst@stericsson.com>
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: Re: [PATCH v12 6/9] dmtimer: switch-over to platform device driver
+Date: Fri, 11 Mar 2011 18:15:33 +0530
+Message-ID: <20110311124533.GA7492@m-desktop>
+References: <1299627948-20040-1-git-send-email-tarun.kanti@ti.com>
+ <1299627948-20040-7-git-send-email-tarun.kanti@ti.com>
+ <20110309220241.GR26463@atomide.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB037A4DD852@dbde02.ent.ti.com>
+ <20110310175611.GV26463@atomide.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB037A4DD9D2@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: LKML <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>, Sarava
-Cc: maxime_coquelin@yahoo.fr, ext Nishanth Menon <nm@ti.com>, ext Tony Lindgren <tony@atomide.com>, Peter De-Schrijver <Peter.De-Schrijver@nokia.com>, Ambresh <a0393775@ti.com>, Jouni Hogander <jouni.hogander@nokia.com>, Lee Jones <Lee.Jones@linaro.org>, Rabin VINCENT <rabin.vincent@stericsson.com>, Russell King <linux@arm.linux.org.uk>, Jonas ABERG <jonas.aberg@stericsson.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, David Brown <davidb@codeaurora.org>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, Loic PALLARDY <loic.pallardy@stericsson.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Daniel Walker <dwalker@codeaurora.org>, Andrei Warkentin <andreiw@motorola.com>, Paul Mundt <lethal@linux-sh.org>, "santosh.shilimkar@ti.com" <santosh.shilimkar@ti.com>, Andrew Morton <akpm@linux-foundation.org>, Maxime Coquelin <maxime.coquelin-nonst@stericss>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:44841 "EHLO
+	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753265Ab1CKMrc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 11 Mar 2011 07:47:32 -0500
+Received: by mail-yx0-f180.google.com with SMTP id 1so1383796yxe.39
+        for <linux-omap@vger.kernel.org>; Fri, 11 Mar 2011 04:47:31 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB037A4DD9D2@dbde02.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Here is the second version of the proposal to export SoC related information to user-space through sysFS interface.
+On Fri, Mar 11, 2011 at 11:05:25AM +0530, DebBarma, Tarun Kanti wrote:
+> [...]
+> > > >
+> > > > * Tarun Kanti DebBarma <tarun.kanti@ti.com> [110308 15:41]:
+> > > > > switch-over to platform device driver through following changes:
+> > > > > (a) initiate dmtimer early initialization from omap2_gp_timer_init()
+> > > > > in timer-gp.c. This is equivalent of timer_init()->timer->init().
+> > > > > (b) modify plat-omap/dmtimer routines to use new register map and
+> > > > > platform data.
+> > > >
+> > > > This patch breaks booting for 2420 and makes boot hang early
+> > > > on 2430. Note that to test with omap-for-linus branch you need
+> > > > to disable the following in omap2plus_defconfig:
+> > > >
+> > > > CONFIG_ARCH_OMAP3
+> > > > CONFIG_ARCH_OMAP4
+> > > > CONFIG_CPU_32v6K
+> > > I disabled above options on omap-for-linus *WITHOUT* my patch series.
+> > > I am still seeing crash. Here is the log.
+> > > I tried on two different setups. Not sure if I am missing something.
+> > 
+> > Hmm sounds like H4 needs some attention. Can you try the following
+> > completely untested patch?
+> 
+> This works fine!
 
-The first patch introduces the common part, which provides an interface to the platform to export platform-defined IDs to user-space.
-The IDs strings can be provided in two ways: either with a pointer to the string, or by a callback fullfilling the sysfs's "show" callback buffer.
+I tried to use below patch for booting  OMAP2420 H4 on top of:
+git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
+Branch: omap-for-linus
+commit 94a06b74e724caabcf0464c81527cfbcae0c8aff
+Merge: 0dde52a 9062511
+Author: Tony Lindgren <tony@atomide.com>
+Merge branch 'for_2.6.39/pm-misc' of
+ssh://master.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm
+into omap-for-linus
 
-The second patch is given as example for the ux500 architecture. It registers the socinfo interface, and exports 5 values (Family name, machine name, silicon process, silicon revision, and serial number).
+Looks like it stops after uncompressing kernel. Same setup works fine
+with tag v2.6.37.
 
-Here is the output for DB8500:
-root@ME:/sys/socinfo ls -l
--r--r--r-- 1 root root 4096 Jan  2 03:35 family
--r--r--r-- 1 root root 4096 Jan  2 03:35 machine
--r--r--r-- 1 root root 4096 Jan  2 03:35 process
--r--r--r-- 1 root root 4096 Jan  2 03:35 revision
--r--r--r-- 1 root root 4096 Jan  2 03:35 soc_id
-root@ME:/sys/socinfo cat machine
-DB8500
-root@ME:/sys/socinfo cat family
-Ux500
-root@ME:/sys/socinfo cat process
-Standard
-root@ME:/sys/socinfo cat revision
-2.0
-root@ME:/sys/socinfo cat soc_id
-2ba07ce9e5835d6185321e9577462ef2ea2129cf
+OMAP242x H4 # boot                                                              
+Using MAC Address 10:20:30:40:50:61                                             
+TFTP from server 10.24.244.97; our IP address is 10.24.244.196                  
+Filename 'uImage'.                                                              
+Load address: 0x80300000                                                        
+Loading:
+#################################################################      
+         #################################################################      
+         #################################################################      
+         #################################################################      
+         #################################################################      
+         #################################################################      
+         #################################################################      
+         #################################################################      
+         #########################################################              
+done                                                                            
+Bytes transferred = 2950216 (2d0448 hex)                                        
+## Booting image at 80300000 ...                                                
+   Image Name:   Linux-2.6.38-rc8-00188-g94a06b7-                               
+   Image Type:   ARM Linux Kernel Image (uncompressed)                          
+   Data Size:    2950152 Bytes =  2.8 MB                                        
+   Load Address: 80008000                                                       
+   Entry Point:  80008000                                                       
+   Verifying Checksum ... OK                                                    
+OK                                                                              
+                                                                                
+Starting kernel ...                                                             
+                                                                                
+Uncompressing Linux... done, booting the kernel.                                
 
--------------------------------------------------------------------------------
-v1:
-	Conclusion about first version :
-		* /sys/devices/system is not right place for this interface.
-		* "mach_name" should be declared as other attributes to simplify code.
-		* The get_info callback should use directly the "show" callback buffer.
-		* Documentation was missing (ABI description required)
-		* Errors were not reported at registration time.
-		* Macros should be used to create attributes.
-		* Some kernel coding rules not followed.
+-Manjunath
 
--------------------------------------------------------------------------------
-
-Any comments are welcome.
-
-Note that I will be off from 13th to 21th of March.
-
-Regards,
-Maxime
-
--------------------------------------------------------------------------------
-
-Maxime Coquelin (2):
-  Export SoC info through sysfs
-  ux500: Export U8500 SoC info through sysfs
-
- Documentation/ABI/testing/sysfs-socinfo |   16 ++++++
- arch/arm/mach-ux500/Kconfig             |    1 +
- arch/arm/mach-ux500/id.c                |   70 +++++++++++++++++++++++++++
- drivers/base/Kconfig                    |    3 +
- drivers/base/Makefile                   |    1 +
- drivers/base/soc.c                      |   79 +++++++++++++++++++++++++++++++
- include/linux/sys_soc.h                 |   50 +++++++++++++++++++
- 7 files changed, 220 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/ABI/testing/sysfs-socinfo
- create mode 100644 drivers/base/soc.c
- create mode 100644 include/linux/sys_soc.h
+> --
+> Tarun
+> 
+> > 
+> > Tony
+> > 
+> > From: Tony Lindgren <tony@atomide.com>
+> > Date: Thu, 10 Mar 2011 09:51:29 -0800
+> > Subject: [PATCH] omap: Fix H4 init_irq to not call h4_init_flash
+> > 
+> > There should be no reason to call h4_init_flash this
+> > early. It causes problems as things are not yet initialized.
+> > 
+> > Note: This patch has not been tested.
+> > 
+> > Not-Yet-Signed-off-by: Tony Lindgren <tony@atomide.com>
+> > 
+> > --- a/arch/arm/mach-omap2/board-h4.c
+> > +++ b/arch/arm/mach-omap2/board-h4.c
+> > @@ -299,7 +299,6 @@ static void __init omap_h4_init_early(void)
+> >  static void __init omap_h4_init_irq(void)
+> >  {
+> >  	omap_init_irq();
+> > -	h4_init_flash();
+> >  }
+> > 
+> >  static struct at24_platform_data m24c01 = {
+> > @@ -372,6 +371,7 @@ static void __init omap_h4_init(void)
+> >  	platform_add_devices(h4_devices, ARRAY_SIZE(h4_devices));
+> >  	omap2_usbfs_init(&h4_usb_config);
+> >  	omap_serial_init();
+> > +	h4_init_flash();
+> >  }
+> > 
+> >  static void __init omap_h4_map_io(void)
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
