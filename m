@@ -1,118 +1,77 @@
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: Re: [RFC PATCHv2 1/2] Export SoC info through sysfs
-Date: Fri, 11 Mar 2011 19:58:16 +0200
-Message-ID: <20110311175816.GC7291@besouro.research.nokia.com>
-References: <1299846911-15782-1-git-send-email-maxime.coquelin-nonst@stericsson.com>
-	<1299846911-15782-2-git-send-email-maxime.coquelin-nonst@stericsson.com>
-	<201103111532.52393.arnd@arndb.de>
-	<20110311155257.GA6711@kroah.com>
-Reply-To: eduardo.valentin@nokia.com
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH v5 00/10] OMAP4 : DSS2 : HDMI support on OMAP4
+Date: Fri, 11 Mar 2011 20:27:29 +0200
+Message-ID: <1299868049.2479.33.camel@deskari>
+References: <1299753858-12222-1-git-send-email-mythripk@ti.com>
+	 <1299764643.2017.177.camel@deskari>  <4D78E3F5.2090600@openelec.tv>
+	 <1299827578.2567.1.camel@deskari>  <4D79E0A0.9040900@openelec.tv>
+	 <1299849774.2479.3.camel@deskari>  <4D7A4B44.2030801@openelec.tv>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20110311155257.GA6711@kroah.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: ext Greg KH <greg@kroah.com>
-Cc: ext Nishanth Menon <nm@ti.com>, ext Tony Lindgren <tony@atomide.com>, Peter De-Schrijver <Peter.De-Schrijver@nokia.com>, Linus Walleij <linus.walleij@linaro.org>, Ambresh <a0393775@ti.com>, Saravana Kannan <skannan@codeaurora.org>, Andrei Warkentin <andreiw@motorola.com>, Lee Jones <Lee.Jones@linaro.org>, Rabin VINCENT <rabin.vincent@stericsson.com>, Russell King <linux@arm.linux.org.uk>, Jonas ABERG <jonas.aberg@stericsson.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, David Brown <davidb@codeaurora.org>, Maxime Coquelin <maxime.coquelin-nonst@stericsson.com>, Arnd Bergmann <arnd@arndb.de>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, Loic PALLARDY <loic.pallardy@stericsson.com>, "eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>, maxime_coquelin@yahoo.fr, Ryan Mallon <ryan@bluewatersys.com>, Linux-OMAP <linux-omap@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:47597 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753157Ab1CKS1g (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 11 Mar 2011 13:27:36 -0500
+In-Reply-To: <4D7A4B44.2030801@openelec.tv>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Stephan Raue <mailinglists@openelec.tv>
+Cc: "K, Mythri P" <mythripk@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hello,
+On Fri, 2011-03-11 at 10:18 -0600, Stephan Raue wrote:
+> Am 11.03.2011 14:22, schrieb Tomi Valkeinen:
+> > On Fri, 2011-03-11 at 02:43 -0600, Stephan Raue wrote:
+> >> Am 11.03.2011 08:12, schrieb Tomi Valkeinen:
+> >>> On Thu, 2011-03-10 at 08:45 -0600, Stephan Raue wrote:
+> >>>> Hi,
+> >>>>
+> >>>> if i try this patch series the boot stops after (seeing via serial console):
+> >>>>
+> >>>>      Starting kernel ...
+> >>>>
+> >>>>      Uncompressing Linux... done, booting the kernel.
+> >>>>
+> >>>> without this patch series i can see the boot to th OS. I am using this
+> >>>> patches on top of
+> >>>>
+> >>>>      http://gitorious.org/linux-omap-dss2/linux/commits/master
+> >>>>
+> >>>> Do i anything wrong or do i use a wrong git repo (the patches apply
+> >>>> cleanly)? Her my kernel config: http://fpaste.org/9Esw/
+> >>> Hmm, I cannot even compile the kernel with that config:
+> >>>
+> >>>     CC      arch/arm/mach-omap2/io.o
+> >>> In file included from arch/arm/mm/init.c:27:0:
+> >>> /home/tomba/work/linux/arch/arm/include/asm/tlb.h: In function 'tlb_flush_mmu':
+> >>> /home/tomba/work/linux/arch/arm/include/asm/tlb.h:104:3: error: implicit declaration of function 'release_pages'
+> >>> In file included from arch/arm/mm/init.c:27:0:
+> >>> /home/tomba/work/linux/arch/arm/include/asm/tlb.h: In function 'tlb_remove_page':
+> >>> /home/tomba/work/linux/arch/arm/include/asm/tlb.h:168:3: error: implicit declaration of function 'page_cache_release'
+> >>> make[1]: *** [arch/arm/mm/init.o] Error 1
+> >>> make: *** [arch/arm/mm] Error 2
+> >>> make: *** Waiting for unfinished jobs....
+> >>>
+> >>>    Tomi
+> >>>
+> >> please enable swap support or try:
+> >> http://ftp.arm.linux.org.uk/git/?p=linux-2.6-arm.git;a=commit;h=97594b0f35c0708cb9551c070b9693a52ec24ebf
+> >> which is fixed in 2.6.38-rc8
+> > Ok. So you didn't have just my master branch and the HDMI patch set? I
+> > see that the config you gave is for rc8, and mine is rc7, so I guess you
+> > also merged rc8 into your tree?
+> >
+> >   Tomi
+> >
+> yes, you are right, i have tested this with different kernel configs and 
+> both rc7 and rc8 with the same results.
 
-On Fri, Mar 11, 2011 at 07:52:57AM -0800, ext Greg KH wrote:
-> On Fri, Mar 11, 2011 at 03:32:51PM +0100, Arnd Bergmann wrote:
-> > On Friday 11 March 2011, Maxime Coquelin wrote:
-> > > Common base to export System-on-Chip related informations through sysfs.
-> > > 
-> > > Creation of a "socinfo" directory under /sys/.
-> > > Creation of SoC information entries.
-> > > 
-> > > Signed-off-by: Maxime COQUELIN <maxime.coquelin-nonst@stericsson.com>
-> > 
-> > I think it's better than the previous patch to create an
-> > artificial device in /sys/devices/system/socinfo, but I'd
-> > still prefer the information to be attached to a real device
-> > that represents the SOC, as I explained in the discussion with
-> > Linus Walleij.
-> > 
-> > You should definitely add Greg on Cc, as he's maintaining sysfs
-> > and certainly has an opininion here.
-> > 
-> > 	Arnd
-> > 
-> > > ---
-> > >  Documentation/ABI/testing/sysfs-socinfo |   16 ++++++
-> > >  drivers/base/Kconfig                    |    3 +
-> > >  drivers/base/Makefile                   |    1 +
-> > >  drivers/base/soc.c                      |   79 +++++++++++++++++++++++++++++++
-> > >  include/linux/sys_soc.h                 |   50 +++++++++++++++++++
-> > >  5 files changed, 149 insertions(+), 0 deletions(-)
-> > >  create mode 100644 Documentation/ABI/testing/sysfs-socinfo
-> > >  create mode 100644 drivers/base/soc.c
-> > >  create mode 100644 include/linux/sys_soc.h
-> > > 
-> > > diff --git a/Documentation/ABI/testing/sysfs-socinfo b/Documentation/ABI/testing/sysfs-socinfo
-> > > new file mode 100644
-> > > index 0000000..afd9da2
-> > > --- /dev/null
-> > > +++ b/Documentation/ABI/testing/sysfs-socinfo
-> > > @@ -0,0 +1,16 @@
-> > > +What:		/sys/socinfo
-> > > +Date:		March 2011
-> > > +contact:	Maxime Coquelin <maxime.coquelin-nonst@stericsson.com>
-> > > +Description:
-> > > +		The /sys/socinfo directory contains information about the
-> > > +		System-on-Chip.	It is only available if platform implements it.
-> > > +		This directory contains two kind of attributes :
-> > > +			- common attributes: 
-> > > +				* machine: the name of the machine.
-> > > +				* family: the family name of the SoC
-> > > +			- SoC-specific attributes: The SoC vendor can declare attributes
-> > > +			  to export some strings to user-space, like the serial-number for
-> > > +			  example.
-> > > +
-> > > +Users:
-> > > +		User-space applications which needs these kind of attributes.
-> 
-> I thought I rejected this the last time it came around?
-> 
+Ok. I need to dig out my panda and try to get it running. Blaze board
+seems to work fine, at least for me.
 
-Greg,
+Does the crash happen every time?
 
-Do you mind sharing the link of the thread where you have reject this?
-
-> I still fail to understand why this is needed, please provide more
-> information about why you feel this is something that the kernel needs.
-
-In case of OMAP, there are few ids that we would expose to user space,
-like serial, revision and die id to quote some from top of my mind.
-I must emphasize  that these are not data from CPU at all, they belong
-to SoC itself.
-
-This info can be useful to track buggy silicon misbehaving on products
-which are already on the market. For instance, one possible usage would
-be to collect from products which arrives on customer care centers.
-
-That's obviously the view I have from OMAP perspective.
-
-But looks like if we had some common way to expose this data, not only
-OMAP socs would benefit of it, as you can see interest from other soc vendors
-in this thread (also on V1 of this patch set or on my original patch set over /proc)
+ Tomi
 
 
-> 
-> thanks,
-> 
-> greg k-h
-
--- 
-Eduardo Valentin
