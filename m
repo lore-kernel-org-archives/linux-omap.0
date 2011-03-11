@@ -1,57 +1,72 @@
-From: Stephan Raue <mailinglists@openelec.tv>
-Subject: Re: [PATCH v5 00/10] OMAP4 : DSS2 : HDMI support on OMAP4
-Date: Fri, 11 Mar 2011 09:43:12 +0100
-Message-ID: <4D79E0A0.9040900@openelec.tv>
-References: <1299753858-12222-1-git-send-email-mythripk@ti.com>	 <1299764643.2017.177.camel@deskari>  <4D78E3F5.2090600@openelec.tv> <1299827578.2567.1.camel@deskari>
+From: <kalle.jokiniemi@nokia.com>
+Subject: RE: [PATCH 1/2] Watchdog: omap_wdt: add fine grain runtime-pm
+Date: Fri, 11 Mar 2011 07:31:44 +0000
+Message-ID: <9D0D31AA57AAF5499AFDC63D6472631B066550@008-AM1MPN1-036.mgdnok.nokia.com>
+References: <1299754448-24888-1-git-send-email-kalle.jokiniemi@nokia.com>
+ <1299754448-24888-2-git-send-email-kalle.jokiniemi@nokia.com>
+ <alpine.DEB.2.00.1103100600390.15132@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail04.solnet.ch ([212.101.4.138]:64983 "EHLO mail04.solnet.ch"
+Received: from smtp.nokia.com ([147.243.128.26]:42683 "EHLO mgw-da02.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752542Ab1CKInO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 11 Mar 2011 03:43:14 -0500
-In-Reply-To: <1299827578.2567.1.camel@deskari>
+	id S1753829Ab1CKLRA convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Mar 2011 06:17:00 -0500
+In-Reply-To: <alpine.DEB.2.00.1103100600390.15132@utopia.booyaka.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: "K, Mythri P" <mythripk@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: paul@pwsan.com
+Cc: khilman@ti.com, b-cousson@ti.com, tony@atomide.com, linux-omap@vger.kernel.org
 
-Am 11.03.2011 08:12, schrieb Tomi Valkeinen:
-> On Thu, 2011-03-10 at 08:45 -0600, Stephan Raue wrote:
->> Hi,
->>
->> if i try this patch series the boot stops after (seeing via serial console):
->>
->>     Starting kernel ...
->>
->>     Uncompressing Linux... done, booting the kernel.
->>
->> without this patch series i can see the boot to th OS. I am using this
->> patches on top of
->>
->>     http://gitorious.org/linux-omap-dss2/linux/commits/master
->>
->> Do i anything wrong or do i use a wrong git repo (the patches apply
->> cleanly)? Her my kernel config: http://fpaste.org/9Esw/
-> Hmm, I cannot even compile the kernel with that config:
->
->    CC      arch/arm/mach-omap2/io.o
-> In file included from arch/arm/mm/init.c:27:0:
-> /home/tomba/work/linux/arch/arm/include/asm/tlb.h: In function 'tlb_flush_mmu':
-> /home/tomba/work/linux/arch/arm/include/asm/tlb.h:104:3: error: implicit declaration of function 'release_pages'
-> In file included from arch/arm/mm/init.c:27:0:
-> /home/tomba/work/linux/arch/arm/include/asm/tlb.h: In function 'tlb_remove_page':
-> /home/tomba/work/linux/arch/arm/include/asm/tlb.h:168:3: error: implicit declaration of function 'page_cache_release'
-> make[1]: *** [arch/arm/mm/init.o] Error 1
-> make: *** [arch/arm/mm] Error 2
-> make: *** Waiting for unfinished jobs....
->
->   Tomi
->
-please enable swap support or try: 
-http://ftp.arm.linux.org.uk/git/?p=linux-2.6-arm.git;a=commit;h=97594b0f35c0708cb9551c070b9693a52ec24ebf 
-which is fixed in 2.6.38-rc8
 
-Stephan
 
+> -----Original Message-----
+> From: ext Paul Walmsley [mailto:paul@pwsan.com]
+> Sent: 10. maaliskuuta 2011 15:02
+> To: Jokiniemi Kalle (Nokia-MS/Tampere)
+> Cc: khilman@ti.com; Cousson, Benoit; tony@atomide.com; linux-
+> omap@vger.kernel.org
+> Subject: Re: [PATCH 1/2] Watchdog: omap_wdt: add fine grain runtime-p=
+m
+>=20
+> Hello Kalle,
+>=20
+> On Thu, 10 Mar 2011, Kalle Jokiniemi wrote:
+>=20
+> > From: Paul Walmsley <paul@pwsan.com>
+> >
+> > The omap_wdt should only be in full active state when the registers
+> > are being accessed. Otherwise the device can be on lower power mode=
+=2E
+> >
+> > This patch is based on a patch created by Atal
+> > Shargorodsky: http://lkml.org/lkml/2009/3/10/266.
+> >
+> > Signed-off-by: Paul Walmsley <paul@pwsan.com>
+> > Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
+> > Tested-by: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
+>=20
+> Regarding Beno=EEt's E-mail about this patch, I wonder if this patch =
+is still
+> needed.  If you have the time, would you be willing to do yet another=
+ test
+> with the HWMOD_SWSUP_SIDLE patch, but without this one?
+
+I did that already, no luck... If we want to make it work without the r=
+untime-pm patch, then we need to switch the wdtimer2 to force idle mode=
+=2E If you're uncomfortable with the idlemode priority patch, maybe we =
+do some quirk flag that enables force idle mode for modules that have i=
+t.
+
+- Kalle
+
+>=20
+>=20
+> - Paul
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
