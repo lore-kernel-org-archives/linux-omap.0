@@ -1,53 +1,71 @@
 From: Tony Lindgren <tony@atomide.com>
 Subject: Re: [PATCH v12 6/9] dmtimer: switch-over to platform device driver
-Date: Fri, 11 Mar 2011 11:14:17 -0800
-Message-ID: <20110311191417.GF10079@atomide.com>
+Date: Fri, 11 Mar 2011 11:15:48 -0800
+Message-ID: <20110311191548.GG10079@atomide.com>
 References: <1299627948-20040-1-git-send-email-tarun.kanti@ti.com>
  <1299627948-20040-7-git-send-email-tarun.kanti@ti.com>
  <20110309220241.GR26463@atomide.com>
  <5A47E75E594F054BAF48C5E4FC4B92AB037A4DD852@dbde02.ent.ti.com>
  <20110310175611.GV26463@atomide.com>
  <5A47E75E594F054BAF48C5E4FC4B92AB037A4DD9D2@dbde02.ent.ti.com>
+ <20110311124533.GA7492@m-desktop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:33324 "EHLO
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:34315 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753256Ab1CKTOS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Mar 2011 14:14:18 -0500
+	with ESMTP id S1751465Ab1CKTPs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Mar 2011 14:15:48 -0500
 Content-Disposition: inline
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB037A4DD9D2@dbde02.ent.ti.com>
+In-Reply-To: <20110311124533.GA7492@m-desktop>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Cc: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* DebBarma, Tarun Kanti <tarun.kanti@ti.com> [110310 21:33]:
-> [...]
-> > > >
-> > > > * Tarun Kanti DebBarma <tarun.kanti@ti.com> [110308 15:41]:
-> > > > > switch-over to platform device driver through following changes:
-> > > > > (a) initiate dmtimer early initialization from omap2_gp_timer_init()
-> > > > > in timer-gp.c. This is equivalent of timer_init()->timer->init().
-> > > > > (b) modify plat-omap/dmtimer routines to use new register map and
-> > > > > platform data.
-> > > >
-> > > > This patch breaks booting for 2420 and makes boot hang early
-> > > > on 2430. Note that to test with omap-for-linus branch you need
-> > > > to disable the following in omap2plus_defconfig:
-> > > >
-> > > > CONFIG_ARCH_OMAP3
-> > > > CONFIG_ARCH_OMAP4
-> > > > CONFIG_CPU_32v6K
-> > > I disabled above options on omap-for-linus *WITHOUT* my patch series.
-> > > I am still seeing crash. Here is the log.
-> > > I tried on two different setups. Not sure if I am missing something.
+* G, Manjunath Kondaiah <manjugk@ti.com> [110311 04:45]:
+> On Fri, Mar 11, 2011 at 11:05:25AM +0530, DebBarma, Tarun Kanti wrote:
+> > [...]
+> > > > >
+> > > > > * Tarun Kanti DebBarma <tarun.kanti@ti.com> [110308 15:41]:
+> > > > > > switch-over to platform device driver through following changes:
+> > > > > > (a) initiate dmtimer early initialization from omap2_gp_timer_init()
+> > > > > > in timer-gp.c. This is equivalent of timer_init()->timer->init().
+> > > > > > (b) modify plat-omap/dmtimer routines to use new register map and
+> > > > > > platform data.
+> > > > >
+> > > > > This patch breaks booting for 2420 and makes boot hang early
+> > > > > on 2430. Note that to test with omap-for-linus branch you need
+> > > > > to disable the following in omap2plus_defconfig:
+> > > > >
+> > > > > CONFIG_ARCH_OMAP3
+> > > > > CONFIG_ARCH_OMAP4
+> > > > > CONFIG_CPU_32v6K
+> > > > I disabled above options on omap-for-linus *WITHOUT* my patch series.
+> > > > I am still seeing crash. Here is the log.
+> > > > I tried on two different setups. Not sure if I am missing something.
+> > > 
+> > > Hmm sounds like H4 needs some attention. Can you try the following
+> > > completely untested patch?
 > > 
-> > Hmm sounds like H4 needs some attention. Can you try the following
-> > completely untested patch?
+> > This works fine!
 > 
-> This works fine!
+> I tried to use below patch for booting  OMAP2420 H4 on top of:
+> git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
+> Branch: omap-for-linus
+> commit 94a06b74e724caabcf0464c81527cfbcae0c8aff
+> Merge: 0dde52a 9062511
+> Author: Tony Lindgren <tony@atomide.com>
+> Merge branch 'for_2.6.39/pm-misc' of
+> ssh://master.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm
+> into omap-for-linus
+> 
+> Looks like it stops after uncompressing kernel. Same setup works fine
+> with tag v2.6.37.
 
-OK thanks, can I add your Tested-by then?
+See the mails earlier in this thread on what you currently need to
+disable in .config in omap-for-linus branch to boot omap2 machines.
+This will get sorted out in mainline when Russell's ARMv6K related
+patches get merged during the merge window.
 
 Tony
