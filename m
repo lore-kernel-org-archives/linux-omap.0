@@ -1,107 +1,88 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v2 00/19] OMAP4: PM: Suspend, CPU-hotplug and CPUilde support.
-Date: Fri, 11 Mar 2011 07:52:13 -0800
-Message-ID: <871v2dd58y.fsf@ti.com>
-References: <1299766095-23879-1-git-send-email-santosh.shilimkar@ti.com>
-	<87d3lycu0h.fsf@ti.com>
-	<3b3d5e28815aa8bcedf6f43688f403b5@mail.gmail.com>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [RFC PATCHv2 1/2] Export SoC info through sysfs
+Date: Fri, 11 Mar 2011 07:52:57 -0800
+Message-ID: <20110311155257.GA6711@kroah.com>
+References: <1299846911-15782-1-git-send-email-maxime.coquelin-nonst@stericsson.com>
+	<1299846911-15782-2-git-send-email-maxime.coquelin-nonst@stericsson.com>
+	<201103111532.52393.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:56474 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754632Ab1CKPwS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 11 Mar 2011 10:52:18 -0500
-Received: by mail-qy0-f174.google.com with SMTP id 7so6009081qyk.5
-        for <linux-omap@vger.kernel.org>; Fri, 11 Mar 2011 07:52:17 -0800 (PST)
-In-Reply-To: <3b3d5e28815aa8bcedf6f43688f403b5@mail.gmail.com> (Santosh
-	Shilimkar's message of "Fri, 11 Mar 2011 11:22:26 +0530")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <201103111532.52393.arnd@arndb.de>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: ext Nishanth Menon <nm@ti.com>, ext Tony Lindgren <tony@atomide.com>, Peter De-Schrijver <Peter.De-Schrijver@nokia.com>, Linus Walleij <linus.walleij@linaro.org>, Ambresh <a0393775@ti.com>, Saravana Kannan <skannan@codeaurora.org>, Jouni Hogander <jouni.hogander@nokia.com>, Lee Jones <Lee.Jones@linaro.org>, Rabin VINCENT <rabin.vincent@stericsson.com>, Russell King <linux@arm.linux.org.uk>, Jonas ABERG <jonas.aberg@stericsson.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, David Brown <davidb@codeaurora.org>, Maxime Coquelin <maxime.coquelin-nonst@stericsson.com>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, Loic PALLARDY <loic.pallardy@stericsson.com>, "eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>, maxime_coquelin@yahoo.fr, Ryan Mallon <ryan@bluewatersys.com>, Linux-OMAP <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infra
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-omap@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, linux-arm-kernel@lists.infradead.org
 
-Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
+On Fri, Mar 11, 2011 at 03:32:51PM +0100, Arnd Bergmann wrote:
+> On Friday 11 March 2011, Maxime Coquelin wrote:
+> > Common base to export System-on-Chip related informations through sysfs.
+> > 
+> > Creation of a "socinfo" directory under /sys/.
+> > Creation of SoC information entries.
+> > 
+> > Signed-off-by: Maxime COQUELIN <maxime.coquelin-nonst@stericsson.com>
+> 
+> I think it's better than the previous patch to create an
+> artificial device in /sys/devices/system/socinfo, but I'd
+> still prefer the information to be attached to a real device
+> that represents the SOC, as I explained in the discussion with
+> Linus Walleij.
+> 
+> You should definitely add Greg on Cc, as he's maintaining sysfs
+> and certainly has an opininion here.
+> 
+> 	Arnd
+> 
+> > ---
+> >  Documentation/ABI/testing/sysfs-socinfo |   16 ++++++
+> >  drivers/base/Kconfig                    |    3 +
+> >  drivers/base/Makefile                   |    1 +
+> >  drivers/base/soc.c                      |   79 +++++++++++++++++++++++++++++++
+> >  include/linux/sys_soc.h                 |   50 +++++++++++++++++++
+> >  5 files changed, 149 insertions(+), 0 deletions(-)
+> >  create mode 100644 Documentation/ABI/testing/sysfs-socinfo
+> >  create mode 100644 drivers/base/soc.c
+> >  create mode 100644 include/linux/sys_soc.h
+> > 
+> > diff --git a/Documentation/ABI/testing/sysfs-socinfo b/Documentation/ABI/testing/sysfs-socinfo
+> > new file mode 100644
+> > index 0000000..afd9da2
+> > --- /dev/null
+> > +++ b/Documentation/ABI/testing/sysfs-socinfo
+> > @@ -0,0 +1,16 @@
+> > +What:		/sys/socinfo
+> > +Date:		March 2011
+> > +contact:	Maxime Coquelin <maxime.coquelin-nonst@stericsson.com>
+> > +Description:
+> > +		The /sys/socinfo directory contains information about the
+> > +		System-on-Chip.	It is only available if platform implements it.
+> > +		This directory contains two kind of attributes :
+> > +			- common attributes: 
+> > +				* machine: the name of the machine.
+> > +				* family: the family name of the SoC
+> > +			- SoC-specific attributes: The SoC vendor can declare attributes
+> > +			  to export some strings to user-space, like the serial-number for
+> > +			  example.
+> > +
+> > +Users:
+> > +		User-space applications which needs these kind of attributes.
 
->> -----Original Message-----
->> From: Kevin Hilman [mailto:khilman@ti.com]
->> Sent: Friday, March 11, 2011 7:13 AM
->> To: Santosh Shilimkar
->> Cc: linux-omap@vger.kernel.org; rnayak@ti.com; linux-arm-
->> kernel@lists.infradead.org
->> Subject: Re: [PATCH v2 00/19] OMAP4: PM: Suspend, CPU-hotplug and
->> CPUilde support.
->>
->> Hi Santosh,
->>
->> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
-> [....]
->
->>
->> This series doesn't boot on ES1 (boot log below.)  Do we need to
->> totally prevent WFI on ES1?
->>
->> Also, if we want a CPUidle enabled kernel to boot on all silicon, it
->> will need a omap_rev() check during init to ensure it doesn't
->> override the default idle path.
->>
-> Make sense. Will try it on ES1.0 silicon.
->
->
-> [....]
->
->> > off-mode debugfs control:
->> > 	enable: $echo 1 > /proc/sys/debug/pm_debug/enable_off_mode
->> > 	disable: $echo 0 > /proc/sys/debug/pm_debug/enable_off_mode
->>
->> Without enabling off-mode, I took CPU1 offline and see that it
->> immediatly goes off.  This makes sense based on the HW, but not in
->> light
->> of the enable_off_mode flag.  For OMAP4, maybe it makes sense to not
->> have the enable_off_mode flag at all?   We'll be getting rid of it
->> on OMAP3 as soon as the constraints framework is ready, so maybe it
->> makes sense to just go without it for OMAP4?
->>
-> Actually that's expected since enable_off_mode flag doesn't manage CPUX
-> power domain states and they are always hit OFF. CSWR isn't
-> supported on CPUX power domains as captured in the series. But
-> I agree with you that it might be confusing.
->
-> [...]
->> More confusion: another test (also with CPUidle enabled), I see that
->> the MPU and DSS are also hitting off-mode:
->>
-> This behavior changed when we dropped enable_off_mode flag to updated
-> C-states in favor of prepare() hooks. DSS showing OFF mode is because
-> of debug counter issue. DSS PD doesn't support previous power state
-> which these counter code is trying to read. There are couple of
-> patches from Rajendra and Thara do address this counter issues but
-> they are bit of hacky. May be we can get them on the list to discuss
-> further.
->
-> So just to summaries, on OMAP$ 'enable_off_mode' flag is
-> used __only__ in Suspend. CPUx power domain always hit OFF
-> mode no matter what is state of this flag because CSWR isn't
-> supported on these PD's.
+I thought I rejected this the last time it came around?
 
-If it's useful only in suspend, then it's redundant with the
-<debugfs>/pm_debug/*_pwrdm/suspend controls which allow per-pwrdm
-control over next states.
+I still fail to understand why this is needed, please provide more
+information about why you feel this is something that the kernel needs.
 
-> We could remove this flag as well but thought that this might be
-> useful especially when we add CORE RET, DEVICE OFF support.
+thanks,
 
-I'd rather see working off-mode be a requirement for getting OMAP4
-drivers supported.
-
-Also, we can still test suspend/resume with off-mode disabled by using
-the above debugfs controls.
-
-> May be we keep this till the constraint frameworks comes in and
-> then drop it once for all. I am ok with whatever direction you
-> decide here.
-
-I prefer to drop it completely for OMAP4.
-
-Kevin
+greg k-h
