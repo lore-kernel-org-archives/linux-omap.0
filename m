@@ -1,147 +1,260 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [GIT PULL] OMAP PM updates for 2.6.39
-Date: Fri, 11 Mar 2011 16:33:40 +0100
-Message-ID: <AANLkTimMsYhCqqRjcBDCMDT4=iTwBG_qLHWjuxVZTmXE@mail.gmail.com>
-References: <87k4g6eakw.fsf@ti.com>
+From: Ben Dooks <ben-linux@fluff.org>
+Subject: Re: [RFC PATCHv2 1/2] Export SoC info through sysfs
+Date: Fri, 11 Mar 2011 15:40:17 +0000
+Message-ID: <20110311154017.GD9995@trinity.fluff.org>
+References: <1299846911-15782-1-git-send-email-maxime.coquelin-nonst@stericsson.com>
+	<1299846911-15782-2-git-send-email-maxime.coquelin-nonst@stericsson.com>
+	<201103111532.52393.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:48563 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755623Ab1CKPdl convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Mar 2011 10:33:41 -0500
-Received: by ywj3 with SMTP id 3so1215163ywj.19
-        for <linux-omap@vger.kernel.org>; Fri, 11 Mar 2011 07:33:41 -0800 (PST)
-In-Reply-To: <87k4g6eakw.fsf@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <201103111532.52393.arnd@arndb.de>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: ext Nishanth Menon <nm@ti.com>, ext Tony Lindgren <tony@atomide.com>, Peter De-Schrijver <Peter.De-Schrijver@nokia.com>, Linus Walleij <linus.walleij@linaro.org>, Ambresh <a0393775@ti.com>, Saravana Kannan <skannan@codeaurora.org>, Andrei Warkentin <andreiw@motorola.com>, Lee Jones <Lee.Jones@linaro.org>, Rabin VINCENT <rabin.vincent@stericsson.com>, Russell King <linux@arm.linux.org.uk>, Jonas ABERG <jonas.aberg@stericsson.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, Greg KH <greg@kroah.com>, David Brown <davidb@codeaurora.org>, Maxime Coquelin <maxime.coquelin-nonst@stericsson.com>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, Loic PALLARDY <loic.pallardy@stericsson.com>, "eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>, maxime_coquelin@yahoo.fr, Ryan Mallon <ryan@bluewatersys.com>, Linux-OMAP <linux-omap@vger.kernel.org>linux
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Kevin,
+On Fri, Mar 11, 2011 at 03:32:51PM +0100, Arnd Bergmann wrote:
+> On Friday 11 March 2011, Maxime Coquelin wrote:
+> > Common base to export System-on-Chip related informations through sysfs.
+> > 
+> > Creation of a "socinfo" directory under /sys/.
+> > Creation of SoC information entries.
+> > 
+> > Signed-off-by: Maxime COQUELIN <maxime.coquelin-nonst@stericsson.com>
+> 
+> I think it's better than the previous patch to create an
+> artificial device in /sys/devices/system/socinfo, but I'd
+> still prefer the information to be attached to a real device
+> that represents the SOC, as I explained in the discussion with
+> Linus Walleij.
 
-On Fri, Mar 11, 2011 at 1:59 AM, Kevin Hilman <khilman@ti.com> wrote:
-> Tony,
->
-> Please pull the following OMAP PM related changes for the upcoming
-> 2.6.39 merge window.
->
-> Kevin
->
-> The following changes since commit a5abba989deceb731047425812d268daf7=
-536575:
->
-> =A0Linux 2.6.38-rc8 (2011-03-07 21:09:37 -0800)
->
-> are available in the git repository at:
-> =A0ssh://master.kernel.org/pub/scm/linux/kernel/git/khilman/linux-oma=
-p-pm.git for_2.6.39/pm-misc
+Why not create it under the cpu directory?
+ 
+> You should definitely add Greg on Cc, as he's maintaining sysfs
+> and certainly has an opininion here.
+> 
+> 	Arnd
+> 
+> > ---
+> >  Documentation/ABI/testing/sysfs-socinfo |   16 ++++++
+> >  drivers/base/Kconfig                    |    3 +
+> >  drivers/base/Makefile                   |    1 +
+> >  drivers/base/soc.c                      |   79 +++++++++++++++++++++++++++++++
+> >  include/linux/sys_soc.h                 |   50 +++++++++++++++++++
+> >  5 files changed, 149 insertions(+), 0 deletions(-)
+> >  create mode 100644 Documentation/ABI/testing/sysfs-socinfo
+> >  create mode 100644 drivers/base/soc.c
+> >  create mode 100644 include/linux/sys_soc.h
+> > 
+> > diff --git a/Documentation/ABI/testing/sysfs-socinfo b/Documentation/ABI/testing/sysfs-socinfo
+> > new file mode 100644
+> > index 0000000..afd9da2
+> > --- /dev/null
+> > +++ b/Documentation/ABI/testing/sysfs-socinfo
+> > @@ -0,0 +1,16 @@
+> > +What:		/sys/socinfo
+> > +Date:		March 2011
+> > +contact:	Maxime Coquelin <maxime.coquelin-nonst@stericsson.com>
+> > +Description:
+> > +		The /sys/socinfo directory contains information about the
+> > +		System-on-Chip.	It is only available if platform implements it.
+> > +		This directory contains two kind of attributes :
+> > +			- common attributes: 
+> > +				* machine: the name of the machine.
+> > +				* family: the family name of the SoC
+> > +			- SoC-specific attributes: The SoC vendor can declare attributes
+> > +			  to export some strings to user-space, like the serial-number for
+> > +			  example.
+> > +
+> > +Users:
+> > +		User-space applications which needs these kind of attributes.
+> > diff --git a/drivers/base/Kconfig b/drivers/base/Kconfig
+> > index d57e8d0..372ef3a 100644
+> > --- a/drivers/base/Kconfig
+> > +++ b/drivers/base/Kconfig
+> > @@ -168,4 +168,7 @@ config SYS_HYPERVISOR
+> >  	bool
+> >  	default n
+> >  
+> > +config SYS_SOC
+> > +	bool
+> > +
+> >  endmenu
+> > diff --git a/drivers/base/Makefile b/drivers/base/Makefile
+> > index 5f51c3b..f3bcfb3 100644
+> > --- a/drivers/base/Makefile
+> > +++ b/drivers/base/Makefile
+> > @@ -18,6 +18,7 @@ ifeq ($(CONFIG_SYSFS),y)
+> >  obj-$(CONFIG_MODULES)	+= module.o
+> >  endif
+> >  obj-$(CONFIG_SYS_HYPERVISOR) += hypervisor.o
+> > +obj-$(CONFIG_SYS_SOC) += soc.o
+> >  
+> >  ccflags-$(CONFIG_DEBUG_DRIVER) := -DDEBUG
+> >  
+> > diff --git a/drivers/base/soc.c b/drivers/base/soc.c
+> > new file mode 100644
+> > index 0000000..046b43b
+> > --- /dev/null
+> > +++ b/drivers/base/soc.c
+> > @@ -0,0 +1,79 @@
+> > +/*
+> > + * Copyright (C) ST-Ericsson SA 2011
+> > + * Author: Maxime Coquelin <maxime.coquelin-nonst@stericsson.com> for ST-Ericsson.
+> > + * License terms:  GNU General Public License (GPL), version 2
+> > + */
+> > +
+> > +#include <linux/sysfs.h>
+> > +#include <linux/module.h>
+> > +#include <linux/init.h>
+> > +#include <linux/stat.h>
+> > +#include <linux/slab.h>
+> > +#include <linux/sys_soc.h>
+> > +
+> > +struct kobject *soc_object;
+> > +
+> > +ssize_t show_soc_info(struct kobject *kobj,
+> > +			struct kobj_attribute *attr, char *buf)
+> > +{
+> > +	struct sysfs_soc_info *si = container_of(attr,
+> > +				struct sysfs_soc_info, attr);
+> > +
+> > +	if (si->info)
+> > +		return sprintf(buf, "%s\n", si->info);
+> > +
+> > +	return si->get_info(buf, si);
+> > +}
+> 
+> I think this can be simplified by just letting the soc
+> register its own show method instead of the get_info function.
+> 
+> > +int __init register_sysfs_soc_info(struct sysfs_soc_info *info, int nb_info)
+> > +{
+> > +	int i, ret;
+> > +
+> > +	for (i = 0; i < nb_info; i++) {
+> > +		ret = sysfs_create_file(soc_object, &info[i].attr.attr);
+> > +		if (ret) {
+> > +			for (i -= 1; i >= 0; i--)
+> > +				sysfs_remove_file(soc_object, &info[i].attr.attr);
+> > +			break;
+> > +		}
+> > +	}
+> > +
+> > +	return ret;
+> > +}
+> > +
+> > +static struct attribute *soc_attrs[] = {
+> > +	NULL,
+> > +};
+> > +
+> > +static struct attribute_group soc_attr_group = {
+> > +	.attrs = soc_attrs,
+> > +};
+> > +
+> > +int __init register_sysfs_soc(struct sysfs_soc_info *info, size_t num)
+> > +{
+> > +	int ret;
+> > +
+> > +	soc_object = kobject_create_and_add("socinfo", NULL);
+> > +	if (!soc_object) {
+> > +		ret = -ENOMEM;
+> > +		goto exit;
+> > +	}
+> > +
+> > +	ret = sysfs_create_group(soc_object, &soc_attr_group);
+> > +	if (ret)
+> > +		goto kset_exit;
+> > +
+> > +	ret = register_sysfs_soc_info(info, num);
+> > +	if (ret)
+> > +		goto group_exit;
+> > +
+> > +	return 0;
+> > +
+> > +group_exit:
+> > +	sysfs_remove_group(soc_object, &soc_attr_group);
+> > +kset_exit:
+> > +	kobject_put(soc_object);
+> > +exit:
+> > +	return ret;
+> > +}
+> > +
+> > diff --git a/include/linux/sys_soc.h b/include/linux/sys_soc.h
+> > new file mode 100644
+> > index 0000000..05e5529
+> > --- /dev/null
+> > +++ b/include/linux/sys_soc.h
+> > @@ -0,0 +1,50 @@
+> > +/*
+> > + * Copyright (C) ST-Ericsson SA 2011
+> > + * Author: Maxime Coquelin <maxime.coquelin-nonst@stericsson.com> for ST-Ericsson.
+> > + * License terms:  GNU General Public License (GPL), version 2
+> > + */
+> > +#ifndef __SYS_SOC_H
+> > +#define __SYS_SOC_H
+> > +
+> > +#include <linux/kobject.h>
+> > +
+> > +/**
+> > + * struct sys_soc_info - SoC exports related informations
+> > + * @name: name of the export
+> > + * @info: pointer on the key to export
+> > + * @get_info: callback to retrieve key if info field is NULL
+> > + * @attr: export's sysdev class attribute
+> > + */
+> > +struct sysfs_soc_info {
+> > +	const char *info;
+> > +	ssize_t (*get_info)(char *buf, struct sysfs_soc_info *);
+> > +	struct kobj_attribute attr;
+> > +};
+> > +
+> > +ssize_t show_soc_info(struct kobject *, struct kobj_attribute *, char *);
+> > +
+> > +#define SYSFS_SOC_ATTR_VALUE(_name, _value) {		\
+> > +	.attr.attr.name = _name,			\
+> > +	.attr.attr.mode = S_IRUGO,			\
+> > +	.attr.show	= show_soc_info,		\
+> > +	.info           = _value,			\
+> > +}
+> > +
+> > +#define SYSFS_SOC_ATTR_CALLBACK(_name, _callback) {	\
+> > +	.attr.attr.name = _name,			\
+> > +	.attr.attr.mode = S_IRUGO,			\
+> > +	.attr.show	= show_soc_info,		\
+> > +	.get_info       = _callback,			\
+> > +}
+> > +
+> > +/**
+> > + * register_sys_soc - register the soc information
+> > + * @name: name of the machine
+> > + * @info: pointer on the info table to export
+> > + * @num: number of info to export
+> > + *
+> > + * NOTE: This function must only be called once
+> > + */
+> > +int register_sysfs_soc(struct sysfs_soc_info *info, size_t num);
+> > +
+> > +#endif /* __SYS_SOC_H */
+> > -- 
+> 
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
 
-Waht about the following patch? IIUC it is scheduled for .39.
+-- 
+Ben Dooks, ben@fluff.org, http://www.fluff.org/ben/
 
-    perf: add OMAP support for the new power events
-
-Regards,
-Jean
-
->
-> Anand S Sawant (1):
-> =A0 =A0 =A0OMAP2+: smartreflex: remove SR debug directory in omap_sr_=
-remove()
->
-> Dave Martin (5):
-> =A0 =A0 =A0ARM: omap4: Provide do_wfi() for Thumb-2
-> =A0 =A0 =A0ARM: omap4: Convert END() to ENDPROC() for correct linkage=
- with CONFIG_THUMB2_KERNEL
-> =A0 =A0 =A0ARM: omap3: Remove hand-encoded SMC instructions
-> =A0 =A0 =A0ARM: omap3: Thumb-2 compatibility for sram34xx.S
-> =A0 =A0 =A0ARM: omap3: Thumb-2 compatibility for sleep34xx.S
->
-> Kevin Hilman (2):
-> =A0 =A0 =A0MAINTAINERS: update Kevin's email for OMAP PM section
-> =A0 =A0 =A0OMAP2+: remove unused UART base addresses from omap_global=
-s
->
-> Menon, Nishanth (1):
-> =A0 =A0 =A0OMAP3|4: OPP: make omapx_opp_init non-static
->
-> Nishanth Menon (1):
-> =A0 =A0 =A0OMAP3: beagle xm: enable up to 800MHz OPP
->
-> Paul Walmsley (1):
-> =A0 =A0 =A0OMAP2/3: PM: remove unnecessary wakeup/sleep dependency cl=
-ear
->
-> Ricardo Salveti de Araujo (1):
-> =A0 =A0 =A0OMAP3630: PM: don't warn the user with a trace in case of =
-PM34XX_ERRATUM
->
-> Sanjeev Premi (1):
-> =A0 =A0 =A0OMAP3: PM: Initialize IVA only if available
->
-> Santosh Shilimkar (7):
-> =A0 =A0 =A0omap3: pm: Use exported set_cr() instead of a custom one.
-> =A0 =A0 =A0omap3: cpuidle: Add description field to each C-state.
-> =A0 =A0 =A0OMAP3: PM: Use ARMv7 supported instructions instead of leg=
-acy CP15 ones
-> =A0 =A0 =A0OMAP3: PM: Fix the MMU on sequence in the asm code
-> =A0 =A0 =A0OMAP3: PM: Allow the cache clean when L1 is lost.
-> =A0 =A0 =A0OMAP3: PM: Remove un-necessary cp15 registers form low pow=
-er cpu context
-> =A0 =A0 =A0OMAP3: PM: Clear the SCTLR C bit in asm code to prevent da=
-ta cache allocation
->
-> Thara Gopinath (1):
-> =A0 =A0 =A0OMAP3: PM: Set/clear T2 bit for Smartreflex on TWL
->
-> Vasiliy Kulikov (1):
-> =A0 =A0 =A0OMAP: PM: SmartReflex: fix potential NULL dereference
->
-> =A0MAINTAINERS =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 | =A0 =A02 +-
-> =A0arch/arm/mach-omap2/board-omap3beagle.c =A0 =A0 =A0 =A0 | =A0 50 +=
-+++
-> =A0arch/arm/mach-omap2/common.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
-| =A0 14 --
-> =A0arch/arm/mach-omap2/cpuidle34xx.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0=
- 11 +-
-> =A0arch/arm/mach-omap2/include/mach/omap4-common.h | =A0 =A04 +
-> =A0arch/arm/mach-omap2/omap-headsmp.S =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0=
- =A02 +-
-> =A0arch/arm/mach-omap2/omap44xx-smc.S =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0=
- =A08 +-
-> =A0arch/arm/mach-omap2/omap_twl.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
-| =A0 60 +++++
-> =A0arch/arm/mach-omap2/opp3xxx_data.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0=
- =A03 +-
-> =A0arch/arm/mach-omap2/opp4xxx_data.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0=
- =A03 +-
-> =A0arch/arm/mach-omap2/pm.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0| =A0 =A04 +-
-> =A0arch/arm/mach-omap2/pm.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0| =A0 =A01 +
-> =A0arch/arm/mach-omap2/pm24xx.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
-| =A0 =A08 +-
-> =A0arch/arm/mach-omap2/pm34xx.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
-| =A0 25 +--
-> =A0arch/arm/mach-omap2/sleep34xx.S =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =
-=A0282 +++++++++++------------
-> =A0arch/arm/mach-omap2/smartreflex.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0=
- 31 ++-
-> =A0arch/arm/mach-omap2/sram34xx.S =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
-| =A0 36 +++-
-> =A0arch/arm/plat-omap/include/plat/common.h =A0 =A0 =A0 =A0| =A0 =A04=
- -
-> =A018 files changed, 320 insertions(+), 228 deletions(-)
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Large Hadron Colada: A large Pina Colada that makes the universe disappear.
