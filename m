@@ -1,92 +1,54 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH V3 2/3] OMAP4: Update Voltage Rail Values for MPU, IVA
- and CORE
-Date: Fri, 11 Mar 2011 08:37:05 +0530
-Message-ID: <4D7991D9.3010003@ti.com>
-References: <1299732829-3376-1-git-send-email-shweta.gulati@ti.com>
+From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Subject: RE: [PATCH v12 4/9] OMAP2+: dmtimer: convert to platform devices
+Date: Fri, 11 Mar 2011 09:43:57 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB037A4DD942@dbde02.ent.ti.com>
+References: <1299627948-20040-1-git-send-email-tarun.kanti@ti.com>
+	<1299627948-20040-5-git-send-email-tarun.kanti@ti.com>
+ <87ei6eftpc.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:43844 "EHLO
-	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752149Ab1CKDHN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 10 Mar 2011 22:07:13 -0500
-Received: by mail-vw0-f54.google.com with SMTP id 18so291318vws.13
-        for <linux-omap@vger.kernel.org>; Thu, 10 Mar 2011 19:07:12 -0800 (PST)
-In-Reply-To: <1299732829-3376-1-git-send-email-shweta.gulati@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:40969 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751249Ab1CKEOI convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Mar 2011 23:14:08 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p2B4E403005603
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Thu, 10 Mar 2011 22:14:06 -0600
+In-Reply-To: <87ei6eftpc.fsf@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Shweta Gulati <shweta.gulati@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: "Hilman, Kevin" <khilman@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gopinath, Thara" <thara@ti.com>
 
-Shweta Gulati wrote, on 03/10/2011 10:23 AM:
-> Update MPU, IVA and CORE voltage Rail values obtained from
-> OMAP4430 Data Manual Operating Condition Addendum_v0.4.
->
-> Tested on OMAP4430 SDP Board.
->
-> Signed-off-by: Shweta Gulati<shweta.gulati@ti.com>
-Thanks for pro-actively keeping this updated.
-Acked-by: Nishanth Menon <nm@ti.com>
-
-> ---
-> V3:
-> Update CORE Voltages as well
-> in sync with V0.4 of OMAP4 Data Manual.
->
-> V2:
-> Fixed Comments from Nishanth Menon.
->
->   arch/arm/mach-omap2/opp4xxx_data.c |   18 +++++++++---------
->   1 files changed, 9 insertions(+), 9 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/opp4xxx_data.c b/arch/arm/mach-omap2/opp4xxx_data.c
-> index ed0efdb..aa624d1 100644
-> --- a/arch/arm/mach-omap2/opp4xxx_data.c
-> +++ b/arch/arm/mach-omap2/opp4xxx_data.c
-> @@ -30,10 +30,10 @@
->    * voltage dependent data for each VDD.
->    */
->
-> -#define OMAP4430_VDD_MPU_OPP50_UV		930000
-> -#define OMAP4430_VDD_MPU_OPP100_UV		1100000
-> -#define OMAP4430_VDD_MPU_OPPTURBO_UV		1260000
-> -#define OMAP4430_VDD_MPU_OPPNITRO_UV		1350000
-> +#define OMAP4430_VDD_MPU_OPP50_UV		1025000
-> +#define OMAP4430_VDD_MPU_OPP100_UV		1200000
-> +#define OMAP4430_VDD_MPU_OPPTURBO_UV		1313000
-> +#define OMAP4430_VDD_MPU_OPPNITRO_UV		1375000
->
->   struct omap_volt_data omap44xx_vdd_mpu_volt_data[] = {
->   	VOLT_DATA_DEFINE(OMAP4430_VDD_MPU_OPP50_UV, OMAP44XX_CONTROL_FUSE_MPU_OPP50, 0xf4, 0x0c),
-> @@ -43,9 +43,9 @@ struct omap_volt_data omap44xx_vdd_mpu_volt_data[] = {
->   	VOLT_DATA_DEFINE(0, 0, 0, 0),
->   };
->
-> -#define OMAP4430_VDD_IVA_OPP50_UV		930000
-> -#define OMAP4430_VDD_IVA_OPP100_UV		1100000
-> -#define OMAP4430_VDD_IVA_OPPTURBO_UV		1260000
-> +#define OMAP4430_VDD_IVA_OPP50_UV		1013000
-> +#define OMAP4430_VDD_IVA_OPP100_UV		1188000
-> +#define OMAP4430_VDD_IVA_OPPTURBO_UV		1300000
->
->   struct omap_volt_data omap44xx_vdd_iva_volt_data[] = {
->   	VOLT_DATA_DEFINE(OMAP4430_VDD_IVA_OPP50_UV, OMAP44XX_CONTROL_FUSE_IVA_OPP50, 0xf4, 0x0c),
-> @@ -54,8 +54,8 @@ struct omap_volt_data omap44xx_vdd_iva_volt_data[] = {
->   	VOLT_DATA_DEFINE(0, 0, 0, 0),
->   };
->
-> -#define OMAP4430_VDD_CORE_OPP50_UV		930000
-> -#define OMAP4430_VDD_CORE_OPP100_UV		1100000
-> +#define OMAP4430_VDD_CORE_OPP50_UV		1025000
-> +#define OMAP4430_VDD_CORE_OPP100_UV		1200000
->
->   struct omap_volt_data omap44xx_vdd_core_volt_data[] = {
->   	VOLT_DATA_DEFINE(OMAP4430_VDD_CORE_OPP50_UV, OMAP44XX_CONTROL_FUSE_CORE_OPP50, 0xf4, 0x0c),
-
-
--- 
-Regards,
-Nishanth Menon
+> -----Original Message-----
+> From: Hilman, Kevin
+> Sent: Friday, March 11, 2011 4:51 AM
+> To: DebBarma, Tarun Kanti
+> Cc: linux-omap@vger.kernel.org; Gopinath, Thara
+> Subject: Re: [PATCH v12 4/9] OMAP2+: dmtimer: convert to platform devices
+> 
+> Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
+> 
+> > Add routines to converts dmtimers to platform devices. The device data
+> > is obtained from hwmod database of respective platform and is registered
+> > to device model after successful binding to driver. It also provides
+> > provision to access timers during early boot when pm_runtime framework
+> > is not completely up and running.
+> >
+> > Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+> > Signed-off-by: Thara Gopinath <thara@ti.com>
+> > Acked-by: Cousson, Benoit <b-cousson@ti.com>
+> 
+> To make this series more readable, all the system_timer related
+> additions added in this patch (varialbles and functions) should not be
+> here since they are not used.  Instead, they should be added in the
+> patch that uses them.
+Sure, I will make this change.
+--
+Tarun
+> 
+> Kevin
