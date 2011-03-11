@@ -1,88 +1,45 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [RFC PATCHv2 1/2] Export SoC info through sysfs
-Date: Fri, 11 Mar 2011 07:52:57 -0800
-Message-ID: <20110311155257.GA6711@kroah.com>
-References: <1299846911-15782-1-git-send-email-maxime.coquelin-nonst@stericsson.com>
-	<1299846911-15782-2-git-send-email-maxime.coquelin-nonst@stericsson.com>
-	<201103111532.52393.arnd@arndb.de>
+From: UBS International Holdings BV <info@usb.com>
+Subject: I Need Your Honesty.
+Date: Fri, 11 Mar 2011 16:24:13 +0100
+Message-ID: <20110311162413.1uw3v13xnkgskg44__12223.7417068847$1299858858$gmane$org@wm.uib.es>
+Reply-To: mrbeuker_hendrikubs@live.nl
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain;
+	charset=ISO-8859-1;
+	DelSp="Yes";
+	format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mortitx.uib.es ([130.206.31.221]:20623 "EHLO mortitx.uib.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751207Ab1CKPxs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 11 Mar 2011 10:53:48 -0500
 Content-Disposition: inline
-In-Reply-To: <201103111532.52393.arnd@arndb.de>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: ext Nishanth Menon <nm@ti.com>, ext Tony Lindgren <tony@atomide.com>, Peter De-Schrijver <Peter.De-Schrijver@nokia.com>, Linus Walleij <linus.walleij@linaro.org>, Ambresh <a0393775@ti.com>, Saravana Kannan <skannan@codeaurora.org>, Jouni Hogander <jouni.hogander@nokia.com>, Lee Jones <Lee.Jones@linaro.org>, Rabin VINCENT <rabin.vincent@stericsson.com>, Russell King <linux@arm.linux.org.uk>, Jonas ABERG <jonas.aberg@stericsson.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, David Brown <davidb@codeaurora.org>, Maxime Coquelin <maxime.coquelin-nonst@stericsson.com>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, Loic PALLARDY <loic.pallardy@stericsson.com>, "eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>, maxime_coquelin@yahoo.fr, Ryan Mallon <ryan@bluewatersys.com>, Linux-OMAP <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infra
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Mar 11, 2011 at 03:32:51PM +0100, Arnd Bergmann wrote:
-> On Friday 11 March 2011, Maxime Coquelin wrote:
-> > Common base to export System-on-Chip related informations through sysfs.
-> > 
-> > Creation of a "socinfo" directory under /sys/.
-> > Creation of SoC information entries.
-> > 
-> > Signed-off-by: Maxime COQUELIN <maxime.coquelin-nonst@stericsson.com>
-> 
-> I think it's better than the previous patch to create an
-> artificial device in /sys/devices/system/socinfo, but I'd
-> still prefer the information to be attached to a real device
-> that represents the SOC, as I explained in the discussion with
-> Linus Walleij.
-> 
-> You should definitely add Greg on Cc, as he's maintaining sysfs
-> and certainly has an opininion here.
-> 
-> 	Arnd
-> 
-> > ---
-> >  Documentation/ABI/testing/sysfs-socinfo |   16 ++++++
-> >  drivers/base/Kconfig                    |    3 +
-> >  drivers/base/Makefile                   |    1 +
-> >  drivers/base/soc.c                      |   79 +++++++++++++++++++++++++++++++
-> >  include/linux/sys_soc.h                 |   50 +++++++++++++++++++
-> >  5 files changed, 149 insertions(+), 0 deletions(-)
-> >  create mode 100644 Documentation/ABI/testing/sysfs-socinfo
-> >  create mode 100644 drivers/base/soc.c
-> >  create mode 100644 include/linux/sys_soc.h
-> > 
-> > diff --git a/Documentation/ABI/testing/sysfs-socinfo b/Documentation/ABI/testing/sysfs-socinfo
-> > new file mode 100644
-> > index 0000000..afd9da2
-> > --- /dev/null
-> > +++ b/Documentation/ABI/testing/sysfs-socinfo
-> > @@ -0,0 +1,16 @@
-> > +What:		/sys/socinfo
-> > +Date:		March 2011
-> > +contact:	Maxime Coquelin <maxime.coquelin-nonst@stericsson.com>
-> > +Description:
-> > +		The /sys/socinfo directory contains information about the
-> > +		System-on-Chip.	It is only available if platform implements it.
-> > +		This directory contains two kind of attributes :
-> > +			- common attributes: 
-> > +				* machine: the name of the machine.
-> > +				* family: the family name of the SoC
-> > +			- SoC-specific attributes: The SoC vendor can declare attributes
-> > +			  to export some strings to user-space, like the serial-number for
-> > +			  example.
-> > +
-> > +Users:
-> > +		User-space applications which needs these kind of attributes.
+UBS International Holdings BV
+Herengracht 600
+NL-1017 CJ Amsterdam, Netherlands.
+www.ubs.com/investmentbank
 
-I thought I rejected this the last time it came around?
+Greetings,
 
-I still fail to understand why this is needed, please provide more
-information about why you feel this is something that the kernel needs.
+I am an investment consultant working with UBS International Holdings BV
+in the Netherlands. I will be happy to work a transaction of $8.5million
+out with you if you have a corporate or personal bank Account. If you are
+interested, get back to me via my private email for further informations;
+mrbeuker_hendrikubs@live.nl
 
-thanks,
+I look forward to hearing from you as soon as possible and thank you for
+your time and attention.
 
-greg k-h
+Warmest Regards,
+Mr. Beuker Hendrik
+Investment Consultant.
+UBS.
+
+----------------------------------------------------------------
+
+
+
