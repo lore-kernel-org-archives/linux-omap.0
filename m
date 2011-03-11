@@ -1,47 +1,85 @@
-From: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
-Subject: Re: [RFC PATCHv2 2/2] ux500: Export U8500 SoC info through sysfs
-Date: Fri, 11 Mar 2011 18:24:36 +0100
-Message-ID: <20110311172436.GA14548@game.jcrosoft.org>
-References: <1299846911-15782-1-git-send-email-maxime.coquelin-nonst@stericsson.com>
-	<1299846911-15782-3-git-send-email-maxime.coquelin-nonst@stericsson.com>
-	<20110311141110.GS9351@game.jcrosoft.org>
-	<AANLkTimghAL=mzY0EXoWL+64NB-fQfw8SvjVDOS0-RP9@mail.gmail.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH v2 00/19] OMAP4: PM: Suspend,CPU-hotplug and CPUilde support.
+Date: Fri, 11 Mar 2011 09:50:22 -0800
+Message-ID: <87k4g5a6n5.fsf@ti.com>
+References: <1299766095-23879-1-git-send-email-santosh.shilimkar@ti.com>
+	<87d3lycu0h.fsf@ti.com>
+	<3b3d5e28815aa8bcedf6f43688f403b5@mail.gmail.com>
+	<871v2dd58y.fsf@ti.com>
+	<f1ee9adb49c6dbc49205c5ba70007e9a@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <AANLkTimghAL=mzY0EXoWL+64NB-fQfw8SvjVDOS0-RP9@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: ext Nishanth Menon <nm@ti.com>, ext Tony Lindgren <tony@atomide.com>, Peter De-Schrijver <Peter.De-Schrijver@nokia.com>, Ambresh <a0393775@ti.com>, Saravana Kannan <skannan@codeaurora.org>, Andrei Warkentin <andreiw@motorola.com>, Lee Jones <Lee.Jones@linaro.org>, Rabin VINCENT <rabin.vincent@stericsson.com>, Russell King <linux@arm.linux.org.uk>, Jonas ABERG <jonas.aberg@stericsson.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, David Brown <davidb@codeaurora.org>, Maxime Coquelin <maxime.coquelin-nonst@stericsson.com>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, Loic PALLARDY <loic.pallardy@stericsson.com>, "eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>, maxime_coquelin@yahoo.fr, Ryan Mallon <ryan@bluewatersys.com>, Linux-OMAP <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:57009 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752219Ab1CKRu0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 11 Mar 2011 12:50:26 -0500
+Received: by mail-iy0-f174.google.com with SMTP id 26so3592218iyb.33
+        for <linux-omap@vger.kernel.org>; Fri, 11 Mar 2011 09:50:25 -0800 (PST)
+In-Reply-To: <f1ee9adb49c6dbc49205c5ba70007e9a@mail.gmail.com> (Santosh
+	Shilimkar's message of "Fri, 11 Mar 2011 22:56:41 +0530")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
 
-On 16:20 Fri 11 Mar     , Linus Walleij wrote:
-> On Fri, Mar 11, 2011 at 3:11 PM, Jean-Christophe PLAGNIOL-VILLARD
-> <plagnioj@jcrosoft.com> wrote:
-> > On 13:35 Fri 11 Mar =A0 =A0 , Maxime Coquelin wrote:
-> >> ST-Ericsson's U8500 implementation.
-> >> Register sysfs SoC interface, and exports:
-> >> =A0 =A0 =A0 - Machine name
-> >> =A0 =A0 =A0 - Family name
-> >> =A0 =A0 =A0 - SoC ID
-> >> =A0 =A0 =A0 - Silicon process
-> >> =A0 =A0 =A0 - Silicon revision number.
-> > I propose some weeks ago exactly the same kind of patch
-> =
+Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
 
-> Could you tell which Subject: and mailing list so I can find it?
-> If it was private can you forward it to the list?
- 892   F Dec14 To linux-kernel [PATCH] base: add sysfs socs info
+> Kevin,
+>
+>> -----Original Message-----
+>> From: linux-arm-kernel-bounces@lists.infradead.org [mailto:linux-
+>> arm-kernel-bounces@lists.infradead.org] On Behalf Of Kevin Hilman
+>> Sent: Friday, March 11, 2011 9:22 PM
+>> To: Santosh Shilimkar
+>> Cc: linux-omap@vger.kernel.org; linux-arm-
+>> kernel@lists.infradead.org; Rajendra Nayak
+>> Subject: Re: [PATCH v2 00/19] OMAP4: PM: Suspend,CPU-hotplug and
+>> CPUilde support.
+>>
+>
+> [....]
+>
+>> >
+>> > So just to summaries, on OMAP$ 'enable_off_mode' flag is
+>> > used __only__ in Suspend. CPUx power domain always hit OFF
+>> > mode no matter what is state of this flag because CSWR isn't
+>> > supported on these PD's.
+>>
+>> If it's useful only in suspend, then it's redundant with the
+>> <debugfs>/pm_debug/*_pwrdm/suspend controls which allow per-pwrdm
+>> control over next states.
+>>
+>> > We could remove this flag as well but thought that this might be
+>> > useful especially when we add CORE RET, DEVICE OFF support.
+>>
+>> I'd rather see working off-mode be a requirement for getting OMAP4
+>> drivers supported.
+>>
+>> Also, we can still test suspend/resume with off-mode disabled by
+>> using the above debugfs controls.
+>>
+>> > May be we keep this till the constraint frameworks comes in and
+>> > then drop it once for all. I am ok with whatever direction you
+>> > decide here.
+>>
+>> I prefer to drop it completely for OMAP4.
+>>
+> OK. Lets do that.
+>
+> Just to not miss your point here, what I understood here
+> is default suspend state on OMAP$B will be off mode.
+>
+> We still keep "enable_off_mode" flag for testing so that we
+> can disable off mode to debug regressions.
+>
+> Is that right?
 
-Best Regards,
-J.
+No, I want to drop "enable_off_mode" all together for OMAP4.
+
+If you want to change any powerdomain's default next_state, you can use
+the <debugfs>/pm_debug/*_pwrdm/suspend controls.
+
+Kevin
+
