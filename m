@@ -1,52 +1,53 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v12 4/9] OMAP2+: dmtimer: convert to platform devices
-Date: Fri, 11 Mar 2011 11:13:24 -0800
-Message-ID: <20110311191324.GE10079@atomide.com>
+Subject: Re: [PATCH v12 6/9] dmtimer: switch-over to platform device driver
+Date: Fri, 11 Mar 2011 11:14:17 -0800
+Message-ID: <20110311191417.GF10079@atomide.com>
 References: <1299627948-20040-1-git-send-email-tarun.kanti@ti.com>
- <1299627948-20040-5-git-send-email-tarun.kanti@ti.com>
- <87oc5ifu12.fsf@ti.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB037A4DD948@dbde02.ent.ti.com>
+ <1299627948-20040-7-git-send-email-tarun.kanti@ti.com>
+ <20110309220241.GR26463@atomide.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB037A4DD852@dbde02.ent.ti.com>
+ <20110310175611.GV26463@atomide.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB037A4DD9D2@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:11359 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753851Ab1CKTNZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Mar 2011 14:13:25 -0500
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:33324 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753256Ab1CKTOS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Mar 2011 14:14:18 -0500
 Content-Disposition: inline
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB037A4DD948@dbde02.ent.ti.com>
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB037A4DD9D2@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Cc: "Hilman, Kevin" <khilman@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gopinath, Thara" <thara@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* DebBarma, Tarun Kanti <tarun.kanti@ti.com> [110310 20:18]:
-> > From: Hilman, Kevin
+* DebBarma, Tarun Kanti <tarun.kanti@ti.com> [110310 21:33]:
+> [...]
+> > > >
+> > > > * Tarun Kanti DebBarma <tarun.kanti@ti.com> [110308 15:41]:
+> > > > > switch-over to platform device driver through following changes:
+> > > > > (a) initiate dmtimer early initialization from omap2_gp_timer_init()
+> > > > > in timer-gp.c. This is equivalent of timer_init()->timer->init().
+> > > > > (b) modify plat-omap/dmtimer routines to use new register map and
+> > > > > platform data.
+> > > >
+> > > > This patch breaks booting for 2420 and makes boot hang early
+> > > > on 2430. Note that to test with omap-for-linus branch you need
+> > > > to disable the following in omap2plus_defconfig:
+> > > >
+> > > > CONFIG_ARCH_OMAP3
+> > > > CONFIG_ARCH_OMAP4
+> > > > CONFIG_CPU_32v6K
+> > > I disabled above options on omap-for-linus *WITHOUT* my patch series.
+> > > I am still seeing crash. Here is the log.
+> > > I tried on two different setups. Not sure if I am missing something.
 > > 
-> > I guess Tony has the final say here, but personally, I don't really like
-> > the special treatment of a system timer, unless it is an init-time only
-> > special treatment.  Since we now have dynamically configurable
-> > clocksources, the concept of a system timer doesn't really exist (except
-> > for in early boot.)  At any time during runtime, we could dynamically
-> > switch the clocksource to a different timer device.  At this point, one
-> > would expect runtime PM for the previous timer to kick in and idle the
-> > timer.  That cannot happen with this approach.
->
-> I am open to suggestions.
+> > Hmm sounds like H4 needs some attention. Can you try the following
+> > completely untested patch?
+> 
+> This works fine!
 
-There's no need to dynamically change the clocksource. We can to set up
-things so we have a system timer running with minimal code and faster
-clock rate. Then we can use a separate timer with the 32KiHZ source
-just to provide wake-up events for idle modes. And this second wake-up
-timer can be just a regular device driver.
-
-The system timer code needs to be fast. And I don't want to add any
-dependencies to anything except clock framework. Like I've said, the
-rest of the timers can be just a regular device driver.
-
-I'll post some patches after the merge window for the system timer
-related code.
-
-Regards,
+OK thanks, can I add your Tested-by then?
 
 Tony
