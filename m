@@ -1,63 +1,118 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH v2 00/19] OMAP4: PM: Suspend,CPU-hotplug and CPUilde support.
-Date: Fri, 11 Mar 2011 23:43:32 +0530
-Message-ID: <99e2889f2135ff52fd9908c4855b301b@mail.gmail.com>
-References: <1299766095-23879-1-git-send-email-santosh.shilimkar@ti.com><87d3lycu0h.fsf@ti.com><3b3d5e28815aa8bcedf6f43688f403b5@mail.gmail.com><871v2dd58y.fsf@ti.com><f1ee9adb49c6dbc49205c5ba70007e9a@mail.gmail.com><87k4g5a6n5.fsf@ti.com><420e5c6f0aff0bbd23b7f3e9c190ca97@mail.gmail.com>
- <874o79a60n.fsf@ti.com>
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: Re: [RFC PATCHv2 1/2] Export SoC info through sysfs
+Date: Fri, 11 Mar 2011 19:58:16 +0200
+Message-ID: <20110311175816.GC7291@besouro.research.nokia.com>
+References: <1299846911-15782-1-git-send-email-maxime.coquelin-nonst@stericsson.com>
+	<1299846911-15782-2-git-send-email-maxime.coquelin-nonst@stericsson.com>
+	<201103111532.52393.arnd@arndb.de>
+	<20110311155257.GA6711@kroah.com>
+Reply-To: eduardo.valentin@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:39426 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751934Ab1CKSNf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 11 Mar 2011 13:13:35 -0500
-Received: by yih10 with SMTP id 10so2944033yih.25
-        for <linux-omap@vger.kernel.org>; Fri, 11 Mar 2011 10:13:34 -0800 (PST)
-In-Reply-To: <874o79a60n.fsf@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20110311155257.GA6711@kroah.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: ext Greg KH <greg@kroah.com>
+Cc: ext Nishanth Menon <nm@ti.com>, ext Tony Lindgren <tony@atomide.com>, Peter De-Schrijver <Peter.De-Schrijver@nokia.com>, Linus Walleij <linus.walleij@linaro.org>, Ambresh <a0393775@ti.com>, Saravana Kannan <skannan@codeaurora.org>, Andrei Warkentin <andreiw@motorola.com>, Lee Jones <Lee.Jones@linaro.org>, Rabin VINCENT <rabin.vincent@stericsson.com>, Russell King <linux@arm.linux.org.uk>, Jonas ABERG <jonas.aberg@stericsson.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, David Brown <davidb@codeaurora.org>, Maxime Coquelin <maxime.coquelin-nonst@stericsson.com>, Arnd Bergmann <arnd@arndb.de>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, Loic PALLARDY <loic.pallardy@stericsson.com>, "eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>, maxime_coquelin@yahoo.fr, Ryan Mallon <ryan@bluewatersys.com>, Linux-OMAP <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
 
-> -----Original Message-----
-> From: Kevin Hilman [mailto:khilman@ti.com]
-> Sent: Friday, March 11, 2011 11:34 PM
-> To: Santosh Shilimkar
-> Cc: linux-omap@vger.kernel.org; linux-arm-
-> kernel@lists.infradead.org; Rajendra Nayak
-> Subject: Re: [PATCH v2 00/19] OMAP4: PM: Suspend,CPU-hotplug and
-> CPUilde support.
->
-> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
->
+Hello,
 
-[...]
+On Fri, Mar 11, 2011 at 07:52:57AM -0800, ext Greg KH wrote:
+> On Fri, Mar 11, 2011 at 03:32:51PM +0100, Arnd Bergmann wrote:
+> > On Friday 11 March 2011, Maxime Coquelin wrote:
+> > > Common base to export System-on-Chip related informations through sysfs.
+> > > 
+> > > Creation of a "socinfo" directory under /sys/.
+> > > Creation of SoC information entries.
+> > > 
+> > > Signed-off-by: Maxime COQUELIN <maxime.coquelin-nonst@stericsson.com>
+> > 
+> > I think it's better than the previous patch to create an
+> > artificial device in /sys/devices/system/socinfo, but I'd
+> > still prefer the information to be attached to a real device
+> > that represents the SOC, as I explained in the discussion with
+> > Linus Walleij.
+> > 
+> > You should definitely add Greg on Cc, as he's maintaining sysfs
+> > and certainly has an opininion here.
+> > 
+> > 	Arnd
+> > 
+> > > ---
+> > >  Documentation/ABI/testing/sysfs-socinfo |   16 ++++++
+> > >  drivers/base/Kconfig                    |    3 +
+> > >  drivers/base/Makefile                   |    1 +
+> > >  drivers/base/soc.c                      |   79 +++++++++++++++++++++++++++++++
+> > >  include/linux/sys_soc.h                 |   50 +++++++++++++++++++
+> > >  5 files changed, 149 insertions(+), 0 deletions(-)
+> > >  create mode 100644 Documentation/ABI/testing/sysfs-socinfo
+> > >  create mode 100644 drivers/base/soc.c
+> > >  create mode 100644 include/linux/sys_soc.h
+> > > 
+> > > diff --git a/Documentation/ABI/testing/sysfs-socinfo b/Documentation/ABI/testing/sysfs-socinfo
+> > > new file mode 100644
+> > > index 0000000..afd9da2
+> > > --- /dev/null
+> > > +++ b/Documentation/ABI/testing/sysfs-socinfo
+> > > @@ -0,0 +1,16 @@
+> > > +What:		/sys/socinfo
+> > > +Date:		March 2011
+> > > +contact:	Maxime Coquelin <maxime.coquelin-nonst@stericsson.com>
+> > > +Description:
+> > > +		The /sys/socinfo directory contains information about the
+> > > +		System-on-Chip.	It is only available if platform implements it.
+> > > +		This directory contains two kind of attributes :
+> > > +			- common attributes: 
+> > > +				* machine: the name of the machine.
+> > > +				* family: the family name of the SoC
+> > > +			- SoC-specific attributes: The SoC vendor can declare attributes
+> > > +			  to export some strings to user-space, like the serial-number for
+> > > +			  example.
+> > > +
+> > > +Users:
+> > > +		User-space applications which needs these kind of attributes.
+> 
+> I thought I rejected this the last time it came around?
+> 
 
-> > Thanks for clarification. The change is quite trivial. Will
-> > update the branch with this change.
-> > After testing it, will intimate you
->
-> One other thing to check...
->
-> I've now included Russell's devel branch into my pm-core branch.
-> Can you rebase your series there?  I did a test rebase of v3 and it
-> rebased fine (after dropping the patches that are already in devel.)
->
-Great.
+Greg,
 
-> After doing that, I get a compile error:
->
-> arch/arm/mach-omap2/built-in.o: In function `mmu_on_label':
-> /work/kernel/omap/pm/arch/arm/mach-omap2/sleep44xx.S:394: undefined
-> reference to `PHYS_OFFSET'
-> make[1]: *** [.tmp_vmlinux1] Error 1
-> make: *** [sub-make] Error 2
->
-> It looks like there might be some other changes in Russell's queue
-> that you need to take into consideration.
->
-Ok. Will check that.
+Do you mind sharing the link of the thread where you have reject this?
 
-Regards,
-Santosh
+> I still fail to understand why this is needed, please provide more
+> information about why you feel this is something that the kernel needs.
+
+In case of OMAP, there are few ids that we would expose to user space,
+like serial, revision and die id to quote some from top of my mind.
+I must emphasize  that these are not data from CPU at all, they belong
+to SoC itself.
+
+This info can be useful to track buggy silicon misbehaving on products
+which are already on the market. For instance, one possible usage would
+be to collect from products which arrives on customer care centers.
+
+That's obviously the view I have from OMAP perspective.
+
+But looks like if we had some common way to expose this data, not only
+OMAP socs would benefit of it, as you can see interest from other soc vendors
+in this thread (also on V1 of this patch set or on my original patch set over /proc)
+
+
+> 
+> thanks,
+> 
+> greg k-h
+
+-- 
+Eduardo Valentin
