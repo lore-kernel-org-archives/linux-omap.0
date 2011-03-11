@@ -1,66 +1,62 @@
-From: Stephan Raue <mailinglists@openelec.tv>
-Subject: Re: [PATCH v5 00/10] OMAP4 : DSS2 : HDMI support on OMAP4
-Date: Fri, 11 Mar 2011 17:18:12 +0100
-Message-ID: <4D7A4B44.2030801@openelec.tv>
-References: <1299753858-12222-1-git-send-email-mythripk@ti.com>	 <1299764643.2017.177.camel@deskari>  <4D78E3F5.2090600@openelec.tv>	 <1299827578.2567.1.camel@deskari>  <4D79E0A0.9040900@openelec.tv> <1299849774.2479.3.camel@deskari>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [GIT PULL] OMAP PM updates for 2.6.39
+Date: Fri, 11 Mar 2011 08:32:24 -0800
+Message-ID: <87k4g5botj.fsf@ti.com>
+References: <87k4g6eakw.fsf@ti.com>
+	<AANLkTimMsYhCqqRjcBDCMDT4=iTwBG_qLHWjuxVZTmXE@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail01.solnet.ch ([212.101.4.135]:64684 "EHLO mail01.solnet.ch"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754429Ab1CKQSO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 11 Mar 2011 11:18:14 -0500
-In-Reply-To: <1299849774.2479.3.camel@deskari>
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:43954 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751983Ab1CKQc3 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 11 Mar 2011 11:32:29 -0500
+Received: by pxi6 with SMTP id 6so724475pxi.31
+        for <linux-omap@vger.kernel.org>; Fri, 11 Mar 2011 08:32:28 -0800 (PST)
+In-Reply-To: <AANLkTimMsYhCqqRjcBDCMDT4=iTwBG_qLHWjuxVZTmXE@mail.gmail.com>
+	(Jean Pihet's message of "Fri, 11 Mar 2011 16:33:40 +0100")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: "K, Mythri P" <mythripk@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Am 11.03.2011 14:22, schrieb Tomi Valkeinen:
-> On Fri, 2011-03-11 at 02:43 -0600, Stephan Raue wrote:
->> Am 11.03.2011 08:12, schrieb Tomi Valkeinen:
->>> On Thu, 2011-03-10 at 08:45 -0600, Stephan Raue wrote:
->>>> Hi,
->>>>
->>>> if i try this patch series the boot stops after (seeing via serial console):
->>>>
->>>>      Starting kernel ...
->>>>
->>>>      Uncompressing Linux... done, booting the kernel.
->>>>
->>>> without this patch series i can see the boot to th OS. I am using this
->>>> patches on top of
->>>>
->>>>      http://gitorious.org/linux-omap-dss2/linux/commits/master
->>>>
->>>> Do i anything wrong or do i use a wrong git repo (the patches apply
->>>> cleanly)? Her my kernel config: http://fpaste.org/9Esw/
->>> Hmm, I cannot even compile the kernel with that config:
->>>
->>>     CC      arch/arm/mach-omap2/io.o
->>> In file included from arch/arm/mm/init.c:27:0:
->>> /home/tomba/work/linux/arch/arm/include/asm/tlb.h: In function 'tlb_flush_mmu':
->>> /home/tomba/work/linux/arch/arm/include/asm/tlb.h:104:3: error: implicit declaration of function 'release_pages'
->>> In file included from arch/arm/mm/init.c:27:0:
->>> /home/tomba/work/linux/arch/arm/include/asm/tlb.h: In function 'tlb_remove_page':
->>> /home/tomba/work/linux/arch/arm/include/asm/tlb.h:168:3: error: implicit declaration of function 'page_cache_release'
->>> make[1]: *** [arch/arm/mm/init.o] Error 1
->>> make: *** [arch/arm/mm] Error 2
->>> make: *** Waiting for unfinished jobs....
->>>
->>>    Tomi
->>>
->> please enable swap support or try:
->> http://ftp.arm.linux.org.uk/git/?p=linux-2.6-arm.git;a=commit;h=97594b0f35c0708cb9551c070b9693a52ec24ebf
->> which is fixed in 2.6.38-rc8
-> Ok. So you didn't have just my master branch and the HDMI patch set? I
-> see that the config you gave is for rc8, and mine is rc7, so I guess you
-> also merged rc8 into your tree?
->
->   Tomi
->
-yes, you are right, i have tested this with different kernel configs and 
-both rc7 and rc8 with the same results.
+Jean Pihet <jean.pihet@newoldbits.com> writes:
 
-Stephan
+> Hi Kevin,
+>
+> On Fri, Mar 11, 2011 at 1:59 AM, Kevin Hilman <khilman@ti.com> wrote:
+>> Tony,
+>>
+>> Please pull the following OMAP PM related changes for the upcoming
+>> 2.6.39 merge window.
+>>
+>> Kevin
+>>
+>> The following changes since commit a5abba989deceb731047425812d268daf=
+7536575:
+>>
+>> =C2=A0Linux 2.6.38-rc8 (2011-03-07 21:09:37 -0800)
+>>
+>> are available in the git repository at:
+>> =C2=A0ssh://master.kernel.org/pub/scm/linux/kernel/git/khilman/linux=
+-omap-pm.git for_2.6.39/pm-misc
+>
+> Waht about the following patch? IIUC it is scheduled for .39.
+>
+>     perf: add OMAP support for the new power events
+>
+
+I have another branch (for_2.6.39/pm-integration) that is based on
+Paul's integration branch and includes your perf patch.
+
+Once Tony pulls Paul's integration branch, I will send Tony a 2nd pull
+request for this branch.
+
+Kevin
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
