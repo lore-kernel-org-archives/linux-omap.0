@@ -1,49 +1,59 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH v5 00/10] OMAP4 : DSS2 : HDMI support on OMAP4
-Date: Fri, 11 Mar 2011 09:24:30 +0200
-Message-ID: <1299828270.2567.6.camel@deskari>
-References: <1299753858-12222-1-git-send-email-mythripk@ti.com>
-	 <1299764643.2017.177.camel@deskari> <4D78E3F5.2090600@openelec.tv>
-	 <1299768675.2017.230.camel@deskari> <4D7967AB.1030404@openelec.tv>
-	 <AANLkTimRnDhOah_J2wWQNLbf+WKX1VAsNm_HHGu24+6t@mail.gmail.com>
+From: <kalle.jokiniemi@nokia.com>
+Subject: RE: [PATCH 1/2] Watchdog: omap_wdt: add fine grain runtime-pm
+Date: Fri, 11 Mar 2011 07:32:22 +0000
+Message-ID: <9D0D31AA57AAF5499AFDC63D6472631B06655F@008-AM1MPN1-036.mgdnok.nokia.com>
+References: <1299754448-24888-1-git-send-email-kalle.jokiniemi@nokia.com>
+ <1299754448-24888-2-git-send-email-kalle.jokiniemi@nokia.com>
+ <alpine.DEB.2.00.1103100600390.15132@utopia.booyaka.com>
+ <alpine.DEB.2.00.1103100603380.15132@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38839 "EHLO comal.ext.ti.com"
+Received: from smtp.nokia.com ([147.243.128.26]:42937 "EHLO mgw-da02.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751030Ab1CKHZG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 11 Mar 2011 02:25:06 -0500
-In-Reply-To: <AANLkTimRnDhOah_J2wWQNLbf+WKX1VAsNm_HHGu24+6t@mail.gmail.com>
+	id S1751333Ab1CKHck convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Mar 2011 02:32:40 -0500
+In-Reply-To: <alpine.DEB.2.00.1103100603380.15132@utopia.booyaka.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "K, Mythri P" <mythripk@ti.com>
-Cc: Stephan Raue <mailinglists@openelec.tv>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-
-On Fri, 2011-03-11 at 00:16 -0600, K, Mythri P wrote:
-> Hi Stephan,
-> 
-> On Fri, Mar 11, 2011 at 5:37 AM, Stephan Raue <mailinglists@openelec.tv> wrote:
-
-> > thanks, this helps to boot the kernel. but now i get:
-> >
-> 
-> <snip>
-> 
-> > see also: http://paste.pocoo.org/show/351648/
-> >
-> 
-> I see that you kernel is not booting because of dss clk
->  [    3.335601] PC is at dss_clk_disable_no_ctx+0x0/0xa4
-> [    3.335632] LR is at omap_dispc_register_isr+0xa4/0xcc
-> Tomi is this related to the clock issue you were mentioning , which
-> gets solved by adding a delay ?
-
-Well, I have a hack patch in my tree which adds a delay of 10us. That
-fixed the problem for me, but the 10us is just a random guess. It could
-be that it needs to be longer wait. But this could be something else
-also.
-
- Tomi
+To: paul@pwsan.com
+Cc: khilman@ti.com, b-cousson@ti.com, tony@atomide.com, linux-omap@vger.kernel.org
 
 
+
+> -----Original Message-----
+> From: ext Paul Walmsley [mailto:paul@pwsan.com]
+> Sent: 10. maaliskuuta 2011 15:04
+> To: Jokiniemi Kalle (Nokia-MS/Tampere)
+> Cc: khilman@ti.com; Cousson, Benoit; tony@atomide.com; linux-
+> omap@vger.kernel.org
+> Subject: Re: [PATCH 1/2] Watchdog: omap_wdt: add fine grain runtime-p=
+m
+>=20
+> On Thu, 10 Mar 2011, Paul Walmsley wrote:
+>=20
+> > Regarding Beno=EEt's E-mail about this patch, I wonder if this patc=
+h is
+> > still needed.  If you have the time, would you be willing to do yet
+> > another test with the HWMOD_SWSUP_SIDLE patch, but without this one=
+?
+>=20
+> Sigh, I take this back.  I don't think it will work without the fine-=
+grained
+> runtime PM control patch, since the WDTIMER will be in no-idle the en=
+tire
+> time.
+
+Yes, correct...
+
+- Kalle
+
+>=20
+> - Paul
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
