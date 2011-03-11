@@ -1,33 +1,40 @@
-From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Subject: Re: [RESEND PATCH] staging: tidspbridge: protect dmm_map properly
-Date: Fri, 11 Mar 2011 13:02:28 -0600
-Message-ID: <AANLkTi=DRO8hfrJxUo6_U=5F+hUBHngXSKENztsp0-2e@mail.gmail.com>
-References: <1299864633-27542-1-git-send-email-felipe.contreras@nokia.com>
-	<AANLkTi=Hy18s5fOziHSNdG6QUZE85bg0Bb9cAqE42mVQ@mail.gmail.com>
-	<AANLkTin_2yo705Ka3KO_09nK3ZUEi_0uYfi6fKQqwBVV@mail.gmail.com>
-	<AANLkTik+tjZvyagV3PE4grjJJx-q_AEuKCa3z+e99WzC@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/2] power button repeat input events
+Date: Fri, 11 Mar 2011 11:04:40 -0800
+Message-ID: <20110311190440.GC10079@atomide.com>
+References: <1299861450-19914-1-git-send-email-ext-denis.2.karpov@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <AANLkTik+tjZvyagV3PE4grjJJx-q_AEuKCa3z+e99WzC@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: Felipe Contreras <felipe.contreras@nokia.com>, linux-main <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Greg KH <greg@kroah.com>, Ohad Ben-Cohen <ohad@wizery.com>, Fernando Guzman Lugo <fernando.lugo@ti.com>, Tuomas Kulve <tuomas@kulve.fi>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:54041 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753357Ab1CKTEm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Mar 2011 14:04:42 -0500
+Content-Disposition: inline
+In-Reply-To: <1299861450-19914-1-git-send-email-ext-denis.2.karpov@nokia.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Denis Karpov <ext-denis.2.karpov@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
 Hi,
 
-On Fri, Mar 11, 2011 at 12:31 PM, Felipe Contreras
-<felipe.contreras@gmail.com> wrote:
-> Well, not crashing is better than crashing, regardless of the status
-> of the driver. And there's no reason not to include the fix.
+* Denis Karpov <ext-denis.2.karpov@nokia.com> [110311 08:35]:
+> Hi,
+> 
+> this patchset adds optional generation of repeat input events for
+> twl4030 power button. It adds optional platform data for 
+> twl4030-pwrbutton and initializes it for RX51/N900 (default 
+> behavior kept - repeated input events disabled).
+> 
+> We are working on an OMAP3 with TWL5031 MFD. In one of the use 
+> scenarios userspace wants to receive repeated input events from 
+> long press of power button. 
 
-No reason indeed.
-
-> But if you send it to Greg, then it's Greg's call.
-
-Ok then.
+Looks good to me, however please send these to the associated
+driver lists linux-input/mfd/i2c etc. I'll ack the second
+patch so that too can go with the driver.
 
 Regards,
 
-Omar
+Tony
