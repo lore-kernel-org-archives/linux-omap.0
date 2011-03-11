@@ -1,120 +1,52 @@
-From: sricharan <r.sricharan@ti.com>
-Subject: [PATCH V4 4/5] omap4: board-omap4panda: Initialise the serial pads.
-Date: Fri, 11 Mar 2011 11:34:46 +0530
-Message-ID: <1299823486-27192-3-git-send-email-r.sricharan@ti.com>
-References: <1299823486-27192-1-git-send-email-r.sricharan@ti.com>
+From: Sricharan R <r.sricharan@ti.com>
+Subject: RE: [PATCH] omap2+: mux: Add macro for configuring static with
+ omap_hwmod_mux_init (Re: [PATCH] omap2+: mux: Remove the use of IDLE flag)
+Date: Fri, 11 Mar 2011 11:43:03 +0530
+Message-ID: <d613e06b28e16ab8da53af60e1e2ec56@mail.gmail.com>
+References: <1299472552-22017-1-git-send-email-r.sricharan@ti.com>
+ <20110308164033.GC26463@atomide.com> <b76e32aff88265d31cc1b7b2fc502a32@mail.gmail.com>
+ <20110309203200.GP26463@atomide.com> 48ce1c025ceaf65d610ce5eaa6ea99e4@mail.gmail.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:34478 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751686Ab1CKGEd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 11 Mar 2011 01:04:33 -0500
-In-Reply-To: <1299823486-27192-1-git-send-email-r.sricharan@ti.com>
+Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:36950 "EHLO
+	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751194Ab1CKGNJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 11 Mar 2011 01:13:09 -0500
+Received: by mail-vx0-f175.google.com with SMTP id 7so2295761vxd.6
+        for <linux-omap@vger.kernel.org>; Thu, 10 Mar 2011 22:13:06 -0800 (PST)
+In-Reply-To: 48ce1c025ceaf65d610ce5eaa6ea99e4@mail.gmail.com
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, tony@atomide.com, b-cousson@ti.com, santosh.shilimkar@ti.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, paul@pswan.com, linux-arm-kernel@lists.infradead.org
 
-Use the mux framework to initialise the serial pads.
+Tony,
+>>Look OK to me, but let's make things a bit easier to read
+>>and maintain with the following patch. Can you please
+>>update your patches to use this macro?
+>>
+>>Each line then just becomes something like:
+>>
+>>OMAP_MUX_STATIC("uart3_tx_irtx.uart3_tx_irtx",
+>>		OMAP_PIN_OUTPUT | OMAP_MUX_MODE0),
+>>
+>Ok thanks. I will update and send again.
 
-Signed-off-by: sricharan <r.sricharan@ti.com>
----
-V1: Initial Patch.
-V2: Remove flags that were to be used for only testing.
-V3: Add dummy initialisation for uart0.
-V4: Use the Macro for muxing the static pads.
+4430SDP:
+http://marc.info/?l=linux-omap&m=129982347622340&w=2
 
- arch/arm/mach-omap2/board-omap4panda.c |   69 +++++++++++++++++++++++++++++++-
- 1 files changed, 68 insertions(+), 1 deletions(-)
+omap4panda:
+http://marc.info/?l=linux-omap&m=129982347722344&w=2
 
-diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
-index a94ce07..1dd4401 100644
---- a/arch/arm/mach-omap2/board-omap4panda.c
-+++ b/arch/arm/mach-omap2/board-omap4panda.c
-@@ -463,8 +463,75 @@ static struct omap_board_mux board_mux[] __initdata = {
- 	OMAP4_MUX(SDMMC5_DAT3, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP),
- 	{ .reg_offset = OMAP_MUX_TERMINATOR },
- };
-+
-+static struct omap_device_pad serial2_pads[] __initdata = {
-+	OMAP_MUX_STATIC("uart2_cts.uart2_cts",
-+			 OMAP_PIN_INPUT_PULLUP | OMAP_MUX_MODE0),
-+	OMAP_MUX_STATIC("uart2_rts.uart2_rts",
-+			 OMAP_PIN_OUTPUT | OMAP_MUX_MODE0),
-+	OMAP_MUX_STATIC("uart2_rx.uart2_rx",
-+			 OMAP_PIN_INPUT_PULLUP | OMAP_MUX_MODE0),
-+	OMAP_MUX_STATIC("uart2_tx.uart2_tx",
-+			 OMAP_PIN_OUTPUT | OMAP_MUX_MODE0),
-+};
-+
-+static struct omap_device_pad serial3_pads[] __initdata = {
-+	OMAP_MUX_STATIC("uart3_cts_rctx.uart3_cts_rctx",
-+			 OMAP_PIN_INPUT_PULLUP | OMAP_MUX_MODE0),
-+	OMAP_MUX_STATIC("uart3_rts_sd.uart3_rts_sd",
-+			 OMAP_PIN_OUTPUT | OMAP_MUX_MODE0),
-+	OMAP_MUX_STATIC("uart3_rx_irrx.uart3_rx_irrx",
-+			 OMAP_PIN_INPUT | OMAP_MUX_MODE0),
-+	OMAP_MUX_STATIC("uart3_tx_irtx.uart3_tx_irtx",
-+			 OMAP_PIN_OUTPUT | OMAP_MUX_MODE0),
-+};
-+
-+static struct omap_device_pad serial4_pads[] __initdata = {
-+	OMAP_MUX_STATIC("uart4_rx.uart4_rx",
-+			 OMAP_PIN_INPUT | OMAP_MUX_MODE0),
-+	OMAP_MUX_STATIC("uart4_tx.uart4_tx",
-+			 OMAP_PIN_OUTPUT | OMAP_MUX_MODE0),
-+};
-+
-+static struct omap_board_data serial2_data = {
-+	.id             = 1,
-+	.pads           = serial2_pads,
-+	.pads_cnt       = ARRAY_SIZE(serial2_pads),
-+};
-+
-+static struct omap_board_data serial3_data = {
-+	.id             = 2,
-+	.pads           = serial3_pads,
-+	.pads_cnt       = ARRAY_SIZE(serial3_pads),
-+};
-+
-+static struct omap_board_data serial4_data = {
-+	.id             = 3,
-+	.pads           = serial4_pads,
-+	.pads_cnt       = ARRAY_SIZE(serial4_pads),
-+};
-+
-+static inline void board_serial_init(void)
-+{
-+	struct omap_board_data bdata;
-+	bdata.flags     = 0;
-+	bdata.pads      = NULL;
-+	bdata.pads_cnt  = 0;
-+	bdata.id        = 0;
-+	/* pass dummy data for UART1 */
-+	omap_serial_init_port(&bdata);
-+
-+	omap_serial_init_port(&serial2_data);
-+	omap_serial_init_port(&serial3_data);
-+	omap_serial_init_port(&serial4_data);
-+}
- #else
- #define board_mux	NULL
-+
-+static inline void board_serial_init(void)
-+{
-+	omap_serial_init();
-+}
- #endif
- 
- static void __init omap4_panda_init(void)
-@@ -481,7 +548,7 @@ static void __init omap4_panda_init(void)
- 	omap4_panda_i2c_init();
- 	platform_add_devices(panda_devices, ARRAY_SIZE(panda_devices));
- 	platform_device_register(&omap_vwlan_device);
--	omap_serial_init();
-+	board_serial_init();
- 	omap4_twl6030_hsmmc_init(mmc);
- 	omap4_ehci_init();
- 	usb_musb_init(&musb_board_data);
--- 
-1.7.0.4
+3430sdp:
+http://marc.info/?l=linux-omap&m=129982347822347&w=2
 
+I have reworked the patches using your MACRO.
+
+I have applied on top of the omap-for-linus branch and
+tested them on 4430sdp, 3430sdp, omap4panda.
+
+Thanks,
+ Sricharan'
