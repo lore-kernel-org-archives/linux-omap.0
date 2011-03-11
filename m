@@ -1,87 +1,221 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH v2 00/19] OMAP4: PM: Suspend, CPU-hotplug and CPUilde support.
-Date: Fri, 11 Mar 2011 18:01:12 +0530
-Message-ID: <49a5273c412bf9193a9f930e990d22d4@mail.gmail.com>
-References: <1299766095-23879-1-git-send-email-santosh.shilimkar@ti.com>
- <87d3lycu0h.fsf@ti.com> 3b3d5e28815aa8bcedf6f43688f403b5@mail.gmail.com
+From: Maxime Coquelin <maxime.coquelin-nonst@stericsson.com>
+Subject: [RFC PATCHv2 1/2] Export SoC info through sysfs
+Date: Fri, 11 Mar 2011 13:35:10 +0100
+Message-ID: <1299846911-15782-2-git-send-email-maxime.coquelin-nonst@stericsson.com>
+References: <1299846911-15782-1-git-send-email-maxime.coquelin-nonst@stericsson.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:46366 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752674Ab1CKMbQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 11 Mar 2011 07:31:16 -0500
-Received: by qyk27 with SMTP id 27so2493489qyk.6
-        for <linux-omap@vger.kernel.org>; Fri, 11 Mar 2011 04:31:14 -0800 (PST)
-In-Reply-To: 3b3d5e28815aa8bcedf6f43688f403b5@mail.gmail.com
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-arm-msm-owner@vger.kernel.org>
+In-Reply-To: <1299846911-15782-1-git-send-email-maxime.coquelin-nonst@stericsson.com>
+Sender: linux-arm-msm-owner@vger.kernel.org
+To: LKML <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>, Sarava
+Cc: maxime_coquelin@yahoo.fr, ext Nishanth Menon <nm@ti.com>, ext Tony Lindgren <tony@atomide.com>, Peter De-Schrijver <Peter.De-Schrijver@nokia.com>, Ambresh <a0393775@ti.com>, Jouni Hogander <jouni.hogander@nokia.com>, Lee Jones <Lee.Jones@linaro.org>, Rabin VINCENT <rabin.vincent@stericsson.com>, Russell King <linux@arm.linux.org.uk>, Jonas ABERG <jonas.aberg@stericsson.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, David Brown <davidb@codeaurora.org>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, Loic PALLARDY <loic.pallardy@stericsson.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Daniel Walker <dwalker@codeaurora.org>, Andrei Warkentin <andreiw@motorola.com>, Paul Mundt <lethal@linux-sh.org>, "santosh.shilimkar@ti.com" <santosh.shilimkar@ti.com>, Andrew Morton <akpm@linux-foundation.org>, Maxime Coquelin <maxime.coquelin-nonst@stericss>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, linux-arm-kernel@lists.infradead.org
 
-Kevin,
-> -----Original Message-----
-> From: Santosh Shilimkar [mailto:santosh.shilimkar@ti.com]
-> Sent: Friday, March 11, 2011 11:22 AM
-> To: Kevin Hilman
-> Cc: 'linux-omap@vger.kernel.org'; Rajendra Nayak; 'linux-arm-
-> kernel@lists.infradead.org'
-> Subject: RE: [PATCH v2 00/19] OMAP4: PM: Suspend, CPU-hotplug and
-> CPUilde support.
->
-> > -----Original Message-----
-> > From: Kevin Hilman [mailto:khilman@ti.com]
-> > Sent: Friday, March 11, 2011 7:13 AM
-> > To: Santosh Shilimkar
-> > Cc: linux-omap@vger.kernel.org; rnayak@ti.com; linux-arm-
-> > kernel@lists.infradead.org
-> > Subject: Re: [PATCH v2 00/19] OMAP4: PM: Suspend, CPU-hotplug and
-> > CPUilde support.
-> >
-> > Hi Santosh,
-> >
-> > Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
-> [....]
->
-> >
-> > This series doesn't boot on ES1 (boot log below.)  Do we need to
-> > totally prevent WFI on ES1?
-> >
-Nope. WFI is ok.
-The ES1.0 boot issue on pm-core branch doesn't seems to
-be related to this series. Without this series as well
-OMAP4 ES1.0 is not booting for me. When I disable
-CONFIG_PM + WATCHDOG fix, it booted ok. I will
-git-bisect this later on pm-core branch.
+Common base to export System-on-Chip related informations through sysfs.
 
-> > Also, if we want a CPUidle enabled kernel to boot on all silicon,
-> > it will need a omap_rev() check during init to ensure it doesn't
-> > override the default idle path.
-> >
-OMAP4 PM series already takes care of not overriding
-the default idle path for ES1.0. The omap4_mpuss_init()
-fails on ES1.0 and hence the CPUidle init is skipped in
-that case.
+Creation of a "socinfo" directory under /sys/.
+Creation of SoC information entries.
 
-Just to further check, I pulled the latest omap-for-linus
-branch and merged Paul's pull-request into it. Then
-applied OMAP4 PM series and I got a boot crash, a different
-one. This was again related to clock-domain initialization
-and static deps. I fixed this issue by avoiding omap4_pm_init()
-code running on ES1.0. With this boot on ES1.0 works fine now
-with OMAP4 PM series.
+Signed-off-by: Maxime COQUELIN <maxime.coquelin-nonst@stericsson.com>
+---
+ Documentation/ABI/testing/sysfs-socinfo |   16 ++++++
+ drivers/base/Kconfig                    |    3 +
+ drivers/base/Makefile                   |    1 +
+ drivers/base/soc.c                      |   79 +++++++++++++++++++++++++++++++
+ include/linux/sys_soc.h                 |   50 +++++++++++++++++++
+ 5 files changed, 149 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/ABI/testing/sysfs-socinfo
+ create mode 100644 drivers/base/soc.c
+ create mode 100644 include/linux/sys_soc.h
 
-Posted the patch for the same.
-https://patchwork.kernel.org/patch/628231/
+diff --git a/Documentation/ABI/testing/sysfs-socinfo b/Documentation/ABI/testing/sysfs-socinfo
+new file mode 100644
+index 0000000..afd9da2
+--- /dev/null
++++ b/Documentation/ABI/testing/sysfs-socinfo
+@@ -0,0 +1,16 @@
++What:		/sys/socinfo
++Date:		March 2011
++contact:	Maxime Coquelin <maxime.coquelin-nonst@stericsson.com>
++Description:
++		The /sys/socinfo directory contains information about the
++		System-on-Chip.	It is only available if platform implements it.
++		This directory contains two kind of attributes :
++			- common attributes: 
++				* machine: the name of the machine.
++				* family: the family name of the SoC
++			- SoC-specific attributes: The SoC vendor can declare attributes
++			  to export some strings to user-space, like the serial-number for
++			  example.
++
++Users:
++		User-space applications which needs these kind of attributes.
+diff --git a/drivers/base/Kconfig b/drivers/base/Kconfig
+index d57e8d0..372ef3a 100644
+--- a/drivers/base/Kconfig
++++ b/drivers/base/Kconfig
+@@ -168,4 +168,7 @@ config SYS_HYPERVISOR
+ 	bool
+ 	default n
+ 
++config SYS_SOC
++	bool
++
+ endmenu
+diff --git a/drivers/base/Makefile b/drivers/base/Makefile
+index 5f51c3b..f3bcfb3 100644
+--- a/drivers/base/Makefile
++++ b/drivers/base/Makefile
+@@ -18,6 +18,7 @@ ifeq ($(CONFIG_SYSFS),y)
+ obj-$(CONFIG_MODULES)	+= module.o
+ endif
+ obj-$(CONFIG_SYS_HYPERVISOR) += hypervisor.o
++obj-$(CONFIG_SYS_SOC) += soc.o
+ 
+ ccflags-$(CONFIG_DEBUG_DRIVER) := -DDEBUG
+ 
+diff --git a/drivers/base/soc.c b/drivers/base/soc.c
+new file mode 100644
+index 0000000..046b43b
+--- /dev/null
++++ b/drivers/base/soc.c
+@@ -0,0 +1,79 @@
++/*
++ * Copyright (C) ST-Ericsson SA 2011
++ * Author: Maxime Coquelin <maxime.coquelin-nonst@stericsson.com> for ST-Ericsson.
++ * License terms:  GNU General Public License (GPL), version 2
++ */
++
++#include <linux/sysfs.h>
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/stat.h>
++#include <linux/slab.h>
++#include <linux/sys_soc.h>
++
++struct kobject *soc_object;
++
++ssize_t show_soc_info(struct kobject *kobj,
++			struct kobj_attribute *attr, char *buf)
++{
++	struct sysfs_soc_info *si = container_of(attr,
++				struct sysfs_soc_info, attr);
++
++	if (si->info)
++		return sprintf(buf, "%s\n", si->info);
++
++	return si->get_info(buf, si);
++}
++
++int __init register_sysfs_soc_info(struct sysfs_soc_info *info, int nb_info)
++{
++	int i, ret;
++
++	for (i = 0; i < nb_info; i++) {
++		ret = sysfs_create_file(soc_object, &info[i].attr.attr);
++		if (ret) {
++			for (i -= 1; i >= 0; i--)
++				sysfs_remove_file(soc_object, &info[i].attr.attr);
++			break;
++		}
++	}
++
++	return ret;
++}
++
++static struct attribute *soc_attrs[] = {
++	NULL,
++};
++
++static struct attribute_group soc_attr_group = {
++	.attrs = soc_attrs,
++};
++
++int __init register_sysfs_soc(struct sysfs_soc_info *info, size_t num)
++{
++	int ret;
++
++	soc_object = kobject_create_and_add("socinfo", NULL);
++	if (!soc_object) {
++		ret = -ENOMEM;
++		goto exit;
++	}
++
++	ret = sysfs_create_group(soc_object, &soc_attr_group);
++	if (ret)
++		goto kset_exit;
++
++	ret = register_sysfs_soc_info(info, num);
++	if (ret)
++		goto group_exit;
++
++	return 0;
++
++group_exit:
++	sysfs_remove_group(soc_object, &soc_attr_group);
++kset_exit:
++	kobject_put(soc_object);
++exit:
++	return ret;
++}
++
+diff --git a/include/linux/sys_soc.h b/include/linux/sys_soc.h
+new file mode 100644
+index 0000000..05e5529
+--- /dev/null
++++ b/include/linux/sys_soc.h
+@@ -0,0 +1,50 @@
++/*
++ * Copyright (C) ST-Ericsson SA 2011
++ * Author: Maxime Coquelin <maxime.coquelin-nonst@stericsson.com> for ST-Ericsson.
++ * License terms:  GNU General Public License (GPL), version 2
++ */
++#ifndef __SYS_SOC_H
++#define __SYS_SOC_H
++
++#include <linux/kobject.h>
++
++/**
++ * struct sys_soc_info - SoC exports related informations
++ * @name: name of the export
++ * @info: pointer on the key to export
++ * @get_info: callback to retrieve key if info field is NULL
++ * @attr: export's sysdev class attribute
++ */
++struct sysfs_soc_info {
++	const char *info;
++	ssize_t (*get_info)(char *buf, struct sysfs_soc_info *);
++	struct kobj_attribute attr;
++};
++
++ssize_t show_soc_info(struct kobject *, struct kobj_attribute *, char *);
++
++#define SYSFS_SOC_ATTR_VALUE(_name, _value) {		\
++	.attr.attr.name = _name,			\
++	.attr.attr.mode = S_IRUGO,			\
++	.attr.show	= show_soc_info,		\
++	.info           = _value,			\
++}
++
++#define SYSFS_SOC_ATTR_CALLBACK(_name, _callback) {	\
++	.attr.attr.name = _name,			\
++	.attr.attr.mode = S_IRUGO,			\
++	.attr.show	= show_soc_info,		\
++	.get_info       = _callback,			\
++}
++
++/**
++ * register_sys_soc - register the soc information
++ * @name: name of the machine
++ * @info: pointer on the info table to export
++ * @num: number of info to export
++ *
++ * NOTE: This function must only be called once
++ */
++int register_sysfs_soc(struct sysfs_soc_info *info, size_t num);
++
++#endif /* __SYS_SOC_H */
+-- 
+1.7.1
 
-
-The rebased series against
-	Latest 'omap-for-linus + Paul's pull-request'
-have pushed to below branch.
-
-git://dev.omapzoom.org/pub/scm/santosh/kernel-omap4-base.git
-omap4_pm_for-next_v3
-
-Regards,
-Santosh
