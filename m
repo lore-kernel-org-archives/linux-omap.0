@@ -1,53 +1,34 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: [GIT PULL] another set of OMAP PM updates for 2.6.39
-Date: Fri, 11 Mar 2011 09:37:37 -0800
-Message-ID: <87r5ada78e.fsf@ti.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [RESEND PATCH] staging: tidspbridge: protect dmm_map properly
+Date: Fri, 11 Mar 2011 19:38:57 +0200
+Message-ID: <AANLkTi=Hy18s5fOziHSNdG6QUZE85bg0Bb9cAqE42mVQ@mail.gmail.com>
+References: <1299864633-27542-1-git-send-email-felipe.contreras@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:60653 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751284Ab1CKRhm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 11 Mar 2011 12:37:42 -0500
-Received: by mail-gx0-f174.google.com with SMTP id 21so230994gxk.19
-        for <linux-omap@vger.kernel.org>; Fri, 11 Mar 2011 09:37:41 -0800 (PST)
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1299864633-27542-1-git-send-email-felipe.contreras@nokia.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Contreras <felipe.contreras@nokia.com>
+Cc: linux-main <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Omar Ramirez Luna <omar.ramirez@ti.com>, Greg KH <greg@kroah.com>, Ohad Ben-Cohen <ohad@wizery.com>, Fernando Guzman Lugo <fernando.lugo@ti.com>, Tuomas Kulve <tuomas@kulve.fi>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Tony,
+On Fri, Mar 11, 2011 at 7:30 PM, Felipe Contreras
+<felipe.contreras@nokia.com> wrote:
+> We need to protect not only the dmm_map list, but the individual
+> map_obj's, otherwise, we might be building the scatter-gather list with
+> garbage. So, use the existing proc_lock for that.
+>
+> I observed race conditions which caused kernel panics while running
+> stress tests, also, Tuomas Kulve found it happening quite often in
+> Gumstix Over. This patch fixes those.
+>
+> Cc: Tuomas Kulve <tuomas@kulve.fi>
+> Signed-off-by: Felipe Contreras <felipe.contreras@nokia.com>
 
-Please pull this additional set of OMAP PM updates for 2.6.39.
+Omar, 2.6.38 is imminent, if this patch has any chance of getting in,
+I think you would need to push it soon.
 
-These changes had dependencies on Paul's integration branch so were
-awaiting the merge of that before they could merge.
+Cheers.
 
-Kevin
-
-The following changes since commit a08572ae529b1e8de12393eeced661feae8fd44c:
-
-  Merge remote branch 'remotes/origin/voltage_split_2.6.39' into tmp-integration-2.6.39-20110310-024 (2011-03-10 22:43:32 -0700)
-
-are available in the git repository at:
-
-  ssh://master.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git for_2.6.39/pm-integration
-
-Jean Pihet (1):
-      perf: add OMAP support for the new power events
-
-Shweta Gulati (3):
-      OMAP4: Enable 800 MHz and 1 GHz MPU-OPP
-      OMAP4: Update Voltage Rail Values for MPU, IVA and CORE
-      OMAP4: Add IVA OPP enteries.
-
-Vishwanath BS (1):
-      OMAP3+: OPP: Replace voltage values with Macros
-
- arch/arm/mach-omap2/clock.c        |   11 +++++++-
- arch/arm/mach-omap2/opp3xxx_data.c |   46 ++++++++++++++++++------------------
- arch/arm/mach-omap2/opp4xxx_data.c |   38 +++++++++++++++++------------
- arch/arm/mach-omap2/pm34xx.c       |    7 +++++
- arch/arm/mach-omap2/powerdomain.c  |   26 ++++++++++++++++++--
- 5 files changed, 84 insertions(+), 44 deletions(-)
+-- 
+Felipe Contreras
