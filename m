@@ -1,65 +1,57 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: [RFC] AM35x: Workaround to use generic OMAP3 hwmods
-Date: Fri, 11 Mar 2011 14:03:55 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024C192D49@dbde02.ent.ti.com>
-References: <1298641689-7417-1-git-send-email-premi@ti.com>
- <4D67E0C0.4080805@ti.com>
- <alpine.DEB.2.00.1103091933260.15132@utopia.booyaka.com>
+From: Stephan Raue <mailinglists@openelec.tv>
+Subject: Re: [PATCH v5 00/10] OMAP4 : DSS2 : HDMI support on OMAP4
+Date: Fri, 11 Mar 2011 09:43:12 +0100
+Message-ID: <4D79E0A0.9040900@openelec.tv>
+References: <1299753858-12222-1-git-send-email-mythripk@ti.com>	 <1299764643.2017.177.camel@deskari>  <4D78E3F5.2090600@openelec.tv> <1299827578.2567.1.camel@deskari>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:54506 "EHLO bear.ext.ti.com"
+Received: from mail04.solnet.ch ([212.101.4.138]:64983 "EHLO mail04.solnet.ch"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753205Ab1CKIeC convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Mar 2011 03:34:02 -0500
-In-Reply-To: <alpine.DEB.2.00.1103091933260.15132@utopia.booyaka.com>
-Content-Language: en-US
+	id S1752542Ab1CKInO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 11 Mar 2011 03:43:14 -0500
+In-Reply-To: <1299827578.2567.1.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: "K, Mythri P" <mythripk@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-> -----Original Message-----
-> From: Paul Walmsley [mailto:paul@pwsan.com]
-> Sent: Thursday, March 10, 2011 8:08 AM
-> To: Cousson, Benoit
-> Cc: Premi, Sanjeev; linux-omap@vger.kernel.org
-> Subject: Re: [RFC] AM35x: Workaround to use generic OMAP3 hwmods
->=20
->=20
-> Hi,
->=20
-> I just queued a patch to fix the SmartReflex problem.  It's the part =
-that
-> fixes the incorrect data:
->=20
->     http://marc.info/?l=3Dlinux-omap&m=3D129972435510631&w=3D2
->=20
-> Beno=EEt, if you are happy with it, care to send an Acked-by:?  Also,=
- I
-> guess we should revisit the other part of your patch at some point.
+Am 11.03.2011 08:12, schrieb Tomi Valkeinen:
+> On Thu, 2011-03-10 at 08:45 -0600, Stephan Raue wrote:
+>> Hi,
+>>
+>> if i try this patch series the boot stops after (seeing via serial console):
+>>
+>>     Starting kernel ...
+>>
+>>     Uncompressing Linux... done, booting the kernel.
+>>
+>> without this patch series i can see the boot to th OS. I am using this
+>> patches on top of
+>>
+>>     http://gitorious.org/linux-omap-dss2/linux/commits/master
+>>
+>> Do i anything wrong or do i use a wrong git repo (the patches apply
+>> cleanly)? Her my kernel config: http://fpaste.org/9Esw/
+> Hmm, I cannot even compile the kernel with that config:
+>
+>    CC      arch/arm/mach-omap2/io.o
+> In file included from arch/arm/mm/init.c:27:0:
+> /home/tomba/work/linux/arch/arm/include/asm/tlb.h: In function 'tlb_flush_mmu':
+> /home/tomba/work/linux/arch/arm/include/asm/tlb.h:104:3: error: implicit declaration of function 'release_pages'
+> In file included from arch/arm/mm/init.c:27:0:
+> /home/tomba/work/linux/arch/arm/include/asm/tlb.h: In function 'tlb_remove_page':
+> /home/tomba/work/linux/arch/arm/include/asm/tlb.h:168:3: error: implicit declaration of function 'page_cache_release'
+> make[1]: *** [arch/arm/mm/init.o] Error 1
+> make: *** [arch/arm/mm] Error 2
+> make: *** Waiting for unfinished jobs....
+>
+>   Tomi
+>
+please enable swap support or try: 
+http://ftp.arm.linux.org.uk/git/?p=linux-2.6-arm.git;a=commit;h=97594b0f35c0708cb9551c070b9693a52ec24ebf 
+which is fixed in 2.6.38-rc8
 
-[sp] Thanks. I will be able to try this fix next week.
+Stephan
 
->=20
-> Sanjeev, now AM3517 shouldn't need that nasty hack any more.  I hope =
-you
-> won't need a separate array for AM35xx hwmods, either.  I guess we ne=
-ed to
-> clean up the OMAP3 id.c revision bits.
-
- [sp] Let me know what problem you see. I can take a look while trying =
-this
-     Patch
-
-~sanjeev
-
->=20
->=20
-> - Paul
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
