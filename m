@@ -1,96 +1,101 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH v2 00/19] OMAP4: PM: Suspend,CPU-hotplug and CPUilde support.
-Date: Fri, 11 Mar 2011 22:56:41 +0530
-Message-ID: <f1ee9adb49c6dbc49205c5ba70007e9a@mail.gmail.com>
-References: <1299766095-23879-1-git-send-email-santosh.shilimkar@ti.com><87d3lycu0h.fsf@ti.com><3b3d5e28815aa8bcedf6f43688f403b5@mail.gmail.com>
- <871v2dd58y.fsf@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:41704 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751041Ab1CKR0q (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 11 Mar 2011 12:26:46 -0500
-Received: by mail-qy0-f171.google.com with SMTP id 19so6309413qyj.16
-        for <linux-omap@vger.kernel.org>; Fri, 11 Mar 2011 09:26:44 -0800 (PST)
-In-Reply-To: <871v2dd58y.fsf@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Felipe Contreras <felipe.contreras@nokia.com>
+Subject: [RESEND PATCH] staging: tidspbridge: protect dmm_map properly
+Date: Fri, 11 Mar 2011 19:30:33 +0200
+Message-ID: <1299864633-27542-1-git-send-email-felipe.contreras@nokia.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-main <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Omar Ramirez Luna <omar.ramirez@ti.com>
+Cc: Greg KH <greg@kroah.com>, Ohad Ben-Cohen <ohad@wizery.com>, Fernando Guzman Lugo <fernando.lugo@ti.com>, Felipe Contreras <felipe.contreras@nokia.com>, Tuomas Kulve <tuomas@kulve.fi>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
 
-Kevin,
+We need to protect not only the dmm_map list, but the individual
+map_obj's, otherwise, we might be building the scatter-gather list with
+garbage. So, use the existing proc_lock for that.
 
-> -----Original Message-----
-> From: linux-arm-kernel-bounces@lists.infradead.org [mailto:linux-
-> arm-kernel-bounces@lists.infradead.org] On Behalf Of Kevin Hilman
-> Sent: Friday, March 11, 2011 9:22 PM
-> To: Santosh Shilimkar
-> Cc: linux-omap@vger.kernel.org; linux-arm-
-> kernel@lists.infradead.org; Rajendra Nayak
-> Subject: Re: [PATCH v2 00/19] OMAP4: PM: Suspend,CPU-hotplug and
-> CPUilde support.
->
+I observed race conditions which caused kernel panics while running
+stress tests, also, Tuomas Kulve found it happening quite often in
+Gumstix Over. This patch fixes those.
 
-[....]
+Cc: Tuomas Kulve <tuomas@kulve.fi>
+Signed-off-by: Felipe Contreras <felipe.contreras@nokia.com>
+---
+ drivers/staging/tidspbridge/rmgr/proc.c |   18 ++++++++++++++----
+ 1 files changed, 14 insertions(+), 4 deletions(-)
 
-> >
-> > So just to summaries, on OMAP$ 'enable_off_mode' flag is
-> > used __only__ in Suspend. CPUx power domain always hit OFF
-> > mode no matter what is state of this flag because CSWR isn't
-> > supported on these PD's.
->
-> If it's useful only in suspend, then it's redundant with the
-> <debugfs>/pm_debug/*_pwrdm/suspend controls which allow per-pwrdm
-> control over next states.
->
-> > We could remove this flag as well but thought that this might be
-> > useful especially when we add CORE RET, DEVICE OFF support.
->
-> I'd rather see working off-mode be a requirement for getting OMAP4
-> drivers supported.
->
-> Also, we can still test suspend/resume with off-mode disabled by
-> using the above debugfs controls.
->
-> > May be we keep this till the constraint frameworks comes in and
-> > then drop it once for all. I am ok with whatever direction you
-> > decide here.
->
-> I prefer to drop it completely for OMAP4.
->
-OK. Lets do that.
-
-Just to not miss your point here, what I understood here
-is default suspend state on OMAP$B will be off mode.
-
-We still keep "enable_off_mode" flag for testing so that we
-can disable off mode to debug regressions.
-
-Is that right?
-If yes then only below update is needed.
-
-diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
-index 2e18c1d..1a8cbdd 100644
---- a/arch/arm/mach-omap2/pm44xx.c
-+++ b/arch/arm/mach-omap2/pm44xx.c
-@@ -167,7 +167,7 @@ static int __init pwrdms_setup(struct powerdomain
-*pwrdm, void *unused)
- 		return -ENOMEM;
-
- 	pwrst->pwrdm = pwrdm;
--	pwrst->next_state = PWRDM_POWER_RET;
-+	pwrst->next_state = PWRDM_POWER_OFF;
- 	list_add(&pwrst->node, &pwrst_list);
-
- 	return omap_set_pwrdm_state(pwrst->pwrdm, pwrst->next_state);
-@@ -253,6 +253,8 @@ static int __init omap4_pm_init(void)
- 		pr_err("Failed to initialise OMAP4 MPUSS\n");
- 		goto err2;
+diff --git a/drivers/staging/tidspbridge/rmgr/proc.c b/drivers/staging/tidspbridge/rmgr/proc.c
+index b47d7aa..21052e3 100644
+--- a/drivers/staging/tidspbridge/rmgr/proc.c
++++ b/drivers/staging/tidspbridge/rmgr/proc.c
+@@ -781,12 +781,14 @@ int proc_begin_dma(void *hprocessor, void *pmpu_addr, u32 ul_size,
+ 							(u32)pmpu_addr,
+ 							ul_size, dir);
+ 
++	mutex_lock(&proc_lock);
++
+ 	/* find requested memory are in cached mapping information */
+ 	map_obj = find_containing_mapping(pr_ctxt, (u32) pmpu_addr, ul_size);
+ 	if (!map_obj) {
+ 		pr_err("%s: find_containing_mapping failed\n", __func__);
+ 		status = -EFAULT;
+-		goto err_out;
++		goto no_map;
  	}
-+	
-+	enable_off_mode = 1;
- #endif
-
- #ifdef CONFIG_SUSPEND
+ 
+ 	if (memory_give_ownership(map_obj, (u32) pmpu_addr, ul_size, dir)) {
+@@ -795,6 +797,8 @@ int proc_begin_dma(void *hprocessor, void *pmpu_addr, u32 ul_size,
+ 		status = -EFAULT;
+ 	}
+ 
++no_map:
++	mutex_unlock(&proc_lock);
+ err_out:
+ 
+ 	return status;
+@@ -819,12 +823,14 @@ int proc_end_dma(void *hprocessor, void *pmpu_addr, u32 ul_size,
+ 							(u32)pmpu_addr,
+ 							ul_size, dir);
+ 
++	mutex_lock(&proc_lock);
++
+ 	/* find requested memory are in cached mapping information */
+ 	map_obj = find_containing_mapping(pr_ctxt, (u32) pmpu_addr, ul_size);
+ 	if (!map_obj) {
+ 		pr_err("%s: find_containing_mapping failed\n", __func__);
+ 		status = -EFAULT;
+-		goto err_out;
++		goto no_map;
+ 	}
+ 
+ 	if (memory_regain_ownership(map_obj, (u32) pmpu_addr, ul_size, dir)) {
+@@ -834,6 +840,8 @@ int proc_end_dma(void *hprocessor, void *pmpu_addr, u32 ul_size,
+ 		goto err_out;
+ 	}
+ 
++no_map:
++	mutex_unlock(&proc_lock);
+ err_out:
+ 	return status;
+ }
+@@ -1726,9 +1734,8 @@ int proc_un_map(void *hprocessor, void *map_addr,
+ 		    (p_proc_object->hbridge_context, va_align, size_align);
+ 	}
+ 
+-	mutex_unlock(&proc_lock);
+ 	if (status)
+-		goto func_end;
++		goto unmap_failed;
+ 
+ 	/*
+ 	 * A successful unmap should be followed by removal of map_obj
+@@ -1737,6 +1744,9 @@ int proc_un_map(void *hprocessor, void *map_addr,
+ 	 */
+ 	remove_mapping_information(pr_ctxt, (u32) map_addr, size_align);
+ 
++unmap_failed:
++	mutex_unlock(&proc_lock);
++
+ func_end:
+ 	dev_dbg(bridge, "%s: hprocessor: 0x%p map_addr: 0x%p status: 0x%x\n",
+ 		__func__, hprocessor, map_addr, status);
+-- 
+1.7.4.1
