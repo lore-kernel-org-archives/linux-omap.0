@@ -1,45 +1,44 @@
-From: UBS International Holdings BV <info@usb.com>
-Subject: I Need Your Honesty.
-Date: Fri, 11 Mar 2011 16:24:13 +0100
-Message-ID: <20110311162413.1uw3v13xnkgskg44__12223.7417068847$1299858858$gmane$org@wm.uib.es>
-Reply-To: mrbeuker_hendrikubs@live.nl
+From: Corentin Chary <corentin.chary@gmail.com>
+Subject: Re: [ANNOUNCE] cpupowerutils - cpufrequtils extended with quite some features
+Date: Fri, 11 Mar 2011 15:56:01 +0000
+Message-ID: <AANLkTimFg+uYGbSi=Ci-+_e89TgLkyMB7PAJcnt7mzTc@mail.gmail.com>
+References: <201103111247.00212.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset=ISO-8859-1;
-	DelSp="Yes";
-	format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mortitx.uib.es ([130.206.31.221]:20623 "EHLO mortitx.uib.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751207Ab1CKPxs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 11 Mar 2011 10:53:48 -0500
-Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <201103111247.00212.trenn@suse.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Thomas Renninger <trenn@suse.de>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, discuss@lesswatts.org, power@bughost.org, cpufreq@vger.kernel.org, linux@dominikbrodowski.net, Mattia Dongili <malattia@linux.it>, Len Brown <lenb@kernel.org>, Ingo Molnar <mingo@elte.hu>, herrmann.der.user@googlemail.com, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org
 List-Id: linux-omap@vger.kernel.org
 
-UBS International Holdings BV
-Herengracht 600
-NL-1017 CJ Amsterdam, Netherlands.
-www.ubs.com/investmentbank
+On Fri, Mar 11, 2011 at 11:46 AM, Thomas Renninger <trenn@suse.de> wrote:
+> Why is there need for another tool?
+> -----------------------------------
+>
+> CPU power consumption vs performance tuning is not about
+> CPU frequency switching anymore for quite some time.
+> Deep sleep states, traditional dynamic frequency scaling and
+> hidden turbo/boost frequencies are tight close together and
+> depend on each other. The first two exist on different architectures
+> like PPC, Itanium and ARM the latter only on X86.
+> On X86 the APU (CPU+GPU) will only run most efficiently if CPU
+> and GPU has proper power management in place.
+>
+> Users and Developers want to have *one* tool to get an overview what their
+> system supports and to monitor and debug CPU power management in detail.
+>
+> The tool should compile and work on as much architectures as
+> possible.
+>
 
-Greetings,
+Hi Thomas,
+Do you think handling really vendor specific "boosts" like EeePC's SHE
+is in cpupower scope ?
+Still, it would not solve the issue of setting SHE mode in a standard
+way, or associating it with a governor.
+Thanks,
 
-I am an investment consultant working with UBS International Holdings BV
-in the Netherlands. I will be happy to work a transaction of $8.5million
-out with you if you have a corporate or personal bank Account. If you are
-interested, get back to me via my private email for further informations;
-mrbeuker_hendrikubs@live.nl
-
-I look forward to hearing from you as soon as possible and thank you for
-your time and attention.
-
-Warmest Regards,
-Mr. Beuker Hendrik
-Investment Consultant.
-UBS.
-
-----------------------------------------------------------------
-
-
-
+-- 
+Corentin Chary
+http://xf.iksaif.net
