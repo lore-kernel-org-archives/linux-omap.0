@@ -1,127 +1,91 @@
-From: "Gulati, Shweta" <shweta.gulati@ti.com>
-Subject: Re: [PATCH] OMAP4: Intialize IVA Device in addition to DSP device.
-Date: Fri, 11 Mar 2011 11:09:02 +0530
-Message-ID: <AANLkTiku50dsYOM0d7kYqL+AngvAhxh8_YOyfuYB65xp@mail.gmail.com>
-References: <1299738148-28557-1-git-send-email-shweta.gulati@ti.com>
-	<fc1162b5d4e1a7deb77aa800a3e8fdb3@mail.gmail.com>
-	<4D78D860.2050609@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH v2 00/19] OMAP4: PM: Suspend, CPU-hotplug and CPUilde support.
+Date: Fri, 11 Mar 2011 11:22:26 +0530
+Message-ID: <3b3d5e28815aa8bcedf6f43688f403b5@mail.gmail.com>
+References: <1299766095-23879-1-git-send-email-santosh.shilimkar@ti.com> <87d3lycu0h.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:53498 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751194Ab1CKFjF convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 11 Mar 2011 00:39:05 -0500
-Received: by bwz14 with SMTP id 14so2633390bwz.30
-        for <linux-omap@vger.kernel.org>; Thu, 10 Mar 2011 21:39:02 -0800 (PST)
-In-Reply-To: <4D78D860.2050609@ti.com>
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:42770 "EHLO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751388Ab1CKFw3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 11 Mar 2011 00:52:29 -0500
+Received: by mail-qw0-f47.google.com with SMTP id 2so1822106qwi.6
+        for <linux-omap@vger.kernel.org>; Thu, 10 Mar 2011 21:52:28 -0800 (PST)
+In-Reply-To: <87d3lycu0h.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Vishwanath Sripathy <vishwanath.bs@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, linux-arm-kernel@lists.infradead.org
 
-Hi,
+> -----Original Message-----
+> From: Kevin Hilman [mailto:khilman@ti.com]
+> Sent: Friday, March 11, 2011 7:13 AM
+> To: Santosh Shilimkar
+> Cc: linux-omap@vger.kernel.org; rnayak@ti.com; linux-arm-
+> kernel@lists.infradead.org
+> Subject: Re: [PATCH v2 00/19] OMAP4: PM: Suspend, CPU-hotplug and
+> CPUilde support.
+>
+> Hi Santosh,
+>
+> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
+[....]
 
-On Thu, Mar 10, 2011 at 7:25 PM, Nishanth Menon <nm@ti.com> wrote:
-> Few cosmetic comments follow:
-> Vishwanath Sripathy wrote, on 03/10/2011 02:36 PM:
->>>
->>> -----Original Message-----
->>> From: linux-arm-kernel-bounces@lists.infradead.org [mailto:linux-ar=
-m-
->>> kernel-bounces@lists.infradead.org] On Behalf Of Shweta Gulati
->>> Sent: Thursday, March 10, 2011 11:52 AM
->>> To: linux-omap@vger.kernel.org
->>> Cc: Shweta Gulati; linux-arm-kernel@lists.infradead.org
->>> Subject: [PATCH] OMAP4: Intialize IVA Device in addition to DSP dev=
-ice.
->>>
->>> OMAP4 has two different Devices IVA and DSP. DSP is bound
->>> with MPU for DVFS and IVA has its own well defined OPPs.
->>
->> DSP is not in MPU voltage domain. DSP(Tesla) and IVAHD are in the sa=
-me
->> voltage domain. Pls correct this in the commit log.
 >
-> True for OMAP4 - DSP and MPU DVFS are independent, in OMAP3, they wer=
-e
-> scaled together ;)
-Will correct the Commit log.
-> [...]
->>>
->>> This Patch adds IVA init to 'omap2_init_processor_devices'
->>> and make sure that API 'omap2_set_init_voltage' is called
->>> for apt dev pointer.
+> This series doesn't boot on ES1 (boot log below.)  Do we need to
+> totally prevent WFI on ES1?
 >
-> set_init_voltage error is just one symptom of the problem. infact, if=
- we
-> wanted to do anything with iva - e.g. dvfs, we would'nt have been abl=
-e to
-> without the device being registered.
-Yes, Fair enough need to rephrase whole Log.
->>
->>> It fixes Error logs:
+> Also, if we want a CPUidle enabled kernel to boot on all silicon, it
+> will need a omap_rev() check during init to ensure it doesn't
+> override the default idle path.
 >
-> "This also fixes the following error seen during boot as
-> omap2_set_init_voltage can now find the iva device" is better than th=
-e "This
-> patch...."?
-Will do.
->>>
->>> =A0 =A0 =A0 =A0omap2_set_init_voltage: Invalid parameters!
->>> =A0 =A0 =A0 =A0omap2_set_init_voltage: Unable to put vdd_iva to its=
- init voltage
->
-> Thanks for catching and fixing this - I had noticed this in my SR 1.5
-> testing(should have posted as well), but had'nt tried to dig further.
->
->>>
->>> Tested on OMAP4430 SDP Board.
->>> Baseline:
->>> http://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-
->>> pm.git
->>> Branch :pm-core
->
-> Do you really want this information in commit log? I suggest you move=
- this
-> to the diffstat section.
-Will do.
->>>
->>> Signed-off-by: Shweta Gulati<shweta.gulati@ti.com>
->>> ---
->>> =A0arch/arm/mach-omap2/pm.c | =A0 =A01 +
->>> =A01 files changed, 1 insertions(+), 0 deletions(-)
->>>
->>> diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
->>> index 30af335..49486f5 100644
->>> --- a/arch/arm/mach-omap2/pm.c
->>> +++ b/arch/arm/mach-omap2/pm.c
->>> @@ -89,6 +89,7 @@ static void omap2_init_processor_devices(void)
->>> =A0 =A0 =A0 =A0if (cpu_is_omap44xx()) {
->>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0_init_omap_device("l3_main_1",&l3_de=
-v);
->>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0_init_omap_device("dsp",&dsp_dev);
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 _init_omap_device("iva",&iva_dev);
->>> =A0 =A0 =A0 =A0} else {
->>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0_init_omap_device("l3_main",&l3_dev)=
-;
->>> =A0 =A0 =A0 =A0}
->
->
->
-> --
-> Regards,
-> Nishanth Menon
->
+Make sense. Will try it on ES1.0 silicon.
 
---=20
-Thanks,
+
+[....]
+
+> > off-mode debugfs control:
+> > 	enable: $echo 1 > /proc/sys/debug/pm_debug/enable_off_mode
+> > 	disable: $echo 0 > /proc/sys/debug/pm_debug/enable_off_mode
+>
+> Without enabling off-mode, I took CPU1 offline and see that it
+> immediatly goes off.  This makes sense based on the HW, but not in
+> light
+> of the enable_off_mode flag.  For OMAP4, maybe it makes sense to not
+> have the enable_off_mode flag at all?   We'll be getting rid of it
+> on OMAP3 as soon as the constraints framework is ready, so maybe it
+> makes sense to just go without it for OMAP4?
+>
+Actually that's expected since enable_off_mode flag doesn't manage CPUX
+power domain states and they are always hit OFF. CSWR isn't
+supported on CPUX power domains as captured in the series. But
+I agree with you that it might be confusing.
+
+[...]
+> More confusion: another test (also with CPUidle enabled), I see that
+> the MPU and DSS are also hitting off-mode:
+>
+This behavior changed when we dropped enable_off_mode flag to updated
+C-states in favor of prepare() hooks. DSS showing OFF mode is because
+of debug counter issue. DSS PD doesn't support previous power state
+which these counter code is trying to read. There are couple of
+patches from Rajendra and Thara do address this counter issues but
+they are bit of hacky. May be we can get them on the list to discuss
+further.
+
+So just to summaries, on OMAP$ 'enable_off_mode' flag is
+used __only__ in Suspend. CPUx power domain always hit OFF
+mode no matter what is state of this flag because CSWR isn't
+supported on these PD's.
+
+We could remove this flag as well but thought that this might be
+useful especially when we add CORE RET, DEVICE OFF support.
+
+May be we keep this till the constraint frameworks comes in and
+then drop it once for all. I am ok with whatever direction you
+decide here.
+
 Regards,
-Shweta
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Santosh
