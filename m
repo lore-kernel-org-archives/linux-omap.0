@@ -1,55 +1,63 @@
-From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Subject: Re: [RESEND PATCH] staging: tidspbridge: protect dmm_map properly
-Date: Fri, 11 Mar 2011 12:05:23 -0600
-Message-ID: <AANLkTin_2yo705Ka3KO_09nK3ZUEi_0uYfi6fKQqwBVV@mail.gmail.com>
-References: <1299864633-27542-1-git-send-email-felipe.contreras@nokia.com>
-	<AANLkTi=Hy18s5fOziHSNdG6QUZE85bg0Bb9cAqE42mVQ@mail.gmail.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH v2 00/19] OMAP4: PM: Suspend,CPU-hotplug and CPUilde support.
+Date: Fri, 11 Mar 2011 23:43:32 +0530
+Message-ID: <99e2889f2135ff52fd9908c4855b301b@mail.gmail.com>
+References: <1299766095-23879-1-git-send-email-santosh.shilimkar@ti.com><87d3lycu0h.fsf@ti.com><3b3d5e28815aa8bcedf6f43688f403b5@mail.gmail.com><871v2dd58y.fsf@ti.com><f1ee9adb49c6dbc49205c5ba70007e9a@mail.gmail.com><87k4g5a6n5.fsf@ti.com><420e5c6f0aff0bbd23b7f3e9c190ca97@mail.gmail.com>
+ <874o79a60n.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:59588 "EHLO
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:39426 "EHLO
 	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751465Ab1CKSFX (ORCPT
+	by vger.kernel.org with ESMTP id S1751934Ab1CKSNf (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 11 Mar 2011 13:05:23 -0500
-In-Reply-To: <AANLkTi=Hy18s5fOziHSNdG6QUZE85bg0Bb9cAqE42mVQ@mail.gmail.com>
+	Fri, 11 Mar 2011 13:13:35 -0500
+Received: by yih10 with SMTP id 10so2944033yih.25
+        for <linux-omap@vger.kernel.org>; Fri, 11 Mar 2011 10:13:34 -0800 (PST)
+In-Reply-To: <874o79a60n.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: Felipe Contreras <felipe.contreras@nokia.com>, linux-main <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Greg KH <greg@kroah.com>, Ohad Ben-Cohen <ohad@wizery.com>, Fernando Guzman Lugo <fernando.lugo@ti.com>, Tuomas Kulve <tuomas@kulve.fi>
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
 
-Hi Felipe,
-
-On Fri, Mar 11, 2011 at 11:38 AM, Felipe Contreras
-<felipe.contreras@gmail.com> wrote:
-> On Fri, Mar 11, 2011 at 7:30 PM, Felipe Contreras
-> <felipe.contreras@nokia.com> wrote:
->> We need to protect not only the dmm_map list, but the individual
->> map_obj's, otherwise, we might be building the scatter-gather list with
->> garbage. So, use the existing proc_lock for that.
->>
->> I observed race conditions which caused kernel panics while running
->> stress tests, also, Tuomas Kulve found it happening quite often in
->> Gumstix Over. This patch fixes those.
->>
->> Cc: Tuomas Kulve <tuomas@kulve.fi>
->> Signed-off-by: Felipe Contreras <felipe.contreras@nokia.com>
+> -----Original Message-----
+> From: Kevin Hilman [mailto:khilman@ti.com]
+> Sent: Friday, March 11, 2011 11:34 PM
+> To: Santosh Shilimkar
+> Cc: linux-omap@vger.kernel.org; linux-arm-
+> kernel@lists.infradead.org; Rajendra Nayak
+> Subject: Re: [PATCH v2 00/19] OMAP4: PM: Suspend,CPU-hotplug and
+> CPUilde support.
 >
-> Omar, 2.6.38 is imminent, if this patch has any chance of getting in,
-> I think you would need to push it soon.
+> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
+>
 
-I'll push it to my queue, however I don't think this would be even
-considered to make it before the official 2.6.38 which should happen
-in the next few days, given that it should climb to staging tree first
-and from there to mainline... we could attempt to shot directly to the
-mainline kernel, but that would raise a few eyebrows and in the end be
-rejected as well because this is a staging driver which is still in
-process of cleanup.
+[...]
 
-OTOH, this patch was there long ago, since December, but I just lost
-the track of it at the moment, along with the other proposed
-solutions, so I take it as my fault for not picking it up then.
+> > Thanks for clarification. The change is quite trivial. Will
+> > update the branch with this change.
+> > After testing it, will intimate you
+>
+> One other thing to check...
+>
+> I've now included Russell's devel branch into my pm-core branch.
+> Can you rebase your series there?  I did a test rebase of v3 and it
+> rebased fine (after dropping the patches that are already in devel.)
+>
+Great.
+
+> After doing that, I get a compile error:
+>
+> arch/arm/mach-omap2/built-in.o: In function `mmu_on_label':
+> /work/kernel/omap/pm/arch/arm/mach-omap2/sleep44xx.S:394: undefined
+> reference to `PHYS_OFFSET'
+> make[1]: *** [.tmp_vmlinux1] Error 1
+> make: *** [sub-make] Error 2
+>
+> It looks like there might be some other changes in Russell's queue
+> that you need to take into consideration.
+>
+Ok. Will check that.
 
 Regards,
-
-Omar
+Santosh
