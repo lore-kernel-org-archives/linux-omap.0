@@ -1,55 +1,87 @@
-From: Sergei Shtylyov <sshtylyov@mvista.com>
-Subject: Re: [PATCH] can : AM3517EVM : add platform specific init
-Date: Fri, 11 Mar 2011 15:19:43 +0300
-Message-ID: <4D7A135F.5030004@ru.mvista.com>
-References: <1299775153-16766-1-git-send-email-abhilash.kv@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH v2 00/19] OMAP4: PM: Suspend, CPU-hotplug and CPUilde support.
+Date: Fri, 11 Mar 2011 18:01:12 +0530
+Message-ID: <49a5273c412bf9193a9f930e990d22d4@mail.gmail.com>
+References: <1299766095-23879-1-git-send-email-santosh.shilimkar@ti.com>
+ <87d3lycu0h.fsf@ti.com> 3b3d5e28815aa8bcedf6f43688f403b5@mail.gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1299775153-16766-1-git-send-email-abhilash.kv@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Abhilash K V <abhilash.kv@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, tony@atomide.com, linux@arm.linux.org.uk, Sriramakrishnan <srk@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:46366 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752674Ab1CKMbQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 11 Mar 2011 07:31:16 -0500
+Received: by qyk27 with SMTP id 27so2493489qyk.6
+        for <linux-omap@vger.kernel.org>; Fri, 11 Mar 2011 04:31:14 -0800 (PST)
+In-Reply-To: 3b3d5e28815aa8bcedf6f43688f403b5@mail.gmail.com
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, linux-arm-kernel@lists.infradead.org
 
-Hello.
-
-On 10-03-2011 19:39, Abhilash K V wrote:
-
-> CAN module on AM3517 requires programming of IO expander
-> as part of init sequence. Added transceiver_switch
-> callback to handle this.
-
-> Signed-off-by: Sriramakrishnan<srk@ti.com>
-> Reviewed-by:  Vaibhav Hiremath<hvaibhav@ti.com>
-> Signed-off-by: Abhilash K V<abhilash.kv@ti.com>
-> ---
->   arch/arm/mach-omap2/board-am3517evm.c |   18 ++++++++++++++++++
->   1 files changed, 18 insertions(+), 0 deletions(-)
-
-> diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
-> index 2e4aad2..782d72d 100644
-> --- a/arch/arm/mach-omap2/board-am3517evm.c
-> +++ b/arch/arm/mach-omap2/board-am3517evm.c
-> @@ -734,6 +734,23 @@ static struct omap_board_mux board_mux[] __initdata = {
->   };
->   #endif
+Kevin,
+> -----Original Message-----
+> From: Santosh Shilimkar [mailto:santosh.shilimkar@ti.com]
+> Sent: Friday, March 11, 2011 11:22 AM
+> To: Kevin Hilman
+> Cc: 'linux-omap@vger.kernel.org'; Rajendra Nayak; 'linux-arm-
+> kernel@lists.infradead.org'
+> Subject: RE: [PATCH v2 00/19] OMAP4: PM: Suspend, CPU-hotplug and
+> CPUilde support.
 >
-> +/*
-> + * HECC information
-> + */
-> +
-> +#define CAN_STB         214
-> +static void hecc_phy_control(int on)
-> +{
-> +        int r;
-> +
-> +        r = gpio_request(CAN_STB, "can_stb");
-> +        if (r) {
-> +                printk(KERN_ERR "failed to get can_stb \n");
+> > -----Original Message-----
+> > From: Kevin Hilman [mailto:khilman@ti.com]
+> > Sent: Friday, March 11, 2011 7:13 AM
+> > To: Santosh Shilimkar
+> > Cc: linux-omap@vger.kernel.org; rnayak@ti.com; linux-arm-
+> > kernel@lists.infradead.org
+> > Subject: Re: [PATCH v2 00/19] OMAP4: PM: Suspend, CPU-hotplug and
+> > CPUilde support.
+> >
+> > Hi Santosh,
+> >
+> > Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
+> [....]
+>
+> >
+> > This series doesn't boot on ES1 (boot log below.)  Do we need to
+> > totally prevent WFI on ES1?
+> >
+Nope. WFI is ok.
+The ES1.0 boot issue on pm-core branch doesn't seems to
+be related to this series. Without this series as well
+OMAP4 ES1.0 is not booting for me. When I disable
+CONFIG_PM + WATCHDOG fix, it booted ok. I will
+git-bisect this later on pm-core branch.
 
-    Have you run the patch thru checkpatch.pl? IIRC, it warns about spaces 
-before '\n'...
+> > Also, if we want a CPUidle enabled kernel to boot on all silicon,
+> > it will need a omap_rev() check during init to ensure it doesn't
+> > override the default idle path.
+> >
+OMAP4 PM series already takes care of not overriding
+the default idle path for ES1.0. The omap4_mpuss_init()
+fails on ES1.0 and hence the CPUidle init is skipped in
+that case.
 
-WBR, Sergei
+Just to further check, I pulled the latest omap-for-linus
+branch and merged Paul's pull-request into it. Then
+applied OMAP4 PM series and I got a boot crash, a different
+one. This was again related to clock-domain initialization
+and static deps. I fixed this issue by avoiding omap4_pm_init()
+code running on ES1.0. With this boot on ES1.0 works fine now
+with OMAP4 PM series.
+
+Posted the patch for the same.
+https://patchwork.kernel.org/patch/628231/
+
+
+The rebased series against
+	Latest 'omap-for-linus + Paul's pull-request'
+have pushed to below branch.
+
+git://dev.omapzoom.org/pub/scm/santosh/kernel-omap4-base.git
+omap4_pm_for-next_v3
+
+Regards,
+Santosh
