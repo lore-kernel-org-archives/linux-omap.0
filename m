@@ -1,51 +1,55 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH] OMAP4: PM: Avoid omap4_pm_init() on OMAP4430 ES1.0
-Date: Fri, 11 Mar 2011 17:26:41 +0530
-Message-ID: <1299844601-13248-1-git-send-email-santosh.shilimkar@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:35955 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751952Ab1CKL4v (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 11 Mar 2011 06:56:51 -0500
-Sender: linux-omap-owner@vger.kernel.org
+From: Sergei Shtylyov <sshtylyov@mvista.com>
+Subject: Re: [PATCH] can : AM3517EVM : add platform specific init
+Date: Fri, 11 Mar 2011 15:19:43 +0300
+Message-ID: <4D7A135F.5030004@ru.mvista.com>
+References: <1299775153-16766-1-git-send-email-abhilash.kv@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1299775153-16766-1-git-send-email-abhilash.kv@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Abhilash K V <abhilash.kv@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, tony@atomide.com, linux@arm.linux.org.uk, Sriramakrishnan <srk@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@ti.com>
 
-On OMAP4430 ES1.0, Power Management features are not supported.
-Avoid omap4_pm_init() on ES1.0 silicon so that we can continue
-to use same kernel binary to boot on all OMAP4 silicons.
+Hello.
 
-The ES1.0 boot failure with OMAP4 PM series was because of
-the clockdomain initialisation code. Hardware supervised
-clockdomain mode isn't functional for all clockdomains
-on OMAP4430 ES1.0 silicon so avoid the same.
+On 10-03-2011 19:39, Abhilash K V wrote:
 
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Reported-by: Kevin Hilman <khilman@ti.com>
-Cc: Kevin Hilman <khilman@ti.com>
----
-Patch applies on top of OMAP4 PM series
+> CAN module on AM3517 requires programming of IO expander
+> as part of init sequence. Added transceiver_switch
+> callback to handle this.
 
- arch/arm/mach-omap2/pm44xx.c |    5 +++++
- 1 files changed, 5 insertions(+), 0 deletions(-)
+> Signed-off-by: Sriramakrishnan<srk@ti.com>
+> Reviewed-by:  Vaibhav Hiremath<hvaibhav@ti.com>
+> Signed-off-by: Abhilash K V<abhilash.kv@ti.com>
+> ---
+>   arch/arm/mach-omap2/board-am3517evm.c |   18 ++++++++++++++++++
+>   1 files changed, 18 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
-index e887a5d..2e18c1d 100644
---- a/arch/arm/mach-omap2/pm44xx.c
-+++ b/arch/arm/mach-omap2/pm44xx.c
-@@ -203,6 +203,11 @@ static int __init omap4_pm_init(void)
- 	if (!cpu_is_omap44xx())
- 		return -ENODEV;
- 
-+	if (omap_rev() == OMAP4430_REV_ES1_0) {
-+		WARN(1, "Power Management not supported on OMAP4430 ES1.0\n");
-+		return -ENODEV;
-+	}
-+
- 	pr_err("Power Management for TI OMAP4.\n");
- 
- #ifdef CONFIG_PM
--- 
-1.6.0.4
+> diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
+> index 2e4aad2..782d72d 100644
+> --- a/arch/arm/mach-omap2/board-am3517evm.c
+> +++ b/arch/arm/mach-omap2/board-am3517evm.c
+> @@ -734,6 +734,23 @@ static struct omap_board_mux board_mux[] __initdata = {
+>   };
+>   #endif
+>
+> +/*
+> + * HECC information
+> + */
+> +
+> +#define CAN_STB         214
+> +static void hecc_phy_control(int on)
+> +{
+> +        int r;
+> +
+> +        r = gpio_request(CAN_STB, "can_stb");
+> +        if (r) {
+> +                printk(KERN_ERR "failed to get can_stb \n");
 
+    Have you run the patch thru checkpatch.pl? IIRC, it warns about spaces 
+before '\n'...
+
+WBR, Sergei
