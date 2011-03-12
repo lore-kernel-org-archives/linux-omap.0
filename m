@@ -1,53 +1,74 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [RFC PATCHv2 1/2] Export SoC info through sysfs
-Date: Fri, 11 Mar 2011 23:13:15 +0100
-Message-ID: <201103112313.16128.arnd@arndb.de>
-References: <1299846911-15782-1-git-send-email-maxime.coquelin-nonst@stericsson.com>
-	<201103112242.43962.arnd@arndb.de>
-	<20110311220333.GA30232@kroah.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH v12 4/9] OMAP2+: dmtimer: convert to platform devices
+Date: Fri, 11 Mar 2011 16:03:03 -0800
+Message-ID: <87d3lx5hoo.fsf@ti.com>
+References: <1299627948-20040-1-git-send-email-tarun.kanti@ti.com>
+	<1299627948-20040-5-git-send-email-tarun.kanti@ti.com>
+	<87oc5ifu12.fsf@ti.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB037A4DD948@dbde02.ent.ti.com>
+	<20110311191324.GE10079@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20110311220333.GA30232@kroah.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Greg KH <greg@kroah.com>
-Cc: ext Nishanth Menon <nm@ti.com>, ext Tony Lindgren <tony@atomide.com>, Peter De-Schrijver <Peter.De-Schrijver@nokia.com>, Linus Walleij <linus.walleij@linaro.org>, Ambresh <a0393775@ti.com>, Saravana Kannan <skannan@codeaurora.org>, Jouni Hogander <jouni.hogander@nokia.com>, Lee Jones <Lee.Jones@linaro.org>, Rabin VINCENT <rabin.vincent@stericsson.com>, Russell King <linux@arm.linux.org.uk>, Jonas ABERG <jonas.aberg@stericsson.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, David Brown <davidb@codeaurora.org>, Maxime Coquelin <maxime.coquelin-nonst@stericsson.com>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, Loic PALLARDY <loic.pallardy@stericsson.com>, Eduardo Valentin <eduardo.valentin@nokia.com>, maxime_coquelin@yahoo.fr, Ryan Mallon <ryan@bluewatersys.com>, Linux-OMAP <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.orgD
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:49647 "EHLO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752269Ab1CLADH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 11 Mar 2011 19:03:07 -0500
+Received: by mail-yw0-f45.google.com with SMTP id 41so1653659ywl.4
+        for <linux-omap@vger.kernel.org>; Fri, 11 Mar 2011 16:03:06 -0800 (PST)
+In-Reply-To: <20110311191324.GE10079@atomide.com> (Tony Lindgren's message of
+	"Fri, 11 Mar 2011 11:13:24 -0800")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gopinath, Thara" <thara@ti.com>
 
-On Friday 11 March 2011 23:03:33 Greg KH wrote:
-> On Fri, Mar 11, 2011 at 10:42:43PM +0100, Arnd Bergmann wrote:
-> > On Friday 11 March 2011 20:33:30 Greg KH wrote:
-> > > Make this a "real" device not /sys/socinfo please.  It can be a platform
-> > > device that export the needed information, that way you can have
-> > > multiple ones.
-> > 
-> > Note that the version 1 of this patch had a device, and I argued against
-> > that patch on the basis that anything under /sys/devices/ should
-> > reflect an actual part of the hardware, which socinfo by itself
-> > does not.
-> 
-> Why is the overall SoC not a device?  cpus are (well, they will be in a
-> few kernel versions in the future), so what makes the other bits somehow
-> "special"?
+Tony Lindgren <tony@atomide.com> writes:
 
-The suggestion was to have a single disconnected device stuck 
-in /sys/devices/system/socinfo, and only have it there to
-contain device attributes that can be collected from random
-places in the system, such hardcoded board specific data,
-or read from registers that belong to another device.
+> * DebBarma, Tarun Kanti <tarun.kanti@ti.com> [110310 20:18]:
+>> > From: Hilman, Kevin
+>> > 
+>> > I guess Tony has the final say here, but personally, I don't really like
+>> > the special treatment of a system timer, unless it is an init-time only
+>> > special treatment.  Since we now have dynamically configurable
+>> > clocksources, the concept of a system timer doesn't really exist (except
+>> > for in early boot.)  At any time during runtime, we could dynamically
+>> > switch the clocksource to a different timer device.  At this point, one
+>> > would expect runtime PM for the previous timer to kick in and idle the
+>> > timer.  That cannot happen with this approach.
+>>
+>> I am open to suggestions.
+>
+> There's no need to dynamically change the clocksource. We can to set up
+> things so we have a system timer running with minimal code and faster
+> clock rate. Then we can use a separate timer with the 32KiHZ source
+> just to provide wake-up events for idle modes. And this second wake-up
+> timer can be just a regular device driver.
+>
+> The system timer code needs to be fast. And I don't want to add any
+> dependencies to anything except clock framework. Like I've said, the
+> rest of the timers can be just a regular device driver.
 
-A real device IMHO would be one that has specific hardware
-properties, such as its own set of device registers or other
-devices that are attached to it and that are represented
-as children of this device.
+There are a couple problems with this approach.  The special case
+handling of a "system" timer leads to duplicate code (this series is a
+good example.)
 
-	Arnd
+The other problem is PM.
+
+If we switch away from the original system timer (for whatever reason),
+since it is not a regular device, it will not have runtime PM We'll then
+need special case PM code for the system timer, which I think is wasted
+effort.
+
+If this can be done such that the system timer is eventually a regular
+device driver, then that should be fine. 
+
+Kevin
+
+> I'll post some patches after the merge window for the system timer
+> related code.
+>
+> Regards,
+>
+> Tony
