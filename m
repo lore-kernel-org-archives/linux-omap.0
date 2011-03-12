@@ -1,74 +1,26 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v12 4/9] OMAP2+: dmtimer: convert to platform devices
-Date: Fri, 11 Mar 2011 16:03:03 -0800
-Message-ID: <87d3lx5hoo.fsf@ti.com>
-References: <1299627948-20040-1-git-send-email-tarun.kanti@ti.com>
-	<1299627948-20040-5-git-send-email-tarun.kanti@ti.com>
-	<87oc5ifu12.fsf@ti.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB037A4DD948@dbde02.ent.ti.com>
-	<20110311191324.GE10079@atomide.com>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [ANNOUNCE] cpupowerutils - cpufrequtils extended with quite some features
+Date: Sat, 12 Mar 2011 01:18:45 +0100
+Message-ID: <201103120118.46227.trenn@suse.de>
+References: <201103111247.00212.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:49647 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752269Ab1CLADH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 11 Mar 2011 19:03:07 -0500
-Received: by mail-yw0-f45.google.com with SMTP id 41so1653659ywl.4
-        for <linux-omap@vger.kernel.org>; Fri, 11 Mar 2011 16:03:06 -0800 (PST)
-In-Reply-To: <20110311191324.GE10079@atomide.com> (Tony Lindgren's message of
-	"Fri, 11 Mar 2011 11:13:24 -0800")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <cpufreq-owner@vger.kernel.org>
+In-Reply-To: <201103111247.00212.trenn@suse.de>
+Sender: cpufreq-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, discuss@lesswatts.org, power@bughost.org, cpufreq@vger.kernel.org, linux@dominikbrodowski.net, Mattia Dongili <malattia@linux.it>, Len Brown <lenb@kernel.org>, Ingo Molnar <mingo@elte.hu>, herrmann.der.user@googlemail.com, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gopinath, Thara" <thara@ti.com>
 
-Tony Lindgren <tony@atomide.com> writes:
+> cpupowerutils is based on the well known cpufrequtils project.
 
-> * DebBarma, Tarun Kanti <tarun.kanti@ti.com> [110310 20:18]:
->> > From: Hilman, Kevin
->> > 
->> > I guess Tony has the final say here, but personally, I don't really like
->> > the special treatment of a system timer, unless it is an init-time only
->> > special treatment.  Since we now have dynamically configurable
->> > clocksources, the concept of a system timer doesn't really exist (except
->> > for in early boot.)  At any time during runtime, we could dynamically
->> > switch the clocksource to a different timer device.  At this point, one
->> > would expect runtime PM for the previous timer to kick in and idle the
->> > timer.  That cannot happen with this approach.
->>
->> I am open to suggestions.
->
-> There's no need to dynamically change the clocksource. We can to set up
-> things so we have a system timer running with minimal code and faster
-> clock rate. Then we can use a separate timer with the 32KiHZ source
-> just to provide wake-up events for idle modes. And this second wake-up
-> timer can be just a regular device driver.
->
-> The system timer code needs to be fast. And I don't want to add any
-> dependencies to anything except clock framework. Like I've said, the
-> rest of the timers can be just a regular device driver.
+Forgot to mention:
+Big thanks to Dominik Brodowski who already gave this some tests!
 
-There are a couple problems with this approach.  The special case
-handling of a "system" timer leads to duplicate code (this series is a
-good example.)
+Outcome (heavily shortened):
+"You can add that you have my Signed-off-by / Acked-by to all these 
+patches"
 
-The other problem is PM.
-
-If we switch away from the original system timer (for whatever reason),
-since it is not a regular device, it will not have runtime PM We'll then
-need special case PM code for the system timer, which I think is wasted
-effort.
-
-If this can be done such that the system timer is eventually a regular
-device driver, then that should be fine. 
-
-Kevin
-
-> I'll post some patches after the merge window for the system timer
-> related code.
->
-> Regards,
->
-> Tony
+        Thomas
