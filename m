@@ -1,54 +1,59 @@
-From: Shweta Gulati <shweta.gulati@ti.com>
-Subject: [PATCH V2] OMAP4: Intialize IVA Device in addition to DSP device.
-Date: Sat, 12 Mar 2011 16:09:21 +0530
-Message-ID: <1299926361-28482-1-git-send-email-shweta.gulati@ti.com>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [PATCH] staging: tidspbridge: protect dmm_map properly
+Date: Sat, 12 Mar 2011 09:36:26 -0800
+Message-ID: <20110312173626.GC24981@kroah.com>
+References: <1299889746-16502-1-git-send-email-omar.ramirez@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:37397 "EHLO bear.ext.ti.com"
+Received: from kroah.org ([198.145.64.141]:40380 "EHLO coco.kroah.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752352Ab1CLKjb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 12 Mar 2011 05:39:31 -0500
+	id S1754737Ab1CLRl2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 12 Mar 2011 12:41:28 -0500
+Content-Disposition: inline
+In-Reply-To: <1299889746-16502-1-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Shweta Gulati <shweta.gulati@ti.com>
+To: Omar Ramirez Luna <omar.ramirez@ti.com>
+Cc: l-m <linux-kernel@vger.kernel.org>, Felipe Contreras <felipe.contreras@nokia.com>, l-o <linux-omap@vger.kernel.org>, Ohad Ben-Cohen <ohad@wizery.com>, Fernando Guzman Lugo <fernando.lugo@ti.com>, Tuomas Kulve <tuomas@kulve.fi>
 
-OMAP4 has two different Devices IVA and DSP. DSP is bound
-with IVA for DVFS. The registration of IVA dev in API
-'omap2_init_processor_devices' was missing. Init dev for
-'iva_dev' is added.
+On Fri, Mar 11, 2011 at 06:29:06PM -0600, Omar Ramirez Luna wrote:
+> Hi Greg,
+> 
+> Please consider to apply this patch in the staging tree, as the
+> description says it fixes a crash in tidspbridge driver, this bug
+> was already present but it seems to have surfaced by recent tests
+> made by Felipe and Tuomas.
+> 
+> It is an urgent fix for 2.6.38.
 
-This also fixes the following error seen during boot as
-omap2_set_init_voltage can now find the iva device
+Heh, it's funny to see such a "urgent" fix take so long to get to me :)
 
-	omap2_set_init_voltage: Invalid parameters!
-	omap2_set_init_voltage: Unable to put vdd_iva to its init voltage
+Is it also applicable for .37?
 
-Signed-off-by: Shweta Gulati <shweta.gulati@ti.com>
----
+> More on this discussion:
+> http://www.gossamer-threads.com/lists/linux/kernel/1351446
+> 
+> Thanks,
+> - omar
+> 
+> From: Felipe Contreras <felipe.contreras@nokia.com>
+> 
+> We need to protect not only the dmm_map list, but the individual
+> map_obj's, otherwise, we might be building the scatter-gather list with
+> garbage. So, use the existing proc_lock for that.
+> 
+> I observed race conditions which caused kernel panics while running
+> stress tests, also, Tuomas Kulve found it happening quite often in
+> Gumstix Over. This patch fixes those.
+> 
+> Cc: Tuomas Kulve <tuomas@kulve.fi>
+> Signed-off-by: Felipe Contreras <felipe.contreras@nokia.com>
+> Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
 
-Tested on OMAP4430 SDP Board.
-Baseline:
-http://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git
-Branch :pm-core
+How about I send it to Linus for .39 and then add it to the .38-stable
+tree when it comes out?
 
-V2:
-Rephrased the Commit log.
+thanks,
 
- arch/arm/mach-omap2/pm.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-index 30af335..49486f5 100644
---- a/arch/arm/mach-omap2/pm.c
-+++ b/arch/arm/mach-omap2/pm.c
-@@ -89,6 +89,7 @@ static void omap2_init_processor_devices(void)
- 	if (cpu_is_omap44xx()) {
- 		_init_omap_device("l3_main_1", &l3_dev);
- 		_init_omap_device("dsp", &dsp_dev);
-+		_init_omap_device("iva", &iva_dev);
- 	} else {
- 		_init_omap_device("l3_main", &l3_dev);
- 	}
--- 
-1.7.0.4
-
+greg k-h
