@@ -1,60 +1,66 @@
-From: "Menon, Nishanth" <nm@ti.com>
-Subject: Re: [PATCH 0/2] power button repeat input events
-Date: Mon, 14 Mar 2011 17:10:22 +0530
-Message-ID: <AANLkTinrU2ziCS+xZibz=dSTuFaxypbD7Xh-0yHqty7z@mail.gmail.com>
-References: <1299861450-19914-1-git-send-email-ext-denis.2.karpov@nokia.com>
- <4D7A53FF.4060004@ti.com> <20110314111327.GA10563@smart.research.nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Aaro Koskinen <aaro.koskinen@nokia.com>
+Subject: [PATCH] arm: plat-omap: iommu: fix request_mem_region() error path
+Date: Mon, 14 Mar 2011 14:28:32 +0200
+Message-ID: <1300105712-12656-1-git-send-email-aaro.koskinen@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:44932 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753893Ab1CNLkn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 14 Mar 2011 07:40:43 -0400
-Received: by mail-ww0-f46.google.com with SMTP id 28so4448354wwb.3
-        for <linux-omap@vger.kernel.org>; Mon, 14 Mar 2011 04:40:42 -0700 (PDT)
-In-Reply-To: <20110314111327.GA10563@smart.research.nokia.com>
+Received: from smtp.nokia.com ([147.243.128.26]:63611 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754227Ab1CNMY3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 14 Mar 2011 08:24:29 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Denis Karpov <ext-denis.2.karpov@nokia.com>
-Cc: tony@atomide.com, linux-omap@vger.kernel.org
+To: tony@atomide.com, Hiroshi.DOYU@nokia.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Aaro Koskinen <aaro.koskinen@nokia.com>
 
-On Mon, Mar 14, 2011 at 16:43, Denis Karpov
-<ext-denis.2.karpov@nokia.com> wrote:
->
-> On Fri, Mar 11, 2011 at 10:25:27PM +0530, ext Nishanth Menon wrote:
-> >
-> > Denis Karpov wrote, on 03/11/2011 10:07 PM:
-> > >Hi,
-> > >
-> > >this patchset adds optional generation of repeat input events for
-> > >twl4030 power button. It adds optional platform data for
-> > >twl4030-pwrbutton and initializes it for RX51/N900 (default
-> > >behavior kept - repeated input events disabled).
-> > >
-> > >We are working on an OMAP3 with TWL5031 MFD. In one of the use
-> > >scenarios userspace wants to receive repeated input events from
-> > >long press of power button.
-> >
-> > dumb question - is'nt this a userspace responsibility as far as power
-> > button is concerned? what is the benefit of providing repeat events
-> > like a generic keypad for the power button?
->
-> In our case userspace needs this to track the continuous button press
-> of power button.
-thanks for your explanation, but a follow on dumb question:
-include/linux/input.h
-#define KEY_POWER               116     /* SC System Power Down */
+request_mem_region() error exit will leak ioremapped memory. Fix this
+by moving the ioremap() after request_mem_region(), which is the proper
+order to do this anyway.
 
-in twl-powerbutton.c, I see:
-input_report_key(pwr, KEY_POWER, value & PWR_PWRON_IRQ);
-where value is the value from the register status, should'nt we get
-two events? one on press and one on release after say 10 mins(assuming
-person keeps it pressed for 10 mins?
+Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
+---
+ arch/arm/plat-omap/iommu.c |   14 ++++++++------
+ 1 files changed, 8 insertions(+), 6 deletions(-)
 
-Is there different behavior we intend to implement in userspace which
-differentiates 1 KEY_POWER event Vs 10 KEY_POWER event?
+diff --git a/arch/arm/plat-omap/iommu.c b/arch/arm/plat-omap/iommu.c
+index b1107c0..50be5e7 100644
+--- a/arch/arm/plat-omap/iommu.c
++++ b/arch/arm/plat-omap/iommu.c
+@@ -957,11 +957,6 @@ static int __devinit omap_iommu_probe(struct platform_device *pdev)
+ 		err = -ENODEV;
+ 		goto err_mem;
+ 	}
+-	obj->regbase = ioremap(res->start, resource_size(res));
+-	if (!obj->regbase) {
+-		err = -ENOMEM;
+-		goto err_mem;
+-	}
+ 
+ 	res = request_mem_region(res->start, resource_size(res),
+ 				 dev_name(&pdev->dev));
+@@ -970,6 +965,12 @@ static int __devinit omap_iommu_probe(struct platform_device *pdev)
+ 		goto err_mem;
+ 	}
+ 
++	obj->regbase = ioremap(res->start, resource_size(res));
++	if (!obj->regbase) {
++		err = -ENOMEM;
++		goto err_ioremap;
++	}
++
+ 	irq = platform_get_irq(pdev, 0);
+ 	if (irq < 0) {
+ 		err = -ENODEV;
+@@ -998,8 +999,9 @@ static int __devinit omap_iommu_probe(struct platform_device *pdev)
+ err_pgd:
+ 	free_irq(irq, obj);
+ err_irq:
+-	release_mem_region(res->start, resource_size(res));
+ 	iounmap(obj->regbase);
++err_ioremap:
++	release_mem_region(res->start, resource_size(res));
+ err_mem:
+ 	clk_put(obj->clk);
+ err_clk:
+-- 
+1.5.6.5
 
-Regards,
-Nishanth Menon
