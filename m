@@ -1,50 +1,70 @@
-From: "Avinash.H.M." <avinashhm@ti.com>
-Subject: Re: [PATCH] omap: hwmod: add syss reset done flags to omap2, omap3
- hwmods
-Date: Mon, 14 Mar 2011 21:46:25 +0530
-Message-ID: <20110314161609.GA10506@avinash-laptop>
-References: <1298542123-3654-1-git-send-email-avinashhm@ti.com>
- <alpine.DEB.2.00.1103031427580.10981@utopia.booyaka.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 2/2] omap4: mux: Remove duplicate mux modes
+Date: Mon, 14 Mar 2011 09:59:23 -0700
+Message-ID: <20110314165922.GA7258@atomide.com>
+References: <20110311203317.26901.67180.stgit@baageli.muru.com>
+ <20110311203420.26901.36271.stgit@baageli.muru.com>
+ <4D7DD4BC.7080104@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:37727 "EHLO
-	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754488Ab1CNQQp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 14 Mar 2011 12:16:45 -0400
-Received: by mail-gy0-f180.google.com with SMTP id 13so1269566gyg.11
-        for <linux-omap@vger.kernel.org>; Mon, 14 Mar 2011 09:16:38 -0700 (PDT)
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:19741 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751715Ab1CNQ7e (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Mar 2011 12:59:34 -0400
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1103031427580.10981@utopia.booyaka.com>
+In-Reply-To: <4D7DD4BC.7080104@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, Mar 03, 2011 at 02:28:21PM -0700, Paul Walmsley wrote:
-> On Thu, 24 Feb 2011, Avinash.H.M wrote:
+* Cousson, Benoit <b-cousson@ti.com> [110314 01:39]:
+> Hi Tony,
 > 
-> > Some of the omap2, omap3 peripherals support software reset. This
-> > can be done through the softreset bit in sysconfig register.
-> > The reset status can be checked through resetdone bit of
-> > sysstatus register. syss_has_reset_status is added to the hwmod
-> > database of peripherals which have resetdone bit in sysstatus register.
-> > 
-> > Cc: Rajendra Nayak <rnayak@ti.com>
-> > Cc: Paul Walmsley <paul@pwsan.com>
-> > Cc: Benoit Cousson <b-cousson@ti.com>
-> > Cc: Kevin Hilman <khilman@ti.com>
-> > Reviewed-by: Govindraj.R <govindraj.raja@ti.com>
-> > Signed-off-by: Avinash.H.M <avinashhm@ti.com>
+> On 3/11/2011 9:34 PM, Tony Lindgren wrote:
+> >Remove duplicate mux modes to make the binary smaller:
+> >
+> >text    data     bss     dec     hex filename
+> >9378   24472       0   33850    843a mux44xx.o
+> >9378   19104       0   28482    6f42 mux44xx.o
+> >
+> >Cc: Benoit Cousson<b-cousson@ti.com>
+> >Signed-off-by: Tony Lindgren<tony@atomide.com>
+> >---
+> >  arch/arm/mach-omap2/mux44xx.c |  282 +----------------------------------------
+> >  1 files changed, 6 insertions(+), 276 deletions(-)
+> >
+> >diff --git a/arch/arm/mach-omap2/mux44xx.c b/arch/arm/mach-omap2/mux44xx.c
+> >index c322e7b..9a66445 100644
+> >--- a/arch/arm/mach-omap2/mux44xx.c
+> >+++ b/arch/arm/mach-omap2/mux44xx.c
+> >@@ -755,25 +755,9 @@ static struct omap_ball __initdata omap4_core_cbl_ball[] = {
+> >  #endif
+> >
+> >  /*
+> >- * Superset of all mux modes for omap4 ES2.0
+> >+ * Signals different on ES2.0 compared to superset
 > 
-> Thanks, queued for 2.6.39.
+> I didn't do it originally due to the huge amount of differences
+> between the two versions and the impact at runtime it will imply to
+> fix the modified entries at boot time. It might still be interesting
+> to measure it.
 
-Thanks very much Paul.
+A quick test shows the difference is 0.007324218 - 0.007202148 seconds.. :)
+ 
+> Since ES1 is no longer used on any board except the early one, that
+> you probably still have :-), it might be better to consider ES2 as
+> the superset and then store ES1 diff as the subset. It will avoid
+> any performance impact for the latest devices.
 
-br
-- avinash
+Well the performance impact is minimal in this case. But from cutting
+down the size point of view that makes sense as then we could later on
+optionally compile out OMAP_PACKAGE_CBL.
 
-> 
-> 
-> - Paul
+Sounds like that's a separate incremental patch on top of this one
+though.
+
+Regards,
+
+Tony
