@@ -1,185 +1,60 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH v2 2/2] OMAP2PLUS: cpufreq: Add SMP support to cater OMAP4430
-Date: Mon, 14 Mar 2011 17:08:49 +0530
-Message-ID: <1300102729-17276-3-git-send-email-santosh.shilimkar@ti.com>
-References: <1300102729-17276-1-git-send-email-santosh.shilimkar@ti.com>
+From: "Menon, Nishanth" <nm@ti.com>
+Subject: Re: [PATCH 0/2] power button repeat input events
+Date: Mon, 14 Mar 2011 17:10:22 +0530
+Message-ID: <AANLkTinrU2ziCS+xZibz=dSTuFaxypbD7Xh-0yHqty7z@mail.gmail.com>
+References: <1299861450-19914-1-git-send-email-ext-denis.2.karpov@nokia.com>
+ <4D7A53FF.4060004@ti.com> <20110314111327.GA10563@smart.research.nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:46238 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752890Ab1CNLiz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 14 Mar 2011 07:38:55 -0400
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p2EBcpqB018845
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Mon, 14 Mar 2011 06:38:54 -0500
-In-Reply-To: <1300102729-17276-1-git-send-email-santosh.shilimkar@ti.com>
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:44932 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753893Ab1CNLkn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 14 Mar 2011 07:40:43 -0400
+Received: by mail-ww0-f46.google.com with SMTP id 28so4448354wwb.3
+        for <linux-omap@vger.kernel.org>; Mon, 14 Mar 2011 04:40:42 -0700 (PDT)
+In-Reply-To: <20110314111327.GA10563@smart.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: khilman@ti.com, Santosh Shilimkar <santosh.shilimkar@ti.com>, Vishwanath BS <vishwanath.bs@ti.com>
+To: Denis Karpov <ext-denis.2.karpov@nokia.com>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org
 
-On OMAP SMP configuartion, both processors share the voltage
-and clock. So both CPUs needs to be scaled together and hence
-needs software co-ordination.
+On Mon, Mar 14, 2011 at 16:43, Denis Karpov
+<ext-denis.2.karpov@nokia.com> wrote:
+>
+> On Fri, Mar 11, 2011 at 10:25:27PM +0530, ext Nishanth Menon wrote:
+> >
+> > Denis Karpov wrote, on 03/11/2011 10:07 PM:
+> > >Hi,
+> > >
+> > >this patchset adds optional generation of repeat input events for
+> > >twl4030 power button. It adds optional platform data for
+> > >twl4030-pwrbutton and initializes it for RX51/N900 (default
+> > >behavior kept - repeated input events disabled).
+> > >
+> > >We are working on an OMAP3 with TWL5031 MFD. In one of the use
+> > >scenarios userspace wants to receive repeated input events from
+> > >long press of power button.
+> >
+> > dumb question - is'nt this a userspace responsibility as far as power
+> > button is concerned? what is the benefit of providing repeat events
+> > like a generic keypad for the power button?
+>
+> In our case userspace needs this to track the continuous button press
+> of power button.
+thanks for your explanation, but a follow on dumb question:
+include/linux/input.h
+#define KEY_POWER               116     /* SC System Power Down */
 
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Kevin Hilman <khilman@ti.com>
-cc: Vishwanath BS <vishwanath.bs@ti.com>
----
- arch/arm/mach-omap2/omap2plus-cpufreq.c |   73 ++++++++++++++++++++++++++-----
- 1 files changed, 62 insertions(+), 11 deletions(-)
+in twl-powerbutton.c, I see:
+input_report_key(pwr, KEY_POWER, value & PWR_PWRON_IRQ);
+where value is the value from the register status, should'nt we get
+two events? one on press and one on release after say 10 mins(assuming
+person keeps it pressed for 10 mins?
 
-diff --git a/arch/arm/mach-omap2/omap2plus-cpufreq.c b/arch/arm/mach-omap2/omap2plus-cpufreq.c
-index 216704e..84caa6d 100644
---- a/arch/arm/mach-omap2/omap2plus-cpufreq.c
-+++ b/arch/arm/mach-omap2/omap2plus-cpufreq.c
-@@ -26,9 +26,11 @@
- #include <linux/clk.h>
- #include <linux/io.h>
- #include <linux/opp.h>
-+#include <linux/cpu.h>
- 
- #include <asm/system.h>
- #include <asm/smp_plat.h>
-+#include <asm/cpu.h>
- 
- #include <plat/clock.h>
- #include <plat/omap-pm.h>
-@@ -63,7 +65,7 @@ static unsigned int omap_getspeed(unsigned int cpu)
- {
- 	unsigned long rate;
- 
--	if (cpu)
-+	if (cpu >= NR_CPUS)
- 		return 0;
- 
- 	rate = clk_get_rate(mpu_clk) / 1000;
-@@ -74,9 +76,13 @@ static int omap_target(struct cpufreq_policy *policy,
- 		       unsigned int target_freq,
- 		       unsigned int relation)
- {
--	int ret = 0;
-+	int i, ret = 0;
- 	struct cpufreq_freqs freqs;
- 
-+	/* Changes not allowed until all CPUs are online */
-+	if (is_smp() && (num_online_cpus() < NR_CPUS))
-+		return ret;
-+
- 	/* Ensure desired rate is within allowed range.  Some govenors
- 	 * (ondemand) will just pass target_freq=0 to get the minimum. */
- 	if (target_freq < policy->min)
-@@ -84,15 +90,25 @@ static int omap_target(struct cpufreq_policy *policy,
- 	if (target_freq > policy->max)
- 		target_freq = policy->max;
- 
--	freqs.old = omap_getspeed(0);
-+	freqs.old = omap_getspeed(policy->cpu);
- 	freqs.new = clk_round_rate(mpu_clk, target_freq * 1000) / 1000;
--	freqs.cpu = 0;
-+	freqs.cpu = policy->cpu;
- 
- 	if (freqs.old == freqs.new)
- 		return ret;
- 
--	cpufreq_notify_transition(&freqs, CPUFREQ_PRECHANGE);
-+	if (!is_smp()) {
-+		cpufreq_notify_transition(&freqs, CPUFREQ_PRECHANGE);
-+		goto set_freq;
-+	}
-+
-+	/* notifiers */
-+	for_each_cpu(i, policy->cpus) {
-+		freqs.cpu = i;
-+		cpufreq_notify_transition(&freqs, CPUFREQ_PRECHANGE);
-+	}
- 
-+set_freq:
- #ifdef CONFIG_CPU_FREQ_DEBUG
- 	pr_info("cpufreq-omap: transition: %u --> %u\n", freqs.old, freqs.new);
- #endif
-@@ -105,12 +121,33 @@ static int omap_target(struct cpufreq_policy *policy,
- 	 * CONFIG_SMP enabled. Below code is added only to manage that
- 	 * scenario
- 	 */
--	if (!is_smp())
-+	freqs.new = omap_getspeed(policy->cpu);
-+	if (!is_smp()) {
- 		loops_per_jiffy =
- 			 cpufreq_scale(loops_per_jiffy, freqs.old, freqs.new);
-+		cpufreq_notify_transition(&freqs, CPUFREQ_POSTCHANGE);
-+		goto skip_lpj;
-+	}
- 
--	cpufreq_notify_transition(&freqs, CPUFREQ_POSTCHANGE);
-+#ifdef CONFIG_SMP
-+	/*
-+	 * Note that loops_per_jiffy is not updated on SMP systems in
-+	 * cpufreq driver. So, update the per-CPU loops_per_jiffy value
-+	 * on frequency transition. We need to update all dependent CPUs.
-+	 */
-+	for_each_cpu(i, policy->cpus)
-+		per_cpu(cpu_data, i).loops_per_jiffy =
-+			cpufreq_scale(per_cpu(cpu_data, i).loops_per_jiffy,
-+					freqs.old, freqs.new);
-+#endif
- 
-+	/* notifiers */
-+	for_each_cpu(i, policy->cpus) {
-+		freqs.cpu = i;
-+		cpufreq_notify_transition(&freqs, CPUFREQ_POSTCHANGE);
-+	}
-+
-+skip_lpj:
- 	return ret;
- }
- 
-@@ -118,6 +155,7 @@ static int __init omap_cpu_init(struct cpufreq_policy *policy)
- {
- 	int result = 0;
- 	struct device *mpu_dev;
-+	static cpumask_var_t cpumask;
- 
- 	if (cpu_is_omap24xx())
- 		mpu_clk = clk_get(NULL, "virt_prcm_set");
-@@ -129,12 +167,12 @@ static int __init omap_cpu_init(struct cpufreq_policy *policy)
- 	if (IS_ERR(mpu_clk))
- 		return PTR_ERR(mpu_clk);
- 
--	if (policy->cpu != 0)
-+	if (policy->cpu >= NR_CPUS)
- 		return -EINVAL;
- 
--	policy->cur = policy->min = policy->max = omap_getspeed(0);
--
-+	policy->cur = policy->min = policy->max = omap_getspeed(policy->cpu);
- 	mpu_dev = omap2_get_mpuss_device();
-+
- 	if (!mpu_dev) {
- 		pr_warning("%s: unable to get the mpu device\n", __func__);
- 		return -EINVAL;
-@@ -154,7 +192,20 @@ static int __init omap_cpu_init(struct cpufreq_policy *policy)
- 
- 	policy->min = policy->cpuinfo.min_freq;
- 	policy->max = policy->cpuinfo.max_freq;
--	policy->cur = omap_getspeed(0);
-+	policy->cur = omap_getspeed(policy->cpu);
-+
-+	/*
-+	 * On OMAP SMP configuartion, both processors share the voltage
-+	 * and clock. So both CPUs needs to be scaled together and hence
-+	 * needs software co-ordination. Use cpufreq affected_cpus
-+	 * interface to handle this scenario. Additional is_smp() check
-+	 * is to keep SMP_ON_UP build working.
-+	 */
-+	if (is_smp()) {
-+		policy->shared_type = CPUFREQ_SHARED_TYPE_ANY;
-+		cpumask_or(cpumask, cpumask_of(policy->cpu), cpumask);
-+		cpumask_copy(policy->cpus, cpumask);
-+	}
- 
- 	/* FIXME: what's the actual transition time? */
- 	policy->cpuinfo.transition_latency = 300 * 1000;
--- 
-1.6.0.4
+Is there different behavior we intend to implement in userspace which
+differentiates 1 KEY_POWER event Vs 10 KEY_POWER event?
 
+Regards,
+Nishanth Menon
