@@ -1,83 +1,73 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v12 4/9] OMAP2+: dmtimer: convert to platform devices
-Date: Mon, 14 Mar 2011 10:12:40 -0700
-Message-ID: <20110314171240.GB7258@atomide.com>
-References: <1299627948-20040-1-git-send-email-tarun.kanti@ti.com>
- <1299627948-20040-5-git-send-email-tarun.kanti@ti.com>
- <87oc5ifu12.fsf@ti.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB037A4DD948@dbde02.ent.ti.com>
- <20110311191324.GE10079@atomide.com>
- <87d3lx5hoo.fsf@ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH 2/2] omap4: mux: Remove duplicate mux modes
+Date: Mon, 14 Mar 2011 18:22:18 +0100
+Message-ID: <4D7E4ECA.5010200@ti.com>
+References: <20110311203317.26901.67180.stgit@baageli.muru.com> <20110311203420.26901.36271.stgit@baageli.muru.com> <4D7DD4BC.7080104@ti.com> <20110314165922.GA7258@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:32414 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751142Ab1CNRMt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Mar 2011 13:12:49 -0400
-Content-Disposition: inline
-In-Reply-To: <87d3lx5hoo.fsf@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:45487 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751310Ab1CNRWX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Mar 2011 13:22:23 -0400
+In-Reply-To: <20110314165922.GA7258@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gopinath, Thara" <thara@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Kevin Hilman <khilman@ti.com> [110311 16:00]:
-> Tony Lindgren <tony@atomide.com> writes:
-> 
-> > * DebBarma, Tarun Kanti <tarun.kanti@ti.com> [110310 20:18]:
-> >> > From: Hilman, Kevin
-> >> > 
-> >> > I guess Tony has the final say here, but personally, I don't really like
-> >> > the special treatment of a system timer, unless it is an init-time only
-> >> > special treatment.  Since we now have dynamically configurable
-> >> > clocksources, the concept of a system timer doesn't really exist (except
-> >> > for in early boot.)  At any time during runtime, we could dynamically
-> >> > switch the clocksource to a different timer device.  At this point, one
-> >> > would expect runtime PM for the previous timer to kick in and idle the
-> >> > timer.  That cannot happen with this approach.
-> >>
-> >> I am open to suggestions.
-> >
-> > There's no need to dynamically change the clocksource. We can to set up
-> > things so we have a system timer running with minimal code and faster
-> > clock rate. Then we can use a separate timer with the 32KiHZ source
-> > just to provide wake-up events for idle modes. And this second wake-up
-> > timer can be just a regular device driver.
-> >
-> > The system timer code needs to be fast. And I don't want to add any
-> > dependencies to anything except clock framework. Like I've said, the
-> > rest of the timers can be just a regular device driver.
-> 
-> There are a couple problems with this approach.  The special case
-> handling of a "system" timer leads to duplicate code (this series is a
-> good example.)
+On 3/14/2011 5:59 PM, Tony Lindgren wrote:
+> * Cousson, Benoit<b-cousson@ti.com>  [110314 01:39]:
+>> Hi Tony,
+>>
+>> On 3/11/2011 9:34 PM, Tony Lindgren wrote:
+>>> Remove duplicate mux modes to make the binary smaller:
+>>>
+>>> text    data     bss     dec     hex filename
+>>> 9378   24472       0   33850    843a mux44xx.o
+>>> 9378   19104       0   28482    6f42 mux44xx.o
+>>>
+>>> Cc: Benoit Cousson<b-cousson@ti.com>
+>>> Signed-off-by: Tony Lindgren<tony@atomide.com>
+>>> ---
+>>>   arch/arm/mach-omap2/mux44xx.c |  282 +----------------------------------------
+>>>   1 files changed, 6 insertions(+), 276 deletions(-)
+>>>
+>>> diff --git a/arch/arm/mach-omap2/mux44xx.c b/arch/arm/mach-omap2/mux44xx.c
+>>> index c322e7b..9a66445 100644
+>>> --- a/arch/arm/mach-omap2/mux44xx.c
+>>> +++ b/arch/arm/mach-omap2/mux44xx.c
+>>> @@ -755,25 +755,9 @@ static struct omap_ball __initdata omap4_core_cbl_ball[] = {
+>>>   #endif
+>>>
+>>>   /*
+>>> - * Superset of all mux modes for omap4 ES2.0
+>>> + * Signals different on ES2.0 compared to superset
+>>
+>> I didn't do it originally due to the huge amount of differences
+>> between the two versions and the impact at runtime it will imply to
+>> fix the modified entries at boot time. It might still be interesting
+>> to measure it.
+>
+> A quick test shows the difference is 0.007324218 - 0.007202148 seconds.. :)
 
-I think the related inline functions can be shared.
- 
-> The other problem is PM.
-> 
-> If we switch away from the original system timer (for whatever reason),
-> since it is not a regular device, it will not have runtime PM We'll then
-> need special case PM code for the system timer, which I think is wasted
-> effort.
+Whaoo, 122us, that chip is really fast :-)
 
-This should not cause problems either, there should not be any need to
-switch the timers in the setup what I'm thinking.
+>> Since ES1 is no longer used on any board except the early one, that
+>> you probably still have :-), it might be better to consider ES2 as
+>> the superset and then store ES1 diff as the subset. It will avoid
+>> any performance impact for the latest devices.
+>
+> Well the performance impact is minimal in this case. But from cutting
+> down the size point of view that makes sense as then we could later on
+> optionally compile out OMAP_PACKAGE_CBL.
+>
+> Sounds like that's a separate incremental patch on top of this one
+> though.
 
-In the long run, think "local timer" for runtime, and then "wakeup timer"
-that gets only programmed when we enter idle. The "local timer" will
-continue operating normally after we wake-up and the "wakeup timer"
-will be just one shot event. Of course in the omap[23] case the
-"local timer" is really a faster dmtimer, but in the omap4+ case there's
-are real local timers.
+OK, I'll try to make that for 2.6.40.
 
-> If this can be done such that the system timer is eventually a regular
-> device driver, then that should be fine. 
+Benoit
 
-In this setup there should not be need to mess with the system timer
-after boot as we don't need to switch clock sources.
 
-Regards,
-
-Tony
