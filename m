@@ -1,80 +1,69 @@
-From: Ben Gamari <bgamari.foss@gmail.com>
-Subject: [PATCH] mcspi: Add support for GPIO chip select lines
-Date: Sun, 13 Mar 2011 15:05:19 -0400
-Message-ID: <1300043119-11262-1-git-send-email-bgamari.foss@gmail.com>
-References: <87ipvmx2ok.fsf@gmail.com>
+From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Subject: RE: [PATCH v12 6/9] dmtimer: switch-over to platform device driver
+Date: Mon, 14 Mar 2011 12:18:01 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB037A4DDEE1@dbde02.ent.ti.com>
+References: <1299627948-20040-1-git-send-email-tarun.kanti@ti.com>
+ <1299627948-20040-7-git-send-email-tarun.kanti@ti.com>
+ <20110309220241.GR26463@atomide.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB037A4DD852@dbde02.ent.ti.com>
+ <20110310175611.GV26463@atomide.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB037A4DD9D2@dbde02.ent.ti.com>
+ <20110311191417.GF10079@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:47661 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755979Ab1CMTF3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 13 Mar 2011 15:05:29 -0400
-Received: by vxi39 with SMTP id 39so3818121vxi.19
-        for <linux-omap@vger.kernel.org>; Sun, 13 Mar 2011 12:05:28 -0700 (PDT)
-In-Reply-To: <87ipvmx2ok.fsf@gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:59630 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752629Ab1CNGsI convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Mar 2011 02:48:08 -0400
+In-Reply-To: <20110311191417.GF10079@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: grant.likely@secretlab.ca, linux-omap@vger.kernel.org
-Cc: Ben Gamari <bgamari.foss@gmail.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Many applications require more chip select lines than the board or
-processor allow. Introduce a mechanism to allow use of GPIO pins as
-chip select lines with the McSPI controller. To use this functionality,
-one simply provides a table mapping CS line numbers to GPIO numbers in
-omap2_mcspi_platform_config.cs_gpios.
+> -----Original Message-----
+> From: Tony Lindgren [mailto:tony@atomide.com]
+> Sent: Saturday, March 12, 2011 12:44 AM
+> To: DebBarma, Tarun Kanti
+> Cc: linux-omap@vger.kernel.org
+> Subject: Re: [PATCH v12 6/9] dmtimer: switch-over to platform device
+> driver
+> 
+> * DebBarma, Tarun Kanti <tarun.kanti@ti.com> [110310 21:33]:
+> > [...]
+> > > > >
+> > > > > * Tarun Kanti DebBarma <tarun.kanti@ti.com> [110308 15:41]:
+> > > > > > switch-over to platform device driver through following changes:
+> > > > > > (a) initiate dmtimer early initialization from
+> omap2_gp_timer_init()
+> > > > > > in timer-gp.c. This is equivalent of timer_init()->timer-
+> >init().
+> > > > > > (b) modify plat-omap/dmtimer routines to use new register map
+> and
+> > > > > > platform data.
+> > > > >
+> > > > > This patch breaks booting for 2420 and makes boot hang early
+> > > > > on 2430. Note that to test with omap-for-linus branch you need
+> > > > > to disable the following in omap2plus_defconfig:
+> > > > >
+> > > > > CONFIG_ARCH_OMAP3
+> > > > > CONFIG_ARCH_OMAP4
+> > > > > CONFIG_CPU_32v6K
+> > > > I disabled above options on omap-for-linus *WITHOUT* my patch
+> series.
+> > > > I am still seeing crash. Here is the log.
+> > > > I tried on two different setups. Not sure if I am missing something.
+> > >
+> > > Hmm sounds like H4 needs some attention. Can you try the following
+> > > completely untested patch?
+> >
+> > This works fine!
+> 
+> OK thanks, can I add your Tested-by then?
+YES.
 
-Signed-off-by: Ben Gamari <bgamari.foss@gmail.com>
----
- arch/arm/plat-omap/include/plat/mcspi.h |    3 ++-
- drivers/spi/omap2_mcspi.c               |   15 ++++++++++-----
- 2 files changed, 12 insertions(+), 6 deletions(-)
-
-diff --git a/arch/arm/plat-omap/include/plat/mcspi.h b/arch/arm/plat-omap/include/plat/mcspi.h
-index 1254e49..cac1d84 100644
---- a/arch/arm/plat-omap/include/plat/mcspi.h
-+++ b/arch/arm/plat-omap/include/plat/mcspi.h
-@@ -2,7 +2,8 @@
- #define _OMAP2_MCSPI_H
- 
- struct omap2_mcspi_platform_config {
--	unsigned short	num_cs;
-+	unsigned short num_cs;
-+	int *cs_gpios;
- };
- 
- struct omap2_mcspi_device_config {
-diff --git a/drivers/spi/omap2_mcspi.c b/drivers/spi/omap2_mcspi.c
-index abb1ffb..59cbed4 100644
---- a/drivers/spi/omap2_mcspi.c
-+++ b/drivers/spi/omap2_mcspi.c
-@@ -35,6 +35,7 @@
- #include <linux/slab.h>
- 
- #include <linux/spi/spi.h>
-+#include <linux/gpio.h>
- 
- #include <plat/dma.h>
- #include <plat/clock.h>
-@@ -235,11 +236,15 @@ static void omap2_mcspi_set_enable(const struct spi_device *spi, int enable)
- 
- static void omap2_mcspi_force_cs(struct spi_device *spi, int cs_active)
- {
--	u32 l;
--
--	l = mcspi_cached_chconf0(spi);
--	MOD_REG_BIT(l, OMAP2_MCSPI_CHCONF_FORCE, cs_active);
--	mcspi_write_chconf0(spi, l);
-+	struct omap2_mcspi_platform_config *pconfig = spi->master->dev.platform_data;
-+	if (pconfig->cs_gpios) {
-+		int gpio = pconfig->cs_gpios[spi->chip_select];
-+		gpio_set_value(gpio, cs_active);
-+	} else {
-+		u32 l = mcspi_cached_chconf0(spi);
-+		MOD_REG_BIT(l, OMAP2_MCSPI_CHCONF_FORCE, cs_active);
-+		mcspi_write_chconf0(spi, l);
-+	}
- }
- 
- static void omap2_mcspi_set_master_mode(struct spi_master *master)
--- 
-1.7.0.4
-
+> 
+> Tony
