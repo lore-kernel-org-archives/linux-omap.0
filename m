@@ -1,69 +1,115 @@
-From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: RE: [PATCH v12 6/9] dmtimer: switch-over to platform device driver
-Date: Mon, 14 Mar 2011 12:18:01 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB037A4DDEE1@dbde02.ent.ti.com>
-References: <1299627948-20040-1-git-send-email-tarun.kanti@ti.com>
- <1299627948-20040-7-git-send-email-tarun.kanti@ti.com>
- <20110309220241.GR26463@atomide.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB037A4DD852@dbde02.ent.ti.com>
- <20110310175611.GV26463@atomide.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB037A4DD9D2@dbde02.ent.ti.com>
- <20110311191417.GF10079@atomide.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH v5 00/10] OMAP4 : DSS2 : HDMI support on OMAP4
+Date: Mon, 14 Mar 2011 14:05:30 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739404E1F53077@dbde02.ent.ti.com>
+References: <1299753858-12222-1-git-send-email-mythripk@ti.com>
+	 <1299764643.2017.177.camel@deskari> <4D78E3F5.2090600@openelec.tv>
+	 <1299768675.2017.230.camel@deskari> <4D7967AB.1030404@openelec.tv>
+	 <AANLkTimRnDhOah_J2wWQNLbf+WKX1VAsNm_HHGu24+6t@mail.gmail.com>
+ <1299828270.2567.6.camel@deskari>
+ <19F8576C6E063C45BE387C64729E739404E1F52DA7@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:59630 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:53027 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752629Ab1CNGsI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Mar 2011 02:48:08 -0400
-In-Reply-To: <20110311191417.GF10079@atomide.com>
+	id S1752284Ab1CNIfn convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Mar 2011 04:35:43 -0400
+In-Reply-To: <19F8576C6E063C45BE387C64729E739404E1F52DA7@dbde02.ent.ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, "K, Mythri P" <mythripk@ti.com>
+Cc: Stephan Raue <mailinglists@openelec.tv>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
 > -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com]
-> Sent: Saturday, March 12, 2011 12:44 AM
-> To: DebBarma, Tarun Kanti
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: [PATCH v12 6/9] dmtimer: switch-over to platform device
-> driver
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Hiremath, Vaibhav
+> Sent: Friday, March 11, 2011 6:53 PM
+> To: Valkeinen, Tomi; K, Mythri P
+> Cc: Stephan Raue; linux-omap@vger.kernel.org
+> Subject: RE: [PATCH v5 00/10] OMAP4 : DSS2 : HDMI support on OMAP4
 > 
-> * DebBarma, Tarun Kanti <tarun.kanti@ti.com> [110310 21:33]:
-> > [...]
-> > > > >
-> > > > > * Tarun Kanti DebBarma <tarun.kanti@ti.com> [110308 15:41]:
-> > > > > > switch-over to platform device driver through following changes:
-> > > > > > (a) initiate dmtimer early initialization from
-> omap2_gp_timer_init()
-> > > > > > in timer-gp.c. This is equivalent of timer_init()->timer-
-> >init().
-> > > > > > (b) modify plat-omap/dmtimer routines to use new register map
-> and
-> > > > > > platform data.
-> > > > >
-> > > > > This patch breaks booting for 2420 and makes boot hang early
-> > > > > on 2430. Note that to test with omap-for-linus branch you need
-> > > > > to disable the following in omap2plus_defconfig:
-> > > > >
-> > > > > CONFIG_ARCH_OMAP3
-> > > > > CONFIG_ARCH_OMAP4
-> > > > > CONFIG_CPU_32v6K
-> > > > I disabled above options on omap-for-linus *WITHOUT* my patch
-> series.
-> > > > I am still seeing crash. Here is the log.
-> > > > I tried on two different setups. Not sure if I am missing something.
-> > >
-> > > Hmm sounds like H4 needs some attention. Can you try the following
-> > > completely untested patch?
+> > -----Original Message-----
+> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> > owner@vger.kernel.org] On Behalf Of Valkeinen, Tomi
+> > Sent: Friday, March 11, 2011 12:55 PM
+> > To: K, Mythri P
+> > Cc: Stephan Raue; linux-omap@vger.kernel.org
+> > Subject: Re: [PATCH v5 00/10] OMAP4 : DSS2 : HDMI support on OMAP4
 > >
-> > This works fine!
+> > On Fri, 2011-03-11 at 00:16 -0600, K, Mythri P wrote:
+> > > Hi Stephan,
+> > >
+> > > On Fri, Mar 11, 2011 at 5:37 AM, Stephan Raue
+> <mailinglists@openelec.tv>
+> > wrote:
+> >
+> > > > thanks, this helps to boot the kernel. but now i get:
+> > > >
+> > >
+> > > <snip>
+> > >
+> > > > see also: http://paste.pocoo.org/show/351648/
+> > > >
+> > >
+> > > I see that you kernel is not booting because of dss clk
+> > >  [    3.335601] PC is at dss_clk_disable_no_ctx+0x0/0xa4
+> > > [    3.335632] LR is at omap_dispc_register_isr+0xa4/0xcc
+> > > Tomi is this related to the clock issue you were mentioning , which
+> > > gets solved by adding a delay ?
+> >
+> > Well, I have a hack patch in my tree which adds a delay of 10us. That
+> > fixed the problem for me, but the 10us is just a random guess. It could
+> > be that it needs to be longer wait. But this could be something else
+> > also.
+> >
+> >  Tomi
+> >
+> [Hiremath, Vaibhav] Tomi, just thought of updating you,
 > 
-> OK thanks, can I add your Tested-by then?
-YES.
+> The linux-omap/dss2 OMAP3EVM seems to be broken, I am trying to debug this
+> at the moment and will update about my findings.
+> 
+> Since linux-omap/master is booting up fine, it looks like one of new DSS
+> patch leading to this.
+> 
+[Hiremath, Vaibhav] I think I found the where and why the kernel is crashing but not sure about root-cause - 
 
+The root-cause turned out to be - 
+
+void dss_clk_enable(enum dss_clock clks)
+{
+...
+
+if (check_ctx && cpu_is_omap34xx() && dss_need_ctx_restore())
+       restore_all_ctx();
+...
+}
+
+In this case, restore never happens, if I understand correctly, I am expecting, the context must be restored when all clock (especially interface clock) is disabled. 
+In order to do this, dss_need_ctx_restore must be implemented here, which I think should be ORed with other conditions. 
+
+if (cpu_is_omap34xx() && (check_ctx || dss_need_ctx_restore()))
+
+(This results in kernel crash at my end)
+
+Personally I don't know any platform is implementing this function OR how one should make use of it. I remember last time we had similar discussion and the comment came was, restore only required in case of off mode. I feel, this is not applicable here, since irrespective of retention/inactive/off mode if driver is disabling clock for the peripheral we must restore the context.
+
+
+Thanks,
+Vaibhav
+
+> Thanks,
+> Vaibhav
 > 
-> Tony
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
