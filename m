@@ -1,36 +1,42 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [PATCH] arm: plat-omap: iommu: fix request_mem_region() error
- path
-Date: Mon, 14 Mar 2011 14:50:29 +0200 (EET)
-Message-ID: <20110314.145029.848855634033118142.Hiroshi.DOYU@nokia.com>
-References: <1300105712-12656-1-git-send-email-aaro.koskinen@nokia.com>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+From: Sanjeev Premi <premi@ti.com>
+Subject: [PATCH] omap3: alsa-soc: Remove restrictive check for cpu type
+Date: Mon, 14 Mar 2011 19:01:53 +0530
+Message-ID: <1300109513-29002-1-git-send-email-premi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:38204 "EHLO mgw-sa01.nokia.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:52144 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755639Ab1CNMwv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 14 Mar 2011 08:52:51 -0400
-In-Reply-To: <1300105712-12656-1-git-send-email-aaro.koskinen@nokia.com>
+	id S1755545Ab1CNNcj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 14 Mar 2011 09:32:39 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, aaro.koskinen@nokia.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org
+Cc: Sanjeev Premi <premi@ti.com>
 
-Hi Aaro,
+Current check for cpu type is too restrictive leading to
+failures for other silicons in same family.
 
-From: Aaro Koskinen <aaro.koskinen@nokia.com>
-Subject: [PATCH] arm: plat-omap: iommu: fix request_mem_region() error path
-Date: Mon, 14 Mar 2011 14:28:32 +0200
+The problem was found while testing audio playback on
+AM37x and AM35x processors. But should exist on OMAP36xx
+as well.
 
-> request_mem_region() error exit will leak ioremapped memory. Fix this
-> by moving the ioremap() after request_mem_region(), which is the proper
-> order to do this anyway.
-> 
-> Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
-> ---
->  arch/arm/plat-omap/iommu.c |   14 ++++++++------
->  1 files changed, 8 insertions(+), 6 deletions(-)
+Signed-off-by: Sanjeev Premi <premi@ti.com>
+---
+ sound/soc/omap/omap-mcbsp.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-True. Thank you for catching this.
+diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
+index 2175f09..84d434a 100644
+--- a/sound/soc/omap/omap-mcbsp.c
++++ b/sound/soc/omap/omap-mcbsp.c
+@@ -146,7 +146,7 @@ static int omap_mcbsp_dai_startup(struct snd_pcm_substream *substream,
+ 	 * 2 channels (stereo): size is 128 / 2 = 64 frames (2 * 64 words)
+ 	 * 4 channels: size is 128 / 4 = 32 frames (4 * 32 words)
+ 	 */
+-	if (cpu_is_omap343x() || cpu_is_omap44xx()) {
++	if (cpu_is_omap34xx() || cpu_is_omap44xx()) {
+ 		/*
+ 		* Rule for the buffer size. We should not allow
+ 		* smaller buffer than the FIFO size to avoid underruns
+-- 
+1.7.2.2
+
