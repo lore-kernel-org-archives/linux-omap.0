@@ -1,42 +1,38 @@
 From: Denis Karpov <ext-denis.2.karpov@nokia.com>
-Subject: Re: [PATCH 0/2] power button repeat input events
-Date: Mon, 14 Mar 2011 13:13:27 +0200
-Message-ID: <20110314111327.GA10563@smart.research.nokia.com>
-References: <1299861450-19914-1-git-send-email-ext-denis.2.karpov@nokia.com>
- <4D7A53FF.4060004@ti.com>
+Subject: Re: [PATCH 2/2] omap: rx51: initialize platform data for twl4030
+ powerbutton
+Date: Mon, 14 Mar 2011 13:14:28 +0200
+Message-ID: <20110314111428.GA10465@smart.research.nokia.com>
+References: <078f4a01fa523a0f9e0033c52f52413d60cc5431.1299860654.git.ext-denis.2.karpov@nokia.com>
+ <0aaadf1ebe1864fa310a8b1330dd688079983f8d.1299860654.git.ext-denis.2.karpov@nokia.com>
+ <alpine.DEB.1.10.1103141253370.23033@esdhcp041196.research.nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:38668 "EHLO mgw-da02.nokia.com"
+Received: from smtp.nokia.com ([147.243.1.48]:53550 "EHLO mgw-sa02.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752241Ab1CNLNa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 14 Mar 2011 07:13:30 -0400
+	id S1751049Ab1CNLOo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 14 Mar 2011 07:14:44 -0400
 Content-Disposition: inline
-In-Reply-To: <4D7A53FF.4060004@ti.com>
+In-Reply-To: <alpine.DEB.1.10.1103141253370.23033@esdhcp041196.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Nishanth Menon <nm@ti.com>
+To: Aaro Koskinen <aaro.koskinen@nokia.com>
 Cc: tony@atomide.com, linux-omap@vger.kernel.org
 
-On Fri, Mar 11, 2011 at 10:25:27PM +0530, ext Nishanth Menon wrote:
+> >From: Denis Karpov <ext-denis.2.karpov@nokia.com>
+> >+static struct twl4030_pwrbutton_data rx51_pwrbutton_data = {
+> >+	.rep		= 1,
+> >+};
+> >+
 > 
-> Denis Karpov wrote, on 03/11/2011 10:07 PM:
-> >Hi,
-> >
-> >this patchset adds optional generation of repeat input events for
-> >twl4030 power button. It adds optional platform data for
-> >twl4030-pwrbutton and initializes it for RX51/N900 (default
-> >behavior kept - repeated input events disabled).
-> >
-> >We are working on an OMAP3 with TWL5031 MFD. In one of the use
-> >scenarios userspace wants to receive repeated input events from
-> >long press of power button.
-> 
-> dumb question - is'nt this a userspace responsibility as far as power
-> button is concerned? what is the benefit of providing repeat events
-> like a generic keypad for the power button?
+> Doesn't this enable them? If you want to keep the default behaviour,
+> you can just omit the platform data.
 
-In our case userspace needs this to track the continuous button press 
-of power button. 
+Yes, you are right, thanks. I meant to set it to 0 after testing, but 
+then it is not needed indeed. 
+
+So patch 2/2 is not needed and patch 1/2 does not belong here - I'll 
+resend it to input/mfd lists/maintainers.
 
 Denis
