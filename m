@@ -1,53 +1,46 @@
-From: <kalle.jokiniemi@nokia.com>
-Subject: RE: [PATCH 2/2] OMAP3: wdtimer: Fix CORE idle transition
-Date: Mon, 14 Mar 2011 10:34:18 +0000
-Message-ID: <9D0D31AA57AAF5499AFDC63D6472631B067824@008-AM1MPN1-036.mgdnok.nokia.com>
-References: <1299759058-26342-1-git-send-email-kalle.jokiniemi@nokia.com>
- <1299759058-26342-3-git-send-email-kalle.jokiniemi@nokia.com>
- <alpine.DEB.2.00.1103100752370.15132@utopia.booyaka.com>
+From: "Jan, Sebastien" <s-jan@ti.com>
+Subject: Re: [PATCH v5 00/10] OMAP4 : DSS2 : HDMI support on OMAP4
+Date: Mon, 14 Mar 2011 11:37:37 +0100
+Message-ID: <AANLkTi=CKaUAXtLgFOSVmhrHm2Kdt8yUzY2_07Bijqi-@mail.gmail.com>
+References: <1299753858-12222-1-git-send-email-mythripk@ti.com> <1299764643.2017.177.camel@deskari>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.48]:16961 "EHLO mgw-sa02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751602Ab1CNKen convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Mar 2011 06:34:43 -0400
-In-Reply-To: <alpine.DEB.2.00.1103100752370.15132@utopia.booyaka.com>
-Content-Language: en-US
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:42238 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752308Ab1CNKhy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 14 Mar 2011 06:37:54 -0400
+Received: by mail-qy0-f177.google.com with SMTP id 38so4323253qyl.15
+        for <linux-omap@vger.kernel.org>; Mon, 14 Mar 2011 03:37:53 -0700 (PDT)
+In-Reply-To: <1299764643.2017.177.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: paul@pwsan.com
-Cc: linux-watchdog@vger.kernel.org, wim@iguana.be, khilman@ti.com, linux-omap@vger.kernel.org, tony@atomide.com, jhnikula@gmail.com, ilkka.koskinen@nokia.com, b-cousson@ti.com
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: "K, Mythri P" <mythripk@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Paul,
+Hi Tomi,
 
-> -----Original Message-----
-> From: ext Paul Walmsley [mailto:paul@pwsan.com]
-> Sent: 10. maaliskuuta 2011 16:53
-> > From: Paul Walmsley <paul@pwsan.com>
-> >
-> > The HW superwised smart idle for wdtimer in OMAP3 prevents CORE
-> power
-> > domain idle transitions. Disable it by swithing to SW supervised
-> > transitions.
-> >
-> > This could be a hardware bug in the OMAP3 wdtimer2 block.
-> >
-> > Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
-> > Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> > Cc: Benoit Cousson <b-cousson@ti.com>
-> 
-> I've queued this one for 2.6.39, since it seems pretty clear that target smart-
-> idle mode doesn't work with this IP block.
+On Thu, Mar 10, 2011 at 2:44 PM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
+> I think this version is good. It works for me, at least =).
+>
+> Any Panda or Blaze owners reading this want to give this a try?
 
-What about the 1/2 patch? Is that going in, and to which kernel version (our integrator would like to put in a note when we can remove the back ported patch)
+Tested on my pandaboard, with these patches applied on top of your
+dss2 tree: I get a working display on my DVI or my HDMI screen. => I
+tested by running the Ubuntu UI.
 
-- Kalle
+I have a couple of these traces from times to times (seems linked to
+screen saver enabling/disabling the screen):
+omapdss DISPC error: timeout waiting for EVSYNC
 
-> 
-> Probably we'll need to do the same thing for OMAP2420/2430, but I'm not
-> going to touch those right now, since we're so close to the merge window.
-> 
-> 
-> - Paul
+The best screen resolution is properly selected on both of my screens,
+but the frame-buffer is sized to 640x480. So the display works but the
+usable surface when going though /dev/fb0 is quite reduced.
+Is there a way to get the FB sized according to the screen resolution
+(in the init sequence, it appears that the FBs are allocated before
+the init of the HDMI)?
+
+Fyi, I have also tested with the patches for DVI support and can get
+both outputs working simultaneously (my tree is here:
+http://dev.omapzoom.org/?p=sebjan/kernel.git;a=shortlog;h=refs/tags/topic-display-iv1-2.6.38-rc7).
