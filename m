@@ -1,33 +1,36 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [Security] [PATCH 00/20] world-writable files in sysfs and
- debugfs
-Date: Mon, 14 Mar 2011 15:18:32 -0700
-Message-ID: <20110314151832.3a6e3072.akpm@linux-foundation.org>
-References: <cover.1296818921.git.segoon@openwall.com>
-	<AANLkTikE-A=Fe-yRrN0opWwJGQ0f4uOzkyB3XCcEUrFE@mail.gmail.com>
+From: Ben Gamari <bgamari.foss@gmail.com>
+Subject: Re: [PATCH] mcspi: Add support for GPIO chip select lines
+Date: Mon, 14 Mar 2011 22:06:40 -0400
+Message-ID: <87ipvlm91r.fsf@gmail.com>
+References: <87ipvmx2ok.fsf@gmail.com> <1300043119-11262-1-git-send-email-bgamari.foss@gmail.com> <20110314192718.GG16096@angua.secretlab.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <AANLkTikE-A=Fe-yRrN0opWwJGQ0f4uOzkyB3XCcEUrFE@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Vasiliy Kulikov <segoon@openwall.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, linux-media@vger.kernel.org, platform-driver-x86@vger.kernel.org, acpi4asus-user@lists.sourceforge.net, rtc-linux@googlegroups.com, linux-scsi@vger.kernel.org, open-iscsi@googlegroups.com, security@kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:57884 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751053Ab1COCGr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Mar 2011 22:06:47 -0400
+Received: by vws1 with SMTP id 1so156516vws.19
+        for <linux-omap@vger.kernel.org>; Mon, 14 Mar 2011 19:06:46 -0700 (PDT)
+In-Reply-To: <20110314192718.GG16096@angua.secretlab.ca>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: linux-omap@vger.kernel.org
 
-On Sat, 12 Mar 2011 23:23:06 +0300
-Vasiliy Kulikov <segoon@openwall.com> wrote:
-
-> > Vasiliy Kulikov (20):
-> >  mach-ux500: mbox-db5500: world-writable sysfs fifo file
-> >  leds: lp5521: world-writable sysfs engine* files
-> >  leds: lp5523: world-writable engine* sysfs files
-> >  misc: ep93xx_pwm: world-writable sysfs files
-> >  rtc: rtc-ds1511: world-writable sysfs nvram file
-> >  scsi: aic94xx: world-writable sysfs update_bios file
-> >  scsi: iscsi: world-writable sysfs priv_sess file
+On Mon, 14 Mar 2011 13:27:18 -0600, Grant Likely <grant.likely@secretlab.ca> wrote:
+> What if the board wanted to use both the native SPI ss line as well as
+> one or more GPIOs?  You probably want to reserve cs0 for the native
+> gpio line.
 > 
-> These are still not merged :(
+Hmm, I had thought about this and assumed it would be easiest to punt on
+this, requiring the user to use the native line as a GPIO. This of
+course assumes that all of the CS lines also have pinmux configurations
+as GPIO pins. Is this not a good assumption? 
 
-I grabbed them and shall merge some and send others at relevant
-maintainers, thanks.
+> Otherwise this patch looks good to me.
+> 
+Thanks!
+
+- Ben
+
