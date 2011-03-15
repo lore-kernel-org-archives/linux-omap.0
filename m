@@ -1,207 +1,205 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH] OMAP2PLUS: DSS2: FEATURES: Fix usage of dss_reg_field and dss_clk_source_name
-Date: Tue, 15 Mar 2011 09:58:21 +0530
-Message-ID: <1300163303-31662-1-git-send-email-archit@ti.com>
+Subject: [PATCH] OMAP: DSS2: FEATURES: Functions to return min and max values of parameters
+Date: Tue, 15 Mar 2011 09:58:22 +0530
+Message-ID: <1300163303-31662-2-git-send-email-archit@ti.com>
+References: <1300163303-31662-1-git-send-email-archit@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:38310 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750736Ab1COEYY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 15 Mar 2011 00:24:24 -0400
-Received: from dlep34.itg.ti.com ([157.170.170.115])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p2F4ONqI016541
+Received: from devils.ext.ti.com ([198.47.26.153]:51219 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750736Ab1COEYi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Mar 2011 00:24:38 -0400
+Received: from dlep33.itg.ti.com ([157.170.170.112])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p2F4OcG9003643
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Mon, 14 Mar 2011 23:24:23 -0500
+	for <linux-omap@vger.kernel.org>; Mon, 14 Mar 2011 23:24:38 -0500
+In-Reply-To: <1300163303-31662-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com
 Cc: linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-The structures dss_reg_field and dss_clk_source_name have enum members which
-specify the register field and the clock source respectively. These members are
-not used to choose the correct result in the corresponding feature functions.
-Remove these members and change the features array declaration to incorporate
-these enums.
+Create 2 functions dss_feat_get_param_min() and dss_feat_get_param_max() which
+return the minimum and maximum value of a parameter. Introduce a enum in
+dss_features called dss_range_param which contains parameters whose ranges we
+are interested in.
 
-The structure dss_clk_source_name without the enum member is just a pointer to
-an string. Remove the structure and use a character pointer directly.
+Replace this with dss_feat_get_max_dss_fck() which is specific to the parameter
+DSS_FCK.
 
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/video/omap2/dss/dss.c          |   10 ++--
- drivers/video/omap2/dss/dss.h          |    6 ---
- drivers/video/omap2/dss/dss_features.c |   77 ++++++++++++++++----------------
- 3 files changed, 43 insertions(+), 50 deletions(-)
+Note: Applies over:
 
+http://gitorious.org/linux-omap-dss2/linux/commits/master
+
+and the patch submitted on linux-omap:
+OMAP2PLUS: DSS2: FEATURES: Fix usage of dss_reg_field and dss_clk_source_name
+
+ drivers/video/omap2/dss/dsi.c          |    2 +-
+ drivers/video/omap2/dss/dss.c          |    2 +-
+ drivers/video/omap2/dss/dss_features.c |   36 ++++++++++++++++++++++++-------
+ drivers/video/omap2/dss/dss_features.h |    7 +++++-
+ 4 files changed, 36 insertions(+), 11 deletions(-)
+
+diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
+index be7694f..6e7f468 100644
+--- a/drivers/video/omap2/dss/dsi.c
++++ b/drivers/video/omap2/dss/dsi.c
+@@ -864,7 +864,7 @@ int dsi_pll_calc_clock_div_pck(bool is_tft, unsigned long req_pck,
+ 
+ 	dss_sys_clk = dss_clk_get_rate(DSS_CLK_SYSCK);
+ 
+-	max_dss_fck = dss_feat_get_max_dss_fck();
++	max_dss_fck = dss_feat_get_param_max(FEAT_PARAM_DSS_FCK);
+ 
+ 	if (req_pck == dsi.cache_req_pck &&
+ 			dsi.cache_cinfo.clkin == dss_sys_clk) {
 diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
-index aed9345..06ad312 100644
+index 06ad312..562d8d2 100644
 --- a/drivers/video/omap2/dss/dss.c
 +++ b/drivers/video/omap2/dss/dss.c
-@@ -82,10 +82,10 @@ static struct {
- 	u32		ctx[DSS_SZ_REGS / sizeof(u32)];
- } dss;
+@@ -457,7 +457,7 @@ int dss_calc_clock_div(bool is_tft, unsigned long req_pck,
  
--static const struct dss_clk_source_name dss_generic_clk_source_names[] = {
--	{ DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC, "DSI_PLL_HSDIV_DISPC" },
--	{ DSS_CLK_SRC_DSI_PLL_HSDIV_DSI, "DSI_PLL_HSDIV_DSI" },
--	{ DSS_CLK_SRC_FCK, "DSS_FCK" },
-+static const char * const dss_generic_clk_source_names[] = {
-+	[DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC]	= "DSI_PLL_HSDIV_DISPC",
-+	[DSS_CLK_SRC_DSI_PLL_HSDIV_DSI]		= "DSI_PLL_HSDIV_DSI",
-+	[DSS_CLK_SRC_FCK]			= "DSS_FCK",
- };
+ 	prate = dss_get_dpll4_rate();
  
- static void dss_clk_enable_all_no_ctx(void);
-@@ -232,7 +232,7 @@ void dss_sdi_disable(void)
+-	max_dss_fck = dss_feat_get_max_dss_fck();
++	max_dss_fck = dss_feat_get_param_max(FEAT_PARAM_DSS_FCK);
  
- const char *dss_get_generic_clk_source_name(enum dss_clk_source clk_src)
- {
--	return dss_generic_clk_source_names[clk_src].clksrc_name;
-+	return dss_generic_clk_source_names[clk_src];
- }
- 
- void dss_dump_clocks(struct seq_file *s)
-diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-index b845468..26a43c9 100644
---- a/drivers/video/omap2/dss/dss.h
-+++ b/drivers/video/omap2/dss/dss.h
-@@ -126,12 +126,6 @@ enum dss_clk_source {
- 						 * OMAP4: DSS_FCLK */
- };
- 
--/* Correlates clock source name and dss_clk_source member */
--struct dss_clk_source_name {
--	enum dss_clk_source clksrc;
--	const char *clksrc_name;
--};
--
- struct dss_clock_info {
- 	/* rates that we get with dividers below */
- 	unsigned long fck;
+ 	fck = dss_clk_get_rate(DSS_CLK_FCK);
+ 	if (req_pck == dss.cache_req_pck &&
 diff --git a/drivers/video/omap2/dss/dss_features.c b/drivers/video/omap2/dss/dss_features.c
-index 6eb6ec6..8de3344 100644
+index 8de3344..4c8b32a 100644
 --- a/drivers/video/omap2/dss/dss_features.c
 +++ b/drivers/video/omap2/dss/dss_features.c
-@@ -30,7 +30,6 @@
- 
- /* Defines a generic omap register field */
- struct dss_reg_field {
--	enum dss_feat_reg_field id;
+@@ -33,6 +33,10 @@ struct dss_reg_field {
  	u8 start, end;
  };
  
-@@ -45,43 +44,43 @@ struct omap_dss_features {
- 	const unsigned long max_dss_fck;
++struct dss_param_range {
++	int min, max;
++};
++
+ struct omap_dss_features {
+ 	const struct dss_reg_field *reg_fields;
+ 	const int num_reg_fields;
+@@ -41,10 +45,10 @@ struct omap_dss_features {
+ 
+ 	const int num_mgrs;
+ 	const int num_ovls;
+-	const unsigned long max_dss_fck;
  	const enum omap_display_type *supported_displays;
  	const enum omap_color_mode *supported_color_modes;
--	const struct dss_clk_source_name *clksrc_names;
-+	const char * const *clksrc_names;
+ 	const char * const *clksrc_names;
++	const struct dss_param_range *dss_params;
  };
  
  /* This struct is assigned to one of the below during initialization */
- static struct omap_dss_features *omap_current_dss_features;
- 
- static const struct dss_reg_field omap2_dss_reg_fields[] = {
--	{ FEAT_REG_FIRHINC, 11, 0 },
--	{ FEAT_REG_FIRVINC, 27, 16 },
--	{ FEAT_REG_FIFOLOWTHRESHOLD, 8, 0 },
--	{ FEAT_REG_FIFOHIGHTHRESHOLD, 24, 16 },
--	{ FEAT_REG_FIFOSIZE, 8, 0 },
--	{ FEAT_REG_HORIZONTALACCU, 9, 0 },
--	{ FEAT_REG_VERTICALACCU, 25, 16 },
--	{ FEAT_REG_DISPC_CLK_SWITCH, 0, 0 },
-+	[FEAT_REG_FIRHINC]		= { 11, 0 },
-+	[FEAT_REG_FIRVINC]		= { 27, 16 },
-+	[FEAT_REG_FIFOLOWTHRESHOLD]	= { 8, 0 },
-+	[FEAT_REG_FIFOHIGHTHRESHOLD]	= { 24, 16 },
-+	[FEAT_REG_FIFOSIZE]		= { 8, 0 },
-+	[FEAT_REG_HORIZONTALACCU]	= { 9, 0 },
-+	[FEAT_REG_VERTICALACCU]		= { 25, 16 },
-+	[FEAT_REG_DISPC_CLK_SWITCH]	= { 0, 0 },
+@@ -179,6 +183,18 @@ static const char * const omap4_dss_clk_source_names[] = {
+ 	[DSS_CLK_SRC_FCK]			= "DSS_FCLK",
  };
  
- static const struct dss_reg_field omap3_dss_reg_fields[] = {
--	{ FEAT_REG_FIRHINC, 12, 0 },
--	{ FEAT_REG_FIRVINC, 28, 16 },
--	{ FEAT_REG_FIFOLOWTHRESHOLD, 11, 0 },
--	{ FEAT_REG_FIFOHIGHTHRESHOLD, 27, 16 },
--	{ FEAT_REG_FIFOSIZE, 10, 0 },
--	{ FEAT_REG_HORIZONTALACCU, 9, 0 },
--	{ FEAT_REG_VERTICALACCU, 25, 16 },
--	{ FEAT_REG_DISPC_CLK_SWITCH, 0, 0 },
-+	[FEAT_REG_FIRHINC]		= { 12, 0 },
-+	[FEAT_REG_FIRVINC]		= { 28, 16 },
-+	[FEAT_REG_FIFOLOWTHRESHOLD]	= { 11, 0 },
-+	[FEAT_REG_FIFOHIGHTHRESHOLD]	= { 27, 16 },
-+	[FEAT_REG_FIFOSIZE]		= { 10, 0 },
-+	[FEAT_REG_HORIZONTALACCU]	= { 9, 0 },
-+	[FEAT_REG_VERTICALACCU]		= { 25, 16 },
-+	[FEAT_REG_DISPC_CLK_SWITCH]	= { 0, 0 },
- };
- 
- static const struct dss_reg_field omap4_dss_reg_fields[] = {
--	{ FEAT_REG_FIRHINC, 12, 0 },
--	{ FEAT_REG_FIRVINC, 28, 16 },
--	{ FEAT_REG_FIFOLOWTHRESHOLD, 15, 0 },
--	{ FEAT_REG_FIFOHIGHTHRESHOLD, 31, 16 },
--	{ FEAT_REG_FIFOSIZE, 15, 0 },
--	{ FEAT_REG_HORIZONTALACCU, 10, 0 },
--	{ FEAT_REG_VERTICALACCU, 26, 16 },
--	{ FEAT_REG_DISPC_CLK_SWITCH, 9, 8 },
-+	[FEAT_REG_FIRHINC]		= { 12, 0 },
-+	[FEAT_REG_FIRVINC]		= { 28, 16 },
-+	[FEAT_REG_FIFOLOWTHRESHOLD]	= { 15, 0 },
-+	[FEAT_REG_FIFOHIGHTHRESHOLD]	= { 31, 16 },
-+	[FEAT_REG_FIFOSIZE]		= { 15, 0 },
-+	[FEAT_REG_HORIZONTALACCU]	= { 10, 0 },
-+	[FEAT_REG_VERTICALACCU]		= { 26, 16 },
-+	[FEAT_REG_DISPC_CLK_SWITCH]	= { 9, 8 },
- };
- 
- static const enum omap_display_type omap2_dss_supported_displays[] = {
-@@ -162,22 +161,22 @@ static const enum omap_color_mode omap3_dss_supported_color_modes[] = {
- 	OMAP_DSS_COLOR_RGBA32 | OMAP_DSS_COLOR_RGBX32,
- };
- 
--static const struct dss_clk_source_name omap2_dss_clk_source_names[] = {
--	{ DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC, "N/A" },
--	{ DSS_CLK_SRC_DSI_PLL_HSDIV_DSI, "N/A" },
--	{ DSS_CLK_SRC_FCK, "DSS_FCLK1" },
-+static const char * const omap2_dss_clk_source_names[] = {
-+	[DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC]	= "N/A",
-+	[DSS_CLK_SRC_DSI_PLL_HSDIV_DSI]		= "N/A",
-+	[DSS_CLK_SRC_FCK]			= "DSS_FCLK1",
- };
- 
--static const struct dss_clk_source_name omap3_dss_clk_source_names[] = {
--	{ DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC, "DSI1_PLL_FCLK" },
--	{ DSS_CLK_SRC_DSI_PLL_HSDIV_DSI, "DSI2_PLL_FCLK" },
--	{ DSS_CLK_SRC_FCK, "DSS1_ALWON_FCLK" },
-+static const char * const omap3_dss_clk_source_names[] = {
-+	[DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC]	= "DSI1_PLL_FCLK",
-+	[DSS_CLK_SRC_DSI_PLL_HSDIV_DSI]		= "DSI2_PLL_FCLK",
-+	[DSS_CLK_SRC_FCK]			= "DSS1_ALWON_FCLK",
- };
- 
--static const struct dss_clk_source_name omap4_dss_clk_source_names[] = {
--	{ DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC, "PLL1_CLK1" },
--	{ DSS_CLK_SRC_DSI_PLL_HSDIV_DSI, "PLL1_CLK2" },
--	{ DSS_CLK_SRC_FCK, "DSS_FCLK" },
-+static const char * const omap4_dss_clk_source_names[] = {
-+	[DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC]	= "PLL1_CLK1",
-+	[DSS_CLK_SRC_DSI_PLL_HSDIV_DSI]		= "PLL1_CLK2",
-+	[DSS_CLK_SRC_FCK]			= "DSS_FCLK",
- };
- 
++static const struct dss_param_range omap2_dss_param_range[] = {
++	[FEAT_PARAM_DSS_FCK]	= { 0, 173000000 },
++};
++
++static const struct dss_param_range omap3_dss_param_range[] = {
++	[FEAT_PARAM_DSS_FCK]	= { 0, 173000000 },
++};
++
++static const struct dss_param_range omap4_dss_param_range[] = {
++	[FEAT_PARAM_DSS_FCK]	= { 0, 186000000 },
++};
++
  /* OMAP2 DSS Features */
-@@ -290,7 +289,7 @@ bool dss_feat_color_mode_supported(enum omap_plane plane,
+ static struct omap_dss_features omap2_dss_features = {
+ 	.reg_fields = omap2_dss_reg_fields,
+@@ -191,10 +207,10 @@ static struct omap_dss_features omap2_dss_features = {
  
- const char *dss_feat_get_clk_source_name(enum dss_clk_source id)
- {
--	return omap_current_dss_features->clksrc_names[id].clksrc_name;
-+	return omap_current_dss_features->clksrc_names[id];
+ 	.num_mgrs = 2,
+ 	.num_ovls = 3,
+-	.max_dss_fck = 173000000,
+ 	.supported_displays = omap2_dss_supported_displays,
+ 	.supported_color_modes = omap2_dss_supported_color_modes,
+ 	.clksrc_names = omap2_dss_clk_source_names,
++	.dss_params = omap2_dss_param_range,
+ };
+ 
+ /* OMAP3 DSS Features */
+@@ -210,10 +226,10 @@ static struct omap_dss_features omap3430_dss_features = {
+ 
+ 	.num_mgrs = 2,
+ 	.num_ovls = 3,
+-	.max_dss_fck = 173000000,
+ 	.supported_displays = omap3430_dss_supported_displays,
+ 	.supported_color_modes = omap3_dss_supported_color_modes,
+ 	.clksrc_names = omap3_dss_clk_source_names,
++	.dss_params = omap3_dss_param_range,
+ };
+ 
+ static struct omap_dss_features omap3630_dss_features = {
+@@ -229,10 +245,10 @@ static struct omap_dss_features omap3630_dss_features = {
+ 
+ 	.num_mgrs = 2,
+ 	.num_ovls = 3,
+-	.max_dss_fck = 173000000,
+ 	.supported_displays = omap3630_dss_supported_displays,
+ 	.supported_color_modes = omap3_dss_supported_color_modes,
+ 	.clksrc_names = omap3_dss_clk_source_names,
++	.dss_params = omap3_dss_param_range,
+ };
+ 
+ /* OMAP4 DSS Features */
+@@ -247,10 +263,10 @@ static struct omap_dss_features omap4_dss_features = {
+ 
+ 	.num_mgrs = 3,
+ 	.num_ovls = 3,
+-	.max_dss_fck = 186000000,
+ 	.supported_displays = omap4_dss_supported_displays,
+ 	.supported_color_modes = omap3_dss_supported_color_modes,
+ 	.clksrc_names = omap4_dss_clk_source_names,
++	.dss_params = omap4_dss_param_range,
+ };
+ 
+ /* Functions returning values related to a DSS feature */
+@@ -264,10 +280,14 @@ int dss_feat_get_num_ovls(void)
+ 	return omap_current_dss_features->num_ovls;
  }
  
- /* DSS has_feature check */
+-/* Max supported DSS FCK in Hz */
+-unsigned long dss_feat_get_max_dss_fck(void)
++unsigned long dss_feat_get_param_min(enum dss_range_param param)
++{
++	return omap_current_dss_features->dss_params[param].min;
++}
++
++unsigned long dss_feat_get_param_max(enum dss_range_param param)
+ {
+-	return omap_current_dss_features->max_dss_fck;
++	return omap_current_dss_features->dss_params[param].max;
+ }
+ 
+ enum omap_display_type dss_feat_get_supported_displays(enum omap_channel channel)
+diff --git a/drivers/video/omap2/dss/dss_features.h b/drivers/video/omap2/dss/dss_features.h
+index 729b5f1..da63bbf 100644
+--- a/drivers/video/omap2/dss/dss_features.h
++++ b/drivers/video/omap2/dss/dss_features.h
+@@ -54,10 +54,15 @@ enum dss_feat_reg_field {
+ 	FEAT_REG_DISPC_CLK_SWITCH,
+ };
+ 
++enum dss_range_param {
++	FEAT_PARAM_DSS_FCK,
++};
++
+ /* DSS Feature Functions */
+ int dss_feat_get_num_mgrs(void);
+ int dss_feat_get_num_ovls(void);
+-unsigned long dss_feat_get_max_dss_fck(void);
++unsigned long dss_feat_get_param_min(enum dss_range_param param);
++unsigned long dss_feat_get_param_max(enum dss_range_param param);
+ enum omap_display_type dss_feat_get_supported_displays(enum omap_channel channel);
+ enum omap_color_mode dss_feat_get_supported_color_modes(enum omap_plane plane);
+ bool dss_feat_color_mode_supported(enum omap_plane plane,
 -- 
 1.7.1
 
