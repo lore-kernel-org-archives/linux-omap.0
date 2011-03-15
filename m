@@ -1,101 +1,72 @@
-From: "K, Mythri P" <mythripk@ti.com>
-Subject: Re: [PATCH v5 00/10] OMAP4 : DSS2 : HDMI support on OMAP4
-Date: Tue, 15 Mar 2011 10:08:14 +0530
-Message-ID: <AANLkTinFx9WjyEWUyX9fZmU1h6HF6ZU2M2gWW9iT38pH@mail.gmail.com>
-References: <1299753858-12222-1-git-send-email-mythripk@ti.com>
- <1299764643.2017.177.camel@deskari> <AANLkTi=CKaUAXtLgFOSVmhrHm2Kdt8yUzY2_07Bijqi-@mail.gmail.com>
- <1300161975.1946.7.camel@lappyti>
+From: "Menon, Nishanth" <nm@ti.com>
+Subject: Re: [PATCH V2] OMAP4: Intialize IVA Device in addition to DSP device.
+Date: Tue, 15 Mar 2011 10:48:37 +0530
+Message-ID: <AANLkTinympnok4Qw_n15ukDNE2L5yp9xvuhoP64B=2wJ@mail.gmail.com>
+References: <1299926361-28482-1-git-send-email-shweta.gulati@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:47192 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750863Ab1COEig convert rfc822-to-8bit
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:32949 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750920Ab1COFS7 convert rfc822-to-8bit
 	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 15 Mar 2011 00:38:36 -0400
-Received: by mail-bw0-f46.google.com with SMTP id 15so301798bwz.5
-        for <linux-omap@vger.kernel.org>; Mon, 14 Mar 2011 21:38:34 -0700 (PDT)
-In-Reply-To: <1300161975.1946.7.camel@lappyti>
+	Tue, 15 Mar 2011 01:18:59 -0400
+Received: by wyj26 with SMTP id 26so183208wyj.10
+        for <linux-omap@vger.kernel.org>; Mon, 14 Mar 2011 22:18:57 -0700 (PDT)
+In-Reply-To: <1299926361-28482-1-git-send-email-shweta.gulati@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: "Jan, Sebastien" <s-jan@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Shweta Gulati <shweta.gulati@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Tomi,Sebastien,
+On Sat, Mar 12, 2011 at 16:09, Shweta Gulati <shweta.gulati@ti.com> wro=
+te:
+> OMAP4 has two different Devices IVA and DSP. DSP is bound
+> with IVA for DVFS. The registration of IVA dev in API
+> 'omap2_init_processor_devices' was missing. Init dev for
+> 'iva_dev' is added.
+>
+> This also fixes the following error seen during boot as
+> omap2_set_init_voltage can now find the iva device
+>
+> =A0 =A0 =A0 =A0omap2_set_init_voltage: Invalid parameters!
+> =A0 =A0 =A0 =A0omap2_set_init_voltage: Unable to put vdd_iva to its i=
+nit voltage
+>
+> Signed-off-by: Shweta Gulati <shweta.gulati@ti.com>
+> ---
+>
+> Tested on OMAP4430 SDP Board.
+> Baseline:
+> http://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.=
+git
+> Branch :pm-core
+>
+> V2:
+> Rephrased the Commit log.
+>
+> =A0arch/arm/mach-omap2/pm.c | =A0 =A01 +
+> =A01 files changed, 1 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+> index 30af335..49486f5 100644
+> --- a/arch/arm/mach-omap2/pm.c
+> +++ b/arch/arm/mach-omap2/pm.c
+> @@ -89,6 +89,7 @@ static void omap2_init_processor_devices(void)
+> =A0 =A0 =A0 =A0if (cpu_is_omap44xx()) {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0_init_omap_device("l3_main_1", &l3_dev=
+);
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0_init_omap_device("dsp", &dsp_dev);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 _init_omap_device("iva", &iva_dev);
+> =A0 =A0 =A0 =A0} else {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0_init_omap_device("l3_main", &l3_dev);
+> =A0 =A0 =A0 =A0}
+> --
+Looks fine to me.
 
-On Tue, Mar 15, 2011 at 9:36 AM, Tomi Valkeinen <tomi.valkeinen@ti.com>=
- wrote:
-> On Mon, 2011-03-14 at 05:37 -0500, Jan, Sebastien wrote:
->> Hi Tomi,
->>
->> On Thu, Mar 10, 2011 at 2:44 PM, Tomi Valkeinen <tomi.valkeinen@ti.c=
-om> wrote:
->> > I think this version is good. It works for me, at least =3D).
->> >
->> > Any Panda or Blaze owners reading this want to give this a try?
->>
->> Tested on my pandaboard, with these patches applied on top of your
->> dss2 tree: I get a working display on my DVI or my HDMI screen. =3D>=
- I
->> tested by running the Ubuntu UI.
->>
->> I have a couple of these traces from times to times (seems linked to
->> screen saver enabling/disabling the screen):
->> omapdss DISPC error: timeout waiting for EVSYNC
->
-> Yes, I get those every time I enable or disable the HDMI output. That
-> shouldn't cause any problems, but it's something that needs to be fix=
-ed
-> at some point.
->
->> The best screen resolution is properly selected on both of my screen=
-s,
->> but the frame-buffer is sized to 640x480. So the display works but t=
-he
->> usable surface when going though /dev/fb0 is quite reduced.
->> Is there a way to get the FB sized according to the screen resolutio=
-n
->> (in the init sequence, it appears that the FBs are allocated before
->> the init of the HDMI)?
->
-> Currently the resolution has to be configured by the user manually. I
-> haven't tried, but I think giving the resolution with boot parameters
-> should also work. Mythri, have you tried that?
->
-You could configure the timings later on with the sysfs ( set_timings )=
- or
-HDMI driver would pick the best timing (as suggested by standard) , but
-yes framebuffer would have picked the timing on probe so it will not up=
-date.
-
-> I don't think it is possible for the omapdss, panel or omapfb drivers=
- to
-> configure the resolution automatically, except at boot time. After we
-> have booted up, there may be users for the framebuffer and changing i=
-t
-> "secretly" would cause problems.
->
-> I think the best way here is that the HDMI/omapdss driver gives hotpl=
-ug
-> event, which is conveyed through omapfb to an userspace application.
-> This application can then query the available resolutions via some
-> mechanism, and select one of those.
->
->> Fyi, I have also tested with the patches for DVI support and can get
->> both outputs working simultaneously (my tree is here:
->> http://dev.omapzoom.org/?p=3Dsebjan/kernel.git;a=3Dshortlog;h=3Drefs=
-/tags/topic-display-iv1-2.6.38-rc7).
->
-> Thanks. I'll also set up a "test" branch in DSS2 tree shortly, to whi=
-ch
-> I'll add DVI and HDMI patches for easier testing.
->
-> =A0Tomi
->
-
-Thanks and regards,
-Mythri.
+Regards,
+Nishanth Menon
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
