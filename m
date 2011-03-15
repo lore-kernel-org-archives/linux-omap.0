@@ -1,57 +1,43 @@
-From: James Bottomley <James.Bottomley-l3A5Bk7waGM@public.gmane.org>
-Subject: Re: [Security] [PATCH 00/20] world-writable files in sysfs and
- debugfs
-Date: Tue, 15 Mar 2011 12:32:31 -0400
-Message-ID: <1300206751.11313.3.camel@mulgrave.site>
-References: <cover.1296818921.git.segoon@openwall.com>
-	 <AANLkTikE-A=Fe-yRrN0opWwJGQ0f4uOzkyB3XCcEUrFE@mail.gmail.com>
-	 <1300155965.5665.15.camel@mulgrave.site> <20110315030956.GA2234@kroah.com>
-	 <1300189828.4017.2.camel@mulgrave.site>  <20110315160804.GA3380@albatros>
+From: "Fillinger, Michael" <m-fillinger@ti.com>
+Subject: 2420 sDMA address mapping typo
+Date: Tue, 15 Mar 2011 17:44:02 +0100
+Message-ID: <E8606C3FD412994585953171ED63A9340217F287D9@dnce01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20110315160804.GA3380@albatros>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Vasiliy Kulikov <segoon-cxoSlKxDwOJWk0Htik3J/w@public.gmane.org>
-Cc: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, security-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, platform-driver-x86-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, open-iscsi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:55902 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932332Ab1COQnx convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Mar 2011 12:43:53 -0400
+Content-Class: urn:content-classes:message
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Balbi, Felipe" <balbi@ti.com>, "tony@atomide.com" <tony@atomide.com>
 
-On Tue, 2011-03-15 at 19:08 +0300, Vasiliy Kulikov wrote:
-> On Tue, Mar 15, 2011 at 07:50 -0400, James Bottomley wrote:
-> >      1. Did anyone actually check for capabilities before assuming world
-> >         writeable files were wrong?
-> 
-> I didn't check all these files as I haven't got these hardware :-)
+Hi,
 
-You don't need the hardware to check ... the question becomes is a
-capabilities test sitting in the implementation or not.
+There is a small issue introduced in 2.6.38 on the address space of sDMA for OMAP2420, which seems to be a mix of OMAP2 & newer OMAP addresses :
 
->   But
-> as I can "chmod a+w" all sysfs files on my machine and they all become
-> sensible to nonroot writes, I suppose there is nothing preventing
-> nonroot users from writing to these buggy sysfs files.  As you can see,
-> there are no capable() checks in these drivers in open() or write().
-> 
-> >      2. Even if there aren't any capabilities checks in the implementing
-> >         routines, should there be (are we going the separated
-> >         capabilities route vs the monolithic root route)?
-> 
-> IMO, In any case old good DAC security model must not be obsoleted just
-> because someone thinks that MAC or anything else is more convenient for
-> him.  If sysfs is implemented via filesystem then it must support POSIX
-> permissions semantic.  MAC is very good in _some_ cases, but not instead
-> of DAC.
+arch/arm/mach-omap2/omap_hwmod_2420_data.c
 
-Um, I'm not sure that's even an issue.  capabilities have CAP_ADMIN
-which is precisely the same check as owner == root.  We use this a lot
-because ioctls ignore the standard unix DAC model.
+static struct omap_hwmod_addr_space omap2420_dma_system_addrs[] = {
+        {
+                 .pa_start   = 0x48056000,
+                 .pa_end     = 0x4a0560ff,
+                 .flags      = ADDR_TYPE_RT
+        },
+};
 
-James
+pa_end should be 0x480560ff unless I'm mistaken.
+
+Regards,
+
+Michael
+
+Texas Instruments France SA, 821 Avenue Jack Kilby, 06270 Villeneuve Loubet. 036 420 040 R.C.S Antibes. Capital de EUR 753.920
 
 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
