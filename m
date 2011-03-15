@@ -1,53 +1,47 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH v2] OMAP: DSS2: FEATURES: DSI PLL parameter cleanup
-Date: Tue, 15 Mar 2011 12:41:10 +0530
-Message-ID: <1300173070.1946.20.camel@lappyti>
-References: <1300163303-31662-1-git-send-email-archit@ti.com>
-	 <1300163303-31662-3-git-send-email-archit@ti.com>
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: Re: [HELP] Audio on BeagleBoard xM can't work
+Date: Tue, 15 Mar 2011 11:53:15 +0200
+Message-ID: <20110315115315.bcd2451b.jhnikula@gmail.com>
+References: <AANLkTikMCttrVTS==b2j9VyvSSz+WzoBg8dZ-nb4QUaN@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:45691 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751917Ab1COHLP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 15 Mar 2011 03:11:15 -0400
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p2F7BBua027384
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 15 Mar 2011 02:11:14 -0500
-In-Reply-To: <1300163303-31662-3-git-send-email-archit@ti.com>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:60275 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750893Ab1COJvJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Mar 2011 05:51:09 -0400
+Received: by ewy4 with SMTP id 4so113465ewy.19
+        for <linux-omap@vger.kernel.org>; Tue, 15 Mar 2011 02:51:08 -0700 (PDT)
+In-Reply-To: <AANLkTikMCttrVTS==b2j9VyvSSz+WzoBg8dZ-nb4QUaN@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Taneja, Archit" <archit@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Bob Liu <lliubbo@gmail.com>
+Cc: linux-omap@vger.kernel.org, broonie@opensource.wolfsonmicro.com, lrg@slimlogic.co.uk, lars@metafoo.de, paul@pwsan.com, peter.ujfalusi@nokia.com
 
-On Mon, 2011-03-14 at 23:28 -0500, Taneja, Archit wrote:
-> The DSI PLL parameters (regm, regn, regm_dispc, regm_dsi, fint) have different
-> fields and also different Max values on OMAP3 and OMAP4. Use dss features to
-> calculate the register fields and min/max values based on current OMAP revision.
-> 
-> Signed-off-by: Archit Taneja <archit@ti.com>
-> ---
-> v2:
-> use dss_feat_get_param_max()/min() instead of calculating range from field's
-> start and end.
-> 
-> Note: Applies over:
-> 
-> http://gitorious.org/linux-omap-dss2/linux/commits/master
-> 
-> and the patches submitted on linux-omap:
-> OMAP2PLUS: DSS2: FEATURES: Fix usage of dss_reg_field and dss_clk_source_name
-> OMAP: DSS2: FEATURES: Functions to return min and max values of parameters
-> 
->  drivers/video/omap2/dss/dsi.c          |   69 +++++++++++++++++---------
->  drivers/video/omap2/dss/dss_features.c |   84 +++++++++++++++++++++----------
->  drivers/video/omap2/dss/dss_features.h |   10 ++++
->  3 files changed, 113 insertions(+), 50 deletions(-)
+On Tue, 15 Mar 2011 11:12:17 +0800
+Bob Liu <lliubbo@gmail.com> wrote:
 
-Thanks, applied.
+> It seems that the code in sound/soc/omap/omap-mcbsp.c uses the function
+> "cpu-is-omap343x()" which fails and returns ENODEV.
+> 
+> But I have enabled "OMAP3430 support" in "System Type" / "TI OMAP2/3/4
+> Specific Features",
+> why it still return ENODEV? (Attached my kernel config).
+> 
+> And after I changed that check to "cpu-is-omap34xx()", there was no
+> error message but neither any audio output,
+> I can't hear any sound.
+> ----------------------------
 
- Tomi
+Is the DMA running after you change the cpu_is_omap34xx and try to play
+e.g. "aplay /dev/urandom"? If audio is running you should see DMA
+interrupt count increasing with "grep DMA /proc/interrupts".
 
+If that is working then issue could be in codec side. I don't have a
+beagle at the moment to verify but IRCC something like ~10 TWL4030 ALSA
+controls must be adjusted in order to route audio from DAC to outputs
+at proper volume.
 
+-- 
+Jarkko
