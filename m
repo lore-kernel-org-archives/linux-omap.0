@@ -1,37 +1,29 @@
 From: Andy Green <andy@warmcat.com>
-Subject: [PATCH 3 02/18] I2C: OMAP2+: Name registers in I2C IP V2 only
- accordingly
-Date: Tue, 15 Mar 2011 19:56:03 +0000
-Message-ID: <20110315195602.30000.79880.stgit@otae.warmcat.com>
+Subject: [PATCH 3 03/18] I2C: OMAP2+:  Introduce I2C IP versioning constants
+Date: Tue, 15 Mar 2011 19:56:10 +0000
+Message-ID: <20110315195610.30000.4573.stgit@otae.warmcat.com>
 References: <20110315195147.30000.86184.stgit@otae.warmcat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:37340 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753404Ab1COT4G (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Mar 2011 15:56:06 -0400
-Received: by mail-ww0-f44.google.com with SMTP id 36so1206062wwa.1
-        for <linux-omap@vger.kernel.org>; Tue, 15 Mar 2011 12:56:05 -0700 (PDT)
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:62524 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751986Ab1COT4N (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Mar 2011 15:56:13 -0400
+Received: by mail-wy0-f174.google.com with SMTP id 21so915512wya.19
+        for <linux-omap@vger.kernel.org>; Tue, 15 Mar 2011 12:56:13 -0700 (PDT)
 In-Reply-To: <20110315195147.30000.86184.stgit@otae.warmcat.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 Cc: patches@linaro.org, Ben Dooks <ben-linux@fluff.org>, Andy Green <andy.green@linaro.org>
 
-The OMAP I2C driver dynamically chooses between two register sets of
-differing sizes depending on the cpu type it finds itself on.
+These represent the two kinds of (incompatible) OMAP I2C
+peripheral unit in use so far.
 
-It has been observed that the existing code references non-existing
-registers on OMAP3530, because while it correctly chose the smaller
-register layout based on cpu type, the code uses the probed register
-ID to decide if to execute code referencing an extra register, and
-both register layout devices on OMAP3530 and OMAP4430 report the same
-probed ID of 0x40.
-
-This patch changes the extended register names only found on IP V2
-of the I2C peripheral unit accordingly to help show up errors in usage.
+The constants are in linux/i2c-omap.h so the omap i2c driver can have
+them too.
 
 Cc: patches@linaro.org
 Cc: Ben Dooks <ben-linux@fluff.org>
@@ -39,55 +31,43 @@ Reported-by: Peter Maydell <peter.maydell@linaro.org>
 Signed-off-by: Andy Green <andy.green@linaro.org>
 ---
 
- drivers/i2c/busses/i2c-omap.c |   23 ++++++++++++-----------
- 1 files changed, 12 insertions(+), 11 deletions(-)
+ arch/arm/plat-omap/include/plat/i2c.h |    1 +
+ include/linux/i2c-omap.h              |   12 ++++++++++++
+ 2 files changed, 13 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 829a2a1..2826c13 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -72,11 +72,12 @@ enum {
- 	OMAP_I2C_SCLH_REG,
- 	OMAP_I2C_SYSTEST_REG,
- 	OMAP_I2C_BUFSTAT_REG,
--	OMAP_I2C_REVNB_LO,
--	OMAP_I2C_REVNB_HI,
--	OMAP_I2C_IRQSTATUS_RAW,
--	OMAP_I2C_IRQENABLE_SET,
--	OMAP_I2C_IRQENABLE_CLR,
-+	/* only on OMAP4430 */
-+	OMAP_I2C_IP_V2_REVNB_LO,
-+	OMAP_I2C_IP_V2_REVNB_HI,
-+	OMAP_I2C_IP_V2_IRQSTATUS_RAW,
-+	OMAP_I2C_IP_V2_IRQENABLE_SET,
-+	OMAP_I2C_IP_V2_IRQENABLE_CLR,
- };
+diff --git a/arch/arm/plat-omap/include/plat/i2c.h b/arch/arm/plat-omap/include/plat/i2c.h
+index 878d632..a1d3d06 100644
+--- a/arch/arm/plat-omap/include/plat/i2c.h
++++ b/arch/arm/plat-omap/include/plat/i2c.h
+@@ -22,6 +22,7 @@
+ #define __ASM__ARCH_OMAP_I2C_H
  
- /* I2C Interrupt Enable Register (OMAP_I2C_IE): */
-@@ -244,11 +245,11 @@ const static u8 omap4_reg_map[] = {
- 	[OMAP_I2C_SCLH_REG] = 0xb8,
- 	[OMAP_I2C_SYSTEST_REG] = 0xbC,
- 	[OMAP_I2C_BUFSTAT_REG] = 0xc0,
--	[OMAP_I2C_REVNB_LO] = 0x00,
--	[OMAP_I2C_REVNB_HI] = 0x04,
--	[OMAP_I2C_IRQSTATUS_RAW] = 0x24,
--	[OMAP_I2C_IRQENABLE_SET] = 0x2c,
--	[OMAP_I2C_IRQENABLE_CLR] = 0x30,
-+	[OMAP_I2C_IP_V2_REVNB_LO] = 0x00,
-+	[OMAP_I2C_IP_V2_REVNB_HI] = 0x04,
-+	[OMAP_I2C_IP_V2_IRQSTATUS_RAW] = 0x24,
-+	[OMAP_I2C_IP_V2_IRQENABLE_SET] = 0x2c,
-+	[OMAP_I2C_IP_V2_IRQENABLE_CLR] = 0x30,
- };
+ #include <linux/i2c.h>
++#include <linux/i2c-omap.h>
  
- static inline void omap_i2c_write_reg(struct omap_i2c_dev *i2c_dev,
-@@ -309,7 +310,7 @@ static void omap_i2c_idle(struct omap_i2c_dev *dev)
+ #if defined(CONFIG_I2C_OMAP) || defined(CONFIG_I2C_OMAP_MODULE)
+ extern int omap_register_i2c_bus(int bus_id, u32 clkrate,
+diff --git a/include/linux/i2c-omap.h b/include/linux/i2c-omap.h
+index 7472449..701886d 100644
+--- a/include/linux/i2c-omap.h
++++ b/include/linux/i2c-omap.h
+@@ -3,6 +3,18 @@
  
- 	dev->iestate = omap_i2c_read_reg(dev, OMAP_I2C_IE_REG);
- 	if (dev->rev >= OMAP_I2C_REV_ON_4430)
--		omap_i2c_write_reg(dev, OMAP_I2C_IRQENABLE_CLR, 1);
-+		omap_i2c_write_reg(dev, OMAP_I2C_IP_V2_IRQENABLE_CLR, 1);
- 	else
- 		omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, 0);
+ #include <linux/platform_device.h>
  
++/*
++ * Version 2 of the I2C peripheral unit has a different register
++ * layout and extra registers.  The ID register in the V2 peripheral
++ * unit on the OMAP4430 reports the same ID as the V1 peripheral
++ * unit on the OMAP3530, so we must inform the driver which IP
++ * version we know it is running on from platform / cpu-specific
++ * code using these constants in the hwmod class definition.
++ */
++
++#define OMAP_I2C_IP_VERSION_1 1
++#define OMAP_I2C_IP_VERSION_2 2
++
+ struct omap_i2c_bus_platform_data {
+ 	u32		clkrate;
+ 	void		(*set_mpu_wkup_lat)(struct device *dev, long set);
 
