@@ -1,43 +1,52 @@
-From: "Fillinger, Michael" <m-fillinger@ti.com>
-Subject: 2420 sDMA address mapping typo
-Date: Tue, 15 Mar 2011 17:44:02 +0100
-Message-ID: <E8606C3FD412994585953171ED63A9340217F287D9@dnce01.ent.ti.com>
+From: Aaro Koskinen <aaro.koskinen@nokia.com>
+Subject: Re: Code for v2.6.39 merge window frozen, patches archived
+Date: Tue, 15 Mar 2011 19:54:48 +0200 (EET)
+Message-ID: <alpine.DEB.1.10.1103151856180.880@esdhcp041196.research.nokia.com>
+References: <20110314192538.GH7258@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:55902 "EHLO comal.ext.ti.com"
+Received: from smtp.nokia.com ([147.243.1.47]:61537 "EHLO mgw-sa01.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932332Ab1COQnx convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Mar 2011 12:43:53 -0400
-Content-Class: urn:content-classes:message
-Content-Language: en-US
+	id S1755985Ab1COR5C (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 15 Mar 2011 13:57:02 -0400
+In-Reply-To: <20110314192538.GH7258@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "Balbi, Felipe" <balbi@ti.com>, "tony@atomide.com" <tony@atomide.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
 
 Hi,
 
-There is a small issue introduced in 2.6.38 on the address space of sDMA for OMAP2420, which seems to be a mix of OMAP2 & newer OMAP addresses :
+On Mon, 14 Mar 2011, Tony Lindgren wrote:
+> I've applied few random fix like patches today into omap-for-linus
+> but that's it for this merge window.
+>
+> So let's do some testing with with Stephen's for-next and
+> omap-for-linus and start queueing up fixes for the -rc cycle.
 
-arch/arm/mach-omap2/omap_hwmod_2420_data.c
+I did some quick testing:
 
-static struct omap_hwmod_addr_space omap2420_dma_system_addrs[] = {
-        {
-                 .pa_start   = 0x48056000,
-                 .pa_end     = 0x4a0560ff,
-                 .flags      = ADDR_TYPE_RT
-        },
-};
+linux-omap/master, omap2plus_defconfig:
 
-pa_end should be 0x480560ff unless I'm mistaken.
+ 	- RM-680 hangs after uncompressing kernel. earlyprintk shows:
 
-Regards,
+ 	[    0.293395] omap_hwmod: _populate_mpu_rt_base found no _mpu_rt_va for l4_core
+ 	[    0.300903] omap_hwmod: _populate_mpu_rt_base found no _mpu_rt_va for l4_per
+ 	[    0.308288] omap_hwmod: _populate_mpu_rt_base found no _mpu_rt_va for l4_wkup
+ 	[    0.316101] omap_hwmod: gpt12_fck: missing clockdomain for gpt12_fck.
 
-Michael
+ 	(then some garbage)
 
-Texas Instruments France SA, 821 Avenue Jack Kilby, 06270 Villeneuve Loubet. 036 420 040 R.C.S Antibes. Capital de EUR 753.920
+ 	- With RX-51 I get the same messages, but no hang.
 
+omap-for-linux, omap2plus_defconfig:
 
+ 	- Pretty much the same. RM-680 hangs and the first bad commit is
+ 	ce722d269ff85ab11aa680784bcc6eff06e3e3ea and earlyprintk shows
+ 	"external abort on non-linefetch" in omap_hwmod_read() after
+ 	above messages.
 
+Mainline kernel (v2.6.38) boots fine.
+
+A.
