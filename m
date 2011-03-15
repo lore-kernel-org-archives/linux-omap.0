@@ -1,58 +1,43 @@
-From: James Bottomley <James.Bottomley@suse.de>
-Subject: Re: [Security] [PATCH 00/20] world-writable files in sysfs and
- debugfs
-Date: Tue, 15 Mar 2011 10:25:51 -0400
-Message-ID: <1300199151.7744.12.camel@mulgrave.site>
-References: <cover.1296818921.git.segoon@openwall.com>
-	 <AANLkTikE-A=Fe-yRrN0opWwJGQ0f4uOzkyB3XCcEUrFE@mail.gmail.com>
-	 <1300155965.5665.15.camel@mulgrave.site> <20110315030956.GA2234@kroah.com>
-	 <1300189828.4017.2.camel@mulgrave.site>  <20110315141859.GA19442@kroah.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20110315141859.GA19442@kroah.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: Vasiliy Kulikov <segoon@openwall.com>, security@kernel.org, acpi4asus-user@lists.sourceforge.net, linux-scsi@vger.kernel.org, rtc-linux@googlegroups.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, platform-driver-x86@vger.kernel.org, open-iscsi@googlegroups.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+From: Vishwanath BS <vishwanath.bs@ti.com>
+Subject: [RFC][PATCH 0/3] OMAP PM: Voltage layer clean up
+Date: Tue, 15 Mar 2011 20:03:39 +0530
+Message-ID: <1300199622-32500-1-git-send-email-vishwanath.bs@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:44170 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757281Ab1COO37 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 15 Mar 2011 10:29:59 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p2FETuh0023030
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Tue, 15 Mar 2011 09:29:58 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Vishwanath BS <vishwanath.bs@ti.com>
 
-On Tue, 2011-03-15 at 07:18 -0700, Greg KH wrote:
-> On Tue, Mar 15, 2011 at 07:50:28AM -0400, James Bottomley wrote:
-> > On Mon, 2011-03-14 at 20:09 -0700, Greg KH wrote:
-> > > There are no capability checks on sysfs files right now, so these all
-> > > need to be fixed.
-> > 
-> > That statement is true but irrelevant, isn't it?  There can't be
-> > capabilities within sysfs files because the system that does them has no
-> > idea what the capabilities would be.  If there were capabilities checks,
-> > they'd have to be in the implementing routines.
-> 
-> Ah, you are correct, sorry for the misunderstanding.
-> 
-> > I think the questions are twofold:
-> > 
-> >      1. Did anyone actually check for capabilities before assuming world
-> >         writeable files were wrong?
-> 
-> I do not think so as the majority (i.e. all the ones that I looked at)
-> did no such checks.
+This patch series attempts to do some more clean up on OMAP Voltage layer on top
+of the clean up done by Paul as part of
+https://patchwork.kernel.org/patch/591421/
 
-OK, as long as someone checked, I'm happy.
+These patches are generated against latest omap-for-linus branch on Tony's tree
+(commit id: 05f689400ea5fa3d71af82f910c8b140f87ad1f3) and tested on OMAP ZOOM3
+and OMAP4430 SDP with Smartreflex enabled.
 
-> >      2. Even if there aren't any capabilities checks in the implementing
-> >         routines, should there be (are we going the separated
-> >         capabilities route vs the monolithic root route)?
-> 
-> I think the general consensus is that we go the monolithic root route
-> for sysfs files in that we do not allow them to be world writable.
-> 
-> Do you have any exceptions that you know of that do these checks?
+Vishwanath BS (3):
+  OMAP PM: Seggregate Voltage layer parameters
+  OMAP PM: Add support for bypassing VP/VC in Voltage layer
+  OMAP PM: Add Board specific parameters for OMAP Volatge layer
 
-Heh, I didn't call our security vacillations a dizzying ride for
-nothing.  I know the goal once was to try to run a distro without root
-daemons (which is what required the capabilities stuff).  I'm actually
-trying to avoid the issue ... I just want to make sure that people who
-care aren't all moving in different directions.
+ arch/arm/mach-omap2/board-4430sdp.c           |   52 +++++++
+ arch/arm/mach-omap2/board-zoom.c              |   79 +++++++++++
+ arch/arm/mach-omap2/omap_opp_data.h           |    8 +
+ arch/arm/mach-omap2/omap_twl.c                |  113 ++++++++--------
+ arch/arm/mach-omap2/opp3xxx_data.c            |   50 +++++++
+ arch/arm/mach-omap2/opp4xxx_data.c            |   38 +++++
+ arch/arm/mach-omap2/voltage.c                 |  179 ++++++++++++++++++++-----
+ arch/arm/mach-omap2/voltage.h                 |  119 +++++++++++++++--
+ arch/arm/mach-omap2/voltagedomains3xxx_data.c |    4 +
+ arch/arm/mach-omap2/voltagedomains44xx_data.c |    4 +
+ 10 files changed, 541 insertions(+), 105 deletions(-)
 
-James
