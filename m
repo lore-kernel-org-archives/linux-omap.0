@@ -1,39 +1,35 @@
-From: Ben Gamari <bgamari.foss@gmail.com>
-Subject: Re: GPIO chip select support in McSPI
-Date: Mon, 14 Mar 2011 22:22:31 -0400
-Message-ID: <877hc1t95k.fsf@gmail.com>
-References: <c0ffcf4415b8edbf55d653a620b92fbbbcd8fed7> <1297635034-24504-1-git-send-email-bgamari.foss@gmail.com> <20110302215026.GA22854@angua.secretlab.ca> <87sjv517yd.fsf@gmail.com> <f7a269db-3bcf-4bac-8c38-b363e5c7bd0b@email.android.com> <87ipvmx2ok.fsf@gmail.com> <20110314192536.GF16096@angua.secretlab.ca>
+From: James Bottomley <James.Bottomley@suse.de>
+Subject: Re: [PATCH 00/20] world-writable files in sysfs and debugfs
+Date: Mon, 14 Mar 2011 22:26:05 -0400
+Message-ID: <1300155965.5665.15.camel@mulgrave.site>
+References: <cover.1296818921.git.segoon@openwall.com>
+	 <AANLkTikE-A=Fe-yRrN0opWwJGQ0f4uOzkyB3XCcEUrFE@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:51912 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750807Ab1COCWf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Mar 2011 22:22:35 -0400
-Received: by qwk3 with SMTP id 3so106176qwk.19
-        for <linux-omap@vger.kernel.org>; Mon, 14 Mar 2011 19:22:34 -0700 (PDT)
-In-Reply-To: <20110314192536.GF16096@angua.secretlab.ca>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+In-Reply-To: <AANLkTikE-A=Fe-yRrN0opWwJGQ0f4uOzkyB3XCcEUrFE@mail.gmail.com>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Vasiliy Kulikov <segoon@openwall.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-usb@vger.kernel.org, linux-media@vger.kernel.org, platform-driver-x86@vger.kernel.org, acpi4asus-user@lists.sourceforge.net, rtc-linux@googlegroups.com, linux-scsi@vger.kernel.org, open-iscsi@googlegroups.com, security@kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: linux-omap <linux-omap@vger.kernel.org>, spi-devel-general@lists.sf.net
 
-On Mon, 14 Mar 2011 13:25:36 -0600, Grant Likely <grant.likely@secretlab.ca> wrote:
-> I see two solutions:
-> 1) platform code registers a bus notifier so that it gets called back
-> before the device gets bound to a driver.  Then it can augment the
-> platform data.
+On Sat, 2011-03-12 at 23:23 +0300, Vasiliy Kulikov wrote:
+> > Vasiliy Kulikov (20):
+> >  mach-ux500: mbox-db5500: world-writable sysfs fifo file
+> >  leds: lp5521: world-writable sysfs engine* files
+> >  leds: lp5523: world-writable engine* sysfs files
+> >  misc: ep93xx_pwm: world-writable sysfs files
+> >  rtc: rtc-ds1511: world-writable sysfs nvram file
+> >  scsi: aic94xx: world-writable sysfs update_bios file
+> >  scsi: iscsi: world-writable sysfs priv_sess file
 > 
-This sounds like it might be a bit involved and I'm not terribly
-familiar with these facets of the driver model. This would probably be
-the more flexible approach but I think I'll stick with the simpler
-option.
+> These are still not merged :(
 
-> 2) add an api to arch/arm/mach-omap2/devices.c for providing a cs
-> table before the device gets registered (must be called before
-> arch_initcall() time).
-> 
-This is along the lines of what I was thinking. Any thoughts on how to
-get function called before arch_initcall()?
+OK, so I've not been tracking where we are in the dizzying ride on
+security systems.  However, I thought we landed up in the privilege
+separation arena using capabilities.  That means that world writeable
+files aren't necessarily a problem as long as the correct capabilities
+checks are in place, right?
 
-- Ben
+James
