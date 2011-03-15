@@ -1,357 +1,103 @@
-From: Archit Taneja <archit@ti.com>
-Subject: [PATCH v2] OMAP: DSS2: FEATURES: DSI PLL parameter cleanup
-Date: Tue, 15 Mar 2011 09:58:23 +0530
-Message-ID: <1300163303-31662-3-git-send-email-archit@ti.com>
-References: <1300163303-31662-1-git-send-email-archit@ti.com>
+From: "K, Mythri P" <mythripk@ti.com>
+Subject: Re: [PATCH v5 00/10] OMAP4 : DSS2 : HDMI support on OMAP4
+Date: Tue, 15 Mar 2011 10:08:14 +0530
+Message-ID: <AANLkTinFx9WjyEWUyX9fZmU1h6HF6ZU2M2gWW9iT38pH@mail.gmail.com>
+References: <1299753858-12222-1-git-send-email-mythripk@ti.com>
+ <1299764643.2017.177.camel@deskari> <AANLkTi=CKaUAXtLgFOSVmhrHm2Kdt8yUzY2_07Bijqi-@mail.gmail.com>
+ <1300161975.1946.7.camel@lappyti>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38370 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750736Ab1COEYt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 15 Mar 2011 00:24:49 -0400
-Received: from dlep34.itg.ti.com ([157.170.170.115])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p2F4OnG9008942
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Mon, 14 Mar 2011 23:24:49 -0500
-In-Reply-To: <1300163303-31662-1-git-send-email-archit@ti.com>
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:47192 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750863Ab1COEig convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 15 Mar 2011 00:38:36 -0400
+Received: by mail-bw0-f46.google.com with SMTP id 15so301798bwz.5
+        for <linux-omap@vger.kernel.org>; Mon, 14 Mar 2011 21:38:34 -0700 (PDT)
+In-Reply-To: <1300161975.1946.7.camel@lappyti>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@ti.com
-Cc: linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: "Jan, Sebastien" <s-jan@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-The DSI PLL parameters (regm, regn, regm_dispc, regm_dsi, fint) have different
-fields and also different Max values on OMAP3 and OMAP4. Use dss features to
-calculate the register fields and min/max values based on current OMAP revision.
+Hi Tomi,Sebastien,
 
-Signed-off-by: Archit Taneja <archit@ti.com>
----
-v2:
-use dss_feat_get_param_max()/min() instead of calculating range from field's
-start and end.
+On Tue, Mar 15, 2011 at 9:36 AM, Tomi Valkeinen <tomi.valkeinen@ti.com>=
+ wrote:
+> On Mon, 2011-03-14 at 05:37 -0500, Jan, Sebastien wrote:
+>> Hi Tomi,
+>>
+>> On Thu, Mar 10, 2011 at 2:44 PM, Tomi Valkeinen <tomi.valkeinen@ti.c=
+om> wrote:
+>> > I think this version is good. It works for me, at least =3D).
+>> >
+>> > Any Panda or Blaze owners reading this want to give this a try?
+>>
+>> Tested on my pandaboard, with these patches applied on top of your
+>> dss2 tree: I get a working display on my DVI or my HDMI screen. =3D>=
+ I
+>> tested by running the Ubuntu UI.
+>>
+>> I have a couple of these traces from times to times (seems linked to
+>> screen saver enabling/disabling the screen):
+>> omapdss DISPC error: timeout waiting for EVSYNC
+>
+> Yes, I get those every time I enable or disable the HDMI output. That
+> shouldn't cause any problems, but it's something that needs to be fix=
+ed
+> at some point.
+>
+>> The best screen resolution is properly selected on both of my screen=
+s,
+>> but the frame-buffer is sized to 640x480. So the display works but t=
+he
+>> usable surface when going though /dev/fb0 is quite reduced.
+>> Is there a way to get the FB sized according to the screen resolutio=
+n
+>> (in the init sequence, it appears that the FBs are allocated before
+>> the init of the HDMI)?
+>
+> Currently the resolution has to be configured by the user manually. I
+> haven't tried, but I think giving the resolution with boot parameters
+> should also work. Mythri, have you tried that?
+>
+You could configure the timings later on with the sysfs ( set_timings )=
+ or
+HDMI driver would pick the best timing (as suggested by standard) , but
+yes framebuffer would have picked the timing on probe so it will not up=
+date.
 
-Note: Applies over:
+> I don't think it is possible for the omapdss, panel or omapfb drivers=
+ to
+> configure the resolution automatically, except at boot time. After we
+> have booted up, there may be users for the framebuffer and changing i=
+t
+> "secretly" would cause problems.
+>
+> I think the best way here is that the HDMI/omapdss driver gives hotpl=
+ug
+> event, which is conveyed through omapfb to an userspace application.
+> This application can then query the available resolutions via some
+> mechanism, and select one of those.
+>
+>> Fyi, I have also tested with the patches for DVI support and can get
+>> both outputs working simultaneously (my tree is here:
+>> http://dev.omapzoom.org/?p=3Dsebjan/kernel.git;a=3Dshortlog;h=3Drefs=
+/tags/topic-display-iv1-2.6.38-rc7).
+>
+> Thanks. I'll also set up a "test" branch in DSS2 tree shortly, to whi=
+ch
+> I'll add DVI and HDMI patches for easier testing.
+>
+> =A0Tomi
+>
 
-http://gitorious.org/linux-omap-dss2/linux/commits/master
-
-and the patches submitted on linux-omap:
-OMAP2PLUS: DSS2: FEATURES: Fix usage of dss_reg_field and dss_clk_source_name
-OMAP: DSS2: FEATURES: Functions to return min and max values of parameters
-
- drivers/video/omap2/dss/dsi.c          |   69 +++++++++++++++++---------
- drivers/video/omap2/dss/dss_features.c |   84 +++++++++++++++++++++----------
- drivers/video/omap2/dss/dss_features.h |   10 ++++
- 3 files changed, 113 insertions(+), 50 deletions(-)
-
-diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
-index 6e7f468..86d4852 100644
---- a/drivers/video/omap2/dss/dsi.c
-+++ b/drivers/video/omap2/dss/dsi.c
-@@ -185,14 +185,6 @@ struct dsi_reg { u16 idx; };
- #define DSI_DT_RX_SHORT_READ_1		0x21
- #define DSI_DT_RX_SHORT_READ_2		0x22
- 
--#define FINT_MAX 2100000
--#define FINT_MIN 750000
--#define REGN_MAX (1 << 7)
--#define REGM_MAX ((1 << 11) - 1)
--#define REGM_DISPC_MAX (1 << 4)
--#define REGM_DSI_MAX (1 << 4)
--#define LP_DIV_MAX ((1 << 13) - 1)
--
- enum fifo_size {
- 	DSI_FIFO_SIZE_0		= 0,
- 	DSI_FIFO_SIZE_32	= 1,
-@@ -277,6 +269,11 @@ static struct
- 	spinlock_t irq_stats_lock;
- 	struct dsi_irq_stats irq_stats;
- #endif
-+	/* DSI PLL Parameter Ranges */
-+	unsigned long regm_max, regn_max;
-+	unsigned long  regm_dispc_max, regm_dsi_max;
-+	unsigned long  fint_min, fint_max;
-+	unsigned long lpdiv_max;
- } dsi;
- 
- #ifdef DEBUG
-@@ -751,7 +748,7 @@ static int dsi_set_lp_clk_divisor(struct omap_dss_device *dssdev)
- 
- 	lp_clk_div = dssdev->phy.dsi.div.lp_clk_div;
- 
--	if (lp_clk_div == 0 || lp_clk_div > LP_DIV_MAX)
-+	if (lp_clk_div == 0 || lp_clk_div > dsi.lpdiv_max)
- 		return -EINVAL;
- 
- 	dsi_fclk = dsi_fclk_rate();
-@@ -801,16 +798,16 @@ static int dsi_pll_power(enum dsi_pll_power_state state)
- static int dsi_calc_clock_rates(struct omap_dss_device *dssdev,
- 		struct dsi_clock_info *cinfo)
- {
--	if (cinfo->regn == 0 || cinfo->regn > REGN_MAX)
-+	if (cinfo->regn == 0 || cinfo->regn > dsi.regn_max)
- 		return -EINVAL;
- 
--	if (cinfo->regm == 0 || cinfo->regm > REGM_MAX)
-+	if (cinfo->regm == 0 || cinfo->regm > dsi.regm_max)
- 		return -EINVAL;
- 
--	if (cinfo->regm_dispc > REGM_DISPC_MAX)
-+	if (cinfo->regm_dispc > dsi.regm_dispc_max)
- 		return -EINVAL;
- 
--	if (cinfo->regm_dsi > REGM_DSI_MAX)
-+	if (cinfo->regm_dsi > dsi.regm_dsi_max)
- 		return -EINVAL;
- 
- 	if (cinfo->use_sys_clk) {
-@@ -829,7 +826,7 @@ static int dsi_calc_clock_rates(struct omap_dss_device *dssdev,
- 
- 	cinfo->fint = cinfo->clkin / (cinfo->regn * (cinfo->highfreq ? 2 : 1));
- 
--	if (cinfo->fint > FINT_MAX || cinfo->fint < FINT_MIN)
-+	if (cinfo->fint > dsi.fint_max || cinfo->fint < dsi.fint_min)
- 		return -EINVAL;
- 
- 	cinfo->clkin4ddr = 2 * cinfo->regm * cinfo->fint;
-@@ -899,17 +896,17 @@ retry:
- 	/* no highfreq: 0.75MHz < Fint = clkin / regn < 2.1MHz */
- 	/* highfreq: 0.75MHz < Fint = clkin / (2*regn) < 2.1MHz */
- 	/* To reduce PLL lock time, keep Fint high (around 2 MHz) */
--	for (cur.regn = 1; cur.regn < REGN_MAX; ++cur.regn) {
-+	for (cur.regn = 1; cur.regn < dsi.regn_max; ++cur.regn) {
- 		if (cur.highfreq == 0)
- 			cur.fint = cur.clkin / cur.regn;
- 		else
- 			cur.fint = cur.clkin / (2 * cur.regn);
- 
--		if (cur.fint > FINT_MAX || cur.fint < FINT_MIN)
-+		if (cur.fint > dsi.fint_max || cur.fint < dsi.fint_min)
- 			continue;
- 
- 		/* DSIPHY(MHz) = (2 * regm / regn) * (clkin / (highfreq + 1)) */
--		for (cur.regm = 1; cur.regm < REGM_MAX; ++cur.regm) {
-+		for (cur.regm = 1; cur.regm < dsi.regm_max; ++cur.regm) {
- 			unsigned long a, b;
- 
- 			a = 2 * cur.regm * (cur.clkin/1000);
-@@ -921,7 +918,7 @@ retry:
- 
- 			/* dsi_pll_hsdiv_dispc_clk(MHz) =
- 			 * DSIPHY(MHz) / regm_dispc  < 173MHz/186Mhz */
--			for (cur.regm_dispc = 1; cur.regm_dispc < REGM_DISPC_MAX;
-+			for (cur.regm_dispc = 1; cur.regm_dispc < dsi.regm_dispc_max;
- 					++cur.regm_dispc) {
- 				struct dispc_clock_info cur_dispc;
- 				cur.dsi_pll_hsdiv_dispc_clk =
-@@ -994,6 +991,8 @@ int dsi_pll_set_clock_div(struct dsi_clock_info *cinfo)
- 	int r = 0;
- 	u32 l;
- 	int f;
-+	u8 regn_start, regn_end, regm_start, regm_end;
-+	u8 regm_dispc_start, regm_dispc_end, regm_dsi_start, regm_dsi_end;
- 
- 	DSSDBGF();
- 
-@@ -1038,19 +1037,30 @@ int dsi_pll_set_clock_div(struct dsi_clock_info *cinfo)
- 		dss_feat_get_clk_source_name(DSS_CLK_SRC_DSI_PLL_HSDIV_DSI),
- 		cinfo->dsi_pll_hsdiv_dsi_clk);
- 
-+	dss_feat_get_reg_field(FEAT_REG_DSIPLL_REGN, &regn_start, &regn_end);
-+	dss_feat_get_reg_field(FEAT_REG_DSIPLL_REGM, &regm_start, &regm_end);
-+	dss_feat_get_reg_field(FEAT_REG_DSIPLL_REGM_DISPC, &regm_dispc_start,
-+			&regm_dispc_end);
-+	dss_feat_get_reg_field(FEAT_REG_DSIPLL_REGM_DSI, &regm_dsi_start,
-+			&regm_dsi_end);
-+
- 	REG_FLD_MOD(DSI_PLL_CONTROL, 0, 0, 0); /* DSI_PLL_AUTOMODE = manual */
- 
- 	l = dsi_read_reg(DSI_PLL_CONFIGURATION1);
- 	l = FLD_MOD(l, 1, 0, 0);		/* DSI_PLL_STOPMODE */
--	l = FLD_MOD(l, cinfo->regn - 1, 7, 1);	/* DSI_PLL_REGN */
--	l = FLD_MOD(l, cinfo->regm, 18, 8);	/* DSI_PLL_REGM */
-+	/* DSI_PLL_REGN */
-+	l = FLD_MOD(l, cinfo->regn - 1, regn_start, regn_end);
-+	/* DSI_PLL_REGM */
-+	l = FLD_MOD(l, cinfo->regm, regm_start, regm_end);
-+	/* DSI_CLOCK_DIV */
- 	l = FLD_MOD(l, cinfo->regm_dispc > 0 ? cinfo->regm_dispc - 1 : 0,
--			22, 19);		/* DSI_CLOCK_DIV */
-+			regm_dispc_start, regm_dispc_end);
-+	/* DSIPROTO_CLOCK_DIV */
- 	l = FLD_MOD(l, cinfo->regm_dsi > 0 ? cinfo->regm_dsi - 1 : 0,
--			26, 23);		/* DSIPROTO_CLOCK_DIV */
-+			regm_dsi_start, regm_dsi_end);
- 	dsi_write_reg(DSI_PLL_CONFIGURATION1, l);
- 
--	BUG_ON(cinfo->fint < 750000 || cinfo->fint > 2100000);
-+	BUG_ON(cinfo->fint < dsi.fint_min || cinfo->fint > dsi.fint_max);
- 	if (cinfo->fint < 1000000)
- 		f = 0x3;
- 	else if (cinfo->fint < 1250000)
-@@ -3333,6 +3343,17 @@ void dsi_wait_pll_hsdiv_dsi_active(void)
- 			dss_feat_get_clk_source_name(DSS_CLK_SRC_DSI_PLL_HSDIV_DSI));
- }
- 
-+static void dsi_calc_clock_param_ranges(void)
-+{
-+	dsi.regn_max = dss_feat_get_param_max(FEAT_PARAM_DSIPLL_REGN);
-+	dsi.regm_max = dss_feat_get_param_max(FEAT_PARAM_DSIPLL_REGM);
-+	dsi.regm_dispc_max = dss_feat_get_param_max(FEAT_PARAM_DSIPLL_REGM_DISPC);
-+	dsi.regm_dsi_max = dss_feat_get_param_max(FEAT_PARAM_DSIPLL_REGM_DSI);
-+	dsi.fint_min = dss_feat_get_param_min(FEAT_PARAM_DSIPLL_FINT);
-+	dsi.fint_max = dss_feat_get_param_max(FEAT_PARAM_DSIPLL_FINT);
-+	dsi.lpdiv_max = dss_feat_get_param_max(FEAT_PARAM_DSIPLL_LPDIV);
-+}
-+
- static int dsi_init(struct platform_device *pdev)
- {
- 	u32 rev;
-@@ -3397,6 +3418,8 @@ static int dsi_init(struct platform_device *pdev)
- 		dsi.vc[i].vc_id = 0;
- 	}
- 
-+	dsi_calc_clock_param_ranges();
-+
- 	enable_clocks(1);
- 
- 	rev = dsi_read_reg(DSI_REVISION);
-diff --git a/drivers/video/omap2/dss/dss_features.c b/drivers/video/omap2/dss/dss_features.c
-index 4c8b32a..06b18f7 100644
---- a/drivers/video/omap2/dss/dss_features.c
-+++ b/drivers/video/omap2/dss/dss_features.c
-@@ -55,36 +55,48 @@ struct omap_dss_features {
- static struct omap_dss_features *omap_current_dss_features;
- 
- static const struct dss_reg_field omap2_dss_reg_fields[] = {
--	[FEAT_REG_FIRHINC]		= { 11, 0 },
--	[FEAT_REG_FIRVINC]		= { 27, 16 },
--	[FEAT_REG_FIFOLOWTHRESHOLD]	= { 8, 0 },
--	[FEAT_REG_FIFOHIGHTHRESHOLD]	= { 24, 16 },
--	[FEAT_REG_FIFOSIZE]		= { 8, 0 },
--	[FEAT_REG_HORIZONTALACCU]	= { 9, 0 },
--	[FEAT_REG_VERTICALACCU]		= { 25, 16 },
--	[FEAT_REG_DISPC_CLK_SWITCH]	= { 0, 0 },
-+	[FEAT_REG_FIRHINC]			= { 11, 0 },
-+	[FEAT_REG_FIRVINC]			= { 27, 16 },
-+	[FEAT_REG_FIFOLOWTHRESHOLD]		= { 8, 0 },
-+	[FEAT_REG_FIFOHIGHTHRESHOLD]		= { 24, 16 },
-+	[FEAT_REG_FIFOSIZE]			= { 8, 0 },
-+	[FEAT_REG_HORIZONTALACCU]		= { 9, 0 },
-+	[FEAT_REG_VERTICALACCU]			= { 25, 16 },
-+	[FEAT_REG_DISPC_CLK_SWITCH]		= { 0, 0 },
-+	[FEAT_REG_DSIPLL_REGN]			= { 0, 0 },
-+	[FEAT_REG_DSIPLL_REGM]			= { 0, 0 },
-+	[FEAT_REG_DSIPLL_REGM_DISPC]		= { 0, 0 },
-+	[FEAT_REG_DSIPLL_REGM_DSI]		= { 0, 0 },
- };
- 
- static const struct dss_reg_field omap3_dss_reg_fields[] = {
--	[FEAT_REG_FIRHINC]		= { 12, 0 },
--	[FEAT_REG_FIRVINC]		= { 28, 16 },
--	[FEAT_REG_FIFOLOWTHRESHOLD]	= { 11, 0 },
--	[FEAT_REG_FIFOHIGHTHRESHOLD]	= { 27, 16 },
--	[FEAT_REG_FIFOSIZE]		= { 10, 0 },
--	[FEAT_REG_HORIZONTALACCU]	= { 9, 0 },
--	[FEAT_REG_VERTICALACCU]		= { 25, 16 },
--	[FEAT_REG_DISPC_CLK_SWITCH]	= { 0, 0 },
-+	[FEAT_REG_FIRHINC]			= { 12, 0 },
-+	[FEAT_REG_FIRVINC]			= { 28, 16 },
-+	[FEAT_REG_FIFOLOWTHRESHOLD]		= { 11, 0 },
-+	[FEAT_REG_FIFOHIGHTHRESHOLD]		= { 27, 16 },
-+	[FEAT_REG_FIFOSIZE]			= { 10, 0 },
-+	[FEAT_REG_HORIZONTALACCU]		= { 9, 0 },
-+	[FEAT_REG_VERTICALACCU]			= { 25, 16 },
-+	[FEAT_REG_DISPC_CLK_SWITCH]		= { 0, 0 },
-+	[FEAT_REG_DSIPLL_REGN]			= { 7, 1 },
-+	[FEAT_REG_DSIPLL_REGM]			= { 18, 8 },
-+	[FEAT_REG_DSIPLL_REGM_DISPC]		= { 22, 19 },
-+	[FEAT_REG_DSIPLL_REGM_DSI]		= { 26, 23 },
- };
- 
- static const struct dss_reg_field omap4_dss_reg_fields[] = {
--	[FEAT_REG_FIRHINC]		= { 12, 0 },
--	[FEAT_REG_FIRVINC]		= { 28, 16 },
--	[FEAT_REG_FIFOLOWTHRESHOLD]	= { 15, 0 },
--	[FEAT_REG_FIFOHIGHTHRESHOLD]	= { 31, 16 },
--	[FEAT_REG_FIFOSIZE]		= { 15, 0 },
--	[FEAT_REG_HORIZONTALACCU]	= { 10, 0 },
--	[FEAT_REG_VERTICALACCU]		= { 26, 16 },
--	[FEAT_REG_DISPC_CLK_SWITCH]	= { 9, 8 },
-+	[FEAT_REG_FIRHINC]			= { 12, 0 },
-+	[FEAT_REG_FIRVINC]			= { 28, 16 },
-+	[FEAT_REG_FIFOLOWTHRESHOLD]		= { 15, 0 },
-+	[FEAT_REG_FIFOHIGHTHRESHOLD]		= { 31, 16 },
-+	[FEAT_REG_FIFOSIZE]			= { 15, 0 },
-+	[FEAT_REG_HORIZONTALACCU]		= { 10, 0 },
-+	[FEAT_REG_VERTICALACCU]			= { 26, 16 },
-+	[FEAT_REG_DISPC_CLK_SWITCH]		= { 9, 8 },
-+	[FEAT_REG_DSIPLL_REGN]			= { 8, 1 },
-+	[FEAT_REG_DSIPLL_REGM]			= { 20, 9 },
-+	[FEAT_REG_DSIPLL_REGM_DISPC]		= { 25, 21 },
-+	[FEAT_REG_DSIPLL_REGM_DSI]		= { 30, 26 },
- };
- 
- static const enum omap_display_type omap2_dss_supported_displays[] = {
-@@ -184,15 +196,33 @@ static const char * const omap4_dss_clk_source_names[] = {
- };
- 
- static const struct dss_param_range omap2_dss_param_range[] = {
--	[FEAT_PARAM_DSS_FCK]	= { 0, 173000000 },
-+	[FEAT_PARAM_DSS_FCK]			= { 0, 173000000 },
-+	[FEAT_PARAM_DSIPLL_REGN]		= { 0, 0 },
-+	[FEAT_PARAM_DSIPLL_REGM]		= { 0, 0 },
-+	[FEAT_PARAM_DSIPLL_REGM_DISPC]		= { 0, 0 },
-+	[FEAT_PARAM_DSIPLL_REGM_DSI]		= { 0, 0 },
-+	[FEAT_PARAM_DSIPLL_FINT]		= { 0, 0 },
-+	[FEAT_PARAM_DSIPLL_LPDIV]		= { 0, 0 },
- };
- 
- static const struct dss_param_range omap3_dss_param_range[] = {
--	[FEAT_PARAM_DSS_FCK]	= { 0, 173000000 },
-+	[FEAT_PARAM_DSS_FCK]			= { 0, 173000000 },
-+	[FEAT_PARAM_DSIPLL_REGN]		= { 0, (1 << 7) - 1 },
-+	[FEAT_PARAM_DSIPLL_REGM]		= { 0, (1 << 11) - 1 },
-+	[FEAT_PARAM_DSIPLL_REGM_DISPC]		= { 0, (1 << 4) - 1 },
-+	[FEAT_PARAM_DSIPLL_REGM_DSI]		= { 0, (1 << 4) - 1 },
-+	[FEAT_PARAM_DSIPLL_FINT]		= { 750000, 2100000 },
-+	[FEAT_PARAM_DSIPLL_LPDIV]		= { 1, (1 << 13) - 1},
- };
- 
- static const struct dss_param_range omap4_dss_param_range[] = {
--	[FEAT_PARAM_DSS_FCK]	= { 0, 186000000 },
-+	[FEAT_PARAM_DSS_FCK]			= { 0, 186000000 },
-+	[FEAT_PARAM_DSIPLL_REGN]		= { 0, (1 << 8) - 1 },
-+	[FEAT_PARAM_DSIPLL_REGM]		= { 0, (1 << 12) - 1 },
-+	[FEAT_PARAM_DSIPLL_REGM_DISPC]		= { 0, (1 << 5) - 1 },
-+	[FEAT_PARAM_DSIPLL_REGM_DSI]		= { 0, (1 << 5) - 1 },
-+	[FEAT_PARAM_DSIPLL_FINT]		= { 500000, 2500000 },
-+	[FEAT_PARAM_DSIPLL_LPDIV]		= { 0, (1 << 13) - 1 },
- };
- 
- /* OMAP2 DSS Features */
-diff --git a/drivers/video/omap2/dss/dss_features.h b/drivers/video/omap2/dss/dss_features.h
-index da63bbf..12e9c4e 100644
---- a/drivers/video/omap2/dss/dss_features.h
-+++ b/drivers/video/omap2/dss/dss_features.h
-@@ -52,10 +52,20 @@ enum dss_feat_reg_field {
- 	FEAT_REG_HORIZONTALACCU,
- 	FEAT_REG_VERTICALACCU,
- 	FEAT_REG_DISPC_CLK_SWITCH,
-+	FEAT_REG_DSIPLL_REGN,
-+	FEAT_REG_DSIPLL_REGM,
-+	FEAT_REG_DSIPLL_REGM_DISPC,
-+	FEAT_REG_DSIPLL_REGM_DSI,
- };
- 
- enum dss_range_param {
- 	FEAT_PARAM_DSS_FCK,
-+	FEAT_PARAM_DSIPLL_REGN,
-+	FEAT_PARAM_DSIPLL_REGM,
-+	FEAT_PARAM_DSIPLL_REGM_DISPC,
-+	FEAT_PARAM_DSIPLL_REGM_DSI,
-+	FEAT_PARAM_DSIPLL_FINT,
-+	FEAT_PARAM_DSIPLL_LPDIV,
- };
- 
- /* DSS Feature Functions */
--- 
-1.7.1
-
+Thanks and regards,
+Mythri.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
