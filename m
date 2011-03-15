@@ -1,75 +1,68 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH v5 00/10] OMAP4 : DSS2 : HDMI support on OMAP4
-Date: Tue, 15 Mar 2011 09:36:15 +0530
-Message-ID: <1300161975.1946.7.camel@lappyti>
+Subject: Re: [PATCH v5 10/10] OMAP4 : HDMI : Add HDMI structure in the
+ board file for OMAP4 PANDA
+Date: Tue, 15 Mar 2011 09:53:44 +0530
+Message-ID: <1300163024.1946.14.camel@lappyti>
 References: <1299753858-12222-1-git-send-email-mythripk@ti.com>
-	 <1299764643.2017.177.camel@deskari>
-	 <AANLkTi=CKaUAXtLgFOSVmhrHm2Kdt8yUzY2_07Bijqi-@mail.gmail.com>
+	 <1299753858-12222-2-git-send-email-mythripk@ti.com>
+	 <1299753858-12222-3-git-send-email-mythripk@ti.com>
+	 <1299753858-12222-4-git-send-email-mythripk@ti.com>
+	 <1299753858-12222-5-git-send-email-mythripk@ti.com>
+	 <1299753858-12222-6-git-send-email-mythripk@ti.com>
+	 <1299753858-12222-7-git-send-email-mythripk@ti.com>
+	 <1299753858-12222-8-git-send-email-mythripk@ti.com>
+	 <1299753858-12222-9-git-send-email-mythripk@ti.com>
+	 <1299753858-12222-10-git-send-email-mythripk@ti.com>
+	 <1299753858-12222-11-git-send-email-mythripk@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:46469 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:38284 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750741Ab1COEGY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 15 Mar 2011 00:06:24 -0400
+	id S1750736Ab1COEXx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 15 Mar 2011 00:23:53 -0400
 Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p2F46K6n024102
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p2F4NolJ016235
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Mon, 14 Mar 2011 23:06:23 -0500
-In-Reply-To: <AANLkTi=CKaUAXtLgFOSVmhrHm2Kdt8yUzY2_07Bijqi-@mail.gmail.com>
+	for <linux-omap@vger.kernel.org>; Mon, 14 Mar 2011 23:23:52 -0500
+In-Reply-To: <1299753858-12222-11-git-send-email-mythripk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Jan, Sebastien" <s-jan@ti.com>
-Cc: "K, Mythri P" <mythripk@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "K, Mythri P" <mythripk@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Mon, 2011-03-14 at 05:37 -0500, Jan, Sebastien wrote:
-> Hi Tomi,
+On Thu, 2011-03-10 at 04:44 -0600, K, Mythri P wrote:
+> Adding  board file structure for display which adds the display
+> structure with HDMI as the default driver when the display init
+> is called.
+> HDMI GPIO configurations are also done in this file.
 > 
-> On Thu, Mar 10, 2011 at 2:44 PM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
-> > I think this version is good. It works for me, at least =).
-> >
-> > Any Panda or Blaze owners reading this want to give this a try?
-> 
-> Tested on my pandaboard, with these patches applied on top of your
-> dss2 tree: I get a working display on my DVI or my HDMI screen. => I
-> tested by running the Ubuntu UI.
-> 
-> I have a couple of these traces from times to times (seems linked to
-> screen saver enabling/disabling the screen):
-> omapdss DISPC error: timeout waiting for EVSYNC
+> Signed-off-by: Mythri P K <mythripk@ti.com>
+> ---
+>  arch/arm/mach-omap2/board-omap4panda.c |   74 ++++++++++++++++++++++++++++++++
+>  1 files changed, 74 insertions(+), 0 deletions(-)
 
-Yes, I get those every time I enable or disable the HDMI output. That
-shouldn't cause any problems, but it's something that needs to be fixed
-at some point.
+<snip>
 
-> The best screen resolution is properly selected on both of my screens,
-> but the frame-buffer is sized to 640x480. So the display works but the
-> usable surface when going though /dev/fb0 is quite reduced.
-> Is there a way to get the FB sized according to the screen resolution
-> (in the init sequence, it appears that the FBs are allocated before
-> the init of the HDMI)?
+> +static struct omap_dss_device *sdp4430_dss_devices[] = {
+> +	&sdp4430_hdmi_device,
+> +};
+> +
+> +static struct omap_dss_board_info sdp4430_dss_data = {
+> +	.num_devices	= ARRAY_SIZE(sdp4430_dss_devices),
+> +	.devices	= sdp4430_dss_devices,
+> +	.default_device	= &sdp4430_hdmi_device,
+> +};
+> +
+> +void omap_panda_display_init(void)
+> +{
+> +	sdp4430_hdmi_mux_init();
+> +	omap_display_init(&sdp4430_dss_data);
+> +}
+> +
 
-Currently the resolution has to be configured by the user manually. I
-haven't tried, but I think giving the resolution with boot parameters
-should also work. Mythri, have you tried that?
-
-I don't think it is possible for the omapdss, panel or omapfb drivers to
-configure the resolution automatically, except at boot time. After we
-have booted up, there may be users for the framebuffer and changing it
-"secretly" would cause problems.
-
-I think the best way here is that the HDMI/omapdss driver gives hotplug
-event, which is conveyed through omapfb to an userspace application.
-This application can then query the available resolutions via some
-mechanism, and select one of those.
-
-> Fyi, I have also tested with the patches for DVI support and can get
-> both outputs working simultaneously (my tree is here:
-> http://dev.omapzoom.org/?p=sebjan/kernel.git;a=shortlog;h=refs/tags/topic-display-iv1-2.6.38-rc7).
-
-Thanks. I'll also set up a "test" branch in DSS2 tree shortly, to which
-I'll add DVI and HDMI patches for easier testing.
+The sdp4430 structs and functions should be renamed to panda.
 
  Tomi
 
