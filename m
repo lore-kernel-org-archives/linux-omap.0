@@ -1,69 +1,207 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH v5 10/10] OMAP4 : HDMI : Add HDMI structure in the
- board file for OMAP4 PANDA
-Date: Tue, 15 Mar 2011 09:53:44 +0530
-Message-ID: <1300163024.1946.14.camel@lappyti>
-References: <1299753858-12222-1-git-send-email-mythripk@ti.com>
-	 <1299753858-12222-2-git-send-email-mythripk@ti.com>
-	 <1299753858-12222-3-git-send-email-mythripk@ti.com>
-	 <1299753858-12222-4-git-send-email-mythripk@ti.com>
-	 <1299753858-12222-5-git-send-email-mythripk@ti.com>
-	 <1299753858-12222-6-git-send-email-mythripk@ti.com>
-	 <1299753858-12222-7-git-send-email-mythripk@ti.com>
-	 <1299753858-12222-8-git-send-email-mythripk@ti.com>
-	 <1299753858-12222-9-git-send-email-mythripk@ti.com>
-	 <1299753858-12222-10-git-send-email-mythripk@ti.com>
-	 <1299753858-12222-11-git-send-email-mythripk@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: Archit Taneja <archit@ti.com>
+Subject: [PATCH] OMAP2PLUS: DSS2: FEATURES: Fix usage of dss_reg_field and dss_clk_source_name
+Date: Tue, 15 Mar 2011 09:58:21 +0530
+Message-ID: <1300163303-31662-1-git-send-email-archit@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:38284 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:38310 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750736Ab1COEXx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 15 Mar 2011 00:23:53 -0400
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p2F4NolJ016235
+	id S1750736Ab1COEYY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 15 Mar 2011 00:24:24 -0400
+Received: from dlep34.itg.ti.com ([157.170.170.115])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p2F4ONqI016541
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Mon, 14 Mar 2011 23:23:52 -0500
-In-Reply-To: <1299753858-12222-11-git-send-email-mythripk@ti.com>
+	for <linux-omap@vger.kernel.org>; Mon, 14 Mar 2011 23:24:23 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "K, Mythri P" <mythripk@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: tomi.valkeinen@ti.com
+Cc: linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-On Thu, 2011-03-10 at 04:44 -0600, K, Mythri P wrote:
-> Adding  board file structure for display which adds the display
-> structure with HDMI as the default driver when the display init
-> is called.
-> HDMI GPIO configurations are also done in this file.
-> 
-> Signed-off-by: Mythri P K <mythripk@ti.com>
-> ---
->  arch/arm/mach-omap2/board-omap4panda.c |   74 ++++++++++++++++++++++++++++++++
->  1 files changed, 74 insertions(+), 0 deletions(-)
+The structures dss_reg_field and dss_clk_source_name have enum members which
+specify the register field and the clock source respectively. These members are
+not used to choose the correct result in the corresponding feature functions.
+Remove these members and change the features array declaration to incorporate
+these enums.
 
-<snip>
+The structure dss_clk_source_name without the enum member is just a pointer to
+an string. Remove the structure and use a character pointer directly.
 
-> +static struct omap_dss_device *sdp4430_dss_devices[] = {
-> +	&sdp4430_hdmi_device,
-> +};
-> +
-> +static struct omap_dss_board_info sdp4430_dss_data = {
-> +	.num_devices	= ARRAY_SIZE(sdp4430_dss_devices),
-> +	.devices	= sdp4430_dss_devices,
-> +	.default_device	= &sdp4430_hdmi_device,
-> +};
-> +
-> +void omap_panda_display_init(void)
-> +{
-> +	sdp4430_hdmi_mux_init();
-> +	omap_display_init(&sdp4430_dss_data);
-> +}
-> +
+Signed-off-by: Archit Taneja <archit@ti.com>
+---
+ drivers/video/omap2/dss/dss.c          |   10 ++--
+ drivers/video/omap2/dss/dss.h          |    6 ---
+ drivers/video/omap2/dss/dss_features.c |   77 ++++++++++++++++----------------
+ 3 files changed, 43 insertions(+), 50 deletions(-)
 
-The sdp4430 structs and functions should be renamed to panda.
-
- Tomi
-
+diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
+index aed9345..06ad312 100644
+--- a/drivers/video/omap2/dss/dss.c
++++ b/drivers/video/omap2/dss/dss.c
+@@ -82,10 +82,10 @@ static struct {
+ 	u32		ctx[DSS_SZ_REGS / sizeof(u32)];
+ } dss;
+ 
+-static const struct dss_clk_source_name dss_generic_clk_source_names[] = {
+-	{ DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC, "DSI_PLL_HSDIV_DISPC" },
+-	{ DSS_CLK_SRC_DSI_PLL_HSDIV_DSI, "DSI_PLL_HSDIV_DSI" },
+-	{ DSS_CLK_SRC_FCK, "DSS_FCK" },
++static const char * const dss_generic_clk_source_names[] = {
++	[DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC]	= "DSI_PLL_HSDIV_DISPC",
++	[DSS_CLK_SRC_DSI_PLL_HSDIV_DSI]		= "DSI_PLL_HSDIV_DSI",
++	[DSS_CLK_SRC_FCK]			= "DSS_FCK",
+ };
+ 
+ static void dss_clk_enable_all_no_ctx(void);
+@@ -232,7 +232,7 @@ void dss_sdi_disable(void)
+ 
+ const char *dss_get_generic_clk_source_name(enum dss_clk_source clk_src)
+ {
+-	return dss_generic_clk_source_names[clk_src].clksrc_name;
++	return dss_generic_clk_source_names[clk_src];
+ }
+ 
+ void dss_dump_clocks(struct seq_file *s)
+diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
+index b845468..26a43c9 100644
+--- a/drivers/video/omap2/dss/dss.h
++++ b/drivers/video/omap2/dss/dss.h
+@@ -126,12 +126,6 @@ enum dss_clk_source {
+ 						 * OMAP4: DSS_FCLK */
+ };
+ 
+-/* Correlates clock source name and dss_clk_source member */
+-struct dss_clk_source_name {
+-	enum dss_clk_source clksrc;
+-	const char *clksrc_name;
+-};
+-
+ struct dss_clock_info {
+ 	/* rates that we get with dividers below */
+ 	unsigned long fck;
+diff --git a/drivers/video/omap2/dss/dss_features.c b/drivers/video/omap2/dss/dss_features.c
+index 6eb6ec6..8de3344 100644
+--- a/drivers/video/omap2/dss/dss_features.c
++++ b/drivers/video/omap2/dss/dss_features.c
+@@ -30,7 +30,6 @@
+ 
+ /* Defines a generic omap register field */
+ struct dss_reg_field {
+-	enum dss_feat_reg_field id;
+ 	u8 start, end;
+ };
+ 
+@@ -45,43 +44,43 @@ struct omap_dss_features {
+ 	const unsigned long max_dss_fck;
+ 	const enum omap_display_type *supported_displays;
+ 	const enum omap_color_mode *supported_color_modes;
+-	const struct dss_clk_source_name *clksrc_names;
++	const char * const *clksrc_names;
+ };
+ 
+ /* This struct is assigned to one of the below during initialization */
+ static struct omap_dss_features *omap_current_dss_features;
+ 
+ static const struct dss_reg_field omap2_dss_reg_fields[] = {
+-	{ FEAT_REG_FIRHINC, 11, 0 },
+-	{ FEAT_REG_FIRVINC, 27, 16 },
+-	{ FEAT_REG_FIFOLOWTHRESHOLD, 8, 0 },
+-	{ FEAT_REG_FIFOHIGHTHRESHOLD, 24, 16 },
+-	{ FEAT_REG_FIFOSIZE, 8, 0 },
+-	{ FEAT_REG_HORIZONTALACCU, 9, 0 },
+-	{ FEAT_REG_VERTICALACCU, 25, 16 },
+-	{ FEAT_REG_DISPC_CLK_SWITCH, 0, 0 },
++	[FEAT_REG_FIRHINC]		= { 11, 0 },
++	[FEAT_REG_FIRVINC]		= { 27, 16 },
++	[FEAT_REG_FIFOLOWTHRESHOLD]	= { 8, 0 },
++	[FEAT_REG_FIFOHIGHTHRESHOLD]	= { 24, 16 },
++	[FEAT_REG_FIFOSIZE]		= { 8, 0 },
++	[FEAT_REG_HORIZONTALACCU]	= { 9, 0 },
++	[FEAT_REG_VERTICALACCU]		= { 25, 16 },
++	[FEAT_REG_DISPC_CLK_SWITCH]	= { 0, 0 },
+ };
+ 
+ static const struct dss_reg_field omap3_dss_reg_fields[] = {
+-	{ FEAT_REG_FIRHINC, 12, 0 },
+-	{ FEAT_REG_FIRVINC, 28, 16 },
+-	{ FEAT_REG_FIFOLOWTHRESHOLD, 11, 0 },
+-	{ FEAT_REG_FIFOHIGHTHRESHOLD, 27, 16 },
+-	{ FEAT_REG_FIFOSIZE, 10, 0 },
+-	{ FEAT_REG_HORIZONTALACCU, 9, 0 },
+-	{ FEAT_REG_VERTICALACCU, 25, 16 },
+-	{ FEAT_REG_DISPC_CLK_SWITCH, 0, 0 },
++	[FEAT_REG_FIRHINC]		= { 12, 0 },
++	[FEAT_REG_FIRVINC]		= { 28, 16 },
++	[FEAT_REG_FIFOLOWTHRESHOLD]	= { 11, 0 },
++	[FEAT_REG_FIFOHIGHTHRESHOLD]	= { 27, 16 },
++	[FEAT_REG_FIFOSIZE]		= { 10, 0 },
++	[FEAT_REG_HORIZONTALACCU]	= { 9, 0 },
++	[FEAT_REG_VERTICALACCU]		= { 25, 16 },
++	[FEAT_REG_DISPC_CLK_SWITCH]	= { 0, 0 },
+ };
+ 
+ static const struct dss_reg_field omap4_dss_reg_fields[] = {
+-	{ FEAT_REG_FIRHINC, 12, 0 },
+-	{ FEAT_REG_FIRVINC, 28, 16 },
+-	{ FEAT_REG_FIFOLOWTHRESHOLD, 15, 0 },
+-	{ FEAT_REG_FIFOHIGHTHRESHOLD, 31, 16 },
+-	{ FEAT_REG_FIFOSIZE, 15, 0 },
+-	{ FEAT_REG_HORIZONTALACCU, 10, 0 },
+-	{ FEAT_REG_VERTICALACCU, 26, 16 },
+-	{ FEAT_REG_DISPC_CLK_SWITCH, 9, 8 },
++	[FEAT_REG_FIRHINC]		= { 12, 0 },
++	[FEAT_REG_FIRVINC]		= { 28, 16 },
++	[FEAT_REG_FIFOLOWTHRESHOLD]	= { 15, 0 },
++	[FEAT_REG_FIFOHIGHTHRESHOLD]	= { 31, 16 },
++	[FEAT_REG_FIFOSIZE]		= { 15, 0 },
++	[FEAT_REG_HORIZONTALACCU]	= { 10, 0 },
++	[FEAT_REG_VERTICALACCU]		= { 26, 16 },
++	[FEAT_REG_DISPC_CLK_SWITCH]	= { 9, 8 },
+ };
+ 
+ static const enum omap_display_type omap2_dss_supported_displays[] = {
+@@ -162,22 +161,22 @@ static const enum omap_color_mode omap3_dss_supported_color_modes[] = {
+ 	OMAP_DSS_COLOR_RGBA32 | OMAP_DSS_COLOR_RGBX32,
+ };
+ 
+-static const struct dss_clk_source_name omap2_dss_clk_source_names[] = {
+-	{ DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC, "N/A" },
+-	{ DSS_CLK_SRC_DSI_PLL_HSDIV_DSI, "N/A" },
+-	{ DSS_CLK_SRC_FCK, "DSS_FCLK1" },
++static const char * const omap2_dss_clk_source_names[] = {
++	[DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC]	= "N/A",
++	[DSS_CLK_SRC_DSI_PLL_HSDIV_DSI]		= "N/A",
++	[DSS_CLK_SRC_FCK]			= "DSS_FCLK1",
+ };
+ 
+-static const struct dss_clk_source_name omap3_dss_clk_source_names[] = {
+-	{ DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC, "DSI1_PLL_FCLK" },
+-	{ DSS_CLK_SRC_DSI_PLL_HSDIV_DSI, "DSI2_PLL_FCLK" },
+-	{ DSS_CLK_SRC_FCK, "DSS1_ALWON_FCLK" },
++static const char * const omap3_dss_clk_source_names[] = {
++	[DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC]	= "DSI1_PLL_FCLK",
++	[DSS_CLK_SRC_DSI_PLL_HSDIV_DSI]		= "DSI2_PLL_FCLK",
++	[DSS_CLK_SRC_FCK]			= "DSS1_ALWON_FCLK",
+ };
+ 
+-static const struct dss_clk_source_name omap4_dss_clk_source_names[] = {
+-	{ DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC, "PLL1_CLK1" },
+-	{ DSS_CLK_SRC_DSI_PLL_HSDIV_DSI, "PLL1_CLK2" },
+-	{ DSS_CLK_SRC_FCK, "DSS_FCLK" },
++static const char * const omap4_dss_clk_source_names[] = {
++	[DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC]	= "PLL1_CLK1",
++	[DSS_CLK_SRC_DSI_PLL_HSDIV_DSI]		= "PLL1_CLK2",
++	[DSS_CLK_SRC_FCK]			= "DSS_FCLK",
+ };
+ 
+ /* OMAP2 DSS Features */
+@@ -290,7 +289,7 @@ bool dss_feat_color_mode_supported(enum omap_plane plane,
+ 
+ const char *dss_feat_get_clk_source_name(enum dss_clk_source id)
+ {
+-	return omap_current_dss_features->clksrc_names[id].clksrc_name;
++	return omap_current_dss_features->clksrc_names[id];
+ }
+ 
+ /* DSS has_feature check */
+-- 
+1.7.1
 
