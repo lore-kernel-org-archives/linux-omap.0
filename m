@@ -1,49 +1,86 @@
 From: "Menon, Nishanth" <nm@ti.com>
-Subject: Re: Code for v2.6.39 merge window frozen, patches archived
-Date: Tue, 15 Mar 2011 20:50:29 +0530
-Message-ID: <AANLkTimnhWnn5xviofc_HRSYKJmowt3dbb6vV_r-vvw4@mail.gmail.com>
-References: <20110314192538.GH7258@atomide.com> <4D7ED788.90307@ti.com> <87tyf4ju8b.fsf@ti.com>
+Subject: Re: [RFC][PATCH 3/3] OMAP PM: Add Board specific parameters for OMAP
+ Volatge layer
+Date: Tue, 15 Mar 2011 21:08:17 +0530
+Message-ID: <AANLkTi=tss2NC569bvxVSVWftDg4kdZmiyyh5JZBZpko@mail.gmail.com>
+References: <1300199622-32500-1-git-send-email-vishwanath.bs@ti.com> <1300199622-32500-4-git-send-email-vishwanath.bs@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:41627 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750734Ab1COPVq convert rfc822-to-8bit
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:50140 "EHLO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758052Ab1COPnB convert rfc822-to-8bit
 	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 15 Mar 2011 11:21:46 -0400
-Received: by mail-fx0-f46.google.com with SMTP id 17so811716fxm.33
-        for <linux-omap@vger.kernel.org>; Tue, 15 Mar 2011 08:21:45 -0700 (PDT)
-In-Reply-To: <87tyf4ju8b.fsf@ti.com>
+	Tue, 15 Mar 2011 11:43:01 -0400
+Received: by mail-fx0-f45.google.com with SMTP id 2so747727fxm.4
+        for <linux-omap@vger.kernel.org>; Tue, 15 Mar 2011 08:42:59 -0700 (PDT)
+In-Reply-To: <1300199622-32500-4-git-send-email-vishwanath.bs@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+To: Vishwanath BS <vishwanath.bs@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-On Tue, Mar 15, 2011 at 20:39, Kevin Hilman <khilman@ti.com> wrote:
-> Nishanth Menon <nm@ti.com> writes:
->
->> Tony Lindgren wrote, on 03/15/2011 12:55 AM:
->> [..]
->>> Looks like there's one smartreflex patch that does not seem
->>> to exist in patchwork though.. So that one is still lurking
->>> around on the patchwork list of patches until the issue has
->>> been fixed in patchwork.kernel.org.
->> Guess it is too late, but am curious:
->> http://marc.info/?l=3Dlinux-omap&m=3D129933897910785&w=3D2
->> Why has it been dropped from .39(aka archived out)? I dont see any
->> review comments to the contrary from any maintainers explaining why =
-we
->> should'nt take it.
->
-> It didn't make this merge window because I did not get to do a final
-> review in time. =A0It has been a very busy development cycle, and I r=
-an
-> out of time.
+On Tue, Mar 15, 2011 at 20:03, Vishwanath BS <vishwanath.bs@ti.com> wro=
+te:
+> This patch adds board specific parameters for ZOOM3 and OMAP4430 SDP =
+Boards.
+> The same needs to be done for other OMAP3 and OMAP4 boards once the a=
+pproach
+> is accepted.
 
-Am guessing i will have to repost again since the old series have been
-archived out on patchworks. and I suppose the same goes for all as
-well.
+Would have been great to see this info in 0/0 - what happens without
+these changes on other boards?
+
+[...]
+> +union omap_volt_board_data zoom_mpu_volt_data =3D {
+> + =A0 =A0 =A0 .omap3_board_data =3D {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .vdd_setup_ret =3D {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .voltsetup =A0 =A0 =A0=3D=
+ OMAP3_VOLTSETUP_VDD1_RET,
+I disagree this is a board specific param - the help says "setup time
+of the VDDregulators in us" - seems to me that it is PMIC information
+
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .clksetup =A0 =A0 =A0 =3D=
+ OMAP3_CLKSETUP_RET,
+????? why cant i just give oscillator ramp time in uSec?
+
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .voltsetup2 =A0 =A0 =A0=
+ =A0 =A0 =A0 =3D 0,
+why should I as  a board developer give this as well, why cant voltage
+layer do addition and save me a param?
+
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 },
+> +
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .vdd_setup_off =3D {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .voltsetup =A0 =A0 =A0=3D=
+ OMAP3_VOLTSETUP_VDD1_OFF,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .clksetup =A0 =A0 =A0 =3D=
+ OMAP3_CLKSETUP_OFF,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .voltsetup2 =A0 =A0 =3D=
+ OMAP3_VOLTSETUP2,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 },
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .voltoffset =A0 =A0 =A0 =A0 =A0 =A0 =3D=
+ OMAP3_VOLTOFFSET_OFF
+"offset-time to de-assert sys_offmode when exiting the OFF mode" - how
+am I supposed to measure that? again - why cant voltage layer add
+numbers?
+
+> + =A0 =A0 =A0 }
+> +};
+> +
+
+my overall suggestion - when I fill in board file params - I should say=
+:
+I use PMIC x, i have oscillator with ramp "y" uSec - the params should
+talk my language as a board developers - I dont want to know indepth
+details of voltage VP/VC registers and what they should contain. it is
+upto voltage layer to translate, add, bit shift or do what ever is
+necessary to take my board and pmic level details to register details.
+
+Sorry, even though this is a good start for abstraction, the overall
+motivation is missed, I think we need to work on it more.
+
 
 Regards,
 Nishanth Menon
