@@ -1,78 +1,42 @@
-From: John S <john.schi15@gmail.com>
-Subject: Re: [PATCH v5 10/10] OMAP4 : HDMI : Add HDMI structure in the board
- file for OMAP4 PANDA
-Date: Tue, 15 Mar 2011 20:17:23 +0530
-Message-ID: <AANLkTim6rTf0zawL=OuepJGg_4L4c7SgxxuX7esjiz6V@mail.gmail.com>
-References: <1299753858-12222-1-git-send-email-mythripk@ti.com>
-	<1299753858-12222-2-git-send-email-mythripk@ti.com>
-	<1299753858-12222-3-git-send-email-mythripk@ti.com>
-	<1299753858-12222-4-git-send-email-mythripk@ti.com>
-	<1299753858-12222-5-git-send-email-mythripk@ti.com>
-	<1299753858-12222-6-git-send-email-mythripk@ti.com>
-	<1299753858-12222-7-git-send-email-mythripk@ti.com>
-	<1299753858-12222-8-git-send-email-mythripk@ti.com>
-	<1299753858-12222-9-git-send-email-mythripk@ti.com>
-	<1299753858-12222-10-git-send-email-mythripk@ti.com>
-	<1299753858-12222-11-git-send-email-mythripk@ti.com>
-	<1300163024.1946.14.camel@lappyti>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: Code for v2.6.39 merge window frozen, patches archived
+Date: Tue, 15 Mar 2011 08:09:39 -0700
+Message-ID: <87tyf4ju8b.fsf@ti.com>
+References: <20110314192538.GH7258@atomide.com> <4D7ED788.90307@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:35381 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757820Ab1COOr0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Mar 2011 10:47:26 -0400
-Received: by pwi15 with SMTP id 15so117675pwi.19
-        for <linux-omap@vger.kernel.org>; Tue, 15 Mar 2011 07:47:25 -0700 (PDT)
-In-Reply-To: <1300163024.1946.14.camel@lappyti>
+Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:54783 "EHLO
+	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755031Ab1COPJn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 15 Mar 2011 11:09:43 -0400
+Received: by pxi3 with SMTP id 3so132595pxi.12
+        for <linux-omap@vger.kernel.org>; Tue, 15 Mar 2011 08:09:42 -0700 (PDT)
+In-Reply-To: <4D7ED788.90307@ti.com> (Nishanth Menon's message of "Tue, 15 Mar
+	2011 08:35:44 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>, mythripk@ti.com
-Cc: linux-omap <linux-omap@vger.kernel.org>
+To: Nishanth Menon <nm@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-On 3/15/11, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
-> On Thu, 2011-03-10 at 04:44 -0600, K, Mythri P wrote:
->> Adding  board file structure for display which adds the display
->> structure with HDMI as the default driver when the display init
->> is called.
->> HDMI GPIO configurations are also done in this file.
->>
->> Signed-off-by: Mythri P K <mythripk@ti.com>
->> ---
->>  arch/arm/mach-omap2/board-omap4panda.c |   74
->> ++++++++++++++++++++++++++++++++
->>  1 files changed, 74 insertions(+), 0 deletions(-)
->
-> <snip>
->
->> +static struct omap_dss_device *sdp4430_dss_devices[] = {
->> +	&sdp4430_hdmi_device,
->> +};
->> +
->> +static struct omap_dss_board_info sdp4430_dss_data = {
->> +	.num_devices	= ARRAY_SIZE(sdp4430_dss_devices),
->> +	.devices	= sdp4430_dss_devices,
->> +	.default_device	= &sdp4430_hdmi_device,
->> +};
->> +
->> +void omap_panda_display_init(void)
+Nishanth Menon <nm@ti.com> writes:
 
-Using omap4_panda_display_init would be a good option as most of the
-other init in this file are using omap4 not omap
+> Tony Lindgren wrote, on 03/15/2011 12:55 AM:
+> [..]
+>> Looks like there's one smartreflex patch that does not seem
+>> to exist in patchwork though.. So that one is still lurking
+>> around on the patchwork list of patches until the issue has
+>> been fixed in patchwork.kernel.org.
+> Guess it is too late, but am curious:
+> http://marc.info/?l=linux-omap&m=129933897910785&w=2
+> Why has it been dropped from .39(aka archived out)? I dont see any
+> review comments to the contrary from any maintainers explaining why we
+> should'nt take it.
 
->> +{
->> +	sdp4430_hdmi_mux_init();
->> +	omap_display_init(&sdp4430_dss_data);
->> +}
->> +
->
-> The sdp4430 structs and functions should be renamed to panda.
->
->  Tomi
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+It didn't make this merge window because I did not get to do a final
+review in time.  It has been a very busy development cycle, and I ran
+out of time.
+
+Kevin
+
