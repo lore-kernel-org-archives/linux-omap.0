@@ -1,62 +1,46 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: Question regarding suspend/resume
-Date: Tue, 15 Mar 2011 13:11:42 -0700
-Message-ID: <87wrk0gn41.fsf@ti.com>
-References: <4D7FBD31.6050806@gmail.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: 2420 sDMA address mapping typo
+Date: Tue, 15 Mar 2011 21:32:23 +0100
+Message-ID: <4D7FCCD7.7050604@ti.com>
+References: <E8606C3FD412994585953171ED63A9340217F287D9@dnce01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:50105 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757677Ab1COULt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 15 Mar 2011 16:11:49 -0400
-Received: by mail-gx0-f169.google.com with SMTP id 23so514043gxk.14
-        for <linux-omap@vger.kernel.org>; Tue, 15 Mar 2011 13:11:45 -0700 (PDT)
-In-Reply-To: <4D7FBD31.6050806@gmail.com> (Peter Barada's message of "Tue, 15
-	Mar 2011 15:25:37 -0400")
+Received: from bear.ext.ti.com ([192.94.94.41]:49026 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757950Ab1COUcV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 15 Mar 2011 16:32:21 -0400
+In-Reply-To: <E8606C3FD412994585953171ED63A9340217F287D9@dnce01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Barada <peter.barada@gmail.com>
-Cc: Linux OMAP list <linux-omap@vger.kernel.org>
+To: "Fillinger, Michael" <m-fillinger@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Balbi, Felipe" <balbi@ti.com>, "tony@atomide.com" <tony@atomide.com>
 
-Peter Barada <peter.barada@gmail.com> writes:
+Salut Michael,
 
-> Is there any reference how to decode the output of
-> /debug/pm_debug/count?  I'm trying to figure out when I resume why it
-> says the core_pwrdm didn't enter the target state, and I'm assuming
-> because a clock used is not disabled in the suspend path, but as fars
-> as I can tell there's no output in the pm_debug code that tells which
-> clocks in a power domain are active at the time of a suspend.
+On 3/15/2011 5:44 PM, Fillinger, Michael wrote:
+> Hi,
+>
+> There is a small issue introduced in 2.6.38 on the address space of sDMA for OMAP2420, which seems to be a mix of OMAP2&  newer OMAP addresses :
+>
+> arch/arm/mach-omap2/omap_hwmod_2420_data.c
+>
+> static struct omap_hwmod_addr_space omap2420_dma_system_addrs[] = {
+>          {
+>                   .pa_start   = 0x48056000,
+>                   .pa_end     = 0x4a0560ff,
+>                   .flags      = ADDR_TYPE_RT
+>          },
+> };
+>
+> pa_end should be 0x480560ff unless I'm mistaken.
 
-You're right.
+Good catch, but the size is almost 4k to store all the channels.
 
-What you need the patch in my pm-wip/debug branch from my pm tree[1].
-With that patch, it takes a snapshot of the PRCM registers just before
-and after suspend.
+The quick and dirty patch is:
+-                   .pa_end     = 0x4a0560ff,
++                   .pa_end     = 0x48056fff,
 
-When you come back from suspend, view the register snapshot just before
-suspend:
-
-# cat /debug/pm_debug/register/1  
-
-and the register snapshot just after
-
-# cat /debug/pm_debug/register/2
-
-the snapshot just before suspend is useful for debugging problems like
-yours, and the snapshot just after can be useful for debugging wakeups.
-
-Feel free to post the register dump if you want some help deciphering
-it.  If you do, please post more details on what kernel you're using as
-well as the bootloader etc.
-
-One of the common root causes for a problem like yours is a bootloader
-that leaves a particular module in a state that it cannot properly
-idle.  If the kernel is not using that particular device and/or has not
-reset that device, the result is the powerdomain for that device can not
-hit idle and you'll have a problem like yours.
-
-Kevin
-
-[1] git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git
+Thanks,
+Benoit
