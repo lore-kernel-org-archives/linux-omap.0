@@ -1,69 +1,59 @@
-From: <kalle.jokiniemi@nokia.com>
-Subject: RE: [PATCH 2/2] OMAP3: wdtimer: Fix CORE idle transition
-Date: Tue, 15 Mar 2011 06:57:51 +0000
-Message-ID: <9D0D31AA57AAF5499AFDC63D6472631B067CBA@008-AM1MPN1-036.mgdnok.nokia.com>
-References: <1299759058-26342-1-git-send-email-kalle.jokiniemi@nokia.com>
- <1299759058-26342-3-git-send-email-kalle.jokiniemi@nokia.com>
- <alpine.DEB.2.00.1103100752370.15132@utopia.booyaka.com>
- <9D0D31AA57AAF5499AFDC63D6472631B067824@008-AM1MPN1-036.mgdnok.nokia.com>
- <alpine.DEB.2.00.1103141322460.4431@utopia.booyaka.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] OMAP: DSS2: FEATURES: Functions to return min and max
+ values of parameters
+Date: Tue, 15 Mar 2011 12:39:32 +0530
+Message-ID: <1300172972.1946.19.camel@lappyti>
+References: <1300163303-31662-1-git-send-email-archit@ti.com>
+	 <1300163303-31662-2-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:62464 "EHLO mgw-sa01.nokia.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:53974 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754169Ab1COG6H convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Mar 2011 02:58:07 -0400
-In-Reply-To: <alpine.DEB.2.00.1103141322460.4431@utopia.booyaka.com>
-Content-Language: en-US
+	id S1754169Ab1COHJi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 15 Mar 2011 03:09:38 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p2F79ZiL010908
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Tue, 15 Mar 2011 02:09:37 -0500
+In-Reply-To: <1300163303-31662-2-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: paul@pwsan.com
-Cc: linux-watchdog@vger.kernel.org, wim@iguana.be, khilman@ti.com, linux-omap@vger.kernel.org, tony@atomide.com, jhnikula@gmail.com, ilkka.koskinen@nokia.com, b-cousson@ti.com
+To: "Taneja, Archit" <archit@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
+On Mon, 2011-03-14 at 23:28 -0500, Taneja, Archit wrote:
+> Create 2 functions dss_feat_get_param_min() and dss_feat_get_param_max() which
+> return the minimum and maximum value of a parameter. Introduce a enum in
+> dss_features called dss_range_param which contains parameters whose ranges we
+> are interested in.
+> 
+> Replace this with dss_feat_get_max_dss_fck() which is specific to the parameter
+> DSS_FCK.
+> 
+> Signed-off-by: Archit Taneja <archit@ti.com>
+> ---
+> Note: Applies over:
+> 
+> http://gitorious.org/linux-omap-dss2/linux/commits/master
+> 
+> and the patch submitted on linux-omap:
+> OMAP2PLUS: DSS2: FEATURES: Fix usage of dss_reg_field and dss_clk_source_name
+> 
+>  drivers/video/omap2/dss/dsi.c          |    2 +-
+>  drivers/video/omap2/dss/dss.c          |    2 +-
+>  drivers/video/omap2/dss/dss_features.c |   36 ++++++++++++++++++++++++-------
+>  drivers/video/omap2/dss/dss_features.h |    7 +++++-
+>  4 files changed, 36 insertions(+), 11 deletions(-)
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of ext Paul Walmsley
-> Sent: 14. maaliskuuta 2011 21:27
-> To: Jokiniemi Kalle (Nokia-MS/Tampere)
-> Cc: linux-watchdog@vger.kernel.org; wim@iguana.be; khilman@ti.com;
-> linux-omap@vger.kernel.org; tony@atomide.com; jhnikula@gmail.com;
-> Koskinen Ilkka (Nokia-MS/Tampere); b-cousson@ti.com
-> Subject: RE: [PATCH 2/2] OMAP3: wdtimer: Fix CORE idle transition
-> 
-> Hello Kalle,
-> 
-> On Mon, 14 Mar 2011, kalle.jokiniemi@nokia.com wrote:
-> 
-> > What about the 1/2 patch? Is that going in, and to which kernel
-> > version (our integrator would like to put in a note when we can remove
-> > the back ported patch)
-> 
-> It's queued for Linus for the upcoming merge window:
-> 
-> http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-
-> 2.6.git;a=commit;h=0503add9d251db22ba2f610fb8d9b7743a9786da
-> 
-> Thread here:
-> 
-> http://www.spinics.net/lists/linux-omap/msg48381.html
-> 
-> If there aren't further comments on the watchdog patch, and Linus is okay
-> with the branch, it should appear in 2.6.39.
+Thanks, looks good.
 
-Thanks for the confirmation.
+For future, usually in patches like this it would be good to explain in
+the description the reason why this is made (well, it would be good
+always to explain "why"). The patch alone doesn't really make sense,
+only when the patch about DSI PLL parameters is applied it makes sense.
 
-- Kalle
+ Tomi
 
 
-> 
-> 
-> 
-> - Paul
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in the
-> body of a message to majordomo@vger.kernel.org More majordomo info at
-> http://vger.kernel.org/majordomo-info.html
