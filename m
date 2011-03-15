@@ -1,70 +1,62 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: Code for v2.6.39 merge window frozen, patches archived
-Date: Tue, 15 Mar 2011 21:07:41 +0100
-Message-ID: <4D7FC70D.7050508@ti.com>
-References: <20110314192538.GH7258@atomide.com> <alpine.DEB.1.10.1103151856180.880@esdhcp041196.research.nokia.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: Question regarding suspend/resume
+Date: Tue, 15 Mar 2011 13:11:42 -0700
+Message-ID: <87wrk0gn41.fsf@ti.com>
+References: <4D7FBD31.6050806@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51370 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757649Ab1COUHk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Mar 2011 16:07:40 -0400
-In-Reply-To: <alpine.DEB.1.10.1103151856180.880@esdhcp041196.research.nokia.com>
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:50105 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757677Ab1COULt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 15 Mar 2011 16:11:49 -0400
+Received: by mail-gx0-f169.google.com with SMTP id 23so514043gxk.14
+        for <linux-omap@vger.kernel.org>; Tue, 15 Mar 2011 13:11:45 -0700 (PDT)
+In-Reply-To: <4D7FBD31.6050806@gmail.com> (Peter Barada's message of "Tue, 15
+	Mar 2011 15:25:37 -0400")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@nokia.com>
-Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tarun Kanti DebBarma <tarun.kanti@ti.com>
+To: Peter Barada <peter.barada@gmail.com>
+Cc: Linux OMAP list <linux-omap@vger.kernel.org>
 
-Hi Aaro,
+Peter Barada <peter.barada@gmail.com> writes:
 
-On 3/15/2011 6:54 PM, Aaro Koskinen wrote:
-> Hi,
->
-> On Mon, 14 Mar 2011, Tony Lindgren wrote:
->> I've applied few random fix like patches today into omap-for-linus
->> but that's it for this merge window.
->>
->> So let's do some testing with with Stephen's for-next and
->> omap-for-linus and start queueing up fixes for the -rc cycle.
->
-> I did some quick testing:
->
-> linux-omap/master, omap2plus_defconfig:
->
->   	- RM-680 hangs after uncompressing kernel. earlyprintk shows:
->
->   	[    0.293395] omap_hwmod: _populate_mpu_rt_base found no _mpu_rt_va for l4_core
->   	[    0.300903] omap_hwmod: _populate_mpu_rt_base found no _mpu_rt_va for l4_per
->   	[    0.308288] omap_hwmod: _populate_mpu_rt_base found no _mpu_rt_va for l4_wkup
->   	[    0.316101] omap_hwmod: gpt12_fck: missing clockdomain for gpt12_fck.
->
->   	(then some garbage)
->
->   	- With RX-51 I get the same messages, but no hang.
+> Is there any reference how to decode the output of
+> /debug/pm_debug/count?  I'm trying to figure out when I resume why it
+> says the core_pwrdm didn't enter the target state, and I'm assuming
+> because a clock used is not disabled in the suspend path, but as fars
+> as I can tell there's no output in the pm_debug code that tells which
+> clocks in a power domain are active at the time of a suspend.
 
-Mmm, that looks like an access to a secure timer from hwmod code on a HS 
-device. Could you comment out the timer12 entry 
-(&omap3xxx_timer12_hwmod) in the omap3 hwmod list at the end of 
-omap_hwmod_3xxx_data.c to check that?
+You're right.
 
-Thanks
-Benoit
+What you need the patch in my pm-wip/debug branch from my pm tree[1].
+With that patch, it takes a snapshot of the PRCM registers just before
+and after suspend.
 
->
-> omap-for-linux, omap2plus_defconfig:
->
->   	- Pretty much the same. RM-680 hangs and the first bad commit is
->   	ce722d269ff85ab11aa680784bcc6eff06e3e3ea and earlyprintk shows
->   	"external abort on non-linefetch" in omap_hwmod_read() after
->   	above messages.
->
-> Mainline kernel (v2.6.38) boots fine.
->
-> A.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+When you come back from suspend, view the register snapshot just before
+suspend:
 
+# cat /debug/pm_debug/register/1  
+
+and the register snapshot just after
+
+# cat /debug/pm_debug/register/2
+
+the snapshot just before suspend is useful for debugging problems like
+yours, and the snapshot just after can be useful for debugging wakeups.
+
+Feel free to post the register dump if you want some help deciphering
+it.  If you do, please post more details on what kernel you're using as
+well as the bootloader etc.
+
+One of the common root causes for a problem like yours is a bootloader
+that leaves a particular module in a state that it cannot properly
+idle.  If the kernel is not using that particular device and/or has not
+reset that device, the result is the powerdomain for that device can not
+hit idle and you'll have a problem like yours.
+
+Kevin
+
+[1] git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git
