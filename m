@@ -1,55 +1,50 @@
-From: Sanjeev Premi <premi@ti.com>
-Subject: [PATCHv2] omap3: alsa-soc: Remove restrictive checks for cpu type
-Date: Wed, 16 Mar 2011 14:01:17 +0530
-Message-ID: <1300264277-21930-1-git-send-email-premi@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH v5 00/10] OMAP4 : DSS2 : HDMI support on OMAP4
+Date: Wed, 16 Mar 2011 14:02:12 +0530
+Message-ID: <1300264332.1917.87.camel@lappyti>
+References: <1299753858-12222-1-git-send-email-mythripk@ti.com>
+	 <1299769580.2017.235.camel@deskari>
+	 <AANLkTik7kaMDMrL_AweAY0dCo7wxaaHkQxTcmMfVB-=f@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57323 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:57362 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751885Ab1CPIbj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Mar 2011 04:31:39 -0400
+	with ESMTP id S1751885Ab1CPIcV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Mar 2011 04:32:21 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p2G8WIse031009
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Wed, 16 Mar 2011 03:32:20 -0500
+In-Reply-To: <AANLkTik7kaMDMrL_AweAY0dCo7wxaaHkQxTcmMfVB-=f@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org
-Cc: Sanjeev Premi <premi@ti.com>
+To: "K, Mythri P" <mythripk@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Current checks for cpu type were too restrictive leading
-to failures for other silicons in same family.
+On Fri, 2011-03-11 at 02:24 -0600, K, Mythri P wrote:
+> Hi Tomi,
+> 
+> On Thu, Mar 10, 2011 at 8:36 PM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
 
-The problem was found while testing audio playback on
-AM37x and AM35x processors. But should exist on OMAP36xx
-as well.
+> > There is this code in dss.c:
+> >
+> > #ifdef CONFIG_OMAP2_DSS_VENC
+> >        REG_FLD_MOD(DSS_CONTROL, 1, 4, 4);      /* venc dac demen */
+> >        REG_FLD_MOD(DSS_CONTROL, 1, 3, 3);      /* venc clock 4x enable */
+> >        REG_FLD_MOD(DSS_CONTROL, 0, 2, 2);      /* venc clock mode = normal */
+> > #endif
+> >
+> Regarding this piece of code , although it appears that is should not affect ,
+> I think we should move this out of dss_init , if any such change is needed
+> we should do that on VENC enable dont you think ?
 
-Signed-off-by: Sanjeev Premi <premi@ti.com>
----
- Changes in this version:
- 1) Added one more check to the changes.
- 2) Updated commit message to use plurals.
+Either we should enable them on venc_enable, or remove the ifdef. If
+there are side effects (which we don't know currently) we should use do
+them on venc_enable. If there aren't any side effects, we should just
+write the register always.
 
- sound/soc/omap/omap-mcbsp.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
-index 2175f09..a88a0bf 100644
---- a/sound/soc/omap/omap-mcbsp.c
-+++ b/sound/soc/omap/omap-mcbsp.c
-@@ -146,7 +146,7 @@ static int omap_mcbsp_dai_startup(struct snd_pcm_substream *substream,
- 	 * 2 channels (stereo): size is 128 / 2 = 64 frames (2 * 64 words)
- 	 * 4 channels: size is 128 / 4 = 32 frames (4 * 32 words)
- 	 */
--	if (cpu_is_omap343x() || cpu_is_omap44xx()) {
-+	if (cpu_is_omap34xx() || cpu_is_omap44xx()) {
- 		/*
- 		* Rule for the buffer size. We should not allow
- 		* smaller buffer than the FIFO size to avoid underruns
-@@ -258,7 +258,7 @@ static int omap_mcbsp_dai_hw_params(struct snd_pcm_substream *substream,
- 	default:
- 		return -EINVAL;
- 	}
--	if (cpu_is_omap343x()) {
-+	if (cpu_is_omap34xx()) {
- 		dma_data->set_threshold = omap_mcbsp_set_threshold;
- 		/* TODO: Currently, MODE_ELEMENT == MODE_FRAME */
- 		if (omap_mcbsp_get_dma_op_mode(bus_id) ==
--- 
-1.7.2.2
+ Tomi
+ 
 
