@@ -1,56 +1,62 @@
-From: Aaro Koskinen <aaro.koskinen@nokia.com>
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
 Subject: Re: Code for v2.6.39 merge window frozen, patches archived
-Date: Wed, 16 Mar 2011 15:49:12 +0200 (EET)
-Message-ID: <alpine.DEB.1.10.1103161533470.2634@esdhcp041196.research.nokia.com>
-References: <20110314192538.GH7258@atomide.com> <alpine.DEB.1.10.1103151856180.880@esdhcp041196.research.nokia.com> <4D7FC70D.7050508@ti.com>
+Date: Wed, 16 Mar 2011 19:37:10 +0530
+Message-ID: <20110316140710.GA10385@m-desktop>
+References: <20110314192538.GH7258@atomide.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.48]:20365 "EHLO mgw-sa02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750870Ab1CPNv1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 16 Mar 2011 09:51:27 -0400
-In-Reply-To: <4D7FC70D.7050508@ti.com>
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:59766 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750870Ab1CPOJp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 16 Mar 2011 10:09:45 -0400
+Received: by gwj21 with SMTP id 21so792041gwj.16
+        for <linux-omap@vger.kernel.org>; Wed, 16 Mar 2011 07:09:44 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <20110314192538.GH7258@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tarun Kanti DebBarma <tarun.kanti@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
 
-Hi,
+On Mon, Mar 14, 2011 at 12:25:38PM -0700, Tony Lindgren wrote:
+> Hi all,
+> 
+> I've applied few random fix like patches today into omap-for-linus
+> but that's it for this merge window.
+> 
+> So let's do some testing with with Stephen's for-next and
+> omap-for-linus and start queueing up fixes for the -rc cycle.
+omap-for-linus boots on:
+OMAP3430-Zoom2
+OMAP3630-Zoom3
+OMAP4430-Blaze
 
-On Tue, 15 Mar 2011, Cousson, Benoit wrote:
-> Mmm, that looks like an access to a secure timer from hwmod code on a HS 
-> device. Could you comment out the timer12 entry (&omap3xxx_timer12_hwmod) in 
-> the omap3 hwmod list at the end of omap_hwmod_3xxx_data.c to check that?
+With OMAP3 and OMAP4 disabled, it boots successfully on:
+OMAP2420-H4
+OMAP2430-SDP
 
-With timer12 entry commented out and omap_hwmod debugs enabled, it now
-hangs here:
+-Manjunath
 
-[...]
-
-[    4.306549] OMAP GPIO hardware version 2.5
-[    4.310913] omap_hwmod: gpio4: enabling
-[    4.314971] omap_hwmod: gpio4: enabling clocks
-[    4.320037] OMAP GPIO hardware version 2.5
-[    4.324401] omap_hwmod: gpio5: enabling
-[    4.328460] omap_hwmod: gpio5: enabling clocks
-[    4.333526] OMAP GPIO hardware version 2.5
-[    4.337921] omap_hwmod: gpio6: enabling
-[    4.341949] omap_hwmod: gpio6: enabling clocks
-[    4.347015] OMAP GPIO hardware version 2.5
-
-then nothing. Also, with RX-51 the boot breaks (or at least the serial
-console) when earlyprintk is enabled. The last thing seen is:
-
-[    0.996124] omap_hwmod: mmc1: enabling
-[    1.000122] omap_hwmod: mmc1: enabling clocks
-[    1.004760] omap_hwmod: mmc1: resetting
-[    1.008850] omap_hwmod: mmc1: resetting via OCP SOFTRESET
-[    1.014526] omap_hwmod: mmc1: softreset in 0 usec
-[    1.019500] omap_hwmod: mmc1: idling
-[    1.023315] omap_hwmod: mmc1: disabling clocks
-
-I can see that mmc is followed by uart enable, so it seems that won't
-work well with earlyprintk enabled.
-
-A.
+> 
+> I've also moved all the patchwork.kernel.org patches into
+> archived-v2.6.39 bundle and marked them as archived:
+> 
+> https://patchwork.kernel.org/user/bundle/1381/
+> 
+> You can still find the patches there if you click on Filters
+> and changed Archived from No to Both.
+> 
+> Looks like there's one smartreflex patch that does not seem
+> to exist in patchwork though.. So that one is still lurking
+> around on the patchwork list of patches until the issue has
+> been fixed in patchwork.kernel.org.
+> 
+> Cheers,
+> 
+> Tony
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
