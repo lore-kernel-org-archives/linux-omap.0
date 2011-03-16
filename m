@@ -1,38 +1,37 @@
-From: Ilkka Koskinen <ilkka.koskinen@nokia.com>
-Subject: [PATCH] rtc-twl: Switch to using threaded irq
-Date: Wed, 16 Mar 2011 18:07:14 +0200
-Message-ID: <1300291634-17884-1-git-send-email-ilkka.koskinen@nokia.com>
+From: Aaro Koskinen <aaro.koskinen@nokia.com>
+Subject: [PATCH 1/2] arm: mach-omap2: devices: fix omap3_l3_init() return value
+Date: Wed, 16 Mar 2011 19:16:02 +0200
+Message-ID: <1300295763-497-1-git-send-email-aaro.koskinen@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:38633 "EHLO mgw-da02.nokia.com"
+Received: from smtp.nokia.com ([147.243.1.47]:39320 "EHLO mgw-sa01.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751167Ab1CPQJd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 16 Mar 2011 12:09:33 -0400
+	id S1753065Ab1CPRLu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 16 Mar 2011 13:11:50 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: a.zummo@towertech.it, tony@atomide.com
-Cc: rtc-linux@googlegroups.com, balajitk@ti.com, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com
+Cc: Aaro Koskinen <aaro.koskinen@nokia.com>
 
-The driver is accessing to i2c bus in interrupt handler.
-Therefore, it should use threaded irq.
+Fix the return value for the successful case.
 
-Signed-off-by: Ilkka Koskinen <ilkka.koskinen@nokia.com>
+Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
 ---
- drivers/rtc/rtc-twl.c |    2 +-
+ arch/arm/mach-omap2/devices.c |    2 +-
  1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/rtc/rtc-twl.c b/drivers/rtc/rtc-twl.c
-index ed1b868..2715b96 100644
---- a/drivers/rtc/rtc-twl.c
-+++ b/drivers/rtc/rtc-twl.c
-@@ -475,7 +475,7 @@ static int __devinit twl_rtc_probe(struct platform_device *pdev)
- 	if (ret < 0)
- 		goto out1;
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index 0d2d6a9..d478f53 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -65,7 +65,7 @@ static int __init omap3_l3_init(void)
  
--	ret = request_irq(irq, twl_rtc_interrupt,
-+	ret = request_threaded_irq(irq, NULL, twl_rtc_interrupt,
- 				IRQF_TRIGGER_RISING,
- 				dev_name(&rtc->dev), rtc);
- 	if (ret < 0) {
+ 	WARN(IS_ERR(od), "could not build omap_device for %s\n", oh_name);
+ 
+-	return PTR_ERR(od);
++	return IS_ERR(od) ? PTR_ERR(od) : 0;
+ }
+ postcore_initcall(omap3_l3_init);
+ 
 -- 
-1.7.0.4
+1.5.6.5
 
