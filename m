@@ -1,50 +1,221 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH v5 00/10] OMAP4 : DSS2 : HDMI support on OMAP4
-Date: Wed, 16 Mar 2011 16:29:51 +0530
-Message-ID: <1300273191.1917.88.camel@lappyti>
-References: <1299753858-12222-1-git-send-email-mythripk@ti.com>
-	 <1299764643.2017.177.camel@deskari> <4D78E3F5.2090600@openelec.tv>
-	 <1299827578.2567.1.camel@deskari> <4D79E0A0.9040900@openelec.tv>
-	 <1299849774.2479.3.camel@deskari> <4D7A4B44.2030801@openelec.tv>
-	 <1299868049.2479.33.camel@deskari> <4D7A6D0F.40906@openelec.tv>
-	 <AANLkTin+fnZfFte5v8+G0saDcjCqsT=oQ4U_oGSm-UGn@mail.gmail.com>
-	 <4D7CD588.3080100@openelec.tv> <4D7CEEC8.50803@openelec.tv>
-	 <1300258302.1917.32.camel@lappyti>
-	 <AANLkTinNynOpnJyHZeyA01E5oVMcs_PnAYRH4dSznJ_d@mail.gmail.com>
+From: Vishwanath Sripathy <vishwanath.bs@ti.com>
+Subject: RE: [RFCv2 2/2] AM35x: voltage: Basic initialization
+Date: Wed, 16 Mar 2011 16:33:22 +0530
+Message-ID: <bde3ae98096e759b8baae09ffbe7c226@mail.gmail.com>
+References: <1300260723-19422-1-git-send-email-premi@ti.com> <1300260723-19422-3-git-send-email-premi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:46924 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752613Ab1CPLAH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 16 Mar 2011 07:00:07 -0400
-In-Reply-To: <AANLkTinNynOpnJyHZeyA01E5oVMcs_PnAYRH4dSznJ_d@mail.gmail.com>
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:46590 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752080Ab1CPLDa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 16 Mar 2011 07:03:30 -0400
+Received: by mail-vw0-f46.google.com with SMTP id 1so1782525vws.5
+        for <linux-omap@vger.kernel.org>; Wed, 16 Mar 2011 04:03:29 -0700 (PDT)
+In-Reply-To: <1300260723-19422-3-git-send-email-premi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "K, Mythri P" <mythripk@ti.com>
-Cc: Stephan Raue <mailinglists@openelec.tv>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Sanjeev Premi <premi@ti.com>, linux-omap@vger.kernel.org
 
-On Wed, 2011-03-16 at 05:53 -0500, K, Mythri P wrote:
-> Hi Tomi,
-> 
-> On Wed, Mar 16, 2011 at 12:21 PM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Sanjeev Premi
+> Sent: Wednesday, March 16, 2011 1:02 PM
+> To: linux-omap@vger.kernel.org
+> Cc: Sanjeev Premi
+> Subject: [RFCv2 2/2] AM35x: voltage: Basic initialization
+>
+> This patch adds the basic initialization of voltage layer
+> for AM35x. Since AM35x doesn't support voltage scaling,
+> Many functions emply fucntions have been defined to plug
+> into existing voltage layer.
+>
+> Signed-off-by: Sanjeev Premi <premi@ti.com>
+> ---
+>  arch/arm/mach-omap2/voltage.c |  110
+> ++++++++++++++++++++++++++++++++++++++++-
+>  1 files changed, 109 insertions(+), 1 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-
+> omap2/voltage.c
+> index 2017dc0..a82a55f 100644
+> --- a/arch/arm/mach-omap2/voltage.c
+> +++ b/arch/arm/mach-omap2/voltage.c
+> @@ -260,6 +260,40 @@ static struct omap_vdd_info omap3_vdd_info[]
+> = {
+>
+>  #define OMAP3_NR_SCALABLE_VDD ARRAY_SIZE(omap3_vdd_info)
+>
+> +/*
+> + * AM35x VDD structures
+> + *
+> + * In AM35x there neither scalable voltage domain nor any hook-up
+> with
+> + * voltage controller/processor. However, when trying to re-use the
+> hwmod
+> + * database for OMAP3, definition of "core" voltage domain is
+> necessary.
+> + * Else, changes in hwmod data structures grow spirally.
+> + *
+> + * As a workaround, "core" voltage domain is defined below. The
+> definition
+> + * doesn't lead to any side-effects.
+> + */
+> +static struct omap_vdd_info am3517_vdd_info[] = {
+> +        {
+> +		.dep_vdd_info	= NULL,
+> +		.nr_dep_vdd	= 0,
+> +		.vp_enabled	= false,
+> +
+> +                .voltdm = {
+> +                        .name = "mpu",
+> +                },
+> +        },
+> +        {
+> +		.dep_vdd_info	= NULL,
+> +		.nr_dep_vdd	= 0,
+> +		.vp_enabled	= false,
+> +
+> +                .voltdm = {
+> +                        .name = "core",
+> +                },
+> +        },
+> +};
+> +
+> +#define AM3517_NR_SCALABLE_VDD ARRAY_SIZE(am3517_vdd_info)
+> +
+>  /* OMAP4 VDD sturctures */
+>  static struct omap_vdd_info omap4_vdd_info[] = {
+>  	{
+> @@ -374,6 +408,15 @@ static struct omap_volt_data
+> omap44xx_vdd_core_volt_data[] = {
+>  	VOLT_DATA_DEFINE(0, 0, 0, 0),
+>  };
+>
+> +/* AM35x
+> + *
+> + * Fields related to SmartReflex and Voltage Processor are set to 0.
+> + */
+> +static struct omap_volt_data am35xx_vdd_volt_data[] = {
+> +	VOLT_DATA_DEFINE(OMAP3430_VDD_MPU_OPP3_UV, 0x0, 0x0,
+> 0x0),
+> +	VOLT_DATA_DEFINE(0, 0, 0, 0),
+> +};
+> +
+>  /* OMAP 3430 MPU Core VDD dependency table */
+>  static struct omap_vdd_dep_volt omap34xx_vdd1_vdd2_data[] = {
+>  	{.main_vdd_volt = 975000, .dep_vdd_volt = 1050000},
+> @@ -399,6 +442,12 @@ static void (*vp_init) (struct omap_vdd_info
+> *vdd);
+>
+>  static int (*vdd_data_configure) (struct omap_vdd_info *vdd);
+>
+> +static int volt_scale_nop (struct omap_vdd_info *vdd,
+> +				unsigned long target_volt)
+> +{
+> +	return 0;
+> +}
+> +
+>  static u32 omap3_voltage_read_reg(u16 mod, u8 offset)
+>  {
+>  	return omap2_prm_read_mod_reg(mod, offset);
+> @@ -1019,6 +1068,45 @@ static int __init
+> omap3_vdd_data_configure(struct omap_vdd_info *vdd)
+>  	return 0;
+>  }
+>
+> +/**
+> + *Setup VDD related information for AM35x processors
+> + */
+> +static int __init am3517_vdd_data_configure(struct omap_vdd_info
+> *vdd)
+> +{
+> +	if (!vdd->pmic_info) {
+> +		pr_err("%s: PMIC info requried to configure vdd_%s not"
+> +			"populated.Hence cannot initialize vdd_%s\n",
+> +			__func__, vdd->voltdm.name, vdd-
+> >voltdm.name);
+> +		return -EINVAL;
+> +	}
+> +
+> +	if (!strcmp(vdd->voltdm.name, "mpu") ||
+> +		!strcmp(vdd->voltdm.name, "core")) {
+> +		vdd->volt_data = am35xx_vdd_volt_data;
+> +	} else {
+> +		pr_warning("%s: vdd_%s does not exist in AM35x\n",
+> +			__func__, vdd->voltdm.name);
+> +		return -EINVAL;
+> +	}
+> +
+> +	/* Generic voltage parameters */
+> +	vdd->curr_volt		= OMAP3430_VDD_MPU_OPP3_UV;
+> +	vdd->ocp_mod		= OCP_MOD;
+> +	vdd->prm_irqst_reg	= OMAP3_PRM_IRQSTATUS_MPU_OFFSET;
+> +	vdd->read_reg		= omap3_voltage_read_reg;
+> +	vdd->write_reg		= omap3_voltage_write_reg;
+> +	vdd->volt_scale		= volt_scale_nop;
+> +
+> +	/* Init the plist */
+> +	spin_lock_init(&vdd->user_lock);
+> +	plist_head_init(&vdd->user_list, &vdd->user_lock);
+> +
+> +	/* Init the DVFS mutex */
+> +	mutex_init(&vdd->scaling_mutex);
+> +
+> +	return 0;
+> +}
+> +
+>  /* OMAP4 specific voltage init functions */
+>  static void __init omap4_vc_init(struct omap_vdd_info *vdd)
+>  {
+> @@ -1908,13 +1996,33 @@ int __init omap_voltage_late_init(void)
+>  }
+>
+>  /**
+> + * AM35x - Empty initialization of voltage controller
+> + */
+> +static void __init am3517_vc_init(struct omap_vdd_info *vdd)
+> +{
+> +}
+> +
+> +/**
+> + * AM35x - Empty initialization of voltage processor
+> + */
+> +static void __init am3517_vp_init(struct omap_vdd_info *vdd)
+> +{
+> +}
+> +
+> +/**
+>   * omap_voltage_early_init()- Volatage driver early init
+>   */
+>  static int __init omap_voltage_early_init(void)
+>  {
+>  	int i;
+>
+> -	if (cpu_is_omap34xx()) {
+> +	if (cpu_is_omap3505() || cpu_is_omap3517()) {
+> +		vdd_info		= am3517_vdd_info;
+> +		nr_scalable_vdd		=
+> AM3517_NR_SCALABLE_VDD;
+As you have mentioned that there is no voltage scaling supported, then
+shoudn't nr_scalable_vdd = 0?
+If nr_scalable_vdd is 0, then you probably would not need any other TPS
+specific changes in Voltage.c as VP and VC initialization itself is
+skipped.
 
-> > Anybody else there to test HDMI on Panda and/or Blaze? I pushed the
-> > latest DSS + HDMI patches to a test branch for easier testing (I'll push
-> > Panda DVI patches there also when I get the new version):
-> >
-> > git://gitorious.org/linux-omap-dss2/linux.git test
-> 
-> Stephan,
-> It would be great if you could try out with this tree with omap2plus_defconfig.
-> Note : Please disable VENC , there is a known issue of kernel crash
-> with VENC enabled.
-
-My test branch actually contains a simple hack patch that skips
-registering the venc driver on omap4, which should circumvent this
-problem.
-
- Tomi
-
-
+Vishwa
+> +		vc_init			= am3517_vc_init;
+> +		vp_init			= am3517_vp_init;
+> +		vdd_data_configure	= am3517_vdd_data_configure;
+> +	} else if (cpu_is_omap34xx()) {
+>  		vdd_info = omap3_vdd_info;
+>  		nr_scalable_vdd = OMAP3_NR_SCALABLE_VDD;
+>  		vc_init = omap3_vc_init;
+> --
+> 1.7.2.2
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
