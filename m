@@ -1,55 +1,85 @@
-From: Marshall Crocker <maroc81@gmail.com>
-Subject: PM Questions
-Date: Wed, 16 Mar 2011 14:31:56 -0500
-Message-ID: <AANLkTinoW69jLYpRoGU+bSXr=0x7GFGyJmr4Nj4GSDzL@mail.gmail.com>
+From: Michael =?ISO-8859-1?Q?B=FCsch?= <mb@bu3sch.de>
+Subject: Re: [PATCH RFC] n810 USB: Initialize USB-FS
+Date: Wed, 16 Mar 2011 22:55:47 +0100
+Message-ID: <1300312547.9635.2.camel@maggie>
+References: <1299694841.1911.23.camel@marge>
+	 (sfid-20110309_192052_106509_14C74848)
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:57393 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753598Ab1CPTeS convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Mar 2011 15:34:18 -0400
-Received: by fxm17 with SMTP id 17so2023626fxm.19
-        for <linux-omap@vger.kernel.org>; Wed, 16 Mar 2011 12:34:17 -0700 (PDT)
+Received: from 80-190-117-144.ip-home.de ([80.190.117.144]:52518 "EHLO
+	bu3sch.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751143Ab1CPVzy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 16 Mar 2011 17:55:54 -0400
+In-Reply-To: <1299694841.1911.23.camel@marge> (sfid-20110309_192052_106509_14C74848)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Felipe Balbi <balbi@ti.com>, linux-omap <linux-omap@vger.kernel.org>
 
-Hi all,
+On Wed, 2011-03-09 at 19:20 +0100, Michael Buesch wrote: 
+> The "omap_otg" platform device has to be registered in order
+> to get USB working on the n810.
+> I currently do this by calling the USB-FS init, which in turn
+> registers the omap_otg platform device.
+> 
+> The omap_usb_config structure values were copied from n770 code, so
+> I have no idea whether this is correct or not.
+> 
+> However, with all the patches I just sent (including this one),
+> I get USB working properly on the n810.
+> 
+> Not-yet-signed-off-by: Michael Buesch <mb@bu3sch.de>
+> 
+> ---
+> 
+> Index: linux-2.6.38-rc7/arch/arm/mach-omap2/board-n8x0.c
+> ===================================================================
+> --- linux-2.6.38-rc7.orig/arch/arm/mach-omap2/board-n8x0.c	2011-03-09 18:47:07.749508720 +0100
+> +++ linux-2.6.38-rc7/arch/arm/mach-omap2/board-n8x0.c	2011-03-09 18:59:14.355835051 +0100
+> @@ -40,6 +40,7 @@
+>  #include <plat/serial.h>
+>  #include <plat/cbus.h>
+>  #include <plat/gpio-switch.h>
+> +#include <plat/usb.h>
+>  
+>  #include "mux.h"
+>  
+> @@ -395,6 +396,14 @@ static struct musb_hdrc_platform_data tu
+>  	.config		= &musb_config,
+>  };
+>  
+> +static struct omap_usb_config n8x0_omap_usb_config __initdata = {
+> +	.otg		= 1,
+> +	.register_host	= 1,
+> +	.register_dev	= 1,
+> +	.hmc_mode	= 16,
+> +	.pins[0]	= 6,
+> +};
+> +
+>  static void __init n8x0_usb_init(void)
+>  {
+>  	int ret = 0;
+> @@ -417,6 +426,8 @@ static void __init n8x0_usb_init(void)
+>  	if (ret != 0)
+>  		goto err;
+>  
+> +	omap2_usbfs_init(&n8x0_omap_usb_config);
+> +
+>  	printk(announce);
+>  
+>  	return;
+> 
 
-I have a few questions about PM functionality I would be grateful if
-someone could answer.
+Is there any news on this one?
+If not, I'd suggest merging this in its current form, even if
+we're unsure whether it's 100% correct, because it actually
+makes the USB work on the n810.
 
-I'm trying to reduce power on a gumstix overo COM with the latest
-2.6.38 pm kernel branch up and running,=A0 I've enabled sleep while idl=
-e
-and "off" mode along with serial timeouts and I do in fact see a major
-drop in power consumption when it hits idle/off mode.
+If you merge this, you can add a
+Signed-off-by: Michael Buesch <mb@bu3sch.de>
 
-1) Should the "mem" power state reduce power further?=A0 Or does that
-simply force the omap into the same states achieved by sleep while
-idle and off mode enabled?=A0 I'm not seeing any less power in "mem"
-state versus idle/off state.
-2)=A0 I saw from earlier emails that DVFS is currently disabled.=A0 Wou=
-ld
-I see any power additional power savings with DVFS?=A0 Obviously, power
-would be reduced if I ran a governor such as on demand so that waking
-up from idle doesn't use full speed unless needed.=A0 Are there any
-other benefits?=A0 Should I wait for DVFS to be merged back in to PM or
-apply the patches that are waiting for approval?
-3) Are peripherals such as SPI, I2C, etc disabled when in idle/off
-mode?=A0 I'm coming from a microcontroller background where disabling
-unused peripherals can save power.=A0 Is that true for the omap?
-4) Any additional power saving tips? I have PHY_PWR_CTRL disabled and
-I assume there are more steps I can take to disable unneeded functions
-on the PMIC but I have not gotten far yet.
+-- 
+Greetings Michael.
 
-Thanks for any help!
-
-Marshall
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
