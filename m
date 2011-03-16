@@ -1,159 +1,89 @@
-From: Bob Liu <lliubbo@gmail.com>
-Subject: Re: [HELP] Audio on BeagleBoard xM can't work
-Date: Wed, 16 Mar 2011 18:52:55 +0800
-Message-ID: <AANLkTi=3e6SHigDzT3yXh9u6zgDOe=8KpL-UGp3s_EVb@mail.gmail.com>
-References: <AANLkTikMCttrVTS==b2j9VyvSSz+WzoBg8dZ-nb4QUaN@mail.gmail.com>
-	<20110315115315.bcd2451b.jhnikula@gmail.com>
-	<AANLkTimSHRUJthtZ5co7oTjMZ3pBjGLoT40-HpsZUvUK@mail.gmail.com>
-	<B85A65D85D7EB246BE421B3FB0FBB593024C3075F8@dbde02.ent.ti.com>
-	<AANLkTi=rZhmku6j2Cq9E3B8jQbT6R9NHishibLK5atNB@mail.gmail.com>
-	<AANLkTimNGaNME3QGnwZ1fGSQFktPjm2xVLhrnExRSPuP@mail.gmail.com>
-	<AANLkTinh1x5S1mR1pxod0CG4oXVO05D=AM1eV2TVAszH@mail.gmail.com>
-	<4D806965.3030800@nokia.com>
-	<AANLkTim95q6eu6M7r5J49-xjqHMn094++tqALaE1U6Zh@mail.gmail.com>
-	<4D809420.9080709@nokia.com>
+From: "K, Mythri P" <mythripk@ti.com>
+Subject: Re: [PATCH v5 00/10] OMAP4 : DSS2 : HDMI support on OMAP4
+Date: Wed, 16 Mar 2011 16:23:27 +0530
+Message-ID: <AANLkTinNynOpnJyHZeyA01E5oVMcs_PnAYRH4dSznJ_d@mail.gmail.com>
+References: <1299753858-12222-1-git-send-email-mythripk@ti.com>
+ <1299764643.2017.177.camel@deskari> <4D78E3F5.2090600@openelec.tv>
+ <1299827578.2567.1.camel@deskari> <4D79E0A0.9040900@openelec.tv>
+ <1299849774.2479.3.camel@deskari> <4D7A4B44.2030801@openelec.tv>
+ <1299868049.2479.33.camel@deskari> <4D7A6D0F.40906@openelec.tv>
+ <AANLkTin+fnZfFte5v8+G0saDcjCqsT=oQ4U_oGSm-UGn@mail.gmail.com>
+ <4D7CD588.3080100@openelec.tv> <4D7CEEC8.50803@openelec.tv> <1300258302.1917.32.camel@lappyti>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f174.google.com ([209.85.216.174]:55112 "EHLO
-	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752112Ab1CPKw4 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Mar 2011 06:52:56 -0400
-Received: by qyk7 with SMTP id 7so3269151qyk.19
-        for <linux-omap@vger.kernel.org>; Wed, 16 Mar 2011 03:52:55 -0700 (PDT)
-In-Reply-To: <4D809420.9080709@nokia.com>
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:54687 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751825Ab1CPKxx convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 16 Mar 2011 06:53:53 -0400
+Received: by bwz1 with SMTP id 1so1515368bwz.36
+        for <linux-omap@vger.kernel.org>; Wed, 16 Mar 2011 03:53:48 -0700 (PDT)
+In-Reply-To: <1300258302.1917.32.camel@lappyti>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Cc: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>, "Premi, Sanjeev" <premi@ti.com>, Jarkko Nikula <jhnikula@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>, "lars@metafoo.de" <lars@metafoo.de>, "paul@pwsan.com" <paul@pwsan.com>, "Koyamangalath, Abhilash" <abhilash.kv@ti.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Stephan Raue <mailinglists@openelec.tv>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Wed, Mar 16, 2011 at 6:42 PM, Peter Ujfalusi
-<peter.ujfalusi@nokia.com> wrote:
-> Hi,
+Hi Tomi,
+
+On Wed, Mar 16, 2011 at 12:21 PM, Tomi Valkeinen <tomi.valkeinen@ti.com=
+> wrote:
+> On Sun, 2011-03-13 at 11:20 -0500, Stephan Raue wrote:
+>> Am 13.03.2011 15:32, schrieb Stephan Raue:
 >
-> On 03/16/11 11:27, ext Bob Liu wrote:
->> On Wed, Mar 16, 2011 at 3:40 PM, Peter Ujfalusi
->> <peter.ujfalusi@nokia.com> wrote:
->>> On 03/16/11 07:45, ext Bob Liu wrote:
->>>>> amixer cset name=3D"HandsfreeR Switch" 1
->>>>> amixer cset name=3D"HandsfreeR Mux" 2
->>>>> amixer cset name=3D"HandsfreeL Switch" 1
->>>>> amixer cset name=3D"HandsfreeL Mux" 2
->>>>> amixer cset name=3D"DAC1 Analog Playback Switch" 1
->>>>> amixer cset name=3D"DAC1 Analog Playback Volume" 12
->>>>> amixer cset name=3D"DAC1 Digital Coarse Playback Volume" 2
->>>>> amixer cset name=3D"DAC1 Digital Fine Playback Volume" 50
->>>>> amixer cset name=3D"DAC2 Analog Playback Switch" 1
->>>>> amixer cset name=3D"DAC2 Analog Playback Volume" 12
->>>>> amixer cset name=3D"DAC2 Digital Coarse Playback Volume" 2
->>>>> amixer cset name=3D"DAC2 Digital Fine Playback Volume" 50
->>>>>
->>>>> aplay -D plughw:0,0 -d 5 /mnt/mmc/beethoven.wav
->>>
->>> AFAIK the Beagle has the the Headset lines routed to the stereo jac=
-k, so
->>> you might want to try:
->>>
->>> amixer sset 'HeadsetL Mixer AudioL2' on
->>> amixer sset 'HeadsetR Mixer AudioR2' on
->>>
->>> Do apply the gain settings related to DAC2 path. This is the path f=
-or
->>> the stereo (2ch mode).
->>>
+> <snip>
+>
+>> > i have tried this omap2plus defconfig now too, with some little
+>> > changes needed to boot my system (config:
+>> > http://paste.pocoo.org/show/352917/). Now i get this error (see al=
+so:
+>> > http://paste.pocoo.org/show/352915/)
+>> >
+>> > [ =A0 =A03.255065] omapdss HDMI: fallback to VGA
+>> > [ =A0 =A03.271636] omapdss HDMI error: Failed to set PHY_PWR_STATU=
+S
+>> > [ =A0 =A03.277587] omapdss HDMI error: failed to power on device
+>> > [ =A0 =A03.283325] omapdss error: failed to power on
+>> > [ =A0 =A03.287902] omapfb omapfb: Failed to enable display 'hdmi'
+>> > [ =A0 =A03.293853] Console: switching to colour dummy device 80x30
+>> > [ =A0 =A03.304595] omapfb omapfb: failed to setup omapfb
+>> > [ =A0 =A03.309539] omapfb: probe of omapfb failed with error -5
 >>
->> Below is my log, I have reboot the system, still no sound.
->> Did I missed something?
->> Thanks
->>
->> -------------------------------------------
->> # amixer sset 'HeadsetL Mixer AudioL2' on
->> Simple mixer control 'HeadsetL Mixer AudioL2',0
->> =C2=A0 Capabilities: pswitch pswitch-joined penum
->> =C2=A0 Playback channels: Mono
->> =C2=A0 Mono: Playback [on]
->> # amixer sset 'HeadsetR Mixer AudioR2' on
->> Simple mixer control 'HeadsetR Mixer AudioR2',0
->> =C2=A0 Capabilities: pswitch pswitch-joined penum
->> =C2=A0 Playback channels: Mono
->> =C2=A0 Mono: Playback [on]
->> #
->> # amixer cset name=3D"DAC2 Analog Playback Switch" 1
->> name=3D"DAC2 Digital Coarse Playback Volume" 2
->> amixer cset name=3D"DAC2 Digital Fine Playback Volume" 50
->> numid=3D9,iface=3DMIXER,name=3D'DAC2 Analog Playback Switch'
->> =C2=A0 ; type=3DBOOLEAN,access=3Drw------,values=3D2
->> =C2=A0 : values=3Don,on
->> # amixer cset name=3D"DAC2 Analog Playback Volume" 12
->> numid=3D7,iface=3DMIXER,name=3D'DAC2 Analog Playback Volume'
->> =C2=A0 ; type=3DINTEGER,access=3Drw---R--,values=3D2,min=3D0,max=3D1=
-8,step=3D0
->> =C2=A0 : values=3D12,12
->> =C2=A0 | dBscale-min=3D-24.00dB,step=3D2.00dB,mute=3D0
->> # amixer cset name=3D"DAC2 Digital Coarse Playback Volume" 2
->> numid=3D5,iface=3DMIXER,name=3D'DAC2 Digital Coarse Playback Volume'
->> =C2=A0 ; type=3DINTEGER,access=3Drw---R--,values=3D2,min=3D0,max=3D2=
-,step=3D0
->> =C2=A0 : values=3D2,2
->> =C2=A0 | dBscale-min=3D0.00dB,step=3D6.00dB,mute=3D0
->> # amixer cset name=3D"DAC2 Digital Fine Playback Volume" 50
->> numid=3D3,iface=3DMIXER,name=3D'DAC2 Digital Fine Playback Volume'
->> =C2=A0 ; type=3DINTEGER,access=3Drw---R--,values=3D2,min=3D0,max=3D6=
-3,step=3D0
->> =C2=A0 : values=3D50,50
->> =C2=A0 | dBscale-min=3D-63.00dB,step=3D1.00dB,mute=3D1
->> #
->> # aplay ~/alsa/ap.wav
->> Playing WAVE '/home/bob/alsa/ap.wav' : Signed 16 bit Little Endian,
->> Rate 22050 Hz, Stereo
->>
->> ----------------------------------------------------
+>> using omap2plus defconfig with my little changes i need to boot my
+>> system i get the error above, also if i remove CONFIG_ARCH_OMAP2. bu=
+t if
+>> i remove CONFIG_ARCH_OMAP3 too i get the error i reported originally
+>> (the kernel begins to boot, but crashes) (diff between omap2plus
+>> defconfig without CONFIG_ARCH_OMAP2 and omap2plus defconfig without
+>> CONFIG_ARCH_OMAP2, CONFIG_ARCH_OMAP3: http://paste.pocoo.org/show/35=
+2960/)
 >
-> I have downloaded the documentation for the BeagleBoard xM.
-> The stereo audio out jack is connected to the HSOL/R (Headset L/R) of
-> the codec.
-> The commands you execute should be correct, but one thing might be mi=
-ssing:
+> I'm currently traveling for this week so I have quite limited ability=
+ to
+> test this. Mythri still haven't been able to reproduce any of these
+> errors, right?
 >
-> amixer sset 'Headset' 2
->
-> Does this helps?
->
+That's right i have not been able to reproduce the error.  I have
+tried with 4 Panda Boards with atleast 4  - 5 Montiors connected (
+Also without connecting any monitor).
 
-Yeah, it works!!  Thank you very much.
-
-So in order to make aplay work I need to set all of these?
---------------------
-amixer sset 'HeadsetL Mixer AudioL2' on
-amixer sset 'HeadsetR Mixer AudioR2' on
-amixer sset 'Headset' 2
-amixer cset name=3D"DAC2 Analog Playback Switch" 1
-amixer cset name=3D"DAC2 Analog Playback Volume" 12
-amixer cset name=3D"DAC2 Digital Coarse Playback Volume" 2
-amixer cset name=3D"DAC2 Digital Fine Playback Volume" 50
---------------------
-
-And what should I set making arecord also work?
-Sorry for that because I didn't have any alsa experiences.
-
-Thanks.
-
+> Anybody else there to test HDMI on Panda and/or Blaze? I pushed the
+> latest DSS + HDMI patches to a test branch for easier testing (I'll p=
+ush
+> Panda DVI patches there also when I get the new version):
 >
-> The Beagle doc has this to say about the audio output:
->
-> 8.16.3 Audio Output Jack
-> A single 3.5mm jack is provided on BeagleBoard to support external
-> stereo audio output
-> devices such as headphones and powered speakers. This interface is no=
-t
-> amplified and
-> may require the use of amplified speakers in certain instances.
->
+> git://gitorious.org/linux-omap-dss2/linux.git test
 
---=20
-Regards,
---Bob
+Stephan,
+It would be great if you could try out with this tree with omap2plus_de=
+fconfig.
+Note : Please disable VENC , there is a known issue of kernel crash
+with VENC enabled.
+
+Thanks and regards,
+Mythri.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
