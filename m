@@ -1,85 +1,81 @@
-From: Michael =?ISO-8859-1?Q?B=FCsch?= <mb@bu3sch.de>
-Subject: Re: [PATCH RFC] n810 USB: Initialize USB-FS
-Date: Wed, 16 Mar 2011 22:55:47 +0100
-Message-ID: <1300312547.9635.2.camel@maggie>
-References: <1299694841.1911.23.camel@marge>
-	 (sfid-20110309_192052_106509_14C74848)
+From: Stephan Raue <mailinglists@openelec.tv>
+Subject: Re: [PATCH v5 00/10] OMAP4 : DSS2 : HDMI support on OMAP4
+Date: Thu, 17 Mar 2011 00:49:06 +0100
+Message-ID: <4D814C72.9010300@openelec.tv>
+References: <1299753858-12222-1-git-send-email-mythripk@ti.com> <1299764643.2017.177.camel@deskari> <4D78E3F5.2090600@openelec.tv> <1299827578.2567.1.camel@deskari> <4D79E0A0.9040900@openelec.tv> <1299849774.2479.3.camel@deskari> <4D7A4B44.2030801@openelec.tv> <1299868049.2479.33.camel@deskari> <4D7A6D0F.40906@openelec.tv> <AANLkTin+fnZfFte5v8+G0saDcjCqsT=oQ4U_oGSm-UGn@mail.gmail.com> <4D7CD588.3080100@openelec.tv> <4D7CEEC8.50803@openelec.tv> <1300258302.1917.32.camel@lappyti> <AANLkTinNynOpnJyHZeyA01E5oVMcs_PnAYRH4dSznJ_d@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 80-190-117-144.ip-home.de ([80.190.117.144]:52518 "EHLO
-	bu3sch.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751143Ab1CPVzy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 16 Mar 2011 17:55:54 -0400
-In-Reply-To: <1299694841.1911.23.camel@marge> (sfid-20110309_192052_106509_14C74848)
+Received: from mail01.solnet.ch ([212.101.4.135]:64285 "EHLO mail01.solnet.ch"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750765Ab1CPXtK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 16 Mar 2011 19:49:10 -0400
+In-Reply-To: <AANLkTinNynOpnJyHZeyA01E5oVMcs_PnAYRH4dSznJ_d@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Felipe Balbi <balbi@ti.com>, linux-omap <linux-omap@vger.kernel.org>
+To: "K, Mythri P" <mythripk@ti.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Wed, 2011-03-09 at 19:20 +0100, Michael Buesch wrote: 
-> The "omap_otg" platform device has to be registered in order
-> to get USB working on the n810.
-> I currently do this by calling the USB-FS init, which in turn
-> registers the omap_otg platform device.
-> 
-> The omap_usb_config structure values were copied from n770 code, so
-> I have no idea whether this is correct or not.
-> 
-> However, with all the patches I just sent (including this one),
-> I get USB working properly on the n810.
-> 
-> Not-yet-signed-off-by: Michael Buesch <mb@bu3sch.de>
-> 
-> ---
-> 
-> Index: linux-2.6.38-rc7/arch/arm/mach-omap2/board-n8x0.c
-> ===================================================================
-> --- linux-2.6.38-rc7.orig/arch/arm/mach-omap2/board-n8x0.c	2011-03-09 18:47:07.749508720 +0100
-> +++ linux-2.6.38-rc7/arch/arm/mach-omap2/board-n8x0.c	2011-03-09 18:59:14.355835051 +0100
-> @@ -40,6 +40,7 @@
->  #include <plat/serial.h>
->  #include <plat/cbus.h>
->  #include <plat/gpio-switch.h>
-> +#include <plat/usb.h>
->  
->  #include "mux.h"
->  
-> @@ -395,6 +396,14 @@ static struct musb_hdrc_platform_data tu
->  	.config		= &musb_config,
->  };
->  
-> +static struct omap_usb_config n8x0_omap_usb_config __initdata = {
-> +	.otg		= 1,
-> +	.register_host	= 1,
-> +	.register_dev	= 1,
-> +	.hmc_mode	= 16,
-> +	.pins[0]	= 6,
-> +};
-> +
->  static void __init n8x0_usb_init(void)
->  {
->  	int ret = 0;
-> @@ -417,6 +426,8 @@ static void __init n8x0_usb_init(void)
->  	if (ret != 0)
->  		goto err;
->  
-> +	omap2_usbfs_init(&n8x0_omap_usb_config);
-> +
->  	printk(announce);
->  
->  	return;
-> 
+Am 16.03.2011 11:53, schrieb K, Mythri P:
+> Hi Tomi,
+>
+> On Wed, Mar 16, 2011 at 12:21 PM, Tomi Valkeinen<tomi.valkeinen@ti.com>  wrote:
+>> On Sun, 2011-03-13 at 11:20 -0500, Stephan Raue wrote:
+>>> Am 13.03.2011 15:32, schrieb Stephan Raue:
+>> <snip>
+>>
+>>>> i have tried this omap2plus defconfig now too, with some little
+>>>> changes needed to boot my system (config:
+>>>> http://paste.pocoo.org/show/352917/). Now i get this error (see also:
+>>>> http://paste.pocoo.org/show/352915/)
+>>>>
+>>>> [    3.255065] omapdss HDMI: fallback to VGA
+>>>> [    3.271636] omapdss HDMI error: Failed to set PHY_PWR_STATUS
+>>>> [    3.277587] omapdss HDMI error: failed to power on device
+>>>> [    3.283325] omapdss error: failed to power on
+>>>> [    3.287902] omapfb omapfb: Failed to enable display 'hdmi'
+>>>> [    3.293853] Console: switching to colour dummy device 80x30
+>>>> [    3.304595] omapfb omapfb: failed to setup omapfb
+>>>> [    3.309539] omapfb: probe of omapfb failed with error -5
+>>> using omap2plus defconfig with my little changes i need to boot my
+>>> system i get the error above, also if i remove CONFIG_ARCH_OMAP2. but if
+>>> i remove CONFIG_ARCH_OMAP3 too i get the error i reported originally
+>>> (the kernel begins to boot, but crashes) (diff between omap2plus
+>>> defconfig without CONFIG_ARCH_OMAP2 and omap2plus defconfig without
+>>> CONFIG_ARCH_OMAP2, CONFIG_ARCH_OMAP3: http://paste.pocoo.org/show/352960/)
+>> I'm currently traveling for this week so I have quite limited ability to
+>> test this. Mythri still haven't been able to reproduce any of these
+>> errors, right?
+>>
+> That's right i have not been able to reproduce the error.  I have
+> tried with 4 Panda Boards with atleast 4  - 5 Montiors connected (
+> Also without connecting any monitor).
+>
+>> Anybody else there to test HDMI on Panda and/or Blaze? I pushed the
+>> latest DSS + HDMI patches to a test branch for easier testing (I'll push
+>> Panda DVI patches there also when I get the new version):
+>>
+>> git://gitorious.org/linux-omap-dss2/linux.git test
+> Stephan,
+> It would be great if you could try out with this tree with omap2plus_defconfig.
+> Note : Please disable VENC , there is a known issue of kernel crash
+> with VENC enabled.
+>
+> Thanks and regards,
+> Mythri.
+Hi,
 
-Is there any news on this one?
-If not, I'd suggest merging this in its current form, even if
-we're unsure whether it's 100% correct, because it actually
-makes the USB work on the n810.
+i tried this test tree with omap2plus_defconfig.
 
-If you merge this, you can add a
-Signed-off-by: Michael Buesch <mb@bu3sch.de>
+it seems the kernel crashes and poweroff the board on loading this hdmi 
+stuff, but dont print any crashlog. is there a way any backtraces will 
+be printed?
+output from serial console: http://paste.pocoo.org/show/354850/
+kernel config (omap2plus_defconfig, added squashfs support, added 
+support to include initramfs in kernel, build omapfb stuff statically 
+into the kernel): http://paste.pocoo.org/show/354853/
 
--- 
-Greetings Michael.
+i am using a own toolchain to crosscompile with gcc-4.5.2, binutils-2.21...
 
+Stephan
