@@ -1,71 +1,47 @@
 From: Aaro Koskinen <aaro.koskinen@nokia.com>
-Subject: [PATCH 2/2] arm: mach-omap2: omap_l3_smx: fix irq handler setup
-Date: Wed, 16 Mar 2011 19:16:03 +0200
-Message-ID: <1300295763-497-2-git-send-email-aaro.koskinen@nokia.com>
-References: <1300295763-497-1-git-send-email-aaro.koskinen@nokia.com>
+Subject: Re: Code for v2.6.39 merge window frozen, patches archived
+Date: Wed, 16 Mar 2011 19:10:28 +0200 (EET)
+Message-ID: <alpine.DEB.1.10.1103161903250.2634@esdhcp041196.research.nokia.com>
+References: <20110314192538.GH7258@atomide.com> <alpine.DEB.1.10.1103151856180.880@esdhcp041196.research.nokia.com> <4D7FC70D.7050508@ti.com> <alpine.DEB.1.10.1103161533470.2634@esdhcp041196.research.nokia.com> <4D80CA2F.8060300@ti.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; format=flowed; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:27008 "EHLO mgw-sa01.nokia.com"
+Received: from smtp.nokia.com ([147.243.1.48]:16925 "EHLO mgw-sa02.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751290Ab1CPRMP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 16 Mar 2011 13:12:15 -0400
-In-Reply-To: <1300295763-497-1-git-send-email-aaro.koskinen@nokia.com>
+	id S1751218Ab1CPRMn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 16 Mar 2011 13:12:43 -0400
+In-Reply-To: <4D80CA2F.8060300@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com
-Cc: Aaro Koskinen <aaro.koskinen@nokia.com>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
 
-The handler function may be called from the point it is registered.
-Since the handler inspects IRQ numbers, we must set them up before
-registration.
+Hi,
 
-Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
----
- arch/arm/mach-omap2/omap_l3_smx.c |   11 ++++-------
- 1 files changed, 4 insertions(+), 7 deletions(-)
+On Wed, 16 Mar 2011, Cousson, Benoit wrote:
+> On 3/16/2011 2:49 PM, Aaro Koskinen wrote:
+>> On Tue, 15 Mar 2011, Cousson, Benoit wrote:
+>>> Mmm, that looks like an access to a secure timer from hwmod code on a HS
+>>> device. Could you comment out the timer12 entry (&omap3xxx_timer12_hwmod) 
+>>> in
+>>> the omap3 hwmod list at the end of omap_hwmod_3xxx_data.c to check that?
+>> 
+>> With timer12 entry commented out and omap_hwmod debugs enabled, it now
+>> hangs here:
+>
+> Do you need that timer BTW?
 
-diff --git a/arch/arm/mach-omap2/omap_l3_smx.c b/arch/arm/mach-omap2/omap_l3_smx.c
-index 265bff3..5f2da75 100644
---- a/arch/arm/mach-omap2/omap_l3_smx.c
-+++ b/arch/arm/mach-omap2/omap_l3_smx.c
-@@ -226,7 +226,6 @@ static int __init omap3_l3_probe(struct platform_device *pdev)
- 	struct omap3_l3         *l3;
- 	struct resource         *res;
- 	int                     ret;
--	int                     irq;
- 
- 	l3 = kzalloc(sizeof(*l3), GFP_KERNEL);
- 	if (!l3) {
-@@ -249,18 +248,17 @@ static int __init omap3_l3_probe(struct platform_device *pdev)
- 		goto err2;
- 	}
- 
--	irq = platform_get_irq(pdev, 0);
--	ret = request_irq(irq, omap3_l3_app_irq,
-+	l3->debug_irq = platform_get_irq(pdev, 0);
-+	ret = request_irq(l3->debug_irq, omap3_l3_app_irq,
- 		IRQF_DISABLED | IRQF_TRIGGER_RISING,
- 		"l3-debug-irq", l3);
- 	if (ret) {
- 		dev_err(&pdev->dev, "couldn't request debug irq\n");
- 		goto err3;
- 	}
--	l3->debug_irq = irq;
- 
--	irq = platform_get_irq(pdev, 1);
--	ret = request_irq(irq, omap3_l3_app_irq,
-+	l3->app_irq = platform_get_irq(pdev, 1);
-+	ret = request_irq(l3->app_irq, omap3_l3_app_irq,
- 		IRQF_DISABLED | IRQF_TRIGGER_RISING,
- 		"l3-app-irq", l3);
- 
-@@ -269,7 +267,6 @@ static int __init omap3_l3_probe(struct platform_device *pdev)
- 		goto err4;
- 	}
- 
--	l3->app_irq = irq;
- 	goto err0;
- 
- err4:
--- 
-1.5.6.5
+Probably no at the moment. :-)
 
+>> [    4.347015] OMAP GPIO hardware version 2.5
+>
+> GPIO are now initialized during postcore_initcall, so it is hard to know what 
+> will happen after that:-(
+>
+> Could you try with initcall_debug in your command line?
+
+Somehow I figured this out, the patch "arm: mach-omap2: omap_l3_smx:
+fix irq handler setup" fixes the hang for me (and of course I still need
+to comment out timer 12).
+
+A.
