@@ -1,85 +1,64 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH v5 00/10] OMAP4 : DSS2 : HDMI support on OMAP4
-Date: Wed, 16 Mar 2011 12:17:34 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739404E1F5369E@dbde02.ent.ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH v5 00/10] OMAP4 : DSS2 : HDMI support on OMAP4
+Date: Wed, 16 Mar 2011 12:21:42 +0530
+Message-ID: <1300258302.1917.32.camel@lappyti>
 References: <1299753858-12222-1-git-send-email-mythripk@ti.com>
 	 <1299764643.2017.177.camel@deskari> <4D78E3F5.2090600@openelec.tv>
-	 <1299768675.2017.230.camel@deskari> <4D7967AB.1030404@openelec.tv>
-	 <AANLkTimRnDhOah_J2wWQNLbf+WKX1VAsNm_HHGu24+6t@mail.gmail.com>
-	 <1299828270.2567.6.camel@deskari>
-	 <19F8576C6E063C45BE387C64729E739404E1F52DA7@dbde02.ent.ti.com>
-	 <19F8576C6E063C45BE387C64729E739404E1F53077@dbde02.ent.ti.com>
-	 <1300094686.2060.101.camel@lappyti>
-	 <19F8576C6E063C45BE387C64729E739404E1F530B8@dbde02.ent.ti.com>
- <1300257914.1917.25.camel@lappyti>
+	 <1299827578.2567.1.camel@deskari> <4D79E0A0.9040900@openelec.tv>
+	 <1299849774.2479.3.camel@deskari> <4D7A4B44.2030801@openelec.tv>
+	 <1299868049.2479.33.camel@deskari> <4D7A6D0F.40906@openelec.tv>
+	 <AANLkTin+fnZfFte5v8+G0saDcjCqsT=oQ4U_oGSm-UGn@mail.gmail.com>
+	 <4D7CD588.3080100@openelec.tv>  <4D7CEEC8.50803@openelec.tv>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:52485 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751524Ab1CPGrr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Mar 2011 02:47:47 -0400
-In-Reply-To: <1300257914.1917.25.camel@lappyti>
-Content-Language: en-US
+Received: from comal.ext.ti.com ([198.47.26.152]:43580 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751675Ab1CPGvu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 16 Mar 2011 02:51:50 -0400
+In-Reply-To: <4D7CEEC8.50803@openelec.tv>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
-Cc: "K, Mythri P" <mythripk@ti.com>, Stephan Raue <mailinglists@openelec.tv>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Stephan Raue <mailinglists@openelec.tv>
+Cc: "K, Mythri P" <mythripk@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+On Sun, 2011-03-13 at 11:20 -0500, Stephan Raue wrote:
+> Am 13.03.2011 15:32, schrieb Stephan Raue:
 
-> -----Original Message-----
-> From: Valkeinen, Tomi
-> Sent: Wednesday, March 16, 2011 12:15 PM
-> To: Hiremath, Vaibhav
-> Cc: K, Mythri P; Stephan Raue; linux-omap@vger.kernel.org
-> Subject: RE: [PATCH v5 00/10] OMAP4 : DSS2 : HDMI support on OMAP4
-> 
-> On Mon, 2011-03-14 at 04:35 -0500, Hiremath, Vaibhav wrote:
-> > > -----Original Message-----
-> > > From: Valkeinen, Tomi
-> > > Sent: Monday, March 14, 2011 2:55 PM
-> > > To: Hiremath, Vaibhav
-> > > Cc: K, Mythri P; Stephan Raue; linux-omap@vger.kernel.org
-> > > Subject: RE: [PATCH v5 00/10] OMAP4 : DSS2 : HDMI support on OMAP4
-> 
-> <snip>
-> 
-> > > > Personally I don't know any platform is implementing this function
-> OR
-> > > how one should make use of it. I remember last time we had similar
-> > > discussion and the comment came was, restore only required in case of
-> off
-> > > mode. I feel, this is not applicable here, since irrespective of
-> > > retention/inactive/off mode if driver is disabling clock for the
-> > > peripheral we must restore the context.
-> > >
-> > > I don't know about OMAP4, but on OMAP3 the register contents are only
-> > > lost when DSS goes to OFF mode. If you just turn off the clocks and
-> OFF
-> > > mode is not enabled in the PM, context restore is not needed. I am not
-> > > sure of the current status of OFF mode in the mainline kernel.
-> > >
-> > > However, for some reason DSS works fine on my Overo board. I would
-> > > imagine that it would break also if OFF is enabled for all omap
-> > > boards...
-> > >
-> > > As for get_last_off_on_transaction_id(), it seems to be called
-> > > get_context_loss_count() in the mainline kernel and returns u32, not
-> > > int. I haven't tested it, but get_last_off_on_transaction_id pointer
-> in
-> > > the dss platform data should be set to get_context_loss_count in the
-> > > board file (or in arch/arm/plat-omap/display.c if using the dss2 tree).
-> > >
-> > [Hiremath, Vaibhav] Let me try this out.
-> 
-> Did you have time to test this?
-> 
-[Hiremath, Vaibhav] Yesterday got pulled into different issue, will try today.
+<snip>
 
-Thanks,
-Vaibhav
-
->  Tomi
+> > i have tried this omap2plus defconfig now too, with some little 
+> > changes needed to boot my system (config: 
+> > http://paste.pocoo.org/show/352917/). Now i get this error (see also: 
+> > http://paste.pocoo.org/show/352915/)
+> >
+> > [    3.255065] omapdss HDMI: fallback to VGA 
+> > [    3.271636] omapdss HDMI error: Failed to set PHY_PWR_STATUS
+> > [    3.277587] omapdss HDMI error: failed to power on device
+> > [    3.283325] omapdss error: failed to power on
+> > [    3.287902] omapfb omapfb: Failed to enable display 'hdmi'
+> > [    3.293853] Console: switching to colour dummy device 80x30
+> > [    3.304595] omapfb omapfb: failed to setup omapfb
+> > [    3.309539] omapfb: probe of omapfb failed with error -5
 > 
+> using omap2plus defconfig with my little changes i need to boot my 
+> system i get the error above, also if i remove CONFIG_ARCH_OMAP2. but if 
+> i remove CONFIG_ARCH_OMAP3 too i get the error i reported originally 
+> (the kernel begins to boot, but crashes) (diff between omap2plus 
+> defconfig without CONFIG_ARCH_OMAP2 and omap2plus defconfig without 
+> CONFIG_ARCH_OMAP2, CONFIG_ARCH_OMAP3: http://paste.pocoo.org/show/352960/)
+
+I'm currently traveling for this week so I have quite limited ability to
+test this. Mythri still haven't been able to reproduce any of these
+errors, right?
+
+Anybody else there to test HDMI on Panda and/or Blaze? I pushed the
+latest DSS + HDMI patches to a test branch for easier testing (I'll push
+Panda DVI patches there also when I get the new version):
+
+git://gitorious.org/linux-omap-dss2/linux.git test
+
+ Tomi
+
 
