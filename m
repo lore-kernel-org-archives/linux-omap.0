@@ -1,54 +1,51 @@
-From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Subject: Re: [HELP] Audio on BeagleBoard xM can't work
-Date: Wed, 16 Mar 2011 09:40:21 +0200
-Message-ID: <4D806965.3030800@nokia.com>
-References: <AANLkTikMCttrVTS==b2j9VyvSSz+WzoBg8dZ-nb4QUaN@mail.gmail.com>	<20110315115315.bcd2451b.jhnikula@gmail.com>	<AANLkTimSHRUJthtZ5co7oTjMZ3pBjGLoT40-HpsZUvUK@mail.gmail.com>	<B85A65D85D7EB246BE421B3FB0FBB593024C3075F8@dbde02.ent.ti.com>	<AANLkTi=rZhmku6j2Cq9E3B8jQbT6R9NHishibLK5atNB@mail.gmail.com>	<AANLkTimNGaNME3QGnwZ1fGSQFktPjm2xVLhrnExRSPuP@mail.gmail.com> <AANLkTinh1x5S1mR1pxod0CG4oXVO05D=AM1eV2TVAszH@mail.gmail.com>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: [PATCHv2] omap3: alsa-soc: Remove restrictive checks for cpu
+ type
+Date: Wed, 16 Mar 2011 13:58:13 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024C30799E@dbde02.ent.ti.com>
+References: <1300116162-25488-1-git-send-email-premi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.48]:24607 "EHLO mgw-sa02.nokia.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:51831 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752242Ab1CPHkb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 16 Mar 2011 03:40:31 -0400
-In-Reply-To: <AANLkTinh1x5S1mR1pxod0CG4oXVO05D=AM1eV2TVAszH@mail.gmail.com>
+	id S1751435Ab1CPI21 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Mar 2011 04:28:27 -0400
+In-Reply-To: <1300116162-25488-1-git-send-email-premi@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Bob Liu <lliubbo@gmail.com>
-Cc: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>, "Premi, Sanjeev" <premi@ti.com>, Jarkko Nikula <jhnikula@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>, "lars@metafoo.de" <lars@metafoo.de>, "paul@pwsan.com" <paul@pwsan.com>, "Koyamangalath, Abhilash" <abhilash.kv@ti.com>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists>
 
-On 03/16/11 07:45, ext Bob Liu wrote:
->> amixer cset name=3D"HandsfreeR Switch" 1
->> amixer cset name=3D"HandsfreeR Mux" 2
->> amixer cset name=3D"HandsfreeL Switch" 1
->> amixer cset name=3D"HandsfreeL Mux" 2
->> amixer cset name=3D"DAC1 Analog Playback Switch" 1
->> amixer cset name=3D"DAC1 Analog Playback Volume" 12
->> amixer cset name=3D"DAC1 Digital Coarse Playback Volume" 2
->> amixer cset name=3D"DAC1 Digital Fine Playback Volume" 50
->> amixer cset name=3D"DAC2 Analog Playback Switch" 1
->> amixer cset name=3D"DAC2 Analog Playback Volume" 12
->> amixer cset name=3D"DAC2 Digital Coarse Playback Volume" 2
->> amixer cset name=3D"DAC2 Digital Fine Playback Volume" 50
->>
->> aplay -D plughw:0,0 -d 5 /mnt/mmc/beethoven.wav
+> -----Original Message-----
+> From: Premi, Sanjeev 
+> Sent: Monday, March 14, 2011 8:53 PM
+> To: linux-omap@vger.kernel.org; alsa-devel@alsa-project.org; 
+> linux-arm-kernel@lists.infradead.org
+> Cc: Premi, Sanjeev
+> Subject: [PATCHv2] omap3: alsa-soc: Remove restrictive checks 
+> for cpu type
+> 
+> Current checks for cpu type were too restrictive leading
+> to failures for other silicons in same family.
+> 
+> The problem was found while testing audio playback on
+> AM37x and AM35x processors. But should exist on OMAP36xx
+> as well.
+> 
+> Signed-off-by: Sanjeev Premi <premi@ti.com>
+> ---
+>  Changes in this version:
+>  1) Added one more check to the changes.
+>  2) Updated commit message to use plurals.
+> 
+>  sound/soc/omap/omap-mcbsp.c |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
 
-AFAIK the Beagle has the the Headset lines routed to the stereo jack, s=
-o
-you might want to try:
+[sp] This patch didn't seem to be lost in transit!
+     Sending it again.
 
-amixer sset 'HeadsetL Mixer AudioL2' on
-amixer sset 'HeadsetR Mixer AudioR2' on
+     Did anyone else ever face this issue?
 
-Do apply the gain settings related to DAC2 path. This is the path for
-the stereo (2ch mode).
-
-Let me know, if it works.
-
---=20
-P=C3=A9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+~sanjeev
