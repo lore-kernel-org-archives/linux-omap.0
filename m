@@ -1,67 +1,88 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [RFC][PATCH 0/3] OMAP PM: Voltage layer clean up
-Date: Wed, 16 Mar 2011 06:48:35 +0530
-Message-ID: <4D800FEB.9010809@ti.com>
-References: <1300199622-32500-1-git-send-email-vishwanath.bs@ti.com> <AANLkTinO0XWcDO18Kv-pVL=QUTq2X5ffF5XRLw6_POOQ@mail.gmail.com> <704e43df1ea426a676115cd34b93649e@mail.gmail.com>
+From: Bob Liu <lliubbo@gmail.com>
+Subject: Re: [HELP] Audio on BeagleBoard xM can't work
+Date: Wed, 16 Mar 2011 11:39:00 +0800
+Message-ID: <AANLkTi=rZhmku6j2Cq9E3B8jQbT6R9NHishibLK5atNB@mail.gmail.com>
+References: <AANLkTikMCttrVTS==b2j9VyvSSz+WzoBg8dZ-nb4QUaN@mail.gmail.com>
+	<20110315115315.bcd2451b.jhnikula@gmail.com>
+	<AANLkTimSHRUJthtZ5co7oTjMZ3pBjGLoT40-HpsZUvUK@mail.gmail.com>
+	<B85A65D85D7EB246BE421B3FB0FBB593024C3075F8@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:52056 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750981Ab1CPBSn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 15 Mar 2011 21:18:43 -0400
-Received: by mail-vx0-f172.google.com with SMTP id 33so1640250vxg.17
-        for <linux-omap@vger.kernel.org>; Tue, 15 Mar 2011 18:18:42 -0700 (PDT)
-In-Reply-To: <704e43df1ea426a676115cd34b93649e@mail.gmail.com>
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:52588 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751401Ab1CPDjB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Mar 2011 23:39:01 -0400
+Received: by qyk7 with SMTP id 7so3065104qyk.19
+        for <linux-omap@vger.kernel.org>; Tue, 15 Mar 2011 20:39:00 -0700 (PDT)
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593024C3075F8@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vishwanath Sripathy <vishwanath.bs@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: "Premi, Sanjeev" <premi@ti.com>
+Cc: Jarkko Nikula <jhnikula@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>, "lars@metafoo.de" <lars@metafoo.de>, "paul@pwsan.com" <paul@pwsan.com>, "peter.ujfalusi@nokia.com" <peter.ujfalusi@nokia.com>, "Koyamangalath, Abhilash" <abhilash.kv@ti.com>
 
-Vishwanath Sripathy wrote, on 03/15/2011 09:36 PM:
+On Wed, Mar 16, 2011 at 12:21 AM, Premi, Sanjeev <premi@ti.com> wrote:
 >> -----Original Message-----
->> From: Menon, Nishanth [mailto:nm@ti.com]
->> Sent: Tuesday, March 15, 2011 8:38 PM
->> To: Vishwanath BS
->> Cc: linux-omap@vger.kernel.org
->> Subject: Re: [RFC][PATCH 0/3] OMAP PM: Voltage layer clean up
+>> From: linux-omap-owner@vger.kernel.org
+>> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Bob Liu
+>> Sent: Tuesday, March 15, 2011 3:27 PM
+>> To: Jarkko Nikula
+>> Cc: linux-omap@vger.kernel.org;
+>> broonie@opensource.wolfsonmicro.com; lrg@slimlogic.co.uk;
+>> lars@metafoo.de; paul@pwsan.com; peter.ujfalusi@nokia.com
+>> Subject: Re: [HELP] Audio on BeagleBoard xM can't work
 >>
->> On Tue, Mar 15, 2011 at 20:03, Vishwanath BS
->> <vishwanath.bs@ti.com>  wrote:
->>>
->>> This patch series attempts to do some more clean up on OMAP Voltage
->> layer on top
->>> of the clean up done by Paul as part of
->>> https://patchwork.kernel.org/patch/591421/
->>>
->>> These patches are generated against latest omap-for-linus branch on
->> Tony's tree
->>> (commit id: 05f689400ea5fa3d71af82f910c8b140f87ad1f3) and tested
->> on OMAP ZOOM3
->>> and OMAP4430 SDP with Smartreflex enabled.
->>>
->>> Vishwanath BS (3):
->>>   OMAP PM: Seggregate Voltage layer parameters
->>>   OMAP PM: Add support for bypassing VP/VC in Voltage layer
->>>   OMAP PM: Add Board specific parameters for OMAP Volatge layer
+>> On Tue, Mar 15, 2011 at 5:53 PM, Jarkko Nikula
+>> <jhnikula@gmail.com> wrote:
+>> > On Tue, 15 Mar 2011 11:12:17 +0800
+>> > Bob Liu <lliubbo@gmail.com> wrote:
+>> >
+>> >> It seems that the code in sound/soc/omap/omap-mcbsp.c uses
+>> the function
+>> >> "cpu-is-omap343x()" which fails and returns ENODEV.
+>> >>
+>> >> But I have enabled "OMAP3430 support" in "System Type" /
+>> "TI OMAP2/3/4
+>> >> Specific Features",
+>> >> why it still return ENODEV? (Attached my kernel config).
+>> >>
+>> >> And after I changed that check to "cpu-is-omap34xx()", there was no
+>> >> error message but neither any audio output,
+>> >> I can't hear any sound.
+>> >> ----------------------------
+>> >
+>> > Is the DMA running after you change the cpu_is_omap34xx and
+>> try to play
+>> > e.g. "aplay /dev/urandom"? If audio is running you should see DMA
+>> > interrupt count increasing with "grep DMA /proc/interrupts".
+>> >
 >>
->> I dont really see why I need to keep fixing your $subjects, but here
->> again,
->> all $subjects, OMAP3+: PM: makes more sense
-> This is not OMAP3 specific. It applies to OMAP4 as well.
-which is why i recommended OMAP3+ and not OMAP3
+>> Yes, DMA interrupt count increased after aplay /dev/urandom or some
+>> other audio file.
+>> Thanks
+>>
+>> > If that is working then issue could be in codec side. I don't have a
+>> > beagle at the moment to verify but IRCC something like ~10
+>> TWL4030 ALSA
+>> > controls must be adjusted in order to route audio from DAC
+>> to outputs
+>> > at proper volume.
+>
+> I don't have HW with me right now, can you try the following?
+> (Got the steps over phone from Abhilash)
+>
+> 1) run command "alsamixer"
+> 2) Un-mute by pressing the key "m"
+> 3) Play the audio using aplay
+>
+> If it doesn't work, you may want to check the options used by
+> alsamixer. I will be able to try it myself tomorrow morning.
+>
 
->>
->>>
->>>   arch/arm/mach-omap2/board-4430sdp.c           |   52 +++++++
->>
->> Curious if Panda and other OMAP3 platforms where considered.
-> That's TODO as per my Patch3 commit log.
-would've been nice to see that info in 0/3
+Thanks for your reply.
+It seems pressing the key "m" has no effect during alsamixer and there
+are so many options I don't know how to adjust it.
 
-[..]
 -- 
 Regards,
-Nishanth Menon
+--Bob
