@@ -1,69 +1,55 @@
-From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
 Subject: Re: Code for v2.6.39 merge window frozen, patches archived
-Date: Wed, 16 Mar 2011 19:50:17 +0530
-Message-ID: <20110316142017.GB10385@m-desktop>
-References: <20110314192538.GH7258@atomide.com>
- <20110316140710.GA10385@m-desktop>
+Date: Wed, 16 Mar 2011 15:33:19 +0100
+Message-ID: <4D80CA2F.8060300@ti.com>
+References: <20110314192538.GH7258@atomide.com> <alpine.DEB.1.10.1103151856180.880@esdhcp041196.research.nokia.com> <4D7FC70D.7050508@ti.com> <alpine.DEB.1.10.1103161533470.2634@esdhcp041196.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:46727 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751362Ab1CPOWo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 16 Mar 2011 10:22:44 -0400
-Received: by mail-yi0-f42.google.com with SMTP id 21so1029948yic.15
-        for <linux-omap@vger.kernel.org>; Wed, 16 Mar 2011 07:22:43 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20110316140710.GA10385@m-desktop>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58413 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752078Ab1CPOd1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 16 Mar 2011 10:33:27 -0400
+In-Reply-To: <alpine.DEB.1.10.1103161533470.2634@esdhcp041196.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+To: Aaro Koskinen <aaro.koskinen@nokia.com>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
 
-On Wed, Mar 16, 2011 at 07:37:10PM +0530, G, Manjunath Kondaiah wrote:
-> On Mon, Mar 14, 2011 at 12:25:38PM -0700, Tony Lindgren wrote:
-> > Hi all,
-> > 
-> > I've applied few random fix like patches today into omap-for-linus
-> > but that's it for this merge window.
-> > 
-> > So let's do some testing with with Stephen's for-next and
-> > omap-for-linus and start queueing up fixes for the -rc cycle.
-> omap-for-linus boots on:
-> OMAP3430-Zoom2
-> OMAP3630-Zoom3
-> OMAP4430-Blaze
-> 
-> With OMAP3 and OMAP4 disabled, it boots successfully on:
-> OMAP2420-H4
-> OMAP2430-SDP
+Hi Aaro,
 
-Also boots on OMAP1710-H3
+On 3/16/2011 2:49 PM, Aaro Koskinen wrote:
+> Hi,
+>
+> On Tue, 15 Mar 2011, Cousson, Benoit wrote:
+>> Mmm, that looks like an access to a secure timer from hwmod code on a HS
+>> device. Could you comment out the timer12 entry (&omap3xxx_timer12_hwmod) in
+>> the omap3 hwmod list at the end of omap_hwmod_3xxx_data.c to check that?
+>
+> With timer12 entry commented out and omap_hwmod debugs enabled, it now
+> hangs here:
 
--Manjunath
+Do you need that timer BTW?
 
-> 
-> -Manjunath
-> 
-> > 
-> > I've also moved all the patchwork.kernel.org patches into
-> > archived-v2.6.39 bundle and marked them as archived:
-> > 
-> > https://patchwork.kernel.org/user/bundle/1381/
-> > 
-> > You can still find the patches there if you click on Filters
-> > and changed Archived from No to Both.
-> > 
-> > Looks like there's one smartreflex patch that does not seem
-> > to exist in patchwork though.. So that one is still lurking
-> > around on the patchwork list of patches until the issue has
-> > been fixed in patchwork.kernel.org.
-> > 
-> > Cheers,
-> > 
-> > Tony
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+> [...]
+>
+> [    4.306549] OMAP GPIO hardware version 2.5
+> [    4.310913] omap_hwmod: gpio4: enabling
+> [    4.314971] omap_hwmod: gpio4: enabling clocks
+> [    4.320037] OMAP GPIO hardware version 2.5
+> [    4.324401] omap_hwmod: gpio5: enabling
+> [    4.328460] omap_hwmod: gpio5: enabling clocks
+> [    4.333526] OMAP GPIO hardware version 2.5
+> [    4.337921] omap_hwmod: gpio6: enabling
+> [    4.341949] omap_hwmod: gpio6: enabling clocks
+> [    4.347015] OMAP GPIO hardware version 2.5
+
+GPIO are now initialized during postcore_initcall, so it is hard to know 
+what will happen after that:-(
+
+Could you try with initcall_debug in your command line?
+
+Regards,
+Benoit
