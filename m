@@ -1,57 +1,71 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: [PATCH] OMAP4: PandaBoard: remove unused power regulators
-Date: Wed, 16 Mar 2011 17:28:29 +0200
-Message-ID: <20110316172829.5a1a3084.jhnikula@gmail.com>
-References: <1300216227-21138-1-git-send-email-x0132446@ti.com>
-	<4D7FBA82.40403@linaro.org>
-	<AANLkTing6jerp4mVgVDkW7eTu9LPgwRNAR9KXQPZNWcs@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Code for v2.6.39 merge window frozen, patches archived
+Date: Wed, 16 Mar 2011 08:32:23 -0700
+Message-ID: <20110316153223.GQ7258@atomide.com>
+References: <20110314192538.GH7258@atomide.com>
+ <alpine.DEB.1.10.1103151856180.880@esdhcp041196.research.nokia.com>
+ <4D7FC70D.7050508@ti.com>
+ <alpine.DEB.1.10.1103161533470.2634@esdhcp041196.research.nokia.com>
+ <4D80CA2F.8060300@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:64812 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753273Ab1CPP2g (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Mar 2011 11:28:36 -0400
-Received: by bwz15 with SMTP id 15so1621226bwz.19
-        for <linux-omap@vger.kernel.org>; Wed, 16 Mar 2011 08:28:35 -0700 (PDT)
-In-Reply-To: <AANLkTing6jerp4mVgVDkW7eTu9LPgwRNAR9KXQPZNWcs@mail.gmail.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:29822 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752102Ab1CPPcx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Mar 2011 11:32:53 -0400
+Content-Disposition: inline
+In-Reply-To: <4D80CA2F.8060300@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: andy.green@linaro.org, David Anders <x0132446@ti.com>, linux-omap@vger.kernel.org, khilman@deeprootsystems.com, tony@atomide.com
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: Aaro Koskinen <aaro.koskinen@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
 
-On Wed, 16 Mar 2011 10:19:41 +0100
-Jean Pihet <jean.pihet@newoldbits.com> wrote:
-
-> On Tue, Mar 15, 2011 at 8:14 PM, Andy Green <andy@warmcat.com> wrote:
-> > On 03/15/2011 07:10 PM, Somebody in the thread at some point said:
-> >>
-> >> the pandaboard does not use the VUSIM or VAUX1 power regulators on the
-> >> TWL6030
-> >> and are left floating. if the VUSIM and VAUX1 power regulators are
-> >> initilized,
-> >> noise on the unloaded regulators generates an overcurrent interrupt
-> >> causing the
-> >> system to power down. this patch removes the initialization of the unused
-> >> power
-> >> regulators of VUSIM and VAUX1.
-> >>
-> >> Signed-off-by: David Anders<x0132446@ti.com>
-> >
-> > Acked-by: Andy Green <andy.green@linaro.org>
-> >
-> > Great job finding this one David.
-> Great!
+* Cousson, Benoit <b-cousson@ti.com> [110316 07:31]:
+> Hi Aaro,
 > 
-> Acked-by: Jean Pihet <j-pihet@ti.com>
+> On 3/16/2011 2:49 PM, Aaro Koskinen wrote:
+> >Hi,
+> >
+> >On Tue, 15 Mar 2011, Cousson, Benoit wrote:
+> >>Mmm, that looks like an access to a secure timer from hwmod code on a HS
+> >>device. Could you comment out the timer12 entry (&omap3xxx_timer12_hwmod) in
+> >>the omap3 hwmod list at the end of omap_hwmod_3xxx_data.c to check that?
+> >
+> >With timer12 entry commented out and omap_hwmod debugs enabled, it now
+> >hangs here:
 > 
-Excellent! Some of us don't need a halogen lamp anymore to run
-Panda [1] :-)
+> Do you need that timer BTW?
+> 
+> >
+> >[...]
+> >
+> >[    4.306549] OMAP GPIO hardware version 2.5
+> >[    4.310913] omap_hwmod: gpio4: enabling
+> >[    4.314971] omap_hwmod: gpio4: enabling clocks
+> >[    4.320037] OMAP GPIO hardware version 2.5
+> >[    4.324401] omap_hwmod: gpio5: enabling
+> >[    4.328460] omap_hwmod: gpio5: enabling clocks
+> >[    4.333526] OMAP GPIO hardware version 2.5
+> >[    4.337921] omap_hwmod: gpio6: enabling
+> >[    4.341949] omap_hwmod: gpio6: enabling clocks
+> >[    4.347015] OMAP GPIO hardware version 2.5
+> 
+> GPIO are now initialized during postcore_initcall, so it is hard to
+> know what will happen after that:-(
+> 
+> Could you try with initcall_debug in your command line?
 
-And indeed, the VUSIM and VAUX1 are unused according to schematics.
-Definitely 2.6.38-rc material and probably 2.6.37 stable too?
+FYI, my rx51 boots fine with omap2plus defconfig, also with
+earlyprintk. Sounds like it's some HS omap issue on both
+your boards.
 
-Acked-by: Jarkko Nikula <jhnikula@gmail.com>
----
-1. http://marc.info/?l=linux-omap&m=129784674528539&w=2
+I think you have ttyO in your CONFIG_CMDLINE if you're
+using omap2plus_defconfig. Then for rm680 you'll probably
+need also:
+
+CONFIG_CMDLINE_FORCE=y
+
+Regards,
+
+Tony
