@@ -1,60 +1,109 @@
 From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: [RFC][PATCH 2/3] OMAP PM: Add support for bypassing VP/VC in
- Voltage layer
-Date: Wed, 16 Mar 2011 12:28:13 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024C3078D7@dbde02.ent.ti.com>
-References: <1300199622-32500-1-git-send-email-vishwanath.bs@ti.com>
- <1300199622-32500-3-git-send-email-vishwanath.bs@ti.com>
+Subject: RE: [HELP] Audio on BeagleBoard xM can't work
+Date: Wed, 16 Mar 2011 12:29:09 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024C3078D6@dbde02.ent.ti.com>
+References: <AANLkTikMCttrVTS==b2j9VyvSSz+WzoBg8dZ-nb4QUaN@mail.gmail.com>
+	<20110315115315.bcd2451b.jhnikula@gmail.com>
+	<AANLkTimSHRUJthtZ5co7oTjMZ3pBjGLoT40-HpsZUvUK@mail.gmail.com>
+	<B85A65D85D7EB246BE421B3FB0FBB593024C3075F8@dbde02.ent.ti.com>
+ <AANLkTi=rZhmku6j2Cq9E3B8jQbT6R9NHishibLK5atNB@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:35996 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:36010 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751865Ab1CPG7T convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Mar 2011 02:59:19 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p2G6xG7q032299
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Wed, 16 Mar 2011 01:59:18 -0500
-In-Reply-To: <1300199622-32500-3-git-send-email-vishwanath.bs@ti.com>
+	id S1751852Ab1CPG73 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Mar 2011 02:59:29 -0400
+In-Reply-To: <AANLkTi=rZhmku6j2Cq9E3B8jQbT6R9NHishibLK5atNB@mail.gmail.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Bob Liu <lliubbo@gmail.com>
+Cc: Jarkko Nikula <jhnikula@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>, "lars@metafoo.de" <lars@metafoo.de>, "paul@pwsan.com" <paul@pwsan.com>, "peter.ujfalusi@nokia.com" <peter.ujfalusi@nokia.com>, "Koyamangalath, Abhilash" <abhilash.kv@ti.com>
 
 > -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of 
-> Sripathy, Vishwanath
-> Sent: Tuesday, March 15, 2011 8:04 PM
-> To: linux-omap@vger.kernel.org
-> Cc: Sripathy, Vishwanath
-> Subject: [RFC][PATCH 2/3] OMAP PM: Add support for bypassing 
-> VP/VC in Voltage layer
+> From: Bob Liu [mailto:lliubbo@gmail.com] 
+> Sent: Wednesday, March 16, 2011 9:09 AM
+> To: Premi, Sanjeev
+> Cc: Jarkko Nikula; linux-omap@vger.kernel.org; 
+> broonie@opensource.wolfsonmicro.com; lrg@slimlogic.co.uk; 
+> lars@metafoo.de; paul@pwsan.com; peter.ujfalusi@nokia.com; 
+> Koyamangalath, Abhilash
+> Subject: Re: [HELP] Audio on BeagleBoard xM can't work
 > 
-> Currently Voltage layer assumes that all PMICs use VP/VC for 
-> Voltage scaling.
-> There can be some instances where PMIC would want to bypass 
-> VP/VC for voltage
-> scaling. So make VOltage layer flexible enough to handle this.
+> On Wed, Mar 16, 2011 at 12:21 AM, Premi, Sanjeev <premi@ti.com> wrote:
+> >> -----Original Message-----
+> >> From: linux-omap-owner@vger.kernel.org
+> >> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Bob Liu
+> >> Sent: Tuesday, March 15, 2011 3:27 PM
+> >> To: Jarkko Nikula
+> >> Cc: linux-omap@vger.kernel.org;
+> >> broonie@opensource.wolfsonmicro.com; lrg@slimlogic.co.uk;
+> >> lars@metafoo.de; paul@pwsan.com; peter.ujfalusi@nokia.com
+> >> Subject: Re: [HELP] Audio on BeagleBoard xM can't work
+> >>
+> >> On Tue, Mar 15, 2011 at 5:53 PM, Jarkko Nikula
+> >> <jhnikula@gmail.com> wrote:
+> >> > On Tue, 15 Mar 2011 11:12:17 +0800
+> >> > Bob Liu <lliubbo@gmail.com> wrote:
+> >> >
+> >> >> It seems that the code in sound/soc/omap/omap-mcbsp.c uses
+> >> the function
+> >> >> "cpu-is-omap343x()" which fails and returns ENODEV.
+> >> >>
+> >> >> But I have enabled "OMAP3430 support" in "System Type" /
+> >> "TI OMAP2/3/4
+> >> >> Specific Features",
+> >> >> why it still return ENODEV? (Attached my kernel config).
+> >> >>
+> >> >> And after I changed that check to "cpu-is-omap34xx()", 
+> there was no
+> >> >> error message but neither any audio output,
+> >> >> I can't hear any sound.
+> >> >> ----------------------------
+> >> >
+> >> > Is the DMA running after you change the cpu_is_omap34xx and
+> >> try to play
+> >> > e.g. "aplay /dev/urandom"? If audio is running you should see DMA
+> >> > interrupt count increasing with "grep DMA /proc/interrupts".
+> >> >
+> >>
+> >> Yes, DMA interrupt count increased after aplay /dev/urandom or some
+> >> other audio file.
+> >> Thanks
+> >>
+> >> > If that is working then issue could be in codec side. I 
+> don't have a
+> >> > beagle at the moment to verify but IRCC something like ~10
+> >> TWL4030 ALSA
+> >> > controls must be adjusted in order to route audio from DAC
+> >> to outputs
+> >> > at proper volume.
+> >
+> > I don't have HW with me right now, can you try the following?
+> > (Got the steps over phone from Abhilash)
+> >
+> > 1) run command "alsamixer"
+> > 2) Un-mute by pressing the key "m"
+> > 3) Play the audio using aplay
+> >
+> > If it doesn't work, you may want to check the options used by
+> > alsamixer. I will be able to try it myself tomorrow morning.
+> >
+> 
+> Thanks for your reply.
+> It seems pressing the key "m" has no effect during alsamixer and there
+> are so many options I don't know how to adjust it.
 
-[sp] This series still considers various PMICs meaning various
-PMICs in TWL family.
-
-However, this isn't always the case. I had posted an RFC indicating
-issues that we come across when PMIC is not TWLx0y0.
-
-I now have an update version of these patches - will be posting
-them shortly - for reference.
-
-In my opinion the cleanup needs to start at the basic PMIC
-integration - only then we can have separation of concerns - opp,
-voltage and smartreflex.
-
-See: http://marc.info/?l=linux-omap&m=129848392424250&w=2
+I haven't yet come to running this test myself. "m" (or as the wiki here
+mentions "M") is meant to toggle mute.
+See : http://alsa.opensrc.org/Alsamixer for more details on alsamixer.
 
 ~sanjeev
 
 > 
-> Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
+> -- 
+> Regards,
+> --Bob
+> 
