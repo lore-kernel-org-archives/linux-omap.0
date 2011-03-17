@@ -1,80 +1,77 @@
-From: Balaji T K <balajitk@ti.com>
-Subject: [PATCH 3/3] ARM: OMAP4: correct GPMC IRQ number
-Date: Thu, 17 Mar 2011 21:30:06 +0530
-Message-ID: <1300377606-16616-4-git-send-email-balajitk@ti.com>
-References: <1300377606-16616-1-git-send-email-balajitk@ti.com>
+From: "Janorkar, Mayuresh" <mayur@ti.com>
+Subject: RE: [PATCH v5 00/10] OMAP4 : DSS2 : HDMI support on OMAP4
+Date: Thu, 17 Mar 2011 21:50:06 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB033D1A86F2@dbde02.ent.ti.com>
+References: <1299753858-12222-1-git-send-email-mythripk@ti.com>
+	 <1299764643.2017.177.camel@deskari> <4D78E3F5.2090600@openelec.tv>
+	 <1299827578.2567.1.camel@deskari> <4D79E0A0.9040900@openelec.tv>
+	 <1299849774.2479.3.camel@deskari> <4D7A4B44.2030801@openelec.tv>
+	 <1299868049.2479.33.camel@deskari> <4D7A6D0F.40906@openelec.tv>
+	 <AANLkTin+fnZfFte5v8+G0saDcjCqsT=oQ4U_oGSm-UGn@mail.gmail.com>
+	 <4D7CD588.3080100@openelec.tv> <4D7CEEC8.50803@openelec.tv>
+	 <1300258302.1917.32.camel@lappyti>
+	 <AANLkTinNynOpnJyHZeyA01E5oVMcs_PnAYRH4dSznJ_d@mail.gmail.com>
+	 <4D814C72.9010300@openelec.tv> <1300360287.1909.62.camel@lappyti>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:39542 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:39480 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754774Ab1CQP4s (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 17 Mar 2011 11:56:48 -0400
-In-Reply-To: <1300377606-16616-1-git-send-email-balajitk@ti.com>
+	id S1751279Ab1CQQUS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Mar 2011 12:20:18 -0400
+In-Reply-To: <1300360287.1909.62.camel@lappyti>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Balaji T K <balajitk@ti.com>
+To: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, Stephan Raue <mailinglists@openelec.tv>
+Cc: "K, Mythri P" <mythripk@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-OMAP4 GPMC IRQ is not same as OMAP3 IRQ. Fix it.
+Raue,
 
-Resolve following warning in OMAP4
-[    0.429290] gpmc: irq-20 could not claim: err -22
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Valkeinen, Tomi
+> Sent: Thursday, March 17, 2011 4:41 PM
+> To: Stephan Raue
+> Cc: K, Mythri P; linux-omap@vger.kernel.org
+> Subject: Re: [PATCH v5 00/10] OMAP4 : DSS2 : HDMI support on OMAP4
+> 
+> Hi,
+> 
+> On Wed, 2011-03-16 at 18:49 -0500, Stephan Raue wrote:
+> 
+> > i tried this test tree with omap2plus_defconfig.
+> >
+> > it seems the kernel crashes and poweroff the board on loading this hdmi
+> > stuff, but dont print any crashlog. is there a way any backtraces will
+> > be printed?
+> > output from serial console: http://paste.pocoo.org/show/354850/
+> > kernel config (omap2plus_defconfig, added squashfs support, added
+> > support to include initramfs in kernel, build omapfb stuff statically
+> > into the kernel): http://paste.pocoo.org/show/354853/
 
-Signed-off-by: Balaji T K <balajitk@ti.com>
----
- arch/arm/mach-omap2/gpmc.c |   10 ++++++----
- 1 files changed, 6 insertions(+), 4 deletions(-)
+Is it possible for you to enable low-level debugging and pass omapfb.debug=1 omapdss.debug=1 in your bootargs?
+This would show the Framebuffer and DSSDBG prints. We would get an idea if kernel is getting stuck in DSS/OMAPFB.
 
-diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index d81d536..493505c 100644
---- a/arch/arm/mach-omap2/gpmc.c
-+++ b/arch/arm/mach-omap2/gpmc.c
-@@ -693,6 +693,7 @@ static int __init gpmc_init(void)
- {
- 	u32 l, irq;
- 	int cs, ret = -EINVAL;
-+	int gpmc_irq;
- 	char *ck = NULL;
- 
- 	if (cpu_is_omap24xx()) {
-@@ -701,12 +702,15 @@ static int __init gpmc_init(void)
- 			l = OMAP2420_GPMC_BASE;
- 		else
- 			l = OMAP34XX_GPMC_BASE;
-+		gpmc_irq = INT_34XX_GPMC_IRQ;
- 	} else if (cpu_is_omap34xx()) {
- 		ck = "gpmc_fck";
- 		l = OMAP34XX_GPMC_BASE;
-+		gpmc_irq = INT_34XX_GPMC_IRQ;
- 	} else if (cpu_is_omap44xx()) {
- 		ck = "gpmc_ck";
- 		l = OMAP44XX_GPMC_BASE;
-+		gpmc_irq = OMAP44XX_IRQ_GPMC;
- 	}
- 
- 	if (WARN_ON(!ck))
-@@ -745,11 +749,11 @@ static int __init gpmc_init(void)
- 		irq++;
- 	}
- 
--	ret = request_irq(INT_34XX_GPMC_IRQ,
-+	ret = request_irq(gpmc_irq,
- 			gpmc_handle_irq, IRQF_SHARED, "gpmc", gpmc_base);
- 	if (ret)
- 		pr_err("gpmc: irq-%d could not claim: err %d\n",
--						INT_34XX_GPMC_IRQ, ret);
-+						gpmc_irq, ret);
- 	return ret;
- }
- postcore_initcall(gpmc_init);
-@@ -758,8 +762,6 @@ static irqreturn_t gpmc_handle_irq(int irq, void *dev)
- {
- 	u8 cs;
- 
--	if (irq != INT_34XX_GPMC_IRQ)
--		return IRQ_HANDLED;
- 	/* check cs to invoke the irq */
- 	cs = ((gpmc_read_reg(GPMC_PREFETCH_CONFIG1)) >> CS_NUM_SHIFT) & 0x7;
- 	if (OMAP_GPMC_IRQ_BASE+cs <= OMAP_GPMC_IRQ_END)
--- 
-1.7.0.4
+Let me know if you any help in enabling debug prints.
 
+Also one more suggestion/ question, are you seeing a hang if DSS is not enabled in kernel?
+
+-Thanks,
+Mayuresh
+
+> 
+> Have the HDMI on your setup worked in any (prebuilt) image? What I'm
+> asking is if you are sure the HDMI HW works on your board?
+> 
+> Powering off quietly sounds strange. Is your power supply sufficient?
+> Well, I don't think that would explain the first crash you posted...
+> 
+>  Tomi
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
