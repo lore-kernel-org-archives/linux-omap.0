@@ -1,126 +1,95 @@
 From: Sanjeev Premi <premi@ti.com>
-Subject: [PATCH 1/2] omap3: voltage: remove unnecessary param passing
-Date: Thu, 17 Mar 2011 20:42:36 +0530
-Message-ID: <1300374757-23010-2-git-send-email-premi@ti.com>
+Subject: [PATCH 2/2] omap3: voltage: fix variable type and name
+Date: Thu, 17 Mar 2011 20:42:37 +0530
+Message-ID: <1300374757-23010-3-git-send-email-premi@ti.com>
 References: <1300374757-23010-1-git-send-email-premi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:36495 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:34680 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753426Ab1CQPMu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 17 Mar 2011 11:12:50 -0400
+	id S1753426Ab1CQPMw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 17 Mar 2011 11:12:52 -0400
 Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p2HFClhp027478
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p2HFCnep017065
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 17 Mar 2011 10:12:49 -0500
+	for <linux-omap@vger.kernel.org>; Thu, 17 Mar 2011 10:12:51 -0500
 In-Reply-To: <1300374757-23010-1-git-send-email-premi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Sanjeev Premi <premi@ti.com>
 
-It is not necessary to pass the params prm_mod and
-prm_irqst_mod to omap_voltage_early_init().
+In all usages, variables prm_mod_offs and prm_irqst_ocp_mod_offs
+are expected to be "u16" but have been declared as "s16".
+
+In addition, renamed prm_irqst_ocp_mod_offs to ocp_sysreg_prm_offs
+for better association with the TRM. Original name perhaps came
+from the current usage of this offset to reach PRM_IRQSTATUS_MPU
+offset.
 
 Signed-off-by: Sanjeev Premi <premi@ti.com>
 ---
- arch/arm/mach-omap2/voltage.c                 |   18 ++++++++++++++----
- arch/arm/mach-omap2/voltage.h                 |    3 +--
- arch/arm/mach-omap2/voltagedomains3xxx_data.c |    5 +----
- arch/arm/mach-omap2/voltagedomains44xx_data.c |    6 +-----
- 4 files changed, 17 insertions(+), 15 deletions(-)
+ arch/arm/mach-omap2/voltage.c |   18 +++++++++---------
+ 1 files changed, 9 insertions(+), 9 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
-index c6facf7..ce3098a 100644
+index ce3098a..c686eca 100644
 --- a/arch/arm/mach-omap2/voltage.c
 +++ b/arch/arm/mach-omap2/voltage.c
-@@ -1096,12 +1096,22 @@ int __init omap_voltage_late_init(void)
- }
+@@ -51,8 +51,8 @@ static struct omap_vdd_info **vdd_info;
+ static int nr_scalable_vdd;
  
  /* XXX document */
--int __init omap_voltage_early_init(s16 prm_mod, s16 prm_irqst_ocp_mod,
--				   struct omap_vdd_info *omap_vdd_array[],
-+int __init omap_voltage_early_init(struct omap_vdd_info *omap_vdd_array[],
- 				   u8 omap_vdd_count)
+-static s16 prm_mod_offs;
+-static s16 prm_irqst_ocp_mod_offs;
++static u16 prm_mod_offs;
++static u16 ocp_sysreg_prm_offs;
+ 
+ static struct dentry *voltage_dir;
+ 
+@@ -447,8 +447,8 @@ static int vp_forceupdate_scale_voltage(struct omap_vdd_info *vdd,
+ 	 */
+ 	while (timeout++ < VP_TRANXDONE_TIMEOUT) {
+ 		vdd->write_reg(vdd->vp_data->prm_irqst_data->tranxdone_status,
+-			       prm_irqst_ocp_mod_offs, prm_irqst_reg);
+-		if (!(vdd->read_reg(prm_irqst_ocp_mod_offs, prm_irqst_reg) &
++			       ocp_sysreg_prm_offs, prm_irqst_reg);
++		if (!(vdd->read_reg(ocp_sysreg_prm_offs, prm_irqst_reg) &
+ 		      vdd->vp_data->prm_irqst_data->tranxdone_status))
+ 			break;
+ 		udelay(1);
+@@ -481,7 +481,7 @@ static int vp_forceupdate_scale_voltage(struct omap_vdd_info *vdd,
+ 	 * Depends on SMPSWAITTIMEMIN/MAX and voltage change
+ 	 */
+ 	timeout = 0;
+-	omap_test_timeout((vdd->read_reg(prm_irqst_ocp_mod_offs, prm_irqst_reg) &
++	omap_test_timeout((vdd->read_reg(ocp_sysreg_prm_offs, prm_irqst_reg) &
+ 			   vdd->vp_data->prm_irqst_data->tranxdone_status),
+ 			  VP_TRANXDONE_TIMEOUT, timeout);
+ 	if (timeout >= VP_TRANXDONE_TIMEOUT)
+@@ -498,8 +498,8 @@ static int vp_forceupdate_scale_voltage(struct omap_vdd_info *vdd,
+ 	timeout = 0;
+ 	while (timeout++ < VP_TRANXDONE_TIMEOUT) {
+ 		vdd->write_reg(vdd->vp_data->prm_irqst_data->tranxdone_status,
+-			       prm_irqst_ocp_mod_offs, prm_irqst_reg);
+-		if (!(vdd->read_reg(prm_irqst_ocp_mod_offs, prm_irqst_reg) &
++			       ocp_sysreg_prm_offs, prm_irqst_reg);
++		if (!(vdd->read_reg(ocp_sysreg_prm_offs, prm_irqst_reg) &
+ 		      vdd->vp_data->prm_irqst_data->tranxdone_status))
+ 			break;
+ 		udelay(1);
+@@ -1101,10 +1101,10 @@ int __init omap_voltage_early_init(struct omap_vdd_info *omap_vdd_array[],
  {
--	prm_mod_offs = prm_mod;
--	prm_irqst_ocp_mod_offs = prm_irqst_ocp_mod;
-+	if (cpu_is_omap44xx()) {
-+		prm_mod_offs = OMAP4430_PRM_DEVICE_INST;
-+		prm_irqst_ocp_mod_offs = OMAP4430_PRM_OCP_SOCKET_INST;
-+	} else if (cpu_is_omap34xx()) {
-+		prm_mod_offs = OMAP3430_GR_MOD;
-+		prm_irqst_ocp_mod_offs = OCP_MOD;
-+	} else {
-+		/* TODO:
-+		 * What should be done for OMAP24xx?
-+		 * Would we even reach here?
-+		 */
-+	}
-+
- 	vdd_info = omap_vdd_array;
- 	nr_scalable_vdd = omap_vdd_count;
- 	return 0;
-diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
-index e9f5408..b56530e 100644
---- a/arch/arm/mach-omap2/voltage.h
-+++ b/arch/arm/mach-omap2/voltage.h
-@@ -151,8 +151,7 @@ struct omap_volt_data *omap_voltage_get_voltdata(struct voltagedomain *voltdm,
- 		unsigned long volt);
- unsigned long omap_voltage_get_nom_volt(struct voltagedomain *voltdm);
- struct dentry *omap_voltage_get_dbgdir(struct voltagedomain *voltdm);
--int __init omap_voltage_early_init(s16 prm_mod, s16 prm_irqst_mod,
--				   struct omap_vdd_info *omap_vdd_array[],
-+int __init omap_voltage_early_init(struct omap_vdd_info *omap_vdd_array[],
- 				   u8 omap_vdd_count);
- #ifdef CONFIG_PM
- int omap_voltage_register_pmic(struct voltagedomain *voltdm,
-diff --git a/arch/arm/mach-omap2/voltagedomains3xxx_data.c b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
-index def230f..6f6999d 100644
---- a/arch/arm/mach-omap2/voltagedomains3xxx_data.c
-+++ b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
-@@ -70,8 +70,6 @@ static struct omap_vdd_info *omap3_vdd_info[] = {
- /* OMAP3 specific voltage init functions */
- static int __init omap3xxx_voltage_early_init(void)
- {
--	s16 prm_mod = OMAP3430_GR_MOD;
--	s16 prm_irqst_ocp_mod = OCP_MOD;
- 
- 	if (!cpu_is_omap34xx())
- 		return 0;
-@@ -88,8 +86,7 @@ static int __init omap3xxx_voltage_early_init(void)
- 		omap3_vdd2_info.volt_data = omap34xx_vddcore_volt_data;
- 	}
- 
--	return omap_voltage_early_init(prm_mod, prm_irqst_ocp_mod,
--				       omap3_vdd_info,
-+	return omap_voltage_early_init(omap3_vdd_info,
- 				       ARRAY_SIZE(omap3_vdd_info));
- };
- core_initcall(omap3xxx_voltage_early_init);
-diff --git a/arch/arm/mach-omap2/voltagedomains44xx_data.c b/arch/arm/mach-omap2/voltagedomains44xx_data.c
-index cb64996..208a67d 100644
---- a/arch/arm/mach-omap2/voltagedomains44xx_data.c
-+++ b/arch/arm/mach-omap2/voltagedomains44xx_data.c
-@@ -81,9 +81,6 @@ static struct omap_vdd_info *omap4_vdd_info[] = {
- /* OMAP4 specific voltage init functions */
- static int __init omap44xx_voltage_early_init(void)
- {
--	s16 prm_mod = OMAP4430_PRM_DEVICE_INST;
--	s16 prm_irqst_ocp_mod = OMAP4430_PRM_OCP_SOCKET_INST;
--
- 	if (!cpu_is_omap44xx())
- 		return 0;
- 
-@@ -95,8 +92,7 @@ static int __init omap44xx_voltage_early_init(void)
- 	omap4_vdd_iva_info.volt_data = omap44xx_vdd_iva_volt_data;
- 	omap4_vdd_core_info.volt_data = omap44xx_vdd_core_volt_data;
- 
--	return omap_voltage_early_init(prm_mod, prm_irqst_ocp_mod,
--				       omap4_vdd_info,
-+	return omap_voltage_early_init(omap4_vdd_info,
- 				       ARRAY_SIZE(omap4_vdd_info));
- };
- core_initcall(omap44xx_voltage_early_init);
+ 	if (cpu_is_omap44xx()) {
+ 		prm_mod_offs = OMAP4430_PRM_DEVICE_INST;
+-		prm_irqst_ocp_mod_offs = OMAP4430_PRM_OCP_SOCKET_INST;
++		ocp_sysreg_prm_offs = OMAP4430_PRM_OCP_SOCKET_INST;
+ 	} else if (cpu_is_omap34xx()) {
+ 		prm_mod_offs = OMAP3430_GR_MOD;
+-		prm_irqst_ocp_mod_offs = OCP_MOD;
++		ocp_sysreg_prm_offs = OCP_MOD;
+ 	} else {
+ 		/* TODO:
+ 		 * What should be done for OMAP24xx?
 -- 
 1.7.2.2
 
