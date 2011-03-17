@@ -1,70 +1,143 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH V3 11/19] OMAP3+: SR: fix cosmetic indentation
-Date: Thu, 17 Mar 2011 13:02:45 -0700
-Message-ID: <87mxkt1pne.fsf@ti.com>
-References: <1299338962-5602-1-git-send-email-nm@ti.com>
-	<1299338962-5602-12-git-send-email-nm@ti.com> <874o718xyy.fsf@ti.com>
-	<alpine.DEB.1.10.1103171939171.2634@esdhcp041196.research.nokia.com>
+Subject: Re: [PATCH 1/2] omap3: voltage: remove unnecessary param passing
+Date: Thu, 17 Mar 2011 13:10:58 -0700
+Message-ID: <87aagt1p9p.fsf@ti.com>
+References: <1300374757-23010-1-git-send-email-premi@ti.com>
+	<1300374757-23010-2-git-send-email-premi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:53992 "EHLO
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:35941 "EHLO
 	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752970Ab1CQUCs (ORCPT
+	by vger.kernel.org with ESMTP id S1755364Ab1CQULF (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 17 Mar 2011 16:02:48 -0400
-Received: by mail-yi0-f46.google.com with SMTP id 27so1276566yia.19
-        for <linux-omap@vger.kernel.org>; Thu, 17 Mar 2011 13:02:47 -0700 (PDT)
-In-Reply-To: <alpine.DEB.1.10.1103171939171.2634@esdhcp041196.research.nokia.com>
-	(Aaro Koskinen's message of "Thu, 17 Mar 2011 19:43:09 +0200 (EET)")
+	Thu, 17 Mar 2011 16:11:05 -0400
+Received: by pwi3 with SMTP id 3so445072pwi.9
+        for <linux-omap@vger.kernel.org>; Thu, 17 Mar 2011 13:11:01 -0700 (PDT)
+In-Reply-To: <1300374757-23010-2-git-send-email-premi@ti.com> (Sanjeev Premi's
+	message of "Thu, 17 Mar 2011 20:42:36 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@nokia.com>
-Cc: Nishanth Menon <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Tony <tony@atomide.com>, Paul <paul@pwsan.com>
+To: Sanjeev Premi <premi@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-Aaro Koskinen <aaro.koskinen@nokia.com> writes:
+Sanjeev Premi <premi@ti.com> writes:
 
-> Hi,
+> It is not necessary to pass the params prm_mod and
+> prm_irqst_mod to omap_voltage_early_init().
 >
-> On Thu, 17 Mar 2011, Kevin Hilman wrote:
->>
->> Thanks, queuing for 2.6.40.
->>
-> [...]
->>
->>> -		iounmap(sr_info->base);
->>> -		mem = platform_get_resource(sr_info->pdev, IORESOURCE_MEM, 0);
->>> -		release_mem_region(mem->start, resource_size(mem));
->>> -		list_del(&sr_info->node);
->>> -		dev_err(&sr_info->pdev->dev, "%s: ERROR in registering"
->>> -			"interrupt handler. Smartreflex will"
->>> -			"not function as desired\n", __func__);
->>> -		kfree(name);
->>> -		kfree(sr_info);
->>> -		return ret;
->>> +	iounmap(sr_info->base);
->>> +	mem = platform_get_resource(sr_info->pdev, IORESOURCE_MEM, 0);
->>> +	release_mem_region(mem->start, resource_size(mem));
->>> +	list_del(&sr_info->node);
->>> +	dev_err(&sr_info->pdev->dev, "%s: ERROR in registering"
->>> +		"interrupt handler. Smartreflex will"
->>> +		"not function as desired\n", __func__);
->>> +	kfree(name);
->>> +	kfree(sr_info);
->>> +	return ret;
->
-> Just FYI, this code is partly broken and probably need to be fixed in .39.
+> Signed-off-by: Sanjeev Premi <premi@ti.com>
 
-OK
+Hi Sanjeev,
 
-> Some of those resources are also freed by omap_sr_probe() when
-> sr_late_init() fails and that cannot be correct.
+I also started working on cleaning some of this up, but I took a
+slightly different approach[1], namely I make these offsets part of the
+VDD structure so that this data stays in the data files.
 
-Got a patch around to fix that?  Sounds like something we should get
-into the .39-rc cycle.
+I'm still working on the series, but the work-in-progress is in my
+pm-wip/voltdm branch, which I expect to post for comment tomorrow.
 
 Kevin
 
+[1] http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git;a=commit;h=185cdf40ad978a466106b52fce9b68ca7081f358
+[2] http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git;a=shortlog;h=refs/heads/pm-wip/voltdm
 
-
-
+> ---
+>  arch/arm/mach-omap2/voltage.c                 |   18 ++++++++++++++----
+>  arch/arm/mach-omap2/voltage.h                 |    3 +--
+>  arch/arm/mach-omap2/voltagedomains3xxx_data.c |    5 +----
+>  arch/arm/mach-omap2/voltagedomains44xx_data.c |    6 +-----
+>  4 files changed, 17 insertions(+), 15 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
+> index c6facf7..ce3098a 100644
+> --- a/arch/arm/mach-omap2/voltage.c
+> +++ b/arch/arm/mach-omap2/voltage.c
+> @@ -1096,12 +1096,22 @@ int __init omap_voltage_late_init(void)
+>  }
+>  
+>  /* XXX document */
+> -int __init omap_voltage_early_init(s16 prm_mod, s16 prm_irqst_ocp_mod,
+> -				   struct omap_vdd_info *omap_vdd_array[],
+> +int __init omap_voltage_early_init(struct omap_vdd_info *omap_vdd_array[],
+>  				   u8 omap_vdd_count)
+>  {
+> -	prm_mod_offs = prm_mod;
+> -	prm_irqst_ocp_mod_offs = prm_irqst_ocp_mod;
+> +	if (cpu_is_omap44xx()) {
+> +		prm_mod_offs = OMAP4430_PRM_DEVICE_INST;
+> +		prm_irqst_ocp_mod_offs = OMAP4430_PRM_OCP_SOCKET_INST;
+> +	} else if (cpu_is_omap34xx()) {
+> +		prm_mod_offs = OMAP3430_GR_MOD;
+> +		prm_irqst_ocp_mod_offs = OCP_MOD;
+> +	} else {
+> +		/* TODO:
+> +		 * What should be done for OMAP24xx?
+> +		 * Would we even reach here?
+> +		 */
+> +	}
+> +
+>  	vdd_info = omap_vdd_array;
+>  	nr_scalable_vdd = omap_vdd_count;
+>  	return 0;
+> diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
+> index e9f5408..b56530e 100644
+> --- a/arch/arm/mach-omap2/voltage.h
+> +++ b/arch/arm/mach-omap2/voltage.h
+> @@ -151,8 +151,7 @@ struct omap_volt_data *omap_voltage_get_voltdata(struct voltagedomain *voltdm,
+>  		unsigned long volt);
+>  unsigned long omap_voltage_get_nom_volt(struct voltagedomain *voltdm);
+>  struct dentry *omap_voltage_get_dbgdir(struct voltagedomain *voltdm);
+> -int __init omap_voltage_early_init(s16 prm_mod, s16 prm_irqst_mod,
+> -				   struct omap_vdd_info *omap_vdd_array[],
+> +int __init omap_voltage_early_init(struct omap_vdd_info *omap_vdd_array[],
+>  				   u8 omap_vdd_count);
+>  #ifdef CONFIG_PM
+>  int omap_voltage_register_pmic(struct voltagedomain *voltdm,
+> diff --git a/arch/arm/mach-omap2/voltagedomains3xxx_data.c b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
+> index def230f..6f6999d 100644
+> --- a/arch/arm/mach-omap2/voltagedomains3xxx_data.c
+> +++ b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
+> @@ -70,8 +70,6 @@ static struct omap_vdd_info *omap3_vdd_info[] = {
+>  /* OMAP3 specific voltage init functions */
+>  static int __init omap3xxx_voltage_early_init(void)
+>  {
+> -	s16 prm_mod = OMAP3430_GR_MOD;
+> -	s16 prm_irqst_ocp_mod = OCP_MOD;
+>  
+>  	if (!cpu_is_omap34xx())
+>  		return 0;
+> @@ -88,8 +86,7 @@ static int __init omap3xxx_voltage_early_init(void)
+>  		omap3_vdd2_info.volt_data = omap34xx_vddcore_volt_data;
+>  	}
+>  
+> -	return omap_voltage_early_init(prm_mod, prm_irqst_ocp_mod,
+> -				       omap3_vdd_info,
+> +	return omap_voltage_early_init(omap3_vdd_info,
+>  				       ARRAY_SIZE(omap3_vdd_info));
+>  };
+>  core_initcall(omap3xxx_voltage_early_init);
+> diff --git a/arch/arm/mach-omap2/voltagedomains44xx_data.c b/arch/arm/mach-omap2/voltagedomains44xx_data.c
+> index cb64996..208a67d 100644
+> --- a/arch/arm/mach-omap2/voltagedomains44xx_data.c
+> +++ b/arch/arm/mach-omap2/voltagedomains44xx_data.c
+> @@ -81,9 +81,6 @@ static struct omap_vdd_info *omap4_vdd_info[] = {
+>  /* OMAP4 specific voltage init functions */
+>  static int __init omap44xx_voltage_early_init(void)
+>  {
+> -	s16 prm_mod = OMAP4430_PRM_DEVICE_INST;
+> -	s16 prm_irqst_ocp_mod = OMAP4430_PRM_OCP_SOCKET_INST;
+> -
+>  	if (!cpu_is_omap44xx())
+>  		return 0;
+>  
+> @@ -95,8 +92,7 @@ static int __init omap44xx_voltage_early_init(void)
+>  	omap4_vdd_iva_info.volt_data = omap44xx_vdd_iva_volt_data;
+>  	omap4_vdd_core_info.volt_data = omap44xx_vdd_core_volt_data;
+>  
+> -	return omap_voltage_early_init(prm_mod, prm_irqst_ocp_mod,
+> -				       omap4_vdd_info,
+> +	return omap_voltage_early_init(omap4_vdd_info,
+>  				       ARRAY_SIZE(omap4_vdd_info));
+>  };
+>  core_initcall(omap44xx_voltage_early_init);
