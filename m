@@ -1,50 +1,44 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH V3 04/19] OMAP3+: voltage: remove spurious pr_notice for debugfs
-Date: Thu, 17 Mar 2011 07:55:00 -0700
-Message-ID: <8762rhbxvf.fsf@ti.com>
-References: <1299338962-5602-1-git-send-email-nm@ti.com>
-	<1299338962-5602-5-git-send-email-nm@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Sanjeev Premi <premi@ti.com>
+Subject: [PATCH 0/2] omap2+: voltage: simple clean-ups
+Date: Thu, 17 Mar 2011 20:42:35 +0530
+Message-ID: <1300374757-23010-1-git-send-email-premi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:52621 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753782Ab1CQOzE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 17 Mar 2011 10:55:04 -0400
-Received: by mail-iy0-f176.google.com with SMTP id 12so3506891iyj.21
-        for <linux-omap@vger.kernel.org>; Thu, 17 Mar 2011 07:55:03 -0700 (PDT)
-In-Reply-To: <1299338962-5602-5-git-send-email-nm@ti.com> (Nishanth Menon's
-	message of "Sat, 5 Mar 2011 20:59:07 +0530")
+Received: from comal.ext.ti.com ([198.47.26.152]:34668 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753426Ab1CQPMp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 17 Mar 2011 11:12:45 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p2HFCgYU017029
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Thu, 17 Mar 2011 10:12:44 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Tony <tony@atomide.com>, Paul <paul@pwsan.com>
+To: linux-omap@vger.kernel.org
+Cc: Sanjeev Premi <premi@ti.com>
 
-Nishanth Menon <nm@ti.com> writes:
+This set contains simple clean-up changes.
 
-> cat of debugfs entry for vp_volt provides voltage. The additional pr_notice
-> is just spam on console and provides no additional information.
->
-> Signed-off-by: Nishanth Menon <nm@ti.com>
+There is a TODO in the patchset where i would need 
+specific comments - whether my understanding is
+right or not.
 
-Thanks, queueing for 2.6.39-rc fixes cycle.
+In expectation of an eminent new patch revision,
+these changes have only been compiled against
+omap2plus_defconfig.
 
-Kevin
+BTW, I don't have OMAP4 board with me. Any test,
+if necessary, would be useful.
 
-> ---
->  arch/arm/mach-omap2/voltage.c |    1 -
->  1 files changed, 0 insertions(+), 1 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
-> index 1b40aa0..53c399f 100644
-> --- a/arch/arm/mach-omap2/voltage.c
-> +++ b/arch/arm/mach-omap2/voltage.c
-> @@ -150,7 +150,6 @@ static int vp_volt_debug_get(void *data, u64 *val)
->  	}
->  
->  	vsel = vdd->read_reg(prm_mod_offs, vdd->vp_data->voltage);
-> -	pr_notice("curr_vsel = %x\n", vsel);
->  
->  	if (!vdd->pmic_info->vsel_to_uv) {
->  		pr_warning("PMIC function to convert vsel to voltage"
+Sanjeev Premi (2):
+  omap3: voltage: remove unnecessary param passing
+  omap3: voltage: fix variable type and name
+
+ arch/arm/mach-omap2/voltage.c                 |   32 ++++++++++++++++--------
+ arch/arm/mach-omap2/voltage.h                 |    3 +-
+ arch/arm/mach-omap2/voltagedomains3xxx_data.c |    5 +---
+ arch/arm/mach-omap2/voltagedomains44xx_data.c |    6 +----
+ 4 files changed, 24 insertions(+), 22 deletions(-)
+
+-- 
+1.7.2.2
+
