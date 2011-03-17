@@ -1,60 +1,53 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH] OMAP4: PM: remove redundant #ifdef CONFIG_PM
-Date: Thu, 17 Mar 2011 14:43:31 -0700
-Message-ID: <878vwdv2ws.fsf@ti.com>
-References: <1299987443-27275-1-git-send-email-nm@ti.com>
+Subject: Re: [PATCH v2 0/2] [pm-wip/cpufreq] OMAP: CPUfreq cleanup and SMP support
+Date: Thu, 17 Mar 2011 14:50:40 -0700
+Message-ID: <871v25v2kv.fsf@ti.com>
+References: <1300102729-17276-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:53513 "EHLO
-	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755662Ab1CQVng (ORCPT
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:37334 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755540Ab1CQVuo (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 17 Mar 2011 17:43:36 -0400
-Received: by mail-iw0-f171.google.com with SMTP id 19so3644810iwr.30
-        for <linux-omap@vger.kernel.org>; Thu, 17 Mar 2011 14:43:35 -0700 (PDT)
-In-Reply-To: <1299987443-27275-1-git-send-email-nm@ti.com> (Nishanth Menon's
-	message of "Sun, 13 Mar 2011 09:07:23 +0530")
+	Thu, 17 Mar 2011 17:50:44 -0400
+Received: by mail-yw0-f54.google.com with SMTP id 9so1602803ywf.41
+        for <linux-omap@vger.kernel.org>; Thu, 17 Mar 2011 14:50:44 -0700 (PDT)
+In-Reply-To: <1300102729-17276-1-git-send-email-santosh.shilimkar@ti.com>
+	(Santosh Shilimkar's message of "Mon, 14 Mar 2011 17:08:47 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Martin Etti <ettl.martin@gmx.de>, linux-arm <linux-arm-kernel@lists.infradead.org>, Tony <tony@atomide.com>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-Nishanth Menon <nm@ti.com> writes:
+Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
 
-> pm44xx.c is built only when CONFIG_PM is setup,
-> remove redundant CONFIG_PM check.
+> This series is an attempt to clean-up OMAP CPUfreq driver.
+> 	- The OMAP1 and OMAP2PLUS cpufreq support is split to avoid
+> 	  any #ifdefery
+> 	- The omap2plus_cupfreq support is updated to work on
+> 	  SMP_ON_UP builds
+> 	- SMP support is added which can be used on OMAP4
 >
-> This also fixes:
-> https://bugzilla.kernel.org/show_bug.cgi?id=25022
->
-> Reported-by: Martin Etti <ettl.martin@gmx.de>
->
-> Signed-off-by: Nishanth Menon <nm@ti.com>
+> The series is generated against Kevin's latest cpufreq branch.
 
-Thanks, queuing for 2.6.39-rc fixes cycle (branch: for_2.6.39/pm-fixes)
+Thanks, adding to pm-wip/cpufreq branch.
 
 Kevin
 
-> ---
->  arch/arm/mach-omap2/pm44xx.c |    2 --
->  1 files changed, 0 insertions(+), 2 deletions(-)
+> The following changes since commit 444a22eb04ae07aef45cd4d0154f6f2bbe76daa9:
+>   Kevin Hilman (1):
+>         cpufreq: fixup after new OPP layer merged
 >
-> diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
-> index 76cfff2..59a870b 100644
-> --- a/arch/arm/mach-omap2/pm44xx.c
-> +++ b/arch/arm/mach-omap2/pm44xx.c
-> @@ -105,13 +105,11 @@ static int __init omap4_pm_init(void)
->  
->  	pr_err("Power Management for TI OMAP4.\n");
->  
-> -#ifdef CONFIG_PM
->  	ret = pwrdm_for_each(pwrdms_setup, NULL);
->  	if (ret) {
->  		pr_err("Failed to setup powerdomains\n");
->  		goto err2;
->  	}
-> -#endif
->  
->  #ifdef CONFIG_SUSPEND
->  	suspend_set_ops(&omap_pm_ops);
+> Santosh Shilimkar (2):
+>   OMAP: cpufreq: Split OMAP1 and OMAP2PLUS CPUfreq drivers.
+>   OMAP2PLUS: cpufreq: Add SMP support to cater OMAP4430
+>
+>  arch/arm/mach-omap1/Makefile                       |    3 +
+>  .../cpu-omap.c => mach-omap1/omap1-cpufreq.c}      |   68 +++------
+>  arch/arm/mach-omap2/Makefile                       |    3 +
+>  .../cpu-omap.c => mach-omap2/omap2plus-cpufreq.c}  |  156 +++++++++++++-------
+>  arch/arm/plat-omap/Makefile                        |    1 -
+>  5 files changed, 128 insertions(+), 103 deletions(-)
+>  copy arch/arm/{plat-omap/cpu-omap.c => mach-omap1/omap1-cpufreq.c} (75%)
+>  rename arch/arm/{plat-omap/cpu-omap.c => mach-omap2/omap2plus-cpufreq.c} (55%)
