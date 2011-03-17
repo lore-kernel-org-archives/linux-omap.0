@@ -1,88 +1,65 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v2 4/4] OMAP: DMA: Fix: context restore during off mode
-Date: Thu, 17 Mar 2011 14:08:34 -0700
-Message-ID: <87wrjxwj3h.fsf@ti.com>
-References: <1299853215-8507-1-git-send-email-manjugk@ti.com>
-	<1299853215-8507-5-git-send-email-manjugk@ti.com>
+From: Stephan Raue <mailinglists@openelec.tv>
+Subject: Re: [PATCH v5 00/10] OMAP4 : DSS2 : HDMI support on OMAP4
+Date: Thu, 17 Mar 2011 22:13:49 +0100
+Message-ID: <4D82798D.5090504@openelec.tv>
+References: <1299753858-12222-1-git-send-email-mythripk@ti.com>	 <1299764643.2017.177.camel@deskari> <4D78E3F5.2090600@openelec.tv>	 <1299827578.2567.1.camel@deskari> <4D79E0A0.9040900@openelec.tv>	 <1299849774.2479.3.camel@deskari> <4D7A4B44.2030801@openelec.tv>	 <1299868049.2479.33.camel@deskari> <4D7A6D0F.40906@openelec.tv>	 <AANLkTin+fnZfFte5v8+G0saDcjCqsT=oQ4U_oGSm-UGn@mail.gmail.com>	 <4D7CD588.3080100@openelec.tv> <4D7CEEC8.50803@openelec.tv>	 <1300258302.1917.32.camel@lappyti>	 <AANLkTinNynOpnJyHZeyA01E5oVMcs_PnAYRH4dSznJ_d@mail.gmail.com>	 <4D814C72.9010300@openelec.tv> <1300360287.1909.62.camel@lappyti> <EAF47CD23C76F840A9E7FCE10091EFAB033D1A86F2@dbde02.ent.ti.com> <4D826C33.1090705@openelec.tv>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:59986 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755534Ab1CQVIi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 17 Mar 2011 17:08:38 -0400
-Received: by mail-iw0-f181.google.com with SMTP id 2so3652560iwn.12
-        for <linux-omap@vger.kernel.org>; Thu, 17 Mar 2011 14:08:37 -0700 (PDT)
-In-Reply-To: <1299853215-8507-5-git-send-email-manjugk@ti.com> (Manjunath
-	Kondaiah G.'s message of "Fri, 11 Mar 2011 19:50:15 +0530")
+Received: from mail04.solnet.ch ([212.101.4.138]:50996 "EHLO mail04.solnet.ch"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755558Ab1CQVNv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 17 Mar 2011 17:13:51 -0400
+In-Reply-To: <4D826C33.1090705@openelec.tv>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk, paul@pwsan.com, tony@atomide.com
+To: "Janorkar, Mayuresh" <mayur@ti.com>
+Cc: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, "K, Mythri P" <mythripk@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-"G, Manjunath Kondaiah" <manjugk@ti.com> writes:
-
-> The current DMA context restore clears all the DMA channel registers
-> even if the channels are in use. This will result in transfer failures
-> if repeated DMA transfers are initiated with one time DMA channel
-> configuration.
+Am 17.03.2011 21:16, schrieb Stephan Raue:
+> Am 17.03.2011 17:20, schrieb Janorkar, Mayuresh:
+...
+>> Is it possible for you to enable low-level debugging and pass 
+>> omapfb.debug=1 omapdss.debug=1 in your bootargs?
+>> This would show the Framebuffer and DSSDBG prints. We would get an 
+>> idea if kernel is getting stuck in DSS/OMAPFB.
+>>
+>> Let me know if you any help in enabling debug prints.
+>>
+>> Also one more suggestion/ question, are you seeing a hang if DSS is 
+>> not enabled in kernel?
+>>
+>> -Thanks,
+>> Mayuresh
+>>
+> i have done, there is not more output with enable low level debugging 
+> and passing this options... :-(
 >
-> Also, remove access to sysconfig register during context save/restore
-> since it will be handled through hwmod layer.
->
-> Tested on OMAP3430 Zoom2 with
->  - off mode enabled
->  - one time DMA channel configuration
->  - repeated DMA transfers
->
-> Signed-off-by: G, Manjunath Kondaiah <manjugk@ti.com>
+> disabling DSS lets boot the kernel and start initramfs (see: 
+> http://paste.pocoo.org/show/355262/)
+an update:
 
-This patch introduces a compiler warning:
+compiled with DSS/HDMI support as modules, loading modules with:
 
-/work/kernel/omap/pm/arch/arm/plat-omap/dma.c: In function 'omap_dma_global_context_restore':
-/work/kernel/omap/pm/arch/arm/plat-omap/dma.c:2068:6: warning: unused variable 'ch'
+   modprobe omapdss
+   modprobe omapfb
 
-because...
+and doing a
 
-> ---
->  arch/arm/plat-omap/dma.c |    7 -------
->  1 files changed, 0 insertions(+), 7 deletions(-)
->
-> diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-> index 5cca56b..bb0b7e2 100644
-> --- a/arch/arm/plat-omap/dma.c
-> +++ b/arch/arm/plat-omap/dma.c
-> @@ -2059,8 +2059,6 @@ void omap_dma_global_context_save(void)
->  	pm_runtime_get_sync(dev);
->  	omap_dma_global_context.dma_irqenable_l0 =
->  		p->dma_read(IRQENABLE_L0, 0);
-> -	omap_dma_global_context.dma_ocp_sysconfig =
-> -		p->dma_read(OCP_SYSCONFIG, 0);
->  	omap_dma_global_context.dma_gcr = p->dma_read(GCR, 0);
->  	pm_runtime_put_autosuspend(dev);
->  }
-> @@ -2071,17 +2069,12 @@ void omap_dma_global_context_restore(void)
->  
->  	pm_runtime_get_sync(dev);
->  	p->dma_write(omap_dma_global_context.dma_gcr, GCR, 0);
-> -	p->dma_write(omap_dma_global_context.dma_ocp_sysconfig,
-> -		OCP_SYSCONFIG, 0);
->  	p->dma_write(omap_dma_global_context.dma_irqenable_l0,
->  		IRQENABLE_L0, 0);
->  
->  	if (IS_DMA_ERRATA(DMA_ROMCODE_BUG))
->  		p->dma_write(0x3 , IRQSTATUS_L0, 0);
->  
-> -	for (ch = 0; ch < dma_chan_count; ch++)
-> -		if (dma_chan[ch].dev_id != -1)
-> -			omap_clear_dma(ch);
->  	pm_runtime_put_autosuspend(dev);
->  }
+   dmesg
 
-...you removed the usage if 'ch' but not it's declaration.
+in the init script gives me:
 
-Kevin
+   modprobe: can't load module omapdss 
+(kernel/drivers/video/omap2/dss/omapdss.ko): invalid module format
+   modprobe: can't load module cfbcopyarea 
+(kernel/drivers/video/cfbcopyarea.ko): invalid module format
 
+see: http://paste.pocoo.org/show/355300/ line 254,255,514,515
 
+why? the complete kernel with modules is rebuild from scratch
 
+thanks much
+
+Stephan
