@@ -1,21 +1,21 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v2 5/7] OMAP: PM CONSTRAINTS: add a power domains state update function in hwmod
-Date: Thu, 17 Mar 2011 13:42:08 -0700
-Message-ID: <87pqppxyvz.fsf@ti.com>
+Subject: Re: [PATCH v2 6/7] OMAP: PM CONSTRAINTS: control power domains next state
+Date: Thu, 17 Mar 2011 13:58:22 -0700
+Message-ID: <87d3lpxy4x.fsf@ti.com>
 References: <1299779247-20511-1-git-send-email-j-pihet@ti.com>
-	<1299779247-20511-6-git-send-email-j-pihet@ti.com>
+	<1299779247-20511-7-git-send-email-j-pihet@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:46219 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755155Ab1CQUmM (ORCPT
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:50212 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755196Ab1CQU60 (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 17 Mar 2011 16:42:12 -0400
-Received: by iyb26 with SMTP id 26so3436980iyb.26
-        for <linux-omap@vger.kernel.org>; Thu, 17 Mar 2011 13:42:11 -0700 (PDT)
-In-Reply-To: <1299779247-20511-6-git-send-email-j-pihet@ti.com> (Jean Pihet's
-	message of "Thu, 10 Mar 2011 18:47:25 +0100")
+	Thu, 17 Mar 2011 16:58:26 -0400
+Received: by mail-gx0-f177.google.com with SMTP id 2so1396923gxk.36
+        for <linux-omap@vger.kernel.org>; Thu, 17 Mar 2011 13:58:25 -0700 (PDT)
+In-Reply-To: <1299779247-20511-7-git-send-email-j-pihet@ti.com> (Jean Pihet's
+	message of "Thu, 10 Mar 2011 18:47:26 +0100")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Jean Pihet <jean.pihet@newoldbits.com>
@@ -23,99 +23,215 @@ Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, paul@pwsan
 
 Jean Pihet <jean.pihet@newoldbits.com> writes:
 
-> Hwmod is queried from the omap device layer to change the power domains
-> next power state. Hwmod retrieves the correct power domain and if it
-> exists it calls the corresponding power domain function.
+> When a wake-up constraint is requested or removed the omap device layer
+> dispatches the updated strongest constraint value.
+> The power domains get the next power state programmed directly in the
+> registers via pwrdm_wakeuplat_update_pwrst.
+>
+> Note about PM QOS: the MPU and CORE power domains get the next power
+> state via cpuidle, which get the strongest wake-up latency constraint
+> by querying PM QOS. The usage of PM QOS is temporary, until a generic
+> solution is in place.
 >
 > Tested on OMAP3 Beagleboard in RET/OFF using wake-up latency constraints
 > on MPU, CORE and PER.
 >
 > Signed-off-by: Jean Pihet <j-pihet@ti.com>
 
-Subject prefix should be: OMAP2+: omap_hwmod: ...
+Subject prefix should be: OMAP2+: powerdomain: ...
 
 > ---
->  arch/arm/mach-omap2/omap_hwmod.c             |   29 +++++++++++++++++++++++++-
->  arch/arm/plat-omap/include/plat/omap_hwmod.h |    1 +
->  2 files changed, 29 insertions(+), 1 deletions(-)
+>  arch/arm/mach-omap2/powerdomain.c |  100 +++++++++++++++++++++++++++++++++++++
+>  arch/arm/mach-omap2/powerdomain.h |   24 ++++++++-
+>  2 files changed, 122 insertions(+), 2 deletions(-)
 >
-> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-> index cf8cc9b..8caf2c5 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod.c
-> @@ -142,6 +142,7 @@
->  #include "powerdomain.h"
->  #include <plat/clock.h>
->  #include <plat/omap_hwmod.h>
-> +#include <plat/omap_device.h>
->  #include <plat/prcm.h>
->  
+> diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+> index eaed0df..54ac955 100644
+> --- a/arch/arm/mach-omap2/powerdomain.c
+> +++ b/arch/arm/mach-omap2/powerdomain.c
+> @@ -19,6 +19,7 @@
+>  #include <linux/list.h>
+>  #include <linux/errno.h>
+>  #include <linux/string.h>
+> +
 >  #include "cm2xxx_3xxx.h"
-> @@ -2277,11 +2278,37 @@ ohsps_unlock:
->  	return ret;
+>  #include "prcm44xx.h"
+>  #include "cm44xx.h"
+> @@ -176,6 +177,105 @@ static int _pwrdm_post_transition_cb(struct powerdomain *pwrdm, void *unused)
+>  	return 0;
 >  }
 >  
 > +/*
-> + * omap_hwmod_update_power_state - Update the power domain power state of
-
-I think 'set_next_power_state' is a better name for this function.
-
-> + * @oh
+> + * Test if the current powerdomain is MPU or CORE
 > + *
-> + * @oh: struct omap_hwmod* to which the requesting device belongs to.
-> + * @min_latency: the allowed wake-up latency for the power domain of @oh.
+> + * This function is only used by pwrdm_wakeuplat_update_pwrst
+> + * which applies the MPU and CORE power domains constraints using PM QOS.
+> + *
+> + * This will disappear when all power domains will be controlled directly
+> + * from the wake-up latency constraints framework
+> + */
+> +static inline int is_pwrdm_mpu_or_core(struct powerdomain *pwrdm)
+> +{
+> +	if ((pwrdm == pwrdm_lookup("mpu_pwrdm")) ||
+> +	    (pwrdm == pwrdm_lookup("core_pwrdm")))
+> +		return 1;
+> +	else
+> +		return 0;
+> +}
+
+I think Paul pointed this out in the earlier review, but instead of
+doing this using string compare each time, set a flag in the powerdomain
+at init time can be checked here with a simple check.
+
+> +/**
+> + * pwrdm_wakeuplat_update_pwrst - Update power domain power state if needed
+> + * @pwrdm: struct powerdomain * to which requesting device belongs to.
+> + * @min_latency: the allowed wake-up latency for the given power domain. A
+> + *  value of 0 means 'no constraint' on the pwrdm.
 > + *
 > + * Finds the power domain next power state that fulfills the constraint.
-> + * Applies the constraint to the power domain by calling
-> + * pwrdm_wakeuplat_update_pwrst.
-
-This needs to be updated as this function doesn't know anything about
-constraints.
-
+> + * Programs a new target state if it is different from current power state.
+> + *
 > + * Returns 0 upon success.
 > + */
-> +int omap_hwmod_update_power_state(struct omap_hwmod *oh, long min_latency)
+> +int pwrdm_wakeuplat_update_pwrst(struct powerdomain *pwrdm, long min_latency)
 > +{
-> +	struct powerdomain *pwrdm = omap_hwmod_get_pwrdm(oh);
+> +	int ret = 0, new_state = 0;
 > +
-> +	if (!PTR_ERR(pwrdm)) {
-> +		pr_err("omap_hwmod: Error: could not find parent "
-
-s/parent//
-
-instead of "omap_hwmod:", use "%s" with __func__ so the function name is
-printed on error.
-
-> +			"powerdomain for %s\n", oh->name);
+> +	if (!pwrdm) {
+> +		WARN(1, "powerdomain: %s: invalid parameter(s)", __func__);
 > +		return -EINVAL;
 > +	}
 > +
-> +	return pwrdm_wakeuplat_update_pwrst(pwrdm, min_latency);
-
-Again, this function doesn't exist yet in the series.
-
+> +	/*
+> +	 * Apply constraints to MPU and CORE via the PM QOS API.
+> +	 * Every power domain struct has a pm_qos_request_list field
+> +	 */
+> +	if (is_pwrdm_mpu_or_core(pwrdm)) {
+> +		if (pm_qos_request_active(&(pwrdm->pm_qos_request)))
+> +			pm_qos_remove_request(&(pwrdm->pm_qos_request));
+> +
+> +		if (min_latency > 0)
+> +			pm_qos_add_request(&(pwrdm->pm_qos_request),
+> +					   PM_QOS_CPU_DMA_LATENCY,
+> +					   min_latency);
+> +
+> +		return 0;
+> +	}
+> +
+> +	/*
+> +	 * Apply constraints to pwrdm other than MPU and CORE by programming
+> +	 * the pwrdm next power state.
+> +	 */
+> +
+> +	/* Find power state with wakeup latency < minimum constraint */
+> +	for (new_state = 0x0; new_state < PWRDM_MAX_PWRSTS; new_state++) {
+> +		if (min_latency == 0 ||
+> +		    pwrdm->wakeup_lat[new_state] <= min_latency)
+> +			break;
+> +	}
+> +
+> +	switch (new_state) {
+> +	case PWRDM_FUNC_PWRST_OFF:
+> +		new_state = PWRDM_POWER_OFF;
+> +		break;
+> +	case PWRDM_FUNC_PWRST_OSWR:
+> +		pwrdm_set_logic_retst(pwrdm, PWRDM_POWER_OFF);
+> +		new_state = PWRDM_POWER_RET;
+> +		break;
+> +	case PWRDM_FUNC_PWRST_CSWR:
+> +		pwrdm_set_logic_retst(pwrdm, PWRDM_POWER_RET);
+> +		new_state = PWRDM_POWER_RET;
+> +		break;
+> +	case PWRDM_FUNC_PWRST_ON:
+> +		new_state = PWRDM_POWER_ON;
+> +		break;
+> +	default:
+> +		pr_warn("powerdomain: requested latency constraint not "
+> +			"supported %s set to ON state\n", pwrdm->name);
+> +		new_state = PWRDM_POWER_ON;
+> +		break;
+> +	}
+> +
+> +	if (pwrdm_read_pwrst(pwrdm) != new_state)
+> +		ret = omap_set_pwrdm_state(pwrdm, new_state);
+> +
+> +	pr_debug("powerdomain: %s pwrst: curr=%d, prev=%d next=%d "
+> +		 "min_latency=%ld, set_state=%d\n", pwrdm->name,
+> +		 pwrdm_read_pwrst(pwrdm), pwrdm_read_prev_pwrst(pwrdm),
+> +		 pwrdm_read_next_pwrst(pwrdm), min_latency, new_state);
+> +
+> +	return ret;
 > +}
 > +
+>  /* Public functions */
+>  
 >  /**
->   * omap_hwmod_get_context_loss_count - get lost context count
->   * @oh: struct omap_hwmod *
->   *
-> - * Query the powerdomain of of @oh to get the context loss
-> + * Query the powerdomain of @oh to get the context loss
->   * count for this device.
->   *
->   * Returns the context loss count of the powerdomain assocated with @oh
-> diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-> index 65bcad4..f27110e 100644
-> --- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
-> +++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-> @@ -597,6 +597,7 @@ int omap_hwmod_for_each_by_class(const char *classname,
->  				 void *user);
+> diff --git a/arch/arm/mach-omap2/powerdomain.h b/arch/arm/mach-omap2/powerdomain.h
+> index 0b7a357..23b3408 100644
+> --- a/arch/arm/mach-omap2/powerdomain.h
+> +++ b/arch/arm/mach-omap2/powerdomain.h
+> @@ -19,7 +19,10 @@
 >  
->  int omap_hwmod_set_postsetup_state(struct omap_hwmod *oh, u8 state);
-> +int omap_hwmod_update_power_state(struct omap_hwmod *oh, long min_latency);
->  u32 omap_hwmod_get_context_loss_count(struct omap_hwmod *oh);
+>  #include <linux/types.h>
+>  #include <linux/list.h>
+> -
+> +#include <linux/plist.h>
+> +#include <linux/mutex.h>
+> +#include <linux/spinlock.h>
+> +#include <linux/pm_qos_params.h>
+>  #include <linux/atomic.h>
 >  
->  /*
+>  #include <plat/cpu.h>
+> @@ -46,6 +49,15 @@
+>  
+>  #define PWRSTS_OFF_RET_ON	(PWRSTS_OFF_RET | (1 << PWRDM_POWER_ON))
+>  
+> +/* Powerdomain functional power states */
+> +#define PWRDM_FUNC_PWRST_OFF	0x0
+> +#define PWRDM_FUNC_PWRST_OSWR	0x1
+> +#define PWRDM_FUNC_PWRST_CSWR	0x2
+> +#define PWRDM_FUNC_PWRST_ON	0x3
+> +
+> +#define PWRDM_MAX_FUNC_PWRSTS	4
+> +
+> +#define UNSUP_STATE		-1
+
+I think Paul mentioned this in earlier review, but we need to handle (or
+be prepared to handle) the inactive state too.
+
+>  /* Powerdomain flags */
+>  #define PWRDM_HAS_HDWR_SAR	(1 << 0) /* hardware save-and-restore support */
+> @@ -96,7 +108,11 @@ struct powerdomain;
+>   * @state_counter:
+>   * @timer:
+>   * @state_timer:
+> - *
+> + * @wakeup_lat: wakeup latencies (in us) for possible powerdomain power states
+> + * Note about the wakeup latencies ordering: the values must be sorted
+> + *  in decremental order
+> + * @pm_qos_request: PM QOS handle, only used to control the MPU and CORE power
+> + *  domains states; to be removed when a generic solution is in place.
+>   * @prcm_partition possible values are defined in mach-omap2/prcm44xx.h.
+>   */
+>  struct powerdomain {
+> @@ -121,6 +137,8 @@ struct powerdomain {
+>  	s64 timer;
+>  	s64 state_timer[PWRDM_MAX_PWRSTS];
+>  #endif
+> +	const u32 wakeup_lat[PWRDM_MAX_FUNC_PWRSTS];
+> +	struct pm_qos_request_list pm_qos_request;
+>  };
+>  
+>  /**
+> @@ -210,6 +228,8 @@ int pwrdm_clkdm_state_switch(struct clockdomain *clkdm);
+>  int pwrdm_pre_transition(void);
+>  int pwrdm_post_transition(void);
+>  int pwrdm_set_lowpwrstchange(struct powerdomain *pwrdm);
+> +
+> +int pwrdm_wakeuplat_update_pwrst(struct powerdomain *pwrdm, long min_latency);
+>  u32 pwrdm_get_context_loss_count(struct powerdomain *pwrdm);
+>  
+>  extern void omap2xxx_powerdomains_init(void);
 
 Kevin
