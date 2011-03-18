@@ -1,181 +1,46 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: [PATCH 1/2] omap3: voltage: remove unnecessary param passing
-Date: Fri, 18 Mar 2011 10:28:37 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024C3084D9@dbde02.ent.ti.com>
-References: <1300374757-23010-1-git-send-email-premi@ti.com>
-	<1300374757-23010-2-git-send-email-premi@ti.com> <87aagt1p9p.fsf@ti.com>
+From: Anand Gadiyar <gadiyar@ti.com>
+Subject: RE: [PATCH v5 00/10] OMAP4 : DSS2 : HDMI support on OMAP4
+Date: Fri, 18 Mar 2011 11:13:04 +0530
+Message-ID: <e9b347d125584fc28b57c5d3c31d6464@mail.gmail.com>
+References: <1299753858-12222-1-git-send-email-mythripk@ti.com>
+ <1299764643.2017.177.camel@deskari> <4D78E3F5.2090600@openelec.tv>
+ <1299827578.2567.1.camel@deskari> <4D79E0A0.9040900@openelec.tv>
+ <1299849774.2479.3.camel@deskari> <4D7A4B44.2030801@openelec.tv>
+ <1299868049.2479.33.camel@deskari> <4D7A6D0F.40906@openelec.tv>
+ <AANLkTin+fnZfFte5v8+G0saDcjCqsT=oQ4U_oGSm-UGn@mail.gmail.com>
+ <4D7CD588.3080100@openelec.tv> <4D7CEEC8.50803@openelec.tv>
+ <1300258302.1917.32.camel@lappyti> <AANLkTinNynOpnJyHZeyA01E5oVMcs_PnAYRH4dSznJ_d@mail.gmail.com>
+ <4D814C72.9010300@openelec.tv>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:55662 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753074Ab1CRE6r convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Mar 2011 00:58:47 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p2I4whBh009235
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 17 Mar 2011 23:58:46 -0500
-In-Reply-To: <87aagt1p9p.fsf@ti.com>
-Content-Language: en-US
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:55438 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750940Ab1CRFr5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 18 Mar 2011 01:47:57 -0400
+Received: by mail-fx0-f51.google.com with SMTP id 6so3278881fxm.10
+        for <linux-omap@vger.kernel.org>; Thu, 17 Mar 2011 22:47:56 -0700 (PDT)
+In-Reply-To: <4D814C72.9010300@openelec.tv>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hilman, Kevin" <khilman@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Stephan Raue <mailinglists@openelec.tv>, Mythri P K <mythripk@ti.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org
 
-> -----Original Message-----
-> From: Hilman, Kevin 
-> Sent: Friday, March 18, 2011 1:41 AM
-> To: Premi, Sanjeev
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: [PATCH 1/2] omap3: voltage: remove unnecessary 
-> param passing
-> 
-> Sanjeev Premi <premi@ti.com> writes:
-> 
-> > It is not necessary to pass the params prm_mod and
-> > prm_irqst_mod to omap_voltage_early_init().
-> >
-> > Signed-off-by: Sanjeev Premi <premi@ti.com>
-> 
-> Hi Sanjeev,
-> 
-> I also started working on cleaning some of this up, but I took a
-> slightly different approach[1], namely I make these offsets 
-> part of the
-> VDD structure so that this data stays in the data files.
-> 
-> I'm still working on the series, but the work-in-progress is in my
-> pm-wip/voltdm branch, which I expect to post for comment tomorrow.
-> 
-> Kevin
-> 
-> [1] 
-> http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-p
-> m.git;a=commit;h=185cdf40ad978a466106b52fce9b68ca7081f358
+> i tried this test tree with omap2plus_defconfig.
+>
+> it seems the kernel crashes and poweroff the board on loading
+> this hdmi stuff, but dont print any crashlog. is there a
+> way any backtraces will be printed?
+> output from serial console: http://paste.pocoo.org/show/354850/
+> kernel config (omap2plus_defconfig, added squashfs support, added
+> support to include initramfs in kernel, build omapfb stuff statically
+> into the kernel): http://paste.pocoo.org/show/354853/
+>
+> i am using a own toolchain to crosscompile with gcc-4.5.2,
+> binutils-2.21...
 
-[sp] I had considered this, but the PRM offset wouldn't change for
-     each VDD. Therefore, opted to keep static in the file just as
-     few other files e.g. control.c
+Just a hunch, but could you please turn off CONFIG_OMAP2_DSS_SDI
+and try again?
 
-~sanjeev
-
-> [2] 
-> http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-p
-m.git;a=shortlog;h=refs/heads/pm-wip/voltdm
-> 
-> > ---
-> >  arch/arm/mach-omap2/voltage.c                 |   18 
-> ++++++++++++++----
-> >  arch/arm/mach-omap2/voltage.h                 |    3 +--
-> >  arch/arm/mach-omap2/voltagedomains3xxx_data.c |    5 +----
-> >  arch/arm/mach-omap2/voltagedomains44xx_data.c |    6 +-----
-> >  4 files changed, 17 insertions(+), 15 deletions(-)
-> >
-> > diff --git a/arch/arm/mach-omap2/voltage.c 
-> b/arch/arm/mach-omap2/voltage.c
-> > index c6facf7..ce3098a 100644
-> > --- a/arch/arm/mach-omap2/voltage.c
-> > +++ b/arch/arm/mach-omap2/voltage.c
-> > @@ -1096,12 +1096,22 @@ int __init omap_voltage_late_init(void)
-> >  }
-> >  
-> >  /* XXX document */
-> > -int __init omap_voltage_early_init(s16 prm_mod, s16 
-> prm_irqst_ocp_mod,
-> > -				   struct omap_vdd_info 
-> *omap_vdd_array[],
-> > +int __init omap_voltage_early_init(struct omap_vdd_info 
-> *omap_vdd_array[],
-> >  				   u8 omap_vdd_count)
-> >  {
-> > -	prm_mod_offs = prm_mod;
-> > -	prm_irqst_ocp_mod_offs = prm_irqst_ocp_mod;
-> > +	if (cpu_is_omap44xx()) {
-> > +		prm_mod_offs = OMAP4430_PRM_DEVICE_INST;
-> > +		prm_irqst_ocp_mod_offs = OMAP4430_PRM_OCP_SOCKET_INST;
-> > +	} else if (cpu_is_omap34xx()) {
-> > +		prm_mod_offs = OMAP3430_GR_MOD;
-> > +		prm_irqst_ocp_mod_offs = OCP_MOD;
-> > +	} else {
-> > +		/* TODO:
-> > +		 * What should be done for OMAP24xx?
-> > +		 * Would we even reach here?
-> > +		 */
-> > +	}
-> > +
-> >  	vdd_info = omap_vdd_array;
-> >  	nr_scalable_vdd = omap_vdd_count;
-> >  	return 0;
-> > diff --git a/arch/arm/mach-omap2/voltage.h 
-> b/arch/arm/mach-omap2/voltage.h
-> > index e9f5408..b56530e 100644
-> > --- a/arch/arm/mach-omap2/voltage.h
-> > +++ b/arch/arm/mach-omap2/voltage.h
-> > @@ -151,8 +151,7 @@ struct omap_volt_data 
-> *omap_voltage_get_voltdata(struct voltagedomain *voltdm,
-> >  		unsigned long volt);
-> >  unsigned long omap_voltage_get_nom_volt(struct 
-> voltagedomain *voltdm);
-> >  struct dentry *omap_voltage_get_dbgdir(struct 
-> voltagedomain *voltdm);
-> > -int __init omap_voltage_early_init(s16 prm_mod, s16 prm_irqst_mod,
-> > -				   struct omap_vdd_info 
-> *omap_vdd_array[],
-> > +int __init omap_voltage_early_init(struct omap_vdd_info 
-> *omap_vdd_array[],
-> >  				   u8 omap_vdd_count);
-> >  #ifdef CONFIG_PM
-> >  int omap_voltage_register_pmic(struct voltagedomain *voltdm,
-> > diff --git a/arch/arm/mach-omap2/voltagedomains3xxx_data.c 
-> b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
-> > index def230f..6f6999d 100644
-> > --- a/arch/arm/mach-omap2/voltagedomains3xxx_data.c
-> > +++ b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
-> > @@ -70,8 +70,6 @@ static struct omap_vdd_info *omap3_vdd_info[] = {
-> >  /* OMAP3 specific voltage init functions */
-> >  static int __init omap3xxx_voltage_early_init(void)
-> >  {
-> > -	s16 prm_mod = OMAP3430_GR_MOD;
-> > -	s16 prm_irqst_ocp_mod = OCP_MOD;
-> >  
-> >  	if (!cpu_is_omap34xx())
-> >  		return 0;
-> > @@ -88,8 +86,7 @@ static int __init 
-> omap3xxx_voltage_early_init(void)
-> >  		omap3_vdd2_info.volt_data = omap34xx_vddcore_volt_data;
-> >  	}
-> >  
-> > -	return omap_voltage_early_init(prm_mod, prm_irqst_ocp_mod,
-> > -				       omap3_vdd_info,
-> > +	return omap_voltage_early_init(omap3_vdd_info,
-> >  				       ARRAY_SIZE(omap3_vdd_info));
-> >  };
-> >  core_initcall(omap3xxx_voltage_early_init);
-> > diff --git a/arch/arm/mach-omap2/voltagedomains44xx_data.c 
-> b/arch/arm/mach-omap2/voltagedomains44xx_data.c
-> > index cb64996..208a67d 100644
-> > --- a/arch/arm/mach-omap2/voltagedomains44xx_data.c
-> > +++ b/arch/arm/mach-omap2/voltagedomains44xx_data.c
-> > @@ -81,9 +81,6 @@ static struct omap_vdd_info *omap4_vdd_info[] = {
-> >  /* OMAP4 specific voltage init functions */
-> >  static int __init omap44xx_voltage_early_init(void)
-> >  {
-> > -	s16 prm_mod = OMAP4430_PRM_DEVICE_INST;
-> > -	s16 prm_irqst_ocp_mod = OMAP4430_PRM_OCP_SOCKET_INST;
-> > -
-> >  	if (!cpu_is_omap44xx())
-> >  		return 0;
-> >  
-> > @@ -95,8 +92,7 @@ static int __init 
-> omap44xx_voltage_early_init(void)
-> >  	omap4_vdd_iva_info.volt_data = omap44xx_vdd_iva_volt_data;
-> >  	omap4_vdd_core_info.volt_data = omap44xx_vdd_core_volt_data;
-> >  
-> > -	return omap_voltage_early_init(prm_mod, prm_irqst_ocp_mod,
-> > -				       omap4_vdd_info,
-> > +	return omap_voltage_early_init(omap4_vdd_info,
-> >  				       ARRAY_SIZE(omap4_vdd_info));
-> >  };
-> >  core_initcall(omap44xx_voltage_early_init);
-> 
+- Anand
