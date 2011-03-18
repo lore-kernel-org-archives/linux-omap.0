@@ -1,67 +1,77 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
+	<u.kleine-koenig@pengutronix.de>
 Subject: Re: [GIT PULL] omap changes for v2.6.39 merge window
-Date: Fri, 18 Mar 2011 10:15:12 +0000
-Message-ID: <20110318101512.GA15375@n2100.arm.linux.org.uk>
-References: <20110317183048.GW7258@atomide.com> <AANLkTimWbb5DWiiCW821H6pRicbk1fS3PYcnGyUMznvM@mail.gmail.com>
+Date: Fri, 18 Mar 2011 12:13:19 +0100
+Message-ID: <20110318111319.GB27124@pengutronix.de>
+References: <20110317183048.GW7258@atomide.com>
+ <AANLkTimWbb5DWiiCW821H6pRicbk1fS3PYcnGyUMznvM@mail.gmail.com>
+ <20110318101512.GA15375@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:42626 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752110Ab1CRLN2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Mar 2011 07:13:28 -0400
 Content-Disposition: inline
-In-Reply-To: <AANLkTimWbb5DWiiCW821H6pRicbk1fS3PYcnGyUMznvM@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Tony Lindgren <tony@atomide.com>, David Brown <davidb@codeaurora.org>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+In-Reply-To: <20110318101512.GA15375@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Tony Lindgren <tony@atomide.com>, David Brown <davidb@codeaurora.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Thu, Mar 17, 2011 at 07:50:36PM -0700, Linus Torvalds wrote:
-> On Thu, Mar 17, 2011 at 11:30 AM, Tony Lindgren <tony@atomide.com> wrote:
-> >
-> > Please pull omap changes for this merge window from:
-> 
-> Gaah. Guys, this whole ARM thing is a f*cking pain in the ass.
+Hello Russell,
 
-Please be more specific.  ARM is not small.  ARM as an architecture is
-_massive_, with lots of people working in it.  By blaming 'ARM', it's a
-bit like blaming the entire planet for problems in one country.
+On Fri, Mar 18, 2011 at 10:15:12AM +0000, Russell King - ARM Linux wrot=
+e:
+> On Thu, Mar 17, 2011 at 07:50:36PM -0700, Linus Torvalds wrote:
+> > The pure amount of crazy churn is annoying in itself,
+> > but when I then get these "independent" pull requests from four
+> > different people, and they touch the same files, that indicates tha=
+t
+> > something is wrong.
+>=20
+> I have already complained to Uwe and Sascha about the IMX/MXC conflic=
+ts.
+> It already struck me that there's something seriously wrong at
+> pengutronix.com as both Uwe and Sascha work in the same area, yet don=
+'t
+> coordinate their efforts.  It seems to me that Uwe is completely
+> independent of everyone else.
+I feel blamed wrongly here. My part of the "crazy churn" in
+v2.6.38..$todayslinus/master is that I touched drivers/net/Kconfig[1] a=
+nd
+arch/arm/mach-mxs/gpio.c[2]. The former went in via the net tree; the
+latter via Russell's tree with Sascha's Ack. Please correct me if I'm
+wrong but I think this was the correct thing to do. I don't know how
+that qualifies as "completely independent of everyone else".
 
-You've only had merge conflicts with IMX/MXC and OMAP so far, and that
-hardly warrants taring the "whole ARM thing" with the same brush.
+IMHO the cooperation between Sascha and me works fine. In fact nearly
+all[3] of my patches that touch imx related things under arch/arm/ go i=
+n
+via Sascha's tree.
 
-Most people are trying very hard to do the right thing.
+Best regards
+Uwe
 
-> Somebody needs to get a grip in the ARM community. I do want to do
-> these merges, just to see how screwed up things are, but guys, this is
-> just ridiculous.
+[1] 085e79e (net/fec: consolidate all i.MX options to CONFIG_ARM)
+[2] bf0c111 (ARM: 6744/1: mxs: irq_data conversion)
+[3] Some exceptions I found are:
+	bf0c111 ARM: 6744/1: mxs: irq_data conversion
+	4df772d ARM: 6322/1: imx/pca100: Fix name of spi platform data
+	868003c ARM: 6280/1: imx: Fix build failure when including <mach/gpio.=
+h> without <linux/spinlock.h>
+    All of these are OK IMHO.
 
-It isn't as bad as you think it is for the majority of ARM stuff.
 
-> The pure amount of crazy churn is annoying in itself,
-> but when I then get these "independent" pull requests from four
-> different people, and they touch the same files, that indicates that
-> something is wrong.
-
-I have already complained to Uwe and Sascha about the IMX/MXC conflicts.
-It already struck me that there's something seriously wrong at
-pengutronix.com as both Uwe and Sascha work in the same area, yet don't
-coordinate their efforts.  It seems to me that Uwe is completely
-independent of everyone else.
-
-As for anything else, I really don't see a problem.  There are changes
-in core ARM code which have impacts on _every_ ARM platform.  It's just
-a fact of life that there could be conflicts between core changes and
-platform changes.  That's not because things are uncoordinated - I do
-try to ensure that such patches receive as many acks from maintainers
-as possible.
-
-> Somebody in the ARM community really needs to step up and tell people
-> to stop dicking around.
-
-You mean like I've already done with Uwe and Sascha?
-
-I do get the impression that you're extremely unhappy with the way ARM
-stuff works, and I've no real idea how to solve that.  I think much of
-it is down to perception rather than anything tangible.
-
-Maybe the only solution is for ARM to fork the kernel, which is something
-I really don't want to do - but from what I'm seeing its the only solution
-which could come close to making you happy.
+--=20
+Pengutronix e.K.                           | Uwe Kleine-K=F6nig        =
+    |
+Industrial Linux Solutions                 | http://www.pengutronix.de/=
+  |
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
