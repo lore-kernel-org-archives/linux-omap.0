@@ -1,46 +1,91 @@
-From: Sergei Shtylyov <sshtylyov@mvista.com>
-Subject: Re: [PATCH] omap3: beaglexm: fix user button.
-Date: Fri, 18 Mar 2011 16:00:03 +0300
-Message-ID: <4D835753.1040308@ru.mvista.com>
-References: <1300365890-28544-1-git-send-email-javier.martin@vista-silicon.com>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: [RFC PATCH 2/5] OMAP2+: add cpu id register to MAC address
+ helper
+Date: Fri, 18 Mar 2011 20:07:55 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024C3B8670@dbde02.ent.ti.com>
+References: <20110312224440.27728.60593.stgit@otae.warmcat.com>
+ <20110312225047.27728.1835.stgit@otae.warmcat.com>
+ <201103180934.39997.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:36084 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755534Ab1CRNBb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Mar 2011 09:01:31 -0400
-Received: by wwa36 with SMTP id 36so4848900wwa.1
-        for <linux-omap@vger.kernel.org>; Fri, 18 Mar 2011 06:01:30 -0700 (PDT)
-In-Reply-To: <1300365890-28544-1-git-send-email-javier.martin@vista-silicon.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:49792 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752724Ab1CROiL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Mar 2011 10:38:11 -0400
+In-Reply-To: <201103180934.39997.arnd@arndb.de>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Javier Martin <javier.martin@vista-silicon.com>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org
+To: Arnd Bergmann <arnd@arndb.de>, Andy Green <andy@warmcat.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "patches@linaro.org" <patches@linaro.org>, Andy Green <andy.green@linaro.org>
 
-Hello.
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Arnd Bergmann
+> Sent: Friday, March 18, 2011 2:05 PM
+> To: Andy Green
+> Cc: linux-kernel@vger.kernel.org; linux-usb@vger.kernel.org; 
+> linux-omap@vger.kernel.org; 
+> linux-arm-kernel@lists.infradead.org; patches@linaro.org; Andy Green
+> Subject: Re: [RFC PATCH 2/5] OMAP2+: add cpu id register to 
+> MAC address helper
+> 
+> On Saturday 12 March 2011, Andy Green wrote:
+> > Introduce a generic helper function that can set a MAC address using
+> > data from the OMAP unqiue CPU ID register.
+> > 
+> > Signed-off-by: Andy Green <andy.green@linaro.org>
+> > ---
+> > 
+> >  arch/arm/mach-omap2/id.c              |   13 +++++++++++++
+> >  arch/arm/mach-omap2/include/mach/id.h |    1 +
+> >  2 files changed, 14 insertions(+), 0 deletions(-)
+> > 
+> > diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+> > index 5f9086c..fc69ec5 100644
+> > --- a/arch/arm/mach-omap2/id.c
+> > +++ b/arch/arm/mach-omap2/id.c
+> > @@ -506,3 +506,16 @@ void __init 
+> omap2_set_globals_tap(struct omap_globals *omap2_globals)
+> >         else
+> >                 tap_prod_id = 0x0208;
+> >  }
+> > +
+> > +
+> > +void omap2_die_id_to_mac(u8 *mac, int length)
+> > +{
+> > +       struct omap_die_id odi;
+> > +
+> > +       omap_get_die_id(&odi);
+> > +       memcpy(mac, &odi.id_0, length);
+> > +
+> > +       /* mark it as not multicast and outside official 
+> 80211 MAC namespace */
+> > +
+> > +       mac[0] = (mac[0] & ~1) | 2;
+> > +}
+> 
+> This is a pretty clever trick, but it's not an official 
+> globally unique MAC
+> address, right?
 
-On 17-03-2011 15:44, Javier Martin wrote:
+[sp] This 'trick' has been tried earlier in u-boot. See:
+     http://www.mail-archive.com/u-boot@lists.denx.de/msg19915.html
 
-> User push button in Beagleboard xM is 4 instead of 7.
+     I am also not sure whether DIE_ID would really be unique.
 
-> Signed-off-by: Javier Martin<javier.martin@vista-silicon.com>
-[...]
+~sanjeev
 
-> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-> index 46d814a..abf87d1 100644
-> --- a/arch/arm/mach-omap2/board-omap3beagle.c
-> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
-> @@ -615,6 +615,10 @@ static void __init omap3_beagle_init(void)
->   	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
->   	omap3_beagle_init_rev();
->   	omap3_beagle_i2c_init();
-> +	/* xM version uses pin 4 instead of 7 for user button */
-> +	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM) {
-> +		gpio_buttons[0].gpio = 4;
-> +	}
-
-    I think checkpatch.pl should warn about unneeded {}.
-
-WBR, Sergei
+> Maybe we can ask TI to officially request a 
+> MAC address range
+> for OMAP SoCs and document an official procedure to compute it.
+> 
+> 	Arnd
+> --
+> To unsubscribe from this list: send the line "unsubscribe 
+> linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
