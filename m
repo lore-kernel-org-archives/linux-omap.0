@@ -1,54 +1,87 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: Re: [PATCH v5 00/10] OMAP4 : DSS2 : HDMI support on OMAP4
-Date: Fri, 18 Mar 2011 11:47:14 +0530
-Message-ID: <AANLkTintZyvJFqCW-ZHzRpisvdfk-PJv4gHF3aBgLJ9K@mail.gmail.com>
-References: <1299753858-12222-1-git-send-email-mythripk@ti.com>
- <1299764643.2017.177.camel@deskari> <4D78E3F5.2090600@openelec.tv>
- <1299827578.2567.1.camel@deskari> <4D79E0A0.9040900@openelec.tv>
- <1299849774.2479.3.camel@deskari> <4D7A4B44.2030801@openelec.tv>
- <1299868049.2479.33.camel@deskari> <4D7A6D0F.40906@openelec.tv>
- <AANLkTin+fnZfFte5v8+G0saDcjCqsT=oQ4U_oGSm-UGn@mail.gmail.com>
- <4D7CD588.3080100@openelec.tv> <4D7CEEC8.50803@openelec.tv>
- <1300258302.1917.32.camel@lappyti> <AANLkTinNynOpnJyHZeyA01E5oVMcs_PnAYRH4dSznJ_d@mail.gmail.com>
- <4D814C72.9010300@openelec.tv> <8cd030366ab61270862afd291a47ad0b@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] omap changes for v2.6.39 merge window
+Date: Fri, 18 Mar 2011 00:06:55 -0700
+Message-ID: <20110318070654.GB3555@atomide.com>
+References: <20110317183048.GW7258@atomide.com>
+ <AANLkTimWbb5DWiiCW821H6pRicbk1fS3PYcnGyUMznvM@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:58144 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752742Ab1CRGRg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 18 Mar 2011 02:17:36 -0400
-Received: by mail-fx0-f42.google.com with SMTP id 1so5947806fxm.1
-        for <linux-omap@vger.kernel.org>; Thu, 17 Mar 2011 23:17:35 -0700 (PDT)
-In-Reply-To: <8cd030366ab61270862afd291a47ad0b@mail.gmail.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:17787 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752742Ab1CRHHE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Mar 2011 03:07:04 -0400
+Content-Disposition: inline
+In-Reply-To: <AANLkTimWbb5DWiiCW821H6pRicbk1fS3PYcnGyUMznvM@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Stephan Raue <mailinglists@openelec.tv>, Mythri P K <mythripk@ti.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Russell King <rmk@arm.linux.org.uk>, David Brown <davidb@codeaurora.org>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Fri, Mar 18, 2011 at 11:13 AM, Anand Gadiyar <gadiyar@ti.com> wrote:
->> i tried this test tree with omap2plus_defconfig.
->>
->> it seems the kernel crashes and poweroff the board on loading
->> this hdmi stuff, but dont print any crashlog. is there a
->> way any backtraces will be printed?
->> output from serial console: http://paste.pocoo.org/show/354850/
->> kernel config (omap2plus_defconfig, added squashfs support, added
->> support to include initramfs in kernel, build omapfb stuff statically
->> into the kernel): http://paste.pocoo.org/show/354853/
->>
->> i am using a own toolchain to crosscompile with gcc-4.5.2,
->> binutils-2.21...
+* Linus Torvalds <torvalds@linux-foundation.org> [110317 19:48]:
+> On Thu, Mar 17, 2011 at 11:30 AM, Tony Lindgren <tony@atomide.com> wrote:
+> >
+> > Please pull omap changes for this merge window from:
+> 
+> Gaah. Guys, this whole ARM thing is a f*cking pain in the ass.
+> 
+> You need to stop stepping on each others toes. There is no way that
+> your changes to those crazy clock-data files should constantly result
+> in those annoying conflicts, just because different people in
+> different ARM trees do some masturbatory renaming of some random
+> device. Seriously.
+> 
+> That usb_musb_init() thing in arch/arm/mach-omap2/usb-musb.c also
+> seems to be totally insane. I wonder what kind of insanity I'm missing
+> just because I don't happen to see the merge conflicts, just because
+> people were lucky enough to happen to not touch the same file within a
+> few lines.
+
+This merge conflict was really unfortunate, the plan was to queue
+driver related changes via the usb-devel list and the platform init
+changes via the linux-omap list. But obviously something went wrong..
+
+Anyways, we are close to done making the platform init code shared
+between omaps and then drivers become arch independent. So things
+should get easier for next merge window already.
+ 
+> Somebody needs to get a grip in the ARM community. I do want to do
+> these merges, just to see how screwed up things are, but guys, this is
+> just ridiculous. The pure amount of crazy churn is annoying in itself,
+> but when I then get these "independent" pull requests from four
+> different people, and they touch the same files, that indicates that
+> something is wrong.
+
+Well in this case the conflicts were between driver changes and arch
+related changes :) For the ARM and various ARM related SoC changes
+there is a lot of work going on to make things more generic. So with
+that the crazy churn should also ease, but it takes a lot of work to
+get there.
+ 
+> And stop the crazy renaming already! Just leave it off. Don't rename
+> boards and drivers "just because", at least not when there clearly are
+> clashes. There's no point. I'm not even talking about the file renames
+> (which happened and can also make it "fun" to try to resolve the
+> conflicts when somebody else then makes _other_ changes), but about
+> the stupid "change human-readable names in board files just to annoy
+> whoever needs to merge the crap".
+
+OK, point taken. One part of the problem here are the current dependencies
+between the driver code and platform code which makes it hard to patch
+one without the other. Hopefully this will too ease as the drivers
+become separated from the platform code.
+ 
+> Somebody in the ARM community really needs to step up and tell people
+> to stop dicking around.
 >
-> Just a hunch, but could you please turn off CONFIG_OMAP2_DSS_SDI
-> and try again?
->
-> - Anand
->
+> (I'm replying to the omap pull request, because that's the one I did
+> last, but I don't know who to "blame". I don't care. It really doesn't
+> matter. I realize thar ARM vendors do crazy shit and haven't figured
+> out this whole "platform" thing yet, but you guys need to push back on
+> the people sending you crap).
 
-Sorry for the spam - my mailer went berserk.
+OK we'll pass on the message.
 
-I offlined it for now while I figure out what's going on.
+Regards,
 
-- Anand
+Tony
