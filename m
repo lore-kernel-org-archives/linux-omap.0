@@ -1,40 +1,62 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [RFC][PATCH 3/3] OMAP PM: Add Board specific parameters for OMAP Volatge layer
-Date: Thu, 17 Mar 2011 16:25:38 -0700
-Message-ID: <87mxktqqh9.fsf@ti.com>
-References: <1300199622-32500-1-git-send-email-vishwanath.bs@ti.com>
-	<1300199622-32500-4-git-send-email-vishwanath.bs@ti.com>
-	<AANLkTi=tss2NC569bvxVSVWftDg4kdZmiyyh5JZBZpko@mail.gmail.com>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: [GIT PULL] omap changes for v2.6.39 merge window
+Date: Thu, 17 Mar 2011 19:50:36 -0700
+Message-ID: <AANLkTimWbb5DWiiCW821H6pRicbk1fS3PYcnGyUMznvM@mail.gmail.com>
+References: <20110317183048.GW7258@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:53064 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753435Ab1CQXZl (ORCPT
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60298 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755775Ab1CRCvC (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 17 Mar 2011 19:25:41 -0400
-Received: by mail-iy0-f180.google.com with SMTP id 40so4432014iyf.11
-        for <linux-omap@vger.kernel.org>; Thu, 17 Mar 2011 16:25:41 -0700 (PDT)
-In-Reply-To: <AANLkTi=tss2NC569bvxVSVWftDg4kdZmiyyh5JZBZpko@mail.gmail.com>
-	(Nishanth Menon's message of "Tue, 15 Mar 2011 21:08:17 +0530")
+	Thu, 17 Mar 2011 22:51:02 -0400
+In-Reply-To: <20110317183048.GW7258@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>
-Cc: Vishwanath BS <vishwanath.bs@ti.com>, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Russell King <rmk@arm.linux.org.uk>, David Brown <davidb@codeaurora.org>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-"Menon, Nishanth" <nm@ti.com> writes:
+On Thu, Mar 17, 2011 at 11:30 AM, Tony Lindgren <tony@atomide.com> wrote:
+>
+> Please pull omap changes for this merge window from:
 
-[...]
+Gaah. Guys, this whole ARM thing is a f*cking pain in the ass.
 
-> my overall suggestion - when I fill in board file params - I should say:
-> I use PMIC x, i have oscillator with ramp "y" uSec - the params should
-> talk my language as a board developers - I dont want to know indepth
-> details of voltage VP/VC registers and what they should contain. it is
-> upto voltage layer to translate, add, bit shift or do what ever is
-> necessary to take my board and pmic level details to register details.
+You need to stop stepping on each others toes. There is no way that
+your changes to those crazy clock-data files should constantly result
+in those annoying conflicts, just because different people in
+different ARM trees do some masturbatory renaming of some random
+device. Seriously.
 
-Completely agree with Nishanth.
+That usb_musb_init() thing in arch/arm/mach-omap2/usb-musb.c also
+seems to be totally insane. I wonder what kind of insanity I'm missing
+just because I don't happen to see the merge conflicts, just because
+people were lucky enough to happen to not touch the same file within a
+few lines.
 
-See my comments on PATCH 1/3 which say basically the same thing.
+Somebody needs to get a grip in the ARM community. I do want to do
+these merges, just to see how screwed up things are, but guys, this is
+just ridiculous. The pure amount of crazy churn is annoying in itself,
+but when I then get these "independent" pull requests from four
+different people, and they touch the same files, that indicates that
+something is wrong.
 
-Kevin
+And stop the crazy renaming already! Just leave it off. Don't rename
+boards and drivers "just because", at least not when there clearly are
+clashes. There's no point. I'm not even talking about the file renames
+(which happened and can also make it "fun" to try to resolve the
+conflicts when somebody else then makes _other_ changes), but about
+the stupid "change human-readable names in board files just to annoy
+whoever needs to merge the crap".
+
+Somebody in the ARM community really needs to step up and tell people
+to stop dicking around.
+
+(I'm replying to the omap pull request, because that's the one I did
+last, but I don't know who to "blame". I don't care. It really doesn't
+matter. I realize thar ARM vendors do crazy shit and haven't figured
+out this whole "platform" thing yet, but you guys need to push back on
+the people sending you crap).
+
+                                   Linus
