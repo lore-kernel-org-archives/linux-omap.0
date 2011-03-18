@@ -1,37 +1,143 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/2] arm: mach-omap2: devices: fix omap3_l3_init()
- return value
-Date: Fri, 18 Mar 2011 16:43:01 -0700
-Message-ID: <20110318234301.GA18583@atomide.com>
-References: <1300295763-497-1-git-send-email-aaro.koskinen@nokia.com>
- <324bffcaf53be55bd6f392af3f86fa10@mail.gmail.com>
- <4D81C41F.8090702@ti.com>
- <34f6d3df1c7449f43374ecf3e3a74f77@mail.gmail.com>
+Subject: Re: [PATCH 0/3] ARM: OMAP2+: gpmc warning fixes
+Date: Fri, 18 Mar 2011 16:43:10 -0700
+Message-ID: <20110318234309.GB18583@atomide.com>
+References: <1300377606-16616-1-git-send-email-balajitk@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:21124 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757563Ab1CRXnI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Mar 2011 19:43:08 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:52606 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757563Ab1CRXnN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Mar 2011 19:43:13 -0400
 Content-Disposition: inline
-In-Reply-To: <34f6d3df1c7449f43374ecf3e3a74f77@mail.gmail.com>
+In-Reply-To: <1300377606-16616-1-git-send-email-balajitk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Benoit Cousson <b-cousson@ti.com>, Aaro Koskinen <aaro.koskinen@nokia.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Balaji T K <balajitk@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Santosh Shilimkar <santosh.shilimkar@ti.com> [110317 03:04]:
-> > From: Cousson, Benoit [mailto:b-cousson@ti.com]
-> >
-> > Maybe we should initialize that before, because in theory the
-> > timer12 secure violation should have been captured easily with
-> > this code?
-> >
-> The firewall exceptions handling is removed from L3 handler because
-> PPA has the trap implemented. We faced issues when the trap was
-> enabled in both places.
+* Balaji T K <balajitk@ti.com> [110317 08:54]:
+> Applies on omap-for-linus branch
+> Boot tested on OMAP4430 SDP and OMAP3630SDP
+> 
+> Balaji T K (3):
+>   ARM: OMAP2+: correct GPMC IRQ
+>   ARM: OMAP2+: GPMC set dummy irq chip
+>   ARM: OMAP4: correct GPMC IRQ number
+> 
+>  arch/arm/mach-omap2/gpmc.c             |   13 ++++++++-----
+>  arch/arm/plat-omap/include/plat/irqs.h |    2 +-
+>  2 files changed, 9 insertions(+), 6 deletions(-)
 
-Applying these into fixes.
+Thanks, I've squashed these into one patch and updated
+the comments. Will apply into fixes, updated patch below.
 
-Tony
+Regards,
+
+Tony 
+
+From: Balaji T K <balajitk@ti.com>
+Date: Fri, 18 Mar 2011 16:22:39 -0700
+Subject: [PATCH] ARM: OMAP2+: Fix warnings for GPMC interrupt
+
+Commit db97eb7dfe13f6c04f0a0e77c32e2691f563ab8b
+(omap: gpmc: enable irq mode in gpmc) enabled interrupts for
+GPMC (General Purpose Memory Controller). However, looks like
+this patch only works on omap3. Fix the issues to avoid warnings
+on omap4 during the boot.
+
+GPMC: number of chip select is 8, CS0 to CS7. One less IRQ
+allocated throws below warning at boot:
+
+[    0.429290] Trying to install type control for IRQ409
+[    0.429290] Trying to set irq flags for IRQ409
+
+Resolve following warning messages in boot when irq chip is not set:
+
+[    0.429229] Trying to install interrupt handler for IRQ402
+[    0.429229] Trying to install interrupt handler for IRQ403
+[    0.429229] Trying to install interrupt handler for IRQ404
+[    0.429260] Trying to install interrupt handler for IRQ405
+[    0.429260] Trying to install interrupt handler for IRQ406
+[    0.429260] Trying to install interrupt handler for IRQ407
+[    0.429290] Trying to install interrupt handler for IRQ408
+
+Resolve following warning in OMAP4:
+[    0.429290] gpmc: irq-20 could not claim: err -22
+
+Signed-off-by: Balaji T K <balajitk@ti.com>
+[tony@atomide.com: combined patches into one, updated comments]
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+index 6741743..493505c 100644
+--- a/arch/arm/mach-omap2/gpmc.c
++++ b/arch/arm/mach-omap2/gpmc.c
+@@ -693,6 +693,7 @@ static int __init gpmc_init(void)
+ {
+ 	u32 l, irq;
+ 	int cs, ret = -EINVAL;
++	int gpmc_irq;
+ 	char *ck = NULL;
+ 
+ 	if (cpu_is_omap24xx()) {
+@@ -701,12 +702,15 @@ static int __init gpmc_init(void)
+ 			l = OMAP2420_GPMC_BASE;
+ 		else
+ 			l = OMAP34XX_GPMC_BASE;
++		gpmc_irq = INT_34XX_GPMC_IRQ;
+ 	} else if (cpu_is_omap34xx()) {
+ 		ck = "gpmc_fck";
+ 		l = OMAP34XX_GPMC_BASE;
++		gpmc_irq = INT_34XX_GPMC_IRQ;
+ 	} else if (cpu_is_omap44xx()) {
+ 		ck = "gpmc_ck";
+ 		l = OMAP44XX_GPMC_BASE;
++		gpmc_irq = OMAP44XX_IRQ_GPMC;
+ 	}
+ 
+ 	if (WARN_ON(!ck))
+@@ -739,16 +743,17 @@ static int __init gpmc_init(void)
+ 	/* initalize the irq_chained */
+ 	irq = OMAP_GPMC_IRQ_BASE;
+ 	for (cs = 0; cs < GPMC_CS_NUM; cs++) {
+-		set_irq_handler(irq, handle_simple_irq);
++		set_irq_chip_and_handler(irq, &dummy_irq_chip,
++						handle_simple_irq);
+ 		set_irq_flags(irq, IRQF_VALID);
+ 		irq++;
+ 	}
+ 
+-	ret = request_irq(INT_34XX_GPMC_IRQ,
++	ret = request_irq(gpmc_irq,
+ 			gpmc_handle_irq, IRQF_SHARED, "gpmc", gpmc_base);
+ 	if (ret)
+ 		pr_err("gpmc: irq-%d could not claim: err %d\n",
+-						INT_34XX_GPMC_IRQ, ret);
++						gpmc_irq, ret);
+ 	return ret;
+ }
+ postcore_initcall(gpmc_init);
+@@ -757,8 +762,6 @@ static irqreturn_t gpmc_handle_irq(int irq, void *dev)
+ {
+ 	u8 cs;
+ 
+-	if (irq != INT_34XX_GPMC_IRQ)
+-		return IRQ_HANDLED;
+ 	/* check cs to invoke the irq */
+ 	cs = ((gpmc_read_reg(GPMC_PREFETCH_CONFIG1)) >> CS_NUM_SHIFT) & 0x7;
+ 	if (OMAP_GPMC_IRQ_BASE+cs <= OMAP_GPMC_IRQ_END)
+diff --git a/arch/arm/plat-omap/include/plat/irqs.h b/arch/arm/plat-omap/include/plat/irqs.h
+index d779283..5a25098 100644
+--- a/arch/arm/plat-omap/include/plat/irqs.h
++++ b/arch/arm/plat-omap/include/plat/irqs.h
+@@ -416,7 +416,7 @@
+ 
+ /* GPMC related */
+ #define OMAP_GPMC_IRQ_BASE	(TWL_IRQ_END)
+-#define OMAP_GPMC_NR_IRQS	7
++#define OMAP_GPMC_NR_IRQS	8
+ #define OMAP_GPMC_IRQ_END	(OMAP_GPMC_IRQ_BASE + OMAP_GPMC_NR_IRQS)
+ 
+ 
