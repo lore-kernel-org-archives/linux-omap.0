@@ -1,91 +1,40 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: [RFC PATCH 2/5] OMAP2+: add cpu id register to MAC address
- helper
-Date: Fri, 18 Mar 2011 20:07:55 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024C3B8670@dbde02.ent.ti.com>
-References: <20110312224440.27728.60593.stgit@otae.warmcat.com>
- <20110312225047.27728.1835.stgit@otae.warmcat.com>
- <201103180934.39997.arnd@arndb.de>
+From: Andy Green <andy-/Zus8d0mwwtBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [RFC PATCH 2/5] OMAP2+: add cpu id register to MAC address helper
+Date: Fri, 18 Mar 2011 14:47:49 +0000
+Message-ID: <4D837095.5040307@linaro.org>
+References: <20110312224440.27728.60593.stgit@otae.warmcat.com> <20110312225047.27728.1835.stgit@otae.warmcat.com> <201103180934.39997.arnd@arndb.de> <B85A65D85D7EB246BE421B3FB0FBB593024C3B8670@dbde02.ent.ti.com>
+Reply-To: andy.green-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:49792 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752724Ab1CROiL convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Mar 2011 10:38:11 -0400
-In-Reply-To: <201103180934.39997.arnd@arndb.de>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593024C3B8670-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Premi, Sanjeev" <premi-l0cyMroinI0@public.gmane.org>
+Cc: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>, Andy Green <andy@warmcat.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "patches@linaro.org" <patches@linaro.org>, Andy Green <andy.green@linaro.org>
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Arnd Bergmann
-> Sent: Friday, March 18, 2011 2:05 PM
-> To: Andy Green
-> Cc: linux-kernel@vger.kernel.org; linux-usb@vger.kernel.org; 
-> linux-omap@vger.kernel.org; 
-> linux-arm-kernel@lists.infradead.org; patches@linaro.org; Andy Green
-> Subject: Re: [RFC PATCH 2/5] OMAP2+: add cpu id register to 
-> MAC address helper
-> 
-> On Saturday 12 March 2011, Andy Green wrote:
-> > Introduce a generic helper function that can set a MAC address using
-> > data from the OMAP unqiue CPU ID register.
-> > 
-> > Signed-off-by: Andy Green <andy.green@linaro.org>
-> > ---
-> > 
-> >  arch/arm/mach-omap2/id.c              |   13 +++++++++++++
-> >  arch/arm/mach-omap2/include/mach/id.h |    1 +
-> >  2 files changed, 14 insertions(+), 0 deletions(-)
-> > 
-> > diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-> > index 5f9086c..fc69ec5 100644
-> > --- a/arch/arm/mach-omap2/id.c
-> > +++ b/arch/arm/mach-omap2/id.c
-> > @@ -506,3 +506,16 @@ void __init 
-> omap2_set_globals_tap(struct omap_globals *omap2_globals)
-> >         else
-> >                 tap_prod_id = 0x0208;
-> >  }
-> > +
-> > +
-> > +void omap2_die_id_to_mac(u8 *mac, int length)
-> > +{
-> > +       struct omap_die_id odi;
-> > +
-> > +       omap_get_die_id(&odi);
-> > +       memcpy(mac, &odi.id_0, length);
-> > +
-> > +       /* mark it as not multicast and outside official 
-> 80211 MAC namespace */
-> > +
-> > +       mac[0] = (mac[0] & ~1) | 2;
-> > +}
-> 
-> This is a pretty clever trick, but it's not an official 
-> globally unique MAC
-> address, right?
+On 03/18/2011 02:37 PM, Somebody in the thread at some point said:
 
-[sp] This 'trick' has been tried earlier in u-boot. See:
-     http://www.mail-archive.com/u-boot@lists.denx.de/msg19915.html
+Hi -
 
-     I am also not sure whether DIE_ID would really be unique.
+> [sp] This 'trick' has been tried earlier in u-boot. See:
+>       http://www.mail-archive.com/u-boot-0aAXYlwwYIKGBzrmiIFOJg@public.gmane.org/msg19915.html
+>
+>       I am also not sure whether DIE_ID would really be unique.
 
-~sanjeev
+It doesn't actually need all the bits to be unique for this, just have a 
+low probability of collision with a reasonable number of devices sharing 
+the same network.
 
-> Maybe we can ask TI to officially request a 
-> MAC address range
-> for OMAP SoCs and document an official procedure to compute it.
-> 
-> 	Arnd
-> --
-> To unsubscribe from this list: send the line "unsubscribe 
-> linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+If there is not enough variation as it stands in the first 6 bytes of 
+it, all the 128 bit ID can be xor'd together, use the other registers 
+about die revision, hawkeye also xored in, etc.
+
+I'll ask about what can be expected from this at TI.
+
+-Andy
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
