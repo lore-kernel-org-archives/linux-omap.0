@@ -1,98 +1,67 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v2 4/7] OMAP: PM CONSTRAINTS: implement the constraints management code
-Date: Fri, 18 Mar 2011 08:06:47 -0700
-Message-ID: <87ipvgo4c8.fsf@ti.com>
-References: <1299779247-20511-1-git-send-email-j-pihet@ti.com>
-	<1299779247-20511-5-git-send-email-j-pihet@ti.com>
-	<874o71zdpu.fsf@ti.com>
-	<AANLkTin4T1Tk88Ud-TSQ1SOEWuZnv-XXwm8V2wUSUvr_@mail.gmail.com>
+Subject: Re: [PATCH v2 0/4] OMAP: DMA: mstandby mode and runtime pm support
+Date: Fri, 18 Mar 2011 11:27:00 -0700
+Message-ID: <87aagss2rv.fsf@ti.com>
+References: <1299853215-8507-1-git-send-email-manjugk@ti.com>
+	<87lj0dwi4x.fsf@ti.com> <20110318095925.GA13784@m-desktop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:51003 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752724Ab1CRPGv (ORCPT
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:40537 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753937Ab1CRS1I (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 18 Mar 2011 11:06:51 -0400
-Received: by mail-iw0-f180.google.com with SMTP id 6so6408714iwn.25
-        for <linux-omap@vger.kernel.org>; Fri, 18 Mar 2011 08:06:50 -0700 (PDT)
-In-Reply-To: <AANLkTin4T1Tk88Ud-TSQ1SOEWuZnv-XXwm8V2wUSUvr_@mail.gmail.com>
-	(Jean Pihet's message of "Fri, 18 Mar 2011 12:33:22 +0100")
+	Fri, 18 Mar 2011 14:27:08 -0400
+Received: by pvg6 with SMTP id 6so652842pvg.7
+        for <linux-omap@vger.kernel.org>; Fri, 18 Mar 2011 11:27:03 -0700 (PDT)
+In-Reply-To: <20110318095925.GA13784@m-desktop> (Manjunath Kondaiah G.'s
+	message of "Fri, 18 Mar 2011 15:30:12 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, paul@pwsan.com, Jean Pihet <j-pihet@ti.com>
+To: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk, paul@pwsan.com, tony@atomide.com
 
-SmVhbiBQaWhldCA8amVhbi5waWhldEBuZXdvbGRiaXRzLmNvbT4gd3JpdGVzOg0KDQpbLi4uXQ0K
-DQo+Pj4gK2V4aXRfb2s6DQo+Pj4gKyDCoCDCoCAvKiBGaW5kIHRoZSBzdHJvbmdlc3QgY29uc3Ry
-YWludCBmb3IgdGhlIGdpdmVuIHRhcmdldCAqLw0KPj4+ICsgwqAgwqAgcmV0ID0gMDsNCj4+PiAr
-IMKgIMKgIGlmIChhc2NlbmRpbmcpIHsNCj4+PiArIMKgIMKgIMKgIMKgIMKgIMKgIGxpc3RfZm9y
-X2VhY2hfZW50cnkodXNlciwgJihjb25zdHJhaW50c19saXN0KS0+bm9kZV9saXN0LA0KPj4+ICsg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgbm9kZS5wbGlz
-dC5ub2RlX2xpc3QpIHsNCj4+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIC8qIEZp
-bmQgdGhlIGxvd2VzdCAoaS5lLiBmaXJzdCkgdmFsdWUgZm9yIHRoZSB0YXJnZXQgKi8NCj4+PiAr
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIGlmICh1c2VyLT50YXJnZXQgPT0gdGFyZ2V0
-KSB7DQo+Pj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCByZXQg
-PSB1c2VyLT5jb25zdHJhaW50X3ZhbHVlOw0KPj4+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgYnJlYWs7DQo+Pj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCB9DQo+Pj4gKyDCoCDCoCDCoCDCoCDCoCDCoCB9DQo+Pj4gKyDCoCDCoCB9IGVsc2Ugew0K
-Pj4+ICsgwqAgwqAgwqAgwqAgwqAgwqAgbGlzdF9mb3JfZWFjaF9lbnRyeV9yZXZlcnNlKHVzZXIs
-DQo+Pj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCAmKGNvbnN0cmFpbnRzX2xpc3QpLT5ub2RlX2xpc3QsDQo+Pj4gKyDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBub2Rl
-LnBsaXN0Lm5vZGVfbGlzdCkgew0KPj4+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
-LyogRmluZCB0aGUgaGlnaGVzdCAoaS5lLiBsYXN0KSB2YWx1ZSBmb3IgdGhlIHRhcmdldCAqLw0K
-Pj4+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgaWYgKHVzZXItPnRhcmdldCA9PSB0
-YXJnZXQpIHsNCj4+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IHJldCA9IHVzZXItPmNvbnN0cmFpbnRfdmFsdWU7DQo+Pj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBicmVhazsNCj4+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIH0NCj4+PiArIMKgIMKgIMKgIMKgIMKgIMKgIH0NCj4+PiArIMKgIMKgIH0NCj4+
-DQo+PiBIbW0sIHdoeSBjYW4ndCB5b3UgdXNlIHBsaXN0X2ZpcnN0KCkgYW5kIHBsaXN0X2xhc3Qo
-KSBoZXJlPw0KPiBCZWNhdXNlIHRoZSBwbGlzdCBpcyBzb3J0ZWQgYnkgdGhlICdwcmlvJyBmaWVs
-ZCAod2hpY2ggaXMgJ3ZhbHVlJyBpbg0KPiB0aGlzIGNvZGUpIGFuZCB0aGlzIGZ1bmN0aW9uIHNl
-YXJjaGVzIGZvciB0aGUgc3Ryb25nZXN0IGNvbnN0cmFpbnQgZm9yDQo+IGEgZ2l2ZW4gdGFyZ2V0
-LiBTbyBpdCBpcyBuZWVkZWQgdG8gaXRlcmF0ZSB0aHJvdWdoIHRoZSBsaXN0IGluIG9yZGVyDQo+
-IHRvIGZpbmQgdGhlIGZpcnN0IChvciBsYXN0KSBjb25zdHJhaW50IHdpdGggdGhlIHJpZ2h0IHRh
-cmdldC4NCg0KSG1tLCBzdGlsbCBjb25mdXNpbmcuDQoNClRoZSBtYWluIHRoaW5nIEkgZG9uJ3Qg
-Z2V0IGlzIHdoeSB5b3UgbmVlZCB0aGUgJ3RhcmdldCcgZmllbGQgaW4gdGhlDQpmaXJzdCBwbGFj
-ZS4gIFlvdSBzaG91bGQganVzdCBrZWVwIGEgbGlzdCBvZiBjb25zdHJhaW50cyBwZXIgdGFyZ2V0
-DQpvbWFwX2RldmljZS4gIElPVywgY3VycmVudGx5IHlvdXIgX3drdXBfbGF0X2NvbnN0cmFpbnRz
-X2xpc3QgaXMgYSBnbG9iYWwNCmxpc3QsIGJ1dCBpbnN0ZWFkIGl0IHNob3VsZCBiZSBjb25uZWN0
-ZWQgdG8gdGhlIG9tYXBfZGV2aWNlLCBhbmQgZWFjaA0Kb21hcF9kZXZpY2Ugd291bGQgaGF2ZSBh
-IHBsaXN0IGZvciBlYWNoIGNsYXNzLg0KDQoNCj4+DQo+Pj4gK2V4aXRfZXJyb3I6DQo+Pj4gKyDC
-oCDCoCBtdXRleF91bmxvY2soJl9jb25zdHJhaW50c19tdXRleCk7DQo+Pj4gKw0KPj4+ICsgwqAg
-wqAgcmV0dXJuIHJldDsNCj4+PiArfQ0KPj4+DQo+Pj4gwqAvKiBQdWJsaWMgZnVuY3Rpb25zIGZv
-ciB1c2UgYnkgY29yZSBjb2RlICovDQo+Pj4NCj4+PiDCoC8qKg0KPj4+ICsgKiBvbWFwX2Rldmlj
-ZV9zZXRfZGV2X2NvbnN0cmFpbnQgLSBzZXQvcmVsZWFzZSBhIGRldmljZSBjb25zdHJhaW50DQo+
-Pj4gKyAqIEBjbGFzczogY29uc3RyYWludCBjbGFzcw0KPj4+ICsgKiBAcmVxX2RldjogY29uc3Ry
-YWludCByZXF1ZXN0ZXIsIHVzZWQgZm9yIHRyYWNraW5nIHRoZSBjb25zdHJhaW50cw0KPj4+ICsg
-KiBAZGV2OiBkZXZpY2UgdG8gYXBwbHkgdGhlIGNvbnN0cmFpbnQgdG8uIE11c3QgaGF2ZSBhbiBh
-c3NvY2lhdGVkIG9tYXBfZGV2aWNlDQo+Pj4gKyAqIEB0OiBjb25zdHJhaW50IHZhbHVlLiBBIHZh
-bHVlIG9mIC0xIHJlbW92ZXMgdGhlIGNvbnN0cmFpbnQuDQo+Pj4gKyAqDQo+Pj4gKyAqIFVzaW5n
-IHRoZSBwcmltYXJ5IGh3bW9kLCBzZXQvcmVsZWFzZSBhIGRldmljZSBjb25zdHJhaW50IGZvciB0
-aGUgZGV2DQo+Pj4gKyAqIGRldmljZSwgcmVxdWVzdGVkIGJ5IHRoZSByZXFfZGV2IGRldmljZS4g
-RGVwZW5kaW5nIG9mIHRoZSBjb25zdHJhaW50IGNsYXNzDQo+Pj4gKyAqIHRoaXMgY29kZSBjYWxs
-cyB0aGUgYXBwcm9wcmlhdGUgbG93IGxldmVsIGNvZGUsIGUuZy4gcG93ZXIgZG9tYWluIGZvcg0K
-Pj4+ICsgKiB0aGUgd2FrZS11cCBsYXRlbmN5IGNvbnN0cmFpbnRzLg0KPj4+ICsgKg0KPj4+ICsg
-KiBJZiBhbnkgaHdtb2RzIGV4aXN0IGZvciB0aGUgb21hcF9kZXZpY2UgYXNzb2lhdGVkIHdpdGgg
-QGRldiwNCj4+PiArICogc2V0L3JlbGVhc2UgdGhlIGNvbnN0cmFpbnQgZm9yIHRoZSBjb3JyZXNw
-b25kaW5nIGh3bW9kcywgb3RoZXJ3aXNlIHJldHVybg0KPj4+ICsgKiAtRUlOVkFMLg0KPj4+ICsg
-Ki8NCj4+PiAraW50IG9tYXBfZGV2aWNlX3NldF9kZXZfY29uc3RyYWludChlbnVtIG9tYXBfcG1f
-Y29uc3RyYWludF9jbGFzcyBjbGFzcywNCj4+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgc3RydWN0IGRldmljZSAqcmVxX2RldiwNCj4+PiArIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgc3RydWN0IGRldmljZSAq
-ZGV2LCBsb25nIHQpDQo+Pj4gK3sNCj4+PiArIMKgIMKgIHN0cnVjdCBvbWFwX2RldmljZSAqb2Q7
-DQo+Pj4gKyDCoCDCoCBzdHJ1Y3Qgb21hcF9od21vZCAqb2g7DQo+Pj4gKyDCoCDCoCBzdHJ1Y3Qg
-cGxhdGZvcm1fZGV2aWNlICpwZGV2Ow0KPj4+ICsgwqAgwqAgc3RydWN0IHBvd2VyZG9tYWluICpw
-d3JkbSA9IE5VTEw7DQo+Pj4gKyDCoCDCoCB1MzIgcmV0ID0gLUVJTlZBTDsNCj4+PiArDQo+Pj4g
-KyDCoCDCoCAvKiBMb29rIGZvciB0aGUgcGxhdGZvcm0gZGV2aWNlIGZvciBkZXYgKi8NCj4+PiAr
-IMKgIMKgIHBkZXYgPSB0b19wbGF0Zm9ybV9kZXZpY2UoZGV2KTsNCj4+PiArDQo+Pj4gKyDCoCDC
-oCAvKiBUcnkgdG8gY2F0Y2ggbm9uIHBsYXRmb3JtIGRldmljZXMuICovDQo+Pj4gKyDCoCDCoCBp
-ZiAocGRldi0+bmFtZSA9PSBOVUxMKSB7DQo+Pg0KPj4gVGhpcyBzaG91bGQgY2hlY2sgZm9yIGEg
-dmFsaWQgb21hcF9kZXZpY2UsIG5vdCBwbGF0Zm9ybV9kZXZpY2UuDQo+IFRoaXMgY2hlY2sgcmVt
-YWlucyBidXQgdGhlIGNoZWNrIGJlbG93IGlzIGNoYW5nZWQsIHNlZSBiZWxvdy4NCg0KV2hhdCBJ
-IG1lYW4gaXMgdGhpcyBzaG91bGQgY2hlY2sgZm9yIG9tYXBfZGV2aWNlX3BhcmVudCB0byBzZWUg
-aWYgdGhlDQpzdHJ1Y3QgZGV2aWNlIGlzIGFuIG9tYXBfZGV2aWNlLiAgIElPVywgeW91IGNhcmUg
-d2hldGhlciBvciBub3QgaXQncyBhbg0Kb21hcF9kZXZpY2UsIG5vdCB3aGV0aGVyIG9yIG5vdCBp
-dCdzIGEgdmFsaWQgcGxhdGZvcm1fZGV2aWNlLg0KDQpLZXZpbg0K
+"G, Manjunath Kondaiah" <manjugk@ti.com> writes:
+
+> On Thu, Mar 17, 2011 at 02:29:18PM -0700, Kevin Hilman wrote:
+>> "G, Manjunath Kondaiah" <manjugk@ti.com> writes:
+>> 
+>> > Patch series to support mstandby mode handling and enabling runtime PM
+>> > support for DMA driver.
+>> 
+>> I still have the same problems as with the previous revision: 
+>> 
+>> 
+>> This is still not runtime-suspending when I use my DMA test in linking
+>> mode.
+>> 
+>> If I put a large enough period between transfers, it should autosuspend
+>> during transfers.  It seems to do auto-suspend and resume once, but then
+>> it never suspends again.
+>> 
+>> I tested with my dmatest module[1], and loaded with:
+>> 
+>>   # insmod ./dmatest.ko linking=1 forever=1 forever_period=1024
+>> 
+>> Not only does it not auto-suspend between transfers (which I expected),
+>> it also doesn't suspend after removing the module which stops all active
+>> channels.
+>
+> Tested again on 2.6.38 with patches pulled from patchworks and for me,
+> the same test case seems to be passing. Here is the log:
+> http://pastebin.com/ccEmTZS5
+>
+> The above test case is executed on blaze and same result is observed
+> with other OMAP2+ boards also.
+
+Can you try again with dmatest loaded without 'debug=1'
+
+What's strange is that I noticed it worked with debug=1 also, but didn't
+with debug disabled.
+
+I *think* it's a bug in my test, which I fixed, but can you try the
+above before pulling a new version of my test?
+
+Kevin
+
+
