@@ -1,59 +1,67 @@
-From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: Re: [PATCH v2 0/4] OMAP: DMA: mstandby mode and runtime pm support
-Date: Fri, 18 Mar 2011 15:30:12 +0530
-Message-ID: <20110318095925.GA13784@m-desktop>
-References: <1299853215-8507-1-git-send-email-manjugk@ti.com>
- <87lj0dwi4x.fsf@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [GIT PULL] omap changes for v2.6.39 merge window
+Date: Fri, 18 Mar 2011 10:15:12 +0000
+Message-ID: <20110318101512.GA15375@n2100.arm.linux.org.uk>
+References: <20110317183048.GW7258@atomide.com> <AANLkTimWbb5DWiiCW821H6pRicbk1fS3PYcnGyUMznvM@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:38492 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932415Ab1CRKDK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 18 Mar 2011 06:03:10 -0400
-Received: by mail-gx0-f179.google.com with SMTP id 10so1807001gxk.24
-        for <linux-omap@vger.kernel.org>; Fri, 18 Mar 2011 03:03:09 -0700 (PDT)
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <87lj0dwi4x.fsf@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <AANLkTimWbb5DWiiCW821H6pRicbk1fS3PYcnGyUMznvM@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Tony Lindgren <tony@atomide.com>, David Brown <davidb@codeaurora.org>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: "G, Manjunath Kondaiah" <manjugk@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk, paul@pwsan.com, tony@atomide.com
 
-On Thu, Mar 17, 2011 at 02:29:18PM -0700, Kevin Hilman wrote:
-> "G, Manjunath Kondaiah" <manjugk@ti.com> writes:
+On Thu, Mar 17, 2011 at 07:50:36PM -0700, Linus Torvalds wrote:
+> On Thu, Mar 17, 2011 at 11:30 AM, Tony Lindgren <tony@atomide.com> wrote:
+> >
+> > Please pull omap changes for this merge window from:
 > 
-> > Patch series to support mstandby mode handling and enabling runtime PM
-> > support for DMA driver.
-> 
-> I still have the same problems as with the previous revision: 
-> 
-> 
-> This is still not runtime-suspending when I use my DMA test in linking
-> mode.
-> 
-> If I put a large enough period between transfers, it should autosuspend
-> during transfers.  It seems to do auto-suspend and resume once, but then
-> it never suspends again.
-> 
-> I tested with my dmatest module[1], and loaded with:
-> 
->   # insmod ./dmatest.ko linking=1 forever=1 forever_period=1024
-> 
-> Not only does it not auto-suspend between transfers (which I expected),
-> it also doesn't suspend after removing the module which stops all active
-> channels.
+> Gaah. Guys, this whole ARM thing is a f*cking pain in the ass.
 
-Tested again on 2.6.38 with patches pulled from patchworks and for me,
-the same test case seems to be passing. Here is the log:
-http://pastebin.com/ccEmTZS5
+Please be more specific.  ARM is not small.  ARM as an architecture is
+_massive_, with lots of people working in it.  By blaming 'ARM', it's a
+bit like blaming the entire planet for problems in one country.
 
-The above test case is executed on blaze and same result is observed
-with other OMAP2+ boards also.
+You've only had merge conflicts with IMX/MXC and OMAP so far, and that
+hardly warrants taring the "whole ARM thing" with the same brush.
 
-Can you please let me know which board and code base you are using for
-testing so that I can try to replicate the same.
+Most people are trying very hard to do the right thing.
 
--Manjunath
-> 
+> Somebody needs to get a grip in the ARM community. I do want to do
+> these merges, just to see how screwed up things are, but guys, this is
+> just ridiculous.
+
+It isn't as bad as you think it is for the majority of ARM stuff.
+
+> The pure amount of crazy churn is annoying in itself,
+> but when I then get these "independent" pull requests from four
+> different people, and they touch the same files, that indicates that
+> something is wrong.
+
+I have already complained to Uwe and Sascha about the IMX/MXC conflicts.
+It already struck me that there's something seriously wrong at
+pengutronix.com as both Uwe and Sascha work in the same area, yet don't
+coordinate their efforts.  It seems to me that Uwe is completely
+independent of everyone else.
+
+As for anything else, I really don't see a problem.  There are changes
+in core ARM code which have impacts on _every_ ARM platform.  It's just
+a fact of life that there could be conflicts between core changes and
+platform changes.  That's not because things are uncoordinated - I do
+try to ensure that such patches receive as many acks from maintainers
+as possible.
+
+> Somebody in the ARM community really needs to step up and tell people
+> to stop dicking around.
+
+You mean like I've already done with Uwe and Sascha?
+
+I do get the impression that you're extremely unhappy with the way ARM
+stuff works, and I've no real idea how to solve that.  I think much of
+it is down to perception rather than anything tangible.
+
+Maybe the only solution is for ARM to fork the kernel, which is something
+I really don't want to do - but from what I'm seeing its the only solution
+which could come close to making you happy.
