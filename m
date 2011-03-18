@@ -1,105 +1,54 @@
 From: "Premi, Sanjeev" <premi@ti.com>
-Subject: FW: omap2+ voltage: Few queries
-Date: Fri, 18 Mar 2011 10:19:38 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024C3084C7@dbde02.ent.ti.com>
+Subject: RE: [PATCH 2/2] omap3: voltage: fix variable type and name
+Date: Fri, 18 Mar 2011 10:23:14 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024C3084CE@dbde02.ent.ti.com>
+References: <1300374757-23010-1-git-send-email-premi@ti.com>
+	<1300374757-23010-3-git-send-email-premi@ti.com> <874o711p80.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59059 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:49652 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753074Ab1CREtq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Mar 2011 00:49:46 -0400
+	id S1753202Ab1CRExY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Mar 2011 00:53:24 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p2I4rKr7029211
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Thu, 17 Mar 2011 23:53:23 -0500
+In-Reply-To: <874o711p80.fsf@ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: Paul Walmsley <paul@pwsan.com>, "Menon, Nishanth" <nm@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
+To: "Hilman, Kevin" <khilman@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi all,
- 
-While trying to understand the voltage layer, i have few comments and
-doubts. This is not a comprehensive list, but for starters:
- 
-1) Functions omap3_voltage_read_reg(), omap3_voltage_write_reg()
-   which in turn call omap2_prm_read_mod_reg and omap2_prm_write_mod_reg() 
- 
-   These functions are always called via function pointer contained
-   in "omap_vdd_info".
- 
-   What is the need for additional layer?
-   shouldn't be just do the following:
- 
-     vdd->read_reg = omap2_prm_read_mod_reg ;
-     vdd->write_reg = omap2_prm_write_mod_reg  ;
- 
-   Same holds good for similar functions for OMAP4.
- 
-2) Structure omap_volt_data is used to describe the nominal voltage
-   for each OPP, However, presence of sr_efuse_offs, sr_errminlimit,
-   vp_errgain make assumptions on presence of SmartReflex and VP.
- 
-   Value "0" to these fields cannot safely be used to indicate the
-   "not used" status - esp for sr_xx fields.
- 
-   Shouldn't we delink them. something like:
- 
-   struct omap_volt_data {
-        u32 volt_nominal;
-    u8 vp_errgain; /* Assuming that value "0" is equiv to "not used" */
-    struct volt_sr_data* sr_data;
-   }
- 
-3) Struct "omap_volt_pmic_info" should be trimmed to keep only PMIC
-   related info. Will make it easier to add support for other PMICs.
- 
-   Suggestion:
- 
-   struct omap_pmic_info {
-    int slew_rate;
-    int step_size;
+> -----Original Message-----
+> From: Hilman, Kevin 
+> Sent: Friday, March 18, 2011 1:42 AM
+> To: Premi, Sanjeev
+> Cc: linux-omap@vger.kernel.org
+> Subject: Re: [PATCH 2/2] omap3: voltage: fix variable type and name
+> 
+> Sanjeev Premi <premi@ti.com> writes:
+> 
+> > In all usages, variables prm_mod_offs and prm_irqst_ocp_mod_offs
+> > are expected to be "u16" but have been declared as "s16".
+> 
+> What kind of problem is that causing?
 
-    u8 i2c_slave_addr;
-    u8 pmic_reg;
-    struct omap_pmic_extra_info * extra;
-    unsigned long (*vsel_to_uv) (const u8 vsel);
-    u8 (*uv_to_vsel) (unsigned long uV);
-    };
- 
-   BTW, what does the PMIC register indicate? target addr on PMIC?
- 
-/* Not all PMICs would be able to support these features */
-   struct omap_pmic_extra_info {
+[sp] No, it wasn't causing any problems 0 because offset value wouldn't
+     reach the signed / unsigned limits; but didn't seem right while
+     reading the code.
 
-    u32 on_volt;
-    u32 onlp_volt;
-    u32 ret_volt;
-    u32 off_volt;
+~sanjeev
 
-    };
- 
-   "extra" is just random name, even "aux" standing for "auxilliary"
-   should do.
- 
-   struct omap_vp_info { /* just random name for this mail only */
-    u8 vp_erroroffset;
-    u8 vp_vstepmin;
-    u8 vp_vstepmax;
-    u8 vp_vddmin;
-    u8 vp_vddmax;
-    u8 vp_timeout_us;
-    };
- 
-   Can this/ Should this be combined with an existing structure?
-   e.g. omap_vp_common_data?
- 
-I have some work-in-progress changes. Based on the responses, i will
-tailor them and send across tomorrow.
- 
-Best regards,
-Sanjeev
+> 
+> Kevin
+> 
+> > In addition, renamed prm_irqst_ocp_mod_offs to ocp_sysreg_prm_offs
+> > for better association with the TRM. Original name perhaps came
+> > from the current usage of this offset to reach PRM_IRQSTATUS_MPU
+> > offset.
 
-(folks in cc: sorry for resend. Original mail in
-              was mistakenly sent in HTML format;
-              and not delivered to the list)
-         
+[snip]...[snip]
