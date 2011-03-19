@@ -1,136 +1,114 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH 4/7] OMAP2+: powerdomain: add voltage domain lookup during register
-Date: Fri, 18 Mar 2011 17:18:49 -0700
-Message-ID: <1300493932-17362-5-git-send-email-khilman@ti.com>
+Subject: [PATCH 7/7] OMAP3: powerdomain data: add voltage domains
+Date: Fri, 18 Mar 2011 17:18:52 -0700
+Message-ID: <1300493932-17362-8-git-send-email-khilman@ti.com>
 References: <1300493932-17362-1-git-send-email-khilman@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:48127 "EHLO
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:48212 "EHLO
 	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757562Ab1CSASo (ORCPT
+	by vger.kernel.org with ESMTP id S1757722Ab1CSASu (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 18 Mar 2011 20:18:44 -0400
-Received: by mail-iw0-f170.google.com with SMTP id 3so5490799iwn.15
-        for <linux-omap@vger.kernel.org>; Fri, 18 Mar 2011 17:18:43 -0700 (PDT)
+	Fri, 18 Mar 2011 20:18:50 -0400
+Received: by iyf40 with SMTP id 40so4997636iyf.30
+        for <linux-omap@vger.kernel.org>; Fri, 18 Mar 2011 17:18:49 -0700 (PDT)
 In-Reply-To: <1300493932-17362-1-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Paul Walmsely <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>
 
-When a powerdomain is registered, lookup the voltage domain by name
-and keep a pointer to the containing voltagedomain in the powerdomain
-structure.
-
-Modeled after similar method between powerdomain and clockdomain layers.
+Add voltage domain name to indicate which voltagedomain each
+powerdomain is in.  A missing voltage domain name means that that
+powerdomain is not in one of the currently scalable voltage domains.
 
 Signed-off-by: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/powerdomain.c |   26 ++++++++++++++++++++++++++
- arch/arm/mach-omap2/powerdomain.h |    8 ++++++++
- arch/arm/mach-omap2/voltage.h     |    1 +
- 3 files changed, 35 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/powerdomains3xxx_data.c |   10 ++++++++++
+ 1 files changed, 10 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-index 49c6513..da86c72 100644
---- a/arch/arm/mach-omap2/powerdomain.c
-+++ b/arch/arm/mach-omap2/powerdomain.c
-@@ -77,6 +77,7 @@ static struct powerdomain *_pwrdm_lookup(const char *name)
- static int _pwrdm_register(struct powerdomain *pwrdm)
- {
- 	int i;
-+	struct voltagedomain *voltdm;
+diff --git a/arch/arm/mach-omap2/powerdomains3xxx_data.c b/arch/arm/mach-omap2/powerdomains3xxx_data.c
+index 9c9c113..bd01025 100644
+--- a/arch/arm/mach-omap2/powerdomains3xxx_data.c
++++ b/arch/arm/mach-omap2/powerdomains3xxx_data.c
+@@ -52,6 +52,7 @@ static struct powerdomain iva2_pwrdm = {
+ 		[2] = PWRSTS_OFF_ON,
+ 		[3] = PWRSTS_ON,
+ 	},
++	.voltdm           = { .name = "mpu" },
+ };
  
- 	if (!pwrdm || !pwrdm->name)
- 		return -EINVAL;
-@@ -94,6 +95,16 @@ static int _pwrdm_register(struct powerdomain *pwrdm)
- 	if (_pwrdm_lookup(pwrdm->name))
- 		return -EEXIST;
+ static struct powerdomain mpu_3xxx_pwrdm = {
+@@ -68,6 +69,7 @@ static struct powerdomain mpu_3xxx_pwrdm = {
+ 	.pwrsts_mem_on	  = {
+ 		[0] = PWRSTS_OFF_ON,
+ 	},
++	.voltdm           = { .name = "mpu" },
+ };
  
-+	if (pwrdm->voltdm.name) {
-+		voltdm = voltdm_lookup(pwrdm->voltdm.name);
-+		if (!voltdm) {
-+			pr_err("powerdomain: %s: voltagedomain %s does not exist\n",
-+			       pwrdm->name, pwrdm->voltdm.name);
-+			return -EINVAL;
-+		}
-+		pwrdm->voltdm.ptr = voltdm;
-+	}
-+
- 	list_add(&pwrdm->node, &pwrdm_list);
+ /*
+@@ -98,6 +100,7 @@ static struct powerdomain core_3xxx_pre_es3_1_pwrdm = {
+ 		[0] = PWRSTS_OFF_RET_ON, /* MEM1ONSTATE */
+ 		[1] = PWRSTS_OFF_RET_ON, /* MEM2ONSTATE */
+ 	},
++	.voltdm           = { .name = "core" },
+ };
  
- 	/* Initialize the powerdomain's state counter */
-@@ -383,6 +394,21 @@ int pwrdm_for_each_clkdm(struct powerdomain *pwrdm,
- }
+ static struct powerdomain core_3xxx_es3_1_pwrdm = {
+@@ -121,6 +124,7 @@ static struct powerdomain core_3xxx_es3_1_pwrdm = {
+ 		[0] = PWRSTS_OFF_RET_ON, /* MEM1ONSTATE */
+ 		[1] = PWRSTS_OFF_RET_ON, /* MEM2ONSTATE */
+ 	},
++	.voltdm           = { .name = "core" },
+ };
  
- /**
-+ * pwrdm_get_voltdm - return a ptr to the voltdm that this pwrdm resides in
-+ * @pwrdm: struct powerdomain *
-+ *
-+ * Return a pointer to the struct voltageomain that the specified powerdomain
-+ * @pwrdm exists in, or returns NULL if @pwrdm is NULL.
-+ */
-+struct voltagedomain *pwrdm_get_voltdm(struct powerdomain *pwrdm)
-+{
-+	if (!pwrdm)
-+		return NULL;
-+
-+	return pwrdm->voltdm.ptr;
-+}
-+
-+/**
-  * pwrdm_get_mem_bank_count - get number of memory banks in this powerdomain
-  * @pwrdm: struct powerdomain *
-  *
-diff --git a/arch/arm/mach-omap2/powerdomain.h b/arch/arm/mach-omap2/powerdomain.h
-index 027f40b..3a1ec37 100644
---- a/arch/arm/mach-omap2/powerdomain.h
-+++ b/arch/arm/mach-omap2/powerdomain.h
-@@ -24,6 +24,8 @@
+ static struct powerdomain dss_pwrdm = {
+@@ -157,6 +161,7 @@ static struct powerdomain sgx_pwrdm = {
+ 	.pwrsts_mem_on	  = {
+ 		[0] = PWRSTS_ON,  /* MEMONSTATE */
+ 	},
++	.voltdm           = { .name = "core" },
+ };
  
- #include <plat/cpu.h>
+ static struct powerdomain cam_pwrdm = {
+@@ -172,6 +177,7 @@ static struct powerdomain cam_pwrdm = {
+ 	.pwrsts_mem_on	  = {
+ 		[0] = PWRSTS_ON,  /* MEMONSTATE */
+ 	},
++	.voltdm           = { .name = "core" },
+ };
  
-+#include "voltage.h"
-+
- /* Powerdomain basic power states */
- #define PWRDM_POWER_OFF		0x0
- #define PWRDM_POWER_RET		0x1
-@@ -78,6 +80,7 @@ struct powerdomain;
- /**
-  * struct powerdomain - OMAP powerdomain
-  * @name: Powerdomain name
-+ * @voltdm: voltagedomain containing this powerdomain
-  * @omap_chip: represents the OMAP chip types containing this pwrdm
-  * @prcm_offs: the address offset from CM_BASE/PRM_BASE
-  * @prcm_partition: (OMAP4 only) the PRCM partition ID containing @prcm_offs
-@@ -98,6 +101,10 @@ struct powerdomain;
-  */
- struct powerdomain {
- 	const char *name;
-+	union {
-+		const char *name;
-+		struct voltagedomain *ptr;
-+	} voltdm;
- 	const struct omap_chip_id omap_chip;
- 	const s16 prcm_offs;
- 	const u8 pwrsts;
-@@ -176,6 +183,7 @@ int pwrdm_del_clkdm(struct powerdomain *pwrdm, struct clockdomain *clkdm);
- int pwrdm_for_each_clkdm(struct powerdomain *pwrdm,
- 			 int (*fn)(struct powerdomain *pwrdm,
- 				   struct clockdomain *clkdm));
-+struct voltagedomain *pwrdm_get_voltdm(struct powerdomain *pwrdm);
+ static struct powerdomain per_pwrdm = {
+@@ -187,12 +193,14 @@ static struct powerdomain per_pwrdm = {
+ 	.pwrsts_mem_on	  = {
+ 		[0] = PWRSTS_ON,  /* MEMONSTATE */
+ 	},
++	.voltdm           = { .name = "core" },
+ };
  
- int pwrdm_get_mem_bank_count(struct powerdomain *pwrdm);
+ static struct powerdomain emu_pwrdm = {
+ 	.name		= "emu_pwrdm",
+ 	.prcm_offs	= OMAP3430_EMU_MOD,
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++	.voltdm           = { .name = "core" },
+ };
  
-diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
-index 122d8c1..13e5ed9 100644
---- a/arch/arm/mach-omap2/voltage.h
-+++ b/arch/arm/mach-omap2/voltage.h
-@@ -182,4 +182,5 @@ extern void omap44xx_voltagedomains_init(void);
+ static struct powerdomain neon_pwrdm = {
+@@ -201,6 +209,7 @@ static struct powerdomain neon_pwrdm = {
+ 	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+ 	.pwrsts		  = PWRSTS_OFF_RET_ON,
+ 	.pwrsts_logic_ret = PWRSTS_RET,
++	.voltdm           = { .name = "core" },
+ };
  
- struct voltagedomain *voltdm_lookup(const char *name);
- void voltdm_init(struct voltagedomain **voltdm_list);
-+int voltdm_add_pwrdm(struct voltagedomain *voltdm, struct powerdomain *pwrdm);
- #endif
+ static struct powerdomain usbhost_pwrdm = {
+@@ -223,6 +232,7 @@ static struct powerdomain usbhost_pwrdm = {
+ 	.pwrsts_mem_on	  = {
+ 		[0] = PWRSTS_ON,  /* MEMONSTATE */
+ 	},
++	.voltdm           = { .name = "core" },
+ };
+ 
+ static struct powerdomain dpll1_pwrdm = {
 -- 
 1.7.4
 
