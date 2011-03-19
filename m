@@ -1,70 +1,51 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v12 4/9] OMAP2+: dmtimer: convert to platform devices
-Date: Fri, 18 Mar 2011 17:27:19 -0700
-Message-ID: <20110319002719.GF18583@atomide.com>
-References: <1299627948-20040-1-git-send-email-tarun.kanti@ti.com>
- <1299627948-20040-5-git-send-email-tarun.kanti@ti.com>
- <87oc5ifu12.fsf@ti.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB037A4DD948@dbde02.ent.ti.com>
- <20110311191324.GE10079@atomide.com>
- <87d3lx5hoo.fsf@ti.com>
- <20110314171240.GB7258@atomide.com>
- <8762rhtnje.fsf@ti.com>
+Subject: Re: [GIT PULL] OMAP PM updates for 2.6.39
+Date: Fri, 18 Mar 2011 17:34:11 -0700
+Message-ID: <20110319003411.GG18583@atomide.com>
+References: <87k4g6eakw.fsf@ti.com>
+ <4D7E6DCF.1060703@openelec.tv>
+ <20110314193848.GI7258@atomide.com>
+ <4D7E71C0.4010808@openelec.tv>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:28269 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:34590 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932112Ab1CSA1W (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Mar 2011 20:27:22 -0400
+	with ESMTP id S932112Ab1CSAeR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Mar 2011 20:34:17 -0400
 Content-Disposition: inline
-In-Reply-To: <8762rhtnje.fsf@ti.com>
+In-Reply-To: <4D7E71C0.4010808@openelec.tv>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gopinath, Thara" <thara@ti.com>
+To: Stephan Raue <mailinglists@openelec.tv>
+Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Kevin Hilman <khilman@ti.com> [110317 14:58]:
-> Tony Lindgren <tony@atomide.com> writes:
+* Stephan Raue <mailinglists@openelec.tv> [110314 12:49]:
 > >
-> > In the long run, think "local timer" for runtime, and then "wakeup timer"
-> > that gets only programmed when we enter idle. The "local timer" will
-> > continue operating normally after we wake-up and the "wakeup timer"
-> > will be just one shot event. Of course in the omap[23] case the
-> > "local timer" is really a faster dmtimer, but in the omap4+ case there's
-> > are real local timers.
+> >Tony
+> patch attached.
 > 
-> >> If this can be done such that the system timer is eventually a regular
-> >> device driver, then that should be fine. 
-> >
-> > In this setup there should not be need to mess with the system timer
-> > after boot as we don't need to switch clock sources.
-> 
-> I think we're confusing terminology.  By system timer, I think you mean
-> the clockevent, right?
+> i am using http://gitorious.org/linux-omap-dss2/linux with
+> gcc-4.5.2, binutils-2.21
 
-Yes.
- 
-> The situation you described above requires switching clockevents for
-> sure.  
+Still need a proper patch description and your Signed-off-by line :)
 
-No it won't, because we can use a separate physical timer for runtime and
-wake-up events.
- 
-> In addition, we already have a usecase for switching the clocksource as
-> well.  We currently setup a single clocksource using the timer_32k (not
-> a dmtimer.)  However, we already have use-cases where we would like to
-> switch to a higher resolution clocksource (e.g. trace infrastructure for
-> PM instrumentation.)
-
-Again that can be done with a separate physical timer, no need to switch
-and reprogram the clocksource.
- 
-> The whole point of switching these to real drivers is so they can use
-> runtime PM.    Then, as soon as they are unused, runtime PM will kick in
-> and ensure the hardware is properly idle.
-
-Yes that makes sense for the device driver used timers and for the
-wake-up timer.
+See Documentation/Submit* files in your kernel directory for
+more info.
 
 Tony
+
+ 
+> diff -Naur linux-2.6.38-rc8/arch/arm/mach-omap2/Makefile linux-2.6.38-rc8.patch/arch/arm/mach-omap2/Makefile
+> --- linux-2.6.38-rc8/arch/arm/mach-omap2/Makefile	2011-03-14 20:38:21.039926899 +0100
+> +++ linux-2.6.38-rc8.patch/arch/arm/mach-omap2/Makefile	2011-03-14 20:39:01.679108209 +0100
+> @@ -68,7 +68,7 @@
+>  obj-$(CONFIG_OMAP_SMARTREFLEX_CLASS3)	+= smartreflex-class3.o
+>  
+>  AFLAGS_sleep24xx.o			:=-Wa,-march=armv6
+> -AFLAGS_sleep34xx.o			:=-Wa,-march=armv7-a
+> +AFLAGS_sleep34xx.o			:=-Wa,-march=armv7-a$(plus_sec)
+>  
+>  ifeq ($(CONFIG_PM_VERBOSE),y)
+>  CFLAGS_pm_bus.o				+= -DDEBUG
+
