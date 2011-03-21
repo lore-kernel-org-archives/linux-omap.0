@@ -1,57 +1,40 @@
-From: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
-Subject: [PATCH 1/2] USB: twl4030-usb: do board specific phy_power up/down
-Date: Mon, 21 Mar 2011 15:50:19 +0200
-Message-ID: <1300715420-25602-2-git-send-email-kalle.jokiniemi@nokia.com>
-References: <1300715420-25602-1-git-send-email-kalle.jokiniemi@nokia.com>
+From: javier Martin <javier.martin@vista-silicon.com>
+Subject: Re: cpufreq support for the Beagleboard.
+Date: Mon, 21 Mar 2011 15:10:44 +0100
+Message-ID: <AANLkTinoZE7Sxf18Hsr-DBn60J++OT_FtX=TveXL2NNe@mail.gmail.com>
+References: <AANLkTi=mWbpi7i6if5TdBCoi0bUFGWcxOba1kZ+6EePa@mail.gmail.com>
+	<641332d61bd84a5de4483dbb496ecd5a@mail.gmail.com>
+	<AANLkTimfoR=36BcAFooNWzUEVJy1BLpdQji2hB1vnd1T@mail.gmail.com>
+	<859a150e6ceac11b05685418a0c9243c@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:64549 "EHLO mgw-sa01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752015Ab1CUNv7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 21 Mar 2011 09:51:59 -0400
-In-Reply-To: <1300715420-25602-1-git-send-email-kalle.jokiniemi@nokia.com>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:56315 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752949Ab1CUOKs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Mar 2011 10:10:48 -0400
+Received: by iyb26 with SMTP id 26so6413750iyb.19
+        for <linux-omap@vger.kernel.org>; Mon, 21 Mar 2011 07:10:48 -0700 (PDT)
+In-Reply-To: <859a150e6ceac11b05685418a0c9243c@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: balbi@ti.com, tony@atomide.com, heikki.krogerus@nokia.com, jhnikula@gmail.com, ilkka.koskinen@nokia.com, Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
+To: Vishwanath Sripathy <vishwanath.bs@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-In case some board has special powering sequences for
-the USB tranceiver, call those during __twl4030_phy_power
-calls.
+>> Do you know what's left for those patches to enter mainline? Is
+>> anybody working on it?
+> OMAP cpufreq is undergoing some architecture/design changes and this is
+> WIP.
 
-This is a preparation patch to allow powering down the
-ISP1707 USB serial tranceiver in Nokia N900.
+Are you the one who is developing this? Do you need help?
 
-Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
----
- drivers/usb/otg/twl4030-usb.c |    9 ++++++++-
- 1 files changed, 8 insertions(+), 1 deletions(-)
+Thanks.
 
-diff --git a/drivers/usb/otg/twl4030-usb.c b/drivers/usb/otg/twl4030-usb.c
-index 6ca505f..dea99b1 100644
---- a/drivers/usb/otg/twl4030-usb.c
-+++ b/drivers/usb/otg/twl4030-usb.c
-@@ -348,13 +348,20 @@ static void twl4030_i2c_access(struct twl4030_usb *twl, int on)
- 
- static void __twl4030_phy_power(struct twl4030_usb *twl, int on)
- {
--	u8 pwr = twl4030_usb_read(twl, PHY_PWR_CTRL);
-+	u8 pwr;
-+	struct twl4030_usb_data *board = twl->dev->platform_data;
-+
-+	pwr = twl4030_usb_read(twl, PHY_PWR_CTRL);
- 
- 	if (on)
- 		pwr &= ~PHY_PWR_PHYPWD;
- 	else
- 		pwr |= PHY_PWR_PHYPWD;
- 
-+	/* do board specific power up/down, if available */
-+	if (board->phy_power)
-+		board->phy_power(twl->dev, 0, on);
-+
- 	WARN_ON(twl4030_usb_write_verify(twl, PHY_PWR_CTRL, pwr) < 0);
- }
- 
 -- 
-1.7.1
-
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
