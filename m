@@ -1,68 +1,69 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 1/7] OMAP2+: hwmod: remove unused voltagedomain pointer
-Date: Mon, 21 Mar 2011 08:32:02 -0700
-Message-ID: <87vczcfq19.fsf@ti.com>
-References: <1300493932-17362-1-git-send-email-khilman@ti.com>
-	<1300493932-17362-2-git-send-email-khilman@ti.com>
-	<4D874DC9.6020203@ti.com>
+From: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 2/2] OMAP3: rx51: specify phy_power for usb tranceiver
+Date: Mon, 21 Mar 2011 09:21:48 -0700
+Message-ID: <20110321162148.GA659@kroah.com>
+References: <1300715420-25602-1-git-send-email-kalle.jokiniemi@nokia.com>
+ <1300715420-25602-3-git-send-email-kalle.jokiniemi@nokia.com>
+ <4D8760AB.1080307@ru.mvista.com>
+ <alpine.DEB.1.10.1103211637510.2634@esdhcp041196.research.nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:37412 "EHLO
-	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751287Ab1CUPcG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 21 Mar 2011 11:32:06 -0400
-Received: by mail-iw0-f180.google.com with SMTP id 6so11443370iwn.25
-        for <linux-omap@vger.kernel.org>; Mon, 21 Mar 2011 08:32:05 -0700 (PDT)
-In-Reply-To: <4D874DC9.6020203@ti.com> (Benoit Cousson's message of "Mon, 21
-	Mar 2011 14:08:25 +0100")
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.1.10.1103211637510.2634-etG4378wJBqbbBH2nJjHHo8aPWbYBoAt8eUrP9FhD0M@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Aaro Koskinen <aaro.koskinen-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Cc: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>, Kalle Jokiniemi <kalle.jokiniemi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, heikki.krogerus-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org, jhnikula-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, ilkka.koskinen-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsely <paul@pwsan.com>
 
-"Cousson, Benoit" <b-cousson@ti.com> writes:
+On Mon, Mar 21, 2011 at 04:40:26PM +0200, Aaro Koskinen wrote:
+> Hi,
+> 
+> On Mon, 21 Mar 2011, Sergei Shtylyov wrote:
+> >>This patch allows the ISP1707 USB tranceiver on Nokia
+> >>N900 to be disabled when usb cable is disconnected.
+> >>This saves approximately 14mA of battery current.
+> >
+> >>Patch based on work done by Heikki Krogerus on N900
+> >>maemo kernel.
+> >
+> >>Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+> >>Cc: Heikki Krogerus <heikki.krogerus-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+> >>---
+> >> arch/arm/mach-omap2/board-rx51-peripherals.c |   32
+> >>++++++++++++++++++++++++++
+> >> 1 files changed, 32 insertions(+), 0 deletions(-)
+> >
+> >>diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c
+> >>b/arch/arm/mach-omap2/board-rx51-peripherals.c
+> >>index e75e240..9dd22bc 100644
+> >>--- a/arch/arm/mach-omap2/board-rx51-peripherals.c
+> >>+++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+> >[...]
+> >>@@ -534,8 +537,36 @@ static struct twl4030_gpio_platform_data
+> >>rx51_gpio_data = {
+> >> 	.setup			= rx51_twlgpio_setup,
+> >> };
+> >> +static void __init rx51_xceiv_init(void)
+> >>+{
+> >>+	if (gpio_request(RX51_USB_TRANSCEIVER_RST_GPIO, NULL) < 0)
+> >>+		BUG();
+> >
+> >  Why not:
+> >
+> >	BUG_ON(gpio_request(RX51_USB_TRANSCEIVER_RST_GPIO, NULL) < 0);
+> 
+> Well, there should not be no BUG() there in the first place. If the GPIO
+> cannot be requested there should be an error log and phy_power should
+> be set to NULL.
 
-> Hi Kevin,
->
-> On 3/19/2011 1:18 AM, Hilman, Kevin wrote:
->> The voltage domain pointer currently in struct omap_hwmod is not used
->> and does not belong here.  Instead, voltage domains will be associated
->> with powerdomains in forthcoming patches.
->
-> Technically speaking, an IP, and thus the hwmod does belong to a
-> voltage domain, a power domain and a clock domain.
->
-> What is maybe important to add is that since clkdm < pwrdm < voltdm,
-> we can potentially avoid providing the information for the each domain
-> type.
->
-> At some point the hwmod will have to contain a clkdm instead of
-> relying on the main_clk to get it... but that's another topic...
->
->> Signed-off-by: Kevin Hilman<khilman@ti.com>
->> ---
->>   arch/arm/plat-omap/include/plat/omap_hwmod.h |    1 -
->>   1 files changed, 0 insertions(+), 1 deletions(-)
->>
->> diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
->> index 1adea9c..a5fa7c1 100644
->> --- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
->> +++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
->> @@ -520,7 +520,6 @@ struct omap_hwmod {
->>   	struct clk			*_clk;
->>   	struct omap_hwmod_opt_clk	*opt_clks;
->>   	char				*vdd_name;
->
-> And what about vdd_name? It should probably be removed as well.
->
+Yes, NEVER add a BUG() call in a driver, you just crashed the whole
+machine, which is not nice at all to anyone involved.
 
-Yes, but it's currently used by the SR layer (currently the only user.)
+thanks,
 
-Removing it required cleaning up the SR layer as well, so I decided to
-leave the SR cleanups for someone else for the moment while I focus on
-the voltage layer(s)
-
-Kevin
-
+greg k-h
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
