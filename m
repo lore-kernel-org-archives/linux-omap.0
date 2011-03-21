@@ -1,57 +1,49 @@
-From: "Mr peter lee" <drpeterlee55@yahoo.com>
-Subject: Business Propsal
-Date: Sun, 20 Mar 2011 08:40:52 -0600
-Message-ID: <c3e892a0a0a02bf178a0e45f605da63e.squirrel@webmail.servidor.unam.mx>
-Reply-To: gmpeterlee@yahoo.cn
+From: Xiao Jiang <jgq516@gmail.com>
+Subject: Some issue about CA816x/819x EVM board
+Date: Mon, 21 Mar 2011 12:45:28 +0800
+Message-ID: <4D86D7E8.6010801@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=GB2312
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ironport8.servidores.unam.mx ([132.248.194.218]:52164 "EHLO
-	relay.servidores.unam.mx" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751609Ab1CTOgs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Sun, 20 Mar 2011 10:36:48 -0400
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:53088 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752659Ab1CUD7d (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 20 Mar 2011 23:59:33 -0400
+Received: by iyb26 with SMTP id 26so6007847iyb.19
+        for <linux-omap@vger.kernel.org>; Sun, 20 Mar 2011 20:59:32 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+
+Hi,
+
+I got one CA816x/819x EVM board, the board can be boot thru image which
+is compiled from arago
+git(http://arago-project.org/git/projects/?p=linux-omap3.git;a=summary,
+and I used the tag 2.6.34_TI816XPSP_04.00.00.07),
+I found some issues about the board, these issues are existed in both
+arago image and the demo image.
+
+1. SD/MMC card slot hot-plug issue
+SD/MMC card slot can't support hot-plug, the SD card can only be
+identify if it was pluged into slot before
+system boot. After check the code of arago git, it seems the gpio part
+wasn't enabled since I found the
+gpio_bank_count is zero in arch/arm/plat-omap/gpio.c, I want to add gpio
+bank support in the file, however
+I can't find gpio base address in AM389x Sitara ARM Microprocessors
+(MPUs) Technical Reference Manual.
+
+2. SATA interface issue
+SATA disk only works well if connect with SATA0/J12, the disk can't be
+recognize if connect with SATA1/J11.
+
+Does anyone has some hints for these? Thanks in advance!
+
+Best Regards,
+Xiao Jiang
 
 
-
-
-
-
-Compliment of the Day
-
-It is understandable that you might be a little bit apprehensive because
-you do  not know me but I have a lucrative business proposal of mutual
-interest to share with you. I got your reference in my search for someone
-who suits my proposed business relationship. I am Mr. Peter. Lee a South
-Korean, happily married with children, and i am a Director of Hang Seng
-Bank Ltd, in charge of the International Remittance department. I have a
-confidential business suggestion for you,I will need you to assist me in
-executing a business project from Hong Kong to your country. It involves
-the transfer of a large sum of money.
-
-Should you be interested, please forward the following to me urgently:
-1. Full names
-2. Occupation
-3. Private phone number
-4. Current contact address
-
-Please if you are not interested delete this email and do not hunt me
-because I am putting my career and the life of my family at stake with
-this venture. Although nothing ventured is nothing gained. Your earliest
-response to this letter will be appreciated.
-
-Kind Regards,
-Mr.Pt. Lee
-Hang Seng Bank Limited
-Hong Kong. {Asia}
-Email:gmpeterlee@yahoo.cn
-
-
-Thanks,
-David S. Freeman
-Email:   davidfreemanchambers2011@yahoo.com.hk
 
 
