@@ -1,68 +1,252 @@
-From: Heikki Krogerus <heikki.krogerus@nokia.com>
-Subject: Re: [PATCH 2/2] OMAP3: rx51: specify phy_power for usb tranceiver
-Date: Tue, 22 Mar 2011 12:54:51 +0200
-Message-ID: <20110322105451.GE4286@esdhcp034230>
-References: <1300715420-25602-1-git-send-email-kalle.jokiniemi@nokia.com>
- <1300715420-25602-3-git-send-email-kalle.jokiniemi@nokia.com>
- <20110322091314.GB4286@esdhcp034230>
- <9D0D31AA57AAF5499AFDC63D6472631B06AFCF@008-AM1MPN1-036.mgdnok.nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Archit Taneja <archit@ti.com>
+Subject: [PATCH 1/3] OMAP4: DSS2: Register configuration changes for DSI
+Date: Tue, 22 Mar 2011 17:03:36 +0530
+Message-ID: <1300793616-2669-1-git-send-email-archit@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:52834 "EHLO mgw-da02.nokia.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:48205 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753602Ab1CVKz2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 22 Mar 2011 06:55:28 -0400
-Content-Disposition: inline
-In-Reply-To: <9D0D31AA57AAF5499AFDC63D6472631B06AFCF@008-AM1MPN1-036.mgdnok.nokia.com>
+	id S1753047Ab1CVL3V (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 22 Mar 2011 07:29:21 -0400
+Received: from dlep36.itg.ti.com ([157.170.170.91])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p2MBTKG1016579
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Tue, 22 Mar 2011 06:29:20 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Jokiniemi Kalle (Nokia-MS/Tampere)" <kalle.jokiniemi@nokia.com>
-Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "balbi@ti.com" <balbi@ti.com>, "tony@atomide.com" <tony@atomide.com>, "jhnikula@gmail.com" <jhnikula@gmail.com>, "Koskinen Ilkka (Nokia-MS/Tampere)" <ilkka.koskinen@nokia.com>
+To: tomi.valkeinen@ti.com
+Cc: linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-Hi,
+The following changes have changed from OMAP3 to OMAP4 DSI:
+-The register field DSI_PLL_FREQSEL in DSI_PLL_CONFIGURATION2 has been removed.
+-DCS_CMD_ENABLE and DCS_CMD_CODE bits have been moved from DSI_CTRL to
+DSI_VC_CTRLi, hence the control of the bits is available per VC.
+-DSI LDO powergood notification doesn't work on OMAP4. This is mentioned in
+OMAP4 errata revision 1.8(Errata 1.76).
+-OCP_WIDTH register field is included in DSI_VC_CTRL.
+-The SCP clock is also required to access DSI PLL registers
 
-On Tue, Mar 22, 2011 at 12:24:27PM +0200, Jokiniemi Kalle (Nokia-MS/Tampere) wrote:
->  > > +static int rx51_xceiv_power(struct device *dev, int iD, int on)
->  > > +{
->  > > +	unsigned long	timeout;
->  > > +
->  > > +	if (!on) {
->  > > +		/* Let musb go stdby before powering down the transceiver */
->  > > +		timeout = jiffies + msecs_to_jiffies(100);
->  > > +		while (!time_after(jiffies, timeout))
->  > > +			if (omap2_cm_read_mod_reg(CORE_MOD,
->  > CM_IDLEST1)
->  > > +				&
->  > OMAP3430ES2_ST_HSOTGUSB_STDBY_MASK)
->  > > +				break;
->  > > +		if (!(omap2_cm_read_mod_reg(CORE_MOD, CM_IDLEST1)
->  > > +			& OMAP3430ES2_ST_HSOTGUSB_STDBY_MASK))
->  > > +			WARN(1, "could not put musb to sleep\n");
->  > > +	}
->  > > +	gpio_set_value(RX51_USB_TRANSCEIVER_RST_GPIO, on);
->  > > +
->  > > +	return 0;
->  > > +}
->  > 
->  > The busy loop is not needed, and not what we want. We need to be able
->  > to toggle the CHIP_SEL even if the USB block is not IDLE or STDBY.
-> 
-> I basically just took what was in the maemo kernel. Was there some reason
-> originally to include the busyloop? Do I get it now correctly that the ISP is
-> only needed active when we are charging?
+Introduce dss features for these changes so that DSI runs on both OMAP3 and
+OMAP4.
 
-OK, my comment was incorrect. The gpio is clearly set regardless of the
-outcome of the loop. To answer your question, we only need the ISP to
-be active when _detecting_ the charger and obviously when USB is in
-use.
+Signed-off-by: Archit Taneja <archit@ti.com>
+---
+ drivers/video/omap2/dss/dsi.c          |   60 ++++++++++++++++++++-----------
+ drivers/video/omap2/dss/dss_features.c |    9 +++--
+ drivers/video/omap2/dss/dss_features.h |   30 +++++++++-------
+ 3 files changed, 62 insertions(+), 37 deletions(-)
 
-We had problems hitting off-mode if we switched the transceiver off
-before the controller had entered STDBY. I think this needs to be
-tested again. The code in drivers/usb/musb/omap2430.c is quite
-different then what we had in maemo kernel. It could be that there is
-no need for the loop anymore. If you want to play it safe, fix it and
-leave it there.
-
+diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
+index 0a7f1a4..5614164 100644
+--- a/drivers/video/omap2/dss/dsi.c
++++ b/drivers/video/omap2/dss/dsi.c
+@@ -1270,7 +1270,7 @@ int dsi_pll_set_clock_div(struct dsi_clock_info *cinfo)
+ {
+ 	int r = 0;
+ 	u32 l;
+-	int f;
++	int f = 0;
+ 	u8 regn_start, regn_end, regm_start, regm_end;
+ 	u8 regm_dispc_start, regm_dispc_end, regm_dsi_start, regm_dsi_end;
+ 
+@@ -1341,19 +1341,19 @@ int dsi_pll_set_clock_div(struct dsi_clock_info *cinfo)
+ 	dsi_write_reg(DSI_PLL_CONFIGURATION1, l);
+ 
+ 	BUG_ON(cinfo->fint < dsi.fint_min || cinfo->fint > dsi.fint_max);
+-	if (cinfo->fint < 1000000)
+-		f = 0x3;
+-	else if (cinfo->fint < 1250000)
+-		f = 0x4;
+-	else if (cinfo->fint < 1500000)
+-		f = 0x5;
+-	else if (cinfo->fint < 1750000)
+-		f = 0x6;
+-	else
+-		f = 0x7;
++
++	if (dss_has_feature(FEAT_DSI_PLL_FREQSEL)) {
++		f = cinfo->fint < 1000000 ? 0x3 :
++			cinfo->fint < 1250000 ? 0x4 :
++			cinfo->fint < 1500000 ? 0x5 :
++			cinfo->fint < 1750000 ? 0x6 :
++			0x7;
++	}
+ 
+ 	l = dsi_read_reg(DSI_PLL_CONFIGURATION2);
+-	l = FLD_MOD(l, f, 4, 1);		/* DSI_PLL_FREQSEL */
++
++	if (dss_has_feature(FEAT_DSI_PLL_FREQSEL))
++		l = FLD_MOD(l, f, 4, 1);	/* DSI_PLL_FREQSEL */
+ 	l = FLD_MOD(l, cinfo->use_sys_clk ? 0 : 1,
+ 			11, 11);		/* DSI_PLL_CLKSEL */
+ 	l = FLD_MOD(l, cinfo->highfreq,
+@@ -1873,9 +1873,6 @@ static int dsi_complexio_init(struct omap_dss_device *dssdev)
+ 
+ 	DSSDBG("dsi_complexio_init\n");
+ 
+-	/* CIO_CLK_ICG, enable L3 clk to CIO */
+-	REG_FLD_MOD(DSI_CLK_CTRL, 1, 14, 14);
+-
+ 	/* A dummy read using the SCP interface to any DSIPHY register is
+ 	 * required after DSIPHY reset to complete the reset of the DSI complex
+ 	 * I/O. */
+@@ -1900,10 +1897,12 @@ static int dsi_complexio_init(struct omap_dss_device *dssdev)
+ 		goto err;
+ 	}
+ 
+-	if (wait_for_bit_change(DSI_COMPLEXIO_CFG1, 21, 1) != 1) {
+-		DSSERR("ComplexIO LDO power down.\n");
+-		r = -ENODEV;
+-		goto err;
++	if (dss_has_feature(FEAT_DSI_LDO_STATUS)) {
++		if (wait_for_bit_change(DSI_COMPLEXIO_CFG1, 21, 1) != 1) {
++			DSSERR("ComplexIO LDO power down.\n");
++			r = -ENODEV;
++			goto err;
++		}
+ 	}
+ 
+ 	dsi_complexio_timings();
+@@ -2070,6 +2069,8 @@ static void dsi_vc_initial_config(int channel)
+ 	r = FLD_MOD(r, 1, 7, 7); /* CS_TX_EN */
+ 	r = FLD_MOD(r, 1, 8, 8); /* ECC_TX_EN */
+ 	r = FLD_MOD(r, 0, 9, 9); /* MODE_SPEED, high speed on/off */
++	if (dss_has_feature(FEAT_DSI_VC_OCP_WIDTH))
++		r = FLD_MOD(r, 3, 11, 10);	/* OCP_WIDTH = 32 bit */
+ 
+ 	r = FLD_MOD(r, 4, 29, 27); /* DMA_RX_REQ_NB = no dma */
+ 	r = FLD_MOD(r, 4, 23, 21); /* DMA_TX_REQ_NB = no dma */
+@@ -2094,6 +2095,10 @@ static int dsi_vc_config_l4(int channel)
+ 
+ 	REG_FLD_MOD(DSI_VC_CTRL(channel), 0, 1, 1); /* SOURCE, 0 = L4 */
+ 
++	/* DCS_CMD_ENABLE */
++	if (dss_has_feature(FEAT_DSI_DCS_CMD_CONFIG_VC))
++		REG_FLD_MOD(DSI_VC_CTRL(channel), 0, 30, 30);
++
+ 	dsi_vc_enable(channel, 1);
+ 
+ 	dsi.vc[channel].mode = DSI_VC_MODE_L4;
+@@ -2118,6 +2123,10 @@ static int dsi_vc_config_vp(int channel)
+ 
+ 	REG_FLD_MOD(DSI_VC_CTRL(channel), 1, 1, 1); /* SOURCE, 1 = video port */
+ 
++	/* DCS_CMD_ENABLE */
++	if (dss_has_feature(FEAT_DSI_DCS_CMD_CONFIG_VC))
++		REG_FLD_MOD(DSI_VC_CTRL(channel), 1, 30, 30);
++
+ 	dsi_vc_enable(channel, 1);
+ 
+ 	dsi.vc[channel].mode = DSI_VC_MODE_VP;
+@@ -2773,8 +2782,11 @@ static int dsi_proto_config(struct omap_dss_device *dssdev)
+ 	r = FLD_MOD(r, 2, 13, 12);	/* LINE_BUFFER, 2 lines */
+ 	r = FLD_MOD(r, 1, 14, 14);	/* TRIGGER_RESET_MODE */
+ 	r = FLD_MOD(r, 1, 19, 19);	/* EOT_ENABLE */
+-	r = FLD_MOD(r, 1, 24, 24);	/* DCS_CMD_ENABLE */
+-	r = FLD_MOD(r, 0, 25, 25);	/* DCS_CMD_CODE, 1=start, 0=continue */
++	if (!dss_has_feature(FEAT_DSI_DCS_CMD_CONFIG_VC)) {
++		r = FLD_MOD(r, 1, 24, 24);	/* DCS_CMD_ENABLE */
++		/* DCS_CMD_CODE, 1=start, 0=continue */
++		r = FLD_MOD(r, 0, 25, 25);
++	}
+ 
+ 	dsi_write_reg(DSI_CTRL, r);
+ 
+@@ -3371,6 +3383,10 @@ static int dsi_display_init_dsi(struct omap_dss_device *dssdev)
+ {
+ 	int r;
+ 
++	/* The SCPClk is required for both PLL and CIO registers on OMAP4 */
++	/* CIO_CLK_ICG, enable L3 clk to CIO */
++	REG_FLD_MOD(DSI_CLK_CTRL, 1, 14, 14);
++
+ 	_dsi_print_reset_status();
+ 
+ 	r = dsi_pll_init(dssdev, true, true);
+@@ -3383,6 +3399,8 @@ static int dsi_display_init_dsi(struct omap_dss_device *dssdev)
+ 
+ 	dss_select_dispc_clk_source(DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC);
+ 	dss_select_dsi_clk_source(DSS_CLK_SRC_DSI_PLL_HSDIV_DSI);
++	dss_select_lcd_clk_source(dssdev->manager->id,
++		DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC);
+ 
+ 	DSSDBG("PLL OK\n");
+ 
+diff --git a/drivers/video/omap2/dss/dss_features.c b/drivers/video/omap2/dss/dss_features.c
+index aa16222..179a7a4 100644
+--- a/drivers/video/omap2/dss/dss_features.c
++++ b/drivers/video/omap2/dss/dss_features.c
+@@ -252,7 +252,8 @@ static struct omap_dss_features omap3430_dss_features = {
+ 		FEAT_GLOBAL_ALPHA | FEAT_LCDENABLEPOL |
+ 		FEAT_LCDENABLESIGNAL | FEAT_PCKFREEENABLE |
+ 		FEAT_FUNCGATED | FEAT_ROWREPEATENABLE |
+-		FEAT_LINEBUFFERSPLIT | FEAT_RESIZECONF,
++		FEAT_LINEBUFFERSPLIT | FEAT_RESIZECONF |
++		FEAT_DSI_PLL_FREQSEL | FEAT_DSI_LDO_STATUS,
+ 
+ 	.num_mgrs = 2,
+ 	.num_ovls = 3,
+@@ -271,7 +272,8 @@ static struct omap_dss_features omap3630_dss_features = {
+ 		FEAT_LCDENABLESIGNAL | FEAT_PCKFREEENABLE |
+ 		FEAT_PRE_MULT_ALPHA | FEAT_FUNCGATED |
+ 		FEAT_ROWREPEATENABLE | FEAT_LINEBUFFERSPLIT |
+-		FEAT_RESIZECONF,
++		FEAT_RESIZECONF | FEAT_DSI_PLL_FREQSEL |
++		FEAT_DSI_LDO_STATUS,
+ 
+ 	.num_mgrs = 2,
+ 	.num_ovls = 3,
+@@ -289,7 +291,8 @@ static struct omap_dss_features omap4_dss_features = {
+ 	.has_feature	=
+ 		FEAT_GLOBAL_ALPHA | FEAT_PRE_MULT_ALPHA |
+ 		FEAT_MGR_LCD2 | FEAT_GLOBAL_ALPHA_VID1 |
+-		FEAT_CORE_CLK_DIV | FEAT_LCD_CLK_SRC,
++		FEAT_CORE_CLK_DIV | FEAT_LCD_CLK_SRC |
++		FEAT_DSI_DCS_CMD_CONFIG_VC | FEAT_DSI_VC_OCP_WIDTH,
+ 
+ 	.num_mgrs = 3,
+ 	.num_ovls = 3,
+diff --git a/drivers/video/omap2/dss/dss_features.h b/drivers/video/omap2/dss/dss_features.h
+index 12e9c4e..c5c0b40 100644
+--- a/drivers/video/omap2/dss/dss_features.h
++++ b/drivers/video/omap2/dss/dss_features.h
+@@ -26,20 +26,24 @@
+ 
+ /* DSS has feature id */
+ enum dss_feat_id {
+-	FEAT_GLOBAL_ALPHA	= 1 << 0,
+-	FEAT_GLOBAL_ALPHA_VID1	= 1 << 1,
+-	FEAT_PRE_MULT_ALPHA	= 1 << 2,
+-	FEAT_LCDENABLEPOL	= 1 << 3,
+-	FEAT_LCDENABLESIGNAL	= 1 << 4,
+-	FEAT_PCKFREEENABLE	= 1 << 5,
+-	FEAT_FUNCGATED		= 1 << 6,
+-	FEAT_MGR_LCD2		= 1 << 7,
+-	FEAT_LINEBUFFERSPLIT	= 1 << 8,
+-	FEAT_ROWREPEATENABLE	= 1 << 9,
+-	FEAT_RESIZECONF		= 1 << 10,
++	FEAT_GLOBAL_ALPHA		= 1 << 0,
++	FEAT_GLOBAL_ALPHA_VID1		= 1 << 1,
++	FEAT_PRE_MULT_ALPHA		= 1 << 2,
++	FEAT_LCDENABLEPOL		= 1 << 3,
++	FEAT_LCDENABLESIGNAL		= 1 << 4,
++	FEAT_PCKFREEENABLE		= 1 << 5,
++	FEAT_FUNCGATED			= 1 << 6,
++	FEAT_MGR_LCD2			= 1 << 7,
++	FEAT_LINEBUFFERSPLIT		= 1 << 8,
++	FEAT_ROWREPEATENABLE		= 1 << 9,
++	FEAT_RESIZECONF			= 1 << 10,
+ 	/* Independent core clk divider */
+-	FEAT_CORE_CLK_DIV	= 1 << 11,
+-	FEAT_LCD_CLK_SRC	= 1 << 12,
++	FEAT_CORE_CLK_DIV		= 1 << 11,
++	FEAT_LCD_CLK_SRC		= 1 << 12,
++	FEAT_DSI_PLL_FREQSEL		= 1 << 13,
++	FEAT_DSI_LDO_STATUS		= 1 << 14,
++	FEAT_DSI_DCS_CMD_CONFIG_VC	= 1 << 15,
++	FEAT_DSI_VC_OCP_WIDTH		= 1 << 16,
+ };
+ 
+ /* DSS register field id */
 -- 
-heikki
+1.7.1
+
