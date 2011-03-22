@@ -1,29 +1,29 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [GIT PULL] omap display subsystem changes for 2.6.39
-Date: Tue, 22 Mar 2011 20:49:18 +0200
-Message-ID: <AANLkTimSoaxGhjbgMx6b3duAV75HwO0S+=1mJhOnEvvD@mail.gmail.com>
-References: <1300701083.2891.77.camel@deskari>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 1/7] OMAP2+: hwmod: remove unused voltagedomain pointer
+Date: Tue, 22 Mar 2011 13:13:09 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1103221312550.11798@utopia.booyaka.com>
+References: <1300493932-17362-1-git-send-email-khilman@ti.com> <1300493932-17362-2-git-send-email-khilman@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:37355 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751778Ab1CVStV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Mar 2011 14:49:21 -0400
-In-Reply-To: <1300701083.2891.77.camel@deskari>
+Received: from utopia.booyaka.com ([72.9.107.138]:45419 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751593Ab1CVTNL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Mar 2011 15:13:11 -0400
+In-Reply-To: <1300493932-17362-2-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Paul Mundt <lethal@linux-sh.org>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>
 
-On Mon, Mar 21, 2011 at 11:51 AM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
-> Here are OMAP display subsystem patches for 2.6.39 merge window. Quite a
-> bit of them, and many changes also in arch/arm/mach-omap2, which
-> unfortunately couldn't go through Tony's linux-omap tree due to
-> dependencies on DSS driver code.
+On Fri, 18 Mar 2011, Kevin Hilman wrote:
 
-What about this one?
-http://article.gmane.org/gmane.linux.ports.arm.omap/44975
+> The voltage domain pointer currently in struct omap_hwmod is not used
+> and does not belong here.  Instead, voltage domains will be associated
+> with powerdomains in forthcoming patches.
+> 
+> Signed-off-by: Kevin Hilman <khilman@ti.com>
 
--- 
-Felipe Contreras
+Acked-by: Paul Walmsley <paul@pwsan.com>
+
+- Paul
