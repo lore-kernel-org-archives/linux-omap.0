@@ -1,27 +1,27 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [RFC 2/3] OMAP3: hwmod: Add support to associate an initiator
- with a hwmod
-Date: Tue, 22 Mar 2011 13:58:24 +0530
-Message-ID: <4D885DA8.80002@ti.com>
-References: <1300705823-12784-1-git-send-email-rnayak@ti.com> <1300705823-12784-2-git-send-email-rnayak@ti.com> <1300705823-12784-3-git-send-email-rnayak@ti.com> <03a02588593f269848ca723790e0319a@mail.gmail.com>
+Subject: Re: [RFC 3/3] OMAP3: omap_device: Add support to associate a device
+ with an initiator
+Date: Tue, 22 Mar 2011 13:58:56 +0530
+Message-ID: <4D885DC8.7050502@ti.com>
+References: <1300705823-12784-1-git-send-email-rnayak@ti.com> <1300705823-12784-2-git-send-email-rnayak@ti.com> <1300705823-12784-3-git-send-email-rnayak@ti.com> <1300705823-12784-4-git-send-email-rnayak@ti.com> <87b33eb07d8878f33aabba63d6730548@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:39180 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755151Ab1CVI2g (ORCPT
+Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:33372 "EHLO
+	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755619Ab1CVI3F (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 22 Mar 2011 04:28:36 -0400
-Received: by mail-gw0-f50.google.com with SMTP id 16so3356458gwj.37
-        for <linux-omap@vger.kernel.org>; Tue, 22 Mar 2011 01:28:35 -0700 (PDT)
-In-Reply-To: <03a02588593f269848ca723790e0319a@mail.gmail.com>
+	Tue, 22 Mar 2011 04:29:05 -0400
+Received: by mail-gy0-f170.google.com with SMTP id 11so2343654gyb.29
+        for <linux-omap@vger.kernel.org>; Tue, 22 Mar 2011 01:29:05 -0700 (PDT)
+In-Reply-To: <87b33eb07d8878f33aabba63d6730548@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Hema Kalliguddi <hemahk@ti.com>
 Cc: linux-omap@vger.kernel.org, paul@pwsan.com, Benoit Cousson <b-cousson@ti.com>
 
-On 3/21/2011 6:38 PM, Hema Kalliguddi wrote:
+On 3/21/2011 6:42 PM, Hema Kalliguddi wrote:
 > Rajendra,
 >
 >> -----Original Message-----
@@ -30,100 +30,98 @@ On 3/21/2011 6:38 PM, Hema Kalliguddi wrote:
 >> Sent: Monday, March 21, 2011 4:40 PM
 >> To: linux-omap@vger.kernel.org
 >> Cc: paul@pwsan.com; b-cousson@ti.com; Rajendra Nayak
->> Subject: [RFC 2/3] OMAP3: hwmod: Add support to associate an
->> initiator with a hwmod
+>> Subject: [RFC 3/3] OMAP3: omap_device: Add support to
+>> associate a device with an initiator
 >>
->> Add hwmod api's to add and delete an initiator
->> association with an hwmod.
+>> These api's are meant to to used by drivers to
+>> associate/disassociate a device from a given initiator.
 >>
 >> Signed-off-by: Rajendra Nayak<rnayak@ti.com>
 >> ---
->> arch/arm/mach-omap2/omap_hwmod.c             |   33
->> ++++++++++++++++++++++++++
->> arch/arm/plat-omap/include/plat/omap_hwmod.h |    2 +
->> 2 files changed, 35 insertions(+), 0 deletions(-)
+>> arch/arm/plat-omap/omap_device.c |   54
+>> ++++++++++++++++++++++++++++++++++++++
+>> 1 files changed, 54 insertions(+), 0 deletions(-)
 >>
->> diff --git a/arch/arm/mach-omap2/omap_hwmod.c
->> b/arch/arm/mach-omap2/omap_hwmod.c
->> index e034294..d4826be 100644
->> --- a/arch/arm/mach-omap2/omap_hwmod.c
->> +++ b/arch/arm/mach-omap2/omap_hwmod.c
->> @@ -2369,3 +2369,36 @@ int omap_hwmod_no_setup_reset(struct
->> omap_hwmod *oh)
->>
->> 	return 0;
+>> diff --git a/arch/arm/plat-omap/omap_device.c
+>> b/arch/arm/plat-omap/omap_device.c
+>> index 9bbda9a..0cd05d2 100644
+>> --- a/arch/arm/plat-omap/omap_device.c
+>> +++ b/arch/arm/plat-omap/omap_device.c
+>> @@ -662,6 +662,60 @@ int omap_device_shutdown(struct
+>> platform_device *pdev)
+>> 	return ret;
 >> }
->> +
->> +int omap_hwmod_add_initiator_user(struct omap_hwmod *oh, u8 init_id)
->> +{
->> +	if (oh->_state != _HWMOD_STATE_ENABLED)
->> +		return -EINVAL;
->> +
->> +	if (cpu_is_omap34xx()) {
->> +		return omap2_prm_module_enable_initiator_wakeup(
->> +						
->> oh->prcm.omap2.module_offs,
->> +						
->> oh->prcm.omap2.idlest_reg_id,
->> +						
->> oh->prcm.omap2.idlest_idle_bit,
->> +						init_id);
->> +	}
->> +
->> +	return -EINVAL;
->
-> Why are you returning error when it not a omap34xx?
-> Is it not that this API will be called for only omap34xx?
-
-No, this API could get called as part of a driver call
-to the omap_device API on non-supported platform's as well.
-
->
->> +}
->> +
->> +int omap_hwmod_del_initiator_user(struct omap_hwmod *oh, u8 init_id)
->> +{
->> +	if (oh->_state == _HWMOD_STATE_ENABLED)
->> +		return -EINVAL;
->> +
->> +	if (cpu_is_omap34xx()) {
->> +		return omap2_prm_module_disable_initiator_wakeup(
->> +						
->> oh->prcm.omap2.module_offs,
->> +						
->> oh->prcm.omap2.idlest_reg_id,
->> +						
->> oh->prcm.omap2.idlest_idle_bit,
->> +						init_id);
->> +	}
->> +
->> +	return -EINVAL;
->
-> Ditto...
->
->> +
->> +}
->> diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h
->> b/arch/arm/plat-omap/include/plat/omap_hwmod.h
->> index 4bd7354..fe47448 100644
->> --- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
->> +++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
->> @@ -590,6 +590,8 @@ int omap_hwmod_add_initiator_dep(struct
->> omap_hwmod *oh,
->> 				 struct omap_hwmod *init_oh);
->> int omap_hwmod_del_initiator_dep(struct omap_hwmod *oh,
->> 				 struct omap_hwmod *init_oh);
->> +int omap_hwmod_add_initiator_user(struct omap_hwmod *oh, u8 init_id);
->> +int omap_hwmod_del_initiator_user(struct omap_hwmod *oh, u8 init_id);
 >>
->> int omap_hwmod_set_clockact_both(struct omap_hwmod *oh);
->> int omap_hwmod_set_clockact_main(struct omap_hwmod *oh);
+>> +static int omap_device_add_initiator_user(struct
+>> platform_device *pdev,
+>> +					  u8 init_id)
+>> +{
+>> +	int i;
+>> +	struct omap_device *od;
+>> +
+>> +	od = _find_by_pdev(pdev);
+>> +
+>> +	if (od->_state != OMAP_DEVICE_STATE_ENABLED)
+>> +		return -EINVAL;
+>> +
+>> +	for (i = 0; i<  od->hwmods_cnt; i++)
+>> +		omap_hwmod_add_initiator_user(od->hwmods[i], init_id);
+>
+> Not checking for return value.
+
+Thanks, will fix that.
+
+>
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +inline int omap_device_add_mpu_user(struct platform_device *pdev)
+>> +{
+>> +	return omap_device_add_initiator_user(pdev, OMAP_INIT_MPU);
+>> +}
+>> +
+>> +inline int omap_device_add_iva_user(struct platform_device *pdev)
+>> +{
+>> +	return omap_device_add_initiator_user(pdev, OMAP_INIT_IVA);
+>
+> Ditto..
+>
+>> +}
+>> +
+>> +static int omap_device_del_initiator_user(struct
+>> platform_device *pdev,
+>> +					  u8 init_id)
+>> +{
+>> +	int i;
+>> +	struct omap_device *od;
+>> +
+>> +	od = _find_by_pdev(pdev);
+>> +
+>> +	if (od->_state == OMAP_DEVICE_STATE_ENABLED)
+>> +		return -EINVAL;
+>> +
+>> +	for (i = 0; i<  od->hwmods_cnt; i++)
+>> +		omap_hwmod_del_initiator_user(od->hwmods[i], init_id);
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +inline int omap_device_del_mpu_user(struct platform_device *pdev)
+>> +{
+>> +	return omap_device_del_initiator_user(pdev, OMAP_INIT_MPU);
+>> +}
+>> +
+>> +inline int omap_device_del_iva_user(struct platform_device *pdev)
+>> +{
+>> +	return omap_device_del_initiator_user(pdev, OMAP_INIT_IVA);
+>> +}
+>> +
+>> /**
+>>   * omap_device_align_pm_lat - activate/deactivate device to
+>> match wakeup lat lim
+>>   * @od: struct omap_device *
 >> --
->
->
-> Regards,
-> Hema
->
 >> 1.7.0.4
 >>
 >> --
