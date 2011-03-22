@@ -1,63 +1,52 @@
-From: Sriramakrishnan A G <srk@ti.com>
-Subject: [PATCH] omap3: am3517evm : Read MAC address from E-Fuses
-Date: Tue, 22 Mar 2011 18:55:06 +0530
-Message-ID: <1300800306-17846-1-git-send-email-srk@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:56215 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754189Ab1CVNZQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Mar 2011 09:25:16 -0400
-Sender: linux-omap-owner@vger.kernel.org
+From: Magnus Damm <magnus.damm@gmail.com>
+Subject: [PATCH] Input: tca6416-keypad: Change to module_init()
+Date: Tue, 22 Mar 2011 23:26:19 +0900
+Message-ID: <20110322142619.1109.89105.sendpatchset@t400s>
+Return-path: <linux-sh-owner@vger.kernel.org>
+Sender: linux-sh-owner@vger.kernel.org
+To: dmitry.torokhov@gmail.com
+Cc: srk@ti.com, khilman@ti.com, chinyeow.sim.xt@renesas.com, linux-sh@vger.kernel.org, tony@atomide.com, nsekhar@ti.com, linux-i2c@vger.kernel.org, linux-input@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: srk@ti.com, tony@atomide.com
 
-MAC address is programmed in the e-fuses accessible through
-Control module space. Board init code reads the programmed value
-from e-fuse and passes this information to the driver.
+From: Magnus Damm <damm@opensource.se>
 
-Signed-off-by: Sriramakrishnan A G <srk@ti.com>
+The tca6416 driver makes use of the I2C bus for chatting
+with the actual hardware device. Without this patch both
+the I2C bus driver and the tca6416 driver are initialized
+at the subsys_initcall() level. This may lead to problems
+with the tca6416 driver being initialized before the I2C
+bus driver.
+
+By using module_init() in the tca6416 driver we make sure
+the I2C bus driver always is initialized before the keypad
+driver.
+
+With this patch applied the boot order becomes:
+ - arch_initcall: the ARM architecture ->init_machine()
+ - arch_initcall: i2c_register_board_info()
+ - arch_initcall: I2C bus device registration
+ - subsys_initcall: I2C bus driver probe()
+ - module_init: tca6416 driver probe()
+
+Affects the following in-tree platforms:
+ - arch/arm/mach-davinci/board-da850-evm.c
+ - arch/arm/mach-omap2/board-am3517evm.c
+ - arch/arm/mach-shmobile/board-mackerel.c
+
+Signed-off-by: Magnus Damm <damm@opensource.se>
 ---
- arch/arm/mach-omap2/board-am3517evm.c |   12 +++++++++++-
- arch/arm/mach-omap2/control.h         |    2 ++
- 2 files changed, 13 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
-index 77541cf..177c65d 100644
---- a/arch/arm/mach-omap2/board-am3517evm.c
-+++ b/arch/arm/mach-omap2/board-am3517evm.c
-@@ -128,7 +128,17 @@ static void am3517_disable_ethernet_int(void)
+ drivers/input/keyboard/tca6416-keypad.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- 0001/drivers/input/keyboard/tca6416-keypad.c
++++ work/drivers/input/keyboard/tca6416-keypad.c	2011-03-22 22:44:26.000000000 +0900
+@@ -369,7 +369,7 @@ static int __init tca6416_keypad_init(vo
+ 	return i2c_add_driver(&tca6416_keypad_driver);
+ }
  
- static void am3517_evm_ethernet_init(struct emac_platform_data *pdata)
+-subsys_initcall(tca6416_keypad_init);
++module_init(tca6416_keypad_init);
+ 
+ static void __exit tca6416_keypad_exit(void)
  {
--	unsigned int regval;
-+	u32 regval, mac_lo, mac_hi;
-+
-+	mac_lo = omap_ctrl_readl(AM35XX_CONTROL_FUSE_EMAC_LSB);
-+	mac_hi = omap_ctrl_readl(AM35XX_CONTROL_FUSE_EMAC_MSB);
-+
-+	pdata->mac_addr[0] = (u_int8_t)((mac_hi & 0xFF0000) >> 16);
-+	pdata->mac_addr[1] = (u_int8_t)((mac_hi & 0xFF00) >> 8);
-+	pdata->mac_addr[2] = (u_int8_t)((mac_hi & 0xFF) >> 0);
-+	pdata->mac_addr[3] = (u_int8_t)((mac_lo & 0xFF0000) >> 16);
-+	pdata->mac_addr[4] = (u_int8_t)((mac_lo & 0xFF00) >> 8);
-+	pdata->mac_addr[5] = (u_int8_t)((mac_lo & 0xFF) >> 0);
- 
- 	pdata->ctrl_reg_offset		= AM35XX_EMAC_CNTRL_OFFSET;
- 	pdata->ctrl_mod_reg_offset	= AM35XX_EMAC_CNTRL_MOD_OFFSET;
-diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
-index c2804c1..8b6cc4f 100644
---- a/arch/arm/mach-omap2/control.h
-+++ b/arch/arm/mach-omap2/control.h
-@@ -198,6 +198,8 @@
- 
- /* AM35XX only CONTROL_GENERAL register offsets */
- #define AM35XX_CONTROL_MSUSPENDMUX_6    (OMAP2_CONTROL_GENERAL + 0x0038)
-+#define AM35XX_CONTROL_FUSE_EMAC_LSB	(OMAP2_CONTROL_GENERAL + 0x0110)
-+#define AM35XX_CONTROL_FUSE_EMAC_MSB	(OMAP2_CONTROL_GENERAL + 0x0114)
- #define AM35XX_CONTROL_DEVCONF2         (OMAP2_CONTROL_GENERAL + 0x0310)
- #define AM35XX_CONTROL_DEVCONF3         (OMAP2_CONTROL_GENERAL + 0x0314)
- #define AM35XX_CONTROL_CBA_PRIORITY     (OMAP2_CONTROL_GENERAL + 0x0320)
--- 
-1.6.2.4
-
