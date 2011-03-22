@@ -1,60 +1,63 @@
-From: Archit Taneja <archit@ti.com>
-Subject: Re: [PATCH 1/3] OMAP4: DSS2: Register configuration changes for DSI
-Date: Tue, 22 Mar 2011 17:46:44 +0530
-Message-ID: <4D88932C.4050501@ti.com>
-References: <1300793616-2669-1-git-send-email-archit@ti.com> <1300795615.2498.99.camel@deskari>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Sriramakrishnan A G <srk@ti.com>
+Subject: [PATCH] omap3: am3517evm : Read MAC address from E-Fuses
+Date: Tue, 22 Mar 2011 18:55:06 +0530
+Message-ID: <1300800306-17846-1-git-send-email-srk@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40851 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753665Ab1CVMMW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 22 Mar 2011 08:12:22 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p2MCCJe0024094
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 22 Mar 2011 07:12:21 -0500
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id p2MCCIQe026697
-	for <linux-omap@vger.kernel.org>; Tue, 22 Mar 2011 17:42:18 +0530 (IST)
-In-Reply-To: <1300795615.2498.99.camel@deskari>
+Received: from devils.ext.ti.com ([198.47.26.153]:56215 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754189Ab1CVNZQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Mar 2011 09:25:16 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: srk@ti.com, tony@atomide.com
 
-Hi,
+MAC address is programmed in the e-fuses accessible through
+Control module space. Board init code reads the programmed value
+from e-fuse and passes this information to the driver.
 
-On Tuesday 22 March 2011 05:36 PM, Valkeinen, Tomi wrote:
-> On Tue, 2011-03-22 at 06:33 -0500, Taneja, Archit wrote:
->> The following changes have changed from OMAP3 to OMAP4 DSI:
->> -The register field DSI_PLL_FREQSEL in DSI_PLL_CONFIGURATION2 has been removed.
->> -DCS_CMD_ENABLE and DCS_CMD_CODE bits have been moved from DSI_CTRL to
->> DSI_VC_CTRLi, hence the control of the bits is available per VC.
->> -DSI LDO powergood notification doesn't work on OMAP4. This is mentioned in
->> OMAP4 errata revision 1.8(Errata 1.76).
->> -OCP_WIDTH register field is included in DSI_VC_CTRL.
->> -The SCP clock is also required to access DSI PLL registers
->>
->> Introduce dss features for these changes so that DSI runs on both OMAP3 and
->> OMAP4.
->>
->> Signed-off-by: Archit Taneja<archit@ti.com>
->> ---
->>   drivers/video/omap2/dss/dsi.c          |   60 ++++++++++++++++++++-----------
->>   drivers/video/omap2/dss/dss_features.c |    9 +++--
->>   drivers/video/omap2/dss/dss_features.h |   30 +++++++++-------
->>   3 files changed, 62 insertions(+), 37 deletions(-)
->
-> The patch itself looks fine, but the subject says this is part 1/3. But
-> I presume this is the only patch.
+Signed-off-by: Sriramakrishnan A G <srk@ti.com>
+---
+ arch/arm/mach-omap2/board-am3517evm.c |   12 +++++++++++-
+ arch/arm/mach-omap2/control.h         |    2 ++
+ 2 files changed, 13 insertions(+), 1 deletions(-)
 
-Yes it is. Sorry for the wrong subject.
-
-Archit
->
->   Tomi
->
->
+diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
+index 77541cf..177c65d 100644
+--- a/arch/arm/mach-omap2/board-am3517evm.c
++++ b/arch/arm/mach-omap2/board-am3517evm.c
+@@ -128,7 +128,17 @@ static void am3517_disable_ethernet_int(void)
+ 
+ static void am3517_evm_ethernet_init(struct emac_platform_data *pdata)
+ {
+-	unsigned int regval;
++	u32 regval, mac_lo, mac_hi;
++
++	mac_lo = omap_ctrl_readl(AM35XX_CONTROL_FUSE_EMAC_LSB);
++	mac_hi = omap_ctrl_readl(AM35XX_CONTROL_FUSE_EMAC_MSB);
++
++	pdata->mac_addr[0] = (u_int8_t)((mac_hi & 0xFF0000) >> 16);
++	pdata->mac_addr[1] = (u_int8_t)((mac_hi & 0xFF00) >> 8);
++	pdata->mac_addr[2] = (u_int8_t)((mac_hi & 0xFF) >> 0);
++	pdata->mac_addr[3] = (u_int8_t)((mac_lo & 0xFF0000) >> 16);
++	pdata->mac_addr[4] = (u_int8_t)((mac_lo & 0xFF00) >> 8);
++	pdata->mac_addr[5] = (u_int8_t)((mac_lo & 0xFF) >> 0);
+ 
+ 	pdata->ctrl_reg_offset		= AM35XX_EMAC_CNTRL_OFFSET;
+ 	pdata->ctrl_mod_reg_offset	= AM35XX_EMAC_CNTRL_MOD_OFFSET;
+diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
+index c2804c1..8b6cc4f 100644
+--- a/arch/arm/mach-omap2/control.h
++++ b/arch/arm/mach-omap2/control.h
+@@ -198,6 +198,8 @@
+ 
+ /* AM35XX only CONTROL_GENERAL register offsets */
+ #define AM35XX_CONTROL_MSUSPENDMUX_6    (OMAP2_CONTROL_GENERAL + 0x0038)
++#define AM35XX_CONTROL_FUSE_EMAC_LSB	(OMAP2_CONTROL_GENERAL + 0x0110)
++#define AM35XX_CONTROL_FUSE_EMAC_MSB	(OMAP2_CONTROL_GENERAL + 0x0114)
+ #define AM35XX_CONTROL_DEVCONF2         (OMAP2_CONTROL_GENERAL + 0x0310)
+ #define AM35XX_CONTROL_DEVCONF3         (OMAP2_CONTROL_GENERAL + 0x0314)
+ #define AM35XX_CONTROL_CBA_PRIORITY     (OMAP2_CONTROL_GENERAL + 0x0320)
+-- 
+1.6.2.4
 
