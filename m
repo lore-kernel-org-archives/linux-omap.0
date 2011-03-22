@@ -1,81 +1,52 @@
-From: Vishwanath Sripathy <vishwanath.bs@ti.com>
-Subject: RE: cpufreq support for the Beagleboard.
-Date: Tue, 22 Mar 2011 10:39:26 +0530
-Message-ID: <0f31e209e69c20b1e5b1a9f31f95b843@mail.gmail.com>
-References: <AANLkTi=mWbpi7i6if5TdBCoi0bUFGWcxOba1kZ+6EePa@mail.gmail.com><641332d61bd84a5de4483dbb496ecd5a@mail.gmail.com>
- <AANLkTimfoR=36BcAFooNWzUEVJy1BLpdQji2hB1vnd1T@mail.gmail.com>
- <859a150e6ceac11b05685418a0c9243c@mail.gmail.com> <4D879CA0.6070904@crhc.illinois.edu>
+From: Paul Mundt <lethal@linux-sh.org>
+Subject: Re: [GIT PULL] omap display subsystem changes for 2.6.39
+Date: Tue, 22 Mar 2011 14:40:50 +0900
+Message-ID: <20110322054049.GB25925@linux-sh.org>
+References: <1300701083.2891.77.camel@deskari>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:51088 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753623Ab1CVFJc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 22 Mar 2011 01:09:32 -0400
-Received: by mail-qy0-f180.google.com with SMTP id 10so5619701qyk.11
-        for <linux-omap@vger.kernel.org>; Mon, 21 Mar 2011 22:09:29 -0700 (PDT)
-In-Reply-To: <4D879CA0.6070904@crhc.illinois.edu>
+Received: from linux-sh.org ([111.68.239.195]:52459 "EHLO linux-sh.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754024Ab1CVFk5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 22 Mar 2011 01:40:57 -0400
+Content-Disposition: inline
+In-Reply-To: <1300701083.2891.77.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Matt Johnson <johnso87@crhc.illinois.edu>
-Cc: javier Martin <javier.martin@vista-silicon.com>, linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 
-> -----Original Message-----
-> From: Matt Johnson [mailto:johnso87@crhc.illinois.edu]
-> Sent: Tuesday, March 22, 2011 12:15 AM
-> To: Vishwanath Sripathy
-> Cc: javier Martin; linux-omap@vger.kernel.org
-> Subject: Re: cpufreq support for the Beagleboard.
->
-> On 03/21/2011 08:24 AM, Vishwanath Sripathy wrote:
-> >> -----Original Message-----
-> >> From: javier Martin [mailto:javier.martin@vista-silicon.com]
-> >> Sent: Monday, March 21, 2011 5:40 PM
-> >> To: Vishwanath Sripathy
-> >> Cc: linux-omap@vger.kernel.org
-> >> Subject: Re: cpufreq support for the Beagleboard.
-> >>
-> >> Hi,
-> >> thank you for your fast answer.
-> >>
-> >> I've been testing the repository you pointed me and I found that only
-> >> 300MHz and 600MHz can be selected in the Beagleboard xM.
-> >> Couldn't we work until 1000MHz?
-> > 1G is disabled by default in OPP table I suppose. Pls enable it (in
-> > omap36xx_opp_def_list) if your board supports it.
-> My understanding was that the mainline kernel needed support for
-> SmartReflex 1.5 and Adaptive Body Biasing (ABB), as found in TI's
-> linux-omap-psp 2.6.32, before it was safe to enable the 1GHz OPP on the
-> DM3730 (for e.g., Beagleboard xM).  Is this not the case?  Can we really
-> just flip the bit in the OPP table?
-Sorry, I should have been more explicit.
-Yes you need to have ABB and SR enabled before enabling 1G.
+On Mon, Mar 21, 2011 at 11:51:23AM +0200, Tomi Valkeinen wrote:
+> One problem I noticed just now, the committer names seem a bit messed
+> up. For example, Archit Taneja has three different style names there. Do
+> you think I should rebase and fix them? Not a big job, but it'll mean,
+> well, rebasing.
+> 
+No need, this is what .mailmap is for. It seems there are quite a few
+variations, I've added entries now for all of:
 
-Vishwa
->
-> >> Do you know what's left for those patches to enter mainline? Is
-> >> anybody working on it?
-> > OMAP cpufreq is undergoing some architecture/design changes and
-> this is
-> > WIP.
-> >
-> > Vishwa
-> Thanks,
-> Matt
->
-> >> Thanks.
-> >>
-> >> --
-> >> Javier Martin
-> >> Vista Silicon S.L.
-> >> CDTUC - FASE C - Oficina S-345
-> >> Avda de los Castros s/n
-> >> 39005- Santander. Cantabria. Spain
-> >> +34 942 25 32 60
-> >> www.vista-silicon.com
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-omap"
-in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+	Archit Taneja <archit@ti.com>
+	Mayuresh Janorkar <mayur@ti.com>
+	Mythri P K <mythripk@ti.com>
+	Sumit Semwal <sumit.semwal@ti.com>
+
+which traps all of the offenders in these patches. There seems to be a
+general issue of author names and sign-offs using reverse order naming, I
+assume because this is some absurd convention used by TI's mail servers.
+
+We can of course continue fixing them up as they pop up, but people
+should ideally be aware of the need for consistency before committing
+things, too. A bit of name mangling is certainly a lesser evil than
+rewriting history, though.
+
+> There's a minor conflict in Overo's board file. I have pushed
+> "for-paul-merged" branch to gitorious, which contains a merge with
+> Linus' tree. I'm not sure that is the best way to show how to fix the
+> conflict, but hopefully it'll give the idea.
+> 
+Seemed pretty straightforward, I took care of it and made sure that it
+still built. I assume Tony or someone will yell loudly if I've
+inadvertently broken something :-)
+
+Pulled now. I'll send things off to Linus shortly.
