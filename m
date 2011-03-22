@@ -1,75 +1,135 @@
-From: Michael Jones <michael.jones@matrix-vision.de>
-Subject: Re: [PATCH-v2.6.39] spi/omap_mcspi: Fix broken last word xfer
-Date: Tue, 22 Mar 2011 09:19:21 +0100
-Message-ID: <4D885B89.8070608@matrix-vision.de>
-References: <1300717650-28953-1-git-send-email-jhnikula@gmail.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [RFC 2/3] OMAP3: hwmod: Add support to associate an initiator
+ with a hwmod
+Date: Tue, 22 Mar 2011 13:58:24 +0530
+Message-ID: <4D885DA8.80002@ti.com>
+References: <1300705823-12784-1-git-send-email-rnayak@ti.com> <1300705823-12784-2-git-send-email-rnayak@ti.com> <1300705823-12784-3-git-send-email-rnayak@ti.com> <03a02588593f269848ca723790e0319a@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail2.matrix-vision.com ([85.214.244.251]:44052 "EHLO
-	mail2.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755122Ab1CVITX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Mar 2011 04:19:23 -0400
-In-Reply-To: <1300717650-28953-1-git-send-email-jhnikula@gmail.com>
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:39180 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755151Ab1CVI2g (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 22 Mar 2011 04:28:36 -0400
+Received: by mail-gw0-f50.google.com with SMTP id 16so3356458gwj.37
+        for <linux-omap@vger.kernel.org>; Tue, 22 Mar 2011 01:28:35 -0700 (PDT)
+In-Reply-To: <03a02588593f269848ca723790e0319a@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jhnikula@gmail.com>
-Cc: spi-devel-general@lists.sourceforge.net, linux-omap@vger.kernel.org, Grant Likely <grant.likely@secretlab.ca>
+To: Hema Kalliguddi <hemahk@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, Benoit Cousson <b-cousson@ti.com>
 
-On 03/21/2011 03:27 PM, Jarkko Nikula wrote:
-> Commit adef658 "spi/omap_mcspi: catch xfers of non-multiple SPI word size"
-> broke the transmission of last word in cases where access is multiple of
-> word size and word size is 16 or 32 bits.
-> 
-> Fix this by replacing the test "c > (word_len>>3)" in do-while loops with
-> "c >= 'pointer increment size'". This ensures that the last word is
-> transmitted in above case and still allow to break the loop and prevent
-> variable c underflow in cases where word size != 'pointer increment size'.
-> 
-> Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
-> Cc: Michael Jones <michael.jones@matrix-vision.de>
-> ---
-> I noticed the issue with wl1251 WLAN driver on Nokia N900 using today's
-> vanilla head a44f99c7efdb88fa41128065c9a9445c19894e34.
-> ---
->  drivers/spi/omap2_mcspi.c |    6 +++---
->  1 files changed, 3 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/spi/omap2_mcspi.c b/drivers/spi/omap2_mcspi.c
-> index 3a5ed06..6f86ba0 100644
-> --- a/drivers/spi/omap2_mcspi.c
-> +++ b/drivers/spi/omap2_mcspi.c
-> @@ -517,7 +517,7 @@ omap2_mcspi_txrx_pio(struct spi_device *spi, struct spi_transfer *xfer)
->  				dev_vdbg(&spi->dev, "read-%d %02x\n",
->  						word_len, *(rx - 1));
->  			}
-> -		} while (c > (word_len>>3));
-> +		} while (c);
->  	} else if (word_len <= 16) {
->  		u16		*rx;
->  		const u16	*tx;
-> @@ -564,7 +564,7 @@ omap2_mcspi_txrx_pio(struct spi_device *spi, struct spi_transfer *xfer)
->  				dev_vdbg(&spi->dev, "read-%d %04x\n",
->  						word_len, *(rx - 1));
->  			}
-> -		} while (c > (word_len>>3));
-> +		} while (c >= 2);
->  	} else if (word_len <= 32) {
->  		u32		*rx;
->  		const u32	*tx;
-> @@ -611,7 +611,7 @@ omap2_mcspi_txrx_pio(struct spi_device *spi, struct spi_transfer *xfer)
->  				dev_vdbg(&spi->dev, "read-%d %08x\n",
->  						word_len, *(rx - 1));
->  			}
-> -		} while (c > (word_len>>3));
-> +		} while (c >= 4);
->  	}
->  
->  	/* for TX_ONLY mode, be sure all words have shifted out */
+On 3/21/2011 6:38 PM, Hema Kalliguddi wrote:
+> Rajendra,
+>
+>> -----Original Message-----
+>> From: linux-omap-owner@vger.kernel.org
+>> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Rajendra Nayak
+>> Sent: Monday, March 21, 2011 4:40 PM
+>> To: linux-omap@vger.kernel.org
+>> Cc: paul@pwsan.com; b-cousson@ti.com; Rajendra Nayak
+>> Subject: [RFC 2/3] OMAP3: hwmod: Add support to associate an
+>> initiator with a hwmod
+>>
+>> Add hwmod api's to add and delete an initiator
+>> association with an hwmod.
+>>
+>> Signed-off-by: Rajendra Nayak<rnayak@ti.com>
+>> ---
+>> arch/arm/mach-omap2/omap_hwmod.c             |   33
+>> ++++++++++++++++++++++++++
+>> arch/arm/plat-omap/include/plat/omap_hwmod.h |    2 +
+>> 2 files changed, 35 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/omap_hwmod.c
+>> b/arch/arm/mach-omap2/omap_hwmod.c
+>> index e034294..d4826be 100644
+>> --- a/arch/arm/mach-omap2/omap_hwmod.c
+>> +++ b/arch/arm/mach-omap2/omap_hwmod.c
+>> @@ -2369,3 +2369,36 @@ int omap_hwmod_no_setup_reset(struct
+>> omap_hwmod *oh)
+>>
+>> 	return 0;
+>> }
+>> +
+>> +int omap_hwmod_add_initiator_user(struct omap_hwmod *oh, u8 init_id)
+>> +{
+>> +	if (oh->_state != _HWMOD_STATE_ENABLED)
+>> +		return -EINVAL;
+>> +
+>> +	if (cpu_is_omap34xx()) {
+>> +		return omap2_prm_module_enable_initiator_wakeup(
+>> +						
+>> oh->prcm.omap2.module_offs,
+>> +						
+>> oh->prcm.omap2.idlest_reg_id,
+>> +						
+>> oh->prcm.omap2.idlest_idle_bit,
+>> +						init_id);
+>> +	}
+>> +
+>> +	return -EINVAL;
+>
+> Why are you returning error when it not a omap34xx?
+> Is it not that this API will be called for only omap34xx?
 
-Acked-by: Michael Jones <michael.jones@matrix-vision.de>
+No, this API could get called as part of a driver call
+to the omap_device API on non-supported platform's as well.
 
-MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
-Registergericht: Amtsgericht Stuttgart, HRB 271090
-Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner
+>
+>> +}
+>> +
+>> +int omap_hwmod_del_initiator_user(struct omap_hwmod *oh, u8 init_id)
+>> +{
+>> +	if (oh->_state == _HWMOD_STATE_ENABLED)
+>> +		return -EINVAL;
+>> +
+>> +	if (cpu_is_omap34xx()) {
+>> +		return omap2_prm_module_disable_initiator_wakeup(
+>> +						
+>> oh->prcm.omap2.module_offs,
+>> +						
+>> oh->prcm.omap2.idlest_reg_id,
+>> +						
+>> oh->prcm.omap2.idlest_idle_bit,
+>> +						init_id);
+>> +	}
+>> +
+>> +	return -EINVAL;
+>
+> Ditto...
+>
+>> +
+>> +}
+>> diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h
+>> b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+>> index 4bd7354..fe47448 100644
+>> --- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
+>> +++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+>> @@ -590,6 +590,8 @@ int omap_hwmod_add_initiator_dep(struct
+>> omap_hwmod *oh,
+>> 				 struct omap_hwmod *init_oh);
+>> int omap_hwmod_del_initiator_dep(struct omap_hwmod *oh,
+>> 				 struct omap_hwmod *init_oh);
+>> +int omap_hwmod_add_initiator_user(struct omap_hwmod *oh, u8 init_id);
+>> +int omap_hwmod_del_initiator_user(struct omap_hwmod *oh, u8 init_id);
+>>
+>> int omap_hwmod_set_clockact_both(struct omap_hwmod *oh);
+>> int omap_hwmod_set_clockact_main(struct omap_hwmod *oh);
+>> --
+>
+>
+> Regards,
+> Hema
+>
+>> 1.7.0.4
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe
+>> linux-omap" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+
