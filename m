@@ -1,84 +1,76 @@
-From: <kalle.jokiniemi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 2/2] OMAP3: rx51: specify phy_power for usb tranceiver
-Date: Tue, 22 Mar 2011 10:13:37 +0000
-Message-ID: <9D0D31AA57AAF5499AFDC63D6472631B06AF54@008-AM1MPN1-036.mgdnok.nokia.com>
+From: <kalle.jokiniemi@nokia.com>
+Subject: RE: [PATCH 0/2] USB: twl4030-usb: fix isp1707 xceiver powering
+Date: Tue, 22 Mar 2011 10:19:48 +0000
+Message-ID: <9D0D31AA57AAF5499AFDC63D6472631B06AFA3@008-AM1MPN1-036.mgdnok.nokia.com>
 References: <1300715420-25602-1-git-send-email-kalle.jokiniemi@nokia.com>
- <1300715420-25602-3-git-send-email-kalle.jokiniemi@nokia.com>
- <4D8760AB.1080307@ru.mvista.com>
+ <20110322094542.GD4286@esdhcp034230>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4D8760AB.1080307-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([147.243.1.47]:30770 "EHLO mgw-sa01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753241Ab1CVKTz convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Mar 2011 06:19:55 -0400
+In-Reply-To: <20110322094542.GD4286@esdhcp034230>
 Content-Language: en-US
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Heikki.Krogerus-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org, jhnikula-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, ilkka.koskinen-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Heikki.Krogerus@nokia.com
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, balbi@ti.com, tony@atomide.com, jhnikula@gmail.com, ilkka.koskinen@nokia.com
 
 Hi,
 
  > -----Original Message-----
- > From: linux-omap-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-omap-
- > owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of ext Sergei Shtylyov
- > Sent: 21. maaliskuuta 2011 16:29
+ > From: Heikki Krogerus [mailto:heikki.krogerus@nokia.com]
+ > Sent: 22. maaliskuuta 2011 11:46
  > To: Jokiniemi Kalle (Nokia-MS/Tampere)
- > Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; balbi-l0cyMroinI0@public.gmane.org;
- > tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org; Krogerus Heikki (Nokia-MS/Helsinki);
- > jhnikula-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org; Koskinen Ilkka (Nokia-MS/Tampere)
- > Subject: Re: [PATCH 2/2] OMAP3: rx51: specify phy_power for usb tranceiver
+ > Cc: linux-usb@vger.kernel.org; linux-omap@vger.kernel.org; balbi@ti.com;
+ > tony@atomide.com; jhnikula@gmail.com; Koskinen Ilkka (Nokia-MS/Tampere)
+ > Subject: Re: [PATCH 0/2] USB: twl4030-usb: fix isp1707 xceiver powering
  > 
- > Hello.
+ > Hi Kalle,
  > 
- > Kalle Jokiniemi wrote:
+ > Missed the cover letter so I already commented the patches.
  > 
- > > This patch allows the ISP1707 USB tranceiver on Nokia
- > > N900 to be disabled when usb cable is disconnected.
- > > This saves approximately 14mA of battery current.
- > 
- > > Patch based on work done by Heikki Krogerus on N900
- > > maemo kernel.
- > 
- > > Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
- > > Cc: Heikki Krogerus <heikki.krogerus-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
- > > ---
+ > On Mon, Mar 21, 2011 at 03:50:18PM +0200, Kalle Jokiniemi wrote:
+ > > These two patches introduce phy_power calls form board files
+ > > to twl4030-usb. This fixes a problem in Nokia N900, where the
+ > > ISP1707 serial tranceiver did not get disabled during phy
+ > > power down.
+ > >
+ > > Based on patches used on n900 maemo kernel, mainly from Heikki
+ > > Krogerus. Comments&testing appreciated.
+ > >
+ > > Basic test done on MeeGo + linux usb that the ISP powering
+ > > happens correctly. Also simple data transfer tests done with
+ > > backported patches on MeeGo n900 kernel.
+ > >
+ > > Cross posting to linux-omap, but I propose that we'd push these
+ > > to linux-usb. Patches based on linux-usb master.
+ > >
+ > > Kalle Jokiniemi (2):
+ > >   USB: twl4030-usb: do board specific phy_power up/down
+ > >   OMAP3: rx51: specify phy_power for usb tranceiver
+ > >
  > >  arch/arm/mach-omap2/board-rx51-peripherals.c |   32
  > ++++++++++++++++++++++++++
- > >  1 files changed, 32 insertions(+), 0 deletions(-)
+ > >  drivers/usb/otg/twl4030-usb.c                |    9 ++++++-
+ > >  2 files changed, 40 insertions(+), 1 deletions(-)
  > 
- > > diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c
- > b/arch/arm/mach-omap2/board-rx51-peripherals.c
- > > index e75e240..9dd22bc 100644
- > > --- a/arch/arm/mach-omap2/board-rx51-peripherals.c
- > > +++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
- > [...]
- > > @@ -534,8 +537,36 @@ static struct twl4030_gpio_platform_data
- > rx51_gpio_data = {
- > >  	.setup			= rx51_twlgpio_setup,
- > >  };
- > >
- > > +static void __init rx51_xceiv_init(void)
- > > +{
- > > +	if (gpio_request(RX51_USB_TRANSCEIVER_RST_GPIO, NULL) < 0)
- > > +		BUG();
+ > I do like the idea of getting the support for power down mode of
+ > isp1707 in RX51 but...
  > 
- >     Why not:
- > 
- > 	BUG_ON(gpio_request(RX51_USB_TRANSCEIVER_RST_GPIO, NULL) <
- > 0);
+ > If I understood correctly, meego has the isp1704_charger driver from
+ > mainline, so we don't need to involve twl4030-usb when powering the
+ > isp1707 like we did in maemo kernel.
 
-Makes sense, will change that. Thanks for the comments.
+Thanks for all the comments. I'll rework the driver to use the isp charger driver instead.
 
 - Kalle
 
- > 
- > WBR, Sergei
+
+
  > 
  > --
- > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
- > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
- > More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ > heikki
