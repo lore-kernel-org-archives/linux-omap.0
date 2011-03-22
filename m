@@ -1,202 +1,184 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 5/7] OMAP2+: voltage: keep track of powerdomains in each
- voltagedomain
-Date: Tue, 22 Mar 2011 13:35:01 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1103221331570.11798@utopia.booyaka.com>
-References: <1300493932-17362-1-git-send-email-khilman@ti.com> <1300493932-17362-6-git-send-email-khilman@ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH 4/7] OMAP2+: powerdomain: add voltage domain lookup during
+ register
+Date: Tue, 22 Mar 2011 21:59:10 +0100
+Message-ID: <4D890D9E.804@ti.com>
+References: <1300493932-17362-1-git-send-email-khilman@ti.com> <1300493932-17362-5-git-send-email-khilman@ti.com> <alpine.DEB.2.00.1103221313460.11798@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:55534 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752822Ab1CVTfC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Mar 2011 15:35:02 -0400
-In-Reply-To: <1300493932-17362-6-git-send-email-khilman@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:48657 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751099Ab1CVU7E (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 22 Mar 2011 16:59:04 -0400
+In-Reply-To: <alpine.DEB.2.00.1103221313460.11798@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "Hilman, Kevin" <khilman@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Kevin,
+Hi Paul,
 
-a couple of comments,
+On 3/22/2011 8:23 PM, Paul Walmsley wrote:
+> Hi Kevin,
+>
+> a couple of comments, now that i have the chance to look this over
+> closely.
+>
+> Probably we should require every powerdomain to have a voltagedomain.
+> This will avoid the problems we're having with the clocks, in which not
+> every clock has a clockdomain pointer.
 
-On Fri, 18 Mar 2011, Kevin Hilman wrote:
+I do agree with you, but not for the same reason :-)
+Every power domain belongs to a voltage domain, scalable or not, so 
+that's why we should always have it.
 
-> When a powerdomain is registered and it has an associated voltage domain,
-> add the powerdomain to the voltagedomain using voltdm_add_pwrdm().
-> 
-> Modeled after a similar relationship between clockdomains and powerdomains.
-> 
-> Signed-off-by: Kevin Hilman <khilman@ti.com>
-> ---
->  arch/arm/mach-omap2/powerdomain.c |    1 +
->  arch/arm/mach-omap2/voltage.c     |   77 +++++++++++++++++++++++++++++++++++++
->  arch/arm/mach-omap2/voltage.h     |   11 +++++
->  3 files changed, 89 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-> index da86c72..2f16b43 100644
-> --- a/arch/arm/mach-omap2/powerdomain.c
-> +++ b/arch/arm/mach-omap2/powerdomain.c
-> @@ -103,6 +103,7 @@ static int _pwrdm_register(struct powerdomain *pwrdm)
->  			return -EINVAL;
->  		}
->  		pwrdm->voltdm.ptr = voltdm;
-> +		voltdm_add_pwrdm(voltdm, pwrdm);
->  	}
->  
->  	list_add(&pwrdm->node, &pwrdm_list);
-> diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
-> index 1dc6967..c25df81 100644
-> --- a/arch/arm/mach-omap2/voltage.c
-> +++ b/arch/arm/mach-omap2/voltage.c
-> @@ -36,6 +36,7 @@
->  #include "control.h"
->  
->  #include "voltage.h"
-> +#include "powerdomain.h"
->  
->  #include "vc.h"
->  #include "vp.h"
-> @@ -1081,6 +1082,82 @@ static struct voltagedomain *_voltdm_lookup(const char *name)
->  	return voltdm;
->  }
->  
-> +/**
-> + * voltdm_add_pwrdm - add a powerdomain to a voltagedomain
-> + * @voltdm: struct voltagedomain * to add the powerdomain to
-> + * @pwrdm: struct powerdomain * to associate with a voltagedomain
-> + *
-> + * Associate the powerdomain @pwrdm with a voltagedomain @voltdm.  This
-> + * enables the use of voltdm_for_each_pwrdm().  Returns -EINVAL if
-> + * presented with invalid pointers; -ENOMEM if memory could not be allocated;
-> + * or 0 upon success.
-> + */
-> +int voltdm_add_pwrdm(struct voltagedomain *voltdm, struct powerdomain *pwrdm)
-> +{
-> +	int i;
-> +	int ret = -EINVAL;
-> +
-> +	if (!voltdm || !pwrdm)
-> +		return -EINVAL;
-> +
-> +	pr_debug("voltagedomain: associating powerdomain %s with voltagedomain "
-> +		 "%s\n", pwrdm->name, voltdm->name);
-> +
-> +	for (i = 0; i < VOLTDM_MAX_PWRDMS; i++) {
-> +		if (!voltdm->voltdm_pwrdms[i])
-> +			break;
-> +#ifdef DEBUG
-> +		if (voltdm->voltdm_pwrdms[i] == pwrdm) {
-> +			ret = -EINVAL;
-> +			goto vap_exit;
-> +		}
-> +#endif
-> +	}
-> +
-> +	if (i == VOLTDM_MAX_PWRDMS) {
-> +		pr_debug("voltagedomain: increase VOLTDM_MAX_PWRDMS for "
-> +			 "voltdm %s pwrdm %s\n", voltdm->name, pwrdm->name);
-> +		WARN_ON(1);
-> +		ret = -ENOMEM;
-> +		goto vap_exit;
-> +	}
-> +
-> +	voltdm->voltdm_pwrdms[i] = pwrdm;
-> +
-> +	ret = 0;
-> +
-> +vap_exit:
-> +	return ret;
-> +}
-> +
-> +/**
-> + * voltdm_for_each_pwrdm - call function on each pwrdm in a voltdm
-> + * @voltdm: struct voltagedomain * to iterate over
-> + * @fn: callback function *
-> + *
-> + * Call the supplied function @fn for each powerdomain in the voltagedomain
-> + * @voltdm.  The callback function can return anything but 0 to bail
-> + * out early from the iterator.  Returns -EINVAL if presented with
-> + * invalid pointers; or passes along the last return value of the
-> + * callback function, which should be 0 for success or anything else
-> + * to indicate failure.
-> + */
-> +int voltdm_for_each_pwrdm(struct voltagedomain *voltdm,
-> +			  int (*fn)(struct voltagedomain *voltdm,
-> +				    struct powerdomain *pwrdm))
-> +{
-> +	int ret = 0;
-> +	int i;
-> +
-> +	if (!fn)
-> +		return -EINVAL;
-> +
-> +	for (i = 0; i < VOLTDM_MAX_PWRDMS && !ret; i++)
-> +		ret = (*fn)(voltdm, voltdm->voltdm_pwrdms[i]);
-> +
-> +	return ret;
-> +}
-> +
->  static int _voltdm_register(struct voltagedomain *voltdm)
->  {
->  	if (!voltdm || !voltdm->name)
-> diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
-> index 13e5ed9..8e25126 100644
-> --- a/arch/arm/mach-omap2/voltage.h
-> +++ b/arch/arm/mach-omap2/voltage.h
-> @@ -19,6 +19,11 @@
->  #include "vc.h"
->  #include "vp.h"
->  
-> +/*
-> + * Maximum number of powerdomains that can be associated with a voltagedomain.
-> + */
-> +#define VOLTDM_MAX_PWRDMS	       10
+On the other hand not every clock belong to a clockdomain, that's why we 
+have clock without clockdomain on OMAP.
+A clockdomain is a just group of IPs that share the same interface clock.
 
-Since there are so many, I'd suggest using a list instead...
+Benoit
 
-> +
->  /* XXX document */
->  #define VOLTSCALE_VPFORCEUPDATE		1
->  #define VOLTSCALE_VCBYPASS		2
-> @@ -55,11 +60,14 @@ struct omap_vfsm_instance_data {
->   * @name: Name of the voltage domain which can be used as a unique identifier.
->   * @node: list_head linking all voltage domains
->   * @vdd: to be removed
-> + * @voltdm_pwrdms: powerdomains in this voltagedomain
->   */
->  struct voltagedomain {
->  	char *name;
->  	struct list_head node;
->  	struct omap_vdd_info *vdd;
-> +
-> +	struct powerdomain *voltdm_pwrdms[VOLTDM_MAX_PWRDMS];
+> So I'd suggest splitting this patch up into two patches -- one to make the
+> changes the powerdomain structure, and the second to add the code into the
+> powerdomain.c.  Between these two patches, we'd need patches to the
+> powerdomain data to add the voltagedomain names in.
+>
+> then...
+>
+> On Fri, 18 Mar 2011, Kevin Hilman wrote:
+>
+>> When a powerdomain is registered, lookup the voltage domain by name
+>> and keep a pointer to the containing voltagedomain in the powerdomain
+>> structure.
+>>
+>> Modeled after similar method between powerdomain and clockdomain layers.
+>>
+>> Signed-off-by: Kevin Hilman<khilman@ti.com>
+>>
+>> ---
+>>   arch/arm/mach-omap2/powerdomain.c |   26 ++++++++++++++++++++++++++
+>>   arch/arm/mach-omap2/powerdomain.h |    8 ++++++++
+>>   arch/arm/mach-omap2/voltage.h     |    1 +
+>>   3 files changed, 35 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+>> index 49c6513..da86c72 100644
+>> --- a/arch/arm/mach-omap2/powerdomain.c
+>> +++ b/arch/arm/mach-omap2/powerdomain.c
+>> @@ -77,6 +77,7 @@ static struct powerdomain *_pwrdm_lookup(const char *name)
+>>   static int _pwrdm_register(struct powerdomain *pwrdm)
+>>   {
+>>   	int i;
+>> +	struct voltagedomain *voltdm;
+>>
+>>   	if (!pwrdm || !pwrdm->name)
+>>   		return -EINVAL;
+>> @@ -94,6 +95,16 @@ static int _pwrdm_register(struct powerdomain *pwrdm)
+>>   	if (_pwrdm_lookup(pwrdm->name))
+>>   		return -EEXIST;
+>>
+>> +	if (pwrdm->voltdm.name) {
+>
+> we'd drop this
+>
+>> +		voltdm = voltdm_lookup(pwrdm->voltdm.name);
+>> +		if (!voltdm) {
+>> +			pr_err("powerdomain: %s: voltagedomain %s does not exist\n",
+>> +			       pwrdm->name, pwrdm->voltdm.name);
+>> +			return -EINVAL;
+>> +		}
+>> +		pwrdm->voltdm.ptr = voltdm;
+>> +	}
+>> +
+>>   	list_add(&pwrdm->node,&pwrdm_list);
+>>
+>>   	/* Initialize the powerdomain's state counter */
+>> @@ -383,6 +394,21 @@ int pwrdm_for_each_clkdm(struct powerdomain *pwrdm,
+>>   }
+>>
+>>   /**
+>> + * pwrdm_get_voltdm - return a ptr to the voltdm that this pwrdm resides in
+>> + * @pwrdm: struct powerdomain *
+>> + *
+>> + * Return a pointer to the struct voltageomain that the specified powerdomain
+>> + * @pwrdm exists in, or returns NULL if @pwrdm is NULL.
+>> + */
+>> +struct voltagedomain *pwrdm_get_voltdm(struct powerdomain *pwrdm)
+>> +{
+>> +	if (!pwrdm)
+>> +		return NULL;
+>
+> and this
+>
+>> +
+>> +	return pwrdm->voltdm.ptr;
+>> +}
+>> +
+>> +/**
+>>    * pwrdm_get_mem_bank_count - get number of memory banks in this powerdomain
+>>    * @pwrdm: struct powerdomain *
+>>    *
+>> diff --git a/arch/arm/mach-omap2/powerdomain.h b/arch/arm/mach-omap2/powerdomain.h
+>> index 027f40b..3a1ec37 100644
+>> --- a/arch/arm/mach-omap2/powerdomain.h
+>> +++ b/arch/arm/mach-omap2/powerdomain.h
+>> @@ -24,6 +24,8 @@
+>>
+>>   #include<plat/cpu.h>
+>>
+>> +#include "voltage.h"
+>> +
+>>   /* Powerdomain basic power states */
+>>   #define PWRDM_POWER_OFF		0x0
+>>   #define PWRDM_POWER_RET		0x1
+>> @@ -78,6 +80,7 @@ struct powerdomain;
+>>   /**
+>>    * struct powerdomain - OMAP powerdomain
+>>    * @name: Powerdomain name
+>> + * @voltdm: voltagedomain containing this powerdomain
+>>    * @omap_chip: represents the OMAP chip types containing this pwrdm
+>>    * @prcm_offs: the address offset from CM_BASE/PRM_BASE
+>>    * @prcm_partition: (OMAP4 only) the PRCM partition ID containing @prcm_offs
+>> @@ -98,6 +101,10 @@ struct powerdomain;
+>>    */
+>>   struct powerdomain {
+>>   	const char *name;
+>> +	union {
+>> +		const char *name;
+>> +		struct voltagedomain *ptr;
+>> +	} voltdm;
+>>   	const struct omap_chip_id omap_chip;
+>>   	const s16 prcm_offs;
+>>   	const u8 pwrsts;
+>> @@ -176,6 +183,7 @@ int pwrdm_del_clkdm(struct powerdomain *pwrdm, struct clockdomain *clkdm);
+>>   int pwrdm_for_each_clkdm(struct powerdomain *pwrdm,
+>>   			 int (*fn)(struct powerdomain *pwrdm,
+>>   				   struct clockdomain *clkdm));
+>> +struct voltagedomain *pwrdm_get_voltdm(struct powerdomain *pwrdm);
+>>
+>>   int pwrdm_get_mem_bank_count(struct powerdomain *pwrdm);
+>>
+>> diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
+>> index 122d8c1..13e5ed9 100644
+>> --- a/arch/arm/mach-omap2/voltage.h
+>> +++ b/arch/arm/mach-omap2/voltage.h
+>> @@ -182,4 +182,5 @@ extern void omap44xx_voltagedomains_init(void);
+>>
+>>   struct voltagedomain *voltdm_lookup(const char *name);
+>>   void voltdm_init(struct voltagedomain **voltdm_list);
+>> +int voltdm_add_pwrdm(struct voltagedomain *voltdm, struct powerdomain *pwrdm);
+>>   #endif
+>> --
+>> 1.7.4
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>
+>
+> - Paul
 
-... and just a minor nit in naming, I don't think the "voltdm_" part of 
-the name is necessary, it seems redundant to me.  (And yes, I do think the 
-"pwrdm_" is redundant in the struct powerdomain too ;-)
-
->  };
->  
->  /**
-> @@ -183,4 +191,7 @@ extern void omap44xx_voltagedomains_init(void);
->  struct voltagedomain *voltdm_lookup(const char *name);
->  void voltdm_init(struct voltagedomain **voltdm_list);
->  int voltdm_add_pwrdm(struct voltagedomain *voltdm, struct powerdomain *pwrdm);
-> +int voltdm_for_each_pwrdm(struct voltagedomain *voltdm,
-> +			  int (*fn)(struct voltagedomain *voltdm,
-> +				    struct powerdomain *pwrdm));
->  #endif
-> -- 
-> 1.7.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
-
-- Paul
