@@ -1,16 +1,17 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 7/7] OMAP3: powerdomain data: add voltage domains
-Date: Tue, 22 Mar 2011 13:30:58 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1103221324461.11798@utopia.booyaka.com>
-References: <1300493932-17362-1-git-send-email-khilman@ti.com> <1300493932-17362-8-git-send-email-khilman@ti.com>
+Subject: Re: [PATCH 5/7] OMAP2+: voltage: keep track of powerdomains in each
+ voltagedomain
+Date: Tue, 22 Mar 2011 13:35:01 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1103221331570.11798@utopia.booyaka.com>
+References: <1300493932-17362-1-git-send-email-khilman@ti.com> <1300493932-17362-6-git-send-email-khilman@ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:55514 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:55534 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752472Ab1CVTa7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Mar 2011 15:30:59 -0400
-In-Reply-To: <1300493932-17362-8-git-send-email-khilman@ti.com>
+	with ESMTP id S1752822Ab1CVTfC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Mar 2011 15:35:02 -0400
+In-Reply-To: <1300493932-17362-6-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Kevin Hilman <khilman@ti.com>
@@ -18,116 +19,184 @@ Cc: linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>
 
 Hi Kevin,
 
-a couple of comments below..
+a couple of comments,
 
 On Fri, 18 Mar 2011, Kevin Hilman wrote:
 
-> Add voltage domain name to indicate which voltagedomain each
-> powerdomain is in.  A missing voltage domain name means that that
-> powerdomain is not in one of the currently scalable voltage domains.
-
-Before you add these, you might want to change the voltagedomain names for 
-OMAP3.  I don't think it's correct to refer to the VDD1 voltagedomain as 
-"mpu" since it includes both the MPU and IVA.  Probably best to use simply 
-"vdd1" and "vdd2" since that is the historical usage.
-
-also...
-
+> When a powerdomain is registered and it has an associated voltage domain,
+> add the powerdomain to the voltagedomain using voltdm_add_pwrdm().
+> 
+> Modeled after a similar relationship between clockdomains and powerdomains.
 > 
 > Signed-off-by: Kevin Hilman <khilman@ti.com>
 > ---
->  arch/arm/mach-omap2/powerdomains3xxx_data.c |   10 ++++++++++
->  1 files changed, 10 insertions(+), 0 deletions(-)
+>  arch/arm/mach-omap2/powerdomain.c |    1 +
+>  arch/arm/mach-omap2/voltage.c     |   77 +++++++++++++++++++++++++++++++++++++
+>  arch/arm/mach-omap2/voltage.h     |   11 +++++
+>  3 files changed, 89 insertions(+), 0 deletions(-)
 > 
-> diff --git a/arch/arm/mach-omap2/powerdomains3xxx_data.c b/arch/arm/mach-omap2/powerdomains3xxx_data.c
-> index 9c9c113..bd01025 100644
-> --- a/arch/arm/mach-omap2/powerdomains3xxx_data.c
-> +++ b/arch/arm/mach-omap2/powerdomains3xxx_data.c
-> @@ -52,6 +52,7 @@ static struct powerdomain iva2_pwrdm = {
->  		[2] = PWRSTS_OFF_ON,
->  		[3] = PWRSTS_ON,
->  	},
-> +	.voltdm           = { .name = "mpu" },
->  };
+> diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+> index da86c72..2f16b43 100644
+> --- a/arch/arm/mach-omap2/powerdomain.c
+> +++ b/arch/arm/mach-omap2/powerdomain.c
+> @@ -103,6 +103,7 @@ static int _pwrdm_register(struct powerdomain *pwrdm)
+>  			return -EINVAL;
+>  		}
+>  		pwrdm->voltdm.ptr = voltdm;
+> +		voltdm_add_pwrdm(voltdm, pwrdm);
+>  	}
 >  
->  static struct powerdomain mpu_3xxx_pwrdm = {
-> @@ -68,6 +69,7 @@ static struct powerdomain mpu_3xxx_pwrdm = {
->  	.pwrsts_mem_on	  = {
->  		[0] = PWRSTS_OFF_ON,
->  	},
-> +	.voltdm           = { .name = "mpu" },
->  };
+>  	list_add(&pwrdm->node, &pwrdm_list);
+> diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
+> index 1dc6967..c25df81 100644
+> --- a/arch/arm/mach-omap2/voltage.c
+> +++ b/arch/arm/mach-omap2/voltage.c
+> @@ -36,6 +36,7 @@
+>  #include "control.h"
 >  
->  /*
-> @@ -98,6 +100,7 @@ static struct powerdomain core_3xxx_pre_es3_1_pwrdm = {
->  		[0] = PWRSTS_OFF_RET_ON, /* MEM1ONSTATE */
->  		[1] = PWRSTS_OFF_RET_ON, /* MEM2ONSTATE */
->  	},
-> +	.voltdm           = { .name = "core" },
->  };
+>  #include "voltage.h"
+> +#include "powerdomain.h"
 >  
->  static struct powerdomain core_3xxx_es3_1_pwrdm = {
-> @@ -121,6 +124,7 @@ static struct powerdomain core_3xxx_es3_1_pwrdm = {
->  		[0] = PWRSTS_OFF_RET_ON, /* MEM1ONSTATE */
->  		[1] = PWRSTS_OFF_RET_ON, /* MEM2ONSTATE */
->  	},
-> +	.voltdm           = { .name = "core" },
->  };
+>  #include "vc.h"
+>  #include "vp.h"
+> @@ -1081,6 +1082,82 @@ static struct voltagedomain *_voltdm_lookup(const char *name)
+>  	return voltdm;
+>  }
 >  
->  static struct powerdomain dss_pwrdm = {
-> @@ -157,6 +161,7 @@ static struct powerdomain sgx_pwrdm = {
->  	.pwrsts_mem_on	  = {
->  		[0] = PWRSTS_ON,  /* MEMONSTATE */
->  	},
-> +	.voltdm           = { .name = "core" },
->  };
+> +/**
+> + * voltdm_add_pwrdm - add a powerdomain to a voltagedomain
+> + * @voltdm: struct voltagedomain * to add the powerdomain to
+> + * @pwrdm: struct powerdomain * to associate with a voltagedomain
+> + *
+> + * Associate the powerdomain @pwrdm with a voltagedomain @voltdm.  This
+> + * enables the use of voltdm_for_each_pwrdm().  Returns -EINVAL if
+> + * presented with invalid pointers; -ENOMEM if memory could not be allocated;
+> + * or 0 upon success.
+> + */
+> +int voltdm_add_pwrdm(struct voltagedomain *voltdm, struct powerdomain *pwrdm)
+> +{
+> +	int i;
+> +	int ret = -EINVAL;
+> +
+> +	if (!voltdm || !pwrdm)
+> +		return -EINVAL;
+> +
+> +	pr_debug("voltagedomain: associating powerdomain %s with voltagedomain "
+> +		 "%s\n", pwrdm->name, voltdm->name);
+> +
+> +	for (i = 0; i < VOLTDM_MAX_PWRDMS; i++) {
+> +		if (!voltdm->voltdm_pwrdms[i])
+> +			break;
+> +#ifdef DEBUG
+> +		if (voltdm->voltdm_pwrdms[i] == pwrdm) {
+> +			ret = -EINVAL;
+> +			goto vap_exit;
+> +		}
+> +#endif
+> +	}
+> +
+> +	if (i == VOLTDM_MAX_PWRDMS) {
+> +		pr_debug("voltagedomain: increase VOLTDM_MAX_PWRDMS for "
+> +			 "voltdm %s pwrdm %s\n", voltdm->name, pwrdm->name);
+> +		WARN_ON(1);
+> +		ret = -ENOMEM;
+> +		goto vap_exit;
+> +	}
+> +
+> +	voltdm->voltdm_pwrdms[i] = pwrdm;
+> +
+> +	ret = 0;
+> +
+> +vap_exit:
+> +	return ret;
+> +}
+> +
+> +/**
+> + * voltdm_for_each_pwrdm - call function on each pwrdm in a voltdm
+> + * @voltdm: struct voltagedomain * to iterate over
+> + * @fn: callback function *
+> + *
+> + * Call the supplied function @fn for each powerdomain in the voltagedomain
+> + * @voltdm.  The callback function can return anything but 0 to bail
+> + * out early from the iterator.  Returns -EINVAL if presented with
+> + * invalid pointers; or passes along the last return value of the
+> + * callback function, which should be 0 for success or anything else
+> + * to indicate failure.
+> + */
+> +int voltdm_for_each_pwrdm(struct voltagedomain *voltdm,
+> +			  int (*fn)(struct voltagedomain *voltdm,
+> +				    struct powerdomain *pwrdm))
+> +{
+> +	int ret = 0;
+> +	int i;
+> +
+> +	if (!fn)
+> +		return -EINVAL;
+> +
+> +	for (i = 0; i < VOLTDM_MAX_PWRDMS && !ret; i++)
+> +		ret = (*fn)(voltdm, voltdm->voltdm_pwrdms[i]);
+> +
+> +	return ret;
+> +}
+> +
+>  static int _voltdm_register(struct voltagedomain *voltdm)
+>  {
+>  	if (!voltdm || !voltdm->name)
+> diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
+> index 13e5ed9..8e25126 100644
+> --- a/arch/arm/mach-omap2/voltage.h
+> +++ b/arch/arm/mach-omap2/voltage.h
+> @@ -19,6 +19,11 @@
+>  #include "vc.h"
+>  #include "vp.h"
 >  
->  static struct powerdomain cam_pwrdm = {
-> @@ -172,6 +177,7 @@ static struct powerdomain cam_pwrdm = {
->  	.pwrsts_mem_on	  = {
->  		[0] = PWRSTS_ON,  /* MEMONSTATE */
->  	},
-> +	.voltdm           = { .name = "core" },
->  };
->  
->  static struct powerdomain per_pwrdm = {
-> @@ -187,12 +193,14 @@ static struct powerdomain per_pwrdm = {
->  	.pwrsts_mem_on	  = {
->  		[0] = PWRSTS_ON,  /* MEMONSTATE */
->  	},
-> +	.voltdm           = { .name = "core" },
->  };
->  
->  static struct powerdomain emu_pwrdm = {
->  	.name		= "emu_pwrdm",
->  	.prcm_offs	= OMAP3430_EMU_MOD,
->  	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-> +	.voltdm           = { .name = "core" },
->  };
->  
->  static struct powerdomain neon_pwrdm = {
-> @@ -201,6 +209,7 @@ static struct powerdomain neon_pwrdm = {
->  	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
->  	.pwrsts		  = PWRSTS_OFF_RET_ON,
->  	.pwrsts_logic_ret = PWRSTS_RET,
-> +	.voltdm           = { .name = "core" },
+> +/*
+> + * Maximum number of powerdomains that can be associated with a voltagedomain.
+> + */
+> +#define VOLTDM_MAX_PWRDMS	       10
 
-This is in VDD1.
+Since there are so many, I'd suggest using a list instead...
+
+> +
+>  /* XXX document */
+>  #define VOLTSCALE_VPFORCEUPDATE		1
+>  #define VOLTSCALE_VCBYPASS		2
+> @@ -55,11 +60,14 @@ struct omap_vfsm_instance_data {
+>   * @name: Name of the voltage domain which can be used as a unique identifier.
+>   * @node: list_head linking all voltage domains
+>   * @vdd: to be removed
+> + * @voltdm_pwrdms: powerdomains in this voltagedomain
+>   */
+>  struct voltagedomain {
+>  	char *name;
+>  	struct list_head node;
+>  	struct omap_vdd_info *vdd;
+> +
+> +	struct powerdomain *voltdm_pwrdms[VOLTDM_MAX_PWRDMS];
+
+... and just a minor nit in naming, I don't think the "voltdm_" part of 
+the name is necessary, it seems redundant to me.  (And yes, I do think the 
+"pwrdm_" is redundant in the struct powerdomain too ;-)
 
 >  };
 >  
->  static struct powerdomain usbhost_pwrdm = {
-> @@ -223,6 +232,7 @@ static struct powerdomain usbhost_pwrdm = {
->  	.pwrsts_mem_on	  = {
->  		[0] = PWRSTS_ON,  /* MEMONSTATE */
->  	},
-> +	.voltdm           = { .name = "core" },
->  };
->  
->  static struct powerdomain dpll1_pwrdm = {
-
-These DPLL powerdomains should have voltagedomains also.  DPLL1 is in 
-VDD1, I believe.  I think the rest are in VDD2.
+>  /**
+> @@ -183,4 +191,7 @@ extern void omap44xx_voltagedomains_init(void);
+>  struct voltagedomain *voltdm_lookup(const char *name);
+>  void voltdm_init(struct voltagedomain **voltdm_list);
+>  int voltdm_add_pwrdm(struct voltagedomain *voltdm, struct powerdomain *pwrdm);
+> +int voltdm_for_each_pwrdm(struct voltagedomain *voltdm,
+> +			  int (*fn)(struct voltagedomain *voltdm,
+> +				    struct powerdomain *pwrdm));
+>  #endif
+> -- 
+> 1.7.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
 
 - Paul
