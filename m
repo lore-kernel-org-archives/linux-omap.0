@@ -1,18 +1,19 @@
 From: Heikki Krogerus <heikki.krogerus@nokia.com>
-Subject: Re: [PATCH 2/2] OMAP3: rx51: specify phy_power for usb tranceiver
-Date: Tue, 22 Mar 2011 11:13:14 +0200
-Message-ID: <20110322091314.GB4286@esdhcp034230>
+Subject: Re: [PATCH 1/2] USB: twl4030-usb: do board specific phy_power
+ up/down
+Date: Tue, 22 Mar 2011 11:17:21 +0200
+Message-ID: <20110322091721.GC4286@esdhcp034230>
 References: <1300715420-25602-1-git-send-email-kalle.jokiniemi@nokia.com>
- <1300715420-25602-3-git-send-email-kalle.jokiniemi@nokia.com>
+ <1300715420-25602-2-git-send-email-kalle.jokiniemi@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:34218 "EHLO mgw-da02.nokia.com"
+Received: from smtp.nokia.com ([147.243.128.26]:20008 "EHLO mgw-da02.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750824Ab1CVJNv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 22 Mar 2011 05:13:51 -0400
+	id S1751707Ab1CVJRw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 22 Mar 2011 05:17:52 -0400
 Content-Disposition: inline
-In-Reply-To: <1300715420-25602-3-git-send-email-kalle.jokiniemi@nokia.com>
+In-Reply-To: <1300715420-25602-2-git-send-email-kalle.jokiniemi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
@@ -20,63 +21,47 @@ Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, balbi@ti.com, tony@at
 
 Hi,
 
-On Mon, Mar 21, 2011 at 03:50:20PM +0200, Kalle Jokiniemi wrote:
-> This patch allows the ISP1707 USB tranceiver on Nokia
-> N900 to be disabled when usb cable is disconnected.
-> This saves approximately 14mA of battery current.
+On Mon, Mar 21, 2011 at 03:50:19PM +0200, Kalle Jokiniemi wrote:
+> In case some board has special powering sequences for
+> the USB tranceiver, call those during __twl4030_phy_power
+> calls.
 > 
-> Patch based on work done by Heikki Krogerus on N900
-> maemo kernel.
+> This is a preparation patch to allow powering down the
+> ISP1707 USB serial tranceiver in Nokia N900.
 > 
 > Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
-> Cc: Heikki Krogerus <heikki.krogerus@nokia.com>
 > ---
->  arch/arm/mach-omap2/board-rx51-peripherals.c |   32 ++++++++++++++++++++++++++
->  1 files changed, 32 insertions(+), 0 deletions(-)
-
-<snip>
-
-> +static void __init rx51_xceiv_init(void)
-> +{
-> +	if (gpio_request(RX51_USB_TRANSCEIVER_RST_GPIO, NULL) < 0)
-> +		BUG();
-> +	gpio_direction_output(RX51_USB_TRANSCEIVER_RST_GPIO, 1);
-> +}
+>  drivers/usb/otg/twl4030-usb.c |    9 ++++++++-
+>  1 files changed, 8 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/usb/otg/twl4030-usb.c b/drivers/usb/otg/twl4030-usb.c
+> index 6ca505f..dea99b1 100644
+> --- a/drivers/usb/otg/twl4030-usb.c
+> +++ b/drivers/usb/otg/twl4030-usb.c
+> @@ -348,13 +348,20 @@ static void twl4030_i2c_access(struct twl4030_usb *twl, int on)
+>  
+>  static void __twl4030_phy_power(struct twl4030_usb *twl, int on)
+>  {
+> -	u8 pwr = twl4030_usb_read(twl, PHY_PWR_CTRL);
+> +	u8 pwr;
+> +	struct twl4030_usb_data *board = twl->dev->platform_data;
 > +
-> +static int rx51_xceiv_power(struct device *dev, int iD, int on)
-> +{
-> +	unsigned long	timeout;
+> +	pwr = twl4030_usb_read(twl, PHY_PWR_CTRL);
+>  
+>  	if (on)
+>  		pwr &= ~PHY_PWR_PHYPWD;
+>  	else
+>  		pwr |= PHY_PWR_PHYPWD;
+>  
+> +	/* do board specific power up/down, if available */
+> +	if (board->phy_power)
+> +		board->phy_power(twl->dev, 0, on);
 > +
-> +	if (!on) {
-> +		/* Let musb go stdby before powering down the transceiver */
-> +		timeout = jiffies + msecs_to_jiffies(100);
-> +		while (!time_after(jiffies, timeout))
-> +			if (omap2_cm_read_mod_reg(CORE_MOD, CM_IDLEST1)
-> +				& OMAP3430ES2_ST_HSOTGUSB_STDBY_MASK)
-> +				break;
-> +		if (!(omap2_cm_read_mod_reg(CORE_MOD, CM_IDLEST1)
-> +			& OMAP3430ES2_ST_HSOTGUSB_STDBY_MASK))
-> +			WARN(1, "could not put musb to sleep\n");
-> +	}
-> +	gpio_set_value(RX51_USB_TRANSCEIVER_RST_GPIO, on);
-> +
-> +	return 0;
-> +}
+>  	WARN_ON(twl4030_usb_write_verify(twl, PHY_PWR_CTRL, pwr) < 0);
+>  }
 
-The busy loop is not needed, and not what we want. We need to be able
-to toggle the CHIP_SEL even if the USB block is not IDLE or STDBY.
-
-The guys have already pointed out some issues with this code, so
-please rework these functions.
-
->  static struct twl4030_usb_data rx51_usb_data = {
->  	.usb_mode		= T2_USB_MODE_ULPI,
-> +	.phy_power		= rx51_xceiv_power,
->  };
-
-This is not the right place for this. The gpio controls isp1707, not
-the twl4030_usb. You have the rx51_charger_device platform device for
-isp1707. Add them there.
+Wrong driver. We are controlling isp1707. The driver is
+drivers/power/isp1704_charger.c.
 
 -- 
 heikki
