@@ -1,56 +1,55 @@
-From: Heikki Krogerus <heikki.krogerus@nokia.com>
-Subject: Re: [PATCH 0/2] USB: twl4030-usb: fix isp1707 xceiver powering
-Date: Tue, 22 Mar 2011 11:45:42 +0200
-Message-ID: <20110322094542.GD4286@esdhcp034230>
-References: <1300715420-25602-1-git-send-email-kalle.jokiniemi@nokia.com>
+From: Carlos Chinea <carlos.chinea@nokia.com>
+Subject: Re: [RFC PATCHv4 0/7] HSI framework and drivers
+Date: Tue, 22 Mar 2011 11:50:04 +0200
+Message-ID: <1300787404.8008.116.camel@groo>
+References: <1292321383-30200-1-git-send-email-carlos.chinea@nokia.com>
+	 <AANLkTimTfOyhDR6BsHD_1VvzOPGbYqo6L784wPkQMi_8@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:50850 "EHLO mgw-da02.nokia.com"
+Received: from smtp.nokia.com ([147.243.128.24]:43651 "EHLO mgw-da01.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753046Ab1CVJqE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 22 Mar 2011 05:46:04 -0400
-Content-Disposition: inline
-In-Reply-To: <1300715420-25602-1-git-send-email-kalle.jokiniemi@nokia.com>
+	id S1752270Ab1CVJvm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 22 Mar 2011 05:51:42 -0400
+In-Reply-To: <AANLkTimTfOyhDR6BsHD_1VvzOPGbYqo6L784wPkQMi_8@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, balbi@ti.com, tony@atomide.com, jhnikula@gmail.com, ilkka.koskinen@nokia.com
+To: ext Linus Walleij <linus.walleij@linaro.org>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, STEricsson_nomadik_linux <STEricsson_nomadik_linux@list.st.com>, pawel.szyszuk@stericsson.com
 
-Hi Kalle,
+Hi,
 
-Missed the cover letter so I already commented the patches.
-
-On Mon, Mar 21, 2011 at 03:50:18PM +0200, Kalle Jokiniemi wrote:
-> These two patches introduce phy_power calls form board files
-> to twl4030-usb. This fixes a problem in Nokia N900, where the
-> ISP1707 serial tranceiver did not get disabled during phy
-> power down.
+On Mon, 2011-03-21 at 09:16 +0100, ext Linus Walleij wrote:
+> 2010/12/14 Carlos Chinea <carlos.chinea@nokia.com>:
 > 
-> Based on patches used on n900 maemo kernel, mainly from Heikki
-> Krogerus. Comments&testing appreciated.
+> > Here you have the fourth round of the HSI framework patches.
 > 
-> Basic test done on MeeGo + linux usb that the ISP powering
-> happens correctly. Also simple data transfer tests done with
-> backported patches on MeeGo n900 kernel.
+> I'd like to notify that this out-of-tree framework is also in use for
+> the ST-Ericsson
+> Ux500s, and we've had great success with it. You can add my:
 > 
-> Cross posting to linux-omap, but I propose that we'd push these
-> to linux-usb. Patches based on linux-usb master.
+> Acked-by: Linus Walleij <linus.walleij@linaro.org>
 > 
-> Kalle Jokiniemi (2):
->   USB: twl4030-usb: do board specific phy_power up/down
->   OMAP3: rx51: specify phy_power for usb tranceiver
-> 
->  arch/arm/mach-omap2/board-rx51-peripherals.c |   32 ++++++++++++++++++++++++++
->  drivers/usb/otg/twl4030-usb.c                |    9 ++++++-
->  2 files changed, 40 insertions(+), 1 deletions(-)
 
-I do like the idea of getting the support for power down mode of
-isp1707 in RX51 but...
+Thanks I will add the Ack to the next round of patches.
 
-If I understood correctly, meego has the isp1704_charger driver from
-mainline, so we don't need to involve twl4030-usb when powering the
-isp1707 like we did in maemo kernel.
+We are currently working on the hsi_char module. Apart from addressing
+the comments from Alan,  we are planning to drop also the non-blocking
+support from it. The current version is not fully honoring the
+non-blocking behavior.
 
+> Possibly some ST-Ericsson people can add Tested-by tags as well.
+> 
+> We will integrate Ux500 support whenever it's suitable, either after the merge
+> or as add-on patches for Carlos patch series. (If Carlos would like to keep
+> them in his series.)
+> 
+
+Either way is fine, for me. Could you send the patches for review ?
+
+Br,
+Carlos
 -- 
-heikki
+Carlos Chinea <carlos.chinea@nokia.com>
+
