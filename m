@@ -1,57 +1,97 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 2/7] OMAP2+: voltage: move PRCM mod offets into VDD structure
-Date: Wed, 23 Mar 2011 07:16:27 -0700
-Message-ID: <87r59x9b2c.fsf@ti.com>
-References: <1300493932-17362-1-git-send-email-khilman@ti.com>
-	<1300493932-17362-3-git-send-email-khilman@ti.com>
-	<B85A65D85D7EB246BE421B3FB0FBB593024C3B8CA7@dbde02.ent.ti.com>
+From: Jesse Barnes <jbarnes@virtuousgeek.org>
+Subject: Re: [RFC PATCH] HDMI:Support for EDID parsing in kernel.
+Date: Wed, 23 Mar 2011 08:18:20 -0700
+Message-ID: <20110323081820.5b37d169@jbarnes-desktop>
+References: <1300815176-21206-1-git-send-email-mythripk@ti.com>
+	<AANLkTim61Xdo6ED7mr_SvpLuotso89RdR6Qaz-GCXOmJ@mail.gmail.com>
+	<AANLkTinMUCbaEVjwZsHG9BxFVjx0YxS=Sw+3gViDJXhg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:52881 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753340Ab1CWOQb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 23 Mar 2011 10:16:31 -0400
-Received: by mail-pz0-f45.google.com with SMTP id 36so1347195pzk.4
-        for <linux-omap@vger.kernel.org>; Wed, 23 Mar 2011 07:16:30 -0700 (PDT)
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593024C3B8CA7@dbde02.ent.ti.com>
-	(Sanjeev Premi's message of "Mon, 21 Mar 2011 16:23:49 +0530")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <AANLkTinMUCbaEVjwZsHG9BxFVjx0YxS=Sw+3gViDJXhg@mail.gmail.com>
+Sender: linux-media-owner@vger.kernel.org
+To: "K, Mythri P" <mythripk@ti.com>
+Cc: Dave Airlie <airlied@gmail.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, dri-devel <dri-devel@lists.freedesktop.org>, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Premi, Sanjeev" <premi@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsely <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>
 
-"Premi, Sanjeev" <premi@ti.com> writes:
+On Wed, 23 Mar 2011 18:58:27 +0530
+"K, Mythri P" <mythripk@ti.com> wrote:
 
-[...]
+> Hi Dave,
+>=20
+> On Wed, Mar 23, 2011 at 6:16 AM, Dave Airlie <airlied@gmail.com> wrot=
+e:
+> > On Wed, Mar 23, 2011 at 3:32 AM, Mythri P K <mythripk@ti.com> wrote=
+:
+> >> Adding support for common EDID parsing in kernel.
+> >>
+> >> EDID - Extended display identification data is a data structure pr=
+ovided by
+> >> a digital display to describe its capabilities to a video source, =
+This a
+> >> standard supported by CEA and VESA.
+> >>
+> >> There are several custom implementations for parsing EDID in kerne=
+l, some
+> >> of them are present in fbmon.c, drm_edid.c, sh_mobile_hdmi.c, Idea=
+lly
+> >> parsing of EDID should be done in a library, which is agnostic of =
+the
+> >> framework (V4l2, DRM, FB) =A0which is using the functionality, jus=
+t based on
+> >> the raw EDID pointer with size/segment information.
+> >>
+> >> With other RFC's such as the one below, which tries to standardize=
+ HDMI API's
+> >> It would be better to have a common EDID code in one place.It also=
+ helps to
+> >> provide better interoperability with variety of TV/Monitor may be =
+even by
+> >> listing out quirks which might get missed with several custom impl=
+ementation
+> >> of EDID.
+> >> http://permalink.gmane.org/gmane.linux.drivers.video-input-infrast=
+ructure/30401
+> >>
+> >> This patch tries to add functions to parse some portion EDID (deta=
+iled timing,
+> >> monitor limits, AV delay information, deep color mode support, Aud=
+io and VSDB)
+> >> If we can align on this library approach i can enhance this librar=
+y to parse
+> >> other blocks and probably we could also add quirks from other impl=
+ementation
+> >> as well.
+> >>
+> >
+> > If you want to take this approach, you need to start from the DRM E=
+DID parser,
+> > its the most well tested and I can guarantee its been plugged into =
+more monitors
+> > than any of the others. There is just no way we would move the DRM =
+parser to a
+> > library one that isn't derived from it + enhancements, as we'd thro=
+w away the
+> > years of testing and the regression count would be way too high.
+> >
+> I had a look at the DRM EDID code, but for quirks it looks pretty muc=
+h the same.
+> yes i could take quirks and other DRM tested code and enhance, but
+> still the code has to do away with struct drm_display_mode
+> which is very much custom to DRM.
 
->
->> diff --git a/arch/arm/mach-omap2/voltage.h 
->> b/arch/arm/mach-omap2/voltage.h
->> index e9f5408..44edc1e 100644
->> --- a/arch/arm/mach-omap2/voltage.h
->> +++ b/arch/arm/mach-omap2/voltage.h
->> @@ -133,6 +133,9 @@ struct omap_vdd_info {
->>  	struct dentry *debug_dir;
->>  	u32 curr_volt;
->>  	bool vp_enabled;
->> +
->> +	s16 prm_mod;
->> +	s16 prm_irqst_mod;
->
-> [sp] Can we match the type with the functions these are eventually
->      passed to?
+If that's the only issue you have, we could easily rename that
+structure or add conversion funcs to a smaller structure if that's what
+you need.
 
-Looking closer at this, the functions that these values are passed to
-actually take s16 values, so I will leave them as s16.
+Dave's point is that we can't ditch the existing code without
+introducing a lot of risk; it would be better to start a library-ized
+EDID codebase from the most complete one we have already, i.e. the DRM
+EDID code.
 
-For example, for OMAP2/3, see prm2xxx_3xxx.h:
+Do you really think the differences between your code and the existing
+DRM code are irreconcilable?
 
-extern u32 omap2_prm_read_mod_reg(s16 module, u16 idx);
-extern void omap2_prm_write_mod_reg(u32 val, s16 module, u16 idx);
-
-The reason this is important is that on 3430, these module offsets might
-actually be negative (c.f. OMAP3430_IVA2_MOD in prcm-common.h)
-
-Kevin
+--=20
+Jesse Barnes, Intel Open Source Technology Center
