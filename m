@@ -1,81 +1,91 @@
-From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: Re: [PATCH v2 0/4] OMAP: DMA: mstandby mode and runtime pm support
-Date: Wed, 23 Mar 2011 17:42:35 +0530
-Message-ID: <20110323121235.GA22163@m-desktop>
-References: <1299853215-8507-1-git-send-email-manjugk@ti.com>
- <87lj0dwi4x.fsf@ti.com>
- <20110318095925.GA13784@m-desktop>
- <87aagss2rv.fsf@ti.com>
- <20110319031605.GB13784@m-desktop>
+From: "K, Mythri P" <mythripk@ti.com>
+Subject: Re: [RFC PATCH] HDMI:Support for EDID parsing in kernel.
+Date: Wed, 23 Mar 2011 18:58:27 +0530
+Message-ID: <AANLkTinMUCbaEVjwZsHG9BxFVjx0YxS=Sw+3gViDJXhg@mail.gmail.com>
+References: <1300815176-21206-1-git-send-email-mythripk@ti.com> <AANLkTim61Xdo6ED7mr_SvpLuotso89RdR6Qaz-GCXOmJ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:45087 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932111Ab1CWMQl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 23 Mar 2011 08:16:41 -0400
-Received: by gxk2 with SMTP id 2so925175gxk.22
-        for <linux-omap@vger.kernel.org>; Wed, 23 Mar 2011 05:16:39 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20110319031605.GB13784@m-desktop>
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:41440 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932910Ab1CWN2y convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 23 Mar 2011 09:28:54 -0400
+In-Reply-To: <AANLkTim61Xdo6ED7mr_SvpLuotso89RdR6Qaz-GCXOmJ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk, paul@pwsan.com, tony@atomide.com
+To: Dave Airlie <airlied@gmail.com>
+Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-media@vger.kernel.org, dri-devel <dri-devel@lists.freedesktop.org>
 
-Kevin,
+Hi Dave,
 
-On Sat, Mar 19, 2011 at 08:46:05AM +0530, G, Manjunath Kondaiah wrote:
-> On Fri, Mar 18, 2011 at 11:27:00AM -0700, Kevin Hilman wrote:
-> > "G, Manjunath Kondaiah" <manjugk@ti.com> writes:
-> > 
-> > > On Thu, Mar 17, 2011 at 02:29:18PM -0700, Kevin Hilman wrote:
-> > >> "G, Manjunath Kondaiah" <manjugk@ti.com> writes:
-> > >> 
-> > >> > Patch series to support mstandby mode handling and enabling runtime PM
-> > >> > support for DMA driver.
-> > >> 
-> > >> I still have the same problems as with the previous revision: 
-> > >> 
-> > >> 
-> > >> This is still not runtime-suspending when I use my DMA test in linking
-> > >> mode.
-> > >> 
-> > >> If I put a large enough period between transfers, it should autosuspend
-> > >> during transfers.  It seems to do auto-suspend and resume once, but then
-> > >> it never suspends again.
-> > >> 
-> > >> I tested with my dmatest module[1], and loaded with:
-> > >> 
-> > >>   # insmod ./dmatest.ko linking=1 forever=1 forever_period=1024
-> > >> 
-> > >> Not only does it not auto-suspend between transfers (which I expected),
-> > >> it also doesn't suspend after removing the module which stops all active
-> > >> channels.
-> > >
-> > > Tested again on 2.6.38 with patches pulled from patchworks and for me,
-> > > the same test case seems to be passing. Here is the log:
-> > > http://pastebin.com/ccEmTZS5
-> > >
-> > > The above test case is executed on blaze and same result is observed
-> > > with other OMAP2+ boards also.
-> > 
-> > Can you try again with dmatest loaded without 'debug=1'
-> > 
-> > What's strange is that I noticed it worked with debug=1 also, but didn't
-> > with debug disabled.
-> > 
-> > I *think* it's a bug in my test, which I fixed, but can you try the
-> > above before pulling a new version of my test?
-> done. without pulling latest dmatest changes, your observation is correct.
-> With latest changes, it is working fine.
+On Wed, Mar 23, 2011 at 6:16 AM, Dave Airlie <airlied@gmail.com> wrote:
+> On Wed, Mar 23, 2011 at 3:32 AM, Mythri P K <mythripk@ti.com> wrote:
+>> Adding support for common EDID parsing in kernel.
+>>
+>> EDID - Extended display identification data is a data structure prov=
+ided by
+>> a digital display to describe its capabilities to a video source, Th=
+is a
+>> standard supported by CEA and VESA.
+>>
+>> There are several custom implementations for parsing EDID in kernel,=
+ some
+>> of them are present in fbmon.c, drm_edid.c, sh_mobile_hdmi.c, Ideall=
+y
+>> parsing of EDID should be done in a library, which is agnostic of th=
+e
+>> framework (V4l2, DRM, FB) =A0which is using the functionality, just =
+based on
+>> the raw EDID pointer with size/segment information.
+>>
+>> With other RFC's such as the one below, which tries to standardize H=
+DMI API's
+>> It would be better to have a common EDID code in one place.It also h=
+elps to
+>> provide better interoperability with variety of TV/Monitor may be ev=
+en by
+>> listing out quirks which might get missed with several custom implem=
+entation
+>> of EDID.
+>> http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastru=
+cture/30401
+>>
+>> This patch tries to add functions to parse some portion EDID (detail=
+ed timing,
+>> monitor limits, AV delay information, deep color mode support, Audio=
+ and VSDB)
+>> If we can align on this library approach i can enhance this library =
+to parse
+>> other blocks and probably we could also add quirks from other implem=
+entation
+>> as well.
+>>
+>
+> If you want to take this approach, you need to start from the DRM EDI=
+D parser,
+> its the most well tested and I can guarantee its been plugged into mo=
+re monitors
+> than any of the others. There is just no way we would move the DRM pa=
+rser to a
+> library one that isn't derived from it + enhancements, as we'd throw =
+away the
+> years of testing and the regression count would be way too high.
+>
+I had a look at the DRM EDID code, but for quirks it looks pretty much =
+the same.
+yes i could take quirks and other DRM tested code and enhance, but
+still the code has to do away with struct drm_display_mode
+which is very much custom to DRM.
 
-If you don't see any further issues with this patch series, there are no
-more changes to this patch series except one warning fix:
-http://thread.gmane.org/gmane.linux.ports.arm.omap/54753/focus=55097
- 
-If it is only warning fix, I can send pull request on top of
-omap-for-linus branch.
+> Dave.
+>
 
--Manjunath
+Thanks and regards,
+Mythri.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
