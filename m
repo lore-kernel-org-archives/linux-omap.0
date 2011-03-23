@@ -1,88 +1,43 @@
-From: "K, Mythri P" <mythripk@ti.com>
-Subject: Re: [RFC PATCH] HDMI:Support for EDID parsing in kernel.
-Date: Wed, 23 Mar 2011 19:17:20 +0530
-Message-ID: <AANLkTinjEmih3GC9FMByUCcLVvcc1k1PCzVECbQZa62f@mail.gmail.com>
-References: <1300815176-21206-1-git-send-email-mythripk@ti.com>
- <4D88E1FB.5070503@redhat.com> <20110322175810.GA32416@linux-sh.org>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH v2 0/4] OMAP: DMA: mstandby mode and runtime pm support
+Date: Wed, 23 Mar 2011 07:11:40 -0700
+Message-ID: <87zkom7wpv.fsf@ti.com>
+References: <1299853215-8507-1-git-send-email-manjugk@ti.com>
+	<87lj0dwi4x.fsf@ti.com> <20110318095925.GA13784@m-desktop>
+	<87aagss2rv.fsf@ti.com> <20110319031605.GB13784@m-desktop>
+	<20110323121235.GA22163@m-desktop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <20110322175810.GA32416@linux-sh.org>
-Sender: linux-media-owner@vger.kernel.org
-To: Paul Mundt <lethal@linux-sh.org>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:46137 "EHLO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751711Ab1CWOLp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 23 Mar 2011 10:11:45 -0400
+Received: by mail-gy0-f171.google.com with SMTP id 3so2901898gyf.30
+        for <linux-omap@vger.kernel.org>; Wed, 23 Mar 2011 07:11:44 -0700 (PDT)
+In-Reply-To: <20110323121235.GA22163@m-desktop> (Manjunath Kondaiah G.'s
+	message of "Wed, 23 Mar 2011 17:42:35 +0530")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk, paul@pwsan.com, tony@atomide.com
 
-Hi Paul,
+"G, Manjunath Kondaiah" <manjugk@ti.com> writes:
 
-On Tue, Mar 22, 2011 at 11:28 PM, Paul Mundt <lethal@linux-sh.org> wrot=
-e:
-> On Tue, Mar 22, 2011 at 02:52:59PM -0300, Mauro Carvalho Chehab wrote=
-:
->> Em 22-03-2011 14:32, Mythri P K escreveu:
->> > Adding support for common EDID parsing in kernel.
->> >
->> > EDID - Extended display identification data is a data structure pr=
-ovided by
->> > a digital display to describe its capabilities to a video source, =
-This a
->> > standard supported by CEA and VESA.
->> >
->> > There are several custom implementations for parsing EDID in kerne=
-l, some
->> > of them are present in fbmon.c, drm_edid.c, sh_mobile_hdmi.c, Idea=
-lly
->> > parsing of EDID should be done in a library, which is agnostic of =
-the
->> > framework (V4l2, DRM, FB) =A0which is using the functionality, jus=
-t based on
->> > the raw EDID pointer with size/segment information.
->> >
->> > With other RFC's such as the one below, which tries to standardize=
- HDMI API's
->> > It would be better to have a common EDID code in one place.It also=
- helps to
->> > provide better interoperability with variety of TV/Monitor may be =
-even by
->> > listing out quirks which might get missed with several custom impl=
-ementation
->> > of EDID.
->> > http://permalink.gmane.org/gmane.linux.drivers.video-input-infrast=
-ructure/30401
->> >
->> > This patch tries to add functions to parse some portion EDID (deta=
-iled timing,
->> > monitor limits, AV delay information, deep color mode support, Aud=
-io and VSDB)
->> > If we can align on this library approach i can enhance this librar=
-y to parse
->> > other blocks and probably we could also add quirks from other impl=
-ementation
->> > as well.
->> >
->> > Signed-off-by: Mythri P K <mythripk@ti.com>
->> > ---
->> > =A0arch/arm/include/asm/edid.h | =A0243 ++++++++++++++++++++++++++=
-++++
->> > =A0drivers/video/edid.c =A0 =A0 =A0 =A0| =A0340 ++++++++++++++++++=
-+++++++++++++++++++++++++
->>
->> Hmm... if you want this to be agnostic, the header file should not b=
-e inside
->> arch/arm, but on some other place, like include/video/.
->>
-> Ironically this adds a drivers/video/edid.c but completely ignores
-> drivers/video/edid.h which already exists and already contains many o=
-f
-> these definitions.
->
-> I like the idea of a generalized library, but it would be nice to see=
- the
-> existing edid.h evolved and its users updated incrementally.
->
-well yes , That could be enhanced and that would take care of Mauro's
-comment too.
+[...]
 
-Thanks and regards,
-Mythri.
+> If you don't see any further issues with this patch series, there are no
+> more changes to this patch series except one warning fix:
+> http://thread.gmane.org/gmane.linux.ports.arm.omap/54753/focus=55097
+
+OK
+
+> If it is only warning fix, I can send pull request on top of
+> omap-for-linus branch.
+
+Please repost the series one more time for final review.  Based on
+Tony's omap-for-linus branch is fine.
+
+Kevin
+
