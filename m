@@ -1,47 +1,30 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Re: [PATCH v3] SoC Camera: add driver for OMAP1 camera interface
-Date: Wed, 23 Mar 2011 17:13:34 +0100
-Message-ID: <201103231713.50667.jkrzyszt@tis.icnet.pl>
-References: <201009301335.51643.jkrzyszt@tis.icnet.pl> <Pine.LNX.4.64.1103231056360.6836@axis700.grange>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] OMAP4: clockdomain: Follow recommended enable sequence
+Date: Wed, 23 Mar 2011 17:29:24 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1103231728370.4952@utopia.booyaka.com>
+References: <1299245123-23444-1-git-send-email-rnayak@ti.com> <alpine.DEB.2.00.1103081937100.15132@utopia.booyaka.com> <4D775418.6050105@ti.com> <alpine.DEB.2.00.1103100514210.15132@utopia.booyaka.com> <alpine.DEB.2.00.1103100734490.15132@utopia.booyaka.com>
+ <4D7A22F6.5050806@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.64.1103231056360.6836@axis700.grange>
-Sender: linux-media-owner@vger.kernel.org
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Discussion of the Amstrad E3 emailer hardware/software <e3-hacking@earth.li>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:45278 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932972Ab1CWX3Z (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Mar 2011 19:29:25 -0400
+In-Reply-To: <4D7A22F6.5050806@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org, b-cousson@ti.com, khilman@ti.com, santosh.shilimkar@ti.com, linux-arm-kernel@lists.infradead.org
 
-On Wednesday, 23 March 2011, at 11:00:06, Guennadi Liakhovetski wrote:
-> Hi Janusz
-> 
-> You might want to retest ams-delta with the camera on the current
-> (next or
-> 
-> git://linuxtv.org/media_tree.git staging/for_v2.6.39
-> 
-> ) kernel - I suspect, you'll need something similar to
-> 
-> http://article.gmane.org/gmane.linux.drivers.video-input-infrastructu
-> re/30728
+Hi Rajendra,
 
-Hi Guennadi,
-Thanks for bringing this issue to my attention. However, we alread have 
-something like 
+I regret the delay,
 
-		.dev		= {
-			...
-			.coherent_dma_mask      = DMA_BIT_MASK(32),
-		},
+On Fri, 11 Mar 2011, Rajendra Nayak wrote:
 
-defined inside the platform_device structure registered for our OMAP1 
-camera device, so shouldn't be affected.
+> Would a board rev make a difference?
 
-Anyway, I have the camera driver review/upgrade task already sitting in 
-my todo list for a few weeks, and hope to find some spare time to deal 
-with it soon, so will verify that as well.
+I doubt it...
 
-Thanks,
-Janusz
+- Paul
