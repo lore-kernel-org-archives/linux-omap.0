@@ -1,32 +1,38 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH] Input: tca6416-keypad: Change to module_init()
-Date: Wed, 23 Mar 2011 16:20:22 +0000
-Message-ID: <20110323162021.GA26594@opensource.wolfsonmicro.com>
-References: <20110322143307.GB24004@linux-sh.org>
- <AANLkTimRV9vzOE7+VPX48y3KebLJSvBOkqxoM--9gqGb@mail.gmail.com>
- <20110322153226.GC30303@linux-sh.org>
- <AANLkTimyxdcJ-eEke9x7X1zdiJNbFtncfv0=NzKjtAme@mail.gmail.com>
- <20110322155730.GD30303@linux-sh.org>
- <AANLkTi=Fjc2f837ifH152Rh8W0PfiZvViYaLe=8XZo4Z@mail.gmail.com>
- <20110322163144.GC2202@sirena.org.uk>
- <AANLkTiniBVWhSiNZMRYbO857D_Vj03KxH4qYqkVo-11J@mail.gmail.com>
- <20110322165907.GG22583@opensource.wolfsonmicro.com>
- <AANLkTin1jG36-EsvAk9o-KxdxaBBhx=5Rf+JMidjYqsT@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-input-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <AANLkTin1jG36-EsvAk9o-KxdxaBBhx=5Rf+JMidjYqsT@mail.gmail.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Magnus Damm <magnus.damm@gmail.com>
-Cc: Paul Mundt <lethal@linux-sh.org>, dmitry.torokhov@gmail.com, srk@ti.com, khilman@ti.com, chinyeow.sim.xt@renesas.com, linux-sh@vger.kernel.org, tony@atomide.com, nsekhar@ti.com, linux-i2c@vger.kernel.org, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Omar Ramirez Luna <omar.ramirez@ti.com>
+Subject: [PATCH 0/8] staging: tidspbridge: PM routines cleanup
+Date: Wed, 23 Mar 2011 12:49:45 -0600
+Message-ID: <1300906193-1732-1-git-send-email-omar.ramirez@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:47124 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756158Ab1CWTBH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Mar 2011 15:01:07 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: l-o <linux-omap@vger.kernel.org>
+Cc: Omar Ramirez Luna <omar.ramirez@ti.com>, Fernando Guzman Lugo <fernando.lugo@ti.com>, Armando Uribe <x0095078@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>
 
-On Thu, Mar 24, 2011 at 01:04:31AM +0900, Magnus Damm wrote:
+Cleanup and fixes for tidspbridge's PM routines.
 
-> Sounds nice. Hopefully that will allow us to use module_init() in
-> drivers instead of other initcall levels depending on bus type.
+The most significant ones are:
+- Protection of critical sections when disabling clocks which
+  could cause issues during PM transitions.
+- Fix of resume path from RET power state.
 
-None of this is anything to do with the bus type - it's to do with the
-function of the devices within the system.  Things that are required for
-early init of the kernel get bumped up the list.
+Other patches are cleanups and preparations for the usage of
+spinlock.
+
+Omar Ramirez Luna (8):
+  staging: tidspbridge: make wake_dsp to handle PM code
+  staging: tidspbridge: fix resume path from retention
+  staging: tidspbridge: remove msleep for dsp transition wait
+  staging: tidspbridge: send mbox PM command directly
+  staging: tidspbridge: send wake message even if dsp is running
+  staging: tidspbridge: remove redundant code from PM routines
+  staging: tidspbridge: remove redundant indentation in PM routines
+  staging: tidspbridge: protect critical sections on PM routines
+
+ drivers/staging/tidspbridge/core/tiomap3430_pwr.c |  248 ++++++++++++++-------
+ drivers/staging/tidspbridge/core/tiomap_io.c      |   58 +-----
+ 2 files changed, 168 insertions(+), 138 deletions(-)
+
