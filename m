@@ -1,167 +1,64 @@
-From: Alex Deucher <alexdeucher@gmail.com>
-Subject: Re: [RFC PATCH] HDMI:Support for EDID parsing in kernel.
-Date: Thu, 24 Mar 2011 15:22:09 -0400
-Message-ID: <AANLkTinsrboO32SsA1_REUf6SecviocHJ4mfj1x97NRA@mail.gmail.com>
-References: <1300815176-21206-1-git-send-email-mythripk@ti.com>
-	<AANLkTim61Xdo6ED7mr_SvpLuotso89RdR6Qaz-GCXOmJ@mail.gmail.com>
-	<AANLkTinMUCbaEVjwZsHG9BxFVjx0YxS=Sw+3gViDJXhg@mail.gmail.com>
-	<20110323081820.5b37d169@jbarnes-desktop>
-	<AANLkTinYHzCgXe9yw1rGHZA0uM=-VrY+Mktpn-HvfRyR@mail.gmail.com>
-	<Pine.LNX.4.64.1103242001460.21914@axis700.grange>
+From: Andy Green <andy@warmcat.com>
+Subject: [RFC PATCH 0/2] OMAP2+: PANDA: Provide unique-ish MAC addresses for
+ Ethernet and WLAN interfaces
+Date: Thu, 24 Mar 2011 21:27:20 +0000
+Message-ID: <20110324211451.14936.39750.stgit@otae.warmcat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.64.1103242001460.21914@axis700.grange>
-Sender: linux-media-owner@vger.kernel.org
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: "K, Mythri P" <mythripk@ti.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, Dave Airlie <airlied@gmail.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, dri-devel <dri-devel@lists.freedesktop.org>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:56562 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755070Ab1CXV10 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Mar 2011 17:27:26 -0400
+Received: by wwa36 with SMTP id 36so456497wwa.1
+        for <linux-omap@vger.kernel.org>; Thu, 24 Mar 2011 14:27:24 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: patches@linaro.org, nicolas.pitre@linaro.org, arnd@arndb.de, x0132446@ti.com, s-jan@ti.com, tony@atomide.com
 
-On Thu, Mar 24, 2011 at 3:13 PM, Guennadi Liakhovetski
-<g.liakhovetski@gmx.de> wrote:
-> On Thu, 24 Mar 2011, K, Mythri P wrote:
->
->> Hi Jesse,
->>
->> On Wed, Mar 23, 2011 at 8:48 PM, Jesse Barnes <jbarnes@virtuousgeek.=
-org> wrote:
->> > On Wed, 23 Mar 2011 18:58:27 +0530
->> > "K, Mythri P" <mythripk@ti.com> wrote:
->> >
->> >> Hi Dave,
->> >>
->> >> On Wed, Mar 23, 2011 at 6:16 AM, Dave Airlie <airlied@gmail.com> =
-wrote:
->> >> > On Wed, Mar 23, 2011 at 3:32 AM, Mythri P K <mythripk@ti.com> w=
-rote:
->> >> >> Adding support for common EDID parsing in kernel.
->> >> >>
->> >> >> EDID - Extended display identification data is a data structur=
-e provided by
->> >> >> a digital display to describe its capabilities to a video sour=
-ce, This a
->> >> >> standard supported by CEA and VESA.
->> >> >>
->> >> >> There are several custom implementations for parsing EDID in k=
-ernel, some
->> >> >> of them are present in fbmon.c, drm_edid.c, sh_mobile_hdmi.c, =
-Ideally
->> >> >> parsing of EDID should be done in a library, which is agnostic=
- of the
->> >> >> framework (V4l2, DRM, FB) =A0which is using the functionality,=
- just based on
->> >> >> the raw EDID pointer with size/segment information.
->> >> >>
->> >> >> With other RFC's such as the one below, which tries to standar=
-dize HDMI API's
->> >> >> It would be better to have a common EDID code in one place.It =
-also helps to
->> >> >> provide better interoperability with variety of TV/Monitor may=
- be even by
->> >> >> listing out quirks which might get missed with several custom =
-implementation
->> >> >> of EDID.
->> >> >> http://permalink.gmane.org/gmane.linux.drivers.video-input-inf=
-rastructure/30401
->> >> >>
->> >> >> This patch tries to add functions to parse some portion EDID (=
-detailed timing,
->> >> >> monitor limits, AV delay information, deep color mode support,=
- Audio and VSDB)
->> >> >> If we can align on this library approach i can enhance this li=
-brary to parse
->> >> >> other blocks and probably we could also add quirks from other =
-implementation
->> >> >> as well.
->> >> >>
->> >> >
->> >> > If you want to take this approach, you need to start from the D=
-RM EDID parser,
->> >> > its the most well tested and I can guarantee its been plugged i=
-nto more monitors
->> >> > than any of the others. There is just no way we would move the =
-DRM parser to a
->> >> > library one that isn't derived from it + enhancements, as we'd =
-throw away the
->> >> > years of testing and the regression count would be way too high=
-=2E
->> >> >
->> >> I had a look at the DRM EDID code, but for quirks it looks pretty=
- much the same.
->> >> yes i could take quirks and other DRM tested code and enhance, bu=
-t
->> >> still the code has to do away with struct drm_display_mode
->> >> which is very much custom to DRM.
->> >
->> > If that's the only issue you have, we could easily rename that
->> > structure or add conversion funcs to a smaller structure if that's=
- what
->> > you need.
->> >
->> > Dave's point is that we can't ditch the existing code without
->> > introducing a lot of risk; it would be better to start a library-i=
-zed
->> > EDID codebase from the most complete one we have already, i.e. the=
- DRM
->> > EDID code.
->
-> Does the DRM EDID-parser also process blocks beyond the first one and
-> also parses SVD entries similar to what I've recently added to fbdev?=
- Yes,
-> we definitely need a common EDID parses, and maybe we'll have to coll=
-ect
-> various pieces from different implementations.
+The following series solves a problem Panda suffers from where
+because there is no local MAC address storage on the board, a
+new random MAC address is applied to the onboard Ethernet
+interface each time, and the wl12xx module's wlan0 interface is
+always found with an unworkable 00:00:00:00:00:00 MAC.
 
-At the moment there is only limited support for looking up things like
-the hdmi block and checking for audio.
+The series adds an omap id-related API to generate a
+6-byte Ethernet MAC address from "hashing" a little the CPU ID
+registers.  It is understood from TI that these contain data
+that at least in a subset of the 128 bits of the ID are unique per-CPU.
 
-Alex
+It then introduces code in the Panda board definition file to
+watch network interface creation and if the device's path is on
+a list, set its MAC address to the CPU ID-generated one, plus
+two bits which differ according to which interface in the list
+is being changed.  (This scheme was suggested by Alan Cox).
 
->
-> Thanks
-> Guennadi
->
->> >
->> This sounds good. If we can remove the DRM dependent portion to have=
- a
->> library-ized EDID code,
->> That would be perfect. The main Intention to have a library is,
->> Instead of having several different Implementation in kernel, all
->> doing the same EDID parsing , if we could have one single
->> implementation , it would help in better testing and interoperabilit=
-y.
->>
->> > Do you really think the differences between your code and the exis=
-ting
->> > DRM code are irreconcilable?
->> >
->> On the contrary if there is a library-ized =A0EDID parsing using the
->> drm_edid, and there is any delta / fields( Parsing the video block i=
-n
->> CEA extension for Short Video Descriptor, Vendor block for AV delay
->> /Deep color information etc) that are parsed with the RFC i posted i
->> would be happy to add.
->>
->> Thanks and regards,
->> Mythri.
->> > --
->> > Jesse Barnes, Intel Open Source Technology Center
->> >
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-medi=
-a" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->>
->
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media=
-" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
+The device paths for the onboard Ethernet smsc95xx, and the
+onboard WLAN wl12xx are listed, so both of these will get
+assigned a consistent, unique-ish locally administered MAC
+address with these patches.
+
+It's beleived the current scheme for MAC generation from ID
+data captures most of the entropy, but if there is a better scheme
+more closely mapped to what the unique factory areas are advice
+is welcome.
+
+The patches are against linux-omap which already has a prerequisite
+patch that fixes a problem with device ID capture on OMAP4.
+
+---
+
+Andy Green (2):
+      OMAP2+: PANDA: Fix up random or missing MAC addresses for eth0 and wlan0
+      OMAP2+: add cpu id register to MAC address helper
+
+
+ arch/arm/mach-omap2/board-omap4panda.c |   91 ++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/id.c               |   39 ++++++++++++++
+ arch/arm/mach-omap2/include/mach/id.h  |    1 
+ 3 files changed, 131 insertions(+), 0 deletions(-)
+
+-- 
+Signature
