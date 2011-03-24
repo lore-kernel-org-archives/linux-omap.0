@@ -1,516 +1,331 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH/RFC 15/19] OMAP2+: voltage: move VC into struct voltagedomain, misc. renames
-Date: Wed, 23 Mar 2011 17:00:29 -0700
-Message-ID: <1300924833-26745-16-git-send-email-khilman@ti.com>
+Subject: [PATCH/RFC 17/19] OMAP2+: voltage: VC: begin spliting out SoC specifics; start with i2c slave addr
+Date: Wed, 23 Mar 2011 17:00:31 -0700
+Message-ID: <1300924833-26745-18-git-send-email-khilman@ti.com>
 References: <1300924833-26745-1-git-send-email-khilman@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:49906 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933404Ab1CXAAo (ORCPT
+Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:36828 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933394Ab1CXAAs (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 23 Mar 2011 20:00:44 -0400
-Received: by iym7 with SMTP id 7so10902754iym.24
-        for <linux-omap@vger.kernel.org>; Wed, 23 Mar 2011 17:00:43 -0700 (PDT)
+	Wed, 23 Mar 2011 20:00:48 -0400
+Received: by mail-iy0-f180.google.com with SMTP id 40so12558165iyf.11
+        for <linux-omap@vger.kernel.org>; Wed, 23 Mar 2011 17:00:47 -0700 (PDT)
 In-Reply-To: <1300924833-26745-1-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Paul Walmsely <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>
 
-Move the VC instance struct from omap_vdd_info into struct voltagedomain.
-While moving, perform some misc. renames for readability.
+Each VC instance is given a new 'ops' field which contains SoC
+specific implementations of various functions.  For starters, this
+patch adds an operation for setting the i2c slave address.
 
-No functional changes.
-
-Summary of renames:
-- rename omap_vc_instance to omap_vc_channel, since there is only
-  one instance of the VC IP and this actually represents channels
-  using TRM terminology.
-- rename 'vc_common' field of VC channel which led to:
-  s/vc->vc_common/vc->common/
-- remove redundant '_data' suffix
-- OMAP3: vc1 --> vc_mpu, vc2 --> vc_core
+Changes to VC data structures
+- remove unused smps_sa_reg.  This is now part of the SoC specific VC code
+- remove smps_sa_shift from VC instancc, use ffs(mask) to calculate shift
 
 Signed-off-by: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/vc.c                      |   84 ++++++++++++-------------
- arch/arm/mach-omap2/vc.h                      |   22 +++---
- arch/arm/mach-omap2/vc3xxx_data.c             |   10 ++--
- arch/arm/mach-omap2/vc44xx_data.c             |   14 ++--
- arch/arm/mach-omap2/voltage.c                 |    4 +-
- arch/arm/mach-omap2/voltage.h                 |    3 +-
- arch/arm/mach-omap2/voltagedomains3xxx_data.c |    4 +-
- arch/arm/mach-omap2/voltagedomains44xx_data.c |    6 +-
- 8 files changed, 74 insertions(+), 73 deletions(-)
+ arch/arm/mach-omap2/Makefile      |    5 ++-
+ arch/arm/mach-omap2/vc.c          |    9 +-----
+ arch/arm/mach-omap2/vc.h          |   20 ++++++++++++----
+ arch/arm/mach-omap2/vc3xxx.c      |   45 +++++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/vc3xxx_data.c |    5 +--
+ arch/arm/mach-omap2/vc44xx.c      |   45 +++++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/vc44xx_data.c |    8 ++----
+ 7 files changed, 115 insertions(+), 22 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/vc3xxx.c
+ create mode 100644 arch/arm/mach-omap2/vc44xx.c
 
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index bb82611..0d659ae 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -79,14 +79,15 @@ endif
+ # PRCM
+ obj-$(CONFIG_ARCH_OMAP2)		+= prcm.o cm2xxx_3xxx.o prm2xxx_3xxx.o
+ obj-$(CONFIG_ARCH_OMAP3)		+= prcm.o cm2xxx_3xxx.o prm2xxx_3xxx.o \
+-					   vc3xxx_data.o vp3xxx_data.o
++					   vc3xxx_data.o vp3xxx_data.o \
++					   vc3xxx.o
+ # XXX The presence of cm2xxx_3xxx.o on the line below is temporary and
+ # will be removed once the OMAP4 part of the codebase is converted to
+ # use OMAP4-specific PRCM functions.
+ obj-$(CONFIG_ARCH_OMAP4)		+= prcm.o cm2xxx_3xxx.o cminst44xx.o \
+ 					   cm44xx.o prcm_mpu44xx.o \
+ 					   prminst44xx.o vc44xx_data.o \
+-					   vp44xx_data.o
++					   vp44xx_data.o vc44xx.o
+ 
+ # OMAP voltage domains
+ ifeq ($(CONFIG_PM),y)
 diff --git a/arch/arm/mach-omap2/vc.c b/arch/arm/mach-omap2/vc.c
-index 4e65fdc..29fbebd 100644
+index 29fbebd..0c9a494 100644
 --- a/arch/arm/mach-omap2/vc.c
 +++ b/arch/arm/mach-omap2/vc.c
-@@ -15,14 +15,12 @@ int omap_vc_pre_scale(struct voltagedomain *voltdm,
- 		      unsigned long target_volt,
- 		      u8 *target_vsel, u8 *current_vsel)
- {
--	struct omap_vc_instance_data *vc = voltdm->vdd->vc_data;
-+	struct omap_vc_channel *vc = voltdm->vc;
- 	struct omap_vdd_info *vdd = voltdm->vdd;
- 	struct omap_volt_data *volt_data;
--	const struct omap_vc_common_data *vc_common;
- 	const struct omap_vp_common_data *vp_common;
- 	u32 vc_cmdval, vp_errgain_val;
- 
--	vc_common = vc->vc_common;
- 	vp_common = vdd->vp_data->vp_common;
- 
- 	/* Check if suffiecient pmic info is available for this vdd */
-@@ -54,10 +52,10 @@ int omap_vc_pre_scale(struct voltagedomain *voltdm,
- 	*current_vsel = vdd->read_reg(vdd->vp_data->vp_common->prm_mod, vdd->vp_data->voltage);
- 
- 	/* Setting the ON voltage to the new target voltage */
--	vc_cmdval = vdd->read_reg(vc->vc_common->prm_mod, vc->cmdval_reg);
--	vc_cmdval &= ~vc_common->cmd_on_mask;
--	vc_cmdval |= (*target_vsel << vc_common->cmd_on_shift);
--	vdd->write_reg(vc_cmdval, vc->vc_common->prm_mod, vc->cmdval_reg);
-+	vc_cmdval = vdd->read_reg(vc->common->prm_mod, vc->cmdval_reg);
-+	vc_cmdval &= ~vc->common->cmd_on_mask;
-+	vc_cmdval |= (*target_vsel << vc->common->cmd_on_shift);
-+	vdd->write_reg(vc_cmdval, vc->common->prm_mod, vc->cmdval_reg);
- 
- 	/* Setting vp errorgain based on the voltage */
- 	if (volt_data) {
-@@ -94,7 +92,7 @@ void omap_vc_post_scale(struct voltagedomain *voltdm,
- int omap_vc_bypass_scale_voltage(struct voltagedomain *voltdm,
- 				 unsigned long target_volt)
- {
--	struct omap_vc_instance_data *vc = voltdm->vdd->vc_data;
-+	struct omap_vc_channel *vc = voltdm->vc;
- 	struct omap_vdd_info *vdd = voltdm->vdd;
- 	u32 loop_cnt = 0, retries_cnt = 0;
- 	u32 vc_valid, vc_bypass_val_reg, vc_bypass_value;
-@@ -105,19 +103,19 @@ int omap_vc_bypass_scale_voltage(struct voltagedomain *voltdm,
- 	if (ret)
- 		return ret;
- 
--	vc_valid = vc->vc_common->valid;
--	vc_bypass_val_reg = vc->vc_common->bypass_val_reg;
--	vc_bypass_value = (target_vsel << vc->vc_common->data_shift) |
-+	vc_valid = vc->common->valid;
-+	vc_bypass_val_reg = vc->common->bypass_val_reg;
-+	vc_bypass_value = (target_vsel << vc->common->data_shift) |
- 			(vdd->pmic_info->pmic_reg <<
--			vc->vc_common->regaddr_shift) |
-+			vc->common->regaddr_shift) |
- 			(vdd->pmic_info->i2c_slave_addr <<
--			vc->vc_common->slaveaddr_shift);
-+			vc->common->slaveaddr_shift);
- 
--	vdd->write_reg(vc_bypass_value, vc->vc_common->prm_mod, vc_bypass_val_reg);
--	vdd->write_reg(vc_bypass_value | vc_valid, vc->vc_common->prm_mod,
-+	vdd->write_reg(vc_bypass_value, vc->common->prm_mod, vc_bypass_val_reg);
-+	vdd->write_reg(vc_bypass_value | vc_valid, vc->common->prm_mod,
- 		       vc_bypass_val_reg);
- 
--	vc_bypass_value = vdd->read_reg(vc->vc_common->prm_mod, vc_bypass_val_reg);
-+	vc_bypass_value = vdd->read_reg(vc->common->prm_mod, vc_bypass_val_reg);
- 	/*
- 	 * Loop till the bypass command is acknowledged from the SMPS.
- 	 * NOTE: This is legacy code. The loop count and retry count needs
-@@ -136,7 +134,7 @@ int omap_vc_bypass_scale_voltage(struct voltagedomain *voltdm,
- 			loop_cnt = 0;
- 			udelay(10);
- 		}
--		vc_bypass_value = vdd->read_reg(vc->vc_common->prm_mod,
-+		vc_bypass_value = vdd->read_reg(vc->common->prm_mod,
- 						vc_bypass_val_reg);
+@@ -243,13 +243,8 @@ void __init omap_vc_init(struct voltagedomain *voltdm)
+ 		return;
  	}
  
-@@ -146,23 +144,23 @@ int omap_vc_bypass_scale_voltage(struct voltagedomain *voltdm,
- 
- static void __init omap3_vfsm_init(struct voltagedomain *voltdm)
- {
--	struct omap_vc_instance_data *vc = voltdm->vdd->vc_data;
-+	struct omap_vc_channel *vc = voltdm->vc;
- 	struct omap_vdd_info *vdd = voltdm->vdd;
- 
- 	/*
- 	 * Voltage Manager FSM parameters init
- 	 * XXX This data should be passed in from the board file
- 	 */
--	vdd->write_reg(OMAP3_CLKSETUP, vc->vc_common->prm_mod, OMAP3_PRM_CLKSETUP_OFFSET);
--	vdd->write_reg(OMAP3_VOLTOFFSET, vc->vc_common->prm_mod,
-+	vdd->write_reg(OMAP3_CLKSETUP, vc->common->prm_mod, OMAP3_PRM_CLKSETUP_OFFSET);
-+	vdd->write_reg(OMAP3_VOLTOFFSET, vc->common->prm_mod,
- 		       OMAP3_PRM_VOLTOFFSET_OFFSET);
--	vdd->write_reg(OMAP3_VOLTSETUP2, vc->vc_common->prm_mod,
-+	vdd->write_reg(OMAP3_VOLTSETUP2, vc->common->prm_mod,
- 		       OMAP3_PRM_VOLTSETUP2_OFFSET);
- }
- 
- static void __init omap3_vc_init(struct voltagedomain *voltdm)
- {
--	struct omap_vc_instance_data *vc = voltdm->vdd->vc_data;
-+	struct omap_vc_channel *vc = voltdm->vc;
- 	struct omap_vdd_info *vdd = voltdm->vdd;
- 	static bool is_initialized;
- 	u8 on_vsel, onlp_vsel, ret_vsel, off_vsel;
-@@ -176,19 +174,19 @@ static void __init omap3_vc_init(struct voltagedomain *voltdm)
- 	onlp_vsel = vdd->pmic_info->uv_to_vsel(vdd->pmic_info->onlp_volt);
- 	ret_vsel = vdd->pmic_info->uv_to_vsel(vdd->pmic_info->ret_volt);
- 	off_vsel = vdd->pmic_info->uv_to_vsel(vdd->pmic_info->off_volt);
--	vc_val	= ((on_vsel << vc->vc_common->cmd_on_shift) |
--		(onlp_vsel << vc->vc_common->cmd_onlp_shift) |
--		(ret_vsel << vc->vc_common->cmd_ret_shift) |
--		(off_vsel << vc->vc_common->cmd_off_shift));
--	vdd->write_reg(vc_val, vc->vc_common->prm_mod, vc->cmdval_reg);
-+	vc_val	= ((on_vsel << vc->common->cmd_on_shift) |
-+		(onlp_vsel << vc->common->cmd_onlp_shift) |
-+		(ret_vsel << vc->common->cmd_ret_shift) |
-+		(off_vsel << vc->common->cmd_off_shift));
-+	vdd->write_reg(vc_val, vc->common->prm_mod, vc->cmdval_reg);
- 
- 	/*
- 	 * Generic VC parameters init
- 	 * XXX This data should be abstracted out
- 	 */
--	vdd->write_reg(OMAP3430_CMD1_MASK | OMAP3430_RAV1_MASK, vc->vc_common->prm_mod,
-+	vdd->write_reg(OMAP3430_CMD1_MASK | OMAP3430_RAV1_MASK, vc->common->prm_mod,
- 			OMAP3_PRM_VC_CH_CONF_OFFSET);
--	vdd->write_reg(OMAP3430_MCODE_SHIFT | OMAP3430_HSEN_MASK, vc->vc_common->prm_mod,
-+	vdd->write_reg(OMAP3430_MCODE_SHIFT | OMAP3430_HSEN_MASK, vc->common->prm_mod,
- 			OMAP3_PRM_VC_I2C_CFG_OFFSET);
- 
- 	omap3_vfsm_init(voltdm);
-@@ -200,7 +198,7 @@ static void __init omap3_vc_init(struct voltagedomain *voltdm)
- /* OMAP4 specific voltage init functions */
- static void __init omap4_vc_init(struct voltagedomain *voltdm)
- {
--	struct omap_vc_instance_data *vc = voltdm->vdd->vc_data;
-+	struct omap_vc_channel *vc = voltdm->vc;
- 	struct omap_vdd_info *vdd = voltdm->vdd;
- 	static bool is_initialized;
- 	u32 vc_val;
-@@ -217,18 +215,18 @@ static void __init omap4_vc_init(struct voltagedomain *voltdm)
- 	vc_val = (OMAP4430_RAV_VDD_MPU_L_MASK | OMAP4430_CMD_VDD_MPU_L_MASK |
- 		  OMAP4430_RAV_VDD_IVA_L_MASK | OMAP4430_CMD_VDD_IVA_L_MASK |
- 		  OMAP4430_RAV_VDD_CORE_L_MASK | OMAP4430_CMD_VDD_CORE_L_MASK);
--	vdd->write_reg(vc_val, vc->vc_common->prm_mod, OMAP4_PRM_VC_CFG_CHANNEL_OFFSET);
-+	vdd->write_reg(vc_val, vc->common->prm_mod, OMAP4_PRM_VC_CFG_CHANNEL_OFFSET);
- 
- 	/* XXX These are magic numbers and do not belong! */
- 	vc_val = (0x60 << OMAP4430_SCLL_SHIFT | 0x26 << OMAP4430_SCLH_SHIFT);
--	vdd->write_reg(vc_val, vc->vc_common->prm_mod, OMAP4_PRM_VC_CFG_I2C_CLK_OFFSET);
-+	vdd->write_reg(vc_val, vc->common->prm_mod, OMAP4_PRM_VC_CFG_I2C_CLK_OFFSET);
- 
- 	is_initialized = true;
- }
- 
- void __init omap_vc_init(struct voltagedomain *voltdm)
- {
--	struct omap_vc_instance_data *vc = voltdm->vdd->vc_data;
-+	struct omap_vc_channel *vc = voltdm->vc;
- 	struct omap_vdd_info *vdd = voltdm->vdd;
- 	u32 vc_val;
- 
-@@ -246,27 +244,27 @@ void __init omap_vc_init(struct voltagedomain *voltdm)
- 	}
- 
- 	/* Set up the SMPS_SA(i2c slave address in VC */
--	vc_val = vdd->read_reg(vc->vc_common->prm_mod,
--			       vc->vc_common->smps_sa_reg);
-+	vc_val = vdd->read_reg(vc->common->prm_mod,
-+			       vc->common->smps_sa_reg);
- 	vc_val &= ~vc->smps_sa_mask;
- 	vc_val |= vdd->pmic_info->i2c_slave_addr << vc->smps_sa_shift;
--	vdd->write_reg(vc_val, vc->vc_common->prm_mod,
--		       vc->vc_common->smps_sa_reg);
-+	vdd->write_reg(vc_val, vc->common->prm_mod,
-+		       vc->common->smps_sa_reg);
+-	/* Set up the SMPS_SA(i2c slave address in VC */
+-	vc_val = vdd->read_reg(vc->common->prm_mod,
+-			       vc->common->smps_sa_reg);
+-	vc_val &= ~vc->smps_sa_mask;
+-	vc_val |= vdd->pmic_info->i2c_slave_addr << vc->smps_sa_shift;
+-	vdd->write_reg(vc_val, vc->common->prm_mod,
+-		       vc->common->smps_sa_reg);
++	/* Set up the SMPS i2c slave address in VC */
++	vc->ops->set_i2c_slave_addr(vc, vdd->pmic_info->i2c_slave_addr);
  
  	/* Setup the VOLRA(pmic reg addr) in VC */
--	vc_val = vdd->read_reg(vc->vc_common->prm_mod,
--			       vc->vc_common->smps_volra_reg);
-+	vc_val = vdd->read_reg(vc->common->prm_mod,
-+			       vc->common->smps_volra_reg);
- 	vc_val &= ~vc->smps_volra_mask;
- 	vc_val |= vdd->pmic_info->pmic_reg << vc->smps_volra_shift;
--	vdd->write_reg(vc_val, vc->vc_common->prm_mod,
--		       vc->vc_common->smps_volra_reg);
-+	vdd->write_reg(vc_val, vc->common->prm_mod,
-+		       vc->common->smps_volra_reg);
- 
- 	/* Configure the setup times */
--	vc_val = vdd->read_reg(vc->vc_common->prm_mod, vdd->vfsm->voltsetup_reg);
-+	vc_val = vdd->read_reg(vc->common->prm_mod, vdd->vfsm->voltsetup_reg);
- 	vc_val &= ~vdd->vfsm->voltsetup_mask;
- 	vc_val |= vdd->pmic_info->volt_setup_time <<
- 			vdd->vfsm->voltsetup_shift;
--	vdd->write_reg(vc_val, vc->vc_common->prm_mod, vdd->vfsm->voltsetup_reg);
-+	vdd->write_reg(vc_val, vc->common->prm_mod, vdd->vfsm->voltsetup_reg);
- 
- 	if (cpu_is_omap34xx())
- 		omap3_vc_init(voltdm);
+ 	vc_val = vdd->read_reg(vc->common->prm_mod,
 diff --git a/arch/arm/mach-omap2/vc.h b/arch/arm/mach-omap2/vc.h
-index b823e5b..40632b6 100644
+index 40632b6..a29e117 100644
 --- a/arch/arm/mach-omap2/vc.h
 +++ b/arch/arm/mach-omap2/vc.h
-@@ -22,7 +22,7 @@
+@@ -20,13 +20,21 @@
+ #include <linux/kernel.h>
+ 
  struct voltagedomain;
++struct omap_vc_channel;
++
++/**
++ * struct omap_vc_ops - SoC specific implementations of VC functions
++ * @set_i2c_slave_addr: set I2C slave address of PMIC SMPS
++ */
++struct omap_vc_ops {
++	int (*set_i2c_slave_addr)(struct omap_vc_channel *vc, u8 addr);
++};
  
  /**
-- * struct omap_vc_common_data - per-VC register/bitfield data
-+ * struct omap_vc_common - per-VC register/bitfield data
+  * struct omap_vc_common - per-VC register/bitfield data
   * @cmd_on_mask: ON bitmask in PRM_VC_CMD_VAL* register
   * @valid: VALID bitmask in PRM_VC_BYPASS_VAL register
   * @prm_mod: PRM module id used for PRM register access
-@@ -40,7 +40,7 @@ struct voltagedomain;
-  * XXX One of cmd_on_mask and cmd_on_shift are not needed
-  * XXX VALID should probably be a shift, not a mask
-  */
--struct omap_vc_common_data {
-+struct omap_vc_common {
+- * @smps_sa_reg: Offset of PRM_VC_SMPS_SA reg from PRM start
+  * @smps_volra_reg: Offset of PRM_VC_SMPS_VOL_RA reg from PRM start
+  * @bypass_val_reg: Offset of PRM_VC_BYPASS_VAL reg from PRM start
+  * @data_shift: DATA field shift in PRM_VC_BYPASS_VAL register
+@@ -44,7 +52,6 @@ struct omap_vc_common {
  	u32 cmd_on_mask;
  	u32 valid;
  	s16 prm_mod;
-@@ -57,8 +57,8 @@ struct omap_vc_common_data {
- };
- 
+-	u8 smps_sa_reg;
+ 	u8 smps_volra_reg;
+ 	u8 bypass_val_reg;
+ 	u8 data_shift;
+@@ -59,10 +66,10 @@ struct omap_vc_common {
  /**
-- * struct omap_vc_instance_data - VC per-instance data
-- * @vc_common: pointer to VC common data for this platform
-+ * struct omap_vc_channel - VC per-instance data
-+ * @common: pointer to VC common data for this platform
-  * @smps_sa_mask: SA* bitmask in the PRM_VC_SMPS_SA register
+  * struct omap_vc_channel - VC per-instance data
+  * @common: pointer to VC common data for this platform
+- * @smps_sa_mask: SA* bitmask in the PRM_VC_SMPS_SA register
++ * @smps_sa_mask: slave address field mask in the PRM_VC_SMPS_SA register
   * @smps_volra_mask: VOLRA* bitmask in the PRM_VC_VOL_RA register
-  * @smps_sa_shift: SA* field shift in the PRM_VC_SMPS_SA register
-@@ -67,8 +67,8 @@ struct omap_vc_common_data {
+- * @smps_sa_shift: SA* field shift in the PRM_VC_SMPS_SA register
+  * @smps_volra_shift: VOLRA* field shift in the PRM_VC_VOL_RA register
++ * @ops: SoC-specific implementations of VC operations
+  *
   * XXX It is not necessary to have both a *_mask and a *_shift -
   *     remove one
-  */
--struct omap_vc_instance_data {
--	const struct omap_vc_common_data *vc_common;
-+struct omap_vc_channel {
-+	const struct omap_vc_common *common;
+@@ -72,16 +79,19 @@ struct omap_vc_channel {
  	u32 smps_sa_mask;
  	u32 smps_volra_mask;
  	u8 cmdval_reg;
-@@ -76,12 +76,12 @@ struct omap_vc_instance_data {
+-	u8 smps_sa_shift;
  	u8 smps_volra_shift;
++
++	struct omap_vc_ops *ops;
  };
  
--extern struct omap_vc_instance_data omap3_vc1_data;
--extern struct omap_vc_instance_data omap3_vc2_data;
-+extern struct omap_vc_channel omap3_vc_mpu;
-+extern struct omap_vc_channel omap3_vc_core;
+ extern struct omap_vc_channel omap3_vc_mpu;
+ extern struct omap_vc_channel omap3_vc_core;
++extern struct omap_vc_ops omap3_vc_ops;
  
--extern struct omap_vc_instance_data omap4_vc_mpu_data;
--extern struct omap_vc_instance_data omap4_vc_iva_data;
--extern struct omap_vc_instance_data omap4_vc_core_data;
-+extern struct omap_vc_channel omap4_vc_mpu;
-+extern struct omap_vc_channel omap4_vc_iva;
-+extern struct omap_vc_channel omap4_vc_core;
+ extern struct omap_vc_channel omap4_vc_mpu;
+ extern struct omap_vc_channel omap4_vc_iva;
+ extern struct omap_vc_channel omap4_vc_core;
++extern struct omap_vc_ops omap4_vc_ops;
  
  void omap_vc_init(struct voltagedomain *voltdm);
  int omap_vc_pre_scale(struct voltagedomain *voltdm,
+diff --git a/arch/arm/mach-omap2/vc3xxx.c b/arch/arm/mach-omap2/vc3xxx.c
+new file mode 100644
+index 0000000..020d148
+--- /dev/null
++++ b/arch/arm/mach-omap2/vc3xxx.c
+@@ -0,0 +1,45 @@
++#include <linux/types.h>
++#include <linux/bitops.h>
++
++#include "voltage.h"
++#include "vc.h"
++#include "prm-regbits-34xx.h"
++#include "prm2xxx_3xxx.h"
++
++static inline u32 omap3_vc_read(u8 offset)
++{
++	return omap2_prm_read_mod_reg(OMAP3430_GR_MOD, offset);
++}
++
++static inline void omap3_vc_write(u32 val, u8 offset)
++{
++	omap2_prm_write_mod_reg(val, OMAP3430_GR_MOD, offset);
++}
++
++static inline u32 omap3_vc_rmw(u32 mask, u32 bits, u8 offset)
++{
++	u32 val;
++
++	val = omap3_vc_read(offset);
++	val &= ~mask;
++	val |= bits;
++	omap3_vc_write(val, offset);
++
++	return val;
++}
++
++static int omap3_vc_set_i2c_slave_addr(struct omap_vc_channel *vc,
++				       u8 slave_addr)
++{
++	omap3_vc_rmw(vc->smps_sa_mask, slave_addr << ffs(vc->smps_sa_mask),
++		     OMAP3_PRM_VC_SMPS_SA_OFFSET);
++
++	/* XXX should should probably also set the slave address in 
++	 *     PRM_VC_BYPASS_VAL. */
++
++	return 0;
++}
++
++struct omap_vc_ops omap3_vc_ops = {
++	.set_i2c_slave_addr = omap3_vc_set_i2c_slave_addr,
++};
 diff --git a/arch/arm/mach-omap2/vc3xxx_data.c b/arch/arm/mach-omap2/vc3xxx_data.c
-index 55caccb..1a17ed4 100644
+index 1a17ed4..51aa2b6 100644
 --- a/arch/arm/mach-omap2/vc3xxx_data.c
 +++ b/arch/arm/mach-omap2/vc3xxx_data.c
-@@ -29,7 +29,7 @@
-  * VC data common to 34xx/36xx chips
-  * XXX This stuff presumably belongs in the vc3xxx.c or vc.c file.
+@@ -31,7 +31,6 @@
   */
--static struct omap_vc_common_data omap3_vc_common = {
-+static struct omap_vc_common omap3_vc_common = {
+ static struct omap_vc_common omap3_vc_common = {
  	.prm_mod         = OMAP3430_GR_MOD,
- 	.smps_sa_reg	 = OMAP3_PRM_VC_SMPS_SA_OFFSET,
+-	.smps_sa_reg	 = OMAP3_PRM_VC_SMPS_SA_OFFSET,
  	.smps_volra_reg	 = OMAP3_PRM_VC_SMPS_VOL_RA_OFFSET,
-@@ -45,8 +45,8 @@ static struct omap_vc_common_data omap3_vc_common = {
- 	.cmd_off_shift	 = OMAP3430_VC_CMD_OFF_SHIFT,
- };
- 
--struct omap_vc_instance_data omap3_vc1_data = {
--	.vc_common = &omap3_vc_common,
-+struct omap_vc_channel omap3_vc_mpu = {
-+	.common = &omap3_vc_common,
+ 	.bypass_val_reg	 = OMAP3_PRM_VC_BYPASS_VAL_OFFSET,
+ 	.data_shift	 = OMAP3430_DATA_SHIFT,
+@@ -48,17 +47,17 @@ static struct omap_vc_common omap3_vc_common = {
+ struct omap_vc_channel omap3_vc_mpu = {
+ 	.common = &omap3_vc_common,
  	.cmdval_reg = OMAP3_PRM_VC_CMD_VAL_0_OFFSET,
- 	.smps_sa_shift = OMAP3430_PRM_VC_SMPS_SA_SA0_SHIFT,
+-	.smps_sa_shift = OMAP3430_PRM_VC_SMPS_SA_SA0_SHIFT,
  	.smps_sa_mask = OMAP3430_PRM_VC_SMPS_SA_SA0_MASK,
-@@ -54,8 +54,8 @@ struct omap_vc_instance_data omap3_vc1_data = {
+ 	.smps_volra_shift = OMAP3430_VOLRA0_SHIFT,
  	.smps_volra_mask = OMAP3430_VOLRA0_MASK,
++	.ops = &omap3_vc_ops,
  };
  
--struct omap_vc_instance_data omap3_vc2_data = {
--	.vc_common = &omap3_vc_common,
-+struct omap_vc_channel omap3_vc_core = {
-+	.common = &omap3_vc_common,
+ struct omap_vc_channel omap3_vc_core = {
+ 	.common = &omap3_vc_common,
  	.cmdval_reg = OMAP3_PRM_VC_CMD_VAL_1_OFFSET,
- 	.smps_sa_shift = OMAP3430_PRM_VC_SMPS_SA_SA1_SHIFT,
+-	.smps_sa_shift = OMAP3430_PRM_VC_SMPS_SA_SA1_SHIFT,
  	.smps_sa_mask = OMAP3430_PRM_VC_SMPS_SA_SA1_MASK,
+ 	.smps_volra_shift = OMAP3430_VOLRA1_SHIFT,
+ 	.smps_volra_mask = OMAP3430_VOLRA1_MASK,
++	.ops = &omap3_vc_ops,
+ };
+diff --git a/arch/arm/mach-omap2/vc44xx.c b/arch/arm/mach-omap2/vc44xx.c
+new file mode 100644
+index 0000000..f53a6c7
+--- /dev/null
++++ b/arch/arm/mach-omap2/vc44xx.c
+@@ -0,0 +1,45 @@
++#include <linux/types.h>
++
++#include "voltage.h"
++#include "vc.h"
++#include "prm-regbits-44xx.h"
++#include "prm44xx.h"
++#include "prminst44xx.h"
++#include "prcm44xx.h"
++
++static inline u32 omap4_vc_read(u8 offset)
++{
++	return omap4_prminst_read_inst_reg(OMAP4430_PRM_PARTITION,
++					   OMAP4430_PRM_DEVICE_INST, offset);
++}
++
++static inline void omap4_vc_write(u32 val, u8 offset)
++{
++	omap4_prminst_write_inst_reg(val, OMAP4430_PRM_PARTITION,
++				     OMAP4430_PRM_DEVICE_INST, offset);
++}
++
++static inline u32 omap4_vc_rmw(u32 mask, u32 bits, u8 offset)
++{
++	u32 val;
++
++	val = omap4_vc_read(offset);
++	val &= ~mask;
++	val |= bits;
++	omap4_vc_write(val, offset);
++
++	return val;
++}
++
++static int omap4_vc_set_i2c_slave_addr(struct omap_vc_channel *vc,
++				       u8 slave_addr)
++{
++	omap4_vc_rmw(vc->smps_sa_mask, slave_addr << ffs(vc->smps_sa_mask),
++		     OMAP4_PRM_VC_SMPS_SA_OFFSET);
++
++	return 0;
++}
++
++struct omap_vc_ops omap4_vc_ops = {
++	.set_i2c_slave_addr = omap4_vc_set_i2c_slave_addr,
++};
 diff --git a/arch/arm/mach-omap2/vc44xx_data.c b/arch/arm/mach-omap2/vc44xx_data.c
-index b62678e..56f3f4a 100644
+index 56f3f4a..9dbf307 100644
 --- a/arch/arm/mach-omap2/vc44xx_data.c
 +++ b/arch/arm/mach-omap2/vc44xx_data.c
-@@ -30,7 +30,7 @@
-  * VC data common to 44xx chips
-  * XXX This stuff presumably belongs in the vc3xxx.c or vc.c file.
+@@ -32,7 +32,6 @@
   */
--static const struct omap_vc_common_data omap4_vc_common = {
-+static const struct omap_vc_common omap4_vc_common = {
+ static const struct omap_vc_common omap4_vc_common = {
  	.prm_mod = OMAP4430_PRM_DEVICE_INST,
- 	.smps_sa_reg = OMAP4_PRM_VC_SMPS_SA_OFFSET,
+-	.smps_sa_reg = OMAP4_PRM_VC_SMPS_SA_OFFSET,
  	.smps_volra_reg = OMAP4_PRM_VC_VAL_SMPS_RA_VOL_OFFSET,
-@@ -47,8 +47,8 @@ static const struct omap_vc_common_data omap4_vc_common = {
- };
- 
- /* VC instance data for each controllable voltage line */
--struct omap_vc_instance_data omap4_vc_mpu_data = {
--	.vc_common = &omap4_vc_common,
-+struct omap_vc_channel omap4_vc_mpu = {
-+	.common = &omap4_vc_common,
+ 	.bypass_val_reg = OMAP4_PRM_VC_VAL_BYPASS_OFFSET,
+ 	.data_shift = OMAP4430_DATA_SHIFT,
+@@ -50,27 +49,26 @@ static const struct omap_vc_common omap4_vc_common = {
+ struct omap_vc_channel omap4_vc_mpu = {
+ 	.common = &omap4_vc_common,
  	.cmdval_reg = OMAP4_PRM_VC_VAL_CMD_VDD_MPU_L_OFFSET,
- 	.smps_sa_shift = OMAP4430_SA_VDD_MPU_L_PRM_VC_SMPS_SA_SHIFT,
+-	.smps_sa_shift = OMAP4430_SA_VDD_MPU_L_PRM_VC_SMPS_SA_SHIFT,
  	.smps_sa_mask = OMAP4430_SA_VDD_MPU_L_PRM_VC_SMPS_SA_MASK,
-@@ -56,8 +56,8 @@ struct omap_vc_instance_data omap4_vc_mpu_data = {
+ 	.smps_volra_shift = OMAP4430_VOLRA_VDD_MPU_L_SHIFT,
  	.smps_volra_mask = OMAP4430_VOLRA_VDD_MPU_L_MASK,
++	.ops = &omap4_vc_ops,
  };
  
--struct omap_vc_instance_data omap4_vc_iva_data = {
--	.vc_common = &omap4_vc_common,
-+struct omap_vc_channel omap4_vc_iva = {
-+	.common = &omap4_vc_common,
+ struct omap_vc_channel omap4_vc_iva = {
+ 	.common = &omap4_vc_common,
  	.cmdval_reg = OMAP4_PRM_VC_VAL_CMD_VDD_IVA_L_OFFSET,
- 	.smps_sa_shift = OMAP4430_SA_VDD_IVA_L_PRM_VC_SMPS_SA_SHIFT,
+-	.smps_sa_shift = OMAP4430_SA_VDD_IVA_L_PRM_VC_SMPS_SA_SHIFT,
  	.smps_sa_mask = OMAP4430_SA_VDD_IVA_L_PRM_VC_SMPS_SA_MASK,
-@@ -65,8 +65,8 @@ struct omap_vc_instance_data omap4_vc_iva_data = {
+ 	.smps_volra_shift = OMAP4430_VOLRA_VDD_IVA_L_SHIFT,
  	.smps_volra_mask = OMAP4430_VOLRA_VDD_IVA_L_MASK,
++	.ops = &omap4_vc_ops,
  };
  
--struct omap_vc_instance_data omap4_vc_core_data = {
--	.vc_common = &omap4_vc_common,
-+struct omap_vc_channel omap4_vc_core = {
-+	.common = &omap4_vc_common,
+ struct omap_vc_channel omap4_vc_core = {
+ 	.common = &omap4_vc_common,
  	.cmdval_reg = OMAP4_PRM_VC_VAL_CMD_VDD_CORE_L_OFFSET,
- 	.smps_sa_shift = OMAP4430_SA_VDD_CORE_L_0_6_SHIFT,
+-	.smps_sa_shift = OMAP4430_SA_VDD_CORE_L_0_6_SHIFT,
  	.smps_sa_mask = OMAP4430_SA_VDD_CORE_L_0_6_MASK,
-diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
-index 8a47dd1..a7dd088 100644
---- a/arch/arm/mach-omap2/voltage.c
-+++ b/arch/arm/mach-omap2/voltage.c
-@@ -805,10 +805,12 @@ int __init omap_voltage_late_init(void)
- 		if (voltdm->vdd) {
- 			if (omap_vdd_data_configure(voltdm))
- 				continue;
--			omap_vc_init(voltdm);
- 			vp_init(voltdm);
- 			vdd_debugfs_init(voltdm);
- 		}
-+
-+		if (voltdm->vc)
-+			omap_vc_init(voltdm);
- 	}
- 
- 	return 0;
-diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
-index df8d234..68a9439 100644
---- a/arch/arm/mach-omap2/voltage.h
-+++ b/arch/arm/mach-omap2/voltage.h
-@@ -71,6 +71,8 @@ struct voltagedomain {
- 	bool scalable;
- 	struct list_head node;
- 	struct list_head pwrdm_list;
-+	struct omap_vc_channel *vc;
-+
- 	struct omap_vdd_info *vdd;
+ 	.smps_volra_shift = OMAP4430_VOLRA_VDD_CORE_L_SHIFT,
+ 	.smps_volra_mask = OMAP4430_VOLRA_VDD_CORE_L_MASK,
++	.ops = &omap4_vc_ops,
  };
- 
-@@ -144,7 +146,6 @@ struct omap_vdd_info {
- 	struct omap_volt_pmic_info *pmic_info;
- 	struct omap_vp_instance_data *vp_data;
- 	struct omap_vp_runtime_data vp_rt_data;
--	struct omap_vc_instance_data *vc_data;
- 	const struct omap_vfsm_instance_data *vfsm;
- 	struct dentry *debug_dir;
- 	u32 curr_volt;
-diff --git a/arch/arm/mach-omap2/voltagedomains3xxx_data.c b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
-index e9664843..c5959f8 100644
---- a/arch/arm/mach-omap2/voltagedomains3xxx_data.c
-+++ b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
-@@ -41,7 +41,6 @@ static struct omap_vdd_info omap3_vdd1_info = {
- 	.prm_irqst_mod = OCP_MOD,
- 	.prm_irqst_reg = OMAP3_PRM_IRQSTATUS_MPU_OFFSET,
- 	.vp_data = &omap3_vp1_data,
--	.vc_data = &omap3_vc1_data,
- 	.vfsm = &omap3_vdd1_vfsm_data,
- };
- 
-@@ -55,19 +54,20 @@ static struct omap_vdd_info omap3_vdd2_info = {
- 	.prm_irqst_mod = OCP_MOD,
- 	.prm_irqst_reg = OMAP3_PRM_IRQSTATUS_MPU_OFFSET,
- 	.vp_data = &omap3_vp2_data,
--	.vc_data = &omap3_vc2_data,
- 	.vfsm = &omap3_vdd2_vfsm_data,
- };
- 
- static struct voltagedomain omap3_voltdm_mpu = {
- 	.name = "mpu_iva",
- 	.scalable = true,
-+	.vc = &omap3_vc_mpu,
- 	.vdd = &omap3_vdd1_info,
- };
- 
- static struct voltagedomain omap3_voltdm_core = {
- 	.name = "core",
- 	.scalable = true,
-+	.vc = &omap3_vc_core,
- 	.vdd = &omap3_vdd2_info,
- };
- 
-diff --git a/arch/arm/mach-omap2/voltagedomains44xx_data.c b/arch/arm/mach-omap2/voltagedomains44xx_data.c
-index 068a5e7..12c4a19 100644
---- a/arch/arm/mach-omap2/voltagedomains44xx_data.c
-+++ b/arch/arm/mach-omap2/voltagedomains44xx_data.c
-@@ -40,7 +40,6 @@ static struct omap_vdd_info omap4_vdd_mpu_info = {
- 	.prm_irqst_mod = OMAP4430_PRM_OCP_SOCKET_INST,
- 	.prm_irqst_reg = OMAP4_PRM_IRQSTATUS_MPU_2_OFFSET,
- 	.vp_data = &omap4_vp_mpu_data,
--	.vc_data = &omap4_vc_mpu_data,
- 	.vfsm = &omap4_vdd_mpu_vfsm_data,
- };
- 
-@@ -52,7 +51,6 @@ static struct omap_vdd_info omap4_vdd_iva_info = {
- 	.prm_irqst_mod = OMAP4430_PRM_OCP_SOCKET_INST,
- 	.prm_irqst_reg = OMAP4_PRM_IRQSTATUS_MPU_2_OFFSET,
- 	.vp_data = &omap4_vp_iva_data,
--	.vc_data = &omap4_vc_iva_data,
- 	.vfsm = &omap4_vdd_iva_vfsm_data,
- };
- 
-@@ -64,22 +62,24 @@ static struct omap_vdd_info omap4_vdd_core_info = {
- 	.prm_irqst_mod = OMAP4430_PRM_OCP_SOCKET_INST,
- 	.prm_irqst_reg = OMAP4_PRM_IRQSTATUS_MPU_2_OFFSET,
- 	.vp_data = &omap4_vp_core_data,
--	.vc_data = &omap4_vc_core_data,
- 	.vfsm = &omap4_vdd_core_vfsm_data,
- };
- 
- static struct voltagedomain omap4_voltdm_mpu = {
- 	.name = "mpu",
-+	.vc = &omap4_vc_mpu,
- 	.vdd = &omap4_vdd_mpu_info,
- };
- 
- static struct voltagedomain omap4_voltdm_iva = {
- 	.name = "iva",
-+	.vc = &omap4_vc_iva,
- 	.vdd = &omap4_vdd_iva_info,
- };
- 
- static struct voltagedomain omap4_voltdm_core = {
- 	.name = "core",
-+	.vc = &omap4_vc_core,
- 	.vdd = &omap4_vdd_core_info,
- };
- 
+-
 -- 
 1.7.4
 
