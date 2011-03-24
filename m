@@ -1,46 +1,36 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH] OMAP4: PM: Avoid omap4_pm_init() on OMAP4430 ES1.0
-Date: Thu, 24 Mar 2011 08:27:55 -0700
-Message-ID: <87fwqc1qtg.fsf@ti.com>
-References: <1299844601-13248-1-git-send-email-santosh.shilimkar@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Aaro Koskinen <aaro.koskinen@nokia.com>
+Subject: [PATCH 1/6] arm: mach-omap2: omap_l3_smx: fix request_irq() error path
+Date: Thu, 24 Mar 2011 18:35:30 +0200
+Message-ID: <1300984535-10530-1-git-send-email-aaro.koskinen@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:34875 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756682Ab1CXP2W (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 24 Mar 2011 11:28:22 -0400
-Received: by mail-iy0-f172.google.com with SMTP id 12so98425iyi.17
-        for <linux-omap@vger.kernel.org>; Thu, 24 Mar 2011 08:28:19 -0700 (PDT)
-In-Reply-To: <1299844601-13248-1-git-send-email-santosh.shilimkar@ti.com>
-	(Santosh Shilimkar's message of "Fri, 11 Mar 2011 17:26:41 +0530")
+Received: from smtp.nokia.com ([147.243.128.26]:28699 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750973Ab1CXQiX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 24 Mar 2011 12:38:23 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: tony@atomide.com, khilman@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Aaro Koskinen <aaro.koskinen@nokia.com>
 
-Hi Santosh,
+The debug irq should be freed on the error path.
 
-Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
+Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
+---
+ arch/arm/mach-omap2/omap_l3_smx.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-> On OMAP4430 ES1.0, Power Management features are not supported.
-> Avoid omap4_pm_init() on ES1.0 silicon so that we can continue
-> to use same kernel binary to boot on all OMAP4 silicons.
->
-> The ES1.0 boot failure with OMAP4 PM series was because of
-> the clockdomain initialisation code. Hardware supervised
-> clockdomain mode isn't functional for all clockdomains
-> on OMAP4430 ES1.0 silicon so avoid the same.
->
-> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Reported-by: Kevin Hilman <khilman@ti.com>
-> Cc: Kevin Hilman <khilman@ti.com>
-> ---
-> Patch applies on top of OMAP4 PM series
+diff --git a/arch/arm/mach-omap2/omap_l3_smx.c b/arch/arm/mach-omap2/omap_l3_smx.c
+index 265bff3..02528cb 100644
+--- a/arch/arm/mach-omap2/omap_l3_smx.c
++++ b/arch/arm/mach-omap2/omap_l3_smx.c
+@@ -273,6 +273,7 @@ static int __init omap3_l3_probe(struct platform_device *pdev)
+ 	goto err0;
+ 
+ err4:
++	free_irq(l3->debug_irq, l3);
+ err3:
+ 	iounmap(l3->rt);
+ err2:
+-- 
+1.5.6.5
 
-This looks OK.
-
-Please include in the repost of your OMAP4 PM series.
-
-Kevin
