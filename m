@@ -1,215 +1,94 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH/RFC 03/19] OMAP2+: voltage: move prm_irqst_reg from VP into voltage domain
-Date: Wed, 23 Mar 2011 17:00:17 -0700
-Message-ID: <1300924833-26745-4-git-send-email-khilman@ti.com>
+Subject: [PATCH/RFC 05/19] OMAP3: voltage: rename "mpu" voltagedomain to "mpu_iva"
+Date: Wed, 23 Mar 2011 17:00:19 -0700
+Message-ID: <1300924833-26745-6-git-send-email-khilman@ti.com>
 References: <1300924833-26745-1-git-send-email-khilman@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:47604 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933110Ab1CXAAR (ORCPT
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:46640 "EHLO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933110Ab1CXAAV (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 23 Mar 2011 20:00:17 -0400
-Received: by mail-iy0-f179.google.com with SMTP id 7so9838993iym.38
-        for <linux-omap@vger.kernel.org>; Wed, 23 Mar 2011 17:00:15 -0700 (PDT)
+	Wed, 23 Mar 2011 20:00:21 -0400
+Received: by mail-iw0-f176.google.com with SMTP id 19so11471931iwr.21
+        for <linux-omap@vger.kernel.org>; Wed, 23 Mar 2011 17:00:20 -0700 (PDT)
 In-Reply-To: <1300924833-26745-1-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Paul Walmsely <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>
 
-The prm_irqst_reg is not part of the VP.  Move it up into the common
-voltage domain struct.
+This voltage domain (a.k.a. VDD1) contains both the MPU and the IVA, so
+rename appropriately.
+
+Also fixup any users of the "mpu" name to use "mpu_iva"
 
 Signed-off-by: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/voltage.c                 |   15 +++++++--------
- arch/arm/mach-omap2/voltage.h                 |    1 +
- arch/arm/mach-omap2/voltagedomains3xxx_data.c |    2 ++
- arch/arm/mach-omap2/voltagedomains44xx_data.c |    3 +++
- arch/arm/mach-omap2/vp.h                      |    3 ---
- arch/arm/mach-omap2/vp3xxx_data.c             |    2 --
- arch/arm/mach-omap2/vp44xx_data.c             |    3 ---
- 7 files changed, 13 insertions(+), 16 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c    |    4 ++--
+ arch/arm/mach-omap2/omap_twl.c                |    2 +-
+ arch/arm/mach-omap2/pm.c                      |    2 +-
+ arch/arm/mach-omap2/voltagedomains3xxx_data.c |    2 +-
+ 4 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
-index 90191c4..15a9cb8 100644
---- a/arch/arm/mach-omap2/voltage.c
-+++ b/arch/arm/mach-omap2/voltage.c
-@@ -426,23 +426,21 @@ static int vp_forceupdate_scale_voltage(struct omap_vdd_info *vdd,
- 		unsigned long target_volt)
- {
- 	u32 vpconfig;
--	u8 target_vsel, current_vsel, prm_irqst_reg;
-+	u8 target_vsel, current_vsel;
- 	int ret, timeout = 0;
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+index c819c30..84feaf1 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -2909,7 +2909,7 @@ static struct omap_hwmod omap34xx_sr1_hwmod = {
+ 	.name		= "sr1_hwmod",
+ 	.class		= &omap34xx_smartreflex_hwmod_class,
+ 	.main_clk	= "sr1_fck",
+-	.vdd_name	= "mpu",
++	.vdd_name	= "mpu_iva",
+ 	.prcm		= {
+ 		.omap2 = {
+ 			.prcm_reg_id = 1,
+@@ -2931,7 +2931,7 @@ static struct omap_hwmod omap36xx_sr1_hwmod = {
+ 	.name		= "sr1_hwmod",
+ 	.class		= &omap36xx_smartreflex_hwmod_class,
+ 	.main_clk	= "sr1_fck",
+-	.vdd_name	= "mpu",
++	.vdd_name	= "mpu_iva",
+ 	.prcm		= {
+ 		.omap2 = {
+ 			.prcm_reg_id = 1,
+diff --git a/arch/arm/mach-omap2/omap_twl.c b/arch/arm/mach-omap2/omap_twl.c
+index 287aef2..57c325a 100644
+--- a/arch/arm/mach-omap2/omap_twl.c
++++ b/arch/arm/mach-omap2/omap_twl.c
+@@ -288,7 +288,7 @@ int __init omap3_twl_init(void)
+ 	if (!twl_sr_enable_autoinit)
+ 		omap3_twl_set_sr_bit(true);
  
- 	ret = _pre_volt_scale(vdd, target_volt, &target_vsel, &current_vsel);
- 	if (ret)
- 		return ret;
+-	voltdm = voltdm_lookup("mpu");
++	voltdm = voltdm_lookup("mpu_iva");
+ 	omap_voltage_register_pmic(voltdm, &omap3_mpu_volt_info);
  
--	prm_irqst_reg = vdd->vp_data->prm_irqst_data->prm_irqst_reg;
--
- 	/*
- 	 * Clear all pending TransactionDone interrupt/status. Typical latency
- 	 * is <3us
- 	 */
- 	while (timeout++ < VP_TRANXDONE_TIMEOUT) {
- 		vdd->write_reg(vdd->vp_data->prm_irqst_data->tranxdone_status,
--			       vdd->prm_irqst_mod, prm_irqst_reg);
--		if (!(vdd->read_reg(vdd->prm_irqst_mod, prm_irqst_reg) &
-+			       vdd->prm_irqst_mod, vdd->prm_irqst_reg);
-+		if (!(vdd->read_reg(vdd->prm_irqst_mod, vdd->prm_irqst_reg) &
- 		      vdd->vp_data->prm_irqst_data->tranxdone_status))
- 			break;
- 		udelay(1);
-@@ -475,7 +473,8 @@ static int vp_forceupdate_scale_voltage(struct omap_vdd_info *vdd,
- 	 * Depends on SMPSWAITTIMEMIN/MAX and voltage change
- 	 */
- 	timeout = 0;
--	omap_test_timeout((vdd->read_reg(vdd->prm_irqst_mod, prm_irqst_reg) &
-+	omap_test_timeout((vdd->read_reg(vdd->prm_irqst_mod,
-+					 vdd->prm_irqst_reg) &
- 			   vdd->vp_data->prm_irqst_data->tranxdone_status),
- 			  VP_TRANXDONE_TIMEOUT, timeout);
- 	if (timeout >= VP_TRANXDONE_TIMEOUT)
-@@ -492,8 +491,8 @@ static int vp_forceupdate_scale_voltage(struct omap_vdd_info *vdd,
- 	timeout = 0;
- 	while (timeout++ < VP_TRANXDONE_TIMEOUT) {
- 		vdd->write_reg(vdd->vp_data->prm_irqst_data->tranxdone_status,
--			       vdd->prm_irqst_mod, prm_irqst_reg);
--		if (!(vdd->read_reg(vdd->prm_irqst_mod, prm_irqst_reg) &
-+			       vdd->prm_irqst_mod, vdd->prm_irqst_reg);
-+		if (!(vdd->read_reg(vdd->prm_irqst_mod, vdd->prm_irqst_reg) &
- 		      vdd->vp_data->prm_irqst_data->tranxdone_status))
- 			break;
- 		udelay(1);
-diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
-index ffdc55e..db23d49 100644
---- a/arch/arm/mach-omap2/voltage.h
-+++ b/arch/arm/mach-omap2/voltage.h
-@@ -136,6 +136,7 @@ struct omap_vdd_info {
- 	bool vp_enabled;
+ 	voltdm = voltdm_lookup("core");
+diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+index 917e1e3..820b7b5 100644
+--- a/arch/arm/mach-omap2/pm.c
++++ b/arch/arm/mach-omap2/pm.c
+@@ -226,7 +226,7 @@ static void __init omap3_init_voltages(void)
+ 	if (!cpu_is_omap34xx())
+ 		return;
  
- 	s16 prm_irqst_mod;
-+	u8 prm_irqst_reg;
- 	u32 (*read_reg) (u16 mod, u8 offset);
- 	void (*write_reg) (u32 val, u16 mod, u8 offset);
- 	int (*volt_scale) (struct omap_vdd_info *vdd,
+-	omap2_set_init_voltage("mpu", "dpll1_ck", mpu_dev);
++	omap2_set_init_voltage("mpu_iva", "dpll1_ck", mpu_dev);
+ 	omap2_set_init_voltage("core", "l3_ick", l3_dev);
+ }
+ 
 diff --git a/arch/arm/mach-omap2/voltagedomains3xxx_data.c b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
-index 0d30b7f..f831f9a 100644
+index 4bee412..2167ef4 100644
 --- a/arch/arm/mach-omap2/voltagedomains3xxx_data.c
 +++ b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
-@@ -39,6 +39,7 @@ static const struct omap_vfsm_instance_data omap3_vdd1_vfsm_data = {
- 
- static struct omap_vdd_info omap3_vdd1_info = {
- 	.prm_irqst_mod = OCP_MOD,
-+	.prm_irqst_reg = OMAP3_PRM_IRQSTATUS_MPU_OFFSET,
- 	.vp_data = &omap3_vp1_data,
- 	.vc_data = &omap3_vc1_data,
- 	.vfsm = &omap3_vdd1_vfsm_data,
-@@ -55,6 +56,7 @@ static const struct omap_vfsm_instance_data omap3_vdd2_vfsm_data = {
- 
- static struct omap_vdd_info omap3_vdd2_info = {
- 	.prm_irqst_mod = OCP_MOD,
-+	.prm_irqst_reg = OMAP3_PRM_IRQSTATUS_MPU_OFFSET,
- 	.vp_data = &omap3_vp2_data,
- 	.vc_data = &omap3_vc2_data,
- 	.vfsm = &omap3_vdd2_vfsm_data,
-diff --git a/arch/arm/mach-omap2/voltagedomains44xx_data.c b/arch/arm/mach-omap2/voltagedomains44xx_data.c
-index 1c2d7d7..85da60c 100644
---- a/arch/arm/mach-omap2/voltagedomains44xx_data.c
-+++ b/arch/arm/mach-omap2/voltagedomains44xx_data.c
-@@ -38,6 +38,7 @@ static const struct omap_vfsm_instance_data omap4_vdd_mpu_vfsm_data = {
- 
- static struct omap_vdd_info omap4_vdd_mpu_info = {
- 	.prm_irqst_mod = OMAP4430_PRM_OCP_SOCKET_INST,
-+	.prm_irqst_reg = OMAP4_PRM_IRQSTATUS_MPU_2_OFFSET,
- 	.vp_data = &omap4_vp_mpu_data,
- 	.vc_data = &omap4_vc_mpu_data,
- 	.vfsm = &omap4_vdd_mpu_vfsm_data,
-@@ -52,6 +53,7 @@ static const struct omap_vfsm_instance_data omap4_vdd_iva_vfsm_data = {
- 
- static struct omap_vdd_info omap4_vdd_iva_info = {
- 	.prm_irqst_mod = OMAP4430_PRM_OCP_SOCKET_INST,
-+	.prm_irqst_reg = OMAP4_PRM_IRQSTATUS_MPU_2_OFFSET,
- 	.vp_data = &omap4_vp_iva_data,
- 	.vc_data = &omap4_vc_iva_data,
- 	.vfsm = &omap4_vdd_iva_vfsm_data,
-@@ -66,6 +68,7 @@ static const struct omap_vfsm_instance_data omap4_vdd_core_vfsm_data = {
- 
- static struct omap_vdd_info omap4_vdd_core_info = {
- 	.prm_irqst_mod = OMAP4430_PRM_OCP_SOCKET_INST,
-+	.prm_irqst_reg = OMAP4_PRM_IRQSTATUS_MPU_2_OFFSET,
- 	.vp_data = &omap4_vp_core_data,
- 	.vc_data = &omap4_vc_core_data,
- 	.vfsm = &omap4_vdd_core_vfsm_data,
-diff --git a/arch/arm/mach-omap2/vp.h b/arch/arm/mach-omap2/vp.h
-index d277da6..5406b08 100644
---- a/arch/arm/mach-omap2/vp.h
-+++ b/arch/arm/mach-omap2/vp.h
-@@ -70,16 +70,13 @@ struct omap_vp_common_data {
- 
- /**
-  * struct omap_vp_prm_irqst_data - PRM_IRQSTATUS_MPU.VP_TRANXDONE_ST data
-- * @prm_irqst_reg: reg offset for PRM_IRQSTATUS_MPU from top of PRM
-  * @tranxdone_status: VP_TRANXDONE_ST bitmask in PRM_IRQSTATUS_MPU reg
-  *
-- * XXX prm_irqst_reg does not belong here
-  * XXX Note that on OMAP3, VP_TRANXDONE interrupt may not work due to a
-  *     hardware bug
-  * XXX This structure is probably not needed
-  */
- struct omap_vp_prm_irqst_data {
--	u8 prm_irqst_reg;
- 	u32 tranxdone_status;
+@@ -60,7 +60,7 @@ static struct omap_vdd_info omap3_vdd2_info = {
  };
  
-diff --git a/arch/arm/mach-omap2/vp3xxx_data.c b/arch/arm/mach-omap2/vp3xxx_data.c
-index c9b3e64..a8ea045 100644
---- a/arch/arm/mach-omap2/vp3xxx_data.c
-+++ b/arch/arm/mach-omap2/vp3xxx_data.c
-@@ -51,7 +51,6 @@ static const struct omap_vp_common_data omap3_vp_common = {
- };
- 
- static const struct omap_vp_prm_irqst_data omap3_vp1_prm_irqst_data = {
--	.prm_irqst_reg = OMAP3_PRM_IRQSTATUS_MPU_OFFSET,
- 	.tranxdone_status = OMAP3430_VP1_TRANXDONE_ST_MASK,
- };
- 
-@@ -67,7 +66,6 @@ struct omap_vp_instance_data omap3_vp1_data = {
- };
- 
- static const struct omap_vp_prm_irqst_data omap3_vp2_prm_irqst_data = {
--	.prm_irqst_reg = OMAP3_PRM_IRQSTATUS_MPU_OFFSET,
- 	.tranxdone_status = OMAP3430_VP2_TRANXDONE_ST_MASK,
- };
- 
-diff --git a/arch/arm/mach-omap2/vp44xx_data.c b/arch/arm/mach-omap2/vp44xx_data.c
-index 1a0842e..0957c24 100644
---- a/arch/arm/mach-omap2/vp44xx_data.c
-+++ b/arch/arm/mach-omap2/vp44xx_data.c
-@@ -52,7 +52,6 @@ static const struct omap_vp_common_data omap4_vp_common = {
- };
- 
- static const struct omap_vp_prm_irqst_data omap4_vp_mpu_prm_irqst_data = {
--	.prm_irqst_reg = OMAP4_PRM_IRQSTATUS_MPU_2_OFFSET,
- 	.tranxdone_status = OMAP4430_VP_MPU_TRANXDONE_ST_MASK,
- };
- 
-@@ -68,7 +67,6 @@ struct omap_vp_instance_data omap4_vp_mpu_data = {
- };
- 
- static const struct omap_vp_prm_irqst_data omap4_vp_iva_prm_irqst_data = {
--	.prm_irqst_reg = OMAP4_PRM_IRQSTATUS_MPU_OFFSET,
- 	.tranxdone_status = OMAP4430_VP_IVA_TRANXDONE_ST_MASK,
- };
- 
-@@ -84,7 +82,6 @@ struct omap_vp_instance_data omap4_vp_iva_data = {
- };
- 
- static const struct omap_vp_prm_irqst_data omap4_vp_core_prm_irqst_data = {
--	.prm_irqst_reg = OMAP4_PRM_IRQSTATUS_MPU_OFFSET,
- 	.tranxdone_status = OMAP4430_VP_CORE_TRANXDONE_ST_MASK,
+ static struct voltagedomain omap3_voltdm_mpu = {
+-	.name = "mpu",
++	.name = "mpu_iva",
+ 	.vdd = &omap3_vdd1_info,
  };
  
 -- 
