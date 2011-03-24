@@ -1,102 +1,62 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] OMAP: DSS2: DSI: Introduce sync_vc functions
-Date: Thu, 24 Mar 2011 09:48:02 +0200
-Message-ID: <1300952882.2806.29.camel@deskari>
-References: <1300874374-23112-1-git-send-email-archit@ti.com>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH] Input: tca6416-keypad: Change to module_init()
+Date: Thu, 24 Mar 2011 00:57:27 -0700
+Message-ID: <20110324075727.GB8990@core.coreip.homeip.net>
+References: <20110322153226.GC30303@linux-sh.org>
+ <AANLkTimyxdcJ-eEke9x7X1zdiJNbFtncfv0=NzKjtAme@mail.gmail.com>
+ <20110322155730.GD30303@linux-sh.org>
+ <AANLkTi=Fjc2f837ifH152Rh8W0PfiZvViYaLe=8XZo4Z@mail.gmail.com>
+ <20110322163144.GC2202@sirena.org.uk>
+ <AANLkTiniBVWhSiNZMRYbO857D_Vj03KxH4qYqkVo-11J@mail.gmail.com>
+ <20110322165907.GG22583@opensource.wolfsonmicro.com>
+ <AANLkTin1jG36-EsvAk9o-KxdxaBBhx=5Rf+JMidjYqsT@mail.gmail.com>
+ <20110323162021.GA26594@opensource.wolfsonmicro.com>
+ <AANLkTincDenFBzk0sF48c=oJknAVnNnXjNr-uFOj5KQ7@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:39537 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754373Ab1CXHsG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 24 Mar 2011 03:48:06 -0400
-Received: from dlep35.itg.ti.com ([157.170.170.118])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p2O7m5RU008162
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 24 Mar 2011 02:48:05 -0500
-Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
-	by dlep35.itg.ti.com (8.13.7/8.13.7) with ESMTP id p2O7m5LH004549
-	for <linux-omap@vger.kernel.org>; Thu, 24 Mar 2011 02:48:05 -0500 (CDT)
-Received: from dlee74.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p2O7m5CM025621
-	for <linux-omap@vger.kernel.org>; Thu, 24 Mar 2011 02:48:05 -0500 (CDT)
-In-Reply-To: <1300874374-23112-1-git-send-email-archit@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-sh-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <AANLkTincDenFBzk0sF48c=oJknAVnNnXjNr-uFOj5KQ7@mail.gmail.com>
+Sender: linux-sh-owner@vger.kernel.org
+To: Magnus Damm <magnus.damm@gmail.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, Paul Mundt <lethal@linux-sh.org>, srk@ti.com, khilman@ti.com, chinyeow.sim.xt@renesas.com, linux-sh@vger.kernel.org, tony@atomide.com, nsekhar@ti.com, linux-i2c@vger.kernel.org, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: "Taneja, Archit" <archit@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Wed, 2011-03-23 at 04:59 -0500, Taneja, Archit wrote:
-> From: Archit Taneja <archit@ti.com>
-> 
-> The DSI protocol engine has no interrupt for signalling the end of a Frame
-> transfer. The present approach is to send a BTA after DISPC generates a
-> FRAMEDONE interrupt, and unlock the dsi bus only when the BTA Ack is received.
-> 
-> The assumption made with this approach was that OMAP will send a BTA only after
-> the long packet corresponding to the last line is sent. However, it is possible
-> that on the DISPC FRAMEDONE interrupt there are 2 (or more) lines of pixel data
-> in the DSI line buffer. Hence, the BTA Ack could be received for the long packet
-> corresponding to the second last line (or the third last and so on..).
-> Therefore, the current method doesn't ensure that the complete frame data is
-> sent before we start a new transfer. A similar explanation holds valid if we
-> send a BTA in between multiple short/long command packets from the slave port.
-> 
-> Introduce dsi_sync_vc functions, based on Tomi Valkeinen's idea, which ensure
-> that the DSI Virtual Channel in use(update_channel) completes its previous work
-> before proceeding to the next Frame/Command.
-> 
-> For a frame update, the DSI driver now sends a callback to the Panel Driver
-> on the FRAMEDONE interrupt itself. The callback in the panel driver then unlocks
-> the bus. dsi_sync_vc() functions are placed in dsi_vc_config_l4() and
-> dsi_vc_config_vp() to ensure that the previous task of the Virtual Channel is
-> completed.
-> 
-> Signed-off-by: Archit Taneja <archit@ti.com>
-> ---
-> Note:
-> Applies over the master branch of the tree:
-> http://gitorious.org/linux-omap-dss2/linux/commits/master
-> 
->  drivers/video/omap2/dss/dsi.c |  180 ++++++++++++++++++++++++++--------------
->  1 files changed, 117 insertions(+), 63 deletions(-)
+On Thu, Mar 24, 2011 at 12:38:21PM +0900, Magnus Damm wrote:
+> On Thu, Mar 24, 2011 at 1:20 AM, Mark Brown
+> <broonie@opensource.wolfsonmicro.com> wrote:
+> > On Thu, Mar 24, 2011 at 01:04:31AM +0900, Magnus Damm wrote:
+> >
+> >> Sounds nice. Hopefully that will allow us to use module_init() in
+> >> drivers instead of other initcall levels depending on bus type.
+> >
+> > None of this is anything to do with the bus type - it's to do with =
+the
+> > function of the devices within the system. =A0Things that are requi=
+red for
+> > early init of the kernel get bumped up the list.
+>=20
+> Hm, sorry for being unclear - I should have used the words "other
+> initcall levels depending on the init order of the parent hardware
+> bus". I'm referring to the state of things now without any patches
+> from Grant.
+>=20
+> I understand that early init code often are using different initcall
+> levels to make sure they are getting initialized before other code.
+> Initcalls can also be used to work around link order issues.
+>=20
+> I can't however see the reason why a keypad driver needs to be
+> initialized early on. I may be wrong, but I thought user space was th=
+e
+> only consumer of input devices?
+>=20
 
-Looks good, but this patch introduces one problem: handling the double
-BTA for DSI TE.
+SysRq is kind of a consumer, so there sometimes a desire to get keyboar=
+d
+working as soon as possible. But even SysRq is initialized ad module_in=
+it
+level, so I tend to agree that tca should simply use module_init.
 
-Currently we aim DSI to be always in a state where one BTA has been
-sent. So when the next frame transfer starts, we can just send one BTA
-and we know we'll get two consecutive BTAs.
-
-This patch removes the BTA which is sent after the frame transfer, thus
-breaking the above system. This doesn't cause problems currently because
-panel-taal.c always sends columns and rows addresses before starting the
-frame update, and a BTA is sent after those configurations. But a simple
-optimization would be to only send column/row config if they have
-changed. And in that case we would not get a double BTA, and thus we'd
-never get the DSI TE.
-
-So how to solve that...
-
-Two ways come to my mind:
-- Track sent BTAs in dsi.c. Every time we send a packet, reset the
-counter. Every time we send a BTA, increase the counter. Thus at frame
-update we would know if we need to send an extra BTA.
-
-- Always reset the BTA "status" from the panel at the beginning of frame
-transfer. This could be done by sending a null packet.
-
-The second one is probably simpler and more failsafe as there's no state
-stored. The first one (as well as the current system) would go wrong if
-something strange happens, like the panel resets. However, the second
-one introduces some overhead, as we need to send a null packet and two
-BTAs (versus one BTA) for every frame. It's probably negligible, though.
-
-I think we should go with the second option for now. It's simpler and
-works (should, at least). We can study the first option later if we need
-to optimize this.
-
- Tomi
-
-
+--=20
+Dmitry
