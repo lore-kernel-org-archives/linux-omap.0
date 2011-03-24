@@ -1,38 +1,64 @@
-From: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 2/2] usb: otg: OMAP4430: Powerdown the internal PHY when USB is disabled
-Date: Thu, 24 Mar 2011 16:36:33 +0530
-Message-ID: <1300964793-6833-1-git-send-email-hemahk@ti.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hema HK <hemahk-l0cyMroinI0@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 1/2] usb: otg: OMAP4430: Fix omap4430_phy_init function
+Date: Thu, 24 Mar 2011 13:08:25 +0200
+Message-ID: <20110324110824.GH14602@legolas.emea.dhcp.ti.com>
+References: <1300964764-6794-1-git-send-email-hemahk@ti.com>
+Reply-To: balbi@ti.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:42205 "EHLO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751365Ab1CXLIb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 24 Mar 2011 07:08:31 -0400
+Content-Disposition: inline
+In-Reply-To: <1300964764-6794-1-git-send-email-hemahk@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Hema HK <hemahk@ti.com>
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 
-Powerdown the internal UTMI PHY when USB is not enabled. This will
-allow the OMAP core domain to transition to retention and offmode.
+On Thu, Mar 24, 2011 at 04:36:04PM +0530, Hema HK wrote:
+> omap4430_phy_init() function can be called with no device pointer
+> to powerdown the UTMI PHY during board init when USB is disabled.
+> Fix the function accordingly.
+> 
+> Signed-off-by: Hema HK <hemahk@ti.com>
+> ---
+>  arch/arm/mach-omap2/omap_phy_internal.c |   44 ++++++++++++++++--------------
+>  1 files changed, 23 insertions(+), 21 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/omap_phy_internal.c b/arch/arm/mach-omap2/omap_phy_internal.c
+> index e2e605f..a959e2f 100644
+> --- a/arch/arm/mach-omap2/omap_phy_internal.c
+> +++ b/arch/arm/mach-omap2/omap_phy_internal.c
+> @@ -50,34 +50,36 @@ int omap4430_phy_init(struct device *dev)
+>  {
+>  	ctrl_base = ioremap(OMAP443X_SCM_BASE, SZ_1K);
+>  	if (!ctrl_base) {
+> -		dev_err(dev, "control module ioremap failed\n");
+> +		printk(KERN_ERR "control module ioremap failed\n");
 
-Signed-off-by: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
-Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
----
- arch/arm/mach-omap2/usb-musb.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+use pr_err()
 
-diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
-index 35559f7..500d9db 100644
---- a/arch/arm/mach-omap2/usb-musb.c
-+++ b/arch/arm/mach-omap2/usb-musb.c
-@@ -169,5 +169,7 @@ void __init usb_musb_init(struct omap_musb_board_data *board_data)
- #else
- void __init usb_musb_init(struct omap_musb_board_data *board_data)
- {
-+	if (cpu_is_omap44xx())
-+		omap4430_phy_init(NULL);
- }
- #endif /* CONFIG_USB_MUSB_SOC */
+>  		return -ENOMEM;
+>  	}
+>  	/* Power down the phy */
+>  	__raw_writel(PHY_PD, ctrl_base + CONTROL_DEV_CONF);
+> -	phyclk = clk_get(dev, "ocp2scp_usb_phy_ick");
+>  
+> -	if (IS_ERR(phyclk)) {
+> -		dev_err(dev, "cannot clk_get ocp2scp_usb_phy_ick\n");
+> -		iounmap(ctrl_base);
+> -		return PTR_ERR(phyclk);
+> -	}
+> +	if (dev) {
+
+you can avoid this nesting level:
+
+if (!dev)
+	return;
+
 -- 
-1.7.0.4
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+balbi
