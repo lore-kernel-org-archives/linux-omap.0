@@ -1,244 +1,111 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v3 1/4] OMAP2+: PM: omap device: API's for handling
- mstandby mode
-Date: Wed, 23 Mar 2011 22:46:35 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1103232245030.30409@utopia.booyaka.com>
-References: <1300930219-23160-1-git-send-email-manjugk@ti.com> <1300930219-23160-2-git-send-email-manjugk@ti.com>
+From: Vishwanath Sripathy <vishwanath.bs@ti.com>
+Subject: RE: [PATCH/RFC 07/19] OMAP3: voltage: add scalable flag to voltagedomain
+Date: Thu, 24 Mar 2011 10:53:42 +0530
+Message-ID: <8989339cfa18407f4caacb718eec831d@mail.gmail.com>
+References: <1300924833-26745-1-git-send-email-khilman@ti.com> <1300924833-26745-8-git-send-email-khilman@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:55927 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932845Ab1CXEqh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Mar 2011 00:46:37 -0400
-In-Reply-To: <1300930219-23160-2-git-send-email-manjugk@ti.com>
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:58822 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751489Ab1CXFXr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 24 Mar 2011 01:23:47 -0400
+Received: by mail-vx0-f174.google.com with SMTP id 39so8420101vxi.5
+        for <linux-omap@vger.kernel.org>; Wed, 23 Mar 2011 22:23:46 -0700 (PDT)
+In-Reply-To: <1300924833-26745-8-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com, tony@atomide.com
+To: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org
+Cc: Paul Walmsely <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>
 
-Hi
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Kevin Hilman
+> Sent: Thursday, March 24, 2011 5:30 AM
+> To: linux-omap@vger.kernel.org
+> Cc: Paul Walmsely; Benoit Cousson
+> Subject: [PATCH/RFC 07/19] OMAP3: voltage: add scalable flag to
+> voltagedomain
+>
+> Add a 'bool scalable' flag to the struct powerdomain and set it for
+I suppose you meant "struct voltagedomain".
+But shouldn't this flag be part of PMIC struct?
+Voltage scalability depends on the kind of VDD supply from PMIC. So even
+if OMAP supports voltage scaling, we may not be able to scale the voltage
+if PMIC does not support it.
+> the MPU_IVA and CORE voltage domains.
 
-comments below
-
-
-On Thu, 24 Mar 2011, G, Manjunath Kondaiah wrote:
-
-> Certain errata in OMAP2+ processors will require forcing
-> master standby to "no standby" mode before completing on going
-> operation. Without this, the results will be unpredictable.
-> 
-> Since current implementation of PM run time framework does not support
-> changing sysconfig settings during middle of the on going operation,
-> these API's will support the same. One API will force the device's
-> sysconfig mstandby mode settings to "no standby" and other API will
-> release "no standby" mode and sets it to "smart standby" or "no
-> standby? depending on HWMOD_SWSUP_MSTANDBY value.
-> 
-> These API's should be used by device drivers only incase of
-> erratum applicable to their modules if there is no other methods
-> to resolve.
-> 
-> These API's are required for multiple DMA errata which require
-> putting DMA controller in no mstandby mode before stopping dma.
-> 
-> The applicable errata:
-> 1. Erratum ID: i557(Applicable for omap36xx all ES versions)
-> The channel hangs when the Pause bit (DMA4_CDPi [7] ) is cleared
-> through config port while in Standby.
-> 
-> 2. Erratum ID: i541
-> sDMA FIFO draining does not finish. Applicable to all omap2+ except
-> omap4.
-> 
-> 3. Erratum ID:i88
-> The sDMA to be put in no mstandby mode before disabling the channel
-> after completing the data transfer operation.
-> Applicable only for OMAP3430 ES1.0
-> 
-> Also fixes typo HWMOD_SWSUP_MSTDBY to HWMOD_SWSUP_MSTANDBY in
-> omap_hwmod.h
-> 
-> Signed-off-by: G, Manjunath Kondaiah <manjugk@ti.com>
+>
+> Signed-off-by: Kevin Hilman <khilman@ti.com>
 > ---
->  arch/arm/mach-omap2/omap_hwmod.c              |   42 ++++++++++++++++
->  arch/arm/plat-omap/include/plat/omap_device.h |    2 +
->  arch/arm/plat-omap/include/plat/omap_hwmod.h  |    4 +-
->  arch/arm/plat-omap/omap_device.c              |   64 +++++++++++++++++++++++++
->  4 files changed, 111 insertions(+), 1 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-> index e034294..7966cc0 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod.c
-> @@ -1594,6 +1594,48 @@ int omap_hwmod_set_slave_idlemode(struct omap_hwmod *oh, u8 idlemode)
->  }
->  
+>  arch/arm/mach-omap2/voltage.c                 |    3 +++
+>  arch/arm/mach-omap2/voltage.h                 |    2 ++
+>  arch/arm/mach-omap2/voltagedomains3xxx_data.c |    2 ++
+>  3 files changed, 7 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-
+> omap2/voltage.c
+> index f995003..bc944ff 100644
+> --- a/arch/arm/mach-omap2/voltage.c
+> +++ b/arch/arm/mach-omap2/voltage.c
+> @@ -1054,6 +1054,9 @@ int __init omap_voltage_late_init(void)
+>  		pr_err("%s: Unable to create voltage debugfs main dir\n",
+>  			__func__);
+>  	list_for_each_entry(voltdm, &voltdm_list, node) {
+> +		if (!voltdm->scalable)
+> +			continue;
+> +
+>  		if (voltdm->vdd) {
+>  			if (omap_vdd_data_configure(voltdm))
+>  				continue;
+> diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-
+> omap2/voltage.h
+> index 5440298..25cfb5c 100644
+> --- a/arch/arm/mach-omap2/voltage.h
+> +++ b/arch/arm/mach-omap2/voltage.h
+> @@ -53,11 +53,13 @@ struct omap_vfsm_instance_data {
 >  /**
-> + * omap_hwmod_set_master_standbymode - set the hwmod's OCP mstandby mode
-> + * @oh: struct omap_hwmod *
-> + * @midlemode: flag to set mstandby to either "no standby" or "smart standby"
-> + *
-> + * Sets the IP block's OCP mstandby mode in hardware, and updates our
-> + * local copy.  Intended to be used by drivers that have some erratum
-> + * that requires direct manipulation of the MIDLEMODE bits.  Returns
-> + * -EINVAL if @oh is null, or passes along the return value from
-> + * _set_master_standbymode().
-> + *
-> + * Any users of this function should be scrutinized carefully.
-> + */
-> +int omap_hwmod_set_master_standbymode(struct omap_hwmod *oh, u8 idlemode)
-> +{
-> +	u32 v;
-> +	u8 sf;
-> +	int retval = 0;
-> +
-> +	if (!oh)
-> +		return -EINVAL;
-> +
-> +	if (!oh->class->sysc)
-> +		return -EINVAL;
-> +
-> +	v = oh->_sysc_cache;
-> +	sf = oh->class->sysc->sysc_flags;
-> +
-> +	if (sf & SYSC_HAS_MIDLEMODE) {
-> +		if (idlemode)
-> +			idlemode = HWMOD_IDLEMODE_NO;
-> +		else
-> +			idlemode = (oh->flags & HWMOD_SWSUP_MSTANDBY) ?
-> +				HWMOD_IDLEMODE_NO : HWMOD_IDLEMODE_SMART;
-> +	}
-> +	retval = _set_master_standbymode(oh, idlemode, &v);
-> +	if (!retval)
-> +		_write_sysconfig(v, oh);
-> +
-> +	return retval;
-> +}
-> +
-> +/**
->   * omap_hwmod_lookup - look up a registered omap_hwmod by name
->   * @name: name of the omap_hwmod to look up
->   *
-> diff --git a/arch/arm/plat-omap/include/plat/omap_device.h b/arch/arm/plat-omap/include/plat/omap_device.h
-> index e4c349f..42e0186 100644
-> --- a/arch/arm/plat-omap/include/plat/omap_device.h
-> +++ b/arch/arm/plat-omap/include/plat/omap_device.h
-> @@ -117,6 +117,8 @@ int omap_device_enable_hwmods(struct omap_device *od);
->  int omap_device_disable_clocks(struct omap_device *od);
->  int omap_device_enable_clocks(struct omap_device *od);
->  
-> +int omap_device_require_no_mstandby(struct platform_device *pdev);
-> +int omap_device_release_no_mstandby(struct platform_device *pdev);
->  
->  /*
->   * Entries should be kept in latency order ascending
-> diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-> index 1adea9c..2437f10 100644
-> --- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
-> +++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-> @@ -373,7 +373,7 @@ struct omap_hwmod_omap4_prcm {
->   *
->   * HWMOD_SWSUP_SIDLE: omap_hwmod code should manually bring module in and out
->   *     of idle, rather than relying on module smart-idle
-> - * HWMOD_SWSUP_MSTDBY: omap_hwmod code should manually bring module in and out
-> + * HWMOD_SWSUP_MSTANDBY: omap_hwmod code should manually bring module in and out
->   *     of standby, rather than relying on module smart-standby
->   * HWMOD_INIT_NO_RESET: don't reset this module at boot - important for
->   *     SDRAM controller, etc. XXX probably belongs outside the main hwmod file
-> @@ -567,6 +567,8 @@ int omap_hwmod_disable_clocks(struct omap_hwmod *oh);
->  int omap_hwmod_set_slave_idlemode(struct omap_hwmod *oh, u8 idlemode);
->  int omap_hwmod_set_ocp_autoidle(struct omap_hwmod *oh, u8 autoidle);
->  
-> +int omap_hwmod_set_master_standbymode(struct omap_hwmod *oh, u8 idlemode);
-> +
->  int omap_hwmod_reset(struct omap_hwmod *oh);
->  void omap_hwmod_ocp_barrier(struct omap_hwmod *oh);
->  
-> diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
-> index 9bbda9a..b502098 100644
-> --- a/arch/arm/plat-omap/omap_device.c
-> +++ b/arch/arm/plat-omap/omap_device.c
-> @@ -628,6 +628,70 @@ int omap_device_idle(struct platform_device *pdev)
->  }
->  
->  /**
-> + * omap_device_require_no_mstandby - set no mstandby mode of an omap_device
-> + * @od: struct omap_device * to idle
-> + *
-> + * Sets the IP block's OCP master standby to no mstandby mode in hardware.
-> + *
-> + * Intended to be used by drivers that have some erratum that requires direct
-> + * manipulation of the MSTANDBYMODE bits. Returns -EINVAL if the
-> + * omap_device is not currently enabled or passes along the return value
-> + * of omap_hwmod_set_master_standbymode().
-> + */
-> +int omap_device_require_no_mstandby(struct platform_device *pdev)
-> +{
-> +	int ret  = 0, i;
-> +	struct omap_device *od;
-> +	struct omap_hwmod *oh;
-> +
-> +	od = _find_by_pdev(pdev);
-> +	if (od->_state != OMAP_DEVICE_STATE_ENABLED) {
-> +		WARN(1, "omap_device: %s.%d: %s() called from invalid state %d\n",
-> +		     od->pdev.name, od->pdev.id, __func__, od->_state);
-> +		return -EINVAL;
-> +	}
-> +
-> +	oh = *od->hwmods;
-> +	for (i = 0; i < od->hwmods_cnt; i++)
-> +		ret = omap_hwmod_set_master_standbymode(oh, true);
+>   * struct voltagedomain - omap voltage domain global structure.
+>   * @name: Name of the voltage domain which can be used as a unique
+> identifier.
+> + * @scalable: Whether or not this voltage domain is scalable
+>   * @node: list_head linking all voltage domains
+>   * @vdd: to be removed
+>   */
+>  struct voltagedomain {
+>  	char *name;
+> +	bool scalable;
+>  	struct list_head node;
+>  	struct omap_vdd_info *vdd;
+>  };
+> diff --git a/arch/arm/mach-omap2/voltagedomains3xxx_data.c
+> b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
+> index b476ee6..e9664843 100644
+> --- a/arch/arm/mach-omap2/voltagedomains3xxx_data.c
+> +++ b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
+> @@ -61,11 +61,13 @@ static struct omap_vdd_info omap3_vdd2_info =
+> {
+>
+>  static struct voltagedomain omap3_voltdm_mpu = {
+>  	.name = "mpu_iva",
+> +	.scalable = true,
+>  	.vdd = &omap3_vdd1_info,
+>  };
+>
+>  static struct voltagedomain omap3_voltdm_core = {
+>  	.name = "core",
+> +	.scalable = true,
+>  	.vdd = &omap3_vdd2_info,
+>  };
+Why is this applicable only for OMAP3 and not for OMAP4?
 
-You're still just operating on the same oh, over and over...
-
-> +
-> +	return ret;
-> +}
-> +
-> +/**
-> + * omap_device_release_no_mstandby - releases no mstandby mode of an omap_device
-> + * @od: struct omap_device * to idle
-> + *
-> + * Release no mstandby mode and sets the master standby to either no standby or
-> + * smart standby in IP block's OCP in hardware depending on status of the flag
-> + * HWMOD_SWSUP_MSTANDBY.
-> + *
-> + * Intended to be used by drivers that have some erratum that requires direct
-> + * manipulation of the MSTANDBYMODE bits. Returns -EINVAL if the
-> + * omap_device is not currently enabled or passes along the return value
-> + * of omap_hwmod_set_master_standbymode().
-> + */
-> +int omap_device_release_no_mstandby(struct platform_device *pdev)
-> +{
-> +	int ret  = 0, i;
-> +	struct omap_device *od;
-> +	struct omap_hwmod *oh;
-> +
-> +	od = _find_by_pdev(pdev);
-> +	if (od->_state != OMAP_DEVICE_STATE_ENABLED) {
-> +		WARN(1, "omap_device: %s.%d: %s() called from invalid state %d\n",
-> +		     od->pdev.name, od->pdev.id, __func__, od->_state);
-> +		return -EINVAL;
-> +	}
-> +
-> +	oh = *od->hwmods;
-> +	for (i = 0; i < od->hwmods_cnt; i++)
-> +		ret = omap_hwmod_set_master_standbymode(oh, false);
-
-and same here.
-
-> +
-> +	return ret;
-> +}
-> +
-> +/**
->   * omap_device_shutdown - shut down an omap_device
->   * @od: struct omap_device * to shut down
->   *
-> -- 
-> 1.7.1
-> 
-
-
-- Paul
+Vishwa
+>
+> --
+> 1.7.4
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
