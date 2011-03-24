@@ -1,111 +1,102 @@
-From: Vishwanath Sripathy <vishwanath.bs@ti.com>
-Subject: RE: [PATCH/RFC 07/19] OMAP3: voltage: add scalable flag to voltagedomain
-Date: Thu, 24 Mar 2011 10:53:42 +0530
-Message-ID: <8989339cfa18407f4caacb718eec831d@mail.gmail.com>
-References: <1300924833-26745-1-git-send-email-khilman@ti.com> <1300924833-26745-8-git-send-email-khilman@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] OMAP: DSS2: DSI: Introduce sync_vc functions
+Date: Thu, 24 Mar 2011 09:48:02 +0200
+Message-ID: <1300952882.2806.29.camel@deskari>
+References: <1300874374-23112-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:58822 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751489Ab1CXFXr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 24 Mar 2011 01:23:47 -0400
-Received: by mail-vx0-f174.google.com with SMTP id 39so8420101vxi.5
-        for <linux-omap@vger.kernel.org>; Wed, 23 Mar 2011 22:23:46 -0700 (PDT)
-In-Reply-To: <1300924833-26745-8-git-send-email-khilman@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:39537 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754373Ab1CXHsG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 24 Mar 2011 03:48:06 -0400
+Received: from dlep35.itg.ti.com ([157.170.170.118])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p2O7m5RU008162
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Thu, 24 Mar 2011 02:48:05 -0500
+Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
+	by dlep35.itg.ti.com (8.13.7/8.13.7) with ESMTP id p2O7m5LH004549
+	for <linux-omap@vger.kernel.org>; Thu, 24 Mar 2011 02:48:05 -0500 (CDT)
+Received: from dlee74.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p2O7m5CM025621
+	for <linux-omap@vger.kernel.org>; Thu, 24 Mar 2011 02:48:05 -0500 (CDT)
+In-Reply-To: <1300874374-23112-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org
-Cc: Paul Walmsely <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>
+To: "Taneja, Archit" <archit@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Kevin Hilman
-> Sent: Thursday, March 24, 2011 5:30 AM
-> To: linux-omap@vger.kernel.org
-> Cc: Paul Walmsely; Benoit Cousson
-> Subject: [PATCH/RFC 07/19] OMAP3: voltage: add scalable flag to
-> voltagedomain
->
-> Add a 'bool scalable' flag to the struct powerdomain and set it for
-I suppose you meant "struct voltagedomain".
-But shouldn't this flag be part of PMIC struct?
-Voltage scalability depends on the kind of VDD supply from PMIC. So even
-if OMAP supports voltage scaling, we may not be able to scale the voltage
-if PMIC does not support it.
-> the MPU_IVA and CORE voltage domains.
-
->
-> Signed-off-by: Kevin Hilman <khilman@ti.com>
+On Wed, 2011-03-23 at 04:59 -0500, Taneja, Archit wrote:
+> From: Archit Taneja <archit@ti.com>
+> 
+> The DSI protocol engine has no interrupt for signalling the end of a Frame
+> transfer. The present approach is to send a BTA after DISPC generates a
+> FRAMEDONE interrupt, and unlock the dsi bus only when the BTA Ack is received.
+> 
+> The assumption made with this approach was that OMAP will send a BTA only after
+> the long packet corresponding to the last line is sent. However, it is possible
+> that on the DISPC FRAMEDONE interrupt there are 2 (or more) lines of pixel data
+> in the DSI line buffer. Hence, the BTA Ack could be received for the long packet
+> corresponding to the second last line (or the third last and so on..).
+> Therefore, the current method doesn't ensure that the complete frame data is
+> sent before we start a new transfer. A similar explanation holds valid if we
+> send a BTA in between multiple short/long command packets from the slave port.
+> 
+> Introduce dsi_sync_vc functions, based on Tomi Valkeinen's idea, which ensure
+> that the DSI Virtual Channel in use(update_channel) completes its previous work
+> before proceeding to the next Frame/Command.
+> 
+> For a frame update, the DSI driver now sends a callback to the Panel Driver
+> on the FRAMEDONE interrupt itself. The callback in the panel driver then unlocks
+> the bus. dsi_sync_vc() functions are placed in dsi_vc_config_l4() and
+> dsi_vc_config_vp() to ensure that the previous task of the Virtual Channel is
+> completed.
+> 
+> Signed-off-by: Archit Taneja <archit@ti.com>
 > ---
->  arch/arm/mach-omap2/voltage.c                 |    3 +++
->  arch/arm/mach-omap2/voltage.h                 |    2 ++
->  arch/arm/mach-omap2/voltagedomains3xxx_data.c |    2 ++
->  3 files changed, 7 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-
-> omap2/voltage.c
-> index f995003..bc944ff 100644
-> --- a/arch/arm/mach-omap2/voltage.c
-> +++ b/arch/arm/mach-omap2/voltage.c
-> @@ -1054,6 +1054,9 @@ int __init omap_voltage_late_init(void)
->  		pr_err("%s: Unable to create voltage debugfs main dir\n",
->  			__func__);
->  	list_for_each_entry(voltdm, &voltdm_list, node) {
-> +		if (!voltdm->scalable)
-> +			continue;
-> +
->  		if (voltdm->vdd) {
->  			if (omap_vdd_data_configure(voltdm))
->  				continue;
-> diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-
-> omap2/voltage.h
-> index 5440298..25cfb5c 100644
-> --- a/arch/arm/mach-omap2/voltage.h
-> +++ b/arch/arm/mach-omap2/voltage.h
-> @@ -53,11 +53,13 @@ struct omap_vfsm_instance_data {
->  /**
->   * struct voltagedomain - omap voltage domain global structure.
->   * @name: Name of the voltage domain which can be used as a unique
-> identifier.
-> + * @scalable: Whether or not this voltage domain is scalable
->   * @node: list_head linking all voltage domains
->   * @vdd: to be removed
->   */
->  struct voltagedomain {
->  	char *name;
-> +	bool scalable;
->  	struct list_head node;
->  	struct omap_vdd_info *vdd;
->  };
-> diff --git a/arch/arm/mach-omap2/voltagedomains3xxx_data.c
-> b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
-> index b476ee6..e9664843 100644
-> --- a/arch/arm/mach-omap2/voltagedomains3xxx_data.c
-> +++ b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
-> @@ -61,11 +61,13 @@ static struct omap_vdd_info omap3_vdd2_info =
-> {
->
->  static struct voltagedomain omap3_voltdm_mpu = {
->  	.name = "mpu_iva",
-> +	.scalable = true,
->  	.vdd = &omap3_vdd1_info,
->  };
->
->  static struct voltagedomain omap3_voltdm_core = {
->  	.name = "core",
-> +	.scalable = true,
->  	.vdd = &omap3_vdd2_info,
->  };
-Why is this applicable only for OMAP3 and not for OMAP4?
+> Note:
+> Applies over the master branch of the tree:
+> http://gitorious.org/linux-omap-dss2/linux/commits/master
+> 
+>  drivers/video/omap2/dss/dsi.c |  180 ++++++++++++++++++++++++++--------------
+>  1 files changed, 117 insertions(+), 63 deletions(-)
 
-Vishwa
->
-> --
-> 1.7.4
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Looks good, but this patch introduces one problem: handling the double
+BTA for DSI TE.
+
+Currently we aim DSI to be always in a state where one BTA has been
+sent. So when the next frame transfer starts, we can just send one BTA
+and we know we'll get two consecutive BTAs.
+
+This patch removes the BTA which is sent after the frame transfer, thus
+breaking the above system. This doesn't cause problems currently because
+panel-taal.c always sends columns and rows addresses before starting the
+frame update, and a BTA is sent after those configurations. But a simple
+optimization would be to only send column/row config if they have
+changed. And in that case we would not get a double BTA, and thus we'd
+never get the DSI TE.
+
+So how to solve that...
+
+Two ways come to my mind:
+- Track sent BTAs in dsi.c. Every time we send a packet, reset the
+counter. Every time we send a BTA, increase the counter. Thus at frame
+update we would know if we need to send an extra BTA.
+
+- Always reset the BTA "status" from the panel at the beginning of frame
+transfer. This could be done by sending a null packet.
+
+The second one is probably simpler and more failsafe as there's no state
+stored. The first one (as well as the current system) would go wrong if
+something strange happens, like the panel resets. However, the second
+one introduces some overhead, as we need to send a null packet and two
+BTAs (versus one BTA) for every frame. It's probably negligible, though.
+
+I think we should go with the second option for now. It's simpler and
+works (should, at least). We can study the first option later if we need
+to optimize this.
+
+ Tomi
+
+
