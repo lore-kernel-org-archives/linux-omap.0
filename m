@@ -1,64 +1,105 @@
 From: Andy Green <andy@warmcat.com>
-Subject: [RFC PATCH 0/2] OMAP2+: PANDA: Provide unique-ish MAC addresses for
- Ethernet and WLAN interfaces
-Date: Thu, 24 Mar 2011 21:27:20 +0000
-Message-ID: <20110324211451.14936.39750.stgit@otae.warmcat.com>
+Subject: [RFC PATCH 1/2] OMAP2+: add cpu id register to MAC address helper
+Date: Thu, 24 Mar 2011 21:27:29 +0000
+Message-ID: <20110324212729.14936.98130.stgit@otae.warmcat.com>
+References: <20110324211451.14936.39750.stgit@otae.warmcat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-ww0-f44.google.com ([74.125.82.44]:56562 "EHLO
 	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755070Ab1CXV10 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Mar 2011 17:27:26 -0400
-Received: by wwa36 with SMTP id 36so456497wwa.1
-        for <linux-omap@vger.kernel.org>; Thu, 24 Mar 2011 14:27:24 -0700 (PDT)
+	with ESMTP id S1756465Ab1CXV1d (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Mar 2011 17:27:33 -0400
+Received: by mail-ww0-f44.google.com with SMTP id 36so456497wwa.1
+        for <linux-omap@vger.kernel.org>; Thu, 24 Mar 2011 14:27:32 -0700 (PDT)
+In-Reply-To: <20110324211451.14936.39750.stgit@otae.warmcat.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: patches@linaro.org, nicolas.pitre@linaro.org, arnd@arndb.de, x0132446@ti.com, s-jan@ti.com, tony@atomide.com
+Cc: patches@linaro.org, nicolas.pitre@linaro.org, arnd@arndb.de, x0132446@ti.com, s-jan@ti.com, tony@atomide.com, Andy Green <andy.green@linaro.org>
 
-The following series solves a problem Panda suffers from where
-because there is no local MAC address storage on the board, a
-new random MAC address is applied to the onboard Ethernet
-interface each time, and the wl12xx module's wlan0 interface is
-always found with an unworkable 00:00:00:00:00:00 MAC.
+Introduce a generic helper function that can set a MAC address using
+data from the OMAP unique CPU ID register.
 
-The series adds an omap id-related API to generate a
-6-byte Ethernet MAC address from "hashing" a little the CPU ID
-registers.  It is understood from TI that these contain data
-that at least in a subset of the 128 bits of the ID are unique per-CPU.
+For comparison purposes this produces a MAC address of
 
-It then introduces code in the Panda board definition file to
-watch network interface creation and if the device's path is on
-a list, set its MAC address to the CPU ID-generated one, plus
-two bits which differ according to which interface in the list
-is being changed.  (This scheme was suggested by Alan Cox).
+  2e:40:70:f0:12:06
 
-The device paths for the onboard Ethernet smsc95xx, and the
-onboard WLAN wl12xx are listed, so both of these will get
-assigned a consistent, unique-ish locally administered MAC
-address with these patches.
+for the ethernet device on my Panda.
 
-It's beleived the current scheme for MAC generation from ID
-data captures most of the entropy, but if there is a better scheme
-more closely mapped to what the unique factory areas are advice
-is welcome.
 
-The patches are against linux-omap which already has a prerequisite
-patch that fixes a problem with device ID capture on OMAP4.
+Note that this patch requires the fix patch for CPU ID register
+indexes previously posted to linux-omap, otherwise the CPU ID is
+misread on Panda by the existing function to do it.  This patch
+is already on linux-omap.
 
+"OMAP2+:Common CPU DIE ID reading code reads wrong registers for OMAP4430"
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=b235e007831dbf57710e59cd4a120e2f374eecb9
+
+Signed-off-by: Andy Green <andy.green@linaro.org>
 ---
 
-Andy Green (2):
-      OMAP2+: PANDA: Fix up random or missing MAC addresses for eth0 and wlan0
-      OMAP2+: add cpu id register to MAC address helper
+ arch/arm/mach-omap2/id.c              |   39 +++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/include/mach/id.h |    1 +
+ 2 files changed, 40 insertions(+), 0 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+index 2537090..e46b430 100644
+--- a/arch/arm/mach-omap2/id.c
++++ b/arch/arm/mach-omap2/id.c
+@@ -557,3 +557,42 @@ void __init omap2_set_globals_tap(struct omap_globals *omap2_globals)
+ 	else
+ 		tap_prod_id = 0x0208;
+ }
++
++/*
++ * this uses the unique per-cpu info from the cpu fuses set at factory to
++ * generate a 6-byte MAC address.  Two bits in the generated code are used
++ * to elaborate the generated address into four, so it can be used on multiple
++ * network interfaces.
++ */
++
++void omap2_die_id_to_ethernet_mac(u8 *mac, int subtype)
++{
++	struct omap_die_id odi;
++	u32 tap = read_tap_reg(OMAP_TAP_IDCODE);
++
++	omap_get_die_id(&odi);
++
++	mac[0] = odi.id_2;
++	mac[1] = odi.id_2 >> 8;
++	mac[2] = odi.id_1;
++	mac[3] = odi.id_1 >> 8;
++	mac[4] = odi.id_1 >> 16;
++	mac[5] = odi.id_1 >> 24;
++
++	/* XOR other chip-specific data with ID */
++
++	tap ^= odi.id_3;
++
++	mac[0] ^= tap;
++	mac[1] ^= tap >> 8;
++	mac[2] ^= tap >> 16;
++	mac[3] ^= tap >> 24;
++
++	/* allow four MACs from this same basic data */
++
++	mac[1] = (mac[1] & ~0xc0) | ((subtype & 3) << 6);
++
++	/* mark it as not multicast and outside official 80211 MAC namespace */
++
++	mac[0] = (mac[0] & ~1) | 2;
++}
+diff --git a/arch/arm/mach-omap2/include/mach/id.h b/arch/arm/mach-omap2/include/mach/id.h
+index 02ed3aa..373313a 100644
+--- a/arch/arm/mach-omap2/include/mach/id.h
++++ b/arch/arm/mach-omap2/include/mach/id.h
+@@ -18,5 +18,6 @@ struct omap_die_id {
+ };
+ 
+ void omap_get_die_id(struct omap_die_id *odi);
++void omap2_die_id_to_ethernet_mac(u8 *mac, int subtype);
+ 
+ #endif
 
- arch/arm/mach-omap2/board-omap4panda.c |   91 ++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/id.c               |   39 ++++++++++++++
- arch/arm/mach-omap2/include/mach/id.h  |    1 
- 3 files changed, 131 insertions(+), 0 deletions(-)
-
--- 
-Signature
