@@ -1,62 +1,63 @@
-From: Sergei Shtylyov <sshtylyov@mvista.com>
-Subject: Re: [PATCH 1/2] usb: otg: OMAP4430: Fix omap4430_phy_init function
-Date: Thu, 24 Mar 2011 16:17:54 +0300
-Message-ID: <4D8B4482.4040506@ru.mvista.com>
-References: <1300964764-6794-1-git-send-email-hemahk@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH 1/7] OMAP2+: hwmod: remove unused voltagedomain pointer
+Date: Thu, 24 Mar 2011 07:00:55 -0700
+Message-ID: <87tyes39ew.fsf@ti.com>
+References: <1300493932-17362-1-git-send-email-khilman@ti.com>
+	<1300493932-17362-2-git-send-email-khilman@ti.com>
+	<4D874DC9.6020203@ti.com> <87vczcfq19.fsf@ti.com>
+	<AANLkTi==Mz=szoa78EaRKgqTddOeu5xEeg5hfNWbWWO2@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:52284 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755575Ab1CXNTY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Mar 2011 09:19:24 -0400
-In-Reply-To: <1300964764-6794-1-git-send-email-hemahk@ti.com>
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:56195 "EHLO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753658Ab1CXOA7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 24 Mar 2011 10:00:59 -0400
+Received: by mail-iy0-f175.google.com with SMTP id 26so12409512iyb.20
+        for <linux-omap@vger.kernel.org>; Thu, 24 Mar 2011 07:00:58 -0700 (PDT)
+In-Reply-To: <AANLkTi==Mz=szoa78EaRKgqTddOeu5xEeg5hfNWbWWO2@mail.gmail.com>
+	(Shweta Gulati's message of "Thu, 24 Mar 2011 18:33:06 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hema HK <hemahk@ti.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+To: "Gulati, Shweta" <shweta.gulati@ti.com>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsely <paul@pwsan.com>
 
-Hello.
+Hi Shweta,
 
-On 24-03-2011 14:06, Hema HK wrote:
+"Gulati, Shweta" <shweta.gulati@ti.com> writes:
 
-> omap4430_phy_init() function can be called with no device pointer
-> to powerdown the UTMI PHY during board init when USB is disabled.
-> Fix the function accordingly.
+[...]
 
-> Signed-off-by: Hema HK<hemahk@ti.com>
-> ---
->   arch/arm/mach-omap2/omap_phy_internal.c |   44 ++++++++++++++++--------------
->   1 files changed, 23 insertions(+), 21 deletions(-)
-
-> diff --git a/arch/arm/mach-omap2/omap_phy_internal.c b/arch/arm/mach-omap2/omap_phy_internal.c
-> index e2e605f..a959e2f 100644
-> --- a/arch/arm/mach-omap2/omap_phy_internal.c
-> +++ b/arch/arm/mach-omap2/omap_phy_internal.c
-> @@ -50,34 +50,36 @@ int omap4430_phy_init(struct device *dev)
->   {
->   	ctrl_base = ioremap(OMAP443X_SCM_BASE, SZ_1K);
->   	if (!ctrl_base) {
-> -		dev_err(dev, "control module ioremap failed\n");
-> +		printk(KERN_ERR "control module ioremap failed\n");
-
-    Use pr_err().
-
->   		return -ENOMEM;
->   	}
->   	/* Power down the phy */
->   	__raw_writel(PHY_PD, ctrl_base + CONTROL_DEV_CONF);
-> -	phyclk = clk_get(dev, "ocp2scp_usb_phy_ick");
+>>>
+>>> And what about vdd_name? It should probably be removed as well.
+>>>
+>>
+>> Yes, but it's currently used by the SR layer (currently the only user.)
+>>
+>> Removing it required cleaning up the SR layer as well, so I decided to
+>> leave the SR cleanups for someone else for the moment while I focus on
+>> the voltage layer(s)
+>>
+> Even if we try to remove 'vdd_name', how should we get 'struct voltagedomain'
+> info corresponding to sr_mpu, sr_core in sr_dev_init API?
 >
-> -	if (IS_ERR(phyclk)) {
-> -		dev_err(dev, "cannot clk_get ocp2scp_usb_phy_ick\n");
-> -		iounmap(ctrl_base);
-> -		return PTR_ERR(phyclk);
-> -	}
-> +	if (dev) {
-> +		phyclk = clk_get(dev, "ocp2scp_usb_phy_ick");
+> As functional clock of SR1 and SR2 are from wake up domain, so even if
+> we try to use current Clockdomain and Powerdomain framework APIs, to
+> get 'clkdomain' pointer and then retrieve 'pwrdomain' pointer, finally
+> getting 'voltdomain' pointer we would get 'WKUP' voltage domain ptr
+> not the 'mpu' or 'core' voltdomain pointer.
 
-    Couldn't clk_get() be called with NULL device ptr?
+Correct.
 
-WBR, Sergei
+I got this far and realized not only does the voltage layer need a
+cleanup, the SR layer needs a cleanup, but I need to focus on one thing
+at a time.
+
+As you noticed, what we need is the voltage domain of the SR sensor, not
+the voltage domain of the SR IP.  
+
+Probably the best way to do this is ad the sensor voltage domain to the 
+dev_attr of each SR module.
+
+Kevin
