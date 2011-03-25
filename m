@@ -1,78 +1,59 @@
-From: David Cohen <dacohen@gmail.com>
-Subject: Re: [PATCH 0/4] iommu: Prevent oops in iommu_get() and while
- arch_iommu is in use
-Date: Fri, 25 Mar 2011 17:44:38 +0200
-Message-ID: <BANLkTi=Ncc5anUOB-yaAdX01UnwJ0ThPtQ@mail.gmail.com>
-References: <4D8CB217.1050909@maxwell.research.nokia.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH/RFC 04/19] OMAP2+: voltage: start towards a new voltagedomain layer
+Date: Fri, 25 Mar 2011 08:48:25 -0700
+Message-ID: <877hbnurp2.fsf@ti.com>
+References: <1300924833-26745-1-git-send-email-khilman@ti.com>
+	<1300924833-26745-5-git-send-email-khilman@ti.com>
+	<AANLkTik6uz+SUHsZXzhJ8c6G7EdOt3ZjCWw2JUOPuZii@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:58654 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753713Ab1CYPok convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Mar 2011 11:44:40 -0400
-Received: by iwn34 with SMTP id 34so1180981iwn.19
-        for <linux-omap@vger.kernel.org>; Fri, 25 Mar 2011 08:44:39 -0700 (PDT)
-In-Reply-To: <4D8CB217.1050909@maxwell.research.nokia.com>
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:46363 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750926Ab1CYPsa convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 25 Mar 2011 11:48:30 -0400
+Received: by pxi16 with SMTP id 16so213952pxi.4
+        for <linux-omap@vger.kernel.org>; Fri, 25 Mar 2011 08:48:29 -0700 (PDT)
+In-Reply-To: <AANLkTik6uz+SUHsZXzhJ8c6G7EdOt3ZjCWw2JUOPuZii@mail.gmail.com>
+	(Jean Pihet's message of "Fri, 25 Mar 2011 09:59:52 +0100")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Doyu Hiroshi (Nokia-D/Helsinki)" <hiroshi.doyu@nokia.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Cohen David Abraham <david.cohen@nokia.com>
+To: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: linux-omap@vger.kernel.org, Paul Walmsely <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>
 
-On Fri, Mar 25, 2011 at 5:17 PM, Sakari Ailus
-<sakari.ailus@maxwell.research.nokia.com> wrote:
-> Hi,
+Hi Jean,
 
-Hi Sakari,
+Jean Pihet <jean.pihet@newoldbits.com> writes:
 
+> On Thu, Mar 24, 2011 at 1:00 AM, Kevin Hilman <khilman@ti.com> wrote:
+>> Start cleaning up the voltage layer to have a voltage domain layer
+>> that resembles thae structure of the existing clock and power domain
+> s/thae/the
 >
-> [Resend: the patches were accidentally sent to linux-media instead.
-> Apologies.]
+>> layers. =C2=A0To that end:
+> Extra space
 >
-> This patchset is aimed to fix a problem in arch_iommu implementation
-> references. When an actual arch_iommu implementation is not loaded wh=
-ile
-> iommu_get() is being called results to a kernel oops, as well as
-> removing an arch_iommu implementation which is in use.
->
-> This patchset fixes both issues.
 
-Sounds nice.
+Thanks for the review of this series.
 
->
-> The patchset assumes the arch_iommu is uninstalled at module unload
-> time. Is this an acceptable requirement?
+When commenting on a patch (especially large ones) it helps if you
+remove context that is not relevant to the patch.
 
-I can't see a reason why this assumption could be wrong. In my point
-of view it's acceptable. Let's see Hiroshi's.
+=46or example, your two comments above are the only ones on this patch,
+yet below you still have the entire patch context, which requires the
+author to look through the whole patch again to see if there are other
+comments.=20
 
-Regards,
+It is a great help to the author (and other reviewers) if the reply onl=
+y
+keeps the relevant context so it's obvious what the reply is to.
 
-David Cohen
+Thanks,
 
->
-> Serialisation of the access to arch_iommu is done using mutex called
-> arch_iommu_mutex.
->
-> module_put() doesn't need to have the arch_iommu_mutex since when thi=
-s
-> gets called there won't be any users on the arch_iommu anyway.
->
-> Comments are welcome. :-)
->
-> Cheers,
->
-> --
-> Sakari Ailus
-> sakari.ailus@maxwell.research.nokia.com
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =C2=A0http://vger.kernel.org/majordomo-info.ht=
-ml
->
+Kevin
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
