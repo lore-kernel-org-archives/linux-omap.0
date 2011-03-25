@@ -1,45 +1,39 @@
 From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: [PATCH 0/4] iommu: Prevent oops in iommu_get() and while arch_iommu
- is in use
-Date: Fri, 25 Mar 2011 17:17:43 +0200
-Message-ID: <4D8CB217.1050909@maxwell.research.nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Subject: [PATCH 3/4] omap2 iommu: Set module information in omap2_iommu_ops
+Date: Fri, 25 Mar 2011 17:18:01 +0200
+Message-ID: <1301066282-8040-3-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+References: <4D8CB217.1050909@maxwell.research.nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.24]:63732 "EHLO mgw-da01.nokia.com"
+Received: from smtp.nokia.com ([147.243.128.26]:64206 "EHLO mgw-da02.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750881Ab1CYPRv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 25 Mar 2011 11:17:51 -0400
+	id S1751511Ab1CYPSP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 25 Mar 2011 11:18:15 -0400
+In-Reply-To: <4D8CB217.1050909@maxwell.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Doyu Hiroshi (Nokia-D/Helsinki)" <hiroshi.doyu@nokia.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Cohen
+To: linux-omap@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, david.cohen@nokia.com, hiroshi.doyu@nokia.com
 
-Hi,
+Set omap2_iommu_ops.module to point to THIS_MODULE.
 
-[Resend: the patches were accidentally sent to linux-media instead.
-Apologies.]
+Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+---
+ arch/arm/mach-omap2/iommu2.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-This patchset is aimed to fix a problem in arch_iommu implementation
-references. When an actual arch_iommu implementation is not loaded while
-iommu_get() is being called results to a kernel oops, as well as
-removing an arch_iommu implementation which is in use.
-
-This patchset fixes both issues.
-
-The patchset assumes the arch_iommu is uninstalled at module unload
-time. Is this an acceptable requirement?
-
-Serialisation of the access to arch_iommu is done using mutex called
-arch_iommu_mutex.
-
-module_put() doesn't need to have the arch_iommu_mutex since when this
-gets called there won't be any users on the arch_iommu anyway.
-
-Comments are welcome. :-)
-
-Cheers,
-
+diff --git a/arch/arm/mach-omap2/iommu2.c b/arch/arm/mach-omap2/iommu2.c
+index 14ee686..cf0c32a 100644
+--- a/arch/arm/mach-omap2/iommu2.c
++++ b/arch/arm/mach-omap2/iommu2.c
+@@ -342,6 +342,8 @@ static const struct iommu_functions omap2_iommu_ops = {
+ 	.save_ctx	= omap2_iommu_save_ctx,
+ 	.restore_ctx	= omap2_iommu_restore_ctx,
+ 	.dump_ctx	= omap2_iommu_dump_ctx,
++
++	.module		= THIS_MODULE,
+ };
+ 
+ static int __init omap2_iommu_init(void)
 -- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
+1.7.2.3
+
