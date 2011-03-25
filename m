@@ -1,64 +1,72 @@
-From: Michael Jones <michael.jones@matrix-vision.de>
-Subject: [PATCH] omap: fix compiler warning
-Date: Fri, 25 Mar 2011 17:21:41 +0100
-Message-ID: <1301070101-12631-1-git-send-email-michael.jones@matrix-vision.de>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [PATCH/RFC 04/19] OMAP2+: voltage: start towards a new
+ voltagedomain layer
+Date: Fri, 25 Mar 2011 17:41:46 +0100
+Message-ID: <AANLkTi=YHUs2JSBCHn==RNqp2k7yt9-dRiH=8czG1co9@mail.gmail.com>
+References: <1300924833-26745-1-git-send-email-khilman@ti.com>
+	<1300924833-26745-5-git-send-email-khilman@ti.com>
+	<AANLkTik6uz+SUHsZXzhJ8c6G7EdOt3ZjCWw2JUOPuZii@mail.gmail.com>
+	<877hbnurp2.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail1.matrix-vision.com ([78.47.19.71]:39464 "EHLO
-	mail1.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753998Ab1CYQXM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Mar 2011 12:23:12 -0400
-Received: from mail1.matrix-vision.com (localhost [127.0.0.1])
-	by mail1.matrix-vision.com (Postfix) with ESMTP id AEEB8721AD
-	for <linux-omap@vger.kernel.org>; Fri, 25 Mar 2011 17:23:11 +0100 (CET)
-Received: from erinome (g2.matrix-vision.com [80.152.136.245])
-	by mail1.matrix-vision.com (Postfix) with ESMTPA id 851047213E
-	for <linux-omap@vger.kernel.org>; Fri, 25 Mar 2011 17:23:11 +0100 (CET)
-Received: from erinome (localhost [127.0.0.1])
-	by erinome (Postfix) with ESMTP id DA12D6F8A
-	for <linux-omap@vger.kernel.org>; Fri, 25 Mar 2011 17:23:10 +0100 (CET)
-Received: from ap437-joe.intern.matrix-vision.de (host65-46.intern.matrix-vision.de [192.168.65.46])
-	by erinome (Postfix) with ESMTPA id AD3C16F8A
-	for <linux-omap@vger.kernel.org>; Fri, 25 Mar 2011 17:23:10 +0100 (CET)
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:46089 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750820Ab1CYQlr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Mar 2011 12:41:47 -0400
+Received: by qyk7 with SMTP id 7so6162961qyk.19
+        for <linux-omap@vger.kernel.org>; Fri, 25 Mar 2011 09:41:46 -0700 (PDT)
+In-Reply-To: <877hbnurp2.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, Paul Walmsely <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>
 
-  CC      arch/arm/plat-omap/gpio.o
-arch/arm/plat-omap/gpio.c: In function =E2=80=98omap_gpio_chip_init=E2=80=
-=99:
-arch/arm/plat-omap/gpio.c:1675: warning: unused variable =E2=80=98d=E2=80=
-=99
+On Fri, Mar 25, 2011 at 4:48 PM, Kevin Hilman <khilman@ti.com> wrote:
+> Hi Jean,
+>
+> Jean Pihet <jean.pihet@newoldbits.com> writes:
+>
+>> On Thu, Mar 24, 2011 at 1:00 AM, Kevin Hilman <khilman@ti.com> wrote=
+:
+>>> Start cleaning up the voltage layer to have a voltage domain layer
+>>> that resembles thae structure of the existing clock and power domai=
+n
+>> s/thae/the
+>>
+>>> layers. =A0To that end:
+>> Extra space
+>>
+>
+> Thanks for the review of this series.
+>
+> When commenting on a patch (especially large ones) it helps if you
+> remove context that is not relevant to the patch.
+>
+> For example, your two comments above are the only ones on this patch,
+> yet below you still have the entire patch context, which requires the
+> author to look through the whole patch again to see if there are othe=
+r
+> comments.
+Ok got the point. In fact my e-mail app (gmail web) does automatically
+hide the similar portions of text.
 
-Signed-off-by: Michael Jones <michael.jones@matrix-vision.de>
----
- arch/arm/plat-omap/gpio.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
-index 971d186..a1d4d1b 100644
---- a/arch/arm/plat-omap/gpio.c
-+++ b/arch/arm/plat-omap/gpio.c
-@@ -1672,7 +1672,9 @@ static void __init omap_gpio_chip_init(struct gpi=
-o_bank *bank)
-=20
- 	for (j =3D bank->virtual_irq_start;
- 		     j < bank->virtual_irq_start + bank_width; j++) {
-+#ifdef CONFIG_LOCKDEP
- 		struct irq_desc *d =3D irq_to_desc(j);
-+#endif
-=20
- 		lockdep_set_class(&d->lock, &gpio_lock_class);
- 		set_irq_chip_data(j, bank);
---=20
-1.7.4.1
+>
+> It is a great help to the author (and other reviewers) if the reply o=
+nly
+> keeps the relevant context so it's obvious what the reply is to.
+>
+> Thanks,
+>
+> Kevin
 
 
-MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
-Registergericht: Amtsgericht Stuttgart, HRB 271090
-Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner
+Thanks,
+Jean
+
+>
+>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
