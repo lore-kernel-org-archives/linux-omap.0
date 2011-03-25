@@ -1,65 +1,57 @@
 From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH/RFC 00/19] OMAP: voltage layer cleanup and restructure
-Date: Fri, 25 Mar 2011 15:37:26 +0100
-Message-ID: <4D8CA8A6.8060102@ti.com>
-References: <1300924833-26745-1-git-send-email-khilman@ti.com> <87lj04xe2t.fsf@ti.com>
+Subject: Re: [PATCH] omap: hwmod: add syss reset done flags to omap2, omap3
+ hwmods
+Date: Fri, 25 Mar 2011 15:42:12 +0100
+Message-ID: <4D8CA9C4.3060504@ti.com>
+References: <1298542123-3654-1-git-send-email-avinashhm@ti.com> <alpine.DEB.2.00.1103031427580.10981@utopia.booyaka.com> <20110314161609.GA10506@avinash-laptop> <alpine.DEB.2.00.1103242336410.21987@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:42654 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:59366 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752059Ab1CYOhP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 25 Mar 2011 10:37:15 -0400
-In-Reply-To: <87lj04xe2t.fsf@ti.com>
+	id S1752059Ab1CYOmA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 25 Mar 2011 10:42:00 -0400
+In-Reply-To: <alpine.DEB.2.00.1103242336410.21987@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hilman, Kevin" <khilman@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsely <paul@pwsan.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "Mahadeva, Avinash" <avinashhm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nayak, Rajendra" <rnayak@ti.com>, "Hilman, Kevin" <khilman@ti.com>
 
-On 3/25/2011 1:02 AM, Hilman, Kevin wrote:
-> Kevin Hilman<khilman@ti.com>  writes:
+Hi Paul,
+
+On 3/25/2011 6:38 AM, Paul Walmsley wrote:
+> Hi Avinash,
 >
->> This series is the begining of a voltage layer cleanup and restruture
->> with the primary goal of splitting up voltage domain, voltage
->> processor (VP) and voltage controller (VC) code.
->>
->> The RFC part is for the last 3 patches in the series, and for
->> discussion of how/if to split out the SoC specifics.  As an example, I
->> started on the VC and split out some functionality (setting slave i2c
->> addr, setting PMIC register addresses) into hooks that can be
->> implemented in SoC specific code.  I'd appreciate any input on this
->> approach as well as the types of functions/APIs that should exist at
->> this level.
+>>> On Thu, 24 Feb 2011, Avinash.H.M wrote:
+>>>
+>>>> Some of the omap2, omap3 peripherals support software reset. This
+>>>> can be done through the softreset bit in sysconfig register.
+>>>> The reset status can be checked through resetdone bit of
+>>>> sysstatus register. syss_has_reset_status is added to the hwmod
+>>>> database of peripherals which have resetdone bit in sysstatus register.
+>>>>
+>>>> Cc: Rajendra Nayak<rnayak@ti.com>
+>>>> Cc: Paul Walmsley<paul@pwsan.com>
+>>>> Cc: Benoit Cousson<b-cousson@ti.com>
+>>>> Cc: Kevin Hilman<khilman@ti.com>
+>>>> Reviewed-by: Govindraj.R<govindraj.raja@ti.com>
+>>>> Signed-off-by: Avinash.H.M<avinashhm@ti.com>
 >
-> Based on some more discussions with Paul, I decided on a slightly
-> different approach based on a suggestion from Paul.
->
-> Rather than create the vc3xxx.c/vc4xxx.c files, instead I create the SoC
-> specific functions for the VC in the existing SoC specific PRM code
-> (prm2xxx_3xxx.c and prm4xxx.c.)
+> This patch is causing I2C softreset timeouts in the hwmod layer on OMAP2
+> and 3.  Could you please take a look at this and figure out what is going
+> on?
 
-FWIW, I prefer your original approach :-)
+I think this is probably due to the nasty I2C softreset bug with 
+discussed last year with Paul Brady.
 
-I really think we'd better split the PRCM code by functions instead or 
-trying to map the HW partitioning which is purely arbitrary most of the 
-time.
+AFAIR, the I2C cannot be reset by just writing to the SYSCONFIG 
+softreset bit. You need to play with other registers too.
 
-This is for that reason that I didn't wanted to split CM to CM1 & CM2. 
-These 2 partitions are doing exactly the same stuff than what CM used to do.
+Avinash,
+You should try to look at 3430 or 3630 errata. You will probably find 
+the bug I'm referring to.
 
-In this case, the PRM just contain a bunch a various stuff that are not
-necessarily related. VP and VC are both standalone IPs, that are just 
-located in the PRM because if was convenient for the HW folks.
-
-So having dedicated file for each functions inside the PRCM is for my 
-point of view a much better approach for the long term.
-
-Otherwise, we might end up with one big file that will just mimic the 
-mess we have inside the HW.
-
-
-That being said, as soon as we have defined the functions, moving them 
-here and there should not be a big deal.
 
 Benoit
+
