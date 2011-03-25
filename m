@@ -1,55 +1,49 @@
-From: Andy Green <andy@warmcat.com>
-Subject: Re: [RFC PATCH 1/2] OMAP2+: add cpu id register to MAC address helper
-Date: Fri, 25 Mar 2011 13:34:04 +0000
-Message-ID: <4D8C99CC.5020103@linaro.org>
-References: <20110324211451.14936.39750.stgit@otae.warmcat.com> <201103251249.32578.arnd@arndb.de> <4D8C85DB.6060001@linaro.org> <201103251424.47141.arnd@arndb.de>
-Reply-To: andy.green@linaro.org
+From: "K, Mythri P" <mythripk@ti.com>
+Subject: Re: [RFC PATCH] HDMI:Support for EDID parsing in kernel.
+Date: Fri, 25 Mar 2011 19:04:05 +0530
+Message-ID: <AANLkTikQdUYYRSG1ZNesgxQG+HhDJ-PY_wpwz3Mec-3V@mail.gmail.com>
+References: <1300815176-21206-1-git-send-email-mythripk@ti.com>
+ <AANLkTim61Xdo6ED7mr_SvpLuotso89RdR6Qaz-GCXOmJ@mail.gmail.com>
+ <AANLkTinMUCbaEVjwZsHG9BxFVjx0YxS=Sw+3gViDJXhg@mail.gmail.com>
+ <20110323081820.5b37d169@jbarnes-desktop> <AANLkTinYHzCgXe9yw1rGHZA0uM=-VrY+Mktpn-HvfRyR@mail.gmail.com>
+ <Pine.LNX.4.64.1103242001460.21914@axis700.grange>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:39794 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751985Ab1CYNeJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Mar 2011 09:34:09 -0400
-Received: by wya21 with SMTP id 21so1101188wya.19
-        for <linux-omap@vger.kernel.org>; Fri, 25 Mar 2011 06:34:08 -0700 (PDT)
-In-Reply-To: <201103251424.47141.arnd@arndb.de>
+Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:53818 "EHLO
+	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751985Ab1CYNe1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 25 Mar 2011 09:34:27 -0400
+In-Reply-To: <Pine.LNX.4.64.1103242001460.21914@axis700.grange>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, patches@linaro.org, nicolas.pitre@linaro.org, x0132446@ti.com, s-jan@ti.com, tony@atomide.com
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>, Dave Airlie <airlied@gmail.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, dri-devel <dri-devel@lists.freedesktop.org>, linux-media@vger.kernel.org
 
-On 03/25/2011 01:24 PM, Somebody in the thread at some point said:
-> On Friday 25 March 2011, Andy Green wrote:
->> Having a proper MAC from IEEE assigned for each interface is of course
->> ideal.
->>
->> But even if that happened today though, on Panda there is no "board
->> identity storage" to put the reserved MAC addresses in to bind it to the
->> physical board.  If you try to manage them on SD Card, you have the
->> problem of dealing with correct MAC addresses needing putting there
->> again every time it is nuked.  So it doesn't in itself help in the Panda
->> case.
+Hi Gunnedi,
+
+<snip>
+>> > Dave's point is that we can't ditch the existing code without
+>> > introducing a lot of risk; it would be better to start a library-ized
+>> > EDID codebase from the most complete one we have already, i.e. the DRM
+>> > EDID code.
 >
-> What I meant is computing an official MAC address from the same input
-> data as you already do. Unfortunately that would mean having at most 24
-> bits available instead of the 44 or so bits you currently use, because
-> the upper half of the address then becomes fixed.
+> Does the DRM EDID-parser also process blocks beyond the first one and
+> also parses SVD entries similar to what I've recently added to fbdev? Yes,
+> we definitely need a common EDID parses, and maybe we'll have to collect
+> various pieces from different implementations.
 >
-> Also it would require
-> 1. defining an new algorithm that computes the lower 24 bits from the
->     die ID in a way that minimises the chances of collision
-> 2. Getting an official identifier for the upper half of the address
->     assigned to the OMAP3/OMAP4 CPUs
-> 3. Documenting this method in the OMAP data sheets.
+As far as I know , it does not parse SVD ,But it should not be that
+difficult to add.
+We could take the SVD parsing from your code . In the RFC i have
+posted I parse for detailed timing and other VSDB blocks.
+Also the parsing should be based on the extension type for  multiple
+128 byte blocks.
 
-I see.  It would work OK then.  They probably wouldn't want to blow 
-their $1750 just on Panda though, so maybe they set 4 bits or whatever 
-and let 20 be computed.
+Thanks and regards,
+Mythri.
 
-However, the only practical advantage is that it would show up as a TI 
-MAC in an OUI database.  The "locally administered" address as used at 
-the moment is otherwise legal in every respect AFAIK.
-
--Andy
+> Thanks
+> Guennadi
+>
