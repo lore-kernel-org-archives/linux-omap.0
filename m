@@ -1,61 +1,193 @@
-From: "Avinash.H.M." <avinashhm@ti.com>
-Subject: Re: [PATCH] omap: hwmod: add syss reset done flags to omap2, omap3
- hwmods
-Date: Fri, 25 Mar 2011 12:50:35 +0530
-Message-ID: <20110325072035.GB25480@avinash-laptop>
-References: <1298542123-3654-1-git-send-email-avinashhm@ti.com>
- <alpine.DEB.2.00.1103031427580.10981@utopia.booyaka.com>
- <20110314161609.GA10506@avinash-laptop>
- <alpine.DEB.2.00.1103242336410.21987@utopia.booyaka.com>
- <20110325062534.GA25480@avinash-laptop>
+From: Hema Kalliguddi <hemahk@ti.com>
+Subject: RE: [RFC PATCH 2/2] OMAP2+: PANDA: Fix up random or missing MAC
+ addresses for eth0 and wlan0
+Date: Fri, 25 Mar 2011 13:09:38 +0530
+Message-ID: <78b7faad4cdc37c6b507c008fde18ef3@mail.gmail.com>
+References: <20110324211451.14936.39750.stgit@otae.warmcat.com> <20110324212737.14936.21228.stgit@otae.warmcat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:46586 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933067Ab1CYHUq (ORCPT
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:54425 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751417Ab1CYHju (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 25 Mar 2011 03:20:46 -0400
-Received: by mail-gw0-f44.google.com with SMTP id 20so366061gwb.3
-        for <linux-omap@vger.kernel.org>; Fri, 25 Mar 2011 00:20:45 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20110325062534.GA25480@avinash-laptop>
+	Fri, 25 Mar 2011 03:39:50 -0400
+Received: by ewy5 with SMTP id 5so421914ewy.6
+        for <linux-omap@vger.kernel.org>; Fri, 25 Mar 2011 00:39:45 -0700 (PDT)
+In-Reply-To: <20110324212737.14936.21228.stgit@otae.warmcat.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>
+To: Andy Green <andy@warmcat.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: patches@linaro.org, nicolas.pitre@linaro.org, arnd@arndb.de, David Anders <x0132446@ti.com>, Sebastien Jan <s-jan@ti.com>, tony@atomide.com, Alan Cox <alan@lxorguk.ukuu.org.uk>, Andy Green <andy.green@linaro.org>
 
-On Fri, Mar 25, 2011 at 11:56:34AM +0530, Avinash.H.M. wrote:
-> On Thu, Mar 24, 2011 at 11:38:15PM -0600, Paul Walmsley wrote:
+Hi,
 
-[snip]
+one Minor comment.
 
-> This patch is causing I2C softreset timeouts in the hwmod layer on OMAP2 
-> > and 3.  Could you please take a look at this and figure out what is going 
-> > on?
-> 
-> I ll start looking at this. I have a 3430 ES3.1 SDP, where i will check the
-> difference in behaviour with this patch. 
-> 
-> BTW, is there a test case which i should run to produce 'I2C softreset
-> timeouts' ? Can you give more information on how to reproduce the issue
-> ?.
+>-----Original Message-----
+>From: linux-omap-owner@vger.kernel.org
+>[mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Andy Green
+>Sent: Friday, March 25, 2011 2:58 AM
+>To: linux-arm-kernel@lists.infradead.org; linux-omap@vger.kernel.org
+>Cc: patches@linaro.org; nicolas.pitre@linaro.org;
+>arnd@arndb.de; x0132446@ti.com; s-jan@ti.com;
+>tony@atomide.com; Alan Cox; Andy Green
+>Subject: [RFC PATCH 2/2] OMAP2+: PANDA: Fix up random or
+>missing MAC addresses for eth0 and wlan0
+>
+>This patch registers a network device notifier callback to set the mac
+>addresses for the onboard network assets of Panda correctly,
+>despite the
+>drivers involved have used a random or all-zeros MAC address.
+>
+>The technique was suggested by Alan Cox on lkml.
+>
+>It works by device path so it corrects the MAC addresses even if the
+>drivers are in modules loaded in an order that changes their interface
+>name from usual (eg, the onboard module might be "wlan1" if there is a
+>USB wireless stick plugged in and its module is inserted first.)
+>
+>Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+>Signed-off-by: Andy Green <andy.green@linaro.org>
+>---
+>
+> arch/arm/mach-omap2/board-omap4panda.c |   91
+>++++++++++++++++++++++++++++++++
+> 1 files changed, 91 insertions(+), 0 deletions(-)
+>
+>diff --git a/arch/arm/mach-omap2/board-omap4panda.c
+>b/arch/arm/mach-omap2/board-omap4panda.c
+>index 80b8860..0b92873 100644
+>--- a/arch/arm/mach-omap2/board-omap4panda.c
+>+++ b/arch/arm/mach-omap2/board-omap4panda.c
+>@@ -28,9 +28,12 @@
+> #include <linux/regulator/machine.h>
+> #include <linux/regulator/fixed.h>
+> #include <linux/wl12xx.h>
+>+#include <linux/netdevice.h>
+>+#include <linux/if_ether.h>
+>
+> #include <mach/hardware.h>
+> #include <mach/omap4-common.h>
+>+#include <mach/id.h>
+> #include <asm/mach-types.h>
+> #include <asm/mach/arch.h>
+> #include <asm/mach/map.h>
+>@@ -506,6 +509,92 @@ static inline void board_serial_init(void)
+> }
+> #endif
+>
+>+/*
+>+ * These device paths represent the onboard USB <-> Ethernet
+>bridge, and
+>+ * the WLAN module on Panda, both of which need their random
+>or all-zeros
+>+ * mac address replacing with a per-cpu stable generated one
+>+ */
+>+
+>+static const char * const panda_fixup_mac_device_paths[] = {
+>+	"usb1/1-1/1-1.1/1-1.1:1.0",
+>+	"mmc1:0001:2",
+>+};
+>+
+>+static int panda_device_path_need_mac(struct device *dev)
+>+{
+>+	const char **try = panda_fixup_mac_device_paths;
+>+	const char *path;
+>+	int count = ARRAY_SIZE(panda_fixup_mac_device_paths);
+>+	const char *p;
+>+	int len;
+>+	struct device *devn;
+>+
+>+	while (count--) {
+>+
+>+		p = *try + strlen(*try);
+>+		devn = dev;
+>+
+>+		while (devn) {
+>+
+>+			path = dev_name(devn);
+>+			len = strlen(path);
+>+
+>+			if ((p - *try) < len) {
+>+				devn = NULL;
+>+				continue;
+>+			}
+>+
+>+			p -= len;
+>+
+>+			if (strncmp(path, p, len)) {
+>+				devn = NULL;
+>+				continue;
+>+			}
+>+
+>+			devn = devn->parent;
+>+			if (p == *try)
+>+				return count;
+>+
+>+			if (devn != NULL && (p - *try) < 2)
+>+				devn = NULL;
+>+
+>+			p--;
+>+			if (devn != NULL && *p != '/')
+>+				devn = NULL;
+>+		}
+>+
+>+		try++;
+>+	}
+>+
+>+	return -ENOENT;
+>+}
+>+
+>+static int omap_panda_netdev_event(struct notifier_block *this,
+>+						 unsigned long
+>event, void *ptr)
+>+{
+>+	struct net_device *dev = ptr;
+>+	struct sockaddr sa;
+>+	int n;
+>+
+>+	if (event != NETDEV_REGISTER)
+>+		return NOTIFY_DONE;
+>+
+>+	n = panda_device_path_need_mac(dev->dev.parent);
+>+	if (n >= 0) {
+>+		sa.sa_family = dev->type;
+>+		omap2_die_id_to_ethernet_mac(sa.sa_data, n);
+>+		dev->netdev_ops->ndo_set_mac_address(dev, &sa);
+>+	}
+>+
+>+	return NOTIFY_DONE;
+>+}
+>+
+>+static struct notifier_block omap_panda_netdev_notifier = {
+>+	.notifier_call = omap_panda_netdev_event,
+>+	.priority = 1,
+>+};
+>+
+>+
 
-Hi paul, 
+One extra blank line not needed.
 
-I am able to reproduce the issue. I am seeing the timeout prints for
-i2c, gpio during bootup. I ll check why softreset is failing.
+Regards,
+Hema
 
-[    0.208892] omap_hwmod: i2c1: softreset failed (waited 10000 usec)
-[    0.223114] omap_hwmod: i2c2: softreset failed (waited 10000 usec)
-[    0.237335] omap_hwmod: i2c3: softreset failed (waited 10000 usec)
-[    0.251525] omap_hwmod: gpio2: softreset failed (waited 10000 usec)
-[    0.265594] omap_hwmod: gpio3: softreset failed (waited 10000 usec)
-[    0.279693] omap_hwmod: gpio4: softreset failed (waited 10000 usec)
-[    0.293762] omap_hwmod: gpio5: softreset failed (waited 10000 usec)
-[    0.307861] omap_hwmod: gpio6: softreset failed (waited 10000 usec)
-
-br,
-
-- avinash
-
-> 
+> static void __init omap4_panda_init(void)
+> {
+> 	int package = OMAP_PACKAGE_CBS;
+>@@ -517,6 +606,8 @@ static void __init omap4_panda_init(void)
+> 	if (wl12xx_set_platform_data(&omap_panda_wlan_data))
+> 		pr_err("error setting wl12xx data\n");
+>
+>+	register_netdevice_notifier(&omap_panda_netdev_notifier);
+>+
+> 	omap4_panda_i2c_init();
+> 	platform_add_devices(panda_devices, ARRAY_SIZE(panda_devices));
+> 	platform_device_register(&omap_vwlan_device);
+>
+>--
+>To unsubscribe from this list: send the line "unsubscribe
+>linux-omap" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
