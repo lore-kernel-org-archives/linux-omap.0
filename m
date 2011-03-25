@@ -1,69 +1,40 @@
-From: Andy Green <andy@warmcat.com>
-Subject: Re: [RFC PATCH 2/2] OMAP2+: PANDA: Fix up random or missing MAC addresses
- for eth0 and wlan0
-Date: Fri, 25 Mar 2011 20:30:52 +0000
-Message-ID: <4D8CFB7C.3080306@linaro.org>
-References: <20110324211451.14936.39750.stgit@otae.warmcat.com>	<20110324212737.14936.21228.stgit@otae.warmcat.com>	<78b7faad4cdc37c6b507c008fde18ef3@mail.gmail.com> <AANLkTineUsH=Qz83YKJy8YZ1KSE1si-RddQ9eBsPjMdk@mail.gmail.com>
-Reply-To: andy.green@linaro.org
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH/RFC 00/19] OMAP: voltage layer cleanup and restructure
+Date: Fri, 25 Mar 2011 17:02:40 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1103251338580.21987@utopia.booyaka.com>
+References: <1300924833-26745-1-git-send-email-khilman@ti.com> <87lj04xe2t.fsf@ti.com> <4D8CA8A6.8060102@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:50063 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751511Ab1CYUbA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Mar 2011 16:31:00 -0400
-Received: by wwa36 with SMTP id 36so1801321wwa.1
-        for <linux-omap@vger.kernel.org>; Fri, 25 Mar 2011 13:30:59 -0700 (PDT)
-In-Reply-To: <AANLkTineUsH=Qz83YKJy8YZ1KSE1si-RddQ9eBsPjMdk@mail.gmail.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:44646 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753072Ab1CYXCl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Mar 2011 19:02:41 -0400
+In-Reply-To: <4D8CA8A6.8060102@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jason Kridner <jkridner@beagleboard.org>
-Cc: Hema Kalliguddi <hemahk@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, patches@linaro.org, nicolas.pitre@linaro.org, arnd@arndb.de, David Anders <x0132446@ti.com>, Sebastien Jan <s-jan@ti.com>, tony@atomide.com, Alan Cox <alan@lxorguk.ukuu.org.uk>
+To: "Hilman, Kevin" <khilman@ti.com>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On 03/25/2011 08:13 PM, Somebody in the thread at some point said:
 
-Hi -
+Hi Kevin
 
-> I very much like this approach.  I believed the ability to use the die
-> ID to get a unique code was reasonable approach and that is why I
-> didn't get an EEPROM put onto the BeagleBoard, though Gerald is
-> looking at adding one on a future revision because the lack of one
-> wasn't well received.  Minor questions below.
+you might want to consider renaming 
 
-Great.  FWIW I think it'd be a lost opportunity to wire the EEPROM 
-direct to the network device.  It's more flexible and powerful to regard 
-the EEPROM as general "board identity storage", a way to bind 
-information to the physical board.  Then you can stick any kind of 
-information that you need to bind to the board in the same 25c device 
-and in-kernel code can take care of discovering that data when needed on 
-any subsystem that takes an interest.
+OMAP3_PRM_VC_VDD_MPU_ID
 
-> The use of the OMAP die id below makes this OMAP specific and the list
-> referenced below of the devices to be referenced makes it Panda
-> specific.  Is there a way to make the list board specific, but to make
-> these functions that will be used across many OMAP platforms reusable?
->   I believe that this current code will result in a lot of
-> cut-and-paste.  My preference is that this is accepted and that we
-> make this more general when we add this to other OMAP platforms, but
-> it'd be great to capture your suggestions on how to do so before those
-> cut-and-paste patch sets start coming in.
+etc. to something like:
 
-Sure, I would be happy to put this stuff at OMAP platform layer for 
-example if it makes sense to OMAP guys more generally.
+OMAP3_VC_VDD_MPU_ID
 
-> I just want to make sure I understand how this works.  When a new
-> network device is added, if the device name matches one of the above
-> listed device paths, then the die id based MAC id is applied.  This
-> must be done via a device registration notifier as the registration is
-> triggered when the device is detected.
+and to define those in some vc.h header file.
 
-That's right.  Arguably it would be better if there was a core API to 
-register your board-specific uniqueness / entropy, and the drivers were 
-able to use that instead of "random" ethernet address all in network 
-layer.   But after wasting two weeks getting pointlessly beaten up on 
-lkml largely on the question of how generic this issue is, I would 
-rather restart somewhere specific where everyone can see the obvious 
-benefit and if it's seen as more useful migrate it.
+Also, I'd suggest moving the struct omap_prm_vc_ops assignments out of the 
+prm*.c code into the vcXXXX_data.c files, ideally into some initcall, and 
+renaming the struct omap_prm_vc_ops to simply struct omap_vc_ops.
 
--Andy
+As long as the VC's low-level registers are in the PRM, those reads/writes 
+should happen through PRM code, IMHO.
+
+
+- Paul
