@@ -1,193 +1,91 @@
-From: Hema Kalliguddi <hemahk@ti.com>
-Subject: RE: [RFC PATCH 2/2] OMAP2+: PANDA: Fix up random or missing MAC
- addresses for eth0 and wlan0
-Date: Fri, 25 Mar 2011 13:09:38 +0530
-Message-ID: <78b7faad4cdc37c6b507c008fde18ef3@mail.gmail.com>
-References: <20110324211451.14936.39750.stgit@otae.warmcat.com> <20110324212737.14936.21228.stgit@otae.warmcat.com>
+From: Belisko Marek <marek.belisko@gmail.com>
+Subject: Re: 2.6.38 not booting on sbc8100 (aka devkit8000)
+Date: Fri, 25 Mar 2011 08:53:06 +0100
+Message-ID: <AANLkTi=BwAOJkHRK=AxBdUHSf3vq8MM+i55TOGuuqeHs@mail.gmail.com>
+References: <AANLkTikAO+FA+0fCNiVj=9wVZ3t+vfx9tJX_SnJ7FGSd@mail.gmail.com>
+	<20110324151844.GT2811@atomide.com>
+	<AANLkTik8PW4ad2_4=UxzvL-V7HcpH0=dg-Un5NLkj6Yi@mail.gmail.com>
+	<20110324190030.GW2811@atomide.com>
+	<20110325091316.8a39d71a.jhnikula@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:54425 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751417Ab1CYHju (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 25 Mar 2011 03:39:50 -0400
-Received: by ewy5 with SMTP id 5so421914ewy.6
-        for <linux-omap@vger.kernel.org>; Fri, 25 Mar 2011 00:39:45 -0700 (PDT)
-In-Reply-To: <20110324212737.14936.21228.stgit@otae.warmcat.com>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:38156 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752419Ab1CYHxI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Mar 2011 03:53:08 -0400
+Received: by iwn34 with SMTP id 34so776328iwn.19
+        for <linux-omap@vger.kernel.org>; Fri, 25 Mar 2011 00:53:07 -0700 (PDT)
+In-Reply-To: <20110325091316.8a39d71a.jhnikula@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Andy Green <andy@warmcat.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: patches@linaro.org, nicolas.pitre@linaro.org, arnd@arndb.de, David Anders <x0132446@ti.com>, Sebastien Jan <s-jan@ti.com>, tony@atomide.com, Alan Cox <alan@lxorguk.ukuu.org.uk>, Andy Green <andy.green@linaro.org>
+To: Jarkko Nikula <jhnikula@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-Hi,
+On Fri, Mar 25, 2011 at 8:13 AM, Jarkko Nikula <jhnikula@gmail.com> wrote:
+> On Thu, 24 Mar 2011 12:00:30 -0700
+> Tony Lindgren <tony@atomide.com> wrote:
+>
+>> * Belisko Marek <marek.belisko@gmail.com> [110324 08:18]:
+>> > On Thu, Mar 24, 2011 at 4:18 PM, Tony Lindgren <tony@atomide.com> wrote:
+>> >
+>> > > * Belisko Marek <marek.belisko@gmail.com> [110324 02:50]:
+>> > > > Hi,
+>> > > >
+>> > > > Try to run 2.6.38 on my sbc8100
+>> > > > (use mach-type for devkit8000 because boards are similar) board but
+>> > > > when u-boot load it to ram I see just:
+> ...
+>> > > Can you enable DEBUG_LL and EARLY_PRINTK in your .config
+>> > > and add earlyprintk to your cmdline? Then you should see
+>> > > what goes wrong.
+>> > >
+>> > Forgot to mention. I already test this options but result is same like I
+>> > report in
+>> > first email.
+>>
+>> Maybe add some printk statements to start_kernel function in
+>> init/main.c and see if you get any output?
+>>
+> For earlyprintk worth to check also
+> arch/arm/plat-omap/include/plat/uncompress.h that there is entry for
+> sbc8100 (double check with devkit8000 as there is entry for it and if
+> you are re-using the mach-type).
+Thanks for hint. It was missing there so I add line:
+DEBUG_LL_OMAP3(3, devkit8000); (I'm convince linux to use mach-type
+for devkit8000)
+But still same result.
+Bytes transferred = 2898680 (2c3af8 hex)
+## Booting kernel from Legacy Image at 80300000 ...
+   Image Name:   Linux-2.6.37-00001-g88870c9-dirt
+   Image Type:   ARM Linux Kernel Image (uncompressed)
+   Data Size:    2898616 Bytes =  2.8 MB
+   Load Address: 80008000
+   Entry Point:  80008000
+   Verifying Checksum ... OK
+   Loading Kernel Image ... OK
+OK
 
-one Minor comment.
+Starting kernel ...
 
->-----Original Message-----
->From: linux-omap-owner@vger.kernel.org
->[mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Andy Green
->Sent: Friday, March 25, 2011 2:58 AM
->To: linux-arm-kernel@lists.infradead.org; linux-omap@vger.kernel.org
->Cc: patches@linaro.org; nicolas.pitre@linaro.org;
->arnd@arndb.de; x0132446@ti.com; s-jan@ti.com;
->tony@atomide.com; Alan Cox; Andy Green
->Subject: [RFC PATCH 2/2] OMAP2+: PANDA: Fix up random or
->missing MAC addresses for eth0 and wlan0
+Anybody with devkit8000 have success to run 2.6.37 kernel on board?
 >
->This patch registers a network device notifier callback to set the mac
->addresses for the onboard network assets of Panda correctly,
->despite the
->drivers involved have used a random or all-zeros MAC address.
+> --
+> Jarkko
 >
->The technique was suggested by Alan Cox on lkml.
->
->It works by device path so it corrects the MAC addresses even if the
->drivers are in modules loaded in an order that changes their interface
->name from usual (eg, the onboard module might be "wlan1" if there is a
->USB wireless stick plugged in and its module is inserted first.)
->
->Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
->Signed-off-by: Andy Green <andy.green@linaro.org>
->---
->
-> arch/arm/mach-omap2/board-omap4panda.c |   91
->++++++++++++++++++++++++++++++++
-> 1 files changed, 91 insertions(+), 0 deletions(-)
->
->diff --git a/arch/arm/mach-omap2/board-omap4panda.c
->b/arch/arm/mach-omap2/board-omap4panda.c
->index 80b8860..0b92873 100644
->--- a/arch/arm/mach-omap2/board-omap4panda.c
->+++ b/arch/arm/mach-omap2/board-omap4panda.c
->@@ -28,9 +28,12 @@
-> #include <linux/regulator/machine.h>
-> #include <linux/regulator/fixed.h>
-> #include <linux/wl12xx.h>
->+#include <linux/netdevice.h>
->+#include <linux/if_ether.h>
->
-> #include <mach/hardware.h>
-> #include <mach/omap4-common.h>
->+#include <mach/id.h>
-> #include <asm/mach-types.h>
-> #include <asm/mach/arch.h>
-> #include <asm/mach/map.h>
->@@ -506,6 +509,92 @@ static inline void board_serial_init(void)
-> }
-> #endif
->
->+/*
->+ * These device paths represent the onboard USB <-> Ethernet
->bridge, and
->+ * the WLAN module on Panda, both of which need their random
->or all-zeros
->+ * mac address replacing with a per-cpu stable generated one
->+ */
->+
->+static const char * const panda_fixup_mac_device_paths[] = {
->+	"usb1/1-1/1-1.1/1-1.1:1.0",
->+	"mmc1:0001:2",
->+};
->+
->+static int panda_device_path_need_mac(struct device *dev)
->+{
->+	const char **try = panda_fixup_mac_device_paths;
->+	const char *path;
->+	int count = ARRAY_SIZE(panda_fixup_mac_device_paths);
->+	const char *p;
->+	int len;
->+	struct device *devn;
->+
->+	while (count--) {
->+
->+		p = *try + strlen(*try);
->+		devn = dev;
->+
->+		while (devn) {
->+
->+			path = dev_name(devn);
->+			len = strlen(path);
->+
->+			if ((p - *try) < len) {
->+				devn = NULL;
->+				continue;
->+			}
->+
->+			p -= len;
->+
->+			if (strncmp(path, p, len)) {
->+				devn = NULL;
->+				continue;
->+			}
->+
->+			devn = devn->parent;
->+			if (p == *try)
->+				return count;
->+
->+			if (devn != NULL && (p - *try) < 2)
->+				devn = NULL;
->+
->+			p--;
->+			if (devn != NULL && *p != '/')
->+				devn = NULL;
->+		}
->+
->+		try++;
->+	}
->+
->+	return -ENOENT;
->+}
->+
->+static int omap_panda_netdev_event(struct notifier_block *this,
->+						 unsigned long
->event, void *ptr)
->+{
->+	struct net_device *dev = ptr;
->+	struct sockaddr sa;
->+	int n;
->+
->+	if (event != NETDEV_REGISTER)
->+		return NOTIFY_DONE;
->+
->+	n = panda_device_path_need_mac(dev->dev.parent);
->+	if (n >= 0) {
->+		sa.sa_family = dev->type;
->+		omap2_die_id_to_ethernet_mac(sa.sa_data, n);
->+		dev->netdev_ops->ndo_set_mac_address(dev, &sa);
->+	}
->+
->+	return NOTIFY_DONE;
->+}
->+
->+static struct notifier_block omap_panda_netdev_notifier = {
->+	.notifier_call = omap_panda_netdev_event,
->+	.priority = 1,
->+};
->+
->+
 
-One extra blank line not needed.
+regards,
 
-Regards,
-Hema
+marek
 
-> static void __init omap4_panda_init(void)
-> {
-> 	int package = OMAP_PACKAGE_CBS;
->@@ -517,6 +606,8 @@ static void __init omap4_panda_init(void)
-> 	if (wl12xx_set_platform_data(&omap_panda_wlan_data))
-> 		pr_err("error setting wl12xx data\n");
->
->+	register_netdevice_notifier(&omap_panda_netdev_notifier);
->+
-> 	omap4_panda_i2c_init();
-> 	platform_add_devices(panda_devices, ARRAY_SIZE(panda_devices));
-> 	platform_device_register(&omap_vwlan_device);
->
->--
->To unsubscribe from this list: send the line "unsubscribe
->linux-omap" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+-- 
+as simple and primitive as possible
+-------------------------------------------------
+Marek Belisko - OPEN-NANDRA
+Freelance Developer
+
+Ruska Nova Ves 219 | Presov, 08005 Slovak Republic
+Tel: +421 915 052 184
+skype: marekwhite
+icq: 290551086
+web: http://open-nandra.com
