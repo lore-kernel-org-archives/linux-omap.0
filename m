@@ -1,87 +1,79 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [PATCH/RFC 13/19] OMAP2+: voltage: keep track of powerdomains in
- each voltagedomain
-Date: Fri, 25 Mar 2011 17:52:20 +0100
-Message-ID: <AANLkTinoOp6izhTK0wFhS29Z5EjPg4n3jFTfjzxUHCrT@mail.gmail.com>
-References: <1300924833-26745-1-git-send-email-khilman@ti.com>
-	<1300924833-26745-14-git-send-email-khilman@ti.com>
-	<AANLkTi=JD=QJKBWekHDW08JOxrvntmTfMfTK9Eq_xH9Y@mail.gmail.com>
-	<87hbartcrf.fsf@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Omar Ramirez Luna <omar.ramirez@ti.com>
+Subject: [PATCH] OMAP: iovmm: fix SW flags passed by user
+Date: Fri, 25 Mar 2011 10:46:12 -0600
+Message-ID: <1301071572-25251-1-git-send-email-omar.ramirez@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f181.google.com ([209.85.216.181]:52088 "EHLO
-	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753816Ab1CYQwV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Mar 2011 12:52:21 -0400
-Received: by qyg14 with SMTP id 14so831813qyg.19
-        for <linux-omap@vger.kernel.org>; Fri, 25 Mar 2011 09:52:20 -0700 (PDT)
-In-Reply-To: <87hbartcrf.fsf@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:41253 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753139Ab1CYQ6M (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 25 Mar 2011 12:58:12 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, Paul Walmsely <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Tony Lindgren <tony@atomide.com>
+Cc: Russell King <linux@arm.linux.org.uk>, Omar Ramirez Luna <omar.ramirez@ti.com>, David Cohen <dacohen@gmail.com>, l-o <linux-omap@vger.kernel.org>, lak <linux-arm-kernel@lists.infradead.org>
 
-On Fri, Mar 25, 2011 at 4:56 PM, Kevin Hilman <khilman@ti.com> wrote:
-> Jean Pihet <jean.pihet@newoldbits.com> writes:
->
-> [...]
->
->>> +
->>> +/**
->>> + * voltdm_for_each - call function on each registered voltagedomai=
-n
->>> + * @fn: callback function *
->>> + *
->>> + * Call the supplied function @fn for each registered voltagedomai=
-n.
->>> + * The callback function @fn can return anything but 0 to bail out
->>> + * early from the iterator. =A0Returns the last return value of th=
-e
->>> + * callback function, which should be 0 for success or anything el=
-se
->>> + * to indicate failure; or -EINVAL if the function pointer is null=
-=2E
->>
->> The function description does not match the prototype.
->>
->
-> in what way?
->
-> the description is wrong in how it describes the "bail out" but I don=
-'t
-> see what you mean for the prototype.
-'user' is not in the list of parmaters, not it is present in the
-function description.
+Commit d038aee24dcd changes iovmm to receive flags specified by user,
+however the upper 16 bits of the flags are wiped by iovmm itself.
 
->
-> [...]
->
->>>
->>> +struct powerdomain;
->>> +
->>> +/*
->>> + * Maximum number of powerdomains that can be associated with a vo=
-ltagedomain.
->>> + */
->>> +#define VOLTDM_MAX_PWRDMS =A0 =A0 =A0 =A0 =A0 =A0 10
->> This is not used in the patch. Is it needed?
->>
->
-> Nope. =A0Will drop.
-Ok
+This fixes IOVMF_DA_FIXED flags from being lost, and lets the user
+map its desired "device addresses".
 
->
-> Thanks,
->
-> Kevin
->
+Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
+---
+ arch/arm/plat-omap/include/plat/iovmm.h |    3 ---
+ arch/arm/plat-omap/iovmm.c              |    4 ----
+ 2 files changed, 0 insertions(+), 7 deletions(-)
 
-Thanks,
-Jean
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/plat-omap/include/plat/iovmm.h b/arch/arm/plat-omap/include/plat/iovmm.h
+index 32a2f6c..e992b96 100644
+--- a/arch/arm/plat-omap/include/plat/iovmm.h
++++ b/arch/arm/plat-omap/include/plat/iovmm.h
+@@ -29,9 +29,6 @@ struct iovm_struct {
+  * lower 16 bit is used for h/w and upper 16 bit is for s/w.
+  */
+ #define IOVMF_SW_SHIFT		16
+-#define IOVMF_HW_SIZE		(1 << IOVMF_SW_SHIFT)
+-#define IOVMF_HW_MASK		(IOVMF_HW_SIZE - 1)
+-#define IOVMF_SW_MASK		(~IOVMF_HW_MASK)UL
+ 
+ /*
+  * iovma: h/w flags derived from cam and ram attribute
+diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
+index 51ef43e..83a37c5 100644
+--- a/arch/arm/plat-omap/iovmm.c
++++ b/arch/arm/plat-omap/iovmm.c
+@@ -648,7 +648,6 @@ u32 iommu_vmap(struct iommu *obj, u32 da, const struct sg_table *sgt,
+ 			return PTR_ERR(va);
+ 	}
+ 
+-	flags &= IOVMF_HW_MASK;
+ 	flags |= IOVMF_DISCONT;
+ 	flags |= IOVMF_MMIO;
+ 
+@@ -706,7 +705,6 @@ u32 iommu_vmalloc(struct iommu *obj, u32 da, size_t bytes, u32 flags)
+ 	if (!va)
+ 		return -ENOMEM;
+ 
+-	flags &= IOVMF_HW_MASK;
+ 	flags |= IOVMF_DISCONT;
+ 	flags |= IOVMF_ALLOC;
+ 
+@@ -795,7 +793,6 @@ u32 iommu_kmap(struct iommu *obj, u32 da, u32 pa, size_t bytes,
+ 	if (!va)
+ 		return -ENOMEM;
+ 
+-	flags &= IOVMF_HW_MASK;
+ 	flags |= IOVMF_LINEAR;
+ 	flags |= IOVMF_MMIO;
+ 
+@@ -853,7 +850,6 @@ u32 iommu_kmalloc(struct iommu *obj, u32 da, size_t bytes, u32 flags)
+ 		return -ENOMEM;
+ 	pa = virt_to_phys(va);
+ 
+-	flags &= IOVMF_HW_MASK;
+ 	flags |= IOVMF_LINEAR;
+ 	flags |= IOVMF_ALLOC;
+ 
+-- 
+1.7.1
+
