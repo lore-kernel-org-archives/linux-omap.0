@@ -1,12 +1,12 @@
 From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: [PATCH 4/4] omap iommu: Prevent iommu implementations from being unloaded while in use
-Date: Fri, 25 Mar 2011 17:18:02 +0200
-Message-ID: <1301066282-8040-4-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+Subject: [PATCH 2/4] omap iommu: Add module information to struct iommu_functions
+Date: Fri, 25 Mar 2011 17:18:00 +0200
+Message-ID: <1301066282-8040-2-git-send-email-sakari.ailus@maxwell.research.nokia.com>
 References: <4D8CB217.1050909@maxwell.research.nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:58307 "EHLO mgw-sa01.nokia.com"
+Received: from smtp.nokia.com ([147.243.128.24]:63978 "EHLO mgw-da01.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752438Ab1CYPSV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1751511Ab1CYPSV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Fri, 25 Mar 2011 11:18:21 -0400
 In-Reply-To: <4D8CB217.1050909@maxwell.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -14,112 +14,26 @@ List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: laurent.pinchart@ideasonboard.com, david.cohen@nokia.com, hiroshi.doyu@nokia.com
 
-Prevent module implementing arch_iommu from being unloaded while the
-arch_iommu is in use, essentially while the iommu has been acquired using
-iommu_get() by increasing module use count.
-
-This assumes that the arch_iommu has to be uninstalled at module unload
-time.
+Whichever module that implements the struct, may not be unloaded while it's
+in use.  Prepare to this by adding module reference to the structure.
 
 Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 ---
- arch/arm/plat-omap/iommu.c |   31 +++++++++++++++++++++++++++++--
- 1 files changed, 29 insertions(+), 2 deletions(-)
+ arch/arm/plat-omap/include/plat/iommu.h |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/plat-omap/iommu.c b/arch/arm/plat-omap/iommu.c
-index f0fea0b..430ed94 100644
---- a/arch/arm/plat-omap/iommu.c
-+++ b/arch/arm/plat-omap/iommu.c
-@@ -35,6 +35,7 @@ static const struct iommu_functions *arch_iommu;
+diff --git a/arch/arm/plat-omap/include/plat/iommu.h b/arch/arm/plat-omap/include/plat/iommu.h
+index 69230d6..26fefb4 100644
+--- a/arch/arm/plat-omap/include/plat/iommu.h
++++ b/arch/arm/plat-omap/include/plat/iommu.h
+@@ -79,6 +79,7 @@ struct iotlb_lock {
+ /* architecture specific functions */
+ struct iommu_functions {
+ 	unsigned long	version;
++	struct module *module;
  
- static struct platform_driver omap_iommu_driver;
- static struct kmem_cache *iopte_cachep;
-+static struct mutex arch_iommu_mutex;
- 
- /**
-  * install_iommu_arch - Install archtecure specific iommu functions
-@@ -45,10 +46,17 @@ static struct kmem_cache *iopte_cachep;
-  **/
- int install_iommu_arch(const struct iommu_functions *ops)
- {
--	if (arch_iommu)
-+	mutex_lock(&arch_iommu_mutex);
-+
-+	if (arch_iommu) {
-+		mutex_unlock(&arch_iommu_mutex);
- 		return -EBUSY;
-+	}
- 
- 	arch_iommu = ops;
-+
-+	mutex_unlock(&arch_iommu_mutex);
-+
- 	return 0;
- }
- EXPORT_SYMBOL_GPL(install_iommu_arch);
-@@ -58,13 +66,22 @@ EXPORT_SYMBOL_GPL(install_iommu_arch);
-  * @ops:	a pointer to architecture specific iommu functions
-  *
-  * This interface uninstalls the iommu algorighm installed previously.
-+ *
-+ * Note: This function may only be called at module_exit() function of
-+ * a module which implements arch_iommu. Otherwise another mechanism
-+ * from the module use count only to ensure the arch_iommu stays there
-+ * has to be implemented.
-  **/
- void uninstall_iommu_arch(const struct iommu_functions *ops)
- {
-+	mutex_lock(&arch_iommu_mutex);
-+
- 	if (arch_iommu != ops)
- 		pr_err("%s: not your arch\n", __func__);
- 
- 	arch_iommu = NULL;
-+
-+	mutex_unlock(&arch_iommu_mutex);
- }
- EXPORT_SYMBOL_GPL(uninstall_iommu_arch);
- 
-@@ -104,14 +121,20 @@ static int iommu_enable(struct iommu *obj)
- 	if (!obj)
- 		return -EINVAL;
- 
--	if (!arch_iommu)
-+	mutex_lock(&arch_iommu_mutex);
-+	if (!arch_iommu || !try_module_get(arch_iommu->module)) {
-+		mutex_unlock(&arch_iommu_mutex);
- 		return -ENOENT;
-+	}
- 
- 	clk_enable(obj->clk);
- 
- 	err = arch_iommu->enable(obj);
- 
- 	clk_disable(obj->clk);
-+
-+	mutex_unlock(&arch_iommu_mutex);
-+
- 	return err;
- }
- 
-@@ -125,6 +148,8 @@ static void iommu_disable(struct iommu *obj)
- 	arch_iommu->disable(obj);
- 
- 	clk_disable(obj->clk);
-+
-+	module_put(arch_iommu->module);
- }
- 
- /*
-@@ -1058,6 +1083,8 @@ static int __init omap_iommu_init(void)
- 		return -ENOMEM;
- 	iopte_cachep = p;
- 
-+	mutex_init(&arch_iommu_mutex);
-+
- 	return platform_driver_register(&omap_iommu_driver);
- }
- module_init(omap_iommu_init);
+ 	int (*enable)(struct iommu *obj);
+ 	void (*disable)(struct iommu *obj);
 -- 
 1.7.2.3
 
