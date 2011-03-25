@@ -1,35 +1,40 @@
 From: Hemant Pedanekar <hemantp@ti.com>
-Subject: [PATCH 1/4] TI816X: prcm: Add module and register offsets
-Date: Fri, 25 Mar 2011 21:49:42 +0530
-Message-ID: <1301069982-8314-1-git-send-email-hemantp@ti.com>
+Subject: [PATCH 2/4] TI816X: clock: Add clock data
+Date: Fri, 25 Mar 2011 21:50:06 +0530
+Message-ID: <1301070006-8363-1-git-send-email-hemantp@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:55884 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:55908 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753221Ab1CYQUE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Mar 2011 12:20:04 -0400
+	with ESMTP id S1753221Ab1CYQUS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Mar 2011 12:20:18 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: tony@atomide.com, linux-arm-kernel@lists.infradead.org, khilman@ti.com, Hemant Pedanekar <hemantp@ti.com>
 
-This patch adds PRCM register offsets for TI816X device as required for the
-clock data.
+This patch adds data for various clocks present in TI816X.
+
+Note that this data is not automatically generated and not all clocks are
+covered currently.
 
 Signed-off-by: Hemant Pedanekar <hemantp@ti.com>
 ---
- arch/arm/mach-omap2/cm816x.h       |  228 ++++++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/prm2xxx_3xxx.h |   17 +++
- 2 files changed, 245 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-omap2/cm816x.h
+ arch/arm/mach-omap2/clock816x.h       |   21 +
+ arch/arm/mach-omap2/clock816x_data.c  | 1131 +++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/cm-regbits-816x.h |   44 ++
+ 3 files changed, 1196 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/clock816x.h
+ create mode 100644 arch/arm/mach-omap2/clock816x_data.c
+ create mode 100644 arch/arm/mach-omap2/cm-regbits-816x.h
 
-diff --git a/arch/arm/mach-omap2/cm816x.h b/arch/arm/mach-omap2/cm816x.h
+diff --git a/arch/arm/mach-omap2/clock816x.h b/arch/arm/mach-omap2/clock816x.h
 new file mode 100644
-index 0000000..b1dbd3d
+index 0000000..89b958b
 --- /dev/null
-+++ b/arch/arm/mach-omap2/cm816x.h
-@@ -0,0 +1,228 @@
++++ b/arch/arm/mach-omap2/clock816x.h
+@@ -0,0 +1,21 @@
 +/*
-+ * TI816X CM register access macros. Also contains CM module offsets.
++ * TI816X clock function prototypes and macros.
 + *
 + * Copyright (C) 2010 Texas Instruments, Inc. - http://www.ti.com/
 + *
@@ -43,254 +48,1199 @@ index 0000000..b1dbd3d
 + * GNU General Public License for more details.
 + */
 +
-+#ifndef __ARCH_ARM_MACH_OMAP2_CM816X_H
-+#define __ARCH_ARM_MACH_OMAP2_CM816X_H
++#ifndef __ARCH_ARM_MACH_OMAP2_CLOCK816X_H
++#define __ARCH_ARM_MACH_OMAP2_CLOCK816X_H
 +
-+#include "prcm-common.h"
-+
-+#define TI816X_CM_REGADDR(module, reg)					\
-+	OMAP2_L4_IO_ADDRESS(TI816X_PRCM_BASE + (module) + (reg))
-+
-+/*
-+ * TI816X CM module offsets
-+ */
-+
-+#define TI816X_CM_DEVICE_MOD			0x0100	/* 256B */
-+#define TI816X_CM_DPLL_MOD			0x0300	/* 256B */
-+#define TI816X_CM_ACTIVE_MOD			0x0400	/* 256B */
-+#define TI816X_CM_DEFAULT_MOD			0x0500	/* 256B */
-+#define TI816X_CM_IVAHD0_MOD			0x0600	/* 256B */
-+#define TI816X_CM_IVAHD1_MOD			0x0700	/* 256B */
-+#define TI816X_CM_IVAHD2_MOD			0x0800	/* 256B */
-+#define TI816X_CM_SGX_MOD			0x0900	/* 256B */
-+#define TI816X_CM_ALWON_MOD			0x1400	/* 1KB */
-+
-+/*
-+ * Clock domain register offsets - these are generally CLKSTCTRL registers for
-+ * respective modules.
-+ */
-+
-+/* ALWON */
-+#define TI816X_CM_ALWON_MPU_CLKDM		0x001C
-+#define TI816X_CM_ALWON_L3_SLOW_CLKDM		0x0000
-+#define TI816X_CM_ETHERNET_CLKDM		0x0004
-+#define TI816X_CM_MMU_CLKDM			0x000C
-+#define TI816X_CM_MMUCFG_CLKDM			0x0010
-+
-+/* ACTIVE */
-+#define TI816X_CM_ACTIVE_GEM_CLKDM		0x0000
-+
-+/* IVAHD0 */
-+#define TI816X_CM_IVAHD0_CLKDM			0x0000
-+
-+/* IVAHD1 */
-+#define TI816X_CM_IVAHD1_CLKDM			0x0000
-+
-+/* IVAHD2 */
-+#define TI816X_CM_IVAHD2_CLKDM			0x0000
-+
-+/* SGX */
-+#define TI816X_CM_SGX_CLKDM			0x0000
-+
-+/* DEFAULT */
-+#define TI816X_CM_DEFAULT_L3_MED_CLKDM		0x0004
-+#define TI816X_CM_DEFAULT_DUCATI_CLKDM		0x0018
-+#define TI816X_CM_DEFAULT_PCI_CLKDM		0x0010
-+#define TI816X_CM_DEFAULT_L3_SLOW_CLKDM		0x0014
-+
-+/*
-+ * CM register addresses
-+ */
-+
-+/* CM_DPLL */
-+#define TI816X_CM_DPLL_SYSCLK1_CLKSEL			TI816X_CM_REGADDR(TI816X_CM_DPLL_MOD, 0x0000)
-+#define TI816X_CM_DPLL_SYSCLK2_CLKSEL			TI816X_CM_REGADDR(TI816X_CM_DPLL_MOD, 0x0004)
-+#define TI816X_CM_DPLL_SYSCLK3_CLKSEL			TI816X_CM_REGADDR(TI816X_CM_DPLL_MOD, 0x0008)
-+#define TI816X_CM_DPLL_SYSCLK4_CLKSEL			TI816X_CM_REGADDR(TI816X_CM_DPLL_MOD, 0x000C)
-+#define TI816X_CM_DPLL_SYSCLK5_CLKSEL			TI816X_CM_REGADDR(TI816X_CM_DPLL_MOD, 0x0010)
-+#define TI816X_CM_DPLL_SYSCLK6_CLKSEL			TI816X_CM_REGADDR(TI816X_CM_DPLL_MOD, 0x0014)
-+#define TI816X_CM_DPLL_SYSCLK7_CLKSEL			TI816X_CM_REGADDR(TI816X_CM_DPLL_MOD, 0x0018)
-+#define TI816X_CM_DPLL_SYSCLK10_CLKSEL			TI816X_CM_REGADDR(TI816X_CM_DPLL_MOD, 0x0024)
-+#define TI816X_CM_DPLL_SYSCLK11_CLKSEL			TI816X_CM_REGADDR(TI816X_CM_DPLL_MOD, 0x002C)
-+#define TI816X_CM_DPLL_SYSCLK12_CLKSEL			TI816X_CM_REGADDR(TI816X_CM_DPLL_MOD, 0x0030)
-+#define TI816X_CM_DPLL_SYSCLK13_CLKSEL			TI816X_CM_REGADDR(TI816X_CM_DPLL_MOD, 0x0034)
-+#define TI816X_CM_DPLL_SYSCLK15_CLKSEL			TI816X_CM_REGADDR(TI816X_CM_DPLL_MOD, 0x0038)
-+#define TI816X_CM_DPLL_VPB3_CLKSEL			TI816X_CM_REGADDR(TI816X_CM_DPLL_MOD, 0x0040)
-+#define TI816X_CM_DPLL_VPC1_CLKSEL			TI816X_CM_REGADDR(TI816X_CM_DPLL_MOD, 0x0044)
-+#define TI816X_CM_DPLL_VPD1_CLKSEL			TI816X_CM_REGADDR(TI816X_CM_DPLL_MOD, 0x0048)
-+#define TI816X_CM_DPLL_SYSCLK19_CLKSEL			TI816X_CM_REGADDR(TI816X_CM_DPLL_MOD, 0x004C)
-+#define TI816X_CM_DPLL_SYSCLK20_CLKSEL			TI816X_CM_REGADDR(TI816X_CM_DPLL_MOD, 0x0050)
-+#define TI816X_CM_DPLL_SYSCLK21_CLKSEL			TI816X_CM_REGADDR(TI816X_CM_DPLL_MOD, 0x0054)
-+#define TI816X_CM_DPLL_SYSCLK22_CLKSEL			TI816X_CM_REGADDR(TI816X_CM_DPLL_MOD, 0x0058)
-+#define TI816X_CM_DPLL_APA_CLKSEL			TI816X_CM_REGADDR(TI816X_CM_DPLL_MOD, 0x005C)
-+#define TI816X_CM_DPLL_SYSCLK14_CLKSEL			TI816X_CM_REGADDR(TI816X_CM_DPLL_MOD, 0x0070)
-+#define TI816X_CM_DPLL_SYSCLK16_CLKSEL			TI816X_CM_REGADDR(TI816X_CM_DPLL_MOD, 0x0074)
-+#define TI816X_CM_DPLL_SYSCLK18_CLKSEL			TI816X_CM_REGADDR(TI816X_CM_DPLL_MOD, 0x0078)
-+#define TI816X_CM_DPLL_AUDIOCLK_MCASP0_CLKSEL		TI816X_CM_REGADDR(TI816X_CM_DPLL_MOD, 0x007C)
-+#define TI816X_CM_DPLL_AUDIOCLK_MCASP1_CLKSEL		TI816X_CM_REGADDR(TI816X_CM_DPLL_MOD, 0x0080)
-+#define TI816X_CM_DPLL_AUDIOCLK_MCASP2_CLKSEL		TI816X_CM_REGADDR(TI816X_CM_DPLL_MOD, 0x0084)
-+#define TI816X_CM_DPLL_AUDIOCLK_MCBSP_CLKSEL		TI816X_CM_REGADDR(TI816X_CM_DPLL_MOD, 0x0088)
-+#define TI816X_CM_DPLL_TIMER1_CLKSEL			TI816X_CM_REGADDR(TI816X_CM_DPLL_MOD, 0x0090)
-+#define TI816X_CM_DPLL_TIMER2_CLKSEL			TI816X_CM_REGADDR(TI816X_CM_DPLL_MOD, 0x0094)
-+#define TI816X_CM_DPLL_TIMER3_CLKSEL			TI816X_CM_REGADDR(TI816X_CM_DPLL_MOD, 0x0098)
-+#define TI816X_CM_DPLL_TIMER4_CLKSEL			TI816X_CM_REGADDR(TI816X_CM_DPLL_MOD, 0x009C)
-+#define TI816X_CM_DPLL_TIMER5_CLKSEL			TI816X_CM_REGADDR(TI816X_CM_DPLL_MOD, 0x00A0)
-+#define TI816X_CM_DPLL_TIMER6_CLKSEL			TI816X_CM_REGADDR(TI816X_CM_DPLL_MOD, 0x00A4)
-+#define TI816X_CM_DPLL_TIMER7_CLKSEL			TI816X_CM_REGADDR(TI816X_CM_DPLL_MOD, 0x00A8)
-+#define TI816X_CM_DPLL_HDMI_CLKSEL			TI816X_CM_REGADDR(TI816X_CM_DPLL_MOD, 0x00AC)
-+#define TI816X_CM_DPLL_SYSCLK23_CLKSEL			TI816X_CM_REGADDR(TI816X_CM_DPLL_MOD, 0x00B0)
-+#define TI816X_CM_DPLL_SYSCLK24_CLKSEL			TI816X_CM_REGADDR(TI816X_CM_DPLL_MOD, 0x00B4)
-+
-+/* CM_DEFAULT */
-+#define TI816X_CM_DEFAULT_L3_MED_CLKSTCTRL		TI816X_CM_REGADDR(TI816X_CM_DEFAULT_MOD, 0x0004)
-+#define TI816X_CM_DEFAULT_L3_FAST_CLKSTCTRL		TI816X_CM_REGADDR(TI816X_CM_DEFAULT_MOD, 0x0008)
-+#define TI816X_CM_DEFAULT_TPPSS_CLKSTCTRL		TI816X_CM_REGADDR(TI816X_CM_DEFAULT_MOD, 0x000C)
-+#define TI816X_CM_DEFAULT_PCI_CLKSTCTRL			TI816X_CM_REGADDR(TI816X_CM_DEFAULT_MOD, 0x0010)
-+#define TI816X_CM_DEFAULT_L3_SLOW_CLKSTCTRL		TI816X_CM_REGADDR(TI816X_CM_DEFAULT_MOD, 0x0014)
-+#define TI816X_CM_DEFAULT_DUCATI_CLKSTCTRL		TI816X_CM_REGADDR(TI816X_CM_DEFAULT_MOD, 0x0018)
-+#define TI816X_CM_DEFAULT_EMIF_0_CLKCTRL		TI816X_CM_REGADDR(TI816X_CM_DEFAULT_MOD, 0x0020)
-+#define TI816X_CM_DEFAULT_EMIF_1_CLKCTRL		TI816X_CM_REGADDR(TI816X_CM_DEFAULT_MOD, 0x0024)
-+#define TI816X_CM_DEFAULT_DMM_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_DEFAULT_MOD, 0x0028)
-+#define TI816X_CM_DEFAULT_FW_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_DEFAULT_MOD, 0x002C)
-+#define TI816X_CM_DEFAULT_TPPSS_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_DEFAULT_MOD, 0x0054)
-+#define TI816X_CM_DEFAULT_USB_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_DEFAULT_MOD, 0x0058)
-+#define TI816X_CM_DEFAULT_SATA_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_DEFAULT_MOD, 0x0060)
-+#define TI816X_CM_DEFAULT_DUCATI_CLKCTRL		TI816X_CM_REGADDR(TI816X_CM_DEFAULT_MOD, 0x0074)
-+#define TI816X_CM_DEFAULT_PCI_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_DEFAULT_MOD, 0x0078)
-+
-+/* CM_IVAHD0 */
-+#define TI816X_CM_IVAHD0_CLKSTCTRL			TI816X_CM_REGADDR(TI816X_CM_IVAHD0_MOD, 0x0000)
-+#define TI816X_CM_IVAHD0_IVAHD_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_IVAHD0_MOD, 0x0020)
-+#define TI816X_CM_IVAHD0_SL2_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_IVAHD0_MOD, 0x0024)
-+
-+/* CM_IVAHD1 */
-+#define TI816X_CM_IVAHD1_CLKSTCTRL			TI816X_CM_REGADDR(TI816X_CM_IVAHD1_MOD, 0x0000)
-+#define TI816X_CM_IVAHD1_IVAHD_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_IVAHD1_MOD, 0x0020)
-+#define TI816X_CM_IVAHD1_SL2_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_IVAHD1_MOD, 0x0024)
-+
-+/* CM_IVAHD2 */
-+#define TI816X_CM_IVAHD2_CLKSTCTRL			TI816X_CM_REGADDR(TI816X_CM_IVAHD2_MOD, 0x0000)
-+#define TI816X_CM_IVAHD2_IVAHD_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_IVAHD2_MOD, 0x0020)
-+#define TI816X_CM_IVAHD2_SL2_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_IVAHD2_MOD, 0x0024)
-+
-+/* CM_SGX */
-+#define TI816X_CM_SGX_CLKSTCTRL				TI816X_CM_REGADDR(TI816X_CM_SGX_MOD, 0x0000)
-+#define TI816X_CM_SGX_SGX_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_SGX_MOD, 0x0020)
-+
-+/* CM_ALWON */
-+#define TI816X_CM_ALWON_L3_SLOW_CLKSTCTRL		TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x0000)
-+#define TI816X_CM_ETHERNET_CLKSTCTRL			TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x0004)
-+#define TI816X_CM_ALWON_L3_MED_CLKSTCTRL		TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x0008)
-+#define TI816X_CM_MMU_CLKSTCTRL				TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x000C)
-+#define TI816X_CM_MMUCFG_CLKSTCTRL			TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x0010)
-+#define TI816X_CM_ALWON_OCMC_0_CLKSTCTRL		TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x0014)
-+#define TI816X_CM_ALWON_OCMC_1_CLKSTCTRL		TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x0018)
-+#define TI816X_CM_ALWON_MPU_CLKSTCTRL			TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x001C)
-+#define TI816X_CM_ALWON_SYSCLK4_CLKSTCTRL		TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x0020)
-+#define TI816X_CM_ALWON_SYSCLK5_CLKSTCTRL		TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x0024)
-+#define TI816X_CM_ALWON_SYSCLK6_CLKSTCTRL		TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x0028)
-+#define TI816X_CM_ALWON_RTC_CLKSTCTRL			TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x002C)
-+#define TI816X_CM_ALWON_L3_FAST_CLKSTCTRL		TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x0030)
-+#define TI816X_CM_ALWON_MCASP0_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x0140)
-+#define TI816X_CM_ALWON_MCASP1_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x0144)
-+#define TI816X_CM_ALWON_MCASP2_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x0148)
-+#define TI816X_CM_ALWON_MCBSP_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x014C)
-+#define TI816X_CM_ALWON_UART_0_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x0150)
-+#define TI816X_CM_ALWON_UART_1_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x0154)
-+#define TI816X_CM_ALWON_UART_2_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x0158)
-+#define TI816X_CM_ALWON_GPIO_0_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x015C)
-+#define TI816X_CM_ALWON_GPIO_1_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x0160)
-+#define TI816X_CM_ALWON_I2C_0_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x0164)
-+#define TI816X_CM_ALWON_I2C_1_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x0168)
-+#define TI816X_CM_ALWON_TIMER_0_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x016C)
-+#define TI816X_CM_ALWON_TIMER_1_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x0170)
-+#define TI816X_CM_ALWON_TIMER_2_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x0174)
-+#define TI816X_CM_ALWON_TIMER_3_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x0178)
-+#define TI816X_CM_ALWON_TIMER_4_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x017C)
-+#define TI816X_CM_ALWON_TIMER_5_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x0180)
-+#define TI816X_CM_ALWON_TIMER_6_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x0184)
-+#define TI816X_CM_ALWON_TIMER_7_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x0188)
-+#define TI816X_CM_ALWON_WDTIMER_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x018C)
-+#define TI816X_CM_ALWON_SPI_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x0190)
-+#define TI816X_CM_ALWON_MAILBOX_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x0194)
-+#define TI816X_CM_ALWON_SPINBOX_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x0198)
-+#define TI816X_CM_ALWON_MMUDATA_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x019C)
-+#define TI816X_CM_ALWON_VLYNQ_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x01A0)
-+#define TI816X_CM_ALWON_MMUCFG_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x01A8)
-+#define TI816X_CM_ALWON_SDIO_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x01B0)
-+#define TI816X_CM_ALWON_OCMC_0_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x01B4)
-+#define TI816X_CM_ALWON_OCMC_1_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x01B8)
-+#define TI816X_CM_ALWON_SMARTCARD_0_CLKCTR		TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x01BC)
-+#define TI816X_CM_ALWON_SMARTCARD_1_CLKCTR		TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x01C0)
-+#define TI816X_CM_ALWON_CONTROL_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x01C4)
-+#define TI816X_CM_ALWON_SECSS_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x01C8)
-+#define TI816X_CM_ALWON_GPMC_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x01D0)
-+#define TI816X_CM_ALWON_ETHERNET_0_CLKCTRL		TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x01D4)
-+#define TI816X_CM_ALWON_ETHERNET_1_CLKCTRL		TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x01D8)
-+#define TI816X_CM_ALWON_MPU_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x01DC)
-+#define TI816X_CM_ALWON_DEBUGSS_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x01E0)
-+#define TI816X_CM_ALWON_L3_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x01E4)
-+#define TI816X_CM_ALWON_L4HS_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x01E8)
-+#define TI816X_CM_ALWON_L4LS_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x01EC)
-+#define TI816X_CM_ALWON_RTC_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x01F0)
-+#define TI816X_CM_ALWON_TPCC_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x01F4)
-+#define TI816X_CM_ALWON_TPTC0_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x01F8)
-+#define TI816X_CM_ALWON_TPTC1_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x01FC)
-+#define TI816X_CM_ALWON_TPTC2_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x0200)
-+#define TI816X_CM_ALWON_TPTC3_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x0204)
-+#define TI816X_CM_ALWON_SR_0_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x0208)
-+#define TI816X_CM_ALWON_SR_1_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x020C)
-+#define TI816X_CM_ALWON_SR_2_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x0210)
-+#define TI816X_CM_ALWON_SR_3_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x0214)
-+#define TI816X_CM_ALWON_SR_4_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x0218)
-+#define TI816X_CM_ALWON_SR_5_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x021C)
-+#define TI816X_CM_ALWON_SR_6_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x0220)
-+#define TI816X_CM_ALWON_SR_7_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x0224)
-+#define TI816X_CM_ALWON_CUST_EFUSE_CLKCTRL		TI816X_CM_REGADDR(TI816X_CM_ALWON_MOD, 0x0228)
-+
-+#define TI816X_CM_ACTIVE_GEM_CLKSTCTRL			TI816X_CM_REGADDR(TI816X_CM_ACTIVE_MOD, 0x0000)
-+#define TI816X_CM_ACTIVE_HDDSS_CLKSTCTRL		TI816X_CM_REGADDR(TI816X_CM_ACTIVE_MOD, 0x0004)
-+#define TI816X_CM_ACTIVE_HDMI_CLKSTCTRL			TI816X_CM_REGADDR(TI816X_CM_ACTIVE_MOD, 0x0008)
-+#define TI816X_CM_ACTIVE_GEM_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_ACTIVE_MOD, 0x0020)
-+#define TI816X_CM_ACTIVE_HDDSS_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_ACTIVE_MOD, 0x0024)
-+#define TI816X_CM_ACTIVE_HDMI_CLKCTRL			TI816X_CM_REGADDR(TI816X_CM_ACTIVE_MOD, 0x0028)
++int ti816x_clk_init(void);
 +
 +#endif
-diff --git a/arch/arm/mach-omap2/prm2xxx_3xxx.h b/arch/arm/mach-omap2/prm2xxx_3xxx.h
-index a1fc62a..94d28d0 100644
---- a/arch/arm/mach-omap2/prm2xxx_3xxx.h
-+++ b/arch/arm/mach-omap2/prm2xxx_3xxx.h
-@@ -5,6 +5,9 @@
-  * Copyright (C) 2008-2010 Nokia Corporation
-  * Paul Walmsley
-  *
-+ * Added TI86X PRM module offsets as most of the operations fit with OMAP3.
-+ * Hemant Pedanekar (hemantp@ti.com)
-+ *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License version 2 as
-  * published by the Free Software Foundation.
-@@ -226,6 +229,20 @@
- #define OMAP3430_PRM_IRQSTATUS_IVA2			0x00f8
- #define OMAP3430_PRM_IRQENABLE_IVA2			0x00fc
- 
+diff --git a/arch/arm/mach-omap2/clock816x_data.c b/arch/arm/mach-omap2/clock816x_data.c
+new file mode 100644
+index 0000000..083b0a1
+--- /dev/null
++++ b/arch/arm/mach-omap2/clock816x_data.c
+@@ -0,0 +1,1131 @@
 +/*
-+ * TI816X PRM module offsets
++ * Clock data for TI816X.
++ *
++ * Copyright (C) 2010 Texas Instruments, Inc. - http://www.ti.com/
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation version 2.
++ *
++ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
++ * kind, whether express or implied; without even the implied warranty
++ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
 + */
 +
-+#define TI816X_PRM_DEVICE_MOD			0x0000	/* 256B */
-+#define TI816X_PRM_OCP_SOCKET_MOD		0x0200	/* 256B */
-+#define TI816X_PRM_ACTIVE_MOD			0x0a00	/* 256B */
-+#define TI816X_PRM_DEFAULT_MOD			0x0b00	/* 256B */
-+#define TI816X_PRM_IVAHD0_MOD			0x0c00	/* 256B */
-+#define TI816X_PRM_IVAHD1_MOD			0x0d00	/* 256B */
-+#define TI816X_PRM_IVAHD2_MOD			0x0e00	/* 256B */
-+#define TI816X_PRM_SGX_MOD			0x0f00	/* 256B */
-+#define TI816X_PRM_ALWON_MOD			0x1800	/* 1KB */
++#include <linux/kernel.h>
++#include <linux/list.h>
++#include <linux/clk.h>
 +
- 
- #ifndef __ASSEMBLER__
- /*
++#include <plat/clkdev_omap.h>
++
++#include "control.h"
++#include "clock.h"
++#include "clock816x.h"
++#include "cm.h"
++#include "cm-regbits-816x.h"
++#include "prm.h"
++
++static struct clk sys_32k_ck = {
++	.name		= "sys_32k_ck",
++	.ops		= &clkops_null,
++	.rate		= 32768,
++	.flags		= RATE_IN_TI816X,
++};
++
++static struct clk tclkin_ck = {
++	.name		= "tclkin_ck",
++	.ops		= &clkops_null,
++	.rate		= 32768,
++	.flags		= RATE_IN_TI816X,
++};
++
++static struct clk osc_sys_ck = {
++	.name		= "osc_sys_ck",
++	.ops		= &clkops_null,
++	.rate		= 27000000,
++	.flags		= RATE_IN_TI816X,
++};
++
++static struct clk main_pll_clk1_ck = {
++	.name		= "main_pll_clk1_ck",
++	.ops		= &clkops_null,
++	.rate		= 800000000,
++	.flags		= RATE_IN_TI816X,
++};
++
++static const struct clksel_rate div8_1to8_rates[] = {
++	{ .div = 1, .val = 0, .flags = RATE_IN_TI816X },
++	{ .div = 2, .val = 1, .flags = RATE_IN_TI816X },
++	{ .div = 3, .val = 2, .flags = RATE_IN_TI816X },
++	{ .div = 4, .val = 3, .flags = RATE_IN_TI816X },
++	{ .div = 5, .val = 4, .flags = RATE_IN_TI816X },
++	{ .div = 6, .val = 5, .flags = RATE_IN_TI816X },
++	{ .div = 7, .val = 6, .flags = RATE_IN_TI816X },
++	{ .div = 8, .val = 7, .flags = RATE_IN_TI816X },
++	{ .div = 0 },
++};
++
++static const struct clksel sysclk1_div[] = {
++	{ .parent = &main_pll_clk1_ck, .rates = div8_1to8_rates },
++	{ .parent = NULL },
++};
++
++static struct clk sysclk1_ck = {
++	.name		= "sysclk1_ck",
++	.parent		= &main_pll_clk1_ck,
++	.clksel		= sysclk1_div,
++	.init		= &omap2_init_clksel_parent,
++	.ops		= &clkops_null,
++	.clksel_reg	= TI816X_CM_DPLL_SYSCLK1_CLKSEL,
++	.clksel_mask	= TI816X_CLKSEL_0_2_MASK,
++	.recalc		= &omap2_clksel_recalc,
++};
++
++static struct clk dsp_ick = {
++	.name           = "dsp_ick",
++	.parent         = &sysclk1_ck,
++	.ops            = &clkops_omap2_dflt,
++	.enable_reg	= TI816X_CM_ACTIVE_GEM_CLKCTRL,
++	.enable_bit	= TI816X_MODULEMODE_SWCTRL,
++	.clkdm_name	= "active_gem_clkdm",
++	.recalc         = &followparent_recalc,
++};
++
++static struct clk main_pll_clk2_ck = {
++	.name		= "main_pll_clk2_ck",
++	.ops		= &clkops_null,
++	.rate		= 1000000000,
++	.flags		= RATE_IN_TI816X,
++};
++
++static const struct clksel sysclk2_div[] = {
++	{ .parent = &main_pll_clk2_ck, .rates = div8_1to8_rates },
++	{ .parent = NULL },
++};
++
++static struct clk sysclk2_ck = {
++	.name		= "sysclk2_ck",
++	.parent		= &main_pll_clk2_ck,
++	.clksel		= sysclk2_div,
++	.init		= &omap2_init_clksel_parent,
++	.ops		= &clkops_null,
++	.clksel_reg	= TI816X_CM_DPLL_SYSCLK2_CLKSEL,
++	.clksel_mask	= TI816X_CLKSEL_0_2_MASK,
++	.recalc		= &omap2_clksel_recalc,
++};
++
++static struct clk mpu_ck = {
++	.name           = "mpu_ck",
++	.parent         = &sysclk2_ck,
++	.ops            = &clkops_omap2_dflt,
++	.enable_reg	= TI816X_CM_ALWON_MPU_CLKCTRL,
++	.enable_bit	= TI816X_MODULEMODE_SWCTRL,
++	.clkdm_name	= "alwon_mpu_clkdm",
++	.recalc         = &followparent_recalc,
++};
++
++static const struct clksel sysclk23_div[] = {
++	{ .parent = &main_pll_clk2_ck, .rates = div8_1to8_rates },
++	{ .parent = NULL },
++};
++
++static struct clk sysclk23_ck = {
++	.name		= "sysclk23_ck",
++	.parent		= &main_pll_clk2_ck,
++	.clksel		= sysclk23_div,
++	.init		= &omap2_init_clksel_parent,
++	.ops		= &clkops_null,
++	.clksel_reg	= TI816X_CM_DPLL_SYSCLK23_CLKSEL,
++	.clksel_mask	= TI816X_CLKSEL_0_2_MASK,
++	.recalc		= &omap2_clksel_recalc,
++};
++
++static struct clk sgx_ck = {
++	.name           = "sgx_ck",
++	.parent         = &sysclk23_ck,
++	.ops            = &clkops_omap2_dflt,
++	.enable_reg	= TI816X_CM_SGX_SGX_CLKCTRL,
++	.enable_bit	= TI816X_MODULEMODE_SWCTRL,
++	.clkdm_name	= "sgx_clkdm",
++	.recalc         = &followparent_recalc,
++};
++
++static struct clk main_pll_clk3_ck = {
++	.name		= "main_pll_clk3_ck",
++	.ops		= &clkops_null,
++	.rate		= 600000000,
++	.flags		= RATE_IN_TI816X,
++};
++
++static const struct clksel_rate div3_1to3_rates[] = {
++	{ .div = 1, .val = 0, .flags = RATE_IN_TI816X },
++	{ .div = 2, .val = 1, .flags = RATE_IN_TI816X },
++	{ .div = 3, .val = 2, .flags = RATE_IN_TI816X },
++	{ .div = 0 },
++};
++
++static const struct clksel sysclk3_div[] = {
++	{ .parent = &main_pll_clk3_ck, .rates = div3_1to3_rates },
++	{ .parent = NULL },
++};
++
++static struct clk sysclk3_ck = {
++	.name		= "sysclk3_ck",
++	.parent		= &main_pll_clk3_ck,
++	.clksel		= sysclk3_div,
++	.init		= &omap2_init_clksel_parent,
++	.ops		= &clkops_null,
++	.clksel_reg	= TI816X_CM_DPLL_SYSCLK3_CLKSEL,
++	.clksel_mask	= TI816X_CLKSEL_0_2_MASK,
++	.recalc		= &omap2_clksel_recalc,
++};
++
++static struct clk hdvicp0_ck = {
++	.name           = "hdvicp0_ck",
++	.parent         = &sysclk3_ck,
++	.ops            = &clkops_omap2_dflt,
++	.enable_reg	= TI816X_CM_IVAHD0_IVAHD_CLKCTRL,
++	.enable_bit	= TI816X_MODULEMODE_SWCTRL,
++	.clkdm_name	= "hdvicp0_clkdm",
++	.recalc         = &followparent_recalc,
++};
++
++static struct clk hdvicp0_sl2_ick = {
++	.name           = "hdvicp0_sl2_ick",
++	.parent         = &sysclk3_ck,
++	.ops            = &clkops_omap2_dflt,
++	.enable_reg	= TI816X_CM_IVAHD0_SL2_CLKCTRL,
++	.enable_bit	= TI816X_MODULEMODE_SWCTRL,
++	.clkdm_name	= "hdvicp0_clkdm",
++	.recalc         = &followparent_recalc,
++};
++
++static struct clk hdvicp1_ck = {
++	.name           = "hdvicp1_ck",
++	.parent         = &sysclk3_ck,
++	.ops            = &clkops_omap2_dflt,
++	.enable_reg	= TI816X_CM_IVAHD1_IVAHD_CLKCTRL,
++	.enable_bit	= TI816X_MODULEMODE_SWCTRL,
++	.clkdm_name	= "hdvicp1_clkdm",
++	.recalc         = &followparent_recalc,
++};
++
++static struct clk hdvicp1_sl2_ick = {
++	.name           = "hdvicp1_sl2_ick",
++	.parent         = &sysclk3_ck,
++	.ops            = &clkops_omap2_dflt,
++	.enable_reg	= TI816X_CM_IVAHD1_SL2_CLKCTRL,
++	.enable_bit	= TI816X_MODULEMODE_SWCTRL,
++	.clkdm_name	= "hdvicp1_clkdm",
++	.recalc         = &followparent_recalc,
++};
++
++static struct clk hdvicp2_ck = {
++	.name           = "hdvicp2_ck",
++	.parent         = &sysclk3_ck,
++	.ops            = &clkops_omap2_dflt,
++	.enable_reg	= TI816X_CM_IVAHD2_IVAHD_CLKCTRL,
++	.enable_bit	= TI816X_MODULEMODE_SWCTRL,
++	.clkdm_name	= "hdvicp2_clkdm",
++	.recalc         = &followparent_recalc,
++};
++
++static struct clk hdvicp2_sl2_ick = {
++	.name           = "hdvicp2_sl2_ick",
++	.parent         = &sysclk3_ck,
++	.ops            = &clkops_omap2_dflt,
++	.enable_reg	= TI816X_CM_IVAHD2_SL2_CLKCTRL,
++	.enable_bit	= TI816X_MODULEMODE_SWCTRL,
++	.clkdm_name	= "hdvicp2_clkdm",
++	.recalc         = &followparent_recalc,
++};
++
++static struct clk main_pll_clk4_ck = {
++	.name		= "main_pll_clk4_ck",
++	.ops		= &clkops_null,
++	.rate		= 500000000,
++	.flags		= RATE_IN_TI816X,
++};
++
++static const struct clksel_rate div2_1to2_rates[] = {
++	{ .div = 1, .val = 0, .flags = RATE_IN_TI816X },
++	{ .div = 2, .val = 1, .flags = RATE_IN_TI816X },
++	{ .div = 0 },
++};
++
++static const struct clksel sysclk4_div[] = {
++	{ .parent = &main_pll_clk4_ck, .rates = div2_1to2_rates },
++	{ .parent = NULL },
++};
++
++static struct clk sysclk4_ck = {
++	.name		= "sysclk4_ck",
++	.parent		= &main_pll_clk4_ck,
++	.clksel		= sysclk4_div,
++	.init		= &omap2_init_clksel_parent,
++	.ops		= &clkops_null,
++	.clksel_reg	= TI816X_CM_DPLL_SYSCLK4_CLKSEL,
++	.clksel_mask	= TI816X_CLKSEL_0_0_MASK,
++	.recalc		= &omap2_clksel_recalc,
++};
++
++static struct clk mmu_ick = {
++	.name           = "mmu_ick",
++	.parent         = &sysclk4_ck,
++	.ops            = &clkops_omap2_dflt,
++	.enable_reg	= TI816X_CM_ALWON_MMUDATA_CLKCTRL,
++	.enable_bit	= TI816X_MODULEMODE_SWCTRL,
++	.clkdm_name	= "mmu_clkdm",
++	.recalc         = &followparent_recalc,
++};
++
++static struct clk ducati_ucache_ick = {
++	.name		= "ducati_ucache_ick",
++	.parent		= &sysclk4_ck,
++	.ops		= &clkops_null,
++	.clkdm_name	= "default_ducati_clkdm",
++	.recalc		= &followparent_recalc,
++};
++
++static struct clk tpcc_ick = {
++	.name           = "tpcc_ick",
++	.parent         = &sysclk4_ck,
++	.ops            = &clkops_omap2_dflt,
++	.enable_reg	= TI816X_CM_ALWON_TPCC_CLKCTRL,
++	.enable_bit	= TI816X_MODULEMODE_SWCTRL,
++	.recalc         = &followparent_recalc,
++};
++
++static struct clk tptc0_ick = {
++	.name           = "tptc0_ick",
++	.parent         = &sysclk4_ck,
++	.ops            = &clkops_omap2_dflt,
++	.enable_reg	= TI816X_CM_ALWON_TPTC0_CLKCTRL,
++	.enable_bit	= TI816X_MODULEMODE_SWCTRL,
++	.recalc         = &followparent_recalc,
++};
++
++static struct clk tptc1_ick = {
++	.name           = "tptc1_ick",
++	.parent         = &sysclk4_ck,
++	.ops            = &clkops_omap2_dflt,
++	.enable_reg	= TI816X_CM_ALWON_TPTC1_CLKCTRL,
++	.enable_bit	= TI816X_MODULEMODE_SWCTRL,
++	.recalc         = &followparent_recalc,
++};
++
++static struct clk tptc2_ick = {
++	.name           = "tptc2_ick",
++	.parent         = &sysclk4_ck,
++	.ops            = &clkops_omap2_dflt,
++	.enable_reg	= TI816X_CM_ALWON_TPTC2_CLKCTRL,
++	.enable_bit	= TI816X_MODULEMODE_SWCTRL,
++	.recalc         = &followparent_recalc,
++};
++
++static struct clk tptc3_ick = {
++	.name           = "tptc3_ick",
++	.parent         = &sysclk4_ck,
++	.ops            = &clkops_omap2_dflt,
++	.enable_reg	= TI816X_CM_ALWON_TPTC3_CLKCTRL,
++	.enable_bit	= TI816X_MODULEMODE_SWCTRL,
++	.recalc         = &followparent_recalc,
++};
++
++static const struct clksel_rate div_4_1_rates[] = {
++	{ .div = 4, .val = 1, .flags = RATE_IN_TI816X },
++	{ .div = 0 },
++};
++
++static const struct clksel sysclk6_div[] = {
++	{ .parent = &sysclk4_ck, .rates = div_4_1_rates },
++	{ .parent = NULL },
++};
++
++static struct clk sysclk6_ck = {
++	.name		= "sysclk6_ck",
++	.parent		= &sysclk4_ck,
++	.clksel		= sysclk6_div,
++	.init		= &omap2_init_clksel_parent,
++	.ops		= &clkops_null,
++	.clksel_reg	= TI816X_CM_DPLL_SYSCLK6_CLKSEL,
++	.clksel_mask	= TI816X_CLKSEL_0_0_MASK,
++	.recalc		= &omap2_clksel_recalc,
++};
++
++static struct clk mmu_cfg_ick = {
++	.name           = "mmu_cfg_ick",
++	.parent         = &sysclk6_ck,
++	.ops            = &clkops_omap2_dflt,
++	.enable_reg	= TI816X_CM_ALWON_MMUCFG_CLKCTRL,
++	.enable_bit	= TI816X_MODULEMODE_SWCTRL,
++	.clkdm_name	= "mmu_cfg_clkdm",
++	.recalc         = &followparent_recalc,
++};
++
++static struct clk mailbox_ick = {
++	.name           = "mailbox_ick",
++	.parent         = &sysclk6_ck,
++	.ops            = &clkops_omap2_dflt,
++	.enable_reg	= TI816X_CM_ALWON_MAILBOX_CLKCTRL,
++	.enable_bit	= TI816X_MODULEMODE_SWCTRL,
++	.clkdm_name	= "alwon_l3_slow_clkdm",
++	.recalc         = &followparent_recalc,
++};
++
++static struct clk spinbox_ick = {
++	.name           = "spinbox_ick",
++	.parent         = &sysclk6_ck,
++	.ops            = &clkops_omap2_dflt,
++	.enable_reg	= TI816X_CM_ALWON_SPINBOX_CLKCTRL,
++	.enable_bit	= TI816X_MODULEMODE_SWCTRL,
++	.clkdm_name	= "alwon_l3_slow_clkdm",
++	.recalc         = &followparent_recalc,
++};
++
++static struct clk gem_vbusp_fck = {
++	.name           = "gem_vbusp_fck",
++	.parent         = &sysclk6_ck,
++	.ops		= &clkops_null,
++	.clkdm_name	= "active_gem_clkdm",
++	.recalc         = &followparent_recalc,
++};
++
++static struct clk uart1_ick = {
++	.name		= "uart1_ick",
++	.parent		= &sysclk6_ck,
++	.ops		= &clkops_null,
++	.clkdm_name	= "alwon_l3_slow_clkdm",
++	.recalc		= &followparent_recalc,
++};
++
++static struct clk uart2_ick = {
++	.name		= "uart2_ick",
++	.parent		= &sysclk6_ck,
++	.ops		= &clkops_null,
++	.clkdm_name	= "alwon_l3_slow_clkdm",
++	.recalc		= &followparent_recalc,
++};
++
++static struct clk uart3_ick = {
++	.name		= "uart3_ick",
++	.parent		= &sysclk6_ck,
++	.ops		= &clkops_null,
++	.clkdm_name	= "alwon_l3_slow_clkdm",
++	.recalc		= &followparent_recalc,
++};
++
++static struct clk mcspi1_ick = {
++	.name		= "mcspi1_ick",
++	.parent		= &sysclk6_ck,
++	.ops		= &clkops_null,
++	.clkdm_name	= "alwon_l3_slow_clkdm",
++	.recalc		= &followparent_recalc,
++};
++
++static struct clk usbotg_ick = {
++	.name           = "usbotg_ick",
++	.parent         = &sysclk6_ck,
++	.ops            = &clkops_omap2_dflt,
++	.enable_reg	= TI816X_CM_DEFAULT_USB_CLKCTRL,
++	.enable_bit	= TI816X_MODULEMODE_SWCTRL,
++	.clkdm_name	= "default_usb_clkdm",
++	.recalc         = &followparent_recalc,
++};
++
++static struct clk gpt1_ick = {
++	.name		= "gpt1_ick",
++	.parent		= &sysclk6_ck,
++	.ops		= &clkops_null,
++	.clkdm_name	= "alwon_l3_slow_clkdm",
++	.recalc		= &followparent_recalc,
++};
++
++static struct clk gpt2_ick = {
++	.name		= "gpt2_ick",
++	.parent		= &sysclk6_ck,
++	.ops		= &clkops_null,
++	.clkdm_name	= "alwon_l3_slow_clkdm",
++	.recalc		= &followparent_recalc,
++};
++
++static struct clk gpt3_ick = {
++	.name		= "gpt3_ick",
++	.parent		= &sysclk6_ck,
++	.ops		= &clkops_null,
++	.clkdm_name	= "alwon_l3_slow_clkdm",
++	.recalc		= &followparent_recalc,
++};
++
++static struct clk gpt4_ick = {
++	.name		= "gpt4_ick",
++	.parent		= &sysclk6_ck,
++	.ops		= &clkops_null,
++	.clkdm_name	= "alwon_l3_slow_clkdm",
++	.recalc		= &followparent_recalc,
++};
++
++static struct clk gpt5_ick = {
++	.name		= "gpt5_ick",
++	.parent		= &sysclk6_ck,
++	.ops		= &clkops_null,
++	.clkdm_name	= "alwon_l3_slow_clkdm",
++	.recalc		= &followparent_recalc,
++};
++
++static struct clk gpt6_ick = {
++	.name		= "gpt6_ick",
++	.parent		= &sysclk6_ck,
++	.ops		= &clkops_null,
++	.clkdm_name	= "alwon_l3_slow_clkdm",
++	.recalc		= &followparent_recalc,
++};
++
++static struct clk gpt7_ick = {
++	.name		= "gpt7_ick",
++	.parent		= &sysclk6_ck,
++	.ops		= &clkops_null,
++	.clkdm_name	= "alwon_l3_slow_clkdm",
++	.recalc		= &followparent_recalc,
++};
++
++static struct clk gpmc_ick = {
++	.name		= "gpmc_ick",
++	.parent		= &sysclk6_ck,
++	.ops		= &clkops_null,
++	.clkdm_name	= "alwon_l3_slow_clkdm",
++	.recalc		= &followparent_recalc,
++};
++
++static struct clk i2c1_ick = {
++	.name		= "i2c1_ick",
++	.parent		= &sysclk6_ck,
++	.ops		= &clkops_null,
++	.clkdm_name	= "alwon_l3_slow_clkdm",
++	.recalc		= &followparent_recalc,
++};
++
++static struct clk i2c2_ick = {
++	.name		= "i2c2_ick",
++	.parent		= &sysclk6_ck,
++	.ops		= &clkops_null,
++	.clkdm_name	= "alwon_l3_slow_clkdm",
++	.recalc		= &followparent_recalc,
++};
++
++static struct clk mmchs1_ick = {
++	.name		= "mmchs1_ick",
++	.parent		= &sysclk6_ck,
++	.ops		= &clkops_null,
++	.clkdm_name	= "alwon_l3_slow_clkdm",
++	.recalc		= &followparent_recalc,
++};
++
++static const struct clksel_rate div_2_1_rates[] = {
++	{ .div = 2, .val = 1, .flags = RATE_IN_TI816X },
++	{ .div = 0 },
++};
++
++static const struct clksel sysclk5_div[] = {
++	{ .parent = &sysclk4_ck, .rates = div_2_1_rates },
++	{ .parent = NULL },
++};
++
++static struct clk sysclk5_ck = {
++	.name		= "sysclk5_ck",
++	.parent		= &sysclk4_ck,
++	.clksel		= sysclk5_div,
++	.init		= &omap2_init_clksel_parent,
++	.ops		= &clkops_null,
++	.clksel_reg	= TI816X_CM_DPLL_SYSCLK5_CLKSEL,
++	.clksel_mask	= TI816X_CLKSEL_0_0_MASK,
++	.recalc		= &omap2_clksel_recalc,
++};
++
++static struct clk pcie_ck = {
++	.name           = "pcie_ck",
++	.parent         = &sysclk5_ck,
++	.ops            = &clkops_omap2_dflt,
++	.enable_reg	= TI816X_CM_DEFAULT_PCI_CLKCTRL,
++	.enable_bit	= TI816X_MODULEMODE_SWCTRL,
++	.clkdm_name	= "default_pcie_clkdm",
++	.recalc         = &followparent_recalc,
++};
++
++static struct clk sata_ick = {
++	.name           = "sata_ick",
++	.parent         = &sysclk5_ck,
++	.ops            = &clkops_omap2_dflt,
++	.enable_reg	= TI816X_CM_DEFAULT_SATA_CLKCTRL,
++	.enable_bit	= TI816X_MODULEMODE_SWCTRL,
++	.clkdm_name	= "default_l3_med_clkdm",
++	.recalc         = &followparent_recalc,
++};
++
++static struct clk emac1_ick = {
++	.name           = "emac1_ick",
++	.parent         = &sysclk5_ck,
++	.ops            = &clkops_omap2_dflt,
++	.enable_reg	= TI816X_CM_ALWON_ETHERNET_0_CLKCTRL,
++	.enable_bit	= TI816X_MODULEMODE_SWCTRL,
++	.clkdm_name	= "alwon_ethernet_clkdm",
++	.recalc         = &followparent_recalc,
++};
++
++static struct clk emac2_ick = {
++	.name           = "emac2_ick",
++	.parent         = &sysclk5_ck,
++	.ops            = &clkops_omap2_dflt,
++	.enable_reg	= TI816X_CM_ALWON_ETHERNET_1_CLKCTRL,
++	.enable_bit	= TI816X_MODULEMODE_SWCTRL,
++	.clkdm_name	= "alwon_ethernet_clkdm",
++	.recalc         = &followparent_recalc,
++};
++
++static struct clk ducati_ick = {
++	.name           = "ducati_ick",
++	.parent         = &sysclk5_ck,
++	.ops            = &clkops_omap2_dflt,
++	.enable_reg	= TI816X_CM_DEFAULT_DUCATI_CLKCTRL,
++	.enable_bit	= TI816X_MODULEMODE_SWCTRL,
++	.clkdm_name	= "default_ducati_clkdm",
++	.recalc         = &followparent_recalc,
++};
++
++static struct clk gem_trc_fck = {
++	.name           = "gem_trc_fck",
++	.parent         = &sysclk5_ck,
++	.ops		= &clkops_null,
++	.clkdm_name	= "active_gem_clkdm",
++	.recalc         = &followparent_recalc,
++};
++
++static struct clk ddr_pll_clk2_ck = {
++	.name		= "ddr_pll_clk2_ck",
++	.ops		= &clkops_null,
++	.rate		= 96000000,
++	.flags		= RATE_IN_TI816X,
++};
++
++static const struct clksel sysclk10_div[] = {
++	{ .parent = &ddr_pll_clk2_ck, .rates = div3_1to3_rates },
++	{ .parent = NULL },
++};
++
++static struct clk sysclk10_ck = {
++	.name		= "sysclk10_ck",
++	.parent		= &ddr_pll_clk2_ck,
++	.clksel		= sysclk10_div,
++	.init		= &omap2_init_clksel_parent,
++	.ops		= &clkops_null,
++	.clksel_reg	= TI816X_CM_DPLL_SYSCLK10_CLKSEL,
++	.clksel_mask	= TI816X_CLKSEL_0_2_MASK,
++	.recalc		= &omap2_clksel_recalc,
++};
++
++static struct clk uart1_fck = {
++	.name		= "uart1_fck",
++	.parent		= &sysclk10_ck,
++	.ops		= &clkops_omap2_dflt,
++	.enable_reg	= TI816X_CM_ALWON_UART_0_CLKCTRL,
++	.enable_bit	= TI816X_MODULEMODE_SWCTRL,
++	.clkdm_name	= "alwon_l3_slow_clkdm",
++	.recalc		= &followparent_recalc,
++};
++
++static struct clk uart2_fck = {
++	.name		= "uart2_fck",
++	.parent		= &sysclk10_ck,
++	.ops		= &clkops_omap2_dflt,
++	.enable_reg	= TI816X_CM_ALWON_UART_1_CLKCTRL,
++	.enable_bit	= TI816X_MODULEMODE_SWCTRL,
++	.clkdm_name	= "alwon_l3_slow_clkdm",
++	.recalc		= &followparent_recalc,
++};
++
++static struct clk uart3_fck = {
++	.name		= "uart3_fck",
++	.parent		= &sysclk10_ck,
++	.ops		= &clkops_omap2_dflt,
++	.enable_reg	= TI816X_CM_ALWON_UART_2_CLKCTRL,
++	.enable_bit	= TI816X_MODULEMODE_SWCTRL,
++	.clkdm_name	= "alwon_l3_slow_clkdm",
++	.recalc		= &followparent_recalc,
++};
++
++static struct clk mcspi1_fck = {
++	.name		= "mcspi1_fck",
++	.parent		= &sysclk10_ck,
++	.ops		= &clkops_omap2_dflt,
++	.enable_reg	= TI816X_CM_ALWON_SPI_CLKCTRL,
++	.enable_bit	= TI816X_MODULEMODE_SWCTRL,
++	.clkdm_name	= "alwon_l3_slow_clkdm",
++	.recalc		= &followparent_recalc,
++};
++
++static struct clk gpmc_fck = {
++	.name		= "gpmc_fck",
++	.parent		= &sysclk10_ck,
++	.ops		= &clkops_omap2_dflt,
++	.enable_reg	= TI816X_CM_ALWON_GPMC_CLKCTRL,
++	.enable_bit	= TI816X_MODULEMODE_SWCTRL,
++	.clkdm_name	= "alwon_l3_slow_clkdm",
++	.recalc		= &followparent_recalc,
++};
++
++static struct clk i2c1_fck = {
++	.name		= "i2c1_fck",
++	.parent		= &sysclk10_ck,
++	.ops		= &clkops_omap2_dflt,
++	.enable_reg	= TI816X_CM_ALWON_I2C_0_CLKCTRL,
++	.enable_bit	= TI816X_MODULEMODE_SWCTRL,
++	.clkdm_name	= "alwon_l3_slow_clkdm",
++	.recalc		= &followparent_recalc,
++};
++
++static struct clk i2c2_fck = {
++	.name		= "i2c2_fck",
++	.parent		= &sysclk10_ck,
++	.ops		= &clkops_omap2_dflt,
++	.enable_reg	= TI816X_CM_ALWON_I2C_1_CLKCTRL,
++	.enable_bit	= TI816X_MODULEMODE_SWCTRL,
++	.clkdm_name	= "alwon_l3_slow_clkdm",
++	.recalc		= &followparent_recalc,
++};
++
++static struct clk mmchs1_fck = {
++	.name		= "mmchs1_fck",
++	.parent		= &sysclk10_ck,
++	.ops		= &clkops_omap2_dflt,
++	.enable_reg	= TI816X_CM_ALWON_SDIO_CLKCTRL,
++	.enable_bit	= TI816X_MODULEMODE_SWCTRL,
++	.clkdm_name	= "alwon_l3_slow_clkdm",
++	.recalc		= &followparent_recalc,
++};
++
++static struct clk main_pll_clk5_ck = {
++	.name		= "main_pll_clk5_ck",
++	.ops		= &clkops_null,
++	.rate		= 125000000,
++	.flags		= RATE_IN_TI816X,
++};
++
++static const struct clksel sysclk24_div[] = {
++	{ .parent = &main_pll_clk4_ck, .rates = div3_1to3_rates },
++	{ .parent = NULL },
++};
++
++static struct clk sysclk24_ck = {
++	.name		= "sysclk24_ck",
++	.parent		= &main_pll_clk5_ck,
++	.clksel		= sysclk24_div,
++	.init		= &omap2_init_clksel_parent,
++	.ops		= &clkops_null,
++	.clksel_reg	= TI816X_CM_DPLL_SYSCLK24_CLKSEL,
++	.clksel_mask	= TI816X_CLKSEL_0_2_MASK,
++	.recalc		= &omap2_clksel_recalc,
++};
++
++static struct clk audio_pll_clk1_ck = {
++	.name		= "audio_pll_clk1_ck",
++	.ops		= &clkops_null,
++	.rate		= 32768,
++	.flags		= RATE_IN_TI816X,
++};
++
++static struct clk audio_pll_clk3_ck = {
++	.name		= "audio_pll_clk3_ck",
++	.ops		= &clkops_null,
++	.rate		= 196000000,
++	.flags		= RATE_IN_TI816X,
++};
++
++static struct clk audio_pll_clk4_ck = {
++	.name		= "audio_pll_clk4_ck",
++	.ops		= &clkops_null,
++	.rate		= 45000000,
++	.flags		= RATE_IN_TI816X,
++};
++
++static struct clk audio_pll_clk5_ck = {
++	.name		= "audio_pll_clk5_ck",
++	.ops		= &clkops_null,
++	.rate		= 32000000,
++	.flags		= RATE_IN_TI816X,
++};
++
++static const struct clksel audio_pll_a_div[] = {
++	{ .parent = &audio_pll_clk1_ck, .rates = div3_1to3_rates },
++	{ .parent = NULL },
++};
++
++static struct clk audio_pll_a_ck = {
++	.name		= "audio_pll_a_ck",
++	.parent		= &audio_pll_clk1_ck,
++	.init		= &omap2_init_clksel_parent,
++	.clksel		= audio_pll_a_div,
++	.ops		= &clkops_null,
++	.clksel_reg	= TI816X_CM_DPLL_APA_CLKSEL,
++	.clksel_mask	= TI816X_CLKSEL_0_2_MASK,
++	.recalc		= &omap2_clksel_recalc,
++};
++
++static const struct clksel_rate div_1_0_rates[] = {
++	{ .div = 1, .val = 0, .flags = RATE_IN_TI816X },
++	{ .div = 0 },
++};
++
++static const struct clksel_rate div_1_1_rates[] = {
++	{ .div = 1, .val = 1, .flags = RATE_IN_TI816X },
++	{ .div = 0 },
++};
++
++static const struct clksel_rate div_1_2_rates[] = {
++	{ .div = 1, .val = 2, .flags = RATE_IN_TI816X },
++	{ .div = 0 },
++};
++
++static const struct clksel sysclk18_mux_sel[] = {
++	{ .parent = &sys_32k_ck, .rates = div_1_0_rates },
++	{ .parent = &audio_pll_a_ck, .rates = div_1_1_rates },
++	{ .parent = NULL}
++};
++
++static struct clk sysclk18_ck = {
++	.name		= "sysclk18_ck",
++	.parent		= &audio_pll_a_ck,
++	.init		= &omap2_init_clksel_parent,
++	.clksel		= sysclk18_mux_sel,
++	.ops		= &clkops_null,
++	.clksel_reg	= TI816X_CM_DPLL_SYSCLK18_CLKSEL,
++	.clksel_mask	= TI816X_CLKSEL_0_0_MASK,
++	.recalc		= &omap2_clksel_recalc,
++};
++
++static const struct clksel sysclk20_div[] = {
++	{ .parent = &audio_pll_clk3_ck, .rates = div3_1to3_rates },
++	{ .parent = NULL },
++};
++
++static struct clk sysclk20_ck = {
++	.name		= "sysclk20_ck",
++	.parent		= &audio_pll_clk3_ck,
++	.init		= &omap2_init_clksel_parent,
++	.clksel		= sysclk20_div,
++	.ops		= &clkops_null,
++	.clksel_reg	= TI816X_CM_DPLL_SYSCLK20_CLKSEL,
++	.clksel_mask	= TI816X_CLKSEL_0_2_MASK,
++	.recalc		= &omap2_clksel_recalc,
++};
++
++static const struct clksel sysclk21_div[] = {
++	{ .parent = &audio_pll_clk4_ck, .rates = div3_1to3_rates },
++	{ .parent = NULL },
++};
++
++static struct clk sysclk21_ck = {
++	.name		= "sysclk21_ck",
++	.parent		= &audio_pll_clk4_ck,
++	.init		= &omap2_init_clksel_parent,
++	.clksel		= sysclk21_div,
++	.ops		= &clkops_null,
++	.clksel_reg	= TI816X_CM_DPLL_SYSCLK21_CLKSEL,
++	.clksel_mask	= TI816X_CLKSEL_0_2_MASK,
++	.recalc		= &omap2_clksel_recalc,
++};
++
++static const struct clksel sysclk22_div[] = {
++	{ .parent = &audio_pll_clk5_ck, .rates = div3_1to3_rates },
++	{ .parent = NULL },
++};
++
++static struct clk sysclk22_ck = {
++	.name		= "sysclk22_ck",
++	.parent		= &audio_pll_clk5_ck,
++	.init		= &omap2_init_clksel_parent,
++	.clksel		= sysclk22_div,
++	.ops		= &clkops_null,
++	.clksel_reg	= TI816X_CM_DPLL_SYSCLK22_CLKSEL,
++	.clksel_mask	= TI816X_CLKSEL_0_2_MASK,
++	.recalc		= &omap2_clksel_recalc,
++};
++
++static const struct clksel gpt_mux_sel[] = {
++	{ .parent = &tclkin_ck, .rates = div_1_0_rates },
++	{ .parent = &sysclk18_ck, .rates = div_1_1_rates },
++	{ .parent = &osc_sys_ck, .rates = div_1_2_rates },
++	{ .parent = NULL}
++};
++
++static const struct clksel mcasp0to2_mux_sel[] = {
++	{ .parent = &sysclk20_ck, .rates = div_1_0_rates },
++	{ .parent = &sysclk21_ck, .rates = div_1_1_rates },
++	{ .parent = &sysclk22_ck, .rates = div_1_1_rates },
++	{ .parent = NULL}
++};
++
++static struct clk gpt1_fck = {
++	.name		= "gpt1_fck",
++	.parent		= &sysclk18_ck,
++	.init		= &omap2_init_clksel_parent,
++	.clksel		= gpt_mux_sel,
++	.ops		= &clkops_omap2_dflt,
++	.enable_reg	= TI816X_CM_ALWON_TIMER_1_CLKCTRL,
++	.enable_bit	= TI816X_MODULEMODE_SWCTRL,
++	.clksel_reg	= TI816X_CM_DPLL_TIMER1_CLKSEL,
++	.clksel_mask	= TI816X_CLKSEL_0_1_MASK,
++	.clkdm_name	= "alwon_l3_slow_clkdm",
++	.recalc		= &omap2_clksel_recalc,
++};
++
++static struct clk gpt2_fck = {
++	.name		= "gpt2_fck",
++	.parent		= &sysclk18_ck,
++	.clksel		= gpt_mux_sel,
++	.init		= &omap2_init_clksel_parent,
++	.ops		= &clkops_omap2_dflt,
++	.enable_reg	= TI816X_CM_ALWON_TIMER_2_CLKCTRL,
++	.enable_bit	= TI816X_MODULEMODE_SWCTRL,
++	.clksel_reg	= TI816X_CM_DPLL_TIMER2_CLKSEL,
++	.clksel_mask	= TI816X_CLKSEL_0_1_MASK,
++	.clkdm_name	= "alwon_l3_slow_clkdm",
++	.recalc		= &omap2_clksel_recalc,
++};
++
++static struct clk gpt3_fck = {
++	.name		= "gpt3_fck",
++	.parent		= &osc_sys_ck,
++	.clksel		= gpt_mux_sel,
++	.init		= &omap2_init_clksel_parent,
++	.ops		= &clkops_omap2_dflt,
++	.enable_reg	= TI816X_CM_ALWON_TIMER_3_CLKCTRL,
++	.enable_bit	= TI816X_MODULEMODE_SWCTRL,
++	.clksel_reg	= TI816X_CM_DPLL_TIMER3_CLKSEL,
++	.clksel_mask	= TI816X_CLKSEL_0_1_MASK,
++	.clkdm_name	= "alwon_l3_slow_clkdm",
++	.recalc		= &omap2_clksel_recalc,
++};
++
++static struct clk gpt4_fck = {
++	.name		= "gpt4_fck",
++	.parent		= &sysclk18_ck,
++	.clksel		= gpt_mux_sel,
++	.init		= &omap2_init_clksel_parent,
++	.ops		= &clkops_omap2_dflt,
++	.enable_reg	= TI816X_CM_ALWON_TIMER_4_CLKCTRL,
++	.enable_bit	= TI816X_MODULEMODE_SWCTRL,
++	.clksel_reg	= TI816X_CM_DPLL_TIMER4_CLKSEL,
++	.clksel_mask	= TI816X_CLKSEL_0_1_MASK,
++	.clkdm_name	= "alwon_l3_slow_clkdm",
++	.recalc		= &omap2_clksel_recalc,
++};
++
++static struct clk gpt5_fck = {
++	.name		= "gpt5_fck",
++	.parent		= &sysclk18_ck,
++	.clksel		= gpt_mux_sel,
++	.init		= &omap2_init_clksel_parent,
++	.ops		= &clkops_omap2_dflt,
++	.enable_reg	= TI816X_CM_ALWON_TIMER_5_CLKCTRL,
++	.enable_bit	= TI816X_MODULEMODE_SWCTRL,
++	.clksel_reg	= TI816X_CM_DPLL_TIMER5_CLKSEL,
++	.clksel_mask	= TI816X_CLKSEL_0_1_MASK,
++	.clkdm_name	= "alwon_l3_slow_clkdm",
++	.recalc		= &omap2_clksel_recalc,
++};
++
++static struct clk gpt6_fck = {
++	.name		= "gpt6_fck",
++	.parent		= &sysclk18_ck,
++	.clksel		= gpt_mux_sel,
++	.init		= &omap2_init_clksel_parent,
++	.ops		= &clkops_omap2_dflt,
++	.enable_reg	= TI816X_CM_ALWON_TIMER_6_CLKCTRL,
++	.enable_bit	= TI816X_MODULEMODE_SWCTRL,
++	.clksel_reg	= TI816X_CM_DPLL_TIMER6_CLKSEL,
++	.clksel_mask	= TI816X_CLKSEL_0_1_MASK,
++	.clkdm_name	= "alwon_l3_slow_clkdm",
++	.recalc		= &omap2_clksel_recalc,
++};
++
++static struct clk gpt7_fck = {
++	.name		= "gpt7_fck",
++	.parent		= &sysclk18_ck,
++	.clksel		= gpt_mux_sel,
++	.init		= &omap2_init_clksel_parent,
++	.ops		= &clkops_omap2_dflt,
++	.enable_reg	= TI816X_CM_ALWON_TIMER_7_CLKCTRL,
++	.enable_bit	= TI816X_MODULEMODE_SWCTRL,
++	.clksel_reg	= TI816X_CM_DPLL_TIMER7_CLKSEL,
++	.clksel_mask	= TI816X_CLKSEL_0_1_MASK,
++	.clkdm_name	= "alwon_l3_slow_clkdm",
++	.recalc		= &omap2_clksel_recalc,
++};
++
++static struct clk mmchsdb1_fck = {
++	.name		= "mmchsdb1_fck",
++	.parent		= &sysclk18_ck,
++	.ops		= &clkops_null,
++	.clkdm_name	= "alwon_l3_slow_clkdm",
++	.recalc		= &followparent_recalc,
++};
++
++static struct clk mcasp0_fck = {
++	.name		= "mcasp0_fck",
++	.parent		= &sysclk20_ck,
++	.init		= &omap2_init_clksel_parent,
++	.clksel		= mcasp0to2_mux_sel,
++	.ops		= &clkops_omap2_dflt,
++	.enable_reg	= TI816X_CM_ALWON_MCASP0_CLKCTRL,
++	.enable_bit	= TI816X_MODULEMODE_SWCTRL,
++	.clksel_reg	= TI816X_CM_DPLL_AUDIOCLK_MCASP0_CLKSEL,
++	.clksel_mask	= TI816X_CLKSEL_0_1_MASK,
++	.clkdm_name	= "alwon_l3_slow_clkdm",
++	.recalc		= &omap2_clksel_recalc,
++};
++
++static struct clk mcasp1_fck = {
++	.name		= "mcasp1_fck",
++	.parent		= &sysclk20_ck,
++	.init		= &omap2_init_clksel_parent,
++	.clksel		= mcasp0to2_mux_sel,
++	.ops		= &clkops_omap2_dflt,
++	.enable_reg	= TI816X_CM_ALWON_MCASP1_CLKCTRL,
++	.enable_bit	= TI816X_MODULEMODE_SWCTRL,
++	.clksel_reg	= TI816X_CM_DPLL_AUDIOCLK_MCASP1_CLKSEL,
++	.clksel_mask	= TI816X_CLKSEL_0_1_MASK,
++	.clkdm_name	= "alwon_l3_slow_clkdm",
++	.recalc		= &omap2_clksel_recalc,
++};
++
++static struct clk mcasp2_fck = {
++	.name		= "mcasp2_fck",
++	.parent		= &sysclk20_ck,
++	.init		= &omap2_init_clksel_parent,
++	.clksel		= mcasp0to2_mux_sel,
++	.ops		= &clkops_omap2_dflt,
++	.enable_reg	= TI816X_CM_ALWON_MCASP2_CLKCTRL,
++	.enable_bit	= TI816X_MODULEMODE_SWCTRL,
++	.clksel_reg	= TI816X_CM_DPLL_AUDIOCLK_MCASP2_CLKSEL,
++	.clksel_mask	= TI816X_CLKSEL_0_1_MASK,
++	.clkdm_name	= "alwon_l3_slow_clkdm",
++	.recalc		= &omap2_clksel_recalc,
++};
++
++static struct omap_clk ti816x_clks[] = {
++	CLK(NULL,		"sys_32k_ck",		&sys_32k_ck,		CK_TI816X),
++	CLK(NULL,		"tclkin_ck",		&tclkin_ck,		CK_TI816X),
++	CLK(NULL,		"osc_sys_ck",		&osc_sys_ck,		CK_TI816X),
++	CLK(NULL,		"main_pll_clk1_ck",	&main_pll_clk1_ck,	CK_TI816X),
++	CLK(NULL,		"sysclk1_ck",		&sysclk1_ck,		CK_TI816X),
++	CLK(NULL,		"dsp_ick",		&dsp_ick,		CK_TI816X),
++	CLK(NULL,		"main_pll_clk2_ck",	&main_pll_clk2_ck,	CK_TI816X),
++	CLK(NULL,		"sysclk2_ck",		&sysclk2_ck,		CK_TI816X),
++	CLK(NULL,		"mpu_ck",		&mpu_ck,		CK_TI816X),
++	CLK(NULL,		"sysclk23_ck",		&sysclk23_ck,		CK_TI816X),
++	CLK(NULL,		"sgx_ck",		&sgx_ck,		CK_TI816X),
++	CLK(NULL,		"main_pll_clk3_ck",	&main_pll_clk3_ck,	CK_TI816X),
++	CLK(NULL,		"sysclk3_ck",		&sysclk3_ck,		CK_TI816X),
++	CLK(NULL,		"hdvicp0_ck",		&hdvicp0_ck,		CK_TI816X),
++	CLK(NULL,		"hdvicp0_sl2_ick",	&hdvicp0_sl2_ick,	CK_TI816X),
++	CLK(NULL,		"hdvicp1_ck",		&hdvicp1_ck,		CK_TI816X),
++	CLK(NULL,		"hdvicp1_sl2_ick",	&hdvicp1_sl2_ick,	CK_TI816X),
++	CLK(NULL,		"hdvicp2_ck",		&hdvicp2_ck,		CK_TI816X),
++	CLK(NULL,		"hdvicp2_sl2_ick",	&hdvicp2_sl2_ick,	CK_TI816X),
++	CLK(NULL,		"main_pll_clk4_ck",	&main_pll_clk4_ck,	CK_TI816X),
++	CLK(NULL,		"sysclk4_ck",		&sysclk4_ck,		CK_TI816X),
++	CLK(NULL,		"mmu_ick",		&mmu_ick,		CK_TI816X),
++	CLK(NULL,		"ducati_ucache_ick",	&ducati_ucache_ick,	CK_TI816X),
++	CLK(NULL,		"tpcc_ick",		&tpcc_ick,		CK_TI816X),
++	CLK(NULL,		"tptc0_ick",		&tptc0_ick,		CK_TI816X),
++	CLK(NULL,		"tptc1_ick",		&tptc1_ick,		CK_TI816X),
++	CLK(NULL,		"tptc2_ick",		&tptc2_ick,		CK_TI816X),
++	CLK(NULL,		"tptc3_ick",		&tptc3_ick,		CK_TI816X),
++	CLK(NULL,		"sysclk6_ck",		&sysclk6_ck,		CK_TI816X),
++	CLK(NULL,		"mmu_cfg_ick",		&mmu_cfg_ick,		CK_TI816X),
++	CLK(NULL,		"mailbox_ick",		&mailbox_ick,		CK_TI816X),
++	CLK(NULL,		"spinbox_ick",		&spinbox_ick,		CK_TI816X),
++	CLK(NULL,		"gem_vbusp_fck",	&gem_vbusp_fck,		CK_TI816X),
++	CLK(NULL,		"uart1_ick",		&uart1_ick,		CK_TI816X),
++	CLK(NULL,		"uart2_ick",		&uart2_ick,		CK_TI816X),
++	CLK(NULL,		"uart3_ick",		&uart3_ick,		CK_TI816X),
++	CLK("omap2_mcspi.1",	"ick",			&mcspi1_ick,		CK_TI816X),
++	CLK(NULL,		"gpt1_ick",		&gpt1_ick,		CK_TI816X),
++	CLK(NULL,		"gpt2_ick",		&gpt2_ick,		CK_TI816X),
++	CLK(NULL,		"gpt3_ick",		&gpt3_ick,		CK_TI816X),
++	CLK(NULL,		"gpt4_ick",		&gpt4_ick,		CK_TI816X),
++	CLK(NULL,		"gpt5_ick",		&gpt5_ick,		CK_TI816X),
++	CLK(NULL,		"gpt6_ick",		&gpt6_ick,		CK_TI816X),
++	CLK(NULL,		"gpt7_ick",		&gpt7_ick,		CK_TI816X),
++	CLK(NULL,		"gpmc_ick",		&gpmc_ick,		CK_TI816X),
++	CLK("i2c_omap.1",	"ick",			&i2c1_ick,		CK_TI816X),
++	CLK("i2c_omap.2",	"ick",			&i2c2_ick,		CK_TI816X),
++	CLK("mmci-omap-hs.0",	"ick",			&mmchs1_ick,		CK_TI816X),
++	CLK(NULL,		"ddr_pll_clk2_ck",	&ddr_pll_clk2_ck,	CK_TI816X),
++	CLK(NULL,		"sysclk10_ck",		&sysclk10_ck,		CK_TI816X),
++	CLK(NULL,		"uart1_fck",		&uart1_fck,		CK_TI816X),
++	CLK(NULL,		"uart2_fck",		&uart2_fck,		CK_TI816X),
++	CLK(NULL,		"uart3_fck",		&uart3_fck,		CK_TI816X),
++	CLK(NULL,		"usbotg_ick",		&usbotg_ick,		CK_TI816X),
++	CLK(NULL,		"sysclk5_ck",		&sysclk5_ck,		CK_TI816X),
++	CLK(NULL,		"pcie_ck",		&pcie_ck,		CK_TI816X),
++	CLK(NULL,		"sata_ick",		&sata_ick,		CK_TI816X),
++	CLK("davinci_emac.0",	NULL,			&emac1_ick,		CK_TI816X),
++	CLK("davinci_emac.1",	NULL,			&emac2_ick,		CK_TI816X),
++	CLK(NULL,		"ducati_ick",		&ducati_ick,		CK_TI816X),
++	CLK(NULL,		"gem_trc_fck",		&gem_trc_fck,		CK_TI816X),
++	CLK("omap2_mcspi.1",	"fck",			&mcspi1_fck,		CK_TI816X),
++	CLK(NULL,		"gpmc_fck",		&gpmc_fck,		CK_TI816X),
++	CLK("i2c_omap.1",	"fck",			&i2c1_fck,		CK_TI816X),
++	CLK("i2c_omap.2",	"fck",			&i2c2_fck,		CK_TI816X),
++	CLK("mmci-omap-hs.0",	"fck",			&mmchs1_fck,		CK_TI816X),
++	CLK(NULL,		"main_pll_clk5_ck",	&main_pll_clk5_ck,	CK_TI816X),
++	CLK(NULL,		"sysclk24_ck",		&sysclk24_ck,		CK_TI816X),
++	CLK(NULL,		"audio_pll_clk1_ck",	&audio_pll_clk1_ck,	CK_TI816X),
++	CLK(NULL,		"audio_pll_a_ck",	&audio_pll_a_ck,	CK_TI816X),
++	CLK(NULL,		"sysclk18_ck",		&sysclk18_ck,		CK_TI816X),
++	CLK(NULL,		"gpt1_fck",		&gpt1_fck,		CK_TI816X),
++	CLK(NULL,		"gpt2_fck",		&gpt2_fck,		CK_TI816X),
++	CLK(NULL,		"gpt3_fck",		&gpt3_fck,		CK_TI816X),
++	CLK(NULL,		"gpt4_fck",		&gpt4_fck,		CK_TI816X),
++	CLK(NULL,		"gpt5_fck",		&gpt5_fck,		CK_TI816X),
++	CLK(NULL,		"gpt6_fck",		&gpt6_fck,		CK_TI816X),
++	CLK(NULL,		"gpt7_fck",		&gpt7_fck,		CK_TI816X),
++	CLK("mmci-omap-hs.0",	"mmchsdb_fck",		&mmchsdb1_fck,		CK_TI816X),
++	CLK(NULL,		"audio_pll_clk3_ck",	&audio_pll_clk3_ck,	CK_TI816X),
++	CLK(NULL,		"sysclk20_ck",		&sysclk20_ck,		CK_TI816X),
++	CLK(NULL,		"audio_pll_clk4_ck",	&audio_pll_clk4_ck,	CK_TI816X),
++	CLK(NULL,		"sysclk21_ck",		&sysclk21_ck,		CK_TI816X),
++	CLK(NULL,		"audio_pll_clk5_ck",	&audio_pll_clk5_ck,	CK_TI816X),
++	CLK(NULL,		"sysclk22_ck",		&sysclk22_ck,		CK_TI816X),
++	CLK("davinci-mcasp.0",	NULL,			&mcasp0_fck,		CK_TI816X),
++	CLK("davinci-mcasp.1",	NULL,			&mcasp1_fck,		CK_TI816X),
++	CLK("davinci-mcasp.2",	NULL,			&mcasp2_fck,		CK_TI816X),
++};
++
++int __init ti816x_clk_init(void)
++{
++	struct omap_clk *c;
++	u32 cpu_clkflg;
++
++	cpu_mask = RATE_IN_TI816X;
++	cpu_clkflg = CK_TI816X;
++
++	clk_init(&omap2_clk_functions);
++
++	for (c = ti816x_clks; c < ti816x_clks + ARRAY_SIZE(ti816x_clks); c++)
++		clk_preinit(c->lk.clk);
++
++	for (c = ti816x_clks; c < ti816x_clks + ARRAY_SIZE(ti816x_clks); c++)
++		if (c->cpu & cpu_clkflg) {
++			clkdev_add(&c->lk);
++			clk_register(c->lk.clk);
++			omap2_init_clk_clkdm(c->lk.clk);
++		}
++
++	recalculate_root_clocks();
++	clk_enable_init_clocks();
++
++	return 0;
++}
+diff --git a/arch/arm/mach-omap2/cm-regbits-816x.h b/arch/arm/mach-omap2/cm-regbits-816x.h
+new file mode 100644
+index 0000000..681d467
+--- /dev/null
++++ b/arch/arm/mach-omap2/cm-regbits-816x.h
+@@ -0,0 +1,44 @@
++/*
++ * TI816X CM register bits.
++ *
++ * Copyright (C) 2010 Texas Instruments, Inc. - http://www.ti.com/
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation version 2.
++ *
++ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
++ * kind, whether express or implied; without even the implied warranty
++ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#ifndef __ARCH_ARM_MACH_OMAP2_CM_REGBITS_816X_H
++#define __ARCH_ARM_MACH_OMAP2_CM_REGBITS_816X_H
++
++#include "cm.h"
++
++#define TI816X_CLKSEL_0_0_SHIFT					0
++#define TI816X_CLKSEL_0_0_MASK					(1 << 0)
++
++#define TI816X_CLKSEL_0_1_SHIFT					0
++#define TI816X_CLKSEL_0_1_MASK					(3 << 0)
++
++#define TI816X_CLKSEL_0_2_SHIFT					0
++#define TI816X_CLKSEL_0_2_MASK					(7 << 0)
++
++/* Modulemode bit */
++#define TI816X_MODULEMODE_SWCTRL				1
++
++/* IDLEST bit */
++#define TI816X_IDLEST_SHIFT					16
++#define TI816X_IDLEST_MASK					(3 << 16)
++#define TI816X_IDLEST_VAL					3
++
++/* Used for clockdomain control */
++#define TI816X_CLKTRCTRL_SHIFT					0
++#define TI816X_CLKTRCTRL_MASK					(3 << 0)
++
++/* TODO: Add other specific CM register bits */
++
++#endif
 -- 
 1.7.3.5
 
