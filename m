@@ -1,127 +1,254 @@
 From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [PATCH/RFC 12/19] OMAP2+: powerdomain: add voltage domain lookup
- during register
-Date: Fri, 25 Mar 2011 10:18:06 +0100
-Message-ID: <AANLkTin4=SzfUawC5dk3dmNNPoFK93vT4D6+rP1+1X=T@mail.gmail.com>
+Subject: Re: [PATCH/RFC 13/19] OMAP2+: voltage: keep track of powerdomains in
+ each voltagedomain
+Date: Fri, 25 Mar 2011 10:22:12 +0100
+Message-ID: <AANLkTi=JD=QJKBWekHDW08JOxrvntmTfMfTK9Eq_xH9Y@mail.gmail.com>
 References: <1300924833-26745-1-git-send-email-khilman@ti.com>
-	<1300924833-26745-13-git-send-email-khilman@ti.com>
+	<1300924833-26745-14-git-send-email-khilman@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f174.google.com ([209.85.216.174]:36045 "EHLO
-	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753564Ab1CYJSH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Mar 2011 05:18:07 -0400
-Received: by qyk7 with SMTP id 7so5890457qyk.19
-        for <linux-omap@vger.kernel.org>; Fri, 25 Mar 2011 02:18:06 -0700 (PDT)
-In-Reply-To: <1300924833-26745-13-git-send-email-khilman@ti.com>
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:54392 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755637Ab1CYJWN convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Mar 2011 05:22:13 -0400
+Received: by qwk3 with SMTP id 3so491306qwk.19
+        for <linux-omap@vger.kernel.org>; Fri, 25 Mar 2011 02:22:12 -0700 (PDT)
+In-Reply-To: <1300924833-26745-14-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Kevin Hilman <khilman@ti.com>
 Cc: linux-omap@vger.kernel.org, Paul Walmsely <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>
 
 On Thu, Mar 24, 2011 at 1:00 AM, Kevin Hilman <khilman@ti.com> wrote:
-> When a powerdomain is registered, lookup the voltage domain by name
-> and keep a pointer to the containing voltagedomain in the powerdomain
-> structure.
+> When a powerdomain is registered and it has an associated voltage dom=
+ain,
+> add the powerdomain to the voltagedomain using voltdm_add_pwrdm().
 >
-> Modeled after similar method between powerdomain and clockdomain laye=
-rs.
+> Also add voltagedomain iterator helper functions to iterate over all
+> registered voltagedomains and all powerdomains associated with a
+> voltagedomain.
+>
+> Modeled after a similar relationship between clockdomains and powerdo=
+mains.
 >
 > Signed-off-by: Kevin Hilman <khilman@ti.com>
 > ---
-> =A0arch/arm/mach-omap2/powerdomain.c | =A0 21 +++++++++++++++++++++
-> =A0arch/arm/mach-omap2/powerdomain.h | =A0 =A01 +
-> =A0arch/arm/mach-omap2/voltage.h =A0 =A0 | =A0 =A01 +
-> =A03 files changed, 23 insertions(+), 0 deletions(-)
+> =A0arch/arm/mach-omap2/powerdomain.c | =A0 =A02 +
+> =A0arch/arm/mach-omap2/powerdomain.h | =A0 =A02 +
+> =A0arch/arm/mach-omap2/voltage.c =A0 =A0 | =A0 80 +++++++++++++++++++=
+++++++++++++++++++
+> =A0arch/arm/mach-omap2/voltage.h =A0 =A0 | =A0 15 +++++++
+> =A04 files changed, 99 insertions(+), 0 deletions(-)
 >
 > diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/=
 powerdomain.c
-> index 49c6513..8fccd4b 100644
+> index 8fccd4b..224272e 100644
 > --- a/arch/arm/mach-omap2/powerdomain.c
 > +++ b/arch/arm/mach-omap2/powerdomain.c
-> @@ -77,6 +77,7 @@ static struct powerdomain *_pwrdm_lookup(const char=
- *name)
-> =A0static int _pwrdm_register(struct powerdomain *pwrdm)
-> =A0{
-> =A0 =A0 =A0 =A0int i;
-> + =A0 =A0 =A0 struct voltagedomain *voltdm;
->
-> =A0 =A0 =A0 =A0if (!pwrdm || !pwrdm->name)
+> @@ -102,6 +102,8 @@ static int _pwrdm_register(struct powerdomain *pw=
+rdm)
 > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return -EINVAL;
-> @@ -94,6 +95,14 @@ static int _pwrdm_register(struct powerdomain *pwr=
-dm)
-> =A0 =A0 =A0 =A0if (_pwrdm_lookup(pwrdm->name))
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return -EEXIST;
+> =A0 =A0 =A0 =A0}
+> =A0 =A0 =A0 =A0pwrdm->voltdm.ptr =3D voltdm;
+> + =A0 =A0 =A0 INIT_LIST_HEAD(&pwrdm->voltdm_node);
+> + =A0 =A0 =A0 voltdm_add_pwrdm(voltdm, pwrdm);
 >
-> + =A0 =A0 =A0 voltdm =3D voltdm_lookup(pwrdm->voltdm.name);
-> + =A0 =A0 =A0 if (!voltdm) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_err("powerdomain: %s: voltagedomain =
-%s does not exist\n",
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pwrdm->name, pwrdm->volt=
-dm.name);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
-Per patch 10/19 some power domains do not have an associated voltage
-domain struct filled in. This will result in failure of the power
-domain registration. I think this is not expected.
-
-> + =A0 =A0 =A0 }
-> + =A0 =A0 =A0 pwrdm->voltdm.ptr =3D voltdm;
-> +
 > =A0 =A0 =A0 =A0list_add(&pwrdm->node, &pwrdm_list);
 >
-> =A0 =A0 =A0 =A0/* Initialize the powerdomain's state counter */
-> @@ -383,6 +392,18 @@ int pwrdm_for_each_clkdm(struct powerdomain *pwr=
-dm,
+> diff --git a/arch/arm/mach-omap2/powerdomain.h b/arch/arm/mach-omap2/=
+powerdomain.h
+> index 3a1ec37..6a4f71a 100644
+> --- a/arch/arm/mach-omap2/powerdomain.h
+> +++ b/arch/arm/mach-omap2/powerdomain.h
+> @@ -92,6 +92,7 @@ struct powerdomain;
+> =A0* @pwrsts_mem_on: Possible memory bank pwrstates when pwrdm in ON
+> =A0* @pwrdm_clkdms: Clockdomains in this powerdomain
+> =A0* @node: list_head linking all powerdomains
+> + * @voltdm_node: list_head linking all powerdomains in a voltagedoma=
+in
+> =A0* @state:
+> =A0* @state_counter:
+> =A0* @timer:
+> @@ -116,6 +117,7 @@ struct powerdomain {
+> =A0 =A0 =A0 =A0const u8 prcm_partition;
+> =A0 =A0 =A0 =A0struct clockdomain *pwrdm_clkdms[PWRDM_MAX_CLKDMS];
+> =A0 =A0 =A0 =A0struct list_head node;
+> + =A0 =A0 =A0 struct list_head voltdm_node;
+> =A0 =A0 =A0 =A0int state;
+> =A0 =A0 =A0 =A0unsigned state_counter[PWRDM_MAX_PWRSTS];
+> =A0 =A0 =A0 =A0unsigned ret_logic_off_counter;
+> diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/volt=
+age.c
+> index bc944ff..b1b5e38 100644
+> --- a/arch/arm/mach-omap2/voltage.c
+> +++ b/arch/arm/mach-omap2/voltage.c
+> @@ -36,6 +36,7 @@
+> =A0#include "control.h"
+>
+> =A0#include "voltage.h"
+> +#include "powerdomain.h"
+>
+> =A0#include "vc.h"
+> =A0#include "vp.h"
+> @@ -1085,11 +1086,90 @@ static struct voltagedomain *_voltdm_lookup(c=
+onst char *name)
+> =A0 =A0 =A0 =A0return voltdm;
 > =A0}
 >
-> =A0/**
-> + * pwrdm_get_voltdm - return a ptr to the voltdm that this pwrdm res=
-ides in
-> + * @pwrdm: struct powerdomain *
+> +/**
+> + * voltdm_add_pwrdm - add a powerdomain to a voltagedomain
+> + * @voltdm: struct voltagedomain * to add the powerdomain to
+> + * @pwrdm: struct powerdomain * to associate with a voltagedomain
 > + *
-> + * Return a pointer to the struct voltageomain that the specified po=
-werdomain
-> + * @pwrdm exists in.
+> + * Associate the powerdomain @pwrdm with a voltagedomain @voltdm. =A0=
+This
+> + * enables the use of voltdm_for_each_pwrdm(). =A0Returns -EINVAL if
+> + * presented with invalid pointers; -ENOMEM if memory could not be a=
+llocated;
+> + * or 0 upon success.
 > + */
-> +struct voltagedomain *pwrdm_get_voltdm(struct powerdomain *pwrdm)
+> +int voltdm_add_pwrdm(struct voltagedomain *voltdm, struct powerdomai=
+n *pwrdm)
 > +{
-> + =A0 =A0 =A0 return pwrdm->voltdm.ptr;
+> + =A0 =A0 =A0 if (!voltdm || !pwrdm)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
+> +
+> + =A0 =A0 =A0 pr_debug("voltagedomain: associating powerdomain %s wit=
+h voltagedomain "
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"%s\n", pwrdm->name, voltdm->name);
+> +
+> + =A0 =A0 =A0 list_add(&pwrdm->voltdm_node, &voltdm->pwrdm_list);
+> +
+> + =A0 =A0 =A0 return 0;
 > +}
 > +
 > +/**
-> =A0* pwrdm_get_mem_bank_count - get number of memory banks in this po=
-werdomain
-> =A0* @pwrdm: struct powerdomain *
-> =A0*
-> diff --git a/arch/arm/mach-omap2/powerdomain.h b/arch/arm/mach-omap2/=
-powerdomain.h
-> index cc03a0d..3a1ec37 100644
-> --- a/arch/arm/mach-omap2/powerdomain.h
-> +++ b/arch/arm/mach-omap2/powerdomain.h
-> @@ -183,6 +183,7 @@ int pwrdm_del_clkdm(struct powerdomain *pwrdm, st=
-ruct clockdomain *clkdm);
-> =A0int pwrdm_for_each_clkdm(struct powerdomain *pwrdm,
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 int (*fn)(struct powe=
-rdomain *pwrdm,
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 s=
-truct clockdomain *clkdm));
-> +struct voltagedomain *pwrdm_get_voltdm(struct powerdomain *pwrdm);
+> + * voltdm_for_each_pwrdm - call function for each pwrdm in a voltdm
+> + * @voltdm: struct voltagedomain * to iterate over
+> + * @fn: callback function *
+> + *
+> + * Call the supplied function @fn for each powerdomain in the
+> + * voltagedomain @voltdm. =A0Returns -EINVAL if presented with inval=
+id
+> + * pointers; or passes along the last return value of the callback
+> + * function, which should be 0 for success or anything else to
+> + * indicate failure.
+> + */
+> +int voltdm_for_each_pwrdm(struct voltagedomain *voltdm,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 int (*fn)(struct vo=
+ltagedomain *voltdm,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ struct powerdomain *pwrdm))
+> +{
+> + =A0 =A0 =A0 struct powerdomain *pwrdm;
+> + =A0 =A0 =A0 int ret =3D 0;
+> +
+> + =A0 =A0 =A0 if (!fn)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
+> +
+> + =A0 =A0 =A0 list_for_each_entry(pwrdm, &voltdm->pwrdm_list, voltdm_=
+node)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D (*fn)(voltdm, pwrdm);
+> +
+> + =A0 =A0 =A0 return ret;
+> +}
+> +
+> +/**
+> + * voltdm_for_each - call function on each registered voltagedomain
+> + * @fn: callback function *
+> + *
+> + * Call the supplied function @fn for each registered voltagedomain.
+> + * The callback function @fn can return anything but 0 to bail out
+> + * early from the iterator. =A0Returns the last return value of the
+> + * callback function, which should be 0 for success or anything else
+> + * to indicate failure; or -EINVAL if the function pointer is null.
+The function description does not match the prototype.
+
+> + */
+> +int voltdm_for_each(int (*fn)(struct voltagedomain *voltdm, void *us=
+er),
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 void *user)
+> +{
+> + =A0 =A0 =A0 struct voltagedomain *temp_voltdm;
+> + =A0 =A0 =A0 int ret =3D 0;
+> +
+> + =A0 =A0 =A0 if (!fn)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
+> +
+> + =A0 =A0 =A0 list_for_each_entry(temp_voltdm, &voltdm_list, node) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D (*fn)(temp_voltdm, user);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (ret)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+> + =A0 =A0 =A0 }
+> +
+> + =A0 =A0 =A0 return ret;
+> +}
+> +
+> =A0static int _voltdm_register(struct voltagedomain *voltdm)
+> =A0{
+> =A0 =A0 =A0 =A0if (!voltdm || !voltdm->name)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return -EINVAL;
 >
-> =A0int pwrdm_get_mem_bank_count(struct powerdomain *pwrdm);
+> + =A0 =A0 =A0 INIT_LIST_HEAD(&voltdm->pwrdm_list);
+> =A0 =A0 =A0 =A0list_add(&voltdm->node, &voltdm_list);
 >
+> =A0 =A0 =A0 =A0pr_debug("voltagedomain: registered %s\n", voltdm->nam=
+e);
 > diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/volt=
 age.h
-> index cacd76e..966aa88 100644
+> index 966aa88..df8d234 100644
 > --- a/arch/arm/mach-omap2/voltage.h
 > +++ b/arch/arm/mach-omap2/voltage.h
-> @@ -186,4 +186,5 @@ extern void omap44xx_voltagedomains_init(void);
+> @@ -19,6 +19,13 @@
+> =A0#include "vc.h"
+> =A0#include "vp.h"
 >
+> +struct powerdomain;
+> +
+> +/*
+> + * Maximum number of powerdomains that can be associated with a volt=
+agedomain.
+> + */
+> +#define VOLTDM_MAX_PWRDMS =A0 =A0 =A0 =A0 =A0 =A0 10
+This is not used in the patch. Is it needed?
+
+> +
+> =A0/* XXX document */
+> =A0#define VOLTSCALE_VPFORCEUPDATE =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A01
+> =A0#define VOLTSCALE_VCBYPASS =A0 =A0 =A0 =A0 =A0 =A0 2
+> @@ -55,12 +62,15 @@ struct omap_vfsm_instance_data {
+> =A0* @name: Name of the voltage domain which can be used as a unique =
+identifier.
+> =A0* @scalable: Whether or not this voltage domain is scalable
+> =A0* @node: list_head linking all voltage domains
+> + * @pwrdm_node: list_head linking all powerdomains in this voltagedo=
+main
+> =A0* @vdd: to be removed
+> + * @pwrdms: powerdomains in this voltagedomain
+> =A0*/
+> =A0struct voltagedomain {
+> =A0 =A0 =A0 =A0char *name;
+> =A0 =A0 =A0 =A0bool scalable;
+> =A0 =A0 =A0 =A0struct list_head node;
+> + =A0 =A0 =A0 struct list_head pwrdm_list;
+> =A0 =A0 =A0 =A0struct omap_vdd_info *vdd;
+> =A0};
+>
+> @@ -187,4 +197,9 @@ extern void omap44xx_voltagedomains_init(void);
 > =A0struct voltagedomain *voltdm_lookup(const char *name);
 > =A0void voltdm_init(struct voltagedomain **voltdm_list);
-> +int voltdm_add_pwrdm(struct voltagedomain *voltdm, struct powerdomai=
-n *pwrdm);
+> =A0int voltdm_add_pwrdm(struct voltagedomain *voltdm, struct powerdom=
+ain *pwrdm);
+> +int voltdm_for_each(int (*fn)(struct voltagedomain *voltdm, void *us=
+er),
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 void *user);
+> +int voltdm_for_each_pwrdm(struct voltagedomain *voltdm,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 int (*fn)(struct vo=
+ltagedomain *voltdm,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ struct powerdomain *pwrdm));
 > =A0#endif
 > --
 > 1.7.4
