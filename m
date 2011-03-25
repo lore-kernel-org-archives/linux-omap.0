@@ -1,21 +1,24 @@
 From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 Subject: [PATCH 0/4] iommu: Prevent oops in iommu_get() and while arch_iommu
  is in use
-Date: Fri, 25 Mar 2011 17:13:10 +0200
-Message-ID: <4D8CB106.7030608@maxwell.research.nokia.com>
+Date: Fri, 25 Mar 2011 17:17:43 +0200
+Message-ID: <4D8CB217.1050909@maxwell.research.nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:63879 "EHLO mgw-sa01.nokia.com"
+Received: from smtp.nokia.com ([147.243.128.24]:63732 "EHLO mgw-da01.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750922Ab1CYPNQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 25 Mar 2011 11:13:16 -0400
+	id S1750881Ab1CYPRv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 25 Mar 2011 11:17:51 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Doyu Hiroshi (Nokia-D/Helsinki)" <hiroshi.doyu@nokia.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Cohen
 
 Hi,
+
+[Resend: the patches were accidentally sent to linux-media instead.
+Apologies.]
 
 This patchset is aimed to fix a problem in arch_iommu implementation
 references. When an actual arch_iommu implementation is not loaded while
