@@ -1,62 +1,55 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH v2 00/19] OMAP4: PM: Suspend, CPU-hotplug and CPUilde support.
-Date: Fri, 25 Mar 2011 12:35:00 +0530
-Message-ID: <86f296cd6f86c03bc066efaf7cf2b537@mail.gmail.com>
-References: <1299766095-23879-1-git-send-email-santosh.shilimkar@ti.com><87d3lycu0h.fsf@ti.com><49a5273c412bf9193a9f930e990d22d4@mail.gmail.com><87pqpxbqho.fsf@ti.com>
- <87mxkk1rni.fsf@ti.com>
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: Re: 2.6.38 not booting on sbc8100 (aka devkit8000)
+Date: Fri, 25 Mar 2011 09:13:16 +0200
+Message-ID: <20110325091316.8a39d71a.jhnikula@gmail.com>
+References: <AANLkTikAO+FA+0fCNiVj=9wVZ3t+vfx9tJX_SnJ7FGSd@mail.gmail.com>
+	<20110324151844.GT2811@atomide.com>
+	<AANLkTik8PW4ad2_4=UxzvL-V7HcpH0=dg-Un5NLkj6Yi@mail.gmail.com>
+	<20110324190030.GW2811@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:36406 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932268Ab1CYHFH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 25 Mar 2011 03:05:07 -0400
-Received: by gwj22 with SMTP id 22so425234gwj.21
-        for <linux-omap@vger.kernel.org>; Fri, 25 Mar 2011 00:05:06 -0700 (PDT)
-In-Reply-To: <87mxkk1rni.fsf@ti.com>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:54422 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932237Ab1CYHMs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Mar 2011 03:12:48 -0400
+Received: by eyx24 with SMTP id 24so388420eyx.19
+        for <linux-omap@vger.kernel.org>; Fri, 25 Mar 2011 00:12:47 -0700 (PDT)
+In-Reply-To: <20110324190030.GW2811@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Belisko Marek <marek.belisko@gmail.com>, linux-omap@vger.kernel.org
 
-Kevin,
-> -----Original Message-----
-> From: Kevin Hilman [mailto:khilman@ti.com]
-> Sent: Thursday, March 24, 2011 8:40 PM
-> To: Santosh Shilimkar
-> Cc: linux-omap@vger.kernel.org; Rajendra Nayak; linux-arm-
-> kernel@lists.infradead.org
-> Subject: Re: [PATCH v2 00/19] OMAP4: PM: Suspend, CPU-hotplug and
-> CPUilde support.
->
+On Thu, 24 Mar 2011 12:00:30 -0700
+Tony Lindgren <tony@atomide.com> wrote:
 
-[...]
+> * Belisko Marek <marek.belisko@gmail.com> [110324 08:18]:
+> > On Thu, Mar 24, 2011 at 4:18 PM, Tony Lindgren <tony@atomide.com> wrote:
+> > 
+> > > * Belisko Marek <marek.belisko@gmail.com> [110324 02:50]:
+> > > > Hi,
+> > > >
+> > > > Try to run 2.6.38 on my sbc8100
+> > > > (use mach-type for devkit8000 because boards are similar) board but
+> > > > when u-boot load it to ram I see just:
+...
+> > > Can you enable DEBUG_LL and EARLY_PRINTK in your .config
+> > > and add earlyprintk to your cmdline? Then you should see
+> > > what goes wrong.
+> > >
+> > Forgot to mention. I already test this options but result is same like I
+> > report in
+> > first email.
+> 
+> Maybe add some printk statements to start_kernel function in
+> init/main.c and see if you get any output?
+> 
+For earlyprintk worth to check also
+arch/arm/plat-omap/include/plat/uncompress.h that there is entry for
+sbc8100 (double check with devkit8000 as there is entry for it and if
+you are re-using the mach-type).
 
->
-> Hi Santosh,
->
-> Can you rebase and repost your v3 series, I'd like to get this
-> queued up early in the 2.6.40 dev cycle.
->
-> You can base on my current pm-core branch, which also has Russell's
-> devel-stable branch merged in.
->
-I pulled your latest pm-core branch
-------
-commit 61cbb3172176b84c106bf0f4c32317c472932ab5
-Merge: d0cf394... da19719...
-Author: Kevin Hilman <khilman@ti.com>
-Date:   Wed Mar 23 16:33:01 2011 -0700
-
-    Merge branch 'for_2.6.40/pm-misc' into pm-reset
------------------
-Looks like Russell's devel branch isn't merged in pm-core.
-I didn't find the relevant patches.
-
-By the way the relevant ARM patches are already in
-mainline. So if the pm-core is rebased against latest
-mainline, we can get those changes as well.
-
-Regards,
-Santosh
+-- 
+Jarkko
