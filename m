@@ -1,40 +1,39 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] omap: hwmod: add syss reset done flags to omap2, omap3
- hwmods
-Date: Fri, 25 Mar 2011 11:24:31 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1103251124040.21987@utopia.booyaka.com>
-References: <1298542123-3654-1-git-send-email-avinashhm@ti.com> <alpine.DEB.2.00.1103031427580.10981@utopia.booyaka.com> <20110314161609.GA10506@avinash-laptop> <alpine.DEB.2.00.1103242336410.21987@utopia.booyaka.com> <20110325062534.GA25480@avinash-laptop>
- <20110325072035.GB25480@avinash-laptop>
+From: Sergei Shtylyov <sshtylyov@mvista.com>
+Subject: Re: [PATCH] OMAP: iovmm: fix SW flags passed by user
+Date: Fri, 25 Mar 2011 20:30:14 +0300
+Message-ID: <4D8CD126.6000405@ru.mvista.com>
+References: <1301071572-25251-1-git-send-email-omar.ramirez@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:42411 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750971Ab1CYRYc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Mar 2011 13:24:32 -0400
-In-Reply-To: <20110325072035.GB25480@avinash-laptop>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:59028 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753065Ab1CYRbx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Mar 2011 13:31:53 -0400
+Received: by eyx24 with SMTP id 24so559871eyx.19
+        for <linux-omap@vger.kernel.org>; Fri, 25 Mar 2011 10:31:52 -0700 (PDT)
+In-Reply-To: <1301071572-25251-1-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Avinash.H.M." <avinashhm@ti.com>
-Cc: linux-omap@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>
+To: Omar Ramirez Luna <omar.ramirez@ti.com>
+Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Tony Lindgren <tony@atomide.com>, l-o <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, David Cohen <dacohen@gmail.com>, lak <linux-arm-kernel@lists.infradead.org>
 
-On Fri, 25 Mar 2011, Avinash.H.M. wrote:
+Hello.
 
-> On Fri, Mar 25, 2011 at 11:56:34AM +0530, Avinash.H.M. wrote:
-> 
-> I am able to reproduce the issue. I am seeing the timeout prints for
-> i2c, gpio during bootup. I ll check why softreset is failing.
-> 
-> [    0.208892] omap_hwmod: i2c1: softreset failed (waited 10000 usec)
-> [    0.223114] omap_hwmod: i2c2: softreset failed (waited 10000 usec)
-> [    0.237335] omap_hwmod: i2c3: softreset failed (waited 10000 usec)
-> [    0.251525] omap_hwmod: gpio2: softreset failed (waited 10000 usec)
-> [    0.265594] omap_hwmod: gpio3: softreset failed (waited 10000 usec)
-> [    0.279693] omap_hwmod: gpio4: softreset failed (waited 10000 usec)
-> [    0.293762] omap_hwmod: gpio5: softreset failed (waited 10000 usec)
-> [    0.307861] omap_hwmod: gpio6: softreset failed (waited 10000 usec)
+Omar Ramirez Luna wrote:
 
-Just FYI, I don't see the gpio softreset failures on my boards here.
+> Commit d038aee24dcd changes iovmm to receive flags specified by user,
 
+    Please also specify that commit's summary for the human readers. Bare ID is 
+only usable to gitweb...
 
-- Paul
+> however the upper 16 bits of the flags are wiped by iovmm itself.
+
+> This fixes IOVMF_DA_FIXED flags from being lost, and lets the user
+> map its desired "device addresses".
+
+> Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
+
+WBR, Sergei
+
