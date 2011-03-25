@@ -1,37 +1,62 @@
-From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: RE: [PATCH v12 4/9] OMAP2+: dmtimer: convert to platform devices
-Date: Fri, 25 Mar 2011 12:25:35 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB037A7E21D7@dbde02.ent.ti.com>
-References: <87oc5ifu12.fsf@ti.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB037A4DD948@dbde02.ent.ti.com>
- <20110311191324.GE10079@atomide.com> <87d3lx5hoo.fsf@ti.com>
- <20110314171240.GB7258@atomide.com> <8762rhtnje.fsf@ti.com>
- <20110319002719.GF18583@atomide.com>
- <b65bf7960033964fba8f03e774b46905@mail.gmail.com>
- <20110321170758.GF2811@atomide.com> <87sjuge31n.fsf@ti.com>
- <20110321191114.GH2811@atomide.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH v2 00/19] OMAP4: PM: Suspend, CPU-hotplug and CPUilde support.
+Date: Fri, 25 Mar 2011 12:35:00 +0530
+Message-ID: <86f296cd6f86c03bc066efaf7cf2b537@mail.gmail.com>
+References: <1299766095-23879-1-git-send-email-santosh.shilimkar@ti.com><87d3lycu0h.fsf@ti.com><49a5273c412bf9193a9f930e990d22d4@mail.gmail.com><87pqpxbqho.fsf@ti.com>
+ <87mxkk1rni.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:53584 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932268Ab1CYGzt convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Mar 2011 02:55:49 -0400
-In-Reply-To: <20110321191114.GH2811@atomide.com>
-Content-Language: en-US
+Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:36406 "EHLO
+	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932268Ab1CYHFH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 25 Mar 2011 03:05:07 -0400
+Received: by gwj22 with SMTP id 22so425234gwj.21
+        for <linux-omap@vger.kernel.org>; Fri, 25 Mar 2011 00:05:06 -0700 (PDT)
+In-Reply-To: <87mxkk1rni.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>
-Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gopinath, Thara" <thara@ti.com>
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, linux-arm-kernel@lists.infradead.org
 
-Hi Tony,
+Kevin,
+> -----Original Message-----
+> From: Kevin Hilman [mailto:khilman@ti.com]
+> Sent: Thursday, March 24, 2011 8:40 PM
+> To: Santosh Shilimkar
+> Cc: linux-omap@vger.kernel.org; Rajendra Nayak; linux-arm-
+> kernel@lists.infradead.org
+> Subject: Re: [PATCH v2 00/19] OMAP4: PM: Suspend, CPU-hotplug and
+> CPUilde support.
+>
+
 [...]
-> Well the dmtimer code can then become just a regular platform_device
-> based driver, except for clockevent and clocksource on omap2 & 3.
-Should I re-post the patch series with removal of duplicate initialization
-Which Kevin pointed out + other relevant comments?
-Or, wait for your patch series!
---
-Tarun
-[...]
+
+>
+> Hi Santosh,
+>
+> Can you rebase and repost your v3 series, I'd like to get this
+> queued up early in the 2.6.40 dev cycle.
+>
+> You can base on my current pm-core branch, which also has Russell's
+> devel-stable branch merged in.
+>
+I pulled your latest pm-core branch
+------
+commit 61cbb3172176b84c106bf0f4c32317c472932ab5
+Merge: d0cf394... da19719...
+Author: Kevin Hilman <khilman@ti.com>
+Date:   Wed Mar 23 16:33:01 2011 -0700
+
+    Merge branch 'for_2.6.40/pm-misc' into pm-reset
+-----------------
+Looks like Russell's devel branch isn't merged in pm-core.
+I didn't find the relevant patches.
+
+By the way the relevant ARM patches are already in
+mainline. So if the pm-core is rebased against latest
+mainline, we can get those changes as well.
+
+Regards,
+Santosh
