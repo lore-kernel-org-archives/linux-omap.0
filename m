@@ -1,87 +1,61 @@
-From: Hema Kalliguddi <hemahk-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH 1/2] usb: otg: OMAP4430: Fix omap4430_phy_init function
-Date: Fri, 25 Mar 2011 12:48:15 +0530
-Message-ID: <481a54d509a321c24d039fcd1b1d685f@mail.gmail.com>
-References: <1300964764-6794-1-git-send-email-hemahk@ti.com> <4D8B4482.4040506@ru.mvista.com>
+From: "Avinash.H.M." <avinashhm@ti.com>
+Subject: Re: [PATCH] omap: hwmod: add syss reset done flags to omap2, omap3
+ hwmods
+Date: Fri, 25 Mar 2011 12:50:35 +0530
+Message-ID: <20110325072035.GB25480@avinash-laptop>
+References: <1298542123-3654-1-git-send-email-avinashhm@ti.com>
+ <alpine.DEB.2.00.1103031427580.10981@utopia.booyaka.com>
+ <20110314161609.GA10506@avinash-laptop>
+ <alpine.DEB.2.00.1103242336410.21987@utopia.booyaka.com>
+ <20110325062534.GA25480@avinash-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4D8B4482.4040506-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:46586 "EHLO
+	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933067Ab1CYHUq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 25 Mar 2011 03:20:46 -0400
+Received: by mail-gw0-f44.google.com with SMTP id 20so366061gwb.3
+        for <linux-omap@vger.kernel.org>; Fri, 25 Mar 2011 00:20:45 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <20110325062534.GA25480@avinash-laptop>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>
 
-Hi,
+On Fri, Mar 25, 2011 at 11:56:34AM +0530, Avinash.H.M. wrote:
+> On Thu, Mar 24, 2011 at 11:38:15PM -0600, Paul Walmsley wrote:
 
->-----Original Message-----
->From: Sergei Shtylyov [mailto:sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org]
->Sent: Thursday, March 24, 2011 6:48 PM
->To: Hema HK
->Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->Subject: Re: [PATCH 1/2] usb: otg: OMAP4430: Fix
->omap4430_phy_init function
->
->Hello.
->
->On 24-03-2011 14:06, Hema HK wrote:
->
->> omap4430_phy_init() function can be called with no device pointer
->> to powerdown the UTMI PHY during board init when USB is disabled.
->> Fix the function accordingly.
->
->> Signed-off-by: Hema HK<hemahk-l0cyMroinI0@public.gmane.org>
->> ---
->>   arch/arm/mach-omap2/omap_phy_internal.c |   44
->++++++++++++++++--------------
->>   1 files changed, 23 insertions(+), 21 deletions(-)
->
->> diff --git a/arch/arm/mach-omap2/omap_phy_internal.c
->b/arch/arm/mach-omap2/omap_phy_internal.c
->> index e2e605f..a959e2f 100644
->> --- a/arch/arm/mach-omap2/omap_phy_internal.c
->> +++ b/arch/arm/mach-omap2/omap_phy_internal.c
->> @@ -50,34 +50,36 @@ int omap4430_phy_init(struct device *dev)
->>   {
->>   	ctrl_base = ioremap(OMAP443X_SCM_BASE, SZ_1K);
->>   	if (!ctrl_base) {
->> -		dev_err(dev, "control module ioremap failed\n");
->> +		printk(KERN_ERR "control module ioremap failed\n");
->
->    Use pr_err().
+[snip]
 
-This is fixed in the next version of the patch submitted yesterday.
+> This patch is causing I2C softreset timeouts in the hwmod layer on OMAP2 
+> > and 3.  Could you please take a look at this and figure out what is going 
+> > on?
+> 
+> I ll start looking at this. I have a 3430 ES3.1 SDP, where i will check the
+> difference in behaviour with this patch. 
+> 
+> BTW, is there a test case which i should run to produce 'I2C softreset
+> timeouts' ? Can you give more information on how to reproduce the issue
+> ?.
 
->
->>   		return -ENOMEM;
->>   	}
->>   	/* Power down the phy */
->>   	__raw_writel(PHY_PD, ctrl_base + CONTROL_DEV_CONF);
->> -	phyclk = clk_get(dev, "ocp2scp_usb_phy_ick");
->>
->> -	if (IS_ERR(phyclk)) {
->> -		dev_err(dev, "cannot clk_get ocp2scp_usb_phy_ick\n");
->> -		iounmap(ctrl_base);
->> -		return PTR_ERR(phyclk);
->> -	}
->> +	if (dev) {
->> +		phyclk = clk_get(dev, "ocp2scp_usb_phy_ick");
->
->    Couldn't clk_get() be called with NULL device ptr?
+Hi paul, 
 
-Can be called with NULL pointer, but there will be issue with dev_err.
-And moreover, when there is no device built, there is no point in getting
-the clocks.
+I am able to reproduce the issue. I am seeing the timeout prints for
+i2c, gpio during bootup. I ll check why softreset is failing.
 
-This function is called with NULL dev pointer only when there is no
-device built but has to powerdown the PHY.
+[    0.208892] omap_hwmod: i2c1: softreset failed (waited 10000 usec)
+[    0.223114] omap_hwmod: i2c2: softreset failed (waited 10000 usec)
+[    0.237335] omap_hwmod: i2c3: softreset failed (waited 10000 usec)
+[    0.251525] omap_hwmod: gpio2: softreset failed (waited 10000 usec)
+[    0.265594] omap_hwmod: gpio3: softreset failed (waited 10000 usec)
+[    0.279693] omap_hwmod: gpio4: softreset failed (waited 10000 usec)
+[    0.293762] omap_hwmod: gpio5: softreset failed (waited 10000 usec)
+[    0.307861] omap_hwmod: gpio6: softreset failed (waited 10000 usec)
 
-Regards,
-Hema
->
->WBR, Sergei
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+br,
+
+- avinash
+
+> 
