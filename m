@@ -1,79 +1,73 @@
-From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: [PATCH] OMAP: iovmm: fix SW flags passed by user
-Date: Fri, 25 Mar 2011 10:46:12 -0600
-Message-ID: <1301071572-25251-1-git-send-email-omar.ramirez@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] omap: hwmod: add syss reset done flags to omap2, omap3
+ hwmods
+Date: Fri, 25 Mar 2011 11:23:38 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1103251121060.21987@utopia.booyaka.com>
+References: <1298542123-3654-1-git-send-email-avinashhm@ti.com> <alpine.DEB.2.00.1103031427580.10981@utopia.booyaka.com> <20110314161609.GA10506@avinash-laptop> <alpine.DEB.2.00.1103242336410.21987@utopia.booyaka.com> <4D8CA9C4.3060504@ti.com>
+Mime-Version: 1.0
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-1728999152-1301073818=:21987"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:41253 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753139Ab1CYQ6M (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 25 Mar 2011 12:58:12 -0400
+Received: from utopia.booyaka.com ([72.9.107.138]:42403 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750881Ab1CYRXk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Mar 2011 13:23:40 -0400
+In-Reply-To: <4D8CA9C4.3060504@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Tony Lindgren <tony@atomide.com>
-Cc: Russell King <linux@arm.linux.org.uk>, Omar Ramirez Luna <omar.ramirez@ti.com>, David Cohen <dacohen@gmail.com>, l-o <linux-omap@vger.kernel.org>, lak <linux-arm-kernel@lists.infradead.org>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "Mahadeva, Avinash" <avinashhm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nayak, Rajendra" <rnayak@ti.com>, "Hilman, Kevin" <khilman@ti.com>
 
-Commit d038aee24dcd changes iovmm to receive flags specified by user,
-however the upper 16 bits of the flags are wiped by iovmm itself.
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-This fixes IOVMF_DA_FIXED flags from being lost, and lets the user
-map its desired "device addresses".
+--155748971-1728999152-1301073818=:21987
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
----
- arch/arm/plat-omap/include/plat/iovmm.h |    3 ---
- arch/arm/plat-omap/iovmm.c              |    4 ----
- 2 files changed, 0 insertions(+), 7 deletions(-)
+Hi,
 
-diff --git a/arch/arm/plat-omap/include/plat/iovmm.h b/arch/arm/plat-omap/include/plat/iovmm.h
-index 32a2f6c..e992b96 100644
---- a/arch/arm/plat-omap/include/plat/iovmm.h
-+++ b/arch/arm/plat-omap/include/plat/iovmm.h
-@@ -29,9 +29,6 @@ struct iovm_struct {
-  * lower 16 bit is used for h/w and upper 16 bit is for s/w.
-  */
- #define IOVMF_SW_SHIFT		16
--#define IOVMF_HW_SIZE		(1 << IOVMF_SW_SHIFT)
--#define IOVMF_HW_MASK		(IOVMF_HW_SIZE - 1)
--#define IOVMF_SW_MASK		(~IOVMF_HW_MASK)UL
- 
- /*
-  * iovma: h/w flags derived from cam and ram attribute
-diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
-index 51ef43e..83a37c5 100644
---- a/arch/arm/plat-omap/iovmm.c
-+++ b/arch/arm/plat-omap/iovmm.c
-@@ -648,7 +648,6 @@ u32 iommu_vmap(struct iommu *obj, u32 da, const struct sg_table *sgt,
- 			return PTR_ERR(va);
- 	}
- 
--	flags &= IOVMF_HW_MASK;
- 	flags |= IOVMF_DISCONT;
- 	flags |= IOVMF_MMIO;
- 
-@@ -706,7 +705,6 @@ u32 iommu_vmalloc(struct iommu *obj, u32 da, size_t bytes, u32 flags)
- 	if (!va)
- 		return -ENOMEM;
- 
--	flags &= IOVMF_HW_MASK;
- 	flags |= IOVMF_DISCONT;
- 	flags |= IOVMF_ALLOC;
- 
-@@ -795,7 +793,6 @@ u32 iommu_kmap(struct iommu *obj, u32 da, u32 pa, size_t bytes,
- 	if (!va)
- 		return -ENOMEM;
- 
--	flags &= IOVMF_HW_MASK;
- 	flags |= IOVMF_LINEAR;
- 	flags |= IOVMF_MMIO;
- 
-@@ -853,7 +850,6 @@ u32 iommu_kmalloc(struct iommu *obj, u32 da, size_t bytes, u32 flags)
- 		return -ENOMEM;
- 	pa = virt_to_phys(va);
- 
--	flags &= IOVMF_HW_MASK;
- 	flags |= IOVMF_LINEAR;
- 	flags |= IOVMF_ALLOC;
- 
--- 
-1.7.1
+On Fri, 25 Mar 2011, Cousson, Benoit wrote:
 
+> On 3/25/2011 6:38 AM, Paul Walmsley wrote:
+> > > > On Thu, 24 Feb 2011, Avinash.H.M wrote:
+> > > > > Some of the omap2, omap3 peripherals support software reset. This
+> > > > > can be done through the softreset bit in sysconfig register.
+> > > > > The reset status can be checked through resetdone bit of
+> > > > > sysstatus register. syss_has_reset_status is added to the hwmod
+> > > > > database of peripherals which have resetdone bit in sysstatus
+> > > > > register.
+> > > > >=20
+> > > > > Cc: Rajendra Nayak<rnayak@ti.com>
+> > > > > Cc: Paul Walmsley<paul@pwsan.com>
+> > > > > Cc: Benoit Cousson<b-cousson@ti.com>
+> > > > > Cc: Kevin Hilman<khilman@ti.com>
+> > > > > Reviewed-by: Govindraj.R<govindraj.raja@ti.com>
+> > > > > Signed-off-by: Avinash.H.M<avinashhm@ti.com>
+> >=20
+> > This patch is causing I2C softreset timeouts in the hwmod layer on OMAP=
+2
+> > and 3.  Could you please take a look at this and figure out what is goi=
+ng
+> > on?
+>=20
+> I think this is probably due to the nasty I2C softreset bug with discusse=
+d
+> last year with Paul Brady.
+>=20
+> AFAIR, the I2C cannot be reset by just writing to the SYSCONFIG softreset=
+ bit.
+> You need to play with other registers too.
+
+Thanks Beno=EEt.
+
+So then, Avinash, you might need to create a custom hwmod class=20
+reset function for the I2C block (viz., struct omap_hwmod_class.reset)
+
+> Avinash,
+> You should try to look at 3430 or 3630 errata. You will probably find the=
+ bug
+> I'm referring to.
+
+
+- Paul
+--155748971-1728999152-1301073818=:21987--
