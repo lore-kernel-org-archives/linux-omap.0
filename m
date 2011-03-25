@@ -1,57 +1,44 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH/RFC 12/19] OMAP2+: powerdomain: add voltage domain lookup during register
-Date: Fri, 25 Mar 2011 08:52:52 -0700
-Message-ID: <87r59vtcx7.fsf@ti.com>
-References: <1300924833-26745-1-git-send-email-khilman@ti.com>
-	<1300924833-26745-13-git-send-email-khilman@ti.com>
-	<AANLkTin4=SzfUawC5dk3dmNNPoFK93vT4D6+rP1+1X=T@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v12 4/9] OMAP2+: dmtimer: convert to platform devices
+Date: Fri, 25 Mar 2011 08:55:49 -0700
+Message-ID: <20110325155549.GZ2811@atomide.com>
+References: <20110311191324.GE10079@atomide.com>
+ <87d3lx5hoo.fsf@ti.com>
+ <20110314171240.GB7258@atomide.com>
+ <8762rhtnje.fsf@ti.com>
+ <20110319002719.GF18583@atomide.com>
+ <b65bf7960033964fba8f03e774b46905@mail.gmail.com>
+ <20110321170758.GF2811@atomide.com>
+ <87sjuge31n.fsf@ti.com>
+ <20110321191114.GH2811@atomide.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB037A7E21D7@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:53416 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753747Ab1CYPxY convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 25 Mar 2011 11:53:24 -0400
-Received: by mail-pv0-f176.google.com with SMTP id 37so222006pve.21
-        for <linux-omap@vger.kernel.org>; Fri, 25 Mar 2011 08:52:55 -0700 (PDT)
-In-Reply-To: <AANLkTin4=SzfUawC5dk3dmNNPoFK93vT4D6+rP1+1X=T@mail.gmail.com>
-	(Jean Pihet's message of "Fri, 25 Mar 2011 10:18:06 +0100")
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:20772 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753999Ab1CYPzx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Mar 2011 11:55:53 -0400
+Content-Disposition: inline
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB037A7E21D7@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: linux-omap@vger.kernel.org, Paul Walmsely <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>
+To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Cc: "Hilman, Kevin" <khilman@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gopinath, Thara" <thara@ti.com>
 
-Jean Pihet <jean.pihet@newoldbits.com> writes:
+* DebBarma, Tarun Kanti <tarun.kanti@ti.com> [110324 23:53]:
+> Hi Tony,
+> [...]
+> > Well the dmtimer code can then become just a regular platform_device
+> > based driver, except for clockevent and clocksource on omap2 & 3.
+> Should I re-post the patch series with removal of duplicate initialization
+> Which Kevin pointed out + other relevant comments?
+> Or, wait for your patch series!
 
-[...]
+Just wait few days please, I should have something available that mostly
+deals with timer-gp.c, so it should not cause too many issues with your
+patches.
 
->> @@ -94,6 +95,14 @@ static int _pwrdm_register(struct powerdomain *pw=
-rdm)
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0if (_pwrdm_lookup(pwrdm->name))
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0return -EEXIS=
-T;
->>
->> + =C2=A0 =C2=A0 =C2=A0 voltdm =3D voltdm_lookup(pwrdm->voltdm.name);
->> + =C2=A0 =C2=A0 =C2=A0 if (!voltdm) {
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 pr_err("powerdoma=
-in: %s: voltagedomain %s does not exist\n",
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0pwrdm->name, pwrdm->voltdm.name);
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return -EINVAL;
->
-> Per patch 10/19 some power domains do not have an associated voltage
-> domain struct filled in. This will result in failure of the power
-> domain registration. I think this is not expected.
->
+Thanks,
 
-Right.  I'll fix up the changelog in patch 10.  Now, all powerdomains
-are required to have a voltage domain.
-
-Kevin
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
