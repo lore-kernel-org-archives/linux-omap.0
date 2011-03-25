@@ -1,51 +1,98 @@
-From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Subject: Re: [PATCH] OMAP: iovmm: fix SW flags passed by user
-Date: Fri, 25 Mar 2011 12:36:57 -0500
-Message-ID: <AANLkTikV37gmmf5sRQ98EzOL6K7JNvDy9gfCWbR=747k@mail.gmail.com>
-References: <1301071572-25251-1-git-send-email-omar.ramirez@ti.com>
-	<4D8CD126.6000405@ru.mvista.com>
+From: Patrick Radius <info@notoyota.nl>
+Subject: Re: OMAP 3430 Camera/ISP out of memory error
+Date: Fri, 25 Mar 2011 20:01:33 +0100
+Message-ID: <1301079693.25083.8.camel@kaas>
+References: <1301050377.25083.2.camel@kaas>
+	 <4D8C7B62.9010701@maxwell.research.nokia.com>
+	 <1301052893.25083.3.camel@kaas>
+	 <BANLkTik5MCZXWT5mAeAyL8Uh5eGE85-Ynw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:44887 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751360Ab1CYRg6 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 25 Mar 2011 13:36:58 -0400
-Received: by mail-wy0-f182.google.com with SMTP id 23so2018329wyf.27
-        for <linux-omap@vger.kernel.org>; Fri, 25 Mar 2011 10:36:57 -0700 (PDT)
-In-Reply-To: <4D8CD126.6000405@ru.mvista.com>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:64062 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751831Ab1CYTCF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Mar 2011 15:02:05 -0400
+Received: by wya21 with SMTP id 21so1364713wya.19
+        for <linux-omap@vger.kernel.org>; Fri, 25 Mar 2011 12:02:04 -0700 (PDT)
+In-Reply-To: <BANLkTik5MCZXWT5mAeAyL8Uh5eGE85-Ynw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sergei Shtylyov <sshtylyov@mvista.com>
-Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Tony Lindgren <tony@atomide.com>, l-o <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, David Cohen <dacohen@gmail.com>, lak <linux-arm-kernel@lists.infradead.org>
+To: David Cohen <dacohen@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
-On Fri, Mar 25, 2011 at 12:30 PM, Sergei Shtylyov <sshtylyov@mvista.com=
-> wrote:
-> Hello.
->
-> Omar Ramirez Luna wrote:
->
->> Commit d038aee24dcd changes iovmm to receive flags specified by user=
-,
->
-> =A0 Please also specify that commit's summary for the human readers. =
-Bare ID
-> is only usable to gitweb...
+Thanks,
 
-Here it is the patch, introducing the change:
+I'm looking at
+http://gitorious.org/linux-omap/mainline/trees/master/drivers/media/video
 
-https://patchwork.kernel.org/patch/620871/
+however, I can't seem to find the drivers I need.
+I only see omap24xxcam while I was using the omap34xxcam from Linux
+kernel 2.6.32.9.
+And I also don't see any M-4MO driver anymore.
+I'm probably looking at the wrong spot, but...
 
-If accepted by Hiroshi, I can update the description making reference
-to this patch instead of commit.
+As you can tell, I'm fairly new with OMAP programming.
+
+Thanks!
 
 Regards,
+Patrick
 
-Omar
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On vr, 2011-03-25 at 16:34 +0200, David Cohen wrote:
+> Hi,
+> 
+> On Fri, Mar 25, 2011 at 1:34 PM, Patrick Radius <info@notoyota.nl> wrote:
+> > Ok, thanks!
+> > However, I'm also quite curious about peoples thoughts about it from
+> > here.
+> > Since I think what's happing is quite OMAP specific.
+> > For example, I was wondering where omap34xxcam.c gets it's memory it
+> > should allocate from.
+> > Is it the 'main' memory? Or does it share memory with a framebuffer
+> > (overlay)? Or memory from the (M-4MO) sensor?
+> > Is it possible I should allocate memory for it as boot argument? similar
+> > like vmem=16M omapfb.vram=0:8M
+> >
+> > I can't find much information about this all...
+> 
+> You're using an old version of the driver. Please, use the newer one
+> available in mainline.
+> 
+> Regards,
+> 
+> David Cohen
+> 
+> >
+> > On vr, 2011-03-25 at 13:24 +0200, Sakari Ailus wrote:
+> >> Patrick Radius wrote:
+> >> > Hi,
+> >>
+> >> Hi Patrick,
+> >>
+> >> I think this question will get better answered in the linux-media list.
+> >> Cc it.
+> >>
+> >> > i'm trying to get camera support working on a relatively new Android
+> >> > port to an OMAP 3430 based phone (Samsung GT-i8320 a.k.a. Samsung H1).
+> >> > However calls to VIDIOC_REQBUFS fail with a -12 (OUT OF MEMORY).
+> >> > As far as I can see this return error isn't even supposed to exist,
+> >> > according to the V4L2 spec.
+> >> > I'm using the code from Android on the Zoom2.
+> >> > The sensor is a Fujitsu M-4MO.
+> >> >
+> >> > Any ideas on what could be wrong with the out of memory result?
+> >>
+> >> First of all, which version of the driver are you using, i.e. is it the
+> >> current one going to upstream?
+> >>
+> >
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
+
+
