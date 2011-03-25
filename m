@@ -1,44 +1,75 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v12 4/9] OMAP2+: dmtimer: convert to platform devices
-Date: Fri, 25 Mar 2011 08:55:49 -0700
-Message-ID: <20110325155549.GZ2811@atomide.com>
-References: <20110311191324.GE10079@atomide.com>
- <87d3lx5hoo.fsf@ti.com>
- <20110314171240.GB7258@atomide.com>
- <8762rhtnje.fsf@ti.com>
- <20110319002719.GF18583@atomide.com>
- <b65bf7960033964fba8f03e774b46905@mail.gmail.com>
- <20110321170758.GF2811@atomide.com>
- <87sjuge31n.fsf@ti.com>
- <20110321191114.GH2811@atomide.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB037A7E21D7@dbde02.ent.ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH/RFC 13/19] OMAP2+: voltage: keep track of powerdomains in each voltagedomain
+Date: Fri, 25 Mar 2011 08:56:20 -0700
+Message-ID: <87hbartcrf.fsf@ti.com>
+References: <1300924833-26745-1-git-send-email-khilman@ti.com>
+	<1300924833-26745-14-git-send-email-khilman@ti.com>
+	<AANLkTi=JD=QJKBWekHDW08JOxrvntmTfMfTK9Eq_xH9Y@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:20772 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753999Ab1CYPzx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Mar 2011 11:55:53 -0400
-Content-Disposition: inline
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB037A7E21D7@dbde02.ent.ti.com>
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:53447 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753999Ab1CYP4Y convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 25 Mar 2011 11:56:24 -0400
+Received: by iyb12 with SMTP id 12so2496772iyb.1
+        for <linux-omap@vger.kernel.org>; Fri, 25 Mar 2011 08:56:23 -0700 (PDT)
+In-Reply-To: <AANLkTi=JD=QJKBWekHDW08JOxrvntmTfMfTK9Eq_xH9Y@mail.gmail.com>
+	(Jean Pihet's message of "Fri, 25 Mar 2011 10:22:12 +0100")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Cc: "Hilman, Kevin" <khilman@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gopinath, Thara" <thara@ti.com>
+To: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: linux-omap@vger.kernel.org, Paul Walmsely <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>
 
-* DebBarma, Tarun Kanti <tarun.kanti@ti.com> [110324 23:53]:
-> Hi Tony,
-> [...]
-> > Well the dmtimer code can then become just a regular platform_device
-> > based driver, except for clockevent and clocksource on omap2 & 3.
-> Should I re-post the patch series with removal of duplicate initialization
-> Which Kevin pointed out + other relevant comments?
-> Or, wait for your patch series!
+Jean Pihet <jean.pihet@newoldbits.com> writes:
 
-Just wait few days please, I should have something available that mostly
-deals with timer-gp.c, so it should not cause too many issues with your
-patches.
+[...]
+
+>> +
+>> +/**
+>> + * voltdm_for_each - call function on each registered voltagedomain
+>> + * @fn: callback function *
+>> + *
+>> + * Call the supplied function @fn for each registered voltagedomain=
+=2E
+>> + * The callback function @fn can return anything but 0 to bail out
+>> + * early from the iterator. =C2=A0Returns the last return value of =
+the
+>> + * callback function, which should be 0 for success or anything els=
+e
+>> + * to indicate failure; or -EINVAL if the function pointer is null.
+>
+> The function description does not match the prototype.
+>
+
+in what way?
+
+the description is wrong in how it describes the "bail out" but I don't
+see what you mean for the prototype.
+
+[...]
+
+>>
+>> +struct powerdomain;
+>> +
+>> +/*
+>> + * Maximum number of powerdomains that can be associated with a vol=
+tagedomain.
+>> + */
+>> +#define VOLTDM_MAX_PWRDMS =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ 10
+> This is not used in the patch. Is it needed?
+>
+
+Nope.  Will drop.
 
 Thanks,
 
-Tony
+Kevin
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
