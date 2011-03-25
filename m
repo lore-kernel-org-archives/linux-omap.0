@@ -1,23 +1,23 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH/RFC 10/19] OMAP3: powerdomain data: add voltage domains
-Date: Fri, 25 Mar 2011 08:51:00 -0700
-Message-ID: <87wrjntd0b.fsf@ti.com>
+Subject: Re: [PATCH/RFC 12/19] OMAP2+: powerdomain: add voltage domain lookup during register
+Date: Fri, 25 Mar 2011 08:52:52 -0700
+Message-ID: <87r59vtcx7.fsf@ti.com>
 References: <1300924833-26745-1-git-send-email-khilman@ti.com>
-	<1300924833-26745-11-git-send-email-khilman@ti.com>
-	<AANLkTinQXj63xHUs2yX1kjwYOXbj+vCQrZXJBAc6Wo7i@mail.gmail.com>
+	<1300924833-26745-13-git-send-email-khilman@ti.com>
+	<AANLkTin4=SzfUawC5dk3dmNNPoFK93vT4D6+rP1+1X=T@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:58391 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753984Ab1CYPvE convert rfc822-to-8bit
+Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:53416 "EHLO
+	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753747Ab1CYPxY convert rfc822-to-8bit
 	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 25 Mar 2011 11:51:04 -0400
-Received: by mail-iy0-f176.google.com with SMTP id 1so872964iym.35
-        for <linux-omap@vger.kernel.org>; Fri, 25 Mar 2011 08:51:02 -0700 (PDT)
-In-Reply-To: <AANLkTinQXj63xHUs2yX1kjwYOXbj+vCQrZXJBAc6Wo7i@mail.gmail.com>
-	(Jean Pihet's message of "Fri, 25 Mar 2011 10:09:42 +0100")
+	Fri, 25 Mar 2011 11:53:24 -0400
+Received: by mail-pv0-f176.google.com with SMTP id 37so222006pve.21
+        for <linux-omap@vger.kernel.org>; Fri, 25 Mar 2011 08:52:55 -0700 (PDT)
+In-Reply-To: <AANLkTin4=SzfUawC5dk3dmNNPoFK93vT4D6+rP1+1X=T@mail.gmail.com>
+	(Jean Pihet's message of "Fri, 25 Mar 2011 10:18:06 +0100")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Jean Pihet <jean.pihet@newoldbits.com>
@@ -25,22 +25,29 @@ Cc: linux-omap@vger.kernel.org, Paul Walmsely <paul@pwsan.com>, Benoit Cousson <
 
 Jean Pihet <jean.pihet@newoldbits.com> writes:
 
-> On Thu, Mar 24, 2011 at 1:00 AM, Kevin Hilman <khilman@ti.com> wrote:
->> Add voltage domain name to indicate which voltagedomain each
->> powerdomain is in. =C2=A0A missing voltage domain name means that th=
-at
->> powerdomain is not in one of the currently scalable voltage domains.
+[...]
+
+>> @@ -94,6 +95,14 @@ static int _pwrdm_register(struct powerdomain *pw=
+rdm)
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0if (_pwrdm_lookup(pwrdm->name))
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0return -EEXIS=
+T;
+>>
+>> + =C2=A0 =C2=A0 =C2=A0 voltdm =3D voltdm_lookup(pwrdm->voltdm.name);
+>> + =C2=A0 =C2=A0 =C2=A0 if (!voltdm) {
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 pr_err("powerdoma=
+in: %s: voltagedomain %s does not exist\n",
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0pwrdm->name, pwrdm->voltdm.name);
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return -EINVAL;
 >
-> Is that the role of the 'scalable' flag? Why not fill in all
-> powerdomain structs and set the flag on scalable VDs only?
+> Per patch 10/19 some power domains do not have an associated voltage
+> domain struct filled in. This will result in failure of the power
+> domain registration. I think this is not expected.
 >
 
-Yes.
-
-This changelog was written before I added the scalable flag.  Will fix
-up the changelog.
-
-Thanks,
+Right.  I'll fix up the changelog in patch 10.  Now, all powerdomains
+are required to have a voltage domain.
 
 Kevin
 --
