@@ -1,57 +1,50 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH] omap: hwmod: add syss reset done flags to omap2, omap3
- hwmods
-Date: Fri, 25 Mar 2011 15:42:12 +0100
-Message-ID: <4D8CA9C4.3060504@ti.com>
-References: <1298542123-3654-1-git-send-email-avinashhm@ti.com> <alpine.DEB.2.00.1103031427580.10981@utopia.booyaka.com> <20110314161609.GA10506@avinash-laptop> <alpine.DEB.2.00.1103242336410.21987@utopia.booyaka.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [RFC PATCH 1/2] OMAP2+: add cpu id register to MAC address helper
+Date: Fri, 25 Mar 2011 15:50:25 +0100
+Message-ID: <201103251550.26117.arnd@arndb.de>
+References: <20110324211451.14936.39750.stgit@otae.warmcat.com> <201103251424.47141.arnd@arndb.de> <4D8C99CC.5020103@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:59366 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752059Ab1CYOmA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 25 Mar 2011 10:42:00 -0400
-In-Reply-To: <alpine.DEB.2.00.1103242336410.21987@utopia.booyaka.com>
+Received: from moutng.kundenserver.de ([212.227.126.171]:51506 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753701Ab1CYOuh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Mar 2011 10:50:37 -0400
+In-Reply-To: <4D8C99CC.5020103@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "Mahadeva, Avinash" <avinashhm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nayak, Rajendra" <rnayak@ti.com>, "Hilman, Kevin" <khilman@ti.com>
+To: andy.green@linaro.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, patches@linaro.org, nicolas.pitre@linaro.org, x0132446@ti.com, s-jan@ti.com, tony@atomide.com
 
-Hi Paul,
+On Friday 25 March 2011, Andy Green wrote:
+> I see.  It would work OK then.  They probably wouldn't want to blow 
+> their $1750 just on Panda though, so maybe they set 4 bits or whatever 
+> and let 20 be computed.
 
-On 3/25/2011 6:38 AM, Paul Walmsley wrote:
-> Hi Avinash,
->
->>> On Thu, 24 Feb 2011, Avinash.H.M wrote:
->>>
->>>> Some of the omap2, omap3 peripherals support software reset. This
->>>> can be done through the softreset bit in sysconfig register.
->>>> The reset status can be checked through resetdone bit of
->>>> sysstatus register. syss_has_reset_status is added to the hwmod
->>>> database of peripherals which have resetdone bit in sysstatus register.
->>>>
->>>> Cc: Rajendra Nayak<rnayak@ti.com>
->>>> Cc: Paul Walmsley<paul@pwsan.com>
->>>> Cc: Benoit Cousson<b-cousson@ti.com>
->>>> Cc: Kevin Hilman<khilman@ti.com>
->>>> Reviewed-by: Govindraj.R<govindraj.raja@ti.com>
->>>> Signed-off-by: Avinash.H.M<avinashhm@ti.com>
->
-> This patch is causing I2C softreset timeouts in the hwmod layer on OMAP2
-> and 3.  Could you please take a look at this and figure out what is going
-> on?
+Well, if the algorithm is defined well, it could be used for any device
+based on OMAP. The marketing department could turn this into a win by
+declaring "does not require external EEPROM for ethernet mac address" ;-)
+ 
+> However, the only practical advantage is that it would show up as a TI 
+> MAC in an OUI database.  The "locally administered" address as used at 
+> the moment is otherwise legal in every respect AFAIK.
 
-I think this is probably due to the nasty I2C softreset bug with 
-discussed last year with Paul Brady.
+It should work almost always, except in very special corner cases:
 
-AFAIR, the I2C cannot be reset by just writing to the SYSCONFIG 
-softreset bit. You need to play with other registers too.
+* If you have a netboot setup, you want the boot loader to use the
+same mac address for requesting the kernel image that you use later,
+otherwise the switch might consider it a MAC spoofing attach and disable
+the port. The obvious workaround is to put your code into the boot loader
+as well.
 
-Avinash,
-You should try to look at 3430 or 3630 errata. You will probably find 
-the bug I'm referring to.
+* Some environments might be configured to disallow locally administered
+MAC addresses for "security" reasons. A bit bogus, but not unheard of.
 
+* Some places try to keep a database of all used machines and their MAC
+addresses to monitor who connects to the network. This requires the address
+to be stable. It also prevents the use of virtualization, so it's becoming
+less common.
 
-Benoit
-
+	Arnd
