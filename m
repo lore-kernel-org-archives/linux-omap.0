@@ -1,57 +1,47 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH/RFC 00/19] OMAP: voltage layer cleanup and restructure
-Date: Fri, 25 Mar 2011 17:20:56 -0700
-Message-ID: <87mxkipw9j.fsf@ti.com>
-References: <1300924833-26745-1-git-send-email-khilman@ti.com>
-	<87lj04xe2t.fsf@ti.com> <4D8CA8A6.8060102@ti.com>
-	<alpine.DEB.2.00.1103251338580.21987@utopia.booyaka.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Omar Ramirez Luna <omar.ramirez@ti.com>
+Subject: [PATCH] OMAP3: l3: fix for "irq 10: nobody cared" message
+Date: Fri, 25 Mar 2011 18:29:56 -0600
+Message-ID: <1301099396-30380-1-git-send-email-omar.ramirez@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:43564 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932395Ab1CZAVB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 25 Mar 2011 20:21:01 -0400
-Received: by mail-iy0-f171.google.com with SMTP id 20so1404131iyi.2
-        for <linux-omap@vger.kernel.org>; Fri, 25 Mar 2011 17:20:58 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.1103251338580.21987@utopia.booyaka.com> (Paul
-	Walmsley's message of "Fri, 25 Mar 2011 17:02:40 -0600 (MDT)")
+Received: from comal.ext.ti.com ([198.47.26.152]:49152 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932136Ab1CZAlZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 25 Mar 2011 20:41:25 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Russell King <linux@arm.linux.org.uk>, l-o <linux-omap@vger.kernel.org>, lak <linux-arm-kernel@lists.infradead.org>, sricharan <r.sricharan@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Felipe Balbi <balbi@ti.com>, Benoit Cousson <b-cousson@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>
 
-Paul Walmsley <paul@pwsan.com> writes:
+If an error occurs in the L3 on any other initiator than MPU,
+the interrupt goes unhandled given that the 'base' register
+was calculated with the initialized err_base value (which
+coincidentally points to MPU) and not with the actual source
+of the error.
 
-> Hi Kevin
->
-> you might want to consider renaming 
->
-> OMAP3_PRM_VC_VDD_MPU_ID
->
-> etc. to something like:
->
-> OMAP3_VC_VDD_MPU_ID
->
-> and to define those in some vc.h header file.
+Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
+---
+ arch/arm/mach-omap2/omap_l3_smx.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-OK
+diff --git a/arch/arm/mach-omap2/omap_l3_smx.c b/arch/arm/mach-omap2/omap_l3_smx.c
+index 5f2da75..da917c2 100644
+--- a/arch/arm/mach-omap2/omap_l3_smx.c
++++ b/arch/arm/mach-omap2/omap_l3_smx.c
+@@ -196,11 +196,12 @@ static irqreturn_t omap3_l3_app_irq(int irq, void *_l3)
+ 		/* No timeout error for debug sources */
+ 	}
+ 
+-	base = ((l3->rt) + (*(omap3_l3_bases[int_type] + err_source)));
+-
+ 	/* identify the error source */
+ 	for (err_source = 0; !(status & (1 << err_source)); err_source++)
+ 									;
++
++	base = ((l3->rt) + (*(omap3_l3_bases[int_type] + err_source)));
++
+ 	error = omap3_l3_readll(base, L3_ERROR_LOG);
+ 
+ 	if (error) {
+-- 
+1.7.1
 
-> Also, I'd suggest moving the struct omap_prm_vc_ops assignments out of the 
-> prm*.c code into the vcXXXX_data.c files, ideally into some initcall, and 
-> renaming the struct omap_prm_vc_ops to simply struct omap_vc_ops.
-
-OK
-
-> As long as the VC's low-level registers are in the PRM, those reads/writes 
-> should happen through PRM code, IMHO.
-
-OK, what I will probably do then is at least create some
-omapX_prm_vc_read/write/rmw functions in prmXXXX.c.  The prototypes for
-these will be identical for OMAP3 & 4, so the read/writes can be called
-from SoC independent code (via func ptrs) as needed.
-
-I'll try this approach on Monday.
-
-Kevin
