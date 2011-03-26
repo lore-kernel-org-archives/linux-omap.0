@@ -1,59 +1,29 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] omap-fixes for -rc1
-Date: Sat, 26 Mar 2011 12:00:52 -0700
-Message-ID: <20110326190052.GB571@atomide.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] omap: hwmod: add syss reset done flags to omap2, omap3
+ hwmods
+Date: Sat, 26 Mar 2011 13:38:47 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1103261300570.1437@utopia.booyaka.com>
+References: <1298542123-3654-1-git-send-email-avinashhm@ti.com> <alpine.DEB.2.00.1103031427580.10981@utopia.booyaka.com> <20110314161609.GA10506@avinash-laptop> <alpine.DEB.2.00.1103242336410.21987@utopia.booyaka.com> <20110325062534.GA25480@avinash-laptop>
+ <20110325072035.GB25480@avinash-laptop> <alpine.DEB.2.00.1103251124040.21987@utopia.booyaka.com> <20110326113538.GB3668@avinash-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:49041 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753431Ab1CZTis (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 26 Mar 2011 15:38:48 -0400
+In-Reply-To: <20110326113538.GB3668@avinash-laptop>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Avinash.H.M." <avinashhm@ti.com>
+Cc: linux-omap@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>
 
-Hi Linus,
+On Sat, 26 Mar 2011, Avinash.H.M. wrote:
 
-Please pull omap fixes from:
+> Which boards are you testing? 
 
-git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes-for-linus
-
-This series includes a fix for GPMC (General Purpose Memory Controller)
-interrupts to work for omap2 and 4 in addition to omap3, and get
-rid of the related warnings. It also fixes a mystery shutdown issue
-on Panda board by removing unused regulators. Other fixes are quite
-trivial, also included is the change to make hwspinlock depend on
-ARCH_OMAP4.
-
-Regards,
-
-Tony
+GPIO softreset warnings don't show up on either N800 or BeagleBoard 35xx 
+as of commit 4047185.
 
 
-The following changes since commit 16c29dafcc86024048f1dbb8349d31cb22c7c55a:
-
-  Merge branch 'syscore' of git://git.kernel.org/pub/scm/linux/kernel/git/rafael/suspend-2.6 (2011-03-25 21:07:59 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes-for-linus
-
-Aaro Koskinen (2):
-      arm: mach-omap2: devices: fix omap3_l3_init() return value
-      arm: mach-omap2: omap_l3_smx: fix irq handler setup
-
-Balaji T K (1):
-      ARM: OMAP2+: Fix warnings for GPMC interrupt
-
-David Anders (1):
-      OMAP4: PandaBoard: remove unused power regulators
-
-Ohad Ben-Cohen (1):
-      hwspinlock: depend on OMAP4
-
- arch/arm/mach-omap2/board-omap4panda.c |   28 ----------------------------
- arch/arm/mach-omap2/devices.c          |    2 +-
- arch/arm/mach-omap2/gpmc.c             |   13 ++++++++-----
- arch/arm/mach-omap2/omap_l3_smx.c      |   11 ++++-------
- arch/arm/plat-omap/include/plat/irqs.h |    2 +-
- drivers/hwspinlock/Kconfig             |    1 +
- 6 files changed, 15 insertions(+), 42 deletions(-)
+- Paul
