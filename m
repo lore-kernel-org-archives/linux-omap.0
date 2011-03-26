@@ -1,60 +1,133 @@
-From: "Avinash.H.M." <avinashhm@ti.com>
-Subject: Re: [PATCH] omap: hwmod: add syss reset done flags to omap2, omap3
- hwmods
-Date: Sat, 26 Mar 2011 17:05:38 +0530
-Message-ID: <20110326113538.GB3668@avinash-laptop>
-References: <1298542123-3654-1-git-send-email-avinashhm@ti.com>
- <alpine.DEB.2.00.1103031427580.10981@utopia.booyaka.com>
- <20110314161609.GA10506@avinash-laptop>
- <alpine.DEB.2.00.1103242336410.21987@utopia.booyaka.com>
- <20110325062534.GA25480@avinash-laptop>
- <20110325072035.GB25480@avinash-laptop>
- <alpine.DEB.2.00.1103251124040.21987@utopia.booyaka.com>
+From: David Cohen <dacohen@gmail.com>
+Subject: Re: OMAP 3430 Camera/ISP out of memory error
+Date: Sat, 26 Mar 2011 15:16:46 +0200
+Message-ID: <AANLkTimizTZvkHk=FeSM3hN0O2E42q1wZQNM9NZ7s8AH@mail.gmail.com>
+References: <1301050377.25083.2.camel@kaas>
+	<4D8C7B62.9010701@maxwell.research.nokia.com>
+	<1301052893.25083.3.camel@kaas>
+	<BANLkTik5MCZXWT5mAeAyL8Uh5eGE85-Ynw@mail.gmail.com>
+	<1301079693.25083.8.camel@kaas>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:58596 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752196Ab1CZLfy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Sat, 26 Mar 2011 07:35:54 -0400
-Received: by iym7 with SMTP id 7so2472998iym.24
-        for <linux-omap@vger.kernel.org>; Sat, 26 Mar 2011 04:35:53 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1103251124040.21987@utopia.booyaka.com>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:45174 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751323Ab1CZNQr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 26 Mar 2011 09:16:47 -0400
+Received: by wwa36 with SMTP id 36so2264646wwa.1
+        for <linux-omap@vger.kernel.org>; Sat, 26 Mar 2011 06:16:46 -0700 (PDT)
+In-Reply-To: <1301079693.25083.8.camel@kaas>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>
+To: Patrick Radius <info@notoyota.nl>
+Cc: linux-omap@vger.kernel.org
 
-On Fri, Mar 25, 2011 at 11:24:31AM -0600, Paul Walmsley wrote:
-> On Fri, 25 Mar 2011, Avinash.H.M. wrote:
-> 
-> > On Fri, Mar 25, 2011 at 11:56:34AM +0530, Avinash.H.M. wrote:
-> > 
-> > I am able to reproduce the issue. I am seeing the timeout prints for
-> > i2c, gpio during bootup. I ll check why softreset is failing.
-> > 
-> > [    0.208892] omap_hwmod: i2c1: softreset failed (waited 10000 usec)
-> > [    0.223114] omap_hwmod: i2c2: softreset failed (waited 10000 usec)
-> > [    0.237335] omap_hwmod: i2c3: softreset failed (waited 10000 usec)
-> > [    0.251525] omap_hwmod: gpio2: softreset failed (waited 10000 usec)
-> > [    0.265594] omap_hwmod: gpio3: softreset failed (waited 10000 usec)
-> > [    0.279693] omap_hwmod: gpio4: softreset failed (waited 10000 usec)
-> > [    0.293762] omap_hwmod: gpio5: softreset failed (waited 10000 usec)
-> > [    0.307861] omap_hwmod: gpio6: softreset failed (waited 10000 usec)
-> 
-> Just FYI, I don't see the gpio softreset failures on my boards here.
-> 
+On Fri, Mar 25, 2011 at 9:01 PM, Patrick Radius <info@notoyota.nl> wrot=
+e:
+> Thanks,
+>
+> I'm looking at
+> http://gitorious.org/linux-omap/mainline/trees/master/drivers/media/v=
+ideo
+>
+> however, I can't seem to find the drivers I need.
+> I only see omap24xxcam while I was using the omap34xxcam from Linux
+> kernel 2.6.32.9.
+> And I also don't see any M-4MO driver anymore.
+> I'm probably looking at the wrong spot, but...
 
-Hi Paul,
+You need to get an up-to-date mainline kernel. The driver is in the
+directory: drivers/media/video/omap3isp/
+I don't recommend you to use 2.6.32, as it depends on some new V4L2
+stuff which you won't natively find in such old kernel version. I also
+suggest you to CC linux-media@vger.kernel.org as well in next
+questions.
 
-Which boards are you testing? 
+Br,
 
-To be doubly sure, i ll confirm if the issue is board specific or not,
-by testing on another 3430 sdp.
+David
 
-- Avinash
-
-> 
-> - Paul
+>
+> As you can tell, I'm fairly new with OMAP programming.
+>
+> Thanks!
+>
+> Regards,
+> Patrick
+>
+> On vr, 2011-03-25 at 16:34 +0200, David Cohen wrote:
+>> Hi,
+>>
+>> On Fri, Mar 25, 2011 at 1:34 PM, Patrick Radius <info@notoyota.nl> w=
+rote:
+>> > Ok, thanks!
+>> > However, I'm also quite curious about peoples thoughts about it fr=
+om
+>> > here.
+>> > Since I think what's happing is quite OMAP specific.
+>> > For example, I was wondering where omap34xxcam.c gets it's memory =
+it
+>> > should allocate from.
+>> > Is it the 'main' memory? Or does it share memory with a framebuffe=
+r
+>> > (overlay)? Or memory from the (M-4MO) sensor?
+>> > Is it possible I should allocate memory for it as boot argument? s=
+imilar
+>> > like vmem=3D16M omapfb.vram=3D0:8M
+>> >
+>> > I can't find much information about this all...
+>>
+>> You're using an old version of the driver. Please, use the newer one
+>> available in mainline.
+>>
+>> Regards,
+>>
+>> David Cohen
+>>
+>> >
+>> > On vr, 2011-03-25 at 13:24 +0200, Sakari Ailus wrote:
+>> >> Patrick Radius wrote:
+>> >> > Hi,
+>> >>
+>> >> Hi Patrick,
+>> >>
+>> >> I think this question will get better answered in the linux-media=
+ list.
+>> >> Cc it.
+>> >>
+>> >> > i'm trying to get camera support working on a relatively new An=
+droid
+>> >> > port to an OMAP 3430 based phone (Samsung GT-i8320 a.k.a. Samsu=
+ng H1).
+>> >> > However calls to VIDIOC_REQBUFS fail with a -12 (OUT OF MEMORY)=
+=2E
+>> >> > As far as I can see this return error isn't even supposed to ex=
+ist,
+>> >> > according to the V4L2 spec.
+>> >> > I'm using the code from Android on the Zoom2.
+>> >> > The sensor is a Fujitsu M-4MO.
+>> >> >
+>> >> > Any ideas on what could be wrong with the out of memory result?
+>> >>
+>> >> First of all, which version of the driver are you using, i.e. is =
+it the
+>> >> current one going to upstream?
+>> >>
+>> >
+>> >
+>> > --
+>> > To unsubscribe from this list: send the line "unsubscribe linux-om=
+ap" in
+>> > the body of a message to majordomo@vger.kernel.org
+>> > More majordomo info at =C2=A0http://vger.kernel.org/majordomo-info=
+=2Ehtml
+>> >
+>
+>
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
