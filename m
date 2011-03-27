@@ -1,50 +1,96 @@
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: Re: [PATCH 0/4] iommu: Prevent oops in iommu_get() and while arch_iommu
- is in use
-Date: Sun, 27 Mar 2011 20:27:41 +0300
-Message-ID: <4D8F738D.3090100@maxwell.research.nokia.com>
-References: <4D8CB106.7030608@maxwell.research.nokia.com> <AANLkTikxd4kRu1+XskohhQzpqHaZTvK+afbgE-qRSOqN@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH 3/7] ARM / Integrator: Use struct syscore_ops for "core" power management
+Date: Mon, 28 Mar 2011 01:27:47 +0200
+Message-ID: <201103280127.47342.rjw@sisk.pl>
+References: <201103280125.11750.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.48]:27488 "EHLO mgw-sa02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753481Ab1C0RZh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 27 Mar 2011 13:25:37 -0400
-In-Reply-To: <AANLkTikxd4kRu1+XskohhQzpqHaZTvK+afbgE-qRSOqN@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <201103280125.11750.rjw@sisk.pl>
+Sender: linux-kernel-owner@vger.kernel.org
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: Greg KH <gregkh@suse.de>, Kay Sievers <kay.sievers@suse.de>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, linux-arm-kernel@lists.infradead.org, Ben Dooks <ben-linux@fluff.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Doyu Hiroshi (Nokia-D/Helsinki)" <hiroshi.doyu@nokia.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Cohen David Abraham <david.cohen@nokia.com>
 
-Ramirez Luna, Omar wrote:
-> On Fri, Mar 25, 2011 at 10:13 AM, Sakari Ailus
-> <sakari.ailus@maxwell.research.nokia.com> wrote:
->> Hi,
->>
->> This patchset is aimed to fix a problem in arch_iommu implementation
->> references. When an actual arch_iommu implementation is not loaded while
->> iommu_get() is being called results to a kernel oops, as well as
->> removing an arch_iommu implementation which is in use.
-> 
-> How about fixing the dependency instead? Right now iommu2 depends on
-> iommu because of the calls to
-> install_iommu_arch/uninstall_iommu_arch... we should change that
-> dependency to iommu depend on iommu2. Something like iommu (plat)
-> querying iommu2 (mach) for devices to install.
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-There is no direct dependency from a driver using the generic API to a
-particular implementation of the iommu. This comes from the design of
-the iommu framework. The generic layer shouldn't depend on particular
-implementation(s).
+Replace the sysdev class and struct sys_device used for power
+management by the Integrator interrupt-handling code with a
+struct syscore_ops object which is simpler.
 
-What comes to the patch, it works as long as there's only one iommu
-implementation loaded / compiled to the kernel. I wonder if this kind of
-limitation can be accepted.
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
+ arch/arm/mach-integrator/integrator_ap.c |   26 +++++++++-----------------
+ 1 file changed, 9 insertions(+), 17 deletions(-)
 
-Regards,
-
--- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
+Index: linux-2.6/arch/arm/mach-integrator/integrator_ap.c
+===================================================================
+--- linux-2.6.orig/arch/arm/mach-integrator/integrator_ap.c
++++ linux-2.6/arch/arm/mach-integrator/integrator_ap.c
+@@ -24,7 +24,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/slab.h>
+ #include <linux/string.h>
+-#include <linux/sysdev.h>
++#include <linux/syscore_ops.h>
+ #include <linux/amba/bus.h>
+ #include <linux/amba/kmi.h>
+ #include <linux/clocksource.h>
+@@ -180,13 +180,13 @@ static void __init ap_init_irq(void)
+ #ifdef CONFIG_PM
+ static unsigned long ic_irq_enable;
+ 
+-static int irq_suspend(struct sys_device *dev, pm_message_t state)
++static int irq_suspend(void)
+ {
+ 	ic_irq_enable = readl(VA_IC_BASE + IRQ_ENABLE);
+ 	return 0;
+ }
+ 
+-static int irq_resume(struct sys_device *dev)
++static void irq_resume(void)
+ {
+ 	/* disable all irq sources */
+ 	writel(-1, VA_CMIC_BASE + IRQ_ENABLE_CLEAR);
+@@ -194,33 +194,25 @@ static int irq_resume(struct sys_device
+ 	writel(-1, VA_IC_BASE + FIQ_ENABLE_CLEAR);
+ 
+ 	writel(ic_irq_enable, VA_IC_BASE + IRQ_ENABLE_SET);
+-	return 0;
+ }
+ #else
+ #define irq_suspend NULL
+ #define irq_resume NULL
+ #endif
+ 
+-static struct sysdev_class irq_class = {
+-	.name		= "irq",
++static struct syscore_ops irq_syscore_ops = {
+ 	.suspend	= irq_suspend,
+ 	.resume		= irq_resume,
+ };
+ 
+-static struct sys_device irq_device = {
+-	.id	= 0,
+-	.cls	= &irq_class,
+-};
+-
+-static int __init irq_init_sysfs(void)
++static int __init irq_syscore_init(void)
+ {
+-	int ret = sysdev_class_register(&irq_class);
+-	if (ret == 0)
+-		ret = sysdev_register(&irq_device);
+-	return ret;
++	register_syscore_ops(&irq_syscore_ops);
++
++	return 0;
+ }
+ 
+-device_initcall(irq_init_sysfs);
++device_initcall(irq_syscore_init);
+ 
+ /*
+  * Flash handling.
