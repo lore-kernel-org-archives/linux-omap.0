@@ -1,96 +1,64 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 3/7] ARM / Integrator: Use struct syscore_ops for "core" power management
-Date: Mon, 28 Mar 2011 01:27:47 +0200
-Message-ID: <201103280127.47342.rjw@sisk.pl>
-References: <201103280125.11750.rjw@sisk.pl>
+Subject: [PATCH 0/7] ARM: Use syscore_ops for "core" power management
+Date: Mon, 28 Mar 2011 01:25:11 +0200
+Message-ID: <201103280125.11750.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201103280125.11750.rjw@sisk.pl>
 Sender: linux-kernel-owner@vger.kernel.org
 To: LKML <linux-kernel@vger.kernel.org>
 Cc: Greg KH <gregkh@suse.de>, Kay Sievers <kay.sievers@suse.de>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, linux-arm-kernel@lists.infradead.org, Ben Dooks <ben-linux@fluff.org>
 List-Id: linux-omap@vger.kernel.org
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Hi,
 
-Replace the sysdev class and struct sys_device used for power
-management by the Integrator interrupt-handling code with a
-struct syscore_ops object which is simpler.
+There are multiple problems with sysdevs, or struct sys_device objects to
+be precise, that are so annoying that some people have started to think
+of removind them entirely from the kernel.  To me, personally, the most
+obvious issue is the way sysdevs are used for defining suspend/resume
+callbacks to be executed with one CPU on-line and interrupts disabled.
+Apart from this, sysdevs do not follow general rules related to the
+representation of things in /sys/devices/, so user space that uses
+/sys/devices/ to retrieve information on device hierarchy layout and
+device configuration, such as udev, cannot really handle them correctly.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
----
- arch/arm/mach-integrator/integrator_ap.c |   26 +++++++++-----------------
- 1 file changed, 9 insertions(+), 17 deletions(-)
+Some subsystems need to carry out certain operations during suspend after
+we've disabled non-boot CPUs and interrupts have been switched off on the
+only on-line one.  Currently, the only way to achieve that is to define
+sysdev suspend/resume callbacks, but this is cumbersome and inefficient.
+Namely, to do that, one has to define a sysdev class providing the callbacks
+and a sysdev actually using them, which is excessively complicated.  Moreover,
+the sysdev suspend/resume callbacks take arguments that are not really used
+by the majority of subsystems defining sysdev suspend/resume callbacks
+(or even if they are used, they don't really need to be used, so they
+are simply unnecessary).  Of course, if a sysdev is only defined to provide
+suspend/resume (and maybe shutdown) callbacks, there's no real reason why
+it should show up in sysfs.
 
-Index: linux-2.6/arch/arm/mach-integrator/integrator_ap.c
-===================================================================
---- linux-2.6.orig/arch/arm/mach-integrator/integrator_ap.c
-+++ linux-2.6/arch/arm/mach-integrator/integrator_ap.c
-@@ -24,7 +24,7 @@
- #include <linux/platform_device.h>
- #include <linux/slab.h>
- #include <linux/string.h>
--#include <linux/sysdev.h>
-+#include <linux/syscore_ops.h>
- #include <linux/amba/bus.h>
- #include <linux/amba/kmi.h>
- #include <linux/clocksource.h>
-@@ -180,13 +180,13 @@ static void __init ap_init_irq(void)
- #ifdef CONFIG_PM
- static unsigned long ic_irq_enable;
- 
--static int irq_suspend(struct sys_device *dev, pm_message_t state)
-+static int irq_suspend(void)
- {
- 	ic_irq_enable = readl(VA_IC_BASE + IRQ_ENABLE);
- 	return 0;
- }
- 
--static int irq_resume(struct sys_device *dev)
-+static void irq_resume(void)
- {
- 	/* disable all irq sources */
- 	writel(-1, VA_CMIC_BASE + IRQ_ENABLE_CLEAR);
-@@ -194,33 +194,25 @@ static int irq_resume(struct sys_device
- 	writel(-1, VA_IC_BASE + FIQ_ENABLE_CLEAR);
- 
- 	writel(ic_irq_enable, VA_IC_BASE + IRQ_ENABLE_SET);
--	return 0;
- }
- #else
- #define irq_suspend NULL
- #define irq_resume NULL
- #endif
- 
--static struct sysdev_class irq_class = {
--	.name		= "irq",
-+static struct syscore_ops irq_syscore_ops = {
- 	.suspend	= irq_suspend,
- 	.resume		= irq_resume,
- };
- 
--static struct sys_device irq_device = {
--	.id	= 0,
--	.cls	= &irq_class,
--};
--
--static int __init irq_init_sysfs(void)
-+static int __init irq_syscore_init(void)
- {
--	int ret = sysdev_class_register(&irq_class);
--	if (ret == 0)
--		ret = sysdev_register(&irq_device);
--	return ret;
-+	register_syscore_ops(&irq_syscore_ops);
-+
-+	return 0;
- }
- 
--device_initcall(irq_init_sysfs);
-+device_initcall(irq_syscore_init);
- 
- /*
-  * Flash handling.
+For this reason, I thought it would be a good idea to provide a simpler
+interface for subsystems to define "very late" suspend callbacks and
+"very early" resume callbacks (and "very late" shutdown callbacks as well)
+without the entire bloat related to sysdevs.  Such an interface has been
+merged recently in the form of struct syscore_ops framework that can be used
+to replace sysdevs in the "core" power management area.
+
+The x86 architecture and subsystems it depends on have already been converted
+to using the new framework instead of sysdevs for "core" power management and
+the following series of patches does the analogous thing for the ARM
+architecture.  I have done my best to build the kernel for every affected
+platform, but unfortunately some of them don't build even without my changes,
+so some minor issues might have slept through my fingers.  Hopefully, though,
+there won't be too many of them.
+
+[1/7] - Use syscore_ops for "core" PM in some common ARM code.
+[2/7] - Use syscore_ops for "core" PM on OMAP.
+[3/7] - Use syscore_ops for "core" PM on Integrator.
+[4/7] - Use syscore_ops for "core" PM on SA1100.
+[5/7] - Use syscore_ops for "core" PM on PXA-based platforms.
+[6/7] - Use syscore_ops for "core" PM on Samsung platforms.
+[7/7] - Mark ARM select CONFIG_ARCH_NO_SYSDEV_OPS.
+
+Thanks,
+Rafael
