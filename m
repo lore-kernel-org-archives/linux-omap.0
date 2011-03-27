@@ -1,86 +1,50 @@
-From: Sebastian Reichel <sre@debian.org>
-Subject: rx51: "omapfb: no driver for display"
-Date: Sun, 27 Mar 2011 04:39:01 +0200
-Message-ID: <20110327023901.GB20163@earth.universe>
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: Re: [PATCH 0/4] iommu: Prevent oops in iommu_get() and while arch_iommu
+ is in use
+Date: Sun, 27 Mar 2011 20:27:41 +0300
+Message-ID: <4D8F738D.3090100@maxwell.research.nokia.com>
+References: <4D8CB106.7030608@maxwell.research.nokia.com> <AANLkTikxd4kRu1+XskohhQzpqHaZTvK+afbgE-qRSOqN@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="VbJkn9YxBvnuCH5J"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comu.ring0.de ([46.4.151.82]:46503 "EHLO smtp.ring0.de"
+Received: from smtp.nokia.com ([147.243.1.48]:27488 "EHLO mgw-sa02.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751746Ab1C0DMD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 26 Mar 2011 23:12:03 -0400
-Received: from sre.ring0.de (unknown [93.223.82.105])
-	by smtp.ring0.de (Postfix) with ESMTP id 54F1D2B8010
-	for <linux-omap@vger.kernel.org>; Sun, 27 Mar 2011 02:46:33 +0000 (UTC)
-Content-Disposition: inline
+	id S1753481Ab1C0RZh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 27 Mar 2011 13:25:37 -0400
+In-Reply-To: <AANLkTikxd4kRu1+XskohhQzpqHaZTvK+afbgE-qRSOqN@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Doyu Hiroshi (Nokia-D/Helsinki)" <hiroshi.doyu@nokia.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Cohen David Abraham <david.cohen@nokia.com>
 
+Ramirez Luna, Omar wrote:
+> On Fri, Mar 25, 2011 at 10:13 AM, Sakari Ailus
+> <sakari.ailus@maxwell.research.nokia.com> wrote:
+>> Hi,
+>>
+>> This patchset is aimed to fix a problem in arch_iommu implementation
+>> references. When an actual arch_iommu implementation is not loaded while
+>> iommu_get() is being called results to a kernel oops, as well as
+>> removing an arch_iommu implementation which is in use.
+> 
+> How about fixing the dependency instead? Right now iommu2 depends on
+> iommu because of the calls to
+> install_iommu_arch/uninstall_iommu_arch... we should change that
+> dependency to iommu depend on iommu2. Something like iommu (plat)
+> querying iommu2 (mach) for devices to install.
 
---VbJkn9YxBvnuCH5J
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+There is no direct dependency from a driver using the generic API to a
+particular implementation of the iommu. This comes from the design of
+the iommu framework. The generic layer shouldn't depend on particular
+implementation(s).
 
-Hi,
+What comes to the patch, it works as long as there's only one iommu
+implementation loaded / compiled to the kernel. I wonder if this kind of
+limitation can be accepted.
 
-I've got problems getting a working tty with the mainline 2.6.38
-kernel on my Nokia N900. Here is the related output from dmesg:
+Regards,
 
-$ grep -E "(omapdss|omapfb|acx565akm)" dmesg
-[    0.890899] omapdss CORE: clk ick, rate 83000000
-[    0.890930] omapdss CORE: clk dss1_fck, rate 96000000
-[    0.890991] omapdss CORE: clk dss2_fck, rate 19200000
-[    0.891021] omapdss CORE: clk tv_fck, rate 54000000
-[    0.891052] omapdss CORE: clk video_fck, rate 96000000
-[    0.891143] omapdss CORE: initial ctx id 0
-[    0.950469] omapdss CORE: save context
-[    0.950714] omapdss CORE: bus_match. dev display0/panel-acx565akm, drv panel-acx565akm
-[    0.950775] omapdss CORE: driver_probe: dev display0/panel-acx565akm, drv panel-acx565akm
-[    0.950805] omapdss SDI: SDI init
-[    1.004455] omapdss CORE: save context
-[    1.059173] omapdss CORE: save context
-[    1.113830] omapdss CORE: save context
-[    1.129608] acx565akm spi1.2: omapfb: acx565akm rev 8b LCD detected
-[    1.130065] omapdss CORE: probe done for device display0
-[    1.130096] omapdss CORE: bus_match. dev display1/venc, drv panel-acx565akm
-[    1.303741] OMAPFB: omapfb_init
-[    1.303894] OMAPFB: omapfb_probe
-[    1.303924] omapfb omapfb: no driver for display
-[    1.304016] omapfb omapfb: failed to setup omapfb
-
-You can find the full dmesg and the full kernel config at [0] and
-[1]. Can you tell me the reason for the "no driver for display"
-message? I thought acx565akm has been registered as display driver
-directly before.
-
-[0] http://pkg-n900.alioth.debian.org/kernel/2.6.38/config-2.6.38-1-omap
-[1] http://pkg-n900.alioth.debian.org/kernel/2.6.38/dmesg
-
--- Sebastian
-
---VbJkn9YxBvnuCH5J
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBCAAGBQJNjqNFAAoJENju1/PIO/qaWNYQAJA4b8nqK4y8OmQ1xdgODoPZ
-Px9uk41uoR9/xS1Y8fvp5LyButGKKzidqWBRu6RJqpRbYepr2Cq1/dcxFplzkmy1
-awt7iuP63WNtsIw9x67IG25jyC+aC+9a+RrPeD3NihbQDZPIwhgdt3RCoryRHXZO
-uETyB1g5BlAJWwgGKMZc4HolzuUcSoqb98nhPtkidl6p1l55bE3LZJtDwISbVa42
-+i9jTbsz43gJ8kjgGiU6uKFM3HPyWnFFIUu9E3YX0Gh/XvN0GycQhQME4WoB5Ea5
-9MrdYukfxIU6Zr898+zSd0v8UewpaZj8rSeQpHtquAzAn2Ng5CdfW+2BqGrs1Rpr
-snpSGstR8jkB1aos5Q4I8GyT4uV0hrRpcSPpUgGwzhSj3l/jDI2esN1PphWkdOWm
-Y1NlwcS1HdljOodh4D674QOF8a1j6XLIiCsCTAfcX+1ZtOuQL0BEByo/Hxqp4QRR
-yZRAALE8W9lkWF8SZYsIwPh3CJATOstlF95isWEpCtT8KwB0lXnNgBf78pxTWvir
-OnQwukMIQhoCsC6nIyb1YPu20a6yMx4n2L0VtxA56Bdc7yt4SDhDZMG7qjMPIniB
-QBFIQ/Ac9gQwJpGGGG153YmW/531iOWPxhQV9vtrLvRzmZH/4cEBBHM6UjwbhgPU
-LfAgaFg0COJqyM4MeQj1
-=Jcs5
------END PGP SIGNATURE-----
-
---VbJkn9YxBvnuCH5J--
+-- 
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
