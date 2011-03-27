@@ -1,64 +1,123 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 0/7] ARM: Use syscore_ops for "core" power management
-Date: Mon, 28 Mar 2011 01:25:11 +0200
-Message-ID: <201103280125.11750.rjw@sisk.pl>
+Subject: [PATCH 2/7] ARM / OMAP: Use struct syscore_ops for "core" power management
+Date: Mon, 28 Mar 2011 01:27:08 +0200
+Message-ID: <201103280127.09110.rjw@sisk.pl>
+References: <201103280125.11750.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <201103280125.11750.rjw@sisk.pl>
 Sender: linux-kernel-owner@vger.kernel.org
 To: LKML <linux-kernel@vger.kernel.org>
 Cc: Greg KH <gregkh@suse.de>, Kay Sievers <kay.sievers@suse.de>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, linux-arm-kernel@lists.infradead.org, Ben Dooks <ben-linux@fluff.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-There are multiple problems with sysdevs, or struct sys_device objects to
-be precise, that are so annoying that some people have started to think
-of removind them entirely from the kernel.  To me, personally, the most
-obvious issue is the way sysdevs are used for defining suspend/resume
-callbacks to be executed with one CPU on-line and interrupts disabled.
-Apart from this, sysdevs do not follow general rules related to the
-representation of things in /sys/devices/, so user space that uses
-/sys/devices/ to retrieve information on device hierarchy layout and
-device configuration, such as udev, cannot really handle them correctly.
+Replace the sysdev class and struct sys_device used for power
+management in the OMAP's GPIO code with a struct syscore_ops object
+which is simpler.
 
-Some subsystems need to carry out certain operations during suspend after
-we've disabled non-boot CPUs and interrupts have been switched off on the
-only on-line one.  Currently, the only way to achieve that is to define
-sysdev suspend/resume callbacks, but this is cumbersome and inefficient.
-Namely, to do that, one has to define a sysdev class providing the callbacks
-and a sysdev actually using them, which is excessively complicated.  Moreover,
-the sysdev suspend/resume callbacks take arguments that are not really used
-by the majority of subsystems defining sysdev suspend/resume callbacks
-(or even if they are used, they don't really need to be used, so they
-are simply unnecessary).  Of course, if a sysdev is only defined to provide
-suspend/resume (and maybe shutdown) callbacks, there's no real reason why
-it should show up in sysfs.
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
+ arch/arm/plat-omap/gpio.c |   35 +++++++++--------------------------
+ 1 file changed, 9 insertions(+), 26 deletions(-)
 
-For this reason, I thought it would be a good idea to provide a simpler
-interface for subsystems to define "very late" suspend callbacks and
-"very early" resume callbacks (and "very late" shutdown callbacks as well)
-without the entire bloat related to sysdevs.  Such an interface has been
-merged recently in the form of struct syscore_ops framework that can be used
-to replace sysdevs in the "core" power management area.
-
-The x86 architecture and subsystems it depends on have already been converted
-to using the new framework instead of sysdevs for "core" power management and
-the following series of patches does the analogous thing for the ARM
-architecture.  I have done my best to build the kernel for every affected
-platform, but unfortunately some of them don't build even without my changes,
-so some minor issues might have slept through my fingers.  Hopefully, though,
-there won't be too many of them.
-
-[1/7] - Use syscore_ops for "core" PM in some common ARM code.
-[2/7] - Use syscore_ops for "core" PM on OMAP.
-[3/7] - Use syscore_ops for "core" PM on Integrator.
-[4/7] - Use syscore_ops for "core" PM on SA1100.
-[5/7] - Use syscore_ops for "core" PM on PXA-based platforms.
-[6/7] - Use syscore_ops for "core" PM on Samsung platforms.
-[7/7] - Mark ARM select CONFIG_ARCH_NO_SYSDEV_OPS.
-
-Thanks,
-Rafael
+Index: linux-2.6/arch/arm/plat-omap/gpio.c
+===================================================================
+--- linux-2.6.orig/arch/arm/plat-omap/gpio.c
++++ linux-2.6/arch/arm/plat-omap/gpio.c
+@@ -17,7 +17,7 @@
+ #include <linux/init.h>
+ #include <linux/module.h>
+ #include <linux/interrupt.h>
+-#include <linux/sysdev.h>
++#include <linux/syscore_ops.h>
+ #include <linux/err.h>
+ #include <linux/clk.h>
+ #include <linux/io.h>
+@@ -1379,9 +1379,7 @@ static const struct dev_pm_ops omap_mpui
+ 	.resume_noirq = omap_mpuio_resume_noirq,
+ };
+ 
+-/* use platform_driver for this, now that there's no longer any
+- * point to sys_device (other than not disturbing old code).
+- */
++/* use platform_driver for this. */
+ static struct platform_driver omap_mpuio_driver = {
+ 	.driver		= {
+ 		.name	= "mpuio",
+@@ -1754,7 +1752,7 @@ static int __devinit omap_gpio_probe(str
+ }
+ 
+ #if defined(CONFIG_ARCH_OMAP16XX) || defined(CONFIG_ARCH_OMAP2PLUS)
+-static int omap_gpio_suspend(struct sys_device *dev, pm_message_t mesg)
++static int omap_gpio_suspend(void)
+ {
+ 	int i;
+ 
+@@ -1804,12 +1802,12 @@ static int omap_gpio_suspend(struct sys_
+ 	return 0;
+ }
+ 
+-static int omap_gpio_resume(struct sys_device *dev)
++static void omap_gpio_resume(void)
+ {
+ 	int i;
+ 
+ 	if (!cpu_class_is_omap2() && !cpu_is_omap16xx())
+-		return 0;
++		return;
+ 
+ 	for (i = 0; i < gpio_bank_count; i++) {
+ 		struct gpio_bank *bank = &gpio_bank[i];
+@@ -1845,21 +1843,13 @@ static int omap_gpio_resume(struct sys_d
+ 		__raw_writel(bank->saved_wakeup, wake_set);
+ 		spin_unlock_irqrestore(&bank->lock, flags);
+ 	}
+-
+-	return 0;
+ }
+ 
+-static struct sysdev_class omap_gpio_sysclass = {
+-	.name		= "gpio",
++static struct syscore_ops omap_gpio_syscore_ops = {
+ 	.suspend	= omap_gpio_suspend,
+ 	.resume		= omap_gpio_resume,
+ };
+ 
+-static struct sys_device omap_gpio_device = {
+-	.id		= 0,
+-	.cls		= &omap_gpio_sysclass,
+-};
+-
+ #endif
+ 
+ #ifdef CONFIG_ARCH_OMAP2PLUS
+@@ -2117,21 +2107,14 @@ postcore_initcall(omap_gpio_drv_reg);
+ 
+ static int __init omap_gpio_sysinit(void)
+ {
+-	int ret = 0;
+-
+ 	mpuio_init();
+ 
+ #if defined(CONFIG_ARCH_OMAP16XX) || defined(CONFIG_ARCH_OMAP2PLUS)
+-	if (cpu_is_omap16xx() || cpu_class_is_omap2()) {
+-		if (ret == 0) {
+-			ret = sysdev_class_register(&omap_gpio_sysclass);
+-			if (ret == 0)
+-				ret = sysdev_register(&omap_gpio_device);
+-		}
+-	}
++	if (cpu_is_omap16xx() || cpu_class_is_omap2())
++		register_syscore_ops(&omap_gpio_syscore_ops);
+ #endif
+ 
+-	return ret;
++	return 0;
+ }
+ 
+ arch_initcall(omap_gpio_sysinit);
