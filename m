@@ -1,243 +1,97 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [pm-core][PATCH v3 15/21] OMAP4: cpuidle: Basic CPUidle support
-Date: Mon, 28 Mar 2011 14:52:31 +0530
-Message-ID: <1301304157-2466-16-git-send-email-santosh.shilimkar@ti.com>
+Subject: [pm-core][PATCH v3 09/21] OMAP4: PM: Add GIC distributor and interface enable/disable accessory API
+Date: Mon, 28 Mar 2011 14:52:25 +0530
+Message-ID: <1301304157-2466-10-git-send-email-santosh.shilimkar@ti.com>
 References: <1301304157-2466-1-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:34460 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:34464 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751857Ab1C1JXB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 28 Mar 2011 05:23:01 -0400
+	id S1752244Ab1C1JXG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 28 Mar 2011 05:23:06 -0400
 In-Reply-To: <1301304157-2466-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: khilman@ti.com, rnayak@ti.com, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: khilman@ti.com, rnayak@ti.com, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Russell King <rmk+kernel@arm.linux.org.uk>
 
-From: Rajendra Nayak <rnayak@ti.com>
+The power management code needs to have access to enable/disable the
+gic cpu interface and distributor based on targetted low power
+states.
 
-The patch adds a basic CPUidle driver for OMAP4. Just
-one C state is registered for CPU0 which does a WFI.
-CPU1 is left with defualt idle and the low power state
-for it is managed via cpu-hotplug.
+These APIs are suppose to me moved to common ARM GIC library and patch
+for the same was posted earlier. The GIC code refactoring is ongoing
+and hence for time being this is kept under OMAP code so that OMAP4
+PM can continue to work.
 
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Discussion thread:
+	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg42940.html
+
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Cc: Kevin Hilman <khilman@ti.com>
+Cc: Russell King <rmk+kernel@arm.linux.org.uk>
 ---
- arch/arm/mach-omap2/Makefile      |    3 +-
- arch/arm/mach-omap2/cpuidle44xx.c |  161 +++++++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/pm.h          |    1 +
- arch/arm/mach-omap2/pm44xx.c      |    2 +
- 4 files changed, 166 insertions(+), 1 deletions(-)
- create mode 100644 arch/arm/mach-omap2/cpuidle44xx.c
+ arch/arm/mach-omap2/include/mach/omap4-common.h |    5 +++-
+ arch/arm/mach-omap2/omap4-common.c              |   24 +++++++++++++++++++++++
+ 2 files changed, 28 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 8558215..eec783d 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -64,7 +64,8 @@ obj-$(CONFIG_ARCH_OMAP2)		+= sleep24xx.o pm_bus.o
- obj-$(CONFIG_ARCH_OMAP3)		+= pm34xx.o sleep34xx.o \
- 					   cpuidle34xx.o pm_bus.o
- obj-$(CONFIG_ARCH_OMAP4)		+= pm44xx.o pm_bus.o \
--					   omap4-mpuss-lowpower.o sleep44xx.o
-+					   omap4-mpuss-lowpower.o sleep44xx.o \
-+					   cpuidle44xx.o
- obj-$(CONFIG_PM_DEBUG)			+= pm-debug.o
- obj-$(CONFIG_OMAP_SMARTREFLEX)          += sr_device.o smartreflex.o
- obj-$(CONFIG_OMAP_SMARTREFLEX_CLASS3)	+= smartreflex-class3.o
-diff --git a/arch/arm/mach-omap2/cpuidle44xx.c b/arch/arm/mach-omap2/cpuidle44xx.c
-new file mode 100644
-index 0000000..270404f
---- /dev/null
-+++ b/arch/arm/mach-omap2/cpuidle44xx.c
-@@ -0,0 +1,161 @@
-+/*
-+ * OMAP4 CPU idle Routines
-+ *
-+ * Copyright (C) 2011 Texas Instruments, Inc.
-+ * Rajendra Nayak <rnayak@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/sched.h>
-+#include <linux/cpuidle.h>
-+
-+#include <asm/proc-fns.h>
-+
-+#include <mach/omap4-common.h>
-+
-+#include "pm.h"
-+
-+#ifdef CONFIG_CPU_IDLE
-+
-+#define OMAP4_MAX_STATES	1
-+/* C1 - CPU0 ON + + CPU1 ON + MPU ON + CORE ON */
-+#define OMAP4_STATE_C1		0
-+
-+struct omap4_processor_cx {
-+	u8 valid;
-+	u8 type;
-+	u32 sleep_latency;
-+	u32 wakeup_latency;
-+	u32 cpu0_state;
-+	u32 mpu_state;
-+	u32 core_state;
-+	u32 threshold;
-+	u32 flags;
-+};
-+
-+struct omap4_processor_cx omap4_power_states[OMAP4_MAX_STATES];
-+
-+static struct cpuidle_params cpuidle_params_table[] = {
-+	/* C1 */
-+	{1, 2, 2, 5},
-+};
-+
-+/**
-+ * omap4_enter_idle - Programs OMAP4 to enter the specified state
-+ * @dev: cpuidle device
-+ * @state: The target state to be programmed
-+ *
-+ * Called from the CPUidle framework to program the device to the
-+ * specified low power state selected by the governor.
-+ * Returns the amount of time spent in the low power state.
-+ */
-+static int omap4_enter_idle(struct cpuidle_device *dev,
-+			struct cpuidle_state *state)
-+{
-+	struct timespec ts_preidle, ts_postidle, ts_idle;
-+
-+	/* Used to keep track of the total time in idle */
-+	getnstimeofday(&ts_preidle);
-+
-+	local_irq_disable();
-+	local_fiq_disable();
-+
-+	cpu_do_idle();
-+
-+	getnstimeofday(&ts_postidle);
-+	ts_idle = timespec_sub(ts_postidle, ts_preidle);
-+
-+	local_irq_enable();
-+	local_fiq_enable();
-+
-+	return ts_idle.tv_nsec / NSEC_PER_USEC + ts_idle.tv_sec * USEC_PER_SEC;
-+}
-+
-+DEFINE_PER_CPU(struct cpuidle_device, omap4_idle_dev);
-+
-+/**
-+ * omap4_init_power_states - Initialises the OMAP4 specific C states.
-+ *
-+ * Below is the desciption of each C state.
-+ * C1 : CPUx wfi + MPU inative + Core inactive
-+ */
-+void omap4_init_power_states(void)
-+{
-+	/*
-+	 * C1 - CPU0 ON + + CPU1 ON + MPU ON + CORE ON
-+	 */
-+	omap4_power_states[OMAP4_STATE_C1].valid =
-+			cpuidle_params_table[OMAP4_STATE_C1].valid;
-+	omap4_power_states[OMAP4_STATE_C1].type = OMAP4_STATE_C1;
-+	omap4_power_states[OMAP4_STATE_C1].sleep_latency =
-+			cpuidle_params_table[OMAP4_STATE_C1].sleep_latency;
-+	omap4_power_states[OMAP4_STATE_C1].wakeup_latency =
-+			cpuidle_params_table[OMAP4_STATE_C1].wake_latency;
-+	omap4_power_states[OMAP4_STATE_C1].threshold =
-+			cpuidle_params_table[OMAP4_STATE_C1].threshold;
-+	omap4_power_states[OMAP4_STATE_C1].mpu_state = PWRDM_POWER_ON;
-+	omap4_power_states[OMAP4_STATE_C1].core_state = PWRDM_POWER_ON;
-+	omap4_power_states[OMAP4_STATE_C1].flags = CPUIDLE_FLAG_TIME_VALID;
-+
-+}
-+
-+struct cpuidle_driver omap4_idle_driver = {
-+	.name =		"omap4_idle",
-+	.owner =	THIS_MODULE,
-+};
-+
-+/**
-+ * omap4_idle_init - Init routine for OMAP4 idle
-+ *
-+ * Registers the OMAP4 specific cpuidle driver with the cpuidle
-+ * framework with the valid set of states.
-+ */
-+int __init omap4_idle_init(void)
-+{
-+	int cpu_id = 0, i, count = 0;
-+	struct omap4_processor_cx *cx;
-+	struct cpuidle_state *state;
-+	struct cpuidle_device *dev;
-+
-+	omap4_init_power_states();
-+	cpuidle_register_driver(&omap4_idle_driver);
-+
-+	dev = &per_cpu(omap4_idle_dev, cpu_id);
-+	dev->cpu = cpu_id;
-+	count = 0;
-+	for (i = OMAP4_STATE_C1; i < OMAP4_MAX_STATES; i++) {
-+		cx = &omap4_power_states[i];
-+		state = &dev->states[count];
-+
-+		if (!cx->valid)
-+			continue;
-+		cpuidle_set_statedata(state, cx);
-+		state->exit_latency = cx->sleep_latency +
-+						cx->wakeup_latency;
-+		state->target_residency = cx->threshold;
-+		state->flags = cx->flags;
-+		state->enter = omap4_enter_idle;
-+		sprintf(state->name, "C%d", count+1);
-+		count++;
-+	}
-+
-+	if (!count)
-+		return -EINVAL;
-+	dev->state_count = count;
-+
-+	if (cpuidle_register_device(dev)) {
-+		pr_err("%s: CPUidle register device failed\n", __func__);
-+			return -EIO;
-+		}
-+
-+	return 0;
-+}
-+#else
-+int __init omap4_idle_init(void)
-+{
-+	return 0;
-+}
-+#endif /* CONFIG_CPU_IDLE */
-diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-index 797bfd1..b19d5b2 100644
---- a/arch/arm/mach-omap2/pm.h
-+++ b/arch/arm/mach-omap2/pm.h
-@@ -21,6 +21,7 @@ extern void omap_sram_idle(void);
- extern int omap3_can_sleep(void);
- extern int omap_set_pwrdm_state(struct powerdomain *pwrdm, u32 state);
- extern int omap3_idle_init(void);
-+extern int omap4_idle_init(void);
+diff --git a/arch/arm/mach-omap2/include/mach/omap4-common.h b/arch/arm/mach-omap2/include/mach/omap4-common.h
+index a6ce905..a4b3beb 100644
+--- a/arch/arm/mach-omap2/include/mach/omap4-common.h
++++ b/arch/arm/mach-omap2/include/mach/omap4-common.h
+@@ -44,6 +44,10 @@ extern void __iomem *omap4_get_gic_dist_base(void);
+ extern void __iomem *omap4_get_gic_cpu_base(void);
+ extern void __iomem *omap4_get_sar_ram_base(void);
+ extern void __init gic_init_irq(void);
++extern void gic_cpu_enable(void);
++extern void gic_cpu_disable(void);
++extern void gic_dist_enable(void);
++extern void gic_dist_disable(void);
+ extern void omap_smc1(u32 fn, u32 arg);
  
- #if defined(CONFIG_PM_OPP)
- extern int omap3_opp_init(void);
-diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
-index af3a56d..b78417c 100644
---- a/arch/arm/mach-omap2/pm44xx.c
-+++ b/arch/arm/mach-omap2/pm44xx.c
-@@ -206,6 +206,8 @@ static int __init omap4_pm_init(void)
- 	suspend_set_ops(&omap_pm_ops);
- #endif /* CONFIG_SUSPEND */
+ /*
+@@ -64,7 +68,6 @@ extern int omap4_mpuss_init(void);
+ extern int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state);
+ extern void omap4_cpu_suspend(unsigned int cpu, unsigned int save_state);
+ extern void omap4_cpu_resume(void);
+-
+ #else
  
-+	omap4_idle_init();
-+
- err2:
- 	return ret;
+ static inline int omap4_enter_lowpower(unsigned int cpu,
+diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
+index 97d7d8a..9dd50b7 100644
+--- a/arch/arm/mach-omap2/omap4-common.c
++++ b/arch/arm/mach-omap2/omap4-common.c
+@@ -61,6 +61,30 @@ void __init gic_init_irq(void)
+ 	gic_init(0, 29, gic_dist_base_addr, gic_cpu_base);
  }
+ 
++/*
++ * FIXME: Remove this GIC APIs once common GIG library starts
++ * supporting it.
++ */
++void gic_cpu_enable(void)
++{
++	__raw_writel(0xf0, gic_cpu_base + GIC_CPU_PRIMASK);
++	__raw_writel(1, gic_cpu_base + GIC_CPU_CTRL);
++}
++
++void gic_cpu_disable(void)
++{
++	__raw_writel(0, gic_cpu_base + GIC_CPU_CTRL);
++}
++
++void gic_dist_enable(void)
++{
++	__raw_writel(0x1, gic_dist_base_addr + GIC_DIST_CTRL);
++}
++void gic_dist_disable(void)
++{
++	__raw_writel(0, gic_dist_base_addr + GIC_CPU_CTRL);
++}
++
+ #ifdef CONFIG_CACHE_L2X0
+ 
+ void __iomem *omap4_get_l2cache_base(void)
 -- 
 1.6.0.4
 
