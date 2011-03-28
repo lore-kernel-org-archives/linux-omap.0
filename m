@@ -1,75 +1,77 @@
-From: "J, KEERTHY" <j-keerthy@ti.com>
-Subject: Re: [PATCH] watchdog: twl4030_wdt: Watchdog device registration issue fix
-Date: Mon, 28 Mar 2011 16:34:53 +0530
-Message-ID: <AANLkTinVtNtoAh_AnLxC3z2EHzLXdndj27SjR3LD5Z8d@mail.gmail.com>
-References: <1299012474-4993-1-git-send-email-j-keerthy@ti.com>
+From: Jason Kridner <jkridner@beagleboard.org>
+Subject: Re: [RFC PATCH 2/2] OMAP2+: PANDA: Fix up random or missing MAC
+ addresses for eth0 and wlan0
+Date: Mon, 28 Mar 2011 08:54:24 -0400
+Message-ID: <AANLkTikgyuZaP=MMSYPpGz98CnJNLteEi_P7HsN-qkO7@mail.gmail.com>
+References: <20110324211451.14936.39750.stgit@otae.warmcat.com>
+	<20110324212737.14936.21228.stgit@otae.warmcat.com>
+	<78b7faad4cdc37c6b507c008fde18ef3@mail.gmail.com>
+	<AANLkTineUsH=Qz83YKJy8YZ1KSE1si-RddQ9eBsPjMdk@mail.gmail.com>
+	<alpine.LFD.2.00.1103251615380.11889@xanadu.home>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:46182 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752443Ab1C1LE4 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 28 Mar 2011 07:04:56 -0400
-In-Reply-To: <1299012474-4993-1-git-send-email-j-keerthy@ti.com>
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:59438 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753156Ab1C1My0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Mar 2011 08:54:26 -0400
+Received: by vxi39 with SMTP id 39so2222182vxi.19
+        for <linux-omap@vger.kernel.org>; Mon, 28 Mar 2011 05:54:25 -0700 (PDT)
+In-Reply-To: <alpine.LFD.2.00.1103251615380.11889@xanadu.home>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-watchdog@vger.kernel.org, wim@iguana.be
-Cc: linux-omap@vger.kernel.org, j-keerthy@ti.com
+To: Nicolas Pitre <nicolas.pitre@linaro.org>
+Cc: Hema Kalliguddi <hemahk@ti.com>, Andy Green <andy@warmcat.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, patches@linaro.org, arnd@arndb.de, David Anders <x0132446@ti.com>, Sebastien Jan <s-jan@ti.com>, tony@atomide.com, Alan Cox <alan@lxorguk.ukuu.org.uk>, Andy Green <andy.green@linaro.org>
 
-Hello All,
+On Fri, Mar 25, 2011 at 4:23 PM, Nicolas Pitre <nicolas.pitre@linaro.or=
+g> wrote:
+> On Fri, 25 Mar 2011, Jason Kridner wrote:
+>
+>> I very much like this approach. =A0I believed the ability to use the=
+ die
+>> ID to get a unique code was reasonable approach and that is why I
+>> didn't get an EEPROM put onto the BeagleBoard, though Gerald is
+>> looking at adding one on a future revision because the lack of one
+>> wasn't well received. =A0Minor questions below.
+>
+> If this code had been available and/or the procedure well documented
+> before then I believe the reception would have been better.
 
-Any comments on this patch?
+Understood.  Live and learn and try not to repeat the same mistakes.
+Hopefully others pick up on this one.
 
-Regards,
-Keerthy
+>
+>> The use of the OMAP die id below makes this OMAP specific and the li=
+st
+>> referenced below of the devices to be referenced makes it Panda
+>> specific. =A0Is there a way to make the list board specific, but to =
+make
+>> these functions that will be used across many OMAP platforms reusabl=
+e?
+>> =A0I believe that this current code will result in a lot of
+>> cut-and-paste. =A0My preference is that this is accepted and that we
+>> make this more general when we add this to other OMAP platforms, but
+>> it'd be great to capture your suggestions on how to do so before tho=
+se
+>> cut-and-paste patch sets start coming in.
+>
+> It is true that this might get copied. =A0But as I suggested to Andy,=
+ it
+> is best to wait and see how often this happens before generalizing th=
+e
+> approach. =A0Consolidation is easier when you can see what is actuall=
+y
+> common and what is board specific. =A0Otherwise it is easy to
+> fall into the over-engineering trap.
 
-On Wed, Mar 2, 2011 at 2:17 AM, Keerthy <j-keerthy@ti.com> wrote:
-> twl4030_wdt driver and omap_wdt driver are registering as misc_device=
- name as
-> "watchdog" and the same minor number WATCHDOG_MINOR( value =3D 130).
-> There is a conflict since the name and minor were the same for
-> both the misc_device registered by omap_wdt.c as well as twl4030_wdt.=
-c
+Makes sense.  I hope to see this patch accepted for Panda quickly and
+we can follow Andy's advice on how to make it more general in the
+future as we wee how people use/need it.
+
 >
-> The omap_wdt.c probe is getting called first. Hence it succeeds.
-> twl4030_wdt.c always failed on the minor number comparison check.
-> Now requesting for MISC_DYNAMIC_MINOR as the minor
-> number for twl4030_watchdog and renamed the device name as
-> "twl4030_watchdog".
 >
-> Tested for basic boot up on OMAP4 Blaze and OMAP3630 SDP. OMAP3630 SD=
-P
-> twl4030_wdt registration succeeds.2430SDP boot tested, watchdog regis=
-tration
-> without errors.
->
-> Signed-off-by: Keerthy <j-keerthy@ti.com>
-> ---
-> =A0drivers/watchdog/twl4030_wdt.c | =A0 =A04 ++--
-> =A01 files changed, 2 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/watchdog/twl4030_wdt.c b/drivers/watchdog/twl403=
-0_wdt.c
-> index b5045ca..89bf78d 100644
-> --- a/drivers/watchdog/twl4030_wdt.c
-> +++ b/drivers/watchdog/twl4030_wdt.c
-> @@ -183,8 +183,8 @@ static int __devinit twl4030_wdt_probe(struct pla=
-tform_device *pdev)
-> =A0 =A0 =A0 =A0wdt->timer_margin =A0 =A0 =A0 =3D 30;
-> =A0 =A0 =A0 =A0wdt->miscdev.parent =A0 =A0 =3D &pdev->dev;
-> =A0 =A0 =A0 =A0wdt->miscdev.fops =A0 =A0 =A0 =3D &twl4030_wdt_fops;
-> - =A0 =A0 =A0 wdt->miscdev.minor =A0 =A0 =A0=3D WATCHDOG_MINOR;
-> - =A0 =A0 =A0 wdt->miscdev.name =A0 =A0 =A0 =3D "watchdog";
-> + =A0 =A0 =A0 wdt->miscdev.minor =A0 =A0 =A0=3D MISC_DYNAMIC_MINOR;
-> + =A0 =A0 =A0 wdt->miscdev.name =A0 =A0 =A0 =3D "twl4030_watchdog";
->
-> =A0 =A0 =A0 =A0platform_set_drvdata(pdev, wdt);
->
-> --
-> 1.7.0.4
->
+> Nicolas
 >
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
