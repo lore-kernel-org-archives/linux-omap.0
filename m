@@ -1,46 +1,50 @@
-From: Ben Gamari <bgamari-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: Unbuildable kernel with musb
-Date: Mon, 28 Mar 2011 10:40:38 -0400
-Message-ID: <8739m7tijd.fsf@gmail.com>
-References: <87vcz5sd2x.fsf@gmail.com> <20110328083450.GD2251@legolas.emea.dhcp.ti.com>
+From: Ben Gamari <bgamari.foss@gmail.com>
+Subject: Re: Initialization of musb on board-omap2beagle fails in platform_driver_probe
+Date: Mon, 28 Mar 2011 10:43:01 -0400
+Message-ID: <87zkofs3uy.fsf@gmail.com>
+References: <87hbap5tzp.fsf@gmail.com> <20110328083721.GE2251@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20110328083450.GD2251-UiBtZHVXSwEVvW8u9ZQWYwjfymiNCTlR@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: balbi-l0cyMroinI0@public.gmane.org
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:54909 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753543Ab1C1OnJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Mar 2011 10:43:09 -0400
+In-Reply-To: <20110328083721.GE2251@legolas.emea.dhcp.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: balbi@ti.com
+Cc: linux-usb@vger.kernel.org, Beagle Board <beagleboard@googlegroups.com>, linux-omap <linux-omap@vger.kernel.org>
 
-On Mon, 28 Mar 2011 11:34:51 +0300, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> wrote:
+On Mon, 28 Mar 2011 11:37:22 +0300, Felipe Balbi <balbi@ti.com> wrote:
 > Hi,
 > 
-> On Sat, Mar 26, 2011 at 06:59:18PM -0400, Ben Gamari wrote:
-> > Today I've been trying to work through the mess that is musb bring-up on
-> > recent kernels (v2.6.38). While I still haven't succeeded in getting a
+> On Sat, Mar 26, 2011 at 07:42:34PM -0400, Ben Gamari wrote:
+> > Today I've had a very frustrating time trying to bring up a BeagleBoard
+> > (arch/arm/mach-omap2/board-omap2beagle.c) with the 2.6.38
 > 
-> patches are welcome.
+> there's no board-omap2beagle
 > 
-I'm working on it. Hopefully none will be necessary as this is all the
-fault of incorrect configuration.
+My apologies, s/omap2/omap3.
 
-> > working gadget stack (modprobe g_ether fails with ENODEV), I've come
-> > across configuration where musb causes a link failure in 2.6.38 if built
-> > as a module:
+> > kernel. Unfortunately musb has been giving me great difficulties,
 > > 
-> >     MODPOST 249 modules
-> >   ERROR: "musb_read_fifo" [drivers/usb/musb/musb_hdrc.ko] undefined!
+> >  # modprobe g_ether
+> > [   25.276855] usb_gadget_probe_driver 1815: usb_gadget_probe_driver, no dev??
+> > modprobe: Failed to load module g_ether: No such device.
 > > 
-> > Configuration attached.
+> > After a great deal of printking, I've determined that the error is
+> > coming from platform_driver_probe (platform.c:499). The code in question
+> > appears to be a check ensuring that any devices being probe were first
+> > registered. When the musb-hdrc module is probed, this check seems to
+> > fail with code = 1 and list_empty(&drv->driver.p->klist_devices.k_list)
+> > = 1.
 > 
-> musb can't be built as module, I sent a patch making it bool recently
-> until we re-work those parts of the code.
+> looking at your .config from previous mail, it's wrong. You're trying to
+> use am35x glue layer while you be using omap2430, just change:
 > 
-Ahh good, thanks for that change! This should eliminate at least one
-nasty failure mode.
+Alright, fair enough. The mishmash of IP found in these ARM devices can
+make it very difficult to determine the correct configuration at
+times. Thanks for your help!
 
 - Ben
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
