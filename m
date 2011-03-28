@@ -1,39 +1,44 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 6/7] ARM / Samsung: Use struct syscore_ops for "core" power management
-Date: Mon, 28 Mar 2011 21:42:21 +0200
-Message-ID: <201103282142.21810.rjw@sisk.pl>
-References: <201103280125.11750.rjw@sisk.pl> <201103280129.50192.rjw@sisk.pl> <20110327234521.GH9995@trinity.fluff.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [pm-core][PATCH v3 01/21] OMAP4: PM: Add omap WakeupGen module
+ support
+Date: Mon, 28 Mar 2011 13:50:27 -0700
+Message-ID: <20110328205027.GC30616@atomide.com>
+References: <1301304157-2466-1-git-send-email-santosh.shilimkar@ti.com>
+ <1301304157-2466-2-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20110327234521.GH9995@trinity.fluff.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ben Dooks <ben-linux@fluff.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Kevin Hilman <khilman@ti.com>, Russell King <linux@arm.linux.org.uk>, Greg KH <gregkh@suse.de>, Kay Sievers <kay.sievers@suse.de>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:22948 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753245Ab1C1Uub (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Mar 2011 16:50:31 -0400
+Content-Disposition: inline
+In-Reply-To: <1301304157-2466-2-git-send-email-santosh.shilimkar@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, rnayak@ti.com, linux-arm-kernel@lists.infradead.org
 
-On Monday, March 28, 2011, Ben Dooks wrote:
-> On Mon, Mar 28, 2011 at 01:29:49AM +0200, Rafael J. Wysocki wrote:
-> > From: Rafael J. Wysocki <rjw@sisk.pl>
-> > 
-> > Replace sysdev classes and struct sys_device objects used for "core"
-> > power management by Samsung platforms with struct syscore_ops objects
-> > that are simpler.
-> > 
-> > This generally reduces the code size and the kernel memory footprint.
-> > It also is necessary for removing sysdevs entirely from the kernel in
-> > the future.
-> 
-> Hmm, does it still allow the system to choose which bits are bound
-> depending on the cpu being registered, as for the s3c stuff it isn't
-> just about the suspend/resume, it's binding items that get registered
-> early in the startup sequence?
+* Santosh Shilimkar <santosh.shilimkar@ti.com> [110328 02:20]:
+> --- a/arch/arm/mach-omap2/omap4-common.c
+> +++ b/arch/arm/mach-omap2/omap4-common.c
+> @@ -21,6 +21,7 @@
+>  
+>  #include <mach/hardware.h>
+>  #include <mach/omap4-common.h>
+> +#include <mach/omap-wakeupgen.h>
+>  
+>  #ifdef CONFIG_CACHE_L2X0
+>  void __iomem *l2cache_base;
+> @@ -41,6 +42,8 @@ void __init gic_init_irq(void)
+>  	gic_cpu_base = ioremap(OMAP44XX_GIC_CPU_BASE, SZ_512);
+>  	BUG_ON(!gic_cpu_base);
+>  
+> +	omap_wakeupgen_init();
+> +
+>  	gic_init(0, 29, gic_dist_base_addr, gic_cpu_base);
+>  }
 
-The registering is still done through sysdevs, the syscore_ops are only
-used for power management.  I did my best to retain the existing flow of
-control as far as possible.
+Do you really need to initialize all of this that early?
 
-Thanks,
-Rafael
+Tony
