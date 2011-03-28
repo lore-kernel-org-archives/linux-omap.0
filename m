@@ -1,154 +1,206 @@
-From: Vishwanath Sripathy <vishwanath.bs@ti.com>
-Subject: RE: Smartreflex on 'pm-wip/voltdm' Branch
-Date: Mon, 28 Mar 2011 19:10:01 +0530
-Message-ID: <e3b58bb0f126f8849c7358c8f7e67222@mail.gmail.com>
-References: <AANLkTi=czLooLOFEZq-TYKLOqwFxn8eB6aTs7-3k_YSY@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary=20cf307f3830207908049f8b1574
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: [PATCH v4 2/4] OMAP2+: DMA: prevent races while setting M idle mode to nostandby
+Date: Mon, 28 Mar 2011 19:57:00 +0530
+Message-ID: <1301322422-29886-3-git-send-email-manjugk@ti.com>
+References: <1301322422-29886-1-git-send-email-manjugk@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:54862 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751274Ab1C1NkN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 28 Mar 2011 09:40:13 -0400
-Received: by mail-vw0-f49.google.com with SMTP id 8so2746235vws.36
-        for <linux-omap@vger.kernel.org>; Mon, 28 Mar 2011 06:40:11 -0700 (PDT)
-In-Reply-To: <AANLkTi=czLooLOFEZq-TYKLOqwFxn8eB6aTs7-3k_YSY@mail.gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:60746 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754293Ab1C1OcF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Mar 2011 10:32:05 -0400
+In-Reply-To: <1301322422-29886-1-git-send-email-manjugk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Shweta Gulati <shweta.gulati@ti.com>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: khilman@ti.com, paul@pwsan.com, tony@atomide.com
 
---20cf307f3830207908049f8b1574
-Content-Type: text/plain; charset=ISO-8859-1
+If two DMA users tries to set no mstandby mode at the same time, a race
+condition would arise. Prevent that by using a spin lock and counting
+up/down the number of times nostandby is set/reset.
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Gulati, Shweta
-> Sent: Monday, March 28, 2011 4:23 PM
-> To: linux-omap@vger.kernel.org; Kevin Hilman
-> Subject: Smartreflex on 'pm-wip/voltdm' Branch
->
-> Kevin,
->
-> I am testing Smartreflex on your Branch 'pm-wip/voltdm'. There seems
-> an issue with reading VP registers.
-> For OMAP3 and OMAP4 reading debugfs entries shows constant voltage.
-> Logs are:
->
-> OMAP3:
-> # cat /debug/voltage/vdd_mpu_iva/curr_nominal_volt
-> 1200000
-> # cat /debug/voltage/vdd_core/curr_nominal_volt
-> 1200000
-> # echo 1 > /debug/voltage/vdd_mpu_iva/smartreflex/autocomp
-> [  311.680816] omap_device: smartreflex.0: new worst case activate
-> latency 0: 91552
-> # echo 1 > /debug/voltage/vdd_core/smartreflex/autocomp
-> # cat /debug/voltage/vdd_core/vp/curr_volt
-> 900000
-> # cat /debug/voltage/vdd_mpu_iva/vp/curr_volt
-> 900000
->
->
-> OMAP4:
->  # cat /debug/voltage/vdd_core/curr_nominal_volt
-> 1200000
-> # cat /debug/voltage/vdd_mpu/curr_nominal_volt
-> 1375000
-> # cat /debug/voltage/vdd_iva/curr_nominal_volt
-> 1188000
-> #
-> # echo 1 > /debug/voltage/vdd_mpu/smartreflex/autocomp
-> [   61.514038] omap_device: smartreflex.2: new worst case activate
-> latency 0: 30517
-> # echo 1 > /debug/voltage/vdd_core/smartreflex/autocomp
-> # echo 1 > /debug/voltage/vdd_mpu/smartreflex/autocomp
-> #
-> # cat /debug/voltage/vdd_iva/curr_nominal_volt
-> 1188000
-> # cat /debug/voltage/vdd_iva/vp/curr_volt
-> 1200000
-> #
-> # echo 1 > /debug/voltage/vdd_iva/smartreflex/autocomp
-> # cat /debug/voltage/vdd_iva/vp/curr_volt
-> 812500
-> #
-> # cat /debug/voltage/vdd_mpu/vp/curr_volt
-> 812500
-> # cat /debug/voltage/vdd_core/vp/curr_volt
-> 812500
-> #
->
-> This Issue is not reproduced on 'pm-core' branch, seems in the voltage
-> Layer Clean up Patches somewhere some thing is goofed up.
-I did a quick debug on this and found that the root cause of the issue is
-in usage of ffs (because of this, i2c slave address was configured wrongly
-in vc).
-Basically ffs returns the position of the first (least significant) bit
-set in the word and the least significant bit is position 1 where as our
-bit operation assumes that least significant position is 0.
-I tested the attached patch on OMAP3 and it seems to work fine.
+Initial patch is created by Adrian Hunter <adrian.hunter@nokia.com>
+https://patchwork.kernel.org/patch/366831/
 
-Kevin,
-You may want to incorporate this change in your next version if this seems
-OK to you.
+Patch reworked to use API implemented at hwmod layer.
 
-Vishwa
->
->
-> Thanks,
-> Regards,
-> Shweta
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: G, Manjunath Kondaiah <manjugk@ti.com>
+Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
+---
+ arch/arm/mach-omap1/dma.c             |    1 +
+ arch/arm/mach-omap2/dma.c             |   16 +++++++++++++
+ arch/arm/plat-omap/dma.c              |   40 +++++++++++++++++++--------------
+ arch/arm/plat-omap/include/plat/dma.h |    1 +
+ 4 files changed, 41 insertions(+), 17 deletions(-)
 
---20cf307f3830207908049f8b1574
-Content-Type: application/octet-stream; name="vc_fix.patch"
-Content-Disposition: attachment; filename="vc_fix.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: 6e7ca0e85a2649ec_0.1
+diff --git a/arch/arm/mach-omap1/dma.c b/arch/arm/mach-omap1/dma.c
+index d855934..fa2d1b0 100644
+--- a/arch/arm/mach-omap1/dma.c
++++ b/arch/arm/mach-omap1/dma.c
+@@ -351,6 +351,7 @@ static int __init omap1_system_dma_init(void)
+ 	p->dma_write		= dma_write;
+ 	p->dma_read		= dma_read;
+ 	p->disable_irq_lch	= NULL;
++	p->midlemode		= NULL;
+ 
+ 	p->errata = configure_dma_errata();
+ 
+diff --git a/arch/arm/mach-omap2/dma.c b/arch/arm/mach-omap2/dma.c
+index 34922b2..6e12e71 100644
+--- a/arch/arm/mach-omap2/dma.c
++++ b/arch/arm/mach-omap2/dma.c
+@@ -36,7 +36,9 @@
+ 
+ static u32 errata;
+ static u8 dma_stride;
++static u32 midlemode_save_cnt;
+ 
++static struct platform_device *pdev;
+ static struct omap_dma_dev_attr *d;
+ 
+ static enum omap_reg_offsets dma_common_ch_start, dma_common_ch_end;
+@@ -117,6 +119,18 @@ static inline u32 dma_read(int reg, int lch)
+ 	return val;
+ }
+ 
++static void midlemode_nostandby(bool nostandby)
++{
++	/* TODO: midlemode_save_cnt can be moved to hwmod layer? */
++	if (nostandby) {
++		omap_device_require_no_mstandby(pdev);
++		midlemode_save_cnt += 1;
++	} else {
++		omap_device_release_no_mstandby(pdev);
++		midlemode_save_cnt -= 1;
++	}
++}
++
+ static inline void omap2_disable_irq_lch(int lch)
+ {
+ 	u32 val;
+@@ -253,6 +267,7 @@ static int __init omap2_system_dma_init_dev(struct omap_hwmod *oh, void *unused)
+ 	p->clear_dma		= omap2_clear_dma;
+ 	p->dma_write		= dma_write;
+ 	p->dma_read		= dma_read;
++	p->midlemode		= midlemode_nostandby;
+ 
+ 	p->clear_lch_regs	= NULL;
+ 
+@@ -286,6 +301,7 @@ static int __init omap2_system_dma_init_dev(struct omap_hwmod *oh, void *unused)
+ 		dev_err(&od->pdev.dev, "%s: kzalloc fail\n", __func__);
+ 		return -ENOMEM;
+ 	}
++	pdev = &od->pdev;
+ 	return 0;
+ }
+ 
+diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+index 2ec3b5d..5af9bb2 100644
+--- a/arch/arm/plat-omap/dma.c
++++ b/arch/arm/plat-omap/dma.c
+@@ -38,8 +38,9 @@
+ 
+ #include <asm/system.h>
+ #include <mach/hardware.h>
+-#include <plat/dma.h>
+ 
++#include <plat/dma.h>
++#include <plat/omap_device.h>
+ #include <plat/tc.h>
+ 
+ #undef DEBUG
+@@ -924,6 +925,7 @@ EXPORT_SYMBOL(omap_start_dma);
+ void omap_stop_dma(int lch)
+ {
+ 	u32 l;
++	unsigned long flags;
+ 
+ 	/* Disable all interrupts on the channel */
+ 	if (cpu_class_is_omap1())
+@@ -933,14 +935,13 @@ void omap_stop_dma(int lch)
+ 	if (IS_DMA_ERRATA(DMA_ERRATA_i541) &&
+ 			(l & OMAP_DMA_CCR_SEL_SRC_DST_SYNC)) {
+ 		int i = 0;
+-		u32 sys_cf;
+ 
+ 		/* Configure No-Standby */
+-		l = p->dma_read(OCP_SYSCONFIG, lch);
+-		sys_cf = l;
+-		l &= ~DMA_SYSCONFIG_MIDLEMODE_MASK;
+-		l |= DMA_SYSCONFIG_MIDLEMODE(DMA_IDLEMODE_NO_IDLE);
+-		p->dma_write(l , OCP_SYSCONFIG, 0);
++		if (p->midlemode) {
++			spin_lock_irqsave(&dma_chan_lock, flags);
++			p->midlemode(true);
++			spin_unlock_irqrestore(&dma_chan_lock, flags);
++		}
+ 
+ 		l = p->dma_read(CCR, lch);
+ 		l &= ~OMAP_DMA_CCR_EN;
+@@ -958,7 +959,11 @@ void omap_stop_dma(int lch)
+ 			printk(KERN_ERR "DMA drain did not complete on "
+ 					"lch %d\n", lch);
+ 		/* Restore OCP_SYSCONFIG */
+-		p->dma_write(sys_cf, OCP_SYSCONFIG, lch);
++		if (p->midlemode) {
++			spin_lock_irqsave(&dma_chan_lock, flags);
++			p->midlemode(false);
++			spin_unlock_irqrestore(&dma_chan_lock, flags);
++		}
+ 	} else {
+ 		l &= ~OMAP_DMA_CCR_EN;
+ 		p->dma_write(l, CCR, lch);
+@@ -1610,7 +1615,7 @@ int omap_stop_dma_chain_transfers(int chain_id)
+ {
+ 	int *channels;
+ 	u32 l, i;
+-	u32 sys_cf = 0;
++	unsigned long flags;
+ 
+ 	/* Check for input params */
+ 	if (unlikely((chain_id < 0 || chain_id >= dma_lch_count))) {
+@@ -1625,12 +1630,10 @@ int omap_stop_dma_chain_transfers(int chain_id)
+ 	}
+ 	channels = dma_linked_lch[chain_id].linked_dmach_q;
+ 
+-	if (IS_DMA_ERRATA(DMA_ERRATA_i88)) {
+-		sys_cf = p->dma_read(OCP_SYSCONFIG, 0);
+-		l = sys_cf;
+-		/* Middle mode reg set no Standby */
+-		l &= ~((1 << 12)|(1 << 13));
+-		p->dma_write(l, OCP_SYSCONFIG, 0);
++	if (IS_DMA_ERRATA(DMA_ERRATA_i88) && p->midlemode) {
++		spin_lock_irqsave(&dma_chan_lock, flags);
++		p->midlemode(true);
++		spin_unlock_irqrestore(&dma_chan_lock, flags);
+ 	}
+ 
+ 	for (i = 0; i < dma_linked_lch[chain_id].no_of_lchs_linked; i++) {
+@@ -1650,8 +1653,11 @@ int omap_stop_dma_chain_transfers(int chain_id)
+ 	/* Reset the Queue pointers */
+ 	OMAP_DMA_CHAIN_QINIT(chain_id);
+ 
+-	if (IS_DMA_ERRATA(DMA_ERRATA_i88))
+-		p->dma_write(sys_cf, OCP_SYSCONFIG, 0);
++	if (IS_DMA_ERRATA(DMA_ERRATA_i88 && p->midlemode)) {
++		spin_lock_irqsave(&dma_chan_lock, flags);
++		p->midlemode(false);
++		spin_unlock_irqrestore(&dma_chan_lock, flags);
++	}
+ 
+ 	return 0;
+ }
+diff --git a/arch/arm/plat-omap/include/plat/dma.h b/arch/arm/plat-omap/include/plat/dma.h
+index d1c916f..b20dc5e 100644
+--- a/arch/arm/plat-omap/include/plat/dma.h
++++ b/arch/arm/plat-omap/include/plat/dma.h
+@@ -435,6 +435,7 @@ struct omap_system_dma_plat_info {
+ 	void (*clear_dma)(int lch);
+ 	void (*dma_write)(u32 val, int reg, int lch);
+ 	u32 (*dma_read)(int reg, int lch);
++	void (*midlemode)(bool nostandby);
+ };
+ 
+ extern void omap_set_dma_priority(int lch, int dst_port, int priority);
+-- 
+1.7.1
 
-ZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gtb21hcDIvcHJtMnh4eF8zeHh4LmMgYi9hcmNoL2Fy
-bS9tYWNoLW9tYXAyL3BybTJ4eHhfM3h4eC5jCmluZGV4IDRkN2ZlMWEuLmVhMjdjOWMKLS0tIGEv
-YXJjaC9hcm0vbWFjaC1vbWFwMi9wcm0yeHh4XzN4eHguYworKysgYi9hcmNoL2FybS9tYWNoLW9t
-YXAyL3BybTJ4eHhfM3h4eC5jCkBAIC0xODksNyArMTg5LDcgQEAgaW50IG9tYXAzX3BybV92Y19z
-ZXRfaTJjX3NsYXZlX2FkZHIodTggdmNfaWQsIHU4IHNsYXZlX2FkZHIpCiAJCXJldHVybiAtRUlO
-VkFMOwogCiAJb21hcDJfcHJtX3Jtd19tb2RfcmVnX2JpdHModmMtPnNtcHNfc2FfbWFzaywgCi0J
-CQkJICAgc2xhdmVfYWRkciA8PCBmZnModmMtPnNtcHNfc2FfbWFzayksCisJCQkJICAgc2xhdmVf
-YWRkciA8PCAoZmZzKHZjLT5zbXBzX3NhX21hc2spLTEpLAogCQkJCSAgIE9NQVAzNDMwX0dSX01P
-RCwKIAkJCQkgICBPTUFQM19QUk1fVkNfU01QU19TQV9PRkZTRVQpOwogCkBAIC0yMTMsMTMgKzIx
-MywxMyBAQCBzdGF0aWMgaW50IG9tYXAzX3BybV92Y19zZXRfcG1pY19yZWdfYWRkcnModTggdmNf
-aWQsIHU4IHZvbHRfYWRkciwgdTggY21kX2FkZHIpCiAJc3RydWN0IG9tYXAzX3BybV92YyAqdmMg
-PSAmdmNfY2hhbm5lbHNbdmNfaWRdOwogCiAJb21hcDJfcHJtX3Jtd19tb2RfcmVnX2JpdHModmMt
-PnNtcHNfdm9sX3JhX21hc2ssIAotCQkJCSAgIHZvbHRfYWRkciA8PCBmZnModmMtPnNtcHNfdm9s
-X3JhX21hc2spLAorCQkJCSAgIHZvbHRfYWRkciA8PCAoZmZzKHZjLT5zbXBzX3ZvbF9yYV9tYXNr
-KS0xKSwKIAkJCQkgICBPTUFQMzQzMF9HUl9NT0QsCiAJCQkJICAgT01BUDNfUFJNX1ZDX1NNUFNf
-Vk9MX1JBX09GRlNFVCk7CiAKIAlpZiAoY21kX2FkZHIpCiAJCW9tYXAyX3BybV9ybXdfbW9kX3Jl
-Z19iaXRzKHZjLT5zbXBzX2NtZF9yYV9tYXNrLCAKLQkJCQkJY21kX2FkZHIgPDwgZmZzKHZjLT5z
-bXBzX2NtZF9yYV9tYXNrKSwKKwkJCQkJY21kX2FkZHIgPDwgKGZmcyh2Yy0+c21wc19jbWRfcmFf
-bWFzayktMSksCiAJCQkJCU9NQVAzNDMwX0dSX01PRCwKIAkJCQkJT01BUDNfUFJNX1ZDX1NNUFNf
-Q01EX1JBX09GRlNFVCk7CiAJCmRpZmYgLS1naXQgYS9hcmNoL2FybS9tYWNoLW9tYXAyL3BybTQ0
-eHguYyBiL2FyY2gvYXJtL21hY2gtb21hcDIvcHJtNDR4eC5jCm9sZCBtb2RlIDEwMDY0NApuZXcg
-bW9kZSAxMDA3NTUKaW5kZXggMjc1OGI3NS4uNzZiZjZkMwotLS0gYS9hcmNoL2FybS9tYWNoLW9t
-YXAyL3BybTQ0eHguYworKysgYi9hcmNoL2FybS9tYWNoLW9tYXAyL3BybTQ0eHguYwpAQCAtMjM0
-LDcgKzIzNCw3IEBAIGludCBvbWFwNF9wcm1fdmNfc2V0X2kyY19zbGF2ZV9hZGRyKHU4IHZjX2lk
-LCB1OCBzbGF2ZV9hZGRyKQogCQlyZXR1cm4gLUVJTlZBTDsKIAogCW9tYXA0X3BybWluc3Rfcm13
-X2luc3RfcmVnX2JpdHModmMtPnNtcHNfc2FfbWFzaywgCi0JCQkJCXNsYXZlX2FkZHIgPDwgZmZz
-KHZjLT5zbXBzX3NhX21hc2spLAorCQkJCQlzbGF2ZV9hZGRyIDw8IChmZnModmMtPnNtcHNfc2Ff
-bWFzayktMSksCiAJCQkJCU9NQVA0NDMwX1BSTV9QQVJUSVRJT04sCiAJCQkJCU9NQVA0NDMwX1BS
-TV9ERVZJQ0VfSU5TVCwKIAkJCQkJT01BUDRfUFJNX1ZDX1NNUFNfU0FfT0ZGU0VUKTsKQEAgLTI2
-MCwxNCArMjYwLDE0IEBAIHN0YXRpYyBpbnQgb21hcDRfcHJtX3ZjX3NldF9wbWljX3JlZ19hZGRy
-cyh1OCB2Y19pZCwKIAlzdHJ1Y3Qgb21hcDRfcHJtX3ZjICp2YyA9ICZ2Y19jaGFubmVsc1t2Y19p
-ZF07CiAKIAlvbWFwNF9wcm1pbnN0X3Jtd19pbnN0X3JlZ19iaXRzKHZjLT5zbXBzX3ZvbF9yYV9t
-YXNrLCAKLQkJCQkJdm9sdF9hZGRyIDw8IGZmcyh2Yy0+c21wc192b2xfcmFfbWFzayksCisJCQkJ
-CXZvbHRfYWRkciA8PCAoZmZzKHZjLT5zbXBzX3ZvbF9yYV9tYXNrKS0xKSwKIAkJCQkJT01BUDQ0
-MzBfUFJNX1BBUlRJVElPTiwKIAkJCQkJT01BUDQ0MzBfUFJNX0RFVklDRV9JTlNULAogCQkJCQlP
-TUFQNF9QUk1fVkNfVkFMX1NNUFNfUkFfVk9MX09GRlNFVCk7CiAKIAlpZiAoY21kX2FkZHIpCiAJ
-CW9tYXA0X3BybWluc3Rfcm13X2luc3RfcmVnX2JpdHModmMtPnNtcHNfY21kX3JhX21hc2ssIAot
-CQkJCQljbWRfYWRkciA8PCBmZnModmMtPnNtcHNfY21kX3JhX21hc2spLAorCQkJCQljbWRfYWRk
-ciA8PCAoZmZzKHZjLT5zbXBzX2NtZF9yYV9tYXNrKS0xKSwKIAkJCQkJT01BUDQ0MzBfUFJNX1BB
-UlRJVElPTiwKIAkJCQkJT01BUDQ0MzBfUFJNX0RFVklDRV9JTlNULAogCQkJCQlPTUFQNF9QUk1f
-VkNfVkFMX1NNUFNfUkFfQ01EX09GRlNFVCk7Cg==
---20cf307f3830207908049f8b1574--
