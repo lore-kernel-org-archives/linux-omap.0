@@ -1,49 +1,60 @@
-From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Subject: Re: [PATCH] OMAP3: l3: fix for "irq 10: nobody cared" message
-Date: Mon, 28 Mar 2011 10:15:52 -0500
-Message-ID: <AANLkTimDCpHQ5yvYN+0mW7HyyovyXCdGOf8LPv5FapNh@mail.gmail.com>
-References: <1301099396-30380-1-git-send-email-omar.ramirez@ti.com>
-	<f12f050c3f7fe0b405fde475fcd62104@mail.gmail.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH v2 00/19] OMAP4: PM: Suspend, CPU-hotplug and CPUilde support.
+Date: Mon, 28 Mar 2011 08:56:55 -0700
+Message-ID: <87vcz3kzlk.fsf@ti.com>
+References: <1299766095-23879-1-git-send-email-santosh.shilimkar@ti.com>
+	<87d3lycu0h.fsf@ti.com>
+	<49a5273c412bf9193a9f930e990d22d4@mail.gmail.com>
+	<87pqpxbqho.fsf@ti.com> <87mxkk1rni.fsf@ti.com>
+	<86f296cd6f86c03bc066efaf7cf2b537@mail.gmail.com>
+	<87mxkjusth.fsf@ti.com>
+	<d6e3117993699fda33d37081605a9403@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:36303 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751089Ab1C1PPy (ORCPT
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:49879 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751516Ab1C1P5F (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 28 Mar 2011 11:15:54 -0400
-Received: by mail-ew0-f50.google.com with SMTP id 10so1315161ewy.37
-        for <linux-omap@vger.kernel.org>; Mon, 28 Mar 2011 08:15:53 -0700 (PDT)
-In-Reply-To: <f12f050c3f7fe0b405fde475fcd62104@mail.gmail.com>
+	Mon, 28 Mar 2011 11:57:05 -0400
+Received: by mail-iw0-f179.google.com with SMTP id 10so3680638iwc.10
+        for <linux-omap@vger.kernel.org>; Mon, 28 Mar 2011 08:57:04 -0700 (PDT)
+In-Reply-To: <d6e3117993699fda33d37081605a9403@mail.gmail.com> (Santosh
+	Shilimkar's message of "Mon, 28 Mar 2011 16:32:39 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, l-o <linux-omap@vger.kernel.org>, lak <linux-arm-kernel@lists.infradead.org>, Sricharan R <r.sricharan@ti.com>, Felipe Balbi <balbi@ti.com>, Benoit Cousson <b-cousson@ti.com>, Sergei Shtylyov <sshtylyov@mvista.com>
+Cc: linux-omap@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, linux-arm-kernel@lists.infradead.org
 
-Hi,
+Hi Santosh,
 
-On Mon, Mar 28, 2011 at 12:38 AM, Santosh Shilimkar
-<santosh.shilimkar@ti.com> wrote:
->> If an error occurs in the L3 on any other initiator than MPU,
->> the interrupt goes unhandled given that the 'base' register
->> was calculated with the initialized err_base value (which
->> coincidentally points to MPU) and not with the actual source
->> of the error.
->>
->> Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
+Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
+
+[...]
+
+> Have created two branches as you suggested against latest
+> pm-core.
+
+Thanks!
+
+> 1) OMAP4-PM series:
+> git://dev.omapzoom.org/pub/scm/santosh/kernel-omap4-base.git
+> omap4_pm_pmcore_v3
+
+Also, can you post this version of the series to the list,
+w/linux-arm-kernel Cc'd.
+
+> 2) Dependent patches
+> git://dev.omapzoom.org/pub/scm/santosh/kernel-omap4-base.git
+> omap4_pm_pmcore_dep
 >
-> Patch looks good. Did you observe this with DSP initiator??
+> Also created an integration branch which merges 1) and 2)
+>
+> git://dev.omapzoom.org/pub/scm/santosh/kernel-omap4-base.git
+> omap4_pm_pmcore_int
 
-Yes, when loading a base image for the DSP, I got an: In-band Error
-Error seen by IVA_SS  at address 0; after this fix.
+Excellent.
 
-I was planning to remove the duplicated "Error" print too.
+Thanks
 
-> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-
-Thanks, I'll add it in my next version when I make the changes
-affecting only these lines.
-
-Regards,
-
-Omar
+Kevin
