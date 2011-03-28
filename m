@@ -1,368 +1,86 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [pm-core][PATCH v3 01/21] OMAP4: PM: Add omap WakeupGen module support
-Date: Mon, 28 Mar 2011 14:52:17 +0530
-Message-ID: <1301304157-2466-2-git-send-email-santosh.shilimkar@ti.com>
+Subject: [pm-core][PATCH v3 20/21] OMAP4: PM: Set static dependency between MPUSS-EMIF and MPUSS-L3_1
+Date: Mon, 28 Mar 2011 14:52:36 +0530
+Message-ID: <1301304157-2466-21-git-send-email-santosh.shilimkar@ti.com>
 References: <1301304157-2466-1-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:49682 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751106Ab1C1JWv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 28 Mar 2011 05:22:51 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:40586 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751565Ab1C1JWy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Mar 2011 05:22:54 -0400
 In-Reply-To: <1301304157-2466-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: khilman@ti.com, rnayak@ti.com, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-This patch adds OMAP WakeupGen support. The WakeupGen unit is responsible
-for generating wakeup event from the incoming interrupts and enable bits.
-The WakeupGen is implemented in MPU Always-On power domain. During normal
-operation, WakeupGen delivers external interrupts directly to the GIC.
-When the CPUx asserts StandbyWFI, indicating it wants to enter lowpower
-state, the Standby Controller checks with the WakeupGen unit using the
-idlereq/idleack handshake to make sure there is no incoming interrupts.
-The GIC and WakeupGen needs to be kept in synchronisation for proper
-interrupt functioning.
+As per OMAP4430 TRM, the dynamic dependency between MPUSS<->MEMIF
+and MPUSS<->L3_MAIN_1 clockdomains is enable by default. Refer
+register CM_MPU_DYNAMICDEP description for details.
 
-Hence this patch hooks up the omap WakeupGen mask/unmask along with GIC using
-architecture specific hooks.
+But it doesn't seems to work as expected and MPUSS doesn't wakeup
+from off-mode if the static dependency is not set between
+MPUSS<->EMIF and MPUSS<->L3_MAIN_1 clockdomains. At times, CPU
+dead-locks with above static dependencies cleared.
 
+The issue is under investigation with hardware team.
+
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Acked-by: Paul Walmsley <paul@pwsan.com>
 Cc: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/Makefile                      |    3 +-
- arch/arm/mach-omap2/include/mach/omap-wakeupgen.h |   40 ++++
- arch/arm/mach-omap2/omap-wakeupgen.c              |  238 +++++++++++++++++++++
- arch/arm/mach-omap2/omap4-common.c                |    3 +
- 4 files changed, 283 insertions(+), 1 deletions(-)
- create mode 100644 arch/arm/mach-omap2/include/mach/omap-wakeupgen.h
- create mode 100644 arch/arm/mach-omap2/omap-wakeupgen.c
+ arch/arm/mach-omap2/pm44xx.c |   30 ++++++++++++++++++++++++++++++
+ 1 files changed, 30 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 82b2a67..9b654bf 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -24,7 +24,8 @@ obj-$(CONFIG_TWL4030_CORE) += omap_twl.o
- obj-$(CONFIG_SMP)			+= omap-smp.o omap-headsmp.o
- obj-$(CONFIG_LOCAL_TIMERS)		+= timer-mpu.o
- obj-$(CONFIG_HOTPLUG_CPU)		+= omap-hotplug.o
--obj-$(CONFIG_ARCH_OMAP4)		+= omap44xx-smc.o omap4-common.o
-+obj-$(CONFIG_ARCH_OMAP4)		+= omap44xx-smc.o omap4-common.o \
-+					   omap-wakeupgen.o
+diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
+index b78417c..40a44a9 100644
+--- a/arch/arm/mach-omap2/pm44xx.c
++++ b/arch/arm/mach-omap2/pm44xx.c
+@@ -182,6 +182,7 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
+ static int __init omap4_pm_init(void)
+ {
+ 	int ret;
++	struct clockdomain *emif_clkdm, *mpuss_clkdm, *l3_1_clkdm;
  
- plus_sec := $(call as-instr,.arch_extension sec,+sec)
- AFLAGS_omap-headsmp.o			:=-Wa,-march=armv7-a$(plus_sec)
-diff --git a/arch/arm/mach-omap2/include/mach/omap-wakeupgen.h b/arch/arm/mach-omap2/include/mach/omap-wakeupgen.h
-new file mode 100644
-index 0000000..f10d106
---- /dev/null
-+++ b/arch/arm/mach-omap2/include/mach/omap-wakeupgen.h
-@@ -0,0 +1,40 @@
-+/*
-+ * OMAP WakeupGen header file
-+ *
-+ * Copyright (C) 2011 Texas Instruments, Inc.
-+ * Written by Santosh Shilimkar <santosh.shilimkar@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+#ifndef OMAP_ARCH_WAKEUPGEN_H
-+#define OMAP_ARCH_WAKEUPGEN_H
-+
-+#define OMAP_WKG_CONTROL_0			0x00
-+#define OMAP_WKG_ENB_A_0			0x10
-+#define OMAP_WKG_ENB_B_0			0x14
-+#define OMAP_WKG_ENB_C_0			0x18
-+#define OMAP_WKG_ENB_D_0			0x1c
-+#define OMAP_WKG_ENB_SECURE_A_0			0x20
-+#define OMAP_WKG_ENB_SECURE_B_0			0x24
-+#define OMAP_WKG_ENB_SECURE_C_0			0x28
-+#define OMAP_WKG_ENB_SECURE_D_0			0x2c
-+#define OMAP_WKG_ENB_A_1			0x410
-+#define OMAP_WKG_ENB_B_1			0x414
-+#define OMAP_WKG_ENB_C_1			0x418
-+#define OMAP_WKG_ENB_D_1			0x41c
-+#define OMAP_WKG_ENB_SECURE_A_1			0x420
-+#define OMAP_WKG_ENB_SECURE_B_1			0x424
-+#define OMAP_WKG_ENB_SECURE_C_1			0x428
-+#define OMAP_WKG_ENB_SECURE_D_1			0x42c
-+#define OMAP_AUX_CORE_BOOT_0			0x800
-+#define OMAP_AUX_CORE_BOOT_1			0x804
-+#define OMAP_PTMSYNCREQ_MASK			0xc00
-+#define OMAP_PTMSYNCREQ_EN			0xc04
-+#define OMAP_TIMESTAMPCYCLELO			0xc08
-+#define OMAP_TIMESTAMPCYCLEHI			0xc0c
-+
-+extern int __init omap_wakeupgen_init(void);
-+extern void omap_wakeupgen_irqmask_all(unsigned int cpu, unsigned int set);
-+#endif
-diff --git a/arch/arm/mach-omap2/omap-wakeupgen.c b/arch/arm/mach-omap2/omap-wakeupgen.c
-new file mode 100644
-index 0000000..d9d2a3e
---- /dev/null
-+++ b/arch/arm/mach-omap2/omap-wakeupgen.c
-@@ -0,0 +1,238 @@
-+/*
-+ * OMAP WakeupGen Source file
-+ *
-+ * The WakeupGen unit is responsible for generating wakeup event from the
-+ * incoming interrupts and enable bits. The WakeupGen is implemented in MPU
-+ * always-On power domain. The WakeupGen consists of two sub-units, one for
-+ * each CPU and manages only SPI interrupts. Hardware requirements is that
-+ * the GIC and WakeupGen should be kept in sync for proper operation.
-+ *
-+ * Copyright (C) 2011 Texas Instruments, Inc.
-+ * Written by Santosh Shilimkar <santosh.shilimkar@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/io.h>
-+#include <linux/irq.h>
-+#include <linux/platform_device.h>
-+
-+#include <asm/hardware/gic.h>
-+
-+#include <mach/omap-wakeupgen.h>
-+
-+#define NR_BANKS		4
-+#define MAX_IRQS		128
-+#define WKG_MASK_ALL		0x00000000
-+#define WKG_UNMASK_ALL		0xffffffff
-+#define CPU_ENA_OFFSET		0x400
-+#define CPU0_ID			0x0
-+#define CPU1_ID			0x1
-+
-+/* WakeupGen Base addres */
-+static void __iomem *wakeupgen_base;
-+static DEFINE_PER_CPU(u32 [NR_BANKS], irqmasks);
-+static DEFINE_SPINLOCK(wakeupgen_lock);
-+
-+/*
-+ * Static helper functions
-+ */
-+
-+static inline u32 wakeupgen_readl(u8 idx, u32 cpu)
-+{
-+	return __raw_readl(wakeupgen_base + OMAP_WKG_ENB_A_0 +
-+				(cpu * CPU_ENA_OFFSET) + (idx * 4));
-+}
-+
-+static inline void wakeupgen_writel(u32 val, u8 idx, u32 cpu)
-+{
-+	__raw_writel(val, wakeupgen_base + OMAP_WKG_ENB_A_0 +
-+				(cpu * CPU_ENA_OFFSET) + (idx * 4));
-+}
-+
-+static void _wakeupgen_set_all(unsigned int cpu, unsigned int reg)
-+{
-+	u8 i;
-+
-+	for (i = 0; i < NR_BANKS; i++)
-+		wakeupgen_writel(reg, i, cpu);
-+}
-+
-+static inline int _wakeupgen_get_irq_info(u32 irq, u32 *bit_posn, u8 *reg_index)
-+{
-+	unsigned int spi_irq;
-+
+ 	if (!cpu_is_omap44xx())
+ 		return -ENODEV;
+@@ -196,6 +197,35 @@ static int __init omap4_pm_init(void)
+ 
+ 	(void) clkdm_for_each(clkdms_setup, NULL);
+ 
 +	/*
-+	 * PPIs and SGIs are not supported
++	 * FIXME: Remove the MPUSS <-> EMIF static dependency once the
++	 * dynamic dependency issue is root-caused.
++	 * The dynamic dependency between MPUSS <-> MEMIF and MPUSS <-> L3_1
++	 * doesn't seems to work as expected and MPUSS does not wakeup
++	 * from off-mode if the static dependency is not set between them.
++	 * At times CPUs dead-locks with above static dependencies cleared.
 +	 */
-+	if (irq < OMAP44XX_IRQ_GIC_START)
-+		return -EINVAL;
++	mpuss_clkdm = clkdm_lookup("mpuss_clkdm");
++	emif_clkdm = clkdm_lookup("l3_emif_clkdm");
++	l3_1_clkdm = clkdm_lookup("l3_1_clkdm");
++	if ((!mpuss_clkdm) || (!emif_clkdm) || (!l3_1_clkdm))
++		goto err2;
 +
-+	/*
-+	 * Subtract the GIC offset
-+	 */
-+	spi_irq = irq - OMAP44XX_IRQ_GIC_START;
-+	if (spi_irq > MAX_IRQS) {
-+		pr_err("omap wakeupGen: Invalid IRQ%d\n", irq);
-+		return -EINVAL;
++	ret = clkdm_add_wkdep(mpuss_clkdm, emif_clkdm);
++	if (ret) {
++		pr_err("Failed to add MPUSS <-> EMIF wakeup dependency\n");
++		goto err2;
 +	}
 +
-+	/*
-+	 * Each wakeup gen register controls 32
-+	 * interrupts. i.e 1 bit per SPI IRQ
-+	 */
-+	*reg_index = spi_irq >> 5;
-+	*bit_posn = spi_irq %= 32;
-+
-+	return 0;
-+}
-+
-+static void _wakeupgen_clear(unsigned int irq)
-+{
-+	unsigned int cpu = smp_processor_id();
-+	u32 val, bit_number;
-+	u8 i;
-+
-+	if (_wakeupgen_get_irq_info(irq, &bit_number, &i))
-+		return;
-+
-+	val = wakeupgen_readl(i, cpu);
-+	val &= ~BIT(bit_number);
-+	wakeupgen_writel(val, i, cpu);
-+}
-+
-+static void _wakeupgen_set(unsigned int irq)
-+{
-+	unsigned int cpu = smp_processor_id();
-+	u32 val, bit_number;
-+	u8 i;
-+
-+	if (_wakeupgen_get_irq_info(irq, &bit_number, &i))
-+		return;
-+
-+	val = wakeupgen_readl(i, cpu);
-+	val |= BIT(bit_number);
-+	wakeupgen_writel(val, i, cpu);
-+}
-+
-+static void _wakeupgen_save_masks(unsigned int cpu)
-+{
-+	u8 i;
-+
-+	for (i = 0; i < NR_BANKS; i++)
-+		per_cpu(irqmasks, cpu)[i] = wakeupgen_readl(i, cpu);
-+}
-+
-+static void _wakeupgen_restore_masks(unsigned int cpu)
-+{
-+	u8 i;
-+
-+	for (i = 0; i < NR_BANKS; i++)
-+		wakeupgen_writel(per_cpu(irqmasks, cpu)[i], i, cpu);
-+}
-+
-+/*
-+ * Architecture specific Mask extensiom
-+ */
-+static void wakeupgen_mask(struct irq_data *d)
-+{
-+	spin_lock(&wakeupgen_lock);
-+	_wakeupgen_clear(d->irq);
-+	spin_unlock(&wakeupgen_lock);
-+}
-+
-+/*
-+ * Architecture specific Unmask extensiom
-+ */
-+static void wakeupgen_unmask(struct irq_data *d)
-+{
-+
-+	spin_lock(&wakeupgen_lock);
-+	_wakeupgen_set(d->irq);
-+	spin_unlock(&wakeupgen_lock);
-+}
-+
-+#ifdef CONFIG_PM
-+/*
-+ * Architecture specific set_wake extension
-+ */
-+static int wakeupgen_set_wake(struct irq_data *d, unsigned int on)
-+{
-+	spin_lock(&wakeupgen_lock);
-+	if (on)
-+		_wakeupgen_set(d->irq);
-+	else
-+		_wakeupgen_clear(d->irq);
-+	spin_unlock(&wakeupgen_lock);
-+
-+	return 0;
-+}
-+
-+#else
-+#define wakeupgen_set_wake	NULL
-+#endif
-+
-+/**
-+ * omap_wakeupgen_irqmask_all() -  Mask or unmask interrupts
-+ * @cpu - CPU ID
-+ * @set - The IRQ register mask.
-+ *	0 = Mask all interrupts on the 'cpu'
-+ *	1 = Unmask all interrupts on the 'cpu'
-+ *
-+ * Ensure that the initial mask is maintained. This is faster than
-+ * iterating through GIC rgeisters to arrive at the correct masks
-+ */
-+void omap_wakeupgen_irqmask_all(unsigned int cpu, unsigned int set)
-+{
-+	if (omap_rev() == OMAP4430_REV_ES1_0)
-+		return;
-+
-+	spin_lock(&wakeupgen_lock);
-+	if (set) {
-+		_wakeupgen_save_masks(cpu);
-+		_wakeupgen_set_all(cpu, WKG_MASK_ALL);
-+	} else {
-+		_wakeupgen_set_all(cpu, WKG_UNMASK_ALL);
-+		_wakeupgen_restore_masks(cpu);
-+	}
-+	spin_unlock(&wakeupgen_lock);
-+}
-+
-+/*
-+ * Initialse the wakeupgen module
-+ */
-+int __init omap_wakeupgen_init(void)
-+{
-+	u8 i;
-+
-+	/* Not supported on on OMAP4 ES1.0 silicon */
-+	if (omap_rev() == OMAP4430_REV_ES1_0) {
-+		WARN(1, "WakeupGen: Not supported on OMAP4430 ES1.0\n");
-+		return -EPERM;
++	ret = clkdm_add_wkdep(mpuss_clkdm, l3_1_clkdm);
++	if (ret) {
++		pr_err("Failed to add MPUSS <-> L3_MAIN_1 wakeup dependency\n");
++		goto err2;
 +	}
 +
-+	/* Static mapping, never released */
-+	wakeupgen_base = ioremap(OMAP44XX_WKUPGEN_BASE, SZ_4K);
-+	if (WARN_ON(!wakeupgen_base))
-+		return -ENODEV;
++	pr_info("OMAP4 PM: Temporary static dependency added between"
++		"MPUSS <-> EMIF and MPUSS <-> L3_MAIN_1.\n");
 +
-+	/* Clear all IRQ bitmasks at wakeupGen level */
-+	for (i = 0; i < NR_BANKS; i++) {
-+		wakeupgen_writel(0, i, CPU0_ID);
-+		wakeupgen_writel(0, i, CPU1_ID);
-+	}
-+
-+	/*
-+	 * Override gic architecture specific fucntioms to add
-+	 * OMAP WakeupGen interrupt controller along with GIC
-+	 */
-+	gic_arch_extn.irq_mask = wakeupgen_mask;
-+	gic_arch_extn.irq_unmask = wakeupgen_unmask;
-+	gic_arch_extn.irq_set_wake = wakeupgen_set_wake;
-+
-+	return 0;
-+}
-diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
-index 1926864..559d227 100644
---- a/arch/arm/mach-omap2/omap4-common.c
-+++ b/arch/arm/mach-omap2/omap4-common.c
-@@ -21,6 +21,7 @@
- 
- #include <mach/hardware.h>
- #include <mach/omap4-common.h>
-+#include <mach/omap-wakeupgen.h>
- 
- #ifdef CONFIG_CACHE_L2X0
- void __iomem *l2cache_base;
-@@ -41,6 +42,8 @@ void __init gic_init_irq(void)
- 	gic_cpu_base = ioremap(OMAP44XX_GIC_CPU_BASE, SZ_512);
- 	BUG_ON(!gic_cpu_base);
- 
-+	omap_wakeupgen_init();
-+
- 	gic_init(0, 29, gic_dist_base_addr, gic_cpu_base);
- }
- 
+ 	ret = omap4_mpuss_init();
+ 	if (ret) {
+ 		pr_err("Failed to initialise OMAP4 MPUSS\n");
 -- 
 1.6.0.4
 
