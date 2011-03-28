@@ -1,144 +1,134 @@
-From: Heikki Krogerus <heikki.krogerus-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v2 1/2] isp1704_charger: allow board specific powering
- routine
-Date: Mon, 28 Mar 2011 12:12:40 +0300
-Message-ID: <20110328091240.GA3969@esdhcp034230>
-References: <1301295099-22066-1-git-send-email-kalle.jokiniemi@nokia.com>
- <1301295099-22066-2-git-send-email-kalle.jokiniemi@nokia.com>
+From: David Cohen <dacohen@gmail.com>
+Subject: Re: [PATCH 0/4] iommu: Prevent oops in iommu_get() and while
+ arch_iommu is in use
+Date: Mon, 28 Mar 2011 12:20:30 +0300
+Message-ID: <AANLkTi=EsDvcuO_Entun8gZUw723S7WXn4XbrO6V9--5@mail.gmail.com>
+References: <4D8CB106.7030608@maxwell.research.nokia.com>
+	<AANLkTikxd4kRu1+XskohhQzpqHaZTvK+afbgE-qRSOqN@mail.gmail.com>
+	<4D8F738D.3090100@maxwell.research.nokia.com>
+	<AANLkTi=_ZzpkP3vvKhu8AKa-66MG11nbVZwGOjpC87pL@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1301295099-22066-2-git-send-email-kalle.jokiniemi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kalle Jokiniemi <kalle.jokiniemi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, jhnikula-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, khilman-l0cyMroinI0@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:54028 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751025Ab1C1JUb convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Mar 2011 05:20:31 -0400
+Received: by wwa36 with SMTP id 36so3554731wwa.1
+        for <linux-omap@vger.kernel.org>; Mon, 28 Mar 2011 02:20:30 -0700 (PDT)
+In-Reply-To: <AANLkTi=_ZzpkP3vvKhu8AKa-66MG11nbVZwGOjpC87pL@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Doyu Hiroshi (Nokia-D/Helsinki)" <hiroshi.doyu@nokia.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Cohen David Abraham <david.cohen@nokia.com>
 
-Hi,
+On Mon, Mar 28, 2011 at 4:42 AM, Ramirez Luna, Omar <omar.ramirez@ti.co=
+m> wrote:
+> Hi,
+>
+> On Sun, Mar 27, 2011 at 12:27 PM, Sakari Ailus
+> <sakari.ailus@maxwell.research.nokia.com> wrote:
+>> Ramirez Luna, Omar wrote:
+>>> On Fri, Mar 25, 2011 at 10:13 AM, Sakari Ailus
+>>> <sakari.ailus@maxwell.research.nokia.com> wrote:
+>>>> This patchset is aimed to fix a problem in arch_iommu implementati=
+on
+>>>> references. When an actual arch_iommu implementation is not loaded=
+ while
+>>>> iommu_get() is being called results to a kernel oops, as well as
+>>>> removing an arch_iommu implementation which is in use.
+>>>
+>>> How about fixing the dependency instead? Right now iommu2 depends o=
+n
+>>> iommu because of the calls to
+>>> install_iommu_arch/uninstall_iommu_arch... we should change that
+>>> dependency to iommu depend on iommu2. Something like iommu (plat)
+>>> querying iommu2 (mach) for devices to install.
+>>
+>> There is no direct dependency from a driver using the generic API to=
+ a
+>> particular implementation of the iommu. This comes from the design o=
+f
+>> the iommu framework. The generic layer shouldn't depend on particula=
+r
+>> implementation(s).
+>
+> IMHO there is, take as an example bridgedriver (it is arm/omap
+> dependent), so it depends on iommu providing the mach-omap2
+> implementation. I imagine isp for omap imposes the same dependency,
+> even more your patchset enforces that dependency.
 
-Add Anton Vorontsov <cbouatmailru-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> to your v3. This will
-need ack from him, or this needs to go to him. In this case I guess we
-are only dealing with RX51 stuff, so maybe this should go to Tony.
+The generic layer can exist without a specific implementation. It
+should accept later arch install/uninstall without any problem.
 
-On Mon, Mar 28, 2011 at 09:51:38AM +0300, Kalle Jokiniemi wrote:
-> The ISP1704/1707 chip can be put to full power down
-> state by asserting the CHIP_SEL line. This patch enables
-> platform or board specific hooks to put the device into
-> power down mode in case not needed.
-> 
-> These patches are preparatio for enabling this powering
-> routine in n900 (rx-51) devices.
-> 
-> Thanks to Heikki Krogerus for helping out with the patch.
-> 
-> Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-> Cc: Heikki Krogerus <heikki.krogerus-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-> ---
->  drivers/power/isp1704_charger.c       |   26 ++++++++++++++++++++++++++
->  include/linux/power/isp1704_charger.h |   29 +++++++++++++++++++++++++++++
->  2 files changed, 55 insertions(+), 0 deletions(-)
->  create mode 100644 include/linux/power/isp1704_charger.h
-> 
-> diff --git a/drivers/power/isp1704_charger.c b/drivers/power/isp1704_charger.c
-> index 2ad9b14..c796b9f 100644
-> --- a/drivers/power/isp1704_charger.c
-> +++ b/drivers/power/isp1704_charger.c
-> @@ -33,6 +33,7 @@
->  #include <linux/usb/ulpi.h>
->  #include <linux/usb/ch9.h>
->  #include <linux/usb/gadget.h>
-> +#include <linux/power/isp1704_charger.h>
->  
->  /* Vendor specific Power Control register */
->  #define ISP1704_PWR_CTRL		0x3d
-> @@ -63,6 +64,7 @@ struct isp1704_charger {
->  	char			model[8];
->  	unsigned		present:1;
->  	unsigned		online:1;
-> +	unsigned		init_done;
+>
+> Basically, if there is no "arch_iommu" the iommu driver does not work=
+,
+> and if there was an "arch_iommu" but it was removed then the driver
+> crashes.
 
-Do we need this?
+The loaded module *must* uninstall arch when existing, then kernel
+will see no crash. And yes, generic layer won't work anymore but
+that's an expected and correct situation.
 
->  	unsigned		current_max;
->  
->  	/* temp storage variables */
-> @@ -71,6 +73,18 @@ struct isp1704_charger {
->  };
->  
->  /*
-> + * Disable/enable the power from the isp1704 if a function for it
-> + * has been provided with platform data.
-> + */
-> +static void isp1704_charger_set_power(struct isp1704_charger *isp, bool on)
-> +{
-> +	struct isp1704_charger_data	*board = isp->dev->platform_data;
-> +
-> +	if (board->set_power)
-> +		board->set_power(on);
-> +}
-> +
-> +/*
->   * Determine is the charging port DCP (dedicated charger) or CDP (Host/HUB
->   * chargers).
->   *
-> @@ -222,6 +236,9 @@ static void isp1704_charger_work(struct work_struct *data)
->  
->  	mutex_lock(&lock);
->  
-> +	if (event != USB_EVENT_NONE)
-> +		isp1704_charger_set_power(isp, 1);
-> +
->  	switch (event) {
->  	case USB_EVENT_VBUS:
->  		isp->online = true;
-> @@ -269,6 +286,9 @@ static void isp1704_charger_work(struct work_struct *data)
->  		 */
->  		if (isp->otg->gadget)
->  			usb_gadget_disconnect(isp->otg->gadget);
-> +		/* If we're initialized, we can power down the isp */
-> +		if (isp->init_done)
-> +			isp1704_charger_set_power(isp, 0);
->  		break;
->  	case USB_EVENT_ENUMERATED:
->  		if (isp->present)
-> @@ -394,6 +414,8 @@ static int __devinit isp1704_charger_probe(struct platform_device *pdev)
->  	isp->dev = &pdev->dev;
->  	platform_set_drvdata(pdev, isp);
->  
-> +	isp1704_charger_set_power(isp, 1);
-> +
->  	ret = isp1704_test_ulpi(isp);
->  	if (ret < 0)
->  		goto fail1;
-> @@ -437,8 +459,11 @@ static int __devinit isp1704_charger_probe(struct platform_device *pdev)
->  	if ((ret & ULPI_INT_VBUS_VALID) && !isp->otg->default_a) {
->  		isp->event = USB_EVENT_VBUS;
->  		schedule_work(&isp->work);
-> +	} else {
-> +		isp1704_charger_set_power(isp, 0);
->  	}
+>
+> Now, there could be architectures that does not depend on a particula=
+r
+> implementation but this iommu driver doesn't support them because if
+> there is no arch_iommu operations, it does nothing or crashes.
+>
+>> What comes to the patch, it works as long as there's only one iommu
+>> implementation loaded / compiled to the kernel. I wonder if this kin=
+d of
+>> limitation can be accepted.
+>
+> Which is the way iommu choose to work, like I said if there is no
+> arch_iommu nothing works, most of APIs in iommu depend on an machine
+> specific implementation. To fix that it is not the scope of my
+> proposal.
+>
+> If indeed iommu can function without a machine specific implementatio=
+n
+> then a redesign needs to be made, but to me the same approach as I di=
+d
+> needs to be followed: if there is mach implementation (e.g.: iommu2.c=
+)
+> the generic API needs to depend on it, otherwise the module can be
+> removed and crash the kernel; OTOH if there is no mach implementation=
+,
+> then iommu should not depend on it to be installed as you point out,
+> this could be handled in plat/iommu.h among with:
+>
+> #if defined(CONFIG_ARCH_OMAP1)
+> #error "iommu for this processor not implemented yet"
+> #else
+> #include <plat/iommu2.h>
+> #endif
 
-I think the transceiver can be powered down even if we just scheduled
-the work. This will basically cause hw reset on the transceiver which
-is only a good thing IMO. Drop the else condition.
+So, every new specific implementation should modify this piece of
+code? Are you sure it's a good idea?
 
-> +	isp->init_done = 1;
->  	return 0;
->  fail2:
->  	power_supply_unregister(&isp->psy);
-> @@ -459,6 +484,7 @@ static int __devexit isp1704_charger_remove(struct platform_device *pdev)
->  	otg_unregister_notifier(isp->otg, &isp->nb);
->  	power_supply_unregister(&isp->psy);
->  	otg_put_transceiver(isp->otg);
-> +	isp1704_charger_set_power(isp, 0);
->  	kfree(isp);
->  
->  	return 0;
+Regards,
 
--- 
-heikki
+David Cohen
+
+>
+> A new else defining the install/uninstall_arch_iommu functions or
+> simply reversing the check to be OMAP2+ and error on anything else.
+>
+> Regards,
+>
+> Omar
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =C2=A0http://vger.kernel.org/majordomo-info.ht=
+ml
+>
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
