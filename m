@@ -1,78 +1,81 @@
-From: <kalle.jokiniemi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH v2 2/2] RX-51: Enable isp1704 power on/off
-Date: Mon, 28 Mar 2011 08:06:32 +0000
-Message-ID: <9D0D31AA57AAF5499AFDC63D6472631B06CEE3@008-AM1MPN1-036.mgdnok.nokia.com>
-References: <1301295099-22066-1-git-send-email-kalle.jokiniemi@nokia.com>
- <1301295099-22066-3-git-send-email-kalle.jokiniemi@nokia.com>
- <17a241ba5fb52c72ed49ad345910065f@mail.gmail.com>
+From: Sergei Shtylyov <sshtylyov@mvista.com>
+Subject: Re: [PATCH v2 1/2] isp1704_charger: allow board specific powering
+ routine
+Date: Mon, 28 Mar 2011 12:17:41 +0400
+Message-ID: <4D904425.3050307@ru.mvista.com>
+References: <1301295099-22066-1-git-send-email-kalle.jokiniemi@nokia.com> <1301295099-22066-2-git-send-email-kalle.jokiniemi@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <17a241ba5fb52c72ed49ad345910065f-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: keshava_mgowda-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org
-Cc: Heikki.Krogerus-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org, jhnikula-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, khilman-l0cyMroinI0@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:61996 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750776Ab1C1ITP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Mar 2011 04:19:15 -0400
+In-Reply-To: <1301295099-22066-2-git-send-email-kalle.jokiniemi@nokia.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, balbi@ti.com, heikki.krogerus@nokia.com, jhnikula@gmail.com, khilman@ti.com
 
-Hi,
+Hello.
 
- > -----Original Message-----
- > From: ext Keshava Munegowda [mailto:keshava_mgowda-l0cyMroinI0@public.gmane.org]
- > Sent: 28. maaliskuuta 2011 10:19
- > To: Jokiniemi Kalle (Nokia-MS/Tampere); linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-
- > omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Felipe Balbi
- > Cc: Krogerus Heikki (Nokia-MS/Helsinki); jhnikula-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org; Kevin Hilman
- > Subject: RE: [PATCH v2 2/2] RX-51: Enable isp1704 power on/off
- > 
- > > +
- > >  static struct platform_device rx51_charger_device = {
- > > -	.name = "isp1704_charger",
- > > +	.name	= "isp1704_charger",
- > 
- > Both are same; you don't need this change!
+On 28-03-2011 10:51, Kalle Jokiniemi wrote:
 
-No, actually they are not same. I added tab instead of space to match indentation with the .dev member. This is the correct way IMHO.
+> The ISP1704/1707 chip can be put to full power down
+> state by asserting the CHIP_SEL line. This patch enables
+> platform or board specific hooks to put the device into
+> power down mode in case not needed.
 
-- Kalle
+> These patches are preparatio for enabling this powering
 
- > 
- > 
- > 
- > > +	.dev	= {
- > > +		.platform_data = &rx51_charger_data,
- > > +	},
- > >  };
- > >
- > > +static void __init rx51_charger_init(void)
- > > +{
- > > +	BUG_ON(gpio_request_one(RX51_USB_TRANSCEIVER_RST_GPIO,
- > > +		GPIOF_OUT_INIT_LOW, "isp1704_reset"));
- > > +
- > > +	platform_device_register(&rx51_charger_device);
- > > +}
- > > +
- > >  #if defined(CONFIG_KEYBOARD_GPIO) ||
- > defined(CONFIG_KEYBOARD_GPIO_MODULE)
- > >
- > >  #define RX51_GPIO_CAMERA_LENS_COVER	110
- > > @@ -928,6 +951,6 @@ void __init rx51_peripherals_init(void)
- > >  	if (partition)
- > >  		omap2_hsmmc_init(mmc);
- > >
- > > -	platform_device_register(&rx51_charger_device);
- > > +	rx51_charger_init();
- > >  }
- > >
- > > --
- > > 1.7.1
- > >
- > > --
- > > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
- > > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
- > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+    Preparation.
+
+> routine in n900 (rx-51) devices.
+
+> Thanks to Heikki Krogerus for helping out with the patch.
+
+> Signed-off-by: Kalle Jokiniemi<kalle.jokiniemi@nokia.com>
+> Cc: Heikki Krogerus<heikki.krogerus@nokia.com>
+[...]
+
+> diff --git a/include/linux/power/isp1704_charger.h b/include/linux/power/isp1704_charger.h
+> new file mode 100644
+> index 0000000..68096a6
+> --- /dev/null
+> +++ b/include/linux/power/isp1704_charger.h
+> @@ -0,0 +1,29 @@
+> +/*
+> + * ISP1704 USB Charger Detection driver
+> + *
+> + * Copyright (C) 2011 Nokia Corporation
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation; either version 2 of the License, or
+> + * (at your option) any later version.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+> + */
+> +
+> +
+> +#ifndef __ISP1704_CHARGER_H
+> +#define __ISP1704_CHARGER_H
+> +
+> +struct isp1704_charger_data {
+> +	void		(*set_power)(bool on);
+> +};
+> +
+> +#endif
+
+    There should be include/linux/platform_data/ directory now, specifically 
+for such headers...
+
+WBR, Sergei
