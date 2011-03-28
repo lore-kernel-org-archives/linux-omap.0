@@ -1,97 +1,172 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [pm-core][PATCH v3 09/21] OMAP4: PM: Add GIC distributor and interface enable/disable accessory API
-Date: Mon, 28 Mar 2011 14:52:25 +0530
-Message-ID: <1301304157-2466-10-git-send-email-santosh.shilimkar@ti.com>
-References: <1301304157-2466-1-git-send-email-santosh.shilimkar@ti.com>
+Subject: [pm-core][PATCH v3 00/21] OMAP4: PM: suspend, CPU-hotplug and CPUilde support
+Date: Mon, 28 Mar 2011 14:52:16 +0530
+Message-ID: <1301304157-2466-1-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:34464 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:34456 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752244Ab1C1JXG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 28 Mar 2011 05:23:06 -0400
-In-Reply-To: <1301304157-2466-1-git-send-email-santosh.shilimkar@ti.com>
+	id S1751857Ab1C1JW5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 28 Mar 2011 05:22:57 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: khilman@ti.com, rnayak@ti.com, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: khilman@ti.com, rnayak@ti.com, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-The power management code needs to have access to enable/disable the
-gic cpu interface and distributor based on targetted low power
-states.
+V3 updates:
+It's same as V2 with couple of minor updates and its rebased on Kevin's
+latest pm-core branch.
+- Dropped 'enable_off_mode' flag altogether for OMAP4 as discussed on the list.
+- Removed non-supported pm debug entries
 
-These APIs are suppose to me moved to common ARM GIC library and patch
-for the same was posted earlier. The GIC code refactoring is ongoing
-and hence for time being this is kept under OMAP code so that OMAP4
-PM can continue to work.
+The following changes since commit 61cbb3172176b84c106bf0f4c32317c472932ab5:
+  Kevin Hilman (1):
+        Merge branch 'for_2.6.40/pm-misc' into pm-reset
 
-Discussion thread:
-	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg42940.html
+are available in the git repository at:
 
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Kevin Hilman <khilman@ti.com>
-Cc: Russell King <rmk+kernel@arm.linux.org.uk>
----
- arch/arm/mach-omap2/include/mach/omap4-common.h |    5 +++-
- arch/arm/mach-omap2/omap4-common.c              |   24 +++++++++++++++++++++++
- 2 files changed, 28 insertions(+), 1 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/include/mach/omap4-common.h b/arch/arm/mach-omap2/include/mach/omap4-common.h
-index a6ce905..a4b3beb 100644
---- a/arch/arm/mach-omap2/include/mach/omap4-common.h
-+++ b/arch/arm/mach-omap2/include/mach/omap4-common.h
-@@ -44,6 +44,10 @@ extern void __iomem *omap4_get_gic_dist_base(void);
- extern void __iomem *omap4_get_gic_cpu_base(void);
- extern void __iomem *omap4_get_sar_ram_base(void);
- extern void __init gic_init_irq(void);
-+extern void gic_cpu_enable(void);
-+extern void gic_cpu_disable(void);
-+extern void gic_dist_enable(void);
-+extern void gic_dist_disable(void);
- extern void omap_smc1(u32 fn, u32 arg);
+  git://dev.omapzoom.org/pub/scm/santosh/kernel-omap4-base.git omap4_pm_pmcore_v3
  
- /*
-@@ -64,7 +68,6 @@ extern int omap4_mpuss_init(void);
- extern int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state);
- extern void omap4_cpu_suspend(unsigned int cpu, unsigned int save_state);
- extern void omap4_cpu_resume(void);
--
- #else
- 
- static inline int omap4_enter_lowpower(unsigned int cpu,
-diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
-index 97d7d8a..9dd50b7 100644
---- a/arch/arm/mach-omap2/omap4-common.c
-+++ b/arch/arm/mach-omap2/omap4-common.c
-@@ -61,6 +61,30 @@ void __init gic_init_irq(void)
- 	gic_init(0, 29, gic_dist_base_addr, gic_cpu_base);
- }
- 
-+/*
-+ * FIXME: Remove this GIC APIs once common GIG library starts
-+ * supporting it.
-+ */
-+void gic_cpu_enable(void)
-+{
-+	__raw_writel(0xf0, gic_cpu_base + GIC_CPU_PRIMASK);
-+	__raw_writel(1, gic_cpu_base + GIC_CPU_CTRL);
-+}
-+
-+void gic_cpu_disable(void)
-+{
-+	__raw_writel(0, gic_cpu_base + GIC_CPU_CTRL);
-+}
-+
-+void gic_dist_enable(void)
-+{
-+	__raw_writel(0x1, gic_dist_base_addr + GIC_DIST_CTRL);
-+}
-+void gic_dist_disable(void)
-+{
-+	__raw_writel(0, gic_dist_base_addr + GIC_CPU_CTRL);
-+}
-+
- #ifdef CONFIG_CACHE_L2X0
- 
- void __iomem *omap4_get_l2cache_base(void)
--- 
-1.6.0.4
+Dependent patches and integrated barnch against pm-core branch
+are also available at below.
+ git://dev.omapzoom.org/pub/scm/santosh/kernel-omap4-base.git omap4_pm_pmcore_dep
+ git://dev.omapzoom.org/pub/scm/santosh/kernel-omap4-base.git omap4_pm_pmcore_int
+  
+V2 updates:
+Rebased on Kevin's latest pm-core branch and fixes below comments
+from Kevin Hilman <khilman@ti.com>. 
+- All acronym fixes
+- Use WARN_ON() instead of BUG_ON() with graceful exit.
+- Export omap4_get_base*() rather than global address pointers
+- CPUidle prepare() hook + hotplug notifier to manage C-state dynamically.
+- Dropped debugfs way of changing C-state valid flags in favor of above.
 
+This series adds OMAP4 suspend and cpuidle support till MPU subsystem
+(MPUSS) off-mode. The suspend on SMP machines uses cpu-hotplug 
+infrastructure to take down the non-boot CPUs. We put secondary
+CPU(CPU1 in OMAP4) to OFF state via cpu-hotplug.
+In cpuidle too, low power states are attempted only when the
+CPU1 is put to OFF state via cpu-hotplug because of hardware
+constraints.
+
+Timer wakeup from suspend, debug pm counters and enable_off_mode
+provisions are supported as well.
+
+Special thanks to Kevin Hilman <khilman@ti.com> for doing detail
+off-the list reviews.
+
+The patches are generated against mainline 2.6.38-rc5 and tested with
+OMAP4430 SDP and OMAP4 PANDA board. Any OMAP4 board with ES2.X silicon,
+below features should work with this series. On ES1.0, these PM 
+features are not supported.
+	1. CPU hotplug (CPU is put into off-mode)
+	2. Suspend (Both CPUs put to off-mode and MPUSS to OFF/RET)
+	3. CPUILDE with below C-states.
+		C1 - CPU0 ON + CPU1 ON/OFF + MPU ON + CORE ON
+		C2 - CPU0 ON + CPU1 OFF + MPU ON + CORE ON
+		C3 - CPU0 OFF + CPU1 OFF + MPU CSWR + CORE ON
+		C4 - CPU0 OFF + CPU1 OFF + MPU OFF + CORE ON
+
+In OMAP4 mpuss consist of dual Cortex-A9 with per-cpu local timers
+GIC(Generic Interrupt Controller), SCU(Snoop Control Unit) and PL310
+L2 cache controller and  CPU0/CPU1 LPRM modules.
+CPU0, CPU1 and MPUSS have there own power domain and hence multiple
+low power state combinations are possible. The CPU10 and CPU1
+Close switch Retention(CSWR) isn't supported by hardware.
+Based on various studies, measurements, hardware constraints
+and recommendations from hardware team, only below low power
+modes are supported on OMAP4.
+----------------------------------------
+CPU0		CPU1		MPUSS
+----------------------------------------
+ON		ON		ON
+OFF		OFF		CSWR
+OFF		OFF		OSWR 
+OFF		OFF		OFF
+-----------------------------------------
+Note: CPU0 is the master core and it is the last CPU to go down
+and first to wake-up when MPUSS low power states are attempted
+
+OSWR(Open Switch Retention) is not added as part of this series
+because it needs some power domain level support which isn't ready
+yet.
+	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg38667.html
+
+Powerdomain INACTIVE support is also dropped because of its 
+inconsistency between OMAP4 and OMAP3.
+More information  on this thread -
+	http://www.spinics.net/lists/linux-omap/msg45370.html
+
+The cpu-hotplug and suspend works with omap2plus_defconfig. Not to damage
+your file system with current omap2plus_defconfig, disable ARCH_OMAP2 so
+that V6 and V7 support is not built together with SMP.
+To tryout cpuidle, CONFIG_CPU_IDLE needs to be enabled in the build.
+
+CPU-HOTPLUG commands :
+	offline : $echo 0 > /sys/devices/system/cpu/cpu1/online
+	online : $echo 1 > /sys/devices/system/cpu/cpu1/online
+
+Suspend :$echo mem > /sys/power/state
+
+cpuilde : To trigger cpuidle deeper C-states on OMAP4, CPU1 needs
+	to be offlied
+	$echo 0 > /sys/devices/system/cpu/cpu1/online
+
+To see PM debug counters,
+	$mount -t debugfs debugfs /proc/sys/debug/
+	$cat /proc/sys/debug/pm_debug/count
+
+The following changes since commit 61cbb3172176b84c106bf0f4c32317c472932ab5:
+  Kevin Hilman (1):
+        Merge branch 'for_2.6.40/pm-misc' into pm-reset
+
+are available in the git repository at:
+
+  git://dev.omapzoom.org/pub/scm/santosh/kernel-omap4-base.git omap4_pm_pmcore_v3
+
+Rajendra Nayak (1):
+      OMAP4: cpuidle: Basic CPUidle support
+
+Santosh Shilimkar (20):
+      OMAP4: PM: Add omap WakeupGen module support
+      OMAP4: Use WARN_ON() instead of BUG_ON() with graceful exit
+      OMAP4: PM: Export omap4_get_base*() rather than global address pointers
+      OMAP4: PM: Add SAR RAM support
+      OMAP4: PM: Add CPUX OFF mode support
+      OMAP4: PM: Initialise all the clockdomains to supported states
+      OMAP4: PM: Program CPU1 to hit OFF when off-lined
+      OMAP4: PM: CPU1 wakeup workaround from Low power modes
+      OMAP4: PM: Add GIC distributor and interface enable/disable accessory API
+      OMAP4: PM: Add GIC save/restore support
+      OMAP4: PM: Add WakeupGen save/restore support
+      OMAP4: PM: Add L2 cache lowpower support
+      OMAP4: suspend: Add MPUSS RET and OFF support
+      OMAP4: pm-debug: Add wakeup timer and debug counters
+      OMAP4: cpuidle: Add MPUSS RET OFF states
+      OMAP4: cpuidle: Switch to gptimer from twd in deeper C-states.
+      OMAP4: cpuidle: Add CPU hotplug notifier and prepare() hook.
+      OMAP4: Remove un-used do_wfi() macro.
+      OMAP4: PM: Set static dependency between MPUSS-EMIF and MPUSS-L3_1
+      OMAP4: PM: Avoid omap4_pm_init() on OMAP4430 ES1.0
+
+ arch/arm/mach-omap2/Makefile                      |    8 +-
+ arch/arm/mach-omap2/cpuidle44xx.c                 |  352 ++++++++++++++++
+ arch/arm/mach-omap2/include/mach/omap-wakeupgen.h |   41 ++
+ arch/arm/mach-omap2/include/mach/omap4-common.h   |   73 +++-
+ arch/arm/mach-omap2/omap-hotplug.c                |   30 ++-
+ arch/arm/mach-omap2/omap-smp.c                    |   32 ++-
+ arch/arm/mach-omap2/omap-wakeupgen.c              |  319 +++++++++++++++
+ arch/arm/mach-omap2/omap4-common.c                |   86 ++++-
+ arch/arm/mach-omap2/omap4-mpuss-lowpower.c        |  451 +++++++++++++++++++++
+ arch/arm/mach-omap2/omap4-sar-layout.h            |   66 +++
+ arch/arm/mach-omap2/pm-debug.c                    |   11 +-
+ arch/arm/mach-omap2/pm.h                          |    1 +
+ arch/arm/mach-omap2/pm44xx.c                      |  138 ++++++-
+ arch/arm/mach-omap2/sleep44xx.S                   |  404 ++++++++++++++++++
+ arch/arm/plat-omap/include/plat/omap44xx.h        |    1 +
+ 15 files changed, 1980 insertions(+), 33 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/cpuidle44xx.c
+ create mode 100644 arch/arm/mach-omap2/include/mach/omap-wakeupgen.h
+ create mode 100644 arch/arm/mach-omap2/omap-wakeupgen.c
+ create mode 100644 arch/arm/mach-omap2/omap4-mpuss-lowpower.c
+ create mode 100644 arch/arm/mach-omap2/omap4-sar-layout.h
+ create mode 100644 arch/arm/mach-omap2/sleep44xx.S
