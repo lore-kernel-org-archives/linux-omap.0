@@ -1,52 +1,54 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: Initialization of musb on board-omap2beagle fails in
- platform_driver_probe
-Date: Mon, 28 Mar 2011 11:37:22 +0300
-Message-ID: <20110328083721.GE2251@legolas.emea.dhcp.ti.com>
-References: <87hbap5tzp.fsf@gmail.com>
+Subject: Re: [PATCH v2 2/2] RX-51: Enable isp1704 power on/off
+Date: Mon, 28 Mar 2011 11:39:16 +0300
+Message-ID: <20110328083915.GF2251@legolas.emea.dhcp.ti.com>
+References: <1301295099-22066-1-git-send-email-kalle.jokiniemi@nokia.com>
+ <1301295099-22066-3-git-send-email-kalle.jokiniemi@nokia.com>
+ <17a241ba5fb52c72ed49ad345910065f@mail.gmail.com>
+ <9D0D31AA57AAF5499AFDC63D6472631B06CEE3@008-AM1MPN1-036.mgdnok.nokia.com>
 Reply-To: balbi@ti.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:43268 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750921Ab1C1Ih0 (ORCPT
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:52172 "EHLO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750776Ab1C1IjV (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 28 Mar 2011 04:37:26 -0400
+	Mon, 28 Mar 2011 04:39:21 -0400
 Content-Disposition: inline
-In-Reply-To: <87hbap5tzp.fsf@gmail.com>
+In-Reply-To: <9D0D31AA57AAF5499AFDC63D6472631B06CEE3@008-AM1MPN1-036.mgdnok.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ben Gamari <bgamari@gmail.com>
-Cc: linux-usb@vger.kernel.org, Beagle Board <beagleboard@googlegroups.com>, linux-omap <linux-omap@vger.kernel.org>
+To: kalle.jokiniemi@nokia.com
+Cc: keshava_mgowda@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, balbi@ti.com, Heikki.Krogerus@nokia.com, jhnikula@gmail.com, khilman@ti.com
 
 Hi,
 
-On Sat, Mar 26, 2011 at 07:42:34PM -0400, Ben Gamari wrote:
-> Today I've had a very frustrating time trying to bring up a BeagleBoard
-> (arch/arm/mach-omap2/board-omap2beagle.c) with the 2.6.38
+(break your lines at 80-chars, I asked you to do this before)
 
-there's no board-omap2beagle
-
-> kernel. Unfortunately musb has been giving me great difficulties,
+On Mon, Mar 28, 2011 at 08:06:32AM +0000, kalle.jokiniemi@nokia.com wrote:
+> Hi,
 > 
->  # modprobe g_ether
-> [   25.276855] usb_gadget_probe_driver 1815: usb_gadget_probe_driver, no dev??
-> modprobe: Failed to load module g_ether: No such device.
+>  > -----Original Message-----
+>  > From: ext Keshava Munegowda [mailto:keshava_mgowda@ti.com]
+>  > Sent: 28. maaliskuuta 2011 10:19
+>  > To: Jokiniemi Kalle (Nokia-MS/Tampere); linux-usb@vger.kernel.org; linux-
+>  > omap@vger.kernel.org; Felipe Balbi
+>  > Cc: Krogerus Heikki (Nokia-MS/Helsinki); jhnikula@gmail.com; Kevin Hilman
+>  > Subject: RE: [PATCH v2 2/2] RX-51: Enable isp1704 power on/off
+>  > 
+>  > > +
+>  > >  static struct platform_device rx51_charger_device = {
+>  > > -	.name = "isp1704_charger",
+>  > > +	.name	= "isp1704_charger",
+>  > 
+>  > Both are same; you don't need this change!
 > 
-> After a great deal of printking, I've determined that the error is
-> coming from platform_driver_probe (platform.c:499). The code in question
-> appears to be a check ensuring that any devices being probe were first
-> registered. When the musb-hdrc module is probed, this check seems to
-> fail with code = 1 and list_empty(&drv->driver.p->klist_devices.k_list)
-> = 1.
+> No, actually they are not same. I added tab instead of space to match
+> indentation with the .dev member. This is the correct way IMHO.
 
-looking at your .config from previous mail, it's wrong. You're trying to
-use am35x glue layer while you be using omap2430, just change:
-
-- CONFIG_USB_MUSB_AM35X=y
-+ # CONFIG_USB_MUSB_AM35X is not set
-+ CONFIG_USB_MUSB_OMAP2PLUS=y
+Still, changing that indentation isn't part of $SUBJECT. You need to put
+that in another patch.
 
 -- 
 balbi
