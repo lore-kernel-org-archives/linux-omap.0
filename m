@@ -1,133 +1,58 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 2/7] ARM / OMAP: Use struct syscore_ops for "core" power management
-Date: Mon, 28 Mar 2011 09:18:28 -0700
-Message-ID: <87ipv3kyln.fsf@ti.com>
-References: <201103280125.11750.rjw@sisk.pl> <201103280127.09110.rjw@sisk.pl>
+Subject: Re: Smartreflex on 'pm-wip/voltdm' Branch
+Date: Mon, 28 Mar 2011 09:27:05 -0700
+Message-ID: <874o6nky7a.fsf@ti.com>
+References: <AANLkTi=czLooLOFEZq-TYKLOqwFxn8eB6aTs7-3k_YSY@mail.gmail.com>
+	<e3b58bb0f126f8849c7358c8f7e67222@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201103280127.09110.rjw@sisk.pl> (Rafael J. Wysocki's message of
-	"Mon, 28 Mar 2011 01:27:08 +0200")
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: LKML <linux-kernel@vger.kernel.org>, Greg KH <gregkh@suse.de>, Kay Sievers <kay.sievers@suse.de>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Ben Dooks <ben-linux@fluff.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:49813 "EHLO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755080Ab1C1Q1K (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 28 Mar 2011 12:27:10 -0400
+Received: by gyf1 with SMTP id 1so1475827gyf.34
+        for <linux-omap@vger.kernel.org>; Mon, 28 Mar 2011 09:27:08 -0700 (PDT)
+In-Reply-To: <e3b58bb0f126f8849c7358c8f7e67222@mail.gmail.com> (Vishwanath
+	Sripathy's message of "Mon, 28 Mar 2011 19:10:01 +0530")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Vishwanath Sripathy <vishwanath.bs@ti.com>
+Cc: Shweta Gulati <shweta.gulati@ti.com>, linux-omap@vger.kernel.org
 
-"Rafael J. Wysocki" <rjw@sisk.pl> writes:
+Vishwa, Shweta,
 
-> From: Rafael J. Wysocki <rjw@sisk.pl>
->
-> Replace the sysdev class and struct sys_device used for power
-> management in the OMAP's GPIO code with a struct syscore_ops object
-> which is simpler.
->
-> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Vishwanath Sripathy <vishwanath.bs@ti.com> writes:
 
-Acked-by: Kevin Hilman <khilman@ti.com>
+[...]
 
-Looks fine to me.  We're in the process of converting this driver to
-runtime PM.  When that happens the syscore ops will be removed as well,
-but I'm fine with this patch until we finish the runtime PM conversion.
+>> I am testing Smartreflex on your Branch 'pm-wip/voltdm'. There seems
+>> an issue with reading VP registers.
+>> For OMAP3 and OMAP4 reading debugfs entries shows constant voltage.
+
+Thanks for testing.
+
+[...]
+
+> I did a quick debug on this and found that the root cause of the issue is
+> in usage of ffs (because of this, i2c slave address was configured wrongly
+> in vc).
+> Basically ffs returns the position of the first (least significant) bit
+> set in the word and the least significant bit is position 1 where as our
+> bit operation assumes that least significant position is 0.
+
+Vishwa, Thanks for findingg this.  Indeed, I had assumed ffs() was zero based,
+but it is 1 based.  
+
+> I tested the attached patch on OMAP3 and it seems to work fine.
+
+> Kevin,
+> You may want to incorporate this change in your next version if this seems
+> OK to you.
+
+Yes, I will fix this in forthcoming versions.
+
+Thanks,
 
 Kevin
-
-> ---
->  arch/arm/plat-omap/gpio.c |   35 +++++++++--------------------------
->  1 file changed, 9 insertions(+), 26 deletions(-)
->
-> Index: linux-2.6/arch/arm/plat-omap/gpio.c
-> ===================================================================
-> --- linux-2.6.orig/arch/arm/plat-omap/gpio.c
-> +++ linux-2.6/arch/arm/plat-omap/gpio.c
-> @@ -17,7 +17,7 @@
->  #include <linux/init.h>
->  #include <linux/module.h>
->  #include <linux/interrupt.h>
-> -#include <linux/sysdev.h>
-> +#include <linux/syscore_ops.h>
->  #include <linux/err.h>
->  #include <linux/clk.h>
->  #include <linux/io.h>
-> @@ -1379,9 +1379,7 @@ static const struct dev_pm_ops omap_mpui
->  	.resume_noirq = omap_mpuio_resume_noirq,
->  };
->  
-> -/* use platform_driver for this, now that there's no longer any
-> - * point to sys_device (other than not disturbing old code).
-> - */
-> +/* use platform_driver for this. */
->  static struct platform_driver omap_mpuio_driver = {
->  	.driver		= {
->  		.name	= "mpuio",
-> @@ -1754,7 +1752,7 @@ static int __devinit omap_gpio_probe(str
->  }
->  
->  #if defined(CONFIG_ARCH_OMAP16XX) || defined(CONFIG_ARCH_OMAP2PLUS)
-> -static int omap_gpio_suspend(struct sys_device *dev, pm_message_t mesg)
-> +static int omap_gpio_suspend(void)
->  {
->  	int i;
->  
-> @@ -1804,12 +1802,12 @@ static int omap_gpio_suspend(struct sys_
->  	return 0;
->  }
->  
-> -static int omap_gpio_resume(struct sys_device *dev)
-> +static void omap_gpio_resume(void)
->  {
->  	int i;
->  
->  	if (!cpu_class_is_omap2() && !cpu_is_omap16xx())
-> -		return 0;
-> +		return;
->  
->  	for (i = 0; i < gpio_bank_count; i++) {
->  		struct gpio_bank *bank = &gpio_bank[i];
-> @@ -1845,21 +1843,13 @@ static int omap_gpio_resume(struct sys_d
->  		__raw_writel(bank->saved_wakeup, wake_set);
->  		spin_unlock_irqrestore(&bank->lock, flags);
->  	}
-> -
-> -	return 0;
->  }
->  
-> -static struct sysdev_class omap_gpio_sysclass = {
-> -	.name		= "gpio",
-> +static struct syscore_ops omap_gpio_syscore_ops = {
->  	.suspend	= omap_gpio_suspend,
->  	.resume		= omap_gpio_resume,
->  };
->  
-> -static struct sys_device omap_gpio_device = {
-> -	.id		= 0,
-> -	.cls		= &omap_gpio_sysclass,
-> -};
-> -
->  #endif
->  
->  #ifdef CONFIG_ARCH_OMAP2PLUS
-> @@ -2117,21 +2107,14 @@ postcore_initcall(omap_gpio_drv_reg);
->  
->  static int __init omap_gpio_sysinit(void)
->  {
-> -	int ret = 0;
-> -
->  	mpuio_init();
->  
->  #if defined(CONFIG_ARCH_OMAP16XX) || defined(CONFIG_ARCH_OMAP2PLUS)
-> -	if (cpu_is_omap16xx() || cpu_class_is_omap2()) {
-> -		if (ret == 0) {
-> -			ret = sysdev_class_register(&omap_gpio_sysclass);
-> -			if (ret == 0)
-> -				ret = sysdev_register(&omap_gpio_device);
-> -		}
-> -	}
-> +	if (cpu_is_omap16xx() || cpu_class_is_omap2())
-> +		register_syscore_ops(&omap_gpio_syscore_ops);
->  #endif
->  
-> -	return ret;
-> +	return 0;
->  }
->  
->  arch_initcall(omap_gpio_sysinit);
