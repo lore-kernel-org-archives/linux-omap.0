@@ -1,102 +1,82 @@
-From: <kalle.jokiniemi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH v2 2/2] RX-51: Enable isp1704 power on/off
-Date: Mon, 28 Mar 2011 08:57:01 +0000
-Message-ID: <9D0D31AA57AAF5499AFDC63D6472631B06CFBC@008-AM1MPN1-036.mgdnok.nokia.com>
-References: <1301295099-22066-1-git-send-email-kalle.jokiniemi@nokia.com>
- <1301295099-22066-3-git-send-email-kalle.jokiniemi@nokia.com>
- <17a241ba5fb52c72ed49ad345910065f@mail.gmail.com>
- <9D0D31AA57AAF5499AFDC63D6472631B06CEE3@008-AM1MPN1-036.mgdnok.nokia.com>
- <20110328083915.GF2251@legolas.emea.dhcp.ti.com>
- <9D0D31AA57AAF5499AFDC63D6472631B06CFA1@008-AM1MPN1-036.mgdnok.nokia.com>
- <20110328085525.GK2251@legolas.emea.dhcp.ti.com>
+From: David Cohen <dacohen@gmail.com>
+Subject: Re: [PATCH 0/4] iommu: Prevent oops in iommu_get() and while
+ arch_iommu is in use
+Date: Mon, 28 Mar 2011 12:02:52 +0300
+Message-ID: <AANLkTi=22HRXP8ij4f0FAyMxFXoQBRavRhx93jQYH3kQ@mail.gmail.com>
+References: <4D8CB106.7030608@maxwell.research.nokia.com>
+	<AANLkTikxd4kRu1+XskohhQzpqHaZTvK+afbgE-qRSOqN@mail.gmail.com>
+	<4D8F738D.3090100@maxwell.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20110328085525.GK2251-UiBtZHVXSwEVvW8u9ZQWYwjfymiNCTlR@public.gmane.org>
-Content-Language: en-US
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: balbi-l0cyMroinI0@public.gmane.org
-Cc: keshava_mgowda-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Heikki.Krogerus-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org, jhnikula-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, khilman-l0cyMroinI0@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:38054 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753269Ab1C1JCy convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Mar 2011 05:02:54 -0400
+Received: by wya21 with SMTP id 21so2640908wya.19
+        for <linux-omap@vger.kernel.org>; Mon, 28 Mar 2011 02:02:53 -0700 (PDT)
+In-Reply-To: <4D8F738D.3090100@maxwell.research.nokia.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Cc: "Ramirez Luna, Omar" <omar.ramirez@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Doyu Hiroshi (Nokia-D/Helsinki)" <hiroshi.doyu@nokia.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Cohen David Abraham <david.cohen@nokia.com>
 
-Hi,
+Hi Sakari,
 
- > -----Original Message-----
- > From: ext Felipe Balbi [mailto:balbi-l0cyMroinI0@public.gmane.org]
- > Sent: 28. maaliskuuta 2011 11:55
- > To: Jokiniemi Kalle (Nokia-MS/Tampere)
- > Cc: balbi-l0cyMroinI0@public.gmane.org; keshava_mgowda-l0cyMroinI0@public.gmane.org; linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-
- > omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Krogerus Heikki (Nokia-MS/Helsinki);
- > jhnikula-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org; khilman-l0cyMroinI0@public.gmane.org
- > Subject: Re: [PATCH v2 2/2] RX-51: Enable isp1704 power on/off
- > 
- > On Mon, Mar 28, 2011 at 08:52:23AM +0000, kalle.jokiniemi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org wrote:
- > > Hi,
- > >
- > >  > -----Original Message-----
- > >  > From: ext Felipe Balbi [mailto:balbi-l0cyMroinI0@public.gmane.org]
- > >  > Sent: 28. maaliskuuta 2011 11:39
- > >  > To: Jokiniemi Kalle (Nokia-MS/Tampere)
- > >  > Cc: keshava_mgowda-l0cyMroinI0@public.gmane.org; linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-
- > >  > omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; balbi-l0cyMroinI0@public.gmane.org; Krogerus Heikki (Nokia-
- > MS/Helsinki);
- > >  > jhnikula-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org; khilman-l0cyMroinI0@public.gmane.org
- > >  > Subject: Re: [PATCH v2 2/2] RX-51: Enable isp1704 power on/off
- > >  >
- > >  > Hi,
- > >  >
- > >  > (break your lines at 80-chars, I asked you to do this before)
- > >
- > > Sorry, using outlook :( ... Will do that.
- > >
- > >  >
- > >  > On Mon, Mar 28, 2011 at 08:06:32AM +0000, kalle.jokiniemi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org
- > wrote:
- > >  > > Hi,
- > >  > >
- > >  > >  > -----Original Message-----
- > >  > >  > From: ext Keshava Munegowda [mailto:keshava_mgowda-l0cyMroinI0@public.gmane.org]
- > >  > >  > Sent: 28. maaliskuuta 2011 10:19
- > >  > >  > To: Jokiniemi Kalle (Nokia-MS/Tampere); linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
- > linux-
- > >  > >  > omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Felipe Balbi
- > >  > >  > Cc: Krogerus Heikki (Nokia-MS/Helsinki); jhnikula-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org; Kevin
- > Hilman
- > >  > >  > Subject: RE: [PATCH v2 2/2] RX-51: Enable isp1704 power on/off
- > >  > >  >
- > >  > >  > > +
- > >  > >  > >  static struct platform_device rx51_charger_device = {
- > >  > >  > > -	.name = "isp1704_charger",
- > >  > >  > > +	.name	= "isp1704_charger",
- > >  > >  >
- > >  > >  > Both are same; you don't need this change!
- > >  > >
- > >  > > No, actually they are not same. I added tab instead of space to match
- > >  > > indentation with the .dev member. This is the correct way IMHO.
- > >  >
- > >  > Still, changing that indentation isn't part of $SUBJECT. You need to put
- > >  > that in another patch.
- > >
- > > Are you sure? It'll be patch that changes indentation that need not be
- > > changed... Only the additional member definition makes the indentation
- > > necessary, hence I see it as natural part of this patch.
- > >
- > > But if that's a problem, I can do a separate patch, no problem.
- > 
- > you need to at least add notes on the commit log explicit saying that
- > you're also fixing indentation of one member because it's not worth
- > having a separate patch and blablabla...
+On Sun, Mar 27, 2011 at 8:27 PM, Sakari Ailus
+<sakari.ailus@maxwell.research.nokia.com> wrote:
+> Ramirez Luna, Omar wrote:
+>> On Fri, Mar 25, 2011 at 10:13 AM, Sakari Ailus
+>> <sakari.ailus@maxwell.research.nokia.com> wrote:
+>>> Hi,
+>>>
+>>> This patchset is aimed to fix a problem in arch_iommu implementatio=
+n
+>>> references. When an actual arch_iommu implementation is not loaded =
+while
+>>> iommu_get() is being called results to a kernel oops, as well as
+>>> removing an arch_iommu implementation which is in use.
+>>
+>> How about fixing the dependency instead? Right now iommu2 depends on
+>> iommu because of the calls to
+>> install_iommu_arch/uninstall_iommu_arch... we should change that
+>> dependency to iommu depend on iommu2. Something like iommu (plat)
+>> querying iommu2 (mach) for devices to install.
+>
+> There is no direct dependency from a driver using the generic API to =
+a
+> particular implementation of the iommu. This comes from the design of
+> the iommu framework. The generic layer shouldn't depend on particular
+> implementation(s).
+>
+> What comes to the patch, it works as long as there's only one iommu
+> implementation loaded / compiled to the kernel. I wonder if this kind=
+ of
+> limitation can be accepted.
 
-Sounds fair, I'll do that.
+The generic iommu driver cannot support more than one implementation
+loaded at the same time, so your patch is correct by assuming it.
 
-- Kalle
+Regards,
 
+David Cohen
 
- > 
- > --
- > balbi
+>
+> Regards,
+>
+> --
+> Sakari Ailus
+> sakari.ailus@maxwell.research.nokia.com
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =C2=A0http://vger.kernel.org/majordomo-info.ht=
+ml
+>
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
