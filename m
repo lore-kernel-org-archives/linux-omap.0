@@ -1,251 +1,56 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 09/10] omap2+: Remove omap2_gp_clockevent_set_gptimer
-Date: Mon, 28 Mar 2011 15:21:50 -0700
-Message-ID: <20110328222149.4046.87330.stgit@baageli.muru.com>
+Subject: [PATCH 10/10] omap2+: Rename timer-gp.c into timer.c to combine timer
+	init functions
+Date: Mon, 28 Mar 2011 15:21:53 -0700
+Message-ID: <20110328222152.4046.25803.stgit@baageli.muru.com>
 References: <20110328221501.4046.41079.stgit@baageli.muru.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:20739 "EHLO
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:20768 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932073Ab1C1WVv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Mar 2011 18:21:51 -0400
+	with ESMTP id S932073Ab1C1WVy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Mar 2011 18:21:54 -0400
 In-Reply-To: <20110328221501.4046.41079.stgit@baageli.muru.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
 Cc: linux-omap@vger.kernel.org
 
-This is no longer needed as we now just set the desired
-.timer in MACHINE_START. We can now also remove timer-gp.h.
+We can keep everything sys_timer and gptimer.c related code in
+timer.c as the code will be very minimal.
+
+Later on we can also remove timer-mpu.c, as it can be called from
+omap4_timer_init function.
+
+This allows us to get rid of confusing existing files. We currently
+have timer-gp.c, timer-mpu.c, and patches have been posted to add
+dmtimer.c. There's no need to have these multiple files, we can
+put everything into timer.c.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/board-4430sdp.c        |    4 ----
- arch/arm/mach-omap2/board-devkit8000.c     |    4 ----
- arch/arm/mach-omap2/board-omap3beagle.c    |    4 ----
- arch/arm/mach-omap2/board-omap3logic.c     |    1 -
- arch/arm/mach-omap2/board-omap3stalker.c   |    4 ----
- arch/arm/mach-omap2/board-omap3touchbook.c |    4 ----
- arch/arm/mach-omap2/board-omap4panda.c     |    1 -
- arch/arm/mach-omap2/timer-gp.c             |   26 --------------------------
- arch/arm/mach-omap2/timer-gp.h             |   16 ----------------
- 9 files changed, 0 insertions(+), 64 deletions(-)
- delete mode 100644 arch/arm/mach-omap2/timer-gp.h
+ arch/arm/mach-omap2/Makefile   |    2 +-
+ arch/arm/mach-omap2/timer.c    |    0 
+ 2 files changed, 1 insertions(+), 1 deletions(-)
+ rename arch/arm/mach-omap2/{timer-gp.c => timer.c} (100%)
 
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index f740c40..142efaa 100644
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -40,7 +40,6 @@
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index a45cd64..04d04bb 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -3,7 +3,7 @@
+ #
  
- #include "mux.h"
- #include "hsmmc.h"
--#include "timer-gp.h"
- #include "control.h"
+ # Common support
+-obj-y := id.o io.o control.o mux.o devices.o serial.o gpmc.o timer-gp.o pm.o \
++obj-y := id.o io.o control.o mux.o devices.o serial.o gpmc.o timer.o pm.o \
+ 	 common.o gpio.o dma.o wd_timer.o
  
- #define ETH_KS8851_IRQ			34
-@@ -330,9 +329,6 @@ static void __init omap_4430sdp_init_early(void)
- {
- 	omap2_init_common_infrastructure();
- 	omap2_init_common_devices(NULL, NULL);
--#ifdef CONFIG_OMAP_32K_TIMER
--	omap2_gp_clockevent_set_gptimer(1);
--#endif
- }
- 
- static struct omap_musb_board_data musb_board_data = {
-diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
-index cd465fa..18f7a0f 100644
---- a/arch/arm/mach-omap2/board-devkit8000.c
-+++ b/arch/arm/mach-omap2/board-devkit8000.c
-@@ -59,7 +59,6 @@
- 
- #include "mux.h"
- #include "hsmmc.h"
--#include "timer-gp.h"
- 
- #define NAND_BLOCK_SIZE		SZ_128K
- 
-@@ -458,9 +457,6 @@ static void __init devkit8000_init_early(void)
- static void __init devkit8000_init_irq(void)
- {
- 	omap3_init_irq();
--#ifdef CONFIG_OMAP_32K_TIMER
--	omap2_gp_clockevent_set_gptimer(12);
--#endif
- }
- 
- static void __init devkit8000_ads7846_init(void)
-diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index a4206be..8af2433 100644
---- a/arch/arm/mach-omap2/board-omap3beagle.c
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -50,7 +50,6 @@
- 
- #include "mux.h"
- #include "hsmmc.h"
--#include "timer-gp.h"
- #include "pm.h"
- 
- #define NAND_BLOCK_SIZE		SZ_128K
-@@ -541,9 +540,6 @@ static void __init omap3_beagle_init_early(void)
- static void __init omap3_beagle_init_irq(void)
- {
- 	omap3_init_irq();
--#ifdef CONFIG_OMAP_32K_TIMER
--	omap2_gp_clockevent_set_gptimer(12);
--#endif
- }
- 
- static struct platform_device *omap3_beagle_devices[] __initdata = {
-diff --git a/arch/arm/mach-omap2/board-omap3logic.c b/arch/arm/mach-omap2/board-omap3logic.c
-index 7e8ce0a..57ac9d1 100644
---- a/arch/arm/mach-omap2/board-omap3logic.c
-+++ b/arch/arm/mach-omap2/board-omap3logic.c
-@@ -35,7 +35,6 @@
- 
- #include "mux.h"
- #include "hsmmc.h"
--#include "timer-gp.h"
- #include "control.h"
- 
- #include <plat/mux.h>
-diff --git a/arch/arm/mach-omap2/board-omap3stalker.c b/arch/arm/mach-omap2/board-omap3stalker.c
-index fd863cf..2f08603 100644
---- a/arch/arm/mach-omap2/board-omap3stalker.c
-+++ b/arch/arm/mach-omap2/board-omap3stalker.c
-@@ -53,7 +53,6 @@
- #include "sdram-micron-mt46h32m32lf-6.h"
- #include "mux.h"
- #include "hsmmc.h"
--#include "timer-gp.h"
- 
- #if defined(CONFIG_SMSC911X) || defined(CONFIG_SMSC911X_MODULE)
- #define OMAP3STALKER_ETHR_START	0x2c000000
-@@ -588,9 +587,6 @@ static void __init omap3_stalker_init_early(void)
- static void __init omap3_stalker_init_irq(void)
- {
- 	omap3_init_irq();
--#ifdef CONFIG_OMAP_32K_TIMER
--	omap2_gp_clockevent_set_gptimer(12);
--#endif
- }
- 
- static struct platform_device *omap3_stalker_devices[] __initdata = {
-diff --git a/arch/arm/mach-omap2/board-omap3touchbook.c b/arch/arm/mach-omap2/board-omap3touchbook.c
-index 84f4be0..a40f640 100644
---- a/arch/arm/mach-omap2/board-omap3touchbook.c
-+++ b/arch/arm/mach-omap2/board-omap3touchbook.c
-@@ -51,7 +51,6 @@
- 
- #include "mux.h"
- #include "hsmmc.h"
--#include "timer-gp.h"
- 
- #include <asm/setup.h>
- 
-@@ -423,9 +422,6 @@ static void __init omap3_touchbook_init_early(void)
- static void __init omap3_touchbook_init_irq(void)
- {
- 	omap3_init_irq();
--#ifdef CONFIG_OMAP_32K_TIMER
--	omap2_gp_clockevent_set_gptimer(12);
--#endif
- }
- 
- static struct platform_device *omap3_touchbook_devices[] __initdata = {
-diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
-index e7ce10d..731efd3 100644
---- a/arch/arm/mach-omap2/board-omap4panda.c
-+++ b/arch/arm/mach-omap2/board-omap4panda.c
-@@ -41,7 +41,6 @@
- #include <plat/usb.h>
- #include <plat/mmc.h>
- #include <plat/panel-generic-dpi.h>
--#include "timer-gp.h"
- 
- #include "hsmmc.h"
- #include "control.h"
-diff --git a/arch/arm/mach-omap2/timer-gp.c b/arch/arm/mach-omap2/timer-gp.c
-index afb9041..2edeb1a 100644
---- a/arch/arm/mach-omap2/timer-gp.c
-+++ b/arch/arm/mach-omap2/timer-gp.c
-@@ -43,8 +43,6 @@
- #include <plat/common.h>
- #include <plat/omap_hwmod.h>
- 
--#include "timer-gp.h"
--
- /* Parent clocks, eventually these will come from the clock framework */
- 
- #define OMAP2_MPU_SOURCE	"sys_ck"
-@@ -75,8 +73,6 @@ u32 sys_timer_reserved;
- 
- static struct omap_dm_timer clkev;
- static struct clock_event_device clockevent_gpt;
--static u8 __initdata gptimer_id = 1;
--static u8 __initdata inited;
- 
- static irqreturn_t omap2_gp_timer_interrupt(int irq, void *dev_id)
- {
-@@ -133,26 +129,6 @@ static struct clock_event_device clockevent_gpt = {
- 	.set_mode	= omap2_gp_timer_set_mode,
- };
- 
--/**
-- * omap2_gp_clockevent_set_gptimer - set which GPTIMER is used for clockevents
-- * @id: GPTIMER to use (1..MAX_GPTIMER_ID)
-- *
-- * Define the GPTIMER that the system should use for the tick timer.
-- * Meant to be called from board-*.c files in the event that GPTIMER1, the
-- * default, is unsuitable.  Returns -EINVAL on error or 0 on success.
-- */
--int __init omap2_gp_clockevent_set_gptimer(u8 id)
--{
--	if (id < 1 || id > MAX_GPTIMER_ID)
--		return -EINVAL;
--
--	BUG_ON(inited);
--
--	gptimer_id = id;
--
--	return 0;
--}
--
- static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
- 						int gptimer_id,
- 						const char *fck_source)
-@@ -222,8 +198,6 @@ static void __init omap2_gp_clockevent_init(int gptimer_id,
- {
- 	int res;
- 
--	inited = 1;
--
- 	res = omap_dm_timer_init_one(&clkev, gptimer_id, fck_source);
- 	BUG_ON(res);
- 
-diff --git a/arch/arm/mach-omap2/timer-gp.h b/arch/arm/mach-omap2/timer-gp.h
-deleted file mode 100644
-index 5c1072c..0000000
---- a/arch/arm/mach-omap2/timer-gp.h
-+++ /dev/null
-@@ -1,16 +0,0 @@
--/*
-- * OMAP2/3 GPTIMER support.headers
-- *
-- * Copyright (C) 2009 Nokia Corporation
-- *
-- * This file is subject to the terms and conditions of the GNU General Public
-- * License. See the file "COPYING" in the main directory of this archive
-- * for more details.
-- */
--
--#ifndef __ARCH_ARM_PLAT_OMAP_INCLUDE_MACH_TIMER_GP_H
--#define __ARCH_ARM_PLAT_OMAP_INCLUDE_MACH_TIMER_GP_H
--
--extern int __init omap2_gp_clockevent_set_gptimer(u8 id);
--
--#endif
+ omap-2-3-common				= irq.o sdrc.o
+diff --git a/arch/arm/mach-omap2/timer-gp.c b/arch/arm/mach-omap2/timer.c
+similarity index 100%
+rename from arch/arm/mach-omap2/timer-gp.c
+rename to arch/arm/mach-omap2/timer.c
 
