@@ -1,145 +1,163 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [pm-core][PATCH v3 18/21] OMAP4: cpuidle: Add CPU hotplug notifier and prepare() hook.
-Date: Mon, 28 Mar 2011 14:52:34 +0530
-Message-ID: <1301304157-2466-19-git-send-email-santosh.shilimkar@ti.com>
+Subject: [pm-core][PATCH v3 13/21] OMAP4: suspend: Add MPUSS RET and OFF support
+Date: Mon, 28 Mar 2011 14:52:29 +0530
+Message-ID: <1301304157-2466-14-git-send-email-santosh.shilimkar@ti.com>
 References: <1301304157-2466-1-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:37696 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752065Ab1C1JXB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 28 Mar 2011 05:23:01 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:40595 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752065Ab1C1JXF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Mar 2011 05:23:05 -0400
 In-Reply-To: <1301304157-2466-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: khilman@ti.com, rnayak@ti.com, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-On OMAP4 CPUidle, the low power states are triggered when CPU1
-is offlined to OFF power state. When the CPU1 is online, no
-low power states are supported.
+This patch adds MPUSS(MPU Sub System) RET and OFF mode support
+to suspend path. For both MPUSS RET and OFF support, CPUs are
+programmed to OFF state.
 
-The patch adds CPU hotplug notifier to manage the C-state
-states using CPUidle prepare() hook and CPUIDLE_FLAG_IGNORE
-c-state flag.
-
-This was suggested by Kevin Hilman <khilman@ti.com> during
-OMAP4 PM code review.
+Only MPUSS RET and OFF supported at this point of time. CORE RET
+will be added subsequently.
 
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Cc: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/cpuidle44xx.c |   64 +++++++++++++++++++++++++++++++++++++
- 1 files changed, 64 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/omap4-mpuss-lowpower.c |    6 ++-
+ arch/arm/mach-omap2/pm44xx.c               |   67 ++++++++++++++++++++++++++--
+ 2 files changed, 68 insertions(+), 5 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/cpuidle44xx.c b/arch/arm/mach-omap2/cpuidle44xx.c
-index daf41e1..83b7f95 100644
---- a/arch/arm/mach-omap2/cpuidle44xx.c
-+++ b/arch/arm/mach-omap2/cpuidle44xx.c
-@@ -13,6 +13,8 @@
- #include <linux/sched.h>
- #include <linux/cpuidle.h>
- #include <linux/clockchips.h>
-+#include <linux/notifier.h>
-+#include <linux/cpu.h>
+diff --git a/arch/arm/mach-omap2/omap4-mpuss-lowpower.c b/arch/arm/mach-omap2/omap4-mpuss-lowpower.c
+index 026c955..7348d29 100644
+--- a/arch/arm/mach-omap2/omap4-mpuss-lowpower.c
++++ b/arch/arm/mach-omap2/omap4-mpuss-lowpower.c
+@@ -25,7 +25,7 @@
+  *	ON(Inactive)	OFF		ON(Inactive)
+  *	OFF		OFF		CSWR
+  *	OFF		OFF		OSWR (*TBD)
+- *	OFF		OFF		OFF* (*TBD)
++ *	OFF		OFF		OFF
+  *	----------------------------------------------
+  *
+  * Note: CPU0 is the master core and it is the last CPU to go down
+@@ -293,6 +293,7 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
+ 	 * Check MPUSS next state and save GIC if needed
+ 	 * GIC lost during MPU OFF and OSWR
+ 	 */
++	pwrdm_clear_all_prev_pwrst(mpuss_pd);
+ 	if (pwrdm_read_next_pwrst(mpuss_pd) == PWRDM_POWER_OFF) {
+ 		omap_wakeupgen_save();
+ 		gic_save_context();
+@@ -414,6 +415,9 @@ int __init omap4_mpuss_init(void)
+ 		return -ENODEV;
+ 	}
  
- #include <asm/proc-fns.h>
- 
-@@ -51,6 +53,8 @@ struct omap4_processor_cx {
- 
- struct omap4_processor_cx omap4_power_states[OMAP4_MAX_STATES];
- static struct powerdomain *mpu_pd, *cpu1_pd, *core_pd;
-+static int needs_state_data_update;
-+static unsigned int state_flags = CPUIDLE_FLAG_IGNORE;
- 
++	/* Clear CPU previous power domain state */
++	pwrdm_clear_all_prev_pwrst(mpuss_pd);
++
+ 	/*
+ 	 * Find out how many interrupts are supported.
+ 	 * OMAP4 supports max of 128 SPIs where as GIC can support
+diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
+index 4f932f3..051461c 100644
+--- a/arch/arm/mach-omap2/pm44xx.c
++++ b/arch/arm/mach-omap2/pm44xx.c
+@@ -1,8 +1,9 @@
  /*
-  * FIXME: Full latency numbers needs to be updated as part of
-@@ -72,6 +76,31 @@ static struct cpuidle_params cpuidle_params_table[] = {
- };
- 
- /**
-+ * omap4_prepare_idle - Update C-state parameters dynamically
-+ * @dev: cpuidle device
-+ *
-+ * Called from the CPUidle framework to prepare the device
-+ * for idle before before calling the governor's select function.
-+ */
-+static int omap4_prepare_idle(struct cpuidle_device *dev)
-+{
-+	int i, ret = 0;
+  * OMAP4 Power Management Routines
+  *
+- * Copyright (C) 2010 Texas Instruments, Inc.
++ * Copyright (C) 2010-2011 Texas Instruments, Inc.
+  * Rajendra Nayak <rnayak@ti.com>
++ * Santosh Shilimkar <santosh.shilimkar@ti.com>
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 as
+@@ -35,7 +36,48 @@ static LIST_HEAD(pwrst_list);
+ #ifdef CONFIG_SUSPEND
+ static int omap4_pm_suspend(void)
+ {
+-	do_wfi();
++	struct power_state *pwrst;
++	int state, ret = 0;
++	u32 cpu_id = smp_processor_id();
 +
-+	if (!needs_state_data_update)
-+		return ret;
-+
-+	/*
-+	 * Update the C-state flags based on CPU1 online
-+	 * or offline state. On OMAP4, the low power C-states
-+	 * are made available when only CPU1 is offline.
-+	 */
-+	for (i = OMAP4_STATE_C2; i < OMAP4_MAX_STATES; i++)
-+		dev->states[i].flags = state_flags;
-+
-+	return ret;
-+}
-+
-+/**
-  * omap4_enter_idle - Programs OMAP4 to enter the specified state
-  * @dev: cpuidle device
-  * @state: The target state to be programmed
-@@ -227,6 +256,36 @@ struct cpuidle_driver omap4_idle_driver = {
- 	.owner =	THIS_MODULE,
- };
- 
-+/*
-+ * CPU hotplug notifier to update the C-states when
-+ * CPU1 is offline or onine. While updating C-state flag,
-+ * keep the cpuidle disabled.
-+ */
-+static int __cpuinit omap_cpu_hotplug_notify(struct notifier_block *self,
-+					 unsigned long action, void *unused)
-+{
-+	switch (action) {
-+	case CPU_ONLINE:
-+		disable_hlt();
-+		needs_state_data_update = 1;
-+		state_flags = CPUIDLE_FLAG_IGNORE;
-+		enable_hlt();
-+		break;
-+	case CPU_DEAD:
-+		disable_hlt();
-+		needs_state_data_update = 1;
-+		state_flags = CPUIDLE_FLAG_TIME_VALID;
-+		enable_hlt();
-+		break;
++	/* Save current powerdomain state */
++	list_for_each_entry(pwrst, &pwrst_list, node) {
++		pwrst->saved_state = pwrdm_read_next_pwrst(pwrst->pwrdm);
 +	}
 +
-+	return NOTIFY_OK;
-+}
++	/* Set targeted power domain states by suspend */
++	list_for_each_entry(pwrst, &pwrst_list, node) {
++		omap_set_pwrdm_state(pwrst->pwrdm, pwrst->next_state);
++	}
 +
-+static struct notifier_block __refdata omap_ilde_hotplug_notifier = {
-+	.notifier_call = omap_cpu_hotplug_notify,
-+};
++	/*
++	 * For MPUSS to hit power domain retention(CSWR or OSWR),
++	 * CPU0 and CPU1 power domain needs to be in OFF or DORMANT
++	 * state. For MPUSS to reach off-mode. CPU0 and CPU1 power domain
++	 * should be in off state.
++	 * Only master CPU followes suspend path. All other CPUs follow
++	 * cpu-hotplug path in system wide suspend. On OMAP4, CPU power
++	 * domain CSWR is not supported by hardware.
++	 * More details can be found in OMAP4430 TRM section 4.3.4.2.
++	 */
++	omap4_enter_lowpower(cpu_id, PWRDM_POWER_OFF);
 +
- /**
-  * omap4_idle_init - Init routine for OMAP4 idle
-  *
-@@ -272,12 +331,17 @@ int __init omap4_idle_init(void)
- 	if (!count)
- 		return -EINVAL;
- 	dev->state_count = count;
-+	dev->prepare = omap4_prepare_idle;
- 
- 	if (cpuidle_register_device(dev)) {
- 		pr_err("%s: CPUidle register device failed\n", __func__);
- 			return -EIO;
- 		}
- 
-+	ret = register_hotcpu_notifier(&omap_ilde_hotplug_notifier);
++	/* Restore next powerdomain state */
++	list_for_each_entry(pwrst, &pwrst_list, node) {
++		state = pwrdm_read_prev_pwrst(pwrst->pwrdm);
++		if (state > pwrst->next_state) {
++			pr_info("Powerdomain (%s) didn't enter "
++			       "target state %d\n",
++			       pwrst->pwrdm->name, pwrst->next_state);
++			ret = -1;
++		}
++		omap_set_pwrdm_state(pwrst->pwrdm, pwrst->saved_state);
++	}
 +	if (ret)
-+		return ret;
++		pr_err("Could not enter target state in pm_suspend\n");
++	else
++		pr_err("Successfully put all powerdomains to target state\n");
 +
  	return 0;
  }
- #else
+ 
+@@ -98,14 +140,31 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
+ 	if (!pwrdm->pwrsts)
+ 		return 0;
+ 
++	/*
++	 * Skip CPU0 and CPU1 power domains. CPU1 is programmed
++	 * through hotplug path and CPU0 explicitly programmed
++	 * further down in the code path
++	 */
++	if ((!strcmp(pwrdm->name, "cpu0_pwrdm")) ||
++		(!strcmp(pwrdm->name, "cpu1_pwrdm")))
++		return 0;
++
++	/*
++	 * FIXME: Remove this check when core retention is supported
++	 * Only MPUSS power domain is added in the list.
++	 */
++	if (strcmp(pwrdm->name, "mpu_pwrdm"))
++		return 0;
++
+ 	pwrst = kmalloc(sizeof(struct power_state), GFP_ATOMIC);
+ 	if (!pwrst)
+ 		return -ENOMEM;
++
+ 	pwrst->pwrdm = pwrdm;
+-	pwrst->next_state = PWRDM_POWER_ON;
++	pwrst->next_state = PWRDM_POWER_OFF;
+ 	list_add(&pwrst->node, &pwrst_list);
+ 
+-	return pwrdm_set_next_pwrst(pwrst->pwrdm, pwrst->next_state);
++	return omap_set_pwrdm_state(pwrst->pwrdm, pwrst->next_state);
+ }
+ 
+ /**
 -- 
 1.6.0.4
 
