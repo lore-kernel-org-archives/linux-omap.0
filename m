@@ -1,79 +1,123 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [pm-core][PATCH v3 06/21] OMAP4: PM: Initialise all the clockdomains to supported states
-Date: Mon, 28 Mar 2011 14:52:22 +0530
-Message-ID: <1301304157-2466-7-git-send-email-santosh.shilimkar@ti.com>
+Subject: [pm-core][PATCH v3 03/21] OMAP4: PM: Export omap4_get_base*() rather than global address pointers
+Date: Mon, 28 Mar 2011 14:52:19 +0530
+Message-ID: <1301304157-2466-4-git-send-email-santosh.shilimkar@ti.com>
 References: <1301304157-2466-1-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:49676 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:34444 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750877Ab1C1JWt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 28 Mar 2011 05:22:49 -0400
+	id S1751089Ab1C1JWu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 28 Mar 2011 05:22:50 -0400
 In-Reply-To: <1301304157-2466-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: khilman@ti.com, rnayak@ti.com, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Initialise hardware supervised mode for all clockdomains if it's
-supported. Initiate sleep transition for other clockdomains,
-if they are not being used.
+This patch exports APIs to get base address for GIC
+distributor, CPU interface, SCU and PL310 L2 Cache which
+are used in OMAP4 PM code.
+
+This was suggested by Kevin Hilman <khilman@ti.com> during
+OMAP4 PM code review.
 
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 Cc: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/pm44xx.c |   22 +++++++++++++++++++++-
- 1 files changed, 21 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/include/mach/omap4-common.h |   13 +++++++++++--
+ arch/arm/mach-omap2/omap-smp.c                  |    6 ++++++
+ arch/arm/mach-omap2/omap4-common.c              |   21 ++++++++++++++++++---
+ 3 files changed, 35 insertions(+), 5 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
-index 5b631f5..4f932f3 100644
---- a/arch/arm/mach-omap2/pm44xx.c
-+++ b/arch/arm/mach-omap2/pm44xx.c
-@@ -16,9 +16,11 @@
- #include <linux/err.h>
- #include <linux/slab.h>
+diff --git a/arch/arm/mach-omap2/include/mach/omap4-common.h b/arch/arm/mach-omap2/include/mach/omap4-common.h
+index de441c0..106edef 100644
+--- a/arch/arm/mach-omap2/include/mach/omap4-common.h
++++ b/arch/arm/mach-omap2/include/mach/omap4-common.h
+@@ -25,11 +25,20 @@
+ #endif
  
--#include "powerdomain.h"
- #include <mach/omap4-common.h>
+ #ifdef CONFIG_CACHE_L2X0
+-extern void __iomem *l2cache_base;
++extern void __iomem *omap4_get_l2cache_base(void);
+ #endif
  
-+#include "powerdomain.h"
-+#include "clockdomain.h"
-+
- struct power_state {
- 	struct powerdomain *pwrdm;
- 	u32 next_state;
-@@ -73,6 +75,22 @@ static const struct platform_suspend_ops omap_pm_ops = {
- };
- #endif /* CONFIG_SUSPEND */
- 
-+/*
-+ * Enable hardware supervised mode for all clockdomains if it's
-+ * supported. Initiate sleep transition for other clockdomains, if
-+ * they are not used
-+ */
-+static int __init clkdms_setup(struct clockdomain *clkdm, void *unused)
+-extern void __iomem *gic_dist_base_addr;
++#ifdef CONFIG_SMP
++extern void __iomem *omap4_get_scu_base(void);
++#else
++static inline void __iomem *omap4_get_scu_base(void)
 +{
-+	if (clkdm->flags & CLKDM_CAN_ENABLE_AUTO)
-+		clkdm_allow_idle(clkdm);
-+	else if (clkdm->flags & CLKDM_CAN_FORCE_SLEEP &&
-+			atomic_read(&clkdm->usecount) == 0)
-+		clkdm_sleep(clkdm);
-+	return 0;
++	return NULL;
++}
++#endif
+ 
++extern void __iomem *omap4_get_gic_dist_base(void);
++extern void __iomem *omap4_get_gic_cpu_base(void);
+ extern void __init gic_init_irq(void);
+ extern void omap_smc1(u32 fn, u32 arg);
+ 
+diff --git a/arch/arm/mach-omap2/omap-smp.c b/arch/arm/mach-omap2/omap-smp.c
+index b66cfe8..4fcaa4a 100644
+--- a/arch/arm/mach-omap2/omap-smp.c
++++ b/arch/arm/mach-omap2/omap-smp.c
+@@ -30,6 +30,12 @@ static void __iomem *scu_base;
+ 
+ static DEFINE_SPINLOCK(boot_lock);
+ 
++
++void __iomem *omap4_get_scu_base(void)
++{
++	return scu_base;
 +}
 +
-+
- static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
+ void __cpuinit platform_secondary_init(unsigned int cpu)
  {
- 	struct power_state *pwrst;
-@@ -111,6 +129,8 @@ static int __init omap4_pm_init(void)
- 		goto err2;
- 	}
+ 	/*
+diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
+index 8f9b97d..fdacb9e 100644
+--- a/arch/arm/mach-omap2/omap4-common.c
++++ b/arch/arm/mach-omap2/omap4-common.c
+@@ -24,15 +24,25 @@
+ #include <mach/omap-wakeupgen.h>
  
-+	(void) clkdm_for_each(clkdms_setup, NULL);
+ #ifdef CONFIG_CACHE_L2X0
+-void __iomem *l2cache_base;
++static void __iomem *l2cache_base;
+ #endif
+ 
+-void __iomem *gic_dist_base_addr;
++static void __iomem *gic_dist_base_addr;
++static void __iomem *gic_cpu_base;
+ 
+ 
++void __iomem *omap4_get_gic_dist_base(void)
++{
++	return gic_dist_base_addr;
++}
 +
- 	ret = omap4_mpuss_init();
- 	if (ret) {
- 		pr_err("Failed to initialise OMAP4 MPUSS\n");
++void __iomem *omap4_get_gic_cpu_base(void)
++{
++	return gic_cpu_base;
++}
++
+ void __init gic_init_irq(void)
+ {
+-	void __iomem *gic_cpu_base;
+ 
+ 	/* Static mapping, never released */
+ 	gic_dist_base_addr = ioremap(OMAP44XX_GIC_DIST_BASE, SZ_4K);
+@@ -51,6 +61,11 @@ void __init gic_init_irq(void)
+ 
+ #ifdef CONFIG_CACHE_L2X0
+ 
++void __iomem *omap4_get_l2cache_base(void)
++{
++	return l2cache_base;
++}
++
+ static void omap4_l2x0_disable(void)
+ {
+ 	/* Disable PL310 L2 Cache controller */
 -- 
 1.6.0.4
 
