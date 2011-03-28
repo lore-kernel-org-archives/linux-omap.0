@@ -1,184 +1,89 @@
-From: <kalle.jokiniemi@nokia.com>
-Subject: RE: [PATCH v2 1/2] isp1704_charger: allow board specific powering
- routine
-Date: Mon, 28 Mar 2011 09:57:09 +0000
-Message-ID: <9D0D31AA57AAF5499AFDC63D6472631B06D0BA@008-AM1MPN1-036.mgdnok.nokia.com>
+From: <kalle.jokiniemi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH v2 2/2] RX-51: Enable isp1704 power on/off
+Date: Mon, 28 Mar 2011 09:57:58 +0000
+Message-ID: <9D0D31AA57AAF5499AFDC63D6472631B06D0D4@008-AM1MPN1-036.mgdnok.nokia.com>
 References: <1301295099-22066-1-git-send-email-kalle.jokiniemi@nokia.com>
- <1301295099-22066-2-git-send-email-kalle.jokiniemi@nokia.com>
- <20110328091240.GA3969@esdhcp034230>
+ <1301295099-22066-3-git-send-email-kalle.jokiniemi@nokia.com>
+ <4D9044B2.5020607@ru.mvista.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:55544 "EHLO mgw-da02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751205Ab1C1J5P convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Mar 2011 05:57:15 -0400
-In-Reply-To: <20110328091240.GA3969@esdhcp034230>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4D9044B2.5020607-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
 Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, Heikki.Krogerus-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org, jhnikula-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, khilman-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Heikki.Krogerus@nokia.com
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, balbi@ti.com, jhnikula@gmail.com, khilman@ti.com
 
-Hello,
+Hi,
 
  > -----Original Message-----
- > From: Heikki Krogerus [mailto:heikki.krogerus@nokia.com]
- > Sent: 28. maaliskuuta 2011 12:13
+ > From: ext Sergei Shtylyov [mailto:sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org]
+ > Sent: 28. maaliskuuta 2011 11:20
  > To: Jokiniemi Kalle (Nokia-MS/Tampere)
- > Cc: linux-usb@vger.kernel.org; linux-omap@vger.kernel.org; balbi@ti.com;
- > jhnikula@gmail.com; khilman@ti.com
- > Subject: Re: [PATCH v2 1/2] isp1704_charger: allow board specific powering
- > routine
+ > Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; balbi-l0cyMroinI0@public.gmane.org;
+ > Krogerus Heikki (Nokia-MS/Helsinki); jhnikula-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org; khilman-l0cyMroinI0@public.gmane.org
+ > Subject: Re: [PATCH v2 2/2] RX-51: Enable isp1704 power on/off
  > 
- > Hi,
+ > On 28-03-2011 10:51, Kalle Jokiniemi wrote:
  > 
- > Add Anton Vorontsov <cbouatmailru@gmail.com> to your v3. This will
- > need ack from him, or this needs to go to him. In this case I guess we
- > are only dealing with RX51 stuff, so maybe this should go to Tony.
-
-Thanks, I'll add Anton to cc.
-
+ > > The isp1704 usb tranceiver is used for charging and can be
+ > > disabled when not in use. Provide the powering routine to
+ > > the driver via platform data.
  > 
- > On Mon, Mar 28, 2011 at 09:51:38AM +0300, Kalle Jokiniemi wrote:
- > > The ISP1704/1707 chip can be put to full power down
- > > state by asserting the CHIP_SEL line. This patch enables
- > > platform or board specific hooks to put the device into
- > > power down mode in case not needed.
- > >
- > > These patches are preparatio for enabling this powering
- > > routine in n900 (rx-51) devices.
- > >
- > > Thanks to Heikki Krogerus for helping out with the patch.
- > >
- > > Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
- > > Cc: Heikki Krogerus <heikki.krogerus@nokia.com>
+ > > Loosely based on earlier patches from Heikki Krogerus in
+ > > Nokia N900 maemo kernel.
+ > 
+ > > Signed-off-by: Kalle Jokiniemi<kalle.jokiniemi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+ > > Cc: Heikki Krogerus<heikki.krogerus-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
  > > ---
- > >  drivers/power/isp1704_charger.c       |   26 ++++++++++++++++++++++++++
- > >  include/linux/power/isp1704_charger.h |   29
- > +++++++++++++++++++++++++++++
- > >  2 files changed, 55 insertions(+), 0 deletions(-)
- > >  create mode 100644 include/linux/power/isp1704_charger.h
- > >
- > > diff --git a/drivers/power/isp1704_charger.c
- > b/drivers/power/isp1704_charger.c
- > > index 2ad9b14..c796b9f 100644
- > > --- a/drivers/power/isp1704_charger.c
- > > +++ b/drivers/power/isp1704_charger.c
- > > @@ -33,6 +33,7 @@
- > >  #include <linux/usb/ulpi.h>
- > >  #include <linux/usb/ch9.h>
- > >  #include <linux/usb/gadget.h>
- > > +#include <linux/power/isp1704_charger.h>
- > >
- > >  /* Vendor specific Power Control register */
- > >  #define ISP1704_PWR_CTRL		0x3d
- > > @@ -63,6 +64,7 @@ struct isp1704_charger {
- > >  	char			model[8];
- > >  	unsigned		present:1;
- > >  	unsigned		online:1;
- > > +	unsigned		init_done;
+ > >   arch/arm/mach-omap2/board-rx51-peripherals.c |   27
+ > ++++++++++++++++++++++++-
+ > >   1 files changed, 25 insertions(+), 2 deletions(-)
  > 
- > Do we need this?
-
-Good point. I needed this for 2.6.37 meego kernel, because it calls
-otg_get_last_event in middle of the probing, which causes the
-isp1704_charger_work to be run with USB_EVENT_NONE, which
-then caused the power to be shut down from the isp during probe.
-
-But it seems the get_last_notifier is not called in upstream code,
-So I probably can drop that init_done variable.
-
- > 
- > >  	unsigned		current_max;
+ > > diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c
+ > b/arch/arm/mach-omap2/board-rx51-peripherals.c
+ > > index e75e240..8584dd8 100644
+ > > --- a/arch/arm/mach-omap2/board-rx51-peripherals.c
+ > > +++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+ > [...]
+ > > @@ -106,10 +109,30 @@ static struct spi_board_info
+ > rx51_peripherals_spi_board_info[] __initdata = {
+ > >   	},
+ > >   };
  > >
- > >  	/* temp storage variables */
- > > @@ -71,6 +73,18 @@ struct isp1704_charger {
- > >  };
- > >
- > >  /*
- > > + * Disable/enable the power from the isp1704 if a function for it
- > > + * has been provided with platform data.
- > > + */
- > > +static void isp1704_charger_set_power(struct isp1704_charger *isp, bool
- > on)
+ > > +static void rx51_charger_set_power(bool on)
  > > +{
- > > +	struct isp1704_charger_data	*board = isp->dev->platform_data;
- > > +
- > > +	if (board->set_power)
- > > +		board->set_power(on);
+ > > +	gpio_set_value(RX51_USB_TRANSCEIVER_RST_GPIO, on);
  > > +}
  > > +
- > > +/*
- > >   * Determine is the charging port DCP (dedicated charger) or CDP (Host/HUB
- > >   * chargers).
- > >   *
- > > @@ -222,6 +236,9 @@ static void isp1704_charger_work(struct work_struct
- > *data)
- > >
- > >  	mutex_lock(&lock);
- > >
- > > +	if (event != USB_EVENT_NONE)
- > > +		isp1704_charger_set_power(isp, 1);
+ > > +static struct isp1704_charger_data rx51_charger_data = {
+ > > +	.set_power	= rx51_charger_set_power,
+ > > +};
  > > +
- > >  	switch (event) {
- > >  	case USB_EVENT_VBUS:
- > >  		isp->online = true;
- > > @@ -269,6 +286,9 @@ static void isp1704_charger_work(struct work_struct
- > *data)
- > >  		 */
- > >  		if (isp->otg->gadget)
- > >  			usb_gadget_disconnect(isp->otg->gadget);
- > > +		/* If we're initialized, we can power down the isp */
- > > +		if (isp->init_done)
- > > +			isp1704_charger_set_power(isp, 0);
- > >  		break;
- > >  	case USB_EVENT_ENUMERATED:
- > >  		if (isp->present)
- > > @@ -394,6 +414,8 @@ static int __devinit isp1704_charger_probe(struct
- > platform_device *pdev)
- > >  	isp->dev = &pdev->dev;
- > >  	platform_set_drvdata(pdev, isp);
+ > >   static struct platform_device rx51_charger_device = {
+ > > -	.name = "isp1704_charger",
+ > > +	.name	= "isp1704_charger",
+ > > +	.dev	= {
+ > > +		.platform_data =&rx51_charger_data,
+ > > +	},
+ > >   };
  > >
- > > +	isp1704_charger_set_power(isp, 1);
- > > +
- > >  	ret = isp1704_test_ulpi(isp);
- > >  	if (ret < 0)
- > >  		goto fail1;
- > > @@ -437,8 +459,11 @@ static int __devinit isp1704_charger_probe(struct
- > platform_device *pdev)
- > >  	if ((ret & ULPI_INT_VBUS_VALID) && !isp->otg->default_a) {
- > >  		isp->event = USB_EVENT_VBUS;
- > >  		schedule_work(&isp->work);
- > > +	} else {
- > > +		isp1704_charger_set_power(isp, 0);
- > >  	}
+ > > +static void __init rx51_charger_init(void)
+ > > +{
+ > > +	BUG_ON(gpio_request_one(RX51_USB_TRANSCEIVER_RST_GPIO,
+ > > +		GPIOF_OUT_INIT_LOW, "isp1704_reset"));
  > 
- > I think the transceiver can be powered down even if we just scheduled
- > the work. This will basically cause hw reset on the transceiver which
- > is only a good thing IMO. Drop the else condition.
+ >     I'm not sure we should kill the machine if this fails...
 
-Ok, I'll test that out and include it if it works w/o problems.
-
-Thanks for the excellent comments.
+True, WARN_ON is probably sufficient.
 
 - Kalle
 
  > 
- > > +	isp->init_done = 1;
- > >  	return 0;
- > >  fail2:
- > >  	power_supply_unregister(&isp->psy);
- > > @@ -459,6 +484,7 @@ static int __devexit isp1704_charger_remove(struct
- > platform_device *pdev)
- > >  	otg_unregister_notifier(isp->otg, &isp->nb);
- > >  	power_supply_unregister(&isp->psy);
- > >  	otg_put_transceiver(isp->otg);
- > > +	isp1704_charger_set_power(isp, 0);
- > >  	kfree(isp);
- > >
- > >  	return 0;
- > 
- > --
- > heikki
+ > WBR, Sergei
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
