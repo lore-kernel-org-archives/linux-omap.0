@@ -1,44 +1,133 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v2 00/19] OMAP4: PM: Suspend, CPU-hotplug and CPUilde
- support.
-Date: Mon, 28 Mar 2011 09:10:13 -0700
-Message-ID: <1301328613.2765.43.camel@vence>
-References: <1299766095-23879-1-git-send-email-santosh.shilimkar@ti.com>
-	 <87d3lycu0h.fsf@ti.com> <49a5273c412bf9193a9f930e990d22d4@mail.gmail.com>
-	 <87pqpxbqho.fsf@ti.com> <87mxkk1rni.fsf@ti.com>
-	 <86f296cd6f86c03bc066efaf7cf2b537@mail.gmail.com> <87mxkjusth.fsf@ti.com>
-	 <d6e3117993699fda33d37081605a9403@mail.gmail.com>  <87vcz3kzlk.fsf@ti.com>
+Subject: Re: [PATCH 2/7] ARM / OMAP: Use struct syscore_ops for "core" power management
+Date: Mon, 28 Mar 2011 09:18:28 -0700
+Message-ID: <87ipv3kyln.fsf@ti.com>
+References: <201103280125.11750.rjw@sisk.pl> <201103280127.09110.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:47532 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750739Ab1C1QKV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 28 Mar 2011 12:10:21 -0400
-Received: by mail-wy0-f178.google.com with SMTP id 33so2450220wyb.9
-        for <linux-omap@vger.kernel.org>; Mon, 28 Mar 2011 09:10:20 -0700 (PDT)
-In-Reply-To: <87vcz3kzlk.fsf@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <201103280127.09110.rjw@sisk.pl> (Rafael J. Wysocki's message of
+	"Mon, 28 Mar 2011 01:27:08 +0200")
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: LKML <linux-kernel@vger.kernel.org>, Greg KH <gregkh@suse.de>, Kay Sievers <kay.sievers@suse.de>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Ben Dooks <ben-linux@fluff.org>
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-omap@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, linux-arm-kernel@lists.infradead.org
 
-On Mon, 2011-03-28 at 08:56 -0700, Kevin Hilman wrote:
-[...]
+"Rafael J. Wysocki" <rjw@sisk.pl> writes:
 
-> > 1) OMAP4-PM series:
-> > git://dev.omapzoom.org/pub/scm/santosh/kernel-omap4-base.git
-> > omap4_pm_pmcore_v3
-> 
-> Also, can you post this version of the series to the list,
-> w/linux-arm-kernel Cc'd.
+> From: Rafael J. Wysocki <rjw@sisk.pl>
+>
+> Replace the sysdev class and struct sys_device used for power
+> management in the OMAP's GPIO code with a struct syscore_ops object
+> which is simpler.
+>
+> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 
-Oops, sorry.  I see it's already posted to the list.
+Acked-by: Kevin Hilman <khilman@ti.com>
 
-Thanks,
+Looks fine to me.  We're in the process of converting this driver to
+runtime PM.  When that happens the syscore ops will be removed as well,
+but I'm fine with this patch until we finish the runtime PM conversion.
 
 Kevin
 
-
+> ---
+>  arch/arm/plat-omap/gpio.c |   35 +++++++++--------------------------
+>  1 file changed, 9 insertions(+), 26 deletions(-)
+>
+> Index: linux-2.6/arch/arm/plat-omap/gpio.c
+> ===================================================================
+> --- linux-2.6.orig/arch/arm/plat-omap/gpio.c
+> +++ linux-2.6/arch/arm/plat-omap/gpio.c
+> @@ -17,7 +17,7 @@
+>  #include <linux/init.h>
+>  #include <linux/module.h>
+>  #include <linux/interrupt.h>
+> -#include <linux/sysdev.h>
+> +#include <linux/syscore_ops.h>
+>  #include <linux/err.h>
+>  #include <linux/clk.h>
+>  #include <linux/io.h>
+> @@ -1379,9 +1379,7 @@ static const struct dev_pm_ops omap_mpui
+>  	.resume_noirq = omap_mpuio_resume_noirq,
+>  };
+>  
+> -/* use platform_driver for this, now that there's no longer any
+> - * point to sys_device (other than not disturbing old code).
+> - */
+> +/* use platform_driver for this. */
+>  static struct platform_driver omap_mpuio_driver = {
+>  	.driver		= {
+>  		.name	= "mpuio",
+> @@ -1754,7 +1752,7 @@ static int __devinit omap_gpio_probe(str
+>  }
+>  
+>  #if defined(CONFIG_ARCH_OMAP16XX) || defined(CONFIG_ARCH_OMAP2PLUS)
+> -static int omap_gpio_suspend(struct sys_device *dev, pm_message_t mesg)
+> +static int omap_gpio_suspend(void)
+>  {
+>  	int i;
+>  
+> @@ -1804,12 +1802,12 @@ static int omap_gpio_suspend(struct sys_
+>  	return 0;
+>  }
+>  
+> -static int omap_gpio_resume(struct sys_device *dev)
+> +static void omap_gpio_resume(void)
+>  {
+>  	int i;
+>  
+>  	if (!cpu_class_is_omap2() && !cpu_is_omap16xx())
+> -		return 0;
+> +		return;
+>  
+>  	for (i = 0; i < gpio_bank_count; i++) {
+>  		struct gpio_bank *bank = &gpio_bank[i];
+> @@ -1845,21 +1843,13 @@ static int omap_gpio_resume(struct sys_d
+>  		__raw_writel(bank->saved_wakeup, wake_set);
+>  		spin_unlock_irqrestore(&bank->lock, flags);
+>  	}
+> -
+> -	return 0;
+>  }
+>  
+> -static struct sysdev_class omap_gpio_sysclass = {
+> -	.name		= "gpio",
+> +static struct syscore_ops omap_gpio_syscore_ops = {
+>  	.suspend	= omap_gpio_suspend,
+>  	.resume		= omap_gpio_resume,
+>  };
+>  
+> -static struct sys_device omap_gpio_device = {
+> -	.id		= 0,
+> -	.cls		= &omap_gpio_sysclass,
+> -};
+> -
+>  #endif
+>  
+>  #ifdef CONFIG_ARCH_OMAP2PLUS
+> @@ -2117,21 +2107,14 @@ postcore_initcall(omap_gpio_drv_reg);
+>  
+>  static int __init omap_gpio_sysinit(void)
+>  {
+> -	int ret = 0;
+> -
+>  	mpuio_init();
+>  
+>  #if defined(CONFIG_ARCH_OMAP16XX) || defined(CONFIG_ARCH_OMAP2PLUS)
+> -	if (cpu_is_omap16xx() || cpu_class_is_omap2()) {
+> -		if (ret == 0) {
+> -			ret = sysdev_class_register(&omap_gpio_sysclass);
+> -			if (ret == 0)
+> -				ret = sysdev_register(&omap_gpio_device);
+> -		}
+> -	}
+> +	if (cpu_is_omap16xx() || cpu_class_is_omap2())
+> +		register_syscore_ops(&omap_gpio_syscore_ops);
+>  #endif
+>  
+> -	return ret;
+> +	return 0;
+>  }
+>  
+>  arch_initcall(omap_gpio_sysinit);
