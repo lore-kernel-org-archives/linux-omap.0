@@ -1,267 +1,145 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [pm-core][PATCH v3 16/21] OMAP4: cpuidle: Add MPUSS RET OFF states
-Date: Mon, 28 Mar 2011 14:52:32 +0530
-Message-ID: <1301304157-2466-17-git-send-email-santosh.shilimkar@ti.com>
+Subject: [pm-core][PATCH v3 18/21] OMAP4: cpuidle: Add CPU hotplug notifier and prepare() hook.
+Date: Mon, 28 Mar 2011 14:52:34 +0530
+Message-ID: <1301304157-2466-19-git-send-email-santosh.shilimkar@ti.com>
 References: <1301304157-2466-1-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:37697 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:37696 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752166Ab1C1JXD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 28 Mar 2011 05:23:03 -0400
+	id S1752065Ab1C1JXB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 28 Mar 2011 05:23:01 -0400
 In-Reply-To: <1301304157-2466-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: khilman@ti.com, rnayak@ti.com, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-This patch adds MPUSS low power states in cpuidle.
+On OMAP4 CPUidle, the low power states are triggered when CPU1
+is offlined to OFF power state. When the CPU1 is online, no
+low power states are supported.
 
-	C1 - CPU0 ON + CPU1 ON + MPU ON
-	C2 - CPU0 ON + CPU1 OFF + MPU ON
-	C3 - CPU0 OFF + CPU1 OFF + MPU CSWR
-	C4 - CPU0 OFF + CPU1 OFF + MPU OFF
+The patch adds CPU hotplug notifier to manage the C-state
+states using CPUidle prepare() hook and CPUIDLE_FLAG_IGNORE
+c-state flag.
 
-MPU OSWR isn't supported yet. To support OSWR, power domain context
-registers needs to be managed which are not supported yet. A patch
-to address this was submitted but it's not ready for merge yet because
-it was not addressing all OMAP4 power domain context registers.
-More info on this issue:
-	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg38667.html
+This was suggested by Kevin Hilman <khilman@ti.com> during
+OMAP4 PM code review.
 
-OMAP4 powerdomain INACTIVE support is also dropped because of inconsistency
-of it with OMAP3. More information  on this thread.
-	http://www.spinics.net/lists/linux-omap/msg45370.html
-
-CORE low power states and associated latencies will be updated as part
-along with chip retention support.
-
-On OMAP4 because of hardware constraints, no low power states are
-targeted when both CPUs are online and in SMP mode. The low power
-states are attempted only when secondary CPU gets offline to OFF
-through hotplug infrastructure.
-
-Thanks to Nicole Chalhoub <n-chalhoub@ti.com> for doing exhaustive
-C-state latency profiling.
-
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Cc: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/cpuidle44xx.c |  129 +++++++++++++++++++++++++++++++++++--
- 1 files changed, 124 insertions(+), 5 deletions(-)
+ arch/arm/mach-omap2/cpuidle44xx.c |   64 +++++++++++++++++++++++++++++++++++++
+ 1 files changed, 64 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/cpuidle44xx.c b/arch/arm/mach-omap2/cpuidle44xx.c
-index 270404f..19a405c 100644
+index daf41e1..83b7f95 100644
 --- a/arch/arm/mach-omap2/cpuidle44xx.c
 +++ b/arch/arm/mach-omap2/cpuidle44xx.c
-@@ -3,6 +3,7 @@
-  *
-  * Copyright (C) 2011 Texas Instruments, Inc.
-  * Rajendra Nayak <rnayak@ti.com>
-+ * Santosh Shilimkar <santosh.shilimkar@ti.com>
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License version 2 as
-@@ -17,12 +18,20 @@
- #include <mach/omap4-common.h>
+@@ -13,6 +13,8 @@
+ #include <linux/sched.h>
+ #include <linux/cpuidle.h>
+ #include <linux/clockchips.h>
++#include <linux/notifier.h>
++#include <linux/cpu.h>
  
- #include "pm.h"
-+#include "prm.h"
+ #include <asm/proc-fns.h>
  
- #ifdef CONFIG_CPU_IDLE
- 
--#define OMAP4_MAX_STATES	1
-+#define OMAP4_MAX_STATES	4
-+
- /* C1 - CPU0 ON + + CPU1 ON + MPU ON + CORE ON */
- #define OMAP4_STATE_C1		0
-+/* C2 - CPU0 ON + CPU1 OFF + MPU ON + CORE ON */
-+#define OMAP4_STATE_C2		1
-+/* C3 - CPU0 OFF + CPU1 OFF + MPU CSWR + CORE ON */
-+#define OMAP4_STATE_C3		2
-+/* C4 - CPU0 OFF + CPU1 OFF + MPU OFF + CORE ON */
-+#define OMAP4_STATE_C4		3
- 
- struct omap4_processor_cx {
- 	u8 valid;
-@@ -31,16 +40,34 @@ struct omap4_processor_cx {
- 	u32 wakeup_latency;
- 	u32 cpu0_state;
- 	u32 mpu_state;
-+	u32 mpu_logic_state;
- 	u32 core_state;
-+	u32 core_logic_state;
- 	u32 threshold;
- 	u32 flags;
-+	const char *desc;
- };
+@@ -51,6 +53,8 @@ struct omap4_processor_cx {
  
  struct omap4_processor_cx omap4_power_states[OMAP4_MAX_STATES];
-+static struct powerdomain *mpu_pd, *cpu1_pd, *core_pd;
+ static struct powerdomain *mpu_pd, *cpu1_pd, *core_pd;
++static int needs_state_data_update;
++static unsigned int state_flags = CPUIDLE_FLAG_IGNORE;
  
-+/*
-+ * FIXME: Full latency numbers needs to be updated as part of
-+ * cpuidle CORE retention support.
-+ * Currently only MPUSS latency numbers are added based on
-+ * measurements done internally. The numbers for MPUSS are
-+ * not board dependent and hence set directly here instead of
-+ * passing it from board files.
-+ */
- static struct cpuidle_params cpuidle_params_table[] = {
--	/* C1 */
--	{1, 2, 2, 5},
-+	/* C1 - CPU0 ON + CPU1 ON + MPU ON  + CORE ON */
-+	{1,	2,	2,	5},
-+	/* C2 - CPU0 ON + CPU1 OFF + MPU ON  + CORE ON */
-+	{1,	140,	160,	300},
-+	/* C3 - CPU0 OFF + CPU1 OFF + MPU CSWR + CORE ON */
-+	{1,	200,	300,	700},
-+	/* C4 - CPU0 OFF + CPU1 OFF + MPU OFF + CORE ON */
-+	{1,	1400,	600,	5000},
+ /*
+  * FIXME: Full latency numbers needs to be updated as part of
+@@ -72,6 +76,31 @@ static struct cpuidle_params cpuidle_params_table[] = {
  };
  
  /**
-@@ -55,7 +82,9 @@ static struct cpuidle_params cpuidle_params_table[] = {
- static int omap4_enter_idle(struct cpuidle_device *dev,
- 			struct cpuidle_state *state)
- {
-+	struct omap4_processor_cx *cx = cpuidle_get_statedata(state);
- 	struct timespec ts_preidle, ts_postidle, ts_idle;
-+	u32 cpu1_state;
- 
- 	/* Used to keep track of the total time in idle */
- 	getnstimeofday(&ts_preidle);
-@@ -63,7 +92,26 @@ static int omap4_enter_idle(struct cpuidle_device *dev,
- 	local_irq_disable();
- 	local_fiq_disable();
- 
--	cpu_do_idle();
++ * omap4_prepare_idle - Update C-state parameters dynamically
++ * @dev: cpuidle device
++ *
++ * Called from the CPUidle framework to prepare the device
++ * for idle before before calling the governor's select function.
++ */
++static int omap4_prepare_idle(struct cpuidle_device *dev)
++{
++	int i, ret = 0;
++
++	if (!needs_state_data_update)
++		return ret;
++
 +	/*
-+	 * Continue to do only WFI on CPU0 till CPU1 hits OFF state.
-+	 * This is necessary to honour hardware recommondation
-+	 * of triggeing all the possible low power modes once CPU1 is
-+	 * out of coherency and in OFF mode.
-+	 * Update dev->last_state so that governor stats reflects right
-+	 * data.
++	 * Update the C-state flags based on CPU1 online
++	 * or offline state. On OMAP4, the low power C-states
++	 * are made available when only CPU1 is offline.
 +	 */
-+	cpu1_state = pwrdm_read_pwrst(cpu1_pd);
-+	if ((cpu1_state != PWRDM_POWER_OFF) || (!cx->valid)) {
-+		dev->last_state = dev->safe_state;
-+		cx = cpuidle_get_statedata(dev->safe_state);
++	for (i = OMAP4_STATE_C2; i < OMAP4_MAX_STATES; i++)
++		dev->states[i].flags = state_flags;
++
++	return ret;
++}
++
++/**
+  * omap4_enter_idle - Programs OMAP4 to enter the specified state
+  * @dev: cpuidle device
+  * @state: The target state to be programmed
+@@ -227,6 +256,36 @@ struct cpuidle_driver omap4_idle_driver = {
+ 	.owner =	THIS_MODULE,
+ };
+ 
++/*
++ * CPU hotplug notifier to update the C-states when
++ * CPU1 is offline or onine. While updating C-state flag,
++ * keep the cpuidle disabled.
++ */
++static int __cpuinit omap_cpu_hotplug_notify(struct notifier_block *self,
++					 unsigned long action, void *unused)
++{
++	switch (action) {
++	case CPU_ONLINE:
++		disable_hlt();
++		needs_state_data_update = 1;
++		state_flags = CPUIDLE_FLAG_IGNORE;
++		enable_hlt();
++		break;
++	case CPU_DEAD:
++		disable_hlt();
++		needs_state_data_update = 1;
++		state_flags = CPUIDLE_FLAG_TIME_VALID;
++		enable_hlt();
++		break;
 +	}
 +
-+	pwrdm_set_logic_retst(mpu_pd, cx->mpu_logic_state);
-+	omap_set_pwrdm_state(mpu_pd, cx->mpu_state);
-+	pwrdm_set_logic_retst(core_pd, cx->core_logic_state);
-+	omap_set_pwrdm_state(core_pd, cx->core_state);
++	return NOTIFY_OK;
++}
 +
-+	omap4_enter_lowpower(dev->cpu, cx->cpu0_state);
++static struct notifier_block __refdata omap_ilde_hotplug_notifier = {
++	.notifier_call = omap_cpu_hotplug_notify,
++};
++
+ /**
+  * omap4_idle_init - Init routine for OMAP4 idle
+  *
+@@ -272,12 +331,17 @@ int __init omap4_idle_init(void)
+ 	if (!count)
+ 		return -EINVAL;
+ 	dev->state_count = count;
++	dev->prepare = omap4_prepare_idle;
  
- 	getnstimeofday(&ts_postidle);
- 	ts_idle = timespec_sub(ts_postidle, ts_preidle);
-@@ -96,9 +144,73 @@ void omap4_init_power_states(void)
- 			cpuidle_params_table[OMAP4_STATE_C1].wake_latency;
- 	omap4_power_states[OMAP4_STATE_C1].threshold =
- 			cpuidle_params_table[OMAP4_STATE_C1].threshold;
-+	omap4_power_states[OMAP4_STATE_C1].cpu0_state = PWRDM_POWER_ON;
- 	omap4_power_states[OMAP4_STATE_C1].mpu_state = PWRDM_POWER_ON;
-+	omap4_power_states[OMAP4_STATE_C1].mpu_logic_state = PWRDM_POWER_RET;
- 	omap4_power_states[OMAP4_STATE_C1].core_state = PWRDM_POWER_ON;
-+	omap4_power_states[OMAP4_STATE_C1].core_logic_state = PWRDM_POWER_RET;
- 	omap4_power_states[OMAP4_STATE_C1].flags = CPUIDLE_FLAG_TIME_VALID;
-+	omap4_power_states[OMAP4_STATE_C1].desc = "MPU ON + CORE ON";
-+
-+	/*
-+	 * C2 - CPU0 ON + CPU1 OFF + MPU ON + CORE ON
-+	 */
-+	omap4_power_states[OMAP4_STATE_C2].valid =
-+			cpuidle_params_table[OMAP4_STATE_C2].valid;
-+	omap4_power_states[OMAP4_STATE_C2].type = OMAP4_STATE_C2;
-+	omap4_power_states[OMAP4_STATE_C2].sleep_latency =
-+			cpuidle_params_table[OMAP4_STATE_C2].sleep_latency;
-+	omap4_power_states[OMAP4_STATE_C2].wakeup_latency =
-+			cpuidle_params_table[OMAP4_STATE_C2].wake_latency;
-+	omap4_power_states[OMAP4_STATE_C2].threshold =
-+			cpuidle_params_table[OMAP4_STATE_C2].threshold;
-+	omap4_power_states[OMAP4_STATE_C2].cpu0_state = PWRDM_POWER_ON;
-+	omap4_power_states[OMAP4_STATE_C2].mpu_state = PWRDM_POWER_ON;
-+	omap4_power_states[OMAP4_STATE_C2].mpu_logic_state = PWRDM_POWER_RET;
-+	omap4_power_states[OMAP4_STATE_C2].core_state = PWRDM_POWER_ON;
-+	omap4_power_states[OMAP4_STATE_C2].core_logic_state = PWRDM_POWER_RET;
-+	omap4_power_states[OMAP4_STATE_C2].flags = CPUIDLE_FLAG_IGNORE;
-+	omap4_power_states[OMAP4_STATE_C2].desc = "MPU ON + CORE ON";
-+
-+	/*
-+	 * C3 - CPU0 OFF + CPU1 OFF + MPU CSWR + CORE ON
-+	 */
-+	omap4_power_states[OMAP4_STATE_C3].valid =
-+			cpuidle_params_table[OMAP4_STATE_C3].valid;
-+	omap4_power_states[OMAP4_STATE_C3].type = OMAP4_STATE_C3;
-+	omap4_power_states[OMAP4_STATE_C3].sleep_latency =
-+			cpuidle_params_table[OMAP4_STATE_C3].sleep_latency;
-+	omap4_power_states[OMAP4_STATE_C3].wakeup_latency =
-+			cpuidle_params_table[OMAP4_STATE_C3].wake_latency;
-+	omap4_power_states[OMAP4_STATE_C3].threshold =
-+			cpuidle_params_table[OMAP4_STATE_C3].threshold;
-+	omap4_power_states[OMAP4_STATE_C3].cpu0_state = PWRDM_POWER_OFF;
-+	omap4_power_states[OMAP4_STATE_C3].mpu_state = PWRDM_POWER_RET;
-+	omap4_power_states[OMAP4_STATE_C3].mpu_logic_state = PWRDM_POWER_RET;
-+	omap4_power_states[OMAP4_STATE_C3].core_state = PWRDM_POWER_ON;
-+	omap4_power_states[OMAP4_STATE_C3].core_logic_state = PWRDM_POWER_RET;
-+	omap4_power_states[OMAP4_STATE_C3].flags = CPUIDLE_FLAG_IGNORE;
-+	omap4_power_states[OMAP4_STATE_C3].desc = "MPU CSWR + CORE ON";
-+
-+	/*
-+	 * C4 - CPU0 OFF + CPU1 OFF + MPU OFF + CORE ON
-+	 */
-+	omap4_power_states[OMAP4_STATE_C4].valid =
-+			cpuidle_params_table[OMAP4_STATE_C4].valid;
-+	omap4_power_states[OMAP4_STATE_C4].type = OMAP4_STATE_C4;
-+	omap4_power_states[OMAP4_STATE_C4].sleep_latency =
-+			cpuidle_params_table[OMAP4_STATE_C4].sleep_latency;
-+	omap4_power_states[OMAP4_STATE_C4].wakeup_latency =
-+			cpuidle_params_table[OMAP4_STATE_C4].wake_latency;
-+	omap4_power_states[OMAP4_STATE_C4].threshold =
-+			cpuidle_params_table[OMAP4_STATE_C4].threshold;
-+	omap4_power_states[OMAP4_STATE_C4].cpu0_state = PWRDM_POWER_OFF;
-+	omap4_power_states[OMAP4_STATE_C4].mpu_state = PWRDM_POWER_OFF;
-+	omap4_power_states[OMAP4_STATE_C4].mpu_logic_state = PWRDM_POWER_OFF;
-+	omap4_power_states[OMAP4_STATE_C4].core_state = PWRDM_POWER_ON;
-+	omap4_power_states[OMAP4_STATE_C4].core_logic_state = PWRDM_POWER_RET;
-+	omap4_power_states[OMAP4_STATE_C4].flags = CPUIDLE_FLAG_IGNORE;
-+	omap4_power_states[OMAP4_STATE_C4].desc = "MPU OFF + CORE ON";
+ 	if (cpuidle_register_device(dev)) {
+ 		pr_err("%s: CPUidle register device failed\n", __func__);
+ 			return -EIO;
+ 		}
  
++	ret = register_hotcpu_notifier(&omap_ilde_hotplug_notifier);
++	if (ret)
++		return ret;
++
+ 	return 0;
  }
- 
-@@ -115,11 +227,15 @@ struct cpuidle_driver omap4_idle_driver = {
-  */
- int __init omap4_idle_init(void)
- {
--	int cpu_id = 0, i, count = 0;
-+	int cpu_id = 0, i, count = 0, ret;
- 	struct omap4_processor_cx *cx;
- 	struct cpuidle_state *state;
- 	struct cpuidle_device *dev;
- 
-+	mpu_pd = pwrdm_lookup("mpu_pwrdm");
-+	cpu1_pd = pwrdm_lookup("cpu1_pwrdm");
-+	core_pd = pwrdm_lookup("core_pwrdm");
-+
- 	omap4_init_power_states();
- 	cpuidle_register_driver(&omap4_idle_driver);
- 
-@@ -137,8 +253,11 @@ int __init omap4_idle_init(void)
- 						cx->wakeup_latency;
- 		state->target_residency = cx->threshold;
- 		state->flags = cx->flags;
-+		if (cx->type == OMAP4_STATE_C1)
-+			dev->safe_state = state;
- 		state->enter = omap4_enter_idle;
- 		sprintf(state->name, "C%d", count+1);
-+		strncpy(state->desc, cx->desc, CPUIDLE_DESC_LEN);
- 		count++;
- 	}
- 
+ #else
 -- 
 1.6.0.4
 
