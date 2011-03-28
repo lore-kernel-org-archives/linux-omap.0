@@ -1,101 +1,47 @@
-From: <kalle.jokiniemi@nokia.com>
-Subject: RE: [PATCH v2 1/2] isp1704_charger: allow board specific powering
- routine
-Date: Mon, 28 Mar 2011 10:00:25 +0000
-Message-ID: <9D0D31AA57AAF5499AFDC63D6472631B06D0E6@008-AM1MPN1-036.mgdnok.nokia.com>
-References: <1301295099-22066-1-git-send-email-kalle.jokiniemi@nokia.com>
- <1301295099-22066-2-git-send-email-kalle.jokiniemi@nokia.com>
- <4D904425.3050307@ru.mvista.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH v2 00/19] OMAP4: PM: Suspend, CPU-hotplug and CPUilde support.
+Date: Mon, 28 Mar 2011 16:17:55 +0530
+Message-ID: <3e0490262ee97b9c47aff6e9c3503f12@mail.gmail.com>
+References: <1299766095-23879-1-git-send-email-santosh.shilimkar@ti.com><87d3lycu0h.fsf@ti.com><49a5273c412bf9193a9f930e990d22d4@mail.gmail.com><87pqpxbqho.fsf@ti.com>
+ <87mxkk1rni.fsf@ti.com><86f296cd6f86c03bc066efaf7cf2b537@mail.gmail.com> <87mxkjusth.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.24]:29485 "EHLO mgw-da01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751089Ab1C1KAy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Mar 2011 06:00:54 -0400
-In-Reply-To: <4D904425.3050307@ru.mvista.com>
-Content-Language: en-US
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:45656 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752517Ab1C1KsD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 28 Mar 2011 06:48:03 -0400
+Received: by mail-yw0-f51.google.com with SMTP id 4so1003266ywg.10
+        for <linux-omap@vger.kernel.org>; Mon, 28 Mar 2011 03:48:02 -0700 (PDT)
+In-Reply-To: <87mxkjusth.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: sshtylyov@mvista.com, cbouatmailru@gmail.com
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, balbi@ti.com, Heikki.Krogerus@nokia.com, jhnikula@gmail.com, khilman@ti.com
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, linux-arm-kernel@lists.infradead.org
 
-Hi,
+Kevin
 
- > -----Original Message-----
- > From: ext Sergei Shtylyov [mailto:sshtylyov@mvista.com]
- > Sent: 28. maaliskuuta 2011 11:18
- > To: Jokiniemi Kalle (Nokia-MS/Tampere)
- > Cc: linux-usb@vger.kernel.org; linux-omap@vger.kernel.org; balbi@ti.com;
- > Krogerus Heikki (Nokia-MS/Helsinki); jhnikula@gmail.com; khilman@ti.com
- > Subject: Re: [PATCH v2 1/2] isp1704_charger: allow board specific powering
- > routine
- > 
- > Hello.
- > 
- > On 28-03-2011 10:51, Kalle Jokiniemi wrote:
- > 
- > > The ISP1704/1707 chip can be put to full power down
- > > state by asserting the CHIP_SEL line. This patch enables
- > > platform or board specific hooks to put the device into
- > > power down mode in case not needed.
- > 
- > > These patches are preparatio for enabling this powering
- > 
- >     Preparation.
- > 
- > > routine in n900 (rx-51) devices.
- > 
- > > Thanks to Heikki Krogerus for helping out with the patch.
- > 
- > > Signed-off-by: Kalle Jokiniemi<kalle.jokiniemi@nokia.com>
- > > Cc: Heikki Krogerus<heikki.krogerus@nokia.com>
- > [...]
- > 
- > > diff --git a/include/linux/power/isp1704_charger.h
- > b/include/linux/power/isp1704_charger.h
- > > new file mode 100644
- > > index 0000000..68096a6
- > > --- /dev/null
- > > +++ b/include/linux/power/isp1704_charger.h
- > > @@ -0,0 +1,29 @@
- > > +/*
- > > + * ISP1704 USB Charger Detection driver
- > > + *
- > > + * Copyright (C) 2011 Nokia Corporation
- > > + *
- > > + * This program is free software; you can redistribute it and/or modify
- > > + * it under the terms of the GNU General Public License as published by
- > > + * the Free Software Foundation; either version 2 of the License, or
- > > + * (at your option) any later version.
- > > + *
- > > + * This program is distributed in the hope that it will be useful,
- > > + * but WITHOUT ANY WARRANTY; without even the implied warranty of
- > > + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- > > + * GNU General Public License for more details.
- > > + *
- > > + * You should have received a copy of the GNU General Public License
- > > + * along with this program; if not, write to the Free Software
- > > + * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- > > + */
- > > +
- > > +
- > > +#ifndef __ISP1704_CHARGER_H
- > > +#define __ISP1704_CHARGER_H
- > > +
- > > +struct isp1704_charger_data {
- > > +	void		(*set_power)(bool on);
- > > +};
- > > +
- > > +#endif
- > 
- >     There should be include/linux/platform_data/ directory now, specifically
- > for such headers...
+> -----Original Message-----
+> From: Kevin Hilman [mailto:khilman@ti.com]
+> Sent: Friday, March 25, 2011 8:54 PM
+> To: Santosh Shilimkar
+> Cc: linux-omap@vger.kernel.org; Rajendra Nayak; linux-arm-
+> kernel@lists.infradead.org
+> Subject: Re: [PATCH v2 00/19] OMAP4: PM: Suspend, CPU-hotplug and
+> CPUilde support.
+>
+> Hi  Santosh,
+>
+> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
+>
+[....]
 
-Thanks for the pointer, I'll put it there.
+>
+> In the mean time, can you create two branches?  One with the
+> dependencies and another with the OMAP4 PM series.  After some final
+> review and testing, I'll merge the latter series and by then we'll
+> probably have an -rc1 baseline.
+>
 
-- Kalle
-
- > 
- > WBR, Sergei
+Have created two branches as you suggested.
