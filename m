@@ -1,80 +1,74 @@
-From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Subject: Re: [PATCH] OMAP3: l3: fix for "irq 10: nobody cared" message
-Date: Sun, 27 Mar 2011 20:49:48 -0500
-Message-ID: <AANLkTikcV_NSYz+zSRRMA=dQMxB7AS1tKsau95mxbCka@mail.gmail.com>
-References: <1301099396-30380-1-git-send-email-omar.ramirez@ti.com>
-	<4D8E5CD3.8010007@ru.mvista.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: rx51: "omapfb: no driver for display"
+Date: Mon, 28 Mar 2011 10:17:23 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739404E21D58C2@dbde02.ent.ti.com>
+References: <20110327023901.GB20163@earth.universe>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:55382 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752569Ab1C1Btt convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 27 Mar 2011 21:49:49 -0400
-Received: by mail-ww0-f52.google.com with SMTP id 15so2378480wwe.21
-        for <linux-omap@vger.kernel.org>; Sun, 27 Mar 2011 18:49:48 -0700 (PDT)
-In-Reply-To: <4D8E5CD3.8010007@ru.mvista.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:50984 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750818Ab1C1Erq convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Mar 2011 00:47:46 -0400
+In-Reply-To: <20110327023901.GB20163@earth.universe>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sergei Shtylyov <sshtylyov@mvista.com>
-Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Benoit Cousson <b-cousson@ti.com>, Felipe Balbi <balbi@ti.com>, sricharan <r.sricharan@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, l-o <linux-omap@vger.kernel.org>, lak <linux-arm-kernel@lists.infradead.org>
+To: Sebastian Reichel <sre@debian.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Sat, Mar 26, 2011 at 4:38 PM, Sergei Shtylyov <sshtylyov@mvista.com>=
- wrote:
-> Hello.
->
-> On 26-03-2011 3:29, Omar Ramirez Luna wrote:
->
->> If an error occurs in the L3 on any other initiator than MPU,
->> the interrupt goes unhandled given that the 'base' register
->> was calculated with the initialized err_base value (which
->> coincidentally points to MPU) and not with the actual source
->> of the error.
->
->> Signed-off-by: Omar Ramirez Luna<omar.ramirez@ti.com>
->> ---
->> =A0arch/arm/mach-omap2/omap_l3_smx.c | =A0 =A05 +++--
->> =A01 files changed, 3 insertions(+), 2 deletions(-)
->
->> diff --git a/arch/arm/mach-omap2/omap_l3_smx.c
->> b/arch/arm/mach-omap2/omap_l3_smx.c
->> index 5f2da75..da917c2 100644
->> --- a/arch/arm/mach-omap2/omap_l3_smx.c
->> +++ b/arch/arm/mach-omap2/omap_l3_smx.c
->> @@ -196,11 +196,12 @@ static irqreturn_t omap3_l3_app_irq(int irq, v=
-oid
->> *_l3)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0/* No timeout error for debug sources=
- */
->> =A0 =A0 =A0 =A0}
->>
->> - =A0 =A0 =A0 base =3D ((l3->rt) + (*(omap3_l3_bases[int_type] + err=
-_source)));
->> -
->> =A0 =A0 =A0 =A0/* identify the error source */
->> =A0 =A0 =A0 =A0for (err_source =3D 0; !(status& =A0(1<< =A0err_sourc=
-e)); err_source++)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0;
->> +
->> + =A0 =A0 =A0 base =3D ((l3->rt) + (*(omap3_l3_bases[int_type] + err=
-_source)));
->> +
->
-> =A0 What's the point of having () around rvalue? You could drop them,=
- while at
-> it...
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Sebastian Reichel
+> Sent: Sunday, March 27, 2011 8:09 AM
+> To: linux-omap@vger.kernel.org
+> Subject: rx51: "omapfb: no driver for display"
+> 
+> Hi,
+> 
+> I've got problems getting a working tty with the mainline 2.6.38
+> kernel on my Nokia N900. Here is the related output from dmesg:
+> 
+> $ grep -E "(omapdss|omapfb|acx565akm)" dmesg
+> [    0.890899] omapdss CORE: clk ick, rate 83000000
+> [    0.890930] omapdss CORE: clk dss1_fck, rate 96000000
+> [    0.890991] omapdss CORE: clk dss2_fck, rate 19200000
+> [    0.891021] omapdss CORE: clk tv_fck, rate 54000000
+> [    0.891052] omapdss CORE: clk video_fck, rate 96000000
+> [    0.891143] omapdss CORE: initial ctx id 0
+> [    0.950469] omapdss CORE: save context
+> [    0.950714] omapdss CORE: bus_match. dev display0/panel-acx565akm, drv
+> panel-acx565akm
+> [    0.950775] omapdss CORE: driver_probe: dev display0/panel-acx565akm,
+> drv panel-acx565akm
+> [    0.950805] omapdss SDI: SDI init
+> [    1.004455] omapdss CORE: save context
+> [    1.059173] omapdss CORE: save context
+> [    1.113830] omapdss CORE: save context
+> [    1.129608] acx565akm spi1.2: omapfb: acx565akm rev 8b LCD detected
+> [    1.130065] omapdss CORE: probe done for device display0
+> [    1.130096] omapdss CORE: bus_match. dev display1/venc, drv panel-
+> acx565akm
+> [    1.303741] OMAPFB: omapfb_init
+> [    1.303894] OMAPFB: omapfb_probe
+> [    1.303924] omapfb omapfb: no driver for display
+> [    1.304016] omapfb omapfb: failed to setup omapfb
+> 
+[Hiremath, Vaibhav] it looks like you do not have all display's connected/selected in you board hook up file.
 
-You're right, will do.
+Please refer to the file board-rx51-video.c, where you can find number of displays registered for rx51 platform.
 
-Regards,
+In case of rx51, you have 2 registered displays, lcd and TV.
 
-Omar
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Vaibhav
+
+> You can find the full dmesg and the full kernel config at [0] and
+> [1]. Can you tell me the reason for the "no driver for display"
+> message? I thought acx565akm has been registered as display driver
+> directly before.
+> 
+> [0] http://pkg-n900.alioth.debian.org/kernel/2.6.38/config-2.6.38-1-omap
+> [1] http://pkg-n900.alioth.debian.org/kernel/2.6.38/dmesg
+> 
+> -- Sebastian
