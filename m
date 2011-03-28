@@ -1,70 +1,113 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [pm-core][PATCH v3 17/21] OMAP4: cpuidle: Switch to gptimer from twd in deeper C-states.
-Date: Mon, 28 Mar 2011 14:52:33 +0530
-Message-ID: <1301304157-2466-18-git-send-email-santosh.shilimkar@ti.com>
+Subject: [pm-core][PATCH v3 14/21] OMAP4: pm-debug: Add wakeup timer and debug counters
+Date: Mon, 28 Mar 2011 14:52:30 +0530
+Message-ID: <1301304157-2466-15-git-send-email-santosh.shilimkar@ti.com>
 References: <1301304157-2466-1-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:40594 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752169Ab1C1JXE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Mar 2011 05:23:04 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:49689 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751109Ab1C1JWy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 28 Mar 2011 05:22:54 -0400
 In-Reply-To: <1301304157-2466-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: khilman@ti.com, rnayak@ti.com, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-CPU local timer(TWD) stops when the CPU is transitioning into
-deeper C-States. Since these timers are not wakeup capable, we
-need the wakeup capable global timer to program the wakeup time
-depending on the next timer expiry.
-
-It can be handled by registering a global wakeup capable timer along
-with local timers marked with (mis)feature flag CLOCK_EVT_FEAT_C3STOP.
-Then notify the clock events layer from idle code using
-CLOCK_EVT_NOTIFY_BROADCAST_ENTER/EXIT).
+This patch adds configurable wakeup timer support in suspend. Also
+for statistics pm counter support is added.
 
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Cc: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/cpuidle44xx.c |    8 ++++++++
- 1 files changed, 8 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/omap4-mpuss-lowpower.c |    4 ++++
+ arch/arm/mach-omap2/pm-debug.c             |   11 +++++++++--
+ arch/arm/mach-omap2/pm44xx.c               |    6 ++++++
+ 3 files changed, 19 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/cpuidle44xx.c b/arch/arm/mach-omap2/cpuidle44xx.c
-index 19a405c..daf41e1 100644
---- a/arch/arm/mach-omap2/cpuidle44xx.c
-+++ b/arch/arm/mach-omap2/cpuidle44xx.c
-@@ -12,6 +12,7 @@
+diff --git a/arch/arm/mach-omap2/omap4-mpuss-lowpower.c b/arch/arm/mach-omap2/omap4-mpuss-lowpower.c
+index 7348d29..3cd9e8b 100644
+--- a/arch/arm/mach-omap2/omap4-mpuss-lowpower.c
++++ b/arch/arm/mach-omap2/omap4-mpuss-lowpower.c
+@@ -289,6 +289,8 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
+ 	if (cpu)
+ 		goto cpu_prepare;
  
- #include <linux/sched.h>
- #include <linux/cpuidle.h>
-+#include <linux/clockchips.h>
- 
- #include <asm/proc-fns.h>
- 
-@@ -85,6 +86,7 @@ static int omap4_enter_idle(struct cpuidle_device *dev,
- 	struct omap4_processor_cx *cx = cpuidle_get_statedata(state);
- 	struct timespec ts_preidle, ts_postidle, ts_idle;
- 	u32 cpu1_state;
-+	int cpu_id = smp_processor_id();
- 
- 	/* Used to keep track of the total time in idle */
- 	getnstimeofday(&ts_preidle);
-@@ -111,8 +113,14 @@ static int omap4_enter_idle(struct cpuidle_device *dev,
- 	pwrdm_set_logic_retst(core_pd, cx->core_logic_state);
- 	omap_set_pwrdm_state(core_pd, cx->core_state);
- 
-+	if (cx->type > OMAP4_STATE_C1)
-+		clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_ENTER, &cpu_id);
++	pwrdm_pre_transition();
 +
- 	omap4_enter_lowpower(dev->cpu, cx->cpu0_state);
+ 	/*
+ 	 * Check MPUSS next state and save GIC if needed
+ 	 * GIC lost during MPU OFF and OSWR
+@@ -334,6 +336,8 @@ cpu_prepare:
+ 		gic_dist_enable();
+ 	}
  
-+	if (cx->type > OMAP4_STATE_C1)
-+		clockevents_notify(CLOCK_EVT_NOTIFY_BROADCAST_EXIT, &cpu_id);
++	pwrdm_post_transition();
 +
- 	getnstimeofday(&ts_postidle);
- 	ts_idle = timespec_sub(ts_postidle, ts_preidle);
+ ret:
+ 	return 0;
+ }
+diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
+index a5a83b3..232623c 100644
+--- a/arch/arm/mach-omap2/pm-debug.c
++++ b/arch/arm/mach-omap2/pm-debug.c
+@@ -604,9 +604,11 @@ static int __init pm_dbg_init(void)
+ 	if (pm_dbg_init_done)
+ 		return 0;
  
+-	if (cpu_is_omap34xx())
++	if (cpu_is_omap34xx()) {
+ 		pm_dbg_reg_modules = omap3_pm_reg_modules;
+-	else {
++	} else if (cpu_is_omap44xx()) {
++		/* Allow pm_dbg_init on OMAP4. */
++	} else {
+ 		printk(KERN_ERR "%s: only OMAP3 supported\n", __func__);
+ 		return -ENODEV;
+ 	}
+@@ -622,6 +624,9 @@ static int __init pm_dbg_init(void)
+ 
+ 	pwrdm_for_each(pwrdms_setup, (void *)d);
+ 
++	if (cpu_is_omap44xx())
++		goto skip_reg_debufs;
++
+ 	pm_dbg_dir = debugfs_create_dir("registers", d);
+ 	if (IS_ERR(pm_dbg_dir))
+ 		return PTR_ERR(pm_dbg_dir);
+@@ -641,6 +646,8 @@ static int __init pm_dbg_init(void)
+ 				   &enable_off_mode, &pm_dbg_option_fops);
+ 	(void) debugfs_create_file("sleep_while_idle", S_IRUGO | S_IWUSR, d,
+ 				   &sleep_while_idle, &pm_dbg_option_fops);
++
++skip_reg_debufs:
+ 	(void) debugfs_create_file("wakeup_timer_seconds", S_IRUGO | S_IWUSR, d,
+ 				   &wakeup_timer_seconds, &pm_dbg_option_fops);
+ 	(void) debugfs_create_file("wakeup_timer_milliseconds",
+diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
+index 051461c..af3a56d 100644
+--- a/arch/arm/mach-omap2/pm44xx.c
++++ b/arch/arm/mach-omap2/pm44xx.c
+@@ -21,6 +21,7 @@
+ 
+ #include "powerdomain.h"
+ #include "clockdomain.h"
++#include "pm.h"
+ 
+ struct power_state {
+ 	struct powerdomain *pwrdm;
+@@ -40,6 +41,11 @@ static int omap4_pm_suspend(void)
+ 	int state, ret = 0;
+ 	u32 cpu_id = smp_processor_id();
+ 
++	/* Wakeup timer from suspend */
++	if (wakeup_timer_seconds || wakeup_timer_milliseconds)
++		omap2_pm_wakeup_on_timer(wakeup_timer_seconds,
++					 wakeup_timer_milliseconds);
++
+ 	/* Save current powerdomain state */
+ 	list_for_each_entry(pwrst, &pwrst_list, node) {
+ 		pwrst->saved_state = pwrdm_read_next_pwrst(pwrst->pwrdm);
 -- 
 1.6.0.4
 
