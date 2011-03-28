@@ -1,120 +1,198 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [pm-core][PATCH v3 08/21] OMAP4: PM: CPU1 wakeup workaround from Low power modes
-Date: Mon, 28 Mar 2011 14:52:24 +0530
-Message-ID: <1301304157-2466-9-git-send-email-santosh.shilimkar@ti.com>
+Subject: [pm-core][PATCH v3 11/21] OMAP4: PM: Add WakeupGen save/restore support
+Date: Mon, 28 Mar 2011 14:52:27 +0530
+Message-ID: <1301304157-2466-12-git-send-email-santosh.shilimkar@ti.com>
 References: <1301304157-2466-1-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:34445 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:49687 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751109Ab1C1JWv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 28 Mar 2011 05:22:51 -0400
+	id S1751109Ab1C1JWx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 28 Mar 2011 05:22:53 -0400
 In-Reply-To: <1301304157-2466-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: khilman@ti.com, rnayak@ti.com, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-The SGI(Software Generated Interrupts) are not wakeup capable from
-low power states. This is known limitation on OMAP4 and needs to be
-worked around by using software forced clockdomain wake-up. CPU0 forces
-the CPU1 clockdomain to software force wakeup. After the wakeup, CPU1
-restores its clockdomain hardware supervised mode.
+WakeupGen IP is integrated along with GIC to manage the
+interrupt wakeups from CPU low power states. It's located in
+always ON power domain. It manages masking/unmasking of
+Shared peripheral interrupts(SPI).So the interrupt enable/disable
+control should be in sync and consistent at WakeupGen and GIC so
+that interrupts are not lost.
 
-More details can be found in OMAP4430 TRM - Version J
-Section :
-	4.3.4.2 Power States of CPU0 and CPU1
+Considering this GIC and WakeupGen save and restore is done
+together.
 
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Cc: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/omap-hotplug.c |    8 ++++++++
- arch/arm/mach-omap2/omap-smp.c     |   26 +++++++++++++++++++++++++-
- 2 files changed, 33 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/include/mach/omap-wakeupgen.h |    1 +
+ arch/arm/mach-omap2/omap-wakeupgen.c              |   81 +++++++++++++++++++++
+ arch/arm/mach-omap2/omap4-mpuss-lowpower.c        |    2 +
+ arch/arm/mach-omap2/omap4-sar-layout.h            |   11 +++
+ 4 files changed, 95 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap-hotplug.c b/arch/arm/mach-omap2/omap-hotplug.c
-index 9f8f097..fe2dae1 100644
---- a/arch/arm/mach-omap2/omap-hotplug.c
-+++ b/arch/arm/mach-omap2/omap-hotplug.c
-@@ -23,6 +23,7 @@
+diff --git a/arch/arm/mach-omap2/include/mach/omap-wakeupgen.h b/arch/arm/mach-omap2/include/mach/omap-wakeupgen.h
+index f10d106..66f31c3 100644
+--- a/arch/arm/mach-omap2/include/mach/omap-wakeupgen.h
++++ b/arch/arm/mach-omap2/include/mach/omap-wakeupgen.h
+@@ -37,4 +37,5 @@
+ 
+ extern int __init omap_wakeupgen_init(void);
+ extern void omap_wakeupgen_irqmask_all(unsigned int cpu, unsigned int set);
++extern void omap_wakeupgen_save(void);
+ #endif
+diff --git a/arch/arm/mach-omap2/omap-wakeupgen.c b/arch/arm/mach-omap2/omap-wakeupgen.c
+index d9d2a3e..345a55c 100644
+--- a/arch/arm/mach-omap2/omap-wakeupgen.c
++++ b/arch/arm/mach-omap2/omap-wakeupgen.c
+@@ -24,6 +24,9 @@
+ #include <asm/hardware/gic.h>
+ 
  #include <mach/omap-wakeupgen.h>
++#include <mach/omap4-common.h>
++
++#include "omap4-sar-layout.h"
  
- #include "powerdomain.h"
-+#include "clockdomain.h"
+ #define NR_BANKS		4
+ #define MAX_IRQS		128
+@@ -35,6 +38,7 @@
  
- int platform_cpu_kill(unsigned int cpu)
+ /* WakeupGen Base addres */
+ static void __iomem *wakeupgen_base;
++static void __iomem *sar_base;
+ static DEFINE_PER_CPU(u32 [NR_BANKS], irqmasks);
+ static DEFINE_SPINLOCK(wakeupgen_lock);
+ 
+@@ -54,6 +58,11 @@ static inline void wakeupgen_writel(u32 val, u8 idx, u32 cpu)
+ 				(cpu * CPU_ENA_OFFSET) + (idx * 4));
+ }
+ 
++static inline void sar_writel(u32 val, u32 offset, u8 idx)
++{
++	__raw_writel(val, sar_base + offset + (idx * 4));
++}
++
+ static void _wakeupgen_set_all(unsigned int cpu, unsigned int reg)
  {
-@@ -36,6 +37,10 @@ int platform_cpu_kill(unsigned int cpu)
- void platform_cpu_die(unsigned int cpu)
- {
- 	unsigned int this_cpu;
-+	static struct clockdomain *cpu1_clkdm;
-+
-+	if (!cpu1_clkdm)
-+		cpu1_clkdm = clkdm_lookup("mpu1_clkdm");
+ 	u8 i;
+@@ -236,3 +245,75 @@ int __init omap_wakeupgen_init(void)
  
- 	flush_cache_all();
- 	dsb();
-@@ -59,6 +64,9 @@ void platform_cpu_die(unsigned int cpu)
- 			 * OK, proper wakeup, we're done
- 			 */
- 			omap_wakeupgen_irqmask_all(this_cpu, 0);
+ 	return 0;
+ }
 +
-+			/* Restore clockdomain to hardware supervised */
-+			clkdm_allow_idle(cpu1_clkdm);
- 			break;
- 		}
- 		pr_debug("CPU%u: spurious wakeup call\n", cpu);
-diff --git a/arch/arm/mach-omap2/omap-smp.c b/arch/arm/mach-omap2/omap-smp.c
-index 4fcaa4a..1230c4e 100644
---- a/arch/arm/mach-omap2/omap-smp.c
-+++ b/arch/arm/mach-omap2/omap-smp.c
-@@ -25,6 +25,8 @@
- #include <mach/hardware.h>
- #include <mach/omap4-common.h>
- 
-+#include "clockdomain.h"
++/**
++ * omap_wakeupgen_save() - WakeupGen context save function
++ *
++ * Save WakewupGen context in SAR BANK3. Restore is done by ROM code.
++ * WakeupGen IP is integrated along with GIC to manage the
++ * interrupt wakeups from CPU low power states. It's located in
++ * always ON power domain. It manages masking/unmasking of
++ * Shared peripheral interrupts(SPI).So the interrupt enable/disable
++ * control should be in sync and consistent at WakeupGen and GIC so
++ * that interrupts are not lost. Hence GIC and WakeupGen are saved
++ * and restored together.
 +
- /* SCU base address */
- static void __iomem *scu_base;
- 
-@@ -54,6 +56,8 @@ void __cpuinit platform_secondary_init(unsigned int cpu)
- 
- int __cpuinit boot_secondary(unsigned int cpu, struct task_struct *idle)
- {
-+	static struct clockdomain *cpu1_clkdm;
-+	static bool booted;
- 	/*
- 	 * Set synchronisation state between this boot processor
- 	 * and the secondary one
-@@ -69,7 +73,27 @@ int __cpuinit boot_secondary(unsigned int cpu, struct task_struct *idle)
- 	omap_modify_auxcoreboot0(0x200, 0xfffffdff);
- 	flush_cache_all();
- 	smp_wmb();
--	smp_cross_call(cpumask_of(cpu), 1);
++ * During normal operation, WakeupGen delivers external interrupts
++ * directly to the GIC. When the CPU asserts StandbyWFI, indicating
++ * it wants to enter lowpower state, the Standby Controller checks
++ * with the WakeupGen unit using the idlereq/idleack handshake to make
++ * sure there is no incoming interrupts.
++ */
 +
-+	if (!cpu1_clkdm)
-+		cpu1_clkdm = clkdm_lookup("mpu1_clkdm");
++void omap_wakeupgen_save(void)
++{
++	u8 i;
++	u32 val;
 +
-+	/*
-+	 * The SGI(Software Generated Interrupts) are not wakeup capable
-+	 * from low power states. This is known limitation on OMAP4 and
-+	 * needs to be worked around by using software forced clockdomain
-+	 * wake-up. To wakeup CPU1, CPU0 forces the CPU1 clockdomain to
-+	 * software force wakeup. After the wakeup, CPU1 restores its
-+	 * clockdomain hardware supervised mode.
-+	 * More details can be found in OMAP4430 TRM - Version J
-+	 * Section :
-+	 *	4.3.4.2 Power States of CPU0 and CPU1
-+	 */
-+	if (booted) {
-+		clkdm_wakeup(cpu1_clkdm);
-+	} else {
-+		dsb_sev();
-+		booted = true;
++	if (omap_rev() == OMAP4430_REV_ES1_0)
++		return;
++
++	if (!sar_base)
++		sar_base = omap4_get_sar_ram_base();
++
++	for (i = 0; i < NR_BANKS; i++) {
++		/* Save the CPUx interrupt mask for IRQ 0 to 127 */
++		val = wakeupgen_readl(i, 0);
++		sar_writel(val, WAKEUPGENENB_OFFSET_CPU0, i);
++		val = wakeupgen_readl(i, 1);
++		sar_writel(val, WAKEUPGENENB_OFFSET_CPU1, i);
++
++		/*
++		 * Disable the secure interrupts for CPUx. The restore
++		 * code blindly restores secure and non-secure interrupt
++		 * masks from SAR RAM. Secure interrupts are not suppose
++		 * to be enabled from HLOS. So overwrite the SAR location
++		 * so that the secure interrupt remains disabled.
++		 */
++		sar_writel(0x0, WAKEUPGENENB_SECURE_OFFSET_CPU0, i);
++		sar_writel(0x0, WAKEUPGENENB_SECURE_OFFSET_CPU1, i);
 +	}
++
++	/* Save AuxBoot* registers */
++	val = __raw_readl(wakeupgen_base + OMAP_AUX_CORE_BOOT_0);
++	__raw_writel(val, sar_base + AUXCOREBOOT0_OFFSET);
++	val = __raw_readl(wakeupgen_base + OMAP_AUX_CORE_BOOT_0);
++	__raw_writel(val, sar_base + AUXCOREBOOT1_OFFSET);
++
++	/* Save SyncReq generation logic */
++	val = __raw_readl(wakeupgen_base + OMAP_AUX_CORE_BOOT_0);
++	__raw_writel(val, sar_base + AUXCOREBOOT0_OFFSET);
++	val = __raw_readl(wakeupgen_base + OMAP_AUX_CORE_BOOT_0);
++	__raw_writel(val, sar_base + AUXCOREBOOT1_OFFSET);
++
++	/* Save SyncReq generation logic */
++	val = __raw_readl(wakeupgen_base + OMAP_PTMSYNCREQ_MASK);
++	__raw_writel(val, sar_base + PTMSYNCREQ_MASK_OFFSET);
++	val = __raw_readl(wakeupgen_base + OMAP_PTMSYNCREQ_EN);
++	__raw_writel(val, sar_base + PTMSYNCREQ_EN_OFFSET);
++
++	/* Set the Backup Bit Mask status */
++	val = __raw_readl(sar_base + SAR_BACKUP_STATUS_OFFSET);
++	val |= SAR_BACKUP_STATUS_WAKEUPGEN;
++	__raw_writel(val, sar_base + SAR_BACKUP_STATUS_OFFSET);
++}
+diff --git a/arch/arm/mach-omap2/omap4-mpuss-lowpower.c b/arch/arm/mach-omap2/omap4-mpuss-lowpower.c
+index 446b956..ddf5b72 100644
+--- a/arch/arm/mach-omap2/omap4-mpuss-lowpower.c
++++ b/arch/arm/mach-omap2/omap4-mpuss-lowpower.c
+@@ -52,6 +52,7 @@
  
- 	/*
- 	 * Now the secondary core is starting up let it run its
+ #include <plat/omap44xx.h>
+ #include <mach/omap4-common.h>
++#include <mach/omap-wakeupgen.h>
+ 
+ #include "omap4-sar-layout.h"
+ #include "pm.h"
+@@ -292,6 +293,7 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
+ 	 * GIC lost during MPU OFF and OSWR
+ 	 */
+ 	if (pwrdm_read_next_pwrst(mpuss_pd) == PWRDM_POWER_OFF) {
++		omap_wakeupgen_save();
+ 		gic_save_context();
+ 		save_state = 3;
+ 	}
+diff --git a/arch/arm/mach-omap2/omap4-sar-layout.h b/arch/arm/mach-omap2/omap4-sar-layout.h
+index baac4c0..3f3e3c9 100644
+--- a/arch/arm/mach-omap2/omap4-sar-layout.h
++++ b/arch/arm/mach-omap2/omap4-sar-layout.h
+@@ -50,4 +50,15 @@
+ #define SAR_BACKUP_STATUS_GIC_CPU0		0x1
+ #define SAR_BACKUP_STATUS_GIC_CPU1		0x2
+ 
++/* WakeUpGen save restore offset from OMAP44XX_SAR_RAM_BASE */
++#define WAKEUPGENENB_OFFSET_CPU0		(SAR_BANK3_OFFSET + 0x684)
++#define WAKEUPGENENB_SECURE_OFFSET_CPU0		(SAR_BANK3_OFFSET + 0x694)
++#define WAKEUPGENENB_OFFSET_CPU1		(SAR_BANK3_OFFSET + 0x6a4)
++#define WAKEUPGENENB_SECURE_OFFSET_CPU1		(SAR_BANK3_OFFSET + 0x6b4)
++#define AUXCOREBOOT0_OFFSET			(SAR_BANK3_OFFSET + 0x6c4)
++#define AUXCOREBOOT1_OFFSET			(SAR_BANK3_OFFSET + 0x6c8)
++#define PTMSYNCREQ_MASK_OFFSET			(SAR_BANK3_OFFSET + 0x6cc)
++#define PTMSYNCREQ_EN_OFFSET			(SAR_BANK3_OFFSET + 0x6d0)
++#define SAR_BACKUP_STATUS_WAKEUPGEN		0x10
++
+ #endif
 -- 
 1.6.0.4
 
