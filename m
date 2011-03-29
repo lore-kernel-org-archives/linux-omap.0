@@ -1,19 +1,19 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Subject: RE: [pm-core][PATCH v3 01/21] OMAP4: PM: Add omap WakeupGen module support
 Date: Tue, 29 Mar 2011 11:19:07 +0530
-Message-ID: <5cbdd88c3ca3fe5c5a0f119be446ce99@mail.gmail.com>
+Message-ID: <2478560e68e40e2a270bb9fe27df658d@mail.gmail.com>
 References: <1301304157-2466-1-git-send-email-santosh.shilimkar@ti.com>
  <1301304157-2466-2-git-send-email-santosh.shilimkar@ti.com> <20110328205027.GC30616@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:35793 "EHLO
-	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752591Ab1C2Fty (ORCPT
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:41367 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752761Ab1C2FvD (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 29 Mar 2011 01:49:54 -0400
-Received: by mail-gy0-f169.google.com with SMTP id 8so1877769gyd.14
-        for <linux-omap@vger.kernel.org>; Mon, 28 Mar 2011 22:49:53 -0700 (PDT)
+	Tue, 29 Mar 2011 01:51:03 -0400
+Received: by mail-yi0-f50.google.com with SMTP id 30so1392816yie.9
+        for <linux-omap@vger.kernel.org>; Mon, 28 Mar 2011 22:51:01 -0700 (PDT)
 In-Reply-To: <20110328205027.GC30616@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
