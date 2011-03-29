@@ -1,64 +1,114 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v12 4/9] OMAP2+: dmtimer: convert to platform devices
-Date: Tue, 29 Mar 2011 10:13:45 -0700
-Message-ID: <20110329171345.GH4016@atomide.com>
-References: <87d3lx5hoo.fsf@ti.com>
- <20110314171240.GB7258@atomide.com>
- <8762rhtnje.fsf@ti.com>
- <20110319002719.GF18583@atomide.com>
- <b65bf7960033964fba8f03e774b46905@mail.gmail.com>
- <20110321170758.GF2811@atomide.com>
- <87sjuge31n.fsf@ti.com>
- <20110321191114.GH2811@atomide.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB037A7E21D7@dbde02.ent.ti.com>
- <20110325155549.GZ2811@atomide.com>
+Subject: Re: [PATCH 01/10] omap: Use separate init_irq functions to avoid
+ cpu_is_omap tests early
+Date: Tue, 29 Mar 2011 10:14:51 -0700
+Message-ID: <20110329171451.GI4016@atomide.com>
+References: <20110328221501.4046.41079.stgit@baageli.muru.com>
+ <20110328222128.4046.70846.stgit@baageli.muru.com>
+ <874o6lg8cv.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:60981 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750991Ab1C2RNs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Mar 2011 13:13:48 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:22626 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751782Ab1C2ROz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Mar 2011 13:14:55 -0400
 Content-Disposition: inline
-In-Reply-To: <20110325155549.GZ2811@atomide.com>
+In-Reply-To: <874o6lg8cv.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Cc: "Hilman, Kevin" <khilman@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gopinath, Thara" <thara@ti.com>
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [110325 08:54]:
-> * DebBarma, Tarun Kanti <tarun.kanti@ti.com> [110324 23:53]:
-> > Hi Tony,
-> > [...]
-> > > Well the dmtimer code can then become just a regular platform_device
-> > > based driver, except for clockevent and clocksource on omap2 & 3.
-> > Should I re-post the patch series with removal of duplicate initialization
-> > Which Kevin pointed out + other relevant comments?
-> > Or, wait for your patch series!
+* Kevin Hilman <khilman@ti.com> [110329 10:08]:
+> Hi Tony,
 > 
-> Just wait few days please, I should have something available that mostly
-> deals with timer-gp.c, so it should not cause too many issues with your
-> patches.
+> Tony Lindgren <tony@atomide.com> writes:
+> 
+> > This allows us to remove cpu_is_omap calls from init_irq functions
+> > and the irq handler. There should not be any need for cpu_is_omap
+> > as at this point we only care about SoC generation, and not about
+> > subcategories.
+> >
+> > The main reason for the patch is that we want to initialize only
+> > minimal omap specific code from the init_early call, and this and
+> > the following patches get us closer to that goal.
+> >
+> > Signed-off-by: Tony Lindgren <tony@atomide.com>
+> 
+> [...]
+> 
+> A couple of minor comments on naming below...
+> 
+> > diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
+> > index bc524b9..33a5c0d 100644
+> > --- a/arch/arm/mach-omap2/irq.c
+> > +++ b/arch/arm/mach-omap2/irq.c
+> > @@ -103,28 +103,36 @@ static void omap_ack_irq(struct irq_data *d)
+> >  	intc_bank_write_reg(0x1, &irq_banks[0], INTC_CONTROL);
+> >  }
+> >  
+> > +static inline void _omap_mask_irq(int irq)
+> > +{
+> > +	int offset = irq & (~(IRQ_BITS_PER_REG - 1));
+> > +	irq &= (IRQ_BITS_PER_REG - 1);
+> > +	intc_bank_write_reg(1 << irq, &irq_banks[0], INTC_MIR_SET0 + offset);
+> > +}
+> > +
+> >  static void omap_mask_irq(struct irq_data *d)
+> >  {
+> >  	unsigned int irq = d->irq;
+> > -	int offset = irq & (~(IRQ_BITS_PER_REG - 1));
+> >  
+> > -	if (cpu_is_omap34xx() && !cpu_is_ti816x()) {
+> > -		int spurious = 0;
+> > +	_omap_mask_irq(irq);
+> > +}
+> >  
+> > -		/*
+> > -		 * INT_34XX_GPT12_IRQ is also the spurious irq. Maybe because
+> > -		 * it is the highest irq number?
+> > -		 */
+> > -		if (irq == INT_34XX_GPT12_IRQ)
+> > -			spurious = omap_check_spurious(irq);
+> > +static void omap_mask_irq_omap3(struct irq_data *d)
+> 
+> how about omap3_mask_irq().
+> 
+> In most other code we're using the SoC name as a prefix instead of
+> suffix.
+> 
+> > +{
+> > +	unsigned int irq = d->irq;
+> > +	int spurious = 0;
+> >  
+> > -		if (!spurious)
+> > -			previous_irq = irq;
+> > -	}
+> > +	/*
+> > +	 * INT_34XX_GPT12_IRQ is also the spurious irq. Maybe because
+> > +	 * it is the highest irq number?
+> > +	 */
+> > +	if (irq == INT_34XX_GPT12_IRQ)
+> > +		spurious = omap_check_spurious(irq);
+> >  
+> > -	irq &= (IRQ_BITS_PER_REG - 1);
+> > +	if (!spurious)
+> > +		previous_irq = irq;
+> >  
+> > -	intc_bank_write_reg(1 << irq, &irq_banks[0], INTC_MIR_SET0 + offset);
+> > +	_omap_mask_irq(irq);
+> >  }
+> >  
+> >  static void omap_unmask_irq(struct irq_data *d)
+> > @@ -143,6 +151,12 @@ static void omap_mask_ack_irq(struct irq_data *d)
+> >  	omap_ack_irq(d);
+> >  }
+> >  
+> > +static void omap_mask_ack_irq_omap3(struct irq_data *d)
+> 
+> Also here: omap3_mask_ack_irq()
 
-FYI, posted some patches in the "omap init_early changes for irq and
-timer init" thread, also available in devel-timer branch. Few notes
-regarding updating your dmtimer series:
-
-- Add the dmtimer arch_initcall into arch/arm/mach-omap2/timer.c so
-  we don't end up with yet another timer*.c file there
-
-- Make use of omap_dm_timer_init_one in the dmtimer arch_initcall so
-  sys_timer initialized struct omap_dm_timer can be picked up
-
-- You can pick the reserved clockevent and clocksource timers based
-  on the sys_timer_reserved mask and then create proper dev entries
-  for those too later on during the init
-
-- Now arch/arm/plat-omap/dmtimer.c can become just a driver module
-  living under drivers somewhere
-
-Other than that, your patches should be pretty easy to rebase.
-
-Regards,
+Sounds good to me.
 
 Tony
