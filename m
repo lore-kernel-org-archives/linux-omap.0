@@ -1,80 +1,83 @@
-From: Magnus Damm <magnus.damm@gmail.com>
-Subject: Re: [PATCH] Input: tca6416-keypad: Change to module_init()
-Date: Tue, 29 Mar 2011 16:11:12 +0900
-Message-ID: <AANLkTimX+SQHaFjc=zARjuvdzX8OisQMHCBUgcR4V7sa@mail.gmail.com>
-References: <20110322142619.1109.89105.sendpatchset@t400s>
-	<20110322142855.GB2202@sirena.org.uk>
-	<20110322143307.GB24004@linux-sh.org>
-	<AANLkTimRV9vzOE7+VPX48y3KebLJSvBOkqxoM--9gqGb@mail.gmail.com>
-	<20110322153226.GC30303@linux-sh.org>
-	<AANLkTimyxdcJ-eEke9x7X1zdiJNbFtncfv0=NzKjtAme@mail.gmail.com>
-	<20110322155730.GD30303@linux-sh.org>
-	<AANLkTi=Fjc2f837ifH152Rh8W0PfiZvViYaLe=8XZo4Z@mail.gmail.com>
-	<20110322163144.GC2202@sirena.org.uk>
-	<AANLkTiniBVWhSiNZMRYbO857D_Vj03KxH4qYqkVo-11J@mail.gmail.com>
-	<20110322165907.GG22583@opensource.wolfsonmicro.com>
-	<AANLkTin1jG36-EsvAk9o-KxdxaBBhx=5Rf+JMidjYqsT@mail.gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH v2] OMAP: DSS2: DSI: Introduce sync_vc functions
+Date: Tue, 29 Mar 2011 10:12:21 +0300
+Message-ID: <1301382741.2370.52.camel@deskari>
+References: <1301372773-4719-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:47981 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751876Ab1C2HLO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Mar 2011 03:11:14 -0400
-In-Reply-To: <AANLkTin1jG36-EsvAk9o-KxdxaBBhx=5Rf+JMidjYqsT@mail.gmail.com>
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:46788 "EHLO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754077Ab1C2HMZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 29 Mar 2011 03:12:25 -0400
+Received: by mail-wy0-f175.google.com with SMTP id 20so3360081wye.20
+        for <linux-omap@vger.kernel.org>; Tue, 29 Mar 2011 00:12:23 -0700 (PDT)
+In-Reply-To: <1301372773-4719-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Paul Mundt <lethal@linux-sh.org>, dmitry.torokhov@gmail.com, srk@ti.com, khilman@ti.com, chinyeow.sim.xt@renesas.com, linux-sh@vger.kernel.org, tony@atomide.com, nsekhar@ti.com, linux-i2c@vger.kernel.org, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Archit Taneja <archit@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-On Thu, Mar 24, 2011 at 1:04 AM, Magnus Damm <magnus.damm@gmail.com> wrote:
-> On Wed, Mar 23, 2011 at 1:59 AM, Mark Brown
-> <broonie@opensource.wolfsonmicro.com> wrote:
->> On Wed, Mar 23, 2011 at 01:51:02AM +0900, Magnus Damm wrote:
->>
->>> I'm not sure if this is i2c specific though - in general you probably
->>> need to register the parent bus driver first.
->>
->> This was my original question - I'm not aware of any reason why you
->> should need to register the driver for the specific bus first, it seems
->> odd.
->
-> Can't see why it wouldn't work - in theory at least. I'll have a look tomorrow.
+On Tue, 2011-03-29 at 09:56 +0530, Archit Taneja wrote:
+> The DSI protocol engine has no interrupt for signalling the end of a Frame
+> transfer. The present approach is to send a BTA after DISPC generates a
+> FRAMEDONE interrupt, and unlock the dsi bus only when the BTA Ack is received.
+> 
+> The assumption made with this approach was that OMAP will send a BTA only after
+> the long packet corresponding to the last line is sent. However, it is possible
+> that on the DISPC FRAMEDONE interrupt there are 2 (or more) lines of pixel data
+> in the DSI line buffer. Hence, the BTA Ack could be received for the long packet
+> corresponding to the second last line (or the third last and so on..).
+> Therefore, the current method doesn't ensure that the complete frame data is
+> sent before we start a new transfer. A similar explanation holds valid if we
+> send a BTA in between multiple short/long command packets from the slave port.
+> 
+> Introduce dsi_sync functions, based on Tomi Valkeinen's idea, which ensure
+> that all the DSI Virtual Channels enabled complete their previous work before
+> proceeding to the next Frame/Command.
+> 
+> For a frame update, the DSI driver now sends a callback to the Panel Driver
+> on the FRAMEDONE interrupt itself. The callback in the panel driver then unlocks
+> the bus. dsi_sync() functions are placed in dsi_vc_config_l4() and
+> dsi_vc_config_vp() to ensure that the previous tasks of the Virtual Channels are
+> completed.
+> 
+> Signed-off-by: Archit Taneja <archit@ti.com>
+> ---
+> v2:
+> -Introduce dsi_sync() which syncs all VCs.
+> -Modify commit message for above change.
 
-Ok, it seems like the I2C bus registration is working as expected.
-After digging into this a bit more I've discovered that the root cause
-seems to be related to clocks. On sh7372 the I2C controller and the
-serial console share the parent clock, and the setup order is
-affecting the serial console.
+We don't need to sync all VCs in dsi_vc_config_l4/vp(). There's no
+problem changing a VC between l4 and vp while other VCs are still
+transmitting.
 
-Without this patch, if subsys_init() is used for tca6416-keypad then
-the I2C controller will be used at probe() time from the function
-tca6416_setup_registers() - this before the serial console driver has
-been initialized properly. The I2C controller used by tca6416 will
-stop the parent clock when the I2C bus access is finished. The serial
-console driver is driven early using earlyprintk at this time, and the
-clock is assumed to be enabled until the real driver is installed at
-module_init() time. So with subsys_init() in tca6416 the I2C
-controller stops the clock while the earlyprintk code assumes it to be
-on. This is causing delays.
+The problematic case where we need to sync all VCs is sending a BTA. BTA
+is not a VC-based thing, but a bus wide thing. If another VC was still
+transmitting data when we send a BTA, we cannot know when the BTA was
+actually sent, and to which packet the panel responds.
 
-If the tca6416 driver is changed to module_init() then the serial
-console driver will be initialized before the tca6416 driver due to
-the linking order and all is working fine.
+But this BTA actually quite a messy thing overall. Consider a case where
+we use two VCs. We first set VC0 to send a bunch of packets. Then we use
+VC1 to send, say, READ_ID1, and after that we send a BTA to get the ID1.
 
-As we already knew, the clock framework code in drivers/sh/clk should
-be updated to turn off unused clocks. To fix the issue in this mail
-thread we should also update the code to force the console clock to be
-enabled early on to make sure the serial console clock isn't turned
-off by accident.
+Now, even if send_bta() would call dsi_sync(), we don't know which
+packet was actually sent last. Was it the READ_ID1, or something from
+VC0?
 
-I propose that we convert the tca6416 driver to module_init() as a
-short term fix _and_ at the same time work on improving the clock
-framework code.
+Luckily these things are not a problem in any current use case, as we
+have only one DSI device connected to a single DSI bus, and we can just
+use one VC.
 
-Can anyone think of a reason why the tca6416 driver shouldn't be
-changed to module_init()?
+So... I think we could just use the v1 of this patch for now (if the
+dsi_sync change was the only change). This leaves us with the problem of
+sending the double BTA (which doesn't manifest currently), which can be
+fixed in a separate patch. And we need to think more about the solution
+for using multiple VCs reliably, and see to it later if there's need.
+How does that sound?
 
-Thanks,
+ Tomi
 
-/ magnus
+
