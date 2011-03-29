@@ -2,19 +2,19 @@ From: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Subject: RE: [pm-core][PATCH v3 14/21] OMAP4: pm-debug: Add wakeup timer and
  debug counters
 Date: Tue, 29 Mar 2011 11:20:33 +0530
-Message-ID: <8ba08155ff15cf48a9f41727723f6c63@mail.gmail.com>
+Message-ID: <7531f02eafe137b5e76070c7d014e245@mail.gmail.com>
 References: <1301304157-2466-1-git-send-email-santosh.shilimkar@ti.com>
  <1301304157-2466-15-git-send-email-santosh.shilimkar@ti.com> <20110328210046.GE30616@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:50004 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753201Ab1C2GCM (ORCPT
+Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:44802 "EHLO
+	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753327Ab1C2GEP (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 29 Mar 2011 02:02:12 -0400
-Received: by mail-yi0-f42.google.com with SMTP id 21so2161078yic.1
-        for <linux-omap@vger.kernel.org>; Mon, 28 Mar 2011 23:02:11 -0700 (PDT)
+	Tue, 29 Mar 2011 02:04:15 -0400
+Received: by mail-gw0-f44.google.com with SMTP id 20so2175901gwb.17
+        for <linux-omap@vger.kernel.org>; Mon, 28 Mar 2011 23:04:14 -0700 (PDT)
 In-Reply-To: <20110328210046.GE30616@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
