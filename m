@@ -1,60 +1,87 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: RE: [pm-core][PATCH v3 14/21] OMAP4: pm-debug: Add wakeup timer and
- debug counters
-Date: Tue, 29 Mar 2011 11:20:33 +0530
-Message-ID: <ed7e6e8de6c13bc25214b5daa512b8c4@mail.gmail.com>
-References: <1301304157-2466-1-git-send-email-santosh.shilimkar@ti.com>
- <1301304157-2466-15-git-send-email-santosh.shilimkar@ti.com> <20110328210046.GE30616@atomide.com>
+From: <kalle.jokiniemi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH v2 1/2] isp1704_charger: allow board specific powering
+ routine
+Date: Tue, 29 Mar 2011 05:52:03 +0000
+Message-ID: <9D0D31AA57AAF5499AFDC63D6472631B06D67D@008-AM1MPN1-036.mgdnok.nokia.com>
+References: <1301295099-22066-1-git-send-email-kalle.jokiniemi@nokia.com>
+ <1301295099-22066-2-git-send-email-kalle.jokiniemi@nokia.com>
+ <4D904425.3050307@ru.mvista.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:34475 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752761Ab1C2FvF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 29 Mar 2011 01:51:05 -0400
-Received: by yxp4 with SMTP id 4so1598828yxp.38
-        for <linux-omap@vger.kernel.org>; Mon, 28 Mar 2011 22:51:04 -0700 (PDT)
-In-Reply-To: <20110328210046.GE30616@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Language: en-US
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org, cbouatmailru-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, Heikki.Krogerus-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org, jhnikula-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, khilman-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Rajendra Nayak <rnayak@ti.com>, linux-arm-kernel@lists.infradead.org
 
-> -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com]
-> Sent: Tuesday, March 29, 2011 2:31 AM
-> To: Santosh Shilimkar
-> Cc: linux-omap@vger.kernel.org; khilman@ti.com; rnayak@ti.com;
-> linux-arm-kernel@lists.infradead.org
-> Subject: Re: [pm-core][PATCH v3 14/21] OMAP4: pm-debug: Add wakeup
-> timer and debug counters
->
-> * Santosh Shilimkar <santosh.shilimkar@ti.com> [110328 02:21]:
-> > --- a/arch/arm/mach-omap2/pm-debug.c
-> > +++ b/arch/arm/mach-omap2/pm-debug.c
-> > @@ -40,6 +41,11 @@ static int omap4_pm_suspend(void)
-> >  	int state, ret = 0;
-> >  	u32 cpu_id = smp_processor_id();
-> >
-> > +	/* Wakeup timer from suspend */
-> > +	if (wakeup_timer_seconds || wakeup_timer_milliseconds)
-> > +		omap2_pm_wakeup_on_timer(wakeup_timer_seconds,
-> > +					 wakeup_timer_milliseconds);
-> > +
-> >  	/* Save current powerdomain state */
-> >  	list_for_each_entry(pwrst, &pwrst_list, node) {
-> >  		pwrst->saved_state = pwrdm_read_next_pwrst(pwrst-
-> >pwrdm);
->
-> This hack to mess diretly with sys_timer will be ripped out,
-> so please drop this patch.
->
-Ok.
+Hi,
 
-> In the long run we'll have dmtimer1 dedicated to the PM code,
-> so then it's possible to do similar things.
->
+ > -----Original Message-----
+ > From: Jokiniemi Kalle (Nokia-MS/Tampere)
 
-Regards,
-Santosh
+<snip>
+
+>  > > diff --git a/include/linux/power/isp1704_charger.h
+ >  > b/include/linux/power/isp1704_charger.h
+ >  > > new file mode 100644
+ >  > > index 0000000..68096a6
+ >  > > --- /dev/null
+ >  > > +++ b/include/linux/power/isp1704_charger.h
+ >  > > @@ -0,0 +1,29 @@
+ >  > > +/*
+ >  > > + * ISP1704 USB Charger Detection driver
+ >  > > + *
+ >  > > + * Copyright (C) 2011 Nokia Corporation
+ >  > > + *
+ >  > > + * This program is free software; you can redistribute it and/or modify
+ >  > > + * it under the terms of the GNU General Public License as published by
+ >  > > + * the Free Software Foundation; either version 2 of the License, or
+ >  > > + * (at your option) any later version.
+ >  > > + *
+ >  > > + * This program is distributed in the hope that it will be useful,
+ >  > > + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ >  > > + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ >  > > + * GNU General Public License for more details.
+ >  > > + *
+ >  > > + * You should have received a copy of the GNU General Public License
+ >  > > + * along with this program; if not, write to the Free Software
+ >  > > + * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+ > USA
+ >  > > + */
+ >  > > +
+ >  > > +
+ >  > > +#ifndef __ISP1704_CHARGER_H
+ >  > > +#define __ISP1704_CHARGER_H
+ >  > > +
+ >  > > +struct isp1704_charger_data {
+ >  > > +	void		(*set_power)(bool on);
+ >  > > +};
+ >  > > +
+ >  > > +#endif
+ >  >
+ >  >     There should be include/linux/platform_data/ directory now, specifically
+ >  > for such headers...
+ > 
+ > Thanks for the pointer, I'll put it there.
+
+There are things like msm-serial.h and tegra-usb.h there, but I'm not so convinced
+that this isp1704_charger.h should be there. The isp1707 component on n900 is
+a discrete chip, it's not part of the SoC, so in theory some other device or platform
+could also use it as a charger. It's not even made by TI, so it's not related in that
+sense to OMAP platform...
+
+What do you think about keeping it still in /include/linux/power ?
+
+- Kalle
+
+ > 
+ > - Kalle
+ > 
+ >  >
+ >  > WBR, Sergei
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
