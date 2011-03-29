@@ -1,83 +1,40 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] mfd: Fix usbhs_enable error handling
-Date: Tue, 29 Mar 2011 14:06:44 +0300
-Message-ID: <20110329110644.GD3041@legolas.emea.dhcp.ti.com>
-References: <1301393275.2253.7.camel@phoenix>
- <50616adee81e0719b7b35884bfa194eb@mail.gmail.com>
-Reply-To: balbi@ti.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <50616adee81e0719b7b35884bfa194eb@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Keshava Munegowda <keshava_mgowda@ti.com>
-Cc: Axel Lin <axel.lin@gmail.com>, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>
+From: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
+Subject: [PATCH v3 0/2] isp1704_charger: fix powering for N900
+Date: Tue, 29 Mar 2011 16:27:58 +0300
+Message-ID: <1301405280-16899-1-git-send-email-kalle.jokiniemi@nokia.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([147.243.128.24]:51008 "EHLO mgw-da01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751876Ab1C2N3N (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 29 Mar 2011 09:29:13 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-usb@vger.kernel.org, cbouatmailru@gmail.com
+Cc: balbi@ti.com, heikki.krogerus@nokia.com, sshtylyov@mvista.com, tony@atomide.com, khilman@ti.com, linux-omap@vger.kernel.org, jhnikula@gmail.com, Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
 
-On Tue, Mar 29, 2011 at 04:05:40PM +0530, Keshava Munegowda wrote:
-> > -----Original Message-----
-> > From: Axel Lin [mailto:axel.lin@gmail.com]
-> > Sent: Tuesday, March 29, 2011 3:38 PM
-> > To: linux-kernel@vger.kernel.org
-> > Cc: Keshava Munegowda; Samuel Ortiz
-> > Subject: [PATCH] mfd: Fix usbhs_enable error handling
-> >
-> > In the case of missing platform_data we do not hold a spin_lock,
-> > thus we should not call spin_unlock_irqrestore in the error path.
-> >
-> > Also simplify the error handling by separating the successful path
-> > from error path. I think this change improves readability.
-> >
-> > Signed-off-by: Axel Lin <axel.lin@gmail.com>
-> > ---
-> >  drivers/mfd/omap-usb-host.c |    8 +++-----
-> >  1 files changed, 3 insertions(+), 5 deletions(-)
-> >
-> > diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
-> > index cb01209..4157d76 100644
-> > --- a/drivers/mfd/omap-usb-host.c
-> > +++ b/drivers/mfd/omap-usb-host.c
-> > @@ -700,8 +700,7 @@ static int usbhs_enable(struct device *dev)
-> >  	dev_dbg(dev, "starting TI HSUSB Controller\n");
-> >  	if (!pdata) {
-> >  		dev_dbg(dev, "missing platform_data\n");
-> > -		ret =  -ENODEV;
-> > -		goto end_enable;
-> > +		return  -ENODEV;
-> >  	}
-> >
-> >  	spin_lock_irqsave(&omap->lock, flags);
-> > @@ -915,7 +914,8 @@ static int usbhs_enable(struct device *dev)
-> >
-> >  end_count:
-> >  	omap->count++;
-> > -	goto end_enable;
-> > +	spin_unlock_irqrestore(&omap->lock, flags);
-> > +	return 0;
-> >
-> >  err_tll:
-> >  	if (pdata->ehci_data->phy_reset) {
-> > @@ -931,8 +931,6 @@ err_tll:
-> >  	clk_disable(omap->usbhost_fs_fck);
-> >  	clk_disable(omap->usbhost_hs_fck);
-> >  	clk_disable(omap->usbhost_ick);
-> > -
-> > -end_enable:
-> >  	spin_unlock_irqrestore(&omap->lock, flags);
-> >  	return ret;
-> >  }
-> > --
-> > 1.7.1
-> 
-> Thanks Axel!
-> Acked-by: Keshava Munegowda < keshava_mgowda@ti.com>
+This patch set enables powering down the isp1704 usb
+tranceiver when not in use.
 
-Samuel, Greg is out for the week, could you take this one through your
-tree instead of waiting for a week until we get this fix merged. If you
-need my Ack, here it goes:
+tested on RX-51 and MeeGo.
 
-Acked-by: Felipe Balbi <balbi@ti.com>
+Thanks to Felipe Balbi, Sergei Shtylyov, and Heikki Krogerus
+for comments.
 
--- 
-balbi
+v3:
+* fixed power down handling in isp1704_charger_probe
+* removed init_done variable
+* changed BUG_ON to WARN_ON
+* editorial fixes 
+
+v2: fixed boot issue in the 1/2 patch.
+
+Kalle Jokiniemi (2):
+  isp1704_charger: allow board specific powering routine
+  RX-51: Enable isp1704 power on/off
+
+ arch/arm/mach-omap2/board-rx51-peripherals.c |   27 ++++++++++++++++++++++-
+ drivers/power/isp1704_charger.c              |   22 +++++++++++++++++++
+ include/linux/power/isp1704_charger.h        |   29 ++++++++++++++++++++++++++
+ 3 files changed, 76 insertions(+), 2 deletions(-)
+ create mode 100644 include/linux/power/isp1704_charger.h
+
