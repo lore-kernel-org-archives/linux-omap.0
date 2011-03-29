@@ -1,50 +1,33 @@
-From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: [PATCH 1/5] OMAP3: l3: fix for "irq 10: nobody cared" message
-Date: Tue, 29 Mar 2011 11:20:15 -0600
-Message-ID: <1301419219-30547-2-git-send-email-omar.ramirez@ti.com>
-References: <1301419219-30547-1-git-send-email-omar.ramirez@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: RX-51: Platform support for lp5523
+Date: Tue, 29 Mar 2011 10:36:47 -0700
+Message-ID: <20110329173647.GK4016@atomide.com>
+References: <20110329172922.GA19494@earth.universe>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:39659 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753575Ab1C2Rbu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Mar 2011 13:31:50 -0400
-In-Reply-To: <1301419219-30547-1-git-send-email-omar.ramirez@ti.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:22905 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751453Ab1C2Rgt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Mar 2011 13:36:49 -0400
+Content-Disposition: inline
+In-Reply-To: <20110329172922.GA19494@earth.universe>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Russell King <linux@arm.linux.org.uk>, l-o <linux-omap@vger.kernel.org>, lak <linux-arm-kernel@lists.infradead.org>, sricharan <r.sricharan@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Felipe Balbi <balbi@ti.com>, Benoit Cousson <b-cousson@ti.com>, Sergei Shtylyov <sshtylyov@mvista.com>, Omar Ramirez Luna <omar.ramirez@ti.com>
+To: Sebastian Reichel <sre@debian.org>
+Cc: linux-omap@vger.kernel.org
 
-If an error occurs in the L3 on any other initiator than MPU,
-the interrupt goes unhandled given that the 'base' register
-was calculated with the initialized err_source value (which
-coincidentally points to MPU) and not with the actual source
-of the error.
+* Sebastian Reichel <sre@debian.org> [110329 10:26]:
+> Hi,
+> 
+> Is there any reason, that the rx51 platform code does not support
+> the lp5523 chip? The chip driver itself is in the mainline kernel
+> since 2.6.37-rc2.
 
-Removed parenthesis that are not needed for the touched lines.
+Got a patch for that? As always, patches related to blinking leds
+have a special high priority here! :)
 
-Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
----
- arch/arm/mach-omap2/omap_l3_smx.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+Regards,
 
-diff --git a/arch/arm/mach-omap2/omap_l3_smx.c b/arch/arm/mach-omap2/omap_l3_smx.c
-index 5f2da75..4321e79 100644
---- a/arch/arm/mach-omap2/omap_l3_smx.c
-+++ b/arch/arm/mach-omap2/omap_l3_smx.c
-@@ -196,11 +196,11 @@ static irqreturn_t omap3_l3_app_irq(int irq, void *_l3)
- 		/* No timeout error for debug sources */
- 	}
- 
--	base = ((l3->rt) + (*(omap3_l3_bases[int_type] + err_source)));
--
- 	/* identify the error source */
- 	for (err_source = 0; !(status & (1 << err_source)); err_source++)
- 									;
-+
-+	base = l3->rt + *(omap3_l3_bases[int_type] + err_source);
- 	error = omap3_l3_readll(base, L3_ERROR_LOG);
- 
- 	if (error) {
--- 
-1.7.1
+Tony
 
