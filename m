@@ -1,96 +1,42 @@
 From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: [PATCH 2/5] OMAP3: l3: fix omap3_l3_probe error path
-Date: Tue, 29 Mar 2011 11:20:16 -0600
-Message-ID: <1301419219-30547-3-git-send-email-omar.ramirez@ti.com>
-References: <1301419219-30547-1-git-send-email-omar.ramirez@ti.com>
+Subject: [PATCH 0/5] OMAP: l3: fixes and cleanup
+Date: Tue, 29 Mar 2011 11:20:14 -0600
+Message-ID: <1301419219-30547-1-git-send-email-omar.ramirez@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59021 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:34332 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753154Ab1C2Rbs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1752549Ab1C2Rbs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Tue, 29 Mar 2011 13:31:48 -0400
-In-Reply-To: <1301419219-30547-1-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: Russell King <linux@arm.linux.org.uk>, l-o <linux-omap@vger.kernel.org>, lak <linux-arm-kernel@lists.infradead.org>, sricharan <r.sricharan@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Felipe Balbi <balbi@ti.com>, Benoit Cousson <b-cousson@ti.com>, Sergei Shtylyov <sshtylyov@mvista.com>, Omar Ramirez Luna <omar.ramirez@ti.com>
 
-Add missing free_irq and remove an empty goto label.
+Based on the comments received for the first patch:
+OMAP3: l3: fix for "irq 10: nobody cared" message[1],
+and quick skimming through the code.
 
-Safe to assume that if we reached the end point of execution
-without errors, then return value is 0, so replacing instead
-another goto.
+Although there are still parenthesis that are not needed
+because of operator precedence, they were left for clarity.
 
-Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
+E.g.:
+(error >> 32) & 0xffff;
+
+clear = (L3_AGENT_STATUS_CLEAR_IA << int_type) |
+        L3_AGENT_STATUS_CLEAR_TA;
+
 ---
- arch/arm/mach-omap2/omap_l3_smx.c |   23 ++++++++++-------------
- 1 files changed, 10 insertions(+), 13 deletions(-)
+[1] https://patchwork.kernel.org/patch/665141/
 
-diff --git a/arch/arm/mach-omap2/omap_l3_smx.c b/arch/arm/mach-omap2/omap_l3_smx.c
-index 4321e79..32961b1 100644
---- a/arch/arm/mach-omap2/omap_l3_smx.c
-+++ b/arch/arm/mach-omap2/omap_l3_smx.c
-@@ -228,10 +228,8 @@ static int __init omap3_l3_probe(struct platform_device *pdev)
- 	int                     ret;
- 
- 	l3 = kzalloc(sizeof(*l3), GFP_KERNEL);
--	if (!l3) {
--		ret = -ENOMEM;
--		goto err0;
--	}
-+	if (!l3)
-+		return -ENOMEM;
- 
- 	platform_set_drvdata(pdev, l3);
- 
-@@ -239,13 +237,13 @@ static int __init omap3_l3_probe(struct platform_device *pdev)
- 	if (!res) {
- 		dev_err(&pdev->dev, "couldn't find resource\n");
- 		ret = -ENODEV;
--		goto err1;
-+		goto err0;
- 	}
- 	l3->rt = ioremap(res->start, resource_size(res));
- 	if (!(l3->rt)) {
- 		dev_err(&pdev->dev, "ioremap failed\n");
- 		ret = -ENOMEM;
--		goto err2;
-+		goto err0;
- 	}
- 
- 	l3->debug_irq = platform_get_irq(pdev, 0);
-@@ -254,7 +252,7 @@ static int __init omap3_l3_probe(struct platform_device *pdev)
- 		"l3-debug-irq", l3);
- 	if (ret) {
- 		dev_err(&pdev->dev, "couldn't request debug irq\n");
--		goto err3;
-+		goto err1;
- 	}
- 
- 	l3->app_irq = platform_get_irq(pdev, 1);
-@@ -264,18 +262,17 @@ static int __init omap3_l3_probe(struct platform_device *pdev)
- 
- 	if (ret) {
- 		dev_err(&pdev->dev, "couldn't request app irq\n");
--		goto err4;
-+		goto err2;
- 	}
- 
--	goto err0;
-+	return 0;
- 
--err4:
--err3:
--	iounmap(l3->rt);
- err2:
-+	free_irq(l3->debug_irq, l3);
- err1:
--	kfree(l3);
-+	iounmap(l3->rt);
- err0:
-+	kfree(l3);
- 	return ret;
- }
- 
--- 
-1.7.1
+Omar Ramirez Luna (5):
+  OMAP3: l3: fix for "irq 10: nobody cared" message
+  OMAP3: l3: fix omap3_l3_probe error path
+  OMAP3: l3: minor cleanup for error message, parenthesis and extra
+    lines
+  OMAP4: l3: fix omap4_l3_probe error path
+  OMAP4: l3: minor cleanup for parenthesis and extra spaces
+
+ arch/arm/mach-omap2/omap_l3_noc.c |   51 ++++++++++++++++--------------------
+ arch/arm/mach-omap2/omap_l3_smx.c |   46 ++++++++++++---------------------
+ 2 files changed, 40 insertions(+), 57 deletions(-)
 
