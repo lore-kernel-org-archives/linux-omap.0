@@ -1,49 +1,55 @@
-From: Hema Kalliguddi <hemahk@ti.com>
-Subject: RE: [PATCH 1/2 v2] usb: otg: OMAP4430: Fixing the omap4430_phy_init function
-Date: Tue, 29 Mar 2011 11:43:31 +0530
-Message-ID: <4369479157892165533add3d883a79a7@mail.gmail.com>
-References: <1300966722-10955-1-git-send-email-hemahk@ti.com> <20110328212015.GH30616@atomide.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: RE: [pm-core][PATCH v3 01/21] OMAP4: PM: Add omap WakeupGen module support
+Date: Tue, 29 Mar 2011 11:19:07 +0530
+Message-ID: <23458e94275de1759652817c138f6966@mail.gmail.com>
+References: <1301304157-2466-1-git-send-email-santosh.shilimkar@ti.com>
+ <1301304157-2466-2-git-send-email-santosh.shilimkar@ti.com> <20110328205027.GC30616@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:35553 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751727Ab1C2GNl (ORCPT
+Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:39528 "EHLO
+	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753125Ab1C2GNp (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 29 Mar 2011 02:13:41 -0400
-In-Reply-To: <20110328212015.GH30616@atomide.com>
+	Tue, 29 Mar 2011 02:13:45 -0400
+Received: by mail-gx0-f173.google.com with SMTP id 26so1742284gxk.18
+        for <linux-omap@vger.kernel.org>; Mon, 28 Mar 2011 23:13:44 -0700 (PDT)
+In-Reply-To: <20110328205027.GC30616@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Rajendra Nayak <rnayak@ti.com>, linux-arm-kernel@lists.infradead.org
 
-Hi,
-
->-----Original Message-----
->From: Tony Lindgren [mailto:tony@atomide.com]
->Sent: Tuesday, March 29, 2011 2:50 AM
->To: Hema HK
->Cc: linux-usb@vger.kernel.org; linux-omap@vger.kernel.org
->Subject: Re: [PATCH 1/2 v2] usb: otg: OMAP4430: Fixing the
->omap4430_phy_init function
+> -----Original Message-----
+> From: Tony Lindgren [mailto:tony@atomide.com]
+> Sent: Tuesday, March 29, 2011 2:20 AM
+> To: Santosh Shilimkar
+> Cc: linux-omap@vger.kernel.org; khilman@ti.com; rnayak@ti.com;
+> linux-arm-kernel@lists.infradead.org
+> Subject: Re: [pm-core][PATCH v3 01/21] OMAP4: PM: Add omap WakeupGen
+> module support
 >
->* Hema HK <hemahk@ti.com> [110324 04:36]:
->> omap4430_phy_init() function can be called with no device pointer,
->> to powerdown the PHY during board init when USB is disabled.
->> Fix the function accordingly.
+> * Santosh Shilimkar <santosh.shilimkar@ti.com> [110328 02:20]:
+> > --- a/arch/arm/mach-omap2/omap4-common.c
+> > +++ b/arch/arm/mach-omap2/omap4-common.c
+> > @@ -21,6 +21,7 @@
+> >
+> >  #include <mach/hardware.h>
+> >  #include <mach/omap4-common.h>
+> > +#include <mach/omap-wakeupgen.h>
+> >
+> >  #ifdef CONFIG_CACHE_L2X0
+> >  void __iomem *l2cache_base;
+> > @@ -41,6 +42,8 @@ void __init gic_init_irq(void)
+> >  	gic_cpu_base = ioremap(OMAP44XX_GIC_CPU_BASE, SZ_512);
+> >  	BUG_ON(!gic_cpu_base);
+> >
+> > +	omap_wakeupgen_init();
+> > +
+> >  	gic_init(0, 29, gic_dist_base_addr, gic_cpu_base);
+> >  }
 >
->This should no longer be needed after merge commit
->0df0914d414a504b975f3cc66ace0c16ef55b7f3.
-
-I did not get how the above commit help to fix it.
-
-This fix is required in the USB disabled case.
-When CONFIG_USB is not enabled, then the device is not built
-but, there is a need to powerdown the PHY for core domain transition to
-ret and offmode.
-
-Regards,
-Hema
+> Do you really need to initialize all of this that early?
 >
->Tony
->
+Yes. It's a interrupt controller extension and needs to work
+together with GIC.
