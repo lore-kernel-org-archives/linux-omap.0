@@ -1,308 +1,55 @@
-From: Archit Taneja <archit@ti.com>
-Subject: [PATCH v2] OMAP: DSS2: DSI: Introduce sync_vc functions
-Date: Tue, 29 Mar 2011 09:56:13 +0530
-Message-ID: <1301372773-4719-1-git-send-email-archit@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: RE: [pm-core][PATCH v3 01/21] OMAP4: PM: Add omap WakeupGen module support
+Date: Tue, 29 Mar 2011 11:19:07 +0530
+Message-ID: <5cbdd88c3ca3fe5c5a0f119be446ce99@mail.gmail.com>
+References: <1301304157-2466-1-git-send-email-santosh.shilimkar@ti.com>
+ <1301304157-2466-2-git-send-email-santosh.shilimkar@ti.com> <20110328205027.GC30616@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51383 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750774Ab1C2EVn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Mar 2011 00:21:43 -0400
-Received: from dlep35.itg.ti.com ([157.170.170.118])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p2T4LgT2011975
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Mon, 28 Mar 2011 23:21:42 -0500
+Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:35793 "EHLO
+	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752591Ab1C2Fty (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 29 Mar 2011 01:49:54 -0400
+Received: by mail-gy0-f169.google.com with SMTP id 8so1877769gyd.14
+        for <linux-omap@vger.kernel.org>; Mon, 28 Mar 2011 22:49:53 -0700 (PDT)
+In-Reply-To: <20110328205027.GC30616@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@ti.com
-Cc: linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Rajendra Nayak <rnayak@ti.com>, linux-arm-kernel@lists.infradead.org
 
-The DSI protocol engine has no interrupt for signalling the end of a Frame
-transfer. The present approach is to send a BTA after DISPC generates a
-FRAMEDONE interrupt, and unlock the dsi bus only when the BTA Ack is received.
-
-The assumption made with this approach was that OMAP will send a BTA only after
-the long packet corresponding to the last line is sent. However, it is possible
-that on the DISPC FRAMEDONE interrupt there are 2 (or more) lines of pixel data
-in the DSI line buffer. Hence, the BTA Ack could be received for the long packet
-corresponding to the second last line (or the third last and so on..).
-Therefore, the current method doesn't ensure that the complete frame data is
-sent before we start a new transfer. A similar explanation holds valid if we
-send a BTA in between multiple short/long command packets from the slave port.
-
-Introduce dsi_sync functions, based on Tomi Valkeinen's idea, which ensure
-that all the DSI Virtual Channels enabled complete their previous work before
-proceeding to the next Frame/Command.
-
-For a frame update, the DSI driver now sends a callback to the Panel Driver
-on the FRAMEDONE interrupt itself. The callback in the panel driver then unlocks
-the bus. dsi_sync() functions are placed in dsi_vc_config_l4() and
-dsi_vc_config_vp() to ensure that the previous tasks of the Virtual Channels are
-completed.
-
-Signed-off-by: Archit Taneja <archit@ti.com>
----
-v2:
--Introduce dsi_sync() which syncs all VCs.
--Modify commit message for above change.
-
-Note:
-Can be tested with the tree:
-http://gitorious.org/~boddob/linux-omap-dss2/archit-dss2-clone
-
- drivers/video/omap2/dss/dsi.c |  194 +++++++++++++++++++++++++++-------------
- 1 files changed, 131 insertions(+), 63 deletions(-)
-
-diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
-index e9b734c..880e861 100644
---- a/drivers/video/omap2/dss/dsi.c
-+++ b/drivers/video/omap2/dss/dsi.c
-@@ -2033,6 +2033,128 @@ static int dsi_force_tx_stop_mode_io(void)
- 	return 0;
- }
- 
-+static bool dsi_vc_is_enabled(int channel)
-+{
-+	return REG_GET(DSI_VC_CTRL(channel), 0, 0);
-+}
-+
-+static void dsi_packet_sent_handler_vp(void *data, u32 mask)
-+{
-+	const int channel = dsi.update_channel;
-+	u8 bit = dsi.te_enabled ? 30 : 31;
-+
-+	if (REG_GET(DSI_VC_TE(channel), bit, bit) == 0)
-+		complete((struct completion *)data);
-+}
-+
-+static int dsi_sync_vc_vp(int channel)
-+{
-+	int r = 0;
-+	u8 bit;
-+
-+	DECLARE_COMPLETION_ONSTACK(completion);
-+
-+	bit = dsi.te_enabled ? 30 : 31;
-+
-+	r = dsi_register_isr_vc(channel, dsi_packet_sent_handler_vp,
-+		&completion, DSI_VC_IRQ_PACKET_SENT);
-+	if (r)
-+		goto err0;
-+
-+	/* Wait for completion only if TE_EN/TE_START is still set */
-+	if (REG_GET(DSI_VC_TE(channel), bit, bit)) {
-+		if (wait_for_completion_timeout(&completion,
-+				msecs_to_jiffies(10)) == 0) {
-+			DSSERR("Failed to complete previous frame transfer\n");
-+			r = -EIO;
-+			goto err1;
-+		}
-+	}
-+
-+	dsi_unregister_isr_vc(channel, dsi_packet_sent_handler_vp,
-+		&completion, DSI_VC_IRQ_PACKET_SENT);
-+
-+	return 0;
-+err1:
-+	dsi_unregister_isr_vc(channel, dsi_packet_sent_handler_vp, &completion,
-+		DSI_VC_IRQ_PACKET_SENT);
-+err0:
-+	return r;
-+}
-+
-+static void dsi_packet_sent_handler_l4(void *data, u32 mask)
-+{
-+	const int channel = dsi.update_channel;
-+
-+	if (REG_GET(DSI_VC_CTRL(channel), 5, 5) == 0)
-+		complete((struct completion *)data);
-+}
-+
-+static int dsi_sync_vc_l4(int channel)
-+{
-+	int r = 0;
-+
-+	DECLARE_COMPLETION_ONSTACK(completion);
-+
-+	r = dsi_register_isr_vc(channel, dsi_packet_sent_handler_l4,
-+		&completion, DSI_VC_IRQ_PACKET_SENT);
-+	if (r)
-+		goto err0;
-+
-+	/* Wait for completion only if TX_FIFO_NOT_EMPTY is still set */
-+	if (REG_GET(DSI_VC_CTRL(channel), 5, 5)) {
-+		if (wait_for_completion_timeout(&completion,
-+				msecs_to_jiffies(10)) == 0) {
-+			DSSERR("Failed to complete previous l4 transfer\n");
-+			r = -EIO;
-+			goto err1;
-+		}
-+	}
-+
-+	dsi_unregister_isr_vc(channel, dsi_packet_sent_handler_l4,
-+		&completion, DSI_VC_IRQ_PACKET_SENT);
-+
-+	return 0;
-+err1:
-+	dsi_unregister_isr_vc(channel, dsi_packet_sent_handler_l4,
-+		&completion, DSI_VC_IRQ_PACKET_SENT);
-+err0:
-+	return r;
-+}
-+
-+static int dsi_sync_vc(int channel)
-+{
-+	if (!dsi_vc_is_enabled(channel))
-+		return 0;
-+
-+	switch (dsi.vc[channel].mode) {
-+	case DSI_VC_MODE_VP:
-+		return dsi_sync_vc_vp(channel);
-+	case DSI_VC_MODE_L4:
-+		return dsi_sync_vc_l4(channel);
-+	default:
-+		BUG();
-+	}
-+}
-+
-+static int dsi_sync(void)
-+{
-+	int i;
-+
-+	WARN_ON(!dsi_bus_is_locked());
-+
-+	WARN_ON(in_interrupt());
-+
-+	for (i = 0; i < ARRAY_SIZE(dsi.vc); i++) {
-+		int r;
-+		r = dsi_sync_vc(i);
-+		if (r)
-+			return r;
-+	}
-+
-+	return 0;
-+}
-+
- static int dsi_vc_enable(int channel, bool enable)
- {
- 	DSSDBG("dsi_vc_enable channel %d, enable %d\n",
-@@ -2085,6 +2207,8 @@ static int dsi_vc_config_l4(int channel)
- 
- 	DSSDBGF("%d", channel);
- 
-+	dsi_sync();
-+
- 	dsi_vc_enable(channel, 0);
- 
- 	/* VC_BUSY */
-@@ -2113,6 +2237,8 @@ static int dsi_vc_config_vp(int channel)
- 
- 	DSSDBGF("%d", channel);
- 
-+	dsi_sync();
-+
- 	dsi_vc_enable(channel, 0);
- 
- 	/* VC_BUSY */
-@@ -3105,17 +3231,8 @@ static void dsi_te_timeout(unsigned long arg)
- }
- #endif
- 
--static void dsi_framedone_bta_callback(void *data, u32 mask);
--
- static void dsi_handle_framedone(int error)
- {
--	const int channel = dsi.update_channel;
--
--	dsi_unregister_isr_vc(channel, dsi_framedone_bta_callback,
--			NULL, DSI_VC_IRQ_BTA);
--
--	cancel_delayed_work(&dsi.framedone_timeout_work);
--
- 	/* SIDLEMODE back to smart-idle */
- 	dispc_enable_sidle();
- 
-@@ -3124,14 +3241,6 @@ static void dsi_handle_framedone(int error)
- 		REG_FLD_MOD(DSI_TIMING2, 1, 15, 15); /* LP_RX_TO */
- 	}
- 
--	/* RX_FIFO_NOT_EMPTY */
--	if (REG_GET(DSI_VC_CTRL(channel), 20, 20)) {
--		DSSERR("Received error during frame transfer:\n");
--		dsi_vc_flush_receive_data(channel);
--		if (!error)
--			error = -EIO;
--	}
--
- 	dsi.framedone_callback(error, dsi.framedone_data);
- 
- 	if (!error)
-@@ -3152,61 +3261,20 @@ static void dsi_framedone_timeout_work_callback(struct work_struct *work)
- 	dsi_handle_framedone(-ETIMEDOUT);
- }
- 
--static void dsi_framedone_bta_callback(void *data, u32 mask)
--{
--	dsi_handle_framedone(0);
--
--#ifdef CONFIG_OMAP2_DSS_FAKE_VSYNC
--	dispc_fake_vsync_irq();
--#endif
--}
--
- static void dsi_framedone_irq_callback(void *data, u32 mask)
- {
--	const int channel = dsi.update_channel;
--	int r;
--
- 	/* Note: We get FRAMEDONE when DISPC has finished sending pixels and
- 	 * turns itself off. However, DSI still has the pixels in its buffers,
- 	 * and is sending the data.
- 	 */
- 
--	if (dsi.te_enabled) {
--		/* enable LP_RX_TO again after the TE */
--		REG_FLD_MOD(DSI_TIMING2, 1, 15, 15); /* LP_RX_TO */
--	}
-+	__cancel_delayed_work(&dsi.framedone_timeout_work);
- 
--	/* Send BTA after the frame. We need this for the TE to work, as TE
--	 * trigger is only sent for BTAs without preceding packet. Thus we need
--	 * to BTA after the pixel packets so that next BTA will cause TE
--	 * trigger.
--	 *
--	 * This is not needed when TE is not in use, but we do it anyway to
--	 * make sure that the transfer has been completed. It would be more
--	 * optimal, but more complex, to wait only just before starting next
--	 * transfer.
--	 *
--	 * Also, as there's no interrupt telling when the transfer has been
--	 * done and the channel could be reconfigured, the only way is to
--	 * busyloop until TE_SIZE is zero. With BTA we can do this
--	 * asynchronously.
--	 * */
--
--	r = dsi_register_isr_vc(channel, dsi_framedone_bta_callback,
--			NULL, DSI_VC_IRQ_BTA);
--	if (r) {
--		DSSERR("Failed to register BTA ISR\n");
--		dsi_handle_framedone(-EIO);
--		return;
--	}
-+	dsi_handle_framedone(0);
- 
--	r = dsi_vc_send_bta(channel);
--	if (r) {
--		DSSERR("BTA after framedone failed\n");
--		dsi_unregister_isr_vc(channel, dsi_framedone_bta_callback,
--				NULL, DSI_VC_IRQ_BTA);
--		dsi_handle_framedone(-EIO);
--	}
-+#ifdef CONFIG_OMAP2_DSS_FAKE_VSYNC
-+	dispc_fake_vsync_irq();
-+#endif
- }
- 
- int omap_dsi_prepare_update(struct omap_dss_device *dssdev,
--- 
-1.7.1
-
+> -----Original Message-----
+> From: Tony Lindgren [mailto:tony@atomide.com]
+> Sent: Tuesday, March 29, 2011 2:20 AM
+> To: Santosh Shilimkar
+> Cc: linux-omap@vger.kernel.org; khilman@ti.com; rnayak@ti.com;
+> linux-arm-kernel@lists.infradead.org
+> Subject: Re: [pm-core][PATCH v3 01/21] OMAP4: PM: Add omap WakeupGen
+> module support
+>
+> * Santosh Shilimkar <santosh.shilimkar@ti.com> [110328 02:20]:
+> > --- a/arch/arm/mach-omap2/omap4-common.c
+> > +++ b/arch/arm/mach-omap2/omap4-common.c
+> > @@ -21,6 +21,7 @@
+> >
+> >  #include <mach/hardware.h>
+> >  #include <mach/omap4-common.h>
+> > +#include <mach/omap-wakeupgen.h>
+> >
+> >  #ifdef CONFIG_CACHE_L2X0
+> >  void __iomem *l2cache_base;
+> > @@ -41,6 +42,8 @@ void __init gic_init_irq(void)
+> >  	gic_cpu_base = ioremap(OMAP44XX_GIC_CPU_BASE, SZ_512);
+> >  	BUG_ON(!gic_cpu_base);
+> >
+> > +	omap_wakeupgen_init();
+> > +
+> >  	gic_init(0, 29, gic_dist_base_addr, gic_cpu_base);
+> >  }
+>
+> Do you really need to initialize all of this that early?
+>
+Yes. It's a interrupt controller extension and needs to work
+together with GIC.
