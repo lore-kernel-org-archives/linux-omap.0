@@ -1,21 +1,20 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: RE: [pm-core][PATCH v3 14/21] OMAP4: pm-debug: Add wakeup timer and
- debug counters
-Date: Tue, 29 Mar 2011 11:20:33 +0530
-Message-ID: <ec4e3850d3e0eda0d06986c06cf76601@mail.gmail.com>
+Subject: RE: [pm-core][PATCH v3 01/21] OMAP4: PM: Add omap WakeupGen module support
+Date: Tue, 29 Mar 2011 11:19:07 +0530
+Message-ID: <b1881aa20801cd51e910d850f7d1dcf9@mail.gmail.com>
 References: <1301304157-2466-1-git-send-email-santosh.shilimkar@ti.com>
- <1301304157-2466-15-git-send-email-santosh.shilimkar@ti.com> <20110328210046.GE30616@atomide.com>
+ <1301304157-2466-2-git-send-email-santosh.shilimkar@ti.com> <20110328205027.GC30616@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:55731 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753158Ab1C2F77 (ORCPT
+Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:57530 "EHLO
+	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752739Ab1C2GCK (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 29 Mar 2011 01:59:59 -0400
-Received: by mail-yw0-f46.google.com with SMTP id 3so1810276ywj.33
-        for <linux-omap@vger.kernel.org>; Mon, 28 Mar 2011 22:59:53 -0700 (PDT)
-In-Reply-To: <20110328210046.GE30616@atomide.com>
+	Tue, 29 Mar 2011 02:02:10 -0400
+Received: by gya6 with SMTP id 6so1858503gya.7
+        for <linux-omap@vger.kernel.org>; Mon, 28 Mar 2011 23:02:08 -0700 (PDT)
+In-Reply-To: <20110328205027.GC30616@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
@@ -23,38 +22,34 @@ Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Rajendra Nayak <r
 
 > -----Original Message-----
 > From: Tony Lindgren [mailto:tony@atomide.com]
-> Sent: Tuesday, March 29, 2011 2:31 AM
+> Sent: Tuesday, March 29, 2011 2:20 AM
 > To: Santosh Shilimkar
 > Cc: linux-omap@vger.kernel.org; khilman@ti.com; rnayak@ti.com;
 > linux-arm-kernel@lists.infradead.org
-> Subject: Re: [pm-core][PATCH v3 14/21] OMAP4: pm-debug: Add wakeup
-> timer and debug counters
+> Subject: Re: [pm-core][PATCH v3 01/21] OMAP4: PM: Add omap WakeupGen
+> module support
 >
-> * Santosh Shilimkar <santosh.shilimkar@ti.com> [110328 02:21]:
-> > --- a/arch/arm/mach-omap2/pm-debug.c
-> > +++ b/arch/arm/mach-omap2/pm-debug.c
-> > @@ -40,6 +41,11 @@ static int omap4_pm_suspend(void)
-> >  	int state, ret = 0;
-> >  	u32 cpu_id = smp_processor_id();
+> * Santosh Shilimkar <santosh.shilimkar@ti.com> [110328 02:20]:
+> > --- a/arch/arm/mach-omap2/omap4-common.c
+> > +++ b/arch/arm/mach-omap2/omap4-common.c
+> > @@ -21,6 +21,7 @@
 > >
-> > +	/* Wakeup timer from suspend */
-> > +	if (wakeup_timer_seconds || wakeup_timer_milliseconds)
-> > +		omap2_pm_wakeup_on_timer(wakeup_timer_seconds,
-> > +					 wakeup_timer_milliseconds);
+> >  #include <mach/hardware.h>
+> >  #include <mach/omap4-common.h>
+> > +#include <mach/omap-wakeupgen.h>
+> >
+> >  #ifdef CONFIG_CACHE_L2X0
+> >  void __iomem *l2cache_base;
+> > @@ -41,6 +42,8 @@ void __init gic_init_irq(void)
+> >  	gic_cpu_base = ioremap(OMAP44XX_GIC_CPU_BASE, SZ_512);
+> >  	BUG_ON(!gic_cpu_base);
+> >
+> > +	omap_wakeupgen_init();
 > > +
-> >  	/* Save current powerdomain state */
-> >  	list_for_each_entry(pwrst, &pwrst_list, node) {
-> >  		pwrst->saved_state = pwrdm_read_next_pwrst(pwrst-
-> >pwrdm);
+> >  	gic_init(0, 29, gic_dist_base_addr, gic_cpu_base);
+> >  }
 >
-> This hack to mess diretly with sys_timer will be ripped out,
-> so please drop this patch.
+> Do you really need to initialize all of this that early?
 >
-Ok.
-
-> In the long run we'll have dmtimer1 dedicated to the PM code,
-> so then it's possible to do similar things.
->
-
-Regards,
-Santosh
+Yes. It's a interrupt controller extension and needs to work
+together with GIC.
