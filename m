@@ -2,18 +2,18 @@ From: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Subject: RE: [PATCH 01/10] omap: Use separate init_irq functions to
  avoidcpu_is_omap tests early
 Date: Tue, 29 Mar 2011 11:41:50 +0530
-Message-ID: <4fb3028a4ae904028e93cf6e22df7e79@mail.gmail.com>
+Message-ID: <251bf93d12e0e2c34465e3a73656b3c3@mail.gmail.com>
 References: <20110328221501.4046.41079.stgit@baageli.muru.com> <20110328222128.4046.70846.stgit@baageli.muru.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:36333 "EHLO
+Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:38749 "EHLO
 	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751048Ab1C2GPL (ORCPT
+	by vger.kernel.org with ESMTP id S1753387Ab1C2GS7 (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 29 Mar 2011 02:15:11 -0400
-Received: by gxk19 with SMTP id 19so1979411gxk.17
-        for <linux-omap@vger.kernel.org>; Mon, 28 Mar 2011 23:15:10 -0700 (PDT)
+	Tue, 29 Mar 2011 02:18:59 -0400
+Received: by gyb11 with SMTP id 11so2055484gyb.15
+        for <linux-omap@vger.kernel.org>; Mon, 28 Mar 2011 23:18:57 -0700 (PDT)
 In-Reply-To: <20110328222128.4046.70846.stgit@baageli.muru.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
