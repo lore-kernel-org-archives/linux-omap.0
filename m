@@ -1,33 +1,41 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: RX-51: Platform support for lp5523
-Date: Tue, 29 Mar 2011 10:36:47 -0700
-Message-ID: <20110329173647.GK4016@atomide.com>
-References: <20110329172922.GA19494@earth.universe>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH 03/10] omap: Move dmtimer defines to dmtimer.h
+Date: Tue, 29 Mar 2011 10:41:48 -0700
+Message-ID: <87mxkdygbn.fsf@ti.com>
+References: <20110328221501.4046.41079.stgit@baageli.muru.com>
+	<20110328222134.4046.53842.stgit@baageli.muru.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:22905 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751453Ab1C2Rgt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Mar 2011 13:36:49 -0400
-Content-Disposition: inline
-In-Reply-To: <20110329172922.GA19494@earth.universe>
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:56789 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750991Ab1C2Rlw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 29 Mar 2011 13:41:52 -0400
+Received: by mail-iw0-f174.google.com with SMTP id 34so489737iwn.5
+        for <linux-omap@vger.kernel.org>; Tue, 29 Mar 2011 10:41:51 -0700 (PDT)
+In-Reply-To: <20110328222134.4046.53842.stgit@baageli.muru.com> (Tony
+	Lindgren's message of "Mon, 28 Mar 2011 15:21:35 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Reichel <sre@debian.org>
-Cc: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Sebastian Reichel <sre@debian.org> [110329 10:26]:
-> Hi,
-> 
-> Is there any reason, that the rx51 platform code does not support
-> the lp5523 chip? The chip driver itself is in the mainline kernel
-> since 2.6.37-rc2.
+Tony Lindgren <tony@atomide.com> writes:
 
-Got a patch for that? As always, patches related to blinking leds
-have a special high priority here! :)
+[...]
 
-Regards,
+> diff --git a/arch/arm/plat-omap/include/plat/dmtimer.h b/arch/arm/plat-omap/include/plat/dmtimer.h
+> index 330bd17..66c4b34 100644
+> --- a/arch/arm/plat-omap/include/plat/dmtimer.h
+> +++ b/arch/arm/plat-omap/include/plat/dmtimer.h
+> @@ -92,5 +92,130 @@ void omap_dm_timer_write_counter(struct omap_dm_timer *timer, unsigned int value
+>  
+>  int omap_dm_timers_active(void);
+>  
+> +/*
+> + * Do not the defines below, they are not needed. They should be only
 
-Tony
+Do not what?    ;)
 
+Kevin
