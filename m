@@ -1,195 +1,308 @@
-From: "A.M.Yassin" <1a.kyyassin@att.net>
-Subject: For your interest
-Date: Tue, 29 Mar 2011 07:07:29 +0400
-Message-ID: <619297.6859.qm__49842.1435863294$1301368085$gmane$org@smtp101.sbc.mail.gq1.yahoo.com>
-Reply-To: <a.m.yassin@g.pl>
-Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_NextPart_000_0112_01C2A9A6.0FF9E1B0"
+From: Archit Taneja <archit@ti.com>
+Subject: [PATCH v2] OMAP: DSS2: DSI: Introduce sync_vc functions
+Date: Tue, 29 Mar 2011 09:56:13 +0530
+Message-ID: <1301372773-4719-1-git-send-email-archit@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from nm5.bullet.mail.ne1.yahoo.com ([98.138.90.68]:29800 "HELO
-	nm5.bullet.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1755535Ab1C2DHm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 28 Mar 2011 23:07:42 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:51383 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750774Ab1C2EVn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Mar 2011 00:21:43 -0400
+Received: from dlep35.itg.ti.com ([157.170.170.118])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p2T4LgT2011975
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Mon, 28 Mar 2011 23:21:42 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tomi.valkeinen@ti.com
+Cc: linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-This is a multi-part message in MIME format.
+The DSI protocol engine has no interrupt for signalling the end of a Frame
+transfer. The present approach is to send a BTA after DISPC generates a
+FRAMEDONE interrupt, and unlock the dsi bus only when the BTA Ack is received.
 
-------=_NextPart_000_0112_01C2A9A6.0FF9E1B0
-Content-Type: text/plain;
-	charset="Windows-1251"
-Content-Transfer-Encoding: 7bit
+The assumption made with this approach was that OMAP will send a BTA only after
+the long packet corresponding to the last line is sent. However, it is possible
+that on the DISPC FRAMEDONE interrupt there are 2 (or more) lines of pixel data
+in the DSI line buffer. Hence, the BTA Ack could be received for the long packet
+corresponding to the second last line (or the third last and so on..).
+Therefore, the current method doesn't ensure that the complete frame data is
+sent before we start a new transfer. A similar explanation holds valid if we
+send a BTA in between multiple short/long command packets from the slave port.
 
-Greeting,
+Introduce dsi_sync functions, based on Tomi Valkeinen's idea, which ensure
+that all the DSI Virtual Channels enabled complete their previous work before
+proceeding to the next Frame/Command.
 
-My name is Mr. A. M. Yassin, I live and work in Abu Dhabi UAE. 
-I have an urgent business which I believe will interest you. 
-Find the enclose for details.
+For a frame update, the DSI driver now sends a callback to the Panel Driver
+on the FRAMEDONE interrupt itself. The callback in the panel driver then unlocks
+the bus. dsi_sync() functions are placed in dsi_vc_config_l4() and
+dsi_vc_config_vp() to ensure that the previous tasks of the Virtual Channels are
+completed.
 
-For any reason you cannot open that attachment, please let me 
-know so that I can resend it in the body of the mail, thank you.
+Signed-off-by: Archit Taneja <archit@ti.com>
+---
+v2:
+-Introduce dsi_sync() which syncs all VCs.
+-Modify commit message for above change.
 
-I wait for your response, Thank you.
+Note:
+Can be tested with the tree:
+http://gitorious.org/~boddob/linux-omap-dss2/archit-dss2-clone
 
-Regards
+ drivers/video/omap2/dss/dsi.c |  194 +++++++++++++++++++++++++++-------------
+ 1 files changed, 131 insertions(+), 63 deletions(-)
 
-A. M. Yassin
+diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
+index e9b734c..880e861 100644
+--- a/drivers/video/omap2/dss/dsi.c
++++ b/drivers/video/omap2/dss/dsi.c
+@@ -2033,6 +2033,128 @@ static int dsi_force_tx_stop_mode_io(void)
+ 	return 0;
+ }
+ 
++static bool dsi_vc_is_enabled(int channel)
++{
++	return REG_GET(DSI_VC_CTRL(channel), 0, 0);
++}
++
++static void dsi_packet_sent_handler_vp(void *data, u32 mask)
++{
++	const int channel = dsi.update_channel;
++	u8 bit = dsi.te_enabled ? 30 : 31;
++
++	if (REG_GET(DSI_VC_TE(channel), bit, bit) == 0)
++		complete((struct completion *)data);
++}
++
++static int dsi_sync_vc_vp(int channel)
++{
++	int r = 0;
++	u8 bit;
++
++	DECLARE_COMPLETION_ONSTACK(completion);
++
++	bit = dsi.te_enabled ? 30 : 31;
++
++	r = dsi_register_isr_vc(channel, dsi_packet_sent_handler_vp,
++		&completion, DSI_VC_IRQ_PACKET_SENT);
++	if (r)
++		goto err0;
++
++	/* Wait for completion only if TE_EN/TE_START is still set */
++	if (REG_GET(DSI_VC_TE(channel), bit, bit)) {
++		if (wait_for_completion_timeout(&completion,
++				msecs_to_jiffies(10)) == 0) {
++			DSSERR("Failed to complete previous frame transfer\n");
++			r = -EIO;
++			goto err1;
++		}
++	}
++
++	dsi_unregister_isr_vc(channel, dsi_packet_sent_handler_vp,
++		&completion, DSI_VC_IRQ_PACKET_SENT);
++
++	return 0;
++err1:
++	dsi_unregister_isr_vc(channel, dsi_packet_sent_handler_vp, &completion,
++		DSI_VC_IRQ_PACKET_SENT);
++err0:
++	return r;
++}
++
++static void dsi_packet_sent_handler_l4(void *data, u32 mask)
++{
++	const int channel = dsi.update_channel;
++
++	if (REG_GET(DSI_VC_CTRL(channel), 5, 5) == 0)
++		complete((struct completion *)data);
++}
++
++static int dsi_sync_vc_l4(int channel)
++{
++	int r = 0;
++
++	DECLARE_COMPLETION_ONSTACK(completion);
++
++	r = dsi_register_isr_vc(channel, dsi_packet_sent_handler_l4,
++		&completion, DSI_VC_IRQ_PACKET_SENT);
++	if (r)
++		goto err0;
++
++	/* Wait for completion only if TX_FIFO_NOT_EMPTY is still set */
++	if (REG_GET(DSI_VC_CTRL(channel), 5, 5)) {
++		if (wait_for_completion_timeout(&completion,
++				msecs_to_jiffies(10)) == 0) {
++			DSSERR("Failed to complete previous l4 transfer\n");
++			r = -EIO;
++			goto err1;
++		}
++	}
++
++	dsi_unregister_isr_vc(channel, dsi_packet_sent_handler_l4,
++		&completion, DSI_VC_IRQ_PACKET_SENT);
++
++	return 0;
++err1:
++	dsi_unregister_isr_vc(channel, dsi_packet_sent_handler_l4,
++		&completion, DSI_VC_IRQ_PACKET_SENT);
++err0:
++	return r;
++}
++
++static int dsi_sync_vc(int channel)
++{
++	if (!dsi_vc_is_enabled(channel))
++		return 0;
++
++	switch (dsi.vc[channel].mode) {
++	case DSI_VC_MODE_VP:
++		return dsi_sync_vc_vp(channel);
++	case DSI_VC_MODE_L4:
++		return dsi_sync_vc_l4(channel);
++	default:
++		BUG();
++	}
++}
++
++static int dsi_sync(void)
++{
++	int i;
++
++	WARN_ON(!dsi_bus_is_locked());
++
++	WARN_ON(in_interrupt());
++
++	for (i = 0; i < ARRAY_SIZE(dsi.vc); i++) {
++		int r;
++		r = dsi_sync_vc(i);
++		if (r)
++			return r;
++	}
++
++	return 0;
++}
++
+ static int dsi_vc_enable(int channel, bool enable)
+ {
+ 	DSSDBG("dsi_vc_enable channel %d, enable %d\n",
+@@ -2085,6 +2207,8 @@ static int dsi_vc_config_l4(int channel)
+ 
+ 	DSSDBGF("%d", channel);
+ 
++	dsi_sync();
++
+ 	dsi_vc_enable(channel, 0);
+ 
+ 	/* VC_BUSY */
+@@ -2113,6 +2237,8 @@ static int dsi_vc_config_vp(int channel)
+ 
+ 	DSSDBGF("%d", channel);
+ 
++	dsi_sync();
++
+ 	dsi_vc_enable(channel, 0);
+ 
+ 	/* VC_BUSY */
+@@ -3105,17 +3231,8 @@ static void dsi_te_timeout(unsigned long arg)
+ }
+ #endif
+ 
+-static void dsi_framedone_bta_callback(void *data, u32 mask);
+-
+ static void dsi_handle_framedone(int error)
+ {
+-	const int channel = dsi.update_channel;
+-
+-	dsi_unregister_isr_vc(channel, dsi_framedone_bta_callback,
+-			NULL, DSI_VC_IRQ_BTA);
+-
+-	cancel_delayed_work(&dsi.framedone_timeout_work);
+-
+ 	/* SIDLEMODE back to smart-idle */
+ 	dispc_enable_sidle();
+ 
+@@ -3124,14 +3241,6 @@ static void dsi_handle_framedone(int error)
+ 		REG_FLD_MOD(DSI_TIMING2, 1, 15, 15); /* LP_RX_TO */
+ 	}
+ 
+-	/* RX_FIFO_NOT_EMPTY */
+-	if (REG_GET(DSI_VC_CTRL(channel), 20, 20)) {
+-		DSSERR("Received error during frame transfer:\n");
+-		dsi_vc_flush_receive_data(channel);
+-		if (!error)
+-			error = -EIO;
+-	}
+-
+ 	dsi.framedone_callback(error, dsi.framedone_data);
+ 
+ 	if (!error)
+@@ -3152,61 +3261,20 @@ static void dsi_framedone_timeout_work_callback(struct work_struct *work)
+ 	dsi_handle_framedone(-ETIMEDOUT);
+ }
+ 
+-static void dsi_framedone_bta_callback(void *data, u32 mask)
+-{
+-	dsi_handle_framedone(0);
+-
+-#ifdef CONFIG_OMAP2_DSS_FAKE_VSYNC
+-	dispc_fake_vsync_irq();
+-#endif
+-}
+-
+ static void dsi_framedone_irq_callback(void *data, u32 mask)
+ {
+-	const int channel = dsi.update_channel;
+-	int r;
+-
+ 	/* Note: We get FRAMEDONE when DISPC has finished sending pixels and
+ 	 * turns itself off. However, DSI still has the pixels in its buffers,
+ 	 * and is sending the data.
+ 	 */
+ 
+-	if (dsi.te_enabled) {
+-		/* enable LP_RX_TO again after the TE */
+-		REG_FLD_MOD(DSI_TIMING2, 1, 15, 15); /* LP_RX_TO */
+-	}
++	__cancel_delayed_work(&dsi.framedone_timeout_work);
+ 
+-	/* Send BTA after the frame. We need this for the TE to work, as TE
+-	 * trigger is only sent for BTAs without preceding packet. Thus we need
+-	 * to BTA after the pixel packets so that next BTA will cause TE
+-	 * trigger.
+-	 *
+-	 * This is not needed when TE is not in use, but we do it anyway to
+-	 * make sure that the transfer has been completed. It would be more
+-	 * optimal, but more complex, to wait only just before starting next
+-	 * transfer.
+-	 *
+-	 * Also, as there's no interrupt telling when the transfer has been
+-	 * done and the channel could be reconfigured, the only way is to
+-	 * busyloop until TE_SIZE is zero. With BTA we can do this
+-	 * asynchronously.
+-	 * */
+-
+-	r = dsi_register_isr_vc(channel, dsi_framedone_bta_callback,
+-			NULL, DSI_VC_IRQ_BTA);
+-	if (r) {
+-		DSSERR("Failed to register BTA ISR\n");
+-		dsi_handle_framedone(-EIO);
+-		return;
+-	}
++	dsi_handle_framedone(0);
+ 
+-	r = dsi_vc_send_bta(channel);
+-	if (r) {
+-		DSSERR("BTA after framedone failed\n");
+-		dsi_unregister_isr_vc(channel, dsi_framedone_bta_callback,
+-				NULL, DSI_VC_IRQ_BTA);
+-		dsi_handle_framedone(-EIO);
+-	}
++#ifdef CONFIG_OMAP2_DSS_FAKE_VSYNC
++	dispc_fake_vsync_irq();
++#endif
+ }
+ 
+ int omap_dsi_prepare_update(struct omap_dss_device *dssdev,
+-- 
+1.7.1
 
-------=_NextPart_000_0112_01C2A9A6.0FF9E1B0
-Content-Type: application/octet-stream;
-	name="Interesting deal.pdf"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
-	filename="Interesting deal.pdf"
-
-JVBERi0xLjUNCiW1tbW1DQoxIDAgb2JqDQo8PC9UeXBlL0NhdGFsb2cvUGFn
-ZXMgMiAwIFIvTGFuZyhlbi1VUykgPj4NCmVuZG9iag0KMiAwIG9iag0KPDwv
-VHlwZS9QYWdlcy9Db3VudCAxL0tpZHNbIDMgMCBSXSA+Pg0KZW5kb2JqDQoz
-IDAgb2JqDQo8PC9UeXBlL1BhZ2UvUGFyZW50IDIgMCBSL1Jlc291cmNlczw8
-L0ZvbnQ8PC9GMSA1IDAgUi9GMiA3IDAgUj4+L1Byb2NTZXRbL1BERi9UZXh0
-L0ltYWdlQi9JbWFnZUMvSW1hZ2VJXSA+Pi9NZWRpYUJveFsgMCAwIDYxMiA3
-OTJdIC9Db250ZW50cyA0IDAgUi9Hcm91cDw8L1R5cGUvR3JvdXAvUy9UcmFu
-c3BhcmVuY3kvQ1MvRGV2aWNlUkdCPj4vVGFicy9TPj4NCmVuZG9iag0KNCAw
-IG9iag0KPDwvRmlsdGVyL0ZsYXRlRGVjb2RlL0xlbmd0aCAzNzM5Pj4NCnN0
-cmVhbQ0KeJytW1uP28YVfjfg/zAPLSoB2jHvFNEnu3HcJHYSxFsUQdIHSuQu
-hV2T9HLpdf59z2WulGaloEVgrUTO9Vy+850zkzfXL1+8+jYWcSyjTFzfvHwR
-iwj+i0WZyCjJRJkmMtuK608vX0TiFj/evXzx2+rdOl89rK/SVduur5LV47pY
-HdZX2aq/Xcfxatqs/yOuv3/54i0M/+baDhrHpczdMX9biUBTPX9cyW1xYduo
-lIlu+9063q5Evb6Kk9WndVwGO1eZzIpF51q8qfu7NXQVMEC0+gm2e4PbpQ/a
-6b5db1kEosM9t/A9X7ViXSlJ4EPxGjruZvEN/Onq3QGbbEILSTLYauUvpINh
-adRAlzKWRex3cWb/F/TtD6CbR3zWNri411pz9U68/YRCog786BEnm/CrFEqA
-0CRfiSfdixrTcHYe0rng34Kt4hZmqkkizYSzUo8B1FFBk+e1WIBC8kxtZhjH
-4WFdcv+ZZrMr+MOdl3TMT4ZjVV2hJuEd9SN9wV6v1MZQQvf4gj6o3a5F00mU
-HGmUT9CKJml7klArdq1p0sLG1IRK2kJtmUYbeF76wasTMzkKiRmW0dVfYAQ9
-ZNsLMpVeTPiUVoJS2Hdi0BOJaSDVtEOvtve8VLexrDLPREI9tqnMlj1IsMPM
-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
-QQ8GrrxttNn0zIzutcEMxnwW9T7o9OcYpAONLnEy11027JbkVByv1X3GBz32
-vhP6uIqnYQgkY9SJxBkhJ6UsdPKg7kVpdliLW1Mob+3AQsXkiaIMXYGCb8d3
-O6eZftxyvcum0a7sWDX0rlOorW9sunXRG3wKxJDzN1K8QnnSKLMAi/jTRuQw
-QkTxOY/w5V8NjxzEzrmAJEZTETcoRExi40a4MzKMcxlpGU5dzb6GZwpPBx0U
-GGaotm+u3U1UJfBvGdEzuxNVQ9DZvuK8+8GKeVSeTKxTG0WHQUS7SNu7W2kc
-Q6EBpHiPZNLed7oDAoh4lhmGZxMOQLehd/j48ydPWj5RIjNjYzDESPBPS2Ay
-0QzOCa8GpMeFQ7vzVYZMnDnVU8cpa3WvB2+N/Cw+rtPV23/QzYZs9faar8Hg
-IP9mMkK1BnsIzJWGQbhnda7XIxmnYrlqT8496Jo9O4ZGAcyW9epVDv0HFTYu
-uXeTbCtzcYk7sG+pOEc2R740qlIH6T9YDcwyvHnhDnpu/rKUFxbPE4wN+n4A
-ppNulin65R3gpjYJybuhQVLBYKvO/6V43eOBhV8RPjwTaMvSX8LI4cA/l/DS
-mP9doBgIq9yf95yY8theozjXNq3wLN7WKtxrmDYNcq95B+/8JxWQXm/Ac5Mn
-Bd7OuqxtnNr/PwATEvlB/hq8+pDiJVevC5PnyTh5cBOQvPk9g6bOmZLXNnxc
-DtYTbvpfWOkCRQ0KZW5kc3RyZWFtDQplbmRvYmoNCjUgMCBvYmoNCjw8L1R5
-cGUvRm9udC9TdWJ0eXBlL1RydWVUeXBlL05hbWUvRjEvQmFzZUZvbnQvVGlt
-ZXMjMjBOZXcjMjBSb21hbi9FbmNvZGluZy9XaW5BbnNpRW5jb2RpbmcvRm9u
-dERlc2NyaXB0b3IgNiAwIFIvRmlyc3RDaGFyIDMyL0xhc3RDaGFyIDEyMS9X
-aWR0aHMgMTAgMCBSPj4NCmVuZG9iag0KNiAwIG9iag0KPDwvVHlwZS9Gb250
-RGVzY3JpcHRvci9Gb250TmFtZS9UaW1lcyMyME5ldyMyMFJvbWFuL0ZsYWdz
-IDMyL0l0YWxpY0FuZ2xlIDAvQXNjZW50IDg5MS9EZXNjZW50IC0yMTYvQ2Fw
-SGVpZ2h0IDY5My9BdmdXaWR0aCA0MDEvTWF4V2lkdGggMjU2OC9Gb250V2Vp
-Z2h0IDQwMC9YSGVpZ2h0IDI1MC9MZWFkaW5nIDQyL1N0ZW1WIDQwL0ZvbnRC
-Qm94WyAtNTY4IC0yMTYgMjAwMCA2OTNdID4+DQplbmRvYmoNCjcgMCBvYmoN
-Cjw8L1R5cGUvRm9udC9TdWJ0eXBlL1RydWVUeXBlL05hbWUvRjIvQmFzZUZv
-bnQvVGltZXMjMjBOZXcjMjBSb21hbixCb2xkL0VuY29kaW5nL1dpbkFuc2lF
-bmNvZGluZy9Gb250RGVzY3JpcHRvciA4IDAgUi9GaXJzdENoYXIgMzIvTGFz
-dENoYXIgODkvV2lkdGhzIDExIDAgUj4+DQplbmRvYmoNCjggMCBvYmoNCjw8
-L1R5cGUvRm9udERlc2NyaXB0b3IvRm9udE5hbWUvVGltZXMjMjBOZXcjMjBS
-b21hbixCb2xkL0ZsYWdzIDMyL0l0YWxpY0FuZ2xlIDAvQXNjZW50IDg5MS9E
-ZXNjZW50IC0yMTYvQ2FwSGVpZ2h0IDY3Ny9BdmdXaWR0aCA0MjcvTWF4V2lk
-dGggMjU1OC9Gb250V2VpZ2h0IDcwMC9YSGVpZ2h0IDI1MC9MZWFkaW5nIDQy
-L1N0ZW1WIDQyL0ZvbnRCQm94WyAtNTU4IC0yMTYgMjAwMCA2NzddID4+DQpl
-bmRvYmoNCjkgMCBvYmoNCjw8L0F1dGhvcihQZXRlcikvQ3JlYXRvcij+/wBN
-AGkAYwByAG8AcwBvAGYAdACuACAATwBmAGYAaQBjAGUAIABXAG8AcgBkACAA
-MgAwADAANykvQ3JlYXRpb25EYXRlKEQ6MjAxMDExMjcxMzMxNDMpIC9Nb2RE
-YXRlKEQ6MjAxMDExMjcxMzMxNDMpIC9Qcm9kdWNlcij+/wBNAGkAYwByAG8A
-cwBvAGYAdACuACAATwBmAGYAaQBjAGUAIABXAG8AcgBkACAAMgAwADAANyk+
-Pg0KZW5kb2JqDQoxMCAwIG9iag0KWyAyNTAgMCAwIDAgNTAwIDgzMyAwIDE4
-MCAzMzMgMzMzIDAgMCAyNTAgMzMzIDI1MCAyNzggNTAwIDAgNTAwIDAgNTAw
-IDUwMCA1MDAgNTAwIDAgMCAwIDI3OCAwIDAgMCAwIDAgNzIyIDY2NyA2Njcg
-NzIyIDYxMSA1NTYgNzIyIDcyMiAzMzMgMzg5IDcyMiA2MTEgODg5IDcyMiA3
-MjIgNTU2IDAgNjY3IDU1NiA2MTEgNzIyIDAgOTQ0IDAgNzIyIDAgMCAwIDAg
-MCAwIDAgNDQ0IDUwMCA0NDQgNTAwIDQ0NCAzMzMgNTAwIDUwMCAyNzggMCA1
-MDAgMjc4IDc3OCA1MDAgNTAwIDUwMCA1MDAgMzMzIDM4OSAyNzggNTAwIDUw
-MCA3MjIgNTAwIDUwMF0gDQplbmRvYmoNCjExIDAgb2JqDQpbIDI1MCAwIDAg
-MCAwIDAgMCAwIDAgMCAwIDAgMjUwIDAgMCAwIDAgMCAwIDAgMCAwIDAgMCAw
-IDAgMCAwIDAgMCAwIDAgMCA3MjIgMCAwIDcyMiAwIDAgNzc4IDAgMzg5IDAg
-MCA2NjcgMCA3MjIgNzc4IDAgMCA3MjIgNTU2IDY2NyA3MjIgMCAwIDAgNzIy
-XSANCmVuZG9iag0KMTIgMCBvYmoNCjw8L1R5cGUvWFJlZi9TaXplIDEyL1db
-IDEgNCAyXSAvUm9vdCAxIDAgUi9JbmZvIDkgMCBSL0lEWzwxQTkyQTNFMjlC
-Q0RFRDRCOERDMzhDMDQ1OUY4MzU4MT48MUE5MkEzRTI5QkNERUQ0QjhEQzM4
-QzA0NTlGODM1ODE+XSAvRmlsdGVyL0ZsYXRlRGVjb2RlL0xlbmd0aCA1NT4+
-DQpzdHJlYW0NCnicY2AAgv//GYGkIAMDiPKDUG1gijEVTAl4Q6gfYErwGZgS
-mg6mhLvAlEg+mBLdwcAAAGKFCEUNCmVuZHN0cmVhbQ0KZW5kb2JqDQp4cmVm
-DQowIDEzDQowMDAwMDAwMDAwIDY1NTM1IGYNCjAwMDAwMDAwMTcgMDAwMDAg
-bg0KMDAwMDAwMDA3OCAwMDAwMCBuDQowMDAwMDAwMTM0IDAwMDAwIG4NCjAw
-MDAwMDAzNTcgMDAwMDAgbg0KMDAwMDAwNDE3MSAwMDAwMCBuDQowMDAwMDA0
-MzQ0IDAwMDAwIG4NCjAwMDAwMDQ1ODIgMDAwMDAgbg0KMDAwMDAwNDc1OSAw
-MDAwMCBuDQowMDAwMDA1MDAyIDAwMDAwIG4NCjAwMDAwMDUyMzEgMDAwMDAg
-bg0KMDAwMDAwNTU2MCAwMDAwMCBuDQowMDAwMDA1NzI3IDAwMDAwIG4NCnRy
-YWlsZXINCjw8L1NpemUgMTMvUm9vdCAxIDAgUi9JbmZvIDkgMCBSL0lEWzwx
-QTkyQTNFMjlCQ0RFRDRCOERDMzhDMDQ1OUY4MzU4MT48MUE5MkEzRTI5QkNE
-RUQ0QjhEQzM4QzA0NTlGODM1ODE+XSA+Pg0Kc3RhcnR4cmVmDQo1OTgxDQol
-JUVPRg0KeHJlZg0KMCAwDQp0cmFpbGVyDQo8PC9TaXplIDEzL1Jvb3QgMSAw
-IFIvSW5mbyA5IDAgUi9JRFs8MUE5MkEzRTI5QkNERUQ0QjhEQzM4QzA0NTlG
-ODM1ODE+PDFBOTJBM0UyOUJDREVENEI4REMzOEMwNDU5RjgzNTgxPl0gL1By
-ZXYgNTk4MS9YUmVmU3RtIDU3Mjc+Pg0Kc3RhcnR4cmVmDQo2Mzk2DQolJUVP
-Rg==
-
-------=_NextPart_000_0112_01C2A9A6.0FF9E1B0--
