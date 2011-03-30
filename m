@@ -1,52 +1,55 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: OMAP4 DSS clock setup
-Date: Wed, 30 Mar 2011 09:48:53 +0300
-Message-ID: <1301467733.2333.83.camel@deskari>
+From: <kalle.jokiniemi@nokia.com>
+Subject: RE: [PATCH v3 2/2] RX-51: Enable isp1704 power on/off
+Date: Wed, 30 Mar 2011 07:00:29 +0000
+Message-ID: <9D0D31AA57AAF5499AFDC63D6472631B06F20F@008-AM1MPN1-036.mgdnok.nokia.com>
+References: <1301405280-16899-1-git-send-email-kalle.jokiniemi@nokia.com>
+ <1301405280-16899-3-git-send-email-kalle.jokiniemi@nokia.com>
+ <a5285450b1fc92da8a42cc0733360a30@mail.gmail.com>
+ <9D0D31AA57AAF5499AFDC63D6472631B06F1AE@008-AM1MPN1-036.mgdnok.nokia.com>
+ <13db9138ec7598cfe100deae367f0b6a@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:59490 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751638Ab1C3Gs7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 30 Mar 2011 02:48:59 -0400
-Received: by ewy19 with SMTP id 19so299642ewy.3
-        for <linux-omap@vger.kernel.org>; Tue, 29 Mar 2011 23:48:56 -0700 (PDT)
+Received: from smtp.nokia.com ([147.243.128.26]:17515 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751638Ab1C3HAi convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Mar 2011 03:00:38 -0400
+In-Reply-To: <13db9138ec7598cfe100deae367f0b6a@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
-Cc: "Semwal, Sumit" <sumit.semwal@ti.com>, "Taneja, Archit" <archit@ti.com>, linux-omap <linux-omap@vger.kernel.org>
+To: keshava_mgowda@ti.com, linux-usb@vger.kernel.org, cbouatmailru@gmail.com
+Cc: balbi@ti.com, Heikki.Krogerus@nokia.com, sshtylyov@mvista.com, tony@atomide.com, khilman@ti.com, linux-omap@vger.kernel.org, jhnikula@gmail.com
 
-Hi Benoit, Paul,
+Hi,
 
-I've been discussing with Sumit and Archit to understand how the DSS
-clocks are set up on OMAP4. I think I now have some idea how things
-work, but I'm still at loss why things are the way they are.
+ > -----Original Message-----
+ > From: ext Keshava Munegowda [mailto:keshava_mgowda@ti.com]
 
-So, if I look at OMAP4 TRM, Figure 10-4 DSS Clock Tree, there are two
-clocks in PRCM block that are relevant to this discussion: DSS_L3_ICLK
-and DSS_FCLK. To my understanding DSS_L3_ICLK is not really
-controllable, but it is affected by MODULEMODE bit.
+<snip>
 
-Then we have two relevant clocks defined in clock44xx_data.c: dss_fck
-and dss_dss_clk. dss_fck controls the MODULEMODE bit, and dss_dss_clk is
-the TRM's DSS_FCLK.
+> >  > > +
+ > >  > >  static struct platform_device rx51_charger_device = {
+ > >  > > -	.name = "isp1704_charger",
+ > >                             ^space here
+ > >
+ > >
+ > >
+ > >  > > +	.name	= "isp1704_charger",
+ > >                               ^tab here
+ > >  >
+ > >  > I don't understand what difference between above two lines?
+ > >  > Is your mail client causing this? Or get send-mail doing this?
+ > >
+ > > No, changed space for tab so that all the members are indented same way.
+ > > I had that (apparently obscure) explanation about this in the commit log
+ > ;)
+ > 
+ > Then, I am sorry; I couldn't able to notice this!
 
-Was that correct?
+No problem, you're not the first one to point that out :)
 
-If so, from DSS driver's perspective, the dss_fck sounds very much like
-an interface clock (it's always needed when DSS is used) and dss_dss_clk
-sounds very much like functional clock (it's always needed, except if
-DSI PLL is used for DSS functional clock).
-
-If "dss_fck" would control DSS_FCLK and "dss_ick" would control
-MODULEMODE, they would be about the same as the clocks in OMAP2 and 3,
-and we wouldn't need any omap4 spesific trickery in the DSS driver.
-("dss_dss_clk" wouldn't be needed).
-
-Why are the clocks set up in this strange fashion?
-
- Tomi
+- Kalle
 
 
