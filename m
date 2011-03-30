@@ -1,103 +1,62 @@
-From: Keshava Munegowda <keshava_mgowda@ti.com>
-Subject: RE: [PATCH v3 2/2] RX-51: Enable isp1704 power on/off
-Date: Wed, 30 Mar 2011 12:14:55 +0530
-Message-ID: <13db9138ec7598cfe100deae367f0b6a@mail.gmail.com>
-References: <1301405280-16899-1-git-send-email-kalle.jokiniemi@nokia.com>
- <1301405280-16899-3-git-send-email-kalle.jokiniemi@nokia.com>
- <a5285450b1fc92da8a42cc0733360a30@mail.gmail.com> <9D0D31AA57AAF5499AFDC63D6472631B06F1AE@008-AM1MPN1-036.mgdnok.nokia.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 0/5] OMAP: l3: fixes and cleanup
+Date: Wed, 30 Mar 2011 12:15:26 +0530
+Message-ID: <4D92D186.1070302@ti.com>
+References: <1301419219-30547-1-git-send-email-omar.ramirez@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:46086 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751533Ab1C3GpH (ORCPT
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:45626 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751868Ab1C3Gpr (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 30 Mar 2011 02:45:07 -0400
-In-Reply-To: <9D0D31AA57AAF5499AFDC63D6472631B06F1AE@008-AM1MPN1-036.mgdnok.nokia.com>
+	Wed, 30 Mar 2011 02:45:47 -0400
+Received: by gwb20 with SMTP id 20so400005gwb.3
+        for <linux-omap@vger.kernel.org>; Tue, 29 Mar 2011 23:45:46 -0700 (PDT)
+In-Reply-To: <1301419219-30547-1-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: kalle.jokiniemi@nokia.com, linux-usb@vger.kernel.org, cbouatmailru@gmail.com
-Cc: Felipe Balbi <balbi@ti.com>, Heikki.Krogerus@nokia.com, sshtylyov@mvista.com, tony@atomide.com, Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, jhnikula@gmail.com
+To: Omar Ramirez Luna <omar.ramirez@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, l-o <linux-omap@vger.kernel.org>, lak <linux-arm-kernel@lists.infradead.org>, sricharan <r.sricharan@ti.com>, Felipe Balbi <balbi@ti.com>, Benoit Cousson <b-cousson@ti.com>, Sergei Shtylyov <sshtylyov@mvista.com>
 
-> -----Original Message-----
-> From: kalle.jokiniemi@nokia.com [mailto:kalle.jokiniemi@nokia.com]
-> Sent: Wednesday, March 30, 2011 12:12 PM
-> To: keshava_mgowda@ti.com; linux-usb@vger.kernel.org;
-cbouatmailru@gmail.com
-> Cc: balbi@ti.com; Heikki.Krogerus@nokia.com; sshtylyov@mvista.com;
-tony@atomide.com; khilman@ti.com;
-> linux-omap@vger.kernel.org; jhnikula@gmail.com
-> Subject: RE: [PATCH v3 2/2] RX-51: Enable isp1704 power on/off
->
-> Hi,
->
->  > -----Original Message-----
->  > From: ext Keshava Munegowda [mailto:keshava_mgowda@ti.com]
->  > Sent: 30. maaliskuuta 2011 9:39
->  > To: Jokiniemi Kalle (Nokia-MS/Tampere); linux-usb@vger.kernel.org;
->  > cbouatmailru@gmail.com
->  > Cc: Felipe Balbi; Krogerus Heikki (Nokia-MS/Helsinki);
-sshtylyov@mvista.com;
->  > tony@atomide.com; Kevin Hilman; linux-omap@vger.kernel.org;
->  > jhnikula@gmail.com
->  > Subject: RE: [PATCH v3 2/2] RX-51: Enable isp1704 power on/off
->  >
->  > > +
->  > >  static struct platform_device rx51_charger_device = {
->  > > -	.name = "isp1704_charger",
->                             ^space here
->
->
->
->  > > +	.name	= "isp1704_charger",
->                               ^tab here
->  >
->  > I don't understand what difference between above two lines?
->  > Is your mail client causing this? Or get send-mail doing this?
->
-> No, changed space for tab so that all the members are indented same way.
-> I had that (apparently obscure) explanation about this in the commit log
-;)
+Omar,
 
-Then, I am sorry; I couldn't able to notice this!
-
-
-
+On 3/29/2011 10:50 PM, Omar Ramirez Luna wrote:
+> Based on the comments received for the first patch:
+> OMAP3: l3: fix for "irq 10: nobody cared" message[1],
+> and quick skimming through the code.
 >
->  >
->  >
->  > > +	.dev	= {
->                           ^tab here also
+> Although there are still parenthesis that are not needed
+> because of operator precedence, they were left for clarity.
 >
->  > > +		.platform_data = &rx51_charger_data,
->  > > +	},
->  > >  };
->  > >
->  > > +static void __init rx51_charger_init(void)
->  > > +{
->  > > +	WARN_ON(gpio_request_one(RX51_USB_TRANSCEIVER_RST_GPIO,
->  > > +		GPIOF_OUT_INIT_LOW, "isp1704_reset"));
->  > > +
->  > > +	platform_device_register(&rx51_charger_device);
->  > > +}
->  > > +
->  > >  #if defined(CONFIG_KEYBOARD_GPIO) ||
->  > defined(CONFIG_KEYBOARD_GPIO_MODULE)
->  > >
->  > >  #define RX51_GPIO_CAMERA_LENS_COVER	110
->  > > @@ -981,6 +1004,6 @@ void __init rx51_peripherals_init(void)
->  > >  	if (partition)
->  > >  		omap2_hsmmc_init(mmc);
->  > >
->  > > -	platform_device_register(&rx51_charger_device);
->  > > +	rx51_charger_init();
->  > >  }
->  > >
->  > > --
->  > > 1.7.1
->  > >
->  > > --
->  > > To unsubscribe from this list: send the line "unsubscribe
-linux-usb" in
->  > > the body of a message to majordomo@vger.kernel.org
->  > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> E.g.:
+> (error>>  32)&  0xffff;
+>
+> clear = (L3_AGENT_STATUS_CLEAR_IA<<  int_type) |
+>          L3_AGENT_STATUS_CLEAR_TA;
+>
+> ---
+> [1] https://patchwork.kernel.org/patch/665141/
+>
+> Omar Ramirez Luna (5):
+>    OMAP3: l3: fix for "irq 10: nobody cared" message
+>    OMAP3: l3: fix omap3_l3_probe error path
+>    OMAP3: l3: minor cleanup for error message, parenthesis and extra
+>      lines
+>    OMAP4: l3: fix omap4_l3_probe error path
+>    OMAP4: l3: minor cleanup for parenthesis and extra spaces
+>
+Thanks for the cleanup. I have reviewed the series and it looks
+good to me.
+I would suggest to fold similar changes like,
+- PATCH 2/5 and PATCH 4/5 into one patch
+- PATCH 3/5 and PATCH 5/5 into one patch
+
+With this update you can add my ack for this series
+
+>   arch/arm/mach-omap2/omap_l3_noc.c |   51 ++++++++++++++++--------------------
+>   arch/arm/mach-omap2/omap_l3_smx.c |   46 ++++++++++++---------------------
+>   2 files changed, 40 insertions(+), 57 deletions(-)
+>
+
