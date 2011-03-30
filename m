@@ -1,154 +1,67 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 00/10] omap init_early changes for irq and timer init
-Date: Wed, 30 Mar 2011 13:26:15 +0530
-Message-ID: <4D92E21F.6030608@ti.com>
-References: <20110328221501.4046.41079.stgit@baageli.muru.com>
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: Re: [PATCH 0/4] iommu: Prevent oops in iommu_get() and while arch_iommu
+ is in use
+Date: Wed, 30 Mar 2011 11:16:56 +0300
+Message-ID: <4D92E6F8.5070100@maxwell.research.nokia.com>
+References: <4D8CB106.7030608@maxwell.research.nokia.com> <AANLkTikxd4kRu1+XskohhQzpqHaZTvK+afbgE-qRSOqN@mail.gmail.com> <201103291732.52620.laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:42808 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752641Ab1C3H43 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 30 Mar 2011 03:56:29 -0400
-Received: by mail-yi0-f48.google.com with SMTP id 28so523181yia.21
-        for <linux-omap@vger.kernel.org>; Wed, 30 Mar 2011 00:56:28 -0700 (PDT)
-In-Reply-To: <20110328221501.4046.41079.stgit@baageli.muru.com>
+Received: from smtp.nokia.com ([147.243.1.47]:19870 "EHLO mgw-sa01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752925Ab1C3IRZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 30 Mar 2011 04:17:25 -0400
+In-Reply-To: <201103291732.52620.laurent.pinchart@ideasonboard.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: "Ramirez Luna, Omar" <omar.ramirez@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Doyu Hiroshi (Nokia-D/Helsinki)" <hiroshi.doyu@nokia.com>, Cohen David Abraham <david.cohen@nokia.com>
 
-Tony,
+Hi Laurent and Omar,
 
-On 3/29/2011 3:51 AM, Tony Lindgren wrote:
-> Hi all,
->
-> This series continues the work to only initialize minimal omap code
-> in init_early and to cut down dependencies to code that should be
-> initialized later. It also cleans up the omap2+ timer init code to prepare
-> things for the later patches.
->
-> After this series further patches can make the dmtimer code a regular
-> device driver. Later on we can also move the clockource init happen
-> earlier to make sched_clock work properly with CONFIG_PRINTK_TIME.
->
+Laurent Pinchart wrote:
+> On Friday 25 March 2011 20:37:55 Ramirez Luna, Omar wrote:
+>> On Fri, Mar 25, 2011 at 10:13 AM, Sakari Ailus
+>>
+>> <sakari.ailus@maxwell.research.nokia.com> wrote:
+>>> Hi,
+>>>
+>>> This patchset is aimed to fix a problem in arch_iommu implementation
+>>> references. When an actual arch_iommu implementation is not loaded while
+>>> iommu_get() is being called results to a kernel oops, as well as
+>>> removing an arch_iommu implementation which is in use.
+>>
+>> How about fixing the dependency instead? Right now iommu2 depends on
+>> iommu because of the calls to
+>> install_iommu_arch/uninstall_iommu_arch... we should change that
+>> dependency to iommu depend on iommu2. Something like iommu (plat)
+>> querying iommu2 (mach) for devices to install.
+> 
+> The reason why iommu depends on iommu2 and not the other way around is because 
+> several mach-specific iommu implementations should be able to coexist in the 
+> same kernel. The right one should be loaded at runtime.
+> 
+> I think that Sakari's patches correcty fix the problems he noticed. However, 
+> they won't fix one basic issue, which is that the iommu2 module won't be 
+> automatically pulled in when the omap3isp module is loaded. The omap3isp 
+> driver will then fail to probe the device. That's better than crashing though.
 
-Yesterday I started looking at this series but later because of my
-mailer horror show, I gave up.
+One option would be to specify the name of the module in the platform
+data and request_module() that in omap_iommu_probe(). This would solve
+the issue, not sure how pretty is this though.
 
-After going through entire series again, it looks very
-good clean-up and right step towards moving rest of
-the timer to drivers/ directory.
+In a generic case there would have to be a list of modules implementing
+iommu in the platform data.
 
-I also realized that the discussion we had before this series was
-because of miss-understating about the 'wakeu_up' timer
-terminology. After this series I see that you were mentioning
-about the pm debug timer where as I was taling about
-clock-event wakeups from CPUidle point of view.
+> One possible solution for that is to turn the tristate option for iommu2 into 
+> a bool option. I've also read a couple of times that the kernel provides a 
+> standard iommu API. Maybe switching to it would help.
 
-I still have few concerns about this series.
+That would solve it as well, but having it as a module would be nice, too.
 
-1)We have removed the flexibility if choosing the timer from
-   from board files and hard-coded them in platform timer
-   header.
+Regards,
 
-  Below board related hard-coding in platform files looks more
-  hacky and the interface done  by Pual still has a merits of
-  its own.
-
---- a/arch/arm/plat-omap/include/plat/common.h
-+++ b/arch/arm/plat-omap/include/plat/common.h
-@@ -34,7 +34,12 @@
-  struct sys_timer;
-
-  extern void omap_map_common_io(void);
--extern struct sys_timer omap_timer;
-+extern struct sys_timer omap1_timer;
-+extern struct sys_timer omap242x_timer;
-+extern struct sys_timer omap243x_timer;
-+extern struct sys_timer omap3_timer;
-+extern struct sys_timer omap3_beagle_timer;
-+extern struct sys_timer omap4_timer;
-  extern bool omap_32k_timer_init(void);
-  extern int __init omap_init_clocksource_32k(void);
-  extern unsigned long long notrace omap_32k_sched_clock(void);
-
---- a/arch/arm/mach-omap2/timer-gp.c
-+++ b/arch/arm/mach-omap2/timer-gp.c
-@@ -45,10 +45,33 @@
-
-  #include "timer-gp.h"
-
-+/* Parent clocks, eventually these will come from the clock framework */
-+
-+#define OMAP2_MPU_SOURCE	"sys_ck"
-+#define OMAP3_MPU_SOURCE	OMAP2_MPU_SOURCE
-+#define OMAP4_MPU_SOURCE	"sys_clkin_ck"
-+#define OMAP2_32K_SOURCE	"func_32k_ck"
-+#define OMAP3_32K_SOURCE	"omap_32k_fck"
-+#define OMAP4_32K_SOURCE	"sys_32k_ck"
-+
-+#ifdef CONFIG_OMAP_32K_TIMER
-+#define OMAP2_CLKEV_SOURCE	OMAP2_32K_SOURCE
-+#define OMAP3_CLKEV_SOURCE	OMAP3_32K_SOURCE
-+#define OMAP4_CLKEV_SOURCE	OMAP4_32K_SOURCE
-+#define OMAP3_BEAGLE_TIMER	12
-+#else
-+#define OMAP2_CLKEV_SOURCE	OMAP2_MPU_SOURCE
-+#define OMAP3_CLKEV_SOURCE	OMAP3_MPU_SOURCE
-+#define OMAP4_CLKEV_SOURCE	OMAP4_MPU_SOURCE
-+#define OMAP3_BEAGLE_TIMER	1
-+#endif
-
-[.....]
-
-+/*
-+ * Beagle based designs typically have an issue with gptimer1. Also note
-+ * that GPTIMER12 can only use the secure 32KiHz clock source.
-+ */
-  static void __init omap3_beagle_timer_init(void)
-  {
-  	omap_dm_timer_init();
--	omap2_gp_clockevent_init();
-+	omap2_gp_clockevent_init(OMAP3_BEAGLE_TIMER, OMAP3_CLKEV_SOURCE);
-  	omap2_gp_clocksource_init();
-  }
-
-
-2) In patch [6/10], you have removed wakeup timer debug
-capability with comment "Later on we can reserve gptimer1
-for PM code only and have similar functionality".
-
-I don't know how this will work on OMAP. GPTIMER1 is the
-only timer which is in always on power domain and wakeup
-OMAP from deeper power states like CORE OSWR, CORE OFF,
-DEVICE OFF.
-
-We do implement these C-state in CPUidle as well and hence
-the clock-event is expected to be of wakeup-capable.
-Hence GPTIMER1 is already reserved for clock-event.
-
-The wakeup timer used was only in suspend scenario's
-and that point of time the timer system is already
-suspended. So during that even if TIMER1 is re-used
-for wakeup (which is the case), I don't see any issue.
-
-At least I don't see other solution than using GPT1
-for wakeup.
-
-3) You have created few functions so that they can
-be used between system timer and dmtimer driver code.
-When we move the dmtimer driver to say some drivers/
-directory. Is it allowed to share such functions from
-device drivers
-
-Apart from above comments, I really liked this series.
-If you like you can add my,
-Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-
-Regards
-Santosh
-
-
+-- 
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
