@@ -1,39 +1,47 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Code for v2.6.39 merge window frozen, patches archived
-Date: Tue, 29 Mar 2011 16:32:43 -0700
-Message-ID: <20110329233243.GR4016@atomide.com>
-References: <20110314192538.GH7258@atomide.com>
- <alpine.DEB.1.10.1103151856180.880@esdhcp041196.research.nokia.com>
- <4D7FC70D.7050508@ti.com>
- <alpine.DEB.1.10.1103161533470.2634@esdhcp041196.research.nokia.com>
- <4D80CA2F.8060300@ti.com>
- <alpine.DEB.1.10.1103161903250.2634@esdhcp041196.research.nokia.com>
+From: Heikki Krogerus <heikki.krogerus@nokia.com>
+Subject: Re: [PATCH v3 1/2] isp1704_charger: allow board specific powering
+ routine
+Date: Wed, 30 Mar 2011 08:08:15 +0300
+Message-ID: <20110330050815.GA32672@esdhcp034230>
+References: <1301405280-16899-1-git-send-email-kalle.jokiniemi@nokia.com>
+ <1301405280-16899-2-git-send-email-kalle.jokiniemi@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:20917 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750952Ab1C2Xcr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Mar 2011 19:32:47 -0400
+Received: from smtp.nokia.com ([147.243.1.48]:19497 "EHLO mgw-sa02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750912Ab1C3FIe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 30 Mar 2011 01:08:34 -0400
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.1.10.1103161903250.2634@esdhcp041196.research.nokia.com>
+In-Reply-To: <1301405280-16899-2-git-send-email-kalle.jokiniemi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@nokia.com>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+To: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
+Cc: linux-usb@vger.kernel.org, cbouatmailru@gmail.com, balbi@ti.com, sshtylyov@mvista.com, tony@atomide.com, khilman@ti.com, linux-omap@vger.kernel.org, jhnikula@gmail.com
 
-* Aaro Koskinen <aaro.koskinen@nokia.com> [110316 10:10]:
+Hi,
+
+On Tue, Mar 29, 2011 at 04:27:59PM +0300, Kalle Jokiniemi wrote:
+> The ISP1704/1707 chip can be put to full power down
+> state by asserting the CHIP_SEL line. This patch enables
+> platform or board specific hooks to put the device into
+> power down mode in case not needed.
 > 
-> Somehow I figured this out, the patch "arm: mach-omap2: omap_l3_smx:
-> fix irq handler setup" fixes the hang for me (and of course I still need
-> to comment out timer 12).
+> This patch is a preparation for enabling this powering
+> routine in n900 (rx-51) devices.
+> 
+> Thanks to Heikki Krogerus for helping out with the patch.
+> 
+> Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
+> Cc: Heikki Krogerus <heikki.krogerus@nokia.com>
 
-FYI, looks like we've started hitting some booter -l kernel size limit
-in addition to booter -f size limit.. Now kernels built with
-omap2plus_defconfig won't boot on n900 any longer.
+Acked-By: Heikki Krogerus <heikki.krogerus@nokia.com>
 
-I guess the way around that is to install the u-boot loader package.
+> ---
+>  drivers/power/isp1704_charger.c       |   22 ++++++++++++++++++++++
+>  include/linux/power/isp1704_charger.h |   29 +++++++++++++++++++++++++++++
+>  2 files changed, 51 insertions(+), 0 deletions(-)
+>  create mode 100644 include/linux/power/isp1704_charger.h
 
-Regards,
-
-Tony
+-- 
+heikki
