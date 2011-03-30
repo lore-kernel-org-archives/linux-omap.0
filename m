@@ -1,75 +1,52 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [pm-core][PATCH v3 01/21] OMAP4: PM: Add omap WakeupGen module
- support
-Date: Wed, 30 Mar 2011 11:40:58 -0700
-Message-ID: <20110330184058.GF18334@atomide.com>
-References: <1301304157-2466-1-git-send-email-santosh.shilimkar@ti.com>
- <1301304157-2466-2-git-send-email-santosh.shilimkar@ti.com>
- <20110328205027.GC30616@atomide.com>
- <5cbdd88c3ca3fe5c5a0f119be446ce99@mail.gmail.com>
- <20110329170113.GG4016@atomide.com>
- <4D92CA92.50805@ti.com>
+Subject: Re: [PATCH 1/2 v2] usb: otg: OMAP4430: Fixing the
+ omap4430_phy_init function
+Date: Wed, 30 Mar 2011 11:46:38 -0700
+Message-ID: <20110330184637.GG18334@atomide.com>
+References: <1300966722-10955-1-git-send-email-hemahk@ti.com>
+ <20110328212015.GH30616@atomide.com>
+ <4369479157892165533add3d883a79a7@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:54734 "EHLO
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:58770 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751755Ab1C3SlB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Mar 2011 14:41:01 -0400
+	with ESMTP id S1754711Ab1C3Sqm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Mar 2011 14:46:42 -0400
 Content-Disposition: inline
-In-Reply-To: <4D92CA92.50805@ti.com>
+In-Reply-To: <4369479157892165533add3d883a79a7@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh <santosh.shilimkar@ti.com>
-Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Rajendra Nayak <rnayak@ti.com>, linux-arm-kernel@lists.infradead.org
+To: Hema Kalliguddi <hemahk@ti.com>
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>
 
-* Santosh <santosh.shilimkar@ti.com> [110329 23:13]:
-> On 3/29/2011 10:31 PM, Tony Lindgren wrote:
-> >* Santosh Shilimkar<santosh.shilimkar@ti.com>  [110328 22:47]:
-> >>>From: Tony Lindgren [mailto:tony@atomide.com]
-> >>>
-> >>>Do you really need to initialize all of this that early?
-> >>>
-> >>Yes. It's a interrupt controller extension and needs to work
-> >>together with GIC.
+* Hema Kalliguddi <hemahk@ti.com> [110328 23:11]:
+> Hi,
+> 
+> >-----Original Message-----
+> >From: Tony Lindgren [mailto:tony@atomide.com]
+> >Sent: Tuesday, March 29, 2011 2:50 AM
+> >To: Hema HK
+> >Cc: linux-usb@vger.kernel.org; linux-omap@vger.kernel.org
+> >Subject: Re: [PATCH 1/2 v2] usb: otg: OMAP4430: Fixing the
+> >omap4430_phy_init function
 > >
-> >Hmm to me it seems that the gic_arch_extn functions should be
-> >all NULL during runtime operation, and the wake-up generator
-> >should be programmed only before entering an idle state.
+> >* Hema HK <hemahk@ti.com> [110324 04:36]:
+> >> omap4430_phy_init() function can be called with no device pointer,
+> >> to powerdown the PHY during board init when USB is disabled.
+> >> Fix the function accordingly.
 > >
-> >Then the wake-up generator can be cleared after delivering
-> >the wake-up event(s).
-> >
-> >Or am I missing something on why this should be enabled all
-> >the time?
-> >
-> Yep. The WakeupGen sits between GIC and CPU and can
-> gate the interrupts in normal operation too. It's
-> mandatory that the interrupt mask at GIC and WakeupGen
-> matches to deliver the interrupt to CPU.
+> >This should no longer be needed after merge commit
+> >0df0914d414a504b975f3cc66ace0c16ef55b7f3.
+> 
+> I did not get how the above commit help to fix it.
 
-But it seems that the states of GIC and WakeupGen can be
-synced up just before hitting an idle mode.
+Ah it's not there. Well IMHO omap4430_phy_init(dev) should
+not get called before dev is initialized in usb_musb_init.
 
-And then the wake-ups only need to be acked after waking
-from idle and delivering the interrupts.
-
-> This is the reason why all the necessary GIC hooks are
-> populated with it so that they work together.
-
-Hmm I still see no reason to call these functions for every
-interrupt during runtime.
-
-AFAIK, these functions only need to be called only once
-right after waking from idle.
- 
-> So far without this patch all interrupts at WakeupGen
-> level were always enabled and hence there was no issue.
-
-OK so things work during runtime without calling these
-functions for every interrupt. Why then would we want to
-call them for each interrupt?
+So it should get called only after the get_device(dev) call.
 
 Regards,
 
 Tony
+
