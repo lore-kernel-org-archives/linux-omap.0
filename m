@@ -1,84 +1,85 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: OMAP4 DSS clock setup
-Date: Wed, 30 Mar 2011 14:03:47 +0300
-Message-ID: <1301483027.4045.16.camel@deskari>
-References: <1301467733.2333.83.camel@deskari>  <4D92F899.7010606@ti.com>
+From: Sergei Shtylyov <sshtylyov@mvista.com>
+Subject: Re: [PATCH v2 1/2] isp1704_charger: allow board specific powering
+ routine
+Date: Wed, 30 Mar 2011 15:18:56 +0400
+Message-ID: <4D9311A0.1000005@ru.mvista.com>
+References: <1301295099-22066-1-git-send-email-kalle.jokiniemi@nokia.com> <1301295099-22066-2-git-send-email-kalle.jokiniemi@nokia.com> <4D904425.3050307@ru.mvista.com> <9D0D31AA57AAF5499AFDC63D6472631B06D67D@008-AM1MPN1-036.mgdnok.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:38143 "EHLO
-	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932086Ab1C3LDv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 30 Mar 2011 07:03:51 -0400
-Received: by gxk22 with SMTP id 22so561338gxk.2
-        for <linux-omap@vger.kernel.org>; Wed, 30 Mar 2011 04:03:50 -0700 (PDT)
-In-Reply-To: <4D92F899.7010606@ti.com>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:41751 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754977Ab1C3LUc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Mar 2011 07:20:32 -0400
+In-Reply-To: <9D0D31AA57AAF5499AFDC63D6472631B06D67D@008-AM1MPN1-036.mgdnok.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, "Semwal, Sumit" <sumit.semwal@ti.com>, "Taneja, Archit" <archit@ti.com>, linux-omap <linux-omap@vger.kernel.org>
+To: kalle.jokiniemi@nokia.com
+Cc: sshtylyov@mvista.com, cbouatmailru@gmail.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, balbi@ti.com, Heikki.Krogerus@nokia.com, jhnikula@gmail.com, khilman@ti.com
 
-On Wed, 2011-03-30 at 11:32 +0200, Cousson, Benoit wrote:
-> Hi Tomi,
-> 
-> On 3/30/2011 8:48 AM, Valkeinen, Tomi wrote:
-> > Hi Benoit, Paul,
-> >
-> > I've been discussing with Sumit and Archit to understand how the DSS
-> > clocks are set up on OMAP4. I think I now have some idea how things
-> > work, but I'm still at loss why things are the way they are.
-> >
-> > So, if I look at OMAP4 TRM, Figure 10-4 DSS Clock Tree, there are two
-> > clocks in PRCM block that are relevant to this discussion: DSS_L3_ICLK
-> > and DSS_FCLK. To my understanding DSS_L3_ICLK is not really
-> > controllable, but it is affected by MODULEMODE bit.
-> >
-> > Then we have two relevant clocks defined in clock44xx_data.c: dss_fck
-> > and dss_dss_clk. dss_fck controls the MODULEMODE bit, and dss_dss_clk is
-> > the TRM's DSS_FCLK.
-> >
-> > Was that correct?
-> 
-> Yes. For the moment, but this is not the final state.
-> 
-> > If so, from DSS driver's perspective, the dss_fck sounds very much like
-> > an interface clock (it's always needed when DSS is used) and dss_dss_clk
-> > sounds very much like functional clock (it's always needed, except if
-> > DSI PLL is used for DSS functional clock).
-> >
-> > If "dss_fck" would control DSS_FCLK and "dss_ick" would control
-> > MODULEMODE, they would be about the same as the clocks in OMAP2 and 3,
-> > and we wouldn't need any omap4 spesific trickery in the DSS driver.
-> > ("dss_dss_clk" wouldn't be needed).
-> 
-> You cannot play with iclk, because this clock is supposed to be handled 
-> automatically by the HW. This was the case on OMAP2 & 3 as well BTW.
+Hello.
 
-Right.
+On 29.03.2011 9:52, kalle.jokiniemi@nokia.com wrote:
 
-But now we have 1) dss_fck, which isn't the DSS_FCLK in TRM, and in fact
-not fck at all, or even clock at all 2) dss_dss_clk, a new clock whose
-name doesn't match to anything in TRM, and is in fact the DSS_FCLK.
+>>   >  >  diff --git a/include/linux/power/isp1704_charger.h
+>   >   >  b/include/linux/power/isp1704_charger.h
+>   >   >  >  new file mode 100644
+>   >   >  >  index 0000000..68096a6
+>   >   >  >  --- /dev/null
+>   >   >  >  +++ b/include/linux/power/isp1704_charger.h
+>   >   >  >  @@ -0,0 +1,29 @@
+>   >   >  >  +/*
+>   >   >  >  + * ISP1704 USB Charger Detection driver
+>   >   >  >  + *
+>   >   >  >  + * Copyright (C) 2011 Nokia Corporation
+>   >   >  >  + *
+>   >   >  >  + * This program is free software; you can redistribute it and/or modify
+>   >   >  >  + * it under the terms of the GNU General Public License as published by
+>   >   >  >  + * the Free Software Foundation; either version 2 of the License, or
+>   >   >  >  + * (at your option) any later version.
+>   >   >  >  + *
+>   >   >  >  + * This program is distributed in the hope that it will be useful,
+>   >   >  >  + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+>   >   >  >  + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+>   >   >  >  + * GNU General Public License for more details.
+>   >   >  >  + *
+>   >   >  >  + * You should have received a copy of the GNU General Public License
+>   >   >  >  + * along with this program; if not, write to the Free Software
+>   >   >  >  + * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+>   >  USA
+>   >   >  >  + */
+>   >   >  >  +
+>   >   >  >  +
+>   >   >  >  +#ifndef __ISP1704_CHARGER_H
+>   >   >  >  +#define __ISP1704_CHARGER_H
+>   >   >  >  +
+>   >   >  >  +struct isp1704_charger_data {
+>   >   >  >  +	void		(*set_power)(bool on);
+>   >   >  >  +};
+>   >   >  >  +
+>   >   >  >  +#endif
 
-So they both sound like they are confusingly named.
+>   >   >      There should be include/linux/platform_data/ directory now, specifically
+>   >   >  for such headers...
 
-If we had dss_fck matching to DSS_FCLK and dss_ick for MODULEMODE, they
-would, in my opinion, be much more understandable and in many ways
-relate to the way things are in the HW. Additionally this would match
-the way clocks are on OMAP2/3 and things would just work.
+>   >  Thanks for the pointer, I'll put it there.
 
-So while I understand that neither the current way and my suggestion
-exactly match the HW, and also that things are not ready yet and the
-clocks will change, I don't understand why such a strange method to name
-the clocks was used, when there's a simpler and backward compatible way.
+> There are things like msm-serial.h and tegra-usb.h there, but I'm not so convinced
+> that this isp1704_charger.h should be there. The isp1707 component on n900 is
+> a discrete chip, it's not part of the SoC, so in theory some other device or platform
+> could also use it as a charger. It's not even made by TI, so it's not related in that
+> sense to OMAP platform...
 
-And if this current way to handle OMAP4 DSS clocks is for some reason
-better and can't be changed, could the OMAP2/3 clocks also be changed to
-keep things consistent between OMAPs? Because the inconsistency between
-platforms is the biggest problem for me.
+    This directory is very new, so there's not much there yet. I don't think 
+it's dedicated to SoC devices. Frankly speaking, I didn't get your 
+argumentation here...
 
- Tomi
+> What do you think about keeping it still in /include/linux/power ?
 
+    Well, I wouldn't object. It seemed to me initially that you're going to 
+put it into include/linux/, so I've pointed to a better place...
 
+> - Kalle
+
+WBR, Sergei
