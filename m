@@ -1,52 +1,93 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/2 v2] usb: otg: OMAP4430: Fixing the
- omap4430_phy_init function
-Date: Wed, 30 Mar 2011 11:46:38 -0700
-Message-ID: <20110330184637.GG18334@atomide.com>
-References: <1300966722-10955-1-git-send-email-hemahk@ti.com>
- <20110328212015.GH30616@atomide.com>
- <4369479157892165533add3d883a79a7@mail.gmail.com>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: [GIT PULL] omap changes for v2.6.39 merge window
+Date: Wed, 30 Mar 2011 12:21:32 -0700
+Message-ID: <AANLkTim578-kwM14SJd06RW_QiC4WVCmFuG+ASgGC4sq@mail.gmail.com>
+References: <20110317183048.GW7258@atomide.com> <AANLkTimWbb5DWiiCW821H6pRicbk1fS3PYcnGyUMznvM@mail.gmail.com>
+ <20110318101512.GA15375@n2100.arm.linux.org.uk> <201103301906.42429.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:58770 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754711Ab1C3Sqm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Mar 2011 14:46:42 -0400
-Content-Disposition: inline
-In-Reply-To: <4369479157892165533add3d883a79a7@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <201103301906.42429.arnd@arndb.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, David Brown <davidb@codeaurora.org>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Nicolas Pitre <nico@fluxnic.net>, Catalin Marinas <catalin.marinas@arm.com>
 List-Id: linux-omap@vger.kernel.org
-To: Hema Kalliguddi <hemahk@ti.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>
 
-* Hema Kalliguddi <hemahk@ti.com> [110328 23:11]:
-> Hi,
-> 
-> >-----Original Message-----
-> >From: Tony Lindgren [mailto:tony@atomide.com]
-> >Sent: Tuesday, March 29, 2011 2:50 AM
-> >To: Hema HK
-> >Cc: linux-usb@vger.kernel.org; linux-omap@vger.kernel.org
-> >Subject: Re: [PATCH 1/2 v2] usb: otg: OMAP4430: Fixing the
-> >omap4430_phy_init function
-> >
-> >* Hema HK <hemahk@ti.com> [110324 04:36]:
-> >> omap4430_phy_init() function can be called with no device pointer,
-> >> to powerdown the PHY during board init when USB is disabled.
-> >> Fix the function accordingly.
-> >
-> >This should no longer be needed after merge commit
-> >0df0914d414a504b975f3cc66ace0c16ef55b7f3.
-> 
-> I did not get how the above commit help to fix it.
+On Wed, Mar 30, 2011 at 10:06 AM, Arnd Bergmann <arnd@arndb.de> wrote:
+>
+> I'm still new to the ARM world, but I think one real problem is the way
+> that all platforms have their own trees with a very flat hierarchy --
+> a lot of people directly ask Linus to pull their trees, and the main
+> way to sort out conflicts is linux-next. The number of platforms in the
+> ARM arch is still increasing, so I assume that this only gets worse.
 
-Ah it's not there. Well IMHO omap4430_phy_init(dev) should
-not get called before dev is initialized in usb_musb_init.
+As far as I'm concerned, the biggest issuee is that some of the ARM
+crap is just CRAP. It's idiotic tables that get updated by multiple
+people, and in totally nonsensical ways. When I see conflicts in those
+damn clock-data files, I just go mental. Those files are an
+abomination.
 
-So it should get called only after the get_device(dev) call.
+Why the hell is the clock-data for fifty (number taken out of my ass)
+different clocking rules in one array? And why do we have eight
+different files of that kind of crap for omap2?
 
-Regards,
+THAT is an example of something that is totally and utterly screwed
+up. Those kinds of random board-level detail files abound in the ARM
+tree. They should either be in a per-board file, or (much better) the
+ARM people should have standardized this ten f*cking years ago, and
+put it in a bootloader or something that just initializes the crap so
+that the kernel doesn't have to have random tables like that at all.
 
-Tony
+ARM right now i a nightmare, and most of it is because ARM hardware
+manufacturers are morons. But the way the ARM tree is then laid out
+has made that even more painful, and the decision to put all the crazy
+board details in the kernel tables instead of trying to have a
+per-board boot loader that fills in the details is just crazy.
 
+Look at the dirstat for arch/ in just the current merge window
+(cut-off at 5% just to not get too much):
+
+[torvalds@i5 linux]$ git diff -C --dirstat=5 --cumulative v2.6.38.. arch
+  14.0% arch/arm/mach-omap2/
+   5.8% arch/arm/plat-mxc/include/mach/
+   6.3% arch/arm/plat-mxc/
+  57.1% arch/arm/
+   5.4% arch/m68k/
+   9.6% arch/unicore32/
+   6.9% arch/x86/
+ 100.0% arch/
+
+almost *SIXTY* percent of all arch updates were to ARM code. And
+that's despite the fact that one of those architectures (unicore32) is
+a totally new architecture, and despite m68k having gone through a
+first-level unification of nommu and mmu code!
+
+And was this just a fluke? No. Doing the same for 2.3.37..38 gives
+58.3% for arch/arm (and in that release we had a blackfin unification
+effort, otherwise arm would have been an even bigger percentage).
+
+That's ridiculous. It's entirely due to the whole f*cked-up arm ecosystem.
+
+Something needs to be done. A small part is to make sure the source
+code is more hierarchical, so that we don't have those crazy shared
+data-files that are ugly as hell and get conflicts because different
+boards all think they need to care.
+
+But the larger problem is that somebody really REALLY needs to think
+about how to get those crazy board details out of the kernel entirely.
+Having per-board drivers for real hardware is sane - having to have
+per-board detail files for clock chips is just crazy. Split off that
+thing a "Linux ARM second-stage bootloader" project that has the
+per-board tables or something. Don't pollute the main kernel with
+crazy details like this.
+
+Because as far as I can tell, most of that board support really is
+about crazy details that the kernel shouldn't even care about. Come up
+with a table that describes them, have one common parsing routine, and
+push the table into a bootloader. And get rid of having to add a board
+file for every crazy random piece of hardware that nobody really cares
+about.
+
+Or something.
+
+                          Linus
