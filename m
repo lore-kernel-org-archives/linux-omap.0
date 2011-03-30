@@ -1,189 +1,88 @@
-From: Nicolas Pitre <nico@fluxnic.net>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
 Subject: Re: [GIT PULL] omap changes for v2.6.39 merge window
-Date: Wed, 30 Mar 2011 19:31:59 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.1103301814250.28032@xanadu.home>
-References: <20110317183048.GW7258@atomide.com>
- <AANLkTimWbb5DWiiCW821H6pRicbk1fS3PYcnGyUMznvM@mail.gmail.com>
- <20110318101512.GA15375@n2100.arm.linux.org.uk>
- <201103301906.42429.arnd@arndb.de>
- <AANLkTim578-kwM14SJd06RW_QiC4WVCmFuG+ASgGC4sq@mail.gmail.com>
- <alpine.LFD.2.00.1103301531420.28032@xanadu.home>
- <AANLkTim6zg-U6HtAQbqnENqoK7x8erXSqOuTFVC0YE5r@mail.gmail.com>
+Date: Thu, 31 Mar 2011 00:59:30 +0100
+Message-ID: <20110330235930.GA6680@n2100.arm.linux.org.uk>
+References: <20110317183048.GW7258@atomide.com> <AANLkTimWbb5DWiiCW821H6pRicbk1fS3PYcnGyUMznvM@mail.gmail.com> <20110318101512.GA15375@n2100.arm.linux.org.uk> <201103301906.42429.arnd@arndb.de> <AANLkTim578-kwM14SJd06RW_QiC4WVCmFuG+ASgGC4sq@mail.gmail.com> <alpine.LFD.2.00.1103301531420.28032@xanadu.home> <AANLkTim6zg-U6HtAQbqnENqoK7x8erXSqOuTFVC0YE5r@mail.gmail.com> <alpine.LFD.2.00.1103301814250.28032@xanadu.home>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="Boundary_(ID_Tk7ql5dkesEECgG9U/f7XQ)"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-reply-to: <AANLkTim6zg-U6HtAQbqnENqoK7x8erXSqOuTFVC0YE5r@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, David Brown <davidb@codeaurora.org>, lkml <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:33809 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756260Ab1CaAAl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Mar 2011 20:00:41 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.00.1103301814250.28032@xanadu.home>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Nicolas Pitre <nico@fluxnic.net>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, David Brown <davidb@codeaurora.org>, lkml <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+On Wed, Mar 30, 2011 at 07:31:59PM -0400, Nicolas Pitre wrote:
+> Sure, but important noise nevertheless.  As long as the noise is 
+> confined to a limited set of .c files I'm happy.  OTOH I have very 
+> little hope for a separate project that would only deal with that noise.  
+> That will simply never fly, even less so as an Open Source project.
 
---Boundary_(ID_Tk7ql5dkesEECgG9U/f7XQ)
-Content-type: TEXT/PLAIN; charset=ISO-8859-1
-Content-transfer-encoding: 8BIT
+It's also an excuse for people to make it a closed source project, and
+so you end up with platforms with a closed source binary blob passed
+into the kernel, which has hacky patches to fixup the binary blob parser
+to make it all work.
 
-On Wed, 30 Mar 2011, Linus Torvalds wrote:
+We already see this with the damn simple memory layout stuff we already
+(try) to require of boot loaders.
 
-> On Wed, Mar 30, 2011 at 1:41 PM, Nicolas Pitre <nico@fluxnic.net> wrote:
-> >
-> > If in your mind "competitors" == "morons" then you might be right.
+> Still... there are on-going efforts to consolidate things amongst all 
+> the ARM vendors.  The ARM architecture is standardizing more and more 
+> stuff in the whole stack in every revision.  But they won't standardize 
+> everything otherwise they'll kill that competing ecosystem.
+
+Let's not kid ourselves over that effort: because there is already soo
+much code in mainline, the efforts to consolidate things can in itself
+create _big_ patches which will inflate the %age change under arch/arm.
+
+> > Now, some of it is quite understandable - ie real drivers for real
+> > hardware. But a _lot_ of it seems to be just descriptor tables, and
+> > I'm getting the very strong feeling that ARM people aren't even
+> > _trying_ to make it sane, and trying to standardize things, or trying
+> > to aim for the whole notion of "one kernel image, with much more hw
+> > description done elsewhere".
 > 
-> There's a difference between "competition" and "do things differently
-> just to be difficult".
+> That work is happening.  It is not ready.  I'm not against it but I 
+> remain sceptical.  I still think that a self contained kernel is more 
+> maintainable.
 
-Absolutely.  We've seen that from some proprietary software companies.
+Let's not forget that in the future, the hardware should improve.
+There's efforts to standardise some of the peripherals, such as
+interrupt controllers and timers.
 
-> > Trying to rely on bootloaders doing things right is like saying that x86
-> > should always rely on the BIOS doing things right.
-> 
-> No. Not at all.
-> 
-> The problem with firmware/BIOS is that it's set in stone and closed-source.
-> 
-> I'm suggesting splitting out the crazy part into a separate project
-> that does this. Open-source. Like a mini-kernel. Because the thing is,
-> the main kernel doesn't care, and _shouldn't_ care. Those board files
-> are just noise.
+The first attempt at architecting an interrupt controller for ARM has
+actually caused *more* complexity, as the architected interrupt (GIC)
+controller contained no power management.  That has caused SoC vendors
+to bolt a second power management interrupt controller alongside the
+GIC which needs to be kept in sync.  So... the result was yet more code
+which doesn't sit at all well with data descriptions of systems.
 
-Sure, but important noise nevertheless.  As long as the noise is 
-confined to a limited set of .c files I'm happy.  OTOH I have very 
-little hope for a separate project that would only deal with that noise.  
-That will simply never fly, even less so as an Open Source project.  
-The insentive for people to work on such thing simply aren't there as 
-that is totally uninteresting and without any rewards.
+> Still, because ARM is just a CPU architecture, those SOC vendors will 
+> always have something new to differenciate themselves from the other SOC 
+> vendors.  And that cannot be described in a table alone. The power 
+> management hardware from TI will still require separate _executable_ 
+> code from the Freescale one, or the Samsung one, or the Nvidia one, or 
+> the Qualcomm one, or the Marvell one, yada yada.  And I really don't 
+> want to see that code turned into some vendor provided buggy ACPI 
+> bytecode or similar.
 
-Furthermore, this does create pain.  you have to make things in sync 
-between the kernel and the mini-kernel (let's call it bootloader).  In 
-practice the bootloader is always maintained separately from the kernel, 
-on its own pace and with its own release schedule.  Trying to 
-synchronize independent projects is really painful as you know already, 
-otherwise the user space for perf would still be maintained separately 
-from the kernel, right?
+To get rid of all the platform related stuff, I think you'd need some
+kind of bytecode to deal with some of the procedural stuff with various
+platforms.  Without bytecode, the only other way is to keep the stuff
+as C functions in the kernel and find some way of binding them to
+drivers through DT, which means we're still going to have platform
+specific C files littering the kernel.
 
-Now, when there is a bug in one of the clock settings, or one clock 
-is missing for that new kernel driver to work properly, the 
-bootloader would have to be fixed, revalidated, and the fix deployed 
-separately but still in addition to the kernel.  This process still adds 
-to the pain such that what people do in those cases is simply to hack 
-the driver code in the kernel.  Instead, the OMAP folks created a table 
-to abstract them into something more manageable.
+While I can see DT solving the "declare this data structure" problem,
+I believe that's only part of the issue.
 
-And here's the final catch.  Most of those clocks are often derived from 
-each other in a tree structure inside the SOC.  And for power saving 
-reasons, some crazy people want to dynamically change the config for 
-those clocks at run time according to the required frequency for given 
-loads, turn them off when possible, and of course turn the parent clock 
-off as well if all the children clocks are themselves turned off.  So 
-the kernel has NO CHOICE but to be fully aware of them.
+This is exactly why when DT was proposed as a miracle cure-all for ARM,
+I wanted to see DT on a real ARM platform rather than just ARM Ltd's
+simple and similar development boards.
 
-Then comes power domains with the cascade of regulators and so forth, 
-again all software controlled.  Add to the mix the different sleep 
-states that can be derived from that, which is far more sophisticated 
-than ACPI states on Intel.  And in some cases, the hardware capabilities 
-are there but people still didn't find the optimal way to drive them, so 
-research is still on-going software wise.  And obviously those SOC 
-vendors do compete on that front since power consumption is the killing 
-weapon these days.  No wonder why they are so different from each other 
-with all that "board crap".
-
-> The long-term situation should be that you should be able to have ONE
-> binary kernel "just work". That's where we are on x86. Really.
-
-But X86 is peanuts.  Really.  There was one machine called the IBM PC at 
-some point that everybody cloned, and the rest was totally irrelevant.  
-Then came that thing called Windows that reinforced this hardware 
-monoculture as it was used for the ultimate conformance testing.  This 
-is damn easy in that case to produce a kernel that works virtually 
-everywhere.
-
-On ARM there is simply not such thing as a single machine design to 
-clone, and a closed source test bench to design for.
-
-And this is orthogonal to this discussion anyway, as having in-kernel 
-clock tables is not incompatible with a single kernel binary.  Dropping 
-at runtime those clock tables that are irrelevant to the currently 
-running hardware is not rocket science.
-
-> Without that kind of long-term view, where do you think ARM is going
-> to be in five years?
-
-ARM is going to still be relevant simply because they now have Linux 
-that they can modify to suit their latest changes.  That's one thing 
-with Open Source which can be good or bad: full hardware compatibility 
-is no longer an issue since the software can be adapted at will.
-
-Still... there are on-going efforts to consolidate things amongst all 
-the ARM vendors.  The ARM architecture is standardizing more and more 
-stuff in the whole stack in every revision.  But they won't standardize 
-everything otherwise they'll kill that competing ecosystem.
-
-> >> almost *SIXTY* percent of all arch updates were to ARM code.
-> >
-> > Absolutely not!  You have 14% going to OMAP code which happens to be
-> > under arch/arm/ but there is nothing ARM specific in there.  If OMAP was
-> > using a PPC or a MIPS core then you'd have the same result except under
-> > arch/powerpc or arch/mips.  There is very little in terms of ARM
-> > specific peculiarities under arch/arm/mach-omap2/ in fact.
-> 
-> But that's my point - the problem is all the crazy board crap.
-> 
-> I've never claimed that this is about the ARM cpu (which has it's own
-> issues, but that's a separate rant entirely). It's about the broken
-> infrastructure.
-
-Let's see how we can fix it then.  Trying to shovel the problem away 
-won't help the situation.  Those ARM vendors are crazy for sure.  But 
-it's not a relatively few merge conflicts compared to the volume of 
-changes that will make us flinch, right?
-
-> Now, some of it is quite understandable - ie real drivers for real
-> hardware. But a _lot_ of it seems to be just descriptor tables, and
-> I'm getting the very strong feeling that ARM people aren't even
-> _trying_ to make it sane, and trying to standardize things, or trying
-> to aim for the whole notion of "one kernel image, with much more hw
-> description done elsewhere".
-
-That work is happening.  It is not ready.  I'm not against it but I 
-remain sceptical.  I still think that a self contained kernel is more 
-maintainable.
-
-Still, because ARM is just a CPU architecture, those SOC vendors will 
-always have something new to differenciate themselves from the other SOC 
-vendors.  And that cannot be described in a table alone. The power 
-management hardware from TI will still require separate _executable_ 
-code from the Freescale one, or the Samsung one, or the Nvidia one, or 
-the Qualcomm one, or the Marvell one, yada yada.  And I really don't 
-want to see that code turned into some vendor provided buggy ACPI 
-bytecode or similar.
-
-> arch/arm is already about 3x the size of arch/x86. And it's pretty
-> much all the crazy infrastructure afaik. timer chips, irq chips, gpio
-> differences - crap like that.
-
-Indeed.  And I expect it to grow even bigger.  Be warned.
-
-> And the fact that you don't even seem to UNDERSTAND the problem, and
-> think that it's ok, and that continued future explosion of this is all
-> fine makes me even more nervous.
-
-I do understand the problem.  And so far, the way we scaled is to have 
-TI people care about the OMAP code, Freescale people care about the iMX 
-code, and so on.  If one of them produces crap code then so it is, and 
-the other vendor is totally unaffected, which is why I'm not too 
-nervous.  Blaming a merge conflict on the entire ARM ecosystem just 
-because one team was large enough to have separate people doing 
-different things that intersected into the clock table is blowing things 
-totally out of proportion.
-
-And if those hardware vendors are still in business in the future, and 
-apparently new ones are joining in, then the arch/arm/ directory will 
-continue to gain weight.  And on ARM, Linux is very very successful 
-that's all.
-
-
-Nicolas
-
---Boundary_(ID_Tk7ql5dkesEECgG9U/f7XQ)--
+Certainly, though, DT for ARM is progressing.
