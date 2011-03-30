@@ -1,18 +1,17 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
 Subject: Re: [GIT PULL] omap changes for v2.6.39 merge window
-Date: Wed, 30 Mar 2011 14:02:20 -0700
-Message-ID: <AANLkTim6zg-U6HtAQbqnENqoK7x8erXSqOuTFVC0YE5r@mail.gmail.com>
+Date: Wed, 30 Mar 2011 22:07:26 +0100
+Message-ID: <20110330210726.GA4593@n2100.arm.linux.org.uk>
 References: <20110317183048.GW7258@atomide.com>
 	<AANLkTimWbb5DWiiCW821H6pRicbk1fS3PYcnGyUMznvM@mail.gmail.com>
 	<20110318101512.GA15375@n2100.arm.linux.org.uk>
 	<201103301906.42429.arnd@arndb.de>
-	<AANLkTim578-kwM14SJd06RW_QiC4WVCmFuG+ASgGC4sq@mail.gmail.com>
-	<alpine.LFD.2.00.1103301531420.28032@xanadu.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <alpine.LFD.2.00.1103301531420.28032@xanadu.home>
+Content-Disposition: inline
+In-Reply-To: <201103301906.42429.arnd@arndb.de>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -22,68 +21,87 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: linux-arm-kernel-bounces@lists.infradead.org
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Nicolas Pitre <nico@fluxnic.net>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Catalin Marinas <catalin.marinas@arm.com>, lkml <linux-kernel@vger.kernel.org>, David Brown <davidb@codeaurora.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Nicolas Pitre <nico@fluxnic.net>, Tony Lindgren <tony@atomide.com>, Catalin Marinas <catalin.marinas@arm.com>, linux-kernel@vger.kernel.org, David Brown <davidb@codeaurora.org>, linux-omap@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Mar 30, 2011 at 1:41 PM, Nicolas Pitre <nico@fluxnic.net> wrote:
->
-> If in your mind "competitors" =3D=3D "morons" then you might be right.
+On Wed, Mar 30, 2011 at 07:06:41PM +0200, Arnd Bergmann wrote:
+> On Friday 18 March 2011, Russell King - ARM Linux wrote:
+> > I do get the impression that you're extremely unhappy with the way ARM
+> > stuff works, and I've no real idea how to solve that.  I think much of
+> > it is down to perception rather than anything tangible.
+> > 
+> > Maybe the only solution is for ARM to fork the kernel, which is something
+> > I really don't want to do - but from what I'm seeing its the only solution
+> > which could come close to making you happy.
+> 
+> I'm still new to the ARM world, but I think one real problem is the way
+> that all platforms have their own trees with a very flat hierarchy --
+> a lot of people directly ask Linus to pull their trees, and the main
+> way to sort out conflicts is linux-next. The number of platforms in the
+> ARM arch is still increasing, so I assume that this only gets worse.
 
-There's a difference between "competition" and "do things differently
-just to be difficult".
+The reason that we've ended up with a flat heirarchy in terms of
+developers is down to pressure.  There was a time when we had a more
+structured system, where the sub-tree people submitted their patches
+to me and the list, they'd be reviewed (mostly and mostly only) by me
+before being merged into my tree and going upstream from there.
 
-> Trying to rely on bootloaders doing things right is like saying that x86
-> should always rely on the BIOS doing things right.
+As the community grew, it got harder and harder to do decent reviewed
+of those patches and so the acceptance rate dropped.
 
-No. Not at all.
+Eventually we switched to the current arrangement where I'm essentially
+only concerned about core ARM code, and a few platforms which I have
+personal interest in (or are contracted to look after.)
 
-The problem with firmware/BIOS is that it's set in stone and closed-source.
+For the rest I just look at the patches, and send back what feedback I
+can on them (which is mostly when my mailer turns a line red because
+it's matched one of my mutt regexps for spotting common mistakes.)
 
-I'm suggesting splitting out the crazy part into a separate project
-that does this. Open-source. Like a mini-kernel. Because the thing is,
-the main kernel doesn't care, and _shouldn't_ care. Those board files
-are just noise.
+> This would be no easier if everyone was asking you to pull their trees,
+> as I believe was the case before that. The amount of code getting changed
+> there is too large to get reviewed by a single person, and I believe
+> neither of you really wants the burden to judge if all of the branches
+> are ok (and complain to the authors when they are not).
 
-The long-term situation should be that you should be able to have ONE
-binary kernel "just work". That's where we are on x86. Really.
+Absolutely right - and the problem is that we still have no one who is
+willing to step up and do the review.
 
-Without that kind of long-term view, where do you think ARM is going
-to be in five years?
+What I was promised at the time was that by giving sub-tree maintainers
+the loaded pistol, this problem of code quality would in effect be self-
+correcting.  If they make a hash out of it, they'd have to be the ones
+to fix it themselves.
 
->> almost *SIXTY* percent of all arch updates were to ARM code.
->
-> Absolutely not! =A0You have 14% going to OMAP code which happens to be
-> under arch/arm/ but there is nothing ARM specific in there. =A0If OMAP was
-> using a PPC or a MIPS core then you'd have the same result except under
-> arch/powerpc or arch/mips. =A0There is very little in terms of ARM
-> specific peculiarities under arch/arm/mach-omap2/ in fact.
+Instead, what's happening is that the _entire_ ARM community, ARM
+hardware manufacturers and so forth is being blamed here.
 
-But that's my point - the problem is all the crazy board crap.
+> Russell, do you think it would help to have an additional ARM platform
+> tree that collects all the changes that impact only the platform code but
+> not the core architecture? I believe that would be a way out, but requires
+> a careful selection of people responsible for it. In particular, I don't
+> think a single person can handle it without good sub-maintainers.
 
-I've never claimed that this is about the ARM cpu (which has it's own
-issues, but that's a separate rant entirely). It's about the broken
-infrastructure.
+It's not that simple, as what happens when we have core ARM code updates
+which ends up touching every single board file?  The result is conflicts
+between trees, and that could get extremely messy indeed.
 
-Now, some of it is quite understandable - ie real drivers for real
-hardware. But a _lot_ of it seems to be just descriptor tables, and
-I'm getting the very strong feeling that ARM people aren't even
-_trying_ to make it sane, and trying to standardize things, or trying
-to aim for the whole notion of "one kernel image, with much more hw
-description done elsewhere".
+To be honest, given the politics, I don't want to be the one stuck in the
+middle, receiving and endless stream of Linus' complaints about the way
+the ARM community works, or the board support code.  However, inspite of
+the sub-tree maintainers having the responsibility for their own code I
+still find myself in the firing line.
 
-Sure, you'll fundamentally always need several images (due to the
-afore-mentioned crazy CPU architecture flaws - arm6 vs arm7 vs
-armxyz), but I'm looking at the future, and arch/arm will get
-_totally_ unmaintainable unless you guys have a plan for getting out
-of the crazy hole you are in now.
+And I have got to the point of just not giving a damn.  I can't change
+the ARM community (I've tried over the years to get more active review
+of platform changes and failed - and had it pointed out by folk like
+Alan Cox, that such a system is impossible due to lack of motivation
+by, eg, an OMAP person to review a Samsung change.)
 
-arch/arm is already about 3x the size of arch/x86. And it's pretty
-much all the crazy infrastructure afaik. timer chips, irq chips, gpio
-differences - crap like that.
-
-And the fact that you don't even seem to UNDERSTAND the problem, and
-think that it's ok, and that continued future explosion of this is all
-fine makes me even more nervous.
-
-                           Linus
+If this ultimately means that Linus decides to throw ARM out of the
+mainline kernel, then I guess we'll need a git tree setup somewhere to
+track mainline, and to take the ARM merges, and do our own kernel
+releases with different version numbering.  I'm quite prepared to do
+that and run such a tree, and not give a damn about what the sub-arch
+people do provided I can still make the necessary core ARM code changes
+as required (and if some sub-arch breaks they get to fix it.)  However,
+that would be entirely limited to just ARM arch stuff and not drivers.
