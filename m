@@ -1,93 +1,140 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
+From: Nicolas Pitre <nico@fluxnic.net>
 Subject: Re: [GIT PULL] omap changes for v2.6.39 merge window
-Date: Wed, 30 Mar 2011 12:21:32 -0700
-Message-ID: <AANLkTim578-kwM14SJd06RW_QiC4WVCmFuG+ASgGC4sq@mail.gmail.com>
-References: <20110317183048.GW7258@atomide.com> <AANLkTimWbb5DWiiCW821H6pRicbk1fS3PYcnGyUMznvM@mail.gmail.com>
- <20110318101512.GA15375@n2100.arm.linux.org.uk> <201103301906.42429.arnd@arndb.de>
+Date: Wed, 30 Mar 2011 16:41:45 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.1103301531420.28032@xanadu.home>
+References: <20110317183048.GW7258@atomide.com>
+ <AANLkTimWbb5DWiiCW821H6pRicbk1fS3PYcnGyUMznvM@mail.gmail.com>
+ <20110318101512.GA15375@n2100.arm.linux.org.uk>
+ <201103301906.42429.arnd@arndb.de>
+ <AANLkTim578-kwM14SJd06RW_QiC4WVCmFuG+ASgGC4sq@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201103301906.42429.arnd@arndb.de>
+In-reply-to: <AANLkTim578-kwM14SJd06RW_QiC4WVCmFuG+ASgGC4sq@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, David Brown <davidb@codeaurora.org>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Nicolas Pitre <nico@fluxnic.net>, Catalin Marinas <catalin.marinas@arm.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Arnd Bergmann <arnd@arndb.de>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, David Brown <davidb@codeaurora.org>, lkml <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Mar 30, 2011 at 10:06 AM, Arnd Bergmann <arnd@arndb.de> wrote:
->
-> I'm still new to the ARM world, but I think one real problem is the way
-> that all platforms have their own trees with a very flat hierarchy --
-> a lot of people directly ask Linus to pull their trees, and the main
-> way to sort out conflicts is linux-next. The number of platforms in the
-> ARM arch is still increasing, so I assume that this only gets worse.
+On Wed, 30 Mar 2011, Linus Torvalds wrote:
 
-As far as I'm concerned, the biggest issuee is that some of the ARM
-crap is just CRAP. It's idiotic tables that get updated by multiple
-people, and in totally nonsensical ways. When I see conflicts in those
-damn clock-data files, I just go mental. Those files are an
-abomination.
+> ARM right now i a nightmare, and most of it is because ARM hardware
+> manufacturers are morons.
 
-Why the hell is the clock-data for fifty (number taken out of my ass)
-different clocking rules in one array? And why do we have eight
-different files of that kind of crap for omap2?
+If in your mind "competitors" == "morons" then you might be right.
 
-THAT is an example of something that is totally and utterly screwed
-up. Those kinds of random board-level detail files abound in the ARM
-tree. They should either be in a per-board file, or (much better) the
-ARM people should have standardized this ten f*cking years ago, and
-put it in a bootloader or something that just initializes the crap so
-that the kernel doesn't have to have random tables like that at all.
+> But the way the ARM tree is then laid out
+> has made that even more painful, and the decision to put all the crazy
+> board details in the kernel tables instead of trying to have a
+> per-board boot loader that fills in the details is just crazy.
 
-ARM right now i a nightmare, and most of it is because ARM hardware
-manufacturers are morons. But the way the ARM tree is then laid out
-has made that even more painful, and the decision to put all the crazy
-board details in the kernel tables instead of trying to have a
-per-board boot loader that fills in the details is just crazy.
+I beg to disagree.
 
-Look at the dirstat for arch/ in just the current merge window
-(cut-off at 5% just to not get too much):
+Trying to rely on bootloaders doing things right is like saying that x86 
+should always rely on the BIOS doing things right.  We have this chance 
+in the OMAP case to have a manufacturer who is smart enough to document 
+all those things so that the kernel can be autonomous and more reliable, 
+and the BIOS joke avoided entirely. When something needs fixing it is 
+much easier to update the kernel ourselves than waiting after any 
+bootloader updates which are themselves much more risky to perform.
 
-[torvalds@i5 linux]$ git diff -C --dirstat=5 --cumulative v2.6.38.. arch
-  14.0% arch/arm/mach-omap2/
-   5.8% arch/arm/plat-mxc/include/mach/
-   6.3% arch/arm/plat-mxc/
-  57.1% arch/arm/
-   5.4% arch/m68k/
-   9.6% arch/unicore32/
-   6.9% arch/x86/
- 100.0% arch/
+Granted, things could be structured in a better way so to minimize the 
+risk of conflicts when clocks for unrelated drivers are updated at the 
+same time.  Something like initcall tables or the like.
 
-almost *SIXTY* percent of all arch updates were to ARM code. And
-that's despite the fact that one of those architectures (unicore32) is
-a totally new architecture, and despite m68k having gone through a
-first-level unification of nommu and mmu code!
+> Look at the dirstat for arch/ in just the current merge window
+> (cut-off at 5% just to not get too much):
+> 
+> [torvalds@i5 linux]$ git diff -C --dirstat=5 --cumulative v2.6.38.. arch
+>   14.0% arch/arm/mach-omap2/
+>    5.8% arch/arm/plat-mxc/include/mach/
+>    6.3% arch/arm/plat-mxc/
+>   57.1% arch/arm/
+>    5.4% arch/m68k/
+>    9.6% arch/unicore32/
+>    6.9% arch/x86/
+>  100.0% arch/
+> 
+> almost *SIXTY* percent of all arch updates were to ARM code.
 
-And was this just a fluke? No. Doing the same for 2.3.37..38 gives
-58.3% for arch/arm (and in that release we had a blackfin unification
-effort, otherwise arm would have been an even bigger percentage).
+Absolutely not!  You have 14% going to OMAP code which happens to be 
+under arch/arm/ but there is nothing ARM specific in there.  If OMAP was 
+using a PPC or a MIPS core then you'd have the same result except under 
+arch/powerpc or arch/mips.  There is very little in terms of ARM 
+specific peculiarities under arch/arm/mach-omap2/ in fact.
 
-That's ridiculous. It's entirely due to the whole f*cked-up arm ecosystem.
+And it happens that, after all the beating we've made on those embedded 
+(ARM) SOC manufacturers, trying to push the point home that it is far 
+better for everyone to have support merged in the mainline kernel 
+instead of keeping their patches piled up into an obsolete kernel 
+version, it happens that the OMAP folks are the top champions when it's 
+time to upstream their code.  Are we going to complain to them now that 
+they're doing exactly what the upstream kernel community people have 
+been asking of them for so many years?
 
-Something needs to be done. A small part is to make sure the source
-code is more hierarchical, so that we don't have those crazy shared
-data-files that are ugly as hell and get conflicts because different
-boards all think they need to care.
+> And that's despite the fact that one of those architectures 
+> (unicore32) is a totally new architecture, and despite m68k having 
+> gone through a first-level unification of nommu and mmu code!
 
-But the larger problem is that somebody really REALLY needs to think
-about how to get those crazy board details out of the kernel entirely.
-Having per-board drivers for real hardware is sane - having to have
-per-board detail files for clock chips is just crazy. Split off that
-thing a "Linux ARM second-stage bootloader" project that has the
-per-board tables or something. Don't pollute the main kernel with
-crazy details like this.
+So what?  That only shows that those architectures are not being used as 
+much as ARM is.  This is probably just a reflect of actual market share.
 
-Because as far as I can tell, most of that board support really is
-about crazy details that the kernel shouldn't even care about. Come up
-with a table that describes them, have one common parsing routine, and
-push the table into a bootloader. And get rid of having to add a board
-file for every crazy random piece of hardware that nobody really cares
-about.
+> And was this just a fluke? No. Doing the same for 2.3.37..38 gives
+> 58.3% for arch/arm (and in that release we had a blackfin unification
+> effort, otherwise arm would have been an even bigger percentage).
 
-Or something.
+And don't be surprised if the dirstat result for arch/arm/ goes up even 
+further in the near future.  Other SOC manufacturers which happen to 
+have chosen an ARM core for their CPU are also coming out of their 
+moronic stupor and waking up to speed with this Open Source thing.  If 
+they were choosing a MIPS core this could rebalance the dirstat, but 
+they happen to also have an ARM core with a _completely_ different 
+architecture around it since that's what they compete over.  If ARM Ltd 
+was to dictate everything composing the ARM architecture like what 
+happened on X86 then you'd end up with a much lower level of competition 
+and innovation.
 
-                          Linus
+If that means doing someting similar to "git mv arch/arm/mach-omap2 
+arch/omap2" for the dirstat to be more meaningful then let's do it.  But 
+I think that a different interpretation of the one you did would be more 
+appropriate here.
+
+> That's ridiculous. It's entirely due to the whole f*cked-up arm ecosystem.
+
+Well, let's face it, ARM is at the moment highly successful.  And yes it 
+might be destabilizing as ARM might be surpassing the X86 kernel 
+development rate while X86 always used to be the ultimate reference.  
+But calling the whole ecosystem "f*cked-up" because we have issue 
+scaling to it properly is a rather cheap argument.
+
+> Something needs to be done. A small part is to make sure the source
+> code is more hierarchical, so that we don't have those crazy shared
+> data-files that are ugly as hell and get conflicts because different
+> boards all think they need to care.
+
+Absolutely!
+
+> But the larger problem is that somebody really REALLY needs to think
+> about how to get those crazy board details out of the kernel entirely.
+> Having per-board drivers for real hardware is sane - having to have
+> per-board detail files for clock chips is just crazy. Split off that
+> thing a "Linux ARM second-stage bootloader" project that has the
+> per-board tables or something. Don't pollute the main kernel with
+> crazy details like this.
+
+There is on-going work to bring device tree support to ARM.  Maybe that 
+will be the way to go to move those clock details out of the kernel.  
+And maybe that will become another unfixable PC BIOS fiasco. We'll see.  
+I don't particularly like the idea of _more_ APIs between bootloaders 
+and the kernel.  Keeping everything fixable in only one place is way 
+more convenient than the burden of the occasional merge conflict.
+
+Sure, something has to be done to minimize the pain, your pain, but not 
+by increasing the pain elsewhere.  I think that you know pretty well 
+already how painful dealing with BIOS data, or ACPI, or any other vendor 
+controlled (sometimes closed source) config tables might be.  We've 
+sidestepped that pain entirely on ARM so far and that really feels good.
+
+
+Nicolas
