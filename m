@@ -1,85 +1,71 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: OMAP4 DSS clock setup
-Date: Wed, 30 Mar 2011 11:32:09 +0200
-Message-ID: <4D92F899.7010606@ti.com>
-References: <1301467733.2333.83.camel@deskari>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 0/4] iommu: Prevent oops in iommu_get() and while arch_iommu is in use
+Date: Wed, 30 Mar 2011 11:37:10 +0200
+Message-ID: <201103301137.10916.laurent.pinchart@ideasonboard.com>
+References: <4D8CB106.7030608@maxwell.research.nokia.com> <201103291732.52620.laurent.pinchart@ideasonboard.com> <4D92E6F8.5070100@maxwell.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:52906 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932185Ab1C3JcU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 30 Mar 2011 05:32:20 -0400
-In-Reply-To: <1301467733.2333.83.camel@deskari>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:44890 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932255Ab1C3Jgv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Mar 2011 05:36:51 -0400
+In-Reply-To: <4D92E6F8.5070100@maxwell.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, "Semwal, Sumit" <sumit.semwal@ti.com>, "Taneja, Archit" <archit@ti.com>, linux-omap <linux-omap@vger.kernel.org>
+To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Cc: "Ramirez Luna, Omar" <omar.ramirez@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Doyu Hiroshi (Nokia-D/Helsinki)" <hiroshi.doyu@nokia.com>, Cohen David Abraham <david.cohen@nokia.com>
 
-Hi Tomi,
+Hi Sakari,
 
-On 3/30/2011 8:48 AM, Valkeinen, Tomi wrote:
-> Hi Benoit, Paul,
->
-> I've been discussing with Sumit and Archit to understand how the DSS
-> clocks are set up on OMAP4. I think I now have some idea how things
-> work, but I'm still at loss why things are the way they are.
->
-> So, if I look at OMAP4 TRM, Figure 10-4 DSS Clock Tree, there are two
-> clocks in PRCM block that are relevant to this discussion: DSS_L3_ICLK
-> and DSS_FCLK. To my understanding DSS_L3_ICLK is not really
-> controllable, but it is affected by MODULEMODE bit.
->
-> Then we have two relevant clocks defined in clock44xx_data.c: dss_fck
-> and dss_dss_clk. dss_fck controls the MODULEMODE bit, and dss_dss_clk is
-> the TRM's DSS_FCLK.
->
-> Was that correct?
+On Wednesday 30 March 2011 10:16:56 Sakari Ailus wrote:
+> Laurent Pinchart wrote:
+> > On Friday 25 March 2011 20:37:55 Ramirez Luna, Omar wrote:
+> >> On Fri, Mar 25, 2011 at 10:13 AM, Sakari Ailus wrote:
+> >>> Hi,
+> >>> 
+> >>> This patchset is aimed to fix a problem in arch_iommu implementation
+> >>> references. When an actual arch_iommu implementation is not loaded
+> >>> while iommu_get() is being called results to a kernel oops, as well as
+> >>> removing an arch_iommu implementation which is in use.
+> >> 
+> >> How about fixing the dependency instead? Right now iommu2 depends on
+> >> iommu because of the calls to
+> >> install_iommu_arch/uninstall_iommu_arch... we should change that
+> >> dependency to iommu depend on iommu2. Something like iommu (plat)
+> >> querying iommu2 (mach) for devices to install.
+> > 
+> > The reason why iommu depends on iommu2 and not the other way around is
+> > because several mach-specific iommu implementations should be able to
+> > coexist in the same kernel. The right one should be loaded at runtime.
+> > 
+> > I think that Sakari's patches correcty fix the problems he noticed.
+> > However, they won't fix one basic issue, which is that the iommu2 module
+> > won't be automatically pulled in when the omap3isp module is loaded. The
+> > omap3isp driver will then fail to probe the device. That's better than
+> > crashing though.
+> 
+> One option would be to specify the name of the module in the platform
+> data and request_module() that in omap_iommu_probe(). This would solve
+> the issue, not sure how pretty is this though.
 
-Yes. For the moment, but this is not the final state.
+Do we need that ? My understanding is that a machine will need a single mach-
+specific iommu implementation only. Drivers shouldn't need to care about that. 
+The iommu implementation should be automatically selected based on the machine 
+time.
 
-> If so, from DSS driver's perspective, the dss_fck sounds very much like
-> an interface clock (it's always needed when DSS is used) and dss_dss_clk
-> sounds very much like functional clock (it's always needed, except if
-> DSI PLL is used for DSS functional clock).
->
-> If "dss_fck" would control DSS_FCLK and "dss_ick" would control
-> MODULEMODE, they would be about the same as the clocks in OMAP2 and 3,
-> and we wouldn't need any omap4 spesific trickery in the DSS driver.
-> ("dss_dss_clk" wouldn't be needed).
+> In a generic case there would have to be a list of modules implementing
+> iommu in the platform data.
+> 
+> > One possible solution for that is to turn the tristate option for iommu2
+> > into a bool option. I've also read a couple of times that the kernel
+> > provides a standard iommu API. Maybe switching to it would help.
+> 
+> That would solve it as well, but having it as a module would be nice, too.
 
-You cannot play with iclk, because this clock is supposed to be handled 
-automatically by the HW. This was the case on OMAP2 & 3 as well BTW.
+-- 
+Regards,
 
-> Why are the clocks set up in this strange fashion?
-
-There are a lot of historical reasons and some changes from OMAP3 to 
-OMAP4 that are not well handle by the current clock fmwk / hwmod fmwk.
-We are still trying to mimic OMAP2&3 clock management for OMAP4, and in 
-fact we should do the opposite.
-
-The issue is due to the confusion with the MODULEMODE and the real input 
-clock state.
-The MODULEMODE is just enabling the module (using iclk, fclk, opt clock) 
-or whatever clk is used as input clock.
-In the case of the DSS, several optional clocks can be used as fclk. 
-SYS_CLK, DSSCLK or the output of the DSI.
-In theory the MODULEMODE should be directly handled by hwmod since it is 
-similar to enable / disable the module. Using a clock to manage the 
-MODULEMODE is a temporary hack we are still using for the moment but 
-that should be removed at some point.
-
-The clock fmwk should be used only to select / enable the proper 
-optional clocks.
-
-In theory the current OMAP2 and OMAP3 iclken/fclken at PRCM level should 
-be handled as a OMAP4 MODULEMODE and not as 2 clock nodes like it is the 
-case today. Then we will have a consistent module / clock management.
-
-Hope this will help and clarify a little bit the current mess :-)
-
-Bottom-line is that you cannot do much at your level, the whole clock + 
-hwmod fmwk should be improved.
-
-Benoit
+Laurent Pinchart
