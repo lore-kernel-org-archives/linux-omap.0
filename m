@@ -1,135 +1,68 @@
-From: David Cohen <dacohen@gmail.com>
-Subject: Re: [PATCH 0/4] iommu: Prevent oops in iommu_get() and while
- arch_iommu is in use
-Date: Wed, 30 Mar 2011 18:50:17 +0300
-Message-ID: <BANLkTi=SocUuraFrX04LEhei1foJ8DDOHw@mail.gmail.com>
-References: <4D8CB106.7030608@maxwell.research.nokia.com>
-	<201103301137.10916.laurent.pinchart@ideasonboard.com>
-	<4D93352D.7090908@maxwell.research.nokia.com>
-	<201103301556.56822.laurent.pinchart@ideasonboard.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [GIT PULL] omap changes for v2.6.39 merge window
+Date: Wed, 30 Mar 2011 19:06:41 +0200
+Message-ID: <201103301906.42429.arnd@arndb.de>
+References: <20110317183048.GW7258@atomide.com> <AANLkTimWbb5DWiiCW821H6pRicbk1fS3PYcnGyUMznvM@mail.gmail.com> <20110318101512.GA15375@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:53640 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754659Ab1C3PuS convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Mar 2011 11:50:18 -0400
-Received: by iwn34 with SMTP id 34so1394294iwn.19
-        for <linux-omap@vger.kernel.org>; Wed, 30 Mar 2011 08:50:17 -0700 (PDT)
-In-Reply-To: <201103301556.56822.laurent.pinchart@ideasonboard.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20110318101512.GA15375@n2100.arm.linux.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Tony Lindgren <tony@atomide.com>, David Brown <davidb@codeaurora.org>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Nicolas Pitre <nico@fluxnic.net>, Catalin Marinas <catalin.marinas@arm.com>
 List-Id: linux-omap@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Doyu Hiroshi (Nokia-D/Helsinki)" <hiroshi.doyu@nokia.com>, Cohen David Abraham <david.cohen@nokia.com>
 
-On Wed, Mar 30, 2011 at 4:56 PM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> On Wednesday 30 March 2011 15:50:37 Sakari Ailus wrote:
->> Laurent Pinchart wrote:
->> > Hi Sakari,
->>
->> Hi Laurent,
->>
->> > On Wednesday 30 March 2011 10:16:56 Sakari Ailus wrote:
->> >> Laurent Pinchart wrote:
->> >>> On Friday 25 March 2011 20:37:55 Ramirez Luna, Omar wrote:
->> >>>> On Fri, Mar 25, 2011 at 10:13 AM, Sakari Ailus wrote:
->> >>>>> Hi,
->> >>>>>
->> >>>>> This patchset is aimed to fix a problem in arch_iommu implemen=
-tation
->> >>>>> references. When an actual arch_iommu implementation is not lo=
-aded
->> >>>>> while iommu_get() is being called results to a kernel oops, as=
- well
->> >>>>> as removing an arch_iommu implementation which is in use.
->> >>>>
->> >>>> How about fixing the dependency instead? Right now iommu2 depen=
-ds on
->> >>>> iommu because of the calls to
->> >>>> install_iommu_arch/uninstall_iommu_arch... we should change tha=
-t
->> >>>> dependency to iommu depend on iommu2. Something like iommu (pla=
-t)
->> >>>> querying iommu2 (mach) for devices to install.
->> >>>
->> >>> The reason why iommu depends on iommu2 and not the other way aro=
-und is
->> >>> because several mach-specific iommu implementations should be ab=
-le to
->> >>> coexist in the same kernel. The right one should be loaded at ru=
-ntime.
->> >>>
->> >>> I think that Sakari's patches correcty fix the problems he notic=
-ed.
->> >>> However, they won't fix one basic issue, which is that the iommu=
-2
->> >>> module won't be automatically pulled in when the omap3isp module=
- is
->> >>> loaded. The omap3isp driver will then fail to probe the device. =
-That's
->> >>> better than crashing though.
->> >>
->> >> One option would be to specify the name of the module in the plat=
-form
->> >> data and request_module() that in omap_iommu_probe(). This would =
-solve
->> >> the issue, not sure how pretty is this though.
->> >
->> > Do we need that ? My understanding is that a machine will need a s=
-ingle
->> > mach- specific iommu implementation only. Drivers shouldn't need t=
-o care
->> > about that.
->>
->> Well, no more than that there would have to be a driver for the IOMM=
-U
->> for that very hardware.
->>
->> > The iommu implementation should be automatically selected based on=
- the
->> > machine time.
->>
->> Machine type?
->>
->> I agree, but where is the selection made?
->
-> The selection can be made by board code, or by the iommu implementati=
-ons
-> themselves if they're compiled in.
+On Friday 18 March 2011, Russell King - ARM Linux wrote:
+> I do get the impression that you're extremely unhappy with the way ARM
+> stuff works, and I've no real idea how to solve that.  I think much of
+> it is down to perception rather than anything tangible.
+> 
+> Maybe the only solution is for ARM to fork the kernel, which is something
+> I really don't want to do - but from what I'm seeing its the only solution
+> which could come close to making you happy.
 
-I prefer the first option. The second one will make the current
-implementation be even more OMAP-only.
-We have basically 3 layers:
-IOVMM, IOMMU_GENERIC and IOMMU_SPECIFIC. The middle one should be
-generic and don't care about machine types. The later one can be
-handled by board code as it's machine specific and, for most of the
-cases, I see no reason to let any other implementation besides the
-machine type's to be loaded.
+I'm still new to the ARM world, but I think one real problem is the way
+that all platforms have their own trees with a very flat hierarchy --
+a lot of people directly ask Linus to pull their trees, and the main
+way to sort out conflicts is linux-next. The number of platforms in the
+ARM arch is still increasing, so I assume that this only gets worse.
 
-But the generic layer should not depend on any specific one. If
-somebody decides to load the specific layer after the generic one, it
-cannot be a problem.
+This would be no easier if everyone was asking you to pull their trees,
+as I believe was the case before that. The amount of code getting changed
+there is too large to get reviewed by a single person, and I believe
+neither of you really wants the burden to judge if all of the branches
+are ok (and complain to the authors when they are not).
 
-Regards,
+Russell, do you think it would help to have an additional ARM platform
+tree that collects all the changes that impact only the platform code but
+not the core architecture? I believe that would be a way out, but requires
+a careful selection of people responsible for it. In particular, I don't
+think a single person can handle it without good sub-maintainers.
 
-David
+The way that x86 is maintained is to have a small group of people that
+all have write access to one tree, so patches and branches from downstream
+maintainers can get pulled by a number of people, when at least one of
+them in totally comfortable with the contents and nobody else objects.
+In case one of them is unhappy about something that went in, it can always
+get reverted and will not be applied again until everybody is happy with it.
 
->
-> --
-> Regards,
->
-> Laurent Pinchart
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =C2=A0http://vger.kernel.org/majordomo-info.ht=
-ml
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I think a similar setup would be possible for ARM, but only if you are
+in the team, plus one person from at least ARM Ltd (Catalin?),
+Linaro (Nicolas?) and maybe one or two more, but none of the actual
+SoC vendors that produce the bulk of the code that would go in there.
+
+It would also require buy-in from Linus eventually, to make it clear that
+he would pull from that tree directly and no longer from other 
+subarchitecture trees, once the process has been proven to work
+for everyone.
+
+I don't think I would want to be on the committers team myself, to make
+it not too Linaro-heavy, but I can definitely offer a significant amount
+of time for reviewing patches to be committed by someone else.
+
+Also, I would assume that your own time would keep focused on the core
+ARM tree that already keeps you busy enough.
+
+	Arnd
