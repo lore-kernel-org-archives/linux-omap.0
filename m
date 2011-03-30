@@ -1,55 +1,54 @@
-From: <kalle.jokiniemi@nokia.com>
-Subject: RE: [PATCH v3 2/2] RX-51: Enable isp1704 power on/off
-Date: Wed, 30 Mar 2011 07:00:29 +0000
-Message-ID: <9D0D31AA57AAF5499AFDC63D6472631B06F20F@008-AM1MPN1-036.mgdnok.nokia.com>
-References: <1301405280-16899-1-git-send-email-kalle.jokiniemi@nokia.com>
- <1301405280-16899-3-git-send-email-kalle.jokiniemi@nokia.com>
- <a5285450b1fc92da8a42cc0733360a30@mail.gmail.com>
- <9D0D31AA57AAF5499AFDC63D6472631B06F1AE@008-AM1MPN1-036.mgdnok.nokia.com>
- <13db9138ec7598cfe100deae367f0b6a@mail.gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] OMAP4: DSS2: Add Panel Taal device struct in 4430sdp
+ board file
+Date: Wed, 30 Mar 2011 10:02:41 +0300
+Message-ID: <1301468561.2333.86.camel@deskari>
+References: <1301390798-22951-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:17515 "EHLO mgw-da02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751638Ab1C3HAi convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Mar 2011 03:00:38 -0400
-In-Reply-To: <13db9138ec7598cfe100deae367f0b6a@mail.gmail.com>
-Content-Language: en-US
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:40153 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754335Ab1C3HCp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 30 Mar 2011 03:02:45 -0400
+Received: by mail-ew0-f41.google.com with SMTP id 9so388134ewy.14
+        for <linux-omap@vger.kernel.org>; Wed, 30 Mar 2011 00:02:44 -0700 (PDT)
+In-Reply-To: <1301390798-22951-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: keshava_mgowda@ti.com, linux-usb@vger.kernel.org, cbouatmailru@gmail.com
-Cc: balbi@ti.com, Heikki.Krogerus@nokia.com, sshtylyov@mvista.com, tony@atomide.com, khilman@ti.com, linux-omap@vger.kernel.org, jhnikula@gmail.com
+To: Archit Taneja <archit@ti.com>, tony@atomide.com
+Cc: linux-omap@vger.kernel.org
 
-Hi,
+On Tue, 2011-03-29 at 14:56 +0530, Archit Taneja wrote:
+> Panel Taal is a DSI panel connected to the DSI1 lanes on 4430sdp and Blaze.
+> Add omap_dss_device struct for Panel Taal in the 4430sdp board file. This
+> represents the primary lcd device on 4430sdp board and Blaze board. The
+> following things are done:
+> -Add regulator consumers (vdds_dsi) for the VCXIO supply. VCXIO on blaze and
+> 4430sdp is a regulator supply for dsi, csi2, usb otg, and the DPLLs of mpu, iva
+> and audio core. Since VCXIO has no consumers declared and the mpu's DPLL is also
+> powered by it, set the always_on flag for the regulator so that VCXIO is never
+> shut off accidentally.
+> -Remove dummy lcd platform_device.
+> -Add dsi_set_backlight() routine, original routine was written by Vikram Pandita.
+> -Mux settings for DSI1 lanes, GPIO initialisations for Taal reset and Backlight.
+> 
+> Signed-off-by: Archit Taneja <archit@ti.com>
+> ---
+> Note:
+> Can be tested with the tree:
+> http://gitorious.org/~boddob/linux-omap-dss2/archit-dss2-clone
+> 
+>  arch/arm/mach-omap2/board-4430sdp.c |  132 +++++++++++++++++++++++++++++++---
+>  1 files changed, 120 insertions(+), 12 deletions(-)
 
- > -----Original Message-----
- > From: ext Keshava Munegowda [mailto:keshava_mgowda@ti.com]
+Looks good to me. I think I can take this to my tree, and see if I can
+get this and the few DSS bug fixes in for rc2.
 
-<snip>
+Tony, can you ack this if it looks ok for you?
 
-> >  > > +
- > >  > >  static struct platform_device rx51_charger_device = {
- > >  > > -	.name = "isp1704_charger",
- > >                             ^space here
- > >
- > >
- > >
- > >  > > +	.name	= "isp1704_charger",
- > >                               ^tab here
- > >  >
- > >  > I don't understand what difference between above two lines?
- > >  > Is your mail client causing this? Or get send-mail doing this?
- > >
- > > No, changed space for tab so that all the members are indented same way.
- > > I had that (apparently obscure) explanation about this in the commit log
- > ;)
- > 
- > Then, I am sorry; I couldn't able to notice this!
-
-No problem, you're not the first one to point that out :)
-
-- Kalle
+ Tomi
 
 
