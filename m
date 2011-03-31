@@ -1,55 +1,62 @@
-From: Aaro Koskinen <aaro.koskinen@nokia.com>
-Subject: Re: Code for v2.6.39 merge window frozen, patches archived
-Date: Thu, 31 Mar 2011 17:53:04 +0300 (EEST)
-Message-ID: <alpine.DEB.1.10.1103311722520.2634@esdhcp041196.research.nokia.com>
-References: <20110314192538.GH7258@atomide.com> <alpine.DEB.1.10.1103151856180.880@esdhcp041196.research.nokia.com> <4D7FC70D.7050508@ti.com> <alpine.DEB.1.10.1103161533470.2634@esdhcp041196.research.nokia.com> <4D80CA2F.8060300@ti.com>
- <alpine.DEB.1.10.1103161903250.2634@esdhcp041196.research.nokia.com> <20110329233243.GR4016@atomide.com> <87lizwskcc.fsf@ti.com>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [GIT PULL] omap changes for v2.6.39 merge window
+Date: Thu, 31 Mar 2011 17:01:40 +0200 (CEST)
+Message-ID: <alpine.LFD.2.00.1103311647300.22418@localhost6.localdomain6>
+References: <201103301906.42429.arnd@arndb.de> <AANLkTim578-kwM14SJd06RW_QiC4WVCmFuG+ASgGC4sq@mail.gmail.com> <alpine.LFD.2.00.1103301531420.28032@xanadu.home> <AANLkTim6zg-U6HtAQbqnENqoK7x8erXSqOuTFVC0YE5r@mail.gmail.com> <alpine.LFD.2.00.1103301814250.28032@xanadu.home>
+ <alpine.DEB.2.00.1103301728000.15330@asgard.lang.hm> <alpine.LFD.2.00.1103302255280.28032@xanadu.home> <alpine.DEB.2.00.1103302130500.29543@asgard.lang.hm> <alpine.LFD.2.00.1103310145390.28032@xanadu.home> <20110331080634.GA18022@elte.hu>
+ <20110331083044.GB14323@n2100.arm.linux.org.uk> <alpine.LFD.2.00.1103311359320.22418@localhost6.localdomain6> <87d3l7jqpr.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:23229 "EHLO mgw-da02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758063Ab1CaOz6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 31 Mar 2011 10:55:58 -0400
-In-Reply-To: <87lizwskcc.fsf@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <87d3l7jqpr.fsf@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Kevin Hilman <khilman@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, nicolas.pitre@linaro.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Ingo Molnar <mingo@elte.hu>, Nicolas Pitre <nico@fluxnic.net>, david@lang.hm, Linus Torvalds <torvalds@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, David Brown <davidb@codeaurora.org>, lkml <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, "H. Peter Anvin" <hpa@zytor.com>
+List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On Thu, 31 Mar 2011, Kevin Hilman wrote:
 
-On Wed, 30 Mar 2011, Kevin Hilman wrote:
-> Tony Lindgren <tony@atomide.com> writes:
->> FYI, looks like we've started hitting some booter -l kernel size limit
->> in addition to booter -f size limit.. Now kernels built with
->> omap2plus_defconfig won't boot on n900 any longer.
+> Thomas Gleixner <tglx@linutronix.de> writes:
+> 
+> > But the current SoC maintainer model does not work either. The SoC
+> > maintainers care about their sandbox and have exactly zero incentive
+> > to look at the overall picture, e.g reuse of code for the same IP
+> > blocks, better abstraction mechanisms etc. 
+> 
+> zero incentive?  that's a bit strong, IMO.
+> 
+> That may be true for some SoCs, it's not really fair as a sweeping
+> statement.
 
-I guess you are seeing it just hanging at "Uncompressing Linux... done,
-booting the kernel."?
+Fair enough, but it's the perception in general.
 
->> I guess the way around that is to install the u-boot loader package.
->
-> Alternatively CONFIG_KERNEL_LZMA=y will get the kernel zImage size back
-> within size limits that will boot on n900.
+> Conference (ELC, US and Europe.)  Especially as IP blocks are reused
+> across SoC families, abstractions like runtime PM are the only way to
+> keep the SoC specifics of PM out of the common driver.
 
-Hmm, I'm a bit puzzled. For me, .38 works but .39-rc1 does not, and I
-can't see any "special" limit exceeded. Also LZMA is broken:
+Right, I know that these things happen, but at the same time the sheer
+amount of stuff flowing in makes it hard that these infrastructure
+stuff really works out. And we are only at the beginning of the big
+shuffle "code in to mainline" game.
 
- 	Uncompressing Linux...
+After cleaning up the whole irq stuff across the tree I can tell you,
+that the mess is non-linear growing with the number of instances.
 
- 	LZMA data is corrupt
+You can see the patterns which are:
+    - copy and paste
+    - introduce different bugs
+    - add more abuse
 
- 	-- System halted
+That's what I'm really concerned about.
 
-I did some bisecting, and with the following commit reverted -rc1 works:
+> Yes, ARM SoC maintainers have to make up some ground.  But compare this
+> to just a couple years ago where the common complaint was "why aren't
+> embedded SoC people contributing code to mainline", and you'll see we
+> have come a long way.
 
- 	commit d239b1dc093d551046a909920b5310c1d1e308c1
- 	Author: Nicolas Pitre <nicolas.pitre@linaro.org>
- 	Date:   Mon Feb 21 04:57:38 2011 +0100
+Well, code comes in, which is progress. But we need to figure out how
+to deal with the increasingly growing flood before we drown in it.
 
- 	ARM: 6746/1: remove the 4x expansion presumption while decompressing the kernel
+Thanks,
 
-With the revert, also bigger gzipped kernel works.
-
-A.
+	tglx
