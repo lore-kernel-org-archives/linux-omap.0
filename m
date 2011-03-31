@@ -1,63 +1,61 @@
 From: Thomas Gleixner <tglx@linutronix.de>
 Subject: Re: [GIT PULL] omap changes for v2.6.39 merge window
-Date: Thu, 31 Mar 2011 20:34:56 +0200 (CEST)
-Message-ID: <alpine.LFD.2.00.1103312019350.22418@localhost6.localdomain6>
-References: <201103301906.42429.arnd@arndb.de> <AANLkTim578-kwM14SJd06RW_QiC4WVCmFuG+ASgGC4sq@mail.gmail.com> <alpine.LFD.2.00.1103301531420.28032@xanadu.home> <AANLkTim6zg-U6HtAQbqnENqoK7x8erXSqOuTFVC0YE5r@mail.gmail.com> <alpine.LFD.2.00.1103301814250.28032@xanadu.home>
- <alpine.DEB.2.00.1103301728000.15330@asgard.lang.hm> <alpine.LFD.2.00.1103302255280.28032@xanadu.home> <alpine.DEB.2.00.1103302130500.29543@asgard.lang.hm> <alpine.LFD.2.00.1103310145390.28032@xanadu.home> <20110331080634.GA18022@elte.hu>
- <20110331083044.GB14323@n2100.arm.linux.org.uk> <alpine.DEB.2.00.1103310855450.29543@asgard.lang.hm> <alpine.LFD.2.00.1103311218240.28032@xanadu.home>
+Date: Thu, 31 Mar 2011 20:55:44 +0200 (CEST)
+Message-ID: <alpine.LFD.2.00.1103312041580.31043@localhost6.localdomain6>
+References: <201103301906.42429.arnd@arndb.de> <alpine.LFD.2.00.1103311359320.22418@localhost6.localdomain6> <87d3l7jqpr.fsf@ti.com> <201103311723.02301.arnd@arndb.de> <alpine.LFD.2.00.1103311826070.22418@localhost6.localdomain6>
+ <alpine.LFD.2.00.1103311400190.28032@xanadu.home>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from www.linutronix.de ([62.245.132.108]:40963 "EHLO linutronix.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758781Ab1CaSfS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 31 Mar 2011 14:35:18 -0400
-In-Reply-To: <alpine.LFD.2.00.1103311218240.28032@xanadu.home>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <alpine.LFD.2.00.1103311400190.28032@xanadu.home>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Nicolas Pitre <nico@fluxnic.net>
-Cc: david@lang.hm, Russell King - ARM Linux <linux@arm.linux.org.uk>, Ingo Molnar <mingo@elte.hu>, Linus Torvalds <torvalds@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, David Brown <davidb@codeaurora.org>, lkml <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, "H. Peter Anvin" <hpa@zytor.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, Kevin Hilman <khilman@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Ingo Molnar <mingo@elte.hu>, david@lang.hm, Linus Torvalds <torvalds@linux-foundation.org>, Tony Lindgren <tony@atomide.com>, David Brown <davidb@codeaurora.org>, lkml <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, "H. Peter Anvin" <hpa@zytor.com>
+List-Id: linux-omap@vger.kernel.org
 
 On Thu, 31 Mar 2011, Nicolas Pitre wrote:
-> On Thu, 31 Mar 2011, david@lang.hm wrote:
+
+> On Thu, 31 Mar 2011, Thomas Gleixner wrote:
 > 
-> > I think that part of the issue is that when Linus points out a problem, the
-> > response isn't "we agree and are working on it, here's what we are doing",
-> > instead it seems to be mostly "there is no problem, this is just because there
-> > is so much variation in ARM"
->
-> If prominent people looking at this from the side line continue bashing 
-> at those who are both feet in the mud trying to contain the flood rather 
-> than actually helping then nothing will change.  Instead this only 
-> creates despair and the splashed people may simply decide to throw in 
-> the towel, at which point things will collapse for real.  In reality, 
-> the system has been going as it is for quite a while and with more or 
-> less the same level of intensity.  And the fact is that _users_ of the 
-> ARM kernel are not complaining.  Things are far from being perfect, but 
-> so far things have been "good enough" for the majority of the people 
-> involved, and improvements are constantly being worked on with the men 
-> power available.
+> > Start off with such a trivial, but immense effective cleanup and see
+> > what it helps to share code even accross SoC vendors. They all glue
+> > together random IP blocks from the market and there are not soo many
+> > sources which are relevant. This makes sense in all aspects:
+> > 
+> >       1) less and better code
+> >       2) faster setup for new SoCs
+> >       3) shared benefit for all vendors
+> 
+> If this was always true.  Someone commented on the fact that the IP 
+> block providing USB on OMAP is shared with a couple other platforms.  
+> But about 2600 lines of pure glue is still necessary around the common 
+> driver to make it work for everyone.  I'm not saying that separate 
+> drivers are called for here, simply that hardware people _will_ screw it 
+> up, especially when they are hooking it up to a non-standard 
+> SOC-specific bus.
 
-And that's the whole point why I was ranting in the first place. I
-know that there are clever folks working on the solution, but it's
-entirely clear to me, that they are simply not enough compared to the
-massive inbound flood. So neither you nor Russell can cope with it,
-you simply do not scale. That's why I suggested that the ARM community
-needs to push competent man power into this.
+Right. That's a problem, but we should not ignore the places where
+reusing stuff is easy possible. And making good examples out of it.
 
-You say the concept of subarch maintainers is working quite well. That
-depends on the definition of working. It works in terms of users can
-use it, but it does not work from a maintainability POV.
+And it really _IS_ worth the trouble. Look at the git log of
+drivers/spi/pxa2xx* . We could have slapped the other "x86" driver
+into spi, but that does not make any sense from a software engineering
+and maintainability POV. And it would have been more work in the end
+to cleanup the separate driver than isolating the existing one and
+reuse it.
 
-Nobody wants to bash on those who are working on it, but IMNSHO the
-current way is running into an utter nightmare even w/o you and
-Russell throwing in the towel.
+This is a sustainability issue. And we need to become more clever
+about identifying the places where we can abstract stuff into shared
+drivers and infrastructure when we want to sustain Linux for another
+few decades.
 
-I went through quite a few iterations of large scale cleanups, so I
-know how you feel.
+> And what would the hardware guys tell you?  That software is cheap.
+
+If you can prove with simple examples that using existing software
+removes 6 month of useless reinventing the wheel and another 6 month
+of testing plus the fight with the kernel folks, then eventually they
+start to listen as you can express this in $$$.
 
 Thanks,
 
 	tglx
-
-
