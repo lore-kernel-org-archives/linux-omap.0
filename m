@@ -1,93 +1,87 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 05/10] omap2+: Use dmtimer macros for clockevent
-Date: Thu, 31 Mar 2011 14:35:26 -0700
-Message-ID: <8762qz9dnl.fsf@ti.com>
-References: <20110328221501.4046.41079.stgit@baageli.muru.com>
-	<20110328222140.4046.91213.stgit@baageli.muru.com>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [GIT PULL] omap changes for v2.6.39 merge window
+Date: Thu, 31 Mar 2011 23:40:11 +0200 (CEST)
+Message-ID: <alpine.LFD.2.00.1103312229240.31043@localhost6.localdomain6>
+References: <alpine.LFD.2.00.1103301531420.28032@xanadu.home> <AANLkTim6zg-U6HtAQbqnENqoK7x8erXSqOuTFVC0YE5r@mail.gmail.com> <alpine.LFD.2.00.1103301814250.28032@xanadu.home> <alpine.DEB.2.00.1103301728000.15330@asgard.lang.hm> <alpine.LFD.2.00.1103302255280.28032@xanadu.home>
+ <alpine.DEB.2.00.1103302130500.29543@asgard.lang.hm> <alpine.LFD.2.00.1103310145390.28032@xanadu.home> <20110331080634.GA18022@elte.hu> <20110331083044.GB14323@n2100.arm.linux.org.uk> <alpine.DEB.2.00.1103310855450.29543@asgard.lang.hm>
+ <20110331164539.GB19452@n2100.arm.linux.org.uk> <AANLkTi=tyifvJU-hhdd7gT74GMctrCbQBdUAoEaRXOCy@mail.gmail.com> <alpine.LFD.2.00.1103311429590.28032@xanadu.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:38459 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758915Ab1CaVfa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 31 Mar 2011 17:35:30 -0400
-Received: by mail-px0-f171.google.com with SMTP id 7so688298pxi.16
-        for <linux-omap@vger.kernel.org>; Thu, 31 Mar 2011 14:35:29 -0700 (PDT)
-In-Reply-To: <20110328222140.4046.91213.stgit@baageli.muru.com> (Tony
-	Lindgren's message of "Mon, 28 Mar 2011 15:21:40 -0700")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <alpine.LFD.2.00.1103311429590.28032@xanadu.home>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Nicolas Pitre <nico@fluxnic.net>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, david@lang.hm, Ingo Molnar <mingo@elte.hu>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, David Brown <davidb@codeaurora.org>, lkml <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, "H. Peter Anvin" <hpa@zytor.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Tony Lindgren <tony@atomide.com> writes:
+On Thu, 31 Mar 2011, Nicolas Pitre wrote:
+> On Thu, 31 Mar 2011, Linus Torvalds wrote:
+> > What I'm _not_ seeing is a lot of cross-platform maintenance or sense
+> > of people trying to reign things in and look for solutions to the
+> > proliferation of random stupid and mindless platform code.
+> 
+> I do that, Russell does that, Catalin does that, Tony does that, and 
+> maybe less than a handful of other important people I'm not listing 
+> (sorry).  But clearly we are far far from being enough people doing that 
+> kind of work.  And the fact is that the volume of ARM platform code is 
+> steadily being produced at a rate far surpassing X86, and even higher 
+> than all the other architectures put together.  Linaro is trying to help 
+> here, but Linaro cannot conjure the needed experience and knowledge for 
+> that kind of work with a magic wand.
+> 
+> So we need help!  If core kernel people could get off their X86 stool 
+> and get down in the ARM mud to help sort out this mess that would be 
+> really nice (thanks tglx).  Until then all that the few of us can do is 
 
-> This patch makes timer-gp.c to use only a subset of dmtimer
-> functions without the need to initialize dmtimer code early.
->
-> Note that omap_dmtimer_init_one can eventually be moved to
-> omap2+ specific dmtimer.c.
->
-> Also note that now with the inline functions, timer_set_next_event
-> becomes more efficient in the lines of assembly code.
->
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
+The main help we can give (aside of actually looking at code and
+concepts) is to feed back the experience we have with massive cleanups
+and which mechanisms work and which not and - at least I can speak for
+myself - to stand at your side when it comes to pushing that through.
 
-In looking closer at this patch, I have a few questions.
+One thing what really helps to force people to get their act together
+is that you as maintainers identify trouble spots which are easily
+addressable. Then put those spots on your list and require people who
+want to submit new features in that area to cleanup the mess first and
+then put their new feature thing on top. We successfully used this to
+get the unification work after the mechanical i386/x86_64 merger
+done. It requires a lot of stubborness, but it reduces the work burden
+of the maintainers a lot.
 
-[...]
+Once you have the easy spots addressed, that could be device tree
+stuff, gpio, irq_chips for the beginning and see how it works out,
+then go steps further.
 
-> @@ -75,7 +97,8 @@ static struct irqaction omap2_gp_timer_irq = {
->  static int omap2_gp_timer_set_next_event(unsigned long cycles,
->  					 struct clock_event_device *evt)
->  {
-> -	omap_dm_timer_set_load_start(gptimer, 0, 0xffffffff - cycles);
-> +	__omap_dm_timer_load_start(clkev.io_base, OMAP_TIMER_CTRL_ST,
-> +						0xffffffff - cycles, 1);
->  
->  	return 0;
+The important point here is from my POV that you put down the
+requirements with no wiggle room and just ignore the "oh it could be
+done better" whining. Either people come up with a patch which solves
+the whole issue better or they just will cope. But when you have
+consolidated stuff then you can and need to look from a high level
+perspective and refine the infrastructure.
 
-The creation of macros is causing some readability concern, at least for
-me...
+I really regret in hindsight, that I did not enforce the cleanup of
+the irq layer way earlier and that I did not see the abuse of it early
+enough. At some point I realized that being polite is the wrong
+solution, so I forced myself to push this cleanup through. That's an
+experience which I don't wish anybody else to make. Especially because
+as long as the oldstyle stuff works oldstyle crap comes in faster than
+you can fix it. See commit 9ad198c. And it's a massive effort to do
+something which results in:
 
-In creating the macro versions of some of the functions, the macro
-version actually has different behavior which makes reading the code a
-little confusing.
+Total patches:                 414
+Total files touched:	       702	
+Total insertions:             6805
+Total deletions:              8632
+Lines added                  -1827
 
-I just noticed that the macro version of _load_start() doesn't actually
-do the "start", so you added the OMAP_TIMER_CTRL_ST when calling it.
-To do this, the macro version takes a 'ctrl' argument where as the
-"real" version only takes the autoreload argument.
+And that massive effort is just because you cannot break stuff after
+the fact in a massive scale. The whole thing introduced a mere 6
+patches fixup fallout which were applied one day after rc1. It could
+have been avoided, but ....
 
-If you're going to keep the same function name (but just add the __
-prefix, I would expect that the functionality of the function doesn't
-change.
+So yes, we can and will help with advise, a certain amount of review
+(especially on the concept level) and giving you all the support you
+need to fight that trough.
 
-If the functionality of the macro is different from the "real" function,
-it should probably just be given a different name.   In this case,
-probably dropping the _start suffix is probably enough.
+Thanks,
 
->  }
-> @@ -85,13 +108,13 @@ static void omap2_gp_timer_set_mode(enum clock_event_mode mode,
->  {
->  	u32 period;
->  
-> -	omap_dm_timer_stop(gptimer);
-> +	omap_dm_timer_stop(&clkev);
->  
->  	switch (mode) {
->  	case CLOCK_EVT_MODE_PERIODIC:
-> -		period = clk_get_rate(omap_dm_timer_get_fclk(gptimer)) / HZ;
-> +		period = clkev.rate / HZ;
->  		period -= 1;
-> -		omap_dm_timer_set_load_start(gptimer, 1, 0xffffffff - period);
-> +		omap_dm_timer_set_load_start(&clkev, 1, 0xffffffff - period);
-
-Hmm, you're using the driver function here not the macro.  Is that
-intended?
-
-Why not use the macro version here with OMAP_TIMER_CTRL_AR |
-OMAP_TIMER_CTRL_ST.
-
-Kevin
+	tglx
