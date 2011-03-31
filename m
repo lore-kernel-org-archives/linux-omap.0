@@ -1,60 +1,77 @@
-From: Thomas Gleixner <tglx@linutronix.de>
+From: Ingo Molnar <mingo@elte.hu>
 Subject: Re: [GIT PULL] omap changes for v2.6.39 merge window
-Date: Thu, 31 Mar 2011 12:11:53 +0200 (CEST)
-Message-ID: <alpine.LFD.2.00.1103310928240.22418@localhost6.localdomain6>
-References: <20110317183048.GW7258@atomide.com> <AANLkTimWbb5DWiiCW821H6pRicbk1fS3PYcnGyUMznvM@mail.gmail.com> <20110318101512.GA15375@n2100.arm.linux.org.uk> <201103301906.42429.arnd@arndb.de> <AANLkTim578-kwM14SJd06RW_QiC4WVCmFuG+ASgGC4sq@mail.gmail.com>
- <20110331001502.GB6680@n2100.arm.linux.org.uk> <AANLkTinE7EDbV8hrYZWBxgvwOxdPMLoS0Y57PSm04rvM@mail.gmail.com> <alpine.LFD.2.00.1103302319290.28032@xanadu.home>
+Date: Thu, 31 Mar 2011 12:41:52 +0200
+Message-ID: <20110331104152.GB3723@elte.hu>
+References: <AANLkTim578-kwM14SJd06RW_QiC4WVCmFuG+ASgGC4sq@mail.gmail.com>
+ <alpine.LFD.2.00.1103301531420.28032@xanadu.home>
+ <AANLkTim6zg-U6HtAQbqnENqoK7x8erXSqOuTFVC0YE5r@mail.gmail.com>
+ <alpine.LFD.2.00.1103301814250.28032@xanadu.home>
+ <alpine.DEB.2.00.1103301728000.15330@asgard.lang.hm>
+ <alpine.LFD.2.00.1103302255280.28032@xanadu.home>
+ <alpine.DEB.2.00.1103302130500.29543@asgard.lang.hm>
+ <alpine.LFD.2.00.1103310145390.28032@xanadu.home>
+ <20110331080634.GA18022@elte.hu>
+ <20110331083044.GB14323@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.LFD.2.00.1103302319290.28032@xanadu.home>
+Content-Disposition: inline
+In-Reply-To: <20110331083044.GB14323@n2100.arm.linux.org.uk>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Nicolas Pitre <nico@fluxnic.net>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, David Brown <davidb@codeaurora.org>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Nicolas Pitre <nico@fluxnic.net>, david@lang.hm, Linus Torvalds <torvalds@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, David Brown <davidb@codeaurora.org>, lkml <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>
 List-Id: linux-omap@vger.kernel.org
 
-B1;2401;0cOn Thu, 31 Mar 2011, Nicolas Pitre wrote:
-> On Wed, 30 Mar 2011, Linus Torvalds wrote:
-> > And ARM fanbois can say "oh, but arm is special" all they want, but
-> > they need to realize that the lack of common platform for ARM is a
-> > real major issue. It's not a "feature", and I'm sorry, but anybody who
-> > calls x86 "peanuts" is a moron and should be ashamed of himself.
-> > Instead of trying to feel superior, those people should feel like
-> > pariah.
+
+* Russell King - ARM Linux <linux@arm.linux.org.uk> wrote:
+
+> On Thu, Mar 31, 2011 at 10:06:34AM +0200, Ingo Molnar wrote:
+> > Having strong, effective platform abstractions inside the kernel really helps 
+> > even if the hardware space itself is inevitably fragmented: both powerpc and 
+> > x86 has shown that. Until you realize and appreciate that you really have not 
+> > understood the problem i think.
 > 
-> Oh come on.  You just provided actual numbers above showing that ARM is 
-> simply fscked up (your words) compared to X86.  I would be curious to 
-> know what people like tglx who did significant work on both 
-> architectures actually think of X86 relative to ARM when it comes to 
-> kernel maintenance.
+> No, I think it is the other way around.  Folk like me and Nicolas over the 
+> last ten years have put considerable amounts of effort into trying to keep 
+> the ARM support code as clean and maintainable as possible.
 
-To be honest both suck in their own way. The only reason why x86 is
-slightly less horrible is the fact that it's better architectured at
-the hardware level.
+Absolutely no argument about that, whenever i have read core ARM code it was 
+always a pleasure. You guys are doing a fine job there.
 
-But I see the same mess coming in with all those wonderful Atom based
-SoCs on the horizon, which are nothing else than any other random ARM
-SoC, just that they glue an x86 core into the same cheepo random IP
-peripherals conglomerate. In fact some of those chip have been ARM
-powered before they got an x86 injected.
+What i argued with was what Nicolas said:
 
-And worse: the Intel folks went there and wrote a new driver for an IP
-block which had already an "ARM associated" driver.
+  > > > back in the early days of the PCs, different systems from different 
+  > > > vendors had different bus types, peripherals at different addresses, 
+  > > > etc. that didn't make all of those vendors systems different 
+  > > > architectures, instead those things were varients of the x86 
+  > > > architecture.
+  > >
+  > > Most of them didn't survive.  That really helps.
 
-So I say that it is not only an ARM problem, it's a general problem
-that people do not realize that the IP cores are reused all over the
-place and across architectures.
+It does not matter whether hardware survives or not - most pieces of hardware 
+do not survive. What matters is whether the inevitable hardware-churn is 
+allowed to litter the kernel tree with unmaintainable pieces of crap.
 
-I'm pretty sure after I went through all the irq code recently that
-lots of those ARM SoCs from vendors across the board could share a lot
-of driver code if someone would actually sit down and analyse the
-situation. Right now we have nobody who has the time and the stomach
-to go through this and at the same time prevent that more copied
-crappola is hitting the tree.
+You even mention that it's not maintainable to you:
 
-I'm sure that device tree is part of the solution, but that only helps
-if we find a way to prevent duplicate drivers in the first place.
+> That is true of the common ARM stuff, but there's no way we can do this for 
+> all SoC support - there aren't the hours in the day to provide such a wide 
+> oversight. [...]
+
+The problem is the solution:
+
+> That's why we have SoC maintainers, and the SoC maintainers have the 
+> responsibility to sort out their own sub-trees.
+
+... which sets the wolves to mind the sheep, so to say. Self-oversight never 
+worked very well (unless you believe in perpetual bank bailouts).
+
+So Linus and Thomas (with the genirq hat on) are pushing back, because both of 
+them feel affected negatively by crap.
+
+"All is fine" or "it's just natural" do not seem like the right answers to 
+those concerns.
 
 Thanks,
 
-	tglx
+	Ingo
