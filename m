@@ -1,79 +1,31 @@
-From: "Avinash.H.M." <avinashhm@ti.com>
-Subject: Re: [PATCH] omap: hwmod: add syss reset done flags to omap2, omap3
- hwmods
-Date: Thu, 31 Mar 2011 18:36:06 +0530
-Message-ID: <20110331130606.GB3938@avinash-laptop>
-References: <1298542123-3654-1-git-send-email-avinashhm@ti.com>
- <alpine.DEB.2.00.1103031427580.10981@utopia.booyaka.com>
- <20110314161609.GA10506@avinash-laptop>
- <alpine.DEB.2.00.1103242336410.21987@utopia.booyaka.com>
- <4D8CA9C4.3060504@ti.com>
- <alpine.DEB.2.00.1103251121060.21987@utopia.booyaka.com>
- <20110326113138.GA3668@avinash-laptop>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [GIT PULL] omap changes for v2.6.39 merge window
+Date: Thu, 31 Mar 2011 14:25:33 +0100
+Message-ID: <20110331132533.GC17547@n2100.arm.linux.org.uk>
+References: <alpine.LFD.2.00.1103301531420.28032@xanadu.home> <AANLkTim6zg-U6HtAQbqnENqoK7x8erXSqOuTFVC0YE5r@mail.gmail.com> <alpine.LFD.2.00.1103301814250.28032@xanadu.home> <alpine.DEB.2.00.1103301728000.15330@asgard.lang.hm> <alpine.LFD.2.00.1103302255280.28032@xanadu.home> <alpine.DEB.2.00.1103302130500.29543@asgard.lang.hm> <alpine.LFD.2.00.1103310145390.28032@xanadu.home> <20110331080634.GA18022@elte.hu> <20110331083044.GB14323@n2100.arm.linux.org.uk> <20110331104152.GB3723@elte.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:59891 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757381Ab1CaNGS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 31 Mar 2011 09:06:18 -0400
-Received: by yib12 with SMTP id 12so1464635yib.1
-        for <linux-omap@vger.kernel.org>; Thu, 31 Mar 2011 06:06:17 -0700 (PDT)
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20110326113138.GA3668@avinash-laptop>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20110331104152.GB3723@elte.hu>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ingo Molnar <mingo@elte.hu>
+Cc: Nicolas Pitre <nico@fluxnic.net>, david@lang.hm, Linus Torvalds <torvalds@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, David Brown <davidb@codeaurora.org>, lkml <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nayak, Rajendra" <rnayak@ti.com>, "Hilman, Kevin" <kh>
 
-> Thanks Benoit. You are right.=20
->=20
-> The TRM Section '18.3.1.3.2 Software Reset' explains the steps for
-> softresetting I2C. The steps are below:
->=20
-> 1. Ensure that the module is disabled (clear the I2Ci.I2C_CON[15] I2C=
-_EN
-> bit to 0).
-> 2. Set the I2Ci.I2C_SYSC[1] SRST bit to 1.
-> 3. Enable the module by setting I2Ci.I2C_CON[15] I2C_EN bit to 1.
-> 4. Check the I2Ci.I2C_SYSS[0] RDONE bit until it is set to 1 to indic=
-ate
-> the software reset is complete.
+On Thu, Mar 31, 2011 at 12:41:52PM +0200, Ingo Molnar wrote:
+> * Russell King - ARM Linux <linux@arm.linux.org.uk> wrote:
+> > On Thu, Mar 31, 2011 at 10:06:34AM +0200, Ingo Molnar wrote:
+> > > Having strong, effective platform abstractions inside the kernel really helps 
+> > > even if the hardware space itself is inevitably fragmented: both powerpc and 
+> > > x86 has shown that. Until you realize and appreciate that you really have not 
+> > > understood the problem i think.
+> > 
+> > No, I think it is the other way around.  Folk like me and Nicolas over the 
+> > last ten years have put considerable amounts of effort into trying to keep 
+> > the ARM support code as clean and maintainable as possible.
+> 
+> Absolutely no argument about that, whenever i have read core ARM code it was 
+> always a pleasure. You guys are doing a fine job there.
 
-Hi paul,=20
-
-I have been able to implement the function. It took a while because,
-even after implementing the above sequence, i was seeing the I2C wasn't
-resetting.=20
-
-The issue turned out that i was doing '32 bit data access' which was
-corrupting the i2c register contents. I missed the TRM section where it
-tells, "i2c registers are limited to 8-bit or 16-bit access". Special
-thanks to balaji.t.k for helping me debug this and pointing this was th=
-e
-issue. On correcting this, the function worked cleanly and i2c was
-reset.
-
-I ll send out the patch tomorrow.
-
-br ,
-- avinash
-
->=20
-> >=20
-> > Thanks Beno=EEt.
-> >=20
-> > So then, Avinash, you might need to create a custom hwmod class=20
-> > reset function for the I2C block (viz., struct omap_hwmod_class.res=
-et)
->=20
-> OK Paul. I'll add the I2C_CON register and follow the above sequence =
-as
-> suggested in the TRM in the custom I2C reset function.
->=20
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks for your vote of confidence.  It's really appreciated.
