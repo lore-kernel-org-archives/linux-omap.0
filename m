@@ -1,85 +1,66 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [pm-core][PATCH v3 02/21] OMAP4: Use WARN_ON() instead of BUG_ON()
- with graceful exit
-Date: Thu, 31 Mar 2011 14:05:04 +0530
-Message-ID: <4D943CB8.70002@ti.com>
-References: <1301304157-2466-1-git-send-email-santosh.shilimkar@ti.com> <1301304157-2466-3-git-send-email-santosh.shilimkar@ti.com> <20110328205323.GD30616@atomide.com>
+From: Bill Gatliff <bgat@billgatliff.com>
+Subject: Re: [GIT PULL] omap changes for v2.6.39 merge window
+Date: Thu, 31 Mar 2011 09:55:31 -0500
+Message-ID: <BANLkTinmoTyceJCT+K-RCm4NC76qfDyeVw@mail.gmail.com>
+References: <alpine.LFD.2.00.1103301531420.28032@xanadu.home>
+	<AANLkTim6zg-U6HtAQbqnENqoK7x8erXSqOuTFVC0YE5r@mail.gmail.com>
+	<alpine.LFD.2.00.1103301814250.28032@xanadu.home>
+	<alpine.DEB.2.00.1103301728000.15330@asgard.lang.hm>
+	<alpine.LFD.2.00.1103302255280.28032@xanadu.home>
+	<AANLkTikV5OMifKjWRVdtJLEcxcZ56jrjWLYJBX89pHQ0@mail.gmail.com>
+	<alpine.LFD.2.00.1103310012500.28032@xanadu.home>
+	<20110331105440.42692165@lxorguk.ukuu.org.uk>
+	<20110331105000.GC14323@n2100.arm.linux.org.uk>
+	<1301575101.10659.132.camel@e102109-lin.cambridge.arm.com>
+	<20110331130123.GB17547@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:53362 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753125Ab1CaIfd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 31 Mar 2011 04:35:33 -0400
-Received: by yxe1 with SMTP id 1so1817314yxe.25
-        for <linux-omap@vger.kernel.org>; Thu, 31 Mar 2011 01:35:31 -0700 (PDT)
-In-Reply-To: <20110328205323.GD30616@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20110331130123.GB17547@n2100.arm.linux.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Catalin Marinas <catalin.marinas@arm.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Nicolas Pitre <nico@fluxnic.net>, Dave Airlie <airlied@gmail.com>, david@lang.hm, Linus Torvalds <torvalds@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, David Brown <davidb@codeaurora.org>, lkml <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, khilman@ti.com, rnayak@ti.com, linux-arm-kernel@lists.infradead.org
 
-On 3/29/2011 2:23 AM, Tony Lindgren wrote:
-> * Santosh Shilimkar<santosh.shilimkar@ti.com>  [110328 02:20]:
->> OMAP L2X0 and GIC initialisation code uses BUG_ON() for the
->> ioremap() failure scenarios.
->>
->> Use WARN_ON() instead and allow graceful function exits.
->>
->> This was suggsted by Kevin Hilman<khilman@ti.com>  during
->> OMAP4 PM code review.
->>
->> Signed-off-by: Santosh Shilimkar<santosh.shilimkar@ti.com>
->> Cc: Kevin Hilman<khilman@ti.com>
->> ---
->>   arch/arm/mach-omap2/omap4-common.c |    9 ++++++---
->>   1 files changed, 6 insertions(+), 3 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
->> index 559d227..8f9b97d 100644
->> --- a/arch/arm/mach-omap2/omap4-common.c
->> +++ b/arch/arm/mach-omap2/omap4-common.c
->> @@ -36,11 +36,13 @@ void __init gic_init_irq(void)
->>
->>   	/* Static mapping, never released */
->>   	gic_dist_base_addr = ioremap(OMAP44XX_GIC_DIST_BASE, SZ_4K);
->> -	BUG_ON(!gic_dist_base_addr);
->> +	if (WARN_ON(!gic_dist_base_addr))
->> +		return;
->>
->>   	/* Static mapping, never released */
->>   	gic_cpu_base = ioremap(OMAP44XX_GIC_CPU_BASE, SZ_512);
->> -	BUG_ON(!gic_cpu_base);
->> +	if (WARN_ON(!gic_cpu_base))
->> +		return;
->>
->>   	omap_wakeupgen_init();
->>
->> @@ -68,7 +70,8 @@ static int __init omap_l2_cache_init(void)
->>
->>   	/* Static mapping, never released */
->>   	l2cache_base = ioremap(OMAP44XX_L2CACHE_BASE, SZ_4K);
->> -	BUG_ON(!l2cache_base);
->> +	if (WARN_ON(!l2cache_base))
->> +		return -ENODEV;
->>
->>   	/*
->>   	 * 16-way associativity, parity disabled
+Russell:
+
+
+On Thu, Mar 31, 2011 at 8:01 AM, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
 >
-> Hmm to me it seems that if any of these we don't want to
-> continue.
->
-L2 cache is no problem and kernel can boot without L2 cache
-support. I agree with you on interrupt controller init though.
+> And since Linus' whinge about ARM defconfigs, I really *hate* merging
+> anything with *any* defconfig changes in - as a result, I don't
+> particularly want to deal with ARM defconfig changes anymore.
 
-Will drop the interrupt related checks from this patch.
+I think the defconfigs are as important as the code itself! Sure there
+is a lot of churn in them--- just let git deal with it and move on.
 
-Kevin, Are you ok with it ?
+The defconfigs and board code provide critical reference models for
+new platform developers.  If these models aren't right, then you end
+up providing bad references that get replicated over and over again.
+It multiplies the problem we're trying to solve.
 
-Regards
-Santosh
+> Just look at the removal of AAEC2000, LH7A40x and 2000 lines from the
+> mach-types file removed 6000 lines, which in itself is about the numb=
+er
+> of lines of change submitted during the last merge window for any one
+> non-ARM architecture. =A0At this point in time with this complaint, I=
+'ve
+> absolutely no idea why I bothered to do that. =A0I should've left it =
+well
+> alone and then the diffstat percentage would've been smaller. =A0Afte=
+r
+> all, it's "pointless churn".
+
+I think you did it because it was the Right Thing To Do.  Even
+positive change can be painful at times.
+
+The majority is exceedingly grateful for the effort you make.
 
 
+b.g.
 
+--=20
+Bill Gatliff
+bgat@billgatliff.com
