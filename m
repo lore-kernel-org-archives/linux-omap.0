@@ -1,104 +1,102 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
+From: Nicolas Pitre <nico@fluxnic.net>
 Subject: Re: [GIT PULL] omap changes for v2.6.39 merge window
-Date: Wed, 30 Mar 2011 20:24:30 -0700
-Message-ID: <AANLkTi=fSUizM38SkBhPAzSbArgoNQxbV8JrC51x_RDf@mail.gmail.com>
+Date: Thu, 31 Mar 2011 00:09:30 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.1103302319290.28032@xanadu.home>
 References: <20110317183048.GW7258@atomide.com>
-	<AANLkTimWbb5DWiiCW821H6pRicbk1fS3PYcnGyUMznvM@mail.gmail.com>
-	<20110318101512.GA15375@n2100.arm.linux.org.uk>
-	<201103301906.42429.arnd@arndb.de>
-	<AANLkTim578-kwM14SJd06RW_QiC4WVCmFuG+ASgGC4sq@mail.gmail.com>
-	<20110331001502.GB6680@n2100.arm.linux.org.uk>
-	<AANLkTinE7EDbV8hrYZWBxgvwOxdPMLoS0Y57PSm04rvM@mail.gmail.com>
-	<AANLkTik-BFTzyPLuYVdhCJPocc0wPY0rKvO7BQS4Fg1S@mail.gmail.com>
-	<AANLkTikd_JRxmB_OWZqq178=K3bnxhdDqcNbgFNRtTyU@mail.gmail.com>
-	<AANLkTimS_8BnBz9MSdxYJVL6oreEpH=W61BsyuX2G+Xz@mail.gmail.com>
-	<AANLkTimtO7vR2AQvJj1hHMqHCDqtoiJX_eENE9o3dPpV@mail.gmail.com>
-	<AANLkTimPJCiaUyTfcR1NSPivJ2YjSwazhiWRC-CPLy6J@mail.gmail.com>
+ <AANLkTimWbb5DWiiCW821H6pRicbk1fS3PYcnGyUMznvM@mail.gmail.com>
+ <20110318101512.GA15375@n2100.arm.linux.org.uk>
+ <201103301906.42429.arnd@arndb.de>
+ <AANLkTim578-kwM14SJd06RW_QiC4WVCmFuG+ASgGC4sq@mail.gmail.com>
+ <20110331001502.GB6680@n2100.arm.linux.org.uk>
+ <AANLkTinE7EDbV8hrYZWBxgvwOxdPMLoS0Y57PSm04rvM@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <AANLkTimPJCiaUyTfcR1NSPivJ2YjSwazhiWRC-CPLy6J@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Bill Gatliff <bgat@billgatliff.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Nicolas Pitre <nico@fluxnic.net>, Tony Lindgren <tony@atomide.com>, Catalin Marinas <catalin.marinas@arm.com>, linux-kernel@vger.kernel.org, David Brown <davidb@codeaurora.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from relais.videotron.ca ([24.201.245.36]:54782 "EHLO
+	relais.videotron.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751758Ab1CaEJb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 31 Mar 2011 00:09:31 -0400
+In-reply-to: <AANLkTinE7EDbV8hrYZWBxgvwOxdPMLoS0Y57PSm04rvM@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, David Brown <davidb@codeaurora.org>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>
 
-On Wed, Mar 30, 2011 at 7:20 PM, Bill Gatliff <bgat@billgatliff.com> wrote:
->
-> If it isn't opportunity, then you must be arguing that we shouldn't
-> add any new ARM SoC support to the kernel. =A0Is that what you are
-> saying?
+On Wed, 30 Mar 2011, Linus Torvalds wrote:
 
-What I'm saying is that we should not be adding ANY MINDLESS BOARD
-DRIVERS for ARM.
+> Umm. The actual stats are still:
+> 
+>  1349 files changed, 62230 insertions(+), 33993 deletions(-)
+> 
+> which is sad. And the end result speaks for itself: this is lines per
+> architecture:
+> 
+>   ...
+>   124022 total arch/sh
+>   124418 total arch/sparc
+>   181997 total arch/m68k
+>   246717 total arch/mips
+>   254785 total arch/x86
+>   370912 total arch/powerpc
+>   732732 total arch/arm
+> 
+> notice how ARM ends up being in a class of its own. This is a PROBLEM.
 
-Because they don't work. Most of them are totally unmaintainable CRAP
-in the long run. They are extra code that actually have negative
-worth. It shouldn't be in the kernel at all.
+OK let's think of it in terms of a problem.  How do _we_ fix it?  Maybe 
+we can change the Linux license and enforce some policies on the 
+hardware manufacturers imposing them to conform to a strict model before 
+they are allowed to use Linux. Do you think you can have such an 
+influence on them?  I really don't think I do.
 
-So let's take a really simple example of this kind of crap.
+Or maybe we can tell to all those crazy people to get together and stop 
+trying to differentiate themselves otherwise we'll just ignore them?  
+That could be an option, those people will go away, and embedded Linux 
+will go back underground like it used to be.  Wouldn't that be 
+wonderful?
 
-Do this:
+> And ARM fanbois can say "oh, but arm is special" all they want, but
+> they need to realize that the lack of common platform for ARM is a
+> real major issue. It's not a "feature", and I'm sorry, but anybody who
+> calls x86 "peanuts" is a moron and should be ashamed of himself.
+> Instead of trying to feel superior, those people should feel like
+> pariah.
 
-    git ls-files arch/arm/ | grep gpio
+Oh come on.  You just provided actual numbers above showing that ARM is 
+simply fscked up (your words) compared to X86.  I would be curious to 
+know what people like tglx who did significant work on both 
+architectures actually think of X86 relative to ARM when it comes to 
+kernel maintenance.
 
-and cry. That's 145 files in the arm directory that are some kind of
-crazy gpio support.
+No one is saying there is no problem.  There is _indeed_ a problem in ARM 
+land.  But this is actually a _hardware_ problem that no one refutes.  
+On the software side I'd say that we're struggling but still coping 
+relatively well with it given the actual hardware jungle out there.  It 
+is not like if _we_ could do something about _that_.
 
-Now, we have gpio drivers in other parts of the kernel too, but ARM is
-at the point where it's just crazy.
+> The fact that x86 has a platform, and people have cared about
+> compatibility, and actually gets things to work with less code is a
+> good thing. I know ARM people who think that x86 is an "ugly"
+> architecture. But the fact is, of all the architectures out there, ARM
+> right now is the ugliest BY FAR. Exactly because of people who don't
+> seem to understand that this kind of crap is a problem.
 
-And most GPIO drivers I've ever seen are actually basically "turn this
-bit on or off in this register to turn it into an Input or Output"
-along with "read/write this other bit to actually see/set the value".
-Repeat that for 'nr' bits, where 'nr' is just some small value,
-usually in single digits.
+No disagreement here.  Certainly not from my side. I would much prefer 
+to have only one or two ARM variants to deal with like in the old days 
+when only a very few ARM vendors were relevant.  But the reality has 
+changed, and unless we start boycotting those who try to be different 
+just because they can, I don't think we have much choice but to cope.  
+And so far we do cope remarquably well given the diversity involved.
 
-Now, not all of them are that, by all means, and the details are often
-slightly different. Sometimes the read register is the same as the
-write register, sometimes it isn't. Sometimes you have a "clear
-register" and a "set register" instead of a register you write the
-value to. And I haven't checked what those 145 files do, but I bet a
-_lot_ of them could be described by having a single generic gpio
-driver, and then just using devicetree to give that common driver a
-few values to describe where the IO ports are, which bits they are,
-and which type of gpio it is.
+Things can be improved and they are indeed being improved every merge 
+window.  But at the same time there is a new and different SOC to 
+support each merge window as well which just can't be fitted in the 
+existing numerous SOC models.  And this is really frustrating indeed 
+because there is simply no magic solution and yet more code needs to be 
+written and reviewed again.
 
-And then when you have another ARM SoC, instead of writing yet another
-mindless board driver for the gpio's on it, just add the <nr> entries
-for the GPIO's to the device tree. NOT A SINGLE LINE OF CODE.
+At least we managed to isolate the crap into separate directories and 
+try hard for one vendor not to screw up the other ones.
 
-Yes, yes, there are always exceptions. Many GPIO's are actually behind
-some i2c bus or something. Others can do pulsing or are just generally
-more complex than an array of single bits. So I'm sure we couldn't
-replace all those 145 gpio files under arch/arm with a single driver
-and some devicetree entries, but maybe half of them match the simple
-pattern. I bet the SoC case it's more than half, it would be silly to
-do i2c on an SoC. But I dunno. I really didn't look.
 
-PowerPC does exactly the above, btw. So I'm not just talking about
-some magical theoretical thing. I seriously think every ARM person who
-has ever written any of those "gpio" files should look at powerpc.
-Now, I suspect that most powerpc SoC's tend to share more IP blocks
-than the crazy ARM situation, but even so, please just check it out.
-Check out the device tree files (*.dts) and do that same
-
-   git ls-files arch/arm/ | grep gpio
-
-except do it on powerpc.
-
-See the difference?
-
-The powerpc people even wrote documentation about the thing, which is
-just above and beyond reasonable.
-
-                             Linus
+Nicolas
