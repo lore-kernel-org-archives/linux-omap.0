@@ -1,202 +1,214 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH 11/17] OMAP4: powerdomain data: add voltage domains
-Date: Wed, 30 Mar 2011 17:16:14 -0700
-Message-ID: <1301530580-12046-12-git-send-email-khilman@ti.com>
+Subject: [PATCH 13/17] OMAP2+: voltage: keep track of powerdomains in each voltagedomain
+Date: Wed, 30 Mar 2011 17:16:16 -0700
+Message-ID: <1301530580-12046-14-git-send-email-khilman@ti.com>
 References: <1301530580-12046-1-git-send-email-khilman@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:51828 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933119Ab1CaAQa (ORCPT
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:51345 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933119Ab1CaAQd (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 30 Mar 2011 20:16:30 -0400
-Received: by yih10 with SMTP id 10so1513950yih.25
-        for <linux-omap@vger.kernel.org>; Wed, 30 Mar 2011 17:16:27 -0700 (PDT)
+	Wed, 30 Mar 2011 20:16:33 -0400
+Received: by mail-gx0-f178.google.com with SMTP id 8so868062gxk.37
+        for <linux-omap@vger.kernel.org>; Wed, 30 Mar 2011 17:16:32 -0700 (PDT)
 In-Reply-To: <1301530580-12046-1-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
+Cc: linux-arm-kernel@lists.infradead.org
 
-From: Benoit Cousson <b-cousson@ti.com>
+When a powerdomain is registered and it has an associated voltage domain,
+add the powerdomain to the voltagedomain using voltdm_add_pwrdm().
 
-Add voltage domain name to indicate which voltagedomain each
-powerdomain is in.
+Also add voltagedomain iterator helper functions to iterate over all
+registered voltagedomains and all powerdomains associated with a
+voltagedomain.
 
-The fixed voltage domain like ldo_wakeup for emu and wkup power
-domain is added too.
+Modeled after a similar relationship between clockdomains and powerdomains.
 
-Update the TI copyright date to 2011.
-
-Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
-[khilman@ti.com]: renamed wakeup domain: s/ldo_wakeup/wakeup/
 Signed-off-by: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/powerdomains44xx_data.c   |   18 +++++++++++++++++-
- arch/arm/mach-omap2/voltagedomains44xx_data.c |    5 +++++
- 2 files changed, 22 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/powerdomain.c |    2 +
+ arch/arm/mach-omap2/powerdomain.h |    2 +
+ arch/arm/mach-omap2/voltage.c     |   80 +++++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/voltage.h     |   10 +++++
+ 4 files changed, 94 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/powerdomains44xx_data.c b/arch/arm/mach-omap2/powerdomains44xx_data.c
-index c4222c7..af91554 100644
---- a/arch/arm/mach-omap2/powerdomains44xx_data.c
-+++ b/arch/arm/mach-omap2/powerdomains44xx_data.c
-@@ -1,7 +1,7 @@
- /*
-  * OMAP4 Power domains framework
-  *
-- * Copyright (C) 2009-2010 Texas Instruments, Inc.
-+ * Copyright (C) 2009-2011 Texas Instruments, Inc.
-  * Copyright (C) 2009-2011 Nokia Corporation
-  *
-  * Abhijit Pagare (abhijitpagare@ti.com)
-@@ -33,6 +33,7 @@
- /* core_44xx_pwrdm: CORE power domain */
- static struct powerdomain core_44xx_pwrdm = {
- 	.name		  = "core_pwrdm",
-+	.voltdm		  = { .name = "core" },
- 	.prcm_offs	  = OMAP4430_PRM_CORE_INST,
- 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
- 	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-@@ -59,6 +60,7 @@ static struct powerdomain core_44xx_pwrdm = {
- /* gfx_44xx_pwrdm: 3D accelerator power domain */
- static struct powerdomain gfx_44xx_pwrdm = {
- 	.name		  = "gfx_pwrdm",
-+	.voltdm		  = { .name = "core" },
- 	.prcm_offs	  = OMAP4430_PRM_GFX_INST,
- 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
- 	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-@@ -76,6 +78,7 @@ static struct powerdomain gfx_44xx_pwrdm = {
- /* abe_44xx_pwrdm: Audio back end power domain */
- static struct powerdomain abe_44xx_pwrdm = {
- 	.name		  = "abe_pwrdm",
-+	.voltdm		  = { .name = "iva" },
- 	.prcm_offs	  = OMAP4430_PRM_ABE_INST,
- 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
- 	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-@@ -96,6 +99,7 @@ static struct powerdomain abe_44xx_pwrdm = {
- /* dss_44xx_pwrdm: Display subsystem power domain */
- static struct powerdomain dss_44xx_pwrdm = {
- 	.name		  = "dss_pwrdm",
-+	.voltdm		  = { .name = "core" },
- 	.prcm_offs	  = OMAP4430_PRM_DSS_INST,
- 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
- 	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-@@ -114,6 +118,7 @@ static struct powerdomain dss_44xx_pwrdm = {
- /* tesla_44xx_pwrdm: Tesla processor power domain */
- static struct powerdomain tesla_44xx_pwrdm = {
- 	.name		  = "tesla_pwrdm",
-+	.voltdm		  = { .name = "iva" },
- 	.prcm_offs	  = OMAP4430_PRM_TESLA_INST,
- 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
- 	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-@@ -136,6 +141,7 @@ static struct powerdomain tesla_44xx_pwrdm = {
- /* wkup_44xx_pwrdm: Wake-up power domain */
- static struct powerdomain wkup_44xx_pwrdm = {
- 	.name		  = "wkup_pwrdm",
-+	.voltdm		  = { .name = "wakeup" },
- 	.prcm_offs	  = OMAP4430_PRM_WKUP_INST,
- 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
- 	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-@@ -152,6 +158,7 @@ static struct powerdomain wkup_44xx_pwrdm = {
- /* cpu0_44xx_pwrdm: MPU0 processor and Neon coprocessor power domain */
- static struct powerdomain cpu0_44xx_pwrdm = {
- 	.name		  = "cpu0_pwrdm",
-+	.voltdm		  = { .name = "mpu" },
- 	.prcm_offs	  = OMAP4430_PRCM_MPU_CPU0_INST,
- 	.prcm_partition	  = OMAP4430_PRCM_MPU_PARTITION,
- 	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-@@ -169,6 +176,7 @@ static struct powerdomain cpu0_44xx_pwrdm = {
- /* cpu1_44xx_pwrdm: MPU1 processor and Neon coprocessor power domain */
- static struct powerdomain cpu1_44xx_pwrdm = {
- 	.name		  = "cpu1_pwrdm",
-+	.voltdm		  = { .name = "mpu" },
- 	.prcm_offs	  = OMAP4430_PRCM_MPU_CPU1_INST,
- 	.prcm_partition	  = OMAP4430_PRCM_MPU_PARTITION,
- 	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-@@ -186,6 +194,7 @@ static struct powerdomain cpu1_44xx_pwrdm = {
- /* emu_44xx_pwrdm: Emulation power domain */
- static struct powerdomain emu_44xx_pwrdm = {
- 	.name		  = "emu_pwrdm",
-+	.voltdm		  = { .name = "wakeup" },
- 	.prcm_offs	  = OMAP4430_PRM_EMU_INST,
- 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
- 	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-@@ -202,6 +211,7 @@ static struct powerdomain emu_44xx_pwrdm = {
- /* mpu_44xx_pwrdm: Modena processor and the Neon coprocessor power domain */
- static struct powerdomain mpu_44xx_pwrdm = {
- 	.name		  = "mpu_pwrdm",
-+	.voltdm		  = { .name = "mpu" },
- 	.prcm_offs	  = OMAP4430_PRM_MPU_INST,
- 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
- 	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-@@ -223,6 +233,7 @@ static struct powerdomain mpu_44xx_pwrdm = {
- /* ivahd_44xx_pwrdm: IVA-HD power domain */
- static struct powerdomain ivahd_44xx_pwrdm = {
- 	.name		  = "ivahd_pwrdm",
-+	.voltdm		  = { .name = "iva" },
- 	.prcm_offs	  = OMAP4430_PRM_IVAHD_INST,
- 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
- 	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-@@ -247,6 +258,7 @@ static struct powerdomain ivahd_44xx_pwrdm = {
- /* cam_44xx_pwrdm: Camera subsystem power domain */
- static struct powerdomain cam_44xx_pwrdm = {
- 	.name		  = "cam_pwrdm",
-+	.voltdm		  = { .name = "core" },
- 	.prcm_offs	  = OMAP4430_PRM_CAM_INST,
- 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
- 	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-@@ -264,6 +276,7 @@ static struct powerdomain cam_44xx_pwrdm = {
- /* l3init_44xx_pwrdm: L3 initators pheripherals power domain  */
- static struct powerdomain l3init_44xx_pwrdm = {
- 	.name		  = "l3init_pwrdm",
-+	.voltdm		  = { .name = "core" },
- 	.prcm_offs	  = OMAP4430_PRM_L3INIT_INST,
- 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
- 	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-@@ -282,6 +295,7 @@ static struct powerdomain l3init_44xx_pwrdm = {
- /* l4per_44xx_pwrdm: Target peripherals power domain */
- static struct powerdomain l4per_44xx_pwrdm = {
- 	.name		  = "l4per_pwrdm",
-+	.voltdm		  = { .name = "core" },
- 	.prcm_offs	  = OMAP4430_PRM_L4PER_INST,
- 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
- 	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-@@ -305,6 +319,7 @@ static struct powerdomain l4per_44xx_pwrdm = {
-  */
- static struct powerdomain always_on_core_44xx_pwrdm = {
- 	.name		  = "always_on_core_pwrdm",
-+	.voltdm		  = { .name = "core" },
- 	.prcm_offs	  = OMAP4430_PRM_ALWAYS_ON_INST,
- 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
- 	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-@@ -314,6 +329,7 @@ static struct powerdomain always_on_core_44xx_pwrdm = {
- /* cefuse_44xx_pwrdm: Customer efuse controller power domain */
- static struct powerdomain cefuse_44xx_pwrdm = {
- 	.name		  = "cefuse_pwrdm",
-+	.voltdm		  = { .name = "core" },
- 	.prcm_offs	  = OMAP4430_PRM_CEFUSE_INST,
- 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
- 	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-diff --git a/arch/arm/mach-omap2/voltagedomains44xx_data.c b/arch/arm/mach-omap2/voltagedomains44xx_data.c
-index 95e1ce5..9a17b5e 100644
---- a/arch/arm/mach-omap2/voltagedomains44xx_data.c
-+++ b/arch/arm/mach-omap2/voltagedomains44xx_data.c
-@@ -86,10 +86,15 @@ static struct voltagedomain omap4_voltdm_core = {
- 	.vdd = &omap4_vdd_core_info,
- };
+diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+index 8fccd4b..224272e 100644
+--- a/arch/arm/mach-omap2/powerdomain.c
++++ b/arch/arm/mach-omap2/powerdomain.c
+@@ -102,6 +102,8 @@ static int _pwrdm_register(struct powerdomain *pwrdm)
+ 		return -EINVAL;
+ 	}
+ 	pwrdm->voltdm.ptr = voltdm;
++	INIT_LIST_HEAD(&pwrdm->voltdm_node);
++	voltdm_add_pwrdm(voltdm, pwrdm);
  
-+static struct voltagedomain omap4_voltdm_wkup = {
-+	.name = "wakeup",
-+};
+ 	list_add(&pwrdm->node, &pwrdm_list);
+ 
+diff --git a/arch/arm/mach-omap2/powerdomain.h b/arch/arm/mach-omap2/powerdomain.h
+index 3a1ec37..6a4f71a 100644
+--- a/arch/arm/mach-omap2/powerdomain.h
++++ b/arch/arm/mach-omap2/powerdomain.h
+@@ -92,6 +92,7 @@ struct powerdomain;
+  * @pwrsts_mem_on: Possible memory bank pwrstates when pwrdm in ON
+  * @pwrdm_clkdms: Clockdomains in this powerdomain
+  * @node: list_head linking all powerdomains
++ * @voltdm_node: list_head linking all powerdomains in a voltagedomain
+  * @state:
+  * @state_counter:
+  * @timer:
+@@ -116,6 +117,7 @@ struct powerdomain {
+ 	const u8 prcm_partition;
+ 	struct clockdomain *pwrdm_clkdms[PWRDM_MAX_CLKDMS];
+ 	struct list_head node;
++	struct list_head voltdm_node;
+ 	int state;
+ 	unsigned state_counter[PWRDM_MAX_PWRSTS];
+ 	unsigned ret_logic_off_counter;
+diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
+index bc944ff..b1b5e38 100644
+--- a/arch/arm/mach-omap2/voltage.c
++++ b/arch/arm/mach-omap2/voltage.c
+@@ -36,6 +36,7 @@
+ #include "control.h"
+ 
+ #include "voltage.h"
++#include "powerdomain.h"
+ 
+ #include "vc.h"
+ #include "vp.h"
+@@ -1085,11 +1086,90 @@ static struct voltagedomain *_voltdm_lookup(const char *name)
+ 	return voltdm;
+ }
+ 
++/**
++ * voltdm_add_pwrdm - add a powerdomain to a voltagedomain
++ * @voltdm: struct voltagedomain * to add the powerdomain to
++ * @pwrdm: struct powerdomain * to associate with a voltagedomain
++ *
++ * Associate the powerdomain @pwrdm with a voltagedomain @voltdm.  This
++ * enables the use of voltdm_for_each_pwrdm().  Returns -EINVAL if
++ * presented with invalid pointers; -ENOMEM if memory could not be allocated;
++ * or 0 upon success.
++ */
++int voltdm_add_pwrdm(struct voltagedomain *voltdm, struct powerdomain *pwrdm)
++{
++	if (!voltdm || !pwrdm)
++		return -EINVAL;
 +
- static struct voltagedomain *voltagedomains_omap4[] __initdata = {
- 	&omap4_voltdm_mpu,
- 	&omap4_voltdm_iva,
- 	&omap4_voltdm_core,
-+	&omap4_voltdm_wkup,
- 	NULL,
++	pr_debug("voltagedomain: associating powerdomain %s with voltagedomain "
++		 "%s\n", pwrdm->name, voltdm->name);
++
++	list_add(&pwrdm->voltdm_node, &voltdm->pwrdm_list);
++
++	return 0;
++}
++
++/**
++ * voltdm_for_each_pwrdm - call function for each pwrdm in a voltdm
++ * @voltdm: struct voltagedomain * to iterate over
++ * @fn: callback function *
++ *
++ * Call the supplied function @fn for each powerdomain in the
++ * voltagedomain @voltdm.  Returns -EINVAL if presented with invalid
++ * pointers; or passes along the last return value of the callback
++ * function, which should be 0 for success or anything else to
++ * indicate failure.
++ */
++int voltdm_for_each_pwrdm(struct voltagedomain *voltdm,
++			  int (*fn)(struct voltagedomain *voltdm,
++				    struct powerdomain *pwrdm))
++{
++	struct powerdomain *pwrdm;
++	int ret = 0;
++
++	if (!fn)
++		return -EINVAL;
++
++	list_for_each_entry(pwrdm, &voltdm->pwrdm_list, voltdm_node)
++		ret = (*fn)(voltdm, pwrdm);
++
++	return ret;
++}
++
++/**
++ * voltdm_for_each - call function on each registered voltagedomain
++ * @fn: callback function *
++ *
++ * Call the supplied function @fn for each registered voltagedomain.
++ * The callback function @fn can return anything but 0 to bail out
++ * early from the iterator.  Returns the last return value of the
++ * callback function, which should be 0 for success or anything else
++ * to indicate failure; or -EINVAL if the function pointer is null.
++ */
++int voltdm_for_each(int (*fn)(struct voltagedomain *voltdm, void *user),
++		    void *user)
++{
++	struct voltagedomain *temp_voltdm;
++	int ret = 0;
++
++	if (!fn)
++		return -EINVAL;
++
++	list_for_each_entry(temp_voltdm, &voltdm_list, node) {
++		ret = (*fn)(temp_voltdm, user);
++		if (ret)
++			break;
++	}
++
++	return ret;
++}
++
+ static int _voltdm_register(struct voltagedomain *voltdm)
+ {
+ 	if (!voltdm || !voltdm->name)
+ 		return -EINVAL;
+ 
++	INIT_LIST_HEAD(&voltdm->pwrdm_list);
+ 	list_add(&voltdm->node, &voltdm_list);
+ 
+ 	pr_debug("voltagedomain: registered %s\n", voltdm->name);
+diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
+index 966aa88..b41d9f1 100644
+--- a/arch/arm/mach-omap2/voltage.h
++++ b/arch/arm/mach-omap2/voltage.h
+@@ -19,6 +19,8 @@
+ #include "vc.h"
+ #include "vp.h"
+ 
++struct powerdomain;
++
+ /* XXX document */
+ #define VOLTSCALE_VPFORCEUPDATE		1
+ #define VOLTSCALE_VCBYPASS		2
+@@ -55,12 +57,15 @@ struct omap_vfsm_instance_data {
+  * @name: Name of the voltage domain which can be used as a unique identifier.
+  * @scalable: Whether or not this voltage domain is scalable
+  * @node: list_head linking all voltage domains
++ * @pwrdm_node: list_head linking all powerdomains in this voltagedomain
+  * @vdd: to be removed
++ * @pwrdms: powerdomains in this voltagedomain
+  */
+ struct voltagedomain {
+ 	char *name;
+ 	bool scalable;
+ 	struct list_head node;
++	struct list_head pwrdm_list;
+ 	struct omap_vdd_info *vdd;
  };
  
+@@ -187,4 +192,9 @@ extern void omap44xx_voltagedomains_init(void);
+ struct voltagedomain *voltdm_lookup(const char *name);
+ void voltdm_init(struct voltagedomain **voltdm_list);
+ int voltdm_add_pwrdm(struct voltagedomain *voltdm, struct powerdomain *pwrdm);
++int voltdm_for_each(int (*fn)(struct voltagedomain *voltdm, void *user),
++		    void *user);
++int voltdm_for_each_pwrdm(struct voltagedomain *voltdm,
++			  int (*fn)(struct voltagedomain *voltdm,
++				    struct powerdomain *pwrdm));
+ #endif
 -- 
 1.7.4
 
