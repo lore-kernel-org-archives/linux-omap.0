@@ -1,35 +1,67 @@
-From: Artem Bityutskiy <dedekind1@gmail.com>
-Subject: Re: [GIT PULL] omap changes for v2.6.39 merge window
-Date: Thu, 31 Mar 2011 14:00:00 +0300
-Message-ID: <1301569200.2828.42.camel@localhost>
-References: <20110317183048.GW7258@atomide.com>
-	 <AANLkTimWbb5DWiiCW821H6pRicbk1fS3PYcnGyUMznvM@mail.gmail.com>
-	 <20110318101512.GA15375@n2100.arm.linux.org.uk>
-	 <201103301906.42429.arnd@arndb.de>
-	 <AANLkTim578-kwM14SJd06RW_QiC4WVCmFuG+ASgGC4sq@mail.gmail.com>
-	 <alpine.LFD.2.00.1103302155270.22418@localhost6.localdomain6>
-Reply-To: dedekind1@gmail.com
+From: Sergei Shtylyov <sshtylyov@mvista.com>
+Subject: Re: [PATCH 4/8] OMAP2+: omap_hwmod: manage the omap_devices the wake-up
+ latency constraints
+Date: Thu, 31 Mar 2011 15:20:06 +0400
+Message-ID: <4D946366.4000805@ru.mvista.com>
+References: <1301498364-726-1-git-send-email-j-pihet@ti.com> <1301498364-726-5-git-send-email-j-pihet@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.LFD.2.00.1103302155270.22418@localhost6.localdomain6>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, David Brown <davidb@codeaurora.org>, LKML <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Nicolas Pitre <nico@fluxnic.net>, Catalin Marinas <catalin.marinas@arm.com>, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, Ingo Molnar <mingo@elte.hu>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:43268 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751881Ab1CaLVl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 31 Mar 2011 07:21:41 -0400
+Received: by wya21 with SMTP id 21so1917070wya.19
+        for <linux-omap@vger.kernel.org>; Thu, 31 Mar 2011 04:21:40 -0700 (PDT)
+In-Reply-To: <1301498364-726-5-git-send-email-j-pihet@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: jean.pihet@newoldbits.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, paul@pwsan.com, Jean Pihet <j-pihet@ti.com>
 
-On Wed, 2011-03-30 at 23:10 +0200, Thomas Gleixner wrote:
-> The only problem is to find a person, who is willing to do that, has
-> enough experience, broad shoulders and a strong accepted voice. Not t=
-o
-> talk about finding someone who is willing to pay a large enough
-> compensation for pain and suffering.=20
+Hello.
 
-If I understand correctly, this is exactly what Linaro would need to do=
-=2E
+On 30-03-2011 19:19, jean.pihet@newoldbits.com wrote:
 
---=20
-Best Regards,
-Artem Bityutskiy (=D0=90=D1=80=D1=82=D1=91=D0=BC =D0=91=D0=B8=D1=82=D1=8E=
-=D1=86=D0=BA=D0=B8=D0=B9)
+> From: Jean Pihet<j-pihet@ti.com>
+
+> Hwmod is queried from the omap device layer to manage the power domains
+> wake-up latency constraints. Hwmod retrieves the correct power domain
+> and if it exists it calls the corresponding power domain function.
+
+> Tested on OMAP3 Beagleboard in RET/OFF using wake-up latency constraints
+> on MPU, CORE and PER.
+
+> Signed-off-by: Jean Pihet<j-pihet@ti.com>
+[...]
+
+> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+> index e034294..62de888 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod.c
+[...]
+> @@ -2322,11 +2323,34 @@ ohsps_unlock:
+>   	return ret;
+>   }
+>
+> +/*
+> + * omap_hwmod_set_wkup_constraint- set/release a wake-up latency constraint
+> + *
+> + * @oh: struct omap_hwmod* to which the target device belongs to.
+> + * @cookie: identifier of the constraints list for @oh.
+> + * @min_latency: the minimum allowed wake-up latency for @oh.
+> + *
+> + * Returns 0 upon success.
+> + */
+> +int omap_hwmod_set_wkup_lat_constraint(struct omap_hwmod *oh,
+> +				       void *cookie, long min_latency)
+> +{
+> +	struct powerdomain *pwrdm = omap_hwmod_get_pwrdm(oh);
+> +
+> +	if (!PTR_ERR(pwrdm)) {
+
+    What's the point of calling PTR_ERR() at all, if just '!pwrdm' will give 
+the same result?
+
+WBR, Sergei
