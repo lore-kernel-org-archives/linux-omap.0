@@ -1,38 +1,104 @@
-From: Dave Airlie <airlied@gmail.com>
+From: Linus Torvalds <torvalds@linux-foundation.org>
 Subject: Re: [GIT PULL] omap changes for v2.6.39 merge window
-Date: Thu, 31 Mar 2011 13:29:38 +1000
-Message-ID: <AANLkTikV5OMifKjWRVdtJLEcxcZ56jrjWLYJBX89pHQ0@mail.gmail.com>
+Date: Wed, 30 Mar 2011 20:24:30 -0700
+Message-ID: <AANLkTi=fSUizM38SkBhPAzSbArgoNQxbV8JrC51x_RDf@mail.gmail.com>
 References: <20110317183048.GW7258@atomide.com>
 	<AANLkTimWbb5DWiiCW821H6pRicbk1fS3PYcnGyUMznvM@mail.gmail.com>
 	<20110318101512.GA15375@n2100.arm.linux.org.uk>
 	<201103301906.42429.arnd@arndb.de>
 	<AANLkTim578-kwM14SJd06RW_QiC4WVCmFuG+ASgGC4sq@mail.gmail.com>
-	<alpine.LFD.2.00.1103301531420.28032@xanadu.home>
-	<AANLkTim6zg-U6HtAQbqnENqoK7x8erXSqOuTFVC0YE5r@mail.gmail.com>
-	<alpine.LFD.2.00.1103301814250.28032@xanadu.home>
-	<alpine.DEB.2.00.1103301728000.15330@asgard.lang.hm>
-	<alpine.LFD.2.00.1103302255280.28032@xanadu.home>
+	<20110331001502.GB6680@n2100.arm.linux.org.uk>
+	<AANLkTinE7EDbV8hrYZWBxgvwOxdPMLoS0Y57PSm04rvM@mail.gmail.com>
+	<AANLkTik-BFTzyPLuYVdhCJPocc0wPY0rKvO7BQS4Fg1S@mail.gmail.com>
+	<AANLkTikd_JRxmB_OWZqq178=K3bnxhdDqcNbgFNRtTyU@mail.gmail.com>
+	<AANLkTimS_8BnBz9MSdxYJVL6oreEpH=W61BsyuX2G+Xz@mail.gmail.com>
+	<AANLkTimtO7vR2AQvJj1hHMqHCDqtoiJX_eENE9o3dPpV@mail.gmail.com>
+	<AANLkTimPJCiaUyTfcR1NSPivJ2YjSwazhiWRC-CPLy6J@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.LFD.2.00.1103302255280.28032@xanadu.home>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Nicolas Pitre <nico@fluxnic.net>
-Cc: david@lang.hm, Linus Torvalds <torvalds@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, David Brown <davidb@codeaurora.org>, lkml <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <AANLkTimPJCiaUyTfcR1NSPivJ2YjSwazhiWRC-CPLy6J@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Bill Gatliff <bgat@billgatliff.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Nicolas Pitre <nico@fluxnic.net>, Tony Lindgren <tony@atomide.com>, Catalin Marinas <catalin.marinas@arm.com>, linux-kernel@vger.kernel.org, David Brown <davidb@codeaurora.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-> As long as SOC vendors keep producing wildly different architectures
-> besides the core CPU we'll have this problem. =A0Denying the reality =
-won't
-> make that problem go away either. =A0And device tree won't stop those
-> vendor from still trying to do things differently (better?) because t=
-hey
-> are not constrained by having to ensure this single proprietary softw=
-are
-> stack still boot.
+On Wed, Mar 30, 2011 at 7:20 PM, Bill Gatliff <bgat@billgatliff.com> wrote:
+>
+> If it isn't opportunity, then you must be arguing that we shouldn't
+> add any new ARM SoC support to the kernel. =A0Is that what you are
+> saying?
 
-So you are saying the only way to get the Linux ARM shit cleaned up is
-to hope Microsoft succeeds in making Windows a success on ARM?
+What I'm saying is that we should not be adding ANY MINDLESS BOARD
+DRIVERS for ARM.
 
-Dave.
+Because they don't work. Most of them are totally unmaintainable CRAP
+in the long run. They are extra code that actually have negative
+worth. It shouldn't be in the kernel at all.
+
+So let's take a really simple example of this kind of crap.
+
+Do this:
+
+    git ls-files arch/arm/ | grep gpio
+
+and cry. That's 145 files in the arm directory that are some kind of
+crazy gpio support.
+
+Now, we have gpio drivers in other parts of the kernel too, but ARM is
+at the point where it's just crazy.
+
+And most GPIO drivers I've ever seen are actually basically "turn this
+bit on or off in this register to turn it into an Input or Output"
+along with "read/write this other bit to actually see/set the value".
+Repeat that for 'nr' bits, where 'nr' is just some small value,
+usually in single digits.
+
+Now, not all of them are that, by all means, and the details are often
+slightly different. Sometimes the read register is the same as the
+write register, sometimes it isn't. Sometimes you have a "clear
+register" and a "set register" instead of a register you write the
+value to. And I haven't checked what those 145 files do, but I bet a
+_lot_ of them could be described by having a single generic gpio
+driver, and then just using devicetree to give that common driver a
+few values to describe where the IO ports are, which bits they are,
+and which type of gpio it is.
+
+And then when you have another ARM SoC, instead of writing yet another
+mindless board driver for the gpio's on it, just add the <nr> entries
+for the GPIO's to the device tree. NOT A SINGLE LINE OF CODE.
+
+Yes, yes, there are always exceptions. Many GPIO's are actually behind
+some i2c bus or something. Others can do pulsing or are just generally
+more complex than an array of single bits. So I'm sure we couldn't
+replace all those 145 gpio files under arch/arm with a single driver
+and some devicetree entries, but maybe half of them match the simple
+pattern. I bet the SoC case it's more than half, it would be silly to
+do i2c on an SoC. But I dunno. I really didn't look.
+
+PowerPC does exactly the above, btw. So I'm not just talking about
+some magical theoretical thing. I seriously think every ARM person who
+has ever written any of those "gpio" files should look at powerpc.
+Now, I suspect that most powerpc SoC's tend to share more IP blocks
+than the crazy ARM situation, but even so, please just check it out.
+Check out the device tree files (*.dts) and do that same
+
+   git ls-files arch/arm/ | grep gpio
+
+except do it on powerpc.
+
+See the difference?
+
+The powerpc people even wrote documentation about the thing, which is
+just above and beyond reasonable.
+
+                             Linus
