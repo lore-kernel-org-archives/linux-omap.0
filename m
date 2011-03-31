@@ -1,37 +1,31 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: [PATCHv2] omap: rx51: Platform support for lp5523 led chip
-Date: Thu, 31 Mar 2011 16:50:49 +0300
-Message-ID: <20110331165049.f3b83956.jhnikula@gmail.com>
-References: <alpine.DEB.1.10.1103311524420.2634@esdhcp041196.research.nokia.com>
-	<1301578692-29286-1-git-send-email-ameya.palande@nokia.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [GIT PULL] omap changes for v2.6.39 merge window
+Date: Thu, 31 Mar 2011 15:54:25 +0200
+Message-ID: <201103311554.25863.arnd@arndb.de>
+References: <20110317183048.GW7258@atomide.com> <alpine.LFD.2.00.1103302155270.22418@localhost6.localdomain6> <1301569200.2828.42.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:38929 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757624Ab1CaNux (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 31 Mar 2011 09:50:53 -0400
-Received: by fxm17 with SMTP id 17so1858862fxm.19
-        for <linux-omap@vger.kernel.org>; Thu, 31 Mar 2011 06:50:52 -0700 (PDT)
-In-Reply-To: <1301578692-29286-1-git-send-email-ameya.palande@nokia.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1301569200.2828.42.camel@localhost>
+Sender: linux-kernel-owner@vger.kernel.org
+To: dedekind1@gmail.com
+Cc: Thomas Gleixner <tglx@linutronix.de>, Linus Torvalds <torvalds@linux-foundation.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, David Brown <davidb@codeaurora.org>, LKML <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Nicolas Pitre <nico@fluxnic.net>, Catalin Marinas <catalin.marinas@arm.com>, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, Ingo Molnar <mingo@elte.hu>
 List-Id: linux-omap@vger.kernel.org
-To: Ameya Palande <ameya.palande@nokia.com>
-Cc: linux-omap@vger.kernel.org, mathias.nyman@nokia.com, linux-arm-kernel@lists.infradead.org
 
-On Thu, 31 Mar 2011 16:38:12 +0300
-Ameya Palande <ameya.palande@nokia.com> wrote:
-
-> Signed-off-by: Ameya Palande <ameya.palande@nokia.com>
-> Signed-off-by: Mathias Nyman <mathias.nyman@nokia.com>
-> ---
->  arch/arm/mach-omap2/board-rx51-peripherals.c |   74 ++++++++++++++++++++++++++
->  1 files changed, 74 insertions(+), 0 deletions(-)
+On Thursday 31 March 2011, Artem Bityutskiy wrote:
+> On Wed, 2011-03-30 at 23:10 +0200, Thomas Gleixner wrote:
+> > The only problem is to find a person, who is willing to do that, has
+> > enough experience, broad shoulders and a strong accepted voice. Not to
+> > talk about finding someone who is willing to pay a large enough
+> > compensation for pain and suffering. 
 > 
-Nice keyboard and rgb led blinking:
+> If I understand correctly, this is exactly what Linaro would need to do.
 
-while true; do ls /sys/class/leds/lp5523\:channel?/brightness |xargs -I
-{} bash -c 'echo $((RANDOM % 255)) > {}'; done
+Absolutely. Getting the work done that each of the SoC vendors needs but
+none of them would do on their own is the main reason why Linaro is there,
+so if we can agree what needs to be done, I'm sure we can find someone
+to do it.
 
-Tested-by: Jarkko Nikula <jhnikula@gmail.com>
+	Arnd
