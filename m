@@ -1,76 +1,76 @@
-From: "Avinash.H.M." <avinashhm@ti.com>
-Subject: Re: [PATCH] omap: hwmod: add syss reset done flags to omap2, omap3
- hwmods
-Date: Thu, 31 Mar 2011 20:10:38 +0530
-Message-ID: <20110331144010.GA18054@avinash-laptop>
-References: <1298542123-3654-1-git-send-email-avinashhm@ti.com>
- <alpine.DEB.2.00.1103031427580.10981@utopia.booyaka.com>
- <20110314161609.GA10506@avinash-laptop>
- <alpine.DEB.2.00.1103242336410.21987@utopia.booyaka.com>
- <20110325062534.GA25480@avinash-laptop>
- <20110325072035.GB25480@avinash-laptop>
- <alpine.DEB.2.00.1103251124040.21987@utopia.booyaka.com>
- <20110326113538.GB3668@avinash-laptop>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [GIT PULL] omap changes for v2.6.39 merge window
+Date: Thu, 31 Mar 2011 07:43:12 -0700
+Message-ID: <87d3l7jqpr.fsf@ti.com>
+References: <201103301906.42429.arnd@arndb.de>
+	<AANLkTim578-kwM14SJd06RW_QiC4WVCmFuG+ASgGC4sq@mail.gmail.com>
+	<alpine.LFD.2.00.1103301531420.28032@xanadu.home>
+	<AANLkTim6zg-U6HtAQbqnENqoK7x8erXSqOuTFVC0YE5r@mail.gmail.com>
+	<alpine.LFD.2.00.1103301814250.28032@xanadu.home>
+	<alpine.DEB.2.00.1103301728000.15330@asgard.lang.hm>
+	<alpine.LFD.2.00.1103302255280.28032@xanadu.home>
+	<alpine.DEB.2.00.1103302130500.29543@asgard.lang.hm>
+	<alpine.LFD.2.00.1103310145390.28032@xanadu.home>
+	<20110331080634.GA18022@elte.hu>
+	<20110331083044.GB14323@n2100.arm.linux.org.uk>
+	<alpine.LFD.2.00.1103311359320.22418@localhost6.localdomain6>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:57756 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752695Ab1CaOkz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 31 Mar 2011 10:40:55 -0400
-Received: by gwb15 with SMTP id 15so1150538gwb.13
-        for <linux-omap@vger.kernel.org>; Thu, 31 Mar 2011 07:40:53 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20110326113538.GB3668@avinash-laptop>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <alpine.LFD.2.00.1103311359320.22418@localhost6.localdomain6>
+	(Thomas Gleixner's message of "Thu, 31 Mar 2011 14:04:16 +0200
+	(CEST)")
+Sender: linux-kernel-owner@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Ingo Molnar <mingo@elte.hu>, Nicolas Pitre <nico@fluxnic.net>, david@lang.hm, Linus Torvalds <torvalds@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, David Brown <davidb@codeaurora.org>, lkml <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, "H. Peter Anvin" <hpa@zytor.com>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>
 
-> > > [    0.208892] omap_hwmod: i2c1: softreset failed (waited 10000 usec)
-> > > [    0.223114] omap_hwmod: i2c2: softreset failed (waited 10000 usec)
-> > > [    0.237335] omap_hwmod: i2c3: softreset failed (waited 10000 usec)
-> > > [    0.251525] omap_hwmod: gpio2: softreset failed (waited 10000 usec)
-> > > [    0.265594] omap_hwmod: gpio3: softreset failed (waited 10000 usec)
-> > > [    0.279693] omap_hwmod: gpio4: softreset failed (waited 10000 usec)
-> > > [    0.293762] omap_hwmod: gpio5: softreset failed (waited 10000 usec)
-> > > [    0.307861] omap_hwmod: gpio6: softreset failed (waited 10000 usec)
+Thomas Gleixner <tglx@linutronix.de> writes:
 
-Hi Paul, 
+> But the current SoC maintainer model does not work either. The SoC
+> maintainers care about their sandbox and have exactly zero incentive
+> to look at the overall picture, e.g reuse of code for the same IP
+> blocks, better abstraction mechanisms etc. 
 
-I tested this on one more board and still got these softreset warnings.
-So this wasn't a board specific issue and debugged into what is causing
-these.
+zero incentive?  that's a bit strong, IMO.
 
-The problem is the FCLK isn't enabled for these gpios(2..6) while
-resetting.  So the GPIO's are not resetting properly. Once i enable FCLK
-for them and then set the SYSCONFIG.SOFTRESET, then they are resetting
-and it is reflected in RESETDONE bit.
+That may be true for some SoCs, it's not really fair as a sweeping
+statement.
 
-That being said, I was looking for accessing gpio2_fck in the
-gpio2_hwmod. But i find the structure as below, 
+Some SoCs families (like OMAP) have huge amount of diversity even within
+the SoC family, so better abstractions and generic infrastrucure
+improvements are an obvious win, even staying within the SoC.
 
-static struct omap_hwmod omap3xxx_gpio2_hwmod = {
-	.name		= "gpio2",
-	.mpu_irqs	= omap3xxx_gpio2_irqs,
-	.mpu_irqs_cnt	= ARRAY_SIZE(omap3xxx_gpio2_irqs),
-	.main_clk	= "gpio2_ick",
+There are several examples of SoC maintainers looking at the overall
+picture and contributing to better abstractions and common
+infrastructure code.
 
-Is there any reason, why 'iclk' is set as the 'main_clk' and not 'fclk'.
-Also 'fclk' is structured as 'gpio2_dbck' and made as an optional clock.
-I wasn't very sure, why the name 'dbck'? 
+One is USB as Felipe already pointed out where the same USB OTG IP block
+(with vendor tweaks of course) is used across several completely
+different SoCs with common infrastructure code.
 
-> > 
-> > Just FYI, I don't see the gpio softreset failures on my boards here.
+Another example that I'm more familiar with is power management.  In
+OMAP land, we have been been very supportive and active in generic
+infrastructure improvements (like runtime PM.)  In fact runtime PM was
+born partially because one of the other ARM SoC maintainers (Magnus
+Damm, SH-mobile) proposed the idea as he was implementing PM for that
+SoC family.  We have been actively contributing to the runtime PM
+infrastructure with both code, testing, converting our drivers over to
+using runtime PM. and contributing back fixes and enhancements as we
+find problems or limitations.  In addition, personally, I have spent the
+last year evangelizing the importance of using common frameworks like
+runtime PM to the embedded community via talks at the Embedded Linux
+Conference (ELC, US and Europe.)  Especially as IP blocks are reused
+across SoC families, abstractions like runtime PM are the only way to
+keep the SoC specifics of PM out of the common driver.
 
-Most likely you aren't seeing this in N800 and beagle because the
-bootloader may be enabling the clocks.
+Yes, ARM SoC maintainers have to make up some ground.  But compare this
+to just a couple years ago where the common complaint was "why aren't
+embedded SoC people contributing code to mainline", and you'll see we
+have come a long way.
 
-I am sorry if the above question seems silly. I am fairly new to this
-frameworks and hence the question :-). Please clarify.
+Kevin
 
-br ,
-- avinash
-
-
- 
+Maintainer of parts of the ARM kernel:
+- TI Davinci SoC family
+- TI OMAP Power Management infrastructure
