@@ -1,96 +1,65 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH 05/17] OMAP3: voltage: rename "mpu" voltagedomain to "mpu_iva"
-Date: Wed, 30 Mar 2011 17:16:08 -0700
-Message-ID: <1301530580-12046-6-git-send-email-khilman@ti.com>
+Subject: [PATCH 08/17] OMAP2+: powerdomain: add voltagedomain to struct powerdomain
+Date: Wed, 30 Mar 2011 17:16:11 -0700
+Message-ID: <1301530580-12046-9-git-send-email-khilman@ti.com>
 References: <1301530580-12046-1-git-send-email-khilman@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:56995 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933055Ab1CaAQO (ORCPT
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:38915 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933084Ab1CaAQU (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 30 Mar 2011 20:16:14 -0400
-Received: by mail-iy0-f177.google.com with SMTP id 39so2736546iyb.22
-        for <linux-omap@vger.kernel.org>; Wed, 30 Mar 2011 17:16:12 -0700 (PDT)
+	Wed, 30 Mar 2011 20:16:20 -0400
+Received: by yia13 with SMTP id 13so1001207yia.20
+        for <linux-omap@vger.kernel.org>; Wed, 30 Mar 2011 17:16:18 -0700 (PDT)
 In-Reply-To: <1301530580-12046-1-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org
 
-This voltage domain (a.k.a. VDD1) contains both the MPU and the IVA, so
-rename appropriately.
+Each powerdomain is associated with a voltage domain.  Add an entry to
+struct powerdomain where the enclosing voltagedomain can be
+referenced.
 
-Also fixup any users of the "mpu" name to use "mpu_iva"
+Modeled after similar relationship between clockdomains and powerdomains.
 
 Signed-off-by: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c    |    4 ++--
- arch/arm/mach-omap2/omap_twl.c                |    2 +-
- arch/arm/mach-omap2/pm.c                      |    2 +-
- arch/arm/mach-omap2/voltagedomains3xxx_data.c |    2 +-
- 4 files changed, 5 insertions(+), 5 deletions(-)
+ arch/arm/mach-omap2/powerdomain.h |    7 +++++++
+ 1 files changed, 7 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index b98e2df..3cd91ac 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -2912,7 +2912,7 @@ static struct omap_hwmod omap34xx_sr1_hwmod = {
- 	.name		= "sr1_hwmod",
- 	.class		= &omap34xx_smartreflex_hwmod_class,
- 	.main_clk	= "sr1_fck",
--	.vdd_name	= "mpu",
-+	.vdd_name	= "mpu_iva",
- 	.prcm		= {
- 		.omap2 = {
- 			.prcm_reg_id = 1,
-@@ -2934,7 +2934,7 @@ static struct omap_hwmod omap36xx_sr1_hwmod = {
- 	.name		= "sr1_hwmod",
- 	.class		= &omap36xx_smartreflex_hwmod_class,
- 	.main_clk	= "sr1_fck",
--	.vdd_name	= "mpu",
-+	.vdd_name	= "mpu_iva",
- 	.prcm		= {
- 		.omap2 = {
- 			.prcm_reg_id = 1,
-diff --git a/arch/arm/mach-omap2/omap_twl.c b/arch/arm/mach-omap2/omap_twl.c
-index 287aef2..57c325a 100644
---- a/arch/arm/mach-omap2/omap_twl.c
-+++ b/arch/arm/mach-omap2/omap_twl.c
-@@ -288,7 +288,7 @@ int __init omap3_twl_init(void)
- 	if (!twl_sr_enable_autoinit)
- 		omap3_twl_set_sr_bit(true);
+diff --git a/arch/arm/mach-omap2/powerdomain.h b/arch/arm/mach-omap2/powerdomain.h
+index 027f40b..cc03a0d 100644
+--- a/arch/arm/mach-omap2/powerdomain.h
++++ b/arch/arm/mach-omap2/powerdomain.h
+@@ -24,6 +24,8 @@
  
--	voltdm = voltdm_lookup("mpu");
-+	voltdm = voltdm_lookup("mpu_iva");
- 	omap_voltage_register_pmic(voltdm, &omap3_mpu_volt_info);
+ #include <plat/cpu.h>
  
- 	voltdm = voltdm_lookup("core");
-diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-index 917e1e3..820b7b5 100644
---- a/arch/arm/mach-omap2/pm.c
-+++ b/arch/arm/mach-omap2/pm.c
-@@ -226,7 +226,7 @@ static void __init omap3_init_voltages(void)
- 	if (!cpu_is_omap34xx())
- 		return;
- 
--	omap2_set_init_voltage("mpu", "dpll1_ck", mpu_dev);
-+	omap2_set_init_voltage("mpu_iva", "dpll1_ck", mpu_dev);
- 	omap2_set_init_voltage("core", "l3_ick", l3_dev);
- }
- 
-diff --git a/arch/arm/mach-omap2/voltagedomains3xxx_data.c b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
-index 4bee412..2167ef4 100644
---- a/arch/arm/mach-omap2/voltagedomains3xxx_data.c
-+++ b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
-@@ -60,7 +60,7 @@ static struct omap_vdd_info omap3_vdd2_info = {
- };
- 
- static struct voltagedomain omap3_voltdm_mpu = {
--	.name = "mpu",
-+	.name = "mpu_iva",
- 	.vdd = &omap3_vdd1_info,
- };
- 
++#include "voltage.h"
++
+ /* Powerdomain basic power states */
+ #define PWRDM_POWER_OFF		0x0
+ #define PWRDM_POWER_RET		0x1
+@@ -78,6 +80,7 @@ struct powerdomain;
+ /**
+  * struct powerdomain - OMAP powerdomain
+  * @name: Powerdomain name
++ * @voltdm: voltagedomain containing this powerdomain
+  * @omap_chip: represents the OMAP chip types containing this pwrdm
+  * @prcm_offs: the address offset from CM_BASE/PRM_BASE
+  * @prcm_partition: (OMAP4 only) the PRCM partition ID containing @prcm_offs
+@@ -98,6 +101,10 @@ struct powerdomain;
+  */
+ struct powerdomain {
+ 	const char *name;
++	union {
++		const char *name;
++		struct voltagedomain *ptr;
++	} voltdm;
+ 	const struct omap_chip_id omap_chip;
+ 	const s16 prcm_offs;
+ 	const u8 pwrsts;
 -- 
 1.7.4
 
