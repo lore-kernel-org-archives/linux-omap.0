@@ -1,104 +1,98 @@
-From: Bill Gatliff <bgat@billgatliff.com>
+From: Nicolas Pitre <nico@fluxnic.net>
 Subject: Re: [GIT PULL] omap changes for v2.6.39 merge window
-Date: Wed, 30 Mar 2011 21:20:08 -0500
-Message-ID: <AANLkTimPJCiaUyTfcR1NSPivJ2YjSwazhiWRC-CPLy6J@mail.gmail.com>
+Date: Wed, 30 Mar 2011 23:17:47 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.1103302255280.28032@xanadu.home>
 References: <20110317183048.GW7258@atomide.com>
-	<AANLkTimWbb5DWiiCW821H6pRicbk1fS3PYcnGyUMznvM@mail.gmail.com>
-	<20110318101512.GA15375@n2100.arm.linux.org.uk>
-	<201103301906.42429.arnd@arndb.de>
-	<AANLkTim578-kwM14SJd06RW_QiC4WVCmFuG+ASgGC4sq@mail.gmail.com>
-	<20110331001502.GB6680@n2100.arm.linux.org.uk>
-	<AANLkTinE7EDbV8hrYZWBxgvwOxdPMLoS0Y57PSm04rvM@mail.gmail.com>
-	<AANLkTik-BFTzyPLuYVdhCJPocc0wPY0rKvO7BQS4Fg1S@mail.gmail.com>
-	<AANLkTikd_JRxmB_OWZqq178=K3bnxhdDqcNbgFNRtTyU@mail.gmail.com>
-	<AANLkTimS_8BnBz9MSdxYJVL6oreEpH=W61BsyuX2G+Xz@mail.gmail.com>
-	<AANLkTimtO7vR2AQvJj1hHMqHCDqtoiJX_eENE9o3dPpV@mail.gmail.com>
+ <AANLkTimWbb5DWiiCW821H6pRicbk1fS3PYcnGyUMznvM@mail.gmail.com>
+ <20110318101512.GA15375@n2100.arm.linux.org.uk>
+ <201103301906.42429.arnd@arndb.de>
+ <AANLkTim578-kwM14SJd06RW_QiC4WVCmFuG+ASgGC4sq@mail.gmail.com>
+ <alpine.LFD.2.00.1103301531420.28032@xanadu.home>
+ <AANLkTim6zg-U6HtAQbqnENqoK7x8erXSqOuTFVC0YE5r@mail.gmail.com>
+ <alpine.LFD.2.00.1103301814250.28032@xanadu.home>
+ <alpine.DEB.2.00.1103301728000.15330@asgard.lang.hm>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <AANLkTimtO7vR2AQvJj1hHMqHCDqtoiJX_eENE9o3dPpV@mail.gmail.com>
+In-reply-to: <alpine.DEB.2.00.1103301728000.15330@asgard.lang.hm>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, David Brown <davidb@codeaurora.org>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Nicolas Pitre <nico@fluxnic.net>, Catalin Marinas <catalin.marinas@arm.com>
+To: david@lang.hm
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, David Brown <davidb@codeaurora.org>, lkml <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>
 List-Id: linux-omap@vger.kernel.org
 
-Linus:
+On Wed, 30 Mar 2011, david@lang.hm wrote:
 
-On Wed, Mar 30, 2011 at 8:56 PM, Linus Torvalds
-<torvalds@linux-foundation.org> wrote:
-> =A0(a) we don't have to be stupid and think it's a good design and an
-> "opportunity" like you do.
+> On Wed, 30 Mar 2011, Nicolas Pitre wrote:
+> 
+> > Furthermore, this does create pain.  you have to make things in sync
+> > between the kernel and the mini-kernel (let's call it bootloader).  In
+> > practice the bootloader is always maintained separately from the kernel,
+> > on its own pace and with its own release schedule.  Trying to
+> > synchronize independent projects is really painful as you know already,
+> > otherwise the user space for perf would still be maintained separately
+> > from the kernel, right?
+> 
+> Being separate from the kernel with it's own release schedule could be a good
+> thing.
 
-The complexity that is the current state of the ARM ecosystem presents
-the opportunity to find a way to accommodate all those chips within
-the Linux kernel.
+It could.  It didn't work well for oprofile.  That's why perf was 
+included in the kernel tree which so far appears to be a success.
 
-If it isn't opportunity, then you must be arguing that we shouldn't
-add any new ARM SoC support to the kernel.  Is that what you are
-saying?
+> using the example of clocks. if the clock definitions were in the bootloader
+> project, then when a new board is produced with a slightly different clock
+> arrangement, all you have to do is to update the bootloader to pass the new
+> definition to the kernel, and then you can use a well tested kernel that has
+> been put through it's paces on other hardware already.
 
-> =A0(b) the kernel source code doesn't have to be the mess of code tha=
-t
-> it is. Those things should be abstracted out somehow (and yes,
-> devicetree is hopefully one way)
+Sure.  And that's the perfect case.  I've yet to see things work so 
+well in practice.
 
-We are in violent agreement here.
+> Today you have to get the change upstream into the kernel, and then use the
+> new kernel (which always includes new features and bugs that you have to test
+> for)
 
-> I really don't understand why you seem to be arguing against trying t=
-o
-> fix a real problem, and why you also seem to be arguing that the mess=
-y
-> ARM situation is somehow "good". I find your attitude about the lack
-> of platform being "good" be to incomprehensibly stupid. There is
-> absolutely _no_ advantage to anybody from the crazy arm fragmentation=
-=2E
+No.  Today you have to get the change working in the current stable 
+kernel locally and test it before you submit it upstream.
 
-I guess I wasn't being clear.
+> the two pieces do not need to be released and updated in lockstep. yes, there
+> will be (many) cases where a new kernel adds support for a new type of device,
+> but the communications format between the bootloader and the kernel can be
+> designed to be tolorant of such skew. Even before the kernel knows how to
+> drive the hardware you can have the format of the information about that
+> hardware defined (allowing the bootloader to pass information to the kernel
+> that it just ignores because it doesn't have a driver in it for that
+> particulare piece of hardware), and if the bootloader doesn't tell the kernel
+> about some device, the kernel will just ignore that device.
 
-Some of the proposals in this thread seemed to argue for the creation
-of a one-size-fits-all kernel solution for ARM.  I think pursuit of
-such a solution is a complete waste of time, because it denies the
-reality that ARM machines aren't very uniform.  It's far better to
-admit to and embrace that diversity than it is to try to deny it.
+Today we have no such communication format with its limitations and 
+compatibility issues to care about.  That allows for much greater 
+flexibility just as the kernel internal APIs are not guaranteed to be 
+stable.  The major drawback is a lack of forward compatibility meaning 
+that for every new piece of hardware to come you need a kernel update.  
+There is simply no magic solution.
 
-What we have today clearly isn't optimal, and it isn't going to scale
-much farther.  But we can't entertain the option of chucking the whole
-mess over the wall into bootloader-land, or VHDL-land, or whatever.
-Those simply aren't options.  We have to find a solution that will
-work in kernel space.
+> this means that you need to have some group doing the equivalent of assigning
+> device numbers for the different devices (and in this case going just a little
+> further to define what setup parameters will be needed), initially this may be
+> a little rough, but after a very short time I would expect the people doing
+> this work to start recognising that even though vendor A who first proposes
+> this device has some things hard-wired, the definition format should support
+> these things as variables instead of being assumed.
 
-> I know, I know, a lot of companies make money supporting the whole
-> crazy mess. I guess that can make people confused and think that bein=
-g
-> messy is good, and could be seen as an advantage.
+Ideally, yes.  but if every vendor has a different set of peripherals, 
+and from one SOC revision to the next from the same vendor you still 
+have different hardware knobs, then you still have to add yet more code 
+to the kernel.  And that doesn't solve the issue of dynamic clock and 
+power management at runtime either for which custom code is still 
+required.
 
-No, I don't think messy is good.  And I'm an individual who makes his
-living making Linux run on ARM (among others) platforms.  Messy wastes
-my time, because I have to deal with the mess rather than making
-platforms that solve real problems.  Messy equates to overhead and
-tedium.  Messy invites error.  Messy sucks.
-
-> But most embedded companies seem to have realized that they should
-> move up the stack, rather than worry about some crazy GPIO or stupid
-> driver details.
-
-Now that you mention it, GPIO is a perfect example of what I'm talking
-about.  Every ARM chip does that differently.  Rather than deny that,
-David Brownell came up with some code that embraces it.  His code
-might not be perfect, but we're learning as we go along.  Same can be
-said about the kernel's ARM situation as a whole.
-
-And I still don't think that ARM is as bad as you think it is.  Sure
-it's ugly, but I don't think it's uglier than SH or PPC.  It's just
-ugly at a larger scale, because there are so many more ARM chips to
-choose from.
-
-Does ARM need some fixing?  Yes!  But let's be realistic about what
-forms the solution might take.
+As long as SOC vendors keep producing wildly different architectures 
+besides the core CPU we'll have this problem.  Denying the reality won't 
+make that problem go away either.  And device tree won't stop those 
+vendor from still trying to do things differently (better?) because they 
+are not constrained by having to ensure this single proprietary software 
+stack still boot.
 
 
-b.g.
---=20
-Bill Gatliff
-bgat@billgatliff.com
+Nicolas
