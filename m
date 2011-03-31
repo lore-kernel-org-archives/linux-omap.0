@@ -1,53 +1,89 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [GIT PULL] omap changes for v2.6.39 merge window
-Date: Thu, 31 Mar 2011 15:54:33 +0200 (CEST)
-Message-ID: <alpine.LFD.2.00.1103311541190.22418@localhost6.localdomain6>
-References: <201103301906.42429.arnd@arndb.de> <AANLkTim578-kwM14SJd06RW_QiC4WVCmFuG+ASgGC4sq@mail.gmail.com> <alpine.LFD.2.00.1103301531420.28032@xanadu.home> <AANLkTim6zg-U6HtAQbqnENqoK7x8erXSqOuTFVC0YE5r@mail.gmail.com> <alpine.LFD.2.00.1103301814250.28032@xanadu.home>
- <alpine.DEB.2.00.1103301728000.15330@asgard.lang.hm> <alpine.LFD.2.00.1103302255280.28032@xanadu.home> <AANLkTikV5OMifKjWRVdtJLEcxcZ56jrjWLYJBX89pHQ0@mail.gmail.com> <alpine.LFD.2.00.1103310012500.28032@xanadu.home> <20110331105440.42692165@lxorguk.ukuu.org.uk>
- <20110331105000.GC14323@n2100.arm.linux.org.uk>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [RFC PATCH] ARM: GIC: Convert GIC library to use the IO
+ relaxed operations
+Date: Thu, 31 Mar 2011 15:03:51 +0100
+Message-ID: <1301580231.10659.142.camel@e102109-lin.cambridge.arm.com>
+References: <1301576121-10858-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20110331105000.GC14323@n2100.arm.linux.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, Nicolas Pitre <nico@fluxnic.net>, Dave Airlie <airlied@gmail.com>, david@lang.hm, Linus Torvalds <torvalds@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, David Brown <davidb@codeaurora.org>, lkml <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from service87.mimecast.com ([94.185.240.25]:50541 "HELO
+	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752695Ab1CaOD7 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 31 Mar 2011 10:03:59 -0400
+In-Reply-To: <1301576121-10858-1-git-send-email-santosh.shilimkar@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Will Deacon <Will.Deacon@arm.com>
 
-On Thu, 31 Mar 2011, Russell King - ARM Linux wrote:
-> And I'm not going to be merging anything into my tree for the time being.
-> I know there's no way for me to continue without being moaned at by someone.
-> So I'm just going to take the easy option at the moment and do precisely
-> nothing in terms of queueing patches until something gets resolved one way
-> or the other.  I'm not even going to review any patches because I currently
-> see it as a total waste of time - I've no idea whether they'll stand any
-> chance what so ever of making it into mainline.
+On Thu, 2011-03-31 at 13:55 +0100, Santosh Shilimkar wrote:
+> diff --git a/arch/arm/common/gic.c b/arch/arm/common/gic.c
+> index f70ec7d..e013f65 100644
+> --- a/arch/arm/common/gic.c
+> +++ b/arch/arm/common/gic.c
+> @@ -89,7 +89,9 @@ static void gic_ack_irq(struct irq_data *d)
+>         spin_lock(&irq_controller_lock);
+>         if (gic_arch_extn.irq_ack)
+>                 gic_arch_extn.irq_ack(d);
+> -       writel(gic_irq(d), gic_cpu_base(d) + GIC_CPU_EOI);
+> +       writel_relaxed(gic_irq(d), gic_cpu_base(d) + GIC_CPU_EOI);
+> +       barrier();
+> +       readl_relaxed(gic_cpu_base(d) + GIC_CPU_EOI);
+
+We don't need the explicit barrier(), I don't think the compiler would
+reorder the writel/readl_relaxed calls. The same for all places where
+you added barrier().
+
+Do we need the acknowledge to be confirmed via a readl?
+
+>         spin_unlock(&irq_controller_lock);
+>  }
 > 
-> What's the way out of this?  I've no idea.  Can ARM continue being part
-> of the mainline kernel?  I've no idea.  Will we be ripping out all the
-> ARM platform code from the mainline kernel?  I've no idea.
+> @@ -98,7 +100,9 @@ static void gic_mask_irq(struct irq_data *d)
+>         u32 mask = 1 << (d->irq % 32);
+> 
+>         spin_lock(&irq_controller_lock);
+> -       writel(mask, gic_dist_base(d) + GIC_DIST_ENABLE_CLEAR + (gic_irq(d) / 32) * 4);
+> +       writel_relaxed(mask, gic_dist_base(d) + GIC_DIST_ENABLE_CLEAR + (gic_irq(d) / 32) * 4);
+> +       barrier();
+> +       readl_relaxed(gic_dist_base(d) + GIC_DIST_ENABLE_CLEAR + (gic_irq(d) / 32) * 4);
+>         if (gic_arch_extn.irq_mask)
+>                 gic_arch_extn.irq_mask(d);
+>         spin_unlock(&irq_controller_lock);
 
-Moving arm out of mainline would be a complete disaster.
- 
-> I am now completely demotivated.
+Here we need a readl back in case the calling code enables the
+interrupts at the CPU level (that's probably the only place where we
+need a read back?).
 
-I can understand that, but I have to say again, that you do a pretty
-damned good job on keeping the ARM core code clean and I always enjoy
-working with you when infrastructure I'm working on needs to deal with
-ARM requirements. We disagree from time to time, but I don't remember
-a single incident where we could not resolve that on a technical base.
+> @@ -111,7 +115,9 @@ static void gic_unmask_irq(struct irq_data *d)
+>         spin_lock(&irq_controller_lock);
+>         if (gic_arch_extn.irq_unmask)
+>                 gic_arch_extn.irq_unmask(d);
+> -       writel(mask, gic_dist_base(d) + GIC_DIST_ENABLE_SET + (gic_irq(d) / 32) * 4);
+> +       writel_relaxed(mask, gic_dist_base(d) + GIC_DIST_ENABLE_SET + (gic_irq(d) / 32) * 4);
+> +       barrier();
+> +       readl_relaxed(gic_dist_base(d) + GIC_DIST_ENABLE_SET + (gic_irq(d) / 32) * 4);
+>         spin_unlock(&irq_controller_lock);
+>  }
 
-It's not your fault, that you can't clone yourself 10 times to deal
-with the subarch flood. It's also not your fault that the subarch
-maintainers tend not to look over the brim of their SoC sandbox and
-figure out how to solve the big picture.
+We don't need a read back, just let it unmask the interrupt at some
+point in the future.
 
-So no, ARM needs to stay and the ARM crowd needs to find competent
-people who babysit the SoC crowd and work with you to get the big
-picture straight. Something like this should have been done _before_
-the wave of ARM spilling out of every other silicon shop became
-tsunami sized. But not doing it at all will not solve anything.
+> @@ -392,6 +399,8 @@ void gic_raise_softirq(const struct cpumask *mask, unsigned int irq)
+>         unsigned long map = *cpus_addr(*mask);
+> 
+>         /* this always happens on GIC0 */
+> -       writel(map << 16 | irq, gic_data[0].dist_base + GIC_DIST_SOFTINT);
+> +       writel_relaxed(map << 16 | irq, gic_data[0].dist_base + GIC_DIST_SOFTINT);
+> +       barrier();
+> +       readl_relaxed(gic_data[0].dist_base + GIC_DIST_SOFTINT);
+>  }
 
-Thanks,
+We don't need the readl.
 
-	tglx
+-- 
+Catalin
+
+
