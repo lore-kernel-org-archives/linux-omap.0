@@ -1,99 +1,71 @@
-From: Nicolas Pitre <nico@fluxnic.net>
+From: Alexander Holler <holler@ahsoftware.de>
 Subject: Re: [GIT PULL] omap changes for v2.6.39 merge window
-Date: Thu, 31 Mar 2011 13:56:12 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.1103311218240.28032@xanadu.home>
-References: <201103301906.42429.arnd@arndb.de>
- <AANLkTim578-kwM14SJd06RW_QiC4WVCmFuG+ASgGC4sq@mail.gmail.com>
- <alpine.LFD.2.00.1103301531420.28032@xanadu.home>
- <AANLkTim6zg-U6HtAQbqnENqoK7x8erXSqOuTFVC0YE5r@mail.gmail.com>
- <alpine.LFD.2.00.1103301814250.28032@xanadu.home>
- <alpine.DEB.2.00.1103301728000.15330@asgard.lang.hm>
- <alpine.LFD.2.00.1103302255280.28032@xanadu.home>
- <alpine.DEB.2.00.1103302130500.29543@asgard.lang.hm>
- <alpine.LFD.2.00.1103310145390.28032@xanadu.home>
- <20110331080634.GA18022@elte.hu>
- <20110331083044.GB14323@n2100.arm.linux.org.uk>
- <alpine.DEB.2.00.1103310855450.29543@asgard.lang.hm>
+Date: Thu, 31 Mar 2011 20:00:53 +0200
+Message-ID: <4D94C155.2090406@ahsoftware.de>
+References: <AANLkTimWbb5DWiiCW821H6pRicbk1fS3PYcnGyUMznvM@mail.gmail.com>
+	<20110318101512.GA15375@n2100.arm.linux.org.uk>
+	<201103301906.42429.arnd@arndb.de>
+	<AANLkTim578-kwM14SJd06RW_QiC4WVCmFuG+ASgGC4sq@mail.gmail.com>
+	<alpine.LFD.2.00.1103301531420.28032@xanadu.home>
+	<AANLkTim6zg-U6HtAQbqnENqoK7x8erXSqOuTFVC0YE5r@mail.gmail.com>
+	<alpine.LFD.2.00.1103301814250.28032@xanadu.home>
+	<alpine.DEB.2.00.1103301728000.15330@asgard.lang.hm>
+	<alpine.LFD.2.00.1103302255280.28032@xanadu.home>
+	<alpine.DEB.2.00.1103302130500.29543@asgard.lang.hm>
+	<20110331080954.GA14323@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-reply-to: <alpine.DEB.2.00.1103310855450.29543@asgard.lang.hm>
-Sender: linux-kernel-owner@vger.kernel.org
-To: david@lang.hm
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Ingo Molnar <mingo@elte.hu>, Linus Torvalds <torvalds@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, David Brown <davidb@codeaurora.org>, lkml <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20110331080954.GA14323@n2100.arm.linux.org.uk>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: david@lang.hm, Arnd Bergmann <arnd@arndb.de>, Nicolas Pitre <nico@fluxnic.net>, Tony Lindgren <tony@atomide.com>, Catalin Marinas <catalin.marinas@arm.com>, lkml <linux-kernel@vger.kernel.org>, David Brown <davidb@codeaurora.org>, linux-omap@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, 31 Mar 2011, david@lang.hm wrote:
-
-> I think that part of the issue is that when Linus points out a problem, the
-> response isn't "we agree and are working on it, here's what we are doing",
-> instead it seems to be mostly "there is no problem, this is just because there
-> is so much variation in ARM"
-
-The problem is two-fold:
-
-1) - "ARM hardware manufacturers are morons"... 
-   - ARM vendors "do things differently just to be difficult"...
-   - "the crazy arm fragmentation"...
-   Translate this into whatever ways you like.  The fact is that ARM
-   is quite popular as a CPU core but there is very little in terms of 
-   standardization around that CPU core.  *OBVIOUSLY* this is a problem.
-   But there is _nothing_ we can do about that besides the current 
-   moaning and the hope that those vendors will hear us and stop trying 
-   to be different from their competitors.  Apparently that won't happen 
-   in the near future, so we can either sit on our arses proclaiming 
-   repeatedly that this is a problem until those hardware vendors put 
-   their acts together, or we find ways to deal with it somehow.
-
-2) Because of (1) we do end up being floded by SOC specific support code
-   with an unprecedented scale.  Here's the stat:
-
-   $ git diff --shortstat v2.6.38..v2.6.39-rc1 arch/arm/
-    1319 files changed, 61303 insertions(+), 33780 deletions(-)
-   $ git diff --shortstat v2.6.38..v2.6.39-rc1 arch/x86/
-    241 files changed, 6508 insertions(+), 4326 deletions(-)
-
-   That's ten (10) times more lines added in the ARM directory than in 
-   the X86 directory.  Is this a sudden burst or a tendency?
-
-   $ git diff --shortstat v2.6.37..v2.6.38 arch/arm/
-    1257 files changed, 72412 insertions(+), 29361 deletions(-)
-   $ git diff --shortstat v2.6.37..v2.6.38 arch/x86/
-    216 files changed, 10021 insertions(+), 5016 deletions(-)
-
-   $ git diff --shortstat v2.6.36..v2.6.37 arch/arm/
-    1314 files changed, 55072 insertions(+), 17620 deletions(-)
-   $ git diff --shortstat v2.6.36..v2.6.37 arch/x86/
-    299 files changed, 16130 insertions(+), 12800 deletions(-)
-
-   $ git diff --shortstat v2.6.35..v2.6.36 arch/arm
-    1041 files changed, 53428 insertions(+), 25722 deletions(-)
-   $ git diff --shortstat v2.6.35..v2.6.36 arch/x86/
-    231 files changed, 7216 insertions(+), 8028 deletions(-)
-
-   So that appears to be quite "normal" to see ARM vendors together 
-   producing many times the level of activities compared to X86.
-
-So... Is there missed opportunity for better code reuse here?  Most 
-probably.  Is all that code the result of misabstracted and duplicated 
-code?  Certainly not.  Let's just presume that half of that code is 
-genuine crap and the other half is simply the result of new hardware for 
-which there is no existing model to fit it in.  Even then, do we have 5 
-times the reviewer bandwidth to properly review all that code compared 
-to X86?  Absolutely not, not even close.
-
-If prominent people looking at this from the side line continue bashing 
-at those who are both feet in the mud trying to contain the flood rather 
-than actually helping then nothing will change.  Instead this only 
-creates despair and the splashed people may simply decide to throw in 
-the towel, at which point things will collapse for real.  In reality, 
-the system has been going as it is for quite a while and with more or 
-less the same level of intensity.  And the fact is that _users_ of the 
-ARM kernel are not complaining.  Things are far from being perfect, but 
-so far things have been "good enough" for the majority of the people 
-involved, and improvements are constantly being worked on with the men 
-power available.
-
-
-Nicolas
+SGVsbG8sCgpBbSAzMS4wMy4yMDExIDEwOjA5LCBzY2hyaWViIFJ1c3NlbGwgS2luZyAtIEFSTSBM
+aW51eDoKCj4gV2UgYWxzbyBuZWVkIHRoZSB2YXJpb3VzIFNvQyBkZXNpZ25lcnMgYW5kIEFSTSBh
+cmNoaXRlY3R1cmUgcGVvcGxlIHRvCj4gcmVhbGlzZSB0aGF0IHdoYXQgdGhlIGhhcmR3YXJlIHNp
+dHVhdGlvbiBpcyByZWRpY3Vsb3VzOyBJIGhhdmUgY29tbWVudGVkCj4gYWJvdXQgdGhpcyBsYWNr
+IG9mIHN0YW5kYXJkaXNhdGlvbiB0byBBUk0gaW4gcGFzdCB5ZWFycy4gIEFSTSBoYXZlIGhhZAo+
+IGEgc3RhbmRhcmQgc2V0IG9mIHBlcmlwaGVyYWxzIGZvciB0ZW4geWVhcnMsIGJ1dCB0aGUgU29D
+IHBlb3BsZSBoYXZlbid0Cj4gcmVhbGx5IHRha2VuIHRoZW0gdXAgLSBhbmQgd2hlbiB0aGV5IGRv
+LCB0aGV5IHNlZW0gdG8gYWx3YXlzIGludHJvZHVjZQo+IHRoZWlyIG93biB0d2Vha3MsIHNvbWV0
+aW1lcyB3aXRoIG5vIHdheSB0byBkZXRlY3QgdGhvc2UgdHdlYWtzLgoKQXMgYSB1c2VyIG9mIHNl
+dmVyYWwgQVJNIGJvYXJkcyBJIGZ1bGx5IGFncmVlLiBJJ3ZlIGNvbWUgdG8gdGhlIApjb25jbHVz
+aW9uIHRoYXQgaWYgZGV2aWNlIHRyZWUgb3Igc29tZXRoaW5nIHNpbWlsaWFyIHdvbid0IGNvbWUg
+dXAsIAp3aGljaCBvZmZlcnMgYSB2ZW5kb3IgaW5kZXBlbmRlbnQgZGVzY3JpcHRpb24gb2YgdGhl
+IGhhcmR3YXJlLCB0aGUgQVJNIAptYXJrZXQgKGF0IGxlYXN0IHdpdGggTGludXggYXMgYW4gT1Mp
+IHdvbid0IGZ1bmN0aW9uLiBJdCdzIGFscmVhZHkgCmFsbW9zdCBpbXBvc3NpYmxlIHRvIHVwZGF0
+ZSBhbiBvbGQgdmVuZG9yIGtlcm5lbCB0byBhIG1haW5saW5lIGtlcm5lbCAKdmVyc2lvbiB3aXRo
+b3V0IGhhdmluZyBzY2hlbWF0aWNzLiBVcCB0byBub3cgdGhpcyBpc24ndCBhIGJpZyBwcm9ibGVt
+IApiZWNhdXNlIG1vc3QgQVJNLUhXIHBlb3BsZSBhcmUgcGxheWluZyB3aXRoIGFyZSBkZXZlbG9w
+ZXIgYm9hcmRzLCBidXQgCnRoYXRzIGFscmVhZHkgY2hhbmdpbmcgYW5kIG1vcmUgYW5kIG1vcmUg
+c3R1ZmYgd2lsbCBjb21lIHdpdGhvdXQgc2NoZW1hdGljcy4KQW5kIHdpdGhvdXQgdGhlIGhlbHAg
+b2Ygc29tZXRoaW5nIGxpa2UgdGhlIHg4NiBCSU9TIChvciBEVCBmb3IgQVJNKSB5b3UgCmFyZSBq
+dXN0IGxvc3QgdXNpbmcgYW4gQVJNLUhXIHdoZXJlIHlvdSBkb24ndCBoYXZlIHRoZSBzY2hlbWF0
+aWNzLCB3aGVuIAp5b3UgZG9uJ3Qgd2FudCB0byB1c2UgdGhlIHZlbmRvciBwcm92aWRlZCBrZXJu
+ZWwgc291cmNlcyAoZm9yIHdoaWNoIHlvdSAKYWxtb3N0IG5ldmVyIGdldCBlLmcuIGFueSBzZWN1
+cml0eSBmaXhlcykuIEZpbmRpbmcgYWxsIHRoZSBzbWFsbCBrbm9icyAKdG8gdHVybiBvdXQgb2Yg
+dmVuZG9yIHByb3ZpZGVkIGtlcm5lbCBzb3VyY2VzIGlzIGEgcGFpbiBhbmQganVzdCBhIHdhc3Rl
+IApvZiB0aW1lIHlvdSBhbG1vc3QgbmV2ZXIgY2FuJ3QgZmluaXNoIGJlZm9yZSB0aGUgSFcgaW4g
+cXVlc3Rpb24gZ290IApvYnNvbGV0ZS4KCkp1c3QgbXkgMsKiIG9uIHRoYXQgdG9waWMgZnJvbSBh
+IHNvbWV3aGF0IHVzZXIgcG9pbnQgb2YgdmlldyBmcm9tIG9uZSB3aG8gCmlzbid0IHJlYWxseSBp
+bnZvbHZlZCB0aGF0IG11Y2ggaW4ga2VybmVsIGRldmVsb3BtZW50LgoKQXQgbGVhc3QgSSBmaW5k
+IHN1Y2ggYSByYW50IGZyb20gTGludXMgZnJvbSB0aW1lIHRvIHRpbWUgYSBnb29kIHRoaW5nLiAK
+U29tZXRpbWVzIGl0IGhlbHBzIGlmIHNvbWVvbmUgc3BlYWtzIG91dCBsb3VkIHdoYXRzIHdyb25n
+LiBBbmQgaWYgTGludXMgCndvdWxkbid0IGJlIHRoYXQgb25lLCB3aG8gZWxzZSB3b3VsZCBiZSBj
+b3VyYWdlb3VzIGVub3VnaCB0byBkbyB0aGF0PyBJIAp3b3VsZG4ndCAoYW5kIEkgY2FuJ3QsIEkg
+aGF2ZSB0byB0aGFuayBhbGwga2VybmVsIGRldmVsb3BlcnMgZm9yIHRoZWlyIApoYXJkIHdvcmsp
+LgoKUmVnYXJkcywKCkFsZXhhbmRlcgoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1r
+ZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWls
+bWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
