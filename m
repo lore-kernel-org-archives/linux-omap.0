@@ -1,45 +1,47 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCHv2] omap: rx51: Platform support for lp5523 led chip
-Date: Thu, 31 Mar 2011 17:26:36 +0300
-Message-ID: <20110331142635.GF5465@legolas.emea.dhcp.ti.com>
-References: <alpine.DEB.1.10.1103311524420.2634@esdhcp041196.research.nokia.com>
- <1301578692-29286-1-git-send-email-ameya.palande@nokia.com>
-Reply-To: balbi@ti.com
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [pm-core][PATCH v3 02/21] OMAP4: Use WARN_ON() instead of BUG_ON()
+ with graceful exit
+Date: Thu, 31 Mar 2011 20:09:54 +0530
+Message-ID: <4D94923A.5060006@ti.com>
+References: <1301304157-2466-1-git-send-email-santosh.shilimkar@ti.com>	<1301304157-2466-3-git-send-email-santosh.shilimkar@ti.com>	<20110328205323.GD30616@atomide.com> <4D943CB8.70002@ti.com> <87wrjfmlnp.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:57069 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754821Ab1CaO0j (ORCPT
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:59491 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753171Ab1CaOkL (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 31 Mar 2011 10:26:39 -0400
-Received: by mail-ew0-f41.google.com with SMTP id 9so791547ewy.0
-        for <linux-omap@vger.kernel.org>; Thu, 31 Mar 2011 07:26:38 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <1301578692-29286-1-git-send-email-ameya.palande@nokia.com>
+	Thu, 31 Mar 2011 10:40:11 -0400
+Received: by mail-vx0-f173.google.com with SMTP id 41so2800595vxb.18
+        for <linux-omap@vger.kernel.org>; Thu, 31 Mar 2011 07:40:08 -0700 (PDT)
+In-Reply-To: <87wrjfmlnp.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ameya Palande <ameya.palande@nokia.com>
-Cc: linux-omap@vger.kernel.org, mathias.nyman@nokia.com, linux-arm-kernel@lists.infradead.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, rnayak@ti.com, linux-arm-kernel@lists.infradead.org
 
-Hi,
+On 3/31/2011 7:34 PM, Kevin Hilman wrote:
+> Santosh Shilimkar<santosh.shilimkar@ti.com>  writes:
+>
+>> On 3/29/2011 2:23 AM, Tony Lindgren wrote:
+>>> * Santosh Shilimkar<santosh.shilimkar@ti.com>   [110328 02:20]:
+>
 
-On Thu, Mar 31, 2011 at 04:38:12PM +0300, Ameya Palande wrote:
-> +static int rx51_lp5523_setup(void)
-> +{
-> +	int err;
-> +
-> +	err = gpio_request_one(RX51_LP5523_CHIP_EN_GPIO, GPIOF_DIR_OUT,
-> +			"lp5523_enable");
-> +	if (err < 0) {
-> +		pr_err("Unable to get lp5523_enable GPIO\n");
-> +		return err;
-> +	}
-> +
-> +	return err;
+[...]
 
-isn't enough to return gpio_request_one(RX51_LP5523_CHIP_EN_GPIO,
-GPIOF_DIR_OUT, "lp5523_enable"); ??
+>> L2 cache is no problem and kernel can boot without L2 cache
+>> support. I agree with you on interrupt controller init though.
+>>
+>> Will drop the interrupt related checks from this patch.
+>>
+>> Kevin, Are you ok with it ?
+>
+> In general, BUG should only be used when the kernel really can not
+> possibly continue[1].  I suppose inability to map the GIC falls into
+> that category.
+>
+Thanks. Will drop GIC ones.
 
--- 
-balbi
+Regards
+Santosh
