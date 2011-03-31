@@ -1,104 +1,74 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
+From: david@lang.hm
 Subject: Re: [GIT PULL] omap changes for v2.6.39 merge window
-Date: Thu, 31 Mar 2011 10:17:25 -0700
-Message-ID: <AANLkTi=tyifvJU-hhdd7gT74GMctrCbQBdUAoEaRXOCy@mail.gmail.com>
-References: <alpine.LFD.2.00.1103301531420.28032@xanadu.home>
- <AANLkTim6zg-U6HtAQbqnENqoK7x8erXSqOuTFVC0YE5r@mail.gmail.com>
- <alpine.LFD.2.00.1103301814250.28032@xanadu.home> <alpine.DEB.2.00.1103301728000.15330@asgard.lang.hm>
- <alpine.LFD.2.00.1103302255280.28032@xanadu.home> <alpine.DEB.2.00.1103302130500.29543@asgard.lang.hm>
- <alpine.LFD.2.00.1103310145390.28032@xanadu.home> <20110331080634.GA18022@elte.hu>
- <20110331083044.GB14323@n2100.arm.linux.org.uk> <alpine.DEB.2.00.1103310855450.29543@asgard.lang.hm>
- <20110331164539.GB19452@n2100.arm.linux.org.uk>
+Date: Thu, 31 Mar 2011 10:22:31 -0700 (PDT)
+Message-ID: <alpine.DEB.2.00.1103310904080.29543@asgard.lang.hm>
+References: <201103301906.42429.arnd@arndb.de> <AANLkTim578-kwM14SJd06RW_QiC4WVCmFuG+ASgGC4sq@mail.gmail.com> <alpine.LFD.2.00.1103301531420.28032@xanadu.home> <AANLkTim6zg-U6HtAQbqnENqoK7x8erXSqOuTFVC0YE5r@mail.gmail.com> <alpine.LFD.2.00.1103301814250.28032@xanadu.home>
+ <alpine.DEB.2.00.1103301728000.15330@asgard.lang.hm> <alpine.LFD.2.00.1103302255280.28032@xanadu.home> <AANLkTikV5OMifKjWRVdtJLEcxcZ56jrjWLYJBX89pHQ0@mail.gmail.com> <alpine.LFD.2.00.1103310012500.28032@xanadu.home> <20110331105440.42692165@lxorguk.ukuu.org.uk>
+ <20110331105000.GC14323@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; format=flowed; charset=US-ASCII
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20110331164539.GB19452@n2100.arm.linux.org.uk>
+In-Reply-To: <20110331105000.GC14323@n2100.arm.linux.org.uk>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: david@lang.hm, Ingo Molnar <mingo@elte.hu>, Nicolas Pitre <nico@fluxnic.net>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, David Brown <davidb@codeaurora.org>, lkml <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, Nicolas Pitre <nico@fluxnic.net>, Dave Airlie <airlied@gmail.com>, Linus Torvalds <torvalds@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, David Brown <davidb@codeaurora.org>, lkml <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Mar 31, 2011 at 9:45 AM, Russell King - ARM Linux
-<linux@arm.linux.org.uk> wrote:
+On Thu, 31 Mar 2011, Russell King - ARM Linux wrote:
+
+> On Thu, Mar 31, 2011 at 10:54:40AM +0100, Alan Cox wrote:
+>> If I boot it on a current PC I'm booting on a multiprocessor system with
+>> different timers, totally different IRQ controllers, different keyboard
+>> controllers (USB), PCI Express, an IOMMU, NCQ SATA, ACPI, graphics
+>> running in shared host memory able to give/take pages from the host,
+>> extra instructions, etc etc
+>>
+>> And the same kernel boots just fine on both just fine.
 >
-> I think you're not entirely correct - have a look at Linus' message where
-> there's a comparison of the size of arch/arm with other architectures, and
-> you'll find that it is partly about size of source code.
+> We've been there for a long time with ARM.  Right from the start I had
+> a single kernel image which booted over a range of ARM CPUs and
+> platforms.
+>
+> As far as ARM CPU architectures go, today we can have a single kernel
+> image which covers ARMv3 to ARMv5, and a separate kernel image which
+> covers ARMv6 to ARMv7 including SMP and UP variants.  The thing which
+> currently stops ARMv3 to ARMv7 all together is the different page table
+> layouts, the ASID tagging, the exclusive load/store support for cmpxchg
+> and other atomic operations, etc.
 
-It definitely is partly about code size, although I tend to use it as
-an easy illustration of the issues rather than anything deeper than
-that.
+I don't think the push is to get a single kernel image that boots 
+absolutly everywhere. having separate ARM5 and ARM7 kernels doesn't seem 
+to be a big deal to anyone.
 
-The code size is a symptom of the problem. The deeper problem is the
-crazy arm hardware infrastructure. We can't do much about that, but it
-does mean that I _do_ think we need to take approaches that aren't
-necessary when that deeper problem doesn't exist.
+> Outside of the CPU architecture, things become a lot more complicated.
 
-For example, I don't think it's problematic that we have various
-drivers that do their own gpio thing. Why? Because those things are
-generally part of a bigger chip/driver that is discoverable, and they
-don't tend to proliferate in various crazy random amounts - nor do
-they tend to impact anything else. Nor does it look like that is going
-to explode in the future any more than any normal driver work is
-exploding.
+exactly, and this is where there is an issue.
 
-Or look at the irq controllers we have on most other architectures.
-x86 has several of them too, and it's annoying. But it's "several",
-not "hundreds", and again, it's not exploding or looking like it will
-be a major pain to support. I doubt Thomas enjoyed having to work with
-the legacy controllers, but I also doubt he had huge problems on the
-x86 side.
+> The biggest one up until this merge window was that there is no fixed
+> address for system RAM, which makes stuff like virt_to_phys() rather
+> horrible to deal with - which in turn makes setting up and walking page
+> tables a nightmare.  We've just solved that issue with run-time patching
+> of the kernel code to replace the add/sub instructions with ones with
+> the appropriate offset, so we're a step closer to unifying everything
+> into one single kernel image.  This work alone produced this diffstat:
+>
+> 87 files changed, 450 insertions(+), 190 deletions(-)
+>
+> so it actually resulted in a net increase in the amount of code to be
+> maintained rather than reducing it.  That's hardly surprising as what
+> that replaced was just a bunch of #define's for PHYS_OFFSET with some
+> complex assembly code to do run-time patching of instructions.
 
-What does that mean? _I_ think it means that ARM platform managers
-need to worry about things that other platform managers don't
-necessarily need to worry about as much. Things that works for others
-will _not_ work for ARM, because the platforms don't have the same
-kind of sticking power. Other architectures just don't have the same
-kinds of issues, so they don't need to worry about them.
+but I don't think this sort of work is what anyone is complaining about.
 
-An right now just from the kinds of pulls I do, I see all these ARM
-platform maintainers doing their own thing, and adding new platforms
-all the time (with a _very_ occasional removal of some old platform
-support just because it was a prototype that never went anywhere at
-all).
+> Given this thread, I've lost the motivation to continue with it because
+> it's just going to cause more 'pointless churn' and end up annoying
+> Linus even more.
 
-What I'm _not_ seeing is a lot of cross-platform maintenance or sense
-of people trying to reign things in and look for solutions to the
-proliferation of random stupid and mindless platform code.
+it sounds like you are part of the solution, not part of the problem. the 
+biggest problem is the general response from 'the ARM community' when 
+these sorts of issues are raised claiming that there is no problem. you 
+seem to be very aware of the problem and are working to fix it. that is a 
+very different situaion.
 
-Even _within_ platforms, I see conflicts like the crazy clock files -
-and between platforms I don't see any conflicts for the simple reason
-that people are just duplicating crap and adding more and more of
-these mindless things. "A new platform? Let's just create a new
-directory, fill it with all the same template crud, and then tweak the
-code to match".
-
-It's simple, but it's not maintainable.
-
-So it's not the size PER SE. But the size is a damn easy first-order
-"we have a problem" sign. ARM is clearly an important architecture,
-but that doesn't excuse the crazy bloating.
-
-x86 had this too - the whole mindless duplication of x86-64. It got
-merged. It required cleanups, it required effort, it required time.
-And it required some abstractions. x86 never had much of a _platform_
-duplication, and the different platforms that did exist were so
-clearly secondary that they never rated any first-class code: they
-always knew that they were a second-class citizen and had to work
-within the framework of trying to hook into the main PC platform code.
-
-Power did a lot of platform unification, despite having much less of a
-problem than ARM to begin with. The "less of a problem" made it easier
-to do, but also less critical.
-
-And I don't think it's realistic to convert all ARM platforms in one
-go, and nobody should even plan anything like that.
-
-But I _do_ think that some of the major platforms (like omap) should
-seriously just say "we can't continue doing this", and look at
-converting at least everything they do to something like devicetree
-(NOT some omap-specific infrastructure!) rather than lots of explicit
-code. Done right, that hopefully then shows other platforms how to do
-the same, and get the ball rolling.
-
-                                     Linus
+David Lang
