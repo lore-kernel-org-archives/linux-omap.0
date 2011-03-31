@@ -1,68 +1,62 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [GIT PULL] omap changes for v2.6.39 merge window
-Date: Thu, 31 Mar 2011 13:28:45 -0700
-Message-ID: <AANLkTikmtXVqAoDmW-fL2emGg9Oh6PMmhZa6em6=WZKc@mail.gmail.com>
-References: <alpine.LFD.2.00.1103301531420.28032@xanadu.home>
- <AANLkTim6zg-U6HtAQbqnENqoK7x8erXSqOuTFVC0YE5r@mail.gmail.com>
- <alpine.LFD.2.00.1103301814250.28032@xanadu.home> <alpine.DEB.2.00.1103301728000.15330@asgard.lang.hm>
- <alpine.LFD.2.00.1103302255280.28032@xanadu.home> <alpine.DEB.2.00.1103302130500.29543@asgard.lang.hm>
- <alpine.LFD.2.00.1103310145390.28032@xanadu.home> <20110331080634.GA18022@elte.hu>
- <20110331083044.GB14323@n2100.arm.linux.org.uk> <alpine.DEB.2.00.1103310855450.29543@asgard.lang.hm>
- <20110331164539.GB19452@n2100.arm.linux.org.uk> <AANLkTi=tyifvJU-hhdd7gT74GMctrCbQBdUAoEaRXOCy@mail.gmail.com>
- <alpine.LFD.2.00.1103311429590.28032@xanadu.home> <AANLkTi=kbozPcWEk9wVZb7emSWx48BJQS=7Uzaya9Lor@mail.gmail.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: Question regarding suspend/resume
+Date: Thu, 31 Mar 2011 13:48:06 -0700
+Message-ID: <8739m3auex.fsf@ti.com>
+References: <4D7FBD31.6050806@gmail.com> <87wrk0gn41.fsf@ti.com>
+	<4D94E148.8060905@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58862 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755317Ab1CaUfs (ORCPT
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:52847 "EHLO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753303Ab1CaUsJ (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 31 Mar 2011 16:35:48 -0400
-In-Reply-To: <AANLkTi=kbozPcWEk9wVZb7emSWx48BJQS=7Uzaya9Lor@mail.gmail.com>
+	Thu, 31 Mar 2011 16:48:09 -0400
+Received: by mail-iw0-f170.google.com with SMTP id 3so3181013iwn.29
+        for <linux-omap@vger.kernel.org>; Thu, 31 Mar 2011 13:48:08 -0700 (PDT)
+In-Reply-To: <4D94E148.8060905@gmail.com> (Peter Barada's message of "Thu, 31
+	Mar 2011 16:17:12 -0400")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nicolas Pitre <nico@fluxnic.net>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, david@lang.hm, Ingo Molnar <mingo@elte.hu>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, David Brown <davidb@codeaurora.org>, lkml <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>
+To: Peter Barada <peter.barada@gmail.com>
+Cc: Linux OMAP list <linux-omap@vger.kernel.org>
 
-On Thu, Mar 31, 2011 at 1:05 PM, Linus Torvalds
-<torvalds@linux-foundation.org> wrote:
+Hi Peter,
+
+Peter Barada <peter.barada@gmail.com> writes:
+
+[...]
+
+> Thanks for helping me to understand things.
 >
-> Umm. The whole "number of lines of code" thing has become a total red herring.
->
-> THAT IS NOT WHY I STARTED TO COMPLAIN!
->
-> The reason I point out the number of lines of code is because it's one
-> of the more obvious _symptoms_ of the problem.
->
-> But trust me, if you start doing a better job at platform code, I
-> won't be complaining when I get lots of deleted code, or when I start
-> getting devicetree descriptions instead of new drivers.
+> The kernel I'm using is TI's OMAPPSP_03.00.01.06 2.6.32 kernel [1]
+> with their u-boot [2] and x-loader[3], modified to run on Logic's
+> DM3730 board(s) (as we use the Micron mt29c4g48mazapakq-5 POP).  
 
-So if you don't like lines of code, how about just "number of files touched".
+I'm afraid somone who supports that older TI kernel will have to help
+you out.
 
-This is Thomas this merge window. Remember: he's traditionally doing
-timers and interrupts and stuff.  Do:
+If you can reproduce on a current kernel, I'd be glad to help but I'm
+currently not able (well, not willing is more accurate) to try and
+figure out what's going on based on an older kernel with who knows how
+many out-of-tree patches/hacks piled on.
 
- git log --author=tglx v2.6.38.. --oneline --numstat |
-    cut -f3- | grep -v ' ' | cut -d/ -f1-2 |
-    sort | uniq -c | sort -n | tail
+What I can say based on the register dump you shared is that there is no
+obvious driver issue going on where a clock was left on by a driver.
 
-and see another example of arm standing out (ok, so "kernel/irq" also
-stands out in this case, but you'd kind of _expect_ that, when the
-whole series is about irq controllers, wouldn't you?)
+More than likely what is going on is that the booloader is using a
+device (e.g. USB, MMC) but is leaving it in a state such that that IP
+block cannot idle, so the CORE powerdomain then does not fully idle.
+In older kernels like this one, the linux drivers did not fully reset
+the hardware so bootloaders could cause problems like this (the u-boot
+on beagle has had several problems like this.)
 
-And no, mips doesn't look so hot either.
+As a first whack at things, I would focus on USB OTG and MMC, as I've
+seen problem with both on other platforms, like Beagle.  You need to
+ensure that both the these modules are fully reset either by the
+bootloader when it's done using them, or by the kernel in the early boot
+process.  Current kernels now do the latter.
 
-Anyway, the point is, there are many ways to show the whole "arm is a
-maintenance problem" issue. Don't get too hung up about number of
-lines changed. It's just the simplest kind of thing where the tools
-give answers very quickly without the above kinds of games.
+Sorry I can't be of more help,
 
-Btw, the reason why the subject line on this rant is what it is, is
-that during this merge window, arm was also one of the more annoying
-to merge. And NO, that does NOT mean that I want you guys to merge
-things behind my back just to hide the problem. I'm just saying that
-it's another facet of this whole issue. Not that I can't do merges,
-but that ARM simply ends up having these issues that others don't.
-
-                          Linus
+Kevin
