@@ -1,20 +1,15 @@
-From: Felipe Balbi <balbi@ti.com>
+From: Aaro Koskinen <aaro.koskinen@nokia.com>
 Subject: Re: [PATCH] omap: rx51: Platform support for lp5523 led chip
-Date: Thu, 31 Mar 2011 15:27:00 +0300
-Message-ID: <20110331122659.GT2267@legolas.emea.dhcp.ti.com>
+Date: Thu, 31 Mar 2011 15:27:36 +0300 (EEST)
+Message-ID: <alpine.DEB.1.10.1103311524420.2634@esdhcp041196.research.nokia.com>
 References: <1301573877-26010-1-git-send-email-ameya.palande@nokia.com>
-Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:52383 "EHLO
-	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751823Ab1CaM1F (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 31 Mar 2011 08:27:05 -0400
-Received: by mail-ey0-f174.google.com with SMTP id 24so705814eyx.19
-        for <linux-omap@vger.kernel.org>; Thu, 31 Mar 2011 05:27:03 -0700 (PDT)
-Content-Disposition: inline
+Received: from smtp.nokia.com ([147.243.128.26]:33514 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750739Ab1CaMbB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 31 Mar 2011 08:31:01 -0400
 In-Reply-To: <1301573877-26010-1-git-send-email-ameya.palande@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -23,7 +18,7 @@ Cc: linux-omap@vger.kernel.org, mathias.nyman@nokia.com, linux-arm-kernel@lists.
 
 Hi,
 
-On Thu, Mar 31, 2011 at 03:17:57PM +0300, Ameya Palande wrote:
+On Thu, 31 Mar 2011, Ameya Palande wrote:
 > +static int rx51_lp5523_setup(void)
 > +{
 > +	int err;
@@ -38,13 +33,11 @@ On Thu, Mar 31, 2011 at 03:17:57PM +0300, Ameya Palande wrote:
 > +	if (err < 0) {
 > +		pr_err("Failed to change direction for %d GPIO\n",
 > +				RX51_LP5523_CHIP_EN_GPIO);
+
+The error branch is missing gpio_free(). You can fix that by replacing
+these with just a single gpio_request_one() call.
+
 > +	}
-
-you can combine these two into
-
-gpio_request_one(RX51_LP5523_CHIP_EN_GPIO, GPIOF_DIR_OUT,
-		"lp5523_enable");
-
 > +	return err;
 > +}
 > +
@@ -59,25 +52,40 @@ gpio_request_one(RX51_LP5523_CHIP_EN_GPIO, GPIOF_DIR_OUT,
 > +		gpio_set_value(RX51_LP5523_CHIP_EN_GPIO, 1);
 > +	else
 > +		gpio_set_value(RX51_LP5523_CHIP_EN_GPIO, 0);
-
-how about:
-
-gpio_set_value(RX51_LP5523_CHIP_EN_GPIO, !!state); ??
-
-you drop a useless branch.
-
 > +}
 > +
 > +static struct lp5523_platform_data rx51_lp5523_platform_data = {
-
-should this be const ??
-
 > +	.led_config		= rx51_lp5523_led_config,
 > +	.num_channels		= ARRAY_SIZE(rx51_lp5523_led_config),
 > +	.clock_mode		= LP5523_CLOCK_AUTO,
 > +	.setup_resources	= rx51_lp5523_setup,
 > +	.release_resources 	= rx51_lp5523_release,
-			  ^ trailing whitespace
-
--- 
-balbi
+> +	.enable			= rx51_lp5523_enable,
+> +};
+> +#endif
+> +
+> static struct omap2_mcspi_device_config wl1251_mcspi_config = {
+> 	.turbo_mode	= 0,
+> 	.single_channel	= 1,
+> @@ -816,6 +891,12 @@ static struct i2c_board_info __initdata rx51_peripherals_i2c_board_info_2[] = {
+> 		.platform_data = &rx51_tsl2563_platform_data,
+> 	},
+> #endif
+> +#if defined(CONFIG_LEDS_LP5523) || defined(CONFIG_LEDS_LP5523_MODULE)
+> +	{
+> +		I2C_BOARD_INFO("lp5523", 0x32),
+> +		.platform_data  = &rx51_lp5523_platform_data,
+> +	},
+> +#endif
+> 	{
+> 		I2C_BOARD_INFO("tpa6130a2", 0x60),
+> 		.platform_data = &rx51_tpa6130a2_data,
+> -- 
+> 1.7.1
+>
+>
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+>
