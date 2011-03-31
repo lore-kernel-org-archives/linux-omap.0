@@ -1,76 +1,85 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [GIT PULL] omap changes for v2.6.39 merge window
-Date: Thu, 31 Mar 2011 07:43:12 -0700
-Message-ID: <87d3l7jqpr.fsf@ti.com>
-References: <201103301906.42429.arnd@arndb.de>
-	<AANLkTim578-kwM14SJd06RW_QiC4WVCmFuG+ASgGC4sq@mail.gmail.com>
-	<alpine.LFD.2.00.1103301531420.28032@xanadu.home>
-	<AANLkTim6zg-U6HtAQbqnENqoK7x8erXSqOuTFVC0YE5r@mail.gmail.com>
-	<alpine.LFD.2.00.1103301814250.28032@xanadu.home>
-	<alpine.DEB.2.00.1103301728000.15330@asgard.lang.hm>
-	<alpine.LFD.2.00.1103302255280.28032@xanadu.home>
-	<alpine.DEB.2.00.1103302130500.29543@asgard.lang.hm>
-	<alpine.LFD.2.00.1103310145390.28032@xanadu.home>
-	<20110331080634.GA18022@elte.hu>
-	<20110331083044.GB14323@n2100.arm.linux.org.uk>
-	<alpine.LFD.2.00.1103311359320.22418@localhost6.localdomain6>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [pm-core][PATCH v3 02/21] OMAP4: Use WARN_ON() instead of BUG_ON()
+ with graceful exit
+Date: Thu, 31 Mar 2011 14:05:04 +0530
+Message-ID: <4D943CB8.70002@ti.com>
+References: <1301304157-2466-1-git-send-email-santosh.shilimkar@ti.com> <1301304157-2466-3-git-send-email-santosh.shilimkar@ti.com> <20110328205323.GD30616@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.LFD.2.00.1103311359320.22418@localhost6.localdomain6>
-	(Thomas Gleixner's message of "Thu, 31 Mar 2011 14:04:16 +0200
-	(CEST)")
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Ingo Molnar <mingo@elte.hu>, Nicolas Pitre <nico@fluxnic.net>, david@lang.hm, Linus Torvalds <torvalds@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, David Brown <davidb@codeaurora.org>, lkml <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, "H. Peter Anvin" <hpa@zytor.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:53362 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753125Ab1CaIfd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 31 Mar 2011 04:35:33 -0400
+Received: by yxe1 with SMTP id 1so1817314yxe.25
+        for <linux-omap@vger.kernel.org>; Thu, 31 Mar 2011 01:35:31 -0700 (PDT)
+In-Reply-To: <20110328205323.GD30616@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, rnayak@ti.com, linux-arm-kernel@lists.infradead.org
 
-Thomas Gleixner <tglx@linutronix.de> writes:
+On 3/29/2011 2:23 AM, Tony Lindgren wrote:
+> * Santosh Shilimkar<santosh.shilimkar@ti.com>  [110328 02:20]:
+>> OMAP L2X0 and GIC initialisation code uses BUG_ON() for the
+>> ioremap() failure scenarios.
+>>
+>> Use WARN_ON() instead and allow graceful function exits.
+>>
+>> This was suggsted by Kevin Hilman<khilman@ti.com>  during
+>> OMAP4 PM code review.
+>>
+>> Signed-off-by: Santosh Shilimkar<santosh.shilimkar@ti.com>
+>> Cc: Kevin Hilman<khilman@ti.com>
+>> ---
+>>   arch/arm/mach-omap2/omap4-common.c |    9 ++++++---
+>>   1 files changed, 6 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
+>> index 559d227..8f9b97d 100644
+>> --- a/arch/arm/mach-omap2/omap4-common.c
+>> +++ b/arch/arm/mach-omap2/omap4-common.c
+>> @@ -36,11 +36,13 @@ void __init gic_init_irq(void)
+>>
+>>   	/* Static mapping, never released */
+>>   	gic_dist_base_addr = ioremap(OMAP44XX_GIC_DIST_BASE, SZ_4K);
+>> -	BUG_ON(!gic_dist_base_addr);
+>> +	if (WARN_ON(!gic_dist_base_addr))
+>> +		return;
+>>
+>>   	/* Static mapping, never released */
+>>   	gic_cpu_base = ioremap(OMAP44XX_GIC_CPU_BASE, SZ_512);
+>> -	BUG_ON(!gic_cpu_base);
+>> +	if (WARN_ON(!gic_cpu_base))
+>> +		return;
+>>
+>>   	omap_wakeupgen_init();
+>>
+>> @@ -68,7 +70,8 @@ static int __init omap_l2_cache_init(void)
+>>
+>>   	/* Static mapping, never released */
+>>   	l2cache_base = ioremap(OMAP44XX_L2CACHE_BASE, SZ_4K);
+>> -	BUG_ON(!l2cache_base);
+>> +	if (WARN_ON(!l2cache_base))
+>> +		return -ENODEV;
+>>
+>>   	/*
+>>   	 * 16-way associativity, parity disabled
+>
+> Hmm to me it seems that if any of these we don't want to
+> continue.
+>
+L2 cache is no problem and kernel can boot without L2 cache
+support. I agree with you on interrupt controller init though.
 
-> But the current SoC maintainer model does not work either. The SoC
-> maintainers care about their sandbox and have exactly zero incentive
-> to look at the overall picture, e.g reuse of code for the same IP
-> blocks, better abstraction mechanisms etc. 
+Will drop the interrupt related checks from this patch.
 
-zero incentive?  that's a bit strong, IMO.
+Kevin, Are you ok with it ?
 
-That may be true for some SoCs, it's not really fair as a sweeping
-statement.
+Regards
+Santosh
 
-Some SoCs families (like OMAP) have huge amount of diversity even within
-the SoC family, so better abstractions and generic infrastrucure
-improvements are an obvious win, even staying within the SoC.
 
-There are several examples of SoC maintainers looking at the overall
-picture and contributing to better abstractions and common
-infrastructure code.
 
-One is USB as Felipe already pointed out where the same USB OTG IP block
-(with vendor tweaks of course) is used across several completely
-different SoCs with common infrastructure code.
-
-Another example that I'm more familiar with is power management.  In
-OMAP land, we have been been very supportive and active in generic
-infrastructure improvements (like runtime PM.)  In fact runtime PM was
-born partially because one of the other ARM SoC maintainers (Magnus
-Damm, SH-mobile) proposed the idea as he was implementing PM for that
-SoC family.  We have been actively contributing to the runtime PM
-infrastructure with both code, testing, converting our drivers over to
-using runtime PM. and contributing back fixes and enhancements as we
-find problems or limitations.  In addition, personally, I have spent the
-last year evangelizing the importance of using common frameworks like
-runtime PM to the embedded community via talks at the Embedded Linux
-Conference (ELC, US and Europe.)  Especially as IP blocks are reused
-across SoC families, abstractions like runtime PM are the only way to
-keep the SoC specifics of PM out of the common driver.
-
-Yes, ARM SoC maintainers have to make up some ground.  But compare this
-to just a couple years ago where the common complaint was "why aren't
-embedded SoC people contributing code to mainline", and you'll see we
-have come a long way.
-
-Kevin
-
-Maintainer of parts of the ARM kernel:
-- TI Davinci SoC family
-- TI OMAP Power Management infrastructure
