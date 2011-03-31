@@ -1,54 +1,30 @@
-From: "Avinash.H.M." <avinashhm@ti.com>
-Subject: Re: [PATCH] omap: hwmod: add syss reset done flags to omap2, omap3
- hwmods
-Date: Thu, 31 Mar 2011 21:52:49 +0530
-Message-ID: <20110331162248.GA18957@avinash-laptop>
-References: <20110314161609.GA10506@avinash-laptop>
- <alpine.DEB.2.00.1103242336410.21987@utopia.booyaka.com>
- <20110325062534.GA25480@avinash-laptop>
- <20110325072035.GB25480@avinash-laptop>
- <alpine.DEB.2.00.1103251124040.21987@utopia.booyaka.com>
- <20110326113538.GB3668@avinash-laptop>
- <20110331144010.GA18054@avinash-laptop>
- <871v1njpq2.fsf@ti.com>
- <20110331155142.GB18054@avinash-laptop>
- <4D94A413.3000406@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [GIT PULL] omap changes for v2.6.39 merge window
+Date: Thu, 31 Mar 2011 17:45:39 +0100
+Message-ID: <20110331164539.GB19452@n2100.arm.linux.org.uk>
+References: <alpine.LFD.2.00.1103301531420.28032@xanadu.home> <AANLkTim6zg-U6HtAQbqnENqoK7x8erXSqOuTFVC0YE5r@mail.gmail.com> <alpine.LFD.2.00.1103301814250.28032@xanadu.home> <alpine.DEB.2.00.1103301728000.15330@asgard.lang.hm> <alpine.LFD.2.00.1103302255280.28032@xanadu.home> <alpine.DEB.2.00.1103302130500.29543@asgard.lang.hm> <alpine.LFD.2.00.1103310145390.28032@xanadu.home> <20110331080634.GA18022@elte.hu> <20110331083044.GB14323@n2100.arm.linux.org.uk> <alpine.DEB.2.00.1103310855450.29543@asgard.lang.hm>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:50830 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758660Ab1CaQXH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 31 Mar 2011 12:23:07 -0400
-Received: by mail-gx0-f179.google.com with SMTP id 1so1131788gxk.38
-        for <linux-omap@vger.kernel.org>; Thu, 31 Mar 2011 09:23:02 -0700 (PDT)
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:59853 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758201Ab1CaQqt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 31 Mar 2011 12:46:49 -0400
 Content-Disposition: inline
-In-Reply-To: <4D94A413.3000406@ti.com>
+In-Reply-To: <alpine.DEB.2.00.1103310855450.29543@asgard.lang.hm>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>
+To: david@lang.hm
+Cc: Ingo Molnar <mingo@elte.hu>, Nicolas Pitre <nico@fluxnic.net>, Linus Torvalds <torvalds@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, David Brown <davidb@codeaurora.org>, lkml <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>
 
-> >Looks like without this clock, GPIO module isn't resetting even on
-> >writing to SYSCONFIG register. Should we provide a seperate reset
-> >function for gpio, like the way it was suggested for i2c ?
-> 
-> No need for that, it is already working like that on OMAP4.
-> We have a nice flag that handle that clock during reset.
-> 
-> 	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+On Thu, Mar 31, 2011 at 09:03:28AM -0700, david@lang.hm wrote:
+> In this case I owe you and Nicolas an apology.
 
-Thanks benoit. I'll use this flag and try resetting GPIO module.
+Thanks.
 
-br ,
-- avinash
+> it's not the total amount of code, and it's not even the total amount of  
+> change to the code that's the issue.
 
-> 
-> Regards,
-> Benoit
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I think you're not entirely correct - have a look at Linus' message where
+there's a comparison of the size of arch/arm with other architectures, and
+you'll find that it is partly about size of source code.
