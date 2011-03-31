@@ -1,53 +1,52 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: OMAP4 DSS clock setup
-Date: Thu, 31 Mar 2011 10:34:06 +0300
-Message-ID: <1301556846.2470.2.camel@deskari>
-References: <1301467733.2333.83.camel@deskari>  <4D92F899.7010606@ti.com>
-	 <1301483027.4045.16.camel@deskari>  <4D931E21.8090305@ti.com>
-	 <1301489930.15095.51.camel@deskari>  <4D932E62.2050903@ti.com>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: [GIT PULL] omap changes for v2.6.39 merge window
+Date: Thu, 31 Mar 2011 10:06:34 +0200
+Message-ID: <20110331080634.GA18022@elte.hu>
+References: <20110318101512.GA15375@n2100.arm.linux.org.uk>
+ <201103301906.42429.arnd@arndb.de>
+ <AANLkTim578-kwM14SJd06RW_QiC4WVCmFuG+ASgGC4sq@mail.gmail.com>
+ <alpine.LFD.2.00.1103301531420.28032@xanadu.home>
+ <AANLkTim6zg-U6HtAQbqnENqoK7x8erXSqOuTFVC0YE5r@mail.gmail.com>
+ <alpine.LFD.2.00.1103301814250.28032@xanadu.home>
+ <alpine.DEB.2.00.1103301728000.15330@asgard.lang.hm>
+ <alpine.LFD.2.00.1103302255280.28032@xanadu.home>
+ <alpine.DEB.2.00.1103302130500.29543@asgard.lang.hm>
+ <alpine.LFD.2.00.1103310145390.28032@xanadu.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:48854 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752947Ab1CaHeK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 31 Mar 2011 03:34:10 -0400
-Received: by mail-ey0-f176.google.com with SMTP id 28so613511eya.7
-        for <linux-omap@vger.kernel.org>; Thu, 31 Mar 2011 00:34:09 -0700 (PDT)
-In-Reply-To: <4D932E62.2050903@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.00.1103310145390.28032@xanadu.home>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Nicolas Pitre <nico@fluxnic.net>
+Cc: david@lang.hm, Linus Torvalds <torvalds@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, David Brown <davidb@codeaurora.org>, lkml <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, "Semwal, Sumit" <sumit.semwal@ti.com>, "Taneja, Archit" <archit@ti.com>, linux-omap <linux-omap@vger.kernel.org>
 
-On Wed, 2011-03-30 at 15:21 +0200, Cousson, Benoit wrote:
-> On 3/30/2011 2:58 PM, Valkeinen, Tomi wrote:
 
-> > Anyway. To get things working for rc2 (DSS currently crashes due to not
-> > enabling dss_clk) we need to either:
-> > 1) Change the clock aliases as above
+* Nicolas Pitre <nico@fluxnic.net> wrote:
+
+> On Wed, 30 Mar 2011, david@lang.hm wrote:
 > 
-> Changing the clock alias for my point of view is like hacking the HW 
-> definition to fit your need. Even if this is temporary, I do not like 
-> that approach.
+> > back in the early days of the PCs, different systems from different vendors
+> > had different bus types, peripherals at different addresses, etc. that didn't
+> > make all of those vendors systems different architectures, instead those
+> > things were varients of the x86 architecture.
 > 
-> > 2) Add something like Sumit's patch (attached) to handle dss_clk. While
-> > the patch is not that complex, it feels rather hacky.
-> 
-> Yes, I'd rather hack that issue internally, because this is something 
-> you should fix as soon as you switch to PM runtime.
-> 
-> > What's your opinion?
-> 
-> Definitively #2.
+> Most of them didn't survive.  That really helps.
 
-Ok, let's go with that. I don't like it but hopefully pm_runtime will
-clear the mess from dss driver.
+That's not the point, 99% of the current ARM boards will not 'survive' either, 
+10-20 years down the road.
 
-Thanks for your time explaining the clock setup to me =)
+I think you missed David's main point: life inevitably went on and few of the 
+old x86 hardware 'survived' physically, but past hardware versions have not 
+littered the kernel source with half a million lines of source code in the 
+process ...
 
- Tomi
+Having strong, effective platform abstractions inside the kernel really helps 
+even if the hardware space itself is inevitably fragmented: both powerpc and 
+x86 has shown that. Until you realize and appreciate that you really have not 
+understood the problem i think.
 
+Thanks,
 
+	Ingo
