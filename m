@@ -1,89 +1,103 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [RFC PATCH] ARM: GIC: Convert GIC library to use the IO
- relaxed operations
-Date: Thu, 31 Mar 2011 15:03:51 +0100
-Message-ID: <1301580231.10659.142.camel@e102109-lin.cambridge.arm.com>
-References: <1301576121-10858-1-git-send-email-santosh.shilimkar@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [pm-core][PATCH v3 02/21] OMAP4: Use WARN_ON() instead of BUG_ON() with graceful exit
+Date: Thu, 31 Mar 2011 07:04:10 -0700
+Message-ID: <87wrjfmlnp.fsf@ti.com>
+References: <1301304157-2466-1-git-send-email-santosh.shilimkar@ti.com>
+	<1301304157-2466-3-git-send-email-santosh.shilimkar@ti.com>
+	<20110328205323.GD30616@atomide.com> <4D943CB8.70002@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from service87.mimecast.com ([94.185.240.25]:50541 "HELO
-	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752695Ab1CaOD7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 31 Mar 2011 10:03:59 -0400
-In-Reply-To: <1301576121-10858-1-git-send-email-santosh.shilimkar@ti.com>
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:51233 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757473Ab1CaOES (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 31 Mar 2011 10:04:18 -0400
+Received: by mail-iw0-f173.google.com with SMTP id 42so2963979iwl.32
+        for <linux-omap@vger.kernel.org>; Thu, 31 Mar 2011 07:04:17 -0700 (PDT)
+In-Reply-To: <4D943CB8.70002@ti.com> (Santosh Shilimkar's message of "Thu, 31
+	Mar 2011 14:05:04 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Will Deacon <Will.Deacon@arm.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, rnayak@ti.com, linux-arm-kernel@lists.infradead.org
 
-On Thu, 2011-03-31 at 13:55 +0100, Santosh Shilimkar wrote:
-> diff --git a/arch/arm/common/gic.c b/arch/arm/common/gic.c
-> index f70ec7d..e013f65 100644
-> --- a/arch/arm/common/gic.c
-> +++ b/arch/arm/common/gic.c
-> @@ -89,7 +89,9 @@ static void gic_ack_irq(struct irq_data *d)
->         spin_lock(&irq_controller_lock);
->         if (gic_arch_extn.irq_ack)
->                 gic_arch_extn.irq_ack(d);
-> -       writel(gic_irq(d), gic_cpu_base(d) + GIC_CPU_EOI);
-> +       writel_relaxed(gic_irq(d), gic_cpu_base(d) + GIC_CPU_EOI);
-> +       barrier();
-> +       readl_relaxed(gic_cpu_base(d) + GIC_CPU_EOI);
+Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
 
-We don't need the explicit barrier(), I don't think the compiler would
-reorder the writel/readl_relaxed calls. The same for all places where
-you added barrier().
+> On 3/29/2011 2:23 AM, Tony Lindgren wrote:
+>> * Santosh Shilimkar<santosh.shilimkar@ti.com>  [110328 02:20]:
+>>> OMAP L2X0 and GIC initialisation code uses BUG_ON() for the
+>>> ioremap() failure scenarios.
+>>>
+>>> Use WARN_ON() instead and allow graceful function exits.
+>>>
+>>> This was suggsted by Kevin Hilman<khilman@ti.com>  during
+>>> OMAP4 PM code review.
+>>>
+>>> Signed-off-by: Santosh Shilimkar<santosh.shilimkar@ti.com>
+>>> Cc: Kevin Hilman<khilman@ti.com>
+>>> ---
+>>>   arch/arm/mach-omap2/omap4-common.c |    9 ++++++---
+>>>   1 files changed, 6 insertions(+), 3 deletions(-)
+>>>
+>>> diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
+>>> index 559d227..8f9b97d 100644
+>>> --- a/arch/arm/mach-omap2/omap4-common.c
+>>> +++ b/arch/arm/mach-omap2/omap4-common.c
+>>> @@ -36,11 +36,13 @@ void __init gic_init_irq(void)
+>>>
+>>>   	/* Static mapping, never released */
+>>>   	gic_dist_base_addr = ioremap(OMAP44XX_GIC_DIST_BASE, SZ_4K);
+>>> -	BUG_ON(!gic_dist_base_addr);
+>>> +	if (WARN_ON(!gic_dist_base_addr))
+>>> +		return;
+>>>
+>>>   	/* Static mapping, never released */
+>>>   	gic_cpu_base = ioremap(OMAP44XX_GIC_CPU_BASE, SZ_512);
+>>> -	BUG_ON(!gic_cpu_base);
+>>> +	if (WARN_ON(!gic_cpu_base))
+>>> +		return;
+>>>
+>>>   	omap_wakeupgen_init();
+>>>
+>>> @@ -68,7 +70,8 @@ static int __init omap_l2_cache_init(void)
+>>>
+>>>   	/* Static mapping, never released */
+>>>   	l2cache_base = ioremap(OMAP44XX_L2CACHE_BASE, SZ_4K);
+>>> -	BUG_ON(!l2cache_base);
+>>> +	if (WARN_ON(!l2cache_base))
+>>> +		return -ENODEV;
+>>>
+>>>   	/*
+>>>   	 * 16-way associativity, parity disabled
+>>
+>> Hmm to me it seems that if any of these we don't want to
+>> continue.
+>>
+> L2 cache is no problem and kernel can boot without L2 cache
+> support. I agree with you on interrupt controller init though.
+>
+> Will drop the interrupt related checks from this patch.
+>
+> Kevin, Are you ok with it ?
 
-Do we need the acknowledge to be confirmed via a readl?
+In general, BUG should only be used when the kernel really can not
+possibly continue[1].  I suppose inability to map the GIC falls into
+that category.
 
->         spin_unlock(&irq_controller_lock);
->  }
-> 
-> @@ -98,7 +100,9 @@ static void gic_mask_irq(struct irq_data *d)
->         u32 mask = 1 << (d->irq % 32);
-> 
->         spin_lock(&irq_controller_lock);
-> -       writel(mask, gic_dist_base(d) + GIC_DIST_ENABLE_CLEAR + (gic_irq(d) / 32) * 4);
-> +       writel_relaxed(mask, gic_dist_base(d) + GIC_DIST_ENABLE_CLEAR + (gic_irq(d) / 32) * 4);
-> +       barrier();
-> +       readl_relaxed(gic_dist_base(d) + GIC_DIST_ENABLE_CLEAR + (gic_irq(d) / 32) * 4);
->         if (gic_arch_extn.irq_mask)
->                 gic_arch_extn.irq_mask(d);
->         spin_unlock(&irq_controller_lock);
-
-Here we need a readl back in case the calling code enables the
-interrupts at the CPU level (that's probably the only place where we
-need a read back?).
-
-> @@ -111,7 +115,9 @@ static void gic_unmask_irq(struct irq_data *d)
->         spin_lock(&irq_controller_lock);
->         if (gic_arch_extn.irq_unmask)
->                 gic_arch_extn.irq_unmask(d);
-> -       writel(mask, gic_dist_base(d) + GIC_DIST_ENABLE_SET + (gic_irq(d) / 32) * 4);
-> +       writel_relaxed(mask, gic_dist_base(d) + GIC_DIST_ENABLE_SET + (gic_irq(d) / 32) * 4);
-> +       barrier();
-> +       readl_relaxed(gic_dist_base(d) + GIC_DIST_ENABLE_SET + (gic_irq(d) / 32) * 4);
->         spin_unlock(&irq_controller_lock);
->  }
-
-We don't need a read back, just let it unmask the interrupt at some
-point in the future.
-
-> @@ -392,6 +399,8 @@ void gic_raise_softirq(const struct cpumask *mask, unsigned int irq)
->         unsigned long map = *cpus_addr(*mask);
-> 
->         /* this always happens on GIC0 */
-> -       writel(map << 16 | irq, gic_data[0].dist_base + GIC_DIST_SOFTINT);
-> +       writel_relaxed(map << 16 | irq, gic_data[0].dist_base + GIC_DIST_SOFTINT);
-> +       barrier();
-> +       readl_relaxed(gic_data[0].dist_base + GIC_DIST_SOFTINT);
->  }
-
-We don't need the readl.
-
--- 
-Catalin
+Kevin
 
 
+[1] from asm-generic/bug.h:
+
+/*
+ * Don't use BUG() or BUG_ON() unless there's really no way out; one
+ * example might be detecting data structure corruption in the middle
+ * of an operation that can't be backed out of.  If the (sub)system
+ * can somehow continue operating, perhaps with reduced functionality,
+ * it's probably not BUG-worthy.
+ *
+ * If you're tempted to BUG(), think again:  is completely giving up
+ * really the *only* solution?  There are usually better options, where
+ * users don't need to reboot ASAP and can mostly shut down cleanly.
+ */
