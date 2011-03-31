@@ -1,62 +1,78 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [GIT PULL] omap changes for v2.6.39 merge window
-Date: Thu, 31 Mar 2011 17:01:40 +0200 (CEST)
-Message-ID: <alpine.LFD.2.00.1103311647300.22418@localhost6.localdomain6>
-References: <201103301906.42429.arnd@arndb.de> <AANLkTim578-kwM14SJd06RW_QiC4WVCmFuG+ASgGC4sq@mail.gmail.com> <alpine.LFD.2.00.1103301531420.28032@xanadu.home> <AANLkTim6zg-U6HtAQbqnENqoK7x8erXSqOuTFVC0YE5r@mail.gmail.com> <alpine.LFD.2.00.1103301814250.28032@xanadu.home>
- <alpine.DEB.2.00.1103301728000.15330@asgard.lang.hm> <alpine.LFD.2.00.1103302255280.28032@xanadu.home> <alpine.DEB.2.00.1103302130500.29543@asgard.lang.hm> <alpine.LFD.2.00.1103310145390.28032@xanadu.home> <20110331080634.GA18022@elte.hu>
- <20110331083044.GB14323@n2100.arm.linux.org.uk> <alpine.LFD.2.00.1103311359320.22418@localhost6.localdomain6> <87d3l7jqpr.fsf@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH] omap: hwmod: add syss reset done flags to omap2, omap3 hwmods
+Date: Thu, 31 Mar 2011 08:04:37 -0700
+Message-ID: <871v1njpq2.fsf@ti.com>
+References: <1298542123-3654-1-git-send-email-avinashhm@ti.com>
+	<alpine.DEB.2.00.1103031427580.10981@utopia.booyaka.com>
+	<20110314161609.GA10506@avinash-laptop>
+	<alpine.DEB.2.00.1103242336410.21987@utopia.booyaka.com>
+	<20110325062534.GA25480@avinash-laptop>
+	<20110325072035.GB25480@avinash-laptop>
+	<alpine.DEB.2.00.1103251124040.21987@utopia.booyaka.com>
+	<20110326113538.GB3668@avinash-laptop>
+	<20110331144010.GA18054@avinash-laptop>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <87d3l7jqpr.fsf@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Ingo Molnar <mingo@elte.hu>, Nicolas Pitre <nico@fluxnic.net>, david@lang.hm, Linus Torvalds <torvalds@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, David Brown <davidb@codeaurora.org>, lkml <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, "H. Peter Anvin" <hpa@zytor.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:40420 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752982Ab1CaPEm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 31 Mar 2011 11:04:42 -0400
+Received: by gyf1 with SMTP id 1so1016040gyf.6
+        for <linux-omap@vger.kernel.org>; Thu, 31 Mar 2011 08:04:40 -0700 (PDT)
+In-Reply-To: <20110331144010.GA18054@avinash-laptop> (Avinash H. M.'s message
+	of "Thu, 31 Mar 2011 20:10:38 +0530")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, Benoit Cousson <b-cousson@ti.com>
 
-On Thu, 31 Mar 2011, Kevin Hilman wrote:
+"Avinash.H.M." <avinashhm@ti.com> writes:
 
-> Thomas Gleixner <tglx@linutronix.de> writes:
-> 
-> > But the current SoC maintainer model does not work either. The SoC
-> > maintainers care about their sandbox and have exactly zero incentive
-> > to look at the overall picture, e.g reuse of code for the same IP
-> > blocks, better abstraction mechanisms etc. 
-> 
-> zero incentive?  that's a bit strong, IMO.
-> 
-> That may be true for some SoCs, it's not really fair as a sweeping
-> statement.
+>> > > [    0.208892] omap_hwmod: i2c1: softreset failed (waited 10000 usec)
+>> > > [    0.223114] omap_hwmod: i2c2: softreset failed (waited 10000 usec)
+>> > > [    0.237335] omap_hwmod: i2c3: softreset failed (waited 10000 usec)
+>> > > [    0.251525] omap_hwmod: gpio2: softreset failed (waited 10000 usec)
+>> > > [    0.265594] omap_hwmod: gpio3: softreset failed (waited 10000 usec)
+>> > > [    0.279693] omap_hwmod: gpio4: softreset failed (waited 10000 usec)
+>> > > [    0.293762] omap_hwmod: gpio5: softreset failed (waited 10000 usec)
+>> > > [    0.307861] omap_hwmod: gpio6: softreset failed (waited 10000 usec)
+>
+> Hi Paul, 
+>
+> I tested this on one more board and still got these softreset warnings.
+> So this wasn't a board specific issue and debugged into what is causing
+> these.
+>
+> The problem is the FCLK isn't enabled for these gpios(2..6) while
+> resetting.  So the GPIO's are not resetting properly. Once i enable FCLK
+> for them and then set the SYSCONFIG.SOFTRESET, then they are resetting
+> and it is reflected in RESETDONE bit.
 
-Fair enough, but it's the perception in general.
+What do you mean by fclk here.  GPIO doesn't have an fclk.  The
+interface clock provides the functional clock, and the optional debounce
+clock (dbclk) is needed only when GPIO debounce is enabled.
 
-> Conference (ELC, US and Europe.)  Especially as IP blocks are reused
-> across SoC families, abstractions like runtime PM are the only way to
-> keep the SoC specifics of PM out of the common driver.
+I suggest you look at the "integration" sub chapter of the TRM for the
+GPIO module.
 
-Right, I know that these things happen, but at the same time the sheer
-amount of stuff flowing in makes it hard that these infrastructure
-stuff really works out. And we are only at the beginning of the big
-shuffle "code in to mainline" game.
+> That being said, I was looking for accessing gpio2_fck in the
+> gpio2_hwmod. But i find the structure as below, 
+>
+> static struct omap_hwmod omap3xxx_gpio2_hwmod = {
+> 	.name		= "gpio2",
+> 	.mpu_irqs	= omap3xxx_gpio2_irqs,
+> 	.mpu_irqs_cnt	= ARRAY_SIZE(omap3xxx_gpio2_irqs),
+> 	.main_clk	= "gpio2_ick",
+>
+> Is there any reason, why 'iclk' is set as the 'main_clk' and not 'fclk'.
 
-After cleaning up the whole irq stuff across the tree I can tell you,
-that the mess is non-linear growing with the number of instances.
+There are no GPIO fclks.
 
-You can see the patterns which are:
-    - copy and paste
-    - introduce different bugs
-    - add more abuse
+> Also 'fclk' is structured as 'gpio2_dbck' and made as an optional
+> clock.  I wasn't very sure, why the name 'dbck'?
 
-That's what I'm really concerned about.
+dbck == debounce clock
 
-> Yes, ARM SoC maintainers have to make up some ground.  But compare this
-> to just a couple years ago where the common complaint was "why aren't
-> embedded SoC people contributing code to mainline", and you'll see we
-> have come a long way.
-
-Well, code comes in, which is progress. But we need to figure out how
-to deal with the increasingly growing flood before we drown in it.
-
-Thanks,
-
-	tglx
+Kevin
