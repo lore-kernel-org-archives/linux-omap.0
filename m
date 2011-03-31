@@ -1,61 +1,145 @@
-From: Thomas Gleixner <tglx@linutronix.de>
+From: Linus Torvalds <torvalds@linux-foundation.org>
 Subject: Re: [GIT PULL] omap changes for v2.6.39 merge window
-Date: Thu, 31 Mar 2011 20:55:44 +0200 (CEST)
-Message-ID: <alpine.LFD.2.00.1103312041580.31043@localhost6.localdomain6>
-References: <201103301906.42429.arnd@arndb.de> <alpine.LFD.2.00.1103311359320.22418@localhost6.localdomain6> <87d3l7jqpr.fsf@ti.com> <201103311723.02301.arnd@arndb.de> <alpine.LFD.2.00.1103311826070.22418@localhost6.localdomain6>
- <alpine.LFD.2.00.1103311400190.28032@xanadu.home>
+Date: Thu, 31 Mar 2011 12:02:19 -0700
+Message-ID: <AANLkTikumKg8nOi5O=zym3eS4UOKO0+vA21bGHaagL=9@mail.gmail.com>
+References: <201103301906.42429.arnd@arndb.de>
+	<AANLkTim578-kwM14SJd06RW_QiC4WVCmFuG+ASgGC4sq@mail.gmail.com>
+	<alpine.LFD.2.00.1103301531420.28032@xanadu.home>
+	<AANLkTim6zg-U6HtAQbqnENqoK7x8erXSqOuTFVC0YE5r@mail.gmail.com>
+	<alpine.LFD.2.00.1103301814250.28032@xanadu.home>
+	<alpine.DEB.2.00.1103301728000.15330@asgard.lang.hm>
+	<alpine.LFD.2.00.1103302255280.28032@xanadu.home>
+	<alpine.DEB.2.00.1103302130500.29543@asgard.lang.hm>
+	<alpine.LFD.2.00.1103310145390.28032@xanadu.home>
+	<20110331080634.GA18022@elte.hu>
+	<20110331083044.GB14323@n2100.arm.linux.org.uk>
+	<alpine.DEB.2.00.1103310855450.29543@asgard.lang.hm>
+	<alpine.LFD.2.00.1103311218240.28032@xanadu.home>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.LFD.2.00.1103311400190.28032@xanadu.home>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <alpine.LFD.2.00.1103311218240.28032@xanadu.home>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Nicolas Pitre <nico@fluxnic.net>
-Cc: Arnd Bergmann <arnd@arndb.de>, Kevin Hilman <khilman@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Ingo Molnar <mingo@elte.hu>, david@lang.hm, Linus Torvalds <torvalds@linux-foundation.org>, Tony Lindgren <tony@atomide.com>, David Brown <davidb@codeaurora.org>, lkml <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, "H. Peter Anvin" <hpa@zytor.com>
+Cc: david@lang.hm, Russell King - ARM Linux <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Catalin Marinas <catalin.marinas@arm.com>, lkml <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@elte.hu>, linux-omap@vger.kernel.org, David Brown <davidb@codeaurora.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, 31 Mar 2011, Nicolas Pitre wrote:
+On Thu, Mar 31, 2011 at 10:56 AM, Nicolas Pitre <nico@fluxnic.net> wrote:
+>
+> So... Is there missed opportunity for better code reuse here? =A0Most
+> probably. =A0Is all that code the result of misabstracted and duplicated
+> code? =A0Certainly not. =A0Let's just presume that half of that code is
+> genuine crap and the other half is simply the result of new hardware for
+> which there is no existing model to fit it in. =A0Even then, do we have 5
+> times the reviewer bandwidth to properly review all that code compared
+> to X86? =A0Absolutely not, not even close.
 
-> On Thu, 31 Mar 2011, Thomas Gleixner wrote:
-> 
-> > Start off with such a trivial, but immense effective cleanup and see
-> > what it helps to share code even accross SoC vendors. They all glue
-> > together random IP blocks from the market and there are not soo many
-> > sources which are relevant. This makes sense in all aspects:
-> > 
-> >       1) less and better code
-> >       2) faster setup for new SoCs
-> >       3) shared benefit for all vendors
-> 
-> If this was always true.  Someone commented on the fact that the IP 
-> block providing USB on OMAP is shared with a couple other platforms.  
-> But about 2600 lines of pure glue is still necessary around the common 
-> driver to make it work for everyone.  I'm not saying that separate 
-> drivers are called for here, simply that hardware people _will_ screw it 
-> up, especially when they are hooking it up to a non-standard 
-> SOC-specific bus.
+That's an odd assumption. And it's followed by a total red herring
+that doesn't even make any sense. And then your conclusion seems to be
+that ARM could never have the same quality anyway, because of the
+whole lack of review issue is fundamental.
 
-Right. That's a problem, but we should not ignore the places where
-reusing stuff is easy possible. And making good examples out of it.
+And from there you seem to go on to think that there are no major
+problems, and things are "good enough"!
 
-And it really _IS_ worth the trouble. Look at the git log of
-drivers/spi/pxa2xx* . We could have slapped the other "x86" driver
-into spi, but that does not make any sense from a software engineering
-and maintainability POV. And it would have been more work in the end
-to cleanup the separate driver than isolating the existing one and
-reuse it.
+> If prominent people looking at this from the side line continue bashing
+> at those who are both feet in the mud trying to contain the flood rather
+> than actually helping then nothing will change.
 
-This is a sustainability issue. And we need to become more clever
-about identifying the places where we can abstract stuff into shared
-drivers and infrastructure when we want to sustain Linux for another
-few decades.
+The reason nothing seems to be changing is that you don't seem to
+think it's even WORTH fixing. I really don't understand your
+arguments.
 
-> And what would the hardware guys tell you?  That software is cheap.
+They seem to boil down to the same thing that always happens in the
+embedded world, and why most of the hardware and software is crap:
+people don't think further than their own small project.
 
-If you can prove with simple examples that using existing software
-removes 6 month of useless reinventing the wheel and another 6 month
-of testing plus the fight with the kernel folks, then eventually they
-start to listen as you can express this in $$$.
+It's why embedded OS's have always been crap, and it's why Linux is
+becomign so important to ARM - exactly because the embedded world
+(both software and hardware) always just look at their own issue, and
+say "hey, this is working for me right now, so I won't bother to try
+to solve the bigger issues, because it's not worth my time".
 
-Thanks,
+To hammer that in:
 
-	tglx
+
+> ... =A0And the fact is that _users_ of the
+> ARM kernel are not complaining. =A0Things are far from being perfect, but
+> so far things have been "good enough" for the majority of the people
+> involved, and improvements are constantly being worked on with the men
+> power available.
+
+You really don't seem to care about how Thomas was complaining about
+the whole maintenance issue. As he was trying to clean up irq
+handling, the pure flow of more crap just made it hard to ever catch
+up. THAT is the kind of maintenance problem where I go "This is a big
+problem".
+
+But for some individual board user or the code-monkey who creates yet
+another board description, this isn't a problem. Because he's looking
+at a single kernel and a single board at a time, and seldom cares
+about anything else.
+
+But guess what? That really _is_ a problem. And it's likely to be a
+bigger problem in the future. Look at how we're actually starting to
+see vendors who are making ARM into more of a real platform, rather
+than a succession of one-off embedded boards, and think about what
+that actually will entail.
+
+I'm talking about things like ASUS getting their feet wet making
+netbooks with ARM. Things like that have been promised for the last
+several years now, and so far it's been a total failure.
+
+And it's going to CONTINUE to be a failure, unless the ARM platform
+mess can be sorted out.
+
+Why? Think of the Ubuntu's etc of the world. If you can't make
+half-way generic install images, you can't have a reasonably generic
+distribution. And if you don't have that, then what happens to your
+developer situation? Most sane people won't touch it with a ten-foot
+pole, because the bother is simply not worth their time.
+
+So the current embedded mindset of "hey, it's working for all these
+individual people" is just broken. It's broken for multiple reasons.
+It's broken because it makes it much harder to do top-level
+maintenance (but the low-level guys don't care), and it's broken
+because it results in insane fragmentation where it basically is never
+an option to support anything but one - or a couple - particular
+device.
+
+The ARM -core- situation is simple, and those high-level people can
+(and do) say that they'll just support ARM7 and screw all the other
+cores.
+
+But the platform problem is real. And it does need some solution,
+because continuing to just do the same thing really does mean that
+some new things simply cannot be done.
+
+And the fact that it's been "good enough" in the past when every
+single board was always just a one-off and had nothing to do with
+other boards does _not_ mean that it's going to continue to be good
+enough.
+
+So the _good_ news is that all the high-end ARM's are largely
+consolidating anyway, and when we're talking Cortex-A9 class hardware,
+there generally aren't millions of SoC's. And I'm hoping the hardware
+people are actually aware of this (presumably because their customers
+are starting to push back against pointless hw churn too) and clearly
+some manufacturers are trying to -create- platforms like OMAP that try
+to have lots of shared characteristics (and then screw up a lot of the
+details, but whatever).
+
+But I still do think that on the software side, people need to stop
+doing the whole "let's just copy that platform code for this other
+platform that is quite similar but has a different XYZ chip".
+
+                                   Linus
