@@ -1,50 +1,54 @@
-From: david@lang.hm
-Subject: Re: [GIT PULL] omap changes for v2.6.39 merge window
-Date: Thu, 31 Mar 2011 09:03:28 -0700 (PDT)
-Message-ID: <alpine.DEB.2.00.1103310855450.29543@asgard.lang.hm>
-References: <201103301906.42429.arnd@arndb.de> <AANLkTim578-kwM14SJd06RW_QiC4WVCmFuG+ASgGC4sq@mail.gmail.com> <alpine.LFD.2.00.1103301531420.28032@xanadu.home> <AANLkTim6zg-U6HtAQbqnENqoK7x8erXSqOuTFVC0YE5r@mail.gmail.com> <alpine.LFD.2.00.1103301814250.28032@xanadu.home>
- <alpine.DEB.2.00.1103301728000.15330@asgard.lang.hm> <alpine.LFD.2.00.1103302255280.28032@xanadu.home> <alpine.DEB.2.00.1103302130500.29543@asgard.lang.hm> <alpine.LFD.2.00.1103310145390.28032@xanadu.home> <20110331080634.GA18022@elte.hu>
- <20110331083044.GB14323@n2100.arm.linux.org.uk>
+From: "Avinash.H.M." <avinashhm@ti.com>
+Subject: Re: [PATCH] omap: hwmod: add syss reset done flags to omap2, omap3
+ hwmods
+Date: Thu, 31 Mar 2011 21:52:49 +0530
+Message-ID: <20110331162248.GA18957@avinash-laptop>
+References: <20110314161609.GA10506@avinash-laptop>
+ <alpine.DEB.2.00.1103242336410.21987@utopia.booyaka.com>
+ <20110325062534.GA25480@avinash-laptop>
+ <20110325072035.GB25480@avinash-laptop>
+ <alpine.DEB.2.00.1103251124040.21987@utopia.booyaka.com>
+ <20110326113538.GB3668@avinash-laptop>
+ <20110331144010.GA18054@avinash-laptop>
+ <871v1njpq2.fsf@ti.com>
+ <20110331155142.GB18054@avinash-laptop>
+ <4D94A413.3000406@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20110331083044.GB14323@n2100.arm.linux.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Ingo Molnar <mingo@elte.hu>, Nicolas Pitre <nico@fluxnic.net>, Linus Torvalds <torvalds@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, David Brown <davidb@codeaurora.org>, lkml <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:50830 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758660Ab1CaQXH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 31 Mar 2011 12:23:07 -0400
+Received: by mail-gx0-f179.google.com with SMTP id 1so1131788gxk.38
+        for <linux-omap@vger.kernel.org>; Thu, 31 Mar 2011 09:23:02 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <4D94A413.3000406@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>
 
-On Thu, 31 Mar 2011, Russell King - ARM Linux wrote:
+> >Looks like without this clock, GPIO module isn't resetting even on
+> >writing to SYSCONFIG register. Should we provide a seperate reset
+> >function for gpio, like the way it was suggested for i2c ?
+> 
+> No need for that, it is already working like that on OMAP4.
+> We have a nice flag that handle that clock during reset.
+> 
+> 	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
 
-> On Thu, Mar 31, 2011 at 10:06:34AM +0200, Ingo Molnar wrote:
->> Having strong, effective platform abstractions inside the kernel really helps
->> even if the hardware space itself is inevitably fragmented: both powerpc and
->> x86 has shown that. Until you realize and appreciate that you really have not
->> understood the problem i think.
->
-> No, I think it is the other way around.  Folk like me and Nicolas over
-> the last ten years have put considerable amounts of effort into trying
-> to keep the ARM support code as clean and maintainable as possible.
+Thanks benoit. I'll use this flag and try resetting GPIO module.
 
-In this case I owe you and Nicolas an apology.
+br ,
+- avinash
 
-I think that part of the issue is that when Linus points out a problem, 
-the response isn't "we agree and are working on it, here's what we are 
-doing", instead it seems to be mostly "there is no problem, this is just 
-because there is so much variation in ARM"
-
-Linus does look at the code he pulls, if he is pulling changesets that are 
-described as consolodations and cleanups, he won't be whining about code 
-churn.
-
-but if he is just pulling chnagesets that are described as "addsupport for 
-board X" or "modify defconfig defaults" he is going to complain.
-
-it's not the total amount of code, and it's not even the total amount of 
-change to the code that's the issue. It's that the changes are conflicting 
-with each other (due to things like central config tables that multiple 
-people are updating in different ways) and the same files getting modified 
-frequently, many times in ways that don't seem to have a clear direction 
-(defconfigs for example)
-
-David Lang
+> 
+> Regards,
+> Benoit
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
