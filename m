@@ -1,71 +1,53 @@
-From: Alexander Holler <holler@ahsoftware.de>
+From: Koen Kooi <koen@dominion.thruhere.net>
 Subject: Re: [GIT PULL] omap changes for v2.6.39 merge window
-Date: Thu, 31 Mar 2011 20:00:53 +0200
-Message-ID: <4D94C155.2090406@ahsoftware.de>
-References: <AANLkTimWbb5DWiiCW821H6pRicbk1fS3PYcnGyUMznvM@mail.gmail.com>
-	<20110318101512.GA15375@n2100.arm.linux.org.uk>
-	<201103301906.42429.arnd@arndb.de>
-	<AANLkTim578-kwM14SJd06RW_QiC4WVCmFuG+ASgGC4sq@mail.gmail.com>
-	<alpine.LFD.2.00.1103301531420.28032@xanadu.home>
-	<AANLkTim6zg-U6HtAQbqnENqoK7x8erXSqOuTFVC0YE5r@mail.gmail.com>
-	<alpine.LFD.2.00.1103301814250.28032@xanadu.home>
-	<alpine.DEB.2.00.1103301728000.15330@asgard.lang.hm>
-	<alpine.LFD.2.00.1103302255280.28032@xanadu.home>
-	<alpine.DEB.2.00.1103302130500.29543@asgard.lang.hm>
-	<20110331080954.GA14323@n2100.arm.linux.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20110331080954.GA14323@n2100.arm.linux.org.uk>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: david@lang.hm, Arnd Bergmann <arnd@arndb.de>, Nicolas Pitre <nico@fluxnic.net>, Tony Lindgren <tony@atomide.com>, Catalin Marinas <catalin.marinas@arm.com>, lkml <linux-kernel@vger.kernel.org>, David Brown <davidb@codeaurora.org>, linux-omap@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, linux-arm-kernel@lists.infradead.org
+Date: Thu, 31 Mar 2011 20:08:54 +0200
+Message-ID: <C42A3926-6B43-4BC6-9CAB-572FD8B32475@dominion.thruhere.net>
+References: <201103301906.42429.arnd@arndb.de> <AANLkTim578-kwM14SJd06RW_QiC4WVCmFuG+ASgGC4sq@mail.gmail.com> <alpine.LFD.2.00.1103301531420.28032@xanadu.home> <AANLkTim6zg-U6HtAQbqnENqoK7x8erXSqOuTFVC0YE5r@mail.gmail.com> <alpine.LFD.2.00.1103301814250.28032@xanadu.home> <alpine.DEB.2.00.1103301728000.15330@asgard.lang.hm> <alpine.LFD.2.00.1103302255280.28032@xanadu.home> <AANLkTikV5OMifKjWRVdtJLEcxcZ56jrjWLYJBX89pHQ0@mail.gmail.com> <alpine.LFD.2.00.1103310012500.28032@xanadu.home> <20110331105440.42692165@lxorguk.ukuu.org.uk> <20110331105000.GC14323@n2100.arm.linux.org.uk> <alpine.DEB.2.00.1103310904080.29543@asgard.lang.hm>
+Mime-Version: 1.0 (Apple Message framework v1084)
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.00.1103310904080.29543@asgard.lang.hm>
+Sender: linux-kernel-owner@vger.kernel.org
+To: david@lang.hm
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Nicolas Pitre <nico@fluxnic.net>, Dave Airlie <airlied@gmail.com>, Linus Torvalds <torvalds@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, David Brown <davidb@codeaurora.org>, lkml <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>
 List-Id: linux-omap@vger.kernel.org
 
-SGVsbG8sCgpBbSAzMS4wMy4yMDExIDEwOjA5LCBzY2hyaWViIFJ1c3NlbGwgS2luZyAtIEFSTSBM
-aW51eDoKCj4gV2UgYWxzbyBuZWVkIHRoZSB2YXJpb3VzIFNvQyBkZXNpZ25lcnMgYW5kIEFSTSBh
-cmNoaXRlY3R1cmUgcGVvcGxlIHRvCj4gcmVhbGlzZSB0aGF0IHdoYXQgdGhlIGhhcmR3YXJlIHNp
-dHVhdGlvbiBpcyByZWRpY3Vsb3VzOyBJIGhhdmUgY29tbWVudGVkCj4gYWJvdXQgdGhpcyBsYWNr
-IG9mIHN0YW5kYXJkaXNhdGlvbiB0byBBUk0gaW4gcGFzdCB5ZWFycy4gIEFSTSBoYXZlIGhhZAo+
-IGEgc3RhbmRhcmQgc2V0IG9mIHBlcmlwaGVyYWxzIGZvciB0ZW4geWVhcnMsIGJ1dCB0aGUgU29D
-IHBlb3BsZSBoYXZlbid0Cj4gcmVhbGx5IHRha2VuIHRoZW0gdXAgLSBhbmQgd2hlbiB0aGV5IGRv
-LCB0aGV5IHNlZW0gdG8gYWx3YXlzIGludHJvZHVjZQo+IHRoZWlyIG93biB0d2Vha3MsIHNvbWV0
-aW1lcyB3aXRoIG5vIHdheSB0byBkZXRlY3QgdGhvc2UgdHdlYWtzLgoKQXMgYSB1c2VyIG9mIHNl
-dmVyYWwgQVJNIGJvYXJkcyBJIGZ1bGx5IGFncmVlLiBJJ3ZlIGNvbWUgdG8gdGhlIApjb25jbHVz
-aW9uIHRoYXQgaWYgZGV2aWNlIHRyZWUgb3Igc29tZXRoaW5nIHNpbWlsaWFyIHdvbid0IGNvbWUg
-dXAsIAp3aGljaCBvZmZlcnMgYSB2ZW5kb3IgaW5kZXBlbmRlbnQgZGVzY3JpcHRpb24gb2YgdGhl
-IGhhcmR3YXJlLCB0aGUgQVJNIAptYXJrZXQgKGF0IGxlYXN0IHdpdGggTGludXggYXMgYW4gT1Mp
-IHdvbid0IGZ1bmN0aW9uLiBJdCdzIGFscmVhZHkgCmFsbW9zdCBpbXBvc3NpYmxlIHRvIHVwZGF0
-ZSBhbiBvbGQgdmVuZG9yIGtlcm5lbCB0byBhIG1haW5saW5lIGtlcm5lbCAKdmVyc2lvbiB3aXRo
-b3V0IGhhdmluZyBzY2hlbWF0aWNzLiBVcCB0byBub3cgdGhpcyBpc24ndCBhIGJpZyBwcm9ibGVt
-IApiZWNhdXNlIG1vc3QgQVJNLUhXIHBlb3BsZSBhcmUgcGxheWluZyB3aXRoIGFyZSBkZXZlbG9w
-ZXIgYm9hcmRzLCBidXQgCnRoYXRzIGFscmVhZHkgY2hhbmdpbmcgYW5kIG1vcmUgYW5kIG1vcmUg
-c3R1ZmYgd2lsbCBjb21lIHdpdGhvdXQgc2NoZW1hdGljcy4KQW5kIHdpdGhvdXQgdGhlIGhlbHAg
-b2Ygc29tZXRoaW5nIGxpa2UgdGhlIHg4NiBCSU9TIChvciBEVCBmb3IgQVJNKSB5b3UgCmFyZSBq
-dXN0IGxvc3QgdXNpbmcgYW4gQVJNLUhXIHdoZXJlIHlvdSBkb24ndCBoYXZlIHRoZSBzY2hlbWF0
-aWNzLCB3aGVuIAp5b3UgZG9uJ3Qgd2FudCB0byB1c2UgdGhlIHZlbmRvciBwcm92aWRlZCBrZXJu
-ZWwgc291cmNlcyAoZm9yIHdoaWNoIHlvdSAKYWxtb3N0IG5ldmVyIGdldCBlLmcuIGFueSBzZWN1
-cml0eSBmaXhlcykuIEZpbmRpbmcgYWxsIHRoZSBzbWFsbCBrbm9icyAKdG8gdHVybiBvdXQgb2Yg
-dmVuZG9yIHByb3ZpZGVkIGtlcm5lbCBzb3VyY2VzIGlzIGEgcGFpbiBhbmQganVzdCBhIHdhc3Rl
-IApvZiB0aW1lIHlvdSBhbG1vc3QgbmV2ZXIgY2FuJ3QgZmluaXNoIGJlZm9yZSB0aGUgSFcgaW4g
-cXVlc3Rpb24gZ290IApvYnNvbGV0ZS4KCkp1c3QgbXkgMsKiIG9uIHRoYXQgdG9waWMgZnJvbSBh
-IHNvbWV3aGF0IHVzZXIgcG9pbnQgb2YgdmlldyBmcm9tIG9uZSB3aG8gCmlzbid0IHJlYWxseSBp
-bnZvbHZlZCB0aGF0IG11Y2ggaW4ga2VybmVsIGRldmVsb3BtZW50LgoKQXQgbGVhc3QgSSBmaW5k
-IHN1Y2ggYSByYW50IGZyb20gTGludXMgZnJvbSB0aW1lIHRvIHRpbWUgYSBnb29kIHRoaW5nLiAK
-U29tZXRpbWVzIGl0IGhlbHBzIGlmIHNvbWVvbmUgc3BlYWtzIG91dCBsb3VkIHdoYXRzIHdyb25n
-LiBBbmQgaWYgTGludXMgCndvdWxkbid0IGJlIHRoYXQgb25lLCB3aG8gZWxzZSB3b3VsZCBiZSBj
-b3VyYWdlb3VzIGVub3VnaCB0byBkbyB0aGF0PyBJIAp3b3VsZG4ndCAoYW5kIEkgY2FuJ3QsIEkg
-aGF2ZSB0byB0aGFuayBhbGwga2VybmVsIGRldmVsb3BlcnMgZm9yIHRoZWlyIApoYXJkIHdvcmsp
-LgoKUmVnYXJkcywKCkFsZXhhbmRlcgoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1r
-ZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWls
-bWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
+
+Op 31 mrt 2011, om 19:22 heeft david@lang.hm het volgende geschreven:
+
+> On Thu, 31 Mar 2011, Russell King - ARM Linux wrote:
+> 
+>> On Thu, Mar 31, 2011 at 10:54:40AM +0100, Alan Cox wrote:
+>>> If I boot it on a current PC I'm booting on a multiprocessor system with
+>>> different timers, totally different IRQ controllers, different keyboard
+>>> controllers (USB), PCI Express, an IOMMU, NCQ SATA, ACPI, graphics
+>>> running in shared host memory able to give/take pages from the host,
+>>> extra instructions, etc etc
+>>> 
+>>> And the same kernel boots just fine on both just fine.
+>> 
+>> We've been there for a long time with ARM.  Right from the start I had
+>> a single kernel image which booted over a range of ARM CPUs and
+>> platforms.
+>> 
+>> As far as ARM CPU architectures go, today we can have a single kernel
+>> image which covers ARMv3 to ARMv5, and a separate kernel image which
+>> covers ARMv6 to ARMv7 including SMP and UP variants.  The thing which
+>> currently stops ARMv3 to ARMv7 all together is the different page table
+>> layouts, the ASID tagging, the exclusive load/store support for cmpxchg
+>> and other atomic operations, etc.
+> 
+> I don't think the push is to get a single kernel image that boots absolutly everywhere. having separate ARM5 and ARM7 kernels doesn't seem to be a big deal to anyone.
+
+You mean ARMv5 and ARMv7, right? ARM5 and ARM7 are completely different things.
+
+The short, but inaccurate version:
+
+ARM9 -> ARMv4t, ARMv5te*
+ARM11 -> ARMv6*
+CORTEX-A* -> ARMv7a
+
+regards,
+
+Koen
