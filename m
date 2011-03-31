@@ -1,64 +1,79 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [GIT PULL] omap changes for v2.6.39 merge window
-Date: Thu, 31 Mar 2011 14:01:23 +0100
-Message-ID: <20110331130123.GB17547@n2100.arm.linux.org.uk>
-References: <alpine.LFD.2.00.1103301531420.28032@xanadu.home> <AANLkTim6zg-U6HtAQbqnENqoK7x8erXSqOuTFVC0YE5r@mail.gmail.com> <alpine.LFD.2.00.1103301814250.28032@xanadu.home> <alpine.DEB.2.00.1103301728000.15330@asgard.lang.hm> <alpine.LFD.2.00.1103302255280.28032@xanadu.home> <AANLkTikV5OMifKjWRVdtJLEcxcZ56jrjWLYJBX89pHQ0@mail.gmail.com> <alpine.LFD.2.00.1103310012500.28032@xanadu.home> <20110331105440.42692165@lxorguk.ukuu.org.uk> <20110331105000.GC14323@n2100.arm.linux.org.uk> <1301575101.10659.132.camel@e102109-lin.cambridge.arm.com>
+From: "Avinash.H.M." <avinashhm@ti.com>
+Subject: Re: [PATCH] omap: hwmod: add syss reset done flags to omap2, omap3
+ hwmods
+Date: Thu, 31 Mar 2011 18:36:06 +0530
+Message-ID: <20110331130606.GB3938@avinash-laptop>
+References: <1298542123-3654-1-git-send-email-avinashhm@ti.com>
+ <alpine.DEB.2.00.1103031427580.10981@utopia.booyaka.com>
+ <20110314161609.GA10506@avinash-laptop>
+ <alpine.DEB.2.00.1103242336410.21987@utopia.booyaka.com>
+ <4D8CA9C4.3060504@ti.com>
+ <alpine.DEB.2.00.1103251121060.21987@utopia.booyaka.com>
+ <20110326113138.GA3668@avinash-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:59891 "EHLO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757381Ab1CaNGS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 31 Mar 2011 09:06:18 -0400
+Received: by yib12 with SMTP id 12so1464635yib.1
+        for <linux-omap@vger.kernel.org>; Thu, 31 Mar 2011 06:06:17 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <1301575101.10659.132.camel@e102109-lin.cambridge.arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, Nicolas Pitre <nico@fluxnic.net>, Dave Airlie <airlied@gmail.com>, david@lang.hm, Linus Torvalds <torvalds@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, David Brown <davidb@codeaurora.org>, lkml <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+In-Reply-To: <20110326113138.GA3668@avinash-laptop>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nayak, Rajendra" <rnayak@ti.com>, "Hilman, Kevin" <kh>
 
-On Thu, Mar 31, 2011 at 01:38:21PM +0100, Catalin Marinas wrote:
-> On Thu, 2011-03-31 at 11:50 +0100, Russell King - ARM Linux wrote:
-> > Given this thread, I've lost the motivation to continue with it because
-> > it's just going to cause more 'pointless churn' and end up annoying
-> > Linus even more.
-> 
-> I don't think the criticism was directed at the core ARM code that you
-> maintain (Ingo and others even praised it). I also don't think that you
-> stopping maintaining it would help in any way with this situation.
-> 
-> We probably shouldn't take criticism personally. Linus has some points
-> which the ARM community is aware of already since there is ongoing work
-> for consolidating the platform code (recent v2p patches, SMP-on-UP, FDT
-> and probably more will come) only that this won't happen overnight. If
-> you stop merging any of these, there's definitely no way out (other than
-> doing the work separately for the next two years and replacing the
-> arch/arm in a single pull request).
+> Thanks Benoit. You are right.=20
+>=20
+> The TRM Section '18.3.1.3.2 Software Reset' explains the steps for
+> softresetting I2C. The steps are below:
+>=20
+> 1. Ensure that the module is disabled (clear the I2Ci.I2C_CON[15] I2C=
+_EN
+> bit to 0).
+> 2. Set the I2Ci.I2C_SYSC[1] SRST bit to 1.
+> 3. Enable the module by setting I2Ci.I2C_CON[15] I2C_EN bit to 1.
+> 4. Check the I2Ci.I2C_SYSS[0] RDONE bit until it is set to 1 to indic=
+ate
+> the software reset is complete.
 
-But are we going to be allowed to continue this effort without being
-constantly blamed for "pointless churn" all the time?  I don't think
-so, so it may well be better to give up with pushing stuff into mainline
-for two years, and then do a massive re-merge as a single major "replace
-everything".
+Hi paul,=20
 
-I don't like the idea, but I don't see much alternative.
+I have been able to implement the function. It took a while because,
+even after implementing the above sequence, i was seeing the I2C wasn't
+resetting.=20
 
-And since Linus' whinge about ARM defconfigs, I really *hate* merging
-anything with *any* defconfig changes in - as a result, I don't
-particularly want to deal with ARM defconfig changes anymore.  I'm sure
-they'll make Linus explode about it again in the near future.  That's
-why this time around, I kept them in a separate branch in case Linus
-refused to pull them.
+The issue turned out that i was doing '32 bit data access' which was
+corrupting the i2c register contents. I missed the TRM section where it
+tells, "i2c registers are limited to 8-bit or 16-bit access". Special
+thanks to balaji.t.k for helping me debug this and pointing this was th=
+e
+issue. On correcting this, the function worked cleanly and i2c was
+reset.
 
-And again, as a result of this thread I've given up for the time being
-on the idea of continuing to consolidate the ARM Integrator/Versatile/
-Realview/Versatile Express code.  I just don't see the point of wasting
-time trying to consolidate stuff if it's just going to be used against
-us in terms of diffstat percentages and churn complaints.
+I ll send out the patch tomorrow.
 
-Just look at the removal of AAEC2000, LH7A40x and 2000 lines from the
-mach-types file removed 6000 lines, which in itself is about the number
-of lines of change submitted during the last merge window for any one
-non-ARM architecture.  At this point in time with this complaint, I've
-absolutely no idea why I bothered to do that.  I should've left it well
-alone and then the diffstat percentage would've been smaller.  After
-all, it's "pointless churn".
+br ,
+- avinash
 
-Yes, I'm severely hacked off and fed up with this.   Whatever we do will
-ultimately be used against us in one way or another.
+>=20
+> >=20
+> > Thanks Beno=EEt.
+> >=20
+> > So then, Avinash, you might need to create a custom hwmod class=20
+> > reset function for the I2C block (viz., struct omap_hwmod_class.res=
+et)
+>=20
+> OK Paul. I'll add the I2C_CON register and follow the above sequence =
+as
+> suggested in the TRM in the custom I2C reset function.
+>=20
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
