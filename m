@@ -1,215 +1,105 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH 03/17] OMAP2+: voltage: move prm_irqst_reg from VP into voltage domain
-Date: Wed, 30 Mar 2011 17:16:06 -0700
-Message-ID: <1301530580-12046-4-git-send-email-khilman@ti.com>
+Subject: [PATCH 07/17] OMAP3+: voltage: add scalable flag to voltagedomain
+Date: Wed, 30 Mar 2011 17:16:10 -0700
+Message-ID: <1301530580-12046-8-git-send-email-khilman@ti.com>
 References: <1301530580-12046-1-git-send-email-khilman@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:38656 "EHLO
-	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756696Ab1CaAQN (ORCPT
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:43855 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933084Ab1CaAQR (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 30 Mar 2011 20:16:13 -0400
-Received: by iwl42 with SMTP id 42so2509153iwl.18
-        for <linux-omap@vger.kernel.org>; Wed, 30 Mar 2011 17:16:07 -0700 (PDT)
+	Wed, 30 Mar 2011 20:16:17 -0400
+Received: by mail-gx0-f175.google.com with SMTP id 3so996054gxk.20
+        for <linux-omap@vger.kernel.org>; Wed, 30 Mar 2011 17:16:16 -0700 (PDT)
 In-Reply-To: <1301530580-12046-1-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org
 
-The prm_irqst_reg is not part of the VP.  Move it up into the common
-voltage domain struct.
+Add a 'bool scalable' flag to the struct powerdomain and set it for
+the scalable domains on OMAP3 and OMAP4.
 
 Signed-off-by: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/voltage.c                 |   15 +++++++--------
- arch/arm/mach-omap2/voltage.h                 |    1 +
+ arch/arm/mach-omap2/voltage.c                 |    3 +++
+ arch/arm/mach-omap2/voltage.h                 |    2 ++
  arch/arm/mach-omap2/voltagedomains3xxx_data.c |    2 ++
  arch/arm/mach-omap2/voltagedomains44xx_data.c |    3 +++
- arch/arm/mach-omap2/vp.h                      |    3 ---
- arch/arm/mach-omap2/vp3xxx_data.c             |    2 --
- arch/arm/mach-omap2/vp44xx_data.c             |    3 ---
- 7 files changed, 13 insertions(+), 16 deletions(-)
+ 4 files changed, 10 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
-index 90191c4..15a9cb8 100644
+index f995003..bc944ff 100644
 --- a/arch/arm/mach-omap2/voltage.c
 +++ b/arch/arm/mach-omap2/voltage.c
-@@ -426,23 +426,21 @@ static int vp_forceupdate_scale_voltage(struct omap_vdd_info *vdd,
- 		unsigned long target_volt)
- {
- 	u32 vpconfig;
--	u8 target_vsel, current_vsel, prm_irqst_reg;
-+	u8 target_vsel, current_vsel;
- 	int ret, timeout = 0;
- 
- 	ret = _pre_volt_scale(vdd, target_volt, &target_vsel, &current_vsel);
- 	if (ret)
- 		return ret;
- 
--	prm_irqst_reg = vdd->vp_data->prm_irqst_data->prm_irqst_reg;
--
- 	/*
- 	 * Clear all pending TransactionDone interrupt/status. Typical latency
- 	 * is <3us
- 	 */
- 	while (timeout++ < VP_TRANXDONE_TIMEOUT) {
- 		vdd->write_reg(vdd->vp_data->prm_irqst_data->tranxdone_status,
--			       vdd->prm_irqst_mod, prm_irqst_reg);
--		if (!(vdd->read_reg(vdd->prm_irqst_mod, prm_irqst_reg) &
-+			       vdd->prm_irqst_mod, vdd->prm_irqst_reg);
-+		if (!(vdd->read_reg(vdd->prm_irqst_mod, vdd->prm_irqst_reg) &
- 		      vdd->vp_data->prm_irqst_data->tranxdone_status))
- 			break;
- 		udelay(1);
-@@ -475,7 +473,8 @@ static int vp_forceupdate_scale_voltage(struct omap_vdd_info *vdd,
- 	 * Depends on SMPSWAITTIMEMIN/MAX and voltage change
- 	 */
- 	timeout = 0;
--	omap_test_timeout((vdd->read_reg(vdd->prm_irqst_mod, prm_irqst_reg) &
-+	omap_test_timeout((vdd->read_reg(vdd->prm_irqst_mod,
-+					 vdd->prm_irqst_reg) &
- 			   vdd->vp_data->prm_irqst_data->tranxdone_status),
- 			  VP_TRANXDONE_TIMEOUT, timeout);
- 	if (timeout >= VP_TRANXDONE_TIMEOUT)
-@@ -492,8 +491,8 @@ static int vp_forceupdate_scale_voltage(struct omap_vdd_info *vdd,
- 	timeout = 0;
- 	while (timeout++ < VP_TRANXDONE_TIMEOUT) {
- 		vdd->write_reg(vdd->vp_data->prm_irqst_data->tranxdone_status,
--			       vdd->prm_irqst_mod, prm_irqst_reg);
--		if (!(vdd->read_reg(vdd->prm_irqst_mod, prm_irqst_reg) &
-+			       vdd->prm_irqst_mod, vdd->prm_irqst_reg);
-+		if (!(vdd->read_reg(vdd->prm_irqst_mod, vdd->prm_irqst_reg) &
- 		      vdd->vp_data->prm_irqst_data->tranxdone_status))
- 			break;
- 		udelay(1);
+@@ -1054,6 +1054,9 @@ int __init omap_voltage_late_init(void)
+ 		pr_err("%s: Unable to create voltage debugfs main dir\n",
+ 			__func__);
+ 	list_for_each_entry(voltdm, &voltdm_list, node) {
++		if (!voltdm->scalable)
++			continue;
++
+ 		if (voltdm->vdd) {
+ 			if (omap_vdd_data_configure(voltdm))
+ 				continue;
 diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
-index ffdc55e..db23d49 100644
+index 5440298..25cfb5c 100644
 --- a/arch/arm/mach-omap2/voltage.h
 +++ b/arch/arm/mach-omap2/voltage.h
-@@ -136,6 +136,7 @@ struct omap_vdd_info {
- 	bool vp_enabled;
- 
- 	s16 prm_irqst_mod;
-+	u8 prm_irqst_reg;
- 	u32 (*read_reg) (u16 mod, u8 offset);
- 	void (*write_reg) (u32 val, u16 mod, u8 offset);
- 	int (*volt_scale) (struct omap_vdd_info *vdd,
+@@ -53,11 +53,13 @@ struct omap_vfsm_instance_data {
+ /**
+  * struct voltagedomain - omap voltage domain global structure.
+  * @name: Name of the voltage domain which can be used as a unique identifier.
++ * @scalable: Whether or not this voltage domain is scalable
+  * @node: list_head linking all voltage domains
+  * @vdd: to be removed
+  */
+ struct voltagedomain {
+ 	char *name;
++	bool scalable;
+ 	struct list_head node;
+ 	struct omap_vdd_info *vdd;
+ };
 diff --git a/arch/arm/mach-omap2/voltagedomains3xxx_data.c b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
-index 0d30b7f..f831f9a 100644
+index 42d0b11..d7e1052 100644
 --- a/arch/arm/mach-omap2/voltagedomains3xxx_data.c
 +++ b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
-@@ -39,6 +39,7 @@ static const struct omap_vfsm_instance_data omap3_vdd1_vfsm_data = {
+@@ -61,11 +61,13 @@ static struct omap_vdd_info omap3_vdd2_info = {
  
- static struct omap_vdd_info omap3_vdd1_info = {
- 	.prm_irqst_mod = OCP_MOD,
-+	.prm_irqst_reg = OMAP3_PRM_IRQSTATUS_MPU_OFFSET,
- 	.vp_data = &omap3_vp1_data,
- 	.vc_data = &omap3_vc1_data,
- 	.vfsm = &omap3_vdd1_vfsm_data,
-@@ -55,6 +56,7 @@ static const struct omap_vfsm_instance_data omap3_vdd2_vfsm_data = {
+ static struct voltagedomain omap3_voltdm_mpu = {
+ 	.name = "mpu_iva",
++	.scalable = true,
+ 	.vdd = &omap3_vdd1_info,
+ };
  
- static struct omap_vdd_info omap3_vdd2_info = {
- 	.prm_irqst_mod = OCP_MOD,
-+	.prm_irqst_reg = OMAP3_PRM_IRQSTATUS_MPU_OFFSET,
- 	.vp_data = &omap3_vp2_data,
- 	.vc_data = &omap3_vc2_data,
- 	.vfsm = &omap3_vdd2_vfsm_data,
+ static struct voltagedomain omap3_voltdm_core = {
+ 	.name = "core",
++	.scalable = true,
+ 	.vdd = &omap3_vdd2_info,
+ };
+ 
 diff --git a/arch/arm/mach-omap2/voltagedomains44xx_data.c b/arch/arm/mach-omap2/voltagedomains44xx_data.c
-index 1c2d7d7..64dc265 100644
+index 245fdf9..95e1ce5 100644
 --- a/arch/arm/mach-omap2/voltagedomains44xx_data.c
 +++ b/arch/arm/mach-omap2/voltagedomains44xx_data.c
-@@ -38,6 +38,7 @@ static const struct omap_vfsm_instance_data omap4_vdd_mpu_vfsm_data = {
+@@ -70,16 +70,19 @@ static struct omap_vdd_info omap4_vdd_core_info = {
  
- static struct omap_vdd_info omap4_vdd_mpu_info = {
- 	.prm_irqst_mod = OMAP4430_PRM_OCP_SOCKET_INST,
-+	.prm_irqst_reg = OMAP4_PRM_IRQSTATUS_MPU_2_OFFSET,
- 	.vp_data = &omap4_vp_mpu_data,
- 	.vc_data = &omap4_vc_mpu_data,
- 	.vfsm = &omap4_vdd_mpu_vfsm_data,
-@@ -52,6 +53,7 @@ static const struct omap_vfsm_instance_data omap4_vdd_iva_vfsm_data = {
- 
- static struct omap_vdd_info omap4_vdd_iva_info = {
- 	.prm_irqst_mod = OMAP4430_PRM_OCP_SOCKET_INST,
-+	.prm_irqst_reg = OMAP4_PRM_IRQSTATUS_MPU_OFFSET,
- 	.vp_data = &omap4_vp_iva_data,
- 	.vc_data = &omap4_vc_iva_data,
- 	.vfsm = &omap4_vdd_iva_vfsm_data,
-@@ -66,6 +68,7 @@ static const struct omap_vfsm_instance_data omap4_vdd_core_vfsm_data = {
- 
- static struct omap_vdd_info omap4_vdd_core_info = {
- 	.prm_irqst_mod = OMAP4430_PRM_OCP_SOCKET_INST,
-+	.prm_irqst_reg = OMAP4_PRM_IRQSTATUS_MPU_OFFSET,
- 	.vp_data = &omap4_vp_core_data,
- 	.vc_data = &omap4_vc_core_data,
- 	.vfsm = &omap4_vdd_core_vfsm_data,
-diff --git a/arch/arm/mach-omap2/vp.h b/arch/arm/mach-omap2/vp.h
-index d277da6..5406b08 100644
---- a/arch/arm/mach-omap2/vp.h
-+++ b/arch/arm/mach-omap2/vp.h
-@@ -70,16 +70,13 @@ struct omap_vp_common_data {
- 
- /**
-  * struct omap_vp_prm_irqst_data - PRM_IRQSTATUS_MPU.VP_TRANXDONE_ST data
-- * @prm_irqst_reg: reg offset for PRM_IRQSTATUS_MPU from top of PRM
-  * @tranxdone_status: VP_TRANXDONE_ST bitmask in PRM_IRQSTATUS_MPU reg
-  *
-- * XXX prm_irqst_reg does not belong here
-  * XXX Note that on OMAP3, VP_TRANXDONE interrupt may not work due to a
-  *     hardware bug
-  * XXX This structure is probably not needed
-  */
- struct omap_vp_prm_irqst_data {
--	u8 prm_irqst_reg;
- 	u32 tranxdone_status;
+ static struct voltagedomain omap4_voltdm_mpu = {
+ 	.name = "mpu",
++	.scalable = true,
+ 	.vdd = &omap4_vdd_mpu_info,
  };
  
-diff --git a/arch/arm/mach-omap2/vp3xxx_data.c b/arch/arm/mach-omap2/vp3xxx_data.c
-index c9b3e64..a8ea045 100644
---- a/arch/arm/mach-omap2/vp3xxx_data.c
-+++ b/arch/arm/mach-omap2/vp3xxx_data.c
-@@ -51,7 +51,6 @@ static const struct omap_vp_common_data omap3_vp_common = {
+ static struct voltagedomain omap4_voltdm_iva = {
+ 	.name = "iva",
++	.scalable = true,
+ 	.vdd = &omap4_vdd_iva_info,
  };
  
- static const struct omap_vp_prm_irqst_data omap3_vp1_prm_irqst_data = {
--	.prm_irqst_reg = OMAP3_PRM_IRQSTATUS_MPU_OFFSET,
- 	.tranxdone_status = OMAP3430_VP1_TRANXDONE_ST_MASK,
- };
- 
-@@ -67,7 +66,6 @@ struct omap_vp_instance_data omap3_vp1_data = {
- };
- 
- static const struct omap_vp_prm_irqst_data omap3_vp2_prm_irqst_data = {
--	.prm_irqst_reg = OMAP3_PRM_IRQSTATUS_MPU_OFFSET,
- 	.tranxdone_status = OMAP3430_VP2_TRANXDONE_ST_MASK,
- };
- 
-diff --git a/arch/arm/mach-omap2/vp44xx_data.c b/arch/arm/mach-omap2/vp44xx_data.c
-index 1a0842e..0957c24 100644
---- a/arch/arm/mach-omap2/vp44xx_data.c
-+++ b/arch/arm/mach-omap2/vp44xx_data.c
-@@ -52,7 +52,6 @@ static const struct omap_vp_common_data omap4_vp_common = {
- };
- 
- static const struct omap_vp_prm_irqst_data omap4_vp_mpu_prm_irqst_data = {
--	.prm_irqst_reg = OMAP4_PRM_IRQSTATUS_MPU_2_OFFSET,
- 	.tranxdone_status = OMAP4430_VP_MPU_TRANXDONE_ST_MASK,
- };
- 
-@@ -68,7 +67,6 @@ struct omap_vp_instance_data omap4_vp_mpu_data = {
- };
- 
- static const struct omap_vp_prm_irqst_data omap4_vp_iva_prm_irqst_data = {
--	.prm_irqst_reg = OMAP4_PRM_IRQSTATUS_MPU_OFFSET,
- 	.tranxdone_status = OMAP4430_VP_IVA_TRANXDONE_ST_MASK,
- };
- 
-@@ -84,7 +82,6 @@ struct omap_vp_instance_data omap4_vp_iva_data = {
- };
- 
- static const struct omap_vp_prm_irqst_data omap4_vp_core_prm_irqst_data = {
--	.prm_irqst_reg = OMAP4_PRM_IRQSTATUS_MPU_OFFSET,
- 	.tranxdone_status = OMAP4430_VP_CORE_TRANXDONE_ST_MASK,
+ static struct voltagedomain omap4_voltdm_core = {
+ 	.name = "core",
++	.scalable = true,
+ 	.vdd = &omap4_vdd_core_info,
  };
  
 -- 
