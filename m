@@ -1,49 +1,94 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH 06/17] OMAP3: voltagedomain data: add wakeup domain
-Date: Wed, 30 Mar 2011 17:16:09 -0700
-Message-ID: <1301530580-12046-7-git-send-email-khilman@ti.com>
+Subject: [PATCH 05/17] OMAP3: voltage: rename "mpu" voltagedomain to "mpu_iva"
+Date: Wed, 30 Mar 2011 17:16:08 -0700
+Message-ID: <1301530580-12046-6-git-send-email-khilman@ti.com>
 References: <1301530580-12046-1-git-send-email-khilman@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:40687 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933078Ab1CaAQQ (ORCPT
+Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:56995 "EHLO
+	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933055Ab1CaAQO (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 30 Mar 2011 20:16:16 -0400
-Received: by iwg8 with SMTP id 8so1999551iwg.28
-        for <linux-omap@vger.kernel.org>; Wed, 30 Mar 2011 17:16:14 -0700 (PDT)
+	Wed, 30 Mar 2011 20:16:14 -0400
+Received: by mail-iy0-f177.google.com with SMTP id 39so2736546iyb.22
+        for <linux-omap@vger.kernel.org>; Wed, 30 Mar 2011 17:16:12 -0700 (PDT)
 In-Reply-To: <1301530580-12046-1-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org
 
-Add wakeup voltage domain so that the wakeup powerdomain can have an
-associated powerdomain.  Note that the scalable flat is not set for
-the this voltagedomain, so it will not be fully initialized like
-scalable voltage domains.
+This voltage domain (a.k.a. VDD1) contains both the MPU and the IVA, so
+rename appropriately.
+
+Also fixup any users of the "mpu" name to use "mpu_iva"
 
 Signed-off-by: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/voltagedomains3xxx_data.c |    5 +++++
- 1 files changed, 5 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c    |    4 ++--
+ arch/arm/mach-omap2/omap_twl.c                |    2 +-
+ arch/arm/mach-omap2/pm.c                      |    2 +-
+ arch/arm/mach-omap2/voltagedomains3xxx_data.c |    2 +-
+ 4 files changed, 5 insertions(+), 5 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+index b98e2df..3cd91ac 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -2912,7 +2912,7 @@ static struct omap_hwmod omap34xx_sr1_hwmod = {
+ 	.name		= "sr1_hwmod",
+ 	.class		= &omap34xx_smartreflex_hwmod_class,
+ 	.main_clk	= "sr1_fck",
+-	.vdd_name	= "mpu",
++	.vdd_name	= "mpu_iva",
+ 	.prcm		= {
+ 		.omap2 = {
+ 			.prcm_reg_id = 1,
+@@ -2934,7 +2934,7 @@ static struct omap_hwmod omap36xx_sr1_hwmod = {
+ 	.name		= "sr1_hwmod",
+ 	.class		= &omap36xx_smartreflex_hwmod_class,
+ 	.main_clk	= "sr1_fck",
+-	.vdd_name	= "mpu",
++	.vdd_name	= "mpu_iva",
+ 	.prcm		= {
+ 		.omap2 = {
+ 			.prcm_reg_id = 1,
+diff --git a/arch/arm/mach-omap2/omap_twl.c b/arch/arm/mach-omap2/omap_twl.c
+index 287aef2..57c325a 100644
+--- a/arch/arm/mach-omap2/omap_twl.c
++++ b/arch/arm/mach-omap2/omap_twl.c
+@@ -288,7 +288,7 @@ int __init omap3_twl_init(void)
+ 	if (!twl_sr_enable_autoinit)
+ 		omap3_twl_set_sr_bit(true);
+ 
+-	voltdm = voltdm_lookup("mpu");
++	voltdm = voltdm_lookup("mpu_iva");
+ 	omap_voltage_register_pmic(voltdm, &omap3_mpu_volt_info);
+ 
+ 	voltdm = voltdm_lookup("core");
+diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+index 917e1e3..820b7b5 100644
+--- a/arch/arm/mach-omap2/pm.c
++++ b/arch/arm/mach-omap2/pm.c
+@@ -226,7 +226,7 @@ static void __init omap3_init_voltages(void)
+ 	if (!cpu_is_omap34xx())
+ 		return;
+ 
+-	omap2_set_init_voltage("mpu", "dpll1_ck", mpu_dev);
++	omap2_set_init_voltage("mpu_iva", "dpll1_ck", mpu_dev);
+ 	omap2_set_init_voltage("core", "l3_ick", l3_dev);
+ }
+ 
 diff --git a/arch/arm/mach-omap2/voltagedomains3xxx_data.c b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
-index 2167ef4..42d0b11 100644
+index 4bee412..2167ef4 100644
 --- a/arch/arm/mach-omap2/voltagedomains3xxx_data.c
 +++ b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
-@@ -69,9 +69,14 @@ static struct voltagedomain omap3_voltdm_core = {
- 	.vdd = &omap3_vdd2_info,
+@@ -60,7 +60,7 @@ static struct omap_vdd_info omap3_vdd2_info = {
  };
  
-+static struct voltagedomain omap3_voltdm_wkup = {
-+	.name = "wakeup",
-+};
-+
- static struct voltagedomain *voltagedomains_omap3[] __initdata = {
- 	&omap3_voltdm_mpu,
- 	&omap3_voltdm_core,
-+	&omap3_voltdm_wkup,
- 	NULL,
+ static struct voltagedomain omap3_voltdm_mpu = {
+-	.name = "mpu",
++	.name = "mpu_iva",
+ 	.vdd = &omap3_vdd1_info,
  };
  
 -- 
