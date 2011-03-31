@@ -1,74 +1,97 @@
-From: david@lang.hm
-Subject: Re: [GIT PULL] omap changes for v2.6.39 merge window
-Date: Thu, 31 Mar 2011 10:22:31 -0700 (PDT)
-Message-ID: <alpine.DEB.2.00.1103310904080.29543@asgard.lang.hm>
-References: <201103301906.42429.arnd@arndb.de> <AANLkTim578-kwM14SJd06RW_QiC4WVCmFuG+ASgGC4sq@mail.gmail.com> <alpine.LFD.2.00.1103301531420.28032@xanadu.home> <AANLkTim6zg-U6HtAQbqnENqoK7x8erXSqOuTFVC0YE5r@mail.gmail.com> <alpine.LFD.2.00.1103301814250.28032@xanadu.home>
- <alpine.DEB.2.00.1103301728000.15330@asgard.lang.hm> <alpine.LFD.2.00.1103302255280.28032@xanadu.home> <AANLkTikV5OMifKjWRVdtJLEcxcZ56jrjWLYJBX89pHQ0@mail.gmail.com> <alpine.LFD.2.00.1103310012500.28032@xanadu.home> <20110331105440.42692165@lxorguk.ukuu.org.uk>
- <20110331105000.GC14323@n2100.arm.linux.org.uk>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 00/10] omap init_early changes for irq and timer init
+Date: Thu, 31 Mar 2011 10:32:12 -0700
+Message-ID: <20110331173212.GB21887@atomide.com>
+References: <20110328221501.4046.41079.stgit@baageli.muru.com>
+ <4D92E21F.6030608@ti.com>
+ <20110330182211.GE18334@atomide.com>
+ <4D943871.4030206@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; format=flowed; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20110331105000.GC14323@n2100.arm.linux.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, Nicolas Pitre <nico@fluxnic.net>, Dave Airlie <airlied@gmail.com>, Linus Torvalds <torvalds@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, David Brown <davidb@codeaurora.org>, lkml <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:57182 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751677Ab1CaRcS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 31 Mar 2011 13:32:18 -0400
+Content-Disposition: inline
+In-Reply-To: <4D943871.4030206@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Thu, 31 Mar 2011, Russell King - ARM Linux wrote:
+* Santosh Shilimkar <santosh.shilimkar@ti.com> [110331 01:14]:
+> On 3/30/2011 11:52 PM, Tony Lindgren wrote:
+> 
+> >What it does not have is the code to dedicate gpt1 for PM
+> >code, which can be done later once all the other dmtimer
+> >changes are done.
+> >
+> Which not possible to do unless you plan to hack generic
+> timer framework or waste additional timer hardware for
+> this.
 
-> On Thu, Mar 31, 2011 at 10:54:40AM +0100, Alan Cox wrote:
->> If I boot it on a current PC I'm booting on a multiprocessor system with
->> different timers, totally different IRQ controllers, different keyboard
->> controllers (USB), PCI Express, an IOMMU, NCQ SATA, ACPI, graphics
->> running in shared host memory able to give/take pages from the host,
->> extra instructions, etc etc
->>
->> And the same kernel boots just fine on both just fine.
->
-> We've been there for a long time with ARM.  Right from the start I had
-> a single kernel image which booted over a range of ARM CPUs and
-> platforms.
->
-> As far as ARM CPU architectures go, today we can have a single kernel
-> image which covers ARMv3 to ARMv5, and a separate kernel image which
-> covers ARMv6 to ARMv7 including SMP and UP variants.  The thing which
-> currently stops ARMv3 to ARMv7 all together is the different page table
-> layouts, the ASID tagging, the exclusive load/store support for cmpxchg
-> and other atomic operations, etc.
+Well an extra timer hardware would only be needed on omap2 & 3.
 
-I don't think the push is to get a single kernel image that boots 
-absolutly everywhere. having separate ARM5 and ARM7 kernels doesn't seem 
-to be a big deal to anyone.
+But hey, if it makes sense to do or not to do is a different
+set of patches. At least we now have an option to play with it.
+ 
+> >For removing the old interface, I don't see any reason to
+> >select timer combinations on omap3 other than omap3_timer
+> >and omap3_beagle_timer.
+> >
+> >If there's need, any new valid sane combinations can be esily
+> >added, although I seriously doubt that we'll need more for
+> >omap3.
+> >
+> May be I am wrong but the point is about the merit of the
+> solution even if there are only couple of board files where
+> we use that interface.
+> 
+> It much cleaner and simpler to say timerid=X, from board
+> file rather than creating a "struct sys_timer" instance
+> and putting that in timer code.
 
-> Outside of the CPU architecture, things become a lot more complicated.
+Well the timerid=X adds yet another interface and more calls from
+board-*.c to the common code. And it requires more changes if beagle
+boards want to use the system clock as the source clock instead
+of the 32KiHZ source.
 
-exactly, and this is where there is an issue.
+Maybe let's call the omap3_beagle_timer omap3_secure_timer instead?
 
-> The biggest one up until this merge window was that there is no fixed
-> address for system RAM, which makes stuff like virt_to_phys() rather
-> horrible to deal with - which in turn makes setting up and walking page
-> tables a nightmare.  We've just solved that issue with run-time patching
-> of the kernel code to replace the add/sub instructions with ones with
-> the appropriate offset, so we're a step closer to unifying everything
-> into one single kernel image.  This work alone produced this diffstat:
->
-> 87 files changed, 450 insertions(+), 190 deletions(-)
->
-> so it actually resulted in a net increase in the amount of code to be
-> maintained rather than reducing it.  That's hardly surprising as what
-> that replaced was just a bunch of #define's for PHYS_OFFSET with some
-> complex assembly code to do run-time patching of instructions.
+That should solve your issue of having the board name show up
+in the generic code, no?
+ 
+> >>At least I don't see other solution than using GPT1
+> >>for wakeup.
+> >
+> >Right, there's no other way to wake except gpt1 or wake-up
+> >enabled gpio lines. But we don't need to use gpt1 during
+> >runtime at all.
+> >
+> This is not entirely correct and I think this is the point
+> where we are not on same page. During runtime, gpt1 clock
+> event is not used for tick generation but it's kept
+> programmed because low power state switch via
+> get triggered any time and on any CPU.
 
-but I don't think this sort of work is what anyone is complaining about.
+Well ideally we would not program it during runtime at all
+because it's slow to program. I don't think that can be
+currently done with the sys_timer.
+ 
+> This is the same problem as X86 APIC timer + HPET
+> switching and I worked with Thomas G and Russell
+> to get this working on ARM platforms using generic
+> timer framework. No hacking is needed in PM code
+> for this.
 
-> Given this thread, I've lost the motivation to continue with it because
-> it's just going to cause more 'pointless churn' and end up annoying
-> Linus even more.
+Except we should improve things eventually where we don't
+need to program the slow external timer during runtime
+if we have local timers.
 
-it sounds like you are part of the solution, not part of the problem. the 
-biggest problem is the general response from 'the ARM community' when 
-these sorts of issues are raised claiming that there is no problem. you 
-seem to be very aware of the problem and are working to fix it. that is a 
-very different situaion.
+Hmm maybe I'm wrong and you got that working already?
 
-David Lang
+Regards,
+
+Tony
+ 
