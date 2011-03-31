@@ -1,145 +1,76 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
+From: Nicolas Pitre <nico@fluxnic.net>
 Subject: Re: [GIT PULL] omap changes for v2.6.39 merge window
-Date: Thu, 31 Mar 2011 12:02:19 -0700
-Message-ID: <AANLkTikumKg8nOi5O=zym3eS4UOKO0+vA21bGHaagL=9@mail.gmail.com>
-References: <201103301906.42429.arnd@arndb.de>
-	<AANLkTim578-kwM14SJd06RW_QiC4WVCmFuG+ASgGC4sq@mail.gmail.com>
-	<alpine.LFD.2.00.1103301531420.28032@xanadu.home>
-	<AANLkTim6zg-U6HtAQbqnENqoK7x8erXSqOuTFVC0YE5r@mail.gmail.com>
-	<alpine.LFD.2.00.1103301814250.28032@xanadu.home>
-	<alpine.DEB.2.00.1103301728000.15330@asgard.lang.hm>
-	<alpine.LFD.2.00.1103302255280.28032@xanadu.home>
-	<alpine.DEB.2.00.1103302130500.29543@asgard.lang.hm>
-	<alpine.LFD.2.00.1103310145390.28032@xanadu.home>
-	<20110331080634.GA18022@elte.hu>
-	<20110331083044.GB14323@n2100.arm.linux.org.uk>
-	<alpine.DEB.2.00.1103310855450.29543@asgard.lang.hm>
-	<alpine.LFD.2.00.1103311218240.28032@xanadu.home>
+Date: Thu, 31 Mar 2011 15:25:27 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.1103311429590.28032@xanadu.home>
+References: <alpine.LFD.2.00.1103301531420.28032@xanadu.home>
+ <AANLkTim6zg-U6HtAQbqnENqoK7x8erXSqOuTFVC0YE5r@mail.gmail.com>
+ <alpine.LFD.2.00.1103301814250.28032@xanadu.home>
+ <alpine.DEB.2.00.1103301728000.15330@asgard.lang.hm>
+ <alpine.LFD.2.00.1103302255280.28032@xanadu.home>
+ <alpine.DEB.2.00.1103302130500.29543@asgard.lang.hm>
+ <alpine.LFD.2.00.1103310145390.28032@xanadu.home>
+ <20110331080634.GA18022@elte.hu>
+ <20110331083044.GB14323@n2100.arm.linux.org.uk>
+ <alpine.DEB.2.00.1103310855450.29543@asgard.lang.hm>
+ <20110331164539.GB19452@n2100.arm.linux.org.uk>
+ <AANLkTi=tyifvJU-hhdd7gT74GMctrCbQBdUAoEaRXOCy@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <alpine.LFD.2.00.1103311218240.28032@xanadu.home>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Nicolas Pitre <nico@fluxnic.net>
-Cc: david@lang.hm, Russell King - ARM Linux <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Catalin Marinas <catalin.marinas@arm.com>, lkml <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@elte.hu>, linux-omap@vger.kernel.org, David Brown <davidb@codeaurora.org>, linux-arm-kernel@lists.infradead.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from relais.videotron.ca ([24.201.245.36]:26095 "EHLO
+	relais.videotron.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759061Ab1CaTZ3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 31 Mar 2011 15:25:29 -0400
+In-reply-to: <AANLkTi=tyifvJU-hhdd7gT74GMctrCbQBdUAoEaRXOCy@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, david@lang.hm, Ingo Molnar <mingo@elte.hu>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, David Brown <davidb@codeaurora.org>, lkml <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>
 
-On Thu, Mar 31, 2011 at 10:56 AM, Nicolas Pitre <nico@fluxnic.net> wrote:
->
-> So... Is there missed opportunity for better code reuse here? =A0Most
-> probably. =A0Is all that code the result of misabstracted and duplicated
-> code? =A0Certainly not. =A0Let's just presume that half of that code is
-> genuine crap and the other half is simply the result of new hardware for
-> which there is no existing model to fit it in. =A0Even then, do we have 5
-> times the reviewer bandwidth to properly review all that code compared
-> to X86? =A0Absolutely not, not even close.
+On Thu, 31 Mar 2011, Linus Torvalds wrote:
 
-That's an odd assumption. And it's followed by a total red herring
-that doesn't even make any sense. And then your conclusion seems to be
-that ARM could never have the same quality anyway, because of the
-whole lack of review issue is fundamental.
+> What I'm _not_ seeing is a lot of cross-platform maintenance or sense
+> of people trying to reign things in and look for solutions to the
+> proliferation of random stupid and mindless platform code.
 
-And from there you seem to go on to think that there are no major
-problems, and things are "good enough"!
+I do that, Russell does that, Catalin does that, Tony does that, and 
+maybe less than a handful of other important people I'm not listing 
+(sorry).  But clearly we are far far from being enough people doing that 
+kind of work.  And the fact is that the volume of ARM platform code is 
+steadily being produced at a rate far surpassing X86, and even higher 
+than all the other architectures put together.  Linaro is trying to help 
+here, but Linaro cannot conjure the needed experience and knowledge for 
+that kind of work with a magic wand.
 
-> If prominent people looking at this from the side line continue bashing
-> at those who are both feet in the mud trying to contain the flood rather
-> than actually helping then nothing will change.
+So we need help!  If core kernel people could get off their X86 stool 
+and get down in the ARM mud to help sort out this mess that would be 
+really nice (thanks tglx).  Until then all that the few of us can do is 
+to contain the flood and hope for the best, and so far things being as 
+they are have still worked surprisingly well in practice for users.  If 
+compensation is a concern then I think Linaro might be able to arrange 
+something.
 
-The reason nothing seems to be changing is that you don't seem to
-think it's even WORTH fixing. I really don't understand your
-arguments.
+And we can't count on vendor people doing this work.  They are all busy 
+porting the kernel to their next SOC version so they can win the next 
+big Android hardware design, and doing so with our kernel quality 
+standards is already quite a struggle for them.
 
-They seem to boil down to the same thing that always happens in the
-embedded world, and why most of the hardware and software is crap:
-people don't think further than their own small project.
+What is going on at the moment is some effort to introduce DT support to 
+ARM.  The core support is there, but that is useless until platform code 
+is moved to it, and corresponding work is put into bootloaders, etc.  
+That is progressing... slowly.
 
-It's why embedded OS's have always been crap, and it's why Linux is
-becomign so important to ARM - exactly because the embedded world
-(both software and hardware) always just look at their own issue, and
-say "hey, this is working for me right now, so I won't bother to try
-to solve the bigger issues, because it's not worth my time".
+Also there is some work to be able to build a kernel supporting more 
+than one SOC family at once.  Of course there is no practical use for a 
+single kernel binary that boots on all existing boards, but moving 
+towards such a goal has beneficial side effects such as good 
+consolidation when possible.
 
-To hammer that in:
+But we also need some slack wrt number of lines changed.  An increased 
+consolidation effort will create more churn not less, at least for a 
+while.  The OMAP clock merge conflict was the result of some cleanup 
+which will make further consolidation easier.
 
 
-> ... =A0And the fact is that _users_ of the
-> ARM kernel are not complaining. =A0Things are far from being perfect, but
-> so far things have been "good enough" for the majority of the people
-> involved, and improvements are constantly being worked on with the men
-> power available.
-
-You really don't seem to care about how Thomas was complaining about
-the whole maintenance issue. As he was trying to clean up irq
-handling, the pure flow of more crap just made it hard to ever catch
-up. THAT is the kind of maintenance problem where I go "This is a big
-problem".
-
-But for some individual board user or the code-monkey who creates yet
-another board description, this isn't a problem. Because he's looking
-at a single kernel and a single board at a time, and seldom cares
-about anything else.
-
-But guess what? That really _is_ a problem. And it's likely to be a
-bigger problem in the future. Look at how we're actually starting to
-see vendors who are making ARM into more of a real platform, rather
-than a succession of one-off embedded boards, and think about what
-that actually will entail.
-
-I'm talking about things like ASUS getting their feet wet making
-netbooks with ARM. Things like that have been promised for the last
-several years now, and so far it's been a total failure.
-
-And it's going to CONTINUE to be a failure, unless the ARM platform
-mess can be sorted out.
-
-Why? Think of the Ubuntu's etc of the world. If you can't make
-half-way generic install images, you can't have a reasonably generic
-distribution. And if you don't have that, then what happens to your
-developer situation? Most sane people won't touch it with a ten-foot
-pole, because the bother is simply not worth their time.
-
-So the current embedded mindset of "hey, it's working for all these
-individual people" is just broken. It's broken for multiple reasons.
-It's broken because it makes it much harder to do top-level
-maintenance (but the low-level guys don't care), and it's broken
-because it results in insane fragmentation where it basically is never
-an option to support anything but one - or a couple - particular
-device.
-
-The ARM -core- situation is simple, and those high-level people can
-(and do) say that they'll just support ARM7 and screw all the other
-cores.
-
-But the platform problem is real. And it does need some solution,
-because continuing to just do the same thing really does mean that
-some new things simply cannot be done.
-
-And the fact that it's been "good enough" in the past when every
-single board was always just a one-off and had nothing to do with
-other boards does _not_ mean that it's going to continue to be good
-enough.
-
-So the _good_ news is that all the high-end ARM's are largely
-consolidating anyway, and when we're talking Cortex-A9 class hardware,
-there generally aren't millions of SoC's. And I'm hoping the hardware
-people are actually aware of this (presumably because their customers
-are starting to push back against pointless hw churn too) and clearly
-some manufacturers are trying to -create- platforms like OMAP that try
-to have lots of shared characteristics (and then screw up a lot of the
-details, but whatever).
-
-But I still do think that on the software side, people need to stop
-doing the whole "let's just copy that platform code for this other
-platform that is quite similar but has a different XYZ chip".
-
-                                   Linus
+Nicolas
