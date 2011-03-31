@@ -1,103 +1,40 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [pm-core][PATCH v3 02/21] OMAP4: Use WARN_ON() instead of BUG_ON() with graceful exit
-Date: Thu, 31 Mar 2011 07:04:10 -0700
-Message-ID: <87wrjfmlnp.fsf@ti.com>
-References: <1301304157-2466-1-git-send-email-santosh.shilimkar@ti.com>
-	<1301304157-2466-3-git-send-email-santosh.shilimkar@ti.com>
-	<20110328205323.GD30616@atomide.com> <4D943CB8.70002@ti.com>
+From: <oskar.andero@sonyericsson.com>
+Subject: [PATCH] arm: omap2: enable smc instruction for sleep34xx
+Date: Thu, 31 Mar 2011 16:19:24 +0200
+Message-ID: <1301581164-26538-1-git-send-email-oskar.andero@sonyericsson.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:51233 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757473Ab1CaOES (ORCPT
+Received: from seldrel01.sonyericsson.com ([212.209.106.2]:19140 "EHLO
+	seldrel01.sonyericsson.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757915Ab1CaOTh (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 31 Mar 2011 10:04:18 -0400
-Received: by mail-iw0-f173.google.com with SMTP id 42so2963979iwl.32
-        for <linux-omap@vger.kernel.org>; Thu, 31 Mar 2011 07:04:17 -0700 (PDT)
-In-Reply-To: <4D943CB8.70002@ti.com> (Santosh Shilimkar's message of "Thu, 31
-	Mar 2011 14:05:04 +0530")
+	Thu, 31 Mar 2011 10:19:37 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, rnayak@ti.com, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: tony@atomide.com, oskar.andero@sonyericsson.com
 
-Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
+This fixes broken build when using gcc 4.5.
 
-> On 3/29/2011 2:23 AM, Tony Lindgren wrote:
->> * Santosh Shilimkar<santosh.shilimkar@ti.com>  [110328 02:20]:
->>> OMAP L2X0 and GIC initialisation code uses BUG_ON() for the
->>> ioremap() failure scenarios.
->>>
->>> Use WARN_ON() instead and allow graceful function exits.
->>>
->>> This was suggsted by Kevin Hilman<khilman@ti.com>  during
->>> OMAP4 PM code review.
->>>
->>> Signed-off-by: Santosh Shilimkar<santosh.shilimkar@ti.com>
->>> Cc: Kevin Hilman<khilman@ti.com>
->>> ---
->>>   arch/arm/mach-omap2/omap4-common.c |    9 ++++++---
->>>   1 files changed, 6 insertions(+), 3 deletions(-)
->>>
->>> diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
->>> index 559d227..8f9b97d 100644
->>> --- a/arch/arm/mach-omap2/omap4-common.c
->>> +++ b/arch/arm/mach-omap2/omap4-common.c
->>> @@ -36,11 +36,13 @@ void __init gic_init_irq(void)
->>>
->>>   	/* Static mapping, never released */
->>>   	gic_dist_base_addr = ioremap(OMAP44XX_GIC_DIST_BASE, SZ_4K);
->>> -	BUG_ON(!gic_dist_base_addr);
->>> +	if (WARN_ON(!gic_dist_base_addr))
->>> +		return;
->>>
->>>   	/* Static mapping, never released */
->>>   	gic_cpu_base = ioremap(OMAP44XX_GIC_CPU_BASE, SZ_512);
->>> -	BUG_ON(!gic_cpu_base);
->>> +	if (WARN_ON(!gic_cpu_base))
->>> +		return;
->>>
->>>   	omap_wakeupgen_init();
->>>
->>> @@ -68,7 +70,8 @@ static int __init omap_l2_cache_init(void)
->>>
->>>   	/* Static mapping, never released */
->>>   	l2cache_base = ioremap(OMAP44XX_L2CACHE_BASE, SZ_4K);
->>> -	BUG_ON(!l2cache_base);
->>> +	if (WARN_ON(!l2cache_base))
->>> +		return -ENODEV;
->>>
->>>   	/*
->>>   	 * 16-way associativity, parity disabled
->>
->> Hmm to me it seems that if any of these we don't want to
->> continue.
->>
-> L2 cache is no problem and kernel can boot without L2 cache
-> support. I agree with you on interrupt controller init though.
->
-> Will drop the interrupt related checks from this patch.
->
-> Kevin, Are you ok with it ?
+Signed-off-by: Oskar Andero <oskar.andero@sonyericsson.com>
+---
+ arch/arm/mach-omap2/Makefile |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-In general, BUG should only be used when the kernel really can not
-possibly continue[1].  I suppose inability to map the GIC falls into
-that category.
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index a45cd64..512b152 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -68,7 +68,7 @@ obj-$(CONFIG_OMAP_SMARTREFLEX)          += sr_device.o smartreflex.o
+ obj-$(CONFIG_OMAP_SMARTREFLEX_CLASS3)	+= smartreflex-class3.o
+ 
+ AFLAGS_sleep24xx.o			:=-Wa,-march=armv6
+-AFLAGS_sleep34xx.o			:=-Wa,-march=armv7-a
++AFLAGS_sleep34xx.o			:=-Wa,-march=armv7-a$(plus_sec)
+ 
+ ifeq ($(CONFIG_PM_VERBOSE),y)
+ CFLAGS_pm_bus.o				+= -DDEBUG
+-- 
+1.7.3.4
 
-Kevin
-
-
-[1] from asm-generic/bug.h:
-
-/*
- * Don't use BUG() or BUG_ON() unless there's really no way out; one
- * example might be detecting data structure corruption in the middle
- * of an operation that can't be backed out of.  If the (sub)system
- * can somehow continue operating, perhaps with reduced functionality,
- * it's probably not BUG-worthy.
- *
- * If you're tempted to BUG(), think again:  is completely giving up
- * really the *only* solution?  There are usually better options, where
- * users don't need to reboot ASAP and can mostly shut down cleanly.
- */
