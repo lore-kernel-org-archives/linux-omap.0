@@ -1,62 +1,76 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 2/9] OMAP: DSS2: remove non-working msleep(40) workaround
-Date: Thu, 31 Mar 2011 13:10:59 +0300
-Message-ID: <1301566266-11187-3-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 3/9] OMAP: DSS2: make 50ms bug-fix sleep optional
+Date: Thu, 31 Mar 2011 13:11:00 +0300
+Message-ID: <1301566266-11187-4-git-send-email-tomi.valkeinen@ti.com>
 References: <1301566266-11187-1-git-send-email-tomi.valkeinen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:57500 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752503Ab1CaKL0 (ORCPT
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:47659 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933501Ab1CaKL2 (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 31 Mar 2011 06:11:26 -0400
+	Thu, 31 Mar 2011 06:11:28 -0400
 In-Reply-To: <1301566266-11187-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-The sleep workaround for the problem described in the comment doesn't
-really work. This patch removes the workaround, and improves the comment
-about the bug, and proposes an userspace workaround.
+For some unknown reason we may get SYNC_LOST errors from the display
+subsystem at initialization time if we don't sleep before resetting the
+DSS. See the source (dss.c) for more comments.
 
-omap_dss_set_manager() is called 6 times when loading omapdss and
-omapfb, which means that 40ms * 6 = 240ms was spent sleeping when
-booting up.
+However, 50ms is quite long time to sleep, and with some configurations
+the SYNC_LOST may never happen, so this patch creates a Kconfig option
+to disable the sleep.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/dss/overlay.c |   19 ++++++++++++-------
- 1 files changed, 12 insertions(+), 7 deletions(-)
+ drivers/video/omap2/dss/Kconfig |   11 +++++++++++
+ drivers/video/omap2/dss/dss.c   |    5 +++++
+ 2 files changed, 16 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/overlay.c b/drivers/video/omap2/dss/overlay.c
-index f1aca6d..fcde51b 100644
---- a/drivers/video/omap2/dss/overlay.c
-+++ b/drivers/video/omap2/dss/overlay.c
-@@ -491,13 +491,18 @@ static int omap_dss_set_manager(struct omap_overlay *ovl,
- 	ovl->manager = mgr;
+diff --git a/drivers/video/omap2/dss/Kconfig b/drivers/video/omap2/dss/Kconfig
+index bfc5da0..458cfe1 100644
+--- a/drivers/video/omap2/dss/Kconfig
++++ b/drivers/video/omap2/dss/Kconfig
+@@ -125,4 +125,15 @@ config OMAP2_DSS_MIN_FCK_PER_PCK
+ 	  Max FCK is 173MHz, so this doesn't work if your PCK
+ 	  is very high.
  
- 	dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK);
--	/* XXX: on manual update display, in auto update mode, a bug happens
--	 * here. When an overlay is first enabled on LCD, then it's disabled,
--	 * and the manager is changed to TV, we sometimes get SYNC_LOST_DIGIT
--	 * errors. Waiting before changing the channel_out fixes it. I'm
--	 * guessing that the overlay is still somehow being used for the LCD,
--	 * but I don't understand how or why. */
--	msleep(40);
-+	/* XXX: When there is an overlay on a DSI manual update display, and
-+	 * the overlay is first disabled, then moved to tv, and enabled, we
-+	 * seem to get SYNC_LOST_DIGIT error.
++config OMAP2_DSS_SLEEP_BEFORE_RESET
++	bool "Sleep 50ms before DSS reset"
++	default y
++	help
++	  For some unknown reason we may get SYNC_LOST errors from the display
++	  subsystem at initialization time if we don't sleep before resetting
++	  the DSS. See the source (dss.c) for more comments.
++
++	  However, 50ms is quite long time to sleep, and with some
++	  configurations the SYNC_LOST may never happen, so the sleep can
++	  be disabled here.
+ endif
+diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
+index 3f1fee6..688947f 100644
+--- a/drivers/video/omap2/dss/dss.c
++++ b/drivers/video/omap2/dss/dss.c
+@@ -659,13 +659,18 @@ static int dss_init(void)
+ 	 * the kernel resets it */
+ 	omap_writel(omap_readl(0x48050440) & ~0x3, 0x48050440);
+ 
++#ifdef CONFIG_OMAP2_DSS_SLEEP_BEFORE_RESET
+ 	/* We need to wait here a bit, otherwise we sometimes start to
+ 	 * get synclost errors, and after that only power cycle will
+ 	 * restore DSS functionality. I have no idea why this happens.
+ 	 * And we have to wait _before_ resetting the DSS, but after
+ 	 * enabling clocks.
 +	 *
-+	 * Waiting doesn't seem to help, but updating the manual update display
-+	 * after disabling the overlay seems to fix this. This hints that the
-+	 * overlay is perhaps somehow tied to the LCD output until the output
-+	 * is updated.
-+	 *
-+	 * Userspace workaround for this is to update the LCD after disabling
-+	 * the overlay, but before moving the overlay to TV.
-+	 */
- 	dispc_set_channel_out(ovl->id, mgr->id);
- 	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK);
++	 * This bug was at least present on OMAP3430. It's unknown
++	 * if it happens on OMAP2 or OMAP3630.
+ 	 */
+ 	msleep(50);
++#endif
+ 
+ 	_omap_dss_reset();
  
 -- 
 1.7.1
