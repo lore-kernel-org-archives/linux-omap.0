@@ -1,67 +1,77 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 9/9] OMAP: DSS2: VENC: Add missing start/stop_device calls
-Date: Thu, 31 Mar 2011 13:11:06 +0300
-Message-ID: <1301566266-11187-10-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 8/9] OMAP: DSS2: OMAPFB: Remove implicit display update on unblank
+Date: Thu, 31 Mar 2011 13:11:05 +0300
+Message-ID: <1301566266-11187-9-git-send-email-tomi.valkeinen@ti.com>
 References: <1301566266-11187-1-git-send-email-tomi.valkeinen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:42412 "EHLO
-	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933501Ab1CaKLi (ORCPT
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:37277 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933884Ab1CaKLf (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 31 Mar 2011 06:11:38 -0400
+	Thu, 31 Mar 2011 06:11:35 -0400
 In-Reply-To: <1301566266-11187-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Jani Nikula <ext-jani.1.nikula@nokia.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-VENC code was missing omap_dss_start/stop_device calls. This didn't
-cause any problems as VENC could not be compiled as a module, but
-nevertheless it's better to add the calls.
+From: Jani Nikula <ext-jani.1.nikula@nokia.com>
 
+Currently omapfb does an implicit display update (for manual update
+displays) on unblank.
+
+There is no guarantee that the framebuffer contains a valid image when
+unblank is called. When using manual update displays it is the
+responsibility of the user space to update the display, and so it should
+be in this case also.
+
+This patch removes the implicit display update on unblank.
+
+Signed-off-by: Jani Nikula <ext-jani.1.nikula@nokia.com>
+[tomi.valkeinen@ti.com: improved description]
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/dss/venc.c |   12 ++++++++++++
- 1 files changed, 12 insertions(+), 0 deletions(-)
+ drivers/video/omap2/omapfb/omapfb-main.c |   13 -------------
+ 1 files changed, 0 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/venc.c b/drivers/video/omap2/dss/venc.c
-index fe18800..b845c56 100644
---- a/drivers/video/omap2/dss/venc.c
-+++ b/drivers/video/omap2/dss/venc.c
-@@ -476,6 +476,12 @@ static int venc_panel_enable(struct omap_dss_device *dssdev)
+diff --git a/drivers/video/omap2/omapfb/omapfb-main.c b/drivers/video/omap2/omapfb/omapfb-main.c
+index 1b89e28..1f9cb3a 100644
+--- a/drivers/video/omap2/omapfb/omapfb-main.c
++++ b/drivers/video/omap2/omapfb/omapfb-main.c
+@@ -1271,7 +1271,6 @@ static int omapfb_blank(int blank, struct fb_info *fbi)
+ 	struct omapfb_info *ofbi = FB2OFB(fbi);
+ 	struct omapfb2_device *fbdev = ofbi->fbdev;
+ 	struct omap_dss_device *display = fb2display(fbi);
+-	int do_update = 0;
+ 	int r = 0;
  
- 	mutex_lock(&venc.venc_lock);
+ 	if (!display)
+@@ -1287,11 +1286,6 @@ static int omapfb_blank(int blank, struct fb_info *fbi)
+ 		if (display->driver->resume)
+ 			r = display->driver->resume(display);
  
-+	r = omap_dss_start_device(dssdev);
-+	if (r) {
-+		DSSERR("failed to start device\n");
-+		goto err0;
-+	}
-+
- 	if (dssdev->state != OMAP_DSS_DISPLAY_DISABLED) {
- 		r = -EINVAL;
- 		goto err1;
-@@ -487,7 +493,11 @@ static int venc_panel_enable(struct omap_dss_device *dssdev)
+-		if (r == 0 && display->driver->get_update_mode &&
+-				display->driver->get_update_mode(display) ==
+-				OMAP_DSS_UPDATE_MANUAL)
+-			do_update = 1;
+-
+ 		break;
  
- 	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
+ 	case FB_BLANK_NORMAL:
+@@ -1315,13 +1309,6 @@ static int omapfb_blank(int blank, struct fb_info *fbi)
+ exit:
+ 	omapfb_unlock(fbdev);
  
-+	mutex_unlock(&venc.venc_lock);
-+	return 0;
- err1:
-+	omap_dss_stop_device(dssdev);
-+err0:
- 	mutex_unlock(&venc.venc_lock);
- 
+-	if (r == 0 && do_update && display->driver->update) {
+-		u16 w, h;
+-		display->driver->get_resolution(display, &w, &h);
+-
+-		r = display->driver->update(display, 0, 0, w, h);
+-	}
+-
  	return r;
-@@ -511,6 +521,8 @@ static void venc_panel_disable(struct omap_dss_device *dssdev)
- 	venc_power_off(dssdev);
- 
- 	dssdev->state = OMAP_DSS_DISPLAY_DISABLED;
-+
-+	omap_dss_stop_device(dssdev);
- end:
- 	mutex_unlock(&venc.venc_lock);
  }
+ 
 -- 
 1.7.1
 
