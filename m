@@ -1,48 +1,70 @@
-From: Luciano Coelho <coelho@ti.com>
-Subject: Re: [PATCH 2.6.39] omap: board-4430sdp: revert hsmmc_info
- reordering
-Date: Fri, 01 Apr 2011 14:37:45 +0300
-Message-ID: <1301657865.1988.485.camel@cumari>
-References: <1301640748-17161-1-git-send-email-coelho@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [GIT PULL] omap changes for v2.6.39 merge window
+Date: Fri, 01 Apr 2011 14:55:19 +0300
+Message-ID: <1301658919.27593.72.camel@deskari>
+References: <201103301906.42429.arnd@arndb.de>
+	 <201103311723.02301.arnd@arndb.de> <1301643157.3393.17.camel@deskari>
+	 <201104011322.44729.arnd@arndb.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:50239 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752148Ab1DALhH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Apr 2011 07:37:07 -0400
-Received: by mail-wy0-f180.google.com with SMTP id 26so4239310wyj.39
-        for <linux-omap@vger.kernel.org>; Fri, 01 Apr 2011 04:37:06 -0700 (PDT)
-In-Reply-To: <1301640748-17161-1-git-send-email-coelho@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <201104011322.44729.arnd@arndb.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: lkml <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Kishore Kadiyala <kishore.kadiyala@ti.com>, Benoit Cousson <b-cousson@ti.com>
 
-On Fri, 2011-04-01 at 09:52 +0300, Luciano Coelho wrote:
-> The order in which the MMC cards are defined in the the 4430sdp board
-> file seems to have been mistakenly reorderded as part of an unrelated
-> patch.  In commit 0005ae73cfe44ee42d0be12a12cc82bf982f518e, where only
-> the dev_name was supposed to be changed, the mmc order was changed as
-> well.  This caused the external SD card reader not to be recognized,
-> at least on Blaze.
+(dropping people from cc, as this is getting quite DSS spesific)
+
+On Fri, 2011-04-01 at 13:22 +0200, Arnd Bergmann wrote:
+> On Friday 01 April 2011, Tomi Valkeinen wrote:
+> > On Thu, 2011-03-31 at 17:23 +0200, Arnd Bergmann wrote:
+> > 
+> > > * The DSS display drivers introduce new infrastructure include new bus
+> > >   types that have the complexity to make them completely generic, but
+> > >   in practice can only work on OMAP, and are clearly not written with
+> > >   cross-vendor abstractions in mind.
+> > 
+> > If you mean the panel drivers, then I disagree. They are currently OMAP
+> > specific, but they are designed so that making them generic shouldn't be
+> > too difficult. It's been my aim for a long time already to make the
+> > panel drivers generic, but I've never had time and it's never been quite
+> > clear to me what would be the best way to do that.
+> > 
+> > The core DSS driver is OMAP specific, and while the DSS IP could in
+> > theory be used in some other platform, that is not currently the case
+> > and I wouldn't want to needlessly start abstracting things for just the
+> > sake of abstracting.
 > 
-> This patch reverts this change so that the external SD card is
-> recognized again.
+> Ok, fair enough. I haven't looked at the OMAP DSS code in detail, so
+> I apologise if I did it injustice. What I did review is the ST Ericsson
+> MCDE code which was written by taking the OMAP code as an example.
 > 
-> Cc: Kishore Kadiyala <kishore.kadiyala@ti.com>
-> Cc: Benoit Cousson <b-cousson@ti.com>
-> Signed-off-by: Luciano Coelho <coelho@ti.com>
-> ---
+> The symptom I'm describing is that infrastructure is getting added
+> to platform specific code without making clear that it is mean to
+> be generic. I.e. the code is hidded away in the drivers/video/omap
+> directory, where other people would not go looking for it.
+> 
+> What I would have hoped you to do is to tell the ST Ericsson people
+> when they posted their code that they should instead work with you
+> to integrate the two implementations. As far as I remember (I may be
+> wrong again), that did not happen.
 
-Please drop this patch.  The problem was not in the order the MMCs were
-mounted, but something wrong with my bootloader settings where the
-rootwait was not been passed to the kernel properly.
+I don't seem to remember seeing anything from ST Ericsson... While my
+memory doesn't always serve me well, I would imagine I'd remember if I'd
+seen code based on my code.
 
-Now it works fine for me too.  Sorry for the trouble!
+Ah, found them from fbdev mail archive. I was rather busy at that
+period, I didn't really read the mailing lists.
 
--- 
-Cheers,
-Luca.
+I totally agree with you that we should have a common panel interface
+layer. As I said, I've had it as a target for a long time. And hopefully
+now that I moved from Nokia to TI I'll finally have time to work on it
+also.
 
+Thanks for pointing me to the MCDE stuff. I doesn't seem to be merged,
+though. I need to contact them and see if they're still interested in
+working on the common interface.
+
+ Tomi
