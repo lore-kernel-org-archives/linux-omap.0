@@ -1,49 +1,117 @@
 From: Arnd Bergmann <arnd@arndb.de>
 Subject: Re: [GIT PULL] omap changes for v2.6.39 merge window
-Date: Fri, 1 Apr 2011 14:41:38 +0200
-Message-ID: <201104011441.38902.arnd@arndb.de>
-References: <alpine.LFD.2.00.1103301531420.28032@xanadu.home> <20110331130123.GB17547@n2100.arm.linux.org.uk> <BANLkTinmoTyceJCT+K-RCm4NC76qfDyeVw@mail.gmail.com>
+Date: Fri, 1 Apr 2011 15:54:07 +0200
+Message-ID: <201104011554.07924.arnd@arndb.de>
+References: <alpine.LFD.2.00.1103310145390.28032@xanadu.home> <8ya39m2mv65.fsf@huya.qualcomm.com> <20110401074519.GC7594@elte.hu>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <BANLkTinmoTyceJCT+K-RCm4NC76qfDyeVw@mail.gmail.com>
+In-Reply-To: <20110401074519.GC7594@elte.hu>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Bill Gatliff <bgat@billgatliff.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Catalin Marinas <catalin.marinas@arm.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Nicolas Pitre <nico@fluxnic.net>, Dave Airlie <airlied@gmail.com>, david@lang.hm, Linus Torvalds <torvalds@linux-foundation.org>, Tony Lindgren <tony@atomide.com>, David Brown <davidb@codeaurora.org>, lkml <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Ingo Molnar <mingo@elte.hu>
+Cc: David Brown <davidb@codeaurora.org>, Nicolas Pitre <nico@fluxnic.net>, Linus Torvalds <torvalds@linux-foundation.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, david@lang.hm, Tony Lindgren <tony@atomide.com>, lkml <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>
 List-Id: linux-omap@vger.kernel.org
 
-On Thursday 31 March 2011, Bill Gatliff wrote:
-> On Thu, Mar 31, 2011 at 8:01 AM, Russell King - ARM Linux <linux@arm.linux.org.uk> wrote:
-
-> > Just look at the removal of AAEC2000, LH7A40x and 2000 lines from the
-> > mach-types file removed 6000 lines, which in itself is about the number
-> > of lines of change submitted during the last merge window for any one
-> > non-ARM architecture.  At this point in time with this complaint, I've
-> > absolutely no idea why I bothered to do that.  I should've left it well
-> > alone and then the diffstat percentage would've been smaller.  After
-> > all, it's "pointless churn".
+On Friday 01 April 2011, Ingo Molnar wrote:
+> IMO the right answer is what Linus and Thomas outlined:
 > 
-> I think you did it because it was the Right Thing To Do.  Even
-> positive change can be painful at times.
+>    1) provide a small number of clean examples and clean abstractions
+>    2) to not pull new crap from that point on
+>    3) do this gradually but consistently
 > 
-> The majority is exceedingly grateful for the effort you make.
+> I.e. make all your requirements technical and actionable - avoid sweeping, 
+> impossible to meet requirements. Do not require people to clean up all of the 
+> existing mess straight away (they cannot realistically do it), do not summarily 
+> block the flow of patches, but be firm about drawing a line in the sand and be 
+> firm about not introducing new mess in a gradually growing list of well-chosen 
+> areas of focus.
+> 
+> Rinse, repeat.
 
-Defintely. I haven't seen anyone in this thread blame Russell for the
-mess. As far as I'm concerned, the code in arch/arm consists of
-the well-maintained {mm,kernel,lib,common,tools,include} directories
-that are actively being taken care of by Russell, and a huge amount
-of crap that has accumulated in mach-* and plat-*. Some of it is
-arguably better than other parts, but the problem is not that someone
-in particular did a bad job writing the code. The problem is that
-nobody today is pushing back hard enough on crap getting added.
+I believe getting to point 1 is the hard part here. There are a lot of things
+that are wrong with the mach-* (and also plat-*) implementations, and I don't
+think we have one today that can really serve as an example. Most decisions
+made in there made a lot of sense when they were introduced, and declaring
+code that was perfectly acceptable yesterday to be unacceptable crap today
+is not going to be met with much understanding by the someone who just
+wants to add support for one more board to 100 already existing ones in the
+same SoC family.
 
-There is a lot of good work going on to reduce the amount of crap in
-the mach code, but my feeling is that it's not keeping up with the
-rate of crap getting added by other people. In some ways, the Linaro
-project has actually made this worse by helping people get their code
-into shape for inclusion (which of course is generally a good thing
-to do).
+I would actually suggest a different much more radical start: Fork the way
+that platforms are managed today, and start an alternative way of setting
+up boards and devices together with the proven ARM core kernel infrastructure,
+based on these observations (please correct me if some of them they don't make
+sense):
+
+1. The core arch code is not a problem (Russell does a great job here)
+2. The platform specific code contains a lot of crap that doesn't belong there
+   (not enough reviewers to push back on crap)
+3. The amount of crap in platform specfic files is growing exponentially,
+   despite the best efforts of a handful of people to clean it up.
+4. Having one source file per board does not scale any more.
+5. Discoverable hardware would solve this, but is not going to happen
+   in practice.
+6. Board firmware would not solve this and is usually not present.
+7. Boot loaders can not be trusted to pass valid information
+8. Device tree blobs can solve a lot of the problems, and nobody has
+   come up with a better solution.
+9. All interesting work is going into a handful of platforms, all of which
+   are ARMv7 based.
+10. We do not want to discontinue support for old boards that work fine.
+11. Massive changes to existing platforms would cause massive breakage.
+12. Supporting many different boards with a single kernel binary is a
+    useful goal.
+13. Infrastructure code should be cross-platform, not duplicated across
+    platforms.
+14. 32 bit ARM is hitting the wall in the next years (Cortex-A15 is
+    actually adding PAE support, which has failed to solve this on
+    other architectures).
+15. We need to solve the platform problem before 64 bit support comes
+    and adds another dimension to the complexity.
+
+Based on these assumptions, my preferred strategy would be to a new
+mach-nocrap directory with a documented set of rules (to be adapted when
+necessary):
+
+* Strictly no crap
+ * No board files
+ * No hardcoded memory maps
+ * No lists of interrupts and GPIOs
+* All infrastructure added must be portable to all ARMv7 based SoCs.
+  (ARMv6 can be added later)
+* 64 bit safe code only.
+* SMP safe code only.
+* All board specific information must come from a device tree and
+  be run-time detected.
+* Must use the same device drivers as existing platforms
+* Should share platform drivers (interrupt controller, gpio, timer, ...)
+  with existing platforms where appropriate.
+* Code quality takes priority over stability in mach-nocrap, but must not
+  break other platforms.
+
+Until we have something working there, I think we should still generally
+allow new code to the existing platforms, and even new platforms to be
+added, while trying to keep the quality as high as possible but without
+changing the rules for them or doing any major treewide reworks.
+
+Once the mach-nocrap approach has turned into something usable, we can
+proceed on three fronts:
+1. delete actively maintained boards from the other platforms once they
+   are no longer needed there
+2. generalize concepts from mach-nocrap by applying them to all boards,
+   similar to the cleanup work that people have always been doing.
+3. gradually make the rules for adding new code in other platforms stricter,
+   up to the point where they are bugfix only.
+
+> If companies do not 'bother to push upstream', then management will eventually 
+> notice negative economic consequences:
+> 
+> ...
+
+Good points, I fully agree with these. I also think that the SoC companies
+are actually understanding this nowadays, and that is exactly the reason
+why we see so much code getting pushed in.
 
 	Arnd
