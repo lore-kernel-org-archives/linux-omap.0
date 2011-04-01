@@ -1,61 +1,94 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH] OMAP4: clockdomain: Follow recommended enable sequence
-Date: Fri, 01 Apr 2011 20:21:45 +0530
-Message-ID: <4D95E681.4070605@ti.com>
-References: <1299245123-23444-1-git-send-email-rnayak@ti.com> <alpine.DEB.2.00.1103081937100.15132@utopia.booyaka.com> <4D775418.6050105@ti.com> <alpine.DEB.2.00.1103100514210.15132@utopia.booyaka.com> <alpine.DEB.2.00.1103100734490.15132@utopia.booyaka.com> <4D7A22F6.5050806@ti.com> <871v2dbo3q.fsf@ti.com> <4D8711A5.6070301@ti.com> <alpine.DEB.2.00.1103281036060.26455@utopia.booyaka.com> <4D91824F.8020702@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [GIT PULL] omap changes for v2.6.39 merge window
+Date: Fri, 1 Apr 2011 16:59:40 +0200
+Message-ID: <201104011659.40443.arnd@arndb.de>
+References: <alpine.LFD.2.00.1103310145390.28032@xanadu.home> <201104011554.07924.arnd@arndb.de> <4D95E112.4020400@vollmann.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:58634 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757171Ab1DAOwC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Apr 2011 10:52:02 -0400
-Received: by gwaa18 with SMTP id a18so1809351gwa.33
-        for <linux-omap@vger.kernel.org>; Fri, 01 Apr 2011 07:52:00 -0700 (PDT)
-In-Reply-To: <4D91824F.8020702@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <4D95E112.4020400@vollmann.ch>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Detlef Vollmann <dv@vollmann.ch>
+Cc: Ingo Molnar <mingo@elte.hu>, david@lang.hm, Russell King - ARM Linux <linux@arm.linux.org.uk>, Nicolas Pitre <nico@fluxnic.net>, Tony Lindgren <tony@atomide.com>, Catalin Marinas <catalin.marinas@arm.com>, lkml <linux-kernel@vger.kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, David Brown <davidb@codeaurora.org>, linux-omap@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, b-cousson@ti.com, santosh.shilimkar@ti.com, linux-arm-kernel@lists.infradead.org
 
-Hi Paul,
+On Friday 01 April 2011, Detlef Vollmann wrote:
+> On 04/01/11 15:54, Arnd Bergmann wrote:
 
-<snip>..
->>
->> In omap_hwmod.c:_enable(), what do you think about:
->>
->> 1. saving the current idle mode of the clockdomain,
->>
->> 2. forcing the clockdomain to software-supervised wakeup.
->>
->> 3. enabling clocks and waiting for the module as we currently do, then
->>
->> 4. switching the clockdomain's idle mode back to its original state?
->>
->> Seems like that would be a reasonable approach for the short term, at
->> least for drivers that have been converted to PM runtime.
->
-> Ok, I'll try and get some RFC patches in these lines soon.
+> > 9. All interesting work is going into a handful of platforms, all of which
+> >     are ARMv7 based.
+> Define interesting.
 
-I tried some of what you were suggesting here and it seems to
-work well, like you said, for the drivers which are converted
-to PM runtime.
+The ones that are causing the churn that we're talking about.
+Platforms that have been working forever and only need to get
+the occasional bug fix are boring, i.e. not the problem.
+ 
+> > 12. Supporting many different boards with a single kernel binary is a
+> >      useful goal.
+> Generally not for embedded systems (for me, a mobile PDA/phone is just a
+> small computer with a crappy keyboard, but not an embedded system).
 
-Now the issue seems to be, how do we handle the ones which
-are *still* using clock framework to enable main clocks and
-are yet to be converted to PM runtime.
+True. For embedded, this would not be an important thing to do, but
+also not hurt. For anything that a user might want to put a new
+kernel on, this would be helpful though.
 
-One such, MMC, is showing me issues on OMAP4 even at boot
-and causes a crash.
+> >
+> > Based on these assumptions, my preferred strategy would be to a new
+> > mach-nocrap directory with a documented set of rules (to be adapted when
+> > necessary):
+> >
+> > * Strictly no crap
+> >   * No board files
+> Where do you put code that needs to run very early (e.g. pinging the
+> watchdog)?
 
-Its a different thing that some of these drivers which use
-direct clock calls are working by fluke on OMAP4 since the
-clock framework does not even wait for the modules to become
-accessible after the clock enable.
+Don't know. I'd hope we can get fast enough to the phase where device
+drivers get initialized.
+ 
+> >   * No hardcoded memory maps
+> >   * No lists of interrupts and GPIOs
+> > * All infrastructure added must be portable to all ARMv7 based SoCs.
+> >    (ARMv6 can be added later)
+> > * 64 bit safe code only.
+> > * SMP safe code only.
+> > * All board specific information must come from a device tree and
+> >    be run-time detected.
+> What do you mean by "run-time detected"?
+> For powerpc, we currently have the device tree as DTS in the kernel
+> and compile and bundle it together with the kernel.
+> As you wrote above: "Discoverable hardware [...] is not going to happen"
 
-I know the right way seems to be to get all these drivers
-converted to PM runtime, but that might take sometime.
+I mean writing
 
-regards,
-Rajendra
+	if (device_is_compatible(dev, SOMETHING))
+		do_something();
+
+instead of
+
+#ifdef CONFIG_SOMETHING
+	do_something();
+#endif
+
+The run-time information could come from anywhere (device tree, hardware
+registers, today one might use the board number), the important point is
+not to assume that hardware is present just because someone enabled
+a Kconfig option.
+
+I believe that rule is generally accepted today, but we don't always
+enforce it.
+
+> > * Must use the same device drivers as existing platforms
+> > * Should share platform drivers (interrupt controller, gpio, timer, ...)
+> >    with existing platforms where appropriate.
+> > * Code quality takes priority over stability in mach-nocrap, but must not
+> >    break other platforms.
+> 
+> I agree with the general idea, but nailing down the details in a world
+> as diverse as the ARM world will not be easy...
+
+Absolutely, I did not claim to have the single solution that everyone else
+couldn't see. Please see this more as an RFC.
+
+	Arnd
