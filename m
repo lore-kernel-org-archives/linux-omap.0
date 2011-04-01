@@ -1,63 +1,101 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH 0/5] regulator: twl: make 6030 regulators useable
-Date: Fri,  1 Apr 2011 10:22:41 +0530
-Message-ID: <1301633566-5212-1-git-send-email-nm@ti.com>
+Subject: [PATCH 1/5] regulator: twl: fix twl6030 enable/disable
+Date: Fri,  1 Apr 2011 10:22:42 +0530
+Message-ID: <1301633566-5212-2-git-send-email-nm@ti.com>
+References: <1301633566-5212-1-git-send-email-nm@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:57043 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750807Ab1DAEw7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Apr 2011 00:52:59 -0400
-Received: by mail-gw0-f42.google.com with SMTP id 17so1659567gwb.15
-        for <linux-omap@vger.kernel.org>; Thu, 31 Mar 2011 21:52:57 -0700 (PDT)
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:32849 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751407Ab1DAExH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Apr 2011 00:53:07 -0400
+Received: by mail-gy0-f174.google.com with SMTP id 10so1268381gyd.19
+        for <linux-omap@vger.kernel.org>; Thu, 31 Mar 2011 21:53:05 -0700 (PDT)
+In-Reply-To: <1301633566-5212-1-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
 Cc: Liam Girdwood <lrg@slimlogic.co.uk>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Samuel Ortiz <sameo@linux.intel.com>, Saquib <saquib@ti.com>, Nishanth Menon <nm@ti.com>
 
-TWL6030 regulator dynamic operations such as those on vaux2 and vaux3
-were reported to be broken on platforms such as pandaboard(OMAP4).
-Digging deeper into the code, found that 6030 regulator support
-requires quiet a bit of fixes to make it useable. Major change w.r.t
-TWL4030 has been the introduction of CFG_STATE register in TWL6030
-which is needed to be used for regulator control compared to messages
-which were used in TWL4030.
+From: Saquib Herman <saquib@ti.com>
 
-This could have been the real root cause of the issue fixed in:
-  commit 8b8e2ef328c3378c74fb4347f66df8e58feeaf46
-  Author: David Anders <x0132446@ti.com>
-  Date:   Fri Mar 18 16:53:20 2011 -0700
+TWL6030 requires an additional register write to CFG_STATE register
+to explicitly state that the regulator is in a certain state. Merely
+associating the regulator with the group is not enough. Add the
+required register field definitions and fix the handling for
+TWL6030 enable/disable.
 
-  OMAP4: PandaBoard: remove unused power regulators
+Signed-off-by: Nishanth Menon <nm@ti.com>
+Signed-off-by: Saquib Herman <saquib@ti.com>
+---
+ drivers/regulator/twl-regulator.c |   31 ++++++++++++++++++++++++++++++-
+ 1 files changed, 30 insertions(+), 1 deletions(-)
 
-  the pandaboard does not use the VUSIM or VAUX1 power regulators on the TWL6030
-  and are left floating. if the VUSIM and VAUX1 power regulators are initilized,
-  noise on the unloaded regulators generates an overcurrent interrupt causing the
-  system to power down. this patch removes the initialization of the unused power
-  regulators of VUSIM and VAUX1.
+diff --git a/drivers/regulator/twl-regulator.c b/drivers/regulator/twl-regulator.c
+index 6a29285..3e9060c 100644
+--- a/drivers/regulator/twl-regulator.c
++++ b/drivers/regulator/twl-regulator.c
+@@ -76,6 +76,11 @@ struct twlreg_info {
+ #define VREG_BC_PROC		3
+ #define VREG_BC_CLK_RST		4
+ 
++/* TWL6030 LDO register values for CFG_STATE */
++#define TWL6030_CFG_STATE_OFF	0x00
++#define TWL6030_CFG_STATE_ON	0x01
++#define TWL6030_CFG_STATE_GRP_SHIFT	5
++
+ static inline int
+ twlreg_read(struct twlreg_info *info, unsigned slave_subgp, unsigned offset)
+ {
+@@ -149,6 +154,11 @@ static int twlreg_enable(struct regulator_dev *rdev)
+ 
+ 	ret = twlreg_write(info, TWL_MODULE_PM_RECEIVER, VREG_GRP, grp);
+ 
++	if (!ret && twl_class_is_6030())
++		ret = twlreg_write(info, TWL_MODULE_PM_RECEIVER, VREG_STATE,
++				grp << TWL6030_CFG_STATE_GRP_SHIFT |
++				TWL6030_CFG_STATE_ON);
++
+ 	udelay(info->delay);
+ 
+ 	return ret;
+@@ -158,17 +168,36 @@ static int twlreg_disable(struct regulator_dev *rdev)
+ {
+ 	struct twlreg_info	*info = rdev_get_drvdata(rdev);
+ 	int			grp;
++	int			ret;
+ 
+ 	grp = twlreg_read(info, TWL_MODULE_PM_RECEIVER, VREG_GRP);
+ 	if (grp < 0)
+ 		return grp;
+ 
++	/* For 6030, set the off state for all grps enabled */
++	if (twl_class_is_6030()) {
++		ret = twlreg_write(info, TWL_MODULE_PM_RECEIVER, VREG_STATE,
++			(grp & (P1_GRP_6030 | P2_GRP_6030 | P3_GRP_6030)) <<
++				TWL6030_CFG_STATE_GRP_SHIFT |
++			TWL6030_CFG_STATE_OFF);
++		if (ret)
++			return ret;
++	}
++
+ 	if (twl_class_is_4030())
+ 		grp &= ~(P1_GRP_4030 | P2_GRP_4030 | P3_GRP_4030);
+ 	else
+ 		grp &= ~(P1_GRP_6030 | P2_GRP_6030 | P3_GRP_6030);
+ 
+-	return twlreg_write(info, TWL_MODULE_PM_RECEIVER, VREG_GRP, grp);
++	ret = twlreg_write(info, TWL_MODULE_PM_RECEIVER, VREG_GRP, grp);
++
++	/* Next, associate cleared grp in state register */
++	if (!ret && twl_class_is_6030())
++		ret = twlreg_write(info, TWL_MODULE_PM_RECEIVER, VREG_STATE,
++				grp << TWL6030_CFG_STATE_GRP_SHIFT |
++				TWL6030_CFG_STATE_OFF);
++
++	return ret;
+ }
+ 
+ static int twlreg_get_status(struct regulator_dev *rdev)
+-- 
+1.7.1
 
-Normally just having the regulator resources in board file should'nt have caused
-them to have been enabled in the first place - they should have been enabled
-only when regulator_enable is invoked and disabled in regulator_disable.
-These unfortunately, are'nt working at the moment and the series fixes the same.
-
-This series also allows the regulator framework to actually be able to use the
-regulator in lower power "SUSPEND" state which if properly used could reduce
-power consumption in usecases.
-
-Based on: 2.6.39-rc1 tag
-
-Saquib Herman (5):
-  regulator: twl: fix twl6030 enable/disable
-  regulator: twl: remap has no meaning for 6030
-  regulator: twl: fix twl6030 regulator is_enabled
-  regulator: twl: add twl6030 get_status
-  regulator: twl: add twl6030 set_mode
-
- drivers/regulator/twl-regulator.c |  209 ++++++++++++++++++++++++++++---------
- 1 files changed, 159 insertions(+), 50 deletions(-)
-
-Tested on: PandaBoard(OMAP4430 with TWL6030)
-Testing patch: http://pastebin.mozilla.org/1195106
-
-Regards,
-Nishanth Menon
