@@ -1,95 +1,70 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [GIT PULL] omap changes for v2.6.39 merge window
-Date: Fri, 1 Apr 2011 17:55:57 +0200
-Message-ID: <201104011755.57412.arnd@arndb.de>
-References: <alpine.LFD.2.00.1103310145390.28032@xanadu.home> <201104011554.07924.arnd@arndb.de> <1301671655.28467.52.camel@e102144-lin.cambridge.arm.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 06/10] omap2+: Remove gptimer_wakekup for now
+Date: Fri, 01 Apr 2011 21:56:32 +0530
+Message-ID: <4D95FCB8.9040103@ti.com>
+References: <20110328221501.4046.41079.stgit@baageli.muru.com>	<20110328222142.4046.4677.stgit@baageli.muru.com> <87zkob6ixi.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:57110 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754863Ab1DAP4V (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Apr 2011 11:56:21 -0400
-In-Reply-To: <1301671655.28467.52.camel@e102144-lin.cambridge.arm.com>
+Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:48531 "EHLO
+	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751316Ab1DAQ0r (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Apr 2011 12:26:47 -0400
+Received: by mail-gx0-f181.google.com with SMTP id 9so1708948gxk.26
+        for <linux-omap@vger.kernel.org>; Fri, 01 Apr 2011 09:26:45 -0700 (PDT)
+In-Reply-To: <87zkob6ixi.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: Ingo Molnar <mingo@elte.hu>, david@lang.hm, Russell King - ARM Linux <linux@arm.linux.org.uk>, Nicolas Pitre <nico@fluxnic.net>, Tony Lindgren <tony@atomide.com>, Catalin Marinas <Catalin.Marinas@arm.com>, lkml <linux-kernel@vger.kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, David Brown <davidb@codeaurora.org>, linux-omap@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Friday 01 April 2011, Will Deacon wrote:
+Kevin,
 
-> > 1. The core arch code is not a problem (Russell does a great job here)
-> > 2. The platform specific code contains a lot of crap that doesn't belong there
-> >    (not enough reviewers to push back on crap)
-> > 3. The amount of crap in platform specfic files is growing exponentially,
-> >    despite the best efforts of a handful of people to clean it up.
-> > 4. Having one source file per board does not scale any more.
-> > 5. Discoverable hardware would solve this, but is not going to happen
-> >    in practice.
-> > 6. Board firmware would not solve this and is usually not present.
-> > 7. Boot loaders can not be trusted to pass valid information
-> > 8. Device tree blobs can solve a lot of the problems, and nobody has
-> >    come up with a better solution.
-> 
-> Right, so this is directly related to point (5) because in essence FDT
-> is a way to make undiscoverable hardware discoverable by probing the
-> tree. The `it's just data' mantra sums it up nicely.
+On 4/1/2011 3:39 AM, Kevin Hilman wrote:
+> Tony Lindgren<tony@atomide.com>  writes:
+>
+>> This removes the support for setting the wake-up timer for debugging.
+>>
+>> Later on we can reserve gptimer1 for PM code only and have similar
+>> functionality.
+>>
+>> Signed-off-by: Tony Lindgren<tony@atomide.com>
+>
+> While we work on an alternative, rather than completely remove this
+> functionality, below is a very small patch (replaces $SUBJECT patch)
+> that will keep the current wakeup-from-suspend timer for PM debug
+> working.
+>
+> Note that GPT1 fs not just used for wakeups from suspend.  GPT1 needs to
+> also be the clockevent (at least during idle) so that next-timer
+> interrupts during idle are also programmed for GPT1.
+>
+> Here is what I see as a possible "real" solution.  Let's see if we're on
+> the same page.
+>
+> - GPT1 reserved for "special" PM wakeup
+> - GPT2 used as high-resolution clockevent (using sys_clk, but stops during idle)
+> - GPT3 (or counter_32k) used as clocksource depending on Kconfig
+>
+> Whenever we're going idle (or suspend), we have to effectively switch
+> the clockevent from GPT2 to GPT1.  I assume this is what you have in
+> mind as well.
+>
+> We'll need to dig into the clockevent (and tick broadcast) code to get
+> this to work on UP.  On SMP, the C3STOP flag is used to signify that at
+> clockevent will stop during specific power states, so an alternate
+> clockevent is used, but IIUC, this doesn't currently work the same on
+> UP.  I think Santosh has looked into this more recently than I have.
+> Santosh, if you have any recent status on this, could you share?  I'll
+> gladly work on the clockevent layer if necessary for this.
+>
+For OMAP4, it's already part of OMAP4 PM series as you know.
+For OMAP3 as well I had cooked up couple of patches some time
+back to get clock event switching working.
 
-Well, except that because of point 7, device trees are still inferior to
-having correct and complete information in hardware.
+Will find and post them soon.
+Regards
+Santosh
 
-> > 9. All interesting work is going into a handful of platforms, all of which
-> >    are ARMv7 based.
-> 
-> I think starting out ARMv7-only might make this more manageable but
-> there are still shed loads of pre-v7 chips out there which we should try
-> not to break.
 
-Yes, see below: the idea is to touch as little of the existing code
-as possible, at least in the first stages.
-
-> > 10. We do not want to discontinue support for old boards that work fine.
-> 
-> [...]
-> 
-> > Based on these assumptions, my preferred strategy would be to a new
-> > mach-nocrap directory with a documented set of rules (to be adapted when
-> > necessary):
-> 
-> This is a nice idea, but I don't think it's entirely practical:
-> 
-> > * Strictly no crap
-> >  * No board files
-> 
-> I don't understand how you can handle `early quirks' without board
-> files. Does this follow on from Linus' suggestion about moving code out
-> of the kernel and into the bootloader?
-
-There are multiple ways of dealing with this. One way would be to
-mandate that the boot loader does the quirks, ideally as little
-as possible.
-
-Another option is to have a boot wrapper with board specific code,
-which gets run between the regular boot loader and the common
-kernel entry point. We might need such a wrapper anyway to pass the
-device tree to the kernel.
-
-> Realistically, I don't think you will ever get away from board files.
-> The trick is probably to make them as small as possible and common to as
-> many boards as possible (like the platforms directory for PowerPC).
-
-Perhaps. But we can start out with strict rules and add exceptions
-later when we run out of options.
-
-> >  * No hardcoded memory maps
-> >  * No lists of interrupts and GPIOs
-> 
-> This is largely just data, so should be do-able once this stuff isn't
-> needed at compile-time (which is becoming the case with stuff like
-> dynamic p2v).
-
-Right.
-
-	Arnd
