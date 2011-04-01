@@ -1,117 +1,114 @@
 From: Arnd Bergmann <arnd@arndb.de>
 Subject: Re: [GIT PULL] omap changes for v2.6.39 merge window
-Date: Fri, 1 Apr 2011 15:54:07 +0200
-Message-ID: <201104011554.07924.arnd@arndb.de>
-References: <alpine.LFD.2.00.1103310145390.28032@xanadu.home> <8ya39m2mv65.fsf@huya.qualcomm.com> <20110401074519.GC7594@elte.hu>
+Date: Fri, 1 Apr 2011 16:17:43 +0200
+Message-ID: <201104011617.43199.arnd@arndb.de>
+References: <20110317183048.GW7258@atomide.com>
+	<201103301906.42429.arnd@arndb.de>
+	<20110330210726.GA4593@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20110401074519.GC7594@elte.hu>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: David Brown <davidb@codeaurora.org>, Nicolas Pitre <nico@fluxnic.net>, Linus Torvalds <torvalds@linux-foundation.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, david@lang.hm, Tony Lindgren <tony@atomide.com>, lkml <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20110330210726.GA4593@n2100.arm.linux.org.uk>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Nicolas Pitre <nico@fluxnic.net>, Tony Lindgren <tony@atomide.com>, Catalin Marinas <catalin.marinas@arm.com>, linux-kernel@vger.kernel.org, David Brown <davidb@codeaurora.org>, linux-omap@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Friday 01 April 2011, Ingo Molnar wrote:
-> IMO the right answer is what Linus and Thomas outlined:
+On Wednesday 30 March 2011, Russell King - ARM Linux wrote:
+> On Wed, Mar 30, 2011 at 07:06:41PM +0200, Arnd Bergmann wrote:
+> > 
+> > I'm still new to the ARM world, but I think one real problem is the way
+> > that all platforms have their own trees with a very flat hierarchy --
+> > a lot of people directly ask Linus to pull their trees, and the main
+> > way to sort out conflicts is linux-next. The number of platforms in the
+> > ARM arch is still increasing, so I assume that this only gets worse.
 > 
->    1) provide a small number of clean examples and clean abstractions
->    2) to not pull new crap from that point on
->    3) do this gradually but consistently
+> The reason that we've ended up with a flat heirarchy in terms of
+> developers is down to pressure.  There was a time when we had a more
+> structured system, where the sub-tree people submitted their patches
+> to me and the list, they'd be reviewed (mostly and mostly only) by me
+> before being merged into my tree and going upstream from there.
 > 
-> I.e. make all your requirements technical and actionable - avoid sweeping, 
-> impossible to meet requirements. Do not require people to clean up all of the 
-> existing mess straight away (they cannot realistically do it), do not summarily 
-> block the flow of patches, but be firm about drawing a line in the sand and be 
-> firm about not introducing new mess in a gradually growing list of well-chosen 
-> areas of focus.
+> As the community grew, it got harder and harder to do decent reviewed
+> of those patches and so the acceptance rate dropped.
 > 
-> Rinse, repeat.
-
-I believe getting to point 1 is the hard part here. There are a lot of things
-that are wrong with the mach-* (and also plat-*) implementations, and I don't
-think we have one today that can really serve as an example. Most decisions
-made in there made a lot of sense when they were introduced, and declaring
-code that was perfectly acceptable yesterday to be unacceptable crap today
-is not going to be met with much understanding by the someone who just
-wants to add support for one more board to 100 already existing ones in the
-same SoC family.
-
-I would actually suggest a different much more radical start: Fork the way
-that platforms are managed today, and start an alternative way of setting
-up boards and devices together with the proven ARM core kernel infrastructure,
-based on these observations (please correct me if some of them they don't make
-sense):
-
-1. The core arch code is not a problem (Russell does a great job here)
-2. The platform specific code contains a lot of crap that doesn't belong there
-   (not enough reviewers to push back on crap)
-3. The amount of crap in platform specfic files is growing exponentially,
-   despite the best efforts of a handful of people to clean it up.
-4. Having one source file per board does not scale any more.
-5. Discoverable hardware would solve this, but is not going to happen
-   in practice.
-6. Board firmware would not solve this and is usually not present.
-7. Boot loaders can not be trusted to pass valid information
-8. Device tree blobs can solve a lot of the problems, and nobody has
-   come up with a better solution.
-9. All interesting work is going into a handful of platforms, all of which
-   are ARMv7 based.
-10. We do not want to discontinue support for old boards that work fine.
-11. Massive changes to existing platforms would cause massive breakage.
-12. Supporting many different boards with a single kernel binary is a
-    useful goal.
-13. Infrastructure code should be cross-platform, not duplicated across
-    platforms.
-14. 32 bit ARM is hitting the wall in the next years (Cortex-A15 is
-    actually adding PAE support, which has failed to solve this on
-    other architectures).
-15. We need to solve the platform problem before 64 bit support comes
-    and adds another dimension to the complexity.
-
-Based on these assumptions, my preferred strategy would be to a new
-mach-nocrap directory with a documented set of rules (to be adapted when
-necessary):
-
-* Strictly no crap
- * No board files
- * No hardcoded memory maps
- * No lists of interrupts and GPIOs
-* All infrastructure added must be portable to all ARMv7 based SoCs.
-  (ARMv6 can be added later)
-* 64 bit safe code only.
-* SMP safe code only.
-* All board specific information must come from a device tree and
-  be run-time detected.
-* Must use the same device drivers as existing platforms
-* Should share platform drivers (interrupt controller, gpio, timer, ...)
-  with existing platforms where appropriate.
-* Code quality takes priority over stability in mach-nocrap, but must not
-  break other platforms.
-
-Until we have something working there, I think we should still generally
-allow new code to the existing platforms, and even new platforms to be
-added, while trying to keep the quality as high as possible but without
-changing the rules for them or doing any major treewide reworks.
-
-Once the mach-nocrap approach has turned into something usable, we can
-proceed on three fronts:
-1. delete actively maintained boards from the other platforms once they
-   are no longer needed there
-2. generalize concepts from mach-nocrap by applying them to all boards,
-   similar to the cleanup work that people have always been doing.
-3. gradually make the rules for adding new code in other platforms stricter,
-   up to the point where they are bugfix only.
-
-> If companies do not 'bother to push upstream', then management will eventually 
-> notice negative economic consequences:
+> Eventually we switched to the current arrangement where I'm essentially
+> only concerned about core ARM code, and a few platforms which I have
+> personal interest in (or are contracted to look after.)
 > 
-> ...
+> For the rest I just look at the patches, and send back what feedback I
+> can on them (which is mostly when my mailer turns a line red because
+> it's matched one of my mutt regexps for spotting common mistakes.)
 
-Good points, I fully agree with these. I also think that the SoC companies
-are actually understanding this nowadays, and that is exactly the reason
-why we see so much code getting pushed in.
+Thanks for the background information.
+
+> > This would be no easier if everyone was asking you to pull their trees,
+> > as I believe was the case before that. The amount of code getting changed
+> > there is too large to get reviewed by a single person, and I believe
+> > neither of you really wants the burden to judge if all of the branches
+> > are ok (and complain to the authors when they are not).
+> 
+> Absolutely right - and the problem is that we still have no one who is
+> willing to step up and do the review.
+> 
+> What I was promised at the time was that by giving sub-tree maintainers
+> the loaded pistol, this problem of code quality would in effect be self-
+> correcting.  If they make a hash out of it, they'd have to be the ones
+> to fix it themselves.
+> 
+> Instead, what's happening is that the _entire_ ARM community, ARM
+> hardware manufacturers and so forth is being blamed here.
+
+This is not my impression. A lot of people are pointing out that there
+are problems, and how they perceive them, but I don't think that anyone
+really wants to blame the entire community.  Even less I believe that
+people that understand the situation are blaming you personally.
+
+> > Russell, do you think it would help to have an additional ARM platform
+> > tree that collects all the changes that impact only the platform code but
+> > not the core architecture? I believe that would be a way out, but requires
+> > a careful selection of people responsible for it. In particular, I don't
+> > think a single person can handle it without good sub-maintainers.
+> 
+> It's not that simple, as what happens when we have core ARM code updates
+> which ends up touching every single board file?  The result is conflicts
+> between trees, and that could get extremely messy indeed.
+
+I believe that conflicts between two trees are really not the issue,
+we have tools to solve those in multiple ways, e.g. by pulling in such
+updates from a topic branch into both trees, or by declaring one of
+the two trees the master that can pull in the other one occasionally
+in order to resolve the conflicts.
+
+> To be honest, given the politics, I don't want to be the one stuck in the
+> middle, receiving and endless stream of Linus' complaints about the way
+> the ARM community works, or the board support code.  However, inspite of
+> the sub-tree maintainers having the responsibility for their own code I
+> still find myself in the firing line.
+
+I think that is partly a perception problem on your side. Understandably,
+you still identify yourself with all of the code under arch/arm, so
+if someone says that the ARM architecture code has problems, you take
+it personally, even though the problems that are cited are almost
+exclusively for code that you are not responsible for.
+
+> And I have got to the point of just not giving a damn.  I can't change
+> the ARM community (I've tried over the years to get more active review
+> of platform changes and failed - and had it pointed out by folk like
+> Alan Cox, that such a system is impossible due to lack of motivation
+> by, eg, an OMAP person to review a Samsung change.)
+
+I think we're actually just getting there. You were not the only one
+to point out the problem and Linaro was specifically founded to solve
+this issue, as far as I can tell. 
 
 	Arnd
