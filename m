@@ -1,54 +1,95 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH/RFC 07/13] OMAP3+: VC bypass: use fields from VC struct instead of PMIC info
-Date: Fri,  1 Apr 2011 16:41:05 -0700
-Message-ID: <1301701271-22096-8-git-send-email-khilman@ti.com>
+Subject: [PATCH/RFC 09/13] OMAP3+: VC: move on/onlp/ret/off command configuration into common init
+Date: Fri,  1 Apr 2011 16:41:07 -0700
+Message-ID: <1301701271-22096-10-git-send-email-khilman@ti.com>
 References: <1301701271-22096-1-git-send-email-khilman@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:45757 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753860Ab1DAXkv (ORCPT
+Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:43286 "EHLO
+	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753698Ab1DAXkv (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Apr 2011 19:40:51 -0400
-Received: by iwr19 with SMTP id 19so5680656iwr.21
-        for <linux-omap@vger.kernel.org>; Fri, 01 Apr 2011 16:40:46 -0700 (PDT)
+Received: by mail-iy0-f181.google.com with SMTP id 26so4704968iyb.12
+        for <linux-omap@vger.kernel.org>; Fri, 01 Apr 2011 16:40:50 -0700 (PDT)
 In-Reply-To: <1301701271-22096-1-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-The PMIC configurable variables should be isolated to VC initialization.
-The rest of the VC functions (like VC bypass) should use the i2c slave address
-and voltage register address fields from struct omap_vc_channel.
+Configuring the on/onlp/ret/off command values is common to OMAP3 & 4.
+Move from OMAP3-only init into common VC init.
 
 Signed-off-by: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/vc.c |    7 ++-----
- 1 files changed, 2 insertions(+), 5 deletions(-)
+ arch/arm/mach-omap2/vc.c |   30 +++++++++++++-----------------
+ 1 files changed, 13 insertions(+), 17 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/vc.c b/arch/arm/mach-omap2/vc.c
-index 7829861..3fdc3fb 100644
+index 7731794..4114909 100644
 --- a/arch/arm/mach-omap2/vc.c
 +++ b/arch/arm/mach-omap2/vc.c
-@@ -91,7 +91,6 @@ int omap_vc_bypass_scale_voltage(struct voltagedomain *voltdm,
- 				 unsigned long target_volt)
+@@ -148,26 +148,11 @@ static void __init omap3_vfsm_init(struct voltagedomain *voltdm)
+ 
+ static void __init omap3_vc_init_channel(struct voltagedomain *voltdm)
+ {
+-	struct omap_vc_channel *vc = voltdm->vc;
+-	struct omap_vdd_info *vdd = voltdm->vdd;
+ 	static bool is_initialized;
+-	u8 on_vsel, onlp_vsel, ret_vsel, off_vsel;
+-	u32 vc_val;
+ 
+ 	if (is_initialized)
+ 		return;
+ 
+-	/* Set up the on, inactive, retention and off voltage */
+-	on_vsel = vdd->pmic_info->uv_to_vsel(vdd->pmic_info->on_volt);
+-	onlp_vsel = vdd->pmic_info->uv_to_vsel(vdd->pmic_info->onlp_volt);
+-	ret_vsel = vdd->pmic_info->uv_to_vsel(vdd->pmic_info->ret_volt);
+-	off_vsel = vdd->pmic_info->uv_to_vsel(vdd->pmic_info->off_volt);
+-	vc_val	= ((on_vsel << vc->common->cmd_on_shift) |
+-		(onlp_vsel << vc->common->cmd_onlp_shift) |
+-		(ret_vsel << vc->common->cmd_ret_shift) |
+-		(off_vsel << vc->common->cmd_off_shift));
+-	voltdm->write(vc_val, vc->cmdval_reg);
+-
+ 	/*
+ 	 * Generic VC parameters init
+ 	 * XXX This data should be abstracted out
+@@ -192,8 +177,6 @@ static void __init omap4_vc_init_channel(struct voltagedomain *voltdm)
+ 	if (is_initialized)
+ 		return;
+ 
+-	/* TODO: Configure setup times and CMD_VAL values*/
+-
+ 	/*
+ 	 * Generic VC parameters init
+ 	 * XXX This data should be abstracted out
+@@ -214,6 +197,8 @@ void __init omap_vc_init_channel(struct voltagedomain *voltdm)
  {
  	struct omap_vc_channel *vc = voltdm->vc;
--	struct omap_vdd_info *vdd = voltdm->vdd;
- 	u32 loop_cnt = 0, retries_cnt = 0;
- 	u32 vc_valid, vc_bypass_val_reg, vc_bypass_value;
- 	u8 target_vsel, current_vsel;
-@@ -104,10 +103,8 @@ int omap_vc_bypass_scale_voltage(struct voltagedomain *voltdm,
- 	vc_valid = vc->common->valid;
- 	vc_bypass_val_reg = vc->common->bypass_val_reg;
- 	vc_bypass_value = (target_vsel << vc->common->data_shift) |
--			(vdd->pmic_info->volt_reg_addr <<
--			vc->common->regaddr_shift) |
--			(vdd->pmic_info->i2c_slave_addr <<
--			vc->common->slaveaddr_shift);
-+		(vc->volt_reg_addr << vc->common->regaddr_shift) |
-+		(vc->i2c_slave_addr << vc->common->slaveaddr_shift);
+ 	struct omap_vdd_info *vdd = voltdm->vdd;
++	u8 on_vsel, onlp_vsel, ret_vsel, off_vsel;
++	u32 val;
  
- 	voltdm->write(vc_bypass_value, vc_bypass_val_reg);
- 	voltdm->write(vc_bypass_value | vc_valid, vc_bypass_val_reg);
+ 	if (!vdd->pmic_info || !vdd->pmic_info->uv_to_vsel) {
+ 		pr_err("%s: PMIC info requried to configure vc for"
+@@ -250,6 +235,17 @@ void __init omap_vc_init_channel(struct voltagedomain *voltdm)
+ 			    vc->cmd_reg_addr << __ffs(vc->smps_cmdra_mask),
+ 			    vc->common->smps_cmdra_reg);
+ 
++	/* Set up the on, inactive, retention and off voltage */
++	on_vsel = vdd->pmic_info->uv_to_vsel(vdd->pmic_info->on_volt);
++	onlp_vsel = vdd->pmic_info->uv_to_vsel(vdd->pmic_info->onlp_volt);
++	ret_vsel = vdd->pmic_info->uv_to_vsel(vdd->pmic_info->ret_volt);
++	off_vsel = vdd->pmic_info->uv_to_vsel(vdd->pmic_info->off_volt);
++	val = ((on_vsel << vc->common->cmd_on_shift) |
++	       (onlp_vsel << vc->common->cmd_onlp_shift) |
++	       (ret_vsel << vc->common->cmd_ret_shift) |
++	       (off_vsel << vc->common->cmd_off_shift));
++	voltdm->write(val, vc->cmdval_reg);
++
+ 	/* Configure the setup times */
+ 	voltdm->rmw(voltdm->vfsm->voltsetup_mask,
+ 		    vc->setup_time << __ffs(voltdm->vfsm->voltsetup_mask),
 -- 
 1.7.4
 
