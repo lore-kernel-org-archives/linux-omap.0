@@ -1,34 +1,48 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [GIT PULL] omap changes for v2.6.39 merge window
-Date: Fri, 1 Apr 2011 13:32:35 +0200
-Message-ID: <201104011332.35618.arnd@arndb.de>
-References: <201103301906.42429.arnd@arndb.de> <201103311723.02301.arnd@arndb.de> <alpine.LFD.2.00.1103311826070.22418@localhost6.localdomain6>
+From: Luciano Coelho <coelho@ti.com>
+Subject: Re: [PATCH 2.6.39] omap: board-4430sdp: revert hsmmc_info
+ reordering
+Date: Fri, 01 Apr 2011 14:37:45 +0300
+Message-ID: <1301657865.1988.485.camel@cumari>
+References: <1301640748-17161-1-git-send-email-coelho@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.LFD.2.00.1103311826070.22418@localhost6.localdomain6>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Kevin Hilman <khilman@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Ingo Molnar <mingo@elte.hu>, Nicolas Pitre <nico@fluxnic.net>, david@lang.hm, Linus Torvalds <torvalds@linux-foundation.org>, Tony Lindgren <tony@atomide.com>, David Brown <davidb@codeaurora.org>, lkml <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, "H. Peter Anvin" <hpa@zytor.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:50239 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752148Ab1DALhH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Apr 2011 07:37:07 -0400
+Received: by mail-wy0-f180.google.com with SMTP id 26so4239310wyj.39
+        for <linux-omap@vger.kernel.org>; Fri, 01 Apr 2011 04:37:06 -0700 (PDT)
+In-Reply-To: <1301640748-17161-1-git-send-email-coelho@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Kishore Kadiyala <kishore.kadiyala@ti.com>, Benoit Cousson <b-cousson@ti.com>
 
-On Thursday 31 March 2011, Thomas Gleixner wrote:
-> On Thu, 31 Mar 2011, Arnd Bergmann wrote:
->
-> Right, but the problem starts in way simpler areas like irq chips and
-> gpio stuff, where lots of the IP cores are similar and trivial enough
-> to be shared across many SoC families.
+On Fri, 2011-04-01 at 09:52 +0300, Luciano Coelho wrote:
+> The order in which the MMC cards are defined in the the 4430sdp board
+> file seems to have been mistakenly reorderded as part of an unrelated
+> patch.  In commit 0005ae73cfe44ee42d0be12a12cc82bf982f518e, where only
+> the dev_name was supposed to be changed, the mmc order was changed as
+> well.  This caused the external SD card reader not to be recognized,
+> at least on Blaze.
+> 
+> This patch reverts this change so that the external SD card is
+> recognized again.
+> 
+> Cc: Kishore Kadiyala <kishore.kadiyala@ti.com>
+> Cc: Benoit Cousson <b-cousson@ti.com>
+> Signed-off-by: Luciano Coelho <coelho@ti.com>
+> ---
 
-Yes, I'm sure that there are more obvious examples than the ones I've
-given, those were just the ones that I had noticed myself.
- 
-> Even the OMAP "consolidated" code is silly:
->
-> But the code above has 6 cases in the switch because nobody abstracted
-> it out consequently. Not to talk about the ifdef mess.
+Please drop this patch.  The problem was not in the order the MMCs were
+mounted, but something wrong with my bootloader settings where the
+rootwait was not been passed to the kernel properly.
 
-Nice illustration.
+Now it works fine for me too.  Sorry for the trouble!
 
-	Arnd
+-- 
+Cheers,
+Luca.
+
