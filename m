@@ -1,167 +1,58 @@
 From: "Avinash.H.M" <avinashhm@ti.com>
-Subject: [PATCH 2/2] OMAP2/3: hwmod: fix gpio-reset timeouts seen during bootup.
-Date: Fri,  1 Apr 2011 21:04:07 +0530
-Message-ID: <1301672047-31903-3-git-send-email-avinashhm@ti.com>
-References: <1301672047-31903-1-git-send-email-avinashhm@ti.com>
+Subject: [PATCH 0/2] OMAP2/3: fix the i2c,gpio reset timeouts during boot.
+Date: Fri,  1 Apr 2011 21:04:05 +0530
+Message-ID: <1301672047-31903-1-git-send-email-avinashhm@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:54059 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:55419 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757902Ab1DAPeg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 1 Apr 2011 11:34:36 -0400
-In-Reply-To: <1301672047-31903-1-git-send-email-avinashhm@ti.com>
+	id S1754282Ab1DAPea (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 1 Apr 2011 11:34:30 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p31FYQnB026948
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Fri, 1 Apr 2011 10:34:29 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: "Avinash.H.M" <avinashhm@ti.com>, Rajendra Nayak <rnayak@ti.com>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>
+Cc: "Avinash.H.M" <avinashhm@ti.com>
 
-GPIO module expects the debounce clocks to be enabled during reset. It doesn't
-reset properly and timeouts are seen, if this clock isn't enabled during
-reset. Add the HWMOD_CONTROL_OPT_CLKS_IN_RESET flags to the GPIO HWMODs, with
-which the debounce clocks are enabled during reset.
+Hi ,
 
-Cc: Rajendra Nayak <rnayak@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Benoit Cousson <b-cousson@ti.com>
-Cc: Kevin Hilman <khilman@ti.com>
-Signed-off-by: Avinash.H.M <avinashhm@ti.com>
----
- arch/arm/mach-omap2/omap_hwmod_2420_data.c |    4 ++++
- arch/arm/mach-omap2/omap_hwmod_2430_data.c |    5 +++++
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    6 ++++++
- 3 files changed, 15 insertions(+), 0 deletions(-)
+The patches solve the reset timeouts seen in i2c and gpio modules while
+booting omap2 and omap3.
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-index 82ff5f7..e0bda0a 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-@@ -1640,6 +1640,7 @@ static struct omap_hwmod_ocp_if *omap2420_gpio1_slaves[] = {
- 
- static struct omap_hwmod omap2420_gpio1_hwmod = {
- 	.name		= "gpio1",
-+	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
- 	.mpu_irqs	= omap242x_gpio1_irqs,
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap242x_gpio1_irqs),
- 	.main_clk	= "gpios_fck",
-@@ -1670,6 +1671,7 @@ static struct omap_hwmod_ocp_if *omap2420_gpio2_slaves[] = {
- 
- static struct omap_hwmod omap2420_gpio2_hwmod = {
- 	.name		= "gpio2",
-+	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
- 	.mpu_irqs	= omap242x_gpio2_irqs,
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap242x_gpio2_irqs),
- 	.main_clk	= "gpios_fck",
-@@ -1700,6 +1702,7 @@ static struct omap_hwmod_ocp_if *omap2420_gpio3_slaves[] = {
- 
- static struct omap_hwmod omap2420_gpio3_hwmod = {
- 	.name		= "gpio3",
-+	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
- 	.mpu_irqs	= omap242x_gpio3_irqs,
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap242x_gpio3_irqs),
- 	.main_clk	= "gpios_fck",
-@@ -1730,6 +1733,7 @@ static struct omap_hwmod_ocp_if *omap2420_gpio4_slaves[] = {
- 
- static struct omap_hwmod omap2420_gpio4_hwmod = {
- 	.name		= "gpio4",
-+	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
- 	.mpu_irqs	= omap242x_gpio4_irqs,
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap242x_gpio4_irqs),
- 	.main_clk	= "gpios_fck",
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-index ce292f0..99cd7bd 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-@@ -1743,6 +1743,7 @@ static struct omap_hwmod_ocp_if *omap2430_gpio1_slaves[] = {
- 
- static struct omap_hwmod omap2430_gpio1_hwmod = {
- 	.name		= "gpio1",
-+	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
- 	.mpu_irqs	= omap243x_gpio1_irqs,
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap243x_gpio1_irqs),
- 	.main_clk	= "gpios_fck",
-@@ -1773,6 +1774,7 @@ static struct omap_hwmod_ocp_if *omap2430_gpio2_slaves[] = {
- 
- static struct omap_hwmod omap2430_gpio2_hwmod = {
- 	.name		= "gpio2",
-+	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
- 	.mpu_irqs	= omap243x_gpio2_irqs,
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap243x_gpio2_irqs),
- 	.main_clk	= "gpios_fck",
-@@ -1803,6 +1805,7 @@ static struct omap_hwmod_ocp_if *omap2430_gpio3_slaves[] = {
- 
- static struct omap_hwmod omap2430_gpio3_hwmod = {
- 	.name		= "gpio3",
-+	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
- 	.mpu_irqs	= omap243x_gpio3_irqs,
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap243x_gpio3_irqs),
- 	.main_clk	= "gpios_fck",
-@@ -1833,6 +1836,7 @@ static struct omap_hwmod_ocp_if *omap2430_gpio4_slaves[] = {
- 
- static struct omap_hwmod omap2430_gpio4_hwmod = {
- 	.name		= "gpio4",
-+	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
- 	.mpu_irqs	= omap243x_gpio4_irqs,
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap243x_gpio4_irqs),
- 	.main_clk	= "gpios_fck",
-@@ -1863,6 +1867,7 @@ static struct omap_hwmod_ocp_if *omap2430_gpio5_slaves[] = {
- 
- static struct omap_hwmod omap2430_gpio5_hwmod = {
- 	.name		= "gpio5",
-+	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
- 	.mpu_irqs	= omap243x_gpio5_irqs,
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap243x_gpio5_irqs),
- 	.main_clk	= "gpio5_fck",
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index c74f972..7552b2f 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -2142,6 +2142,7 @@ static struct omap_hwmod_ocp_if *omap3xxx_gpio1_slaves[] = {
- 
- static struct omap_hwmod omap3xxx_gpio1_hwmod = {
- 	.name		= "gpio1",
-+	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
- 	.mpu_irqs	= omap3xxx_gpio1_irqs,
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap3xxx_gpio1_irqs),
- 	.main_clk	= "gpio1_ick",
-@@ -2178,6 +2179,7 @@ static struct omap_hwmod_ocp_if *omap3xxx_gpio2_slaves[] = {
- 
- static struct omap_hwmod omap3xxx_gpio2_hwmod = {
- 	.name		= "gpio2",
-+	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
- 	.mpu_irqs	= omap3xxx_gpio2_irqs,
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap3xxx_gpio2_irqs),
- 	.main_clk	= "gpio2_ick",
-@@ -2214,6 +2216,7 @@ static struct omap_hwmod_ocp_if *omap3xxx_gpio3_slaves[] = {
- 
- static struct omap_hwmod omap3xxx_gpio3_hwmod = {
- 	.name		= "gpio3",
-+	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
- 	.mpu_irqs	= omap3xxx_gpio3_irqs,
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap3xxx_gpio3_irqs),
- 	.main_clk	= "gpio3_ick",
-@@ -2250,6 +2253,7 @@ static struct omap_hwmod_ocp_if *omap3xxx_gpio4_slaves[] = {
- 
- static struct omap_hwmod omap3xxx_gpio4_hwmod = {
- 	.name		= "gpio4",
-+	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
- 	.mpu_irqs	= omap3xxx_gpio4_irqs,
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap3xxx_gpio4_irqs),
- 	.main_clk	= "gpio4_ick",
-@@ -2286,6 +2290,7 @@ static struct omap_hwmod_ocp_if *omap3xxx_gpio5_slaves[] = {
- 
- static struct omap_hwmod omap3xxx_gpio5_hwmod = {
- 	.name		= "gpio5",
-+	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
- 	.mpu_irqs	= omap3xxx_gpio5_irqs,
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap3xxx_gpio5_irqs),
- 	.main_clk	= "gpio5_ick",
-@@ -2322,6 +2327,7 @@ static struct omap_hwmod_ocp_if *omap3xxx_gpio6_slaves[] = {
- 
- static struct omap_hwmod omap3xxx_gpio6_hwmod = {
- 	.name		= "gpio6",
-+	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
- 	.mpu_irqs	= omap3xxx_gpio6_irqs,
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap3xxx_gpio6_irqs),
- 	.main_clk	= "gpio6_ick",
--- 
-1.7.1
+Baseline:
+The patches are based on 
+* git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
+* master branch.
+* v2.6.39-rc1 commit (0ce790e)
+
+Testing:
+* build tested omap2plus_defconfig for warnings and errors. none introduced.
+* boot tested on 2430. 
+* tested for 'core off' in suspend resume on 3430 sdp. core off counters
+  increment after suspend resume. Core off works with below commands,
+
+echo 1 > /debug/pm_debug/enable_off_mode
+echo mem > /sys/power/state
+cat /debug/pm_debug/count | grep ^core
+
+Dependencies:
+* need patch "OMAP2+: hwmod data: Set hwmod flags to only allow 16-bit
+  accesses to i2c" from Andry Green for accessing i2c_sysc. Without this even
+  with this patch, we will see i2c reset timeouts.
+
+br ,
+- Avinash
+
+Avinash.H.M (2):
+  OMAP2/3: hwmod: fix the i2c-reset timeout during bootup
+  OMAP2/3: hwmod: fix gpio-reset timeouts seen during bootup.
+
+ arch/arm/mach-omap2/omap_hwmod.c             |   59 ++++++++++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c   |    5 ++
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c   |    6 +++
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c   |    7 +++
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |    2 +
+ 5 files changed, 79 insertions(+), 0 deletions(-)
 
