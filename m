@@ -1,80 +1,158 @@
-From: Luciano Coelho <coelho@ti.com>
-Subject: [PATCH 2.6.39] omap: board-4430sdp: revert hsmmc_info reordering
-Date: Fri,  1 Apr 2011 09:52:28 +0300
-Message-ID: <1301640748-17161-1-git-send-email-coelho@ti.com>
+From: Archit Taneja <archit@ti.com>
+Subject: Re: [PATCH 1/9] OMAP: DSS2: move dss device clock configuration
+Date: Fri, 1 Apr 2011 12:35:07 +0530
+Message-ID: <4D957923.2030902@ti.com>
+References: <1301566266-11187-1-git-send-email-tomi.valkeinen@ti.com> <1301566266-11187-2-git-send-email-tomi.valkeinen@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:40857 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754512Ab1DAGwA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Apr 2011 02:52:00 -0400
-Received: by ewy10 with SMTP id 10so920607ewy.9
-        for <linux-omap@vger.kernel.org>; Thu, 31 Mar 2011 23:51:57 -0700 (PDT)
+Received: from bear.ext.ti.com ([192.94.94.41]:55563 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754512Ab1DAHAy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 1 Apr 2011 03:00:54 -0400
+In-Reply-To: <1301566266-11187-2-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Kishore Kadiyala <kishore.kadiyala@ti.com>, Benoit Cousson <b-cousson@ti.com>
+To: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
 
-The order in which the MMC cards are defined in the the 4430sdp board
-file seems to have been mistakenly reorderded as part of an unrelated
-patch.  In commit 0005ae73cfe44ee42d0be12a12cc82bf982f518e, where only
-the dev_name was supposed to be changed, the mmc order was changed as
-well.  This caused the external SD card reader not to be recognized,
-at least on Blaze.
+On Thursday 31 March 2011 03:40 PM, Valkeinen, Tomi wrote:
+> Clock configuration was defined inside dssdev.phy.dsi struct. The clock
+> config doesn't really belong there, and so it's moved to dssdev.clock
+> struct.
+>
+> Now the explicit clock configuration could also be used for other
+> interfaces than DSI, although there's no support for it currently.
+>
+> Signed-off-by: Tomi Valkeinen<tomi.valkeinen@ti.com>
+> ---
+>   arch/arm/mach-omap2/board-4430sdp.c       |   14 +++++++++-----
+>   arch/arm/plat-omap/include/plat/display.h |   28 ++++++++++++++++------------
+>   drivers/video/omap2/dss/dsi.c             |   14 +++++++-------
+>   3 files changed, 32 insertions(+), 24 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+> index 05288c9..626b16b 100644
+> --- a/arch/arm/mach-omap2/board-4430sdp.c
+> +++ b/arch/arm/mach-omap2/board-4430sdp.c
+> @@ -766,17 +766,21 @@ static struct omap_dss_device sdp4430_lcd_device = {
+>   		.data1_pol	= 0,
+>   		.data2_lane	= 3,
+>   		.data2_pol	= 0,
+> -		.div		= {
+> +	},
+> +
+> +	.clocks = {
+> +		.dispc = {
+> +			.lck_div	= 1,	/* Logic Clock = 172.8 MHz */
+> +			.pck_div	= 5,	/* Pixel Clock = 34.56 MHz */
+> +		},
+> +
+> +		.dsi = {
+>   			.regn		= 16,	/* Fint = 2.4 MHz */
+>   			.regm		= 180,	/* DDR Clock = 216 MHz */
+>   			.regm_dispc	= 5,	/* PLL1_CLK1 = 172.8 MHz */
+>   			.regm_dsi	= 5,	/* PLL1_CLK2 = 172.8 MHz */
+>
+>   			.lp_clk_div	= 10,	/* LP Clock = 8.64 MHz */
+> -
+> -			.lck_div	= 1,	/* Logic Clock = 172.8 MHz */
+> -			.pck_div	= 5,	/* Pixel Clock = 34.56 MHz */
+> -
+>   		},
+>   	},
+>   	.channel		= OMAP_DSS_CHANNEL_LCD,
+> diff --git a/arch/arm/plat-omap/include/plat/display.h b/arch/arm/plat-omap/include/plat/display.h
+> index 5e04ddc..e10cfe2 100644
+> --- a/arch/arm/plat-omap/include/plat/display.h
+> +++ b/arch/arm/plat-omap/include/plat/display.h
+> @@ -401,18 +401,6 @@ struct omap_dss_device {
+>   			u8 data2_lane;
+>   			u8 data2_pol;
+>
+> -			struct {
+> -				u16 regn;
+> -				u16 regm;
+> -				u16 regm_dispc;
+> -				u16 regm_dsi;
+> -
+> -				u16 lp_clk_div;
+> -
+> -				u16 lck_div;
+> -				u16 pck_div;
+> -			} div;
+> -
+>   			bool ext_te;
+>   			u8 ext_te_gpio;
+>   		} dsi;
+> @@ -424,6 +412,22 @@ struct omap_dss_device {
+>   	} phy;
+>
+>   	struct {
+> +		struct {
+> +			u16 lck_div;
+> +			u16 pck_div;
 
-This patch reverts this change so that the external SD card is
-recognized again.
+Is it possible to wrap these members around a channel member? The board 
+file can then fill up the lck_div and ppck_div based on what channel it 
+is using.
 
-Cc: Kishore Kadiyala <kishore.kadiyala@ti.com>
-Cc: Benoit Cousson <b-cousson@ti.com>
-Signed-off-by: Luciano Coelho <coelho@ti.com>
----
+Archit
 
-I have started investigating the cause for this problem, because it
-seems to me that the value in the mmc element is what should matter,
-but it doesn't seem to be the case.  I believe there is a bug
-elsewhere, that causes the order of the array to matter, but I'm not
-very familiar with hsmmc and I don't have much time right now to delve
-into the problem, so I leave this to the omap people. ;) I can always
-help testing if necessary.
-
-The change indeed seems to have been a mistake, because it was
-introduced silently in v6:
-https://patchwork.kernel.org/patch/595861/
-
-In v5, the change was not there:
-https://patchwork.kernel.org/patch/590441/
-
- arch/arm/mach-omap2/board-4430sdp.c |   10 +++++-----
- 1 files changed, 5 insertions(+), 5 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index 56702c5..8991d56 100644
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -351,6 +351,11 @@ static struct twl4030_usb_data omap4_usbphy_data = {
- 
- static struct omap2_hsmmc_info mmc[] = {
- 	{
-+		.mmc		= 1,
-+		.caps		= MMC_CAP_4_BIT_DATA | MMC_CAP_8_BIT_DATA,
-+		.gpio_wp	= -EINVAL,
-+	},
-+	{
- 		.mmc		= 2,
- 		.caps		=  MMC_CAP_4_BIT_DATA | MMC_CAP_8_BIT_DATA,
- 		.gpio_cd	= -EINVAL,
-@@ -358,11 +363,6 @@ static struct omap2_hsmmc_info mmc[] = {
- 		.nonremovable   = true,
- 		.ocr_mask	= MMC_VDD_29_30,
- 	},
--	{
--		.mmc		= 1,
--		.caps		= MMC_CAP_4_BIT_DATA | MMC_CAP_8_BIT_DATA,
--		.gpio_wp	= -EINVAL,
--	},
- 	{}	/* Terminator */
- };
- 
--- 
-1.7.1
+> +		} dispc;
+> +
+> +		struct {
+> +			u16 regn;
+> +			u16 regm;
+> +			u16 regm_dispc;
+> +			u16 regm_dsi;
+> +
+> +			u16 lp_clk_div;
+> +		} dsi;
+> +	} clocks;
+> +
+> +	struct {
+>   		struct omap_video_timings timings;
+>
+>   		int acbi;	/* ac-bias pin transitions per interrupt */
+> diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
+> index 23d9bbe..7304c87 100644
+> --- a/drivers/video/omap2/dss/dsi.c
+> +++ b/drivers/video/omap2/dss/dsi.c
+> @@ -1026,7 +1026,7 @@ static int dsi_set_lp_clk_divisor(struct omap_dss_device *dssdev)
+>   	unsigned lp_clk_div;
+>   	unsigned long lp_clk;
+>
+> -	lp_clk_div = dssdev->phy.dsi.div.lp_clk_div;
+> +	lp_clk_div = dssdev->clocks.dsi.lp_clk_div;
+>
+>   	if (lp_clk_div == 0 || lp_clk_div>  dsi.lpdiv_max)
+>   		return -EINVAL;
+> @@ -3388,10 +3388,10 @@ static int dsi_configure_dsi_clocks(struct omap_dss_device *dssdev)
+>
+>   	/* we always use DSS_CLK_SYSCK as input clock */
+>   	cinfo.use_sys_clk = true;
+> -	cinfo.regn  = dssdev->phy.dsi.div.regn;
+> -	cinfo.regm  = dssdev->phy.dsi.div.regm;
+> -	cinfo.regm_dispc = dssdev->phy.dsi.div.regm_dispc;
+> -	cinfo.regm_dsi = dssdev->phy.dsi.div.regm_dsi;
+> +	cinfo.regn  = dssdev->clocks.dsi.regn;
+> +	cinfo.regm  = dssdev->clocks.dsi.regm;
+> +	cinfo.regm_dispc = dssdev->clocks.dsi.regm_dispc;
+> +	cinfo.regm_dsi = dssdev->clocks.dsi.regm_dsi;
+>   	r = dsi_calc_clock_rates(dssdev,&cinfo);
+>   	if (r) {
+>   		DSSERR("Failed to calc dsi clocks\n");
+> @@ -3415,8 +3415,8 @@ static int dsi_configure_dispc_clocks(struct omap_dss_device *dssdev)
+>
+>   	fck = dsi_get_pll_hsdiv_dispc_rate();
+>
+> -	dispc_cinfo.lck_div = dssdev->phy.dsi.div.lck_div;
+> -	dispc_cinfo.pck_div = dssdev->phy.dsi.div.pck_div;
+> +	dispc_cinfo.lck_div = dssdev->clocks.dispc.lck_div;
+> +	dispc_cinfo.pck_div = dssdev->clocks.dispc.pck_div;
+>
+>   	r = dispc_calc_clock_rates(fck,&dispc_cinfo);
+>   	if (r) {
 
