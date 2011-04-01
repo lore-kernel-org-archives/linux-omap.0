@@ -1,49 +1,36 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 2.6.39] omap: board-4430sdp: revert hsmmc_info reordering
-Date: Fri, 1 Apr 2011 09:18:30 +0200
-Message-ID: <4D957C46.9020402@ti.com>
-References: <1301640748-17161-1-git-send-email-coelho@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [GIT PULL] omap changes for v2.6.39 merge window
+Date: Fri, 01 Apr 2011 10:32:37 +0300
+Message-ID: <1301643157.3393.17.camel@deskari>
+References: <201103301906.42429.arnd@arndb.de>
+	 <alpine.LFD.2.00.1103311359320.22418@localhost6.localdomain6>
+	 <87d3l7jqpr.fsf@ti.com>  <201103311723.02301.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:56400 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754932Ab1DAHSj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 1 Apr 2011 03:18:39 -0400
-In-Reply-To: <1301640748-17161-1-git-send-email-coelho@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <201103311723.02301.arnd@arndb.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Kevin Hilman <khilman@ti.com>, Thomas Gleixner <tglx@linutronix.de>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Ingo Molnar <mingo@elte.hu>, Nicolas Pitre <nico@fluxnic.net>, david@lang.hm, Linus Torvalds <torvalds@linux-foundation.org>, Tony Lindgren <tony@atomide.com>, David Brown <davidb@codeaurora.org>, lkml <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, "H. Peter Anvin" <hpa@zytor.com>
 List-Id: linux-omap@vger.kernel.org
-To: "Coelho, Luciano" <coelho@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Kadiyala, Kishore" <kishore.kadiyala@ti.com>
 
-On 4/1/2011 8:52 AM, Coelho, Luciano wrote:
-> The order in which the MMC cards are defined in the the 4430sdp board
-> file seems to have been mistakenly reorderded as part of an unrelated
-> patch.  In commit 0005ae73cfe44ee42d0be12a12cc82bf982f518e, where only
-> the dev_name was supposed to be changed, the mmc order was changed as
-> well.  This caused the external SD card reader not to be recognized,
-> at least on Blaze.
->
-> This patch reverts this change so that the external SD card is
-> recognized again.
->
-> Cc: Kishore Kadiyala<kishore.kadiyala@ti.com>
-> Cc: Benoit Cousson<b-cousson@ti.com>
-> Signed-off-by: Luciano Coelho<coelho@ti.com>
-> ---
->
-> I have started investigating the cause for this problem, because it
-> seems to me that the value in the mmc element is what should matter,
-> but it doesn't seem to be the case.  I believe there is a bug
-> elsewhere, that causes the order of the array to matter, but I'm not
-> very familiar with hsmmc and I don't have much time right now to delve
-> into the problem, so I leave this to the omap people. ;) I can always
-> help testing if necessary.
+On Thu, 2011-03-31 at 17:23 +0200, Arnd Bergmann wrote:
 
-I was about to make the same comment. Why does the order matter since we 
-have a .mmc field with that information? There is probably something 
-broken behind that.
+> * The DSS display drivers introduce new infrastructure include new bus
+>   types that have the complexity to make them completely generic, but
+>   in practice can only work on OMAP, and are clearly not written with
+>   cross-vendor abstractions in mind.
 
-Regards,
-Benoit
+If you mean the panel drivers, then I disagree. They are currently OMAP
+specific, but they are designed so that making them generic shouldn't be
+too difficult. It's been my aim for a long time already to make the
+panel drivers generic, but I've never had time and it's never been quite
+clear to me what would be the best way to do that.
+
+The core DSS driver is OMAP specific, and while the DSS IP could in
+theory be used in some other platform, that is not currently the case
+and I wouldn't want to needlessly start abstracting things for just the
+sake of abstracting.
+
+ Tomi
