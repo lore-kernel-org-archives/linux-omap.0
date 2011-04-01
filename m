@@ -1,44 +1,98 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+From: David Brown <davidb@codeaurora.org>
 Subject: Re: [GIT PULL] omap changes for v2.6.39 merge window
-Date: Fri, 1 Apr 2011 02:42:52 +0100
-Message-ID: <20110401014252.GC17857@sirena.org.uk>
-References: <20110317183048.GW7258@atomide.com> <AANLkTimWbb5DWiiCW821H6pRicbk1fS3PYcnGyUMznvM@mail.gmail.com> <20110318101512.GA15375@n2100.arm.linux.org.uk> <201103301906.42429.arnd@arndb.de> <AANLkTim578-kwM14SJd06RW_QiC4WVCmFuG+ASgGC4sq@mail.gmail.com> <alpine.LFD.2.00.1103302155270.22418@localhost6.localdomain6> <20110330215434.GI18334@atomide.com> <alpine.LFD.2.00.1103310018540.22418@localhost6.localdomain6> <20110330224526.GM18334@atomide.com> <alpine.LFD.2.00.1103310049530.22418@localhost6.localdomain6>
+Date: Thu, 31 Mar 2011 21:50:58 -0700
+Message-ID: <8ya39m2mv65.fsf@huya.qualcomm.com>
+References: <alpine.LFD.2.00.1103301531420.28032@xanadu.home>
+	<AANLkTim6zg-U6HtAQbqnENqoK7x8erXSqOuTFVC0YE5r@mail.gmail.com>
+	<alpine.LFD.2.00.1103301814250.28032@xanadu.home>
+	<alpine.DEB.2.00.1103301728000.15330@asgard.lang.hm>
+	<alpine.LFD.2.00.1103302255280.28032@xanadu.home>
+	<alpine.DEB.2.00.1103302130500.29543@asgard.lang.hm>
+	<alpine.LFD.2.00.1103310145390.28032@xanadu.home>
+	<20110331080634.GA18022@elte.hu>
+	<20110331083044.GB14323@n2100.arm.linux.org.uk>
+	<alpine.DEB.2.00.1103310855450.29543@asgard.lang.hm>
+	<20110331164539.GB19452@n2100.arm.linux.org.uk>
+	<AANLkTi=tyifvJU-hhdd7gT74GMctrCbQBdUAoEaRXOCy@mail.gmail.com>
+	<alpine.LFD.2.00.1103311429590.28032@xanadu.home>
+	<AANLkTi=kbozPcWEk9wVZb7emSWx48BJQS=7Uzaya9Lor@mail.gmail.com>
+	<alpine.LFD.2.00.1103311649450.28032@xanadu.home>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.00.1103310049530.22418@localhost6.localdomain6>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Tony Lindgren <tony@atomide.com>, Linus Torvalds <torvalds@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Russell King - ARM Linux <linux@arm.linux.org.uk>, David Brown <davidb@codeaurora.org>, LKML <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Nicolas Pitre <nico@fluxnic.net>, Catalin Marinas <catalin.marinas@arm.com>, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, Ingo Molnar <mingo@elte.hu>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from wolverine01.qualcomm.com ([199.106.114.254]:16423 "EHLO
+	wolverine01.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750936Ab1DAEtq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Apr 2011 00:49:46 -0400
+In-Reply-To: <alpine.LFD.2.00.1103311649450.28032@xanadu.home> (Nicolas
+	Pitre's message of "Thu, 31 Mar 2011 18:49:11 -0400 (EDT)")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Nicolas Pitre <nico@fluxnic.net>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, david@lang.hm, Ingo Molnar <mingo@elte.hu>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, lkml <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>
 
-On Thu, Mar 31, 2011 at 12:56:33AM +0200, Thomas Gleixner wrote:
-> On Wed, 30 Mar 2011, Tony Lindgren wrote:
-> > * Thomas Gleixner <tglx@linutronix.de> [110330 15:22]:
-> > > On Wed, 30 Mar 2011, Tony Lindgren wrote:
+On Thu, Mar 31 2011, Nicolas Pitre wrote:
 
-> > > > One thing that will help here and distribute the load is to move
-> > > > more things under drivers/ as then we have more maintainers looking
-> > > > at the code.
+> Leaf nodes on ARM are people coming from corporate background with the 
+> old school software development methodologies.  They do it as a _job_ 
+> first and foremost.  They only work on Linux because that's what their 
+> boss assigned them to. Don't get me wrong: that doesn't mean they are 
+> bad people.  Simply that they are not into it for the public recognition 
+> (or flaming) from their peers.  Once their code works they lose interest 
+> and move on.  That mindset is extremely hard to change and take time, on 
+> a scale of years.  Much more time than required to produce the code 
+> needed to support that new SOC out of the pipeline.  There are notable 
+> exceptions obviously.  But this is still a scalability problem in 
+> itself.  So we need men-in-the-middle attacks.
 
-> > > Guess what's that going to solve? Nothing, nada.
+An additional mindset that is difficult to work with in this environment
+is that the corporate development methodology has a focus on schedules
+and deliverables.  Even people who would otherwise like to contribute
+will have pressure to get something done.  Many think of "submit to
+mainline" is kind of a last step in a development process, instead of
+even a goal to accomplish.
 
-> > > Really, you move the problem to people who are not prepared to deal
-> > > with the wave either. So what's the gain?
+When we push back, there is a good chance they just won't bother, not
+because they don't want to do it, but because it doesn't fit a schedule,
+and there is already something else for them to work on.
 
-> > I guess my point is that with creating more common frameworks people
-> > will be using common code. Some examples that come to mind are clock
-> > framework, gpiolib, dma engine, runtime PM and so on.
+So what's the right answer here.  Practically, someone just sent out a
+fairly complete DMA driver for a new MSM device.  Naturally, this
+hardware is nothing like anyone else's DMA, but the driver itself pretty
+much independent from other kernel APIs.  It isn't even similar to the
+existing DMA driver in the MSM.  With it are patches to ifdef-up various
+drivers to use the appropriate DMA.
 
-> For all that to happen you need a really experienced team with a
-> strong team lead to fight that through and go through the existing
-> horror while dealing  with the incoming flood at the same time.
+The DMA code, by itself, seems reasonably well written (with some
+cleanup and such needed), but it makes everything that uses it messy.
+In this particular case, DMA engine will probably need some work to
+either incorporate the unique capabilities of this hardware, or at least
+allow them to be used.  The author probably won't be able to do this on
+their own.
 
-My experience is that it's not that bad doing this providing you can
-convince people to actually show their code to the relevant subsystem
-maintainers and they have time to look at the code.  The first step is
-reasonably tractable since it's a fairly basic level of review and as a
-subsystem maintainer you're well enough motivated to at least ensure
-that people aren't breaking the abstractions enough to cause problems
-for anyone but the people directly working with the drivers.
+I could pull the driver into the tree, and now we have yet another
+driver with yet another API.  If I push back, realistically, it will
+probably end up out-of-tree, along with everything that depends on it.
+
+Up until now, it seems that attitude has been that it is better to be
+in-tree than out of tree, but are we getting too much stuff to continue
+that?
+
+Today, most of the MSM code lives out of tree.  The QuIC tree for MSM
+(currently based off of 2.6.35):
+
+  git diff --stat v2.6.35..HEAD | tail -1
+   3432 files changed, 1144473 insertions(+), 17315 deletions(-)
+  git diff --stat v2.6.35..HEAD arch/arm/mach-msm | tail -1
+   595 files changed, 286054 insertions(+), 1928 deletions(-)
+
+There's a large amount of work just to get the code up to kernel
+standards (the coding style has been fairly well enforced), and there is
+constant development for new hardware.
+
+Thanks,
+David Brown
+
+-- 
+Sent by an employee of the Qualcomm Innovation Center, Inc.
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
