@@ -1,102 +1,167 @@
-From: Detlef Vollmann <dv@vollmann.ch>
-Subject: Re: [GIT PULL] omap changes for v2.6.39 merge window
-Date: Fri, 01 Apr 2011 17:30:22 +0200
-Message-ID: <4D95EF8E.9080902@vollmann.ch>
-References: <alpine.LFD.2.00.1103310145390.28032@xanadu.home>
-	<201104011554.07924.arnd@arndb.de> <4D95E112.4020400@vollmann.ch>
-	<201104011659.40443.arnd@arndb.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <201104011659.40443.arnd@arndb.de>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: david@lang.hm, Russell King - ARM Linux <linux@arm.linux.org.uk>, Nicolas Pitre <nico@fluxnic.net>, Tony Lindgren <tony@atomide.com>, Catalin Marinas <catalin.marinas@arm.com>, lkml <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@elte.hu>, linux-omap@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, David Brown <davidb@codeaurora.org>, linux-arm-kernel@lists.infradead.org
+From: "Avinash.H.M" <avinashhm@ti.com>
+Subject: [PATCH 2/2] OMAP2/3: hwmod: fix gpio-reset timeouts seen during bootup.
+Date: Fri,  1 Apr 2011 21:04:07 +0530
+Message-ID: <1301672047-31903-3-git-send-email-avinashhm@ti.com>
+References: <1301672047-31903-1-git-send-email-avinashhm@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:54059 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757902Ab1DAPeg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 1 Apr 2011 11:34:36 -0400
+In-Reply-To: <1301672047-31903-1-git-send-email-avinashhm@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: "Avinash.H.M" <avinashhm@ti.com>, Rajendra Nayak <rnayak@ti.com>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>
 
-On 04/01/11 16:59, Arnd Bergmann wrote:
-> On Friday 01 April 2011, Detlef Vollmann wrote:
->> On 04/01/11 15:54, Arnd Bergmann wrote:
->
->>> 9. All interesting work is going into a handful of platforms, all of which
->>>      are ARMv7 based.
->> Define interesting.
->
-> The ones that are causing the churn that we're talking about.
-> Platforms that have been working forever and only need to get
-> the occasional bug fix are boring, i.e. not the problem.
-In the ARM tree I only know mach-at91.
-Atmel still introduces new SOCs based on ARM926EJ-S, and that makes
-perfect sense for lots of applications.
-And if they add support for a new SOC, they just copy an existing one,
-change some GPIOs, and submit it as new files (sorry, I'm over-
-simplifying here).
-And if you happen to wire your board a bit differently than they do,
-you have to patch theur generic file (in addidtion to add your own
-board file).
-And though I only know the mach-at91 closely, I'm pretty sure quite
-a number of other mach-* are not better.
-So this is actually why the ARM tree has such a bad reputation:
-lot's of code repetition, and still more of that.
+GPIO module expects the debounce clocks to be enabled during reset. It doesn't
+reset properly and timeouts are seen, if this clock isn't enabled during
+reset. Add the HWMOD_CONTROL_OPT_CLKS_IN_RESET flags to the GPIO HWMODs, with
+which the debounce clocks are enabled during reset.
 
->>> 12. Supporting many different boards with a single kernel binary is a
->>>       useful goal.
->> Generally not for embedded systems (for me, a mobile PDA/phone is just a
->> small computer with a crappy keyboard, but not an embedded system).
->
-> True. For embedded, this would not be an important thing to do, but
-> also not hurt.
-It costs you flash space.
+Cc: Rajendra Nayak <rnayak@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Benoit Cousson <b-cousson@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>
+Signed-off-by: Avinash.H.M <avinashhm@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c |    4 ++++
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c |    5 +++++
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    6 ++++++
+ 3 files changed, 15 insertions(+), 0 deletions(-)
 
->>> * Strictly no crap
->>>    * No board files
->> Where do you put code that needs to run very early (e.g. pinging the
->> watchdog)?
->
-> Don't know. I'd hope we can get fast enough to the phase where device
-> drivers get initialized.
-Nope, never happened for me :-(
-(Watchdog timeouts are often 1s or less.)
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+index 82ff5f7..e0bda0a 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+@@ -1640,6 +1640,7 @@ static struct omap_hwmod_ocp_if *omap2420_gpio1_slaves[] = {
+ 
+ static struct omap_hwmod omap2420_gpio1_hwmod = {
+ 	.name		= "gpio1",
++	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+ 	.mpu_irqs	= omap242x_gpio1_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap242x_gpio1_irqs),
+ 	.main_clk	= "gpios_fck",
+@@ -1670,6 +1671,7 @@ static struct omap_hwmod_ocp_if *omap2420_gpio2_slaves[] = {
+ 
+ static struct omap_hwmod omap2420_gpio2_hwmod = {
+ 	.name		= "gpio2",
++	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+ 	.mpu_irqs	= omap242x_gpio2_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap242x_gpio2_irqs),
+ 	.main_clk	= "gpios_fck",
+@@ -1700,6 +1702,7 @@ static struct omap_hwmod_ocp_if *omap2420_gpio3_slaves[] = {
+ 
+ static struct omap_hwmod omap2420_gpio3_hwmod = {
+ 	.name		= "gpio3",
++	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+ 	.mpu_irqs	= omap242x_gpio3_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap242x_gpio3_irqs),
+ 	.main_clk	= "gpios_fck",
+@@ -1730,6 +1733,7 @@ static struct omap_hwmod_ocp_if *omap2420_gpio4_slaves[] = {
+ 
+ static struct omap_hwmod omap2420_gpio4_hwmod = {
+ 	.name		= "gpio4",
++	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+ 	.mpu_irqs	= omap242x_gpio4_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap242x_gpio4_irqs),
+ 	.main_clk	= "gpios_fck",
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+index ce292f0..99cd7bd 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+@@ -1743,6 +1743,7 @@ static struct omap_hwmod_ocp_if *omap2430_gpio1_slaves[] = {
+ 
+ static struct omap_hwmod omap2430_gpio1_hwmod = {
+ 	.name		= "gpio1",
++	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+ 	.mpu_irqs	= omap243x_gpio1_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap243x_gpio1_irqs),
+ 	.main_clk	= "gpios_fck",
+@@ -1773,6 +1774,7 @@ static struct omap_hwmod_ocp_if *omap2430_gpio2_slaves[] = {
+ 
+ static struct omap_hwmod omap2430_gpio2_hwmod = {
+ 	.name		= "gpio2",
++	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+ 	.mpu_irqs	= omap243x_gpio2_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap243x_gpio2_irqs),
+ 	.main_clk	= "gpios_fck",
+@@ -1803,6 +1805,7 @@ static struct omap_hwmod_ocp_if *omap2430_gpio3_slaves[] = {
+ 
+ static struct omap_hwmod omap2430_gpio3_hwmod = {
+ 	.name		= "gpio3",
++	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+ 	.mpu_irqs	= omap243x_gpio3_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap243x_gpio3_irqs),
+ 	.main_clk	= "gpios_fck",
+@@ -1833,6 +1836,7 @@ static struct omap_hwmod_ocp_if *omap2430_gpio4_slaves[] = {
+ 
+ static struct omap_hwmod omap2430_gpio4_hwmod = {
+ 	.name		= "gpio4",
++	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+ 	.mpu_irqs	= omap243x_gpio4_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap243x_gpio4_irqs),
+ 	.main_clk	= "gpios_fck",
+@@ -1863,6 +1867,7 @@ static struct omap_hwmod_ocp_if *omap2430_gpio5_slaves[] = {
+ 
+ static struct omap_hwmod omap2430_gpio5_hwmod = {
+ 	.name		= "gpio5",
++	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+ 	.mpu_irqs	= omap243x_gpio5_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap243x_gpio5_irqs),
+ 	.main_clk	= "gpio5_fck",
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+index c74f972..7552b2f 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -2142,6 +2142,7 @@ static struct omap_hwmod_ocp_if *omap3xxx_gpio1_slaves[] = {
+ 
+ static struct omap_hwmod omap3xxx_gpio1_hwmod = {
+ 	.name		= "gpio1",
++	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+ 	.mpu_irqs	= omap3xxx_gpio1_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap3xxx_gpio1_irqs),
+ 	.main_clk	= "gpio1_ick",
+@@ -2178,6 +2179,7 @@ static struct omap_hwmod_ocp_if *omap3xxx_gpio2_slaves[] = {
+ 
+ static struct omap_hwmod omap3xxx_gpio2_hwmod = {
+ 	.name		= "gpio2",
++	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+ 	.mpu_irqs	= omap3xxx_gpio2_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap3xxx_gpio2_irqs),
+ 	.main_clk	= "gpio2_ick",
+@@ -2214,6 +2216,7 @@ static struct omap_hwmod_ocp_if *omap3xxx_gpio3_slaves[] = {
+ 
+ static struct omap_hwmod omap3xxx_gpio3_hwmod = {
+ 	.name		= "gpio3",
++	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+ 	.mpu_irqs	= omap3xxx_gpio3_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap3xxx_gpio3_irqs),
+ 	.main_clk	= "gpio3_ick",
+@@ -2250,6 +2253,7 @@ static struct omap_hwmod_ocp_if *omap3xxx_gpio4_slaves[] = {
+ 
+ static struct omap_hwmod omap3xxx_gpio4_hwmod = {
+ 	.name		= "gpio4",
++	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+ 	.mpu_irqs	= omap3xxx_gpio4_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap3xxx_gpio4_irqs),
+ 	.main_clk	= "gpio4_ick",
+@@ -2286,6 +2290,7 @@ static struct omap_hwmod_ocp_if *omap3xxx_gpio5_slaves[] = {
+ 
+ static struct omap_hwmod omap3xxx_gpio5_hwmod = {
+ 	.name		= "gpio5",
++	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+ 	.mpu_irqs	= omap3xxx_gpio5_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap3xxx_gpio5_irqs),
+ 	.main_clk	= "gpio5_ick",
+@@ -2322,6 +2327,7 @@ static struct omap_hwmod_ocp_if *omap3xxx_gpio6_slaves[] = {
+ 
+ static struct omap_hwmod omap3xxx_gpio6_hwmod = {
+ 	.name		= "gpio6",
++	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+ 	.mpu_irqs	= omap3xxx_gpio6_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap3xxx_gpio6_irqs),
+ 	.main_clk	= "gpio6_ick",
+-- 
+1.7.1
 
->>> * All board specific information must come from a device tree and
->>>     be run-time detected.
->> What do you mean by "run-time detected"?
->> For powerpc, we currently have the device tree as DTS in the kernel
->> and compile and bundle it together with the kernel.
->> As you wrote above: "Discoverable hardware [...] is not going to happen"
->
-> I mean writing
->
-> 	if (device_is_compatible(dev, SOMETHING))
-> 		do_something();
->
-> instead of
->
-> #ifdef CONFIG_SOMETHING
-> 	do_something();
-> #endif
->
-> The run-time information could come from anywhere (device tree, hardware
-> registers, today one might use the board number), the important point is
-> not to assume that hardware is present just because someone enabled
-> a Kconfig option.
-Understood and I agree.
-
-> I believe that rule is generally accepted today, but we don't always
-> enforce it.
-Without device tree, Kconfig option is the only way that really
-works today (no runtime HW detection, and same board ID with different
-setups).
-Device tree in my world is just one big Kconfig option instead of
-many small...
-
-   Detlef
