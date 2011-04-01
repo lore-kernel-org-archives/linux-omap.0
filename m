@@ -1,79 +1,102 @@
-From: Will Deacon <will.deacon@arm.com>
+From: Detlef Vollmann <dv@vollmann.ch>
 Subject: Re: [GIT PULL] omap changes for v2.6.39 merge window
-Date: Fri, 01 Apr 2011 16:27:35 +0100
-Message-ID: <1301671655.28467.52.camel@e102144-lin.cambridge.arm.com>
+Date: Fri, 01 Apr 2011 17:30:22 +0200
+Message-ID: <4D95EF8E.9080902@vollmann.ch>
 References: <alpine.LFD.2.00.1103310145390.28032@xanadu.home>
-	 <8ya39m2mv65.fsf@huya.qualcomm.com> <20110401074519.GC7594@elte.hu>
-	 <201104011554.07924.arnd@arndb.de>
+	<201104011554.07924.arnd@arndb.de> <4D95E112.4020400@vollmann.ch>
+	<201104011659.40443.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201104011554.07924.arnd@arndb.de>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <201104011659.40443.arnd@arndb.de>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Arnd Bergmann <arnd@arndb.de>
-Cc: Ingo Molnar <mingo@elte.hu>, david@lang.hm, Russell King - ARM Linux <linux@arm.linux.org.uk>, Nicolas Pitre <nico@fluxnic.net>, Tony Lindgren <tony@atomide.com>, Catalin Marinas <Catalin.Marinas@arm.com>, lkml <linux-kernel@vger.kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, David Brown <davidb@codeaurora.org>, linux-omap@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org
+Cc: david@lang.hm, Russell King - ARM Linux <linux@arm.linux.org.uk>, Nicolas Pitre <nico@fluxnic.net>, Tony Lindgren <tony@atomide.com>, Catalin Marinas <catalin.marinas@arm.com>, lkml <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@elte.hu>, linux-omap@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, David Brown <davidb@codeaurora.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Arnd,
+On 04/01/11 16:59, Arnd Bergmann wrote:
+> On Friday 01 April 2011, Detlef Vollmann wrote:
+>> On 04/01/11 15:54, Arnd Bergmann wrote:
+>
+>>> 9. All interesting work is going into a handful of platforms, all of which
+>>>      are ARMv7 based.
+>> Define interesting.
+>
+> The ones that are causing the churn that we're talking about.
+> Platforms that have been working forever and only need to get
+> the occasional bug fix are boring, i.e. not the problem.
+In the ARM tree I only know mach-at91.
+Atmel still introduces new SOCs based on ARM926EJ-S, and that makes
+perfect sense for lots of applications.
+And if they add support for a new SOC, they just copy an existing one,
+change some GPIOs, and submit it as new files (sorry, I'm over-
+simplifying here).
+And if you happen to wire your board a bit differently than they do,
+you have to patch theur generic file (in addidtion to add your own
+board file).
+And though I only know the mach-at91 closely, I'm pretty sure quite
+a number of other mach-* are not better.
+So this is actually why the ARM tree has such a bad reputation:
+lot's of code repetition, and still more of that.
 
-On Fri, 2011-04-01 at 14:54 +0100, Arnd Bergmann wrote:
-> I would actually suggest a different much more radical start: Fork the way
-> that platforms are managed today, and start an alternative way of setting
-> up boards and devices together with the proven ARM core kernel infrastructure,
-> based on these observations (please correct me if some of them they don't make
-> sense):
-> 
-> 1. The core arch code is not a problem (Russell does a great job here)
-> 2. The platform specific code contains a lot of crap that doesn't belong there
->    (not enough reviewers to push back on crap)
-> 3. The amount of crap in platform specfic files is growing exponentially,
->    despite the best efforts of a handful of people to clean it up.
-> 4. Having one source file per board does not scale any more.
-> 5. Discoverable hardware would solve this, but is not going to happen
->    in practice.
-> 6. Board firmware would not solve this and is usually not present.
-> 7. Boot loaders can not be trusted to pass valid information
-> 8. Device tree blobs can solve a lot of the problems, and nobody has
->    come up with a better solution.
+>>> 12. Supporting many different boards with a single kernel binary is a
+>>>       useful goal.
+>> Generally not for embedded systems (for me, a mobile PDA/phone is just a
+>> small computer with a crappy keyboard, but not an embedded system).
+>
+> True. For embedded, this would not be an important thing to do, but
+> also not hurt.
+It costs you flash space.
 
-Right, so this is directly related to point (5) because in essence FDT
-is a way to make undiscoverable hardware discoverable by probing the
-tree. The `it's just data' mantra sums it up nicely.
+>>> * Strictly no crap
+>>>    * No board files
+>> Where do you put code that needs to run very early (e.g. pinging the
+>> watchdog)?
+>
+> Don't know. I'd hope we can get fast enough to the phase where device
+> drivers get initialized.
+Nope, never happened for me :-(
+(Watchdog timeouts are often 1s or less.)
 
-> 9. All interesting work is going into a handful of platforms, all of which
->    are ARMv7 based.
+>>> * All board specific information must come from a device tree and
+>>>     be run-time detected.
+>> What do you mean by "run-time detected"?
+>> For powerpc, we currently have the device tree as DTS in the kernel
+>> and compile and bundle it together with the kernel.
+>> As you wrote above: "Discoverable hardware [...] is not going to happen"
+>
+> I mean writing
+>
+> 	if (device_is_compatible(dev, SOMETHING))
+> 		do_something();
+>
+> instead of
+>
+> #ifdef CONFIG_SOMETHING
+> 	do_something();
+> #endif
+>
+> The run-time information could come from anywhere (device tree, hardware
+> registers, today one might use the board number), the important point is
+> not to assume that hardware is present just because someone enabled
+> a Kconfig option.
+Understood and I agree.
 
-I think starting out ARMv7-only might make this more manageable but
-there are still shed loads of pre-v7 chips out there which we should try
-not to break.
+> I believe that rule is generally accepted today, but we don't always
+> enforce it.
+Without device tree, Kconfig option is the only way that really
+works today (no runtime HW detection, and same board ID with different
+setups).
+Device tree in my world is just one big Kconfig option instead of
+many small...
 
-> 10. We do not want to discontinue support for old boards that work fine.
-
-[...]
-
-> Based on these assumptions, my preferred strategy would be to a new
-> mach-nocrap directory with a documented set of rules (to be adapted when
-> necessary):
-
-This is a nice idea, but I don't think it's entirely practical:
-
-> * Strictly no crap
->  * No board files
-
-I don't understand how you can handle `early quirks' without board
-files. Does this follow on from Linus' suggestion about moving code out
-of the kernel and into the bootloader?
-
-Realistically, I don't think you will ever get away from board files.
-The trick is probably to make them as small as possible and common to as
-many boards as possible (like the platforms directory for PowerPC).
-
->  * No hardcoded memory maps
->  * No lists of interrupts and GPIOs
-
-This is largely just data, so should be do-able once this stuff isn't
-needed at compile-time (which is becoming the case with stuff like
-dynamic p2v).
-
-Will
+   Detlef
