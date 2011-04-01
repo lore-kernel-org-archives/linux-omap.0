@@ -1,164 +1,70 @@
-From: "Avinash.H.M" <avinashhm@ti.com>
-Subject: [PATCH 1/2] OMAP2/3: hwmod: fix the i2c-reset timeout during bootup
-Date: Fri,  1 Apr 2011 21:04:06 +0530
-Message-ID: <1301672047-31903-2-git-send-email-avinashhm@ti.com>
-References: <1301672047-31903-1-git-send-email-avinashhm@ti.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH] OMAP4: clockdomain: Follow recommended enable sequence
+Date: Fri, 01 Apr 2011 21:10:40 +0530
+Message-ID: <4D95F1F8.5060702@ti.com>
+References: <1299245123-23444-1-git-send-email-rnayak@ti.com> <alpine.DEB.2.00.1103081937100.15132@utopia.booyaka.com> <4D775418.6050105@ti.com> <alpine.DEB.2.00.1103100514210.15132@utopia.booyaka.com> <alpine.DEB.2.00.1103100734490.15132@utopia.booyaka.com> <4D7A22F6.5050806@ti.com> <871v2dbo3q.fsf@ti.com> <4D8711A5.6070301@ti.com> <alpine.DEB.2.00.1103281036060.26455@utopia.booyaka.com> <4D91824F.8020702@ti.com> <4D95E681.4070605@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:54056 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755508Ab1DAPeg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 1 Apr 2011 11:34:36 -0400
-In-Reply-To: <1301672047-31903-1-git-send-email-avinashhm@ti.com>
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:40774 "EHLO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752839Ab1DAPk4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Apr 2011 11:40:56 -0400
+Received: by mail-yx0-f176.google.com with SMTP id 5so2106034yxd.21
+        for <linux-omap@vger.kernel.org>; Fri, 01 Apr 2011 08:40:55 -0700 (PDT)
+In-Reply-To: <4D95E681.4070605@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: "Avinash.H.M" <avinashhm@ti.com>, Rajendra Nayak <rnayak@ti.com>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, b-cousson@ti.com, santosh.shilimkar@ti.com, linux-arm-kernel@lists.infradead.org
 
-The i2c module has a special reset sequence. The sequence is
-- Disable the I2C.
-- Write to SOFTRESET bit.
-- Enable the I2C.
-- Poll on the RESETDONE bit.
-This sequence must be followed for i2c reset in omap2, omap3. The sequence is
-implemented as a function and the i2c_class is updated with the correct
-'reset' pointer.
+On 4/1/2011 8:21 PM, Rajendra Nayak wrote:
+> Hi Paul,
+>
+> <snip>..
+>>>
+>>> In omap_hwmod.c:_enable(), what do you think about:
+>>>
+>>> 1. saving the current idle mode of the clockdomain,
+>>>
+>>> 2. forcing the clockdomain to software-supervised wakeup.
+>>>
+>>> 3. enabling clocks and waiting for the module as we currently do, then
+>>>
+>>> 4. switching the clockdomain's idle mode back to its original state?
+>>>
+>>> Seems like that would be a reasonable approach for the short term, at
+>>> least for drivers that have been converted to PM runtime.
+>>
+>> Ok, I'll try and get some RFC patches in these lines soon.
+>
+> I tried some of what you were suggesting here and it seems to
+> work well, like you said, for the drivers which are converted
+> to PM runtime.
+>
+> Now the issue seems to be, how do we handle the ones which
+> are *still* using clock framework to enable main clocks and
+> are yet to be converted to PM runtime.
+>
+> One such, MMC, is showing me issues on OMAP4 even at boot
+> and causes a crash.
+>
+> Its a different thing that some of these drivers which use
+> direct clock calls are working by fluke on OMAP4 since the
+> clock framework does not even wait for the modules to become
+> accessible after the clock enable.
+>
+> I know the right way seems to be to get all these drivers
+> converted to PM runtime, but that might take sometime.
 
-Cc: Rajendra Nayak <rnayak@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Benoit Cousson <b-cousson@ti.com>
-Cc: Kevin Hilman <khilman@ti.com>
-Signed-off-by: Avinash.H.M <avinashhm@ti.com>
----
- arch/arm/mach-omap2/omap_hwmod.c             |   59 ++++++++++++++++++++++++++
- arch/arm/mach-omap2/omap_hwmod_2420_data.c   |    1 +
- arch/arm/mach-omap2/omap_hwmod_2430_data.c   |    1 +
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c   |    1 +
- arch/arm/plat-omap/include/plat/omap_hwmod.h |    2 +
- 5 files changed, 64 insertions(+), 0 deletions(-)
+One way I am able to get this working (atleast MMC)
+is by preventing the clock domain belonging to MMC module
+from being programmed into HW_SUP mode.
+Acceptable hack in the interim while we wait for the MMC
+driver to be using PM runtime?
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index e034294..f61c9c8 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -156,6 +156,10 @@
- /* Name of the OMAP hwmod for the MPU */
- #define MPU_INITIATOR_NAME		"mpu"
- 
-+/* In register I2C_CON, Bit 15 is the I2C enable bit */
-+#define I2C_EN				BIT(15)
-+#define I2C_CON_OFFSET			0x24
-+
- /* omap_hwmod_list contains all registered struct omap_hwmods */
- static LIST_HEAD(omap_hwmod_list);
- 
-@@ -2369,3 +2373,58 @@ int omap_hwmod_no_setup_reset(struct omap_hwmod *oh)
- 
- 	return 0;
- }
-+
-+/**
-+ * omap_i2c_reset- reset the omap i2c module.
-+ * @oh: struct omap_hwmod *
-+ *
-+ * The i2c moudle in omap2, omap3 had a special sequence to reset. The
-+ * sequence is:
-+ * - Disable the I2C.
-+ * - Write to SOFTRESET bit.
-+ * - Enable the I2C.
-+ * - Poll on the RESETDONE bit.
-+ * The sequence is implemented in below function. This is called for 2420,
-+ * 2430 and omap3.
-+ */
-+int omap_i2c_reset(struct omap_hwmod *oh)
-+{
-+	u32 v = 0;
-+	int ret = 0, c = 0;
-+
-+	/* Disable I2C */
-+	v = omap_hwmod_read(oh, I2C_CON_OFFSET);
-+	v = v & ~I2C_EN;
-+	omap_hwmod_write(v, oh, I2C_CON_OFFSET);
-+
-+	/* Write to the SOFTRESET bit */
-+	v = oh->_sysc_cache;
-+	ret = _set_softreset(oh, &v);
-+	if (ret)
-+		goto err1;
-+	_write_sysconfig(v, oh);
-+
-+	/* Enable I2C */
-+	v = omap_hwmod_read(oh, I2C_CON_OFFSET);
-+	v |= I2C_EN;
-+	omap_hwmod_write(v, oh, I2C_CON_OFFSET);
-+
-+	/* Poll on RESETDONE bit */
-+	omap_test_timeout((omap_hwmod_read(oh,
-+				oh->class->sysc->syss_offs)
-+				& SYSS_RESETDONE_MASK),
-+				MAX_MODULE_SOFTRESET_WAIT, c);
-+
-+	if (c == MAX_MODULE_SOFTRESET_WAIT)
-+		pr_warning("%s: %s: softreset failed (waited %d usec)\n",
-+			__func__, oh->name, MAX_MODULE_SOFTRESET_WAIT);
-+	else
-+		pr_debug("%s: %s: softreset in %d usec\n", __func__,
-+			oh->name, c);
-+
-+	return 0;
-+
-+err1:
-+	pr_warning("%s: returned error from _set_softreset\n", __func__);
-+	return ret;
-+}
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-index 8eb3ce1..82ff5f7 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-@@ -1447,6 +1447,7 @@ static struct omap_hwmod_class_sysconfig i2c_sysc = {
- static struct omap_hwmod_class i2c_class = {
- 	.name		= "i2c",
- 	.sysc		= &i2c_sysc,
-+	.reset		= &omap_i2c_reset,
- };
- 
- static struct omap_i2c_dev_attr i2c_dev_attr;
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-index a860fb5..ce292f0 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-@@ -1524,6 +1524,7 @@ static struct omap_hwmod_class_sysconfig i2c_sysc = {
- static struct omap_hwmod_class i2c_class = {
- 	.name		= "i2c",
- 	.sysc		= &i2c_sysc,
-+	.reset		= &omap_i2c_reset,
- };
- 
- static struct omap_i2c_dev_attr i2c_dev_attr = {
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index b98e2df..c74f972 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -1460,6 +1460,7 @@ static struct omap_hwmod omap3xxx_uart4_hwmod = {
- static struct omap_hwmod_class i2c_class = {
- 	.name = "i2c",
- 	.sysc = &i2c_sysc,
-+	.reset = &omap_i2c_reset,
- };
- 
- /*
-diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-index 1adea9c..26b7ad3 100644
---- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
-+++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-@@ -545,6 +545,8 @@ struct omap_hwmod {
- };
- 
- int omap_hwmod_register(struct omap_hwmod **ohs);
-+int omap_i2c_reset(struct omap_hwmod *oh);
-+
- struct omap_hwmod *omap_hwmod_lookup(const char *name);
- int omap_hwmod_for_each(int (*fn)(struct omap_hwmod *oh, void *data),
- 			void *data);
--- 
-1.7.1
+>
+> regards,
+> Rajendra
 
