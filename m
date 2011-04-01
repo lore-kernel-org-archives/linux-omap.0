@@ -1,50 +1,49 @@
-From: "J, KEERTHY" <j-keerthy@ti.com>
-Subject: Query: Omap temperature sensor driver design
-Date: Fri, 1 Apr 2011 18:09:43 +0530
-Message-ID: <AANLkTimsX-=1Qe8F3=gJM75_TYP9SujTFTH6uvXncWRC@mail.gmail.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [GIT PULL] omap changes for v2.6.39 merge window
+Date: Fri, 1 Apr 2011 14:41:38 +0200
+Message-ID: <201104011441.38902.arnd@arndb.de>
+References: <alpine.LFD.2.00.1103301531420.28032@xanadu.home> <20110331130123.GB17547@n2100.arm.linux.org.uk> <BANLkTinmoTyceJCT+K-RCm4NC76qfDyeVw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:49311 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753792Ab1DAMjp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Apr 2011 08:39:45 -0400
-Received: by mail-wy0-f182.google.com with SMTP id 23so3445013wyf.13
-        for <linux-omap@vger.kernel.org>; Fri, 01 Apr 2011 05:39:43 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <BANLkTinmoTyceJCT+K-RCm4NC76qfDyeVw@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bill Gatliff <bgat@billgatliff.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Catalin Marinas <catalin.marinas@arm.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Nicolas Pitre <nico@fluxnic.net>, Dave Airlie <airlied@gmail.com>, david@lang.hm, Linus Torvalds <torvalds@linux-foundation.org>, Tony Lindgren <tony@atomide.com>, David Brown <davidb@codeaurora.org>, lkml <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: lm-sensors@lm-sensors.org
-Cc: linux-omap@vger.kernel.org, KEERTHY J <j-keerthy@ti.com>
 
-Hello All,
+On Thursday 31 March 2011, Bill Gatliff wrote:
+> On Thu, Mar 31, 2011 at 8:01 AM, Russell King - ARM Linux <linux@arm.linux.org.uk> wrote:
 
-I am trying to implement a driver for the OMAP temperature sensor.
-It is an on chip sensor.
+> > Just look at the removal of AAEC2000, LH7A40x and 2000 lines from the
+> > mach-types file removed 6000 lines, which in itself is about the number
+> > of lines of change submitted during the last merge window for any one
+> > non-ARM architecture.  At this point in time with this complaint, I've
+> > absolutely no idea why I bothered to do that.  I should've left it well
+> > alone and then the diffstat percentage would've been smaller.  After
+> > all, it's "pointless churn".
+> 
+> I think you did it because it was the Right Thing To Do.  Even
+> positive change can be painful at times.
+> 
+> The majority is exceedingly grateful for the effort you make.
 
-The sensor is responsible for reporting the temperature. The sensor
-has configurable thresholds. The user can configure the thresholds.
-An interrupt will be generated as soon as there the temperature
-thresholds are crossed.
+Defintely. I haven't seen anyone in this thread blame Russell for the
+mess. As far as I'm concerned, the code in arch/arm consists of
+the well-maintained {mm,kernel,lib,common,tools,include} directories
+that are actively being taken care of by Russell, and a huge amount
+of crap that has accumulated in mach-* and plat-*. Some of it is
+arguably better than other parts, but the problem is not that someone
+in particular did a bad job writing the code. The problem is that
+nobody today is pushing back hard enough on crap getting added.
 
-Two possible approaches for the driver:
+There is a lot of good work going on to reduce the amount of crap in
+the mach code, but my feeling is that it's not keeping up with the
+rate of crap getting added by other people. In some ways, the Linaro
+project has actually made this worse by helping people get their code
+into shape for inclusion (which of course is generally a good thing
+to do).
 
-1) The entire driver resides in drivers/hwmon directory. The driver
-containing all the sysfs nodes to be exposed to the user.
-The interrupt handlers are also part of this driver. The device
-registration happens in a OMAP arch specific file residing
-in arch/arm/mach-omap2 directory.
-
-2) The intialization and the interrupt handling done in a
-separate driver file residing in in arch/arm/mach-omap2 or
-drivers/misc directory.
-The device registration happens in a OMAP arch specific file residing
-in arch/arm/mach-omap2 directory.
-Only the sysfs nodes will be exposed through a hwmon
-driver residing in drivers/hwmon.
-
-Please suggest the best alternative among the two or if any new
-design for the requirements is better.
-
--- 
-Regards and Thanks,
-Keerthy
+	Arnd
