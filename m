@@ -1,67 +1,71 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Subject: Re: [lm-sensors] Query: Omap temperature sensor driver design
-Date: Fri, 1 Apr 2011 08:41:14 -0700
-Message-ID: <20110401154114.GB30343@ericsson.com>
-References: <AANLkTimsX-=1Qe8F3=gJM75_TYP9SujTFTH6uvXncWRC@mail.gmail.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [GIT PULL] omap changes for v2.6.39 merge window
+Date: Fri, 1 Apr 2011 17:50:17 +0200
+Message-ID: <201104011750.17344.arnd@arndb.de>
+References: <alpine.LFD.2.00.1103310145390.28032@xanadu.home> <201104011659.40443.arnd@arndb.de> <4D95EF8E.9080902@vollmann.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from imr3.ericy.com ([198.24.6.13]:36209 "EHLO imr3.ericy.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753352Ab1DAPlv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 1 Apr 2011 11:41:51 -0400
-Content-Disposition: inline
-In-Reply-To: <AANLkTimsX-=1Qe8F3=gJM75_TYP9SujTFTH6uvXncWRC@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <4D95EF8E.9080902@vollmann.ch>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Detlef Vollmann <dv@vollmann.ch>
+Cc: Ingo Molnar <mingo@elte.hu>, david@lang.hm, Russell King - ARM Linux <linux@arm.linux.org.uk>, Nicolas Pitre <nico@fluxnic.net>, Tony Lindgren <tony@atomide.com>, Catalin Marinas <catalin.marinas@arm.com>, lkml <linux-kernel@vger.kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, David Brown <davidb@codeaurora.org>, linux-omap@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: "J, KEERTHY" <j-keerthy@ti.com>
-Cc: "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Fri, Apr 01, 2011 at 08:39:43AM -0400, J, KEERTHY wrote:
-> Hello All,
-> 
-> I am trying to implement a driver for the OMAP temperature sensor.
-> It is an on chip sensor.
-> 
-> The sensor is responsible for reporting the temperature. The sensor
-> has configurable thresholds. The user can configure the thresholds.
-> An interrupt will be generated as soon as there the temperature
-> thresholds are crossed.
-> 
-> Two possible approaches for the driver:
-> 
-> 1) The entire driver resides in drivers/hwmon directory. The driver
-> containing all the sysfs nodes to be exposed to the user.
-> The interrupt handlers are also part of this driver. The device
-> registration happens in a OMAP arch specific file residing
-> in arch/arm/mach-omap2 directory.
-> 
-> 2) The intialization and the interrupt handling done in a
-> separate driver file residing in in arch/arm/mach-omap2 or
-> drivers/misc directory.
-> The device registration happens in a OMAP arch specific file residing
-> in arch/arm/mach-omap2 directory.
-> Only the sysfs nodes will be exposed through a hwmon
-> driver residing in drivers/hwmon.
-> 
-That really depends if it does anything else besides hw monitoring.
-A hw monitoring driver can support interrupts, and trigger a poll event 
-on an alarm file if it gets one. But it should only perform hw monitoring 
-functionality. If that interrupt triggers other activity, a thermal subsystem
-driver may be more appropriate.
+On Friday 01 April 2011, Detlef Vollmann wrote:
+> On 04/01/11 16:59, Arnd Bergmann wrote:
+> > On Friday 01 April 2011, Detlef Vollmann wrote:
+> >> On 04/01/11 15:54, Arnd Bergmann wrote:
+> >
+> >>> 9. All interesting work is going into a handful of platforms, all of which
+> >>>      are ARMv7 based.
+> >> Define interesting.
+> >
+> > The ones that are causing the churn that we're talking about.
+> > Platforms that have been working forever and only need to get
+> > the occasional bug fix are boring, i.e. not the problem.
+> In the ARM tree I only know mach-at91.
+> Atmel still introduces new SOCs based on ARM926EJ-S, and that makes
+> perfect sense for lots of applications.
 
-Thanks,
-Guenter
+I thought new ones were generally Cortex-M3 based. Either way, even
+if there are exceptions, focusing on ARMv7 at first should give
+a good representation of the new development.
 
-> Please suggest the best alternative among the two or if any new
-> design for the requirements is better.
-> 
-> -- 
-> Regards and Thanks,
-> Keerthy
-> 
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors@lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+> >>> 12. Supporting many different boards with a single kernel binary is a
+> >>>       useful goal.
+> >> Generally not for embedded systems (for me, a mobile PDA/phone is just a
+> >> small computer with a crappy keyboard, but not an embedded system).
+> >
+> > True. For embedded, this would not be an important thing to do, but
+> > also not hurt.
+> It costs you flash space.
 
+Well, the idea was not to force everyone to enable all options. When this
+is done right, the kernel would not be any bigger.
+
+> >>> * Strictly no crap
+> >>>    * No board files
+> >> Where do you put code that needs to run very early (e.g. pinging the
+> >> watchdog)?
+> >
+> > Don't know. I'd hope we can get fast enough to the phase where device
+> > drivers get initialized.
+> Nope, never happened for me :-(
+> (Watchdog timeouts are often 1s or less.)
+
+1s is a long time. Most of the boot process is drivers anyway, so we
+just need to make sure that the watchdog is early enough.
+
+> > I believe that rule is generally accepted today, but we don't always
+> > enforce it.
+> Without device tree, Kconfig option is the only way that really
+> works today (no runtime HW detection, and same board ID with different
+> setups).
+
+I believe that has never been an accepted way of doing things, you are
+supposed to get a new board ID for every new board, hence the name ;-).
+
+	ARnd
