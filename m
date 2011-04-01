@@ -1,40 +1,37 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
 Subject: Re: [GIT PULL] omap changes for v2.6.39 merge window
-Date: Fri, 1 Apr 2011 09:39:38 -0700
-Message-ID: <AANLkTikfBhCH5wrpYzKbws0F_UVaskhtN_SUGQ+hU8Ab@mail.gmail.com>
-References: <alpine.LFD.2.00.1103310145390.28032@xanadu.home>
- <201104011554.07924.arnd@arndb.de> <1301671655.28467.52.camel@e102144-lin.cambridge.arm.com>
- <201104011755.57412.arnd@arndb.de>
+Date: Fri, 1 Apr 2011 18:44:59 +0100
+Message-ID: <20110401174459.GA8615@n2100.arm.linux.org.uk>
+References: <alpine.LFD.2.00.1103310145390.28032@xanadu.home> <201104011659.40443.arnd@arndb.de> <4D95EF8E.9080902@vollmann.ch> <201104011750.17344.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201104011755.57412.arnd@arndb.de>
+Content-Disposition: inline
+In-Reply-To: <201104011750.17344.arnd@arndb.de>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Arnd Bergmann <arnd@arndb.de>
-Cc: Will Deacon <will.deacon@arm.com>, Ingo Molnar <mingo@elte.hu>, david@lang.hm, Russell King - ARM Linux <linux@arm.linux.org.uk>, Nicolas Pitre <nico@fluxnic.net>, Tony Lindgren <tony@atomide.com>, Catalin Marinas <Catalin.Marinas@arm.com>, lkml <linux-kernel@vger.kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, David Brown <davidb@codeaurora.org>, linux-omap@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org
+Cc: Detlef Vollmann <dv@vollmann.ch>, Ingo Molnar <mingo@elte.hu>, david@lang.hm, Nicolas Pitre <nico@fluxnic.net>, Tony Lindgren <tony@atomide.com>, Catalin Marinas <catalin.marinas@arm.com>, lkml <linux-kernel@vger.kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, David Brown <davidb@codeaurora.org>, linux-omap@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Apr 1, 2011 at 8:55 AM, Arnd Bergmann <arnd@arndb.de> wrote:
->
-> Well, except that because of point 7, device trees are still inferior to
-> having correct and complete information in hardware.
+On Fri, Apr 01, 2011 at 05:50:17PM +0200, Arnd Bergmann wrote:
+> On Friday 01 April 2011, Detlef Vollmann wrote:
+> > On 04/01/11 16:59, Arnd Bergmann wrote:
+> > > On Friday 01 April 2011, Detlef Vollmann wrote:
+> > >> On 04/01/11 15:54, Arnd Bergmann wrote:
+> > >
+> > >>> 9. All interesting work is going into a handful of platforms, all of which
+> > >>>      are ARMv7 based.
+> > >> Define interesting.
+> > >
+> > > The ones that are causing the churn that we're talking about.
+> > > Platforms that have been working forever and only need to get
+> > > the occasional bug fix are boring, i.e. not the problem.
+> > In the ARM tree I only know mach-at91.
+> > Atmel still introduces new SOCs based on ARM926EJ-S, and that makes
+> > perfect sense for lots of applications.
+> 
+> I thought new ones were generally Cortex-M3 based. Either way, even
+> if there are exceptions, focusing on ARMv7 at first should give
+> a good representation of the new development.
 
-Oh, absolutely.
-
-If you have discoverable hardware, use it.
-
-But by "discoverable hardware" I mean something like PCI config
-cycles. IOW, real hardware features. Not some code like
-
-   if (board_signature_is(xyz)) {
-     ...
-
-that just maps some _other_ hardware knowledge (reading a SoC ID or
-something) into an unrelated thing ("I know this SoC has these bits of
-hardware").
-
-So devicetree should never override actual "hardware tells me it
-exists here". But you might well have a mapping from SoC ID's to a
-compiled-in devicetree thing (this is largely what POWER does, iirc).
-
-                Linus
+If they're M3 then they're a microcontroller, and so would be using uclinux.
