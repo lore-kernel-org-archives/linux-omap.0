@@ -1,125 +1,92 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 4/7] OMAP2+: powerdomain: add voltage domain lookup during
- register
-Date: Fri, 1 Apr 2011 19:17:58 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1104011842540.27897@utopia.booyaka.com>
-References: <1300493932-17362-1-git-send-email-khilman@ti.com> <1300493932-17362-5-git-send-email-khilman@ti.com> <alpine.DEB.2.00.1103221313460.11798@utopia.booyaka.com> <4D890D9E.804@ti.com> <alpine.DEB.2.00.1103221502180.11798@utopia.booyaka.com>
- <4D892B08.7000805@ti.com>
+Subject: Re: OMAP4 DSS clock setup
+Date: Fri, 1 Apr 2011 20:12:58 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1104011925510.27897@utopia.booyaka.com>
+References: <1301467733.2333.83.camel@deskari>  <4D92F899.7010606@ti.com>  <1301483027.4045.16.camel@deskari>  <4D931E21.8090305@ti.com> <1301489930.15095.51.camel@deskari>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-632197865-1301709738=:27897"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:45684 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:54947 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756439Ab1DBBR7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Apr 2011 21:17:59 -0400
-In-Reply-To: <4D892B08.7000805@ti.com>
+	with ESMTP id S1754225Ab1DBCM7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Apr 2011 22:12:59 -0400
+In-Reply-To: <1301489930.15095.51.camel@deskari>
+Content-ID: <alpine.DEB.2.00.1104012003370.27897@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "Hilman, Kevin" <khilman@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, "Semwal, Sumit" <sumit.semwal@ti.com>, "Taneja, Archit" <archit@ti.com>, linux-omap <linux-omap@vger.kernel.org>
 
-On Wed, 23 Mar 2011, Cousson, Benoit wrote:
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-> On 3/22/2011 11:08 PM, Paul Walmsley wrote:
-> > On Tue, 22 Mar 2011, Cousson, Benoit wrote:
-> > 
-> > > On the other hand not every clock belong to a clockdomain, that's why we
-> > > have clock without clockdomain on OMAP. A clockdomain is a just group of
-> > > IPs that share the same interface clock.
-> > 
-> > PRCM clockdomains also include functional clocks.  See for example the
-> > OMAP4 Public TRM Rev. O Section 3.1.1.1.3 "Clock Domain" ('The clockdomain
-> > of CM_B is composed of two clocks: a functional clock (FCLK2) and an
-> > interface clock (ICLK1)', and also later, 'The PRCM module lets software
-> > check the status of the clock domain functional clocks').
-> 
-> True, but that does not change the definition of the clock domain (same
-> paragraph):
-> "A clock domain is a group of modules fed by clock signals controlled by the
-> same clock manager in the PRCM module (see Figure 3-2)."
-> 
-> My point was that a clock domain is related to modules that share some clocks.
-> So yes, a clock domain will contains modules and their related iclk and fclk.
-> But that does not means that every clocks will belong to a clockdomain.
-> All the non leaf clocks will not have any clock domain since they will not be
-> attached to any module directly.
+--155748971-632197865-1301709738=:27897
+Content-Type: TEXT/PLAIN; CHARSET=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-ID: <alpine.DEB.2.00.1104012003371.27897@utopia.booyaka.com>
 
-In the OMAP Linux code, we use clockdomains for three purposes:
+Hi Tomi, Beno=EEt, et al,
 
-1. as a way to control the PRCM clockdomain hardware
-2. as a way to associate clocks with powerdomains
-3. as a way to group clocks that have similar idle behavior
+On Wed, 30 Mar 2011, Tomi Valkeinen wrote:
 
-So yes.  All non-leaf clocks should be associated with OMAP Linux 
-clockdomains also, since those clocks will be associated with powerdomains 
-and also will be grouped by idle behavior.
+> Currently we have these aliases for OMAP4:
+>=20
+> "dss_clk" -> dss_dss_clk
+> "fck" -> dss_fck
+> "ick" -> dummy_ck
+>
+> If that would be changed to:
+>
+> "fck" -> dss_dss_clk
+> "ick -> dss_fck
+>
+> The driver would work the same way for all OMAPs.
 
-> > Both the TRM and the OMAP4 functional specification clearly link PRCM
-> > clockdomain idle management to the state of the clockdomain's functional
-> > clocks.  See for example OMAP4 Public TRM Rev. O Table 3-11 "Clock Domain
-> > Clock States" ('INACTIVE: ... Every optional functional clock in the clock
-> > domain is gated.')
-> 
-> That just means that each clock that supplies a module must be idled in order
-> to allow the clock domain to transition.
-> The clock domain FSM is using both iclk and fclk state to trigger the domain
-> transition, but that same clock could be used in another clock domain too.
+This looks reasonable to me, and seems to match the TRM's Figure 10-4 "DSS=
+=20
+Clock Tree".
 
-When the same clock is used in another clockdomain, another struct clk is 
-created for that clock with a different clockdomain.  We already have this 
-situation with OMAP3's 54MHz clock, for example.
+The current OMAP4 clock data name "dss_fck" is just kind of a fake name=20
+for that clock in the OMAP4 context.
 
-> > Beyond the PRCM, the Linux-OMAP clockdomain code is not only concerned
-> > with PRCM-controllable clockdomains.  It is intended to be a generically
-> > useful way to connect clocks to the powerdomain and voltagedomain that the
-> > clock exists in, even if there are no explicit PRCM registers associated
-> > with the clockdomain.  These "powerdomains" and "voltagedomains" also may
-> > not be directly PRCM controllable.
-> 
-> In that case, you cannot call that clockdomain anymore since this is not the
-> proper definition used by the PRCM. If you do not have a module, you cannot
-> have a clockdomain.
+> Anyway. To get things working for rc2 (DSS currently crashes due to not
+> enabling dss_clk) we need to either:
+> 1) Change the clock aliases as above
+> 2) Add something like Sumit's patch (attached) to handle dss_clk. While
+> the patch is not that complex, it feels rather hacky.
 
-That may be the way that TI considers it in the AutoPRCM data or the 
-system PRCM, but the OMAP Linux clockdomain code uses a superset 
-definition and has done so for a few years now.
+Yeah, that patch looks like a hack to me, especially something like=20
+this:
 
-> OMAP4 partitioning is following this hierarchy: module < clockdomain < 
-> powerdomain < voltagedomain < device. The clocks are not part of the 
-> hierarchy and for a good reason, the can be shared across the whole 
-> device.
++       if (pdata->opt_clock_available("dss_clk")) {
 
-As mentioned before, each instance of a clock in a different clockdomain 
-should have a different struct clk associated with it.
+Based on the E-mail thread so far, I'd say that changing the clock aliases=
+=20
+is the way to go for right now.  The clock aliases are not hardware data;=
+=20
+they just control how the clock hardware is mapped to the drivers.
 
-> > Every clock that is in the Linux-OMAP clock tree should have a clockdomain
-> > associated with it.
-> 
-> Mmm... What domain will you use for sys_clk
+Of course, at some point soon, those clock aliases are going to go away. =
+=20
+But hopefully you all will have converted the driver over to PM runtime at=
+=20
+that point.
 
-sys_clk and related clocks should go into a sys_clkdm or hf_sys_clkdm
-
-> or 32k_clk?
-
-The external 32KiHZ oscillator should be associated with wkup_clkdm.
-
-> or for any DPLL or HS divider?
-
-Those go into separate DPLL clockdomains.  This is already there in OMAP3.
-
-> And what for?
-
-2. as a way to associate clocks with powerdomains
-3. as a way to group clocks that have similar idle behavior
-
-Also, the original idea was to put autoidle control for the DPLLs and the 
-external HF clock LDO into the clockdomain layer, since it already had a 
-convenient concept for hardware automatic idle, vs. software controlled 
-idle.  That part may not be needed any longer, now that we've added 
-autoidle support back into the clock code.
-
-> I know that the clockdomain name is confusing, but why do you want to change
-> its definition?
+Once that happens, there's another problem: omap_hwmod_enable() is defined=
+=20
+that the hardware registers should be accessible by the MPU after it=20
+completes.  So by that definition, the hwmod code should be=20
+enabling/disabling that dss_clk clock too when it enables/idles/shuts down=
+=20
+the hwmod.  Probably we'd need to mark that struct omap_hwmod_opt_clk with=
+=20
+some flag.  Then we'd need some kind of way for the DSS to tell the hwmod=
+=20
+code whether it is or isn't reliant on the PRCM-provided functional clock=
+=20
+for its internal functional clock.  Maybe something like=20
+omap_hwmod_{release,require}_system_fclk()?
 
 
 - Paul
+--155748971-632197865-1301709738=:27897--
