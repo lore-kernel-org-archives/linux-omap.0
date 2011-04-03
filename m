@@ -1,66 +1,50 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] OMAP34xx: Add padconfig offsets for GPIOs 126-129
-Date: Sun, 3 Apr 2011 21:53:38 +0300
-Message-ID: <20110403185337.GB2162@legolas.emea.dhcp.ti.com>
-References: <4D963442.1020106@tomtom.com>
- <20110403110630.GB2404@legolas.emea.dhcp.ti.com>
- <20110403113328.GC1902@darwin>
-Reply-To: balbi@ti.com
+From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Subject: Re: [GIT PULL] omap changes for v2.6.39 merge window
+Date: Mon, 04 Apr 2011 08:18:17 +1000
+Message-ID: <1301869097.2549.36.camel@pasglop>
+References: <alpine.LFD.2.00.1103310145390.28032@xanadu.home>
+	 <8ya39m2mv65.fsf@huya.qualcomm.com> <20110401074519.GC7594@elte.hu>
+	 <201104011554.07924.arnd@arndb.de>  <4D95E112.4020400@vollmann.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:39150 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753000Ab1DCSxn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 3 Apr 2011 14:53:43 -0400
-Received: by ewy28 with SMTP id 28so1964370ewy.11
-        for <linux-omap@vger.kernel.org>; Sun, 03 Apr 2011 11:53:41 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20110403113328.GC1902@darwin>
+Received: from gate.crashing.org ([63.228.1.57]:50118 "EHLO gate.crashing.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751273Ab1DCWTP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 3 Apr 2011 18:19:15 -0400
+In-Reply-To: <4D95E112.4020400@vollmann.ch>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Matthias Kaehlcke <matthias@kaehlcke.net>
-Cc: Felipe Balbi <balbi@ti.com>, Matthias Kaehlcke <matthias.kaehlcke@tomtom.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+To: Detlef Vollmann <dv@vollmann.ch>
+Cc: Arnd Bergmann <arnd@arndb.de>, david@lang.hm, Russell King - ARM Linux <linux@arm.linux.org.uk>, Nicolas Pitre <nico@fluxnic.net>, Tony Lindgren <tony@atomide.com>, Catalin Marinas <catalin.marinas@arm.com>, lkml <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@elte.hu>, linux-omap@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, David Brown <davidb@codeaurora.org>, linux-arm-kernel@lists.infradead.org
 
-On Sun, Apr 03, 2011 at 01:33:28PM +0200, Matthias Kaehlcke wrote:
-> Hi Felipe,
-> 
-> El Sun, Apr 03, 2011 at 02:06:31PM +0300 Felipe Balbi ha dit:
-> 
-> > On Fri, Apr 01, 2011 at 10:23:30PM +0200, Matthias Kaehlcke wrote:
-> > > Add OMAP3_CONTROL_PADCONF_GPIOxxx_OFFSET constants for GPIOs 126-129
-> > > 
-> > > Signed-off-by: Matthias Kaehlcke <matthias@tomtom.com>
-> > > ---
-> > >  arch/arm/mach-omap2/mux34xx.h |    4 ++++
-> > >  1 files changed, 4 insertions(+), 0 deletions(-)
-> > > 
-> > > diff --git a/arch/arm/mach-omap2/mux34xx.h b/arch/arm/mach-omap2/mux34xx.h
-> > > index 6543ebf..70d2b8d 100644
-> > > --- a/arch/arm/mach-omap2/mux34xx.h
-> > > +++ b/arch/arm/mach-omap2/mux34xx.h
-> > > @@ -393,6 +393,10 @@
-> > >  #define OMAP3_CONTROL_PADCONF_SAD2D_SWAKEUP_OFFSET		0xa1c
-> > >  #define OMAP3_CONTROL_PADCONF_JTAG_RTCK_OFFSET			0xa1e
-> > >  #define OMAP3_CONTROL_PADCONF_JTAG_TDO_OFFSET			0xa20
-> > > +#define OMAP3_CONTROL_PADCONF_GPIO127_OFFSET			0xa24
-> > > +#define OMAP3_CONTROL_PADCONF_GPIO126_OFFSET			0xa26
-> > > +#define OMAP3_CONTROL_PADCONF_GPIO128_OFFSET			0xa28
-> > > +#define OMAP3_CONTROL_PADCONF_GPIO129_OFFSET			0xa2a
-> > 
-> > no users for these ?
-> 
-> we use these on a custom board whose board specific code won't be
-> mainlined. i think it still makes sense to have the constants in
-> mainline for the sake of completeness
+On Fri, 2011-04-01 at 16:28 +0200, Detlef Vollmann wrote:
+> >   * No board files
+> Where do you put code that needs to run very early (e.g. pinging the
+> watchdog)? 
 
-I'll leave that decision to Tony. I agree that, for the sake of
-completeness, we should have those. But OTOH, not having any in tree
-users is kinda of a bummer.
+Even on powerpc I keep board files :-)
 
-It would be nice to see TomTom's devices in tree. Maybe after the kernel
-sources is released to the public we could that in tree "for the sake of
-completeness" :-)
+The main thing is:
 
--- 
-balbi
+- The generic -> board linkage must not be hard (ie, no
+platform_restart, but a board_ops.restart() etc....)
+
+- An average board file is a few hundreds line long, that's it, mostly
+it hooks up to generically provided functions, tho it gets the choice of
+_which_ ones to hookup.
+
+- It can still quirk/fixup a thing or two if needed, I thinkt it's
+useful to keep that around, as long as such "quirks" remain small and
+few. At the end of the day, if dealing with one board special case gives
+you the choice between changing a ton of infrastructure/core to
+introduce a new abstraction to deal with -that- special case vs. having
+a one liner fixup in the platform code, the later is the most sensible
+option. The hard part of course is to have sensible maintainers to make
+sure this doesn't grow back to the old mess.
+
+Cheers,
+Ben.
+
+
