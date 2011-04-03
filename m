@@ -1,76 +1,66 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [GIT PULL] omap changes for v2.6.39 merge window
-Date: Sun, 3 Apr 2011 17:03:25 +0100
-Message-ID: <20110403160324.GA8050@n2100.arm.linux.org.uk>
-References: <alpine.LFD.2.00.1103310145390.28032@xanadu.home> <201104020008.16795.arnd@arndb.de> <alpine.LFD.2.00.1104012129320.28032@xanadu.home> <201104031726.37420.arnd@arndb.de>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH] OMAP34xx: Add padconfig offsets for GPIOs 126-129
+Date: Sun, 3 Apr 2011 21:53:38 +0300
+Message-ID: <20110403185337.GB2162@legolas.emea.dhcp.ti.com>
+References: <4D963442.1020106@tomtom.com>
+ <20110403110630.GB2404@legolas.emea.dhcp.ti.com>
+ <20110403113328.GC1902@darwin>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:39150 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753000Ab1DCSxn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 3 Apr 2011 14:53:43 -0400
+Received: by ewy28 with SMTP id 28so1964370ewy.11
+        for <linux-omap@vger.kernel.org>; Sun, 03 Apr 2011 11:53:41 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <201104031726.37420.arnd@arndb.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Nicolas Pitre <nico@fluxnic.net>, Detlef Vollmann <dv@vollmann.ch>, Ingo Molnar <mingo@elte.hu>, david@lang.hm, Tony Lindgren <tony@atomide.com>, Catalin Marinas <catalin.marinas@arm.com>, lkml <linux-kernel@vger.kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, David Brown <davidb@codeaurora.org>, linux-omap@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <20110403113328.GC1902@darwin>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Matthias Kaehlcke <matthias@kaehlcke.net>
+Cc: Felipe Balbi <balbi@ti.com>, Matthias Kaehlcke <matthias.kaehlcke@tomtom.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-On Sun, Apr 03, 2011 at 05:26:37PM +0200, Arnd Bergmann wrote:
-> There are a few other examples that were done in a similar way:
-> * The drivers/ide code still serves a few hardware platforms that
->   never had anyone write a new libata code. Libata itself has
->   been in a good shape for a long time though.
-
-And there are platforms where libata just doesn't work but the old
-ide driver does.  My firewall with a CF card in is completely unusable
-with libata, but works fine with the old IDE driver.
-
-That's partly caused by there being no support for the ISA IOCS16 signal
-on that hardware, so the ISA bus needs specific handling depending on
-the behaviour of the ISA device being addressed.  Yes, crap hardware,
-nothing new there.
-
-> We generally try to do gradual cleanups to any kernel code that is
-> worth keeping, because as you say the duplication itself causes a
-> lot of friction. For particularly hard cases, doing a replacement
-> implementation is an exceptional way out. What we need to find a
-> consensus on is how bad the problem in arch/arm/mach-*/ is:
+On Sun, Apr 03, 2011 at 01:33:28PM +0200, Matthias Kaehlcke wrote:
+> Hi Felipe,
 > 
-> 1. No fundamental problem, just needs some care to clean up (your
->    position, I guess), so we do do what we always do and keep doing
->    gradual improvements, including treewide API changes.
-> 2. Bad enough that starting a new competing implementation is easier
->    because it lets us try different things more easily and reduce
->    the number of treewide changes to all existing platforms.
->    (this is where I think we are) Like IDE and OSS, the old code
->    can still get improved and bug fixed, but concentrating on new
->    code gives us better freedom to make progress more quickly.
-> 3. In need of a complete replacement, like arch/ppc and a lot of
->    drivers/staging. I'm not arguing that it's that bad.
+> El Sun, Apr 03, 2011 at 02:06:31PM +0300 Felipe Balbi ha dit:
+> 
+> > On Fri, Apr 01, 2011 at 10:23:30PM +0200, Matthias Kaehlcke wrote:
+> > > Add OMAP3_CONTROL_PADCONF_GPIOxxx_OFFSET constants for GPIOs 126-129
+> > > 
+> > > Signed-off-by: Matthias Kaehlcke <matthias@tomtom.com>
+> > > ---
+> > >  arch/arm/mach-omap2/mux34xx.h |    4 ++++
+> > >  1 files changed, 4 insertions(+), 0 deletions(-)
+> > > 
+> > > diff --git a/arch/arm/mach-omap2/mux34xx.h b/arch/arm/mach-omap2/mux34xx.h
+> > > index 6543ebf..70d2b8d 100644
+> > > --- a/arch/arm/mach-omap2/mux34xx.h
+> > > +++ b/arch/arm/mach-omap2/mux34xx.h
+> > > @@ -393,6 +393,10 @@
+> > >  #define OMAP3_CONTROL_PADCONF_SAD2D_SWAKEUP_OFFSET		0xa1c
+> > >  #define OMAP3_CONTROL_PADCONF_JTAG_RTCK_OFFSET			0xa1e
+> > >  #define OMAP3_CONTROL_PADCONF_JTAG_TDO_OFFSET			0xa20
+> > > +#define OMAP3_CONTROL_PADCONF_GPIO127_OFFSET			0xa24
+> > > +#define OMAP3_CONTROL_PADCONF_GPIO126_OFFSET			0xa26
+> > > +#define OMAP3_CONTROL_PADCONF_GPIO128_OFFSET			0xa28
+> > > +#define OMAP3_CONTROL_PADCONF_GPIO129_OFFSET			0xa2a
+> > 
+> > no users for these ?
+> 
+> we use these on a custom board whose board specific code won't be
+> mainlined. i think it still makes sense to have the constants in
+> mainline for the sake of completeness
 
-Having just looked at the clocksource stuff, there's 9 up-counting 32-bit
-clocksources which are relatively easy to port to a single piece of code.
+I'll leave that decision to Tony. I agree that, for the sake of
+completeness, we should have those. But OTOH, not having any in tree
+users is kinda of a bummer.
 
-There's a number of down-counting clocksources using various methods to
-convert to an up-counting value - sometimes -readl(), sometimes
-cs->mask - readl() and sometimes ~readl().
+It would be nice to see TomTom's devices in tree. Maybe after the kernel
+sources is released to the public we could that in tree "for the sake of
+completeness" :-)
 
-Then there's those which are either 16-bit or 32-bit, and some of those
-16-bit implementations must use readw() to avoid bus faults.
-
-Combining all those together you end up with something pretty disgusting,
-and an initialization function taking 7 arguments (iomem pointer, name,
-rating, tick rate, size, up/down counter, clocksource flags).
-
-Does it lead to more maintainable code?  I'm not convinced - while it
-certainly reduces the amount of code, but the reduced code is rather
-more complex.
-
-Would an alternative be to introduce separate mmio-32bit-up, mmio-32bit-down,
-mmio-16bit-up and mmio-16bit-down clocksources?  That also doesn't give
-me a good feeling about the result.
-
-Then there's those which change the cs->read function pointer at runtime,
-and those which share that pointer with their sched_clock() implementation.
-
-And those which need to do special things (like loop until read values are
-stable) in their read functions which probably can't ever be supported by
-common code.
+-- 
+balbi
