@@ -1,67 +1,73 @@
-From: Arnd Bergmann <arnd@arndb.de>
+From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Subject: Re: [GIT PULL] omap changes for v2.6.39 merge window
-Date: Mon, 4 Apr 2011 02:14:16 +0200
-Message-ID: <201104040214.16581.arnd@arndb.de>
-References: <alpine.LFD.2.00.1103310145390.28032@xanadu.home> <4D95E112.4020400@vollmann.ch> <1301869097.2549.36.camel@pasglop>
+Date: Mon, 04 Apr 2011 08:26:13 +1000
+Message-ID: <1301869573.2549.44.camel@pasglop>
+References: <alpine.LFD.2.00.1103310145390.28032@xanadu.home>
+	<201104011554.07924.arnd@arndb.de>
+	<1301671655.28467.52.camel@e102144-lin.cambridge.arm.com>
+	<201104011755.57412.arnd@arndb.de>
+	<AANLkTikfBhCH5wrpYzKbws0F_UVaskhtN_SUGQ+hU8Ab@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1301869097.2549.36.camel@pasglop>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Detlef Vollmann <dv@vollmann.ch>, david@lang.hm, Russell King - ARM Linux <linux@arm.linux.org.uk>, Nicolas Pitre <nico@fluxnic.net>, Tony Lindgren <tony@atomide.com>, Catalin Marinas <catalin.marinas@arm.com>, lkml <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@elte.hu>, linux-omap@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, David Brown <davidb@codeaurora.org>, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <AANLkTikfBhCH5wrpYzKbws0F_UVaskhtN_SUGQ+hU8Ab@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: david@lang.hm, Russell King - ARM Linux <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Nicolas Pitre <nico@fluxnic.net>, Tony Lindgren <tony@atomide.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <will.deacon@arm.com>, lkml <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@elte.hu>, linux-omap@vger.kernel.org, David Brown <davidb@codeaurora.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Monday 04 April 2011, Benjamin Herrenschmidt wrote:
-> On Fri, 2011-04-01 at 16:28 +0200, Detlef Vollmann wrote:
-> > >   * No board files
-> > Where do you put code that needs to run very early (e.g. pinging the
-> > watchdog)? 
+On Fri, 2011-04-01 at 09:39 -0700, Linus Torvalds wrote:
+> that just maps some _other_ hardware knowledge (reading a SoC ID or
+> something) into an unrelated thing ("I know this SoC has these bits of
+> hardware").
 > 
-> Even on powerpc I keep board files :-)
-> 
-> The main thing is:
-> 
-> - The generic -> board linkage must not be hard (ie, no
-> platform_restart, but a board_ops.restart() etc....)
-> 
-> - An average board file is a few hundreds line long, that's it, mostly
-> it hooks up to generically provided functions, tho it gets the choice of
-> _which_ ones to hookup.
+> So devicetree should never override actual "hardware tells me it
+> exists here". But you might well have a mapping from SoC ID's to a
+> compiled-in devicetree thing (this is largely what POWER does, iirc).
 
-I believe a machine_type is more general than a board file, i.e. what
-gets described as a machine in powerpc would often currently correspond
-to multiple board files, if I am not mistaken.
+Not quite :-)
 
-The fact that we have a more diverse set of hardware on ARM, and that
-it's growing quicker than powerpc also means that we should try harder
-to reduce duplication than is necessary there.
+On the most common non-embedded platforms the device-tree comes from the
+firmware which generates it (ie, pSeries, macs, ...)
 
-> - It can still quirk/fixup a thing or two if needed, I thinkt it's
-> useful to keep that around, as long as such "quirks" remain small and
-> few. At the end of the day, if dealing with one board special case gives
-> you the choice between changing a ton of infrastructure/core to
-> introduce a new abstraction to deal with -that- special case vs. having
-> a one liner fixup in the platform code, the later is the most sensible
-> option. The hard part of course is to have sensible maintainers to make
-> sure this doesn't grow back to the old mess.
+On most embedded platforms, the device-tree is either flashed separately
+in a separate flash partition (and thus comes from u-boot) or is wrapped
+with the kernel zImage at install time.
 
-I guess quirks are fine, as long as it's not required to have a them
-for each board. We can have a function that gets called for any matching
-"compatible" property of the root node, but I think the default should
-be not to need it eventually.
+We have almost no case of detecting the board via some magic ID and
+using that to slap a device-tree at runtime, mostly because the old
+embedded platforms before most bootloaders grew the ability to pass us
+the DT blob from flash, simply didn't even have such a board ID...
 
-This is one area where I think I can illustrate how a gradual change
-from the status quo differs from a parallel new platform implementation:
-To gradually change one board file, you would convert the existing
-machine description to match the compatible property of the device
-tree root node and possibly at a later stage remove that code again
-once it's possible to work without it.
-When starting out with a fresh implementation, we first need to
-change all device drivers that are used on the board to work
-without a machine description, but then would not have to change
-any code twice, and the work for a similar board is almost done.
+They did pass -some- informations but to some extent we were in a worst
+position than ARM which does have them.
 
-	Arnd
+However, what I've observed (sadly) in practice is that many
+manufacturers just ship products with bogus board IDs as well, they make
+them up, often non-registered or registered to other vendors, duplicate
+between products etc..., I've seen that with my Marvell based D-Link NAS
+box for example.
+
+But yes, I agree with pretty much everything you said :-) There is -one-
+advantage in -one- specific case to also provide device node
+representation for devices that are otherwise discoverable (PCI etc..),
+which is when the device-tree can carry useful auxiliary informations
+that the devices themselves don't provide. The typical example is that
+growing tendency in ARM world to stick USB ethernet controllers on board
+without a MAC address SEEPROM .... As long as the device is soldered
+(and thus can be addressed via a stable "path" of ports/hubs), it can be
+useful to stick a device-node for it (and for its parent controller,
+potentially PCI, etc...).
+
+
+Cheers,
+Ben.
