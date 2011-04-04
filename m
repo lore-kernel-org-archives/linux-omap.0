@@ -1,51 +1,89 @@
-From: Alexander Holler <holler@ahsoftware.de>
-Subject: rtc-twl: catch22 in 2.6.37 and 2.6.38 when clock was never set
-Date: Mon, 04 Apr 2011 16:29:04 +0200
-Message-ID: <4D99D5B0.6010503@ahsoftware.de>
+From: Peter Barada <peter.barada@logicpd.com>
+Subject: Re: Question regarding suspend/resume
+Date: Mon, 04 Apr 2011 10:31:26 -0400
+Message-ID: <4D99D63E.5020009@logicpd.com>
+References: <4D7FBD31.6050806@gmail.com> <87wrk0gn41.fsf@ti.com>	<4D94E148.8060905@gmail.com> <8739m3auex.fsf@ti.com> <19F8576C6E063C45BE387C64729E739404E2338367@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from h1446028.stratoserver.net ([85.214.92.142]:34979 "EHLO
-	mail.ahsoftware.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754466Ab1DDO3I (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Apr 2011 10:29:08 -0400
+Received: from 174-46-170-154.static.twtelecom.net ([174.46.170.154]:55272
+	"EHLO edprlnx06.logicpd.com" rhost-flags-OK-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754506Ab1DDOiY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Apr 2011 10:38:24 -0400
+In-Reply-To: <19F8576C6E063C45BE387C64729E739404E2338367@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: linux-omap@vger.kernel.org
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "Hilman, Kevin" <khilman@ti.com>, Peter Barada <peter.barada@gmail.com>, Linux OMAP list <linux-omap@vger.kernel.org>
 
-Hello,
+On 04/01/2011 01:05 AM, Hiremath, Vaibhav wrote:
+>> -----Original Message-----
+>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+>> owner@vger.kernel.org] On Behalf Of Hilman, Kevin
+>> Sent: Friday, April 01, 2011 2:18 AM
+>> To: Peter Barada
+>> Cc: Linux OMAP list
+>> Subject: Re: Question regarding suspend/resume
+>>
+>> Hi Peter,
+>>
+>> Peter Barada <peter.barada@gmail.com> writes:
+>>
+>> [...]
+>>
+>>> Thanks for helping me to understand things.
+>>>
+>>> The kernel I'm using is TI's OMAPPSP_03.00.01.06 2.6.32 kernel [1]
+>>> with their u-boot [2] and x-loader[3], modified to run on Logic's
+>>> DM3730 board(s) (as we use the Micron mt29c4g48mazapakq-5 POP).
+>> I'm afraid somone who supports that older TI kernel will have to help
+>> you out.
+>>
+> [Hiremath, Vaibhav] Peter,
+>
+> I have validated the release kernel (along with x-loader/uboot) on OMAP3EVM, and it does work without any issues.
+>
+> I have personally validated this with latest Arago repos, probably you may want to share the changes you have made in x-loader/uboot/kernel to port PSP2.6.32 to LogicPD hardware.
+[Barada, Peter] Viabhav, I've also validated that the x-loader/u-boot/kernel built from the OMAPPSP_03.00.01.06 tags suspends on the DM3730EVM hardware.  I'llp ut together a set of patches to those and send you a pointer where to find them.  What I'm trying now is to cut board-omap3evm.c down to just the serial/mmc to see if the DM3730EVM shows the same effect; it could be that u-boot has put some of the hardware into a state that the kernel handles in the suspend path but my minimal kernel doesn't.  At least that would tell me I'm on the right path.
+> Thanks,
+> Vaibhav
+>
+>> If you can reproduce on a current kernel, I'd be glad to help but I'm
+>> currently not able (well, not willing is more accurate) to try and
+>> figure out what's going on based on an older kernel with who knows how
+>> many out-of-tree patches/hacks piled on.
+>>
+>> What I can say based on the register dump you shared is that there is no
+>> obvious driver issue going on where a clock was left on by a driver.
+>>
+>> More than likely what is going on is that the booloader is using a
+>> device (e.g. USB, MMC) but is leaving it in a state such that that IP
+>> block cannot idle, so the CORE powerdomain then does not fully idle.
+>> In older kernels like this one, the linux drivers did not fully reset
+>> the hardware so bootloaders could cause problems like this (the u-boot
+>> on beagle has had several problems like this.)
+>>
+>> As a first whack at things, I would focus on USB OTG and MMC, as I've
+>> seen problem with both on other platforms, like Beagle.  You need to
+>> ensure that both the these modules are fully reset either by the
+>> bootloader when it's done using them, or by the kernel in the early boot
+>> process.  Current kernels now do the latter.
+>>
+>> Sorry I can't be of more help,
+>>
+>> Kevin
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-it just happened here that the rechargeable backup battery for the RTC 
-on a TPS65950 run out off power, because of some days while the device 
-wasn't powered.
 
-Afterwards I couldn't read or set the clock with hwclock using a kernel 
-2.6.37.n or 2.6.38.n.
+-- 
+Peter Barada
+peter.barada@logicpd.com
 
-I don't have a fix, but I think I've analyzed the problem and can offer 
-a (bad) workaround.
-
-What happens is the following:
-
-When trying to read or set the clock with hwclock, the driver (rtc-twl) 
-starts an alarm, but the irq for the alarm will never get called. The 
-result is that a select in hwclock times out (for both operations, read 
-or set).
-
-Because I had this clock running before, I've got the idea to try one of 
-those old OMAP-kernels (2.6.32-angstrom) using the same userland.
-And with that kernel I could set the clock.
-Using 2.6.37 or 2.6.38 afterwards, hwclock did function again, both read 
-an set are working.
-
-So it looks like there is a catch22 in kernels >=2.6.37 (I haven't 
-tested .33-.36):
-
-When the clock was never set, the alarm(-irq) doesn't work, so hwclock 
-doesn't work, so one can't set the clock.
-
-Regards,
-
-Alexander Holler
