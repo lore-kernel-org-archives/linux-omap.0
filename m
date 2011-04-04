@@ -1,64 +1,125 @@
-From: Nicolas Pitre <nico@fluxnic.net>
+From: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
 Subject: Re: [GIT PULL] omap changes for v2.6.39 merge window
-Date: Sun, 03 Apr 2011 22:49:47 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.1104032225170.28032@xanadu.home>
+Date: Mon, 4 Apr 2011 07:16:23 +0200
+Message-ID: <20110404051623.GJ7420@game.jcrosoft.org>
 References: <alpine.LFD.2.00.1103310145390.28032@xanadu.home>
- <8ya39m2mv65.fsf@huya.qualcomm.com> <20110401074519.GC7594@elte.hu>
- <201104011554.07924.arnd@arndb.de> <4D95E112.4020400@vollmann.ch>
- <1301869097.2549.36.camel@pasglop>
+ <201104011554.07924.arnd@arndb.de>
+ <4D95E112.4020400@vollmann.ch>
+ <201104011659.40443.arnd@arndb.de>
+ <4D95EF8E.9080902@vollmann.ch>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from relais.videotron.ca ([24.201.245.36]:49780 "EHLO
-	relais.videotron.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753604Ab1DDCtt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 3 Apr 2011 22:49:49 -0400
-In-reply-to: <1301869097.2549.36.camel@pasglop>
+Received: from 63.mail-out.ovh.net ([91.121.185.56]:37278 "HELO
+	63.mail-out.ovh.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752462Ab1DDFY6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Apr 2011 01:24:58 -0400
+Content-Disposition: inline
+In-Reply-To: <4D95EF8E.9080902@vollmann.ch>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Detlef Vollmann <dv@vollmann.ch>, Arnd Bergmann <arnd@arndb.de>, david@lang.hm, Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Catalin Marinas <catalin.marinas@arm.com>, lkml <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@elte.hu>, linux-omap@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, David Brown <davidb@codeaurora.org>, linux-arm-kernel@lists.infradead.org
+To: Detlef Vollmann <dv@vollmann.ch>
+Cc: Arnd Bergmann <arnd@arndb.de>, david@lang.hm, Russell King - ARM Linux <linux@arm.linux.org.uk>, Nicolas Pitre <nico@fluxnic.net>, Tony Lindgren <tony@atomide.com>, Catalin Marinas <catalin.marinas@arm.com>, lkml <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@elte.hu>, linux-omap@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, David Brown <davidb@codeaurora.org>, linux-arm-kernel@lists.infradead.org
 
-On Mon, 4 Apr 2011, Benjamin Herrenschmidt wrote:
-
-> On Fri, 2011-04-01 at 16:28 +0200, Detlef Vollmann wrote:
-> > >   * No board files
-> > Where do you put code that needs to run very early (e.g. pinging the
-> > watchdog)? 
+On 17:30 Fri 01 Apr     , Detlef Vollmann wrote:
+> On 04/01/11 16:59, Arnd Bergmann wrote:
+> >On Friday 01 April 2011, Detlef Vollmann wrote:
+> >>On 04/01/11 15:54, Arnd Bergmann wrote:
+> >
+> >>>9. All interesting work is going into a handful of platforms, all of which
+> >>>     are ARMv7 based.
+> >>Define interesting.
+> >
+> >The ones that are causing the churn that we're talking about.
+> >Platforms that have been working forever and only need to get
+> >the occasional bug fix are boring, i.e. not the problem.
+> In the ARM tree I only know mach-at91.
+> Atmel still introduces new SOCs based on ARM926EJ-S, and that makes
+> perfect sense for lots of applications.
+> And if they add support for a new SOC, they just copy an existing one,
+> change some GPIOs, and submit it as new files (sorry, I'm over-
+> simplifying here).
+at SoC level quite a lot as we do the necessarly to factorise as much as we
+can you can take a look when we add the g20, g10 of g45, etc...
+> And if you happen to wire your board a bit differently than they do,
+> you have to patch theur generic file (in addidtion to add your own
+> board file).
+> And though I only know the mach-at91 closely, I'm pretty sure quite
+> a number of other mach-* are not better.
+> So this is actually why the ARM tree has such a bad reputation:
+> lot's of code repetition, and still more of that.
+On AT91 it's not anymore the case now we do start reduce the number of machine
+and we not allow this anymore
 > 
-> Even on powerpc I keep board files :-)
+> >>>12. Supporting many different boards with a single kernel binary is a
+> >>>      useful goal.
+> >>Generally not for embedded systems (for me, a mobile PDA/phone is just a
+> >>small computer with a crappy keyboard, but not an embedded system).
+> >
+> >True. For embedded, this would not be an important thing to do, but
+> >also not hurt.
+> It costs you flash space.
+I disagree have a single kernel with mutliple board is very usefull as it can
+allow you to have one firmware for multiple version of product. It will really
+simplify the maintanance
+
+And it's also allow to simplify kernel maintanance
 > 
-> The main thing is:
+> >>>* Strictly no crap
+> >>>   * No board files
+> >>Where do you put code that needs to run very early (e.g. pinging the
+> >>watchdog)?
+> >
+> >Don't know. I'd hope we can get fast enough to the phase where device
+> >drivers get initialized.
+> Nope, never happened for me :-(
+> (Watchdog timeouts are often 1s or less.)
+you can do a lot in 1s
+you start the board dowload the code from nfs and jump in the kernel
+as I do on at91sam9261ek with barebox
 > 
-> - The generic -> board linkage must not be hard (ie, no
-> platform_restart, but a board_ops.restart() etc....)
+> >>>* All board specific information must come from a device tree and
+> >>>    be run-time detected.
+> >>What do you mean by "run-time detected"?
+> >>For powerpc, we currently have the device tree as DTS in the kernel
+> >>and compile and bundle it together with the kernel.
+> >>As you wrote above: "Discoverable hardware [...] is not going to happen"
+> >
+> >I mean writing
+> >
+> >	if (device_is_compatible(dev, SOMETHING))
+> >		do_something();
+> >
+> >instead of
+> >
+> >#ifdef CONFIG_SOMETHING
+> >	do_something();
+> >#endif
+> >
+> >The run-time information could come from anywhere (device tree, hardware
+> >registers, today one might use the board number), the important point is
+> >not to assume that hardware is present just because someone enabled
+> >a Kconfig option.
+> Understood and I agree.
+> 
+> >I believe that rule is generally accepted today, but we don't always
+> >enforce it.
+> Without device tree, Kconfig option is the only way that really
+> works today (no runtime HW detection, and same board ID with different
+> setups).
+you can do it already today with system_rev DTS will allow to make it more
+generic and pass more information and on at91 we could easly have only few
+boards. Except for few case such as really short boottime requirement this
+will not impact the system on contrary
 
-We have that on ARM already.  See for example the struct machine_desc 
-definition in arch/arm/include/asm/mach/arch.h.
-
-> - An average board file is a few hundreds line long, that's it, mostly
-> it hooks up to generically provided functions, tho it gets the choice of
-> _which_ ones to hookup.
-
-Again that's largely the same situation on ARM.  Taking Kirkwood for 
-example (wc -l arch/arm/mach-kirkwood/*-setup.c) the average for board 
-file tends to be more towards 200 lines though.  Here DT could make a 
-difference by moving the statically defined board resources elsewhere.
-
-> - It can still quirk/fixup a thing or two if needed, I thinkt it's
-> useful to keep that around, as long as such "quirks" remain small and
-> few. At the end of the day, if dealing with one board special case gives
-> you the choice between changing a ton of infrastructure/core to
-> introduce a new abstraction to deal with -that- special case vs. having
-> a one liner fixup in the platform code, the later is the most sensible
-> option. The hard part of course is to have sensible maintainers to make
-> sure this doesn't grow back to the old mess.
-
-Totally agreed.  I think that's the core of the issue on ARM: we simply 
-aren't factoring out the duplication aggressively enough in order to 
-keep the board code to the absolute minimum.  The fact that different 
-SoCs are totally alien to each other never encouraged that.
-
-
-Nicolas
+Best Regards,
+J.
+> Device tree in my world is just one big Kconfig option instead of
+> many small...
+> 
+>   Detlef
+> 
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
