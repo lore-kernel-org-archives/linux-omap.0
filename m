@@ -1,38 +1,62 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: RFC, GIC based smp_cross_call cleanup suggestion
-Date: Mon, 04 Apr 2011 14:03:33 +0530
-Message-ID: <4D99825D.2020604@ti.com>
-References: <10921831-0170-4106-bb3a-a52515a32c3e@VA3EHSMHS002.ehs.local> <BANLkTimY+mRXqT7NwUQ86SxnfKw0HX-pTQ@mail.gmail.com> <20110402085133.GE8482@n2100.arm.linux.org.uk> <BANLkTim+bco_90iPLrc1ioV4bdSw+LRzQQ@mail.gmail.com> <BANLkTimjyBzh3Kc+1njcBBYCouKdSWhgng@mail.gmail.com> <20110403103730.GB4213@n2100.arm.linux.org.uk> <4D9851B5.20100@ti.com> <20110403134837.GE4213@n2100.arm.linux.org.uk> <4D997F53.5010409@ti.com> <20110404082518.GA19178@n2100.arm.linux.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Subject: [PATCH] OMAP4: SRAM: Fix warning: format '%08lx' expects type 'long unsigned int'
+Date: Mon,  4 Apr 2011 14:34:56 +0530
+Message-ID: <1301907896-30954-1-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:53165 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754009Ab1DDIdv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Apr 2011 04:33:51 -0400
-Received: by gxk8 with SMTP id 8so2424190gxk.23
-        for <linux-omap@vger.kernel.org>; Mon, 04 Apr 2011 01:33:50 -0700 (PDT)
-In-Reply-To: <20110404082518.GA19178@n2100.arm.linux.org.uk>
+Received: from devils.ext.ti.com ([198.47.26.153]:43520 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751200Ab1DDJFI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Apr 2011 05:05:08 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Grant Likely <grant.likely@secretlab.ca>, Colin Cross <ccross@google.com>, Paul Mundt <lethal@linux-sh.org>, Magnus Damm <magnus.damm@gmail.com>, John Linn <John.Linn@xilinx.com>, linux-arm-kernel@lists.infradead.org, l-o <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-On 4/4/2011 1:55 PM, Russell King - ARM Linux wrote:
-> On Mon, Apr 04, 2011 at 01:50:35PM +0530, Santosh Shilimkar wrote:
->> On 4/3/2011 7:18 PM, Russell King - ARM Linux wrote:
->>> On Sun, Apr 03, 2011 at 04:23:41PM +0530, Santosh Shilimkar wrote:
->>>> If you plan to commit this change then I can move these to
->>>> other OMAP4 header file.
->>>
->>> Can you send me a patch to do that please?
->>>
->> Here it is.. Generated against latest mainline.
->> Also attached just in case for any mailer issues.
->
-> Looks good, please send to the patch system.
-patch 6860/1
+Fix below build warning.
 
-Regards
-Santosh
+ CC	arch/arm/plat-omap/sram.o
+	arch/arm/plat-omap/sram.c: In function 'omap_map_sram':
+	arch/arm/plat-omap/sram.c:224: warning: format '%08lx' expects
+	type 'long unsigned int', but argument 2 has type 'unsigned int'
+
+While at this, convert SRAM printk(* "") to pr_*("").
+
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+---
+ arch/arm/plat-omap/sram.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
+index a3f50b3..7857146 100644
+--- a/arch/arm/plat-omap/sram.c
++++ b/arch/arm/plat-omap/sram.c
+@@ -166,7 +166,7 @@ static void __init omap_detect_sram(void)
+ 		else if (cpu_is_omap1611())
+ 			omap_sram_size = SZ_256K;
+ 		else {
+-			printk(KERN_ERR "Could not detect SRAM size\n");
++			pr_err("Could not detect SRAM size\n");
+ 			omap_sram_size = 0x4000;
+ 		}
+ 	}
+@@ -221,7 +221,7 @@ static void __init omap_map_sram(void)
+ 	omap_sram_io_desc[0].length = ROUND_DOWN(omap_sram_size, PAGE_SIZE);
+ 	iotable_init(omap_sram_io_desc, ARRAY_SIZE(omap_sram_io_desc));
+ 
+-	printk(KERN_INFO "SRAM: Mapped pa 0x%08lx to va 0x%08lx size: 0x%lx\n",
++	pr_info("SRAM: Mapped pa 0x%08x to va 0x%08lx size: 0x%lx\n",
+ 	__pfn_to_phys(omap_sram_io_desc[0].pfn),
+ 	omap_sram_io_desc[0].virtual,
+ 	       omap_sram_io_desc[0].length);
+@@ -252,7 +252,7 @@ static void __init omap_map_sram(void)
+ void *omap_sram_push_address(unsigned long size)
+ {
+ 	if (size > (omap_sram_ceil - (omap_sram_base + SRAM_BOOTLOADER_SZ))) {
+-		printk(KERN_ERR "Not enough space in SRAM\n");
++		pr_err("Not enough space in SRAM\n");
+ 		return NULL;
+ 	}
+ 
+-- 
+1.6.0.4
+
