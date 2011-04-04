@@ -1,115 +1,174 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [GIT PULL] omap changes for v2.6.39 merge window
-Date: Mon, 4 Apr 2011 02:59:26 +0200
-Message-ID: <201104040259.26601.arnd@arndb.de>
-References: <alpine.LFD.2.00.1103310145390.28032@xanadu.home>
-	<201104031726.37420.arnd@arndb.de>
-	<20110403160324.GA8050@n2100.arm.linux.org.uk>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: RFC, GIC based smp_cross_call cleanup suggestion
+Date: Mon, 04 Apr 2011 13:50:35 +0530
+Message-ID: <4D997F53.5010409@ti.com>
+References: <10921831-0170-4106-bb3a-a52515a32c3e@VA3EHSMHS002.ehs.local> <BANLkTimY+mRXqT7NwUQ86SxnfKw0HX-pTQ@mail.gmail.com> <20110402085133.GE8482@n2100.arm.linux.org.uk> <BANLkTim+bco_90iPLrc1ioV4bdSw+LRzQQ@mail.gmail.com> <BANLkTimjyBzh3Kc+1njcBBYCouKdSWhgng@mail.gmail.com> <20110403103730.GB4213@n2100.arm.linux.org.uk> <4D9851B5.20100@ti.com> <20110403134837.GE4213@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20110403160324.GA8050@n2100.arm.linux.org.uk>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: david@lang.hm, Nicolas Pitre <nico@fluxnic.net>, Tony Lindgren <tony@atomide.com>, Catalin Marinas <catalin.marinas@arm.com>, lkml <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@elte.hu>, linux-omap@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, David Brown <davidb@codeaurora.org>, Detlef Vollmann <dv@vollmann.ch>
+Content-Type: multipart/mixed;
+ boundary="------------070909030204030705050008"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:54288 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751016Ab1DDIUz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Apr 2011 04:20:55 -0400
+Received: by gye5 with SMTP id 5so2105323gye.30
+        for <linux-omap@vger.kernel.org>; Mon, 04 Apr 2011 01:20:54 -0700 (PDT)
+In-Reply-To: <20110403134837.GE4213@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Grant Likely <grant.likely@secretlab.ca>, Colin Cross <ccross@google.com>, Paul Mundt <lethal@linux-sh.org>, Magnus Damm <magnus.damm@gmail.com>, John Linn <John.Linn@xilinx.com>, linux-arm-kernel@lists.infradead.org, l-o <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 
-On Sunday 03 April 2011, Russell King - ARM Linux wrote:
-> On Sun, Apr 03, 2011 at 05:26:37PM +0200, Arnd Bergmann wrote:
-> > There are a few other examples that were done in a similar way:
-> > * The drivers/ide code still serves a few hardware platforms that
-> >   never had anyone write a new libata code. Libata itself has
-> >   been in a good shape for a long time though.
-> 
-> And there are platforms where libata just doesn't work but the old
-> ide driver does.  My firewall with a CF card in is completely unusable
-> with libata, but works fine with the old IDE driver.
-> 
-> That's partly caused by there being no support for the ISA IOCS16 signal
-> on that hardware, so the ISA bus needs specific handling depending on
-> the behaviour of the ISA device being addressed.  Yes, crap hardware,
-> nothing new there.
+This is a multi-part message in MIME format.
+--------------070909030204030705050008
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Yes, I think that also illustrates the approach: There is no fundamental
-reason why it could not be made to work with libata, but there is also
-no real incentive to do the work because all users can deal with the
-IDE driver being essentially in bug-fix-only maintainance.
-
-There is the occasional discussion about removing drivers/ide, but
-right now it's more valuable to keep it, and the bug fixes cause
-little trouble.
-
-> Having just looked at the clocksource stuff, there's 9 up-counting 32-bit
-> clocksources which are relatively easy to port to a single piece of code.
+On 4/3/2011 7:18 PM, Russell King - ARM Linux wrote:
+> On Sun, Apr 03, 2011 at 04:23:41PM +0530, Santosh Shilimkar wrote:
+>> If you plan to commit this change then I can move these to
+>> other OMAP4 header file.
 >
-> There's a number of down-counting clocksources using various methods to
-> convert to an up-counting value - sometimes -readl(), sometimes
-> cs->mask - readl() and sometimes ~readl().
-
-All three methods for down-counting can be abstracted as offset-readl(),
-right?
-
-> Then there's those which are either 16-bit or 32-bit, and some of those
-> 16-bit implementations must use readw() to avoid bus faults.
+> Can you send me a patch to do that please?
 >
-> Combining all those together you end up with something pretty disgusting,
-> and an initialization function taking 7 arguments (iomem pointer, name,
-> rating, tick rate, size, up/down counter, clocksource flags).
+Here it is.. Generated against latest mainline.
+Also attached just in case for any mailer issues.
 
-I probably wouldn't use seven arguments, but put all arguments that are
-typically constant per board into a data structure. Not sure we'd even
-need the name unless there are a lot of cases where we'd register
-multiple those clocksources at once. Size and up/down are just
-flags I guess.
+ From 62563f7687d8b19f1c9c3966105d141d91e69b55 Mon Sep 17 00:00:00 2001
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Date: Mon, 4 Apr 2011 12:48:37 +0530
+Subject: [PATCH] OMAP4: Move the privately used SMP boot functions to 
+OMAP specific header.
 
-> Does it lead to more maintainable code?  I'm not convinced - while it
-> certainly reduces the amount of code, but the reduced code is rather
-> more complex.
+Header files in arch/arm/*/include/mach included from
+arch/arm/include/asm/*.h are there to provide necessary definitions for
+either the rest of the kernel or the ARM specific parts.  They shouldn't
+be polluted with *any* platform private stuff which is not absolutely
+necessary to satisfy the rest of the kernel.
 
-Isn't that always the tradeoff of generalizing the code? The big win
-is that we don't get new copies of the same code with slightly different
-bugs and that any changes to the code that are needed for supporting
-new hardware have to get reviewed by people that know it.
+Hence move the OMAP specific SMP boot functions to different header
+instead of keeping them in 'plat/smp.h' which gets included indirectly
+by linux/smp.h
 
-The disadvantage is it's more complex code.
+The patch is outcome of the discussion in below thread:
+	http://www.spinics.net/lists/arm-kernel/msg120363.html
 
-> Would an alternative be to introduce separate mmio-32bit-up, mmio-32bit-down,
-> mmio-16bit-up and mmio-16bit-down clocksources?  That also doesn't give
-> me a good feeling about the result.
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Russell King <rmk+kernel@arm.linux.org.uk>
+---
+  arch/arm/mach-omap2/include/mach/omap4-common.h |    7 +++++++
+  arch/arm/plat-omap/include/plat/smp.h           |    6 ------
+  2 files changed, 7 insertions(+), 6 deletions(-)
 
-Just two booleans doesn't really justify separate drivers, I guess.
+diff --git a/arch/arm/mach-omap2/include/mach/omap4-common.h 
+b/arch/arm/mach-omap2/include/mach/omap4-common.h
+index de441c0..e4bd876 100644
+--- a/arch/arm/mach-omap2/include/mach/omap4-common.h
++++ b/arch/arm/mach-omap2/include/mach/omap4-common.h
+@@ -33,4 +33,11 @@ extern void __iomem *gic_dist_base_addr;
+  extern void __init gic_init_irq(void);
+  extern void omap_smc1(u32 fn, u32 arg);
 
-> Then there's those which change the cs->read function pointer at runtime,
++#ifdef CONFIG_SMP
++/* Needed for secondary core boot */
++extern void omap_secondary_startup(void);
++extern u32 omap_modify_auxcoreboot0(u32 set_mask, u32 clear_mask);
++extern void omap_auxcoreboot_addr(u32 cpu_addr);
++extern u32 omap_read_auxcoreboot0(void);
++#endif
+  #endif
+diff --git a/arch/arm/plat-omap/include/plat/smp.h 
+b/arch/arm/plat-omap/include/plat/smp.h
+index 7a10257..416e9d5 100644
+--- a/arch/arm/plat-omap/include/plat/smp.h
++++ b/arch/arm/plat-omap/include/plat/smp.h
+@@ -19,12 +19,6 @@
 
-I found omap, mxs and mxc doing that. In all cases, the differences between
-the functions that are set are for parameters that depend on the CPU core
-(MMIO address, 16/32 bit read), so that would be covered by the detection
-logic.
+  #include <asm/hardware/gic.h>
 
-> and those which share that pointer with their sched_clock() implementation.
+-/* Needed for secondary core boot */
+-extern void omap_secondary_startup(void);
+-extern u32 omap_modify_auxcoreboot0(u32 set_mask, u32 clear_mask);
+-extern void omap_auxcoreboot_addr(u32 cpu_addr);
+-extern u32 omap_read_auxcoreboot0(void);
+-
+  /*
+   * We use Soft IRQ1 as the IPI
+   */
+-- 
+1.6.0.4
 
-Abstracting sched_clock() to be run-time selected is something that
-needs to be taken care of. Maybe we could have a generic sched_clock
-implementation that is written on top of clocksource instead of jiffies,
-and always select that on architectures that have a decent clocksource.
-Are there any platforms on ARM where that would be a bad idea? I believe
-the main reaons why they are separate is that on x86 you can use the TSC
-for sched_clock in many cases where you cannot use it for clocksource.
 
-> And those which need to do special things (like loop until read values are
-> stable) in their read functions which probably can't ever be supported by
-> common code.
+--------------070909030204030705050008
+Content-Type: text/plain;
+ name="0001-OMAP4-Move-the-privately-used-SMP-boot-functions-to.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename*0="0001-OMAP4-Move-the-privately-used-SMP-boot-functions-to.pat";
+ filename*1="ch"
 
-That's probably fine, because it's basically why we have the abstraction
-at the clocksource level and not below it.
+>From 62563f7687d8b19f1c9c3966105d141d91e69b55 Mon Sep 17 00:00:00 2001
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Date: Mon, 4 Apr 2011 12:48:37 +0530
+Subject: [PATCH] OMAP4: Move the privately used SMP boot functions to OMAP specific header.
 
-	Arnd
+Header files in arch/arm/*/include/mach included from
+arch/arm/include/asm/*.h are there to provide necessary definitions for
+either the rest of the kernel or the ARM specific parts.  They shouldn't
+be polluted with *any* platform private stuff which is not absolutely
+necessary to satisfy the rest of the kernel.
+
+Hence move the OMAP specific SMP boot functions to different header
+instead of keeping them in 'plat/smp.h' which gets included indirectly
+by linux/smp.h
+
+The patch is outcome of the discussion in below thread:
+	http://www.spinics.net/lists/arm-kernel/msg120363.html
+
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Russell King <rmk+kernel@arm.linux.org.uk>
+---
+ arch/arm/mach-omap2/include/mach/omap4-common.h |    7 +++++++
+ arch/arm/plat-omap/include/plat/smp.h           |    6 ------
+ 2 files changed, 7 insertions(+), 6 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/include/mach/omap4-common.h b/arch/arm/mach-omap2/include/mach/omap4-common.h
+index de441c0..e4bd876 100644
+--- a/arch/arm/mach-omap2/include/mach/omap4-common.h
++++ b/arch/arm/mach-omap2/include/mach/omap4-common.h
+@@ -33,4 +33,11 @@ extern void __iomem *gic_dist_base_addr;
+ extern void __init gic_init_irq(void);
+ extern void omap_smc1(u32 fn, u32 arg);
+ 
++#ifdef CONFIG_SMP
++/* Needed for secondary core boot */
++extern void omap_secondary_startup(void);
++extern u32 omap_modify_auxcoreboot0(u32 set_mask, u32 clear_mask);
++extern void omap_auxcoreboot_addr(u32 cpu_addr);
++extern u32 omap_read_auxcoreboot0(void);
++#endif
+ #endif
+diff --git a/arch/arm/plat-omap/include/plat/smp.h b/arch/arm/plat-omap/include/plat/smp.h
+index 7a10257..416e9d5 100644
+--- a/arch/arm/plat-omap/include/plat/smp.h
++++ b/arch/arm/plat-omap/include/plat/smp.h
+@@ -19,12 +19,6 @@
+ 
+ #include <asm/hardware/gic.h>
+ 
+-/* Needed for secondary core boot */
+-extern void omap_secondary_startup(void);
+-extern u32 omap_modify_auxcoreboot0(u32 set_mask, u32 clear_mask);
+-extern void omap_auxcoreboot_addr(u32 cpu_addr);
+-extern u32 omap_read_auxcoreboot0(void);
+-
+ /*
+  * We use Soft IRQ1 as the IPI
+  */
+-- 
+1.6.0.4
+
+
+--------------070909030204030705050008--
