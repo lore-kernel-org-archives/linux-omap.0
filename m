@@ -1,73 +1,64 @@
-From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+From: Nicolas Pitre <nico@fluxnic.net>
 Subject: Re: [GIT PULL] omap changes for v2.6.39 merge window
-Date: Mon, 04 Apr 2011 08:26:13 +1000
-Message-ID: <1301869573.2549.44.camel@pasglop>
+Date: Sun, 03 Apr 2011 22:49:47 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.1104032225170.28032@xanadu.home>
 References: <alpine.LFD.2.00.1103310145390.28032@xanadu.home>
-	<201104011554.07924.arnd@arndb.de>
-	<1301671655.28467.52.camel@e102144-lin.cambridge.arm.com>
-	<201104011755.57412.arnd@arndb.de>
-	<AANLkTikfBhCH5wrpYzKbws0F_UVaskhtN_SUGQ+hU8Ab@mail.gmail.com>
+ <8ya39m2mv65.fsf@huya.qualcomm.com> <20110401074519.GC7594@elte.hu>
+ <201104011554.07924.arnd@arndb.de> <4D95E112.4020400@vollmann.ch>
+ <1301869097.2549.36.camel@pasglop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <AANLkTikfBhCH5wrpYzKbws0F_UVaskhtN_SUGQ+hU8Ab@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: david@lang.hm, Russell King - ARM Linux <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Nicolas Pitre <nico@fluxnic.net>, Tony Lindgren <tony@atomide.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <will.deacon@arm.com>, lkml <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@elte.hu>, linux-omap@vger.kernel.org, David Brown <davidb@codeaurora.org>, linux-arm-kernel@lists.infradead.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from relais.videotron.ca ([24.201.245.36]:49780 "EHLO
+	relais.videotron.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753604Ab1DDCtt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 3 Apr 2011 22:49:49 -0400
+In-reply-to: <1301869097.2549.36.camel@pasglop>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Detlef Vollmann <dv@vollmann.ch>, Arnd Bergmann <arnd@arndb.de>, david@lang.hm, Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Catalin Marinas <catalin.marinas@arm.com>, lkml <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@elte.hu>, linux-omap@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, David Brown <davidb@codeaurora.org>, linux-arm-kernel@lists.infradead.org
 
-On Fri, 2011-04-01 at 09:39 -0700, Linus Torvalds wrote:
-> that just maps some _other_ hardware knowledge (reading a SoC ID or
-> something) into an unrelated thing ("I know this SoC has these bits of
-> hardware").
+On Mon, 4 Apr 2011, Benjamin Herrenschmidt wrote:
+
+> On Fri, 2011-04-01 at 16:28 +0200, Detlef Vollmann wrote:
+> > >   * No board files
+> > Where do you put code that needs to run very early (e.g. pinging the
+> > watchdog)? 
 > 
-> So devicetree should never override actual "hardware tells me it
-> exists here". But you might well have a mapping from SoC ID's to a
-> compiled-in devicetree thing (this is largely what POWER does, iirc).
+> Even on powerpc I keep board files :-)
+> 
+> The main thing is:
+> 
+> - The generic -> board linkage must not be hard (ie, no
+> platform_restart, but a board_ops.restart() etc....)
 
-Not quite :-)
+We have that on ARM already.  See for example the struct machine_desc 
+definition in arch/arm/include/asm/mach/arch.h.
 
-On the most common non-embedded platforms the device-tree comes from the
-firmware which generates it (ie, pSeries, macs, ...)
+> - An average board file is a few hundreds line long, that's it, mostly
+> it hooks up to generically provided functions, tho it gets the choice of
+> _which_ ones to hookup.
 
-On most embedded platforms, the device-tree is either flashed separately
-in a separate flash partition (and thus comes from u-boot) or is wrapped
-with the kernel zImage at install time.
+Again that's largely the same situation on ARM.  Taking Kirkwood for 
+example (wc -l arch/arm/mach-kirkwood/*-setup.c) the average for board 
+file tends to be more towards 200 lines though.  Here DT could make a 
+difference by moving the statically defined board resources elsewhere.
 
-We have almost no case of detecting the board via some magic ID and
-using that to slap a device-tree at runtime, mostly because the old
-embedded platforms before most bootloaders grew the ability to pass us
-the DT blob from flash, simply didn't even have such a board ID...
+> - It can still quirk/fixup a thing or two if needed, I thinkt it's
+> useful to keep that around, as long as such "quirks" remain small and
+> few. At the end of the day, if dealing with one board special case gives
+> you the choice between changing a ton of infrastructure/core to
+> introduce a new abstraction to deal with -that- special case vs. having
+> a one liner fixup in the platform code, the later is the most sensible
+> option. The hard part of course is to have sensible maintainers to make
+> sure this doesn't grow back to the old mess.
 
-They did pass -some- informations but to some extent we were in a worst
-position than ARM which does have them.
-
-However, what I've observed (sadly) in practice is that many
-manufacturers just ship products with bogus board IDs as well, they make
-them up, often non-registered or registered to other vendors, duplicate
-between products etc..., I've seen that with my Marvell based D-Link NAS
-box for example.
-
-But yes, I agree with pretty much everything you said :-) There is -one-
-advantage in -one- specific case to also provide device node
-representation for devices that are otherwise discoverable (PCI etc..),
-which is when the device-tree can carry useful auxiliary informations
-that the devices themselves don't provide. The typical example is that
-growing tendency in ARM world to stick USB ethernet controllers on board
-without a MAC address SEEPROM .... As long as the device is soldered
-(and thus can be addressed via a stable "path" of ports/hubs), it can be
-useful to stick a device-node for it (and for its parent controller,
-potentially PCI, etc...).
+Totally agreed.  I think that's the core of the issue on ARM: we simply 
+aren't factoring out the duplication aggressively enough in order to 
+keep the board code to the absolute minimum.  The fact that different 
+SoCs are totally alien to each other never encouraged that.
 
 
-Cheers,
-Ben.
+Nicolas
