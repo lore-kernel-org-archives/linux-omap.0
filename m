@@ -1,7 +1,7 @@
 From: Linus Walleij <linus.walleij@linaro.org>
 Subject: Re: [GIT PULL] omap changes for v2.6.39 merge window
-Date: Wed, 6 Apr 2011 00:16:22 +0200
-Message-ID: <BANLkTinZ+3PqkbbJp3fFs_Z8JBHQdPYM_g@mail.gmail.com>
+Date: Wed, 6 Apr 2011 00:22:15 +0200
+Message-ID: <BANLkTins_YaNYSRc1ryZuRSnGKO2MEemuA@mail.gmail.com>
 References: <alpine.LFD.2.00.1103310145390.28032@xanadu.home>
 	<201104031726.37420.arnd@arndb.de>
 	<20110403160324.GA8050@n2100.arm.linux.org.uk>
@@ -15,31 +15,27 @@ References: <alpine.LFD.2.00.1103310145390.28032@xanadu.home>
 	<4D9AB958.5010304@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:38420 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752049Ab1DEWQY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Apr 2011 18:16:24 -0400
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <4D9AB958.5010304@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: david@lang.hm, Russell King - ARM Linux <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Nicolas Pitre <nico@fluxnic.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, lkml <linux-kernel@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Detlef Vollmann <dv@vollmann.ch>, David Brown <davidb@codeaurora.org>, Stephen Boyd <sboyd@codeaurora.org>
+Cc: david@lang.hm, Russell King - ARM Linux <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Nicolas Pitre <nico@fluxnic.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, lkml <linux-kernel@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Detlef Vollmann <dv@vollmann.ch>, David Brown <davidb@codeaurora.org>
+List-Id: linux-omap@vger.kernel.org
 
 2011/4/5 Santosh Shilimkar <santosh.shilimkar@ti.com>:
-> [Me]
->> (And third it will also eventually need to hook into the timer-based
->> delay framework that I think Nokia is working on to be really
->> useful, else all delays become unpredictable.)
->>
-> Do you mean udelay()/mdelay() here ?
 
-Yes. Stephen Boyd from Qualcomm has floated patches to fix it for the
-ARM architecture, I just pushed him again. We use it in our
-ST-Ericsson products.
+> The only issue I see is the clock-events implemented using
+> local timers capabilities in low power modes. The local timers
+> won't be able wakeup CPU from DORMANT or OFF state and hence
+> you will need an additional wakeup capable clock-event
+> working together with the local timers using clock-notifiers.
 
-Ideally you'd want that to go along with the A15 timer stuff so that this
-monotonic high-precision timer is also used for udelay()/mdelay().
+And this is because the IRQs it emits are local and thus cannot wake
+the system? This sounds way backwards... A simple na=EFve solution
+would have been to just route out an external IRQ line back from a
+selected timer and into the GIC so it will be able to wake up the
+system, right?
 
 Yours,
 Linus Walleij
