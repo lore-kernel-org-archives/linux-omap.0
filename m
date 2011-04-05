@@ -1,60 +1,62 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] arm: omap: introduce OMAP MCOP board file
-Date: Tue, 5 Apr 2011 12:54:47 +0300
-Message-ID: <20110405095446.GF23776@legolas.emea.dhcp.ti.com>
-References: <1301995970-23699-1-git-send-email-balbi@ti.com>
- <20110405093656.GS2176@legolas.emea.dhcp.ti.com>
- <20110405095119.GD4699@n2100.arm.linux.org.uk>
-Reply-To: balbi@ti.com
+From: Alexander Holler <holler@ahsoftware.de>
+Subject: Re: rtc-twl: catch22 in 2.6.37 and 2.6.38 when clock was never set
+Date: Tue, 05 Apr 2011 12:14:14 +0200
+Message-ID: <4D9AEB76.2060509@ahsoftware.de>
+References: <4D99D5B0.6010503@ahsoftware.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:38907 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750920Ab1DEJyw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Apr 2011 05:54:52 -0400
-Received: by eyg24 with SMTP id 24so53927eyg.25
-        for <linux-omap@vger.kernel.org>; Tue, 05 Apr 2011 02:54:49 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20110405095119.GD4699@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <4D99D5B0.6010503@ahsoftware.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Michael Fillinger <m-fillinger@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-Hi,
+Hello,
 
-On Tue, Apr 05, 2011 at 10:51:19AM +0100, Russell King - ARM Linux wrote:
-> > I don't think Linus will like if we add yet another hwmod + clk data
-> > file just for MCOP, so we need to re-use what's in tree.
-> 
-> I'd suggest holding fire on new stuff.
-> 
-> We *absolutely* *must* show that we're taking Linus' complaint seriously
-> and make headway towards consolidating some of the code.  I don't see that
-> activity as optional.
-> 
-> I've now made the decision (as I mentioned I may do in the thread) that
-> for the next merge window I'm only taking consolidations and bug fixes
-> through my tree, and I encourage everyone else to do the same.  At the
-> moment, I'm planning for this up until the next merge window, but if
-> sufficient progress hasn't been done, I'll extend it thereafter.
-> 
-> In other words, no new platform code and no new platform class code.
-> 
-> The longer it takes to get the consolidation effort producing results, the
-> longer we will have to keep the restriction in place, and the more painful
-> it'll be for people who want to have their platforms merged.
-> 
-> So I hope *no* one is thinking "this isn't my problem, someone else will
-> solve it" - if you're thinking that then we're doomed.
+Am 04.04.2011 16:29, schrieb Alexander Holler:
 
-Ok Russell, we will hold on to this patch and try to help as we can on
-the code consolidation effort.
+> it just happened here that the rechargeable backup battery for the RTC
+> on a TPS65950 run out off power, because of some days while the device
+> wasn't powered.
+>
+> Afterwards I couldn't read or set the clock with hwclock using a kernel
+> 2.6.37.n or 2.6.38.n.
+>
+> I don't have a fix, but I think I've analyzed the problem and can offer
+> a (bad) workaround.
+>
+> What happens is the following:
+>
+> When trying to read or set the clock with hwclock, the driver (rtc-twl)
+> starts an alarm, but the irq for the alarm will never get called. The
+> result is that a select in hwclock times out (for both operations, read
+> or set).
+>
+> Because I had this clock running before, I've got the idea to try one of
+> those old OMAP-kernels (2.6.32-angstrom) using the same userland.
+> And with that kernel I could set the clock.
+> Using 2.6.37 or 2.6.38 afterwards, hwclock did function again, both read
+> an set are working.
+>
+> So it looks like there is a catch22 in kernels >=2.6.37 (I haven't
+> tested .33-.36):
+>
+> When the clock was never set, the alarm(-irq) doesn't work, so hwclock
+> doesn't work, so one can't set the clock.
 
-Let's hope to get this sorted out soon as it would be really great for
-us to start pre-silicon validation with mainline kernel with little to
-no effort needed :-D
+It turns out that the missing/wrong initialization of the msecure line 
+is the problem which disabled setting the clock. After doing that 
+through a quick hack, I could set the clock.
 
--- 
-balbi
+I'm using a BeagleBoard C4, but I can't find any msecure initialization 
+for other boards too.
+
+What happened with those patches? E.g. those:
+
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg16125.html
+
+Regards,
+
+Alexander
