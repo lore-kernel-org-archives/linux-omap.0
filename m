@@ -1,88 +1,50 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [GIT PULL] omap changes for v2.6.39 merge window
-Date: Tue, 05 Apr 2011 12:10:24 +0530
-Message-ID: <4D9AB958.5010304@ti.com>
-References: <alpine.LFD.2.00.1103310145390.28032@xanadu.home>	<201104031726.37420.arnd@arndb.de>	<20110403160324.GA8050@n2100.arm.linux.org.uk>	<201104040259.26601.arnd@arndb.de>	<1301915022.15819.28.camel@e102109-lin.cambridge.arm.com>	<20110404112104.GB19854@n2100.arm.linux.org.uk>	<1301923457.417.34.camel@e102391-lin.cambridge.arm.com>	<20110404133104.GA23266@n2100.arm.linux.org.uk>	<1301925445.417.54.camel@e102391-lin.cambridge.arm.com> <BANLkTi=d-rQpinSW9YPsZbkh9tDK5FLS+w@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <BANLkTi=d-rQpinSW9YPsZbkh9tDK5FLS+w@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Marc Zyngier <Marc.Zyngier@arm.com>, david@lang.hm, Russell King - ARM Linux <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Nicolas Pitre <nico@fluxnic.net>, Tony Lindgren <tony@atomide.com>, Catalin Marinas <catalin.marinas@arm.com>, lkml <linux-kernel@vger.kernel.org>, Detlef Vollmann <dv@vollmann.ch>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, linux-arm-kernel@lists.infradead.org, David Brown <davidb@codeaurora.org>
+From: Hemant Pedanekar <hemantp@ti.com>
+Subject: [PATCH] pci: Add quirk for setting valid class for TI816X Endpoint
+Date: Tue,  5 Apr 2011 12:32:50 +0530
+Message-ID: <1301986970-16482-1-git-send-email-hemantp@ti.com>
+Return-path: <linux-pci-owner@vger.kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: jbarnes@virtuousgeek.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Hemant Pedanekar <hemantp@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 4/5/2011 1:38 AM, Linus Walleij wrote:
-> 2011/4/4 Marc Zyngier<Marc.Zyngier@arm.com>:
->> On Mon, 2011-04-04 at 14:31 +0100, Russell King - ARM Linux wrote:
->>>
->>> If ARM are going to architect a set of timers into the hardware, let's
->>> make sure that all such hardware has them so we can dig ourselves out
->>> of this crappy mess that we find ourselves in today.
->>
->> As far as I know, A15 always has a set of generic timers.
->>
->> It may be that they are not available (frequency not programmed into the
->> CNTFREQ register), or that someone decided to use a better alternative
->> (for some particular interpretation of "better").
->
-> I guess this thing is inside that A15 core?
->
-Yes but the power domain partitioning can be used.
+TI816X (common name for DM816x/C6A816x/AM389x family) devices configured to boot
+as PCIe Endpoint have class code = 0. This makes kernel PCI bus code to skip
+allocating BARs to these devices resulting into following type of error when
+trying to enable them:
 
-> First, what happens the day any vendors start making SoCs on this is
-> they turn the A15 core off whenever it is not used, loosing all state
-> including this timer, I believe.
->
-> This forces them all to add some totally different clocksource, event and
-> wakeup in some always-on voltage domain and rate that higher than
-> the A15 timer(s). They will then implement sched_clock() and
-> clocksource on that instead and only use A15 for localtimers.
->
-> (Leading to the proliferation of board/SoC timer hacks discussed
-> so much recently...)
->
-> The only way to reuse that poor thing in practice is if you engineer
-> a separate power domain with stuff that is supposed to be always-on
-> in the A15 macro (including these timers) so vendors must implement
-> this so as not to loose its state. Is this the case?
->
-Yes. From what I understood from A15 timer architeture so far is,
-A15 counter is suppose to be kept in ALWAYS ON domain by Soc vendors.
-That's the requirement.
+"Device 0000:01:00.0 not available because of resource collisions"
 
-> Else, in effect it will only be used as clocksource and sched_clock()
-> with these Versatile boards where the power is always on anyway.
->
-> Second, have you taken into account the effect of changing the
-> frequency of the A15 core, which is something every vendor also
-> does, as you know Colin Cross already has a patch pending
-> for that on the TWD localtimer which has not yet reached
-> the kernel. (Or is A15 fixed frequency? Forgive my ignorance...)
->
-This one is also addressed. The counter will run on fixed
-frequency and even if the clock input has changed, the
-counting will be as if the clock source is constant.
-e.g
-- @6 MHz, counter will increment count by 1 for every ~166 nS
-- @32 KHz, counter will increment count by ~183 times for
-   every ~30 ms
+The device cannot be operated because of the above issue.
 
-So overall clock-source should work in all scenario's including low
-power scenario'.
+This patch adds a ID specific (TI VENDOR ID and 816X DEVICE ID based) 'early'
+fixup quirk to replace class code with PCI_CLASS_MULTIMEDIA_VIDEO as class.
 
-The only issue I see is the clock-events implemented using
-local timers capabilities in low power modes. The local timers
-won't be able wakeup CPU from DORMANT or OFF state and hence
-you will need an additional wakeup capable clock-event
-working together with the local timers using clock-notifiers.
+Signed-off-by: Hemant Pedanekar <hemantp@ti.com>
+---
+ drivers/pci/quirks.c |   10 ++++++++++
+ 1 files changed, 10 insertions(+), 0 deletions(-)
 
-> (And third it will also eventually need to hook into the timer-based
-> delay framework that I think Nokia is working on to be really
-> useful, else all delays become unpredictable.)
->
-Do you mean udelay()/mdelay() here ?
-
-Regards
-Santosh
+diff --git a/drivers/pci/quirks.c b/drivers/pci/quirks.c
+index bd80f63..a1e4f61 100644
+--- a/drivers/pci/quirks.c
++++ b/drivers/pci/quirks.c
+@@ -2784,6 +2784,16 @@ DECLARE_PCI_FIXUP_EARLY(PCI_VENDOR_ID_INTEL, 0x342e, vtd_mask_spec_errors);
+ DECLARE_PCI_FIXUP_EARLY(PCI_VENDOR_ID_INTEL, 0x3c28, vtd_mask_spec_errors);
+ #endif
+ 
++static void __devinit fixup_ti816x_class(struct pci_dev* dev)
++{
++	/* TI 816x devices do not have class code set when in PCIe boot mode */
++	if (dev->class == PCI_CLASS_NOT_DEFINED) {
++		dev_info(&dev->dev, "Setting PCI class for 816x PCIe device\n");
++		dev->class = PCI_CLASS_MULTIMEDIA_VIDEO;
++	}
++}
++DECLARE_PCI_FIXUP_EARLY(PCI_VENDOR_ID_TI, 0xb800, fixup_ti816x_class);
++
+ static void pci_do_fixups(struct pci_dev *dev, struct pci_fixup *f,
+ 			  struct pci_fixup *end)
+ {
+-- 
+1.7.3.5
