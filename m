@@ -1,56 +1,95 @@
-From: Avik Sil <aviksil@linux.vnet.ibm.com>
-Subject: Re: arm: pmu: support pmu/perf on OMAP4 - booting problem on pandaboard
-Date: Tue, 05 Apr 2011 16:35:52 +0530
-Message-ID: <4D9AF790.7010504@linux.vnet.ibm.com>
-References: <4D95E244.1050400@linux.vnet.ibm.com> <BANLkTi=nOR=yX=QgbyCoYUE1U7DPxUCCzw@mail.gmail.com> <4D99D251.6000901@linux.vnet.ibm.com> <BANLkTikmC_OT5TsN_jfVoUjvvcSsR2p3HA@mail.gmail.com> <4D99EB4B.3020303@linux.vnet.ibm.com> <BANLkTinQ-QQ7zu2KrhhhdWwnzo=a-KynoQ@mail.gmail.com>
+From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
+	<u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+Subject: Re: [PATCH] ARM: type casts update_sched_clock cyc_to_sched_clock
+ cyc_to_fixed_sched_clock
+Date: Tue, 5 Apr 2011 13:12:57 +0200
+Message-ID: <20110405111257.GR13963@pengutronix.de>
+References: <1301989401-11984-1-git-send-email-j.weitzel@phytec.de>
+ <20110405075622.GB4699@n2100.arm.linux.org.uk>
+ <20110405083144.GN13963@pengutronix.de>
+ <20110405090100.GC4699@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from e8.ny.us.ibm.com ([32.97.182.138]:39621 "EHLO e8.ny.us.ibm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752743Ab1DELF5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 5 Apr 2011 07:05:57 -0400
-Received: from d01dlp01.pok.ibm.com (d01dlp01.pok.ibm.com [9.56.224.56])
-	by e8.ny.us.ibm.com (8.14.4/8.13.1) with ESMTP id p35AeuXr009351
-	for <linux-omap@vger.kernel.org>; Tue, 5 Apr 2011 06:40:56 -0400
-Received: from d01relay03.pok.ibm.com (d01relay03.pok.ibm.com [9.56.227.235])
-	by d01dlp01.pok.ibm.com (Postfix) with ESMTP id CF94438C803B
-	for <linux-omap@vger.kernel.org>; Tue,  5 Apr 2011 07:05:48 -0400 (EDT)
-Received: from d01av01.pok.ibm.com (d01av01.pok.ibm.com [9.56.224.215])
-	by d01relay03.pok.ibm.com (8.13.8/8.13.8/NCO v10.0) with ESMTP id p35B5uBU341832
-	for <linux-omap@vger.kernel.org>; Tue, 5 Apr 2011 07:05:56 -0400
-Received: from d01av01.pok.ibm.com (loopback [127.0.0.1])
-	by d01av01.pok.ibm.com (8.14.4/8.13.1/NCO v10.0 AVout) with ESMTP id p35B5tXT001917
-	for <linux-omap@vger.kernel.org>; Tue, 5 Apr 2011 07:05:56 -0400
-In-Reply-To: <BANLkTinQ-QQ7zu2KrhhhdWwnzo=a-KynoQ@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20110405090100.GC4699-l+eeeJia6m9vn6HldHNs0ANdhmdF6hFW@public.gmane.org>
+Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+Cc: Jan Weitzel <j.weitzel-guT5V/WYfQezQB+pC5nmwQ@public.gmane.org>, kaloz-p3rKhJxN3npAfugRpC6u6w@public.gmane.org, khc-9GfyWEdoJtJmR6Xm/wNWPw@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, eric.y.miao-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, rubini-9wsNiZum9E8@public.gmane.org, STEricsson_nomadik_linux-nkJGhpqTU55BDgjK7y7TUQ@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, trivial-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Ming Lei <tom.leiming@gmail.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Tuesday 05 April 2011 07:33 AM, Ming Lei wrote:
-> Hi,
->
-> 2011/4/5 Avik Sil<aviksil@linux.vnet.ibm.com>:
->> #define OMAP4430_CM_L3INSTR_L3_3_CLKCTRL
->> OMAP44XX_CM2_REGADDR(OMAP4430_CM2_CORE_INST, 0x0720)
->> [...]
->>
->> Should I use those identifier instead?
->
-> Yes, seems right, but you need to use the ioremap addresses of the identifiers.
->
-Even after using ioremapped addresses in omap_writel() I'm getting the 
-oops. Can you please point me to the location in mainline, where these 
-l3 clocks are enabled?
+On Tue, Apr 05, 2011 at 10:01:00AM +0100, Russell King - ARM Linux wrot=
+e:
+> On Tue, Apr 05, 2011 at 10:31:44AM +0200, Uwe Kleine-K=F6nig wrote:
+> > On Tue, Apr 05, 2011 at 08:56:22AM +0100, Russell King - ARM Linux =
+wrote:
+> > > On Tue, Apr 05, 2011 at 09:43:21AM +0200, Jan Weitzel wrote:
+> > > > parameter "u32 mask" type cast befor inversion
+> > s/befor/before/
+> >=20
+> > > Nak.  I want a 32-bit all ones quantity.
+> > >=20
+> > > unsigned long long vali =3D (unsigned short)~0;
+> > > unsigned long long vall =3D ~(unsigned short)0;
+> > >=20
+> > BTW, the definiton of vall is equivalent to=20
+> >=20
+> > 	unsigned long long valu =3D ~(unsigned int)0;
+> >=20
+> > because ~ converts the unsigned short to unsigned int.
+>=20
+> No.  The value gets promoted to int not unsigned int.
+>=20
+> > > compiles to:
+> > >=20
+> > > vali:
+> > >         .word   65535
+> > >         .word   0
+> > >=20
+> > > vall:
+> > >         .word   -1
+> > >         .word   -1
+> > I really wonder about that. If I take a value of 0xffffffff (i.e. a=
+ 32
+> > bit wide int =3D=3D ~0U) and assign that to an 64-bit unsigned long=
+ long I'd
+> > expect it to get the value 0x00000000ffffffffULL, not
+> > 0xffffffffffffffffULL. What's wrong?
+>=20
+> See above.  int not unsigned int.  And it makes a difference:
+>=20
+> unsigned long long vals =3D ~(int)0;
+> unsigned long long valu =3D ~(unsigned int)0;
+>=20
+> vals:
+>         .word   -1
+>         .word   -1
+> valu:
+>         .word   -1
+>         .word   0
+>=20
+ah, ok, makes sense and actually is consistent with my book.
+(After knowing what I search I found it. The rules are:
 
-Regards,
-Avik
->> Are there other definitions for the identifiers you have used?
->
-> As I said  before, these are not needed for mainline, so I didn't try these.
->
->
-> thanks,
+ - A signed type of rank less than int
+   -> int
+ - An unsigned type of rank less than int,
+   all of whose values can be represented in type int
+   -> int
+ - An unsigned type of rank less than int,
+   all of whose values cannot be represented in type int
+   -> unsigned int
+).
 
+So the maximal correct variant is (u32)(int)~0U or alternatively
+(u32)(-1), right?
+
+Thanks for your answer, best regards
+Uwe
+
+--=20
+Pengutronix e.K.                           | Uwe Kleine-K=F6nig        =
+    |
+Industrial Linux Solutions                 | http://www.pengutronix.de/=
+  |
