@@ -1,43 +1,51 @@
-From: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
-Subject: Re: [PATCH] ARM: type casts update_sched_clock cyc_to_sched_clock
-	cyc_to_fixed_sched_clock
-Date: Tue, 5 Apr 2011 14:57:06 +0100
-Message-ID: <20110405135706.GE4699@n2100.arm.linux.org.uk>
-References: <1301989401-11984-1-git-send-email-j.weitzel@phytec.de> <20110405075622.GB4699@n2100.arm.linux.org.uk> <20110405083144.GN13963@pengutronix.de> <20110405090100.GC4699@n2100.arm.linux.org.uk> <20110405111257.GR13963@pengutronix.de>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [GIT PULL] omap changes for v2.6.39 merge window
+Date: Tue, 05 Apr 2011 15:15:51 +0100
+Message-ID: <1302012951.1866.144.camel@e102109-lin.cambridge.arm.com>
+References: <201104031726.37420.arnd@arndb.de>
+	 <20110403160324.GA8050@n2100.arm.linux.org.uk>
+	 <201104040259.26601.arnd@arndb.de>
+	 <1301915022.15819.28.camel@e102109-lin.cambridge.arm.com>
+	 <20110404112104.GB19854@n2100.arm.linux.org.uk>
+	 <1301923457.417.34.camel@e102391-lin.cambridge.arm.com>
+	 <20110404133104.GA23266@n2100.arm.linux.org.uk>
+	 <1301925445.417.54.camel@e102391-lin.cambridge.arm.com>
+	 <BANLkTi=d-rQpinSW9YPsZbkh9tDK5FLS+w@mail.gmail.com>
+	 <4D9AB958.5010304@ti.com>  <20110405074510.GA4699@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20110405111257.GR13963-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Cc: Jan Weitzel <j.weitzel-guT5V/WYfQezQB+pC5nmwQ@public.gmane.org>, kaloz-p3rKhJxN3npAfugRpC6u6w@public.gmane.org, khc-9GfyWEdoJtJmR6Xm/wNWPw@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, eric.y.miao-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, rubini-9wsNiZum9E8@public.gmane.org, STEricsson_nomadik_linux-nkJGhpqTU55BDgjK7y7TUQ@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, trivial-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20110405074510.GA4699@n2100.arm.linux.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Linus Walleij <linus.walleij@linaro.org>, Marc Zyngier <Marc.Zyngier@arm.com>, david@lang.hm, Arnd Bergmann <arnd@arndb.de>, Nicolas Pitre <nico@fluxnic.net>, Tony Lindgren <tony@atomide.com>, lkml <linux-kernel@vger.kernel.org>, Detlef Vollmann <dv@vollmann.ch>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, linux-arm-kernel@lists.infradead.org, David Brown <davidb@codeaurora.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Apr 05, 2011 at 01:12:57PM +0200, Uwe Kleine-K=F6nig wrote:
-> ah, ok, makes sense and actually is consistent with my book.
-> (After knowing what I search I found it. The rules are:
->=20
->  - A signed type of rank less than int
->    -> int
->  - An unsigned type of rank less than int,
->    all of whose values can be represented in type int
->    -> int
->  - An unsigned type of rank less than int,
->    all of whose values cannot be represented in type int
->    -> unsigned int
-> ).
->=20
-> So the maximal correct variant is (u32)(int)~0U or alternatively
-> (u32)(-1), right?
+On Tue, 2011-04-05 at 08:45 +0100, Russell King - ARM Linux wrote:
+> On Tue, Apr 05, 2011 at 12:10:24PM +0530, Santosh Shilimkar wrote:
+> > The only issue I see is the clock-events implemented using
+> > local timers capabilities in low power modes. The local timers
+> > won't be able wakeup CPU from DORMANT or OFF state and hence
+> > you will need an additional wakeup capable clock-event
+> > working together with the local timers using clock-notifiers.
+> 
+> So yet again, we have something that almost works but doesn't, and
+> we're going to have to have board-specific hacks to work around this.
+> 
+> This makes the architected timers totally *pointless*.
 
-If you really want to be pedantic, (u32)~0UL, as we assume that longs
-will always be equal or larger than 32-bit throughout the kernel.  The
-u32 cast then becomes truncating in itself.
+The point of architected timers is that you now get fast access to a
+stable clock source with a fixed frequency that doesn't change with
+cpufreq. You can also configure the clock source to be accessible from
+user space (via another kuser helper) so that you have a fast
+gettimeofday implementation (useful in the graphics world). Virtual
+counters are another advantage.
 
-But... in the interests of avoiding churn, we know the current code
-works, we know that its safe should we chose to change the function
-argument to be a u64, so lets leave it as-is.  We know the only time
-that it'd break is if an 'int' becomes less than 32-bit, which we
-aren't going to see on ARM any time soon.
+The architecture doesn't say much about the power domains, so
+implementations are allowed to vary here. Of course it would have been
+better if it did but this doesn't make the architected timers totally
+pointless (compare them with the A9 timers).
+
+-- 
+Catalin
