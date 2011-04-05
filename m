@@ -1,55 +1,137 @@
-From: Ameya Palande <ameya.palande@nokia.com>
-Subject: Re: [PATCHv2] omap: rx51: Platform support for lp5523 led chip
-Date: Tue, 5 Apr 2011 15:00:11 +0300
-Message-ID: <4D9B044B.7000604@nokia.com>
-References: <alpine.DEB.1.10.1103311524420.2634@esdhcp041196.research.nokia.com> <1301578692-29286-1-git-send-email-ameya.palande@nokia.com> <20110331142635.GF5465@legolas.emea.dhcp.ti.com> <4D949E18.6090704@nokia.com> <20110331154421.GN5465@legolas.emea.dhcp.ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCHv3] omap: rx51: Platform support for lp5523 led chip
+Date: Tue, 5 Apr 2011 15:03:20 +0300
+Message-ID: <20110405120319.GC30505@legolas.emea.dhcp.ti.com>
+References: <20110331154421.GN5465@legolas.emea.dhcp.ti.com>
+ <1301652972-29666-1-git-send-email-ameya.palande@nokia.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.24]:40505 "EHLO mgw-da01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752904Ab1DEMA7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 5 Apr 2011 08:00:59 -0400
-In-Reply-To: <20110331154421.GN5465@legolas.emea.dhcp.ti.com>
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:38337 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753041Ab1DEMD1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Apr 2011 08:03:27 -0400
+Received: by mail-ew0-f44.google.com with SMTP id 19so92598ewy.3
+        for <linux-omap@vger.kernel.org>; Tue, 05 Apr 2011 05:03:23 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <1301652972-29666-1-git-send-email-ameya.palande@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: linux-omap@vger.kernel.org, mathias.nyman@nokia.com, linux-arm-kernel@lists.infradead.org
+To: Ameya Palande <ameya.palande@nokia.com>
+Cc: linux-omap@vger.kernel.org, balbi@ti.com, mathias.nyman@nokia.com, linux-arm-kernel@lists.infradead.org
 
-Hi Felipe,
+On Fri, Apr 01, 2011 at 01:16:12PM +0300, Ameya Palande wrote:
+> Signed-off-by: Ameya Palande <ameya.palande@nokia.com>
+> Signed-off-by: Mathias Nyman <mathias.nyman@nokia.com>
 
-On 03/31/2011 06:44 PM, ext Felipe Balbi wrote:
-> On Thu, Mar 31, 2011 at 06:30:32PM +0300, Ameya Palande wrote:
->> Hi Felipe,
->>
->> On 03/31/2011 05:26 PM, ext Felipe Balbi wrote:
->>> Hi,
->>>
->>> On Thu, Mar 31, 2011 at 04:38:12PM +0300, Ameya Palande wrote:
->>>> +static int rx51_lp5523_setup(void)
->>>> +{
->>>> +	int err;
->>>> +
->>>> +	err = gpio_request_one(RX51_LP5523_CHIP_EN_GPIO, GPIOF_DIR_OUT,
->>>> +			"lp5523_enable");
->>>> +	if (err<   0) {
->>>> +		pr_err("Unable to get lp5523_enable GPIO\n");
->>>> +		return err;
->>>> +	}
->>>> +
->>>> +	return err;
->>>
->>> isn't enough to return gpio_request_one(RX51_LP5523_CHIP_EN_GPIO,
->>> GPIOF_DIR_OUT, "lp5523_enable"); ??
->>
->> But then we won't know the failure reason for lp5523_probe()
->> I would prefer printing an error!
->
-> see that both gpio_request() and gpio_direction_output() have debugging
-> prints for error cases ;-)
+Reviewed-by: Felipe Balbi <balbi@ti.com>
 
-Any comments about the version 3 of this patch?
+> ---
+>  arch/arm/mach-omap2/board-rx51-peripherals.c |   66 ++++++++++++++++++++++++++
+>  1 files changed, 66 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+> index bbcb677..d8ec895 100644
+> --- a/arch/arm/mach-omap2/board-rx51-peripherals.c
+> +++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+> @@ -38,6 +38,7 @@
+>  #include <sound/tpa6130a2-plat.h>
+>  #include <media/radio-si4713.h>
+>  #include <media/si4713.h>
+> +#include <linux/leds-lp5523.h>
+>  
+>  #include <../drivers/staging/iio/light/tsl2563.h>
+>  
+> @@ -51,6 +52,7 @@
+>  #define RX51_WL1251_IRQ_GPIO		42
+>  #define RX51_FMTX_RESET_GPIO		163
+>  #define RX51_FMTX_IRQ			53
+> +#define RX51_LP5523_CHIP_EN_GPIO	41
+>  
+>  /* list all spi devices here */
+>  enum {
+> @@ -67,6 +69,64 @@ static struct tsl2563_platform_data rx51_tsl2563_platform_data = {
+>  };
+>  #endif
+>  
+> +#if defined(CONFIG_LEDS_LP5523) || defined(CONFIG_LEDS_LP5523_MODULE)
+> +static struct lp5523_led_config rx51_lp5523_led_config[] = {
+> +	{
+> +		.chan_nr	= 0,
+> +		.led_current	= 50,
+> +	}, {
+> +		.chan_nr	= 1,
+> +		.led_current	= 50,
+> +	}, {
+> +		.chan_nr	= 2,
+> +		.led_current	= 50,
+> +	}, {
+> +		.chan_nr	= 3,
+> +		.led_current	= 50,
+> +	}, {
+> +		.chan_nr	= 4,
+> +		.led_current	= 50,
+> +	}, {
+> +		.chan_nr	= 5,
+> +		.led_current	= 50,
+> +	}, {
+> +		.chan_nr	= 6,
+> +		.led_current	= 50,
+> +	}, {
+> +		.chan_nr	= 7,
+> +		.led_current	= 50,
+> +	}, {
+> +		.chan_nr	= 8,
+> +		.led_current	= 50,
+> +	}
+> +};
+> +
+> +static int rx51_lp5523_setup(void)
+> +{
+> +	return gpio_request_one(RX51_LP5523_CHIP_EN_GPIO, GPIOF_DIR_OUT,
+> +			"lp5523_enable");
+> +}
+> +
+> +static void rx51_lp5523_release(void)
+> +{
+> +	gpio_free(RX51_LP5523_CHIP_EN_GPIO);
+> +}
+> +
+> +static void rx51_lp5523_enable(bool state)
+> +{
+> +	gpio_set_value(RX51_LP5523_CHIP_EN_GPIO, !!state);
+> +}
+> +
+> +static struct lp5523_platform_data rx51_lp5523_platform_data = {
+> +	.led_config		= rx51_lp5523_led_config,
+> +	.num_channels		= ARRAY_SIZE(rx51_lp5523_led_config),
+> +	.clock_mode		= LP5523_CLOCK_AUTO,
+> +	.setup_resources	= rx51_lp5523_setup,
+> +	.release_resources	= rx51_lp5523_release,
+> +	.enable			= rx51_lp5523_enable,
+> +};
+> +#endif
+> +
+>  static struct omap2_mcspi_device_config wl1251_mcspi_config = {
+>  	.turbo_mode	= 0,
+>  	.single_channel	= 1,
+> @@ -816,6 +876,12 @@ static struct i2c_board_info __initdata rx51_peripherals_i2c_board_info_2[] = {
+>  		.platform_data = &rx51_tsl2563_platform_data,
+>  	},
+>  #endif
+> +#if defined(CONFIG_LEDS_LP5523) || defined(CONFIG_LEDS_LP5523_MODULE)
+> +	{
+> +		I2C_BOARD_INFO("lp5523", 0x32),
+> +		.platform_data  = &rx51_lp5523_platform_data,
+> +	},
+> +#endif
+>  	{
+>  		I2C_BOARD_INFO("tpa6130a2", 0x60),
+>  		.platform_data = &rx51_tpa6130a2_data,
+> -- 
+> 1.7.1
+> 
 
-Cheers,
-Ameya.
+-- 
+balbi
