@@ -1,59 +1,45 @@
-From: Johan Hovold <jhovold@gmail.com>
-Subject: [PATCH] usb: musb: omap2430: fix build failure
-Date: Tue,  5 Apr 2011 19:50:34 +0200
-Message-ID: <1302025834-25729-1-git-send-email-jhovold@gmail.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: mourning the loss of David Brownell
+Date: Tue, 5 Apr 2011 14:10:53 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1104051350480.1972-100000@iolanthe.rowland.org>
+References: <20110405034819.GA7872@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:42041 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750807Ab1DERu4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Apr 2011 13:50:56 -0400
+Received: from iolanthe.rowland.org ([192.131.102.54]:50887 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1755569Ab1DESKy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Apr 2011 14:10:54 -0400
+In-Reply-To: <20110405034819.GA7872@kroah.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>, Hema HK <hemahk@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Johan Hovold <jhovold@gmail.com>
+To: Greg KH <greg@kroah.com>
+Cc: Kernel development list <linux-kernel@vger.kernel.org>, USB list <linux-usb@vger.kernel.org>, linux-omap@vger.kernel.org, spi-devel-general@lists.sourceforge.net, netdev@vger.kernel.org
 
-=46ix build failure introduced by commit
-7acc6197b76edd0b932a7cbcc6cfad0a8a87f026 (usb: musb: Idle path retentio=
-n
-and offmode support for OMAP3) when building without gadget
-support.
+On Mon, 4 Apr 2011, Greg KH wrote:
 
-  CC      drivers/usb/musb/omap2430.o
-drivers/usb/musb/omap2430.c: In function =E2=80=98musb_otg_notification=
-s=E2=80=99:
-drivers/usb/musb/omap2430.c:262: error: =E2=80=98struct musb=E2=80=99 h=
-as no member named =E2=80=98gadget_driver=E2=80=99
+> As I have seen this tangentally mentioned already a few times
+> publically, I figured it warranted it's own announcement now.
+> 
+> Linux has lost a great developer with the passing of David Brownell
+> recently and he will be greatly missed.
 
-Signed-off-by: Johan Hovold <jhovold@gmail.com>
----
- drivers/usb/musb/omap2430.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+David made contributions to a large number of areas in the Linux
+kernel.  Even a quick look through MAINTAINERS will show that he worked
+on USB controllers (OHCI, EHCI, OMAP and others), USB gadgets, USB
+networking, and SPI.  He was influential in the core USB design (the
+HCD "glue" layer and the scatter-gather library) and the development of
+Power Management (system sleep and the USB PM implementation).  His
+designs were elegant and his code was always a pleasure to read.
 
-diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-index 25cb8b0..57a27fa 100644
---- a/drivers/usb/musb/omap2430.c
-+++ b/drivers/usb/musb/omap2430.c
-@@ -259,9 +259,10 @@ static int musb_otg_notifications(struct notifier_=
-block *nb,
- 	case USB_EVENT_VBUS:
- 		DBG(4, "VBUS Connect\n");
-=20
-+#ifdef CONFIG_USB_GADGET_MUSB_HDRC
- 		if (musb->gadget_driver)
- 			pm_runtime_get_sync(musb->controller);
--
-+#endif
- 		otg_init(musb->xceiv);
- 		break;
-=20
---=20
-1.7.4.1
+He also was a big help to me personally, assisting in my initial entry
+to USB core development.  And he was the first person I met at the
+first Linux conference I attended.  I too will miss him.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Alan Stern
+
+PS: A photo of David taken at the 2008 Linux Kernel Summit is available
+here:
+
+http://www.google.com/imgres?imgurl=http://farm4.static.flickr.com/3004/2949819475_98cbfc48b7.jpg&imgrefurl=http://www.flickr.com/photos/13825348%40N03/sets/72157608741347102/detail/&usg=__HjzUpixk_ITqzSnIhvUuWqdjQ_c=&h=500&w=333&sz=70&hl=en&start=0&zoom=1&tbnid=pixlWzZ4wUo1RM:&tbnh=132&tbnw=114&ei=w1mbTdXsCoO6sAOHp-j9Aw&prev=/search%3Fq%3Ddavid%2Bbrownell%26hl%3Den%26sa%3DX%26biw%3D1024%26bih%3D712%26tbm%3Disch%26prmd%3Divnso0%2C89&itbs=1&iact=hc&vpx=258&vpy=263&dur=7360&hovh=275&hovw=183&tx=85&ty=295&oei=w1mbTdXsCoO6sAOHp-j9Aw&page=1&ndsp=23&ved=1t:429,r:12,s:0&biw=1024&bih=712
+
