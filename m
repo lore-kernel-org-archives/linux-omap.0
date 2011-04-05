@@ -1,48 +1,88 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: RX-51: Platform support for lp5523
-Date: Tue, 5 Apr 2011 15:38:42 +0300
-Message-ID: <20110405123841.GN30505@legolas.emea.dhcp.ti.com>
-References: <20110329172922.GA19494@earth.universe>
- <20110329173647.GK4016@atomide.com>
- <20110329181615.GA20371@earth.universe>
- <20110329193301.GP4016@atomide.com>
- <4D9B06C1.1080306@nokia.com>
- <20110405121911.GJ30505@legolas.emea.dhcp.ti.com>
- <4D9B09B0.9020806@nokia.com>
- <20110405123015.GM30505@legolas.emea.dhcp.ti.com>
- <4D9B0C40.8080705@nokia.com>
-Reply-To: balbi@ti.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: [PATCH 1/4] OMAP2+: clockdomain: Add an api to read idle mode
+Date: Tue,  5 Apr 2011 18:14:54 +0530
+Message-ID: <1302007497-10525-2-git-send-email-rnayak@ti.com>
+References: <1302007497-10525-1-git-send-email-rnayak@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:53039 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752022Ab1DEMir (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Apr 2011 08:38:47 -0400
-Received: by ewy6 with SMTP id 6so88361ewy.38
-        for <linux-omap@vger.kernel.org>; Tue, 05 Apr 2011 05:38:45 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <4D9B0C40.8080705@nokia.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:48309 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753394Ab1DEMpP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 5 Apr 2011 08:45:15 -0400
+In-Reply-To: <1302007497-10525-1-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ameya Palande <ameya.palande@nokia.com>
-Cc: balbi@ti.com, ext Tony Lindgren <tony@atomide.com>, Sebastian Reichel <sre@debian.org>, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: paul@pwsan.com, khilman@ti.com, b-cousson@ti.com, santosh.shilimkar@ti.com, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
 
-Hi,
+Add a clockdomain api to check if hardware supervised
+idle transitions are enabled on a clockdomain.
 
-On Tue, Apr 05, 2011 at 03:34:08PM +0300, Ameya Palande wrote:
-> >Exactly, adding a new feature. Let me put it this way: which bug or
-> >regression are you fixing with this patch ?
-> 
-> I never claimed that it is fixing a bug/regression ;)
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+---
+ arch/arm/mach-omap2/clockdomain.c |   21 +++++++++++++++++++++
+ arch/arm/mach-omap2/clockdomain.h |    3 +++
+ 2 files changed, 24 insertions(+), 0 deletions(-)
 
-but you want this go into the RC cycle, which is strictly bug fixing and
-regression fixing :-)
-
-> IMHO driver for lp5523 chip is a "new feature" which is already in
-> mainline. This patch just enables use of this feature on N900.
-
-enabling the use of that feature on N900 is a new feature for N900 ;-)
-
+diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
+index ab87854..1de6def 100644
+--- a/arch/arm/mach-omap2/clockdomain.c
++++ b/arch/arm/mach-omap2/clockdomain.c
+@@ -795,6 +795,27 @@ void clkdm_deny_idle(struct clockdomain *clkdm)
+ 	arch_clkdm->clkdm_deny_idle(clkdm);
+ }
+ 
++/**
++ * clkdm_is_idle - Check if the clkdm hwsup/autoidle is enabled
++ * @clkdm: struct clockdomain *
++ *
++ * Returns true if the clockdomain is in hardware-supervised
++ * idle mode, or 0 otherwise.
++ *
++ */
++int clkdm_is_idle(struct clockdomain *clkdm)
++{
++	if (!clkdm)
++		return -EINVAL;
++
++	if (!arch_clkdm || !arch_clkdm->clkdm_is_idle)
++		return -EINVAL;
++
++	pr_debug("clockdomain: reading idle state for %s\n", clkdm->name);
++
++	return arch_clkdm->clkdm_is_idle(clkdm);
++}
++
+ 
+ /* Clockdomain-to-clock framework interface code */
+ 
+diff --git a/arch/arm/mach-omap2/clockdomain.h b/arch/arm/mach-omap2/clockdomain.h
+index 85b3dce..2fe3412 100644
+--- a/arch/arm/mach-omap2/clockdomain.h
++++ b/arch/arm/mach-omap2/clockdomain.h
+@@ -138,6 +138,7 @@ struct clockdomain {
+  * @clkdm_wakeup: Force a clockdomain to wakeup
+  * @clkdm_allow_idle: Enable hw supervised idle transitions for clock domain
+  * @clkdm_deny_idle: Disable hw supervised idle transitions for clock domain
++ * @clkdm_is_idle: Check if hw supervised idle transitions are enabled
+  * @clkdm_clk_enable: Put the clkdm in right state for a clock enable
+  * @clkdm_clk_disable: Put the clkdm in right state for a clock disable
+  */
+@@ -154,6 +155,7 @@ struct clkdm_ops {
+ 	int	(*clkdm_wakeup)(struct clockdomain *clkdm);
+ 	void	(*clkdm_allow_idle)(struct clockdomain *clkdm);
+ 	void	(*clkdm_deny_idle)(struct clockdomain *clkdm);
++	int	(*clkdm_is_idle)(struct clockdomain *clkdm);
+ 	int	(*clkdm_clk_enable)(struct clockdomain *clkdm);
+ 	int	(*clkdm_clk_disable)(struct clockdomain *clkdm);
+ };
+@@ -177,6 +179,7 @@ int clkdm_clear_all_sleepdeps(struct clockdomain *clkdm);
+ 
+ void clkdm_allow_idle(struct clockdomain *clkdm);
+ void clkdm_deny_idle(struct clockdomain *clkdm);
++int clkdm_is_idle(struct clockdomain *clkdm);
+ 
+ int clkdm_wakeup(struct clockdomain *clkdm);
+ int clkdm_sleep(struct clockdomain *clkdm);
 -- 
-balbi
+1.7.0.4
+
