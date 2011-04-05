@@ -1,45 +1,44 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: mourning the loss of David Brownell
-Date: Tue, 5 Apr 2011 14:10:53 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1104051350480.1972-100000@iolanthe.rowland.org>
-References: <20110405034819.GA7872@kroah.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [RFC][PATCH 1/3] OMAP PM: Seggregate Voltage layer parameters
+Date: Tue, 05 Apr 2011 11:16:19 -0700
+Message-ID: <87tyeczhqk.fsf@ti.com>
+References: <1300199622-32500-1-git-send-email-vishwanath.bs@ti.com>
+	<1300199622-32500-2-git-send-email-vishwanath.bs@ti.com>
+	<87sju1cyfb.fsf@ti.com>
+	<97c65feef3328428114e3ec4fc3f021a@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:50887 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1755569Ab1DESKy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Apr 2011 14:10:54 -0400
-In-Reply-To: <20110405034819.GA7872@kroah.com>
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:57474 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752723Ab1DESQ2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Apr 2011 14:16:28 -0400
+Received: by mail-iw0-f171.google.com with SMTP id 8so896549iwn.16
+        for <linux-omap@vger.kernel.org>; Tue, 05 Apr 2011 11:16:22 -0700 (PDT)
+In-Reply-To: <97c65feef3328428114e3ec4fc3f021a@mail.gmail.com> (Vishwanath
+	Sripathy's message of "Tue, 5 Apr 2011 12:38:10 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: Kernel development list <linux-kernel@vger.kernel.org>, USB list <linux-usb@vger.kernel.org>, linux-omap@vger.kernel.org, spi-devel-general@lists.sourceforge.net, netdev@vger.kernel.org
+To: Vishwanath Sripathy <vishwanath.bs@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-On Mon, 4 Apr 2011, Greg KH wrote:
+Vishwanath Sripathy <vishwanath.bs@ti.com> writes:
 
-> As I have seen this tangentally mentioned already a few times
-> publically, I figured it warranted it's own announcement now.
-> 
-> Linux has lost a great developer with the passing of David Brownell
-> recently and he will be greatly missed.
+[...]
 
-David made contributions to a large number of areas in the Linux
-kernel.  Even a quick look through MAINTAINERS will show that he worked
-on USB controllers (OHCI, EHCI, OMAP and others), USB gadgets, USB
-networking, and SPI.  He was influential in the core USB design (the
-HCD "glue" layer and the scatter-gather library) and the development of
-Power Management (system sleep and the USB PM implementation).  His
-designs were elegant and his code was always a pleasure to read.
+> Yes..I am planning to remove these parameters being exposed to board file
+> and keep only minimal things (like oscillator ramp and ramp down time) in
+> boaord file. We should be able calculate these parameters based on these
+> generic parameters.
 
-He also was a big help to me personally, assisting in my initial entry
-to USB core development.  And he was the first person I met at the
-first Linux conference I attended.  I too will miss him.
+[...]
 
-Alan Stern
+> Yes..I am coming up with a more generic way to provide set up latencies.
 
-PS: A photo of David taken at the 2008 Linux Kernel Summit is available
-here:
+Great!  Thanks.
 
-http://www.google.com/imgres?imgurl=http://farm4.static.flickr.com/3004/2949819475_98cbfc48b7.jpg&imgrefurl=http://www.flickr.com/photos/13825348%40N03/sets/72157608741347102/detail/&usg=__HjzUpixk_ITqzSnIhvUuWqdjQ_c=&h=500&w=333&sz=70&hl=en&start=0&zoom=1&tbnid=pixlWzZ4wUo1RM:&tbnh=132&tbnw=114&ei=w1mbTdXsCoO6sAOHp-j9Aw&prev=/search%3Fq%3Ddavid%2Bbrownell%26hl%3Den%26sa%3DX%26biw%3D1024%26bih%3D712%26tbm%3Disch%26prmd%3Divnso0%2C89&itbs=1&iact=hc&vpx=258&vpy=263&dur=7360&hovh=275&hovw=183&tx=85&ty=295&oei=w1mbTdXsCoO6sAOHp-j9Aw&page=1&ndsp=23&ved=1t:429,r:12,s:0&biw=1024&bih=712
+For now, please base on my pm-wip/voltdm_b branch.  If you're feeling
+adventurous, I've started some VP cleanup/restructure in my
+pm-wip/voltdm_c branch as well.
 
+Kevin
