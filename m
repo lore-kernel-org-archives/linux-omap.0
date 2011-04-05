@@ -1,93 +1,74 @@
-From: "Avinash.H.M." <avinashhm@ti.com>
-Subject: Re: [PATCH 1/2] OMAP2/3: hwmod: fix the i2c-reset timeout during
- bootup
-Date: Tue, 5 Apr 2011 12:10:46 +0530
-Message-ID: <20110405064046.GA19445@avinash-laptop>
-References: <1301672047-31903-1-git-send-email-avinashhm@ti.com>
- <1301672047-31903-2-git-send-email-avinashhm@ti.com>
- <alpine.DEB.2.00.1104011423220.27897@utopia.booyaka.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH v2] ARM: GIC: Convert GIC library to use the IO relaxed
+ operations
+Date: Tue, 05 Apr 2011 11:50:17 +0530
+Message-ID: <4D9AB4A1.9050508@ti.com>
+References: <1301650321-28652-1-git-send-email-santosh.shilimkar@ti.com> <1301930948.15819.52.camel@e102109-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:42595 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751883Ab1DEGlB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Apr 2011 02:41:01 -0400
-Received: by mail-gx0-f180.google.com with SMTP id 10so24911gxk.39
-        for <linux-omap@vger.kernel.org>; Mon, 04 Apr 2011 23:40:59 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1104011423220.27897@utopia.booyaka.com>
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:60578 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751883Ab1DEGmZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Apr 2011 02:42:25 -0400
+Received: by mail-yx0-f179.google.com with SMTP id 4so24064yxp.38
+        for <linux-omap@vger.kernel.org>; Mon, 04 Apr 2011 23:42:24 -0700 (PDT)
+In-Reply-To: <1301930948.15819.52.camel@e102109-lin.cambridge.arm.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>
+To: Catalin Marinas <catalin.marinas@arm.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Will Deacon <Will.Deacon@arm.com>
 
-Hi Paul ,
+On 4/4/2011 8:59 PM, Catalin Marinas wrote:
+> On Fri, 2011-04-01 at 10:32 +0100, Santosh Shilimkar wrote:
+>> The GIC register accesses today make use of readl()/writel()
+>> which prove to be very expensive when used along with mandatory
+>> barriers. This mandatory barriers also introduces an un-necessary
+>> and expensive l2x0_sync() operation. On Cortex-A9 MP cores, GIC
+>> IO accesses from CPU are direct and doesn't go through L2X0 write
+>> buffer.
+>>
+>> Also since a DSB does not guarantee that the device state has
+>> been changed, a read back from the device is introduced wherever
+>> necessary.
+> ...
+>> @@ -98,7 +98,8 @@ static void gic_mask_irq(struct irq_data *d)
+>>          u32 mask = 1<<  (d->irq % 32);
+>>
+>>          spin_lock(&irq_controller_lock);
+>> -       writel(mask, gic_dist_base(d) + GIC_DIST_ENABLE_CLEAR + (gic_irq(d) / 32) * 4);
+>> +       writel_relaxed(mask, gic_dist_base(d) + GIC_DIST_ENABLE_CLEAR + (gic_irq(d) / 32) * 4);
+>> +       readl_relaxed(gic_dist_base(d) + GIC_DIST_ENABLE_CLEAR + (gic_irq(d) / 32) * 4);
+>>          if (gic_arch_extn.irq_mask)
+>>                  gic_arch_extn.irq_mask(d);
+>>          spin_unlock(&irq_controller_lock);
+>>
+>
+> Talking to the hardware people, a readl back would guarantee that the
+> GIC state has changed but you can still get spurious interrupts because
+> of the signal propagation from the GIC to the CPU. That's difficult to
+> reliably sort out in software as we don't know the hardware delays, so
+> we'll have to cope with spurious interrupts (unlikely though).
+>
+> A better sequence would be something like below (but still no
+> guarantees):
+>
+> 	STR	[Device]
+> 	LDR	[Device]
+> 	DSB
+> 	ISB
+>
+> (the ISB is needed in case some instructions already in the pipeline
+> sampled the state of the interrupt signal)
+>
+> But I'm more in favour of not even bothering with an additional
+> readl_relaxed, we simply cope with a very rare spurious interrupt. In a
+> virtualised environment accesses to the GIC distributor are trapped
+> making things slower.
+>
+Ok. Thanks for addition information.
+Will drop readl_relaxed() then.
 
-Thanks for the review. 
-
-> > +/* In register I2C_CON, Bit 15 is the I2C enable bit */
-> > +#define I2C_EN				BIT(15)
-> > +#define I2C_CON_OFFSET			0x24
-> 
-> This stuff, along with omap_i2c_reset(), doesn't belong in omap_hwmod.c, 
-> which is common code that is not I2C-specific.  Please put it in 
-> mach-omap2/i2c.c instead.
-
-I agree. I ll move these I2C specific things from omap_hwmod.c to
-mach-omap2/i2c.c.
-
-
-[...]
-
-
-> > + */
-> > +int omap_i2c_reset(struct omap_hwmod *oh)
-> > +{
-> > +	u32 v = 0;
-> 
-> no need to initialize this to 0
-> 
-> > +	int ret = 0, c = 0;
-> 
-> no need to initialize ret to 0
-
-OK . I ll remove initialization of 'v'.
-
-Since now i am moving the function to i2c.c, i can't call _set_softreset
-and _write_sysconfig(static functions in omap_hwmod.c). Instead, i ll
-set the SOFTRESET bit and write into SYSC register directly. So i do not
-need 'ret'. I ll remove it.
-
-Just curios. I understand there is no use of initializing 'v' to 0
-here. But by programming practice, i usually initialize local variables
-to '0'. Is there anything wrong in doing this ? Any negative impact ?
-
-
-[...]
-
-
-> >  int omap_hwmod_register(struct omap_hwmod **ohs);
-> > +int omap_i2c_reset(struct omap_hwmod *oh);
-> 
-> This should go into plat-omap/include/plat/i2c.h
-
-Sure. I will move this change to plat/i2c.h. 
-
-I ll send out the v2 of this shortly after testing.
-
-thanks ,
-
-- avinash
-
-> 
-> > +
-> >  struct omap_hwmod *omap_hwmod_lookup(const char *name);
-> >  int omap_hwmod_for_each(int (*fn)(struct omap_hwmod *oh, void *data),
-> >  			void *data);
-> > -- 
-> > 1.7.1
-> > 
-> 
-> 
-> - Paul
+Regards
+Santosh
