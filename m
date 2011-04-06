@@ -1,63 +1,56 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [GIT PULL] omap changes for v2.6.39 merge window
-Date: Wed, 6 Apr 2011 01:19:34 +0200
-Message-ID: <BANLkTinDgAwu7jg+rciMUU19fj+TKPRwmg@mail.gmail.com>
-References: <alpine.LFD.2.00.1103310145390.28032@xanadu.home>
-	<201104011554.07924.arnd@arndb.de>
-	<1301671655.28467.52.camel@e102144-lin.cambridge.arm.com>
-	<201104011755.57412.arnd@arndb.de>
-	<AANLkTikfBhCH5wrpYzKbws0F_UVaskhtN_SUGQ+hU8Ab@mail.gmail.com>
+From: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+Subject: Re: mourning the loss of David Brownell
+Date: Tue, 5 Apr 2011 17:21:44 -0700
+Message-ID: <20110406002144.GC6983@xanatos>
+References: <BANLkTi=0Wj56uO0qAwMfkWNg0+PtKFiMiA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <AANLkTikfBhCH5wrpYzKbws0F_UVaskhtN_SUGQ+hU8Ab@mail.gmail.com>
+Content-Disposition: inline
+In-Reply-To: <BANLkTi=0Wj56uO0qAwMfkWNg0+PtKFiMiA@mail.gmail.com>
+ <Pine.LNX.4.44L0.1104051350480.1972-100000@iolanthe.rowland.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, Will Deacon <will.deacon@arm.com>, Ingo Molnar <mingo@elte.hu>, david@lang.hm, Russell King - ARM Linux <linux@arm.linux.org.uk>, Nicolas Pitre <nico@fluxnic.net>, Tony Lindgren <tony@atomide.com>, Catalin Marinas <Catalin.Marinas@arm.com>, lkml <linux-kernel@vger.kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, David Brown <davidb@codeaurora.org>, linux-omap@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org
+To: Alan Stern <stern@rowland.harvard.edu>, Greg KH <greg@kroah.com>, Oliver Neukum <oliver@neukum.org>
+Cc: Bill Gatliff <bgat@billgatliff.com>, Kernel development list <linux-kernel@vger.kernel.org>, USB list <linux-usb@vger.kernel.org>, linux-omap@vger.kernel.org, spi-devel-general@lists.sourceforge.net, netdev@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-2011/4/1 Linus Torvalds <torvalds@linux-foundation.org>:
+On Tue, Apr 05, 2011 at 02:10:53PM -0400, Alan Stern wrote:
+> On Mon, 4 Apr 2011, Greg KH wrote:
+> 
+> > As I have seen this tangentally mentioned already a few times
+> > publically, I figured it warranted it's own announcement now.
+> > 
+> > Linux has lost a great developer with the passing of David Brownell
+> > recently and he will be greatly missed.
+> 
+> David made contributions to a large number of areas in the Linux
+> kernel.  Even a quick look through MAINTAINERS will show that he worked
+> on USB controllers (OHCI, EHCI, OMAP and others), USB gadgets, USB
+> networking, and SPI.  He was influential in the core USB design (the
+> HCD "glue" layer and the scatter-gather library) and the development of
+> Power Management (system sleep and the USB PM implementation).  His
+> designs were elegant and his code was always a pleasure to read.
+> 
+> He also was a big help to me personally, assisting in my initial entry
+> to USB core development.  And he was the first person I met at the
+> first Linux conference I attended.  I too will miss him.
 
-> If you have discoverable hardware, use it.
->
-> But by "discoverable hardware" I mean something like PCI config
-> cycles. IOW, real hardware features.
+On Tue, Apr 05, 2011 at 11:17:20AM -0700, Bill Gatliff wrote:
+> Guys:
+> 
+> 
+> David Brownell unknowingly inspired me to get involved in Linux as a
+> profession.  I saw him as an individual working successfully on Free
+> and Open Software, and have made an effort to emulate his success for
+> over a decade now.
+> 
+> I deeply regret never taking the time to meet and thank him in person.
 
-The ARM AMBA architecture actually has such a thing, or a
-little of it, found in drivers/amba/bus.c.
+A reminder that we all are mortal.  Since David I can't thank David
+either, I'd like to take a moment to thank Greg, Alan, and Oliver.
+David, Greg, Alan, and Oliver were really great at putting up with my
+newbie questions when I was first working on usbfs2, and I really
+appreciate all the help, support, and feedback they've given me over the
+years.  Thank you!
 
-Basically it requires you to get the physical address and size of
-each peripheral, then at offset -0x10 from the end address (usually
-at even 4K pages), if you find the magic number 0xB105F00D
-(ARM has a sense of humour, obviously) you can find something
-alike the PCI IDs at offset -0x20, manufacturer ID, version number
-and revision of the hardware.
-
-It isn't very hard to imagine that mechanism providing IRQ
-numbers or DMA channel allocation and other such data
-so it becomes more plug'n'play-ish. If the hardware had a
-list of device physical whereabouts in a specific location too,
-the system would be quite self-describing.
-
-Not as sexy as the separate PCI configuration space
-though, it's just hardcoded in along with the device I/O pages.
-
-Apparently ARM pushed this in their few initial cells
-and manufacturers are free to reuse this system for their
-silicon. ST Microelectronics for example actually use it to
-a larger extent. But since it was not mandatory and there
-was no clear way on how to register magic numbers with
-this system (like the PCI-SIG), it simply failed. Silicon
-foundries didn't care or even know about it, neglecting to put
-this 0xB105F00D in place.
-
-IMO the world would have been much better off if
-ARM mandated that all vendors *must* use this scheme
-for their hardware blocks if they are to license the AMBA
-bus incarnations, but they don't.
-
-Maybe the ARM guys on the list has some background on
-this?
-
-Yours,
-Linus Walleij
+Sarah Sharp
