@@ -1,50 +1,29 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH] OMAP2+: SR Layer Cleanup.
-Date: Wed, 06 Apr 2011 08:33:32 -0700
-Message-ID: <87mxk3iecz.fsf@ti.com>
-References: <1301378352-29269-1-git-send-email-shweta.gulati@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: mourning the loss of David Brownell
+Date: Wed, 6 Apr 2011 10:11:45 -0700
+Message-ID: <20110406171144.GG17376@atomide.com>
+References: <BANLkTi=0Wj56uO0qAwMfkWNg0+PtKFiMiA@mail.gmail.com>
+ <Pine.LNX.4.44L0.1104051350480.1972-100000@iolanthe.rowland.org>
+ <20110406002144.GC6983@xanatos>
+ <BANLkTikRJ+fBRJYfH=LEJk6dt58Gdk61Zg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:46685 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932099Ab1DFPdi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Apr 2011 11:33:38 -0400
-Received: by mail-iw0-f176.google.com with SMTP id 19so2286764iwr.21
-        for <linux-omap@vger.kernel.org>; Wed, 06 Apr 2011 08:33:35 -0700 (PDT)
-In-Reply-To: <1301378352-29269-1-git-send-email-shweta.gulati@ti.com> (Shweta
-	Gulati's message of "Tue, 29 Mar 2011 11:29:12 +0530")
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <BANLkTikRJ+fBRJYfH=LEJk6dt58Gdk61Zg@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jidong Xiao <jidong.xiao@gmail.com>
+Cc: Sarah Sharp <sarah.a.sharp@linux.intel.com>, Alan Stern <stern@rowland.harvard.edu>, Greg KH <greg@kroah.com>, Oliver Neukum <oliver@neukum.org>, Bill Gatliff <bgat@billgatliff.com>, Kernel development list <linux-kernel@vger.kernel.org>, USB list <linux-usb@vger.kernel.org>, linux-omap@vger.kernel.org, spi-devel-general@lists.sourceforge.net, netdev@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Shweta Gulati <shweta.gulati@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Shweta,
+* Jidong Xiao <jidong.xiao@gmail.com> [110405 20:33]:
+> >
+> Me too. David and the other developers you mentioned here helped me a
+> lot. So sad, he is so young.
 
-Shweta Gulati <shweta.gulati@ti.com> writes:
+Dave certainly contributed a lot and helped many people. 
+He also helped a lot with omap development.
 
-> As a part of Voltage Layer Cleanup Patches,
-> submitted by Kevin Hilman, Voltage domain
-> Information is removed from hwmod,
-> So the patch removes 'vdd_name' info from omap_hwmod
-> and adds that info into dev_attr as SR code uses vdd_name
-> to get voltagedomain sructure info.
->
-> Tested on OMAP3630 SDP and OMAP4430 SDP Board
->
-> Signed-off-by: Shweta Gulati <shweta.gulati@ti.com>
+Regards,
 
-Thanks for this.  It looks good.
-
-> ---
-> It apllies over Voltage Layer Cleanup Patch by
-> Kevin Hilman: 
->  https://patchwork.kernel.org/patch/657421/ 
-
-Can you rebase on top of my pm-wip/voltdm_a branch?  It currently
-doesn't apply there because the some of the voltage domain names were
-changed, e.g. mpu -> mpu_iva, wkup -> wakeup.
-
-Thanks,
-
-Kevin
+Tony
