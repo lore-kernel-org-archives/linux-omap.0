@@ -1,56 +1,48 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [GIT PULL] omap changes for v2.6.39 merge window
-Date: Wed, 06 Apr 2011 09:41:44 +0100
-Message-ID: <1302079304.8718.7.camel@e102109-lin.cambridge.arm.com>
-References: <alpine.LFD.2.00.1103310145390.28032@xanadu.home>
-	 <201104011554.07924.arnd@arndb.de>
-	 <1301671655.28467.52.camel@e102144-lin.cambridge.arm.com>
-	 <201104011755.57412.arnd@arndb.de>
-	 <AANLkTikfBhCH5wrpYzKbws0F_UVaskhtN_SUGQ+hU8Ab@mail.gmail.com>
-	 <BANLkTinDgAwu7jg+rciMUU19fj+TKPRwmg@mail.gmail.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 0/4] iommu: Prevent oops in iommu_get() and while arch_iommu is in use
+Date: Wed, 6 Apr 2011 10:55:44 +0200
+Message-ID: <201104061055.44640.laurent.pinchart@ideasonboard.com>
+References: <4D8CB106.7030608@maxwell.research.nokia.com> <201104051323.42401.laurent.pinchart@ideasonboard.com> <BANLkTi=Ybkotcpu7Hp1zvGJ-dd0huUHcBA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <BANLkTinDgAwu7jg+rciMUU19fj+TKPRwmg@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Will Deacon <Will.Deacon@arm.com>, Ingo Molnar <mingo@elte.hu>, david@lang.hm, Russell King - ARM Linux <linux@arm.linux.org.uk>, Nicolas Pitre <nico@fluxnic.net>, Tony Lindgren <tony@atomide.com>, lkml <linux-kernel@vger.kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, David Brown <davidb@codeaurora.org>, linux-omap@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:42560 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754965Ab1DFIzp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Apr 2011 04:55:45 -0400
+In-Reply-To: <BANLkTi=Ybkotcpu7Hp1zvGJ-dd0huUHcBA@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: David Cohen <dacohen@gmail.com>
+Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Doyu Hiroshi (Nokia-D/Helsinki)" <hiroshi.doyu@nokia.com>, Cohen David Abraham <david.cohen@nokia.com>
 
-On Wed, 2011-04-06 at 00:19 +0100, Linus Walleij wrote:
-> 2011/4/1 Linus Torvalds <torvalds@linux-foundation.org>:
+Hi David,
+
+On Tuesday 05 April 2011 13:54:09 David Cohen wrote:
+> On Tue, Apr 5, 2011 at 2:23 PM, Laurent Pinchart wrote:
+
+[snip]
+
+> > We only have iommu2.ko at the moment. I've heard about an iommu1.ko being
+> > worked on, but I don't have more information. We don't know whether the
+> > OMAP5 will be able to use the same IOMMU implementation. Without more
+> > information, I'm quite reluctant to design and implement a generic
+> > solution that will end up being useless because we missed information in
+> > the design stage.
 > 
-> > If you have discoverable hardware, use it.
-> >
-> > But by "discoverable hardware" I mean something like PCI config
-> > cycles. IOW, real hardware features.
-> 
-> The ARM AMBA architecture actually has such a thing, or a
-> little of it, found in drivers/amba/bus.c.
-> 
-> Basically it requires you to get the physical address and size of
-> each peripheral, then at offset -0x10 from the end address (usually
-> at even 4K pages), if you find the magic number 0xB105F00D
-> (ARM has a sense of humour, obviously) you can find something
-> alike the PCI IDs at offset -0x20, manufacturer ID, version number
-> and revision of the hardware.
+> One implementation belongs to mach-omap1 and other to mach-omap2. Not sure
+> if it's a good plan to get them together.
 
-I don't think this was ever part of the AMBA specification. It was just
-some convention used within ARM for the PrimeCell peripherals. Other
-AMBA licensees did something else so it's not a reliable mechanism (I
-think ARM gave up on this as well in recent peripherals).
+My point is that we have a single implementation at the moment. Not one in 
+mach-omap1 and one in mach-omap2, just one. I don't like solving problems with 
+generic solutions when there's a single use case.
 
-> IMO the world would have been much better off if
-> ARM mandated that all vendors *must* use this scheme
-> for their hardware blocks if they are to license the AMBA
-> bus incarnations, but they don't.
-
-As you said, it had limitations like not providing IRQ or DMA
-information, so not entirely useful.
-
-FDT may have its problems but so far is a more generic approach for
-specifying such information.
+> IMO the third option from Laurent solves the issue for now and don't make it
+> more difficult to implement a better standard to OMAP.
 
 -- 
-Catalin
+Regards,
+
+Laurent Pinchart
