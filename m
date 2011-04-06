@@ -1,127 +1,196 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: OMAP4 DSS clock setup
-Date: Wed, 06 Apr 2011 12:09:01 +0300
-Message-ID: <1302080941.5330.1.camel@deskari>
-References: <1301467733.2333.83.camel@deskari>  <4D92F899.7010606@ti.com>
-	 <1301483027.4045.16.camel@deskari>  <4D931E21.8090305@ti.com>
-	 <1301489930.15095.51.camel@deskari>
-	 <alpine.DEB.2.00.1104011925510.27897@utopia.booyaka.com>
-	 <1301900022.2715.12.camel@deskari>
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: What is missing from musb - linux-omap merge?
+Date: Wed, 6 Apr 2011 16:23:34 +0300
+Message-ID: <20110406162334.8dcb5a7d.jhnikula@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+ boundary="Multipart=_Wed__6_Apr_2011_16_23_34_+0300_E7DDlwNy8vfP.TG_"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:51989 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755172Ab1DFJJ1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Apr 2011 05:09:27 -0400
-Received: by fxm15 with SMTP id 15so1422664fxm.17
-        for <linux-omap@vger.kernel.org>; Wed, 06 Apr 2011 02:09:04 -0700 (PDT)
-In-Reply-To: <1301900022.2715.12.camel@deskari>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:55670 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755980Ab1DFNWV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Apr 2011 09:22:21 -0400
+Received: by eyx24 with SMTP id 24so440097eyx.19
+        for <linux-omap@vger.kernel.org>; Wed, 06 Apr 2011 06:22:20 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "Semwal, Sumit" <sumit.semwal@ti.com>, "Taneja, Archit" <archit@ti.com>, linux-omap <linux-omap@vger.kernel.org>
+To: OMAP Linux discussion <linux-omap@vger.kernel.org>
+Cc: Felipe Balbi <balbi@ti.com>, Hema HK <hemahk@ti.com>
 
-Paul, Benoit,
+This is a multi-part message in MIME format.
 
-On Mon, 2011-04-04 at 09:53 +0300, Tomi Valkeinen wrote:
-> Hi Paul, Benoit,
-> 
-> On Fri, 2011-04-01 at 20:12 -0600, Paul Walmsley wrote:
-> 
-> > Based on the E-mail thread so far, I'd say that changing the clock aliases 
-> > is the way to go for right now.  The clock aliases are not hardware data; 
-> > they just control how the clock hardware is mapped to the drivers.
-> 
-> I'd very much prefer this option. Below is a patch for this.
-> 
-> If Benoit doesn't complain too much about this, I'd like to get this
-> merged as soon as possible, as OMAP4 DSS is currently crashing in the
-> mainline kernel.
-> 
-> I can either handle it myself if I get your acks, or you can send a pull
-> request for this if you have some other patches going in also.
+--Multipart=_Wed__6_Apr_2011_16_23_34_+0300_E7DDlwNy8vfP.TG_
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-Ping. Can I get an ack/nack from you for the patch below?
+Hi
 
- Tomi
+I've been trying to hunt why the OMAP3 retention on Nokia N900 went
+broken in 2.6.39-rc and reason is somewhere around musb code merge with
+linux-omap code or vise versa.
 
-> > Of course, at some point soon, those clock aliases are going to go away.  
-> > But hopefully you all will have converted the driver over to PM runtime at 
-> > that point.
-> > 
-> > Once that happens, there's another problem: omap_hwmod_enable() is defined 
-> > that the hardware registers should be accessible by the MPU after it 
-> > completes.  So by that definition, the hwmod code should be 
-> > enabling/disabling that dss_clk clock too when it enables/idles/shuts down 
-> > the hwmod.  Probably we'd need to mark that struct omap_hwmod_opt_clk with 
-> > some flag.  Then we'd need some kind of way for the DSS to tell the hwmod 
-> > code whether it is or isn't reliant on the PRCM-provided functional clock 
-> > for its internal functional clock.  Maybe something like 
-> > omap_hwmod_{release,require}_system_fclk()?
-> 
-> Hmm, right. I guess no other HW module has clock setups like this?
-> 
-> Currently DSS can use clk_enable/disable() for the system fclk when its
-> using DSI PLL for the fclk. So omap_hwmod_{release,require}_system_fclk
-> sounds like a simple solution to this.
-> 
-> Not directly related, but something I've been wondering about is how to
-> abstract the DSI/HDMI PLLs in DSS. What do you think, would it be
-> possible/worth it to create struct clks for the clocks coming out of
-> those PLLs? These would, of course, be DSS internal clks. I'm not very
-> familiar with the clock framework, so I don't really have any idea what
-> this would require and what would be the pros and cons.
-> 
-> ---
-> 
-> From f9999ceb48b2e22217dccc85b33362b6a17e5a00 Mon Sep 17 00:00:00 2001
-> From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> Date: Mon, 4 Apr 2011 09:26:19 +0300
-> Subject: [PATCH] OMAP4: clock data: Change DSS clock aliases
-> 
-> DSS driver has used fck and ick clocks on OMAP2/3 to get DSS HW up and
-> running, and also to get the pixel clock's source clock rate from the
-> fck.
-> 
-> On OMAP4 the clock data is set up in a different way, as there's no ick,
-> dss_fck points to a fake clock which just affects DSS's MODULEMODE, and
-> dss_dss_clk if the DSS_FCK.
-> 
-> From DSS driver's point of view the dss_fck sounds like an ick, and
-> dss_dss_clk is the fck. While this is not entirely correct from HW point
-> of view, especially for the ick, configuring the clock aliases that way
-> makes DSS "just work" with OMAP4's clock setup.
-> 
-> In the (hopefully near) future DSS driver will be reworked to use
-> pm_runtime support which should clean up the clock code.
-> 
-> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> ---
->  arch/arm/mach-omap2/clock44xx_data.c |    9 ++-------
->  1 files changed, 2 insertions(+), 7 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
-> index 276992d..8c96567 100644
-> --- a/arch/arm/mach-omap2/clock44xx_data.c
-> +++ b/arch/arm/mach-omap2/clock44xx_data.c
-> @@ -3116,14 +3116,9 @@ static struct omap_clk omap44xx_clks[] = {
->  	CLK(NULL,	"dsp_fck",			&dsp_fck,	CK_443X),
->  	CLK("omapdss_dss",	"sys_clk",			&dss_sys_clk,	CK_443X),
->  	CLK("omapdss_dss",	"tv_clk",			&dss_tv_clk,	CK_443X),
-> -	CLK("omapdss_dss",	"dss_clk",			&dss_dss_clk,	CK_443X),
->  	CLK("omapdss_dss",	"video_clk",			&dss_48mhz_clk,	CK_443X),
-> -	CLK("omapdss_dss",	"fck",				&dss_fck,	CK_443X),
-> -	/*
-> -	 * On OMAP4, DSS ick is a dummy clock; this is needed for compatibility
-> -	 * with OMAP2/3.
-> -	 */
-> -	CLK("omapdss_dss",	"ick",				&dummy_ck,	CK_443X),
-> +	CLK("omapdss_dss",	"fck",				&dss_dss_clk,	CK_443X),
-> +	CLK("omapdss_dss",	"ick",				&dss_fck,	CK_443X),
->  	CLK(NULL,	"efuse_ctrl_cust_fck",		&efuse_ctrl_cust_fck,	CK_443X),
->  	CLK(NULL,	"emif1_fck",			&emif1_fck,	CK_443X),
->  	CLK(NULL,	"emif2_fck",			&emif2_fck,	CK_443X),
+I bisected this into:
+
+commit 0df0914d414a504b975f3cc66ace0c16ef55b7f3
+Merge: 6899608 05f6894
+Author: Linus Torvalds <torvalds@linux-foundation.org>
+Date:   Thu Mar 17 19:28:15 2011 -0700
+
+    Merge branch 'omap-for-linus' of
+git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6
+
+Yep, there were conflicts resolved by Linus but those didn't look that
+they explain the problem.
+
+So then I went to check the linux-omap branch omap-for-linus that got
+pulled to vanilla. Top commit was:
+
+commit 05f689400ea5fa3d71af82f910c8b140f87ad1f3
+Merge: 17fe12c 02b7b94
+Author: Tony Lindgren <tony@atomide.com>
+Date:   Mon Mar 14 11:22:22 2011 -0700
+
+    Merge branches 'devel-mux' and 'devel-misc' into omap-for-linus
+
+Here retention and usb networking are working so all were fine in
+linux-omap in 2.6.38-rc7.
+
+Then back to vanilla and checking the usb pull.
+
+commit 971f115a50afbe409825c9f3399d5a3b9aca4381
+Merge: 2e270d8 500132a
+Author: Linus Torvalds <torvalds@linux-foundation.org>
+Date:   Wed Mar 16 15:04:26 2011 -0700
+
+    Merge branch 'usb-next' of
+git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/usb-2.6
+
+Yes, musb doesn't compile here... trivial build fix attached as it's
+not our interest now (but will bother all bisecters). Here retention
+works but usb networking doesn't.
+
+Then I went testing patches from linux-omap/omap-for-linus on top of
+vanilla commit that precedes the omap-for-linus pull:
+
+commit 6899608533410557e6698cb9d4ff6df553916e98
+Merge: 411f5c7 92c260f
+Author: Linus Torvalds <torvalds@linux-foundation.org>
+Date:   Thu Mar 17 19:13:18 2011 -0700
+
+    Merge branch 'for-linus' of
+git://codeaurora.org/quic/kernel/davidb/linux-ms
+
+Some amount of conflict resolving, mostly trivial, some testing and
+came around these commits (note local commit ids):
+
+commit 5cd15f0ba7594e4cd1dd01a100dc94013930a6a9
+Author: Hema HK <hemahk@ti.com>
+Date:   Thu Feb 17 12:07:17 2011 +0530
+
+    OMAP2430: hwmod data: Add USBOTG
+
+-> Retention ok
+
+commit 2d982bb2593ab64151c4a01758735e67d7db5d36
+Author: Hema HK <hemahk@ti.com>
+Date:   Thu Feb 17 12:07:18 2011 +0530
+
+    OMAP3xxx: hwmod data: Add USBOTG
+
+commit 6dc0c8ee8bdaac3ad11c4313431d8d7b3c886ede
+Author: Hema HK <hemahk@ti.com>
+Date:   Thu Feb 17 12:07:19 2011 +0530
+
+    AM35xx: hwmod data: Add USBOTG
+ 
+-> These don't boot
+
+commit 4bd3924ed10bef872e1fbfbb590fb7132df7dd4c
+Author: Hema HK <hemahk@ti.com>
+Date:   Thu Feb 17 12:07:21 2011 +0530
+
+    OMAP2+: musb: hwmod adaptation for musb registration
+
+-> Boots, usb networking works and but no retention
 
 
+Then arch/arm/mach-omap2 diff between
+
+vanilla 0df0914d414a504b975f3cc66ace0c16ef55b7f3 (l-o pull)
+and
+l-o 05f689400ea5fa3d71af82f910c8b140f87ad1f3 (for linus)
+
+doesn't show any suspicious to me. E.g. no differences in
+omap_hwmod_3xxx_data.c and clock3xxx_data.c changes are just those
+clock name changes that Linus complained. Rest seems to be unrelated.
+
+ Kconfig                        |    1 
+ Makefile                       |    2 
+ board-3430sdp.c                |   10 
+ board-3630sdp.c                |   10 
+ board-4430sdp.c                |    1 
+ board-am3517crane.c            |   10 
+ board-am3517evm.c              |   12 
+ board-cm-t35.c                 |   10 
+ board-cm-t3517.c               |   10 
+ board-devkit8000.c             |   10 
+ board-igep0020.c               |   10 
+ board-igep0030.c               |   10 
+ board-omap3beagle.c            |   10 
+ board-omap3evm.c               |   14 -
+ board-omap3pandora.c           |   10 
+ board-omap3stalker.c           |   10 
+ board-omap3touchbook.c         |   10 
+ board-omap4panda.c             |   11 
+ board-overo.c                  |   10 
+ board-zoom.c                   |   10 
+ clock3xxx_data.c               |   19 +
+ clock44xx_data.c               |   10 
+ include/mach/board-zoom.h.orig |   11 
+ include/mach/debug-macro.S     |   13 
+ omap4-common.c                 |    7 
+ omap_phy_internal.c            |   29 +-
+ pm.h                           |    2 
+ sleep24xx.S                    |    2 
+ sleep34xx.S                    |    2 
+ sram242x.S                     |    3 
+ sram243x.S                     |    3 
+ sram34xx.S                     |    1 
+ usb-ehci.c                     |  522 -------------------------------------
+ usb-host.c                     |  574 +++++++++++++++++++++++++++++++++++++++++
+ usb-musb.c                     |    3 
+ 35 files changed, 737 insertions(+), 645 deletions(-)
+
+These findings made me thinking are there some patch or patchset
+missing for musb as there are these musb build breakages and usb
+networking not working in mainline issues, retention breaks only when
+applying patches from linux-omap/omap-for-linus but what are ok in
+linux-omap 2.6.38-rc7?
+
+-- 
+Jarkko
+
+--Multipart=_Wed__6_Apr_2011_16_23_34_+0300_E7DDlwNy8vfP.TG_
+Content-Type: text/x-diff;
+ name="musb.diff"
+Content-Disposition: attachment;
+ filename="musb.diff"
+Content-Transfer-Encoding: 7bit
+
+diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
+index 241fc94..5298949 100644
+--- a/arch/arm/mach-omap2/usb-musb.c
++++ b/arch/arm/mach-omap2/usb-musb.c
+@@ -214,10 +214,6 @@ void __init usb_musb_init(struct omap_musb_board_data *board_data)
+ 
+ 	if (platform_device_register(&musb_device) < 0)
+ 		printk(KERN_ERR "Unable to register HS-USB (MUSB) device\n");
+-
+-	if (cpu_is_omap44xx())
+-		omap4430_phy_init(dev);
+-
+ }
+ 
+ #else
+
+--Multipart=_Wed__6_Apr_2011_16_23_34_+0300_E7DDlwNy8vfP.TG_--
