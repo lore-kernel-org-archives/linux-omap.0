@@ -1,109 +1,190 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH/RFC 0/6] ARM: runtime PM: consolidate runtime PM implementations
-Date: Thu, 07 Apr 2011 07:58:57 -0700
-Message-ID: <871v1eaz0u.fsf@ti.com>
-References: <1302134569-22825-1-git-send-email-khilman@ti.com>
-	<201104070738.42956.rjw@suse.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH] OMAP: TI816X: Add SATA support
+Date: Thu, 7 Apr 2011 17:55:24 +0200
+Message-ID: <4D9DDE6C.8050905@ti.com>
+References: <1302171887-3598-1-git-send-email-mansoor.ahamed@ti.com> <20110407112328.GX29038@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201104070738.42956.rjw@suse.com> (Rafael J. Wysocki's message of
-	"Thu, 7 Apr 2011 07:38:42 +0200")
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@suse.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>, Grant Likely <grant.likely@secretlab.ca>, Greg Kroah-Hartman <gregkh@suse.de>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <20110407112328.GX29038@legolas.emea.dhcp.ti.com>
+Sender: linux-ide-owner@vger.kernel.org
+To: "Basheer, Mansoor Ahamed" <mansoor.ahamed@ti.com>
+Cc: "Balbi, Felipe" <balbi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-ide@vger.kernel.org" <linux-ide@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-[adding linux-pm, which I forgot to add in original post]
-
-"Rafael J. Wysocki" <rjw@suse.com> writes:
-
-> On Thursday, April 07, 2011, Kevin Hilman wrote:
->> This series aims to consolidate OMAP and SH-mobile runtime PM
->> implementations around the new device power domains.
->> 
->> In 2.6.39, device power domains were added (commit
->> 7538e3db6e015e890825fbd9f8659952896ddd5b, PM: add support for device
->> power domains).  In converting both OMAP and SH-mobile to use device
->> power domains, the overlap between implementations was almost 100%.  
->> 
->> To share the runtime PM implementation based on simple clock gating,
->> move it to arch/arm/common and initialize it from OMAP and SH-mobile.
->> 
->> Also, OMAP was the only user of platform_bus_set_pm_ops().  Now that
->> it has been converted to device power domains, remove
->> platform_bus_set_pm_ops().
+On 4/7/2011 1:23 PM, Balbi, Felipe wrote:
+> Hi,
 >
-> Please, don't do it this way.
+> On Thu, Apr 07, 2011 at 03:54:47PM +0530, Basheer, Mansoor Ahamed wrote:
+>> @@ -100,6 +102,129 @@ static int __init omap4_l3_init(void)
+>>   }
+>>   postcore_initcall(omap4_l3_init);
+>>
+>> +#if defined(CONFIG_SATA_AHCI_PLATFORM) || \
+>> +	defined(CONFIG_SATA_AHCI_PLATFORM_MODULE)
+>> +
+>> +static struct ahci_platform_data omap_sata_pdata;
+>> +static u64 omap_sata_dmamask = DMA_BIT_MASK(32);
+>> +static struct clk *omap_sata_clk;
+>> +
+>> +/* SATA PHY control register offsets */
+>> +#define SATA_P0PHYCR_REG	0x178
+>> +#define SATA_P1PHYCR_REG	0x1F8
 >
-> First, we'll still need platform_bus_set_pm_ops() on shmobile and the reason
-> is that we want to override the platform bus type PM ops for _all_ devices on
-> that platform, which power domains are not really suitable for.
+> prepend all with TI816X_
+>
+>> +#define SATA_PHY_ENPLL(x)	((x)<<  0)
+>> +#define SATA_PHY_MPY(x)		((x)<<  1)
+>> +#define SATA_PHY_LB(x)		((x)<<  5)
+>> +#define SATA_PHY_CLKBYP(x)	((x)<<  7)
+>> +#define SATA_PHY_RXINVPAIR(x)	((x)<<  9)
+>> +#define SATA_PHY_LBK(x)		((x)<<  10)
+>> +#define SATA_PHY_RXLOS(x)	((x)<<  12)
+>> +#define SATA_PHY_RXCDR(x)	((x)<<  13)
+>> +#define SATA_PHY_RXEQ(x)	((x)<<  16)
+>> +#define SATA_PHY_RXENOC(x)	((x)<<  20)
+>> +#define SATA_PHY_TXINVPAIR(x)	((x)<<  21)
+>> +#define SATA_PHY_TXCM(x)	((x)<<  22)
+>> +#define SATA_PHY_TXSWING(x)	((x)<<  23)
+>
+> the ones which are single bits, you define as:
+>
+> #define TI816X_SATA_PHY_TXINVPAIR	(1<<  21)
+>
+> or
+>
+> #define TI816X_SATA_PHY_TXINVPAIR	BIT(21)
+>
+>> +#define SATA_PHY_TXDE(x)	((x)<<  27)
+>> +
+>> +#define TI816X_SATA_BASE	0x4A140000
+>
+> you should probably define these on some header file. Also SATA_BASE
+> should be an increment to the global base.
 
-That doesn't sound quite right to me.
+In fact, you should even use hwmod data for that.
 
-Magnus should step in here to clarify the situation on SH-mobile, but
-like Grant, I'm pretty sure that we don't need (or want) to replace PM
-ops for _all_ platform devices.
+>> +
+>> +static int ti816x_ahci_plat_init(struct device *dev, void __iomem *base)
+>> +{
+>> +	unsigned int phy_val;
+>> +	int ret;
+>> +
+>> +	omap_sata_clk = clk_get(dev, NULL);
+>> +	if (IS_ERR(omap_sata_clk)) {
+>> +		pr_err("ahci : Failed to get SATA clock\n");
+>> +		return PTR_ERR(omap_sata_clk);
+>> +	}
+>
+> can't you use pm_runtime do achieve this ?
+>
+>> +
+>> +	if (!base) {
+>> +		pr_err("ahci : SATA reg space not mapped, PHY enable failed\n");
+>> +		ret = -ENOMEM;
+>> +		goto err;
+>> +	}
+>> +
+>> +	ret = clk_enable(omap_sata_clk);
+>> +	if (ret) {
+>> +		pr_err("ahci : Clock enable failed\n");
+>> +		goto err;
+>> +	}
 
-Looking at the replacement ops used, they simply manage device clocks,
-and this probably only applies to on-chip devices (at least that's true
-on OMAP.)
+As Felipe suggested, pm_runtime is probably the right API for that.
+It should even potentially be done in the driver directly since it is a 
+generic API and most platform should probably have to enable "something" 
+at that time.
 
-Replacing the PM ops for all devices was done on OMAP and SH-mobile
-because that was the only approach we had.  Now that we have device
-power domains (thanks Rafael!), we can be more selective about which
-devices to apply them to.
+Benoit
 
-Note that my RFC patch/series did not do the selective part of deciding
-which devices to override and which ones not to, that part will be
-platform specific.  
 
-> Second, we're going to introduce code for handling real power domains for
-> shmobile that would conflict with the way you're using power domains for
-> overriding the default PM ops.
+>> +
+>> +	phy_val = SATA_PHY_ENPLL(1) |
+>> +			SATA_PHY_MPY(8) |
+>> +			SATA_PHY_LB(0) |
+>> +			SATA_PHY_CLKBYP(0) |
+>> +			SATA_PHY_RXINVPAIR(0) |
+>> +			SATA_PHY_LBK(0) |
+>> +			SATA_PHY_RXLOS(1) |
+>> +			SATA_PHY_RXCDR(4) |
+>> +			SATA_PHY_RXEQ(1) |
+>> +			SATA_PHY_RXENOC(1) |
+>> +			SATA_PHY_TXINVPAIR(0) |
+>> +			SATA_PHY_TXCM(0) |
+>> +			SATA_PHY_TXSWING(7) |
+>> +			SATA_PHY_TXDE(0);
+>
+> if it's 0, it's same as not even adding them. Please remove the ones
+> which are 0.
+>
+>> +	writel(phy_val, base + SATA_P0PHYCR_REG);
+>> +	writel(phy_val, base + SATA_P1PHYCR_REG);
+>> +
+>> +	return 0;
+>> +err:
+>> +	clk_put(omap_sata_clk);
+>> +	return ret;
+>> +}
+>> +
+>> +static void ti816x_ahci_plat_exit(struct device *dev)
+>> +{
+>> +	clk_disable(omap_sata_clk);
+>> +	clk_put(omap_sata_clk);
+>> +}
+>> +
+>> +/* resources will be filled by soc specific init routine */
+>> +static struct resource omap_ahci_resources[] = {
+>> +	{
+>> +		.flags	= IORESOURCE_MEM,
+>> +	},
+>> +	{
+>> +		.flags	= IORESOURCE_IRQ,
+>> +	}
+>> +};
+>> +
+>> +static struct platform_device omap_ahci_device = {
+>> +	.name	= "ahci",
+>> +	.dev	= {
+>> +		.platform_data =&omap_sata_pdata,
+>> +		.coherent_dma_mask	= DMA_BIT_MASK(32),
+>> +		.dma_mask		=&omap_sata_dmamask,
+>> +	},
+>> +	.num_resources	= ARRAY_SIZE(omap_ahci_resources),
+>> +	.resource	= omap_ahci_resources,
+>> +};
+>> +
+>> +static void ti816x_ahci_init(void)
+>> +{
+>> +	/* fixup platform device info for TI816X */
+>> +	omap_ahci_resources[0].start	= TI816X_SATA_BASE;
+>> +	omap_ahci_resources[0].end	= TI816X_SATA_BASE + 0x10fff;
+>
+> weird resource size... 68k... Ok, anyway.. as long as it's correct :-p
+>
+>> +	omap_ahci_resources[1].start	= 16; /* SATA IRQ */
+>> +	omap_sata_pdata.init		= ti816x_ahci_plat_init;
+>> +	omap_sata_pdata.exit		= ti816x_ahci_plat_exit;
+>
+> why didn't you initialize these when defining the resources ?
+>
+> you could even drop this function altogether.
+>
+>> +}
+>> +
+>> +static inline void omap_init_ahci(void)
+>> +{
+>> +	if (cpu_is_ti816x()) {
+>> +		ti816x_ahci_init();
+>> +		platform_device_register(&omap_ahci_device);
+>> +	}
+>
+> this is better the other way around:
+>
+> 	if (!cpu_is_ti816x())
+> 		return;
+>
+> 	platform_device_register(&omap_ahci_device);
+>
 
-Conflict in what way?
-
-If you have new device power domain callbacks for specific devices in a
-an on-chp power domain, they would just override the "default" ones that
-only do basic clock gating.  I'm guessing the new callbacks will do some
-management of the SoC specific powerdomains in addition to clock gating.
-That's how it works on OMAP.
-
-Put a different way, the device power domain callbacks in this proposal
-will be the defaults, providing a simple clock-gating only approach to
-device power management.   However, when new code comes along to manage
-the actual SoC power domains, devices in those power domains will just
-override these default clock-gating-only versions.
-
-This is exactly how things are working in OMAP.  On OMAP1, we use only
-the simple, clock-gating only callbacks because the OMAP1 PM
-capabilities are much more limited.  On OMAP2+, we override these
-callbacks with different ones that in addition to managing clocks, also
-manage the SoC power domains.
-
-> Besides, the way you've used power domains appears to assume that drivers
-> will not define their own runtime PM callbacks, because if they do, those
-> callbacks will be called _in_ _addition_ to the power domain callbacks you're
-> trying to add (from the default platform bus type callbacks).
-
-That was intentional.
-
-If all a driver needs to do for runtime PM is manage clocks, it doesn't
-need runtime PM callbacks since it's hanlded by core code.  If it has
-additional things to do (save context, quiesce hardware, wait for
-somthing to finish etc.) it can do that in it's own callbacks, and then
-the clock gating will happen in the device power domain callbacks.
-
-The point is use both levels of callbacks. The device power domain
-callbacks handle all the operations that are common to the device power
-domain, and the driver callbacks handle driver specific stuff.  
-
-It also means that drivers don't have to manage their own clocks, at
-least for PM purposes.  This is a big win for drivers that are used on
-multiple platforms, or even multiple SoCs in the same family where
-clocking may be different.  Drivers that can remain ignorant of the
-underlying clocking (and power domain layout) are much more portable.
-
-Kevin
