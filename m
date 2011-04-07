@@ -1,54 +1,107 @@
 From: "Avinash.H.M." <avinashhm@ti.com>
-Subject: Re: [PATCH 2/2 v2] OMAP2/3: hwmod: fix gpio-reset timeouts seen
- during bootup.
-Date: Thu, 7 Apr 2011 12:15:50 +0530
-Message-ID: <20110407064550.GA19781@avinash-laptop>
-References: <1302018015-8858-1-git-send-email-avinashhm@ti.com>
- <1302018015-8858-3-git-send-email-avinashhm@ti.com>
- <BANLkTikwyk6b+d-QAz5LxuU_Lxgo4-A-hg@mail.gmail.com>
+Subject: Re: [PATCH 1/2 v2] OMAP2/3: hwmod: fix the i2c-reset timeout
+ during bootup
+Date: Thu, 7 Apr 2011 12:33:10 +0530
+Message-ID: <20110407070310.GA21701@avinash-laptop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:44625 "EHLO
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:53802 "EHLO
 	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752155Ab1DGGqG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Apr 2011 02:46:06 -0400
-Received: by gwb17 with SMTP id 17so1227902gwb.15
-        for <linux-omap@vger.kernel.org>; Wed, 06 Apr 2011 23:46:03 -0700 (PDT)
+	by vger.kernel.org with ESMTP id S1752201Ab1DGHDY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Apr 2011 03:03:24 -0400
+Received: by mail-gy0-f179.google.com with SMTP id 8so999914gyg.38
+        for <linux-omap@vger.kernel.org>; Thu, 07 Apr 2011 00:03:23 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <BANLkTikwyk6b+d-QAz5LxuU_Lxgo4-A-hg@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gulati, Shweta" <shweta.gulati@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>
 
-On Wed, Apr 06, 2011 at 11:28:00AM +0530, Gulati, Shweta wrote:
-> Hi,
-> 
-> On Tue, Apr 5, 2011 at 9:10 PM, Avinash.H.M <avinashhm@ti.com> wrote:
-> > GPIO module expects the debounce clocks to be enabled during reset. It doesn't
-> > reset properly and timeouts are seen, if this clock isn't enabled during
-> > reset. Add the HWMOD_CONTROL_OPT_CLKS_IN_RESET flags to the GPIO HWMODs, with
-> > which the debounce clocks are enabled during reset.
-> Minor comment,
-> Rephrase as " GPIO module doesn't reset properly and timeouts are seen
-> during bootup, if
-> debounce clock is not enabled"
-> to make commit log more clear.
+Date: Thu, 7 Apr 2011 12:12:37 +0530
+From: "Mahadeva, Avinash" <avinashhm@ti.com>
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	Rajendra Nayak <rnayak@ti.com>, Paul Walmsley <paul@pwsan.com>,
+	Benoit Cousson <b-cousson@ti.com>
+Subject: Re: [PATCH 1/2 v2] OMAP2/3: hwmod: fix the i2c-reset timeout during bootup
 
+On Tue, Apr 5, 2011 at 11:57 PM, Kevin Hilman <khilman@ti.com> wrote:
 
-Hi Shweta ,
-
-thanks for the review.
-
-i will fix the rephrase the change log .
-
-br ,
-
-- avinash
-
+> "Avinash.H.M" <avinashhm@ti.com> writes:
+>
+> > The i2c module has a special reset sequence. The sequence is
+> > - Disable the I2C.
+> > - Write to SOFTRESET bit.
+> > - Enable the I2C.
+> > - Poll on the RESETDONE bit.
+> > This sequence must be followed for i2c reset in omap2, omap3. The
+> sequence is
+> > implemented as a function and the i2c_class is updated with the correct
+> > 'reset' pointer.
+> >
 > > Cc: Rajendra Nayak <rnayak@ti.com>
 > > Cc: Paul Walmsley <paul@pwsan.com>
 > > Cc: Benoit Cousson <b-cousson@ti.com>
 > > Cc: Kevin Hilman <khilman@ti.com>
 > > Signed-off-by: Avinash.H.M <avinashhm@ti.com>
+>
+> [...]
+>
+> > +
+> > +/**
+> > + * omap_i2c_reset- reset the omap i2c module.
+> > + * @oh: struct omap_hwmod *
+> > + *
+> > + * The i2c moudle in omap2, omap3 had a special sequence to reset. The
+> > + * sequence is:
+> > + * - Disable the I2C.
+> > + * - Write to SOFTRESET bit.
+> > + * - Enable the I2C.
+> > + * - Poll on the RESETDONE bit.
+> > + * The sequence is implemented in below function. This is called for
+> 2420,
+> > + * 2430 and omap3.
+> > + */
+> > +int omap_i2c_reset(struct omap_hwmod *oh)
+> > +{
+> > +     u32 v;
+> > +     int c = 0;
+> > +
+> > +     /* Disable I2C */
+> > +     v = omap_hwmod_read(oh, I2C_CON_OFFSET);
+> > +     v = v & ~I2C_EN;
+> > +     omap_hwmod_write(v, oh, I2C_CON_OFFSET);
+> > +
+> > +     /* Write to the SOFTRESET bit */
+> > +     v = oh->_sysc_cache;
+> > +     v |= (0x1 << oh->class->sysc->sysc_fields->srst_shift);
+> > +
+> > +     oh->_sysc_cache = v;
+> > +     omap_hwmod_write(v, oh, oh->class->sysc->sysc_offs);
+>
+> Direct SYSCONFIG access isn't right here.   This should go through
+> omap_hwmod.
+>
+> What is probably needed is exposing _ocp_softreset to device code
+> via something like omap_hwmod_ocp_softreset() and calling that here.
+>
+>
+
+* Sorry, somehow the mail bounced from l-o. Resending it agian. *
+
+Hi Kevin ,
+
+thanks for the review.
+
+OK. I ll create a wrapper function ' omap_hwmod_ocp_softreset'
+around '_ocp_softreset' and call it here .
+
+b r ,
+- avinash.
+
+
+
+> Kevin
+>
+
