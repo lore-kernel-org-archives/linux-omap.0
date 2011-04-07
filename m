@@ -1,100 +1,70 @@
-From: Hema Kalliguddi <hemahk@ti.com>
-Subject: RE: What is missing from musb - linux-omap merge?
-Date: Thu, 7 Apr 2011 18:31:41 +0530
-Message-ID: <254aac705c536b59ed64c6db922c1124@mail.gmail.com>
-References: <20110406162334.8dcb5a7d.jhnikula@gmail.com> <b84bb921d4bb8c258966c77406cc795b@mail.gmail.com>
- <20110407133452.afc188e1.jhnikula@gmail.com> <20110407113815.GA29038@legolas.emea.dhcp.ti.com>
- <4b3dcd4df940622c0f754669397c7482@mail.gmail.com>
+From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Subject: Re: omap: USB host disconnects connecting a device through USB HUB
+Date: Thu, 7 Apr 2011 10:37:36 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1104071036040.2147-100000@iolanthe.rowland.org>
+References: <BANLkTim4FNNH3MfbEAwwpGzGvvLARWW+KA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:54871 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751171Ab1DGNBy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Apr 2011 09:01:54 -0400
-Received: by mail-fx0-f44.google.com with SMTP id 15so1624370fxm.3
-        for <linux-omap@vger.kernel.org>; Thu, 07 Apr 2011 06:01:53 -0700 (PDT)
-In-Reply-To: <4b3dcd4df940622c0f754669397c7482@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <BANLkTim4FNNH3MfbEAwwpGzGvvLARWW+KA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: =?UTF-8?Q?Enric_Balletb=C3=B2_i_Serra?= <eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Hema Kalliguddi <hemahk@ti.com>, Felipe Balbi <balbi@ti.com>, Jarkko Nikula <jhnikula@gmail.com>
-Cc: OMAP Linux discussion <linux-omap@vger.kernel.org>
 
-Hi,
+On Thu, 7 Apr 2011, Enric Balletb=C3=B2 i Serra wrote:
 
->-----Original Message-----
->From: Hema Kalliguddi [mailto:hemahk@ti.com]
->Sent: Thursday, April 07, 2011 6:29 PM
->To: balbi@ti.com; Jarkko Nikula
->Cc: OMAP Linux discussion
->Subject: RE: What is missing from musb - linux-omap merge?
->
->>-----Original Message-----
->>From: Felipe Balbi [mailto:balbi@ti.com]
->>Sent: Thursday, April 07, 2011 5:08 PM
->>To: Jarkko Nikula
->>Cc: Hema Kalliguddi; OMAP Linux discussion; Felipe Balbi
->>Subject: Re: What is missing from musb - linux-omap merge?
->>
->>On Thu, Apr 07, 2011 at 01:34:52PM +0300, Jarkko Nikula wrote:
->>> Hi
->>>
->>> On Thu, 7 Apr 2011 14:38:06 +0530
->>> Hema Kalliguddi <hemahk@ti.com> wrote:
->>>
->>> > I tried the core retention with v2.6.39-rc1 with
->>OMAP3630Zoom3 board
->>> > and don't observe any issues. Core is transitioning to
->>retention without
->>> > any issue,
->>> > with or without musb driver loaded.
->>> >
->>> > But on OMAP3430SDP I am observing the crash when try to do
->>> > echo mem > /sys/power/state.
->>> >
->>> > Attached is the fix for this issue and core transitions to
->>retention.
->>> >
->>> Hmm.. suspend/resume are fine on Nokia N900 with and without
->>the patch.
->>> Patch also didn't fix the idle retention.
->>>
->>> > When you say retention is not working can you please
->carify what is
->>> > happening?
->>> > are you trying in idle path retention or suspend/resume?
->>> >
->>> Sorry not being verbose enough, I was testing the idle retention.
->>>
->>> For me it looks these differencies are explained by different
->>> bootloaders. As Kevin told they may leave MUSB in a wrong
->>state. Was it
->>> so that before hwmod conversion the musb did IP reset etc
->>and now this
->>> feature is missing? So I'm thinking is this problem a regression or
->>> missing feature after hwmod conversion?
->>
->Hwmod will take care of restting the ip if the SYSC_HAS_SOFTRESET
->sysc_flag
->is set. And it is being set in the hwmod structure of OMAP3.
->
->I tested both idle path and suspend/resume retention and works fine
->on OMAP3430SDP.
+> Hi all,
+>=20
+> I'm experimenting some issues with USB on IGEP v2 board, in certain
+> cases I've an USB disconnect when I plug a device. For me it fails
+> with kernel 2.6.35 but I think it also affect newer kernel, the issue
+> is easy to reproduce following these steps:
+>=20
+> 1. Power up the board (without any device connected )
+>=20
+> 2. When kernel is up, connect a powered USB HUB 2.0 to the USB host
+> port, kernel shows,
+>=20
+> usb 1-1: new high speed USB device using ehci-omap and address 2
+> usb 1-1: New USB device found, idVendor=3D05e3, idProduct=3D0608
+> usb 1-1: New USB device strings: Mfr=3D0, Product=3D1, SerialNumber=3D=
+0
+> usb 1-1: Product: USB2.0 Hub
+> hub 1-1:1.0: USB hub found
+> hub 1-1:1.0: 4 ports detected
+> usb 1-1.4: new high speed USB device using ehci-omap and address 3
+> usb 1-1.4: New USB device found, idVendor=3D05e3, idProduct=3D0608
+> usb 1-1.4: New USB device strings: Mfr=3D0, Product=3D1, SerialNumber=
+=3D0
+> usb 1-1.4: Product: USB2.0 Hub
+> hub 1-1.4:1.0: USB hub found
+> hub 1-1.4:1.0: 4 ports detected
+>=20
+> 3. Then if I connect a device (for example a pendrive) to the HUB I
+> get USB disconnect message
+>=20
+> usb 1-1: USB disconnect, address 2
+> usb 1-1.4: USB disconnect, address 3
+>=20
+> OTOH, it works without problem
+>   1. if power up the board with the USB HUB connected to the USB Host
+> port and the device connected to the USB hub.
+>   2. if after kernel is up, connect the USB HUB + device to the USB H=
+ost port
+>=20
+> Anyone is experimenting something like this with other OMAP3-based bo=
+ards ?
 
-Tested with OMAP3630Zoom3 board not with 3430SDP.
+At first glance, it looks like a power-related issue.  Current inrush=20
+when the device is plugged in, or something like that.
 
->I am wondering what might be the problem with N900. Is it
->works if you do
->the
->ip reset in the musb driver?
->
->Regards,
->Hema
->
->>it's possibly a regression. I remember we had softreset before. Should
->>be fixed.
->>
->>--
->>balbi
->>
->
+What happens if you attach the hub and pendrive to a standard PC?
+
+Alan Stern
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
