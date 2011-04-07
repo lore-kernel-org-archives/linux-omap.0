@@ -1,16 +1,15 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [pm-core][PATCH v3 14/21] OMAP4: pm-debug: Add wakeup timer and
-	debug counters
-Date: Tue, 29 Mar 2011 11:57:15 +0530
-Message-ID: <AANLkTikbBWn0KrUmAwTbEtY8K_g-xT2r9BqZU49iiOsb@mail.gmail.com>
-References: <1301304157-2466-1-git-send-email-santosh.shilimkar@ti.com>
-	<1301304157-2466-15-git-send-email-santosh.shilimkar@ti.com>
-	<20110328210046.GE30616@atomide.com>
-	<4287119fdbc364dd7bd414ee40c1a9a4@mail.gmail.com>
+From: "Mahadeva, Avinash" <avinashhm@ti.com>
+Subject: Re: [PATCH 1/2 v2] OMAP2/3: hwmod: fix the i2c-reset timeout during
+	bootup
+Date: Thu, 7 Apr 2011 12:12:37 +0530
+Message-ID: <BANLkTikrDS_U5u7=2z6ZNiWVcb6W8GoOTg@mail.gmail.com>
+References: <1302018015-8858-1-git-send-email-avinashhm@ti.com>
+	<1302018015-8858-2-git-send-email-avinashhm@ti.com>
+	<87mxk4zh7u.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0504585096=="
+Content-Type: multipart/mixed; boundary="===============0374941514=="
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <4287119fdbc364dd7bd414ee40c1a9a4@mail.gmail.com>
+In-Reply-To: <87mxk4zh7u.fsf@ti.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -20,132 +19,183 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: linux-arm-kernel-bounces@lists.infradead.org
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
+To: Kevin Hilman <khilman@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
---===============0504585096==
-Content-Type: multipart/alternative; boundary=000e0cd517c8f91343049f992751
+--===============0374941514==
+Content-Type: multipart/alternative; boundary=20cf303f69ea428dcc04a04e6a1a
 
---000e0cd517c8f91343049f992751
+--20cf303f69ea428dcc04a04e6a1a
 Content-Type: text/plain; charset=ISO-8859-1
 
-Sorry for spamming your inbox with same email. :(
-Looks like my mailer has srewed up. It send same messege almost 20 times and
-it shows me that it has
-stuck in outbox
+On Tue, Apr 5, 2011 at 11:57 PM, Kevin Hilman <khilman@ti.com> wrote:
 
-Regards
-Santosh
-
-On Tue, Mar 29, 2011 at 11:20 AM, Santosh Shilimkar <
-santosh.shilimkar@ti.com> wrote:
-
-> > -----Original Message-----
-> > From: Tony Lindgren [mailto:tony@atomide.com]
-> > Sent: Tuesday, March 29, 2011 2:31 AM
-> > To: Santosh Shilimkar
-> > Cc: linux-omap@vger.kernel.org; khilman@ti.com; rnayak@ti.com;
-> > linux-arm-kernel@lists.infradead.org
-> > Subject: Re: [pm-core][PATCH v3 14/21] OMAP4: pm-debug: Add wakeup
-> > timer and debug counters
-> >
-> > * Santosh Shilimkar <santosh.shilimkar@ti.com> [110328 02:21]:
-> > > --- a/arch/arm/mach-omap2/pm-debug.c
-> > > +++ b/arch/arm/mach-omap2/pm-debug.c
-> > > @@ -40,6 +41,11 @@ static int omap4_pm_suspend(void)
-> > >     int state, ret = 0;
-> > >     u32 cpu_id = smp_processor_id();
-> > >
-> > > +   /* Wakeup timer from suspend */
-> > > +   if (wakeup_timer_seconds || wakeup_timer_milliseconds)
-> > > +           omap2_pm_wakeup_on_timer(wakeup_timer_seconds,
-> > > +                                    wakeup_timer_milliseconds);
-> > > +
-> > >     /* Save current powerdomain state */
-> > >     list_for_each_entry(pwrst, &pwrst_list, node) {
-> > >             pwrst->saved_state = pwrdm_read_next_pwrst(pwrst-
-> > >pwrdm);
-> >
-> > This hack to mess diretly with sys_timer will be ripped out,
-> > so please drop this patch.
-> >
-> Ok.
+> "Avinash.H.M" <avinashhm@ti.com> writes:
 >
-> > In the long run we'll have dmtimer1 dedicated to the PM code,
-> > so then it's possible to do similar things.
+> > The i2c module has a special reset sequence. The sequence is
+> > - Disable the I2C.
+> > - Write to SOFTRESET bit.
+> > - Enable the I2C.
+> > - Poll on the RESETDONE bit.
+> > This sequence must be followed for i2c reset in omap2, omap3. The
+> sequence is
+> > implemented as a function and the i2c_class is updated with the correct
+> > 'reset' pointer.
 > >
+> > Cc: Rajendra Nayak <rnayak@ti.com>
+> > Cc: Paul Walmsley <paul@pwsan.com>
+> > Cc: Benoit Cousson <b-cousson@ti.com>
+> > Cc: Kevin Hilman <khilman@ti.com>
+> > Signed-off-by: Avinash.H.M <avinashhm@ti.com>
 >
-> Regards,
-> Santosh
+> [...]
+>
+> > +
+> > +/**
+> > + * omap_i2c_reset- reset the omap i2c module.
+> > + * @oh: struct omap_hwmod *
+> > + *
+> > + * The i2c moudle in omap2, omap3 had a special sequence to reset. The
+> > + * sequence is:
+> > + * - Disable the I2C.
+> > + * - Write to SOFTRESET bit.
+> > + * - Enable the I2C.
+> > + * - Poll on the RESETDONE bit.
+> > + * The sequence is implemented in below function. This is called for
+> 2420,
+> > + * 2430 and omap3.
+> > + */
+> > +int omap_i2c_reset(struct omap_hwmod *oh)
+> > +{
+> > +     u32 v;
+> > +     int c = 0;
+> > +
+> > +     /* Disable I2C */
+> > +     v = omap_hwmod_read(oh, I2C_CON_OFFSET);
+> > +     v = v & ~I2C_EN;
+> > +     omap_hwmod_write(v, oh, I2C_CON_OFFSET);
+> > +
+> > +     /* Write to the SOFTRESET bit */
+> > +     v = oh->_sysc_cache;
+> > +     v |= (0x1 << oh->class->sysc->sysc_fields->srst_shift);
+> > +
+> > +     oh->_sysc_cache = v;
+> > +     omap_hwmod_write(v, oh, oh->class->sysc->sysc_offs);
+>
+> Direct SYSCONFIG access isn't right here.   This should go through
+> omap_hwmod.
+>
+> What is probably needed is exposing _ocp_softreset to device code
+> via something like omap_hwmod_ocp_softreset() and calling that here.
+>
+>
+Hi Kevin ,
+
+thanks for the review.
+
+OK. I ll create a wrapper function ' omap_hwmod_ocp_softreset'
+around '_ocp_softreset' and call it here .
+
+b r ,
+- avinash.
+
+
+
+> Kevin
 >
 
---000e0cd517c8f91343049f992751
+--20cf303f69ea428dcc04a04e6a1a
 Content-Type: text/html; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-Sorry for spamming your inbox with same email. :(<br>Looks like my mailer h=
-as srewed up. It send same messege almost 20 times and it shows me that it =
-has<br>stuck in outbox<br><br>Regards<br>Santosh<br><br><div class=3D"gmail=
-_quote">
-
-On Tue, Mar 29, 2011 at 11:20 AM, Santosh Shilimkar <span dir=3D"ltr">&lt;<=
-a href=3D"mailto:santosh.shilimkar@ti.com">santosh.shilimkar@ti.com</a>&gt;=
-</span> wrote:<br><blockquote class=3D"gmail_quote" style=3D"margin: 0pt 0p=
-t 0pt 0.8ex; border-left: 1px solid rgb(204, 204, 204); padding-left: 1ex;"=
->
-
-<div class=3D"im">&gt; -----Original Message-----<br>
-&gt; From: Tony Lindgren [mailto:<a href=3D"mailto:tony@atomide.com">tony@a=
-tomide.com</a>]<br>
-&gt; Sent: Tuesday, March 29, 2011 2:31 AM<br>
-&gt; To: Santosh Shilimkar<br>
-&gt; Cc: <a href=3D"mailto:linux-omap@vger.kernel.org">linux-omap@vger.kern=
-el.org</a>; <a href=3D"mailto:khilman@ti.com">khilman@ti.com</a>; <a href=
-=3D"mailto:rnayak@ti.com">rnayak@ti.com</a>;<br>
-&gt; <a href=3D"mailto:linux-arm-kernel@lists.infradead.org">linux-arm-kern=
-el@lists.infradead.org</a><br>
-&gt; Subject: Re: [pm-core][PATCH v3 14/21] OMAP4: pm-debug: Add wakeup<br>
-&gt; timer and debug counters<br>
-&gt;<br>
-</div><div class=3D"im">&gt; * Santosh Shilimkar &lt;<a href=3D"mailto:sant=
-osh.shilimkar@ti.com">santosh.shilimkar@ti.com</a>&gt; [110328 02:21]:<br>
-&gt; &gt; --- a/arch/arm/mach-omap2/pm-debug.c<br>
-&gt; &gt; +++ b/arch/arm/mach-omap2/pm-debug.c<br>
-&gt; &gt; @@ -40,6 +41,11 @@ static int omap4_pm_suspend(void)<br>
-&gt; &gt; =A0 =A0 int state, ret =3D 0;<br>
-&gt; &gt; =A0 =A0 u32 cpu_id =3D smp_processor_id();<br>
-&gt; &gt;<br>
-&gt; &gt; + =A0 /* Wakeup timer from suspend */<br>
-&gt; &gt; + =A0 if (wakeup_timer_seconds || wakeup_timer_milliseconds)<br>
-&gt; &gt; + =A0 =A0 =A0 =A0 =A0 omap2_pm_wakeup_on_timer(wakeup_timer_secon=
-ds,<br>
-&gt; &gt; + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0wakeup_timer_milliseconds);<br>
-&gt; &gt; +<br>
-&gt; &gt; =A0 =A0 /* Save current powerdomain state */<br>
-&gt; &gt; =A0 =A0 list_for_each_entry(pwrst, &amp;pwrst_list, node) {<br>
-&gt; &gt; =A0 =A0 =A0 =A0 =A0 =A0 pwrst-&gt;saved_state =3D pwrdm_read_next=
-_pwrst(pwrst-<br>
-&gt; &gt;pwrdm);<br>
-&gt;<br>
-&gt; This hack to mess diretly with sys_timer will be ripped out,<br>
-&gt; so please drop this patch.<br>
-&gt;<br>
-</div>Ok.<br>
-<div class=3D"im"><br>
-&gt; In the long run we&#39;ll have dmtimer1 dedicated to the PM code,<br>
-&gt; so then it&#39;s possible to do similar things.<br>
-&gt;<br>
+<br><br><div class=3D"gmail_quote">On Tue, Apr 5, 2011 at 11:57 PM, Kevin H=
+ilman <span dir=3D"ltr">&lt;<a href=3D"mailto:khilman@ti.com">khilman@ti.co=
+m</a>&gt;</span> wrote:<br><blockquote class=3D"gmail_quote" style=3D"margi=
+n: 0pt 0pt 0pt 0.8ex; border-left: 1px solid rgb(204, 204, 204); padding-le=
+ft: 1ex;">
+<div class=3D"im">&quot;Avinash.H.M&quot; &lt;<a href=3D"mailto:avinashhm@t=
+i.com">avinashhm@ti.com</a>&gt; writes:<br>
 <br>
-</div>Regards,<br>
-<font color=3D"#888888">Santosh<br>
+&gt; The i2c module has a special reset sequence. The sequence is<br>
+&gt; - Disable the I2C.<br>
+&gt; - Write to SOFTRESET bit.<br>
+&gt; - Enable the I2C.<br>
+&gt; - Poll on the RESETDONE bit.<br>
+&gt; This sequence must be followed for i2c reset in omap2, omap3. The sequ=
+ence is<br>
+&gt; implemented as a function and the i2c_class is updated with the correc=
+t<br>
+&gt; &#39;reset&#39; pointer.<br>
+&gt;<br>
+&gt; Cc: Rajendra Nayak &lt;<a href=3D"mailto:rnayak@ti.com">rnayak@ti.com<=
+/a>&gt;<br>
+&gt; Cc: Paul Walmsley &lt;<a href=3D"mailto:paul@pwsan.com">paul@pwsan.com=
+</a>&gt;<br>
+&gt; Cc: Benoit Cousson &lt;<a href=3D"mailto:b-cousson@ti.com">b-cousson@t=
+i.com</a>&gt;<br>
+&gt; Cc: Kevin Hilman &lt;<a href=3D"mailto:khilman@ti.com">khilman@ti.com<=
+/a>&gt;<br>
+&gt; Signed-off-by: Avinash.H.M &lt;<a href=3D"mailto:avinashhm@ti.com">avi=
+nashhm@ti.com</a>&gt;<br>
+<br>
+</div>[...]<br>
+<div class=3D"im"><br>
+&gt; +<br>
+&gt; +/**<br>
+&gt; + * omap_i2c_reset- reset the omap i2c module.<br>
+&gt; + * @oh: struct omap_hwmod *<br>
+&gt; + *<br>
+&gt; + * The i2c moudle in omap2, omap3 had a special sequence to reset. Th=
+e<br>
+&gt; + * sequence is:<br>
+&gt; + * - Disable the I2C.<br>
+&gt; + * - Write to SOFTRESET bit.<br>
+&gt; + * - Enable the I2C.<br>
+&gt; + * - Poll on the RESETDONE bit.<br>
+&gt; + * The sequence is implemented in below function. This is called for =
+2420,<br>
+&gt; + * 2430 and omap3.<br>
+&gt; + */<br>
+&gt; +int omap_i2c_reset(struct omap_hwmod *oh)<br>
+&gt; +{<br>
+&gt; + =A0 =A0 u32 v;<br>
+&gt; + =A0 =A0 int c =3D 0;<br>
+&gt; +<br>
+&gt; + =A0 =A0 /* Disable I2C */<br>
+&gt; + =A0 =A0 v =3D omap_hwmod_read(oh, I2C_CON_OFFSET);<br>
+&gt; + =A0 =A0 v =3D v &amp; ~I2C_EN;<br>
+&gt; + =A0 =A0 omap_hwmod_write(v, oh, I2C_CON_OFFSET);<br>
+&gt; +<br>
+&gt; + =A0 =A0 /* Write to the SOFTRESET bit */<br>
+&gt; + =A0 =A0 v =3D oh-&gt;_sysc_cache;<br>
+&gt; + =A0 =A0 v |=3D (0x1 &lt;&lt; oh-&gt;class-&gt;sysc-&gt;sysc_fields-&=
+gt;srst_shift);<br>
+&gt; +<br>
+&gt; + =A0 =A0 oh-&gt;_sysc_cache =3D v;<br>
+&gt; + =A0 =A0 omap_hwmod_write(v, oh, oh-&gt;class-&gt;sysc-&gt;sysc_offs)=
+;<br>
+<br>
+</div>Direct SYSCONFIG access isn&#39;t right here. =A0 This should go thro=
+ugh<br>
+omap_hwmod.<br>
+<br>
+What is probably needed is exposing _ocp_softreset to device code<br>
+via something like omap_hwmod_ocp_softreset() and calling that here.<br>
+<font color=3D"#888888"><br></font></blockquote><div><br>Hi Kevin , <br><br=
+>thanks for the review. <br><br>OK. I ll create a wrapper function &#39; om=
+ap_hwmod_ocp_softreset&#39;<br>around &#39;_ocp_softreset&#39; and call it =
+here .<br>
+</div><div><br>b r ,<br>- avinash.<br><br>=A0</div><blockquote class=3D"gma=
+il_quote" style=3D"margin: 0pt 0pt 0pt 0.8ex; border-left: 1px solid rgb(20=
+4, 204, 204); padding-left: 1ex;"><font color=3D"#888888">
+Kevin<br>
 </font></blockquote></div><br>
 
---000e0cd517c8f91343049f992751--
+--20cf303f69ea428dcc04a04e6a1a--
 
 
---===============0504585096==
+--===============0374941514==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -156,4 +206,4 @@ linux-arm-kernel mailing list
 linux-arm-kernel@lists.infradead.org
 http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
 
---===============0504585096==--
+--===============0374941514==--
