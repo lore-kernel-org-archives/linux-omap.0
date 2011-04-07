@@ -1,102 +1,180 @@
-From: Avik Sil <aviksil@linux.vnet.ibm.com>
-Subject: Re: arm: pmu: support pmu/perf on OMAP4 - booting problem on pandaboard
-Date: Thu, 07 Apr 2011 16:12:17 +0530
-Message-ID: <4D9D9509.7050804@linux.vnet.ibm.com>
-References: <4D95E244.1050400@linux.vnet.ibm.com> <BANLkTi=nOR=yX=QgbyCoYUE1U7DPxUCCzw@mail.gmail.com> <4D99D251.6000901@linux.vnet.ibm.com> <BANLkTikmC_OT5TsN_jfVoUjvvcSsR2p3HA@mail.gmail.com> <4D99EB4B.3020303@linux.vnet.ibm.com> <BANLkTinQ-QQ7zu2KrhhhdWwnzo=a-KynoQ@mail.gmail.com> <4D9AF790.7010504@linux.vnet.ibm.com> <BANLkTikxu3DaxWZ88wgCP2cCZD=kNm-YeQ@mail.gmail.com> <4D9D7E8E.7020200@linux.vnet.ibm.com> <BANLkTinzr300_4AM9kJO-NVXx7zPj8GYVg@mail.gmail.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH] OMAP: TI816X: Add SATA support
+Date: Thu, 7 Apr 2011 14:23:28 +0300
+Message-ID: <20110407112328.GX29038@legolas.emea.dhcp.ti.com>
+References: <1302171887-3598-1-git-send-email-mansoor.ahamed@ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from e31.co.us.ibm.com ([32.97.110.149]:52283 "EHLO
-	e31.co.us.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755007Ab1DGKm1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Apr 2011 06:42:27 -0400
-Received: from d03relay02.boulder.ibm.com (d03relay02.boulder.ibm.com [9.17.195.227])
-	by e31.co.us.ibm.com (8.14.4/8.13.1) with ESMTP id p37AQkFT018817
-	for <linux-omap@vger.kernel.org>; Thu, 7 Apr 2011 04:26:46 -0600
-Received: from d03av04.boulder.ibm.com (d03av04.boulder.ibm.com [9.17.195.170])
-	by d03relay02.boulder.ibm.com (8.13.8/8.13.8/NCO v9.1) with ESMTP id p37AgKQi118760
-	for <linux-omap@vger.kernel.org>; Thu, 7 Apr 2011 04:42:20 -0600
-Received: from d03av04.boulder.ibm.com (loopback [127.0.0.1])
-	by d03av04.boulder.ibm.com (8.14.4/8.13.1/NCO v10.0 AVout) with ESMTP id p37AgKld007337
-	for <linux-omap@vger.kernel.org>; Thu, 7 Apr 2011 04:42:20 -0600
-In-Reply-To: <BANLkTinzr300_4AM9kJO-NVXx7zPj8GYVg@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-ide-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1302171887-3598-1-git-send-email-mansoor.ahamed@ti.com>
+Sender: linux-ide-owner@vger.kernel.org
+To: "Basheer, Mansoor Ahamed" <mansoor.ahamed@ti.com>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.arm.linux.org.uk, linux-ide@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ming Lei <tom.leiming@gmail.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Hi Ming,
+Hi,
 
-On Thursday 07 April 2011 03:24 PM, Ming Lei wrote:
-> Hi Avik,
->
-> Please check if the option CONFIG_PM is enabled or not.
-CONFIG_PM is enabled in my config:
+On Thu, Apr 07, 2011 at 03:54:47PM +0530, Basheer, Mansoor Ahamed wrote:
+> @@ -100,6 +102,129 @@ static int __init omap4_l3_init(void)
+>  }
+>  postcore_initcall(omap4_l3_init);
+>  
+> +#if defined(CONFIG_SATA_AHCI_PLATFORM) || \
+> +	defined(CONFIG_SATA_AHCI_PLATFORM_MODULE)
+> +
+> +static struct ahci_platform_data omap_sata_pdata;
+> +static u64 omap_sata_dmamask = DMA_BIT_MASK(32);
+> +static struct clk *omap_sata_clk;
+> +
+> +/* SATA PHY control register offsets */
+> +#define SATA_P0PHYCR_REG	0x178
+> +#define SATA_P1PHYCR_REG	0x1F8
 
-$ grep CONFIG_PM .config
-CONFIG_PM=y
-# CONFIG_PM_DEBUG is not set
-CONFIG_PM_SLEEP_SMP=y
-CONFIG_PM_SLEEP=y
-CONFIG_PM_RUNTIME=y
-CONFIG_PM_OPS=y
-CONFIG_PM_OPP=y
-CONFIG_PMIC_DA903X=y
-CONFIG_PMIC_ADP5520=y
+prepend all with TI816X_
 
-As suggested in 
-http://groups.google.com/group/pandaboard/browse_thread/thread/74abf5dafa2fd6e2/b1cc29b5060b4223?#b1cc29b5060b4223 
-, do you think prcm_setup_regs() has to be called for OMAP4?
+> +#define SATA_PHY_ENPLL(x)	((x) << 0)
+> +#define SATA_PHY_MPY(x)		((x) << 1)
+> +#define SATA_PHY_LB(x)		((x) << 5)
+> +#define SATA_PHY_CLKBYP(x)	((x) << 7)
+> +#define SATA_PHY_RXINVPAIR(x)	((x) << 9)
+> +#define SATA_PHY_LBK(x)		((x) << 10)
+> +#define SATA_PHY_RXLOS(x)	((x) << 12)
+> +#define SATA_PHY_RXCDR(x)	((x) << 13)
+> +#define SATA_PHY_RXEQ(x)	((x) << 16)
+> +#define SATA_PHY_RXENOC(x)	((x) << 20)
+> +#define SATA_PHY_TXINVPAIR(x)	((x) << 21)
+> +#define SATA_PHY_TXCM(x)	((x) << 22)
+> +#define SATA_PHY_TXSWING(x)	((x) << 23)
 
-Regards,
-Avik
+the ones which are single bits, you define as:
 
->
-> If not, please try to enable it to see you issue can be fixed.
->
->
-> 2011/4/7 Avik Sil<aviksil@linux.vnet.ibm.com>:
->> Hi Ming,
->>
->> On Wednesday 06 April 2011 11:37 AM, Ming Lei wrote:
->>>
->>> Hi Avik,
->>>
->>> 2011/4/5 Avik Sil<aviksil@linux.vnet.ibm.com>:
->>>>
->>>> Even after using ioremapped addresses in omap_writel() I'm getting the
->>>> oops.
->>>> Can you please point me to the location in mainline, where these l3
->>>> clocks
->>>> are enabled?
->>>
->>> I guess you can find here:
->>>
->>>           l3_main_3_ick&&    l3_instr_ick:
->>> arch/arm/mach-omap2/clock44xx_data.c
->>>
->>> the clocks are set as ENABLE_ON_INIT.
->>
->> Those clocks are also set ENABLE_ON_INIT in the linaro kernel. But still
->> it's hanging at "val = __raw_readl(base + LOCKSTATUS);" in cti_unlock(),
->> even after explicitly enabling it using:
->>
->> omap_writel(1, CM_L3INSTR_L3_3_CLKCTRL);
->> omap_writel(1, CM_L3INSTR_L3_INSTR_CLKCTRL);
->> omap_writel(2, CM_EMU_CLKSTCTRL);
->> while ((omap_readl(CM_EMU_CLKSTCTRL)&  0x300) != 0x300);
->>
->> BTW, the oops were fixed by replacing omap_writel with __raw_writel.
->>
->> Regards,
->> Avik
->>
->>>
->>> thanks,
->>
->>
->
->
-> thanks,
+#define TI816X_SATA_PHY_TXINVPAIR	(1 << 21)
 
+or
+
+#define TI816X_SATA_PHY_TXINVPAIR	BIT(21)
+
+> +#define SATA_PHY_TXDE(x)	((x) << 27)
+> +
+> +#define TI816X_SATA_BASE	0x4A140000
+
+you should probably define these on some header file. Also SATA_BASE
+should be an increment to the global base.
+
+> +
+> +static int ti816x_ahci_plat_init(struct device *dev, void __iomem *base)
+> +{
+> +	unsigned int phy_val;
+> +	int ret;
+> +
+> +	omap_sata_clk = clk_get(dev, NULL);
+> +	if (IS_ERR(omap_sata_clk)) {
+> +		pr_err("ahci : Failed to get SATA clock\n");
+> +		return PTR_ERR(omap_sata_clk);
+> +	}
+
+can't you use pm_runtime do achieve this ?
+
+> +
+> +	if (!base) {
+> +		pr_err("ahci : SATA reg space not mapped, PHY enable failed\n");
+> +		ret = -ENOMEM;
+> +		goto err;
+> +	}
+> +
+> +	ret = clk_enable(omap_sata_clk);
+> +	if (ret) {
+> +		pr_err("ahci : Clock enable failed\n");
+> +		goto err;
+> +	}
+> +
+> +	phy_val = SATA_PHY_ENPLL(1) |
+> +			SATA_PHY_MPY(8) |
+> +			SATA_PHY_LB(0) |
+> +			SATA_PHY_CLKBYP(0) |
+> +			SATA_PHY_RXINVPAIR(0) |
+> +			SATA_PHY_LBK(0) |
+> +			SATA_PHY_RXLOS(1) |
+> +			SATA_PHY_RXCDR(4) |
+> +			SATA_PHY_RXEQ(1) |
+> +			SATA_PHY_RXENOC(1) |
+> +			SATA_PHY_TXINVPAIR(0) |
+> +			SATA_PHY_TXCM(0) |
+> +			SATA_PHY_TXSWING(7) |
+> +			SATA_PHY_TXDE(0);
+
+if it's 0, it's same as not even adding them. Please remove the ones
+which are 0.
+
+> +	writel(phy_val, base + SATA_P0PHYCR_REG);
+> +	writel(phy_val, base + SATA_P1PHYCR_REG);
+> +
+> +	return 0;
+> +err:
+> +	clk_put(omap_sata_clk);
+> +	return ret;
+> +}
+> +
+> +static void ti816x_ahci_plat_exit(struct device *dev)
+> +{
+> +	clk_disable(omap_sata_clk);
+> +	clk_put(omap_sata_clk);
+> +}
+> +
+> +/* resources will be filled by soc specific init routine */
+> +static struct resource omap_ahci_resources[] = {
+> +	{
+> +		.flags	= IORESOURCE_MEM,
+> +	},
+> +	{
+> +		.flags	= IORESOURCE_IRQ,
+> +	}
+> +};
+> +
+> +static struct platform_device omap_ahci_device = {
+> +	.name	= "ahci",
+> +	.dev	= {
+> +		.platform_data = &omap_sata_pdata,
+> +		.coherent_dma_mask	= DMA_BIT_MASK(32),
+> +		.dma_mask		= &omap_sata_dmamask,
+> +	},
+> +	.num_resources	= ARRAY_SIZE(omap_ahci_resources),
+> +	.resource	= omap_ahci_resources,
+> +};
+> +
+> +static void ti816x_ahci_init(void)
+> +{
+> +	/* fixup platform device info for TI816X */
+> +	omap_ahci_resources[0].start	= TI816X_SATA_BASE;
+> +	omap_ahci_resources[0].end	= TI816X_SATA_BASE + 0x10fff;
+
+weird resource size... 68k... Ok, anyway.. as long as it's correct :-p
+
+> +	omap_ahci_resources[1].start	= 16; /* SATA IRQ */
+> +	omap_sata_pdata.init		= ti816x_ahci_plat_init;
+> +	omap_sata_pdata.exit		= ti816x_ahci_plat_exit;
+
+why didn't you initialize these when defining the resources ?
+
+you could even drop this function altogether.
+
+> +}
+> +
+> +static inline void omap_init_ahci(void)
+> +{
+> +	if (cpu_is_ti816x()) {
+> +		ti816x_ahci_init();
+> +		platform_device_register(&omap_ahci_device);
+> +	}
+
+this is better the other way around:
+
+	if (!cpu_is_ti816x())
+		return;
+
+	platform_device_register(&omap_ahci_device);
+
+-- 
+balbi
