@@ -1,70 +1,109 @@
-From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Subject: Re: omap: USB host disconnects connecting a device through USB HUB
-Date: Thu, 7 Apr 2011 10:37:36 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1104071036040.2147-100000@iolanthe.rowland.org>
-References: <BANLkTim4FNNH3MfbEAwwpGzGvvLARWW+KA@mail.gmail.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH/RFC 0/6] ARM: runtime PM: consolidate runtime PM implementations
+Date: Thu, 07 Apr 2011 07:58:57 -0700
+Message-ID: <871v1eaz0u.fsf@ti.com>
+References: <1302134569-22825-1-git-send-email-khilman@ti.com>
+	<201104070738.42956.rjw@suse.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <BANLkTim4FNNH3MfbEAwwpGzGvvLARWW+KA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: =?UTF-8?Q?Enric_Balletb=C3=B2_i_Serra?= <eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <201104070738.42956.rjw@suse.com> (Rafael J. Wysocki's message of
+	"Thu, 7 Apr 2011 07:38:42 +0200")
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@suse.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>, Grant Likely <grant.likely@secretlab.ca>, Greg Kroah-Hartman <gregkh@suse.de>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, 7 Apr 2011, Enric Balletb=C3=B2 i Serra wrote:
+[adding linux-pm, which I forgot to add in original post]
 
-> Hi all,
->=20
-> I'm experimenting some issues with USB on IGEP v2 board, in certain
-> cases I've an USB disconnect when I plug a device. For me it fails
-> with kernel 2.6.35 but I think it also affect newer kernel, the issue
-> is easy to reproduce following these steps:
->=20
-> 1. Power up the board (without any device connected )
->=20
-> 2. When kernel is up, connect a powered USB HUB 2.0 to the USB host
-> port, kernel shows,
->=20
-> usb 1-1: new high speed USB device using ehci-omap and address 2
-> usb 1-1: New USB device found, idVendor=3D05e3, idProduct=3D0608
-> usb 1-1: New USB device strings: Mfr=3D0, Product=3D1, SerialNumber=3D=
-0
-> usb 1-1: Product: USB2.0 Hub
-> hub 1-1:1.0: USB hub found
-> hub 1-1:1.0: 4 ports detected
-> usb 1-1.4: new high speed USB device using ehci-omap and address 3
-> usb 1-1.4: New USB device found, idVendor=3D05e3, idProduct=3D0608
-> usb 1-1.4: New USB device strings: Mfr=3D0, Product=3D1, SerialNumber=
-=3D0
-> usb 1-1.4: Product: USB2.0 Hub
-> hub 1-1.4:1.0: USB hub found
-> hub 1-1.4:1.0: 4 ports detected
->=20
-> 3. Then if I connect a device (for example a pendrive) to the HUB I
-> get USB disconnect message
->=20
-> usb 1-1: USB disconnect, address 2
-> usb 1-1.4: USB disconnect, address 3
->=20
-> OTOH, it works without problem
->   1. if power up the board with the USB HUB connected to the USB Host
-> port and the device connected to the USB hub.
->   2. if after kernel is up, connect the USB HUB + device to the USB H=
-ost port
->=20
-> Anyone is experimenting something like this with other OMAP3-based bo=
-ards ?
+"Rafael J. Wysocki" <rjw@suse.com> writes:
 
-At first glance, it looks like a power-related issue.  Current inrush=20
-when the device is plugged in, or something like that.
+> On Thursday, April 07, 2011, Kevin Hilman wrote:
+>> This series aims to consolidate OMAP and SH-mobile runtime PM
+>> implementations around the new device power domains.
+>> 
+>> In 2.6.39, device power domains were added (commit
+>> 7538e3db6e015e890825fbd9f8659952896ddd5b, PM: add support for device
+>> power domains).  In converting both OMAP and SH-mobile to use device
+>> power domains, the overlap between implementations was almost 100%.  
+>> 
+>> To share the runtime PM implementation based on simple clock gating,
+>> move it to arch/arm/common and initialize it from OMAP and SH-mobile.
+>> 
+>> Also, OMAP was the only user of platform_bus_set_pm_ops().  Now that
+>> it has been converted to device power domains, remove
+>> platform_bus_set_pm_ops().
+>
+> Please, don't do it this way.
+>
+> First, we'll still need platform_bus_set_pm_ops() on shmobile and the reason
+> is that we want to override the platform bus type PM ops for _all_ devices on
+> that platform, which power domains are not really suitable for.
 
-What happens if you attach the hub and pendrive to a standard PC?
+That doesn't sound quite right to me.
 
-Alan Stern
+Magnus should step in here to clarify the situation on SH-mobile, but
+like Grant, I'm pretty sure that we don't need (or want) to replace PM
+ops for _all_ platform devices.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Looking at the replacement ops used, they simply manage device clocks,
+and this probably only applies to on-chip devices (at least that's true
+on OMAP.)
+
+Replacing the PM ops for all devices was done on OMAP and SH-mobile
+because that was the only approach we had.  Now that we have device
+power domains (thanks Rafael!), we can be more selective about which
+devices to apply them to.
+
+Note that my RFC patch/series did not do the selective part of deciding
+which devices to override and which ones not to, that part will be
+platform specific.  
+
+> Second, we're going to introduce code for handling real power domains for
+> shmobile that would conflict with the way you're using power domains for
+> overriding the default PM ops.
+
+Conflict in what way?
+
+If you have new device power domain callbacks for specific devices in a
+an on-chp power domain, they would just override the "default" ones that
+only do basic clock gating.  I'm guessing the new callbacks will do some
+management of the SoC specific powerdomains in addition to clock gating.
+That's how it works on OMAP.
+
+Put a different way, the device power domain callbacks in this proposal
+will be the defaults, providing a simple clock-gating only approach to
+device power management.   However, when new code comes along to manage
+the actual SoC power domains, devices in those power domains will just
+override these default clock-gating-only versions.
+
+This is exactly how things are working in OMAP.  On OMAP1, we use only
+the simple, clock-gating only callbacks because the OMAP1 PM
+capabilities are much more limited.  On OMAP2+, we override these
+callbacks with different ones that in addition to managing clocks, also
+manage the SoC power domains.
+
+> Besides, the way you've used power domains appears to assume that drivers
+> will not define their own runtime PM callbacks, because if they do, those
+> callbacks will be called _in_ _addition_ to the power domain callbacks you're
+> trying to add (from the default platform bus type callbacks).
+
+That was intentional.
+
+If all a driver needs to do for runtime PM is manage clocks, it doesn't
+need runtime PM callbacks since it's hanlded by core code.  If it has
+additional things to do (save context, quiesce hardware, wait for
+somthing to finish etc.) it can do that in it's own callbacks, and then
+the clock gating will happen in the device power domain callbacks.
+
+The point is use both levels of callbacks. The device power domain
+callbacks handle all the operations that are common to the device power
+domain, and the driver callbacks handle driver specific stuff.  
+
+It also means that drivers don't have to manage their own clocks, at
+least for PM purposes.  This is a big win for drivers that are used on
+multiple platforms, or even multiple SoCs in the same family where
+clocking may be different.  Drivers that can remain ignorant of the
+underlying clocking (and power domain layout) are much more portable.
+
+Kevin
