@@ -1,107 +1,64 @@
-From: "Avinash.H.M." <avinashhm@ti.com>
-Subject: Re: [PATCH 1/2 v2] OMAP2/3: hwmod: fix the i2c-reset timeout
- during bootup
-Date: Thu, 7 Apr 2011 12:33:10 +0530
-Message-ID: <20110407070310.GA21701@avinash-laptop>
+From: <kalle.jokiniemi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH v3 0/2] isp1704_charger: fix powering for N900
+Date: Thu, 7 Apr 2011 07:13:25 +0000
+Message-ID: <9D0D31AA57AAF5499AFDC63D6472631B072DD4@008-AM1MPN1-036.mgdnok.nokia.com>
+References: <1301405280-16899-1-git-send-email-kalle.jokiniemi@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:53802 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752201Ab1DGHDY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Apr 2011 03:03:24 -0400
-Received: by mail-gy0-f179.google.com with SMTP id 8so999914gyg.38
-        for <linux-omap@vger.kernel.org>; Thu, 07 Apr 2011 00:03:23 -0700 (PDT)
-Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1301405280-16899-1-git-send-email-kalle.jokiniemi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Content-Language: en-US
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: cbouatmailru-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Cc: balbi-l0cyMroinI0@public.gmane.org, Heikki.Krogerus-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org, sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, khilman-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jhnikula-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>
 
-Date: Thu, 7 Apr 2011 12:12:37 +0530
-From: "Mahadeva, Avinash" <avinashhm@ti.com>
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	Rajendra Nayak <rnayak@ti.com>, Paul Walmsley <paul@pwsan.com>,
-	Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH 1/2 v2] OMAP2/3: hwmod: fix the i2c-reset timeout during bootup
+Hello Anton,
 
-On Tue, Apr 5, 2011 at 11:57 PM, Kevin Hilman <khilman@ti.com> wrote:
+Will you take my patch set in, it has been acked by Heikki, and 
+there has been no more comments to be fixed.
 
-> "Avinash.H.M" <avinashhm@ti.com> writes:
->
-> > The i2c module has a special reset sequence. The sequence is
-> > - Disable the I2C.
-> > - Write to SOFTRESET bit.
-> > - Enable the I2C.
-> > - Poll on the RESETDONE bit.
-> > This sequence must be followed for i2c reset in omap2, omap3. The
-> sequence is
-> > implemented as a function and the i2c_class is updated with the correct
-> > 'reset' pointer.
-> >
-> > Cc: Rajendra Nayak <rnayak@ti.com>
-> > Cc: Paul Walmsley <paul@pwsan.com>
-> > Cc: Benoit Cousson <b-cousson@ti.com>
-> > Cc: Kevin Hilman <khilman@ti.com>
-> > Signed-off-by: Avinash.H.M <avinashhm@ti.com>
->
-> [...]
->
-> > +
-> > +/**
-> > + * omap_i2c_reset- reset the omap i2c module.
-> > + * @oh: struct omap_hwmod *
-> > + *
-> > + * The i2c moudle in omap2, omap3 had a special sequence to reset. The
-> > + * sequence is:
-> > + * - Disable the I2C.
-> > + * - Write to SOFTRESET bit.
-> > + * - Enable the I2C.
-> > + * - Poll on the RESETDONE bit.
-> > + * The sequence is implemented in below function. This is called for
-> 2420,
-> > + * 2430 and omap3.
-> > + */
-> > +int omap_i2c_reset(struct omap_hwmod *oh)
-> > +{
-> > +     u32 v;
-> > +     int c = 0;
-> > +
-> > +     /* Disable I2C */
-> > +     v = omap_hwmod_read(oh, I2C_CON_OFFSET);
-> > +     v = v & ~I2C_EN;
-> > +     omap_hwmod_write(v, oh, I2C_CON_OFFSET);
-> > +
-> > +     /* Write to the SOFTRESET bit */
-> > +     v = oh->_sysc_cache;
-> > +     v |= (0x1 << oh->class->sysc->sysc_fields->srst_shift);
-> > +
-> > +     oh->_sysc_cache = v;
-> > +     omap_hwmod_write(v, oh, oh->class->sysc->sysc_offs);
->
-> Direct SYSCONFIG access isn't right here.   This should go through
-> omap_hwmod.
->
-> What is probably needed is exposing _ocp_softreset to device code
-> via something like omap_hwmod_ocp_softreset() and calling that here.
->
->
+- Kalle
 
-* Sorry, somehow the mail bounced from l-o. Resending it agian. *
+ > -----Original Message-----
+ > From: Kalle Jokiniemi [mailto:kalle.jokiniemi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org]
+ > Sent: 29. maaliskuuta 2011 16:28
+ > To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; cbouatmailru-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+ > Cc: balbi-l0cyMroinI0@public.gmane.org; Krogerus Heikki (Nokia-MS/Helsinki); sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org;
+ > tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org; khilman-l0cyMroinI0@public.gmane.org; linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
+ > jhnikula-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org; Jokiniemi Kalle (Nokia-MS/Tampere)
+ > Subject: [PATCH v3 0/2] isp1704_charger: fix powering for N900
+ > 
+ > This patch set enables powering down the isp1704 usb
+ > tranceiver when not in use.
+ > 
+ > tested on RX-51 and MeeGo.
+ > 
+ > Thanks to Felipe Balbi, Sergei Shtylyov, and Heikki Krogerus
+ > for comments.
+ > 
+ > v3:
+ > * fixed power down handling in isp1704_charger_probe
+ > * removed init_done variable
+ > * changed BUG_ON to WARN_ON
+ > * editorial fixes
+ > 
+ > v2: fixed boot issue in the 1/2 patch.
+ > 
+ > Kalle Jokiniemi (2):
+ >   isp1704_charger: allow board specific powering routine
+ >   RX-51: Enable isp1704 power on/off
+ > 
+ >  arch/arm/mach-omap2/board-rx51-peripherals.c |   27
+ > ++++++++++++++++++++++-
+ >  drivers/power/isp1704_charger.c              |   22 +++++++++++++++++++
+ >  include/linux/power/isp1704_charger.h        |   29
+ > ++++++++++++++++++++++++++
+ >  3 files changed, 76 insertions(+), 2 deletions(-)
+ >  create mode 100644 include/linux/power/isp1704_charger.h
 
-Hi Kevin ,
-
-thanks for the review.
-
-OK. I ll create a wrapper function ' omap_hwmod_ocp_softreset'
-around '_ocp_softreset' and call it here .
-
-b r ,
-- avinash.
-
-
-
-> Kevin
->
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
