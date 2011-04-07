@@ -1,82 +1,79 @@
-From: =?UTF-8?Q?Enric_Balletb=C3=B2_i_Serra?= <eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: omap: USB host disconnects connecting a device through USB HUB
-Date: Thu, 7 Apr 2011 23:03:38 +0200
-Message-ID: <BANLkTinNF2C6_2ApHke+Oi74zovUwbWkCQ@mail.gmail.com>
-References: <BANLkTim4FNNH3MfbEAwwpGzGvvLARWW+KA@mail.gmail.com>
-	<Pine.LNX.4.44L0.1104071036040.2147-100000@iolanthe.rowland.org>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [RFC PATCHv2 1/2] Export SoC info through sysfs
+Date: Thu, 7 Apr 2011 23:29:23 +0200
+Message-ID: <201104072329.24243.arnd@arndb.de>
+References: <1299846911-15782-1-git-send-email-maxime.coquelin-nonst@stericsson.com>
+	<201103112313.16128.arnd@arndb.de> <4D9DE532.5000802@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <Pine.LNX.4.44L0.1104071036040.2147-100000-IYeN2dnnYyZXsRXLowluHWD2FQJk+8+b@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <4D9DE532.5000802@linaro.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Lee Jones <lee.jones@linaro.org>
+Cc: ext Nishanth Menon <nm@ti.com>, ext Tony Lindgren <tony@atomide.com>, Greg KH <greg@kroah.com>, Linus Walleij <linus.walleij@linaro.org>, Ambresh <a0393775@ti.com>, Saravana Kannan <skannan@codeaurora.org>, Jouni Hogander <jouni.hogander@nokia.com>, Rabin VINCENT <rabin.vincent@stericsson.com>, Russell King <linux@arm.linux.org.uk>, Jonas ABERG <jonas.aberg@stericsson.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, Peter De-Schrijver <Peter.De-Schrijver@nokia.com>, David Brown <davidb@codeaurora.org>, Maxime Coquelin <maxime.coquelin-nonst@stericsson.com>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, Loic PALLARDY <loic.pallardy@stericsson.com>, Eduardo Valentin <eduardo.valentin@nokia.com>, maxime_coquelin@yahoo.fr, Ryan Mallon <ryan@bluewatersys.com>, Linux-OMAP <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, Daniel
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On Thursday 07 April 2011, Lee Jones wrote:
+> On 11/03/11 22:13, Arnd Bergmann wrote:
+> > On Friday 11 March 2011 23:03:33 Greg KH wrote:
+> >> On Fri, Mar 11, 2011 at 10:42:43PM +0100, Arnd Bergmann wrote:
+> >>> On Friday 11 March 2011 20:33:30 Greg KH wrote:
+> >>>> Make this a "real" device not /sys/socinfo please.  It can be a platform
+> >>>> device that export the needed information, that way you can have
+> >>>> multiple ones.
+> >>>
+> >>> Note that the version 1 of this patch had a device, and I argued against
+> >>> that patch on the basis that anything under /sys/devices/ should
+> >>> reflect an actual part of the hardware, which socinfo by itself
+> >>> does not.
+> >>
+> >> Why is the overall SoC not a device?  cpus are (well, they will be in a
+> >> few kernel versions in the future), so what makes the other bits somehow
+> >> "special"?
+> > 
+> > The suggestion was to have a single disconnected device stuck 
+> > in /sys/devices/system/socinfo, and only have it there to
+> > contain device attributes that can be collected from random
+> > places in the system, such hardcoded board specific data,
+> > or read from registers that belong to another device.
+> > 
+> > A real device IMHO would be one that has specific hardware
+> > properties, such as its own set of device registers or other
+> > devices that are attached to it and that are represented
+> > as children of this device.
+> 
+> Unfortunately, Maxime is extremely busy at the moment, so I have taken
+> over to finally get this thing upstream. Just for clarification what's
+> the final verdict on the location of this entry? Something that we can
+> all agree on.
 
-2011/4/7 Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>:
-> On Thu, 7 Apr 2011, Enric Balletb=C3=B2 i Serra wrote:
->
->> Hi all,
->>
->> I'm experimenting some issues with USB on IGEP v2 board, in certain
->> cases I've an USB disconnect when I plug a device. For me it fails
->> with kernel 2.6.35 but I think it also affect newer kernel, the issu=
-e
->> is easy to reproduce following these steps:
->>
->> 1. Power up the board (without any device connected )
->>
->> 2. When kernel is up, connect a powered USB HUB 2.0 to the USB host
->> port, kernel shows,
->>
->> usb 1-1: new high speed USB device using ehci-omap and address 2
->> usb 1-1: New USB device found, idVendor=3D05e3, idProduct=3D0608
->> usb 1-1: New USB device strings: Mfr=3D0, Product=3D1, SerialNumber=3D=
-0
->> usb 1-1: Product: USB2.0 Hub
->> hub 1-1:1.0: USB hub found
->> hub 1-1:1.0: 4 ports detected
->> usb 1-1.4: new high speed USB device using ehci-omap and address 3
->> usb 1-1.4: New USB device found, idVendor=3D05e3, idProduct=3D0608
->> usb 1-1.4: New USB device strings: Mfr=3D0, Product=3D1, SerialNumbe=
-r=3D0
->> usb 1-1.4: Product: USB2.0 Hub
->> hub 1-1.4:1.0: USB hub found
->> hub 1-1.4:1.0: 4 ports detected
->>
->> 3. Then if I connect a device (for example a pendrive) to the HUB I
->> get USB disconnect message
->>
->> usb 1-1: USB disconnect, address 2
->> usb 1-1.4: USB disconnect, address 3
->>
->> OTOH, it works without problem
->> =C2=A0 1. if power up the board with the USB HUB connected to the US=
-B Host
->> port and the device connected to the USB hub.
->> =C2=A0 2. if after kernel is up, connect the USB HUB + device to the=
- USB Host port
->>
->> Anyone is experimenting something like this with other OMAP3-based b=
-oards ?
->
-> At first glance, it looks like a power-related issue. =C2=A0Current i=
-nrush
-> when the device is plugged in, or something like that.
->
-> What happens if you attach the hub and pendrive to a standard PC?
->
+I'll try to capture the opinions from the other people as well,
+hopefully this represents a consensus. Please correct me otherwise.
 
-With standard PC works as expected, would be possible a problem with
-omap-ehci driver ? Maybe Felipe can give some light ?
+I believe the uncontroversial parts are:
 
-> Alan Stern
->
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+* Make it not an entry but a device with certain properties.
+* Make the naming so that you can have more than one of them.
+* Put all devices on an SoC that uses this scheme underneath that
+  device by setting their parents to the SoC device.
+
+For the location of the device, I have not seen a clear consensus yet,
+but I'm fine with eihter of these:
+
+/sys/devices/soc/${NAME}/
+/sys/devices/platform/soc${NUMBER}/
+
+For the implementation, I'd suggest adding an soc_device_register()
+function that gets passed the necessary data and returns the struct device
+that can then be used as the parent in all platform_device_register calls.
+
+	Arnd
