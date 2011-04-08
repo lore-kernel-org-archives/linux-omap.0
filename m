@@ -1,65 +1,38 @@
-From: "Boswell, Patrick" <Patrick.Boswell@Sypris.com>
-Subject: Kernel panic on "run_init_process(execute command)"
-Date: Fri, 8 Apr 2011 15:22:41 -0400
-Message-ID: <0E62BBF85AF134469094EB502CE90A321EAEB7@TAMPA202EM.se.sypris.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [RFC PATCHv2 1/2] Export SoC info through sysfs
+Date: Fri, 8 Apr 2011 22:22:01 +0200
+Message-ID: <201104082222.01634.arnd@arndb.de>
+References: <1299846911-15782-1-git-send-email-maxime.coquelin-nonst@stericsson.com>
+	<201104081702.17409.arnd@arndb.de> <4D9F2D3F.5010109@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from exprod7og126.obsmtp.com ([64.18.2.206]:46525 "HELO
-	exprod7og126.obsmtp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1757674Ab1DHTXm convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Apr 2011 15:23:42 -0400
-Content-class: urn:content-classes:message
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <4D9F2D3F.5010109@linaro.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Lee Jones <lee.jones@linaro.org>
+Cc: Nicolas Pitre <nicolas.pitre@linaro.org>, ext Nishanth Menon <nm@ti.com>, ext Tony Lindgren <tony@atomide.com>, Greg KH <greg@kroah.com>, Linus Walleij <linus.walleij@linaro.org>, Ambresh <a0393775@ti.com>, Saravana Kannan <skannan@codeaurora.org>, Andrei Warkentin <andreiw@motorola.com>, Rabin VINCENT <rabin.vincent@stericsson.com>, Russell King <linux@arm.linux.org.uk>, Jonas ABERG <jonas.aberg@stericsson.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, Peter De-Schrijver <Peter.De-Schrijver@nokia.com>, David Brown <davidb@codeaurora.org>, Maxime Coquelin <maxime.coquelin-nonst@stericsson.com>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, Loic PALLARDY <loic.pallardy@stericsson.com>, Eduardo Valentin <eduardo.valentin@nokia.com>, maxime_coquelin@yahoo.fr, Ryan Mallon <ryan@bluewatersys.com>, Linux-OMAP <linux-omap@vger.kernel.org>linux-ar
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
-Hello,
+On Friday 08 April 2011, Lee Jones wrote:
+> I didn't say we won't need it. I'm just finding it difficult to picture
+> how it would work. I'm more than happy to implement it, but there are
+> more things to take into consideration, such as naming conventions for
+> multiple SoCs. Even if they start at '1' and increase sequentially,
+> there are still questions that need to be answered, such as; How will
+> the SoCs be ordered? First come first served? Priority order? Or we
+> could name them by soc_id?
 
-I am working with a custom OMAP3530 board. I am using rowboat 2.6.32,
-codesourcery 2010q1, X-loader and U-boot, all uniquely customized for
-this board.
+Any of these would be fine IMHO. In most cases, the order is fixed,
+either through a board file or through the order in the device tree,
+so I would just use a sequential number.
 
-I am using the 3 partition microSD card for this board, modeled after
-the TI-DevKit version 2.2, with rootfs as a partition at /dev/mmcblk0p2.
-
-
-On kernel boot, after mounting the root filesystem (/dev/mmcblk0p2) when
-attempting to start init (bootargs are init=/init), in main.c,
-run_init_process(execute_command) with execute_command set to /init, I
-get a kernel panic:
-
-
-[  103.806274] Kernel panic - not syncing: Attempted to kill init!
-
-
-The backtrace identifies: 
-
-
-[  103.812377] [<c0048320>] (unwind_backtrace+0x0/0x17c) from
-[<c0489d34>] (dump_stack+0x20/0x24)
-[  103.821105] [<c0489d34>] (dump_stack+0x20/0x24) from [<c0489d94>]
-(panic+0x5c/0x130)
-[  103.828918] [<c0489d94>] (panic+0x5c/0x130) from [<c007cc18>]
-(do_exit+0x5d4/0x6a4)
-[  103.836669] [<c007cc18>] (do_exit+0x5d4/0x6a4) from [<c007cd34>]
-(do_group_exit+0x4c/0xbc)
-[  103.845062] [<c007cd34>] (do_group_exit+0x4c/0xbc) from [<c008dee8>]
-(get_signal_to_deliver+0x208/0x3e8)
-[  103.854644] [<c008dee8>] (get_signal_to_deliver+0x208/0x3e8) from
-[<c0042de0>] (do_signal+0x74/0x698)
-[  103.863983] [<c0042de0>] (do_signal+0x74/0x698) from [<c0043470>]
-(do_notify_resume+0x6c/0x78)
-[  103.872680] [<c0043470>] (do_notify_resume+0x6c/0x78) from
-[<c003fb4c>] (work_pending+0x1c/0x20)
-
-I am not sure what is exactly causing this error. I am using RealView
-ICE and RVD, with source code debugging. 
-
-Can anybody assist?
-
-Thanks.
-
-
+	Arnd
