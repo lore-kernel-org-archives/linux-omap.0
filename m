@@ -1,93 +1,46 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: omap: USB host disconnects connecting a device through USB HUB
-Date: Fri, 8 Apr 2011 10:36:05 +0300
-Message-ID: <20110408073603.GB9489@legolas.emea.dhcp.ti.com>
-References: <BANLkTim4FNNH3MfbEAwwpGzGvvLARWW+KA@mail.gmail.com>
- <Pine.LNX.4.44L0.1104071036040.2147-100000@iolanthe.rowland.org>
- <BANLkTinNF2C6_2ApHke+Oi74zovUwbWkCQ@mail.gmail.com>
-Reply-To: balbi-l0cyMroinI0@public.gmane.org
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [RFC PATCHv2 1/2] Export SoC info through sysfs
+Date: Fri, 08 Apr 2011 08:41:32 +0100
+Message-ID: <4D9EBC2C.2050809@linaro.org>
+References: <1299846911-15782-1-git-send-email-maxime.coquelin-nonst@stericsson.com>
+	<201104080119.11378.arnd@arndb.de>
+	<20110407232959.GA29305@kroah.com>
+	<201104080535.02769.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <BANLkTinNF2C6_2ApHke+Oi74zovUwbWkCQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Enric =?iso-8859-1?Q?Balletb=F2?= i Serra <eballetbo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <201104080535.02769.arnd@arndb.de>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Nicolas Pitre <nicolas.pitre@linaro.org>, ext Nishanth Menon <nm@ti.com>, ext Tony Lindgren <tony@atomide.com>, Greg KH <greg@kroah.com>, Linus Walleij <linus.walleij@linaro.org>, Ambresh <a0393775@ti.com>, Saravana Kannan <skannan@codeaurora.org>, Andrei Warkentin <andreiw@motorola.com>, Rabin VINCENT <rabin.vincent@stericsson.com>, Russell King <linux@arm.linux.org.uk>, Jonas ABERG <jonas.aberg@stericsson.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, Peter De-Schrijver <Peter.De-Schrijver@nokia.com>, David Brown <davidb@codeaurora.org>, Maxime Coquelin <maxime.coquelin-nonst@stericsson.com>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, Loic PALLARDY <loic.pallardy@stericsson.com>, Eduardo Valentin <eduardo.valentin@nokia.com>, maxime_coquelin@yahoo.fr, Ryan Mallon <ryan@bluewatersys.com>, Linux-OMAP <linux-omap@vger.kernel.org>linux-ar
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Apr 07, 2011 at 11:03:38PM +0200, Enric Balletb=F2 i Serra wrot=
-e:
-> Hi,
->=20
-> 2011/4/7 Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>:
-> > On Thu, 7 Apr 2011, Enric Balletb=F2 i Serra wrote:
-> >
-> >> Hi all,
-> >>
-> >> I'm experimenting some issues with USB on IGEP v2 board, in certai=
-n
-> >> cases I've an USB disconnect when I plug a device. For me it fails
-> >> with kernel 2.6.35 but I think it also affect newer kernel, the is=
-sue
-> >> is easy to reproduce following these steps:
-> >>
-> >> 1. Power up the board (without any device connected )
-> >>
-> >> 2. When kernel is up, connect a powered USB HUB 2.0 to the USB hos=
-t
-> >> port, kernel shows,
-> >>
-> >> usb 1-1: new high speed USB device using ehci-omap and address 2
-> >> usb 1-1: New USB device found, idVendor=3D05e3, idProduct=3D0608
-> >> usb 1-1: New USB device strings: Mfr=3D0, Product=3D1, SerialNumbe=
-r=3D0
-> >> usb 1-1: Product: USB2.0 Hub
-> >> hub 1-1:1.0: USB hub found
-> >> hub 1-1:1.0: 4 ports detected
-> >> usb 1-1.4: new high speed USB device using ehci-omap and address 3
-> >> usb 1-1.4: New USB device found, idVendor=3D05e3, idProduct=3D0608
-> >> usb 1-1.4: New USB device strings: Mfr=3D0, Product=3D1, SerialNum=
-ber=3D0
-> >> usb 1-1.4: Product: USB2.0 Hub
-> >> hub 1-1.4:1.0: USB hub found
-> >> hub 1-1.4:1.0: 4 ports detected
-> >>
-> >> 3. Then if I connect a device (for example a pendrive) to the HUB =
-I
-> >> get USB disconnect message
-> >>
-> >> usb 1-1: USB disconnect, address 2
-> >> usb 1-1.4: USB disconnect, address 3
-> >>
-> >> OTOH, it works without problem
-> >> =A0 1. if power up the board with the USB HUB connected to the USB=
- Host
-> >> port and the device connected to the USB hub.
-> >> =A0 2. if after kernel is up, connect the USB HUB + device to the =
-USB Host port
-> >>
-> >> Anyone is experimenting something like this with other OMAP3-based=
- boards ?
-> >
-> > At first glance, it looks like a power-related issue. =A0Current in=
-rush
-> > when the device is plugged in, or something like that.
-> >
-> > What happens if you attach the hub and pendrive to a standard PC?
-> >
->=20
-> With standard PC works as expected, would be possible a problem with
-> omap-ehci driver ? Maybe Felipe can give some light ?
+On 08/04/11 04:35, Arnd Bergmann wrote:
+> On Friday 08 April 2011, Greg KH wrote:
+>> Symlinks are a requirement as multiple cpus can be attached to a single
+>> SoC.
+>>
+>> What about multiple cpus that are attached to multiple SoCs?  Why even
+>> try to describe this relationship, what would userspace get out of this
+>> information?
+> 
+> The only one I can think of is node affinity. I've worked with a system
+> (IBM QS2x Cell blade) that had two SoCs with multiple CPUs each. There was
+> a significant performance penalty when talking to devices on the remote
+> SoC. In that case, we used the NUMA node information in /sys/ to deal
+> with it, but we might not want to use the NUMA infrastructure on systems
+> that only have RAM on one node.
 
-Maybe PM is kicking in and turning off the clocks. Donno. What if you
-use function tracer so we know the last called function before the
-problem ? Just filter the call to *hci*.
-
---=20
-balbi
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I'm struggling to see a scenario where we'd have multiple SoCs on a
+single device and only one filesystem. ux500 sub-arch code is yet to
+facilitate SoC counting functionality. If were are to implement per-SoC
+directories would this need to be added?
