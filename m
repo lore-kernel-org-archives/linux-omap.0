@@ -1,187 +1,69 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: OMAP4 DSS clock setup
-Date: Fri, 8 Apr 2011 17:36:03 +0200
-Message-ID: <4D9F2B63.9010507@ti.com>
-References: <1301467733.2333.83.camel@deskari>  <4D92F899.7010606@ti.com>	 <1301483027.4045.16.camel@deskari>  <4D931E21.8090305@ti.com>	 <1301489930.15095.51.camel@deskari>	 <alpine.DEB.2.00.1104011925510.27897@utopia.booyaka.com>	 <1301900022.2715.12.camel@deskari>	 <alpine.DEB.2.00.1104071054390.29552@utopia.booyaka.com> <1302241893.2102.21.camel@deskari>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [RFC PATCHv2 1/2] Export SoC info through sysfs
+Date: Fri, 08 Apr 2011 16:43:59 +0100
+Message-ID: <4D9F2D3F.5010109@linaro.org>
+References: <1299846911-15782-1-git-send-email-maxime.coquelin-nonst@stericsson.com>
+	<201104080535.02769.arnd@arndb.de> <4D9EBC2C.2050809@linaro.org>
+	<201104081702.17409.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:52975 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932317Ab1DHPgT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 8 Apr 2011 11:36:19 -0400
-In-Reply-To: <1302241893.2102.21.camel@deskari>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <201104081702.17409.arnd@arndb.de>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Nicolas Pitre <nicolas.pitre@linaro.org>, ext Nishanth Menon <nm@ti.com>, ext Tony Lindgren <tony@atomide.com>, Greg KH <greg@kroah.com>, Linus Walleij <linus.walleij@linaro.org>, Ambresh <a0393775@ti.com>, Saravana Kannan <skannan@codeaurora.org>, Andrei Warkentin <andreiw@motorola.com>, Rabin VINCENT <rabin.vincent@stericsson.com>, Russell King <linux@arm.linux.org.uk>, Jonas ABERG <jonas.aberg@stericsson.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, Peter De-Schrijver <Peter.De-Schrijver@nokia.com>, David Brown <davidb@codeaurora.org>, Maxime Coquelin <maxime.coquelin-nonst@stericsson.com>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, Loic PALLARDY <loic.pallardy@stericsson.com>, Eduardo Valentin <eduardo.valentin@nokia.com>, maxime_coquelin@yahoo.fr, Ryan Mallon <ryan@bluewatersys.com>, Linux-OMAP <linux-omap@vger.kernel.org>linux-ar
 List-Id: linux-omap@vger.kernel.org
-To: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, "Semwal, Sumit" <sumit.semwal@ti.com>, "Taneja, Archit" <archit@ti.com>, linux-omap <linux-omap@vger.kernel.org>
 
-Hi Tomi,
-
-On 4/8/2011 7:51 AM, Valkeinen, Tomi wrote:
-> Hi Paul,
->=20
-> On Thu, 2011-04-07 at 13:27 -0600, Paul Walmsley wrote:
->> Hello Tomi, Beno=C3=AEt,
->>
->> On Mon, 4 Apr 2011, Tomi Valkeinen wrote:
->>
->>> On Fri, 2011-04-01 at 20:12 -0600, Paul Walmsley wrote:
+On 08/04/11 16:02, Arnd Bergmann wrote:
+> On Friday 08 April 2011, Lee Jones wrote:
+>> On 08/04/11 04:35, Arnd Bergmann wrote:
+>>> On Friday 08 April 2011, Greg KH wrote:
+>>>> Symlinks are a requirement as multiple cpus can be attached to a single
+>>>> SoC.
+>>>>
+>>>> What about multiple cpus that are attached to multiple SoCs?  Why even
+>>>> try to describe this relationship, what would userspace get out of this
+>>>> information?
 >>>
->>>> Based on the E-mail thread so far, I'd say that changing the clock=
- aliases
->>>> is the way to go for right now.  The clock aliases are not hardwar=
-e data;
->>>> they just control how the clock hardware is mapped to the drivers.
->>>
->>> I'd very much prefer this option. Below is a patch for this.
->>>
->>> If Benoit doesn't complain too much about this, I'd like to get thi=
-s
->>> merged as soon as possible, as OMAP4 DSS is currently crashing in t=
-he
->>> mainline kernel.
+>>> The only one I can think of is node affinity. I've worked with a system
+>>> (IBM QS2x Cell blade) that had two SoCs with multiple CPUs each. There was
+>>> a significant performance penalty when talking to devices on the remote
+>>> SoC. In that case, we used the NUMA node information in sys to deal
+>>> with it, but we might not want to use the NUMA infrastructure on systems
+>>> that only have RAM on one node.
 >>
->> I will queue your clock aliases patch and attempt to merge it upstre=
-am for
->> the -rc series.  I am not happy to be disagreeing with Beno=C3=AEt h=
-ere, but
->> this is the rationale that I am using.  (Beno=C3=AEt, Tomi, please f=
-eel free to
->> correct if there is something blatantly false below.)
->>
->> 1. The integration of the DSS module is an unusual case.  The
->>     MODULEMODE bits for the DSS bits do not control the DSS "main"
->>     functional clock (the clock that is needed to access device
->>     registers); instead, they only control the DSS interface clock.
->>     (This is because the DSS can use a functional clock that is not
->>     provided by the OMAP core.)  So calling the DSS MODULEMODE struc=
-t
->>     clk "dss_fck" is not really correct, since it is really controll=
-ing
->>     the interface clock.
->=20
-> If we don't apply the patch, I think the clock aliases are still brok=
-en.
-> Let's forget the ick/fck thing for a second, and just think the clock
-> from PRCM which is used as the source clock for pixel clock. That is
-> currently called "fck" on OMAP2/3, but "dss_dss_clk" on OMAP4. This
-> cannot be right, can it? From DSS's point of view that is the same
-> clock, it should clearly have the same alias on all platforms. I don'=
-t
-> care what the name is as long as it's consistent on all platforms.
->=20
-> And I have to say I still don't quite get it what is the problem with
-> "fck" name. Or is that meant to be a clock which enables the register=
-s
-> on the module, and not the clock used for the pixel clock? If so, I'm
-> fine with having "fck" to be what it is currently, but then we need a
-> new name for the clock used for pixel clock, which is consistent on a=
-ll
-> platforms.
+>> I'm struggling to see a scenario where we'd have multiple SoCs on a
+>> single device and only one filesystem. ux500 sub-arch code is yet to
+>> facilitate SoC counting functionality. If were are to implement per-SoC
+>> directories would this need to be added?
+> 
+> How can you say we won't need it when I've just given you a specific
+> example of a widely shipping machine?
 
-Both can be used for the system clock (sys_clk -> DSI DPLL or dss_dss_c=
-lk).
+I didn't say we won't need it. I'm just finding it difficult to picture
+how it would work. I'm more than happy to implement it, but there are
+more things to take into consideration, such as naming conventions for
+multiple SoCs. Even if they start at '1' and increase sequentially,
+there are still questions that need to be answered, such as; How will
+the SoCs be ordered? First come first served? Priority order? Or we
+could name them by soc_id?
 
-In fact after multiple discussions with DSS and PRCM folks, I realized =
-that OMAP3 and 4 are using exactly the same clock scheme :-(
+> It's not important that the kernel internal code supports multiple SoCs as
+> long as there is no in-tree user for this. It can always be added at a later
+> point.
+> 
+> What is important is that the user interface accomodates for it. If you
+> name the device simply /sys/devices/soc/, any user program looking at
+> that will have to be modified when we have more than one. We cannot
+> allow that to happen.
 
-The confusion in my mind came from change in naming convention in both =
-the PRCM and the DSS at the same time between OMAP3 and 4.
-
-OMAP3          -> OMAP4
-dss1_alwon_fck -> dss_dss_clk (from dpll per output in both cases)
-dss2_alwon_fck -> dss_sys_clk
-dss_ick        -> dss_fck (-> modulemode) that name really needs to be =
-changed to avoid further confusion.
-
-
-So in fact the OMAP4 aliased should be:=20
-CLK("omapdss_dss",	"fck",		&dss_dss_clk,	CK_443X),
-CLK("omapdss_dss",	"sys_clk",	&dss_sys_clk,	CK_443X),
-CLK("omapdss_dss",	"ick",		&dss_fck,	CK_443X),
-
-
-That will map perfectly what we have on OMAP3:
-CLK("omapdss_dss",	"fck",		&dss1_alwon_fck_3430es2, ...),
-CLK("omapdss_dss",	"sys_clk",	&dss2_alwon_fck, ...),
-CLK("omapdss_dss",	"ick",		&dss_ick_3430es2, ...),
-
-
->> 2. This patch does not create a precedent for hacking around general
->>     driver clocking problems in the clock or clock data.  This is on=
-ly
->>     needed because the MODULEMODE bits don't control the module
->>     functional clock in this case.  As I understand it, the only oth=
-er
->>     device that this problem could occur with is McBSP, due to
->>     mcbsp_clks.
->>
->> 3. The existing DSS2 driver clock design apparently works fine when
->>     this change is implemented[1], so no driver changes will be need=
-ed.
->>
->> 4. The proposed DSS driver patch to work around this uses a nasty ha=
-ck
->>     that really should be NACK'ed[2].
->>
->> All this said, we may not be able to merge this change upstream, due=
- to
->> the recent unhappiness about the clock data changes.  If Linus rejec=
-ts it,
->> you'll need a "Plan B."
->>
->> ...
->>
->> Also, I hope you and the other DSS hackers can finish the PM runtime
->> conversion of the DSS driver soon.  Ideally before any new DSS
->> features are added.  We really need to be able to separate the OMAP
->> integration details from the drivers, and right now, hwmod and PM
->> runtime are the best way we have to do that.
->=20
-> I also started to look at the PM runtime, but it doesn't fix the issu=
-e
-> with the inconsistent clock name I described above.
-
-No indeed.
-
-> I also have some questions regarding PM runtime, perhaps I'll just pu=
-t
-> them here as they are slightly related:
->=20
-> - Should every DSS module handle their clocks independently, i.e. sho=
-uld
-> VENC get its own clocks and DSI should get its own? If so, we need a
-> bunch of new clock aliases so the devices can get their clocks.
-
-=46or dedicated clock like tv_clk, it probably makes sense, because the=
- other DSS drivers do not have to care about that clock.
-
-> - Should every DSS module have their own PM runtime handling? (actual=
-ly
-> related to the question above)
->=20
-> - If the modules are handled separately, how should the dependencies =
-be
-> handled? For example, dss_core's reset will reset all the other modul=
-es
-> also, and most of the submodules need functions from dss_core and
-> dss_dispc. So should, say, dss_dsi then call functions in core and di=
-spc
-> to "get" them, i.e. increase their pm runtime use count?
-
-Are you sure about that?=20
-The dss_core does not have any reset in the sysonfig (only a status), b=
-ut the dispc does have one and the dsi as well.
-That being said, the dss modules have some issue with the softreset at =
-boot time, so I'm not sure what these bits are really doing.
-
-Regards,
-Benoit
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+No problem. I can insure it's complete on first submission.
