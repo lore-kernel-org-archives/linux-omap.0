@@ -1,152 +1,292 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: OMAP4 DSS clock setup
-Date: Fri, 08 Apr 2011 08:51:33 +0300
-Message-ID: <1302241893.2102.21.camel@deskari>
-References: <1301467733.2333.83.camel@deskari>  <4D92F899.7010606@ti.com>
-	 <1301483027.4045.16.camel@deskari>  <4D931E21.8090305@ti.com>
-	 <1301489930.15095.51.camel@deskari>
-	 <alpine.DEB.2.00.1104011925510.27897@utopia.booyaka.com>
-	 <1301900022.2715.12.camel@deskari>
-	 <alpine.DEB.2.00.1104071054390.29552@utopia.booyaka.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Shweta Gulati <shweta.gulati@ti.com>
+Subject: [PATCH V2] OMAP2+: SR Layer Cleanup.
+Date: Fri,  8 Apr 2011 11:44:40 +0530
+Message-ID: <1302243280-10891-1-git-send-email-shweta.gulati@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:54751 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751383Ab1DHFvk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Apr 2011 01:51:40 -0400
-Received: by eye27 with SMTP id 27so1048097eye.20
-        for <linux-omap@vger.kernel.org>; Thu, 07 Apr 2011 22:51:37 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.1104071054390.29552@utopia.booyaka.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:55862 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752624Ab1DHGOv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 8 Apr 2011 02:14:51 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, "Semwal, Sumit" <sumit.semwal@ti.com>, "Taneja, Archit" <archit@ti.com>, linux-omap <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Shweta Gulati <shweta.gulati@ti.com>
 
-Hi Paul,
+As a part of Voltage Layer Cleanup Patches,
+submitted by Kevin Hilman, Voltage domain
+Information is removed from hwmod,
+So the patch removes 'vdd_name' info from omap_hwmod
+and adds that info into dev_attr as SR code uses vdd_name
+to get voltagedomain sructure info.
 
-On Thu, 2011-04-07 at 13:27 -0600, Paul Walmsley wrote:
-> Hello Tomi, Beno=C3=AEt,
->=20
-> On Mon, 4 Apr 2011, Tomi Valkeinen wrote:
->=20
-> > On Fri, 2011-04-01 at 20:12 -0600, Paul Walmsley wrote:
-> >=20
-> > > Based on the E-mail thread so far, I'd say that changing the cloc=
-k aliases=20
-> > > is the way to go for right now.  The clock aliases are not hardwa=
-re data;=20
-> > > they just control how the clock hardware is mapped to the drivers=
-=2E
-> >=20
-> > I'd very much prefer this option. Below is a patch for this.
-> >=20
-> > If Benoit doesn't complain too much about this, I'd like to get thi=
-s
-> > merged as soon as possible, as OMAP4 DSS is currently crashing in t=
-he
-> > mainline kernel.
->=20
-> I will queue your clock aliases patch and attempt to merge it upstrea=
-m for=20
-> the -rc series.  I am not happy to be disagreeing with Beno=C3=AEt he=
-re, but=20
-> this is the rationale that I am using.  (Beno=C3=AEt, Tomi, please fe=
-el free to=20
-> correct if there is something blatantly false below.)
->=20
-> 1. The integration of the DSS module is an unusual case.  The
->    MODULEMODE bits for the DSS bits do not control the DSS "main"
->    functional clock (the clock that is needed to access device
->    registers); instead, they only control the DSS interface clock.
->    (This is because the DSS can use a functional clock that is not
->    provided by the OMAP core.)  So calling the DSS MODULEMODE struct
->    clk "dss_fck" is not really correct, since it is really controllin=
-g
->    the interface clock.
+Tested on OMAP3630 SDP and OMAP4430 SDP Board
 
-If we don't apply the patch, I think the clock aliases are still broken=
-=2E
-Let's forget the ick/fck thing for a second, and just think the clock
-from PRCM which is used as the source clock for pixel clock. That is
-currently called "fck" on OMAP2/3, but "dss_dss_clk" on OMAP4. This
-cannot be right, can it? From DSS's point of view that is the same
-clock, it should clearly have the same alias on all platforms. I don't
-care what the name is as long as it's consistent on all platforms.
+Signed-off-by: Shweta Gulati <shweta.gulati@ti.com>
+---
+ V2:
+  Rebased on latest 'pm-wip/voltdm_a' branch.
 
-And I have to say I still don't quite get it what is the problem with
-"fck" name. Or is that meant to be a clock which enables the registers
-on the module, and not the clock used for the pixel clock? If so, I'm
-fine with having "fck" to be what it is currently, but then we need a
-new name for the clock used for pixel clock, which is consistent on all
-platforms.
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c   |   17 +++++++++++++----
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c   |   19 ++++++++++++++++---
+ arch/arm/mach-omap2/smartreflex.h            |   10 ++++++++++
+ arch/arm/mach-omap2/sr_device.c              |   11 +++++++----
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |    1 -
+ 5 files changed, 46 insertions(+), 12 deletions(-)
 
-> 2. This patch does not create a precedent for hacking around general
->    driver clocking problems in the clock or clock data.  This is only
->    needed because the MODULEMODE bits don't control the module
->    functional clock in this case.  As I understand it, the only other
->    device that this problem could occur with is McBSP, due to
->    mcbsp_clks.
->=20
-> 3. The existing DSS2 driver clock design apparently works fine when
->    this change is implemented[1], so no driver changes will be needed=
-=2E
->=20
-> 4. The proposed DSS driver patch to work around this uses a nasty hac=
-k
->    that really should be NACK'ed[2].
->=20
-> All this said, we may not be able to merge this change upstream, due =
-to=20
-> the recent unhappiness about the clock data changes.  If Linus reject=
-s it,=20
-> you'll need a "Plan B."
->=20
-> ...
->=20
-> Also, I hope you and the other DSS hackers can finish the PM runtime
-> conversion of the DSS driver soon.  Ideally before any new DSS
-> features are added.  We really need to be able to separate the OMAP
-> integration details from the drivers, and right now, hwmod and PM
-> runtime are the best way we have to do that.
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+index 3cd91ac..6a704bd 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -29,6 +29,7 @@
+ 
+ #include "omap_hwmod_common_data.h"
+ 
++#include "smartreflex.h"
+ #include "prm-regbits-34xx.h"
+ #include "cm-regbits-34xx.h"
+ #include "wd_timer.h"
+@@ -2904,6 +2905,10 @@ static struct omap_hwmod_class omap36xx_smartreflex_hwmod_class = {
+ };
+ 
+ /* SR1 */
++static struct omap_sr_dev_attr sr1_dev_attr = {
++	.voltdm_name   = "mpu_iva",
++};
++
+ static struct omap_hwmod_ocp_if *omap3_sr1_slaves[] = {
+ 	&omap3_l4_core__sr1,
+ };
+@@ -2912,7 +2917,6 @@ static struct omap_hwmod omap34xx_sr1_hwmod = {
+ 	.name		= "sr1_hwmod",
+ 	.class		= &omap34xx_smartreflex_hwmod_class,
+ 	.main_clk	= "sr1_fck",
+-	.vdd_name	= "mpu_iva",
+ 	.prcm		= {
+ 		.omap2 = {
+ 			.prcm_reg_id = 1,
+@@ -2924,6 +2928,7 @@ static struct omap_hwmod omap34xx_sr1_hwmod = {
+ 	},
+ 	.slaves		= omap3_sr1_slaves,
+ 	.slaves_cnt	= ARRAY_SIZE(omap3_sr1_slaves),
++	.dev_attr       = &sr1_dev_attr,
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES2 |
+ 					CHIP_IS_OMAP3430ES3_0 |
+ 					CHIP_IS_OMAP3430ES3_1),
+@@ -2934,7 +2939,6 @@ static struct omap_hwmod omap36xx_sr1_hwmod = {
+ 	.name		= "sr1_hwmod",
+ 	.class		= &omap36xx_smartreflex_hwmod_class,
+ 	.main_clk	= "sr1_fck",
+-	.vdd_name	= "mpu_iva",
+ 	.prcm		= {
+ 		.omap2 = {
+ 			.prcm_reg_id = 1,
+@@ -2946,10 +2950,15 @@ static struct omap_hwmod omap36xx_sr1_hwmod = {
+ 	},
+ 	.slaves		= omap3_sr1_slaves,
+ 	.slaves_cnt	= ARRAY_SIZE(omap3_sr1_slaves),
++	.dev_attr       = &sr1_dev_attr,
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3630ES1),
+ };
+ 
+ /* SR2 */
++static struct omap_sr_dev_attr sr2_dev_attr = {
++	.voltdm_name    = "core",
++};
++
+ static struct omap_hwmod_ocp_if *omap3_sr2_slaves[] = {
+ 	&omap3_l4_core__sr2,
+ };
+@@ -2958,7 +2967,6 @@ static struct omap_hwmod omap34xx_sr2_hwmod = {
+ 	.name		= "sr2_hwmod",
+ 	.class		= &omap34xx_smartreflex_hwmod_class,
+ 	.main_clk	= "sr2_fck",
+-	.vdd_name	= "core",
+ 	.prcm		= {
+ 		.omap2 = {
+ 			.prcm_reg_id = 1,
+@@ -2970,6 +2978,7 @@ static struct omap_hwmod omap34xx_sr2_hwmod = {
+ 	},
+ 	.slaves		= omap3_sr2_slaves,
+ 	.slaves_cnt	= ARRAY_SIZE(omap3_sr2_slaves),
++	.dev_attr       = &sr2_dev_attr,
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES2 |
+ 					CHIP_IS_OMAP3430ES3_0 |
+ 					CHIP_IS_OMAP3430ES3_1),
+@@ -2980,7 +2989,6 @@ static struct omap_hwmod omap36xx_sr2_hwmod = {
+ 	.name		= "sr2_hwmod",
+ 	.class		= &omap36xx_smartreflex_hwmod_class,
+ 	.main_clk	= "sr2_fck",
+-	.vdd_name	= "core",
+ 	.prcm		= {
+ 		.omap2 = {
+ 			.prcm_reg_id = 1,
+@@ -2992,6 +3000,7 @@ static struct omap_hwmod omap36xx_sr2_hwmod = {
+ 	},
+ 	.slaves		= omap3_sr2_slaves,
+ 	.slaves_cnt	= ARRAY_SIZE(omap3_sr2_slaves),
++	.dev_attr       = &sr2_dev_attr,
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3630ES1),
+ };
+ 
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+index 3e88dd3..1331b39 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -30,6 +30,7 @@
+ 
+ #include "omap_hwmod_common_data.h"
+ 
++#include "smartreflex.h"
+ #include "cm1_44xx.h"
+ #include "cm2_44xx.h"
+ #include "prm44xx.h"
+@@ -3775,6 +3776,10 @@ static struct omap_hwmod_class omap44xx_smartreflex_hwmod_class = {
+ };
+ 
+ /* smartreflex_core */
++static struct omap_sr_dev_attr sr_core_dev_attr = {
++	.voltdm_name   = "core",
++};
++
+ static struct omap_hwmod omap44xx_smartreflex_core_hwmod;
+ static struct omap_hwmod_irq_info omap44xx_smartreflex_core_irqs[] = {
+ 	{ .irq = 19 + OMAP44XX_IRQ_GIC_START },
+@@ -3809,7 +3814,6 @@ static struct omap_hwmod omap44xx_smartreflex_core_hwmod = {
+ 	.mpu_irqs	= omap44xx_smartreflex_core_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_smartreflex_core_irqs),
+ 	.main_clk	= "smartreflex_core_fck",
+-	.vdd_name	= "core",
+ 	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_reg = OMAP4430_CM_ALWON_SR_CORE_CLKCTRL,
+@@ -3817,10 +3821,15 @@ static struct omap_hwmod omap44xx_smartreflex_core_hwmod = {
+ 	},
+ 	.slaves		= omap44xx_smartreflex_core_slaves,
+ 	.slaves_cnt	= ARRAY_SIZE(omap44xx_smartreflex_core_slaves),
++	.dev_attr       = &sr_core_dev_attr,
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+ 
+ /* smartreflex_iva */
++static struct omap_sr_dev_attr sr_iva_dev_attr = {
++	.voltdm_name   = "iva",
++};
++
+ static struct omap_hwmod omap44xx_smartreflex_iva_hwmod;
+ static struct omap_hwmod_irq_info omap44xx_smartreflex_iva_irqs[] = {
+ 	{ .irq = 102 + OMAP44XX_IRQ_GIC_START },
+@@ -3855,7 +3864,6 @@ static struct omap_hwmod omap44xx_smartreflex_iva_hwmod = {
+ 	.mpu_irqs	= omap44xx_smartreflex_iva_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_smartreflex_iva_irqs),
+ 	.main_clk	= "smartreflex_iva_fck",
+-	.vdd_name	= "iva",
+ 	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_reg = OMAP4430_CM_ALWON_SR_IVA_CLKCTRL,
+@@ -3863,10 +3871,15 @@ static struct omap_hwmod omap44xx_smartreflex_iva_hwmod = {
+ 	},
+ 	.slaves		= omap44xx_smartreflex_iva_slaves,
+ 	.slaves_cnt	= ARRAY_SIZE(omap44xx_smartreflex_iva_slaves),
++	.dev_attr       = &sr_iva_dev_attr,
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+ 
+ /* smartreflex_mpu */
++static struct omap_sr_dev_attr sr_mpu_dev_attr = {
++	.voltdm_name   = "mpu",
++};
++
+ static struct omap_hwmod omap44xx_smartreflex_mpu_hwmod;
+ static struct omap_hwmod_irq_info omap44xx_smartreflex_mpu_irqs[] = {
+ 	{ .irq = 18 + OMAP44XX_IRQ_GIC_START },
+@@ -3901,7 +3914,6 @@ static struct omap_hwmod omap44xx_smartreflex_mpu_hwmod = {
+ 	.mpu_irqs	= omap44xx_smartreflex_mpu_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_smartreflex_mpu_irqs),
+ 	.main_clk	= "smartreflex_mpu_fck",
+-	.vdd_name	= "mpu",
+ 	.prcm = {
+ 		.omap4 = {
+ 			.clkctrl_reg = OMAP4430_CM_ALWON_SR_MPU_CLKCTRL,
+@@ -3909,6 +3921,7 @@ static struct omap_hwmod omap44xx_smartreflex_mpu_hwmod = {
+ 	},
+ 	.slaves		= omap44xx_smartreflex_mpu_slaves,
+ 	.slaves_cnt	= ARRAY_SIZE(omap44xx_smartreflex_mpu_slaves),
++	.dev_attr       = &sr_mpu_dev_attr,
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+ 
+diff --git a/arch/arm/mach-omap2/smartreflex.h b/arch/arm/mach-omap2/smartreflex.h
+index 5f35b9e..9a7f770 100644
+--- a/arch/arm/mach-omap2/smartreflex.h
++++ b/arch/arm/mach-omap2/smartreflex.h
+@@ -197,6 +197,16 @@ struct omap_sr_nvalue_table {
+ };
+ 
+ /**
++ * struct omap_sr_dev_attr - Smartreflex Device attribute.
++ *
++ * @voltdm_name:       Name of voltdomain of SR instance
++ */
++
++struct omap_sr_dev_attr {
++	const char      *voltdm_name;
++};
++
++/**
+  * struct omap_sr_data - Smartreflex platform data.
+  *
+  * @ip_type:		Smartreflex IP type.
+diff --git a/arch/arm/mach-omap2/sr_device.c b/arch/arm/mach-omap2/sr_device.c
+index 2782d3f..65b2aae 100644
+--- a/arch/arm/mach-omap2/sr_device.c
++++ b/arch/arm/mach-omap2/sr_device.c
+@@ -82,6 +82,7 @@ static int sr_dev_init(struct omap_hwmod *oh, void *user)
+ 	struct omap_sr_data *sr_data;
+ 	struct omap_device *od;
+ 	struct omap_volt_data *volt_data;
++	struct omap_sr_dev_attr *sr_dev_attr;
+ 	char *name = "smartreflex";
+ 	static int i;
+ 
+@@ -92,9 +93,11 @@ static int sr_dev_init(struct omap_hwmod *oh, void *user)
+ 		return -ENOMEM;
+ 	}
+ 
+-	if (!oh->vdd_name) {
++	sr_dev_attr = (struct omap_sr_dev_attr *)oh->dev_attr;
++	if (!sr_dev_attr->voltdm_name) {
+ 		pr_err("%s: No voltage domain specified for %s."
+-			"Cannot initialize\n", __func__, oh->name);
++				"Cannot initialize\n", __func__,
++					sr_dev_attr->voltdm_name);
+ 		goto exit;
+ 	}
+ 
+@@ -102,10 +105,10 @@ static int sr_dev_init(struct omap_hwmod *oh, void *user)
+ 	sr_data->senn_mod = 0x1;
+ 	sr_data->senp_mod = 0x1;
+ 
+-	sr_data->voltdm = voltdm_lookup(oh->vdd_name);
++	sr_data->voltdm = voltdm_lookup(sr_dev_attr->voltdm_name);
+ 	if (IS_ERR(sr_data->voltdm)) {
+ 		pr_err("%s: Unable to get voltage domain pointer for VDD %s\n",
+-			__func__, oh->vdd_name);
++			__func__, sr_dev_attr->voltdm_name);
+ 		goto exit;
+ 	}
+ 
+diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+index a5fa7c1..39d809a 100644
+--- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
++++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+@@ -519,7 +519,6 @@ struct omap_hwmod {
+ 	const char			*main_clk;
+ 	struct clk			*_clk;
+ 	struct omap_hwmod_opt_clk	*opt_clks;
+-	char				*vdd_name;
+ 	struct omap_hwmod_ocp_if	**masters; /* connect to *_IA */
+ 	struct omap_hwmod_ocp_if	**slaves;  /* connect to *_TA */
+ 	void				*dev_attr;
+-- 
+1.7.0.4
 
-I also started to look at the PM runtime, but it doesn't fix the issue
-with the inconsistent clock name I described above.
-
-I also have some questions regarding PM runtime, perhaps I'll just put
-them here as they are slightly related:
-
-- Should every DSS module handle their clocks independently, i.e. shoul=
-d
-VENC get its own clocks and DSI should get its own? If so, we need a
-bunch of new clock aliases so the devices can get their clocks.
-
-- Should every DSS module have their own PM runtime handling? (actually
-related to the question above)
-
-- If the modules are handled separately, how should the dependencies be
-handled? For example, dss_core's reset will reset all the other modules
-also, and most of the submodules need functions from dss_core and
-dss_dispc. So should, say, dss_dsi then call functions in core and disp=
-c
-to "get" them, i.e. increase their pm runtime use count?
-
-- There seems to be some child/parent relationships in PM runtime.
-Should dss_core be the parent for the rest of the DSS modules? This
-would at least solve the reset issue easily, I guess.
-
-- How does saving/restoring the registers for OFF mode go with PM
-runtime? Should the registers be saved in runtime_suspend(), and
-restored in runtime_resume()? Can/should
-omap_pm_get_dev_context_loss_count() still be used to optimize the
-restoring?
-
- Tomi
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
