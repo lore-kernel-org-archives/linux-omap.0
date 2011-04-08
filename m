@@ -1,47 +1,59 @@
-From: "ronaldfinson_01@yahoo.co.jp" <juridico@fidena.gob.mx>
-Subject: MONEY TRANSFER REFERENCE:66-097-334
-Date: Fri, 8 Apr 2011 09:50:26 -0500 (CDT)
-Message-ID: <969254218.22015.1302274226385.JavaMail.root__42017.5775107511$1302274912$gmane$org@mail.fidena.gob.mx>
-Reply-To: "ronaldfinson_01@yahoo.co.jp" <ronaldfinson_01@yahoo.co.jp>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [RFC PATCHv2 1/2] Export SoC info through sysfs
+Date: Fri, 8 Apr 2011 17:02:17 +0200
+Message-ID: <201104081702.17409.arnd@arndb.de>
+References: <1299846911-15782-1-git-send-email-maxime.coquelin-nonst@stericsson.com>
+	<201104080535.02769.arnd@arndb.de> <4D9EBC2C.2050809@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from static.customer-201-144-247-84.uninet-ide.com.mx ([201.144.247.84]:37449
-	"EHLO mail.fidena.gob.mx" rhost-flags-OK-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1757204Ab1DHPBU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Apr 2011 11:01:20 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <4D9EBC2C.2050809@linaro.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Lee Jones <lee.jones@linaro.org>
+Cc: Nicolas Pitre <nicolas.pitre@linaro.org>, ext Nishanth Menon <nm@ti.com>, ext Tony Lindgren <tony@atomide.com>, Greg KH <greg@kroah.com>, Linus Walleij <linus.walleij@linaro.org>, Ambresh <a0393775@ti.com>, Saravana Kannan <skannan@codeaurora.org>, Andrei Warkentin <andreiw@motorola.com>, Rabin VINCENT <rabin.vincent@stericsson.com>, Russell King <linux@arm.linux.org.uk>, Jonas ABERG <jonas.aberg@stericsson.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, Peter De-Schrijver <Peter.De-Schrijver@nokia.com>, David Brown <davidb@codeaurora.org>, Maxime Coquelin <maxime.coquelin-nonst@stericsson.com>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, Loic PALLARDY <loic.pallardy@stericsson.com>, Eduardo Valentin <eduardo.valentin@nokia.com>, maxime_coquelin@yahoo.fr, Ryan Mallon <ryan@bluewatersys.com>, Linux-OMAP <linux-omap@vger.kernel.org>linux-ar
 List-Id: linux-omap@vger.kernel.org
 
+On Friday 08 April 2011, Lee Jones wrote:
+> On 08/04/11 04:35, Arnd Bergmann wrote:
+> > On Friday 08 April 2011, Greg KH wrote:
+> >> Symlinks are a requirement as multiple cpus can be attached to a single
+> >> SoC.
+> >>
+> >> What about multiple cpus that are attached to multiple SoCs?  Why even
+> >> try to describe this relationship, what would userspace get out of this
+> >> information?
+> > 
+> > The only one I can think of is node affinity. I've worked with a system
+> > (IBM QS2x Cell blade) that had two SoCs with multiple CPUs each. There was
+> > a significant performance penalty when talking to devices on the remote
+> > SoC. In that case, we used the NUMA node information in sys to deal
+> > with it, but we might not want to use the NUMA infrastructure on systems
+> > that only have RAM on one node.
+> 
+> I'm struggling to see a scenario where we'd have multiple SoCs on a
+> single device and only one filesystem. ux500 sub-arch code is yet to
+> facilitate SoC counting functionality. If were are to implement per-SoC
+> directories would this need to be added?
 
+How can you say we won't need it when I've just given you a specific
+example of a widely shipping machine?
 
-MONEY GRAM CUSTOMER CARE
-21st Floor, Jalan Kampar, Plaza Permata,
-50400, Kuala Lumpur, Wilayah Persekutuan
-MOBILE:+6016-3544-376
+It's not important that the kernel internal code supports multiple SoCs as
+long as there is no in-tree user for this. It can always be added at a later
+point.
 
-The G-20 Group in relationship with HSBC London has concluded that
-our working partner (Money Gram Malaysia) has helped us to send your
-first instalmental payment of US$5,000 as instructed by the Group of
-Twenty (G-20) in conjuction with the Malaysia government and will keep
-sending you $5000 twice a week until the full payment of (US$820,000 )
-is fully remitted to you.
+What is important is that the user interface accomodates for it. If you
+name the device simply /sys/devices/soc/, any user program looking at
+that will have to be modified when we have more than one. We cannot
+allow that to happen.
 
-Here is the informations of the $5000.00 your first payout
-
-MONEY TRANSFER REFERENCE:66-097-334
-SENDER'S NAME: kelly Pedersen
-AMOUNT: US$5000
-
-To track your funds, You are to forward your name to our money gram agent
-(Mr Ronald Finson) via email:ronaldfinson_01@yahoo.co.jp
-
-Your Name __________________________
-Phone number _______________________
-
-
-Best Regards,
-Dr Ronald Finson
-Money Gram Malaysia.
-
+	Arnd
