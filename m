@@ -1,72 +1,65 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: OMAP4 DSS clock setup
-Date: Fri, 8 Apr 2011 10:50:58 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1104081036310.22291@utopia.booyaka.com>
-References: <1301467733.2333.83.camel@deskari>  <4D92F899.7010606@ti.com>  <1301483027.4045.16.camel@deskari>  <4D931E21.8090305@ti.com>  <1301489930.15095.51.camel@deskari>  <alpine.DEB.2.00.1104011925510.27897@utopia.booyaka.com>
- <1301900022.2715.12.camel@deskari>
+From: "Boswell, Patrick" <Patrick.Boswell@Sypris.com>
+Subject: Kernel panic on "run_init_process(execute command)"
+Date: Fri, 8 Apr 2011 15:22:41 -0400
+Message-ID: <0E62BBF85AF134469094EB502CE90A321EAEB7@TAMPA202EM.se.sypris.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:46714 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757203Ab1DHQu7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Apr 2011 12:50:59 -0400
-In-Reply-To: <1301900022.2715.12.camel@deskari>
+Received: from exprod7og126.obsmtp.com ([64.18.2.206]:46525 "HELO
+	exprod7og126.obsmtp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1757674Ab1DHTXm convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Apr 2011 15:23:42 -0400
+Content-class: urn:content-classes:message
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, "Semwal, Sumit" <sumit.semwal@ti.com>, "Taneja, Archit" <archit@ti.com>, linux-omap <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
-Hi Tomi,
+Hello,
 
-On Mon, 4 Apr 2011, Tomi Valkeinen wrote:
+I am working with a custom OMAP3530 board. I am using rowboat 2.6.32,
+codesourcery 2010q1, X-loader and U-boot, all uniquely customized for
+this board.
 
-> On Fri, 2011-04-01 at 20:12 -0600, Paul Walmsley wrote:
-> 
-> > Of course, at some point soon, those clock aliases are going to go away.  
-> > But hopefully you all will have converted the driver over to PM runtime at 
-> > that point.
-> > 
-> > Once that happens, there's another problem: omap_hwmod_enable() is defined 
-> > that the hardware registers should be accessible by the MPU after it 
-> > completes.  So by that definition, the hwmod code should be 
-> > enabling/disabling that dss_clk clock too when it enables/idles/shuts down 
-> > the hwmod.  Probably we'd need to mark that struct omap_hwmod_opt_clk with 
-> > some flag.  Then we'd need some kind of way for the DSS to tell the hwmod 
-> > code whether it is or isn't reliant on the PRCM-provided functional clock 
-> > for its internal functional clock.  Maybe something like 
-> > omap_hwmod_{release,require}_system_fclk()?
-> 
-> Hmm, right. I guess no other HW module has clock setups like this?
-
-I think McBSP can have an optional main functional clock.  So something 
-like that should be usable for that case too. (In the McBSP case, the 
-optional clock isn't controlled by the PRCM, it's controlled by the SCM, 
-but that doesn't really matter to the hwmod code.)
-
-> Currently DSS can use clk_enable/disable() for the system fclk when its
-> using DSI PLL for the fclk. So omap_hwmod_{release,require}_system_fclk
-> sounds like a simple solution to this.
-
-OK.  The only problem with those functions (actually 
-omap_device_{release,require}_system_fclk()) is that they will need to be 
-called through platform_data function pointers for now.  Maybe it is 
-possible to handle something like this simply with the clock framework 
-also.
-
-> Not directly related, but something I've been wondering about is how to
-> abstract the DSI/HDMI PLLs in DSS. What do you think, would it be
-> possible/worth it to create struct clks for the clocks coming out of
-> those PLLs? These would, of course, be DSS internal clks. I'm not very
-> familiar with the clock framework, so I don't really have any idea what
-> this would require and what would be the pros and cons.
-
-Yes, I think it would be good to try to implement the entire DSS clock 
-tree in the clock framework.  One change to the clock code that we know 
-we'll need is to put a hwmod pointer in the struct clk which tells the 
-clock code that the hwmod needs to be enabled in order to access the 
-clock's registers.  Right now, the clock code assumes that all of the 
-clock registers are accessible, all of the time.
+I am using the 3 partition microSD card for this board, modeled after
+the TI-DevKit version 2.2, with rootfs as a partition at /dev/mmcblk0p2.
 
 
-- Paul
+On kernel boot, after mounting the root filesystem (/dev/mmcblk0p2) when
+attempting to start init (bootargs are init=/init), in main.c,
+run_init_process(execute_command) with execute_command set to /init, I
+get a kernel panic:
+
+
+[  103.806274] Kernel panic - not syncing: Attempted to kill init!
+
+
+The backtrace identifies: 
+
+
+[  103.812377] [<c0048320>] (unwind_backtrace+0x0/0x17c) from
+[<c0489d34>] (dump_stack+0x20/0x24)
+[  103.821105] [<c0489d34>] (dump_stack+0x20/0x24) from [<c0489d94>]
+(panic+0x5c/0x130)
+[  103.828918] [<c0489d94>] (panic+0x5c/0x130) from [<c007cc18>]
+(do_exit+0x5d4/0x6a4)
+[  103.836669] [<c007cc18>] (do_exit+0x5d4/0x6a4) from [<c007cd34>]
+(do_group_exit+0x4c/0xbc)
+[  103.845062] [<c007cd34>] (do_group_exit+0x4c/0xbc) from [<c008dee8>]
+(get_signal_to_deliver+0x208/0x3e8)
+[  103.854644] [<c008dee8>] (get_signal_to_deliver+0x208/0x3e8) from
+[<c0042de0>] (do_signal+0x74/0x698)
+[  103.863983] [<c0042de0>] (do_signal+0x74/0x698) from [<c0043470>]
+(do_notify_resume+0x6c/0x78)
+[  103.872680] [<c0043470>] (do_notify_resume+0x6c/0x78) from
+[<c003fb4c>] (work_pending+0x1c/0x20)
+
+I am not sure what is exactly causing this error. I am using RealView
+ICE and RVD, with source code debugging. 
+
+Can anybody assist?
+
+Thanks.
+
+
