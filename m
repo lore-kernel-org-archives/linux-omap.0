@@ -1,42 +1,41 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH/RFC 4/6] ARM: move SH-mobile runtime PM to arm/common for sharing with other platforms
-Date: Thu, 07 Apr 2011 17:38:38 -0700
-Message-ID: <87vcyp37ch.fsf@ti.com>
-References: <1302134569-22825-1-git-send-email-khilman@ti.com>
-	<20110407165654.GD8052@linux-sh.org> <8739lu9eg6.fsf@ti.com>
-	<201104080035.26989.rjw@sisk.pl>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [RFC PATCHv2 1/2] Export SoC info through sysfs
+Date: Fri, 8 Apr 2011 05:35:02 +0200
+Message-ID: <201104080535.02769.arnd@arndb.de>
+References: <1299846911-15782-1-git-send-email-maxime.coquelin-nonst@stericsson.com>
+	<201104080119.11378.arnd@arndb.de>
+	<20110407232959.GA29305@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201104080035.26989.rjw@sisk.pl> (Rafael J. Wysocki's message of
-	"Fri, 8 Apr 2011 00:35:26 +0200")
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Paul Mundt <lethal@linux-sh.org>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>, Grant Likely <grant.likely@secretlab.ca>, Greg Kroah-Hartman <gregkh@suse.de>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20110407232959.GA29305@kroah.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Greg KH <greg@kroah.com>
+Cc: Nicolas Pitre <nicolas.pitre@linaro.org>, ext Nishanth Menon <nm@ti.com>, ext Tony Lindgren <tony@atomide.com>, Peter De-Schrijver <Peter.De-Schrijver@nokia.com>, Linus Walleij <linus.walleij@linaro.org>, Ambresh <a0393775@ti.com>, Saravana Kannan <skannan@codeaurora.org>, Andrei Warkentin <andreiw@motorola.com>, Lee Jones <lee.jones@linaro.org>, Rabin VINCENT <rabin.vincent@stericsson.com>, Russell King <linux@arm.linux.org.uk>, Jonas ABERG <jonas.aberg@stericsson.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, David Brown <davidb@codeaurora.org>, Maxime Coquelin <maxime.coquelin-nonst@stericsson.com>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, Loic PALLARDY <loic.pallardy@stericsson.com>, Eduardo Valentin <eduardo.valentin@nokia.com>, maxime_coquelin@yahoo.fr, Ryan Mallon <ryan@bluewatersys.com>, Linux-OMAP <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-"Rafael J. Wysocki" <rjw@sisk.pl> writes:
+On Friday 08 April 2011, Greg KH wrote:
+> Symlinks are a requirement as multiple cpus can be attached to a single
+> SoC.
+> 
+> What about multiple cpus that are attached to multiple SoCs?  Why even
+> try to describe this relationship, what would userspace get out of this
+> information?
 
-> On Thursday, April 07, 2011, Kevin Hilman wrote:
->> Paul Mundt <lethal@linux-sh.org> writes:
->> 
->> > On Wed, Apr 06, 2011 at 05:02:47PM -0700, Kevin Hilman wrote:
->> >> There is really nothing SH-mobile specific about this runtime PM
->> >> implementation.  Any platform wanting to implement runtime PM based on
->> >> simple clock gating can use this implementation.
->> >> 
->> >> Signed-off-by: Kevin Hilman <khilman@ti.com>
->> >
->> > This observation is wholly architecture agnostic, so it's not clear that
->> > keeping it in arch/arm/common is any better. It seems that this would be
->> > better suited for drivers/base/power/ with a generic Kconfig symbol.
->> 
->> Sounds fine to me.
->
-> Well, what platforms is the clock framework available on?
+The only one I can think of is node affinity. I've worked with a system
+(IBM QS2x Cell blade) that had two SoCs with multiple CPUs each. There was
+a significant performance penalty when talking to devices on the remote
+SoC. In that case, we used the NUMA node information in /sys/ to deal
+with it, but we might not want to use the NUMA infrastructure on systems
+that only have RAM on one node.
 
-Well, the majority of implementations of <linux/clk.h> are certainly in
-ARM, but I know it's also implemented for SH, and a quick grep shows
-implementations in powerpc, mips and m68k also.
-
-Kevin
+	Arnd
