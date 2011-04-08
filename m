@@ -1,69 +1,80 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [RFC PATCHv2 1/2] Export SoC info through sysfs
-Date: Thu, 7 Apr 2011 16:29:59 -0700
-Message-ID: <20110407232959.GA29305@kroah.com>
-References: <1299846911-15782-1-git-send-email-maxime.coquelin-nonst@stericsson.com>
-	<alpine.LFD.2.00.1104071840430.28032@xanadu.home>
-	<4D9E4114.3090102@bluewatersys.com>
-	<201104080119.11378.arnd@arndb.de>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH/RFC 0/6] ARM: runtime PM: consolidate runtime PM implementations
+Date: Thu, 07 Apr 2011 17:32:42 -0700
+Message-ID: <874o694m6t.fsf@ti.com>
+References: <1302134569-22825-1-git-send-email-khilman@ti.com>
+	<871v1eaz0u.fsf@ti.com> <87hbaa7zhs.fsf@ti.com>
+	<201104080031.23452.rjw@suse.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <201104080119.11378.arnd@arndb.de>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Nicolas Pitre <nicolas.pitre@linaro.org>, ext Nishanth Menon <nm@ti.com>, ext Tony Lindgren <tony@atomide.com>, Peter De-Schrijver <Peter.De-Schrijver@nokia.com>, Linus Walleij <linus.walleij@linaro.org>, Ambresh <a0393775@ti.com>, Saravana Kannan <skannan@codeaurora.org>, Andrei Warkentin <andreiw@motorola.com>, Lee Jones <lee.jones@linaro.org>, Rabin VINCENT <rabin.vincent@stericsson.com>, Russell King <linux@arm.linux.org.uk>, Jonas ABERG <jonas.aberg@stericsson.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, David Brown <davidb@codeaurora.org>, Maxime Coquelin <maxime.coquelin-nonst@stericsson.com>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, Loic PALLARDY <loic.pallardy@stericsson.com>, Eduardo Valentin <eduardo.valentin@nokia.com>, maxime_coquelin@yahoo.fr, Ryan Mallon <ryan@bluewatersys.com>, Linux-OMAP <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@suse.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>, Grant Likely <grant.likely@secretlab.ca>, Greg Kroah-Hartman <gregkh@suse.de>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Paul Mundt <lethal@linux-sh.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Apr 08, 2011 at 01:19:10AM +0200, Arnd Bergmann wrote:
-> On Friday 08 April 2011, Ryan Mallon wrote:
-> >>>>> /sys/devices/soc/${NAME}/
-> >>>>> /sys/devices/platform/soc${NUMBER}/
-> >>>>
-> >>>> I prefer the second format here since the path is always the same which
-> >>>> makes it easier to write parsing tools. The name should be an entry in
-> >>>> the directory rather than the name of the directory itself.
-> 
-> In the first case, we would ensure that every directory under /sys/devices/soc
-> is an SOC device, so you would not need to parse the name at all, which is
-> even simpler. I'm open to other arguments either way, but I think this
-> one is not particularly important.
+"Rafael J. Wysocki" <rjw@suse.com> writes:
 
-I think your proposal is best.
+> On Thursday, April 07, 2011, Kevin Hilman wrote:
+>> Kevin Hilman <khilman@ti.com> writes:
+>> 
+>> [...]
+>> 
+>> > Replacing the PM ops for all devices was done on OMAP and SH-mobile
+>> > because that was the only approach we had.  Now that we have device
+>> > power domains (thanks Rafael!), we can be more selective about which
+>> > devices to apply them to.
+>> >
+>> > Note that my RFC patch/series did not do the selective part of deciding
+>> > which devices to override and which ones not to, that part will be
+>> > platform specific.  
+>> 
+>> Actually, thinking about this a little more, my patch actually does
+>> select only relevant devices, and not *all* platform devices.
+>> 
+>> In my patch, the device power domain pointers are only added for devices
+>> where a clk_get() actually succeeds.  In the original version, the
+>> runtime PM hooks are overridden for *all* platform devices, but ones
+>> that have no clock (or where clk_get() failed) have the additional
+>> overhead of still calling the custom PM ops, but the custom ops have
+>> nothing to do.
+>
+> As I wrote in another message to Grant, the problem basically is that
+> the platform bus type behavior is not the desirable one.  Namely, I don't
+> generally want device driver callbacks to be invoked until we know that
+> power will be removed from the devices.  
 
-> > > That would mean two separate instances of Linux, just like two systems.  
-> > > SMP across multiple SOCs doesn't make much sense, and I don't think they 
-> > > are likely to be designed for that ability either.
-> > 
-> > So we probably don't need the ability to have multiple SoC directories
-> > under sysfs then?
-> 
-> There are systems that have multiple ones, they are just not as common.
-> 
-> > For the other part of the question, do you think it makes sense for the
-> > CPU's to be child devices of the SoC (and for the CPU devices to be
-> > potentially symlinked from the SoC directory)?
-> 
-> No, the CPUs are children of /sys/devices/system, and we should not change
-> that. Symlinks sound like a good idea though.
+Ah, I didn't know that was a goal.  I totally agree there.
 
-Symlinks are a requirement as multiple cpus can be attached to a single
-SoC.
+> However, the platform bus type executes driver callbacks automatically
+> if they exist.  This currently is unavoidable, because power domain
+> callbacks are executed in addition to and not instead the bus type
+> callbacks.
+>
+> We've discussed that a bit at the LF Collab Summit with Grant and Paul and
+> the conclusion is that to address this particular problem we'll need to change
+> the core so that if there is a power domain for the given device, the
+> power domain callbacks will be executed first and if they return a specific
+> error code, the core will execute the bus type callbacks.  For devices that
+> don't belong to any power domain, the bus type callbacks will be executed
+> (which is the current behavior).
+>
+> I'm going to post a patch along these lines early next week.  Then, we
+> can simply move the management of device clocks, the execution of device
+> driver callbacks and the power removal into power domain callbacks.
 
-What about multiple cpus that are attached to multiple SoCs?  Why even
-try to describe this relationship, what would userspace get out of this
-information?
+Sounds good to me.
 
-thanks,
+> At that point it may be possible to share some code between shmobile and
+> OMAP, but I'm not sure yet how much of the code may be shared and it what
+> way exactly.
 
-greg k-h
+I'll have a look again after you post your series, but I'm pretty sure
+any runtime PM implementation based on basic clock gating could be
+shared.  Basically, the idea is in the absence of real power domains, to
+create a default "virtual" powerdomain that contains every device with a
+clock.  This would capture all on-chip devices into a single power domain.
+The device powerdomain callbacks for these would do the basic clock
+gating (as is done in mach-shmobile/pm_runtime.c).
+
+Kevin
