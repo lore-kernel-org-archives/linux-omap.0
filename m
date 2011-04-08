@@ -1,46 +1,86 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [RFC PATCHv2 1/2] Export SoC info through sysfs
-Date: Fri, 08 Apr 2011 08:41:32 +0100
-Message-ID: <4D9EBC2C.2050809@linaro.org>
-References: <1299846911-15782-1-git-send-email-maxime.coquelin-nonst@stericsson.com>
-	<201104080119.11378.arnd@arndb.de>
-	<20110407232959.GA29305@kroah.com>
-	<201104080535.02769.arnd@arndb.de>
+From: Thomas Weber <thomas.weber.linux@googlemail.com>
+Subject: Re: 2.6.38 not booting on sbc8100 (aka devkit8000)
+Date: Fri, 08 Apr 2011 09:00:34 +0200
+Message-ID: <4D9EB292.9050206@gmail.com>
+References: <AANLkTikAO+FA+0fCNiVj=9wVZ3t+vfx9tJX_SnJ7FGSd@mail.gmail.com>	<20110324151844.GT2811@atomide.com>	<AANLkTik8PW4ad2_4=UxzvL-V7HcpH0=dg-Un5NLkj6Yi@mail.gmail.com>	<20110324190030.GW2811@atomide.com>	<20110325091316.8a39d71a.jhnikula@gmail.com> <AANLkTi=BwAOJkHRK=AxBdUHSf3vq8MM+i55TOGuuqeHs@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <201104080535.02769.arnd@arndb.de>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Nicolas Pitre <nicolas.pitre@linaro.org>, ext Nishanth Menon <nm@ti.com>, ext Tony Lindgren <tony@atomide.com>, Greg KH <greg@kroah.com>, Linus Walleij <linus.walleij@linaro.org>, Ambresh <a0393775@ti.com>, Saravana Kannan <skannan@codeaurora.org>, Andrei Warkentin <andreiw@motorola.com>, Rabin VINCENT <rabin.vincent@stericsson.com>, Russell King <linux@arm.linux.org.uk>, Jonas ABERG <jonas.aberg@stericsson.com>, ext Kevin Hilman <khilman@deeprootsystems.com>, Peter De-Schrijver <Peter.De-Schrijver@nokia.com>, David Brown <davidb@codeaurora.org>, Maxime Coquelin <maxime.coquelin-nonst@stericsson.com>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, Loic PALLARDY <loic.pallardy@stericsson.com>, Eduardo Valentin <eduardo.valentin@nokia.com>, maxime_coquelin@yahoo.fr, Ryan Mallon <ryan@bluewatersys.com>, Linux-OMAP <linux-omap@vger.kernel.org>linux-ar
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:47966 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932148Ab1DHIBd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Apr 2011 04:01:33 -0400
+Received: by wwa36 with SMTP id 36so3937770wwa.1
+        for <linux-omap@vger.kernel.org>; Fri, 08 Apr 2011 01:01:32 -0700 (PDT)
+In-Reply-To: <AANLkTi=BwAOJkHRK=AxBdUHSf3vq8MM+i55TOGuuqeHs@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Belisko Marek <marek.belisko@gmail.com>
+Cc: Jarkko Nikula <jhnikula@gmail.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-On 08/04/11 04:35, Arnd Bergmann wrote:
-> On Friday 08 April 2011, Greg KH wrote:
->> Symlinks are a requirement as multiple cpus can be attached to a single
->> SoC.
+Am 25.03.2011 08:53, schrieb Belisko Marek:
+> On Fri, Mar 25, 2011 at 8:13 AM, Jarkko Nikula <jhnikula@gmail.com> wrote:
+>> On Thu, 24 Mar 2011 12:00:30 -0700
+>> Tony Lindgren <tony@atomide.com> wrote:
 >>
->> What about multiple cpus that are attached to multiple SoCs?  Why even
->> try to describe this relationship, what would userspace get out of this
->> information?
+>>> * Belisko Marek <marek.belisko@gmail.com> [110324 08:18]:
+>>>> On Thu, Mar 24, 2011 at 4:18 PM, Tony Lindgren <tony@atomide.com> wrote:
+>>>>
+>>>>> * Belisko Marek <marek.belisko@gmail.com> [110324 02:50]:
+>>>>>> Hi,
+>>>>>>
+>>>>>> Try to run 2.6.38 on my sbc8100
+>>>>>> (use mach-type for devkit8000 because boards are similar) board but
+>>>>>> when u-boot load it to ram I see just:
+>> ...
+>>>>> Can you enable DEBUG_LL and EARLY_PRINTK in your .config
+>>>>> and add earlyprintk to your cmdline? Then you should see
+>>>>> what goes wrong.
+>>>>>
+>>>> Forgot to mention. I already test this options but result is same like I
+>>>> report in
+>>>> first email.
+>>>
+>>> Maybe add some printk statements to start_kernel function in
+>>> init/main.c and see if you get any output?
+>>>
+>> For earlyprintk worth to check also
+>> arch/arm/plat-omap/include/plat/uncompress.h that there is entry for
+>> sbc8100 (double check with devkit8000 as there is entry for it and if
+>> you are re-using the mach-type).
+> Thanks for hint. It was missing there so I add line:
+> DEBUG_LL_OMAP3(3, devkit8000); (I'm convince linux to use mach-type
+> for devkit8000)
+> But still same result.
+> Bytes transferred = 2898680 (2c3af8 hex)
+> ## Booting kernel from Legacy Image at 80300000 ...
+>    Image Name:   Linux-2.6.37-00001-g88870c9-dirt
+>    Image Type:   ARM Linux Kernel Image (uncompressed)
+>    Data Size:    2898616 Bytes =  2.8 MB
+>    Load Address: 80008000
+>    Entry Point:  80008000
+>    Verifying Checksum ... OK
+>    Loading Kernel Image ... OK
+> OK
 > 
-> The only one I can think of is node affinity. I've worked with a system
-> (IBM QS2x Cell blade) that had two SoCs with multiple CPUs each. There was
-> a significant performance penalty when talking to devices on the remote
-> SoC. In that case, we used the NUMA node information in /sys/ to deal
-> with it, but we might not want to use the NUMA infrastructure on systems
-> that only have RAM on one node.
+> Starting kernel ...
+> 
+> Anybody with devkit8000 have success to run 2.6.37 kernel on board?
+>>
+>> --
+>> Jarkko
+>>
+> 
+> regards,
+> 
+> marek
+> 
 
-I'm struggling to see a scenario where we'd have multiple SoCs on a
-single device and only one filesystem. ux500 sub-arch code is yet to
-facilitate SoC counting functionality. If were are to implement per-SoC
-directories would this need to be added?
+Hello Marek,
+
+yes, it is running. But your mach-type is wrong. Thats not the mach-type
+from devkit8000, it is spark. What version of u-boot are you running?
+
+Thomas
+
