@@ -1,43 +1,45 @@
-From: Tomasz =?utf-8?Q?M=C5=82oduchowski?=
-	<tomasz.mloduchowski@xlogic.pl>
-Subject: Diagnosing issues with OMAPDSS scaling of overlay 0
-Date: Sat, 09 Apr 2011 17:27:20 +0200 (CEST)
-Message-ID: <58ae76c6-267f-4f94-a97a-ffff366afff2@zimbra.xlogic.pl>
-References: <415d270a-fb0c-447b-8f5e-47dba14f0078@zimbra.xlogic.pl>
+From: Kai Svahn <kai.svahn-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Subject: Re: mourning the loss of David Brownell
+Date: Sat, 9 Apr 2011 23:43:56 +0300
+Message-ID: <20110409204356.GA17738@six.research.nokia.com>
+References: <BANLkTi=0Wj56uO0qAwMfkWNg0+PtKFiMiA@mail.gmail.com>
+	<Pine.LNX.4.44L0.1104051350480.1972-100000@iolanthe.rowland.org>
+	<20110406002144.GC6983@xanatos>
+	<BANLkTikRJ+fBRJYfH=LEJk6dt58Gdk61Zg@mail.gmail.com>
+	<20110406171144.GG17376@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 81-18-210-90.static.chello.pl ([81.18.210.90]:33346 "EHLO
-	mail.xlogic.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754758Ab1DIPnx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 9 Apr 2011 11:43:53 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by mail.xlogic.pl (Postfix) with ESMTP id EE54219A154
-	for <linux-omap@vger.kernel.org>; Sat,  9 Apr 2011 17:27:21 +0200 (CEST)
-Received: from mail.xlogic.pl ([127.0.0.1])
-	by localhost (mail.xlogic.pl [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id dUPIhm3RXzK7 for <linux-omap@vger.kernel.org>;
-	Sat,  9 Apr 2011 17:27:20 +0200 (CEST)
-Received: from mail.xlogic.pl (zimbra.xlogic.pl [81.18.210.90])
-	by mail.xlogic.pl (Postfix) with ESMTP id 4FC2C19A01B
-	for <linux-omap@vger.kernel.org>; Sat,  9 Apr 2011 17:27:20 +0200 (CEST)
-In-Reply-To: <415d270a-fb0c-447b-8f5e-47dba14f0078@zimbra.xlogic.pl>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20110406171144.GG17376-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
+List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: ext Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Sarah Sharp <sarah.a.sharp-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, Jidong Xiao <jidong.xiao-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Oliver Neukum <oliver-GvhC2dPhHPQdnm+yROfE0A@public.gmane.org>, Kernel development list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, USB list <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
-Hi!
+On Wed, Apr 06, 2011 at 10:11:45AM -0700, ext Tony Lindgren wrote:
+> 
+> Dave certainly contributed a lot and helped many people. 
+> He also helped a lot with omap development.
 
-Is there a way to diagnose why the omapdss fails to scale ovl 0?
+Dave helped us in Nokia with many projects during the years, great person, 
+I enjoyed our discussions and I will miss him.
 
-[ 2470.719604] omapdss OVERLAY: check_overlay 0: (0,0 1280x768 -> 1360x768) disp (1360x768)
-[ 2470.719635] omapdss MANAGER: omap_dss_mgr_apply(lcd)
-[ 2470.719665] omapdss OVERLAY: check_overlay 0: (0,0 1280x768 -> 1360x768) disp (1360x768)
-[ 2470.719726] omapdss MANAGER: configure_overlay(0)
-[ 2470.719757] omapdss DISPC: dispc_setup_plane 0, pa 86800000, sw 1280, 0,0, 1280x768 -> 1360x768, ilace 0, cmode 80, rot 0, mir 0 chan 0
-[ 2470.719787] omapdss MANAGER error: dispc_setup_plane failed for ovl 0
-[ 2470.726593] omapdss DISPC: dispc_enable_plane 0, 0
-
+-- 
 Cheers,
-Tomasz
+Kai
+
+------------------------------------------------------------------------------
+Xperia(TM) PLAY
+It's a major breakthrough. An authentic gaming
+smartphone on the nation's most reliable network.
+And it wants your games.
+http://p.sf.net/sfu/verizon-sfdev
