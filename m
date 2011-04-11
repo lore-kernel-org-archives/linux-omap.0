@@ -1,60 +1,38 @@
-From: "Avinash.H.M." <avinashhm@ti.com>
-Subject: Re: [PATCH 1/2 v2] OMAP2/3: hwmod: fix the i2c-reset timeout
- during bootup
-Date: Mon, 11 Apr 2011 18:41:54 +0530
-Message-ID: <20110411131154.GA4498@avinash-laptop>
-References: <20110407070310.GA21701@avinash-laptop>
+From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Subject: Re: HELP:dspbridge:how to configure GPT timer
+Date: Mon, 11 Apr 2011 10:07:06 -0500
+Message-ID: <BANLkTikzsrbi8EytVzm9ZA2djtrjnAAcmQ@mail.gmail.com>
+References: <BANLkTin49cr76MXFUv6CZSs_-4v6=wL0Uw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:59944 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751673Ab1DKNMS (ORCPT
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:52705 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754173Ab1DKPHI (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 11 Apr 2011 09:12:18 -0400
-Received: by mail-gw0-f52.google.com with SMTP id 15so2298950gwj.39
-        for <linux-omap@vger.kernel.org>; Mon, 11 Apr 2011 06:12:15 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20110407070310.GA21701@avinash-laptop>
+	Mon, 11 Apr 2011 11:07:08 -0400
+Received: by mail-wy0-f172.google.com with SMTP id 29so7551644wyb.17
+        for <linux-omap@vger.kernel.org>; Mon, 11 Apr 2011 08:07:06 -0700 (PDT)
+In-Reply-To: <BANLkTin49cr76MXFUv6CZSs_-4v6=wL0Uw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cous>
+To: onlyfever <onlyfever@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
-> > > +     oh->_sysc_cache = v;
-> > > +     omap_hwmod_write(v, oh, oh->class->sysc->sysc_offs);
-> >
-> > Direct SYSCONFIG access isn't right here.   This should go through
-> > omap_hwmod.
-> >
-> > What is probably needed is exposing _ocp_softreset to device code
-> > via something like omap_hwmod_ocp_softreset() and calling that here.
-> >
+Hi,
 
-Hi Kevin , 
+On Sat, Apr 9, 2011 at 7:38 AM, onlyfever <onlyfever@gmail.com> wrote:
+> Hi all!
+> currently dsp make use of gpt 5, 6, 7 or 8.
+> I'm using gpt 8 for something else.
+> Is it possible to configure dsp-bridge to use other gpt timer?
+> I want to change gpt 8 to gpt 9,or gpt 7.
+> Please give me some advice.
 
-Looking more closely, i realised that, the sequence of _ocp_softreset
-doesn't work for I2C. It has a special programming sequence which needs
-to be followed to reset the IP. That was the reason, we created
-omap_i2c_reset.  So i feel we need not expose _ocp_softreset.
+GPT8 is used for avsync on the dsp side, unfortunately there is no way
+to change this without dsp sources and the latter are not publicly
+available :/
 
-Since, the problem here is accessing the SYSCONFIG here, instead, what i
-can do is, something like below.
+Regards,
 
-	omap_hwmod_softreset(struct omap_hwmod *oh)
-	{
-
-		v = oh->_sysc_cache;
-		v |= (0x1 << oh->class->sysc->sysc_fields->srst_shift);
-
-		oh->_sysc_cache = v;
-		omap_hwmod_write(v, oh, oh->class->sysc->sysc_offs);
-
-	}
-
-And then call this in omap_i2c_reset. Is this OK ?
-
-
-- Avinash
-
-
-
+Omar
