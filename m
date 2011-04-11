@@ -1,61 +1,58 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
 Subject: Re: OMAP4 DSS clock setup
-Date: Mon, 11 Apr 2011 12:05:00 +0300
-Message-ID: <1302512700.2198.53.camel@deskari>
+Date: Mon, 11 Apr 2011 12:09:49 +0300
+Message-ID: <1302512989.2198.57.camel@deskari>
 References: <1301467733.2333.83.camel@deskari>  <4D92F899.7010606@ti.com>
 	 <1301483027.4045.16.camel@deskari>  <4D931E21.8090305@ti.com>
 	 <1301489930.15095.51.camel@deskari>
 	 <alpine.DEB.2.00.1104011925510.27897@utopia.booyaka.com>
 	 <1301900022.2715.12.camel@deskari>
-	 <alpine.DEB.2.00.1104071054390.29552@utopia.booyaka.com>
-	 <1302241893.2102.21.camel@deskari>
-	 <alpine.DEB.2.00.1104080753070.22291@utopia.booyaka.com>
+	 <alpine.DEB.2.00.1104081036310.22291@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:39098 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751339Ab1DKJFG (ORCPT
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:51815 "EHLO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752258Ab1DKJJy (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 11 Apr 2011 05:05:06 -0400
-Received: by fxm3 with SMTP id 3so5371360fxm.16
-        for <linux-omap@vger.kernel.org>; Mon, 11 Apr 2011 02:05:03 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.1104080753070.22291@utopia.booyaka.com>
+	Mon, 11 Apr 2011 05:09:54 -0400
+Received: by mail-fx0-f44.google.com with SMTP id 15so6001888fxm.17
+        for <linux-omap@vger.kernel.org>; Mon, 11 Apr 2011 02:09:52 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.00.1104081036310.22291@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Paul Walmsley <paul@pwsan.com>
 Cc: "Cousson, Benoit" <b-cousson@ti.com>, "Semwal, Sumit" <sumit.semwal@ti.com>, "Taneja, Archit" <archit@ti.com>, linux-omap <linux-omap@vger.kernel.org>
 
-On Fri, 2011-04-08 at 08:55 -0600, Paul Walmsley wrote:
-> Hi
+On Fri, 2011-04-08 at 10:50 -0600, Paul Walmsley wrote:
+> Hi Tomi,
 > 
-> On Fri, 8 Apr 2011, Tomi Valkeinen wrote:
+> On Mon, 4 Apr 2011, Tomi Valkeinen wrote:
 
-> > and not the clock used for the pixel clock? If so, I'm fine with having 
-> > "fck" to be what it is currently, but then we need a new name for the 
-> > clock used for pixel clock, which is consistent on all platforms.
+> > Not directly related, but something I've been wondering about is how to
+> > abstract the DSI/HDMI PLLs in DSS. What do you think, would it be
+> > possible/worth it to create struct clks for the clocks coming out of
+> > those PLLs? These would, of course, be DSS internal clks. I'm not very
+> > familiar with the clock framework, so I don't really have any idea what
+> > this would require and what would be the pros and cons.
 > 
-> If there is a separate PRCM-provided clock used only for the pixel clock, 
-> then that clock should have an alias name of "system_pixel_ck" or 
-> something similar that is meaningful to the DSS driver.  I think the 
-> problem in this case is that "dss_dss_clk" is (optionally) used for two 
-> purposes: optionally as a "main PRCM-provided functional clock" and 
-> optionally as a system-provided pixel clock.
+> Yes, I think it would be good to try to implement the entire DSS clock 
+> tree in the clock framework.  One change to the clock code that we know 
+> we'll need is to put a hwmod pointer in the struct clk which tells the 
+> clock code that the hwmod needs to be enabled in order to access the 
+> clock's registers.  Right now, the clock code assumes that all of the 
+> clock registers are accessible, all of the time.
 
-Not only for pixel clock, but in the end it'll come out as pixel clock.
-I'm not sure what exactly is a "functional clock" here. I mean, one
-could think it as a basic functionality of DSS to read the pixels,
-manipulate them, and output them (with the rate of the pixel clock).
+It's not quite that simple, as DSI PLL also needs the vdds_dsi regulator
+to be enabled... And to use DSI PLL, not only do you need to access DSI
+PLL registers, you also need to use DSI registers.
 
-However, I think there is one difference between the clock used just to
-enable the DSS registers, and the one used to output pixels: we need to
-be able to adjust the rate of the clock. Thus we need to have a common
-(omap2/3/4) clock name for it to be able to clk_get() it.
-
-Should that clock name be just the "main" clock provided automatically,
-or something else?
+Is it possible to have the driver create its own clock structs when it's
+loaded, and have the code for that clock inside the driver, or are
+clocks something that has to be handled in the core platform code?
 
  Tomi
+
 
 
