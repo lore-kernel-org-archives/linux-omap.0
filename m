@@ -1,56 +1,68 @@
-From: Keshava Munegowda <keshava_mgowda@ti.com>
-Subject: RE: [Regression?] Removed regulator support in ehci-omap
-Date: Tue, 12 Apr 2011 02:18:28 +0530
-Message-ID: <112ef82aebc719ef25cde126f2014ebc@mail.gmail.com>
-References: <20110411093214.GA18215@rainbow><4DA3350E.2060400@gmail.com> <BANLkTinDMZ+CyGCmzZu8cSz1L_yFXxm+vg@mail.gmail.com>
+From: Chris Ball <cjb@laptop.org>
+Subject: Re: [PATCH] omap-mmc: Fix possible NULL pointer deref
+Date: Mon, 11 Apr 2011 17:02:54 -0400
+Message-ID: <m3y63ga4ch.fsf@pullcord.laptop.org>
+References: <1299089903.13604.19.camel@marge>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <BANLkTinDMZ+CyGCmzZu8cSz1L_yFXxm+vg@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Steve Sakoman <sakoman@gmail.com>, Steve Calfee <stevecalfee@gmail.com>
-Cc: Dmitry Artamonow <mad_soft@inbox.ru>, Felipe Balbi <balbi@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from void.printf.net ([89.145.121.20]:43722 "EHLO void.printf.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754993Ab1DKU6B (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 11 Apr 2011 16:58:01 -0400
+In-Reply-To: <1299089903.13604.19.camel@marge> (Michael Buesch's message of
+	"Wed, 02 Mar 2011 19:18:23 +0100")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Michael Buesch <mb@bu3sch.de>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-mmc@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
-> -----Original Message-----
-> From: Steve Sakoman [mailto:sakoman@gmail.com]
-> Sent: Tuesday, April 12, 2011 1:43 AM
-> To: Steve Calfee
-> Cc: Dmitry Artamonow; Keshava Munegowda; Felipe Balbi;
-linux-usb@vger.kernel.org; linux-
-> omap@vger.kernel.org; linux-kernel@vger.kernel.org
-> Subject: Re: [Regression?] Removed regulator support in ehci-omap
+Hi,
+
+On Wed, Mar 02 2011, Michael Buesch wrote:
+> Either OMAP_MMC_STAT_CARD_ERR or OMAP_MMC_STAT_END_OF_CMD might
+> fire if there is no host->cmd pointer.
+> Check for a valid host->cmd pointer before calling mmc_omap_cmd_done().
 >
-> On Mon, Apr 11, 2011 at 10:06 AM, Steve Calfee <stevecalfee@gmail.com>
-wrote:
-> > On 04/11/11 02:32, Dmitry Artamonow wrote:
-> >> Hi, guys!
-> >>
-> >> Can anyone explain why regulator support has been removed from
-ehci-omap
-> >> driver in commit 19403165 ("usb: host: omap: ehci and ohci
-simplification")[1]?
-> >> In 2.6.37/2.6.38 it was enough to apply simple patch[2] adding
-regulators
-> >> description to board file to make USB work on omap3evm board (because
-USB PHY
-> >> is powered via regulator). But now it won't work anymore in
-2.6.39-rc2.
-> >> BTW, I suspect that this commit also broke USB on omap3pandora board,
-as it
-> >> defines "hsusb0" regulator supply in its board file:
-> >>
-> > Yes, And Beagleboard xm (and I suspect other beagleboard versions) has
-> > been broken in 2.6.39rc1+.
+> Signed-off-by: Michael Buesch <mb@bu3sch.de>
+> Acked-by: Tony Lindgren <tony@atomide.com>
 >
-> FWIW, EHCI is also broken on Overo in both rc1 and rc2.
+> ---
 >
-> Steve
+> Fixes
+>
+> [    3.814483] Unable to handle kernel NULL pointer dereference at virtual address 00000018
+> ...
+> [    3.841247] CPU: 0    Not tainted  (2.6.38-rc6 #5)
+> [    3.846374] PC is at mmc_omap_cmd_done+0x1c/0x154
+> [    3.851379] LR is at mmc_omap_cmd_done+0x1c/0x154
+> ...
+> [    4.140014] [<c0234af0>] (mmc_omap_cmd_done+0x1c/0x154) from [<c0234ea4>] (mmc_omap_irq+0x27c/0x32c)
+> [    4.149749] [<c0234ea4>] (mmc_omap_irq+0x27c/0x32c) from [<c008645c>] (handle_IRQ_event+0x24/0xe4)
+> [    4.159332] [<c008645c>] (handle_IRQ_event+0x24/0xe4) from [<c0087dac>] (handle_level_irq+0xbc/0x13c)
+> [    4.169158] [<c0087dac>] (handle_level_irq+0xbc/0x13c) from [<c002b070>] (asm_do_IRQ+0x70/0x94)
+> [    4.178466] [<c002b070>] (asm_do_IRQ+0x70/0x94) from [<c003016c>] (__irq_svc+0x4c/0xb8)
+>
+>
+> Index: linux-omap-2.6/drivers/mmc/host/omap.c
+> ===================================================================
+> --- linux-omap-2.6.orig/drivers/mmc/host/omap.c	2011-02-27 12:32:03.051061690 +0100
+> +++ linux-omap-2.6/drivers/mmc/host/omap.c	2011-02-27 12:32:27.622530875 +0100
+> @@ -832,7 +832,7 @@
+>  		return IRQ_HANDLED;
+>  	}
+>  
+> -	if (end_command)
+> +	if (end_command && host->cmd)
+>  		mmc_omap_cmd_done(host, host->cmd);
+>  	if (host->data != NULL) {
+>  		if (transfer_error)
+>
+>
 
-Sorry guys! I will work on it coming week; currently I am in travel.
+Thanks, pushed to mmc-next.
 
-Well, regulator is not removed, its moved to usbhs core driver in
-/driver/mfd/omap xx usb xxx host.c
-
-Regards
-Keshava Munegowda
+- Chris.
+-- 
+Chris Ball   <cjb@laptop.org>   <http://printf.net/>
+One Laptop Per Child
