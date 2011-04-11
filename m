@@ -1,50 +1,32 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: Diagnosing issues with OMAPDSS scaling of overlay 0
-Date: Mon, 11 Apr 2011 09:32:51 +0300
-Message-ID: <1302503571.2198.0.camel@deskari>
-References: <58ae76c6-267f-4f94-a97a-ffff366afff2@zimbra.xlogic.pl>
+From: Vladimir Pantelic <vladoman@gmail.com>
+Subject: Re: HELP:dspbridge:how to configure GPT timer
+Date: Mon, 11 Apr 2011 10:28:13 +0200
+Message-ID: <4DA2BB9D.2080005@gmail.com>
+References: <BANLkTin49cr76MXFUv6CZSs_-4v6=wL0Uw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:57511 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751917Ab1DKGc5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 11 Apr 2011 02:32:57 -0400
-Received: by ewy9 with SMTP id 9so2240789ewy.14
-        for <linux-omap@vger.kernel.org>; Sun, 10 Apr 2011 23:32:55 -0700 (PDT)
-In-Reply-To: <58ae76c6-267f-4f94-a97a-ffff366afff2@zimbra.xlogic.pl>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:65028 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754187Ab1DKI2R (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Apr 2011 04:28:17 -0400
+Received: by bwz15 with SMTP id 15so4292714bwz.19
+        for <linux-omap@vger.kernel.org>; Mon, 11 Apr 2011 01:28:16 -0700 (PDT)
+In-Reply-To: <BANLkTin49cr76MXFUv6CZSs_-4v6=wL0Uw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomasz =?UTF-8?Q?M=C5=82oduchowski?= <tomasz.mloduchowski@xlogic.pl>
+To: onlyfever <onlyfever@gmail.com>
 Cc: linux-omap@vger.kernel.org
 
-On Sat, 2011-04-09 at 17:27 +0200, Tomasz M=C5=82oduchowski wrote:
-> Hi!
->=20
-> Is there a way to diagnose why the omapdss fails to scale ovl 0?
->=20
-> [ 2470.719604] omapdss OVERLAY: check_overlay 0: (0,0 1280x768 -> 136=
-0x768) disp (1360x768)
-> [ 2470.719635] omapdss MANAGER: omap_dss_mgr_apply(lcd)
-> [ 2470.719665] omapdss OVERLAY: check_overlay 0: (0,0 1280x768 -> 136=
-0x768) disp (1360x768)
-> [ 2470.719726] omapdss MANAGER: configure_overlay(0)
-> [ 2470.719757] omapdss DISPC: dispc_setup_plane 0, pa 86800000, sw 12=
-80, 0,0, 1280x768 -> 1360x768, ilace 0, cmode 80, rot 0, mir 0 chan 0
-> [ 2470.719787] omapdss MANAGER error: dispc_setup_plane failed for ov=
-l 0
-> [ 2470.726593] omapdss DISPC: dispc_enable_plane 0, 0
+onlyfever wrote:
+> Hi all!
+> currently dsp make use of gpt 5, 6, 7 or 8.
+> I'm using gpt 8 for something else.
+> Is it possible to configure dsp-bridge to use other gpt timer?
+> I want to change gpt 8 to gpt 9,or gpt 7.
+> Please give me some advice.
 
-No need to diagnose, graphics overlay (overlay 0) cannot be scaled =3D)=
-=2E
-
- Tomi
+http://dev.omapzoom.org/?p=integration/kernel-omap3.git;a=commit;h=b310b556fda5888440a7b451939e22170fd0b246
 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
