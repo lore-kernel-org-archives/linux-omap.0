@@ -1,36 +1,68 @@
-From: onlyfever <onlyfever@gmail.com>
-Subject: Re: HELP:dspbridge:how to configure GPT timer
-Date: Mon, 11 Apr 2011 19:46:13 +0800
-Message-ID: <BANLkTi=o_cm8HVmr8gMw6pJwN9phWh8xEA@mail.gmail.com>
-References: <BANLkTin49cr76MXFUv6CZSs_-4v6=wL0Uw@mail.gmail.com>
-	<4DA2BB9D.2080005@gmail.com>
+From: santaniee@iol.pt
+Subject: Partnership
+Date: Mon, 11 Apr 2011 12:36:34 +0100
+Message-ID: <20110411123634.8itpkw2qtwoc08o0@webmail.iol.pt>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8;
+	DelSp=Yes	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f174.google.com ([209.85.216.174]:42676 "EHLO
-	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753675Ab1DKLqO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Apr 2011 07:46:14 -0400
-Received: by qyk7 with SMTP id 7so1187460qyk.19
-        for <linux-omap@vger.kernel.org>; Mon, 11 Apr 2011 04:46:13 -0700 (PDT)
-In-Reply-To: <4DA2BB9D.2080005@gmail.com>
+Received: from bld12.srv.portugalmail.net ([195.170.168.139]:46694 "EHLO
+	bld12.srv.portugalmail.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752773Ab1DKLyR convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 11 Apr 2011 07:54:17 -0400
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vladimir Pantelic <vladoman@gmail.com>
-Cc: linux-omap@vger.kernel.org
 
-2011/4/11 Vladimir Pantelic <vladoman@gmail.com>:
-> onlyfever wrote:
->>
->> Hi all!
->> currently dsp make use of gpt 5, 6, 7 or 8.
->> I'm using gpt 8 for something else.
->> Is it possible to configure dsp-bridge to use other gpt timer?
->> I want to change gpt 8 to gpt 9,or gpt 7.
->> Please give me some advice.
->
-> http://dev.omapzoom.org/?p=integration/kernel-omap3.git;a=commit;h=b310b556fda5888440a7b451939e22170fd0b246
->
->
 
-I mean the GPT8 for decode 720p,not this one.
+I am representing a government official from a developing country who
+wants to start a multi-cargo haulage and freight company in his
+country, with a take off of a hundred New Mack trucks.
+
+He needs a business partner - an individual, irrespective of sex -
+capable to act as a front for the Trucking company for a period of
+five years - ( with residing in the said country of operation only a
+matter of your own choice). At the expiration of this period,the
+person will be expected to hand over the management to an indigenous
+personnel.
+
+The conditions for this proposal are  negotiatiable before final
+agreements are signed. Please if you are interested in handling this
+project, kindly contact me for more details through the contact
+details as stated below.
+
+Directline: +34 632 136 842
+Email: santherm@postino.net
+
+
+Guillermo Sant
+(Finincial Attorney)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+_______________________________________________________________________=
+_________
+COFIDIS Maxicredito. Ate' =E2=82=AC10.000 sem burocracias. Resposta on-=
+line!
+Clique aqui para saber mais http://www.iol.pt/correio/rodape.php?dst=3D=
+0802273
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
