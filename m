@@ -1,25 +1,36 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Linux-OMAP BoF at ELC: 7pm, Tuesday Apr 12
-Date: Mon, 11 Apr 2011 18:35:24 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1104111750560.10927@utopia.booyaka.com>
+From: Dmitry Artamonow <mad_soft@inbox.ru>
+Subject: Re: [Regression?] Removed regulator support in ehci-omap
+Date: Tue, 12 Apr 2011 08:10:45 +0400
+Message-ID: <20110412040420.GB25239@rainbow>
+References: <20110411093214.GA18215@rainbow>
+ <4DA3350E.2060400@gmail.com>
+ <BANLkTinDMZ+CyGCmzZu8cSz1L_yFXxm+vg@mail.gmail.com>
+ <112ef82aebc719ef25cde126f2014ebc@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:41527 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756467Ab1DLAfZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Apr 2011 20:35:25 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <112ef82aebc719ef25cde126f2014ebc@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Keshava Munegowda <keshava_mgowda@ti.com>
+Cc: Steve Sakoman <sakoman@gmail.com>, Steve Calfee <stevecalfee@gmail.com>, Felipe Balbi <balbi@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
+On 02:18 Tue 12 Apr     , Keshava Munegowda wrote:
+> 
+> Sorry guys! I will work on it coming week; currently I am in travel.
+> 
+> Well, regulator is not removed, its moved to usbhs core driver in
+> /driver/mfd/omap xx usb xxx host.c
 
-Hi,
+Ah, so EHCI/OHCI common code was moved into drivers/mfd... Good.
+But seems regulators support was lost somewhere during transition - the
+only mentioning about regulators in omap-usb-host.c is "#include" :
 
-For all Linux OMAP hackers and friends, at or nearby the Embedded Linux 
-Conference, there will be an informal BoF tomorrow at Yoshi's San 
-Francisco at 7pm tomorrow.  Yoshi's SF is about a ten minute walk away 
-from the Hotel Kabuki at 1330 Fillmore.  Come and hang out :-)
+mad@macmini:~/kernel-hack/linux-2.6(master)$ grep -i regulator drivers/mfd/omap-usb-host.c
+#include <linux/regulator/consumer.h>
+mad@macmini:~/kernel-hack/linux-2.6(master)$ 
 
-
-- Paul
+-- 
+Best regards,
+Dmitry "MAD" Artamonow
