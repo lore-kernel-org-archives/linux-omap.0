@@ -1,63 +1,41 @@
-From: Bob Liu <lliubbo@gmail.com>
-Subject: Re: pandaboard can't reboot on 2.6.38-rc2?
-Date: Tue, 12 Apr 2011 13:38:04 +0800
-Message-ID: <BANLkTikmMzD7coDnBgM9KCwjP8dV3rzgMQ@mail.gmail.com>
-References: <BANLkTikjyaA4mL-eWOcPse2T7NC2rbCfkg@mail.gmail.com>
-	<cac49110c8a25779b39fbf0f5808bdc7@mail.gmail.com>
+From: Vladimir Pantelic <vladoman@gmail.com>
+Subject: Re: OMAP_DSS: DSI driver with support for video mode?
+Date: Tue, 12 Apr 2011 09:01:53 +0200
+Message-ID: <4DA3F8E1.5010504@gmail.com>
+References: <BANLkTi=ca5GYo1p-GT27B0Uq3RcUtDuakQ@mail.gmail.com> <4DA3DE55.1080704@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:52045 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753122Ab1DLFiF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Apr 2011 01:38:05 -0400
-Received: by qwk3 with SMTP id 3so3659928qwk.19
-        for <linux-omap@vger.kernel.org>; Mon, 11 Apr 2011 22:38:04 -0700 (PDT)
-In-Reply-To: <cac49110c8a25779b39fbf0f5808bdc7@mail.gmail.com>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:58921 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754215Ab1DLHB5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Apr 2011 03:01:57 -0400
+Received: by fxm17 with SMTP id 17so4080463fxm.19
+        for <linux-omap@vger.kernel.org>; Tue, 12 Apr 2011 00:01:55 -0700 (PDT)
+In-Reply-To: <4DA3DE55.1080704@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Anand Gadiyar <gadiyar@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
+Cc: Juha Kuikka <juha.kuikka@gmail.com>
 
-On Tue, Apr 12, 2011 at 12:58 PM, Anand Gadiyar <gadiyar@ti.com> wrote:
-> Bob Liu wrote:
->> Hi, folks
+Archit Taneja wrote:
+> On Tuesday 12 April 2011 01:00 AM, Juha Kuikka wrote:
+>>  Hello,
 >>
->> I am using pandaboard and compiled a 2.6.38-rc2 kernel for it.
->> Everything works fine except that it can't reboot.
+>>  I am wondering if anyone has implemented DSI video mode support in the
+>>  DSS driver? I tried to trawl the web and the mailing list archives but
+>>  no patches come up.
 >>
->> #reboot
->> #
->> The system is going down NOW!
->> Sent SIGTERM to all processes
->> Sent SIGKILL to all processes
->> Requesting system reboot
->> [ =C2=A0120.742370] Restarting system.
->>
->> Then hanged...
->>
->> Has anyone seen similar problem?
+>>  I am using DM3730.
 >
-> As a quick workaround, turn off CONFIG_ARCH_OMAP2 and
-> rebuild the kernel. That should get you functional reboots.
+> Video mode isn't supported yet. But there are lots of custom
+> implementations of it over the current DSS2. One I can think of is
+> motorola's droid 2 and droid X source code:
 >
+> https://opensource.motorola.com/sf/sfmain/do/viewProject/projects.milestone
 
-It works, Thanks!
+Another one is in Archos Gen8 source code:
 
-> Looks like something in the asm code is messed up when building
-> with OMAP2 support - I don't understand it well enough to solve
-> it, but maybe this is a data point for people that do know
-> the code better.
->
-> - Anand
->
+http://www.archos.com/support/download/software/sources/gen8-gpl-froyo.tgz
 
---=20
-Regards,
---Bob
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
