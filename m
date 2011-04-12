@@ -1,32 +1,38 @@
-From: "George" <george@info.com>
-Subject: Mutual Aid (Stash of Fortune) 37.5 million USD
-Date: Tue, 12 Apr 2011 14:25:54 -0000 (GMT)
-Message-ID: <45715.64.20.0.20.1302618354.squirrel__18564.0685995624$1302623539$gmane$org@64.20.0.20>
-Reply-To: ivannickerson.claims@yahoo.com.hk
+From: Jesse Barnes <jbarnes@virtuousgeek.org>
+Subject: Re: [PATCH] pci: Add quirk for setting valid class for TI816X
+ Endpoint
+Date: Tue, 12 Apr 2011 09:15:33 -0700
+Message-ID: <20110412091533.224387a8@jbarnes-desktop>
+References: <1301986970-16482-1-git-send-email-hemantp@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.avellaneda-ba.gov.ar ([200.71.230.2]:38819 "EHLO
-	ns2.avellaneda-ba.gov.ar" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1757882Ab1DLPv5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 12 Apr 2011 11:51:57 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1301986970-16482-1-git-send-email-hemantp@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Hemant Pedanekar <hemantp@ti.com>
+Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Mutual Aid (Stash of Fortune) 37.5 million USD
+On Tue,  5 Apr 2011 12:32:50 +0530
+Hemant Pedanekar <hemantp@ti.com> wrote:
 
-Hi
-I would hold back certain information for security reasons for now until
-you have found time to visit the BBC website stated below to enable you
-have an insight into what I intend sharing with you.
+> TI816X (common name for DM816x/C6A816x/AM389x family) devices configured to boot
+> as PCIe Endpoint have class code = 0. This makes kernel PCI bus code to skip
+> allocating BARs to these devices resulting into following type of error when
+> trying to enable them:
+> 
+> "Device 0000:01:00.0 not available because of resource collisions"
+> 
+> The device cannot be operated because of the above issue.
+> 
+> This patch adds a ID specific (TI VENDOR ID and 816X DEVICE ID based) 'early'
+> fixup quirk to replace class code with PCI_CLASS_MULTIMEDIA_VIDEO as class.
+> 
+> Signed-off-by: Hemant Pedanekar <hemantp@ti.com>
+> ---
 
-http://news.bbc.co.uk/2/hi/middle_east/2988455.stm
+Applied to my linux-next branch, thanks.
 
-Get back to me having visited the above website with this email:
-ivannickerson.claims@yahoo.com.hk
-
-Best Regards
-A former member of the  3rd Infantry Division
-
+-- 
+Jesse Barnes, Intel Open Source Technology Center
