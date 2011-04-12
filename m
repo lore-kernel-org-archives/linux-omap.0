@@ -1,48 +1,63 @@
-From: Keshava Munegowda <keshava_mgowda@ti.com>
-Subject: RE: [Regression?] Removed regulator support in ehci-omap
-Date: Tue, 12 Apr 2011 21:50:05 +0530
-Message-ID: <bcd954a468e6a07bd673b7d0731e9344@mail.gmail.com>
-References: <20110411093214.GA18215@rainbow> <4DA3350E.2060400@gmail.com>
- <BANLkTinDMZ+CyGCmzZu8cSz1L_yFXxm+vg@mail.gmail.com> <112ef82aebc719ef25cde126f2014ebc@mail.gmail.com>
- <20110412040420.GB25239@rainbow>
+From: Sanjeev Premi <premi@ti.com>
+Subject: [PATCHv3] omap3: alsa-soc: Remove restrictive checks for cpu type
+Date: Wed, 13 Apr 2011 02:03:13 +0530
+Message-ID: <1302640393-21734-1-git-send-email-premi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=KOI8-R
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20110412040420.GB25239@rainbow>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dmitry Artamonow <mad_soft@inbox.ru>
-Cc: Steve Sakoman <sakoman@gmail.com>, Steve Calfee <stevecalfee@gmail.com>, Felipe Balbi <balbi@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:45961 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757145Ab1DLUdk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 12 Apr 2011 16:33:40 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org
+Cc: jhnikula@gmail.com, Sanjeev Premi <premi@ti.com>
 
-> -----Original Message-----
-> From: Dmitry Artamonow [mailto:mad_soft@inbox.ru]
-> Sent: Tuesday, April 12, 2011 9:41 AM
-> To: Keshava Munegowda
-> Cc: Steve Sakoman; Steve Calfee; Felipe Balbi;
-linux-usb@vger.kernel.org; linux-omap@vger.kernel.org;
-> linux-kernel@vger.kernel.org
-> Subject: Re: [Regression?] Removed regulator support in ehci-omap
->
-> On 02:18 Tue 12 Apr     , Keshava Munegowda wrote:
-> >
-> > Sorry guys! I will work on it coming week; currently I am in travel.
-> >
-> > Well, regulator is not removed, its moved to usbhs core driver in
-> > /driver/mfd/omap xx usb xxx host.c
->
-> Ah, so EHCI/OHCI common code was moved into drivers/mfd... Good.
-> But seems regulators support was lost somewhere during transition - the
-> only mentioning about regulators in omap-usb-host.c is "#include" :
->
-> mad@macmini:~/kernel-hack/linux-2.6(master)$ grep -i regulator
-drivers/mfd/omap-usb-host.c
-> #include <linux/regulator/consumer.h>
-> mad@macmini:~/kernel-hack/linux-2.6(master)$
->
-> --
-> Best regards,
-> Dmitry "MAD" Artamonow
+Current checks for cpu type were too restrictive leading
+to failures for other silicons in same family.
 
-Thanks ! I will add some time next week!
+The problem was found while testing audio playback on
+AM37x and AM35x processors. But should exist on OMAP36xx
+as well.
 
-Keshava Munegowda
+Signed-off-by: Sanjeev Premi <premi@ti.com>
+---
+ Changes in v3::
+   None. Reposting[1] after subscribing to alsa-devel list
+
+ Changes in v2:
+   1) Added one more check to the changes.
+   2) Updated commit message to use plurals.
+
+
+ [1] http://marc.info/?l=linux-omap&m=130026430110592&w=2
+
+ sound/soc/omap/omap-mcbsp.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
+index 2175f09..a88a0bf 100644
+--- a/sound/soc/omap/omap-mcbsp.c
++++ b/sound/soc/omap/omap-mcbsp.c
+@@ -146,7 +146,7 @@ static int omap_mcbsp_dai_startup(struct snd_pcm_substream *substream,
+ 	 * 2 channels (stereo): size is 128 / 2 = 64 frames (2 * 64 words)
+ 	 * 4 channels: size is 128 / 4 = 32 frames (4 * 32 words)
+ 	 */
+-	if (cpu_is_omap343x() || cpu_is_omap44xx()) {
++	if (cpu_is_omap34xx() || cpu_is_omap44xx()) {
+ 		/*
+ 		* Rule for the buffer size. We should not allow
+ 		* smaller buffer than the FIFO size to avoid underruns
+@@ -258,7 +258,7 @@ static int omap_mcbsp_dai_hw_params(struct snd_pcm_substream *substream,
+ 	default:
+ 		return -EINVAL;
+ 	}
+-	if (cpu_is_omap343x()) {
++	if (cpu_is_omap34xx()) {
+ 		dma_data->set_threshold = omap_mcbsp_set_threshold;
+ 		/* TODO: Currently, MODE_ELEMENT == MODE_FRAME */
+ 		if (omap_mcbsp_get_dma_op_mode(bus_id) ==
+-- 
+1.7.2.2
+
