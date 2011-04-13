@@ -1,35 +1,46 @@
-From: "Kastas" <romanov@nu.jinr.ru>
-Subject: FW:FW: Medvile rekomenduoja nera pulti i nevilti, taciau lengvai
- uzdirbti pinigus
-Date: Wed, 13 Apr 2011 05:12:15 +0300
-Message-ID: <20110413021330.733F928893@numail.jinr.ru>
-Reply-To: "Kastas" <romanov@nu.jinr.ru>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from numail.jinr.ru ([159.93.19.25]:52938 "EHLO numail.jinr.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751775Ab1DMCVB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 12 Apr 2011 22:21:01 -0400
-Received: from numail.jinr.ru (localhost [127.0.0.1])
-	by numail.jinr.ru (Postfix) with ESMTP id 733F928893
-	for <linux-omap@vger.kernel.org>; Wed, 13 Apr 2011 06:13:30 +0400 (MSD)
-Received: from numail.jinr.ru ([127.0.0.1])
-	by numail.jinr.ru (numail.jinr.ru [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id xbSOCl12ajsG for <linux-omap@vger.kernel.org>;
-	Wed, 13 Apr 2011 06:13:30 +0400 (MSD)
-Received: from Kastas (unknown [113.161.196.135])
-	(Authenticated sender: romanov)
-	by numail.jinr.ru (Postfix) with ESMTPA id 9755628899
-	for <linux-omap@vger.kernel.org>; Wed, 13 Apr 2011 06:13:25 +0400 (MSD)
-Sender: linux-omap-owner@vger.kernel.org
+From: Heikki Krogerus <heikki.krogerus-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v3 2/2] RX-51: Enable isp1704 power on/off
+Date: Wed, 13 Apr 2011 08:10:06 +0300
+Message-ID: <20110413051006.GA32404@esdhcp034230>
+References: <1301405280-16899-1-git-send-email-kalle.jokiniemi@nokia.com>
+ <1301405280-16899-3-git-send-email-kalle.jokiniemi@nokia.com>
+ <20110330050854.GB32672@esdhcp034230>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20110330050854.GB32672@esdhcp034230>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kalle Jokiniemi <kalle.jokiniemi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, cbouatmailru-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org, khilman-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jhnikula-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
-ivertink si portala ir pradek uzdirbti pinigus nedelsiant 
+Hi,
 
-paslapti kaip uzsidirbti rasi cia http://d24ogddhl.blogspot.com/ 
+On Wed, Mar 30, 2011 at 08:08:54AM +0300, ext Heikki Krogerus wrote:
+> On Tue, Mar 29, 2011 at 04:28:00PM +0300, Kalle Jokiniemi wrote:
+> > The isp1704 usb tranceiver is used for charging and can be
+> > disabled when not in use. Provide the powering routine to
+> > the driver via platform data.
+> > 
+> > Also changed the indent of ".name" variable in rx51_charger_device
+> > definition to use tabs same way as the new ".dev" variable indent.
+> > Put this in the same patch since the indent fix is only needed
+> > when there are multiple members in the struct definition.
+> > 
+> > Loosely based on earlier patches from Heikki Krogerus in
+> > Nokia N900 maemo kernel.
+> > 
+> > Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+> > Cc: Heikki Krogerus <heikki.krogerus-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+> 
+> Acked-By: Heikki Krogerus <heikki.krogerus-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 
+Before Anton takes these, this one needs ack from Tony.
 
-Eisminte ir Lygedas jau perskaites pasismagink ir uzsidirbk daug pinigu!
-
+-- 
+heikki
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
