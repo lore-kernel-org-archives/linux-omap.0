@@ -1,46 +1,48 @@
-From: Heikki Krogerus <heikki.krogerus-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v3 2/2] RX-51: Enable isp1704 power on/off
-Date: Wed, 13 Apr 2011 08:10:06 +0300
-Message-ID: <20110413051006.GA32404@esdhcp034230>
-References: <1301405280-16899-1-git-send-email-kalle.jokiniemi@nokia.com>
- <1301405280-16899-3-git-send-email-kalle.jokiniemi@nokia.com>
- <20110330050854.GB32672@esdhcp034230>
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: Re: [PATCHv3] omap3: alsa-soc: Remove restrictive checks for cpu
+ type
+Date: Wed, 13 Apr 2011 09:15:48 +0300
+Message-ID: <20110413091548.bfb3ddd9.jhnikula@gmail.com>
+References: <1302640393-21734-1-git-send-email-premi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20110330050854.GB32672@esdhcp034230>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kalle Jokiniemi <kalle.jokiniemi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, cbouatmailru-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org, khilman-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jhnikula-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:60377 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751126Ab1DMGOM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Apr 2011 02:14:12 -0400
+Received: by ewy4 with SMTP id 4so76268ewy.19
+        for <linux-omap@vger.kernel.org>; Tue, 12 Apr 2011 23:14:11 -0700 (PDT)
+In-Reply-To: <1302640393-21734-1-git-send-email-premi@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sanjeev Premi <premi@ti.com>
+Cc: linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>
 
-Hi,
+On Wed, 13 Apr 2011 02:03:13 +0530
+Sanjeev Premi <premi@ti.com> wrote:
 
-On Wed, Mar 30, 2011 at 08:08:54AM +0300, ext Heikki Krogerus wrote:
-> On Tue, Mar 29, 2011 at 04:28:00PM +0300, Kalle Jokiniemi wrote:
-> > The isp1704 usb tranceiver is used for charging and can be
-> > disabled when not in use. Provide the powering routine to
-> > the driver via platform data.
-> > 
-> > Also changed the indent of ".name" variable in rx51_charger_device
-> > definition to use tabs same way as the new ".dev" variable indent.
-> > Put this in the same patch since the indent fix is only needed
-> > when there are multiple members in the struct definition.
-> > 
-> > Loosely based on earlier patches from Heikki Krogerus in
-> > Nokia N900 maemo kernel.
-> > 
-> > Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-> > Cc: Heikki Krogerus <heikki.krogerus-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+> Current checks for cpu type were too restrictive leading
+> to failures for other silicons in same family.
 > 
-> Acked-By: Heikki Krogerus <heikki.krogerus-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-
-Before Anton takes these, this one needs ack from Tony.
-
--- 
-heikki
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> The problem was found while testing audio playback on
+> AM37x and AM35x processors. But should exist on OMAP36xx
+> as well.
+> 
+> Signed-off-by: Sanjeev Premi <premi@ti.com>
+> ---
+>  Changes in v3::
+>    None. Reposting[1] after subscribing to alsa-devel list
+> 
+>  Changes in v2:
+>    1) Added one more check to the changes.
+>    2) Updated commit message to use plurals.
+> 
+> 
+>  [1] http://marc.info/?l=linux-omap&m=130026430110592&w=2
+> 
+>  sound/soc/omap/omap-mcbsp.c |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
+> 
+Acked-by: Jarkko Nikula <jhnikula@gmail.com>
