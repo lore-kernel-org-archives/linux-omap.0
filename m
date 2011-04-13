@@ -1,75 +1,61 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 5/5] OMAP: DSS2: fix panel Kconfig dependencies
-Date: Wed, 13 Apr 2011 09:50:17 +0300
-Message-ID: <1302677417-4590-6-git-send-email-tomi.valkeinen@ti.com>
-References: <1302677417-4590-1-git-send-email-tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 0/4] OMAP2PLUS: DSS2: Clock configuration enhancements
+ and fixes
+Date: Wed, 13 Apr 2011 10:19:25 +0300
+Message-ID: <1302679165.2130.36.camel@deskari>
+References: <1302596546-14888-1-git-send-email-archit@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:44677 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755295Ab1DMGuo (ORCPT
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:45843 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754607Ab1DMHTa (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 13 Apr 2011 02:50:44 -0400
-Received: by mail-ew0-f54.google.com with SMTP id 1so196596ewy.27
-        for <linux-omap@vger.kernel.org>; Tue, 12 Apr 2011 23:50:41 -0700 (PDT)
-In-Reply-To: <1302677417-4590-1-git-send-email-tomi.valkeinen@ti.com>
+	Wed, 13 Apr 2011 03:19:30 -0400
+Received: by mail-ww0-f44.google.com with SMTP id 36so379025wwa.1
+        for <linux-omap@vger.kernel.org>; Wed, 13 Apr 2011 00:19:28 -0700 (PDT)
+In-Reply-To: <1302596546-14888-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: archit@ti.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: Archit Taneja <archit@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-All DPI panels were missing dependency to OMAP2_DSS_DPI. Add the
-dependency.
+On Tue, 2011-04-12 at 13:52 +0530, Archit Taneja wrote:
+> Currently, the clock sources for internal DSS clocks are hardcoded in DSS2, this
+> causes issues when displays want to configure clocks differently, or when there
+> are multiple displays trying to configure the clock sources for the same clocks.
+> 
+> Move the clock sources to dssdev.clocks struct, and perform cleanup related to
+> this.
+> 
+> Note: Patches apply over:
+> https://gitorious.org/linux-omap-dss2/linux/commits/master
+> 
+> Archit Taneja (4):
+>   OMAP2PLUS: DSS2: Change enum "dss_clk_source" to
+>     "omap_dss_clk_source"
+>   OMAP2PLUS: DSS2: Add clock sources to dss device clock configuration
+>   OMAP: DSS2: HDMI: Use dss_device clock configuration for HDMI PLL
+>     parameters
+>   OMAP2PLUS: DSS2: Remove hack config "CONFIG_OMAP2_DSS_USE_DSI_PLL"
+> 
+>  arch/arm/mach-omap2/board-4430sdp.c       |   18 ++++++-
+>  arch/arm/plat-omap/include/plat/display.h |   24 ++++++++-
+>  drivers/video/omap2/dss/Kconfig           |    8 ---
+>  drivers/video/omap2/dss/dispc.c           |   12 ++--
+>  drivers/video/omap2/dss/dpi.c             |   83 +++++++++++++++--------------
+>  drivers/video/omap2/dss/dsi.c             |   49 +++++++----------
+>  drivers/video/omap2/dss/dss.c             |   50 +++++++++---------
+>  drivers/video/omap2/dss/dss.h             |   23 +++------
+>  drivers/video/omap2/dss/dss_features.c    |   20 ++++----
+>  drivers/video/omap2/dss/dss_features.h    |    2 +-
+>  drivers/video/omap2/dss/hdmi.c            |   27 +++++-----
+>  11 files changed, 164 insertions(+), 152 deletions(-)
 
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
----
- drivers/video/omap2/displays/Kconfig |    9 +++++----
- 1 files changed, 5 insertions(+), 4 deletions(-)
+I think this patch set looks fine. I'll apply.
 
-diff --git a/drivers/video/omap2/displays/Kconfig b/drivers/video/omap2/displays/Kconfig
-index d18ad6b..609a280 100644
---- a/drivers/video/omap2/displays/Kconfig
-+++ b/drivers/video/omap2/displays/Kconfig
-@@ -3,6 +3,7 @@ menu "OMAP2/3 Display Device Drivers"
- 
- config PANEL_GENERIC_DPI
-         tristate "Generic DPI Panel"
-+	depends on OMAP2_DSS_DPI
-         help
- 	  Generic DPI panel driver.
- 	  Supports DVI output for Beagle and OMAP3 SDP.
-@@ -11,20 +12,20 @@ config PANEL_GENERIC_DPI
- 
- config PANEL_LGPHILIPS_LB035Q02
- 	tristate "LG.Philips LB035Q02 LCD Panel"
--	depends on OMAP2_DSS && SPI
-+	depends on OMAP2_DSS_DPI && SPI
- 	help
- 	  LCD Panel used on the Gumstix Overo Palo35
- 
- config PANEL_SHARP_LS037V7DW01
-         tristate "Sharp LS037V7DW01 LCD Panel"
--        depends on OMAP2_DSS
-+        depends on OMAP2_DSS_DPI
-         select BACKLIGHT_CLASS_DEVICE
-         help
-           LCD Panel used in TI's SDP3430 and EVM boards
- 
- config PANEL_NEC_NL8048HL11_01B
- 	tristate "NEC NL8048HL11-01B Panel"
--	depends on OMAP2_DSS
-+	depends on OMAP2_DSS_DPI
- 	help
- 		This NEC NL8048HL11-01B panel is TFT LCD
- 		used in the Zoom2/3/3630 sdp boards.
-@@ -37,7 +38,7 @@ config PANEL_TAAL
- 
- config PANEL_TPO_TD043MTEA1
-         tristate "TPO TD043MTEA1 LCD Panel"
--        depends on OMAP2_DSS && SPI
-+        depends on OMAP2_DSS_DPI && SPI
-         help
-           LCD Panel used in OMAP3 Pandora
- 
--- 
-1.7.1
+ Tomi
+
+
 
