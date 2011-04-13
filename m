@@ -1,49 +1,66 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v3 2/2] RX-51: Enable isp1704 power on/off
-Date: Wed, 13 Apr 2011 09:28:31 +0300
-Message-ID: <20110413062830.GB12665@atomide.com>
-References: <1301405280-16899-1-git-send-email-kalle.jokiniemi@nokia.com>
- <1301405280-16899-3-git-send-email-kalle.jokiniemi@nokia.com>
- <20110330050854.GB32672@esdhcp034230>
- <20110413051006.GA32404@esdhcp034230>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20110413051006.GA32404@esdhcp034230>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Heikki Krogerus <heikki.krogerus-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Cc: Kalle Jokiniemi <kalle.jokiniemi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, cbouatmailru-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org, khilman-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jhnikula-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [PATCH 3/5] OMAP: DSS2: improve clock debugfs output
+Date: Wed, 13 Apr 2011 09:50:15 +0300
+Message-ID: <1302677417-4590-4-git-send-email-tomi.valkeinen@ti.com>
+References: <1302677417-4590-1-git-send-email-tomi.valkeinen@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:51904 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755295Ab1DMGuk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 13 Apr 2011 02:50:40 -0400
+Received: by eyg7 with SMTP id 7so194876eyg.27
+        for <linux-omap@vger.kernel.org>; Tue, 12 Apr 2011 23:50:37 -0700 (PDT)
+In-Reply-To: <1302677417-4590-1-git-send-email-tomi.valkeinen@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: archit@ti.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-* Heikki Krogerus <heikki.krogerus-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org> [110413 08:07]:
-> Hi,
-> 
-> On Wed, Mar 30, 2011 at 08:08:54AM +0300, ext Heikki Krogerus wrote:
-> > On Tue, Mar 29, 2011 at 04:28:00PM +0300, Kalle Jokiniemi wrote:
-> > > The isp1704 usb tranceiver is used for charging and can be
-> > > disabled when not in use. Provide the powering routine to
-> > > the driver via platform data.
-> > > 
-> > > Also changed the indent of ".name" variable in rx51_charger_device
-> > > definition to use tabs same way as the new ".dev" variable indent.
-> > > Put this in the same patch since the indent fix is only needed
-> > > when there are multiple members in the struct definition.
-> > > 
-> > > Loosely based on earlier patches from Heikki Krogerus in
-> > > Nokia N900 maemo kernel.
-> > > 
-> > > Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-> > > Cc: Heikki Krogerus <heikki.krogerus-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-> > 
-> > Acked-By: Heikki Krogerus <heikki.krogerus-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-> 
-> Before Anton takes these, this one needs ack from Tony.
+OMAP4 has clocks set up in a bit interesting way, causing, for example,
+the DSS's "ick" to be called "dss_fck".
 
-Looks good to me:
+This patch changes the debugfs output to show both the DSS's name for
+the clock (ie. basically the clock alias), and the real name from the
+clock struct.
 
-Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+---
+ drivers/video/omap2/dss/dss.c |   13 ++++++++++++-
+ 1 files changed, 12 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
+index a8d4402..118d320 100644
+--- a/drivers/video/omap2/dss/dss.c
++++ b/drivers/video/omap2/dss/dss.c
+@@ -1026,6 +1026,14 @@ static void core_dump_clocks(struct seq_file *s)
+ 		dss.dss_video_fck
+ 	};
+ 
++	const char *names[5] = {
++		"ick",
++		"fck",
++		"sys_clk",
++		"tv_fck",
++		"video_fck"
++	};
++
+ 	seq_printf(s, "- CORE -\n");
+ 
+ 	seq_printf(s, "internal clk count\t\t%u\n", dss.num_clks_enabled);
+@@ -1033,8 +1041,11 @@ static void core_dump_clocks(struct seq_file *s)
+ 	for (i = 0; i < 5; i++) {
+ 		if (!clocks[i])
+ 			continue;
+-		seq_printf(s, "%-15s\t%lu\t%d\n",
++		seq_printf(s, "%s (%s)%*s\t%lu\t%d\n",
++				names[i],
+ 				clocks[i]->name,
++				24 - strlen(names[i]) - strlen(clocks[i]->name),
++				"",
+ 				clk_get_rate(clocks[i]),
+ 				clocks[i]->usecount);
+ 	}
+-- 
+1.7.1
+
