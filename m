@@ -1,86 +1,95 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Code for v2.6.39 merge window frozen, patches archived
-Date: Wed, 13 Apr 2011 17:04:30 +0300
-Message-ID: <20110413140429.GF12665@atomide.com>
-References: <20110314192538.GH7258@atomide.com>
- <alpine.DEB.1.10.1103151856180.880@esdhcp041196.research.nokia.com>
- <4D7FC70D.7050508@ti.com>
- <alpine.DEB.1.10.1103161533470.2634@esdhcp041196.research.nokia.com>
- <4D80CA2F.8060300@ti.com>
- <alpine.DEB.1.10.1103161903250.2634@esdhcp041196.research.nokia.com>
- <20110329233243.GR4016@atomide.com>
- <87lizwskcc.fsf@ti.com>
- <alpine.DEB.1.10.1103311722520.2634@esdhcp041196.research.nokia.com>
- <alpine.LFD.2.00.1104012241230.28032@xanadu.home>
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: Re: [PATCH 08/13] OMAP3: cpufreq driver changes for DVFS support
+Date: Wed, 13 Apr 2011 17:13:20 +0300
+Message-ID: <20110413171320.5226cd86.jhnikula@gmail.com>
+References: <1295618465-15234-1-git-send-email-vishwanath.bs@ti.com>
+	<1295618465-15234-9-git-send-email-vishwanath.bs@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:45986 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752024Ab1DMOEd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Apr 2011 10:04:33 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.00.1104012241230.28032@xanadu.home>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:60660 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755829Ab1DMOLp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Apr 2011 10:11:45 -0400
+Received: by ewy4 with SMTP id 4so175576ewy.19
+        for <linux-omap@vger.kernel.org>; Wed, 13 Apr 2011 07:11:44 -0700 (PDT)
+In-Reply-To: <1295618465-15234-9-git-send-email-vishwanath.bs@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nicolas Pitre <nicolas.pitre@linaro.org>
-Cc: Aaro Koskinen <aaro.koskinen@nokia.com>, Kevin Hilman <khilman@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Vishwanath BS <vishwanath.bs@ti.com>
+Cc: linux-omap@vger.kernel.org, patches@linaro.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-* Nicolas Pitre <nicolas.pitre@linaro.org> [110402 05:40]:
-> On Thu, 31 Mar 2011, Aaro Koskinen wrote:
+Hi
+
+A few comments below in case this is still under development as I was
+playing a bit with this version on omap3.
+
+On Fri, 21 Jan 2011 19:31:00 +0530
+Vishwanath BS <vishwanath.bs@ti.com> wrote:
+
+> Changes in the omap cpufreq driver for DVFS support.
 > 
-> > Hi,
-> > 
-> > On Wed, 30 Mar 2011, Kevin Hilman wrote:
-> > > Tony Lindgren <tony@atomide.com> writes:
-> > > > FYI, looks like we've started hitting some booter -l kernel size limit
-> > > > in addition to booter -f size limit.. Now kernels built with
-> > > > omap2plus_defconfig won't boot on n900 any longer.
-> > 
-> > I guess you are seeing it just hanging at "Uncompressing Linux... done,
-> > booting the kernel."?
-> > 
-> > > > I guess the way around that is to install the u-boot loader package.
-> > > 
-> > > Alternatively CONFIG_KERNEL_LZMA=y will get the kernel zImage size back
-> > > within size limits that will boot on n900.
-> > 
-> > Hmm, I'm a bit puzzled. For me, .38 works but .39-rc1 does not, and I
-> > can't see any "special" limit exceeded. Also LZMA is broken:
-> > 
-> > 	Uncompressing Linux...
-> > 
-> > 	LZMA data is corrupt
-> > 
-> > 	-- System halted
-> > 
-> > I did some bisecting, and with the following commit reverted -rc1 works:
-> > 
-> > 	commit d239b1dc093d551046a909920b5310c1d1e308c1
-> > 	Author: Nicolas Pitre <nicolas.pitre@linaro.org>
-> > 	Date:   Mon Feb 21 04:57:38 2011 +0100
-> > 
-> > 	ARM: 6746/1: remove the 4x expansion presumption while decompressing
-> > the kernel
-> > 
-> > With the revert, also bigger gzipped kernel works.
+> Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
+> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> ---
+>  arch/arm/plat-omap/cpu-omap.c |   35 ++++++++++++++++++++++++++++++++---
+>  1 files changed, 32 insertions(+), 3 deletions(-)
 > 
-> OK I will have a look.
+...
+> @@ -85,11 +87,11 @@ static int omap_target(struct cpufreq_policy *policy,
+>  		       unsigned int target_freq,
+>  		       unsigned int relation)
+>  {
+> -#ifdef CONFIG_ARCH_OMAP1
+>  	struct cpufreq_freqs freqs;
+> -#endif
+>  #if defined(CONFIG_ARCH_OMAP3) && !defined(CONFIG_OMAP_PM_NONE)
+>  	unsigned long freq;
+> +	int i;
+> +	struct cpufreq_freqs freqs_notify;
+>  	struct device *mpu_dev = omap2_get_mpuss_device();
+>  #endif
+>  	int ret = 0;
+> @@ -116,9 +118,36 @@ static int omap_target(struct cpufreq_policy *policy,
+>  	ret = clk_set_rate(mpu_clk, freqs.new * 1000);
+>  	cpufreq_notify_transition(&freqs, CPUFREQ_POSTCHANGE);
+>  #elif defined(CONFIG_ARCH_OMAP3) && !defined(CONFIG_OMAP_PM_NONE)
+> +	freqs.old = omap_getspeed(policy->cpu);;
+> +	freqs_notify.new = clk_round_rate(mpu_clk, target_freq * 1000) / 1000;
+> +	freqs.cpu = policy->cpu;
+> +
+> +	if (freqs.old == freqs.new)
+> +		return ret;
+> +
 
-Hmm while playing with the device tree append patch, decompress_kernel
-trashes the first 16 bytes of the device tree data. Now I wonder if these
-issues are related..
+Here freqs.new is uninitialized which very likely means that code falls
+always through, sets the correct target frequency though, but can
+populate the wrong frequency through the cpufreq_notify_transition when
+running the pre notifiers below.
 
-Aaro, you mentioned to me that reverting commit 
-6d7d0ae51574943bf571d269da3243257a2d15db helps too?
+I think the code above meant
 
-With the device tree append patch reverting commit
-d239b1dc093d551046a909920b5310c1d1e308c1 does not help, and reverting
-6d7d0ae51574943bf571d269da3243257a2d15db requires some manual merging..
+freqs_notify.new = clk_round_rate(mpu_clk, target_freq * 1000) / 1000;
+->
+freqs.new = clk_round_rate(mpu_clk, target_freq * 1000) / 1000;
 
-Anyways, that might be another way to reproduce the problem if these
-issues are related.
+as the freqs_notify is otherwise unused?
 
-Regards,
+However, that doesn't work as the clk_round_rate returns the current
+rate for mpu_clk on omap3 and "freqs.old == freqs.new" is always true.
+Looks like there is no round_rate function for arm_fck.
 
-Tony
+I replaced that with "freqs.new = target_freq;" but this means there
+will be unnecessary fall throughs if the real frequency (eg 124800 kHz)
+will differ from opp table frequency (eg 125000 kHz) and no real
+changes are happening e.g. with on-demand governor.
+
+> +	/* pre notifiers */
+> +	for_each_cpu(i, policy->cpus) {
+> +		freqs.cpu = i;
+> +		cpufreq_notify_transition(&freqs, CPUFREQ_PRECHANGE);
+> +	}
+
+-- 
+Jarkko
