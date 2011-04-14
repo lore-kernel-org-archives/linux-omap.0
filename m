@@ -1,124 +1,147 @@
-From: Eduardo Valentin <eduardo.valentin@ti.com>
-Subject: Re: [PATCH 2/2] OMAP3: PM: Do not rely on ROM code to restore
- CM_AUTOIDLE_PLL.AUTO_PERIPH_DPLL
-Date: Thu, 14 Apr 2011 20:42:16 +0300
-Message-ID: <20110414174216.GA3509@zarco>
-References: <1302708067-8226-1-git-send-email-eduardo.valentin@ti.com>
- <1302708067-8226-3-git-send-email-eduardo.valentin@ti.com>
- <B85A65D85D7EB246BE421B3FB0FBB593024C9603BD@dbde02.ent.ti.com>
- <20110414173352.GA3311@zarco>
- <B85A65D85D7EB246BE421B3FB0FBB593024C960470@dbde02.ent.ti.com>
-Reply-To: eduardo.valentin@ti.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Fernando Guzman Lugo <fernando.lugo@ti.com>
+Subject: [PATCH] OMAP: iommu flush page table entries from L1 and L2 cache
+Date: Thu, 14 Apr 2011 16:52:48 -0500
+Message-ID: <1302817968-28516-1-git-send-email-fernando.lugo@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57001 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753568Ab1DNRmo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Apr 2011 13:42:44 -0400
-Content-Disposition: inline
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593024C960470@dbde02.ent.ti.com>
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:49138 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751192Ab1DNVxX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 14 Apr 2011 17:53:23 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Premi, Sanjeev" <premi@ti.com>
-Cc: "Valentin, Eduardo" <eduardo.valentin@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Linux-ARM <linux-arm-kernel@lists.infradead.org>
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Cc: tony@atomide.com, linux@arm.linux.org.uk, Ramesh Gupta <grgupta@ti.com>, Hari Kanigeri <h-kanigeri2@ti.com>, Fernando Guzman Lugo <fernando.lugo@ti.com>
 
-Hello Sanjeev,
+From: Ramesh Gupta <grgupta@ti.com>
 
-On Thu, Apr 14, 2011 at 12:36:17PM -0500, Premi, Sanjeev wrote:
-> > -----Original Message-----
-> > From: Valentin, Eduardo 
-> > Sent: Thursday, April 14, 2011 11:04 PM
-> > To: Premi, Sanjeev
-> > Cc: Valentin, Eduardo; Paul Walmsley; Kevin Hilman; 
-> > Linux-OMAP; Linux-ARM
-> > Subject: Re: [PATCH 2/2] OMAP3: PM: Do not rely on ROM code 
-> > to restore CM_AUTOIDLE_PLL.AUTO_PERIPH_DPLL
-> > 
-> > Hello Sanjeev,
-> > 
-> > 
-> > On Thu, Apr 14, 2011 at 09:13:14AM -0500, Premi, Sanjeev wrote:
-> > > > -----Original Message-----
-> > > > From: linux-omap-owner@vger.kernel.org 
-> > > > [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of 
-> > > > Valentin, Eduardo
-> > > > Sent: Wednesday, April 13, 2011 8:51 PM
-> > > > To: Paul Walmsley; Kevin Hilman
-> > > > Cc: Linux-OMAP; Linux-ARM; Valentin, Eduardo
-> > > > Subject: [PATCH 2/2] OMAP3: PM: Do not rely on ROM code to 
-> > > > restore CM_AUTOIDLE_PLL.AUTO_PERIPH_DPLL
-> > > > 
-> > > > As per OMAP3 erratum (i671), ROM code adds extra latencies while
-> > > > restoring CM_AUTOIDLE_PLL register, if AUTO_PERIPH_DPLL 
-> > is equal to 1.
-> > > > 
-> > > > This patch stores 0's in scratchpad content area corresponding to
-> > > > AUTO_PERIPH_DPLL, to prevent ROM code to try to lock per 
-> > DPLL, since
-> > > > it won't respect proper programing scheme.
-> > > > 
-> > > > This register is then stored in prcm context. The saving 
-> > and restore
-> > > > is now done by kernel side.
-> > > > 
-> > > > Here follow the erratum description
-> > > > 
-> > > > DESCRIPTION
-> > > > 
-> > > > After OFF mode transition, among many restorations, the ROM 
-> > > > Code restores the
-> > > > CM_AUTOIDLE_PLL register, and after that, it tries to relock 
-> > > > the PER DPLL.
-> > > > 
-> > > > In case the restoration data stored in scratchpad memory 
-> > > > contains a field
-> > > > CM_AUTOIDLE_PLL.AUTO_PERIPH_DPLL = 1, then the way the ROM 
-> > > > Code restores and
-> > > > locks the PER DPLL does not respect the PER DPLL 
-> > programming scheme.
-> > > > 
-> > > > In that case, the DPLL might not lock. Meanwhile, when trying 
-> > > > to lock the PER
-> > > > DPLL, the ROM Code does not hang. Only extra latencies are 
-> > > > introduced at
-> > > > wake-up.
-> > > > 
-> > > 
-> > > [sp] You seem to have missed this patch:
-> > > http://marc.info/?l=linux-arm-kernel&m=129735383925285&w=2
-> > 
-> > Right,
-> > 
-> > But that one doesn't clear the AUTO_PERIPH_DPLL bits in the 
-> > scratchpad area
-> > to avoid rom code extra overhead (check my patch description).
-> > 
-> > Besides, why do we want to add more code inside omap_sram_idle,
-> > if we have better places to this S&R?
-> 
-> Didn't see that as a comment earlier?
+This patch is to flush the iommu page table entries from L1 and L2
+caches using dma_map_single. This also simplifies the implementation
+by removing the functions  flush_iopgd_range/flush_iopte_range.
 
-Better later than never :-) ?
+Change-Id: I19c0bf437d75c79084b2fa28c7da50a4c84b91a0
+Signed-off-by: Ramesh Gupta <grgupta@ti.com>
+Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
+Signed-off-by: Fernando Guzman Lugo <fernando.lugo@ti.com>
+---
+ arch/arm/plat-omap/iommu.c |   41 ++++++++++-------------------------------
+ 1 files changed, 10 insertions(+), 31 deletions(-)
 
-> 
-> ~sanjeev
-> 
-> > 
-> > 
-> > > 
-> > > ~sanjeev
-> > > 
-> > > 
-> > 
-> > All best,
-> > 
-> > --
-> > Eduardo Valentin
-> > 
-
-
-Cheers,
-
+diff --git a/arch/arm/plat-omap/iommu.c b/arch/arm/plat-omap/iommu.c
+index 8a51fd5..1fb5e41 100644
+--- a/arch/arm/plat-omap/iommu.c
++++ b/arch/arm/plat-omap/iommu.c
+@@ -18,6 +18,7 @@
+ #include <linux/ioport.h>
+ #include <linux/clk.h>
+ #include <linux/platform_device.h>
++#include <linux/dma-mapping.h>
+ 
+ #include <asm/cacheflush.h>
+ 
+@@ -466,29 +467,6 @@ EXPORT_SYMBOL_GPL(foreach_iommu_device);
+ 
+ #endif /* CONFIG_OMAP_IOMMU_DEBUG_MODULE */
+ 
+-/*
+- *	H/W pagetable operations
+- */
+-static void flush_iopgd_range(u32 *first, u32 *last)
+-{
+-	/* FIXME: L2 cache should be taken care of if it exists */
+-	do {
+-		asm("mcr	p15, 0, %0, c7, c10, 1 @ flush_pgd"
+-		    : : "r" (first));
+-		first += L1_CACHE_BYTES / sizeof(*first);
+-	} while (first <= last);
+-}
+-
+-static void flush_iopte_range(u32 *first, u32 *last)
+-{
+-	/* FIXME: L2 cache should be taken care of if it exists */
+-	do {
+-		asm("mcr	p15, 0, %0, c7, c10, 1 @ flush_pte"
+-		    : : "r" (first));
+-		first += L1_CACHE_BYTES / sizeof(*first);
+-	} while (first <= last);
+-}
+-
+ static void iopte_free(u32 *iopte)
+ {
+ 	/* Note: freed iopte's must be clean ready for re-use */
+@@ -515,7 +493,7 @@ static u32 *iopte_alloc(struct iommu *obj, u32 *iopgd, u32 da)
+ 			return ERR_PTR(-ENOMEM);
+ 
+ 		*iopgd = virt_to_phys(iopte) | IOPGD_TABLE;
+-		flush_iopgd_range(iopgd, iopgd);
++		dma_map_single(obj->dev, iopgd, 1, DMA_TO_DEVICE);
+ 
+ 		dev_vdbg(obj->dev, "%s: a new pte:%p\n", __func__, iopte);
+ 	} else {
+@@ -544,7 +522,7 @@ static int iopgd_alloc_section(struct iommu *obj, u32 da, u32 pa, u32 prot)
+ 	}
+ 
+ 	*iopgd = (pa & IOSECTION_MASK) | prot | IOPGD_SECTION;
+-	flush_iopgd_range(iopgd, iopgd);
++	dma_map_single(obj->dev, iopgd, 1, DMA_TO_DEVICE);
+ 	return 0;
+ }
+ 
+@@ -561,7 +539,7 @@ static int iopgd_alloc_super(struct iommu *obj, u32 da, u32 pa, u32 prot)
+ 
+ 	for (i = 0; i < 16; i++)
+ 		*(iopgd + i) = (pa & IOSUPER_MASK) | prot | IOPGD_SUPER;
+-	flush_iopgd_range(iopgd, iopgd + 15);
++	dma_map_single(obj->dev, iopgd, 16, DMA_TO_DEVICE);
+ 	return 0;
+ }
+ 
+@@ -574,7 +552,7 @@ static int iopte_alloc_page(struct iommu *obj, u32 da, u32 pa, u32 prot)
+ 		return PTR_ERR(iopte);
+ 
+ 	*iopte = (pa & IOPAGE_MASK) | prot | IOPTE_SMALL;
+-	flush_iopte_range(iopte, iopte);
++	dma_map_single(obj->dev, iopte, 1, DMA_TO_DEVICE);
+ 
+ 	dev_vdbg(obj->dev, "%s: da:%08x pa:%08x pte:%p *pte:%08x\n",
+ 		 __func__, da, pa, iopte, *iopte);
+@@ -599,7 +577,7 @@ static int iopte_alloc_large(struct iommu *obj, u32 da, u32 pa, u32 prot)
+ 
+ 	for (i = 0; i < 16; i++)
+ 		*(iopte + i) = (pa & IOLARGE_MASK) | prot | IOPTE_LARGE;
+-	flush_iopte_range(iopte, iopte + 15);
++	dma_map_single(obj->dev, iopte, 15, DMA_TO_DEVICE);
+ 	return 0;
+ }
+ 
+@@ -703,7 +681,8 @@ static size_t iopgtable_clear_entry_core(struct iommu *obj, u32 da)
+ 		}
+ 		bytes *= nent;
+ 		memset(iopte, 0, nent * sizeof(*iopte));
+-		flush_iopte_range(iopte, iopte + (nent - 1) * sizeof(*iopte));
++		dma_map_single(obj->dev, iopte, nent * sizeof(*iopte),
++				 DMA_TO_DEVICE);
+ 
+ 		/*
+ 		 * do table walk to check if this table is necessary or not
+@@ -725,7 +704,7 @@ static size_t iopgtable_clear_entry_core(struct iommu *obj, u32 da)
+ 		bytes *= nent;
+ 	}
+ 	memset(iopgd, 0, nent * sizeof(*iopgd));
+-	flush_iopgd_range(iopgd, iopgd + (nent - 1) * sizeof(*iopgd));
++	dma_map_single(obj->dev, iopgd, nent * sizeof(*iopgd), DMA_TO_DEVICE);
+ out:
+ 	return bytes;
+ }
+@@ -770,7 +749,7 @@ static void iopgtable_clear_entry_all(struct iommu *obj)
+ 			iopte_free(iopte_offset(iopgd, 0));
+ 
+ 		*iopgd = 0;
+-		flush_iopgd_range(iopgd, iopgd);
++		dma_map_single(obj->dev, iopgd, 1, DMA_TO_DEVICE);
+ 	}
+ 
+ 	flush_iotlb_all(obj);
 -- 
-Eduardo Valentin
+1.7.0.4
+
