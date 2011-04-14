@@ -1,89 +1,197 @@
 From: Lesly A M <leslyam@ti.com>
-Subject: [PATCH v9 0/9] OMAP3: PM: TWL4030 power scripts and workaround for TWL erratum 27
-Date: Thu, 14 Apr 2011 17:57:48 +0530
-Message-ID: <1302784077-16697-1-git-send-email-leslyam@ti.com>
+Subject: [PATCH v9 9/9] OMAP3: PM: TWL4030 optimizing resource configuration
+Date: Thu, 14 Apr 2011 17:57:57 +0530
+Message-ID: <1302784077-16697-10-git-send-email-leslyam@ti.com>
+References: <1302784077-16697-1-git-send-email-leslyam@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:32831 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757181Ab1DNM1w (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 14 Apr 2011 08:27:52 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:34841 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757545Ab1DNM16 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Apr 2011 08:27:58 -0400
+In-Reply-To: <1302784077-16697-1-git-send-email-leslyam@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Lesly A M <leslyam@ti.com>, Nishanth Menon <nm@ti.com>, David Derrick <dderrick@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
 
-Patch series for TWL4030 power scripts and workaround for TWL erratum 27.
+Skip the i2c register writes in twl4030_configure_resource() if the new value
+is same as the old value, for devgrp/type/remap regs.
 
-Changes for implementing TWL4030 power scripts recommended by hardware team.
-Introduced a new TWL4030 power script file, which can be used by different
-OMAP3 board with the power companion chip TWL4030.
+Suggested by David Derrick <dderrick@ti.com>
 
-Updated the changes for TWL4030 errata 27 & 28, and modified
-the TWL4030 power script.
-Workaround for TWL4030 erratum 27 is required for Si version less than or
-equal to TWL5030 ES1.1.
-
-TWL4030 script changes re-based on Kevin's PM tree in pm branch.
-
-Changes in v7:
-	changes to fix Nishanth Menon's comments
-		i) Added the workaround for TWL4030 Erratum 27
-  
-	split the first patch in v6
-		i)  fix for twl4030 script load
-		ii) correct the warning print during script loading
-
-	Added new patch files
-		i) changing sys_off signal polarity
-
-Changes in v8:
-	updated the change logs
-	moving the TWL IDCODE checking to twl-core.c
-
-Changes in V9:
-	changes to fix David Derrick's comments
-		i) turn OFF the NRES_PWRON resource in warm reset sequence
-		ii) optimize the i2c writes during resource configuration
-
-Since the voltage layer is evolving to a new design, the voltage dependant
-changes required for the TWL4030 script are not incorporated in the patch series.
-So this TWL4030 script patch series can be tested with a separate patch for
-voltage layer changes.
-
-	link: http://pastebin.mozilla.org/1204011
-
-This changes are tested on OMAP3430 & OMAP3630 SDP with off mode enabled in suspend path.
-	Tested with suspend/resume script, which will test system suspend in a loop.
-	Tested for more than 1000 iterations.
-	Also tested the reboot with WRM_RST button & reboot command.
-
+Signed-off-by: Lesly A M <leslyam@ti.com>
 Cc: Nishanth Menon <nm@ti.com>
 Cc: David Derrick <dderrick@ti.com>
 Cc: Samuel Ortiz <sameo@linux.intel.com>
 ---
-Lesly A M (9):
-  OMAP3: PM: Fix for the TWL4030 sleep/wakeup sequence
-  OMAP3: PM: Correct the warning print during script loading
-  OMAP3: PM: Modifying the macro name Main_Ref to all caps
-  OMAP3: PM: TWL4030 power scripts for OMAP3 boards
-  OMAP3: PM: TWL5030 version checking
-  MFD: TWL4030: workaround changes for TWL4030 Erratum 27
-  OMAP3430: Updating the board file to use TWL4030 scripts
-  OMAP3630: Updating the board file to use TWL4030 scripts
-  OMAP3: PM: TWL4030 optimizing resource configuration
+ drivers/mfd/twl4030-power.c |  126 ++++++++++++++++++++++++------------------
+ 1 files changed, 72 insertions(+), 54 deletions(-)
 
- arch/arm/mach-omap2/Makefile                 |    1 +
- arch/arm/mach-omap2/board-3430sdp.c          |    2 +
- arch/arm/mach-omap2/board-rx51-peripherals.c |    2 +-
- arch/arm/mach-omap2/board-zoom-peripherals.c |    2 +
- arch/arm/mach-omap2/twl4030-script.c         |  481 ++++++++++++++++++++++++++
- arch/arm/mach-omap2/twl4030-script.h         |   23 ++
- drivers/mfd/twl-core.c                       |   62 ++++
- drivers/mfd/twl4030-power.c                  |  211 ++++++++---
- include/linux/i2c/twl.h                      |   53 +++-
- 9 files changed, 774 insertions(+), 63 deletions(-)
- create mode 100644 arch/arm/mach-omap2/twl4030-script.c
- create mode 100644 arch/arm/mach-omap2/twl4030-script.h
+diff --git a/drivers/mfd/twl4030-power.c b/drivers/mfd/twl4030-power.c
+index 8d1db78..95ef257 100644
+--- a/drivers/mfd/twl4030-power.c
++++ b/drivers/mfd/twl4030-power.c
+@@ -335,9 +335,9 @@ static int __init twl4030_configure_resource(struct twl4030_resconfig *rconfig)
+ {
+ 	int rconfig_addr;
+ 	int err;
+-	u8 type;
+-	u8 grp;
+-	u8 remap;
++	u8 type, type_value;
++	u8 grp, grp_value;
++	u8 remap, remap_value;
+ 
+ 	if (rconfig->resource > TOTAL_RESOURCES) {
+ 		pr_err("TWL4030 Resource %d does not exist\n",
+@@ -348,76 +348,94 @@ static int __init twl4030_configure_resource(struct twl4030_resconfig *rconfig)
+ 	rconfig_addr = res_config_addrs[rconfig->resource];
+ 
+ 	/* Set resource group */
+-	err = twl_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER, &grp,
++	if (rconfig->devgroup != TWL4030_RESCONFIG_UNDEF) {
++		err = twl_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER, &grp,
+ 			      rconfig_addr + DEV_GRP_OFFSET);
+-	if (err) {
+-		pr_err("TWL4030 Resource %d group could not be read\n",
+-			rconfig->resource);
+-		return err;
+-	}
++		if (err) {
++			pr_err("TWL4030 Resource %d group could not be read\n",
++				rconfig->resource);
++			return err;
++		}
+ 
+-	if (rconfig->devgroup != TWL4030_RESCONFIG_UNDEF) {
+-		grp &= ~DEV_GRP_MASK;
+-		grp |= rconfig->devgroup << DEV_GRP_SHIFT;
+-		err = twl_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
++		grp_value = (grp & DEV_GRP_MASK) >> DEV_GRP_SHIFT;
++
++		if (rconfig->devgroup != grp_value) {
++			grp &= ~DEV_GRP_MASK;
++			grp |= rconfig->devgroup << DEV_GRP_SHIFT;
++			err = twl_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
+ 				       grp, rconfig_addr + DEV_GRP_OFFSET);
+-		if (err < 0) {
+-			pr_err("TWL4030 failed to program devgroup\n");
+-			return err;
++			if (err < 0) {
++				pr_err("TWL4030 failed to program devgroup\n");
++				return err;
++			}
+ 		}
+ 	}
+ 
+ 	/* Set resource types */
+-	err = twl_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER, &type,
++	if ((rconfig->type != TWL4030_RESCONFIG_UNDEF) ||
++		(rconfig->type2 != TWL4030_RESCONFIG_UNDEF)) {
++
++		err = twl_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER, &type,
+ 				rconfig_addr + TYPE_OFFSET);
+-	if (err < 0) {
+-		pr_err("TWL4030 Resource %d type could not be read\n",
+-			rconfig->resource);
+-		return err;
+-	}
++		if (err < 0) {
++			pr_err("TWL4030 Resource %d type could not be read\n",
++				rconfig->resource);
++			return err;
++		}
+ 
+-	if (rconfig->type != TWL4030_RESCONFIG_UNDEF) {
+-		type &= ~TYPE_MASK;
+-		type |= rconfig->type << TYPE_SHIFT;
+-	}
++		type_value = type;
+ 
+-	if (rconfig->type2 != TWL4030_RESCONFIG_UNDEF) {
+-		type &= ~TYPE2_MASK;
+-		type |= rconfig->type2 << TYPE2_SHIFT;
+-	}
++		if (rconfig->type != TWL4030_RESCONFIG_UNDEF) {
++			type &= ~TYPE_MASK;
++			type |= rconfig->type << TYPE_SHIFT;
++		}
+ 
+-	err = twl_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
++		if (rconfig->type2 != TWL4030_RESCONFIG_UNDEF) {
++			type &= ~TYPE2_MASK;
++			type |= rconfig->type2 << TYPE2_SHIFT;
++		}
++
++		if (type != type_value) {
++			err = twl_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
+ 				type, rconfig_addr + TYPE_OFFSET);
+-	if (err < 0) {
+-		pr_err("TWL4030 failed to program resource type\n");
+-		return err;
++			if (err < 0) {
++				pr_err("TWL4030 failed to program resource type\n");
++				return err;
++			}
++		}
+ 	}
+ 
+ 	/* Set remap states */
+-	err = twl_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER, &remap,
++	if ((rconfig->remap_off != TWL4030_RESCONFIG_UNDEF) ||
++		(rconfig->remap_sleep != TWL4030_RESCONFIG_UNDEF)) {
++		err = twl_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER, &remap,
+ 			      rconfig_addr + REMAP_OFFSET);
+-	if (err < 0) {
+-		pr_err("TWL4030 Resource %d remap could not be read\n",
+-			rconfig->resource);
+-		return err;
+-	}
++		if (err < 0) {
++			pr_err("TWL4030 Resource %d remap could not be read\n",
++				rconfig->resource);
++			return err;
++		}
+ 
+-	if (rconfig->remap_off != TWL4030_RESCONFIG_UNDEF) {
+-		remap &= ~OFF_STATE_MASK;
+-		remap |= rconfig->remap_off << OFF_STATE_SHIFT;
+-	}
++		remap_value = remap;
+ 
+-	if (rconfig->remap_sleep != TWL4030_RESCONFIG_UNDEF) {
+-		remap &= ~SLEEP_STATE_MASK;
+-		remap |= rconfig->remap_sleep << SLEEP_STATE_SHIFT;
+-	}
++		if (rconfig->remap_off != TWL4030_RESCONFIG_UNDEF) {
++			remap &= ~OFF_STATE_MASK;
++			remap |= rconfig->remap_off << OFF_STATE_SHIFT;
++		}
+ 
+-	err = twl_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
+-			       remap,
+-			       rconfig_addr + REMAP_OFFSET);
+-	if (err < 0) {
+-		pr_err("TWL4030 failed to program remap\n");
+-		return err;
++		if (rconfig->remap_sleep != TWL4030_RESCONFIG_UNDEF) {
++			remap &= ~SLEEP_STATE_MASK;
++			remap |= rconfig->remap_sleep << SLEEP_STATE_SHIFT;
++		}
++
++		if (remap != remap_value) {
++			err = twl_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
++			       remap, rconfig_addr + REMAP_OFFSET);
++			if (err < 0) {
++				pr_err("TWL4030 failed to program remap\n");
++				return err;
++			}
++		}
+ 	}
+ 
+ 	return 0;
+-- 
+1.7.1
 
