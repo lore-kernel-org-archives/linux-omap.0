@@ -1,36 +1,58 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [PATCH] twl4030-usb: Report correct vbus value for accessory
- charger adapters1
-Date: Wed, 13 Apr 2011 16:47:16 -0700
-Message-ID: <20110413234716.GA22557@kroah.com>
-References: <4D963D4F.2050203@tomtom.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from kroah.org ([198.145.64.141]:38589 "EHLO coco.kroah.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932150Ab1DMXtE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 13 Apr 2011 19:49:04 -0400
-Content-Disposition: inline
-In-Reply-To: <4D963D4F.2050203@tomtom.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Juergen Kilb <J.Kilb@phytec.de>
+Subject: [PATCH] Fixed gpio polarity of gpio USB-phy reset.
+Date: Thu, 14 Apr 2011 09:31:43 +0200
+Message-ID: <1302766303-1157-1-git-send-email-J.Kilb@phytec.de>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: dbrownell@users.sourceforge.net, balbi@ti.com, gregkh@suse.de, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, sameo@linux.intel.com, Juergen Kilb <J.Kilb@phytec.de>
 List-Id: linux-omap@vger.kernel.org
-To: Matthias Kaehlcke <matthias.kaehlcke@tomtom.com>
-Cc: Felipe Balbi <balbi@ti.com>, David Brownell <dbrownell@users.sourceforge.net>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 
-On Fri, Apr 01, 2011 at 11:02:07PM +0200, Matthias Kaehlcke wrote:
-> The twl4030-usb driver exports the status of VBUS as sysfs attribute.
-> In case an accessory charger adapter (ACA) is connected to the OTG
-> transceiver the attribute is always 'off', even when the charger
-> provides VBUS. Added a variable to keep track of the status of VBUS
-> and report it correctly
-> 
-> Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@tomtom.com>
+With commit 19403165 a main part of ehci-omap.c moved to
+drivers/mfd/omap-usb-host.c created by commit 17cdd29d.
+Due to this reorganisation the polarity used to reset the
+external USB phy changed and USB host doesn't recognize
+any devices.
 
-Ick, your email software turned the patch into a mess.  I've edited it
-by hand, fixing it up, but next time, please fix your email client so
-this doesn't happen again.
+Signed-off-by: Juergen Kilb <J.Kilb@phytec.de>
+---
+ drivers/mfd/omap-usb-host.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-thanks,
-
-greg k-h
+diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
+index 53450f4..491cac5 100644
+--- a/drivers/mfd/omap-usb-host.c
++++ b/drivers/mfd/omap-usb-host.c
+@@ -719,14 +719,14 @@ static int usbhs_enable(struct device *dev)
+ 			gpio_request(pdata->ehci_data->reset_gpio_port[0],
+ 						"USB1 PHY reset");
+ 			gpio_direction_output
+-				(pdata->ehci_data->reset_gpio_port[0], 1);
++				(pdata->ehci_data->reset_gpio_port[0], 0);
+ 		}
+ 
+ 		if (gpio_is_valid(pdata->ehci_data->reset_gpio_port[1])) {
+ 			gpio_request(pdata->ehci_data->reset_gpio_port[1],
+ 						"USB2 PHY reset");
+ 			gpio_direction_output
+-				(pdata->ehci_data->reset_gpio_port[1], 1);
++				(pdata->ehci_data->reset_gpio_port[1], 0);
+ 		}
+ 
+ 		/* Hold the PHY in RESET for enough time till DIR is high */
+@@ -906,11 +906,11 @@ static int usbhs_enable(struct device *dev)
+ 
+ 		if (gpio_is_valid(pdata->ehci_data->reset_gpio_port[0]))
+ 			gpio_set_value
+-				(pdata->ehci_data->reset_gpio_port[0], 0);
++				(pdata->ehci_data->reset_gpio_port[0], 1);
+ 
+ 		if (gpio_is_valid(pdata->ehci_data->reset_gpio_port[1]))
+ 			gpio_set_value
+-				(pdata->ehci_data->reset_gpio_port[1], 0);
++				(pdata->ehci_data->reset_gpio_port[1], 1);
+ 	}
+ 
+ end_count:
+-- 
+1.7.0.4
