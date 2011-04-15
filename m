@@ -1,63 +1,60 @@
-From: Jan Weitzel <J.Weitzel@phytec.de>
-Subject: Re: [PATCH] ARM: omap2: mtd split nand_scan in ident and tail
-Date: Fri, 15 Apr 2011 15:34:56 +0200
-Message-ID: <1302874496.7246.11.camel@lws-weitzel>
-References: <1302772529-15641-1-git-send-email-j.weitzel@phytec.de>
-Reply-To: J.Weitzel@phytec.de
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: Re: Code for v2.6.39 merge window frozen, patches archived
+Date: Fri, 15 Apr 2011 16:41:25 +0300
+Message-ID: <20110415164125.35f26fd0.jhnikula@gmail.com>
+References: <20110314192538.GH7258@atomide.com>
+	<alpine.DEB.1.10.1103151856180.880@esdhcp041196.research.nokia.com>
+	<4D7FC70D.7050508@ti.com>
+	<alpine.DEB.1.10.1103161533470.2634@esdhcp041196.research.nokia.com>
+	<4D80CA2F.8060300@ti.com>
+	<alpine.DEB.1.10.1103161903250.2634@esdhcp041196.research.nokia.com>
+	<20110329233243.GR4016@atomide.com>
+	<87lizwskcc.fsf@ti.com>
+	<alpine.DEB.1.10.1103311722520.2634@esdhcp041196.research.nokia.com>
+	<alpine.LFD.2.00.1104012241230.28032@xanadu.home>
+	<20110413140429.GF12665@atomide.com>
+	<alpine.DEB.1.10.1104131730371.2634@esdhcp041196.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.phytec.de ([217.6.246.34]:47937 "EHLO root.phytec.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754607Ab1DONfT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 15 Apr 2011 09:35:19 -0400
-In-Reply-To: <1302772529-15641-1-git-send-email-j.weitzel@phytec.de>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:53597 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754859Ab1DONjl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Apr 2011 09:39:41 -0400
+Received: by ewy4 with SMTP id 4so756692ewy.19
+        for <linux-omap@vger.kernel.org>; Fri, 15 Apr 2011 06:39:40 -0700 (PDT)
+In-Reply-To: <alpine.DEB.1.10.1104131730371.2634@esdhcp041196.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org
-Cc: s.hauer@pengutronix.de, dwmw2@infradead.org, tony@atomide.com, s-ghorai@ti.com, vimalsingh@ti.com, Artem.Bityutskiy@nokia.com
+To: Aaro Koskinen <aaro.koskinen@nokia.com>
+Cc: Tony Lindgren <tony@atomide.com>, Nicolas Pitre <nicolas.pitre@linaro.org>, Kevin Hilman <khilman@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Am Donnerstag, den 14.04.2011, 11:15 +0200 schrieb Jan Weitzel:
-> nand_scan calls nand_scan_ident and nand_scan_tail, setting values like oobvail
-> according to ecc.layout. If we change the layout afterwards values are wrong.
+On Wed, 13 Apr 2011 17:34:24 +0300 (EEST)
+Aaro Koskinen <aaro.koskinen@nokia.com> wrote:
+
+> > Aaro, you mentioned to me that reverting commit
+> > 6d7d0ae51574943bf571d269da3243257a2d15db helps too?
+> >
+> > With the device tree append patch reverting commit
+> > d239b1dc093d551046a909920b5310c1d1e308c1 does not help, and reverting
+> > 6d7d0ae51574943bf571d269da3243257a2d15db requires some manual merging..
 > 
-> Signed-off-by: Jan Weitzel <j.weitzel@phytec.de>
-> ---
->  drivers/mtd/nand/omap2.c |   10 ++++++++--
->  1 files changed, 8 insertions(+), 2 deletions(-)
+> Yes, with -rc1, reverting also 6d7d0ae51574943bf571d269da3243257a2d15db
+> (ARM: 6750/1: improvements to compressed/head.S) helps. I haven't tried
+> with newer kernels.
 > 
-> diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-> index da9a351..288423f 100644
-> --- a/drivers/mtd/nand/omap2.c
-> +++ b/drivers/mtd/nand/omap2.c
-> @@ -1073,9 +1073,9 @@ static int __devinit omap_nand_probe(struct platform_device *pdev)
->  	/* DIP switches on some boards change between 8 and 16 bit
->  	 * bus widths for flash.  Try the other width if the first try fails.
->  	 */
-> -	if (nand_scan(&info->mtd, 1)) {
-> +	if (nand_scan_ident(&info->mtd, 1, NULL)) {
->  		info->nand.options ^= NAND_BUSWIDTH_16;
-> -		if (nand_scan(&info->mtd, 1)) {
-> +		if (nand_scan_ident(&info->mtd, 1, NULL)) {
->  			err = -ENXIO;
->  			goto out_release_mem_region;
->  		}
-> @@ -1101,6 +1101,12 @@ static int __devinit omap_nand_probe(struct platform_device *pdev)
->  		info->nand.ecc.layout = &omap_oobinfo;
->  	}
->  
-> +	/* second phase scan */
-> +	if (nand_scan_tail(&info->mtd)) {
-> +		err = -ENXIO;
-> +		goto out_release_mem_region;
-> +	}
-> +
->  #ifdef CONFIG_MTD_PARTITIONS
->  	err = parse_mtd_partitions(&info->mtd, part_probes, &info->parts, 0);
->  	if (err > 0)
+Same note here from -rc3. For me it was enough to revert
+6d7d0ae51574943bf571d269da3243257a2d15db.
 
-So no comments? Is any rework needed? Without this patch I am not able
-to mount partions with OMAP_ECC_HAMMING_CODE_HW_ROMCODE. 
-Regards, Jan
+I was struggling with some of my own configs that didn't boot on Nokia
+N900 and config differences between working one and not working looked
+like a random.
 
+E.g. if one config had CONFIG_KALLSYMS_ALL=y, it didn't boot but booted
+if CONFIG_DEBUG_SPINLOCK=y was also enabled and so forth.
+CONFIG_KERNEL_LZMA=y either didn't make it booting. But revert made
+those unworking configs booting.
+
+-- 
+Jarkko
