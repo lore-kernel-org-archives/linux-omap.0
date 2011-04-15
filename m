@@ -1,94 +1,81 @@
-From: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
-Subject: Re: [RFC PATCH] Consolidate SRAM support
-Date: Fri, 15 Apr 2011 20:31:52 +0200
-Message-ID: <20110415183152.GA10539@game.jcrosoft.org>
+From: Nguyen Dinh-R00091 <R00091@freescale.com>
+Subject: RE: [RFC PATCH] Consolidate SRAM support
+Date: Fri, 15 Apr 2011 19:20:12 +0000
+Message-ID: <56132A77AB93C141BF06E6B96CA6CFEA1F8D18@039-SN1MPN1-004.039d.mgd.msft.net>
 References: <20110415130607.GM1611@n2100.arm.linux.org.uk>
+ <4DA84AAB.60601@gmail.com> <20110415160339.GF4423@n2100.arm.linux.org.uk>
+ <56132A77AB93C141BF06E6B96CA6CFEA1F88D9@039-SN1MPN1-004.039d.mgd.msft.net>
+ <20110415162045.GG4423@n2100.arm.linux.org.uk>
+ <20110415165857.GH4423@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 30.mail-out.ovh.net ([213.186.62.213]:50905 "HELO
-	30.mail-out.ovh.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752161Ab1DOSk0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Apr 2011 14:40:26 -0400
-Content-Disposition: inline
-In-Reply-To: <20110415130607.GM1611@n2100.arm.linux.org.uk>
+Received: from tx2ehsobe003.messaging.microsoft.com ([65.55.88.13]:3041 "EHLO
+	TX2EHSOBE005.bigfish.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756651Ab1DOTUS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Apr 2011 15:20:18 -0400
+In-Reply-To: <20110415165857.GH4423@n2100.arm.linux.org.uk>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, davinci-linux-open-source@linux.davincidsp.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Kevin Hilman <khilman@ti.com>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 14:06 Fri 15 Apr     , Russell King - ARM Linux wrote:
-> This is work in progress.
-> 
-> We have two SoCs using SRAM, both with their own allocation systems,
-> and both with their own ways of copying functions into the SRAM.
-> 
-> Let's unify this before we have additional SoCs re-implementing this
-> obviously common functionality themselves.
-> 
-> Unfortunately, we end up with code growth through doing this, but that
-> will become a win when we have another SoC using this (which I know
-> there's at least one in the pipeline).
-> 
-> One of the considerations here is that we can easily convert sram-pool.c
-> to hook into device tree stuff, which can tell the sram allocator:
-> 	- physical address of sram
-> 	- size of sram
-> 	- allocation granularity
-> and then we just need to ensure that it is appropriately mapped.
-> 
-> This uses the physical address, and unlike Davinci's dma address usage,
-> it always wants to have the physical address, and will always return
-> the corresponding physical address when passed that pointer.
-> 
-> OMAP could probably do with some more work to make the omapfb and other
-> allocations use the sram allocator, rather than hooking in before the
-> sram allocator is initialized - and then further cleanups so that we
-> have an initialization function which just does
-> 
-> sram_create(phys, size)
-> 	virt = map sram(phys, size)
-> 	create sram pool(virt, phys, size, min_alloc_order)
-> 
-> Another question is whether we should allow multiple SRAM pools or not -
-> this code does allow multiple pools, but so far we only have one pool
-> per SoC.  Overdesign?  Maybe, but it prevents SoCs wanting to duplicate
-> it if they want to partition the SRAM, or have peripheral-local SRAMs.
-> 
-> Lastly, uio_pruss should probably take the SRAM pool pointer via
-> platform data so that it doesn't have to include Davinci specific
-> includes.
-> 
-> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-Hi,
 
-	I also work on it for at91
+>-----Original Message-----
+>From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk]
+>Sent: Friday, April 15, 2011 11:59 AM
+>To: Nguyen Dinh-R00091
+>Cc: Kevin Hilman; davinci-linux-open-source@linux.davincidsp.com; Tony Lindgren; Sekhar Nori; linux-
+>omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
+>Subject: Re: [RFC PATCH] Consolidate SRAM support
+>
+>On Fri, Apr 15, 2011 at 05:20:45PM +0100, Russell King - ARM Linux wrote:
+>> On Fri, Apr 15, 2011 at 04:18:23PM +0000, Nguyen Dinh-R00091 wrote:
+>> > >Hmm, that's nice - except for one issue.  According to my grep of
+>> > >arch/arm/ and drivers/, nothing uses iram_alloc().  So, does anything in
+>> > >the MX stuff use iram_alloc.c, or is it dead code left over from a
+>> > >previous experiment?
+>> >
+>> > This function will be used for suspend code in the mx5x series. I just
+>> > got done submitting a series of patches to Sascha for a simple suspend
+>> > that does not need running code out of IRAM yet. The next set of suspend
+>> > patches will be using these iram functions.
+>>
+>> Okay, so does iram_alloc() need to return a dma_addr_t or a phys_addr_t ?
+>> Are you dealing with physical addresses for it or DMA addresses?
+>
+>And another question: why does iram_alloc() return a void __iomem * for
+>the virtual address, and the physical address via a pointer argument.
+>However, iram_free() take an unsigned long for the address.
 
-	and already have some patch in the mm for this
+Yes, should just be a void *iram_alloc().
 
-	[PATCH] genalloc: add support to specify the physical address
+>
+>It seems rather inconsistent that the parameter for free is returned via
+>a pointer argument.
+>
+>If I convert this to sram-pool, can we change this to:
+>
+>static inline void *iram_alloc(size_t size, phys_addr_t *phys_addr)
+>{
+>	return sram_pool_alloc(iram_pool, size, phys_addr);
+>}
+>
+>static void iram_free(void *addr, size_t size)
+>{
+>	sram_pool_free(iram_pool, addr, size);
+>}
+>
+>and:
+>
+>int __init iram_init(unsigned long base, unsigned long size)
+>
+>becomes:
+>
+>int __init iram_init(phys_addr_t base, size_t size)
+>
+>?
 
-	so now you can do this
 
-	as I do on at91 will send the patch after
-
-static struct map_desc at91sam9g20_sram_desc[] __initdata = {
-	{
-		.virtual	= AT91_IO_VIRT_BASE - AT91SAM9G20_SRAM_SIZE,
-		.pfn		= __phys_to_pfn(AT91SAM9G20_SRAM_BASE),
-		.length		= AT91SAM9G20_SRAM_SIZE,
-		.type		= MT_DEVICE,
-	}
-};
-
-	sram_pool = gen_pool_create(2, -1);
-
-	gen_pool_add_virt(sram_pool, io_desc->virtual __pfn_to_phys(io_desc->pfn),
-			io_desc->length, -1)
-
-	and to get the physical address
-
-	phys = gen_pool_virt_to_phys(sram_pool, virt);
-
-Best Resgards,
-J.
