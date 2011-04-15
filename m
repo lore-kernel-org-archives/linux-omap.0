@@ -1,71 +1,90 @@
-From: Artem Bityutskiy <dedekind1@gmail.com>
-Subject: Re: [PATCH 1/2] MTD: s3c2410_nand: Add option to disable hw ECC at
- runtime
-Date: Fri, 15 Apr 2011 17:01:11 +0300
-Message-ID: <1302876071.3220.60.camel@localhost>
-References: <1302637672-25339-1-git-send-email-lars@metafoo.de>
-	 <1302782911.2796.21.camel@localhost>  <4DA7094D.9070002@metafoo.de>
-Reply-To: dedekind1@gmail.com
+From: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
+Subject: Re: [PATCH] ARM: omap2: mtd split nand_scan in ident and tail
+Date: Fri, 15 Apr 2011 17:03:34 +0300
+Message-ID: <1302876214.3220.62.camel@localhost>
+References: <1302772529-15641-1-git-send-email-j.weitzel@phytec.de>
+	 <1302874496.7246.11.camel@lws-weitzel>
+Reply-To: Artem.Bityutskiy@nokia.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4DA7094D.9070002@metafoo.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lars-Peter Clausen <lars@metafoo.de>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>
-Cc: Ben Dooks <ben-linux@fluff.org>, Kukjin Kim <kgene.kim@samsung.com>, linux-mtd@lists.infradead.org, linux-kernel@vger.kernel.org, Holger Freyther <zecke@openmoko.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([147.243.128.26]:42409 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755515Ab1DOOH0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 15 Apr 2011 10:07:26 -0400
+In-Reply-To: <1302874496.7246.11.camel@lws-weitzel>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: J.Weitzel@phytec.de
+Cc: linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, s.hauer@pengutronix.de, dwmw2@infradead.org, tony@atomide.com, s-ghorai@ti.com, vimalsingh@ti.com
 
-On Thu, 2011-04-14 at 16:48 +0200, Lars-Peter Clausen wrote:
-> On 04/14/2011 02:08 PM, Artem Bityutskiy wrote:
-> > On Tue, 2011-04-12 at 21:47 +0200, Lars-Peter Clausen wrote:
-> >> From: Holger Freyther <zecke@openmoko.org>
-> >>
-> >> This patch adds a flag to the s3c2410_nand platform data, which co=
-nfigures
-> >> whether hardware ECC is used.
-> >>
-> >> Currently it is only possible to decide whether hw ECC should be u=
-sed or not at
-> >> compile time through a config option. But if you want to build a k=
-ernel which
-> >> runs on multiple devices you might have a configuration where some=
- devices
-> >> require hw ECC and some devices which want software ECC.
-> >>
-> >> Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
+On Fri, 2011-04-15 at 15:34 +0200, Jan Weitzel wrote:
+> Am Donnerstag, den 14.04.2011, 11:15 +0200 schrieb Jan Weitzel:
+> > nand_scan calls nand_scan_ident and nand_scan_tail, setting values =
+like oobvail
+> > according to ecc.layout. If we change the layout afterwards values =
+are wrong.
 > >=20
-> > Extending platform data is kind of vetoed in arm tree, I do not thi=
-nk
-> > the MTD tree can take these changes.
+> > Signed-off-by: Jan Weitzel <j.weitzel@phytec.de>
+> > ---
+> >  drivers/mtd/nand/omap2.c |   10 ++++++++--
+> >  1 files changed, 8 insertions(+), 2 deletions(-)
 > >=20
-> That is not my understanding of the situation. But what do you sugges=
-t as an
-> alternative for fixing this issue?
+> > diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+> > index da9a351..288423f 100644
+> > --- a/drivers/mtd/nand/omap2.c
+> > +++ b/drivers/mtd/nand/omap2.c
+> > @@ -1073,9 +1073,9 @@ static int __devinit omap_nand_probe(struct p=
+latform_device *pdev)
+> >  	/* DIP switches on some boards change between 8 and 16 bit
+> >  	 * bus widths for flash.  Try the other width if the first try fa=
+ils.
+> >  	 */
+> > -	if (nand_scan(&info->mtd, 1)) {
+> > +	if (nand_scan_ident(&info->mtd, 1, NULL)) {
+> >  		info->nand.options ^=3D NAND_BUSWIDTH_16;
+> > -		if (nand_scan(&info->mtd, 1)) {
+> > +		if (nand_scan_ident(&info->mtd, 1, NULL)) {
+> >  			err =3D -ENXIO;
+> >  			goto out_release_mem_region;
+> >  		}
+> > @@ -1101,6 +1101,12 @@ static int __devinit omap_nand_probe(struct =
+platform_device *pdev)
+> >  		info->nand.ecc.layout =3D &omap_oobinfo;
+> >  	}
+> > =20
+> > +	/* second phase scan */
+> > +	if (nand_scan_tail(&info->mtd)) {
+> > +		err =3D -ENXIO;
+> > +		goto out_release_mem_region;
+> > +	}
+> > +
+> >  #ifdef CONFIG_MTD_PARTITIONS
+> >  	err =3D parse_mtd_partitions(&info->mtd, part_probes, &info->part=
+s, 0);
+> >  	if (err > 0)
+>=20
+> So no comments? Is any rework needed? Without this patch I am not abl=
+e
+> to mount partions with OMAP_ECC_HAMMING_CODE_HW_ROMCODE.=20
 
-Well, I got this understanding by talking to the OMAP maintainer and by
-chatting with rmk. But I might be wrong. So the understanding is that
-board data extending is banned, at least for a while. And the arm world
-has to consolidate and probably switch to the DT tree approach. This
-would be painful, this would make some vendors to return to behind the
-curtains, so this would be a step back in the short run.
+Sorry, I missed this patch. Could you please update the commit message
+and make it more verbose and state clearly:
 
-But in a couple of years this would be resolved, may be under Linaro's
-aegis, and then the arm world would make 2 steps forward, so that
-previous step back would be compensated in the longer run.
+1. which problem you solve
+2. how you solve it
+3. why is this the right solution
 
-But! I'm just an small MTD guy, so I might be mistaken. Of course if yo=
-u
-make your board file changes be merged via the corresponding arm
-sub-tree - go ahead send your MTD driver updates! This is I guess the
-answer to your "what do you suggest" question.
-
-CCing the arm lists so that people could correct me.
-
-Here is the beginning of the thread:
-http://lists.infradead.org/pipermail/linux-mtd/2011-April/034866.html
+Thanks!
 
 --=20
 Best Regards,
 Artem Bityutskiy (=D0=90=D1=80=D1=82=D1=91=D0=BC =D0=91=D0=B8=D1=82=D1=8E=
 =D1=86=D0=BA=D0=B8=D0=B9)
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
