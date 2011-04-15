@@ -1,31 +1,44 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [RFC PATCH] Consolidate SRAM support
-Date: Fri, 15 Apr 2011 16:41:13 +0100
-Message-ID: <20110415154113.GE4423@n2100.arm.linux.org.uk>
-References: <20110415130607.GM1611@n2100.arm.linux.org.uk> <4DA84AAB.60601@gmail.com> <201104151640.01040.arnd@arndb.de> <20110415152643.GC4423@n2100.arm.linux.org.uk> <BANLkTinDwH9G1zW784t=QnNR7kZkgfKA8w@mail.gmail.com>
+From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Subject: Re: [PATCH v2] OMAP: iovmm: fix SW flags passed by user
+Date: Fri, 15 Apr 2011 10:49:42 -0500
+Message-ID: <BANLkTin=br7Yw39fnhXbLQg-Wgzym1BXJw@mail.gmail.com>
+References: <1301083471-11284-1-git-send-email-omar.ramirez@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:53460 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754545Ab1DOPlb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Apr 2011 11:41:31 -0400
-Content-Disposition: inline
-In-Reply-To: <BANLkTinDwH9G1zW784t=QnNR7kZkgfKA8w@mail.gmail.com>
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:34026 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751096Ab1DOPtp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 15 Apr 2011 11:49:45 -0400
+Received: by mail-wy0-f169.google.com with SMTP id 19so2560098wyf.28
+        for <linux-omap@vger.kernel.org>; Fri, 15 Apr 2011 08:49:43 -0700 (PDT)
+In-Reply-To: <1301083471-11284-1-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: Arnd Bergmann <arnd@arndb.de>, Kevin Hilman <khilman@ti.com>, davinci-linux-open-source@linux.davincidsp.com, Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Tony Lindgren <tony@atomide.com>
+Cc: Russell King <linux@arm.linux.org.uk>, Omar Ramirez Luna <omar.ramirez@ti.com>, David Cohen <dacohen@gmail.com>, l-o <linux-omap@vger.kernel.org>, lak <linux-arm-kernel@lists.infradead.org>
 
-On Fri, Apr 15, 2011 at 09:32:01AM -0600, Grant Likely wrote:
-> Yes, once the infrastructure is in place, powerpc can do its own
-> migration to the new code.  I vote for putting it in lib at the
-> outset.
+Hi Hiroshi,
 
-I don't agree with stuffing non-arch directories with code which people
-haven't already agreed should be shared.  As I've already said, in my
-experience it's hard to get agreement in the first place and even when
-you can the API generally needs to be changed from what you first think
-would be reasonable.
+On Fri, Mar 25, 2011 at 3:04 PM, Omar Ramirez Luna <omar.ramirez@ti.com> wrote:
+> Commit d038aee24dcd5a2a0d8547f5396f67ae9698ac8e
+> "omap: iovmm: don't check 'da' to set IOVMF_DA_FIXED flag",
+> changes iovmm to receive flags specified by user, however
+> the upper 16 bits of the flags are wiped by iovmm itself.
+>
+> This fixes IOVMF_DA_FIXED flags from being lost, and lets the user
+> map its desired "device addresses".
+>
+> Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
+> ---
+>
+> v2:
+> Include missing reference (commit and name) to patch in
+> description.
 
-So, lets wait to see whether the SH folk reply.
+If no comments, could you ack this patch?
+
+Regards,
+
+Omar
