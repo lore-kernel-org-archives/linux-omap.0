@@ -1,45 +1,57 @@
-From: Arnd Bergmann <arnd@arndb.de>
+From: Detlef Vollmann <dv@vollmann.ch>
 Subject: Re: [RFC PATCH] Consolidate SRAM support
-Date: Fri, 15 Apr 2011 16:40:00 +0200
-Message-ID: <201104151640.01040.arnd@arndb.de>
-References: <20110415130607.GM1611@n2100.arm.linux.org.uk> <4DA84AAB.60601@gmail.com>
+Date: Fri, 15 Apr 2011 16:50:49 +0200
+Message-ID: <4DA85B49.60209@vollmann.ch>
+References: <20110415130607.GM1611@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:53111 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751219Ab1DOOkY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Apr 2011 10:40:24 -0400
-In-Reply-To: <4DA84AAB.60601@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20110415130607.GM1611@n2100.arm.linux.org.uk>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Kevin Hilman <khilman@ti.com>, davinci-linux-open-source@linux.davincidsp.com, Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Rob Herring <robherring2@gmail.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Kevin Hilman <khilman@ti.com>, davinci-linux-open-source@linux.davincidsp.com, Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, linux-omap@vger.kernel.org
 
-On Friday 15 April 2011 15:39:55 Rob Herring wrote:
+On 04/15/11 15:06, Russell King - ARM Linux wrote:
+> This is work in progress.
+Thanks, very useful.
 
-> On 04/15/2011 08:06 AM, Russell King - ARM Linux wrote:
-> > This is work in progress.
-> >
-> > We have two SoCs using SRAM, both with their own allocation systems,
-> > and both with their own ways of copying functions into the SRAM.
-> 
-> It's more than that. Several i.MX chips use plat-mxc/iram_alloc.c.
+> This uses the physical address, and unlike Davinci's dma address usage,
+> it always wants to have the physical address, and will always return
+> the corresponding physical address when passed that pointer.
+Good.
 
-There are also non-ARM systems doing something like that,
-arch/blackfin/mm/sram-alloc.c comes to mind. On powerpc, the
-ppc7410 also has this feature in hardware, but I believe it was
-never supported in mainline Linux.
+> OMAP could probably do with some more work to make the omapfb and other
+> allocations use the sram allocator, rather than hooking in before the
+> sram allocator is initialized - and then further cleanups so that we
+> have an initialization function which just does
+>
+> sram_create(phys, size)
+> 	virt = map sram(phys, size)
+> 	create sram pool(virt, phys, size, min_alloc_order)
+I'd love to have the mapping inside the create pool, but that might
+not be possible in general.
 
-How about putting sram-pool.c into the top-level mm/ directory
-and sram-pool.h into include/linux? They seem to be completely
-generic to me, aside from the dependency on asm/fncpy.h which
-should probably remain arch specific.
+> Another question is whether we should allow multiple SRAM pools or not -
+> this code does allow multiple pools, but so far we only have one pool
+> per SoC.  Overdesign?  Maybe, but it prevents SoCs wanting to duplicate
+> it if they want to partition the SRAM, or have peripheral-local SRAMs.
+Having the option to partition the SRAM is probably useful.
+What I'm missing is sram_pool_add: on AT91SAM9G20 you have two banks
+of SRAM, and you might want to combine them into a single pool.
 
-As long as CONFIG_ARM_SRAM_POOL (or perhaps just CONFIG_SRAM_POOL)
-is selected only by platforms that support it, the dependency
-should not hurt.
+>   arch/arm/common/sram-pool.c                 |   69 +++++++++++++++++++++++++++
+>   arch/arm/include/asm/sram-pool.h            |   20 ++++++++
+Waht is ARM specific about this code?
+Why not put it into lib/ and include/linux, respectively?
 
-	Arnd
+   Detlef
