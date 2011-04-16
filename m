@@ -1,67 +1,75 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 1/2 v2] OMAP2/3: hwmod: fix the i2c-reset timeout
- during bootup
-Date: Sat, 16 Apr 2011 09:42:23 -0700
-Message-ID: <1302972143.2719.22.camel@vence>
-References: <20110407070310.GA21701@avinash-laptop>
-	 <20110411131154.GA4498@avinash-laptop>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: Mike Rapoport <mike@compulab.co.il>
+Subject: [PATCH 1/2] OMAP: gpmc-smsc911x: always set irq flags to IORESOURCE_IRQ_LOWLEVEL
+Date: Sun, 17 Apr 2011 01:29:29 +0300
+Message-ID: <7cf1c52880f0f32922c8973cb90aadcd2e728be1.1302992702.git.mike@compulab.co.il>
+References: <cover.1302992702.git.mike@compulab.co.il>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:45511 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759197Ab1DPWYL (ORCPT
+Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:50000
+	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1759203Ab1DPXAf (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Sat, 16 Apr 2011 18:24:11 -0400
-Received: by pwj9 with SMTP id 9so2384809pwj.34
-        for <linux-omap@vger.kernel.org>; Sat, 16 Apr 2011 15:24:09 -0700 (PDT)
-In-Reply-To: <20110411131154.GA4498@avinash-laptop>
+	Sat, 16 Apr 2011 19:00:35 -0400
+In-Reply-To: <cover.1302992702.git.mike@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Avinash.H.M." <avinashhm@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Mike Rapoport <mike@compulab.co.il>
 
-On Mon, 2011-04-11 at 18:41 +0530, Avinash.H.M. wrote:
-> > > > +     oh->_sysc_cache = v;
-> > > > +     omap_hwmod_write(v, oh, oh->class->sysc->sysc_offs);
-> > >
-> > > Direct SYSCONFIG access isn't right here.   This should go through
-> > > omap_hwmod.
-> > >
-> > > What is probably needed is exposing _ocp_softreset to device code
-> > > via something like omap_hwmod_ocp_softreset() and calling that here.
-> > >
-> 
-> Hi Kevin , 
-> 
-> Looking more closely, i realised that, the sequence of _ocp_softreset
-> doesn't work for I2C. It has a special programming sequence which needs
-> to be followed to reset the IP. That was the reason, we created
-> omap_i2c_reset.  So i feel we need not expose _ocp_softreset.
-> 
-> Since, the problem here is accessing the SYSCONFIG here, instead, what i
-> can do is, something like below.
-> 
-> 	omap_hwmod_softreset(struct omap_hwmod *oh)
-> 	{
-> 
-> 		v = oh->_sysc_cache;
-> 		v |= (0x1 << oh->class->sysc->sysc_fields->srst_shift);
-> 
-> 		oh->_sysc_cache = v;
-> 		omap_hwmod_write(v, oh, oh->class->sysc->sysc_offs);
-> 
-> 	}
-> 
-> And then call this in omap_i2c_reset. Is this OK ?
+SMSC911x devices attached to OMAP GPMC always use low level irqs.
+Setting the appropriate flag in the irq resourse strucure allows using
+.flags field in the omap_smsc911x_platform_data for driver specific
+flags
 
-Yes, sounds reasonable.
+Signed-off-by: Mike Rapoport <mike@compulab.co.il>
+---
+ arch/arm/mach-omap2/board-omap3logic.c |    1 -
+ arch/arm/mach-omap2/gpmc-smsc911x.c    |    7 ++++---
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-Please be sure to describe the reasoning above in the changelog as well.
-
-Thanks,
-
-Kevin
-
+diff --git a/arch/arm/mach-omap2/board-omap3logic.c b/arch/arm/mach-omap2/board-omap3logic.c
+index b726943..a49e6cf 100644
+--- a/arch/arm/mach-omap2/board-omap3logic.c
++++ b/arch/arm/mach-omap2/board-omap3logic.c
+@@ -147,7 +147,6 @@ static struct omap_smsc911x_platform_data __initdata board_smsc911x_data = {
+ 	.cs             = OMAP3LOGIC_SMSC911X_CS,
+ 	.gpio_irq       = -EINVAL,
+ 	.gpio_reset     = -EINVAL,
+-	.flags          = IORESOURCE_IRQ_LOWLEVEL,
+ };
+ 
+ /* TODO/FIXME (comment by Peter Barada, LogicPD):
+diff --git a/arch/arm/mach-omap2/gpmc-smsc911x.c b/arch/arm/mach-omap2/gpmc-smsc911x.c
+index 703f150..b331f3c 100644
+--- a/arch/arm/mach-omap2/gpmc-smsc911x.c
++++ b/arch/arm/mach-omap2/gpmc-smsc911x.c
+@@ -30,7 +30,7 @@ static struct resource gpmc_smsc911x_resources[] = {
+ 		.flags		= IORESOURCE_MEM,
+ 	},
+ 	[1] = {
+-		.flags		= IORESOURCE_IRQ,
++		.flags		= IORESOURCE_IRQ | IORESOURCE_IRQ_LOWLEVEL,
+ 	},
+ };
+ 
+@@ -79,8 +79,6 @@ void __init gpmc_smsc911x_init(struct omap_smsc911x_platform_data *board_data)
+ 
+ 	gpio_direction_input(gpmc_cfg->gpio_irq);
+ 	gpmc_smsc911x_resources[1].start = gpio_to_irq(gpmc_cfg->gpio_irq);
+-	gpmc_smsc911x_resources[1].flags |=
+-					(gpmc_cfg->flags & IRQF_TRIGGER_MASK);
+ 
+ 	if (gpio_is_valid(gpmc_cfg->gpio_reset)) {
+ 		ret = gpio_request(gpmc_cfg->gpio_reset, "smsc911x reset");
+@@ -96,6 +94,9 @@ void __init gpmc_smsc911x_init(struct omap_smsc911x_platform_data *board_data)
+ 		gpio_set_value(gpmc_cfg->gpio_reset, 1);
+ 	}
+ 
++	if (gpmc_cfg->flags)
++		gpmc_smsc911x_config.flags = gpmc_cfg->flags;
++
+ 	if (platform_device_register(&gpmc_smsc911x_device) < 0) {
+ 		printk(KERN_ERR "Unable to register smsc911x device\n");
+ 		gpio_free(gpmc_cfg->gpio_reset);
+-- 
+1.7.3.1
 
