@@ -1,99 +1,96 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 12/14] PM / UNICORE32: Use struct syscore_ops instead of sysdevs for PM
-Date: Sun, 17 Apr 2011 23:13:45 +0200
-Message-ID: <201104172313.45854.rjw@sisk.pl>
+Subject: [PATCH 5/14] ARM / Integrator: Use struct syscore_ops for core PM
+Date: Sun, 17 Apr 2011 23:09:00 +0200
+Message-ID: <201104172309.00726.rjw@sisk.pl>
 References: <201103280125.11750.rjw@sisk.pl> <201104172301.54115.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:57718 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753277Ab1DQVQv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 17 Apr 2011 17:16:51 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <201104172301.54115.rjw@sisk.pl>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: LKML <linux-kernel@vger.kernel.org>
 Cc: Greg KH <gregkh@suse.de>, Kay Sievers <kay.sievers@suse.de>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, linux-arm-kernel@lists.infradead.org, Ben Dooks <ben-linux@fluff.org>, Mike Frysinger <vapier@gentoo.org>, Ralf Baechle <ralf@linux-mips.org>, Hans-Christian Egtvedt <hans-christian.egtvedt@atmel.com>, Guan Xuetao <gxt@mprc.pku.edu.cn>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linuxppc-dev@lists.ozlabs.org, Jiri Kosina <jkosina@suse.cz>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+List-Id: linux-omap@vger.kernel.org
 
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Make some UNICORE32 architecture's code use struct syscore_ops
-objects for power management instead of sysdev classes and sysdevs.
-
-This simplifies the code and reduces the kernel's memory footprint.
-It also is necessary for removing sysdevs from the kernel entirely in
-the future.
+Replace the sysdev class and struct sys_device used for power
+management by the Integrator interrupt-handling code with a
+struct syscore_ops object which is simpler.
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 ---
- arch/unicore32/kernel/irq.c |   23 ++++++++---------------
- 1 file changed, 8 insertions(+), 15 deletions(-)
+ arch/arm/mach-integrator/integrator_ap.c |   26 +++++++++-----------------
+ 1 file changed, 9 insertions(+), 17 deletions(-)
 
-Index: linux-2.6/arch/unicore32/kernel/irq.c
+Index: linux-2.6/arch/arm/mach-integrator/integrator_ap.c
 ===================================================================
---- linux-2.6.orig/arch/unicore32/kernel/irq.c
-+++ linux-2.6/arch/unicore32/kernel/irq.c
-@@ -23,7 +23,7 @@
- #include <linux/list.h>
- #include <linux/kallsyms.h>
- #include <linux/proc_fs.h>
+--- linux-2.6.orig/arch/arm/mach-integrator/integrator_ap.c
++++ linux-2.6/arch/arm/mach-integrator/integrator_ap.c
+@@ -24,7 +24,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/slab.h>
+ #include <linux/string.h>
 -#include <linux/sysdev.h>
 +#include <linux/syscore_ops.h>
- #include <linux/gpio.h>
+ #include <linux/amba/bus.h>
+ #include <linux/amba/kmi.h>
+ #include <linux/clocksource.h>
+@@ -180,13 +180,13 @@ static void __init ap_init_irq(void)
+ #ifdef CONFIG_PM
+ static unsigned long ic_irq_enable;
  
- #include <asm/system.h>
-@@ -237,7 +237,7 @@ static struct puv3_irq_state {
- 	unsigned int	iccr;
- } puv3_irq_state;
- 
--static int puv3_irq_suspend(struct sys_device *dev, pm_message_t state)
-+static int puv3_irq_suspend(void)
+-static int irq_suspend(struct sys_device *dev, pm_message_t state)
++static int irq_suspend(void)
  {
- 	struct puv3_irq_state *st = &puv3_irq_state;
- 
-@@ -265,7 +265,7 @@ static int puv3_irq_suspend(struct sys_d
+ 	ic_irq_enable = readl(VA_IC_BASE + IRQ_ENABLE);
  	return 0;
  }
  
--static int puv3_irq_resume(struct sys_device *dev)
-+static void puv3_irq_resume(void)
+-static int irq_resume(struct sys_device *dev)
++static void irq_resume(void)
  {
- 	struct puv3_irq_state *st = &puv3_irq_state;
+ 	/* disable all irq sources */
+ 	writel(-1, VA_CMIC_BASE + IRQ_ENABLE_CLEAR);
+@@ -194,33 +194,25 @@ static int irq_resume(struct sys_device
+ 	writel(-1, VA_IC_BASE + FIQ_ENABLE_CLEAR);
  
-@@ -278,27 +278,20 @@ static int puv3_irq_resume(struct sys_de
- 
- 		writel(st->icmr, INTC_ICMR);
- 	}
+ 	writel(ic_irq_enable, VA_IC_BASE + IRQ_ENABLE_SET);
 -	return 0;
  }
+ #else
+ #define irq_suspend NULL
+ #define irq_resume NULL
+ #endif
  
--static struct sysdev_class puv3_irq_sysclass = {
--	.name		= "pkunity-irq",
-+static struct syscore_ops puv3_irq_syscore_ops = {
- 	.suspend	= puv3_irq_suspend,
- 	.resume		= puv3_irq_resume,
+-static struct sysdev_class irq_class = {
+-	.name		= "irq",
++static struct syscore_ops irq_syscore_ops = {
+ 	.suspend	= irq_suspend,
+ 	.resume		= irq_resume,
  };
  
--static struct sys_device puv3_irq_device = {
--	.id		= 0,
--	.cls		= &puv3_irq_sysclass,
+-static struct sys_device irq_device = {
+-	.id	= 0,
+-	.cls	= &irq_class,
 -};
 -
--static int __init puv3_irq_init_devicefs(void)
-+static int __init puv3_irq_init_syscore(void)
+-static int __init irq_init_sysfs(void)
++static int __init irq_syscore_init(void)
  {
--	sysdev_class_register(&puv3_irq_sysclass);
--	return sysdev_register(&puv3_irq_device);
-+	register_syscore_ops(&puv3_irq_syscore_ops);
+-	int ret = sysdev_class_register(&irq_class);
+-	if (ret == 0)
+-		ret = sysdev_register(&irq_device);
+-	return ret;
++	register_syscore_ops(&irq_syscore_ops);
++
 +	return 0;
  }
  
--device_initcall(puv3_irq_init_devicefs);
-+device_initcall(puv3_irq_init_syscore);
+-device_initcall(irq_init_sysfs);
++device_initcall(irq_syscore_init);
  
- void __init init_IRQ(void)
- {
-
+ /*
+  * Flash handling.
