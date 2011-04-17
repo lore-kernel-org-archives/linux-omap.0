@@ -1,32 +1,47 @@
-From: "jessica" <noreply@netlogmail.com>
-Subject: my photo l
-Date: Sat, 16 Apr 2011 17:53:05 +0100
-Message-ID: <20110416165306.79F5138D80__7359.13083558461$1303039408$gmane$org@ABTS-AP-Static-140.249.169.122.airtelbroadband.in>
+From: Roy Lee <tsaoyu.lee@msa.hinet.net>
+Subject: Re: [HELP-OMAP-SERAIL] beagleboard-xM can't boot up after update to kernel-2.6.37
+Date: Sun, 17 Apr 2011 17:05:26 +0000 (UTC)
+Message-ID: <loom.20110417T190324-913@post.gmane.org>
+References: <AANLkTikFb7WTfCOD_GUnA=RZ22Q5_5QSDRTbcoLMtdYM@mail.gmail.com> <20110119110607.GA30211@legolas.emea.dhcp.ti.com> <AANLkTimByz+gc8X9uaVfUUGU+V9V-Og2U9xZQhca7P5b@mail.gmail.com> <20110120063321.GA10094@m-desktop> <AANLkTi=9yAGvOLyBBHkeNL4-HJgVL2FKqKuW1tpqDoMu@mail.gmail.com> <20110120065029.GH2389@legolas.emea.dhcp.ti.com> <AANLkTinNe76Wq-w78m7tMDY-gfMu7zt6jT7zs_KGL-iG@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="Windows-1250"
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ABTS-AP-Static-140.249.169.122.airtelbroadband.in ([122.169.249.140]:38396
-	"EHLO ABTS-AP-Static-140.249.169.122.airtelbroadband.in"
-	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1759562Ab1DQLWu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 17 Apr 2011 07:22:50 -0400
+Received: from lo.gmane.org ([80.91.229.12]:55149 "EHLO lo.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751392Ab1DQRKH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 17 Apr 2011 13:10:07 -0400
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gplao-linux-omap-open-source-moved1@m.gmane.org>)
+	id 1QBVU6-0005gE-2S
+	for linux-omap@vger.kernel.org; Sun, 17 Apr 2011 19:10:07 +0200
+Received: from 114-33-239-160.HINET-IP.hinet.net ([114.33.239.160])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-omap@vger.kernel.org>; Sun, 17 Apr 2011 19:10:06 +0200
+Received: from tsaoyu.lee by 114-33-239-160.HINET-IP.hinet.net with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-omap@vger.kernel.org>; Sun, 17 Apr 2011 19:10:06 +0200
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-i wannted to send u my photo long ago, but i was afraid that u dont like to see me . check on the links u see my photo, i hope u like it
- 
-Download that and see my photo...
+Bob Liu <lliubbo <at> gmail.com> writes:
 
-http://www.speedyshare.com/files/27992773/DSC01886863.zip
-or
-http://www.sendspace.com/file/0venq4
-or
-http://www.mediafire.com/?8xlaoph1xhtark8
-or
-http://www.filefactory.com/file/cbce364/n/DSC01886863_zip 
-or
-http://turboupload.com/716x682ps23o
-or
-http://www.mlfat4arab.com/sxwvrzwfyexj/DSC01886863.zip.html
+
+> I use buildroot to generate an initramfs 
+> Of course I made some changes.
+> 
+> If using 8250 serial driver, my fs works well,it can enter console correctly.
+> But using omap-serial driver, it can't.
+> 
+> I think there maybe some problem about the ttyO2 node in my fs.
+> So I add it to my fs by hand, so i need to know it's major & minor number,
+> so I added major &minor number to omap-serial driver.
+> It seems working okay now.
+> 
+
+Bob, I also encountered the same issue. May I have the major & minor number of
+ttyO2 that you use? Thanks.
+
+
