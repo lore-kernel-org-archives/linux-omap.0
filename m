@@ -1,155 +1,76 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 2/14] PM: Add missing syscore_suspend() and syscore_resume()
-	calls
-Date: Sun, 17 Apr 2011 23:06:49 +0200
-Message-ID: <201104172306.49462.rjw@sisk.pl>
+Subject: [PATCH 1/14] PM: Fix error code paths executed after failing syscore_suspend()
+Date: Sun, 17 Apr 2011 23:05:57 +0200
+Message-ID: <201104172305.57989.rjw@sisk.pl>
 References: <201103280125.11750.rjw@sisk.pl> <201104172301.54115.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <201104172301.54115.rjw@sisk.pl>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: LKML <linux-kernel@vger.kernel.org>
-Cc: Kevin Hilman <khilman@ti.com>, Guan Xuetao <gxt@mprc.pku.edu.cn>, Russell King <linux@arm.linux.org.uk>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Greg KH <gregkh@suse.de>, Ralf Baechle <ralf@linux-mips.org>, Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>, Ben Dooks <ben-linux@fluff.org>, Jiri Kosina <jkosina@suse.cz>, Kay Sievers <kay.sievers@suse.de>, Mike Frysinger <vapier@gentoo.org>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, Hans-Christian Egtvedt <hans-christian.egtvedt@atmel.com>, linux-arm-kernel@lists.infradead.org
+Cc: Greg KH <gregkh@suse.de>, Kay Sievers <kay.sievers@suse.de>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, linux-arm-kernel@lists.infradead.org, Ben Dooks <ben-linux@fluff.org>, Mike Frysinger <vapier@gentoo.org>, Ralf Baechle <ralf@linux-mips.org>, Hans-Christian Egtvedt <hans-christian.egtvedt@atmel.com>, Guan Xuetao <gxt@mprc.pku.edu.cn>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linuxppc-dev@lists.ozlabs.org, Jiri Kosina <jkosina@suse.cz>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 List-Id: linux-omap@vger.kernel.org
 
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Device suspend/resume infrastructure is used not only by the suspend
-and hibernate code in kernel/power, but also by , APM, Xen and the
-kexec jump feature.  However, commit 40dc166cb5dddbd36aa4ad11c03915ea
-(PM / Core: Introduce struct syscore_ops for core subsystems PM)
-failed to add syscore_suspend() and syscore_resume() calls to that
-code, which generally leads to breakage when the features in question
-are used.
-
-To fix this problem, add the missing syscore_suspend() and
-syscore_resume() calls to arch/x86/kernel/apm_32.c, kernel/kexec.c
-and drivers/xen/manage.c.
+If syscore_suspend() fails in suspend_enter(), create_image() or
+resume_target_kernel(), it is necessary to call sysdev_resume(),
+because sysdev_suspend() has been called already and succeeded
+and we are going to abort the transition.
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 ---
- arch/x86/kernel/apm_32.c |    5 +++++
- drivers/xen/manage.c     |    9 ++++++++-
- kernel/kexec.c           |    7 +++++++
- 3 files changed, 20 insertions(+), 1 deletion(-)
+ kernel/power/hibernate.c |   10 ++++++++--
+ kernel/power/suspend.c   |    5 ++++-
+ 2 files changed, 12 insertions(+), 3 deletions(-)
 
-Index: linux-2.6/kernel/kexec.c
+Index: linux-2.6/kernel/power/suspend.c
 ===================================================================
---- linux-2.6.orig/kernel/kexec.c
-+++ linux-2.6/kernel/kexec.c
-@@ -33,6 +33,7 @@
- #include <linux/vmalloc.h>
- #include <linux/swap.h>
- #include <linux/kmsg_dump.h>
-+#include <linux/syscore_ops.h>
- 
- #include <asm/page.h>
- #include <asm/uaccess.h>
-@@ -1532,6 +1533,11 @@ int kernel_kexec(void)
- 		local_irq_disable();
- 		/* Suspend system devices */
- 		error = sysdev_suspend(PMSG_FREEZE);
-+		if (!error) {
-+			error = syscore_suspend();
-+			if (error)
-+				sysdev_resume();
-+		}
- 		if (error)
- 			goto Enable_irqs;
- 	} else
-@@ -1546,6 +1552,7 @@ int kernel_kexec(void)
- 
- #ifdef CONFIG_KEXEC_JUMP
- 	if (kexec_image->preserve_context) {
-+		syscore_resume();
- 		sysdev_resume();
-  Enable_irqs:
- 		local_irq_enable();
-Index: linux-2.6/drivers/xen/manage.c
-===================================================================
---- linux-2.6.orig/drivers/xen/manage.c
-+++ linux-2.6/drivers/xen/manage.c
-@@ -8,6 +8,7 @@
- #include <linux/sysrq.h>
- #include <linux/stop_machine.h>
- #include <linux/freezer.h>
-+#include <linux/syscore_ops.h>
- 
- #include <xen/xen.h>
- #include <xen/xenbus.h>
-@@ -70,8 +71,13 @@ static int xen_suspend(void *data)
+--- linux-2.6.orig/kernel/power/suspend.c
++++ linux-2.6/kernel/power/suspend.c
+@@ -164,8 +164,11 @@ static int suspend_enter(suspend_state_t
  	BUG_ON(!irqs_disabled());
  
- 	err = sysdev_suspend(PMSG_FREEZE);
-+	if (!err) {
-+		err = syscore_suspend();
-+		if (err)
+ 	error = sysdev_suspend(PMSG_SUSPEND);
+-	if (!error)
++	if (!error) {
+ 		error = syscore_suspend();
++		if (error)
 +			sysdev_resume();
 +	}
- 	if (err) {
--		printk(KERN_ERR "xen_suspend: sysdev_suspend failed: %d\n",
-+		printk(KERN_ERR "xen_suspend: system core suspend failed: %d\n",
- 			err);
- 		return err;
- 	}
-@@ -95,6 +101,7 @@ static int xen_suspend(void *data)
- 		xen_timer_resume();
- 	}
- 
-+	syscore_resume();
- 	sysdev_resume();
- 
- 	return 0;
-Index: linux-2.6/arch/x86/kernel/apm_32.c
+ 	if (!error) {
+ 		if (!(suspend_test(TEST_CORE) || pm_wakeup_pending())) {
+ 			error = suspend_ops->enter(state);
+Index: linux-2.6/kernel/power/hibernate.c
 ===================================================================
---- linux-2.6.orig/arch/x86/kernel/apm_32.c
-+++ linux-2.6/arch/x86/kernel/apm_32.c
-@@ -228,6 +228,7 @@
- #include <linux/kthread.h>
- #include <linux/jiffies.h>
- #include <linux/acpi.h>
-+#include <linux/syscore_ops.h>
- 
- #include <asm/system.h>
- #include <asm/uaccess.h>
-@@ -1238,6 +1239,7 @@ static int suspend(int vetoable)
- 
+--- linux-2.6.orig/kernel/power/hibernate.c
++++ linux-2.6/kernel/power/hibernate.c
+@@ -273,8 +273,11 @@ static int create_image(int platform_mod
  	local_irq_disable();
- 	sysdev_suspend(PMSG_SUSPEND);
-+	syscore_suspend();
  
- 	local_irq_enable();
- 
-@@ -1255,6 +1257,7 @@ static int suspend(int vetoable)
- 		apm_error("suspend", err);
- 	err = (err == APM_SUCCESS) ? 0 : -EIO;
- 
-+	syscore_resume();
- 	sysdev_resume();
- 	local_irq_enable();
- 
-@@ -1280,6 +1283,7 @@ static void standby(void)
- 
+ 	error = sysdev_suspend(PMSG_FREEZE);
+-	if (!error)
++	if (!error) {
+ 		error = syscore_suspend();
++		if (error)
++			sysdev_resume();
++	}
+ 	if (error) {
+ 		printk(KERN_ERR "PM: Some system devices failed to power down, "
+ 			"aborting hibernation\n");
+@@ -407,8 +410,11 @@ static int resume_target_kernel(bool pla
  	local_irq_disable();
- 	sysdev_suspend(PMSG_SUSPEND);
-+	syscore_suspend();
- 	local_irq_enable();
  
- 	err = set_system_power_state(APM_STATE_STANDBY);
-@@ -1287,6 +1291,7 @@ static void standby(void)
- 		apm_error("standby", err);
+ 	error = sysdev_suspend(PMSG_QUIESCE);
+-	if (!error)
++	if (!error) {
+ 		error = syscore_suspend();
++		if (error)
++			sysdev_resume();
++	}
+ 	if (error)
+ 		goto Enable_irqs;
  
- 	local_irq_disable();
-+	syscore_resume();
- 	sysdev_resume();
- 	local_irq_enable();
