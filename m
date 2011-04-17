@@ -1,137 +1,77 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: [PATCH 11/14] PM / AVR32: Use struct syscore_ops instead of sysdevs
-	for PM
-Date: Sun, 17 Apr 2011 23:13:09 +0200
-Message-ID: <201104172313.09712.rjw@sisk.pl>
+From: Kukjin Kim <kgene.kim@samsung.com>
+Subject: RE: [PATCH 8/14] ARM / Samsung: Use struct syscore_ops for "core"
+ power	management
+Date: Mon, 18 Apr 2011 06:49:23 +0900
+Message-ID: <008801cbfd49$5508c870$ff1a5950$%kim@samsung.com>
 References: <201103280125.11750.rjw@sisk.pl> <201104172301.54115.rjw@sisk.pl>
+ <201104172311.17082.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <201104172301.54115.rjw@sisk.pl>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: Kevin Hilman <khilman@ti.com>, Guan Xuetao <gxt@mprc.pku.edu.cn>, Russell King <linux@arm.linux.org.uk>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Greg KH <gregkh@suse.de>, Ralf Baechle <ralf@linux-mips.org>, Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>, Ben Dooks <ben-linux@fluff.org>, Jiri Kosina <jkosina@suse.cz>, Kay Sievers <kay.sievers@suse.de>, Mike Frysinger <vapier@gentoo.org>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, Hans-Christian Egtvedt <hans-christian.egtvedt@atmel.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mailout1.samsung.com ([203.254.224.24]:16869 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751601Ab1DQVtc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 17 Apr 2011 17:49:32 -0400
+In-reply-to: <201104172311.17082.rjw@sisk.pl>
+Content-language: ko
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "'Rafael J. Wysocki'" <rjw@sisk.pl>, 'LKML' <linux-kernel@vger.kernel.org>
+Cc: 'Kevin Hilman' <khilman@ti.com>, 'Guan Xuetao' <gxt@mprc.pku.edu.cn>, 'Russell King' <linux@arm.linux.org.uk>, 'Konrad Rzeszutek Wilk' <konrad.wilk@oracle.com>, 'Benjamin Herrenschmidt' <benh@kernel.crashing.org>, 'Greg KH' <gregkh@suse.de>, 'Ralf Baechle' <ralf@linux-mips.org>, 'Jeremy Fitzhardinge' <jeremy.fitzhardinge@citrix.com>, 'Ben Dooks' <ben-linux@fluff.org>, 'Jiri Kosina' <jkosina@suse.cz>, 'Kay Sievers' <kay.sievers@suse.de>, 'Mike Frysinger' <vapier@gentoo.org>, 'Linux PM mailing list' <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, 'Hans-Christian Egtvedt' <hans-christian.egtvedt@atmel.com>, linux-arm-kernel@lists.infradead.org
 
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Rafael J. Wysocki wrote:
+> 
+> From: Rafael J. Wysocki <rjw@sisk.pl>
+> 
+> Replace sysdev classes and struct sys_device objects used for "core"
+> power management by Samsung platforms with struct syscore_ops objects
+> that are simpler.
+> 
+> This generally reduces the code size and the kernel memory footprint.
+> It also is necessary for removing sysdevs entirely from the kernel in
+> the future.
+> 
+> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 
-Convert some AVR32 architecture's code to using struct syscore_ops
-objects for power management instead of sysdev classes and sysdevs.
+Acked-by: Kukjin Kim <kgene.kim@samsung.com>
 
-This simplifies the code and reduces the kernel's memory footprint.
-It also is necessary for removing sysdevs from the kernel entirely in
-the future.
+> ---
+>  arch/arm/mach-exynos4/pm.c               |   45 ++++++++++++--------
+>  arch/arm/mach-s3c2410/irq.c              |   30 -------------
+>  arch/arm/mach-s3c2410/mach-bast.c        |   17 ++-----
+>  arch/arm/mach-s3c2410/pm.c               |   13 ++---
+>  arch/arm/mach-s3c2410/s3c2410.c          |    5 ++
+>  arch/arm/mach-s3c2412/irq.c              |    2
+>  arch/arm/mach-s3c2412/mach-jive.c        |   19 ++------
+>  arch/arm/mach-s3c2412/pm.c               |   27 ++++++------
+>  arch/arm/mach-s3c2412/s3c2412.c          |    4 +
+>  arch/arm/mach-s3c2416/irq.c              |    2
+>  arch/arm/mach-s3c2416/pm.c               |   27 +++++-------
+>  arch/arm/mach-s3c2416/s3c2416.c          |    5 ++
+>  arch/arm/mach-s3c2440/mach-osiris.c      |   18 ++------
+>  arch/arm/mach-s3c2440/s3c2440.c          |    8 +++
+>  arch/arm/mach-s3c2440/s3c2442.c          |    6 ++
+>  arch/arm/mach-s3c2440/s3c244x-irq.c      |    4 -
+>  arch/arm/mach-s3c2440/s3c244x.c          |   62
+++++++++++++++--------------
+>  arch/arm/mach-s3c64xx/irq-pm.c           |   18 ++++----
+>  arch/arm/mach-s5pv210/pm.c               |   25 +++++++----
+>  arch/arm/plat-s3c24xx/dma.c              |   68
++++++++++++-----------------
+> ---
+>  arch/arm/plat-s3c24xx/irq-pm.c           |    7 ---
+>  arch/arm/plat-s5p/irq-pm.c               |    7 ---
+>  arch/arm/plat-samsung/include/plat/cpu.h |    6 ++
+>  arch/arm/plat-samsung/include/plat/pm.h  |    6 +-
+>  24 files changed, 203 insertions(+), 228 deletions(-)
+> 
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
----
- arch/avr32/mach-at32ap/intc.c |   38 ++++++++++++--------------------------
- 1 file changed, 12 insertions(+), 26 deletions(-)
+Thanks.
 
-Index: linux-2.6/arch/avr32/mach-at32ap/intc.c
-===================================================================
---- linux-2.6.orig/arch/avr32/mach-at32ap/intc.c
-+++ linux-2.6/arch/avr32/mach-at32ap/intc.c
-@@ -12,7 +12,7 @@
- #include <linux/interrupt.h>
- #include <linux/irq.h>
- #include <linux/platform_device.h>
--#include <linux/sysdev.h>
-+#include <linux/syscore_ops.h>
- 
- #include <asm/io.h>
- 
-@@ -21,7 +21,6 @@
- struct intc {
- 	void __iomem		*regs;
- 	struct irq_chip		chip;
--	struct sys_device	sysdev;
- #ifdef CONFIG_PM
- 	unsigned long		suspend_ipr;
- 	unsigned long		saved_ipr[64];
-@@ -146,9 +145,8 @@ void intc_set_suspend_handler(unsigned l
- 	intc0.suspend_ipr = offset;
- }
- 
--static int intc_suspend(struct sys_device *sdev, pm_message_t state)
-+static int intc_suspend(void)
- {
--	struct intc *intc = container_of(sdev, struct intc, sysdev);
- 	int i;
- 
- 	if (unlikely(!irqs_disabled())) {
-@@ -156,28 +154,25 @@ static int intc_suspend(struct sys_devic
- 		return -EINVAL;
- 	}
- 
--	if (unlikely(!intc->suspend_ipr)) {
-+	if (unlikely(!intc0.suspend_ipr)) {
- 		pr_err("intc_suspend: suspend_ipr not initialized\n");
- 		return -EINVAL;
- 	}
- 
- 	for (i = 0; i < 64; i++) {
--		intc->saved_ipr[i] = intc_readl(intc, INTPR0 + 4 * i);
--		intc_writel(intc, INTPR0 + 4 * i, intc->suspend_ipr);
-+		intc0.saved_ipr[i] = intc_readl(&intc0, INTPR0 + 4 * i);
-+		intc_writel(&intc0, INTPR0 + 4 * i, intc0.suspend_ipr);
- 	}
- 
- 	return 0;
- }
- 
--static int intc_resume(struct sys_device *sdev)
-+static int intc_resume(void)
- {
--	struct intc *intc = container_of(sdev, struct intc, sysdev);
- 	int i;
- 
--	WARN_ON(!irqs_disabled());
--
- 	for (i = 0; i < 64; i++)
--		intc_writel(intc, INTPR0 + 4 * i, intc->saved_ipr[i]);
-+		intc_writel(&intc0, INTPR0 + 4 * i, intc0.saved_ipr[i]);
- 
- 	return 0;
- }
-@@ -186,27 +181,18 @@ static int intc_resume(struct sys_device
- #define intc_resume	NULL
- #endif
- 
--static struct sysdev_class intc_class = {
--	.name		= "intc",
-+static struct syscore_ops intc_syscore_ops = {
- 	.suspend	= intc_suspend,
- 	.resume		= intc_resume,
- };
- 
--static int __init intc_init_sysdev(void)
-+static int __init intc_init_syscore(void)
- {
--	int ret;
--
--	ret = sysdev_class_register(&intc_class);
--	if (ret)
--		return ret;
-+	register_syscore_ops(&intc_syscore_ops);
- 
--	intc0.sysdev.id = 0;
--	intc0.sysdev.cls = &intc_class;
--	ret = sysdev_register(&intc0.sysdev);
--
--	return ret;
-+	return 0;
- }
--device_initcall(intc_init_sysdev);
-+device_initcall(intc_init_syscore);
- 
- unsigned long intc_get_pending(unsigned int group)
- {
+Best regards,
+Kgene.
+--
+Kukjin Kim <kgene.kim@samsung.com>, Senior Engineer,
+SW Solution Development Team, Samsung Electronics Co., Ltd.
+
