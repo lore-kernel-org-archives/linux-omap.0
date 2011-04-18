@@ -1,52 +1,49 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH v2] OMAP2PLUS: DSS2: Clean up omap_display_init()
-Date: Mon, 18 Apr 2011 13:08:17 +0300
-Message-ID: <1303121297.2062.12.camel@deskari>
-References: <1303099333-13327-1-git-send-email-archit@ti.com>
+From: Ralf Baechle <ralf@linux-mips.org>
+Subject: Re: [PATCH 10/14] PM / MIPS: Use struct syscore_ops instead of
+	sysdevs for PM
+Date: Mon, 18 Apr 2011 11:12:18 +0100
+Message-ID: <20110418101218.GA25325@linux-mips.org>
+References: <201103280125.11750.rjw@sisk.pl> <201104172301.54115.rjw@sisk.pl>
+	<201104172312.35060.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:53393 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751792Ab1DRKIY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 18 Apr 2011 06:08:24 -0400
-Received: by fxm18 with SMTP id 18so3179507fxm.28
-        for <linux-omap@vger.kernel.org>; Mon, 18 Apr 2011 03:08:21 -0700 (PDT)
-In-Reply-To: <1303099333-13327-1-git-send-email-archit@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <201104172312.35060.rjw@sisk.pl>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Kevin Hilman <khilman@ti.com>, Guan Xuetao <gxt@mprc.pku.edu.cn>, Russell King <linux@arm.linux.org.uk>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Greg KH <gregkh@suse.de>, LKML <linux-kernel@vger.kernel.org>, Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>, Ben Dooks <ben-linux@fluff.org>, Jiri Kosina <jkosina@suse.cz>, Kay Sievers <kay.sievers@suse.de>, Mike Frysinger <vapier@gentoo.org>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, Hans-Christian Egtvedt <hans-christian.egtvedt@atmel.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Archit Taneja <archit@ti.com>
-Cc: linux-omap@vger.kernel.org, b-cousson@ti.com
 
-On Mon, 2011-04-18 at 09:32 +0530, Archit Taneja wrote:
-> Currently, omap_display_init() maintains arrays for hwmod name(oh_name) and the
-> correspnding platform_device name(dev_name) needed by omap_device_build().
-> A variable oh_count keeps a track of the number of devices to build from oh_name
-> based on what omap revision it is.
-> 
-> Clean this up by maintaining an array of omap_dss_hwmod_data struct which is
-> defined for each omap revision as suggested by Tomi Valkeinen. Assign the
-> corresponding omap_dss_hwmod_data array struct to the pointer curr_dss_hwmod in
-> omap_display_init().
-> 
-> Signed-off-by: Archit Taneja <archit@ti.com>
-> ---
-> v2:
-> -Remove unnecessary extra struct
-> -add __intdata in array definitions
-> 
-> Tested on OMAP 3430sdp and OMAP4430 sdp.
-> 
-> Can be applied over:
-> https://gitorious.org/linux-omap-dss2/linux/commits/master
-> 
->  arch/arm/mach-omap2/display.c |   75 ++++++++++++++++++++++++++--------------
->  1 files changed, 49 insertions(+), 26 deletions(-)
+This patch breaks the Alchemy kernel compile; below patch on top of it fixes
+that again.
 
-Thanks, applied.
+Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
 
- Tomi
+---
+ arch/mips/alchemy/common/irq.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-
+Index: linux-mips/arch/mips/alchemy/common/irq.c
+===================================================================
+--- linux-mips.orig/arch/mips/alchemy/common/irq.c
++++ linux-mips/arch/mips/alchemy/common/irq.c
+@@ -619,8 +619,8 @@ static struct syscore_ops alchemy_ic_sys
+ 
+ static int __init alchemy_ic_syscore_init(void)
+ {
+-	alchemy_ic_data[0].base = ioremap(icbase[IC0_PHYS_ADDR], 0x1000);
+-	alchemy_ic_data[1].base = ioremap(icbase[IC1_PHYS_ADDR], 0x1000);
++	alchemy_ic_data[0].base = ioremap(IC0_PHYS_ADDR, 0x1000);
++	alchemy_ic_data[1].base = ioremap(IC1_PHYS_ADDR, 0x1000);
+ 
+ 	register_syscore_ops(&alchemy_ic_syscore_ops);
