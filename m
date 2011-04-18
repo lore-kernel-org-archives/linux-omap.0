@@ -1,67 +1,65 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC PATCH] Consolidate SRAM support
-Date: Mon, 18 Apr 2011 09:48:38 +0300
-Message-ID: <20110418064838.GE12272@atomide.com>
-References: <20110415130607.GM1611@n2100.arm.linux.org.uk>
- <BANLkTikJwFRenjwnws+4J2ep9G0Nv-9aXw@mail.gmail.com>
- <20110416130929.GL4423@n2100.arm.linux.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Jan Weitzel <j.weitzel@phytec.de>
+Subject: [PATCH v2] ARM: omap2: mtd split nand_scan in ident and tail
+Date: Mon, 18 Apr 2011 08:50:38 +0200
+Message-ID: <1303109438-24309-1-git-send-email-j.weitzel@phytec.de>
+References: <1302876214.3220.62.camel@localhost>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:57495 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752587Ab1DRGsp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Apr 2011 02:48:45 -0400
-Content-Disposition: inline
-In-Reply-To: <20110416130929.GL4423@n2100.arm.linux.org.uk>
+Received: from mail.x-arc.de ([217.6.246.34]:41219 "EHLO root.phytec.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752821Ab1DRGuy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 18 Apr 2011 02:50:54 -0400
+In-Reply-To: <1302876214.3220.62.camel@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Haojian Zhuang <haojian.zhuang@gmail.com>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@ti.com>, davinci-linux-open-source@linux.davincidsp.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, Artem.Bityutskiy@nokia.com
+Cc: s.hauer@pengutronix.de, dwmw2@infradead.org, tony@atomide.com, s-ghorai@ti.com, vimalsingh@ti.com, Jan Weitzel <j.weitzel@phytec.de>
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [110416 16:06]:
-> On Sat, Apr 16, 2011 at 09:01:26PM +0800, Haojian Zhuang wrote:
-> > On Fri, Apr 15, 2011 at 9:06 PM, Russell King - ARM Linux
-> > >
-> > > This uses the physical address, and unlike Davinci's dma address usage,
-> > > it always wants to have the physical address, and will always return
-> > > the corresponding physical address when passed that pointer.
-> > >
-> > > OMAP could probably do with some more work to make the omapfb and other
-> > > allocations use the sram allocator, rather than hooking in before the
-> > > sram allocator is initialized - and then further cleanups so that we
-> > > have an initialization function which just does
+nand_scan calls nand_scan_tail and here we got a ecc.layout and calculate
+oobavail for this layout. After calling nand_scan, we change the layout pointer
+if OMAP_ECC_HAMMING_CODE_HW_ROMCODE is set. This results in not calcluated
+oobavail. Mountig as jffs2 is not possible.
 
-I think we can just remove the omapfb SRAM support for now as it should
-be optional. That will then leave out that dependency and can be added
-back once we have a common framework in place.
+To fix that nand_scan has to split up in nand_scan_ident and nand_scan_tail
+setting ecc.layout between these calls. So nand_scan_tail calculates oobvail
+for the used layout. This is also done in serveral other platforms.
 
-Tomi do you see any problems with that?
+v2:
+update commit message
 
-> > TCM driver can allocate code into SRAM section in link stage. It needs to
-> > update link file and virtual memory layout. Is it worth to make SRAM driver
-> > support this behavior? The case of using SRAM as memory for instruction
-> > is switching frequency or entering/exiting low power mode in PXA silicons.
-> 
-> This is more or less the same scenario which OMAP is using its SRAM
-> for, although that's explicitly SRAM and not TCM.
-> 
-> I don't think we need position dependent code requiring fixup for
-> these applications as such things tend to be fairly easily coded in a
-> position independent way.
+Signed-off-by: Jan Weitzel <j.weitzel@phytec.de>
+---
+ drivers/mtd/nand/omap2.c |   10 ++++++++--
+ 1 files changed, 8 insertions(+), 2 deletions(-)
 
-There should not be any need code requiring fixup in most cases using
-parameters passed to the functions should be enough. Usually it's
-just register addresses that are different.
+diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+index da9a351..288423f 100644
+--- a/drivers/mtd/nand/omap2.c
++++ b/drivers/mtd/nand/omap2.c
+@@ -1073,9 +1073,9 @@ static int __devinit omap_nand_probe(struct platform_device *pdev)
+ 	/* DIP switches on some boards change between 8 and 16 bit
+ 	 * bus widths for flash.  Try the other width if the first try fails.
+ 	 */
+-	if (nand_scan(&info->mtd, 1)) {
++	if (nand_scan_ident(&info->mtd, 1, NULL)) {
+ 		info->nand.options ^= NAND_BUSWIDTH_16;
+-		if (nand_scan(&info->mtd, 1)) {
++		if (nand_scan_ident(&info->mtd, 1, NULL)) {
+ 			err = -ENXIO;
+ 			goto out_release_mem_region;
+ 		}
+@@ -1101,6 +1101,12 @@ static int __devinit omap_nand_probe(struct platform_device *pdev)
+ 		info->nand.ecc.layout = &omap_oobinfo;
+ 	}
  
-> Also note that C functions can't be copied because C produces position
-> dependent code, and we have no way of extracting the relocation
-> dependencies from such code.
++	/* second phase scan */
++	if (nand_scan_tail(&info->mtd)) {
++		err = -ENXIO;
++		goto out_release_mem_region;
++	}
++
+ #ifdef CONFIG_MTD_PARTITIONS
+ 	err = parse_mtd_partitions(&info->mtd, part_probes, &info->parts, 0);
+ 	if (err > 0)
+-- 
+1.7.0.4
 
-C functions should not be needed. The SRAM size is small and typical
-usage is a loop waiting for some register to lock. For any larger SRAM
-areas NUMA can be used instead.
-
-Regards,
-
-Tony
