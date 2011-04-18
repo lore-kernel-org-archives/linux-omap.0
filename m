@@ -1,38 +1,58 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH] OMAP: iommu flush page table entries from L1 and L2 cache
-Date: Mon, 18 Apr 2011 15:25:41 +0200
-Message-ID: <201104181525.43481.arnd@arndb.de>
-References: <20110414223036.GA7335@n2100.arm.linux.org.uk> <20110418110502.GI12272@atomide.com> <20110418.144246.77604458849535045.Hiroshi.DOYU@nokia.com>
+From: Detlef Vollmann <dv@vollmann.ch>
+Subject: Re: [RFC PATCH v2] Consolidate SRAM support
+Date: Mon, 18 Apr 2011 15:50:20 +0200
+Message-ID: <4DAC419C.6000801@vollmann.ch>
+References: <20110415130607.GM1611@n2100.arm.linux.org.uk>
+	<20110418085259.GA26044@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:65430 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751703Ab1DRNZu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Apr 2011 09:25:50 -0400
-In-Reply-To: <20110418.144246.77604458849535045.Hiroshi.DOYU@nokia.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20110418085259.GA26044@n2100.arm.linux.org.uk>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Kevin Hilman <khilman@ti.com>, davinci-linux-open-source@linux.davincidsp.com, Tony Lindgren <tony@atomide.com>, Magnus Damm <magnus.damm@gmail.com>, Sekhar Nori <nsekhar@ti.com>, Paul Mundt <lethal@linux-sh.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Cc: tony@atomide.com, linux@arm.linux.org.uk, fernando.lugo@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, grgupta@ti.com, h-kanigeri2@ti.com
 
-On Monday 18 April 2011, Hiroshi DOYU wrote:
-> From: ext Tony Lindgren <tony@atomide.com>
+On 04/18/11 10:52, Russell King - ARM Linux wrote:
+> This is the second revision of this patch.
+Thanks, looks good :-)
 
-> > have a generic replacement for this code we should start using it.
-> 
-> I'm afraid that there's no general IOMMU APIs yet, or already? If
-> there is, migrating to those general IOMMU API is the way, but still
-> SoC dependent parts remain, anyway. I guess that more or less general
-> IOMMU API is composed of common set of client APIs(like IOVMM) and the
-> registration of H/W dependent functions(like omap iommu), I guess.
+Just to minor issues:
 
-As I explained, we have a surplus of generic iommu APIs
-already, see include/linux/dma-mapping.h and include/linux/iommu.h
- 
-The dma-mapping interface handles IOMMUs on all other architectures
-that have them.
+> diff --git a/arch/arm/common/Kconfig b/arch/arm/common/Kconfig
+> index ea5ee4d..ddbd20b 100644
+> --- a/arch/arm/common/Kconfig
+> +++ b/arch/arm/common/Kconfig
+> @@ -39,3 +39,7 @@ config SHARP_PARAM
+>
+>   config SHARP_SCOOP
+>   	bool
+> +
+> +config PV_POOL
+> +	bool
+Could you add a prompt here, so that this gets selectable on machs
+that don't automatically select it?
 
-	Arnd
+> diff --git a/arch/arm/mach-davinci/sram.c b/arch/arm/mach-davinci/sram.c
+> index db0f778..ebd4d67 100644
+> --- a/arch/arm/mach-davinci/sram.c
+> +++ b/arch/arm/mach-davinci/sram.c
+> @@ -10,40 +10,13 @@
+> +struct pv_pool *davinci_pv_pool;
+> +EXPORT_SYMBOL_GPL(davinci_pv_pool);
+>
+>   /*
+>    * REVISIT This supports CPU and DMA access to/from SRAM, but it
+This comment here doesn't look correct anymore.
+Maybe it should be removed completely.
+
+   Detlef
