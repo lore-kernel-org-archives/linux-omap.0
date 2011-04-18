@@ -1,48 +1,40 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [GIT PULL] OMAP DSS fixes for 39 rc
-Date: Mon, 18 Apr 2011 10:12:41 +0300
-Message-ID: <1303110761.2062.11.camel@deskari>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH] OMAP: iommu flush page table entries from L1 and L2 cache
+Date: Mon, 18 Apr 2011 09:29:33 +0200
+Message-ID: <201104180929.33569.arnd@arndb.de>
+References: <1302817968-28516-1-git-send-email-fernando.lugo@ti.com> <20110414223036.GA7335@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:42357 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750972Ab1DRHMs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 18 Apr 2011 03:12:48 -0400
+Received: from moutng.kundenserver.de ([212.227.17.8]:60266 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752495Ab1DRH3s (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Apr 2011 03:29:48 -0400
+In-Reply-To: <20110414223036.GA7335@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: lethal@linux-sh.org
-Cc: lo-ml <linux-omap@vger.kernel.org>, lfbdev-ml <linux-fbdev@vger.kernel.org>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Fernando Guzman Lugo <fernando.lugo@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, tony@atomide.com, Ramesh Gupta <grgupta@ti.com>, Hari Kanigeri <h-kanigeri2@ti.com>
 
-Hi Paul,
-
-Here are a few OMAP DSS fixes for the next rc.
-
- Tomi
-
-The following changes since commit a6360dd37e1a144ed11e6548371bade559a1e4df:
-
-  Linux 2.6.39-rc3 (2011-04-11 17:21:51 -0700)
-
-are available in the git repository at:
-  git://gitorious.org/linux-omap-dss2/linux.git for-paul-39-rc
-
-Archit Taneja (1):
-      OMAP: DSS2: Fix: Return correct lcd clock source for OMAP2/3		
-
-Tomi Valkeinen (4):
-      OMAP: DSS2: DSI: fix use_sys_clk & highfreq
-      OMAP: DSS2: DSI: fix dsi_dump_clocks()
-      OMAP: DSS2: DSI: Fix DSI PLL power bug
-      OMAP: DSS2: fix panel Kconfig dependencies
-
- drivers/video/omap2/displays/Kconfig   |    9 +++++----
- drivers/video/omap2/dss/dsi.c          |   14 +++++++++-----
- drivers/video/omap2/dss/dss.c          |   10 ++++++++--
- drivers/video/omap2/dss/dss_features.c |    2 +-
- drivers/video/omap2/dss/dss_features.h |    2 ++
- 5 files changed, 25 insertions(+), 12 deletions(-)
+On Friday 15 April 2011, Russell King - ARM Linux wrote:
+> On Thu, Apr 14, 2011 at 04:52:48PM -0500, Fernando Guzman Lugo wrote:
+> > From: Ramesh Gupta <grgupta@ti.com>
+> > 
+> > This patch is to flush the iommu page table entries from L1 and L2
+> > caches using dma_map_single. This also simplifies the implementation
+> > by removing the functions  flush_iopgd_range/flush_iopte_range.
+> 
+> No.  This usage is just wrong.  If you're going to use the DMA API then
+> unmap it, otherwise the DMA API debugging will go awol.
 
 
+It's also completely upside-down: The iommu support should provide interfaces
+using the dma-mapping API, not use that API to provide a machine specific
+version of the generic interface.
+
+As far as I can tell, nothing actually uses these drivers, maybe we should just
+remove them before we get any code in the mainline kernel that depends on it.
+
+	Arnd
