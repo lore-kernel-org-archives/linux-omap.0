@@ -1,47 +1,205 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [RFC PATCH v2] Consolidate SRAM support
-Date: Mon, 18 Apr 2011 17:18:17 +0100
-Message-ID: <20110418161817.GB26044@n2100.arm.linux.org.uk>
-References: <20110415130607.GM1611@n2100.arm.linux.org.uk> <20110418085259.GA26044@n2100.arm.linux.org.uk> <B85A65D85D7EB246BE421B3FB0FBB593024CA31B27@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Omar Ramirez Luna <omar.ramirez@ti.com>
+Subject: [PATCH v2 2/3] OMAP3/4: l3: fix omap3_l3_probe error path
+Date: Mon, 18 Apr 2011 11:39:41 -0500
+Message-ID: <1303144782-5591-3-git-send-email-omar.ramirez@ti.com>
+References: <1303144782-5591-1-git-send-email-omar.ramirez@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:44263 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754659Ab1DRQSr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Apr 2011 12:18:47 -0400
-Content-Disposition: inline
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593024CA31B27@dbde02.ent.ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:51300 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755848Ab1DRQvL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Apr 2011 12:51:11 -0400
+In-Reply-To: <1303144782-5591-1-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Nori, Sekhar" <nsekhar@ti.com>
-Cc: "Hilman, Kevin" <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Paul Mundt <lethal@linux-sh.org>, Magnus Damm <magnus.damm@gmail.com>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Omar Ramirez Luna <omar.ramirez@ti.com>
 
-On Mon, Apr 18, 2011 at 09:42:10PM +0530, Nori, Sekhar wrote:
-> I was able to test this on DaVinci (DA850 suspend-to-RAM) with
-> the following additional changes:
-> 
-> There was a sram_free call remaining in pm.c file.
+l3_smx:
+- Add missing free_irq and remove an empty goto label.
 
-Hmm, wonder why my build for DaVinci didn't pick that up.  Thanks for
-that and I'll merge it in.
+l3_noc:
+- If kzalloc fails driver shouldn't continue with a NULL pointer.
+- Add missing free_irq and remove empty goto labels.
+- Safe to assume that if we reached the end point of execution
+  without errors, then return value is 0, so replacing instead
+  another goto.
 
-> diff --git a/arch/arm/mach-davinci/sleep.S b/arch/arm/mach-davinci/sleep.S
-> index fb5e72b..dcb8e9d 100644
-> --- a/arch/arm/mach-davinci/sleep.S
-> +++ b/arch/arm/mach-davinci/sleep.S
-> @@ -50,6 +50,8 @@
->   * 	r4: contains virtual address of the DEEPSLEEP register
->   */
->  ENTRY(davinci_cpu_suspend)
-> +	.align 3
-> +
+Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
+Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+---
+ arch/arm/mach-omap2/omap_l3_noc.c |   34 ++++++++++++++++------------------
+ arch/arm/mach-omap2/omap_l3_smx.c |   23 ++++++++++-------------
+ 2 files changed, 26 insertions(+), 31 deletions(-)
 
-I think you want the .align 3 on the line before ENTRY().
+diff --git a/arch/arm/mach-omap2/omap_l3_noc.c b/arch/arm/mach-omap2/omap_l3_noc.c
+index 82632c2..def3de8 100644
+--- a/arch/arm/mach-omap2/omap_l3_noc.c
++++ b/arch/arm/mach-omap2/omap_l3_noc.c
+@@ -132,49 +132,49 @@ static int __init omap4_l3_probe(struct platform_device *pdev)
+ 
+ 	l3 = kzalloc(sizeof(*l3), GFP_KERNEL);
+ 	if (!l3)
+-		ret = -ENOMEM;
++		return -ENOMEM;
+ 
+ 	platform_set_drvdata(pdev, l3);
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	if (!res) {
+ 		dev_err(&pdev->dev, "couldn't find resource 0\n");
+ 		ret = -ENODEV;
+-		goto err1;
++		goto err0;
+ 	}
+ 
+ 	l3->l3_base[0] = ioremap(res->start, resource_size(res));
+ 	if (!(l3->l3_base[0])) {
+ 		dev_err(&pdev->dev, "ioremap failed\n");
+ 		ret = -ENOMEM;
+-		goto err2;
++		goto err0;
+ 	}
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
+ 	if (!res) {
+ 		dev_err(&pdev->dev, "couldn't find resource 1\n");
+ 		ret = -ENODEV;
+-		goto err3;
++		goto err1;
+ 	}
+ 
+ 	l3->l3_base[1] = ioremap(res->start, resource_size(res));
+ 	if (!(l3->l3_base[1])) {
+ 		dev_err(&pdev->dev, "ioremap failed\n");
+ 		ret = -ENOMEM;
+-		goto err4;
++		goto err1;
+ 	}
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 2);
+ 	if (!res) {
+ 		dev_err(&pdev->dev, "couldn't find resource 2\n");
+ 		ret = -ENODEV;
+-		goto err5;
++		goto err2;
+ 	}
+ 
+ 	l3->l3_base[2] = ioremap(res->start, resource_size(res));
+ 	if (!(l3->l3_base[2])) {
+ 		dev_err(&pdev->dev, "ioremap failed\n");
+ 		ret = -ENOMEM;
+-		goto err6;
++		goto err2;
+ 	}
+ 
+ 	/*
+@@ -187,7 +187,7 @@ static int __init omap4_l3_probe(struct platform_device *pdev)
+ 	if (ret) {
+ 		pr_crit("L3: request_irq failed to register for 0x%x\n",
+ 					 OMAP44XX_IRQ_L3_DBG);
+-		goto err7;
++		goto err3;
+ 	}
+ 	l3->debug_irq = irq;
+ 
+@@ -198,24 +198,22 @@ static int __init omap4_l3_probe(struct platform_device *pdev)
+ 	if (ret) {
+ 		pr_crit("L3: request_irq failed to register for 0x%x\n",
+ 					 OMAP44XX_IRQ_L3_APP);
+-		goto err8;
++		goto err4;
+ 	}
+ 	l3->app_irq = irq;
+ 
+-	goto err0;
+-err8:
+-err7:
+-	iounmap(l3->l3_base[2]);
+-err6:
+-err5:
+-	iounmap(l3->l3_base[1]);
++	return 0;
++
+ err4:
++	free_irq(l3->debug_irq, l3);
+ err3:
+-	iounmap(l3->l3_base[0]);
++	iounmap(l3->l3_base[2]);
+ err2:
++	iounmap(l3->l3_base[1]);
+ err1:
+-	kfree(l3);
++	iounmap(l3->l3_base[0]);
+ err0:
++	kfree(l3);
+ 	return ret;
+ }
+ 
+diff --git a/arch/arm/mach-omap2/omap_l3_smx.c b/arch/arm/mach-omap2/omap_l3_smx.c
+index 4321e79..32961b1 100644
+--- a/arch/arm/mach-omap2/omap_l3_smx.c
++++ b/arch/arm/mach-omap2/omap_l3_smx.c
+@@ -228,10 +228,8 @@ static int __init omap3_l3_probe(struct platform_device *pdev)
+ 	int                     ret;
+ 
+ 	l3 = kzalloc(sizeof(*l3), GFP_KERNEL);
+-	if (!l3) {
+-		ret = -ENOMEM;
+-		goto err0;
+-	}
++	if (!l3)
++		return -ENOMEM;
+ 
+ 	platform_set_drvdata(pdev, l3);
+ 
+@@ -239,13 +237,13 @@ static int __init omap3_l3_probe(struct platform_device *pdev)
+ 	if (!res) {
+ 		dev_err(&pdev->dev, "couldn't find resource\n");
+ 		ret = -ENODEV;
+-		goto err1;
++		goto err0;
+ 	}
+ 	l3->rt = ioremap(res->start, resource_size(res));
+ 	if (!(l3->rt)) {
+ 		dev_err(&pdev->dev, "ioremap failed\n");
+ 		ret = -ENOMEM;
+-		goto err2;
++		goto err0;
+ 	}
+ 
+ 	l3->debug_irq = platform_get_irq(pdev, 0);
+@@ -254,7 +252,7 @@ static int __init omap3_l3_probe(struct platform_device *pdev)
+ 		"l3-debug-irq", l3);
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "couldn't request debug irq\n");
+-		goto err3;
++		goto err1;
+ 	}
+ 
+ 	l3->app_irq = platform_get_irq(pdev, 1);
+@@ -264,18 +262,17 @@ static int __init omap3_l3_probe(struct platform_device *pdev)
+ 
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "couldn't request app irq\n");
+-		goto err4;
++		goto err2;
+ 	}
+ 
+-	goto err0;
++	return 0;
+ 
+-err4:
+-err3:
+-	iounmap(l3->rt);
+ err2:
++	free_irq(l3->debug_irq, l3);
+ err1:
+-	kfree(l3);
++	iounmap(l3->rt);
+ err0:
++	kfree(l3);
+ 	return ret;
+ }
+ 
+-- 
+1.7.1
 
-> The davinci audio driver in sound/soc/davinci/davinci-pcm.c uses
-> the sram allocator too and would need to be converted to the
-> new API.
-
-Ah, right - I'll sort that too.  Slightly annoying that sound stuff
-is outside the drivers/ subdir.
