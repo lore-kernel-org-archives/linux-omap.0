@@ -1,51 +1,44 @@
 From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: [PATCH v2 1/3] OMAP3: l3: fix for "irq 10: nobody cared" message
-Date: Mon, 18 Apr 2011 11:39:40 -0500
-Message-ID: <1303144782-5591-2-git-send-email-omar.ramirez@ti.com>
-References: <1303144782-5591-1-git-send-email-omar.ramirez@ti.com>
+Subject: [PATCH v2 0/3] OMAP: l3: fixes and cleanup
+Date: Mon, 18 Apr 2011 11:39:39 -0500
+Message-ID: <1303144782-5591-1-git-send-email-omar.ramirez@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38655 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:33124 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755848Ab1DRQvP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 18 Apr 2011 12:51:15 -0400
-In-Reply-To: <1303144782-5591-1-git-send-email-omar.ramirez@ti.com>
+	id S1755848Ab1DRQvQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 18 Apr 2011 12:51:16 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Omar Ramirez Luna <omar.ramirez@ti.com>
 
-If an error occurs in the L3 on any other initiator than MPU,
-the interrupt goes unhandled given that the 'base' register
-was calculated with the initialized err_source value (which
-coincidentally points to MPU) and not with the actual source
-of the error.
+Based on the comments received for the first patch:
+OMAP3: l3: fix for "irq 10: nobody cared" message[1],
+and quick skimming through the code.
 
-Removed parenthesis that are not needed for the touched lines.
+Although there are still parenthesis that are not needed
+because of operator precedence, they were left for clarity.
 
-Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+E.g.:
+(error >> 32) & 0xffff;
+
+clear = (L3_AGENT_STATUS_CLEAR_IA << int_type) |
+       L3_AGENT_STATUS_CLEAR_TA;
+
+v2:
+- Joining omap3_l3_probe fixes into a single patch.
+- Joining trivial cleanups into a single patch.
+- Adding acked by Santosh line.
+
 ---
- arch/arm/mach-omap2/omap_l3_smx.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+[1] https://patchwork.kernel.org/patch/665141/
 
-diff --git a/arch/arm/mach-omap2/omap_l3_smx.c b/arch/arm/mach-omap2/omap_l3_smx.c
-index 5f2da75..4321e79 100644
---- a/arch/arm/mach-omap2/omap_l3_smx.c
-+++ b/arch/arm/mach-omap2/omap_l3_smx.c
-@@ -196,11 +196,11 @@ static irqreturn_t omap3_l3_app_irq(int irq, void *_l3)
- 		/* No timeout error for debug sources */
- 	}
- 
--	base = ((l3->rt) + (*(omap3_l3_bases[int_type] + err_source)));
--
- 	/* identify the error source */
- 	for (err_source = 0; !(status & (1 << err_source)); err_source++)
- 									;
-+
-+	base = l3->rt + *(omap3_l3_bases[int_type] + err_source);
- 	error = omap3_l3_readll(base, L3_ERROR_LOG);
- 
- 	if (error) {
--- 
-1.7.1
+Omar Ramirez Luna (3):
+  OMAP3: l3: fix for "irq 10: nobody cared" message
+  OMAP3/4: l3: fix omap3_l3_probe error path
+  OMAP3/4: l3: minor cleanup for parenthesis and extra spaces
+
+ arch/arm/mach-omap2/omap_l3_noc.c |   51 ++++++++++++++++--------------------
+ arch/arm/mach-omap2/omap_l3_smx.c |   46 ++++++++++++---------------------
+ 2 files changed, 40 insertions(+), 57 deletions(-)
 
