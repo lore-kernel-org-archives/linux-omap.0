@@ -1,205 +1,169 @@
 From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: [PATCH v2 2/3] OMAP3/4: l3: fix omap3_l3_probe error path
-Date: Mon, 18 Apr 2011 11:39:41 -0500
-Message-ID: <1303144782-5591-3-git-send-email-omar.ramirez@ti.com>
+Subject: [PATCH v2 3/3] OMAP3/4: l3: minor cleanup for parenthesis and extra spaces
+Date: Mon, 18 Apr 2011 11:39:42 -0500
+Message-ID: <1303144782-5591-4-git-send-email-omar.ramirez@ti.com>
 References: <1303144782-5591-1-git-send-email-omar.ramirez@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51300 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755848Ab1DRQvL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Apr 2011 12:51:11 -0400
+Received: from comal.ext.ti.com ([198.47.26.152]:38656 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755952Ab1DRQvP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 18 Apr 2011 12:51:15 -0400
 In-Reply-To: <1303144782-5591-1-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Omar Ramirez Luna <omar.ramirez@ti.com>
 
-l3_smx:
-- Add missing free_irq and remove an empty goto label.
+Removing extra lines, spaces and unneeded parenthesis.
+Collapsing an if statement to detect the type of error.
 
-l3_noc:
-- If kzalloc fails driver shouldn't continue with a NULL pointer.
-- Add missing free_irq and remove empty goto labels.
-- Safe to assume that if we reached the end point of execution
-  without errors, then return value is 0, so replacing instead
-  another goto.
+l3_smx:
+- Fixing the message printed on error.
+
+So now: 				looks like:
+"No Error Error seen..."		"No Error seen..."
+"In-Band Error Error seen..."	"In-Band Error seen..."
+
+Other messages are self explanatory, no "Error" added to them.
+(E.g.: "Address Hole seen...")
 
 Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
 Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- arch/arm/mach-omap2/omap_l3_noc.c |   34 ++++++++++++++++------------------
- arch/arm/mach-omap2/omap_l3_smx.c |   23 ++++++++++-------------
- 2 files changed, 26 insertions(+), 31 deletions(-)
+ arch/arm/mach-omap2/omap_l3_noc.c |   17 +++++++----------
+ arch/arm/mach-omap2/omap_l3_smx.c |   19 +++++--------------
+ 2 files changed, 12 insertions(+), 24 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/omap_l3_noc.c b/arch/arm/mach-omap2/omap_l3_noc.c
-index 82632c2..def3de8 100644
+index def3de8..7b9f190 100644
 --- a/arch/arm/mach-omap2/omap_l3_noc.c
 +++ b/arch/arm/mach-omap2/omap_l3_noc.c
-@@ -132,49 +132,49 @@ static int __init omap4_l3_probe(struct platform_device *pdev)
+@@ -63,10 +63,7 @@ static irqreturn_t l3_interrupt_handler(int irq, void *_l3)
+ 	char *source_name;
  
- 	l3 = kzalloc(sizeof(*l3), GFP_KERNEL);
- 	if (!l3)
--		ret = -ENOMEM;
-+		return -ENOMEM;
+ 	/* Get the Type of interrupt */
+-	if (irq == l3->app_irq)
+-		inttype = L3_APPLICATION_ERROR;
+-	else
+-		inttype = L3_DEBUG_ERROR;
++	inttype = irq == l3->app_irq ? L3_APPLICATION_ERROR : L3_DEBUG_ERROR;
  
- 	platform_set_drvdata(pdev, l3);
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (!res) {
- 		dev_err(&pdev->dev, "couldn't find resource 0\n");
- 		ret = -ENODEV;
--		goto err1;
-+		goto err0;
+ 	for (i = 0; i < L3_MODULES; i++) {
+ 		/*
+@@ -84,10 +81,10 @@ static irqreturn_t l3_interrupt_handler(int irq, void *_l3)
+ 
+ 			err_src = j;
+ 			/* Read the stderrlog_main_source from clk domain */
+-			std_err_main_addr = base + (*(l3_targ[i] + err_src));
+-			std_err_main =  readl(std_err_main_addr);
++			std_err_main_addr = base + *(l3_targ[i] + err_src);
++			std_err_main = readl(std_err_main_addr);
+ 
+-			switch ((std_err_main & CUSTOM_ERROR)) {
++			switch (std_err_main & CUSTOM_ERROR) {
+ 			case STANDARD_ERROR:
+ 				source_name =
+ 				l3_targ_stderrlog_main_name[i][err_src];
+@@ -143,7 +140,7 @@ static int __init omap4_l3_probe(struct platform_device *pdev)
  	}
  
  	l3->l3_base[0] = ioremap(res->start, resource_size(res));
- 	if (!(l3->l3_base[0])) {
+-	if (!(l3->l3_base[0])) {
++	if (!l3->l3_base[0]) {
  		dev_err(&pdev->dev, "ioremap failed\n");
  		ret = -ENOMEM;
--		goto err2;
-+		goto err0;
- 	}
- 
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
- 	if (!res) {
- 		dev_err(&pdev->dev, "couldn't find resource 1\n");
- 		ret = -ENODEV;
--		goto err3;
-+		goto err1;
+ 		goto err0;
+@@ -157,7 +154,7 @@ static int __init omap4_l3_probe(struct platform_device *pdev)
  	}
  
  	l3->l3_base[1] = ioremap(res->start, resource_size(res));
- 	if (!(l3->l3_base[1])) {
+-	if (!(l3->l3_base[1])) {
++	if (!l3->l3_base[1]) {
  		dev_err(&pdev->dev, "ioremap failed\n");
  		ret = -ENOMEM;
--		goto err4;
-+		goto err1;
- 	}
- 
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 2);
- 	if (!res) {
- 		dev_err(&pdev->dev, "couldn't find resource 2\n");
- 		ret = -ENODEV;
--		goto err5;
-+		goto err2;
+ 		goto err1;
+@@ -171,7 +168,7 @@ static int __init omap4_l3_probe(struct platform_device *pdev)
  	}
  
  	l3->l3_base[2] = ioremap(res->start, resource_size(res));
- 	if (!(l3->l3_base[2])) {
+-	if (!(l3->l3_base[2])) {
++	if (!l3->l3_base[2]) {
  		dev_err(&pdev->dev, "ioremap failed\n");
  		ret = -ENOMEM;
--		goto err6;
-+		goto err2;
- 	}
- 
- 	/*
-@@ -187,7 +187,7 @@ static int __init omap4_l3_probe(struct platform_device *pdev)
- 	if (ret) {
- 		pr_crit("L3: request_irq failed to register for 0x%x\n",
- 					 OMAP44XX_IRQ_L3_DBG);
--		goto err7;
-+		goto err3;
- 	}
- 	l3->debug_irq = irq;
- 
-@@ -198,24 +198,22 @@ static int __init omap4_l3_probe(struct platform_device *pdev)
- 	if (ret) {
- 		pr_crit("L3: request_irq failed to register for 0x%x\n",
- 					 OMAP44XX_IRQ_L3_APP);
--		goto err8;
-+		goto err4;
- 	}
- 	l3->app_irq = irq;
- 
--	goto err0;
--err8:
--err7:
--	iounmap(l3->l3_base[2]);
--err6:
--err5:
--	iounmap(l3->l3_base[1]);
-+	return 0;
-+
- err4:
-+	free_irq(l3->debug_irq, l3);
- err3:
--	iounmap(l3->l3_base[0]);
-+	iounmap(l3->l3_base[2]);
- err2:
-+	iounmap(l3->l3_base[1]);
- err1:
--	kfree(l3);
-+	iounmap(l3->l3_base[0]);
- err0:
-+	kfree(l3);
- 	return ret;
- }
- 
+ 		goto err2;
 diff --git a/arch/arm/mach-omap2/omap_l3_smx.c b/arch/arm/mach-omap2/omap_l3_smx.c
-index 4321e79..32961b1 100644
+index 32961b1..873c0e3 100644
 --- a/arch/arm/mach-omap2/omap_l3_smx.c
 +++ b/arch/arm/mach-omap2/omap_l3_smx.c
-@@ -228,10 +228,8 @@ static int __init omap3_l3_probe(struct platform_device *pdev)
- 	int                     ret;
+@@ -155,7 +155,7 @@ static irqreturn_t omap3_l3_block_irq(struct omap3_l3 *l3,
+ 	u8                      multi = error & L3_ERROR_LOG_MULTI;
+ 	u32			address = omap3_l3_decode_addr(error_addr);
  
- 	l3 = kzalloc(sizeof(*l3), GFP_KERNEL);
--	if (!l3) {
--		ret = -ENOMEM;
--		goto err0;
--	}
-+	if (!l3)
-+		return -ENOMEM;
+-	WARN(true, "%s Error seen by %s %s at address %x\n",
++	WARN(true, "%s seen by %s %s at address %x\n",
+ 				 omap3_l3_code_string(code),
+ 			  omap3_l3_initiator_string(initid),
+ 			     multi ? "Multiple Errors" : "",
+@@ -167,21 +167,15 @@ static irqreturn_t omap3_l3_block_irq(struct omap3_l3 *l3,
+ static irqreturn_t omap3_l3_app_irq(int irq, void *_l3)
+ {
+ 	struct omap3_l3         *l3 = _l3;
+-
+ 	u64                     status, clear;
+ 	u64                     error;
+ 	u64			error_addr;
+ 	u64			err_source = 0;
+ 	void			__iomem *base;
+ 	int			int_type;
+-
+ 	irqreturn_t             ret = IRQ_NONE;
  
- 	platform_set_drvdata(pdev, l3);
+-	if (irq == l3->app_irq)
+-		int_type = L3_APPLICATION_ERROR;
+-	else
+-		int_type = L3_DEBUG_ERROR;
+-
++	int_type = irq == l3->app_irq ? L3_APPLICATION_ERROR : L3_DEBUG_ERROR;
+ 	if (!int_type) {
+ 		status = omap3_l3_readll(l3->rt, L3_SI_FLAG_STATUS_0);
+ 		/*
+@@ -202,7 +196,6 @@ static irqreturn_t omap3_l3_app_irq(int irq, void *_l3)
  
-@@ -239,13 +237,13 @@ static int __init omap3_l3_probe(struct platform_device *pdev)
- 	if (!res) {
- 		dev_err(&pdev->dev, "couldn't find resource\n");
- 		ret = -ENODEV;
--		goto err1;
-+		goto err0;
+ 	base = l3->rt + *(omap3_l3_bases[int_type] + err_source);
+ 	error = omap3_l3_readll(base, L3_ERROR_LOG);
+-
+ 	if (error) {
+ 		error_addr = omap3_l3_readll(base, L3_ERROR_LOG_ADDR);
+ 
+@@ -210,9 +203,8 @@ static irqreturn_t omap3_l3_app_irq(int irq, void *_l3)
+ 	}
+ 
+ 	/* Clear the status register */
+-	clear = ((L3_AGENT_STATUS_CLEAR_IA << int_type) |
+-		 (L3_AGENT_STATUS_CLEAR_TA));
+-
++	clear = (L3_AGENT_STATUS_CLEAR_IA << int_type) |
++		L3_AGENT_STATUS_CLEAR_TA;
+ 	omap3_l3_writell(base, L3_AGENT_STATUS, clear);
+ 
+ 	/* clear the error log register */
+@@ -240,7 +232,7 @@ static int __init omap3_l3_probe(struct platform_device *pdev)
+ 		goto err0;
  	}
  	l3->rt = ioremap(res->start, resource_size(res));
- 	if (!(l3->rt)) {
+-	if (!(l3->rt)) {
++	if (!l3->rt) {
  		dev_err(&pdev->dev, "ioremap failed\n");
  		ret = -ENOMEM;
--		goto err2;
-+		goto err0;
- 	}
- 
- 	l3->debug_irq = platform_get_irq(pdev, 0);
-@@ -254,7 +252,7 @@ static int __init omap3_l3_probe(struct platform_device *pdev)
- 		"l3-debug-irq", l3);
- 	if (ret) {
- 		dev_err(&pdev->dev, "couldn't request debug irq\n");
--		goto err3;
-+		goto err1;
- 	}
- 
- 	l3->app_irq = platform_get_irq(pdev, 1);
-@@ -264,18 +262,17 @@ static int __init omap3_l3_probe(struct platform_device *pdev)
- 
+ 		goto err0;
+@@ -259,7 +251,6 @@ static int __init omap3_l3_probe(struct platform_device *pdev)
+ 	ret = request_irq(l3->app_irq, omap3_l3_app_irq,
+ 		IRQF_DISABLED | IRQF_TRIGGER_RISING,
+ 		"l3-app-irq", l3);
+-
  	if (ret) {
  		dev_err(&pdev->dev, "couldn't request app irq\n");
--		goto err4;
-+		goto err2;
- 	}
- 
--	goto err0;
-+	return 0;
- 
--err4:
--err3:
--	iounmap(l3->rt);
- err2:
-+	free_irq(l3->debug_irq, l3);
- err1:
--	kfree(l3);
-+	iounmap(l3->rt);
- err0:
-+	kfree(l3);
- 	return ret;
- }
- 
+ 		goto err2;
 -- 
 1.7.1
 
