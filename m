@@ -1,43 +1,67 @@
-From: Greg KH <gregkh@suse.de>
-Subject: Re: [PATCH 0/14] Remove sysdev suspend/resume and shutdown operations
-Date: Sun, 17 Apr 2011 23:02:18 -0700
-Message-ID: <20110418060218.GB22168@suse.de>
-References: <201103280125.11750.rjw@sisk.pl> <201104172301.54115.rjw@sisk.pl>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RFC PATCH] Consolidate SRAM support
+Date: Mon, 18 Apr 2011 09:48:38 +0300
+Message-ID: <20110418064838.GE12272@atomide.com>
+References: <20110415130607.GM1611@n2100.arm.linux.org.uk>
+ <BANLkTikJwFRenjwnws+4J2ep9G0Nv-9aXw@mail.gmail.com>
+ <20110416130929.GL4423@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:57495 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752587Ab1DRGsp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Apr 2011 02:48:45 -0400
 Content-Disposition: inline
-In-Reply-To: <201104172301.54115.rjw@sisk.pl>
-List-Unsubscribe: <https://lists.ozlabs.org/options/linuxppc-dev>,
-	<mailto:linuxppc-dev-request@lists.ozlabs.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/linuxppc-dev>
-List-Post: <mailto:linuxppc-dev@lists.ozlabs.org>
-List-Help: <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/linuxppc-dev>,
-	<mailto:linuxppc-dev-request@lists.ozlabs.org?subject=subscribe>
-Errors-To: linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org
-Sender: linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Kevin Hilman <khilman@ti.com>, Guan Xuetao <gxt@mprc.pku.edu.cn>, Russell King <linux@arm.linux.org.uk>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, LKML <linux-kernel@vger.kernel.org>, Ralf Baechle <ralf@linux-mips.org>, Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>, Ben Dooks <ben-linux@fluff.org>, Jiri Kosina <jkosina@suse.cz>, Kay Sievers <kay.sievers@suse.de>, Mike Frysinger <vapier@gentoo.org>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, Hans-Christian Egtvedt <hans-christian.egtvedt@atmel.com>, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <20110416130929.GL4423@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Haojian Zhuang <haojian.zhuang@gmail.com>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@ti.com>, davinci-linux-open-source@linux.davincidsp.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-On Sun, Apr 17, 2011 at 11:01:53PM +0200, Rafael J. Wysocki wrote:
-> Hi,
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [110416 16:06]:
+> On Sat, Apr 16, 2011 at 09:01:26PM +0800, Haojian Zhuang wrote:
+> > On Fri, Apr 15, 2011 at 9:06 PM, Russell King - ARM Linux
+> > >
+> > > This uses the physical address, and unlike Davinci's dma address usage,
+> > > it always wants to have the physical address, and will always return
+> > > the corresponding physical address when passed that pointer.
+> > >
+> > > OMAP could probably do with some more work to make the omapfb and other
+> > > allocations use the sram allocator, rather than hooking in before the
+> > > sram allocator is initialized - and then further cleanups so that we
+> > > have an initialization function which just does
+
+I think we can just remove the omapfb SRAM support for now as it should
+be optional. That will then leave out that dependency and can be added
+back once we have a common framework in place.
+
+Tomi do you see any problems with that?
+
+> > TCM driver can allocate code into SRAM section in link stage. It needs to
+> > update link file and virtual memory layout. Is it worth to make SRAM driver
+> > support this behavior? The case of using SRAM as memory for instruction
+> > is switching frequency or entering/exiting low power mode in PXA silicons.
 > 
-> The following series of patches fixes bugs related to the introduction
-> of struct syscore_ops later in this cycle, replaces sysdev suspend/resume
-> operations in all of the architectures still using them with struct
-> syscore_ops-based PM callbacks and finally removes the suspend/resume
-> and shutdown operations from struct sysdev_class and struct sysdev_driver.
+> This is more or less the same scenario which OMAP is using its SRAM
+> for, although that's explicitly SRAM and not TCM.
 > 
-> Patches [1/14] and [2/14] are important bug fixes targeted at 2.6.39.
-> The remaining patches are regareded as 2.6.40 material, but I'd like to
-> put them into linux-next shortly, if there are no objections, to catch
-> problems that they may introduce before they hit the mainline.  Again,
-> if there are no objections I'd like to merge these patches through the
-> suspend-2.6 tree.
+> I don't think we need position dependent code requiring fixup for
+> these applications as such things tend to be fairly easily coded in a
+> position independent way.
 
-No objection from me at all, thanks for doing this they look great.
+There should not be any need code requiring fixup in most cases using
+parameters passed to the functions should be enough. Usually it's
+just register addresses that are different.
+ 
+> Also note that C functions can't be copied because C produces position
+> dependent code, and we have no way of extracting the relocation
+> dependencies from such code.
 
-Acked-by: Greg Kroah-Hartman <gregkh@suse.de>
+C functions should not be needed. The SRAM size is small and typical
+usage is a loop waiting for some register to lock. For any larger SRAM
+areas NUMA can be used instead.
+
+Regards,
+
+Tony
