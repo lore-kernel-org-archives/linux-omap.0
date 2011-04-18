@@ -1,53 +1,41 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v9 4/9] OMAP3: PM: TWL4030 power scripts for OMAP3
- boards
-Date: Mon, 18 Apr 2011 15:32:40 +0300
-Message-ID: <20110418123240.GN12272@atomide.com>
-References: <1302784077-16697-1-git-send-email-leslyam@ti.com>
- <1302784077-16697-5-git-send-email-leslyam@ti.com>
+From: Mario Demontis <mario.demontis@ecothermo.it>
+Subject: OMAP3530 serial hang
+Date: Mon, 18 Apr 2011 12:47:59 +0000 (UTC)
+Message-ID: <loom.20110418T143515-66@post.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:29512 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752903Ab1DRMcl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Apr 2011 08:32:41 -0400
-Content-Disposition: inline
-In-Reply-To: <1302784077-16697-5-git-send-email-leslyam@ti.com>
+Received: from lo.gmane.org ([80.91.229.12]:37912 "EHLO lo.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751267Ab1DRMuK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 18 Apr 2011 08:50:10 -0400
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gplao-linux-omap-open-source-moved1@m.gmane.org>)
+	id 1QBnu5-0006BY-5p
+	for linux-omap@vger.kernel.org; Mon, 18 Apr 2011 14:50:09 +0200
+Received: from 87.241.57.106 ([87.241.57.106])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-omap@vger.kernel.org>; Mon, 18 Apr 2011 14:50:09 +0200
+Received: from mario.demontis by 87.241.57.106 with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-omap@vger.kernel.org>; Mon, 18 Apr 2011 14:50:09 +0200
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Lesly A M <leslyam@ti.com>
-Cc: linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>, David Derrick <dderrick@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
+To: linux-omap@vger.kernel.org
 
-Hi,
+Hello
+I'm using Embest Devkit8000 with 2.6.37 kernel and I'm experiencing issues with 
+serial port.
+I have a modem (gprs8000) attached to /dev/ttyO0 and during operation it 
+randomly freezes (sometimes I have to wait long time, say, about 1-2 hours). 
+After the freeze I cannot use that port anymore (unless I reboot), even if 
+I remove the modem: microcom gets stuck and I have to kill -9 it, 
+so I presume the driver is hung.
 
-* Lesly A M <leslyam@ti.com> [110414 15:25]:
-> Power bus message sequence for TWL4030 to enter sleep/wakeup/warm_reset.
-> 
-> TWL4030 power scripts which can be used by different OMAP3 boards
-> with the power companion chip (TWL4030 series).
-> 
-> The twl4030 generic script can be used by any board file to update
-> the power data in twl4030_platform_data.
-> 
-> http://omapedia.org/wiki/TWL4030_power_scripts
-> 
-> Signed-off-by: Lesly A M <leslyam@ti.com>
-> Cc: Nishanth Menon <nm@ti.com>
-> Cc: David Derrick <dderrick@ti.com>
-> Cc: Samuel Ortiz <sameo@linux.intel.com>
-> ---
->  arch/arm/mach-omap2/twl4030-script.c |  331 ++++++++++++++++++++++++++++++++++
->  arch/arm/mach-omap2/twl4030-script.h |   23 +++
->  include/linux/i2c/twl.h              |   33 +++-
->  3 files changed, 384 insertions(+), 3 deletions(-)
->  create mode 100644 arch/arm/mach-omap2/twl4030-script.c
->  create mode 100644 arch/arm/mach-omap2/twl4030-script.h
+Could you please help me with this issue?
 
-To me it seems this should go into drivers/mfd instead.
-The script may contain omap specific values, but can be
-a loadable driver module.
+Thanks and regards
+Mario
 
-Maybe drivers/mfd/twl4030-script-omap.c?
-
-Tony
