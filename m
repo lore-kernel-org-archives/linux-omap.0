@@ -1,50 +1,41 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP: iommu flush page table entries from L1 and L2
- cache
-Date: Mon, 18 Apr 2011 14:05:08 +0300
-Message-ID: <20110418110502.GI12272@atomide.com>
-References: <1302817968-28516-1-git-send-email-fernando.lugo@ti.com>
- <20110414223036.GA7335@n2100.arm.linux.org.uk>
- <201104180929.33569.arnd@arndb.de>
+Subject: Re: [PATCH 0/2] OMAP: convert boards that use SMSC911x to use
+ gpmc-smsc911x
+Date: Mon, 18 Apr 2011 14:21:53 +0300
+Message-ID: <20110418112153.GK12272@atomide.com>
+References: <cover.1302992702.git.mike@compulab.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:14292 "EHLO
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:21219 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750832Ab1DRLFO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Apr 2011 07:05:14 -0400
+	with ESMTP id S1751420Ab1DRLVy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Apr 2011 07:21:54 -0400
 Content-Disposition: inline
-In-Reply-To: <201104180929.33569.arnd@arndb.de>
+In-Reply-To: <cover.1302992702.git.mike@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Fernando Guzman Lugo <fernando.lugo@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Ramesh Gupta <grgupta@ti.com>, Hari Kanigeri <h-kanigeri2@ti.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+To: Mike Rapoport <mike@compulab.co.il>
+Cc: linux-omap@vger.kernel.org
 
-* Arnd Bergmann <arnd@arndb.de> [110418 10:26]:
-> On Friday 15 April 2011, Russell King - ARM Linux wrote:
-> > On Thu, Apr 14, 2011 at 04:52:48PM -0500, Fernando Guzman Lugo wrote:
-> > > From: Ramesh Gupta <grgupta@ti.com>
-> > > 
-> > > This patch is to flush the iommu page table entries from L1 and L2
-> > > caches using dma_map_single. This also simplifies the implementation
-> > > by removing the functions  flush_iopgd_range/flush_iopte_range.
-> > 
-> > No.  This usage is just wrong.  If you're going to use the DMA API then
-> > unmap it, otherwise the DMA API debugging will go awol.
+* Mike Rapoport <mike@compulab.co.il> [110417 01:21]:
+> There are several OMAP boards that use SMSC911x Ethernet controller. Convert them all to use gpmc-smsc911x for device registration.
 > 
+> Mike Rapoport (2):
+>   OMAP: gpmc-smsc911x: always set irq flags to IORESOURCE_IRQ_LOWLEVEL
+>   OMAP: convert boards that use SMSC911x to use gpmc-smsc911x
 > 
-> It's also completely upside-down: The iommu support should provide interfaces
-> using the dma-mapping API, not use that API to provide a machine specific
-> version of the generic interface.
-> 
-> As far as I can tell, nothing actually uses these drivers, maybe we should just
-> remove them before we get any code in the mainline kernel that depends on it.
+>  arch/arm/mach-omap2/board-cm-t35.c          |   84 +++------------------
+>  arch/arm/mach-omap2/board-igep0020.c        |   53 ++-----------
+>  arch/arm/mach-omap2/board-ldp.c             |   65 ++--------------
+>  arch/arm/mach-omap2/board-omap3evm.c        |   71 +++---------------
+>  arch/arm/mach-omap2/board-omap3logic.c      |    1 -
+>  arch/arm/mach-omap2/board-omap3stalker.c    |   48 ++----------
+>  arch/arm/mach-omap2/board-overo.c           |  108 ++++-----------------------
+>  arch/arm/mach-omap2/board-zoom-debugboard.c |   56 ++------------
+>  arch/arm/mach-omap2/gpmc-smsc911x.c         |    7 +-
+>  9 files changed, 70 insertions(+), 423 deletions(-)
 
-There is drivers/media/video/omap3isp/isp.c. But if we now
-have a generic replacement for this code we should start using it.
-
-Hiroshi, any comments on that?
-
-Regards,
+Nice job Mike :)
 
 Tony
