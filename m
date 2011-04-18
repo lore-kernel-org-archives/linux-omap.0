@@ -1,41 +1,34 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/2] OMAP: convert boards that use SMSC911x to use
- gpmc-smsc911x
-Date: Mon, 18 Apr 2011 14:21:53 +0300
-Message-ID: <20110418112153.GK12272@atomide.com>
-References: <cover.1302992702.git.mike@compulab.co.il>
+Subject: Re: [RFC PATCH v2] Consolidate SRAM support
+Date: Mon, 18 Apr 2011 14:33:36 +0300
+Message-ID: <20110418113335.GL12272@atomide.com>
+References: <20110415130607.GM1611@n2100.arm.linux.org.uk>
+ <20110418085259.GA26044@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:21219 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751420Ab1DRLVy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Apr 2011 07:21:54 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:22880 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751267Ab1DRLdp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Apr 2011 07:33:45 -0400
 Content-Disposition: inline
-In-Reply-To: <cover.1302992702.git.mike@compulab.co.il>
+In-Reply-To: <20110418085259.GA26044@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mike Rapoport <mike@compulab.co.il>
-Cc: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@ti.com>, Paul Mundt <lethal@linux-sh.org>, Magnus Damm <magnus.damm@gmail.com>, davinci-linux-open-source@linux.davincidsp.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-* Mike Rapoport <mike@compulab.co.il> [110417 01:21]:
-> There are several OMAP boards that use SMSC911x Ethernet controller. Convert them all to use gpmc-smsc911x for device registration.
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [110418 11:50]:
+> This is the second revision of this patch.  I've not moved it out of
+> ARM yet as I haven't had a positive response from SH yet.
 > 
-> Mike Rapoport (2):
->   OMAP: gpmc-smsc911x: always set irq flags to IORESOURCE_IRQ_LOWLEVEL
->   OMAP: convert boards that use SMSC911x to use gpmc-smsc911x
-> 
->  arch/arm/mach-omap2/board-cm-t35.c          |   84 +++------------------
->  arch/arm/mach-omap2/board-igep0020.c        |   53 ++-----------
->  arch/arm/mach-omap2/board-ldp.c             |   65 ++--------------
->  arch/arm/mach-omap2/board-omap3evm.c        |   71 +++---------------
->  arch/arm/mach-omap2/board-omap3logic.c      |    1 -
->  arch/arm/mach-omap2/board-omap3stalker.c    |   48 ++----------
->  arch/arm/mach-omap2/board-overo.c           |  108 ++++-----------------------
->  arch/arm/mach-omap2/board-zoom-debugboard.c |   56 ++------------
->  arch/arm/mach-omap2/gpmc-smsc911x.c         |    7 +-
->  9 files changed, 70 insertions(+), 423 deletions(-)
+> It's now called pv_pool (for phys/virt pool) rather than sram_pool,
+> and I've included MXC's iram support in this.  Hopefully, if OMAP can
+> remove the FB stuff from SRAM we can clean the OMAP bits up a little
+> more.  Neither have I sorted out the last reference to omap_sram_ceil.
+> Some comments from OMAP people on what's going on there would be good.
 
-Nice job Mike :)
+I believe the omap_sram_ceil should also disappear with the omapfb
+SRAM patch.
 
 Tony
