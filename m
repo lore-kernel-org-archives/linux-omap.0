@@ -1,64 +1,43 @@
-From: Mayuresh Janorkar <mayur@ti.com>
-Subject: [PATCH 7/7] OMAP4: DSS: Adding picodlp panel entry in Kconfig and Makefile
-Date: Mon, 18 Apr 2011 11:45:50 +0530
-Message-ID: <1303107350-22747-8-git-send-email-mayur@ti.com>
-References: <1303107350-22747-1-git-send-email-mayur@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:42359 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751693Ab1DRF7Z (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 18 Apr 2011 01:59:25 -0400
-Received: from dlep35.itg.ti.com ([157.170.170.118])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p3I5xP80023264
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Mon, 18 Apr 2011 00:59:25 -0500
-In-Reply-To: <1303107350-22747-1-git-send-email-mayur@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Greg KH <gregkh@suse.de>
+Subject: Re: [PATCH 0/14] Remove sysdev suspend/resume and shutdown operations
+Date: Sun, 17 Apr 2011 23:02:18 -0700
+Message-ID: <20110418060218.GB22168@suse.de>
+References: <201103280125.11750.rjw@sisk.pl> <201104172301.54115.rjw@sisk.pl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
+Content-Disposition: inline
+In-Reply-To: <201104172301.54115.rjw@sisk.pl>
+List-Unsubscribe: <https://lists.ozlabs.org/options/linuxppc-dev>,
+	<mailto:linuxppc-dev-request@lists.ozlabs.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/linuxppc-dev>
+List-Post: <mailto:linuxppc-dev@lists.ozlabs.org>
+List-Help: <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/linuxppc-dev>,
+	<mailto:linuxppc-dev-request@lists.ozlabs.org?subject=subscribe>
+Errors-To: linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org
+Sender: linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Kevin Hilman <khilman@ti.com>, Guan Xuetao <gxt@mprc.pku.edu.cn>, Russell King <linux@arm.linux.org.uk>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, LKML <linux-kernel@vger.kernel.org>, Ralf Baechle <ralf@linux-mips.org>, Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>, Ben Dooks <ben-linux@fluff.org>, Jiri Kosina <jkosina@suse.cz>, Kay Sievers <kay.sievers@suse.de>, Mike Frysinger <vapier@gentoo.org>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, Hans-Christian Egtvedt <hans-christian.egtvedt@atmel.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: tomi.valkeinen@ti.com, Mythri P K <mythripk@ti.com>, Mayuresh Janorkar <mayur@ti.com>
 
-From: Mythri P K <mythripk@ti.com>
+On Sun, Apr 17, 2011 at 11:01:53PM +0200, Rafael J. Wysocki wrote:
+> Hi,
+> 
+> The following series of patches fixes bugs related to the introduction
+> of struct syscore_ops later in this cycle, replaces sysdev suspend/resume
+> operations in all of the architectures still using them with struct
+> syscore_ops-based PM callbacks and finally removes the suspend/resume
+> and shutdown operations from struct sysdev_class and struct sysdev_driver.
+> 
+> Patches [1/14] and [2/14] are important bug fixes targeted at 2.6.39.
+> The remaining patches are regareded as 2.6.40 material, but I'd like to
+> put them into linux-next shortly, if there are no objections, to catch
+> problems that they may introduce before they hit the mainline.  Again,
+> if there are no objections I'd like to merge these patches through the
+> suspend-2.6 tree.
 
-A new panel picodlp for OMAP4 has been introduced
-picodlp is a projector available on OMAP4430SDP and EVM platforms.
+No objection from me at all, thanks for doing this they look great.
 
-Signed-off-by: Mythri P K <mythripk@ti.com>
-Signed-off-by: Mayuresh Janorkar <mayur@ti.com>
----
- drivers/video/omap2/displays/Kconfig  |    7 +++++++
- drivers/video/omap2/displays/Makefile |    1 +
- 2 files changed, 8 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/video/omap2/displays/Kconfig b/drivers/video/omap2/displays/Kconfig
-index d18ad6b..374c06c 100644
---- a/drivers/video/omap2/displays/Kconfig
-+++ b/drivers/video/omap2/displays/Kconfig
-@@ -29,6 +29,13 @@ config PANEL_NEC_NL8048HL11_01B
- 		This NEC NL8048HL11-01B panel is TFT LCD
- 		used in the Zoom2/3/3630 sdp boards.
- 
-+config PANEL_PICODLP
-+	tristate "OMAP PICO DLP Panel"
-+	depends on OMAP2_DSS
-+	help
-+		Projector Panel used in TI's SDP4430 and EVM boards
-+		For more info please visit http://www.dlp.com/projector/
-+
- config PANEL_TAAL
-         tristate "Taal DSI Panel"
-         depends on OMAP2_DSS_DSI
-diff --git a/drivers/video/omap2/displays/Makefile b/drivers/video/omap2/displays/Makefile
-index 0f601ab..d90f73c 100644
---- a/drivers/video/omap2/displays/Makefile
-+++ b/drivers/video/omap2/displays/Makefile
-@@ -4,5 +4,6 @@ obj-$(CONFIG_PANEL_SHARP_LS037V7DW01) += panel-sharp-ls037v7dw01.o
- obj-$(CONFIG_PANEL_NEC_NL8048HL11_01B) += panel-nec-nl8048hl11-01b.o
- 
- obj-$(CONFIG_PANEL_TAAL) += panel-taal.o
-+obj-$(CONFIG_PANEL_PICODLP) +=  panel-picodlp.o
- obj-$(CONFIG_PANEL_TPO_TD043MTEA1) += panel-tpo-td043mtea1.o
- obj-$(CONFIG_PANEL_ACX565AKM) += panel-acx565akm.o
--- 
-1.7.1
-
+Acked-by: Greg Kroah-Hartman <gregkh@suse.de>
