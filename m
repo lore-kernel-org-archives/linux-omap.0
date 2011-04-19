@@ -1,39 +1,52 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH] OMAP: iommu flush page table entries from L1 and L2 cache
-Date: Tue, 19 Apr 2011 14:01:34 +0200
-Message-ID: <201104191401.34818.arnd@arndb.de>
-References: <1302817968-28516-1-git-send-email-fernando.lugo@ti.com> <201104181613.43572.arnd@arndb.de> <BANLkTi=dpqMFjW_B5-YsmoCJf62b8djj5g@mail.gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: The old omapfb support
+Date: Tue, 19 Apr 2011 15:20:26 +0300
+Message-ID: <1303215626.32281.70.camel@deskari>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:57662 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754324Ab1DSMB4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Apr 2011 08:01:56 -0400
-In-Reply-To: <BANLkTi=dpqMFjW_B5-YsmoCJf62b8djj5g@mail.gmail.com>
+Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:51548 "EHLO
+	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754995Ab1DSMUb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 19 Apr 2011 08:20:31 -0400
+Received: by mail-ew0-f48.google.com with SMTP id 22so1786671ewy.7
+        for <linux-omap@vger.kernel.org>; Tue, 19 Apr 2011 05:20:30 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kyungmin Park <kmpark@infradead.org>
-Cc: Hari Kanigeri <h-kanigeri2@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Fernando Guzman Lugo <fernando.lugo@ti.com>, Tony Lindgren <tony@atomide.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, linux-kernel@vger.kernel.org, Andrzej Pietrasiewicz <andrzej.p@samsung.com>, Ramesh Gupta <grgupta@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Marek Szyprowski <m.szyprowski@samsung.com>
+To: Tony Lindgren <tony@atomide.com>, lo-ml <linux-omap@vger.kernel.org>
 
-On Tuesday 19 April 2011, Kyungmin Park wrote:
-> On Mon, Apr 18, 2011 at 11:13 PM, Arnd Bergmann <arnd@arndb.de> wrote:
-> > On Monday 18 April 2011, Kyungmin Park wrote:
-> >> On Mon, Apr 18, 2011 at 8:58 PM, Arnd Bergmann <arnd@arndb.de> wrote:
-> >> >
-> >> > One missing piece is still a way for a platform to provide both
-> >> > the iommu and the dma-mapping API in a unified driver. Right now,
-> >> > you have to export both interface for a generic solution.
-> >>
-> >> Actually MSM and we (Michal, Marek) tried to merge the generic IOMMU
-> >> implementation into mm, but MM did't accept it.
-> >
-> > I'm confused. What do you mean with MM?
-> linux/mm, Memory Management.
+Hi Tony, All,
 
-I'm still confused. What were you suggesting to merge in there?
-Do you have a link to a mailing list discussion?
+Due to the recent SRAM discussion I started removing SRAM support from
+the new omapdss and omapfb driver, which was quite a simple task. Then I
+realized that the old omapfb driver also contains SRAM code, removing of
+which which wasn't such a simple task. I think I got that solved, but it
+needs still cleaning up.
 
-	Arnd
+But this again reminded me of the mess of having two display drivers,
+the old omapfb and the new DSS2. Many of the OMAP2 boards using the old
+driver should be quite easy to port to DSS2, with the exception of N800.
+DSS2 doesn't support OMAP1, so there's not much that can be done with
+those boards currently.
+
+What is the status of OMAP1 support in general? Is having a working
+framebuffer for OMAP1 boards something we need? 
+
+Will there be a single kernel config containing OMAP1 and OMAP2+ support
+in the future? This will cause problems, as the old and new display
+drivers cannot coexist currently.
+
+I have never worked with an OMAP1 board, and I don't own one, and thus I
+don't have any experience on OMAP1 display HW. This will make any work I
+do on OMAP1 omapfb slightly difficult, but if there's clear need for
+OMAP1 fb, then I think the only way to go is to convert the old omapfb
+driver to an OMAP1 framebuffer driver.
+
+But whatever is decided on OMAP1 fb, I'll start converting the OMAP2
+drivers to the new DSS2.
+
+ Tomi
+
+
