@@ -1,70 +1,39 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 6/7] OMAP4: DSS: Adding a picodlp in OMAP4430 SDP board
- file
-Date: Tue, 19 Apr 2011 14:54:25 +0300
-Message-ID: <1303214065.32281.47.camel@deskari>
-References: <1303107350-22747-1-git-send-email-mayur@ti.com>
-	 <1303107350-22747-7-git-send-email-mayur@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH] OMAP: iommu flush page table entries from L1 and L2 cache
+Date: Tue, 19 Apr 2011 14:01:34 +0200
+Message-ID: <201104191401.34818.arnd@arndb.de>
+References: <1302817968-28516-1-git-send-email-fernando.lugo@ti.com> <201104181613.43572.arnd@arndb.de> <BANLkTi=dpqMFjW_B5-YsmoCJf62b8djj5g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:41745 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751407Ab1DSLya (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 19 Apr 2011 07:54:30 -0400
-Received: by mail-ww0-f42.google.com with SMTP id 4so3184489wwk.3
-        for <linux-omap@vger.kernel.org>; Tue, 19 Apr 2011 04:54:29 -0700 (PDT)
-In-Reply-To: <1303107350-22747-7-git-send-email-mayur@ti.com>
+Received: from moutng.kundenserver.de ([212.227.17.9]:57662 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754324Ab1DSMB4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Apr 2011 08:01:56 -0400
+In-Reply-To: <BANLkTi=dpqMFjW_B5-YsmoCJf62b8djj5g@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mayuresh Janorkar <mayur@ti.com>
-Cc: linux-omap@vger.kernel.org, Mythri P K <mythripk@ti.com>
+To: Kyungmin Park <kmpark@infradead.org>
+Cc: Hari Kanigeri <h-kanigeri2@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Fernando Guzman Lugo <fernando.lugo@ti.com>, Tony Lindgren <tony@atomide.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, linux-kernel@vger.kernel.org, Andrzej Pietrasiewicz <andrzej.p@samsung.com>, Ramesh Gupta <grgupta@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Marek Szyprowski <m.szyprowski@samsung.com>
 
-On Mon, 2011-04-18 at 11:45 +0530, Mayuresh Janorkar wrote:
-> An on-board panel named picodlp projector is available for OMAP4430 SDP.
-> 
-> Entry for this panel is being added in dss_devices in the board file.
-> It also needs 4 GPIO pins and are defined and used in board file.
-> picodlp also needs an i2c client over i2c controller-2 at address 0x1b.
-> 
-> Signed-off-by: Mayuresh Janorkar <mayur@ti.com>
-> Signed-off-by: Mythri P K <mythripk@ti.com>
-> ---
->  arch/arm/mach-omap2/board-4430sdp.c |   40 +++++++++++++++++++++++++++++++++++
->  1 files changed, 40 insertions(+), 0 deletions(-)
-> diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-> index 1503f0b..6827612
-> --- a/arch/arm/mach-omap2/board-4430sdp.c
-> +++ b/arch/arm/mach-omap2/board-4430sdp.c
-> @@ -38,6 +38,7 @@
->  #include <plat/omap4-keypad.h>
->  #include <plat/display.h>
->  #include <plat/nokia-dsi-panel.h>
-> +#include <plat/panel-picodlp.h>
->  
->  #include "mux.h"
->  #include "hsmmc.h"
-> @@ -585,6 +586,7 @@ static struct i2c_board_info __initdata sdp4430_i2c_boardinfo[] = {
->  		.platform_data = &sdp4430_twldata,
->  	},
->  };
-> +
+On Tuesday 19 April 2011, Kyungmin Park wrote:
+> On Mon, Apr 18, 2011 at 11:13 PM, Arnd Bergmann <arnd@arndb.de> wrote:
+> > On Monday 18 April 2011, Kyungmin Park wrote:
+> >> On Mon, Apr 18, 2011 at 8:58 PM, Arnd Bergmann <arnd@arndb.de> wrote:
+> >> >
+> >> > One missing piece is still a way for a platform to provide both
+> >> > the iommu and the dma-mapping API in a unified driver. Right now,
+> >> > you have to export both interface for a generic solution.
+> >>
+> >> Actually MSM and we (Michal, Marek) tried to merge the generic IOMMU
+> >> implementation into mm, but MM did't accept it.
+> >
+> > I'm confused. What do you mean with MM?
+> linux/mm, Memory Management.
 
-Unneeded change.
+I'm still confused. What were you suggesting to merge in there?
+Do you have a link to a mailing list discussion?
 
->  static struct i2c_board_info __initdata sdp4430_i2c_3_boardinfo[] = {
->  	{
->  		I2C_BOARD_INFO("tmp105", 0x48),
-> @@ -598,6 +600,7 @@ static struct i2c_board_info __initdata sdp4430_i2c_4_boardinfo[] = {
->  		I2C_BOARD_INFO("hmc5843", 0x1e),
->  	},
->  };
-> +
-
-Unneeded change.
-
- Tomi
-
-
+	Arnd
