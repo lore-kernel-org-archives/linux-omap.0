@@ -1,57 +1,80 @@
-From: Michael =?ISO-8859-1?Q?B=FCsch?= <m@bues.ch>
-Subject: Re: The old omapfb support
-Date: Tue, 19 Apr 2011 14:45:14 +0200
-Message-ID: <1303217114.27432.9.camel@maggie>
-References: <1303215626.32281.70.camel@deskari>
-	 <20110419123036.GF15620@atomide.com>  <1303216485.27432.7.camel@maggie>
-	 <1303216889.32281.80.camel@deskari>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH] OMAP: iommu flush page table entries from L1 and L2
+	cache
+Date: Tue, 19 Apr 2011 14:02:01 +0100
+Message-ID: <20110419130201.GA24972@n2100.arm.linux.org.uk>
+References: <1302817968-28516-1-git-send-email-fernando.lugo@ti.com> <201104181613.43572.arnd@arndb.de> <BANLkTi=dpqMFjW_B5-YsmoCJf62b8djj5g@mail.gmail.com> <201104191401.34818.arnd@arndb.de> <BANLkTim_30SbVhPLFOaq-KYwz5N6NGCe6A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 80-190-117-144.ip-home.de ([80.190.117.144]:53959 "EHLO bues.ch"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752131Ab1DSMpU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 19 Apr 2011 08:45:20 -0400
-In-Reply-To: <1303216889.32281.80.camel@deskari>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <BANLkTim_30SbVhPLFOaq-KYwz5N6NGCe6A@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kyungmin Park <kmpark@infradead.org>
+Cc: Arnd Bergmann <arnd@arndb.de>, Fernando Guzman Lugo <fernando.lugo@ti.com>, Tony Lindgren <tony@atomide.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, linux-kernel@vger.kernel.org, Andrzej Pietrasiewicz <andrzej.p@samsung.com>, Ramesh Gupta <grgupta@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Marek Szyprowski <m.szyprowski@samsung.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, lo-ml <linux-omap@vger.kernel.org>
 
-On Tue, 2011-04-19 at 15:41 +0300, Tomi Valkeinen wrote:=20
-> On Tue, 2011-04-19 at 14:34 +0200, Michael B=C3=BCsch wrote:
-> > On Tue, 2011-04-19 at 15:30 +0300, Tony Lindgren wrote:=20
-> > > > But this again reminded me of the mess of having two display dr=
-ivers,
-> > > > the old omapfb and the new DSS2. Many of the OMAP2 boards using=
- the old
-> > > > driver should be quite easy to port to DSS2, with the exception=
- of N800.
-> > > > DSS2 doesn't support OMAP1, so there's not much that can be don=
-e with
-> > > > those boards currently.
-> >=20
-> > > Yeh we can just make old omapfb depends on ARCH_OMAP1.
-> >=20
-> > As he said, the old omapfb code is used on n8x0, which is OMAP2.
->=20
-> But as I also said, the old OMAP2 panel drivers can be ported to the =
-new
-> DSS driver. I just mentioned N800 because the panel driver for N800 i=
-s
-> rather difficult to port and will require more work than the other OM=
-AP2
-> panel drivers.
+On Tue, Apr 19, 2011 at 09:35:56PM +0900, Kyungmin Park wrote:
+> On Tue, Apr 19, 2011 at 9:01 PM, Arnd Bergmann <arnd@arndb.de> wrote:
+> > On Tuesday 19 April 2011, Kyungmin Park wrote:
+> >> On Mon, Apr 18, 2011 at 11:13 PM, Arnd Bergmann <arnd@arndb.de> wrote:
+> >> > On Monday 18 April 2011, Kyungmin Park wrote:
+> >> >> On Mon, Apr 18, 2011 at 8:58 PM, Arnd Bergmann <arnd@arndb.de> wrote:
+> >> >> >
+> >> >> > One missing piece is still a way for a platform to provide both
+> >> >> > the iommu and the dma-mapping API in a unified driver. Right now,
+> >> >> > you have to export both interface for a generic solution.
+> >> >>
+> >> >> Actually MSM and we (Michal, Marek) tried to merge the generic IOMMU
+> >> >> implementation into mm, but MM did't accept it.
+> >> >
+> >> > I'm confused. What do you mean with MM?
+> >> linux/mm, Memory Management.
+> >
+> > I'm still confused. What were you suggesting to merge in there?
+> > Do you have a link to a mailing list discussion?
+> 
+> First, Zach Pfeffer <zpfeffer@codeaurora.org> sent the patch
+> https://patchwork.kernel.org/patch/108736/
+> 
+> Second, Michal tried it.
+> http://lkml.org/lkml/2010/9/6/41
+> 
+> http://lwn.net/Articles/403643/
+> https://patchwork.kernel.org/patch/157451/
 
-So if you first port the stuff and then add the depends-on OMAP1, I'm
-fine with it.
+This shows why ARM is in such a problem.  People love to create new
+frameworks and infrastructure where they find existing stuff lacking,
+rather than looking at what other architectures do and adapt.
 
---=20
-Greetings Michael.
+As I'm sure has already mentioned, the kernel already has support for
+IOMMUs in the DMA path with several non-ARM architectures, and this
+support is managed through the existing DMA API.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+When you want a device behind an IOMMU to perform DMA, the driver
+uses the DMA API in the standard way as if there was no IOMMU there.
+As part of the DMA API, particularly the SG list part, the DMA API
+is allowed to coalesce the SG entries together if it can arrange
+the IOMMU mappings to achieve a continguous mapping for the device.
+Remember, dma_map_sg() is allowed to return _fewer_ entries in the
+scatterlist than was passed to it for this very purpose.
+
+In order to transition ARM over to this, we need to modify the
+scatterlist structure by enabling CONFIG_NEED_SG_DMA_LENGTH.  We
+then need to arrange for the DMA API to have the hooks _both_ into
+the DMA cache coherency code (to ensure that the data hits memory)
+and the IOMMU code (this part is missing from ARM.)  The current
+abstractions in the generic header files don't allow for this.
+
+I don't believe there's any need for any major new framework - and I
+don't think I'm alone in thinking that, especially as this point has
+been raised more than once when this framework has been submitted.
+
+I see no reason why ARM should be any different from other architectures
+which have IOMMUs, and I don't see why ARM should have to invent a whole
+new framework to handle IOMMUs.  And I see no explanation why the
+existing hooks are unsuitable - at least as the _initial_ starting point.
+
+So, can you please explain why your IOMMU code can not be hidden behind
+the DMA API.  (Please omit any complaints about the mechanics of hooking
+it in there, such things are solvable.)
