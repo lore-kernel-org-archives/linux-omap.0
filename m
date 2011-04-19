@@ -1,115 +1,51 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: [PATCH] cbus: tahvo: Remove dead code from tahvo-usb.c
-Date: Tue, 19 Apr 2011 11:19:53 +0300
-Message-ID: <1303201193-11516-1-git-send-email-jhnikula@gmail.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:64623 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753172Ab1DSIR4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Apr 2011 04:17:56 -0400
-Received: by mail-ey0-f174.google.com with SMTP id 24so1619314eyx.19
-        for <linux-omap@vger.kernel.org>; Tue, 19 Apr 2011 01:17:55 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+From: Kyungmin Park <kmpark@infradead.org>
+Subject: Re: [PATCH] OMAP: iommu flush page table entries from L1 and L2 cache
+Date: Tue, 19 Apr 2011 18:11:00 +0900
+Message-ID: <BANLkTi=dpqMFjW_B5-YsmoCJf62b8djj5g@mail.gmail.com>
+References: <1302817968-28516-1-git-send-email-fernando.lugo@ti.com>
+	<201104181358.53521.arnd@arndb.de>
+	<BANLkTimc20N0nh9O0FaSXizW+bYOMx9Ddw@mail.gmail.com>
+	<201104181613.43572.arnd@arndb.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <201104181613.43572.arnd@arndb.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Hari Kanigeri <h-kanigeri2@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Fernando Guzman Lugo <fernando.lugo@ti.com>, Tony Lindgren <tony@atomide.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, linux-kernel@vger.kernel.org, Andrzej Pietrasiewicz <andrzej.p@samsung.com>, Ramesh Gupta <grgupta@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Marek Szyprowski <m.szyprowski@samsung.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Jarkko Nikula <jhnikula@gmail.com>
 
-Looks like this code was ever used. It was added by commit
-fe3702054f6412aea04373ceb9d27a4a417ff3f0 "OMAP: Fix USB on Nokia 770"
-that can be found from linux-omap history if needed.
+On Mon, Apr 18, 2011 at 11:13 PM, Arnd Bergmann <arnd@arndb.de> wrote:
+> On Monday 18 April 2011, Kyungmin Park wrote:
+>> On Mon, Apr 18, 2011 at 8:58 PM, Arnd Bergmann <arnd@arndb.de> wrote=
+:
+>> >
+>> > One missing piece is still a way for a platform to provide both
+>> > the iommu and the dma-mapping API in a unified driver. Right now,
+>> > you have to export both interface for a generic solution.
+>>
+>> Actually MSM and we (Michal, Marek) tried to merge the generic IOMMU
+>> implementation into mm, but MM did't accept it.
+>
+> I'm confused. What do you mean with MM?
+linux/mm, Memory Management.
 
-Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
----
- drivers/cbus/tahvo-usb.c |   48 +---------------------------------------------
- 1 files changed, 1 insertions(+), 47 deletions(-)
-
-diff --git a/drivers/cbus/tahvo-usb.c b/drivers/cbus/tahvo-usb.c
-index f6b3c1a..be0333f 100644
---- a/drivers/cbus/tahvo-usb.c
-+++ b/drivers/cbus/tahvo-usb.c
-@@ -236,47 +236,6 @@ static DEVICE_ATTR(vbus_state, 0444, vbus_state_show, NULL);
- 
- int vbus_active = 0;
- 
--#if 0
--
--static int host_suspend(struct tahvo_usb *tu)
--{
--	struct device	*dev;
--
--	if (!tu->otg.host)
--		return -ENODEV;
--
--	/* Currently ASSUMES only the OTG port matters;
--	 * other ports could be active...
--	 */
--	dev = tu->otg.host->controller;
--	return dev->driver->suspend(dev, PMSG_SUSPEND);
--}
--
--static int host_resume(struct tahvo_usb *tu)
--{
--	struct device	*dev;
--
--	if (!tu->otg.host)
--		return -ENODEV;
--
--	dev = tu->otg.host->controller;
--	return dev->driver->resume(dev);
--}
--
--#else
--
--static int host_suspend(struct tahvo_usb *tu)
--{
--	return 0;
--}
--
--static int host_resume(struct tahvo_usb *tu)
--{
--	return 0;
--}
--
--#endif
--
- static void check_vbus_state(struct tahvo_usb *tu)
- {
- 	int reg, prev_state;
-@@ -303,7 +262,6 @@ static void check_vbus_state(struct tahvo_usb *tu)
- 		case OTG_STATE_A_IDLE:
- 			/* Session is now valid assuming the USB hub is driving Vbus */
- 			tu->otg.state = OTG_STATE_A_HOST;
--			host_resume(tu);
- 			break;
- 		default:
- 			break;
-@@ -355,7 +313,6 @@ static void tahvo_usb_become_host(struct tahvo_usb *tu)
- 
- static void tahvo_usb_stop_host(struct tahvo_usb *tu)
- {
--	host_suspend(tu);
- 	tu->otg.state = OTG_STATE_A_IDLE;
- }
- 
-@@ -403,8 +360,6 @@ static void tahvo_usb_power_off(struct tahvo_usb *tu)
- 	if (tu->otg.gadget)
- 		usb_gadget_vbus_disconnect(tu->otg.gadget);
- 
--	host_suspend(tu);
--
- 	/* Disable OTG and interrupts */
- 	if (TAHVO_MODE(tu) == TAHVO_MODE_PERIPHERAL)
- 		id = OTG_ID;
-@@ -521,8 +476,7 @@ static int tahvo_usb_set_host(struct otg_transceiver *otg, struct usb_bus *host)
- 	if (TAHVO_MODE(tu) == TAHVO_MODE_HOST) {
- 		tu->otg.host = NULL;
- 		tahvo_usb_become_host(tu);
--	} else
--		host_suspend(tu);
-+	}
- 
- 	tu->otg.host = host;
- 
--- 
-1.7.4.1
-
+Thank you,
+Kyungmin Park
+>
+>> So now it's implemented at each SoCs. I think it's good chance to ma=
+ke
+>> a generic IOMMU feature for ARM consolidation.
+>>
+>> Before this idea, can you review our implementation at above URL?
+>
+> I've commented on the main implementation for the IOMMU now.
+>
+> =A0 =A0 =A0 =A0Arnd
+>
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+>
