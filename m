@@ -1,40 +1,39 @@
-From: "Guan Xuetao" <gxt@mprc.pku.edu.cn>
-Subject: RE: [PATCH 12/14] PM / UNICORE32: Use struct syscore_ops instead of sysdevs for PM
-Date: Tue, 19 Apr 2011 16:02:55 +0800
-Message-ID: <006201cbfe68$3ad01380$b0703a80$@mprc.pku.edu.cn>
-References: <201103280125.11750.rjw@sisk.pl> <201104172301.54115.rjw@sisk.pl> <201104172313.45854.rjw@sisk.pl>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201104172313.45854.rjw@sisk.pl>
-Content-Language: zh-cn
-Sender: linux-kernel-owner@vger.kernel.org
-To: "'Rafael J. Wysocki'" <rjw@sisk.pl>, 'LKML' <linux-kernel@vger.kernel.org>
-Cc: 'Greg KH' <gregkh@suse.de>, 'Kay Sievers' <kay.sievers@suse.de>, 'Linux PM mailing list' <linux-pm@lists.linux-foundation.org>, 'Russell King' <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, 'Kevin Hilman' <khilman@ti.com>, linux-arm-kernel@lists.infradead.org, 'Ben Dooks' <ben-linux@fluff.org>, 'Mike Frysinger' <vapier@gentoo.org>, 'Ralf Baechle' <ralf@linux-mips.org>, 'Hans-Christian Egtvedt' <hans-christian.egtvedt@atmel.com>, 'Benjamin Herrenschmidt' <benh@kernel.crashing.org>, linuxppc-dev@lists.ozlabs.org, 'Jiri Kosina' <jkosina@suse.cz>, 'Konrad Rzeszutek Wilk' <konrad.wilk@oracle.com>, 'Jeremy Fitzhardinge' <jeremy.fitzhardinge@citrix.com>
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: [PATCH] cbus: tahvo: Select USB_OTG_UTILS
+Date: Tue, 19 Apr 2011 11:19:38 +0300
+Message-ID: <1303201178-11482-1-git-send-email-jhnikula@gmail.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:64623 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753011Ab1DSIRq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Apr 2011 04:17:46 -0400
+Received: by eyx24 with SMTP id 24so1619314eyx.19
+        for <linux-omap@vger.kernel.org>; Tue, 19 Apr 2011 01:17:45 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Jarkko Nikula <jhnikula@gmail.com>
 
+tahvo-usb.c is using otg_set_transceiver which is built only if
+CONFIG_USB_OTG_UTILS is set.
 
+Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
+---
+ drivers/cbus/Kconfig |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-> -----Original Message-----
-> From: Rafael J. Wysocki [mailto:rjw@sisk.pl]
-> Sent: Monday, April 18, 2011 5:14 AM
-> To: LKML
-> Cc: Greg KH; Kay Sievers; Linux PM mailing list; Russell King; linux-omap@vger.kernel.org; Kevin Hilman; linux-arm-
-> kernel@lists.infradead.org; Ben Dooks; Mike Frysinger; Ralf Baechle; Hans-Christian Egtvedt; Guan Xuetao; Benjamin Herrenschmidt;
-> linuxppc-dev@lists.ozlabs.org; Jiri Kosina; Konrad Rzeszutek Wilk; Jeremy Fitzhardinge
-> Subject: [PATCH 12/14] PM / UNICORE32: Use struct syscore_ops instead of sysdevs for PM
-> 
-> From: Rafael J. Wysocki <rjw@sisk.pl>
-> 
-> Make some UNICORE32 architecture's code use struct syscore_ops
-> objects for power management instead of sysdev classes and sysdevs.
-> 
-> This simplifies the code and reduces the kernel's memory footprint.
-> It also is necessary for removing sysdevs from the kernel entirely in
-> the future.
-> 
-> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+diff --git a/drivers/cbus/Kconfig b/drivers/cbus/Kconfig
+index 2667dff..d845a7e 100644
+--- a/drivers/cbus/Kconfig
++++ b/drivers/cbus/Kconfig
+@@ -23,6 +23,7 @@ config CBUS_TAHVO
+ 
+ config CBUS_TAHVO_USB
+ 	depends on CBUS_TAHVO && USB
++	select USB_OTG_UTILS
+ 	tristate "Support for Tahvo USB transceiver"
+ 	---help---
+ 	  If you want Tahvo support for USB transceiver, say Y or M here.
+-- 
+1.7.4.1
 
-Acked-by: Guan Xuetao <gxt@mprc.pku.edu.cn>
