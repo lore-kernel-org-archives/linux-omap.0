@@ -1,77 +1,69 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Code for v2.6.39 merge window frozen, patches archived
-Date: Tue, 19 Apr 2011 03:13:02 -0700
-Message-ID: <20110419101302.GF477@atomide.com>
-References: <alpine.DEB.1.10.1103161533470.2634@esdhcp041196.research.nokia.com>
- <4D80CA2F.8060300@ti.com>
- <alpine.DEB.1.10.1103161903250.2634@esdhcp041196.research.nokia.com>
- <20110329233243.GR4016@atomide.com>
- <87lizwskcc.fsf@ti.com>
- <alpine.DEB.1.10.1103311722520.2634@esdhcp041196.research.nokia.com>
- <alpine.LFD.2.00.1104012241230.28032@xanadu.home>
- <20110413140429.GF12665@atomide.com>
- <alpine.LFD.2.00.1104131041590.24613@xanadu.home>
- <20110413150948.GB13345@atomide.com>
+From: =?iso-8859-1?Q?=22Ander=F6=2C_Oskar=22?=
+	<Oskar.Andero@sonyericsson.com>
+Subject: RE: [PATCH] arm: omap2: enable smc instruction for sleep34xx
+Date: Tue, 19 Apr 2011 12:13:26 +0200
+Message-ID: <00D61D20F3A8774CBC77798B3FBC427082058F9871@seldmbx02.corpusers.net>
+References: <1301581164-26538-1-git-send-email-oskar.andero@sonyericsson.com>
+ <00D61D20F3A8774CBC77798B3FBC427082058F986D@seldmbx02.corpusers.net>
+ <loom.20110419T100624-335@post.gmane.org> <20110419092014.GA2267@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:58051 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754611Ab1DSKNI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Apr 2011 06:13:08 -0400
-Content-Disposition: inline
-In-Reply-To: <20110413150948.GB13345@atomide.com>
+Received: from usrtrel01.sonyericsson.com ([65.202.203.201]:7234 "EHLO
+	usrtrel01.sonyericsson.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754477Ab1DSKNa convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 19 Apr 2011 06:13:30 -0400
+In-Reply-To: <20110419092014.GA2267@arm.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nicolas Pitre <nicolas.pitre@linaro.org>
-Cc: Aaro Koskinen <aaro.koskinen@nokia.com>, Kevin Hilman <khilman@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: 'Dave Martin' <dave.martin@linaro.org>, Alexander Stevens <alexander.stevens@uqconnect.edu.au>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Tony Lindgren <tony@atomide.com> [110413 08:06]:
-> * Nicolas Pitre <nicolas.pitre@linaro.org> [110413 17:46]:
-> > On Wed, 13 Apr 2011, Tony Lindgren wrote:
-> > > 
-> > > With the device tree append patch reverting commit
-> > > d239b1dc093d551046a909920b5310c1d1e308c1 does not help, and reverting
-> > > 6d7d0ae51574943bf571d269da3243257a2d15db requires some manual merging..
-> > 
-> > You cannot use the DT append patch without 6d7d0ae515 in place.  The 
-> > later is a prerequisite for the former.
+> > > Ping!
+> > >
+> > > Anyone else that gets bitten by the following when compiling
+> > omap2plus_defconfig with gcc 4.5:
+> > > arch/arm/mach-omap2/sleep34xx.S:150: Error: selected processor does
+> not
+> > support ARM mode `smc #1'
+> > >
+> > > -Oskar
+> > >
+> >
+> > I can report that I get the exact same compile error as this.
+> > OP patch worked beautifully.
+> >
+> > -Alex
 > 
-> OK.
->  
-> > > Anyways, that might be another way to reproduce the problem if these
-> > > issues are related.
-> > 
-> > I've started to instrument the problematic CONFIG_KERNEL_LZMA case.  So 
-> > far this is still a mystery.
-> > 
-> > Do you have problems with the DT append patch even with 
-> > CONFIG_KERNEL_GZIP=y?
+> Can you check what options are being passed to the compiler
+> and the assembler, and check for .arch / .arch_extension directives
+> in the assembler input?
 > 
-> Yup. The devicetree data gets trashed by decompress_kernel
-> with CONFIG_KERNEL_GZIP too with the append patch.
+> i.e.,
 > 
-> DT data before decompress_kernel:
-> edfe0dd0 2c010000 38000000 f0000000
+> make V=1 CFLAGS_KERNEL='-v -save-temps' arch/arm/mach-omap2/sleep34xx.o
 > 
-> DT data after decompress_kernel:
-> 10000000 00000001 38000000 f0000000
+> ...and look at the output and the generated sleep34xx.s
 > 
-> So first 8 (not 16 bytes like I mentioned earlier) get trashed.
+> Maybe the options being passed to the compiler/assembler are wrong
+> somewhere along the line.
+Yes, the "+sec" extension of armv7-a (i.e. -march=armv7-a+sec) is missing and hence the smc instruction can't be used. This is what my patch fixes. I guess earlier versions of binutils silently ignored this.
 
-Aaro and I speculated that boards using u-boot with uImage work,
-while n900 is using zImage and fails with the same kernel probably
-because of the different placement of compressed image in the
-memory.
+It's not visible in my patch, but plus_sec is declared as:
+plus_sec := $(call as-instr,.arch_extension sec,+sec)
 
-Also boards using u-boot with uImage fail with the DT append
-patch if some DT data is appended to zImage before mkimage.
+The following patch added the same extension for some of the other files, but I guess sleep34xx.S was missed or maybe added later:
+commit fe297dde5ae8f8bf67d3a87759289a99b48ecb2c
+Author: John Rigby <john.rigby@linaro.org>
+Date:   Wed Dec 1 05:57:51 2010 +0000
 
-Hardcoding the uncompressed image size about 2MB larger in
-arch/arm/boot/Makefile makes booting n900 work. This will not
-solve the DT append problem, or at least would require padding
-the uncompressed image size accordingly before appending DT
-data..
+    OMAP4: enable smc instruction in new assembler versions
+    
+    New assemblers need -march=armv7-a+sec on command line or
+    .arch_extension sec inline to enable use of the smc instruction.
+<snip>
 
-Tony
-
+-Oskar
