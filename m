@@ -1,12 +1,12 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 12/19] OMAP: DSS2: DSI: Add DSI pad muxing support
-Date: Tue, 19 Apr 2011 12:22:15 +0300
-Message-ID: <1303204942-25450-13-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 10/19] OMAP: DSS2: DSI: wait for TXCLKESC domain to come out of reset
+Date: Tue, 19 Apr 2011 12:22:13 +0300
+Message-ID: <1303204942-25450-11-git-send-email-tomi.valkeinen@ti.com>
 References: <1303204942-25450-1-git-send-email-tomi.valkeinen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:49313 "EHLO
-	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753237Ab1DSJXA (ORCPT
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:39233 "EHLO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754432Ab1DSJXA (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
 	Tue, 19 Apr 2011 05:23:00 -0400
 In-Reply-To: <1303204942-25450-1-git-send-email-tomi.valkeinen@ti.com>
@@ -15,86 +15,106 @@ List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Add dsi_mux_pads function pointer to omap_dss_board_info, and use the
-function pointer in DSI code to configure the DSI pads either to normal
-DSI operation, or to pull down when in ULPS.
+Add dsi_cio_wait_tx_clk_esc_reset() function which waits for the
+TXCLKESC domains to come out of reset.
+
+Things have worked fine without this, but better be safe than sorry.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- arch/arm/plat-omap/include/plat/display.h |    1 +
- drivers/video/omap2/dss/dsi.c             |   15 +++++++++++++++
- 2 files changed, 16 insertions(+), 0 deletions(-)
+ drivers/video/omap2/dss/dsi.c |   65 +++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 65 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/plat/display.h b/arch/arm/plat-omap/include/plat/display.h
-index a65479c..bd0f08e 100644
---- a/arch/arm/plat-omap/include/plat/display.h
-+++ b/arch/arm/plat-omap/include/plat/display.h
-@@ -235,6 +235,7 @@ struct omap_dss_board_info {
- 	int num_devices;
- 	struct omap_dss_device **devices;
- 	struct omap_dss_device *default_device;
-+	void (*dsi_mux_pads)(bool enable);
- };
- 
- #if defined(CONFIG_OMAP2_DSS_MODULE) || defined(CONFIG_OMAP2_DSS)
 diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
-index d15014e..f1e14ca 100644
+index 9f450af..8d85635 100644
 --- a/drivers/video/omap2/dss/dsi.c
 +++ b/drivers/video/omap2/dss/dsi.c
-@@ -244,6 +244,8 @@ static struct
- 	void __iomem	*base;
- 	int irq;
- 
-+	void (*dsi_mux_pads)(bool enable);
-+
- 	struct dsi_clock_info current_cinfo;
- 
- 	bool vdds_dsi_enabled;
-@@ -2035,6 +2037,9 @@ static int dsi_cio_init(struct omap_dss_device *dssdev)
- 
- 	DSSDBGF();
- 
-+	if (dsi.dsi_mux_pads)
-+		dsi.dsi_mux_pads(true);
-+
- 	dsi_enable_scp_clk();
- 
- 	/* A dummy read using the SCP interface to any DSIPHY register is
-@@ -2122,6 +2127,8 @@ err_cio_pwr:
- 		dsi_cio_disable_lane_override();
- err_scp_clk_dom:
- 	dsi_disable_scp_clk();
-+	if (dsi.dsi_mux_pads)
-+		dsi.dsi_mux_pads(false);
- 	return r;
+@@ -1969,6 +1969,65 @@ static void dsi_cio_disable_lane_override(void)
+ 	REG_FLD_MOD(DSI_DSIPHY_CFG10, 0, 22, 17); /* REGLPTXSCPDAT4TO0DXDY */
  }
  
-@@ -2129,6 +2136,8 @@ static void dsi_cio_uninit(void)
++static int dsi_cio_wait_tx_clk_esc_reset(struct omap_dss_device *dssdev)
++{
++	int t;
++	int bits[3];
++	bool in_use[3];
++
++	if (dss_has_feature(FEAT_DSI_REVERSE_TXCLKESC)) {
++		bits[0] = 28;
++		bits[1] = 27;
++		bits[2] = 26;
++	} else {
++		bits[0] = 24;
++		bits[1] = 25;
++		bits[2] = 26;
++	}
++
++	in_use[0] = false;
++	in_use[1] = false;
++	in_use[2] = false;
++
++	if (dssdev->phy.dsi.clk_lane != 0)
++		in_use[dssdev->phy.dsi.clk_lane - 1] = true;
++	if (dssdev->phy.dsi.data1_lane != 0)
++		in_use[dssdev->phy.dsi.data1_lane - 1] = true;
++	if (dssdev->phy.dsi.data2_lane != 0)
++		in_use[dssdev->phy.dsi.data2_lane - 1] = true;
++
++	t = 100000;
++	while (true) {
++		u32 l;
++		int i;
++		int ok;
++
++		l = dsi_read_reg(DSI_DSIPHY_CFG5);
++
++		ok = 0;
++		for (i = 0; i < 3; ++i) {
++			if (!in_use[i] || (l & (1 << bits[i])))
++				ok++;
++		}
++
++		if (ok == 3)
++			break;
++
++		if (--t == 0) {
++			for (i = 0; i < 3; ++i) {
++				if (!in_use[i] || (l & (1 << bits[i])))
++					continue;
++
++				DSSERR("CIO TXCLKESC%d domain not coming " \
++						"out of reset\n", i);
++			}
++			return -EIO;
++		}
++	}
++
++	return 0;
++}
++
+ static int dsi_cio_init(struct omap_dss_device *dssdev)
  {
+ 	int r;
+@@ -2028,6 +2087,10 @@ static int dsi_cio_init(struct omap_dss_device *dssdev)
+ 	dsi_if_enable(false);
+ 	REG_FLD_MOD(DSI_CLK_CTRL, 1, 20, 20); /* LP_CLK_ENABLE */
+ 
++	r = dsi_cio_wait_tx_clk_esc_reset(dssdev);
++	if (r)
++		goto err_tx_clk_esc_rst;
++
+ 	if (dsi.ulps_enabled) {
+ 		/* Keep Mark-1 state for 1ms (as per DSI spec) */
+ 		ktime_t wait = ns_to_ktime(1000 * 1000);
+@@ -2050,6 +2113,8 @@ static int dsi_cio_init(struct omap_dss_device *dssdev)
+ 
+ 	return 0;
+ 
++err_tx_clk_esc_rst:
++	REG_FLD_MOD(DSI_CLK_CTRL, 0, 20, 20); /* LP_CLK_ENABLE */
+ err_cio_pwr_dom:
  	dsi_cio_power(DSI_COMPLEXIO_POWER_OFF);
- 	dsi_disable_scp_clk();
-+	if (dsi.dsi_mux_pads)
-+		dsi.dsi_mux_pads(false);
- }
- 
- static int _dsi_wait_reset(void)
-@@ -3993,10 +4002,16 @@ static void dsi_calc_clock_param_ranges(void)
- 
- static int dsi_init(struct platform_device *pdev)
- {
-+	struct omap_display_platform_data *dss_plat_data;
-+	struct omap_dss_board_info *board_info;
- 	u32 rev;
- 	int r, i;
- 	struct resource *dsi_mem;
- 
-+	dss_plat_data = pdev->dev.platform_data;
-+	board_info = dss_plat_data->board_data;
-+	dsi.dsi_mux_pads = board_info->dsi_mux_pads;
-+
- 	spin_lock_init(&dsi.irq_lock);
- 	spin_lock_init(&dsi.errors_lock);
- 	dsi.errors = 0;
+ err_cio_pwr:
 -- 
 1.7.1
 
