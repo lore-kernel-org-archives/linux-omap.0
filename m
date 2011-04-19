@@ -1,34 +1,56 @@
-From: Michael =?ISO-8859-1?Q?B=FCsch?= <m@bues.ch>
-Subject: Re: The old omapfb support
-Date: Tue, 19 Apr 2011 14:34:45 +0200
-Message-ID: <1303216485.27432.7.camel@maggie>
-References: <1303215626.32281.70.camel@deskari>
-	 <20110419123036.GF15620@atomide.com>
+From: Kyungmin Park <kmpark@infradead.org>
+Subject: Re: [PATCH] OMAP: iommu flush page table entries from L1 and L2 cache
+Date: Tue, 19 Apr 2011 21:35:56 +0900
+Message-ID: <BANLkTim_30SbVhPLFOaq-KYwz5N6NGCe6A@mail.gmail.com>
+References: <1302817968-28516-1-git-send-email-fernando.lugo@ti.com>
+	<201104181613.43572.arnd@arndb.de>
+	<BANLkTi=dpqMFjW_B5-YsmoCJf62b8djj5g@mail.gmail.com>
+	<201104191401.34818.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 80-190-117-144.ip-home.de ([80.190.117.144]:40285 "EHLO bues.ch"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751850Ab1DSMex (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 19 Apr 2011 08:34:53 -0400
-In-Reply-To: <20110419123036.GF15620@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <201104191401.34818.arnd@arndb.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Fernando Guzman Lugo <fernando.lugo@ti.com>, Tony Lindgren <tony@atomide.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, linux-kernel@vger.kernel.org, Andrzej Pietrasiewicz <andrzej.p@samsung.com>, Ramesh Gupta <grgupta@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Marek Szyprowski <m.szyprowski@samsung.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, lo-ml <linux-omap@vger.kernel.org>
 
-On Tue, 2011-04-19 at 15:30 +0300, Tony Lindgren wrote: 
-> > But this again reminded me of the mess of having two display drivers,
-> > the old omapfb and the new DSS2. Many of the OMAP2 boards using the old
-> > driver should be quite easy to port to DSS2, with the exception of N800.
-> > DSS2 doesn't support OMAP1, so there's not much that can be done with
-> > those boards currently.
+On Tue, Apr 19, 2011 at 9:01 PM, Arnd Bergmann <arnd@arndb.de> wrote:
+> On Tuesday 19 April 2011, Kyungmin Park wrote:
+>> On Mon, Apr 18, 2011 at 11:13 PM, Arnd Bergmann <arnd@arndb.de> wrot=
+e:
+>> > On Monday 18 April 2011, Kyungmin Park wrote:
+>> >> On Mon, Apr 18, 2011 at 8:58 PM, Arnd Bergmann <arnd@arndb.de> wr=
+ote:
+>> >> >
+>> >> > One missing piece is still a way for a platform to provide both
+>> >> > the iommu and the dma-mapping API in a unified driver. Right no=
+w,
+>> >> > you have to export both interface for a generic solution.
+>> >>
+>> >> Actually MSM and we (Michal, Marek) tried to merge the generic IO=
+MMU
+>> >> implementation into mm, but MM did't accept it.
+>> >
+>> > I'm confused. What do you mean with MM?
+>> linux/mm, Memory Management.
+>
+> I'm still confused. What were you suggesting to merge in there?
+> Do you have a link to a mailing list discussion?
 
-> Yeh we can just make old omapfb depends on ARCH_OMAP1.
+=46irst, Zach Pfeffer <zpfeffer@codeaurora.org> sent the patch
+https://patchwork.kernel.org/patch/108736/
 
-As he said, the old omapfb code is used on n8x0, which is OMAP2.
+Second, Michal tried it.
+http://lkml.org/lkml/2010/9/6/41
 
--- 
-Greetings Michael.
+http://lwn.net/Articles/403643/
+https://patchwork.kernel.org/patch/157451/
 
+Thank you,
+Kyungmin Park
+
+>
+> =A0 =A0 =A0 =A0Arnd
+>
