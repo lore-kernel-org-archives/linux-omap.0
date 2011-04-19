@@ -1,63 +1,68 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Code for v2.6.39 merge window frozen, patches archived
-Date: Tue, 19 Apr 2011 07:15:31 -0700
-Message-ID: <20110419141531.GH477@atomide.com>
-References: <alpine.DEB.1.10.1103161903250.2634@esdhcp041196.research.nokia.com>
- <20110329233243.GR4016@atomide.com>
- <87lizwskcc.fsf@ti.com>
- <alpine.DEB.1.10.1103311722520.2634@esdhcp041196.research.nokia.com>
- <alpine.LFD.2.00.1104012241230.28032@xanadu.home>
- <20110413140429.GF12665@atomide.com>
- <alpine.LFD.2.00.1104131041590.24613@xanadu.home>
- <20110413150948.GB13345@atomide.com>
- <20110419101302.GF477@atomide.com>
- <alpine.LFD.2.00.1104190924030.24613@xanadu.home>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Jan Weitzel <j.weitzel@phytec.de>
+Subject: [PATCH v3] ARM: omap2: mtd split nand_scan in ident and tail
+Date: Tue, 19 Apr 2011 16:15:34 +0200
+Message-ID: <1303222534-10143-1-git-send-email-j.weitzel@phytec.de>
+References: <BANLkTimxgyStkfYXyHJUzQBKTR0pYsF7Qw@mail.gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:33638 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751899Ab1DSOPh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Apr 2011 10:15:37 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.00.1104190924030.24613@xanadu.home>
+Received: from mail.rapiddevelopmentkit.de ([217.6.246.34]:38122 "EHLO
+	root.phytec.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752155Ab1DSOPj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 19 Apr 2011 10:15:39 -0400
+In-Reply-To: <BANLkTimxgyStkfYXyHJUzQBKTR0pYsF7Qw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nicolas Pitre <nicolas.pitre@linaro.org>
-Cc: Aaro Koskinen <aaro.koskinen@nokia.com>, Kevin Hilman <khilman@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, linux-arm-kernel@lists.infradead.org, Artem.Bityutskiy@nokia.com
+Cc: s.hauer@pengutronix.de, dwmw2@infradead.org, tony@atomide.com, s-ghorai@ti.com, vimal.newwork@gmail.com, Jan Weitzel <j.weitzel@phytec.de>
 
-* Nicolas Pitre <nicolas.pitre@linaro.org> [110419 06:24]:
-> On Tue, 19 Apr 2011, Tony Lindgren wrote:
-> 
-> > Aaro and I speculated that boards using u-boot with uImage work,
-> > while n900 is using zImage and fails with the same kernel probably
-> > because of the different placement of compressed image in the
-> > memory.
-> 
-> Could you try the following (by changing the argument to mkimage 
-> accordingly).
->
-> Try to load the kernel at the following offsets:
-> 
-> - 0x8000 from start of memory
-> 
-> - 0x100000 from start of memory
-> 
-> - 0x3000000 from start of memory
-> 
-> and tell me if any of those behaves differently?
+nand_scan calls nand_scan_tail and here we got a ecc.layout and calculate
+oobavail for this layout. After calling nand_scan, we change the layout pointer
+if OMAP_ECC_HAMMING_CODE_HW_ROMCODE is set. This results in not calcluated
+oobavail. Mountig as jffs2 is not possible.
 
-Hmm good idea, but no luck so far :( Did the tests with
-setenv loadaddr in u-boot as that's what it seems to use.
+To fix that nand_scan has to split up in nand_scan_ident and nand_scan_tail
+setting ecc.layout between these calls. So nand_scan_tail calculates oobvail
+for the used layout. This is also done in serveral other platforms.
 
-v2.6.39-rc4 boots uImage with all those just fine. And with
-the DT append and related patches, it always fails if DT data
-is appended.
+Signed-off-by: Jan Weitzel <j.weitzel@phytec.de>
+Reviewed-by: Vimal Singh <vimal.newwork@gmail.com>
+---
+v2:
+update commit message
+v3:
+Add Reviewed-by
 
-So for some reason loading a kernel on n900 with flasher -l
-always fails (except for smaller kernels) and DT append with
-data appended always fails.
+ drivers/mtd/nand/omap2.c |   10 ++++++++--
+ 1 files changed, 8 insertions(+), 2 deletions(-)
 
-Regards,
+diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+index da9a351..288423f 100644
+--- a/drivers/mtd/nand/omap2.c
++++ b/drivers/mtd/nand/omap2.c
+@@ -1073,9 +1073,9 @@ static int __devinit omap_nand_probe(struct platform_device *pdev)
+ 	/* DIP switches on some boards change between 8 and 16 bit
+ 	 * bus widths for flash.  Try the other width if the first try fails.
+ 	 */
+-	if (nand_scan(&info->mtd, 1)) {
++	if (nand_scan_ident(&info->mtd, 1, NULL)) {
+ 		info->nand.options ^= NAND_BUSWIDTH_16;
+-		if (nand_scan(&info->mtd, 1)) {
++		if (nand_scan_ident(&info->mtd, 1, NULL)) {
+ 			err = -ENXIO;
+ 			goto out_release_mem_region;
+ 		}
+@@ -1101,6 +1101,12 @@ static int __devinit omap_nand_probe(struct platform_device *pdev)
+ 		info->nand.ecc.layout = &omap_oobinfo;
+ 	}
+ 
++	/* second phase scan */
++	if (nand_scan_tail(&info->mtd)) {
++		err = -ENXIO;
++		goto out_release_mem_region;
++	}
++
+ #ifdef CONFIG_MTD_PARTITIONS
+ 	err = parse_mtd_partitions(&info->mtd, part_probes, &info->parts, 0);
+ 	if (err > 0)
+-- 
+1.7.0.4
 
-Tony
