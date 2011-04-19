@@ -1,162 +1,108 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 09/19] OMAP: DSS2: DSI: fix CIO init and uninit
-Date: Tue, 19 Apr 2011 12:22:12 +0300
-Message-ID: <1303204942-25450-10-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 11/19] OMAP: DSS2: DSI: add parameter to enter ulps on disable
+Date: Tue, 19 Apr 2011 12:22:14 +0300
+Message-ID: <1303204942-25450-12-git-send-email-tomi.valkeinen@ti.com>
 References: <1303204942-25450-1-git-send-email-tomi.valkeinen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog106.obsmtp.com ([74.125.149.77]:53928 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754317Ab1DSJWx (ORCPT
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:47648 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754317Ab1DSJW4 (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 19 Apr 2011 05:22:53 -0400
+	Tue, 19 Apr 2011 05:22:56 -0400
 In-Reply-To: <1303204942-25450-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Use dsi_enable_scp_clk and dsi_disable_scp_clk in CIO init and uninit,
-and improve the CIO init by adding a few status checks and error
-handling.
+Add parameter to omapdss_dsi_display_disable() which the panel driver
+can use to tell if the DSI lanes should be put to ULPS before disabling
+the interface.
+
+This can be used to skip ULPS entry in cases where the panel doesn't
+care about ULPS state, for example when the panel will be reset, or when
+the display interface will be enabled again right after the disable.
+
+This will speed up the operation considerably in cases where entering
+ULPS would fail with timeout, and the panel driver isn't even interested
+in entering ULPS.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/dss/dsi.c |   54 ++++++++++++++++++++++-------------------
- 1 files changed, 29 insertions(+), 25 deletions(-)
+ arch/arm/plat-omap/include/plat/display.h |    2 +-
+ drivers/video/omap2/displays/panel-taal.c |    4 ++--
+ drivers/video/omap2/dss/dsi.c             |    8 ++++----
+ 3 files changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
-index 9a0f9e4..9f450af 100644
---- a/drivers/video/omap2/dss/dsi.c
-+++ b/drivers/video/omap2/dss/dsi.c
-@@ -1971,13 +1971,12 @@ static void dsi_cio_disable_lane_override(void)
+diff --git a/arch/arm/plat-omap/include/plat/display.h b/arch/arm/plat-omap/include/plat/display.h
+index 205c6de..a65479c 100644
+--- a/arch/arm/plat-omap/include/plat/display.h
++++ b/arch/arm/plat-omap/include/plat/display.h
+@@ -592,7 +592,7 @@ void omap_dsi_release_vc(struct omap_dss_device *dssdev, int channel);
  
- static int dsi_cio_init(struct omap_dss_device *dssdev)
- {
--	int r = 0;
-+	int r;
- 	u32 l;
+ int omapdss_dsi_display_enable(struct omap_dss_device *dssdev);
+ void omapdss_dsi_display_disable(struct omap_dss_device *dssdev,
+-		bool disconnect_lanes);
++		bool disconnect_lanes, bool enter_ulps);
  
- 	DSSDBGF();
+ int omapdss_dpi_display_enable(struct omap_dss_device *dssdev);
+ void omapdss_dpi_display_disable(struct omap_dss_device *dssdev);
+diff --git a/drivers/video/omap2/displays/panel-taal.c b/drivers/video/omap2/displays/panel-taal.c
+index 74ce9f8..d68119e 100644
+--- a/drivers/video/omap2/displays/panel-taal.c
++++ b/drivers/video/omap2/displays/panel-taal.c
+@@ -932,7 +932,7 @@ err:
  
--	if (dsi.ulps_enabled)
--		DSSDBG("manual ulps exit\n");
-+	dsi_enable_scp_clk();
+ 	taal_hw_reset(dssdev);
  
- 	/* A dummy read using the SCP interface to any DSIPHY register is
- 	 * required after DSIPHY reset to complete the reset of the DSI complex
-@@ -1985,17 +1984,13 @@ static int dsi_cio_init(struct omap_dss_device *dssdev)
- 	dsi_read_reg(DSI_DSIPHY_CFG5);
- 
- 	if (wait_for_bit_change(DSI_DSIPHY_CFG5, 30, 1) != 1) {
--		DSSERR("ComplexIO PHY not coming out of reset.\n");
--		r = -ENODEV;
--		goto err;
-+		DSSERR("CIO SCP Clock domain not coming out of reset.\n");
-+		r = -EIO;
-+		goto err_scp_clk_dom;
+-	omapdss_dsi_display_disable(dssdev, true);
++	omapdss_dsi_display_disable(dssdev, true, false);
+ err0:
+ 	return r;
+ }
+@@ -955,7 +955,7 @@ static void taal_power_off(struct omap_dss_device *dssdev)
+ 		taal_hw_reset(dssdev);
  	}
  
- 	dsi_set_lane_config(dssdev);
+-	omapdss_dsi_display_disable(dssdev, true);
++	omapdss_dsi_display_disable(dssdev, true, false);
  
--	dsi_if_enable(true);
--	dsi_if_enable(false);
--	REG_FLD_MOD(DSI_CLK_CTRL, 1, 20, 20); /* LP_CLK_ENABLE */
--
- 	/* set TX STOP MODE timer to maximum for this operation */
- 	l = dsi_read_reg(DSI_TIMING1);
- 	l = FLD_MOD(l, 1, 15, 15);	/* FORCE_TX_STOP_MODE_IO */
-@@ -2005,6 +2000,8 @@ static int dsi_cio_init(struct omap_dss_device *dssdev)
- 	dsi_write_reg(DSI_TIMING1, l);
- 
- 	if (dsi.ulps_enabled) {
-+		DSSDBG("manual ulps exit\n");
-+
- 		/* ULPS is exited by Mark-1 state for 1ms, followed by
- 		 * stop state. DSS HW cannot do this via the normal
- 		 * ULPS exit sequence, as after reset the DSS HW thinks
-@@ -2019,7 +2016,17 @@ static int dsi_cio_init(struct omap_dss_device *dssdev)
- 
- 	r = dsi_cio_power(DSI_COMPLEXIO_POWER_ON);
- 	if (r)
--		goto err;
-+		goto err_cio_pwr;
-+
-+	if (wait_for_bit_change(DSI_COMPLEXIO_CFG1, 29, 1) != 1) {
-+		DSSERR("CIO PWR clock domain not coming out of reset.\n");
-+		r = -ENODEV;
-+		goto err_cio_pwr_dom;
-+	}
-+
-+	dsi_if_enable(true);
-+	dsi_if_enable(false);
-+	REG_FLD_MOD(DSI_CLK_CTRL, 1, 20, 20); /* LP_CLK_ENABLE */
- 
- 	if (dsi.ulps_enabled) {
- 		/* Keep Mark-1 state for 1ms (as per DSI spec) */
-@@ -2035,24 +2042,28 @@ static int dsi_cio_init(struct omap_dss_device *dssdev)
- 	/* FORCE_TX_STOP_MODE_IO */
- 	REG_FLD_MOD(DSI_TIMING1, 0, 15, 15);
- 
--	if (wait_for_bit_change(DSI_COMPLEXIO_CFG1, 29, 1) != 1) {
--		DSSERR("ComplexIO not coming out of reset.\n");
--		r = -ENODEV;
--		goto err;
--	}
--
- 	dsi_cio_timings();
- 
- 	dsi.ulps_enabled = false;
- 
- 	DSSDBG("CIO init done\n");
--err:
-+
-+	return 0;
-+
-+err_cio_pwr_dom:
-+	dsi_cio_power(DSI_COMPLEXIO_POWER_OFF);
-+err_cio_pwr:
-+	if (dsi.ulps_enabled)
-+		dsi_cio_disable_lane_override();
-+err_scp_clk_dom:
-+	dsi_disable_scp_clk();
- 	return r;
+ 	td->enabled = 0;
+ }
+diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
+index 8d85635..d15014e 100644
+--- a/drivers/video/omap2/dss/dsi.c
++++ b/drivers/video/omap2/dss/dsi.c
+@@ -3763,9 +3763,9 @@ err0:
  }
  
- static void dsi_cio_uninit(void)
+ static void dsi_display_uninit_dsi(struct omap_dss_device *dssdev,
+-		bool disconnect_lanes)
++		bool disconnect_lanes, bool enter_ulps)
  {
- 	dsi_cio_power(DSI_COMPLEXIO_POWER_OFF);
-+	dsi_disable_scp_clk();
- }
+-	if (!dsi.ulps_enabled)
++	if (enter_ulps && !dsi.ulps_enabled)
+ 		dsi_enter_ulps();
  
- static int _dsi_wait_reset(void)
-@@ -3631,11 +3642,6 @@ static int dsi_display_init_dsi(struct omap_dss_device *dssdev)
+ 	/* disable interface */
+@@ -3848,7 +3848,7 @@ err0:
+ EXPORT_SYMBOL(omapdss_dsi_display_enable);
+ 
+ void omapdss_dsi_display_disable(struct omap_dss_device *dssdev,
+-		bool disconnect_lanes)
++		bool disconnect_lanes, bool enter_ulps)
  {
- 	int r;
+ 	DSSDBG("dsi_display_disable\n");
  
--	/* The SCPClk is required for both PLL and CIO registers on OMAP4 */
--	dsi_enable_scp_clk();
--
--	_dsi_print_reset_status();
--
- 	r = dsi_pll_init(dssdev, true, true);
- 	if (r)
- 		goto err0;
-@@ -3688,7 +3694,6 @@ err2:
- err1:
- 	dsi_pll_uninit(true);
- err0:
--	dsi_disable_scp_clk();
- 	return r;
- }
+@@ -3858,7 +3858,7 @@ void omapdss_dsi_display_disable(struct omap_dss_device *dssdev,
  
-@@ -3709,7 +3714,6 @@ static void dsi_display_uninit_dsi(struct omap_dss_device *dssdev,
- 	dss_select_dsi_clk_source(OMAP_DSS_CLK_SRC_FCK);
- 	dsi_cio_uninit();
- 	dsi_pll_uninit(disconnect_lanes);
--	dsi_disable_scp_clk();
- }
+ 	dsi_display_uninit_dispc(dssdev);
  
- static int dsi_core_init(void)
+-	dsi_display_uninit_dsi(dssdev, disconnect_lanes);
++	dsi_display_uninit_dsi(dssdev, disconnect_lanes, enter_ulps);
+ 
+ 	enable_clocks(0);
+ 	dsi_enable_pll_clock(0);
 -- 
 1.7.1
 
