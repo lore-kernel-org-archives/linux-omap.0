@@ -1,56 +1,54 @@
-From: Kyungmin Park <kmpark@infradead.org>
-Subject: Re: [PATCH] OMAP: iommu flush page table entries from L1 and L2 cache
-Date: Tue, 19 Apr 2011 21:35:56 +0900
-Message-ID: <BANLkTim_30SbVhPLFOaq-KYwz5N6NGCe6A@mail.gmail.com>
-References: <1302817968-28516-1-git-send-email-fernando.lugo@ti.com>
-	<201104181613.43572.arnd@arndb.de>
-	<BANLkTi=dpqMFjW_B5-YsmoCJf62b8djj5g@mail.gmail.com>
-	<201104191401.34818.arnd@arndb.de>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: The old omapfb support
+Date: Tue, 19 Apr 2011 15:41:29 +0300
+Message-ID: <1303216889.32281.80.camel@deskari>
+References: <1303215626.32281.70.camel@deskari>
+	 <20110419123036.GF15620@atomide.com>  <1303216485.27432.7.camel@maggie>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201104191401.34818.arnd@arndb.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Fernando Guzman Lugo <fernando.lugo@ti.com>, Tony Lindgren <tony@atomide.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, linux-kernel@vger.kernel.org, Andrzej Pietrasiewicz <andrzej.p@samsung.com>, Ramesh Gupta <grgupta@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Marek Szyprowski <m.szyprowski@samsung.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:41987 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752545Ab1DSMlk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 19 Apr 2011 08:41:40 -0400
+Received: by ewy9 with SMTP id 9so2463669ewy.14
+        for <linux-omap@vger.kernel.org>; Tue, 19 Apr 2011 05:41:36 -0700 (PDT)
+In-Reply-To: <1303216485.27432.7.camel@maggie>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Michael =?ISO-8859-1?Q?B=FCsch?= <m@bues.ch>
+Cc: Tony Lindgren <tony@atomide.com>, lo-ml <linux-omap@vger.kernel.org>
 
-On Tue, Apr 19, 2011 at 9:01 PM, Arnd Bergmann <arnd@arndb.de> wrote:
-> On Tuesday 19 April 2011, Kyungmin Park wrote:
->> On Mon, Apr 18, 2011 at 11:13 PM, Arnd Bergmann <arnd@arndb.de> wrot=
-e:
->> > On Monday 18 April 2011, Kyungmin Park wrote:
->> >> On Mon, Apr 18, 2011 at 8:58 PM, Arnd Bergmann <arnd@arndb.de> wr=
-ote:
->> >> >
->> >> > One missing piece is still a way for a platform to provide both
->> >> > the iommu and the dma-mapping API in a unified driver. Right no=
-w,
->> >> > you have to export both interface for a generic solution.
->> >>
->> >> Actually MSM and we (Michal, Marek) tried to merge the generic IO=
-MMU
->> >> implementation into mm, but MM did't accept it.
->> >
->> > I'm confused. What do you mean with MM?
->> linux/mm, Memory Management.
->
-> I'm still confused. What were you suggesting to merge in there?
-> Do you have a link to a mailing list discussion?
+On Tue, 2011-04-19 at 14:34 +0200, Michael B=C3=BCsch wrote:
+> On Tue, 2011-04-19 at 15:30 +0300, Tony Lindgren wrote:=20
+> > > But this again reminded me of the mess of having two display driv=
+ers,
+> > > the old omapfb and the new DSS2. Many of the OMAP2 boards using t=
+he old
+> > > driver should be quite easy to port to DSS2, with the exception o=
+f N800.
+> > > DSS2 doesn't support OMAP1, so there's not much that can be done =
+with
+> > > those boards currently.
+>=20
+> > Yeh we can just make old omapfb depends on ARCH_OMAP1.
+>=20
+> As he said, the old omapfb code is used on n8x0, which is OMAP2.
 
-=46irst, Zach Pfeffer <zpfeffer@codeaurora.org> sent the patch
-https://patchwork.kernel.org/patch/108736/
+But as I also said, the old OMAP2 panel drivers can be ported to the ne=
+w
+DSS driver. I just mentioned N800 because the panel driver for N800 is
+rather difficult to port and will require more work than the other OMAP=
+2
+panel drivers.
 
-Second, Michal tried it.
-http://lkml.org/lkml/2010/9/6/41
+ Tomi
 
-http://lwn.net/Articles/403643/
-https://patchwork.kernel.org/patch/157451/
 
-Thank you,
-Kyungmin Park
-
->
-> =A0 =A0 =A0 =A0Arnd
->
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
