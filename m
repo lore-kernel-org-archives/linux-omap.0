@@ -1,58 +1,76 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 0/5] OMAP hwmod/PRCM/clock: patches for 2.6.39-rc
-Date: Wed, 20 Apr 2011 13:28:37 -0600
-Message-ID: <20110420192601.16986.56558.stgit@twilight.localdomain>
+Subject: [PATCH 2/5] OMAP4: clock data: Change DSS clock aliases
+Date: Wed, 20 Apr 2011 13:28:41 -0600
+Message-ID: <20110420192839.16986.17445.stgit@twilight.localdomain>
+References: <20110420192601.16986.56558.stgit@twilight.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:49001 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:49008 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755807Ab1DTTpn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Apr 2011 15:45:43 -0400
+	with ESMTP id S1755807Ab1DTTpo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Apr 2011 15:45:44 -0400
+In-Reply-To: <20110420192601.16986.56558.stgit@twilight.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, =?utf-8?q?Beno=C3=AEt?= Cousson <b-cousson@ti.com>
 
-Hello,
+=46rom: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-This series contains OMAP hwmod/PRCM/clock fixes for the 2.6.39-rc merge
-period.  Of particular note is the DSS clock alias patch, without which
-OMAP4 will crash on boot.
+DSS driver has used fck and ick clocks on OMAP2/3 to get DSS HW up and
+running, and also to get the pixel clock's source clock rate from the
+fck.
 
-Boot-tested on N800, OMAP35xx Beagle, OMAP37xx Beagle, and OMAP4430
-ES2 Panda.
+On OMAP4 the clock data is set up in a different way, as there's no ick=
+,
+dss_fck points to a fake clock which just affects DSS's MODULEMODE, and
+dss_dss_clk if the DSS_FCK.
 
+>From DSS driver's point of view the dss_fck sounds like an ick, and
+dss_dss_clk is the fck. While this is not entirely correct from HW poin=
+t
+of view, especially for the ick, configuring the clock aliases that way
+makes DSS "just work" with OMAP4's clock setup.
 
-- Paul
+In the (hopefully near) future DSS driver will be reworked to use
+pm_runtime support which should clean up the clock code.
 
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Beno=C3=AEt Cousson <b-cousson@ti.com>
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
+ arch/arm/mach-omap2/clock44xx_data.c |    9 ++-------
+ 1 files changed, 2 insertions(+), 7 deletions(-)
 
-for_tony_a_2.6.39rc
-   text	   data	    bss	    dec	    hex	filename
-5793259	 542448	5594272	11929979	 b6097b	vmlinux.omap2plus_defconfig.orig
-5793339	 542448	5594272	11930059	 b609cb	vmlinux.omap2plus_defconfig
+diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2=
+/clock44xx_data.c
+index 276992d..8c96567 100644
+--- a/arch/arm/mach-omap2/clock44xx_data.c
++++ b/arch/arm/mach-omap2/clock44xx_data.c
+@@ -3116,14 +3116,9 @@ static struct omap_clk omap44xx_clks[] =3D {
+ 	CLK(NULL,	"dsp_fck",			&dsp_fck,	CK_443X),
+ 	CLK("omapdss_dss",	"sys_clk",			&dss_sys_clk,	CK_443X),
+ 	CLK("omapdss_dss",	"tv_clk",			&dss_tv_clk,	CK_443X),
+-	CLK("omapdss_dss",	"dss_clk",			&dss_dss_clk,	CK_443X),
+ 	CLK("omapdss_dss",	"video_clk",			&dss_48mhz_clk,	CK_443X),
+-	CLK("omapdss_dss",	"fck",				&dss_fck,	CK_443X),
+-	/*
+-	 * On OMAP4, DSS ick is a dummy clock; this is needed for compatibili=
+ty
+-	 * with OMAP2/3.
+-	 */
+-	CLK("omapdss_dss",	"ick",				&dummy_ck,	CK_443X),
++	CLK("omapdss_dss",	"fck",				&dss_dss_clk,	CK_443X),
++	CLK("omapdss_dss",	"ick",				&dss_fck,	CK_443X),
+ 	CLK(NULL,	"efuse_ctrl_cust_fck",		&efuse_ctrl_cust_fck,	CK_443X),
+ 	CLK(NULL,	"emif1_fck",			&emif1_fck,	CK_443X),
+ 	CLK(NULL,	"emif2_fck",			&emif2_fck,	CK_443X),
 
-Avinash.H.M (1):
-      OMAP2/3: hwmod: fix gpio-reset timeouts seen during bootup.
 
-Benoit Cousson (1):
-      OMAP2+: hwmod data: Fix wrong dma_system end address
-
-Eduardo Valentin (2):
-      OMAP2+: PM: Fix the saving of CM_AUTOIDLE_PLL register on scratchpad area
-      OMAP3: PM: Do not rely on ROM code to restore CM_AUTOIDLE_PLL.AUTO_PERIPH_DPLL
-
-Tomi Valkeinen (1):
-      OMAP4: clock data: Change DSS clock aliases
-
-
- arch/arm/mach-omap2/clock44xx_data.c       |    9 ++-------
- arch/arm/mach-omap2/cm2xxx_3xxx.c          |   17 +++++++++++++++++
- arch/arm/mach-omap2/control.c              |    8 +++++++-
- arch/arm/mach-omap2/omap_hwmod_2420_data.c |    6 +++++-
- arch/arm/mach-omap2/omap_hwmod_2430_data.c |    7 ++++++-
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    8 +++++++-
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    2 +-
- 7 files changed, 45 insertions(+), 12 deletions(-)
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
