@@ -1,65 +1,58 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] OMAP4: clockdomain: Follow recommended enable sequence
-Date: Wed, 20 Apr 2011 13:42:45 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1104201340450.5985@utopia.booyaka.com>
-References: <1299245123-23444-1-git-send-email-rnayak@ti.com> <alpine.DEB.2.00.1103081937100.15132@utopia.booyaka.com> <4D775418.6050105@ti.com> <alpine.DEB.2.00.1103100514210.15132@utopia.booyaka.com> <alpine.DEB.2.00.1103100734490.15132@utopia.booyaka.com>
- <4D7A22F6.5050806@ti.com>
+Subject: [PATCH 0/5] OMAP hwmod/PRCM/clock: patches for 2.6.39-rc
+Date: Wed, 20 Apr 2011 13:28:37 -0600
+Message-ID: <20110420192601.16986.56558.stgit@twilight.localdomain>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:50775 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:49001 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755680Ab1DTTmq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Apr 2011 15:42:46 -0400
-In-Reply-To: <4D7A22F6.5050806@ti.com>
+	with ESMTP id S1755807Ab1DTTpn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Apr 2011 15:45:43 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>, santosh.shilimkar@ti.com
-Cc: linux-omap@vger.kernel.org, b-cousson@ti.com, khilman@ti.com, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
+Hello,
 
-Hi Rajendra, Santosh,
+This series contains OMAP hwmod/PRCM/clock fixes for the 2.6.39-rc merge
+period.  Of particular note is the DSS clock alias patch, without which
+OMAP4 will crash on boot.
 
-just FYI I just observed this happening without the clockdomain patch, and  
-tracked this down.  It seems that there is an intermittent 
-problem with the OMAP L3 bus code.  On the 35xx BeagleBoard here, it 
-occasionally hangs after powerup:
+Boot-tested on N800, OMAP35xx Beagle, OMAP37xx Beagle, and OMAP4430
+ES2 Panda.
 
-[    0.810119] OMAP GPIO hardware version 2.5
-[    0.815368] OMAP GPIO hardware version 2.5
-[    0.820465] OMAP GPIO hardware version 2.5
-[    0.825531] OMAP GPIO hardware version 2.5
-[    0.830657] OMAP GPIO hardware version 2.5
-[    0.835784] OMAP GPIO hardware version 2.5
-[    0.840881] initcall omap_gpio_drv_reg+0x0/0xc returned 0 after 38146 
-usecs
-[    0.848358] calling  bdi_class_init+0x0/0x50 @ 1
-[    0.854003] initcall bdi_class_init+0x0/0x50 returned 0 after 0 usecs
-[    0.860870] calling  kobject_uevent_init+0x0/0x20 @ 1
-[    0.866363] initcall kobject_uevent_init+0x0/0x20 returned 0 after 0 
-usecs
-[    0.873626] calling  gpiolib_sysfs_init+0x0/0x98 @ 1
-[    0.885894] initcall gpiolib_sysfs_init+0x0/0x98 returned 0 after 0 
-usecs
-[    0.893157] calling  lcd_class_init+0x0/0x58 @ 1
-[    0.898742] initcall lcd_class_init+0x0/0x58 returned 0 after 0 usecs
-[    0.905731] calling  backlight_class_init+0x0/0x70 @ 1
-[    0.911834] initcall backlight_class_init+0x0/0x70 returned 0 after 0 
-usecs
-[    0.919219] calling  tty_class_init+0x0/0x3c @ 1
-[    0.924743] initcall tty_class_init+0x0/0x3c returned 0 after 0 usecs
-[    0.931610] calling  vtconsole_class_init+0x0/0xe4 @ 1
-[    0.938812] initcall vtconsole_class_init+0x0/0xe4 returned 0 after 
-7629 usecs
-[    0.946472] calling  wakeup_sources_debugfs_init+0x0/0x3c @ 1
-[    0.952606] initcall wakeup_sources_debugfs_init+0x0/0x3c returned 0 
-after 0 usecs
-[    0.960571] calling  spi_init+0x0/0x88 @ 1
-[    0.966247] initcall spi_init+0x0/0x88 returned 0 after 0 usecs
-[    0.972564] calling  i2c_init+0x0/0x70 @ 1
-[    0.978485] initcall i2c_init+0x0/0x70 returned 0 after 0 usecs
-[    0.984832] calling  omap3_l3_init+0x0/0x14 @ 1
-
-(hang)
 
 - Paul
+
+---
+
+for_tony_a_2.6.39rc
+   text	   data	    bss	    dec	    hex	filename
+5793259	 542448	5594272	11929979	 b6097b	vmlinux.omap2plus_defconfig.orig
+5793339	 542448	5594272	11930059	 b609cb	vmlinux.omap2plus_defconfig
+
+Avinash.H.M (1):
+      OMAP2/3: hwmod: fix gpio-reset timeouts seen during bootup.
+
+Benoit Cousson (1):
+      OMAP2+: hwmod data: Fix wrong dma_system end address
+
+Eduardo Valentin (2):
+      OMAP2+: PM: Fix the saving of CM_AUTOIDLE_PLL register on scratchpad area
+      OMAP3: PM: Do not rely on ROM code to restore CM_AUTOIDLE_PLL.AUTO_PERIPH_DPLL
+
+Tomi Valkeinen (1):
+      OMAP4: clock data: Change DSS clock aliases
+
+
+ arch/arm/mach-omap2/clock44xx_data.c       |    9 ++-------
+ arch/arm/mach-omap2/cm2xxx_3xxx.c          |   17 +++++++++++++++++
+ arch/arm/mach-omap2/control.c              |    8 +++++++-
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c |    6 +++++-
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c |    7 ++++++-
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    8 +++++++-
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    2 +-
+ 7 files changed, 45 insertions(+), 12 deletions(-)
+
