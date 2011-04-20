@@ -1,34 +1,65 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: [PATCH 2/2] OMAP3: PM: Do not rely on ROM code to restore
- CM_AUTOIDLE_PLL.AUTO_PERIPH_DPLL
-Date: Wed, 20 Apr 2011 13:35:54 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1104201334410.5985@utopia.booyaka.com>
-References: <1302708067-8226-1-git-send-email-eduardo.valentin@ti.com> <1302708067-8226-3-git-send-email-eduardo.valentin@ti.com> <B85A65D85D7EB246BE421B3FB0FBB593024C9603BD@dbde02.ent.ti.com>
+Subject: Re: [PATCH] OMAP4: clockdomain: Follow recommended enable sequence
+Date: Wed, 20 Apr 2011 13:42:45 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1104201340450.5985@utopia.booyaka.com>
+References: <1299245123-23444-1-git-send-email-rnayak@ti.com> <alpine.DEB.2.00.1103081937100.15132@utopia.booyaka.com> <4D775418.6050105@ti.com> <alpine.DEB.2.00.1103100514210.15132@utopia.booyaka.com> <alpine.DEB.2.00.1103100734490.15132@utopia.booyaka.com>
+ <4D7A22F6.5050806@ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:59773 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:50775 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753562Ab1DTTfz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Apr 2011 15:35:55 -0400
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593024C9603BD@dbde02.ent.ti.com>
+	with ESMTP id S1755680Ab1DTTmq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Apr 2011 15:42:46 -0400
+In-Reply-To: <4D7A22F6.5050806@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Premi, Sanjeev" <premi@ti.com>
-Cc: "Valentin, Eduardo" <eduardo.valentin@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Linux-OMAP <linux-omap@vger.kernel.org>, Linux-ARM <linux-arm-kernel@lists.infradead.org>
+To: Rajendra Nayak <rnayak@ti.com>, santosh.shilimkar@ti.com
+Cc: linux-omap@vger.kernel.org, b-cousson@ti.com, khilman@ti.com, linux-arm-kernel@lists.infradead.org
 
-Hi
 
-On Thu, 14 Apr 2011, Premi, Sanjeev wrote:
+Hi Rajendra, Santosh,
 
-> [sp] You seem to have missed this patch:
-> http://marc.info/?l=linux-arm-kernel&m=129735383925285&w=2
+just FYI I just observed this happening without the clockdomain patch, and  
+tracked this down.  It seems that there is an intermittent 
+problem with the OMAP L3 bus code.  On the 35xx BeagleBoard here, it 
+occasionally hangs after powerup:
 
-I asked Eduardo to post his patches because there was no response to
+[    0.810119] OMAP GPIO hardware version 2.5
+[    0.815368] OMAP GPIO hardware version 2.5
+[    0.820465] OMAP GPIO hardware version 2.5
+[    0.825531] OMAP GPIO hardware version 2.5
+[    0.830657] OMAP GPIO hardware version 2.5
+[    0.835784] OMAP GPIO hardware version 2.5
+[    0.840881] initcall omap_gpio_drv_reg+0x0/0xc returned 0 after 38146 
+usecs
+[    0.848358] calling  bdi_class_init+0x0/0x50 @ 1
+[    0.854003] initcall bdi_class_init+0x0/0x50 returned 0 after 0 usecs
+[    0.860870] calling  kobject_uevent_init+0x0/0x20 @ 1
+[    0.866363] initcall kobject_uevent_init+0x0/0x20 returned 0 after 0 
+usecs
+[    0.873626] calling  gpiolib_sysfs_init+0x0/0x98 @ 1
+[    0.885894] initcall gpiolib_sysfs_init+0x0/0x98 returned 0 after 0 
+usecs
+[    0.893157] calling  lcd_class_init+0x0/0x58 @ 1
+[    0.898742] initcall lcd_class_init+0x0/0x58 returned 0 after 0 usecs
+[    0.905731] calling  backlight_class_init+0x0/0x70 @ 1
+[    0.911834] initcall backlight_class_init+0x0/0x70 returned 0 after 0 
+usecs
+[    0.919219] calling  tty_class_init+0x0/0x3c @ 1
+[    0.924743] initcall tty_class_init+0x0/0x3c returned 0 after 0 usecs
+[    0.931610] calling  vtconsole_class_init+0x0/0xe4 @ 1
+[    0.938812] initcall vtconsole_class_init+0x0/0xe4 returned 0 after 
+7629 usecs
+[    0.946472] calling  wakeup_sources_debugfs_init+0x0/0x3c @ 1
+[    0.952606] initcall wakeup_sources_debugfs_init+0x0/0x3c returned 0 
+after 0 usecs
+[    0.960571] calling  spi_init+0x0/0x88 @ 1
+[    0.966247] initcall spi_init+0x0/0x88 returned 0 after 0 usecs
+[    0.972564] calling  i2c_init+0x0/0x70 @ 1
+[    0.978485] initcall i2c_init+0x0/0x70 returned 0 after 0 usecs
+[    0.984832] calling  omap3_l3_init+0x0/0x14 @ 1
 
-http://marc.info/?l=linux-arm-kernel&m=129961775124912&w=2
-
-and because he tracked down and fully documented the actual problem.
-
+(hang)
 
 - Paul
