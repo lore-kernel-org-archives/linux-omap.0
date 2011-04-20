@@ -1,56 +1,87 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC PATCH] Consolidate SRAM support
-Date: Wed, 20 Apr 2011 08:27:21 +0300
-Message-ID: <20110420052718.GA5918@atomide.com>
-References: <20110415130607.GM1611@n2100.arm.linux.org.uk>
- <BANLkTikJwFRenjwnws+4J2ep9G0Nv-9aXw@mail.gmail.com>
- <20110416130929.GL4423@n2100.arm.linux.org.uk>
- <20110418064838.GE12272@atomide.com>
- <1303110011.2062.7.camel@deskari>
- <20110418081743.GH12272@atomide.com>
- <1303222615.32281.91.camel@deskari>
+From: Archit Taneja <archit@ti.com>
+Subject: Re: [PATCH 00/19] OMAP: DSS2: ULPS support
+Date: Wed, 20 Apr 2011 11:13:12 +0530
+Message-ID: <4DAE7270.2010306@ti.com>
+References: <1303204942-25450-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:31443 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751543Ab1DTF1f (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Apr 2011 01:27:35 -0400
-Content-Disposition: inline
-In-Reply-To: <1303222615.32281.91.camel@deskari>
+Received: from bear.ext.ti.com ([192.94.94.41]:59655 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751614Ab1DTFhq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 20 Apr 2011 01:37:46 -0400
+In-Reply-To: <1303204942-25450-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Haojian Zhuang <haojian.zhuang@gmail.com>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@ti.com>, davinci-linux-open-source@linux.davincidsp.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [110419 17:13]:
-> Hi Tony and Russell,
-> 
-> On Mon, 2011-04-18 at 11:17 +0300, Tony Lindgren wrote:
-> > * Tomi Valkeinen <tomi.valkeinen@ti.com> [110418 09:57]:
-> 
-> > > So, I can make a patch that removes the SRAM support from omapfb, and
-> > > queue it up for the next merge window.
-> > 
-> > OK. That patch should probably go into Russell's tree along with
-> > other SRAM related patches to avoid conflicts.
-> 
-> Here's a simple patch to remove SRAM support from omapfb. Or more
-> precisely, this just disables it.
-> 
-> I started to remove the SRAM support from the drivers, but the patches
-> got quite big and will probably cause conflicts if they reside in
-> somebody else's tree than mine. So I believe it's easiest to divide SRAM
-> FB removal into this patch, handled by Russell (?), and then the rest,
-> handled by me.
+On Tuesday 19 April 2011 02:52 PM, Valkeinen, Tomi wrote:
+> ULPS (Ultra-Low Power State) is a power saving method for DSI bus. When the
+> ULPS is entered, the host sends an ULPS entry sequence and pulls the DSI lines
+> down. On ULPS exit, the host sends an exit sequence and continues normal
+> operation. This allows both the host and the DSI peripheral to save some power
+> while in ULPS.
+>
+> This patch set implements ULPS support for DSS2. ULPS can be used with DSI
+> command mode displays, and as command mode displays can refresh the panel
+> independently using its own framebuffer, entering ULPS allows OMAP DSS HW to be
+> totally turned off while the image on the display stays. This in turn may allow
+> OMAP to enter deep sleep.
+>
+> Taal panel driver implements an inactivity timer which is used to enter ULPS
+> after a certain period. The period can configured via sysfs, "ulps_timeout"
+> file. A good value for the ulps_timeout depends on the use case and board, but
+> is most likely around 100-500ms.
+>
+> The patch set does not enable the ULPS timeout, but it has to be enabled either
+> manually via sysfs or from the board file.
+>
+> Tested on OMAP 4430 Blaze board. The patches are based on the current DSS2
+> master branch.
 
-OK sounds like a plan.
- 
-> Is there something else related to OMAP FB than the code removed in this
-> patch that is hindering the SRAM work?
+Tested on 4430sdp and 3430sdp with Taal Panel.
 
-I think we can now also remove sram_ceil and omap_sram_push_address?
+Archit
+>
+>   Tomi
+>
+> Tomi Valkeinen (19):
+>    OMAP: DSS2: DSI: Add lane override functions
+>    OMAP: DSS2: DSI: Remove CIO LDO status check
+>    OMAP: DSS2: DSI: implement ULPS enter and exit
+>    OMAP: DSS2: DSI: add option to leave DSI lanes powered on
+>    OMAP: DSS2: DSI: rename complexio related functions
+>    OMAP: DSS2: Add FEAT_DSI_REVERSE_TXCLKESC
+>    OMAP: DSS2: DSI: fix _dsi_print_reset_status
+>    OMAP: DSS2: DSI: implement enable/disable SCP clk
+>    OMAP: DSS2: DSI: fix CIO init and uninit
+>    OMAP: DSS2: DSI: wait for TXCLKESC domain to come out of reset
+>    OMAP: DSS2: DSI: add parameter to enter ulps on disable
+>    OMAP: DSS2: DSI: Add DSI pad muxing support
+>    OMAP: DSS2: DSI: ensure VDDS_DSI is disabled on exit
+>    OMAP: DSS2: Taal: Implement configurable ESD interval
+>    OMAP: DSS2: Taal: Clean up ESD queueing
+>    OMAP: DSS2: Taal: Add sysfs file for ESD interval
+>    OMAP: DSS2: Taal: Separate panel reset
+>    OMAP: DSS2: Taal: Rename esd_wq to workqueue
+>    OMAP: DSS2: Taal: Implement ULPS functionality
+>
+>   arch/arm/mach-omap2/board-4430sdp.c               |    2 +-
+>   arch/arm/plat-omap/include/plat/display.h         |    4 +-
+>   arch/arm/plat-omap/include/plat/nokia-dsi-panel.h |    6 +-
+>   drivers/video/omap2/displays/panel-taal.c         |  420 +++++++++++++++++++--
+>   drivers/video/omap2/dss/dpi.c                     |    4 +-
+>   drivers/video/omap2/dss/dsi.c                     |  427 +++++++++++++++++----
+>   drivers/video/omap2/dss/dss.h                     |    2 +-
+>   drivers/video/omap2/dss/dss_features.c            |    4 +-
+>   drivers/video/omap2/dss/dss_features.h            |    6 +-
+>   9 files changed, 764 insertions(+), 111 deletions(-)
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
-Regards,
-
-Tony
