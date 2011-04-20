@@ -1,72 +1,50 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] OMAP: Added recalculation of clock rate in
- 'clk_set_rate'
-Date: Wed, 20 Apr 2011 13:55:38 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1104201351180.12683@utopia.booyaka.com>
-References: <1303291509-2305-1-git-send-email-shweta.gulati@ti.com>
+Subject: [GIT PULL] OMAP hwmod/PRCM/clock: patches for 2.6.39-rc
+Date: Wed, 20 Apr 2011 14:06:50 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1104201404540.15496@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:51372 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:41863 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755923Ab1DTTzi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Apr 2011 15:55:38 -0400
-In-Reply-To: <1303291509-2305-1-git-send-email-shweta.gulati@ti.com>
+	with ESMTP id S1755933Ab1DTUGv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Apr 2011 16:06:51 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Shweta Gulati <shweta.gulati@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi
 
-On Wed, 20 Apr 2011, Shweta Gulati wrote:
+Hi Tony
 
-> From: Gulati, Shweta <shweta.gulati@ti.com>
-> 
-> Core Clk Tree shows incorrect Clk rates at OPP50, as
-> in commit e07f469d284ca3d1f5dcf5438c22982be98bc071
-> calling of 'recalc' in API clk_set_rate is unintentionally
-> removed,
+The following changes since commit f0e615c3cb72b42191b558c130409335812621d8:
 
-That's intentional.  struct clk.set_rate functions need to set the struct 
-clk.rate before returning.  If they don't do that, it's a bug in the 
-struct clk's .set_rate function.
+  Linux 2.6.39-rc4 (2011-04-18 21:26:00 -0700)
 
-> because of which clock's tree rates get goofed up when DVFS happens. 
+are available in the git repository at:
+  git://git.pwsan.com/linux-2.6 for_tony_a_2.6.39rc
 
-Clearly this isn't on the mainline kernel...
+Avinash.H.M (1):
+      OMAP2/3: hwmod: fix gpio-reset timeouts seen during bootup.
 
-> This Patch adds recalc API back.
-> 
-> Tested on OMAP3630 SDP Board.
-> 
-> Signed-off-by: Shweta Gulati <shweta.gulati@ti.com>
-> Cc: Rajendra Nayak <rnayak@ti.com>
-> Cc: Paul Wamsley <paul@pwsan.com>
-> ---
->  arch/arm/plat-omap/clock.c |    5 ++++-
->  1 files changed, 4 insertions(+), 1 deletions(-)
-> 
-> diff --git a/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
-> index c9122dd..5a0d06b 100644
-> --- a/arch/arm/plat-omap/clock.c
-> +++ b/arch/arm/plat-omap/clock.c
-> @@ -130,8 +130,11 @@ int clk_set_rate(struct clk *clk, unsigned long rate)
->  
->  	spin_lock_irqsave(&clockfw_lock, flags);
->  	ret = arch_clock->clk_set_rate(clk, rate);
-> -	if (ret == 0)
-> +	if (ret == 0) {
-> +		if (clk->recalc)
-> +			clk->rate = clk->recalc(clk);
->  		propagate_rate(clk);
-> +	}
->  	spin_unlock_irqrestore(&clockfw_lock, flags);
->  
->  	return ret;
-> -- 
-> 1.7.0.4
-> 
+Benoit Cousson (1):
+      OMAP2+: hwmod data: Fix wrong dma_system end address
+
+Eduardo Valentin (2):
+      OMAP2+: PM: Fix the saving of CM_AUTOIDLE_PLL register on scratchpad area
+      OMAP3: PM: Do not rely on ROM code to restore CM_AUTOIDLE_PLL.AUTO_PERIPH_DPLL
+
+Tomi Valkeinen (1):
+      OMAP4: clock data: Change DSS clock aliases
+
+ arch/arm/mach-omap2/clock44xx_data.c       |    9 ++-------
+ arch/arm/mach-omap2/cm2xxx_3xxx.c          |   17 +++++++++++++++++
+ arch/arm/mach-omap2/control.c              |    8 +++++++-
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c |    6 +++++-
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c |    7 ++++++-
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    8 +++++++-
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    2 +-
+ 7 files changed, 45 insertions(+), 12 deletions(-)
 
 
 - Paul
