@@ -1,76 +1,50 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 2/5] OMAP4: clock data: Change DSS clock aliases
-Date: Wed, 20 Apr 2011 13:28:41 -0600
-Message-ID: <20110420192839.16986.17445.stgit@twilight.localdomain>
+Subject: [PATCH 3/5] OMAP2+: PM: Fix the saving of CM_AUTOIDLE_PLL register on
+	scratchpad area
+Date: Wed, 20 Apr 2011 13:28:43 -0600
+Message-ID: <20110420192841.16986.24126.stgit@twilight.localdomain>
 References: <20110420192601.16986.56558.stgit@twilight.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:49008 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:49012 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755807Ab1DTTpo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Apr 2011 15:45:44 -0400
+	with ESMTP id S1755816Ab1DTTpp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Apr 2011 15:45:45 -0400
 In-Reply-To: <20110420192601.16986.56558.stgit@twilight.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, =?utf-8?q?Beno=C3=AEt?= Cousson <b-cousson@ti.com>
+Cc: Eduardo Valentin <eduardo.valentin@ti.com>
 
-=46rom: Tomi Valkeinen <tomi.valkeinen@ti.com>
+From: Eduardo Valentin <eduardo.valentin@ti.com>
 
-DSS driver has used fck and ick clocks on OMAP2/3 to get DSS HW up and
-running, and also to get the pixel clock's source clock rate from the
-fck.
+The saving of CCR.CM_AUTOIDLE_PLL is done in scratchpad area.
 
-On OMAP4 the clock data is set up in a different way, as there's no ick=
-,
-dss_fck points to a fake clock which just affects DSS's MODULEMODE, and
-dss_dss_clk if the DSS_FCK.
+However, in current code, the saving is done for CM_AUTOIDLE2_PLL
+(offset 0x34) instead of CM_AUTOIDLE_PLL (offset 0x30).
 
->From DSS driver's point of view the dss_fck sounds like an ick, and
-dss_dss_clk is the fck. While this is not entirely correct from HW poin=
-t
-of view, especially for the ick, configuring the clock aliases that way
-makes DSS "just work" with OMAP4's clock setup.
+This patch changes the code to save the correct register.
 
-In the (hopefully near) future DSS driver will be reworked to use
-pm_runtime support which should clean up the clock code.
-
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Beno=C3=AEt Cousson <b-cousson@ti.com>
+Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/clock44xx_data.c |    9 ++-------
- 1 files changed, 2 insertions(+), 7 deletions(-)
+ arch/arm/mach-omap2/control.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2=
-/clock44xx_data.c
-index 276992d..8c96567 100644
---- a/arch/arm/mach-omap2/clock44xx_data.c
-+++ b/arch/arm/mach-omap2/clock44xx_data.c
-@@ -3116,14 +3116,9 @@ static struct omap_clk omap44xx_clks[] =3D {
- 	CLK(NULL,	"dsp_fck",			&dsp_fck,	CK_443X),
- 	CLK("omapdss_dss",	"sys_clk",			&dss_sys_clk,	CK_443X),
- 	CLK("omapdss_dss",	"tv_clk",			&dss_tv_clk,	CK_443X),
--	CLK("omapdss_dss",	"dss_clk",			&dss_dss_clk,	CK_443X),
- 	CLK("omapdss_dss",	"video_clk",			&dss_48mhz_clk,	CK_443X),
--	CLK("omapdss_dss",	"fck",				&dss_fck,	CK_443X),
--	/*
--	 * On OMAP4, DSS ick is a dummy clock; this is needed for compatibili=
-ty
--	 * with OMAP2/3.
--	 */
--	CLK("omapdss_dss",	"ick",				&dummy_ck,	CK_443X),
-+	CLK("omapdss_dss",	"fck",				&dss_dss_clk,	CK_443X),
-+	CLK("omapdss_dss",	"ick",				&dss_fck,	CK_443X),
- 	CLK(NULL,	"efuse_ctrl_cust_fck",		&efuse_ctrl_cust_fck,	CK_443X),
- 	CLK(NULL,	"emif1_fck",			&emif1_fck,	CK_443X),
- 	CLK(NULL,	"emif2_fck",			&emif2_fck,	CK_443X),
+diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
+index 6952794..df0c75c 100644
+--- a/arch/arm/mach-omap2/control.c
++++ b/arch/arm/mach-omap2/control.c
+@@ -317,7 +317,7 @@ void omap3_save_scratchpad_contents(void)
+ 	prcm_block_contents.cm_clken_pll =
+ 			omap2_cm_read_mod_reg(PLL_MOD, CM_CLKEN);
+ 	prcm_block_contents.cm_autoidle_pll =
+-			omap2_cm_read_mod_reg(PLL_MOD, OMAP3430_CM_AUTOIDLE_PLL);
++			omap2_cm_read_mod_reg(PLL_MOD, CM_AUTOIDLE);
+ 	prcm_block_contents.cm_clksel1_pll =
+ 			omap2_cm_read_mod_reg(PLL_MOD, OMAP3430_CM_CLKSEL1_PLL);
+ 	prcm_block_contents.cm_clksel2_pll =
 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
