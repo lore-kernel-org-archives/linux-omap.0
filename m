@@ -1,48 +1,56 @@
-From: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
-Subject: Re: [RFC PATCH v2] Consolidate SRAM support
-Date: Wed, 20 Apr 2011 06:06:41 +0200
-Message-ID: <20110420040641.GF4204@game.jcrosoft.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RFC PATCH] Consolidate SRAM support
+Date: Wed, 20 Apr 2011 08:27:21 +0300
+Message-ID: <20110420052718.GA5918@atomide.com>
 References: <20110415130607.GM1611@n2100.arm.linux.org.uk>
- <20110418085259.GA26044@n2100.arm.linux.org.uk>
- <20110419160135.GA4204@game.jcrosoft.org>
- <20110419161846.GB24972@n2100.arm.linux.org.uk>
- <20110419190557.GB4204@game.jcrosoft.org>
- <20110419232038.GC24972@n2100.arm.linux.org.uk>
+ <BANLkTikJwFRenjwnws+4J2ep9G0Nv-9aXw@mail.gmail.com>
+ <20110416130929.GL4423@n2100.arm.linux.org.uk>
+ <20110418064838.GE12272@atomide.com>
+ <1303110011.2062.7.camel@deskari>
+ <20110418081743.GH12272@atomide.com>
+ <1303222615.32281.91.camel@deskari>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 30.mail-out.ovh.net ([213.186.62.213]:37013 "HELO
-	30.mail-out.ovh.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1750744Ab1DTEPh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Apr 2011 00:15:37 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:31443 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751543Ab1DTF1f (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Apr 2011 01:27:35 -0400
 Content-Disposition: inline
-In-Reply-To: <20110419232038.GC24972@n2100.arm.linux.org.uk>
+In-Reply-To: <1303222615.32281.91.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Paul Mundt <lethal@linux-sh.org>, Magnus Damm <magnus.damm@gmail.com>, davinci-linux-open-source@linux.davincidsp.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Haojian Zhuang <haojian.zhuang@gmail.com>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@ti.com>, davinci-linux-open-source@linux.davincidsp.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 00:20 Wed 20 Apr     , Russell King - ARM Linux wrote:
-> On Tue, Apr 19, 2011 at 09:05:57PM +0200, Jean-Christophe PLAGNIOL-VILLARD wrote:
-> > On 17:18 Tue 19 Apr     , Russell King - ARM Linux wrote:
-> > > On Tue, Apr 19, 2011 at 06:01:35PM +0200, Jean-Christophe PLAGNIOL-VILLARD wrote:
-> > > > Hi,
-> > > > 
-> > > > 	I do post a patch to add the support to specify a virt and phys
-> > > > 	address to the generic allocator so the pv-pool.c is not needed
-> > > > 	we can just use the generic fucntion
-> > > 
-> > > You've talked about this before in the thread, but the patch never appeared.
-> > I forget to re-send it sorry
-> > it's the mm tree
+* Tomi Valkeinen <tomi.valkeinen@ti.com> [110419 17:13]:
+> Hi Tony and Russell,
 > 
-> One obvious issue here is that you're using 'unsigned long' for phys
-> addresses.  With LPAE we could start seeing SRAM outside of the 4GB
-> PA range, and so would need this to be phys_addr_t.
+> On Mon, 2011-04-18 at 11:17 +0300, Tony Lindgren wrote:
+> > * Tomi Valkeinen <tomi.valkeinen@ti.com> [110418 09:57]:
+> 
+> > > So, I can make a patch that removes the SRAM support from omapfb, and
+> > > queue it up for the next merge window.
+> > 
+> > OK. That patch should probably go into Russell's tree along with
+> > other SRAM related patches to avoid conflicts.
+> 
+> Here's a simple patch to remove SRAM support from omapfb. Or more
+> precisely, this just disables it.
+> 
+> I started to remove the SRAM support from the drivers, but the patches
+> got quite big and will probably cause conflicts if they reside in
+> somebody else's tree than mine. So I believe it's easiest to divide SRAM
+> FB removal into this patch, handled by Russell (?), and then the rest,
+> handled by me.
 
-I'll update it
+OK sounds like a plan.
+ 
+> Is there something else related to OMAP FB than the code removed in this
+> patch that is hindering the SRAM work?
 
-any other issue?
+I think we can now also remove sram_ceil and omap_sram_push_address?
 
-Best Regards,
-J.
+Regards,
+
+Tony
