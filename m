@@ -1,127 +1,173 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 4/5] OMAP3: PM: Do not rely on ROM code to restore
-	CM_AUTOIDLE_PLL.AUTO_PERIPH_DPLL
-Date: Wed, 20 Apr 2011 13:28:46 -0600
-Message-ID: <20110420192843.16986.26268.stgit@twilight.localdomain>
+Subject: [PATCH 5/5] OMAP2/3: hwmod: fix gpio-reset timeouts seen during
+	bootup.
+Date: Wed, 20 Apr 2011 13:28:47 -0600
+Message-ID: <20110420192846.16986.65752.stgit@twilight.localdomain>
 References: <20110420192601.16986.56558.stgit@twilight.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:49015 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:49018 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755863Ab1DTTpp (ORCPT
+	with ESMTP id S1755869Ab1DTTpp (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Apr 2011 15:45:45 -0400
 In-Reply-To: <20110420192601.16986.56558.stgit@twilight.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Eduardo Valentin <eduardo.valentin@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>, Rajendra Nayak <rnayak@ti.com>, Benoit Cousson <b-cousson@ti.com>, "Avinash.H.M" <avinashhm@ti.com>
 
-From: Eduardo Valentin <eduardo.valentin@ti.com>
+From: Avinash.H.M <avinashhm@ti.com>
 
-As per OMAP3 erratum (i671), ROM code adds extra latencies while
-restoring CM_AUTOIDLE_PLL register, if AUTO_PERIPH_DPLL is equal to 1.
+GPIO module expects the debounce clocks to be enabled during reset. It doesn't
+reset properly and timeouts are seen, if this clock isn't enabled during
+reset. Add the HWMOD_CONTROL_OPT_CLKS_IN_RESET flags to the GPIO HWMODs, with
+which the debounce clocks are enabled during reset.
 
-This patch stores 0's in scratchpad content area corresponding to
-AUTO_PERIPH_DPLL, to prevent ROM code to try to lock per DPLL, since
-it won't respect proper programing scheme.
-
-This register is then stored in prcm context. The saving and restore
-is now done by kernel side.
-
-Here follow the erratum description
-
-DESCRIPTION
-
-After OFF mode transition, among many restorations, the ROM Code restores the
-CM_AUTOIDLE_PLL register, and after that, it tries to relock the PER DPLL.
-
-In case the restoration data stored in scratchpad memory contains a field
-CM_AUTOIDLE_PLL.AUTO_PERIPH_DPLL = 1, then the way the ROM Code restores and
-locks the PER DPLL does not respect the PER DPLL programming scheme.
-
-In that case, the DPLL might not lock. Meanwhile, when trying to lock the PER
-DPLL, the ROM Code does not hang. Only extra latencies are introduced at
-wake-up.
-
-WORKAROUND
-
-When saving the context-restore structure in scratchpad memory, in order to
-respect the PER DPLL programming scheme, it is advised to store 0 in the
-CM_AUTOIDLE_PLL.AUTO_PERIPH_DPLL field of the saved structure.
-
-After wake-up, the application should store in CM_AUTOIDLE_PLL register the
-right desired value.
-
-Signed-off-by: Eduardo Valentin <eduardo.valentin@ti.com>
+Cc: Rajendra Nayak <rnayak@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Benoit Cousson <b-cousson@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>
+Signed-off-by: Avinash.H.M <avinashhm@ti.com>
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/cm2xxx_3xxx.c |   17 +++++++++++++++++
- arch/arm/mach-omap2/control.c     |    8 +++++++-
- 2 files changed, 24 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c |    4 ++++
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c |    5 +++++
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    6 ++++++
+ 3 files changed, 15 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/cm2xxx_3xxx.c b/arch/arm/mach-omap2/cm2xxx_3xxx.c
-index 9d0dec8..38830d8 100644
---- a/arch/arm/mach-omap2/cm2xxx_3xxx.c
-+++ b/arch/arm/mach-omap2/cm2xxx_3xxx.c
-@@ -247,6 +247,7 @@ struct omap3_cm_regs {
- 	u32 per_cm_clksel;
- 	u32 emu_cm_clksel;
- 	u32 emu_cm_clkstctrl;
-+	u32 pll_cm_autoidle;
- 	u32 pll_cm_autoidle2;
- 	u32 pll_cm_clksel4;
- 	u32 pll_cm_clksel5;
-@@ -319,6 +320,15 @@ void omap3_cm_save_context(void)
- 		omap2_cm_read_mod_reg(OMAP3430_EMU_MOD, CM_CLKSEL1);
- 	cm_context.emu_cm_clkstctrl =
- 		omap2_cm_read_mod_reg(OMAP3430_EMU_MOD, OMAP2_CM_CLKSTCTRL);
-+	/*
-+	 * As per erratum i671, ROM code does not respect the PER DPLL
-+	 * programming scheme if CM_AUTOIDLE_PLL.AUTO_PERIPH_DPLL == 1.
-+	 * In this case, even though this register has been saved in
-+	 * scratchpad contents, we need to restore AUTO_PERIPH_DPLL
-+	 * by ourselves. So, we need to save it anyway.
-+	 */
-+	cm_context.pll_cm_autoidle =
-+		omap2_cm_read_mod_reg(PLL_MOD, CM_AUTOIDLE);
- 	cm_context.pll_cm_autoidle2 =
- 		omap2_cm_read_mod_reg(PLL_MOD, CM_AUTOIDLE2);
- 	cm_context.pll_cm_clksel4 =
-@@ -441,6 +451,13 @@ void omap3_cm_restore_context(void)
- 			       CM_CLKSEL1);
- 	omap2_cm_write_mod_reg(cm_context.emu_cm_clkstctrl, OMAP3430_EMU_MOD,
- 			       OMAP2_CM_CLKSTCTRL);
-+	/*
-+	 * As per erratum i671, ROM code does not respect the PER DPLL
-+	 * programming scheme if CM_AUTOIDLE_PLL.AUTO_PERIPH_DPLL == 1.
-+	 * In this case, we need to restore AUTO_PERIPH_DPLL by ourselves.
-+	 */
-+	omap2_cm_write_mod_reg(cm_context.pll_cm_autoidle, PLL_MOD,
-+			       CM_AUTOIDLE);
- 	omap2_cm_write_mod_reg(cm_context.pll_cm_autoidle2, PLL_MOD,
- 			       CM_AUTOIDLE2);
- 	omap2_cm_write_mod_reg(cm_context.pll_cm_clksel4, PLL_MOD,
-diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
-index df0c75c..da53ba3 100644
---- a/arch/arm/mach-omap2/control.c
-+++ b/arch/arm/mach-omap2/control.c
-@@ -316,8 +316,14 @@ void omap3_save_scratchpad_contents(void)
- 			omap2_cm_read_mod_reg(WKUP_MOD, CM_CLKSEL);
- 	prcm_block_contents.cm_clken_pll =
- 			omap2_cm_read_mod_reg(PLL_MOD, CM_CLKEN);
-+	/*
-+	 * As per erratum i671, ROM code does not respect the PER DPLL
-+	 * programming scheme if CM_AUTOIDLE_PLL..AUTO_PERIPH_DPLL == 1.
-+	 * Then,  in anycase, clear these bits to avoid extra latencies.
-+	 */
- 	prcm_block_contents.cm_autoidle_pll =
--			omap2_cm_read_mod_reg(PLL_MOD, CM_AUTOIDLE);
-+			omap2_cm_read_mod_reg(PLL_MOD, CM_AUTOIDLE) &
-+			~OMAP3430_AUTO_PERIPH_DPLL_MASK;
- 	prcm_block_contents.cm_clksel1_pll =
- 			omap2_cm_read_mod_reg(PLL_MOD, OMAP3430_CM_CLKSEL1_PLL);
- 	prcm_block_contents.cm_clksel2_pll =
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+index f50e56a..c4d0ae8 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+@@ -1639,6 +1639,7 @@ static struct omap_hwmod_ocp_if *omap2420_gpio1_slaves[] = {
+ 
+ static struct omap_hwmod omap2420_gpio1_hwmod = {
+ 	.name		= "gpio1",
++	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+ 	.mpu_irqs	= omap242x_gpio1_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap242x_gpio1_irqs),
+ 	.main_clk	= "gpios_fck",
+@@ -1669,6 +1670,7 @@ static struct omap_hwmod_ocp_if *omap2420_gpio2_slaves[] = {
+ 
+ static struct omap_hwmod omap2420_gpio2_hwmod = {
+ 	.name		= "gpio2",
++	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+ 	.mpu_irqs	= omap242x_gpio2_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap242x_gpio2_irqs),
+ 	.main_clk	= "gpios_fck",
+@@ -1699,6 +1701,7 @@ static struct omap_hwmod_ocp_if *omap2420_gpio3_slaves[] = {
+ 
+ static struct omap_hwmod omap2420_gpio3_hwmod = {
+ 	.name		= "gpio3",
++	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+ 	.mpu_irqs	= omap242x_gpio3_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap242x_gpio3_irqs),
+ 	.main_clk	= "gpios_fck",
+@@ -1729,6 +1732,7 @@ static struct omap_hwmod_ocp_if *omap2420_gpio4_slaves[] = {
+ 
+ static struct omap_hwmod omap2420_gpio4_hwmod = {
+ 	.name		= "gpio4",
++	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+ 	.mpu_irqs	= omap242x_gpio4_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap242x_gpio4_irqs),
+ 	.main_clk	= "gpios_fck",
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+index 96753f7..9682dd5 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+@@ -1742,6 +1742,7 @@ static struct omap_hwmod_ocp_if *omap2430_gpio1_slaves[] = {
+ 
+ static struct omap_hwmod omap2430_gpio1_hwmod = {
+ 	.name		= "gpio1",
++	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+ 	.mpu_irqs	= omap243x_gpio1_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap243x_gpio1_irqs),
+ 	.main_clk	= "gpios_fck",
+@@ -1772,6 +1773,7 @@ static struct omap_hwmod_ocp_if *omap2430_gpio2_slaves[] = {
+ 
+ static struct omap_hwmod omap2430_gpio2_hwmod = {
+ 	.name		= "gpio2",
++	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+ 	.mpu_irqs	= omap243x_gpio2_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap243x_gpio2_irqs),
+ 	.main_clk	= "gpios_fck",
+@@ -1802,6 +1804,7 @@ static struct omap_hwmod_ocp_if *omap2430_gpio3_slaves[] = {
+ 
+ static struct omap_hwmod omap2430_gpio3_hwmod = {
+ 	.name		= "gpio3",
++	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+ 	.mpu_irqs	= omap243x_gpio3_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap243x_gpio3_irqs),
+ 	.main_clk	= "gpios_fck",
+@@ -1832,6 +1835,7 @@ static struct omap_hwmod_ocp_if *omap2430_gpio4_slaves[] = {
+ 
+ static struct omap_hwmod omap2430_gpio4_hwmod = {
+ 	.name		= "gpio4",
++	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+ 	.mpu_irqs	= omap243x_gpio4_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap243x_gpio4_irqs),
+ 	.main_clk	= "gpios_fck",
+@@ -1862,6 +1866,7 @@ static struct omap_hwmod_ocp_if *omap2430_gpio5_slaves[] = {
+ 
+ static struct omap_hwmod omap2430_gpio5_hwmod = {
+ 	.name		= "gpio5",
++	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+ 	.mpu_irqs	= omap243x_gpio5_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap243x_gpio5_irqs),
+ 	.main_clk	= "gpio5_fck",
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+index 9bee155..909a84d 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -2141,6 +2141,7 @@ static struct omap_hwmod_ocp_if *omap3xxx_gpio1_slaves[] = {
+ 
+ static struct omap_hwmod omap3xxx_gpio1_hwmod = {
+ 	.name		= "gpio1",
++	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+ 	.mpu_irqs	= omap3xxx_gpio1_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap3xxx_gpio1_irqs),
+ 	.main_clk	= "gpio1_ick",
+@@ -2177,6 +2178,7 @@ static struct omap_hwmod_ocp_if *omap3xxx_gpio2_slaves[] = {
+ 
+ static struct omap_hwmod omap3xxx_gpio2_hwmod = {
+ 	.name		= "gpio2",
++	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+ 	.mpu_irqs	= omap3xxx_gpio2_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap3xxx_gpio2_irqs),
+ 	.main_clk	= "gpio2_ick",
+@@ -2213,6 +2215,7 @@ static struct omap_hwmod_ocp_if *omap3xxx_gpio3_slaves[] = {
+ 
+ static struct omap_hwmod omap3xxx_gpio3_hwmod = {
+ 	.name		= "gpio3",
++	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+ 	.mpu_irqs	= omap3xxx_gpio3_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap3xxx_gpio3_irqs),
+ 	.main_clk	= "gpio3_ick",
+@@ -2249,6 +2252,7 @@ static struct omap_hwmod_ocp_if *omap3xxx_gpio4_slaves[] = {
+ 
+ static struct omap_hwmod omap3xxx_gpio4_hwmod = {
+ 	.name		= "gpio4",
++	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+ 	.mpu_irqs	= omap3xxx_gpio4_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap3xxx_gpio4_irqs),
+ 	.main_clk	= "gpio4_ick",
+@@ -2285,6 +2289,7 @@ static struct omap_hwmod_ocp_if *omap3xxx_gpio5_slaves[] = {
+ 
+ static struct omap_hwmod omap3xxx_gpio5_hwmod = {
+ 	.name		= "gpio5",
++	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+ 	.mpu_irqs	= omap3xxx_gpio5_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap3xxx_gpio5_irqs),
+ 	.main_clk	= "gpio5_ick",
+@@ -2321,6 +2326,7 @@ static struct omap_hwmod_ocp_if *omap3xxx_gpio6_slaves[] = {
+ 
+ static struct omap_hwmod omap3xxx_gpio6_hwmod = {
+ 	.name		= "gpio6",
++	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+ 	.mpu_irqs	= omap3xxx_gpio6_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap3xxx_gpio6_irqs),
+ 	.main_clk	= "gpio6_ick",
 
 
