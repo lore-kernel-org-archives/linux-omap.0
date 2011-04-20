@@ -1,35 +1,37 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [RFC PATCH v2] Consolidate SRAM support
-Date: Wed, 20 Apr 2011 00:20:38 +0100
-Message-ID: <20110419232038.GC24972@n2100.arm.linux.org.uk>
-References: <20110415130607.GM1611@n2100.arm.linux.org.uk> <20110418085259.GA26044@n2100.arm.linux.org.uk> <20110419160135.GA4204@game.jcrosoft.org> <20110419161846.GB24972@n2100.arm.linux.org.uk> <20110419190557.GB4204@game.jcrosoft.org>
+From: Paul Alfille <paul.alfille@gmail.com>
+Subject: omap byte order error in w1 slave message
+Date: Tue, 19 Apr 2011 20:21:49 -0400
+Message-ID: <BANLkTi=SP0J6QfaeeadgmQnCtdqLdBF5aA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:41666 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751945Ab1DSXVM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Apr 2011 19:21:12 -0400
-Content-Disposition: inline
-In-Reply-To: <20110419190557.GB4204@game.jcrosoft.org>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:43808 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752984Ab1DTAWK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Apr 2011 20:22:10 -0400
+Received: by fxm17 with SMTP id 17so137819fxm.19
+        for <linux-omap@vger.kernel.org>; Tue, 19 Apr 2011 17:22:09 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
-Cc: Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Paul Mundt <lethal@linux-sh.org>, Magnus Damm <magnus.damm@gmail.com>, davinci-linux-open-source@linux.davincidsp.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org
 
-On Tue, Apr 19, 2011 at 09:05:57PM +0200, Jean-Christophe PLAGNIOL-VILLARD wrote:
-> On 17:18 Tue 19 Apr     , Russell King - ARM Linux wrote:
-> > On Tue, Apr 19, 2011 at 06:01:35PM +0200, Jean-Christophe PLAGNIOL-VILLARD wrote:
-> > > Hi,
-> > > 
-> > > 	I do post a patch to add the support to specify a virt and phys
-> > > 	address to the generic allocator so the pv-pool.c is not needed
-> > > 	we can just use the generic fucntion
-> > 
-> > You've talked about this before in the thread, but the patch never appeared.
-> I forget to re-send it sorry
-> it's the mm tree
+After extensive testing, it's clear that the omap driver in
+kernel/drivers/w1/masters/omap_hdq.c reports the slave address in
+reversed byte order compared to all the other drivers.
 
-One obvious issue here is that you're using 'unsigned long' for phys
-addresses.  With LPAE we could start seeing SRAM outside of the 4GB
-PA range, and so would need this to be phys_addr_t.
+This is in the netlink LIST_SLAVE message.
+
+I've discovered this when testing support in OWFS --
+one-wire-file-system (www.owfs.org) which is probably the most
+comprehensive 1-wire support around.
+
+I'd be glad to supply detailed information.
+
+The sysfs report is correct, and the CRC8 is computed correctly. If I
+just reverse the netlink slave addresses, everything functions well.
+
+If it is not possible to correct the driver, my next alternative is to
+always test the address forward and backward (the CRC8 will probably
+work only in one direction) and compensate for the bug in that manner.
+
+Paul Alfille
