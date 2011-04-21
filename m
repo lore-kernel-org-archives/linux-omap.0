@@ -1,65 +1,53 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH] OMAP2+: powerdomain: fix typo: lose context --> loose context
-Date: Thu, 21 Apr 2011 10:09:32 -0700
-Message-ID: <87tydr1qgj.fsf@ti.com>
-References: <1303345531-8435-1-git-send-email-khilman@ti.com>
-	<alpine.DEB.2.00.1104210851500.991@utopia.booyaka.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Subject: [PATCH 0/9] OMAP: GPIO: cleanup, consolidation, etc. (v2)
+Date: Thu, 21 Apr 2011 13:35:18 -0700
+Message-ID: <1303418127-4310-1-git-send-email-khilman@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:55854 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755177Ab1DURJh (ORCPT
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:54828 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754192Ab1DUUdg (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 21 Apr 2011 13:09:37 -0400
-Received: by mail-px0-f178.google.com with SMTP id 1so1351406pxi.9
-        for <linux-omap@vger.kernel.org>; Thu, 21 Apr 2011 10:09:34 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.1104210851500.991@utopia.booyaka.com> (Paul
-	Walmsley's message of "Thu, 21 Apr 2011 09:35:20 -0600 (MDT)")
+	Thu, 21 Apr 2011 16:33:36 -0400
+Received: by mail-pz0-f53.google.com with SMTP id 3so61249pzk.12
+        for <linux-omap@vger.kernel.org>; Thu, 21 Apr 2011 13:33:29 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, charu@ti.com
+To: linux-omap@vger.kernel.org
+Cc: charu@ti.com
 
-Paul Walmsley <paul@pwsan.com> writes:
+Here's an updated version of my work-in-progress GPIO cleanups.
 
-> Hi Kevin,
->
-> On Wed, 20 Apr 2011, Kevin Hilman wrote:
->
->> Before we get any users of this function, fix the name (and comments)
->> to use loose instead of lose.
->> 
->> Signed-off-by: Kevin Hilman <khilman@ti.com>
->> ---
->> Applies to v2.6.39-rc4
->> 
->>  arch/arm/mach-omap2/powerdomain.c |    6 +++---
->>  arch/arm/mach-omap2/powerdomain.h |    2 +-
->>  2 files changed, 4 insertions(+), 4 deletions(-)
->> 
->> diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
->> index 9af0847..ec3423f 100644
->> --- a/arch/arm/mach-omap2/powerdomain.c
->> +++ b/arch/arm/mach-omap2/powerdomain.c
->> @@ -960,18 +960,18 @@ u32 pwrdm_get_context_loss_count(struct powerdomain *pwrdm)
->>  }
->>  
->>  /**
->> - * pwrdm_can_ever_lose_context - can this powerdomain ever lose context?
->> + * pwrdm_can_ever_loose_context - can this powerdomain ever loose context?
->
-> 'lose' is correct in this case,. It's derived from the idiom 'context 
-> loss'.  more broadly, 'loose' implies a strong sense of agency on the part 
-> of whatever is doing the 'loosing,' whereas 'lose' does not (it's the PRCM 
-> that causes the powerdomain to lose context, not the powerdomain itself - 
-> the powerdomain's logic/memory context is subject to the PRCM's whim)
+I now understand that others have some similar work in progress, so
+these are posted (to linux-omap only, for now) so that we can begin
+collaboration on the GPIO cleanups.
 
-After a dictionary lookup, I guess you're right.  I guess I've been
-spelling that wrong for a while, and it seems I'm not the only one:
+This series applies on top of v2.6.39-rc4 plus the generic irq_chip
+series from Thomas Gleixner since in addition to the cleanups, I
+started moving the GPIO IRQ handling over to use generic irq_chip
+(last patch in series.)
 
-  http://www.elearnenglishlanguage.com/difficulties/looselose.html
+This work in progress is available in my wip/gpio-cleanup branch.
 
-Thanks for the English lesson.  ;)
+Kevin Hilman (9):
+  OMAP: GPIO: _clear_gpio_irqbank: fix flushing of posted write
+  OMAP: GPIO: remove MPUIO handling from _clear_gpio_irqbank()
+  OMAP: GPIO: move bank width into struct gpio_bank
+  OMAP: GPIO: _get_gpio_irqbank_mask: replace hard-coded mask with
+    bank->width
+  OMAP: GPIO: move register offset defines into gpio.h
+  OMAP: GPIO: consolidate direction, input, output, remove #ifdefs
+  OMAP: GPIO: consolidate IRQ status handling, remove #ifdefs
+  OMAP: GPIO: conslidate enable/disable of GPIO IRQs, remove ifdefs
+  OMAP: GPIO: convert MPUIO IRQ over to generic irq_chip
 
-Kevin
+ arch/arm/mach-omap1/gpio15xx.c         |   13 +
+ arch/arm/mach-omap1/gpio16xx.c         |   22 ++
+ arch/arm/mach-omap1/gpio7xx.c          |   21 +
+ arch/arm/mach-omap2/gpio.c             |   20 +
+ arch/arm/plat-omap/gpio.c              |  641 ++++++--------------------------
+ arch/arm/plat-omap/include/plat/gpio.h |  120 ++++++
+ 6 files changed, 318 insertions(+), 519 deletions(-)
+
+-- 
+1.7.4
+
