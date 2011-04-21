@@ -1,60 +1,69 @@
-From: Archit Taneja <archit@ti.com>
-Subject: Re: [PATCH] OMAP: DSS2: DSI: enable interface for omap4
-Date: Thu, 21 Apr 2011 14:47:42 +0530
-Message-ID: <4DAFF636.4030205@ti.com>
-References: <1303356675-25451-1-git-send-email-vikram.pandita@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH] ARM: Fix relocation if image end past uncompressed kernel
+ end
+Date: Thu, 21 Apr 2011 03:49:54 -0700
+Message-ID: <20110421104954.GH13688@atomide.com>
+References: <1303272904-31392-1-git-send-email-nicolas.pitre@linaro.org>
+ <20110420072156.GA28679@atomide.com>
+ <alpine.LFD.2.00.1104200850030.24613@xanadu.home>
+ <20110420165514.GE10402@atomide.com>
+ <alpine.LFD.2.00.1104201318040.24613@xanadu.home>
+ <20110421055945.GB13688@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:35918 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752400Ab1DUJMW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 21 Apr 2011 05:12:22 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p3L9CJEk016492
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 21 Apr 2011 04:12:21 -0500
-In-Reply-To: <1303356675-25451-1-git-send-email-vikram.pandita@ti.com>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:10863 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752514Ab1DUKt7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Apr 2011 06:49:59 -0400
+Content-Disposition: inline
+In-Reply-To: <20110421055945.GB13688@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Pandita, Vikram" <vikram.pandita@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
+To: Nicolas Pitre <nicolas.pitre@linaro.org>
+Cc: Shawn Guo <shawn.guo@freescale.com>, linux-arm-kernel@lists.infradead.org, patches@linaro.org, Aaro Koskinen <aaro.koskinen@nokia.com>, linux-omap@vger.kernel.org
 
-Hi,
+Otherwise we end up overwriting ourselves. This fixes booting
+on n900 after commit 6d7d0ae51574943bf571d269da3243257a2d15db
+(ARM: 6750/1: improvements to compressed/head.S).
 
-On Thursday 21 April 2011 09:01 AM, Pandita, Vikram wrote:
-> From: Vikram Pandita<vikram.pandita@ti.com>
->
-> By default, the DSI is not getting enabled for omap4.
-> OMAP2PLUS does not catch this issue since it has ARCH_OMAP3.
->
-> The issue is only seen when using defconfig with ARCH_OMAP4 only.
->
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-This looks fine. There isn't a defconfig in mainline kernel with only 
-ARCH_OMAP4, hence we missed this out.
-
-Archit
-
-> Signed-off-by: Vikram Pandita<vikram.pandita@ti.com>
-> Cc: Archit Taneja<archit@ti.com>
-> Cc: Tomi Valkeinen<tomi.valkeinen@ti.com>
-> ---
->   drivers/video/omap2/dss/Kconfig |    2 +-
->   1 files changed, 1 insertions(+), 1 deletions(-)
->
-> diff --git a/drivers/video/omap2/dss/Kconfig b/drivers/video/omap2/dss/Kconfig
-> index 7a49a75..6b3e2da 100644
-> --- a/drivers/video/omap2/dss/Kconfig
-> +++ b/drivers/video/omap2/dss/Kconfig
-> @@ -80,7 +80,7 @@ config OMAP2_DSS_SDI
->
->   config OMAP2_DSS_DSI
->   	bool "DSI support"
-> -	depends on ARCH_OMAP3
-> +	depends on ARCH_OMAP3 || ARCH_OMAP4
->           default n
->   	help
->   	  MIPI DSI (Display Serial Interface) support.
-
+--- a/arch/arm/boot/compressed/head.S
++++ b/arch/arm/boot/compressed/head.S
+@@ -282,6 +282,7 @@ dtb_check_done:
+ 
+ /*
+  * Check to see if we will overwrite ourselves.
++ *   r1  = corrupted, temporary uncompressed kernel end 
+  *   r4  = final kernel address
+  *   r5  = start of this image
+  *   r9  = size of decompressed image
+@@ -292,15 +293,24 @@ dtb_check_done:
+  */
+ 		cmp	r4, r10
+ 		bhs	wont_overwrite
+-		add	r10, r4, r9
+-		cmp	r10, r5
++		add	r1, r4, r9
++		cmp	r1, r5
+ 		bls	wont_overwrite
+ 
++		/*
++		 * Check if the compressed image end is past the uncompressed
++		 * kernel end. In that case, relocate ourselves to the end
++		 * of the compressed image instead of the uncompressed kernel
++		 * end to avoid overwriting ourselves.
++		 */
++		cmp	r10, r1
++		movls	r10, r1
++
+ /*
+  * Relocate ourselves past the end of the decompressed kernel.
+  *   r5  = start of this image
+  *   r6  = _edata
+- *   r10 = end of the decompressed kernel
++ *   r10 = end of the decompressed kernel or end of this image if larger
+  * Because we always copy ahead, we need to do it from the end and go
+  * backward in case the source and destination overlap.
+  */
