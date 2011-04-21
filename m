@@ -1,79 +1,258 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH 3/9] OMAP: GPIO: move bank width into struct gpio_bank
-Date: Thu, 21 Apr 2011 13:35:21 -0700
-Message-ID: <1303418127-4310-4-git-send-email-khilman@ti.com>
+Subject: [PATCH 5/9] OMAP: GPIO: move register offset defines into gpio.h
+Date: Thu, 21 Apr 2011 13:35:23 -0700
+Message-ID: <1303418127-4310-6-git-send-email-khilman@ti.com>
 References: <1303418127-4310-1-git-send-email-khilman@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:56537 "EHLO
+Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:56600 "EHLO
 	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753417Ab1DUUdi (ORCPT
+	by vger.kernel.org with ESMTP id S1754300Ab1DUUdj (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 21 Apr 2011 16:33:38 -0400
-Received: by mail-pw0-f54.google.com with SMTP id 8so79982pwj.27
-        for <linux-omap@vger.kernel.org>; Thu, 21 Apr 2011 13:33:35 -0700 (PDT)
+	Thu, 21 Apr 2011 16:33:39 -0400
+Received: by mail-pz0-f45.google.com with SMTP id 36so60446pzk.4
+        for <linux-omap@vger.kernel.org>; Thu, 21 Apr 2011 13:33:38 -0700 (PDT)
 In-Reply-To: <1303418127-4310-1-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: charu@ti.com
 
-Rather than having a file-global bank_width variable, move it into
-struct gpio_bank so it can be bank-specific.   Note the bank width
-is already passed per-bank via platform_data, so current code would
-be incorrect if any banks had different width.
+Register offset defines are moved to <plat/gpio.h> so they can be used
+by SoC-specific device init code to fill out platform_data register offsets.
 
 Signed-off-by: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/plat-omap/gpio.c |   11 +++++------
- 1 files changed, 5 insertions(+), 6 deletions(-)
+ arch/arm/plat-omap/gpio.c              |  103 --------------------------------
+ arch/arm/plat-omap/include/plat/gpio.h |  103 ++++++++++++++++++++++++++++++++
+ 2 files changed, 103 insertions(+), 103 deletions(-)
 
 diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
-index 8b5ca6e..d1d3397 100644
+index b66f374..274e4a5 100644
 --- a/arch/arm/plat-omap/gpio.c
 +++ b/arch/arm/plat-omap/gpio.c
-@@ -159,6 +159,7 @@ struct gpio_bank {
- 	struct device *dev;
- 	bool dbck_flag;
- 	int stride;
-+	u32 width;
- };
+@@ -30,109 +30,6 @@
+ #include <mach/gpio.h>
+ #include <asm/mach/irq.h>
  
- #ifdef CONFIG_ARCH_OMAP3
-@@ -184,8 +185,6 @@ static struct omap3_gpio_regs gpio_context[OMAP34XX_NR_GPIOS];
-  */
- static struct gpio_bank *gpio_bank;
- 
--static int bank_width;
+-/*
+- * OMAP1510 GPIO registers
+- */
+-#define OMAP1510_GPIO_DATA_INPUT	0x00
+-#define OMAP1510_GPIO_DATA_OUTPUT	0x04
+-#define OMAP1510_GPIO_DIR_CONTROL	0x08
+-#define OMAP1510_GPIO_INT_CONTROL	0x0c
+-#define OMAP1510_GPIO_INT_MASK		0x10
+-#define OMAP1510_GPIO_INT_STATUS	0x14
+-#define OMAP1510_GPIO_PIN_CONTROL	0x18
 -
- /* TODO: Analyze removing gpio_bank_count usage from driver code */
- int gpio_bank_count;
+-#define OMAP1510_IH_GPIO_BASE		64
+-
+-/*
+- * OMAP1610 specific GPIO registers
+- */
+-#define OMAP1610_GPIO_REVISION		0x0000
+-#define OMAP1610_GPIO_SYSCONFIG		0x0010
+-#define OMAP1610_GPIO_SYSSTATUS		0x0014
+-#define OMAP1610_GPIO_IRQSTATUS1	0x0018
+-#define OMAP1610_GPIO_IRQENABLE1	0x001c
+-#define OMAP1610_GPIO_WAKEUPENABLE	0x0028
+-#define OMAP1610_GPIO_DATAIN		0x002c
+-#define OMAP1610_GPIO_DATAOUT		0x0030
+-#define OMAP1610_GPIO_DIRECTION		0x0034
+-#define OMAP1610_GPIO_EDGE_CTRL1	0x0038
+-#define OMAP1610_GPIO_EDGE_CTRL2	0x003c
+-#define OMAP1610_GPIO_CLEAR_IRQENABLE1	0x009c
+-#define OMAP1610_GPIO_CLEAR_WAKEUPENA	0x00a8
+-#define OMAP1610_GPIO_CLEAR_DATAOUT	0x00b0
+-#define OMAP1610_GPIO_SET_IRQENABLE1	0x00dc
+-#define OMAP1610_GPIO_SET_WAKEUPENA	0x00e8
+-#define OMAP1610_GPIO_SET_DATAOUT	0x00f0
+-
+-/*
+- * OMAP7XX specific GPIO registers
+- */
+-#define OMAP7XX_GPIO_DATA_INPUT		0x00
+-#define OMAP7XX_GPIO_DATA_OUTPUT	0x04
+-#define OMAP7XX_GPIO_DIR_CONTROL	0x08
+-#define OMAP7XX_GPIO_INT_CONTROL	0x0c
+-#define OMAP7XX_GPIO_INT_MASK		0x10
+-#define OMAP7XX_GPIO_INT_STATUS		0x14
+-
+-/*
+- * omap2+ specific GPIO registers
+- */
+-#define OMAP24XX_GPIO_REVISION		0x0000
+-#define OMAP24XX_GPIO_IRQSTATUS1	0x0018
+-#define OMAP24XX_GPIO_IRQSTATUS2	0x0028
+-#define OMAP24XX_GPIO_IRQENABLE2	0x002c
+-#define OMAP24XX_GPIO_IRQENABLE1	0x001c
+-#define OMAP24XX_GPIO_WAKE_EN		0x0020
+-#define OMAP24XX_GPIO_CTRL		0x0030
+-#define OMAP24XX_GPIO_OE		0x0034
+-#define OMAP24XX_GPIO_DATAIN		0x0038
+-#define OMAP24XX_GPIO_DATAOUT		0x003c
+-#define OMAP24XX_GPIO_LEVELDETECT0	0x0040
+-#define OMAP24XX_GPIO_LEVELDETECT1	0x0044
+-#define OMAP24XX_GPIO_RISINGDETECT	0x0048
+-#define OMAP24XX_GPIO_FALLINGDETECT	0x004c
+-#define OMAP24XX_GPIO_DEBOUNCE_EN	0x0050
+-#define OMAP24XX_GPIO_DEBOUNCE_VAL	0x0054
+-#define OMAP24XX_GPIO_CLEARIRQENABLE1	0x0060
+-#define OMAP24XX_GPIO_SETIRQENABLE1	0x0064
+-#define OMAP24XX_GPIO_CLEARWKUENA	0x0080
+-#define OMAP24XX_GPIO_SETWKUENA		0x0084
+-#define OMAP24XX_GPIO_CLEARDATAOUT	0x0090
+-#define OMAP24XX_GPIO_SETDATAOUT	0x0094
+-
+-#define OMAP4_GPIO_REVISION		0x0000
+-#define OMAP4_GPIO_EOI			0x0020
+-#define OMAP4_GPIO_IRQSTATUSRAW0	0x0024
+-#define OMAP4_GPIO_IRQSTATUSRAW1	0x0028
+-#define OMAP4_GPIO_IRQSTATUS0		0x002c
+-#define OMAP4_GPIO_IRQSTATUS1		0x0030
+-#define OMAP4_GPIO_IRQSTATUSSET0	0x0034
+-#define OMAP4_GPIO_IRQSTATUSSET1	0x0038
+-#define OMAP4_GPIO_IRQSTATUSCLR0	0x003c
+-#define OMAP4_GPIO_IRQSTATUSCLR1	0x0040
+-#define OMAP4_GPIO_IRQWAKEN0		0x0044
+-#define OMAP4_GPIO_IRQWAKEN1		0x0048
+-#define OMAP4_GPIO_IRQENABLE1		0x011c
+-#define OMAP4_GPIO_WAKE_EN		0x0120
+-#define OMAP4_GPIO_IRQSTATUS2		0x0128
+-#define OMAP4_GPIO_IRQENABLE2		0x012c
+-#define OMAP4_GPIO_CTRL			0x0130
+-#define OMAP4_GPIO_OE			0x0134
+-#define OMAP4_GPIO_DATAIN		0x0138
+-#define OMAP4_GPIO_DATAOUT		0x013c
+-#define OMAP4_GPIO_LEVELDETECT0		0x0140
+-#define OMAP4_GPIO_LEVELDETECT1		0x0144
+-#define OMAP4_GPIO_RISINGDETECT		0x0148
+-#define OMAP4_GPIO_FALLINGDETECT	0x014c
+-#define OMAP4_GPIO_DEBOUNCENABLE	0x0150
+-#define OMAP4_GPIO_DEBOUNCINGTIME	0x0154
+-#define OMAP4_GPIO_CLEARIRQENABLE1	0x0160
+-#define OMAP4_GPIO_SETIRQENABLE1	0x0164
+-#define OMAP4_GPIO_CLEARWKUENA		0x0180
+-#define OMAP4_GPIO_SETWKUENA		0x0184
+-#define OMAP4_GPIO_CLEARDATAOUT		0x0190
+-#define OMAP4_GPIO_SETDATAOUT		0x0194
+-
+ struct gpio_bank {
+ 	unsigned long pbase;
+ 	void __iomem *base;
+diff --git a/arch/arm/plat-omap/include/plat/gpio.h b/arch/arm/plat-omap/include/plat/gpio.h
+index cac2e8a..ec97e00 100644
+--- a/arch/arm/plat-omap/include/plat/gpio.h
++++ b/arch/arm/plat-omap/include/plat/gpio.h
+@@ -52,6 +52,109 @@
  
-@@ -1650,14 +1649,14 @@ static void __init omap_gpio_chip_init(struct gpio_bank *bank)
- 	} else {
- 		bank->chip.label = "gpio";
- 		bank->chip.base = gpio;
--		gpio += bank_width;
-+		gpio += bank->width;
- 	}
--	bank->chip.ngpio = bank_width;
-+	bank->chip.ngpio = bank->width;
+ #define OMAP34XX_NR_GPIOS		6
  
- 	gpiochip_add(&bank->chip);
- 
- 	for (j = bank->virtual_irq_start;
--		     j < bank->virtual_irq_start + bank_width; j++) {
-+		     j < bank->virtual_irq_start + bank->width; j++) {
- 		irq_set_lockdep_class(j, &gpio_lock_class);
- 		irq_set_chip_data(j, bank);
- 		if (bank_is_mpuio(bank))
-@@ -1707,7 +1706,7 @@ static int __devinit omap_gpio_probe(struct platform_device *pdev)
- 	bank->dev = &pdev->dev;
- 	bank->dbck_flag = pdata->dbck_flag;
- 	bank->stride = pdata->bank_stride;
--	bank_width = pdata->bank_width;
-+	bank->width = pdata->bank_width;
- 
- 	spin_lock_init(&bank->lock);
++/*
++ * OMAP1510 GPIO registers
++ */
++#define OMAP1510_GPIO_DATA_INPUT	0x00
++#define OMAP1510_GPIO_DATA_OUTPUT	0x04
++#define OMAP1510_GPIO_DIR_CONTROL	0x08
++#define OMAP1510_GPIO_INT_CONTROL	0x0c
++#define OMAP1510_GPIO_INT_MASK		0x10
++#define OMAP1510_GPIO_INT_STATUS	0x14
++#define OMAP1510_GPIO_PIN_CONTROL	0x18
++
++#define OMAP1510_IH_GPIO_BASE		64
++
++/*
++ * OMAP1610 specific GPIO registers
++ */
++#define OMAP1610_GPIO_REVISION		0x0000
++#define OMAP1610_GPIO_SYSCONFIG		0x0010
++#define OMAP1610_GPIO_SYSSTATUS		0x0014
++#define OMAP1610_GPIO_IRQSTATUS1	0x0018
++#define OMAP1610_GPIO_IRQENABLE1	0x001c
++#define OMAP1610_GPIO_WAKEUPENABLE	0x0028
++#define OMAP1610_GPIO_DATAIN		0x002c
++#define OMAP1610_GPIO_DATAOUT		0x0030
++#define OMAP1610_GPIO_DIRECTION		0x0034
++#define OMAP1610_GPIO_EDGE_CTRL1	0x0038
++#define OMAP1610_GPIO_EDGE_CTRL2	0x003c
++#define OMAP1610_GPIO_CLEAR_IRQENABLE1	0x009c
++#define OMAP1610_GPIO_CLEAR_WAKEUPENA	0x00a8
++#define OMAP1610_GPIO_CLEAR_DATAOUT	0x00b0
++#define OMAP1610_GPIO_SET_IRQENABLE1	0x00dc
++#define OMAP1610_GPIO_SET_WAKEUPENA	0x00e8
++#define OMAP1610_GPIO_SET_DATAOUT	0x00f0
++
++/*
++ * OMAP7XX specific GPIO registers
++ */
++#define OMAP7XX_GPIO_DATA_INPUT		0x00
++#define OMAP7XX_GPIO_DATA_OUTPUT	0x04
++#define OMAP7XX_GPIO_DIR_CONTROL	0x08
++#define OMAP7XX_GPIO_INT_CONTROL	0x0c
++#define OMAP7XX_GPIO_INT_MASK		0x10
++#define OMAP7XX_GPIO_INT_STATUS		0x14
++
++/*
++ * omap2+ specific GPIO registers
++ */
++#define OMAP24XX_GPIO_REVISION		0x0000
++#define OMAP24XX_GPIO_IRQSTATUS1	0x0018
++#define OMAP24XX_GPIO_IRQSTATUS2	0x0028
++#define OMAP24XX_GPIO_IRQENABLE2	0x002c
++#define OMAP24XX_GPIO_IRQENABLE1	0x001c
++#define OMAP24XX_GPIO_WAKE_EN		0x0020
++#define OMAP24XX_GPIO_CTRL		0x0030
++#define OMAP24XX_GPIO_OE		0x0034
++#define OMAP24XX_GPIO_DATAIN		0x0038
++#define OMAP24XX_GPIO_DATAOUT		0x003c
++#define OMAP24XX_GPIO_LEVELDETECT0	0x0040
++#define OMAP24XX_GPIO_LEVELDETECT1	0x0044
++#define OMAP24XX_GPIO_RISINGDETECT	0x0048
++#define OMAP24XX_GPIO_FALLINGDETECT	0x004c
++#define OMAP24XX_GPIO_DEBOUNCE_EN	0x0050
++#define OMAP24XX_GPIO_DEBOUNCE_VAL	0x0054
++#define OMAP24XX_GPIO_CLEARIRQENABLE1	0x0060
++#define OMAP24XX_GPIO_SETIRQENABLE1	0x0064
++#define OMAP24XX_GPIO_CLEARWKUENA	0x0080
++#define OMAP24XX_GPIO_SETWKUENA		0x0084
++#define OMAP24XX_GPIO_CLEARDATAOUT	0x0090
++#define OMAP24XX_GPIO_SETDATAOUT	0x0094
++
++#define OMAP4_GPIO_REVISION		0x0000
++#define OMAP4_GPIO_EOI			0x0020
++#define OMAP4_GPIO_IRQSTATUSRAW0	0x0024
++#define OMAP4_GPIO_IRQSTATUSRAW1	0x0028
++#define OMAP4_GPIO_IRQSTATUS0		0x002c
++#define OMAP4_GPIO_IRQSTATUS1		0x0030
++#define OMAP4_GPIO_IRQSTATUSSET0	0x0034
++#define OMAP4_GPIO_IRQSTATUSSET1	0x0038
++#define OMAP4_GPIO_IRQSTATUSCLR0	0x003c
++#define OMAP4_GPIO_IRQSTATUSCLR1	0x0040
++#define OMAP4_GPIO_IRQWAKEN0		0x0044
++#define OMAP4_GPIO_IRQWAKEN1		0x0048
++#define OMAP4_GPIO_IRQENABLE1		0x011c
++#define OMAP4_GPIO_WAKE_EN		0x0120
++#define OMAP4_GPIO_IRQSTATUS2		0x0128
++#define OMAP4_GPIO_IRQENABLE2		0x012c
++#define OMAP4_GPIO_CTRL			0x0130
++#define OMAP4_GPIO_OE			0x0134
++#define OMAP4_GPIO_DATAIN		0x0138
++#define OMAP4_GPIO_DATAOUT		0x013c
++#define OMAP4_GPIO_LEVELDETECT0		0x0140
++#define OMAP4_GPIO_LEVELDETECT1		0x0144
++#define OMAP4_GPIO_RISINGDETECT		0x0148
++#define OMAP4_GPIO_FALLINGDETECT	0x014c
++#define OMAP4_GPIO_DEBOUNCENABLE	0x0150
++#define OMAP4_GPIO_DEBOUNCINGTIME	0x0154
++#define OMAP4_GPIO_CLEARIRQENABLE1	0x0160
++#define OMAP4_GPIO_SETIRQENABLE1	0x0164
++#define OMAP4_GPIO_CLEARWKUENA		0x0180
++#define OMAP4_GPIO_SETWKUENA		0x0184
++#define OMAP4_GPIO_CLEARDATAOUT		0x0190
++#define OMAP4_GPIO_SETDATAOUT		0x0194
++
+ #define OMAP_MPUIO(nr)		(OMAP_MAX_GPIO_LINES + (nr))
+ #define OMAP_GPIO_IS_MPUIO(nr)	((nr) >= OMAP_MAX_GPIO_LINES)
  
 -- 
 1.7.4
