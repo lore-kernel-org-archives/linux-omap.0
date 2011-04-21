@@ -1,65 +1,263 @@
-From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: RE: [PATCH 0/2] OMAP: GPIO: cleanup: first pass at ifdef removal
-Date: Thu, 21 Apr 2011 14:02:26 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB037AD272CB@dbde02.ent.ti.com>
-References: <1303344831-7889-1-git-send-email-khilman@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] omap: Run make savedefconfig on omap2plus_defconfig to
+ shrink it
+Date: Thu, 21 Apr 2011 01:49:10 -0700
+Message-ID: <20110421084910.GF13688@atomide.com>
+References: <20110421064423.GD13688@atomide.com>
+ <20110421082328.GK31131@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:33673 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754391Ab1DUIcy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Apr 2011 04:32:54 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p3L8Wo6H005099
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 21 Apr 2011 03:32:53 -0500
-In-Reply-To: <1303344831-7889-1-git-send-email-khilman@ti.com>
-Content-Language: en-US
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:29108 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752268Ab1DUItY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Apr 2011 04:49:24 -0400
+Content-Disposition: inline
+In-Reply-To: <20110421082328.GK31131@pengutronix.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hilman, Kevin" <khilman@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Varadarajan, Charulatha" <charu@ti.com>
+To: Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-[...]
-> 
-> This series is a first pass at the #ifdef removal cleanup.
-> 
-> To demonstrate the type of changes needed for the cleanup, the
-> direction and data input/output functions are handled first.  Register
-> offset fields are added to platform_data so #ifdefs can be removed.
-> 
-> Similar needs to be done for the remaining #ifdefs.
-> 
-> Currently boot tested on 3430/n900 only.
-Tested following on OMAP2420, OMAP2430, OMAP4430:
--> request/free of gpio lines
--> configure input/output mode
--> interrupt configuration
--> read/write
+* Uwe Kleine-K=C3=B6nig <u.kleine-koenig@pengutronix.de> [110421 01:20]=
+:
+> On Wed, Apr 20, 2011 at 11:44:23PM -0700, Tony Lindgren wrote:
+> > This shrinks it down a bit more and makes it easier
+> > to patch later on.
+> Maybe pointing out why it's shrinkable would be nice.
+> E.g.
+>=20
+> 	After commit
+>=20
+> 		ffb63e3 (omap2/3/4: Select all omaps and boards by default
+>=20
+> 	many explicit settings can be dropped from the defconfig.
+
+Good point, updated patch below.
+
+Regards,
+
+Tony
+
+
+=46rom: Tony Lindgren <tony@atomide.com>
+Date: Wed, 20 Apr 2011 23:37:06 -0700
+Subject: [PATCH] omap: Run make savedefconfig on omap2plus_defconfig to=
+ shrink it
+
+After commit ffb63e3 (omap2/3/4: Select all omaps and boards by default=
+)
+may explicit settings can be dropped from the defconfig.
+
+This shrinks it down a bit more and makes it easier
+to patch later on.
+
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+--- a/arch/arm/configs/omap2plus_defconfig
++++ b/arch/arm/configs/omap2plus_defconfig
+@@ -21,58 +21,22 @@ CONFIG_MODVERSIONS=3Dy
+ CONFIG_MODULE_SRCVERSION_ALL=3Dy
+ # CONFIG_BLK_DEV_BSG is not set
+ CONFIG_ARCH_OMAP=3Dy
+-CONFIG_ARCH_OMAP2=3Dy
+-CONFIG_ARCH_OMAP3=3Dy
+-CONFIG_ARCH_OMAP4=3Dy
+ CONFIG_OMAP_RESET_CLOCKS=3Dy
+ CONFIG_OMAP_MUX_DEBUG=3Dy
+-CONFIG_OMAP_32K_TIMER=3Dy
+-CONFIG_MACH_OMAP_GENERIC=3Dy
+-CONFIG_ARCH_OMAP2420=3Dy
+-CONFIG_ARCH_OMAP2430=3Dy
+-CONFIG_ARCH_OMAP3430=3Dy
+-CONFIG_MACH_OMAP_H4=3Dy
+-CONFIG_MACH_OMAP_APOLLON=3Dy
+-CONFIG_MACH_OMAP_2430SDP=3Dy
+-CONFIG_MACH_OMAP3_BEAGLE=3Dy
+-CONFIG_MACH_DEVKIT8000=3Dy
+-CONFIG_MACH_OMAP_LDP=3Dy
+-CONFIG_MACH_OVERO=3Dy
+-CONFIG_MACH_OMAP3EVM=3Dy
+-CONFIG_MACH_OMAP3517EVM=3Dy
+-CONFIG_MACH_OMAP3_PANDORA=3Dy
+-CONFIG_MACH_OMAP3_TOUCHBOOK=3Dy
+-CONFIG_MACH_OMAP_3430SDP=3Dy
+-CONFIG_MACH_NOKIA_N8X0=3Dy
+-CONFIG_MACH_NOKIA_RX51=3Dy
+-CONFIG_MACH_OMAP_ZOOM2=3Dy
+-CONFIG_MACH_OMAP_ZOOM3=3Dy
+-CONFIG_MACH_CM_T35=3Dy
+-CONFIG_MACH_IGEP0020=3Dy
+-CONFIG_MACH_SBC3530=3Dy
+-CONFIG_MACH_OMAP_3630SDP=3Dy
+-CONFIG_MACH_OMAP_4430SDP=3Dy
+ CONFIG_ARM_THUMBEE=3Dy
+-CONFIG_ARM_L1_CACHE_SHIFT=3D5
+ CONFIG_ARM_ERRATA_411920=3Dy
+ CONFIG_NO_HZ=3Dy
+ CONFIG_HIGH_RES_TIMERS=3Dy
+ CONFIG_SMP=3Dy
+ CONFIG_NR_CPUS=3D2
+-# CONFIG_LOCAL_TIMERS is not set
+-CONFIG_AEABI=3Dy
+ CONFIG_LEDS=3Dy
+ CONFIG_ZBOOT_ROM_TEXT=3D0x0
+ CONFIG_ZBOOT_ROM_BSS=3D0x0
+ CONFIG_CMDLINE=3D"root=3D/dev/mmcblk0p2 rootwait console=3DttyO2,11520=
+0"
+ CONFIG_KEXEC=3Dy
+ CONFIG_FPE_NWFPE=3Dy
+-CONFIG_VFP=3Dy
+-CONFIG_NEON=3Dy
+ CONFIG_BINFMT_MISC=3Dy
+-CONFIG_PM=3Dy
+ CONFIG_PM_DEBUG=3Dy
+-CONFIG_PM_RUNTIME=3Dy
+ CONFIG_NET=3Dy
+ CONFIG_PACKET=3Dy
+ CONFIG_UNIX=3Dy
+@@ -89,14 +53,6 @@ CONFIG_IP_PNP_RARP=3Dy
+ # CONFIG_IPV6 is not set
+ CONFIG_NETFILTER=3Dy
+ CONFIG_BT=3Dm
+-CONFIG_BT_L2CAP=3Dm
+-CONFIG_BT_SCO=3Dm
+-CONFIG_BT_RFCOMM=3Dy
+-CONFIG_BT_RFCOMM_TTY=3Dy
+-CONFIG_BT_BNEP=3Dm
+-CONFIG_BT_BNEP_MC_FILTER=3Dy
+-CONFIG_BT_BNEP_PROTO_FILTER=3Dy
+-CONFIG_BT_HIDP=3Dm
+ CONFIG_BT_HCIUART=3Dm
+ CONFIG_BT_HCIUART_H4=3Dy
+ CONFIG_BT_HCIUART_BCSP=3Dy
+@@ -107,11 +63,9 @@ CONFIG_CFG80211=3Dm
+ CONFIG_MAC80211=3Dm
+ CONFIG_MAC80211_RC_PID=3Dy
+ CONFIG_MAC80211_RC_DEFAULT_PID=3Dy
+-CONFIG_MAC80211_LEDS=3Dy
+ CONFIG_UEVENT_HELPER_PATH=3D"/sbin/hotplug"
+ CONFIG_CONNECTOR=3Dy
+ CONFIG_MTD=3Dy
+-CONFIG_MTD_CONCAT=3Dy
+ CONFIG_MTD_CMDLINE_PARTS=3Dy
+ CONFIG_MTD_CHAR=3Dy
+ CONFIG_MTD_BLOCK=3Dy
+@@ -127,7 +81,6 @@ CONFIG_MTD_UBI=3Dy
+ CONFIG_BLK_DEV_LOOP=3Dy
+ CONFIG_BLK_DEV_RAM=3Dy
+ CONFIG_BLK_DEV_RAM_SIZE=3D16384
+-CONFIG_EEPROM_LEGACY=3Dy
+ CONFIG_SCSI=3Dy
+ CONFIG_BLK_DEV_SD=3Dy
+ CONFIG_SCSI_MULTI_LUN=3Dy
+@@ -158,19 +111,15 @@ CONFIG_TOUCHSCREEN_ADS7846=3Dy
+ CONFIG_INPUT_MISC=3Dy
+ CONFIG_INPUT_TWL4030_PWRBUTTON=3Dy
+ CONFIG_VT_HW_CONSOLE_BINDING=3Dy
+-CONFIG_SERIAL_8250=3Dy
+-CONFIG_SERIAL_8250_CONSOLE=3Dy
++# CONFIG_LEGACY_PTYS is not set
+ CONFIG_SERIAL_8250_NR_UARTS=3D32
+ CONFIG_SERIAL_8250_EXTENDED=3Dy
+ CONFIG_SERIAL_8250_MANY_PORTS=3Dy
+ CONFIG_SERIAL_8250_SHARE_IRQ=3Dy
+ CONFIG_SERIAL_8250_DETECT_IRQ=3Dy
+ CONFIG_SERIAL_8250_RSA=3Dy
+-# CONFIG_LEGACY_PTYS is not set
+ CONFIG_HW_RANDOM=3Dy
+-CONFIG_I2C=3Dy
+ CONFIG_I2C_CHARDEV=3Dy
+-CONFIG_I2C_OMAP=3Dy
+ CONFIG_SPI=3Dy
+ CONFIG_SPI_OMAP24XX=3Dy
+ CONFIG_DEBUG_GPIO=3Dy
+@@ -181,10 +130,6 @@ CONFIG_POWER_SUPPLY=3Dy
+ CONFIG_WATCHDOG=3Dy
+ CONFIG_OMAP_WATCHDOG=3Dy
+ CONFIG_TWL4030_WATCHDOG=3Dy
+-CONFIG_MENELAUS=3Dy
+-CONFIG_TWL4030_CORE=3Dy
+-CONFIG_TWL4030_POWER=3Dy
+-CONFIG_REGULATOR=3Dy
+ CONFIG_REGULATOR_TWL4030=3Dy
+ CONFIG_REGULATOR_TPS65023=3Dy
+ CONFIG_REGULATOR_TPS6507X=3Dy
+@@ -208,7 +153,6 @@ CONFIG_BACKLIGHT_LCD_SUPPORT=3Dy
+ CONFIG_LCD_CLASS_DEVICE=3Dy
+ CONFIG_LCD_PLATFORM=3Dy
+ CONFIG_DISPLAY_SUPPORT=3Dy
+-# CONFIG_VGA_CONSOLE is not set
+ CONFIG_FRAMEBUFFER_CONSOLE=3Dy
+ CONFIG_FRAMEBUFFER_CONSOLE_ROTATION=3Dy
+ CONFIG_FONTS=3Dy
+@@ -217,25 +161,20 @@ CONFIG_FONT_8x16=3Dy
+ CONFIG_LOGO=3Dy
+ CONFIG_SOUND=3Dm
+ CONFIG_SND=3Dm
+-CONFIG_SND_MIXER_OSS=3Dy
+-CONFIG_SND_PCM_OSS=3Dy
++CONFIG_SND_MIXER_OSS=3Dm
++CONFIG_SND_PCM_OSS=3Dm
+ CONFIG_SND_VERBOSE_PRINTK=3Dy
+ CONFIG_SND_DEBUG=3Dy
+-CONFIG_SND_USB_AUDIO=3Dy
+-CONFIG_SND_SOC=3Dy
+-CONFIG_SND_OMAP_SOC=3Dy
+-CONFIG_SND_OMAP_SOC_OMAP3_PANDORA=3Dy
++CONFIG_SND_USB_AUDIO=3Dm
++CONFIG_SND_SOC=3Dm
++CONFIG_SND_OMAP_SOC=3Dm
++CONFIG_SND_OMAP_SOC_OMAP3_PANDORA=3Dm
+ CONFIG_USB=3Dy
+ CONFIG_USB_DEBUG=3Dy
+ CONFIG_USB_ANNOUNCE_NEW_DEVICES=3Dy
+ CONFIG_USB_DEVICEFS=3Dy
+ CONFIG_USB_SUSPEND=3Dy
+-# CONFIG_USB_OTG_WHITELIST is not set
+ CONFIG_USB_MON=3Dy
+-# CONFIG_USB_MUSB_HDRC is not set
+-# CONFIG_USB_MUSB_OTG is not set
+-# CONFIG_USB_GADGET_MUSB_HDRC is not set
+-CONFIG_USB_MUSB_DEBUG=3Dy
+ CONFIG_USB_WDM=3Dy
+ CONFIG_USB_STORAGE=3Dy
+ CONFIG_USB_LIBUSUAL=3Dy
+@@ -250,18 +189,12 @@ CONFIG_MMC_UNSAFE_RESUME=3Dy
+ CONFIG_SDIO_UART=3Dy
+ CONFIG_MMC_OMAP=3Dy
+ CONFIG_MMC_OMAP_HS=3Dy
+-CONFIG_LEDS_CLASS=3Dy
+-CONFIG_LEDS_GPIO=3Dy
+-CONFIG_LEDS_TRIGGER_TIMER=3Dy
+-CONFIG_LEDS_TRIGGER_HEARTBEAT=3Dy
+-CONFIG_LEDS_TRIGGER_DEFAULT_ON=3Dy
+ CONFIG_RTC_CLASS=3Dy
+ CONFIG_RTC_DRV_TWL92330=3Dy
+ CONFIG_RTC_DRV_TWL4030=3Dy
+ CONFIG_EXT2_FS=3Dy
+ CONFIG_EXT3_FS=3Dy
+ # CONFIG_EXT3_FS_XATTR is not set
+-CONFIG_INOTIFY=3Dy
+ CONFIG_QUOTA=3Dy
+ CONFIG_QFMT_V2=3Dy
+ CONFIG_MSDOS_FS=3Dy
+@@ -285,12 +218,10 @@ CONFIG_NLS_CODEPAGE_437=3Dy
+ CONFIG_NLS_ISO8859_1=3Dy
+ CONFIG_PRINTK_TIME=3Dy
+ CONFIG_MAGIC_SYSRQ=3Dy
+-CONFIG_DEBUG_FS=3Dy
+ CONFIG_DEBUG_KERNEL=3Dy
+ CONFIG_SCHEDSTATS=3Dy
+ CONFIG_TIMER_STATS=3Dy
+ CONFIG_PROVE_LOCKING=3Dy
+-# CONFIG_LOCK_STAT is not set
+ CONFIG_DEBUG_SPINLOCK_SLEEP=3Dy
+ # CONFIG_DEBUG_BUGVERBOSE is not set
+ CONFIG_DEBUG_INFO=3Dy
 --
-Tarun
-> 
-> Series applies to v2.6.39-rc4.
-> 
-> Kevin Hilman (2):
->   OMAP: GPIO: move register offset defines into gpio.h
->   OMAP: GPIO: consolidate direction, input, output, remove #ifdefs
-> 
->  arch/arm/mach-omap1/gpio15xx.c         |    7 +
->  arch/arm/mach-omap1/gpio16xx.c         |   15 ++
->  arch/arm/mach-omap1/gpio7xx.c          |   15 ++
->  arch/arm/mach-omap2/gpio.c             |   10 +
->  arch/arm/plat-omap/gpio.c              |  328 +++------------------------
-> ----
->  arch/arm/plat-omap/include/plat/gpio.h |  111 +++++++++++
->  6 files changed, 190 insertions(+), 296 deletions(-)
-> 
-> --
-> 1.7.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
