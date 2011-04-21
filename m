@@ -1,70 +1,60 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] omap: Run make savedefconfig on omap2plus_defconfig to
- shrink it
-Date: Thu, 21 Apr 2011 01:59:18 -0700
-Message-ID: <20110421085918.GG13688@atomide.com>
-References: <20110421064423.GD13688@atomide.com>
- <20110421082328.GK31131@pengutronix.de>
- <20110421084910.GF13688@atomide.com>
- <20110421085303.GN31131@pengutronix.de>
+From: Archit Taneja <archit@ti.com>
+Subject: Re: [PATCH] OMAP: DSS2: DSI: enable interface for omap4
+Date: Thu, 21 Apr 2011 14:47:42 +0530
+Message-ID: <4DAFF636.4030205@ti.com>
+References: <1303356675-25451-1-git-send-email-vikram.pandita@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:33207 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752268Ab1DUI7W (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Apr 2011 04:59:22 -0400
-Content-Disposition: inline
-In-Reply-To: <20110421085303.GN31131@pengutronix.de>
+Received: from bear.ext.ti.com ([192.94.94.41]:35918 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752400Ab1DUJMW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 21 Apr 2011 05:12:22 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p3L9CJEk016492
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Thu, 21 Apr 2011 04:12:21 -0500
+In-Reply-To: <1303356675-25451-1-git-send-email-vikram.pandita@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: "Pandita, Vikram" <vikram.pandita@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
 
-* Uwe Kleine-K=C3=B6nig <u.kleine-koenig@pengutronix.de> [110421 01:49]=
-:
-> On Thu, Apr 21, 2011 at 01:49:10AM -0700, Tony Lindgren wrote:
-> > * Uwe Kleine-K=C3=B6nig <u.kleine-koenig@pengutronix.de> [110421 01=
-:20]:
-> > > On Wed, Apr 20, 2011 at 11:44:23PM -0700, Tony Lindgren wrote:
-> > > > This shrinks it down a bit more and makes it easier
-> > > > to patch later on.
-> > > Maybe pointing out why it's shrinkable would be nice.
-> > > E.g.
-> > >=20
-> > > 	After commit
-> > >=20
-> > > 		ffb63e3 (omap2/3/4: Select all omaps and boards by default
-> > >=20
-> > > 	many explicit settings can be dropped from the defconfig.
-> >=20
-> > Good point, updated patch below.
-> >=20
-> > Regards,
-> >=20
-> > Tony
-> >=20
-> >=20
-> > From: Tony Lindgren <tony@atomide.com>
-> > Date: Wed, 20 Apr 2011 23:37:06 -0700
-> > Subject: [PATCH] omap: Run make savedefconfig on omap2plus_defconfi=
-g to shrink it
-> >=20
-> > After commit ffb63e3 (omap2/3/4: Select all omaps and boards by def=
-ault)
-> > may explicit settings can be dropped from the defconfig.
-> s/may/many/
+Hi,
 
-Oops, thanks will update.
-=20
-> I think ffb63e3 doesn't explain all changes, but ok.
+On Thursday 21 April 2011 09:01 AM, Pandita, Vikram wrote:
+> From: Vikram Pandita<vikram.pandita@ti.com>
+>
+> By default, the DSI is not getting enabled for omap4.
+> OMAP2PLUS does not catch this issue since it has ARCH_OMAP3.
+>
+> The issue is only seen when using defconfig with ARCH_OMAP4 only.
+>
 
-Yeah..
+This looks fine. There isn't a defconfig in mainline kernel with only 
+ARCH_OMAP4, hence we missed this out.
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Archit
+
+> Signed-off-by: Vikram Pandita<vikram.pandita@ti.com>
+> Cc: Archit Taneja<archit@ti.com>
+> Cc: Tomi Valkeinen<tomi.valkeinen@ti.com>
+> ---
+>   drivers/video/omap2/dss/Kconfig |    2 +-
+>   1 files changed, 1 insertions(+), 1 deletions(-)
+>
+> diff --git a/drivers/video/omap2/dss/Kconfig b/drivers/video/omap2/dss/Kconfig
+> index 7a49a75..6b3e2da 100644
+> --- a/drivers/video/omap2/dss/Kconfig
+> +++ b/drivers/video/omap2/dss/Kconfig
+> @@ -80,7 +80,7 @@ config OMAP2_DSS_SDI
+>
+>   config OMAP2_DSS_DSI
+>   	bool "DSI support"
+> -	depends on ARCH_OMAP3
+> +	depends on ARCH_OMAP3 || ARCH_OMAP4
+>           default n
+>   	help
+>   	  MIPI DSI (Display Serial Interface) support.
+
