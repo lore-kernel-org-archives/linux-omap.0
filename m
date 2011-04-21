@@ -1,104 +1,53 @@
-From: "Gulati, Shweta" <shweta.gulati@ti.com>
-Subject: Re: [PATCH] OMAP: Added recalculation of clock rate in 'clk_set_rate'
-Date: Thu, 21 Apr 2011 19:02:43 +0530
-Message-ID: <BANLkTi=Ab0EJ3fAQGHBOyPd+eAJHWcjtuA@mail.gmail.com>
-References: <1303291509-2305-1-git-send-email-shweta.gulati@ti.com>
-	<alpine.DEB.2.00.1104201351180.12683@utopia.booyaka.com>
+From: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH] mfd: Fix usbhs_enable error handling
+Date: Thu, 21 Apr 2011 19:52:41 +0530
+Message-ID: <1303395763-8702-1-git-send-email-keshava_mgowda@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:34670 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750981Ab1DUNco convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 21 Apr 2011 09:32:44 -0400
-Received: by mail-bw0-f43.google.com with SMTP id 14so1665490bwz.30
-        for <linux-omap@vger.kernel.org>; Thu, 21 Apr 2011 06:32:43 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.1104201351180.12683@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org, gadiyar-l0cyMroinI0@public.gmane.org, p-basak2-l0cyMroinI0@public.gmane.org, axel.lin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, johnstul-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org, mpfj-list-kZtEnBLzDKq1Qrn1Bg8BZw@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
 
-Hi,
+From: Axel Lin <axel.lin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
-On Thu, Apr 21, 2011 at 1:25 AM, Paul Walmsley <paul@pwsan.com> wrote:
-> Hi
->
-> On Wed, 20 Apr 2011, Shweta Gulati wrote:
->
->> From: Gulati, Shweta <shweta.gulati@ti.com>
->>
->> Core Clk Tree shows incorrect Clk rates at OPP50, as
->> in commit e07f469d284ca3d1f5dcf5438c22982be98bc071
->> calling of 'recalc' in API clk_set_rate is unintentionally
->> removed,
->
-> That's intentional. =A0struct clk.set_rate functions need to set the =
-struct
-> clk.rate before returning. =A0If they don't do that, it's a bug in th=
-e
-> struct clk's .set_rate function.
-Yes, but in current code clk_set_rate of dpll3_m2 -
-'omap3_core_dpll_m2_set_rate'
-doesn't update clk.rate, I will submit patch fixing that bug and will
-make sure that
-set_rate of all clocks should update clk.rate
->
->> because of which clock's tree rates get goofed up when DVFS happens.
->
-> Clearly this isn't on the mainline kernel...
-If you check for OPP50, the core clocks would show wrong rates.
+In the case of missing platform_data we do not hold a spin_lock,
+thus we should not call spin_unlock_irqrestore in the error path.
 
-Thanks for reviewing.
->
->> This Patch adds recalc API back.
->>
->> Tested on OMAP3630 SDP Board.
->>
->> Signed-off-by: Shweta Gulati <shweta.gulati@ti.com>
->> Cc: Rajendra Nayak <rnayak@ti.com>
->> Cc: Paul Wamsley <paul@pwsan.com>
->> ---
->> =A0arch/arm/plat-omap/clock.c | =A0 =A05 ++++-
->> =A01 files changed, 4 insertions(+), 1 deletions(-)
->>
->> diff --git a/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
->> index c9122dd..5a0d06b 100644
->> --- a/arch/arm/plat-omap/clock.c
->> +++ b/arch/arm/plat-omap/clock.c
->> @@ -130,8 +130,11 @@ int clk_set_rate(struct clk *clk, unsigned long=
- rate)
->>
->> =A0 =A0 =A0 spin_lock_irqsave(&clockfw_lock, flags);
->> =A0 =A0 =A0 ret =3D arch_clock->clk_set_rate(clk, rate);
->> - =A0 =A0 if (ret =3D=3D 0)
->> + =A0 =A0 if (ret =3D=3D 0) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 if (clk->recalc)
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 clk->rate =3D clk->recalc(=
-clk);
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 propagate_rate(clk);
->> + =A0 =A0 }
->> =A0 =A0 =A0 spin_unlock_irqrestore(&clockfw_lock, flags);
->>
->> =A0 =A0 =A0 return ret;
->> --
->> 1.7.0.4
->>
->
->
-> - Paul
->
+Also simplify the error handling by separating the successful path
+from error path. I think this change improves readability.
 
+Signed-off-by: Axel Lin <axel.lin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+---
+ drivers/mfd/omap-usb-host.c |    8 +++-----
+ 1 files changed, 3 insertions(+), 5 deletions(-)
 
-
---=20
-Thanks,
-Regards,
-Shweta
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
+index 53450f4..b3bb3ac 100644
+--- a/drivers/mfd/omap-usb-host.c
++++ b/drivers/mfd/omap-usb-host.c
+@@ -700,8 +700,7 @@ static int usbhs_enable(struct device *dev)
+ 	dev_dbg(dev, "starting TI HSUSB Controller\n");
+ 	if (!pdata) {
+ 		dev_dbg(dev, "missing platform_data\n");
+-		ret =  -ENODEV;
+-		goto end_enable;
++		return  -ENODEV;
+ 	}
+ 
+ 	spin_lock_irqsave(&omap->lock, flags);
+@@ -915,7 +914,8 @@ static int usbhs_enable(struct device *dev)
+ 
+ end_count:
+ 	omap->count++;
+-	goto end_enable;
++	spin_unlock_irqrestore(&omap->lock, flags);
++	return 0;
+ 
+ err_tll:
+ 	if (pdata->ehci_data->phy_reset) {
+@@ -931,8 +931,6 @@ err_tll:
+ 	clk_disable(omap->usbhost_fs_fck);
+ 	clk_disable(omap->usbhost_hs_fck);
+ 	clk_disable(omap->usbhost_ick);
