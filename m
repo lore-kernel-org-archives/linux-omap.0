@@ -1,70 +1,44 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [v2 0/7] OMAP: GPIO: Use PM runtime framework
-Date: Wed, 20 Apr 2011 16:59:16 -0700
-Message-ID: <87r58w4gq3.fsf@ti.com>
-References: <1303139217-10285-1-git-send-email-charu@ti.com>
-	<20110419062633.GA15620@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Subject: [PATCH 0/2] OMAP: GPIO: cleanup: first pass at ifdef removal
+Date: Wed, 20 Apr 2011 17:13:49 -0700
+Message-ID: <1303344831-7889-1-git-send-email-khilman@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:37350 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752292Ab1DTX7T (ORCPT
+Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:50891 "EHLO
+	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752097Ab1DUAMA (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 20 Apr 2011 19:59:19 -0400
-Received: by mail-pw0-f53.google.com with SMTP id 7so840071pwj.40
-        for <linux-omap@vger.kernel.org>; Wed, 20 Apr 2011 16:59:18 -0700 (PDT)
-In-Reply-To: <20110419062633.GA15620@atomide.com> (Tony Lindgren's message of
-	"Tue, 19 Apr 2011 09:26:33 +0300")
+	Wed, 20 Apr 2011 20:12:00 -0400
+Received: by mail-px0-f173.google.com with SMTP id 16so1013529pxi.4
+        for <linux-omap@vger.kernel.org>; Wed, 20 Apr 2011 17:11:59 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "Varadarajan, Charulatha" <charu@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, paul@pwsan.com
+To: linux-omap@vger.kernel.org
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, charu@ti.com
 
-Hi Tony,
+This series is a first pass at the #ifdef removal cleanup.  
 
-Tony Lindgren <tony@atomide.com> writes:
+To demonstrate the type of changes needed for the cleanup, the
+direction and data input/output functions are handled first.  Register
+offset fields are added to platform_data so #ifdefs can be removed.
 
-> * Varadarajan, Charulatha <charu@ti.com> [110418 18:00]:
->> From: Charulatha V <charu@ti.com>
->> 
->> Use PM runtime framework in OMAP GPIO driver.
-> ...
->  
->>  arch/arm/mach-omap2/gpio.c             |    6 +
->>  arch/arm/mach-omap2/pm34xx.c           |   22 +-
->>  arch/arm/plat-omap/gpio.c              |  766 ++++++++++++++++++--------------
->>  arch/arm/plat-omap/include/plat/gpio.h |    3 +-
->>  4 files changed, 439 insertions(+), 358 deletions(-)
->
-> Before this series gets merged we first need to do the following:
-> - Pass some registers in platform_data so we can have common
->   functions in gpio.c instead of having to test for the bank->method
->   in each function. This allows getting rid of the ifdefs as
->   discussed in the ARM Linux consolidation thread.
+Similar needs to be done for the remaining #ifdefs.
 
-I have a series that starts this process, will post it shortly.
+Currently boot tested on 3430/n900 only.
 
-> - Move it to drivers/gpio
->
-> - Further consolidate with whatever common GPIO code might
->   be coming up.
+Series applies to v2.6.39-rc4.
 
-Is the above order required?
+Kevin Hilman (2):
+  OMAP: GPIO: move register offset defines into gpio.h
+  OMAP: GPIO: consolidate direction, input, output, remove #ifdefs
 
-IMO, before we move it to drivers/gpio, this code needs to be runtime PM
-converted (using this series from Charu.)  The runtime PM conversion
-removes a bunch of platform-specific hacks that should be moved into
-drivers/*.
+ arch/arm/mach-omap1/gpio15xx.c         |    7 +
+ arch/arm/mach-omap1/gpio16xx.c         |   15 ++
+ arch/arm/mach-omap1/gpio7xx.c          |   15 ++
+ arch/arm/mach-omap2/gpio.c             |   10 +
+ arch/arm/plat-omap/gpio.c              |  328 +++----------------------------
+ arch/arm/plat-omap/include/plat/gpio.h |  111 +++++++++++
+ 6 files changed, 190 insertions(+), 296 deletions(-)
 
-Personally, I think we should go in this order
+-- 
+1.7.4
 
-- runtime PM conversion
-- #ifdef cleanup
-- move to drivers/gpio
-- look at consolidation with other drivers
-
-I'm willing to queue the GPIO work in my tree while it's under way if
-you like as well.
-
-Kevin
