@@ -1,66 +1,94 @@
-From: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH] omap:usb: fixing ehci phy gpio values for omap3
-Date: Thu, 21 Apr 2011 19:52:42 +0530
-Message-ID: <1303395763-8702-2-git-send-email-keshava_mgowda@ti.com>
-References: <1303395763-8702-1-git-send-email-keshava_mgowda@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1303395763-8702-1-git-send-email-keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org, gadiyar-l0cyMroinI0@public.gmane.org, p-basak2-l0cyMroinI0@public.gmane.org, axel.lin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, johnstul-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org, mpfj-list-kZtEnBLzDKq1Qrn1Bg8BZw@public.gmane.org, Keshava Munegowda <Keshava_mgowda-l0cyMroinI0@public.gmane.org>
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: [PATCH 2/2] arm: omap: gpmc-smsc911x: minor style fixes
+Date: Thu, 21 Apr 2011 17:50:12 +0300
+Message-ID: <1303397412-24813-2-git-send-email-grinberg@compulab.co.il>
+References: <1303397412-24813-1-git-send-email-grinberg@compulab.co.il>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:54596
+	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754207Ab1DUOuj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 21 Apr 2011 10:50:39 -0400
+In-Reply-To: <1303397412-24813-1-git-send-email-grinberg@compulab.co.il>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Mike Rapoport <mike@compulab.co.il>, Tim Nordell <tim.nordell@logicpd.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Igor Grinberg <grinberg@compulab.co.il>
 
-From: Keshava Munegowda <Keshava_mgowda-l0cyMroinI0@public.gmane.org>
+replace "printk(KERN_ERR" by "pr_err("
+and fix needlessly multi-lined #ifdef
 
-The gpio of EHCI phy should be 0 instead of 1;
-This fixes the hub enumeration issue in beagle xm board.
-
-Signed-off-by: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Igor Grinberg <grinberg@compulab.co.il>
 ---
- drivers/mfd/omap-usb-host.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ arch/arm/mach-omap2/gpmc-smsc911x.c             |   14 +++++++-------
+ arch/arm/plat-omap/include/plat/gpmc-smsc911x.h |    3 +--
+ 2 files changed, 8 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
-index b3bb3ac..a12202e 100644
---- a/drivers/mfd/omap-usb-host.c
-+++ b/drivers/mfd/omap-usb-host.c
-@@ -718,14 +718,14 @@ static int usbhs_enable(struct device *dev)
- 			gpio_request(pdata->ehci_data->reset_gpio_port[0],
- 						"USB1 PHY reset");
- 			gpio_direction_output
--				(pdata->ehci_data->reset_gpio_port[0], 1);
-+				(pdata->ehci_data->reset_gpio_port[0], 0);
- 		}
+diff --git a/arch/arm/mach-omap2/gpmc-smsc911x.c b/arch/arm/mach-omap2/gpmc-smsc911x.c
+index d30293a..b45efff 100644
+--- a/arch/arm/mach-omap2/gpmc-smsc911x.c
++++ b/arch/arm/mach-omap2/gpmc-smsc911x.c
+@@ -55,7 +55,7 @@ void __init gpmc_smsc911x_init(struct omap_smsc911x_platform_data *board_data)
+ 	gpmc_cfg = board_data;
  
- 		if (gpio_is_valid(pdata->ehci_data->reset_gpio_port[1])) {
- 			gpio_request(pdata->ehci_data->reset_gpio_port[1],
- 						"USB2 PHY reset");
- 			gpio_direction_output
--				(pdata->ehci_data->reset_gpio_port[1], 1);
-+				(pdata->ehci_data->reset_gpio_port[1], 0);
- 		}
- 
- 		/* Hold the PHY in RESET for enough time till DIR is high */
-@@ -905,11 +905,11 @@ static int usbhs_enable(struct device *dev)
- 
- 		if (gpio_is_valid(pdata->ehci_data->reset_gpio_port[0]))
- 			gpio_set_value
--				(pdata->ehci_data->reset_gpio_port[0], 0);
-+				(pdata->ehci_data->reset_gpio_port[0], 1);
- 
- 		if (gpio_is_valid(pdata->ehci_data->reset_gpio_port[1]))
- 			gpio_set_value
--				(pdata->ehci_data->reset_gpio_port[1], 0);
-+				(pdata->ehci_data->reset_gpio_port[1], 1);
+ 	if (gpmc_cs_request(gpmc_cfg->cs, SZ_16M, &cs_mem_base) < 0) {
+-		printk(KERN_ERR "Failed to request GPMC mem for smsc911x\n");
++		pr_err("%s: Failed to request GPMC mem region\n", __func__);
+ 		return;
  	}
  
- end_count:
+@@ -63,8 +63,8 @@ void __init gpmc_smsc911x_init(struct omap_smsc911x_platform_data *board_data)
+ 	gpmc_smsc911x_resources[0].end = cs_mem_base + 0xff;
+ 
+ 	if (gpio_request(gpmc_cfg->gpio_irq, "smsc911x irq") < 0) {
+-		printk(KERN_ERR "Failed to request GPIO%d for smsc911x IRQ\n",
+-				gpmc_cfg->gpio_irq);
++		pr_err("%s: Failed to request IRQ GPIO%d\n", __func__,
++		       gpmc_cfg->gpio_irq);
+ 		goto free1;
+ 	}
+ 
+@@ -74,8 +74,8 @@ void __init gpmc_smsc911x_init(struct omap_smsc911x_platform_data *board_data)
+ 	if (gpio_is_valid(gpmc_cfg->gpio_reset)) {
+ 		ret = gpio_request(gpmc_cfg->gpio_reset, "smsc911x reset");
+ 		if (ret) {
+-			printk(KERN_ERR "Failed to request GPIO%d for smsc911x reset\n",
+-					gpmc_cfg->gpio_reset);
++			pr_err("%s: Failed to request reset GPIO%d\n", __func__,
++			       gpmc_cfg->gpio_reset);
+ 			goto free2;
+ 		}
+ 
+@@ -92,7 +92,7 @@ void __init gpmc_smsc911x_init(struct omap_smsc911x_platform_data *board_data)
+ 		 gpmc_smsc911x_resources, ARRAY_SIZE(gpmc_smsc911x_resources),
+ 		 &gpmc_smsc911x_config, sizeof(gpmc_smsc911x_config));
+ 	if (!pdev) {
+-		printk(KERN_ERR "Unable to register smsc911x device\n");
++		pr_err("%s: Unable to register platform device\n", __func__);
+ 		gpio_free(gpmc_cfg->gpio_reset);
+ 		goto free2;
+ 	}
+@@ -104,5 +104,5 @@ free2:
+ free1:
+ 	gpmc_cs_free(gpmc_cfg->cs);
+ 
+-	printk(KERN_ERR "Could not initialize smsc911x\n");
++	pr_err("Could not initialize smsc911x\n");
+ }
+diff --git a/arch/arm/plat-omap/include/plat/gpmc-smsc911x.h b/arch/arm/plat-omap/include/plat/gpmc-smsc911x.h
+index d3f1579..ea6c9c8 100644
+--- a/arch/arm/plat-omap/include/plat/gpmc-smsc911x.h
++++ b/arch/arm/plat-omap/include/plat/gpmc-smsc911x.h
+@@ -21,8 +21,7 @@ struct omap_smsc911x_platform_data {
+ 	u32	flags;
+ };
+ 
+-#if defined(CONFIG_SMSC911X) || \
+-	defined(CONFIG_SMSC911X_MODULE)
++#if defined(CONFIG_SMSC911X) || defined(CONFIG_SMSC911X_MODULE)
+ 
+ extern void gpmc_smsc911x_init(struct omap_smsc911x_platform_data *d);
+ 
 -- 
-1.6.0.4
+1.7.3.4
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
