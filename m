@@ -1,59 +1,73 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [RFC PATCH 00/18] OMAP: GPIO: cleanup GPIO driver
-Date: Fri, 22 Apr 2011 15:34:29 -0700
-Message-ID: <87oc3xvrt6.fsf@ti.com>
-References: <1303470512-19671-1-git-send-email-charu@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Subject: [PATCH 00/15] OMAP: GPIO: clean up: pass register offsets via pdata
+Date: Fri, 22 Apr 2011 16:01:52 -0700
+Message-ID: <1303513327-14532-1-git-send-email-khilman@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:35650 "EHLO
-	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756572Ab1DVWec (ORCPT
+Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:41536 "EHLO
+	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754267Ab1DVXAD (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 22 Apr 2011 18:34:32 -0400
-Received: by mail-pw0-f47.google.com with SMTP id 9so647063pwj.34
-        for <linux-omap@vger.kernel.org>; Fri, 22 Apr 2011 15:34:31 -0700 (PDT)
-In-Reply-To: <1303470512-19671-1-git-send-email-charu@ti.com> (Charulatha V.'s
-	message of "Fri, 22 Apr 2011 16:38:14 +0530")
+	Fri, 22 Apr 2011 19:00:03 -0400
+Received: by mail-pv0-f180.google.com with SMTP id 21so2080953pvc.25
+        for <linux-omap@vger.kernel.org>; Fri, 22 Apr 2011 16:00:01 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Charulatha V <charu@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, paul@pwsan.com
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: charu@ti.com
 
-Hi Charu,
+Begin cleanup and consolidation of OMAP GPIO driver by starting the
+removal of SoC specifics (ifdefs, cpu_is-* checks, etc.)  The primary
+method for this is by passing register offsets for common
+functionality via platform_data, so the driver can be generic.
 
-Charulatha V <charu@ti.com> writes:
+This series currently handles the GPIO direction, data in/out, IRQ
+status and IRQ enable/disable functions, but does not yet handle the
+IRQ triggering and suspend/resume handling.  That will be coming next.
 
-> Modifies the OMAP GPIO driver to avoid usage of cpu_is* checks
-> for different OMAP architectures. This is done by moving some
-> architecture specific code to mach-omap* and call them from
-> plat-omap* using function pointers. Also remove the register offset
-> macros from OMAP GPIO driver and handle the same in mach-omap*.
+I'll not be working on this for the next week, so anyone who wants to
+build on this is more than welcome.
 
-Thanks for working on this cleanup, this driver really needs a cleanup.
+This work in progress is available in my wip/gpio-cleanup branch.
 
-You've hit on all the main areas for cleanup, but unfortunately, it's
-not really going in the direction I was hoping.  Rather than moving code
-into the SoC specific parts, I was hoping to generalize the driver such
-that SoC-specific code would just pass in register offsets/options into
-the common driver.  Your current approach isn't really reducing code,
-it's just moving it around.
+This series applies on top of v2.6.39-rc4 plus the generic irq_chip
+series from Thomas Gleixner since in addition to the cleanups, I
+started moving the GPIO IRQ handling over to use generic irq_chip
+(last patch in series.)
 
-I had started on a similar cleanup as well, and will post that series
-shortly to demonstrate the direction I think the cleanups should be
-going.  I've tackled most of the same functions/areas that you have
-(except the IRQ triggering stuff), but have a rather different approach.
-I'll get to the IRQ triggering stuff next (after going on vacation for a
-week), but feel free to build on top of my series if you like.
+Yes, there is much about OMAP GPIOs that is common to GPIO handling on
+other SoCs.  However, before we can consolidate with other SoCs, the
+first step is to consolidate to a single, clean driver for all OMAPs.
+After that, we can start looking at consolidation with other SoCs.
 
-The direction I'd like to go is towards having a generalized driver that
-can not only work across all OMAP SoCs, but also hopefully towards
-something that can be shared with other SoCs as well.  Of course, the
-first step is cleaning up the OMAP driver, but the next step will be
-looking for other areas of consolidation.  Towards that end, I'm also
-working towards converting the GPIO IRQs in this driver to use the new
-generic IRQ chip infrastructure posted by Thomas Gleixner.  In my
-series, you'll see that I started that for the MPUIO IRQs, but the GPIO
-IRQs will come next.
+Charulatha V (1):
+  OMAP: GPIO: remove get_gpio_bank()
 
-Kevin
+Kevin Hilman (14):
+  OMAP: GPIO: _clear_gpio_irqbank: fix flushing of posted write
+  OMAP: GPIO: remove MPUIO handling from _clear_gpio_irqbank()
+  OMAP: GPIO: move bank width into struct gpio_bank
+  OMAP: GPIO: _get_gpio_irqbank_mask: replace hard-coded mask with
+    bank->width
+  OMAP: GPIO: replace get_gpio_index() by using bank width
+  OMAP: GPIO: move register offset defines into gpio.h
+  OMAP: GPIO: consolidate direction, input, output, remove #ifdefs
+  OMAP: GPIO: consolidate IRQ status handling, remove #ifdefs
+  OMAP: GPIO: conslidate enable/disable of GPIO IRQs, remove ifdefs
+  OMAP: GPIO: convert MPUIO IRQ over to generic irq_chip
+  OMAP: GPIO: remove useless gpio_valid() & check_gpio() checks
+  OMAP: GPIO: cleanup _set_gpio_wakeup(), remove ifdefs
+  OMAP: GPIO: debounce remove SoC specific registers, use pdata
+  OMAP: GPIO: cleanup show revision, remove cpu_is checks, display only
+    once
+
+ arch/arm/mach-omap1/gpio15xx.c         |   22 +
+ arch/arm/mach-omap1/gpio16xx.c         |   28 ++
+ arch/arm/mach-omap1/gpio7xx.c          |   27 +
+ arch/arm/mach-omap2/gpio.c             |   32 ++
+ arch/arm/plat-omap/gpio.c              |  825 ++++++--------------------------
+ arch/arm/plat-omap/include/plat/gpio.h |  123 +++++
+ 6 files changed, 384 insertions(+), 673 deletions(-)
+
+-- 
+1.7.4
+
