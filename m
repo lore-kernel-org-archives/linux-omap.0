@@ -1,123 +1,59 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [RFC PATCH 11/18] OMAP: GPIO: Remove dependency on gpio_bank_count
-Date: Fri, 22 Apr 2011 09:04:18 -0700
-Message-ID: <87oc3yxofx.fsf@ti.com>
+Subject: Re: [RFC PATCH 00/18] OMAP: GPIO: cleanup GPIO driver
+Date: Fri, 22 Apr 2011 15:34:29 -0700
+Message-ID: <87oc3xvrt6.fsf@ti.com>
 References: <1303470512-19671-1-git-send-email-charu@ti.com>
-	<1303470512-19671-12-git-send-email-charu@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:46941 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756026Ab1DVQEY (ORCPT
+Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:35650 "EHLO
+	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756572Ab1DVWec (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 22 Apr 2011 12:04:24 -0400
-Received: by mail-pw0-f51.google.com with SMTP id 9so383643pwi.10
-        for <linux-omap@vger.kernel.org>; Fri, 22 Apr 2011 09:04:21 -0700 (PDT)
-In-Reply-To: <1303470512-19671-12-git-send-email-charu@ti.com> (Charulatha
-	V.'s message of "Fri, 22 Apr 2011 16:38:25 +0530")
+	Fri, 22 Apr 2011 18:34:32 -0400
+Received: by mail-pw0-f47.google.com with SMTP id 9so647063pwj.34
+        for <linux-omap@vger.kernel.org>; Fri, 22 Apr 2011 15:34:31 -0700 (PDT)
+In-Reply-To: <1303470512-19671-1-git-send-email-charu@ti.com> (Charulatha V.'s
+	message of "Fri, 22 Apr 2011 16:38:14 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Charulatha V <charu@ti.com>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, paul@pwsan.com
 
+Hi Charu,
+
 Charulatha V <charu@ti.com> writes:
 
-> gpio_bank_count is the count of number of GPIO devices
-> in a SoC. Remove this dependency from the driver. Also remove
-> the dependency on array of pointers to gpio_bank struct of
-> all GPIO devices.
->
-> The cpu_is*() checks used in omap2_gpio_prepare_for_idle() and
-> omap2_gpio_resume_after_idle() would be removed in one of the
-> patches in this series
->
-> Signed-off-by: Charulatha V <charu@ti.com>
-> ---
->  arch/arm/mach-omap1/gpio15xx.c         |    1 -
->  arch/arm/mach-omap1/gpio16xx.c         |    2 -
->  arch/arm/mach-omap1/gpio7xx.c          |    2 -
->  arch/arm/mach-omap2/gpio.c             |    1 +
->  arch/arm/plat-omap/gpio.c              |  165 ++++++++++++++++----------------
->  arch/arm/plat-omap/include/plat/gpio.h |    3 -
->  6 files changed, 83 insertions(+), 91 deletions(-)
->
-> diff --git a/arch/arm/mach-omap1/gpio15xx.c b/arch/arm/mach-omap1/gpio15xx.c
-> index 7a7a123..3763db3 100644
-> --- a/arch/arm/mach-omap1/gpio15xx.c
-> +++ b/arch/arm/mach-omap1/gpio15xx.c
-> @@ -189,7 +189,6 @@ static int __init omap15xx_gpio_init(void)
->  	omap15xx_mpu_gpio_config.gpio_fn = &gpio_fn;
->  	platform_device_register(&omap15xx_gpio);
->  
-> -	gpio_bank_count = 2;
->  	return 0;
->  }
->  postcore_initcall(omap15xx_gpio_init);
-> diff --git a/arch/arm/mach-omap1/gpio16xx.c b/arch/arm/mach-omap1/gpio16xx.c
-> index f05e0c7..6a99b01 100644
-> --- a/arch/arm/mach-omap1/gpio16xx.c
-> +++ b/arch/arm/mach-omap1/gpio16xx.c
-> @@ -316,8 +316,6 @@ static int __init omap16xx_gpio_init(void)
->  		platform_device_register(omap16xx_gpio_dev[i]);
->  	}
->  
-> -	gpio_bank_count = ARRAY_SIZE(omap16xx_gpio_dev);
-> -
->  	return 0;
->  }
->  postcore_initcall(omap16xx_gpio_init);
-> diff --git a/arch/arm/mach-omap1/gpio7xx.c b/arch/arm/mach-omap1/gpio7xx.c
-> index 1103efc..cd6bad7 100644
-> --- a/arch/arm/mach-omap1/gpio7xx.c
-> +++ b/arch/arm/mach-omap1/gpio7xx.c
-> @@ -355,8 +355,6 @@ static int __init omap7xx_gpio_init(void)
->  		platform_device_register(omap7xx_gpio_dev[i]);
->  	}
->  
-> -	gpio_bank_count = ARRAY_SIZE(omap7xx_gpio_dev);
-> -
->  	return 0;
->  }
->  postcore_initcall(omap7xx_gpio_init);
-> diff --git a/arch/arm/mach-omap2/gpio.c b/arch/arm/mach-omap2/gpio.c
-> index 25fe8a4..a46f4a5 100644
-> --- a/arch/arm/mach-omap2/gpio.c
-> +++ b/arch/arm/mach-omap2/gpio.c
-> @@ -28,6 +28,7 @@
->  #define OMAP2_GPIO_INDEX_MASK		0x1f
->  #define OMAP2_GPIO_IRQENA_MASK		0xffffffff
->  
-> +int gpio_bank_count;
+> Modifies the OMAP GPIO driver to avoid usage of cpu_is* checks
+> for different OMAP architectures. This is done by moving some
+> architecture specific code to mach-omap* and call them from
+> plat-omap* using function pointers. Also remove the register offset
+> macros from OMAP GPIO driver and handle the same in mach-omap*.
 
-Why is this needed here?
+Thanks for working on this cleanup, this driver really needs a cleanup.
 
->  int bank_width;
->  static u16 *reg_map;
->  static u16 omap2_gpio_reg_offsets[] = {
+You've hit on all the main areas for cleanup, but unfortunately, it's
+not really going in the direction I was hoping.  Rather than moving code
+into the SoC specific parts, I was hoping to generalize the driver such
+that SoC-specific code would just pass in register offsets/options into
+the common driver.  Your current approach isn't really reducing code,
+it's just moving it around.
 
-[...]
+I had started on a similar cleanup as well, and will post that series
+shortly to demonstrate the direction I think the cleanups should be
+going.  I've tackled most of the same functions/areas that you have
+(except the IRQ triggering stuff), but have a rather different approach.
+I'll get to the IRQ triggering stuff next (after going on vacation for a
+week), but feel free to build on top of my series if you like.
 
->  void omap2_gpio_prepare_for_idle(int off_mode)
->  {
-> -	int i, c = 0;
-> -	int min = 0;
-> -
-> -	if (cpu_is_omap34xx())
-> -		min = 1;
-> +	int c = 0;
-> +	struct gpio_bank *bank;
->  
-> -	for (i = min; i < gpio_bank_count; i++) {
-> -		struct gpio_bank *bank = &gpio_bank[i];
-> +	list_for_each_entry(bank, &omap_gpio_list, node) {
-
-
-Note that on 34xx, this isn't an equivalent functional change, since
-the for loop starts a 1 and the list traversal covers all banks.
-
-I think your powerdomain 'can lose context' patch is needed before this
-one.
+The direction I'd like to go is towards having a generalized driver that
+can not only work across all OMAP SoCs, but also hopefully towards
+something that can be shared with other SoCs as well.  Of course, the
+first step is cleaning up the OMAP driver, but the next step will be
+looking for other areas of consolidation.  Towards that end, I'm also
+working towards converting the GPIO IRQs in this driver to use the new
+generic IRQ chip infrastructure posted by Thomas Gleixner.  In my
+series, you'll see that I started that for the MPUIO IRQs, but the GPIO
+IRQs will come next.
 
 Kevin
-
