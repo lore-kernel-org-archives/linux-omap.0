@@ -1,86 +1,220 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH 06/15] OMAP: GPIO: remove get_gpio_bank()
-Date: Fri, 22 Apr 2011 16:01:58 -0700
-Message-ID: <1303513327-14532-7-git-send-email-khilman@ti.com>
+Subject: [PATCH 09/15] OMAP: GPIO: consolidate IRQ status handling, remove #ifdefs
+Date: Fri, 22 Apr 2011 16:02:01 -0700
+Message-ID: <1303513327-14532-10-git-send-email-khilman@ti.com>
 References: <1303513327-14532-1-git-send-email-khilman@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:41272 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755150Ab1DVXAN (ORCPT
+Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:50096 "EHLO
+	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755175Ab1DVXAT (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 22 Apr 2011 19:00:13 -0400
-Received: by mail-pw0-f45.google.com with SMTP id 6so638712pwj.4
-        for <linux-omap@vger.kernel.org>; Fri, 22 Apr 2011 16:00:12 -0700 (PDT)
+	Fri, 22 Apr 2011 19:00:19 -0400
+Received: by mail-pw0-f54.google.com with SMTP id 8so636887pwj.13
+        for <linux-omap@vger.kernel.org>; Fri, 22 Apr 2011 16:00:18 -0700 (PDT)
 In-Reply-To: <1303513327-14532-1-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: charu@ti.com
 
-From: Charulatha V <charu@ti.com>
+Cleanup IRQ status handling by by passing IRQ status register offsets
+via platform data.
 
-use chip info to get the pointer to the struct gpio_bank for a
-given GPIO bank and remove get_gpio_bank().
+Cleans up clearing of GPIO IRQ status and GPIO ISR handler.
 
-Signed-off-by: Charulatha V <charu@ti.com>
+Signed-off-by: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/plat-omap/gpio.c |   29 ++---------------------------
- 1 files changed, 2 insertions(+), 27 deletions(-)
+ arch/arm/mach-omap1/gpio15xx.c         |    2 +
+ arch/arm/mach-omap1/gpio16xx.c         |    2 +
+ arch/arm/mach-omap1/gpio7xx.c          |    2 +
+ arch/arm/mach-omap2/gpio.c             |    4 ++
+ arch/arm/plat-omap/gpio.c              |   66 ++-----------------------------
+ arch/arm/plat-omap/include/plat/gpio.h |    2 +
+ 6 files changed, 17 insertions(+), 61 deletions(-)
 
+diff --git a/arch/arm/mach-omap1/gpio15xx.c b/arch/arm/mach-omap1/gpio15xx.c
+index a622d56..487a087 100644
+--- a/arch/arm/mach-omap1/gpio15xx.c
++++ b/arch/arm/mach-omap1/gpio15xx.c
+@@ -38,6 +38,7 @@ static struct omap_gpio_reg_offs omap15xx_mpuio_regs = {
+ 	.direction	= OMAP_MPUIO_IO_CNTL,
+ 	.datain		= OMAP_MPUIO_INPUT_LATCH,
+ 	.dataout	= OMAP_MPUIO_OUTPUT,
++	.irqstatus	= OMAP_MPUIO_GPIO_INT,
+ };
+ 
+ static struct __initdata omap_gpio_platform_data omap15xx_mpu_gpio_config = {
+@@ -75,6 +76,7 @@ static struct omap_gpio_reg_offs omap15xx_gpio_regs = {
+ 	.direction	= OMAP1510_GPIO_DIR_CONTROL,
+ 	.datain		= OMAP1510_GPIO_DATA_INPUT,
+ 	.dataout	= OMAP1510_GPIO_DATA_OUTPUT,
++	.irqstatus	= OMAP1510_GPIO_INT_STATUS,
+ };
+ 
+ static struct __initdata omap_gpio_platform_data omap15xx_gpio_config = {
+diff --git a/arch/arm/mach-omap1/gpio16xx.c b/arch/arm/mach-omap1/gpio16xx.c
+index 4ff6ff3..3e52b7f 100644
+--- a/arch/arm/mach-omap1/gpio16xx.c
++++ b/arch/arm/mach-omap1/gpio16xx.c
+@@ -41,6 +41,7 @@ static struct omap_gpio_reg_offs omap16xx_mpuio_regs = {
+ 	.direction	= OMAP_MPUIO_IO_CNTL,
+ 	.datain		= OMAP_MPUIO_INPUT_LATCH,
+ 	.dataout	= OMAP_MPUIO_OUTPUT,
++	.irqstatus	= OMAP_MPUIO_GPIO_INT,
+ };
+ 
+ static struct __initdata omap_gpio_platform_data omap16xx_mpu_gpio_config = {
+@@ -80,6 +81,7 @@ static struct omap_gpio_reg_offs omap16xx_gpio_regs = {
+ 	.clr_dataout	= OMAP1610_GPIO_CLEAR_DATAOUT,
+ 	.datain		= OMAP1610_GPIO_DATAIN,
+ 	.dataout	= OMAP1610_GPIO_DATAOUT,
++	.irqstatus	= OMAP1610_GPIO_IRQSTATUS1,
+ };
+ 
+ static struct __initdata omap_gpio_platform_data omap16xx_gpio1_config = {
+diff --git a/arch/arm/mach-omap1/gpio7xx.c b/arch/arm/mach-omap1/gpio7xx.c
+index efe4dcc..35e8b31 100644
+--- a/arch/arm/mach-omap1/gpio7xx.c
++++ b/arch/arm/mach-omap1/gpio7xx.c
+@@ -43,6 +43,7 @@ static struct omap_gpio_reg_offs omap7xx_mpuio_regs = {
+ 	.direction	= OMAP_MPUIO_IO_CNTL / 2,
+ 	.datain		= OMAP_MPUIO_INPUT_LATCH / 2,
+ 	.dataout	= OMAP_MPUIO_OUTPUT / 2,
++	.irqstatus	= OMAP_MPUIO_GPIO_INT / 2,
+ };
+ 
+ static struct __initdata omap_gpio_platform_data omap7xx_mpu_gpio_config = {
+@@ -80,6 +81,7 @@ static struct omap_gpio_reg_offs omap7xx_gpio_regs = {
+ 	.direction	= OMAP7XX_GPIO_DIR_CONTROL,
+ 	.datain		= OMAP7XX_GPIO_DATA_INPUT,
+ 	.dataout	= OMAP7XX_GPIO_DATA_OUTPUT,
++	.irqstatus	= OMAP7XX_GPIO_INT_STATUS,
+ };
+ 
+ static struct __initdata omap_gpio_platform_data omap7xx_gpio1_config = {
+diff --git a/arch/arm/mach-omap2/gpio.c b/arch/arm/mach-omap2/gpio.c
+index 357e069..7c5e67d 100644
+--- a/arch/arm/mach-omap2/gpio.c
++++ b/arch/arm/mach-omap2/gpio.c
+@@ -76,6 +76,8 @@ static int omap2_gpio_dev_init(struct omap_hwmod *oh, void *unused)
+ 		pdata->regs->dataout = OMAP24XX_GPIO_DATAOUT;
+ 		pdata->regs->set_dataout = OMAP24XX_GPIO_SETDATAOUT;
+ 		pdata->regs->clr_dataout = OMAP24XX_GPIO_CLEARDATAOUT;
++		pdata->regs->irqstatus = OMAP24XX_GPIO_IRQSTATUS1;
++		pdata->regs->irqstatus2 = OMAP24XX_GPIO_IRQSTATUS2;
+ 		break;
+ 	case 2:
+ 		pdata->bank_type = METHOD_GPIO_44XX;
+@@ -84,6 +86,8 @@ static int omap2_gpio_dev_init(struct omap_hwmod *oh, void *unused)
+ 		pdata->regs->dataout = OMAP4_GPIO_DATAOUT;
+ 		pdata->regs->set_dataout = OMAP4_GPIO_SETDATAOUT;
+ 		pdata->regs->clr_dataout = OMAP4_GPIO_CLEARDATAOUT;
++		pdata->regs->irqstatus = OMAP4_GPIO_IRQSTATUS0;
++		pdata->regs->irqstatus2 = OMAP4_GPIO_IRQSTATUS1;
+ 		break;
+ 	default:
+ 		WARN(1, "Invalid gpio bank_type\n");
 diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
-index 98f1304..bc5f968 100644
+index cb7f366..4f875cf 100644
 --- a/arch/arm/plat-omap/gpio.c
 +++ b/arch/arm/plat-omap/gpio.c
-@@ -191,31 +191,6 @@ int gpio_bank_count;
- #define GPIO_INDEX(bank, gpio) (gpio % bank->width)
- #define GPIO_BIT(bank, gpio) (1 << GPIO_INDEX(bank, gpio))
+@@ -491,46 +491,14 @@ static void _clear_gpio_irqbank(struct gpio_bank *bank, int gpio_mask)
+ {
+ 	void __iomem *reg = bank->base;
  
--static inline struct gpio_bank *get_gpio_bank(int gpio)
--{
--	if (cpu_is_omap15xx()) {
--		if (OMAP_GPIO_IS_MPUIO(gpio))
--			return &gpio_bank[0];
--		return &gpio_bank[1];
+-	switch (bank->method) {
+-#ifdef CONFIG_ARCH_OMAP15XX
+-	case METHOD_GPIO_1510:
+-		reg += OMAP1510_GPIO_INT_STATUS;
+-		break;
+-#endif
+-#ifdef CONFIG_ARCH_OMAP16XX
+-	case METHOD_GPIO_1610:
+-		reg += OMAP1610_GPIO_IRQSTATUS1;
+-		break;
+-#endif
+-#if defined(CONFIG_ARCH_OMAP730) || defined(CONFIG_ARCH_OMAP850)
+-	case METHOD_GPIO_7XX:
+-		reg += OMAP7XX_GPIO_INT_STATUS;
+-		break;
+-#endif
+-#if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
+-	case METHOD_GPIO_24XX:
+-		reg += OMAP24XX_GPIO_IRQSTATUS1;
+-		break;
+-#endif
+-#if defined(CONFIG_ARCH_OMAP4)
+-	case METHOD_GPIO_44XX:
+-		reg += OMAP4_GPIO_IRQSTATUS0;
+-		break;
+-#endif
+-	default:
+-		WARN_ON(1);
+-		return;
 -	}
--	if (cpu_is_omap16xx()) {
--		if (OMAP_GPIO_IS_MPUIO(gpio))
--			return &gpio_bank[0];
--		return &gpio_bank[1 + (gpio >> 4)];
--	}
--	if (cpu_is_omap7xx()) {
--		if (OMAP_GPIO_IS_MPUIO(gpio))
--			return &gpio_bank[0];
--		return &gpio_bank[1 + (gpio >> 5)];
--	}
--	if (cpu_is_omap24xx())
--		return &gpio_bank[gpio >> 5];
--	if (cpu_is_omap34xx() || cpu_is_omap44xx())
--		return &gpio_bank[gpio >> 5];
--	BUG();
--	return NULL;
--}
++	reg += bank->regs->irqstatus;
+ 	__raw_writel(gpio_mask, reg);
+ 
+ 	/* Workaround for clearing DSP GPIO interrupts to allow retention */
+-	if (cpu_is_omap24xx() || cpu_is_omap34xx())
+-		reg = bank->base + OMAP24XX_GPIO_IRQSTATUS2;
+-	else if (cpu_is_omap44xx())
+-		reg = bank->base + OMAP4_GPIO_IRQSTATUS1;
 -
- static inline int gpio_valid(int gpio)
- {
- 	if (gpio < 0)
-@@ -1371,7 +1346,7 @@ static struct platform_device omap_mpuio_device = {
+-	if (cpu_is_omap24xx() || cpu_is_omap34xx() || cpu_is_omap44xx())
++	if (bank->regs->irqstatus2) {
++		reg = bank->base + bank->regs->irqstatus2;
+ 		__raw_writel(gpio_mask, reg);
++	}
  
- static inline void mpuio_init(void)
- {
--	struct gpio_bank *bank = get_gpio_bank(OMAP_MPUIO(0));
-+	struct gpio_bank *bank = &gpio_bank[0];
- 	platform_set_drvdata(&omap_mpuio_device, bank);
+ 	/* Flush posted write for the irq status to avoid spurious interrupts */
+ 	__raw_readl(reg);
+@@ -850,31 +818,7 @@ static void gpio_irq_handler(unsigned int irq, struct irq_desc *desc)
+ 	desc->irq_data.chip->irq_ack(&desc->irq_data);
  
- 	if (platform_driver_register(&omap_mpuio_driver) == 0)
-@@ -1447,7 +1422,7 @@ static int gpio_get(struct gpio_chip *chip, unsigned offset)
- 	u32 mask;
+ 	bank = irq_get_handler_data(irq);
+-#ifdef CONFIG_ARCH_OMAP1
+-	if (bank->method == METHOD_MPUIO)
+-		isr_reg = bank->base +
+-				OMAP_MPUIO_GPIO_INT / bank->stride;
+-#endif
+-#ifdef CONFIG_ARCH_OMAP15XX
+-	if (bank->method == METHOD_GPIO_1510)
+-		isr_reg = bank->base + OMAP1510_GPIO_INT_STATUS;
+-#endif
+-#if defined(CONFIG_ARCH_OMAP16XX)
+-	if (bank->method == METHOD_GPIO_1610)
+-		isr_reg = bank->base + OMAP1610_GPIO_IRQSTATUS1;
+-#endif
+-#if defined(CONFIG_ARCH_OMAP730) || defined(CONFIG_ARCH_OMAP850)
+-	if (bank->method == METHOD_GPIO_7XX)
+-		isr_reg = bank->base + OMAP7XX_GPIO_INT_STATUS;
+-#endif
+-#if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
+-	if (bank->method == METHOD_GPIO_24XX)
+-		isr_reg = bank->base + OMAP24XX_GPIO_IRQSTATUS1;
+-#endif
+-#if defined(CONFIG_ARCH_OMAP4)
+-	if (bank->method == METHOD_GPIO_44XX)
+-		isr_reg = bank->base + OMAP4_GPIO_IRQSTATUS0;
+-#endif
++	isr_reg = bank->base + bank->regs->irqstatus;
  
- 	gpio = chip->base + offset;
--	bank = get_gpio_bank(gpio);
-+	bank = container_of(chip, struct gpio_bank, chip);
- 	reg = bank->base;
- 	mask = GPIO_BIT(bank, gpio);
+ 	if (WARN_ON(!isr_reg))
+ 		goto exit;
+diff --git a/arch/arm/plat-omap/include/plat/gpio.h b/arch/arm/plat-omap/include/plat/gpio.h
+index 268bccd..aedd732 100644
+--- a/arch/arm/plat-omap/include/plat/gpio.h
++++ b/arch/arm/plat-omap/include/plat/gpio.h
+@@ -180,6 +180,8 @@ struct omap_gpio_reg_offs {
+ 	u16 dataout;
+ 	u16 set_dataout;
+ 	u16 clr_dataout;
++	u16 irqstatus;
++	u16 irqstatus2;
+ };
  
+ struct omap_gpio_platform_data {
 -- 
 1.7.4
 
