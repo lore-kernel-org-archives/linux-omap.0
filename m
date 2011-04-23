@@ -1,50 +1,46 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [v2 0/7] OMAP: GPIO: Use PM runtime framework
-Date: Sat, 23 Apr 2011 10:35:47 +0200
-Message-ID: <BANLkTi=s=KzeZfvoq7Efg2=Ceahz_fQxMA@mail.gmail.com>
-References: <1303139217-10285-1-git-send-email-charu@ti.com>
-	<20110419062633.GA15620@atomide.com>
-	<87r58w4gq3.fsf@ti.com>
-	<20110421054221.GF5918@atomide.com>
+From: etd@grove.ufl.edu
+Subject: Auto-reply (Message Received){837851}
+Date: Sat, 23 Apr 2011 05:27:12 -0400
+Message-ID: <201104230927.p3N9RCoR026559@hydrangea.at.ufl.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
+Content-Transfer-Encoding: binary
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:61269 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752752Ab1DWIfs convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 23 Apr 2011 04:35:48 -0400
-Received: by iyb14 with SMTP id 14so885342iyb.19
-        for <linux-omap@vger.kernel.org>; Sat, 23 Apr 2011 01:35:47 -0700 (PDT)
-In-Reply-To: <20110421054221.GF5918@atomide.com>
+Received: from smtp01.osg.ufl.edu ([128.227.74.149]:58052 "EHLO smtp.ufl.edu"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751738Ab1DWMBD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 23 Apr 2011 08:01:03 -0400
+Received: from hydrangea.at.ufl.edu (hydrangea.at.ufl.edu [128.227.160.141])
+	by smtp.ufl.edu (8.14.0/8.14.0/3.0.0) with ESMTP id p3N9RCNM023306
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NOT)
+	for <linux-omap@vger.kernel.org>; Sat, 23 Apr 2011 05:27:12 -0400
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+	by hydrangea.at.ufl.edu (8.13.8/8.13.8) with ESMTP id p3N9RCoR026559
+	for <linux-omap@vger.kernel.org>; Sat, 23 Apr 2011 05:27:12 -0400
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>
-Cc: paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Varadarajan, Charulatha" <charu@ti.com>
+To: linux-omap@vger.kernel.org
 
-2011/4/21 Tony Lindgren <tony@atomide.com>:
-> * Kevin Hilman <khilman@ti.com> [110421 02:56]:
+Hello "",
 
->> > - Move it to drivers/gpio
->> >
->> > - Further consolidate with whatever common GPIO code might
->> > =A0 be coming up.
->>
->> Is the above order required?
->
-> Yes please. Otherwise we'll have more of the "crazy churn" in
-> arch/arm/*omap*/ and the runtime PM patches should apply easily
-> in drivers/gpio too.
+Thank you for contacting the UF Computing Help Desk.  We received your email
+and have generated a ticket for your issue.  Your ticket tracking number is
+837851.  We will respond to your email as soon as possible.  In
+the meantime, if you manage to resolve the issue and no longer need our
+assistance, please reply to this message and let us know.  You may also
+reply to this message if you wish to provide us with any additional
+information.
 
-Since you'll probably be dependent on stuff happening in my patches
-to move stuff into drivers/gpio I'll be happy to carry the patches in m=
-y
-gpio-consolidation branch with Tony's ACKs if need be.
+Please visit http://helpdesk.ufl.edu for additional resources, including
+system outage alerts, Help Desk hours of operation, contact information, and
+to check the status of your ticket.   If you have further questions or would
+like to speak with a representative, please call 352-392-HELP (4357).
+Please have your ticket number available if you call.
 
-Yours,
-Linus Walleij
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thank you,
+UF Computing Help Desk
+
+
+**NOTE: Please do not modify the subject of this message when replying.
+
