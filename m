@@ -1,37 +1,38 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [linux-pm] [RFC PATCH V3 4/4] cpuidle: Single/Global registration of idle states
-Date: Fri, 22 Apr 2011 16:06:42 -0700
-Message-ID: <871v0tvqbh.fsf@ti.com>
-References: <20110420065445.332.13688.stgit@tringupt.in.ibm.com>
-	<20110420065608.332.30043.stgit@tringupt.in.ibm.com>
-	<87k4eo6d5m.fsf@ti.com> <4DAFB847.50404@linux.vnet.ibm.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH] OMAP4: SRAM: Fix warning: format '%08lx' expects type
+ 'long unsigned int'
+Date: Sat, 23 Apr 2011 12:38:12 +0530
+Message-ID: <4DB27ADC.6050105@ti.com>
+References: <1301907896-30954-1-git-send-email-santosh.shilimkar@ti.com> <20110404091223.GA19854@n2100.arm.linux.org.uk> <4D9993AD.3080401@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-sh-owner@vger.kernel.org>
-In-Reply-To: <4DAFB847.50404@linux.vnet.ibm.com> (Trinabh Gupta's message of
-	"Thu, 21 Apr 2011 10:23:27 +0530")
-Sender: linux-sh-owner@vger.kernel.org
-To: Trinabh Gupta <trinabh@linux.vnet.ibm.com>
-Cc: arjan@linux.intel.com, peterz@infradead.org, lenb@kernel.org, venki@google.com, ak@linux.intel.com, len.brown@intel.com, davinci-linux-open-source@linux.davincidsp.com, linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:41012 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751738Ab1DWHIl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Sat, 23 Apr 2011 03:08:41 -0400
+Received: by mail-gy0-f177.google.com with SMTP id 20so346101gyh.36
+        for <linux-omap@vger.kernel.org>; Sat, 23 Apr 2011 00:08:41 -0700 (PDT)
+In-Reply-To: <4D9993AD.3080401@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Trinabh,
+Tony,
 
-Trinabh Gupta <trinabh@linux.vnet.ibm.com> writes:
+On 4/4/2011 3:17 PM, Santosh Shilimkar wrote:
+> On 4/4/2011 2:42 PM, Russell King - ARM Linux wrote:
+[....]
 
-[...]
+> Thanks for pointing out this. I see Will's commit on this
+> one "29a38193"
+> Here is the updated patch as you suggested.
 
-> I just wanted to get comments on the design and understand how it
-> affects various architectures in question. It looks to me as if the
-> design should be okay and infact better for architectures like ARM
-> since they do not have different idle states for different cpus and
-> thus do not require per-cpu registration.  Global registration would
-> work and be simpler; please correct me if I am wrong.
+Are you considering this patch and another one [1] for the -rc's?
 
-Yes, I agree that the new design is better, I especially like that it's
-more clear (and expected) that final state decision making is to be done
-directly in the driver without the back-and-forth in the current setup.
-
-Thanks,
-
-Kevin
+Regards
+Santosh
+[1] http://eeek.borgchat.net/lists/linux-omap/msg49557.html
