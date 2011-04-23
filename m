@@ -1,38 +1,50 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH] OMAP4: SRAM: Fix warning: format '%08lx' expects type
- 'long unsigned int'
-Date: Sat, 23 Apr 2011 12:38:12 +0530
-Message-ID: <4DB27ADC.6050105@ti.com>
-References: <1301907896-30954-1-git-send-email-santosh.shilimkar@ti.com> <20110404091223.GA19854@n2100.arm.linux.org.uk> <4D9993AD.3080401@ti.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [v2 0/7] OMAP: GPIO: Use PM runtime framework
+Date: Sat, 23 Apr 2011 10:35:47 +0200
+Message-ID: <BANLkTi=s=KzeZfvoq7Efg2=Ceahz_fQxMA@mail.gmail.com>
+References: <1303139217-10285-1-git-send-email-charu@ti.com>
+	<20110419062633.GA15620@atomide.com>
+	<87r58w4gq3.fsf@ti.com>
+	<20110421054221.GF5918@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:41012 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751738Ab1DWHIl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Sat, 23 Apr 2011 03:08:41 -0400
-Received: by mail-gy0-f177.google.com with SMTP id 20so346101gyh.36
-        for <linux-omap@vger.kernel.org>; Sat, 23 Apr 2011 00:08:41 -0700 (PDT)
-In-Reply-To: <4D9993AD.3080401@ti.com>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:61269 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752752Ab1DWIfs convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 23 Apr 2011 04:35:48 -0400
+Received: by iyb14 with SMTP id 14so885342iyb.19
+        for <linux-omap@vger.kernel.org>; Sat, 23 Apr 2011 01:35:47 -0700 (PDT)
+In-Reply-To: <20110421054221.GF5918@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>
+Cc: paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Varadarajan, Charulatha" <charu@ti.com>
 
-Tony,
+2011/4/21 Tony Lindgren <tony@atomide.com>:
+> * Kevin Hilman <khilman@ti.com> [110421 02:56]:
 
-On 4/4/2011 3:17 PM, Santosh Shilimkar wrote:
-> On 4/4/2011 2:42 PM, Russell King - ARM Linux wrote:
-[....]
+>> > - Move it to drivers/gpio
+>> >
+>> > - Further consolidate with whatever common GPIO code might
+>> > =A0 be coming up.
+>>
+>> Is the above order required?
+>
+> Yes please. Otherwise we'll have more of the "crazy churn" in
+> arch/arm/*omap*/ and the runtime PM patches should apply easily
+> in drivers/gpio too.
 
-> Thanks for pointing out this. I see Will's commit on this
-> one "29a38193"
-> Here is the updated patch as you suggested.
+Since you'll probably be dependent on stuff happening in my patches
+to move stuff into drivers/gpio I'll be happy to carry the patches in m=
+y
+gpio-consolidation branch with Tony's ACKs if need be.
 
-Are you considering this patch and another one [1] for the -rc's?
-
-Regards
-Santosh
-[1] http://eeek.borgchat.net/lists/linux-omap/msg49557.html
+Yours,
+Linus Walleij
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
