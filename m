@@ -1,46 +1,32 @@
-From: etd@grove.ufl.edu
-Subject: Auto-reply (Message Received){837851}
-Date: Sat, 23 Apr 2011 05:27:12 -0400
-Message-ID: <201104230927.p3N9RCoR026559@hydrangea.at.ufl.edu>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] OMAP: Added recalculation of clock rate in
+ 'clk_set_rate'
+Date: Sat, 23 Apr 2011 11:00:21 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1104231059050.6742@utopia.booyaka.com>
+References: <1303291509-2305-1-git-send-email-shweta.gulati@ti.com> <alpine.DEB.2.00.1104201351180.12683@utopia.booyaka.com> <BANLkTi=Ab0EJ3fAQGHBOyPd+eAJHWcjtuA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: binary
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp01.osg.ufl.edu ([128.227.74.149]:58052 "EHLO smtp.ufl.edu"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751738Ab1DWMBD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 23 Apr 2011 08:01:03 -0400
-Received: from hydrangea.at.ufl.edu (hydrangea.at.ufl.edu [128.227.160.141])
-	by smtp.ufl.edu (8.14.0/8.14.0/3.0.0) with ESMTP id p3N9RCNM023306
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NOT)
-	for <linux-omap@vger.kernel.org>; Sat, 23 Apr 2011 05:27:12 -0400
-Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-	by hydrangea.at.ufl.edu (8.13.8/8.13.8) with ESMTP id p3N9RCoR026559
-	for <linux-omap@vger.kernel.org>; Sat, 23 Apr 2011 05:27:12 -0400
-Content-Disposition: inline
+Received: from utopia.booyaka.com ([72.9.107.138]:56250 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751813Ab1DWRAW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 23 Apr 2011 13:00:22 -0400
+In-Reply-To: <BANLkTi=Ab0EJ3fAQGHBOyPd+eAJHWcjtuA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: "Gulati, Shweta" <shweta.gulati@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
 
-Hello "",
+On Thu, 21 Apr 2011, Gulati, Shweta wrote:
 
-Thank you for contacting the UF Computing Help Desk.  We received your email
-and have generated a ticket for your issue.  Your ticket tracking number is
-837851.  We will respond to your email as soon as possible.  In
-the meantime, if you manage to resolve the issue and no longer need our
-assistance, please reply to this message and let us know.  You may also
-reply to this message if you wish to provide us with any additional
-information.
+> Yes, but in current code clk_set_rate of dpll3_m2 - 
+> 'omap3_core_dpll_m2_set_rate' doesn't update clk.rate, I will submit 
+> patch fixing that bug and will make sure that set_rate of all clocks 
+> should update clk.rate
 
-Please visit http://helpdesk.ufl.edu for additional resources, including
-system outage alerts, Help Desk hours of operation, contact information, and
-to check the status of your ticket.   If you have further questions or would
-like to speak with a representative, please call 352-392-HELP (4357).
-Please have your ticket number available if you call.
-
-Thank you,
-UF Computing Help Desk
+Yes, that's the right thing to do, please send that.  Such a patch was 
+originally part of the series for the last merge window; it seems I 
+inadvertently dropped it.
 
 
-**NOTE: Please do not modify the subject of this message when replying.
-
+- Paul
