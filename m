@@ -1,434 +1,758 @@
 From: Mike Rapoport <mike@compulab.co.il>
-Subject: [PATCH 4/4] omap: musb: introduce default baord config
-Date: Mon, 25 Apr 2011 01:09:08 +0300
-Message-ID: <c18b58e93a67116f06e8ffbf097c2bd8e4f642a5.1303682352.git.mike@compulab.co.il>
+Subject: [PATCH 2/4] omap: use common initialization for PMIC i2c bus
+Date: Mon, 25 Apr 2011 01:09:06 +0300
+Message-ID: <25a0570058487a07e86cc88486a0c975e7cc0c69.1303682352.git.mike@compulab.co.il>
 References: <cover.1303682352.git.mike@compulab.co.il>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:43919
+Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:43912
 	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1757900Ab1DXWCX (ORCPT
+	by vger.kernel.org with ESMTP id S1757876Ab1DXWCW (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Sun, 24 Apr 2011 18:02:23 -0400
+	Sun, 24 Apr 2011 18:02:22 -0400
 In-Reply-To: <cover.1303682352.git.mike@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Mike Rapoport <mike@compulab.co.il>
 
-Most boards use exactly the same configuration for musb initialization.
-Create a default that can be shared amount different boards.
+Introduce omap_pmic_init that registers i2c bus and PMIC device on that
+bus and add omap2/3/4 wrappers for common cases.
 
 Signed-off-by: Mike Rapoport <mike@compulab.co.il>
 ---
- arch/arm/mach-omap2/board-2430sdp.c          |    7 +------
- arch/arm/mach-omap2/board-3430sdp.c          |    8 +-------
- arch/arm/mach-omap2/board-cm-t35.c           |    8 +-------
- arch/arm/mach-omap2/board-devkit8000.c       |    8 +-------
- arch/arm/mach-omap2/board-igep0020.c         |    8 +-------
- arch/arm/mach-omap2/board-igep0030.c         |    8 +-------
- arch/arm/mach-omap2/board-ldp.c              |    8 +-------
- arch/arm/mach-omap2/board-omap3beagle.c      |    8 +-------
- arch/arm/mach-omap2/board-omap3pandora.c     |    8 +-------
- arch/arm/mach-omap2/board-omap3stalker.c     |    8 +-------
- arch/arm/mach-omap2/board-omap3touchbook.c   |    8 +-------
- arch/arm/mach-omap2/board-overo.c            |    8 +-------
- arch/arm/mach-omap2/board-rm680.c            |    8 +-------
- arch/arm/mach-omap2/board-zoom-peripherals.c |    8 +-------
- arch/arm/mach-omap2/usb-musb.c               |   14 +++++++++++++-
- 15 files changed, 27 insertions(+), 98 deletions(-)
+ arch/arm/mach-omap2/board-2430sdp.c          |   13 ++-----------
+ arch/arm/mach-omap2/board-3430sdp.c          |   12 +-----------
+ arch/arm/mach-omap2/board-4430sdp.c          |   16 ++--------------
+ arch/arm/mach-omap2/board-cm-t35.c           |   12 +-----------
+ arch/arm/mach-omap2/board-devkit8000.c       |   12 +-----------
+ arch/arm/mach-omap2/board-igep0020.c         |   15 ++-------------
+ arch/arm/mach-omap2/board-igep0030.c         |   13 ++-----------
+ arch/arm/mach-omap2/board-ldp.c              |   12 +-----------
+ arch/arm/mach-omap2/board-omap3beagle.c      |   13 ++-----------
+ arch/arm/mach-omap2/board-omap3evm.c         |   21 +++------------------
+ arch/arm/mach-omap2/board-omap3logic.c       |   13 ++-----------
+ arch/arm/mach-omap2/board-omap3pandora.c     |   12 +-----------
+ arch/arm/mach-omap2/board-omap3stalker.c     |   21 +++------------------
+ arch/arm/mach-omap2/board-omap3touchbook.c   |   12 +-----------
+ arch/arm/mach-omap2/board-omap4panda.c       |   17 ++---------------
+ arch/arm/mach-omap2/board-overo.c            |   12 +-----------
+ arch/arm/mach-omap2/board-rm680.c            |   13 ++-----------
+ arch/arm/mach-omap2/board-rx51-peripherals.c |   13 ++-----------
+ arch/arm/mach-omap2/board-zoom-peripherals.c |   13 ++-----------
+ arch/arm/mach-omap2/common-board-devices.c   |   21 +++++++++++++++++++++
+ arch/arm/mach-omap2/common-board-devices.h   |   24 ++++++++++++++++++++++++
+ 21 files changed, 78 insertions(+), 232 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2/board-2430sdp.c
-index 99b3f2d..a8810f8 100644
+index 1fa6bb8..99b3f2d 100644
 --- a/arch/arm/mach-omap2/board-2430sdp.c
 +++ b/arch/arm/mach-omap2/board-2430sdp.c
-@@ -208,11 +208,6 @@ static struct omap2_hsmmc_info mmc[] __initdata = {
- 	{}	/* Terminator */
+@@ -41,6 +41,7 @@
+ 
+ #include "mux.h"
+ #include "hsmmc.h"
++#include "common-board-devices.h"
+ 
+ #define SDP2430_CS0_BASE	0x04000000
+ #define SECONDARY_LCD_GPIO		147
+@@ -180,15 +181,6 @@ static struct twl4030_platform_data sdp2430_twldata = {
+ 	.vmmc1		= &sdp2430_vmmc1,
  };
  
--static struct omap_musb_board_data musb_board_data = {
--	.interface_type		= MUSB_INTERFACE_ULPI,
--	.mode			= MUSB_OTG,
--	.power			= 100,
+-static struct i2c_board_info __initdata sdp2430_i2c_boardinfo[] = {
+-	{
+-		I2C_BOARD_INFO("twl4030", 0x48),
+-		.flags = I2C_CLIENT_WAKE,
+-		.irq = INT_24XX_SYS_NIRQ,
+-		.platform_data = &sdp2430_twldata,
+-	},
 -};
- static struct omap_usb_config sdp2430_usb_config __initdata = {
- 	.otg		= 1,
- #ifdef  CONFIG_USB_GADGET_OMAP
-@@ -246,7 +241,7 @@ static void __init omap_2430sdp_init(void)
- 	omap2_usbfs_init(&sdp2430_usb_config);
- 
- 	omap_mux_init_signal("usb0hs_stp", OMAP_PULL_ENA | OMAP_PULL_UP);
--	usb_musb_init(&musb_board_data);
-+	usb_musb_init(NULL);
- 
- 	board_smc91x_init();
+-
+ static struct i2c_board_info __initdata sdp2430_i2c1_boardinfo[] = {
+ 	{
+ 		I2C_BOARD_INFO("isp1301_omap", 0x2D),
+@@ -201,8 +193,7 @@ static int __init omap2430_i2c_init(void)
+ {
+ 	omap_register_i2c_bus(1, 100, sdp2430_i2c1_boardinfo,
+ 			ARRAY_SIZE(sdp2430_i2c1_boardinfo));
+-	omap_register_i2c_bus(2, 2600, sdp2430_i2c_boardinfo,
+-			ARRAY_SIZE(sdp2430_i2c_boardinfo));
++	omap2_pmic_init("twl4030", &sdp2430_twldata);
+ 	return 0;
+ }
  
 diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
-index b12400e..951e585 100644
+index 3726465..b12400e 100644
 --- a/arch/arm/mach-omap2/board-3430sdp.c
 +++ b/arch/arm/mach-omap2/board-3430sdp.c
-@@ -810,12 +810,6 @@ static struct flash_partitions sdp_flash_partitions[] = {
- 	},
+@@ -528,20 +528,10 @@ static struct twl4030_platform_data sdp3430_twldata = {
+ 	.vpll2		= &sdp3430_vpll2,
  };
  
--static struct omap_musb_board_data musb_board_data = {
--	.interface_type		= MUSB_INTERFACE_ULPI,
--	.mode			= MUSB_OTG,
--	.power			= 100,
+-static struct i2c_board_info __initdata sdp3430_i2c_boardinfo[] = {
+-	{
+-		I2C_BOARD_INFO("twl4030", 0x48),
+-		.flags = I2C_CLIENT_WAKE,
+-		.irq = INT_34XX_SYS_NIRQ,
+-		.platform_data = &sdp3430_twldata,
+-	},
 -};
 -
- static void __init omap_3430sdp_init(void)
+ static int __init omap3430_i2c_init(void)
  {
- 	int gpio_pendown;
-@@ -832,7 +826,7 @@ static void __init omap_3430sdp_init(void)
- 		gpio_pendown = SDP3430_TS_GPIO_IRQ_SDPV1;
- 	omap_ads7846_init(1, gpio_pendown, 310, NULL);
- 	board_serial_init();
--	usb_musb_init(&musb_board_data);
-+	usb_musb_init(NULL);
- 	board_smc91x_init();
- 	board_flash_init(sdp_flash_partitions, chip_sel_3430, 0);
- 	sdp3430_display_init();
+ 	/* i2c1 for PMIC only */
+-	omap_register_i2c_bus(1, 2600, sdp3430_i2c_boardinfo,
+-			ARRAY_SIZE(sdp3430_i2c_boardinfo));
++	omap3_pmic_init("twl4030", &sdp3430_twldata);
+ 	/* i2c2 on camera connector (for sensor control) and optional isp1301 */
+ 	omap_register_i2c_bus(2, 400, NULL, 0);
+ 	/* i2c3 on display connector (for DVI, tfp410) */
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+index 56702c5..7073542 100644
+--- a/arch/arm/mach-omap2/board-4430sdp.c
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@ -42,6 +42,7 @@
+ #include "hsmmc.h"
+ #include "timer-gp.h"
+ #include "control.h"
++#include "common-board-devices.h"
+ 
+ #define ETH_KS8851_IRQ			34
+ #define ETH_KS8851_POWER_ON		48
+@@ -575,14 +576,6 @@ static struct twl4030_platform_data sdp4430_twldata = {
+ 	.usb		= &omap4_usbphy_data
+ };
+ 
+-static struct i2c_board_info __initdata sdp4430_i2c_boardinfo[] = {
+-	{
+-		I2C_BOARD_INFO("twl6030", 0x48),
+-		.flags = I2C_CLIENT_WAKE,
+-		.irq = OMAP44XX_IRQ_SYS_1N,
+-		.platform_data = &sdp4430_twldata,
+-	},
+-};
+ static struct i2c_board_info __initdata sdp4430_i2c_3_boardinfo[] = {
+ 	{
+ 		I2C_BOARD_INFO("tmp105", 0x48),
+@@ -598,12 +591,7 @@ static struct i2c_board_info __initdata sdp4430_i2c_4_boardinfo[] = {
+ };
+ static int __init omap4_i2c_init(void)
+ {
+-	/*
+-	 * Phoenix Audio IC needs I2C1 to
+-	 * start with 400 KHz or less
+-	 */
+-	omap_register_i2c_bus(1, 400, sdp4430_i2c_boardinfo,
+-			ARRAY_SIZE(sdp4430_i2c_boardinfo));
++	omap4_pmic_init("twl6030", &sdp4430_twldata);
+ 	omap_register_i2c_bus(2, 400, NULL, 0);
+ 	omap_register_i2c_bus(3, 400, sdp4430_i2c_3_boardinfo,
+ 				ARRAY_SIZE(sdp4430_i2c_3_boardinfo));
 diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
-index 1a9e6be..286da17 100644
+index 9e5b8be..1a9e6be 100644
 --- a/arch/arm/mach-omap2/board-cm-t35.c
 +++ b/arch/arm/mach-omap2/board-cm-t35.c
-@@ -651,12 +651,6 @@ static struct omap_board_mux board_mux[] __initdata = {
+@@ -539,19 +539,9 @@ static struct twl4030_platform_data cm_t35_twldata = {
+ 	.vpll2		= &cm_t35_vpll2,
  };
- #endif
  
--static struct omap_musb_board_data musb_board_data = {
--	.interface_type		= MUSB_INTERFACE_ULPI,
--	.mode			= MUSB_OTG,
--	.power			= 100,
+-static struct i2c_board_info __initdata cm_t35_i2c_boardinfo[] = {
+-	{
+-		I2C_BOARD_INFO("tps65930", 0x48),
+-		.flags		= I2C_CLIENT_WAKE,
+-		.irq		= INT_34XX_SYS_NIRQ,
+-		.platform_data	= &cm_t35_twldata,
+-	},
 -};
 -
- static struct omap_board_config_kernel cm_t35_config[] __initdata = {
- };
- 
-@@ -673,7 +667,7 @@ static void __init cm_t35_init(void)
- 	cm_t35_init_led();
- 	cm_t35_init_display();
- 
--	usb_musb_init(&musb_board_data);
-+	usb_musb_init(NULL);
- 	usbhs_init(&usbhs_bdata);
+ static void __init cm_t35_init_i2c(void)
+ {
+-	omap_register_i2c_bus(1, 2600, cm_t35_i2c_boardinfo,
+-			      ARRAY_SIZE(cm_t35_i2c_boardinfo));
++	omap3_pmic_init("tps65930", &cm_t35_twldata);
  }
  
+ static void __init cm_t35_init_early(void)
 diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
-index e7dc057..405542a 100644
+index 9f8338d..983f44b 100644
 --- a/arch/arm/mach-omap2/board-devkit8000.c
 +++ b/arch/arm/mach-omap2/board-devkit8000.c
-@@ -509,12 +509,6 @@ static struct platform_device *devkit8000_devices[] __initdata = {
- 	&omap_dm9000_dev,
+@@ -366,19 +366,9 @@ static struct twl4030_platform_data devkit8000_twldata = {
+ 	.keypad		= &devkit8000_kp_data,
  };
  
--static struct omap_musb_board_data musb_board_data = {
--	.interface_type		= MUSB_INTERFACE_ULPI,
--	.mode			= MUSB_OTG,
--	.power			= 100,
+-static struct i2c_board_info __initdata devkit8000_i2c_boardinfo[] = {
+-	{
+-		I2C_BOARD_INFO("tps65930", 0x48),
+-		.flags = I2C_CLIENT_WAKE,
+-		.irq = INT_34XX_SYS_NIRQ,
+-		.platform_data = &devkit8000_twldata,
+-	},
 -};
 -
- static const struct usbhs_omap_board_data usbhs_bdata __initconst = {
- 
- 	.port_mode[0] = OMAP_EHCI_PORT_MODE_PHY,
-@@ -698,7 +692,7 @@ static void __init devkit8000_init(void)
- 
- 	omap_ads7846_init(2, OMAP3_DEVKIT_TS_GPIO, 0, NULL);
- 
--	usb_musb_init(&musb_board_data);
-+	usb_musb_init(NULL);
- 	usbhs_init(&usbhs_bdata);
- 	omap_nand_flash_init(NAND_BUSWIDTH_16, devkit8000_nand_partitions,
- 			     ARRAY_SIZE(devkit8000_nand_partitions));
+ static int __init devkit8000_i2c_init(void)
+ {
+-	omap_register_i2c_bus(1, 2600, devkit8000_i2c_boardinfo,
+-			ARRAY_SIZE(devkit8000_i2c_boardinfo));
++	omap3_pmic_init("tps65930", &devkit8000_twldata);
+ 	/* Bus 3 is attached to the DVI port where devices like the pico DLP
+ 	 * projector don't work reliably with 400kHz */
+ 	omap_register_i2c_bus(3, 400, NULL, 0);
 diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
-index a0fd10e..2c9a919 100644
+index 5b9bde7..a0fd10e 100644
 --- a/arch/arm/mach-omap2/board-igep0020.c
 +++ b/arch/arm/mach-omap2/board-igep0020.c
-@@ -559,12 +559,6 @@ static void __init igep2_i2c_init(void)
- 		pr_warning("IGEP2: Could not register I2C3 bus (%d)\n", ret);
- }
+@@ -38,6 +38,7 @@
+ #include "mux.h"
+ #include "hsmmc.h"
+ #include "sdram-numonyx-m65kxxxxam.h"
++#include "common-board-devices.h"
  
--static struct omap_musb_board_data musb_board_data = {
--	.interface_type		= MUSB_INTERFACE_ULPI,
--	.mode			= MUSB_OTG,
--	.power			= 100,
+ #define IGEP2_SMSC911X_CS       5
+ #define IGEP2_SMSC911X_GPIO     176
+@@ -536,15 +537,6 @@ static struct twl4030_platform_data igep2_twldata = {
+ 	.vio		= &igep2_vio,
+ };
+ 
+-static struct i2c_board_info __initdata igep2_i2c1_boardinfo[] = {
+-	{
+-		I2C_BOARD_INFO("twl4030", 0x48),
+-		.flags		= I2C_CLIENT_WAKE,
+-		.irq		= INT_34XX_SYS_NIRQ,
+-		.platform_data	= &igep2_twldata,
+-	},
 -};
 -
- static const struct usbhs_omap_board_data usbhs_bdata __initconst = {
- 	.port_mode[0] = OMAP_EHCI_PORT_MODE_PHY,
- 	.port_mode[1] = OMAP_USBHS_PORT_MODE_UNUSED,
-@@ -637,7 +631,7 @@ static void __init igep2_init(void)
- 	platform_add_devices(igep2_devices, ARRAY_SIZE(igep2_devices));
- 	omap_display_init(&igep2_dss_data);
- 	omap_serial_init();
--	usb_musb_init(&musb_board_data);
-+	usb_musb_init(NULL);
- 	usbhs_init(&usbhs_bdata);
+ static struct i2c_board_info __initdata igep2_i2c3_boardinfo[] = {
+ 	{
+ 		I2C_BOARD_INFO("eeprom", 0x50),
+@@ -555,10 +547,7 @@ static void __init igep2_i2c_init(void)
+ {
+ 	int ret;
  
- 	igep2_flash_init();
+-	ret = omap_register_i2c_bus(1, 2600, igep2_i2c1_boardinfo,
+-		ARRAY_SIZE(igep2_i2c1_boardinfo));
+-	if (ret)
+-		pr_warning("IGEP2: Could not register I2C1 bus (%d)\n", ret);
++	omap3_pmic_init("twl4030", &igep2_twldata);
+ 
+ 	/*
+ 	 * Bus 3 is attached to the DVI port where devices like the pico DLP
 diff --git a/arch/arm/mach-omap2/board-igep0030.c b/arch/arm/mach-omap2/board-igep0030.c
-index a831e85..512a7eb 100644
+index 2cf86c3..a831e85 100644
 --- a/arch/arm/mach-omap2/board-igep0030.c
 +++ b/arch/arm/mach-omap2/board-igep0030.c
-@@ -357,12 +357,6 @@ static int __init igep3_i2c_init(void)
- 	return 0;
- }
+@@ -35,6 +35,7 @@
+ #include "mux.h"
+ #include "hsmmc.h"
+ #include "sdram-numonyx-m65kxxxxam.h"
++#include "common-board-devices.h"
  
--static struct omap_musb_board_data musb_board_data = {
--	.interface_type	= MUSB_INTERFACE_ULPI,
--	.mode		= MUSB_OTG,
--	.power		= 100,
+ #define IGEP3_GPIO_LED0_GREEN	54
+ #define IGEP3_GPIO_LED0_RED	53
+@@ -349,19 +350,9 @@ static struct twl4030_platform_data igep3_twl4030_pdata = {
+ 	.vio		= &igep3_vio,
+ };
+ 
+-static struct i2c_board_info __initdata igep3_i2c_boardinfo[] = {
+-	{
+-		I2C_BOARD_INFO("twl4030", 0x48),
+-		.flags		= I2C_CLIENT_WAKE,
+-		.irq		= INT_34XX_SYS_NIRQ,
+-		.platform_data	= &igep3_twl4030_pdata,
+-	},
 -};
 -
- #if defined(CONFIG_LIBERTAS_SDIO) || defined(CONFIG_LIBERTAS_SDIO_MODULE)
+ static int __init igep3_i2c_init(void)
+ {
+-	omap_register_i2c_bus(1, 2600, igep3_i2c_boardinfo,
+-			ARRAY_SIZE(igep3_i2c_boardinfo));
++	omap3_pmic_init("twl4030", &igep3_twl4030_pdata);
  
- static void __init igep3_wifi_bt_init(void)
-@@ -424,7 +418,7 @@ static void __init igep3_init(void)
- 	igep3_i2c_init();
- 	platform_add_devices(igep3_devices, ARRAY_SIZE(igep3_devices));
- 	omap_serial_init();
--	usb_musb_init(&musb_board_data);
-+	usb_musb_init(NULL);
- 	usbhs_init(&usbhs_bdata);
- 
- 	igep3_flash_init();
+ 	return 0;
+ }
 diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
-index 7482c75..f7d6038 100644
+index 155b423..7482c75 100644
 --- a/arch/arm/mach-omap2/board-ldp.c
 +++ b/arch/arm/mach-omap2/board-ldp.c
-@@ -294,12 +294,6 @@ static struct omap_board_mux board_mux[] __initdata = {
+@@ -265,19 +265,9 @@ static struct twl4030_platform_data ldp_twldata = {
+ 	.keypad		= &ldp_kp_twl4030_data,
  };
- #endif
  
--static struct omap_musb_board_data musb_board_data = {
--	.interface_type		= MUSB_INTERFACE_ULPI,
--	.mode			= MUSB_OTG,
--	.power			= 100,
+-static struct i2c_board_info __initdata ldp_i2c_boardinfo[] = {
+-	{
+-		I2C_BOARD_INFO("twl4030", 0x48),
+-		.flags = I2C_CLIENT_WAKE,
+-		.irq = INT_34XX_SYS_NIRQ,
+-		.platform_data = &ldp_twldata,
+-	},
 -};
 -
- static struct mtd_partition ldp_nand_partitions[] = {
- 	/* All the partition sizes are listed in terms of NAND block size */
- 	{
-@@ -342,7 +336,7 @@ static void __init omap_ldp_init(void)
- 	platform_add_devices(ldp_devices, ARRAY_SIZE(ldp_devices));
- 	omap_ads7846_init(1, 54, 310, NULL);
- 	omap_serial_init();
--	usb_musb_init(&musb_board_data);
-+	usb_musb_init(NULL);
- 	board_nand_init(ldp_nand_partitions,
- 		ARRAY_SIZE(ldp_nand_partitions), ZOOM_NAND_CS, 0);
- 
+ static int __init omap_i2c_init(void)
+ {
+-	omap_register_i2c_bus(1, 2600, ldp_i2c_boardinfo,
+-			ARRAY_SIZE(ldp_i2c_boardinfo));
++	omap3_pmic_init("twl4030", &ldp_twldata);
+ 	omap_register_i2c_bus(2, 400, NULL, 0);
+ 	omap_register_i2c_bus(3, 400, NULL, 0);
+ 	return 0;
 diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index ce3bc2d..bc30ab0 100644
+index 33007fd..13a1664 100644
 --- a/arch/arm/mach-omap2/board-omap3beagle.c
 +++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -551,12 +551,6 @@ static struct omap_board_mux board_mux[] __initdata = {
+@@ -52,6 +52,7 @@
+ #include "hsmmc.h"
+ #include "timer-gp.h"
+ #include "pm.h"
++#include "common-board-devices.h"
+ 
+ #define NAND_BLOCK_SIZE		SZ_128K
+ 
+@@ -453,15 +454,6 @@ static struct twl4030_platform_data beagle_twldata = {
+ 	.vpll2		= &beagle_vpll2,
  };
- #endif
  
--static struct omap_musb_board_data musb_board_data = {
--	.interface_type		= MUSB_INTERFACE_ULPI,
--	.mode			= MUSB_OTG,
--	.power			= 100,
+-static struct i2c_board_info __initdata beagle_i2c_boardinfo[] = {
+-	{
+-		I2C_BOARD_INFO("twl4030", 0x48),
+-		.flags = I2C_CLIENT_WAKE,
+-		.irq = INT_34XX_SYS_NIRQ,
+-		.platform_data = &beagle_twldata,
+-	},
 -};
 -
- static void __init beagle_opp_init(void)
- {
- 	int r = 0;
-@@ -618,7 +612,7 @@ static void __init omap3_beagle_init(void)
- 	/* REVISIT leave DVI powered down until it's needed ... */
- 	gpio_direction_output(170, true);
+ static struct i2c_board_info __initdata beagle_i2c_eeprom[] = {
+        {
+                I2C_BOARD_INFO("eeprom", 0x50),
+@@ -470,8 +462,7 @@ static struct i2c_board_info __initdata beagle_i2c_eeprom[] = {
  
--	usb_musb_init(&musb_board_data);
-+	usb_musb_init(NULL);
- 	usbhs_init(&usbhs_bdata);
- 	omap_nand_flash_init(NAND_BUSWIDTH_16, omap3beagle_nand_partitions,
- 			     ARRAY_SIZE(omap3beagle_nand_partitions));
-diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
-index b99cc64..6c22d3f 100644
---- a/arch/arm/mach-omap2/board-omap3pandora.c
-+++ b/arch/arm/mach-omap2/board-omap3pandora.c
-@@ -633,12 +633,6 @@ static struct omap_board_mux board_mux[] __initdata = {
+ static int __init omap3_beagle_i2c_init(void)
+ {
+-	omap_register_i2c_bus(1, 2600, beagle_i2c_boardinfo,
+-			ARRAY_SIZE(beagle_i2c_boardinfo));
++	omap3_pmic_init("twl4030", &beagle_twldata);
+ 	/* Bus 3 is attached to the DVI port where devices like the pico DLP
+ 	 * projector don't work reliably with 400kHz */
+ 	omap_register_i2c_bus(3, 100, beagle_i2c_eeprom, ARRAY_SIZE(beagle_i2c_eeprom));
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index 376ea87..5066b0b 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -604,28 +604,13 @@ static struct twl4030_platform_data omap3evm_twldata = {
+ 	.vdac		= &omap3_evm_vdac,
+ 	.vpll2		= &omap3_evm_vpll2,
+ 	.vio		= &omap3evm_vio,
+-};
+-
+-static struct i2c_board_info __initdata omap3evm_i2c_boardinfo[] = {
+-	{
+-		I2C_BOARD_INFO("twl4030", 0x48),
+-		.flags = I2C_CLIENT_WAKE,
+-		.irq = INT_34XX_SYS_NIRQ,
+-		.platform_data = &omap3evm_twldata,
+-	},
++	.vmmc1		= &omap3evm_vmmc1,
++	.vsim		= &omap3evm_vsim,
  };
- #endif
  
--static struct omap_musb_board_data musb_board_data = {
--	.interface_type		= MUSB_INTERFACE_ULPI,
--	.mode			= MUSB_OTG,
--	.power			= 100,
--};
--
- static void __init omap3pandora_init(void)
+ static int __init omap3_evm_i2c_init(void)
  {
- 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
-@@ -652,7 +646,7 @@ static void __init omap3pandora_init(void)
- 			ARRAY_SIZE(omap3pandora_spi_board_info));
- 	omap_ads7846_init(1, OMAP3_PANDORA_TS_GPIO, 0, NULL);
- 	usbhs_init(&usbhs_bdata);
--	usb_musb_init(&musb_board_data);
-+	usb_musb_init(NULL);
- 	gpmc_nand_init(&pandora_nand_data);
+-	/*
+-	 * REVISIT: These entries can be set in omap3evm_twl_data
+-	 * after a merge with MFD tree
+-	 */
+-	omap3evm_twldata.vmmc1 = &omap3evm_vmmc1;
+-	omap3evm_twldata.vsim = &omap3evm_vsim;
+-
+-	omap_register_i2c_bus(1, 2600, omap3evm_i2c_boardinfo,
+-			ARRAY_SIZE(omap3evm_i2c_boardinfo));
++	omap3_pmic_init("twl4030", &omap3evm_twldata);
+ 	omap_register_i2c_bus(2, 400, NULL, 0);
+ 	omap_register_i2c_bus(3, 400, NULL, 0);
+ 	return 0;
+diff --git a/arch/arm/mach-omap2/board-omap3logic.c b/arch/arm/mach-omap2/board-omap3logic.c
+index a49e6cf..60d9be4 100644
+--- a/arch/arm/mach-omap2/board-omap3logic.c
++++ b/arch/arm/mach-omap2/board-omap3logic.c
+@@ -37,6 +37,7 @@
+ #include "hsmmc.h"
+ #include "timer-gp.h"
+ #include "control.h"
++#include "common-board-devices.h"
  
- 	/* Ensure SDRC pins are mux'd for self-refresh */
-diff --git a/arch/arm/mach-omap2/board-omap3stalker.c b/arch/arm/mach-omap2/board-omap3stalker.c
-index a1d550f..9981d06 100644
---- a/arch/arm/mach-omap2/board-omap3stalker.c
-+++ b/arch/arm/mach-omap2/board-omap3stalker.c
-@@ -526,12 +526,6 @@ static struct omap_board_mux board_mux[] __initdata = {
+ #include <plat/mux.h>
+ #include <plat/board.h>
+@@ -93,19 +94,9 @@ static struct twl4030_platform_data omap3logic_twldata = {
+ 	.vmmc1		= &omap3logic_vmmc1,
  };
- #endif
  
--static struct omap_musb_board_data musb_board_data = {
--	.interface_type	= MUSB_INTERFACE_ULPI,
--	.mode		= MUSB_OTG,
--	.power		= 100,
+-static struct i2c_board_info __initdata omap3logic_i2c_boardinfo[] = {
+-	{
+-		I2C_BOARD_INFO("twl4030", 0x48),
+-		.flags = I2C_CLIENT_WAKE,
+-		.irq = INT_34XX_SYS_NIRQ,
+-		.platform_data = &omap3logic_twldata,
+-	},
 -};
 -
- static void __init omap3_stalker_init(void)
+ static int __init omap3logic_i2c_init(void)
  {
- 	omap3_mux_init(board_mux, OMAP_PACKAGE_CUS);
-@@ -546,7 +540,7 @@ static void __init omap3_stalker_init(void)
- 	omap_display_init(&omap3_stalker_dss_data);
- 
- 	omap_serial_init();
--	usb_musb_init(&musb_board_data);
-+	usb_musb_init(NULL);
- 	usbhs_init(&usbhs_bdata);
- 	omap_ads7846_init(1, OMAP3_STALKER_TS_GPIO, 310, NULL);
- 
-diff --git a/arch/arm/mach-omap2/board-omap3touchbook.c b/arch/arm/mach-omap2/board-omap3touchbook.c
-index d770802..392278d 100644
---- a/arch/arm/mach-omap2/board-omap3touchbook.c
-+++ b/arch/arm/mach-omap2/board-omap3touchbook.c
-@@ -421,12 +421,6 @@ static int __init early_touchbook_revision(char *p)
- }
- early_param("tbr", early_touchbook_revision);
- 
--static struct omap_musb_board_data musb_board_data = {
--	.interface_type		= MUSB_INTERFACE_ULPI,
--	.mode			= MUSB_OTG,
--	.power			= 100,
--};
--
- static void __init omap3_touchbook_init(void)
- {
- 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
-@@ -447,7 +441,7 @@ static void __init omap3_touchbook_init(void)
- 
- 	/* Touchscreen and accelerometer */
- 	omap_ads7846_init(4, OMAP3_TS_GPIO, 310, &ads7846_pdata);
--	usb_musb_init(&musb_board_data);
-+	usb_musb_init(NULL);
- 	usbhs_init(&usbhs_bdata);
- 	omap_nand_flash_init(NAND_BUSWIDTH_16, omap3touchbook_nand_partitions,
- 			     ARRAY_SIZE(omap3touchbook_nand_partitions));
-diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
-index 9212442..c7ec7fa 100644
---- a/arch/arm/mach-omap2/board-overo.c
-+++ b/arch/arm/mach-omap2/board-overo.c
-@@ -551,12 +551,6 @@ static struct omap_board_mux board_mux[] __initdata = {
- };
- #endif
- 
--static struct omap_musb_board_data musb_board_data = {
--	.interface_type		= MUSB_INTERFACE_ULPI,
--	.mode			= MUSB_OTG,
--	.power			= 100,
--};
--
- static void __init overo_init(void)
- {
- 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
-@@ -565,7 +559,7 @@ static void __init overo_init(void)
- 	omap_serial_init();
- 	omap_nand_flash_init(0, overo_nand_partitions,
- 			     ARRAY_SIZE(overo_nand_partitions));
--	usb_musb_init(&musb_board_data);
-+	usb_musb_init(NULL);
- 	usbhs_init(&usbhs_bdata);
- 	overo_spi_init();
- 	overo_ads7846_init();
-diff --git a/arch/arm/mach-omap2/board-rm680.c b/arch/arm/mach-omap2/board-rm680.c
-index 8e710ff..42d10b1 100644
---- a/arch/arm/mach-omap2/board-rm680.c
-+++ b/arch/arm/mach-omap2/board-rm680.c
-@@ -144,17 +144,11 @@ static struct omap_board_mux board_mux[] __initdata = {
- };
- #endif
- 
--static struct omap_musb_board_data rm680_musb_data = {
--	.interface_type	= MUSB_INTERFACE_ULPI,
--	.mode		= MUSB_PERIPHERAL,
--	.power		= 100,
--};
--
- static void __init rm680_init(void)
- {
- 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
- 	omap_serial_init();
--	usb_musb_init(&rm680_musb_data);
-+	usb_musb_init(NULL);
- 	rm680_peripherals_init();
- }
- 
-diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c b/arch/arm/mach-omap2/board-zoom-peripherals.c
-index e4870c2..489294a 100644
---- a/arch/arm/mach-omap2/board-zoom-peripherals.c
-+++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
-@@ -363,12 +363,6 @@ static int __init omap_i2c_init(void)
+-	omap_register_i2c_bus(1, 2600, omap3logic_i2c_boardinfo,
+-				ARRAY_SIZE(omap3logic_i2c_boardinfo));
++	omap3_pmic_init("twl4030", &omap3logic_twldata);
  	return 0;
  }
  
--static struct omap_musb_board_data musb_board_data = {
--	.interface_type		= MUSB_INTERFACE_ULPI,
--	.mode			= MUSB_OTG,
--	.power			= 100,
+diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
+index 517701a..b99cc64 100644
+--- a/arch/arm/mach-omap2/board-omap3pandora.c
++++ b/arch/arm/mach-omap2/board-omap3pandora.c
+@@ -544,15 +544,6 @@ static struct twl4030_platform_data omap3pandora_twldata = {
+ 	.bci		= &pandora_bci_data,
+ };
+ 
+-static struct i2c_board_info __initdata omap3pandora_i2c_boardinfo[] = {
+-	{
+-		I2C_BOARD_INFO("tps65950", 0x48),
+-		.flags = I2C_CLIENT_WAKE,
+-		.irq = INT_34XX_SYS_NIRQ,
+-		.platform_data = &omap3pandora_twldata,
+-	},
 -};
 -
- static void enable_board_wakeup_source(void)
+ static struct i2c_board_info __initdata omap3pandora_i2c3_boardinfo[] = {
+ 	{
+ 		I2C_BOARD_INFO("bq27500", 0x55),
+@@ -562,8 +553,7 @@ static struct i2c_board_info __initdata omap3pandora_i2c3_boardinfo[] = {
+ 
+ static int __init omap3pandora_i2c_init(void)
  {
- 	/* T2 interrupt line (keypad) */
-@@ -383,7 +377,7 @@ void __init zoom_peripherals_init(void)
+-	omap_register_i2c_bus(1, 2600, omap3pandora_i2c_boardinfo,
+-			ARRAY_SIZE(omap3pandora_i2c_boardinfo));
++	omap3_pmic_init("tps65950", &omap3pandora_twldata);
+ 	/* i2c2 pins are not connected */
+ 	omap_register_i2c_bus(3, 100, omap3pandora_i2c3_boardinfo,
+ 			ARRAY_SIZE(omap3pandora_i2c3_boardinfo));
+diff --git a/arch/arm/mach-omap2/board-omap3stalker.c b/arch/arm/mach-omap2/board-omap3stalker.c
+index 671ceb0..a1d550f 100644
+--- a/arch/arm/mach-omap2/board-omap3stalker.c
++++ b/arch/arm/mach-omap2/board-omap3stalker.c
+@@ -455,15 +455,8 @@ static struct twl4030_platform_data omap3stalker_twldata = {
+ 	.codec		= &omap3stalker_codec_data,
+ 	.vdac		= &omap3_stalker_vdac,
+ 	.vpll2		= &omap3_stalker_vpll2,
+-};
+-
+-static struct i2c_board_info __initdata omap3stalker_i2c_boardinfo[] = {
+-	{
+-	 I2C_BOARD_INFO("twl4030", 0x48),
+-	 .flags		= I2C_CLIENT_WAKE,
+-	 .irq		= INT_34XX_SYS_NIRQ,
+-	 .platform_data	= &omap3stalker_twldata,
+-	 },
++	.vmmc1		= &omap3stalker_vmmc1,
++	.vsim		= &omap3stalker_vsim,
+ };
  
- 	omap_i2c_init();
- 	platform_device_register(&omap_vwlan_device);
--	usb_musb_init(&musb_board_data);
-+	usb_musb_init(NULL);
- 	enable_board_wakeup_source();
- 	omap_serial_init();
+ static struct at24_platform_data fram_info = {
+@@ -482,15 +475,7 @@ static struct i2c_board_info __initdata omap3stalker_i2c_boardinfo3[] = {
+ 
+ static int __init omap3_stalker_i2c_init(void)
+ {
+-	/*
+-	 * REVISIT: These entries can be set in omap3evm_twl_data
+-	 * after a merge with MFD tree
+-	 */
+-	omap3stalker_twldata.vmmc1 = &omap3stalker_vmmc1;
+-	omap3stalker_twldata.vsim = &omap3stalker_vsim;
+-
+-	omap_register_i2c_bus(1, 2600, omap3stalker_i2c_boardinfo,
+-			      ARRAY_SIZE(omap3stalker_i2c_boardinfo));
++	omap3_pmic_init("twl4030", &omap3stalker_twldata);
+ 	omap_register_i2c_bus(2, 400, NULL, 0);
+ 	omap_register_i2c_bus(3, 400, omap3stalker_i2c_boardinfo3,
+ 			      ARRAY_SIZE(omap3stalker_i2c_boardinfo3));
+diff --git a/arch/arm/mach-omap2/board-omap3touchbook.c b/arch/arm/mach-omap2/board-omap3touchbook.c
+index 15f9d7d..0a9b329 100644
+--- a/arch/arm/mach-omap2/board-omap3touchbook.c
++++ b/arch/arm/mach-omap2/board-omap3touchbook.c
+@@ -274,15 +274,6 @@ static struct twl4030_platform_data touchbook_twldata = {
+ 	.vpll2		= &touchbook_vpll2,
+ };
+ 
+-static struct i2c_board_info __initdata touchbook_i2c_boardinfo[] = {
+-	{
+-		I2C_BOARD_INFO("twl4030", 0x48),
+-		.flags = I2C_CLIENT_WAKE,
+-		.irq = INT_34XX_SYS_NIRQ,
+-		.platform_data = &touchbook_twldata,
+-	},
+-};
+-
+ static struct i2c_board_info __initdata touchBook_i2c_boardinfo[] = {
+ 	{
+ 		I2C_BOARD_INFO("bq27200", 0x55),
+@@ -292,8 +283,7 @@ static struct i2c_board_info __initdata touchBook_i2c_boardinfo[] = {
+ static int __init omap3_touchbook_i2c_init(void)
+ {
+ 	/* Standard TouchBook bus */
+-	omap_register_i2c_bus(1, 2600, touchbook_i2c_boardinfo,
+-			ARRAY_SIZE(touchbook_i2c_boardinfo));
++	omap3_pmic_init("twl4030", &touchbook_twldata);
+ 
+ 	/* Additional TouchBook bus */
+ 	omap_register_i2c_bus(3, 100, touchBook_i2c_boardinfo,
+diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+index f3a7b10..7eaad62 100644
+--- a/arch/arm/mach-omap2/board-omap4panda.c
++++ b/arch/arm/mach-omap2/board-omap4panda.c
+@@ -46,6 +46,7 @@
+ #include "hsmmc.h"
+ #include "control.h"
+ #include "mux.h"
++#include "common-board-devices.h"
+ 
+ #define GPIO_HUB_POWER		1
+ #define GPIO_HUB_NRESET		62
+@@ -408,15 +409,6 @@ static struct twl4030_platform_data omap4_panda_twldata = {
+ 	.usb		= &omap4_usbphy_data,
+ };
+ 
+-static struct i2c_board_info __initdata omap4_panda_i2c_boardinfo[] = {
+-	{
+-		I2C_BOARD_INFO("twl6030", 0x48),
+-		.flags = I2C_CLIENT_WAKE,
+-		.irq = OMAP44XX_IRQ_SYS_1N,
+-		.platform_data = &omap4_panda_twldata,
+-	},
+-};
+-
+ /*
+  * Display monitor features are burnt in their EEPROM as EDID data. The EEPROM
+  * is connected as I2C slave device, and can be accessed at address 0x50
+@@ -429,12 +421,7 @@ static struct i2c_board_info __initdata panda_i2c_eeprom[] = {
+ 
+ static int __init omap4_panda_i2c_init(void)
+ {
+-	/*
+-	 * Phoenix Audio IC needs I2C1 to
+-	 * start with 400 KHz or less
+-	 */
+-	omap_register_i2c_bus(1, 400, omap4_panda_i2c_boardinfo,
+-			ARRAY_SIZE(omap4_panda_i2c_boardinfo));
++	omap4_pmic_init("twl6030", &omap4_panda_twldata);
+ 	omap_register_i2c_bus(2, 400, NULL, 0);
+ 	/*
+ 	 * Bus 3 is attached to the DVI port where devices like the pico DLP
+diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
+index abe4f14..d0621dc 100644
+--- a/arch/arm/mach-omap2/board-overo.c
++++ b/arch/arm/mach-omap2/board-overo.c
+@@ -538,19 +538,9 @@ static struct twl4030_platform_data overo_twldata = {
+ 	.vpll2		= &overo_vpll2,
+ };
+ 
+-static struct i2c_board_info __initdata overo_i2c_boardinfo[] = {
+-	{
+-		I2C_BOARD_INFO("tps65950", 0x48),
+-		.flags = I2C_CLIENT_WAKE,
+-		.irq = INT_34XX_SYS_NIRQ,
+-		.platform_data = &overo_twldata,
+-	},
+-};
+-
+ static int __init overo_i2c_init(void)
+ {
+-	omap_register_i2c_bus(1, 2600, overo_i2c_boardinfo,
+-			ARRAY_SIZE(overo_i2c_boardinfo));
++	omap3_pmic_init("tps65950", &overo_twldata);
+ 	/* i2c2 pins are used for gpio */
+ 	omap_register_i2c_bus(3, 400, NULL, 0);
+ 	return 0;
+diff --git a/arch/arm/mach-omap2/board-rm680.c b/arch/arm/mach-omap2/board-rm680.c
+index 2af8b05..8e710ff 100644
+--- a/arch/arm/mach-omap2/board-rm680.c
++++ b/arch/arm/mach-omap2/board-rm680.c
+@@ -31,6 +31,7 @@
+ #include "mux.h"
+ #include "hsmmc.h"
+ #include "sdram-nokia.h"
++#include "common-board-devices.h"
+ 
+ static struct regulator_consumer_supply rm680_vemmc_consumers[] = {
+ 	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.1"),
+@@ -90,19 +91,9 @@ static struct twl4030_platform_data rm680_twl_data = {
+ 	/* add rest of the children here */
+ };
+ 
+-static struct i2c_board_info __initdata rm680_twl_i2c_board_info[] = {
+-	{
+-		I2C_BOARD_INFO("twl5031", 0x48),
+-		.flags		= I2C_CLIENT_WAKE,
+-		.irq		= INT_34XX_SYS_NIRQ,
+-		.platform_data	= &rm680_twl_data,
+-	},
+-};
+-
+ static void __init rm680_i2c_init(void)
+ {
+-	omap_register_i2c_bus(1, 2900, rm680_twl_i2c_board_info,
+-				ARRAY_SIZE(rm680_twl_i2c_board_info));
++	omap_pmic_init(1, 2900, "twl5031", INT_34XX_SYS_NIRQ, &rm680_twl_data);
+ 	omap_register_i2c_bus(2, 400, NULL, 0);
+ 	omap_register_i2c_bus(3, 400, NULL, 0);
  }
-diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
-index 35559f7..dfa5a3c 100644
---- a/arch/arm/mach-omap2/usb-musb.c
-+++ b/arch/arm/mach-omap2/usb-musb.c
-@@ -108,7 +108,13 @@ static void usb_musb_mux_init(struct omap_musb_board_data *board_data)
+diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+index bbcb677..a5bf5e9 100644
+--- a/arch/arm/mach-omap2/board-rx51-peripherals.c
++++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+@@ -43,6 +43,7 @@
+ 
+ #include "mux.h"
+ #include "hsmmc.h"
++#include "common-board-devices.h"
+ 
+ #define SYSTEM_REV_B_USES_VAUX3	0x1699
+ #define SYSTEM_REV_S_USES_VAUX3 0x8
+@@ -777,15 +778,6 @@ static struct tpa6130a2_platform_data rx51_tpa6130a2_data __initdata_or_module =
+ 	.power_gpio		= 98,
+ };
+ 
+-static struct i2c_board_info __initdata rx51_peripherals_i2c_board_info_1[] = {
+-	{
+-		I2C_BOARD_INFO("twl5030", 0x48),
+-		.flags = I2C_CLIENT_WAKE,
+-		.irq = INT_34XX_SYS_NIRQ,
+-		.platform_data = &rx51_twldata,
+-	},
+-};
+-
+ /* Audio setup data */
+ static struct aic3x_setup_data rx51_aic34_setup = {
+ 	.gpio_func[0] = AIC3X_GPIO1_FUNC_DISABLED,
+@@ -833,8 +825,7 @@ static int __init rx51_i2c_init(void)
+ 		rx51_twldata.vaux3 = &rx51_vaux3_cam;
  	}
- }
+ 	rx51_twldata.vmmc2 = &rx51_vmmc2;
+-	omap_register_i2c_bus(1, 2200, rx51_peripherals_i2c_board_info_1,
+-			      ARRAY_SIZE(rx51_peripherals_i2c_board_info_1));
++	omap_pmic_init(1, 2200, "twl5030", INT_34XX_SYS_NIRQ, &rx51_twldata);
+ 	omap_register_i2c_bus(2, 100, rx51_peripherals_i2c_board_info_2,
+ 			      ARRAY_SIZE(rx51_peripherals_i2c_board_info_2));
+ 	omap_register_i2c_bus(3, 400, NULL, 0);
+diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c b/arch/arm/mach-omap2/board-zoom-peripherals.c
+index 8dee754..e4870c2 100644
+--- a/arch/arm/mach-omap2/board-zoom-peripherals.c
++++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
+@@ -31,6 +31,7 @@
  
--void __init usb_musb_init(struct omap_musb_board_data *board_data)
-+static struct omap_musb_board_data musb_default_board_data = {
-+	.interface_type		= MUSB_INTERFACE_ULPI,
-+	.mode			= MUSB_OTG,
-+	.power			= 100,
+ #include "mux.h"
+ #include "hsmmc.h"
++#include "common-board-devices.h"
+ 
+ #define OMAP_ZOOM_WLAN_PMENA_GPIO	(101)
+ #define OMAP_ZOOM_WLAN_IRQ_GPIO		(162)
+@@ -349,15 +350,6 @@ static struct twl4030_platform_data zoom_twldata = {
+ 	.vdac		= &zoom_vdac,
+ };
+ 
+-static struct i2c_board_info __initdata zoom_i2c_boardinfo[] = {
+-	{
+-		I2C_BOARD_INFO("twl5030", 0x48),
+-		.flags		= I2C_CLIENT_WAKE,
+-		.irq		= INT_34XX_SYS_NIRQ,
+-		.platform_data	= &zoom_twldata,
+-	},
+-};
+-
+ static int __init omap_i2c_init(void)
+ {
+ 	if (machine_is_omap_zoom2()) {
+@@ -365,8 +357,7 @@ static int __init omap_i2c_init(void)
+ 		zoom_audio_data.hs_extmute = 1;
+ 		zoom_audio_data.set_hs_extmute = zoom2_set_hs_extmute;
+ 	}
+-	omap_register_i2c_bus(1, 2400, zoom_i2c_boardinfo,
+-			ARRAY_SIZE(zoom_i2c_boardinfo));
++	omap_pmic_init(1, 2400, "twl5030", INT_34XX_SYS_NIRQ, &zoom_twldata);
+ 	omap_register_i2c_bus(2, 400, NULL, 0);
+ 	omap_register_i2c_bus(3, 400, NULL, 0);
+ 	return 0;
+diff --git a/arch/arm/mach-omap2/common-board-devices.c b/arch/arm/mach-omap2/common-board-devices.c
+index fad41ec..cea31dd 100644
+--- a/arch/arm/mach-omap2/common-board-devices.c
++++ b/arch/arm/mach-omap2/common-board-devices.c
+@@ -20,14 +20,35 @@
+  *
+  */
+ 
++#include <linux/i2c.h>
++#include <linux/i2c/twl.h>
++
+ #include <linux/gpio.h>
+ #include <linux/spi/spi.h>
+ #include <linux/spi/ads7846.h>
+ 
++#include <plat/i2c.h>
+ #include <plat/mcspi.h>
+ 
+ #include "common-board-devices.h"
+ 
++static struct i2c_board_info __initdata pmic_i2c_board_info = {
++	.addr		= 0x48,
++	.flags		= I2C_CLIENT_WAKE,
 +};
 +
-+void __init usb_musb_init(struct omap_musb_board_data *musb_board_data)
- {
- 	struct omap_hwmod		*oh;
- 	struct omap_device		*od;
-@@ -116,6 +122,12 @@ void __init usb_musb_init(struct omap_musb_board_data *board_data)
- 	struct device			*dev;
- 	int				bus_id = -1;
- 	const char			*oh_name, *name;
-+	struct omap_musb_board_data	*board_data;
++void __init omap_pmic_init(int bus, u32 clkrate,
++			   const char *pmic_type, int pmic_irq,
++			   struct twl4030_platform_data *pmic_data)
++{
++	strncpy(pmic_i2c_board_info.type, pmic_type,
++		sizeof(pmic_i2c_board_info.type));
++	pmic_i2c_board_info.irq = pmic_irq;
++	pmic_i2c_board_info.platform_data = pmic_data;
 +
-+	if (musb_board_data)
-+		board_data = musb_board_data;
-+	else
-+		board_data = &musb_default_board_data;
++	omap_register_i2c_bus(bus, clkrate, &pmic_i2c_board_info, 1);
++}
++
+ static struct omap2_mcspi_device_config ads7846_mcspi_config = {
+ 	.turbo_mode	= 0,
+ 	.single_channel	= 1,	/* 0: slave, 1: master */
+diff --git a/arch/arm/mach-omap2/common-board-devices.h b/arch/arm/mach-omap2/common-board-devices.h
+index 75f9248d..0ec3e07 100644
+--- a/arch/arm/mach-omap2/common-board-devices.h
++++ b/arch/arm/mach-omap2/common-board-devices.h
+@@ -1,6 +1,30 @@
+ #ifndef __OMAP_COMMON_BOARD_DEVICES__
+ #define __OMAP_COMMON_BOARD_DEVICES__
  
- 	if (cpu_is_omap3517() || cpu_is_omap3505()) {
- 	} else if (cpu_is_omap44xx()) {
++struct twl4030_platform_data;
++
++void omap_pmic_init(int bus, u32 clkrate, const char *pmic_type, int pmic_irq,
++		    struct twl4030_platform_data *pmic_data);
++
++static inline void omap2_pmic_init(const char *pmic_type,
++				   struct twl4030_platform_data *pmic_data)
++{
++	omap_pmic_init(2, 2600, pmic_type, INT_24XX_SYS_NIRQ, pmic_data);
++}
++
++static inline void omap3_pmic_init(const char *pmic_type,
++				   struct twl4030_platform_data *pmic_data)
++{
++	omap_pmic_init(1, 2600, pmic_type, INT_34XX_SYS_NIRQ, pmic_data);
++}
++
++static inline void omap4_pmic_init(const char *pmic_type,
++				   struct twl4030_platform_data *pmic_data)
++{
++	/* Phoenix Audio IC needs I2C1 to start with 400 KHz or less */
++	omap_pmic_init(1, 400, pmic_type, OMAP44XX_IRQ_SYS_1N, pmic_data);
++}
++
+ #if defined(CONFIG_TOUCHSCREEN_ADS7846) || \
+ 	defined(CONFIG_TOUCHSCREEN_ADS7846_MODULE)
+ struct ads7846_platform_data;
 -- 
 1.7.3.1
 
