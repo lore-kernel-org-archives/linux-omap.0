@@ -1,383 +1,434 @@
 From: Mike Rapoport <mike@compulab.co.il>
-Subject: [PATCH 3/4] omap: move detection of NAND CS to common-board-devices
-Date: Mon, 25 Apr 2011 01:09:07 +0300
-Message-ID: <e2d77d1e885e6878ffbc9bf9dcf0b2dbea2b5d1f.1303682352.git.mike@compulab.co.il>
+Subject: [PATCH 4/4] omap: musb: introduce default baord config
+Date: Mon, 25 Apr 2011 01:09:08 +0300
+Message-ID: <c18b58e93a67116f06e8ffbf097c2bd8e4f642a5.1303682352.git.mike@compulab.co.il>
 References: <cover.1303682352.git.mike@compulab.co.il>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:43915
+Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:43919
 	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1757890Ab1DXWCW (ORCPT
+	by vger.kernel.org with ESMTP id S1757900Ab1DXWCX (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Sun, 24 Apr 2011 18:02:22 -0400
+	Sun, 24 Apr 2011 18:02:23 -0400
 In-Reply-To: <cover.1303682352.git.mike@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Mike Rapoport <mike@compulab.co.il>
 
-and reduce amount of copy/paste
+Most boards use exactly the same configuration for musb initialization.
+Create a default that can be shared amount different boards.
 
 Signed-off-by: Mike Rapoport <mike@compulab.co.il>
 ---
- arch/arm/mach-omap2/board-devkit8000.c     |   43 +-------------------------
- arch/arm/mach-omap2/board-omap3beagle.c    |   45 +--------------------------
- arch/arm/mach-omap2/board-omap3touchbook.c |   45 +--------------------------
- arch/arm/mach-omap2/board-overo.c          |   42 +------------------------
- arch/arm/mach-omap2/common-board-devices.c |   42 ++++++++++++++++++++++++++
- arch/arm/mach-omap2/common-board-devices.h |   10 ++++++
- 6 files changed, 60 insertions(+), 167 deletions(-)
+ arch/arm/mach-omap2/board-2430sdp.c          |    7 +------
+ arch/arm/mach-omap2/board-3430sdp.c          |    8 +-------
+ arch/arm/mach-omap2/board-cm-t35.c           |    8 +-------
+ arch/arm/mach-omap2/board-devkit8000.c       |    8 +-------
+ arch/arm/mach-omap2/board-igep0020.c         |    8 +-------
+ arch/arm/mach-omap2/board-igep0030.c         |    8 +-------
+ arch/arm/mach-omap2/board-ldp.c              |    8 +-------
+ arch/arm/mach-omap2/board-omap3beagle.c      |    8 +-------
+ arch/arm/mach-omap2/board-omap3pandora.c     |    8 +-------
+ arch/arm/mach-omap2/board-omap3stalker.c     |    8 +-------
+ arch/arm/mach-omap2/board-omap3touchbook.c   |    8 +-------
+ arch/arm/mach-omap2/board-overo.c            |    8 +-------
+ arch/arm/mach-omap2/board-rm680.c            |    8 +-------
+ arch/arm/mach-omap2/board-zoom-peripherals.c |    8 +-------
+ arch/arm/mach-omap2/usb-musb.c               |   14 +++++++++++++-
+ 15 files changed, 27 insertions(+), 98 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
-index 983f44b..e7dc057 100644
---- a/arch/arm/mach-omap2/board-devkit8000.c
-+++ b/arch/arm/mach-omap2/board-devkit8000.c
-@@ -97,13 +97,6 @@ static struct mtd_partition devkit8000_nand_partitions[] = {
+diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2/board-2430sdp.c
+index 99b3f2d..a8810f8 100644
+--- a/arch/arm/mach-omap2/board-2430sdp.c
++++ b/arch/arm/mach-omap2/board-2430sdp.c
+@@ -208,11 +208,6 @@ static struct omap2_hsmmc_info mmc[] __initdata = {
+ 	{}	/* Terminator */
+ };
+ 
+-static struct omap_musb_board_data musb_board_data = {
+-	.interface_type		= MUSB_INTERFACE_ULPI,
+-	.mode			= MUSB_OTG,
+-	.power			= 100,
+-};
+ static struct omap_usb_config sdp2430_usb_config __initdata = {
+ 	.otg		= 1,
+ #ifdef  CONFIG_USB_GADGET_OMAP
+@@ -246,7 +241,7 @@ static void __init omap_2430sdp_init(void)
+ 	omap2_usbfs_init(&sdp2430_usb_config);
+ 
+ 	omap_mux_init_signal("usb0hs_stp", OMAP_PULL_ENA | OMAP_PULL_UP);
+-	usb_musb_init(&musb_board_data);
++	usb_musb_init(NULL);
+ 
+ 	board_smc91x_init();
+ 
+diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
+index b12400e..951e585 100644
+--- a/arch/arm/mach-omap2/board-3430sdp.c
++++ b/arch/arm/mach-omap2/board-3430sdp.c
+@@ -810,12 +810,6 @@ static struct flash_partitions sdp_flash_partitions[] = {
  	},
  };
  
--static struct omap_nand_platform_data devkit8000_nand_data = {
--	.options	= NAND_BUSWIDTH_16,
--	.parts		= devkit8000_nand_partitions,
--	.nr_parts	= ARRAY_SIZE(devkit8000_nand_partitions),
--	.dma_channel	= -1,		/* disable DMA in OMAP NAND driver */
+-static struct omap_musb_board_data musb_board_data = {
+-	.interface_type		= MUSB_INTERFACE_ULPI,
+-	.mode			= MUSB_OTG,
+-	.power			= 100,
 -};
 -
- static struct omap2_hsmmc_info mmc[] = {
- 	{
- 		.mmc		= 1,
-@@ -516,39 +509,6 @@ static struct platform_device *devkit8000_devices[] __initdata = {
+ static void __init omap_3430sdp_init(void)
+ {
+ 	int gpio_pendown;
+@@ -832,7 +826,7 @@ static void __init omap_3430sdp_init(void)
+ 		gpio_pendown = SDP3430_TS_GPIO_IRQ_SDPV1;
+ 	omap_ads7846_init(1, gpio_pendown, 310, NULL);
+ 	board_serial_init();
+-	usb_musb_init(&musb_board_data);
++	usb_musb_init(NULL);
+ 	board_smc91x_init();
+ 	board_flash_init(sdp_flash_partitions, chip_sel_3430, 0);
+ 	sdp3430_display_init();
+diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
+index 1a9e6be..286da17 100644
+--- a/arch/arm/mach-omap2/board-cm-t35.c
++++ b/arch/arm/mach-omap2/board-cm-t35.c
+@@ -651,12 +651,6 @@ static struct omap_board_mux board_mux[] __initdata = {
+ };
+ #endif
+ 
+-static struct omap_musb_board_data musb_board_data = {
+-	.interface_type		= MUSB_INTERFACE_ULPI,
+-	.mode			= MUSB_OTG,
+-	.power			= 100,
+-};
+-
+ static struct omap_board_config_kernel cm_t35_config[] __initdata = {
+ };
+ 
+@@ -673,7 +667,7 @@ static void __init cm_t35_init(void)
+ 	cm_t35_init_led();
+ 	cm_t35_init_display();
+ 
+-	usb_musb_init(&musb_board_data);
++	usb_musb_init(NULL);
+ 	usbhs_init(&usbhs_bdata);
+ }
+ 
+diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
+index e7dc057..405542a 100644
+--- a/arch/arm/mach-omap2/board-devkit8000.c
++++ b/arch/arm/mach-omap2/board-devkit8000.c
+@@ -509,12 +509,6 @@ static struct platform_device *devkit8000_devices[] __initdata = {
  	&omap_dm9000_dev,
  };
  
--static void __init devkit8000_flash_init(void)
--{
--	u8 cs = 0;
--	u8 nandcs = GPMC_CS_NUM + 1;
--
--	/* find out the chip-select on which NAND exists */
--	while (cs < GPMC_CS_NUM) {
--		u32 ret = 0;
--		ret = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
--
--		if ((ret & 0xC00) == 0x800) {
--			printk(KERN_INFO "Found NAND on CS%d\n", cs);
--			if (nandcs > GPMC_CS_NUM)
--				nandcs = cs;
--		}
--		cs++;
--	}
--
--	if (nandcs > GPMC_CS_NUM) {
--		printk(KERN_INFO "NAND: Unable to find configuration "
--				 "in GPMC\n ");
--		return;
--	}
--
--	if (nandcs < GPMC_CS_NUM) {
--		devkit8000_nand_data.cs = nandcs;
--
--		printk(KERN_INFO "Registering NAND on CS%d\n", nandcs);
--		if (gpmc_nand_init(&devkit8000_nand_data) < 0)
--			printk(KERN_ERR "Unable to register NAND device\n");
--	}
--}
--
- static struct omap_musb_board_data musb_board_data = {
- 	.interface_type		= MUSB_INTERFACE_ULPI,
- 	.mode			= MUSB_OTG,
-@@ -740,7 +700,8 @@ static void __init devkit8000_init(void)
- 
- 	usb_musb_init(&musb_board_data);
- 	usbhs_init(&usbhs_bdata);
--	devkit8000_flash_init();
-+	omap_nand_flash_init(NAND_BUSWIDTH_16, devkit8000_nand_partitions,
-+			     ARRAY_SIZE(devkit8000_nand_partitions));
- 
- 	/* Ensure SDRC pins are mux'd for self-refresh */
- 	omap_mux_init_signal("sdrc_cke0", OMAP_PIN_OUTPUT);
-diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index 13a1664..ce3bc2d 100644
---- a/arch/arm/mach-omap2/board-omap3beagle.c
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -174,15 +174,6 @@ static struct mtd_partition omap3beagle_nand_partitions[] = {
- 	},
- };
- 
--static struct omap_nand_platform_data omap3beagle_nand_data = {
--	.options	= NAND_BUSWIDTH_16,
--	.parts		= omap3beagle_nand_partitions,
--	.nr_parts	= ARRAY_SIZE(omap3beagle_nand_partitions),
--	.dma_channel	= -1,		/* disable DMA in OMAP NAND driver */
--	.nand_setup	= NULL,
--	.dev_ready	= NULL,
+-static struct omap_musb_board_data musb_board_data = {
+-	.interface_type		= MUSB_INTERFACE_ULPI,
+-	.mode			= MUSB_OTG,
+-	.power			= 100,
 -};
--
- /* DSS */
- 
- static int beagle_enable_dvi(struct omap_dss_device *dssdev)
-@@ -542,39 +533,6 @@ static struct platform_device *omap3_beagle_devices[] __initdata = {
- 	&keys_gpio,
- };
- 
--static void __init omap3beagle_flash_init(void)
--{
--	u8 cs = 0;
--	u8 nandcs = GPMC_CS_NUM + 1;
--
--	/* find out the chip-select on which NAND exists */
--	while (cs < GPMC_CS_NUM) {
--		u32 ret = 0;
--		ret = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
--
--		if ((ret & 0xC00) == 0x800) {
--			printk(KERN_INFO "Found NAND on CS%d\n", cs);
--			if (nandcs > GPMC_CS_NUM)
--				nandcs = cs;
--		}
--		cs++;
--	}
--
--	if (nandcs > GPMC_CS_NUM) {
--		printk(KERN_INFO "NAND: Unable to find configuration "
--				 "in GPMC\n ");
--		return;
--	}
--
--	if (nandcs < GPMC_CS_NUM) {
--		omap3beagle_nand_data.cs = nandcs;
--
--		printk(KERN_INFO "Registering NAND on CS%d\n", nandcs);
--		if (gpmc_nand_init(&omap3beagle_nand_data) < 0)
--			printk(KERN_ERR "Unable to register NAND device\n");
--	}
--}
 -
  static const struct usbhs_omap_board_data usbhs_bdata __initconst = {
  
  	.port_mode[0] = OMAP_EHCI_PORT_MODE_PHY,
-@@ -662,7 +620,8 @@ static void __init omap3_beagle_init(void)
+@@ -698,7 +692,7 @@ static void __init devkit8000_init(void)
  
- 	usb_musb_init(&musb_board_data);
+ 	omap_ads7846_init(2, OMAP3_DEVKIT_TS_GPIO, 0, NULL);
+ 
+-	usb_musb_init(&musb_board_data);
++	usb_musb_init(NULL);
  	usbhs_init(&usbhs_bdata);
--	omap3beagle_flash_init();
-+	omap_nand_flash_init(NAND_BUSWIDTH_16, omap3beagle_nand_partitions,
-+			     ARRAY_SIZE(omap3beagle_nand_partitions));
+ 	omap_nand_flash_init(NAND_BUSWIDTH_16, devkit8000_nand_partitions,
+ 			     ARRAY_SIZE(devkit8000_nand_partitions));
+diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
+index a0fd10e..2c9a919 100644
+--- a/arch/arm/mach-omap2/board-igep0020.c
++++ b/arch/arm/mach-omap2/board-igep0020.c
+@@ -559,12 +559,6 @@ static void __init igep2_i2c_init(void)
+ 		pr_warning("IGEP2: Could not register I2C3 bus (%d)\n", ret);
+ }
  
- 	/* Ensure SDRC pins are mux'd for self-refresh */
- 	omap_mux_init_signal("sdrc_cke0", OMAP_PIN_OUTPUT);
-diff --git a/arch/arm/mach-omap2/board-omap3touchbook.c b/arch/arm/mach-omap2/board-omap3touchbook.c
-index 0a9b329..d770802 100644
---- a/arch/arm/mach-omap2/board-omap3touchbook.c
-+++ b/arch/arm/mach-omap2/board-omap3touchbook.c
-@@ -96,15 +96,6 @@ static struct mtd_partition omap3touchbook_nand_partitions[] = {
- 	},
- };
- 
--static struct omap_nand_platform_data omap3touchbook_nand_data = {
--	.options	= NAND_BUSWIDTH_16,
--	.parts		= omap3touchbook_nand_partitions,
--	.nr_parts	= ARRAY_SIZE(omap3touchbook_nand_partitions),
--	.dma_channel	= -1,		/* disable DMA in OMAP NAND driver */
--	.nand_setup	= NULL,
--	.dev_ready	= NULL,
+-static struct omap_musb_board_data musb_board_data = {
+-	.interface_type		= MUSB_INTERFACE_ULPI,
+-	.mode			= MUSB_OTG,
+-	.power			= 100,
 -};
--
- #include "sdram-micron-mt46h32m32lf-6.h"
- 
- static struct omap2_hsmmc_info mmc[] = {
-@@ -396,39 +387,6 @@ static struct platform_device *omap3_touchbook_devices[] __initdata = {
- 	&keys_gpio,
- };
- 
--static void __init omap3touchbook_flash_init(void)
--{
--	u8 cs = 0;
--	u8 nandcs = GPMC_CS_NUM + 1;
--
--	/* find out the chip-select on which NAND exists */
--	while (cs < GPMC_CS_NUM) {
--		u32 ret = 0;
--		ret = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
--
--		if ((ret & 0xC00) == 0x800) {
--			printk(KERN_INFO "Found NAND on CS%d\n", cs);
--			if (nandcs > GPMC_CS_NUM)
--				nandcs = cs;
--		}
--		cs++;
--	}
--
--	if (nandcs > GPMC_CS_NUM) {
--		printk(KERN_INFO "NAND: Unable to find configuration "
--				 "in GPMC\n ");
--		return;
--	}
--
--	if (nandcs < GPMC_CS_NUM) {
--		omap3touchbook_nand_data.cs = nandcs;
--
--		printk(KERN_INFO "Registering NAND on CS%d\n", nandcs);
--		if (gpmc_nand_init(&omap3touchbook_nand_data) < 0)
--			printk(KERN_ERR "Unable to register NAND device\n");
--	}
--}
 -
  static const struct usbhs_omap_board_data usbhs_bdata __initconst = {
- 
  	.port_mode[0] = OMAP_EHCI_PORT_MODE_PHY,
-@@ -491,7 +449,8 @@ static void __init omap3_touchbook_init(void)
- 	omap_ads7846_init(4, OMAP3_TS_GPIO, 310, &ads7846_pdata);
- 	usb_musb_init(&musb_board_data);
- 	usbhs_init(&usbhs_bdata);
--	omap3touchbook_flash_init();
-+	omap_nand_flash_init(NAND_BUSWIDTH_16, omap3touchbook_nand_partitions,
-+			     ARRAY_SIZE(omap3touchbook_nand_partitions));
- 
- 	/* Ensure SDRC pins are mux'd for self-refresh */
- 	omap_mux_init_signal("sdrc_cke0", OMAP_PIN_OUTPUT);
-diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
-index d0621dc..9212442 100644
---- a/arch/arm/mach-omap2/board-overo.c
-+++ b/arch/arm/mach-omap2/board-overo.c
-@@ -302,45 +302,6 @@ static struct mtd_partition overo_nand_partitions[] = {
- 	},
- };
- 
--static struct omap_nand_platform_data overo_nand_data = {
--	.parts = overo_nand_partitions,
--	.nr_parts = ARRAY_SIZE(overo_nand_partitions),
--	.dma_channel = -1,	/* disable DMA in OMAP NAND driver */
--};
--
--static void __init overo_flash_init(void)
--{
--	u8 cs = 0;
--	u8 nandcs = GPMC_CS_NUM + 1;
--
--	/* find out the chip-select on which NAND exists */
--	while (cs < GPMC_CS_NUM) {
--		u32 ret = 0;
--		ret = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
--
--		if ((ret & 0xC00) == 0x800) {
--			printk(KERN_INFO "Found NAND on CS%d\n", cs);
--			if (nandcs > GPMC_CS_NUM)
--				nandcs = cs;
--		}
--		cs++;
--	}
--
--	if (nandcs > GPMC_CS_NUM) {
--		printk(KERN_INFO "NAND: Unable to find configuration "
--				 "in GPMC\n ");
--		return;
--	}
--
--	if (nandcs < GPMC_CS_NUM) {
--		overo_nand_data.cs = nandcs;
--
--		printk(KERN_INFO "Registering NAND on CS%d\n", nandcs);
--		if (gpmc_nand_init(&overo_nand_data) < 0)
--			printk(KERN_ERR "Unable to register NAND device\n");
--	}
--}
--
- static struct omap2_hsmmc_info mmc[] = {
- 	{
- 		.mmc		= 1,
-@@ -602,7 +563,8 @@ static void __init overo_init(void)
- 	overo_i2c_init();
- 	omap_display_init(&overo_dss_data);
+ 	.port_mode[1] = OMAP_USBHS_PORT_MODE_UNUSED,
+@@ -637,7 +631,7 @@ static void __init igep2_init(void)
+ 	platform_add_devices(igep2_devices, ARRAY_SIZE(igep2_devices));
+ 	omap_display_init(&igep2_dss_data);
  	omap_serial_init();
--	overo_flash_init();
-+	omap_nand_flash_init(0, overo_nand_partitions,
-+			     ARRAY_SIZE(overo_nand_partitions));
- 	usb_musb_init(&musb_board_data);
+-	usb_musb_init(&musb_board_data);
++	usb_musb_init(NULL);
  	usbhs_init(&usbhs_bdata);
- 	overo_spi_init();
-diff --git a/arch/arm/mach-omap2/common-board-devices.c b/arch/arm/mach-omap2/common-board-devices.c
-index cea31dd..d57c71d 100644
---- a/arch/arm/mach-omap2/common-board-devices.c
-+++ b/arch/arm/mach-omap2/common-board-devices.c
-@@ -29,6 +29,7 @@
  
- #include <plat/i2c.h>
- #include <plat/mcspi.h>
-+#include <plat/nand.h>
- 
- #include "common-board-devices.h"
- 
-@@ -104,3 +105,44 @@ void __init omap_ads7846_init(int bus_num, int gpio_pendown, int gpio_debounce,
- 
- 	spi_register_board_info(&ads7846_spi_board_info, 1);
+ 	igep2_flash_init();
+diff --git a/arch/arm/mach-omap2/board-igep0030.c b/arch/arm/mach-omap2/board-igep0030.c
+index a831e85..512a7eb 100644
+--- a/arch/arm/mach-omap2/board-igep0030.c
++++ b/arch/arm/mach-omap2/board-igep0030.c
+@@ -357,12 +357,6 @@ static int __init igep3_i2c_init(void)
+ 	return 0;
  }
-+
-+static struct omap_nand_platform_data nand_data = {
-+	.dma_channel	= -1,		/* disable DMA in OMAP NAND driver */
-+};
-+
-+void __init omap_nand_flash_init(int options, struct mtd_partition *parts,
-+				 int nr_parts)
-+{
-+	u8 cs = 0;
-+	u8 nandcs = GPMC_CS_NUM + 1;
-+
-+	/* find out the chip-select on which NAND exists */
-+	while (cs < GPMC_CS_NUM) {
-+		u32 ret = 0;
-+		ret = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
-+
-+		if ((ret & 0xC00) == 0x800) {
-+			printk(KERN_INFO "Found NAND on CS%d\n", cs);
-+			if (nandcs > GPMC_CS_NUM)
-+				nandcs = cs;
-+		}
-+		cs++;
-+	}
-+
-+	if (nandcs > GPMC_CS_NUM) {
-+		printk(KERN_INFO "NAND: Unable to find configuration "
-+				 "in GPMC\n ");
-+		return;
-+	}
-+
-+	if (nandcs < GPMC_CS_NUM) {
-+		nand_data.cs = nandcs;
-+		nand_data.parts = parts;
-+		nand_data.nr_parts = nr_parts;
-+		nand_data.options = options;
-+
-+		printk(KERN_INFO "Registering NAND on CS%d\n", nandcs);
-+		if (gpmc_nand_init(&nand_data) < 0)
-+			printk(KERN_ERR "Unable to register NAND device\n");
-+	}
-+}
-diff --git a/arch/arm/mach-omap2/common-board-devices.h b/arch/arm/mach-omap2/common-board-devices.h
-index 0ec3e07..ca03abf 100644
---- a/arch/arm/mach-omap2/common-board-devices.h
-+++ b/arch/arm/mach-omap2/common-board-devices.h
-@@ -2,6 +2,7 @@
- #define __OMAP_COMMON_BOARD_DEVICES__
  
- struct twl4030_platform_data;
-+struct mtd_partition;
+-static struct omap_musb_board_data musb_board_data = {
+-	.interface_type	= MUSB_INTERFACE_ULPI,
+-	.mode		= MUSB_OTG,
+-	.power		= 100,
+-};
+-
+ #if defined(CONFIG_LIBERTAS_SDIO) || defined(CONFIG_LIBERTAS_SDIO_MODULE)
  
- void omap_pmic_init(int bus, u32 clkrate, const char *pmic_type, int pmic_irq,
- 		    struct twl4030_platform_data *pmic_data);
-@@ -39,4 +40,13 @@ static inline void omap_ads7846_init(int bus_num,
- }
+ static void __init igep3_wifi_bt_init(void)
+@@ -424,7 +418,7 @@ static void __init igep3_init(void)
+ 	igep3_i2c_init();
+ 	platform_add_devices(igep3_devices, ARRAY_SIZE(igep3_devices));
+ 	omap_serial_init();
+-	usb_musb_init(&musb_board_data);
++	usb_musb_init(NULL);
+ 	usbhs_init(&usbhs_bdata);
+ 
+ 	igep3_flash_init();
+diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
+index 7482c75..f7d6038 100644
+--- a/arch/arm/mach-omap2/board-ldp.c
++++ b/arch/arm/mach-omap2/board-ldp.c
+@@ -294,12 +294,6 @@ static struct omap_board_mux board_mux[] __initdata = {
+ };
  #endif
  
-+#if defined(CONFIG_MTD_NAND_OMAP2) || defined(CONFIG_MTD_NAND_OMAP2_MODULE)
-+void omap_nand_flash_init(int opts, struct mtd_partition *parts, int n_parts);
-+#else
-+static inline void omap_nand_flash_init(int opts, struct mtd_partition *parts,
-+					int nr_parts)
-+{
-+}
-+#endif
+-static struct omap_musb_board_data musb_board_data = {
+-	.interface_type		= MUSB_INTERFACE_ULPI,
+-	.mode			= MUSB_OTG,
+-	.power			= 100,
+-};
+-
+ static struct mtd_partition ldp_nand_partitions[] = {
+ 	/* All the partition sizes are listed in terms of NAND block size */
+ 	{
+@@ -342,7 +336,7 @@ static void __init omap_ldp_init(void)
+ 	platform_add_devices(ldp_devices, ARRAY_SIZE(ldp_devices));
+ 	omap_ads7846_init(1, 54, 310, NULL);
+ 	omap_serial_init();
+-	usb_musb_init(&musb_board_data);
++	usb_musb_init(NULL);
+ 	board_nand_init(ldp_nand_partitions,
+ 		ARRAY_SIZE(ldp_nand_partitions), ZOOM_NAND_CS, 0);
+ 
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index ce3bc2d..bc30ab0 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -551,12 +551,6 @@ static struct omap_board_mux board_mux[] __initdata = {
+ };
+ #endif
+ 
+-static struct omap_musb_board_data musb_board_data = {
+-	.interface_type		= MUSB_INTERFACE_ULPI,
+-	.mode			= MUSB_OTG,
+-	.power			= 100,
+-};
+-
+ static void __init beagle_opp_init(void)
+ {
+ 	int r = 0;
+@@ -618,7 +612,7 @@ static void __init omap3_beagle_init(void)
+ 	/* REVISIT leave DVI powered down until it's needed ... */
+ 	gpio_direction_output(170, true);
+ 
+-	usb_musb_init(&musb_board_data);
++	usb_musb_init(NULL);
+ 	usbhs_init(&usbhs_bdata);
+ 	omap_nand_flash_init(NAND_BUSWIDTH_16, omap3beagle_nand_partitions,
+ 			     ARRAY_SIZE(omap3beagle_nand_partitions));
+diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
+index b99cc64..6c22d3f 100644
+--- a/arch/arm/mach-omap2/board-omap3pandora.c
++++ b/arch/arm/mach-omap2/board-omap3pandora.c
+@@ -633,12 +633,6 @@ static struct omap_board_mux board_mux[] __initdata = {
+ };
+ #endif
+ 
+-static struct omap_musb_board_data musb_board_data = {
+-	.interface_type		= MUSB_INTERFACE_ULPI,
+-	.mode			= MUSB_OTG,
+-	.power			= 100,
+-};
+-
+ static void __init omap3pandora_init(void)
+ {
+ 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+@@ -652,7 +646,7 @@ static void __init omap3pandora_init(void)
+ 			ARRAY_SIZE(omap3pandora_spi_board_info));
+ 	omap_ads7846_init(1, OMAP3_PANDORA_TS_GPIO, 0, NULL);
+ 	usbhs_init(&usbhs_bdata);
+-	usb_musb_init(&musb_board_data);
++	usb_musb_init(NULL);
+ 	gpmc_nand_init(&pandora_nand_data);
+ 
+ 	/* Ensure SDRC pins are mux'd for self-refresh */
+diff --git a/arch/arm/mach-omap2/board-omap3stalker.c b/arch/arm/mach-omap2/board-omap3stalker.c
+index a1d550f..9981d06 100644
+--- a/arch/arm/mach-omap2/board-omap3stalker.c
++++ b/arch/arm/mach-omap2/board-omap3stalker.c
+@@ -526,12 +526,6 @@ static struct omap_board_mux board_mux[] __initdata = {
+ };
+ #endif
+ 
+-static struct omap_musb_board_data musb_board_data = {
+-	.interface_type	= MUSB_INTERFACE_ULPI,
+-	.mode		= MUSB_OTG,
+-	.power		= 100,
+-};
+-
+ static void __init omap3_stalker_init(void)
+ {
+ 	omap3_mux_init(board_mux, OMAP_PACKAGE_CUS);
+@@ -546,7 +540,7 @@ static void __init omap3_stalker_init(void)
+ 	omap_display_init(&omap3_stalker_dss_data);
+ 
+ 	omap_serial_init();
+-	usb_musb_init(&musb_board_data);
++	usb_musb_init(NULL);
+ 	usbhs_init(&usbhs_bdata);
+ 	omap_ads7846_init(1, OMAP3_STALKER_TS_GPIO, 310, NULL);
+ 
+diff --git a/arch/arm/mach-omap2/board-omap3touchbook.c b/arch/arm/mach-omap2/board-omap3touchbook.c
+index d770802..392278d 100644
+--- a/arch/arm/mach-omap2/board-omap3touchbook.c
++++ b/arch/arm/mach-omap2/board-omap3touchbook.c
+@@ -421,12 +421,6 @@ static int __init early_touchbook_revision(char *p)
+ }
+ early_param("tbr", early_touchbook_revision);
+ 
+-static struct omap_musb_board_data musb_board_data = {
+-	.interface_type		= MUSB_INTERFACE_ULPI,
+-	.mode			= MUSB_OTG,
+-	.power			= 100,
+-};
+-
+ static void __init omap3_touchbook_init(void)
+ {
+ 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+@@ -447,7 +441,7 @@ static void __init omap3_touchbook_init(void)
+ 
+ 	/* Touchscreen and accelerometer */
+ 	omap_ads7846_init(4, OMAP3_TS_GPIO, 310, &ads7846_pdata);
+-	usb_musb_init(&musb_board_data);
++	usb_musb_init(NULL);
+ 	usbhs_init(&usbhs_bdata);
+ 	omap_nand_flash_init(NAND_BUSWIDTH_16, omap3touchbook_nand_partitions,
+ 			     ARRAY_SIZE(omap3touchbook_nand_partitions));
+diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
+index 9212442..c7ec7fa 100644
+--- a/arch/arm/mach-omap2/board-overo.c
++++ b/arch/arm/mach-omap2/board-overo.c
+@@ -551,12 +551,6 @@ static struct omap_board_mux board_mux[] __initdata = {
+ };
+ #endif
+ 
+-static struct omap_musb_board_data musb_board_data = {
+-	.interface_type		= MUSB_INTERFACE_ULPI,
+-	.mode			= MUSB_OTG,
+-	.power			= 100,
+-};
+-
+ static void __init overo_init(void)
+ {
+ 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+@@ -565,7 +559,7 @@ static void __init overo_init(void)
+ 	omap_serial_init();
+ 	omap_nand_flash_init(0, overo_nand_partitions,
+ 			     ARRAY_SIZE(overo_nand_partitions));
+-	usb_musb_init(&musb_board_data);
++	usb_musb_init(NULL);
+ 	usbhs_init(&usbhs_bdata);
+ 	overo_spi_init();
+ 	overo_ads7846_init();
+diff --git a/arch/arm/mach-omap2/board-rm680.c b/arch/arm/mach-omap2/board-rm680.c
+index 8e710ff..42d10b1 100644
+--- a/arch/arm/mach-omap2/board-rm680.c
++++ b/arch/arm/mach-omap2/board-rm680.c
+@@ -144,17 +144,11 @@ static struct omap_board_mux board_mux[] __initdata = {
+ };
+ #endif
+ 
+-static struct omap_musb_board_data rm680_musb_data = {
+-	.interface_type	= MUSB_INTERFACE_ULPI,
+-	.mode		= MUSB_PERIPHERAL,
+-	.power		= 100,
+-};
+-
+ static void __init rm680_init(void)
+ {
+ 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+ 	omap_serial_init();
+-	usb_musb_init(&rm680_musb_data);
++	usb_musb_init(NULL);
+ 	rm680_peripherals_init();
+ }
+ 
+diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c b/arch/arm/mach-omap2/board-zoom-peripherals.c
+index e4870c2..489294a 100644
+--- a/arch/arm/mach-omap2/board-zoom-peripherals.c
++++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
+@@ -363,12 +363,6 @@ static int __init omap_i2c_init(void)
+ 	return 0;
+ }
+ 
+-static struct omap_musb_board_data musb_board_data = {
+-	.interface_type		= MUSB_INTERFACE_ULPI,
+-	.mode			= MUSB_OTG,
+-	.power			= 100,
+-};
+-
+ static void enable_board_wakeup_source(void)
+ {
+ 	/* T2 interrupt line (keypad) */
+@@ -383,7 +377,7 @@ void __init zoom_peripherals_init(void)
+ 
+ 	omap_i2c_init();
+ 	platform_device_register(&omap_vwlan_device);
+-	usb_musb_init(&musb_board_data);
++	usb_musb_init(NULL);
+ 	enable_board_wakeup_source();
+ 	omap_serial_init();
+ }
+diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
+index 35559f7..dfa5a3c 100644
+--- a/arch/arm/mach-omap2/usb-musb.c
++++ b/arch/arm/mach-omap2/usb-musb.c
+@@ -108,7 +108,13 @@ static void usb_musb_mux_init(struct omap_musb_board_data *board_data)
+ 	}
+ }
+ 
+-void __init usb_musb_init(struct omap_musb_board_data *board_data)
++static struct omap_musb_board_data musb_default_board_data = {
++	.interface_type		= MUSB_INTERFACE_ULPI,
++	.mode			= MUSB_OTG,
++	.power			= 100,
++};
 +
- #endif /* __OMAP_COMMON_BOARD_DEVICES__ */
++void __init usb_musb_init(struct omap_musb_board_data *musb_board_data)
+ {
+ 	struct omap_hwmod		*oh;
+ 	struct omap_device		*od;
+@@ -116,6 +122,12 @@ void __init usb_musb_init(struct omap_musb_board_data *board_data)
+ 	struct device			*dev;
+ 	int				bus_id = -1;
+ 	const char			*oh_name, *name;
++	struct omap_musb_board_data	*board_data;
++
++	if (musb_board_data)
++		board_data = musb_board_data;
++	else
++		board_data = &musb_default_board_data;
+ 
+ 	if (cpu_is_omap3517() || cpu_is_omap3505()) {
+ 	} else if (cpu_is_omap44xx()) {
 -- 
 1.7.3.1
 
