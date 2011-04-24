@@ -1,32 +1,56 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] OMAP: Added recalculation of clock rate in
- 'clk_set_rate'
-Date: Sat, 23 Apr 2011 11:00:21 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1104231059050.6742@utopia.booyaka.com>
-References: <1303291509-2305-1-git-send-email-shweta.gulati@ti.com> <alpine.DEB.2.00.1104201351180.12683@utopia.booyaka.com> <BANLkTi=Ab0EJ3fAQGHBOyPd+eAJHWcjtuA@mail.gmail.com>
+From: Keshava Munegowda <keshava_mgowda@ti.com>
+Subject: RE: [Regression?] Removed regulator support in ehci-omap
+Date: Sun, 24 Apr 2011 12:07:21 +0530
+Message-ID: <8712165194c49f0b4d8c1bd1fe717b8a@mail.gmail.com>
+References: <20110411093214.GA18215@rainbow> <4DA3350E.2060400@gmail.com>
+ <BANLkTinDMZ+CyGCmzZu8cSz1L_yFXxm+vg@mail.gmail.com> <112ef82aebc719ef25cde126f2014ebc@mail.gmail.com>
+ <20110412040420.GB25239@rainbow> <bcd954a468e6a07bd673b7d0731e9344@mail.gmail.com>
+ <4DB0D58E.4030508@signal11.us>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:56250 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751813Ab1DWRAW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 23 Apr 2011 13:00:22 -0400
-In-Reply-To: <BANLkTi=Ab0EJ3fAQGHBOyPd+eAJHWcjtuA@mail.gmail.com>
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:42308 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753174Ab1DXGhq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Sun, 24 Apr 2011 02:37:46 -0400
+In-Reply-To: <4DB0D58E.4030508@signal11.us>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gulati, Shweta" <shweta.gulati@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
+To: Alan Ott <alan@signal11.us>
+Cc: Dmitry Artamonow <mad_soft@inbox.ru>, Steve Sakoman <sakoman@gmail.com>, Steve Calfee <stevecalfee@gmail.com>, Felipe Balbi <balbi@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Thu, 21 Apr 2011, Gulati, Shweta wrote:
+> -----Original Message-----
+> From: Alan Ott [mailto:alan@signal11.us]
+> Sent: Friday, April 22, 2011 6:41 AM
+> To: Keshava Munegowda
+> Cc: Dmitry Artamonow; Steve Sakoman; Steve Calfee; Felipe Balbi;
+linux-usb@vger.kernel.org; linux-
+> omap@vger.kernel.org; linux-kernel@vger.kernel.org
+> Subject: Re: [Regression?] Removed regulator support in ehci-omap
+>
+> On 04/12/2011 12:20 PM, Keshava Munegowda wrote:
+> >> Ah, so EHCI/OHCI common code was moved into drivers/mfd... Good.
+> >> But seems regulators support was lost somewhere during transition -
+the
+> >> only mentioning about regulators in omap-usb-host.c is "#include" :
+> >>
+> >> mad@macmini:~/kernel-hack/linux-2.6(master)$ grep -i regulator
+> > drivers/mfd/omap-usb-host.c
+> > Thanks ! I will add some time next week!
+>
+> I have confirmed this on my BeagleBoard-xM. 2.6.38 works, but the
+> 2.6.39-rc4+ head from yesterday did not. It seems that the regulator
+> does not turn the power on for the USB hub which the ethernet is
+> attached to.
+>
+> I connected this issue to bug 33092 in bugzilla[1].
+>
+> Alan.
+>
+> [1] https://bugzilla.kernel.org/show_bug.cgi?id=33092
 
-> Yes, but in current code clk_set_rate of dpll3_m2 - 
-> 'omap3_core_dpll_m2_set_rate' doesn't update clk.rate, I will submit 
-> patch fixing that bug and will make sure that set_rate of all clocks 
-> should update clk.rate
+I have posted the patches on April 22, 2011.
+If possible I request you to test this.
 
-Yes, that's the right thing to do, please send that.  Such a patch was 
-originally part of the series for the last merge window; it seems I 
-inadvertently dropped it.
-
-
-- Paul
+Keshava Munegowda
