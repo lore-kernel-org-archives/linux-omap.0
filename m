@@ -1,56 +1,136 @@
-From: Keshava Munegowda <keshava_mgowda@ti.com>
-Subject: RE: [Regression?] Removed regulator support in ehci-omap
-Date: Sun, 24 Apr 2011 12:07:21 +0530
-Message-ID: <8712165194c49f0b4d8c1bd1fe717b8a@mail.gmail.com>
-References: <20110411093214.GA18215@rainbow> <4DA3350E.2060400@gmail.com>
- <BANLkTinDMZ+CyGCmzZu8cSz1L_yFXxm+vg@mail.gmail.com> <112ef82aebc719ef25cde126f2014ebc@mail.gmail.com>
- <20110412040420.GB25239@rainbow> <bcd954a468e6a07bd673b7d0731e9344@mail.gmail.com>
- <4DB0D58E.4030508@signal11.us>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: [PATCH v2 1/2] arm: omap: fix bug with multiple smsc911x devices
+Date: Sun, 24 Apr 2011 11:27:55 +0300
+Message-ID: <1303633675-18589-1-git-send-email-grinberg@compulab.co.il>
+References: <BANLkTi=PtDVewo-g-oZJw5=AG5TqvFBf0w@mail.gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:42308 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753174Ab1DXGhq (ORCPT
+Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:50853
+	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1755644Ab1DXI2C (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Sun, 24 Apr 2011 02:37:46 -0400
-In-Reply-To: <4DB0D58E.4030508@signal11.us>
+	Sun, 24 Apr 2011 04:28:02 -0400
+In-Reply-To: <BANLkTi=PtDVewo-g-oZJw5=AG5TqvFBf0w@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Alan Ott <alan@signal11.us>
-Cc: Dmitry Artamonow <mad_soft@inbox.ru>, Steve Sakoman <sakoman@gmail.com>, Steve Calfee <stevecalfee@gmail.com>, Felipe Balbi <balbi@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Mike Rapoport <mike@compulab.co.il>, Tim Nordell <tim.nordell@logicpd.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Igor Grinberg <grinberg@compulab.co.il>
 
-> -----Original Message-----
-> From: Alan Ott [mailto:alan@signal11.us]
-> Sent: Friday, April 22, 2011 6:41 AM
-> To: Keshava Munegowda
-> Cc: Dmitry Artamonow; Steve Sakoman; Steve Calfee; Felipe Balbi;
-linux-usb@vger.kernel.org; linux-
-> omap@vger.kernel.org; linux-kernel@vger.kernel.org
-> Subject: Re: [Regression?] Removed regulator support in ehci-omap
->
-> On 04/12/2011 12:20 PM, Keshava Munegowda wrote:
-> >> Ah, so EHCI/OHCI common code was moved into drivers/mfd... Good.
-> >> But seems regulators support was lost somewhere during transition -
-the
-> >> only mentioning about regulators in omap-usb-host.c is "#include" :
-> >>
-> >> mad@macmini:~/kernel-hack/linux-2.6(master)$ grep -i regulator
-> > drivers/mfd/omap-usb-host.c
-> > Thanks ! I will add some time next week!
->
-> I have confirmed this on my BeagleBoard-xM. 2.6.38 works, but the
-> 2.6.39-rc4+ head from yesterday did not. It seems that the regulator
-> does not turn the power on for the USB hub which the ethernet is
-> attached to.
->
-> I connected this issue to bug 33092 in bugzilla[1].
->
-> Alan.
->
-> [1] https://bugzilla.kernel.org/show_bug.cgi?id=33092
+kobject (c06a4250): tried to init an initialized object, something is
+seriously wrong.
 
-I have posted the patches on April 22, 2011.
-If possible I request you to test this.
+introduced by commit 66293989:
+(omap: convert boards that use SMSC911x to use gpmc-smsc911x)
 
-Keshava Munegowda
+fixed by allocating struct platform_device dynamically.
+
+Signed-off-by: Igor Grinberg <grinberg@compulab.co.il>
+---
+This has been boot tested with nfs root on cm-t35,
+and build tested on all other affected boards.
+
+v2:	keep the id field uninitialized (0) on boards with
+	only one smsc911x controller (thanks Mike)
+
+
+ arch/arm/mach-omap2/board-cm-t35.c              |    2 ++
+ arch/arm/mach-omap2/board-overo.c               |    2 ++
+ arch/arm/mach-omap2/gpmc-smsc911x.c             |   16 +++++-----------
+ arch/arm/plat-omap/include/plat/gpmc-smsc911x.h |    1 +
+ 4 files changed, 10 insertions(+), 11 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
+index b5772c1..7c70f56 100644
+--- a/arch/arm/mach-omap2/board-cm-t35.c
++++ b/arch/arm/mach-omap2/board-cm-t35.c
+@@ -69,6 +69,7 @@
+ #include <plat/gpmc-smsc911x.h>
+ 
+ static struct omap_smsc911x_platform_data cm_t35_smsc911x_cfg = {
++	.id		= 0,
+ 	.cs             = CM_T35_SMSC911X_CS,
+ 	.gpio_irq       = CM_T35_SMSC911X_GPIO,
+ 	.gpio_reset     = -EINVAL,
+@@ -76,6 +77,7 @@ static struct omap_smsc911x_platform_data cm_t35_smsc911x_cfg = {
+ };
+ 
+ static struct omap_smsc911x_platform_data sb_t35_smsc911x_cfg = {
++	.id		= 1,
+ 	.cs             = SB_T35_SMSC911X_CS,
+ 	.gpio_irq       = SB_T35_SMSC911X_GPIO,
+ 	.gpio_reset     = -EINVAL,
+diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
+index 4016166..165e1fa 100644
+--- a/arch/arm/mach-omap2/board-overo.c
++++ b/arch/arm/mach-omap2/board-overo.c
+@@ -149,6 +149,7 @@ static inline void __init overo_ads7846_init(void) { return; }
+ #include <plat/gpmc-smsc911x.h>
+ 
+ static struct omap_smsc911x_platform_data smsc911x_cfg = {
++	.id		= 0,
+ 	.cs             = OVERO_SMSC911X_CS,
+ 	.gpio_irq       = OVERO_SMSC911X_GPIO,
+ 	.gpio_reset     = -EINVAL,
+@@ -156,6 +157,7 @@ static struct omap_smsc911x_platform_data smsc911x_cfg = {
+ };
+ 
+ static struct omap_smsc911x_platform_data smsc911x2_cfg = {
++	.id		= 1,
+ 	.cs             = OVERO_SMSC911X2_CS,
+ 	.gpio_irq       = OVERO_SMSC911X2_GPIO,
+ 	.gpio_reset     = -EINVAL,
+diff --git a/arch/arm/mach-omap2/gpmc-smsc911x.c b/arch/arm/mach-omap2/gpmc-smsc911x.c
+index b331f3c..d30293a 100644
+--- a/arch/arm/mach-omap2/gpmc-smsc911x.c
++++ b/arch/arm/mach-omap2/gpmc-smsc911x.c
+@@ -41,16 +41,6 @@ static struct smsc911x_platform_config gpmc_smsc911x_config = {
+ 	.flags		= SMSC911X_USE_16BIT,
+ };
+ 
+-static struct platform_device gpmc_smsc911x_device = {
+-	.name		= "smsc911x",
+-	.id		= -1,
+-	.num_resources	= ARRAY_SIZE(gpmc_smsc911x_resources),
+-	.resource	= gpmc_smsc911x_resources,
+-	.dev		= {
+-		.platform_data = &gpmc_smsc911x_config,
+-	},
+-};
+-
+ /*
+  * Initialize smsc911x device connected to the GPMC. Note that we
+  * assume that pin multiplexing is done in the board-*.c file,
+@@ -58,6 +48,7 @@ static struct platform_device gpmc_smsc911x_device = {
+  */
+ void __init gpmc_smsc911x_init(struct omap_smsc911x_platform_data *board_data)
+ {
++	struct platform_device *pdev;
+ 	unsigned long cs_mem_base;
+ 	int ret;
+ 
+@@ -97,7 +88,10 @@ void __init gpmc_smsc911x_init(struct omap_smsc911x_platform_data *board_data)
+ 	if (gpmc_cfg->flags)
+ 		gpmc_smsc911x_config.flags = gpmc_cfg->flags;
+ 
+-	if (platform_device_register(&gpmc_smsc911x_device) < 0) {
++	pdev = platform_device_register_resndata(NULL, "smsc911x", gpmc_cfg->id,
++		 gpmc_smsc911x_resources, ARRAY_SIZE(gpmc_smsc911x_resources),
++		 &gpmc_smsc911x_config, sizeof(gpmc_smsc911x_config));
++	if (!pdev) {
+ 		printk(KERN_ERR "Unable to register smsc911x device\n");
+ 		gpio_free(gpmc_cfg->gpio_reset);
+ 		goto free2;
+diff --git a/arch/arm/plat-omap/include/plat/gpmc-smsc911x.h b/arch/arm/plat-omap/include/plat/gpmc-smsc911x.h
+index 872de0bf..d3f1579 100644
+--- a/arch/arm/plat-omap/include/plat/gpmc-smsc911x.h
++++ b/arch/arm/plat-omap/include/plat/gpmc-smsc911x.h
+@@ -14,6 +14,7 @@
+ #ifndef __ASM_ARCH_OMAP_GPMC_SMSC911X_H__
+ 
+ struct omap_smsc911x_platform_data {
++	int	id;
+ 	int	cs;
+ 	int	gpio_irq;
+ 	int	gpio_reset;
+-- 
+1.7.3.4
+
