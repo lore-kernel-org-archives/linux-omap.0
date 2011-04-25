@@ -1,224 +1,72 @@
-From: Trinabh Gupta <trinabh@linux.vnet.ibm.com>
-Subject: Re: [linux-pm] [RFC PATCH V3 4/4] cpuidle: Single/Global registration
- of idle states
-Date: Mon, 25 Apr 2011 17:30:05 +0530
-Message-ID: <4DB56245.8050203@linux.vnet.ibm.com>
-References: <20110420065445.332.13688.stgit@tringupt.in.ibm.com> <20110420065608.332.30043.stgit@tringupt.in.ibm.com>
+From: "Varadarajan, Charulatha" <charu@ti.com>
+Subject: Re: [PATCH 02/15] OMAP: GPIO: remove MPUIO handling from _clear_gpio_irqbank()
+Date: Mon, 25 Apr 2011 19:18:49 +0530
+Message-ID: <BANLkTinmf5EWwbWrYJHz=Z19v1EkG-MPvg@mail.gmail.com>
+References: <1303513327-14532-1-git-send-email-khilman@ti.com> <1303513327-14532-3-git-send-email-khilman@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20110420065608.332.30043.stgit@tringupt.in.ibm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: arjan@linux.intel.com, peterz@infradead.org, lenb@kernel.org, venki@google.com, ak@linux.intel.com, len.brown@intel.com
-Cc: davinci-linux-open-source@linux.davincidsp.com, linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:47275 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752139Ab1DYNta convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 25 Apr 2011 09:49:30 -0400
+Received: by iwn36 with SMTP id 36so2322804iwn.36
+        for <linux-omap@vger.kernel.org>; Mon, 25 Apr 2011 06:49:29 -0700 (PDT)
+In-Reply-To: <1303513327-14532-3-git-send-email-khilman@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
+Kevin,
 
-[...]
+On Sat, Apr 23, 2011 at 04:31, Kevin Hilman <khilman@ti.com> wrote:
+> Remove the OMAP1 #ifdef and MPUIO special case for _clear_gpio_irqban=
+k()
+>
+> The MPUIOs do not need a register access to ack/clear the IRQ status,
+> since reading the IRQ status clears it. =A0In addition, the MPUIO
+> irq_chip has an empty ack method, so _clear_gpio_irqbank() is never
+> used for MPUIOs.
+>
+> Signed-off-by: Kevin Hilman <khilman@ti.com>
+> ---
+> =A0arch/arm/plat-omap/gpio.c | =A0 =A06 ------
+> =A01 files changed, 0 insertions(+), 6 deletions(-)
+>
+> diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+> index fe6971a..8b5ca6e 100644
+> --- a/arch/arm/plat-omap/gpio.c
+> +++ b/arch/arm/plat-omap/gpio.c
+> @@ -770,12 +770,6 @@ static void _clear_gpio_irqbank(struct gpio_bank=
+ *bank, int gpio_mask)
+> =A0 =A0 =A0 =A0void __iomem *reg =3D bank->base;
+>
+> =A0 =A0 =A0 =A0switch (bank->method) {
+> -#ifdef CONFIG_ARCH_OMAP1
+> - =A0 =A0 =A0 case METHOD_MPUIO:
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* MPUIO irqstatus is reset by reading =
+the status register,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* so do nothing here */
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 return;
+> -#endif
 
-> - * acpi_processor_setup_cpuidle - prepares and configures CPUIDLE
-> + * acpi_processor_setup_cpuidle_cx - prepares and configures CPUIDLE
-> + * device i.e. per-cpu data
-> + *
->    * @pr: the ACPI processor
->    */
-> -static int acpi_processor_setup_cpuidle(struct acpi_processor *pr)
-> +static int acpi_processor_setup_cpuidle_cx(struct acpi_processor *pr)
->   {
->   	int i, count = CPUIDLE_DRIVER_STATE_START;
->   	struct acpi_processor_cx *cx;
-> -	struct cpuidle_state *state;
->   	struct cpuidle_state_usage *state_usage;
->   	struct cpuidle_device *dev =&pr->power.dev;
->
-> @@ -1018,18 +1025,12 @@ static int acpi_processor_setup_cpuidle(struct acpi_processor *pr)
->   	}
->
->   	dev->cpu = pr->id;
-> -	dev->safe_state_index = -1;
-> -	for (i = 0; i<  CPUIDLE_STATE_MAX; i++) {
-> -		dev->states[i].name[0] = '\0';
-> -		dev->states[i].desc[0] = '\0';
-> -	}
->
->   	if (max_cstate == 0)
->   		max_cstate = 1;
->
->   	for (i = 1; i<  ACPI_PROCESSOR_MAX_POWER&&  i<= max_cstate; i++) {
->   		cx =&pr->power.states[i];
-> -		state =&dev->states[count];
->   		state_usage =&dev->states_usage[count];
->
->   		if (!cx->valid)
-> @@ -1041,8 +1042,61 @@ static int acpi_processor_setup_cpuidle(struct acpi_processor *pr)
->   		    !(acpi_gbl_FADT.flags&  ACPI_FADT_C2_MP_SUPPORTED))
->   			continue;
->   #endif
-> +
->   		cpuidle_set_statedata(state_usage, cx);
->
-> +		count++;
-> +		if (count == CPUIDLE_STATE_MAX)
-> +			break;
-> +	}
-> +
-> +	dev->state_count = count;
-> +
-> +	if (!count)
-> +		return -EINVAL;
-> +
-> +	return 0;
-> +}
-> +
-> +/**
-> + * acpi_processor_setup_cpuidle states- prepares and configures cpuidle
-> + * global state data i.e. idle routines
-> + *
-> + * @pr: the ACPI processor
-> + */
-> +static int acpi_processor_setup_cpuidle_states(struct acpi_processor *pr)
-> +{
-> +	int i, count = CPUIDLE_DRIVER_STATE_START;
-> +	struct acpi_processor_cx *cx;
-> +	struct cpuidle_state *state;
-> +	struct cpuidle_driver *drv =&acpi_idle_driver;
-> +
-> +	if (!pr->flags.power_setup_done)
-> +		return -EINVAL;
-> +
-> +	if (pr->flags.power == 0) {
-> +		return -EINVAL;
-> +	}
-> +
-> +	drv->safe_state_index = -1;
-> +
-> +	if (max_cstate == 0)
-> +		max_cstate = 1;
-> +
-> +	for (i = 1; i<  ACPI_PROCESSOR_MAX_POWER&&  i<= max_cstate; i++) {
-> +		cx =&pr->power.states[i];
-> +
-> +		if (!cx->valid)
-> +			continue;
-> +
-> +#ifdef CONFIG_HOTPLUG_CPU
-> +		if ((cx->type != ACPI_STATE_C1)&&  (num_online_cpus()>  1)&&
-> +		    !pr->flags.has_cst&&
-> +		    !(acpi_gbl_FADT.flags&  ACPI_FADT_C2_MP_SUPPORTED))
-> +			continue;
-> +#endif
-> +
-> +		state =&drv->states[count];
->   		snprintf(state->name, CPUIDLE_NAME_LEN, "C%d", i);
->   		strncpy(state->desc, cx->desc, CPUIDLE_DESC_LEN);
->   		state->exit_latency = cx->latency;
-> @@ -1055,13 +1109,13 @@ static int acpi_processor_setup_cpuidle(struct acpi_processor *pr)
->   				state->flags |= CPUIDLE_FLAG_TIME_VALID;
->
->   			state->enter = acpi_idle_enter_c1;
-> -			dev->safe_state_index = count;
-> +			drv->safe_state_index = count;
->   			break;
->
->   			case ACPI_STATE_C2:
->   			state->flags |= CPUIDLE_FLAG_TIME_VALID;
->   			state->enter = acpi_idle_enter_simple;
-> -			dev->safe_state_index = count;
-> +			drv->safe_state_index = count;
->   			break;
->
->   			case ACPI_STATE_C3:
-> @@ -1077,7 +1131,7 @@ static int acpi_processor_setup_cpuidle(struct acpi_processor *pr)
->   			break;
->   	}
->
-> -	dev->state_count = count;
-> +	drv->state_count = count;
->
->   	if (!count)
->   		return -EINVAL;
-> @@ -1106,7 +1160,15 @@ int acpi_processor_cst_has_changed(struct acpi_processor *pr)
->   	cpuidle_disable_device(&pr->power.dev);
->   	acpi_processor_get_power_info(pr);
->   	if (pr->flags.power) {
-> -		acpi_processor_setup_cpuidle(pr);
-> +		/*
-> +		 * To Do: Currently state data within driver
-> +		 * is not updated. So change this to also update
-> +		 * actual state data i.e. what this routine is
-> +		 * meant for. Maybe complete unregistration and
-> +		 * re-registration.
-> +		 *
-> +		 */
+The default case has a "WARN_ON(1)". I guess WARN_ON()
+is not required for METHOD_MPUIO.
 
-Hi Len, Arjan
+-V Charulatha
 
-acpi_processor_cst_has_changed is called on switch between AC
-power and battery for each cpu. As a result each cpu disables
-the cpuidle device, populates the idle state info again and
-enables the device. This all works fine for per-cpu registration.
-
-But if we do global registration of idle states then during
-the first notification itself we need to disable all devices,
-re-populate the states structure and enable all devices. But because
-currently each cpu is notified in no particular order this is
-not possible. Do you have any suggestions on how to design this?
-
-Reading through the ACPI notification code it looks as if
-drivers/acpi/acpica/evxface.c:acpi_install_notify_handler()
-registers the device notification for root object i.e. basically
-all objects of type CPU. With global registration only one
-notification is required and sufficient. Maybe we need to
-change the event type to system notification just like
-for sleep button?
-
-Thanks,
--Trinabh
-
-
-
-> +		acpi_processor_setup_cpuidle_cx(pr);
->   		ret = cpuidle_enable_device(&pr->power.dev);
->   	}
->   	cpuidle_resume_and_unlock();
-> @@ -1118,7 +1180,7 @@ int __cpuinit acpi_processor_power_init(struct acpi_processor *pr,
->   			      struct acpi_device *device)
->   {
->   	acpi_status status = 0;
-> -	static int first_run;
-> +	static int first_run, acpi_processor_registered;
+> =A0#ifdef CONFIG_ARCH_OMAP15XX
+> =A0 =A0 =A0 =A0case METHOD_GPIO_1510:
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0reg +=3D OMAP1510_GPIO_INT_STATUS;
+> --
+> 1.7.4
 >
->   	if (disabled_by_idle_boot_param())
->   		return 0;
-> @@ -1154,7 +1216,15 @@ int __cpuinit acpi_processor_power_init(struct acpi_processor *pr,
->   	 * platforms that only support C1.
->   	 */
->   	if (pr->flags.power) {
-> -		acpi_processor_setup_cpuidle(pr);
-> +		if (!acpi_processor_registered) {
-> +			acpi_processor_setup_cpuidle_states(pr);
-> +			if (!cpuidle_register_driver(&acpi_idle_driver)) {
-> +				printk(KERN_DEBUG "ACPI: %s registered with cpuidle\n",
-> +					acpi_idle_driver.name);
-> +				acpi_processor_registered = 1;
-> +			}
-> +		}
-> +		acpi_processor_setup_cpuidle_cx(pr);
->   		if (cpuidle_register_device(&pr->power.dev))
->   			return -EIO;
->   	}
-> @@ -1168,6 +1238,11 @@ int acpi_processor_power_exit(struct acpi_processor *pr,
->   		return 0;
 >
->   	cpuidle_unregister_device(&pr->power.dev);
-> +	/* We will have to have unregister driver as well here
-> +	 * since we move register_driver to power_init. Maybe
-> +	 * just do an unregister everytime; which will be successful
-> +	 * only during the last call.
-> +	 */
->   	pr->flags.power_setup_done = 0;
->
->   	return 0;
-
-[...]
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
