@@ -1,79 +1,111 @@
 From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH 2/2] arm: omap: gpmc-smsc911x: minor style fixes
-Date: Tue, 26 Apr 2011 18:48:07 +0300
-Message-ID: <4DB6E937.7090904@compulab.co.il>
-References: <1303397412-24813-1-git-send-email-grinberg@compulab.co.il> <1303397412-24813-2-git-send-email-grinberg@compulab.co.il> <BANLkTikw73F1RBmJC=+Z2msA3Wr7gG3AGQ@mail.gmail.com> <4DB6D974.6080201@compulab.co.il> <BANLkTi=3eh+0zRD4jRDPoiGxMgCGeOdrww@mail.gmail.com>
+Subject: [PATCH v2 2/2] arm: omap: gpmc-smsc911x: minor style fixes
+Date: Tue, 26 Apr 2011 19:25:56 +0300
+Message-ID: <1303835156-14516-1-git-send-email-grinberg@compulab.co.il>
+References: <4DB6E937.7090904@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:47471
-	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751180Ab1DZPsM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 26 Apr 2011 11:48:12 -0400
-In-Reply-To: <BANLkTi=3eh+0zRD4jRDPoiGxMgCGeOdrww@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <4DB6E937.7090904@compulab.co.il>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Tim Nordell <tim.nordell@logicpd.com>, Nishanth Menon <nm@ti.com>, Igor Grinberg <grinberg@compulab.co.il>, Mike Rapoport <mike@compulab.co.il>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Mike Rapoport <mike@compulab.co.il>, Tim Nordell <tim.nordell@logicpd.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 04/26/11 17:49, Menon, Nishanth wrote:
+replace "printk(KERN_ERR" by "pr_err("
+and fix needlessly multi-lined #ifdef
 
-> On Tue, Apr 26, 2011 at 09:40, Igor Grinberg <grinberg@compulab.co.il> wrote:
->> Hi Nishanth,
->>
->> On 04/26/11 16:45, Menon, Nishanth wrote:
->>
->>> On Thu, Apr 21, 2011 at 09:50, Igor Grinberg <grinberg@compulab.co.il> wrote:
->>>> replace "printk(KERN_ERR" by "pr_err("
->>>> and fix needlessly multi-lined #ifdef
->>>>
->>>> Signed-off-by: Igor Grinberg <grinberg@compulab.co.il>
->>>> ---
->>>>  arch/arm/mach-omap2/gpmc-smsc911x.c             |   14 +++++++-------
->>>>  arch/arm/plat-omap/include/plat/gpmc-smsc911x.h |    3 +--
->>>>  2 files changed, 8 insertions(+), 9 deletions(-)
->>>>
->>>> diff --git a/arch/arm/mach-omap2/gpmc-smsc911x.c b/arch/arm/mach-omap2/gpmc-smsc911x.c
->>>> index d30293a..b45efff 100644
->>>> --- a/arch/arm/mach-omap2/gpmc-smsc911x.c
->>>> +++ b/arch/arm/mach-omap2/gpmc-smsc911x.c
->>> minor suggestion: wont using pr_fmt help to reduce the need to add %s,
->>> __func__ for pr_err through out the file?
->> I don't understand of what "need" are you talking about.
->> I don't know of any need to add "%s, __func__" with pr_fmt...
->> I've added "%s, __func__" as a meter of choice.
->> IMO, it makes it easier to parse the dmesg output.
->> If anyone objects it, I can remove them,
->> but I think both pr_fmt and __func__ are nice here and
->> way better then "printk(KERN_*" with embedded "smsc911x".
-> Allow me to rephrase.
-> I like the change of printk->pr_err - thanks for doing it. just
-> suggesting a minor improvement
->
-> if you add the following line before the #includes
-> #define pr_fmt(fmt) "%s: " fmt, __func__
-> then
-> -               printk(KERN_ERR "Failed to request GPIO%d for smsc911x IRQ\n",
-> -                               gpmc_cfg->gpio_irq);
-> +               pr_err("%s: Failed to request IRQ GPIO%d\n", __func__,
-> +                      gpmc_cfg->gpio_irq);
-> becomes,
-> -               printk(KERN_ERR "Failed to request GPIO%d for smsc911x IRQ\n",
-> -                               gpmc_cfg->gpio_irq);
-> +               pr_err("Failed to request IRQ GPIO%d\n", gpmc_cfg->gpio_irq);
->
-> Both give you exactly the output you would like to see (which I
-> personally prefer as well), but the second could be lesser lines of
-> code change ;)
+Signed-off-by: Igor Grinberg <grinberg@compulab.co.il>
+---
+v2:	added pr_fmt so the pr_*() calls would be cleaner (thanks Nishanth)
+	Nishanth, this time it does not affect the n-o-l,
+	but it is indeed cleaner
 
-Ahh, now I understand, that can be useful indeed.
-I'll send a v2...
 
-Thanks
+ arch/arm/mach-omap2/gpmc-smsc911x.c             |   14 +++++++-------
+ arch/arm/plat-omap/include/plat/gpmc-smsc911x.h |    3 +--
+ 2 files changed, 8 insertions(+), 9 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/gpmc-smsc911x.c b/arch/arm/mach-omap2/gpmc-smsc911x.c
+index d30293a..e09374a 100644
+--- a/arch/arm/mach-omap2/gpmc-smsc911x.c
++++ b/arch/arm/mach-omap2/gpmc-smsc911x.c
+@@ -10,6 +10,7 @@
+  * it under the terms of the GNU General Public License version 2 as
+  * published by the Free Software Foundation.
+  */
++#define pr_fmt(fmt) "%s: " fmt, __func__
+ 
+ #include <linux/kernel.h>
+ #include <linux/platform_device.h>
+@@ -55,7 +56,7 @@ void __init gpmc_smsc911x_init(struct omap_smsc911x_platform_data *board_data)
+ 	gpmc_cfg = board_data;
+ 
+ 	if (gpmc_cs_request(gpmc_cfg->cs, SZ_16M, &cs_mem_base) < 0) {
+-		printk(KERN_ERR "Failed to request GPMC mem for smsc911x\n");
++		pr_err("Failed to request GPMC mem region\n");
+ 		return;
+ 	}
+ 
+@@ -63,8 +64,7 @@ void __init gpmc_smsc911x_init(struct omap_smsc911x_platform_data *board_data)
+ 	gpmc_smsc911x_resources[0].end = cs_mem_base + 0xff;
+ 
+ 	if (gpio_request(gpmc_cfg->gpio_irq, "smsc911x irq") < 0) {
+-		printk(KERN_ERR "Failed to request GPIO%d for smsc911x IRQ\n",
+-				gpmc_cfg->gpio_irq);
++		pr_err("Failed to request IRQ GPIO%d\n", gpmc_cfg->gpio_irq);
+ 		goto free1;
+ 	}
+ 
+@@ -74,8 +74,8 @@ void __init gpmc_smsc911x_init(struct omap_smsc911x_platform_data *board_data)
+ 	if (gpio_is_valid(gpmc_cfg->gpio_reset)) {
+ 		ret = gpio_request(gpmc_cfg->gpio_reset, "smsc911x reset");
+ 		if (ret) {
+-			printk(KERN_ERR "Failed to request GPIO%d for smsc911x reset\n",
+-					gpmc_cfg->gpio_reset);
++			pr_err("Failed to request reset GPIO%d\n",
++			       gpmc_cfg->gpio_reset);
+ 			goto free2;
+ 		}
+ 
+@@ -92,7 +92,7 @@ void __init gpmc_smsc911x_init(struct omap_smsc911x_platform_data *board_data)
+ 		 gpmc_smsc911x_resources, ARRAY_SIZE(gpmc_smsc911x_resources),
+ 		 &gpmc_smsc911x_config, sizeof(gpmc_smsc911x_config));
+ 	if (!pdev) {
+-		printk(KERN_ERR "Unable to register smsc911x device\n");
++		pr_err("Unable to register platform device\n");
+ 		gpio_free(gpmc_cfg->gpio_reset);
+ 		goto free2;
+ 	}
+@@ -104,5 +104,5 @@ free2:
+ free1:
+ 	gpmc_cs_free(gpmc_cfg->cs);
+ 
+-	printk(KERN_ERR "Could not initialize smsc911x\n");
++	pr_err("Could not initialize smsc911x device\n");
+ }
+diff --git a/arch/arm/plat-omap/include/plat/gpmc-smsc911x.h b/arch/arm/plat-omap/include/plat/gpmc-smsc911x.h
+index d3f1579..ea6c9c8 100644
+--- a/arch/arm/plat-omap/include/plat/gpmc-smsc911x.h
++++ b/arch/arm/plat-omap/include/plat/gpmc-smsc911x.h
+@@ -21,8 +21,7 @@ struct omap_smsc911x_platform_data {
+ 	u32	flags;
+ };
+ 
+-#if defined(CONFIG_SMSC911X) || \
+-	defined(CONFIG_SMSC911X_MODULE)
++#if defined(CONFIG_SMSC911X) || defined(CONFIG_SMSC911X_MODULE)
+ 
+ extern void gpmc_smsc911x_init(struct omap_smsc911x_platform_data *d);
+ 
 -- 
-Regards,
-Igor.
-
+1.7.3.4
