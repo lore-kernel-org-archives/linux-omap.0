@@ -1,52 +1,76 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [v2 0/7] OMAP: GPIO: Use PM runtime framework
-Date: Tue, 26 Apr 2011 00:29:41 -0700
-Message-ID: <20110426072941.GA3755@atomide.com>
-References: <1303139217-10285-1-git-send-email-charu@ti.com>
- <20110419062633.GA15620@atomide.com>
- <87r58w4gq3.fsf@ti.com>
- <20110421054221.GF5918@atomide.com>
- <BANLkTi=s=KzeZfvoq7Efg2=Ceahz_fQxMA@mail.gmail.com>
+From: Vladimir Pantelic <vladoman@gmail.com>
+Subject: [PATCH] omap v4l2: fix wrong resizer calculation
+Date: Tue, 26 Apr 2011 09:36:52 +0200
+Message-ID: <4DB67614.7030008@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:53011 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1757630Ab1DZH3t (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Apr 2011 03:29:49 -0400
-Content-Disposition: inline
-In-Reply-To: <BANLkTi=s=KzeZfvoq7Efg2=Ceahz_fQxMA@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/mixed;
+ boundary="------------080600080401030005060605"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kernel development list <linux-kernel@vger.kernel.org>
+Cc: linux-omap@vger.kernel.org, "Hiremath, Vaibhav" <hvaibhav@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Kevin Hilman <khilman@ti.com>, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Varadarajan, Charulatha" <charu@ti.com>
 
-* Linus Walleij <linus.walleij@linaro.org> [110423 01:32]:
-> 2011/4/21 Tony Lindgren <tony@atomide.com>:
-> > * Kevin Hilman <khilman@ti.com> [110421 02:56]:
->=20
-> >> > - Move it to drivers/gpio
-> >> >
-> >> > - Further consolidate with whatever common GPIO code might
-> >> > =C2=A0 be coming up.
-> >>
-> >> Is the above order required?
-> >
-> > Yes please. Otherwise we'll have more of the "crazy churn" in
-> > arch/arm/*omap*/ and the runtime PM patches should apply easily
-> > in drivers/gpio too.
->=20
-> Since you'll probably be dependent on stuff happening in my patches
-> to move stuff into drivers/gpio I'll be happy to carry the patches in=
- my
-> gpio-consolidation branch with Tony's ACKs if need be.
+This is a multi-part message in MIME format.
+--------------080600080401030005060605
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Sounds good to me.
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--------------080600080401030005060605
+Content-Type: text/x-diff;
+ name="0001-omap-v4l2-fix-wrong-resizer-calculation.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="0001-omap-v4l2-fix-wrong-resizer-calculation.patch"
+
+>From 47473f26bda2ef2e3a5e8f0203fde0c74c412c36 Mon Sep 17 00:00:00 2001
+From: Vladimir Pantelic <vladoman@gmail.com>
+Date: Tue, 26 Apr 2011 09:28:11 +0200
+Subject: [PATCH] omap v4l2: fix wrong resizer calculation
+
+in omap_vout_new_crop(), "crop" is the output parameter and
+therefore new_crop/try_crop should be used to calculate the
+resizer values
+
+Signed-off-by: Vladimir Pantelic <vladoman@gmail.com>
+---
+ drivers/media/video/omap/omap_voutlib.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/video/omap/omap_voutlib.c b/drivers/media/video/omap/omap_voutlib.c
+index 2aa6a76..8ae7481 100644
+--- a/drivers/media/video/omap/omap_voutlib.c
++++ b/drivers/media/video/omap/omap_voutlib.c
+@@ -193,7 +193,7 @@ int omap_vout_new_crop(struct v4l2_pix_format *pix,
+ 		return -EINVAL;
+ 
+ 	if (cpu_is_omap24xx()) {
+-		if (crop->height != win->w.height) {
++		if (try_crop.height != win->w.height) {
+ 			/* If we're resizing vertically, we can't support a
+ 			 * crop width wider than 768 pixels.
+ 			 */
+@@ -202,7 +202,7 @@ int omap_vout_new_crop(struct v4l2_pix_format *pix,
+ 		}
+ 	}
+ 	/* vertical resizing */
+-	vresize = (1024 * crop->height) / win->w.height;
++	vresize = (1024 * try_crop.height) / win->w.height;
+ 	if (cpu_is_omap24xx() && (vresize > 2048))
+ 		vresize = 2048;
+ 	else if (cpu_is_omap34xx() && (vresize > 4096))
+@@ -221,7 +221,7 @@ int omap_vout_new_crop(struct v4l2_pix_format *pix,
+ 			try_crop.height = 2;
+ 	}
+ 	/* horizontal resizing */
+-	hresize = (1024 * crop->width) / win->w.width;
++	hresize = (1024 * try_crop.width) / win->w.width;
+ 	if (cpu_is_omap24xx() && (hresize > 2048))
+ 		hresize = 2048;
+ 	else if (cpu_is_omap34xx() && (hresize > 4096))
+-- 
+1.6.0.2
+
+
+--------------080600080401030005060605--
