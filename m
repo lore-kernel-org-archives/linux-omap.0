@@ -1,44 +1,30 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: [PATCH] arm: omap3: cm-t3517: fix section mismatch warning
-Date: Tue, 26 Apr 2011 23:41:14 +0300
-Message-ID: <1303850474-25106-1-git-send-email-grinberg@compulab.co.il>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:48101
-	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754071Ab1DZUlb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 26 Apr 2011 16:41:31 -0400
-Sender: linux-omap-owner@vger.kernel.org
+From: Steve Calfee <stevecalfee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] mfd: Fix usbhs_enable error handling
+Date: Tue, 26 Apr 2011 13:57:11 -0700
+Message-ID: <4DB731A7.70006@gmail.com>
+References: <1303395763-8702-1-git-send-email-keshava_mgowda@ti.com> <20110426085846.GI13227@legolas.emea.dhcp.ti.com> <3a59290ed8ab560ac9b85fd1f4d5acd4@mail.gmail.com> <20110426090418.GJ13227@legolas.emea.dhcp.ti.com> <BANLkTi=NB5as-Kz8bSCvh3=KPQR1wwXUOQ@mail.gmail.com> <20110426193407.GR13227@legolas.emea.dhcp.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20110426193407.GR13227-UiBtZHVXSwEVvW8u9ZQWYwjfymiNCTlR@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org
+Cc: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>, Partha Basak <p-basak2-l0cyMroinI0@public.gmane.org>, axel.lin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, johnstul-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org, mpfj-list-kZtEnBLzDKq1Qrn1Bg8BZw@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Igor Grinberg <grinberg@compulab.co.il>
 
-WARNING: arch/arm/mach-omap2/built-in.o(.text+0x11014): Section mismatch
-in reference from the function cm_t3517_init_usbh() to the (unknown
-reference) .init.data:(unknown)
-The function cm_t3517_init_usbh() references
-the (unknown reference) __initdata (unknown).
-This is often because cm_t3517_init_usbh lacks a __initdata
-annotation or the annotation of (unknown) is wrong.
+On 04/26/11 12:34, Felipe Balbi wrote:
+> 
+> care to reply to this one with your Tested-by so I add to all patches
+> and queue them to Greg ?
+> 
+I just checked and these changes were part of the 3 patch set from
+Keshava, and from the Beagleboard XM perspective it works and you can
+include my
 
-Signed-off-by: Igor Grinberg <grinberg@compulab.co.il>
----
- arch/arm/mach-omap2/board-cm-t3517.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+Tested-by: Steve Calfee <stevecalfee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
-diff --git a/arch/arm/mach-omap2/board-cm-t3517.c b/arch/arm/mach-omap2/board-cm-t3517.c
-index a27e3ee..802cb60 100644
---- a/arch/arm/mach-omap2/board-cm-t3517.c
-+++ b/arch/arm/mach-omap2/board-cm-t3517.c
-@@ -178,7 +178,7 @@ static struct usbhs_omap_board_data cm_t3517_ehci_pdata __initdata = {
- 	.reset_gpio_port[2]  = -EINVAL,
- };
- 
--static int cm_t3517_init_usbh(void)
-+static int __init cm_t3517_init_usbh(void)
- {
- 	int err;
- 
--- 
-1.7.3.4
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
