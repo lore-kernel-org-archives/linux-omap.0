@@ -1,66 +1,37 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: Fix relocation if image end past uncompressed
- kernel end
-Date: Tue, 26 Apr 2011 11:57:00 +0300
-Message-ID: <20110426085700.GJ16892@atomide.com>
-References: <alpine.LFD.2.00.1104200850030.24613@xanadu.home>
- <20110420165514.GE10402@atomide.com>
- <alpine.LFD.2.00.1104201318040.24613@xanadu.home>
- <20110421055945.GB13688@atomide.com>
- <20110421104954.GH13688@atomide.com>
- <alpine.LFD.2.00.1104210919070.24613@xanadu.home>
- <alpine.LFD.2.00.1104211711240.24613@xanadu.home>
- <alpine.LFD.2.00.1104212233170.24613@xanadu.home>
- <20110422062843.GA841@atomide.com>
- <alpine.LFD.2.00.1104220959440.24613@xanadu.home>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] mfd: Fix usbhs_enable error handling
+Date: Tue, 26 Apr 2011 11:58:48 +0300
+Message-ID: <20110426085846.GI13227@legolas.emea.dhcp.ti.com>
+References: <1303395763-8702-1-git-send-email-keshava_mgowda@ti.com>
+Reply-To: balbi-l0cyMroinI0@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:15075 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752466Ab1DZI5E (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Apr 2011 04:57:04 -0400
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.00.1104220959440.24613@xanadu.home>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1303395763-8702-1-git-send-email-keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, gadiyar-l0cyMroinI0@public.gmane.org, p-basak2-l0cyMroinI0@public.gmane.org, axel.lin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, johnstul-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org, mpfj-list-kZtEnBLzDKq1Qrn1Bg8BZw@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Nicolas Pitre <nicolas.pitre@linaro.org>
-Cc: Shawn Guo <shawn.guo@freescale.com>, linux-arm-kernel@lists.infradead.org, patches@linaro.org, Aaro Koskinen <aaro.koskinen@nokia.com>, linux-omap@vger.kernel.org
 
-* Nicolas Pitre <nicolas.pitre@linaro.org> [110422 17:08]:
-> On Thu, 21 Apr 2011, Tony Lindgren wrote:
+Hi,
+
+On Thu, Apr 21, 2011 at 07:52:41PM +0530, Keshava Munegowda wrote:
+> From: Axel Lin <axel.lin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 > 
-> > * Nicolas Pitre <nicolas.pitre@linaro.org> [110421 20:20]:
-> > > I found the bugger.  The problem was a bad stack alignment.
-> > 
-> > .. as this patch won't solve the n900 booting problem with zImage.
-> > With LZMA I'm still also getting "LZMA data is corrupt".
+> In the case of missing platform_data we do not hold a spin_lock,
+> thus we should not call spin_unlock_irqrestore in the error path.
 > 
-> Hmmm......
+> Also simplify the error handling by separating the successful path
+> from error path. I think this change improves readability.
 > 
-> Is it possible you have bad RAM?  In compressed/head.S, locate this 
-> code:
+> Signed-off-by: Axel Lin <axel.lin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
-This is happening on all n900 boards AFAIK.
- 
-> #ifdef CONFIG_AUTO_ZRELADDR
->                 @ determine final kernel image address
->                 mov     r4, pc
->                 and     r4, r4, #0xf8000000
->                 add     r4, r4, #TEXT_OFFSET
-> #else
->                 ldr     r4, =zreladdr
-> #endif
-> 
-> Right after that, simply override r4 with a physical address towards the 
-> end of the RAM, say 8MB before end of RAM (unless your decompressed 
-> kernel is larger than that).  That won't make a booting system, but at 
-> least you will be able to test the decompressor when loaded at various 
-> locations in memory without involving the relocation loop.
+Can someone give me a Tested-by so I can take these patches.
 
-OK thanks, I'll take a look. I guess it could also be a cache flush
-issue or borderline memory timings set in the bootloader.
-
-Regards,
-
-Tony
+-- 
+balbi
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
