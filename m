@@ -1,23 +1,42 @@
-From: Dmitry Kasatkin <dmitry.kasatkin@nokia.com>
-Subject: Re: [PATCH 0/4] crypto: omap-sham driver fixes
-Date: Tue, 26 Apr 2011 10:18:17 +0300
-Message-ID: <4DB671B9.5070003@nokia.com>
-References: <cover.1303295558.git.dmitry.kasatkin@nokia.com> <20110426063652.GB19539@gondor.apana.org.au>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] OMAP: DSS2: DSI: enable interface for omap4
+Date: Tue, 26 Apr 2011 10:18:10 +0300
+Message-ID: <1303802290.2084.14.camel@deskari>
+References: <1303356675-25451-1-git-send-email-vikram.pandita@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-crypto-owner@vger.kernel.org>
-In-Reply-To: <20110426063652.GB19539@gondor.apana.org.au>
-Sender: linux-crypto-owner@vger.kernel.org
-To: ext Herbert Xu <herbert@gondor.hengli.com.au>
-Cc: linux-crypto@vger.kernel.org, linux-omap@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:34567 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757687Ab1DZHSR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 26 Apr 2011 03:18:17 -0400
+Received: by eyg5 with SMTP id 5so131503eyg.24
+        for <linux-omap@vger.kernel.org>; Tue, 26 Apr 2011 00:18:14 -0700 (PDT)
+In-Reply-To: <1303356675-25451-1-git-send-email-vikram.pandita@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Vikram Pandita <vikram.pandita@ti.com>
+Cc: linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-Thanks.
+On Wed, 2011-04-20 at 20:31 -0700, Vikram Pandita wrote:
+> From: Vikram Pandita <vikram.pandita@ti.com>
+> 
+> By default, the DSI is not getting enabled for omap4.
+> OMAP2PLUS does not catch this issue since it has ARCH_OMAP3.
+> 
+> The issue is only seen when using defconfig with ARCH_OMAP4 only.
+> 
+> Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
+> Cc: Archit Taneja <archit@ti.com>
+> Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> ---
+>  drivers/video/omap2/dss/Kconfig |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
 
-On 26/04/11 09:36, ext Herbert Xu wrote:
-> On Wed, Apr 20, 2011 at 01:34:54PM +0300, Dmitry Kasatkin wrote:
->> Hi,
->>
->> Here is few patches with couple of important fixes...
-> All applied.  Thanks!
+Thanks, applied.
+
+ Tomi
+
+
