@@ -1,63 +1,67 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] ARM: Fix bad SP address after relocating kernel
-Date: Tue, 26 Apr 2011 05:37:46 -0700
-Message-ID: <20110426123746.GC3755@atomide.com>
-References: <20110420165514.GE10402@atomide.com>
- <alpine.LFD.2.00.1104201318040.24613@xanadu.home>
- <20110421055945.GB13688@atomide.com>
- <20110421104954.GH13688@atomide.com>
- <alpine.LFD.2.00.1104210919070.24613@xanadu.home>
- <alpine.LFD.2.00.1104211711240.24613@xanadu.home>
- <alpine.LFD.2.00.1104212233170.24613@xanadu.home>
- <20110422062843.GA841@atomide.com>
- <alpine.LFD.2.00.1104220959440.24613@xanadu.home>
- <20110426085700.GJ16892@atomide.com>
+From: "Varadarajan, Charulatha" <charu@ti.com>
+Subject: Re: [PATCH 09/15] OMAP: GPIO: consolidate IRQ status handling, remove #ifdefs
+Date: Tue, 26 Apr 2011 18:13:12 +0530
+Message-ID: <BANLkTikqNN0-eW79a6weS_Us1c2WK5MSuQ@mail.gmail.com>
+References: <1303513327-14532-1-git-send-email-khilman@ti.com> <1303513327-14532-10-git-send-email-khilman@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:45566 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751129Ab1DZMhx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Apr 2011 08:37:53 -0400
-Content-Disposition: inline
-In-Reply-To: <20110426085700.GJ16892@atomide.com>
+Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:59903 "EHLO
+	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754093Ab1DZMnx convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 26 Apr 2011 08:43:53 -0400
+Received: by mail-iy0-f178.google.com with SMTP id 12so599302iyi.37
+        for <linux-omap@vger.kernel.org>; Tue, 26 Apr 2011 05:43:52 -0700 (PDT)
+In-Reply-To: <1303513327-14532-10-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nicolas Pitre <nicolas.pitre@linaro.org>
-Cc: Shawn Guo <shawn.guo@freescale.com>, linux-arm-kernel@lists.infradead.org, patches@linaro.org, Aaro Koskinen <aaro.koskinen@nokia.com>, linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Otherwise cache_clean_flush can overwrite some of the relocated
-area depending on where the kernel image gets loaded. This fixes
-booting on n900 after commit 6d7d0ae51574943bf571d269da3243257a2d15db
-(ARM: 6750/1: improvements to compressed/head.S).
+Kevin,
 
-Thanks to Aaro Koskinen <aaro.koskinen@nokia.com> for debugging
-the address of the relocated area that gets corrupted, and to
-Nicolas Pitre <nicolas.pitre@linaro.org> for the other uncompress
-related fixes.
+On Sat, Apr 23, 2011 at 04:32, Kevin Hilman <khilman@ti.com> wrote:
+> Cleanup IRQ status handling by by passing IRQ status register offsets
+> via platform data.
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+Typo: by by
 
----
+>
+> Cleans up clearing of GPIO IRQ status and GPIO ISR handler.
+>
+> Signed-off-by: Kevin Hilman <khilman@ti.com>
+> ---
 
-I think this is the right fix.. And we don't want to mess with the
-ZBOOT_ROM sp address, right?
+<<snip>>
 
---- a/arch/arm/boot/compressed/head.S
-+++ b/arch/arm/boot/compressed/head.S
-@@ -253,6 +253,15 @@ restart:	adr	r0, LC0
- 		/* Preserve offset to relocated code. */
- 		sub	r6, r9, r6
- 
-+#ifndef CONFIG_ZBOOT_ROM
-+		/*
-+		 * Fix sp to use the relocated address in case old sp is
-+		 * within the relocated area. Otherwise cache_clean_flush
-+		 * will trash some of the relocated area.
-+		 */
-+		add	sp, r6
-+#endif
-+
- 		bl	cache_clean_flush
- 
- 		adr	r0, BSYM(restart)
+> diff --git a/arch/arm/plat-omap/include/plat/gpio.h b/arch/arm/plat-o=
+map/include/plat/gpio.h
+> index 268bccd..aedd732 100644
+> --- a/arch/arm/plat-omap/include/plat/gpio.h
+> +++ b/arch/arm/plat-omap/include/plat/gpio.h
+> @@ -180,6 +180,8 @@ struct omap_gpio_reg_offs {
+> =A0 =A0 =A0 =A0u16 dataout;
+> =A0 =A0 =A0 =A0u16 set_dataout;
+> =A0 =A0 =A0 =A0u16 clr_dataout;
+> + =A0 =A0 =A0 u16 irqstatus;
+> + =A0 =A0 =A0 u16 irqstatus2;
+
+Would it be appropriate to name them as (irqstatus1 & irqstatus2)
+or (irqstatus & irqstatus1)?
+
+-V Charulatha
+
+> =A0};
+>
+> =A0struct omap_gpio_platform_data {
+> --
+> 1.7.4
+>
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
