@@ -1,201 +1,63 @@
-From: "Varadarajan, Charulatha" <charu@ti.com>
-Subject: Re: [PATCH 10/15] OMAP: GPIO: conslidate enable/disable of GPIO IRQs,
- remove ifdefs
-Date: Tue, 26 Apr 2011 18:03:32 +0530
-Message-ID: <BANLkTi=ivNqfTTscWJYk2gCEznMus_Qd-Q@mail.gmail.com>
-References: <1303513327-14532-1-git-send-email-khilman@ti.com> <1303513327-14532-11-git-send-email-khilman@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH] ARM: Fix bad SP address after relocating kernel
+Date: Tue, 26 Apr 2011 05:37:46 -0700
+Message-ID: <20110426123746.GC3755@atomide.com>
+References: <20110420165514.GE10402@atomide.com>
+ <alpine.LFD.2.00.1104201318040.24613@xanadu.home>
+ <20110421055945.GB13688@atomide.com>
+ <20110421104954.GH13688@atomide.com>
+ <alpine.LFD.2.00.1104210919070.24613@xanadu.home>
+ <alpine.LFD.2.00.1104211711240.24613@xanadu.home>
+ <alpine.LFD.2.00.1104212233170.24613@xanadu.home>
+ <20110422062843.GA841@atomide.com>
+ <alpine.LFD.2.00.1104220959440.24613@xanadu.home>
+ <20110426085700.GJ16892@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:49587 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751129Ab1DZMeO convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 26 Apr 2011 08:34:14 -0400
-Received: by mail-iw0-f180.google.com with SMTP id 6so727345iwn.39
-        for <linux-omap@vger.kernel.org>; Tue, 26 Apr 2011 05:34:12 -0700 (PDT)
-In-Reply-To: <1303513327-14532-11-git-send-email-khilman@ti.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:45566 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751129Ab1DZMhx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Apr 2011 08:37:53 -0400
+Content-Disposition: inline
+In-Reply-To: <20110426085700.GJ16892@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Nicolas Pitre <nicolas.pitre@linaro.org>
+Cc: Shawn Guo <shawn.guo@freescale.com>, linux-arm-kernel@lists.infradead.org, patches@linaro.org, Aaro Koskinen <aaro.koskinen@nokia.com>, linux-omap@vger.kernel.org
 
-Kevin,
+Otherwise cache_clean_flush can overwrite some of the relocated
+area depending on where the kernel image gets loaded. This fixes
+booting on n900 after commit 6d7d0ae51574943bf571d269da3243257a2d15db
+(ARM: 6750/1: improvements to compressed/head.S).
 
-On Sat, Apr 23, 2011 at 04:32, Kevin Hilman <khilman@ti.com> wrote:
-> Cleanup GPIO IRQ enable/disable handling by removing SoC-specific
->
-> Also split enable/disable IRQ into separate functions for better
-> readability and also facilitate potentially moving to generic irq_chi=
-p
-> in the future.
->
-> Signed-off-by: Kevin Hilman <khilman@ti.com>
-> ---
+Thanks to Aaro Koskinen <aaro.koskinen@nokia.com> for debugging
+the address of the relocated area that gets corrupted, and to
+Nicolas Pitre <nicolas.pitre@linaro.org> for the other uncompress
+related fixes.
 
-<<snip>>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-> =A0static struct __initdata omap_gpio_platform_data omap16xx_gpio1_co=
-nfig =3D {
-> diff --git a/arch/arm/mach-omap1/gpio7xx.c b/arch/arm/mach-omap1/gpio=
-7xx.c
-> index 35e8b31..880f3cb 100644
-> --- a/arch/arm/mach-omap1/gpio7xx.c
-> +++ b/arch/arm/mach-omap1/gpio7xx.c
-> @@ -44,6 +44,8 @@ static struct omap_gpio_reg_offs omap7xx_mpuio_regs=
- =3D {
-> =A0 =A0 =A0 =A0.datain =A0 =A0 =A0 =A0 =3D OMAP_MPUIO_INPUT_LATCH / 2=
-,
-> =A0 =A0 =A0 =A0.dataout =A0 =A0 =A0 =A0=3D OMAP_MPUIO_OUTPUT / 2,
-> =A0 =A0 =A0 =A0.irqstatus =A0 =A0 =A0=3D OMAP_MPUIO_GPIO_INT / 2,
-> + =A0 =A0 =A0 .irqenable =A0 =A0 =A0=3D OMAP_MPUIO_GPIO_MASKIT / 2,
-> + =A0 =A0 =A0 .irqenable_inv =A0=3D true,
-> =A0};
->
-> =A0static struct __initdata omap_gpio_platform_data omap7xx_mpu_gpio_=
-config =3D {
-> @@ -82,6 +84,8 @@ static struct omap_gpio_reg_offs omap7xx_gpio_regs =
-=3D {
-> =A0 =A0 =A0 =A0.datain =A0 =A0 =A0 =A0 =3D OMAP7XX_GPIO_DATA_INPUT,
-> =A0 =A0 =A0 =A0.dataout =A0 =A0 =A0 =A0=3D OMAP7XX_GPIO_DATA_OUTPUT,
-> =A0 =A0 =A0 =A0.irqstatus =A0 =A0 =A0=3D OMAP7XX_GPIO_INT_STATUS,
-> + =A0 =A0 =A0 .irqenable =A0 =A0 =A0=3D OMAP7XX_GPIO_INT_MASK,
-> + =A0 =A0 =A0 .irqenable =A0 =A0 =A0=3D true,
+---
 
-irqenable_inv should be true and not irqenable.
+I think this is the right fix.. And we don't want to mess with the
+ZBOOT_ROM sp address, right?
 
-> =A0};
->
-> =A0static struct __initdata omap_gpio_platform_data omap7xx_gpio1_con=
-fig =3D {
-
-<<snip>>
-
-> diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
-> index 4f875cf..17833c8 100644
-> --- a/arch/arm/plat-omap/gpio.c
-> +++ b/arch/arm/plat-omap/gpio.c
-
-<<snip>>
-
-> -static void _enable_gpio_irqbank(struct gpio_bank *bank, int gpio_ma=
-sk, int enable)
-> +static void _enable_gpio_irqbank(struct gpio_bank *bank, int gpio_ma=
-sk)
-> =A0{
-> =A0 =A0 =A0 =A0void __iomem *reg =3D bank->base;
-> =A0 =A0 =A0 =A0u32 l;
->
-> - =A0 =A0 =A0 switch (bank->method) {
-> -#ifdef CONFIG_ARCH_OMAP1
-> - =A0 =A0 =A0 case METHOD_MPUIO:
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 reg +=3D OMAP_MPUIO_GPIO_MASKIT / bank-=
->stride;
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 l =3D __raw_readl(reg);
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (enable)
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 l &=3D ~(gpio_mask);
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 else
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 l |=3D gpio_mask;
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
-> -#endif
-> -#ifdef CONFIG_ARCH_OMAP15XX
-> - =A0 =A0 =A0 case METHOD_GPIO_1510:
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 reg +=3D OMAP1510_GPIO_INT_MASK;
-> + =A0 =A0 =A0 if (bank->regs->set_irqenable) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 reg +=3D bank->regs->set_irqenable;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 l =3D gpio_mask;
-> + =A0 =A0 =A0 } else {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 reg +=3D bank->regs->irqenable;
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0l =3D __raw_readl(reg);
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (enable)
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 l &=3D ~(gpio_mask);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (bank->regs->irqenable_inv)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 l &=3D ~gpio_mask;
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0else
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0l |=3D gpio_mask;
-
-This else case code is required for _disable_gpio_irqbank() only.
-There should be no else part here.
-
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
-> -#endif
-> -#ifdef CONFIG_ARCH_OMAP16XX
-> - =A0 =A0 =A0 case METHOD_GPIO_1610:
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (enable)
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 reg +=3D OMAP1610_GPIO_=
-SET_IRQENABLE1;
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 else
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 reg +=3D OMAP1610_GPIO_=
-CLEAR_IRQENABLE1;
-> + =A0 =A0 =A0 }
-> +
-> + =A0 =A0 =A0 __raw_writel(l, reg);
-> +}
-> +
-> +static void _disable_gpio_irqbank(struct gpio_bank *bank, int gpio_m=
-ask)
-> +{
-> + =A0 =A0 =A0 void __iomem *reg =3D bank->base;
-> + =A0 =A0 =A0 u32 l;
-> +
-> + =A0 =A0 =A0 if (bank->regs->clr_irqenable) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 reg +=3D bank->regs->clr_irqenable;
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0l =3D gpio_mask;
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
-> -#endif
-> -#if defined(CONFIG_ARCH_OMAP730) || defined(CONFIG_ARCH_OMAP850)
-> - =A0 =A0 =A0 case METHOD_GPIO_7XX:
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 reg +=3D OMAP7XX_GPIO_INT_MASK;
-> + =A0 =A0 =A0 } else {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 reg +=3D bank->regs->irqenable;
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0l =3D __raw_readl(reg);
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (enable)
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 l &=3D ~(gpio_mask);
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 else
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (bank->regs->irqenable_inv)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0l |=3D gpio_mask;
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
-> -#endif
-> -#if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
-> - =A0 =A0 =A0 case METHOD_GPIO_24XX:
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (enable)
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 reg +=3D OMAP24XX_GPIO_=
-SETIRQENABLE1;
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 else
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 reg +=3D OMAP24XX_GPIO_=
-CLEARIRQENABLE1;
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 l =3D gpio_mask;
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
-> -#endif
-> -#ifdef CONFIG_ARCH_OMAP4
-> - =A0 =A0 =A0 case METHOD_GPIO_44XX:
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (enable)
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 reg +=3D OMAP4_GPIO_IRQ=
-STATUSSET0;
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0else
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 reg +=3D OMAP4_GPIO_IRQ=
-STATUSCLR0;
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 l =3D gpio_mask;
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
-> -#endif
-> - =A0 =A0 =A0 default:
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 WARN_ON(1);
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 return;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 l &=3D ~gpio_mask;
-
-This else case code is required for _enable_gpio_irqbank() only.
-There should be no else part here.
-
-> =A0 =A0 =A0 =A0}
-> +
-> =A0 =A0 =A0 =A0__raw_writel(l, reg);
-> =A0}
->
-
--V Charulatha
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--- a/arch/arm/boot/compressed/head.S
++++ b/arch/arm/boot/compressed/head.S
+@@ -253,6 +253,15 @@ restart:	adr	r0, LC0
+ 		/* Preserve offset to relocated code. */
+ 		sub	r6, r9, r6
+ 
++#ifndef CONFIG_ZBOOT_ROM
++		/*
++		 * Fix sp to use the relocated address in case old sp is
++		 * within the relocated area. Otherwise cache_clean_flush
++		 * will trash some of the relocated area.
++		 */
++		add	sp, r6
++#endif
++
+ 		bl	cache_clean_flush
+ 
+ 		adr	r0, BSYM(restart)
