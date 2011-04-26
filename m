@@ -1,88 +1,79 @@
-From: Steve Calfee <stevecalfee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] mfd: Fix usbhs_enable error handling
-Date: Tue, 26 Apr 2011 08:09:17 -0700
-Message-ID: <BANLkTi=NB5as-Kz8bSCvh3=KPQR1wwXUOQ@mail.gmail.com>
-References: <1303395763-8702-1-git-send-email-keshava_mgowda@ti.com>
-	<20110426085846.GI13227@legolas.emea.dhcp.ti.com>
-	<3a59290ed8ab560ac9b85fd1f4d5acd4@mail.gmail.com>
-	<20110426090418.GJ13227@legolas.emea.dhcp.ti.com>
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: Re: [PATCH 2/2] arm: omap: gpmc-smsc911x: minor style fixes
+Date: Tue, 26 Apr 2011 18:48:07 +0300
+Message-ID: <4DB6E937.7090904@compulab.co.il>
+References: <1303397412-24813-1-git-send-email-grinberg@compulab.co.il> <1303397412-24813-2-git-send-email-grinberg@compulab.co.il> <BANLkTikw73F1RBmJC=+Z2msA3Wr7gG3AGQ@mail.gmail.com> <4DB6D974.6080201@compulab.co.il> <BANLkTi=3eh+0zRD4jRDPoiGxMgCGeOdrww@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20110426090418.GJ13227-UiBtZHVXSwEVvW8u9ZQWYwjfymiNCTlR@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: balbi-l0cyMroinI0@public.gmane.org
-Cc: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>, Partha Basak <p-basak2-l0cyMroinI0@public.gmane.org>, axel.lin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, johnstul-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org, mpfj-list-kZtEnBLzDKq1Qrn1Bg8BZw@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:47471
+	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751180Ab1DZPsM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 26 Apr 2011 11:48:12 -0400
+In-Reply-To: <BANLkTi=3eh+0zRD4jRDPoiGxMgCGeOdrww@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Menon, Nishanth" <nm@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Mike Rapoport <mike@compulab.co.il>, Tim Nordell <tim.nordell@logicpd.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Tue, Apr 26, 2011 at 2:04 AM, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> wrote:
-> On Tue, Apr 26, 2011 at 02:32:04PM +0530, Keshava Munegowda wrote:
->> > -----Original Message-----
->> > From: Felipe Balbi [mailto:balbi-l0cyMroinI0@public.gmane.org]
->> > Sent: Tuesday, April 26, 2011 2:29 PM
->> > To: Keshava Munegowda
->> > Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; balbi-l0cyMroinI0@public.gmane.org;
->> gadiyar-l0cyMroinI0@public.gmane.org; p-
->> > basak2-l0cyMroinI0@public.gmane.org; axel.lin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org; johnstul-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org;
->> mpfj-list-kZtEnBLzDKq1Qrn1Bg8BZw@public.gmane.org
->> > Subject: Re: [PATCH] mfd: Fix usbhs_enable error handling
->> >
->> > Hi,
->> >
->> > On Thu, Apr 21, 2011 at 07:52:41PM +0530, Keshava Munegowda wrote:
->> > > From: Axel Lin <axel.lin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
->> > >
->> > > In the case of missing platform_data we do not hold a spin_lock,
->> > > thus we should not call spin_unlock_irqrestore in the error path.
->> > >
->> > > Also simplify the error handling by separating the successful path
->> > > from error path. I think this change improves readability.
->> > >
->> > > Signed-off-by: Axel Lin <axel.lin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
->> >
->> > Can someone give me a Tested-by so I can take these patches.
->> >
->> > --
->> > Balbi
+On 04/26/11 17:49, Menon, Nishanth wrote:
+
+> On Tue, Apr 26, 2011 at 09:40, Igor Grinberg <grinberg@compulab.co.il> wrote:
+>> Hi Nishanth,
 >>
->> Hi Balbi
+>> On 04/26/11 16:45, Menon, Nishanth wrote:
 >>
->> I have validated this patch and it works :)
->>
->> Tested-by: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+>>> On Thu, Apr 21, 2011 at 09:50, Igor Grinberg <grinberg@compulab.co.il> wrote:
+>>>> replace "printk(KERN_ERR" by "pr_err("
+>>>> and fix needlessly multi-lined #ifdef
+>>>>
+>>>> Signed-off-by: Igor Grinberg <grinberg@compulab.co.il>
+>>>> ---
+>>>>  arch/arm/mach-omap2/gpmc-smsc911x.c             |   14 +++++++-------
+>>>>  arch/arm/plat-omap/include/plat/gpmc-smsc911x.h |    3 +--
+>>>>  2 files changed, 8 insertions(+), 9 deletions(-)
+>>>>
+>>>> diff --git a/arch/arm/mach-omap2/gpmc-smsc911x.c b/arch/arm/mach-omap2/gpmc-smsc911x.c
+>>>> index d30293a..b45efff 100644
+>>>> --- a/arch/arm/mach-omap2/gpmc-smsc911x.c
+>>>> +++ b/arch/arm/mach-omap2/gpmc-smsc911x.c
+>>> minor suggestion: wont using pr_fmt help to reduce the need to add %s,
+>>> __func__ for pr_err through out the file?
+>> I don't understand of what "need" are you talking about.
+>> I don't know of any need to add "%s, __func__" with pr_fmt...
+>> I've added "%s, __func__" as a meter of choice.
+>> IMO, it makes it easier to parse the dmesg output.
+>> If anyone objects it, I can remove them,
+>> but I think both pr_fmt and __func__ are nice here and
+>> way better then "printk(KERN_*" with embedded "smsc911x".
+> Allow me to rephrase.
+> I like the change of printk->pr_err - thanks for doing it. just
+> suggesting a minor improvement
 >
-> what about the others ?
+> if you add the following line before the #includes
+> #define pr_fmt(fmt) "%s: " fmt, __func__
+> then
+> -               printk(KERN_ERR "Failed to request GPIO%d for smsc911x IRQ\n",
+> -                               gpmc_cfg->gpio_irq);
+> +               pr_err("%s: Failed to request IRQ GPIO%d\n", __func__,
+> +                      gpmc_cfg->gpio_irq);
+> becomes,
+> -               printk(KERN_ERR "Failed to request GPIO%d for smsc911x IRQ\n",
+> -                               gpmc_cfg->gpio_irq);
+> +               pr_err("Failed to request IRQ GPIO%d\n", gpmc_cfg->gpio_irq);
 >
-> --
-> balbi
+> Both give you exactly the output you would like to see (which I
+> personally prefer as well), but the second could be lesser lines of
+> code change ;)
 
-Hi Felipe,
+Ahh, now I understand, that can be useful indeed.
+I'll send a v2...
 
-I responded on another thread. I tested this on a beagleboardxm on
-version 2.6.39-rc4
+Thanks
 
-> Hi Keshava,
->
-> I rebuilt my system to boot from flash and now I see what happened. I
-> even remember it being discussed on this list. Someone renamed my usb
-> ethernet device from usb0 to eth0 !!! The boot log shows it on this
-line:
->
-> > [    4.596130] smsc95xx 1-2.1:1.0: eth0: register 'smsc95xx' at
-> > usb-ehci-omap.0d
->
->
-> So this broke my init scripts and uboot script... OK, so I can live with
-> this (I hope the name doesn't change too often though).
->
-> So I can manually configure my system to use eth0 and use the network. I
-> am sure I will get nfs working shortly.
->
-> I am using the 2.6.39-rc4 with your 3 patches. So from the Beagleboard
-> XM perspective it works and you can include my
->
-> Tested-by: Steve Calfee <stevecalfee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Regards,
+Igor.
+
