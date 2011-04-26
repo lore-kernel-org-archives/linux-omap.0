@@ -1,42 +1,45 @@
-From: "Varadarajan, Charulatha" <charu@ti.com>
-Subject: Re: [PATCH 11/15] OMAP: GPIO: convert MPUIO IRQ over to generic irq_chip
-Date: Tue, 26 Apr 2011 17:32:50 +0530
-Message-ID: <BANLkTinsqVCu+iKePkKK3G-MDQEm6UDd6A@mail.gmail.com>
-References: <1303513327-14532-1-git-send-email-khilman@ti.com> <1303513327-14532-12-git-send-email-khilman@ti.com>
+From: Hans-Christian Egtvedt <hans-christian.egtvedt@atmel.com>
+Subject: Re: [PATCH 11/14] PM / AVR32: Use struct syscore_ops instead of
+	sysdevs for PM
+Date: Tue, 26 Apr 2011 14:22:12 +0200
+Message-ID: <1303820532.3125.12.camel@hcegtvedt>
+References: <201103280125.11750.rjw@sisk.pl>
+	<201104172301.54115.rjw@sisk.pl>  <201104172313.09712.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:58622 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750805Ab1DZMDb convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 26 Apr 2011 08:03:31 -0400
-Received: by mail-iy0-f180.google.com with SMTP id 40so662724iyf.11
-        for <linux-omap@vger.kernel.org>; Tue, 26 Apr 2011 05:03:30 -0700 (PDT)
-In-Reply-To: <1303513327-14532-12-git-send-email-khilman@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <201104172313.09712.rjw@sisk.pl>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Kevin Hilman <khilman@ti.com>, Guan Xuetao <gxt@mprc.pku.edu.cn>, Russell King <linux@arm.linux.org.uk>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Greg KH <gregkh@suse.de>, LKML <linux-kernel@vger.kernel.org>, Ralf Baechle <ralf@linux-mips.org>, Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>, Ben Dooks <ben-linux@fluff.org>, Jiri Kosina <jkosina@suse.cz>, Kay Sievers <kay.sievers@suse.de>, Mike Frysinger <vapier@gentoo.org>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Kevin,
+On Sun, 2011-04-17 at 23:13 +0200, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rjw@sisk.pl>
+> 
+> Convert some AVR32 architecture's code to using struct syscore_ops
+> objects for power management instead of sysdev classes and sysdevs.
+> 
+> This simplifies the code and reduces the kernel's memory footprint.
+> It also is necessary for removing sysdevs from the kernel entirely in
+> the future.
+> 
+> Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 
-On Sat, Apr 23, 2011 at 04:32, Kevin Hilman <khilman@ti.com> wrote:
-> Signed-off-by: Kevin Hilman <khilman@ti.com>
-> ---
-> =A0arch/arm/plat-omap/gpio.c | =A0 74 ++++++++++++++++++-------------=
--------------
-> =A01 files changed, 30 insertions(+), 44 deletions(-)
->
+Acked-by: Hans-Christian Egtvedt <hans-christian.egtvedt@atmel.com>
 
-Patch description is missing.
+Thanks, nice work. Tested and run on hardware.
 
--V Charulatha
+<snipp>
 
-<<snip>>
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Hans-Christian Egtvedt
