@@ -1,50 +1,40 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: Fix bad SP address after relocating kernel
-Date: Wed, 27 Apr 2011 00:48:33 -0700
-Message-ID: <20110427074833.GD3755@atomide.com>
-References: <20110421055945.GB13688@atomide.com>
- <20110421104954.GH13688@atomide.com>
- <alpine.LFD.2.00.1104210919070.24613@xanadu.home>
- <alpine.LFD.2.00.1104211711240.24613@xanadu.home>
- <alpine.LFD.2.00.1104212233170.24613@xanadu.home>
- <20110422062843.GA841@atomide.com>
- <alpine.LFD.2.00.1104220959440.24613@xanadu.home>
- <20110426085700.GJ16892@atomide.com>
- <20110426123746.GC3755@atomide.com>
- <alpine.LFD.2.00.1104261700270.24613@xanadu.home>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] omap:usb: fixing ehci phy gpio values for omap3
+Date: Wed, 27 Apr 2011 10:58:46 +0300
+Message-ID: <20110427075843.GS13227@legolas.emea.dhcp.ti.com>
+References: <1303395763-8702-1-git-send-email-keshava_mgowda@ti.com>
+ <1303395763-8702-2-git-send-email-keshava_mgowda@ti.com>
+ <BANLkTi=fQCRAST1DvJEAnznNnySCv55Yag@mail.gmail.com>
+ <BANLkTi=apB0cZpgzFjHKuArrxkQX5W7deQ@mail.gmail.com>
+Reply-To: balbi-l0cyMroinI0@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:55245 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751295Ab1D0Hsm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Apr 2011 03:48:42 -0400
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.00.1104261700270.24613@xanadu.home>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <BANLkTi=apB0cZpgzFjHKuArrxkQX5W7deQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Munegowda, Keshava" <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Cc: "Menon, Nishanth" <nm-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, gadiyar-l0cyMroinI0@public.gmane.org, p-basak2-l0cyMroinI0@public.gmane.org, axel.lin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, johnstul-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org, mpfj-list-kZtEnBLzDKq1Qrn1Bg8BZw@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Nicolas Pitre <nicolas.pitre@linaro.org>
-Cc: Shawn Guo <shawn.guo@freescale.com>, linux-arm-kernel@lists.infradead.org, patches@linaro.org, Aaro Koskinen <aaro.koskinen@nokia.com>, linux-omap@vger.kernel.org
 
-* Nicolas Pitre <nicolas.pitre@linaro.org> [110426 14:28]:
-> On Tue, 26 Apr 2011, Tony Lindgren wrote:
-> 
-> > Otherwise cache_clean_flush can overwrite some of the relocated
-> > area depending on where the kernel image gets loaded. This fixes
-> > booting on n900 after commit 6d7d0ae51574943bf571d269da3243257a2d15db
-> > (ARM: 6750/1: improvements to compressed/head.S).
-> 
-> Gaaaah.  Indeed.
-> 
-> > Thanks to Aaro Koskinen <aaro.koskinen@nokia.com> for debugging
-> > the address of the relocated area that gets corrupted, and to
-> > Nicolas Pitre <nicolas.pitre@linaro.org> for the other uncompress
-> > related fixes.
-> > 
-> > Signed-off-by: Tony Lindgren <tony@atomide.com>
-> 
-> I think there could be a better fix yet.  Could you test this patch:
+Hi,
 
-Cool that works too and avoids using the stack, so that's a better fix:
+On Wed, Apr 27, 2011 at 11:22:03AM +0530, Munegowda, Keshava wrote:
+> > Dumb q2: is'nt it better to introduce polarity e.g.
+> > pdata->ehci_data->reset_gpio_polarity etc? this will allow board files
+> > to describe polarity of pin information to driver which can then be
+> > Phy and any board specific mods(e.g. inverter on the line) independent
+> > completely..
+> 
+> yes, I am thinking of doing it; since it requires modification of all
+> board files;
+> I will send this an another separate patch.
 
-Tested-by: Tony Lindgren <tony@atomide.com>
+Sure, for next merge window.
+
+-- 
+balbi
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
