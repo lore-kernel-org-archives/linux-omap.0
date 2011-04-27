@@ -1,55 +1,61 @@
-From: Jarkko Nikula <jhnikula-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] usb: musb: omap2430: Fix retention idle on musb peripheral only boards
-Date: Wed, 27 Apr 2011 17:02:37 +0300
-Message-ID: <1303912957-10279-1-git-send-email-jhnikula@gmail.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Hema HK <hemahk-l0cyMroinI0@public.gmane.org>, Jarkko Nikula <jhnikula-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH FOR 2.6.39] omap: iommu: Return IRQ_HANDLED in fault handler when no fault occured
+Date: Wed, 27 Apr 2011 16:03:02 +0200
+Message-ID: <1303912982-10309-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:41469 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932825Ab1D0OCr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Apr 2011 10:02:47 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: David Cohen <dacohen@gmail.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Tony Lindgren <tony@atomide.com>
 
-Recent runtime pm and hwmod conversions for 2.6.39 broke the musb peripheral
-mode OMAP retention idle on boards where the board mode in struct
-musb_hdrc_platform_data is set to MUSB_PERIPHERAL.
+The iommu shares an interrupt line with the OMAP3 ISP. The iommu
+interrupt handler must check the fault status and return IRQ_HANDLED
+when no fault occured.
 
-These conversions changed the way how the OTG_SYSCONFIG register is
-configured and used in runtime. Before 2.6.39 smart standby/idle modes were
-activated statically in OTG_SYSCONFIG. Those modes allow that the musb is
-able to idle when peripheral device is not connected to host.
-
-In 2.6.39 the OTG_SYSCONFIG is updated runtime depending on VBUS status.
-No standby/idle modes are used when device is connected and force
-standby/idle when disconnected.
-
-Unfortunately VBUS disconnect event that handles the disconnect case lets
-the peripheral musb to idle only when board mode is MUSB_OTG. Fix this by
-checking the peripheral mode also.
-
-Signed-off-by: Jarkko Nikula <jhnikula-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
-For 2.6.39 as this fixes the PM regression on those OMAP3 boards that use
-musb in peripheral mode only.
----
- drivers/usb/musb/omap2430.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ arch/arm/plat-omap/iommu.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-index 57a27fa..e9e60b6 100644
---- a/drivers/usb/musb/omap2430.c
-+++ b/drivers/usb/musb/omap2430.c
-@@ -270,7 +270,7 @@ static int musb_otg_notifications(struct notifier_block *nb,
- 		DBG(4, "VBUS Disconnect\n");
+The OMAP3 ISP IOMMU got broken in 2.6.39-rc1 by
+
+commit d594f1f31afe13edd8c02f3854a65cc58cfb3b74
+Author: David Cohen <dacohen@gmail.com>
+Date:   Wed Feb 16 19:35:51 2011 +0000
+
+    omap: IOMMU: add support to callback during fault handling
+    
+    Add support to register an isr for IOMMU fault situations and adapt it
+    to allow such (*isr)() to be used as fault callback. Drivers using IOMMU
+    module might want to be informed when errors happen in order to debug it
+    or react.
+    
+    Signed-off-by: David Cohen <dacohen@gmail.com>
+    Acked-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+    Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+This patch fixes it and should be pushed to mainline in 2.6.39. The OMAP3 ISP
+driver, new in 2.6.39, would otherwise be totally broken until 2.6.40.
+
+diff --git a/arch/arm/plat-omap/iommu.c b/arch/arm/plat-omap/iommu.c
+index 8a51fd5..34fc31e 100644
+--- a/arch/arm/plat-omap/iommu.c
++++ b/arch/arm/plat-omap/iommu.c
+@@ -793,6 +793,8 @@ static irqreturn_t iommu_fault_handler(int irq, void *data)
+ 	clk_enable(obj->clk);
+ 	errs = iommu_report_fault(obj, &da);
+ 	clk_disable(obj->clk);
++	if (errs == 0)
++		return IRQ_HANDLED;
  
- #ifdef CONFIG_USB_GADGET_MUSB_HDRC
--		if (is_otg_enabled(musb))
-+		if (is_otg_enabled(musb) || is_peripheral_enabled(musb))
- 			if (musb->gadget_driver)
- #endif
- 			{
+ 	/* Fault callback or TLB/PTE Dynamic loading */
+ 	if (obj->isr && !obj->isr(obj, da, errs, obj->isr_priv))
 -- 
-1.7.4.4
+Regards,
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Laurent Pinchart
+
