@@ -1,99 +1,68 @@
-From: "Manuel, Lesly Arackal" <leslyam@ti.com>
-Subject: Re: [PATCH v9 6/9] MFD: TWL4030: workaround changes for TWL4030
- Erratum 27
-Date: Wed, 27 Apr 2011 19:54:24 +0530
-Message-ID: <BANLkTi=fokShu_ZyK6uMZ2mf5Pe4=P9+9Q@mail.gmail.com>
-References: <1302784077-16697-1-git-send-email-leslyam@ti.com>
-	<1302784077-16697-7-git-send-email-leslyam@ti.com>
-	<20110426101306.GJ2659@sortiz-mobl>
+From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
+Subject: Re: [Regression?] Removed regulator support in ehci-omap
+Date: Wed, 27 Apr 2011 20:22:27 +0530
+Message-ID: <BANLkTi=Sr7ROJ5tSY0=XxHhp6CPvyH2Dmw@mail.gmail.com>
+References: <20110411093214.GA18215@rainbow>
+	<4DA3350E.2060400@gmail.com>
+	<BANLkTinDMZ+CyGCmzZu8cSz1L_yFXxm+vg@mail.gmail.com>
+	<112ef82aebc719ef25cde126f2014ebc@mail.gmail.com>
+	<20110412040420.GB25239@rainbow>
+	<bcd954a468e6a07bd673b7d0731e9344@mail.gmail.com>
+	<4DB0D58E.4030508@signal11.us>
+	<8712165194c49f0b4d8c1bd1fe717b8a@mail.gmail.com>
+	<20110427115133.GA16447@rainbow>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:40143 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751167Ab1D0OY0 convert rfc822-to-8bit
+Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:47133 "EHLO
+	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752213Ab1D0OxP convert rfc822-to-8bit
 	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 27 Apr 2011 10:24:26 -0400
-Received: by wwb28 with SMTP id 28so1775791wwb.3
-        for <linux-omap@vger.kernel.org>; Wed, 27 Apr 2011 07:24:24 -0700 (PDT)
-In-Reply-To: <20110426101306.GJ2659@sortiz-mobl>
+	Wed, 27 Apr 2011 10:53:15 -0400
+In-Reply-To: <20110427115133.GA16447@rainbow>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Samuel Ortiz <sameo@linux.intel.com>
-Cc: linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>, David Derrick <dderrick@ti.com>
+To: Dmitry Artamonow <mad_soft@inbox.ru>
+Cc: Alan Ott <alan@signal11.us>, Steve Sakoman <sakoman@gmail.com>, Steve Calfee <stevecalfee@gmail.com>, Felipe Balbi <balbi@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi Samuel,
-
-On Tue, Apr 26, 2011 at 3:43 PM, Samuel Ortiz <sameo@linux.intel.com> w=
+On Wed, Apr 27, 2011 at 5:21 PM, Dmitry Artamonow <mad_soft@inbox.ru> w=
 rote:
-> Hi Lesly,
+> On 12:07 Sun 24 Apr =A0 =A0 , Keshava Munegowda wrote:
+>> I have posted the patches on April 22, 2011.
+>> If possible I request you to test this.
 >
-> On Thu, Apr 14, 2011 at 05:57:54PM +0530, Lesly A M wrote:
->> Workaround for TWL5030 Silicon Errata 27 & 28:
->> =A0 =A0 =A0 27 - VDD1, VDD2, may have glitches when their output val=
-ue is updated.
->> =A0 =A0 =A0 28 - VDD1 and / or VDD2 DCDC clock may stop working when=
- internal clock
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 is switched from internal to external.
->>
->> Erratum 27:
->> =A0 =A0 =A0 If the DCDC regulators is running on their internal osci=
-llator,
->> =A0 =A0 =A0 negative glitches may occur on VDD1, VDD2 output when vo=
-ltage is changed.
->> =A0 =A0 =A0 The OMAP device may reboot if the VDD1 or VDD2 go below =
-the
->> =A0 =A0 =A0 core minimum operating voltage.
->>
->> =A0 =A0 =A0 WORKAROUND
->> =A0 =A0 =A0 Set up the TWL5030 DC-DC power supplies to use the HFCLK=
-IN instead of
->> =A0 =A0 =A0 the internal oscillator.
->>
->> Erratum 28:
->> =A0 =A0 =A0 VDD1/VDD2 clock system may hang during switching the clo=
-ck source from
->> =A0 =A0 =A0 internal oscillator to external. VDD1/VDD2 output voltag=
-es may collapse
->> =A0 =A0 =A0 if clock stops.
->>
->> =A0 =A0 =A0 WORKAROUND
->> =A0 =A0 =A0 If HFCLK is disabled in OFFMODE, modify the sleep/wakeup=
- sequence and
->> =A0 =A0 =A0 setuptimes to make sure the switching will happen only w=
-hen HFCLKIN is stable.
->> =A0 =A0 =A0 Also use the TWL5030 watchdog to safeguard the first swi=
-tching from
->> =A0 =A0 =A0 internal oscillator to HFCLKIN during the TWL5030 init.
->>
->> =A0 =A0 =A0 IMPACT
->> =A0 =A0 =A0 power sequence is changed.
->> =A0 =A0 =A0 sleep/wakeup time values will be changed.
->>
->> The workaround changes are called from twl4030_power_init(), since w=
-e have to
->> make some i2c_read calls to check the TWL4030 version & the i2c will=
- not be
->> initialized in the early stage.
->>
->> This workaround is required for TWL5030 Silicon version less than ES=
-1.2
->> The power script & setup time changes are recommended by TI HW team.
->>
->> http://omapedia.org/wiki/TWL4030_power_scripts
->>
->> Changes taken from TWL4030 Erratum 27 workaround patch by Nishanth M=
-enon.
-> This patch and the following one depend on patch#4. Please re-send it=
- once you
-> agreed with Tony about where it should go.
+> Hi, Keshava!
 >
+> Sorry for delay - it took some time to find _where_ exactly you have =
+posted
+> the patch (thanks to Alan for giving the link). Anyway, it[1] seems t=
+o work
+> as advertised (I also applied GPIO polarity fix [2] and board file pa=
+tch[3],
+> all on top of 2.6.39-rc4) - at least stuff in /sys/class/regulator lo=
+oks right,
+> and USB devices are detected. There's probably something still missin=
+g in the
+> board file, as USB detection starts to work only if I booted TI's ker=
+nel
+> (that came with board) before trying patched 2.6.39-rc4, but I hope t=
+hat
+> this isn't connected to this regulators issue.
+>
+> [1] http://www.spinics.net/lists/linux-usb/msg45618.html
+> [2] https://lkml.org/lkml/2011/4/14/45
+> [3] http://arago-project.org/git/projects/?p=3Dlinux-omap3.git;a=3Dco=
+mmitdiff;h=3D2ec611981ad76256d5034ae36708d807142bed1c
+>> --
+> Best regards,
+> Dmitry "MAD" Artamonow
 
-I will make the changes for Tony's comments and repost the patches.
+I think I am missing something here! In which platform are you testing?
+keshava munegowda
 
-Thanks & Regards,
-Lesly A M
+>
+>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
