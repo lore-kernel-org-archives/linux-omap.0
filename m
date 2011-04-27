@@ -1,58 +1,50 @@
-From: Mike Rapoport <mike@compulab.co.il>
-Subject: Re: [PATCH 4/4] omap: musb: introduce default baord config
-Date: Wed, 27 Apr 2011 10:23:37 +0300
-Message-ID: <4DB7C479.8030507@compulab.co.il>
-References: <cover.1303682352.git.mike@compulab.co.il> <c18b58e93a67116f06e8ffbf097c2bd8e4f642a5.1303682352.git.mike@compulab.co.il> <FD6AF712-BD76-4E30-8ED8-6903987E5C2C@linuxhacker.ru>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: Fix bad SP address after relocating kernel
+Date: Wed, 27 Apr 2011 00:48:33 -0700
+Message-ID: <20110427074833.GD3755@atomide.com>
+References: <20110421055945.GB13688@atomide.com>
+ <20110421104954.GH13688@atomide.com>
+ <alpine.LFD.2.00.1104210919070.24613@xanadu.home>
+ <alpine.LFD.2.00.1104211711240.24613@xanadu.home>
+ <alpine.LFD.2.00.1104212233170.24613@xanadu.home>
+ <20110422062843.GA841@atomide.com>
+ <alpine.LFD.2.00.1104220959440.24613@xanadu.home>
+ <20110426085700.GJ16892@atomide.com>
+ <20110426123746.GC3755@atomide.com>
+ <alpine.LFD.2.00.1104261700270.24613@xanadu.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:38318
-	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753386Ab1D0HQQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 27 Apr 2011 03:16:16 -0400
-In-Reply-To: <FD6AF712-BD76-4E30-8ED8-6903987E5C2C@linuxhacker.ru>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:55245 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751295Ab1D0Hsm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Apr 2011 03:48:42 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.00.1104261700270.24613@xanadu.home>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Oleg Drokin <green@linuxhacker.ru>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Nicolas Pitre <nicolas.pitre@linaro.org>
+Cc: Shawn Guo <shawn.guo@freescale.com>, linux-arm-kernel@lists.infradead.org, patches@linaro.org, Aaro Koskinen <aaro.koskinen@nokia.com>, linux-omap@vger.kernel.org
 
-On 04/27/11 07:23, Oleg Drokin wrote:
-> Hello!
+* Nicolas Pitre <nicolas.pitre@linaro.org> [110426 14:28]:
+> On Tue, 26 Apr 2011, Tony Lindgren wrote:
 > 
-> On Apr 24, 2011, at 6:09 PM, Mike Rapoport wrote:
->> -void __init usb_musb_init(struct omap_musb_board_data *board_data)
->> +static struct omap_musb_board_data musb_default_board_data = {
->> +	.interface_type		= MUSB_INTERFACE_ULPI,
->> +	.mode			= MUSB_OTG,
+> > Otherwise cache_clean_flush can overwrite some of the relocated
+> > area depending on where the kernel image gets loaded. This fixes
+> > booting on n900 after commit 6d7d0ae51574943bf571d269da3243257a2d15db
+> > (ARM: 6750/1: improvements to compressed/head.S).
 > 
-> In fact can you make it more generic with ifdefs like this?
-> (since there are tons of boards taht are client only or would like to be compiled in some other way):
+> Gaaaah.  Indeed.
+> 
+> > Thanks to Aaro Koskinen <aaro.koskinen@nokia.com> for debugging
+> > the address of the relocated area that gets corrupted, and to
+> > Nicolas Pitre <nicolas.pitre@linaro.org> for the other uncompress
+> > related fixes.
+> > 
+> > Signed-off-by: Tony Lindgren <tony@atomide.com>
+> 
+> I think there could be a better fix yet.  Could you test this patch:
 
-I didn't want to change current functionality. The purpose of this patch is to
-reduce amount of code shared among board files.
-If certain board needs mode other than OTG it can still pass musb_board_data.
+Cool that works too and avoids using the stack, so that's a better fix:
 
-> +#ifdef CONFIG_USB_MUSB_OTG
-> +       .mode                   = MUSB_OTG,
-> +#elif defined(CONFIG_USB_MUSB_HDRC_HCD)
-> +       .mode                   = MUSB_HOST,
-> +#elif defined(CONFIG_USB_GADGET_MUSB_HDRC)
-> +       .mode                   = MUSB_PERIPHERAL,
-> +#endif
-> 
->> +	.power			= 100,
->> +};
->> +
-> 
-> Thanks!
-> 
-> Bye,
->     Oleg
-> 
-
-
--- 
-Sincerely yours,
-Mike.
+Tested-by: Tony Lindgren <tony@atomide.com>
