@@ -1,52 +1,49 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH 3/4] REGULATOR: TWL6025: add support to twl-regulator
-Date: Wed, 27 Apr 2011 12:08:48 +0100
-Message-ID: <20110427110848.GB31952@opensource.wolfsonmicro.com>
-References: <1303897191-14792-1-git-send-email-gg@slimlogic.co.uk>
- <1303897191-14792-4-git-send-email-gg@slimlogic.co.uk>
+From: Dmitry Artamonow <mad_soft-aPYA7nAdAYY@public.gmane.org>
+Subject: Re: [Regression?] Removed regulator support in ehci-omap
+Date: Wed, 27 Apr 2011 15:51:33 +0400
+Message-ID: <20110427115133.GA16447@rainbow>
+References: <20110411093214.GA18215@rainbow>
+ <4DA3350E.2060400@gmail.com>
+ <BANLkTinDMZ+CyGCmzZu8cSz1L_yFXxm+vg@mail.gmail.com>
+ <112ef82aebc719ef25cde126f2014ebc@mail.gmail.com>
+ <20110412040420.GB25239@rainbow>
+ <bcd954a468e6a07bd673b7d0731e9344@mail.gmail.com>
+ <4DB0D58E.4030508@signal11.us>
+ <8712165194c49f0b4d8c1bd1fe717b8a@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1303897191-14792-4-git-send-email-gg@slimlogic.co.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Graeme Gregory <gg@slimlogic.co.uk>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, sameo@linux.intel.com, balbi@ti.com, lrg@slimlogic.co.uk
+In-Reply-To: <8712165194c49f0b4d8c1bd1fe717b8a-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Cc: Alan Ott <alan-yzvJWuRpmD1zbRFIqnYvSA@public.gmane.org>, Steve Sakoman <sakoman-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Steve Calfee <stevecalfee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Apr 27, 2011 at 10:39:50AM +0100, Graeme Gregory wrote:
+On 12:07 Sun 24 Apr     , Keshava Munegowda wrote:
+> I have posted the patches on April 22, 2011.
+> If possible I request you to test this.
 
-> +	switch (info->flags) {
-> +	case 0:
-> +		if (index == 0)
-> +			voltage = 0;
-> +		else if (index < 58)
-> +			voltage = (600000 + (12500 * (index - 1)));
-> +		else if (index == 58)
-> +			voltage = 1350 * 1000;
-> +		else if (index == 59)
-> +			voltage = 1500 * 1000;
-> +		else if (index == 60)
-> +			voltage = 1800 * 1000;
-> +		else if (index == 61)
-> +			voltage = 1900 * 1000;
-> +		else if (index == 62)
-> +			voltage = 2100 * 1000;
+Hi, Keshava!
 
-This reads like a switch statement with a default: case to me.
+Sorry for delay - it took some time to find _where_ exactly you have posted
+the patch (thanks to Alan for giving the link). Anyway, it[1] seems to work
+as advertised (I also applied GPIO polarity fix [2] and board file patch[3],
+all on top of 2.6.39-rc4) - at least stuff in /sys/class/regulator looks right,
+and USB devices are detected. There's probably something still missing in the
+board file, as USB detection starts to work only if I booted TI's kernel
+(that came with board) before trying patched 2.6.39-rc4, but I hope that
+this isn't connected to this regulators issue.
 
-> +static int twl6030dcdc_get_voltage(struct regulator_dev *rdev)
-> +{
-> +	struct twlreg_info	*info = rdev_get_drvdata(rdev);
-> +	int		vsel = twlreg_read(info, TWL_MODULE_PM_RECEIVER,
-> +							VREG_VOLTAGE_DCDC);
-> +	int voltage = 0;
-> +
-> +	if (vsel < 0)
-> +		return vsel;
-> +	switch (info->flags) {
+[1] http://www.spinics.net/lists/linux-usb/msg45618.html
+[2] https://lkml.org/lkml/2011/4/14/45
+[3] http://arago-project.org/git/projects/?p=linux-omap3.git;a=commitdiff;h=2ec611981ad76256d5034ae36708d807142bed1c
 
-This should just call list_voltage() to do the mapping into a voltage or
-better yet should be converted into a get_voltage_sel() which will mean
-that the core can call list_voltage() for you.  Either way you save
-duplicating the code to map from selector to voltage.
+-- 
+Best regards,
+Dmitry "MAD" Artamonow
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
