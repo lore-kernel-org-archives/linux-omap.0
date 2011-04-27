@@ -1,108 +1,64 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: Fix relocation if image end past uncompressed
- kernel end
-Date: Wed, 27 Apr 2011 05:56:31 -0700
-Message-ID: <20110427125631.GF3755@atomide.com>
-References: <1303272904-31392-1-git-send-email-nicolas.pitre@linaro.org>
- <20110420072156.GA28679@atomide.com>
- <alpine.LFD.2.00.1104200850030.24613@xanadu.home>
- <20110420165514.GE10402@atomide.com>
- <alpine.LFD.2.00.1104201318040.24613@xanadu.home>
- <20110421055945.GB13688@atomide.com>
- <20110421104954.GH13688@atomide.com>
- <alpine.LFD.2.00.1104210919070.24613@xanadu.home>
- <20110427124726.GE3755@atomide.com>
+From: "Manuel, Lesly Arackal" <leslyam@ti.com>
+Subject: Re: [PATCH v9 4/9] OMAP3: PM: TWL4030 power scripts for OMAP3 boards
+Date: Wed, 27 Apr 2011 18:29:08 +0530
+Message-ID: <BANLkTikmm5cUhSagsWqPUAjgdQnjOy6W+A@mail.gmail.com>
+References: <1302784077-16697-1-git-send-email-leslyam@ti.com>
+	<1302784077-16697-5-git-send-email-leslyam@ti.com>
+	<20110418123240.GN12272@atomide.com>
+	<BANLkTinjkqmL5a2YQTnMYFSZt-11vRNy0w@mail.gmail.com>
+	<20110418125820.GO12272@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:64348 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756153Ab1D0M4i (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Apr 2011 08:56:38 -0400
-Content-Disposition: inline
-In-Reply-To: <20110427124726.GE3755@atomide.com>
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:46930 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756153Ab1D0M7K convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 27 Apr 2011 08:59:10 -0400
+Received: by mail-ww0-f50.google.com with SMTP id 33so1657950wwc.31
+        for <linux-omap@vger.kernel.org>; Wed, 27 Apr 2011 05:59:09 -0700 (PDT)
+In-Reply-To: <20110418125820.GO12272@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nicolas Pitre <nicolas.pitre@linaro.org>
-Cc: Shawn Guo <shawn.guo@freescale.com>, linux-arm-kernel@lists.infradead.org, patches@linaro.org, Aaro Koskinen <aaro.koskinen@nokia.com>, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>, David Derrick <dderrick@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
 
-* Tony Lindgren <tony@atomide.com> [110427 05:44]:
-> * Nicolas Pitre <nicolas.pitre@linaro.org> [110421 06:18]:
-> > On Thu, 21 Apr 2011, Tony Lindgren wrote:
-> > 
-> > > Otherwise we end up overwriting ourselves. This fixes booting
-> > > on n900 after commit 6d7d0ae51574943bf571d269da3243257a2d15db
-> > > (ARM: 6750/1: improvements to compressed/head.S).
-> > > 
-> > > Signed-off-by: Tony Lindgren <tony@atomide.com>
-> > 
-> > I don't understand why this is needed.  The copy loop is explicitly 
-> > copying from the end going backward exactly to cope with this 
-> > possibility.
-> 
-> This one is starting to make sense now too after the stack corrupting
-> the image issue is out of the way :)
-> 
-> We can't overwrite the running code when relocating only a small amount,
-> say 0x100 or so.
-> 
-> There's no need to relocate all the way past the compressed kernel,
-> we just need to relocate past the size of the code in head.o.
-> 
-> Updated patch below using the GOT end instead of the compressed
-> image end.
+Hi Tony,
 
-Oops, the mov should be movle of course. Updated patch below.
+On Mon, Apr 18, 2011 at 6:28 PM, Tony Lindgren <tony@atomide.com> wrote=
+:
+> * Manuel, Lesly Arackal <leslyam@ti.com> [110418 15:52]:
+>> >
+>> > To me it seems this should go into drivers/mfd instead.
+>> > The script may contain omap specific values, but can be
+>> > a loadable driver module.
+>>
+>> - subsys_initcall(twl_init)
+>> =A0 =A0 -> twl_probe()
+>> =A0 =A0 =A0 -> twl4030_power_init()
+>> =A0 =A0 =A0 =A0 -> load_twl4030_script() =A0#to copy this script dat=
+a to the PM IC.
+>>
+>> Since this is getting called from a subsys initcall, not sure whethe=
+r
+>> we can make this scripts as loadable module.
+>
+> AFAIK it does not need to do anything that early. Maybe take a look
+> at initialing it later?
+>
 
-Tony
+The loading of script data & configuration of resource is one time proc=
+ess,
+later HW will take care(executing the sequence in TWL based on
+sys_offmode, clk_req, ...signal states)
 
+So any specific reason for making this twl script as loadable module?
 
-From: Tony Lindgren <tony@atomide.com>
-Date: Wed, 27 Apr 2011 02:06:13 -0700
-Subject: [PATCH] ARM: Fix relocation to move past the running code
-
-Otherwise we end up overwriting ourselves partially when relocating
-less than size of the running code in head.S.
-
-Without this patch, a system will not boot if the compressed image
-load address is slightly less than where the compressed image gets
-relocated.
-
-For example, using mkimage to set the load address to something like
-zreladdr + uncompressed image size - 0x100 will make the system hang
-without this patch.
-
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
---- a/arch/arm/boot/compressed/head.S
-+++ b/arch/arm/boot/compressed/head.S
-@@ -286,6 +286,7 @@ dtb_check_done:
-  *   r5  = start of this image
-  *   r9  = size of decompressed image
-  *   r10 = end of this image, including  bss/stack/malloc space if non XIP
-+ *   r12 = GOT end, corrupted if relocating
-  * We basically want:
-  *   r4 - 16k page directory >= r10 -> OK
-  *   r4 + image length <= r5 -> OK
-@@ -297,11 +298,20 @@ dtb_check_done:
- 		cmp	r10, r5
- 		bls	wont_overwrite
- 
-+		/*
-+		 * Check if the relocate address overlaps the running code in
-+		 * head.S. In that case we need to relocate past the code
-+		 * to avoid overwriting some of the running code.
-+		 */
-+		add	r12, r12, r5		@ use GOT end for upper limit
-+		cmp	r10, r12		@ relocating less than GOT end?
-+		movle	r10, r12		@ if so, relocate past GOT end
-+
- /*
-  * Relocate ourselves past the end of the decompressed kernel.
-  *   r5  = start of this image
-  *   r6  = _edata
-- *   r10 = end of the decompressed kernel
-+ *   r10 = end of the decompressed kernel or end of GOT end if larger
-  * Because we always copy ahead, we need to do it from the end and go
-  * backward in case the source and destination overlap.
-  */
+Thanks & regards,
+Lesly
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
