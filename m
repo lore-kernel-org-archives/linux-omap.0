@@ -1,119 +1,58 @@
-From: "Munegowda, Keshava" <keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] omap:usb: fixing ehci phy gpio values for omap3
-Date: Wed, 27 Apr 2011 11:22:03 +0530
-Message-ID: <BANLkTi=apB0cZpgzFjHKuArrxkQX5W7deQ@mail.gmail.com>
-References: <1303395763-8702-1-git-send-email-keshava_mgowda@ti.com>
-	<1303395763-8702-2-git-send-email-keshava_mgowda@ti.com>
-	<BANLkTi=fQCRAST1DvJEAnznNnySCv55Yag@mail.gmail.com>
+From: Mike Rapoport <mike@compulab.co.il>
+Subject: Re: [PATCH 4/4] omap: musb: introduce default baord config
+Date: Wed, 27 Apr 2011 10:23:37 +0300
+Message-ID: <4DB7C479.8030507@compulab.co.il>
+References: <cover.1303682352.git.mike@compulab.co.il> <c18b58e93a67116f06e8ffbf097c2bd8e4f642a5.1303682352.git.mike@compulab.co.il> <FD6AF712-BD76-4E30-8ED8-6903987E5C2C@linuxhacker.ru>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <BANLkTi=fQCRAST1DvJEAnznNnySCv55Yag-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Menon, Nishanth" <nm-l0cyMroinI0@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, gadiyar-l0cyMroinI0@public.gmane.org, p-basak2-l0cyMroinI0@public.gmane.org, axel.lin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, johnstul-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org, mpfj-list-kZtEnBLzDKq1Qrn1Bg8BZw@public.gmane.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:38318
+	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753386Ab1D0HQQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 27 Apr 2011 03:16:16 -0400
+In-Reply-To: <FD6AF712-BD76-4E30-8ED8-6903987E5C2C@linuxhacker.ru>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Oleg Drokin <green@linuxhacker.ru>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Tue, Apr 26, 2011 at 7:10 PM, Menon, Nishanth <nm-l0cyMroinI0@public.gmane.org> wrote:
-> On Thu, Apr 21, 2011 at 09:22, Keshava Munegowda <keshava_mgowda@ti.c=
-om> wrote:
->>
->> From: Keshava Munegowda <Keshava_mgowda-l0cyMroinI0@public.gmane.org>
->>
->> The gpio of EHCI phy should be 0 instead of 1;
->> This fixes the hub enumeration issue in beagle xm board.
->>
->> Signed-off-by: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
->
-> Dumb q1: Has this been tested on PandaBoard?
-No, I have tested this on 4430 sdp . I think sdp validation is sufficie=
-nt
+On 04/27/11 07:23, Oleg Drokin wrote:
+> Hello!
+> 
+> On Apr 24, 2011, at 6:09 PM, Mike Rapoport wrote:
+>> -void __init usb_musb_init(struct omap_musb_board_data *board_data)
+>> +static struct omap_musb_board_data musb_default_board_data = {
+>> +	.interface_type		= MUSB_INTERFACE_ULPI,
+>> +	.mode			= MUSB_OTG,
+> 
+> In fact can you make it more generic with ifdefs like this?
+> (since there are tons of boards taht are client only or would like to be compiled in some other way):
 
-> Dumb q2: is'nt it better to introduce polarity e.g.
-> pdata->ehci_data->reset_gpio_polarity etc? this will allow board file=
-s
-> to describe polarity of pin information to driver which can then be
-> Phy and any board specific mods(e.g. inverter on the line) independen=
-t
-> completely..
+I didn't want to change current functionality. The purpose of this patch is to
+reduce amount of code shared among board files.
+If certain board needs mode other than OTG it can still pass musb_board_data.
 
-yes, I am thinking of doing it; since it requires modification of all
-board files;
-I will send this an another separate patch.
+> +#ifdef CONFIG_USB_MUSB_OTG
+> +       .mode                   = MUSB_OTG,
+> +#elif defined(CONFIG_USB_MUSB_HDRC_HCD)
+> +       .mode                   = MUSB_HOST,
+> +#elif defined(CONFIG_USB_GADGET_MUSB_HDRC)
+> +       .mode                   = MUSB_PERIPHERAL,
+> +#endif
+> 
+>> +	.power			= 100,
+>> +};
+>> +
+> 
+> Thanks!
+> 
+> Bye,
+>     Oleg
+> 
 
-keshava munegowda
 
->
-> Regards,
-> Nishanth Menon
->
->> ---
->> =A0drivers/mfd/omap-usb-host.c | =A0 =A08 ++++----
->> =A01 files changed, 4 insertions(+), 4 deletions(-)
->>
->> diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host=
-=2Ec
->> index b3bb3ac..a12202e 100644
->> --- a/drivers/mfd/omap-usb-host.c
->> +++ b/drivers/mfd/omap-usb-host.c
->> @@ -718,14 +718,14 @@ static int usbhs_enable(struct device *dev)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0gpio_request(pdata->e=
-hci_data->reset_gpio_port[0],
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0 =A0 =A0 =A0"USB1 PHY reset");
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0gpio_direction_output
->> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (pdata=
-->ehci_data->reset_gpio_port[0], 1);
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (pdata=
-->ehci_data->reset_gpio_port[0], 0);
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0}
->>
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (gpio_is_valid(pdata->ehci_data->r=
-eset_gpio_port[1])) {
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0gpio_request(pdata->e=
-hci_data->reset_gpio_port[1],
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0 =A0 =A0 =A0"USB2 PHY reset");
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0gpio_direction_output
->> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (pdata=
-->ehci_data->reset_gpio_port[1], 1);
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (pdata=
-->ehci_data->reset_gpio_port[1], 0);
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0}
->>
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0/* Hold the PHY in RESET for enough t=
-ime till DIR is high */
->> @@ -905,11 +905,11 @@ static int usbhs_enable(struct device *dev)
->>
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (gpio_is_valid(pdata->ehci_data->r=
-eset_gpio_port[0]))
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0gpio_set_value
->> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (pdata=
-->ehci_data->reset_gpio_port[0], 0);
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (pdata=
-->ehci_data->reset_gpio_port[0], 1);
->>
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (gpio_is_valid(pdata->ehci_data->r=
-eset_gpio_port[1]))
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0gpio_set_value
->> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (pdata=
-->ehci_data->reset_gpio_port[1], 0);
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (pdata=
-->ehci_data->reset_gpio_port[1], 1);
->> =A0 =A0 =A0 =A0}
->>
->> =A0end_count:
->> --
->> 1.6.0.4
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap=
-" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Sincerely yours,
+Mike.
