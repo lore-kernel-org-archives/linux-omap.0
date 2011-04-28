@@ -1,53 +1,52 @@
 From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 1/2] MTD: s3c2410_nand: Add option to disable hw ECC at
-	runtime
-Date: Thu, 28 Apr 2011 14:51:53 +0100
-Message-ID: <20110428135153.GB19709@n2100.arm.linux.org.uk>
-References: <1302637672-25339-1-git-send-email-lars@metafoo.de> <1302782911.2796.21.camel@localhost> <4DA7094D.9070002@metafoo.de> <1302876071.3220.60.camel@localhost>
+Subject: Re: [PATCH v4 0/4] OMAP: DMA: mstandby mode and runtime pm support
+Date: Thu, 28 Apr 2011 14:56:35 +0100
+Message-ID: <20110428135635.GC19709@n2100.arm.linux.org.uk>
+References: <1301322422-29886-1-git-send-email-manjugk@ti.com> <20110419110517.GG477@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:39606 "EHLO
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:50037 "EHLO
 	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759654Ab1D1NwO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Apr 2011 09:52:14 -0400
+	with ESMTP id S1760379Ab1D1N4u (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Apr 2011 09:56:50 -0400
 Content-Disposition: inline
-In-Reply-To: <1302876071.3220.60.camel@localhost>
+In-Reply-To: <20110419110517.GG477@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Artem Bityutskiy <dedekind1@gmail.com>
-Cc: Lars-Peter Clausen <lars@metafoo.de>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, Holger Freyther <zecke@openmoko.org>, Kukjin Kim <kgene.kim@samsung.com>, linux-mtd@lists.infradead.org, linux-kernel@vger.kernel.org, Ben Dooks <ben-linux@fluff.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "G, Manjunath Kondaiah" <manjugk@ti.com>, khilman@ti.com, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Fri, Apr 15, 2011 at 05:01:11PM +0300, Artem Bityutskiy wrote:
-> Well, I got this understanding by talking to the OMAP maintainer and by
-> chatting with rmk. But I might be wrong. So the understanding is that
-> board data extending is banned, at least for a while. And the arm world
-> has to consolidate and probably switch to the DT tree approach. This
-> would be painful, this would make some vendors to return to behind the
-> curtains, so this would be a step back in the short run.
+On Tue, Apr 19, 2011 at 04:05:17AM -0700, Tony Lindgren wrote:
+> * G, Manjunath Kondaiah <manjugk@ti.com> [110328 07:29]:
+> > 
+> > G, Manjunath Kondaiah (4):
+> >   OMAP2+: PM: omap device: API's for handling mstandby mode
+> >   OMAP2+: DMA: prevent races while setting M idle mode to nostandby
+> >   OMAP: PM: DMA: Enable runtime pm
+> >   OMAP: DMA: Fix: context restore during off mode
+> > 
+> >  arch/arm/mach-omap1/dma.c                     |    1 +
+> >  arch/arm/mach-omap2/dma.c                     |   16 ++
+> >  arch/arm/mach-omap2/omap_hwmod.c              |   42 ++++++
+> >  arch/arm/plat-omap/dma.c                      |  196 +++++++++++++++++++++----
+> >  arch/arm/plat-omap/include/plat/dma.h         |    1 +
+> >  arch/arm/plat-omap/include/plat/omap_device.h |    2 +
+> >  arch/arm/plat-omap/include/plat/omap_hwmod.h  |    4 +-
+> >  arch/arm/plat-omap/omap_device.c              |   62 ++++++++
+> >  8 files changed, 291 insertions(+), 33 deletions(-)
+> 
+> With the DMA code too we need to do the cleanup to move it
+> to drivers/dma before adding new features.
 
-Well, what Linus desires from ARM folk is a concerted effort to get the
-ARM tree 'under control' and stop the thing forever increasing without
-any apparant control.
+It also needs to conform to the DMA engine API, which is not well
+documented.  The points to watch out for are:
 
-Linus has said is that if arch/arm/mach* show up with significant numbers
-of net additional lines of code in the diffstat, he'll refuse to pull the
-git tree.  (See various mails from Linus on linux-arm-kernel.)
+1. it passes lockdep.
+2. drivers _can_ submit new slave transactions during a previous slave
+   transaction callback.
+3. callbacks must be made from tasklet context.
+4. terminating a transaction dma dma_terminate_all() should not call any
+   callbacks (as they may submit new transactions, causing DMA to restart.)
 
-My preference is to limit this merge window to just consolidation and
-bug fixes so that we can show that we're taking the issue seriously and
-are putting a decent amount of effort into addressing the problem.
-However, the problem with adding new stuff is that it dilutes the
-diffstat, and makes it much harder to show that we're doing what's
-required.
-
-Eg, lets say we end up removing 1000 LOC, but end up adding 1000 LOC of
-new platform data via other trees.  I don't think Linus will be pleased
-when he comes to the end of the merge window and arch/arm/ again shows
-up heavily in the statistics without a significant reduction.  I suspect
-if that were to happen, things will get much harder for us.
-
-When you bear in mind that in total, arch/arm was pusing 60k lines of
-new code into the kernel _each_ merge window.  If we manage to reduce
-the size of arch/arm by only 10k, it is really just a small drop in the
-ocean in comparison - we need much more effort than that...
+I think that's about it, but there may be more.
