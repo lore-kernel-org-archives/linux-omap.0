@@ -1,49 +1,77 @@
-From: Oleg Drokin <green@linuxhacker.ru>
-Subject: Re: Initial B&N Nook Color support, take two
-Date: Thu, 28 Apr 2011 13:21:33 -0400
-Message-ID: <2AFBBB50-E419-4003-9623-768A1713860A@linuxhacker.ru>
-References: <1304006259-7939-1-git-send-email-green@linuxhacker.ru> <alpine.DEB.2.00.1104281102300.11487@utopia.booyaka.com>
-Mime-Version: 1.0 (Apple Message framework v1082)
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+From: Artem Bityutskiy <dedekind1@gmail.com>
+Subject: Re: [RFC] mtd: nand: Fix bad block identification issue
+Date: Thu, 28 Apr 2011 20:30:43 +0300
+Message-ID: <1304011843.2737.3.camel@localhost>
+References: <1303906161-24175-1-git-send-email-parth.saxena@ti.com>
+Reply-To: dedekind1@gmail.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from linuxhacker.ru ([217.76.32.60]:37141 "EHLO fiona.linuxhacker.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752545Ab1D1RVj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Apr 2011 13:21:39 -0400
-In-Reply-To: <alpine.DEB.2.00.1104281102300.11487@utopia.booyaka.com>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:40031 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755525Ab1D1RfB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Apr 2011 13:35:01 -0400
+Received: by ewy4 with SMTP id 4so897502ewy.19
+        for <linux-omap@vger.kernel.org>; Thu, 28 Apr 2011 10:34:59 -0700 (PDT)
+In-Reply-To: <1303906161-24175-1-git-send-email-parth.saxena@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org
+To: "Saxena, Parth" <parth.saxena@ti.com>, Brian Norris <computersforpeace@gmail.com>
+Cc: linux-mtd@lists.infradead.org, "Basheer, Mansoor Ahamed" <mansoor.ahamed@ti.com>, linux-omap@vger.kernel.org
 
-Hello!
+On Wed, 2011-04-27 at 17:39 +0530, Saxena, Parth wrote:
+> This patch solves the above issue for omap by initialising
+> badblockbits. We are working further on this to find a generic fix
+> to the problem in nand_base.c.
 
-On Apr 28, 2011, at 1:05 PM, Paul Walmsley wrote:
->>   Ok, this is a second attempt at B&N Nook Color board file submission.
->>   USB peripheral mode is fully operational as is serial console and
->>   MMC/SDCard.
-> It's good that you're sending these patches, but please also:
-> - Add a Signed-off-by: to each patch (see item 12 of 
-> Documentation/SubmittingPatches)
+But it looks like the generic solution is to return the line which was
+accidentally removed, how about this patch
 
-Ah, sure. Somehow I assumed this one is auto generated for the patch submitter.
-(never was a problem in the past at least).
+=46rom: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
+Date: Thu, 28 Apr 2011 20:26:59 +0300
+Subject: [PATCH] mtd: return badblockbits back
 
-> - Cc Vikram, the original author of the board file, in the patch messages
+In commit c7b28e25cb9beb943aead770ff14551b55fa8c79 the initialization o=
+f
+the backblockbits was accidentally removed. This patch returns it back,
+because otherwise some NAND drivers are broken.
 
-Ok, though I am not sure he is the original author of the nook color board file
-(since (C) 2008 well predates the Nook Color), the work I base this all off is
-from NookColor B&N source code drop and unfortunately people that worked on it
-did not identify themselves (or I don't see it) aside from just names in some
-debug comments.
+This problem was reported by "Saxena, Parth <parth.saxena@ti.com>" here=
+:
+http://lists.infradead.org/pipermail/linux-mtd/2011-April/035221.html
 
-> - Cc the linux-arm-kernel@lists.infradead.org mailing list
+Reported-by: Saxena, Parth <parth.saxena@ti.com>
+Signed-off-by: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
+Cc: stable@kernel.org [2.6.36+]
+---
+ drivers/mtd/nand/nand_base.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-Ok, I am expecting the patch will still get quite a bit of scrutiny so I'll
-wait for more feedback and next submission would be conforming.
+diff --git a/drivers/mtd/nand/nand_base.c b/drivers/mtd/nand/nand_base.=
+c
+index 15510f2..5a7f817 100644
+--- a/drivers/mtd/nand/nand_base.c
++++ b/drivers/mtd/nand/nand_base.c
+@@ -3106,6 +3106,8 @@ ident_done:
+ 		chip->chip_shift +=3D 32 - 1;
+ 	}
+=20
++	chip->badblockbits =3D 8;
++
+ 	/* Set the bad block position */
+ 	if (mtd->writesize > 512 || (busw & NAND_BUSWIDTH_16))
+ 		chip->badblockpos =3D NAND_LARGE_BADBLOCK_POS;
+--=20
+1.7.2.3
 
-Thanks!
+--=20
+Best Regards,
+Artem Bityutskiy (=D0=90=D1=80=D1=82=D1=91=D0=BC =D0=91=D0=B8=D1=82=D1=8E=
+=D1=86=D0=BA=D0=B8=D0=B9)
 
-Bye,
-    Oleg
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
