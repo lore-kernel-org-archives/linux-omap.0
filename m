@@ -1,55 +1,66 @@
-From: Oleg Drokin <green@linuxhacker.ru>
-Subject: Re: [PATCH 4/4] omap: musb: introduce default baord config
-Date: Thu, 28 Apr 2011 12:36:14 -0400
-Message-ID: <9D42099B-0C25-4407-88B2-2574E9233B2A@linuxhacker.ru>
-References: <cover.1303682352.git.mike@compulab.co.il> <c18b58e93a67116f06e8ffbf097c2bd8e4f642a5.1303682352.git.mike@compulab.co.il> <FD6AF712-BD76-4E30-8ED8-6903987E5C2C@linuxhacker.ru> <20110428141818.GE19709@n2100.arm.linux.org.uk> <9B236748-29D6-4129-AFCD-5D223CE18ECD@linuxhacker.ru> <20110428162820.GF19709@n2100.arm.linux.org.uk>
-Mime-Version: 1.0 (Apple Message framework v1082)
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from linuxhacker.ru ([217.76.32.60]:33545 "EHLO fiona.linuxhacker.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752619Ab1D1QgZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 28 Apr 2011 12:36:25 -0400
-In-Reply-To: <20110428162820.GF19709@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+From: "Gupta, Ramesh" <grgupta@ti.com>
+Subject: Re: [PATCH] OMAP: iommu flush page table entries from L1 and L2 cache
+Date: Thu, 28 Apr 2011 11:48:15 -0500
+Message-ID: <BANLkTikKnE-9WncNCADKfZVqkP1LFPYeXA@mail.gmail.com>
+References: <1302817968-28516-1-git-send-email-fernando.lugo@ti.com>
+	<20110414223036.GA7335@n2100.arm.linux.org.uk>
+	<BANLkTin8gugnVoai6VHC7qMgK4eKRXRtHg@mail.gmail.com>
+	<20110428134055.GA19709@n2100.arm.linux.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20110428134055.GA19709@n2100.arm.linux.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Mike Rapoport <mike@compulab.co.il>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Fernando Guzman Lugo <fernando.lugo@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, tony@atomide.com, Hari Kanigeri <h-kanigeri2@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
-Hello!
-On Apr 28, 2011, at 12:28 PM, Russell King - ARM Linux wrote:
-> mm, it looks to me like we're ending up with two layers on top of
-> each other, both trying to provide some kind of generic board interface.
-> 
-> I think they should be squashed together.  And that:
-> 
-> static struct musb_hdrc_platform_data musb_plat = {
-> #ifdef CONFIG_USB_MUSB_OTG
->        .mode           = MUSB_OTG,
-> #elif defined(CONFIG_USB_MUSB_HDRC_HCD)
->        .mode           = MUSB_HOST,
-> #elif defined(CONFIG_USB_GADGET_MUSB_HDRC)
->        .mode           = MUSB_PERIPHERAL,
-> #endif
-> 
-> in usb-musb.c needs the same treatment as I mentioned in the previous
-> message if it really is board specific.  If not, I see no reason why
-> the above can't go into the musb driver itself.
+Hi Russel,
 
-In the end it's chip dependent. And the musb can work in all three modes.
-Of course the board dictates if the power is supplied to the bus in host
-mode and such, but even that could be worked around as nokia 9x0 saga for
-USB host shows.
-So to me it looks like something totally in realm of musb driver itself.
-Nothing bad happens if you configure your MUSB as say OTG while in fact only
-peripheral mode was implemented, it continues to work as it did.
-Of course enabling HOST mode may not magically make things work, but
-I suspect this could be addressed from Kconfig itself instead.
+On Thu, Apr 28, 2011 at 8:40 AM, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
+> On Fri, Apr 15, 2011 at 06:26:40AM -0500, Gupta, Ramesh wrote:
+>> Russell,
+>>
+>> On Thu, Apr 14, 2011 at 5:30 PM, Russell King - ARM Linux
+>> <linux@arm.linux.org.uk> wrote:
+>> > On Thu, Apr 14, 2011 at 04:52:48PM -0500, Fernando Guzman Lugo wro=
+te:
+>> >> From: Ramesh Gupta <grgupta@ti.com>
+>> >>
+>> >> This patch is to flush the iommu page table entries from L1 and L=
+2
+>> >> caches using dma_map_single. This also simplifies the implementat=
+ion
+>> >> by removing the functions =A0flush_iopgd_range/flush_iopte_range.
+>> >
+>> > No. =A0This usage is just wrong. =A0If you're going to use the DMA=
+ API then
+>> > unmap it, otherwise the DMA API debugging will go awol.
+>> >
+>>
+>> Thank you for the comments, this particular memory is always a write
+>> from the A9 for MMU programming and
+>> only read from the slave processor, that is the reason for not calli=
+ng
+>> the unmap. I can re-look into the changes to call
+>> unmap in a proper way as this impacts the DMA API.
+>> Are there any other ways to perform only flush the memory from L1/L2=
+ caches?
+>
+> We _could_ invent a new API to deal with this, which is probably goin=
+g
+> to be far better in the longer term for page table based iommus. =A0T=
+hat's
+> going to need some thought - eg, do we need to pass a struct device
+> argument for the iommu cache flushing so we know whether we need to f=
+lush
+> or not (eg, if we have cache coherent iommus)...
 
-Now I totally expect musb maintainer to jump in and explain
-how many misconceptions I have ;)
+I agree with you, right now these functions are taking only start and
+end arguments but
+we can pass a struct deivice to these functions.
 
-Bye,
-    Oleg
-
+thank you and regards
+Ramesh Gupta G
