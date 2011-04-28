@@ -1,59 +1,47 @@
-From: Nicolas Pitre <nicolas.pitre@linaro.org>
-Subject: Re: [PATCH] ARM: Fix relocation if image end past uncompressed kernel
- end
-Date: Wed, 27 Apr 2011 18:16:09 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.1104271810450.24613@xanadu.home>
-References: <1303272904-31392-1-git-send-email-nicolas.pitre@linaro.org> <20110420072156.GA28679@atomide.com> <alpine.LFD.2.00.1104200850030.24613@xanadu.home> <20110420165514.GE10402@atomide.com> <alpine.LFD.2.00.1104201318040.24613@xanadu.home>
- <20110421055945.GB13688@atomide.com> <20110421104954.GH13688@atomide.com> <alpine.LFD.2.00.1104210919070.24613@xanadu.home> <20110427124726.GE3755@atomide.com> <20110427125631.GF3755@atomide.com>
+From: Brian Norris <computersforpeace@gmail.com>
+Subject: Re: [RFC] mtd: nand: Fix bad block identification issue
+Date: Wed, 27 Apr 2011 17:45:45 -0700
+Message-ID: <4DB8B8B9.4050604@gmail.com>
+References: <1303906161-24175-1-git-send-email-parth.saxena@ti.com> <BANLkTi=sq5am1HKeOfYTmYHUm96O08N-jw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:37437 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753971Ab1D0WQN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Apr 2011 18:16:13 -0400
-Received: by vxi39 with SMTP id 39so1647429vxi.19
-        for <linux-omap@vger.kernel.org>; Wed, 27 Apr 2011 15:16:12 -0700 (PDT)
-In-Reply-To: <20110427125631.GF3755@atomide.com>
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:62083 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751866Ab1D1Apw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Apr 2011 20:45:52 -0400
+Received: by pzk9 with SMTP id 9so1355958pzk.19
+        for <linux-omap@vger.kernel.org>; Wed, 27 Apr 2011 17:45:51 -0700 (PDT)
+In-Reply-To: <BANLkTi=sq5am1HKeOfYTmYHUm96O08N-jw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Shawn Guo <shawn.guo@freescale.com>, linux-arm-kernel@lists.infradead.org, patches@linaro.org, Aaro Koskinen <aaro.koskinen@nokia.com>, linux-omap@vger.kernel.org
+To: Grazvydas Ignotas <notasas@gmail.com>
+Cc: linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, "Basheer, Mansoor Ahamed" <mansoor.ahamed@ti.com>, "Saxena, Parth" <parth.saxena@ti.com>, Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
 
-On Wed, 27 Apr 2011, Tony Lindgren wrote:
+Hi,
 
-> * Tony Lindgren <tony@atomide.com> [110427 05:44]:
-> > We can't overwrite the running code when relocating only a small amount,
-> > say 0x100 or so.
-> > 
-> > There's no need to relocate all the way past the compressed kernel,
-> > we just need to relocate past the size of the code in head.o.
-> > 
-> > Updated patch below using the GOT end instead of the compressed
-> > image end.
+On 4/27/2011 8:45 AM, Grazvydas Ignotas wrote:
+> Brian,
 > 
-> Oops, the mov should be movle of course. Updated patch below.
+> did you really intend to remove badblockbits? Maybe it should go back
+> to nand_base.c?
 
-This is wrong.  You're using r12 before it is fixed up with the 
-proper offset.
+No, I had no intention of the sorts! It surely should not have been
+removed in the first place. I will "ack" a patch to revert it, or next
+time I'm at my work machine I'll write one myself.
 
-And this could simply be fixed with a big enough constant like this:
+As a defense for myself...I think I was relatively new to git + kernel
+hacking at the time I sent this patch. Sorry for the messup.
 
-diff --git a/arch/arm/boot/compressed/head.S b/arch/arm/boot/compressed/head.S
-index 8dab5e3..71fc1d9 100644
---- a/arch/arm/boot/compressed/head.S
-+++ b/arch/arm/boot/compressed/head.S
-@@ -250,8 +250,11 @@ restart:	adr	r0, LC0
-  * Because we always copy ahead, we need to do it from the end and go
-  * backward in case the source and destination overlap.
-  */
--		/* Round up to next 256-byte boundary. */
--		add	r10, r10, #256
-+		/*
-+		 * Round to a 256-byte boundary on the next page. This
-+		 * avoids overwriting ourself if the offset is small.
-+		 */
-+		add	r10, r10, #4096
- 		bic	r10, r10, #255
- 
- 		sub	r9, r6, r5		@ size to copy
+> On Wed, Apr 27, 2011 at 3:09 PM, Saxena, Parth <parth.saxena@ti.com> wrote:
+>> Commit e0b58d0 ("mtd: nand: add ->badblockbits for minimum number
+>> of set bits in bad block byte") by Maxim Levitsky added
+>> badblockbits to nand_chip to specify minimum number of set bits
+>> in bad block byte. The patch initialized badblockbits to 8 in
+>> nand_base.c, but later the initialization line got removed by commit
+>> c7b28e2("mtd: nand: refactor BB marker detection"). After this all
+>> NAND drivers with NAND_SKIP_BBTSCAN are forced to initialize it to 8.
+>> Otherwise bad block identification will fail.
+
+Brian
