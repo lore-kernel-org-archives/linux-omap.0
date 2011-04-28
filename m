@@ -1,43 +1,28 @@
-From: "Michal Nazarewicz" <mina86@mina86.com>
+From: Greg KH <greg@kroah.com>
 Subject: Re: [PATCH] Staging: Westbridge: replace custom debug macros with
  pr_...() macros
-Date: Thu, 28 Apr 2011 21:40:07 +0200
-Message-ID: <op.vunx85sd3l0zgt@mnazarewicz-glaptop>
+Date: Thu, 28 Apr 2011 12:47:25 -0700
+Message-ID: <20110428194725.GB25302@kroah.com>
 References: <1304016521.3749.13.camel@sutharsan-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:54124 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753302Ab1D1TkL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Apr 2011 15:40:11 -0400
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
 In-Reply-To: <1304016521.3749.13.camel@sutharsan-laptop>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
-To: greg@kroah.com, Sutharsan <sutharsan.tech@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sutharsan <sutharsan.tech@gmail.com>
 Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, david.cross@cypress.com, srmt@cypress.com
+List-Id: linux-omap@vger.kernel.org
 
-On Thu, 28 Apr 2011 20:48:41 +0200, Sutharsan <sutharsan.tech@gmail.com>  
-wrote:
-> @@ -2121,7 +2121,7 @@ static int cyasgadget_initialize(void)
->  	cy_as_dev->dev_handle = cyasdevice_getdevhandle();
->  	if (0 == cy_as_dev->dev_handle) {
->  		#ifndef NDEBUG
-> -		cy_as_hal_print_message("<1> cy_as_gadget: "
-> +		pr_debug("<1> cy_as_gadget: "
->  			"no west bridge device\n");
->  		#endif
->  		retval = -EFAULT;
+On Thu, Apr 28, 2011 at 11:48:41AM -0700, Sutharsan wrote:
+> >From Sutharsan Ramamoorthy <srmt@cypress.com>
+> 
+> This patch replaces custom debug macros with Linux kernel's pr_...() macros.
 
-That's actually incorrect.  You should not have "<1>" in the
-string.  Not only that, "<1>" means that the message was actually
-KERN_ALERT not KERN_DEBUG -- it looks like that is a mistake though.
-At any rate, though, if you are using pr_debug() you don't need to
-check for NDEBUG macro.
+Why not use the dev_dbg() and other macros instead of these?  You do
+have access to a struct device for all of these places in the code,
+right?
 
--- 
-Best regards,                                         _     _
-.o. | Liege of Serenely Enlightened Majesty of      o' \,=./ `o
-..o | Computer Science,  Michal "mina86" Nazarewicz    (o o)
-ooo +-----<email/xmpp: mnazarewicz@google.com>-----ooO--(_)--Ooo--
+thanks,
+
+greg k-h
