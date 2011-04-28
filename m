@@ -1,52 +1,85 @@
 From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH v4 0/4] OMAP: DMA: mstandby mode and runtime pm support
-Date: Thu, 28 Apr 2011 14:56:35 +0100
-Message-ID: <20110428135635.GC19709@n2100.arm.linux.org.uk>
-References: <1301322422-29886-1-git-send-email-manjugk@ti.com> <20110419110517.GG477@atomide.com>
+Subject: Re: [PATCH] OMAP4: SRAM: Fix warning: format '%08lx' expects type
+	'long unsigned int'
+Date: Thu, 28 Apr 2011 15:09:53 +0100
+Message-ID: <20110428140953.GD19709@n2100.arm.linux.org.uk>
+References: <1301907896-30954-1-git-send-email-santosh.shilimkar@ti.com> <20110404091223.GA19854@n2100.arm.linux.org.uk> <4D9993AD.3080401@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:50037 "EHLO
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:44504 "EHLO
 	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760379Ab1D1N4u (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Apr 2011 09:56:50 -0400
+	with ESMTP id S1759622Ab1D1OKG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Apr 2011 10:10:06 -0400
 Content-Disposition: inline
-In-Reply-To: <20110419110517.GG477@atomide.com>
+In-Reply-To: <4D9993AD.3080401@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "G, Manjunath Kondaiah" <manjugk@ti.com>, khilman@ti.com, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Tue, Apr 19, 2011 at 04:05:17AM -0700, Tony Lindgren wrote:
-> * G, Manjunath Kondaiah <manjugk@ti.com> [110328 07:29]:
-> > 
-> > G, Manjunath Kondaiah (4):
-> >   OMAP2+: PM: omap device: API's for handling mstandby mode
-> >   OMAP2+: DMA: prevent races while setting M idle mode to nostandby
-> >   OMAP: PM: DMA: Enable runtime pm
-> >   OMAP: DMA: Fix: context restore during off mode
-> > 
-> >  arch/arm/mach-omap1/dma.c                     |    1 +
-> >  arch/arm/mach-omap2/dma.c                     |   16 ++
-> >  arch/arm/mach-omap2/omap_hwmod.c              |   42 ++++++
-> >  arch/arm/plat-omap/dma.c                      |  196 +++++++++++++++++++++----
-> >  arch/arm/plat-omap/include/plat/dma.h         |    1 +
-> >  arch/arm/plat-omap/include/plat/omap_device.h |    2 +
-> >  arch/arm/plat-omap/include/plat/omap_hwmod.h  |    4 +-
-> >  arch/arm/plat-omap/omap_device.c              |   62 ++++++++
-> >  8 files changed, 291 insertions(+), 33 deletions(-)
-> 
-> With the DMA code too we need to do the cleanup to move it
-> to drivers/dma before adding new features.
+On Mon, Apr 04, 2011 at 03:17:25PM +0530, Santosh Shilimkar wrote:
+> From 4d8d4e5c99c1477a8cb04b525ff5a2d93bbdacfd Mon Sep 17 00:00:00 2001
+> From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Date: Mon, 4 Apr 2011 14:20:08 +0530
+> Subject: [PATCH] OMAP: SRAM: Fix warning: format '%08lx' expects type  
+> 'long unsigned int'
+>
+> Fix below build warning.
+>
+>  CC	arch/arm/plat-omap/sram.o
+> 	arch/arm/plat-omap/sram.c: In function 'omap_map_sram':
+> 	arch/arm/plat-omap/sram.c:224: warning: format '%08lx' expects
+> 	type 'long unsigned int', but argument 2 has type 'unsigned int'
+>
+> While at this, convert SRAM printk(* "") to pr_*("").
+>
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> ---
+>  arch/arm/plat-omap/sram.c |   12 ++++++------
+>  1 files changed, 6 insertions(+), 6 deletions(-)
+>
+> diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
+> index a3f50b3..6af3d0b 100644
+> --- a/arch/arm/plat-omap/sram.c
+> +++ b/arch/arm/plat-omap/sram.c
+> @@ -166,7 +166,7 @@ static void __init omap_detect_sram(void)
+>  		else if (cpu_is_omap1611())
+>  			omap_sram_size = SZ_256K;
+>  		else {
+> -			printk(KERN_ERR "Could not detect SRAM size\n");
+> +			pr_err("Could not detect SRAM size\n");
+>  			omap_sram_size = 0x4000;
+>  		}
+>  	}
+> @@ -221,10 +221,10 @@ static void __init omap_map_sram(void)
+>  	omap_sram_io_desc[0].length = ROUND_DOWN(omap_sram_size, PAGE_SIZE);
+>  	iotable_init(omap_sram_io_desc, ARRAY_SIZE(omap_sram_io_desc));
+>
+> -	printk(KERN_INFO "SRAM: Mapped pa 0x%08lx to va 0x%08lx size: 0x%lx\n",
+> -	__pfn_to_phys(omap_sram_io_desc[0].pfn),
+> -	omap_sram_io_desc[0].virtual,
+> -	       omap_sram_io_desc[0].length);
+> +	pr_info("SRAM: Mapped pa 0x%08llx to va 0x%08lx size: 0x%lx\n",
+> +		(long long) __pfn_to_phys(omap_sram_io_desc[0].pfn),
+> +		omap_sram_io_desc[0].virtual,
+> +		omap_sram_io_desc[0].length);
+>
+>  	/*
+>  	 * Normally devicemaps_init() would flush caches and tlb after
+> @@ -252,7 +252,7 @@ static void __init omap_map_sram(void)
+>  void *omap_sram_push_address(unsigned long size)
+>  {
+>  	if (size > (omap_sram_ceil - (omap_sram_base + SRAM_BOOTLOADER_SZ))) {
+> -		printk(KERN_ERR "Not enough space in SRAM\n");
+> +		pr_err("Not enough space in SRAM\n");
+>  		return NULL;
+>  	}
+>
 
-It also needs to conform to the DMA engine API, which is not well
-documented.  The points to watch out for are:
+This looks much better.
 
-1. it passes lockdep.
-2. drivers _can_ submit new slave transactions during a previous slave
-   transaction callback.
-3. callbacks must be made from tasklet context.
-4. terminating a transaction dma dma_terminate_all() should not call any
-   callbacks (as they may submit new transactions, causing DMA to restart.)
+Acked-by: Russell King <rmk+kernel@arm.linux.org.uk>
 
-I think that's about it, but there may be more.
+It looks like Tony hasn't taken it...  Tony, are you going to handle
+this patch?
