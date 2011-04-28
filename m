@@ -1,80 +1,39 @@
-From: MyungJoo Ham <myungjoo.ham@samsung.com>
-Subject: Re: [linux-pm] [RFC PATCH] PM: Introduce generic DVFS framework with
- device-specific OPPs
-Date: Thu, 28 Apr 2011 16:16:58 +0900
-Message-ID: <BANLkTim8=L-5C8ePwoWWB5Po0dQ6ud3AvQ@mail.gmail.com>
-References: <1303807401-16350-1-git-send-email-myungjoo.ham@samsung.com>
-	<201104261309.47629.rjw@sisk.pl>
-	<BANLkTi=tBYT4NpayaoAA1+f1uaj9QyT+Yw@mail.gmail.com>
-	<BANLkTi=GVZnZuXmbK54Swi8Nv9ZZGhZcNw@mail.gmail.com>
-	<BANLkTin4rrniJpOheLH=JE0jq7vFpdDbrA@mail.gmail.com>
-	<BANLkTi=WWASxk3Fz83324k40Lbq+ccAPeA@mail.gmail.com>
-	<BANLkTinP0_qpF3sp8CzDy42i24wqqo7ohw@mail.gmail.com>
-	<BANLkTin-OMyrz=McN6X4TAZrvv3ehVBGew@mail.gmail.com>
-	<BANLkTikVHs1n8fXEAZh6Q4io39eD9PG14w@mail.gmail.com>
-Reply-To: myungjoo.ham@gmail.com
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: Re: [PATCH] arm: omap2plus: GPIO cleanup mach-omap2/*
+Date: Thu, 28 Apr 2011 10:17:03 +0300
+Message-ID: <4DB9146F.2080002@compulab.co.il>
+References: <1303895153-451-1-git-send-email-grinberg@compulab.co.il>	<20110427140129.GH3755@atomide.com> <BANLkTik4qvrYBs4O90c8ZekW6ULh1tRxEA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:56305 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754385Ab1D1HRA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Apr 2011 03:17:00 -0400
-Received: by bwz15 with SMTP id 15so2053305bwz.19
-        for <linux-omap@vger.kernel.org>; Thu, 28 Apr 2011 00:16:59 -0700 (PDT)
-In-Reply-To: <BANLkTikVHs1n8fXEAZh6Q4io39eD9PG14w@mail.gmail.com>
+Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:50831
+	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754245Ab1D1HRJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 28 Apr 2011 03:17:09 -0400
+In-Reply-To: <BANLkTik4qvrYBs4O90c8ZekW6ULh1tRxEA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Colin Cross <ccross@google.com>
-Cc: "Menon, Nishanth" <nm@ti.com>, Len Brown <len.brown@intel.com>, Kevin Hilman <khilman@deeprootsystems.com>, Greg Kroah-Hartman <gregkh@suse.de>, Kyungmin Park <kyungmin.park@samsung.com>, linux-pm@lists.linux-foundation.org, linux-omap <linux-omap@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>
+To: Grazvydas Ignotas <notasas@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Felipe Balbi <balbi@ti.com>, Mike Rapoport <mike@compulab.co.il>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Thu, Apr 28, 2011 at 3:43 PM, Colin Cross <ccross@google.com> wrote:
-> I understand the need for some sort of governor that can use device
-> state to determine the necessary clock frequencies. =C2=A0Where I dis=
-agree
-> is the connection to voltages. =C2=A0The governor should ONLY determi=
-ne the
-> frequencies desired, and the voltage required to meet those
-> frequencies should be determined by the clock framework, based only o=
-n
-> the clock and the frequency.
+On 04/27/11 18:58, Grazvydas Ignotas wrote:
 
-Yes, as long as AVS(Adaptive Voltage Scaling) is not involved, devfreq
-does not need to care about voltages and let device driver (such as
-the target callback or its callee) take care of voltages. Besides, my
-impression on AVS is that AVS wouldn't be depending on software DVFS
-scheme, at least with some AVS test on S5PC110. So, I'd say that it's
-safe to let devfreq framework handle frequency only and let target
-callback handle anything else except for choosing representative clock
-frequency.
+> On Wed, Apr 27, 2011 at 5:01 PM, Tony Lindgren <tony@atomide.com> wrote:
+>> * Igor Grinberg <grinberg@compulab.co.il> [110427 02:02]:
+>>> use gpio_request_<one|array>() instead of multiple gpiolib calls,
+>>> remove unneeded variables, etc.
+>> Great :)
+> I think this does conflict with Mike's "omap: cleanup board files"
+> series though.
 
-However, if we are going to detach devfreq from OPP, we only need to
-provide frequency list at init and { an interface to control max/min
-freq or an interface to lookup max/min freq of corresponding
-representative clock. }
+Yep, as I've stated in the description ;)
 
-> _______________________________________________
-> linux-pm mailing list
-> linux-pm@lists.linux-foundation.org
-> https://lists.linux-foundation.org/mailman/listinfo/linux-pm
->
+I've started working on this before Mike submitted his series and now
+I want to get some responses before any rebase work is done.
 
-ps. In our AVS test, the device drivers had nothing to do with voltage
-scaling except for initializing devices. The H/W did everything about
-voltage scaling dynamically.
+-- 
+Regards,
+Igor.
 
-Thanks,
-
-MyungJoo.
---=20
-MyungJoo Ham (=ED=95=A8=EB=AA=85=EC=A3=BC), Ph.D.
-Mobile Software Platform Lab,
-Digital Media and Communications (DMC) Business
-Samsung Electronics
-cell: 82-10-6714-2858
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
