@@ -1,48 +1,87 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 4/4] omap: musb: introduce default baord config
-Date: Thu, 28 Apr 2011 17:28:20 +0100
-Message-ID: <20110428162820.GF19709@n2100.arm.linux.org.uk>
-References: <cover.1303682352.git.mike@compulab.co.il> <c18b58e93a67116f06e8ffbf097c2bd8e4f642a5.1303682352.git.mike@compulab.co.il> <FD6AF712-BD76-4E30-8ED8-6903987E5C2C@linuxhacker.ru> <20110428141818.GE19709@n2100.arm.linux.org.uk> <9B236748-29D6-4129-AFCD-5D223CE18ECD@linuxhacker.ru>
+From: Trinabh Gupta <trinabh@linux.vnet.ibm.com>
+Subject: [RFC PATCH V4 0/4] cpuidle: global registration of idle states with
+	per-cpu statistics
+Date: Thu, 28 Apr 2011 22:02:10 +0530
+Message-ID: <20110428163201.4868.6984.stgit@tringupt.in.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:58246 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760662Ab1D1Q2d (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Apr 2011 12:28:33 -0400
-Content-Disposition: inline
-In-Reply-To: <9B236748-29D6-4129-AFCD-5D223CE18ECD@linuxhacker.ru>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Sender: linux-acpi-owner@vger.kernel.org
+To: arjan@linux.intel.com, peterz@infradead.org, lenb@kernel.org, venki@google.com, ak@linux.intel.com, len.brown@intel.com, khilman@ti.com
+Cc: linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-sh@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Oleg Drokin <green@linuxhacker.ru>
-Cc: Mike Rapoport <mike@compulab.co.il>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Thu, Apr 28, 2011 at 12:21:47PM -0400, Oleg Drokin wrote:
-> Frankly, I am not even sure why the mode needs to be supplied by the board at all.
-> The musb code already  has a very similar switch in musb_plat and so it totally looks like
-> a duplicated specification of the same thing from the board file and from
-> generic musb code where the original init value is then ignored.
-> 
-> I see that in .29 the board file did not need to specify usb mode and it was all decided
-> in musb-specific code, and I have no idea why that was later changed to the way it is now.
-> 
-> Would it just be better if a patch removing mode field from struct omap_musb_board_data
-> is adopted like this (warning - not a real patch)?
+The following patch series implements global registration of cpuidle
+states, and also has the necessary data structure changes to
+accommodate the per-cpu writable members of the cpuidle_states
+structure.
 
-Hmm, it looks to me like we're ending up with two layers on top of
-each other, both trying to provide some kind of generic board interface.
+Previous version of the series (V3) is at 
+https://lkml.org/lkml/2011/4/20/23
 
-I think they should be squashed together.  And that:
+This series applies on 2.6.39-rc5 with Len Brown's pm_idle() cleanup
+version 3 (https://lkml.org/lkml/2011/4/2/8) plus the patch 
+https://lkml.org/lkml/diff/2011/4/25/54/1
 
-static struct musb_hdrc_platform_data musb_plat = {
-#ifdef CONFIG_USB_MUSB_OTG
-        .mode           = MUSB_OTG,
-#elif defined(CONFIG_USB_MUSB_HDRC_HCD)
-        .mode           = MUSB_HOST,
-#elif defined(CONFIG_USB_GADGET_MUSB_HDRC)
-        .mode           = MUSB_PERIPHERAL,
-#endif
+Changes from previous version (V3):
 
-in usb-musb.c needs the same treatment as I mentioned in the previous
-message if it really is board specific.  If not, I see no reason why
-the above can't go into the musb driver itself.
+1. Compile tested for ARM using the following configs: da8xx_omapl_defconfig,
+  kirkwood_defconfig, stamp9g20_defconfig, omap2plus_defconfig. Boot tested on
+  Panda SoC (OMAP4430) but it doesn't really use cpuidle.
+
+2. Boot tested on x86 nehalem with multiple C-states for both intel_idle
+  and acpi_idle drivers. 
+
+3. Boot tested on T60p thinkpad that has T2600 cpu with multiple C-states.
+  Additionally tested the case when C-state tables change on 
+  AC <-> Battery power switch.
+
+4. De-duplicated code in [1/4] and moved common code related to
+  update of cpuidle statistics to drivers/cpuidle/cpuidle.c
+
+5. Handled the case when acpi_processor_cst_has_changed() is called on x86
+  on switching power from AC <-> Battery. The implementation is just 
+  a prototype. Please provide suggestions.
+
+
+Brief description of the patches:
+
+The core change in this series is to split the cpuidle_device structure 
+into parts that can be global and parts that has to remain per-cpu. 
+The per-cpu pieces are mostly generic statistics that can be independent 
+of current running driver. As a result of these changes, there is single 
+copy of cpuidle_states structure and single registration done by one 
+cpu. The low level driver is free to set per-cpu driver data on
+each cpu if needed using the cpuidle_set_statedata() as the case
+today. Only in very rare cases asymmetric C-states exist which can be 
+handled within the cpuidle driver. Most architectures do not have 
+asymmetric C-states.
+
+First two patches in the series facilitate splitting of cpuidle_states
+and cpuidle_device structure and next two patches do the actual split,
+change the API's and make existing code follow the changed API.
+
+[1/4] - Move the idle residency accounting part from cpuidle.c to
+  the respective low level drivers, so that the accounting can
+  be accurately maintained if the driver decides to demote the
+  chosen (suggested) by the governor.
+
+[2/4] - removes the cpuidle_device()->prepare API since is is not
+  widely used and the only use case was to allow software
+  demotion using CPUIDLE_FLAG_IGNORE flag.  Both these
+  functions can be absorbed within the cpuidle back-end
+  driver ad hence deprecating the prepare routine and the
+  CPUIDLE_FLAG_IGNORE flag.
+
+  - Ref: https://lkml.org/lkml/2011/3/25/52
+
+[3/4] - Splits the usage statistics (read/write) part out of
+  cpuidle_state structure, so that the states can become read
+  only and hence made global.
+
+[4/4] - most APIs will now need to pass pointer to both global
+   cpuidle_driver and per-cpu cpuidle_device structure.
+
+Thanks,
+-Trinabh
