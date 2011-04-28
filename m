@@ -1,83 +1,101 @@
-From: Mike Rapoport <mike@compulab.co.il>
-Subject: Re: [PATCH 2/2] Add basic devices support for Nook Color
-Date: Thu, 28 Apr 2011 09:14:36 +0300
-Message-ID: <4DB905CC.7030907@compulab.co.il>
-References: <1303869133-27976-1-git-send-email-green@linuxhacker.ru> <1303869133-27976-3-git-send-email-green@linuxhacker.ru> <4DB7D89D.7090707@compulab.co.il> <1A637068-3F89-4B73-8A36-5278EB69C8CD@linuxhacker.ru>
+From: MyungJoo Ham <myungjoo.ham@samsung.com>
+Subject: Re: [linux-pm] [RFC PATCH] PM: Introduce generic DVFS framework with
+ device-specific OPPs
+Date: Thu, 28 Apr 2011 15:12:13 +0900
+Message-ID: <BANLkTi=Be3DrAUoPmgHpjhAVmN-Pi5Au7g@mail.gmail.com>
+References: <1303807401-16350-1-git-send-email-myungjoo.ham@samsung.com>
+	<201104261309.47629.rjw@sisk.pl>
+	<BANLkTi=tBYT4NpayaoAA1+f1uaj9QyT+Yw@mail.gmail.com>
+	<BANLkTi=GVZnZuXmbK54Swi8Nv9ZZGhZcNw@mail.gmail.com>
+	<BANLkTin4rrniJpOheLH=JE0jq7vFpdDbrA@mail.gmail.com>
+	<BANLkTi=WWASxk3Fz83324k40Lbq+ccAPeA@mail.gmail.com>
+	<BANLkTikEtTDp3Cpj0D5z34wA0_G_DWwKFg@mail.gmail.com>
+	<alpine.LFD.2.02.1104272104390.3323@ionos>
+	<BANLkTinWD0ktYKzR_jnQSE76AuW+Z1PSLw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:34643
-	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751821Ab1D1GHF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 28 Apr 2011 02:07:05 -0400
-In-Reply-To: <1A637068-3F89-4B73-8A36-5278EB69C8CD@linuxhacker.ru>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:58584 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751510Ab1D1GMP convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Apr 2011 02:12:15 -0400
+Received: by bwz15 with SMTP id 15so2019483bwz.19
+        for <linux-omap@vger.kernel.org>; Wed, 27 Apr 2011 23:12:13 -0700 (PDT)
+In-Reply-To: <BANLkTinWD0ktYKzR_jnQSE76AuW+Z1PSLw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Oleg Drokin <green@linuxhacker.ru>
-Cc: linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>
+To: Colin Cross <ccross@google.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, "Menon, Nishanth" <nm@ti.com>, Len Brown <len.brown@intel.com>, Kevin Hilman <khilman@deeprootsystems.com>, Greg Kroah-Hartman <gregkh@suse.de>, Kyungmin Park <kyungmin.park@samsung.com>, linux-pm@lists.linux-foundation.org, linux-omap <linux-omap@vger.kernel.org>
 
-(adding Felipe to cc)
+On Thu, Apr 28, 2011 at 5:48 AM, Colin Cross <ccross@google.com> wrote:
+> On Wed, Apr 27, 2011 at 12:26 PM, Thomas Gleixner <tglx@linutronix.de=
+> wrote:
+>> Forget OMAP implementation details for a while, sit back and look at
+>> the big picture.
+>
+> Here's my proposal for DVFS:
+> - DVFS is implemented in drivers/clk/dvfs.c, and is called by the
+> common clock implementation to adjust the voltages, if necessary, on
+> regular clk_* calls.
+> - Platform code provides mappings in the form (clk, regulator, max
+> frequency, min voltage) to the dvfs code.
+> - Everything that is in OPP today gets converted to helper functions
+> inside the dvfs implementation, and is never called from SoC code
+> (except to pass tables at init), or from drivers.
+> - OPP can be recreated in the future as a upper level policy manager
+> for clocks that need to move together, if that is ever necessary. =C2=
+=A0It
+> would not know anything about voltages.
+> - A few common policy implementations need to be added to the common
+> clock implementation, like temperature limits.
 
-Felipe, can you comment on the mUSB part, please?
+I hope that my previous reply answered this.
 
-On 04/27/11 19:12, Oleg Drokin wrote:
-> Hello!
-> 
->  Thanks for the feedback.
-> On Apr 27, 2011, at 4:49 AM, Mike Rapoport wrote:
->>> MMC/SD interface, i2c, usb.
->> You should have added these at the first patch instead of Android devices.
-> 
-> So, basically you want all board file changes to come as a single patch, right?
+>
+> For Tegra:
+> - DVFS continues to be accessed by calling clk_* functions
+>
+> For OMAP:
+> - DVFS is triggered by hwmod through clk_* functions. =C2=A0Any cross=
+-arch
+> driver can continue to call clk_* functions.
+>
+> OPP currently has opp_enable and opp_disable functions. =C2=A0I don't
+> understand why these are needed, they are only used at init time to
+> determine available voltages, which could be handled by never passing
+> unavailable voltages to the dvfs implementation.
 
-I would split you series into three patches:
-1) TWL updates
-2) addition of board-encore
-3) defconfig updates
+We need them in runtime.
 
-The patch that adds board-encore would include MMC, i2c and mUSB.
+A device "a" may want to guarantee that a device "b" to be at least
+"200MHz" or faster while it does some operations. Then, "a" will
+opp_disable("b", 100MHz and others); and opp_enable("b", them) later
+on. We have similar issues with multimedia blocks (MFC, Camera, FB,
+GPU) and CPU/Memory Bus. Ondemand governor of CPUFREQ has some delay
+on catching up a workload (1.5x the sampling rate in average, <2.0x
+the sampling rate in worst cases), which may incur flickering/tearing
+issues with multimedia streams. On the other hand, a general thermal
+monitor or battery manager might want to limit energy usage by
+disabling top performance clocks if it is too hot or the battery level
+is low.
 
->>> ---
->>> arch/arm/configs/encore-nookcolor-defconfig | 2015 +++++++++++++++++++++++++++
->> The defconfig should be a separate patch. You should rather add encore board
->> options to omap2plus_defconfig.
-> 
-> Hm, ok.
-> 
->>> +static struct i2c_board_info __initdata encore_i2c_bus2_info[] = {
->>> +};
->>> +
->>> +
->>> +static struct omap_musb_board_data musb_board_data = {
->>> +	.interface_type		= MUSB_INTERFACE_ULPI,
->>> +#ifdef CONFIG_USB_MUSB_OTG
->>> +	.mode			= MUSB_OTG,
->>> +#elif defined(CONFIG_USB_MUSB_HDRC_HCD)
->>> +	.mode			= MUSB_HOST,
->>> +#elif defined(CONFIG_USB_GADGET_MUSB_HDRC)
->>> +	.mode			= MUSB_PERIPHERAL,
->>> +#endif
->> This kind of ifdefery is handled inside the musb driver. I'd set the mode to
->> MUSB_OTG unless you want to explicitly limit it to HOST or PERIPHERAL
-> 
-> Actually it's not.
-> If I set MUSB_OTG here and then I choose PERIPHERAL mode in the kernel config,
-> the musb transceiver code will complain about board file and kernel config mismatch.
-> The Nook Color is advertised as peripheral device, but OTG must be working too
-> (not totally working at this point) I think there is value to be able to configure it
-> in two different modes.
-
-Frankly, I haven't tried choosing different modes in the kernel config and in
-the board data. Still, I believe that board data should define desired operation
-mode and the driver should do the best effort to enable the controller in the
-desired mode.
-
-> Bye,
->     Oleg
+> _______________________________________________
+> linux-pm mailing list
+> linux-pm@lists.linux-foundation.org
+> https://lists.linux-foundation.org/mailman/listinfo/linux-pm
+>
 
 
--- 
-Sincerely yours,
-Mike.
+
+--=20
+MyungJoo Ham (=ED=95=A8=EB=AA=85=EC=A3=BC), Ph.D.
+Mobile Software Platform Lab,
+Digital Media and Communications (DMC) Business
+Samsung Electronics
+cell: 82-10-6714-2858
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
