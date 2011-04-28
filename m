@@ -1,122 +1,113 @@
-From: MyungJoo Ham <myungjoo.ham@gmail.com>
-Subject: Re: [linux-pm] [RFC PATCH] PM: Introduce generic DVFS framework with
- device-specific OPPs
-Date: Thu, 28 Apr 2011 16:34:45 +0900
-Message-ID: <BANLkTikC9JJXV9rGFJhe0LAcBrBtyseEgA@mail.gmail.com>
-References: <1303807401-16350-1-git-send-email-myungjoo.ham@samsung.com>
-	<201104261309.47629.rjw@sisk.pl>
-	<BANLkTi=tBYT4NpayaoAA1+f1uaj9QyT+Yw@mail.gmail.com>
-	<BANLkTi=GVZnZuXmbK54Swi8Nv9ZZGhZcNw@mail.gmail.com>
-	<BANLkTin4rrniJpOheLH=JE0jq7vFpdDbrA@mail.gmail.com>
-	<BANLkTi=WWASxk3Fz83324k40Lbq+ccAPeA@mail.gmail.com>
-	<BANLkTikEtTDp3Cpj0D5z34wA0_G_DWwKFg@mail.gmail.com>
-	<alpine.LFD.2.02.1104272104390.3323@ionos>
-	<BANLkTinWD0ktYKzR_jnQSE76AuW+Z1PSLw@mail.gmail.com>
-	<BANLkTi=Be3DrAUoPmgHpjhAVmN-Pi5Au7g@mail.gmail.com>
-	<BANLkTiniJUgTTDh7SF8yNMeSMa+JYM21wA@mail.gmail.com>
-	<BANLkTimzWyvcBV2ymxaMf=HmRhGYBboB1w@mail.gmail.com>
-	<BANLkTik6L8HkJ0YjQYjh_3eEmbffyk1kRA@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: Fix relocation if image end past uncompressed
+ kernel end
+Date: Thu, 28 Apr 2011 01:12:04 -0700
+Message-ID: <20110428081204.GL3755@atomide.com>
+References: <alpine.LFD.2.00.1104200850030.24613@xanadu.home>
+ <20110420165514.GE10402@atomide.com>
+ <alpine.LFD.2.00.1104201318040.24613@xanadu.home>
+ <20110421055945.GB13688@atomide.com>
+ <20110421104954.GH13688@atomide.com>
+ <alpine.LFD.2.00.1104210919070.24613@xanadu.home>
+ <20110427124726.GE3755@atomide.com>
+ <20110427125631.GF3755@atomide.com>
+ <alpine.LFD.2.00.1104271810450.24613@xanadu.home>
+ <20110428063808.GK16892@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:57079 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754273Ab1D1Her convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Apr 2011 03:34:47 -0400
-Received: by bwz15 with SMTP id 15so2062891bwz.19
-        for <linux-omap@vger.kernel.org>; Thu, 28 Apr 2011 00:34:45 -0700 (PDT)
-In-Reply-To: <BANLkTik6L8HkJ0YjQYjh_3eEmbffyk1kRA@mail.gmail.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:51229 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754374Ab1D1IMI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Apr 2011 04:12:08 -0400
+Content-Disposition: inline
+In-Reply-To: <20110428063808.GK16892@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Colin Cross <ccross@google.com>
-Cc: "Menon, Nishanth" <nm@ti.com>, Len Brown <len.brown@intel.com>, Kevin Hilman <khilman@deeprootsystems.com>, Greg Kroah-Hartman <gregkh@suse.de>, Kyungmin Park <kyungmin.park@samsung.com>, Thomas Gleixner <tglx@linutronix.de>, linux-omap <linux-omap@vger.kernel.org>, linux-pm@lists.linux-foundation.org
+To: Nicolas Pitre <nicolas.pitre@linaro.org>
+Cc: linux-omap@vger.kernel.org, Aaro Koskinen <aaro.koskinen@nokia.com>, linux-arm-kernel@lists.infradead.org, Shawn Guo <shawn.guo@freescale.com>, patches@linaro.org
 
-On Thu, Apr 28, 2011 at 4:06 PM, Colin Cross <ccross@google.com> wrote:
-> On Wed, Apr 27, 2011 at 11:50 PM, MyungJoo Ham <myungjoo.ham@samsung.=
-com> wrote:
->> On Thu, Apr 28, 2011 at 3:44 PM, Colin Cross <ccross@google.com> wro=
-te:
->>> On Wed, Apr 27, 2011 at 11:12 PM, MyungJoo Ham <myungjoo.ham@samsun=
-g.com> wrote:
->>>> On Thu, Apr 28, 2011 at 5:48 AM, Colin Cross <ccross@google.com> w=
-rote:
->>>>> OPP currently has opp_enable and opp_disable functions. =A0I don'=
-t
->>>>> understand why these are needed, they are only used at init time =
-to
->>>>> determine available voltages, which could be handled by never pas=
-sing
->>>>> unavailable voltages to the dvfs implementation.
->>>>
->>>> We need them in runtime.
->>>>
->>>> A device "a" may want to guarantee that a device "b" to be at leas=
-t
->>>> "200MHz" or faster while it does some operations. Then, "a" will
->>>> opp_disable("b", 100MHz and others); and opp_enable("b", them) lat=
-er
->>>> on. We have similar issues with multimedia blocks (MFC, Camera, FB=
-,
->>>> GPU) and CPU/Memory Bus. Ondemand governor of CPUFREQ has some del=
-ay
->>>> on catching up a workload (1.5x the sampling rate in average, <2.0=
-x
->>>> the sampling rate in worst cases), which may incur flickering/tear=
-ing
->>>> issues with multimedia streams. On the other hand, a general therm=
-al
->>>> monitor or battery manager might want to limit energy usage by
->>>> disabling top performance clocks if it is too hot or the battery l=
-evel
->>>> is low.
->>>
->>> That sounds like a very strange api, when what you really mean is
->>> clk_set_min_rate or clk_set_max_rate.
->>
->> Essentially, that's what needed.
->> However, with clk_set_min/max_rate, don't we need to let another
->> device to be consumer of other devices' clocks? Not just introducing=
- a
->> device to other devices?
->
-> Yes, but that's effectively what you're doing through a backwards api
-> anyways. =A0The question is, for these complicated clock scenarios wh=
-ere
-> the final frequency of a clock depends on so many factors, should tha=
-t
-> control go through the clock framework, or through some sort of globa=
-l
-> clock governor (which is where OPP would reappear).
->
+* Tony Lindgren <tony@atomide.com> [110427 23:35]:
+> * Nicolas Pitre <nicolas.pitre@linaro.org> [110428 01:12]:
+> > On Wed, 27 Apr 2011, Tony Lindgren wrote:
+> > 
+> > > * Tony Lindgren <tony@atomide.com> [110427 05:44]:
+> > > > We can't overwrite the running code when relocating only a small amount,
+> > > > say 0x100 or so.
+> > > > 
+> > > > There's no need to relocate all the way past the compressed kernel,
+> > > > we just need to relocate past the size of the code in head.o.
+> > > > 
+> > > > Updated patch below using the GOT end instead of the compressed
+> > > > image end.
+> > > 
+> > > Oops, the mov should be movle of course. Updated patch below.
+> > 
+> > This is wrong.  You're using r12 before it is fixed up with the 
+> > proper offset.
+> 
+> Hmm I see. I guess I was thinking it only needs to be fixed up after
+> the relocation.
 
-In the use cases of runtime clock setting by devfreq or other devices
-mentioned above, we are controlling the device's performance with the
-representative clock of the device, not a specific clock among the
-clocks that the device has. For a device "A" with clock "a1" and "a2",
-another device "B" would not control both "a1" and "a2" directly to
-get the guaranteed performance from "A". Besides, "B" should not do so
-if there are specific orders, delays, and other controls for "A" to
-properly change performance.
+Here's this one with r12 calculation fixed using r0 delta. Also updated
+it to use movlt instead of movle as that should be sufficient.
 
-Therefore, my answer is that it would be preferred to control through
-some wrapper/interface/or anything that is connected to the device of
-the controlled clocks (and let the device's callback or something
-control its clocks), not to control through clock framework directly.
-In this version of devfreq+OPP, these are handled by the "target"
-callback.
+Regards,
+
+Tony
 
 
-Cheers!
-- MyungJoo
---=20
-MyungJoo Ham, Ph.D.
-Mobile Software Platform Lab,
-Digital Media and Communications (DMC) Business
-Samsung Electronics
-cell: 82-10-6714-2858
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+From: Tony Lindgren <tony@atomide.com>
+Date: Wed, 27 Apr 2011 02:06:13 -0700
+Subject: [PATCH] ARM: Fix relocation to move past the running code
+
+Otherwise we end up overwriting ourselves partially when relocating
+less than size of the running code in head.S.
+
+Without this patch, a system will not boot if the compressed image
+load address is slightly less than where the compressed image gets
+relocated.
+
+For example, using mkimage to set the load address to something like
+zreladdr + uncompressed image size - 0x100 will make the system hang
+without this patch.
+
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+--- a/arch/arm/boot/compressed/head.S
++++ b/arch/arm/boot/compressed/head.S
+@@ -282,10 +282,12 @@ dtb_check_done:
+ 
+ /*
+  * Check to see if we will overwrite ourselves.
++ *   r0  = delta
+  *   r4  = final kernel address
+  *   r5  = start of this image
+  *   r9  = size of decompressed image
+  *   r10 = end of this image, including  bss/stack/malloc space if non XIP
++ *   r12 = GOT end, fixed up with delta in r0 if relocating
+  * We basically want:
+  *   r4 - 16k page directory >= r10 -> OK
+  *   r4 + image length <= r5 -> OK
+@@ -297,11 +299,20 @@ dtb_check_done:
+ 		cmp	r10, r5
+ 		bls	wont_overwrite
+ 
++		/*
++		 * Check if the relocate address overlaps the running code in
++		 * head.S. In that case we need to relocate past the code
++		 * to avoid overwriting some of the running code.
++		 */
++		add	r12, r12, r0		@ fixup GOT end with delta
++		cmp	r10, r12		@ relocating less than GOT end?
++		movlt	r10, r12		@ if so, relocate to GOT end
++
+ /*
+  * Relocate ourselves past the end of the decompressed kernel.
+  *   r5  = start of this image
+  *   r6  = _edata
+- *   r10 = end of the decompressed kernel
++ *   r10 = end of the decompressed kernel or end of GOT end if larger
+  * Because we always copy ahead, we need to do it from the end and go
+  * backward in case the source and destination overlap.
+  */
