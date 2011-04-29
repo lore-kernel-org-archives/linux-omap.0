@@ -1,75 +1,87 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH FOR 2.6.39] omap: iommu: Return IRQ_HANDLED in fault handler when no fault occured
-Date: Fri, 29 Apr 2011 12:03:10 +0200
-Message-ID: <201104291203.11174.laurent.pinchart@ideasonboard.com>
-References: <1303912982-10309-1-git-send-email-laurent.pinchart@ideasonboard.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL] omap fixes for v2.6.39-rc5
+Date: Fri, 29 Apr 2011 03:16:47 -0700
+Message-ID: <20110429101647.GW3755@atomide.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:40734 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754247Ab1D2KCv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Apr 2011 06:02:51 -0400
-In-Reply-To: <1303912982-10309-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:61361 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752969Ab1D2KQu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Apr 2011 06:16:50 -0400
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, David Cohen <dacohen@gmail.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Hi Tony,
+Hi Linus,
 
-On Wednesday 27 April 2011 16:03:02 Laurent Pinchart wrote:
-> The iommu shares an interrupt line with the OMAP3 ISP. The iommu
-> interrupt handler must check the fault status and return IRQ_HANDLED
-> when no fault occured.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Please pull omap fixes from:
 
-Could you please pick this one up for 2.6.39 ? As far as I know David is on 
-holidays so he might not be able to review the patch before the 2.6.39 
-release.
+git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes-for-linus
 
-> ---
->  arch/arm/plat-omap/iommu.c |    2 ++
->  1 files changed, 2 insertions(+), 0 deletions(-)
-> 
-> The OMAP3 ISP IOMMU got broken in 2.6.39-rc1 by
-> 
-> commit d594f1f31afe13edd8c02f3854a65cc58cfb3b74
-> Author: David Cohen <dacohen@gmail.com>
-> Date:   Wed Feb 16 19:35:51 2011 +0000
-> 
->     omap: IOMMU: add support to callback during fault handling
-> 
->     Add support to register an isr for IOMMU fault situations and adapt it
->     to allow such (*isr)() to be used as fault callback. Drivers using
-> IOMMU module might want to be informed when errors happen in order to
-> debug it or react.
-> 
->     Signed-off-by: David Cohen <dacohen@gmail.com>
->     Acked-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
->     Signed-off-by: Tony Lindgren <tony@atomide.com>
-> 
-> This patch fixes it and should be pushed to mainline in 2.6.39. The OMAP3
-> ISP driver, new in 2.6.39, would otherwise be totally broken until 2.6.40.
-> 
-> diff --git a/arch/arm/plat-omap/iommu.c b/arch/arm/plat-omap/iommu.c
-> index 8a51fd5..34fc31e 100644
-> --- a/arch/arm/plat-omap/iommu.c
-> +++ b/arch/arm/plat-omap/iommu.c
-> @@ -793,6 +793,8 @@ static irqreturn_t iommu_fault_handler(int irq, void
-> *data) clk_enable(obj->clk);
->  	errs = iommu_report_fault(obj, &da);
->  	clk_disable(obj->clk);
-> +	if (errs == 0)
-> +		return IRQ_HANDLED;
-> 
->  	/* Fault callback or TLB/PTE Dynamic loading */
->  	if (obj->isr && !obj->isr(obj, da, errs, obj->isr_priv))
+Most of the diffstat is fixing clock related flags, the kind
+of stuff that will be eventually coming from device tree as
+discussed earlier. Anyways necessariy fixes for correct clocking
+for the -rc cycle.  
 
--- 
+The other patches are quite trivial one liner fixes.
+
 Regards,
 
-Laurent Pinchart
+Tony
+
+
+The following changes since commit 8e10cd74342c7f5ce259cceca36f6eba084f5d58:
+  Linus Torvalds (1):
+        Linux 2.6.39-rc5
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes-for-linus
+
+Avinash.H.M (1):
+      OMAP2/3: hwmod: fix gpio-reset timeouts seen during bootup.
+
+Benoit Cousson (1):
+      OMAP2+: hwmod data: Fix wrong dma_system end address
+
+Eduardo Valentin (2):
+      OMAP2+: PM: Fix the saving of CM_AUTOIDLE_PLL register on scratchpad area
+      OMAP3: PM: Do not rely on ROM code to restore CM_AUTOIDLE_PLL.AUTO_PERIPH_DPLL
+
+Felipe Contreras (1):
+      omap: rx51: mark reserved memory earlier
+
+Nishanth Menon (1):
+      OMAP3+: voltage: remove initial voltage
+
+Oskar Andero (1):
+      arm: omap2: enable smc instruction for sleep34xx
+
+Shweta Gulati (1):
+      OMAP4: Intialize IVA Device in addition to DSP device.
+
+Tomi Valkeinen (1):
+      OMAP4: clock data: Change DSS clock aliases
+
+Tony Lindgren (1):
+      Merge branch 'for_tony_a_2.6.39rc' of git://git.pwsan.com/linux-2.6 into devel-fixes
+
+omar ramirez (1):
+      OMAP3: l3: fix for "irq 10: nobody cared" message
+
+ arch/arm/mach-omap2/Makefile               |    2 +-
+ arch/arm/mach-omap2/board-rx51.c           |    9 +++++++--
+ arch/arm/mach-omap2/clock44xx_data.c       |    9 ++-------
+ arch/arm/mach-omap2/cm2xxx_3xxx.c          |   17 +++++++++++++++++
+ arch/arm/mach-omap2/control.c              |    8 +++++++-
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c |    6 +++++-
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c |    7 ++++++-
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    8 +++++++-
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    2 +-
+ arch/arm/mach-omap2/omap_l3_smx.c          |    4 ++--
+ arch/arm/mach-omap2/pm.c                   |    1 +
+ arch/arm/mach-omap2/voltage.c              |    1 -
+ 12 files changed, 56 insertions(+), 18 deletions(-)
