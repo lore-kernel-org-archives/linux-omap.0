@@ -1,150 +1,142 @@
-From: jean.pihet@newoldbits.com
-Subject: [PATCH 4/5] OMAP3: cpuidle: code rework for improved readability
-Date: Fri, 29 Apr 2011 11:26:25 +0200
-Message-ID: <1304069186-3086-5-git-send-email-j-pihet@ti.com>
-References: <1304069186-3086-1-git-send-email-j-pihet@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:43614 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751972Ab1D2Jcv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Apr 2011 05:32:51 -0400
-Received: by wya21 with SMTP id 21so2715438wya.19
-        for <linux-omap@vger.kernel.org>; Fri, 29 Apr 2011 02:32:50 -0700 (PDT)
-In-Reply-To: <1304069186-3086-1-git-send-email-j-pihet@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 1/2] OMAP3: ISP: Add regulator control for omap34xx
+Date: Fri, 29 Apr 2011 11:48:56 +0200
+Message-ID: <201104291148.57770.laurent.pinchart@ideasonboard.com>
+References: <1304061120-6383-1-git-send-email-kalle.jokiniemi@nokia.com> <1304061120-6383-2-git-send-email-kalle.jokiniemi@nokia.com>
+Mime-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <1304061120-6383-2-git-send-email-kalle.jokiniemi@nokia.com>
+Sender: linux-media-owner@vger.kernel.org
+To: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
+Cc: tony@atomide.com, mchebab@infradead.org, linux-omap@vger.kernel.org, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, khilman@ti.com
-Cc: Jean Pihet <j-pihet@ti.com>
 
-From: Jean Pihet <j-pihet@ti.com>
+Hi Kalle,
 
-Signed-off-by: Jean Pihet <j-pihet@ti.com>
----
- arch/arm/mach-omap2/cpuidle34xx.c |   52 +++++++++++++-----------------------
- 1 files changed, 19 insertions(+), 33 deletions(-)
+On Friday 29 April 2011 09:11:59 Kalle Jokiniemi wrote:
+> The current omap3isp driver is missing regulator handling
+> for CSIb complex in omap34xx based devices. This patch
+> adds a mechanism for this to the omap3isp driver.
+> 
+> Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
 
-diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
-index f84315c..4673cc6 100644
---- a/arch/arm/mach-omap2/cpuidle34xx.c
-+++ b/arch/arm/mach-omap2/cpuidle34xx.c
-@@ -80,13 +80,6 @@ static struct cpuidle_params cpuidle_params_table[OMAP3_MAX_STATES] = {
- 	{10000 + 30000, 300000, 1},
- };
- 
--static int omap3_idle_bm_check(void)
--{
--	if (!omap3_can_sleep())
--		return 1;
--	return 0;
--}
--
- static int _cpuidle_allow_idle(struct powerdomain *pwrdm,
- 				struct clockdomain *clkdm)
- {
-@@ -166,9 +159,7 @@ static struct cpuidle_state *next_valid_state(struct cpuidle_device *dev,
- 					      struct cpuidle_state *curr)
- {
- 	struct cpuidle_state *next = NULL;
--	struct omap3_idle_statedata *cx;
--
--	cx = cpuidle_get_statedata(curr);
-+	struct omap3_idle_statedata *cx = cpuidle_get_statedata(curr);
- 
- 	/* Check if current state is valid */
- 	if (cx->valid) {
-@@ -176,9 +167,7 @@ static struct cpuidle_state *next_valid_state(struct cpuidle_device *dev,
- 	} else {
- 		u8 idx = OMAP3_STATE_MAX;
- 
--		/*
--		 * Reach the current state starting at highest C-state
--		 */
-+		/* Reach the current state starting at highest C-state */
- 		for (; idx >= OMAP3_STATE_C1; idx--) {
- 			if (&dev->states[idx] == curr) {
- 				next = &dev->states[idx];
-@@ -186,9 +175,7 @@ static struct cpuidle_state *next_valid_state(struct cpuidle_device *dev,
- 			}
- 		}
- 
--		/*
--		 * Should never hit this condition.
--		 */
-+		/* Should never hit this condition */
- 		WARN_ON(next == NULL);
- 
- 		/*
-@@ -223,29 +210,16 @@ static struct cpuidle_state *next_valid_state(struct cpuidle_device *dev,
- static int omap3_enter_idle_bm(struct cpuidle_device *dev,
- 			       struct cpuidle_state *state)
- {
--	struct cpuidle_state *new_state = next_valid_state(dev, state);
--	u32 core_next_state, per_next_state = 0, per_saved_state = 0;
--	u32 cam_state;
-+	struct cpuidle_state *new_state;
-+	u32 core_next_state, per_next_state = 0, per_saved_state = 0, cam_state;
- 	struct omap3_idle_statedata *cx;
- 	int ret;
- 
--	if (omap3_idle_bm_check()) {
--		BUG_ON(!dev->safe_state);
-+	if (!omap3_can_sleep()) {
- 		new_state = dev->safe_state;
- 		goto select_state;
- 	}
- 
--	cx = cpuidle_get_statedata(state);
--	core_next_state = cx->core_state;
--
--	/*
--	 * FIXME: we currently manage device-specific idle states
--	 *        for PER and CORE in combination with CPU-specific
--	 *        idle states.  This is wrong, and device-specific
--	 *        idle management needs to be separated out into 
--	 *        its own code.
--	 */
--
- 	/*
- 	 * Prevent idle completely if CAM is active.
- 	 * CAM does not have wakeup capability in OMAP3.
-@@ -257,9 +231,19 @@ static int omap3_enter_idle_bm(struct cpuidle_device *dev,
- 	}
- 
- 	/*
-+	 * FIXME: we currently manage device-specific idle states
-+	 *        for PER and CORE in combination with CPU-specific
-+	 *        idle states.  This is wrong, and device-specific
-+	 *        idle management needs to be separated out into
-+	 *        its own code.
-+	 */
-+
-+	/*
- 	 * Prevent PER off if CORE is not in retention or off as this
- 	 * would disable PER wakeups completely.
- 	 */
-+	cx = cpuidle_get_statedata(state);
-+	core_next_state = cx->core_state;
- 	per_next_state = per_saved_state = pwrdm_read_next_pwrst(per_pd);
- 	if ((per_next_state == PWRDM_POWER_OFF) &&
- 	    (core_next_state > PWRDM_POWER_RET))
-@@ -269,6 +253,8 @@ static int omap3_enter_idle_bm(struct cpuidle_device *dev,
- 	if (per_next_state != per_saved_state)
- 		pwrdm_set_next_pwrst(per_pd, per_next_state);
- 
-+	new_state = next_valid_state(dev, state);
-+
- select_state:
- 	dev->last_state = new_state;
- 	ret = omap3_enter_idle(dev, new_state);
-@@ -329,7 +315,7 @@ struct cpuidle_driver omap3_idle_driver = {
- 	.owner = 	THIS_MODULE,
- };
- 
--/* Fill in the state data from the mach tables and register the driver_data */
-+/* Helper to fill the C-state common data and register the driver_data */
- #define FILL_IN_STATE(idx, descr)					\
- do {									\
- 	state				= &dev->states[count];		\
+Thanks for the patch.
+
+The CSIb pins are multiplexed with the parallel interface cam_d[6:9] signals, 
+so the driver might need to handle the vdds_csib regulator for the parallel 
+interface as well. We can leave that out now though, as I'm not sure we'll 
+ever see a platform that will require that.
+
+> ---
+>  drivers/media/video/omap3isp/ispccp2.c |   24 +++++++++++++++++++++++-
+>  drivers/media/video/omap3isp/ispccp2.h |    1 +
+>  2 files changed, 24 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/media/video/omap3isp/ispccp2.c
+> b/drivers/media/video/omap3isp/ispccp2.c index 0e16cab..3b17b0d 100644
+> --- a/drivers/media/video/omap3isp/ispccp2.c
+> +++ b/drivers/media/video/omap3isp/ispccp2.c
+> @@ -30,6 +30,7 @@
+>  #include <linux/module.h>
+>  #include <linux/mutex.h>
+>  #include <linux/uaccess.h>
+> +#include <linux/regulator/consumer.h>
+> 
+>  #include "isp.h"
+>  #include "ispreg.h"
+> @@ -163,6 +164,9 @@ static void ccp2_if_enable(struct isp_ccp2_device
+> *ccp2, u8 enable) struct isp_pipeline *pipe =
+> to_isp_pipeline(&ccp2->subdev.entity); int i;
+> 
+> +	if (enable && ccp2->vdds_csib)
+> +		regulator_enable(ccp2->vdds_csib);
+> +
+>  	/* Enable/Disable all the LCx channels */
+>  	for (i = 0; i < CCP2_LCx_CHANS_NUM; i++)
+>  		isp_reg_clr_set(isp, OMAP3_ISP_IOMEM_CCP2, ISPCCP2_LCx_CTRL(i),
+> @@ -186,6 +190,8 @@ static void ccp2_if_enable(struct isp_ccp2_device
+> *ccp2, u8 enable) ISPCCP2_LC01_IRQENABLE,
+>  				    ISPCCP2_LC01_IRQSTATUS_LC0_FS_IRQ);
+>  	}
+
+If you resubmit the patch to address the comments below, please add a blank 
+line here.
+
+> +	if (!enable && ccp2->vdds_csib)
+> +		regulator_disable(ccp2->vdds_csib);
+>  }
+> 
+>  /*
+> @@ -1137,6 +1143,10 @@ error:
+>   */
+>  void omap3isp_ccp2_cleanup(struct isp_device *isp)
+>  {
+> +	struct isp_ccp2_device *ccp2 = &isp->isp_ccp2;
+> +
+> +	if (isp->revision == ISP_REVISION_2_0)
+> +		regulator_put(ccp2->vdds_csib);
+
+What about testing ccp2->vdds_csib != NULL here like you do above ? Not all 
+ES2.0 platforms will use a regulator, so you can end up calling 
+regulator_put(NULL). regulator_put() will return immediately, but the API 
+doesn't allow it explictly either.
+
+If regulator_put(NULL) is deemed to be safe, I would remove the revision check 
+here. If it isn't, I would replace it with a ccp2->vdds_csib != NULL check.
+
+>  }
+> 
+>  /*
+> @@ -1155,10 +1165,22 @@ int omap3isp_ccp2_init(struct isp_device *isp)
+>  	 * the CSI2c or CSI2a receivers. The PHY then needs to be explicitly
+>  	 * configured.
+>  	 *
+> +	 * On the OMAP34xx the CSI1/CCB is operated in the CSIb IO complex,
+
+CSI1/CCB ? Do you mean CCP ?
+
+The OMAP34xx has no CCP2 support anyway, so I would s,CSI1/CCB,CSI1 receiver,.
+
+> +	 * which is powered by vdds_csib power rail. Hence the request for
+> +	 * the regulator.
+> +	 *
+>  	 * TODO: Don't hardcode the usage of PHY1 (shared with CSI2c).
+>  	 */
+> -	if (isp->revision == ISP_REVISION_15_0)
+> +	if (isp->revision == ISP_REVISION_15_0) {
+>  		ccp2->phy = &isp->isp_csiphy1;
+> +	} else if (isp->revision == ISP_REVISION_2_0) {
+> +		ccp2->vdds_csib = regulator_get(isp->dev, "vdds_csib");
+> +		if (IS_ERR(ccp2->vdds_csib)) {
+> +			dev_dbg(isp->dev,
+> +				"Could not get regulator vdds_csib\n");
+> +			ccp2->vdds_csib = NULL;
+> +		}
+> +	}
+
+If you resubmit your patch to address the above comments, could you please 
+reorder the code (and the comment) here and put the ES2.0 check before the 
+15.0 ?
+
+>  	ret = ccp2_init_entities(ccp2);
+>  	if (ret < 0)
+> diff --git a/drivers/media/video/omap3isp/ispccp2.h
+> b/drivers/media/video/omap3isp/ispccp2.h index 5505a86..6674e9d 100644
+> --- a/drivers/media/video/omap3isp/ispccp2.h
+> +++ b/drivers/media/video/omap3isp/ispccp2.h
+> @@ -81,6 +81,7 @@ struct isp_ccp2_device {
+>  	struct isp_interface_mem_config mem_cfg;
+>  	struct isp_video video_in;
+>  	struct isp_csiphy *phy;
+> +	struct regulator *vdds_csib;
+>  	unsigned int error;
+>  	enum isp_pipeline_stream_state state;
+>  	wait_queue_head_t wait;
+
 -- 
-1.7.1
+Regards,
 
+Laurent Pinchart
