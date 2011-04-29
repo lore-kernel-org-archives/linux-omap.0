@@ -1,47 +1,43 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [GIT PULL] OMAP hwmod/PRCM/clock: patches for 2.6.39-rc
-Date: Fri, 29 Apr 2011 12:33:43 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1104291232450.18555@utopia.booyaka.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+From: green@linuxhacker.ru
+Subject: [PATCH] Fix incorrect structure freeing in omap_nand_remove()
+Date: Fri, 29 Apr 2011 15:03:25 -0400
+Message-ID: <1304103805-14057-1-git-send-email-green@linuxhacker.ru>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:56688 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753090Ab1D2Sdo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Apr 2011 14:33:44 -0400
+Received: from c-71-228-165-73.hsd1.tn.comcast.net ([71.228.165.73]:45748 "EHLO
+	fatbox1.localnet" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S933238Ab1D2TDx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Apr 2011 15:03:53 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: Artem Bityutskiy <dedekind1@gmail.com>, Oleg Drokin <green@linuxhacker.ru>
 
-Hi Tony
+From: Oleg Drokin <green@linuxhacker.ru>
 
-The following changes since commit 8e10cd74342c7f5ce259cceca36f6eba084f5d58:
+Attempt to kfree(&info->mtd) is a bad idea since it's
+a different substructure in the middle of a properly
+allocated struct omap_nand_info.
+I guess nobody tripped it before since nobody really
+removes NAND flash and nobody unloads the module either.
 
-  Linux 2.6.39-rc5 (2011-04-26 20:48:50 -0700)
+Signed-off-by: Oleg Drokin <green@linuxhacker.ru>
+---
+ drivers/mtd/nand/omap2.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-are available in the git repository at:
-  git://git.pwsan.com/linux-2.6 for_tony_a_2.6.39rc
-
-Avinash.H.M (1):
-      OMAP2/3: hwmod: fix gpio-reset timeouts seen during bootup.
-
-Benoit Cousson (1):
-      OMAP2+: hwmod data: Fix wrong dma_system end address
-
-Eduardo Valentin (2):
-      OMAP2+: PM: Fix the saving of CM_AUTOIDLE_PLL register on scratchpad area
-      OMAP3: PM: Do not rely on ROM code to restore CM_AUTOIDLE_PLL.AUTO_PERIPH_DPLL
-
-Tomi Valkeinen (1):
-      OMAP4: clock data: Change DSS clock aliases
-
- arch/arm/mach-omap2/clock44xx_data.c       |    9 ++-------
- arch/arm/mach-omap2/cm2xxx_3xxx.c          |   17 +++++++++++++++++
- arch/arm/mach-omap2/control.c              |    8 +++++++-
- arch/arm/mach-omap2/omap_hwmod_2420_data.c |    6 +++++-
- arch/arm/mach-omap2/omap_hwmod_2430_data.c |    7 ++++++-
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    8 +++++++-
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    2 +-
- 7 files changed, 45 insertions(+), 12 deletions(-)
+diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+index da9a351..39f5034 100644
+--- a/drivers/mtd/nand/omap2.c
++++ b/drivers/mtd/nand/omap2.c
+@@ -1139,7 +1139,7 @@ static int omap_nand_remove(struct platform_device *pdev)
+ 	/* Release NAND device, its internal structures and partitions */
+ 	nand_release(&info->mtd);
+ 	iounmap(info->nand.IO_ADDR_R);
+-	kfree(&info->mtd);
++	kfree(info);
+ 	return 0;
+ }
+ 
+-- 
+1.7.4.4
 
