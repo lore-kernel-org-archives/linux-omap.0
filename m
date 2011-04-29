@@ -1,66 +1,63 @@
-From: Artem Bityutskiy <dedekind1@gmail.com>
-Subject: Re: [RFC] mtd: nand: Fix bad block identification issue
-Date: Fri, 29 Apr 2011 16:12:24 +0300
-Message-ID: <1304082744.2737.46.camel@localhost>
-References: <1303906161-24175-1-git-send-email-parth.saxena@ti.com>
-	 <1304011843.2737.3.camel@localhost>
-Reply-To: dedekind1@gmail.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: [PATCH] usb: musb: gadget: Fix out-of-sync runtime pm calls
+Date: Fri, 29 Apr 2011 16:17:35 +0300
+Message-ID: <1304083055-2809-1-git-send-email-jhnikula@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:58736 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755941Ab1D2NQi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Apr 2011 09:16:38 -0400
-Received: by ewy4 with SMTP id 4so1142427ewy.19
-        for <linux-omap@vger.kernel.org>; Fri, 29 Apr 2011 06:16:37 -0700 (PDT)
-In-Reply-To: <1304011843.2737.3.camel@localhost>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:52792 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755645Ab1D2NRo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Apr 2011 09:17:44 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Saxena, Parth" <parth.saxena@ti.com>
-Cc: Brian Norris <computersforpeace@gmail.com>, linux-mtd@lists.infradead.org, "Basheer, Mansoor Ahamed" <mansoor.ahamed@ti.com>, linux-omap@vger.kernel.org
+To: linux-usb@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Hema HK <hemahk@ti.com>, Jarkko Nikula <jhnikula@gmail.com>
 
-On Thu, 2011-04-28 at 20:30 +0300, Artem Bityutskiy wrote:
-> On Wed, 2011-04-27 at 17:39 +0530, Saxena, Parth wrote:
-> > This patch solves the above issue for omap by initialising
-> > badblockbits. We are working further on this to find a generic fix
-> > to the problem in nand_base.c.
->=20
-> But it looks like the generic solution is to return the line which wa=
-s
-> accidentally removed, how about this patch
->=20
-> From: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
-> Date: Thu, 28 Apr 2011 20:26:59 +0300
-> Subject: [PATCH] mtd: return badblockbits back
->=20
-> In commit c7b28e25cb9beb943aead770ff14551b55fa8c79 the initialization=
- of
-> the backblockbits was accidentally removed. This patch returns it bac=
-k,
-> because otherwise some NAND drivers are broken.
->=20
-> This problem was reported by "Saxena, Parth <parth.saxena@ti.com>" he=
-re:
-> http://lists.infradead.org/pipermail/linux-mtd/2011-April/035221.html
->=20
-> Reported-by: Saxena, Parth <parth.saxena@ti.com>
-> Signed-off-by: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
-> Cc: stable@kernel.org [2.6.36+]
-> ---
->  drivers/mtd/nand/nand_base.c |    2 ++
->  1 files changed, 2 insertions(+), 0 deletions(-)
+If cable is not connected to peripheral only board when initializing the
+gadget driver, then runtime pm calls are out-of-sync and the musb cannot
+idle with omap2430.c. This was noted on Nokia N900 where musb prevented the
+CPU to be able to enter deeper retention idle state.
 
-Any ack/nack/tested-by?
+This was working in 2.6.38 before runtime pm conversions but there musb
+smart standby/idle modes were configured statically where they are now
+updated runtime depending on use and cable status.
 
---=20
-Best Regards,
-Artem Bityutskiy (=D0=90=D1=80=D1=82=D1=91=D0=BC =D0=91=D0=B8=D1=82=D1=8E=
-=D1=86=D0=BA=D0=B8=D0=B9)
+Reason for out-of-sync is that runtime pm is activated in function
+musb_gadget.c: usb_gadget_probe_driver but suspended only in OTG mode if
+cable is not connected when initializing. In peripheral only mode this leads
+to out-of-sync runtime pm since runtime pm remain active and is activated
+another time in omap2430.c: musb_otg_notifications for VBUS Connect event
+and thus cannot suspend for VBUS Disconnect event since the use count remains
+active.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Fix this by moving cable status check and pm_runtime_put call in
+usb_gadget_probe_driver out of is_otg_enabled block.
+
+Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
+---
+IMHO this is for 2.6.39 as this fixes PM regression on OMAP2+ boards that use
+musb in peripheral mode.
+---
+ drivers/usb/musb/musb_gadget.c |    6 ++----
+ 1 files changed, 2 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_gadget.c
+index 6dfbf9f..f47c201 100644
+--- a/drivers/usb/musb/musb_gadget.c
++++ b/drivers/usb/musb/musb_gadget.c
+@@ -1887,11 +1887,9 @@ int usb_gadget_probe_driver(struct usb_gadget_driver *driver,
+ 			otg_set_vbus(musb->xceiv, 1);
+ 
+ 		hcd->self.uses_pio_for_control = 1;
+-
+-		if (musb->xceiv->last_event == USB_EVENT_NONE)
+-			pm_runtime_put(musb->controller);
+-
+ 	}
++	if (musb->xceiv->last_event == USB_EVENT_NONE)
++		pm_runtime_put(musb->controller);
+ 
+ 	return 0;
+ 
+-- 
+1.7.0.4
+
