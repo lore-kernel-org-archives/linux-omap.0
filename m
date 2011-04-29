@@ -1,7 +1,7 @@
 From: Bryan DE FARIA <bdefaria@adeneo-embedded.com>
-Subject: [PATCH 2/3] omap : nand : fix omap2 module reinsertion
-Date: Fri, 29 Apr 2011 12:31:09 +0200
-Message-ID: <1304073070-24526-3-git-send-email-bdefaria@adeneo-embedded.com>
+Subject: [PATCH 3/3] omap : nand : fix subpage ecc issue with prefetch
+Date: Fri, 29 Apr 2011 12:31:10 +0200
+Message-ID: <1304073070-24526-4-git-send-email-bdefaria@adeneo-embedded.com>
 References: <1304073070-24526-1-git-send-email-bdefaria@adeneo-embedded.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,25 +21,28 @@ To: linux-omap@vger.kernel.org
 Cc: Bryan DE FARIA <bdefaria@adeneo-embedded.com>, jjhiblot@adetelgroup.com, linux-mtd@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-When the module is removed, a reinsertion will fail with a -16 error.
+When reading a subpage with a non dividable by 4 ecc number of byte, the
+prefetch function gets first the extra bytes, then reads the bytes lefting.
+Extra bytes are not returned in the buffer (they are overwritten), which makes
+the software ecc fail.
 
 Signed-off-by: Bryan DE FARIA <bdefaria@adeneo-embedded.com>
 ---
- drivers/mtd/nand/omap2.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ drivers/mtd/nand/omap2.c |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
 
 diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-index da9a351..eab51da 100644
+index eab51da..728db14 100644
 --- a/drivers/mtd/nand/omap2.c
 +++ b/drivers/mtd/nand/omap2.c
-@@ -1138,6 +1138,7 @@ static int omap_nand_remove(struct platform_device *pdev)
- 
- 	/* Release NAND device, its internal structures and partitions */
- 	nand_release(&info->mtd);
-+	release_mem_region(info->phys_base, NAND_IO_SIZE);
- 	iounmap(info->nand.IO_ADDR_R);
- 	kfree(&info->mtd);
- 	return 0;
+@@ -267,7 +267,6 @@ static void omap_read_buf_pref(struct mtd_info *mtd, u_char *buf, int len)
+ 		else
+ 			omap_read_buf8(mtd, buf, len);
+ 	} else {
+-		p = (u32 *) buf;
+ 		do {
+ 			r_count = gpmc_read_status(GPMC_PREFETCH_FIFO_CNT);
+ 			r_count = r_count >> 2;
 -- 
 1.7.1
 
