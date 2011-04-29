@@ -1,148 +1,28 @@
-From: srinath@mistralsolutions.com
-Subject: [PATCH 2/2] AM35xx-Craneboard:Display: Add DVI and TV Support
-Date: Fri, 29 Apr 2011 17:11:01 +0530
-Message-ID: <1304077261-17811-2-git-send-email-srinath@mistralsolutions.com>
-References: <[PATCH]>
+From: Sergei Shtylyov <sshtylyov@mvista.com>
+Subject: Re: [PATCH 1/2] AM35xx-Craneboard: USB EHCI: Fix USB ECHI PHY reset
+Date: Fri, 29 Apr 2011 16:39:56 +0400
+Message-ID: <4DBAB19C.2030103@ru.mvista.com>
+References: <[PATCH]> <1304077261-17811-1-git-send-email-srinath@mistralsolutions.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <[PATCH]>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: nm@ti.com, linux@arm.linux.org.uk, umeshk@mistralsolutions.com, tony@atomide.com, nagendra@mistralsolutions.com, Srinath <srinath@mistralsolutions.com>, linux-kernel@vger.kernel.org, khilman@deeprootsystems.com, jdk@ti.com, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1304077261-17811-1-git-send-email-srinath@mistralsolutions.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: srinath@mistralsolutions.com
+Cc: linux-omap@vger.kernel.org, nm@ti.com, linux@arm.linux.org.uk, umeshk@mistralsolutions.com, tony@atomide.com, nagendra@mistralsolutions.com, linux-kernel@vger.kernel.org, khilman@deeprootsystems.com, jdk@ti.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Srinath <srinath@mistralsolutions.com>
+Hello.
 
-Added Display (DVI and TV) support for CraneBoard.
+On 29-04-2011 15:41, srinath@mistralsolutions.com wrote:
 
-Signed-off-by: Srinath <srinath@mistralsolutions.com>
----
- arch/arm/mach-omap2/board-am3517crane.c |   78 +++++++++++++++++++++++++++++++
- 1 files changed, 78 insertions(+), 0 deletions(-)
+> From: Srinath <srinath@mistralsolutions.com>
 
-diff --git a/arch/arm/mach-omap2/board-am3517crane.c b/arch/arm/mach-omap2/board-am3517crane.c
-index 05867b5..83fe85b 100644
---- a/arch/arm/mach-omap2/board-am3517crane.c
-+++ b/arch/arm/mach-omap2/board-am3517crane.c
-@@ -29,12 +29,15 @@
- #include <plat/board.h>
- #include <plat/common.h>
- #include <plat/usb.h>
-+#include <plat/display.h>
-+#include <plat/panel-generic-dpi.h>
- 
- #include "mux.h"
- #include "control.h"
- 
- #define GPIO_USB_POWER		35
- #define GPIO_USB_NRESET		38
-+#define GPIO_DVI_ENABLE		52
- 
- 
- /* Board initialization */
-@@ -66,11 +69,83 @@ static struct usbhs_omap_board_data usbhs_bdata __initdata = {
- 	.reset_gpio_port[2]  = -EINVAL
- };
- 
-+static void __init am3517_crane_display_init(void)
-+{
-+	int ret;
-+
-+	ret = omap_mux_init_gpio(GPIO_DVI_ENABLE, OMAP_PIN_OUTPUT);
-+	if (ret < 0) {
-+		pr_err("Can not configure mux for GPIO_DVI_ENABLE %d\n",
-+			GPIO_DVI_ENABLE);
-+		return;
-+	}
-+
-+	ret = gpio_request(GPIO_DVI_ENABLE, "dvi_enable");
-+	if (ret < 0) {
-+		pr_err("Can not request GPIO %d\n", GPIO_DVI_ENABLE);
-+		return;
-+	}
-+
-+	ret = gpio_direction_output(GPIO_DVI_ENABLE, 1);
-+	if (ret < 0) {
-+		gpio_free(GPIO_DVI_ENABLE);
-+		pr_err("Unable to enable DVI\n");
-+		return;
-+	}
-+}
-+
-+static struct omap_dss_device am3517_crane_tv_device = {
-+	.type                   = OMAP_DISPLAY_TYPE_VENC,
-+	.name                   = "tv",
-+	.driver_name            = "venc",
-+	.phy.venc.type          = OMAP_DSS_VENC_TYPE_COMPOSITE,
-+	.platform_enable        = NULL,
-+	.platform_disable       = NULL,
-+};
-+
-+static int am3517_crane_panel_enable_dvi(struct omap_dss_device *dssdev)
-+{
-+	gpio_set_value(GPIO_DVI_ENABLE, 1);
-+	return 0;
-+}
-+
-+static void am3517_crane_panel_disable_dvi(struct omap_dss_device *dssdev)
-+{
-+	gpio_set_value(GPIO_DVI_ENABLE, 0);
-+}
-+
-+
-+static struct panel_generic_dpi_data dvi_panel = {
-+	.name                   = "generic",
-+	.platform_enable        = am3517_crane_panel_enable_dvi,
-+	.platform_disable       = am3517_crane_panel_disable_dvi,
-+};
-+
-+static struct omap_dss_device am3517_crane_dvi_device = {
-+	.type                   = OMAP_DISPLAY_TYPE_DPI,
-+	.name                   = "dvi",
-+	.driver_name            = "generic_dpi_panel",
-+	.data                   = &dvi_panel,
-+	.phy.dpi.data_lines     = 24,
-+};
-+
-+static struct omap_dss_device *am3517_crane_dss_devices[] = {
-+	&am3517_crane_tv_device,
-+	&am3517_crane_dvi_device,
-+};
-+
-+static struct omap_dss_board_info am3517_crane_dss_data = {
-+	.num_devices    = ARRAY_SIZE(am3517_crane_dss_devices),
-+	.devices        = am3517_crane_dss_devices,
-+	.default_device = &am3517_crane_dvi_device,
-+};
-+
- static void __init am3517_crane_init(void)
- {
- 	int ret;
- 
- 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
-+	omap_display_init(&am3517_crane_dss_data);
- 	omap_serial_init();
- 
- 	omap_board_config = am3517_crane_config;
-@@ -103,6 +178,9 @@ static void __init am3517_crane_init(void)
- 	}
- 
- 	usbhs_init(&usbhs_bdata);
-+
-+	/* DSS */
-+	am3517_crane_display_init();
- }
- 
- MACHINE_START(CRANEBOARD, "AM3517/05 CRANEBOARD")
--- 
-1.7.1.226.g770c5
+> This patch fixes the EHCI PHY reset issue found on CraneBoard.
+
+> Signed-off-by: Srinath <srinath@mistralsolutions.com>
+
+    AFAIK full name required in signoff.
+
+WBR, Sergei
