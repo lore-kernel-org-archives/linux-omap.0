@@ -1,43 +1,60 @@
-From: green@linuxhacker.ru
-Subject: [PATCH] Fix incorrect structure freeing in omap_nand_remove()
-Date: Fri, 29 Apr 2011 15:03:25 -0400
-Message-ID: <1304103805-14057-1-git-send-email-green@linuxhacker.ru>
+From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Subject: Re: [PATCH 0/8] staging: tidspbridge: PM routines cleanup
+Date: Fri, 29 Apr 2011 14:20:22 -0500
+Message-ID: <BANLkTi=U2X=ouF-vdqHRK9k0VALDmSYaSA@mail.gmail.com>
+References: <1300906193-1732-1-git-send-email-omar.ramirez@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from c-71-228-165-73.hsd1.tn.comcast.net ([71.228.165.73]:45748 "EHLO
-	fatbox1.localnet" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S933238Ab1D2TDx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Apr 2011 15:03:53 -0400
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:35944 "EHLO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1759221Ab1D2TUY convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 29 Apr 2011 15:20:24 -0400
+Received: by mail-wy0-f179.google.com with SMTP id 36so3430620wyg.38
+        for <linux-omap@vger.kernel.org>; Fri, 29 Apr 2011 12:20:22 -0700 (PDT)
+In-Reply-To: <1300906193-1732-1-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Artem Bityutskiy <dedekind1@gmail.com>, Oleg Drokin <green@linuxhacker.ru>
+To: l-o <linux-omap@vger.kernel.org>
+Cc: Omar Ramirez Luna <omar.ramirez@ti.com>, Fernando Guzman Lugo <fernando.lugo@ti.com>, Armando Uribe <x0095078@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>
 
-From: Oleg Drokin <green@linuxhacker.ru>
+On Wed, Mar 23, 2011 at 1:49 PM, Omar Ramirez Luna <omar.ramirez@ti.com=
+> wrote:
+> Cleanup and fixes for tidspbridge's PM routines.
+>
+> The most significant ones are:
+> - Protection of critical sections when disabling clocks which
+> =A0could cause issues during PM transitions.
+> - Fix of resume path from RET power state.
+>
+> Other patches are cleanups and preparations for the usage of
+> spinlock.
+>
+> Omar Ramirez Luna (8):
+> =A0staging: tidspbridge: make wake_dsp to handle PM code
+> =A0staging: tidspbridge: fix resume path from retention
+> =A0staging: tidspbridge: remove msleep for dsp transition wait
+> =A0staging: tidspbridge: send mbox PM command directly
+> =A0staging: tidspbridge: send wake message even if dsp is running
+> =A0staging: tidspbridge: remove redundant code from PM routines
+> =A0staging: tidspbridge: remove redundant indentation in PM routines
+> =A0staging: tidspbridge: protect critical sections on PM routines
+>
+> =A0drivers/staging/tidspbridge/core/tiomap3430_pwr.c | =A0248 +++++++=
++++++++-------
+> =A0drivers/staging/tidspbridge/core/tiomap_io.c =A0 =A0 =A0| =A0 58 +=
+-----
+> =A02 files changed, 168 insertions(+), 138 deletions(-)
 
-Attempt to kfree(&info->mtd) is a bad idea since it's
-a different substructure in the middle of a properly
-allocated struct omap_nand_info.
-I guess nobody tripped it before since nobody really
-removes NAND flash and nobody unloads the module either.
+Pushed to dspbridge.
 
-Signed-off-by: Oleg Drokin <green@linuxhacker.ru>
----
- drivers/mtd/nand/omap2.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+Regards,
 
-diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-index da9a351..39f5034 100644
---- a/drivers/mtd/nand/omap2.c
-+++ b/drivers/mtd/nand/omap2.c
-@@ -1139,7 +1139,7 @@ static int omap_nand_remove(struct platform_device *pdev)
- 	/* Release NAND device, its internal structures and partitions */
- 	nand_release(&info->mtd);
- 	iounmap(info->nand.IO_ADDR_R);
--	kfree(&info->mtd);
-+	kfree(info);
- 	return 0;
- }
- 
--- 
-1.7.4.4
-
+Omar
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
