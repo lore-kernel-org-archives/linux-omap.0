@@ -1,164 +1,66 @@
-From: <kalle.jokiniemi@nokia.com>
-Subject: RE: [PATCH 1/2] OMAP3: ISP: Add regulator control for omap34xx
-Date: Fri, 29 Apr 2011 13:03:54 +0000
-Message-ID: <9D0D31AA57AAF5499AFDC63D6472631B09CC64@008-AM1MPN1-036.mgdnok.nokia.com>
-References: <1304061120-6383-1-git-send-email-kalle.jokiniemi@nokia.com>
- <1304061120-6383-2-git-send-email-kalle.jokiniemi@nokia.com>
- <201104291148.57770.laurent.pinchart@ideasonboard.com>
+From: Artem Bityutskiy <dedekind1@gmail.com>
+Subject: Re: [RFC] mtd: nand: Fix bad block identification issue
+Date: Fri, 29 Apr 2011 16:12:24 +0300
+Message-ID: <1304082744.2737.46.camel@localhost>
+References: <1303906161-24175-1-git-send-email-parth.saxena@ti.com>
+	 <1304011843.2737.3.camel@localhost>
+Reply-To: dedekind1@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <201104291148.57770.laurent.pinchart@ideasonboard.com>
-Content-Language: en-US
-Sender: linux-media-owner@vger.kernel.org
-To: laurent.pinchart@ideasonboard.com
-Cc: tony@atomide.com, mchebab@infradead.org, linux-omap@vger.kernel.org, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:58736 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755941Ab1D2NQi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Apr 2011 09:16:38 -0400
+Received: by ewy4 with SMTP id 4so1142427ewy.19
+        for <linux-omap@vger.kernel.org>; Fri, 29 Apr 2011 06:16:37 -0700 (PDT)
+In-Reply-To: <1304011843.2737.3.camel@localhost>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Saxena, Parth" <parth.saxena@ti.com>
+Cc: Brian Norris <computersforpeace@gmail.com>, linux-mtd@lists.infradead.org, "Basheer, Mansoor Ahamed" <mansoor.ahamed@ti.com>, linux-omap@vger.kernel.org
 
-Hi,
+On Thu, 2011-04-28 at 20:30 +0300, Artem Bityutskiy wrote:
+> On Wed, 2011-04-27 at 17:39 +0530, Saxena, Parth wrote:
+> > This patch solves the above issue for omap by initialising
+> > badblockbits. We are working further on this to find a generic fix
+> > to the problem in nand_base.c.
+>=20
+> But it looks like the generic solution is to return the line which wa=
+s
+> accidentally removed, how about this patch
+>=20
+> From: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
+> Date: Thu, 28 Apr 2011 20:26:59 +0300
+> Subject: [PATCH] mtd: return badblockbits back
+>=20
+> In commit c7b28e25cb9beb943aead770ff14551b55fa8c79 the initialization=
+ of
+> the backblockbits was accidentally removed. This patch returns it bac=
+k,
+> because otherwise some NAND drivers are broken.
+>=20
+> This problem was reported by "Saxena, Parth <parth.saxena@ti.com>" he=
+re:
+> http://lists.infradead.org/pipermail/linux-mtd/2011-April/035221.html
+>=20
+> Reported-by: Saxena, Parth <parth.saxena@ti.com>
+> Signed-off-by: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
+> Cc: stable@kernel.org [2.6.36+]
+> ---
+>  drivers/mtd/nand/nand_base.c |    2 ++
+>  1 files changed, 2 insertions(+), 0 deletions(-)
 
- > -----Original Message-----
- > From: ext Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
- > Sent: 29. huhtikuuta 2011 12:49
- > To: Jokiniemi Kalle (Nokia-SD/Tampere)
- > Cc: tony@atomide.com; mchebab@infradead.org; linux-
- > omap@vger.kernel.org; linux-media@vger.kernel.org
- > Subject: Re: [PATCH 1/2] OMAP3: ISP: Add regulator control for omap34xx
- > 
- > Hi Kalle,
- > 
- > On Friday 29 April 2011 09:11:59 Kalle Jokiniemi wrote:
- > > The current omap3isp driver is missing regulator handling
- > > for CSIb complex in omap34xx based devices. This patch
- > > adds a mechanism for this to the omap3isp driver.
- > >
- > > Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
- > 
- > Thanks for the patch.
+Any ack/nack/tested-by?
 
-No problem, thanks for the comments. Good comments, I'll spin another
-patch after weekend to address the issues.
+--=20
+Best Regards,
+Artem Bityutskiy (=D0=90=D1=80=D1=82=D1=91=D0=BC =D0=91=D0=B8=D1=82=D1=8E=
+=D1=86=D0=BA=D0=B8=D0=B9)
 
-- Kalle
-
- > 
- > The CSIb pins are multiplexed with the parallel interface cam_d[6:9] signals,
- > so the driver might need to handle the vdds_csib regulator for the parallel
- > interface as well. We can leave that out now though, as I'm not sure we'll
- > ever see a platform that will require that.
- > 
- > > ---
- > >  drivers/media/video/omap3isp/ispccp2.c |   24
- > +++++++++++++++++++++++-
- > >  drivers/media/video/omap3isp/ispccp2.h |    1 +
- > >  2 files changed, 24 insertions(+), 1 deletions(-)
- > >
- > > diff --git a/drivers/media/video/omap3isp/ispccp2.c
- > > b/drivers/media/video/omap3isp/ispccp2.c index 0e16cab..3b17b0d 100644
- > > --- a/drivers/media/video/omap3isp/ispccp2.c
- > > +++ b/drivers/media/video/omap3isp/ispccp2.c
- > > @@ -30,6 +30,7 @@
- > >  #include <linux/module.h>
- > >  #include <linux/mutex.h>
- > >  #include <linux/uaccess.h>
- > > +#include <linux/regulator/consumer.h>
- > >
- > >  #include "isp.h"
- > >  #include "ispreg.h"
- > > @@ -163,6 +164,9 @@ static void ccp2_if_enable(struct isp_ccp2_device
- > > *ccp2, u8 enable) struct isp_pipeline *pipe =
- > > to_isp_pipeline(&ccp2->subdev.entity); int i;
- > >
- > > +	if (enable && ccp2->vdds_csib)
- > > +		regulator_enable(ccp2->vdds_csib);
- > > +
- > >  	/* Enable/Disable all the LCx channels */
- > >  	for (i = 0; i < CCP2_LCx_CHANS_NUM; i++)
- > >  		isp_reg_clr_set(isp, OMAP3_ISP_IOMEM_CCP2,
- > ISPCCP2_LCx_CTRL(i),
- > > @@ -186,6 +190,8 @@ static void ccp2_if_enable(struct isp_ccp2_device
- > > *ccp2, u8 enable) ISPCCP2_LC01_IRQENABLE,
- > >  				    ISPCCP2_LC01_IRQSTATUS_LC0_FS_IRQ);
- > >  	}
- > 
- > If you resubmit the patch to address the comments below, please add a blank
- > line here.
- > 
- > > +	if (!enable && ccp2->vdds_csib)
- > > +		regulator_disable(ccp2->vdds_csib);
- > >  }
- > >
- > >  /*
- > > @@ -1137,6 +1143,10 @@ error:
- > >   */
- > >  void omap3isp_ccp2_cleanup(struct isp_device *isp)
- > >  {
- > > +	struct isp_ccp2_device *ccp2 = &isp->isp_ccp2;
- > > +
- > > +	if (isp->revision == ISP_REVISION_2_0)
- > > +		regulator_put(ccp2->vdds_csib);
- > 
- > What about testing ccp2->vdds_csib != NULL here like you do above ? Not all
- > ES2.0 platforms will use a regulator, so you can end up calling
- > regulator_put(NULL). regulator_put() will return immediately, but the API
- > doesn't allow it explictly either.
- > 
- > If regulator_put(NULL) is deemed to be safe, I would remove the revision
- > check
- > here. If it isn't, I would replace it with a ccp2->vdds_csib != NULL check.
- > 
- > >  }
- > >
- > >  /*
- > > @@ -1155,10 +1165,22 @@ int omap3isp_ccp2_init(struct isp_device *isp)
- > >  	 * the CSI2c or CSI2a receivers. The PHY then needs to be explicitly
- > >  	 * configured.
- > >  	 *
- > > +	 * On the OMAP34xx the CSI1/CCB is operated in the CSIb IO complex,
- > 
- > CSI1/CCB ? Do you mean CCP ?
- > 
- > The OMAP34xx has no CCP2 support anyway, so I would s,CSI1/CCB,CSI1
- > receiver,.
- > 
- > > +	 * which is powered by vdds_csib power rail. Hence the request for
- > > +	 * the regulator.
- > > +	 *
- > >  	 * TODO: Don't hardcode the usage of PHY1 (shared with CSI2c).
- > >  	 */
- > > -	if (isp->revision == ISP_REVISION_15_0)
- > > +	if (isp->revision == ISP_REVISION_15_0) {
- > >  		ccp2->phy = &isp->isp_csiphy1;
- > > +	} else if (isp->revision == ISP_REVISION_2_0) {
- > > +		ccp2->vdds_csib = regulator_get(isp->dev, "vdds_csib");
- > > +		if (IS_ERR(ccp2->vdds_csib)) {
- > > +			dev_dbg(isp->dev,
- > > +				"Could not get regulator vdds_csib\n");
- > > +			ccp2->vdds_csib = NULL;
- > > +		}
- > > +	}
- > 
- > If you resubmit your patch to address the above comments, could you please
- > reorder the code (and the comment) here and put the ES2.0 check before the
- > 15.0 ?
- > 
- > >  	ret = ccp2_init_entities(ccp2);
- > >  	if (ret < 0)
- > > diff --git a/drivers/media/video/omap3isp/ispccp2.h
- > > b/drivers/media/video/omap3isp/ispccp2.h index 5505a86..6674e9d 100644
- > > --- a/drivers/media/video/omap3isp/ispccp2.h
- > > +++ b/drivers/media/video/omap3isp/ispccp2.h
- > > @@ -81,6 +81,7 @@ struct isp_ccp2_device {
- > >  	struct isp_interface_mem_config mem_cfg;
- > >  	struct isp_video video_in;
- > >  	struct isp_csiphy *phy;
- > > +	struct regulator *vdds_csib;
- > >  	unsigned int error;
- > >  	enum isp_pipeline_stream_state state;
- > >  	wait_queue_head_t wait;
- > 
- > --
- > Regards,
- > 
- > Laurent Pinchart
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
