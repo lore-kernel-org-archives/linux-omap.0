@@ -1,87 +1,38 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] omap fixes for v2.6.39-rc5
-Date: Fri, 29 Apr 2011 03:16:47 -0700
-Message-ID: <20110429101647.GW3755@atomide.com>
+From: Bryan DE FARIA <bdefaria@adeneo-embedded.com>
+Subject: [PATCH 0/3] omap : nand : omap2 nand driver fixes
+Date: Fri, 29 Apr 2011 12:31:07 +0200
+Message-ID: <1304073070-24526-1-git-send-email-bdefaria@adeneo-embedded.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:61361 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752969Ab1D2KQu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Apr 2011 06:16:50 -0400
-Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
+	<mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
+List-Post: <mailto:linux-mtd@lists.infradead.org>
+List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
+	<mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
+Sender: linux-mtd-bounces@lists.infradead.org
+Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: Bryan DE FARIA <bdefaria@adeneo-embedded.com>, jjhiblot@adetelgroup.com, linux-mtd@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Hi Linus,
+Theses patches make the omap2 nand driver able to compile as a module and fix 
+an issue when the module is reinserted. The last patch corrects an issue when 
+using the software ecc with prefecth.
 
-Please pull omap fixes from:
+Bryan DE FARIA (3):
+  omap : nand : fix omap2 module compilation
+  omap : nand : fix omap2 module reinsertion
+  omap : nand : fix subpage ecc issue with prefetch
 
-git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes-for-linus
-
-Most of the diffstat is fixing clock related flags, the kind
-of stuff that will be eventually coming from device tree as
-discussed earlier. Anyways necessariy fixes for correct clocking
-for the -rc cycle.  
-
-The other patches are quite trivial one liner fixes.
-
-Regards,
-
-Tony
+ arch/arm/mach-omap2/gpmc.c |    2 ++
+ drivers/mtd/nand/omap2.c   |    2 +-
+ 2 files changed, 3 insertions(+), 1 deletions(-)
 
 
-The following changes since commit 8e10cd74342c7f5ce259cceca36f6eba084f5d58:
-  Linus Torvalds (1):
-        Linux 2.6.39-rc5
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes-for-linus
-
-Avinash.H.M (1):
-      OMAP2/3: hwmod: fix gpio-reset timeouts seen during bootup.
-
-Benoit Cousson (1):
-      OMAP2+: hwmod data: Fix wrong dma_system end address
-
-Eduardo Valentin (2):
-      OMAP2+: PM: Fix the saving of CM_AUTOIDLE_PLL register on scratchpad area
-      OMAP3: PM: Do not rely on ROM code to restore CM_AUTOIDLE_PLL.AUTO_PERIPH_DPLL
-
-Felipe Contreras (1):
-      omap: rx51: mark reserved memory earlier
-
-Nishanth Menon (1):
-      OMAP3+: voltage: remove initial voltage
-
-Oskar Andero (1):
-      arm: omap2: enable smc instruction for sleep34xx
-
-Shweta Gulati (1):
-      OMAP4: Intialize IVA Device in addition to DSP device.
-
-Tomi Valkeinen (1):
-      OMAP4: clock data: Change DSS clock aliases
-
-Tony Lindgren (1):
-      Merge branch 'for_tony_a_2.6.39rc' of git://git.pwsan.com/linux-2.6 into devel-fixes
-
-omar ramirez (1):
-      OMAP3: l3: fix for "irq 10: nobody cared" message
-
- arch/arm/mach-omap2/Makefile               |    2 +-
- arch/arm/mach-omap2/board-rx51.c           |    9 +++++++--
- arch/arm/mach-omap2/clock44xx_data.c       |    9 ++-------
- arch/arm/mach-omap2/cm2xxx_3xxx.c          |   17 +++++++++++++++++
- arch/arm/mach-omap2/control.c              |    8 +++++++-
- arch/arm/mach-omap2/omap_hwmod_2420_data.c |    6 +++++-
- arch/arm/mach-omap2/omap_hwmod_2430_data.c |    7 ++++++-
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    8 +++++++-
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    2 +-
- arch/arm/mach-omap2/omap_l3_smx.c          |    4 ++--
- arch/arm/mach-omap2/pm.c                   |    1 +
- arch/arm/mach-omap2/voltage.c              |    1 -
- 12 files changed, 56 insertions(+), 18 deletions(-)
+______________________________________________________
+Linux MTD discussion mailing list
+http://lists.infradead.org/mailman/listinfo/linux-mtd/
