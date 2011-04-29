@@ -1,140 +1,73 @@
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 1/2] OMAP3: ISP: Add regulator control for omap34xx
-Date: Fri, 29 Apr 2011 11:48:56 +0200
-Message-ID: <201104291148.57770.laurent.pinchart@ideasonboard.com>
-References: <1304061120-6383-1-git-send-email-kalle.jokiniemi@nokia.com> <1304061120-6383-2-git-send-email-kalle.jokiniemi@nokia.com>
+Subject: Re: [PATCH FOR 2.6.39] omap: iommu: Return IRQ_HANDLED in fault handler when no fault occured
+Date: Fri, 29 Apr 2011 12:03:10 +0200
+Message-ID: <201104291203.11174.laurent.pinchart@ideasonboard.com>
+References: <1303912982-10309-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <1304061120-6383-2-git-send-email-kalle.jokiniemi@nokia.com>
-Sender: linux-media-owner@vger.kernel.org
-To: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
-Cc: tony@atomide.com, mchebab@infradead.org, linux-omap@vger.kernel.org, linux-media@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:40734 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754247Ab1D2KCv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Apr 2011 06:02:51 -0400
+In-Reply-To: <1303912982-10309-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, David Cohen <dacohen@gmail.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
-Hi Kalle,
+Hi Tony,
 
-On Friday 29 April 2011 09:11:59 Kalle Jokiniemi wrote:
-> The current omap3isp driver is missing regulator handling
-> for CSIb complex in omap34xx based devices. This patch
-> adds a mechanism for this to the omap3isp driver.
+On Wednesday 27 April 2011 16:03:02 Laurent Pinchart wrote:
+> The iommu shares an interrupt line with the OMAP3 ISP. The iommu
+> interrupt handler must check the fault status and return IRQ_HANDLED
+> when no fault occured.
 > 
-> Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Thanks for the patch.
-
-The CSIb pins are multiplexed with the parallel interface cam_d[6:9] signals, 
-so the driver might need to handle the vdds_csib regulator for the parallel 
-interface as well. We can leave that out now though, as I'm not sure we'll 
-ever see a platform that will require that.
+Could you please pick this one up for 2.6.39 ? As far as I know David is on 
+holidays so he might not be able to review the patch before the 2.6.39 
+release.
 
 > ---
->  drivers/media/video/omap3isp/ispccp2.c |   24 +++++++++++++++++++++++-
->  drivers/media/video/omap3isp/ispccp2.h |    1 +
->  2 files changed, 24 insertions(+), 1 deletions(-)
+>  arch/arm/plat-omap/iommu.c |    2 ++
+>  1 files changed, 2 insertions(+), 0 deletions(-)
 > 
-> diff --git a/drivers/media/video/omap3isp/ispccp2.c
-> b/drivers/media/video/omap3isp/ispccp2.c index 0e16cab..3b17b0d 100644
-> --- a/drivers/media/video/omap3isp/ispccp2.c
-> +++ b/drivers/media/video/omap3isp/ispccp2.c
-> @@ -30,6 +30,7 @@
->  #include <linux/module.h>
->  #include <linux/mutex.h>
->  #include <linux/uaccess.h>
-> +#include <linux/regulator/consumer.h>
+> The OMAP3 ISP IOMMU got broken in 2.6.39-rc1 by
 > 
->  #include "isp.h"
->  #include "ispreg.h"
-> @@ -163,6 +164,9 @@ static void ccp2_if_enable(struct isp_ccp2_device
-> *ccp2, u8 enable) struct isp_pipeline *pipe =
-> to_isp_pipeline(&ccp2->subdev.entity); int i;
+> commit d594f1f31afe13edd8c02f3854a65cc58cfb3b74
+> Author: David Cohen <dacohen@gmail.com>
+> Date:   Wed Feb 16 19:35:51 2011 +0000
 > 
-> +	if (enable && ccp2->vdds_csib)
-> +		regulator_enable(ccp2->vdds_csib);
-> +
->  	/* Enable/Disable all the LCx channels */
->  	for (i = 0; i < CCP2_LCx_CHANS_NUM; i++)
->  		isp_reg_clr_set(isp, OMAP3_ISP_IOMEM_CCP2, ISPCCP2_LCx_CTRL(i),
-> @@ -186,6 +190,8 @@ static void ccp2_if_enable(struct isp_ccp2_device
-> *ccp2, u8 enable) ISPCCP2_LC01_IRQENABLE,
->  				    ISPCCP2_LC01_IRQSTATUS_LC0_FS_IRQ);
->  	}
-
-If you resubmit the patch to address the comments below, please add a blank 
-line here.
-
-> +	if (!enable && ccp2->vdds_csib)
-> +		regulator_disable(ccp2->vdds_csib);
->  }
+>     omap: IOMMU: add support to callback during fault handling
 > 
->  /*
-> @@ -1137,6 +1143,10 @@ error:
->   */
->  void omap3isp_ccp2_cleanup(struct isp_device *isp)
->  {
-> +	struct isp_ccp2_device *ccp2 = &isp->isp_ccp2;
-> +
-> +	if (isp->revision == ISP_REVISION_2_0)
-> +		regulator_put(ccp2->vdds_csib);
-
-What about testing ccp2->vdds_csib != NULL here like you do above ? Not all 
-ES2.0 platforms will use a regulator, so you can end up calling 
-regulator_put(NULL). regulator_put() will return immediately, but the API 
-doesn't allow it explictly either.
-
-If regulator_put(NULL) is deemed to be safe, I would remove the revision check 
-here. If it isn't, I would replace it with a ccp2->vdds_csib != NULL check.
-
->  }
+>     Add support to register an isr for IOMMU fault situations and adapt it
+>     to allow such (*isr)() to be used as fault callback. Drivers using
+> IOMMU module might want to be informed when errors happen in order to
+> debug it or react.
 > 
->  /*
-> @@ -1155,10 +1165,22 @@ int omap3isp_ccp2_init(struct isp_device *isp)
->  	 * the CSI2c or CSI2a receivers. The PHY then needs to be explicitly
->  	 * configured.
->  	 *
-> +	 * On the OMAP34xx the CSI1/CCB is operated in the CSIb IO complex,
-
-CSI1/CCB ? Do you mean CCP ?
-
-The OMAP34xx has no CCP2 support anyway, so I would s,CSI1/CCB,CSI1 receiver,.
-
-> +	 * which is powered by vdds_csib power rail. Hence the request for
-> +	 * the regulator.
-> +	 *
->  	 * TODO: Don't hardcode the usage of PHY1 (shared with CSI2c).
->  	 */
-> -	if (isp->revision == ISP_REVISION_15_0)
-> +	if (isp->revision == ISP_REVISION_15_0) {
->  		ccp2->phy = &isp->isp_csiphy1;
-> +	} else if (isp->revision == ISP_REVISION_2_0) {
-> +		ccp2->vdds_csib = regulator_get(isp->dev, "vdds_csib");
-> +		if (IS_ERR(ccp2->vdds_csib)) {
-> +			dev_dbg(isp->dev,
-> +				"Could not get regulator vdds_csib\n");
-> +			ccp2->vdds_csib = NULL;
-> +		}
-> +	}
-
-If you resubmit your patch to address the above comments, could you please 
-reorder the code (and the comment) here and put the ES2.0 check before the 
-15.0 ?
-
->  	ret = ccp2_init_entities(ccp2);
->  	if (ret < 0)
-> diff --git a/drivers/media/video/omap3isp/ispccp2.h
-> b/drivers/media/video/omap3isp/ispccp2.h index 5505a86..6674e9d 100644
-> --- a/drivers/media/video/omap3isp/ispccp2.h
-> +++ b/drivers/media/video/omap3isp/ispccp2.h
-> @@ -81,6 +81,7 @@ struct isp_ccp2_device {
->  	struct isp_interface_mem_config mem_cfg;
->  	struct isp_video video_in;
->  	struct isp_csiphy *phy;
-> +	struct regulator *vdds_csib;
->  	unsigned int error;
->  	enum isp_pipeline_stream_state state;
->  	wait_queue_head_t wait;
+>     Signed-off-by: David Cohen <dacohen@gmail.com>
+>     Acked-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+>     Signed-off-by: Tony Lindgren <tony@atomide.com>
+> 
+> This patch fixes it and should be pushed to mainline in 2.6.39. The OMAP3
+> ISP driver, new in 2.6.39, would otherwise be totally broken until 2.6.40.
+> 
+> diff --git a/arch/arm/plat-omap/iommu.c b/arch/arm/plat-omap/iommu.c
+> index 8a51fd5..34fc31e 100644
+> --- a/arch/arm/plat-omap/iommu.c
+> +++ b/arch/arm/plat-omap/iommu.c
+> @@ -793,6 +793,8 @@ static irqreturn_t iommu_fault_handler(int irq, void
+> *data) clk_enable(obj->clk);
+>  	errs = iommu_report_fault(obj, &da);
+>  	clk_disable(obj->clk);
+> +	if (errs == 0)
+> +		return IRQ_HANDLED;
+> 
+>  	/* Fault callback or TLB/PTE Dynamic loading */
+>  	if (obj->isr && !obj->isr(obj, da, errs, obj->isr_priv))
 
 -- 
 Regards,
