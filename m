@@ -1,88 +1,108 @@
-From: <kalle.jokiniemi@nokia.com>
-Subject: RE: [PATCH 2/2] OMAP3: RX-51: define vdds_csib regulator supply
-Date: Mon, 2 May 2011 09:15:15 +0000
-Message-ID: <9D0D31AA57AAF5499AFDC63D6472631B09CF8B@008-AM1MPN1-036.mgdnok.nokia.com>
-References: <1304061120-6383-1-git-send-email-kalle.jokiniemi@nokia.com>
- <1304061120-6383-3-git-send-email-kalle.jokiniemi@nokia.com>
- <20110429091337.GV3755@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:45201 "EHLO mgw-da02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756852Ab1EBJQD convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 May 2011 05:16:03 -0400
-In-Reply-To: <20110429091337.GV3755@atomide.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+From: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
+Subject: [PATCH v2 1/2] OMAP3: ISP: Add regulator control for omap34xx
+Date: Mon,  2 May 2011 12:16:16 +0300
+Message-ID: <1304327777-31231-2-git-send-email-kalle.jokiniemi@nokia.com>
+References: <1304327777-31231-1-git-send-email-kalle.jokiniemi@nokia.com>
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <1304327777-31231-1-git-send-email-kalle.jokiniemi@nokia.com>
+Sender: linux-media-owner@vger.kernel.org
+To: maurochehab@gmail.com, tony@atomide.com
+Cc: laurent.pinchart@ideasonboard.com, linux-omap@vger.kernel.org, linux-media@vger.kernel.org, Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: laurent.pinchart@ideasonboard.com, maurochehab@gmail.com, linux-omap@vger.kernel.org, linux-media@vger.kernel.org
 
-Hi,
+The current omap3isp driver is missing regulator handling
+for CSIb complex in omap34xx based devices. This patch
+adds a mechanism for this to the omap3isp driver.
 
- > -----Original Message-----
- > From: ext Tony Lindgren [mailto:tony@atomide.com]
- > Sent: 29. huhtikuuta 2011 12:14
- > To: Jokiniemi Kalle (Nokia-SD/Tampere)
- > Cc: laurent.pinchart@ideasonboard.com; mchebab@infradead.org; linux-
- > omap@vger.kernel.org; linux-media@vger.kernel.org
- > Subject: Re: [PATCH 2/2] OMAP3: RX-51: define vdds_csib regulator supply
- > 
- > * Kalle Jokiniemi <kalle.jokiniemi@nokia.com> [110429 00:09]:
- > > The RX-51 uses the CSIb IO complex for camera operation. The
- > > board file is missing definition for the regulator supplying
- > > the CSIb complex, so this is added for better power
- > > management.
- > >
- > > Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
- > 
- > This looks safe to merge along with the other patch
- > 
- > Acked-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
+---
+ drivers/media/video/omap3isp/ispccp2.c |   27 +++++++++++++++++++++++++--
+ drivers/media/video/omap3isp/ispccp2.h |    1 +
+ 2 files changed, 26 insertions(+), 2 deletions(-)
 
-Thanks Tony, adding Mauro's correct email...
-
-- Kalle
-
-
-
-
- > 
- > > ---
- > >  arch/arm/mach-omap2/board-rx51-peripherals.c |    9 +++++++++
- > >  1 files changed, 9 insertions(+), 0 deletions(-)
- > >
- > > diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c
- > b/arch/arm/mach-omap2/board-rx51-peripherals.c
- > > index bbcb677..1324ba3 100644
- > > --- a/arch/arm/mach-omap2/board-rx51-peripherals.c
- > > +++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
- > > @@ -337,6 +337,13 @@ static struct omap2_hsmmc_info mmc[] __initdata =
- > {
- > >  static struct regulator_consumer_supply rx51_vmmc1_supply =
- > >  	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.0");
- > >
- > > +static struct regulator_consumer_supply rx51_vaux2_supplies[] = {
- > > +	REGULATOR_SUPPLY("vdds_csib", "omap3isp"),
- > > +	{
- > > +		.supply = "vaux2",
- > > +	},
- > > +};
- > > +
- > >  static struct regulator_consumer_supply rx51_vaux3_supply =
- > >  	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.1");
- > >
- > > @@ -400,6 +407,8 @@ static struct regulator_init_data rx51_vaux2 = {
- > >  		.valid_ops_mask		= REGULATOR_CHANGE_MODE
- > >  					| REGULATOR_CHANGE_STATUS,
- > >  	},
- > > +	.num_consumer_supplies	= ARRAY_SIZE(rx51_vaux2_supplies),
- > > +	.consumer_supplies	= rx51_vaux2_supplies,
- > >  };
- > >
- > >  /* VAUX3 - adds more power to VIO_18 rail */
- > > --
- > > 1.7.1
- > >
+diff --git a/drivers/media/video/omap3isp/ispccp2.c b/drivers/media/video/omap3isp/ispccp2.c
+index 0e16cab..ec9e395 100644
+--- a/drivers/media/video/omap3isp/ispccp2.c
++++ b/drivers/media/video/omap3isp/ispccp2.c
+@@ -30,6 +30,7 @@
+ #include <linux/module.h>
+ #include <linux/mutex.h>
+ #include <linux/uaccess.h>
++#include <linux/regulator/consumer.h>
+ 
+ #include "isp.h"
+ #include "ispreg.h"
+@@ -163,6 +164,9 @@ static void ccp2_if_enable(struct isp_ccp2_device *ccp2, u8 enable)
+ 	struct isp_pipeline *pipe = to_isp_pipeline(&ccp2->subdev.entity);
+ 	int i;
+ 
++	if (enable && ccp2->vdds_csib)
++		regulator_enable(ccp2->vdds_csib);
++
+ 	/* Enable/Disable all the LCx channels */
+ 	for (i = 0; i < CCP2_LCx_CHANS_NUM; i++)
+ 		isp_reg_clr_set(isp, OMAP3_ISP_IOMEM_CCP2, ISPCCP2_LCx_CTRL(i),
+@@ -186,6 +190,9 @@ static void ccp2_if_enable(struct isp_ccp2_device *ccp2, u8 enable)
+ 				    ISPCCP2_LC01_IRQENABLE,
+ 				    ISPCCP2_LC01_IRQSTATUS_LC0_FS_IRQ);
+ 	}
++
++	if (!enable && ccp2->vdds_csib)
++		regulator_disable(ccp2->vdds_csib);
+ }
+ 
+ /*
+@@ -1137,6 +1144,9 @@ error:
+  */
+ void omap3isp_ccp2_cleanup(struct isp_device *isp)
+ {
++	struct isp_ccp2_device *ccp2 = &isp->isp_ccp2;
++
++	regulator_put(ccp2->vdds_csib);
+ }
+ 
+ /*
+@@ -1151,14 +1161,27 @@ int omap3isp_ccp2_init(struct isp_device *isp)
+ 
+ 	init_waitqueue_head(&ccp2->wait);
+ 
+-	/* On the OMAP36xx, the CCP2 uses the CSI PHY1 or PHY2, shared with
++	/*
++	 * On the OMAP34xx the CSI1 receiver is operated in the CSIb IO
++	 * complex, which is powered by vdds_csib power rail. Hence the
++	 * request for the regulator.
++	 *
++	 * On the OMAP36xx, the CCP2 uses the CSI PHY1 or PHY2, shared with
+ 	 * the CSI2c or CSI2a receivers. The PHY then needs to be explicitly
+ 	 * configured.
+ 	 *
+ 	 * TODO: Don't hardcode the usage of PHY1 (shared with CSI2c).
+ 	 */
+-	if (isp->revision == ISP_REVISION_15_0)
++	if (isp->revision == ISP_REVISION_2_0) {
++		ccp2->vdds_csib = regulator_get(isp->dev, "vdds_csib");
++		if (IS_ERR(ccp2->vdds_csib)) {
++			dev_dbg(isp->dev,
++				"Could not get regulator vdds_csib\n");
++			ccp2->vdds_csib = NULL;
++		}
++	} else if (isp->revision == ISP_REVISION_15_0) {
+ 		ccp2->phy = &isp->isp_csiphy1;
++	}
+ 
+ 	ret = ccp2_init_entities(ccp2);
+ 	if (ret < 0)
+diff --git a/drivers/media/video/omap3isp/ispccp2.h b/drivers/media/video/omap3isp/ispccp2.h
+index 5505a86..6674e9d 100644
+--- a/drivers/media/video/omap3isp/ispccp2.h
++++ b/drivers/media/video/omap3isp/ispccp2.h
+@@ -81,6 +81,7 @@ struct isp_ccp2_device {
+ 	struct isp_interface_mem_config mem_cfg;
+ 	struct isp_video video_in;
+ 	struct isp_csiphy *phy;
++	struct regulator *vdds_csib;
+ 	unsigned int error;
+ 	enum isp_pipeline_stream_state state;
+ 	wait_queue_head_t wait;
+-- 
+1.7.1
