@@ -1,107 +1,276 @@
-From: Matthias Scheer <scheer@in.tum.de>
-Subject: smsc911x: regression on overo platform
-Date: Mon, 2 May 2011 14:31:59 +0000 (UTC)
-Message-ID: <loom.20110502T161913-232@post.gmane.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+From: Mayuresh Janorkar <mayur@ti.com>
+Subject: [PATCH v2 3/7] OMAP: DSS: Adding a picodlp panel driver
+Date: Mon,  2 May 2011 20:22:47 +0530
+Message-ID: <1304347971-1504-4-git-send-email-mayur@ti.com>
+References: <1304347971-1504-1-git-send-email-mayur@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from lo.gmane.org ([80.91.229.12]:54051 "EHLO lo.gmane.org"
+Received: from bear.ext.ti.com ([192.94.94.41]:56020 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759301Ab1EBOfL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 2 May 2011 10:35:11 -0400
-Received: from list by lo.gmane.org with local (Exim 4.69)
-	(envelope-from <gplao-linux-omap-open-source-moved1@m.gmane.org>)
-	id 1QGuDL-0002b9-0r
-	for linux-omap@vger.kernel.org; Mon, 02 May 2011 16:35:09 +0200
-Received: from ppp-93-104-17-21.dynamic.mnet-online.de ([93.104.17.21])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-omap@vger.kernel.org>; Mon, 02 May 2011 16:35:07 +0200
-Received: from scheer by ppp-93-104-17-21.dynamic.mnet-online.de with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-omap@vger.kernel.org>; Mon, 02 May 2011 16:35:07 +0200
+	id S1759538Ab1EBOjO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 2 May 2011 10:39:14 -0400
+Received: from dlep36.itg.ti.com ([157.170.170.91])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p42EdE99025764
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Mon, 2 May 2011 09:39:14 -0500
+In-Reply-To: <1304347971-1504-1-git-send-email-mayur@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
+Cc: tomi.valkeinen@ti.com, Mythri P K <mythripk@ti.com>, Mayuresh Janorkar <mayur@ti.com>
 
-introduced by: 6629398945426f388d61392eecd733336a6316a4
-environment: OMAP3503, Gumstix Overo, linux-omap-2.6.39-rc5
-kernel .config @ http://pastebin.com/QESCFb6j
+From: Mythri P K <mythripk@ti.com>
 
-Thank you for looking into it.
+A projector panel named picodlp is supported by OMAP.
+panel driver is required to be added with the name picodlp_panel.
 
-[    0.205139] kobject (c04ce3a8): tried to init an initialized object,
-something is seriously wrong.
-[    0.205200] [<c004258c>] (unwind_backtrace+0x0/0xe4) from [<c01d1794>]
-(kobject_init+0x38/0x70)
-[    0.205261] [<c01d1794>] (kobject_init+0x38/0x70) from [<c0213dd4>]
-(device_initialize+0x20/0xa4)
-[    0.205322] [<c0213dd4>] (device_initialize+0x20/0xa4) from [<c02179a0>]
-(platform_device_register+0x10/0x1c)
-[    0.205383] [<c02179a0>] (platform_device_register+0x10/0x1c) from
-[<c00128f4>] (gpmc_smsc911x_init+0x110/0x184)
-[    0.205413] [<c00128f4>] (gpmc_smsc911x_init+0x110/0x184) from [<c0011cdc>]
-(overo_init+0xe8/0x32c)
-[    0.205444] [<c0011cdc>] (overo_init+0xe8/0x32c) from [<c000b19c>]
-(customize_machine+0x1c/0x28)
-[    0.205505] [<c000b19c>] (customize_machine+0x1c/0x28) from [<c00333b4>]
-(do_one_initcall+0x98/0x16c)
-[    0.205535] [<c00333b4>] (do_one_initcall+0x98/0x16c) from [<c0008388>]
-(kernel_init+0x8c/0x13c)
-[    0.205566] [<c0008388>] (kernel_init+0x8c/0x13c) from [<c003dd38>]
-(kernel_thread_exit+0x0/0x8)
-[    0.205627] ------------[ cut here ]------------
-[    0.205657] WARNING: at kernel/resource.c:491 __insert_resource+0x44/0x12c()
-[    0.205688] Modules linked in:
-[    0.205718] [<c004258c>] (unwind_backtrace+0x0/0xe4) from [<c0065428>]
-(warn_slowpath_common+0x4c/0x64)
-[    0.205749] [<c0065428>] (warn_slowpath_common+0x4c/0x64) from [<c0065458>]
-(warn_slowpath_null+0x18/0x1c)
-[    0.205810] [<c0065458>] (warn_slowpath_null+0x18/0x1c) from [<c006bd64>]
-(__insert_resource+0x44/0x12c)
-[    0.205841] [<c006bd64>] (__insert_resource+0x44/0x12c) from [<c006bfc0>]
-(insert_resource_conflict+0x24/0x3c)
-[    0.205871] [<c006bfc0>] (insert_resource_conflict+0x24/0x3c) from
-[<c006bfe0>] (insert_resource+0x8/0x14)
-[    0.205902] [<c006bfe0>] (insert_resource+0x8/0x14) from [<c02178e4>]
-(platform_device_add+0xb4/0x160)
-[    0.205963] [<c02178e4>] (platform_device_add+0xb4/0x160) from [<c00128f4>]
-(gpmc_smsc911x_init+0x110/0x184)
-[    0.205993] [<c00128f4>] (gpmc_smsc911x_init+0x110/0x184) from [<c0011cdc>]
-(overo_init+0xe8/0x32c)
-[    0.206024] [<c0011cdc>] (overo_init+0xe8/0x32c) from [<c000b19c>]
-(customize_machine+0x1c/0x28)
-[    0.206085] [<c000b19c>] (customize_machine+0x1c/0x28) from [<c00333b4>]
-(do_one_initcall+0x98/0x16c)
-[    0.206115] [<c00333b4>] (do_one_initcall+0x98/0x16c) from [<c0008388>]
-(kernel_init+0x8c/0x13c)
-[    0.206146] [<c0008388>] (kernel_init+0x8c/0x13c) from [<c003dd38>]
-(kernel_thread_exit+0x0/0x8)
-[    0.206542] ---[ end trace 1b75b31a2719ed1c ]---
-[    0.206573] smsc911x: failed to claim resource 0
-[    0.206573] Unable to register smsc911x device
-[    0.206604] ------------[ cut here ]------------
-[    0.206634] WARNING: at drivers/gpio/gpiolib.c:1236
-gpmc_smsc911x_init+0x130/0x184()
-[    0.206634] Modules linked in:
-[    0.206665] [<c004258c>] (unwind_backtrace+0x0/0xe4) from [<c0065428>]
-(warn_slowpath_common+0x4c/0x64)
-[    0.206726] [<c0065428>] (warn_slowpath_common+0x4c/0x64) from [<c0065458>]
-(warn_slowpath_null+0x18/0x1c)
-[    0.206756] [<c0065458>] (warn_slowpath_null+0x18/0x1c) from [<c0012914>]
-(gpmc_smsc911x_init+0x130/0x184)
-[    0.206787] [<c0012914>] (gpmc_smsc911x_init+0x130/0x184) from [<c0011cdc>]
-(overo_init+0xe8/0x32c)
-[    0.206848] [<c0011cdc>] (overo_init+0xe8/0x32c) from [<c000b19c>]
-(customize_machine+0x1c/0x28)
-[    0.206878] [<c000b19c>] (customize_machine+0x1c/0x28) from [<c00333b4>]
-(do_one_initcall+0x98/0x16c)
-[    0.206909] [<c00333b4>] (do_one_initcall+0x98/0x16c) from [<c0008388>]
-(kernel_init+0x8c/0x13c)
-[    0.206939] [<c0008388>] (kernel_init+0x8c/0x13c) from [<c003dd38>]
-(kernel_thread_exit+0x0/0x8)
-[    0.206970] ---[ end trace 1b75b31a2719ed1d ]---
-[    0.207031] Could not initialize smsc911x
+It is a WVGA panel with resolution 864 X 480 and panel timing data
+is defined in the panel driver.
 
+picodlp makes use of parallel (DPI) interface multiplexed with secondary lcd
+in case of OMAP4.
+
+Signed-off-by: Mythri P K <mythripk@ti.com>
+Signed-off-by: Mayuresh Janorkar <mayur@ti.com>
+---
+Changes since v1:
+	1. Removed msleep
+	
+ drivers/video/omap2/displays/panel-picodlp.c |  226 ++++++++++++++++++++++++++
+ 1 files changed, 226 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/video/omap2/displays/panel-picodlp.c
+
+diff --git a/drivers/video/omap2/displays/panel-picodlp.c b/drivers/video/omap2/displays/panel-picodlp.c
+new file mode 100644
+index 0000000..e83e399
+--- /dev/null
++++ b/drivers/video/omap2/displays/panel-picodlp.c
+@@ -0,0 +1,226 @@
++/*
++ * picodlp panel driver
++ *
++ * Copyright (C) 2009-2011 Texas Instruments
++ * Author: Mythri P K <mythripk@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License along with
++ * this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#include <linux/input.h>
++#include <linux/platform_device.h>
++#include <linux/interrupt.h>
++#include <linux/firmware.h>
++#include <linux/slab.h>
++#include <linux/mutex.h>
++#include <linux/delay.h>
++
++#include <plat/display.h>
++#include <plat/panel-picodlp.h>
++
++struct picodlp_data {
++	struct mutex lock;
++};
++
++static struct omap_video_timings pico_ls_timings = {
++	.x_res		= 864,
++	.y_res		= 480,
++	.hsw		= 7,
++	.hfp		= 11,
++	.hbp		= 7,
++
++	.pixel_clock	= 19200,
++
++	.vsw		= 2,
++	.vfp		= 3,
++	.vbp		= 14,
++};
++
++static int picodlp_panel_power_on(struct omap_dss_device *dssdev)
++{
++	int r;
++
++	if (dssdev->platform_enable) {
++		r = dssdev->platform_enable(dssdev);
++		if (r)
++			return r;
++	}
++
++	r = omapdss_dpi_display_enable(dssdev);
++	if (r) {
++		dev_err(&dssdev->dev, "failed to enable DPI\n");
++		goto err;
++	}
++	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
++
++	return 0;
++
++err:
++	if (dssdev->platform_disable)
++		dssdev->platform_disable(dssdev);
++
++	return r;
++}
++
++static void picodlp_panel_power_off(struct omap_dss_device *dssdev)
++{
++	omapdss_dpi_display_disable(dssdev);
++
++	if (dssdev->platform_disable)
++		dssdev->platform_disable(dssdev);
++}
++
++static int picodlp_panel_probe(struct omap_dss_device *dssdev)
++{
++	struct picodlp_data *picod;
++
++	dssdev->panel.config = OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_ONOFF |
++				OMAP_DSS_LCD_IHS | OMAP_DSS_LCD_IVS;
++	dssdev->panel.acb = 0x0;
++	dssdev->panel.timings = pico_ls_timings;
++
++	picod =  kzalloc(sizeof(struct picodlp_data), GFP_KERNEL);
++	if (!picod)
++		return -ENOMEM;
++
++	mutex_init(&picod->lock);
++	dev_set_drvdata(&dssdev->dev, picod);
++	return 0;
++}
++
++static void picodlp_panel_remove(struct omap_dss_device *dssdev)
++{
++	struct picodlp_data *picod = dev_get_drvdata(&dssdev->dev);
++
++	dev_set_drvdata(&dssdev->dev, NULL);
++	dev_dbg(&dssdev->dev, " removing picodlp panel\n");
++	kfree(picod);
++}
++
++static int picodlp_panel_enable(struct omap_dss_device *dssdev)
++{
++	struct picodlp_data *picod = dev_get_drvdata(&dssdev->dev);
++	int r;
++
++	dev_dbg(&dssdev->dev, "enabling picodlp panel\n");
++
++	mutex_lock(&picod->lock);
++	if (dssdev->state != OMAP_DSS_DISPLAY_DISABLED) {
++		mutex_unlock(&picod->lock);
++		return -EINVAL;
++	}
++
++	r = picodlp_panel_power_on(dssdev);
++	mutex_unlock(&picod->lock);
++
++	return r;
++}
++
++static void picodlp_panel_disable(struct omap_dss_device *dssdev)
++{
++	struct picodlp_data *picod = dev_get_drvdata(&dssdev->dev);
++
++	mutex_lock(&picod->lock);
++	/* Turn off DLP Power */
++	if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE)
++		picodlp_panel_power_off(dssdev);
++
++	dev_dbg(&dssdev->dev, " disabling picodlp panel\n");
++	dssdev->state = OMAP_DSS_DISPLAY_DISABLED;
++
++	mutex_unlock(&picod->lock);
++}
++
++static int picodlp_panel_suspend(struct omap_dss_device *dssdev)
++{
++	struct picodlp_data *picod = dev_get_drvdata(&dssdev->dev);
++
++	mutex_lock(&picod->lock);
++	/* Turn off DLP Power */
++	if (dssdev->state != OMAP_DSS_DISPLAY_ACTIVE) {
++		dev_dbg(&dssdev->dev, " unable to suspend picodlp panel,"\
++						" panel is not ACTIVE\n");
++		mutex_unlock(&picod->lock);
++		return -EINVAL;
++	}
++
++	picodlp_panel_power_off(dssdev);
++
++	dssdev->state = OMAP_DSS_DISPLAY_SUSPENDED;
++	dev_dbg(&dssdev->dev, " suspending picodlp panel\n");
++
++	mutex_unlock(&picod->lock);
++	return 0;
++}
++
++static int picodlp_panel_resume(struct omap_dss_device *dssdev)
++{
++	struct picodlp_data *picod = dev_get_drvdata(&dssdev->dev);
++	int r;
++
++	mutex_lock(&picod->lock);
++	if (dssdev->state != OMAP_DSS_DISPLAY_SUSPENDED) {
++		dev_dbg(&dssdev->dev, " unable to resume picodlp panel,"
++					" panel is not ACTIVE\n");
++		mutex_unlock(&picod->lock);
++		return -EINVAL;
++	}
++
++	dev_dbg(&dssdev->dev, " resuming picodlp panel\n");
++	r = picodlp_panel_power_on(dssdev);
++	mutex_unlock(&picod->lock);
++
++	return r;
++}
++
++static void picodlp_get_resolution(struct omap_dss_device *dssdev,
++					u16 *xres, u16 *yres)
++{
++	*xres = dssdev->panel.timings.x_res;
++	*yres = dssdev->panel.timings.y_res;
++}
++
++static struct omap_dss_driver picodlp_driver = {
++	.probe		= picodlp_panel_probe,
++	.remove		= picodlp_panel_remove,
++
++	.enable		= picodlp_panel_enable,
++	.disable	= picodlp_panel_disable,
++
++	.get_resolution	= picodlp_get_resolution,
++
++	.suspend	= picodlp_panel_suspend,
++	.resume		= picodlp_panel_resume,
++
++	.driver		= {
++		.name	= "picodlp_panel",
++		.owner	= THIS_MODULE,
++	},
++};
++
++static int __init picodlp_init(void)
++{
++	return omap_dss_register_driver(&picodlp_driver);
++}
++
++static void __exit picodlp_exit(void)
++{
++	omap_dss_unregister_driver(&picodlp_driver);
++}
++
++module_init(picodlp_init);
++module_exit(picodlp_exit);
++
++MODULE_AUTHOR("Mythri P K <mythripk@ti.com>");
++MODULE_DESCRIPTION("picodlp driver");
++MODULE_LICENSE("GPL");
+-- 
+1.7.1
 
