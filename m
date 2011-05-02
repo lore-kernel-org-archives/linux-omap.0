@@ -1,71 +1,72 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH v2 2/2] OMAP3: RX-51: define vdds_csib regulator supply
-Date: Mon, 2 May 2011 15:49:49 +0200
-Message-ID: <201105021549.49728.laurent.pinchart@ideasonboard.com>
-References: <1304327777-31231-1-git-send-email-kalle.jokiniemi@nokia.com> <1304327777-31231-3-git-send-email-kalle.jokiniemi@nokia.com>
+From: Mike Rapoport <mike@compulab.co.il>
+Subject: Re: [PATCH 0/4] omap: cleanup board files
+Date: Mon, 2 May 2011 16:57:29 +0300 (IDT)
+Message-ID: <178202361.42.1304344649104.JavaMail.root@zimbra01.compulab.co.il>
+References: <cover.1303682352.git.mike@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:60590 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757730Ab1EBNtU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 May 2011 09:49:20 -0400
-In-Reply-To: <1304327777-31231-3-git-send-email-kalle.jokiniemi@nokia.com>
+Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:58673
+	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1756156Ab1EBN5h (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 May 2011 09:57:37 -0400
+In-Reply-To: <cover.1303682352.git.mike@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
-Cc: maurochehab@gmail.com, tony@atomide.com, linux-omap@vger.kernel.org, linux-media@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Kalle,
+ping?
 
-On Monday 02 May 2011 11:16:17 Kalle Jokiniemi wrote:
-> The RX-51 uses the CSIb IO complex for camera operation. The
-> board file is missing definition for the regulator supplying
-> the CSIb complex, so this is added for better power
-> management.
-> 
-> Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
-> ---
->  arch/arm/mach-omap2/board-rx51-peripherals.c |    9 +++++++++
->  1 files changed, 9 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c
-> b/arch/arm/mach-omap2/board-rx51-peripherals.c index bbcb677..1324ba3
-> 100644
-> --- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-> +++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-> @@ -337,6 +337,13 @@ static struct omap2_hsmmc_info mmc[] __initdata = {
->  static struct regulator_consumer_supply rx51_vmmc1_supply =
->  	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.0");
-> 
-> +static struct regulator_consumer_supply rx51_vaux2_supplies[] = {
-> +	REGULATOR_SUPPLY("vdds_csib", "omap3isp"),
-> +	{
-> +		.supply = "vaux2",
-> +	},
+On Mon, Apr 25, 2011 at 1:09 PM, Mike Rapoport <mike@compulab.co.il> wrote:
 
-Just for my curiosity, what is the the second consumer supply ("vaux2") for ?
-
-> +};
-> +
->  static struct regulator_consumer_supply rx51_vaux3_supply =
->  	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.1");
+> Hi Tony,
 > 
-> @@ -400,6 +407,8 @@ static struct regulator_init_data rx51_vaux2 = {
->  		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+> These patches cleanup some of the common code in the board files. The
+> changes
+> are basically almost mechanically move the code shared among several
+> boards
+> into some common place.
+> There are a lot of places for further improvement, especially DSS and
+> TWL
+> initialization. I'll try to find some time to sort these out as well.
 > 
->  					| REGULATOR_CHANGE_STATUS,
+> Special thanks to Igor Grinberg for the original idea :)
 > 
->  	},
-> +	.num_consumer_supplies	= ARRAY_SIZE(rx51_vaux2_supplies),
-> +	.consumer_supplies	= rx51_vaux2_supplies,
->  };
+> Mike Rapoport (4):
+> omap: consolidate touch screen initialization among different boards
+> omap: use common initialization for PMIC i2c bus
+> omap: move detection of NAND CS to common-board-devices
+> omap: musb: introduce default baord config
 > 
->  /* VAUX3 - adds more power to VIO_18 rail */
-
--- 
-Regards,
-
-Laurent Pinchart
+> arch/arm/mach-omap2/Makefile | 2 +
+> arch/arm/mach-omap2/board-2430sdp.c | 20 +---
+> arch/arm/mach-omap2/board-3430sdp.c | 85 ++-------------
+> arch/arm/mach-omap2/board-4430sdp.c | 16 +---
+> arch/arm/mach-omap2/board-cm-t35.c | 78 +-------------
+> arch/arm/mach-omap2/board-devkit8000.c | 119 +--------------------
+> arch/arm/mach-omap2/board-igep0020.c | 23 +----
+> arch/arm/mach-omap2/board-igep0030.c | 21 +---
+> arch/arm/mach-omap2/board-ldp.c | 77 +-------------
+> arch/arm/mach-omap2/board-omap3beagle.c | 66 +-----------
+> arch/arm/mach-omap2/board-omap3evm.c | 72 +------------
+> arch/arm/mach-omap2/board-omap3logic.c | 13 +--
+> arch/arm/mach-omap2/board-omap3pandora.c | 69 +-----------
+> arch/arm/mach-omap2/board-omap3stalker.c | 78 +-------------
+> arch/arm/mach-omap2/board-omap3touchbook.c | 101 ++----------------
+> arch/arm/mach-omap2/board-omap4panda.c | 17 +---
+> arch/arm/mach-omap2/board-overo.c | 108 +------------------
+> arch/arm/mach-omap2/board-rm680.c | 21 +---
+> arch/arm/mach-omap2/board-rx51-peripherals.c | 13 +--
+> arch/arm/mach-omap2/board-zoom-peripherals.c | 21 +---
+> arch/arm/mach-omap2/common-board-devices.c | 148
+> ++++++++++++++++++++++++++
+> arch/arm/mach-omap2/common-board-devices.h | 52 +++++++++
+> arch/arm/mach-omap2/usb-musb.c | 14 +++-
+> 23 files changed, 293 insertions(+), 941 deletions(-)
+> create mode 100644 arch/arm/mach-omap2/common-board-devices.c
+> create mode 100644 arch/arm/mach-omap2/common-board-devices.h
+> 
+> --
+> 1.7.3.1
