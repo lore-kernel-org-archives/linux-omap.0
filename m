@@ -1,42 +1,74 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP4: SRAM: Fix warning: format '%08lx' expects type
- 'long unsigned int'
-Date: Tue, 3 May 2011 03:55:55 -0700
-Message-ID: <20110503105555.GR2092@atomide.com>
-References: <1301907896-30954-1-git-send-email-santosh.shilimkar@ti.com>
- <20110404091223.GA19854@n2100.arm.linux.org.uk>
- <4D9993AD.3080401@ti.com>
- <20110428140953.GD19709@n2100.arm.linux.org.uk>
+From: Kishore Kadiyala <kishore.kadiyala@ti.com>
+Subject: [PATCH] omap : nand : fix subpage ecc issue with prefetch
+Date: Mon, 2 May 2011 16:40:38 +0530
+Message-ID: <1304334638-2198-1-git-send-email-kishore.kadiyala@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:50686 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752411Ab1ECK4A (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 May 2011 06:56:00 -0400
-Content-Disposition: inline
-In-Reply-To: <20110428140953.GD19709@n2100.arm.linux.org.uk>
+Received: from bear.ext.ti.com ([192.94.94.41]:42247 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751152Ab1ECLCJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 3 May 2011 07:02:09 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, vimal.newwork@gmail.com, bdefaria@adeneo-embedded.com
+Cc: Kishore Kadiyala <kishore.kadiyala@ti.com>
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [110428 07:06]:
-> 
-> This looks much better.
-> 
-> Acked-by: Russell King <rmk+kernel@arm.linux.org.uk>
-> 
-> It looks like Tony hasn't taken it...  Tony, are you going to handle
-> this patch?
+For prefetch engine, read and write  got broken in commit '2c01946c'.
+We never hit a scenario of not getting 'gpmc_prefetch_enable'
+call success.
+When reading/writing a subpage with a non divisible by 4 ecc number
+of bytes, the mis-aligned bytes gets handled first before enabling
+the Prefetch engine, then it reads/writes rest of the bytes.
 
-I can add it into my devel-cleanup branch for next merge window
-assuming it won't conflict with your sram changes. If there's a
-conflict, then you can take it.
+Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
+Signed-off-by: Vimal Singh <vimal.newwork@gmail.com>
+Reported-by: Bryan DE FARIA <bdefaria@adeneo-embedded.com>
+---
+ drivers/mtd/nand/omap2.c |   12 +++++-------
+ 1 files changed, 5 insertions(+), 7 deletions(-)
 
-I'd rather not merge it in the -rc cycle this late as it's not
-in the oopses or major regressions category.
+diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+index da9a351..2c8040f 100644
+--- a/drivers/mtd/nand/omap2.c
++++ b/drivers/mtd/nand/omap2.c
+@@ -263,11 +263,10 @@ static void omap_read_buf_pref(struct mtd_info *mtd, u_char *buf, int len)
+ 	if (ret) {
+ 		/* PFPW engine is busy, use cpu copy method */
+ 		if (info->nand.options & NAND_BUSWIDTH_16)
+-			omap_read_buf16(mtd, buf, len);
++			omap_read_buf16(mtd, (u_char *)p, len);
+ 		else
+-			omap_read_buf8(mtd, buf, len);
++			omap_read_buf8(mtd, (u_char *)p, len);
+ 	} else {
+-		p = (u32 *) buf;
+ 		do {
+ 			r_count = gpmc_read_status(GPMC_PREFETCH_FIFO_CNT);
+ 			r_count = r_count >> 2;
+@@ -293,7 +292,7 @@ static void omap_write_buf_pref(struct mtd_info *mtd,
+ 						struct omap_nand_info, mtd);
+ 	uint32_t w_count = 0;
+ 	int i = 0, ret = 0;
+-	u16 *p;
++	u16 *p = (u16 *)buf;
+ 	unsigned long tim, limit;
+ 
+ 	/* take care of subpage writes */
+@@ -309,11 +308,10 @@ static void omap_write_buf_pref(struct mtd_info *mtd,
+ 	if (ret) {
+ 		/* PFPW engine is busy, use cpu copy method */
+ 		if (info->nand.options & NAND_BUSWIDTH_16)
+-			omap_write_buf16(mtd, buf, len);
++			omap_write_buf16(mtd, (u_char *)p, len);
+ 		else
+-			omap_write_buf8(mtd, buf, len);
++			omap_write_buf8(mtd, (u_char *)p, len);
+ 	} else {
+-		p = (u16 *) buf;
+ 		while (len) {
+ 			w_count = gpmc_read_status(GPMC_PREFETCH_FIFO_CNT);
+ 			w_count = w_count >> 1;
+-- 
+1.7.4.1
 
-Regards,
-
-Tony
