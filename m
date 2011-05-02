@@ -1,57 +1,88 @@
 From: <kalle.jokiniemi@nokia.com>
-Subject: RE: [PATCH 1/1] OMAP3: rx-51: Add full regulator definitions
-Date: Mon, 2 May 2011 08:48:48 +0000
-Message-ID: <9D0D31AA57AAF5499AFDC63D6472631B09CF68@008-AM1MPN1-036.mgdnok.nokia.com>
-References: <1304081264-4915-1-git-send-email-kalle.jokiniemi@nokia.com>
-	<1304081264-4915-2-git-send-email-kalle.jokiniemi@nokia.com>
-	<20110429170409.5ad8833b.jhnikula@gmail.com>
-	<9D0D31AA57AAF5499AFDC63D6472631B09CE3E@008-AM1MPN1-036.mgdnok.nokia.com>
- <20110502095727.7f679550.jhnikula@gmail.com>
+Subject: RE: [PATCH 2/2] OMAP3: RX-51: define vdds_csib regulator supply
+Date: Mon, 2 May 2011 09:15:15 +0000
+Message-ID: <9D0D31AA57AAF5499AFDC63D6472631B09CF8B@008-AM1MPN1-036.mgdnok.nokia.com>
+References: <1304061120-6383-1-git-send-email-kalle.jokiniemi@nokia.com>
+ <1304061120-6383-3-git-send-email-kalle.jokiniemi@nokia.com>
+ <20110429091337.GV3755@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.24]:29891 "EHLO mgw-da01.nokia.com"
+Received: from smtp.nokia.com ([147.243.128.26]:45201 "EHLO mgw-da02.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756907Ab1EBItj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 May 2011 04:49:39 -0400
-In-Reply-To: <20110502095727.7f679550.jhnikula@gmail.com>
+	id S1756852Ab1EBJQD convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 May 2011 05:16:03 -0400
+In-Reply-To: <20110429091337.GV3755@atomide.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: jhnikula@gmail.com
-Cc: tony@atomide.com, Sakari.Ailus@nokia.com, linux-omap@vger.kernel.org, lrg@slimlogic.co.uk, broonie@opensource.wolfsonmicro.com
+To: tony@atomide.com
+Cc: laurent.pinchart@ideasonboard.com, maurochehab@gmail.com, linux-omap@vger.kernel.org, linux-media@vger.kernel.org
 
 Hi,
 
  > -----Original Message-----
- > From: ext Jarkko Nikula [mailto:jhnikula@gmail.com]
- > Sent: 2. toukokuuta 2011 9:57
+ > From: ext Tony Lindgren [mailto:tony@atomide.com]
+ > Sent: 29. huhtikuuta 2011 12:14
  > To: Jokiniemi Kalle (Nokia-SD/Tampere)
- > Cc: tony@atomide.com; Ailus Sakari (Nokia-SD/Helsinki); linux-
- > omap@vger.kernel.org; lrg@slimlogic.co.uk;
- > broonie@opensource.wolfsonmicro.com
- > Subject: Re: [PATCH 1/1] OMAP3: rx-51: Add full regulator definitions
+ > Cc: laurent.pinchart@ideasonboard.com; mchebab@infradead.org; linux-
+ > omap@vger.kernel.org; linux-media@vger.kernel.org
+ > Subject: Re: [PATCH 2/2] OMAP3: RX-51: define vdds_csib regulator supply
  > 
- > On Mon, 2 May 2011 05:19:46 +0000
- > <kalle.jokiniemi@nokia.com> wrote:
- > 
- > > It seems I was not answering your question quite rightly... So these are used
- > > to power some internal blocks inside the TWL5030. The dependencies there
- > > are not very well documented, so it's best to leave them be. I think these
- > > could be turned off via the power scripts during OFF mode (if we would be
- > > using that).
+ > * Kalle Jokiniemi <kalle.jokiniemi@nokia.com> [110429 00:09]:
+ > > The RX-51 uses the CSIb IO complex for camera operation. The
+ > > board file is missing definition for the regulator supplying
+ > > the CSIb complex, so this is added for better power
+ > > management.
  > >
- > Sounds safe assumption for those two. Also I don't point out from
- > public schematics where are the vintana2 and vpll2 routed so looks like
- > need keep them on as well.
+ > > Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
+ > 
+ > This looks safe to merge along with the other patch
+ > 
+ > Acked-by: Tony Lindgren <tony@atomide.com>
 
-In case you're interested, the high level routings are listed in the TPS65950
-TRM: http://focus.ti.com/lit/ug/swcu050g/swcu050g.pdf 
-See chapter 6.3, figure 6-3.
+Thanks Tony, adding Mauro's correct email...
 
 - Kalle
 
+
+
+
  > 
- > --
- > Jarkko
+ > > ---
+ > >  arch/arm/mach-omap2/board-rx51-peripherals.c |    9 +++++++++
+ > >  1 files changed, 9 insertions(+), 0 deletions(-)
+ > >
+ > > diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c
+ > b/arch/arm/mach-omap2/board-rx51-peripherals.c
+ > > index bbcb677..1324ba3 100644
+ > > --- a/arch/arm/mach-omap2/board-rx51-peripherals.c
+ > > +++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+ > > @@ -337,6 +337,13 @@ static struct omap2_hsmmc_info mmc[] __initdata =
+ > {
+ > >  static struct regulator_consumer_supply rx51_vmmc1_supply =
+ > >  	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.0");
+ > >
+ > > +static struct regulator_consumer_supply rx51_vaux2_supplies[] = {
+ > > +	REGULATOR_SUPPLY("vdds_csib", "omap3isp"),
+ > > +	{
+ > > +		.supply = "vaux2",
+ > > +	},
+ > > +};
+ > > +
+ > >  static struct regulator_consumer_supply rx51_vaux3_supply =
+ > >  	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.1");
+ > >
+ > > @@ -400,6 +407,8 @@ static struct regulator_init_data rx51_vaux2 = {
+ > >  		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+ > >  					| REGULATOR_CHANGE_STATUS,
+ > >  	},
+ > > +	.num_consumer_supplies	= ARRAY_SIZE(rx51_vaux2_supplies),
+ > > +	.consumer_supplies	= rx51_vaux2_supplies,
+ > >  };
+ > >
+ > >  /* VAUX3 - adds more power to VIO_18 rail */
+ > > --
+ > > 1.7.1
+ > >
