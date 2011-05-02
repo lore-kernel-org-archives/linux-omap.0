@@ -1,68 +1,62 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH] usb: musb: am35x: fix compile error when building am35x
-Date: Mon,  2 May 2011 12:46:57 +0300
-Message-ID: <1304329617-5233-1-git-send-email-balbi@ti.com>
+Subject: Re: USB-ehci enumeration issue
+Date: Mon, 2 May 2011 12:56:48 +0300
+Message-ID: <20110502095647.GU2529@legolas.emea.dhcp.ti.com>
+References: <BANLkTin1WEd0KeUb7kZ80GAYbEQC3SkezA@mail.gmail.com>
+Reply-To: balbi@ti.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:57595 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757045Ab1EBJrE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 May 2011 05:47:04 -0400
-Received: by bwz17 with SMTP id 17so5583773bwz.0
-        for <linux-omap@vger.kernel.org>; Mon, 02 May 2011 02:47:01 -0700 (PDT)
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:59363 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756858Ab1EBJ4x (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 May 2011 05:56:53 -0400
+Received: by mail-fx0-f52.google.com with SMTP id 6so6124979fxm.39
+        for <linux-omap@vger.kernel.org>; Mon, 02 May 2011 02:56:52 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <BANLkTin1WEd0KeUb7kZ80GAYbEQC3SkezA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Felipe Balbi <balbi@ti.com>
+To: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
+Cc: Felipe Balbi <balbi@ti.com>, Keshava Munegowda <keshava_mgowda@ti.com>, linux-omap@vger.kernel.org
 
-am35x_musb_set_mode() was redefined. Fix it.
+Hi,
 
-Reported-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
- arch/arm/mach-omap2/board-am3517evm.c   |    2 +-
- arch/arm/mach-omap2/omap_phy_internal.c |    2 +-
- arch/arm/plat-omap/include/plat/usb.h   |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+On Fri, Apr 15, 2011 at 05:44:44PM +0530, ABRAHAM, KISHON VIJAY wrote:
+> Hi,
+> 
+> I tried to test ehci based in 2.6.39 rc2 + reverts commit
+> 09173b589d547c002b6a2b560e150c4d7bb56c99.
+> 
+> I connected a HS device to HS-USB1 and find it's trying to enumerate the
+> device as FS and fails.
+> 
+> / # [   25.171356] usb usb1: usb wakeup-resume
+> [   25.175689] usb usb1: usb auto-resume
+> [   25.179565] ehci-omap ehci-omap.0: resume root hub
+> [   25.226654] hub 1-0:1.0: hub_resume
+> [   25.230346] ehci-omap ehci-omap.0: GetStatus port:1 status 001803 0  ACK
+> POWER sig=j CSC CONNECT
+> [   25.239654] hub 1-0:1.0: port 1: status 0501 change 0001
+> [   25.351806] hub 1-0:1.0: state 7 ports 3 chg 0002 evt 0000
+> [   25.357604] hub 1-0:1.0: port 1, status 0501, change 0000, 480 Mb/s
+> [   25.421966] ehci-omap ehci-omap.0: port 1 full speed --> companion
+> [   25.428436] ehci-omap ehci-omap.0: GetStatus port:1 status 003801 0  ACK
+> POWER OWNER sig=j CONNECT
+> [   25.437866] hub 1-0:1.0: port 1 not reset yet, waiting 50ms
+> [   25.500030] ehci-omap ehci-omap.0: GetStatus port:1 status 003002 0  ACK
+> POWER OWNER sig=se0 CSC
+> [   25.509399] hub 1-0:1.0: unable to enumerate USB device on port 1
+> [   25.515838] hub 1-0:1.0: state 7 ports 3 chg 0000 evt 0002
+> [   27.976806] hub 1-0:1.0: hub_suspend
+> [   27.980590] usb usb1: bus auto-suspend
+> [   27.984527] ehci-omap ehci-omap.0: suspend root hub
+> 
+> Does anyone else observe this issue?
 
-diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
-index ce7d5e6..d8a0484 100644
---- a/arch/arm/mach-omap2/board-am3517evm.c
-+++ b/arch/arm/mach-omap2/board-am3517evm.c
-@@ -396,7 +396,7 @@ static struct omap_musb_board_data musb_board_data = {
- 	.power                  = 500,
- 	.set_phy_power		= am35x_musb_phy_power,
- 	.clear_irq		= am35x_musb_clear_irq,
--	.set_mode		= am35x_musb_set_mode,
-+	.set_mode		= am35x_set_mode,
- 	.reset			= am35x_musb_reset,
- };
- 
-diff --git a/arch/arm/mach-omap2/omap_phy_internal.c b/arch/arm/mach-omap2/omap_phy_internal.c
-index 05f6abc..eff6e24 100644
---- a/arch/arm/mach-omap2/omap_phy_internal.c
-+++ b/arch/arm/mach-omap2/omap_phy_internal.c
-@@ -228,7 +228,7 @@ void am35x_musb_clear_irq(void)
- 	regval = omap_ctrl_readl(AM35XX_CONTROL_LVL_INTR_CLEAR);
- }
- 
--void am35x_musb_set_mode(u8 musb_mode)
-+void am35x_set_mode(u8 musb_mode)
- {
- 	u32 devconf2 = omap_ctrl_readl(AM35XX_CONTROL_DEVCONF2);
- 
-diff --git a/arch/arm/plat-omap/include/plat/usb.h b/arch/arm/plat-omap/include/plat/usb.h
-index 02b96c8..17d3c93 100644
---- a/arch/arm/plat-omap/include/plat/usb.h
-+++ b/arch/arm/plat-omap/include/plat/usb.h
-@@ -113,7 +113,7 @@ extern int omap4430_phy_suspend(struct device *dev, int suspend);
- extern void am35x_musb_reset(void);
- extern void am35x_musb_phy_power(u8 on);
- extern void am35x_musb_clear_irq(void);
--extern void am35x_musb_set_mode(u8 musb_mode);
-+extern void am35x_set_mode(u8 musb_mode);
- 
- /*
-  * FIXME correct answer depends on hmc_mode,
+could be the regulators problem. Can you try with my hci branch ?
+
+git://gitorious.org/usb/usb.git hci
+
 -- 
-1.7.4.1.343.ga91df
-
+balbi
