@@ -1,82 +1,123 @@
-From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
-Subject: Re: [PATCH] omap:usb: fixing ehci phy gpio values for omap3
-Date: Mon, 2 May 2011 17:53:18 +0530
-Message-ID: <BANLkTimCsBXProWJ=sxN2TPkkxKYHPAqhQ@mail.gmail.com>
-References: <1303395763-8702-1-git-send-email-keshava_mgowda@ti.com>
-	<1303395763-8702-2-git-send-email-keshava_mgowda@ti.com>
-	<20110502093815.GQ2529@legolas.emea.dhcp.ti.com>
-	<BANLkTi=kH02P9GFo6wmPpRGr=L582DEp0A@mail.gmail.com>
-	<20110502115408.GC2529@legolas.emea.dhcp.ti.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH v2 1/2] OMAP3: ISP: Add regulator control for omap34xx
+Date: Mon, 2 May 2011 15:48:41 +0200
+Message-ID: <201105021548.43076.laurent.pinchart@ideasonboard.com>
+References: <1304327777-31231-1-git-send-email-kalle.jokiniemi@nokia.com> <1304327777-31231-2-git-send-email-kalle.jokiniemi@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:58781 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752834Ab1EBM3O convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 2 May 2011 08:29:14 -0400
-In-Reply-To: <20110502115408.GC2529@legolas.emea.dhcp.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <1304327777-31231-2-git-send-email-kalle.jokiniemi@nokia.com>
+Sender: linux-media-owner@vger.kernel.org
+To: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
+Cc: maurochehab@gmail.com, tony@atomide.com, linux-omap@vger.kernel.org, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, gadiyar@ti.com, p-basak2@ti.com, axel.lin@gmail.com, johnstul@us.ibm.com, mpfj-list@mimc.co.uk
 
-On Mon, May 2, 2011 at 5:24 PM, Felipe Balbi <balbi@ti.com> wrote:
-> On Mon, May 02, 2011 at 05:01:05PM +0530, Munegowda, Keshava wrote:
->> On Mon, May 2, 2011 at 3:08 PM, Felipe Balbi <balbi@ti.com> wrote:
->> > On Thu, Apr 21, 2011 at 07:52:42PM +0530, Keshava Munegowda wrote:
->> >> From: Keshava Munegowda <Keshava_mgowda@ti.com>
->> >>
->> >> The gpio of EHCI phy should be 0 instead of 1;
->> >> This fixes the hub enumeration issue in beagle xm board.
->> >>
->> >> Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
->> >
->> > applied, thanks
->> >
->> > --
->> > balbi
->>
->> Thanks balbi
->>
->> but ,.his patch is was made by Juergen Kilb ( patch description =A0a=
-nd link is
->> given below); But I was not aware of it and reinvented wheel with
->> beagle-xm board :(
->>
->> So, Juergen Kilb is the first author of this patch.
->>
->> Here is the link :
->> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg48215.html
->>
->> =A0 omap:usbhs:Fixed gpio polarity of gpio USB-phy reset
->>
->> =A0 =A0 With commit 19403165 a main part of ehci-omap.c moved to
->> =A0 =A0 drivers/mfd/omap-usb-host.c created by commit 17cdd29d.
->> =A0 =A0 Due to this reorganisation the polarity used to reset the
->> =A0 =A0 external USB phy changed and USB host doesn't recognize
->> =A0 =A0 any devices.
->>
->> =A0 =A0 Signed-off-by: Juergen Kilb <J.Kilb@phytec.de>
->
-> I sent a pull request to Greg with that patch in, so it looks like
-> Samuel also didn't send this patch before. Can you reply to the pull
-> request I sent saying that this patch should be dropped just so Greg
-> knows and I recreate the branch and send another pull request ?
->
-> --
-> balbi
+Hi Kalle,
 
-yes Balbi, I have send a mail to Greg.
+Thanks for the patch.
 
-once again, I am sorry ,  this patch came in 14th april and i was
-returning from ELC-2011. I missed it.
+On Monday 02 May 2011 11:16:16 Kalle Jokiniemi wrote:
+> The current omap3isp driver is missing regulator handling
+> for CSIb complex in omap34xx based devices. This patch
+> adds a mechanism for this to the omap3isp driver.
+> 
+> Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
 
-regards
-keshava
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> ---
+>  drivers/media/video/omap3isp/ispccp2.c |   27 +++++++++++++++++++++++++--
+>  drivers/media/video/omap3isp/ispccp2.h |    1 +
+>  2 files changed, 26 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/video/omap3isp/ispccp2.c
+> b/drivers/media/video/omap3isp/ispccp2.c index 0e16cab..ec9e395 100644
+> --- a/drivers/media/video/omap3isp/ispccp2.c
+> +++ b/drivers/media/video/omap3isp/ispccp2.c
+> @@ -30,6 +30,7 @@
+>  #include <linux/module.h>
+>  #include <linux/mutex.h>
+>  #include <linux/uaccess.h>
+> +#include <linux/regulator/consumer.h>
+> 
+>  #include "isp.h"
+>  #include "ispreg.h"
+> @@ -163,6 +164,9 @@ static void ccp2_if_enable(struct isp_ccp2_device
+> *ccp2, u8 enable) struct isp_pipeline *pipe =
+> to_isp_pipeline(&ccp2->subdev.entity); int i;
+> 
+> +	if (enable && ccp2->vdds_csib)
+> +		regulator_enable(ccp2->vdds_csib);
+> +
+>  	/* Enable/Disable all the LCx channels */
+>  	for (i = 0; i < CCP2_LCx_CHANS_NUM; i++)
+>  		isp_reg_clr_set(isp, OMAP3_ISP_IOMEM_CCP2, ISPCCP2_LCx_CTRL(i),
+> @@ -186,6 +190,9 @@ static void ccp2_if_enable(struct isp_ccp2_device
+> *ccp2, u8 enable) ISPCCP2_LC01_IRQENABLE,
+>  				    ISPCCP2_LC01_IRQSTATUS_LC0_FS_IRQ);
+>  	}
+> +
+> +	if (!enable && ccp2->vdds_csib)
+> +		regulator_disable(ccp2->vdds_csib);
+>  }
+> 
+>  /*
+> @@ -1137,6 +1144,9 @@ error:
+>   */
+>  void omap3isp_ccp2_cleanup(struct isp_device *isp)
+>  {
+> +	struct isp_ccp2_device *ccp2 = &isp->isp_ccp2;
+> +
+> +	regulator_put(ccp2->vdds_csib);
+>  }
+> 
+>  /*
+> @@ -1151,14 +1161,27 @@ int omap3isp_ccp2_init(struct isp_device *isp)
+> 
+>  	init_waitqueue_head(&ccp2->wait);
+> 
+> -	/* On the OMAP36xx, the CCP2 uses the CSI PHY1 or PHY2, shared with
+> +	/*
+> +	 * On the OMAP34xx the CSI1 receiver is operated in the CSIb IO
+> +	 * complex, which is powered by vdds_csib power rail. Hence the
+> +	 * request for the regulator.
+> +	 *
+> +	 * On the OMAP36xx, the CCP2 uses the CSI PHY1 or PHY2, shared with
+>  	 * the CSI2c or CSI2a receivers. The PHY then needs to be explicitly
+>  	 * configured.
+>  	 *
+>  	 * TODO: Don't hardcode the usage of PHY1 (shared with CSI2c).
+>  	 */
+> -	if (isp->revision == ISP_REVISION_15_0)
+> +	if (isp->revision == ISP_REVISION_2_0) {
+> +		ccp2->vdds_csib = regulator_get(isp->dev, "vdds_csib");
+> +		if (IS_ERR(ccp2->vdds_csib)) {
+> +			dev_dbg(isp->dev,
+> +				"Could not get regulator vdds_csib\n");
+> +			ccp2->vdds_csib = NULL;
+> +		}
+> +	} else if (isp->revision == ISP_REVISION_15_0) {
+>  		ccp2->phy = &isp->isp_csiphy1;
+> +	}
+> 
+>  	ret = ccp2_init_entities(ccp2);
+>  	if (ret < 0)
+> diff --git a/drivers/media/video/omap3isp/ispccp2.h
+> b/drivers/media/video/omap3isp/ispccp2.h index 5505a86..6674e9d 100644
+> --- a/drivers/media/video/omap3isp/ispccp2.h
+> +++ b/drivers/media/video/omap3isp/ispccp2.h
+> @@ -81,6 +81,7 @@ struct isp_ccp2_device {
+>  	struct isp_interface_mem_config mem_cfg;
+>  	struct isp_video video_in;
+>  	struct isp_csiphy *phy;
+> +	struct regulator *vdds_csib;
+>  	unsigned int error;
+>  	enum isp_pipeline_stream_state state;
+>  	wait_queue_head_t wait;
+
+-- 
+Regards,
+
+Laurent Pinchart
