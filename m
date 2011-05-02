@@ -1,39 +1,56 @@
 From: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
-Subject: [PATCH v2 0/2] omap3isp/rx-51: Add vdds_csib regulator handling
-Date: Mon,  2 May 2011 12:16:15 +0300
-Message-ID: <1304327777-31231-1-git-send-email-kalle.jokiniemi@nokia.com>
+Subject: [PATCH v2 2/2] OMAP3: RX-51: define vdds_csib regulator supply
+Date: Mon,  2 May 2011 12:16:17 +0300
+Message-ID: <1304327777-31231-3-git-send-email-kalle.jokiniemi@nokia.com>
+References: <1304327777-31231-1-git-send-email-kalle.jokiniemi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.24]:52250 "EHLO mgw-da01.nokia.com"
+Received: from smtp.nokia.com ([147.243.128.24]:52478 "EHLO mgw-da01.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756883Ab1EBJSO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 2 May 2011 05:18:14 -0400
+	id S1757232Ab1EBJSe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 2 May 2011 05:18:34 -0400
+In-Reply-To: <1304327777-31231-1-git-send-email-kalle.jokiniemi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: maurochehab@gmail.com, tony@atomide.com
 Cc: laurent.pinchart@ideasonboard.com, linux-omap@vger.kernel.org, linux-media@vger.kernel.org, Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
 
-The CSIb block is used in rx-51 to handle camera ccp2 IO. Adding
-support to omap3isp driver for managing the power supply for the
-CSIb IO complex via regulator framework. Also create the
-apropriate regulator definitions in the rx-51 board file.
+The RX-51 uses the CSIb IO complex for camera operation. The
+board file is missing definition for the regulator supplying
+the CSIb complex, so this is added for better power
+management.
 
-I propose to push this set through the linux-media, since most
-of the changes are on the omap3isp driver side.
+Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
+---
+ arch/arm/mach-omap2/board-rx51-peripherals.c |    9 +++++++++
+ 1 files changed, 9 insertions(+), 0 deletions(-)
 
-Any comments/review appreciated. Tested on Nokia N900 and the
-MeeGo testing daily images (.37 based kernel). Patches on top
-of Mauro's linux-next tree, build tested and boot tested with
-that. 
-
-v2: updated patch 1/2 with comment from Laurent Pinchart
-
-
-Kalle Jokiniemi (2):
-  OMAP3: ISP: Add regulator control for omap34xx
-  OMAP3: RX-51: define vdds_csib regulator supply
-
- arch/arm/mach-omap2/board-rx51-peripherals.c |    9 ++++++++
- drivers/media/video/omap3isp/ispccp2.c       |   27 ++++++++++++++++++++++++-
- drivers/media/video/omap3isp/ispccp2.h       |    1 +
- 3 files changed, 35 insertions(+), 2 deletions(-)
+diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+index bbcb677..1324ba3 100644
+--- a/arch/arm/mach-omap2/board-rx51-peripherals.c
++++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+@@ -337,6 +337,13 @@ static struct omap2_hsmmc_info mmc[] __initdata = {
+ static struct regulator_consumer_supply rx51_vmmc1_supply =
+ 	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.0");
+ 
++static struct regulator_consumer_supply rx51_vaux2_supplies[] = {
++	REGULATOR_SUPPLY("vdds_csib", "omap3isp"),
++	{
++		.supply = "vaux2",
++	},
++};
++
+ static struct regulator_consumer_supply rx51_vaux3_supply =
+ 	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.1");
+ 
+@@ -400,6 +407,8 @@ static struct regulator_init_data rx51_vaux2 = {
+ 		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+ 					| REGULATOR_CHANGE_STATUS,
+ 	},
++	.num_consumer_supplies	= ARRAY_SIZE(rx51_vaux2_supplies),
++	.consumer_supplies	= rx51_vaux2_supplies,
+ };
+ 
+ /* VAUX3 - adds more power to VIO_18 rail */
+-- 
+1.7.1
 
