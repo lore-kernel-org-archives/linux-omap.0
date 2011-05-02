@@ -1,27 +1,39 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/4] omap: cleanup board files
-Date: Mon, 2 May 2011 07:22:02 -0700
-Message-ID: <20110502142202.GD2092@atomide.com>
-References: <cover.1303682352.git.mike@compulab.co.il>
- <178202361.42.1304344649104.JavaMail.root@zimbra01.compulab.co.il>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:62478 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1757869Ab1EBOWF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 May 2011 10:22:05 -0400
-Content-Disposition: inline
-In-Reply-To: <178202361.42.1304344649104.JavaMail.root@zimbra01.compulab.co.il>
-Sender: linux-omap-owner@vger.kernel.org
+From: srinath@mistralsolutions.com
+Subject: [Patch v2] AM35xx-Craneboard: USB EHCI: Fix USB ECHI PHY reset
+Date: Mon,  2 May 2011 19:10:42 +0530
+Message-ID: <1304343643-3148-1-git-send-email-srinath@mistralsolutions.com>
+References: <[PATCH]>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <[PATCH]>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: jdk@ti.com, tony@atomide.com, linux-kernel@vger.kernel.org, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, khilman@deeprootsystems.com, nm@ti.com, nagendra@mistralsolutions.com, umeshk@mistralsolutions.com, "Srinath.R" <srinath@mistralsolutions.com>
 List-Id: linux-omap@vger.kernel.org
-To: Mike Rapoport <mike@compulab.co.il>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Mike Rapoport <mike@compulab.co.il> [110502 06:54]:
-> ping?
+From: Srinath.R <srinath@mistralsolutions.com>
 
-Looks OK to me, let's wait on Felipe's comments on the
-musb related stuff.
+This patch fixes the EHCI PHY reset issue found on CraneBoard.
 
-Tony
+History:
+https://patchwork.kernel.org/patch/740741/
+
+Signed-off-by: Srinath.R <srinath@mistralsolutions.com>
+---
+ arch/arm/mach-omap2/board-am3517crane.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-am3517crane.c b/arch/arm/mach-omap2/board-am3517crane.c
+index a890d24..05867b5 100644
+--- a/arch/arm/mach-omap2/board-am3517crane.c
++++ b/arch/arm/mach-omap2/board-am3517crane.c
+@@ -60,7 +60,7 @@ static struct usbhs_omap_board_data usbhs_bdata __initdata = {
+ 	.port_mode[1] = OMAP_USBHS_PORT_MODE_UNUSED,
+ 	.port_mode[2] = OMAP_USBHS_PORT_MODE_UNUSED,
+ 
+-	.phy_reset  = true,
++	.phy_reset  = false,
+ 	.reset_gpio_port[0]  = GPIO_USB_NRESET,
+ 	.reset_gpio_port[1]  = -EINVAL,
+ 	.reset_gpio_port[2]  = -EINVAL
+-- 
+1.5.3.4
