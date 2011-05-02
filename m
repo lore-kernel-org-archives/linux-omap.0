@@ -1,103 +1,72 @@
-From: Mayuresh Janorkar <mayur@ti.com>
-Subject: [PATCH v2 6/7] OMAP4: DSS: Adding a picodlp in OMAP4430 SDP board file
-Date: Mon,  2 May 2011 20:22:50 +0530
-Message-ID: <1304347971-1504-7-git-send-email-mayur@ti.com>
-References: <1304347971-1504-1-git-send-email-mayur@ti.com>
+From: AJ ONeal <coolaj86@gmail.com>
+Subject: WARNING: at handle_irq_event_percpu
+Date: Mon, 2 May 2011 14:43:29 -0600
+Message-ID: <BANLkTi=Zn=T6QpzXv=BtdRLbCW2U1dMKbQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:56539 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757909Ab1EBOoe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 May 2011 10:44:34 -0400
-Received: from dlep33.itg.ti.com ([157.170.170.112])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p42EiYJd021952
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Mon, 2 May 2011 09:44:34 -0500
-In-Reply-To: <1304347971-1504-1-git-send-email-mayur@ti.com>
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:53014 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752965Ab1EBUnt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 May 2011 16:43:49 -0400
+Received: by pwi15 with SMTP id 15so2827799pwi.19
+        for <linux-omap@vger.kernel.org>; Mon, 02 May 2011 13:43:49 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: tomi.valkeinen@ti.com, Mayuresh Janorkar <mayur@ti.com>, Mythri P K <mythripk@ti.com>
+To: linux-omap@vger.kernel.org, "General mailing list for gumstix users." <gumstix-users@lists.sourceforge.net>
 
-An on-board panel named picodlp projector is available for OMAP4430 SDP.
+I've got a Gumstix Overo with linux-2.6.39-rc5 (pulled from Sakoman's tree).
 
-Entry for this panel is being added in dss_devices in the board file.
-It also needs 4 GPIO pins and are defined and used in board file.
-picodlp also needs an i2c client over i2c controller-2 at address 0x1b.
+Every boot I get this message. I'm not sure whether I should be
+worried about it or not.
 
-Signed-off-by: Mayuresh Janorkar <mayur@ti.com>
-Signed-off-by: Mythri P K <mythripk@ti.com>
----
-Changes since v1: Removed unnecessary changes
+[    1.996582] ------------[ cut here ]------------
+[    2.001586] WARNING: at kernel/irq/handle.c:130
+handle_irq_event_percpu+0xf8/0x220()
+[    2.010101] irq 379 handler twl_rtc_interrupt+0x0/0x94 enabled interrupts
+[    2.017272] Modules linked in:
+[    2.020538] [<c00471ec>] (unwind_backtrace+0x0/0xe0) from
+[<c006aa4c>] (warn_slowpath_common+0x4c/0x64)
+[    2.030456] [<c006aa4c>] (warn_slowpath_common+0x4c/0x64) from
+[<c006aae4>] (warn_slowpath_fmt+0x2c/0x3c)
+[    2.040557] [<c006aae4>] (warn_slowpath_fmt+0x2c/0x3c) from
+[<c00a5880>] (handle_irq_event_percpu+0xf8/0x220)
+[    2.051025] [<c00a5880>] (handle_irq_event_percpu+0xf8/0x220) from
+[<c00a59e4>] (handle_irq_event+0x3c/0x5c)
+[    2.061401] [<c00a59e4>] (handle_irq_event+0x3c/0x5c) from
+[<c00a76b8>] (handle_edge_irq+0x104/0x13c)
+[    2.071166] [<c00a76b8>] (handle_edge_irq+0x104/0x13c) from
+[<c02a4eb4>] (handle_twl4030_sih+0xac/0xd4)
+[    2.081085] [<c02a4eb4>] (handle_twl4030_sih+0xac/0xd4) from
+[<c02a4d98>] (twl4030_irq_thread+0xb4/0x108)
+[    2.091186] [<c02a4d98>] (twl4030_irq_thread+0xb4/0x108) from
+[<c008546c>] (kthread+0x7c/0x84)
+[    2.100311] [<c008546c>] (kthread+0x7c/0x84) from [<c00429b8>]
+(kernel_thread_exit+0x0/0x8)
+[    2.109161] ---[ end trace 041d11a82aa47d13 ]---
 
- arch/arm/mach-omap2/board-4430sdp.c |   38 +++++++++++++++++++++++++++++++++++
- 1 files changed, 38 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index 570e83f..979eab7 100644
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -38,6 +38,7 @@
- #include <plat/omap4-keypad.h>
- #include <plat/display.h>
- #include <plat/nokia-dsi-panel.h>
-+#include <plat/panel-picodlp.h>
- 
- #include "mux.h"
- #include "hsmmc.h"
-@@ -812,9 +813,45 @@ static struct omap_dss_device sdp4430_hdmi_device = {
- 	.channel = OMAP_DSS_CHANNEL_DIGIT,
- };
- 
-+static struct picodlp_panel_data sdp4430_picodlp_pdata = {
-+	.picodlp_adapter_id	= 2,
-+	.phy_reset_gpio		= 40,
-+	.ready_reset_gpio	= 44,
-+	.park_gpio		= 45,
-+	.display_sel_gpio	= 59,
-+};
-+
-+static void sdp4430_picodlp_init(void)
-+{
-+	int status = 0;
-+	struct gpio picodlp_gpios[] = {
-+		{sdp4430_picodlp_pdata.phy_reset_gpio, GPIOF_OUT_INIT_LOW,
-+			"DLP PHY RESET"},
-+		{sdp4430_picodlp_pdata.ready_reset_gpio, GPIOF_IN,
-+			"DLP REDY RESET"},
-+		{sdp4430_picodlp_pdata.park_gpio, GPIOF_INIT_LOW, "DLP PARK"},
-+		{sdp4430_picodlp_pdata.display_sel_gpio, GPIOF_OUT_INIT_LOW,
-+			"DLP DISPLAY SEL"},
-+	};
-+
-+	status = gpio_request_array(picodlp_gpios, ARRAY_SIZE(picodlp_gpios));
-+	if (status)
-+		pr_err("Cannot request OMAP4_DLP_GPIOs, error %d\n", status);
-+}
-+
-+static struct omap_dss_device sdp4430_picodlp_device = {
-+	.name			= "picodlp",
-+	.driver_name		= "picodlp_panel",
-+	.type			= OMAP_DISPLAY_TYPE_DPI,
-+	.phy.dpi.data_lines	= 24,
-+	.channel		= OMAP_DSS_CHANNEL_LCD2,
-+	.data			= &sdp4430_picodlp_pdata,
-+};
-+
- static struct omap_dss_device *sdp4430_dss_devices[] = {
- 	&sdp4430_lcd_device,
- 	&sdp4430_hdmi_device,
-+	&sdp4430_picodlp_device,
- };
- 
- static struct omap_dss_board_info sdp4430_dss_data = {
-@@ -827,6 +864,7 @@ void omap_4430sdp_display_init(void)
- {
- 	sdp4430_lcd_init();
- 	sdp4430_hdmi_mux_init();
-+	sdp4430_picodlp_init();
- 	omap_display_init(&sdp4430_dss_data);
- }
- 
--- 
-1.7.1
+There are few differences between `omap2plus_defconfig` and my config
+(only enough to get it to boot on the overo)
 
+I only enable the board features that my board has (and disable
+everything else) and I turn on devtmpfs :
+
+System Type --->
+  TI OMAP2/3/4 Specific Features --->
+     * Typical OMAP configuration
+     * TI OMAP3
+     * Gumstix Overo Board
+
+Device Drivers -->
+  Generic Driver Options --->
+    * Maintain a devtmpfs filesystem to mount at /dev
+      * Automount devtmpfs at /dev, after the kernel mounted the rootfs
+
+
+Also, I'm not loading any modules either.
+
+
+Is this an expected / okay failure?
+
+AJ ONeal
