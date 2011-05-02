@@ -1,84 +1,107 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 4/4] omap: musb: introduce default baord config
-Date: Mon, 2 May 2011 17:25:34 +0300
-Message-ID: <20110502142533.GJ2529@legolas.emea.dhcp.ti.com>
-References: <cover.1303682352.git.mike@compulab.co.il>
- <c18b58e93a67116f06e8ffbf097c2bd8e4f642a5.1303682352.git.mike@compulab.co.il>
- <FD6AF712-BD76-4E30-8ED8-6903987E5C2C@linuxhacker.ru>
- <20110428141818.GE19709@n2100.arm.linux.org.uk>
- <9B236748-29D6-4129-AFCD-5D223CE18ECD@linuxhacker.ru>
- <20110428162820.GF19709@n2100.arm.linux.org.uk>
- <9D42099B-0C25-4407-88B2-2574E9233B2A@linuxhacker.ru>
- <20110502142051.GC2092@atomide.com>
-Reply-To: balbi@ti.com
+From: Matthias Scheer <scheer@in.tum.de>
+Subject: smsc911x: regression on overo platform
+Date: Mon, 2 May 2011 14:31:59 +0000 (UTC)
+Message-ID: <loom.20110502T161913-232@post.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:43880 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759640Ab1EBOZm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 May 2011 10:25:42 -0400
-Received: by fxm6 with SMTP id 6so6211129fxm.39
-        for <linux-omap@vger.kernel.org>; Mon, 02 May 2011 07:25:39 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20110502142051.GC2092@atomide.com>
+Received: from lo.gmane.org ([80.91.229.12]:54051 "EHLO lo.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759301Ab1EBOfL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 2 May 2011 10:35:11 -0400
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gplao-linux-omap-open-source-moved1@m.gmane.org>)
+	id 1QGuDL-0002b9-0r
+	for linux-omap@vger.kernel.org; Mon, 02 May 2011 16:35:09 +0200
+Received: from ppp-93-104-17-21.dynamic.mnet-online.de ([93.104.17.21])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-omap@vger.kernel.org>; Mon, 02 May 2011 16:35:07 +0200
+Received: from scheer by ppp-93-104-17-21.dynamic.mnet-online.de with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-omap@vger.kernel.org>; Mon, 02 May 2011 16:35:07 +0200
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Oleg Drokin <green@linuxhacker.ru>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Mike Rapoport <mike@compulab.co.il>
+To: linux-omap@vger.kernel.org
 
-On Mon, May 02, 2011 at 07:20:52AM -0700, Tony Lindgren wrote:
-> * Oleg Drokin <green@linuxhacker.ru> [110428 09:33]:
-> > Hello!
-> > On Apr 28, 2011, at 12:28 PM, Russell King - ARM Linux wrote:
-> > > mm, it looks to me like we're ending up with two layers on top of
-> > > each other, both trying to provide some kind of generic board interface.
-> > > 
-> > > I think they should be squashed together.  And that:
-> > > 
-> > > static struct musb_hdrc_platform_data musb_plat = {
-> > > #ifdef CONFIG_USB_MUSB_OTG
-> > >        .mode           = MUSB_OTG,
-> > > #elif defined(CONFIG_USB_MUSB_HDRC_HCD)
-> > >        .mode           = MUSB_HOST,
-> > > #elif defined(CONFIG_USB_GADGET_MUSB_HDRC)
-> > >        .mode           = MUSB_PERIPHERAL,
-> > > #endif
-> > > 
-> > > in usb-musb.c needs the same treatment as I mentioned in the previous
-> > > message if it really is board specific.  If not, I see no reason why
-> > > the above can't go into the musb driver itself.
-> > 
-> > In the end it's chip dependent. And the musb can work in all three modes.
-> > Of course the board dictates if the power is supplied to the bus in host
-> > mode and such, but even that could be worked around as nokia 9x0 saga for
-> > USB host shows.
-> > So to me it looks like something totally in realm of musb driver itself.
-> > Nothing bad happens if you configure your MUSB as say OTG while in fact only
-> > peripheral mode was implemented, it continues to work as it did.
-> > Of course enabling HOST mode may not magically make things work, but
-> > I suspect this could be addressed from Kconfig itself instead.
-> > 
-> > Now I totally expect musb maintainer to jump in and explain
-> > how many misconceptions I have ;)
-> 
-> As far as I remember MUSB always relies on the OTG hardware to enable
-> the host mode.. So I don't even know if the driver is usable with
-> host only configuration. And for the peripheral mode, it should be
+introduced by: 6629398945426f388d61392eecd733336a6316a4
+environment: OMAP3503, Gumstix Overo, linux-omap-2.6.39-rc5
+kernel .config @ http://pastebin.com/QESCFb6j
 
-yes, it is :-)
+Thank you for looking into it.
 
-> possible to have OTG enabled, for cert testing some strings need
-> to be changed in that case for peripheral only configuration.
-> 
-> I think Felipe already has some patches to remove the various Kconfig
-> options for musb?  In any case, the musb configuration should be a
-> runtime configuration passed in the platform data or cmdline.
+[    0.205139] kobject (c04ce3a8): tried to init an initialized object,
+something is seriously wrong.
+[    0.205200] [<c004258c>] (unwind_backtrace+0x0/0xe4) from [<c01d1794>]
+(kobject_init+0x38/0x70)
+[    0.205261] [<c01d1794>] (kobject_init+0x38/0x70) from [<c0213dd4>]
+(device_initialize+0x20/0xa4)
+[    0.205322] [<c0213dd4>] (device_initialize+0x20/0xa4) from [<c02179a0>]
+(platform_device_register+0x10/0x1c)
+[    0.205383] [<c02179a0>] (platform_device_register+0x10/0x1c) from
+[<c00128f4>] (gpmc_smsc911x_init+0x110/0x184)
+[    0.205413] [<c00128f4>] (gpmc_smsc911x_init+0x110/0x184) from [<c0011cdc>]
+(overo_init+0xe8/0x32c)
+[    0.205444] [<c0011cdc>] (overo_init+0xe8/0x32c) from [<c000b19c>]
+(customize_machine+0x1c/0x28)
+[    0.205505] [<c000b19c>] (customize_machine+0x1c/0x28) from [<c00333b4>]
+(do_one_initcall+0x98/0x16c)
+[    0.205535] [<c00333b4>] (do_one_initcall+0x98/0x16c) from [<c0008388>]
+(kernel_init+0x8c/0x13c)
+[    0.205566] [<c0008388>] (kernel_init+0x8c/0x13c) from [<c003dd38>]
+(kernel_thread_exit+0x0/0x8)
+[    0.205627] ------------[ cut here ]------------
+[    0.205657] WARNING: at kernel/resource.c:491 __insert_resource+0x44/0x12c()
+[    0.205688] Modules linked in:
+[    0.205718] [<c004258c>] (unwind_backtrace+0x0/0xe4) from [<c0065428>]
+(warn_slowpath_common+0x4c/0x64)
+[    0.205749] [<c0065428>] (warn_slowpath_common+0x4c/0x64) from [<c0065458>]
+(warn_slowpath_null+0x18/0x1c)
+[    0.205810] [<c0065458>] (warn_slowpath_null+0x18/0x1c) from [<c006bd64>]
+(__insert_resource+0x44/0x12c)
+[    0.205841] [<c006bd64>] (__insert_resource+0x44/0x12c) from [<c006bfc0>]
+(insert_resource_conflict+0x24/0x3c)
+[    0.205871] [<c006bfc0>] (insert_resource_conflict+0x24/0x3c) from
+[<c006bfe0>] (insert_resource+0x8/0x14)
+[    0.205902] [<c006bfe0>] (insert_resource+0x8/0x14) from [<c02178e4>]
+(platform_device_add+0xb4/0x160)
+[    0.205963] [<c02178e4>] (platform_device_add+0xb4/0x160) from [<c00128f4>]
+(gpmc_smsc911x_init+0x110/0x184)
+[    0.205993] [<c00128f4>] (gpmc_smsc911x_init+0x110/0x184) from [<c0011cdc>]
+(overo_init+0xe8/0x32c)
+[    0.206024] [<c0011cdc>] (overo_init+0xe8/0x32c) from [<c000b19c>]
+(customize_machine+0x1c/0x28)
+[    0.206085] [<c000b19c>] (customize_machine+0x1c/0x28) from [<c00333b4>]
+(do_one_initcall+0x98/0x16c)
+[    0.206115] [<c00333b4>] (do_one_initcall+0x98/0x16c) from [<c0008388>]
+(kernel_init+0x8c/0x13c)
+[    0.206146] [<c0008388>] (kernel_init+0x8c/0x13c) from [<c003dd38>]
+(kernel_thread_exit+0x0/0x8)
+[    0.206542] ---[ end trace 1b75b31a2719ed1c ]---
+[    0.206573] smsc911x: failed to claim resource 0
+[    0.206573] Unable to register smsc911x device
+[    0.206604] ------------[ cut here ]------------
+[    0.206634] WARNING: at drivers/gpio/gpiolib.c:1236
+gpmc_smsc911x_init+0x130/0x184()
+[    0.206634] Modules linked in:
+[    0.206665] [<c004258c>] (unwind_backtrace+0x0/0xe4) from [<c0065428>]
+(warn_slowpath_common+0x4c/0x64)
+[    0.206726] [<c0065428>] (warn_slowpath_common+0x4c/0x64) from [<c0065458>]
+(warn_slowpath_null+0x18/0x1c)
+[    0.206756] [<c0065458>] (warn_slowpath_null+0x18/0x1c) from [<c0012914>]
+(gpmc_smsc911x_init+0x130/0x184)
+[    0.206787] [<c0012914>] (gpmc_smsc911x_init+0x130/0x184) from [<c0011cdc>]
+(overo_init+0xe8/0x32c)
+[    0.206848] [<c0011cdc>] (overo_init+0xe8/0x32c) from [<c000b19c>]
+(customize_machine+0x1c/0x28)
+[    0.206878] [<c000b19c>] (customize_machine+0x1c/0x28) from [<c00333b4>]
+(do_one_initcall+0x98/0x16c)
+[    0.206909] [<c00333b4>] (do_one_initcall+0x98/0x16c) from [<c0008388>]
+(kernel_init+0x8c/0x13c)
+[    0.206939] [<c0008388>] (kernel_init+0x8c/0x13c) from [<c003dd38>]
+(kernel_thread_exit+0x0/0x8)
+[    0.206970] ---[ end trace 1b75b31a2719ed1d ]---
+[    0.207031] Could not initialize smsc911x
 
-Yeah, I'm planning to get rid of all the ifdeferry and always compile it
-with HOST and Peripheral support. It's only few extra tens of bytes
-anyway. Still, I doubt I can get that done for this merge window, I
-already have pending the debugging rework.
 
--- 
-balbi
