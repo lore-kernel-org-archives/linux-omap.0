@@ -1,35 +1,68 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] omap:usb: add regulator support for EHCI
-Date: Mon, 2 May 2011 12:38:32 +0300
-Message-ID: <20110502093830.GR2529@legolas.emea.dhcp.ti.com>
-References: <1303395763-8702-1-git-send-email-keshava_mgowda@ti.com>
- <1303395763-8702-2-git-send-email-keshava_mgowda@ti.com>
- <1303395763-8702-3-git-send-email-keshava_mgowda@ti.com>
-Reply-To: balbi-l0cyMroinI0@public.gmane.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1303395763-8702-3-git-send-email-keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, gadiyar-l0cyMroinI0@public.gmane.org, p-basak2-l0cyMroinI0@public.gmane.org, axel.lin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, johnstul-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org, mpfj-list-kZtEnBLzDKq1Qrn1Bg8BZw@public.gmane.org
+From: Felipe Balbi <balbi@ti.com>
+Subject: [PATCH] usb: musb: am35x: fix compile error when building am35x
+Date: Mon,  2 May 2011 12:46:57 +0300
+Message-ID: <1304329617-5233-1-git-send-email-balbi@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:57595 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757045Ab1EBJrE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 May 2011 05:47:04 -0400
+Received: by bwz17 with SMTP id 17so5583773bwz.0
+        for <linux-omap@vger.kernel.org>; Mon, 02 May 2011 02:47:01 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Felipe Balbi <balbi@ti.com>
 
-On Thu, Apr 21, 2011 at 07:52:43PM +0530, Keshava Munegowda wrote:
-> From: Keshava Munegowda <Keshava_mgowda-l0cyMroinI0@public.gmane.org>
-> 
-> in case of ehci phy mode; regulator of phy
-> should be enabled before initializing the
-> usbhs core driver.
-> 
-> Signed-off-by: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+am35x_musb_set_mode() was redefined. Fix it.
 
-applied, thanks
+Reported-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+---
+ arch/arm/mach-omap2/board-am3517evm.c   |    2 +-
+ arch/arm/mach-omap2/omap_phy_internal.c |    2 +-
+ arch/arm/plat-omap/include/plat/usb.h   |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
+index ce7d5e6..d8a0484 100644
+--- a/arch/arm/mach-omap2/board-am3517evm.c
++++ b/arch/arm/mach-omap2/board-am3517evm.c
+@@ -396,7 +396,7 @@ static struct omap_musb_board_data musb_board_data = {
+ 	.power                  = 500,
+ 	.set_phy_power		= am35x_musb_phy_power,
+ 	.clear_irq		= am35x_musb_clear_irq,
+-	.set_mode		= am35x_musb_set_mode,
++	.set_mode		= am35x_set_mode,
+ 	.reset			= am35x_musb_reset,
+ };
+ 
+diff --git a/arch/arm/mach-omap2/omap_phy_internal.c b/arch/arm/mach-omap2/omap_phy_internal.c
+index 05f6abc..eff6e24 100644
+--- a/arch/arm/mach-omap2/omap_phy_internal.c
++++ b/arch/arm/mach-omap2/omap_phy_internal.c
+@@ -228,7 +228,7 @@ void am35x_musb_clear_irq(void)
+ 	regval = omap_ctrl_readl(AM35XX_CONTROL_LVL_INTR_CLEAR);
+ }
+ 
+-void am35x_musb_set_mode(u8 musb_mode)
++void am35x_set_mode(u8 musb_mode)
+ {
+ 	u32 devconf2 = omap_ctrl_readl(AM35XX_CONTROL_DEVCONF2);
+ 
+diff --git a/arch/arm/plat-omap/include/plat/usb.h b/arch/arm/plat-omap/include/plat/usb.h
+index 02b96c8..17d3c93 100644
+--- a/arch/arm/plat-omap/include/plat/usb.h
++++ b/arch/arm/plat-omap/include/plat/usb.h
+@@ -113,7 +113,7 @@ extern int omap4430_phy_suspend(struct device *dev, int suspend);
+ extern void am35x_musb_reset(void);
+ extern void am35x_musb_phy_power(u8 on);
+ extern void am35x_musb_clear_irq(void);
+-extern void am35x_musb_set_mode(u8 musb_mode);
++extern void am35x_set_mode(u8 musb_mode);
+ 
+ /*
+  * FIXME correct answer depends on hmc_mode,
 -- 
-balbi
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+1.7.4.1.343.ga91df
+
