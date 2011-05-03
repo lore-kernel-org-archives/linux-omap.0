@@ -1,58 +1,67 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH] arm: omap3: cm-t3517: fix section mismatch warning
-Date: Tue, 03 May 2011 18:30:58 +0300
-Message-ID: <4DC01FB2.9060806@compulab.co.il>
-References: <1303850474-25106-1-git-send-email-grinberg@compulab.co.il>
+From: Marc Zyngier <Marc.Zyngier@arm.com>
+Subject: Re: [RFC PATCH 03/12] ARM: omap4: use remapped PPI interrupts for
+ local timer
+Date: Tue, 03 May 2011 17:18:49 +0100
+Message-ID: <1304439529.27148.188.camel@e102391-lin.cambridge.arm.com>
+References: <1303326501-15664-1-git-send-email-marc.zyngier@arm.com>
+	 <1303326501-15664-4-git-send-email-marc.zyngier@arm.com>
+	 <4DBA67A5.4060803@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:49808
-	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753013Ab1ECPa6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 May 2011 11:30:58 -0400
-In-Reply-To: <1303850474-25106-1-git-send-email-grinberg@compulab.co.il>
+Received: from service87.mimecast.com ([94.185.240.25]:56577 "HELO
+	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753552Ab1ECQSQ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 May 2011 12:18:16 -0400
+In-Reply-To: <4DBA67A5.4060803@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Igor Grinberg <grinberg@compulab.co.il>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: LAK <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, l-o <linux-omap@vger.kernel.org>
 
-ping!
+On Fri, 2011-04-29 at 12:54 +0530, Santosh Shilimkar wrote:
 
+Hi Santosh,
 
-Just to make sure you haven't missed this one liner ;)
+> On 4/21/2011 12:38 AM, Marc Zyngier wrote:
+> > Use the normal interrupt scheme for the local timers by using
+> > a remapped PPI interrupt.
+> >
+> > Tested on a Pandaboard.
+> >
+> > Cc: Tony Lindgren<tony@atomide.com>
+> > Cc: Santosh Shilimkar<santosh.shilimkar@ti.com>
+> > Signed-off-by: Marc Zyngier<marc.zyngier@arm.com>
+> > ---
+> 
+> Have reviewed and tested your series along with
+> OMAP changes. It boots fine on OMAP4430 SDP.
+> 
+> # cat /proc/interrupts
+>             CPU0       CPU1
+> .
+> 410:       3678          0   GIC-PPI  local_timer
+> 413:          0       1042   GIC-PPI  local_timer
+> .
+> LOC:          0          0  Local timer interrupts
+> .
+> 
+> Though above output would be bit miss leading, this
+> series removes the duplicate code from platforms and
+> consolidate it at one place.
 
+The LOC line is gone in the next iteration of the patch serie.
 
-On 04/26/11 23:41, Igor Grinberg wrote:
+> FWIW, you can add my
+> 
+> Reviewedd-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Tested-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-> WARNING: arch/arm/mach-omap2/built-in.o(.text+0x11014): Section mismatch
-> in reference from the function cm_t3517_init_usbh() to the (unknown
-> reference) .init.data:(unknown)
-> The function cm_t3517_init_usbh() references
-> the (unknown reference) __initdata (unknown).
-> This is often because cm_t3517_init_usbh lacks a __initdata
-> annotation or the annotation of (unknown) is wrong.
->
-> Signed-off-by: Igor Grinberg <grinberg@compulab.co.il>
-> ---
->  arch/arm/mach-omap2/board-cm-t3517.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/board-cm-t3517.c b/arch/arm/mach-omap2/board-cm-t3517.c
-> index a27e3ee..802cb60 100644
-> --- a/arch/arm/mach-omap2/board-cm-t3517.c
-> +++ b/arch/arm/mach-omap2/board-cm-t3517.c
-> @@ -178,7 +178,7 @@ static struct usbhs_omap_board_data cm_t3517_ehci_pdata __initdata = {
->  	.reset_gpio_port[2]  = -EINVAL,
->  };
->  
-> -static int cm_t3517_init_usbh(void)
-> +static int __init cm_t3517_init_usbh(void)
->  {
->  	int err;
->  
+Thanks for testing.
 
+	M.
 -- 
-Regards,
-Igor.
+Reality is an implementation detail.
+
 
