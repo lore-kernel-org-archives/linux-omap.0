@@ -1,44 +1,33 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] arm: omap2plus: GPIO cleanup mach-omap2/*
-Date: Tue, 3 May 2011 03:39:53 -0700
-Message-ID: <20110503103952.GP2092@atomide.com>
-References: <1303895153-451-1-git-send-email-grinberg@compulab.co.il>
- <20110427140129.GH3755@atomide.com>
- <BANLkTik4qvrYBs4O90c8ZekW6ULh1tRxEA@mail.gmail.com>
- <4DB9146F.2080002@compulab.co.il>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:43041 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751389Ab1ECKj5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 May 2011 06:39:57 -0400
-Content-Disposition: inline
-In-Reply-To: <4DB9146F.2080002@compulab.co.il>
-Sender: linux-omap-owner@vger.kernel.org
+From: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
+Subject: [PATCH v3 0/2] omap3isp/rx-51: Add vdds_csib regulator handling
+Date: Tue,  3 May 2011 13:41:21 +0300
+Message-ID: <1304419283-4177-1-git-send-email-kalle.jokiniemi@nokia.com>
+Return-path: <linux-media-owner@vger.kernel.org>
+Sender: linux-media-owner@vger.kernel.org
+To: maurochehab@gmail.com, tony@atomide.com
+Cc: laurent.pinchart@ideasonboard.com, linux-omap@vger.kernel.org, linux-media@vger.kernel.org, Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
 List-Id: linux-omap@vger.kernel.org
-To: Igor Grinberg <grinberg@compulab.co.il>
-Cc: Grazvydas Ignotas <notasas@gmail.com>, Kevin Hilman <khilman@ti.com>, Felipe Balbi <balbi@ti.com>, Mike Rapoport <mike@compulab.co.il>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Igor Grinberg <grinberg@compulab.co.il> [110428 00:13]:
-> On 04/27/11 18:58, Grazvydas Ignotas wrote:
-> 
-> > On Wed, Apr 27, 2011 at 5:01 PM, Tony Lindgren <tony@atomide.com> wrote:
-> >> * Igor Grinberg <grinberg@compulab.co.il> [110427 02:02]:
-> >>> use gpio_request_<one|array>() instead of multiple gpiolib calls,
-> >>> remove unneeded variables, etc.
-> >> Great :)
-> > I think this does conflict with Mike's "omap: cleanup board files"
-> > series though.
-> 
-> Yep, as I've stated in the description ;)
-> 
-> I've started working on this before Mike submitted his series and now
-> I want to get some responses before any rebase work is done.
+The CSIb block is used in rx-51 to handle camera ccp2 IO. Adding
+support to omap3isp driver for managing the power supply for the
+CSIb IO complex via regulator framework. Also create the
+apropriate regulator definitions in the rx-51 board file.
 
-Mike's series is now applied into devel-cleanup, can you please
-rebase on top of commit ff08a05b6ca3a22107d621b1417e703af25b1298?
+I propose to push this set through the linux-media, since most
+of the changes are on the omap3isp driver side.
 
-Thanks,
+Tested on Nokia N900 and the MeeGo testing daily images
+(.37 based kernel). Patches on top of Mauro's linux-next tree,
+build tested and boot tested with that. 
 
-Tony
+v2: updated patch 1/2 with comment from Laurent Pinchart
+v3: removed unnecessary "vaux2" consumer regulator supply
+
+Kalle Jokiniemi (2):
+  OMAP3: ISP: Add regulator control for omap34xx
+  OMAP3: RX-51: define vdds_csib regulator supply
+
+ arch/arm/mach-omap2/board-rx51-peripherals.c |    6 +++++
+ drivers/media/video/omap3isp/ispccp2.c       |   27 ++++++++++++++++++++++++-
+ drivers/media/video/omap3isp/ispccp2.h       |    1 +
+ 3 files changed, 32 insertions(+), 2 deletions(-)
