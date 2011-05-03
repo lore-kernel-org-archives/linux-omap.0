@@ -1,47 +1,46 @@
-From: ken leo <kenleocompany01@gmail.com>
-Subject: (unknown)
-Date: Tue, 3 May 2011 09:05:03 -0700
-Message-ID: <BANLkTi=O637dQzFeHVmd427TYmL_wy5bbA__49818.2112620727$1304439694$gmane$org@mail.gmail.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [v2 0/7] OMAP: GPIO: Use PM runtime framework
+Date: Tue, 03 May 2011 09:22:03 -0700
+Message-ID: <87y62ng3f8.fsf@ti.com>
+References: <1303139217-10285-1-git-send-email-charu@ti.com>
+	<20110419062633.GA15620@atomide.com> <87r58w4gq3.fsf@ti.com>
+	<20110421054221.GF5918@atomide.com>
+	<BANLkTi=s=KzeZfvoq7Efg2=Ceahz_fQxMA@mail.gmail.com>
+	<20110426072941.GA3755@atomide.com>
+	<BANLkTimGU+kODvL0dC2x7UNSz0TReKveXQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-13
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f66.google.com ([209.85.214.66]:65512 "EHLO
-	mail-bw0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751482Ab1ECQV2 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 May 2011 12:21:28 -0400
-Received: by mail-bw0-f66.google.com with SMTP id 7so45272bwz.1
-        for <linux-omap@vger.kernel.org>; Tue, 03 May 2011 09:21:27 -0700 (PDT)
-Subject: 
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:39951 "EHLO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753634Ab1ECQWK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 May 2011 12:22:10 -0400
+Received: by mail-px0-f171.google.com with SMTP id 7so134695pxi.16
+        for <linux-omap@vger.kernel.org>; Tue, 03 May 2011 09:22:07 -0700 (PDT)
+In-Reply-To: <BANLkTimGU+kODvL0dC2x7UNSz0TReKveXQ@mail.gmail.com> (Linus
+	Walleij's message of "Wed, 27 Apr 2011 15:18:55 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Tony Lindgren <tony@atomide.com>, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Varadarajan, Charulatha" <charu@ti.com>
 
-Gera diena
+Linus Walleij <linus.walleij@linaro.org> writes:
 
-Mes si=FBlome paskolas atskiroms bendrov=EBms ir pig=FBs
-3% norma, asmenini=F8 ir investicijas, mes si=FBlome paskola
-$ 5,000.00 iki $ 100,000,000.00 doleri=F8 mus gr=E1=FEti prie m=FBs=F8 =
-su tikslios sumos
-jums reikia.
-Pra=F0ome u=FEpildyti ir gr=E0=FEinti =F0i=E0 form=E0 nor=EBdami t=E6st=
-i.
+> 2011/4/26 Tony Lindgren <tony@atomide.com>:
+>> * Linus Walleij <linus.walleij@linaro.org> [110423 01:32]:
+>>> Since you'll probably be dependent on stuff happening in my patches
+>>> to move stuff into drivers/gpio I'll be happy to carry the patches in my
+>>> gpio-consolidation branch with Tony's ACKs if need be.
+>>
+>> Sounds good to me.
+>
+> I've just posted a patch series that moves "our" two GPIO drivers to
+> drivers/gpio, they should serve as good inspiration... Tell me if I can
+> help out, stack patches on top of this series and I'll carry them.
 
-Vardas, pavard=EB: _
-Kredito paskirtis: _
-Am=FEius: _
-Lytis: _
-Adresas: _
-=D0alis: _
-=C1mon=EBs pavadinimas: _
-Pareigos: _
-Telefonas: _
-reikalinga suma, kaip paskola: _
-Trukm=EB: _
+Great, thanks.
 
-Jei esate interested.contact su mumis =FEemiau
-E-mail: Brucefastfunds09@gmail.com
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Are you OK with a move of the current OMAP GPIO drivers (rather ugly)
+into drivers/gpio first, followed by the cleanup/restructure patches?
+
+Kevin
