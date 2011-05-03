@@ -1,33 +1,62 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v2 4/4] omap: musb: introduce default board config
-Date: Tue, 3 May 2011 11:24:46 +0300
-Message-ID: <20110503082442.GB2902@legolas.emea.dhcp.ti.com>
-References: <1303894572-7375-1-git-send-email-mike@compulab.co.il>
-Reply-To: balbi@ti.com
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/2] Initial B&N Nook Color (encore) support.
+Date: Tue, 3 May 2011 02:22:38 -0700
+Message-ID: <20110503092237.GM2092@atomide.com>
+References: <1304006259-7939-1-git-send-email-green@linuxhacker.ru>
+ <1304006259-7939-2-git-send-email-green@linuxhacker.ru>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:60346 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750833Ab1ECIZT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 May 2011 04:25:19 -0400
-Received: by bwz5 with SMTP id 5so8598021bwz.34
-        for <linux-omap@vger.kernel.org>; Tue, 03 May 2011 01:25:17 -0700 (PDT)
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:64914 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751746Ab1ECJWl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 May 2011 05:22:41 -0400
 Content-Disposition: inline
-In-Reply-To: <1303894572-7375-1-git-send-email-mike@compulab.co.il>
+In-Reply-To: <1304006259-7939-2-git-send-email-green@linuxhacker.ru>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mike Rapoport <mike@compulab.co.il>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+To: green@linuxhacker.ru
+Cc: linux-omap@vger.kernel.org
 
-Hi,
-
-> Most boards use exactly the same configuration for musb initialization.
-> Create a default that can be shared amount different boards.
+* green@linuxhacker.ru <green@linuxhacker.ru> [110428 08:55]:
+> From: Oleg Drokin <green@linuxhacker.ru>
 > 
-> Signed-off-by: Mike Rapoport <mike@compulab.co.il>
+> Bare-bones board file, comes with serial console, gpio keys,
+> MMC/SDCard and USB support.
 
-Acked-by: Felipe Balbi <balbi@ti.com>
+Good to see that. Unfortunately you probably have to do few
+more rebases on the devel-cleanup branch because of the code
+consolidation effort. We'll have to wait a bit and see what
+new platform code we can merge after that is all the
+consolidation is sorted out.
 
--- 
-balbi
+Please also post your series with linux-arm-kernel mailing
+list Cc'd. Few comments below too.
+
+> +#include <mach/gpio.h>
+
+This should be linux/gpio.h nowadays.
+
+> +	if(is_encore_board_evt2()) {
+
+You should have if ( here with space.
+
+Maybe run scripts/checkpatch.pl --strict on the patch?
+
+> --- a/arch/arm/tools/mach-types
+> +++ b/arch/arm/tools/mach-types
+> @@ -962,7 +962,7 @@ omapl138_case_a3	MACH_OMAPL138_CASE_A3	OMAPL138_CASE_A3	3280
+>  uemd			MACH_UEMD		UEMD			3281
+>  ccwmx51mut		MACH_CCWMX51MUT		CCWMX51MUT		3282
+>  rockhopper		MACH_ROCKHOPPER		ROCKHOPPER		3283
+> -nookcolor		MACH_NOOKCOLOR		NOOKCOLOR		3284
+> +encore			MACH_ENCORE		ENCORE			3284
+>  hkdkc100		MACH_HKDKC100		HKDKC100		3285
+>  ts42xx			MACH_TS42XX		TS42XX			3286
+>  aebl			MACH_AEBL		AEBL			3287
+
+For this you need to follow the instructions at www.arm.linux.org.uk.
+
+Regards,
+
+Tony
