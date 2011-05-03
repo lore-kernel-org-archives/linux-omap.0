@@ -1,87 +1,96 @@
-From: Steve Sakoman <sakoman@gmail.com>
-Subject: Re: [PATCH 0/2 v5] twl4030-madc driver
-Date: Tue, 3 May 2011 08:14:10 -0700
-Message-ID: <BANLkTimc6uz353DDb9Ent6s6WjfY7f-xuA@mail.gmail.com>
-References: <1298986926-31180-1-git-send-email-j-keerthy@ti.com>
-	<20110302101512.GC16181@sortiz-mobl>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH v3 2/2] OMAP3: RX-51: define vdds_csib regulator supply
+Date: Tue, 3 May 2011 17:17:40 +0200
+Message-ID: <201105031717.40882.laurent.pinchart@ideasonboard.com>
+References: <1304419283-4177-1-git-send-email-kalle.jokiniemi@nokia.com> <201105031249.23245.laurent.pinchart@ideasonboard.com> <9D0D31AA57AAF5499AFDC63D6472631B09D335@008-AM1MPN1-036.mgdnok.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:63756 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751903Ab1ECPOL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 May 2011 11:14:11 -0400
-Received: by vws1 with SMTP id 1so136627vws.19
-        for <linux-omap@vger.kernel.org>; Tue, 03 May 2011 08:14:10 -0700 (PDT)
-In-Reply-To: <20110302101512.GC16181@sortiz-mobl>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:50655 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751299Ab1ECPRJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 May 2011 11:17:09 -0400
+In-Reply-To: <9D0D31AA57AAF5499AFDC63D6472631B09D335@008-AM1MPN1-036.mgdnok.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Keerthy <j-keerthy@ti.com>
-Cc: lm-sensors@lm-sensors.org, guenter.roeck@ericsson.com, mikko.k.ylinen@nokia.com, amit.kucheria@canonical.com, linux-omap@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>
+To: kalle.jokiniemi@nokia.com
+Cc: maurochehab@gmail.com, tony@atomide.com, linux-omap@vger.kernel.org, linux-media@vger.kernel.org
 
-On Wed, Mar 2, 2011 at 2:15 AM, Samuel Ortiz <sameo@linux.intel.com> wrote:
-> Hi Keerthy,
->
-> On Tue, Mar 01, 2011 at 07:12:06PM +0530, Keerthy wrote:
->> MADC(Monitoring ADC) driver enables monitoring analog signals using
->> analog-to-digital conversion (ADC) on the input source.
->> The previous discussion concluded in keeping the generic ADC
->> functionality and the hwmon separate. The discussion can be found here:
->>
->> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg41805.html
-> Thanks a lot, I applied those 2 patches.
+Hi Kalle,
 
-I'm attempting to use this drive on the Overo platform with 2.6.39-rc5.
+On Tuesday 03 May 2011 12:51:56 kalle.jokiniemi@nokia.com wrote:
+> On 3. toukokuuta 2011 13:49 Laurent Pinchart wrote: 
+> > On Tuesday 03 May 2011 12:41:23 Kalle Jokiniemi wrote:
+> > > The RX-51 uses the CSIb IO complex for camera operation. The
+> > > board file is missing definition for the regulator supplying
+> > > the CSIb complex, so this is added for better power
+> > > management.
+> > > 
+> > > Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
+> > > ---
+> > > 
+> > >  arch/arm/mach-omap2/board-rx51-peripherals.c |    6 ++++++
+> > >  1 files changed, 6 insertions(+), 0 deletions(-)
+> > > 
+> > > diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c
+> > > b/arch/arm/mach-omap2/board-rx51-peripherals.c index bbcb677..2f12425
+> > > 100644
+> > > --- a/arch/arm/mach-omap2/board-rx51-peripherals.c
+> > > +++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+> > > @@ -337,6 +337,10 @@ static struct omap2_hsmmc_info mmc[] __initdata =
+> > 
+> > {
+> > 
+> > >  static struct regulator_consumer_supply rx51_vmmc1_supply =
+> > >  
+> > >  	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.0");
+> > > 
+> > > +static struct regulator_consumer_supply rx51_vaux2_supply[] = {
+> > > +	REGULATOR_SUPPLY("vdds_csib", "omap3isp"),
+> > > +};
+> > > +
+> > 
+> > What about
+> > 
+> > static struct regulator_consumer_supply rx51_vaux2_supply =
+> > 
+> > 	REGULATOR_SUPPLY("vdds_csib", "omap3isp");
+> > 
+> > instead ? :-) It would be in line with the other vaux supply
+> > definitions.
+> > 
+> > >  static struct regulator_consumer_supply rx51_vaux3_supply =
+> > >  
+> > >  	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.1");
+> > > 
+> > > @@ -400,6 +404,8 @@ static struct regulator_init_data rx51_vaux2 = {
+> > > 
+> > >  		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+> > >  		
+> > >  					| REGULATOR_CHANGE_STATUS,
+> > >  	
+> > >  	},
+> > > 
+> > > +	.num_consumer_supplies	= 1,
+> > > +	.consumer_supplies	= rx51_vaux2_supply,
+> > 
+> > and
+> > 
+> > .consumer_supplies	= &rx51_vaux2_supply,
+> > 
+> > here.
+> > 
+> > If you're fine with that, there's no need to resubmit, I'll modify this
+> > patch and push the set through my tree (let me know if I can keep your
+> > SoB line with that change).
+> 
+> Perfectly fine with me, you can keep the SoB line.
 
-Other than enabling the module with CONFIG_SENSORS_TWL4030_MADC=m are
-there any board file modifications required other than the below?
+I've picked the patches up. I'll submit them for 2.6.40.
 
-I have setup the platform data for the twl4030 madc driver:
+-- 
+Regards,
 
-diff --git a/arch/arm/mach-omap2/board-overo.c
-b/arch/arm/mach-omap2/board-overo.c
-index 112dfc9..05dd3eb 100644
---- a/arch/arm/mach-omap2/board-overo.c
-+++ b/arch/arm/mach-omap2/board-overo.c
-@@ -637,10 +637,15 @@ static struct twl4030_codec_data overo_codec_data = {
- 	.audio = &overo_audio_data,
- };
-
-+static struct twl4030_madc_platform_data overo_madc_data = {
-+	.irq_line	= 1,
-+};
-+
- static struct twl4030_platform_data overo_twldata = {
- 	.irq_base	= TWL4030_IRQ_BASE,
- 	.irq_end	= TWL4030_IRQ_END,
- 	.gpio		= &overo_gpio_data,
-+	.madc		= &overo_madc_data,
- 	.usb		= &overo_usb_data,
- 	.codec		= &overo_codec_data,
- 	.vmmc1		= &overo_vmmc1,
-
-However, I am not seeing the sysfs entry created:
-
-# modprobe twl4030-madc-hwmon
-twl4030_madc_hwmon_init entry
-
-# lsmod
-Module                  Size  Used by
-twl4030_madc_hwmon      2594  0
-ipv6                  224256  16
-libertas_sdio          14867  0
-libertas               92429  1 libertas_sdio
-cfg80211              144256  1 libertas
-lib80211                5027  1 libertas
-firmware_class          5859  2 libertas_sdio,libertas
-
-# ls /sys/class/hwmon/
-#
-
-I added a couple of printk's to the driver at the entry points of init
-and probe, and as you can see above the init message is printed, but
-not the probe.
-
-Am I missing something really obvious here?
-
-Steve
+Laurent Pinchart
