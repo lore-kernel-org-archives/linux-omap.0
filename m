@@ -1,49 +1,33 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCHv2 0/2] OMAP: DSS: Support new dpi panels
-Date: Tue, 03 May 2011 10:54:04 +0300
-Message-ID: <1304409244.2180.26.camel@deskari>
-References: <1304406457-5109-1-git-send-email-eballetbo@iseebcn.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v2 4/4] omap: musb: introduce default board config
+Date: Tue, 3 May 2011 11:24:46 +0300
+Message-ID: <20110503082442.GB2902@legolas.emea.dhcp.ti.com>
+References: <1303894572-7375-1-git-send-email-mike@compulab.co.il>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:41682 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750881Ab1ECHyK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 May 2011 03:54:10 -0400
-In-Reply-To: <1304406457-5109-1-git-send-email-eballetbo@iseebcn.com>
+Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:60346 "EHLO
+	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750833Ab1ECIZT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 May 2011 04:25:19 -0400
+Received: by bwz5 with SMTP id 5so8598021bwz.34
+        for <linux-omap@vger.kernel.org>; Tue, 03 May 2011 01:25:17 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <1303894572-7375-1-git-send-email-mike@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Enric Balletbo i Serra <eballetbo@iseebcn.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
+To: Mike Rapoport <mike@compulab.co.il>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-On Tue, 2011-05-03 at 09:07 +0200, Enric Balletbo i Serra wrote:
-> Hi all,
-> 
-> These patches add support for two new panels to the generic-dpi-panel.
-> 
-> The first patch adds support for the Seiko 70WVW1TZ3 LCD panel, and the second
-> adds support for the Powertip PH480272T LCD panel.
-> 
-> Tested with an IGEP v2 board.
-> 
-> Changes since v1:
->   - Change the names of both panels in the panel_config struct to
->     include the name of the manufacturer.
->   - Mention the board which uses those panels.
-> 
-> Please consider to add in next merge window, thanks,
-> 
-> Enric Balletbo i Serra (2):
->   OMAP: DSS2: Support for Seiko 70WVW1TZ3
->   OMAP: DSS2: Support for Powertip PH480272T
-> 
->  drivers/video/omap2/displays/panel-generic-dpi.c |   50 ++++++++++++++++++++++
->  1 files changed, 50 insertions(+), 0 deletions(-)
+Hi,
 
-Thanks, applied to DSS tree.
+> Most boards use exactly the same configuration for musb initialization.
+> Create a default that can be shared amount different boards.
+> 
+> Signed-off-by: Mike Rapoport <mike@compulab.co.il>
 
- Tomi
+Acked-by: Felipe Balbi <balbi@ti.com>
 
-
-
+-- 
+balbi
