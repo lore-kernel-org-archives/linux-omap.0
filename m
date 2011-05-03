@@ -1,67 +1,47 @@
-From: Marc Zyngier <Marc.Zyngier@arm.com>
-Subject: Re: [RFC PATCH 03/12] ARM: omap4: use remapped PPI interrupts for
- local timer
-Date: Tue, 03 May 2011 17:18:49 +0100
-Message-ID: <1304439529.27148.188.camel@e102391-lin.cambridge.arm.com>
-References: <1303326501-15664-1-git-send-email-marc.zyngier@arm.com>
-	 <1303326501-15664-4-git-send-email-marc.zyngier@arm.com>
-	 <4DBA67A5.4060803@ti.com>
+From: ken leo <kenleocompany01@gmail.com>
+Subject: (unknown)
+Date: Tue, 3 May 2011 09:05:03 -0700
+Message-ID: <BANLkTi=O637dQzFeHVmd427TYmL_wy5bbA__49818.2112620727$1304439694$gmane$org@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-13
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from service87.mimecast.com ([94.185.240.25]:56577 "HELO
-	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753552Ab1ECQSQ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 May 2011 12:18:16 -0400
-In-Reply-To: <4DBA67A5.4060803@ti.com>
+Received: from mail-bw0-f66.google.com ([209.85.214.66]:65512 "EHLO
+	mail-bw0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751482Ab1ECQV2 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 May 2011 12:21:28 -0400
+Received: by mail-bw0-f66.google.com with SMTP id 7so45272bwz.1
+        for <linux-omap@vger.kernel.org>; Tue, 03 May 2011 09:21:27 -0700 (PDT)
+Subject: 
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: LAK <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, l-o <linux-omap@vger.kernel.org>
 
-On Fri, 2011-04-29 at 12:54 +0530, Santosh Shilimkar wrote:
+Gera diena
 
-Hi Santosh,
+Mes si=FBlome paskolas atskiroms bendrov=EBms ir pig=FBs
+3% norma, asmenini=F8 ir investicijas, mes si=FBlome paskola
+$ 5,000.00 iki $ 100,000,000.00 doleri=F8 mus gr=E1=FEti prie m=FBs=F8 =
+su tikslios sumos
+jums reikia.
+Pra=F0ome u=FEpildyti ir gr=E0=FEinti =F0i=E0 form=E0 nor=EBdami t=E6st=
+i.
 
-> On 4/21/2011 12:38 AM, Marc Zyngier wrote:
-> > Use the normal interrupt scheme for the local timers by using
-> > a remapped PPI interrupt.
-> >
-> > Tested on a Pandaboard.
-> >
-> > Cc: Tony Lindgren<tony@atomide.com>
-> > Cc: Santosh Shilimkar<santosh.shilimkar@ti.com>
-> > Signed-off-by: Marc Zyngier<marc.zyngier@arm.com>
-> > ---
-> 
-> Have reviewed and tested your series along with
-> OMAP changes. It boots fine on OMAP4430 SDP.
-> 
-> # cat /proc/interrupts
->             CPU0       CPU1
-> .
-> 410:       3678          0   GIC-PPI  local_timer
-> 413:          0       1042   GIC-PPI  local_timer
-> .
-> LOC:          0          0  Local timer interrupts
-> .
-> 
-> Though above output would be bit miss leading, this
-> series removes the duplicate code from platforms and
-> consolidate it at one place.
+Vardas, pavard=EB: _
+Kredito paskirtis: _
+Am=FEius: _
+Lytis: _
+Adresas: _
+=D0alis: _
+=C1mon=EBs pavadinimas: _
+Pareigos: _
+Telefonas: _
+reikalinga suma, kaip paskola: _
+Trukm=EB: _
 
-The LOC line is gone in the next iteration of the patch serie.
-
-> FWIW, you can add my
-> 
-> Reviewedd-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Tested-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-
-Thanks for testing.
-
-	M.
--- 
-Reality is an implementation detail.
-
-
+Jei esate interested.contact su mumis =FEemiau
+E-mail: Brucefastfunds09@gmail.com
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
