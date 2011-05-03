@@ -1,80 +1,56 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 15/15] OMAP: GPIO: cleanup show revision, remove cpu_is checks, display only once
-Date: Tue, 03 May 2011 09:38:51 -0700
-Message-ID: <874o5bg2n8.fsf@ti.com>
-References: <1303513327-14532-1-git-send-email-khilman@ti.com>
-	<1303513327-14532-16-git-send-email-khilman@ti.com>
-	<BANLkTimwFezON_qX+wr3Gj+A3EOEbD81YQ@mail.gmail.com>
+From: =?UTF-8?Q?Enric_Balletb=C3=B2_i_Serra?= <eballetbo@gmail.com>
+Subject: [RFC] About ARM expansion boards and others things
+Date: Tue, 3 May 2011 19:25:15 +0200
+Message-ID: <BANLkTimjWtqLsWA1Gthix6RZYMzNRdC7rg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:33165 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753728Ab1ECQiz convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 3 May 2011 12:38:55 -0400
-Received: by mail-pv0-f180.google.com with SMTP id 21so146747pvc.39
-        for <linux-omap@vger.kernel.org>; Tue, 03 May 2011 09:38:54 -0700 (PDT)
-In-Reply-To: <BANLkTimwFezON_qX+wr3Gj+A3EOEbD81YQ@mail.gmail.com> (Charulatha
-	Varadarajan's message of "Tue, 26 Apr 2011 17:18:47 +0530")
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:34951 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753362Ab1ECRZQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 May 2011 13:25:16 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Varadarajan, Charulatha" <charu@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org, linux-arm@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@nokia.com>
 
-"Varadarajan, Charulatha" <charu@ti.com> writes:
+Hi guys,
+I'm thinking probably in a crazy idea, I hope someone can help me or
+kill definitely this idea from my mind.
 
-> Kevin,
->
-> On Sat, Apr 23, 2011 at 04:32, Kevin Hilman <khilman@ti.com> wrote:
->> Remove cpu_is_* checks from gpio_show_revision() by passing in the
->> revision address offset from platform data. =C2=A0SoCs with no revis=
-ion
->> register (15xx, 7xx, and all MPUIOs) use -1 to signify no register.
->>
->> While here, all GPIO banks are assumed to be the same revision, so f=
-ix
->> show_revision() to only show the revision for the first bank it find=
-s.
->> This removes duplicate GPIO revision prints during boot.
->>
->> Signed-off-by: Kevin Hilman <khilman@ti.com>
->> ---
->> =C2=A0arch/arm/mach-omap1/gpio15xx.c =C2=A0 =C2=A0 =C2=A0 =C2=A0 | =C2=
-=A0 =C2=A02 ++
->> =C2=A0arch/arm/mach-omap1/gpio16xx.c =C2=A0 =C2=A0 =C2=A0 =C2=A0 | =C2=
-=A0 =C2=A02 ++
->> =C2=A0arch/arm/mach-omap1/gpio7xx.c =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
-| =C2=A0 =C2=A02 ++
->> =C2=A0arch/arm/mach-omap2/gpio.c =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
-=C2=A0 | =C2=A0 =C2=A02 ++
->> =C2=A0arch/arm/plat-omap/gpio.c =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0| =C2=A0 14 ++++++--------
->> =C2=A0arch/arm/plat-omap/include/plat/gpio.h | =C2=A0 =C2=A01 +
->> =C2=A06 files changed, 15 insertions(+), 8 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap1/gpio15xx.c b/arch/arm/mach-omap1/gp=
-io15xx.c
->> index 9175624..6f77c36 100644
->> --- a/arch/arm/mach-omap1/gpio15xx.c
->> +++ b/arch/arm/mach-omap1/gpio15xx.c
->> @@ -35,6 +35,7 @@ static struct __initdata resource omap15xx_mpu_gpi=
-o_resources[] =3D {
->> =C2=A0};
->>
->> =C2=A0static struct omap_gpio_reg_offs omap15xx_mpuio_regs =3D {
->> + =C2=A0 =C2=A0 =C2=A0 .revision =C2=A0 =C2=A0 =C2=A0 =3D -1,
->
-> Assigning -1 to u16 type. Instead you may want to use 0xffff?
->
+I'll explain a little more, the real problem is I don't know how to
+add support for an expansion board for IGEP v2 board. I see most of
+boards adds the support inside the board-xxxxx.c file, for example if
+the expansion board has a Touchscreen interface using ADS7846/TSC2046
+they register ads7846 platform data in board-xxxx.c file. This is ok
+beacause the ads7846 can be detected and if expansion board is not
+present  the detection fails, but maybe other devices in expansion
+board can't be detected (for example an I/O expansion). So which is
+the best form to do this ?
 
-The compiler will do the right thing, so personally, I prefer using -1.
-It's safer if/when the type is changed, but the mask not updated.
+I'm thinking in create a kernel module for the expansion board that
+add all the new features, the expansion board should come with a I2C
+E2PROM for board ID storage, so the idea is create an i2c driver that
+reads the E2PROM and if found the Board ID inits all the expansion
+board devices.
 
-Kevin
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I have done a few experiments, I've created a kernel module (driver)
+for a custom expansion board for IGEP v2,  the expansion board has :
+   - I2C E2PROM
+   - ADS7846 touch controller (spi)
+   - Seiko 7.0inch LCD
+   - General purpose I/O
+
+The driver is capable to register correctly i2c and spi devices and
+seems is working but I have problems with the Seiko 7.0inch LCD and
+configuring the MUX from driver.
+
+Basically I wonder if it's possible add another omap_dss_device from
+kernel module to the omap DSS driver (something like
+omap_dss_register_new_device). Is a good or bad idea ? Why ? Is any
+reason to not export the MUX functionality to be used for other
+drivers ?
+
+All of this is a crazy idea ? What's the best form to solve the problem ?
+
+I hope I have explained well, thanks and cheers,
+   Enric
