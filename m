@@ -1,72 +1,90 @@
-From: AJ ONeal <coolaj86@gmail.com>
-Subject: WARNING: at handle_irq_event_percpu
-Date: Mon, 2 May 2011 14:43:29 -0600
-Message-ID: <BANLkTi=Zn=T6QpzXv=BtdRLbCW2U1dMKbQ@mail.gmail.com>
+From: <kalle.jokiniemi@nokia.com>
+Subject: RE: [PATCH v2 2/2] OMAP3: RX-51: define vdds_csib regulator supply
+Date: Tue, 3 May 2011 05:15:38 +0000
+Message-ID: <9D0D31AA57AAF5499AFDC63D6472631B09D1C0@008-AM1MPN1-036.mgdnok.nokia.com>
+References: <1304327777-31231-1-git-send-email-kalle.jokiniemi@nokia.com>
+ <1304327777-31231-3-git-send-email-kalle.jokiniemi@nokia.com>
+ <201105021549.49728.laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:53014 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752965Ab1EBUnt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 May 2011 16:43:49 -0400
-Received: by pwi15 with SMTP id 15so2827799pwi.19
-        for <linux-omap@vger.kernel.org>; Mon, 02 May 2011 13:43:49 -0700 (PDT)
+Received: from smtp.nokia.com ([147.243.128.26]:26005 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751196Ab1ECFP5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 May 2011 01:15:57 -0400
+In-Reply-To: <201105021549.49728.laurent.pinchart@ideasonboard.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, "General mailing list for gumstix users." <gumstix-users@lists.sourceforge.net>
+To: laurent.pinchart@ideasonboard.com
+Cc: maurochehab@gmail.com, tony@atomide.com, linux-omap@vger.kernel.org, linux-media@vger.kernel.org
 
-I've got a Gumstix Overo with linux-2.6.39-rc5 (pulled from Sakoman's tree).
+Hi,
 
-Every boot I get this message. I'm not sure whether I should be
-worried about it or not.
+ > -----Original Message-----
+ > From: ext Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
+ > Sent: 2. toukokuuta 2011 16:50
+ > To: Jokiniemi Kalle (Nokia-SD/Tampere)
+ > Cc: maurochehab@gmail.com; tony@atomide.com; linux-
+ > omap@vger.kernel.org; linux-media@vger.kernel.org
+ > Subject: Re: [PATCH v2 2/2] OMAP3: RX-51: define vdds_csib regulator supply
+ > 
+ > Hi Kalle,
+ > 
+ > On Monday 02 May 2011 11:16:17 Kalle Jokiniemi wrote:
+ > > The RX-51 uses the CSIb IO complex for camera operation. The
+ > > board file is missing definition for the regulator supplying
+ > > the CSIb complex, so this is added for better power
+ > > management.
+ > >
+ > > Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
+ > > ---
+ > >  arch/arm/mach-omap2/board-rx51-peripherals.c |    9 +++++++++
+ > >  1 files changed, 9 insertions(+), 0 deletions(-)
+ > >
+ > > diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c
+ > > b/arch/arm/mach-omap2/board-rx51-peripherals.c index bbcb677..1324ba3
+ > > 100644
+ > > --- a/arch/arm/mach-omap2/board-rx51-peripherals.c
+ > > +++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+ > > @@ -337,6 +337,13 @@ static struct omap2_hsmmc_info mmc[] __initdata =
+ > {
+ > >  static struct regulator_consumer_supply rx51_vmmc1_supply =
+ > >  	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.0");
+ > >
+ > > +static struct regulator_consumer_supply rx51_vaux2_supplies[] = {
+ > > +	REGULATOR_SUPPLY("vdds_csib", "omap3isp"),
+ > > +	{
+ > > +		.supply = "vaux2",
+ > > +	},
+ > 
+ > Just for my curiosity, what is the the second consumer supply ("vaux2") for ?
 
-[    1.996582] ------------[ cut here ]------------
-[    2.001586] WARNING: at kernel/irq/handle.c:130
-handle_irq_event_percpu+0xf8/0x220()
-[    2.010101] irq 379 handler twl_rtc_interrupt+0x0/0x94 enabled interrupts
-[    2.017272] Modules linked in:
-[    2.020538] [<c00471ec>] (unwind_backtrace+0x0/0xe0) from
-[<c006aa4c>] (warn_slowpath_common+0x4c/0x64)
-[    2.030456] [<c006aa4c>] (warn_slowpath_common+0x4c/0x64) from
-[<c006aae4>] (warn_slowpath_fmt+0x2c/0x3c)
-[    2.040557] [<c006aae4>] (warn_slowpath_fmt+0x2c/0x3c) from
-[<c00a5880>] (handle_irq_event_percpu+0xf8/0x220)
-[    2.051025] [<c00a5880>] (handle_irq_event_percpu+0xf8/0x220) from
-[<c00a59e4>] (handle_irq_event+0x3c/0x5c)
-[    2.061401] [<c00a59e4>] (handle_irq_event+0x3c/0x5c) from
-[<c00a76b8>] (handle_edge_irq+0x104/0x13c)
-[    2.071166] [<c00a76b8>] (handle_edge_irq+0x104/0x13c) from
-[<c02a4eb4>] (handle_twl4030_sih+0xac/0xd4)
-[    2.081085] [<c02a4eb4>] (handle_twl4030_sih+0xac/0xd4) from
-[<c02a4d98>] (twl4030_irq_thread+0xb4/0x108)
-[    2.091186] [<c02a4d98>] (twl4030_irq_thread+0xb4/0x108) from
-[<c008546c>] (kthread+0x7c/0x84)
-[    2.100311] [<c008546c>] (kthread+0x7c/0x84) from [<c00429b8>]
-(kernel_thread_exit+0x0/0x8)
-[    2.109161] ---[ end trace 041d11a82aa47d13 ]---
+I must admit, that I just copied the format from the other regulator definitions.
+No idea really. Maybe those could be removed from the others as well?
 
+- Kalle
 
-There are few differences between `omap2plus_defconfig` and my config
-(only enough to get it to boot on the overo)
-
-I only enable the board features that my board has (and disable
-everything else) and I turn on devtmpfs :
-
-System Type --->
-  TI OMAP2/3/4 Specific Features --->
-     * Typical OMAP configuration
-     * TI OMAP3
-     * Gumstix Overo Board
-
-Device Drivers -->
-  Generic Driver Options --->
-    * Maintain a devtmpfs filesystem to mount at /dev
-      * Automount devtmpfs at /dev, after the kernel mounted the rootfs
-
-
-Also, I'm not loading any modules either.
-
-
-Is this an expected / okay failure?
-
-AJ ONeal
+ > 
+ > > +};
+ > > +
+ > >  static struct regulator_consumer_supply rx51_vaux3_supply =
+ > >  	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.1");
+ > >
+ > > @@ -400,6 +407,8 @@ static struct regulator_init_data rx51_vaux2 = {
+ > >  		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+ > >
+ > >  					| REGULATOR_CHANGE_STATUS,
+ > >
+ > >  	},
+ > > +	.num_consumer_supplies	= ARRAY_SIZE(rx51_vaux2_supplies),
+ > > +	.consumer_supplies	= rx51_vaux2_supplies,
+ > >  };
+ > >
+ > >  /* VAUX3 - adds more power to VIO_18 rail */
+ > 
+ > --
+ > Regards,
+ > 
+ > Laurent Pinchart
