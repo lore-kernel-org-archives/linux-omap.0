@@ -1,105 +1,42 @@
-From: <kalle.jokiniemi@nokia.com>
-Subject: RE: [PATCH v3 2/2] OMAP3: RX-51: define vdds_csib regulator supply
-Date: Tue, 3 May 2011 10:51:56 +0000
-Message-ID: <9D0D31AA57AAF5499AFDC63D6472631B09D335@008-AM1MPN1-036.mgdnok.nokia.com>
-References: <1304419283-4177-1-git-send-email-kalle.jokiniemi@nokia.com>
- <1304419283-4177-3-git-send-email-kalle.jokiniemi@nokia.com>
- <201105031249.23245.laurent.pinchart@ideasonboard.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] OMAP4: SRAM: Fix warning: format '%08lx' expects type
+ 'long unsigned int'
+Date: Tue, 3 May 2011 03:55:55 -0700
+Message-ID: <20110503105555.GR2092@atomide.com>
+References: <1301907896-30954-1-git-send-email-santosh.shilimkar@ti.com>
+ <20110404091223.GA19854@n2100.arm.linux.org.uk>
+ <4D9993AD.3080401@ti.com>
+ <20110428140953.GD19709@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.48]:44269 "EHLO mgw-sa02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752378Ab1ECKwC convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 May 2011 06:52:02 -0400
-In-Reply-To: <201105031249.23245.laurent.pinchart@ideasonboard.com>
-Content-Language: en-US
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:50686 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752411Ab1ECK4A (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 May 2011 06:56:00 -0400
+Content-Disposition: inline
+In-Reply-To: <20110428140953.GD19709@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: laurent.pinchart@ideasonboard.com
-Cc: maurochehab@gmail.com, tony@atomide.com, linux-omap@vger.kernel.org, linux-media@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi,
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [110428 07:06]:
+> 
+> This looks much better.
+> 
+> Acked-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> 
+> It looks like Tony hasn't taken it...  Tony, are you going to handle
+> this patch?
 
- > -----Original Message-----
- > From: ext Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
- > Sent: 3. toukokuuta 2011 13:49
- > To: Jokiniemi Kalle (Nokia-SD/Tampere)
- > Cc: maurochehab@gmail.com; tony@atomide.com; linux-
- > omap@vger.kernel.org; linux-media@vger.kernel.org
- > Subject: Re: [PATCH v3 2/2] OMAP3: RX-51: define vdds_csib regulator supply
- > 
- > Hi Kalle,
- > 
- > Thanks for the patch.
- > 
- > On Tuesday 03 May 2011 12:41:23 Kalle Jokiniemi wrote:
- > > The RX-51 uses the CSIb IO complex for camera operation. The
- > > board file is missing definition for the regulator supplying
- > > the CSIb complex, so this is added for better power
- > > management.
- > >
- > > Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
- > > ---
- > >  arch/arm/mach-omap2/board-rx51-peripherals.c |    6 ++++++
- > >  1 files changed, 6 insertions(+), 0 deletions(-)
- > >
- > > diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c
- > > b/arch/arm/mach-omap2/board-rx51-peripherals.c index bbcb677..2f12425
- > > 100644
- > > --- a/arch/arm/mach-omap2/board-rx51-peripherals.c
- > > +++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
- > > @@ -337,6 +337,10 @@ static struct omap2_hsmmc_info mmc[] __initdata =
- > {
- > >  static struct regulator_consumer_supply rx51_vmmc1_supply =
- > >  	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.0");
- > >
- > > +static struct regulator_consumer_supply rx51_vaux2_supply[] = {
- > > +	REGULATOR_SUPPLY("vdds_csib", "omap3isp"),
- > > +};
- > > +
- > 
- > What about
- > 
- > static struct regulator_consumer_supply rx51_vaux2_supply =
- > 	REGULATOR_SUPPLY("vdds_csib", "omap3isp");
- > 
- > instead ? :-) It would be in line with the other vaux supply definitions.
- > 
- > >  static struct regulator_consumer_supply rx51_vaux3_supply =
- > >  	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.1");
- > >
- > > @@ -400,6 +404,8 @@ static struct regulator_init_data rx51_vaux2 = {
- > >  		.valid_ops_mask		= REGULATOR_CHANGE_MODE
- > >
- > >  					| REGULATOR_CHANGE_STATUS,
- > >
- > >  	},
- > > +	.num_consumer_supplies	= 1,
- > > +	.consumer_supplies	= rx51_vaux2_supply,
- > 
- > and
- > 
- > .consumer_supplies	= &rx51_vaux2_supply,
- > 
- > here.
- > 
- > If you're fine with that, there's no need to resubmit, I'll modify this patch
- > and push the set through my tree (let me know if I can keep your SoB line with
- > that change).
+I can add it into my devel-cleanup branch for next merge window
+assuming it won't conflict with your sram changes. If there's a
+conflict, then you can take it.
 
-Perfectly fine with me, you can keep the SoB line. 
+I'd rather not merge it in the -rc cycle this late as it's not
+in the oopses or major regressions category.
 
-Thanks,
-Kalle
+Regards,
 
- > 
- > >  };
- > >
- > >  /* VAUX3 - adds more power to VIO_18 rail */
- > 
- > --
- > Regards,
- > 
- > Laurent Pinchart
+Tony
