@@ -1,46 +1,50 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [v2 0/7] OMAP: GPIO: Use PM runtime framework
-Date: Tue, 03 May 2011 09:22:03 -0700
-Message-ID: <87y62ng3f8.fsf@ti.com>
-References: <1303139217-10285-1-git-send-email-charu@ti.com>
-	<20110419062633.GA15620@atomide.com> <87r58w4gq3.fsf@ti.com>
-	<20110421054221.GF5918@atomide.com>
-	<BANLkTi=s=KzeZfvoq7Efg2=Ceahz_fQxMA@mail.gmail.com>
-	<20110426072941.GA3755@atomide.com>
-	<BANLkTimGU+kODvL0dC2x7UNSz0TReKveXQ@mail.gmail.com>
+Subject: Re: [PATCH 0/9] OMAP: GPIO: cleanup, consolidation, etc. (v2)
+Date: Tue, 03 May 2011 09:25:44 -0700
+Message-ID: <87oc3jg393.fsf@ti.com>
+References: <1303418127-4310-1-git-send-email-khilman@ti.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB037AD2771A@dbde02.ent.ti.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB037AD27761@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:39951 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753634Ab1ECQWK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 May 2011 12:22:10 -0400
-Received: by mail-px0-f171.google.com with SMTP id 7so134695pxi.16
-        for <linux-omap@vger.kernel.org>; Tue, 03 May 2011 09:22:07 -0700 (PDT)
-In-Reply-To: <BANLkTimGU+kODvL0dC2x7UNSz0TReKveXQ@mail.gmail.com> (Linus
-	Walleij's message of "Wed, 27 Apr 2011 15:18:55 +0200")
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:40392 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753600Ab1ECQZs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 May 2011 12:25:48 -0400
+Received: by mail-pw0-f42.google.com with SMTP id 3so227786pwj.1
+        for <linux-omap@vger.kernel.org>; Tue, 03 May 2011 09:25:47 -0700 (PDT)
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB037AD27761@dbde02.ent.ti.com>
+	(Tarun Kanti DebBarma's message of "Mon, 25 Apr 2011 13:59:43 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Tony Lindgren <tony@atomide.com>, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Varadarajan, Charulatha" <charu@ti.com>
+To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Varadarajan, Charulatha" <charu@ti.com>
 
-Linus Walleij <linus.walleij@linaro.org> writes:
+"DebBarma, Tarun Kanti" <tarun.kanti@ti.com> writes:
 
-> 2011/4/26 Tony Lindgren <tony@atomide.com>:
->> * Linus Walleij <linus.walleij@linaro.org> [110423 01:32]:
->>> Since you'll probably be dependent on stuff happening in my patches
->>> to move stuff into drivers/gpio I'll be happy to carry the patches in my
->>> gpio-consolidation branch with Tony's ACKs if need be.
->>
->> Sounds good to me.
->
-> I've just posted a patch series that moves "our" two GPIO drivers to
-> drivers/gpio, they should serve as good inspiration... Tell me if I can
-> help out, stack patches on top of this series and I'll carry them.
+> Kevin,
+> [...]
+>> >
+>> > Here's an updated version of my work-in-progress GPIO cleanups.
+>> >
+>> > I now understand that others have some similar work in progress, so
+>> > these are posted (to linux-omap only, for now) so that we can begin
+>> > collaboration on the GPIO cleanups.
+>> >
+>> > This series applies on top of v2.6.39-rc4 plus the generic irq_chip
+>> > series from Thomas Gleixner since in addition to the cleanups, I
+>> > started moving the GPIO IRQ handling over to use generic irq_chip
+>> > (last patch in series.)
+>> >
+>> > This work in progress is available in my wip/gpio-cleanup branch.
+>> There are two observations in this series:
+>> (1) omap1_defconfig  build generates following compilation errors:
+> I realized that I missed the patch series from Thomas Gleixner.
+> BTW, there are multiple series related to irq_chip cleanup.
+> Do we need to apply all the series?
 
-Great, thanks.
-
-Are you OK with a move of the current OMAP GPIO drivers (rather ugly)
-into drivers/gpio first, followed by the cleanup/restructure patches?
+My wip/gpio-cleanup branch also includes Thomas' series, please use that
+for testing.
 
 Kevin
