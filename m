@@ -1,62 +1,81 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/2] Initial B&N Nook Color (encore) support.
-Date: Tue, 3 May 2011 02:22:38 -0700
-Message-ID: <20110503092237.GM2092@atomide.com>
-References: <1304006259-7939-1-git-send-email-green@linuxhacker.ru>
- <1304006259-7939-2-git-send-email-green@linuxhacker.ru>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH V3] ARM: GIC: Convert GIC library to use the IO relaxed
+ operations
+Date: Tue, 03 May 2011 11:11:21 +0100
+Message-ID: <1304417481.19196.60.camel@e102109-lin.cambridge.arm.com>
+References: <1304058131-8375-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:64914 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751746Ab1ECJWl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 May 2011 05:22:41 -0400
-Content-Disposition: inline
-In-Reply-To: <1304006259-7939-2-git-send-email-green@linuxhacker.ru>
+Received: from service87.mimecast.com ([94.185.240.25]:34636 "HELO
+	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752152Ab1ECKLa convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 May 2011 06:11:30 -0400
+In-Reply-To: <1304058131-8375-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: green@linuxhacker.ru
-Cc: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Will Deacon <Will.Deacon@arm.com>
 
-* green@linuxhacker.ru <green@linuxhacker.ru> [110428 08:55]:
-> From: Oleg Drokin <green@linuxhacker.ru>
+On Fri, 2011-04-29 at 07:22 +0100, Santosh Shilimkar wrote:
+> The GIC register accesses today make use of readl()/writel()
+> which prove to be very expensive when used along with mandatory
+> barriers. This mandatory barriers also introduces an un-necessary
+> and expensive l2x0_sync() operation. On Cortex-A9 MP cores, GIC
+> IO accesses from CPU are direct and doesn't go through L2X0 write
+> buffer.
 > 
-> Bare-bones board file, comes with serial console, gpio keys,
-> MMC/SDCard and USB support.
+> A DSB before writel_relaxed() in gic_raise_softirq() is added to be
+> compliant with the Barrier Litmus document - the mailbox scenario.
+> 
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Cc: Catalin Marinas <catalin.marinas@arm.com>
+> Cc: Will Deacon <will.deacon@arm.com>
+> ---
+> Rebased on top of Will Deacon's  "ARM: gic: use handle_fasteoi_irq for SPIs"
+> patch and boot tested on OMAP4430.
+> 
+>  arch/arm/common/gic.c |   50 +++++++++++++++++++++++++-----------------------
+>  1 files changed, 26 insertions(+), 24 deletions(-)
+> 
+> diff --git a/arch/arm/common/gic.c b/arch/arm/common/gic.c
+> index e9c2ff8..80b3d3c 100644
+> --- a/arch/arm/common/gic.c
+> +++ b/arch/arm/common/gic.c
+> @@ -89,7 +89,8 @@ static void gic_mask_irq(struct irq_data *d)
+>         u32 mask = 1 << (d->irq % 32);
+> 
+>         spin_lock(&irq_controller_lock);
+> -       writel(mask, gic_dist_base(d) + GIC_DIST_ENABLE_CLEAR + (gic_irq(d) / 32) * 4);
+> +       writel_relaxed(mask, gic_dist_base(d) + GIC_DIST_ENABLE_CLEAR + (gic_irq(d) / 32) * 4);
+> +       readl_relaxed(gic_dist_base(d) + GIC_DIST_ENABLE_CLEAR + (gic_irq(d) / 32) * 4);
 
-Good to see that. Unfortunately you probably have to do few
-more rebases on the devel-cleanup branch because of the code
-consolidation effort. We'll have to wait a bit and see what
-new platform code we can merge after that is all the
-consolidation is sorted out.
+As I commented on the version 2 of this patch, I don't think we should
+even bother with the additional readl_relaxed() here. It's not enough to
+prevent spurious interrupts anyway.
 
-Please also post your series with linux-arm-kernel mailing
-list Cc'd. Few comments below too.
+> @@ -392,6 +393,7 @@ void gic_raise_softirq(const struct cpumask *mask, unsigned int irq)
+>         unsigned long map = *cpus_addr(*mask);
+> 
+>         /* this always happens on GIC0 */
+> -       writel(map << 16 | irq, gic_data[0].dist_base + GIC_DIST_SOFTINT);
+> +       dsb();
+> +       writel_relaxed(map << 16 | irq, gic_data[0].dist_base + GIC_DIST_SOFTINT);
 
-> +#include <mach/gpio.h>
+I would add a comment before the dsb() on why it is needed. Maybe something like:
 
-This should be linux/gpio.h nowadays.
+/*
+ * Ensure that stores to Normal memory are visible to the other CPUs before
+ * issuing the IPI.
+ */
 
-> +	if(is_encore_board_evt2()) {
 
-You should have if ( here with space.
+Otherwise the patch looks fine (I'll add my ack after you fix the above).
 
-Maybe run scripts/checkpatch.pl --strict on the patch?
+Thanks.
 
-> --- a/arch/arm/tools/mach-types
-> +++ b/arch/arm/tools/mach-types
-> @@ -962,7 +962,7 @@ omapl138_case_a3	MACH_OMAPL138_CASE_A3	OMAPL138_CASE_A3	3280
->  uemd			MACH_UEMD		UEMD			3281
->  ccwmx51mut		MACH_CCWMX51MUT		CCWMX51MUT		3282
->  rockhopper		MACH_ROCKHOPPER		ROCKHOPPER		3283
-> -nookcolor		MACH_NOOKCOLOR		NOOKCOLOR		3284
-> +encore			MACH_ENCORE		ENCORE			3284
->  hkdkc100		MACH_HKDKC100		HKDKC100		3285
->  ts42xx			MACH_TS42XX		TS42XX			3286
->  aebl			MACH_AEBL		AEBL			3287
+-- 
+Catalin
 
-For this you need to follow the instructions at www.arm.linux.org.uk.
 
-Regards,
-
-Tony
