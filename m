@@ -1,92 +1,71 @@
-From: Colin Cross <ccross@android.com>
-Subject: [PATCH] ARM: omap4: Pass core and wakeup mux tables to omap4_mux_init
-Date: Wed,  4 May 2011 14:57:57 -0700
-Message-ID: <1304546278-28965-1-git-send-email-ccross@android.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Colin Cross <ccross@android.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH v2 10/12] OMAP2+: hwmod: Add api to enable io_ring wakeup.
+Date: Wed, 04 May 2011 16:59:40 -0700
+Message-ID: <87mxj2nhjn.fsf@ti.com>
+References: <1304080796-625-1-git-send-email-govindraj.raja@ti.com>
+	<1304080796-625-11-git-send-email-govindraj.raja@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <1304080796-625-11-git-send-email-govindraj.raja@ti.com>
+	(Govindraj R.'s message of "Fri, 29 Apr 2011 18:09:54 +0530")
+Sender: linux-serial-owner@vger.kernel.org
+To: "Govindraj.R" <govindraj.raja@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Rajendra Nayak <rnayak@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-OMAP4 contains two separate instances of the padconf registers,
-one in the core system config and one in the wakeup system config.
-Pass in two tables to apply the correct values to each instance.
+"Govindraj.R" <govindraj.raja@ti.com> writes:
 
-Signed-off-by: Colin Cross <ccross@android.com>
----
- arch/arm/mach-omap2/board-4430sdp.c    |    2 +-
- arch/arm/mach-omap2/board-omap4panda.c |    2 +-
- arch/arm/mach-omap2/mux.h              |    6 ++++--
- arch/arm/mach-omap2/mux44xx.c          |    5 +++--
- 4 files changed, 9 insertions(+), 6 deletions(-)
+> Add api to enable io_pad wakeup based on mux dynamic pad and
 
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index 56702c5..41c109a 100644
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -784,7 +784,7 @@ static void __init omap_4430sdp_init(void)
- 
- 	if (omap_rev() == OMAP4430_REV_ES1_0)
- 		package = OMAP_PACKAGE_CBL;
--	omap4_mux_init(board_mux, package);
-+	omap4_mux_init(board_mux, NULL, package);
- 
- 	omap_board_config = sdp4430_config;
- 	omap_board_config_size = ARRAY_SIZE(sdp4430_config);
-diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
-index f3a7b10..f70850e 100644
---- a/arch/arm/mach-omap2/board-omap4panda.c
-+++ b/arch/arm/mach-omap2/board-omap4panda.c
-@@ -720,7 +720,7 @@ static void __init omap4_panda_init(void)
- 
- 	if (omap_rev() == OMAP4430_REV_ES1_0)
- 		package = OMAP_PACKAGE_CBL;
--	omap4_mux_init(board_mux, package);
-+	omap4_mux_init(board_mux, NULL, package);
- 
- 	if (wl12xx_set_platform_data(&omap_panda_wlan_data))
- 		pr_err("error setting wl12xx data\n");
-diff --git a/arch/arm/mach-omap2/mux.h b/arch/arm/mach-omap2/mux.h
-index 137f321..2132308 100644
---- a/arch/arm/mach-omap2/mux.h
-+++ b/arch/arm/mach-omap2/mux.h
-@@ -323,10 +323,12 @@ int omap3_mux_init(struct omap_board_mux *board_mux, int flags);
- 
- /**
-  * omap4_mux_init() - initialize mux system with board specific set
-- * @board_mux:		Board specific mux table
-+ * @board_subset:	Board specific mux table
-+ * @board_wkup_subset:	Board specific mux table for wakeup instance
-  * @flags:		OMAP package type used for the board
-  */
--int omap4_mux_init(struct omap_board_mux *board_mux, int flags);
-+int omap4_mux_init(struct omap_board_mux *board_subset,
-+	struct omap_board_mux *board_wkup_subset, int flags);
- 
- /**
-  * omap_mux_init - private mux init function, do not call
-diff --git a/arch/arm/mach-omap2/mux44xx.c b/arch/arm/mach-omap2/mux44xx.c
-index 9a66445..f5a74da 100644
---- a/arch/arm/mach-omap2/mux44xx.c
-+++ b/arch/arm/mach-omap2/mux44xx.c
-@@ -1309,7 +1309,8 @@ static struct omap_ball __initdata omap4_wkup_cbl_cbs_ball[] = {
- #define omap4_wkup_cbl_cbs_ball  NULL
- #endif
- 
--int __init omap4_mux_init(struct omap_board_mux *board_subset, int flags)
-+int __init omap4_mux_init(struct omap_board_mux *board_subset,
-+	struct omap_board_mux *board_wkup_subset, int flags)
- {
- 	struct omap_ball *package_balls_core;
- 	struct omap_ball *package_balls_wkup = omap4_wkup_cbl_cbs_ball;
-@@ -1347,7 +1348,7 @@ int __init omap4_mux_init(struct omap_board_mux *board_subset, int flags)
- 			    OMAP_MUX_GPIO_IN_MODE3,
- 			    OMAP4_CTRL_MODULE_PAD_WKUP_MUX_PBASE,
- 			    OMAP4_CTRL_MODULE_PAD_WKUP_MUX_SIZE,
--			    omap4_wkup_muxmodes, NULL, board_subset,
-+			    omap4_wkup_muxmodes, NULL, board_wkup_subset,
- 			    package_balls_wkup);
- 
- 	return ret;
--- 
-1.7.4.1
+s/api/API/
+s/io_pad/IO pad/
+
+> wake_up enable flag initialized during hwmod_mux.
+>
+> Use the wakeup flag and pad_remux flag and enable wakeup capability
+> for the pad having these flags enabled.
+>
+> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
+
+This patch (except for the serial.c hange) isn't really dependent on the
+rest of this series, and should be a separate patch to be merged by
+Paul.
+
+Some other comments below...
+
+> ---
+>  arch/arm/mach-omap2/omap_hwmod.c              |   34 +++++++++++++++++++++++++
+>  arch/arm/mach-omap2/serial.c                  |    6 ++++
+>  arch/arm/plat-omap/include/plat/omap_device.h |    1 +
+>  arch/arm/plat-omap/include/plat/omap_hwmod.h  |    1 +
+>  arch/arm/plat-omap/omap_device.c              |   26 +++++++++++++++++++
+>  5 files changed, 68 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+> index e034294..4a12336 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod.c
+> @@ -2369,3 +2369,37 @@ int omap_hwmod_no_setup_reset(struct omap_hwmod *oh)
+>  
+>  	return 0;
+>  }
+> +
+> +/**
+> + * omap_hwmod_enable_ioring_wakeup - Set wakeup bit for iopad ring.
+> + * @oh: struct omap_hwmod *
+> + * @enable: based on 0 or 1 set or unset wakeup bit.
+
+more specifically, when true, set wakeup bit, when false, clear wakeup bit
+
+> + * traverse through dynamic pads. If pad is enabled then
+> + * set wakeup bit for the mux pin. Return error if pads are
+> + * not enabled or not available.
+> + */
+
+The comment here should be clearer about when the bit actually gets
+set.  Specifically, this function doesn't actually write the value out,
+but instead it configures the value which will be used during the hwmod 
+idle transition.
+
+Kevin
