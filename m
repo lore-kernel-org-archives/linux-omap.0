@@ -1,43 +1,51 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC] About ARM expansion boards and others things
-Date: Wed, 4 May 2011 02:27:08 -0700
-Message-ID: <20110504092708.GX2092@atomide.com>
-References: <BANLkTimjWtqLsWA1Gthix6RZYMzNRdC7rg@mail.gmail.com>
+Subject: Re: [PATCH 1/9] OMAP: DSS2: Change DSI platform device name from
+ "omapdss_dsi1" to "omapdss_dsi"
+Date: Wed, 4 May 2011 12:40:50 +0300
+Message-ID: <20110504094050.GI27860@atomide.com>
+References: <1304494704-7285-1-git-send-email-archit@ti.com>
+ <1304494704-7285-2-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:42450 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751689Ab1EDJ1L (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 May 2011 05:27:11 -0400
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:31021 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751669Ab1EDJku (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 May 2011 05:40:50 -0400
 Content-Disposition: inline
-In-Reply-To: <BANLkTimjWtqLsWA1Gthix6RZYMzNRdC7rg@mail.gmail.com>
+In-Reply-To: <1304494704-7285-2-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Enric =?utf-8?B?QmFsbGV0YsOy?= i Serra <eballetbo@gmail.com>
-Cc: linux-omap@vger.kernel.org, linux-arm@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@nokia.com>
+To: Archit Taneja <archit@ti.com>
+Cc: tomi.valkeinen@ti.com, linux-omap@vger.kernel.org
 
-* Enric Balletb=C3=B2 i Serra <eballetbo@gmail.com> [110503 10:21]:
->=20
-> Basically I wonder if it's possible add another omap_dss_device from
-> kernel module to the omap DSS driver (something like
-> omap_dss_register_new_device). Is a good or bad idea ? Why ? Is any
-> reason to not export the MUX functionality to be used for other
-> drivers ?
+* Archit Taneja <archit@ti.com> [110504 10:30]:
+> --- a/arch/arm/mach-omap2/board-3430sdp.c
+> +++ b/arch/arm/mach-omap2/board-3430sdp.c
+> @@ -401,7 +401,7 @@ static struct regulator_consumer_supply sdp3430_vdda_dac_supplies[] = {
+>  /* VPLL2 for digital video outputs */
+>  static struct regulator_consumer_supply sdp3430_vpll2_supplies[] = {
+>  	REGULATOR_SUPPLY("vdds_dsi", "omapdss"),
+> -	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dsi1"),
+> +	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dsi.0"),
+>  };
+>  
+>  static struct regulator_consumer_supply sdp3430_vmmc1_supplies[] = {
+> diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+> index 570e83f..eafadb4 100644
+> --- a/arch/arm/mach-omap2/board-4430sdp.c
+> +++ b/arch/arm/mach-omap2/board-4430sdp.c
+> @@ -375,7 +375,7 @@ static struct regulator_consumer_supply sdp4430_vmmc_supply[] = {
+>  };
+>  static struct regulator_consumer_supply sdp4430_vcxio_supply[] = {
+>  	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dss"),
+> -	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dsi1"),
+> +	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dsi.0"),
+>  };
+...
 
-Sounds all doable. For DSS, I think the memblock needs to be reserved
-early.
+Looks like we should first combine all this cut and paste data
+for each board file into some common init function to cut
+down the "crazy churn".
 
-With the mux framework, we have a Linux generic mux framework coming
-up, that should allow you to access the pins from the driver module
-too.
-
-Regards,
-
-Tony=20
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
