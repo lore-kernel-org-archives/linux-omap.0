@@ -1,54 +1,53 @@
-From: "J, KEERTHY" <j-keerthy@ti.com>
-Subject: Re: [PATCH 0/2 v5] twl4030-madc driver
-Date: Wed, 4 May 2011 09:53:07 +0530
-Message-ID: <BANLkTimyxpfBLUTPUostFjHkCUSW7wzyVA@mail.gmail.com>
-References: <1298986926-31180-1-git-send-email-j-keerthy@ti.com>
-	<20110302101512.GC16181@sortiz-mobl>
-	<BANLkTimc6uz353DDb9Ent6s6WjfY7f-xuA@mail.gmail.com>
-	<BANLkTi=zt1j_s1uDfjL=SRG6_LS1pa3xAg@mail.gmail.com>
-	<BANLkTik2B_w5Rn+Q-erPhQs6VbfrNz2mcA@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [v2 0/7] OMAP: GPIO: Use PM runtime framework
+Date: Wed, 4 May 2011 09:19:05 +0300
+Message-ID: <20110504061905.GD27860@atomide.com>
+References: <1303139217-10285-1-git-send-email-charu@ti.com>
+ <20110419062633.GA15620@atomide.com>
+ <87r58w4gq3.fsf@ti.com>
+ <20110421054221.GF5918@atomide.com>
+ <BANLkTi=s=KzeZfvoq7Efg2=Ceahz_fQxMA@mail.gmail.com>
+ <20110426072941.GA3755@atomide.com>
+ <BANLkTimGU+kODvL0dC2x7UNSz0TReKveXQ@mail.gmail.com>
+ <87y62ng3f8.fsf@ti.com>
+ <BANLkTimW1PTavvxjPujVMEV38vzMvja9mw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:50047 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750802Ab1EDEXI convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 4 May 2011 00:23:08 -0400
-Received: by mail-iy0-f182.google.com with SMTP id 12so903907iyj.13
-        for <linux-omap@vger.kernel.org>; Tue, 03 May 2011 21:23:07 -0700 (PDT)
-In-Reply-To: <BANLkTik2B_w5Rn+Q-erPhQs6VbfrNz2mcA@mail.gmail.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:41071 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752356Ab1EDGTI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 May 2011 02:19:08 -0400
+Content-Disposition: inline
+In-Reply-To: <BANLkTimW1PTavvxjPujVMEV38vzMvja9mw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Steve Sakoman <sakoman@gmail.com>
-Cc: lm-sensors@lm-sensors.org, guenter.roeck@ericsson.com, mikko.k.ylinen@nokia.com, amit.kucheria@canonical.com, linux-omap@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Kevin Hilman <khilman@ti.com>, Grant Likely <grant.likely@secretlab.ca>, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Varadarajan, Charulatha" <charu@ti.com>
 
-On Wed, May 4, 2011 at 9:41 AM, Steve Sakoman <sakoman@gmail.com> wrote=
-:
-> On Tue, May 3, 2011 at 12:49 PM, J, KEERTHY <j-keerthy@ti.com> wrote:
->> Hello Steve,
->>
->> Can you try adding this patch?
->
-> Thanks!
->
-> I tried the patch and it did indeed fix the issue. =A0We should try t=
-o
-> get this in mainline since the hwmon driver won't work without it.
->
+* Linus Walleij <linus.walleij@linaro.org> [110504 00:37]:
+> 2011/5/3 Kevin Hilman <khilman@ti.com>:
+> 
+> > Are you OK with a move of the current OMAP GPIO drivers (rather ugly)
+> > into drivers/gpio first, followed by the cleanup/restructure patches?
+> 
+> In my case I actually did some cleanup after moving the driver for
+> U300, but I think this is a question to the GPIO maintainer who
+> I want to ACK this stuff in the end.
+> 
+> Grant?
+> 
+> You can always squash it later ...
 
-Yes Steve. I am posting a patch today.
-> Steve
->
+Personally I would prefer absolutely minimal clean-up of current
+code before moving to drivers/gpio to cut down the "crazy churn" in
+arch/arm/. Also then further changes are easier for the GPIO
+maintainers to review.
 
+Of course I understand that this might cause extra load for the
+GPIO maintainers, so it's up to the GPIO maintainers to set the
+required standards before accepting the code into drivers/gpio.
 
+Regards,
 
---=20
-Regards and Thanks,
-Keerthy
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
