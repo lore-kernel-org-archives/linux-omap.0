@@ -1,64 +1,68 @@
-From: Govindraj <govindraj.ti@gmail.com>
-Subject: Re: [PATCH v2 05/12] OMAP: Serial: Hold console lock for console usage.
-Date: Wed, 4 May 2011 15:49:48 +0530
-Message-ID: <BANLkTimKFXSCHX-xrG41QJZiDWppGS+EnQ@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2 07/12] OMAP: Serial: Allow UART parameters to be
+ configured from board file
+Date: Wed, 4 May 2011 03:25:43 -0700
+Message-ID: <20110504102543.GB2092@atomide.com>
 References: <1304080796-625-1-git-send-email-govindraj.raja@ti.com>
- <1304080796-625-6-git-send-email-govindraj.raja@ti.com> <20110504100232.GA2092@atomide.com>
+ <1304080796-625-8-git-send-email-govindraj.raja@ti.com>
+ <20110504095546.GY2092@atomide.com>
+ <BANLkTimb-AsuXYRm+NV8CD3m=xHwteV7pw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <20110504100232.GA2092@atomide.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Rajendra Nayak <rnayak@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:13400 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753262Ab1EDKZs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 May 2011 06:25:48 -0400
+Content-Disposition: inline
+In-Reply-To: <BANLkTimb-AsuXYRm+NV8CD3m=xHwteV7pw@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Govindraj <govindraj.ti@gmail.com>
+Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Deepak K <deepak.k@ti.com>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Rajendra Nayak <rnayak@ti.com>, Jon Hunter <jon-hunter@ti.com>
 
-On Wed, May 4, 2011 at 3:32 PM, Tony Lindgren <tony@atomide.com> wrote:
-> * Govindraj.R <govindraj.raja@ti.com> [110429 05:39]:
->>
->> Also during bootup console_lock is not available.
->> =A0 =A0 =A0 =A0--> uart_add_one_port
->> =A0 =A0 =A0 =A0 =A0--> console_register
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0--> console_lock
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 --> console_unlock
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0--> call_console_drivers (her=
-e yet console_lock is not released)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 --> uart_console_wri=
-te
->>
->> Hence convert prints from omap_device_enable/disable to pr_debug.
->
-> This sounds like a hack considering we have things working with
-> pr_debug currently.
+* Govindraj <govindraj.ti@gmail.com> [110504 03:03]:
+> On Wed, May 4, 2011 at 3:25 PM, Tony Lindgren <tony@atomide.com> wrot=
+e:
+> > * Govindraj.R <govindraj.raja@ti.com> [110429 05:39]:
+> >> @@ -250,7 +251,7 @@ static void __init omap_2430sdp_init(void)
+> >> =C2=A0 =C2=A0 =C2=A0 omap2430_i2c_init();
+> >>
+> >> =C2=A0 =C2=A0 =C2=A0 platform_add_devices(sdp2430_devices, ARRAY_S=
+IZE(sdp2430_devices));
+> >> - =C2=A0 =C2=A0 omap_serial_init();
+> >> + =C2=A0 =C2=A0 omap_serial_init(NULL);
+> >> =C2=A0 =C2=A0 =C2=A0 omap2_hsmmc_init(mmc);
+> >> =C2=A0 =C2=A0 =C2=A0 omap2_usbfs_init(&sdp2430_usb_config);
+> > ...
+> >
+> >> =C2=A0static inline void board_serial_init(void)
+> >> =C2=A0{
+> >> - =C2=A0 =C2=A0 omap_serial_init();
+> >> + =C2=A0 =C2=A0 omap_serial_init(NULL);
+> >> =C2=A0}
+> >
+> > This change seems like "crazy churn" and probably not needed
+> > if it's always null. Boards using platform_data can use
+> > omap_serial_init_port instead, right?
+>=20
+> We can intiliaze only one uart port with omap_serial_init_port.
+>=20
+> omap_serial_init initializes all uart port.
+>=20
+> During any client device integration using dma mode
+> (for example Bluetooth) we can pass the dma config
+> params based on the board & client device.
 
-The reason it works currently is because we are aquiring console
-lock in omap_serial_init since with the patch series cleanup and
-things are moving to driver I see this issue.
+But you're changing all omap_serial_init() calls to
+omap_serial_init(NULL) so there are no users for that.
 
-The issue is due to recursive prints because of get_sync/put_sync
-printing active/deactivate latency from omap_device layer.
+It should be a separate patch if it's needed.
 
-During printk -> uart_console_write -->
-we do get_sync and if clock is cut and omap_device_enable
-gets called and omap_device_enable trying to pr_warn
-activate latency.
-Here we end up in recursive lock up from printk.
-
+Tony
 --
-Thanks,
-Govindraj.R
-
->
-> Tony
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-seria=
-l" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-serial"=
- in
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
 the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
