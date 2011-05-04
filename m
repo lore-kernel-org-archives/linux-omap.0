@@ -1,45 +1,89 @@
-From: Lesly Arackal Manuel <leslyam@ti.com>
-Subject: [PATCH 1/1] OMAP: twl4030-power: In remove script check the error condition after i2cwrite
-Date: Wed, 4 May 2011 17:38:53 +0530
-Message-ID: <1304510933-14488-1-git-send-email-leslyam@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/9] OMAP: DSS2: Change DSI platform device name from
+ "omapdss_dsi1" to "omapdss_dsi"
+Date: Wed, 4 May 2011 05:17:17 -0700
+Message-ID: <20110504121716.GC2092@atomide.com>
+References: <1304494704-7285-1-git-send-email-archit@ti.com>
+ <1304494704-7285-2-git-send-email-archit@ti.com>
+ <20110504094050.GI27860@atomide.com>
+ <1304506408.2099.21.camel@deskari>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:36566 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754519Ab1EDMJB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 4 May 2011 08:09:01 -0400
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:12526 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751699Ab1EDMRT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 May 2011 08:17:19 -0400
+Content-Disposition: inline
+In-Reply-To: <1304506408.2099.21.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Lesly A M <leslyam@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Archit Taneja <archit@ti.com>, linux-omap@vger.kernel.org
 
-From: Lesly A M <leslyam@ti.com>
+* Tomi Valkeinen <tomi.valkeinen@ti.com> [110504 03:50]:
+> On Wed, 2011-05-04 at 12:40 +0300, Tony Lindgren wrote:
+> > * Archit Taneja <archit@ti.com> [110504 10:30]:
+> > > --- a/arch/arm/mach-omap2/board-3430sdp.c
+> > > +++ b/arch/arm/mach-omap2/board-3430sdp.c
+> > > @@ -401,7 +401,7 @@ static struct regulator_consumer_supply sdp3430_vdda_dac_supplies[] = {
+> > >  /* VPLL2 for digital video outputs */
+> > >  static struct regulator_consumer_supply sdp3430_vpll2_supplies[] = {
+> > >  	REGULATOR_SUPPLY("vdds_dsi", "omapdss"),
+> > > -	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dsi1"),
+> > > +	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dsi.0"),
+> > >  };
+> > >  
+> > >  static struct regulator_consumer_supply sdp3430_vmmc1_supplies[] = {
+> > > diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+> > > index 570e83f..eafadb4 100644
+> > > --- a/arch/arm/mach-omap2/board-4430sdp.c
+> > > +++ b/arch/arm/mach-omap2/board-4430sdp.c
+> > > @@ -375,7 +375,7 @@ static struct regulator_consumer_supply sdp4430_vmmc_supply[] = {
+> > >  };
+> > >  static struct regulator_consumer_supply sdp4430_vcxio_supply[] = {
+> > >  	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dss"),
+> > > -	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dsi1"),
+> > > +	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dsi.0"),
+> > >  };
+> > ...
+> > 
+> > Looks like we should first combine all this cut and paste data
+> > for each board file into some common init function to cut
+> > down the "crazy churn".
+> 
+> I was actually thinking about this earlier today.
+> 
+> All the boards I have seen use vdds_dsi the same way (depending on the
+> omap version, though). For OMAP3 it comes from VPPL2 and for OMAP4 it's
+> VCXIO. Optimally a common piece of code would just set up the regulator
+> properly.
+> 
+> But I think in the end the config has to come from the board data, as I
+> don't see that the above config would be the only possibility. The
+> vdds_dsi could be supplied from anywhere (with suitable voltage, of
+> course), as far as I understand.
+> 
+> What we could do is:
+> 
+> 1. The board file tells the common display code which regulator is used
+> for vdds_dsi, and the common code can setup the regulator supply for all
+> DSS devices which need it (omapdss_dss, omapdss_dsi1, omapdss_dsi2).
+> 
+> I guess this needs dynamically adding the regulator supply in display.c,
+> and I'm not quite sure if that's possible. We have to look at this.
+> 
+> 2. The common code could default to the power source that is most
+> commonly used, so the board file would have to config the regulator only
+> if it uses a non-common one.
+> 
+> Together 1. and 2. would remove the DSS regulator stuff totally from the
+> board files. But regulators for the panels would still be in the board
+> files, of course.
 
-Fixing the error condition check in twl4030 remove script function.
-Due to some typo in commit ID: 11a441ce82d6ffecfd39b324024de0cd630b36c1
+Sounds doable. And you could still allow overriding it if the typical
+configuration does not work.
 
-Signed-off-by: Lesly A M <leslyam@ti.com>
-Cc: Samuel Ortiz <sameo@linux.intel.com>
----
- drivers/mfd/twl4030-power.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+Regards,
 
-diff --git a/drivers/mfd/twl4030-power.c b/drivers/mfd/twl4030-power.c
-index 16422de..6fed964 100644
---- a/drivers/mfd/twl4030-power.c
-+++ b/drivers/mfd/twl4030-power.c
-@@ -484,9 +484,9 @@ int twl4030_remove_script(u8 flags)
- 			return err;
- 	}
- 	if (flags & TWL4030_WAKEUP12_SCRIPT) {
--		if (err)
- 		err = twl_i2c_write_u8(TWL4030_MODULE_PM_MASTER, END_OF_SCRIPT,
- 				R_SEQ_ADD_S2A12);
-+		if (err)
- 			return err;
- 	}
- 	if (flags & TWL4030_WAKEUP3_SCRIPT) {
--- 
-1.7.1
-
+Tony
