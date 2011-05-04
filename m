@@ -1,53 +1,40 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [v2 0/7] OMAP: GPIO: Use PM runtime framework
-Date: Wed, 4 May 2011 09:19:05 +0300
-Message-ID: <20110504061905.GD27860@atomide.com>
-References: <1303139217-10285-1-git-send-email-charu@ti.com>
- <20110419062633.GA15620@atomide.com>
- <87r58w4gq3.fsf@ti.com>
- <20110421054221.GF5918@atomide.com>
- <BANLkTi=s=KzeZfvoq7Efg2=Ceahz_fQxMA@mail.gmail.com>
- <20110426072941.GA3755@atomide.com>
- <BANLkTimGU+kODvL0dC2x7UNSz0TReKveXQ@mail.gmail.com>
- <87y62ng3f8.fsf@ti.com>
- <BANLkTimW1PTavvxjPujVMEV38vzMvja9mw@mail.gmail.com>
+From: Mike Rapoport <mike@compulab.co.il>
+Subject: Re: [PATCH 3/4] omap: move detection of NAND CS to common-board-devices
+Date: Wed, 04 May 2011 09:38:33 +0300
+Message-ID: <4DC0F469.9030406@compulab.co.il>
+References: <cover.1303682352.git.mike@compulab.co.il> <e2d77d1e885e6878ffbc9bf9dcf0b2dbea2b5d1f.1303682352.git.mike@compulab.co.il> <724FD998-C5DC-4C36-911B-52037F6D4323@linuxhacker.ru> <44342B2F-34C0-490C-91B8-96A9EA683F9B@linuxhacker.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:41071 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752356Ab1EDGTI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 May 2011 02:19:08 -0400
-Content-Disposition: inline
-In-Reply-To: <BANLkTimW1PTavvxjPujVMEV38vzMvja9mw@mail.gmail.com>
+Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:42510
+	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752075Ab1EDGii (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 May 2011 02:38:38 -0400
+In-Reply-To: <44342B2F-34C0-490C-91B8-96A9EA683F9B@linuxhacker.ru>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Kevin Hilman <khilman@ti.com>, Grant Likely <grant.likely@secretlab.ca>, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Varadarajan, Charulatha" <charu@ti.com>
+To: Oleg Drokin <green@linuxhacker.ru>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Linus Walleij <linus.walleij@linaro.org> [110504 00:37]:
-> 2011/5/3 Kevin Hilman <khilman@ti.com>:
+On 05/04/11 07:10, Oleg Drokin wrote:
+> Ok, so here's a simple patch to save everyone trouble, I guess.
 > 
-> > Are you OK with a move of the current OMAP GPIO drivers (rather ugly)
-> > into drivers/gpio first, followed by the cleanup/restructure patches?
-> 
-> In my case I actually did some cleanup after moving the driver for
-> U300, but I think this is a question to the GPIO maintainer who
-> I want to ACK this stuff in the end.
-> 
-> Grant?
-> 
-> You can always squash it later ...
+> Though on the other hand I can imagine that perhaps including this generic common-board-devices.c
+> might not be desirable for people that don't use anything from that file.
 
-Personally I would prefer absolutely minimal clean-up of current
-code before moving to drivers/gpio to cut down the "crazy churn" in
-arch/arm/. Also then further changes are easier for the GPIO
-maintainers to review.
+Since the common-board-devices.c has TWL initialization I doubt there would a
+board that does not use it at all...
 
-Of course I understand that this might cause extra load for the
-GPIO maintainers, so it's up to the GPIO maintainers to set the
-required standards before accepting the code into drivers/gpio.
+> Would it be a better idea to split it to a file-per-feature?
 
-Regards,
+Splitting the common-board-devices into a file-per-feature will diminish its
+added value, IMO.
+We can either continue to use #ifdef CONFIG_SOMETHING in both
+common-board-devices.[ch] as your fix proposes or just drop #ifdefs and inlines
+from the header.
+Tony, what is your preference?
 
-Tony
+-- 
+Sincerely yours,
+Mike.
