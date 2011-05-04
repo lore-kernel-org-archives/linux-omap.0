@@ -1,301 +1,173 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 7/7] OMAP: Apollon: Port the display driver to new DSS2
-Date: Wed,  4 May 2011 15:27:39 +0300
-Message-ID: <1304512059-10372-8-git-send-email-tomi.valkeinen@ti.com>
-References: <1304512059-10372-1-git-send-email-tomi.valkeinen@ti.com>
+From: =?UTF-8?Q?Enric_Balletb=C3=B2_i_Serra?= <eballetbo@gmail.com>
+Subject: Re: [RFC] About ARM expansion boards and others things
+Date: Wed, 4 May 2011 14:28:25 +0200
+Message-ID: <BANLkTin2ud=Qda8OZUQ1k+7ghD4VWKi_TA@mail.gmail.com>
+References: <BANLkTimjWtqLsWA1Gthix6RZYMzNRdC7rg@mail.gmail.com>
+	<4DC13032.5010404@compulab.co.il>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:43645 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753528Ab1EDM2L (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 May 2011 08:28:11 -0400
-In-Reply-To: <1304512059-10372-1-git-send-email-tomi.valkeinen@ti.com>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:34641 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752355Ab1EDM20 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 May 2011 08:28:26 -0400
+In-Reply-To: <4DC13032.5010404@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Kyungmin Park <kyungmin.park@samsung.com>
+To: Igor Grinberg <grinberg@compulab.co.il>
+Cc: linux-omap@vger.kernel.org, linux-arm@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
-Port the old omapfb panel driver to DSS2 and change the board file
-accordingly.
+2011/5/4 Igor Grinberg <grinberg@compulab.co.il>:
+> On 05/03/11 20:25, Enric Balletb=C3=B2 i Serra wrote:
+>
+>> Hi guys,
+>> I'm thinking probably in a crazy idea, I hope someone can help me or
+>> kill definitely this idea from my mind.
+>
+> This is not that crazy as you think it is...
+>
+>> I'll explain a little more, the real problem is I don't know how to
+>> add support for an expansion board for IGEP v2 board. I see most of
+>> boards adds the support inside the board-xxxxx.c file, for example i=
+f
+>> the expansion board has a Touchscreen interface using ADS7846/TSC204=
+6
+>> they register ads7846 platform data in board-xxxx.c file. This is ok
+>> beacause the ads7846 can be detected and if expansion board is not
+>> present =C2=A0the detection fails, but maybe other devices in expans=
+ion
+>> board can't be detected (for example an I/O expansion). So which is
+>> the best form to do this ?
+>>
+>> I'm thinking in create a kernel module for the expansion board that
+>> add all the new features, the expansion board should come with a I2C
+>> E2PROM for board ID storage, so the idea is create an i2c driver tha=
+t
+>> reads the E2PROM and if found the Board ID inits all the expansion
+>> board devices.
+>
+> Why do you need to create a new driver? Why don't you use the existin=
+g one?
+> at24 works nice with most i2c EEPROMs.
+>
+> Let me generalize:
+> 1) Lets call each board that actually has SoC, like IGEP, a System On=
+ Module (SoM)
+> 2) SoM has on-board and on-SoC devices
+> 3) expansion has additional on-board devices
+> 4) We are talking about X SoMs and Y extensions
+> 5) Each SoM can be connected to each extension and communicate with i=
+ts devices.
+> 6) We are looking for a solution to be able to detect the expansion a=
+nd register
+> =C2=A0 the devices it has assembled.
 
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
----
- arch/arm/mach-omap2/board-apollon.c              |   34 ++++--
- drivers/video/omap/Makefile                      |    1 -
- drivers/video/omap/lcd_apollon.c                 |  136 ----------------------
- drivers/video/omap2/displays/panel-generic-dpi.c |   22 ++++
- 4 files changed, 44 insertions(+), 149 deletions(-)
- delete mode 100644 drivers/video/omap/lcd_apollon.c
+Great generalitzation !
 
-diff --git a/arch/arm/mach-omap2/board-apollon.c b/arch/arm/mach-omap2/board-apollon.c
-index f4f8374..0414c17 100644
---- a/arch/arm/mach-omap2/board-apollon.c
-+++ b/arch/arm/mach-omap2/board-apollon.c
-@@ -39,6 +39,8 @@
- #include <plat/board.h>
- #include <plat/common.h>
- #include <plat/gpmc.h>
-+#include <plat/display.h>
-+#include <plat/panel-generic-dpi.h>
- 
- #include "mux.h"
- #include "control.h"
-@@ -149,11 +151,6 @@ static struct platform_device apollon_smc91x_device = {
- 	.resource	= apollon_smc91x_resources,
- };
- 
--static struct platform_device apollon_lcd_device = {
--	.name		= "apollon_lcd",
--	.id		= -1,
--};
--
- static struct omap_led_config apollon_led_config[] = {
- 	{
- 		.cdev	= {
-@@ -191,7 +188,6 @@ static struct platform_device apollon_led_device = {
- static struct platform_device *apollon_devices[] __initdata = {
- 	&apollon_onenand_device,
- 	&apollon_smc91x_device,
--	&apollon_lcd_device,
- 	&apollon_led_device,
- };
- 
-@@ -266,12 +262,26 @@ static struct omap_usb_config apollon_usb_config __initdata = {
- 	.pins[0]	= 6,
- };
- 
--static struct omap_lcd_config apollon_lcd_config __initdata = {
--	.ctrl_name	= "internal",
-+static struct panel_generic_dpi_data apollon_panel_data = {
-+	.name			= "apollon",
-+};
-+
-+static struct omap_dss_device apollon_lcd_device = {
-+	.name			= "lcd",
-+	.driver_name		= "generic_dpi_panel",
-+	.type			= OMAP_DISPLAY_TYPE_DPI,
-+	.phy.dpi.data_lines	= 18,
-+	.data			= &apollon_panel_data,
- };
- 
--static struct omap_board_config_kernel apollon_config[] __initdata = {
--	{ OMAP_TAG_LCD,		&apollon_lcd_config },
-+static struct omap_dss_device *apollon_dss_devices[] = {
-+	&apollon_lcd_device,
-+};
-+
-+static struct omap_dss_board_info apollon_dss_data = {
-+	.num_devices	= ARRAY_SIZE(apollon_dss_devices),
-+	.devices	= apollon_dss_devices,
-+	.default_device	= &apollon_lcd_device,
- };
- 
- static void __init omap_apollon_init_early(void)
-@@ -317,8 +327,6 @@ static void __init omap_apollon_init(void)
- 	u32 v;
- 
- 	omap2420_mux_init(board_mux, OMAP_PACKAGE_ZAC);
--	omap_board_config = apollon_config;
--	omap_board_config_size = ARRAY_SIZE(apollon_config);
- 
- 	apollon_init_smc91x();
- 	apollon_led_init();
-@@ -343,6 +351,8 @@ static void __init omap_apollon_init(void)
- 	 */
- 	platform_add_devices(apollon_devices, ARRAY_SIZE(apollon_devices));
- 	omap_serial_init();
-+
-+	omap_display_init(&apollon_dss_data);
- }
- 
- static void __init omap_apollon_map_io(void)
-diff --git a/drivers/video/omap/Makefile b/drivers/video/omap/Makefile
-index 22fef61..ef78550 100644
---- a/drivers/video/omap/Makefile
-+++ b/drivers/video/omap/Makefile
-@@ -25,7 +25,6 @@ objs-$(CONFIG_ARCH_OMAP16XX)$(CONFIG_MACH_OMAP_INNOVATOR) += lcd_inn1610.o
- objs-$(CONFIG_ARCH_OMAP15XX)$(CONFIG_MACH_OMAP_INNOVATOR) += lcd_inn1510.o
- objs-y$(CONFIG_MACH_OMAP_OSK) += lcd_osk.o
- 
--objs-y$(CONFIG_MACH_OMAP_APOLLON) += lcd_apollon.o
- objs-y$(CONFIG_FB_OMAP_LCD_MIPID) += lcd_mipid.o
- objs-y$(CONFIG_MACH_HERALD) += lcd_htcherald.o
- 
-diff --git a/drivers/video/omap/lcd_apollon.c b/drivers/video/omap/lcd_apollon.c
-deleted file mode 100644
-index 10459d8..0000000
---- a/drivers/video/omap/lcd_apollon.c
-+++ /dev/null
-@@ -1,136 +0,0 @@
--/*
-- * LCD panel support for the Samsung OMAP2 Apollon board
-- *
-- * Copyright (C) 2005,2006 Samsung Electronics
-- * Author: Kyungmin Park <kyungmin.park@samsung.com>
-- *
-- * Derived from drivers/video/omap/lcd-h4.c
-- *
-- * This program is free software; you can redistribute it and/or modify it
-- * under the terms of the GNU General Public License as published by the
-- * Free Software Foundation; either version 2 of the License, or (at your
-- * option) any later version.
-- *
-- * This program is distributed in the hope that it will be useful, but
-- * WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-- * General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License along
-- * with this program; if not, write to the Free Software Foundation, Inc.,
-- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-- */
--
--#include <linux/module.h>
--#include <linux/platform_device.h>
--
--#include <mach/gpio.h>
--
--#include "omapfb.h"
--
--/* #define USE_35INCH_LCD 1 */
--
--static int apollon_panel_init(struct lcd_panel *panel,
--				struct omapfb_device *fbdev)
--{
--	return 0;
--}
--
--static void apollon_panel_cleanup(struct lcd_panel *panel)
--{
--}
--
--static int apollon_panel_enable(struct lcd_panel *panel)
--{
--	return 0;
--}
--
--static void apollon_panel_disable(struct lcd_panel *panel)
--{
--}
--
--static unsigned long apollon_panel_get_caps(struct lcd_panel *panel)
--{
--	return 0;
--}
--
--struct lcd_panel apollon_panel = {
--	.name		= "apollon",
--	.config		= OMAP_LCDC_PANEL_TFT | OMAP_LCDC_INV_VSYNC |
--			  OMAP_LCDC_INV_HSYNC,
--
--	.bpp		= 16,
--	.data_lines	= 18,
--#ifdef USE_35INCH_LCD
--	.x_res		= 240,
--	.y_res		= 320,
--	.hsw		= 2,
--	.hfp		= 3,
--	.hbp		= 9,
--	.vsw		= 4,
--	.vfp		= 3,
--	.vbp		= 5,
--#else
--	.x_res		= 480,
--	.y_res		= 272,
--	.hsw		= 41,
--	.hfp		= 2,
--	.hbp		= 2,
--	.vsw		= 10,
--	.vfp		= 2,
--	.vbp		= 2,
--#endif
--	.pixel_clock	= 6250,
--
--	.init		= apollon_panel_init,
--	.cleanup	= apollon_panel_cleanup,
--	.enable		= apollon_panel_enable,
--	.disable	= apollon_panel_disable,
--	.get_caps	= apollon_panel_get_caps,
--};
--
--static int apollon_panel_probe(struct platform_device *pdev)
--{
--	omapfb_register_panel(&apollon_panel);
--	return 0;
--}
--
--static int apollon_panel_remove(struct platform_device *pdev)
--{
--	return 0;
--}
--
--static int apollon_panel_suspend(struct platform_device *pdev,
--				  pm_message_t mesg)
--{
--	return 0;
--}
--
--static int apollon_panel_resume(struct platform_device *pdev)
--{
--	return 0;
--}
--
--struct platform_driver apollon_panel_driver = {
--	.probe		= apollon_panel_probe,
--	.remove		= apollon_panel_remove,
--	.suspend	= apollon_panel_suspend,
--	.resume		= apollon_panel_resume,
--	.driver		= {
--		.name	= "apollon_lcd",
--		.owner	= THIS_MODULE,
--	},
--};
--
--static int __init apollon_panel_drv_init(void)
--{
--	return platform_driver_register(&apollon_panel_driver);
--}
--
--static void __exit apollon_panel_drv_exit(void)
--{
--	platform_driver_unregister(&apollon_panel_driver);
--}
--
--module_init(apollon_panel_drv_init);
--module_exit(apollon_panel_drv_exit);
-diff --git a/drivers/video/omap2/displays/panel-generic-dpi.c b/drivers/video/omap2/displays/panel-generic-dpi.c
-index 92bf63e..5b8ef3e 100644
---- a/drivers/video/omap2/displays/panel-generic-dpi.c
-+++ b/drivers/video/omap2/displays/panel-generic-dpi.c
-@@ -223,6 +223,28 @@ static struct panel_config generic_dpi_panels[] = {
- 
- 		.name			= "h4",
- 	},
-+
-+	/* Unknown panel used in Samsung OMAP2 Apollon */
-+	{
-+		{
-+			.x_res		= 480,
-+			.y_res		= 272,
-+
-+			.pixel_clock	= 6250,
-+
-+			.hsw		= 41,
-+			.hfp		= 2,
-+			.hbp		= 2,
-+
-+			.vsw		= 10,
-+			.vfp		= 2,
-+			.vbp		= 2,
-+		},
-+		.config			= OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
-+						OMAP_DSS_LCD_IHS,
-+
-+		.name			= "apollon",
-+	},
- };
- 
- struct panel_drv_data {
--- 
-1.7.4.1
+>> I have done a few experiments, I've created a kernel module (driver)
+>> for a custom expansion board for IGEP v2, =C2=A0the expansion board =
+has :
+>> =C2=A0 =C2=A0- I2C E2PROM
+>> =C2=A0 =C2=A0- ADS7846 touch controller (spi)
+>> =C2=A0 =C2=A0- Seiko 7.0inch LCD
+>> =C2=A0 =C2=A0- General purpose I/O
+>>
+>> The driver is capable to register correctly i2c and spi devices and
+>> seems is working but I have problems with the Seiko 7.0inch LCD and
+>> configuring the MUX from driver.
+>
+> Like Tony already said the generic MUX API should solve the problem o=
+f MUX.
+> But, you will still have a problem with devices that have to be initi=
+alized
+> very early, like IO chips.
 
+Right, about the MUX, there is any patch or specification for the MUX A=
+PI ?
+
+>
+>> Basically I wonder if it's possible add another omap_dss_device from
+>> kernel module to the omap DSS driver (something like
+>> omap_dss_register_new_device). Is a good or bad idea ? Why ? Is any
+>> reason to not export the MUX functionality to be used for other
+>> drivers ?
+>
+> ...
+>
+>> All of this is a crazy idea ? What's the best form to solve the prob=
+lem ?
+>
+> This is not crazy at all.
+> We already use this concept in our BSP, we detect the expansion
+> by reading data from EEPROM, and register the devices accordingly.
+> We solve the MUX problem by initializing the pins to some default sta=
+te
+> and once the expansion detection is done, we reconfigure the pins
+> to their right state as required by connected devices.
+>
+> And yes the above is done from board file.
+
+So its possilbe read the EEPROM in board file ? How ? I was thinking
+wasn't possible read the EEPROM in board initialitzation because was
+in a early state.
+
+> I don't see any reason to create a driver for the expansion,
+> unless it can be removed/attached "on the fly" while the SoM is up an=
+d running.
+
+Completely agree, normally expansion board can't be connected "on the f=
+ly"
+
+>
+> Nevertheless, some framework or at least an agreement on how we shoul=
+d
+> separate the SoM code from the expansion code.
+>
+> I thought of some convention like board-*.c will stay the code for th=
+e SoM
+> and exp-*.c will be used for the expansion code.
+> Now, the code in board-*.c will do the detection of the expansion and
+> run the appropriate exp_*_init() function, which will do the initiali=
+zation steps
+> for the detected expansion.
+> A bit more complicated solution will be needed if there are several e=
+xpansions
+> connected all together.
+>
+
+Looks good for me if this is the accepted solution.
+
+> I have had this in my mind for very long time, but did not want to bo=
+ther,
+> because there were discussions about a totally different approach whi=
+ch uses
+> device trees (DT), where the detection of expansion is moved away
+> from the kernel code.
+>
+> With the DT approach, the kernel (should) get(s) all the information =
+regarding
+> the devices and how they are wired for free (no detection).
+> If I understand correctly, the information about devices
+> (whether on SoM or expansion) could be either statically added to the=
+ DT
+> structures or dynamically detected by the bootloader and passed to th=
+e
+> kernel (like ATAGS work now).
+
+Really interesting, I'll look that, do you think is the future to
+solve this problem ? Have you tested ?
+
+>
+> I still doubt what approach would be better...
+
+Me too, but I think it's interesting doing a brainstorming about this
+theme because it's a common problem for board manufacturers.
+
+Regards,
+   Enric
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
