@@ -1,148 +1,139 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 6/7] OMAP: H4: Port the display driver to new DSS2
-Date: Wed,  4 May 2011 15:27:38 +0300
-Message-ID: <1304512059-10372-7-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 7/7] OMAP: Apollon: Port the display driver to new DSS2
+Date: Wed,  4 May 2011 15:27:39 +0300
+Message-ID: <1304512059-10372-8-git-send-email-tomi.valkeinen@ti.com>
 References: <1304512059-10372-1-git-send-email-tomi.valkeinen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:42360 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753301Ab1EDM2J (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 May 2011 08:28:09 -0400
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:43645 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753528Ab1EDM2L (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 May 2011 08:28:11 -0400
 In-Reply-To: <1304512059-10372-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Imre Deak <imre.deak@nokia.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Kyungmin Park <kyungmin.park@samsung.com>
 
 Port the old omapfb panel driver to DSS2 and change the board file
 accordingly.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Imre Deak <imre.deak@nokia.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- arch/arm/mach-omap2/board-h4.c                   |   41 +++++---
+ arch/arm/mach-omap2/board-apollon.c              |   34 ++++--
  drivers/video/omap/Makefile                      |    1 -
- drivers/video/omap/lcd_h4.c                      |  117 ----------------------
- drivers/video/omap2/displays/panel-generic-dpi.c |   21 ++++
- 4 files changed, 46 insertions(+), 134 deletions(-)
- delete mode 100644 drivers/video/omap/lcd_h4.c
+ drivers/video/omap/lcd_apollon.c                 |  136 ----------------------
+ drivers/video/omap2/displays/panel-generic-dpi.c |   22 ++++
+ 4 files changed, 44 insertions(+), 149 deletions(-)
+ delete mode 100644 drivers/video/omap/lcd_apollon.c
 
-diff --git a/arch/arm/mach-omap2/board-h4.c b/arch/arm/mach-omap2/board-h4.c
-index bac7933..991e71e 100644
---- a/arch/arm/mach-omap2/board-h4.c
-+++ b/arch/arm/mach-omap2/board-h4.c
+diff --git a/arch/arm/mach-omap2/board-apollon.c b/arch/arm/mach-omap2/board-apollon.c
+index f4f8374..0414c17 100644
+--- a/arch/arm/mach-omap2/board-apollon.c
++++ b/arch/arm/mach-omap2/board-apollon.c
 @@ -39,6 +39,8 @@
- #include <plat/menelaus.h>
- #include <plat/dma.h>
+ #include <plat/board.h>
+ #include <plat/common.h>
  #include <plat/gpmc.h>
 +#include <plat/display.h>
 +#include <plat/panel-generic-dpi.h>
  
  #include "mux.h"
  #include "control.h"
-@@ -157,17 +159,33 @@ static struct platform_device h4_kp_device = {
- 	},
+@@ -149,11 +151,6 @@ static struct platform_device apollon_smc91x_device = {
+ 	.resource	= apollon_smc91x_resources,
  };
  
--static struct platform_device h4_lcd_device = {
--	.name		= "lcd_h4",
+-static struct platform_device apollon_lcd_device = {
+-	.name		= "apollon_lcd",
 -	.id		= -1,
 -};
 -
- static struct platform_device *h4_devices[] __initdata = {
- 	&h4_flash_device,
- 	&h4_kp_device,
+ static struct omap_led_config apollon_led_config[] = {
+ 	{
+ 		.cdev	= {
+@@ -191,7 +188,6 @@ static struct platform_device apollon_led_device = {
+ static struct platform_device *apollon_devices[] __initdata = {
+ 	&apollon_onenand_device,
+ 	&apollon_smc91x_device,
+-	&apollon_lcd_device,
+ 	&apollon_led_device,
+ };
+ 
+@@ -266,12 +262,26 @@ static struct omap_usb_config apollon_usb_config __initdata = {
+ 	.pins[0]	= 6,
+ };
+ 
+-static struct omap_lcd_config apollon_lcd_config __initdata = {
+-	.ctrl_name	= "internal",
++static struct panel_generic_dpi_data apollon_panel_data = {
++	.name			= "apollon",
 +};
 +
-+static struct panel_generic_dpi_data h4_panel_data = {
-+	.name			= "h4",
-+};
-+
-+static struct omap_dss_device h4_lcd_device = {
++static struct omap_dss_device apollon_lcd_device = {
 +	.name			= "lcd",
 +	.driver_name		= "generic_dpi_panel",
 +	.type			= OMAP_DISPLAY_TYPE_DPI,
-+	.phy.dpi.data_lines	= 16,
-+	.data			= &h4_panel_data,
-+};
-+
-+static struct omap_dss_device *h4_dss_devices[] = {
- 	&h4_lcd_device,
++	.phy.dpi.data_lines	= 18,
++	.data			= &apollon_panel_data,
  };
  
-+static struct omap_dss_board_info h4_dss_data = {
-+	.num_devices	= ARRAY_SIZE(h4_dss_devices),
-+	.devices	= h4_dss_devices,
-+	.default_device	= &h4_lcd_device,
+-static struct omap_board_config_kernel apollon_config[] __initdata = {
+-	{ OMAP_TAG_LCD,		&apollon_lcd_config },
++static struct omap_dss_device *apollon_dss_devices[] = {
++	&apollon_lcd_device,
 +};
 +
- /* 2420 Sysboot setup (2430 is different) */
- static u32 get_sysboot_value(void)
- {
-@@ -271,10 +289,6 @@ static void __init h4_init_flash(void)
- 	h4_flash_resource.end	= base + SZ_64M - 1;
- }
- 
--static struct omap_lcd_config h4_lcd_config __initdata = {
--	.ctrl_name	= "internal",
--};
--
- static struct omap_usb_config h4_usb_config __initdata = {
- 	/* S1.10 OFF -- usb "download port"
- 	 * usb0 switched to Mini-B port and isp1105 transceiver;
-@@ -286,10 +300,6 @@ static struct omap_usb_config h4_usb_config __initdata = {
- 	.hmc_mode	= 0x00,		/* 0:dev|otg 1:disable 2:disable */
++static struct omap_dss_board_info apollon_dss_data = {
++	.num_devices	= ARRAY_SIZE(apollon_dss_devices),
++	.devices	= apollon_dss_devices,
++	.default_device	= &apollon_lcd_device,
  };
  
--static struct omap_board_config_kernel h4_config[] __initdata = {
--	{ OMAP_TAG_LCD,		&h4_lcd_config },
--};
--
- static void __init omap_h4_init_early(void)
- {
- 	omap2_init_common_infrastructure();
-@@ -331,9 +341,6 @@ static void __init omap_h4_init(void)
- {
- 	omap2420_mux_init(board_mux, OMAP_PACKAGE_ZAF);
+ static void __init omap_apollon_init_early(void)
+@@ -317,8 +327,6 @@ static void __init omap_apollon_init(void)
+ 	u32 v;
  
--	omap_board_config = h4_config;
--	omap_board_config_size = ARRAY_SIZE(h4_config);
--
- 	/*
- 	 * Make sure the serial ports are muxed on at this point.
- 	 * You have to mux them off in device drivers later on
-@@ -372,6 +379,8 @@ static void __init omap_h4_init(void)
- 	omap2_usbfs_init(&h4_usb_config);
+ 	omap2420_mux_init(board_mux, OMAP_PACKAGE_ZAC);
+-	omap_board_config = apollon_config;
+-	omap_board_config_size = ARRAY_SIZE(apollon_config);
+ 
+ 	apollon_init_smc91x();
+ 	apollon_led_init();
+@@ -343,6 +351,8 @@ static void __init omap_apollon_init(void)
+ 	 */
+ 	platform_add_devices(apollon_devices, ARRAY_SIZE(apollon_devices));
  	omap_serial_init();
- 	h4_init_flash();
 +
-+	omap_display_init(&h4_dss_data);
++	omap_display_init(&apollon_dss_data);
  }
  
- static void __init omap_h4_map_io(void)
+ static void __init omap_apollon_map_io(void)
 diff --git a/drivers/video/omap/Makefile b/drivers/video/omap/Makefile
-index 43eb64a..22fef61 100644
+index 22fef61..ef78550 100644
 --- a/drivers/video/omap/Makefile
 +++ b/drivers/video/omap/Makefile
-@@ -17,7 +17,6 @@ objs-y$(CONFIG_FB_OMAP_LCDC_HWA742) += hwa742.o
- objs-y$(CONFIG_FB_OMAP_LCDC_BLIZZARD) += blizzard.o
+@@ -25,7 +25,6 @@ objs-$(CONFIG_ARCH_OMAP16XX)$(CONFIG_MACH_OMAP_INNOVATOR) += lcd_inn1610.o
+ objs-$(CONFIG_ARCH_OMAP15XX)$(CONFIG_MACH_OMAP_INNOVATOR) += lcd_inn1510.o
+ objs-y$(CONFIG_MACH_OMAP_OSK) += lcd_osk.o
  
- objs-y$(CONFIG_MACH_AMS_DELTA) += lcd_ams_delta.o
--objs-y$(CONFIG_MACH_OMAP_H4) += lcd_h4.o
- objs-y$(CONFIG_MACH_OMAP_H3) += lcd_h3.o
- objs-y$(CONFIG_MACH_OMAP_PALMTE) += lcd_palmte.o
- objs-y$(CONFIG_MACH_OMAP_PALMTT) += lcd_palmtt.o
-diff --git a/drivers/video/omap/lcd_h4.c b/drivers/video/omap/lcd_h4.c
+-objs-y$(CONFIG_MACH_OMAP_APOLLON) += lcd_apollon.o
+ objs-y$(CONFIG_FB_OMAP_LCD_MIPID) += lcd_mipid.o
+ objs-y$(CONFIG_MACH_HERALD) += lcd_htcherald.o
+ 
+diff --git a/drivers/video/omap/lcd_apollon.c b/drivers/video/omap/lcd_apollon.c
 deleted file mode 100644
-index 03a06a9..0000000
---- a/drivers/video/omap/lcd_h4.c
+index 10459d8..0000000
+--- a/drivers/video/omap/lcd_apollon.c
 +++ /dev/null
-@@ -1,117 +0,0 @@
+@@ -1,136 +0,0 @@
 -/*
-- * LCD panel support for the TI OMAP H4 board
+- * LCD panel support for the Samsung OMAP2 Apollon board
 - *
-- * Copyright (C) 2004 Nokia Corporation
-- * Author: Imre Deak <imre.deak@nokia.com>
+- * Copyright (C) 2005,2006 Samsung Electronics
+- * Author: Kyungmin Park <kyungmin.park@samsung.com>
+- *
+- * Derived from drivers/video/omap/lcd-h4.c
 - *
 - * This program is free software; you can redistribute it and/or modify it
 - * under the terms of the GNU General Public License as published by the
@@ -162,127 +153,145 @@ index 03a06a9..0000000
 -#include <linux/module.h>
 -#include <linux/platform_device.h>
 -
+-#include <mach/gpio.h>
+-
 -#include "omapfb.h"
 -
--static int h4_panel_init(struct lcd_panel *panel, struct omapfb_device *fbdev)
+-/* #define USE_35INCH_LCD 1 */
+-
+-static int apollon_panel_init(struct lcd_panel *panel,
+-				struct omapfb_device *fbdev)
 -{
 -	return 0;
 -}
 -
--static void h4_panel_cleanup(struct lcd_panel *panel)
+-static void apollon_panel_cleanup(struct lcd_panel *panel)
 -{
 -}
 -
--static int h4_panel_enable(struct lcd_panel *panel)
--{
--	return 0;
--}
--
--static void h4_panel_disable(struct lcd_panel *panel)
--{
--}
--
--static unsigned long h4_panel_get_caps(struct lcd_panel *panel)
+-static int apollon_panel_enable(struct lcd_panel *panel)
 -{
 -	return 0;
 -}
 -
--static struct lcd_panel h4_panel = {
--	.name		= "h4",
--	.config		= OMAP_LCDC_PANEL_TFT,
+-static void apollon_panel_disable(struct lcd_panel *panel)
+-{
+-}
+-
+-static unsigned long apollon_panel_get_caps(struct lcd_panel *panel)
+-{
+-	return 0;
+-}
+-
+-struct lcd_panel apollon_panel = {
+-	.name		= "apollon",
+-	.config		= OMAP_LCDC_PANEL_TFT | OMAP_LCDC_INV_VSYNC |
+-			  OMAP_LCDC_INV_HSYNC,
 -
 -	.bpp		= 16,
--	.data_lines	= 16,
+-	.data_lines	= 18,
+-#ifdef USE_35INCH_LCD
 -	.x_res		= 240,
 -	.y_res		= 320,
+-	.hsw		= 2,
+-	.hfp		= 3,
+-	.hbp		= 9,
+-	.vsw		= 4,
+-	.vfp		= 3,
+-	.vbp		= 5,
+-#else
+-	.x_res		= 480,
+-	.y_res		= 272,
+-	.hsw		= 41,
+-	.hfp		= 2,
+-	.hbp		= 2,
+-	.vsw		= 10,
+-	.vfp		= 2,
+-	.vbp		= 2,
+-#endif
 -	.pixel_clock	= 6250,
--	.hsw		= 15,
--	.hfp		= 15,
--	.hbp		= 60,
--	.vsw		= 1,
--	.vfp		= 1,
--	.vbp		= 1,
 -
--	.init		= h4_panel_init,
--	.cleanup	= h4_panel_cleanup,
--	.enable		= h4_panel_enable,
--	.disable	= h4_panel_disable,
--	.get_caps	= h4_panel_get_caps,
+-	.init		= apollon_panel_init,
+-	.cleanup	= apollon_panel_cleanup,
+-	.enable		= apollon_panel_enable,
+-	.disable	= apollon_panel_disable,
+-	.get_caps	= apollon_panel_get_caps,
 -};
 -
--static int h4_panel_probe(struct platform_device *pdev)
+-static int apollon_panel_probe(struct platform_device *pdev)
 -{
--	omapfb_register_panel(&h4_panel);
+-	omapfb_register_panel(&apollon_panel);
 -	return 0;
 -}
 -
--static int h4_panel_remove(struct platform_device *pdev)
--{
--	return 0;
--}
--
--static int h4_panel_suspend(struct platform_device *pdev, pm_message_t mesg)
+-static int apollon_panel_remove(struct platform_device *pdev)
 -{
 -	return 0;
 -}
 -
--static int h4_panel_resume(struct platform_device *pdev)
+-static int apollon_panel_suspend(struct platform_device *pdev,
+-				  pm_message_t mesg)
 -{
 -	return 0;
 -}
 -
--static struct platform_driver h4_panel_driver = {
--	.probe		= h4_panel_probe,
--	.remove		= h4_panel_remove,
--	.suspend	= h4_panel_suspend,
--	.resume		= h4_panel_resume,
+-static int apollon_panel_resume(struct platform_device *pdev)
+-{
+-	return 0;
+-}
+-
+-struct platform_driver apollon_panel_driver = {
+-	.probe		= apollon_panel_probe,
+-	.remove		= apollon_panel_remove,
+-	.suspend	= apollon_panel_suspend,
+-	.resume		= apollon_panel_resume,
 -	.driver		= {
--		.name	= "lcd_h4",
+-		.name	= "apollon_lcd",
 -		.owner	= THIS_MODULE,
 -	},
 -};
 -
--static int __init h4_panel_drv_init(void)
+-static int __init apollon_panel_drv_init(void)
 -{
--	return platform_driver_register(&h4_panel_driver);
+-	return platform_driver_register(&apollon_panel_driver);
 -}
 -
--static void __exit h4_panel_drv_cleanup(void)
+-static void __exit apollon_panel_drv_exit(void)
 -{
--	platform_driver_unregister(&h4_panel_driver);
+-	platform_driver_unregister(&apollon_panel_driver);
 -}
 -
--module_init(h4_panel_drv_init);
--module_exit(h4_panel_drv_cleanup);
--
+-module_init(apollon_panel_drv_init);
+-module_exit(apollon_panel_drv_exit);
 diff --git a/drivers/video/omap2/displays/panel-generic-dpi.c b/drivers/video/omap2/displays/panel-generic-dpi.c
-index 2c1b093..92bf63e 100644
+index 92bf63e..5b8ef3e 100644
 --- a/drivers/video/omap2/displays/panel-generic-dpi.c
 +++ b/drivers/video/omap2/displays/panel-generic-dpi.c
-@@ -202,6 +202,27 @@ static struct panel_config generic_dpi_panels[] = {
- 						OMAP_DSS_LCD_IHS,
- 		.name			= "2430sdp",
+@@ -223,6 +223,28 @@ static struct panel_config generic_dpi_panels[] = {
+ 
+ 		.name			= "h4",
  	},
 +
-+	/* Unknown panel used in OMAP H4 */
++	/* Unknown panel used in Samsung OMAP2 Apollon */
 +	{
 +		{
-+			.x_res		= 240,
-+			.y_res		= 320,
++			.x_res		= 480,
++			.y_res		= 272,
 +
 +			.pixel_clock	= 6250,
 +
-+			.hsw		= 15,
-+			.hfp		= 15,
-+			.hbp		= 60,
++			.hsw		= 41,
++			.hfp		= 2,
++			.hbp		= 2,
 +
-+			.vsw		= 1,
-+			.vfp		= 1,
-+			.vbp		= 1,
++			.vsw		= 10,
++			.vfp		= 2,
++			.vbp		= 2,
 +		},
-+		.config			= OMAP_DSS_LCD_TFT,
++		.config			= OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
++						OMAP_DSS_LCD_IHS,
 +
-+		.name			= "h4",
++		.name			= "apollon",
 +	},
  };
  
