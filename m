@@ -1,113 +1,99 @@
-From: "Manuel, Lesly Arackal" <leslyam@ti.com>
-Subject: Re: [PATCH v9 0/9] OMAP3: PM: TWL4030 power scripts and workaround
- for TWL erratum 27
-Date: Wed, 4 May 2011 19:58:41 +0530
-Message-ID: <BANLkTimzdOqDZoabAbp9iyRLqYk7WY__3Q@mail.gmail.com>
-References: <1302784077-16697-1-git-send-email-leslyam@ti.com>
-	<BANLkTikHjZLGRogYpkpt=zJsyPcrqT0vyg@mail.gmail.com>
+From: "Janorkar, Mayuresh" <mayur@ti.com>
+Subject: RE: [PATCH v2 4/7] OMAP: DSS: Add i2c client driver for picodlp
+Date: Wed, 4 May 2011 19:59:54 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB033DA7449A@dbde02.ent.ti.com>
+References: <1304347971-1504-1-git-send-email-mayur@ti.com>
+	 <1304347971-1504-5-git-send-email-mayur@ti.com>
+	 <1304448293.26126.29.camel@deskari>
+	 <EAF47CD23C76F840A9E7FCE10091EFAB033DA742E9@dbde02.ent.ti.com>
+ <1304507153.2099.31.camel@deskari>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:34287 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753863Ab1EDO2o convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 4 May 2011 10:28:44 -0400
-Received: by mail-wy0-f173.google.com with SMTP id 42so1179764wyb.18
-        for <linux-omap@vger.kernel.org>; Wed, 04 May 2011 07:28:42 -0700 (PDT)
-In-Reply-To: <BANLkTikHjZLGRogYpkpt=zJsyPcrqT0vyg@mail.gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:46057 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753931Ab1EDOaC convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 May 2011 10:30:02 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p44ETx1L011338
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Wed, 4 May 2011 09:30:01 -0500
+In-Reply-To: <1304507153.2099.31.camel@deskari>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>, David Derrick <dderrick@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
+To: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "K, Mythri P" <mythripk@ti.com>
 
-Hi Jean,
 
-On Tue, May 3, 2011 at 6:51 PM, Jean Pihet <jean.pihet@newoldbits.com> =
-wrote:
-> On Thu, Apr 14, 2011 at 2:27 PM, Lesly A M <leslyam@ti.com> wrote:
->> Patch series for TWL4030 power scripts and workaround for TWL erratu=
-m 27.
->>
->> Changes for implementing TWL4030 power scripts recommended by hardwa=
-re team.
->> Introduced a new TWL4030 power script file, which can be used by dif=
-ferent
->> OMAP3 board with the power companion chip TWL4030.
->>
->> Updated the changes for TWL4030 errata 27 & 28, and modified
->> the TWL4030 power script.
->> Workaround for TWL4030 erratum 27 is required for Si version less th=
-an or
->> equal to TWL5030 ES1.1.
->>
-> ...
->
->> This changes are tested on OMAP3430 & OMAP3630 SDP with off mode ena=
-bled in suspend path.
-> With the patches series applied and a board file change for
-> Beagleboard (similar to patch 7/9 for SDP), the Beagleboard is not
-> consistently booting. Most of the time it is hanging at boot, cf. dum=
-p
-> below. In the case it boots OK no voltage drop is observed when going
-> to OFF mode.
->
-> Uncompressing Linux... done, booting the kernel.
-> [ =A0 =A00.000000] Linux version 2.6.39-rc5-09490-gf4c2b2b (def@defas=
-us)
-> (gcc version 4.4.1 (Sourcery G++ L
-> ite 2010q1-202) ) #694 SMP Tue May 3 14:11:31 CEST 2011
-> [ =A0 =A00.000000] CPU: ARMv7 Processor [411fc082] revision 2 (ARMv7)=
-, cr=3D10c53c7f
-> [ =A0 =A00.000000] CPU: VIPT nonaliasing data cache, VIPT nonaliasing
-> instruction cache
-> [ =A0 =A00.000000] Machine: OMAP3 Beagle Board
-> [ =A0 =A00.000000] bootconsole [earlycon0] enabled
-> [ =A0 =A00.000000] Memory policy: ECC disabled, Data cache writeback
-> [ =A0 =A00.000000] OMAP3430/3530 ES2.1 (l2cache iva sgx neon isp )
-> ...
-> [ =A0 =A00.350830] OMAP3 Beagle Rev: Ax/Bx
-> [ =A0 =A00.365203] omap_device: omap_uart.0: new worst case activate
-> latency 0: 30517
-> [ =A0 =A00.365570] omap_device: omap_uart.0: new worst case deactivat=
-e
-> latency 0: 30517
-> [ =A0 =A00.385253] Found NAND on CS0
-> [ =A0 =A00.388427] Registering NAND on CS0
-> [ =A0 =A00.393585] Unable to get DVI reset GPIO
-> [ =A0 =A00.398284] hw-breakpoint: debug architecture 0x4 unsupported.
-> [ =A0 =A00.425659] OMAP DMA hardware revision 4.0
-> [ =A0 =A00.509674] bio: create slab <bio-0> at 0
-> [ =A0 =A00.526092] SCSI subsystem initialized
-> [ =A0 =A00.531158] omap_device: omap2_mcspi.1: new worst case activat=
-e
-> latency 0: 30517
-> [ =A0 =A00.541351] omap_device: omap2_mcspi.1: new worst case deactiv=
-ate
-> latency 0: 30517
-> [ =A0 =A00.557586] usbcore: registered new interface driver usbfs
-> [ =A0 =A00.564971] usbcore: registered new interface driver hub
-> [ =A0 =A00.572082] usbcore: registered new device driver usb
-> [ =A0 =A00.579925] omap_device: omap_i2c.1: new worst case activate l=
-atency 0: 30517
-> [ =A0 =A00.587768] omap_i2c omap_i2c.1: bus 1 rev1.3.12 at 2600 kHz
->
-> AFAICT the main difference in the wiring is that the PMIC CLKREQ is
-> not connected to the OMAP and is tied to VIO_1V8.
->
-> Any thought on how to support the T2 scripts on Beagle?
 
-I have not tested this script on Beagle board.
+> -----Original Message-----
+> From: Valkeinen, Tomi
+> Sent: Wednesday, May 04, 2011 4:36 PM
+> To: Janorkar, Mayuresh
+> Cc: linux-omap@vger.kernel.org; K, Mythri P
+> Subject: RE: [PATCH v2 4/7] OMAP: DSS: Add i2c client driver for picodlp
+> 
+> On Wed, 2011-05-04 at 15:31 +0530, Janorkar, Mayuresh wrote:
+> >
+> > > -----Original Message-----
+> > > From: Valkeinen, Tomi
+> > > Sent: Wednesday, May 04, 2011 12:15 AM
+> > > To: Janorkar, Mayuresh
+> > > Cc: linux-omap@vger.kernel.org; K, Mythri P
+> > > Subject: Re: [PATCH v2 4/7] OMAP: DSS: Add i2c client driver for
+> picodlp
+> > >
+> > > On Mon, 2011-05-02 at 20:22 +0530, Mayuresh Janorkar wrote:
+> > > > The configurations and data transfer with picodlp panel happens
+> through
+> > > i2c.
+> > > > An i2c client with name "picodlp_i2c_driver" is registered inside
+> panel.
+> > > >
+> > > > dpp2600 requires 4 gpio lines for interfacing it with any processor,
+> > > > phy_reset, ready_reset, park, display_select
+> > >
+> > > Hmm, so what is dpp2600? It's mentioned here for the first time, the
+> > > documentation doesn't mention it.
+> >
+> > Patch 0 does mention about dpp2600. It means DLP Pico Processor
+> > and I have also provided link to wiki page which talks more about
+> dpp2600.
+> > Earlier version of patch also had functions dpp2600_configure_flash.
+> 
+> Remember that patch 0 is just an intro for the patch set. It's not
+> included in the kernel tree. So the basic rule is that patch 0 should
+> not contain any important info that is not available from the patches
+> itself.
+> 
+> Where does the DPP2600 name come from? The documentation doesn't mention
+> it, it's only mentioned in the wiki page written by you. I didn't find
+> anything with a quick googling either.
 
-This script actually expects the clk_req to go low during off_mode.
-So you can try removing the P3 from resource configuration struct for
-VDD1/VDD2 & check the voltage rails during OFF.
+You can check it here:
+https://focus.ti.com/myti/docs/extranet.tsp?sectionId=403
+You might have to create an extranet account to access it.
 
-Regards,
-Lesly A M
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> > > If it means the picodlp, just use the same name all the time. If not,
+> > > you could tell what it is first.
+> >
+> > DPP means DLP pico processor.
+> 
+> So DPP is the processor part inside the projector? I'm not sure if that
+> knowledge is relevant here. From the kernel driver's point of view
+> there's just the projector, where the GPIOs, i2c and video lines go.
+> Does it matter that there's a DPP2600 processor inside?
+
+My bad it means DLP Pico Projector.
+There is no processor.
+
+> 
+> Also, in the patch comment above you write "picodlp panel". The PicoDLP
+> is not panel, so you shouldn't speak of picodlp panel.
+> 
+>  Tomi
+> 
+
