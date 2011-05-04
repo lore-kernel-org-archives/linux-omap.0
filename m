@@ -1,51 +1,186 @@
-From: Vladimir Pantelic <vladoman@gmail.com>
-Subject: Re: [RFC] About ARM expansion boards and others things
-Date: Wed, 04 May 2011 12:28:41 +0200
-Message-ID: <4DC12A59.2010608@gmail.com>
-References: <BANLkTimjWtqLsWA1Gthix6RZYMzNRdC7rg@mail.gmail.com>
+From: Govindraj <govindraj.ti@gmail.com>
+Subject: Re: [PATCH v2 03/12] OMAP2+: Serial: Add default mux for all uarts.
+Date: Wed, 4 May 2011 16:04:16 +0530
+Message-ID: <BANLkTikcCHUP8j_z1A6mfmjj6_i9P-HN-g@mail.gmail.com>
+References: <1304080796-625-1-git-send-email-govindraj.raja@ti.com>
+ <1304080796-625-4-git-send-email-govindraj.raja@ti.com> <20110504100051.GZ2092@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:42567 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752185Ab1EDK2o (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 May 2011 06:28:44 -0400
-In-Reply-To: <BANLkTimjWtqLsWA1Gthix6RZYMzNRdC7rg@mail.gmail.com>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:59300 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753267Ab1EDKej convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 May 2011 06:34:39 -0400
+In-Reply-To: <20110504100051.GZ2092@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?UTF-8?B?RW5yaWMgQmFsbGV0YsOyIGkgU2VycmE=?= <eballetbo@gmail.com>
-Cc: linux-omap@vger.kernel.org, linux-arm@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Rajendra Nayak <rnayak@ti.com>
 
-Enric Balletb=C3=B2 i Serra wrote:
-> Hi guys,
-> I'm thinking probably in a crazy idea, I hope someone can help me or
-> kill definitely this idea from my mind.
+On Wed, May 4, 2011 at 3:30 PM, Tony Lindgren <tony@atomide.com> wrote:
+> * Govindraj.R <govindraj.raja@ti.com> [110429 05:39]:
+>> Add default mux data for all uarts if mux info is not passed from
+>> board file to avoid breaking any board support.
 >
-> I'll explain a little more, the real problem is I don't know how to
-> add support for an expansion board for IGEP v2 board. I see most of
-> boards adds the support inside the board-xxxxx.c file, for example if
-> the expansion board has a Touchscreen interface using ADS7846/TSC2046
-> they register ads7846 platform data in board-xxxx.c file. This is ok
-> beacause the ads7846 can be detected and if expansion board is not
-> present  the detection fails, but maybe other devices in expansion
-> board can't be detected (for example an I/O expansion). So which is
-> the best form to do this ?
+> This should only happen if omap_serial_init is called,
+> then boards can still use platform data with omap_serial_init_port.
+
+Yes correct thats how its designed with this patch series.
+One can use omap_serial_init to initialize all uarts
+or use omap_serial_init_port for individual uart.
+
+Default pads are filled only if board uses omap_serial_init(NULL);
+to initialize all uarts.
+
 >
-> I'm thinking in create a kernel module for the expansion board that
-> add all the new features, the expansion board should come with a I2C
-> E2PROM for board ID storage, so the idea is create an i2c driver that
-> reads the E2PROM and if found the Board ID inits all the expansion
-> board devices.
+>> --- a/arch/arm/mach-omap2/serial.c
+>> +++ b/arch/arm/mach-omap2/serial.c
+>> @@ -66,6 +66,129 @@ static struct omap_device_pm_latency omap_uart_l=
+atency[] =3D {
+>> =A0 =A0 =A0 },
+>> =A0};
+>>
+>> +#ifdef CONFIG_OMAP_MUX
+>> +static struct omap_device_pad default_uart1_pads[] __initdata =3D {
+>> + =A0 =A0 {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 .name =A0 =3D "uart1_cts.uart1_cts",
+>> + =A0 =A0 =A0 =A0 =A0 =A0 .enable =3D OMAP_PIN_INPUT_PULLUP | OMAP_M=
+UX_MODE0,
+>> + =A0 =A0 },
+>> + =A0 =A0 {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 .name =A0 =3D "uart1_rts.uart1_rts",
+>> + =A0 =A0 =A0 =A0 =A0 =A0 .enable =3D OMAP_PIN_OUTPUT | OMAP_MUX_MOD=
+E0,
+>> + =A0 =A0 },
+>> + =A0 =A0 {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 .name =A0 =3D "uart1_tx.uart1_tx",
+>> + =A0 =A0 =A0 =A0 =A0 =A0 .enable =3D OMAP_PIN_OUTPUT | OMAP_MUX_MOD=
+E0,
+>> + =A0 =A0 },
+>> + =A0 =A0 {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 .name =A0 =3D "uart1_rx.uart1_rx",
+>> + =A0 =A0 =A0 =A0 =A0 =A0 .flags =A0=3D OMAP_DEVICE_PAD_REMUX | OMAP=
+_DEVICE_PAD_WAKEUP,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 .enable =3D OMAP_PIN_INPUT_PULLUP | OMAP_M=
+UX_MODE0,
+>> + =A0 =A0 },
+>> +};
+>> +
+>> +static struct omap_device_pad default_uart2_pads[] __initdata =3D {
+>> + =A0 =A0 {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 .name =A0 =3D "uart2_cts.uart2_cts",
+>> + =A0 =A0 =A0 =A0 =A0 =A0 .enable =3D OMAP_PIN_INPUT_PULLUP | OMAP_M=
+UX_MODE0,
+>> + =A0 =A0 },
+>> + =A0 =A0 {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 .name =A0 =3D "uart2_rts.uart2_rts",
+>> + =A0 =A0 =A0 =A0 =A0 =A0 .enable =3D OMAP_PIN_OUTPUT | OMAP_MUX_MOD=
+E0,
+>> + =A0 =A0 },
+>> + =A0 =A0 {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 .name =A0 =3D "uart2_tx.uart2_tx",
+>> + =A0 =A0 =A0 =A0 =A0 =A0 .enable =3D OMAP_PIN_OUTPUT | OMAP_MUX_MOD=
+E0,
+>> + =A0 =A0 },
+>> + =A0 =A0 {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 .name =A0 =3D "uart2_rx.uart2_rx",
+>> + =A0 =A0 =A0 =A0 =A0 =A0 .flags =A0=3D OMAP_DEVICE_PAD_REMUX | OMAP=
+_DEVICE_PAD_WAKEUP,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 .enable =3D OMAP_PIN_INPUT_PULLUP | OMAP_M=
+UX_MODE0,
+>> + =A0 =A0 },
+>> +};
+>> +
+>> +static struct omap_device_pad default_uart3_pads[] __initdata =3D {
+>> + =A0 =A0 {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 .name =A0 =3D "uart3_cts_rctx.uart3_cts_rc=
+tx",
+>> + =A0 =A0 =A0 =A0 =A0 =A0 .enable =3D OMAP_PIN_INPUT_PULLUP | OMAP_M=
+UX_MODE0,
+>> + =A0 =A0 },
+>> + =A0 =A0 {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 .name =A0 =3D "uart3_rts_sd.uart3_rts_sd",
+>> + =A0 =A0 =A0 =A0 =A0 =A0 .enable =3D OMAP_PIN_OUTPUT | OMAP_MUX_MOD=
+E0,
+>> + =A0 =A0 },
+>> + =A0 =A0 {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 .name =A0 =3D "uart3_tx_irtx.uart3_tx_irtx=
+",
+>> + =A0 =A0 =A0 =A0 =A0 =A0 .enable =3D OMAP_PIN_OUTPUT | OMAP_MUX_MOD=
+E0,
+>> + =A0 =A0 },
+>> + =A0 =A0 {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 .name =A0 =3D "uart3_rx_irrx.uart3_rx_irrx=
+",
+>> + =A0 =A0 =A0 =A0 =A0 =A0 .flags =A0=3D OMAP_DEVICE_PAD_REMUX | OMAP=
+_DEVICE_PAD_WAKEUP,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 .enable =3D OMAP_PIN_INPUT | OMAP_MUX_MODE=
+0,
+>> + =A0 =A0 },
+>> +};
+>> +
+>> +static struct omap_device_pad default_omap36xx_uart4_pads[] __initd=
+ata =3D {
+>> + =A0 =A0 {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 .name =A0 =3D "gpmc_wait2.uart4_tx",
+>> + =A0 =A0 =A0 =A0 =A0 =A0 .enable =3D OMAP_PIN_OUTPUT | OMAP_MUX_MOD=
+E0,
+>> + =A0 =A0 },
+>> + =A0 =A0 {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 .name =A0 =3D "gpmc_wait3.uart4_rx",
+>> + =A0 =A0 =A0 =A0 =A0 =A0 .flags =A0=3D OMAP_DEVICE_PAD_REMUX | OMAP=
+_DEVICE_PAD_WAKEUP,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 .enable =3D OMAP_PIN_INPUT | OMAP_MUX_MODE=
+2,
+>> + =A0 =A0 },
+>> +};
+>> +
+>> +static struct omap_device_pad default_omap4_uart4_pads[] __initdata=
+ =3D {
+>> + =A0 =A0 {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 .name =A0 =3D "uart4_tx.uart4_tx",
+>> + =A0 =A0 =A0 =A0 =A0 =A0 .enable =3D OMAP_PIN_OUTPUT | OMAP_MUX_MOD=
+E0,
+>> + =A0 =A0 },
+>> + =A0 =A0 {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 .name =A0 =3D "uart4_rx.uart4_rx",
+>> + =A0 =A0 =A0 =A0 =A0 =A0 .flags =A0=3D OMAP_DEVICE_PAD_REMUX | OMAP=
+_DEVICE_PAD_WAKEUP,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 .enable =3D OMAP_PIN_INPUT | OMAP_MUX_MODE=
+0,
+>> + =A0 =A0 },
+>
+> Looks like you could easily allocate the struct and use sprintf
+> to generate this as needed to avoid duplication.
 
-don't know if you are aware of that:
+Only uart1/2 have common name
 
-http://elinux.org/BeagleBoardPinMux#Expansion_boards
+* uart3 having different naming pins
+* uart4 doesnt have cts/rts
+* uart4 on 3630 uses gpmc.wait2
+* rx requires wakeup enable flag
 
-also beagle.c board file has support for some expansion boards
-already, maybe there is some code to be shared.
+So would again give me a function with switch case for uart1/2/3/4
+which is very similar to above structs.
 
+Thats the reson I kept individual structs.
+Also becomes easy if we need to disable or avoid a
+individual uart pad.
+
+--
+Thanks,
+Govindraj.R
+
+
+>
+> Tony
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
