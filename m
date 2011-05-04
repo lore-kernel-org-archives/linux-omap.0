@@ -1,73 +1,60 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 0/9] OMAP: GPIO: cleanup, consolidation, etc. (v2)
-Date: Tue, 03 May 2011 18:04:10 -0700
-Message-ID: <878vunwa2d.fsf@ti.com>
-References: <1303418127-4310-1-git-send-email-khilman@ti.com>
-	<BANLkTi=dQohEF3ufyMJ53j5LgCkJV_RZ8A@mail.gmail.com>
-Mime-Version: 1.0
+From: Oleg Drokin <green@linuxhacker.ru>
+Subject: Re: [PATCH 1/4] omap: consolidate touch screen initialization among different boards
+Date: Tue, 3 May 2011 23:10:29 -0400
+Message-ID: <D9D18474-D2A3-468B-88B3-2D18537E70D2@linuxhacker.ru>
+References: <cover.1303682352.git.mike@compulab.co.il> <1738251a50b70224f124d4a54c157cc5e3c6db77.1303682352.git.mike@compulab.co.il>
+Mime-Version: 1.0 (Apple Message framework v1082)
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:53475 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753976Ab1EDBEO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 May 2011 21:04:14 -0400
-Received: by mail-pv0-f176.google.com with SMTP id 37so356466pve.7
-        for <linux-omap@vger.kernel.org>; Tue, 03 May 2011 18:04:13 -0700 (PDT)
-In-Reply-To: <BANLkTi=dQohEF3ufyMJ53j5LgCkJV_RZ8A@mail.gmail.com> (Charulatha
-	Varadarajan's message of "Thu, 28 Apr 2011 15:09:13 +0530")
+Received: from linuxhacker.ru ([217.76.32.60]:33762 "EHLO fiona.linuxhacker.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752360Ab1EDDKy convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 May 2011 23:10:54 -0400
+In-Reply-To: <1738251a50b70224f124d4a54c157cc5e3c6db77.1303682352.git.mike@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Varadarajan, Charulatha" <charu@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: Mike Rapoport <mike@compulab.co.il>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Charu,
+Hello!
 
-"Varadarajan, Charulatha" <charu@ti.com> writes:
+This patch breaks compile for me.
 
-> I tested the patch series in wip/gpio-cleanup branch.
+On Apr 24, 2011, at 6:09 PM, Mike Rapoport wrote:
 
-Thanks so much for testing.  It's a great help.
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/common-board-devices.c
+> @@ -0,0 +1,85 @@
+> 
+> +void __init omap_ads7846_init(int bus_num, int gpio_pendown, int gpio_debounce,
+> +			      struct ads7846_platform_data *board_pdata)
+> +{
+> ...
 
-I've updated the branch based on some of your comments, and in
-particular it should now boot on OMAP1.
+> +}
+> diff --git a/arch/arm/mach-omap2/common-board-devices.h b/arch/arm/mach-omap2/common-board-devices.h
+> new file mode 100644
+> index 0000000..75f9248d
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/common-board-devices.h
+> @@ -0,0 +1,18 @@
+> +#ifndef __OMAP_COMMON_BOARD_DEVICES__
+> +#define __OMAP_COMMON_BOARD_DEVICES__
+> +
+> +#if defined(CONFIG_TOUCHSCREEN_ADS7846) || \
+> +	defined(CONFIG_TOUCHSCREEN_ADS7846_MODULE)
+> +struct ads7846_platform_data;
+> +
+> +void omap_ads7846_init(int bus_num, int gpio_pendown, int gpio_debounce,
+> +		       struct ads7846_platform_data *board_pdata);
+> +#else
 
-Kevin
 
-> Here are the results:
->
-> Compile tested for:
->  - omap1_defconfig
->  - omap2plus_defconfig
->
-> Boot test (Failed on the following board):
->  - OMAP1710-H3
->
-> Boot test (Success on the following boards):
->  - OMAP2420-H4
->  - OMAP3430-SDP
->  - OMAP3430-Zoom2
->  - OMAP3630-Zoom3
->  - OMAP4430-SDP
->  - OMAP4430-Blaze
->
-> GPIO module functionality testing (success on the following boards):
->  - OMAP2420-H4
->  - OMAP3430-SDP
->  - OMAP3430-Zoom2
->  - OMAP3630-Zoom3
->  - OMAP4430-SDP
->  - OMAP4430-Blaze
->
-> PM Testing (success as given below):
-> OMAP3430-SDP: retention, off_mode, system_wide suspend, gpio wakeup
-> OMAP3630-Zoom3: retention, system_wide suspend
-> using the following:
->             echo 5 > /sys/devices/platform/omap/omap_uart.0/sleep_timeout
->             echo 5 > /sys/devices/platform/omap/omap_uart.1/sleep_timeout
->             echo 5 > /sys/devices/platform/omap/omap_uart.2/sleep_timeout
->             echo 5 > /sys/devices/platform/omap/omap_uart.3/sleep_timeout
->             echo '5' > /debug/pm_debug/wakeup_timer_seconds
->             echo 1 > /debug/pm_debug/sleep_while_idle
->             echo 1 > /debug/pm_debug/enable_off_mode
->
-> -V Charulatha
+arch/arm/mach-omap2/common-board-devices.c:80: error: redefinition of 'omap_ads7846_init'
+arch/arm/mach-omap2/common-board-devices.h:36: note: previous definition of 'omap_ads7846_init' was here
+
+Of course I don't have the CONFIG_TOUCHSCREEN_ADS7846 defined.
+
+Bye,
+    Oleg
