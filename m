@@ -1,39 +1,157 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH 1/4] omap: consolidate touch screen initialization among
- different boards
-Date: Wed, 04 May 2011 18:10:04 +0300
-Message-ID: <4DC16C4C.6030506@compulab.co.il>
-References: <cover.1303682352.git.mike@compulab.co.il> <1738251a50b70224f124d4a54c157cc5e3c6db77.1303682352.git.mike@compulab.co.il> <4DC15C60.9060401@gmail.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH 4/5] OMAP3: cpuidle: code rework for improved readability
+Date: Wed, 04 May 2011 08:32:51 -0700
+Message-ID: <87zkn2tra4.fsf@ti.com>
+References: <1304069186-3086-1-git-send-email-j-pihet@ti.com>
+	<1304069186-3086-5-git-send-email-j-pihet@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:52888
-	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754099Ab1EDPKG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 May 2011 11:10:06 -0400
-In-Reply-To: <4DC15C60.9060401@gmail.com>
+Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:55745 "EHLO
+	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753402Ab1EDPcz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 May 2011 11:32:55 -0400
+Received: by mail-pv0-f180.google.com with SMTP id 21so802225pvc.11
+        for <linux-omap@vger.kernel.org>; Wed, 04 May 2011 08:32:54 -0700 (PDT)
+In-Reply-To: <1304069186-3086-5-git-send-email-j-pihet@ti.com> (jean pihet's
+	message of "Fri, 29 Apr 2011 11:26:25 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Thomas Weber <thomas.weber.linux@googlemail.com>
-Cc: Mike Rapoport <mike@compulab.co.il>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: jean.pihet@newoldbits.com
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Jean Pihet <j-pihet@ti.com>
 
-Hi Thomas,
+jean.pihet@newoldbits.com writes:
 
-On 05/04/11 17:02, Thomas Weber wrote:
+> From: Jean Pihet <j-pihet@ti.com>
 
-> Hello,
+Please summarize changes here.
+
+Kevin
+
+> Signed-off-by: Jean Pihet <j-pihet@ti.com>
+> ---
+>  arch/arm/mach-omap2/cpuidle34xx.c |   52 +++++++++++++-----------------------
+>  1 files changed, 19 insertions(+), 33 deletions(-)
 >
-> because ads7846_get_pendown_state() is not longer set in
-> ads7846_platform_data, the ads7846_setup_pendown tries to request the
-> pendown gpio and fails because the gpio is already requested.
-
-Thanks, for testing.
-
-I've sent a patch for this a couple of minutes ago.
-
-
--- 
-Regards,
-Igor.
-
+> diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
+> index f84315c..4673cc6 100644
+> --- a/arch/arm/mach-omap2/cpuidle34xx.c
+> +++ b/arch/arm/mach-omap2/cpuidle34xx.c
+> @@ -80,13 +80,6 @@ static struct cpuidle_params cpuidle_params_table[OMAP3_MAX_STATES] = {
+>  	{10000 + 30000, 300000, 1},
+>  };
+>  
+> -static int omap3_idle_bm_check(void)
+> -{
+> -	if (!omap3_can_sleep())
+> -		return 1;
+> -	return 0;
+> -}
+> -
+>  static int _cpuidle_allow_idle(struct powerdomain *pwrdm,
+>  				struct clockdomain *clkdm)
+>  {
+> @@ -166,9 +159,7 @@ static struct cpuidle_state *next_valid_state(struct cpuidle_device *dev,
+>  					      struct cpuidle_state *curr)
+>  {
+>  	struct cpuidle_state *next = NULL;
+> -	struct omap3_idle_statedata *cx;
+> -
+> -	cx = cpuidle_get_statedata(curr);
+> +	struct omap3_idle_statedata *cx = cpuidle_get_statedata(curr);
+>  
+>  	/* Check if current state is valid */
+>  	if (cx->valid) {
+> @@ -176,9 +167,7 @@ static struct cpuidle_state *next_valid_state(struct cpuidle_device *dev,
+>  	} else {
+>  		u8 idx = OMAP3_STATE_MAX;
+>  
+> -		/*
+> -		 * Reach the current state starting at highest C-state
+> -		 */
+> +		/* Reach the current state starting at highest C-state */
+>  		for (; idx >= OMAP3_STATE_C1; idx--) {
+>  			if (&dev->states[idx] == curr) {
+>  				next = &dev->states[idx];
+> @@ -186,9 +175,7 @@ static struct cpuidle_state *next_valid_state(struct cpuidle_device *dev,
+>  			}
+>  		}
+>  
+> -		/*
+> -		 * Should never hit this condition.
+> -		 */
+> +		/* Should never hit this condition */
+>  		WARN_ON(next == NULL);
+>  
+>  		/*
+> @@ -223,29 +210,16 @@ static struct cpuidle_state *next_valid_state(struct cpuidle_device *dev,
+>  static int omap3_enter_idle_bm(struct cpuidle_device *dev,
+>  			       struct cpuidle_state *state)
+>  {
+> -	struct cpuidle_state *new_state = next_valid_state(dev, state);
+> -	u32 core_next_state, per_next_state = 0, per_saved_state = 0;
+> -	u32 cam_state;
+> +	struct cpuidle_state *new_state;
+> +	u32 core_next_state, per_next_state = 0, per_saved_state = 0, cam_state;
+>  	struct omap3_idle_statedata *cx;
+>  	int ret;
+>  
+> -	if (omap3_idle_bm_check()) {
+> -		BUG_ON(!dev->safe_state);
+> +	if (!omap3_can_sleep()) {
+>  		new_state = dev->safe_state;
+>  		goto select_state;
+>  	}
+>  
+> -	cx = cpuidle_get_statedata(state);
+> -	core_next_state = cx->core_state;
+> -
+> -	/*
+> -	 * FIXME: we currently manage device-specific idle states
+> -	 *        for PER and CORE in combination with CPU-specific
+> -	 *        idle states.  This is wrong, and device-specific
+> -	 *        idle management needs to be separated out into 
+> -	 *        its own code.
+> -	 */
+> -
+>  	/*
+>  	 * Prevent idle completely if CAM is active.
+>  	 * CAM does not have wakeup capability in OMAP3.
+> @@ -257,9 +231,19 @@ static int omap3_enter_idle_bm(struct cpuidle_device *dev,
+>  	}
+>  
+>  	/*
+> +	 * FIXME: we currently manage device-specific idle states
+> +	 *        for PER and CORE in combination with CPU-specific
+> +	 *        idle states.  This is wrong, and device-specific
+> +	 *        idle management needs to be separated out into
+> +	 *        its own code.
+> +	 */
+> +
+> +	/*
+>  	 * Prevent PER off if CORE is not in retention or off as this
+>  	 * would disable PER wakeups completely.
+>  	 */
+> +	cx = cpuidle_get_statedata(state);
+> +	core_next_state = cx->core_state;
+>  	per_next_state = per_saved_state = pwrdm_read_next_pwrst(per_pd);
+>  	if ((per_next_state == PWRDM_POWER_OFF) &&
+>  	    (core_next_state > PWRDM_POWER_RET))
+> @@ -269,6 +253,8 @@ static int omap3_enter_idle_bm(struct cpuidle_device *dev,
+>  	if (per_next_state != per_saved_state)
+>  		pwrdm_set_next_pwrst(per_pd, per_next_state);
+>  
+> +	new_state = next_valid_state(dev, state);
+> +
+>  select_state:
+>  	dev->last_state = new_state;
+>  	ret = omap3_enter_idle(dev, new_state);
+> @@ -329,7 +315,7 @@ struct cpuidle_driver omap3_idle_driver = {
+>  	.owner = 	THIS_MODULE,
+>  };
+>  
+> -/* Fill in the state data from the mach tables and register the driver_data */
+> +/* Helper to fill the C-state common data and register the driver_data */
+>  #define FILL_IN_STATE(idx, descr)					\
+>  do {									\
+>  	state				= &dev->states[count];		\
