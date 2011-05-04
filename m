@@ -1,84 +1,86 @@
-From: =?UTF-8?Q?Enric_Balletb=C3=B2_i_Serra?= <eballetbo@gmail.com>
-Subject: Re: [RFC] About ARM expansion boards and others things
-Date: Wed, 4 May 2011 12:46:47 +0200
-Message-ID: <BANLkTingDTjKKHqCcWsms7C+QugVxZQc9w@mail.gmail.com>
-References: <BANLkTimjWtqLsWA1Gthix6RZYMzNRdC7rg@mail.gmail.com>
-	<4DC12A59.2010608@gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 1/9] OMAP: DSS2: Change DSI platform device name from
+ "omapdss_dsi1" to "omapdss_dsi"
+Date: Wed, 04 May 2011 13:53:28 +0300
+Message-ID: <1304506408.2099.21.camel@deskari>
+References: <1304494704-7285-1-git-send-email-archit@ti.com>
+	 <1304494704-7285-2-git-send-email-archit@ti.com>
+	 <20110504094050.GI27860@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:34200 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751315Ab1EDKqs convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 May 2011 06:46:48 -0400
-In-Reply-To: <4DC12A59.2010608@gmail.com>
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:40043 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751120Ab1EDKxd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 May 2011 06:53:33 -0400
+Received: by mail-fx0-f52.google.com with SMTP id 6so709280fxm.25
+        for <linux-omap@vger.kernel.org>; Wed, 04 May 2011 03:53:32 -0700 (PDT)
+In-Reply-To: <20110504094050.GI27860@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vladimir Pantelic <vladoman@gmail.com>
-Cc: linux-omap@vger.kernel.org, linux-arm@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Archit Taneja <archit@ti.com>, linux-omap@vger.kernel.org
 
-2011/5/4 Vladimir Pantelic <vladoman@gmail.com>:
-> Enric Balletb=C3=B2 i Serra wrote:
->>
->> Hi guys,
->> I'm thinking probably in a crazy idea, I hope someone can help me or
->> kill definitely this idea from my mind.
->>
->> I'll explain a little more, the real problem is I don't know how to
->> add support for an expansion board for IGEP v2 board. I see most of
->> boards adds the support inside the board-xxxxx.c file, for example i=
-f
->> the expansion board has a Touchscreen interface using ADS7846/TSC204=
-6
->> they register ads7846 platform data in board-xxxx.c file. This is ok
->> beacause the ads7846 can be detected and if expansion board is not
->> present =C2=A0the detection fails, but maybe other devices in expans=
-ion
->> board can't be detected (for example an I/O expansion). So which is
->> the best form to do this ?
->>
->> I'm thinking in create a kernel module for the expansion board that
->> add all the new features, the expansion board should come with a I2C
->> E2PROM for board ID storage, so the idea is create an i2c driver tha=
-t
->> reads the E2PROM and if found the Board ID inits all the expansion
->> board devices.
->
-> don't know if you are aware of that:
->
-> http://elinux.org/BeagleBoardPinMux#Expansion_boards
->
+On Wed, 2011-05-04 at 12:40 +0300, Tony Lindgren wrote:
+> * Archit Taneja <archit@ti.com> [110504 10:30]:
+> > --- a/arch/arm/mach-omap2/board-3430sdp.c
+> > +++ b/arch/arm/mach-omap2/board-3430sdp.c
+> > @@ -401,7 +401,7 @@ static struct regulator_consumer_supply sdp3430_vdda_dac_supplies[] = {
+> >  /* VPLL2 for digital video outputs */
+> >  static struct regulator_consumer_supply sdp3430_vpll2_supplies[] = {
+> >  	REGULATOR_SUPPLY("vdds_dsi", "omapdss"),
+> > -	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dsi1"),
+> > +	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dsi.0"),
+> >  };
+> >  
+> >  static struct regulator_consumer_supply sdp3430_vmmc1_supplies[] = {
+> > diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+> > index 570e83f..eafadb4 100644
+> > --- a/arch/arm/mach-omap2/board-4430sdp.c
+> > +++ b/arch/arm/mach-omap2/board-4430sdp.c
+> > @@ -375,7 +375,7 @@ static struct regulator_consumer_supply sdp4430_vmmc_supply[] = {
+> >  };
+> >  static struct regulator_consumer_supply sdp4430_vcxio_supply[] = {
+> >  	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dss"),
+> > -	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dsi1"),
+> > +	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dsi.0"),
+> >  };
+> ...
+> 
+> Looks like we should first combine all this cut and paste data
+> for each board file into some common init function to cut
+> down the "crazy churn".
 
-Yes I know it.
+I was actually thinking about this earlier today.
 
-> also beagle.c board file has support for some expansion boards
-> already, maybe there is some code to be shared.
->
->
+All the boards I have seen use vdds_dsi the same way (depending on the
+omap version, though). For OMAP3 it comes from VPPL2 and for OMAP4 it's
+VCXIO. Optimally a common piece of code would just set up the regulator
+properly.
 
-But I don't see any support for expansion board in board-omap3beagle.c
-  http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux-2.6.git;a=3D=
-blob;f=3Darch/arm/mach-omap2/board-omap3beagle.c;h=3D33007fd4a0835fd298=
-129c9fda30b844707cc08b;hb=3DHEAD
+But I think in the end the config has to come from the board data, as I
+don't see that the above config would be the only possibility. The
+vdds_dsi could be supplied from anywhere (with suitable voltage, of
+course), as far as I understand.
 
-i see some patches (not published in mainline) that are reading a
-kernel cmdline. I mean,  the bootloader (u-boot) detects if an
-expansion board is present (mostly via i2c) and then add to the kernel
-cmdline a parameter with the name of the expansion board. The kernel
-reads this parameter and initializes the expansion board devices.
+What we could do is:
 
-But not sure if this is a good solution. What solution do you think is
-better ? Using kernel cmdline or create a separate kernel module for
-every expansion board ?
+1. The board file tells the common display code which regulator is used
+for vdds_dsi, and the common code can setup the regulator supply for all
+DSS devices which need it (omapdss_dss, omapdss_dsi1, omapdss_dsi2).
 
-In fact the purpose of this email is discuss a bit which is the proper
-solution to add an expansion board to the kernel mainline.
+I guess this needs dynamically adding the regulator supply in display.c,
+and I'm not quite sure if that's possible. We have to look at this.
 
-Regards,
-   Enric
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+2. The common code could default to the power source that is most
+commonly used, so the board file would have to config the regulator only
+if it uses a non-common one.
+
+Together 1. and 2. would remove the DSS regulator stuff totally from the
+board files. But regulators for the panels would still be in the board
+files, of course.
+
+ Tomi
+
+
