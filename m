@@ -1,476 +1,261 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 3/5] OMAP3: cpuidle: re-organize the C-states data
-Date: Wed, 04 May 2011 07:59:17 -0700
-Message-ID: <8762pqv7ei.fsf@ti.com>
-References: <1304069186-3086-1-git-send-email-j-pihet@ti.com>
-	<1304069186-3086-4-git-send-email-j-pihet@ti.com>
+From: Thomas Weber <thomas.weber.linux@googlemail.com>
+Subject: Re: [PATCH 1/4] omap: consolidate touch screen initialization among
+ different boards
+Date: Wed, 04 May 2011 16:02:08 +0200
+Message-ID: <4DC15C60.9060401@gmail.com>
+References: <cover.1303682352.git.mike@compulab.co.il> <1738251a50b70224f124d4a54c157cc5e3c6db77.1303682352.git.mike@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:60347 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754460Ab1EDO7Z (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 May 2011 10:59:25 -0400
-Received: by mail-pw0-f50.google.com with SMTP id 3so733046pwi.37
-        for <linux-omap@vger.kernel.org>; Wed, 04 May 2011 07:59:24 -0700 (PDT)
-In-Reply-To: <1304069186-3086-4-git-send-email-j-pihet@ti.com> (jean pihet's
-	message of "Fri, 29 Apr 2011 11:26:24 +0200")
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:63923 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753668Ab1EDPDc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 May 2011 11:03:32 -0400
+Received: by bwz15 with SMTP id 15so1050777bwz.19
+        for <linux-omap@vger.kernel.org>; Wed, 04 May 2011 08:03:30 -0700 (PDT)
+In-Reply-To: <1738251a50b70224f124d4a54c157cc5e3c6db77.1303682352.git.mike@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: jean.pihet@newoldbits.com
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Jean Pihet <j-pihet@ti.com>
+To: Mike Rapoport <mike@compulab.co.il>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-jean.pihet@newoldbits.com writes:
+Hello,
 
-> From: Jean Pihet <j-pihet@ti.com>
->
-> The current implementation defines an internal structure and a
-> C-states array. Using those structures is redundant to the
-> structs used by the cpuidle framework.
->
-> This patch provides a clean-up of the internal struct, removes the
-> internal C-states array, stores the data using the existing cpuidle
-> per C-state struct and registers the mach specific data to cpuidle
-> C-state driver_data (accessed using cpuidle_[gs]et_statedata).
-> Also removes unused macros, fields and code and compacts the repeating
-> code using common macros.
->
-> The result is more compact and more readable code as well as
-> reduced data RAM usage.
->
-> Signed-off-by: Jean Pihet <j-pihet@ti.com>
+because ads7846_get_pendown_state() is not longer set in
+ads7846_platform_data, the ads7846_setup_pendown tries to request the
+pendown gpio and fails because the gpio is already requested.
 
-Looks like a nice cleanup, a couple minor comment below...
+Thomas
 
+Am 25.04.2011 00:09, schrieb Mike Rapoport:
+> Add common-board-devices.c that will contain the code for peripheral
+> devices initializatoin shared between multiple boards.
+> Start small with touchscreen initialization.
+> 
+> Signed-off-by: Mike Rapoport <mike@compulab.co.il>
 > ---
->  arch/arm/mach-omap2/cpuidle34xx.c |  286 +++++++++++++------------------------
->  1 files changed, 97 insertions(+), 189 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
-> index d7bc31a..f84315c 100644
-> --- a/arch/arm/mach-omap2/cpuidle34xx.c
-> +++ b/arch/arm/mach-omap2/cpuidle34xx.c
-> @@ -36,34 +36,25 @@
->  
->  #ifdef CONFIG_CPU_IDLE
->  
-> -#define OMAP3_MAX_STATES 7
-> -#define OMAP3_STATE_C1 0 /* C1 - MPU WFI + Core active */
-> -#define OMAP3_STATE_C2 1 /* C2 - MPU WFI + Core inactive */
-> -#define OMAP3_STATE_C3 2 /* C3 - MPU CSWR + Core inactive */
-> -#define OMAP3_STATE_C4 3 /* C4 - MPU OFF + Core iactive */
-> -#define OMAP3_STATE_C5 4 /* C5 - MPU RET + Core RET */
-> -#define OMAP3_STATE_C6 5 /* C6 - MPU OFF + Core RET */
-> -#define OMAP3_STATE_C7 6 /* C7 - MPU OFF + Core OFF */
-> -
-> -#define OMAP3_STATE_MAX OMAP3_STATE_C7
-> -
-> -#define CPUIDLE_FLAG_CHECK_BM	0x10000	/* use omap3_enter_idle_bm() */
-> -
-> -struct omap3_processor_cx {
-> -	u8 valid;
-> -	u8 type;
-> -	u32 exit_latency;
-> +#define OMAP3_STATE_C1		0 /* C1 - MPU WFI + Core active */
-> +#define OMAP3_STATE_C2		1 /* C2 - MPU WFI + Core inactive */
-> +#define OMAP3_STATE_C3		2 /* C3 - MPU CSWR + Core inactive */
-> +#define OMAP3_STATE_C4		3 /* C4 - MPU OFF + Core inactive */
-> +#define OMAP3_STATE_C5		4 /* C5 - MPU RET + Core RET */
-> +#define OMAP3_STATE_C6		5 /* C6 - MPU OFF + Core RET */
-> +#define OMAP3_STATE_C7		6 /* C7 - MPU OFF + Core OFF */
-> +#define OMAP3_STATE_MAX		OMAP3_STATE_C7
-> +#define OMAP3_MAX_STATES	7
+>  arch/arm/mach-omap2/Makefile               |    2 +
+>  arch/arm/mach-omap2/board-3430sdp.c        |   65 ++-------------------
+>  arch/arm/mach-omap2/board-cm-t35.c         |   58 +------------------
+>  arch/arm/mach-omap2/board-devkit8000.c     |   56 +------------------
+>  arch/arm/mach-omap2/board-ldp.c            |   57 +------------------
+>  arch/arm/mach-omap2/board-omap3evm.c       |   51 +----------------
+>  arch/arm/mach-omap2/board-omap3pandora.c   |   49 +---------------
+>  arch/arm/mach-omap2/board-omap3stalker.c   |   49 +---------------
+>  arch/arm/mach-omap2/board-omap3touchbook.c |   36 +-----------
+>  arch/arm/mach-omap2/board-overo.c          |   46 +--------------
+>  arch/arm/mach-omap2/common-board-devices.c |   85 ++++++++++++++++++++++++++++
+>  arch/arm/mach-omap2/common-board-devices.h |   18 ++++++
+>  12 files changed, 128 insertions(+), 444 deletions(-)
+>  create mode 100644 arch/arm/mach-omap2/common-board-devices.c
+>  create mode 100644 arch/arm/mach-omap2/common-board-devices.h
+>...
 
-While at it, we should get rid of these #defines all together.    It's
-just a mapping from Cn --> n, so why not just use 'n' in the code.
 
-You did that in a few cases below already, but might as well continue
-that.
-
-> +/* Mach specific information to be recorded in the C-state driver_data */
-> +struct omap3_idle_statedata {
->  	u32 mpu_state;
->  	u32 core_state;
-> -	u32 target_residency;
-> -	u32 flags;
-> -	const char *desc;
-> +	u8 valid;
->  };
-> +struct omap3_idle_statedata omap3_idle_data[OMAP3_MAX_STATES];
+> diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
+> index 65f9fde..9f8338d 100644
+> --- a/arch/arm/mach-omap2/board-devkit8000.c
+> +++ b/arch/arm/mach-omap2/board-devkit8000.c
+> @@ -51,7 +51,6 @@
+>  #include <plat/mcspi.h>
+>  #include <linux/input/matrix_keypad.h>
+>  #include <linux/spi/spi.h>
+> -#include <linux/spi/ads7846.h>
+>  #include <linux/dm9000.h>
+>  #include <linux/interrupt.h>
 >  
-> -struct omap3_processor_cx omap3_power_states[OMAP3_MAX_STATES];
-> -struct omap3_processor_cx current_cx_state;
-> -struct powerdomain *mpu_pd, *core_pd, *per_pd;
-> -struct powerdomain *cam_pd;
-> +struct powerdomain *mpu_pd, *core_pd, *per_pd, *cam_pd;
+> @@ -60,6 +59,7 @@
+>  #include "mux.h"
+>  #include "hsmmc.h"
+>  #include "timer-gp.h"
+> +#include "common-board-devices.h"
 >  
->  /*
->   * The latencies/thresholds for various C states have
-> @@ -72,7 +63,7 @@ struct powerdomain *cam_pd;
->   * the best power savings) used on boards which do not
->   * pass these details from the board file.
->   */
-> -static struct cpuidle_params cpuidle_params_table[] = {
-> +static struct cpuidle_params cpuidle_params_table[OMAP3_MAX_STATES] = {
->  	/* C1 */
->  	{2 + 2, 5, 1},
->  	/* C2 */
-> @@ -121,12 +112,10 @@ static int _cpuidle_deny_idle(struct powerdomain *pwrdm,
->  static int omap3_enter_idle(struct cpuidle_device *dev,
->  			struct cpuidle_state *state)
->  {
-> -	struct omap3_processor_cx *cx = cpuidle_get_statedata(state);
-> +	struct omap3_idle_statedata *cx = cpuidle_get_statedata(state);
->  	struct timespec ts_preidle, ts_postidle, ts_idle;
->  	u32 mpu_state = cx->mpu_state, core_state = cx->core_state;
+>  #define NAND_BLOCK_SIZE		SZ_128K
 >  
-> -	current_cx_state = *cx;
-> -
->  	/* Used to keep track of the total time in idle */
->  	getnstimeofday(&ts_preidle);
->  
-> @@ -139,7 +128,8 @@ static int omap3_enter_idle(struct cpuidle_device *dev,
->  	if (omap_irq_pending() || need_resched())
->  		goto return_sleep_time;
->  
-> -	if (cx->type == OMAP3_STATE_C1) {
-> +	/* Deny idle for C1 */
-> +	if (state == &dev->states[0]) {
->  		pwrdm_for_each_clkdm(mpu_pd, _cpuidle_deny_idle);
->  		pwrdm_for_each_clkdm(core_pd, _cpuidle_deny_idle);
->  	}
-> @@ -147,7 +137,8 @@ static int omap3_enter_idle(struct cpuidle_device *dev,
->  	/* Execute ARM wfi */
->  	omap_sram_idle();
->  
-> -	if (cx->type == OMAP3_STATE_C1) {
-> +	/* Re-allow idle for C1 */
-> +	if (state == &dev->states[0]) {
->  		pwrdm_for_each_clkdm(mpu_pd, _cpuidle_allow_idle);
->  		pwrdm_for_each_clkdm(core_pd, _cpuidle_allow_idle);
->  	}
-> @@ -169,15 +160,15 @@ return_sleep_time:
->   *
->   * If the current state is valid, it is returned back to the caller.
->   * Else, this function searches for a lower c-state which is still
-> - * valid (as defined in omap3_power_states[]).
-> + * valid.
->   */
->  static struct cpuidle_state *next_valid_state(struct cpuidle_device *dev,
-> -						struct cpuidle_state *curr)
-> +					      struct cpuidle_state *curr)
->  {
->  	struct cpuidle_state *next = NULL;
-> -	struct omap3_processor_cx *cx;
-> +	struct omap3_idle_statedata *cx;
->  
-> -	cx = (struct omap3_processor_cx *)cpuidle_get_statedata(curr);
-> +	cx = cpuidle_get_statedata(curr);
->  
->  	/* Check if current state is valid */
->  	if (cx->valid) {
-> @@ -206,8 +197,6 @@ static struct cpuidle_state *next_valid_state(struct cpuidle_device *dev,
->  		 */
->  		idx--;
->  		for (; idx >= OMAP3_STATE_C1; idx--) {
-> -			struct omap3_processor_cx *cx;
-> -
->  			cx = cpuidle_get_statedata(&dev->states[idx]);
->  			if (cx->valid) {
->  				next = &dev->states[idx];
-> @@ -228,9 +217,8 @@ static struct cpuidle_state *next_valid_state(struct cpuidle_device *dev,
->   * @dev: cpuidle device
->   * @state: The target state to be programmed
->   *
-> - * Used for C states with CPUIDLE_FLAG_CHECK_BM flag set. This
-> - * function checks for any pending activity and then programs the
-> - * device to the specified or a safer state.
-> + * This function checks for any pending activity and then programs
-> + * the device to the specified or a safer state.
->   */
->  static int omap3_enter_idle_bm(struct cpuidle_device *dev,
->  			       struct cpuidle_state *state)
-> @@ -238,10 +226,10 @@ static int omap3_enter_idle_bm(struct cpuidle_device *dev,
->  	struct cpuidle_state *new_state = next_valid_state(dev, state);
->  	u32 core_next_state, per_next_state = 0, per_saved_state = 0;
->  	u32 cam_state;
-> -	struct omap3_processor_cx *cx;
-> +	struct omap3_idle_statedata *cx;
->  	int ret;
->  
-> -	if ((state->flags & CPUIDLE_FLAG_CHECK_BM) && omap3_idle_bm_check()) {
-> +	if (omap3_idle_bm_check()) {
->  		BUG_ON(!dev->safe_state);
->  		new_state = dev->safe_state;
->  		goto select_state;
-> @@ -308,7 +296,7 @@ void omap3_cpuidle_update_states(u32 mpu_deepest_state, u32 core_deepest_state)
->  	int i;
->  
->  	for (i = OMAP3_STATE_C1; i < OMAP3_MAX_STATES; i++) {
-> -		struct omap3_processor_cx *cx = &omap3_power_states[i];
-> +		struct omap3_idle_statedata *cx = &omap3_idle_data[i];
->  
->  		if ((cx->mpu_state >= mpu_deepest_state) &&
->  		    (cx->core_state >= core_deepest_state)) {
-> @@ -327,8 +315,7 @@ void omap3_pm_init_cpuidle(struct cpuidle_params *cpuidle_board_params)
->  		return;
->  
->  	for (i = OMAP3_STATE_C1; i < OMAP3_MAX_STATES; i++) {
-> -		cpuidle_params_table[i].valid =
-> -			cpuidle_board_params[i].valid;
-> +		cpuidle_params_table[i].valid =	cpuidle_board_params[i].valid;
->  		cpuidle_params_table[i].exit_latency =
->  			cpuidle_board_params[i].exit_latency;
->  		cpuidle_params_table[i].target_residency =
-> @@ -337,134 +324,28 @@ void omap3_pm_init_cpuidle(struct cpuidle_params *cpuidle_board_params)
->  	return;
+> @@ -463,56 +463,6 @@ static void __init devkit8000_init_irq(void)
+>  #endif
 >  }
 >  
-> -/* omap3_init_power_states - Initialises the OMAP3 specific C states.
-> - *
-> - * Below is the desciption of each C state.
-> - * 	C1 . MPU WFI + Core active
-> - *	C2 . MPU WFI + Core inactive
-> - *	C3 . MPU CSWR + Core inactive
-> - *	C4 . MPU OFF + Core inactive
-> - *	C5 . MPU CSWR + Core CSWR
-> - *	C6 . MPU OFF + Core CSWR
-> - *	C7 . MPU OFF + Core OFF
-> - */
-> -void omap_init_power_states(void)
+> -static void __init devkit8000_ads7846_init(void)
 > -{
-> -	/* C1 . MPU WFI + Core active */
-> -	omap3_power_states[OMAP3_STATE_C1].valid =
-> -			cpuidle_params_table[OMAP3_STATE_C1].valid;
-> -	omap3_power_states[OMAP3_STATE_C1].type = OMAP3_STATE_C1;
-> -	omap3_power_states[OMAP3_STATE_C1].exit_latency =
-> -			cpuidle_params_table[OMAP3_STATE_C1].exit_latency;
-> -	omap3_power_states[OMAP3_STATE_C1].target_residency =
-> -			cpuidle_params_table[OMAP3_STATE_C1].target_residency;
-> -	omap3_power_states[OMAP3_STATE_C1].mpu_state = PWRDM_POWER_ON;
-> -	omap3_power_states[OMAP3_STATE_C1].core_state = PWRDM_POWER_ON;
-> -	omap3_power_states[OMAP3_STATE_C1].flags = CPUIDLE_FLAG_TIME_VALID;
-> -	omap3_power_states[OMAP3_STATE_C1].desc = "MPU ON + CORE ON";
+> -	int gpio = OMAP3_DEVKIT_TS_GPIO;
+> -	int ret;
 > -
-> -	/* C2 . MPU WFI + Core inactive */
-> -	omap3_power_states[OMAP3_STATE_C2].valid =
-> -			cpuidle_params_table[OMAP3_STATE_C2].valid;
-> -	omap3_power_states[OMAP3_STATE_C2].type = OMAP3_STATE_C2;
-> -	omap3_power_states[OMAP3_STATE_C2].exit_latency =
-> -			cpuidle_params_table[OMAP3_STATE_C2].exit_latency;
-> -	omap3_power_states[OMAP3_STATE_C2].target_residency =
-> -			cpuidle_params_table[OMAP3_STATE_C2].target_residency;
-> -	omap3_power_states[OMAP3_STATE_C2].mpu_state = PWRDM_POWER_ON;
-> -	omap3_power_states[OMAP3_STATE_C2].core_state = PWRDM_POWER_ON;
-> -	omap3_power_states[OMAP3_STATE_C2].flags = CPUIDLE_FLAG_TIME_VALID |
-> -				CPUIDLE_FLAG_CHECK_BM;
-> -	omap3_power_states[OMAP3_STATE_C2].desc = "MPU ON + CORE ON";
-> -
-> -	/* C3 . MPU CSWR + Core inactive */
-> -	omap3_power_states[OMAP3_STATE_C3].valid =
-> -			cpuidle_params_table[OMAP3_STATE_C3].valid;
-> -	omap3_power_states[OMAP3_STATE_C3].type = OMAP3_STATE_C3;
-> -	omap3_power_states[OMAP3_STATE_C3].exit_latency =
-> -			cpuidle_params_table[OMAP3_STATE_C3].exit_latency;
-> -	omap3_power_states[OMAP3_STATE_C3].target_residency =
-> -			cpuidle_params_table[OMAP3_STATE_C3].target_residency;
-> -	omap3_power_states[OMAP3_STATE_C3].mpu_state = PWRDM_POWER_RET;
-> -	omap3_power_states[OMAP3_STATE_C3].core_state = PWRDM_POWER_ON;
-> -	omap3_power_states[OMAP3_STATE_C3].flags = CPUIDLE_FLAG_TIME_VALID |
-> -				CPUIDLE_FLAG_CHECK_BM;
-> -	omap3_power_states[OMAP3_STATE_C3].desc = "MPU RET + CORE ON";
-> -
-> -	/* C4 . MPU OFF + Core inactive */
-> -	omap3_power_states[OMAP3_STATE_C4].valid =
-> -			cpuidle_params_table[OMAP3_STATE_C4].valid;
-> -	omap3_power_states[OMAP3_STATE_C4].type = OMAP3_STATE_C4;
-> -	omap3_power_states[OMAP3_STATE_C4].exit_latency =
-> -			cpuidle_params_table[OMAP3_STATE_C4].exit_latency;
-> -	omap3_power_states[OMAP3_STATE_C4].target_residency =
-> -			cpuidle_params_table[OMAP3_STATE_C4].target_residency;
-> -	omap3_power_states[OMAP3_STATE_C4].mpu_state = PWRDM_POWER_OFF;
-> -	omap3_power_states[OMAP3_STATE_C4].core_state = PWRDM_POWER_ON;
-> -	omap3_power_states[OMAP3_STATE_C4].flags = CPUIDLE_FLAG_TIME_VALID |
-> -				CPUIDLE_FLAG_CHECK_BM;
-> -	omap3_power_states[OMAP3_STATE_C4].desc = "MPU OFF + CORE ON";
-> -
-> -	/* C5 . MPU CSWR + Core CSWR*/
-> -	omap3_power_states[OMAP3_STATE_C5].valid =
-> -			cpuidle_params_table[OMAP3_STATE_C5].valid;
-> -	omap3_power_states[OMAP3_STATE_C5].type = OMAP3_STATE_C5;
-> -	omap3_power_states[OMAP3_STATE_C5].exit_latency =
-> -			cpuidle_params_table[OMAP3_STATE_C5].exit_latency;
-> -	omap3_power_states[OMAP3_STATE_C5].target_residency =
-> -			cpuidle_params_table[OMAP3_STATE_C5].target_residency;
-> -	omap3_power_states[OMAP3_STATE_C5].mpu_state = PWRDM_POWER_RET;
-> -	omap3_power_states[OMAP3_STATE_C5].core_state = PWRDM_POWER_RET;
-> -	omap3_power_states[OMAP3_STATE_C5].flags = CPUIDLE_FLAG_TIME_VALID |
-> -				CPUIDLE_FLAG_CHECK_BM;
-> -	omap3_power_states[OMAP3_STATE_C5].desc = "MPU RET + CORE RET";
-> -
-> -	/* C6 . MPU OFF + Core CSWR */
-> -	omap3_power_states[OMAP3_STATE_C6].valid =
-> -			cpuidle_params_table[OMAP3_STATE_C6].valid;
-> -	omap3_power_states[OMAP3_STATE_C6].type = OMAP3_STATE_C6;
-> -	omap3_power_states[OMAP3_STATE_C6].exit_latency =
-> -			cpuidle_params_table[OMAP3_STATE_C6].exit_latency;
-> -	omap3_power_states[OMAP3_STATE_C6].target_residency =
-> -			cpuidle_params_table[OMAP3_STATE_C6].target_residency;
-> -	omap3_power_states[OMAP3_STATE_C6].mpu_state = PWRDM_POWER_OFF;
-> -	omap3_power_states[OMAP3_STATE_C6].core_state = PWRDM_POWER_RET;
-> -	omap3_power_states[OMAP3_STATE_C6].flags = CPUIDLE_FLAG_TIME_VALID |
-> -				CPUIDLE_FLAG_CHECK_BM;
-> -	omap3_power_states[OMAP3_STATE_C6].desc = "MPU OFF + CORE RET";
-> -
-> -	/* C7 . MPU OFF + Core OFF */
-> -	omap3_power_states[OMAP3_STATE_C7].valid =
-> -			cpuidle_params_table[OMAP3_STATE_C7].valid;
-> -	omap3_power_states[OMAP3_STATE_C7].type = OMAP3_STATE_C7;
-> -	omap3_power_states[OMAP3_STATE_C7].exit_latency =
-> -			cpuidle_params_table[OMAP3_STATE_C7].exit_latency;
-> -	omap3_power_states[OMAP3_STATE_C7].target_residency =
-> -			cpuidle_params_table[OMAP3_STATE_C7].target_residency;
-> -	omap3_power_states[OMAP3_STATE_C7].mpu_state = PWRDM_POWER_OFF;
-> -	omap3_power_states[OMAP3_STATE_C7].core_state = PWRDM_POWER_OFF;
-> -	omap3_power_states[OMAP3_STATE_C7].flags = CPUIDLE_FLAG_TIME_VALID |
-> -				CPUIDLE_FLAG_CHECK_BM;
-> -	omap3_power_states[OMAP3_STATE_C7].desc = "MPU OFF + CORE OFF";
-> -
-> -	/*
-> -	 * Erratum i583: implementation for ES rev < Es1.2 on 3630. We cannot
-> -	 * enable OFF mode in a stable form for previous revisions.
-> -	 * we disable C7 state as a result.
-> -	 */
-> -	if (IS_PM34XX_ERRATUM(PM_SDRC_WAKEUP_ERRATUM_i583)) {
-> -		omap3_power_states[OMAP3_STATE_C7].valid = 0;
-> -		cpuidle_params_table[OMAP3_STATE_C7].valid = 0;
-> -		pr_warn("%s: core off state C7 disabled due to i583\n",
-> -				__func__);
+> -	ret = gpio_request(gpio, "ads7846_pen_down");
+> -	if (ret < 0) {
+> -		printk(KERN_ERR "Failed to request GPIO %d for "
+> -				"ads7846 pen down IRQ\n", gpio);
+> -		return;
 > -	}
+> -
+> -	gpio_direction_input(gpio);
 > -}
 > -
->  struct cpuidle_driver omap3_idle_driver = {
->  	.name = 	"omap3_idle",
->  	.owner = 	THIS_MODULE,
->  };
->  
-> +/* Fill in the state data from the mach tables and register the driver_data */
-> +#define FILL_IN_STATE(idx, descr)					\
-> +do {									\
-> +	state				= &dev->states[count];		\
-> +	params				= &cpuidle_params_table[idx];	\
-> +	data				= &omap3_idle_data[idx];	\
-> +	state->exit_latency		= params->exit_latency;		\
-> +	state->target_residency		= params->target_residency;	\
-> +	state->flags			= CPUIDLE_FLAG_TIME_VALID;	\
-> +	state->enter			= omap3_enter_idle_bm;		\
-> +	sprintf(state->name, "C%d", count + 1);				\
-> +	strncpy(state->desc, descr, CPUIDLE_DESC_LEN);			\
-> +	data->valid			= params->valid;		\
-> +	cpuidle_set_statedata(state, data);				\
-> +	count++;							\
-> +} while (0);
-
-A static inline function here would improve readabiliy.
-
-e.g. below, readabilty suffers as all the assignments use 'data', which
-appears to be the same pointer.  It's not obvious from the macro use
-that that the data ptr is changed by the macro.
-
-Kevin
-
->  /**
->   * omap3_idle_init - Init routine for OMAP3 idle
->   *
-> @@ -473,42 +354,69 @@ struct cpuidle_driver omap3_idle_driver = {
->   */
->  int __init omap3_idle_init(void)
->  {
-> -	int i, count = 0;
-> -	struct omap3_processor_cx *cx;
-> +	int count = 0;
->  	struct cpuidle_state *state;
->  	struct cpuidle_device *dev;
-> +	struct cpuidle_params *params;
-> +	struct omap3_idle_statedata *data;
->  
->  	mpu_pd = pwrdm_lookup("mpu_pwrdm");
->  	core_pd = pwrdm_lookup("core_pwrdm");
->  	per_pd = pwrdm_lookup("per_pwrdm");
->  	cam_pd = pwrdm_lookup("cam_pwrdm");
->  
-> -	omap_init_power_states();
->  	cpuidle_register_driver(&omap3_idle_driver);
->  
->  	dev = &per_cpu(omap3_idle_dev, smp_processor_id());
->  
-> -	for (i = OMAP3_STATE_C1; i < OMAP3_MAX_STATES; i++) {
-> -		cx = &omap3_power_states[i];
-> -		state = &dev->states[count];
+> -static int ads7846_get_pendown_state(void)
+> -{
+> -	return !gpio_get_value(OMAP3_DEVKIT_TS_GPIO);
+> -}
 > -
-> -		if (!cx->valid)
-> -			continue;
-> -		cpuidle_set_statedata(state, cx);
-> -		state->exit_latency = cx->exit_latency;
-> -		state->target_residency = cx->target_residency;
-> -		state->flags = cx->flags;
-> -		state->enter = (state->flags & CPUIDLE_FLAG_CHECK_BM) ?
-> -			omap3_enter_idle_bm : omap3_enter_idle;
-> -		if (cx->type == OMAP3_STATE_C1)
-> -			dev->safe_state = state;
-> -		sprintf(state->name, "C%d", count+1);
-> -		strncpy(state->desc, cx->desc, CPUIDLE_DESC_LEN);
-> -		count++;
-> +	/* C1 . MPU WFI + Core active */
-> +	FILL_IN_STATE(OMAP3_STATE_C1, "MPU ON + CORE ON")
-> +	state->enter = omap3_enter_idle;
-> +	dev->safe_state = state;
-> +	data->valid = 1;	/* C1 is always valid */
-> +	data->mpu_state = PWRDM_POWER_ON;
-> +	data->core_state = PWRDM_POWER_ON;
-> +
-> +	/* C2 . MPU WFI + Core inactive */
-> +	FILL_IN_STATE(OMAP3_STATE_C2, "MPU ON + CORE ON")
-> +	data->mpu_state = PWRDM_POWER_ON;
-> +	data->core_state = PWRDM_POWER_ON;
-> +
-> +	/* C3 . MPU CSWR + Core inactive */
-> +	FILL_IN_STATE(OMAP3_STATE_C3, "MPU RET + CORE ON")
-> +	data->mpu_state = PWRDM_POWER_RET;
-> +	data->core_state = PWRDM_POWER_ON;
-> +
-> +	/* C4 . MPU OFF + Core inactive */
-> +	FILL_IN_STATE(OMAP3_STATE_C4, "MPU OFF + CORE ON")
-> +	data->mpu_state = PWRDM_POWER_OFF;
-> +	data->core_state = PWRDM_POWER_ON;
-> +
-> +	/* C5 . MPU RET + Core RET */
-> +	FILL_IN_STATE(OMAP3_STATE_C5, "MPU RET + CORE RET")
-> +	data->mpu_state = PWRDM_POWER_RET;
-> +	data->core_state = PWRDM_POWER_RET;
-> +
-> +	/* C6 . MPU OFF + Core RET */
-> +	FILL_IN_STATE(OMAP3_STATE_C6, "MPU OFF + CORE RET")
-> +	data->mpu_state = PWRDM_POWER_OFF;
-> +	data->core_state = PWRDM_POWER_RET;
-> +
-> +	/* C7 . MPU OFF + Core OFF */
-> +	FILL_IN_STATE(OMAP3_STATE_C7, "MPU OFF + CORE OFF")
-> +	/*
-> +	 * Erratum i583: implementation for ES rev < Es1.2 on 3630. We cannot
-> +	 * enable OFF mode in a stable form for previous revisions.
-> +	 * We disable C7 state as a result.
-> +	 */
-> +	if (IS_PM34XX_ERRATUM(PM_SDRC_WAKEUP_ERRATUM_i583)) {
-> +		data->valid = 0;
-> +		pr_warn("%s: core off state C7 disabled due to i583\n",
-> +			__func__);
->  	}
-> +	data->mpu_state = PWRDM_POWER_OFF;
-> +	data->core_state = PWRDM_POWER_OFF;
+> -static struct ads7846_platform_data ads7846_config = {
+> -	.x_max                  = 0x0fff,
+> -	.y_max                  = 0x0fff,
+> -	.x_plate_ohms           = 180,
+> -	.pressure_max           = 255,
+> -	.debounce_max           = 10,
+> -	.debounce_tol           = 5,
+> -	.debounce_rep           = 1,
+> -	.get_pendown_state	= ads7846_get_pendown_state,
+> -	.keep_vref_on		= 1,
+> -	.settle_delay_usecs     = 150,
+> -};
+> -
+> -static struct omap2_mcspi_device_config ads7846_mcspi_config = {
+> -	.turbo_mode	= 0,
+> -	.single_channel	= 1,	/* 0: slave, 1: master */
+> -};
+> -
+> -static struct spi_board_info devkit8000_spi_board_info[] __initdata = {
+> -	{
+> -		.modalias		= "ads7846",
+> -		.bus_num		= 2,
+> -		.chip_select		= 0,
+> -		.max_speed_hz		= 1500000,
+> -		.controller_data	= &ads7846_mcspi_config,
+> -		.irq			= OMAP_GPIO_IRQ(OMAP3_DEVKIT_TS_GPIO),
+> -		.platform_data		= &ads7846_config,
+> -	}
+> -};
+> -
+>  #define OMAP_DM9000_BASE	0x2c000000
 >  
-> -	if (!count)
-> -		return -EINVAL;
->  	dev->state_count = count;
+>  static struct resource omap_dm9000_resources[] = {
+> @@ -795,10 +745,8 @@ static void __init devkit8000_init(void)
+>  			ARRAY_SIZE(devkit8000_devices));
 >  
->  	if (enable_off_mode)
+>  	omap_display_init(&devkit8000_dss_data);
+> -	spi_register_board_info(devkit8000_spi_board_info,
+> -	ARRAY_SIZE(devkit8000_spi_board_info));
+>  
+> -	devkit8000_ads7846_init();
+> +	omap_ads7846_init(2, OMAP3_DEVKIT_TS_GPIO, 0, NULL);
+>  
+>  	usb_musb_init(&musb_board_data);
+>  	usbhs_init(&usbhs_bdata);
+...
+> diff --git a/arch/arm/mach-omap2/common-board-devices.c b/arch/arm/mach-omap2/common-board-devices.c
+> new file mode 100644
+> index 0000000..fad41ec
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/common-board-devices.c
+> @@ -0,0 +1,85 @@
+> +/*
+> + * common-board-devices.c
+> + *
+> + * Copyright (C) 2011 CompuLab, Ltd.
+> + * Author: Mike Rapoport <mike@compulab.co.il>
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License
+> + * version 2 as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful, but
+> + * WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> + * General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+> + * 02110-1301 USA
+> + *
+> + */
+> +
+> +#include <linux/gpio.h>
+> +#include <linux/spi/spi.h>
+> +#include <linux/spi/ads7846.h>
+> +
+> +#include <plat/mcspi.h>
+> +
+> +#include "common-board-devices.h"
+> +
+> +static struct omap2_mcspi_device_config ads7846_mcspi_config = {
+> +	.turbo_mode	= 0,
+> +	.single_channel	= 1,	/* 0: slave, 1: master */
+> +};
+> +
+> +static struct ads7846_platform_data ads7846_config = {
+> +	.x_max			= 0x0fff,
+> +	.y_max			= 0x0fff,
+> +	.x_plate_ohms		= 180,
+> +	.pressure_max		= 255,
+> +	.debounce_max		= 10,
+> +	.debounce_tol		= 3,
+> +	.debounce_rep		= 1,
+> +	.gpio_pendown		= -EINVAL,
+> +	.keep_vref_on		= 1,
+> +};
+> +
+> +static struct spi_board_info ads7846_spi_board_info __initdata = {
+> +	.modalias		= "ads7846",
+> +	.bus_num		= -EINVAL,
+> +	.chip_select		= 0,
+> +	.max_speed_hz		= 1500000,
+> +	.controller_data	= &ads7846_mcspi_config,
+> +	.irq			= -EINVAL,
+> +	.platform_data		= &ads7846_config,
+> +};
+> +
+> +void __init omap_ads7846_init(int bus_num, int gpio_pendown, int gpio_debounce,
+> +			      struct ads7846_platform_data *board_pdata)
+> +{
+> +	struct spi_board_info *spi_bi = &ads7846_spi_board_info;
+> +	int err;
+> +
+> +	err = gpio_request(gpio_pendown, "TS PenDown");
+> +	if (err) {
+> +		pr_err("Could not obtain gpio for TS PenDown: %d\n", err);
+> +		return;
+> +	}
+> +
+> +	gpio_direction_input(gpio_pendown);
+> +	gpio_export(gpio_pendown, 0);
+> +
+> +	if (gpio_debounce)
+> +		gpio_set_debounce(gpio_pendown, gpio_debounce);
+> +
+> +	ads7846_config.gpio_pendown = gpio_pendown;
+> +
+> +	spi_bi->bus_num	= bus_num;
+> +	spi_bi->irq	= OMAP_GPIO_IRQ(gpio_pendown);
+> +
+> +	if (board_pdata)
+> +		spi_bi->platform_data = board_pdata;
+> +
+> +	spi_register_board_info(&ads7846_spi_board_info, 1);
+> +}
+> diff --git a/arch/arm/mach-omap2/common-board-devices.h b/arch/arm/mach-omap2/common-board-devices.h
+> new file mode 100644
+> index 0000000..75f9248d
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/common-board-devices.h
+> @@ -0,0 +1,18 @@
+> +#ifndef __OMAP_COMMON_BOARD_DEVICES__
+> +#define __OMAP_COMMON_BOARD_DEVICES__
+> +
+> +#if defined(CONFIG_TOUCHSCREEN_ADS7846) || \
+> +	defined(CONFIG_TOUCHSCREEN_ADS7846_MODULE)
+> +struct ads7846_platform_data;
+> +
+> +void omap_ads7846_init(int bus_num, int gpio_pendown, int gpio_debounce,
+> +		       struct ads7846_platform_data *board_pdata);
+> +#else
+> +static inline void omap_ads7846_init(int bus_num,
+> +				     int gpio_pendown, int gpio_debounce,
+> +				     struct ads7846_platform_data *board_data)
+> +{
+> +}
+> +#endif
+> +
+> +#endif /* __OMAP_COMMON_BOARD_DEVICES__ */
+
