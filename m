@@ -1,108 +1,52 @@
-From: Steve Sakoman <sakoman@gmail.com>
-Subject: Re: [PATCH 0/2 v5] twl4030-madc driver
-Date: Wed, 4 May 2011 07:31:58 -0700
-Message-ID: <BANLkTik=DkTud2Fj0zNAKPXcr1AVAvPTAg@mail.gmail.com>
-References: <1298986926-31180-1-git-send-email-j-keerthy@ti.com>
-	<20110302101512.GC16181@sortiz-mobl>
-	<BANLkTimc6uz353DDb9Ent6s6WjfY7f-xuA@mail.gmail.com>
-	<BANLkTi=zt1j_s1uDfjL=SRG6_LS1pa3xAg@mail.gmail.com>
-	<BANLkTik2B_w5Rn+Q-erPhQs6VbfrNz2mcA@mail.gmail.com>
-	<BANLkTimyxpfBLUTPUostFjHkCUSW7wzyVA@mail.gmail.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH 1/8] OMAP PM: create a PM layer plugin for per-device constraints
+Date: Wed, 04 May 2011 07:36:58 -0700
+Message-ID: <87vcxqv8fp.fsf@ti.com>
+References: <1304516117-9334-1-git-send-email-j-pihet@ti.com>
+	<1304516117-9334-2-git-send-email-j-pihet@ti.com>
+	<20110504135930.GE2092@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:33159 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754226Ab1EDOcA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 May 2011 10:32:00 -0400
-Received: by vxi39 with SMTP id 39so1228317vxi.19
-        for <linux-omap@vger.kernel.org>; Wed, 04 May 2011 07:31:59 -0700 (PDT)
-In-Reply-To: <BANLkTimyxpfBLUTPUostFjHkCUSW7wzyVA@mail.gmail.com>
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:42112 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754168Ab1EDOhC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 May 2011 10:37:02 -0400
+Received: by mail-px0-f176.google.com with SMTP id 11so842359pxi.35
+        for <linux-omap@vger.kernel.org>; Wed, 04 May 2011 07:37:01 -0700 (PDT)
+In-Reply-To: <20110504135930.GE2092@atomide.com> (Tony Lindgren's message of
+	"Wed, 4 May 2011 06:59:30 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "J, KEERTHY" <j-keerthy@ti.com>
-Cc: lm-sensors@lm-sensors.org, guenter.roeck@ericsson.com, mikko.k.ylinen@nokia.com, amit.kucheria@canonical.com, linux-omap@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: jean.pihet@newoldbits.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, paul@pwsan.com, Jean Pihet <j-pihet@ti.com>, Vishwanath BS <vishwanath.bs@ti.com>
 
-On Tue, May 3, 2011 at 9:23 PM, J, KEERTHY <j-keerthy@ti.com> wrote:
-> On Wed, May 4, 2011 at 9:41 AM, Steve Sakoman <sakoman@gmail.com> wro=
-te:
->> On Tue, May 3, 2011 at 12:49 PM, J, KEERTHY <j-keerthy@ti.com> wrote=
-:
->>> Hello Steve,
->>>
->>> Can you try adding this patch?
+Tony,
+
+Tony Lindgren <tony@atomide.com> writes:
+
+> * jean.pihet@newoldbits.com <jean.pihet@newoldbits.com> [110504 06:32]:
 >>
->> Thanks!
->>
->> I tried the patch and it did indeed fix the issue. =A0We should try =
-to
->> get this in mainline since the hwmon driver won't work without it.
->>
+>> +int omap_pm_set_max_mpu_wakeup_lat(struct device *dev, long t)
+> ...
 >
-> Yes Steve. I am posting a patch today.
+>> +int omap_pm_set_max_dev_wakeup_lat(struct device *req_dev, struct device *dev,
+> ...
+>
+>> +int omap_pm_set_min_clk_rate(struct device *dev, struct clk *c, long r)
+> ...
+>
+> You should implement this as a Linux generic framework, we don't
+> want to add more omap specific frameworks.
 
-I've also found that the madc clock needs to be enabled:
+This series isn't adding any new OMAP-specific frameworks.  The OMAP PM
+layer is already in place, and has been there for awhile.  OMAP PM is a
+layer which can have "plugins" so we can experiment with ways of
+handling constraints without changing the driver interface, and this
+series is just implementing a new plugin.
 
-=46rom: Steve Sakoman <steve@sakoman.com>
-Date: Sat, 23 Jan 2010 14:26:54 +0000 (-0800)
-Subject: mfd: twl-core: enable madc clock
-X-Git-Url: http://www.sakoman.com/cgi-bin/gitweb.cgi?p=3Dlinux-omap-2.6=
-=2Egit;a=3Dcommitdiff_plain;h=3Da1f1a1a6420f15e8351a0c5d63a81aa2444874f=
-4
+Once we are happy with a constraint layer, and can prove it will work,
+the plan is to get rid of the (existing) OMAP-specific APIs and propose
+a generic interface.
 
-mfd: twl-core: enable madc clock
-
-Now that the madc driver has been merged it is also necessary to
-enable the clock to the madc block
-
-Signed-off-by: Steve Sakoman <steve@sakoman.com>
----
-
-diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-index d9435e4..9096d7d 100644
---- a/drivers/mfd/twl-core.c
-+++ b/drivers/mfd/twl-core.c
-@@ -222,6 +222,11 @@
-
- /* Few power values */
- #define R_CFG_BOOT			0x05
-+#define R_GPBR1				0x0C
-+
-+/* MADC clock values for R_GPBR1 */
-+#define MADC_HFCLK_EN			0x80
-+#define DEFAULT_MADC_CLK_EN		0x10
-
- /* some fields in R_CFG_BOOT */
- #define HFCLK_FREQ_19p2_MHZ		(1 << 0)
-@@ -992,6 +997,9 @@ static void clocks_init(struct device *dev,
-
- 	e |=3D unprotect_pm_master();
- 	/* effect->MADC+USB ck en */
-+	if (twl_has_madc())
-+		e |=3D twl_i2c_write_u8(TWL_MODULE_INTBR,
-+				MADC_HFCLK_EN | DEFAULT_MADC_CLK_EN, R_GPBR1);
- 	e |=3D twl_i2c_write_u8(TWL_MODULE_PM_MASTER, ctrl, R_CFG_BOOT);
- 	e |=3D protect_pm_master();
-
-diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
-index 0c0d1ae..cbbf3b3 100644
---- a/include/linux/i2c/twl.h
-+++ b/include/linux/i2c/twl.h
-@@ -74,6 +74,7 @@
-
- #define TWL_MODULE_USB		TWL4030_MODULE_USB
- #define TWL_MODULE_AUDIO_VOICE	TWL4030_MODULE_AUDIO_VOICE
-+#define TWL_MODULE_INTBR	TWL4030_MODULE_INTBR
- #define TWL_MODULE_PIH		TWL4030_MODULE_PIH
- #define TWL_MODULE_MADC		TWL4030_MODULE_MADC
- #define TWL_MODULE_MAIN_CHARGE	TWL4030_MODULE_MAIN_CHARGE
-
-I'll submit this patch separately.
-
-Steve
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Kevin
