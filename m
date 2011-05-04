@@ -1,118 +1,97 @@
 From: jean.pihet@newoldbits.com
-Subject: [PATCH v4 0/8] OMAP: add PM_CONSTRAINTS framework
-Date: Wed,  4 May 2011 15:35:09 +0200
-Message-ID: <1304516117-9334-1-git-send-email-j-pihet@ti.com>
+Subject: [PATCH 4/8] OMAP2+: omap_hwmod: manage the omap_devices the wake-up latency constraints
+Date: Wed,  4 May 2011 15:35:13 +0200
+Message-ID: <1304516117-9334-5-git-send-email-j-pihet@ti.com>
+References: <1304516117-9334-1-git-send-email-j-pihet@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-wy0-f174.google.com ([74.125.82.174]:34287 "EHLO
 	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753252Ab1EDNfd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 May 2011 09:35:33 -0400
-Received: by wya21 with SMTP id 21so835938wya.19
-        for <linux-omap@vger.kernel.org>; Wed, 04 May 2011 06:35:32 -0700 (PDT)
+	with ESMTP id S1753387Ab1EDNfj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 May 2011 09:35:39 -0400
+Received: by mail-wy0-f174.google.com with SMTP id 21so835938wya.19
+        for <linux-omap@vger.kernel.org>; Wed, 04 May 2011 06:35:39 -0700 (PDT)
+In-Reply-To: <1304516117-9334-1-git-send-email-j-pihet@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, paul@pwsan.com
-Cc: Jean Pihet <j-pihet@ti.com>, Vibhore Vardhan <vvardhan@ti.com>
+Cc: Jean Pihet <j-pihet@ti.com>
 
 From: Jean Pihet <j-pihet@ti.com>
 
-Implement OMAP PM layer omap_pm_set_max_dev_wakeup_lat API by
-creating a unified API which calls omap_device_set_dev_constraint
-for all classes of constraints (devices wake-up latency, devices
-throughput...).
-The implementation of the constraints framework is at the omap_device
-level: management and storage of the constraints, dispatching of the
-constraints to the appropriate low level layers.
-
-NOTE: only works for devices which have been converted to use
-     omap_device/omap_hwmod.
-
-Longer term, we could possibly remove this API from the OMAP PM layer,
-and instead directly use the device level API.
-
-For the devices wake-up latency constraints, the power domains get
-the next power state programmed directly in the registers via
-pwrdm_wakeuplat_update_pwrst.
-
-Note about PM QOS: the MPU and CORE power domains get the next power
-state via cpuidle, which get the strongest wake-up latency constraint
-by querying PM QOS. The usage of PM QOS is temporary, until a generic
-solution is in place.
-
-The bus throughput constraints framework is supported by still is a
-no-op for the moment.
-
-For the wake-up latency constraints framework to have effect on the
-power domains states, CONFIG_CPU_IDLE and CONFIG_OMAP_PM_CONSTRAINTS
-must be enabled.
-
-Based on Vibhore's original patch and completely reworked using
-omap_device, omap_hwmod, powerdomain and PM QOS frameworks.
-Cc: Vibhore Vardhan <vvardhan@ti.com>
+Hwmod is queried from the omap device layer to manage the power domains
+wake-up latency constraints. Hwmod retrieves the correct power domain
+and if it exists it calls the corresponding power domain function.
 
 Tested on OMAP3 Beagleboard in RET/OFF using wake-up latency constraints
 on MPU, CORE and PER.
 
-Based on khilman's pm-core branch
+Signed-off-by: Jean Pihet <j-pihet@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod.c             |   26 +++++++++++++++++++++++++-
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |    2 ++
+ 2 files changed, 27 insertions(+), 1 deletions(-)
 
-v4:
-. updated after review comments on linux-omap mailing list,
-. bug fix in the use of plist_first and plist_last if the list is empty.
-
-v3:
-. updated after review comments from Kevin,
-. patches re-ordering for git bisect compliance,
-. reworked the constraints storage and management:
-  - the omap_device layer stores all constraints in per-omap_device
-    constraints lists,
-  - the powerdomain layer manages the wake-up latency constraints in
-    per-pwrdm constraint list and applies the constraint to the
-    corresponding power domain.
-. add the support for the INACTIVE power state,
-. move the power domains state initialization from pwrdms_setup to an early init call.
-
-v2:
-. updated after review comments from Kevin and Paul,
-. initial patch split according to the layering,
-. added support for ascending or descending order of constraints values,
-. added throughput constraints to the framework, although the tput implementation
- currently is a no-op.
-
-To Do:
-. refine the wake-up latency figures by defining the conditions of measurements and by
- measuring on actual OMAP3 hardware,
-. define the effect of power domains states combinations,
-. debug: add some control knobs for the wake-up latencies in /sysfs,
-. add a user-space API to request and remove constraints,
-. add OMAP4 support when low power modes code is merged in.
-
-Jean Pihet (8):
-  OMAP PM: create a PM layer plugin for per-device constraints
-  OMAP2+: powerdomain: control power domains next state
-  OMAP3: powerdomain data: add wake-up latency figures
-  OMAP2+: omap_hwmod: manage the omap_devices the wake-up latency
-    constraints
-  OMAP: PM CONSTRAINTS: add an enum for the classes of constraint
-  OMAP2+: omap_device: implement the constraints management code
-  OMAP: PM CONSTRAINTS: implement wake-up latency constraints
-  OMAP PM: early init of the pwrdms states
-
- arch/arm/mach-omap2/omap_hwmod.c              |   26 ++-
- arch/arm/mach-omap2/pm34xx.c                  |    2 +-
- arch/arm/mach-omap2/pm44xx.c                  |    2 +-
- arch/arm/mach-omap2/powerdomain.c             |  213 ++++++++++++++
- arch/arm/mach-omap2/powerdomain.h             |   42 +++-
- arch/arm/mach-omap2/powerdomains3xxx_data.c   |   84 ++++++-
- arch/arm/plat-omap/Kconfig                    |    7 +
- arch/arm/plat-omap/Makefile                   |    1 +
- arch/arm/plat-omap/include/plat/omap-pm.h     |    4 +
- arch/arm/plat-omap/include/plat/omap_device.h |   15 +-
- arch/arm/plat-omap/include/plat/omap_hwmod.h  |    2 +
- arch/arm/plat-omap/omap-pm-constraints.c      |  369 +++++++++++++++++++++++++
- arch/arm/plat-omap/omap_device.c              |  191 +++++++++++++
- 13 files changed, 950 insertions(+), 8 deletions(-)
- create mode 100644 arch/arm/plat-omap/omap-pm-constraints.c
-
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index e034294..af0441e 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -142,6 +142,7 @@
+ #include "powerdomain.h"
+ #include <plat/clock.h>
+ #include <plat/omap_hwmod.h>
++#include <plat/omap_device.h>
+ #include <plat/prcm.h>
+ 
+ #include "cm2xxx_3xxx.h"
+@@ -2322,11 +2323,34 @@ ohsps_unlock:
+ 	return ret;
+ }
+ 
++/*
++ * omap_hwmod_set_wkup_constraint- set/release a wake-up latency constraint
++ *
++ * @oh: struct omap_hwmod* to which the target device belongs to.
++ * @cookie: identifier of the constraints list for @oh.
++ * @min_latency: the minimum allowed wake-up latency for @oh.
++ *
++ * Returns 0 upon success.
++ */
++int omap_hwmod_set_wkup_lat_constraint(struct omap_hwmod *oh,
++				       void *cookie, long min_latency)
++{
++	struct powerdomain *pwrdm = omap_hwmod_get_pwrdm(oh);
++
++	if (!pwrdm) {
++		pr_err("%s: Error: could not find powerdomain "
++		       "for %s\n", __func__, oh->name);
++		return -EINVAL;
++	}
++
++	return pwrdm_set_wkup_lat_constraint(pwrdm, cookie, min_latency);
++}
++
+ /**
+  * omap_hwmod_get_context_loss_count - get lost context count
+  * @oh: struct omap_hwmod *
+  *
+- * Query the powerdomain of of @oh to get the context loss
++ * Query the powerdomain of @oh to get the context loss
+  * count for this device.
+  *
+  * Returns the context loss count of the powerdomain assocated with @oh
+diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+index 1adea9c..bf9e81d 100644
+--- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
++++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+@@ -598,6 +598,8 @@ int omap_hwmod_for_each_by_class(const char *classname,
+ 				 void *user);
+ 
+ int omap_hwmod_set_postsetup_state(struct omap_hwmod *oh, u8 state);
++int omap_hwmod_set_wkup_lat_constraint(struct omap_hwmod *oh, void *cookie,
++				       long min_latency);
+ u32 omap_hwmod_get_context_loss_count(struct omap_hwmod *oh);
+ 
+ int omap_hwmod_no_setup_reset(struct omap_hwmod *oh);
 -- 
 1.7.2.5
 
