@@ -1,97 +1,157 @@
-From: Peter Barada <peter.barada@gmail.com>
-Subject: Re: Module + offset calculations have to be signed in arch/arm/mach-omap2/pm-debug.c
-Date: Thu, 05 May 2011 13:18:59 -0400
-Message-ID: <4DC2DC03.4020200@gmail.com>
-References: <4DC2CED3.80206@gmail.com> <87liyljcnd.fsf@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH v2 12/12] OMAP2: Serial: Add no async wake flag.
+Date: Thu, 05 May 2011 10:32:49 -0700
+Message-ID: <87k4e5hx32.fsf@ti.com>
+References: <1304080796-625-1-git-send-email-govindraj.raja@ti.com>
+	<1304080796-625-13-git-send-email-govindraj.raja@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yi0-f46.google.com ([209.85.218.46]:44583 "EHLO
-	mail-yi0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754244Ab1EERSx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 May 2011 13:18:53 -0400
-Received: by yia27 with SMTP id 27so837112yia.19
-        for <linux-omap@vger.kernel.org>; Thu, 05 May 2011 10:18:52 -0700 (PDT)
-In-Reply-To: <87liyljcnd.fsf@ti.com>
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:48968 "EHLO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754435Ab1EERcx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 May 2011 13:32:53 -0400
+In-Reply-To: <1304080796-625-13-git-send-email-govindraj.raja@ti.com>
+	(Govindraj R.'s message of "Fri, 29 Apr 2011 18:09:56 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Peter Barada <peter.barada@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Govindraj.R" <govindraj.raja@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Rajendra Nayak <rnayak@ti.com>
 
-On 05/05/2011 01:11 PM, Kevin Hilman wrote:
-> Peter Barada<peter.barada@gmail.com>  writes:
+"Govindraj.R" <govindraj.raja@ti.com> writes:
+
+> For omap2 cpu_idle thread will not be available
+
+Why not?
+
+> and uart_clock cutting happens only in suspend path.
+
+Aren't clocks also cut after runtime PM autosuspend?
+
+> Prior to this patch the uart_clock was cut using prepare/resume
+> calls since these funcs are no more available with runtime
+> changes use no_async_wake flag to keep clock active during bootup
+> otherwise uart port will disabled during boot-up and cannot be
+> enabled back.
+
+This doesn't just keep clock active during bootup, but it keeps clock
+active always, except during suspend.
+
+> Also based on this flag we can disable uart port during suspend
+> and enable back during resume.
+
+I think disabling UART port during suspend should already be part of an
+earlier patch.  This patch should then only make it conditional.
+
+> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
+> ---
+>  arch/arm/mach-omap2/serial.c                  |    7 +++++++
+>  arch/arm/plat-omap/include/plat/omap-serial.h |    3 +++
+>  drivers/tty/serial/omap-serial.c              |   14 ++++++++++++++
+>  3 files changed, 24 insertions(+), 0 deletions(-)
 >
->> I've been working on getting the TI OMAPPSP-03.00.01.06 kernel to
->> properly suspend/resume on my DM37x board and all was going well until
->> I added OTG support to the kernel and on suspend, the IVA2 and CORE
->> pwrdms would not properly go into suspend.  When comparing output from
->> /debug/pm-debug/registers/current to the TRM, I noticed the following:
->>
->> MOD: CM_IVA2 (48014000)
->>    04 =>  00000017  20 =>  00000001  24 =>  00000001  34 =>  00000001
->>    40 =>  00080a00  44 =>  00000001  48 =>  00000003
->> MOD: PRM_IVA2 (48316000)
->>    50 =>  00000007  e0 =>  00ff0f05  e4 =>  00000ff7  e8 =>  00000ff7
->>    f8 =>  00000001
->>
->> Looking at the TRM, the PRM_IVA2 registers are at 0x48306000, not
->> 0x48316000.  OMAP3430_IVA2_MOD is defined in prcm-common.h as -0x800
->> which means any module + reg_offset address calculation has to be
->> signed.  Once I corrected the "unsigned short offset" declaration in
->> pm_module_def, rebuilt and tested again, IVA2/core pwrdms go into
->> suspend correctly (and addresses look correct):
-> Just to be clear, this should only affect the display of the registers,
-> not whether or not the power domains actually suspend correctly, right?
->
-> Or, did you actually notice via some other method that this powerdomain
-> was not hitting retention/off?
-Yes the change affects the registers displayed, but since the address 
-calculation is incorrect with CONFIG_PM_DEBUG enabled, the PM_DEBUG code 
-is reading the CM_IVA2/PRM_IVA2 registers at incorrect addresses.  On my 
-DM37x board when I suspended with OTG enabled (and without the patch), I 
-see the following on resume:
+> diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+> index d4ef370..1af9fd5 100644
+> --- a/arch/arm/mach-omap2/serial.c
+> +++ b/arch/arm/mach-omap2/serial.c
+> @@ -245,6 +245,12 @@ static void omap_uart_wakeup_enable(struct platform_device *pdev, bool enable)
+>  static void omap_uart_idle_init(struct omap_uart_port_info *uart,
+>  				unsigned short num)
+>  {
+> +	/* On omap2 no cpu_idle and async wakeup from prcm_module.
 
-[  496.168151] Powerdomain (iva2_pwrdm) didn't enter target state 1 
-(last power state 3)
-[  496.176025] Powerdomain (core_pwrdm) didn't enter target state 1 
-(last power state 3)
-[  496.183898] Could not enter target state in pm_suspend
+Please remove comments about CPU idle, as the need for this has nothing
+to do with CPU idle.
 
-With the patch (and same kernel config) I see the following on resume:
+> +	 * This flag can be used to cut clocks only in suspend path.
+> +	 * to avoid boot break due to aggressive clock cutting from
+> +	 * omap-serial driver.
+> +	 */
 
-[  234.867889] Successfully put all powerdomains to target state
+fix multi-line comment style throughout
 
-Before enabling the OTG code all powerdomains went into suspend.
+> +	uart->no_async_wake = true;
 
-It could be that accessing registers at the incorrect addresses is 
-causing DM37x to keep those domains out of retention...
+If needed (which I still don't think I understand), for readability sake
+this flag should be called 'has_async_wake', and default to false.  It
+should then be set to true on available SoCs.
 
-> Kevin
->
->> Signed-off-by: Peter Barada<peter.barada@logicpd.com>
->>
->>
->> diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
->> index 125f565..b731ef3 100644
->> --- a/arch/arm/mach-omap2/pm-debug.c
->> +++ b/arch/arm/mach-omap2/pm-debug.c
->> @@ -199,7 +199,7 @@ enum {
->>   struct pm_module_def {
->>       char name[8]; /* Name of the module */
->>       short type; /* CM or PRM */
->> -    unsigned short offset;
->> +    short offset;
->>       int low; /* First register address on this module */
->>       int high; /* Last register address on this module */
->>   };
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Kevin
 
-
--- 
-Peter Barada
-peter.barada@gmail.com
-
+>  	if (cpu_is_omap34xx()) {
+>  		u32 mod = num > 1 ? OMAP3430_PER_MOD : CORE_MOD;
+>  		u32 wk_mask = 0;
+> @@ -266,6 +272,7 @@ static void omap_uart_idle_init(struct omap_uart_port_info *uart,
+>  			break;
+>  		}
+>  		uart->wk_mask = wk_mask;
+> +		uart->no_async_wake = false;
+>  	} else if (cpu_is_omap24xx()) {
+>  		u32 wk_mask = 0;
+>  		u32 wk_en = PM_WKEN1, wk_st = PM_WKST1;
+> diff --git a/arch/arm/plat-omap/include/plat/omap-serial.h b/arch/arm/plat-omap/include/plat/omap-serial.h
+> index b5117bd..1de5bc4 100644
+> --- a/arch/arm/plat-omap/include/plat/omap-serial.h
+> +++ b/arch/arm/plat-omap/include/plat/omap-serial.h
+> @@ -79,6 +79,7 @@ struct omap_uart_port_info {
+>  	void __iomem *wk_st;
+>  	void __iomem *wk_en;
+>  	u32 wk_mask;
+> +	bool			no_async_wake;
+>  };
+>  
+>  struct uart_omap_dma {
+> @@ -134,6 +135,8 @@ struct uart_omap_port {
+>  	unsigned int		errata;
+>  	void (*enable_wakeup)(struct platform_device *, bool);
+>  	bool (*chk_wakeup)(struct platform_device *);
+> +
+> +	bool			no_async_wake;
+>  };
+>  
+>  #endif /* __OMAP_SERIAL_H__ */
+> diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+> index eea478c..59f548f 100644
+> --- a/drivers/tty/serial/omap-serial.c
+> +++ b/drivers/tty/serial/omap-serial.c
+> @@ -1168,6 +1168,13 @@ static int serial_omap_suspend(struct device *dev)
+>  		uart_suspend_port(&serial_omap_reg, &up->port);
+>  		console_trylock();
+>  		serial_omap_pm(&up->port, 3, 0);
+> +
+> +		/* OMAP2 dont have cpu_idle thread and async wakeup from prcm.
+> +		 * For such socs clocks will be kept active from probe and
+> +		 * cut only in suspend path.
+> +		 */
+> +		if (up->no_async_wake)
+> +			serial_omap_port_disable(up);
+>  	}
+>  	return 0;
+>  }
+> @@ -1179,6 +1186,9 @@ static int serial_omap_resume(struct device *dev)
+>  	if (up) {
+>  		uart_resume_port(&serial_omap_reg, &up->port);
+>  		console_unlock();
+> +
+> +		if (up->no_async_wake)
+> +			serial_omap_port_enable(up);
+>  	}
+>  
+>  	return 0;
+> @@ -1402,6 +1412,7 @@ static int serial_omap_probe(struct platform_device *pdev)
+>  	up->errata = omap_up_info->errata;
+>  	up->enable_wakeup = omap_up_info->enable_wakeup;
+>  	up->chk_wakeup = omap_up_info->chk_wakeup;
+> +	up->no_async_wake = omap_up_info->no_async_wake;
+>  
+>  	if (omap_up_info->dma_enabled) {
+>  		up->uart_dma.uart_dma_tx = dma_tx->start;
+> @@ -1430,6 +1441,9 @@ static int serial_omap_probe(struct platform_device *pdev)
+>  		serial_omap_port_disable(up);
+>  	}
+>  
+> +	if (up->no_async_wake)
+> +		serial_omap_port_enable(up);
+> +
+>  	ui[pdev->id] = up;
+>  	serial_omap_add_console_port(up);
