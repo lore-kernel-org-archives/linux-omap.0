@@ -1,104 +1,70 @@
-From: Govindraj <govindraj.ti@gmail.com>
-Subject: Re: [PATCH v2 10/12] OMAP2+: hwmod: Add api to enable io_ring wakeup.
-Date: Thu, 5 May 2011 11:28:51 +0530
-Message-ID: <BANLkTin-Yyg5cLUpjRvXvAQgoNN4anKHUQ@mail.gmail.com>
-References: <1304080796-625-1-git-send-email-govindraj.raja@ti.com>
- <1304080796-625-11-git-send-email-govindraj.raja@ti.com> <87mxj2nhjn.fsf@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/8] OMAP PM: create a PM layer plugin for per-device
+ constraints
+Date: Thu, 5 May 2011 09:00:13 +0300
+Message-ID: <20110505060013.GJ27860@atomide.com>
+References: <1304516117-9334-1-git-send-email-j-pihet@ti.com>
+ <1304516117-9334-2-git-send-email-j-pihet@ti.com>
+ <20110504135930.GE2092@atomide.com>
+ <87vcxqv8fp.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <87mxj2nhjn.fsf@ti.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Rajendra Nayak <rnayak@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:35351 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751443Ab1EEGAR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 May 2011 02:00:17 -0400
+Content-Disposition: inline
+In-Reply-To: <87vcxqv8fp.fsf@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: jean.pihet@newoldbits.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, paul@pwsan.com, Jean Pihet <j-pihet@ti.com>, Vishwanath BS <vishwanath.bs@ti.com>
 
-On Thu, May 5, 2011 at 5:29 AM, Kevin Hilman <khilman@ti.com> wrote:
-> "Govindraj.R" <govindraj.raja@ti.com> writes:
->
->> Add api to enable io_pad wakeup based on mux dynamic pad and
->
-> s/api/API/
-> s/io_pad/IO pad/
+* Kevin Hilman <khilman@ti.com> [110504 17:33]:
+> Tony,
+> 
+> Tony Lindgren <tony@atomide.com> writes:
+> 
+> > * jean.pihet@newoldbits.com <jean.pihet@newoldbits.com> [110504 06:32]:
+> >>
+> >> +int omap_pm_set_max_mpu_wakeup_lat(struct device *dev, long t)
+> > ...
+> >
+> >> +int omap_pm_set_max_dev_wakeup_lat(struct device *req_dev, struct device *dev,
+> > ...
+> >
+> >> +int omap_pm_set_min_clk_rate(struct device *dev, struct clk *c, long r)
+> > ...
+> >
+> > You should implement this as a Linux generic framework, we don't
+> > want to add more omap specific frameworks.
+> 
+> This series isn't adding any new OMAP-specific frameworks.  The OMAP PM
+> layer is already in place, and has been there for awhile.  OMAP PM is a
+> layer which can have "plugins" so we can experiment with ways of
+> handling constraints without changing the driver interface, and this
+> series is just implementing a new plugin.
 
-will update.
+But in this case the plugin is just stubs. The only function that does
+something is omap_pm_get_dev_context_loss_count. And then patch 8 in
+this series starts adding a new omap specific features for constraints.
 
->
->> wake_up enable flag initialized during hwmod_mux.
->>
->> Use the wakeup flag and pad_remux flag and enable wakeup capability
->> for the pad having these flags enabled.
->>
->> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
->
-> This patch (except for the serial.c hange) isn't really dependent on =
-the
-> rest of this series, and should be a separate patch to be merged by
-> Paul.
->
+So the problem is patches 1 & 8 in this series. The rest is just fine
+as it's the necessary omap hardware specific implementation.
 
-Yes. fine will post out hwmod API additions as separate patch.
+> Once we are happy with a constraint layer, and can prove it will work,
+> the plan is to get rid of the (existing) OMAP-specific APIs and propose
+> a generic interface.
 
-> Some other comments below...
->
->> ---
->> =A0arch/arm/mach-omap2/omap_hwmod.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0=
- 34 +++++++++++++++++++++++++
->> =A0arch/arm/mach-omap2/serial.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0|=
- =A0 =A06 ++++
->> =A0arch/arm/plat-omap/include/plat/omap_device.h | =A0 =A01 +
->> =A0arch/arm/plat-omap/include/plat/omap_hwmod.h =A0| =A0 =A01 +
->> =A0arch/arm/plat-omap/omap_device.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0=
- 26 +++++++++++++++++++
->> =A05 files changed, 68 insertions(+), 0 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/=
-omap_hwmod.c
->> index e034294..4a12336 100644
->> --- a/arch/arm/mach-omap2/omap_hwmod.c
->> +++ b/arch/arm/mach-omap2/omap_hwmod.c
->> @@ -2369,3 +2369,37 @@ int omap_hwmod_no_setup_reset(struct omap_hwm=
-od *oh)
->>
->> =A0 =A0 =A0 return 0;
->> =A0}
->> +
->> +/**
->> + * omap_hwmod_enable_ioring_wakeup - Set wakeup bit for iopad ring.
->> + * @oh: struct omap_hwmod *
->> + * @enable: based on 0 or 1 set or unset wakeup bit.
->
-> more specifically, when true, set wakeup bit, when false, clear wakeu=
-p bit
+Well I don't think we should start building new omap specific layer on
+an omap specific framework.
 
-ok.
+Instead, the constraint layer should be made generic to start with, even
+if it's just a minimal implementation initially.
 
->
->> + * traverse through dynamic pads. If pad is enabled then
->> + * set wakeup bit for the mux pin. Return error if pads are
->> + * not enabled or not available.
->> + */
->
-> The comment here should be clearer about when the bit actually gets
-> set. =A0Specifically, this function doesn't actually write the value =
-out,
-> but instead it configures the value which will be used during the hwm=
-od
-> idle transition.
->
+Maybe it could be just a generic header file to start with?
 
-Yes correct. Will update the comments.
+Regards,
 
-> Kevin
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-seria=
-l" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-serial"=
- in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
