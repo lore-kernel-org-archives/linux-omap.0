@@ -1,259 +1,309 @@
 From: Ricardo Neri <ricardo.neri@ti.com>
-Subject: [PATCH 4/5] OMAP4: DSS2: HDMI: Add functionality for audio configuration
-Date: Thu,  5 May 2011 02:01:33 -0500
-Message-ID: <1304578894-23967-5-git-send-email-ricardo.neri@ti.com>
+Subject: [PATCH 3/5] OMAP4: DSS2: HDMI: Add enums and structures for audio
+Date: Thu,  5 May 2011 02:01:32 -0500
+Message-ID: <1304578894-23967-4-git-send-email-ricardo.neri@ti.com>
 References: <1304578894-23967-1-git-send-email-ricardo.neri@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:39633 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751473Ab1EEHB2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 May 2011 03:01:28 -0400
-Received: from dlep33.itg.ti.com ([157.170.170.112])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p4571RoC001249
+Received: from bear.ext.ti.com ([192.94.94.41]:40323 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751990Ab1EEHB1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 5 May 2011 03:01:27 -0400
+Received: from dlep35.itg.ti.com ([157.170.170.118])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p4571QNV008167
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 5 May 2011 02:01:27 -0500
+	for <linux-omap@vger.kernel.org>; Thu, 5 May 2011 02:01:26 -0500
 In-Reply-To: <1304578894-23967-1-git-send-email-ricardo.neri@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, tomi.valkeinen@ti.com, mythripk@ti.com
 Cc: Ricardo Neri <ricardo.neri@ti.com>
 
-Add functionality for relevant audio configuration. Functions to
-configure the audio FIFO and DMA as well as functions for the audio
-core and Audio Info frame are included. This functionality is to
-be used by the ASoC HDMI audio codec.
+Add enurations and structures for audio configuration. This includes
+enumerations for the Audio InfoFrame, I2S, audio FIFO and audio core.
 
 Signed-off-by: Ricardo Neri <ricardo.neri@ti.com>
 ---
- drivers/video/omap2/dss/hdmi.c |  215 ++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 215 insertions(+), 0 deletions(-)
+ drivers/video/omap2/dss/hdmi.h |  220 +++++++++++++++++++++++++++++++++++++++-
+ 1 files changed, 218 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
-index a981def..c5676ee 100644
---- a/drivers/video/omap2/dss/hdmi.c
-+++ b/drivers/video/omap2/dss/hdmi.c
-@@ -1275,6 +1275,221 @@ void omapdss_hdmi_display_disable(struct omap_dss_device *dssdev)
- 	mutex_unlock(&hdmi.lock);
- }
+diff --git a/drivers/video/omap2/dss/hdmi.h b/drivers/video/omap2/dss/hdmi.h
+index 9887ab9..1a5da3c 100644
+--- a/drivers/video/omap2/dss/hdmi.h
++++ b/drivers/video/omap2/dss/hdmi.h
+@@ -48,6 +48,10 @@ struct hdmi_reg { u16 idx; };
+ #define HDMI_WP_VIDEO_TIMING_H			HDMI_WP_REG(0x68)
+ #define HDMI_WP_VIDEO_TIMING_V			HDMI_WP_REG(0x6C)
+ #define HDMI_WP_WP_CLK				HDMI_WP_REG(0x70)
++#define HDMI_WP_AUDIO_CFG			HDMI_WP_REG(0x80)
++#define HDMI_WP_AUDIO_CFG2			HDMI_WP_REG(0x84)
++#define HDMI_WP_AUDIO_CTRL			HDMI_WP_REG(0x88)
++#define HDMI_WP_AUDIO_DATA			HDMI_WP_REG(0x8C)
  
-+#if defined(CONFIG_SND_OMAP_SOC_OMAP4_HDMI) || \
-+	defined(CONFIG_SND_OMAP_SOC_OMAP4_HDMI_MODULE)
-+static void hdmi_wp_audio_config_format(
-+		struct hdmi_audio_format *aud_fmt)
-+{
-+	u32 r;
+ /* HDMI IP Core System */
+ #define HDMI_CORE_SYS_REG(idx)			HDMI_REG(HDMI_CORE_SYS + idx)
+@@ -105,6 +109,8 @@ struct hdmi_reg { u16 idx; };
+ #define HDMI_CORE_AV_AVI_DBYTE_NELEMS		HDMI_CORE_AV_REG(15)
+ #define HDMI_CORE_AV_SPD_DBYTE			HDMI_CORE_AV_REG(0x190)
+ #define HDMI_CORE_AV_SPD_DBYTE_NELEMS		HDMI_CORE_AV_REG(27)
++#define HDMI_CORE_AV_AUD_DBYTE(n)		HDMI_CORE_AV_REG(n * 4 + 0x210)
++#define HDMI_CORE_AV_AUD_DBYTE_NELEMS		HDMI_CORE_AV_REG(10)
+ #define HDMI_CORE_AV_MPEG_DBYTE		HDMI_CORE_AV_REG(0x290)
+ #define HDMI_CORE_AV_MPEG_DBYTE_NELEMS		HDMI_CORE_AV_REG(27)
+ #define HDMI_CORE_AV_GEN_DBYTE			HDMI_CORE_AV_REG(0x300)
+@@ -153,6 +159,10 @@ struct hdmi_reg { u16 idx; };
+ #define HDMI_CORE_AV_SPD_VERS			HDMI_CORE_AV_REG(0x184)
+ #define HDMI_CORE_AV_SPD_LEN			HDMI_CORE_AV_REG(0x188)
+ #define HDMI_CORE_AV_SPD_CHSUM			HDMI_CORE_AV_REG(0x18C)
++#define HDMI_CORE_AV_AUDIO_TYPE		HDMI_CORE_AV_REG(0x200)
++#define HDMI_CORE_AV_AUDIO_VERS		HDMI_CORE_AV_REG(0x204)
++#define HDMI_CORE_AV_AUDIO_LEN			HDMI_CORE_AV_REG(0x208)
++#define HDMI_CORE_AV_AUDIO_CHSUM		HDMI_CORE_AV_REG(0x20C)
+ #define HDMI_CORE_AV_MPEG_TYPE			HDMI_CORE_AV_REG(0x280)
+ #define HDMI_CORE_AV_MPEG_VERS			HDMI_CORE_AV_REG(0x284)
+ #define HDMI_CORE_AV_MPEG_LEN			HDMI_CORE_AV_REG(0x288)
+@@ -272,7 +282,7 @@ enum hdmi_core_packet_ctrl {
+ 	HDMI_PACKETREPEATOFF = 0
+ };
+ 
+-/* INFOFRAME_AVI_ definitions */
++/* INFOFRAME_AVI_ and INFOFRAME_AUDIO_ definitions */
+ enum hdmi_core_infoframe {
+ 	HDMI_INFOFRAME_AVI_DB1Y_RGB = 0,
+ 	HDMI_INFOFRAME_AVI_DB1Y_YUV422 = 1,
+@@ -317,7 +327,36 @@ enum hdmi_core_infoframe {
+ 	HDMI_INFOFRAME_AVI_DB5PR_7 = 6,
+ 	HDMI_INFOFRAME_AVI_DB5PR_8 = 7,
+ 	HDMI_INFOFRAME_AVI_DB5PR_9 = 8,
+-	HDMI_INFOFRAME_AVI_DB5PR_10 = 9
++	HDMI_INFOFRAME_AVI_DB5PR_10 = 9,
++	HDMI_INFOFRAME_AUDIO_DB1CT_FROM_STREAM = 0,
++	HDMI_INFOFRAME_AUDIO_DB1CT_IEC60958 = 1,
++	HDMI_INFOFRAME_AUDIO_DB1CT_AC3 = 2,
++	HDMI_INFOFRAME_AUDIO_DB1CT_MPEG1 = 3,
++	HDMI_INFOFRAME_AUDIO_DB1CT_MP3 = 4,
++	HDMI_INFOFRAME_AUDIO_DB1CT_MPEG2_MULTICH = 5,
++	HDMI_INFOFRAME_AUDIO_DB1CT_AAC = 6,
++	HDMI_INFOFRAME_AUDIO_DB1CT_DTS = 7,
++	HDMI_INFOFRAME_AUDIO_DB1CT_ATRAC = 8,
++	HDMI_INFOFRAME_AUDIO_DB1CT_ONEBIT = 9,
++	HDMI_INFOFRAME_AUDIO_DB1CT_DOLBY_DIGITAL_PLUS = 10,
++	HDMI_INFOFRAME_AUDIO_DB1CT_DTS_HD = 11,
++	HDMI_INFOFRAME_AUDIO_DB1CT_MAT = 12,
++	HDMI_INFOFRAME_AUDIO_DB1CT_DST = 13,
++	HDMI_INFOFRAME_AUDIO_DB1CT_WMA_PRO = 14,
++	HDMI_INFOFRAME_AUDIO_DB2SF_FROM_STREAM = 0,
++	HDMI_INFOFRAME_AUDIO_DB2SF_32000 = 1,
++	HDMI_INFOFRAME_AUDIO_DB2SF_44100 = 2,
++	HDMI_INFOFRAME_AUDIO_DB2SF_48000 = 3,
++	HDMI_INFOFRAME_AUDIO_DB2SF_88200 = 4,
++	HDMI_INFOFRAME_AUDIO_DB2SF_96000 = 5,
++	HDMI_INFOFRAME_AUDIO_DB2SF_176400 = 6,
++	HDMI_INFOFRAME_AUDIO_DB2SF_192000 = 7,
++	HDMI_INFOFRAME_AUDIO_DB2SS_FROM_STREAM = 0,
++	HDMI_INFOFRAME_AUDIO_DB2SS_16BIT = 1,
++	HDMI_INFOFRAME_AUDIO_DB2SS_20BIT = 2,
++	HDMI_INFOFRAME_AUDIO_DB2SS_24BIT = 3,
++	HDMI_INFOFRAME_AUDIO_DB5_DM_INH_PERMITTED = 0,
++	HDMI_INFOFRAME_AUDIO_DB5_DM_INH_PROHIBITED = 1
+ };
+ 
+ enum hdmi_packing_mode {
+@@ -327,6 +366,121 @@ enum hdmi_packing_mode {
+ 	HDMI_PACK_ALREADYPACKED = 7
+ };
+ 
++enum hdmi_core_audio_sample_freq {
++	HDMI_AUDIO_FS_32000 = 0x3,
++	HDMI_AUDIO_FS_44100 = 0x0,
++	HDMI_AUDIO_FS_48000 = 0x2,
++	HDMI_AUDIO_FS_88200 = 0x8,
++	HDMI_AUDIO_FS_96000 = 0xA,
++	HDMI_AUDIO_FS_176400 = 0xC,
++	HDMI_AUDIO_FS_192000 = 0xE,
++	HDMI_AUDIO_FS_NOT_INDICATED = 0x1
++};
 +
-+	DSSDBG("Enter hdmi_wp_audio_config_format\n");
++enum hdmi_core_audio_layout {
++	HDMI_AUDIO_LAYOUT_2CH = 0,
++	HDMI_AUDIO_LAYOUT_8CH = 1
++};
 +
-+	r = hdmi_read_reg(HDMI_WP_AUDIO_CFG);
-+	r = FLD_MOD(r, aud_fmt->stereo_channels, 26, 24);
-+	r = FLD_MOD(r, aud_fmt->active_chnnls_msk, 23, 16);
-+	r = FLD_MOD(r, aud_fmt->en_sig_blk_strt_end, 5, 5);
-+	r = FLD_MOD(r, aud_fmt->type, 4, 4);
-+	r = FLD_MOD(r, aud_fmt->justification, 3, 3);
-+	r = FLD_MOD(r, aud_fmt->sample_order, 2, 2);
-+	r = FLD_MOD(r, aud_fmt->samples_per_word, 1, 1);
-+	r = FLD_MOD(r, aud_fmt->sample_size, 0, 0);
-+	hdmi_write_reg(HDMI_WP_AUDIO_CFG, r);
-+}
++enum hdmi_core_cts_mode {
++	HDMI_AUDIO_CTS_MODE_HW = 0,
++	HDMI_AUDIO_CTS_MODE_SW = 1
++};
 +
-+static void hdmi_wp_audio_config_dma(struct hdmi_audio_dma *aud_dma)
-+{
-+	u32 r;
++enum hdmi_stereo_channels {
++	HDMI_AUDIO_STEREO_NOCHANNELS = 0,
++	HDMI_AUDIO_STEREO_ONECHANNEL = 1,
++	HDMI_AUDIO_STEREO_TWOCHANNELS = 2,
++	HDMI_AUDIO_STEREO_THREECHANNELS = 3,
++	HDMI_AUDIO_STEREO_FOURCHANNELS = 4
++};
 +
-+	DSSDBG("Enter hdmi_wp_audio_config_dma\n");
++enum hdmi_audio_type {
++	HDMI_AUDIO_TYPE_LPCM = 0,
++	HDMI_AUDIO_TYPE_IEC = 1
++};
 +
-+	r = hdmi_read_reg(HDMI_WP_AUDIO_CFG2);
-+	r = FLD_MOD(r, aud_dma->transfer_size, 15, 8);
-+	r = FLD_MOD(r, aud_dma->block_size, 7, 0);
-+	hdmi_write_reg(HDMI_WP_AUDIO_CFG2, r);
++enum hdmi_audio_justify {
++	HDMI_AUDIO_JUSTIFY_LEFT = 0,
++	HDMI_AUDIO_JUSTIFY_RIGHT = 1
++};
 +
-+	r = hdmi_read_reg(HDMI_WP_AUDIO_CTRL);
-+	r = FLD_MOD(r, aud_dma->mode, 9, 9);
-+	r = FLD_MOD(r, aud_dma->fifo_threshold, 8, 0);
-+	hdmi_write_reg(HDMI_WP_AUDIO_CTRL, r);
-+}
++enum hdmi_audio_sample_order {
++	HDMI_AUDIO_SAMPLE_RIGHT_FIRST = 0,
++	HDMI_AUDIO_SAMPLE_LEFT_FIRST = 1
++};
 +
-+static void hdmi_core_audio_config(struct hdmi_core_audio_config *cfg)
-+{
-+	u32 r;
++enum hdmi_audio_samples_perword {
++	HDMI_AUDIO_ONEWORD_ONESAMPLE = 0,
++	HDMI_AUDIO_ONEWORD_TWOSAMPLES = 1
++};
 +
-+	/* audio clock recovery parameters */
-+	r = hdmi_read_reg(HDMI_CORE_AV_ACR_CTRL);
-+	r = FLD_MOD(r, cfg->use_mclk, 2, 2);
-+	r = FLD_MOD(r, cfg->en_acr_pkt, 1, 1);
-+	r = FLD_MOD(r, cfg->cts_mode, 0, 0);
-+	hdmi_write_reg(HDMI_CORE_AV_ACR_CTRL, r);
++enum hdmi_audio_sample_size {
++	HDMI_AUDIO_SAMPLE_16BITS = 0,
++	HDMI_AUDIO_SAMPLE_24BITS = 1
++};
 +
-+	REG_FLD_MOD(HDMI_CORE_AV_N_SVAL1, cfg->n, 7, 0);
-+	REG_FLD_MOD(HDMI_CORE_AV_N_SVAL2, cfg->n >> 8, 7, 0);
-+	REG_FLD_MOD(HDMI_CORE_AV_N_SVAL3, cfg->n >> 16, 7, 0);
++enum hdmi_audio_transf_mode {
++	HDMI_AUDIO_TRANSF_DMA = 0,
++	HDMI_AUDIO_TRANSF_IRQ = 1
++};
 +
-+	if (cfg->cts_mode == HDMI_AUDIO_CTS_MODE_SW) {
-+		REG_FLD_MOD(HDMI_CORE_AV_CTS_SVAL1, cfg->cts, 7, 0);
-+		REG_FLD_MOD(HDMI_CORE_AV_CTS_SVAL2, cfg->cts >> 8, 7, 0);
-+		REG_FLD_MOD(HDMI_CORE_AV_CTS_SVAL3, cfg->cts >> 16, 7, 0);
-+	} else {
-+		/*
-+		 * HDMI IP uses this configuration to divide the MCLK to
-+		 * update CTS value.
-+		 */
-+		REG_FLD_MOD(HDMI_CORE_AV_FREQ_SVAL, cfg->mclk_mode, 2, 0);
++enum hdmi_audio_blk_strt_end_sig {
++	HDMI_AUDIO_BLOCK_SIG_STARTEND_ON = 0,
++	HDMI_AUDIO_BLOCK_SIG_STARTEND_OFF = 1
++};
 +
-+		/* Configure clock for audio packets */
-+		REG_FLD_MOD(HDMI_CORE_AV_AUD_PAR_BUSCLK_1,
-+			cfg->aud_par_busclk, 7, 0);
-+		REG_FLD_MOD(HDMI_CORE_AV_AUD_PAR_BUSCLK_2,
-+			(cfg->aud_par_busclk >> 8), 7, 0);
-+		REG_FLD_MOD(HDMI_CORE_AV_AUD_PAR_BUSCLK_3,
-+			(cfg->aud_par_busclk >> 16), 7, 0);
-+	}
++enum hdmi_audio_i2s_config {
++	HDMI_AUDIO_I2S_WS_POLARITY_LOW_IS_LEFT = 0,
++	HDMI_AUDIO_I2S_WS_POLARIT_YLOW_IS_RIGHT = 1,
++	HDMI_AUDIO_I2S_MSB_SHIFTED_FIRST = 0,
++	HDMI_AUDIO_I2S_LSB_SHIFTED_FIRST = 1,
++	HDMI_AUDIO_I2S_MAX_WORD_20BITS = 0,
++	HDMI_AUDIO_I2S_MAX_WORD_24BITS = 1,
++	HDMI_AUDIO_I2S_CHST_WORD_NOT_SPECIFIED = 0,
++	HDMI_AUDIO_I2S_CHST_WORD_16_BITS = 1,
++	HDMI_AUDIO_I2S_CHST_WORD_17_BITS = 6,
++	HDMI_AUDIO_I2S_CHST_WORD_18_BITS = 2,
++	HDMI_AUDIO_I2S_CHST_WORD_19_BITS = 4,
++	HDMI_AUDIO_I2S_CHST_WORD_20_BITS_20MAX = 5,
++	HDMI_AUDIO_I2S_CHST_WORD_20_BITS_24MAX = 1,
++	HDMI_AUDIO_I2S_CHST_WORD_21_BITS = 6,
++	HDMI_AUDIO_I2S_CHST_WORD_22_BITS = 2,
++	HDMI_AUDIO_I2S_CHST_WORD_23_BITS = 4,
++	HDMI_AUDIO_I2S_CHST_WORD_24_BITS = 5,
++	HDMI_AUDIO_I2S_SCK_EDGE_FALLING = 0,
++	HDMI_AUDIO_I2S_SCK_EDGE_RISING = 1,
++	HDMI_AUDIO_I2S_VBIT_FOR_PCM = 0,
++	HDMI_AUDIO_I2S_VBIT_FOR_COMPRESSED = 1,
++	HDMI_AUDIO_I2S_INPUT_LENGTH_NA = 0,
++	HDMI_AUDIO_I2S_INPUT_LENGTH_16 = 2,
++	HDMI_AUDIO_I2S_INPUT_LENGTH_17 = 12,
++	HDMI_AUDIO_I2S_INPUT_LENGTH_18 = 4,
++	HDMI_AUDIO_I2S_INPUT_LENGTH_19 = 8,
++	HDMI_AUDIO_I2S_INPUT_LENGTH_20 = 10,
++	HDMI_AUDIO_I2S_INPUT_LENGTH_21 = 13,
++	HDMI_AUDIO_I2S_INPUT_LENGTH_22 = 5,
++	HDMI_AUDIO_I2S_INPUT_LENGTH_23 = 9,
++	HDMI_AUDIO_I2S_INPUT_LENGTH_24 = 11,
++	HDMI_AUDIO_I2S_FIRST_BIT_SHIFT = 0,
++	HDMI_AUDIO_I2S_FIRST_BIT_NO_SHIFT = 1,
++	HDMI_AUDIO_I2S_SD0_EN = 1,
++	HDMI_AUDIO_I2S_SD1_EN = 1 << 1,
++	HDMI_AUDIO_I2S_SD2_EN = 1 << 2,
++	HDMI_AUDIO_I2S_SD3_EN = 1 << 3,
++};
 +
-+	/* Override of SPDIF sample frequency with value in I2S_CHST4 */
-+	REG_FLD_MOD(HDMI_CORE_AV_SPDIF_CTRL, cfg->fs_override, 1, 1);
++enum hdmi_audio_mclk_mode {
++	HDMI_AUDIO_MCLK_128FS = 0,
++	HDMI_AUDIO_MCLK_256FS = 1,
++	HDMI_AUDIO_MCLK_384FS = 2,
++	HDMI_AUDIO_MCLK_512FS = 3,
++	HDMI_AUDIO_MCLK_768FS = 4,
++	HDMI_AUDIO_MCLK_1024FS = 5,
++	HDMI_AUDIO_MCLK_1152FS = 6,
++	HDMI_AUDIO_MCLK_192FS = 7
++};
 +
-+	/* I2S parameters */
-+	REG_FLD_MOD(HDMI_CORE_AV_I2S_CHST4, cfg->freq_sample, 3, 0);
+ struct hdmi_core_video_config {
+ 	enum hdmi_core_inputbus_width	ip_bus_width;
+ 	enum hdmi_core_dither_trunc	op_dither_truc;
+@@ -376,6 +530,19 @@ struct hdmi_core_infoframe_avi {
+ 	u16	db12_13_pixel_sofright;
+ 		/* Pixel number start of right bar */
+ };
++/*
++ * Refer to section 8.2 in HDMI 1.3 specification for
++ * details about infoframe databytes
++ */
++struct hdmi_core_infoframe_audio {
++	u8 db1_coding_type;
++	u8 db1_channel_count;
++	u8 db2_sample_freq;
++	u8 db2_sample_size;
++	u8 db4_channel_alloc;
++	bool db5_downmix_inh;
++	u8 db5_lsv;	/* Level shift values for downmix */
++};
+ 
+ struct hdmi_core_packet_enable_repeat {
+ 	u32	audio_pkt;
+@@ -412,4 +579,53 @@ struct hdmi_config {
+ 	struct hdmi_cm cm;
+ };
+ 
++struct hdmi_audio_format {
++	enum hdmi_stereo_channels		stereo_channels;
++	u8					active_chnnls_msk;
++	enum hdmi_audio_type			type;
++	enum hdmi_audio_justify			justification;
++	enum hdmi_audio_sample_order		sample_order;
++	enum hdmi_audio_samples_perword		samples_per_word;
++	enum hdmi_audio_sample_size		sample_size;
++	enum hdmi_audio_blk_strt_end_sig	en_sig_blk_strt_end;
++};
 +
-+	r = hdmi_read_reg(HDMI_CORE_AV_I2S_IN_CTRL);
-+	r = FLD_MOD(r, cfg->i2s_cfg.en_high_bitrate_aud, 7, 7);
-+	r = FLD_MOD(r, cfg->i2s_cfg.sck_edge_mode, 6, 6);
-+	r = FLD_MOD(r, cfg->i2s_cfg.cbit_order, 5, 5);
-+	r = FLD_MOD(r, cfg->i2s_cfg.vbit, 4, 4);
-+	r = FLD_MOD(r, cfg->i2s_cfg.ws_polarity, 3, 3);
-+	r = FLD_MOD(r, cfg->i2s_cfg.justification, 2, 2);
-+	r = FLD_MOD(r, cfg->i2s_cfg.direction, 1, 1);
-+	r = FLD_MOD(r, cfg->i2s_cfg.shift, 0, 0);
-+	hdmi_write_reg(HDMI_CORE_AV_I2S_IN_CTRL, r);
++struct hdmi_audio_dma {
++	u8				transfer_size;
++	u8				block_size;
++	enum hdmi_audio_transf_mode	mode;
++	u16				fifo_threshold;
++};
 +
-+	r = hdmi_read_reg(HDMI_CORE_AV_I2S_CHST5);
-+	r = FLD_MOD(r, cfg->freq_sample, 7, 4);
-+	r = FLD_MOD(r, cfg->i2s_cfg.word_length, 3, 1);
-+	r = FLD_MOD(r, cfg->i2s_cfg.word_max_length, 0, 0);
-+	hdmi_write_reg(HDMI_CORE_AV_I2S_CHST5, r);
++struct hdmi_core_audio_i2s_config {
++	u8 word_max_length;
++	u8 word_length;
++	u8 in_length_bits;
++	u8 justification;
++	u8 en_high_bitrate_aud;
++	u8 sck_edge_mode;
++	u8 cbit_order;
++	u8 vbit;
++	u8 ws_polarity;
++	u8 direction;
++	u8 shift;
++	u8 active_sds;
++};
 +
-+	REG_FLD_MOD(HDMI_CORE_AV_I2S_IN_LEN, cfg->i2s_cfg.in_length_bits, 3, 0);
-+
-+	/* Audio channels and mode parameters */
-+	REG_FLD_MOD(HDMI_CORE_AV_HDMI_CTRL, cfg->layout, 2, 1);
-+	r = hdmi_read_reg(HDMI_CORE_AV_AUD_MODE);
-+	r = FLD_MOD(r, cfg->i2s_cfg.active_sds, 7, 4);
-+	r = FLD_MOD(r, cfg->en_dsd_audio, 3, 3);
-+	r = FLD_MOD(r, cfg->en_parallel_aud_input, 2, 2);
-+	r = FLD_MOD(r, cfg->en_spdif, 1, 1);
-+	hdmi_write_reg(HDMI_CORE_AV_AUD_MODE, r);
-+}
-+
-+static void hdmi_core_audio_infoframe_config(
-+		struct hdmi_core_infoframe_audio *info_aud)
-+{
-+	u8 val;
-+	u8 sum = 0, checksum = 0;
-+
-+	/*
-+	 * Set audio info frame type, version and length as
-+	 * described in HDMI 1.4a Section 8.2.2 specification.
-+	 * Checksum calculation is defined in Section 5.3.5.
-+	 */
-+	hdmi_write_reg(HDMI_CORE_AV_AUDIO_TYPE, 0x84);
-+	hdmi_write_reg(HDMI_CORE_AV_AUDIO_VERS, 0x01);
-+	hdmi_write_reg(HDMI_CORE_AV_AUDIO_LEN, 0x0a);
-+	sum += 0x84 + 0x001 + 0x00a;
-+
-+	val = (info_aud->db1_coding_type << 4)
-+			| (info_aud->db1_channel_count - 1);
-+	hdmi_write_reg(HDMI_CORE_AV_AUD_DBYTE(0), val);
-+	sum += val;
-+
-+	val = (info_aud->db2_sample_freq << 2) | info_aud->db2_sample_size;
-+	hdmi_write_reg(HDMI_CORE_AV_AUD_DBYTE(1), val);
-+	sum += val;
-+
-+	hdmi_write_reg(HDMI_CORE_AV_AUD_DBYTE(2), 0x00);
-+
-+	val = info_aud->db4_channel_alloc;
-+	hdmi_write_reg(HDMI_CORE_AV_AUD_DBYTE(3), val);
-+	sum += val;
-+
-+	val = (info_aud->db5_downmix_inh << 7) | (info_aud->db5_lsv << 3);
-+	hdmi_write_reg(HDMI_CORE_AV_AUD_DBYTE(4), val);
-+	sum += val;
-+
-+	hdmi_write_reg(HDMI_CORE_AV_AUD_DBYTE(5), 0x00);
-+	hdmi_write_reg(HDMI_CORE_AV_AUD_DBYTE(6), 0x00);
-+	hdmi_write_reg(HDMI_CORE_AV_AUD_DBYTE(7), 0x00);
-+	hdmi_write_reg(HDMI_CORE_AV_AUD_DBYTE(8), 0x00);
-+	hdmi_write_reg(HDMI_CORE_AV_AUD_DBYTE(9), 0x00);
-+
-+	checksum = 0x100 - sum;
-+	hdmi_write_reg(HDMI_CORE_AV_AUDIO_CHSUM, checksum);
-+
-+	/*
-+	 * TODO: Add MPEG and SPD enable and repeat cfg when EDID parsing
-+	 * is available.
-+	 */
-+}
-+
-+static int hdmi_config_audio_acr(u32 sample_freq, u32 *n, u32 *cts)
-+{
-+	u32 r;
-+	u32 deep_color = 0;
-+	u32 pclk = hdmi.cfg.timings.timings.pixel_clock;
-+
-+	if (n == NULL || cts == NULL)
-+		return -EINVAL;
-+	/*
-+	 * Obtain current deep color configuration. This needed
-+	 * to calculate the TMDS clock based on the pixel clock.
-+	 */
-+	r = REG_GET(HDMI_WP_VIDEO_CFG, 1, 0);
-+	switch (r) {
-+	case 1: /* No deep color selected */
-+		deep_color = 100;
-+		break;
-+	case 2: /* 10-bit deep color selected */
-+		deep_color = 125;
-+		break;
-+	case 3: /* 12-bit deep color selected */
-+		deep_color = 150;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	switch (sample_freq) {
-+	case 32000:
-+		if ((deep_color == 125) && ((pclk == 54054)
-+				|| (pclk == 74250)))
-+			*n = 8192;
-+		else
-+			*n = 4096;
-+		break;
-+	case 44100:
-+		*n = 6272;
-+		break;
-+	case 48000:
-+		if ((deep_color == 125) && ((pclk == 54054)
-+				|| (pclk == 74250)))
-+			*n = 8192;
-+		else
-+			*n = 6144;
-+		break;
-+	default:
-+		*n = 0;
-+		return -EINVAL;
-+	}
-+
-+	/* Calculate CTS. See HDMI 1.3a or 1.4a specifications */
-+	*cts = pclk * (*n / 128) * deep_color / (sample_freq / 10);
-+
-+	return 0;
-+}
-+#endif
-+
- /* HDMI HW IP initialisation */
- static int omapdss_hdmihw_probe(struct platform_device *pdev)
- {
++struct hdmi_core_audio_config {
++	struct hdmi_core_audio_i2s_config	i2s_cfg;
++	enum hdmi_core_audio_sample_freq	freq_sample;
++	bool					fs_override;
++	u32					n;
++	u32					cts;
++	u32					aud_par_busclk;
++	enum hdmi_core_audio_layout		layout;
++	enum hdmi_core_cts_mode			cts_mode;
++	bool					use_mclk;
++	enum hdmi_audio_mclk_mode		mclk_mode;
++	bool					en_acr_pkt;
++	bool					en_dsd_audio;
++	bool					en_parallel_aud_input;
++	bool					en_spdif;
++};
+ #endif
 -- 
 1.7.1
 
