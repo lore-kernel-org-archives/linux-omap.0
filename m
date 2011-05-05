@@ -1,216 +1,148 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v2 11/12] OMAP: Serial: Use resume call from prcm to enable uart
-Date: Wed, 04 May 2011 17:11:45 -0700
-Message-ID: <87pqnym2f2.fsf@ti.com>
-References: <1304080796-625-1-git-send-email-govindraj.raja@ti.com>
-	<1304080796-625-12-git-send-email-govindraj.raja@ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: Common clock and dvfs
+Date: Thu, 05 May 2011 07:08:48 +0200
+Message-ID: <4DC230E0.7090909@ti.com>
+References: <4DC07F10.6010305@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <1304080796-625-12-git-send-email-govindraj.raja@ti.com>
-	(Govindraj R.'s message of "Fri, 29 Apr 2011 18:09:55 +0530")
-Sender: linux-serial-owner@vger.kernel.org
-To: "Govindraj.R" <govindraj.raja@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Rajendra Nayak <rnayak@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:51138 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751085Ab1EEFJe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 5 May 2011 01:09:34 -0400
+In-Reply-To: <4DC07F10.6010305@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Colin Cross <ccross@google.com>
+Cc: "Hilman, Kevin" <khilman@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "Turquette, Mike" <mturquette@ti.com>, Thomas Gleixner <tglx@linutronix.de>, "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, MyungJoo Ham <myungjoo.ham@samsung.com>, Mark Brown <broonie@sirena.org.uk>, Paul Walmsley <paul@pwsan.com>
 
-"Govindraj.R" <govindraj.raja@ti.com> writes:
+(Cc folks with some DVFS interest)
 
-> Use resume idle call from prcm_irq to enable uart_port from low power states.
-> Add api to check pad wakeup status which will we used from uart_resume func.
-> to enable back uart port if a wakeup event occurred.
+Hi Colin,
+
+On Fri, 22 Apr 2011, Colin Cross wrote:
+> Now that we are approaching a common clock management implementation,
+> I was thinking it might be the right place to put a common dvfs
+> implementation as well.
 >
-> UART_Resume func. can be removed once we have irq_chaining functionality
-> available.
+> It is very common for SoC manufacturers to provide a table of the
+> minimum voltage required on a voltage rail for a clock to run at a
+> given frequency.  There may be multiple clocks in a voltage rail that
+> each can specify their own minimum voltage, and one clock may affect
+> multiple voltage rails.  I have seen two ways to handle keeping the
+> clocks and voltages within spec:
 >
-> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
+> The Tegra way is to put everything dvfs related under the clock
+> framework.  Enabling (or preparing, in the new clock world) or raising
+> the frequency calls dvfs_set_rate before touching the clock, which
+> looks up the required voltage on a voltage rail, aggregates it with
+> the other voltage requests, and passes the minimum voltage required to
+> the regulator api.  Disabling or unpreparing, or lowering the
+> frequency changes the clock first, and then calls dvfs_set_rate.  For
+> a generic implementation, an SoC would provide the clock/dvfs
+> framework with a list of clocks, the voltages required for each
+> frequency step on the clock, and the regulator name to change.  The
+> frequency/voltage tables are similar to OPP, except that OPP gets
+> voltages for a device instead of a clock.  In a few odd cases (Tegra
+> always has a few odd cases), a clock that is internal to a device and
+> not exposed to the clock framework (pclk output on the display, for
+> example) has a voltage requirement, which requires some devices to
+> manually call dvfs_set_rate directly, but with a common clock
+> framework it would probably be possible for the display driver to
+> export pclk as a real clock.
 
-The part adding a new hwmod API needs to be separated out into a
-separate patch which is not dependent on the rest of this series.
+Those kinds of exceptions are somehow the rules for an OMAP4 device. 
+Most scalable devices are using some internal dividers or even internal 
+PLL to control the scalable clock rate (DSS, HSI, MMC, McBSP... the 
+OMAP4430 Data Manual [1] is providing the various clock rate limitation 
+depending of the OPP).
+And none of these internal dividers are handled by the clock fmwk today.
 
-> ---
->  arch/arm/mach-omap2/mux.c                     |   23 +++++++++++++++++++++++
->  arch/arm/mach-omap2/mux.h                     |   13 +++++++++++++
->  arch/arm/mach-omap2/omap_hwmod.c              |   13 +++++++++++++
->  arch/arm/mach-omap2/pm24xx.c                  |    2 ++
->  arch/arm/mach-omap2/pm34xx.c                  |    2 ++
->  arch/arm/mach-omap2/serial.c                  |   23 +++++++++++++++++++++++
->  arch/arm/plat-omap/include/plat/omap-serial.h |    2 ++
->  arch/arm/plat-omap/include/plat/omap_hwmod.h  |    1 +
->  arch/arm/plat-omap/include/plat/serial.h      |    1 +
->  drivers/tty/serial/omap-serial.c              |   23 +++++++++++++++++++++++
->  10 files changed, 103 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
-> index a4ab1e3..7149671 100644
-> --- a/arch/arm/mach-omap2/mux.c
-> +++ b/arch/arm/mach-omap2/mux.c
-> @@ -348,6 +348,29 @@ err1:
->  	return NULL;
->  }
->  
-> +/* Gets the wakeup status of given pad from omap-hwmod.
-> + * Returns the wake_up status bit of available pad mux pin
-> + */
+For sure, it should be possible to extend the clock data with internal 
+devices clock nodes (like the UART baud rate divider for example), but 
+then we will have to handle a bunch of nodes that may not be always 
+available depending of device state. In order to do that, you have to 
+tie these clocks node to the device that contains them.
 
-fix multi-line comment style
+And for the clocks that do not belong to any device, like most PRCM 
+source clocks or DPLL inside OMAP, we can easily define a PRCM device or 
+several CM (Clock Manager) devices that will handle all these clock nodes.
 
-> +bool omap_hwmod_mux_wakeup(struct omap_hwmod_mux_info *hmux)
+> The proposed OMAP4 way (I believe, correct me if I am wrong) is to
+> create a new api outside the clock api that calls into both the clock
+> api and the regulator api in the correct order for each operation,
+> using OPP to determine the voltage.  This has a few disadvantages
+> (obviously, I am biased, having written the Tegra code) - clocks and
+> voltages are tied to a device, which is not always the case for
+> platforms outside of OMAP, and drivers must know if their hardware
+> requires voltage scaling.  The clock api becomes unsafe to use on any
+> device that requires dvfs, as it could change the frequency higher
+> than the supported voltage.
 
-The name here should be more descriptive: like _get_wake_status or
-something.
+You have to tie clock and voltage to a device. Most of the time a clock 
+does not have any clear relation with a voltage domain. It can even 
+cross power / voltage domain without any issue.
+The efficiency of the DVFS technique is mainly due to the reduction of 
+the voltage rail that supply a device. In order to achieve that you have 
+to reduce the clock rate of one or several clocks nodes that supply the 
+critical path inside the HW.
 
-> +{
-> +	int i;
-> +	unsigned int val;
-> +	u8 ret = 0;
-> +
-> +	for (i = 0; i < hmux->nr_pads; i++) {
-> +		struct omap_device_pad *pad = &hmux->pads[i];
-> +
-> +		val = omap_mux_read(pad->partition,
-> +					pad->mux->reg_offset);
-> +		if (val & OMAP_WAKEUP_EVENT) {
-> +			ret = 1;
-> +			break;
-> +		}
-> +	}
-> +
-> +	return ret;
-> +}
-> +
->  /* Assumes the calling function takes care of locking */
->  void omap_hwmod_mux(struct omap_hwmod_mux_info *hmux, u8 state)
->  {
-> diff --git a/arch/arm/mach-omap2/mux.h b/arch/arm/mach-omap2/mux.h
-> index 137f321..379fb6e 100644
-> --- a/arch/arm/mach-omap2/mux.h
-> +++ b/arch/arm/mach-omap2/mux.h
-> @@ -225,8 +225,21 @@ omap_hwmod_mux_init(struct omap_device_pad *bpads, int nr_pads);
->   */
->  void omap_hwmod_mux(struct omap_hwmod_mux_info *hmux, u8 state);
->  
-> +
-> +/**
-> + * omap_hwmod_mux_wakeup - omap hwmod check given pad had wakeup event
-> + * @hmux:		Pads for a hwmod
-> + *
-> + * Called only from omap_hwmod.c, do not use.
-> + */
+The clock node itself does not know anything about the device and that's 
+why it should not be the proper structure to do DVFS.
 
-Please put the kerneldoc comments in the C file instead of the header.
+OMAP moved away from using the clock nodes to represent IP blocks 
+because the clock abstraction was not enough to represent the way an IP 
+is interacting with clocks. That's why omap_hwmod was introduced to 
+represent an IP block.
 
-> +bool omap_hwmod_mux_wakeup(struct omap_hwmod_mux_info *hmux);
->  #else
->  
-> +static inline bool omap_hwmod_mux_wakeup(struct omap_hwmod_mux_info *hmux)
-> +{
-> +	return 0;
-> +}
-> +
->  static inline int omap_mux_init_gpio(int gpio, int val)
->  {
->  	return 0;
-> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-> index 4a12336..86cb8c4 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod.c
-> @@ -2403,3 +2403,16 @@ int omap_hwmod_enable_ioring_wakeup(struct omap_hwmod *oh, bool enable)
->  
->  	return ret;
->  }
-> +
-> +/**
-> + * omap_hwmod_pad_wakeup_status - get pad wakeup status if mux is available.
+> Is the clock api the right place to do dvfs, or should the clock api
+> be kept simple, and more complicated operations like dvfs be kept
+> outside?
 
-How about _get_pad_wakeup_status()
+In term of SW layering, so far we have the clock fmwk and the regulator 
+fmwk. Since DVFS is about both clock and voltage scaling, it makes more 
+sense to me to handle DVFS on top of both existing fmwks. Let stick to 
+the "do one thing and do it well" principle instead of hacking an 
+existing fmwk with what I consider to be an unrelated functionality.
 
-> + * @oh: struct omap_hwmod *
-> + *
-> + * Returns the wake_up status bit of available pad mux pin.
+Moreover, the only exiting DVFS SW on Linux today is CPUFreq, so 
+extending this fmwk to a devfreq kind of fwmk seems a more logical 
+approach to me.
 
-or on error... ?
+The important point is that IMO, the device should be the central 
+component of any DVFS implementation. Both clock and voltage are just 
+some device resources that have to change synchronously to reduce the 
+power consumption of the device.
 
-> + */
-> +int omap_hmwod_pad_wakeup_status(struct omap_hwmod *oh)
-> +{
-> +	if (oh->mux)
-> +		return omap_hwmod_mux_wakeup(oh->mux);
-> +	return -EINVAL;
-> +}
-> diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
-> index c405bda..ba58a1d 100644
-> --- a/arch/arm/mach-omap2/pm24xx.c
-> +++ b/arch/arm/mach-omap2/pm24xx.c
-> @@ -137,6 +137,8 @@ static void omap2_enter_full_retention(void)
->  			   OMAP_SDRC_REGADDR(SDRC_DLLA_CTRL),
->  			   OMAP_SDRC_REGADDR(SDRC_POWER));
->  
-> +	omap_uart_resume_idle();
-> +
->  no_sleep:
->  	if (omap2_pm_debug) {
->  		unsigned long long tmp;
-> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> index ce0ecdc..3960330 100644
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -216,6 +216,8 @@ static int prcm_clear_mod_irqs(s16 module, u8 regs)
->  
->  	wkst = omap2_prm_read_mod_reg(module, wkst_off);
->  	wkst &= omap2_prm_read_mod_reg(module, grpsel_off);
-> +
-> +	c += omap_uart_resume_idle();
+Because the clock is not the central piece of the DVFS sequence, I don't 
+think it deserves to handle the whole sequence including voltage  scaling.
 
-No...
+A change to a clock rate might trigger a voltage change, but the 
+opposite is true as well. A reduction of the voltage could trigger the 
+clock rate change inside all the devices that belong to the voltage domain.
+Because of that, both fmwks are siblings. This is not a parent-child 
+relationship.
 
-[...]
+Another important point is that in order to trigger a DVFS sequence you 
+have to do some voting to take into account shared clock and shared 
+voltage domains.
 
-> diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-> index 9ed993c..eea478c 100644
-> --- a/drivers/tty/serial/omap-serial.c
-> +++ b/drivers/tty/serial/omap-serial.c
-> @@ -43,6 +43,7 @@
->  #include <plat/dmtimer.h>
->  #include <plat/omap-serial.h>
->  #include <plat/omap_device.h>
-> +#include <plat/serial.h>
->  
->  static struct uart_omap_port *ui[OMAP_MAX_HSUART_PORTS];
->  
-> @@ -108,6 +109,27 @@ static inline void serial_omap_port_enable(struct uart_omap_port *up)
->  	pm_runtime_get_sync(&up->pdev->dev);
->  }
->  
-> +/* TBD: Should be removed once we irq-chaining mechanism in place */
+Moreover, playing directly with a clock rate is not necessarily 
+appropriate or sufficient for some devices. For example, the 
+interconnect should expose a BW knob instead of a clock rate one.
+In general, some more abstract information like BW, latency or 
+performance level (P-state) should be the ones to be exposed at driver 
+level.
 
-...indeed...
+By exposing such knobs, the underlying DVFS fmwk will be able to do 
+voting based on all the system constraints and then set the proper clock 
+rate using clock fmwk if the divider is exposed as a clock node or let 
+the driver convert the final device recommendation using whatever 
+register that will adjust the critical clock path rate.
 
-> +u32 omap_uart_resume_idle()
-> +{
-> +	int i;
-> +	u32 ret = 0;
-> +
-> +	for (i = 0; i < OMAP_MAX_HSUART_PORTS; i++) {
-> +		struct uart_omap_port *up = ui[i];
-> +
-> +		if (!up)
-> +			continue;
-> +
-> +		if (up->chk_wakeup(up->pdev)) {
-> +			serial_omap_port_enable(up);
-> +			serial_omap_port_disable(up);
-> +			ret++;
-> +		}
-> +	}
-> +	return ret;
-> +}
+Regards,
+Benoit
 
-... this is just putting back basically the same thing that was removed in
-patch 1.  IOW, this is now being checked for *every* PRCM wakeup, which
-is no different than having it in the idle path.
 
-I thought I understood that you had the SW IRQ triggering working, so
-this part should not be necessary.  
-
-Kevin
+[1] http://focus.ti.com/pdfs/wtbu/OMAP4430_ES2.x_DM_Public_Book_vC.pdf
