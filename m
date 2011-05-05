@@ -1,58 +1,58 @@
-From: <ilkka.koskinen@nokia.com>
-Subject: RE: [PATCH] rtc-twl: Switch to using threaded irq
-Date: Thu, 5 May 2011 07:51:15 +0000
-Message-ID: <4F5287B0C366D047BF44025F9ED7BB43E9D7@008-AM1MPN1-001.mgdnok.nokia.com>
-References: <1300291634-17884-1-git-send-email-ilkka.koskinen@nokia.com>,<BANLkTinp8M4nndDC5Sfm=PzCiL-vGEqELg@mail.gmail.com>
+From: srinath@mistralsolutions.com
+Subject: [Patch v1] AM35xx-Craneboard:Update
+Date: Thu,  5 May 2011 12:45:08 +0530
+Message-ID: <1304579708-16018-1-git-send-email-srinath@mistralsolutions.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.24]:34621 "EHLO mgw-da01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751844Ab1EEHv4 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 May 2011 03:51:56 -0400
-In-Reply-To: <BANLkTinp8M4nndDC5Sfm=PzCiL-vGEqELg@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: linux@arm.linux.org.uk, umeshk@mistralsolutions.com, tony@atomide.com, nagendra@mistralsolutions.com, "Srinath.R" <srinath@mistralsolutions.com>, linux-kernel@vger.kernel.org, khilman@deeprootsystems.com, jdk@ti.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, john.stultz@linaro.org
-Cc: a.zummo@towertech.it, rtc-linux@googlegroups.com, linux-omap@vger.kernel.org, balajitk@ti.com, ilkkakos@kolumbus.fi
 
+From: Srinath.R <srinath@mistralsolutions.com>
 
-Hi,
+Replaced gpio_request()/gpio_direction_output() with gpio_request_one() in am3517_crane_init.
 
-Tony and John: What would be the appropriate path for this patch?
+Signed-off-by: Srinath.R <srinath@mistralsolutions.com>
+---
+ arch/arm/mach-omap2/board-am3517crane.c |   10 ++--------
+ 1 files changed, 2 insertions(+), 8 deletions(-)
 
-Cheers, Ilkka
-
-On Apr 13, 2011 Krishnamoorthy, Balaji T  wrote:
->On Wed, Mar 16, 2011 at 9:37 PM, Ilkka Koskinen
-<ilkka.koskinen@nokia.com> wrote:
->>
->> The driver is accessing to i2c bus in interrupt handler.
->> Therefore, it should use threaded irq.
-
->Acked-by: Balaji T K <balajitk@ti.com>
-
->>
->> Signed-off-by: Ilkka Koskinen <ilkka.koskinen@nokia.com>
->> ---
->>  drivers/rtc/rtc-twl.c |    2 +-
->>  1 files changed, 1 insertions(+), 1 deletions(-)
->>
->> diff --git a/drivers/rtc/rtc-twl.c b/drivers/rtc/rtc-twl.c
->> index ed1b868..2715b96 100644
->> --- a/drivers/rtc/rtc-twl.c
->> +++ b/drivers/rtc/rtc-twl.c
->> @@ -475,7 +475,7 @@ static int __devinit twl_rtc_probe(struct platform_device *pdev)
->>        if (ret < 0)
->>                goto out1;
->>
->> -       ret = request_irq(irq, twl_rtc_interrupt,
->> +       ret = request_threaded_irq(irq, NULL, twl_rtc_interrupt,
->>                                IRQF_TRIGGER_RISING,
->>                                dev_name(&rtc->dev), rtc);
->>        if (ret < 0) {
->> --
->> 1.7.0.4
->>
+diff --git a/arch/arm/mach-omap2/board-am3517crane.c b/arch/arm/mach-omap2/board-am3517crane.c
+index a890d24..b8c7150 100644
+--- a/arch/arm/mach-omap2/board-am3517crane.c
++++ b/arch/arm/mach-omap2/board-am3517crane.c
+@@ -89,19 +89,13 @@ static void __init am3517_crane_init(void)
+ 		return;
+ 	}
+ 
+-	ret = gpio_request(GPIO_USB_POWER, "usb_ehci_enable");
++	ret = gpio_request_one(GPIO_USB_POWER, GPIOF_OUT_INIT_HIGH,
++				"usb_ehci_enable");
+ 	if (ret < 0) {
+ 		pr_err("Can not request GPIO %d\n", GPIO_USB_POWER);
+ 		return;
+ 	}
+ 
+-	ret = gpio_direction_output(GPIO_USB_POWER, 1);
+-	if (ret < 0) {
+-		gpio_free(GPIO_USB_POWER);
+-		pr_err("Unable to initialize EHCI power\n");
+-		return;
+-	}
+-
+ 	usbhs_init(&usbhs_bdata);
+ }
+ 
+-- 
+1.5.3.4
