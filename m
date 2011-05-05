@@ -1,392 +1,262 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: Common clock and dvfs
-Date: Thu, 05 May 2011 23:08:22 +0200
-Message-ID: <4DC311C6.7090707@ti.com>
-References: <4DC07F10.6010305@ti.com>	<4DC230E0.7090909@ti.com> <BANLkTi=gP80iiJTECUoc+36z_1J68ALJNA@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH v3] OMAP2/3: hwmod: fix the i2c-reset timeout during
+ bootup
+Date: Thu, 5 May 2011 15:58:56 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1105051548210.30136@utopia.booyaka.com>
+References: <1304328111-15999-1-git-send-email-avinashhm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:57279 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753152Ab1EEVJF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 5 May 2011 17:09:05 -0400
-In-Reply-To: <BANLkTi=gP80iiJTECUoc+36z_1J68ALJNA@mail.gmail.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:47909 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752318Ab1EEV65 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 May 2011 17:58:57 -0400
+In-Reply-To: <1304328111-15999-1-git-send-email-avinashhm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Colin Cross <ccross@google.com>
-Cc: "Hilman, Kevin" <khilman@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "Turquette, Mike" <mturquette@ti.com>, Thomas Gleixner <tglx@linutronix.de>, "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, MyungJoo Ham <myungjoo.ham@samsung.com>, Mark Brown <broonie@sirena.org.uk>, Paul Walmsley <paul@pwsan.com>
+To: "Avinash.H.M" <avinashhm@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>
 
-On 5/5/2011 8:11 AM, Colin Cross wrote:
-> On Wed, May 4, 2011 at 10:08 PM, Cousson, Benoit<b-cousson@ti.com>  wrote:
->> (Cc folks with some DVFS interest)
->>
->> Hi Colin,
->>
->> On Fri, 22 Apr 2011, Colin Cross wrote:
->>>
->>> Now that we are approaching a common clock management implementation,
->>> I was thinking it might be the right place to put a common dvfs
->>> implementation as well.
->>>
->>> It is very common for SoC manufacturers to provide a table of the
->>> minimum voltage required on a voltage rail for a clock to run at a
->>> given frequency.  There may be multiple clocks in a voltage rail that
->>> each can specify their own minimum voltage, and one clock may affect
->>> multiple voltage rails.  I have seen two ways to handle keeping the
->>> clocks and voltages within spec:
->>>
->>> The Tegra way is to put everything dvfs related under the clock
->>> framework.  Enabling (or preparing, in the new clock world) or raising
->>> the frequency calls dvfs_set_rate before touching the clock, which
->>> looks up the required voltage on a voltage rail, aggregates it with
->>> the other voltage requests, and passes the minimum voltage required to
->>> the regulator api.  Disabling or unpreparing, or lowering the
->>> frequency changes the clock first, and then calls dvfs_set_rate.  For
->>> a generic implementation, an SoC would provide the clock/dvfs
->>> framework with a list of clocks, the voltages required for each
->>> frequency step on the clock, and the regulator name to change.  The
->>> frequency/voltage tables are similar to OPP, except that OPP gets
->>> voltages for a device instead of a clock.  In a few odd cases (Tegra
->>> always has a few odd cases), a clock that is internal to a device and
->>> not exposed to the clock framework (pclk output on the display, for
->>> example) has a voltage requirement, which requires some devices to
->>> manually call dvfs_set_rate directly, but with a common clock
->>> framework it would probably be possible for the display driver to
->>> export pclk as a real clock.
->>
->> Those kinds of exceptions are somehow the rules for an OMAP4 device. Most
->> scalable devices are using some internal dividers or even internal PLL to
->> control the scalable clock rate (DSS, HSI, MMC, McBSP... the OMAP4430 Data
->> Manual [1] is providing the various clock rate limitation depending of the
->> OPP).
->> And none of these internal dividers are handled by the clock fmwk today.
->>
->> For sure, it should be possible to extend the clock data with internal
->> devices clock nodes (like the UART baud rate divider for example), but then
->> we will have to handle a bunch of nodes that may not be always available
->> depending of device state. In order to do that, you have to tie these clocks
->> node to the device that contains them.
->
-> I agree there are cases where the clock framework may not be a fit for
-> a specific divider, but it would be simple to export the same
-> dvfs_set_rate functions that the generic clk_set_rate calls, and allow
-> drivers that need to scale their own clocks to take advantage of the
-> common tables.
->
->> And for the clocks that do not belong to any device, like most PRCM source
->> clocks or DPLL inside OMAP, we can easily define a PRCM device or several CM
->> (Clock Manager) devices that will handle all these clock nodes.
->>
->>> The proposed OMAP4 way (I believe, correct me if I am wrong) is to
->>> create a new api outside the clock api that calls into both the clock
->>> api and the regulator api in the correct order for each operation,
->>> using OPP to determine the voltage.  This has a few disadvantages
->>> (obviously, I am biased, having written the Tegra code) - clocks and
->>> voltages are tied to a device, which is not always the case for
->>> platforms outside of OMAP, and drivers must know if their hardware
->>> requires voltage scaling.  The clock api becomes unsafe to use on any
->>> device that requires dvfs, as it could change the frequency higher
->>> than the supported voltage.
->>
->> You have to tie clock and voltage to a device. Most of the time a clock does
->> not have any clear relation with a voltage domain. It can even cross power /
->> voltage domain without any issue.
->> The efficiency of the DVFS technique is mainly due to the reduction of the
->> voltage rail that supply a device. In order to achieve that you have to
->> reduce the clock rate of one or several clocks nodes that supply the
->> critical path inside the HW.
->
-> A clock crossing a voltage domain is not a problem, a single clock can
-> have relationships to multiple regulators.  But a clock does not need
-> to be tied to a device.  From the silicon perspective, it doesn't
-> matter how you divide up the devices in the kernel, a clock is just a
-> line toggling at a rate, and the maximum speed it can toggle is
-> determined by the silicon it feeds and the voltage that silicon is
-> operating at.  If a device can be turned on or off, that's a clock
-> gate, and the line downstream from the clock gate is a separate clock.
+Hello Avinash
 
-Fully agree.
+On Mon, 2 May 2011, Avinash.H.M wrote:
 
-Just to clarify the terminology, I'm using device to represent the IP 
-block as well. The mapping is not necessarily one to one, but for most 
-relevant IPs this is mostly true. In our case, the hwmod will represent 
-the HW device.
+> The sequence of _ocp_softreset doesn't work for i2c. The i2c module has a
+> special sequence to reset the module. The sequence is
+>  - Disable the I2C.
+>  - Write to SOFTRESET bit.
+>  - Enable the I2C.
+>  - Poll on the RESETDONE bit.
+> The sequence is implemented as a function and the i2c_class is updated with
+> the correct 'reset' pointer.  omap_hwmod_softreset function is implemented
+> which triggers the softreset by writing into sysconfig register. On following
+> this sequence, i2c module resets properly and timeouts are not seen.
+> 
+> Cc: Rajendra Nayak <rnayak@ti.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Cc: Benoit Cousson <b-cousson@ti.com>
+> Cc: Kevin Hilman <khilman@ti.com>
+> Signed-off-by: Avinash.H.M <avinashhm@ti.com>
+> ---
+> 
+> The patch is based on
+>  * git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
+>  * master branch.
+>  * 9be20f0 commit. ( Linux-omap rebuilt: Updated to -rc5 )
 
-My point is that a Soc with just clocks and voltage domains will be 
-pretty useless.
-We do have as well a bunch of IPs that are represented by devices, and 
-these IPs are the relevant piece of HW we have to managed.
+Please base all your patches against mainline commits.  I suggest using 
+v2.6.39-rc6.
 
-Clocks and voltages are just some resources needed by an IP to work 
-properly.
-Hence the importance of the device.
+Also some comments:
 
->> The clock node itself does not know anything about the device and that's why
->> it should not be the proper structure to do DVFS.
->
-> One of us is confused here.  The clock node does not know about the
-> device, and it doesn't need to.  All the clock needs to know is that
-> the manufacturer has specified that for a single node to toggle at
-> some rate, a voltage rail must be set some minimum voltage.  The
-> devices are irrelevant.
+> Changes from previous versions:
+> from v1:
+> 	- moved i2c specific things from hwmod files to i2c files.
+> 	- fixed comments from Paul.
+> 	- http://www.spinics.net/lists/linux-omap/msg49483.html
+> 
+> from v2: 
+> 	- Avoided direct SYSCONFIG access in i2c.c
+> 	- http://www.spinics.net/lists/linux-omap/msg49632.html
+> 
+> Testing:
+> * build tested omap2plus_defconfig for warnings and errors. none introduced.
+> * boot tested on 2430. 
+> * tested for 'core off' in suspend resume on 3430 sdp. core off counters
+>   increment after suspend resume. 
+> 
+>  arch/arm/mach-omap2/i2c.c                    |   54 ++++++++++++++++++++++++++
+>  arch/arm/mach-omap2/omap_hwmod.c             |   12 ++++++
+>  arch/arm/mach-omap2/omap_hwmod_2420_data.c   |    1 +
+>  arch/arm/mach-omap2/omap_hwmod_2430_data.c   |    1 +
+>  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c   |    1 +
+>  arch/arm/plat-omap/include/plat/i2c.h        |    4 ++
+>  arch/arm/plat-omap/include/plat/omap_hwmod.h |    1 +
+>  7 files changed, 74 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/i2c.c b/arch/arm/mach-omap2/i2c.c
+> index 79c478c..bd50e26 100644
+> --- a/arch/arm/mach-omap2/i2c.c
+> +++ b/arch/arm/mach-omap2/i2c.c
+> @@ -21,9 +21,16 @@
+>  
+>  #include <plat/cpu.h>
+>  #include <plat/i2c.h>
+> +#include <plat/common.h>
+>  
+>  #include "mux.h"
+>  
+> +/* In register I2C_CON, Bit 15 is the I2C enable bit */
+> +#define I2C_EN				BIT(15)
+> +#define I2C_CON_OFFSET			0x24
+> +/* Maximum microseconds to wait for OMAP module to softreset */
+> +#define MAX_MODULE_SOFTRESET_WAIT	10000
+> +
+>  void __init omap2_i2c_mux_pins(int bus_id)
+>  {
+>  	char mux_name[sizeof("i2c2_scl.i2c2_scl")];
+> @@ -37,3 +44,50 @@ void __init omap2_i2c_mux_pins(int bus_id)
+>  	sprintf(mux_name, "i2c%i_sda.i2c%i_sda", bus_id, bus_id);
+>  	omap_mux_init_signal(mux_name, OMAP_PIN_INPUT);
+>  }
+> +
+> +/**
+> + * omap_i2c_reset- reset the omap i2c module.
 
-The manufacturer will specify the IP (represented by a device) 
-characteristics in term of voltage rails, clock input, IRQ...
-This is all about the IP, the clock is just a parameter.
+Please put a space before the dash.
 
-The clock itself even tied with a voltage domain is of no use if not 
-connected to an IP.
+> + * @oh: struct omap_hwmod *
+> + *
+> + * The i2c moudle in omap2, omap3 had a special sequence to reset. The
+> + * sequence is:
+> + * - Disable the I2C.
+> + * - Write to SOFTRESET bit.
+> + * - Enable the I2C.
+> + * - Poll on the RESETDONE bit.
+> + * The sequence is implemented in below function. This is called for 2420,
+> + * 2430 and omap3.
+> + */
+> +int omap_i2c_reset(struct omap_hwmod *oh)
+> +{
+> +	u32 v;
+> +	int c = 0;
+> +
+> +	/* Disable I2C */
+> +	v = omap_hwmod_read(oh, I2C_CON_OFFSET);
+> +	v = v & ~I2C_EN;
+> +	omap_hwmod_write(v, oh, I2C_CON_OFFSET);
+> +
+> +	/* Write to the SOFTRESET bit */
+> +	omap_hwmod_softreset(oh);
+> +
+> +	/* Enable I2C */
+> +	v = omap_hwmod_read(oh, I2C_CON_OFFSET);
+> +	v |= I2C_EN;
+> +	omap_hwmod_write(v, oh, I2C_CON_OFFSET);
+> +
+> +	/* Poll on RESETDONE bit */
+> +	omap_test_timeout((omap_hwmod_read(oh,
+> +				oh->class->sysc->syss_offs)
+> +				& SYSS_RESETDONE_MASK),
+> +				MAX_MODULE_SOFTRESET_WAIT, c);
+> +
+> +	if (c == MAX_MODULE_SOFTRESET_WAIT)
+> +		pr_warning("%s: %s: softreset failed (waited %d usec)\n",
+> +			__func__, oh->name, MAX_MODULE_SOFTRESET_WAIT);
+> +	else
+> +		pr_debug("%s: %s: softreset in %d usec\n", __func__,
+> +			oh->name, c);
+> +
+> +	return 0;
+> +}
+> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+> index e034294..771fc15 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod.c
+> @@ -1561,6 +1561,18 @@ void omap_hwmod_write(u32 v, struct omap_hwmod *oh, u16 reg_offs)
+>  		__raw_writel(v, oh->_mpu_rt_va + reg_offs);
+>  }
+>  
 
-The DSP DPLL that belongs to the IVA voltage domain can probably run up 
-to 2 GHz at 1.1v without any issue.
-As soon as you connect that clock to the DSP... suddenly you cannot run 
-the DPLL anymore at that rate. You have to reduce it to 400MHz.
-The constraint is purely due the the IP connected to that clock.
+You're missing kerneldoc here.  Please add it.
 
-Imagine now a new release of the SoC (ES2.0 for Ex) with an updated DSP 
-block that can run at 500MHz... Same clock tree, same voltage domain 
-partitioning but because of the new IP version, you can run faster...
+> +void omap_hwmod_softreset(struct omap_hwmod *oh)
+> +{
+> +	u32 v;
+> +
+> +	/* Write to the SOFTRESET bit in SYSCONFIG */
+> +	v = oh->_sysc_cache;
+> +	v |= (0x1 << oh->class->sysc->sysc_fields->srst_shift);
+> +
+> +	oh->_sysc_cache = v;
+> +	omap_hwmod_write(v, oh, oh->class->sysc->sysc_offs);
+> +}
 
-What piece of HW is really relevant in that change? It is neither the 
-clock nor the voltage domain. It is only the device that have to update 
-its requirement toward its resources suppliers.
+This is a public function, so you need to validate your oh argument and 
+return an error if something isn't right.  Similarly, you should use the 
+existing function _set_softreset() to set the bit, because it also does 
+some errorchecking.
 
-> Imagine a chip where a clock can feed devices A, B, and C.  If the
-> devices are always clocked at the same rate, and can't gate their
-> clocks, the minimum voltage that can be applied to a rail is
-> determined ONLY by the rate of the clock.
-> If device A can be disabled, with its clock gated, then the devices no
-> longer share a clock.  Device A is controlled by clock 1, and devices
-> B and C are controlled by clock 2, where clock 2 is the parent of
-> clock 1, and clock 1 is just a "clock gate" building block from the
-> generic clock code.  If clock 1 is enabled, both clock 1 and clock 2
-> apply their own, independent minimum voltage requirements on a
-> regulator.
-
-As previously explained, a clock node cannot have any voltage 
-requirement toward a voltage domain. It will depend of the devices 
-supplied by this clock node. Only the HW device can have frequency 
-requirement and voltage requirement according to its HW characteristics.
-
-> If clock 1 is disabled, only the voltage requirement of
-> clock 2 is applied.  No knowledge of the device is required, only the
-> voltage requirement for the toggling rate at each node, and each node
-> can be 0, 1, or more devices.
->
->> OMAP moved away from using the clock nodes to represent IP blocks because
->> the clock abstraction was not enough to represent the way an IP is
->> interacting with clocks. That's why omap_hwmod was introduced to represent
->> an IP block.
->
-> omap_hwmod is entirely omap specific, and any generic solution cannot
-> be based on it.
-
-For the moment, because it is a fairly new design, but nothing should 
-prevent us to make it generic if this abstraction is relevant for other SoC.
-
->>> Is the clock api the right place to do dvfs, or should the clock api
->>> be kept simple, and more complicated operations like dvfs be kept
->>> outside?
->>
->> In term of SW layering, so far we have the clock fmwk and the regulator
->> fmwk. Since DVFS is about both clock and voltage scaling, it makes more
->> sense to me to handle DVFS on top of both existing fmwks. Let stick to the
->> "do one thing and do it well" principle instead of hacking an existing fmwk
->> with what I consider to be an unrelated functionality.
->
-> There are two reasons I hate putting DVFS above the clock framework.
->
-> First, it breaks existing users of the clock api.  Any driver that
-> calls the clock api directly risks raising the frequency above the
-> silicon specs.  Instead, you introduce a new api, something like
-> dvfs_set_rate(struct device, frequency), which takes the same
-> arguments as the clock api, except a device instead of a clock, which
-> I have already argued against.  If needs the same arguments to run,
-> and it provides a superset of the functionality, and it is trivial to
-> fall back to the old behavior if the clock is not a dvfs clock, why
-> does it need a new api?
-
-Because it does not have the same purpose.
-
-And it does not break the user of the clock API. It is even the 
-opposite. You are breaking the expectation of the current user of the 
-clock API. Adding DVFS under the clock set_rate will completely change 
-the behaviour of an existing API.
-A set_rate call that use to last a couple of micro second and that was 
-atomic will last potentially 10ms because a voltage change sequence will 
-be done under the hood. I think this is quite a huge side effect that an 
-user of that API might not expect at all.
-
-Just because of that, I think it worth having another API.
-
->> Moreover, the only exiting DVFS SW on Linux today is CPUFreq, so extending
->> this fmwk to a devfreq kind of fwmk seems a more logical approach to me.
->
-> I think this is where we disagree most.  CPUFreq is NOT a DVFS
-> implementation.  It is a frequency scaling implementation only.
-
-I don't think we have such a strong disagreement here. I do agree that 
-CPUFreq is not a full DFVS implementation.
-It is indeed more focused on the governor / decision part.
-The interesting part is the CPUFreq driver layer part that is for my 
-point of view the missing layer we have between the decision layer and 
-the clock / regulator fmwk.
-
-> If it
-> happens to scale the voltage, it is only because that is the logical
-> place to do it.  Every CPUFreq driver that scales the voltage has to
-> look like this:
->
-> pick the cpu frequency
-> if the frequency is increasing, raise the voltage based on the new frequency
-> set the cpu frequency
-> if the frequency is decreasing, lower the voltage based on the new frequency
->
-> Note that the last 3 lines are a completely generic clock-based
-> voltage scaling, and could be moved into the dvfs api under the clock
-> api.
-
-Except in the ACPI world... That does not have necessarily a clock fmwk.
-
->> The important point is that IMO, the device should be the central component
->> of any DVFS implementation. Both clock and voltage are just some device
->> resources that have to change synchronously to reduce the power consumption
->> of the device.
->
-> The don't just have to change synchronously, one exactly determines
-> the other.
-
-No not necessarily, there is a big difference between the clock / 
-voltage you can use based on the actual constraints and the ones you 
-actually use.
-
-A set_rate user does expect the rate to be changed or to fail.
-A DVFS constraint will be expressed using some kind of set_minimum_rate 
-API that will just give the minimum clock frequency value that will 
-allow the device to work properly for the expected task.
-The real frequency will change based on the various constraint the 
-system have. And that can change whenever someone change any constraint 
-in the system.
-A user might require only 200MHz for the DSP for example, but if at 
-least one other device inside the DSP voltage domain does require the 
-highest voltage, there is no point reducing the DSP frequency. It is 
-much more efficient to run it at 400MHz whenever this is possible.
-That's why we do need another API, because the set_rate API is the one 
-that will effectively change the frequency.
-
-Most driver / user should use this kind of set_minimum_rate API and not 
-the set_rate.
-Most of the time they do not care or should not care about the exact 
-clock rate. they just have to ensure that the clock will run at the 
-sufficient rate to do its work properly.
-
-> Given a table from the manufacturer, and a clock
-> frequency, you can always set the voltage rails correctly.
-
-I do agree, my point is just that this should be a HW device related table.
-
->> Because the clock is not the central piece of the DVFS sequence, I don't
->> think it deserves to handle the whole sequence including voltage  scaling.
->>
->> A change to a clock rate might trigger a voltage change, but the opposite is
->> true as well. A reduction of the voltage could trigger the clock rate change
->> inside all the devices that belong to the voltage domain.
->> Because of that, both fmwks are siblings. This is not a parent-child
->> relationship.
-> In what case would you ever trigger a voltage change first?  Devices
-> never care about their voltage, they only care about how fast they can
-> run.  The only case I can think of is thermal throttling, but could
-> just as well be implemented as lowering the clock frequency to allow
-> the voltage to drop.
-
-Devices will indeed never care about voltage directly, but that will 
-happen indirectly because of:
-- voltage domains dependency: Changing the MPU or IVA voltage domain 
-might force the CORE voltage to increase its voltage due to HW 
-limitation. We cannot have the CPU at 1GHz while the interconnect is at 
-the lowest OPP.
-- voltage domain increase due to one device frequency increase might 
-force the other voltage domain devices to increase their frequency.
-- Thermal management might be a good example as well, but in general 
-changing the main contributors frequency (MPU, GPU) should be enough.
-
-In both cases, the indirect voltage change will trigger potentially 
-frequency change.
-
-vdd1 <--> vdd2
-   |         |
-   +----+    +----+
-   |    |    |    |
-devA devB devC devD
-
-With such partitioning, an increase of devA OPP, will increase vdd1 that 
-will trigger an increase of vdd2 that will then broadcast to devices 
-that belong to it. devC and devD might or not increase their frequency 
-to reduce the energy consumption.
-Any devices like processors that can run fast and idle must run at the 
-max frequency allowed by the current voltage.
-
->> Another important point is that in order to trigger a DVFS sequence you have
->> to do some voting to take into accountn shared clock and shared voltage
->> domains.
-> This is conflating frequency selection with voltage selection.  The
-> voltage only depends on the maximum clock that is voted, and the
-> voltage is always a minimum voltage, so other clocks in the same
-> voltage domain can request a higher voltage, which needs to be handled
-> by the regulator api.
->
->> Moreover, playing directly with a clock rate is not necessarily appropriate
->> or sufficient for some devices. For example, the interconnect should expose
->> a BW knob instead of a clock rate one.
->> In general, some more abstract information like BW, latency or performance
->> level (P-state) should be the ones to be exposed at driver level.
-> Yes, but again you are conflating frequency selection with voltage
-> selection.  BW, latency, and performance are all knobs that will
-> determine one or more clock frequencies, but the voltage is determined
-> only from those final clock frequencies.
-
-Not I'm not, I do agree with your point. the final frequency will indeed 
-allow to chose the proper voltage. I do not have any confusion about that.
-
-My whole point is that the freq <-> voltage dependency is bi-directional 
-as explained before, that's why you do need an intermediate layer that 
-will select both freq and voltage depending of the various constraints.
-
-> I agree there is a need for
-> some sort of governor above the clock api, but that governor generally
-> does not need to know voltages.
-
-It is not necessarily a governor but more some kind of QoS at device 
-level. Exposing a clock set_rate on a input clock to a driver is, in 
-general, not very good since it might make the driver platform 
-dependent. Whereas exposing some abstract QoS APIs will avoid a driver 
-to use directly a low level clock set_rate API.
-
-> It may be useful to expose power
-> numbers for the different clock frequencies to it, so it knows what
-> the best clock frequencies to select are based on power vs.
-> performance.
->
->> By exposing such knobs, the underlying DVFS fmwk will be able to do voting
->> based on all the system constraints and then set the proper clock rate using
->> clock fmwk if the divider is exposed as a clock node or let the driver
->> convert the final device recommendation using whatever register that will
->> adjust the critical clock path rate.
-> Note that you only referred to setting clock registers - the governor
-> has no need to directly modify voltages.
-
-You're right, let's rephrase:
-...using whatever register that will adjust the critical clock path rate 
-and then change the voltage if needed.
-
-I do not have any disagreement with you on that point. A freq change 
-might trigger a voltage change. But a voltage change might trigger as 
-well a frequency change to another clock.
-That's why a parent-child relationship does not seems appropriate here 
-for my point of view.
+> +
+>  /**
+>   * omap_hwmod_set_slave_idlemode - set the hwmod's OCP slave idlemode
+>   * @oh: struct omap_hwmod *
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+> index e9a416c..fd386af 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+> @@ -1447,6 +1447,7 @@ static struct omap_hwmod_class_sysconfig i2c_sysc = {
+>  static struct omap_hwmod_class i2c_class = {
+>  	.name		= "i2c",
+>  	.sysc		= &i2c_sysc,
+> +	.reset		= &omap_i2c_reset,
+>  	.rev		= OMAP_I2C_IP_VERSION_1,
+>  };
+>  
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+> index beedda6..4ad4188 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+> @@ -1524,6 +1524,7 @@ static struct omap_hwmod_class_sysconfig i2c_sysc = {
+>  static struct omap_hwmod_class i2c_class = {
+>  	.name		= "i2c",
+>  	.sysc		= &i2c_sysc,
+> +	.reset		= &omap_i2c_reset,
+>  	.rev		= OMAP_I2C_IP_VERSION_1,
+>  };
+>  
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+> index dec1a38..e938810 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+> @@ -1460,6 +1460,7 @@ static struct omap_hwmod omap3xxx_uart4_hwmod = {
+>  static struct omap_hwmod_class i2c_class = {
+>  	.name = "i2c",
+>  	.sysc = &i2c_sysc,
+> +	.reset = &omap_i2c_reset,
+>  	.rev  = OMAP_I2C_IP_VERSION_1,
+>  };
+>  
+> diff --git a/arch/arm/plat-omap/include/plat/i2c.h b/arch/arm/plat-omap/include/plat/i2c.h
+> index fd75dad..20237c1 100644
+> --- a/arch/arm/plat-omap/include/plat/i2c.h
+> +++ b/arch/arm/plat-omap/include/plat/i2c.h
+> @@ -24,6 +24,8 @@
+>  #include <linux/i2c.h>
+>  #include <linux/i2c-omap.h>
+>  
+> +#include <plat/omap_hwmod.h>
+> +
+>  #if defined(CONFIG_I2C_OMAP) || defined(CONFIG_I2C_OMAP_MODULE)
+>  extern int omap_register_i2c_bus(int bus_id, u32 clkrate,
+>  				 struct i2c_board_info const *info,
+> @@ -53,4 +55,6 @@ struct omap_i2c_dev_attr {
+>  void __init omap1_i2c_mux_pins(int bus_id);
+>  void __init omap2_i2c_mux_pins(int bus_id);
+>  
+> +int omap_i2c_reset(struct omap_hwmod *oh);
+> +
+>  #endif /* __ASM__ARCH_OMAP_I2C_H */
+> diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+> index 1adea9c..9637130 100644
+> --- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
+> +++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+> @@ -572,6 +572,7 @@ void omap_hwmod_ocp_barrier(struct omap_hwmod *oh);
+>  
+>  void omap_hwmod_write(u32 v, struct omap_hwmod *oh, u16 reg_offs);
+>  u32 omap_hwmod_read(struct omap_hwmod *oh, u16 reg_offs);
+> +void omap_hwmod_softreset(struct omap_hwmod *oh);
+>  
+>  int omap_hwmod_count_resources(struct omap_hwmod *oh);
+>  int omap_hwmod_fill_resources(struct omap_hwmod *oh, struct resource *res);
+> -- 
+> 1.7.1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
 
-Regards,
-Benoit
-
+- Paul
