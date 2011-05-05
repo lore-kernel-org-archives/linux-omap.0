@@ -1,114 +1,96 @@
-From: Vimal Singh <vimal.newwork@gmail.com>
-Subject: Re: [PATCH] omap : nand : fix subpage ecc issue with prefetch
-Date: Thu, 5 May 2011 19:50:40 +0530
-Message-ID: <BANLkTimfXSOTKPpxFG8+JpCxvpzd14aBOQ@mail.gmail.com>
-References: <1304334638-2198-1-git-send-email-kishore.kadiyala@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH v2 05/12] OMAP: Serial: Hold console lock for console usage.
+Date: Thu, 05 May 2011 07:52:03 -0700
+Message-ID: <8762ppmc8c.fsf@ti.com>
+References: <1304080796-625-1-git-send-email-govindraj.raja@ti.com>
+	<1304080796-625-6-git-send-email-govindraj.raja@ti.com>
+	<87vcxqp577.fsf@ti.com>
+	<BANLkTi=Ded-q777t=fTc_rcX4=HBq5Bh1g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:38148 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752354Ab1EEOkm convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 May 2011 10:40:42 -0400
-Received: by wya21 with SMTP id 21so1667077wya.19
-        for <linux-omap@vger.kernel.org>; Thu, 05 May 2011 07:40:41 -0700 (PDT)
-In-Reply-To: <1304334638-2198-1-git-send-email-kishore.kadiyala@ti.com>
+Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:40545 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753042Ab1EEOwM convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 5 May 2011 10:52:12 -0400
+In-Reply-To: <BANLkTi=Ded-q777t=fTc_rcX4=HBq5Bh1g@mail.gmail.com> (Govindraj's
+	message of "Thu, 5 May 2011 15:55:17 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kishore Kadiyala <kishore.kadiyala@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, bdefaria@adeneo-embedded.com
+To: Govindraj <govindraj.ti@gmail.com>
+Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Rajendra Nayak <rnayak@ti.com>
 
-Hi Artem,
+Govindraj <govindraj.ti@gmail.com> writes:
 
-Can you please give a look on this patch?
-This patch fixes is required for anyone who wants to use this driver
-without using HW ECC.
+> On Thu, May 5, 2011 at 2:13 AM, Kevin Hilman <khilman@ti.com> wrote:
+>> "Govindraj.R" <govindraj.raja@ti.com> writes:
+>>
+>>> Acquire console lock before enabling and writing to console-uart
+>>> to avoid any recursive prints from console write.
+>>> for ex:
+>>> =C2=A0 =C2=A0 =C2=A0 --> printk
+>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 --> uart_console_write
+>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 --> get_sync
+>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 --> printk from omap_devi=
+ce enable
+>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 --> uart_console w=
+rite
+>>
+>> By this time, since the device's runtime PM hooks have been called, =
+the
+>> device's rutime PM state should be set to RPM_SUSPENDING (not yet
+>> RPM_SUSPENDED).
+>>
+>> In addition to the console lock, you should be able to use that flag=
+ to
+>> avoid console writes while the console is in the process of suspendi=
+ng.
+>>
+>
+> Yes RPM_SUSPENDING check helps along with console lock
 
--- Vimal
+Great!
 
-On Mon, May 2, 2011 at 4:40 PM, Kishore Kadiyala
-<kishore.kadiyala@ti.com> wrote:
-> For prefetch engine, read and write =A0got broken in commit '2c01946c=
-'.
-> We never hit a scenario of not getting 'gpmc_prefetch_enable'
-> call success.
-> When reading/writing a subpage with a non divisible by 4 ecc number
-> of bytes, the mis-aligned bytes gets handled first before enabling
-> the Prefetch engine, then it reads/writes rest of the bytes.
+> << Changes as below >>
+> ---------------
+> diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/om=
+ap-serial.c
+> index 59f548f..71964c3 100644
+> --- a/drivers/tty/serial/omap-serial.c
+> +++ b/drivers/tty/serial/omap-serial.c
+> @@ -1040,6 +1040,18 @@ serial_omap_console_write(struct console *co,
+> const char *s,
+>         if (console_trylock())
+>                 console_lock =3D 1;
 >
-> Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
-> Signed-off-by: Vimal Singh <vimal.newwork@gmail.com>
-> Reported-by: Bryan DE FARIA <bdefaria@adeneo-embedded.com>
-> ---
-> =A0drivers/mtd/nand/omap2.c | =A0 12 +++++-------
-> =A01 files changed, 5 insertions(+), 7 deletions(-)
+> +       /*
+> +        * If console_lock is not available and we are in suspending
+> +        * state then we can avoid the console usage scenario
+> +        * as this may introduce recursive prints.
+> +        * Basically this scenario occurs during boot while
+> +        * printing debug bootlogs.
+> +        */
+> +
+> +       if (!console_lock &&
+> +               up->pdev->dev.power.runtime_status =3D=3D RPM_SUSPEND=
+ING)
+> +               return;
+> +
+>         local_irq_save(flags);
+>         if (up->port.sysrq)
+>                 locked =3D 0;
 >
-> diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-> index da9a351..2c8040f 100644
-> --- a/drivers/mtd/nand/omap2.c
-> +++ b/drivers/mtd/nand/omap2.c
-> @@ -263,11 +263,10 @@ static void omap_read_buf_pref(struct mtd_info =
-*mtd, u_char *buf, int len)
-> =A0 =A0 =A0 =A0if (ret) {
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0/* PFPW engine is busy, use cpu copy m=
-ethod */
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (info->nand.options & NAND_BUSWIDTH=
-_16)
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_read_buf16(mtd, bu=
-f, len);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_read_buf16(mtd, (u=
-_char *)p, len);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0else
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_read_buf8(mtd, buf=
-, len);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_read_buf8(mtd, (u_=
-char *)p, len);
-> =A0 =A0 =A0 =A0} else {
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 p =3D (u32 *) buf;
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0do {
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0r_count =3D gpmc_read_=
-status(GPMC_PREFETCH_FIFO_CNT);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0r_count =3D r_count >>=
- 2;
-> @@ -293,7 +292,7 @@ static void omap_write_buf_pref(struct mtd_info *=
-mtd,
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0struct omap_nand_info, mtd);
-> =A0 =A0 =A0 =A0uint32_t w_count =3D 0;
-> =A0 =A0 =A0 =A0int i =3D 0, ret =3D 0;
-> - =A0 =A0 =A0 u16 *p;
-> + =A0 =A0 =A0 u16 *p =3D (u16 *)buf;
-> =A0 =A0 =A0 =A0unsigned long tim, limit;
+> ------------
 >
-> =A0 =A0 =A0 =A0/* take care of subpage writes */
-> @@ -309,11 +308,10 @@ static void omap_write_buf_pref(struct mtd_info=
- *mtd,
-> =A0 =A0 =A0 =A0if (ret) {
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0/* PFPW engine is busy, use cpu copy m=
-ethod */
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (info->nand.options & NAND_BUSWIDTH=
-_16)
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_write_buf16(mtd, b=
-uf, len);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_write_buf16(mtd, (=
-u_char *)p, len);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0else
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_write_buf8(mtd, bu=
-f, len);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_write_buf8(mtd, (u=
-_char *)p, len);
-> =A0 =A0 =A0 =A0} else {
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 p =3D (u16 *) buf;
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0while (len) {
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0w_count =3D gpmc_read_=
-status(GPMC_PREFETCH_FIFO_CNT);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0w_count =3D w_count >>=
- 1;
-> --
-> 1.7.4.1
->
->
+> Is it ok to check the RPM_SUSPENDING flag in driver ?
+> I can't find any API currently available under runtime.h to use.
+
+I would propose a new API in pm_runtime.h similar to
+pm_runtime_suspended() that checks for this.
+
+Kevin
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
