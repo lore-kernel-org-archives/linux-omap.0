@@ -1,50 +1,68 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: DSS pm_runtime problem
-Date: Thu, 05 May 2011 20:02:18 +0300
-Message-ID: <1304614938.30935.44.camel@deskari>
-References: <1304611189.30935.38.camel@deskari>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: Module + offset calculations have to be signed in arch/arm/mach-omap2/pm-debug.c
+Date: Thu, 05 May 2011 10:11:18 -0700
+Message-ID: <87liyljcnd.fsf@ti.com>
+References: <4DC2CED3.80206@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:32916 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754389Ab1EERCr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 May 2011 13:02:47 -0400
-Received: by mail-ew0-f53.google.com with SMTP id 8so859507ewy.40
-        for <linux-omap@vger.kernel.org>; Thu, 05 May 2011 10:02:41 -0700 (PDT)
-In-Reply-To: <1304611189.30935.38.camel@deskari>
+Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:58273 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752942Ab1EERLV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 May 2011 13:11:21 -0400
+Received: by mail-px0-f169.google.com with SMTP id 9so3655825pxi.28
+        for <linux-omap@vger.kernel.org>; Thu, 05 May 2011 10:11:20 -0700 (PDT)
+In-Reply-To: <4DC2CED3.80206@gmail.com> (Peter Barada's message of "Thu, 05
+	May 2011 12:22:43 -0400")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>
-Cc: lo-ml <linux-omap@vger.kernel.org>
+To: Peter Barada <peter.barada@gmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, 2011-05-05 at 18:59 +0300, Tomi Valkeinen wrote:
-> Hi Paul, Benoit,
-> 
-> I've started testing pm runtime with DSS, and I encountered a problem.
-> 
-> I'm using latest -rc5 as a base, and it looks like
-> omap_hwmod:_wait_target_ready() does not succeed for dss_core hwmod.
-> This causes _enable() to fail, but omap_device_enable_hwmods() does not
-> check the return values so it looks like everything went well, until the
-> driver crashes as the DSS HW module was off.
-> 
-> Ideas about _wait_target_ready()? And omap_device_enable_hwmods() would
-> need some fixing, I wasted quite a while debugging this =).
+Peter Barada <peter.barada@gmail.com> writes:
 
-Ah, the HW needs dss_dss_clk to be enabled before calling
-pm_runtime_get, otherwise _wait_target_ready() fails. Now that I think,
-I guess Sumit mentioned this at some point.
+> I've been working on getting the TI OMAPPSP-03.00.01.06 kernel to
+> properly suspend/resume on my DM37x board and all was going well until
+> I added OTG support to the kernel and on suspend, the IVA2 and CORE
+> pwrdms would not properly go into suspend.  When comparing output from
+> /debug/pm-debug/registers/current to the TRM, I noticed the following:
+>
+> MOD: CM_IVA2 (48014000)
+>   04 => 00000017  20 => 00000001  24 => 00000001  34 => 00000001
+>   40 => 00080a00  44 => 00000001  48 => 00000003
+> MOD: PRM_IVA2 (48316000)
+>   50 => 00000007  e0 => 00ff0f05  e4 => 00000ff7  e8 => 00000ff7
+>   f8 => 00000001
+>
+> Looking at the TRM, the PRM_IVA2 registers are at 0x48306000, not
+> 0x48316000.  OMAP3430_IVA2_MOD is defined in prcm-common.h as -0x800
+> which means any module + reg_offset address calculation has to be
+> signed.  Once I corrected the "unsigned short offset" declaration in
+> pm_module_def, rebuilt and tested again, IVA2/core pwrdms go into
+> suspend correctly (and addresses look correct):
 
-Too bad, I was hoping I could enable the required opt clocks in
-runtime_resume callback.
+Just to be clear, this should only affect the display of the registers,
+not whether or not the power domains actually suspend correctly, right?
 
-Shouldn't the hwmod code be able to enable/reset/etc the HW module
-independently?
+Or, did you actually notice via some other method that this powerdomain
+was not hitting retention/off?
 
-I wonder if this goes for all other DSS modules also...
+Kevin
 
- Tomi
-
-
+>
+> Signed-off-by: Peter Barada <peter.barada@logicpd.com>
+>
+>
+> diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
+> index 125f565..b731ef3 100644
+> --- a/arch/arm/mach-omap2/pm-debug.c
+> +++ b/arch/arm/mach-omap2/pm-debug.c
+> @@ -199,7 +199,7 @@ enum {
+>  struct pm_module_def {
+>      char name[8]; /* Name of the module */
+>      short type; /* CM or PRM */
+> -    unsigned short offset;
+> +    short offset;
+>      int low; /* First register address on this module */
+>      int high; /* Last register address on this module */
+>  };
