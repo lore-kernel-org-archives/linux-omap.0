@@ -1,113 +1,53 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: Module + offset calculations have to be signed in arch/arm/mach-omap2/pm-debug.c
-Date: Thu, 05 May 2011 11:16:59 -0700
-Message-ID: <87oc3hf1wk.fsf@ti.com>
-References: <4DC2CED3.80206@gmail.com> <87liyljcnd.fsf@ti.com>
-	<4DC2DC03.4020200@gmail.com>
+From: Artem Bityutskiy <dedekind1@gmail.com>
+Subject: Re: [PATCH] omap : nand : fix subpage ecc issue with prefetch
+Date: Thu, 05 May 2011 21:48:58 +0300
+Message-ID: <1304621338.7222.55.camel@localhost>
+References: <1304334638-2198-1-git-send-email-kishore.kadiyala@ti.com>
+Reply-To: dedekind1@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:49560 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755722Ab1EESRD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 May 2011 14:17:03 -0400
-Received: by mail-pv0-f174.google.com with SMTP id 12so1077129pvg.19
-        for <linux-omap@vger.kernel.org>; Thu, 05 May 2011 11:17:02 -0700 (PDT)
-In-Reply-To: <4DC2DC03.4020200@gmail.com> (Peter Barada's message of "Thu, 05
-	May 2011 13:18:59 -0400")
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:49350 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932115Ab1EESwf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 May 2011 14:52:35 -0400
+Received: by eyx24 with SMTP id 24so762111eyx.19
+        for <linux-omap@vger.kernel.org>; Thu, 05 May 2011 11:52:34 -0700 (PDT)
+In-Reply-To: <1304334638-2198-1-git-send-email-kishore.kadiyala@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Barada <peter.barada@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Kishore Kadiyala <kishore.kadiyala@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, vimal.newwork@gmail.com, bdefaria@adeneo-embedded.com
 
-Peter Barada <peter.barada@gmail.com> writes:
+On Mon, 2011-05-02 at 16:40 +0530, Kishore Kadiyala wrote:
+> For prefetch engine, read and write  got broken in commit '2c01946c'.
+> We never hit a scenario of not getting 'gpmc_prefetch_enable'
+> call success.
+> When reading/writing a subpage with a non divisible by 4 ecc number
+> of bytes, the mis-aligned bytes gets handled first before enabling
+> the Prefetch engine, then it reads/writes rest of the bytes.
+>=20
+> Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
+> Signed-off-by: Vimal Singh <vimal.newwork@gmail.com>
+> Reported-by: Bryan DE FARIA <bdefaria@adeneo-embedded.com>
 
-> On 05/05/2011 01:11 PM, Kevin Hilman wrote:
->> Peter Barada<peter.barada@gmail.com>  writes:
->>
->>> I've been working on getting the TI OMAPPSP-03.00.01.06 kernel to
->>> properly suspend/resume on my DM37x board and all was going well until
->>> I added OTG support to the kernel and on suspend, the IVA2 and CORE
->>> pwrdms would not properly go into suspend.  When comparing output from
->>> /debug/pm-debug/registers/current to the TRM, I noticed the following:
->>>
->>> MOD: CM_IVA2 (48014000)
->>>    04 =>  00000017  20 =>  00000001  24 =>  00000001  34 =>  00000001
->>>    40 =>  00080a00  44 =>  00000001  48 =>  00000003
->>> MOD: PRM_IVA2 (48316000)
->>>    50 =>  00000007  e0 =>  00ff0f05  e4 =>  00000ff7  e8 =>  00000ff7
->>>    f8 =>  00000001
->>>
->>> Looking at the TRM, the PRM_IVA2 registers are at 0x48306000, not
->>> 0x48316000.  OMAP3430_IVA2_MOD is defined in prcm-common.h as -0x800
->>> which means any module + reg_offset address calculation has to be
->>> signed.  Once I corrected the "unsigned short offset" declaration in
->>> pm_module_def, rebuilt and tested again, IVA2/core pwrdms go into
->>> suspend correctly (and addresses look correct):
->> Just to be clear, this should only affect the display of the registers,
->> not whether or not the power domains actually suspend correctly, right?
->>
->> Or, did you actually notice via some other method that this powerdomain
->> was not hitting retention/off?
-> Yes the change affects the registers displayed, but since the address
-> calculation is incorrect with CONFIG_PM_DEBUG enabled, the PM_DEBUG
-> code is reading the CM_IVA2/PRM_IVA2 registers at incorrect addresses.
-> On my DM37x board when I suspended with OTG enabled (and without the
-> patch), I see the following on resume:
->
-> [  496.168151] Powerdomain (iva2_pwrdm) didn't enter target state 1
-> (last power state 3)
-> [  496.176025] Powerdomain (core_pwrdm) didn't enter target state 1
-> (last power state 3)
+This needs a better commit message with more explanation and analysis o=
+f
+the problem and how it was fixed.This commit message is not very
+understandable. And then it needs also:
 
-Hmm, this 'last power state' printk isn't in mainline, so it appears
-there are some other local modifications to this code.
+Cc: stable@kernel.org [2.6.36+]
 
-> [  496.183898] Could not enter target state in pm_suspend
->
-> With the patch (and same kernel config) I see the following on resume:
->
-> [  234.867889] Successfully put all powerdomains to target state
->
-> Before enabling the OTG code all powerdomains went into suspend.
->
-> It could be that accessing registers at the incorrect addresses is
-> causing DM37x to keep those domains out of retention...
+Right? And then we could send it upstream.
 
-Hmm, very strange.  The PM debug code only ever reads registers, never
-writes, so I can't imagine how that should prevent those power domains
-from hitting retention.  Are there any other out-of-tree patches to the
-pm-debug code in your kernel?
+--=20
+Best Regards,
+Artem Bityutskiy (=D0=90=D1=80=D1=82=D1=91=D0=BC =D0=91=D0=B8=D1=82=D1=8E=
+=D1=86=D0=BA=D0=B8=D0=B9)
 
-In any case, you've found a real bug, and your patch is valid.  However,
-it doesn't currently apply to mainline, and it looks like it's because
-your patch is using spaces and the code being patched is using tabs.
-
-Also, you can simplify the changelog to to just describe the fix needed
-due to using negative offsets in some PRM modules.
-
-Kevin
-
->
->> Kevin
->>
->>> Signed-off-by: Peter Barada<peter.barada@logicpd.com>
->>>
->>>
->>> diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
->>> index 125f565..b731ef3 100644
->>> --- a/arch/arm/mach-omap2/pm-debug.c
->>> +++ b/arch/arm/mach-omap2/pm-debug.c
->>> @@ -199,7 +199,7 @@ enum {
->>>   struct pm_module_def {
->>>       char name[8]; /* Name of the module */
->>>       short type; /* CM or PRM */
->>> -    unsigned short offset;
->>> +    short offset;
->>>       int low; /* First register address on this module */
->>>       int high; /* Last register address on this module */
->>>   };
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
