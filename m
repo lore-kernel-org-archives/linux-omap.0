@@ -1,65 +1,51 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: Common clock and dvfs
-Date: Fri, 6 May 2011 11:36:31 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1105061100460.30136@utopia.booyaka.com>
-References: <4DC07F10.6010305@ti.com> <4DC230E0.7090909@ti.com> <BANLkTi=gP80iiJTECUoc+36z_1J68ALJNA@mail.gmail.com> <4DC311C6.7090707@ti.com> <BANLkTik+LRWvJzppof1zngdrZEPXzMc_UQ@mail.gmail.com>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [RFC/PATCH] OMAP PM: remove OMAP_PM_NONE config option
+Date: Fri, 6 May 2011 20:43:39 +0200
+Message-ID: <BANLkTimgrpKq_SrD=U9rzXspKv8eOcsv0w@mail.gmail.com>
+References: <1304673087-24643-1-git-send-email-j-pihet@ti.com>
+	<alpine.DEB.2.00.1105061016070.30136@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:39974 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753467Ab1EFRgc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 May 2011 13:36:32 -0400
-In-Reply-To: <BANLkTik+LRWvJzppof1zngdrZEPXzMc_UQ@mail.gmail.com>
+Received: from mail-qy0-f181.google.com ([209.85.216.181]:64012 "EHLO
+	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932501Ab1EFSnk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 May 2011 14:43:40 -0400
+Received: by qyg14 with SMTP id 14so2798442qyg.19
+        for <linux-omap@vger.kernel.org>; Fri, 06 May 2011 11:43:39 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.00.1105061016070.30136@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Colin Cross <ccross@google.com>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, "Hilman, Kevin" <khilman@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "Turquette, Mike" <mturquette@ti.com>, Thomas Gleixner <tglx@linutronix.de>, "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, MyungJoo Ham <myungjoo.ham@samsung.com>, Mark Brown <broonie@sirena.org.uk>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, khilman@ti.com, Jean Pihet <j-pihet@ti.com>
 
+Hi Paul,
 
-Not that this is particularly related to DVFS, but:
-
-On Thu, 5 May 2011, Colin Cross wrote:
-
-> On Thu, May 5, 2011 at 2:08 PM, Cousson, Benoit <b-cousson@ti.com> wrote:
+On Fri, May 6, 2011 at 6:16 PM, Paul Walmsley <paul@pwsan.com> wrote:
+> Salut Jean
 >
-> > Colin Cross wrote:
-> 
-> >> omap_hwmod is entirely omap specific, and any generic solution cannot
-> >> be based on it.
-> >
-> > For the moment, because it is a fairly new design, but nothing should
-> > prevent us to make it generic if this abstraction is relevant for other SoC.
-> 
-> That's not how you design abstractions.
+> On Fri, 6 May 2011, Jean Pihet wrote:
+>
+>> The current code base is not linking with the OMAP_PM_NONE
+>> option set.
+>> Since the option OMAP_PM_NOOP provides a no-op/debug layer,
+>> OMAP_PM_NONE can be removed.
+>> OMAP_PM_NOOP is enabled by default by Kconfig.
+>>
+>> Signed-off-by: Jean Pihet <j-pihet@ti.com>
+>
+> I'm okay with this but could you please base it on v2.6.39-rc6 so I can
+> merge it here?
+I checked the patch against the master branch of both Tony's and
+Linus's trees, it applies and compiles OK.
+Is that OK to you?
 
-Oh really?
+Regards,
+Jean
 
-> You can't abstract one case, without considering other SoCs, and then 
-> make it generic if it fits other SoCs - it will never fit other SoCs.  
-> You have to consider all the cases you want it to cover, and design an 
-> abstraction that makes sense for the superset.
-
-In actual practice, one often does not know in advance the entire universe 
-of cases that one needs to cover.  Even just for one SoC.
-
-Consider that you mentioned earlier that you had to rewrite the Tegra 
-clock code several times.  Now, add several other families of SoCs to the 
-requirements.  If the documentation for these chips is even available at 
-all, it is often misleading or wrong.
-
-Attempting to create an abstraction before one knows the underlying 
-requirements of what one is actually trying to abstract is a plan for 
-intense suffering.  There's little glory in it.
-
-...
-
-In the specific case of omap_hwmod, the core of the omap_hwmod data 
-structures were designed such that they could apply to any SoC with a 
-complex interconnect.  The design was based on hardware principles common 
-to any SoC: interconnects, IP blocks, reset lines, etc.  There are 
-OMAP-specific parts, but if others found omap_hwmod useful, they're 
-trivial to abstract.  We haven't sought to force it on others.
-
-
-- Paul
+>
+> thanks
+>
+>
+> - Paul
+>
