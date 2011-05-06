@@ -1,78 +1,156 @@
-From: Peter Barada <peter.barada@gmail.com>
-Subject: Re: Module + offset calculations have to be signed in arch/arm/mach-omap2/pm-debug.c
-Date: Fri, 06 May 2011 11:25:33 -0400
-Message-ID: <4DC412ED.1070805@gmail.com>
-References: <4DC2CED3.80206@gmail.com> <87liyljcnd.fsf@ti.com>	<4DC2DC03.4020200@gmail.com> <87oc3hf1wk.fsf@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH v2 11/12] OMAP: Serial: Use resume call from prcm to enable uart
+Date: Fri, 06 May 2011 08:55:53 -0700
+Message-ID: <87bozf962e.fsf@ti.com>
+References: <1304080796-625-1-git-send-email-govindraj.raja@ti.com>
+	<1304080796-625-12-git-send-email-govindraj.raja@ti.com>
+	<87pqnym2f2.fsf@ti.com>
+	<BANLkTi=32NfMr7exWpOoPHX7_-Jc0i5LqA@mail.gmail.com>
+	<87liylkxdi.fsf@ti.com>
+	<BANLkTinr8n0P31LWPrwL83sWCzVQOqo6=Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------080905080500070900040505"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:37827 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755439Ab1EFPZ1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 May 2011 11:25:27 -0400
-Received: by gyd10 with SMTP id 10so1199965gyd.19
-        for <linux-omap@vger.kernel.org>; Fri, 06 May 2011 08:25:26 -0700 (PDT)
-In-Reply-To: <87oc3hf1wk.fsf@ti.com>
+Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:44137 "EHLO
+	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756537Ab1EFPz7 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 6 May 2011 11:55:59 -0400
+In-Reply-To: <BANLkTinr8n0P31LWPrwL83sWCzVQOqo6=Q@mail.gmail.com> (Govindraj's
+	message of "Fri, 6 May 2011 14:46:48 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Govindraj <govindraj.ti@gmail.com>
+Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Rajendra Nayak <rnayak@ti.com>
 
-This is a multi-part message in MIME format.
---------------080905080500070900040505
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Govindraj <govindraj.ti@gmail.com> writes:
 
-On 05/05/2011 02:16 PM, Kevin Hilman wrote:
+> On Thu, May 5, 2011 at 8:28 PM, Kevin Hilman <khilman@ti.com> wrote:
+>> Govindraj <govindraj.ti@gmail.com> writes:
+>>
+>> [...]
+>>
+>>>>
+>>>> ... this is just putting back basically the same thing that was re=
+moved in
+>>>> patch 1. =C2=A0IOW, this is now being checked for *every* PRCM wak=
+eup, which
+>>>> is no different than having it in the idle path.
+>>>>
+>>>> I thought I understood that you had the SW IRQ triggering working,=
+ so
+>>>> this part should not be necessary.
+>>>
+>>> Actually I tried few experiments but couldn't get it working.
+>>
+>> What exactly is not working? =C2=A0 The interrupt is not firing at a=
+ll? =C2=A0The
+>> driver's ISR is not being called?
+>>
 >
-> In any case, you've found a real bug, and your patch is valid.  However,
-> it doesn't currently apply to mainline, and it looks like it's because
-> your patch is using spaces and the code being patched is using tabs.
+> It throws a oops as here
 >
-> Also, you can simplify the changelog to to just describe the fix needed
-> due to using negative offsets in some PRM modules.
-I've attached a new patch to fix the tabs/changelog.
+> http://pastebin.com/5bcPjAA0
 
--- 
-Peter Barada
-peter.barada@gmail.com
+This doesn't help understand what exactly is not working.  This needs
+to be debugged further to understand the root cause.
 
+A quick glance at the oops shows a fault when accessing a *physical*
+address within the INTC.  The MMU is enabled here, and HW accesss shoul=
+d
+be using a virtual address. =20
 
---------------080905080500070900040505
-Content-Type: text/x-patch;
- name="pm-debug-signed-offset.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="pm-debug-signed-offset.patch"
+Also, early in the boot there are a pile of other errors coming from th=
+e
+clock framework suggesting that this kernel has some other basic
+problems as well.
 
->From 6857bb52af1fcd90e64d3e6c45de3ff0f071be7a Mon Sep 17 00:00:00 2001
-From: Peter Barada <peter.barada@logicpd.com>
-Date: Fri, 6 May 2011 11:07:50 -0400
-Subject: [PATCH] Make offset in pm_module_def signed to allow negative offsets.
+> Reproduced with below [EXP-1] change + below kernel.
+>
+> git://gitorious.org/uart_runtime/pm.git
+> [Has uart runtime patches based on pm-core branch]
+>
+>>> Tried below but didn't help.
+>>>
+>>> ------------------------------------
+>>> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm3=
+4xx.c
+>>> index 3960330..2c1dfc2 100644
+>>> --- a/arch/arm/mach-omap2/pm34xx.c
+>>> +++ b/arch/arm/mach-omap2/pm34xx.c
+>>> @@ -288,6 +288,16 @@ static irqreturn_t prcm_interrupt_handler (int
+>>> irq, void *dev_id)
+>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 do {
+>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (irqstat=
+us_mpu & (OMAP3430_WKUP_ST_MASK |
+>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0OMAP3430=
+_IO_ST_MASK)) {
+>>> +#if 1
+>>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 /*
+>>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0* EXP-1: SET UART1 SOFT IRQ BIT
+>>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0* 3430 -SDP UART1 console.
+>>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0* M_IRQ_72, INTCPS_ISR_SET
+>>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0* 0x4820 0090 + (0x20 * n)
+>>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0* bit-8 n =3D 2
+>>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0*/
+>>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 __raw_writel(0x100 , 0x482000D0);
+>>> +#endif
+>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 c =3D _prcm_int_handle_wakeup();
+>>>
+>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 /*
+>>>
+>>> -----------------------------------
+>>>
+>>> Currently we are planning to integrate irq_chaining patches
+>>> on top uart_runtime patches which is work-in-progress.
+>>> Will remove resume_idle once we have irq_chaining patches available=
+=2E
+>>
+>> Well, I'm not OK with $SUBJECT patch as it is since it's just moving=
+ an
+>> ugly hack from serial.c to the PRCM ISR. =C2=A0If the hack is going =
+to stay,
+>> then it should stay where it is until it can be fixed for real.
+>
+> Now with runtime changes we are cutting clocks independently
+> whereas prior to this we where cutting clocks only in sram_idle path.
+>
+> With runtime changes:
+> 1.) Once we cut uart clocks and send a char to uart it directs wakeup=
+_irq to
+> prcm_irq_handler the one way to wakeup uart from there was to check
+> uart mod wakeup status bits if wakeup event occurred then wakeup the
+> particular uart.
+> 2.) Moving this resume back to sram path will break module wakeup aft=
+er
+> uart clocks are disabled(using put_sync)
+>
+> Thats the reason I have moved this to prcm_irq path to ensure
+> once auto-suspend happens after inactivity period we have resume_call
+> to wakeup uart port.
 
-Since PRM module offsets can be negative (IVA2 is -0x800), offset in
-pm_module_def struct has to be signed.
+I understand, but the point is that this approach is still the same as
+the previous hack (check for UART wakeup on *every* wakeup event.)
 
----
- arch/arm/mach-omap2/pm-debug.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+What is needed is to further investigate using SW triggered IRQs can be
+done for these wakeup events so we can get away from the above approach
+all together.
 
-diff --git b/arch/arm/mach-omap2/pm-debug.c a/arch/arm/mach-omap2/pm-debug.c
-index b731ef3..125f565 100644
---- b/arch/arm/mach-omap2/pm-debug.c
-+++ a/arch/arm/mach-omap2/pm-debug.c
-@@ -199,7 +199,7 @@ enum {
- struct pm_module_def {
- 	char name[8]; /* Name of the module */
- 	short type; /* CM or PRM */
--	short offset;
-+	unsigned short offset;
- 	int low; /* First register address on this module */
- 	int high; /* Last register address on this module */
- };
--- 
-1.7.1
-
-
---------------080905080500070900040505--
+Kevin
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
