@@ -1,79 +1,98 @@
-From: Artem Bityutskiy <dedekind1@gmail.com>
-Subject: Re: [PATCH] omap : nand : fix subpage ecc issue with prefetch
-Date: Fri, 06 May 2011 21:56:17 +0300
-Message-ID: <1304708177.7222.101.camel@localhost>
-References: <1304334638-2198-1-git-send-email-kishore.kadiyala@ti.com>
-	 <1304621338.7222.55.camel@localhost>
-	 <BANLkTi=6wkqWA+kjWShiEyFiVs0ZXqY6iw@mail.gmail.com>
-Reply-To: dedekind1@gmail.com
+From: Matthias Scheer <scheer@in.tum.de>
+Subject: [PATCH] OMAP2: =?utf-8?b?Q09ORklHX1RPVUNIU0NSRUVOX0FEUzc4NDY=?= XOR =?utf-8?b?Q09ORklHX01URF9OQU5EX09NQVAy?= breaks build
+Date: Fri, 6 May 2011 19:12:56 +0000 (UTC)
+Message-ID: <loom.20110506T210326-622@post.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:55241 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932502Ab1EFS7t (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 May 2011 14:59:49 -0400
-Received: by eyx24 with SMTP id 24so1060312eyx.19
-        for <linux-omap@vger.kernel.org>; Fri, 06 May 2011 11:59:48 -0700 (PDT)
-In-Reply-To: <BANLkTi=6wkqWA+kjWShiEyFiVs0ZXqY6iw@mail.gmail.com>
+Received: from lo.gmane.org ([80.91.229.12]:51474 "EHLO lo.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755125Ab1EFTNM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 6 May 2011 15:13:12 -0400
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gplao-linux-omap-open-source-moved1@m.gmane.org>)
+	id 1QIQSc-0005tI-6K
+	for linux-omap@vger.kernel.org; Fri, 06 May 2011 21:13:10 +0200
+Received: from ppp-93-104-17-21.dynamic.mnet-online.de ([93.104.17.21])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-omap@vger.kernel.org>; Fri, 06 May 2011 21:13:10 +0200
+Received: from scheer by ppp-93-104-17-21.dynamic.mnet-online.de with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-omap@vger.kernel.org>; Fri, 06 May 2011 21:13:10 +0200
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vimal Singh <vimal.newwork@gmail.com>
-Cc: Kishore Kadiyala <kishore.kadiyala@ti.com>, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, bdefaria@adeneo-embedded.com
+To: linux-omap@vger.kernel.org
 
-On Fri, 2011-05-06 at 13:00 +0530, Vimal Singh wrote:
-> On Fri, May 6, 2011 at 12:18 AM, Artem Bityutskiy <dedekind1@gmail.co=
-m> wrote:
-> > On Mon, 2011-05-02 at 16:40 +0530, Kishore Kadiyala wrote:
-> >> For prefetch engine, read and write  got broken in commit '2c01946=
-c'.
-> >> We never hit a scenario of not getting 'gpmc_prefetch_enable'
-> >> call success.
-> >> When reading/writing a subpage with a non divisible by 4 ecc numbe=
-r
-> >> of bytes, the mis-aligned bytes gets handled first before enabling
-> >> the Prefetch engine, then it reads/writes rest of the bytes.
-> >>
-> >> Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
-> >> Signed-off-by: Vimal Singh <vimal.newwork@gmail.com>
-> >> Reported-by: Bryan DE FARIA <bdefaria@adeneo-embedded.com>
-> >
-> > This needs a better commit message with more explanation and analys=
-is of
-> > the problem and how it was fixed.This commit message is not very
-> > understandable. And then it needs also:
->=20
-> How about a commit log like this:
+#ifdef clauses in arch/arm/mach-omap2/common-board-devices.h header file broke
+kernel build when configured with CONFIG_TOUCHSCREEN_ADS7846 (XOR)
+CONFIG_MTD_NAND_OMAP2
 
-Looks better, thanks. Waiting for the new patch.
+quick and dirty fix by using #ifdef clauses in the code file, too
 
->=20
-> When reading/writing a subpage (When HW ECC is not available/enable)
-> for number of bytes not aligned to 4, the mis-aligned bytes gets
-> handled first (by cpu copy mathod) before enabling the Prefetch
-> engin to/from 'p' (start of buffer 'buf').
-> Then it reads/writes rest of the bytes with the help of Prefetch
-> engine, if available, or again by cpu copy mathod. Currnetly,
-> reading/writing of rest of bytes, is not done correctly. Its trying t=
-o
-> read/write again to/from begining of buffer 'buf', overwriting the
-> mis-aligned bytes.
->=20
-> For prefetch engine read and write it got broken in commit '2c01946c'=
-=2E
-> And we never hit the scenario of not getting 'gpmc_prefetch_enable'
-> call sucess. So, problem did not get caught up.
->=20
-> This patch fixes the issue.
+---
+ arch/arm/mach-omap2/common-board-devices.c |    7 +++++++
+ arch/arm/mach-omap2/common-board-devices.h |    3 +--
+ 2 files changed, 8 insertions(+), 2 deletions(-)
 
---=20
-Best Regards,
-Artem Bityutskiy (=D0=90=D1=80=D1=82=D1=91=D0=BC =D0=91=D0=B8=D1=82=D1=8E=
-=D1=86=D0=BA=D0=B8=D0=B9)
+diff --git a/arch/arm/mach-omap2/common-board-devices.c
+b/arch/arm/mach-omap2/common-board-devices.c
+index d57c71d..4f290e9 100644
+--- a/arch/arm/mach-omap2/common-board-devices.c
++++ b/arch/arm/mach-omap2/common-board-devices.c
+@@ -50,6 +50,9 @@ void __init omap_pmic_init(int bus, u32 clkrate,
+ 	omap_register_i2c_bus(bus, clkrate, &pmic_i2c_board_info, 1);
+ }
+ 
++#if defined(CONFIG_TOUCHSCREEN_ADS7846) || \
++	defined(CONFIG_TOUCHSCREEN_ADS7846_MODULE)
++
+ static struct omap2_mcspi_device_config ads7846_mcspi_config = {
+ 	.turbo_mode	= 0,
+ 	.single_channel	= 1,	/* 0: slave, 1: master */
+@@ -105,7 +108,9 @@ void __init omap_ads7846_init(int bus_num, int gpio_pendown,
+int gpio_debounce,
+ 
+ 	spi_register_board_info(&ads7846_spi_board_info, 1);
+ }
++#endif
+ 
++#if defined(CONFIG_MTD_NAND_OMAP2) || defined(CONFIG_MTD_NAND_OMAP2_MODULE)
+ static struct omap_nand_platform_data nand_data = {
+ 	.dma_channel	= -1,		/* disable DMA in OMAP NAND driver */
+ };
+@@ -146,3 +151,5 @@ void __init omap_nand_flash_init(int options, struct
+mtd_partition *parts,
+ 			printk(KERN_ERR "Unable to register NAND device\n");
+ 	}
+ }
++#endif
++
+diff --git a/arch/arm/mach-omap2/common-board-devices.h
+b/arch/arm/mach-omap2/common-board-devices.h
+index ca03abf..eb4a07a 100644
+--- a/arch/arm/mach-omap2/common-board-devices.h
++++ b/arch/arm/mach-omap2/common-board-devices.h
+@@ -3,6 +3,7 @@
+ 
+ struct twl4030_platform_data;
+ struct mtd_partition;
++struct ads7846_platform_data;
+ 
+ void omap_pmic_init(int bus, u32 clkrate, const char *pmic_type, int pmic_irq,
+ 		    struct twl4030_platform_data *pmic_data);
+@@ -28,8 +29,6 @@ static inline void omap4_pmic_init(const char *pmic_type,
+ 
+ #if defined(CONFIG_TOUCHSCREEN_ADS7846) || \
+ 	defined(CONFIG_TOUCHSCREEN_ADS7846_MODULE)
+-struct ads7846_platform_data;
+-
+ void omap_ads7846_init(int bus_num, int gpio_pendown, int gpio_debounce,
+ 		       struct ads7846_platform_data *board_pdata);
+ #else
+-- 
+1.7.1
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
