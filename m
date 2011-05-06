@@ -1,197 +1,91 @@
-From: Lesly A M <leslyam@ti.com>
-Subject: [PATCH v10 7/7] MFD: TWL4030: optimizing resource configuration
-Date: Fri, 6 May 2011 18:47:13 +0530
-Message-ID: <1304687833-4578-8-git-send-email-leslyam@ti.com>
-References: <1304687833-4578-1-git-send-email-leslyam@ti.com>
+From: "Varadarajan, Charulatha" <charu@ti.com>
+Subject: Re: [PATCH V2 16/16] mmc: omap_hsmmc: add a hardware reset before initialization
+Date: Fri, 6 May 2011 18:56:36 +0530
+Message-ID: <BANLkTim3aZutT36j4TE9gnmpny9gN6=GUw@mail.gmail.com>
+References: <1304673255-31634-1-git-send-email-adrian.hunter@nokia.com> <1304673255-31634-17-git-send-email-adrian.hunter@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:42778 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753756Ab1EFNRT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 6 May 2011 09:17:19 -0400
-In-Reply-To: <1304687833-4578-1-git-send-email-leslyam@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <1304673255-31634-17-git-send-email-adrian.hunter@nokia.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Adrian Hunter <adrian.hunter@nokia.com>
+Cc: Tony Lindgren <tony@atomide.com>, Madhusudhan Chikkature <madhu.cr@ti.com>, linux-omap Mailing List <linux-omap@vger.kernel.org>, linux-mmc Mailing List <linux-mmc@vger.kernel.org>, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Lesly A M <leslyam@ti.com>, Nishanth Menon <nm@ti.com>, David Derrick <dderrick@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
 
-Skip the i2c register writes in twl4030_configure_resource() if the new value
-is same as the old value, for devgrp/type/remap regs.
+Hi,
 
-Suggested by David Derrick <dderrick@ti.com>
+On Fri, May 6, 2011 at 14:44, Adrian Hunter <adrian.hunter@nokia.com> w=
+rote:
+> After a warm restart, an eMMC which cannot be powered off is
+> in an unknown state, so reset it to be sure it will initialize.
+>
+> Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
+> ---
+> =A0drivers/mmc/host/omap_hsmmc.c | =A0 38 +++++++++++++++++++++++++++=
+++++++++++-
+> =A01 files changed, 37 insertions(+), 1 deletions(-)
+>
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hs=
+mmc.c
+> index e1c9017..70b8ef8 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -530,10 +530,25 @@ static int omap_hsmmc_gpio_init(struct omap_mmc=
+_platform_data *pdata)
+> =A0 =A0 =A0 =A0} else
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pdata->slots[0].gpio_wp =3D -EINVAL;
+>
+> + =A0 =A0 =A0 if (gpio_is_valid(pdata->slots[0].gpio_hw_reset)) {
 
-Signed-off-by: Lesly A M <leslyam@ti.com>
-Cc: Nishanth Menon <nm@ti.com>
-Cc: David Derrick <dderrick@ti.com>
-Cc: Samuel Ortiz <sameo@linux.intel.com>
----
- drivers/mfd/twl4030-power.c |  126 ++++++++++++++++++++++++------------------
- 1 files changed, 72 insertions(+), 54 deletions(-)
+Not required as gpio_request takes care of it.
 
-diff --git a/drivers/mfd/twl4030-power.c b/drivers/mfd/twl4030-power.c
-index 6b57d2b..c1c3906 100644
---- a/drivers/mfd/twl4030-power.c
-+++ b/drivers/mfd/twl4030-power.c
-@@ -335,9 +335,9 @@ static int twl4030_configure_resource(struct twl4030_resconfig *rconfig)
- {
- 	int rconfig_addr;
- 	int err;
--	u8 type;
--	u8 grp;
--	u8 remap;
-+	u8 type, type_value;
-+	u8 grp, grp_value;
-+	u8 remap, remap_value;
- 
- 	if (rconfig->resource > TOTAL_RESOURCES) {
- 		pr_err("TWL4030 Resource %d does not exist\n",
-@@ -348,76 +348,94 @@ static int twl4030_configure_resource(struct twl4030_resconfig *rconfig)
- 	rconfig_addr = res_config_addrs[rconfig->resource];
- 
- 	/* Set resource group */
--	err = twl_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER, &grp,
-+	if (rconfig->devgroup != TWL4030_RESCONFIG_UNDEF) {
-+		err = twl_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER, &grp,
- 			      rconfig_addr + DEV_GRP_OFFSET);
--	if (err) {
--		pr_err("TWL4030 Resource %d group could not be read\n",
--			rconfig->resource);
--		return err;
--	}
-+		if (err) {
-+			pr_err("TWL4030 Resource %d group could not be read\n",
-+				rconfig->resource);
-+			return err;
-+		}
- 
--	if (rconfig->devgroup != TWL4030_RESCONFIG_UNDEF) {
--		grp &= ~DEV_GRP_MASK;
--		grp |= rconfig->devgroup << DEV_GRP_SHIFT;
--		err = twl_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-+		grp_value = (grp & DEV_GRP_MASK) >> DEV_GRP_SHIFT;
-+
-+		if (rconfig->devgroup != grp_value) {
-+			grp &= ~DEV_GRP_MASK;
-+			grp |= rconfig->devgroup << DEV_GRP_SHIFT;
-+			err = twl_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
- 				       grp, rconfig_addr + DEV_GRP_OFFSET);
--		if (err < 0) {
--			pr_err("TWL4030 failed to program devgroup\n");
--			return err;
-+			if (err < 0) {
-+				pr_err("TWL4030 failed to program devgroup\n");
-+				return err;
-+			}
- 		}
- 	}
- 
- 	/* Set resource types */
--	err = twl_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER, &type,
-+	if ((rconfig->type != TWL4030_RESCONFIG_UNDEF) ||
-+		(rconfig->type2 != TWL4030_RESCONFIG_UNDEF)) {
-+
-+		err = twl_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER, &type,
- 				rconfig_addr + TYPE_OFFSET);
--	if (err < 0) {
--		pr_err("TWL4030 Resource %d type could not be read\n",
--			rconfig->resource);
--		return err;
--	}
-+		if (err < 0) {
-+			pr_err("TWL4030 Resource %d type could not be read\n",
-+				rconfig->resource);
-+			return err;
-+		}
- 
--	if (rconfig->type != TWL4030_RESCONFIG_UNDEF) {
--		type &= ~TYPE_MASK;
--		type |= rconfig->type << TYPE_SHIFT;
--	}
-+		type_value = type;
- 
--	if (rconfig->type2 != TWL4030_RESCONFIG_UNDEF) {
--		type &= ~TYPE2_MASK;
--		type |= rconfig->type2 << TYPE2_SHIFT;
--	}
-+		if (rconfig->type != TWL4030_RESCONFIG_UNDEF) {
-+			type &= ~TYPE_MASK;
-+			type |= rconfig->type << TYPE_SHIFT;
-+		}
- 
--	err = twl_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-+		if (rconfig->type2 != TWL4030_RESCONFIG_UNDEF) {
-+			type &= ~TYPE2_MASK;
-+			type |= rconfig->type2 << TYPE2_SHIFT;
-+		}
-+
-+		if (type != type_value) {
-+			err = twl_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
- 				type, rconfig_addr + TYPE_OFFSET);
--	if (err < 0) {
--		pr_err("TWL4030 failed to program resource type\n");
--		return err;
-+			if (err < 0) {
-+				pr_err("TWL4030 failed to program resource type\n");
-+				return err;
-+			}
-+		}
- 	}
- 
- 	/* Set remap states */
--	err = twl_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER, &remap,
-+	if ((rconfig->remap_off != TWL4030_RESCONFIG_UNDEF) ||
-+		(rconfig->remap_sleep != TWL4030_RESCONFIG_UNDEF)) {
-+		err = twl_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER, &remap,
- 			      rconfig_addr + REMAP_OFFSET);
--	if (err < 0) {
--		pr_err("TWL4030 Resource %d remap could not be read\n",
--			rconfig->resource);
--		return err;
--	}
-+		if (err < 0) {
-+			pr_err("TWL4030 Resource %d remap could not be read\n",
-+				rconfig->resource);
-+			return err;
-+		}
- 
--	if (rconfig->remap_off != TWL4030_RESCONFIG_UNDEF) {
--		remap &= ~OFF_STATE_MASK;
--		remap |= rconfig->remap_off << OFF_STATE_SHIFT;
--	}
-+		remap_value = remap;
- 
--	if (rconfig->remap_sleep != TWL4030_RESCONFIG_UNDEF) {
--		remap &= ~SLEEP_STATE_MASK;
--		remap |= rconfig->remap_sleep << SLEEP_STATE_SHIFT;
--	}
-+		if (rconfig->remap_off != TWL4030_RESCONFIG_UNDEF) {
-+			remap &= ~OFF_STATE_MASK;
-+			remap |= rconfig->remap_off << OFF_STATE_SHIFT;
-+		}
- 
--	err = twl_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
--			       remap,
--			       rconfig_addr + REMAP_OFFSET);
--	if (err < 0) {
--		pr_err("TWL4030 failed to program remap\n");
--		return err;
-+		if (rconfig->remap_sleep != TWL4030_RESCONFIG_UNDEF) {
-+			remap &= ~SLEEP_STATE_MASK;
-+			remap |= rconfig->remap_sleep << SLEEP_STATE_SHIFT;
-+		}
-+
-+		if (remap != remap_value) {
-+			err = twl_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-+			       remap, rconfig_addr + REMAP_OFFSET);
-+			if (err < 0) {
-+				pr_err("TWL4030 failed to program remap\n");
-+				return err;
-+			}
-+		}
- 	}
- 
- 	return 0;
--- 
-1.7.1
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D gpio_request(pdata->slots[0].gp=
+io_hw_reset,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+"mmc_hw_reset");
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (ret)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto err_free_wp;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D gpio_direction_output(pdata->sl=
+ots[0].gpio_hw_reset, 1);
 
+Use gpio_request_one instead.
+
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (ret)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto err_free_hw_reset;
+> + =A0 =A0 =A0 } else
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pdata->slots[0].gpio_hw_reset =3D -EINV=
+AL;
+> +
+> =A0 =A0 =A0 =A0return 0;
+>
+> +
+> +err_free_hw_reset:
+> + =A0 =A0 =A0 gpio_free(pdata->slots[0].gpio_hw_reset);
+> =A0err_free_wp:
+> - =A0 =A0 =A0 gpio_free(pdata->slots[0].gpio_wp);
+> + =A0 =A0 =A0 if (gpio_is_valid(pdata->slots[0].gpio_wp))
+
+Not required as gpio_free takes care of it.
+
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 gpio_free(pdata->slots[0].gpio_wp);
+> =A0err_free_cd:
+> =A0 =A0 =A0 =A0if (gpio_is_valid(pdata->slots[0].switch_pin))
+> =A0err_free_sp:
+> @@ -543,6 +558,8 @@ err_free_sp:
+>
+> =A0static void omap_hsmmc_gpio_free(struct omap_mmc_platform_data *pd=
+ata)
+> =A0{
+> + =A0 =A0 =A0 if (gpio_is_valid(pdata->slots[0].gpio_hw_reset))
+
+ditto
+
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 gpio_free(pdata->slots[0].gpio_hw_reset=
+);
+> =A0 =A0 =A0 =A0if (gpio_is_valid(pdata->slots[0].gpio_wp))
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0gpio_free(pdata->slots[0].gpio_wp);
+> =A0 =A0 =A0 =A0if (gpio_is_valid(pdata->slots[0].switch_pin))
+
+
+<<snip>>
