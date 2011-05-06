@@ -1,177 +1,354 @@
 From: Lesly A M <leslyam@ti.com>
-Subject: [PATCH v10 5/7] MFD: TWL4030: TWL version checking
-Date: Fri, 6 May 2011 18:47:11 +0530
-Message-ID: <1304687833-4578-6-git-send-email-leslyam@ti.com>
+Subject: [PATCH v10 6/7] MFD: TWL4030: workaround changes for Erratum 27
+Date: Fri, 6 May 2011 18:47:12 +0530
+Message-ID: <1304687833-4578-7-git-send-email-leslyam@ti.com>
 References: <1304687833-4578-1-git-send-email-leslyam@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:42776 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:42779 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756080Ab1EFNRS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 6 May 2011 09:17:18 -0400
+	id S1756092Ab1EFNRT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 6 May 2011 09:17:19 -0400
 In-Reply-To: <1304687833-4578-1-git-send-email-leslyam@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Lesly A M <leslyam@ti.com>, Nishanth Menon <nm@ti.com>, David Derrick <dderrick@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
 
-Added API to get the TWL5030 Si version from the IDCODE register.
-It is used for enabling the workaround for TWL erratum 27.
+Workaround for TWL5030 Silicon Errata 27 & 28:
+	27 - VDD1, VDD2, may have glitches when their output value is updated.
+	28 - VDD1 and / or VDD2 DCDC clock may stop working when internal clock
+		is switched from internal to external.
+
+Erratum 27:
+	If the DCDC regulators is running on their internal oscillator,
+	negative glitches may occur on VDD1, VDD2 output when voltage is changed.
+	The OMAP device may reboot if the VDD1 or VDD2 go below the
+	core minimum operating voltage.
+
+	WORKAROUND
+	Set up the TWL5030 DC-DC power supplies to use the HFCLKIN instead of
+	the internal oscillator.
+
+Erratum 28:
+	VDD1/VDD2 clock system may hang during switching the clock source from
+	internal oscillator to external. VDD1/VDD2 output voltages may collapse
+	if clock stops.
+
+	WORKAROUND
+	If HFCLK is disabled in OFFMODE, modify the sleep/wakeup sequence and
+	setuptimes to make sure the switching will happen only when HFCLKIN is stable.
+	Also use the TWL5030 watchdog to safeguard the first switching from
+	internal oscillator to HFCLKIN during the TWL5030 init.
+
+	IMPACT
+	power sequence is changed.
+	sleep/wakeup time values will be changed.
+
+The workaround changes are called from twl4030_power_init(), since we have to
+make some i2c_read calls to check the TWL4030 version & the i2c will not be
+initialized in the early stage.
+
+This workaround is required for TWL5030 Silicon version less than ES1.2
+The power script & setup time changes are recommended by TI HW team.
+
+For more information please see:
+	http://omapedia.org/wiki/TWL4030_power_scripts
+
+Changes taken from TWL4030 Erratum 27 workaround patch by Nishanth Menon.
 
 Signed-off-by: Lesly A M <leslyam@ti.com>
 Cc: Nishanth Menon <nm@ti.com>
 Cc: David Derrick <dderrick@ti.com>
 Cc: Samuel Ortiz <sameo@linux.intel.com>
 ---
- drivers/mfd/twl-core.c  |   62 +++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/i2c/twl.h |   17 ++++++++++++-
- 2 files changed, 78 insertions(+), 1 deletions(-)
+ drivers/mfd/twl4030-power.c       |   79 +++++++++++++++++++
+ drivers/mfd/twl4030-script-omap.c |  150 +++++++++++++++++++++++++++++++++++++
+ include/linux/i2c/twl.h           |    1 +
+ 3 files changed, 230 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-index 960b5be..2bd9e06 100644
---- a/drivers/mfd/twl-core.c
-+++ b/drivers/mfd/twl-core.c
-@@ -229,6 +229,9 @@
- /* is driver active, bound to a chip? */
- static bool inuse;
+diff --git a/drivers/mfd/twl4030-power.c b/drivers/mfd/twl4030-power.c
+index 88195e2..6b57d2b 100644
+--- a/drivers/mfd/twl4030-power.c
++++ b/drivers/mfd/twl4030-power.c
+@@ -63,6 +63,14 @@ static u8 twl4030_start_script_address = 0x2b;
+ #define R_MEMORY_ADDRESS	PHY_TO_OFF_PM_MASTER(0x59)
+ #define R_MEMORY_DATA		PHY_TO_OFF_PM_MASTER(0x5a)
  
-+/* TWL IDCODE Register value */
-+static u32 twl_idcode;
++#define R_VDD1_OSC		0x5C
++#define R_VDD2_OSC		0x6A
++#define R_VIO_OSC		0x52
++#define EXT_FS_CLK_EN		BIT(6)
 +
- static unsigned int twl_id;
- unsigned int twl_rev(void)
- {
-@@ -487,6 +490,58 @@ EXPORT_SYMBOL(twl_i2c_read_u8);
- 
- /*----------------------------------------------------------------------*/
++#define R_WDT_CFG		0x03
++#define WDT_WRK_TIMEOUT		0x03
++
+ /* resource configuration registers
+    <RESOURCE>_DEV_GRP   at address 'n+0'
+    <RESOURCE>_TYPE      at address 'n+1'
+@@ -512,6 +520,67 @@ int twl4030_remove_script(u8 flags)
+ }
+ EXPORT_SYMBOL_GPL(twl4030_remove_script);
  
 +/**
-+ * twl_read_idcode_register - API to read the IDCODE register.
++ * twl_dcdc_use_hfclk - API to use HFCLK for TWL DCDCs
 + *
-+ * Unlocks the IDCODE register and read the 32 bit value.
++ * TWL DCDCs switching to HFCLK instead of using internal RC oscillator.
 + */
-+static int twl_read_idcode_register(void)
++static int twl_dcdc_use_hfclk(void)
 +{
++	u8 val;
++	u8 smps_osc_reg[] = {R_VDD1_OSC, R_VDD2_OSC, R_VIO_OSC};
++	int i;
 +	int err;
 +
-+	err = twl_i2c_write_u8(TWL4030_MODULE_INTBR, TWL_EEPROM_R_UNLOCK,
-+						REG_UNLOCK_TEST_REG);
-+	if (err) {
-+		pr_err("TWL4030 Unable to unlock IDCODE registers -%d\n", err);
-+		goto fail;
++	for (i = 0; i < sizeof(smps_osc_reg); i++) {
++		err = twl_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER, &val,
++							smps_osc_reg[i]);
++		val |= EXT_FS_CLK_EN;
++		err |= twl_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, val,
++							smps_osc_reg[i]);
 +	}
-+
-+	err = twl_i2c_read(TWL4030_MODULE_INTBR, (u8 *)(&twl_idcode),
-+						REG_IDCODE_7_0, 4);
-+	if (err) {
-+		pr_err("TWL4030: unable to read IDCODE -%d\n", err);
-+		goto fail;
-+	}
-+
-+	err = twl_i2c_write_u8(TWL4030_MODULE_INTBR, 0x0, REG_UNLOCK_TEST_REG);
-+	if (err)
-+		pr_err("TWL4030 Unable to relock IDCODE registers -%d\n", err);
-+fail:
 +	return err;
 +}
 +
 +/**
-+ * twl_get_type - API to get TWL Si type.
++ * twl_erratum27_workaround - Workaround for TWL5030 Silicon Erratum 27
++ * 27 - VDD1, VDD2, may have glitches when their output value is updated.
++ * 28 - VDD1 and / or VDD2 DCDC clock may stop working when internal clock is
++ * switched from internal to external.
 + *
-+ * Api to get the TWL Si type from IDCODE value.
++ * Workaround requires the TWL DCDCs to use HFCLK instead of
++ * internal oscillator. Also enable TWL watchdog before switching the osc
++ * to recover if the VDD1/VDD2 stop working.
 + */
-+int twl_get_type(void)
++static void twl_erratum27_workaround(void)
 +{
-+	return TWL_SIL_TYPE(twl_idcode);
-+}
-+EXPORT_SYMBOL_GPL(twl_get_type);
++	u8 wdt_counter_val = 0;
++	int err;
 +
-+/**
-+ * twl_get_version - API to get TWL Si version.
-+ *
-+ * Api to get the TWL Si version from IDCODE value.
-+ */
-+int twl_get_version(void)
++	/* Setup the twl wdt to take care of borderline failure case */
++	err = twl_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER, &wdt_counter_val,
++			R_WDT_CFG);
++	err |= twl_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, WDT_WRK_TIMEOUT,
++			R_WDT_CFG);
++
++	/* TWL DCDC switching to HFCLK */
++	err |= twl_dcdc_use_hfclk();
++
++	/* restore the original value */
++	err |= twl_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, wdt_counter_val,
++			R_WDT_CFG);
++	if (err)
++		pr_warning("TWL4030: workaround setup failed!\n");
++}
++
++static bool is_twl5030_erratum27wa_required(void)
 +{
-+	return TWL_SIL_REV(twl_idcode);
-+}
-+EXPORT_SYMBOL_GPL(twl_get_version);
++	if (twl_get_type() == TWL_SIL_5030)
++		return (twl_get_version() < TWL5030_REV_1_2);
 +
- static struct device *
- add_numbered_child(unsigned chip, const char *name, int num,
- 		void *pdata, unsigned pdata_len,
-@@ -1014,6 +1069,7 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 	unsigned			i;
- 	struct twl4030_platform_data	*pdata = client->dev.platform_data;
- 	u8 temp;
-+	int ret = 0;
- 
- 	if (!pdata) {
- 		dev_dbg(&client->dev, "no platform data?\n");
-@@ -1060,6 +1116,12 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 	/* setup clock framework */
- 	clocks_init(&client->dev, pdata->clock);
- 
-+	/* read TWL IDCODE Register */
-+	if (twl_id == TWL4030_CLASS_ID) {
-+		ret = twl_read_idcode_register();
-+		WARN(ret < 0, "Error: reading twl_idcode register value\n");
++	return 0;
++}
++
+ int twl4030_power_init(struct twl4030_power_data *twl4030_scripts)
+ {
+ 	int err = 0;
+@@ -530,6 +599,16 @@ int twl4030_power_init(struct twl4030_power_data *twl4030_scripts)
+ 			TWL4030_PM_MASTER_PROTECT_KEY);
+ 	if (err)
+ 		goto unlock;
++
++	/* Applying TWL5030 Erratum 27 WA based on Si revision &
++	 * flag updated from board file*/
++	if (is_twl5030_erratum27wa_required()) {
++		pr_info("TWL5030: Enabling workaround for Si Erratum 27\n");
++		twl_erratum27_workaround();
++		if (twl4030_scripts->twl5030_erratum27wa_script)
++			twl4030_scripts->twl5030_erratum27wa_script();
 +	}
 +
- 	/* load power event scripts */
- 	if (twl_has_power() && pdata->power)
- 		twl4030_power_init(pdata->power);
+ 	for (i = 0; i < twl4030_scripts->num; i++) {
+ 		err = load_twl4030_script(twl4030_scripts->scripts[i], address);
+ 		if (err)
+diff --git a/drivers/mfd/twl4030-script-omap.c b/drivers/mfd/twl4030-script-omap.c
+index 867a442..ff93fd2 100644
+--- a/drivers/mfd/twl4030-script-omap.c
++++ b/drivers/mfd/twl4030-script-omap.c
+@@ -326,10 +326,160 @@ static struct twl4030_resconfig twl4030_rconfig[] __initdata = {
+ 	{ 0, 0},
+ };
+ 
++/*
++ * Sleep and active sequences with changes for TWL5030 Erratum 27 workaround
++ *
++ * Sysoff (using sys_off signal):
++ *	When SYS_CLKREQ goes low during retention no resources will be affected
++ *	since no resources are assigned to P3 only.
++ *
++ *	Since all resources are assigned to P1 and P3 then all resources
++ *	will be affected on the falling edge of P3 (SYS_CLKREQ).
++ *	When OMAP lower the SYS_CLKREQ signal PMIC will execute the
++ *	A2S sequence in which HFCLKOUT is dissabled first and
++ *	after 488.32 usec(PRM_VOLTOFFSET) resources assigned to P1 and P3
++ *	and of TYPE2=1 are put to sleep
++ *	(VDD1, VDD2, VPLL1, REGEN, NRESPWRON & SYSEN).
++ *	Again after a 61.04 usec resources assigned to P1 and P3
++ *	and of TYPE2=2 are put to sleep
++ *	(VINTANA1, VINTANA2, VINTDIG, VIO & CLKEN).
++ *
++ *	On wakeup event OMAP goes active and pulls the SYS_CLKREQ high,
++ *	and will execute the S2A sequence which is same for P1_P2 & P3.
++ *	This will turn on all resources of TYPE2=2 to go to the active state.
++ *	Three dummy broadcast messages are added to get a delay of ~10 ms
++ *	before enabling the HFCLKOUT resource. And after a 30.52 usec
++ *	all resources of TYPE2=1 are put to the active state.
++ *
++ *	This 10ms delay can be reduced if the oscillator is having less
++ *	stabilization time. A should be taken care if it needs more time
++ *	for stabilization.
++ *
++ */
++
++/**
++ * DOC: Sleep to Active sequence for P1/P2/P3
++ *
++ * The wakeup sequence is adjusted to do the VDD1/VDD2 voltage ramp-up
++ * only after HFCLKIN is stabilized and the HFCLKOUT is enabled.
++ */
++static struct twl4030_ins wakeup_seq_erratum27[] __initdata = {
++	/*
++	 * Broadcast message to put res(TYPE2 = 2) to active.
++	 * Wait for ~10 mS (ramp-up time for OSC on the board)
++	 * after HFCLKIN is enabled
++	 */
++	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R2,
++							RES_STATE_ACTIVE), 55},
++	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R2,
++							RES_STATE_ACTIVE), 55},
++	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R2,
++							RES_STATE_ACTIVE), 54},
++	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R2,
++							RES_STATE_ACTIVE), 1},
++	/* Singular message to enable HCLKOUT after HFCLKIN is stabilized */
++	{MSG_SINGULAR(DEV_GRP_NULL, RES_HFCLKOUT, RES_STATE_ACTIVE), 1},
++	/*
++	 * Broadcast message to put res(TYPE2 = 1) to active.
++	 * VDD1/VDD2 ramp-up after HFCLKIN is stable and HFCLKOUT is enabled.
++	 */
++	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R1,
++							RES_STATE_ACTIVE), 2},
++};
++
++static struct twl4030_script wakeup_script_erratum27 __initdata = {
++	.script	= wakeup_seq_erratum27,
++	.size	= ARRAY_SIZE(wakeup_seq_erratum27),
++	.flags	= TWL4030_WAKEUP12_SCRIPT | TWL4030_WAKEUP3_SCRIPT,
++};
++
++/**
++ * DOC: Active to Sleep sequence for P1/P2/P3
++ *
++ * The sleep sequence is adjusted to do the switching of VDD1/VDD2/VIO OSC from
++ * HFCLKIN to internal oscillator when the HFCLKIN is stable.
++ */
++static struct twl4030_ins sleep_on_seq_erratum27[] __initdata = {
++	/*
++	 * Singular message to disable HCLKOUT.
++	 * Wait for ~488.32 uS to do the switching of VDD1/VDD2/VIO OSC from
++	 * HFCLKIN to internal oscillator before disabling HFCLKIN.
++	 */
++	{MSG_SINGULAR(DEV_GRP_NULL, RES_HFCLKOUT, RES_STATE_SLEEP), 20},
++	/* Broadcast message to put res(TYPE2 = 1) to sleep */
++	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R1,
++							RES_STATE_SLEEP), 2},
++	/* Broadcast message to put res(TYPE2 = 2) to sleep, disable HFCLKIN */
++	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, RES_TYPE_R0, RES_TYPE2_R2,
++							RES_STATE_SLEEP), 2},
++};
++
++static struct twl4030_script sleep_on_script_erratum27 __initdata = {
++	.script	= sleep_on_seq_erratum27,
++	.size	= ARRAY_SIZE(sleep_on_seq_erratum27),
++	.flags	= TWL4030_SLEEP_SCRIPT,
++};
++
++/* TWL4030 script for sleep, wakeup & warm_reset */
++static struct twl4030_script *twl4030_scripts_erratum27[] __initdata = {
++	&wakeup_script_erratum27,
++	&sleep_on_script_erratum27,
++	&wrst_script,
++};
++
++/**
++ * DOC: TWL4030 resource configuration
++ *
++ * VDD1/VDD2/VPLL are assigned to P1 and P3, to have better control
++ * during OFFMODE. HFCLKOUT is assigned to P1 and P3 (*p2) to turn off
++ * only during OFFMODE.
++ * (*P2 is included if the platform uses it for modem/some other processor)
++ */
++static struct twl4030_resconfig twl4030_rconfig_erratum27[] __initdata = {
++	{ .resource = RES_VPLL1, .devgroup = DEV_GRP_P1 | DEV_GRP_P3,
++		.type = 3, .type2 = 1, .remap_sleep = RES_STATE_OFF },
++	{ .resource = RES_VINTANA1, .devgroup = DEV_GRP_ALL, .type = 1,
++		.type2 = 2, .remap_sleep = RES_STATE_SLEEP },
++	{ .resource = RES_VINTANA2, .devgroup = DEV_GRP_ALL, .type = 0,
++		.type2 = 2, .remap_sleep = RES_STATE_SLEEP },
++	{ .resource = RES_VINTDIG, .devgroup = DEV_GRP_ALL, .type = 1,
++		.type2 = 2, .remap_sleep = RES_STATE_SLEEP },
++	{ .resource = RES_VIO, .devgroup = DEV_GRP_ALL, .type = 2,
++		.type2 = 2, .remap_sleep = RES_STATE_SLEEP },
++	{ .resource = RES_VDD1, .devgroup = DEV_GRP_P1 | DEV_GRP_P3,
++		.type = 4, .type2 = 1, .remap_sleep = RES_STATE_OFF },
++	{ .resource = RES_VDD2, .devgroup = DEV_GRP_P1 | DEV_GRP_P3,
++		.type = 3, .type2 = 1, .remap_sleep = RES_STATE_OFF },
++	{ .resource = RES_REGEN, .devgroup = DEV_GRP_ALL, .type = 2,
++		.type2 = 1, .remap_sleep = RES_STATE_SLEEP },
++	{ .resource = RES_NRES_PWRON, .devgroup = DEV_GRP_ALL, .type = 0,
++		.type2 = 1, .remap_sleep = RES_STATE_SLEEP },
++	{ .resource = RES_CLKEN, .devgroup = DEV_GRP_ALL, .type = 3,
++		.type2 = 2, .remap_sleep = RES_STATE_SLEEP },
++	{ .resource = RES_SYSEN, .devgroup = DEV_GRP_ALL, .type = 6,
++		.type2 = 1, .remap_sleep = RES_STATE_SLEEP },
++	{ .resource = RES_HFCLKOUT, .devgroup = DEV_GRP_P1 | DEV_GRP_P3,
++		.type = 0, .type2 = 1, .remap_sleep = RES_STATE_SLEEP },
++	{ 0, 0},
++};
++
++/**
++ * twl5030_script_erratum27() - API to modify TWL4030 script
++ *
++ * Updating the TWL4030 script & resource configuration
++ */
++static void __init twl5030_script_erratum27(void)
++{
++	twl4030_generic_script.scripts = twl4030_scripts_erratum27;
++	twl4030_generic_script.num = ARRAY_SIZE(twl4030_scripts_erratum27);
++	twl4030_generic_script.resource_config = twl4030_rconfig_erratum27;
++}
++
+ struct twl4030_power_data twl4030_generic_script __initdata = {
+ 	.scripts	= twl4030_scripts,
+ 	.num		= ARRAY_SIZE(twl4030_scripts),
+ 	.resource_config = twl4030_rconfig,
++	.twl5030_erratum27wa_script = twl5030_script_erratum27,
+ };
+ 
+ static int __init twl4030_script_probe(struct platform_device *pdev)
 diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
-index 41c9448..cf0f9f3 100644
+index cf0f9f3..58b92fc 100644
 --- a/include/linux/i2c/twl.h
 +++ b/include/linux/i2c/twl.h
-@@ -150,7 +150,12 @@
- #define MMC_PU				(0x1 << 3)
- #define MMC_PD				(0x1 << 2)
+@@ -680,6 +680,7 @@ struct twl4030_power_data {
+ 	struct twl4030_script **scripts;
+ 	unsigned num;
+ 	struct twl4030_resconfig *resource_config;
++	void (*twl5030_erratum27wa_script)(void);
+ #define TWL4030_RESCONFIG_UNDEF	((u8)-1)
+ };
  
--
-+#define TWL_SIL_TYPE(rev)		((rev) & 0x00FFFFFF)
-+#define TWL_SIL_REV(rev)		((rev) >> 24)
-+#define TWL_SIL_5030			0x09002F
-+#define TWL5030_REV_1_0			0x00
-+#define TWL5030_REV_1_1			0x10
-+#define TWL5030_REV_1_2			0x30
- 
- #define TWL4030_CLASS_ID 		0x4030
- #define TWL6030_CLASS_ID 		0x6030
-@@ -180,6 +185,9 @@ int twl_i2c_read_u8(u8 mod_no, u8 *val, u8 reg);
- int twl_i2c_write(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes);
- int twl_i2c_read(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes);
- 
-+int twl_get_type(void);
-+int twl_get_version(void);
-+
- int twl6030_interrupt_unmask(u8 bit_mask, u8 offset);
- int twl6030_interrupt_mask(u8 bit_mask, u8 offset);
- 
-@@ -285,7 +293,12 @@ extern struct twl4030_power_data twl4030_generic_script;
-  *(Use TWL_4030_MODULE_INTBR)
-  */
- 
-+#define REG_IDCODE_7_0			0x00
-+#define REG_IDCODE_15_8			0x01
-+#define REG_IDCODE_16_23		0x02
-+#define REG_IDCODE_31_24		0x03
- #define REG_GPPUPDCTR1			0x0F
-+#define REG_UNLOCK_TEST_REG		0x12
- 
- /*I2C1 and I2C4(SR) SDA/SCL pull-up control bits */
- 
-@@ -294,6 +307,8 @@ extern struct twl4030_power_data twl4030_generic_script;
- #define SR_I2C_SCL_CTRL_PU		BIT(4)
- #define SR_I2C_SDA_CTRL_PU		BIT(6)
- 
-+#define TWL_EEPROM_R_UNLOCK		0x49
-+
- /*----------------------------------------------------------------------*/
- 
- /*
 -- 
 1.7.1
 
