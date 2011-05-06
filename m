@@ -1,125 +1,185 @@
-From: Govindraj <govindraj.ti@gmail.com>
-Subject: Re: [PATCH v2 11/12] OMAP: Serial: Use resume call from prcm to
- enable uart
-Date: Fri, 6 May 2011 14:46:48 +0530
-Message-ID: <BANLkTinr8n0P31LWPrwL83sWCzVQOqo6=Q@mail.gmail.com>
-References: <1304080796-625-1-git-send-email-govindraj.raja@ti.com>
- <1304080796-625-12-git-send-email-govindraj.raja@ti.com> <87pqnym2f2.fsf@ti.com>
- <BANLkTi=32NfMr7exWpOoPHX7_-Jc0i5LqA@mail.gmail.com> <87liylkxdi.fsf@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <87liylkxdi.fsf@ti.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Rajendra Nayak <rnayak@ti.com>
+From: Adrian Hunter <adrian.hunter@nokia.com>
+Subject: [PATCH V2 14/16] mmc: omap_hsmmc: adjust host controller clock in regard to current OPP
+Date: Fri,  6 May 2011 12:14:13 +0300
+Message-ID: <1304673255-31634-15-git-send-email-adrian.hunter@nokia.com>
+References: <1304673255-31634-1-git-send-email-adrian.hunter@nokia.com>
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <1304673255-31634-1-git-send-email-adrian.hunter@nokia.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Madhusudhan Chikkature <madhu.cr@ti.com>, linux-omap Mailing List <linux-omap@vger.kernel.org>, linux-mmc Mailing List <linux-mmc@vger.kernel.org>, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>, Andy Shevchenko <ext-andriy.shevchenko@nokia.com>, Adrian Hunter <adrian.hunter@nokia.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, May 5, 2011 at 8:28 PM, Kevin Hilman <khilman@ti.com> wrote:
-> Govindraj <govindraj.ti@gmail.com> writes:
->
-> [...]
->
->>>
->>> ... this is just putting back basically the same thing that was rem=
-oved in
->>> patch 1. =A0IOW, this is now being checked for *every* PRCM wakeup,=
- which
->>> is no different than having it in the idle path.
->>>
->>> I thought I understood that you had the SW IRQ triggering working, =
-so
->>> this part should not be necessary.
->>
->> Actually I tried few experiments but couldn't get it working.
->
-> What exactly is not working? =A0 The interrupt is not firing at all? =
-=A0The
-> driver's ISR is not being called?
->
+From: Andy Shevchenko <ext-andriy.shevchenko@nokia.com>
 
-It throws a oops as here
+We should like to adjust MMC host controller clock whenever the OPP is changed.
+OPP affects to L3/L4 bus frequency. Due to this we update the maximum frequency
+limits before each upcoming request and when the divisor is calculated.
 
-http://pastebin.com/5bcPjAA0
+Signed-off-by: Andy Shevchenko <ext-andriy.shevchenko@nokia.com>
+Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
+---
+ drivers/mmc/host/omap_hsmmc.c |   65 +++++++++++++++++++++++++++++++++++++----
+ 1 files changed, 59 insertions(+), 6 deletions(-)
 
-Reproduced with below [EXP-1] change + below kernel.
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index ee57b9b..e1c9017 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -187,6 +187,9 @@ struct omap_hsmmc_host {
+ 	int			use_reg;
+ 	int			req_in_progress;
+ 
++	/* Actual output frequency of host controller */
++	unsigned int		freq;
++
+ 	struct	omap_mmc_platform_data	*pdata;
+ };
+ 
+@@ -592,13 +595,31 @@ static void omap_hsmmc_disable_irq(struct omap_hsmmc_host *host)
+ 	OMAP_HSMMC_WRITE(host->base, STAT, STAT_CLEAR);
+ }
+ 
++/*
++ * Recalculate desired clock frequency with regard to maximum possible
++ * frequency at current OPP.
++ *
++ * Choose either target frequency (ios->clock) or maximum possible frequency at
++ * current OPP (get_max_freq() returns this limit)
++ */
++static void omap_hsmmc_recalc_freq(struct omap_hsmmc_host *host,
++				   struct mmc_ios *ios)
++{
++	struct omap_mmc_platform_data *pdata = host->pdata;
++
++	if (pdata->get_max_freq)
++		host->freq = min(ios->clock, pdata->get_max_freq(host->dev));
++	else
++		host->freq = ios->clock;
++}
++
+ /* Calculate divisor for the given clock frequency */
+-static u16 calc_divisor(struct mmc_ios *ios)
++static u16 calc_divisor(struct omap_hsmmc_host *host)
+ {
+ 	u16 dsor = 0;
+ 
+-	if (ios->clock) {
+-		dsor = DIV_ROUND_UP(OMAP_MMC_MASTER_CLOCK, ios->clock);
++	if (host->freq) {
++		dsor = DIV_ROUND_UP(OMAP_MMC_MASTER_CLOCK, host->freq);
+ 		if (dsor > 250)
+ 			dsor = 250;
+ 	}
+@@ -608,17 +629,16 @@ static u16 calc_divisor(struct mmc_ios *ios)
+ 
+ static void omap_hsmmc_set_clock(struct omap_hsmmc_host *host)
+ {
+-	struct mmc_ios *ios = &host->mmc->ios;
+ 	unsigned long regval;
+ 	unsigned long timeout;
+ 
+-	dev_dbg(mmc_dev(host->mmc), "Set clock to %uHz\n", ios->clock);
++	dev_dbg(mmc_dev(host->mmc), "Set clock to %uHz\n", host->freq);
+ 
+ 	omap_hsmmc_stop_clock(host);
+ 
+ 	regval = OMAP_HSMMC_READ(host->base, SYSCTL);
+ 	regval = regval & ~(CLKD_MASK | DTO_MASK);
+-	regval = regval | (calc_divisor(ios) << 6) | (DTO << 16);
++	regval = regval | (calc_divisor(host) << 6) | (DTO << 16);
+ 	OMAP_HSMMC_WRITE(host->base, SYSCTL, regval);
+ 	OMAP_HSMMC_WRITE(host->base, SYSCTL,
+ 		OMAP_HSMMC_READ(host->base, SYSCTL) | ICE);
+@@ -742,6 +762,7 @@ static int omap_hsmmc_context_restore(struct omap_hsmmc_host *host)
+ 
+ 	omap_hsmmc_set_bus_width(host);
+ 
++	omap_hsmmc_recalc_freq(host, ios);
+ 	omap_hsmmc_set_clock(host);
+ 
+ 	omap_hsmmc_set_bus_mode(host);
+@@ -925,6 +946,8 @@ static void omap_hsmmc_request_done(struct omap_hsmmc_host *host, struct mmc_req
+ 	if (mrq->data && host->use_dma && dma_ch != -1)
+ 		return;
+ 	host->mrq = NULL;
++	if (host->pdata->inactive)
++		host->pdata->inactive(host->dev);
+ 	mmc_request_done(host->mmc, mrq);
+ }
+ 
+@@ -984,6 +1007,9 @@ omap_hsmmc_cmd_done(struct omap_hsmmc_host *host, struct mmc_command *cmd)
+ 	}
+ 	if ((host->data == NULL && !host->response_busy) || cmd->error)
+ 		omap_hsmmc_request_done(host, cmd->mrq);
++	else if (host->data == NULL && host->response_busy &&
++		 host->pdata->inactive)
++		host->pdata->inactive(host->dev);
+ }
+ 
+ /*
+@@ -1404,6 +1430,8 @@ static void omap_hsmmc_dma_cb(int lch, u16 ch_status, void *cb_data)
+ 		struct mmc_request *mrq = host->mrq;
+ 
+ 		host->mrq = NULL;
++		if (host->pdata->inactive)
++			host->pdata->inactive(host->dev);
+ 		mmc_request_done(host->mmc, mrq);
+ 	}
+ }
+@@ -1533,6 +1561,26 @@ static void omap_hsmmc_request(struct mmc_host *mmc, struct mmc_request *req)
+ 
+ 	BUG_ON(host->req_in_progress);
+ 	BUG_ON(host->dma_ch != -1);
++
++	if (host->pdata->active) {
++		unsigned int new_freq;
++
++		/*
++		 * active() returns minimum of two (target, maximum)
++		 * frequencies.
++		 */
++		new_freq = host->pdata->active(host->dev, mmc->ios.clock);
++
++		/*
++		 * We need to update actual frequency if it is not equal to the
++		 * minimum of two (target and maximum) frequencies
++		 */
++		if (host->freq != new_freq) {
++			host->freq = new_freq;
++			omap_hsmmc_set_clock(host);
++		}
++	}
++
+ 	if (host->protect_card) {
+ 		if (host->reqs_blocked < 3) {
+ 			/*
+@@ -1548,6 +1596,8 @@ static void omap_hsmmc_request(struct mmc_host *mmc, struct mmc_request *req)
+ 		if (req->data)
+ 			req->data->error = -EBADF;
+ 		req->cmd->retries = 0;
++		if (host->pdata->inactive)
++			host->pdata->inactive(host->dev);
+ 		mmc_request_done(mmc, req);
+ 		return;
+ 	} else if (host->reqs_blocked)
+@@ -1560,6 +1610,8 @@ static void omap_hsmmc_request(struct mmc_host *mmc, struct mmc_request *req)
+ 		if (req->data)
+ 			req->data->error = err;
+ 		host->mrq = NULL;
++		if (host->pdata->inactive)
++			host->pdata->inactive(host->dev);
+ 		mmc_request_done(mmc, req);
+ 		return;
+ 	}
+@@ -1616,6 +1668,7 @@ static void omap_hsmmc_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
+ 		}
+ 	}
+ 
++	omap_hsmmc_recalc_freq(host, ios);
+ 	omap_hsmmc_set_clock(host);
+ 
+ 	if (do_send_init_stream)
+-- 
+1.7.0.4
 
-git://gitorious.org/uart_runtime/pm.git
-[Has uart runtime patches based on pm-core branch]
-
->> Tried below but didn't help.
->>
->> ------------------------------------
->> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34=
-xx.c
->> index 3960330..2c1dfc2 100644
->> --- a/arch/arm/mach-omap2/pm34xx.c
->> +++ b/arch/arm/mach-omap2/pm34xx.c
->> @@ -288,6 +288,16 @@ static irqreturn_t prcm_interrupt_handler (int
->> irq, void *dev_id)
->> =A0 =A0 =A0 =A0 do {
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (irqstatus_mpu & (OMAP3430_WKUP_S=
-T_MASK |
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0OMAP3430_IO_ST_MASK)) {
->> +#if 1
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 /*
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* EXP-1: SET UART1 =
-SOFT IRQ BIT
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* 3430 -SDP UART1 c=
-onsole.
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* M_IRQ_72, INTCPS_=
-ISR_SET
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* 0x4820 0090 + (0x=
-20 * n)
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* bit-8 n =3D 2
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0*/
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 __raw_writel(0x100 , 0=
-x482000D0);
->> +#endif
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 c =3D _prcm_int_hand=
-le_wakeup();
->>
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 /*
->>
->> -----------------------------------
->>
->> Currently we are planning to integrate irq_chaining patches
->> on top uart_runtime patches which is work-in-progress.
->> Will remove resume_idle once we have irq_chaining patches available.
->
-> Well, I'm not OK with $SUBJECT patch as it is since it's just moving =
-an
-> ugly hack from serial.c to the PRCM ISR. =A0If the hack is going to s=
-tay,
-> then it should stay where it is until it can be fixed for real.
-
-Now with runtime changes we are cutting clocks independently
-whereas prior to this we where cutting clocks only in sram_idle path.
-
-With runtime changes:
-1.) Once we cut uart clocks and send a char to uart it directs wakeup_i=
-rq to
-prcm_irq_handler the one way to wakeup uart from there was to check
-uart mod wakeup status bits if wakeup event occurred then wakeup the
-particular uart.
-2.) Moving this resume back to sram path will break module wakeup after
-uart clocks are disabled(using put_sync)
-
-Thats the reason I have moved this to prcm_irq path to ensure
-once auto-suspend happens after inactivity period we have resume_call
-to wakeup uart port.
-
---
-Thanks,
-Govindraj.R
-
->
-> Kevin
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-serial"=
- in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
