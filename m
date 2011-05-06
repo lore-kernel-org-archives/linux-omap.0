@@ -1,87 +1,104 @@
-From: MyungJoo Ham <myungjoo.ham@samsung.com>
-Subject: Re: Common clock and dvfs
-Date: Fri, 6 May 2011 17:13:25 +0900
-Message-ID: <BANLkTikSFpNm55F66_DkabNTX8Yfh37NxA@mail.gmail.com>
-References: <4DC07F10.6010305@ti.com>
-	<4DC230E0.7090909@ti.com>
-	<BANLkTi=gP80iiJTECUoc+36z_1J68ALJNA@mail.gmail.com>
-	<4DC311C6.7090707@ti.com>
-Reply-To: myungjoo.ham@gmail.com
+From: "S, Venkatraman" <svenkatr@ti.com>
+Subject: Re: [PATCH 08/22] mmc: omap_hsmmc: correct debug report error status
+	mnemonics
+Date: Fri, 6 May 2011 14:05:44 +0530
+Message-ID: <BANLkTim963pDi_awSYefAqMwPSi5L3k_mA@mail.gmail.com>
+References: <1304596282-4095-1-git-send-email-adrian.hunter@nokia.com>
+	<1304596282-4095-9-git-send-email-adrian.hunter@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:36610 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752973Ab1EFIN1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 May 2011 04:13:27 -0400
-Received: by fxm17 with SMTP id 17so2049690fxm.19
-        for <linux-omap@vger.kernel.org>; Fri, 06 May 2011 01:13:25 -0700 (PDT)
-In-Reply-To: <4DC311C6.7090707@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1304596282-4095-9-git-send-email-adrian.hunter@nokia.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Adrian Hunter <adrian.hunter@nokia.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap Mailing List <linux-omap@vger.kernel.org>, linux-mmc Mailing List <linux-mmc@vger.kernel.org>, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>, Madhusudhan Chikkature <madhu.cr@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: Colin Cross <ccross@google.com>, "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "tony@atomide.com" <tony@atomide.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Mark Brown <broonie@sirena.org.uk>, Thomas Gleixner <tglx@linutronix.de>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Turquette, Mike" <mturquette@ti.com>
 
-On Fri, May 6, 2011 at 6:08 AM, Cousson, Benoit <b-cousson@ti.com> wrot=
-e:
-[]
+On Thu, May 5, 2011 at 5:21 PM, Adrian Hunter <adrian.hunter@nokia.com> wro=
+te:
+> CERR and BADA were in the wrong place and there are only
+> 32 not 35.
 >
-> Devices will indeed never care about voltage directly, but that will =
-happen
-> indirectly because of:
-> - voltage domains dependency: Changing the MPU or IVA voltage domain =
-might
-> force the CORE voltage to increase its voltage due to HW limitation. =
-We
-> cannot have the CPU at 1GHz while the interconnect is at the lowest O=
-PP.
-> - voltage domain increase due to one device frequency increase might =
-force
-> the other voltage domain devices to increase their frequency.
-> - Thermal management might be a good example as well, but in general
-> changing the main contributors frequency (MPU, GPU) should be enough.
+> Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
+> ---
+> =A0drivers/mmc/host/omap_hsmmc.c | =A0 19 +++++++++++--------
+> =A01 files changed, 11 insertions(+), 8 deletions(-)
 >
-> In both cases, the indirect voltage change will trigger potentially
-> frequency change.
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+> index bd52849..a1a1101 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -982,14 +982,14 @@ static void omap_hsmmc_dma_cleanup(struct omap_hsmm=
+c_host *host, int errno)
+> =A0* Readable error output
+> =A0*/
+> =A0#ifdef CONFIG_MMC_DEBUG
+> -static void omap_hsmmc_report_irq(struct omap_hsmmc_host *host, u32 stat=
+us)
+> +static void omap_hsmmc_dbg_report_irq(struct omap_hsmmc_host *host, u32 =
+status)
+> =A0{
+> =A0 =A0 =A0 =A0/* --- means reserved bit without definition at documentat=
+ion */
+> =A0 =A0 =A0 =A0static const char *omap_hsmmc_status_bits[] =3D {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 "CC", "TC", "BGE", "---", "BWR", "BRR", "--=
+-", "---", "CIRQ",
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 "OBI", "---", "---", "---", "---", "---", "=
+ERRI", "CTO", "CCRC",
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 "CEB", "CIE", "DTO", "DCRC", "DEB", "---", =
+"ACE", "---",
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 "---", "---", "---", "CERR", "CERR", "BADA"=
+, "---", "---", "---"
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 "CC" =A0, "TC" =A0, "BGE", "---", "BWR" , "=
+BRR" , "---" , "---" ,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 "CIRQ", "OBI" , "---", "---", "---" , "---"=
+ , "---" , "ERRI",
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 "CTO" , "CCRC", "CEB", "CIE", "DTO" , "DCRC=
+", "DEB" , "---" ,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 "ACE" , "---" , "---", "---", "CERR", "BADA=
+", "---" , "---"
+> =A0 =A0 =A0 =A0};
+> =A0 =A0 =A0 =A0char res[256];
+> =A0 =A0 =A0 =A0char *buf =3D res;
+> @@ -1006,6 +1006,11 @@ static void omap_hsmmc_report_irq(struct omap_hsmm=
+c_host *host, u32 status)
 >
-> vdd1 <--> vdd2
-> =C2=A0| =C2=A0 =C2=A0 =C2=A0 =C2=A0 |
-> =C2=A0+----+ =C2=A0 =C2=A0+----+
-> =C2=A0| =C2=A0 =C2=A0| =C2=A0 =C2=A0| =C2=A0 =C2=A0|
-> devA devB devC devD
+> =A0 =A0 =A0 =A0dev_dbg(mmc_dev(host->mmc), "%s\n", res);
+> =A0}
+> +#else
+> +static inline void omap_hsmmc_dbg_report_irq(struct omap_hsmmc_host *hos=
+t,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0u32 status)
+> +{
+> +}
+> =A0#endif =A0/* CONFIG_MMC_DEBUG */
 >
-> With such partitioning, an increase of devA OPP, will increase vdd1 t=
-hat
-> will trigger an increase of vdd2 that will then broadcast to devices =
-that
-> belong to it. devC and devD might or not increase their frequency to =
-reduce
-> the energy consumption.
-> Any devices like processors that can run fast and idle must run at th=
-e max
-> frequency allowed by the current voltage.
-
-As long as the voltage change in vdd1, which changes vdd2 (vdd1 and 2
-are consumers of the same regulator, right?), can update OPP entries
-related (enable/disable entries), devfreq can handle this.
-
-If the clocks and devices (A~D) related are using devfreq, disabling,
-enabling, and adding OPPs will instantly affect devfreq and adjust
-clock frequency based on the enabled OPP entries only. Thus, if a
-module is increasing the voltage, it just needs to disable some
-low-voltage OPP entries although some set_min/max APIs mentioned by
-Colin will be more useful.
-
-
---=20
-MyungJoo Ham (=ED=95=A8=EB=AA=85=EC=A3=BC), Ph.D.
-Mobile Software Platform Lab,
-Digital Media and Communications (DMC) Business
-Samsung Electronics
-cell: 82-10-6714-2858
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> =A0/*
+> @@ -1064,9 +1069,7 @@ static void omap_hsmmc_do_irq(struct omap_hsmmc_hos=
+t *host, int status)
+> =A0 =A0 =A0 =A0dev_dbg(mmc_dev(host->mmc), "IRQ Status is %x\n", status);
+>
+> =A0 =A0 =A0 =A0if (status & ERR) {
+> -#ifdef CONFIG_MMC_DEBUG
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_hsmmc_report_irq(host, status);
+> -#endif
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_hsmmc_dbg_report_irq(host, status);
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if ((status & CMD_TIMEOUT) ||
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0(status & CMD_CRC)) {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (host->cmd) {
+> --
+> 1.7.0.4
+>
+I checked against the TRM and you are right.
+FWIW,
+ Reviewed-by: Venkatraman S <svenkatr@ti.com>
