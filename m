@@ -1,91 +1,78 @@
-From: "Varadarajan, Charulatha" <charu@ti.com>
-Subject: Re: [PATCH V2 16/16] mmc: omap_hsmmc: add a hardware reset before initialization
-Date: Fri, 6 May 2011 18:56:36 +0530
-Message-ID: <BANLkTim3aZutT36j4TE9gnmpny9gN6=GUw@mail.gmail.com>
-References: <1304673255-31634-1-git-send-email-adrian.hunter@nokia.com> <1304673255-31634-17-git-send-email-adrian.hunter@nokia.com>
+From: Peter Barada <peter.barada@gmail.com>
+Subject: Re: Module + offset calculations have to be signed in arch/arm/mach-omap2/pm-debug.c
+Date: Fri, 06 May 2011 11:25:33 -0400
+Message-ID: <4DC412ED.1070805@gmail.com>
+References: <4DC2CED3.80206@gmail.com> <87liyljcnd.fsf@ti.com>	<4DC2DC03.4020200@gmail.com> <87oc3hf1wk.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <1304673255-31634-17-git-send-email-adrian.hunter@nokia.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Adrian Hunter <adrian.hunter@nokia.com>
-Cc: Tony Lindgren <tony@atomide.com>, Madhusudhan Chikkature <madhu.cr@ti.com>, linux-omap Mailing List <linux-omap@vger.kernel.org>, linux-mmc Mailing List <linux-mmc@vger.kernel.org>, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>
+Content-Type: multipart/mixed;
+ boundary="------------080905080500070900040505"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:37827 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755439Ab1EFPZ1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 May 2011 11:25:27 -0400
+Received: by gyd10 with SMTP id 10so1199965gyd.19
+        for <linux-omap@vger.kernel.org>; Fri, 06 May 2011 08:25:26 -0700 (PDT)
+In-Reply-To: <87oc3hf1wk.fsf@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
+This is a multi-part message in MIME format.
+--------------080905080500070900040505
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On Fri, May 6, 2011 at 14:44, Adrian Hunter <adrian.hunter@nokia.com> w=
-rote:
-> After a warm restart, an eMMC which cannot be powered off is
-> in an unknown state, so reset it to be sure it will initialize.
+On 05/05/2011 02:16 PM, Kevin Hilman wrote:
 >
-> Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
-> ---
-> =A0drivers/mmc/host/omap_hsmmc.c | =A0 38 +++++++++++++++++++++++++++=
-++++++++++-
-> =A01 files changed, 37 insertions(+), 1 deletions(-)
+> In any case, you've found a real bug, and your patch is valid.  However,
+> it doesn't currently apply to mainline, and it looks like it's because
+> your patch is using spaces and the code being patched is using tabs.
 >
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hs=
-mmc.c
-> index e1c9017..70b8ef8 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -530,10 +530,25 @@ static int omap_hsmmc_gpio_init(struct omap_mmc=
-_platform_data *pdata)
-> =A0 =A0 =A0 =A0} else
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pdata->slots[0].gpio_wp =3D -EINVAL;
->
-> + =A0 =A0 =A0 if (gpio_is_valid(pdata->slots[0].gpio_hw_reset)) {
+> Also, you can simplify the changelog to to just describe the fix needed
+> due to using negative offsets in some PRM modules.
+I've attached a new patch to fix the tabs/changelog.
 
-Not required as gpio_request takes care of it.
-
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D gpio_request(pdata->slots[0].gp=
-io_hw_reset,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
-"mmc_hw_reset");
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (ret)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto err_free_wp;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D gpio_direction_output(pdata->sl=
-ots[0].gpio_hw_reset, 1);
-
-Use gpio_request_one instead.
-
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (ret)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto err_free_hw_reset;
-> + =A0 =A0 =A0 } else
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pdata->slots[0].gpio_hw_reset =3D -EINV=
-AL;
-> +
-> =A0 =A0 =A0 =A0return 0;
->
-> +
-> +err_free_hw_reset:
-> + =A0 =A0 =A0 gpio_free(pdata->slots[0].gpio_hw_reset);
-> =A0err_free_wp:
-> - =A0 =A0 =A0 gpio_free(pdata->slots[0].gpio_wp);
-> + =A0 =A0 =A0 if (gpio_is_valid(pdata->slots[0].gpio_wp))
-
-Not required as gpio_free takes care of it.
-
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 gpio_free(pdata->slots[0].gpio_wp);
-> =A0err_free_cd:
-> =A0 =A0 =A0 =A0if (gpio_is_valid(pdata->slots[0].switch_pin))
-> =A0err_free_sp:
-> @@ -543,6 +558,8 @@ err_free_sp:
->
-> =A0static void omap_hsmmc_gpio_free(struct omap_mmc_platform_data *pd=
-ata)
-> =A0{
-> + =A0 =A0 =A0 if (gpio_is_valid(pdata->slots[0].gpio_hw_reset))
-
-ditto
-
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 gpio_free(pdata->slots[0].gpio_hw_reset=
-);
-> =A0 =A0 =A0 =A0if (gpio_is_valid(pdata->slots[0].gpio_wp))
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0gpio_free(pdata->slots[0].gpio_wp);
-> =A0 =A0 =A0 =A0if (gpio_is_valid(pdata->slots[0].switch_pin))
+-- 
+Peter Barada
+peter.barada@gmail.com
 
 
-<<snip>>
+--------------080905080500070900040505
+Content-Type: text/x-patch;
+ name="pm-debug-signed-offset.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="pm-debug-signed-offset.patch"
+
+>From 6857bb52af1fcd90e64d3e6c45de3ff0f071be7a Mon Sep 17 00:00:00 2001
+From: Peter Barada <peter.barada@logicpd.com>
+Date: Fri, 6 May 2011 11:07:50 -0400
+Subject: [PATCH] Make offset in pm_module_def signed to allow negative offsets.
+
+Since PRM module offsets can be negative (IVA2 is -0x800), offset in
+pm_module_def struct has to be signed.
+
+---
+ arch/arm/mach-omap2/pm-debug.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git b/arch/arm/mach-omap2/pm-debug.c a/arch/arm/mach-omap2/pm-debug.c
+index b731ef3..125f565 100644
+--- b/arch/arm/mach-omap2/pm-debug.c
++++ a/arch/arm/mach-omap2/pm-debug.c
+@@ -199,7 +199,7 @@ enum {
+ struct pm_module_def {
+ 	char name[8]; /* Name of the module */
+ 	short type; /* CM or PRM */
+-	short offset;
++	unsigned short offset;
+ 	int low; /* First register address on this module */
+ 	int high; /* Last register address on this module */
+ };
+-- 
+1.7.1
+
+
+--------------080905080500070900040505--
