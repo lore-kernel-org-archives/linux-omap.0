@@ -1,40 +1,46 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 01/22] OMAP: sDMA: descriptor autoloading feature
-Date: Fri, 6 May 2011 09:22:53 +0300
-Message-ID: <20110506062252.GT27860@atomide.com>
-References: <1304596282-4095-1-git-send-email-adrian.hunter@nokia.com>
- <1304596282-4095-2-git-send-email-adrian.hunter@nokia.com>
+Subject: Re: [PATCH] omap: fix build when MTD_NAND_OMAP2 and
+ TOUCHSCREEN_ADS7846 are disabled
+Date: Fri, 6 May 2011 00:25:23 -0700
+Message-ID: <20110506072523.GA25670@atomide.com>
+References: <1304515622-25113-1-git-send-email-mike@compulab.co.il>
+ <53A11D3C-4DBA-4772-AF14-3590772F6AA1@linuxhacker.ru>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:18903 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:60281 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752203Ab1EFGWy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 May 2011 02:22:54 -0400
+	with ESMTP id S1753086Ab1EFHZ2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 May 2011 03:25:28 -0400
 Content-Disposition: inline
-In-Reply-To: <1304596282-4095-2-git-send-email-adrian.hunter@nokia.com>
+In-Reply-To: <53A11D3C-4DBA-4772-AF14-3590772F6AA1@linuxhacker.ru>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Adrian Hunter <adrian.hunter@nokia.com>
-Cc: Madhusudhan Chikkature <madhu.cr@ti.com>, linux-omap Mailing List <linux-omap@vger.kernel.org>, linux-mmc Mailing List <linux-mmc@vger.kernel.org>, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>, Venkatraman S <svenkatr@ti.com>, Shilimkar Santosh <santosh.shilimkar@ti.com>
+To: Oleg Drokin <green@linuxhacker.ru>
+Cc: Mike Rapoport <mike@compulab.co.il>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi,
-
-* Adrian Hunter <adrian.hunter@nokia.com> [110505 14:48]:
-> From: Venkatraman S <svenkatr@ti.com>
+* Oleg Drokin <green@linuxhacker.ru> [110504 08:59]:
+> Hello!
 > 
-> Add sDMA driver support for descriptor autoloading feature.
->  Descriptor autoloading is OMAP sDMA v5 hardware capability that can be exploited for scatter gather
->  scenarios, currently available in OMAP3630 and OMAP4430.
+> On May 4, 2011, at 9:27 AM, Mike Rapoport wrote:
+> 
+> > Commits 5e6a64b36ce346b7a2d481ef9fa315290eb28e5e (omap: move detection of
+> > NAND CS to common-board-devices) and 96974a249b0cf3537f49115a59be67e2c54f315c
+> > (omap: consolidate touch screen initialization among different boards)
+> > break compilation when CONFIG_MTD_NAND_OMAP2 and
+> > CONFIG_TOUCHSCREEN_ADS7846 are not selected.
+> > Removing ifdefs and stubs from common-board-devices.h fixes the problem.
+> 
+> Works for me.
 
-I think we should not add this feature until after we've
-converted omap DMA to use the common dmaengine for the
-basic features.
+We should not build in code unnecessarily unless the boards has
+ads7847. Many boards don't have it.
 
-Adding this will make it harder for us to do the converions.
+So how about do the ifdef optimization for ads7846_spi_board_info
+and omap_ads7846_init in common-board-devices.c?
 
-Can you please separate out the DMA descriptor autoloading
-patches?
+That keeps the header clean and the we have all the code in one
+place in a way where it's optimized out if not selected.
 
 Regards,
 
