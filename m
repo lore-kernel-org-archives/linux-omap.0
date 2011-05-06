@@ -1,51 +1,79 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [RFC/PATCH] OMAP PM: remove OMAP_PM_NONE config option
-Date: Fri, 6 May 2011 20:43:39 +0200
-Message-ID: <BANLkTimgrpKq_SrD=U9rzXspKv8eOcsv0w@mail.gmail.com>
-References: <1304673087-24643-1-git-send-email-j-pihet@ti.com>
-	<alpine.DEB.2.00.1105061016070.30136@utopia.booyaka.com>
+From: Artem Bityutskiy <dedekind1@gmail.com>
+Subject: Re: [PATCH] omap : nand : fix subpage ecc issue with prefetch
+Date: Fri, 06 May 2011 21:56:17 +0300
+Message-ID: <1304708177.7222.101.camel@localhost>
+References: <1304334638-2198-1-git-send-email-kishore.kadiyala@ti.com>
+	 <1304621338.7222.55.camel@localhost>
+	 <BANLkTi=6wkqWA+kjWShiEyFiVs0ZXqY6iw@mail.gmail.com>
+Reply-To: dedekind1@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f181.google.com ([209.85.216.181]:64012 "EHLO
-	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932501Ab1EFSnk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 May 2011 14:43:40 -0400
-Received: by qyg14 with SMTP id 14so2798442qyg.19
-        for <linux-omap@vger.kernel.org>; Fri, 06 May 2011 11:43:39 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.1105061016070.30136@utopia.booyaka.com>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:55241 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932502Ab1EFS7t (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 May 2011 14:59:49 -0400
+Received: by eyx24 with SMTP id 24so1060312eyx.19
+        for <linux-omap@vger.kernel.org>; Fri, 06 May 2011 11:59:48 -0700 (PDT)
+In-Reply-To: <BANLkTi=6wkqWA+kjWShiEyFiVs0ZXqY6iw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, khilman@ti.com, Jean Pihet <j-pihet@ti.com>
+To: Vimal Singh <vimal.newwork@gmail.com>
+Cc: Kishore Kadiyala <kishore.kadiyala@ti.com>, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, bdefaria@adeneo-embedded.com
 
-Hi Paul,
+On Fri, 2011-05-06 at 13:00 +0530, Vimal Singh wrote:
+> On Fri, May 6, 2011 at 12:18 AM, Artem Bityutskiy <dedekind1@gmail.co=
+m> wrote:
+> > On Mon, 2011-05-02 at 16:40 +0530, Kishore Kadiyala wrote:
+> >> For prefetch engine, read and write  got broken in commit '2c01946=
+c'.
+> >> We never hit a scenario of not getting 'gpmc_prefetch_enable'
+> >> call success.
+> >> When reading/writing a subpage with a non divisible by 4 ecc numbe=
+r
+> >> of bytes, the mis-aligned bytes gets handled first before enabling
+> >> the Prefetch engine, then it reads/writes rest of the bytes.
+> >>
+> >> Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
+> >> Signed-off-by: Vimal Singh <vimal.newwork@gmail.com>
+> >> Reported-by: Bryan DE FARIA <bdefaria@adeneo-embedded.com>
+> >
+> > This needs a better commit message with more explanation and analys=
+is of
+> > the problem and how it was fixed.This commit message is not very
+> > understandable. And then it needs also:
+>=20
+> How about a commit log like this:
 
-On Fri, May 6, 2011 at 6:16 PM, Paul Walmsley <paul@pwsan.com> wrote:
-> Salut Jean
->
-> On Fri, 6 May 2011, Jean Pihet wrote:
->
->> The current code base is not linking with the OMAP_PM_NONE
->> option set.
->> Since the option OMAP_PM_NOOP provides a no-op/debug layer,
->> OMAP_PM_NONE can be removed.
->> OMAP_PM_NOOP is enabled by default by Kconfig.
->>
->> Signed-off-by: Jean Pihet <j-pihet@ti.com>
->
-> I'm okay with this but could you please base it on v2.6.39-rc6 so I can
-> merge it here?
-I checked the patch against the master branch of both Tony's and
-Linus's trees, it applies and compiles OK.
-Is that OK to you?
+Looks better, thanks. Waiting for the new patch.
 
-Regards,
-Jean
+>=20
+> When reading/writing a subpage (When HW ECC is not available/enable)
+> for number of bytes not aligned to 4, the mis-aligned bytes gets
+> handled first (by cpu copy mathod) before enabling the Prefetch
+> engin to/from 'p' (start of buffer 'buf').
+> Then it reads/writes rest of the bytes with the help of Prefetch
+> engine, if available, or again by cpu copy mathod. Currnetly,
+> reading/writing of rest of bytes, is not done correctly. Its trying t=
+o
+> read/write again to/from begining of buffer 'buf', overwriting the
+> mis-aligned bytes.
+>=20
+> For prefetch engine read and write it got broken in commit '2c01946c'=
+=2E
+> And we never hit the scenario of not getting 'gpmc_prefetch_enable'
+> call sucess. So, problem did not get caught up.
+>=20
+> This patch fixes the issue.
 
->
-> thanks
->
->
-> - Paul
->
+--=20
+Best Regards,
+Artem Bityutskiy (=D0=90=D1=80=D1=82=D1=91=D0=BC =D0=91=D0=B8=D1=82=D1=8E=
+=D1=86=D0=BA=D0=B8=D0=B9)
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
