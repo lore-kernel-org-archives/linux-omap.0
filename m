@@ -1,104 +1,73 @@
-From: "S, Venkatraman" <svenkatr@ti.com>
-Subject: Re: [PATCH 08/22] mmc: omap_hsmmc: correct debug report error status
-	mnemonics
-Date: Fri, 6 May 2011 14:05:44 +0530
-Message-ID: <BANLkTim963pDi_awSYefAqMwPSi5L3k_mA@mail.gmail.com>
-References: <1304596282-4095-1-git-send-email-adrian.hunter@nokia.com>
-	<1304596282-4095-9-git-send-email-adrian.hunter@nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1304596282-4095-9-git-send-email-adrian.hunter@nokia.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Adrian Hunter <adrian.hunter@nokia.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap Mailing List <linux-omap@vger.kernel.org>, linux-mmc Mailing List <linux-mmc@vger.kernel.org>, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>, Madhusudhan Chikkature <madhu.cr@ti.com>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: [RFC/PATCH] OMAP PM: remove OMAP_PM_NONE config option
+Date: Fri,  6 May 2011 11:11:27 +0200
+Message-ID: <1304673087-24643-1-git-send-email-j-pihet@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:39601 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755312Ab1EFJLu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 May 2011 05:11:50 -0400
+Received: by wwa36 with SMTP id 36so3294797wwa.1
+        for <linux-omap@vger.kernel.org>; Fri, 06 May 2011 02:11:49 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com
+Cc: Jean Pihet <j-pihet@ti.com>
 
-On Thu, May 5, 2011 at 5:21 PM, Adrian Hunter <adrian.hunter@nokia.com> wro=
-te:
-> CERR and BADA were in the wrong place and there are only
-> 32 not 35.
->
-> Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
-> ---
-> =A0drivers/mmc/host/omap_hsmmc.c | =A0 19 +++++++++++--------
-> =A01 files changed, 11 insertions(+), 8 deletions(-)
->
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> index bd52849..a1a1101 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -982,14 +982,14 @@ static void omap_hsmmc_dma_cleanup(struct omap_hsmm=
-c_host *host, int errno)
-> =A0* Readable error output
-> =A0*/
-> =A0#ifdef CONFIG_MMC_DEBUG
-> -static void omap_hsmmc_report_irq(struct omap_hsmmc_host *host, u32 stat=
-us)
-> +static void omap_hsmmc_dbg_report_irq(struct omap_hsmmc_host *host, u32 =
-status)
-> =A0{
-> =A0 =A0 =A0 =A0/* --- means reserved bit without definition at documentat=
-ion */
-> =A0 =A0 =A0 =A0static const char *omap_hsmmc_status_bits[] =3D {
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 "CC", "TC", "BGE", "---", "BWR", "BRR", "--=
--", "---", "CIRQ",
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 "OBI", "---", "---", "---", "---", "---", "=
-ERRI", "CTO", "CCRC",
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 "CEB", "CIE", "DTO", "DCRC", "DEB", "---", =
-"ACE", "---",
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 "---", "---", "---", "CERR", "CERR", "BADA"=
-, "---", "---", "---"
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 "CC" =A0, "TC" =A0, "BGE", "---", "BWR" , "=
-BRR" , "---" , "---" ,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 "CIRQ", "OBI" , "---", "---", "---" , "---"=
- , "---" , "ERRI",
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 "CTO" , "CCRC", "CEB", "CIE", "DTO" , "DCRC=
-", "DEB" , "---" ,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 "ACE" , "---" , "---", "---", "CERR", "BADA=
-", "---" , "---"
-> =A0 =A0 =A0 =A0};
-> =A0 =A0 =A0 =A0char res[256];
-> =A0 =A0 =A0 =A0char *buf =3D res;
-> @@ -1006,6 +1006,11 @@ static void omap_hsmmc_report_irq(struct omap_hsmm=
-c_host *host, u32 status)
->
-> =A0 =A0 =A0 =A0dev_dbg(mmc_dev(host->mmc), "%s\n", res);
-> =A0}
-> +#else
-> +static inline void omap_hsmmc_dbg_report_irq(struct omap_hsmmc_host *hos=
-t,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0u32 status)
-> +{
-> +}
-> =A0#endif =A0/* CONFIG_MMC_DEBUG */
->
-> =A0/*
-> @@ -1064,9 +1069,7 @@ static void omap_hsmmc_do_irq(struct omap_hsmmc_hos=
-t *host, int status)
-> =A0 =A0 =A0 =A0dev_dbg(mmc_dev(host->mmc), "IRQ Status is %x\n", status);
->
-> =A0 =A0 =A0 =A0if (status & ERR) {
-> -#ifdef CONFIG_MMC_DEBUG
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_hsmmc_report_irq(host, status);
-> -#endif
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_hsmmc_dbg_report_irq(host, status);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if ((status & CMD_TIMEOUT) ||
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0(status & CMD_CRC)) {
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (host->cmd) {
-> --
-> 1.7.0.4
->
-I checked against the TRM and you are right.
-FWIW,
- Reviewed-by: Venkatraman S <svenkatr@ti.com>
+The current code base is not linking with the OMAP_PM_NONE
+option set.
+Since the option OMAP_PM_NOOP provides a no-op/debug layer,
+OMAP_PM_NONE can be removed.
+OMAP_PM_NOOP is enabled by default by Kconfig.
+
+Signed-off-by: Jean Pihet <j-pihet@ti.com>
+---
+ arch/arm/plat-omap/Kconfig                |    3 ---
+ arch/arm/plat-omap/include/plat/omap-pm.h |    8 --------
+ 2 files changed, 0 insertions(+), 11 deletions(-)
+
+diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+index cd5f993..16e3293 100644
+--- a/arch/arm/plat-omap/Kconfig
++++ b/arch/arm/plat-omap/Kconfig
+@@ -209,9 +209,6 @@ choice
+ 	depends on ARCH_OMAP
+ 	default OMAP_PM_NOOP
+ 
+-config OMAP_PM_NONE
+-	bool "No PM layer"
+-
+ config OMAP_PM_NOOP
+ 	bool "No-op/debug PM layer"
+ 
+diff --git a/arch/arm/plat-omap/include/plat/omap-pm.h b/arch/arm/plat-omap/include/plat/omap-pm.h
+index c0a7520..0840df8 100644
+--- a/arch/arm/plat-omap/include/plat/omap-pm.h
++++ b/arch/arm/plat-omap/include/plat/omap-pm.h
+@@ -40,11 +40,7 @@
+  * framework starts.  The "_if_" is to avoid name collisions with the
+  * PM idle-loop code.
+  */
+-#ifdef CONFIG_OMAP_PM_NONE
+-#define omap_pm_if_early_init() 0
+-#else
+ int __init omap_pm_if_early_init(void);
+-#endif
+ 
+ /**
+  * omap_pm_if_init - OMAP PM init code called after clock fw init
+@@ -52,11 +48,7 @@ int __init omap_pm_if_early_init(void);
+  * The main initialization code.  OPP tables are passed in here.  The
+  * "_if_" is to avoid name collisions with the PM idle-loop code.
+  */
+-#ifdef CONFIG_OMAP_PM_NONE
+-#define omap_pm_if_init() 0
+-#else
+ int __init omap_pm_if_init(void);
+-#endif
+ 
+ /**
+  * omap_pm_if_exit - OMAP PM exit code
+-- 
+1.7.1
+
