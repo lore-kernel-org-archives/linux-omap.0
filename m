@@ -1,51 +1,42 @@
-From: Liam Girdwood <lrg@kernel.org>
-Subject: Re: [PATCH 1/4] MFD: TWL6025: add phoenix lite support to twl6030
-Date: Sun, 08 May 2011 21:32:33 +0100
-Message-ID: <1304886753.3246.22.camel@odin>
-References: <1303897191-14792-1-git-send-email-gg@slimlogic.co.uk>
-	 <1303897191-14792-2-git-send-email-gg@slimlogic.co.uk>
-	 <20110427104001.GX13227@legolas.emea.dhcp.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20110427104001.GX13227@legolas.emea.dhcp.ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: Graeme Gregory <gg@slimlogic.co.uk>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, sameo@linux.intel.com, broonie@opensource.wolfsonmicro.com
+From: green@linuxhacker.ru
+Subject: [PATCH 2/2] Add tps65921 chip
+Date: Sun,  8 May 2011 17:50:07 -0400
+Message-ID: <1304891407-29364-3-git-send-email-green@linuxhacker.ru>
+References: <1304891407-29364-1-git-send-email-green@linuxhacker.ru>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from c-71-228-165-73.hsd1.tn.comcast.net ([71.228.165.73]:54360 "EHLO
+	fatbox1.localnet" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753780Ab1EHVvw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 8 May 2011 17:51:52 -0400
+In-Reply-To: <1304891407-29364-1-git-send-email-green@linuxhacker.ru>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Oleg Drokin <green@linuxhacker.ru>
 
-On Wed, 2011-04-27 at 13:40 +0300, Felipe Balbi wrote: 
-> On Wed, Apr 27, 2011 at 10:39:48AM +0100, Graeme Gregory wrote:
+From: Oleg Drokin <green@linuxhacker.ru>
 
+Very similar to TPS65920
+List of differences: http://www.ti.com/litv/pdf/swcu066b
 
-> > +	/* TWL6025 LDO regulators */
-> > +	struct regulator_init_data		*ldo1;
-> > +	struct regulator_init_data		*ldo2;
-> > +	struct regulator_init_data		*ldo3;
-> > +	struct regulator_init_data		*ldo4;
-> > +	struct regulator_init_data		*ldo5;
-> > +	struct regulator_init_data		*ldo6;
-> > +	struct regulator_init_data		*ldo7;
-> > +	struct regulator_init_data		*ldoln;
-> > +	struct regulator_init_data		*ldousb;
-> > +	/* TWL6025 DCDC regulators */
-> > +	struct regulator_init_data		*smps3;
-> > +	struct regulator_init_data		*smps4;
-> > +	struct regulator_init_data		*vio6025;
-> 
-> this is just becoming really really ugly. You need a more clever way of
-> handling this. Maybe passing an array of regulators and the array size
-> instead of continuously adding fields to this structure.
-> 
+Signed-off-by: Oleg Drokin <green@linuxhacker.ru>
+---
+ drivers/mfd/twl-core.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-Ok, I agree that optimising the platform data here is desirable, but I
-think we will have to stick with this atm as the twl driver has some
-rather annoying limitations that make optimising things like this a pita
-atm.
+diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
+index 960b5be..3daebcc 100644
+--- a/drivers/mfd/twl-core.c
++++ b/drivers/mfd/twl-core.c
+@@ -1107,6 +1107,8 @@ static const struct i2c_device_id twl_ids[] = {
+ 	{ "tps65950", 0 },		/* catalog version of twl5030 */
+ 	{ "tps65930", TPS_SUBSET },	/* fewer LDOs and DACs; no charger */
+ 	{ "tps65920", TPS_SUBSET },	/* fewer LDOs; no codec or charger */
++	{ "tps65921", TPS_SUBSET },	/* fewer LDOs; no codec, no LED
++					   and vibrator. Charger in USB module*/
+ 	{ "twl6030", TWL6030_CLASS },	/* "Phoenix power chip" */
+ 	{ /* end of list */ },
+ };
+-- 
+1.7.4.4
 
-I guess we should look at fixing the twl driver within TI in order to
-make it more adaptable (i.e. support future twl ICs) and also a non
-singleton device.
-
-Liam
