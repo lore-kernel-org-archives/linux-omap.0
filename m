@@ -1,69 +1,43 @@
-From: Rabin Vincent <rabin@rab.in>
-Subject: [PATCH] OMAP: don't trace functions called from sched_clock
-Date: Sun,  8 May 2011 14:51:54 +0530
-Message-ID: <1304846514-15641-1-git-send-email-rabin@rab.in>
+From: Liam Girdwood <lrg@slimlogic.co.uk>
+Subject: Re: [PATCH 4/4] USB: TWL6025 allow different regulator name
+Date: Sun, 08 May 2011 16:08:37 +0100
+Message-ID: <1304867317.3246.10.camel@odin>
+References: <1303897191-14792-1-git-send-email-gg@slimlogic.co.uk>
+	 <1303897191-14792-5-git-send-email-gg@slimlogic.co.uk>
+	 <20110427104542.GZ13227@legolas.emea.dhcp.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:51458 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751803Ab1EHJVb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 8 May 2011 05:21:31 -0400
-Received: by pwi15 with SMTP id 15so1980958pwi.19
-        for <linux-omap@vger.kernel.org>; Sun, 08 May 2011 02:21:31 -0700 (PDT)
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:48458 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752585Ab1EHPIm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 8 May 2011 11:08:42 -0400
+In-Reply-To: <20110427104542.GZ13227@legolas.emea.dhcp.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rabin Vincent <rabin@rab.in>
+To: balbi@ti.com
+Cc: Graeme Gregory <gg@slimlogic.co.uk>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, sameo@linux.intel.com, broonie@opensource.wolfsonmicro.com
 
-omap_readl() is used from the sched_clock() implementations and so must
-be marked notrace to avoid recursion in ftrace.  Same thing with
-mpu_read() for OMAP1.
+On Wed, 2011-04-27 at 13:45 +0300, Felipe Balbi wrote:
+> Hi,
+> 
+> On Wed, Apr 27, 2011 at 10:39:51AM +0100, Graeme Gregory wrote:
+> > The twl6025 uses a different regulator for USB than the 6030 so select
+> > the correct regulator name depending on the subclass of device.
+> > 
+> > Signed-off-by: Graeme Gregory <gg@slimlogic.co.uk>
+> 
+> I don't see the point of this patch. It's just a string. Use the same
+> name and add a comment saying that on datasheet/TRM/documentation the
+> name LDO is actually referred to as LDOUSB. It's the same functionality
+> anyway.
+> 
 
-Signed-off-by: Rabin Vincent <rabin@rab.in>
----
- arch/arm/mach-omap1/io.c   |    2 +-
- arch/arm/mach-omap1/time.c |    2 +-
- arch/arm/mach-omap2/io.c   |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+I think for the avoidance of any doubt, it's probably best to use the
+TWL6025 string name here as it will importantly match the TWL6025 TRM
+and any schematics using the TWL6025. Getting this wrong during TWL6025
+board integration has the potential for hardware damage.
 
-diff --git a/arch/arm/mach-omap1/io.c b/arch/arm/mach-omap1/io.c
-index 870886a..36ec2d7 100644
---- a/arch/arm/mach-omap1/io.c
-+++ b/arch/arm/mach-omap1/io.c
-@@ -158,7 +158,7 @@ u16 omap_readw(u32 pa)
- }
- EXPORT_SYMBOL(omap_readw);
- 
--u32 omap_readl(u32 pa)
-+u32 notrace omap_readl(u32 pa)
- {
- 	return __raw_readl(OMAP1_IO_ADDRESS(pa));
- }
-diff --git a/arch/arm/mach-omap1/time.c b/arch/arm/mach-omap1/time.c
-index 6885d2f..88c5c5e 100644
---- a/arch/arm/mach-omap1/time.c
-+++ b/arch/arm/mach-omap1/time.c
-@@ -203,7 +203,7 @@ static struct irqaction omap_mpu_timer2_irq = {
- 	.handler	= omap_mpu_timer2_interrupt,
- };
- 
--static cycle_t mpu_read(struct clocksource *cs)
-+static cycle_t notrace mpu_read(struct clocksource *cs)
- {
- 	return ~omap_mpu_timer_read(1);
- }
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index 441e79d..f1987b1 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -441,7 +441,7 @@ u16 omap_readw(u32 pa)
- }
- EXPORT_SYMBOL(omap_readw);
- 
--u32 omap_readl(u32 pa)
-+u32 notrace omap_readl(u32 pa)
- {
- 	return __raw_readl(OMAP2_L4_IO_ADDRESS(pa));
- }
--- 
-1.7.4.1
+Liam
 
