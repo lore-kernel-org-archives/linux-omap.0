@@ -1,42 +1,78 @@
-From: Rabin Vincent <rabin@rab.in>
-Subject: [PATCH] OMAP4: fix return value of omap4_l3_init
-Date: Sat,  7 May 2011 22:28:47 +0530
-Message-ID: <1304787527-8314-1-git-send-email-rabin@rab.in>
+From: "Pedanekar, Hemant" <hemantp@ti.com>
+Subject: RE: !CONFIG_OMAP_32K_TIMER on OMAP4/panda
+Date: Sun, 8 May 2011 10:29:37 +0530
+Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B0374D103A2@dbde02.ent.ti.com>
+References: <BANLkTi=YdcHp4mxcZ1MtG8m5st4zeSY=gg@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:41249 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751067Ab1EGQ6Y (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 7 May 2011 12:58:24 -0400
-Received: by pzk9 with SMTP id 9so1830685pzk.19
-        for <linux-omap@vger.kernel.org>; Sat, 07 May 2011 09:58:24 -0700 (PDT)
+Received: from arroyo.ext.ti.com ([192.94.94.40]:42183 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750843Ab1EHFAh convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 8 May 2011 01:00:37 -0400
+In-Reply-To: <BANLkTi=YdcHp4mxcZ1MtG8m5st4zeSY=gg@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rabin Vincent <rabin@rab.in>
+To: Rabin Vincent <rabin@rab.in>, linux-omap <linux-omap@vger.kernel.org>
 
-Don't PTR_ERR() a non-error pointer:
+Hello,
 
- initcall omap4_l3_init+0x0/0xdc returned -544980480 after 0 usecs
- initcall omap4_l3_init+0x0/0xdc returned with error code -544980480
+linux-omap-owner@vger.kernel.org wrote on Saturday, May 07, 2011 10:21 PM:
 
-Signed-off-by: Rabin Vincent <rabin@rab.in>
----
- arch/arm/mach-omap2/devices.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+> On a linux-next kernel built for the Pandaboard, disabling
+> CONFIG_OMAP_32K_TIMER makes the kernel use the gptimer as the
+> clocksource, but this appears to be non-functional.  Judging from the
+> all-zeros printk timings and the fact the "sleep 1" hangs indefinitely,
+> it looks like the clocksource reads are always zero.
+> 
+> Boot log below and .config attached.  Ideas?
+> 
+> [    0.000000] Linux version 2.6.39-rc6-next-20110506+ (rabin@debian)
+[...]
+> [    0.000000] Freeing init memory: 112K
 
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index 7b85585..5b8ca68 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -97,7 +97,7 @@ static int __init omap4_l3_init(void)
+This looks similar to the issue I observed on TI816X with 32K timer disabled.
+
+I have created following patch (currently a tempfix) for making timekeeping work 
+with MPU timer selected (other option is to use ".flags = HWMOD_INIT_NO_RESET" 
+in hwmod data for the timer used as clocksource):
+
+commit 77cce922c00ced4407776cc0a1d84cee40b7da90
+Author: Hemant Pedanekar <hemantp@ti.com>
+Date:   Thu Apr 28 12:59:24 2011 +0530
+
+    dmtimer: Initialize the hwmod for timer used as clocksource
+    
+    Since dmtimer driver still doesn't use hwmods, the 2nd timer used as clocksource
+    is not set up. This results into timekeepoing failure when the timer used as
+    clocksource gets reset during hwmod setup.
+    
+    To prevent this, explicitly call omap_hwmod_setup_one() for timer used as
+    clocksource.
+    
+    Note that is is aplpicable when NOT using 32k timer which is the case for
+    TI816X. For other configurations, this code will not be executed unless 32K
+    timer is explicitly disabled.
+    
+    Signed-off-by: Hemant Pedanekar <hemantp@ti.com>
+
+diff --git a/arch/arm/mach-omap2/timer-gp.c b/arch/arm/mach-omap2/timer-gp.c
+index 3b9cf85..290fbfa 100644
+--- a/arch/arm/mach-omap2/timer-gp.c
++++ b/arch/arm/mach-omap2/timer-gp.c
+@@ -229,6 +229,11 @@ static void __init omap2_gp_clocksource_init(void)
+ 		"%s: failed to request dm-timer\n";
+ 	static char err2[] __initdata = KERN_ERR
+ 		"%s: can't register clocksource!\n";
++	char clocksource_hwmod_name[8]; /* 8 = sizeof("timerXX0") */
++
++	/* XXX: This may not be always true, we might get different timer */
++	sprintf(clocksource_hwmod_name, "timer%d", gptimer_id + 1);
++	omap_hwmod_setup_one(clocksource_hwmod_name);
  
- 	WARN(IS_ERR(od), "could not build omap_device for %s\n", oh_name);
- 
--	return PTR_ERR(od);
-+	return IS_ERR(od) ? PTR_ERR(od) : 0;
- }
- postcore_initcall(omap4_l3_init);
- 
--- 
-1.7.4.1
+ 	gpt = omap_dm_timer_request();
+ 	if (!gpt)
 
+   Hemant
