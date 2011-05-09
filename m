@@ -1,92 +1,122 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 2/6] OMAP: omap3touchbook: Remove unused lcd stuff
-Date: Mon,  9 May 2011 10:36:03 +0300
-Message-ID: <1304926567-26814-3-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 5/6] OMAP: H4: Port the display driver to new DSS2
+Date: Mon,  9 May 2011 10:36:06 +0300
+Message-ID: <1304926567-26814-6-git-send-email-tomi.valkeinen@ti.com>
 References: <1304926567-26814-1-git-send-email-tomi.valkeinen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:55393 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752717Ab1EIHgX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 May 2011 03:36:23 -0400
-Received: by mail-ey0-f182.google.com with SMTP id 7so2054805eyg.41
-        for <linux-omap@vger.kernel.org>; Mon, 09 May 2011 00:36:22 -0700 (PDT)
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:39839 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752939Ab1EIHgb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 May 2011 03:36:31 -0400
+Received: by eye13 with SMTP id 13so2147196eye.17
+        for <linux-omap@vger.kernel.org>; Mon, 09 May 2011 00:36:28 -0700 (PDT)
 In-Reply-To: <1304926567-26814-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, Gregoire Gentil <gregoire@gentil.com>
+Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-board-omap3touchbook.c adds an LCD device, but the kernel doesn't
-contain a driver for the device. So let's remove the unneeded LCD
-device.
+Port the old omapfb panel driver to DSS2. This patch changes the board
+file only, the driver is ported in separate patch.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Gregoire Gentil <gregoire@gentil.com>
 ---
- arch/arm/mach-omap2/board-omap3touchbook.c |   18 ------------------
- 1 files changed, 0 insertions(+), 18 deletions(-)
+ arch/arm/mach-omap2/board-h4.c |   41 ++++++++++++++++++++++++---------------
+ 1 files changed, 25 insertions(+), 16 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-omap3touchbook.c b/arch/arm/mach-omap2/board-omap3touchbook.c
-index 127cb17..1c717a4 100644
---- a/arch/arm/mach-omap2/board-omap3touchbook.c
-+++ b/arch/arm/mach-omap2/board-omap3touchbook.c
-@@ -115,15 +115,6 @@ static struct omap2_hsmmc_info mmc[] = {
- 	{}	/* Terminator */
- };
+diff --git a/arch/arm/mach-omap2/board-h4.c b/arch/arm/mach-omap2/board-h4.c
+index bac7933..991e71e 100644
+--- a/arch/arm/mach-omap2/board-h4.c
++++ b/arch/arm/mach-omap2/board-h4.c
+@@ -39,6 +39,8 @@
+ #include <plat/menelaus.h>
+ #include <plat/dma.h>
+ #include <plat/gpmc.h>
++#include <plat/display.h>
++#include <plat/panel-generic-dpi.h>
  
--static struct platform_device omap3_touchbook_lcd_device = {
--	.name		= "omap3touchbook_lcd",
--	.id		= -1,
--};
--
--static struct omap_lcd_config omap3_touchbook_lcd_config __initdata = {
--	.ctrl_name	= "internal",
--};
--
- static struct regulator_consumer_supply touchbook_vmmc1_supply = {
- 	.supply			= "vmmc",
- };
-@@ -181,12 +172,10 @@ static struct twl4030_gpio_platform_data touchbook_gpio_data = {
- 
- static struct regulator_consumer_supply touchbook_vdac_supply = {
- 	.supply		= "vdac",
--	.dev		= &omap3_touchbook_lcd_device.dev,
- };
- 
- static struct regulator_consumer_supply touchbook_vdvi_supply = {
- 	.supply		= "vdvi",
--	.dev		= &omap3_touchbook_lcd_device.dev,
- };
- 
- /* VMMC1 for MMC1 pins CMD, CLK, DAT0..DAT3 (20 mA, plus card == max 220 mA) */
-@@ -403,10 +392,6 @@ static struct platform_device keys_gpio = {
+ #include "mux.h"
+ #include "control.h"
+@@ -157,17 +159,33 @@ static struct platform_device h4_kp_device = {
  	},
  };
  
--static struct omap_board_config_kernel omap3_touchbook_config[] __initdata = {
--	{ OMAP_TAG_LCD,		&omap3_touchbook_lcd_config },
+-static struct platform_device h4_lcd_device = {
+-	.name		= "lcd_h4",
+-	.id		= -1,
 -};
 -
- #ifdef CONFIG_OMAP_MUX
- static struct omap_board_mux board_mux[] __initdata = {
- 	{ .reg_offset = OMAP_MUX_TERMINATOR },
-@@ -429,7 +414,6 @@ static void __init omap3_touchbook_init_irq(void)
+ static struct platform_device *h4_devices[] __initdata = {
+ 	&h4_flash_device,
+ 	&h4_kp_device,
++};
++
++static struct panel_generic_dpi_data h4_panel_data = {
++	.name			= "h4",
++};
++
++static struct omap_dss_device h4_lcd_device = {
++	.name			= "lcd",
++	.driver_name		= "generic_dpi_panel",
++	.type			= OMAP_DISPLAY_TYPE_DPI,
++	.phy.dpi.data_lines	= 16,
++	.data			= &h4_panel_data,
++};
++
++static struct omap_dss_device *h4_dss_devices[] = {
+ 	&h4_lcd_device,
+ };
+ 
++static struct omap_dss_board_info h4_dss_data = {
++	.num_devices	= ARRAY_SIZE(h4_dss_devices),
++	.devices	= h4_dss_devices,
++	.default_device	= &h4_lcd_device,
++};
++
+ /* 2420 Sysboot setup (2430 is different) */
+ static u32 get_sysboot_value(void)
+ {
+@@ -271,10 +289,6 @@ static void __init h4_init_flash(void)
+ 	h4_flash_resource.end	= base + SZ_64M - 1;
  }
  
- static struct platform_device *omap3_touchbook_devices[] __initdata = {
--	&omap3_touchbook_lcd_device,
- 	&leds_gpio,
- 	&keys_gpio,
+-static struct omap_lcd_config h4_lcd_config __initdata = {
+-	.ctrl_name	= "internal",
+-};
+-
+ static struct omap_usb_config h4_usb_config __initdata = {
+ 	/* S1.10 OFF -- usb "download port"
+ 	 * usb0 switched to Mini-B port and isp1105 transceiver;
+@@ -286,10 +300,6 @@ static struct omap_usb_config h4_usb_config __initdata = {
+ 	.hmc_mode	= 0x00,		/* 0:dev|otg 1:disable 2:disable */
  };
-@@ -510,8 +494,6 @@ static struct omap_musb_board_data musb_board_data = {
- static void __init omap3_touchbook_init(void)
+ 
+-static struct omap_board_config_kernel h4_config[] __initdata = {
+-	{ OMAP_TAG_LCD,		&h4_lcd_config },
+-};
+-
+ static void __init omap_h4_init_early(void)
  {
- 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
--	omap_board_config = omap3_touchbook_config;
--	omap_board_config_size = ARRAY_SIZE(omap3_touchbook_config);
+ 	omap2_init_common_infrastructure();
+@@ -331,9 +341,6 @@ static void __init omap_h4_init(void)
+ {
+ 	omap2420_mux_init(board_mux, OMAP_PACKAGE_ZAF);
  
- 	pm_power_off = omap3_touchbook_poweroff;
+-	omap_board_config = h4_config;
+-	omap_board_config_size = ARRAY_SIZE(h4_config);
+-
+ 	/*
+ 	 * Make sure the serial ports are muxed on at this point.
+ 	 * You have to mux them off in device drivers later on
+@@ -372,6 +379,8 @@ static void __init omap_h4_init(void)
+ 	omap2_usbfs_init(&h4_usb_config);
+ 	omap_serial_init();
+ 	h4_init_flash();
++
++	omap_display_init(&h4_dss_data);
+ }
  
+ static void __init omap_h4_map_io(void)
 -- 
 1.7.4.1
 
