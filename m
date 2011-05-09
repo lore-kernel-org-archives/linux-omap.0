@@ -1,53 +1,73 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 0/6] OMAP: board file changes for DSS2 porting
-Date: Mon,  9 May 2011 10:36:01 +0300
-Message-ID: <1304926567-26814-1-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 1/6] OMAP: RX51: Remove unused old omapfb stuff
+Date: Mon,  9 May 2011 10:36:02 +0300
+Message-ID: <1304926567-26814-2-git-send-email-tomi.valkeinen@ti.com>
+References: <1304926567-26814-1-git-send-email-tomi.valkeinen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:42894 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752000Ab1EIHgT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 May 2011 03:36:19 -0400
-Received: by mail-ew0-f52.google.com with SMTP id 28so1518243ewy.25
-        for <linux-omap@vger.kernel.org>; Mon, 09 May 2011 00:36:18 -0700 (PDT)
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:36860 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752000Ab1EIHgX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 May 2011 03:36:23 -0400
+Received: by eye13 with SMTP id 13so1788652eye.31
+        for <linux-omap@vger.kernel.org>; Mon, 09 May 2011 00:36:20 -0700 (PDT)
+In-Reply-To: <1304926567-26814-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com
 Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Hi Tony,
+RX51 uses the new DSS2 display driver, but the board file still
+contained some code for the old omapfb driver. The old code can be
+removed.
 
-I posted last week a patch set porting most of the old omapfb OMAP2/3 drivers
-to DSS2 (http://marc.info/?l=linux-fbdev&m=130451207802788&w=2). That patch set
-contains changes to both the drivers and the board files, and it seems there is
-already a minor conflict in them.
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+---
+ arch/arm/mach-omap2/board-rx51.c |   25 -------------------------
+ 1 files changed, 0 insertions(+), 25 deletions(-)
 
-So I think it's simpler to divide the set into two parts, this one, which
-contains the board file changes, and another containing the driver changes.
-Merging will probably go easier if you can take this patch set via linux-omap,
-and I'll take the driver changes via dss2 tree.
-
-Applying this set without the driver changes will obviously disable the
-displays of the affected boards until the drivers are also merged.
-
- Tomi
-
-
-Tomi Valkeinen (6):
-  OMAP: RX51: Remove unused old omapfb stuff
-  OMAP: omap3touchbook: Remove unused lcd stuff
-  OMAP: 2420SDP: Port the display driver to new DSS2
-  OMAP: LDP: Port the display driver to new DSS2
-  OMAP: H4: Port the display driver to new DSS2
-  OMAP: Apollon: Port the display driver to new DSS2
-
- arch/arm/mach-omap2/board-2430sdp.c        |   84 +++++++++++++++++++++++-----
- arch/arm/mach-omap2/board-apollon.c        |   34 +++++++----
- arch/arm/mach-omap2/board-h4.c             |   41 ++++++++-----
- arch/arm/mach-omap2/board-ldp.c            |   73 +++++++++++++++++++++---
- arch/arm/mach-omap2/board-omap3touchbook.c |   18 ------
- arch/arm/mach-omap2/board-rx51.c           |   25 --------
- 6 files changed, 180 insertions(+), 95 deletions(-)
-
+diff --git a/arch/arm/mach-omap2/board-rx51.c b/arch/arm/mach-omap2/board-rx51.c
+index e964895..116e19b 100644
+--- a/arch/arm/mach-omap2/board-rx51.c
++++ b/arch/arm/mach-omap2/board-rx51.c
+@@ -75,29 +75,6 @@ static struct cpuidle_params rx51_cpuidle_params[] = {
+ 	{1, 7505, 15274, 484329},
+ };
+ 
+-static struct omap_lcd_config rx51_lcd_config = {
+-	.ctrl_name	= "internal",
+-};
+-
+-static struct omap_fbmem_config rx51_fbmem0_config = {
+-	.size = 752 * 1024,
+-};
+-
+-static struct omap_fbmem_config rx51_fbmem1_config = {
+-	.size = 752 * 1024,
+-};
+-
+-static struct omap_fbmem_config rx51_fbmem2_config = {
+-	.size = 752 * 1024,
+-};
+-
+-static struct omap_board_config_kernel rx51_config[] = {
+-	{ OMAP_TAG_FBMEM,	&rx51_fbmem0_config },
+-	{ OMAP_TAG_FBMEM,	&rx51_fbmem1_config },
+-	{ OMAP_TAG_FBMEM,	&rx51_fbmem2_config },
+-	{ OMAP_TAG_LCD,		&rx51_lcd_config },
+-};
+-
+ static void __init rx51_init_early(void)
+ {
+ 	struct omap_sdrc_params *sdrc_params;
+@@ -124,8 +101,6 @@ static struct omap_musb_board_data musb_board_data = {
+ static void __init rx51_init(void)
+ {
+ 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+-	omap_board_config = rx51_config;
+-	omap_board_config_size = ARRAY_SIZE(rx51_config);
+ 	omap3_pm_init_cpuidle(rx51_cpuidle_params);
+ 	omap_serial_init();
+ 	usb_musb_init(&musb_board_data);
 -- 
 1.7.4.1
 
