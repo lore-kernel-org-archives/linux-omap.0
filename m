@@ -1,40 +1,48 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH 4/4] USB: TWL6025 allow different regulator name
-Date: Mon, 9 May 2011 14:29:41 +0200
-Message-ID: <20110509122941.GA3225@opensource.wolfsonmicro.com>
-References: <1303897191-14792-1-git-send-email-gg@slimlogic.co.uk>
- <1303897191-14792-5-git-send-email-gg@slimlogic.co.uk>
- <20110427104542.GZ13227@legolas.emea.dhcp.ti.com>
- <1304867317.3246.10.camel@odin>
- <20110509090335.GC1254@legolas.emea.dhcp.ti.com>
- <1304941430.3192.4.camel@odin>
- <20110509121600.GK1254@legolas.emea.dhcp.ti.com>
+From: "Avinash.H.M" <avinashhm@ti.com>
+Subject: [PATCH] OMAP3: set the core dpll clk rate in its set_rate function.
+Date: Mon, 9 May 2011 17:59:40 +0530
+Message-ID: <1304944180-20443-1-git-send-email-avinashhm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20110509121600.GK1254@legolas.emea.dhcp.ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Liam Girdwood <lrg@kernel.org>, Graeme Gregory <gg@slimlogic.co.uk>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, sameo@linux.intel.com
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:39886 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752352Ab1EIM34 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 May 2011 08:29:56 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: "Avinash.H.M" <avinashhm@ti.com>, Shweta Gulati <shweta.gulati@ti.com>, Rajendra Nayak <rnayak@ti.com>, Paul Wamsley <paul@pwsan.com>
 
-On Mon, May 09, 2011 at 03:16:03PM +0300, Felipe Balbi wrote:
-> On Mon, May 09, 2011 at 12:43:49PM +0100, Liam Girdwood wrote:
+The debug l3_ick/rate is not displaying the actual rate of the clock in
+hardware. This is because, the core dpll set_rate function doesn't update the
+clk.rate. After fixing, the l3_ick/rate is displaying proper values.
 
-> > I think it's the lesser evil though, especially for device integrators.
-> > They will just match the regulator name from the schematics together
-> > with the TRM name when creating their regulator constraints and having
-> > different names here will definitely cause confusion.
+Signed-off-by: Shweta Gulati <shweta.gulati@ti.com>
+Signed-off-by: Avinash.H.M <avinashhm@ti.com>
+Cc: Rajendra Nayak <rnayak@ti.com>
+Cc: Paul Wamsley <paul@pwsan.com>
+---
+* The patch is based on v2.6.39-rc6
+* The patch is tested on zoom3.
+* The patch is based on discussions from 
+  http://www.mail-archive.com/linux-omap@vger.kernel.org/msg48518.html
 
-> Any chance Device Tree could be used to pass that data to kernel
-> instead, together with regulator names and all needed data for each one
-> of them ?
+ arch/arm/mach-omap2/clkt34xx_dpll3m2.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-I'm pretty sure that as soon as we have viable device tree support for
-relevant platforms in mainline we'll have regulator support, though I'm
-not sure that this will help too much with the naming as you'll still
-have to figure out what the consumer requests.  We shouldn't be passing
-in the consumer supply names from device tree (at least not a board
-specific one) as this breaks the model that the supply names correspond
-to the chip pins.
+diff --git a/arch/arm/mach-omap2/clkt34xx_dpll3m2.c b/arch/arm/mach-omap2/clkt34xx_dpll3m2.c
+index b10d9ef..2a77faf 100644
+--- a/arch/arm/mach-omap2/clkt34xx_dpll3m2.c
++++ b/arch/arm/mach-omap2/clkt34xx_dpll3m2.c
+@@ -118,6 +118,7 @@ int omap3_core_dpll_m2_set_rate(struct clk *clk, unsigned long rate)
+ 				  sdrc_cs0->rfr_ctrl, sdrc_cs0->actim_ctrla,
+ 				  sdrc_cs0->actim_ctrlb, sdrc_cs0->mr,
+ 				  0, 0, 0, 0);
++	clk->rate = rate;
+ 
+ 	return 0;
+ }
+-- 
+1.7.1
+
