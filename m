@@ -1,48 +1,94 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] OMAP2: avoid descending into disabled framebuffer dirs
-Date: Mon, 09 May 2011 16:06:13 +0000
-Message-ID: <1304957173.2215.27.camel@deskari>
-References: <1304952024-28296-1-git-send-email-vapier@gentoo.org>
+Subject: Re: [PATCH 3/6] OMAP: 2420SDP: Port the display driver to new DSS2
+Date: Mon, 09 May 2011 19:57:02 +0300
+Message-ID: <1304960222.2215.47.camel@deskari>
+References: <1304926567-26814-1-git-send-email-tomi.valkeinen@ti.com>
+	 <1304926567-26814-4-git-send-email-tomi.valkeinen@ti.com>
+	 <4DC7A3F3.1060302@compulab.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:33434 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752602Ab1EIQGS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 May 2011 12:06:18 -0400
-In-Reply-To: <1304952024-28296-1-git-send-email-vapier@gentoo.org>
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:38188 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753501Ab1EIQ5K (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 May 2011 12:57:10 -0400
+Received: by eyf5 with SMTP id 5so3285973eyf.1
+        for <linux-omap@vger.kernel.org>; Mon, 09 May 2011 09:57:07 -0700 (PDT)
+In-Reply-To: <4DC7A3F3.1060302@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mike Frysinger <vapier@gentoo.org>
-Cc: linux-fbdev@vger.kernel.org, Paul Mundt <lethal@linux-sh.org>, linux-omap@vger.kernel.org
+To: Igor Grinberg <grinberg@compulab.co.il>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, Hunyue Yau <hyau@mvista.com>
 
-On Mon, 2011-05-09 at 10:40 -0400, Mike Frysinger wrote:
-> Rather than always add the omap2 dirs to the build list (and thus
-> force everyone to generate a useless built-in.o), bind the dirs to
-> their relevant kconfig symbol.
+On Mon, 2011-05-09 at 11:21 +0300, Igor Grinberg wrote:
+> Hi Tomi,
 > 
-> Signed-off-by: Mike Frysinger <vapier@gentoo.org>
-> ---
->  drivers/video/omap2/Makefile |    4 ++--
->  1 files changed, 2 insertions(+), 2 deletions(-)
+> On 05/09/11 10:36, Tomi Valkeinen wrote:
 > 
-> diff --git a/drivers/video/omap2/Makefile b/drivers/video/omap2/Makefile
-> index d853d05..5ddef12 100644
-> --- a/drivers/video/omap2/Makefile
-> +++ b/drivers/video/omap2/Makefile
-> @@ -1,6 +1,6 @@
->  obj-$(CONFIG_OMAP2_VRAM) += vram.o
->  obj-$(CONFIG_OMAP2_VRFB) += vrfb.o
->  
-> -obj-y += dss/
-> -obj-y += omapfb/
-> +obj-$(CONFIG_OMAP2_DSS) += dss/
-> +obj-$(CONFIG_FB_OMAP2) += omapfb/
->  obj-y += displays/
+> > Port the old omapfb panel driver to DSS2. This patch changes the board
+> > file only, the driver is ported in separate patch.
+> >
+> > Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> > Cc: Hunyue Yau <hyau@mvista.com>
 
-Looks fine to me, applying to DSS tree. Thanks!
+<snip>
+
+> > +static void __init sdp2430_display_init(void)
+> > +{
+> > +	int r;
+> > +
+> > +	r = gpio_request_one(SDP2430_LCD_PANEL_ENABLE_GPIO,
+> > +			GPIOF_OUT_INIT_LOW, "LCD reset");
+> > +	if (r) {
+> > +		printk(KERN_ERR "failed to get LCD reset GPIO\n");
+> > +		goto err0;
+> > +	}
+> > +
+> > +	r = gpio_request_one(SDP2430_LCD_PANEL_BACKLIGHT_GPIO,
+> > +			GPIOF_OUT_INIT_LOW, "LCD Backlight");
+> > +	if (r) {
+> > +		printk(KERN_ERR "failed to get LCD backlight GPIO\n");
+> 
+> can both printks be pr_err?
+> 
+> > +		goto err1;
+> > +	}
+> > +
+> > +	omap_display_init(&sdp2430_dss_data);
+> > +
+> > +	return;
+> > +err1:
+> > +	gpio_free(SDP2430_LCD_PANEL_ENABLE_GPIO);
+> > +err0:
+> > +	return;
+> > +}
+> 
+> I think using gpio_request_array() will be much cleaner here...
+
+Right, thanks. It turned out much cleaner:
+
++static void __init sdp2430_display_init(void)
++{
++       int r;
++
++       static struct gpio gpios[] __initdata = {
++               { SDP2430_LCD_PANEL_ENABLE_GPIO, GPIOF_OUT_INIT_LOW,
++                       "LCD reset" },
++               { SDP2430_LCD_PANEL_BACKLIGHT_GPIO, GPIOF_OUT_INIT_LOW,
++                       "LCD Backlight" },
++       };
++
++       r = gpio_request_array(gpios, ARRAY_SIZE(gpios));
++       if (r) {
++               pr_err("Cannot request LCD GPIOs, error %d\n", r);
++               return;
++       }
++
++       omap_display_init(&sdp2430_dss_data);
++}
 
  Tomi
+
 
 
