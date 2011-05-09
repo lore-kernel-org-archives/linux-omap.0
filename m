@@ -1,122 +1,148 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 5/6] OMAP: H4: Port the display driver to new DSS2
-Date: Mon,  9 May 2011 10:36:06 +0300
-Message-ID: <1304926567-26814-6-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 4/6] OMAP: LDP: Port the display driver to new DSS2
+Date: Mon,  9 May 2011 10:36:05 +0300
+Message-ID: <1304926567-26814-5-git-send-email-tomi.valkeinen@ti.com>
 References: <1304926567-26814-1-git-send-email-tomi.valkeinen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:39839 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752939Ab1EIHgb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 May 2011 03:36:31 -0400
-Received: by eye13 with SMTP id 13so2147196eye.17
-        for <linux-omap@vger.kernel.org>; Mon, 09 May 2011 00:36:28 -0700 (PDT)
+Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:57248 "EHLO
+	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752979Ab1EIHgc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 May 2011 03:36:32 -0400
+Received: by mail-ey0-f176.google.com with SMTP id 28so1942520eya.21
+        for <linux-omap@vger.kernel.org>; Mon, 09 May 2011 00:36:26 -0700 (PDT)
 In-Reply-To: <1304926567-26814-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, Stanley Miao <stanley.miao@windriver.com>
 
-Port the old omapfb panel driver to DSS2. This patch changes the board
+Port the old omapfb panel driver to DSS2i. This patch changes the board
 file only, the driver is ported in separate patch.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Stanley Miao <stanley.miao@windriver.com>
 ---
- arch/arm/mach-omap2/board-h4.c |   41 ++++++++++++++++++++++++---------------
- 1 files changed, 25 insertions(+), 16 deletions(-)
+ arch/arm/mach-omap2/board-ldp.c |   73 +++++++++++++++++++++++++++++++++-----
+ 1 files changed, 63 insertions(+), 10 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-h4.c b/arch/arm/mach-omap2/board-h4.c
-index bac7933..991e71e 100644
---- a/arch/arm/mach-omap2/board-h4.c
-+++ b/arch/arm/mach-omap2/board-h4.c
-@@ -39,6 +39,8 @@
- #include <plat/menelaus.h>
- #include <plat/dma.h>
- #include <plat/gpmc.h>
+diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
+index e2ba779..2fdfd7f 100644
+--- a/arch/arm/mach-omap2/board-ldp.c
++++ b/arch/arm/mach-omap2/board-ldp.c
+@@ -43,6 +43,8 @@
+ 
+ #include <asm/delay.h>
+ #include <plat/usb.h>
 +#include <plat/display.h>
 +#include <plat/panel-generic-dpi.h>
  
+ #include "board-flash.h"
  #include "mux.h"
- #include "control.h"
-@@ -157,17 +159,33 @@ static struct platform_device h4_kp_device = {
- 	},
+@@ -275,19 +277,71 @@ static inline void __init ldp_init_smsc911x(void)
+ 	gpio_direction_input(eth_gpio);
+ }
+ 
+-static struct platform_device ldp_lcd_device = {
+-	.name		= "ldp_lcd",
+-	.id		= -1,
++/* LCD */
++
++#define LCD_PANEL_BACKLIGHT_GPIO	(15 + OMAP_MAX_GPIO_LINES)
++#define LCD_PANEL_ENABLE_GPIO		(7 + OMAP_MAX_GPIO_LINES)
++#define LCD_PANEL_RESET_GPIO		55
++#define LCD_PANEL_QVGA_GPIO		56
++
++static int ldp_panel_enable_lcd(struct omap_dss_device *dssdev)
++{
++	gpio_direction_output(LCD_PANEL_ENABLE_GPIO, 1);
++	gpio_direction_output(LCD_PANEL_BACKLIGHT_GPIO, 1);
++
++	return 0;
++}
++
++static void ldp_panel_disable_lcd(struct omap_dss_device *dssdev)
++{
++	gpio_direction_output(LCD_PANEL_ENABLE_GPIO, 0);
++	gpio_direction_output(LCD_PANEL_BACKLIGHT_GPIO, 0);
++}
++
++static struct panel_generic_dpi_data ldp_panel_data = {
++	.name			= "2430sdp",
++	.platform_enable	= ldp_panel_enable_lcd,
++	.platform_disable	= ldp_panel_disable_lcd,
  };
  
--static struct platform_device h4_lcd_device = {
--	.name		= "lcd_h4",
--	.id		= -1,
--};
--
- static struct platform_device *h4_devices[] __initdata = {
- 	&h4_flash_device,
- 	&h4_kp_device,
-+};
-+
-+static struct panel_generic_dpi_data h4_panel_data = {
-+	.name			= "h4",
-+};
-+
-+static struct omap_dss_device h4_lcd_device = {
+-static struct omap_lcd_config ldp_lcd_config __initdata = {
+-	.ctrl_name	= "internal",
++static struct omap_dss_device ldp_lcd_device = {
 +	.name			= "lcd",
 +	.driver_name		= "generic_dpi_panel",
 +	.type			= OMAP_DISPLAY_TYPE_DPI,
 +	.phy.dpi.data_lines	= 16,
-+	.data			= &h4_panel_data,
-+};
-+
-+static struct omap_dss_device *h4_dss_devices[] = {
- 	&h4_lcd_device,
++	.data			= &ldp_panel_data,
  };
  
-+static struct omap_dss_board_info h4_dss_data = {
-+	.num_devices	= ARRAY_SIZE(h4_dss_devices),
-+	.devices	= h4_dss_devices,
-+	.default_device	= &h4_lcd_device,
+-static struct omap_board_config_kernel ldp_config[] __initdata = {
+-	{ OMAP_TAG_LCD,		&ldp_lcd_config },
++static struct omap_dss_device *ldp_dss_devices[] = {
++	&ldp_lcd_device,
 +};
 +
- /* 2420 Sysboot setup (2430 is different) */
- static u32 get_sysboot_value(void)
- {
-@@ -271,10 +289,6 @@ static void __init h4_init_flash(void)
- 	h4_flash_resource.end	= base + SZ_64M - 1;
- }
- 
--static struct omap_lcd_config h4_lcd_config __initdata = {
--	.ctrl_name	= "internal",
--};
--
- static struct omap_usb_config h4_usb_config __initdata = {
- 	/* S1.10 OFF -- usb "download port"
- 	 * usb0 switched to Mini-B port and isp1105 transceiver;
-@@ -286,10 +300,6 @@ static struct omap_usb_config h4_usb_config __initdata = {
- 	.hmc_mode	= 0x00,		/* 0:dev|otg 1:disable 2:disable */
++static struct omap_dss_board_info ldp_dss_data = {
++	.num_devices	= ARRAY_SIZE(ldp_dss_devices),
++	.devices	= ldp_dss_devices,
++	.default_device	= &ldp_lcd_device,
  };
  
--static struct omap_board_config_kernel h4_config[] __initdata = {
--	{ OMAP_TAG_LCD,		&h4_lcd_config },
--};
--
- static void __init omap_h4_init_early(void)
++static void __init ldp_display_init(void)
++{
++	int r;
++
++	struct gpio gpios[] = {
++		{LCD_PANEL_RESET_GPIO, GPIOF_OUT_INIT_HIGH, "LCD RESET"},
++		{LCD_PANEL_QVGA_GPIO, GPIOF_OUT_INIT_HIGH, "LCD QVGA"},
++		{LCD_PANEL_ENABLE_GPIO, GPIOF_OUT_INIT_LOW, "LCD ENABLE"},
++		{LCD_PANEL_BACKLIGHT_GPIO, GPIOF_OUT_INIT_LOW, "LCD BACKLIGHT"},
++	};
++
++	r = gpio_request_array(gpios, ARRAY_SIZE(gpios));
++	if (r) {
++		pr_err("Cannot request LCD GPIOs, error %d\n", r);
++		return;
++	}
++
++	omap_display_init(&ldp_dss_data);
++}
++
+ static void __init omap_ldp_init_early(void)
  {
  	omap2_init_common_infrastructure();
-@@ -331,9 +341,6 @@ static void __init omap_h4_init(void)
- {
- 	omap2420_mux_init(board_mux, OMAP_PACKAGE_ZAF);
+@@ -390,7 +444,6 @@ static struct omap2_hsmmc_info mmc[] __initdata = {
  
--	omap_board_config = h4_config;
--	omap_board_config_size = ARRAY_SIZE(h4_config);
--
- 	/*
- 	 * Make sure the serial ports are muxed on at this point.
- 	 * You have to mux them off in device drivers later on
-@@ -372,6 +379,8 @@ static void __init omap_h4_init(void)
- 	omap2_usbfs_init(&h4_usb_config);
- 	omap_serial_init();
- 	h4_init_flash();
+ static struct platform_device *ldp_devices[] __initdata = {
+ 	&ldp_smsc911x_device,
+-	&ldp_lcd_device,
+ 	&ldp_gpio_keys_device,
+ };
+ 
+@@ -441,8 +494,6 @@ static struct mtd_partition ldp_nand_partitions[] = {
+ static void __init omap_ldp_init(void)
+ {
+ 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+-	omap_board_config = ldp_config;
+-	omap_board_config_size = ARRAY_SIZE(ldp_config);
+ 	ldp_init_smsc911x();
+ 	omap_i2c_init();
+ 	platform_add_devices(ldp_devices, ARRAY_SIZE(ldp_devices));
+@@ -459,6 +510,8 @@ static void __init omap_ldp_init(void)
+ 	omap2_hsmmc_init(mmc);
+ 	/* link regulators to MMC adapters */
+ 	ldp_vmmc1_supply.dev = mmc[0].dev;
 +
-+	omap_display_init(&h4_dss_data);
++	ldp_display_init();
  }
  
- static void __init omap_h4_map_io(void)
+ MACHINE_START(OMAP_LDP, "OMAP LDP board")
 -- 
 1.7.4.1
 
