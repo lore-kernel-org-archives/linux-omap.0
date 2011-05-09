@@ -1,143 +1,80 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 4/4] USB: TWL6025 allow different regulator name
-Date: Mon, 9 May 2011 16:51:26 +0300
-Message-ID: <20110509135122.GQ1254@legolas.emea.dhcp.ti.com>
-References: <1303897191-14792-1-git-send-email-gg@slimlogic.co.uk>
- <1303897191-14792-5-git-send-email-gg@slimlogic.co.uk>
- <20110427104542.GZ13227@legolas.emea.dhcp.ti.com>
- <1304867317.3246.10.camel@odin>
- <20110509090335.GC1254@legolas.emea.dhcp.ti.com>
- <1304941430.3192.4.camel@odin>
- <20110509121600.GK1254@legolas.emea.dhcp.ti.com>
- <20110509122941.GA3225@opensource.wolfsonmicro.com>
- <20110509130703.GM1254@legolas.emea.dhcp.ti.com>
- <20110509133542.GF3225@opensource.wolfsonmicro.com>
-Reply-To: balbi@ti.com
+From: Kishore Kadiyala <kishore.kadiyala@ti.com>
+Subject: [PATCH RESEND] omap : nand : fix subpage ecc issue with prefetch
+Date: Mon, 9 May 2011 19:51:39 +0530
+Message-ID: <1304950899-26009-1-git-send-email-kishore.kadiyala@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20110509133542.GF3225@opensource.wolfsonmicro.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Felipe Balbi <balbi@ti.com>, Liam Girdwood <lrg@kernel.org>, Graeme Gregory <gg@slimlogic.co.uk>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, sameo@linux.intel.com
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:47026 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753338Ab1EIOM4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 May 2011 10:12:56 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, dedekind1@gmail.com
+Cc: Kishore Kadiyala <kishore.kadiyala@ti.com>, Vimal Singh <vimal.newwork@gmail.com>
 
-On Mon, May 09, 2011 at 03:35:43PM +0200, Mark Brown wrote:
-> On Mon, May 09, 2011 at 04:07:07PM +0300, Felipe Balbi wrote:
-> 
-> > The thing is. We already had problems in the past with the Clock FW
-> > because drivers were passing clock names on platform_data and I really
-> > want to avoid the same on regulators. We need something clever.
-> 
-> Right, which is why you should *never* do that.  Any time I see anyone
-> requesting a regulator based on anything other than a fixed string in
-> the driver and the struct device for the consumer I push back very hard,
-> and so should everyone else.
+When reading/writing a subpage (When HW ECC is not available/enabled)
+for number of bytes not aligned to 4, the mis-aligned bytes are handled
+first (by cpu copy method) before enabling the Prefetch engine to/from
+'p'(start of buffer 'buf'). Then it reads/writes rest of the bytes with
+the help of Prefetch engine, if available, or again using cpu copy method.
+Currently, reading/writing of rest of bytes, is not done correctly since
+its trying to read/write again to/from begining of buffer 'buf',
+overwriting the mis-aligned bytes.
 
-ok, so let's go back to the original patch:
+Read & write using prefetch engine got broken in commit '2c01946c'.
+We never hit a scenario of not getting 'gpmc_prefetch_enable' call
+success. So, problem did not get caught up.
 
-> @@ -190,6 +190,12 @@ static int twl6030_phy_suspend(struct otg_transceiver *x, int suspend)
->  
->  static int twl6030_usb_ldo_init(struct twl6030_usb *twl)
->  {
-> +	char *regulator_name;
-> +
-> +	if (twl_features() & TWL6025_SUBCLASS)
-> +		regulator_name = "ldousb";
-> +	else
-> +		regulator_name = "vusb";
->  
->  	/* Set to OTG_REV 1.3 and turn on the ID_WAKEUP_COMP */
->  	twl6030_writeb(twl, TWL6030_MODULE_ID0 , 0x1, TWL6030_BACKUP_REG);
-> @@ -200,7 +206,7 @@ static int twl6030_usb_ldo_init(struct twl6030_usb *twl)
->  	/* Program MISC2 register and set bit VUSB_IN_VBAT */
->  	twl6030_writeb(twl, TWL6030_MODULE_ID0 , 0x10, TWL6030_MISC2);
->  
-> -	twl->usb3v3 = regulator_get(twl->dev, "vusb");
-> +	twl->usb3v3 = regulator_get(twl->dev, regulator_name);
->  	if (IS_ERR(twl->usb3v3))
->  		return -ENODEV;
+Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
+Signed-off-by: Vimal Singh <vimal.newwork@gmail.com>
+Reported-by: Bryan DE FARIA <bdefaria@adeneo-embedded.com>
+---
+ drivers/mtd/nand/omap2.c |   12 +++++-------
+ 1 files changed, 5 insertions(+), 7 deletions(-)
 
-then, imagine 5 years from now how that branch will look. How long do
-you think it'll take until someone decides to pass that name via
-platform_data to avoid growing that conditional ?
-
-
-> > We pass in the data of how regulators are wired at the board level and
-> > drivers would regulator_get(my_dev->dev, "whatever fancy name I want as
-> > it doesn't matter at all");
-> 
-> No, not at all.  Consumer drivers should be hard coding the strings they
-> request and the strings used should correspond to the pin names used on
-> the device.
-
-but that's the thing. Why do they need to depend on that string ?
-
-> > on the TRM. In other words, we should match on the functionality they
-> > provide, not on the name.
-> 
-> As Liam said this will just make the situation worse.  Users will have
-> to figure out what the names the driver authors assigned to the various
-> device supplies map onto in the physical system via an additional layer
-> of indirection which will at best be written down in comments in the
-> driver.
-
-My point is that the "name" shouldn't matter. Instead of matching a
-"name" match a "reference". Have something earlier in the boot assing
-regulators to devices, or something like that, so that drivers don't
-need to care about "names".
-
-> > Let's try to thing some 5 - 6 years ahead. With the current trend, we
-> > will be working on support for the PMIC on OMAP10, imagine if each one
-> > of those revisions decide to change the name of the regulator, because
-> > this new HW engineer working on the PMIC design doesn't like the old
-> > name. We will have X regulator pointers and X regulator name pointers in
-> > our platform_data. It will be really cumbersome and prone to errors if
-> > people continue on copy&pasting old code to "generate" a new driver.
-> 
-> Here you're apparently talking about something different - you're
-> talking about how we pass in the regulator init data for the regulators
-> supplied by the chip.  The patch being discussed changes the consumer
-> side for USB, not the regulator driver side.  The naming on the driver
-
-see above, how long do you think it'll take for someone to try and pass
-that name via pdata ? On the next name change, this is already likely to
-happen to prevent that conditional from growing.
-
-> side is a particular problem for TWL devices since unlike most PMICs the
-> regulators aren't simply numbered but are instead assigned individual
-> names so you can't just use a big array indexed by number.
-
-why not ? The name shouldn't matter. In anycase, if you look into
-/sys/class/regulator/ all directories are regulator.<index>:
-
-	dev_set_name(&rdev->dev, "regulator.%d",
-		     atomic_inc_return(&regulator_no) - 1);
-
-> > What I was expecting to see, was a mechanism where we define how those
-> > things are wired (it doesn't matter if the data uses DeviceTree or what)
-> > at the HW level and we ask the framework to give us the regulator
-> > connected to device X which provides a certain functionality. Just like
-> > clkdev has managed to get close to. Currently drivers will:
-> 
-> This is preceisely what is happening.  A well written consumer driver
-> asks the regulator core for the regulator supplying a given supply, with
-> the supplies named in the same way as they are named in the datasheet.
-> 
-> You appear to be arging strongly for us to adopt the model which is
-> already in use.
-
-I guess I hasn't been clear enough then, my whole point is that drivers
-shouldn't depend on strings at all in order to fetch the correct
-regulator. How many:
-
-if (xxx_features() & XXX_CLASS_IS_YYYY)
-	regulator_name = "my_first_name";
-else
-	regulator_name = "my_second_name";
-
-will have to pop in drivers until we figure that it won't scale ?
-
+diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+index da9a351..2c8040f 100644
+--- a/drivers/mtd/nand/omap2.c
++++ b/drivers/mtd/nand/omap2.c
+@@ -263,11 +263,10 @@ static void omap_read_buf_pref(struct mtd_info *mtd, u_char *buf, int len)
+ 	if (ret) {
+ 		/* PFPW engine is busy, use cpu copy method */
+ 		if (info->nand.options & NAND_BUSWIDTH_16)
+-			omap_read_buf16(mtd, buf, len);
++			omap_read_buf16(mtd, (u_char *)p, len);
+ 		else
+-			omap_read_buf8(mtd, buf, len);
++			omap_read_buf8(mtd, (u_char *)p, len);
+ 	} else {
+-		p = (u32 *) buf;
+ 		do {
+ 			r_count = gpmc_read_status(GPMC_PREFETCH_FIFO_CNT);
+ 			r_count = r_count >> 2;
+@@ -293,7 +292,7 @@ static void omap_write_buf_pref(struct mtd_info *mtd,
+ 						struct omap_nand_info, mtd);
+ 	uint32_t w_count = 0;
+ 	int i = 0, ret = 0;
+-	u16 *p;
++	u16 *p = (u16 *)buf;
+ 	unsigned long tim, limit;
+ 
+ 	/* take care of subpage writes */
+@@ -309,11 +308,10 @@ static void omap_write_buf_pref(struct mtd_info *mtd,
+ 	if (ret) {
+ 		/* PFPW engine is busy, use cpu copy method */
+ 		if (info->nand.options & NAND_BUSWIDTH_16)
+-			omap_write_buf16(mtd, buf, len);
++			omap_write_buf16(mtd, (u_char *)p, len);
+ 		else
+-			omap_write_buf8(mtd, buf, len);
++			omap_write_buf8(mtd, (u_char *)p, len);
+ 	} else {
+-		p = (u16 *) buf;
+ 		while (len) {
+ 			w_count = gpmc_read_status(GPMC_PREFETCH_FIFO_CNT);
+ 			w_count = w_count >> 1;
 -- 
-balbi
+1.7.4.1
+
