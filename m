@@ -1,148 +1,112 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 4/6] OMAP: LDP: Port the display driver to new DSS2
-Date: Mon,  9 May 2011 10:36:05 +0300
-Message-ID: <1304926567-26814-5-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 6/6] OMAP: Apollon: Port the display driver to new DSS2
+Date: Mon,  9 May 2011 10:36:07 +0300
+Message-ID: <1304926567-26814-7-git-send-email-tomi.valkeinen@ti.com>
 References: <1304926567-26814-1-git-send-email-tomi.valkeinen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:57248 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752979Ab1EIHgc (ORCPT
+Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:32934 "EHLO
+	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752947Ab1EIHgc (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 May 2011 03:36:32 -0400
-Received: by mail-ey0-f176.google.com with SMTP id 28so1942520eya.21
-        for <linux-omap@vger.kernel.org>; Mon, 09 May 2011 00:36:26 -0700 (PDT)
+Received: by mail-ey0-f181.google.com with SMTP id 5so1540721eyh.26
+        for <linux-omap@vger.kernel.org>; Mon, 09 May 2011 00:36:31 -0700 (PDT)
 In-Reply-To: <1304926567-26814-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, Stanley Miao <stanley.miao@windriver.com>
+Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, Kyungmin Park <kyungmin.park@samsung.com>
 
-Port the old omapfb panel driver to DSS2i. This patch changes the board
+Port the old omapfb panel driver to DSS2. This patch changes the board
 file only, the driver is ported in separate patch.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Stanley Miao <stanley.miao@windriver.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- arch/arm/mach-omap2/board-ldp.c |   73 +++++++++++++++++++++++++++++++++-----
- 1 files changed, 63 insertions(+), 10 deletions(-)
+ arch/arm/mach-omap2/board-apollon.c |   34 ++++++++++++++++++++++------------
+ 1 files changed, 22 insertions(+), 12 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
-index e2ba779..2fdfd7f 100644
---- a/arch/arm/mach-omap2/board-ldp.c
-+++ b/arch/arm/mach-omap2/board-ldp.c
-@@ -43,6 +43,8 @@
- 
- #include <asm/delay.h>
- #include <plat/usb.h>
+diff --git a/arch/arm/mach-omap2/board-apollon.c b/arch/arm/mach-omap2/board-apollon.c
+index f4f8374..0414c17 100644
+--- a/arch/arm/mach-omap2/board-apollon.c
++++ b/arch/arm/mach-omap2/board-apollon.c
+@@ -39,6 +39,8 @@
+ #include <plat/board.h>
+ #include <plat/common.h>
+ #include <plat/gpmc.h>
 +#include <plat/display.h>
 +#include <plat/panel-generic-dpi.h>
  
- #include "board-flash.h"
  #include "mux.h"
-@@ -275,19 +277,71 @@ static inline void __init ldp_init_smsc911x(void)
- 	gpio_direction_input(eth_gpio);
- }
- 
--static struct platform_device ldp_lcd_device = {
--	.name		= "ldp_lcd",
--	.id		= -1,
-+/* LCD */
-+
-+#define LCD_PANEL_BACKLIGHT_GPIO	(15 + OMAP_MAX_GPIO_LINES)
-+#define LCD_PANEL_ENABLE_GPIO		(7 + OMAP_MAX_GPIO_LINES)
-+#define LCD_PANEL_RESET_GPIO		55
-+#define LCD_PANEL_QVGA_GPIO		56
-+
-+static int ldp_panel_enable_lcd(struct omap_dss_device *dssdev)
-+{
-+	gpio_direction_output(LCD_PANEL_ENABLE_GPIO, 1);
-+	gpio_direction_output(LCD_PANEL_BACKLIGHT_GPIO, 1);
-+
-+	return 0;
-+}
-+
-+static void ldp_panel_disable_lcd(struct omap_dss_device *dssdev)
-+{
-+	gpio_direction_output(LCD_PANEL_ENABLE_GPIO, 0);
-+	gpio_direction_output(LCD_PANEL_BACKLIGHT_GPIO, 0);
-+}
-+
-+static struct panel_generic_dpi_data ldp_panel_data = {
-+	.name			= "2430sdp",
-+	.platform_enable	= ldp_panel_enable_lcd,
-+	.platform_disable	= ldp_panel_disable_lcd,
+ #include "control.h"
+@@ -149,11 +151,6 @@ static struct platform_device apollon_smc91x_device = {
+ 	.resource	= apollon_smc91x_resources,
  };
  
--static struct omap_lcd_config ldp_lcd_config __initdata = {
+-static struct platform_device apollon_lcd_device = {
+-	.name		= "apollon_lcd",
+-	.id		= -1,
+-};
+-
+ static struct omap_led_config apollon_led_config[] = {
+ 	{
+ 		.cdev	= {
+@@ -191,7 +188,6 @@ static struct platform_device apollon_led_device = {
+ static struct platform_device *apollon_devices[] __initdata = {
+ 	&apollon_onenand_device,
+ 	&apollon_smc91x_device,
+-	&apollon_lcd_device,
+ 	&apollon_led_device,
+ };
+ 
+@@ -266,12 +262,26 @@ static struct omap_usb_config apollon_usb_config __initdata = {
+ 	.pins[0]	= 6,
+ };
+ 
+-static struct omap_lcd_config apollon_lcd_config __initdata = {
 -	.ctrl_name	= "internal",
-+static struct omap_dss_device ldp_lcd_device = {
++static struct panel_generic_dpi_data apollon_panel_data = {
++	.name			= "apollon",
++};
++
++static struct omap_dss_device apollon_lcd_device = {
 +	.name			= "lcd",
 +	.driver_name		= "generic_dpi_panel",
 +	.type			= OMAP_DISPLAY_TYPE_DPI,
-+	.phy.dpi.data_lines	= 16,
-+	.data			= &ldp_panel_data,
++	.phy.dpi.data_lines	= 18,
++	.data			= &apollon_panel_data,
  };
  
--static struct omap_board_config_kernel ldp_config[] __initdata = {
--	{ OMAP_TAG_LCD,		&ldp_lcd_config },
-+static struct omap_dss_device *ldp_dss_devices[] = {
-+	&ldp_lcd_device,
+-static struct omap_board_config_kernel apollon_config[] __initdata = {
+-	{ OMAP_TAG_LCD,		&apollon_lcd_config },
++static struct omap_dss_device *apollon_dss_devices[] = {
++	&apollon_lcd_device,
 +};
 +
-+static struct omap_dss_board_info ldp_dss_data = {
-+	.num_devices	= ARRAY_SIZE(ldp_dss_devices),
-+	.devices	= ldp_dss_devices,
-+	.default_device	= &ldp_lcd_device,
++static struct omap_dss_board_info apollon_dss_data = {
++	.num_devices	= ARRAY_SIZE(apollon_dss_devices),
++	.devices	= apollon_dss_devices,
++	.default_device	= &apollon_lcd_device,
  };
  
-+static void __init ldp_display_init(void)
-+{
-+	int r;
-+
-+	struct gpio gpios[] = {
-+		{LCD_PANEL_RESET_GPIO, GPIOF_OUT_INIT_HIGH, "LCD RESET"},
-+		{LCD_PANEL_QVGA_GPIO, GPIOF_OUT_INIT_HIGH, "LCD QVGA"},
-+		{LCD_PANEL_ENABLE_GPIO, GPIOF_OUT_INIT_LOW, "LCD ENABLE"},
-+		{LCD_PANEL_BACKLIGHT_GPIO, GPIOF_OUT_INIT_LOW, "LCD BACKLIGHT"},
-+	};
-+
-+	r = gpio_request_array(gpios, ARRAY_SIZE(gpios));
-+	if (r) {
-+		pr_err("Cannot request LCD GPIOs, error %d\n", r);
-+		return;
-+	}
-+
-+	omap_display_init(&ldp_dss_data);
-+}
-+
- static void __init omap_ldp_init_early(void)
- {
- 	omap2_init_common_infrastructure();
-@@ -390,7 +444,6 @@ static struct omap2_hsmmc_info mmc[] __initdata = {
+ static void __init omap_apollon_init_early(void)
+@@ -317,8 +327,6 @@ static void __init omap_apollon_init(void)
+ 	u32 v;
  
- static struct platform_device *ldp_devices[] __initdata = {
- 	&ldp_smsc911x_device,
--	&ldp_lcd_device,
- 	&ldp_gpio_keys_device,
- };
+ 	omap2420_mux_init(board_mux, OMAP_PACKAGE_ZAC);
+-	omap_board_config = apollon_config;
+-	omap_board_config_size = ARRAY_SIZE(apollon_config);
  
-@@ -441,8 +494,6 @@ static struct mtd_partition ldp_nand_partitions[] = {
- static void __init omap_ldp_init(void)
- {
- 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
--	omap_board_config = ldp_config;
--	omap_board_config_size = ARRAY_SIZE(ldp_config);
- 	ldp_init_smsc911x();
- 	omap_i2c_init();
- 	platform_add_devices(ldp_devices, ARRAY_SIZE(ldp_devices));
-@@ -459,6 +510,8 @@ static void __init omap_ldp_init(void)
- 	omap2_hsmmc_init(mmc);
- 	/* link regulators to MMC adapters */
- 	ldp_vmmc1_supply.dev = mmc[0].dev;
+ 	apollon_init_smc91x();
+ 	apollon_led_init();
+@@ -343,6 +351,8 @@ static void __init omap_apollon_init(void)
+ 	 */
+ 	platform_add_devices(apollon_devices, ARRAY_SIZE(apollon_devices));
+ 	omap_serial_init();
 +
-+	ldp_display_init();
++	omap_display_init(&apollon_dss_data);
  }
  
- MACHINE_START(OMAP_LDP, "OMAP LDP board")
+ static void __init omap_apollon_map_io(void)
 -- 
 1.7.4.1
 
