@@ -1,57 +1,82 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 4/4] USB: TWL6025 allow different regulator name
-Date: Mon, 9 May 2011 12:03:37 +0300
-Message-ID: <20110509090335.GC1254@legolas.emea.dhcp.ti.com>
-References: <1303897191-14792-1-git-send-email-gg@slimlogic.co.uk>
- <1303897191-14792-5-git-send-email-gg@slimlogic.co.uk>
- <20110427104542.GZ13227@legolas.emea.dhcp.ti.com>
- <1304867317.3246.10.camel@odin>
-Reply-To: balbi@ti.com
+From: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH] omap: usbhs: Fixed the crash during rmmod of ehci and ohci
+Date: Mon, 9 May 2011 14:40:03 +0530
+Message-ID: <1304932203-31223-1-git-send-email-keshava_mgowda@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:40823 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751205Ab1EIJDn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 May 2011 05:03:43 -0400
-Content-Disposition: inline
-In-Reply-To: <1304867317.3246.10.camel@odin>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org, gadiyar-l0cyMroinI0@public.gmane.org, p-bask2-l0cyMroinI0@public.gmane.org, Keshava Munegowda <Keshava_mgowda-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Liam Girdwood <lrg@slimlogic.co.uk>
-Cc: balbi@ti.com, Graeme Gregory <gg@slimlogic.co.uk>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, sameo@linux.intel.com, broonie@opensource.wolfsonmicro.com
 
-Hi,
+From: Keshava Munegowda <Keshava_mgowda-l0cyMroinI0@public.gmane.org>
 
-On Sun, May 08, 2011 at 04:08:37PM +0100, Liam Girdwood wrote:
-> On Wed, 2011-04-27 at 13:45 +0300, Felipe Balbi wrote:
-> > Hi,
-> > 
-> > On Wed, Apr 27, 2011 at 10:39:51AM +0100, Graeme Gregory wrote:
-> > > The twl6025 uses a different regulator for USB than the 6030 so select
-> > > the correct regulator name depending on the subclass of device.
-> > > 
-> > > Signed-off-by: Graeme Gregory <gg@slimlogic.co.uk>
-> > 
-> > I don't see the point of this patch. It's just a string. Use the same
-> > name and add a comment saying that on datasheet/TRM/documentation the
-> > name LDO is actually referred to as LDOUSB. It's the same functionality
-> > anyway.
-> > 
-> 
-> I think for the avoidance of any doubt, it's probably best to use the
-> TWL6025 string name here as it will importantly match the TWL6025 TRM
-> and any schematics using the TWL6025. Getting this wrong during TWL6025
-> board integration has the potential for hardware damage.
+the disabling of clocks and freeing GPIO are changed
+to fix the occurence of the crash of rmmod of ehci and ohci
+drivers
 
-I would rather have something that doesn't depend on a correct string
-and matches based on the device pointer instead. I agree that having the
-correct string makes it easier to reference schematics/trm and the like,
-but making the SW depend on the correct spelling of a simple string, is
-too much for me :-(
+Signed-off-by: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+---
+ drivers/mfd/omap-usb-host.c |   24 ++++++++++++++++--------
+ 1 files changed, 16 insertions(+), 8 deletions(-)
 
-Specially when getting it wrong "has the potential for hardware damage"
-:-)
-
+diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
+index 3ab9ffa..cda0797 100644
+--- a/drivers/mfd/omap-usb-host.c
++++ b/drivers/mfd/omap-usb-host.c
+@@ -939,6 +939,7 @@ static void usbhs_disable(struct device *dev)
+ 	struct usbhs_hcd_omap		*omap = dev_get_drvdata(dev);
+ 	struct usbhs_omap_platform_data	*pdata = &omap->platdata;
+ 	unsigned long			flags = 0;
++	unsigned int			halt = 0;
+ 	unsigned long			timeout;
+ 
+ 	dev_dbg(dev, "stopping TI HSUSB Controller\n");
+@@ -994,24 +995,31 @@ static void usbhs_disable(struct device *dev)
+ 			dev_dbg(dev, "operation timed out\n");
+ 	}
+ 
+-	if (pdata->ehci_data->phy_reset) {
+-		if (gpio_is_valid(pdata->ehci_data->reset_gpio_port[0]))
+-			gpio_free(pdata->ehci_data->reset_gpio_port[0]);
+-
+-		if (gpio_is_valid(pdata->ehci_data->reset_gpio_port[1]))
+-			gpio_free(pdata->ehci_data->reset_gpio_port[1]);
++	if (is_omap_usbhs_rev2(omap)) {
++		if (is_ehci_tll_mode(pdata->port_mode[0]))
++			clk_enable(omap->usbtll_p1_fck);
++		if (is_ehci_tll_mode(pdata->port_mode[1]))
++			clk_enable(omap->usbtll_p2_fck);
++		clk_disable(omap->utmi_p2_fck);
++		clk_disable(omap->utmi_p1_fck);
+ 	}
+ 
+-	clk_disable(omap->utmi_p2_fck);
+-	clk_disable(omap->utmi_p1_fck);
+ 	clk_disable(omap->usbtll_ick);
+ 	clk_disable(omap->usbtll_fck);
+ 	clk_disable(omap->usbhost_fs_fck);
+ 	clk_disable(omap->usbhost_hs_fck);
+ 	clk_disable(omap->usbhost_ick);
++	halt = 1;
+ 
+ end_disble:
+ 	spin_unlock_irqrestore(&omap->lock, flags);
++	if (halt && pdata->ehci_data->phy_reset) {
++		if (gpio_is_valid(pdata->ehci_data->reset_gpio_port[0]))
++			gpio_free(pdata->ehci_data->reset_gpio_port[0]);
++
++		if (gpio_is_valid(pdata->ehci_data->reset_gpio_port[1]))
++			gpio_free(pdata->ehci_data->reset_gpio_port[1]);
++	}
+ }
+ 
+ int omap_usbhs_enable(struct device *dev)
 -- 
-balbi
+1.6.0.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
