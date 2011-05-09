@@ -1,200 +1,108 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 1/2 v2] OMAP2+: hwmod: Add API to enable IO ring
- wakeup.
-Date: Mon, 9 May 2011 08:48:02 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1105090845480.19521@utopia.booyaka.com>
-References: <1304944530-12998-1-git-send-email-govindraj.raja@ti.com> <1304944530-12998-2-git-send-email-govindraj.raja@ti.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+From: Mayuresh Janorkar <mayur@ti.com>
+Subject: [PATCH v3 0/7] picodlp projector driver
+Date: Mon,  9 May 2011 20:48:35 +0530
+Message-ID: <1304954319-8386-1-git-send-email-mayur@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:49350 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751692Ab1EIOsD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 May 2011 10:48:03 -0400
-In-Reply-To: <1304944530-12998-2-git-send-email-govindraj.raja@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:41236 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752972Ab1EIOuo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 9 May 2011 10:50:44 -0400
+Received: from dlep35.itg.ti.com ([157.170.170.118])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p49EoiZn016260
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Mon, 9 May 2011 09:50:44 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Govindraj.R" <govindraj.raja@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Todd Poynor <toddpoynor@google.com>, Kevin Hilman <khilman@ti.com>, Rajendra Nayak <rnayak@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: tomi.valkeinen@ti.com, Mayuresh Janorkar <mayur@ti.com>
 
-Hello Govindraj
+picodlp projector is supported by OMAP.
+OMAP4430 SDP and EVM boards have an on board projector called as picodlp projector.
+picodlp would be connected to display sub system as a display panel.
+It has a dlp pico processor dpp2600.
 
-On Mon, 9 May 2011, Govindraj.R wrote:
+The panel would be connected using 24 bit parallel interface.
+GPIO pin 59 called as DISPLAY SELECT pin selects either secondary lcd
+or picodlp.
 
-> Add API to enable IO pad wakeup capability based on mux dynamic pad and
-> wake_up enable flag available from hwmod_mux initialization.
-> 
-> Use the wakeup_enable flag and enable wakeup capability
-> for the given pads. Wakeup capability will be enabled/disabled
-> during hmwod idle transition based on whether wakeup_flag is
-> set or cleared.
-> 
-> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
-> ---
->  arch/arm/mach-omap2/omap_hwmod.c              |   51 +++++++++++++++++++++++++
->  arch/arm/plat-omap/include/plat/omap_device.h |    2 +
->  arch/arm/plat-omap/include/plat/omap_hwmod.h  |    3 +
->  arch/arm/plat-omap/omap_device.c              |   50 ++++++++++++++++++++++++
->  4 files changed, 106 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-> index e034294..bbbe1ed 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod.c
-> @@ -2369,3 +2369,54 @@ int omap_hwmod_no_setup_reset(struct omap_hwmod *oh)
->  
->  	return 0;
->  }
-> +
-> +static int omap_hwmod_configure_ioring_wakeup(struct omap_hwmod *oh, u16 val)
+It is a WVGA panel with 864 X 480 resolution.
 
-What about Todd's comments?
+To know more about picodlp please visit:
+http://omappedia.org/wiki/PicoDLP_projector_guide
 
-If this function is still valid after considering those comments -- 
-perhaps by adding a 'mask' argument -- then lease change this function's 
-name to simply _set_ioring_wakeup() and move it up towards the top of the 
-file with the rest of the static functions.
+GPIO pin settings are required for powering_on the DLP and it is done in board file.
+The programming sequence states that processor has to send LOW on PWRGOOD (GPIO 45)
+then wait for a fraction of seconds and then send HIGH.
+EMU_DONE pin (GPIO 44) would be set to low once the DLP is ready for operation.
 
-> +{
-> +	struct omap_device_pad *pad;
-> +	int ret = -EINVAL, j;
-> +
-> +	if (oh->mux->enabled) {
-> +		for (j = 0; j < oh->mux->nr_pads_dynamic; j++) {
-> +			pad = oh->mux->pads_dynamic[j];
-> +			if (pad->flags & OMAP_DEVICE_PAD_WAKEUP) {
-> +				pad->idle = pad->enable | val;
-> +				ret = 0;
-> +			}
-> +		}
-> +	}
-> +
-> +	return ret;
-> +}
-> +
-> +/**
-> + * omap_hwmod_enable_ioring_wakeup - Set wakeup flag for iopad.
-> + * @oh: struct omap_hwmod *
-> + *
-> + * Traverse through dynamic pads, if pad is enabled then
-> + * set wakeup enable bit flag for the mux pin. Wakeup pad bit
-> + * will be set during hwmod idle transistion.
-> + * Return error if pads are not enabled or not available.
-> + */
-> +int omap_hwmod_enable_ioring_wakeup(struct omap_hwmod *oh)
-> +{
-> +	/* Enable pad wake-up capability */
-> +	return omap_hwmod_configure_ioring_wakeup(oh, OMAP_WAKEUP_EN);
-> +}
-> +
-> +/**
-> + * omap_hwmod_disable_ioring_wakeup - Clear wakeup flag for iopad.
-> + * @oh: struct omap_hwmod *
-> + *
-> + * Traverse through dynamic pads, if pad is enabled then
-> + * clear wakeup enable bit flag for the mux pin. Wakeup pad bit
-> + * will be set during hwmod idle transistion.
-> + * Return error if pads are not enabled or not available.
-> + */
-> +int omap_hwmod_disable_ioring_wakeup(struct omap_hwmod *oh)
-> +{
-> +	u16 val = 0;
-> +
-> +	/* Disable pad wakeup capability */
-> +	val &= ~OMAP_WAKEUP_EN;
-> +	return omap_hwmod_configure_ioring_wakeup(oh, val);
-> +}
-> diff --git a/arch/arm/plat-omap/include/plat/omap_device.h b/arch/arm/plat-omap/include/plat/omap_device.h
-> index e4c349f..a377dd0 100644
-> --- a/arch/arm/plat-omap/include/plat/omap_device.h
-> +++ b/arch/arm/plat-omap/include/plat/omap_device.h
-> @@ -117,6 +117,8 @@ int omap_device_enable_hwmods(struct omap_device *od);
->  int omap_device_disable_clocks(struct omap_device *od);
->  int omap_device_enable_clocks(struct omap_device *od);
->  
-> +int omap_device_enable_ioring_wakeup(struct platform_device *pdev);
-> +int omap_device_disable_ioring_wakeup(struct platform_device *pdev);
->  
->  /*
->   * Entries should be kept in latency order ascending
-> diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-> index 1adea9c..7ef11a6 100644
-> --- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
-> +++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-> @@ -602,6 +602,9 @@ u32 omap_hwmod_get_context_loss_count(struct omap_hwmod *oh);
->  
->  int omap_hwmod_no_setup_reset(struct omap_hwmod *oh);
->  
-> +int omap_hwmod_enable_ioring_wakeup(struct omap_hwmod *oh);
-> +int omap_hwmod_disable_ioring_wakeup(struct omap_hwmod *oh);
-> +
->  /*
->   * Chip variant-specific hwmod init routines - XXX should be converted
->   * to use initcalls once the initial boot ordering is straightened out
-> diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
-> index 9bbda9a..04a4f15 100644
-> --- a/arch/arm/plat-omap/omap_device.c
-> +++ b/arch/arm/plat-omap/omap_device.c
-> @@ -742,6 +742,56 @@ void __iomem *omap_device_get_rt_va(struct omap_device *od)
->  	return omap_hwmod_get_mpu_rt_va(od->hwmods[0]);
->  }
->  
-> +/**
-> + * omap_device_enable_ioring_wakeup - Set wakeup bit for iopad ring.
-> + * @pdev: platform_device for which wakeup needs to be set.
-> + *
-> + * Caller should ensure this is called if device_may_wakeup(dev) is true
-> + * traverse through each hwmod and check each available pads
-> + * if pad is enabled then set wakeup enable flag for the mux pin.
-> + * Return error if pads are not enabled or not available.
-> + * Wakeup enable flag will be we used during hwmod idle transistion.
-> + */
-> +int omap_device_enable_ioring_wakeup(struct platform_device *pdev)
-> +{
-> +	int ret = -EINVAL, i;
-> +	struct omap_device *od;
-> +	struct omap_hwmod *oh;
-> +
-> +	od = _find_by_pdev(pdev);
-> +	for (i = 0; i < od->hwmods_cnt; i++) {
-> +		oh = od->hwmods[i];
-> +		ret = omap_hwmod_enable_ioring_wakeup(oh);
-> +	}
-> +
-> +	return ret;
-> +}
-> +
-> +/**
-> + * omap_device_disable_ioring_wakeup - Clear wakeup bit for iopad ring.
-> + * @pdev: platform_device for which wakeup needs to be cleared.
-> + *
-> + * Caller should ensure this is called if device_may_wakeup(dev) is false
-> + * traverse through each hwmod and check each available pads
-> + * if pad is enabled then clear wakeup enable flag for the mux pin.
-> + * Return error if pads are not enabled or not available.
-> + * Wakeup enable flag will be we used during hwmod idle transistion.
-> + */
-> +int omap_device_disable_ioring_wakeup(struct platform_device *pdev)
-> +{
-> +	int ret = -EINVAL, i;
-> +	struct omap_device *od;
-> +	struct omap_hwmod *oh;
-> +
-> +	od = _find_by_pdev(pdev);
-> +	for (i = 0; i < od->hwmods_cnt; i++) {
-> +		oh = od->hwmods[i];
-> +		ret = omap_hwmod_disable_ioring_wakeup(oh);
-> +	}
-> +
-> +	return ret;
-> +}
-> +
->  /*
->   * Public functions intended for use in omap_device_pm_latency
->   * .activate_func and .deactivate_func function pointers
-> -- 
-> 1.7.1
-> 
+Configuartion of picodlp involves passing dpp2600 commands through i2c.
+All these commands are defined in a panel header file.
+And more info on the commands can be found at:
+https://focus.ti.com/myti/docs/extranet.tsp?sectionId=403
 
+About DLP (Digital Light Processing):
+DLP is Texas Instruments award-winning display technology which has powered
+the worlds top projectors and displays, delivering pictures rich with color,
+contrast, clarity and brightness to screens of all sizes.
+Every DLP chip features an array of up to 2.2 million microscopic mirrors that
+switch at ultra high speeds  an innovative advantage that remains cutting edge
+and ideal for current and future applications alike. The results are
+high-resolution, highly reliable, razor-sharp images, that even work with
+fast motion video.
+To learn more about DLP technology, please visit www.DLP.com
 
-- Paul
+picodlp on OMAP4430 boards would make use of same technology.
+picodlp makes use of i2c bus device at 0x1b address for sending configuration
+commands to panel. In software picodlp panel driver has an i2c client.
+
+To know more about picodlp configuration commands please visit:
+http://focus.ti.com/lit/ug/dlpu002a/dlpu002a.pdf
+The link talks more about the timing specific things:
+http://focus.ti.com/lit/ds/dlps019b/dlps019b.pdf
+
+To know more about i2c_client model please visit:
+http://lxr.linux.no/#linux+v2.6.38/Documentation/i2c/writing-clients
+
+------------------------------------------------------------------------------
+These patches have been developed on top of master branch of
+Tomi's gitorious tree.
+
+I am maintaining a gitorious tree for these patches and can be found at:
+http://gitorious.org/~mayuresh/linux-omap-dss2/mayuresh-picodlp/commits/picodlp
+
+The driver has been tested when compiled as a module.
+
+Validated with a Penguin logos on OMAP4430 SDP ES2.1
+
+Checkpatch.pl warnings:
+WARNING: msleep < 20ms can sleep for up to 20ms; see Documentation/timers/timers-howto.txt
+I think this warning can be ignored
+
+New compilation warnings introduced: Nil
+
+Changes since v2:
+		1. Merged picodlp panel patches into a single patch
+		2. Changed GPIO names and handling
+		3. Minimized sleep
+		4. DMA_DONE polling is introduced
+		
+-----------------------------------------------------------------------------
+Mayuresh Janorkar (3):
+  OMAP: DSS: Adding a header file for picodlp panel data
+  OMAP4: DSS: Adding a picodlp in OMAP4430 SDP board file
+  OMAP: DSS: Add picodlp panel driver
+
+Mythri P K (1):
+  OMAP: DSS: Adding a picodlp panel header file
+
+ arch/arm/mach-omap2/board-4430sdp.c             |   58 +++
+ arch/arm/plat-omap/include/plat/panel-picodlp.h |   23 +
+ drivers/video/omap2/displays/Kconfig            |    7 +
+ drivers/video/omap2/displays/Makefile           |    1 +
+ drivers/video/omap2/displays/panel-picodlp.c    |  627 +++++++++++++++++++++++
+ drivers/video/omap2/displays/panel-picodlp.h    |  288 +++++++++++
+ 6 files changed, 1004 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/plat-omap/include/plat/panel-picodlp.h
+ create mode 100644 drivers/video/omap2/displays/panel-picodlp.c
+ create mode 100644 drivers/video/omap2/displays/panel-picodlp.h
+
