@@ -1,83 +1,76 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] omap: usbhs: Fixed the crash during rmmod of ehci and
- ohci
-Date: Mon, 9 May 2011 12:36:47 +0300
-Message-ID: <20110509093645.GG1254@legolas.emea.dhcp.ti.com>
-References: <1304932203-31223-1-git-send-email-keshava_mgowda@ti.com>
-Reply-To: balbi-l0cyMroinI0@public.gmane.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1304932203-31223-1-git-send-email-keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, gadiyar-l0cyMroinI0@public.gmane.org, p-bask2-l0cyMroinI0@public.gmane.org
+From: jean.pihet@newoldbits.com
+Subject: [PATCH v3 0/4] OMAP: cpuidle code clean-up
+Date: Mon,  9 May 2011 12:02:12 +0200
+Message-ID: <1304935336-6308-1-git-send-email-j-pihet@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:33090 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751163Ab1EIKCT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 May 2011 06:02:19 -0400
+Received: by wya21 with SMTP id 21so3737777wya.19
+        for <linux-omap@vger.kernel.org>; Mon, 09 May 2011 03:02:18 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>
+Cc: Jean Pihet <j-pihet@ti.com>
 
-Hi,
+From: Jean Pihet <j-pihet@ti.com>
 
-On Mon, May 09, 2011 at 02:40:03PM +0530, Keshava Munegowda wrote:
-> From: Keshava Munegowda <Keshava_mgowda-l0cyMroinI0@public.gmane.org>
-> 
-> the disabling of clocks and freeing GPIO are changed
-> to fix the occurence of the crash of rmmod of ehci and ohci
-> drivers
-> 
-> Signed-off-by: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Rework of the OMAP2+ cpuidle code
 
-NAK
+v3: rework after comments on linux-omap ML:
+- renamed the C-state driver data variables as 'cx',
+- retain C1 as the only always valid state and safe state,
+- rework of the C-states definition.
 
-> ---
->  drivers/mfd/omap-usb-host.c |   24 ++++++++++++++++--------
->  1 files changed, 16 insertions(+), 8 deletions(-)
-> 
-> diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
-> index 3ab9ffa..cda0797 100644
-> --- a/drivers/mfd/omap-usb-host.c
-> +++ b/drivers/mfd/omap-usb-host.c
-> @@ -939,6 +939,7 @@ static void usbhs_disable(struct device *dev)
->  	struct usbhs_hcd_omap		*omap = dev_get_drvdata(dev);
->  	struct usbhs_omap_platform_data	*pdata = &omap->platdata;
->  	unsigned long			flags = 0;
-> +	unsigned int			halt = 0;
+v2: rework after comments on linux-omap ML:
+- remove useless macros,
+- replace the C-state common data fill-in helper macro by an inline
+   function, for better readability,
+- update commits description.
 
-you shouldn't need this.
+v1:
+- optimize the cpuidle C-states data registration and storage,
+- change the interaction with the debugfs 'enable_off_mode' knob
+ and the use of the C-states 'valid' internal field,
+- remove dead code,
+- improve code readability.
 
-> @@ -994,24 +995,31 @@ static void usbhs_disable(struct device *dev)
->  			dev_dbg(dev, "operation timed out\n");
->  	}
->  
-> -	if (pdata->ehci_data->phy_reset) {
-> -		if (gpio_is_valid(pdata->ehci_data->reset_gpio_port[0]))
-> -			gpio_free(pdata->ehci_data->reset_gpio_port[0]);
-> -
-> -		if (gpio_is_valid(pdata->ehci_data->reset_gpio_port[1]))
-> -			gpio_free(pdata->ehci_data->reset_gpio_port[1]);
-> +	if (is_omap_usbhs_rev2(omap)) {
-> +		if (is_ehci_tll_mode(pdata->port_mode[0]))
-> +			clk_enable(omap->usbtll_p1_fck);
-> +		if (is_ehci_tll_mode(pdata->port_mode[1]))
-> +			clk_enable(omap->usbtll_p2_fck);
-> +		clk_disable(omap->utmi_p2_fck);
-> +		clk_disable(omap->utmi_p1_fck);
->  	}
->  
-> -	clk_disable(omap->utmi_p2_fck);
-> -	clk_disable(omap->utmi_p1_fck);
->  	clk_disable(omap->usbtll_ick);
->  	clk_disable(omap->usbtll_fck);
->  	clk_disable(omap->usbhost_fs_fck);
->  	clk_disable(omap->usbhost_hs_fck);
->  	clk_disable(omap->usbhost_ick);
-> +	halt = 1;
+Tested on Beagleboard B5 with cpuidle in RET and OFF modes.
 
-at least from this diff, you're always reaching that part of the code
-rendering this halt flag useless.
+Another 151 lines of OMAP code gone ;p
+
+Notes:
+1) the debugfs 'enable_off_mode' knob will be deprecated by the use
+ of the devices constraints framework to restrict the power domains
+ power modes.
+2) the MPU and CORE power domains low power modes are controlled
+ by cpuidle, based on the allowed overall sleep+wake-up latencies
+ and the wake-up latency constraints on the MPU. This is incorrect.
+ The devices constraints framework shall be used instead to control
+ all power domains.
+
+ToDo:
+- integrate cpuidle with the devices constraints framework, when merged in,
+- refine the latency figures and express them in term of available data
+ from other frameworks (OMAP PM, constaints framework, omap_devices,
+ new VC/VP voltage and DVFS code ...),
+
+Rebased on khilman's for_2.6.40/pm-cleanup branch
+
+
+Jean Pihet (4):
+  OMAP3: clean-up mach specific cpuidle data structures
+  OMAP3: cpuidle: re-organize the C-states data
+  OMAP3: cpuidle: code rework for improved readability
+  OMAP3: cpuidle: change the power domains modes determination logic
+
+ arch/arm/mach-omap2/board-rx51.c  |   18 +-
+ arch/arm/mach-omap2/cpuidle34xx.c |  436 +++++++++++++------------------------
+ arch/arm/mach-omap2/pm.h          |   17 +-
+ arch/arm/mach-omap2/pm34xx.c      |   12 -
+ 4 files changed, 166 insertions(+), 317 deletions(-)
 
 -- 
-balbi
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+1.7.2.5
+
