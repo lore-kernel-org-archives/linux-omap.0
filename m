@@ -1,54 +1,96 @@
-From: "Gulati, Shweta" <shweta.gulati@ti.com>
-Subject: Re: [PATCH] OMAP: Added recalculation of clock rate in 'clk_set_rate'
-Date: Tue, 10 May 2011 16:25:19 +0530
-Message-ID: <BANLkTikjm7th9mv9MOBdMT7j6QPo5Ke7Xw@mail.gmail.com>
-References: <1303291509-2305-1-git-send-email-shweta.gulati@ti.com>
-	<alpine.DEB.2.00.1104201351180.12683@utopia.booyaka.com>
-	<BANLkTi=Ab0EJ3fAQGHBOyPd+eAJHWcjtuA@mail.gmail.com>
-	<alpine.DEB.2.00.1105061549150.30136@utopia.booyaka.com>
+From: Niels de Vos <ndevos@redhat.com>
+Subject: Re: [PATCH] omap2/omapfb: make DBG() more resistant in if-else constructions
+Date: Tue, 10 May 2011 11:57:18 +0100
+Message-ID: <BANLkTim0Wao+dX-+GpKxdsHtg96DF1bHyw@mail.gmail.com>
+References: <1305019249-9898-1-git-send-email-ndevos@redhat.com>
+	<BANLkTinEJZ=fvJmWRkQ7kKyxbFRaJnum7g@mail.gmail.com>
+Reply-To: devos@fedoraproject.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:56656 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751445Ab1EJKzV convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 10 May 2011 06:55:21 -0400
-Received: by mail-bw0-f46.google.com with SMTP id 15so6759874bwz.5
-        for <linux-omap@vger.kernel.org>; Tue, 10 May 2011 03:55:19 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.1105061549150.30136@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <BANLkTinEJZ=fvJmWRkQ7kKyxbFRaJnum7g@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, "Premi, Sanjeev" <premi@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
 
-Hi,
-
-On Sat, May 7, 2011 at 3:19 AM, Paul Walmsley <paul@pwsan.com> wrote:
-> On Thu, 21 Apr 2011, Gulati, Shweta wrote:
+On Tue, May 10, 2011 at 10:42 AM, Geert Uytterhoeven
+<geert@linux-m68k.org> wrote:
+> On Tue, May 10, 2011 at 11:20, Niels de Vos <ndevos@redhat.com> wrote=
+:
+>> When DBG() is used in a simple if-else, the resulting code path
+>> currently depends on the definition of DBG(). Inserting the statemen=
+t in
+>> a "do { ... } while (0)" prevents this possible misuse.
+>>
+>> Signed-off-by: Niels de Vos <ndevos@redhat.com>
 >
->> Yes, but in current code clk_set_rate of dpll3_m2 -
->> 'omap3_core_dpll_m2_set_rate'
->> doesn't update clk.rate, I will submit patch fixing that bug and wil=
-l
->> make sure that
->> set_rate of all clocks should update clk.rate
+>> --- a/drivers/video/omap2/omapfb/omapfb.h
+>> +++ b/drivers/video/omap2/omapfb/omapfb.h
+>> @@ -34,8 +34,10 @@
+>> =C2=A0#ifdef DEBUG
+>> =C2=A0extern unsigned int omapfb_debug;
+>> =C2=A0#define DBG(format, ...) \
+>> - =C2=A0 =C2=A0 =C2=A0 if (omapfb_debug) \
+>> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 printk(KERN_DEBUG=
+ "OMAPFB: " format, ## __VA_ARGS__)
+>> + =C2=A0 =C2=A0 =C2=A0 do { \
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (omapfb_debug)=
+ \
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 printk(KERN_DEBUG "OMAPFB: " format, ## __VA_ARGS__); \
+>> + =C2=A0 =C2=A0 =C2=A0 while (0)
 >
-> Ping. =A0Do you plan to post this soon? =A0This should be a trivial p=
-atch.
-Sorry for the delay, I will post today.
-> - Paul
+> Where's the closing '}'?
+
+Good catch! That's in a "fixup!" that I forgot to squash :-/
+I'll post an update version in a bit.
+
+
+>> =C2=A0#else
+>> =C2=A0#define DBG(format, ...)
 >
+> BTW, no printf()-style format checking here.
+>
+>> =C2=A0#endif
+>
+> What about using the standard pr_debug()/dev_dbg() instead?
+> With dynamic debug, it can be enabled at run time.
+> As a bonus, you get printf()-style format checking if debugging is di=
+sabled.
+
+I think removing DBG() and the omapfb_debug module-parameter is surely
+a good thing. Unfortunately DBG() is used quite a bit in the code and
+replacing them 'll take some more time. I don't know yet when I find
+some time to do and test that.
+
+Thanks for the pointers,
+Niels
 
 
-
---=20
-Thanks,
-Regards,
-Shweta
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Gr{oetje,eeting}s,
+>
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 Geert
+>
+> --
+> Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linu=
+x-m68k.org
+>
+> In personal conversations with technical people, I call myself a hack=
+er. But
+> when I'm talking to journalists I just say "programmer" or something =
+like that.
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0=C2=A0 =C2=A0=C2=A0 -- Linus Torvalds
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kerne=
+l" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =C2=A0http://vger.kernel.org/majordomo-info.ht=
+ml
+> Please read the FAQ at =C2=A0http://www.tux.org/lkml/
+>
+>
+>
