@@ -1,50 +1,54 @@
-From: "Govindraj.R" <govindraj.raja@ti.com>
-Subject: [PATCH 0/2 v3] OMAP2+: hwmod: Add hwmod's API's for pad wakeup
-Date: Tue, 10 May 2011 16:00:03 +0530
-Message-ID: <1305023405-9561-1-git-send-email-govindraj.raja@ti.com>
+From: "Gulati, Shweta" <shweta.gulati@ti.com>
+Subject: Re: [PATCH] OMAP: Added recalculation of clock rate in 'clk_set_rate'
+Date: Tue, 10 May 2011 16:25:19 +0530
+Message-ID: <BANLkTikjm7th9mv9MOBdMT7j6QPo5Ke7Xw@mail.gmail.com>
+References: <1303291509-2305-1-git-send-email-shweta.gulati@ti.com>
+	<alpine.DEB.2.00.1104201351180.12683@utopia.booyaka.com>
+	<BANLkTi=Ab0EJ3fAQGHBOyPd+eAJHWcjtuA@mail.gmail.com>
+	<alpine.DEB.2.00.1105061549150.30136@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:53397 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752620Ab1EJKdp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 May 2011 06:33:45 -0400
+Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:56656 "EHLO
+	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751445Ab1EJKzV convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 10 May 2011 06:55:21 -0400
+Received: by mail-bw0-f46.google.com with SMTP id 15so6759874bwz.5
+        for <linux-omap@vger.kernel.org>; Tue, 10 May 2011 03:55:19 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.00.1105061549150.30136@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, "Govindraj.R" <govindraj.raja@ti.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Rajendra Nayak <rnayak@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
 
-Add two API's to set IO Pad wakeup capability based on hwmod
-mux pins available and also to check the status of IO Pad wakeup
-event.
+Hi,
 
-This two patches are separated from uart_runtime patches posted
-earlier and uart_runtime adaptation relies on these two API's.
+On Sat, May 7, 2011 at 3:19 AM, Paul Walmsley <paul@pwsan.com> wrote:
+> On Thu, 21 Apr 2011, Gulati, Shweta wrote:
+>
+>> Yes, but in current code clk_set_rate of dpll3_m2 -
+>> 'omap3_core_dpll_m2_set_rate'
+>> doesn't update clk.rate, I will submit patch fixing that bug and wil=
+l
+>> make sure that
+>> set_rate of all clocks should update clk.rate
+>
+> Ping. =A0Do you plan to post this soon? =A0This should be a trivial p=
+atch.
+Sorry for the delay, I will post today.
+> - Paul
+>
 
-Based on 2.6.39-rc6
 
-Changes from v2:
----------------
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg49194.html
 
-Changes from v1:
----------------
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg49141.html
-
-Reference to Discussion:
-------------------------
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg49000.html
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg49001.html
-
-Govindraj.R (2):
-  OMAP2+: hwmod: Add API to enable IO ring wakeup.
-  OMAP2+: hwmod: Add API to check IO PAD wakeup status
-
- arch/arm/mach-omap2/mux.c                     |   28 +++++++++
- arch/arm/mach-omap2/mux.h                     |   13 ++++
- arch/arm/mach-omap2/omap_hwmod.c              |   74 +++++++++++++++++++++++++
- arch/arm/plat-omap/include/plat/omap_device.h |    2 +
- arch/arm/plat-omap/include/plat/omap_hwmod.h  |    4 +
- arch/arm/plat-omap/omap_device.c              |   50 +++++++++++++++++
- 6 files changed, 171 insertions(+), 0 deletions(-)
-
+--=20
+Thanks,
+Regards,
+Shweta
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
