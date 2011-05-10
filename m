@@ -1,42 +1,60 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 0/8] OMAP: DSS2: Miscellaneous patches
-Date: Tue, 10 May 2011 19:24:08 +0300
-Message-ID: <1305044656-31512-1-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 1/8] OMAP: DSS2: Add missing dummy functions
+Date: Tue, 10 May 2011 19:24:09 +0300
+Message-ID: <1305044656-31512-2-git-send-email-tomi.valkeinen@ti.com>
+References: <1305044656-31512-1-git-send-email-tomi.valkeinen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:57897 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932828Ab1EJQY1 (ORCPT
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:60972 "EHLO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932849Ab1EJQYb (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 10 May 2011 12:24:27 -0400
+	Tue, 10 May 2011 12:24:31 -0400
+In-Reply-To: <1305044656-31512-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Here are some smallish fixes and cleanups I made while porting N800's display
-driver to DSS2. 
+dpi.c does not compile if DSI is not compiled in. Add the missing dummy
+functions so that dpi.c compiles.
 
- Tomi
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+---
+ drivers/video/omap2/dss/dss.h |   21 +++++++++++++++++++++
+ 1 files changed, 21 insertions(+), 0 deletions(-)
 
-Tomi Valkeinen (8):
-  OMAP: DSS2: Add missing dummy functions
-  OMAPFB: fix wrong clock aliases and device name
-  OMAP: DSS2: RFBI: add rfbi_bus_lock
-  OMAP: DSS2: RFIB: clock enable/disable changes
-  OMAP: DSS2: RFBI: add omap_rfbi_configure
-  OMAP: DSS2: RFIB: cleanup
-  OMAP: DSS2: OMAPFB: remove dead code
-  OMAP: DSS2: OMAPFB: Reduce stack usage
-
- arch/arm/plat-omap/include/plat/display.h |    4 +
- drivers/video/omap/dispc.c                |    4 +-
- drivers/video/omap/omapfb_main.c          |    2 +-
- drivers/video/omap/rfbi.c                 |    2 +-
- drivers/video/omap2/dss/dss.h             |   28 ++++-
- drivers/video/omap2/dss/rfbi.c            |  174 +++++------------------------
- drivers/video/omap2/omapfb/omapfb-main.c  |   78 +++++--------
- 7 files changed, 86 insertions(+), 206 deletions(-)
-
+diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
+index eea5c7d..f659cfb 100644
+--- a/drivers/video/omap2/dss/dss.h
++++ b/drivers/video/omap2/dss/dss.h
+@@ -313,6 +313,27 @@ static inline unsigned long dsi_get_pll_hsdiv_dispc_rate(void)
+ 	WARN("%s: DSI not compiled in, returning rate as 0\n", __func__);
+ 	return 0;
+ }
++static inline int dsi_pll_set_clock_div(struct dsi_clock_info *cinfo)
++{
++	WARN("%s: DSI not compiled in\n", __func__);
++	return -ENODEV;
++}
++static inline int dsi_pll_calc_clock_div_pck(bool is_tft, unsigned long req_pck,
++		struct dsi_clock_info *cinfo,
++		struct dispc_clock_info *dispc_cinfo)
++{
++	WARN("%s: DSI not compiled in\n", __func__);
++	return -ENODEV;
++}
++static inline int dsi_pll_init(struct omap_dss_device *dssdev,
++		bool enable_hsclk, bool enable_hsdiv)
++{
++	WARN("%s: DSI not compiled in\n", __func__);
++	return -ENODEV;
++}
++static inline void dsi_pll_uninit(bool disconnect_lanes)
++{
++}
+ static inline void dsi_wait_pll_hsdiv_dispc_active(void)
+ {
+ }
 -- 
 1.7.4.1
 
