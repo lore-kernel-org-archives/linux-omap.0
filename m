@@ -1,34 +1,46 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH V2] omap2/omapfb: make DBG() more resistant in if-else
- constructions
-Date: Tue, 10 May 2011 15:16:07 +0300
-Message-ID: <1305029767.2045.42.camel@deskari>
-References: <BANLkTinEJZ=fvJmWRkQ7kKyxbFRaJnum7g@mail.gmail.com>
-	 <1305025653-17138-1-git-send-email-ndevos@redhat.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: OMAP1: unnecessary timer interrupt handler code?
+Date: Tue, 10 May 2011 14:26:57 +0200
+Message-ID: <87y62e4u7h.fsf@ti.com>
+References: <20110508162800.GM27807@n2100.arm.linux.org.uk>
+	<20110509060332.GV27860@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:45824 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754823Ab1EJMQN (ORCPT
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:46792 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756198Ab1EJM1E (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 10 May 2011 08:16:13 -0400
-In-Reply-To: <1305025653-17138-1-git-send-email-ndevos@redhat.com>
+	Tue, 10 May 2011 08:27:04 -0400
+Received: by mail-fx0-f54.google.com with SMTP id 11so6209713fxm.41
+        for <linux-omap@vger.kernel.org>; Tue, 10 May 2011 05:27:02 -0700 (PDT)
+In-Reply-To: <20110509060332.GV27860@atomide.com> (Tony Lindgren's message of
+	"Mon, 9 May 2011 09:03:35 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Niels de Vos <ndevos@redhat.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-kernel@vger.kernel.org, Geert Uytterhoeven <geert@linux-m68k.org>, Sanjeev Premi <premi@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org
 
-On Tue, 2011-05-10 at 12:07 +0100, Niels de Vos wrote:
-> When DBG() is used in a simple if-else, the resulting code path
-> currently depends on the definition of DBG(). Inserting the statement in
-> a "do { ... } while (0)" prevents this possible misuse.
-> 
-> Signed-off-by: Niels de Vos <ndevos@redhat.com>
+Tony Lindgren <tony@atomide.com> writes:
 
-Thanks, I'll add this to the dss2 tree.
+> * Russell King - ARM Linux <linux@arm.linux.org.uk> [110508 19:24]:
+>> MPU timer 2 is used on OMAP1 for the clock source and scheduler clock.
+>> It registers an interrupt, which counts the number of overflows of
+>> this timer.  However, this counter is only referenced by the interrupt
+>> handler.
+>> 
+>> So, it seems that the following code serves very little purpose.  Can
+>> it be simply deleted?
+>
+> Seems safe to me. This is probably some left over legacy code
+> from long time ago.
 
- Tomi
+Yes, I believe this is left over legacy code and can be removed.
+
+Russell, feel free to remove it, or let me know if you want a patch from
+me.  If you do it, feel free add
+
+Acked-by: Kevin Hilman <khilman@ti.com>
+
 
 
