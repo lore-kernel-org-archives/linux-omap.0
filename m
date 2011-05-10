@@ -1,60 +1,90 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 1/8] OMAP: DSS2: Add missing dummy functions
-Date: Tue, 10 May 2011 19:24:09 +0300
-Message-ID: <1305044656-31512-2-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 3/8] OMAP: DSS2: RFBI: add rfbi_bus_lock
+Date: Tue, 10 May 2011 19:24:11 +0300
+Message-ID: <1305044656-31512-4-git-send-email-tomi.valkeinen@ti.com>
 References: <1305044656-31512-1-git-send-email-tomi.valkeinen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:60972 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932849Ab1EJQYb (ORCPT
+Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:57493 "EHLO
+	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932972Ab1EJQYe (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 10 May 2011 12:24:31 -0400
+	Tue, 10 May 2011 12:24:34 -0400
 In-Reply-To: <1305044656-31512-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-dpi.c does not compile if DSI is not compiled in. Add the missing dummy
-functions so that dpi.c compiles.
+Add similar bus lock to RFBI as is in DSI. The panel driver can use the
+bus lock to mark that the RFBI bus is currently in use.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/dss/dss.h |   21 +++++++++++++++++++++
- 1 files changed, 21 insertions(+), 0 deletions(-)
+ arch/arm/plat-omap/include/plat/display.h |    2 ++
+ drivers/video/omap2/dss/rfbi.c            |   16 ++++++++++++++++
+ 2 files changed, 18 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-index eea5c7d..f659cfb 100644
---- a/drivers/video/omap2/dss/dss.h
-+++ b/drivers/video/omap2/dss/dss.h
-@@ -313,6 +313,27 @@ static inline unsigned long dsi_get_pll_hsdiv_dispc_rate(void)
- 	WARN("%s: DSI not compiled in, returning rate as 0\n", __func__);
- 	return 0;
+diff --git a/arch/arm/plat-omap/include/plat/display.h b/arch/arm/plat-omap/include/plat/display.h
+index bd0f08e..e6629eb 100644
+--- a/arch/arm/plat-omap/include/plat/display.h
++++ b/arch/arm/plat-omap/include/plat/display.h
+@@ -214,6 +214,8 @@ int omap_rfbi_enable_te(bool enable, unsigned line);
+ int omap_rfbi_setup_te(enum omap_rfbi_te_mode mode,
+ 			     unsigned hs_pulse_time, unsigned vs_pulse_time,
+ 			     int hs_pol_inv, int vs_pol_inv, int extif_div);
++void rfbi_bus_lock(void);
++void rfbi_bus_unlock(void);
+ 
+ /* DSI */
+ void dsi_bus_lock(void);
+diff --git a/drivers/video/omap2/dss/rfbi.c b/drivers/video/omap2/dss/rfbi.c
+index 5ea17f4..b669071 100644
+--- a/drivers/video/omap2/dss/rfbi.c
++++ b/drivers/video/omap2/dss/rfbi.c
+@@ -32,6 +32,7 @@
+ #include <linux/ktime.h>
+ #include <linux/hrtimer.h>
+ #include <linux/seq_file.h>
++#include <linux/semaphore.h>
+ 
+ #include <plat/display.h>
+ #include "dss.h"
+@@ -119,6 +120,8 @@ static struct {
+ 	struct completion cmd_done;
+ 	atomic_t          cmd_fifo_full;
+ 	atomic_t          cmd_pending;
++
++	struct semaphore bus_lock;
+ } rfbi;
+ 
+ struct update_region {
+@@ -146,6 +149,18 @@ static void rfbi_enable_clocks(bool enable)
+ 		dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK);
  }
-+static inline int dsi_pll_set_clock_div(struct dsi_clock_info *cinfo)
+ 
++void rfbi_bus_lock(void)
 +{
-+	WARN("%s: DSI not compiled in\n", __func__);
-+	return -ENODEV;
++	down(&rfbi.bus_lock);
 +}
-+static inline int dsi_pll_calc_clock_div_pck(bool is_tft, unsigned long req_pck,
-+		struct dsi_clock_info *cinfo,
-+		struct dispc_clock_info *dispc_cinfo)
++EXPORT_SYMBOL(rfbi_bus_lock);
++
++void rfbi_bus_unlock(void)
 +{
-+	WARN("%s: DSI not compiled in\n", __func__);
-+	return -ENODEV;
++	up(&rfbi.bus_lock);
 +}
-+static inline int dsi_pll_init(struct omap_dss_device *dssdev,
-+		bool enable_hsclk, bool enable_hsdiv)
-+{
-+	WARN("%s: DSI not compiled in\n", __func__);
-+	return -ENODEV;
-+}
-+static inline void dsi_pll_uninit(bool disconnect_lanes)
-+{
-+}
- static inline void dsi_wait_pll_hsdiv_dispc_active(void)
++EXPORT_SYMBOL(rfbi_bus_unlock);
++
+ void omap_rfbi_write_command(const void *buf, u32 len)
  {
- }
+ 	rfbi_enable_clocks(1);
+@@ -1022,6 +1037,7 @@ static int omap_rfbihw_probe(struct platform_device *pdev)
+ 	rfbi.pdev = pdev;
+ 
+ 	spin_lock_init(&rfbi.cmd_lock);
++	sema_init(&rfbi.bus_lock, 1);
+ 
+ 	init_completion(&rfbi.cmd_done);
+ 	atomic_set(&rfbi.cmd_fifo_full, 0);
 -- 
 1.7.4.1
 
