@@ -1,59 +1,82 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 1/9] OMAP: DSS2: Change DSI platform device name from
- "omapdss_dsi1" to "omapdss_dsi"
-Date: Tue, 10 May 2011 15:30:52 +0300
-Message-ID: <1305030652.2045.49.camel@deskari>
-References: <1304494704-7285-1-git-send-email-archit@ti.com>
-	 <1304494704-7285-2-git-send-email-archit@ti.com>
-	 <20110504094050.GI27860@atomide.com> <1304595408.30935.16.camel@deskari>
-	 <20110505130204.GK11744@opensource.wolfsonmicro.com>
-	 <1304955274.2215.26.camel@deskari>
-	 <20110509191912.GA6546@opensource.wolfsonmicro.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [URGENT - PATCH FOR 2.6.39] omap: iommu: Return IRQ_HANDLED in fault handler when no fault occured
+Date: Tue, 10 May 2011 14:39:56 +0200
+Message-ID: <201105101439.56757.laurent.pinchart@ideasonboard.com>
+References: <1303912982-10309-1-git-send-email-laurent.pinchart@ideasonboard.com> <201104291203.11174.laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:52331 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755434Ab1EJMa5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 10 May 2011 08:30:57 -0400
-Received: by mail-ew0-f49.google.com with SMTP id 3so2033028ewy.36
-        for <linux-omap@vger.kernel.org>; Tue, 10 May 2011 05:30:56 -0700 (PDT)
-In-Reply-To: <20110509191912.GA6546@opensource.wolfsonmicro.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <201104291203.11174.laurent.pinchart@ideasonboard.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, David Cohen <dacohen@gmail.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Tony Lindgren <tony@atomide.com>, Liam Girdwood <lrg@slimlogic.co.uk>, Archit Taneja <archit@ti.com>, linux-omap@vger.kernel.org
 
-On Mon, 2011-05-09 at 21:19 +0200, Mark Brown wrote:
-> On Mon, May 09, 2011 at 06:34:34PM +0300, Tomi Valkeinen wrote:
+Hi Tony,
 
-> > The second thing is that even if the power source for vdds_dsi may be
-> > configured differently on different boards, the same vdds_dsi goes to
-> > multiple DSS HW blocks inside OMAP, each represented by a separate
-> > omap_device. So it'd be much nicer to configure just the vdds_dsi power
-> > in the board file, but let the omap display code configure the
-> > regulators properly for all the DSS HW blocks in that particular OMAP.
+On Friday 29 April 2011 12:03:10 Laurent Pinchart wrote:
+> Hi Tony,
 > 
-> For this I'd suggest setting up an arrangement with supplies where you
-> have one thing on the OMAP is supplied by board configuration and then
-> it has child supplies within the device but right now that's not so easy
-> to do.  I was just writing some stuff for that this afternoon but it'll
-> be next week before I can test it properly.
+> On Wednesday 27 April 2011 16:03:02 Laurent Pinchart wrote:
+> > The iommu shares an interrupt line with the OMAP3 ISP. The iommu
+> > interrupt handler must check the fault status and return IRQ_HANDLED
+> > when no fault occured.
+> > 
+> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> 
+> Could you please pick this one up for 2.6.39 ? As far as I know David is on
+> holidays so he might not be able to review the patch before the 2.6.39
+> release.
 
-This sounds just the thing we need here. Do you think there's a chance
-the code could get merged in the next window? And I'm also happy to test
-the code with omapdss, whenever you have something ready.
+Ping. Please.
 
-I think we'll go forward with this patch set in a modified form: we'll
-leave the board files untouched and add the DSS driver parts (which is
-99% of the patch set) with a small hack which makes things work with the
-current device setup.
+> > ---
+> > 
+> >  arch/arm/plat-omap/iommu.c |    2 ++
+> >  1 files changed, 2 insertions(+), 0 deletions(-)
+> > 
+> > The OMAP3 ISP IOMMU got broken in 2.6.39-rc1 by
+> > 
+> > commit d594f1f31afe13edd8c02f3854a65cc58cfb3b74
+> > Author: David Cohen <dacohen@gmail.com>
+> > Date:   Wed Feb 16 19:35:51 2011 +0000
+> > 
+> >     omap: IOMMU: add support to callback during fault handling
+> >     
+> >     Add support to register an isr for IOMMU fault situations and adapt
+> >     it to allow such (*isr)() to be used as fault callback. Drivers
+> >     using
+> > 
+> > IOMMU module might want to be informed when errors happen in order to
+> > debug it or react.
+> > 
+> >     Signed-off-by: David Cohen <dacohen@gmail.com>
+> >     Acked-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+> >     Signed-off-by: Tony Lindgren <tony@atomide.com>
+> > 
+> > This patch fixes it and should be pushed to mainline in 2.6.39. The OMAP3
+> > ISP driver, new in 2.6.39, would otherwise be totally broken until
+> > 2.6.40.
+> > 
+> > diff --git a/arch/arm/plat-omap/iommu.c b/arch/arm/plat-omap/iommu.c
+> > index 8a51fd5..34fc31e 100644
+> > --- a/arch/arm/plat-omap/iommu.c
+> > +++ b/arch/arm/plat-omap/iommu.c
+> > @@ -793,6 +793,8 @@ static irqreturn_t iommu_fault_handler(int irq, void
+> > *data) clk_enable(obj->clk);
+> > 
+> >  	errs = iommu_report_fault(obj, &da);
+> >  	clk_disable(obj->clk);
+> > 
+> > +	if (errs == 0)
+> > +		return IRQ_HANDLED;
+> > 
+> >  	/* Fault callback or TLB/PTE Dynamic loading */
+> >  	if (obj->isr && !obj->isr(obj, da, errs, obj->isr_priv))
 
-This means we won't be able to use the second DSI LCD yet, but getting
-the biggest bulk of code in is more important.
+-- 
+Regards,
 
- Tomi
-
-
+Laurent Pinchart
