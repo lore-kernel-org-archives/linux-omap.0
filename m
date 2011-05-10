@@ -1,82 +1,65 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [URGENT - PATCH FOR 2.6.39] omap: iommu: Return IRQ_HANDLED in fault handler when no fault occured
-Date: Tue, 10 May 2011 14:39:56 +0200
-Message-ID: <201105101439.56757.laurent.pinchart@ideasonboard.com>
-References: <1303912982-10309-1-git-send-email-laurent.pinchart@ideasonboard.com> <201104291203.11174.laurent.pinchart@ideasonboard.com>
-Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201104291203.11174.laurent.pinchart@ideasonboard.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, David Cohen <dacohen@gmail.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, linux-kernel@vger.kernel.org
+From: Andy Shevchenko <ext-andriy.shevchenko@nokia.com>
+Subject: [PATCHv2.1] mmc: omap_hsmmc: reduce a bit the error handlers in probe()
+Date: Tue, 10 May 2011 15:46:17 +0300
+Message-ID: <062f4c5e2c7007b40780fb38d48e27917f63afb4.1305030674.git.ext-andriy.shevchenko@nokia.com>
+References: <BANLkTi=wiC13bh5vO6rouzCwZCO+-cxbuQ@mail.gmail.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([147.243.128.24]:26398 "EHLO mgw-da01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932423Ab1EJMlg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 10 May 2011 08:41:36 -0400
+In-Reply-To: <BANLkTi=wiC13bh5vO6rouzCwZCO+-cxbuQ@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Madhusudhan Chikkature <madhu.cr@ti.com>, Andy Shevchenko <ext-andriy.shevchenko@nokia.com>, Adrian Hunter <adrian.hunter@nokia.com>
 
-Hi Tony,
+The code contains the similarities in the error path of probe function. Let's
+combine them at one place.
 
-On Friday 29 April 2011 12:03:10 Laurent Pinchart wrote:
-> Hi Tony,
-> 
-> On Wednesday 27 April 2011 16:03:02 Laurent Pinchart wrote:
-> > The iommu shares an interrupt line with the OMAP3 ISP. The iommu
-> > interrupt handler must check the fault status and return IRQ_HANDLED
-> > when no fault occured.
-> > 
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> 
-> Could you please pick this one up for 2.6.39 ? As far as I know David is on
-> holidays so he might not be able to review the patch before the 2.6.39
-> release.
+Signed-off-by: Andy Shevchenko <ext-andriy.shevchenko@nokia.com>
+Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
+---
+ drivers/mmc/host/omap_hsmmc.c |   17 ++++++-----------
+ 1 files changed, 6 insertions(+), 11 deletions(-)
 
-Ping. Please.
-
-> > ---
-> > 
-> >  arch/arm/plat-omap/iommu.c |    2 ++
-> >  1 files changed, 2 insertions(+), 0 deletions(-)
-> > 
-> > The OMAP3 ISP IOMMU got broken in 2.6.39-rc1 by
-> > 
-> > commit d594f1f31afe13edd8c02f3854a65cc58cfb3b74
-> > Author: David Cohen <dacohen@gmail.com>
-> > Date:   Wed Feb 16 19:35:51 2011 +0000
-> > 
-> >     omap: IOMMU: add support to callback during fault handling
-> >     
-> >     Add support to register an isr for IOMMU fault situations and adapt
-> >     it to allow such (*isr)() to be used as fault callback. Drivers
-> >     using
-> > 
-> > IOMMU module might want to be informed when errors happen in order to
-> > debug it or react.
-> > 
-> >     Signed-off-by: David Cohen <dacohen@gmail.com>
-> >     Acked-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-> >     Signed-off-by: Tony Lindgren <tony@atomide.com>
-> > 
-> > This patch fixes it and should be pushed to mainline in 2.6.39. The OMAP3
-> > ISP driver, new in 2.6.39, would otherwise be totally broken until
-> > 2.6.40.
-> > 
-> > diff --git a/arch/arm/plat-omap/iommu.c b/arch/arm/plat-omap/iommu.c
-> > index 8a51fd5..34fc31e 100644
-> > --- a/arch/arm/plat-omap/iommu.c
-> > +++ b/arch/arm/plat-omap/iommu.c
-> > @@ -793,6 +793,8 @@ static irqreturn_t iommu_fault_handler(int irq, void
-> > *data) clk_enable(obj->clk);
-> > 
-> >  	errs = iommu_report_fault(obj, &da);
-> >  	clk_disable(obj->clk);
-> > 
-> > +	if (errs == 0)
-> > +		return IRQ_HANDLED;
-> > 
-> >  	/* Fault callback or TLB/PTE Dynamic loading */
-> >  	if (obj->isr && !obj->isr(obj, da, errs, obj->isr_priv))
-
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index aeaf0cf..b9200ef 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -2118,18 +2118,11 @@ static int __init omap_hsmmc_probe(struct platform_device *pdev)
+ 	/* we start off in DISABLED state */
+ 	host->dpm_state = DISABLED;
+ 
+-	if (clk_enable(host->iclk) != 0) {
+-		clk_put(host->iclk);
+-		clk_put(host->fclk);
+-		goto err1;
+-	}
++	if (clk_enable(host->iclk) != 0)
++		goto err2;
+ 
+-	if (mmc_host_enable(host->mmc) != 0) {
+-		clk_disable(host->iclk);
+-		clk_put(host->iclk);
+-		clk_put(host->fclk);
+-		goto err1;
+-	}
++	if (mmc_host_enable(host->mmc) != 0)
++		goto err3;
+ 
+ 	if (cpu_is_omap2430()) {
+ 		host->dbclk = clk_get(&pdev->dev, "mmchsdb_fck");
+@@ -2274,7 +2267,9 @@ err_irq_cd_init:
+ 	free_irq(host->irq, host);
+ err_irq:
+ 	mmc_host_disable(host->mmc);
++err3:
+ 	clk_disable(host->iclk);
++err2:
+ 	clk_put(host->fclk);
+ 	clk_put(host->iclk);
+ 	if (host->got_dbclk) {
 -- 
-Regards,
+1.6.3.3
 
-Laurent Pinchart
