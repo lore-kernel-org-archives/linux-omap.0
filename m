@@ -1,202 +1,200 @@
-From: "Janorkar, Mayuresh" <mayur@ti.com>
-Subject: RE: [PATCH v3 4/4] OMAP: DSS: Add picodlp panel driver
-Date: Tue, 10 May 2011 15:57:51 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB033DB0868E@dbde02.ent.ti.com>
-References: <1304954319-8386-1-git-send-email-mayur@ti.com>
-	 <1304954319-8386-5-git-send-email-mayur@ti.com>
- <1305020000.3237.16.camel@lappyti>
+From: "Govindraj.R" <govindraj.raja@ti.com>
+Subject: [PATCH 1/2 v3] OMAP2+: hwmod: Add API to enable IO ring wakeup.
+Date: Tue, 10 May 2011 16:00:04 +0530
+Message-ID: <1305023405-9561-2-git-send-email-govindraj.raja@ti.com>
+References: <1305023405-9561-1-git-send-email-govindraj.raja@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:53155 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:53401 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752250Ab1EJK2B convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 May 2011 06:28:01 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p4AARvGB022228
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 10 May 2011 05:28:00 -0500
-In-Reply-To: <1305020000.3237.16.camel@lappyti>
-Content-Language: en-US
+	with ESMTP id S1753428Ab1EJKdr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 May 2011 06:33:47 -0400
+In-Reply-To: <1305023405-9561-1-git-send-email-govindraj.raja@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, "Govindraj.R" <govindraj.raja@ti.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Rajendra Nayak <rnayak@ti.com>
 
+Add API to enable IO pad wakeup capability based on mux dynamic pad and
+wake_up enable flag available from hwmod_mux initialization.
 
+Use the wakeup_enable flag and enable wakeup capability
+for the given pads. Wakeup capability will be enabled/disabled
+during hmwod idle transition based on whether wakeup_flag is
+set or cleared.
 
-> -----Original Message-----
-> From: Valkeinen, Tomi
-> Sent: Tuesday, May 10, 2011 3:03 PM
-> To: Janorkar, Mayuresh
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: [PATCH v3 4/4] OMAP: DSS: Add picodlp panel driver
-> 
-> On Mon, 2011-05-09 at 20:48 +0530, Mayuresh Janorkar wrote:
-> >
+Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod.c              |   60 +++++++++++++++++++++++++
+ arch/arm/plat-omap/include/plat/omap_device.h |    2 +
+ arch/arm/plat-omap/include/plat/omap_hwmod.h  |    3 +
+ arch/arm/plat-omap/omap_device.c              |   50 ++++++++++++++++++++
+ 4 files changed, 115 insertions(+), 0 deletions(-)
 
-
-<snip>
-
-> > +/* This defines the minit of data which is allowed into single write
-> block */
-> > +#define MAX_I2C_WRITE_BLOCK_SIZE	32
-> > +#define PICO_MAJOR			1 /* 2 bits */
-> > +#define PICO_MINOR			1 /* 2 bits */
-> > +#define MAX_TRIAL_VALUE		50
-> 
-> The name of this define is not descriptive and you use this define in
-> two places which have nothing to do with each other. I think it's better
-> just to use the value where it's needed.
-
-Looks fine.
-
-> 
-> > +struct picodlp_data {
-> > +	struct mutex lock;
-> > +	struct i2c_client *picodlp_i2c_client;
-> > +};
-> > +
-> > +static struct i2c_board_info picodlp_i2c_board_info = {
-> > +	I2C_BOARD_INFO("picodlp_i2c_driver", 0x1b),
-> > +};
-> > +	r = i2c_transfer(client->adapter, &msg, msg_count);
-> > +	mutex_unlock(&picodlp_i2c_data->xfer_lock);
-> > +
-> > +	/*
-> > +	 * i2c_transfer returns:
-> > +	 * number of messages sent in case of success
-> > +	 * a negative error number in case of failure
-> > +	 * i2c controller might timeout, in such a case sleep for sometime
-> > +	 * and then retry
-> > +	 */
-> 
-> The comment here doesn't look right, there's no retry.
-
-Fine.
-
-> 
-> > +	if (r != msg_count)
-> > +		goto err;
-> > +
-> > +	/* In case of success */
-> > +	for (i = 0; i < len; i++)
-> > +		dev_dbg(&client->dev,
-
-
-> > +		{SEQ_CONTROL, 1}
-> > +	};
-> > +
-> > +	msleep(510);
-> 
-> You are again sleeping in a place where there are no clear actions after
-> and before the sleep. You should always sleep between two well defined
-> actions. In this case it's the emu_done going up and the first i2c
-> transaction, so a better place for this sleep is in the power_on
-> function, before calling this function. With a comment saying what we
-> are waiting for.
-
-I would move this to power_on function with an appropriate comment.
-
-> 
-> > +	r = picodlp_i2c_write_array(client, init_cmd_set1,
-> > +						ARRAY_SIZE(init_cmd_set1));
-> > +	if (r)
-> > +		return r;
-> > +		msleep(5);
-> > +	}
-> 
-> You defined the trial value to 50, which means this could timeout after
-> 250ms. If I remember right, it could take 500ms until emu_done changes.
-> And your error says "going down", doesn't the emu_done gpio go up when
-> it's ready?
-
-Looks fine. I would change the counter.
-My bad. I meant to say emu_done is still down.
-
-> 
-> > +
-> > +	r = omapdss_dpi_display_enable(dssdev);
-> > +	if (r) {
-> > +		dev_err(&dssdev->dev, "failed to enable DPI\n");
-> > +		goto err;
-> > +static void picodlp_panel_power_off(struct omap_dss_device *dssdev)
-> > +{
-> > +	struct picodlp_panel_data *picodlp_pdata = get_panel_data(dssdev);
-> > +
-> > +	omapdss_dpi_display_disable(dssdev);
-> > +
-> > +	gpio_set_value(picodlp_pdata->emu_done_gpio, 0);
-> 
-> emu_done is an input pin, you can't set its value.
-Yes.
-
-> 
-> > +	gpio_set_value(picodlp_pdata->pwrgood_gpio, 0);
-> > +
-> > +	if (dssdev->platform_disable)
-> > +		dssdev->platform_disable(dssdev);
-> > +}
-> > +
-> > +static int picodlp_panel_probe(struct omap_dss_device *dssdev)
-> > +{
-> > +	struct picodlp_data *picod;
-> > +	struct picodlp_panel_data *picodlp_pdata = get_panel_data(dssdev);
-> > +	struct i2c_adapter *adapter;
-> > +	struct i2c_client *picodlp_i2c_client;
-> > +	struct picodlp_i2c_data *picodlp_i2c_data;
-> > +	struct gpio picodlp_gpios[] = {
-> > +		{picodlp_pdata->emu_done_gpio, GPIOF_IN, "DLP EMU DONE"},
-> > +		{picodlp_pdata->pwrgood_gpio, GPIOF_INIT_LOW, "DLP PWRGOOD"},
-> > +	};
-> 
-> pwrgood_gpio should be GPIOF_OUT_INIT_LOW.
-
-Looks fine
-
-> 
-> It is better to request and initialize the GPIOs in the board file. The
-> reason for this is that the PicoDLP device should be off if it's not
-> used, or if the driver is not even compiled in. So the board file should
-> make sure that the GPIOs are in such state that the device is off.
-
-The board file has only init. There is no exit.
-So if I request gpios in init once, I could not find a place to free them.
-
-Is it a good idea to request gpios in platform_enable and free them in platform_disable?
-
-> 
-> > +
-> > +	int r = 0, picodlp_adapter_id;
-> > +
-> > +	dssdev->panel.config = OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_ONOFF |
-> > +				OMAP_DSS_LCD_IHS | OMAP_DSS_LCD_IVS;
-> > +		r = -ENODEV;
-> > +		goto err;
-> > +	}
-> > +
-> > +	picod->picodlp_i2c_client = picodlp_i2c_client;
-> > +
-> > +	picodlp_i2c_data =
-> > +		i2c_get_clientdata(picod->picodlp_i2c_client);
-> > +
-> > +	mutex_init(&picodlp_i2c_data->xfer_lock);
-> 
-> I don't think this is right. You have no guarantees that the i2c device
-> probe would have been called when the execution reaches here. So
-> picodlp_i2c_data could be NULL.
-
-I would add a check for this.
-
-> 
-> And anyway, why would you initialize the mutex here, as the mutex
-> belongs to the i2c side. The i2c probe would be more logical choice in
-> any case.
-
-I will move this to i2c_probe.
-
-> 
->  Tomi
-> 
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index e034294..72176d5 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -1770,6 +1770,36 @@ static int __init omap_hwmod_setup_all(void)
+ core_initcall(omap_hwmod_setup_all);
+ 
+ /**
++ * omap_hwmod_set_ioring_wakeup - enable io pad wakeup flag.
++ * @oh: struct omap_hwmod *
++ * @set: bool value indicating to set or clear wakeup status.
++ *
++ * Set or Clear wakeup flag for the io_pad.
++ */
++static int omap_hwmod_set_ioring_wakeup(struct omap_hwmod *oh, bool set_wake)
++{
++	struct omap_device_pad *pad;
++	int ret = -EINVAL, j;
++
++	if (oh->mux->enabled) {
++		for (j = 0; j < oh->mux->nr_pads_dynamic; j++) {
++			pad = oh->mux->pads_dynamic[j];
++			if (pad->flags & OMAP_DEVICE_PAD_WAKEUP) {
++				if (set_wake)
++					pad->idle = pad->enable |
++							OMAP_WAKEUP_EN;
++				else
++					pad->idle = pad->enable &
++							~OMAP_WAKEUP_EN;
++				ret = 0;
++			}
++		}
++	}
++
++	return ret;
++}
++
++/**
+  * omap_hwmod_enable - enable an omap_hwmod
+  * @oh: struct omap_hwmod *
+  *
+@@ -2369,3 +2399,33 @@ int omap_hwmod_no_setup_reset(struct omap_hwmod *oh)
+ 
+ 	return 0;
+ }
++
++/**
++ * omap_hwmod_enable_ioring_wakeup - Set wakeup flag for iopad.
++ * @oh: struct omap_hwmod *
++ *
++ * Traverse through dynamic pads, if pad is enabled then
++ * set wakeup enable bit flag for the mux pin. Wakeup pad bit
++ * will be set during hwmod idle transistion.
++ * Return error if pads are not enabled or not available.
++ */
++int omap_hwmod_enable_ioring_wakeup(struct omap_hwmod *oh)
++{
++	/* Enable pad wake-up capability */
++	return omap_hwmod_set_ioring_wakeup(oh, true);
++}
++
++/**
++ * omap_hwmod_disable_ioring_wakeup - Clear wakeup flag for iopad.
++ * @oh: struct omap_hwmod *
++ *
++ * Traverse through dynamic pads, if pad is enabled then
++ * clear wakeup enable bit flag for the mux pin. Wakeup pad bit
++ * will be set during hwmod idle transistion.
++ * Return error if pads are not enabled or not available.
++ */
++int omap_hwmod_disable_ioring_wakeup(struct omap_hwmod *oh)
++{
++	/* Disable pad wakeup capability */
++	return omap_hwmod_set_ioring_wakeup(oh, false);
++}
+diff --git a/arch/arm/plat-omap/include/plat/omap_device.h b/arch/arm/plat-omap/include/plat/omap_device.h
+index e4c349f..a377dd0 100644
+--- a/arch/arm/plat-omap/include/plat/omap_device.h
++++ b/arch/arm/plat-omap/include/plat/omap_device.h
+@@ -117,6 +117,8 @@ int omap_device_enable_hwmods(struct omap_device *od);
+ int omap_device_disable_clocks(struct omap_device *od);
+ int omap_device_enable_clocks(struct omap_device *od);
+ 
++int omap_device_enable_ioring_wakeup(struct platform_device *pdev);
++int omap_device_disable_ioring_wakeup(struct platform_device *pdev);
+ 
+ /*
+  * Entries should be kept in latency order ascending
+diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+index 1adea9c..7ef11a6 100644
+--- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
++++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+@@ -602,6 +602,9 @@ u32 omap_hwmod_get_context_loss_count(struct omap_hwmod *oh);
+ 
+ int omap_hwmod_no_setup_reset(struct omap_hwmod *oh);
+ 
++int omap_hwmod_enable_ioring_wakeup(struct omap_hwmod *oh);
++int omap_hwmod_disable_ioring_wakeup(struct omap_hwmod *oh);
++
+ /*
+  * Chip variant-specific hwmod init routines - XXX should be converted
+  * to use initcalls once the initial boot ordering is straightened out
+diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
+index 9bbda9a..04a4f15 100644
+--- a/arch/arm/plat-omap/omap_device.c
++++ b/arch/arm/plat-omap/omap_device.c
+@@ -742,6 +742,56 @@ void __iomem *omap_device_get_rt_va(struct omap_device *od)
+ 	return omap_hwmod_get_mpu_rt_va(od->hwmods[0]);
+ }
+ 
++/**
++ * omap_device_enable_ioring_wakeup - Set wakeup bit for iopad ring.
++ * @pdev: platform_device for which wakeup needs to be set.
++ *
++ * Caller should ensure this is called if device_may_wakeup(dev) is true
++ * traverse through each hwmod and check each available pads
++ * if pad is enabled then set wakeup enable flag for the mux pin.
++ * Return error if pads are not enabled or not available.
++ * Wakeup enable flag will be we used during hwmod idle transistion.
++ */
++int omap_device_enable_ioring_wakeup(struct platform_device *pdev)
++{
++	int ret = -EINVAL, i;
++	struct omap_device *od;
++	struct omap_hwmod *oh;
++
++	od = _find_by_pdev(pdev);
++	for (i = 0; i < od->hwmods_cnt; i++) {
++		oh = od->hwmods[i];
++		ret = omap_hwmod_enable_ioring_wakeup(oh);
++	}
++
++	return ret;
++}
++
++/**
++ * omap_device_disable_ioring_wakeup - Clear wakeup bit for iopad ring.
++ * @pdev: platform_device for which wakeup needs to be cleared.
++ *
++ * Caller should ensure this is called if device_may_wakeup(dev) is false
++ * traverse through each hwmod and check each available pads
++ * if pad is enabled then clear wakeup enable flag for the mux pin.
++ * Return error if pads are not enabled or not available.
++ * Wakeup enable flag will be we used during hwmod idle transistion.
++ */
++int omap_device_disable_ioring_wakeup(struct platform_device *pdev)
++{
++	int ret = -EINVAL, i;
++	struct omap_device *od;
++	struct omap_hwmod *oh;
++
++	od = _find_by_pdev(pdev);
++	for (i = 0; i < od->hwmods_cnt; i++) {
++		oh = od->hwmods[i];
++		ret = omap_hwmod_disable_ioring_wakeup(oh);
++	}
++
++	return ret;
++}
++
+ /*
+  * Public functions intended for use in omap_device_pm_latency
+  * .activate_func and .deactivate_func function pointers
+-- 
+1.7.1
 
