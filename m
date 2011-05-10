@@ -1,41 +1,55 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [URGENT - PATCH FOR 2.6.39] omap: iommu: Return IRQ_HANDLED in
- fault handler when no fault occured
-Date: Tue, 10 May 2011 16:32:40 +0300 (EEST)
-Message-ID: <20110510.163240.175424489831028844.Hiroshi.DOYU@nokia.com>
-References: <1303912982-10309-1-git-send-email-laurent.pinchart@ideasonboard.com>
-	<201104291203.11174.laurent.pinchart@ideasonboard.com>
-	<201105101439.56757.laurent.pinchart@ideasonboard.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/6] OMAP: board file changes for DSS2 porting
+Date: Tue, 10 May 2011 16:35:43 +0300
+Message-ID: <20110510133543.GJ30958@atomide.com>
+References: <1304926567-26814-1-git-send-email-tomi.valkeinen@ti.com>
+ <1304960499.2215.49.camel@deskari>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201105101439.56757.laurent.pinchart@ideasonboard.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: laurent.pinchart@ideasonboard.com
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, dacohen@gmail.com, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:62363 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754707Ab1EJNfr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 May 2011 09:35:47 -0400
+Content-Disposition: inline
+In-Reply-To: <1304960499.2215.49.camel@deskari>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-From: ext Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [URGENT - PATCH FOR 2.6.39] omap: iommu: Return IRQ_HANDLED in fault handler when no fault occured
-Date: Tue, 10 May 2011 14:39:56 +0200
-
-> Hi Tony,
+* Tomi Valkeinen <tomi.valkeinen@ti.com> [110509 19:58]:
+> On Mon, 2011-05-09 at 10:36 +0300, Tomi Valkeinen wrote:
+> > Hi Tony,
+> > 
+> > I posted last week a patch set porting most of the old omapfb OMAP2/3 drivers
+> > to DSS2 (http://marc.info/?l=linux-fbdev&m=130451207802788&w=2). That patch set
+> > contains changes to both the drivers and the board files, and it seems there is
+> > already a minor conflict in them.
+> > 
+> > So I think it's simpler to divide the set into two parts, this one, which
+> > contains the board file changes, and another containing the driver changes.
+> > Merging will probably go easier if you can take this patch set via linux-omap,
+> > and I'll take the driver changes via dss2 tree.
+> > 
+> > Applying this set without the driver changes will obviously disable the
+> > displays of the affected boards until the drivers are also merged.
 > 
-> On Friday 29 April 2011 12:03:10 Laurent Pinchart wrote:
->> Hi Tony,
->> 
->> On Wednesday 27 April 2011 16:03:02 Laurent Pinchart wrote:
->> > The iommu shares an interrupt line with the OMAP3 ISP. The iommu
->> > interrupt handler must check the fault status and return IRQ_HANDLED
->> > when no fault occured.
->> > 
->> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->> 
->> Could you please pick this one up for 2.6.39 ? As far as I know David is on
->> holidays so he might not be able to review the patch before the 2.6.39
->> release.
+> Tony, I updated the patches, adding one Ack and cleaning up the 2430sdp
+> a bit. The patches can be found from
 > 
-> Ping. Please.
+> git://gitorious.org/linux-omap-dss2/linux.git board-changes-for-tony
+> 
+> should you decide to pull them.
 
-Acked-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Do the dss platform data code coalescing patches affect these?
+
+We just hate positive diffstats for arch/arm/*omap*/ for the upcoming
+merge window :)
+
+Also, these patches should also be posted to linux-arm-kernel list for
+review before I can apply.
+
+Regards,
+
+Tony
