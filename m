@@ -1,90 +1,77 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 3/8] OMAP: DSS2: RFBI: add rfbi_bus_lock
-Date: Tue, 10 May 2011 19:24:11 +0300
-Message-ID: <1305044656-31512-4-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 2/8] OMAPFB: fix wrong clock aliases and device name
+Date: Tue, 10 May 2011 19:24:10 +0300
+Message-ID: <1305044656-31512-3-git-send-email-tomi.valkeinen@ti.com>
 References: <1305044656-31512-1-git-send-email-tomi.valkeinen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:57493 "EHLO
-	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932972Ab1EJQYe (ORCPT
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:58025 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932959Ab1EJQYd (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 10 May 2011 12:24:34 -0400
+	Tue, 10 May 2011 12:24:33 -0400
 In-Reply-To: <1305044656-31512-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Add similar bus lock to RFBI as is in DSI. The panel driver can use the
-bus lock to mark that the RFBI bus is currently in use.
+The clock aliases and the dss platform device name have changed, and
+omapfb fails to initialize. Update the names to correct ones.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- arch/arm/plat-omap/include/plat/display.h |    2 ++
- drivers/video/omap2/dss/rfbi.c            |   16 ++++++++++++++++
- 2 files changed, 18 insertions(+), 0 deletions(-)
+ drivers/video/omap/dispc.c       |    4 ++--
+ drivers/video/omap/omapfb_main.c |    2 +-
+ drivers/video/omap/rfbi.c        |    2 +-
+ 3 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/plat/display.h b/arch/arm/plat-omap/include/plat/display.h
-index bd0f08e..e6629eb 100644
---- a/arch/arm/plat-omap/include/plat/display.h
-+++ b/arch/arm/plat-omap/include/plat/display.h
-@@ -214,6 +214,8 @@ int omap_rfbi_enable_te(bool enable, unsigned line);
- int omap_rfbi_setup_te(enum omap_rfbi_te_mode mode,
- 			     unsigned hs_pulse_time, unsigned vs_pulse_time,
- 			     int hs_pol_inv, int vs_pol_inv, int extif_div);
-+void rfbi_bus_lock(void);
-+void rfbi_bus_unlock(void);
+diff --git a/drivers/video/omap/dispc.c b/drivers/video/omap/dispc.c
+index 5294834..0ccd7ad 100644
+--- a/drivers/video/omap/dispc.c
++++ b/drivers/video/omap/dispc.c
+@@ -922,14 +922,14 @@ static int get_dss_clocks(void)
+ 		return PTR_ERR(dispc.dss_ick);
+ 	}
  
- /* DSI */
- void dsi_bus_lock(void);
-diff --git a/drivers/video/omap2/dss/rfbi.c b/drivers/video/omap2/dss/rfbi.c
-index 5ea17f4..b669071 100644
---- a/drivers/video/omap2/dss/rfbi.c
-+++ b/drivers/video/omap2/dss/rfbi.c
-@@ -32,6 +32,7 @@
- #include <linux/ktime.h>
- #include <linux/hrtimer.h>
- #include <linux/seq_file.h>
-+#include <linux/semaphore.h>
+-	dispc.dss1_fck = clk_get(&dispc.fbdev->dssdev->dev, "dss1_fck");
++	dispc.dss1_fck = clk_get(&dispc.fbdev->dssdev->dev, "fck");
+ 	if (IS_ERR(dispc.dss1_fck)) {
+ 		dev_err(dispc.fbdev->dev, "can't get dss1_fck\n");
+ 		clk_put(dispc.dss_ick);
+ 		return PTR_ERR(dispc.dss1_fck);
+ 	}
  
- #include <plat/display.h>
- #include "dss.h"
-@@ -119,6 +120,8 @@ static struct {
- 	struct completion cmd_done;
- 	atomic_t          cmd_fifo_full;
- 	atomic_t          cmd_pending;
-+
-+	struct semaphore bus_lock;
- } rfbi;
+-	dispc.dss_54m_fck = clk_get(&dispc.fbdev->dssdev->dev, "tv_fck");
++	dispc.dss_54m_fck = clk_get(&dispc.fbdev->dssdev->dev, "tv_clk");
+ 	if (IS_ERR(dispc.dss_54m_fck)) {
+ 		dev_err(dispc.fbdev->dev, "can't get tv_fck\n");
+ 		clk_put(dispc.dss_ick);
+diff --git a/drivers/video/omap/omapfb_main.c b/drivers/video/omap/omapfb_main.c
+index e264efd..b3ddd74 100644
+--- a/drivers/video/omap/omapfb_main.c
++++ b/drivers/video/omap/omapfb_main.c
+@@ -90,7 +90,7 @@ static void omapdss_release(struct device *dev)
  
- struct update_region {
-@@ -146,6 +149,18 @@ static void rfbi_enable_clocks(bool enable)
- 		dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK);
- }
+ /* dummy device for clocks */
+ static struct platform_device omapdss_device = {
+-	.name		= "omapdss",
++	.name		= "omapdss_dss",
+ 	.id		= -1,
+ 	.dev            = {
+ 		.release = omapdss_release,
+diff --git a/drivers/video/omap/rfbi.c b/drivers/video/omap/rfbi.c
+index eada9f1..0c6981f 100644
+--- a/drivers/video/omap/rfbi.c
++++ b/drivers/video/omap/rfbi.c
+@@ -90,7 +90,7 @@ static int rfbi_get_clocks(void)
+ 		return PTR_ERR(rfbi.dss_ick);
+ 	}
  
-+void rfbi_bus_lock(void)
-+{
-+	down(&rfbi.bus_lock);
-+}
-+EXPORT_SYMBOL(rfbi_bus_lock);
-+
-+void rfbi_bus_unlock(void)
-+{
-+	up(&rfbi.bus_lock);
-+}
-+EXPORT_SYMBOL(rfbi_bus_unlock);
-+
- void omap_rfbi_write_command(const void *buf, u32 len)
- {
- 	rfbi_enable_clocks(1);
-@@ -1022,6 +1037,7 @@ static int omap_rfbihw_probe(struct platform_device *pdev)
- 	rfbi.pdev = pdev;
- 
- 	spin_lock_init(&rfbi.cmd_lock);
-+	sema_init(&rfbi.bus_lock, 1);
- 
- 	init_completion(&rfbi.cmd_done);
- 	atomic_set(&rfbi.cmd_fifo_full, 0);
+-	rfbi.dss1_fck = clk_get(&rfbi.fbdev->dssdev->dev, "dss1_fck");
++	rfbi.dss1_fck = clk_get(&rfbi.fbdev->dssdev->dev, "fck");
+ 	if (IS_ERR(rfbi.dss1_fck)) {
+ 		dev_err(rfbi.fbdev->dev, "can't get dss1_fck\n");
+ 		clk_put(rfbi.dss_ick);
 -- 
 1.7.4.1
 
