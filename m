@@ -1,80 +1,58 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH v2 2/2] OMAP2PLUS: cpufreq: Add SMP support to cater OMAP4430
-Date: Wed, 11 May 2011 12:40:49 +0530
-Message-ID: <4DCA3679.8030603@ti.com>
-References: <1300102729-17276-1-git-send-email-santosh.shilimkar@ti.com> <1300102729-17276-3-git-send-email-santosh.shilimkar@ti.com> <BANLkTinSPpmepfJNC=2SSPF5KzsHcKXGEw@mail.gmail.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH 1/9] OMAP: DSS2: Change DSI platform device name from
+ "omapdss_dsi1" to "omapdss_dsi"
+Date: Wed, 11 May 2011 14:12:47 +0200
+Message-ID: <20110511121243.GB5487@opensource.wolfsonmicro.com>
+References: <1304494704-7285-1-git-send-email-archit@ti.com>
+ <1304494704-7285-2-git-send-email-archit@ti.com>
+ <20110504094050.GI27860@atomide.com>
+ <1304595408.30935.16.camel@deskari>
+ <20110505130204.GK11744@opensource.wolfsonmicro.com>
+ <1304955274.2215.26.camel@deskari>
+ <20110509191912.GA6546@opensource.wolfsonmicro.com>
+ <1305030652.2045.49.camel@deskari>
+ <20110510134730.GB25877@opensource.wolfsonmicro.com>
+ <1305105825.2097.49.camel@deskari>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:50196 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755492Ab1EKPwF (ORCPT
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:34475 "EHLO
+	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1755315Ab1EKQQP (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 11 May 2011 11:52:05 -0400
-Received: by mail-gw0-f52.google.com with SMTP id 15so264690gwj.25
-        for <linux-omap@vger.kernel.org>; Wed, 11 May 2011 08:52:02 -0700 (PDT)
-In-Reply-To: <BANLkTinSPpmepfJNC=2SSPF5KzsHcKXGEw@mail.gmail.com>
+	Wed, 11 May 2011 12:16:15 -0400
+Content-Disposition: inline
+In-Reply-To: <1305105825.2097.49.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>
-Cc: linux-omap@vger.kernel.org, khilman@ti.com, Vishwanath BS <vishwanath.bs@ti.com>, "Herman, Saquib" <saquib@ti.com>, "Revanna, Amarnath" <amarnath@ti.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Liam Girdwood <lrg@slimlogic.co.uk>, Archit Taneja <archit@ti.com>, linux-omap@vger.kernel.org
 
-On 5/11/2011 6:11 AM, Menon, Nishanth wrote:
-> On Mon, Mar 14, 2011 at 06:38, Santosh Shilimkar
-> <santosh.shilimkar@ti.com>  wrote:
->> On OMAP SMP configuartion, both processors share the voltage
->> and clock. So both CPUs needs to be scaled together and hence
->> needs software co-ordination.
->>
->> Signed-off-by: Santosh Shilimkar<santosh.shilimkar@ti.com>
->> Cc: Kevin Hilman<khilman@ti.com>
->> cc: Vishwanath BS<vishwanath.bs@ti.com>
->> ---
->>   arch/arm/mach-omap2/omap2plus-cpufreq.c |   73 ++++++++++++++++++++++++++-----
->>   1 files changed, 62 insertions(+), 11 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/omap2plus-cpufreq.c b/arch/arm/mach-omap2/omap2plus-cpufreq.c
->
-> [...]
->>         rate = clk_get_rate(mpu_clk) / 1000;
->> @@ -74,9 +76,13 @@ static int omap_target(struct cpufreq_policy *policy,
-> [...]
->
->> -       cpufreq_notify_transition(&freqs, CPUFREQ_POSTCHANGE);
->> +#ifdef CONFIG_SMP
->> +       /*
->> +        * Note that loops_per_jiffy is not updated on SMP systems in
->> +        * cpufreq driver. So, update the per-CPU loops_per_jiffy value
->> +        * on frequency transition. We need to update all dependent CPUs.
->> +        */
->> +       for_each_cpu(i, policy->cpus)
->> +               per_cpu(cpu_data, i).loops_per_jiffy =
->> +                       cpufreq_scale(per_cpu(cpu_data, i).loops_per_jiffy,
->> +                                       freqs.old, freqs.new);
-> We have an issue here - arch/arm/lib/delay.S uses the generic
-> loops_per_jiffy which is not updated when smp (OMAP4) is active, as a
-> result loops_per_jiffy contains the value which was updated. with a
-> trace added as follows:
+On Wed, May 11, 2011 at 12:23:45PM +0300, Tomi Valkeinen wrote:
 
-[...]
+> So how should the regulator be set up?
 
->
-> Question: what would be the best solution for this? is a solution
-> isolated to OMAP good enough?
->
-We have debated on the global lpj update topic enough. The assumption
-of all the CPU's in ARM SMP system are running at same speed in not
+You need to create a new regulator of some kind and then provide a way
+for machines to set the supply_regulator in the init_data.
 
-I propose this idea based on the fact that on OMAP we scale
-all the CPU's in SMP clusture together. But that is not seems
-to be true for all ARM SMP archs.
+> I should setup a fixed regulator, which is supplied from VCXIO, and
+> omapdss will get its powers from this fixed regulator?
 
-So there is a patch series which makes udelay() independent
-of lpj and make use a timer.
+Yes, and the example code I've deleted all looks about right.
 
-Here is the link for the same.
-http://eeek.borgchat.net/lists/arm-kernel/msg120702.html
+> static struct fixed_voltage_config omap_dss_fixed_reg_data = {
+> 	.supply_name = "what should this be?",
+> 	.init_data = &fixed_reg_init_data,
+> };
 
-Regards
-Santosh
+The supply name shold be supplied by the board - it's whatever the
+supply that's shared by all the regulators in the OMAP is.
+
+> static struct regulator_consumer_supply sdp4430_vcxio_supply[] = {
+> 	REGULATOR_SUPPLY("what should this be?", "reg-fixed-voltage.0"),
+> };
+
+You don't need to specify a supply to hook the supplies up.  This is a
+bit of a wart, but it's the current API - it's specified in the child
+regulator rather than the parent which is the other way around to
+consumers.
