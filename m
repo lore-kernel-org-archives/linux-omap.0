@@ -1,11 +1,14 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: [PATCH] arm: omap2plus: move NAND_BLOCK_SIZE out of boards
-Date: Wed, 11 May 2011 10:43:47 +0300
-Message-ID: <1305099827-19832-1-git-send-email-grinberg@compulab.co.il>
+From: viresh kumar <viresh.kumar@st.com>
+Subject: Re: [PATCH 06/13] clocksource: add common mmio clocksource
+Date: Wed, 11 May 2011 13:45:19 +0530
+Message-ID: <4DCA4597.70209@st.com>
+References: <20110510072700.GA29869@n2100.arm.linux.org.uk>
+	<E1QJhNe-0000yh-HS@rmk-PC.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <E1QJhNe-0000yh-HS@rmk-PC.arm.linux.org.uk>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -15,129 +18,171 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: linux-arm-kernel-bounces@lists.infradead.org
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Igor Grinberg <grinberg@compulab.co.il>, linux-arm-kernel@lists.infradead.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Kukjin Kim <kgene.kim@samsung.com>, Eric Miao <eric.y.miao@gmail.com>, Linus WALLEIJ <linus.walleij@stericsson.com>, Erik Gilling <konkers@android.com>, Nicolas Pitre <nico@fluxnic.net>, Tony Lindgren <tony@atomide.com>, John Stultz <johnstul@us.ibm.com>, Krzysztof Halasa <khc@pm.waw.pl>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hans J. Koch" <hjk@hansjkoch.de>, Sascha Hauer <kernel@pengutronix.de>, Colin Cross <ccross@android.com>, Olof Johansson <olof@lixom.net>, Thomas Gleixner <tglx@linutronix.de>, Imre Kaloz <kaloz@openwrt.org>, Wan ZongShun <mcuos.com@gmail.com>, Lennert Buytenhek <kernel@wantstofly.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Alessandro Rubini <rubini@unipv.it>
 List-Id: linux-omap@vger.kernel.org
 
-Each board defining mtd partitions also defined NAND_BLOCK_SIZE as
-SZ_128K. Move the define to common-board-devices.h
+On 05/10/2011 12:59 PM, Russell King - ARM Linux wrote:
+> Add a generic mmio clocksource, covering both 32-bit and 16-bit register
+> access sizes, for up or down counters.  This can be used to easily
+> create clocksources for simple counter-based implementations.
+> 
+> Cc: Alessandro Rubini <rubini@unipv.it>
+> Cc: Colin Cross <ccross@android.com>
+> Cc: Eric Miao <eric.y.miao@gmail.com>
+> Cc: Erik Gilling <konkers@android.com>
+> Cc: "Hans J. Koch" <hjk@hansjkoch.de>
+> Cc: Imre Kaloz <kaloz@openwrt.org>
+> Cc: Krzysztof Halasa <khc@pm.waw.pl>
+> Cc: Kukjin Kim <kgene.kim@samsung.com>
+> Cc: Lennert Buytenhek <kernel@wantstofly.org>
+> Cc: Linus Walleij <linus.walleij@stericsson.com>
+> Cc: linux-omap@vger.kernel.org
+> Cc: Nicolas Pitre <nico@fluxnic.net>
+> Cc: Olof Johansson <olof@lixom.net>
+> Cc: Sascha Hauer <kernel@pengutronix.de>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Viresh Kumar <viresh.kumar@st.com>
+> Cc: Wan ZongShun <mcuos.com@gmail.com>
+> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> ---
+>  drivers/Kconfig              |    3 ++
+>  drivers/clocksource/Kconfig  |    2 +
+>  drivers/clocksource/Makefile |    1 +
+>  drivers/clocksource/mmio.c   |   72 ++++++++++++++++++++++++++++++++++++++++++
+>  include/linux/clocksource.h  |    8 +++++
+>  5 files changed, 86 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/clocksource/Kconfig
+>  create mode 100644 drivers/clocksource/mmio.c
+> 
+> diff --git a/drivers/Kconfig b/drivers/Kconfig
+> index 177c7d1..557a469 100644
+> --- a/drivers/Kconfig
+> +++ b/drivers/Kconfig
+> @@ -119,4 +119,7 @@ source "drivers/platform/Kconfig"
+>  source "drivers/clk/Kconfig"
+>  
+>  source "drivers/hwspinlock/Kconfig"
+> +
+> +source "drivers/clocksource/Kconfig"
+> +
+>  endmenu
+> diff --git a/drivers/clocksource/Kconfig b/drivers/clocksource/Kconfig
+> new file mode 100644
+> index 0000000..47f37b1
+> --- /dev/null
+> +++ b/drivers/clocksource/Kconfig
+> @@ -0,0 +1,2 @@
+> +config CLKSRC_MMIO
+> +	bool
+> diff --git a/drivers/clocksource/Makefile b/drivers/clocksource/Makefile
+> index be61ece..9b2ba29 100644
+> --- a/drivers/clocksource/Makefile
+> +++ b/drivers/clocksource/Makefile
+> @@ -6,3 +6,4 @@ obj-$(CONFIG_CS5535_CLOCK_EVENT_SRC)	+= cs5535-clockevt.o
+>  obj-$(CONFIG_SH_TIMER_CMT)	+= sh_cmt.o
+>  obj-$(CONFIG_SH_TIMER_MTU2)	+= sh_mtu2.o
+>  obj-$(CONFIG_SH_TIMER_TMU)	+= sh_tmu.o
+> +obj-$(CONFIG_CLKSRC_MMIO)	+= mmio.o
+> diff --git a/drivers/clocksource/mmio.c b/drivers/clocksource/mmio.c
+> new file mode 100644
+> index 0000000..71ad3a3
+> --- /dev/null
+> +++ b/drivers/clocksource/mmio.c
+> @@ -0,0 +1,72 @@
+> +/*
+> + * Generic MMIO clocksource support
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +#include <linux/clocksource.h>
+> +#include <linux/errno.h>
+> +#include <linux/init.h>
+> +#include <linux/slab.h>
+> +
+> +struct clocksource_mmio {
+> +	void __iomem *reg;
+> +	struct clocksource clksrc;
+> +};
+> +
+> +static inline struct clocksource_mmio *to_mmio_clksrc(struct clocksource *c)
+> +{
+> +	return container_of(c, struct clocksource_mmio, clksrc);
+> +}
+> +
+> +cycle_t clocksource_mmio_readl_up(struct clocksource *c)
+> +{
+> +	return readl_relaxed(to_mmio_clksrc(c)->reg);
+> +}
+> +
+> +cycle_t clocksource_mmio_readl_down(struct clocksource *c)
+> +{
+> +	return ~readl_relaxed(to_mmio_clksrc(c)->reg);
+> +}
+> +
+> +cycle_t clocksource_mmio_readw_up(struct clocksource *c)
+> +{
+> +	return readw_relaxed(to_mmio_clksrc(c)->reg);
+> +}
+> +
+> +cycle_t clocksource_mmio_readw_down(struct clocksource *c)
+> +{
+> +	return ~(unsigned)readw_relaxed(to_mmio_clksrc(c)->reg);
+> +}
+> +
+> +/**
+> + * clocksource_mmio_init - Initialize a simple mmio based clocksource
+> + * @base:	Virtual address of the clock readout register
+> + * @name:	Name of the clocksource
+> + * @hz:		Frequency of the clocksource in Hz
+> + * @rating:	Rating of the clocksource
+> + * @bits:	Number of valid bits
+> + * @read:	One of clocksource_mmio_read*() above
+> + */
+> +int __init clocksource_mmio_init(void __iomem *base, const char *name,
+> +	unsigned long hz, int rating, unsigned bits,
+> +	cycle_t (*read)(struct clocksource *))
+> +{
+> +	struct clocksource_mmio *cs;
+> +
+> +	if (bits > 32 || bits < 16)
+> +		return -EINVAL;
+> +
+> +	cs = kzalloc(sizeof(struct clocksource_mmio), GFP_KERNEL);
+> +	if (!cs)
+> +		return -ENOMEM;
+> +
+> +	cs->clksrc.name = name;
+> +	cs->clksrc.rating = rating;
+> +	cs->clksrc.read = read;
+> +	cs->clksrc.mask = CLOCKSOURCE_MASK(bits);
+> +	cs->clksrc.flags = CLOCK_SOURCE_IS_CONTINUOUS;
+> +
+> +	return clocksource_register_hz(&cs->clksrc, hz);
+> +}
+> diff --git a/include/linux/clocksource.h b/include/linux/clocksource.h
+> index 94c1f38..a3558fd 100644
+> --- a/include/linux/clocksource.h
+> +++ b/include/linux/clocksource.h
+> @@ -341,4 +341,12 @@ static inline void update_vsyscall_tz(void)
+>  
+>  extern void timekeeping_notify(struct clocksource *clock);
+>  
+> +extern cycle_t clocksource_mmio_readl_up(struct clocksource *);
+> +extern cycle_t clocksource_mmio_readl_down(struct clocksource *);
+> +extern cycle_t clocksource_mmio_readw_up(struct clocksource *);
+> +extern cycle_t clocksource_mmio_readw_down(struct clocksource *);
+> +
+> +extern int clocksource_mmio_init(void __iomem *, const char *,
+> +	unsigned long, int, unsigned, cycle_t (*)(struct clocksource *));
+> +
+>  #endif /* _LINUX_CLOCKSOURCE_H */
 
-Signed-off-by: Igor Grinberg <grinberg@compulab.co.il>
----
- arch/arm/mach-omap2/board-cm-t35.c         |    2 --
- arch/arm/mach-omap2/board-cm-t3517.c       |    2 --
- arch/arm/mach-omap2/board-devkit8000.c     |    2 --
- arch/arm/mach-omap2/board-omap3beagle.c    |    2 --
- arch/arm/mach-omap2/board-omap3pandora.c   |    2 --
- arch/arm/mach-omap2/board-omap3touchbook.c |    2 --
- arch/arm/mach-omap2/board-overo.c          |    2 --
- arch/arm/mach-omap2/common-board-devices.h |    3 +++
- 8 files changed, 3 insertions(+), 14 deletions(-)
+With cs->reg initialized,
 
-diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
-index e0e2d48..4727a99 100644
---- a/arch/arm/mach-omap2/board-cm-t35.c
-+++ b/arch/arm/mach-omap2/board-cm-t35.c
-@@ -63,8 +63,6 @@
- #define SB_T35_SMSC911X_CS	4
- #define SB_T35_SMSC911X_GPIO	65
- 
--#define NAND_BLOCK_SIZE		SZ_128K
--
- #if defined(CONFIG_SMSC911X) || defined(CONFIG_SMSC911X_MODULE)
- #include <linux/smsc911x.h>
- #include <plat/gpmc-smsc911x.h>
-diff --git a/arch/arm/mach-omap2/board-cm-t3517.c b/arch/arm/mach-omap2/board-cm-t3517.c
-index a27e3ee..7699eb6 100644
---- a/arch/arm/mach-omap2/board-cm-t3517.c
-+++ b/arch/arm/mach-omap2/board-cm-t3517.c
-@@ -204,8 +204,6 @@ static inline int cm_t3517_init_usbh(void)
- #endif
- 
- #if defined(CONFIG_MTD_NAND_OMAP2) || defined(CONFIG_MTD_NAND_OMAP2_MODULE)
--#define NAND_BLOCK_SIZE		SZ_128K
--
- static struct mtd_partition cm_t3517_nand_partitions[] = {
- 	{
- 		.name           = "xloader",
-diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
-index 405542a..ddcdca8 100644
---- a/arch/arm/mach-omap2/board-devkit8000.c
-+++ b/arch/arm/mach-omap2/board-devkit8000.c
-@@ -61,8 +61,6 @@
- #include "timer-gp.h"
- #include "common-board-devices.h"
- 
--#define NAND_BLOCK_SIZE		SZ_128K
--
- #define OMAP_DM9000_GPIO_IRQ	25
- #define OMAP3_DEVKIT_TS_GPIO	27
- 
-diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index bc30ab0..039b904 100644
---- a/arch/arm/mach-omap2/board-omap3beagle.c
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -54,8 +54,6 @@
- #include "pm.h"
- #include "common-board-devices.h"
- 
--#define NAND_BLOCK_SIZE		SZ_128K
--
- /*
-  * OMAP3 Beagle revision
-  * Run time detection of Beagle revision is done by reading GPIO.
-diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
-index 6c22d3f..439920f 100644
---- a/arch/arm/mach-omap2/board-omap3pandora.c
-+++ b/arch/arm/mach-omap2/board-omap3pandora.c
-@@ -57,8 +57,6 @@
- #define PANDORA_WIFI_NRESET_GPIO	23
- #define OMAP3_PANDORA_TS_GPIO		94
- 
--#define NAND_BLOCK_SIZE			SZ_128K
--
- static struct mtd_partition omap3pandora_nand_partitions[] = {
- 	{
- 		.name           = "xloader",
-diff --git a/arch/arm/mach-omap2/board-omap3touchbook.c b/arch/arm/mach-omap2/board-omap3touchbook.c
-index 392278d..c655a81 100644
---- a/arch/arm/mach-omap2/board-omap3touchbook.c
-+++ b/arch/arm/mach-omap2/board-omap3touchbook.c
-@@ -56,8 +56,6 @@
- 
- #include <asm/setup.h>
- 
--#define NAND_BLOCK_SIZE		SZ_128K
--
- #define OMAP3_AC_GPIO		136
- #define OMAP3_TS_GPIO		162
- #define TB_BL_PWM_TIMER		9
-diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
-index e152c13..42656a2 100644
---- a/arch/arm/mach-omap2/board-overo.c
-+++ b/arch/arm/mach-omap2/board-overo.c
-@@ -65,8 +65,6 @@
- #define OVERO_GPIO_USBH_CPEN	168
- #define OVERO_GPIO_USBH_NRESET	183
- 
--#define NAND_BLOCK_SIZE SZ_128K
--
- #define OVERO_SMSC911X_CS      5
- #define OVERO_SMSC911X_GPIO    176
- #define OVERO_SMSC911X2_CS     4
-diff --git a/arch/arm/mach-omap2/common-board-devices.h b/arch/arm/mach-omap2/common-board-devices.h
-index eb80b3b..5a3c414 100644
---- a/arch/arm/mach-omap2/common-board-devices.h
-+++ b/arch/arm/mach-omap2/common-board-devices.h
-@@ -30,6 +30,9 @@ struct ads7846_platform_data;
- 
- void omap_ads7846_init(int bus_num, int gpio_pendown, int gpio_debounce,
- 		       struct ads7846_platform_data *board_pdata);
-+
-+#define NAND_BLOCK_SIZE		SZ_128K
-+
- void omap_nand_flash_init(int opts, struct mtd_partition *parts, int n_parts);
- 
- #endif /* __OMAP_COMMON_BOARD_DEVICES__ */
+Reviewed-by: Viresh Kumar <viresh.kumar@st.com>
+
 -- 
-1.7.3.4
+viresh
