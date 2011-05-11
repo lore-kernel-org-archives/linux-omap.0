@@ -1,184 +1,71 @@
-From: Keshava Munegowda <keshava_mgowda@ti.com>
-Subject: [PATCH 5/5] arm: omap: usb: global Suspend and resume support of ehci and ohci
-Date: Wed, 11 May 2011 19:34:36 +0530
-Message-ID: <1305122676-27236-6-git-send-email-keshava_mgowda@ti.com>
-References: <1305122676-27236-1-git-send-email-keshava_mgowda@ti.com>
- <1305122676-27236-2-git-send-email-keshava_mgowda@ti.com>
- <1305122676-27236-3-git-send-email-keshava_mgowda@ti.com>
- <1305122676-27236-4-git-send-email-keshava_mgowda@ti.com>
- <1305122676-27236-5-git-send-email-keshava_mgowda@ti.com>
+From: Kishore Kadiyala <kishorek.kadiyala@gmail.com>
+Subject: Re: [PATCH RESEND] omap : nand : fix subpage ecc issue
+	with prefetch
+Date: Wed, 11 May 2011 21:07:55 +0530
+Message-ID: <BANLkTinsZsBhVbcGRnx0fzWwA2Q0f4Fs3w@mail.gmail.com>
+References: <1305123897-11371-1-git-send-email-kishore.kadiyala@ti.com>
+	<20110511145431.GA18317@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:32902 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752552Ab1EKPiJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 May 2011 11:38:09 -0400
-In-Reply-To: <1305122676-27236-5-git-send-email-keshava_mgowda@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <stable-bounces@linux.kernel.org>
+In-Reply-To: <20110511145431.GA18317@kroah.com>
+List-Unsubscribe: <http://linux.kernel.org/mailman/options/stable>,
+	<mailto:stable-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/mailman/private/stable/>
+List-Post: <mailto:stable@linux.kernel.org>
+List-Help: <mailto:stable-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/stable>,
+	<mailto:stable-request@linux.kernel.org?subject=subscribe>
+Sender: stable-bounces@linux.kernel.org
+Errors-To: stable-bounces@linux.kernel.org
+To: Greg KH <greg@kroah.com>
+Cc: dedekind1@gmail.com, Kishore Kadiyala <kishore.kadiyala@ti.com>, Vimal Singh <vimal.newwork@gmail.com>, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, stable@kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: Keshava Munegowda <keshava_mgowda@ti.com>, balbi@ti.com, gadiyar@ti.com, parthab@india.ti.com, Keshava Munegowda <Keshava_mgowda@ti.com>
 
-From: Keshava Munegowda <Keshava_mgowda@ti.com>
+On Wed, May 11, 2011 at 8:24 PM, Greg KH <greg@kroah.com> wrote:
+> On Wed, May 11, 2011 at 07:54:57PM +0530, Kishore Kadiyala wrote:
+>> When reading/writing a subpage (When HW ECC is not available/enabled)
+>> for number of bytes not aligned to 4, the mis-aligned bytes are handled
+>> first (by cpu copy method) before enabling the Prefetch engine to/from
+>> 'p'(start of buffer 'buf'). Then it reads/writes rest of the bytes with
+>> the help of Prefetch engine, if available, or again using cpu copy metho=
+d.
+>> Currently, reading/writing of rest of bytes, is not done correctly since
+>> its trying to read/write again to/from begining of buffer 'buf',
+>> overwriting the mis-aligned bytes.
+>>
+>> Read & write using prefetch engine got broken in commit '2c01946c'.
+>> We never hit a scenario of not getting 'gpmc_prefetch_enable' call
+>> success. So, problem did not get caught up.
+>>
+>> Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
+>> Signed-off-by: Vimal Singh <vimal.newwork@gmail.com>
+>> Reported-by: Bryan DE FARIA <bdefaria@adeneo-embedded.com>
+>> ---
+>> =A0drivers/mtd/nand/omap2.c | =A0 12 +++++-------
+>> =A01 files changed, 5 insertions(+), 7 deletions(-)
+>
+>
+> <formletter>
+>
+> This is not the correct way to submit patches for inclusion in the
+> stable kernel tree. =A0Please read Documentation/stable_kernel_rules.txt
+> for how to do this properly.
 
-The global suspend and resume functions for usbhs core driver
-are implemented.These routine are called when the global suspend
-and resume occurs. Before calling these functions, the
-bus suspend and resume of ehci and ohci drivers are called
-from runtime pm.
+Ok, will post it properly.
 
-Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
----
- drivers/mfd/omap-usb-host.c |  103 +++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 103 insertions(+), 0 deletions(-)
+Regards,
+Kishore
+>
+> </formletter>
+>
+> ______________________________________________________
+> Linux MTD discussion mailing list
+> http://lists.infradead.org/mailman/listinfo/linux-mtd/
+>
 
-diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
-index bd63429..e1bc3b5 100644
---- a/drivers/mfd/omap-usb-host.c
-+++ b/drivers/mfd/omap-usb-host.c
-@@ -146,6 +146,10 @@
- #define is_ehci_hsic_mode(x)	(x == OMAP_EHCI_PORT_MODE_HSIC)
- 
- 
-+/* USBHS state bits */
-+#define OMAP_USBHS_INIT		0
-+#define OMAP_USBHS_SUSPEND	4
-+
- struct usbhs_hcd_omap {
- 	struct clk			*xclk60mhsp1_ck;
- 	struct clk			*xclk60mhsp2_ck;
-@@ -165,6 +169,7 @@ struct usbhs_hcd_omap {
- 	u32				usbhs_rev;
- 	spinlock_t			lock;
- 	int				count;
-+	unsigned long			state;
- };
- /*-------------------------------------------------------------------------*/
- 
-@@ -807,6 +812,8 @@ static int usbhs_enable(struct device *dev)
- 				(pdata->ehci_data->reset_gpio_port[1], 1);
- 	}
- 
-+	set_bit(OMAP_USBHS_INIT, &omap->state);
-+
- end_count:
- 	omap->count++;
- 	spin_unlock_irqrestore(&omap->lock, flags);
-@@ -895,6 +902,7 @@ static void usbhs_disable(struct device *dev)
- 	}
- 
- 	pm_runtime_put_sync(dev);
-+	clear_bit(OMAP_USBHS_INIT, &omap->state);
- 
- 	/* The gpio_free migh sleep; so unlock the spinlock */
- 	spin_unlock_irqrestore(&omap->lock, flags);
-@@ -924,10 +932,105 @@ void omap_usbhs_disable(struct device *dev)
- }
- EXPORT_SYMBOL_GPL(omap_usbhs_disable);
- 
-+#ifdef	CONFIG_PM
-+
-+static int usbhs_resume(struct device *dev)
-+{
-+	struct usbhs_hcd_omap		*omap = dev_get_drvdata(dev);
-+	struct usbhs_omap_platform_data	*pdata = &omap->platdata;
-+	unsigned long			flags = 0;
-+
-+	dev_dbg(dev, "Resuming TI HSUSB Controller\n");
-+
-+	if (!pdata) {
-+		dev_dbg(dev, "missing platform_data\n");
-+		return  -ENODEV;
-+	}
-+
-+	spin_lock_irqsave(&omap->lock, flags);
-+
-+	if (!test_bit(OMAP_USBHS_INIT, &omap->state) ||
-+		!test_bit(OMAP_USBHS_SUSPEND, &omap->state))
-+			goto end_resume;
-+
-+	pm_runtime_get_sync(dev);
-+
-+	if (is_omap_usbhs_rev2(omap)) {
-+		if (is_ehci_tll_mode(pdata->port_mode[0])) {
-+			clk_enable(omap->usbhost_p1_fck);
-+			clk_enable(omap->usbtll_p1_fck);
-+		}
-+		if (is_ehci_tll_mode(pdata->port_mode[1])) {
-+			clk_enable(omap->usbhost_p2_fck);
-+			clk_enable(omap->usbtll_p2_fck);
-+		}
-+		clk_enable(omap->utmi_p1_fck);
-+		clk_enable(omap->utmi_p2_fck);
-+	}
-+	clear_bit(OMAP_USBHS_SUSPEND, &omap->state);
-+
-+end_resume:
-+	spin_unlock_irqrestore(&omap->lock, flags);
-+	return 0;
-+}
-+
-+
-+static int usbhs_suspend(struct device *dev)
-+{
-+	struct usbhs_hcd_omap		*omap = dev_get_drvdata(dev);
-+	struct usbhs_omap_platform_data	*pdata = &omap->platdata;
-+	unsigned long			flags = 0;
-+
-+	dev_dbg(dev, "Suspending TI HSUSB Controller\n");
-+
-+	if (!pdata) {
-+		dev_dbg(dev, "missing platform_data\n");
-+		return  -ENODEV;
-+	}
-+
-+	spin_lock_irqsave(&omap->lock, flags);
-+
-+	if (!test_bit(OMAP_USBHS_INIT, &omap->state) ||
-+		test_bit(OMAP_USBHS_SUSPEND, &omap->state))
-+			goto end_suspend;
-+
-+	if (is_omap_usbhs_rev2(omap)) {
-+		if (is_ehci_tll_mode(pdata->port_mode[0])) {
-+			clk_disable(omap->usbhost_p1_fck);
-+			clk_disable(omap->usbtll_p1_fck);
-+		}
-+		if (is_ehci_tll_mode(pdata->port_mode[1])) {
-+			clk_disable(omap->usbhost_p2_fck);
-+			clk_disable(omap->usbtll_p2_fck);
-+		}
-+		clk_disable(omap->utmi_p2_fck);
-+		clk_disable(omap->utmi_p1_fck);
-+	}
-+
-+	set_bit(OMAP_USBHS_SUSPEND, &omap->state);
-+	pm_runtime_put_sync(dev);
-+
-+end_suspend:
-+	spin_unlock_irqrestore(&omap->lock, flags);
-+	return 0;
-+}
-+
-+
-+static const struct dev_pm_ops usbhsomap_dev_pm_ops = {
-+	.suspend	= usbhs_suspend,
-+	.resume		= usbhs_resume,
-+};
-+
-+#define USBHS_OMAP_DEV_PM_OPS (&usbhsomap_dev_pm_ops)
-+#else
-+#define	USBHS_OMAP_DEV_PM_OPS	NULL
-+#endif
-+
- static struct platform_driver usbhs_omap_driver = {
- 	.driver = {
- 		.name		= (char *)usbhs_driver_name,
- 		.owner		= THIS_MODULE,
-+		.pm		= USBHS_OMAP_DEV_PM_OPS,
- 	},
- 	.remove		= __exit_p(usbhs_omap_remove),
- };
--- 
-1.6.0.4
-
+_______________________________________________
+stable mailing list
+stable@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/stable
