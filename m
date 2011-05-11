@@ -1,91 +1,77 @@
-From: Kishore Kadiyala <kishore.kadiyala@ti.com>
-Subject: [PATCH RESEND] omap : nand : fix subpage ecc issue with
-	prefetch
-Date: Wed, 11 May 2011 21:17:27 +0530
-Message-ID: <1305128847-12987-1-git-send-email-kishore.kadiyala@ti.com>
+From: Keshava Munegowda <keshava_mgowda@ti.com>
+Subject: [PATCH v1] omap: usbhs: Fixed the crash during rmmod of ehci and ohci
+Date: Wed, 11 May 2011 18:20:41 +0530
+Message-ID: <1305118241-31677-1-git-send-email-keshava_mgowda@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <stable-bounces@linux.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/options/stable>,
-	<mailto:stable-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://linux.kernel.org/mailman/private/stable/>
-List-Post: <mailto:stable@linux.kernel.org>
-List-Help: <mailto:stable-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/stable>,
-	<mailto:stable-request@linux.kernel.org?subject=subscribe>
-Sender: stable-bounces@linux.kernel.org
-Errors-To: stable-bounces@linux.kernel.org
-To: linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, stable@kernel.org, dedekind1@gmail.com
-Cc: Vimal Singh <vimal.newwork@gmail.com>, Kishore Kadiyala <kishore.kadiyala@ti.com>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:32902 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753699Ab1EKPiS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 May 2011 11:38:18 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: Keshava Munegowda <keshava_mgowda@ti.com>, balbi@ti.com, gadiyar@ti.com, parthab@india.ti.com, Keshava Munegowda <Keshava_mgowda@ti.com>
 
-When reading/writing a subpage (When HW ECC is not available/enabled)
-for number of bytes not aligned to 4, the mis-aligned bytes are handled
-first (by cpu copy method) before enabling the Prefetch engine to/from
-'p'(start of buffer 'buf'). Then it reads/writes rest of the bytes with
-the help of Prefetch engine, if available, or again using cpu copy method.
-Currently, reading/writing of rest of bytes, is not done correctly since
-its trying to read/write again to/from begining of buffer 'buf',
-overwriting the mis-aligned bytes.
+From: Keshava Munegowda <Keshava_mgowda@ti.com>
 
-Read & write using prefetch engine got broken in commit '2c01946c'.
-We never hit a scenario of not getting 'gpmc_prefetch_enable' call
-success. So, problem did not get caught up.
+The disableing of clocks and freeing GPIO are changed
+to fix the occurence of the crash of rmmod of ehci and ohci
+drivers. The GPIOs should be freed after the spin locks are
+unlocked.
 
-Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
-Signed-off-by: Vimal Singh <vimal.newwork@gmail.com>
-Reported-by: Bryan DE FARIA <bdefaria@adeneo-embedded.com>
-Cc: stable@kernel.org [2.6.35+]
+Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
 ---
- drivers/mtd/nand/omap2.c |   12 +++++-------
- 1 files changed, 5 insertions(+), 7 deletions(-)
+ drivers/mfd/omap-usb-host.c |   27 +++++++++++++++++++--------
+ 1 files changed, 19 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-index da9a351..2c8040f 100644
---- a/drivers/mtd/nand/omap2.c
-+++ b/drivers/mtd/nand/omap2.c
-@@ -263,11 +263,10 @@ static void omap_read_buf_pref(struct mtd_info *mtd, u_char *buf, int len)
- 	if (ret) {
- 		/* PFPW engine is busy, use cpu copy method */
- 		if (info->nand.options & NAND_BUSWIDTH_16)
--			omap_read_buf16(mtd, buf, len);
-+			omap_read_buf16(mtd, (u_char *)p, len);
- 		else
--			omap_read_buf8(mtd, buf, len);
-+			omap_read_buf8(mtd, (u_char *)p, len);
- 	} else {
--		p = (u32 *) buf;
- 		do {
- 			r_count = gpmc_read_status(GPMC_PREFETCH_FIFO_CNT);
- 			r_count = r_count >> 2;
-@@ -293,7 +292,7 @@ static void omap_write_buf_pref(struct mtd_info *mtd,
- 						struct omap_nand_info, mtd);
- 	uint32_t w_count = 0;
- 	int i = 0, ret = 0;
--	u16 *p;
-+	u16 *p = (u16 *)buf;
- 	unsigned long tim, limit;
+diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
+index 3ab9ffa..55c5d47 100644
+--- a/drivers/mfd/omap-usb-host.c
++++ b/drivers/mfd/omap-usb-host.c
+@@ -994,22 +994,33 @@ static void usbhs_disable(struct device *dev)
+ 			dev_dbg(dev, "operation timed out\n");
+ 	}
  
- 	/* take care of subpage writes */
-@@ -309,11 +308,10 @@ static void omap_write_buf_pref(struct mtd_info *mtd,
- 	if (ret) {
- 		/* PFPW engine is busy, use cpu copy method */
- 		if (info->nand.options & NAND_BUSWIDTH_16)
--			omap_write_buf16(mtd, buf, len);
-+			omap_write_buf16(mtd, (u_char *)p, len);
- 		else
--			omap_write_buf8(mtd, buf, len);
-+			omap_write_buf8(mtd, (u_char *)p, len);
- 	} else {
--		p = (u16 *) buf;
- 		while (len) {
- 			w_count = gpmc_read_status(GPMC_PREFETCH_FIFO_CNT);
- 			w_count = w_count >> 1;
+-	if (pdata->ehci_data->phy_reset) {
+-		if (gpio_is_valid(pdata->ehci_data->reset_gpio_port[0]))
+-			gpio_free(pdata->ehci_data->reset_gpio_port[0]);
+-
+-		if (gpio_is_valid(pdata->ehci_data->reset_gpio_port[1]))
+-			gpio_free(pdata->ehci_data->reset_gpio_port[1]);
++	if (is_omap_usbhs_rev2(omap)) {
++		if (is_ehci_tll_mode(pdata->port_mode[0]))
++			clk_enable(omap->usbtll_p1_fck);
++		if (is_ehci_tll_mode(pdata->port_mode[1]))
++			clk_enable(omap->usbtll_p2_fck);
++		clk_disable(omap->utmi_p2_fck);
++		clk_disable(omap->utmi_p1_fck);
+ 	}
+ 
+-	clk_disable(omap->utmi_p2_fck);
+-	clk_disable(omap->utmi_p1_fck);
+ 	clk_disable(omap->usbtll_ick);
+ 	clk_disable(omap->usbtll_fck);
+ 	clk_disable(omap->usbhost_fs_fck);
+ 	clk_disable(omap->usbhost_hs_fck);
+ 	clk_disable(omap->usbhost_ick);
+ 
++	/* The gpio_free migh sleep; so unlock the spinlock */
++	spin_unlock_irqrestore(&omap->lock, flags);
++
++	if (pdata->ehci_data->phy_reset) {
++		if (gpio_is_valid(pdata->ehci_data->reset_gpio_port[0]))
++			gpio_free(pdata->ehci_data->reset_gpio_port[0]);
++
++		if (gpio_is_valid(pdata->ehci_data->reset_gpio_port[1]))
++			gpio_free(pdata->ehci_data->reset_gpio_port[1]);
++	}
++	return;
++
+ end_disble:
+ 	spin_unlock_irqrestore(&omap->lock, flags);
+ }
 -- 
-1.7.4.1
+1.6.0.4
 
-_______________________________________________
-stable mailing list
-stable@linux.kernel.org
-http://linux.kernel.org/mailman/listinfo/stable
