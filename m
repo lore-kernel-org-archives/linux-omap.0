@@ -1,114 +1,174 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 1/9] OMAP: DSS2: Change DSI platform device name from
- "omapdss_dsi1" to "omapdss_dsi"
-Date: Wed, 11 May 2011 12:23:45 +0300
-Message-ID: <1305105825.2097.49.camel@deskari>
-References: <1304494704-7285-1-git-send-email-archit@ti.com>
-	 <1304494704-7285-2-git-send-email-archit@ti.com>
-	 <20110504094050.GI27860@atomide.com> <1304595408.30935.16.camel@deskari>
-	 <20110505130204.GK11744@opensource.wolfsonmicro.com>
-	 <1304955274.2215.26.camel@deskari>
-	 <20110509191912.GA6546@opensource.wolfsonmicro.com>
-	 <1305030652.2045.49.camel@deskari>
-	 <20110510134730.GB25877@opensource.wolfsonmicro.com>
+From: "Janorkar, Mayuresh" <mayur@ti.com>
+Subject: RE: [PATCH 4/6] OMAP: LDP: Port the display driver to new DSS2
+Date: Wed, 11 May 2011 10:28:19 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB033DBC0C34@dbde02.ent.ti.com>
+References: <1304926567-26814-1-git-send-email-tomi.valkeinen@ti.com>
+ <1304926567-26814-5-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:39525 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S932532Ab1EKQTZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 11 May 2011 12:19:25 -0400
-Received: by mail-ey0-f169.google.com with SMTP id 9so290054eyd.14
-        for <linux-omap@vger.kernel.org>; Wed, 11 May 2011 09:19:20 -0700 (PDT)
-In-Reply-To: <20110510134730.GB25877@opensource.wolfsonmicro.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:59390 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753889Ab1EKQWG convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 May 2011 12:22:06 -0400
+In-Reply-To: <1304926567-26814-5-git-send-email-tomi.valkeinen@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Tony Lindgren <tony@atomide.com>, Liam Girdwood <lrg@slimlogic.co.uk>, Archit Taneja <archit@ti.com>, linux-omap@vger.kernel.org
+To: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, "tony@atomide.com" <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Stanley Miao <stanley.miao@windriver.com>
 
-On Tue, 2011-05-10 at 15:47 +0200, Mark Brown wrote:
-> On Tue, May 10, 2011 at 03:30:52PM +0300, Tomi Valkeinen wrote:
+
+
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Valkeinen, Tomi
+> Sent: Monday, May 09, 2011 1:06 PM
+> To: tony@atomide.com
+> Cc: linux-omap@vger.kernel.org; Valkeinen, Tomi; Stanley Miao
+> Subject: [PATCH 4/6] OMAP: LDP: Port the display driver to new DSS2
 > 
-> > This sounds just the thing we need here. Do you think there's a chance
-> > the code could get merged in the next window? And I'm also happy to test
-> > the code with omapdss, whenever you have something ready.
+> Port the old omapfb panel driver to DSS2i. This patch changes the board
+> file only, the driver is ported in separate patch.
 > 
-> Patch is below, tested with my "hey look, this compiles!" test plan -
-> I'd be a bit surprised if it ran straight off.
+> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> Cc: Stanley Miao <stanley.miao@windriver.com>
+> ---
+>  arch/arm/mach-omap2/board-ldp.c |   73 +++++++++++++++++++++++++++++++++-
+> ----
+>  1 files changed, 63 insertions(+), 10 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-
+> ldp.c
+> index e2ba779..2fdfd7f 100644
+> --- a/arch/arm/mach-omap2/board-ldp.c
+> +++ b/arch/arm/mach-omap2/board-ldp.c
+> @@ -43,6 +43,8 @@
+> 
+>  #include <asm/delay.h>
+>  #include <plat/usb.h>
+> +#include <plat/display.h>
+> +#include <plat/panel-generic-dpi.h>
+> 
+>  #include "board-flash.h"
+>  #include "mux.h"
+> @@ -275,19 +277,71 @@ static inline void __init ldp_init_smsc911x(void)
+>  	gpio_direction_input(eth_gpio);
+>  }
+> 
+> -static struct platform_device ldp_lcd_device = {
+> -	.name		= "ldp_lcd",
+> -	.id		= -1,
+> +/* LCD */
+> +
+> +#define LCD_PANEL_BACKLIGHT_GPIO	(15 + OMAP_MAX_GPIO_LINES)
+> +#define LCD_PANEL_ENABLE_GPIO		(7 + OMAP_MAX_GPIO_LINES)
+> +#define LCD_PANEL_RESET_GPIO		55
+> +#define LCD_PANEL_QVGA_GPIO		56
+> +
+> +static int ldp_panel_enable_lcd(struct omap_dss_device *dssdev)
+> +{
+> +	gpio_direction_output(LCD_PANEL_ENABLE_GPIO, 1);
+> +	gpio_direction_output(LCD_PANEL_BACKLIGHT_GPIO, 1);
+> +
+> +	return 0;
+> +}
+> +
+> +static void ldp_panel_disable_lcd(struct omap_dss_device *dssdev)
+> +{
+> +	gpio_direction_output(LCD_PANEL_ENABLE_GPIO, 0);
+> +	gpio_direction_output(LCD_PANEL_BACKLIGHT_GPIO, 0);
+> +}
+> +
+> +static struct panel_generic_dpi_data ldp_panel_data = {
+> +	.name			= "2430sdp",
 
-So how should the regulator be set up?
+LDP is a 3430 board.
 
-If we currently have in the board file:
+> +	.platform_enable	= ldp_panel_enable_lcd,
+> +	.platform_disable	= ldp_panel_disable_lcd,
+>  };
+> 
+> -static struct omap_lcd_config ldp_lcd_config __initdata = {
+> -	.ctrl_name	= "internal",
+> +static struct omap_dss_device ldp_lcd_device = {
+> +	.name			= "lcd",
+> +	.driver_name		= "generic_dpi_panel",
+> +	.type			= OMAP_DISPLAY_TYPE_DPI,
+> +	.phy.dpi.data_lines	= 16,
+> +	.data			= &ldp_panel_data,
+>  };
+> 
+> -static struct omap_board_config_kernel ldp_config[] __initdata = {
+> -	{ OMAP_TAG_LCD,		&ldp_lcd_config },
+> +static struct omap_dss_device *ldp_dss_devices[] = {
+> +	&ldp_lcd_device,
+> +};
+> +
+> +static struct omap_dss_board_info ldp_dss_data = {
+> +	.num_devices	= ARRAY_SIZE(ldp_dss_devices),
+> +	.devices	= ldp_dss_devices,
+> +	.default_device	= &ldp_lcd_device,
+>  };
+> 
+> +static void __init ldp_display_init(void)
+> +{
+> +	int r;
+> +
+> +	struct gpio gpios[] = {
+> +		{LCD_PANEL_RESET_GPIO, GPIOF_OUT_INIT_HIGH, "LCD RESET"},
+> +		{LCD_PANEL_QVGA_GPIO, GPIOF_OUT_INIT_HIGH, "LCD QVGA"},
+> +		{LCD_PANEL_ENABLE_GPIO, GPIOF_OUT_INIT_LOW, "LCD ENABLE"},
+> +		{LCD_PANEL_BACKLIGHT_GPIO, GPIOF_OUT_INIT_LOW, "LCD
+> BACKLIGHT"},
+> +	};
+> +
+> +	r = gpio_request_array(gpios, ARRAY_SIZE(gpios));
+> +	if (r) {
+> +		pr_err("Cannot request LCD GPIOs, error %d\n", r);
+> +		return;
+> +	}
 
-static struct regulator_consumer_supply sdp4430_vcxio_supply[] = {
-	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dss"),
-	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dsi.0"),
-	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dsi.1"),
-};
+If I test with this patch, this request is returning error.
 
-static struct regulator_init_data sdp4430_vcxio = {
-	.constraints = {
-		...
-	},
-	.num_consumer_supplies	= ARRAY_SIZE(sdp4430_vcxio_supply),
-	.consumer_supplies	= sdp4430_vcxio_supply,
-};
-
-I should setup a fixed regulator, which is supplied from VCXIO, and
-omapdss will get its powers from this fixed regulator?
-
-So, in the common display file:
-
-static struct regulator_consumer_supply fixed_supply[] = {
-	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dss"),
-	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dsi.0"),
-	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dsi.1"),
-};
-
-static struct regulator_init_data fixed_reg_init_data = {
-	.constraints = {
-		...
-	},
-	.num_consumer_supplies	= ARRAY_SIZE(fixed_supply),
-	.consumer_supplies	= fixed_supply,
-};
-
-static struct fixed_voltage_config omap_dss_fixed_reg_data = {
-	.supply_name = "what should this be?",
-	.init_data = &fixed_reg_init_data,
-};
-
-static struct platform_device omap_dss_fixed_reg_device = {
-	.name	= "reg-fixed-voltage",
-	.id	= 0,
-	.dev	= {
-		.platform_data	= &omap_dss_fixed_reg_data,
-	},
-};
-
-And in the board file:
-
-static struct regulator_consumer_supply sdp4430_vcxio_supply[] = {
-	REGULATOR_SUPPLY("what should this be?", "reg-fixed-voltage.0"),
-};
-
-static struct regulator_init_data sdp4430_vcxio = {
-	.constraints = {
-		...
-	},
-	.num_consumer_supplies	= ARRAY_SIZE(sdp4430_vcxio_supply),
-	.consumer_supplies	= sdp4430_vcxio_supply,
-};
-
-If so, it's again slightly difficult. I want to do the common display
-stuff in a one place, used by all the boards. If I setup the fixed
-regulator in the common file, I need to give it an id which may conflict
-with a possible fixed regulator set up in the board file.
-
-Or am I totally on the wrong track here =)?
-
- Tomi
-
-
+> +
+> +	omap_display_init(&ldp_dss_data);
+> +}
+> +
+>  static void __init omap_ldp_init_early(void)
+>  {
+>  	omap2_init_common_infrastructure();
+> @@ -390,7 +444,6 @@ static struct omap2_hsmmc_info mmc[] __initdata = {
+> 
+>  static struct platform_device *ldp_devices[] __initdata = {
+>  	&ldp_smsc911x_device,
+> -	&ldp_lcd_device,
+>  	&ldp_gpio_keys_device,
+>  };
+> 
+> @@ -441,8 +494,6 @@ static struct mtd_partition ldp_nand_partitions[] = {
+>  static void __init omap_ldp_init(void)
+>  {
+>  	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+> -	omap_board_config = ldp_config;
+> -	omap_board_config_size = ARRAY_SIZE(ldp_config);
+>  	ldp_init_smsc911x();
+>  	omap_i2c_init();
+>  	platform_add_devices(ldp_devices, ARRAY_SIZE(ldp_devices));
+> @@ -459,6 +510,8 @@ static void __init omap_ldp_init(void)
+>  	omap2_hsmmc_init(mmc);
+>  	/* link regulators to MMC adapters */
+>  	ldp_vmmc1_supply.dev = mmc[0].dev;
+> +
+> +	ldp_display_init();
+>  }
+> 
+>  MACHINE_START(OMAP_LDP, "OMAP LDP board")
+> --
+> 1.7.4.1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
