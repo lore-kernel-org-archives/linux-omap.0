@@ -1,14 +1,14 @@
 From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH] arm: omap2plus: fix ads7846 pendown gpio request
-Date: Wed, 11 May 2011 10:35:50 +0300
-Message-ID: <4DCA3C56.9020502@compulab.co.il>
-References: <1304521495-20578-1-git-send-email-grinberg@compulab.co.il>
-	<4DC18B64.2020903@gmail.com>
+Subject: Re: [PATCH] arm: omap3: cm-t3517: fix section mismatch warning
+Date: Wed, 11 May 2011 10:37:38 +0300
+Message-ID: <4DCA3CC2.8080006@compulab.co.il>
+References: <1303850474-25106-1-git-send-email-grinberg@compulab.co.il>
+	<4DC01FB2.9060806@compulab.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <4DC18B64.2020903@gmail.com>
+In-Reply-To: <4DC01FB2.9060806@compulab.co.il>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,75 +19,49 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 Sender: linux-arm-kernel-bounces@lists.infradead.org
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Thomas Weber <thomas.weber.linux@googlemail.com>, linux-arm-kernel@lists.infradead.org, Mike Rapoport <mike@compulab.co.il>
+Cc: linux-omap@vger.kernel.org, Igor Grinberg <grinberg@compulab.co.il>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Tony,
+ping x2
 
 
-You can fold this one to the original patch from Mike as well,
-
-or do you want it into the rc1?
+Can this one get into .39?
 
 
+On 05/03/11 18:30, Igor Grinberg wrote:
 
-On 05/04/11 20:22, Thomas Weber wrote:
-
-> Am 04.05.2011 17:04, schrieb Igor Grinberg:
->> introduced by: 96974a24
->> (omap: consolidate touch screen initialization among different boards)
+> ping!
+>
+> Just to make sure you haven't missed this one liner ;)
+>
+>
+> On 04/26/11 23:41, Igor Grinberg wrote:
+>> WARNING: arch/arm/mach-omap2/built-in.o(.text+0x11014): Section mismatch
+>> in reference from the function cm_t3517_init_usbh() to the (unknown
+>> reference) .init.data:(unknown)
+>> The function cm_t3517_init_usbh() references
+>> the (unknown reference) __initdata (unknown).
+>> This is often because cm_t3517_init_usbh lacks a __initdata
+>> annotation or the annotation of (unknown) is wrong.
 >>
->> ads7846 driver can use either gpio_pendown or get_pendown_state()
->> callback. In case of gpio_pendown, it requests the provided gpio_pendown
->> thus resulting in double requesting that gpio:
->>
->> ads7846 spi1.0: failed to request pendown GPIO57
->> ads7846: probe of spi1.0 failed with error -16
->>
->> Fix this by restricting the gpio request to the case of
->> get_pendown_state() callback is used.
->>
->> Signed-off-by: Igor Grinberg<grinberg@compulab.co.il>
+>> Signed-off-by: Igor Grinberg <grinberg@compulab.co.il>
 >> ---
->>   arch/arm/mach-omap2/common-board-devices.c |   20 ++++++++++----------
->>   1 files changed, 10 insertions(+), 10 deletions(-)
+>>  arch/arm/mach-omap2/board-cm-t3517.c |    2 +-
+>>  1 files changed, 1 insertions(+), 1 deletions(-)
 >>
->> diff --git a/arch/arm/mach-omap2/common-board-devices.c b/arch/arm/mach-omap2/common-board-devices.c
->> index d57c71d..61fee80 100644
->> --- a/arch/arm/mach-omap2/common-board-devices.c
->> +++ b/arch/arm/mach-omap2/common-board-devices.c
->> @@ -83,17 +83,17 @@ void __init omap_ads7846_init(int bus_num, int gpio_pendown, int gpio_debounce,
->>       struct spi_board_info *spi_bi =&ads7846_spi_board_info;
->>       int err;
->>
->> -    err = gpio_request(gpio_pendown, "TS PenDown");
->> -    if (err) {
->> -        pr_err("Could not obtain gpio for TS PenDown: %d\n", err);
->> -        return;
->> -    }
->> -
->> -    gpio_direction_input(gpio_pendown);
->> -    gpio_export(gpio_pendown, 0);
->> +    if (board_pdata&&  board_pdata->get_pendown_state) {
->> +        err = gpio_request_one(gpio_pendown, GPIOF_IN, "TSPenDown");
->> +        if (err) {
->> +            pr_err("Couldn't obtain gpio for TSPenDown: %d\n", err);
->> +            return;
->> +        }
->> +        gpio_export(gpio_pendown, 0);
->>
->> -    if (gpio_debounce)
->> -        gpio_set_debounce(gpio_pendown, gpio_debounce);
->> +        if (gpio_debounce)
->> +            gpio_set_debounce(gpio_pendown, gpio_debounce);
->> +    }
->>
->>       ads7846_config.gpio_pendown = gpio_pendown;
->>
-> Tested-by: Thomas Weber <weber@corscience.de>
->
-> On Devkit8000.
->
+>> diff --git a/arch/arm/mach-omap2/board-cm-t3517.c b/arch/arm/mach-omap2/board-cm-t3517.c
+>> index a27e3ee..802cb60 100644
+>> --- a/arch/arm/mach-omap2/board-cm-t3517.c
+>> +++ b/arch/arm/mach-omap2/board-cm-t3517.c
+>> @@ -178,7 +178,7 @@ static struct usbhs_omap_board_data cm_t3517_ehci_pdata __initdata = {
+>>  	.reset_gpio_port[2]  = -EINVAL,
+>>  };
+>>  
+>> -static int cm_t3517_init_usbh(void)
+>> +static int __init cm_t3517_init_usbh(void)
+>>  {
+>>  	int err;
+>>  
 
 -- 
 Regards,
