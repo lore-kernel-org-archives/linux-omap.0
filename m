@@ -1,59 +1,57 @@
-From: Todd Poynor <toddpoynor@google.com>
-Subject: Re: [PATCH V3] OMAP3+: SR Layer Cleanup
-Date: Wed, 11 May 2011 11:27:42 -0700
-Message-ID: <20110511182742.GA9409@google.com>
-References: <1305105166-26109-1-git-send-email-shweta.gulati@ti.com>
- <BANLkTin07ZkWwhMtqUEMhLtwugKNmhku9g@mail.gmail.com>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: [alsa-devel] [PATCH] ASoC: omap-mcbsp: Remove restrictive
+ checks for cpu type
+Date: Thu, 12 May 2011 00:49:41 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024BBE2A29@dbde02.ent.ti.com>
+References: <1305122135-27938-1-git-send-email-premi@ti.com>,<4DCAD29A.5050408@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:30511 "EHLO
-	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751239Ab1EKS1u (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 May 2011 14:27:50 -0400
-Content-Disposition: inline
-In-Reply-To: <BANLkTin07ZkWwhMtqUEMhLtwugKNmhku9g@mail.gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:59676 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753611Ab1EKTYN convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 May 2011 15:24:13 -0400
+In-Reply-To: <4DCAD29A.5050408@gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Shweta Gulati <shweta.gulati@ti.com>
-Cc: linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>, linux-arm-kernel@lists.infradead.org
+To: Steve Calfee <stevecalfee@gmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Girdwood, Liam" <lrg@ti.com>
 
-[Another try with a different email client, sorry for any dups.]
-...
+From: Steve Calfee [stevecalfee@gmail.com]
+> Sent: Wednesday, May 11, 2011 11:46 PM
+> To: Premi, Sanjeev
+> Cc: linux-omap@vger.kernel.org; Girdwood, Liam
+> Subject: Re: [alsa-devel] [PATCH] ASoC: omap-mcbsp: Remove restrictive checks for cpu type
+> 
 
-> diff --git a/arch/arm/mach-omap2/sr_device.c
-> b/arch/arm/mach-omap2/sr_device.c
-> index 2782d3f..65b2aae 100644
-> --- a/arch/arm/mach-omap2/sr_device.c
-> +++ b/arch/arm/mach-omap2/sr_device.c
-> @@ -82,6 +82,7 @@ static int sr_dev_init(struct omap_hwmod *oh, void *user)
->        struct omap_sr_data *sr_data;
->        struct omap_device *od;
->        struct omap_volt_data *volt_data;
-> +       struct omap_sr_dev_attr *sr_dev_attr;
->        char *name = "smartreflex";
->        static int i;
->
-> @@ -92,9 +93,11 @@ static int sr_dev_init(struct omap_hwmod *oh, void
-> *user)
->                return -ENOMEM;
->        }
->
-> -       if (!oh->vdd_name) {
-> +       sr_dev_attr = (struct omap_sr_dev_attr *)oh->dev_attr;
-> +       if (!sr_dev_attr->voltdm_name) {
->                pr_err("%s: No voltage domain specified for %s."
->
+[snip]...[snip]
 
-Suggest if (!sr_dev_attr || !sr_dev_attr->voltdm_name) to catch this error.
+> 
+> Hi,
+> 
+> I removed all but the linux-omap list for my question.
 
-> -                       "Cannot initialize\n", __func__, oh->name);
-> +                               "Cannot initialize\n", __func__,
-> +                                       sr_dev_attr->voltdm_name);
->
+[sp] Using a separate thread for this issues would have gotten more eyes!
 
-Should leave the hwmod's oh->name as the pr_err param, sr_dev_attr->voltdm_name
-has just been verified bogus.
+> 
+> I am trying to get the beagleboardxm to work with an external codec. I
+> am trying to use a mcbsp1 via the trainer board where it level shifts to
+> 5 volts. I have applied this patch (I am on 2.6.39rc4), but still no
+> joy. I have a small analyzer attached to the I/O pins and important
+> things like the bit clock does not wiggle.
+> 
+> First a side question. In the arch/arm/mach-omap2/Kconfig when I select
+> BEAGLE, it selects OMAP_PACKAGE_CBB - but my bbxm system reference
+> manual says "The BeagleBoard-xM processor is the DM3730CBP 1GHz version"
+> which to me implies the proper package selection should be
+> OMAP_PACKAGE_CBP. The platform file mux34xx.c has different tables for
+> them, but I cant quickly tell the difference. Does this matter for mcbspx?
 
+[sp] Check this page to find the differences:
+     http://processors.wiki.ti.com/index.php/OMAP35x_To_AM37x_Hardware_Migration_Guide
 
-Todd
+~sanjeev
+
+[snip]...[snip]
