@@ -1,83 +1,73 @@
-From: Govindraj <govindraj.ti@gmail.com>
-Subject: Re: [RFC PATCHv4 0/7] HSI framework and drivers
-Date: Thu, 12 May 2011 17:47:28 +0530
-Message-ID: <BANLkTincpt8ojK8icvXz4XfkWL9z87VmUA@mail.gmail.com>
-References: <1292321383-30200-1-git-send-email-carlos.chinea@nokia.com>
- <AANLkTimTfOyhDR6BsHD_1VvzOPGbYqo6L784wPkQMi_8@mail.gmail.com> <1300787404.8008.116.camel@groo>
+From: "Gulati, Shweta" <shweta.gulati@ti.com>
+Subject: Re: [PATCH V3] OMAP3+: SR Layer Cleanup
+Date: Thu, 12 May 2011 18:18:24 +0530
+Message-ID: <BANLkTiny22x5ov3fJSLW6bc9bxz1xH1Xdw@mail.gmail.com>
+References: <1305105166-26109-1-git-send-email-shweta.gulati@ti.com>
+	<BANLkTimem2qc8_8pHOHMiW_hAeUdtg3PBw@mail.gmail.com>
+	<87fwokcknl.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:55157 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752910Ab1ELMRv convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 May 2011 08:17:51 -0400
-In-Reply-To: <1300787404.8008.116.camel@groo>
+Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:53602 "EHLO
+	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751702Ab1ELMsZ convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 12 May 2011 08:48:25 -0400
+Received: by mail-bw0-f54.google.com with SMTP id 12so2615569bwz.27
+        for <linux-omap@vger.kernel.org>; Thu, 12 May 2011 05:48:24 -0700 (PDT)
+In-Reply-To: <87fwokcknl.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Carlos Chinea <carlos.chinea@nokia.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, STEricsson_nomadik_linux <STEricsson_nomadik_linux@list.st.com>, pawel.szyszuk@stericsson.com
+To: Kevin Hilman <khilman@ti.com>
+Cc: "Menon, Nishanth" <nm@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Tue, Mar 22, 2011 at 3:20 PM, Carlos Chinea <carlos.chinea@nokia.com=
-> wrote:
-> Hi,
+Kevin,
+
+On Thu, May 12, 2011 at 3:20 PM, Kevin Hilman <khilman@ti.com> wrote:
+> "Menon, Nishanth" <nm@ti.com> writes:
 >
-> On Mon, 2011-03-21 at 09:16 +0100, ext Linus Walleij wrote:
->> 2010/12/14 Carlos Chinea <carlos.chinea@nokia.com>:
->>
->> > Here you have the fourth round of the HSI framework patches.
->>
->> I'd like to notify that this out-of-tree framework is also in use fo=
-r
->> the ST-Ericsson
->> Ux500s, and we've had great success with it. You can add my:
->>
->> Acked-by: Linus Walleij <linus.walleij@linaro.org>
->>
+>> On Wed, May 11, 2011 at 04:12, Shweta Gulati <shweta.gulati@ti.com> =
+wrote:
+>>> To set sr ntarget values =A0for all volt_domain,
+>>> volt_table is retrieved by doing a look_up of 'vdd_name'
+>>> field from omap_hwmod but voltage domain pointer does not
+>>> belong to omap_hwmod and is not used anywhere else.
+>>> As a part of voltage layer and SR Layer clean up volt
+>>> pointer is removed from omap_hwmod and added in dev
+>>> attributes of SR.
+>>>
+>>> Tested on OMAP3630 SDP and OMAP4430 SDP Board
+>>>
+>>> Signed-off-by: Shweta Gulati <shweta.gulati@ti.com>
+>>> Cc: Nishanth Menon <nm@ti.com>
+>>> ---
+>>> V3:
+>>> =A0 Changed the Subject and Rephrased Commit log as reviewed
+>>> =A0 by Nishanth Menon.
+>>> =A0V2:
+>>> =A0 Rebased on latest 'pm-wip/voltdm_a' branch.
+>> thanks.. actually it applies on voltdm_c branch as well :)
+>
+> Can this be taken as an Ack? =A0if so, Shweta please add an Acked-by =
+from
+> Nishanth in your updated patch. =A0Thanks.
+>
+>> might be
+>> good if kevin where to roll it up
+>
+> Yes, I'll pick this one up (after Todd's comments are addressed.)
+I would address all the comments and post updated version soon, thanks.
+> Kevin
+>
 >
 
-Hi Carlos,
 
-Will you posting a next version of HSI framework.
 
-I am planning to adapt omap-hsi driver to this framework.
-
---
+--=20
 Thanks,
-Govindraj.R
-
-
-> Thanks I will add the Ack to the next round of patches.
->
-> We are currently working on the hsi_char module. Apart from addressin=
-g
-> the comments from Alan, =A0we are planning to drop also the non-block=
-ing
-> support from it. The current version is not fully honoring the
-> non-blocking behavior.
->
->> Possibly some ST-Ericsson people can add Tested-by tags as well.
->>
->> We will integrate Ux500 support whenever it's suitable, either after=
- the merge
->> or as add-on patches for Carlos patch series. (If Carlos would like =
-to keep
->> them in his series.)
->>
->
-> Either way is fine, for me. Could you send the patches for review ?
->
-> Br,
-> Carlos
-> --
-> Carlos Chinea <carlos.chinea@nokia.com>
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
+Regards,
+Shweta
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
