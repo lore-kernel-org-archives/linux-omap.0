@@ -1,48 +1,77 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [PATCH 06/13] clocksource: add common mmio clocksource
-Date: Thu, 12 May 2011 10:03:26 +0200 (CEST)
-Message-ID: <alpine.LFD.2.02.1105121001590.2794@ionos>
-References: <20110510072700.GA29869@n2100.arm.linux.org.uk> <E1QJhNe-0000yh-HS@rmk-PC.arm.linux.org.uk>
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: Re: [PATCH 4/6] OMAP: LDP: Port the display driver to new DSS2
+Date: Thu, 12 May 2011 11:38:09 +0300
+Message-ID: <4DCB9C71.2020503@compulab.co.il>
+References: <1304926567-26814-1-git-send-email-tomi.valkeinen@ti.com>	 <1304926567-26814-5-git-send-email-tomi.valkeinen@ti.com>	 <EAF47CD23C76F840A9E7FCE10091EFAB033DBC0C34@dbde02.ent.ti.com> <1305095563.2097.11.camel@deskari> <4DCB80DD.5090408@compulab.co.il> <4DCB8937.2060101@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from www.linutronix.de ([62.245.132.108]:52893 "EHLO
-	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750895Ab1ELID6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 May 2011 04:03:58 -0400
-In-Reply-To: <E1QJhNe-0000yh-HS@rmk-PC.arm.linux.org.uk>
+Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:46620
+	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753468Ab1ELIiN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 12 May 2011 04:38:13 -0400
+In-Reply-To: <4DCB8937.2060101@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org, John Stultz <johnstul@us.ibm.com>, Alessandro Rubini <rubini@unipv.it>, Colin Cross <ccross@android.com>, Eric Miao <eric.y.miao@gmail.com>, Erik Gilling <konkers@android.com>, "Hans J. Koch" <hjk@hansjkoch.de>, Imre Kaloz <kaloz@openwrt.org>, Krzysztof Halasa <khc@pm.waw.pl>, Kukjin Kim <kgene.kim@samsung.com>, Lennert Buytenhek <kernel@wantstofly.org>, Linus Walleij <linus.walleij@stericsson.com>, linux-omap@vger.kernel.org, Nicolas Pitre <nico@fluxnic.net>, Olof Johansson <olof@lixom.net>, Sascha Hauer <kernel@pengutronix.de>, Tony Lindgren <tony@atomide.com>, Viresh Kumar <viresh.kumar@st.com>, Wan ZongShun <mcuos.com@gmail.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: "Janorkar, Mayuresh" <mayur@ti.com>, "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Stanley Miao <stanley.miao@windriver.com>
 
-On Tue, 10 May 2011, Russell King - ARM Linux wrote:
+On 05/12/11 10:16, Igor Grinberg wrote:
 
-> Add a generic mmio clocksource, covering both 32-bit and 16-bit register
-> access sizes, for up or down counters.  This can be used to easily
-> create clocksources for simple counter-based implementations.
-> 
-> Cc: Alessandro Rubini <rubini@unipv.it>
-> Cc: Colin Cross <ccross@android.com>
-> Cc: Eric Miao <eric.y.miao@gmail.com>
-> Cc: Erik Gilling <konkers@android.com>
-> Cc: "Hans J. Koch" <hjk@hansjkoch.de>
-> Cc: Imre Kaloz <kaloz@openwrt.org>
-> Cc: Krzysztof Halasa <khc@pm.waw.pl>
-> Cc: Kukjin Kim <kgene.kim@samsung.com>
-> Cc: Lennert Buytenhek <kernel@wantstofly.org>
-> Cc: Linus Walleij <linus.walleij@stericsson.com>
-> Cc: linux-omap@vger.kernel.org
-> Cc: Nicolas Pitre <nico@fluxnic.net>
-> Cc: Olof Johansson <olof@lixom.net>
-> Cc: Sascha Hauer <kernel@pengutronix.de>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Viresh Kumar <viresh.kumar@st.com>
-> Cc: Wan ZongShun <mcuos.com@gmail.com>
-> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> On 05/12/11 09:40, Igor Grinberg wrote:
+>> On 05/11/11 09:32, Tomi Valkeinen wrote:
+>>> On Wed, 2011-05-11 at 10:28 +0530, Janorkar, Mayuresh wrote:
+>>>>> +static void __init ldp_display_init(void)
+>>>>> +{
+>>>>> +	int r;
+>>>>> +
+>>>>> +	struct gpio gpios[] = {
+>>>>> +		{LCD_PANEL_RESET_GPIO, GPIOF_OUT_INIT_HIGH, "LCD RESET"},
+>>>>> +		{LCD_PANEL_QVGA_GPIO, GPIOF_OUT_INIT_HIGH, "LCD QVGA"},
+>>>>> +		{LCD_PANEL_ENABLE_GPIO, GPIOF_OUT_INIT_LOW, "LCD ENABLE"},
+>>>>> +		{LCD_PANEL_BACKLIGHT_GPIO, GPIOF_OUT_INIT_LOW, "LCD
+>>>>> BACKLIGHT"},
+>>>>> +	};
+>>>>> +
+>>>>> +	r = gpio_request_array(gpios, ARRAY_SIZE(gpios));
+>>>>> +	if (r) {
+>>>>> +		pr_err("Cannot request LCD GPIOs, error %d\n", r);
+>>>>> +		return;
+>>>>> +	}
+>>>> If I test with this patch, this request is returning error.
+>>> Hmm. Well, the GPIOs are the same as in the old driver. However, the old
+>>> driver doesn't even seem to check if it manages to request the GPIOs, so
+>>> it may well be that it was failing also.
+>>>
+>>> Can you check from /sys/class/gpio/ if some of the GPIOs are already
+>>> allocated: 207, 199, 55, 56?
+>>>
+>>> The definition of two of those GPIOs look kinda funny to me: (15 +
+>>> OMAP_MAX_GPIO_LINES). I don't know what OMAP_MAX_GPIO_LINES means, but
+>>> it sure doesn't sound ok to have a GPIO number that is 15 over the
+>>> maximum =).
+>>>
+>> This means that some kind of gpio expander is used.
+>> I bet those are twl gpios (or may be some other discrete chip).
+>> If those are twl gpios then you need to provide the .setup callback
+>> in struct twl4030_gpio_platform_data which will request and setup those gpios.
+>>
+> No need to wonder ;)
+>
+> Mayuresh,
+> try the attached patch (though some changes to Tomi's patch will be needed)
+> if it works, then we're good.
 
-Reviewed-by: Thomas Gleixner <tglx@linutronix.de>
+there is a typo in the function name:
 
-Please take this through the ARM tree. It's not conflicting with
-anything in my tree.
+s/ldp_twl_gpio_setup/ldp_twl_gpios_setup/
+
+sorry...
+
+
+-- 
+Regards,
+Igor.
 
