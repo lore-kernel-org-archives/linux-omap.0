@@ -1,61 +1,63 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [v2 0/7] OMAP: GPIO: Use PM runtime framework
-Date: Thu, 12 May 2011 11:42:39 +0200
-Message-ID: <87mxiscl0w.fsf@ti.com>
-References: <1303139217-10285-1-git-send-email-charu@ti.com>
-	<20110419062633.GA15620@atomide.com> <87r58w4gq3.fsf@ti.com>
-	<20110421054221.GF5918@atomide.com>
-	<BANLkTi=s=KzeZfvoq7Efg2=Ceahz_fQxMA@mail.gmail.com>
-	<20110426072941.GA3755@atomide.com>
-	<BANLkTimGU+kODvL0dC2x7UNSz0TReKveXQ@mail.gmail.com>
-	<87y62ng3f8.fsf@ti.com>
-	<BANLkTimW1PTavvxjPujVMEV38vzMvja9mw@mail.gmail.com>
-	<20110504061905.GD27860@atomide.com>
-	<BANLkTikiUB4=y0sZtUSedcPveMsBSLJgpQ@mail.gmail.com>
+Subject: Re: [PATCH V3] OMAP3+: SR Layer Cleanup
+Date: Thu, 12 May 2011 11:50:38 +0200
+Message-ID: <87fwokcknl.fsf@ti.com>
+References: <1305105166-26109-1-git-send-email-shweta.gulati@ti.com>
+	<BANLkTimem2qc8_8pHOHMiW_hAeUdtg3PBw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:55854 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750703Ab1ELJmp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 12 May 2011 05:42:45 -0400
-Received: by mail-fx0-f48.google.com with SMTP id 7so1169825fxm.7
-        for <linux-omap@vger.kernel.org>; Thu, 12 May 2011 02:42:43 -0700 (PDT)
-In-Reply-To: <BANLkTikiUB4=y0sZtUSedcPveMsBSLJgpQ@mail.gmail.com> (Linus
-	Walleij's message of "Thu, 12 May 2011 02:57:04 +0200")
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:47582 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756626Ab1ELJup convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 12 May 2011 05:50:45 -0400
+Received: by mail-fx0-f46.google.com with SMTP id 17so1515516fxm.33
+        for <linux-omap@vger.kernel.org>; Thu, 12 May 2011 02:50:44 -0700 (PDT)
+In-Reply-To: <BANLkTimem2qc8_8pHOHMiW_hAeUdtg3PBw@mail.gmail.com> (Nishanth
+	Menon's message of "Wed, 11 May 2011 06:15:22 -0500")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Varadarajan, Charulatha" <charu@ti.com>
+To: "Menon, Nishanth" <nm@ti.com>
+Cc: Shweta Gulati <shweta.gulati@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Linus Walleij <linus.walleij@linaro.org> writes:
+"Menon, Nishanth" <nm@ti.com> writes:
 
-[...]
+> On Wed, May 11, 2011 at 04:12, Shweta Gulati <shweta.gulati@ti.com> w=
+rote:
+>> To set sr ntarget values =C2=A0for all volt_domain,
+>> volt_table is retrieved by doing a look_up of 'vdd_name'
+>> field from omap_hwmod but voltage domain pointer does not
+>> belong to omap_hwmod and is not used anywhere else.
+>> As a part of voltage layer and SR Layer clean up volt
+>> pointer is removed from omap_hwmod and added in dev
+>> attributes of SR.
+>>
+>> Tested on OMAP3630 SDP and OMAP4430 SDP Board
+>>
+>> Signed-off-by: Shweta Gulati <shweta.gulati@ti.com>
+>> Cc: Nishanth Menon <nm@ti.com>
+>> ---
+>> V3:
+>> =C2=A0 Changed the Subject and Rephrased Commit log as reviewed
+>> =C2=A0 by Nishanth Menon.
+>> =C2=A0V2:
+>> =C2=A0 Rebased on latest 'pm-wip/voltdm_a' branch.
+> thanks.. actually it applies on voltdm_c branch as well :)=20
 
-> For TI I guess this currently means you simply cannot work
-> on GPIO stuff until you know where to go with it unless you
-> allow the OMAP GPIO authors to keep churning in arch/arm/*...
->
-> That's unless Grant is OK with us moving stuff into
-> drivers/gpio that does *not* use gpiolib and utilize singletons to
-> get at the gpio_chip addresses (i.e. current form) and keep it
-> churning like that until it can be refactored.
+Can this be taken as an Ack?  if so, Shweta please add an Acked-by from
+Nishanth in your updated patch.  Thanks.
 
-The churn will happen one way or another.  the only question is whether
-it happens in drivers/gpio or arch/arm/*.
+> might be
+> good if kevin where to roll it up
 
-Grant, what's your feeling here.  How much ugliness are you willing to
-tolerate in a bulk move to drivers/gpio.  At least for OMAP, I am
-personally be working on the cleanup/move so I can work either way,
-although I know Tony has an obvious preference for moving it to
-drivers/gpio. :)
-
-The OMAP driver is already using gpiolib.  The main ugliness in the OMAP
-driver is the awful ifdeffery used to handle the differences across the
-various SoCs in the OMAP family.  I've already got most of that cleaned
-up[1].
+Yes, I'll pick this one up (after Todd's comments are addressed.)
 
 Kevin
 
-[1] http://marc.info/?l=linux-omap&m=130351321022770&w=2
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
