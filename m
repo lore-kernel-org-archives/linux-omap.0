@@ -1,90 +1,67 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCHv2 3/8] OMAP: DSS2: RFBI: add rfbi_bus_lock
-Date: Thu, 12 May 2011 14:40:08 +0300
-Message-ID: <1305200413-23697-4-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCHv2 7/8] OMAP: DSS2: OMAPFB: remove dead code
+Date: Thu, 12 May 2011 14:40:12 +0300
+Message-ID: <1305200413-23697-8-git-send-email-tomi.valkeinen@ti.com>
 References: <1305200413-23697-1-git-send-email-tomi.valkeinen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:41884 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755523Ab1ELLkb (ORCPT
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:50029 "EHLO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755723Ab1ELLki (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 12 May 2011 07:40:31 -0400
+	Thu, 12 May 2011 07:40:38 -0400
 In-Reply-To: <1305200413-23697-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Add similar bus lock to RFBI as is in DSI. The panel driver can use the
-bus lock to mark that the RFBI bus is currently in use.
+Remove old unused code lying inside #if 0.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/dss/rfbi.c |   16 ++++++++++++++++
- include/video/omapdss.h        |    2 ++
- 2 files changed, 18 insertions(+), 0 deletions(-)
+ drivers/video/omap2/omapfb/omapfb-main.c |   29 -----------------------------
+ 1 files changed, 0 insertions(+), 29 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/rfbi.c b/drivers/video/omap2/dss/rfbi.c
-index 0985f2f..46817e7 100644
---- a/drivers/video/omap2/dss/rfbi.c
-+++ b/drivers/video/omap2/dss/rfbi.c
-@@ -32,6 +32,7 @@
- #include <linux/ktime.h>
- #include <linux/hrtimer.h>
- #include <linux/seq_file.h>
-+#include <linux/semaphore.h>
+diff --git a/drivers/video/omap2/omapfb/omapfb-main.c b/drivers/video/omap2/omapfb/omapfb-main.c
+index eba90b3..9a5b4bc 100644
+--- a/drivers/video/omap2/omapfb/omapfb-main.c
++++ b/drivers/video/omap2/omapfb/omapfb-main.c
+@@ -757,35 +757,6 @@ static int omapfb_open(struct fb_info *fbi, int user)
  
- #include <video/omapdss.h>
- #include "dss.h"
-@@ -119,6 +120,8 @@ static struct {
- 	struct completion cmd_done;
- 	atomic_t          cmd_fifo_full;
- 	atomic_t          cmd_pending;
-+
-+	struct semaphore bus_lock;
- } rfbi;
- 
- struct update_region {
-@@ -146,6 +149,18 @@ static void rfbi_enable_clocks(bool enable)
- 		dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK);
+ static int omapfb_release(struct fb_info *fbi, int user)
+ {
+-#if 0
+-	struct omapfb_info *ofbi = FB2OFB(fbi);
+-	struct omapfb2_device *fbdev = ofbi->fbdev;
+-	struct omap_dss_device *display = fb2display(fbi);
+-
+-	DBG("Closing fb with plane index %d\n", ofbi->id);
+-
+-	omapfb_lock(fbdev);
+-
+-	if (display && display->get_update_mode && display->update) {
+-		/* XXX this update should be removed, I think. But it's
+-		 * good for debugging */
+-		if (display->get_update_mode(display) ==
+-				OMAP_DSS_UPDATE_MANUAL) {
+-			u16 w, h;
+-
+-			if (display->sync)
+-				display->sync(display);
+-
+-			display->get_resolution(display, &w, &h);
+-			display->update(display, 0, 0, w, h);
+-		}
+-	}
+-
+-	if (display && display->sync)
+-		display->sync(display);
+-
+-	omapfb_unlock(fbdev);
+-#endif
+ 	return 0;
  }
  
-+void rfbi_bus_lock(void)
-+{
-+	down(&rfbi.bus_lock);
-+}
-+EXPORT_SYMBOL(rfbi_bus_lock);
-+
-+void rfbi_bus_unlock(void)
-+{
-+	up(&rfbi.bus_lock);
-+}
-+EXPORT_SYMBOL(rfbi_bus_unlock);
-+
- void omap_rfbi_write_command(const void *buf, u32 len)
- {
- 	rfbi_enable_clocks(1);
-@@ -1022,6 +1037,7 @@ static int omap_rfbihw_probe(struct platform_device *pdev)
- 	rfbi.pdev = pdev;
- 
- 	spin_lock_init(&rfbi.cmd_lock);
-+	sema_init(&rfbi.bus_lock, 1);
- 
- 	init_completion(&rfbi.cmd_done);
- 	atomic_set(&rfbi.cmd_fifo_full, 0);
-diff --git a/include/video/omapdss.h b/include/video/omapdss.h
-index ab7d656..1ea151e 100644
---- a/include/video/omapdss.h
-+++ b/include/video/omapdss.h
-@@ -212,6 +212,8 @@ int omap_rfbi_enable_te(bool enable, unsigned line);
- int omap_rfbi_setup_te(enum omap_rfbi_te_mode mode,
- 			     unsigned hs_pulse_time, unsigned vs_pulse_time,
- 			     int hs_pol_inv, int vs_pol_inv, int extif_div);
-+void rfbi_bus_lock(void);
-+void rfbi_bus_unlock(void);
- 
- /* DSI */
- void dsi_bus_lock(void);
 -- 
 1.7.4.1
 
