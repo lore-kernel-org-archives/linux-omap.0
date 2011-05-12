@@ -1,103 +1,66 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: [PATCH] omap:pm: Fix boot-time errors with debugfs disabled
-Date: Fri, 13 May 2011 00:46:17 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024CE66D34@dbde02.ent.ti.com>
+From: Todd Poynor <toddpoynor@google.com>
+Subject: Re: [PATCH] omap:pm: Fix boot-time errors with debugfs disabled
+Date: Thu, 12 May 2011 12:58:41 -0700
+Message-ID: <20110512195841.GA13651@google.com>
 References: <1305221790-4944-1-git-send-email-premi@ti.com>
  <BANLkTim+3M3Z0C3GTtTQrb2cqk5eSAsR+w@mail.gmail.com>
+ <B85A65D85D7EB246BE421B3FB0FBB593024CE66D34@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:53784 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753742Ab1ELTQ0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 May 2011 15:16:26 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p4CJGNL4023947
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 12 May 2011 14:16:25 -0500
-In-Reply-To: <BANLkTim+3M3Z0C3GTtTQrb2cqk5eSAsR+w@mail.gmail.com>
-Content-Language: en-US
+Received: from smtp-out.google.com ([74.125.121.67]:40189 "EHLO
+	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756975Ab1ELT6s (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 May 2011 15:58:48 -0400
+Content-Disposition: inline
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593024CE66D34@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Premi, Sanjeev" <premi@ti.com>
+Cc: "Menon, Nishanth" <nm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-=20
+On Fri, May 13, 2011 at 12:46:17AM +0530, Premi, Sanjeev wrote:
+> > -----Original Message-----
+> > From: Menon, Nishanth 
+...
+> > Last I tried, with Vishwa's dvfs branch on panda without voltage
+> > registrations, things could crash :( if I get some time I will try to
+> > port Vishwa's series onto kevin's branch as well and test and provide
+> > any patches necessary.
+> 
+> [sp] I can try this on Panda. Will be able to get one tomorrow.
 
-> -----Original Message-----
-> From: Menon, Nishanth=20
-> Sent: Thursday, May 12, 2011 11:32 PM
-> To: Premi, Sanjeev
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: [PATCH] omap:pm: Fix boot-time errors with=20
-> debugfs disabled
->=20
-> On Thu, May 12, 2011 at 12:36, Sanjeev Premi <premi@ti.com> wrote:
-> > There is an implicit assumption in current implementation that
-> > debugfs is always enabled.
-> thanks for doing this.
-> >
-> > When debugfs is disabled, these errors are noticed during boot:
-> > =A0omap_voltage_late_init: Unable to create voltage debugfs main di=
-r
-> > =A0vdd_debugfs_init: Unable to create debugfs directory for vdd_mpu
-> > =A0vdd_debugfs_init: Unable to create debugfs directory for vdd_cor=
-e
-> >
-> > This patch fixes these errors by enclosing code related to debugfs
-> > in #ifdef CONFIG_DEBUG_FS..#endif.
->=20
-> generic - couple of comments - I think the #defs should be isolated
-> off to headers - maybe the right approach may be to move the debugfs
+In case it helps, below is what I use for Panda.
 
-[sp] None of the code encapsulated here is "header" material.
-     I guess you have seen the patch below.
+---
+ARM: OMAP2 voltage: Don't die if board does not register voltage params
 
-> entries off to a separate file? or pm-debug.c??
+This allows the DVFS patches to boot on boards not yet modified to
+register voltage params.
 
-[sp] I wish it was all debug code. It is "operational" code.
-     Check the Kconfig in plat-omap. Smartreflex is not even expected
-     to work without debugfs. Though I believe much of the data put in
-     debugfs can be in local lists/structures.
+Signed-off-by: Todd Poynor <toddpoynor@google.com>
+---
+ arch/arm/mach-omap2/voltage.c |    6 ++++++
+ 1 files changed, 6 insertions(+), 0 deletions(-)
 
-     That was supposed to be my next set of patches - as I understand=20
-     the implementation better.
->=20
-> >
-> > Boot tested on OMAP3EVM.
-> >
-> > Signed-off-by: Sanjeev Premi <premi@ti.com>
-> > ---
-> > =A0Patch was created and tested on the pm branch at commit:
-> > =A0 d695569 : rebuild PM from branches
->=20
-> Could I suggest Kevin's volt cleanup series - based off _c branch if
-> there are cleanups to be done?
+diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
+index dbc1cfe..8f23d95 100644
+--- a/arch/arm/mach-omap2/voltage.c
++++ b/arch/arm/mach-omap2/voltage.c
+@@ -617,6 +617,12 @@ static void __init omap4_vc_init(struct omap_vdd_info *vdd)
+ 	struct clk *sys_ck;
+ 	u32 sys_clk_speed;
+ 
++	if (!vdd->board_data) {
++		pr_warning("%s: No voltage board params registered for vdd_%s\n",
++			   __func__, vdd->voltdm.name);
++		return;
++	}
++
+ 	sys_ck = clk_get(NULL, "sys_clkin_ck");
+ 	if (IS_ERR(sys_ck)) {
+ 		pr_warning("%s: Could not get the sys clk to calculate"
+-- 
+1.7.3.1
 
-[sp] I didn't see it updated for 5 weeks. hence used this.
-     but patch should apply cleanly...
 
->=20
-> >
-> > =A0I am still finding my way around new code sructure. Haven't
-> > =A0been able to verify if smartreflex and voltage layer are
-> > =A0properly initialized. Though I do understand that smartreflex
-> > =A0won't work without debugfs.
-> >
->=20
-> Last I tried, with Vishwa's dvfs branch on panda without voltage
-> registrations, things could crash :( if I get some time I will try to
-> port Vishwa's series onto kevin's branch as well and test and provide
-> any patches necessary.
-
-[sp] I can try this on Panda. Will be able to get one tomorrow.
-
-~sanjeev
-
-[snip]...[snip]
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
