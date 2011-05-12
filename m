@@ -1,63 +1,76 @@
-From: Steve Calfee <stevecalfee@gmail.com>
-Subject: Re: beagleboardxm 2.6.39rc4 mcbsp problems.
-Date: Thu, 12 May 2011 11:43:20 -0700
-Message-ID: <4DCC2A48.7070602@gmail.com>
-References: <1305122135-27938-1-git-send-email-premi@ti.com> <4DCB0042.8040202@gmail.com> <20110512092555.17ebf795.jhnikula@gmail.com> <201105121401.44607.peter.ujfalusi@ti.com>
+From: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
+Subject: Re: [RFC PATCH v3] Consolidate SRAM support
+Date: Thu, 12 May 2011 20:35:08 +0200
+Message-ID: <20110512183508.GJ18952@game.jcrosoft.org>
+References: <20110415130607.GM1611@n2100.arm.linux.org.uk>
+ <20110512174546.GB8633@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:47755 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757673Ab1ELSnY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 May 2011 14:43:24 -0400
-Received: by pzk9 with SMTP id 9so836489pzk.19
-        for <linux-omap@vger.kernel.org>; Thu, 12 May 2011 11:43:24 -0700 (PDT)
-In-Reply-To: <201105121401.44607.peter.ujfalusi@ti.com>
+Received: from 64.mail-out.ovh.net ([91.121.185.65]:43991 "HELO
+	64.mail-out.ovh.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1757494Ab1ELSqC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 May 2011 14:46:02 -0400
+Content-Disposition: inline
+In-Reply-To: <20110512174546.GB8633@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Jarkko Nikula <jhnikula@gmail.com>, "Premi, Sanjeev" <premi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Girdwood, Liam" <lrg@ti.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, davinci-linux-open-source@linux.davincidsp.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 05/12/11 04:01, Peter Ujfalusi wrote:
-> On Thursday 12 May 2011 09:25:55 Jarkko Nikula wrote:
->> Of course for this you need to use omap as a master and codec as a
->> slave. One example for this is sound/soc/omap/omap3pandora.c.
->>
->>  static struct omap_board_mux board_mux[] __initdata = {
->> +	OMAP3_MUX(MCBSP1_FSX, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
->> +	OMAP3_MUX(MCBSP1_CLKX, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
->> +	OMAP3_MUX(MCBSP1_DR, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
->> +	OMAP3_MUX(MCBSP1_DX, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
->> +
+On 18:45 Thu 12 May     , Russell King - ARM Linux wrote:
+> On Fri, Apr 15, 2011 at 02:06:07PM +0100, Russell King - ARM Linux wrote:
+> This is work in progress.
 > 
-> I think the CLKX, FSX need to be input, since the config suggests,t that 
-> McBSP1 is the slave port:
+> We have two SoCs using SRAM, both with their own allocation systems,
+> and both with their own ways of copying functions into the SRAM.
 > 
->> [ 1566.123962] omap-mcbsp omap-mcbsp.1: PCR0:  0x0f0f
+> Let's unify this before we have additional SoCs re-implementing this
+> obviously common functionality themselves.
 > 
+> Unfortunately, we end up with code growth through doing this, but that
+> will become a win when we have another SoC using this (which I know
+> there's at least one in the pipeline).
+> 
+> One of the considerations here is that we can easily convert sram-pool.c
+> to hook into device tree stuff, which can tell the sram allocator:
+> 	- physical address of sram
+> 	- size of sram
+> 	- allocation granularity
+> and then we just need to ensure that it is appropriately mapped.
+> 
+> This uses the physical address, and unlike Davinci's dma address usage,
+> it always wants to have the physical address, and will always return
+> the corresponding physical address when passed that pointer.
+> 
+> OMAP could probably do with some more work to make the omapfb and other
+> allocations use the sram allocator, rather than hooking in before the
+> sram allocator is initialized - and then further cleanups so that we
+> have an initialization function which just does
+> 
+> sram_create(phys, size)
+> 	virt = map sram(phys, size)
+> 	create sram pool(virt, phys, size, min_alloc_order)
+> 
+> Another question is whether we should allow multiple SRAM pools or not -
+> this code does allow multiple pools, but so far we only have one pool
+> per SoC.  Overdesign?  Maybe, but it prevents SoCs wanting to duplicate
+> it if they want to partition the SRAM, or have peripheral-local SRAMs.
+> 
+> Lastly, uio_pruss should probably take the SRAM pool pointer via
+> platform data so that it doesn't have to include Davinci specific
+> includes.
+> 
+> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> ---
+> 
+> This version fixes the davinci pm free, and adds updates for the
+> davinci pcm driver.  As I don't know what's happening with Jean's
+> patch tweaking the genpool allocator, I've kept my version.
+> 
+> This still suffers from the "only one region per pvpool" problem
+> which I believe Jean's patch doesn't suffer.
+yes excatly and on at91sam9263 I need this :(
 
-Hi, thanks for trying to help.
-
-I already tried that, but it still did not xmit. Now I wonder about
-master/slave. I thought that the omap is set up as a master. I looked at
-PCR0 docs in the tech ref manual and I get:
-
-11 FSXM Transmit Frame-Synchronization Mode RW 0x0
-0x0: Frame-synchronization signal derived from an
-external source
-0x1: Frame synchronization is determined by the SRG
-frame-synchronization mode bit FSGM in SRGR2.
-10 FSRM Receive Frame-Synchronization Mode RW 0x0
-0x0: Frame-Synchronization pulses generated by an
-external device. FSR is an input pin.
-0x1: Frame synchronization generated internally by SRG.
-FSR is an output pin except when GSYNC=1 in SRGR.
-Etc.
-
-Since it is set to 0xF0F, doesn't this set it as master?
-
-Also, spelunking the kernel sources, I cannot seem to find the source
-for mcbsp_data->regs -- do you know where it gets set initially?
-
-
+Best Regards,
+J.
