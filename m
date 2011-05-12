@@ -1,89 +1,55 @@
-From: "Gulati, Shweta" <shweta.gulati@ti.com>
-Subject: Re: [PATCH V3] OMAP3+: SR Layer Cleanup
-Date: Thu, 12 May 2011 10:34:36 +0530
-Message-ID: <BANLkTi=m_0whpiWzq0tzuNsYhd40mqizFw@mail.gmail.com>
-References: <1305105166-26109-1-git-send-email-shweta.gulati@ti.com>
-	<BANLkTin07ZkWwhMtqUEMhLtwugKNmhku9g@mail.gmail.com>
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: Re: beagleboardxm 2.6.39rc4 mcbsp problems.
+Date: Thu, 12 May 2011 09:25:55 +0300
+Message-ID: <20110512092555.17ebf795.jhnikula@gmail.com>
+References: <1305122135-27938-1-git-send-email-premi@ti.com>
+	<4DCAD29A.5050408@gmail.com>
+	<4DCB0042.8040202@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:33817 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753061Ab1ELFEi convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 12 May 2011 01:04:38 -0400
-Received: by mail-bw0-f41.google.com with SMTP id 17so1066564bwz.28
-        for <linux-omap@vger.kernel.org>; Wed, 11 May 2011 22:04:36 -0700 (PDT)
-In-Reply-To: <BANLkTin07ZkWwhMtqUEMhLtwugKNmhku9g@mail.gmail.com>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:64042 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754565Ab1ELGZC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 May 2011 02:25:02 -0400
+Received: by ewy4 with SMTP id 4so328758ewy.19
+        for <linux-omap@vger.kernel.org>; Wed, 11 May 2011 23:25:00 -0700 (PDT)
+In-Reply-To: <4DCB0042.8040202@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Todd Poynor <toddpoynor@google.com>
-Cc: linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>, linux-arm-kernel@lists.infradead.org
+To: Steve Calfee <stevecalfee@gmail.com>
+Cc: Sanjeev Premi <premi@ti.com>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>
 
-Hi,
+On Wed, 11 May 2011 14:31:46 -0700
+Steve Calfee <stevecalfee@gmail.com> wrote:
 
-On Wed, May 11, 2011 at 10:06 PM, Todd Poynor <toddpoynor@google.com> w=
-rote:
-> On Wed, May 11, 2011 at 2:12 AM, Shweta Gulati <shweta.gulati@ti.com>=
- wrote:
-> ...
->>
->> diff --git a/arch/arm/mach-omap2/sr_device.c
->> b/arch/arm/mach-omap2/sr_device.c
->> index 2782d3f..65b2aae 100644
->> --- a/arch/arm/mach-omap2/sr_device.c
->> +++ b/arch/arm/mach-omap2/sr_device.c
->> @@ -82,6 +82,7 @@ static int sr_dev_init(struct omap_hwmod *oh, void
->> *user)
->> =A0 =A0 =A0 =A0struct omap_sr_data *sr_data;
->> =A0 =A0 =A0 =A0struct omap_device *od;
->> =A0 =A0 =A0 =A0struct omap_volt_data *volt_data;
->> + =A0 =A0 =A0 struct omap_sr_dev_attr *sr_dev_attr;
->> =A0 =A0 =A0 =A0char *name =3D "smartreflex";
->> =A0 =A0 =A0 =A0static int i;
->>
->> @@ -92,9 +93,11 @@ static int sr_dev_init(struct omap_hwmod *oh, voi=
-d
->> *user)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return -ENOMEM;
->> =A0 =A0 =A0 =A0}
->>
->> - =A0 =A0 =A0 if (!oh->vdd_name) {
->> + =A0 =A0 =A0 sr_dev_attr =3D (struct omap_sr_dev_attr *)oh->dev_att=
-r;
->> + =A0 =A0 =A0 if (!sr_dev_attr->voltdm_name) {
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pr_err("%s: No voltage domain specifi=
-ed for %s."
->
-> Suggest if (!sr_dev_attr ||=A0!sr_dev_attr->voltdm_name) to catch thi=
-s error.
-=46air enough, Thanks for catching
-NULL pointer shouldn't be deferenced.
->
->>
->> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "Cannot initialize\n",=
- __func__, oh->name);
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "Canno=
-t initialize\n", __func__,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 sr_dev_attr->voltdm_name);
->
-> Should leave the hwmod's oh->name as the pr_err
-> param,=A0sr_dev_attr->voltdm_name has just been verified bogus.
-=46air, will do.
-> Todd
->
->
+> On 05/11/11 11:16, Steve Calfee wrote:
+> New title, more appropriate to the topic.
+> 
+> I was replying to the fix posted by Sanjeev fixing
+> a/sound/soc/omap/omap-mcbsp.c
+> 
+> I am pretty near the cutting edge kernel, trying to use the latest alsa
+> changes. I cannot get bbxm to talk to an external codec via mcbsp1.
+> 
+> Has anyone been able to use mcbsp1 on a recent linux-next.
+> 
+This sounds like that those expansion connector pins are not muxed to
+mcbsp1 but e.g. to gpio by the bootloader. Are you able to see clock
+activity on CLKX if you enable CONFIG_OMAP_MUX=y and add following
+lines to board_mux table in arch/arm/mach-omap2/board-omap3beagle.c?
 
-Thanks for reviewing.
+Of course for this you need to use omap as a master and codec as a
+slave. One example for this is sound/soc/omap/omap3pandora.c.
 
---=20
-Thanks,
-Regards,
-Shweta
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ static struct omap_board_mux board_mux[] __initdata = {
++	OMAP3_MUX(MCBSP1_FSX, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
++	OMAP3_MUX(MCBSP1_CLKX, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
++	OMAP3_MUX(MCBSP1_DR, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
++	OMAP3_MUX(MCBSP1_DX, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
++
+ 	{ .reg_offset = OMAP_MUX_TERMINATOR },
+
+-- 
+Jarkko
