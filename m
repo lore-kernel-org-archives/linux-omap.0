@@ -1,101 +1,197 @@
 From: "Janorkar, Mayuresh" <mayur@ti.com>
-Subject: RE: [PATCH 4/6] OMAP: LDP: Port the display driver to new DSS2
-Date: Thu, 12 May 2011 20:20:44 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB033DBC1686@dbde02.ent.ti.com>
-References: <1304926567-26814-1-git-send-email-tomi.valkeinen@ti.com>
-	 <1304926567-26814-5-git-send-email-tomi.valkeinen@ti.com>
-	 <EAF47CD23C76F840A9E7FCE10091EFAB033DBC0C34@dbde02.ent.ti.com>
-	 <1305095563.2097.11.camel@deskari> <4DCB80DD.5090408@compulab.co.il>
-	 <4DCB8937.2060101@compulab.co.il> <4DCB9C71.2020503@compulab.co.il>
-	 <EAF47CD23C76F840A9E7FCE10091EFAB033DBC13C0@dbde02.ent.ti.com>
-	 <4DCBC273.9030807@compulab.co.il> <1305200857.2062.24.camel@deskari>
-	 <EAF47CD23C76F840A9E7FCE10091EFAB033DBC1679@dbde02.ent.ti.com>
- <1305211624.2062.62.camel@deskari>
+Subject: RE: [PATCH v4 4/4] OMAP: DSS: Add picodlp panel driver
+Date: Thu, 12 May 2011 20:25:57 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB033DBC168B@dbde02.ent.ti.com>
+References: <1305033947-4521-1-git-send-email-mayur@ti.com>
+	 <1305033947-4521-5-git-send-email-mayur@ti.com>
+ <1305210487.2062.58.camel@deskari>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:44673 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750870Ab1ELOu5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 May 2011 10:50:57 -0400
-In-Reply-To: <1305211624.2062.62.camel@deskari>
+Received: from devils.ext.ti.com ([198.47.26.153]:50463 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754502Ab1ELO4G convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 May 2011 10:56:06 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p4CEu2A4006493
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Thu, 12 May 2011 09:56:05 -0500
+In-Reply-To: <1305210487.2062.58.camel@deskari>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
-Cc: Igor Grinberg <grinberg@compulab.co.il>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Stanley Miao <stanley.miao@windriver.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "K, Mythri P" <mythripk@ti.com>
 
 
 
 > -----Original Message-----
 > From: Valkeinen, Tomi
-> Sent: Thursday, May 12, 2011 8:17 PM
+> Sent: Thursday, May 12, 2011 7:58 PM
 > To: Janorkar, Mayuresh
-> Cc: Igor Grinberg; linux-omap@vger.kernel.org; Stanley Miao
-> Subject: RE: [PATCH 4/6] OMAP: LDP: Port the display driver to new DSS2
+> Cc: linux-omap@vger.kernel.org; K, Mythri P
+> Subject: Re: [PATCH v4 4/4] OMAP: DSS: Add picodlp panel driver
 > 
-> On Thu, 2011-05-12 at 20:06 +0530, Janorkar, Mayuresh wrote:
-> > > -----Original Message-----
-> > > From: Valkeinen, Tomi
-> > > Sent: Thursday, May 12, 2011 5:18 PM
-> > > To: Igor Grinberg
-> > > Cc: Janorkar, Mayuresh; tony@atomide.com; linux-omap@vger.kernel.org;
-> > > Stanley Miao
-> > > Subject: Re: [PATCH 4/6] OMAP: LDP: Port the display driver to new
-> DSS2
-> > >
-> > > On Thu, 2011-05-12 at 14:20 +0300, Igor Grinberg wrote:
-> > >
-> > > > Right. Do both fixes make it work?
-> > > >
-> > > > If it is, then Tomi,
-> > > > will you add both fixes to the patch set with our SOBs?
-> > > > or do you want this to be sent properly as a follow up?
-> > >
-> > > Yes, I can add these all to the same patch and handle it through DSS
-> > > tree. Although due to the reluctance to make changes to
-> arch/arm/*omap*,
-> > > I guess we'll pass these patches in this merge window.
-> > >
-> > > Mayuresh, if you're able to test this and it works, can you send me
-> the
-> > > full diff so that I don't make any mistakes combining the code?
-> > >
-> > >  Tomi
-> > >
+> On Tue, 2011-05-10 at 18:55 +0530, Mayuresh Janorkar wrote:
+> > picodlp panel driver is required for driving DLP dpp2600.
+> > It consists of a dss driver and an i2c_client.
 > >
-> > Please find the patch below.
-> > I have also attached the same.
+> > i2c_client is required for sending commands to dpp (DLP Pico Projector).
 > >
-> > There are formatting problems with this patch. But this can be used as a
-> reference.
+> > Based on original design from Mythri P K <mythripk@ti.com>
 > >
-> > I have verified bootup with Penguins on LDP board.
+> > The power-up sequence consists of:
+> > Setting PWRGOOD to a logic low state. Once power is stable and thus the
+> ++++++++++++++++++++++++++
+> >  3 files changed, 622 insertions(+), 0 deletions(-)
+> >  create mode 100644 drivers/video/omap2/displays/panel-picodlp.c
+
+<snip>
+
+> > +
+> > +#include <plat/display.h>
+> > +#include <plat/panel-picodlp.h>
+> > +
+> > +#include "panel-picodlp.h"
+> > +
+> > +#define DRIVER_NAME	"picodlp_i2c_driver"
+> > +
+> > +#define MAX_TRIAL_VALUE			100
 > 
-> Why did you create a new panel for LDP? The generic panel driver should
-> handle it well enough.
+> I'll repeat my comment from previous review round:
 > 
-> The attached panel driver is also quite messed up. It does things that
-> belong to the board file, and the timings are a bit high, giving refresh
-> rate of 120MHz. Does LDP have a 120MHz panel?
+> The name of this define is not descriptive and you use this define in
+> two places which have nothing to do with each other. I think it's better
+> just to use the value where it's needed.
 
-You can use that code as reference and not as a patch.
-Please take a look at changes in board file.
-There is no need to create a new panel. It can be added as a part of generic panel.
+I think it looks more readable if we have a MACRO.
+But as they are used at only couple of places I would remove these MACROs.
 
-I have taken timings info from: drivers/video/omap/lcd_ldp.c
+> 
+> > +struct picodlp_data {
+> > +	struct mutex lock;
 
-#ifdef CONFIG_FB_OMAP_LCD_VGA
-#define LCD_XRES                480
-#define LCD_YRES                640
-#define LCD_PIXCLOCK_MAX        41700
-#else
-#define LCD_XRES                240
-#define LCD_YRES                320
-#define LCD_PIXCLOCK_MAX        185186
-#endif
 
+> > +static int picodlp_i2c_remove(struct i2c_client *client)
+> > +{
+> > +	struct picodlp_i2c_data *picodlp_i2c_data =
+> > +					i2c_get_clientdata(client);
+> > +
+> > +	kfree(picodlp_i2c_data);
+> > +	i2c_unregister_device(client);
+> 
+> You add the i2c device in the dss probe function, but unregister it in
+> i2c remove function. That's probably not right. These things should
+> usually be symmetric, and the unregister should be at the dss remove
+> function.
+> 
+Isnt it good to have a remove function removing i2c_client?
+
+I will add this sequence at dss_remove
+
+> > +	return 0;
+> > +}
+
+
+> > +	 * then only i2c commands can be successfully sent to dpp2600
+> > +	 */
+> > +	msleep(510);
+> > +	if (omapdss_dpi_display_enable(dssdev)) {
+> > +		dev_err(&dssdev->dev, "failed to enable DPI\n");
+> > +		goto err;
+> > +	}
+> > +	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
+> > +
+> > +	picodlp_i2c_data =
+> > +		i2c_get_clientdata(picod->picodlp_i2c_client);
+> > +
+> > +	if (!picodlp_i2c_data) {
+> > +		dev_err(&dssdev->dev, "could not find picodlp i2c data\n");
+> > +		goto err;
+> 
+> If you goto err here, you have to call dpi_display_disable.
+> 
+> I think it's simpler if you get the picodlp_i2c_data somewhere in the
+> beginning of this function. That way you can bail out if it's NULL
+> before doing any HW writes.
+
+That looks to be the BEST approach.
+
+> 
+> > +	}
+> > +	r = picodlp_i2c_init(picod->picodlp_i2c_client);
+> > +	if (r)
+> > +		goto err;
+> 
+> And same here.
+
+Yes, I would add dpi_display_disable at err label.
+
+> 
+> > +
+> > +	return r;
+> > +err:
+> > +	if (dssdev->platform_disable)
+> > +		dssdev->platform_disable(dssdev);
+> > +
+> > +	return r;
+> > +}
+> > +
+> > +static void picodlp_panel_power_off(struct omap_dss_device *dssdev)
+> > +{
+> > +	struct picodlp_panel_data *picodlp_pdata = get_panel_data(dssdev);
+> > +
+> > +	omapdss_dpi_display_disable(dssdev);
+
+
+> > +
+> > +	picod->picodlp_i2c_client = picodlp_i2c_client;
+> > +
+> > +	picodlp_i2c_data =
+> > +		i2c_get_clientdata(picod->picodlp_i2c_client);
+> > +
+> > +	if (!picodlp_i2c_data) {
+> > +		dev_err(&dssdev->dev, "could not fine picodlp i2c data");
+> > +		r = -ENODEV;
+> > +		goto err;
+> > +	}
+> 
+> You shouldn't use picodlp_i2c_data here. You don't need it and there's
+> no guarantee that the i2c probe has been ran yet.
+> 
+> It's enough to check it at power_on.
+
+Looks fine.
+
+> 
+> > +	dev_set_drvdata(&dssdev->dev, picod);
+> > +	return r;
+> > +
+> > +err:
+> > +	kfree(picod);
+> > +	return r;
+> > +}
+> > +
+> > +static void picodlp_panel_remove(struct omap_dss_device *dssdev)
+> > +{
+> > +	struct picodlp_data *picod = dev_get_drvdata(&dssdev->dev);
+> > +
+> > +	dev_set_drvdata(&dssdev->dev, NULL);
+> > +	dev_dbg(&dssdev->dev, "removing picodlp panel\n");
+> > +	return r;
+> > +}
+> > +
+> > +static void __exit picodlp_exit(void)
+> > +{
+> > +	i2c_del_driver(&picodlp_i2c_driver);
+> > +	omap_dss_unregister_driver(&picodlp_driver);
+> > +}
+> 
+> These two could be the other way around. I'm not sure it affects the
+> removal, but it's usually safer to do things in reverse order.
+
+Looks fine.
 
 > 
 >  Tomi
