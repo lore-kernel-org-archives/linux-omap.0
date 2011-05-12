@@ -1,78 +1,49 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH 4/6] OMAP: LDP: Port the display driver to new DSS2
-Date: Thu, 12 May 2011 14:20:19 +0300
-Message-ID: <4DCBC273.9030807@compulab.co.il>
-References: <1304926567-26814-1-git-send-email-tomi.valkeinen@ti.com>	 <1304926567-26814-5-git-send-email-tomi.valkeinen@ti.com>	 <EAF47CD23C76F840A9E7FCE10091EFAB033DBC0C34@dbde02.ent.ti.com> <1305095563.2097.11.camel@deskari> <4DCB80DD.5090408@compulab.co.il> <4DCB8937.2060101@compulab.co.il> <4DCB9C71.2020503@compulab.co.il> <EAF47CD23C76F840A9E7FCE10091EFAB033DBC13C0@dbde02.ent.ti.com>
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: [PATCH 1/2] omap: rx51: Set regulator V28_A always on
+Date: Thu, 12 May 2011 14:28:22 +0300
+Message-ID: <1305199703-32589-1-git-send-email-jhnikula@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:34389
-	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752214Ab1ELLUX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 12 May 2011 07:20:23 -0400
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB033DBC13C0@dbde02.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vget.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Jarkko Nikula <jhnikula@gmail.com>, Kalle Jokiniemi <kalle.jokiniemi@nokia.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: "Janorkar, Mayuresh" <mayur@ti.com>
-Cc: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Stanley Miao <stanley.miao@windriver.com>
 
-On 05/12/11 11:47, Janorkar, Mayuresh wrote:
+The V28_A domain in Nokia N900 that supplies VDD voltages to TLV320AIC34 and
+TPA6130A2 should not be shutdown. This is because otherwise there will be
+leak from VIO to VDD in TLV320AIC34 and this leak consumes more battery
+current that is saved from keeping V28_A off. With this patch the battery
+current consumption is approximately 1.5 mA lower.
 
->> On 05/12/11 10:16, Igor Grinberg wrote:
->> there is a typo in the function name:
->> s/ldp_twl_gpio_setup/ldp_twl_gpios_setup/
-> Also,
->> +	};
->> +
->> +	r = gpio_request_array(twl_gpios, ARRAY_SIZE(gpios));
-> This should be ARRAY_SIZE(twl_gpios));
+Thanks to Kalle Jokiniemi <kalle.jokiniemi@nokia.com> for noticing the issue.
 
-yeah, sorry for that
+Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
+Cc: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
+---
+ arch/arm/mach-omap2/board-rx51-peripherals.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-that is what happening when making patches in a hurry and no checks done
-
-> And one more thing:
-> We need to use regulator for OMAP3430.
->
->
-> Something like this:
-> +/* VPLL2 for digital video outputs */
-> +static struct regulator_consumer_supply ldp_vpll2_supplies[] = {
-> +        REGULATOR_SUPPLY("vdds_dsi", "omapdss"),
-> +        REGULATOR_SUPPLY("vdds_dsi", "omapdss_dsi1"),
-> +};
-> +
-> +static struct regulator_init_data ldp_vpll2 = {
-> +        .constraints = {
-> +                .name                   = "VDVI",
-> +                .min_uV                 = 1800000,
-> +                .max_uV                 = 1800000,
-> +                .apply_uV               = true,
-> +                .valid_modes_mask       = REGULATOR_MODE_NORMAL
-> +                                        | REGULATOR_MODE_STANDBY,
-> +                .valid_ops_mask         = REGULATOR_CHANGE_MODE
-> +                                        | REGULATOR_CHANGE_STATUS,
-> +        },
-> +        .num_consumer_supplies  = ARRAY_SIZE(ldp_vpll2_supplies),
-> +        .consumer_supplies      = ldp_vpll2_supplies,
-> +};
->
-> @@ -340,6 +514,7 @@ static struct twl4030_platform_data ldp_twldata = {
->         .vmmc1          = &ldp_vmmc1,
->         .gpio           = &ldp_gpio_data,
->         .keypad         = &ldp_kp_twl4030_data,
-> +       .vpll2          = &ldp_vpll2,
->
-
-Right. Do both fixes make it work?
-
-If it is, then Tomi,
-will you add both fixes to the patch set with our SOBs?
-or do you want this to be sent properly as a follow up?
-
+diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+index bbcb677..8242e99 100644
+--- a/arch/arm/mach-omap2/board-rx51-peripherals.c
++++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+@@ -464,6 +464,7 @@ static struct regulator_init_data rx51_vmmc2 = {
+ 		.name			= "V28_A",
+ 		.min_uV			= 2800000,
+ 		.max_uV			= 3000000,
++		.always_on		= true, /* due VIO leak to AIC34 VDDs */
+ 		.apply_uV		= true,
+ 		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+ 					| REGULATOR_MODE_STANDBY,
 -- 
-Regards,
-Igor.
-
+1.7.4.4
