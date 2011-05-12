@@ -1,68 +1,28 @@
-From: Graeme Gregory <gg@slimlogic.co.uk>
-Subject: [PATCH v2 4/4] USB: TWL6025 allow different regulator name
-Date: Thu, 12 May 2011 14:27:58 +0100
-Message-ID: <1305206878-18094-5-git-send-email-gg@slimlogic.co.uk>
-References: <1305206878-18094-1-git-send-email-gg@slimlogic.co.uk>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH v2 1/4] MFD: TWL6025: add phoenix lite support to
+	twl6030
+Date: Thu, 12 May 2011 15:24:43 +0100
+Message-ID: <20110512142443.GA16218@sirena.org.uk>
+References: <1305206878-18094-1-git-send-email-gg@slimlogic.co.uk> <1305206878-18094-2-git-send-email-gg@slimlogic.co.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1305206878-18094-1-git-send-email-gg@slimlogic.co.uk>
+Content-Disposition: inline
+In-Reply-To: <1305206878-18094-2-git-send-email-gg@slimlogic.co.uk>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: sameo@linux.intel.com, balbi@ti.com, lrg@slimlogic.co.uk, broonie@opensource.wolfsonmicro.com, Graeme Gregory <gg@slimlogic.co.uk>
+To: Graeme Gregory <gg@slimlogic.co.uk>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, sameo@linux.intel.com, balbi@ti.com, lrg@slimlogic.co.uk
 List-Id: linux-omap@vger.kernel.org
 
-The twl6025 uses a different regulator for USB than the 6030 so select
-the correct regulator name depending on the subclass of device.
+On Thu, May 12, 2011 at 02:27:55PM +0100, Graeme Gregory wrote:
+> Phoenix Lite is based on the twl6030 family of PMICs. It has mostly the
+> same feature set of twl6030 but with small changes. The codec block has
+> also been removed. It also has a new charger block and new features in
+> its ADC block. VUSB handling also differs.
 
-Since V1
+Reviewed-by: Mark Brown <broonie@opensource.wolfsonicro.com>
 
-Use features passed via platform data instead of global variable.
+> +	pdata->driver_data = (void *)features;
+> +
 
-Signed-off-by: Graeme Gregory <gg@slimlogic.co.uk>
----
- drivers/usb/otg/twl6030-usb.c |   10 +++++++++-
- 1 files changed, 9 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/usb/otg/twl6030-usb.c b/drivers/usb/otg/twl6030-usb.c
-index 6e920de..2ad69a4 100644
---- a/drivers/usb/otg/twl6030-usb.c
-+++ b/drivers/usb/otg/twl6030-usb.c
-@@ -99,6 +99,7 @@ struct twl6030_usb {
- 	u8			linkstat;
- 	u8			asleep;
- 	bool			irq_enabled;
-+	unsigned long		features;
- };
- 
- #define xceiv_to_twl(x)		container_of((x), struct twl6030_usb, otg)
-@@ -190,6 +191,12 @@ static int twl6030_phy_suspend(struct otg_transceiver *x, int suspend)
- 
- static int twl6030_usb_ldo_init(struct twl6030_usb *twl)
- {
-+	char *regulator_name;
-+
-+	if (twl->features & TWL6025_SUBCLASS)
-+		regulator_name = "ldousb";
-+	else
-+		regulator_name = "vusb";
- 
- 	/* Set to OTG_REV 1.3 and turn on the ID_WAKEUP_COMP */
- 	twl6030_writeb(twl, TWL6030_MODULE_ID0 , 0x1, TWL6030_BACKUP_REG);
-@@ -200,7 +207,7 @@ static int twl6030_usb_ldo_init(struct twl6030_usb *twl)
- 	/* Program MISC2 register and set bit VUSB_IN_VBAT */
- 	twl6030_writeb(twl, TWL6030_MODULE_ID0 , 0x10, TWL6030_MISC2);
- 
--	twl->usb3v3 = regulator_get(twl->dev, "vusb");
-+	twl->usb3v3 = regulator_get(twl->dev, regulator_name);
- 	if (IS_ERR(twl->usb3v3))
- 		return -ENODEV;
- 
-@@ -395,6 +402,7 @@ static int __devinit twl6030_usb_probe(struct platform_device *pdev)
- 	twl->dev		= &pdev->dev;
- 	twl->irq1		= platform_get_irq(pdev, 0);
- 	twl->irq2		= platform_get_irq(pdev, 1);
-+	twl->features		= pdata->features;
- 	twl->otg.dev		= twl->dev;
- 	twl->otg.label		= "twl6030";
- 	twl->otg.set_host	= twl6030_set_host;
--- 
-1.7.4.1
+You never need to cast to void, and doing needless casts can mask bugs.
