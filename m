@@ -1,69 +1,59 @@
-From: Vladimir Zapolskiy <vzapolskiy@gmail.com>
-Subject: Re: [PATCH] [RFC] OMAP4: clock: shrink clock data utilizing preprocessor.
-Date: Fri, 13 May 2011 15:08:59 +0300
-Message-ID: <BANLkTinNVbViwjAcrOqfR+-ZJ+i1DF9Hdw@mail.gmail.com>
-References: <1305247077-15927-1-git-send-email-vzapolskiy@gmail.com>
-	<20110513113013.GP31483@atomide.com>
+From: Liam Girdwood <lrg@ti.com>
+Subject: Re: [PATCH] ASoC: omap-mcbsp: Remove restrictive
+	checks for cpu type
+Date: Fri, 13 May 2011 13:13:02 +0100
+Message-ID: <4DCD204E.5030707@ti.com>
+References: <1305122135-27938-1-git-send-email-premi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f181.google.com ([209.85.216.181]:45045 "EHLO
-	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757150Ab1EMMJA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 May 2011 08:09:00 -0400
-Received: by qyg14 with SMTP id 14so1422241qyg.19
-        for <linux-omap@vger.kernel.org>; Fri, 13 May 2011 05:09:00 -0700 (PDT)
-In-Reply-To: <20110513113013.GP31483@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <1305122135-27938-1-git-send-email-premi@ti.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: "Premi, Sanjeev" <premi@ti.com>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Fri, May 13, 2011 at 2:30 PM, Tony Lindgren <tony@atomide.com> wrote=
-:
-> * Vladimir Zapolskiy <vzapolskiy@gmail.com> [110512 17:35]:
->> This mass change reduces homogeneous data chunks along clock
->> definitions. No semantical difference is added to the change,
->> and still it could be introduced easily.
->>
->> Signed-off-by: Vladimir Zapolskiy <vzapolskiy@gmail.com>
->> ---
->> =C2=A0arch/arm/mach-omap2/clock44xx_data.c | 3313 +++++++++---------=
-----------------
->> =C2=A01 files changed, 848 insertions(+), 2465 deletions(-)
->
-> Hehehe, the diffstat certainly looks good :)
->
-> This would be best done for all of them using some
-> perl/sed/python script. And could be done for the hwmod data
-> too. Do you already have something like that available?
->
-Unfortunately I don't have an automated tool, but that would be great
-to have such a script. For this time I've checked the correctness of th=
-e
-change comparing the preprocessed output.
+On 11/05/11 14:55, Premi, Sanjeev wrote:
+> Current checks for cpu type were too restrictive leading
+> to failures for other silicons in same family.
+> 
+> The problem was found while testing audio playback on
+> AM37x and AM35x processors. But should exist on OMAP36xx
+> as well.
+> 
+> Signed-off-by: Sanjeev Premi <premi@ti.com>
+> cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
+> cc: Liam Girdwood <lrg@ti.com>
+> cc: Jarkko Nikula <jhnikula@gmail.com>
+> ---
+> 
+>  Changes in v4:
+>    Reposting after validating that patch still applies cleanly on
+>    linux-omap master [46966f1]
+> 
+>    Changed the subject as suggested by Jarkko. Since the subject
+>    has changed, i have omitted v4.
+> 
+>  Changes in v3::
+>    None. Reposting[1] after subscribing to alsa-devel list
+> 
+>  Changes in v2:
+>    1) Added one more check to the changes.
+>    2) Updated commit message to use plurals.
+> 
+> 
+> 
+Applied.
 
-In fact if nobody has serious objections about the nature of the change
-itself, then I'd like to continue with similar modifications for other =
-OMAP
-specific massive data files, hopefully there is a lot of redundant data=
- to
-eliminate :)
+Thanks
 
-I can try to do that starting from writing the script for automation,
-though I don't have a strong feeling that it's a straightforward task,
-and preprocessed code check and/or runtime check might be preferable.
-
-> Paul and & Benoit, what's your take on doing something like
-> this? I'd assume updating your data generation scripts would
-> be trivial?
->
-
-With best wishes,
-Vladimir
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Liam
