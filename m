@@ -1,42 +1,67 @@
-From: "Manuel, Lesly Arackal" <leslyam@ti.com>
-Subject: Re: [PATCH v10 3/7] MFD: TWL4030: Modifying the macro name Main_Ref
- to all caps
-Date: Fri, 13 May 2011 12:42:53 +0530
-Message-ID: <BANLkTim0Rsjxpr7HZg-AU4hXxesa7uswEA@mail.gmail.com>
-References: <1304687833-4578-1-git-send-email-leslyam@ti.com>
-	<1304687833-4578-4-git-send-email-leslyam@ti.com>
-	<20110512104208.GL31483@atomide.com>
+From: =?UTF-8?Q?Enric_Balletb=C3=B2_i_Serra?= <eballetbo@gmail.com>
+Subject: Re: [RESEND PATCH 0/4] omap: merge IGEP v2 and v3
+Date: Fri, 13 May 2011 09:27:18 +0200
+Message-ID: <BANLkTi=UpaA6vqxepUCMdi-BVWZxwTuRxQ@mail.gmail.com>
+References: <cover.1305235542.git.mike@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:47844 "EHLO
-	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757077Ab1EMHMz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 13 May 2011 03:12:55 -0400
-Received: by wwf26 with SMTP id 26so1947346wwf.20
-        for <linux-omap@vger.kernel.org>; Fri, 13 May 2011 00:12:53 -0700 (PDT)
-In-Reply-To: <20110512104208.GL31483@atomide.com>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:43107 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756995Ab1EMH1T convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 May 2011 03:27:19 -0400
+Received: by iwn34 with SMTP id 34so2059934iwn.19
+        for <linux-omap@vger.kernel.org>; Fri, 13 May 2011 00:27:19 -0700 (PDT)
+In-Reply-To: <cover.1305235542.git.mike@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>, David Derrick <dderrick@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
+To: Mike Rapoport <mike@compulab.co.il>
+Cc: Tony.Lindgren.tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Tony,
+Hi Mike,
 
-On Thu, May 12, 2011 at 4:12 PM, Tony Lindgren <tony@atomide.com> wrote:
-> * Lesly A M <leslyam@ti.com> [110506 06:14]:
->> Modifying the macro name Main_Ref to all caps(MAIN_REF).
+2011/5/12 Mike Rapoport <mike@compulab.co.il>:
+> Hi Tony,
 >
-> This may get counted as "crazy churn" patch.. Please provide
-> some reason for doing this in the patch description.
+> I'm resending this with the correct arm-linux mailing list cc'ed..
+> Just discard the first set, sorry for the noise...
+>
+> This is yet another attempt to reduce code duplication in the board f=
+iles :)
+> Only build tested, since I don't have the hardware, so I belive an Ac=
+k from
+> Enric is required.
 
-I will update the change logs.
+Against which tree is based your work ?
 
-Explained in Chapter 12 Documentation/CodingStyle.
+Cheers,
+  Enric
 
-As per coding-style the macro name should be capitalized.
-So modifying the macro name Main_Ref to all caps(MAIN_REF).
-
-Regards
-Lesly
+>
+> Mike Rapoport (4):
+> =C2=A0omap: igep0020: name refactoring for future merge with IGEP3
+> =C2=A0omap: igep0020: minor refactoring
+> =C2=A0omap: igep0020: add support for IGEP3
+> =C2=A0omap: drop board-igep0030.c
+>
+> =C2=A0arch/arm/mach-omap2/Kconfig =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0|=
+ =C2=A0 =C2=A01 +
+> =C2=A0arch/arm/mach-omap2/Makefile =C2=A0 =C2=A0 =C2=A0 =C2=A0 | =C2=A0=
+ =C2=A02 -
+> =C2=A0arch/arm/mach-omap2/board-igep0020.c | =C2=A0286 +++++++++++++-=
+--------
+> =C2=A0arch/arm/mach-omap2/board-igep0030.c | =C2=A0438 --------------=
+--------------------
+> =C2=A04 files changed, 174 insertions(+), 553 deletions(-)
+> =C2=A0delete mode 100644 arch/arm/mach-omap2/board-igep0030.c
+>
+> --
+> 1.7.3.1
+>
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
