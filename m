@@ -1,66 +1,100 @@
-From: mike@compulab.co.il
-Subject: Re: [RESEND PATCH 0/4] omap: merge IGEP v2 and v3
-Date: Fri, 13 May 2011 11:42:08 +0300
-Message-ID: <20110513084208.GA15897@gentoodev.compulab.local>
-References: <cover.1305235542.git.mike@compulab.co.il>
- <BANLkTi=UpaA6vqxepUCMdi-BVWZxwTuRxQ@mail.gmail.com>
-Reply-To: mike@compulab.co.il
+From: "Premi, Sanjeev" <premi-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH 3/5] arm: omap: usb: device name change for the clk
+ names of usbhs
+Date: Fri, 13 May 2011 14:35:39 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024CF130EB@dbde02.ent.ti.com>
+References: <1305122676-27236-1-git-send-email-keshava_mgowda@ti.com>
+	<1305122676-27236-2-git-send-email-keshava_mgowda@ti.com>
+	<1305122676-27236-3-git-send-email-keshava_mgowda@ti.com>
+	<1305122676-27236-4-git-send-email-keshava_mgowda@ti.com>
+	<B85A65D85D7EB246BE421B3FB0FBB593024CE66B4A@dbde02.ent.ti.com>
+	<4DCBC444.10506@compulab.co.il>
+ <BANLkTin0hU95m5msSge_TYDPc774i4rGpQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:41425
-	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1758093Ab1EMImQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 13 May 2011 04:42:16 -0400
-Content-Disposition: inline
-In-Reply-To: <BANLkTi=UpaA6vqxepUCMdi-BVWZxwTuRxQ@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <BANLkTin0hU95m5msSge_TYDPc774i4rGpQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Munegowda, Keshava" <keshava_mgowda-l0cyMroinI0@public.gmane.org>, Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, "Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>, "parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org" <parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Enric Balletb?? i Serra <eballetbo@gmail.com>
-Cc: Tony.Lindgren.tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Enric,
+> -----Original Message-----
+> From: Munegowda, Keshava=20
+> Sent: Friday, May 13, 2011 12:04 PM
+> To: Igor Grinberg
+> Cc: Premi, Sanjeev; linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;=20
+> linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Balbi, Felipe; Gadiyar, Anand;=20
+> parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org
+> Subject: Re: [PATCH 3/5] arm: omap: usb: device name change=20
+> for the clk names of usbhs
+>=20
+> On Thu, May 12, 2011 at 4:58 PM, Igor Grinberg=20
+> <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org> wrote:
+> >
+> >
+> > On 05/12/11 13:49, Premi, Sanjeev wrote:
+> >
+> >>> -----Original Message-----
+> >>> From: linux-omap-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> >>> [mailto:linux-omap-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of
+> >>> Munegowda, Keshava
+> >>> Sent: Wednesday, May 11, 2011 7:35 PM
+> >>> To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> >>> Cc: Munegowda, Keshava; Balbi, Felipe; Gadiyar, Anand;
+> >>> parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org
+> >>> Subject: [PATCH 3/5] arm: omap: usb: device name change for
+> >>> the clk names of usbhs
+> >> [snip]...[snip]
+> >>
+> >>> --- a/drivers/mfd/omap-usb-host.c
+> >>> +++ b/drivers/mfd/omap-usb-host.c
+> >>> @@ -27,7 +27,7 @@
+> >>> =A0#include <linux/gpio.h>
+> >>> =A0#include <plat/usb.h>
+> >>>
+> >>> -#define USBHS_DRIVER_NAME =A0 "usbhs-omap"
+> >>> +#define USBHS_DRIVER_NAME =A0 "usbhs_omap"
+> >>> =A0#define OMAP_EHCI_DEVICE =A0 =A0"ehci-omap"
+> >>> =A0#define OMAP_OHCI_DEVICE =A0 =A0"ohci-omap3"
+> >>
+> >> [sp] Shouldn't we be consistent in using minus/dash and
+> >> =A0 =A0 =A0underscore in the device names?
+> >
+> > Also, can't we avoid once again changing the clock names
+> > (at least for a while...)?
+> > Is that really necessary? Can't hwmod use current clock names?
+> > Because, Linus is sooo happy each time he sees that kind of=20
+> changes....
+> >
+>=20
+> This was actually earlier comment saying use _ as the convention for
+> hwmod and runtime pm.
+> only usbhs_omap uses the hwmod; the ehci and ohci drivers are childre=
+n
+> of usbhsh and they get the
+> data from usbhs. Hence the older name of ehci and ochi drivers are
+> retained as it is.
+>   if it is really needed,  to change ehci and ohci driver names , the=
+n
+> i can make it as another patch.
 
-On Fri, May 13, 2011 at 09:27:18AM +0200, Enric Balletb?? i Serra wrote:
-> Hi Mike,
-> 
-> 2011/5/12 Mike Rapoport <mike@compulab.co.il>:
-> > Hi Tony,
-> >
-> > I'm resending this with the correct arm-linux mailing list cc'ed..
-> > Just discard the first set, sorry for the noise...
-> >
-> > This is yet another attempt to reduce code duplication in the board files :)
-> > Only build tested, since I don't have the hardware, so I belive an Ack from
-> > Enric is required.
-> 
-> Against which tree is based your work ?
- 
-It's based on devel-cleaup branch in Tony's linux-omap tree.
+[sp] A common convetion helps. Another patch will definitely help usabi=
+lity.
 
-> Cheers,
->   Enric
-> 
-> >
-> > Mike Rapoport (4):
-> > ??omap: igep0020: name refactoring for future merge with IGEP3
-> > ??omap: igep0020: minor refactoring
-> > ??omap: igep0020: add support for IGEP3
-> > ??omap: drop board-igep0030.c
-> >
-> > ??arch/arm/mach-omap2/Kconfig ?? ?? ?? ?? ??| ?? ??1 +
-> > ??arch/arm/mach-omap2/Makefile ?? ?? ?? ?? | ?? ??2 -
-> > ??arch/arm/mach-omap2/board-igep0020.c | ??286 +++++++++++++---------
-> > ??arch/arm/mach-omap2/board-igep0030.c | ??438 ----------------------------------
-> > ??4 files changed, 174 insertions(+), 553 deletions(-)
-> > ??delete mode 100644 arch/arm/mach-omap2/board-igep0030.c
+~sanjeev
+
+>=20
+>=20
 > >
 > > --
-> > 1.7.3.1
+> > Regards,
+> > Igor.
 > >
 > >
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
