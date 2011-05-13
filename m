@@ -1,34 +1,34 @@
 From: Samuel Ortiz <sameo@linux.intel.com>
-Subject: Re: [PATCH 1/1] OMAP: twl4030-power: In remove script check the
- error condition after i2cwrite
-Date: Fri, 13 May 2011 19:08:09 +0200
-Message-ID: <20110513170809.GL8970@sortiz-mobl>
-References: <1304510933-14488-1-git-send-email-leslyam@ti.com>
+Subject: Re: [PATCH v10 1/7] MFD: TWL4030: Fix for the TWL4030 sleep/wakeup
+ sequence
+Date: Fri, 13 May 2011 19:14:29 +0200
+Message-ID: <20110513171428.GM8970@sortiz-mobl>
+References: <1304687833-4578-1-git-send-email-leslyam@ti.com>
+ <1304687833-4578-2-git-send-email-leslyam@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:38999 "EHLO mga09.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:24549 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752368Ab1EMRIc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 13 May 2011 13:08:32 -0400
+	id S1752368Ab1EMROb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 13 May 2011 13:14:31 -0400
 Content-Disposition: inline
-In-Reply-To: <1304510933-14488-1-git-send-email-leslyam@ti.com>
+In-Reply-To: <1304687833-4578-2-git-send-email-leslyam@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Lesly Arackal Manuel <leslyam@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: Lesly A M <leslyam@ti.com>
+Cc: linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>, David Derrick <dderrick@ti.com>
 
 Hi Lesly,
 
-On Wed, May 04, 2011 at 05:38:53PM +0530, Lesly Arackal Manuel wrote:
-> From: Lesly A M <leslyam@ti.com>
+On Fri, May 06, 2011 at 06:47:07PM +0530, Lesly A M wrote:
+> Only configure sleep script when the flag is TWL4030_SLEEP_SCRIPT.
 > 
-> Fixing the error condition check in twl4030 remove script function.
-> Due to some typo in commit ID: 11a441ce82d6ffecfd39b324024de0cd630b36c1
-Thanks, patch applied.
+> Adding the missing brackets for fixing the issue.
+This is already upstream.
 
 Cheers,
-Samuel
+Samuel.
 
 -- 
 Intel Open Source Technology Centre
