@@ -1,45 +1,83 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [PATCH] perf: export power_start and power_end tracepoints
-Date: Fri, 13 May 2011 17:09:12 +0200
-Message-ID: <BANLkTikkd9bNRLF1iDAz9Jwrnon3A=j44g@mail.gmail.com>
-References: <1305297838-4015-1-git-send-email-j-pihet@ti.com>
-	<20110513144830.GB32688@elte.hu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Julia Lawall <julia@diku.dk>
+Subject: [PATCH] arch/arm/mach-omap1/dma.c: Invert calls to platform_device_put and platform_device_del
+Date: Fri, 13 May 2011 18:46:10 +0200
+Message-ID: <1305305170-16922-1-git-send-email-julia@diku.dk>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20110513144830.GB32688@elte.hu>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: linux-kernel@vger.kernel.org, Thomas Renninger <trenn@suse.de>, Jean Pihet <j-pihet@ti.com>, linux-omap@vger.kernel.org, linux-pm@lists.linux-foundation.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: kernel-janitors@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Adding l-o and linux-pm MLs. The original post is at
-http://www.spinics.net/lists/kernel/msg1186554.html
+From: Julia Lawall <julia@diku.dk>
 
-On Fri, May 13, 2011 at 4:48 PM, Ingo Molnar <mingo@elte.hu> wrote:
->
-> * jean.pihet@newoldbits.com <jean.pihet@newoldbits.com> wrote:
->
->> From: Jean Pihet <j-pihet@ti.com>
->>
->> If used in a module both tracepoints need to be exported by the
->> kernel.
->
-> but it's not used by any module in the kernel AFAICS, so why is this =
-needed?
-Not currently, that is why the error went unnoticed. I think it is
-better to fix it now than later.
+Platform_device_del should be called before platform_device_put, as
+platform_device_put can delete the structure.
 
-I am working on a plan to clean-up and isolate the OMAP PM code from
-the core code and to provide the PM functionality as a module. This
-effort is part of the 'remove the crazy ARM churn' from the kernel.
+Additionally, improve the error handling code for the call to ioremap, so
+that it calls platform_device_put.
 
-Thanks,
-Jean
+The semantic match that finds this problem is:
+(http://coccinelle.lip6.fr/)
 
->
-> Thanks,
->
-> =A0 =A0 =A0 =A0Ingo
->
+// <smpl>
+@@
+expression e1,e2;
+@@
+
+*platform_device_put(e1);
+... when != e1 = e2
+*platform_device_del(e1);
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+
+---
+Is an ioremap needed also?  Not clear, because dma_base i a global variable.
+
+ arch/arm/mach-omap1/dma.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/arch/arm/mach-omap1/dma.c b/arch/arm/mach-omap1/dma.c
+index d855934..f5a5220 100644
+--- a/arch/arm/mach-omap1/dma.c
++++ b/arch/arm/mach-omap1/dma.c
+@@ -284,14 +284,15 @@ static int __init omap1_system_dma_init(void)
+ 	dma_base = ioremap(res[0].start, resource_size(&res[0]));
+ 	if (!dma_base) {
+ 		pr_err("%s: Unable to ioremap\n", __func__);
+-		return -ENODEV;
++		ret = -ENODEV;
++		goto exit_device_put;
+ 	}
+ 
+ 	ret = platform_device_add_resources(pdev, res, ARRAY_SIZE(res));
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "%s: Unable to add resources for %s%d\n",
+ 			__func__, pdev->name, pdev->id);
+-		goto exit_device_del;
++		goto exit_device_put;
+ 	}
+ 
+ 	p = kzalloc(sizeof(struct omap_system_dma_plat_info), GFP_KERNEL);
+@@ -299,7 +300,7 @@ static int __init omap1_system_dma_init(void)
+ 		dev_err(&pdev->dev, "%s: Unable to allocate 'p' for %s\n",
+ 			__func__, pdev->name);
+ 		ret = -ENOMEM;
+-		goto exit_device_put;
++		goto exit_device_del;
+ 	}
+ 
+ 	d = kzalloc(sizeof(struct omap_dma_dev_attr), GFP_KERNEL);
+@@ -380,10 +381,10 @@ exit_release_d:
+ 	kfree(d);
+ exit_release_p:
+ 	kfree(p);
+-exit_device_put:
+-	platform_device_put(pdev);
+ exit_device_del:
+ 	platform_device_del(pdev);
++exit_device_put:
++	platform_device_put(pdev);
+ 
+ 	return ret;
+ }
