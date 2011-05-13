@@ -1,67 +1,40 @@
-From: =?UTF-8?Q?Enric_Balletb=C3=B2_i_Serra?= <eballetbo@gmail.com>
-Subject: Re: [RESEND PATCH 0/4] omap: merge IGEP v2 and v3
-Date: Fri, 13 May 2011 09:27:18 +0200
-Message-ID: <BANLkTi=UpaA6vqxepUCMdi-BVWZxwTuRxQ@mail.gmail.com>
-References: <cover.1305235542.git.mike@compulab.co.il>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [RFC PATCH v3] Consolidate SRAM support
+Date: Fri, 13 May 2011 09:30:14 +0200
+Message-ID: <BANLkTimmCuxUUY46B+aY5C0KxnY4_Dvucg@mail.gmail.com>
+References: <20110415130607.GM1611@n2100.arm.linux.org.uk>
+	<20110512174546.GB8633@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:43107 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756995Ab1EMH1T convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 May 2011 03:27:19 -0400
-Received: by iwn34 with SMTP id 34so2059934iwn.19
-        for <linux-omap@vger.kernel.org>; Fri, 13 May 2011 00:27:19 -0700 (PDT)
-In-Reply-To: <cover.1305235542.git.mike@compulab.co.il>
+Received: from mail-qy0-f181.google.com ([209.85.216.181]:59249 "EHLO
+	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757267Ab1EMHaP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 May 2011 03:30:15 -0400
+Received: by qyg14 with SMTP id 14so1315858qyg.19
+        for <linux-omap@vger.kernel.org>; Fri, 13 May 2011 00:30:14 -0700 (PDT)
+In-Reply-To: <20110512174546.GB8633@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mike Rapoport <mike@compulab.co.il>
-Cc: Tony.Lindgren.tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, davinci-linux-open-source@linux.davincidsp.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Mike,
+On Thu, May 12, 2011 at 7:45 PM, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
+>    This version fixes the davinci pm free, and adds updates for the
+>    davinci pcm driver.  As I don't know what's happening with Jean's
+>    patch tweaking the genpool allocator, I've kept my version.
 
-2011/5/12 Mike Rapoport <mike@compulab.co.il>:
-> Hi Tony,
->
-> I'm resending this with the correct arm-linux mailing list cc'ed..
-> Just discard the first set, sorry for the noise...
->
-> This is yet another attempt to reduce code duplication in the board f=
-iles :)
-> Only build tested, since I don't have the hardware, so I belive an Ac=
-k from
-> Enric is required.
+Sorry I do not get the question. The latest changes I submitted have
+been merged in mainline as 'ARM: 6649/1: omap: use fncpy to copy the
+PM code functions to SRAM' [1] . Thanks for that!
+This change is only about the simple linear SRAM allocator, not the
+genpool allocator.
 
-Against which tree is based your work ?
+>    This still suffers from the "only one region per pvpool" problem
+>    which I believe Jean's patch doesn't suffer.
 
-Cheers,
-  Enric
+[1] http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=b6338bdc8305b27688a7feb8689e4ccfd42f0292
 
->
-> Mike Rapoport (4):
-> =C2=A0omap: igep0020: name refactoring for future merge with IGEP3
-> =C2=A0omap: igep0020: minor refactoring
-> =C2=A0omap: igep0020: add support for IGEP3
-> =C2=A0omap: drop board-igep0030.c
->
-> =C2=A0arch/arm/mach-omap2/Kconfig =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0|=
- =C2=A0 =C2=A01 +
-> =C2=A0arch/arm/mach-omap2/Makefile =C2=A0 =C2=A0 =C2=A0 =C2=A0 | =C2=A0=
- =C2=A02 -
-> =C2=A0arch/arm/mach-omap2/board-igep0020.c | =C2=A0286 +++++++++++++-=
---------
-> =C2=A0arch/arm/mach-omap2/board-igep0030.c | =C2=A0438 --------------=
---------------------
-> =C2=A04 files changed, 174 insertions(+), 553 deletions(-)
-> =C2=A0delete mode 100644 arch/arm/mach-omap2/board-igep0030.c
->
-> --
-> 1.7.3.1
->
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+Jean
