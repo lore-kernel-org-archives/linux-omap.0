@@ -1,60 +1,70 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v10 1/7] MFD: TWL4030: Fix for the TWL4030 sleep/wakeup sequence
-Date: Fri, 13 May 2011 14:40:58 +0200
-Message-ID: <87mxiqg4dh.fsf@ti.com>
-References: <1304687833-4578-1-git-send-email-leslyam@ti.com>
-	<1304687833-4578-2-git-send-email-leslyam@ti.com>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: [PATCH] omap:pm: Fix boot-time errors with debugfs disabled
+Date: Fri, 13 May 2011 18:18:05 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024CF13264@dbde02.ent.ti.com>
+References: <1305221790-4944-1-git-send-email-premi@ti.com>
+ <BANLkTim+3M3Z0C3GTtTQrb2cqk5eSAsR+w@mail.gmail.com>
+ <B85A65D85D7EB246BE421B3FB0FBB593024CE66D34@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:60438 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758916Ab1EMMlD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 13 May 2011 08:41:03 -0400
-Received: by mail-fx0-f54.google.com with SMTP id 11so3611821fxm.27
-        for <linux-omap@vger.kernel.org>; Fri, 13 May 2011 05:41:01 -0700 (PDT)
-In-Reply-To: <1304687833-4578-2-git-send-email-leslyam@ti.com> (Lesly A. M.'s
-	message of "Fri, 6 May 2011 18:47:07 +0530")
+Received: from bear.ext.ti.com ([192.94.94.41]:53208 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759235Ab1EMMsK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 May 2011 08:48:10 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p4DCm7p5028186
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Fri, 13 May 2011 07:48:09 -0500
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593024CE66D34@dbde02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Lesly A M <leslyam@ti.com>
-Cc: linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>, David Derrick <dderrick@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Menon, Nishanth" <nm@ti.com>
 
-Lesly A M <leslyam@ti.com> writes:
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Premi, Sanjeev
+> Sent: Friday, May 13, 2011 12:46 AM
+> To: Menon, Nishanth
+> Cc: linux-omap@vger.kernel.org
+> Subject: RE: [PATCH] omap:pm: Fix boot-time errors with 
+> debugfs disabled
+> 
 
-> Only configure sleep script when the flag is TWL4030_SLEEP_SCRIPT.
->
-> Adding the missing brackets for fixing the issue.
->
-> Signed-off-by: Lesly A M <leslyam@ti.com>
-> Cc: Nishanth Menon <nm@ti.com>
-> Cc: David Derrick <dderrick@ti.com>
-> Cc: Samuel Ortiz <sameo@linux.intel.com>
+[sp]
 
-Acked-by: Kevin Hilman <khilman@ti.com>
+> 
+> > Last I tried, with Vishwa's dvfs branch on panda without voltage
+> > registrations, things could crash :( if I get some time I 
+> will try to
+> > port Vishwa's series onto kevin's branch as well and test 
+> and provide
+> > any patches necessary.
+> 
+> [sp] I can try this on Panda. Will be able to get one tomorrow.
 
 
-> ---
->  drivers/mfd/twl4030-power.c |    3 ++-
->  1 files changed, 2 insertions(+), 1 deletions(-)
->
-> diff --git a/drivers/mfd/twl4030-power.c b/drivers/mfd/twl4030-power.c
-> index 6fed964..97f54ce 100644
-> --- a/drivers/mfd/twl4030-power.c
-> +++ b/drivers/mfd/twl4030-power.c
-> @@ -447,12 +447,13 @@ static int __init load_twl4030_script(struct twl4030_script *tscript,
->  		if (err)
->  			goto out;
->  	}
-> -	if (tscript->flags & TWL4030_SLEEP_SCRIPT)
-> +	if (tscript->flags & TWL4030_SLEEP_SCRIPT) {
->  		if (order)
->  			pr_warning("TWL4030: Bad order of scripts (sleep "\
->  					"script before wakeup) Leads to boot"\
->  					"failure on some boards\n");
->  		err = twl4030_config_sleep_sequence(address);
-> +	}
->  out:
->  	return err;
->  }
+Tested same uImage on Panda as well. Just pasting the top header
+here...
+
+[    0.000000] Linux version 2.6.39-rc4-13782-gd695569-dirty (premi@mylinux) (gcc version 4.5.1 (Sourcery G++ Lite 2010.09-50) ) #6 SMP Thu May 12 21:40:58 IST 2011
+[    0.000000] CPU: ARMv7 Processor [411fc092] revision 2 (ARMv7), cr=10c53c7f
+[    0.000000] CPU: VIPT nonaliasing data cache, VIPT aliasing instruction cache
+[    0.000000] Machine: OMAP4 Panda board
+[    0.000000] Memory policy: ECC disabled, Data cache writealloc
+[    0.000000] Truncating RAM at 80000000-bfffffff to -afffffff (vmalloc region overlap).
+[    0.000000] OMAP4430 ES2.1
+
+> 
+> ~sanjeev
+> 
+> [snip]...[snip]
+> --
+> To unsubscribe from this list: send the line "unsubscribe 
+> linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
