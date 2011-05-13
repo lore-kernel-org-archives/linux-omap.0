@@ -1,60 +1,77 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v1] omap: usbhs: Fixed the crash during rmmod of ehci and
- ohci
-Date: Fri, 13 May 2011 14:00:58 +0300
-Message-ID: <20110513110056.GF11339@legolas.emea.dhcp.ti.com>
-References: <1305118241-31677-1-git-send-email-keshava_mgowda@ti.com>
-Reply-To: balbi-l0cyMroinI0@public.gmane.org
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 0/5] arm: omap: usb: Runtime PM support for EHCI and OHCI
+ drivers
+Date: Fri, 13 May 2011 14:01:37 +0300
+Message-ID: <20110513110136.GG11339@legolas.emea.dhcp.ti.com>
+References: <1305122676-27236-1-git-send-email-keshava_mgowda@ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="TU+u6i6jrDPzmlWF"
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+	protocol="application/pgp-signature"; boundary="TdkiTnkLhLQllcMS"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:33639 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758276Ab1EMLBr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 13 May 2011 07:01:47 -0400
 Content-Disposition: inline
-In-Reply-To: <1305118241-31677-1-git-send-email-keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, gadiyar-l0cyMroinI0@public.gmane.org, parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org
+In-Reply-To: <1305122676-27236-1-git-send-email-keshava_mgowda@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Keshava Munegowda <keshava_mgowda@ti.com>
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, balbi@ti.com, gadiyar@ti.com, parthab@india.ti.com
 
 
---TU+u6i6jrDPzmlWF
+--TdkiTnkLhLQllcMS
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, May 11, 2011 at 06:20:41PM +0530, Keshava Munegowda wrote:
-> From: Keshava Munegowda <Keshava_mgowda-l0cyMroinI0@public.gmane.org>
->=20
-> The disableing of clocks and freeing GPIO are changed
-> to fix the occurence of the crash of rmmod of ehci and ohci
-> drivers. The GPIOs should be freed after the spin locks are
-> unlocked.
->=20
-> Signed-off-by: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Hi,
 
-should this go via Samuel ?
+On Wed, May 11, 2011 at 07:34:31PM +0530, Keshava Munegowda wrote:
+> From: Keshava Munegowda <Keshava_mgowda@ti.com>
+>=20
+> The Hwmod structures and Runtime PM features are implemented=20
+> For EHCI and OHCI drivers of OMAP3 and OMAP4.
+> The global suspend/resume of EHCI and OHCI=20
+> is validated on OMAP3430 sdp board with these patches.
+>=20
+> Keshava Munegowda (5):
+>   arm: omap: usb: ehci and ohci hwmod structures for omap3 and omap4
+>   arm: omap: usb: register hwmods of usbhs
+>   arm: omap: usb: device name change for the clk names of usbhs
+>   arm: omap: usb: Runtime PM support
+>   arm: omap: usb: global Suspend and resume support of ehci and ohci
+>=20
+>  arch/arm/mach-omap2/clock3xxx_data.c       |   28 ++--
+>  arch/arm/mach-omap2/clock44xx_data.c       |   10 +-
+>  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  184 ++++++++++++++++++++++
+>  arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  153 ++++++++++++++++++
+>  arch/arm/mach-omap2/usb-host.c             |   99 ++++--------
+>  drivers/mfd/omap-usb-host.c                |  236 +++++++++++++---------=
+------
+
+same for this series. Part goes through linux-omap and part via mfd
+tree ?
 
 --=20
 balbi
 
---TU+u6i6jrDPzmlWF
+--TdkiTnkLhLQllcMS
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQEcBAEBAgAGBQJNzQ9oAAoJEAv8Txj19kN1fz0H/1qxF1vXpoU6wSzAsMhRg4/3
-apHbvFkyY2j6HAPYvl+ymur+y4868tw1BIHiqDwj4svyHZsVlEee/JZmr4pdCbXN
-BNg94ooI0iTvdtkKJVYOlYMAqFuLIFdSxY4CNkRPtGsvr13JzIlv3Jg4USIAUJph
-P/WH8wJyoyjemD08w8s4XFrbttcOFuQG+w959c4RBRtkyhvfDw+6vhVKVJn2FBes
-dJP7ko7Zbg36tHEJq0S6tDI/WhjOVf28TRW3Xw7rwSz5duIXTJVO5Ea5asfeNayc
-lv/lPw3NXJE3NfC7Jei9SYTq18yL1+1ekMV4LsuR1y+4j3uHIais0b8qEfTJook=
-=q3Rz
+iQEcBAEBAgAGBQJNzQ+QAAoJEAv8Txj19kN1b+0H/iBu1+Hi2qRUyfYs+QKJal09
+AODz5C6xNXORi6AQMVUSCmj3ql2OY2RG1XrABw0nklAO5Tq85SJL/7yPMjeBhKNf
+SE3Fj3pjHlFrrzrg3VMdyQlVvMSf6Z1nF+tKrfOUMtw0oki2tEYrGP2ko2bnkIMd
+w6WS0GhzhX0ZOchWu2YuKPmKK6aStlxYN2aNik5G5kdKoweAuezfzN15UTdAyg0A
+4DcN1Xnmm3X6PHjdw6bos7kxv5mfxlFDqi6qepPpks5xbGeU7aFKRTh0VaC6eyMd
+Hi57EsHxIe3tsLgjpv7SOnrZob+6bTz+3zfchuseiRVSz6OkEkzaoux93AucVJo=
+=iM65
 -----END PGP SIGNATURE-----
 
---TU+u6i6jrDPzmlWF--
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--TdkiTnkLhLQllcMS--
