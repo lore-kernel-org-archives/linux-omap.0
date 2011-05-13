@@ -1,54 +1,60 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH] [RFC] OMAP4: clock: shrink clock data utilizing preprocessor.
-Date: Fri, 13 May 2011 14:21:52 +0200
-Message-ID: <4DCD2260.4090806@ti.com>
-References: <1305247077-15927-1-git-send-email-vzapolskiy@gmail.com>	<20110513113013.GP31483@atomide.com> <BANLkTinNVbViwjAcrOqfR+-ZJ+i1DF9Hdw@mail.gmail.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH v10 1/7] MFD: TWL4030: Fix for the TWL4030 sleep/wakeup sequence
+Date: Fri, 13 May 2011 14:40:58 +0200
+Message-ID: <87mxiqg4dh.fsf@ti.com>
+References: <1304687833-4578-1-git-send-email-leslyam@ti.com>
+	<1304687833-4578-2-git-send-email-leslyam@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:57659 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932345Ab1EMMV7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 13 May 2011 08:21:59 -0400
-In-Reply-To: <BANLkTinNVbViwjAcrOqfR+-ZJ+i1DF9Hdw@mail.gmail.com>
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:60438 "EHLO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758916Ab1EMMlD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 13 May 2011 08:41:03 -0400
+Received: by mail-fx0-f54.google.com with SMTP id 11so3611821fxm.27
+        for <linux-omap@vger.kernel.org>; Fri, 13 May 2011 05:41:01 -0700 (PDT)
+In-Reply-To: <1304687833-4578-2-git-send-email-leslyam@ti.com> (Lesly A. M.'s
+	message of "Fri, 6 May 2011 18:47:07 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vladimir Zapolskiy <vzapolskiy@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Lesly A M <leslyam@ti.com>
+Cc: linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>, David Derrick <dderrick@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
 
-Hi Vladimir,
+Lesly A M <leslyam@ti.com> writes:
 
-Could you please re-send your original patch?
+> Only configure sleep script when the flag is TWL4030_SLEEP_SCRIPT.
+>
+> Adding the missing brackets for fixing the issue.
+>
+> Signed-off-by: Lesly A M <leslyam@ti.com>
+> Cc: Nishanth Menon <nm@ti.com>
+> Cc: David Derrick <dderrick@ti.com>
+> Cc: Samuel Ortiz <sameo@linux.intel.com>
 
-For some reason I cannot find it in any mailing list so far.
-Maybe it is due to its size.
+Acked-by: Kevin Hilman <khilman@ti.com>
 
-On 5/13/2011 2:08 PM, Vladimir Zapolskiy wrote:
-> On Fri, May 13, 2011 at 2:30 PM, Tony Lindgren<tony@atomide.com>  wrote:
->> * Vladimir Zapolskiy<vzapolskiy@gmail.com>  [110512 17:35]:
->>> This mass change reduces homogeneous data chunks along clock
->>> definitions. No semantical difference is added to the change,
->>> and still it could be introduced easily.
->>>
->>> Signed-off-by: Vladimir Zapolskiy<vzapolskiy@gmail.com>
->>> ---
->>>   arch/arm/mach-omap2/clock44xx_data.c | 3313 +++++++++-------------------------
->>>   1 files changed, 848 insertions(+), 2465 deletions(-)
->>
->> Hehehe, the diffstat certainly looks good :)
->>
->> This would be best done for all of them using some
->> perl/sed/python script. And could be done for the hwmod data
->> too. Do you already have something like that available?
->>
-> Unfortunately I don't have an automated tool, but that would be great
-> to have such a script. For this time I've checked the correctness of the
-> change comparing the preprocessed output.
 
-In fact these files are already generated automatically, as written in 
-the header file. So changing the output format should straightforward. 
-At least for OMAP4... OMAP2 and OMAP3 were done manually some time ago.
-
-Regards,
-Benoit
+> ---
+>  drivers/mfd/twl4030-power.c |    3 ++-
+>  1 files changed, 2 insertions(+), 1 deletions(-)
+>
+> diff --git a/drivers/mfd/twl4030-power.c b/drivers/mfd/twl4030-power.c
+> index 6fed964..97f54ce 100644
+> --- a/drivers/mfd/twl4030-power.c
+> +++ b/drivers/mfd/twl4030-power.c
+> @@ -447,12 +447,13 @@ static int __init load_twl4030_script(struct twl4030_script *tscript,
+>  		if (err)
+>  			goto out;
+>  	}
+> -	if (tscript->flags & TWL4030_SLEEP_SCRIPT)
+> +	if (tscript->flags & TWL4030_SLEEP_SCRIPT) {
+>  		if (order)
+>  			pr_warning("TWL4030: Bad order of scripts (sleep "\
+>  					"script before wakeup) Leads to boot"\
+>  					"failure on some boards\n");
+>  		err = twl4030_config_sleep_sequence(address);
+> +	}
+>  out:
+>  	return err;
+>  }
