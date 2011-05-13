@@ -1,41 +1,67 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP3: set the core dpll clk rate in its set_rate
- function.
-Date: Fri, 13 May 2011 17:06:28 +0300
-Message-ID: <20110513140625.GL5323@atomide.com>
-References: <1304944180-20443-1-git-send-email-avinashhm@ti.com>
- <alpine.DEB.2.00.1105122015550.26192@utopia.booyaka.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH] [RFC] OMAP4: clock: shrink clock data utilizing preprocessor.
+Date: Fri, 13 May 2011 16:24:02 +0200
+Message-ID: <4DCD3F02.50104@ti.com>
+References: <1305247077-15927-1-git-send-email-vzapolskiy@gmail.com>	<20110513113013.GP31483@atomide.com>	<BANLkTinNVbViwjAcrOqfR+-ZJ+i1DF9Hdw@mail.gmail.com>	<4DCD2260.4090806@ti.com> <20110513130441.GH5323@atomide.com> <87aaeq3fmt.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:61846 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1759327Ab1EMOGd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 May 2011 10:06:33 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1105122015550.26192@utopia.booyaka.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:39088 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753118Ab1EMOYK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 13 May 2011 10:24:10 -0400
+In-Reply-To: <87aaeq3fmt.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "Avinash.H.M" <avinashhm@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Shweta Gulati <shweta.gulati@ti.com>, Rajendra Nayak <rnayak@ti.com>
+To: "Hilman, Kevin" <khilman@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Vladimir Zapolskiy <vzapolskiy@gmail.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-* Paul Walmsley <paul@pwsan.com> [110513 05:13]:
-> On Mon, 9 May 2011, Avinash.H.M wrote:
-> 
-> > The debug l3_ick/rate is not displaying the actual rate of the clock in
-> > hardware. This is because, the core dpll set_rate function doesn't update the
-> > clk.rate. After fixing, the l3_ick/rate is displaying proper values.
-> > 
-> > Signed-off-by: Shweta Gulati <shweta.gulati@ti.com>
-> > Signed-off-by: Avinash.H.M <avinashhm@ti.com>
-> > Cc: Rajendra Nayak <rnayak@ti.com>
-> > Cc: Paul Wamsley <paul@pwsan.com>
-> 
-> Acked-by: Paul Walmsley <paul@pwsan.com>
-> 
-> Thanks, let's see if we can get this into an -rc.
+On 5/13/2011 3:16 PM, Hilman, Kevin wrote:
+> Tony Lindgren<tony@atomide.com>  writes:
+>
+>> * Cousson, Benoit<b-cousson@ti.com>  [110513 15:18]:
+>>>>>> Signed-off-by: Vladimir Zapolskiy<vzapolskiy@gmail.com>
+>>>>>
+>>>> Unfortunately I don't have an automated tool, but that would be great
+>>>> to have such a script. For this time I've checked the correctness of the
+>>>> change comparing the preprocessed output.
+>>>
+>>> In fact these files are already generated automatically, as written
+>>> in the header file. So changing the output format should
+>>> straightforward. At least for OMAP4... OMAP2 and OMAP3 were done
+>>> manually some time ago.
+>>
+>> Sounds like the important thing to consider here is how these macros
+>> should be set up considering the upcoming generic clock framework
+>> and device tree changes.
+>>
+>> So let's wait a few days for comments from Benoit and Paul on the
+>> format for the macros so we don't need to redo them again later.
+>> Of course there might be other things to consider too..
+>
+> ... like readability.
+>
+> After seeing the patch (thanks Benoit), I think this is bad tradeoff
+> between readability and lines-of-code.
+>
+> Personally, I don't think we should be trading readability for diffstat
+> goodness.  I have a strong dislike for these multi-line macros, but
+> it's up to Paul/Benoit to decide how this should look.
 
-Might be out of time as we still should have this sit in
-for-next too. Anyways, adding into devel-fixes.
+I'm sharing the same concern and after seeing the patch, I do thing as 
+well that the readability is badly impacted.
+My other concern is that these macros are too low level and does not 
+bring a real abstraction of clock nodes.
+Any change to the clock structure we will have to do in the near future 
+with the common clock fmwk will probably have an impact on this file.
 
-Tony
+So if we want to reduce the file size using that kind of approach, we'd 
+better provide improved macros that will help hiding some implementation 
+details. It will ease the transition to the common clock fmwk.
+
+Last but not least, since we do want to move this file to DT ASAP, is it 
+worth it?
+
+Regards,
+Benoit
