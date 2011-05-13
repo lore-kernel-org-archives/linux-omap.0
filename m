@@ -1,14 +1,16 @@
-From: Liam Girdwood <lrg@ti.com>
-Subject: Re: [PATCH] ASoC: omap-mcbsp: Remove restrictive
-	checks for cpu type
-Date: Fri, 13 May 2011 13:13:02 +0100
-Message-ID: <4DCD204E.5030707@ti.com>
-References: <1305122135-27938-1-git-send-email-premi@ti.com>
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: Re: Updated mach-types update
+Date: Fri, 13 May 2011 15:19:16 +0300
+Message-ID: <20110513151916.77eba011.jhnikula@gmail.com>
+References: <20110320110322.GC16646@n2100.arm.linux.org.uk>
+	<20110320114137.GD16646@n2100.arm.linux.org.uk>
+	<20110324175945.GV2811@atomide.com>
+	<20110513115406.GQ31483@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <1305122135-27938-1-git-send-email-premi@ti.com>
+In-Reply-To: <20110513115406.GQ31483@atomide.com>
 List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
 	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
 List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
@@ -18,42 +20,38 @@ List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
 	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
 Sender: alsa-devel-bounces@alsa-project.org
 Errors-To: alsa-devel-bounces@alsa-project.org
-To: "Premi, Sanjeev" <premi@ti.com>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-fbdev@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, Ghosh <subhasish@mistralsolutions.com>, Srinath <srinath@mistralsolutions.com>, alsa-devel@alsa-project.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, Arun C <arunedarath@mistralsolutions.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Subhasish@alsa-project.org
 List-Id: linux-omap@vger.kernel.org
 
-On 11/05/11 14:55, Premi, Sanjeev wrote:
-> Current checks for cpu type were too restrictive leading
-> to failures for other silicons in same family.
-> 
-> The problem was found while testing audio playback on
-> AM37x and AM35x processors. But should exist on OMAP36xx
-> as well.
-> 
-> Signed-off-by: Sanjeev Premi <premi@ti.com>
-> cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
-> cc: Liam Girdwood <lrg@ti.com>
-> cc: Jarkko Nikula <jhnikula@gmail.com>
-> ---
-> 
->  Changes in v4:
->    Reposting after validating that patch still applies cleanly on
->    linux-omap master [46966f1]
-> 
->    Changed the subject as suggested by Jarkko. Since the subject
->    has changed, i have omitted v4.
-> 
->  Changes in v3::
->    None. Reposting[1] after subscribing to alsa-devel list
-> 
->  Changes in v2:
->    1) Added one more check to the changes.
->    2) Updated commit message to use plurals.
-> 
-> 
-> 
-Applied.
+On Fri, 13 May 2011 04:54:07 -0700
+Tony Lindgren <tony@atomide.com> wrote:
 
-Thanks
+> * Tony Lindgren <tony@atomide.com> [110324 10:57]:
+> > * Russell King - ARM Linux <linux@arm.linux.org.uk> [110320 04:39]:
+> > > On Sun, Mar 20, 2011 at 11:03:22AM +0000, Russell King - ARM Linux wrote:
+> > > 
+> > > Note that OMAP references machine_is_omap2evm() yet this has never been
+> > > merged.
+> > > 
+> > > arch/arm/plat-omap/include/plat/uncompress.h:
+> > > 
+> > >                 DEBUG_LL_OMAP2(1, omap2evm);
+> > > 
+> > > so this entry needs to be removed.
+> > 
+> > Hmm looks like we have LCD support and ASoC support for it, but no
+> > board :)
+> > 
+> > Anybody working with this board?
+> > 
+> > If so, please send patches for the related board-*.c support ASAP.
+> > Otherwise let's plan on deleting the related support.
+> 
+> No patches, so let's remove it. Here's the patch to do that,
+> I'm planning to add this to my devel-cleanup branch.
+> 
+Remove also from sound/soc/omap/Kconfig as well. You could put my
+ack for sound/soc/omap part but remember cc also Mark and Liam.
 
-Liam
+Acked-by: Jarkko Nikula <jhnikula@gmail.com>
