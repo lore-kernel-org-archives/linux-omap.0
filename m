@@ -1,53 +1,59 @@
-From: =?us-ascii?Q?WEBMAIL=20ACCOUNT=20SERVICE=22?=
-	<help_activation@hotmail.com>
-Subject: =?us-ascii?Q?Re=2Daktivace?=
-Date: Fri, 13 May 2011 14:53:22 +0200 (CEST)
-Message-ID: <12950.2997.6450-16759-2090653488-1305291201@seznam.cz>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH] [RFC] OMAP4: clock: shrink clock data utilizing preprocessor.
+Date: Fri, 13 May 2011 15:16:10 +0200
+Message-ID: <87aaeq3fmt.fsf@ti.com>
+References: <1305247077-15927-1-git-send-email-vzapolskiy@gmail.com>
+	<20110513113013.GP31483@atomide.com>
+	<BANLkTinNVbViwjAcrOqfR+-ZJ+i1DF9Hdw@mail.gmail.com>
+	<4DCD2260.4090806@ti.com> <20110513130441.GH5323@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mxh2.seznam.cz ([77.75.76.26]:41431 "EHLO mxh2.seznam.cz"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759242Ab1EMNJQ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 May 2011 09:09:16 -0400
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:45440 "EHLO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758843Ab1EMNQP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 13 May 2011 09:16:15 -0400
+Received: by mail-fx0-f50.google.com with SMTP id 16so2286964fxm.23
+        for <linux-omap@vger.kernel.org>; Fri, 13 May 2011 06:16:13 -0700 (PDT)
+In-Reply-To: <20110513130441.GH5323@atomide.com> (Tony Lindgren's message of
+	"Fri, 13 May 2011 16:04:43 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, Vladimir Zapolskiy <vzapolskiy@gmail.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+
+Tony Lindgren <tony@atomide.com> writes:
+
+> * Cousson, Benoit <b-cousson@ti.com> [110513 15:18]:
+>> >>>Signed-off-by: Vladimir Zapolskiy<vzapolskiy@gmail.com>
+>> >>
+>> >Unfortunately I don't have an automated tool, but that would be great
+>> >to have such a script. For this time I've checked the correctness of the
+>> >change comparing the preprocessed output.
+>> 
+>> In fact these files are already generated automatically, as written
+>> in the header file. So changing the output format should
+>> straightforward. At least for OMAP4... OMAP2 and OMAP3 were done
+>> manually some time ago.
+>
+> Sounds like the important thing to consider here is how these macros
+> should be set up considering the upcoming generic clock framework
+> and device tree changes.
+>
+> So let's wait a few days for comments from Benoit and Paul on the
+> format for the macros so we don't need to redo them again later.
+> Of course there might be other things to consider too..
+
+... like readability.
+
+After seeing the patch (thanks Benoit), I think this is bad tradeoff
+between readability and lines-of-code.
+
+Personally, I don't think we should be trading readability for diffstat
+goodness.  I have a strong dislike for these multi-line macros, but
+it's up to Paul/Benoit to decide how this should look.
+
+Kevin
 
 
-
-
-V=E1=BEen=ED E-mail u=BEivatele
-=20
-M=E1me do=E8asn=EC omezen=FD p=F8=EDstup k citliv=FDm v=B9echny funkce =
-=FA=E8tu v na=B9em
-E-mailov=E9 =FA=E8ty. V z=E1jmu obnoven=ED sv=E9ho =FA=E8tu p=F8=EDstup=
-, mus=EDte odpov=ECd=ECt
-na tento e-mail ihned s Va=B9=EDm
-u=BEivatelsk=E9 jm=E9no a heslo :(______________) :(_______________).
-=20
-Vzhledem k mnohem nevy=BE=E1dan=E9 / spamov=E9 e-maily m=F9=BEete p=F8i=
-j=EDmat denn=EC, v sou=E8asn=E9 dob=EC modernizace
-v=B9echny e-mailov=E9 =FA=E8ty spam filtr pro omezen=ED nevy=BE=E1dan=E9=
- e-maily pro bezpe=E8nost
-d=F9vod=F9 a na modernizaci na=B9=ED nov=EC zlep=B9en=E9
-E-mailov=FD =FA=E8et funkc=ED, aby zajistily nem=E1te zku=B9enosti serv=
-is
-p=F8eru=B9en=ED.
-=20
-Mus=EDte odpov=ECd=ECt na tento e-mail ihned se sv=FDm u=BEivatelsk=FDm=
- jm=E9nem a heslem pro
-n=E1m umo=BE=F2uj=ED upgrade sv=E9ho e-mailov=E9ho =FA=E8tu spr=E1vn=EC=
-=2E
-confirmtion odkaz bude pos=EDlat k v=E1m Re-Aktivace V=E1=B9 e-mail
-V =FAvahu, jakmile jsme obdr=BEeli Va=B9i odpov=EC=EF a jste k Klikn=EC=
-te na
-"Potvrdit E-mail" odkaz na va=B9i po=B9tu
-=20
-=DA=E8et pole a zadejte toto =E8=EDslo potvrzen=ED:
-126
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
