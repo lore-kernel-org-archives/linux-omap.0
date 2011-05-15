@@ -1,55 +1,75 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: [patch v4 3/3] arm: omap4: support pmu
-Date: Sun, 15 May 2011 15:16:00 +0100
-Message-ID: <1305468960.2848.2.camel@jazzbox>
-References: <1299598729-27974-1-git-send-email-tom.leiming@gmail.com>
-	<1299598729-27974-4-git-send-email-tom.leiming@gmail.com>
-	<BANLkTi=u8Lv=MR+gW_KmsOJn99Vv2sNkmg@mail.gmail.com>
-	<BANLkTimkrf8-+-JTQy-gWK9t9grj-n0Ftw@mail.gmail.com>
+From: mike@compulab.co.il
+Subject: Re: [RESEND PATCH 2/4] omap: igep0020: minor refactoring
+Date: Sun, 15 May 2011 21:50:43 +0300
+Message-ID: <20110515185043.GA24785@gentoodev.compulab.local>
+References: <cover.1305235542.git.mike@compulab.co.il>
+ <91dd03e6af514a628fc4d797066f3ef0d971b802.1305235542.git.mike@compulab.co.il>
+ <201105132044.39163.arnd@arndb.de>
+Reply-To: mike@compulab.co.il
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <BANLkTimkrf8-+-JTQy-gWK9t9grj-n0Ftw@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Ming Lei <tom.leiming@gmail.com>
-Cc: Woodruff Richard <r-woodruff2@ti.com>, linux@arm.linux.org.uk, avik.sil@linaro.org, Rabin Vincent <rabin@rab.in>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:54793
+	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750863Ab1EOSuw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Sun, 15 May 2011 14:50:52 -0400
+Content-Disposition: inline
+In-Reply-To: <201105132044.39163.arnd@arndb.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-arm-kernel@lists.infradead.org, Tony.Lindgren.tony@atomide.com, Enric Balletb??? i Serra <eballetbo@gmail.com>, linux-omap@vger.kernel.org
 
-[Adding Avik],
-
-
-On Sat, 2011-05-14 at 09:48 +0100, Ming Lei wrote:
-> Hi Rabin,
+On Fri, May 13, 2011 at 08:44:38PM +0200, Arnd Bergmann wrote:
+> On Thursday 12 May 2011, Mike Rapoport wrote:
+> > @@ -299,17 +299,14 @@ static struct omap2_hsmmc_info mmc[] = {
+> >  static struct gpio_led igep_gpio_leds[] = {
+> >         [0] = {
+> >                 .name                   = "gpio-led:red:d0",
+> > -               .gpio                   = IGEP2_GPIO_LED0_RED,
+> >                 .default_trigger        = "default-off"
+> >         },
+> >         [1] = {
+> >                 .name                   = "gpio-led:green:d0",
+> > -               .gpio                   = IGEP2_GPIO_LED0_GREEN,
+> >                 .default_trigger        = "default-off",
+> >         },
+> >         [2] = {
+> >                 .name                   = "gpio-led:red:d1",
+> > -               .gpio                   = IGEP2_GPIO_LED1_RED,
+> >                 .default_trigger        = "default-off",
+> >         },
+> >         [3] = {
+> > @@ -335,6 +332,10 @@ static struct platform_device igep_led_device = {
+> >  
+> >  static void __init igep_leds_init(void)
+> >  {
+> > +       igep_gpio_leds[0].gpio = IGEP2_GPIO_LED0_RED;
+> > +       igep_gpio_leds[1].gpio = IGEP2_GPIO_LED0_GREEN;
+> > +       igep_gpio_leds[2].gpio = IGEP2_GPIO_LED1_RED;
+> > +
+> >         platform_device_register(&igep_led_device);
+> >  }
 > 
-> 2011/5/14 Rabin Vincent <rabin@rab.in>:
-> > What happened to this patch?  It is neither in mainline nor in
-> > linux-next.
-> >
+> Hi Mike,
 > 
-> This patch depends on the two with titles:
+> Overall, the series looks great, but I'm somewhat worried by the fact that you
+> have to replace data structures with code in order to get there. Are there any
+> other options to do this?
+ 
+We can keep all the data structures that differ between IGEP2 and IGEP3.
+However, this significantly reduces the benifit of the series.
+There's already code in the IGEP2 that differentiates between HW
+revisions, so anyway the board support will require some work for
+devicetree transition. Eventually, when devicetree will be usable on
+OMAPs, most of the code currently found in arch/arm/mach-omap2/board*
+will require some work and I hardly believe that the transition can be
+automated...
+
+> 	Arnd
 > 
->       introduce cross trigger interface helpers
->       pmu: allow platform specific irq enable/disable handling
-> 
-> and the above patches have been submitted to RMK's patch system
-> as 6839/1 and 6840/1, but not been pushed to -next or mainline by rmk,
-> so I can't ask omap guys to merge this one into their tree now.
+--
+Sincerely yours,
+Mike.
 
-I don't think that Avik's problem with this patch has been fully
-addressed yet:
-
-http://lists.infradead.org/pipermail/linux-arm-kernel/2011-April/046899.html
-
-So regardless of the state of -next, I think there's still some more
-work to do on this code before it can go upstream.
-
-Will
