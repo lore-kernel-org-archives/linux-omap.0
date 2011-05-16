@@ -1,49 +1,54 @@
-From: Jan Weitzel <j.weitzel@phytec.de>
-Subject: [PATCH v2] ARM: omap4: i2c reset regs postidle
-Date: Mon, 16 May 2011 11:18:44 +0200
-Message-ID: <1305537524-24753-1-git-send-email-j.weitzel@phytec.de>
-References: <4DD0DC9C.5020300@linaro.org>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: [PATCH] perf: export power_start and power_end tracepoints
+Date: Mon, 16 May 2011 11:23:09 +0200
+Message-ID: <20110516092309.GD12325@elte.hu>
+References: <1305297838-4015-1-git-send-email-j-pihet@ti.com>
+ <20110513144830.GB32688@elte.hu>
+ <BANLkTikkd9bNRLF1iDAz9Jwrnon3A=j44g@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.visioncatalog.de ([217.6.246.34]:32956 "EHLO
-	root.phytec.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753158Ab1EPJSu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 16 May 2011 05:18:50 -0400
-In-Reply-To: <4DD0DC9C.5020300@linaro.org>
+Received: from mx3.mail.elte.hu ([157.181.1.138]:48053 "EHLO mx3.mail.elte.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752737Ab1EPJXT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 16 May 2011 05:23:19 -0400
+Content-Disposition: inline
+In-Reply-To: <BANLkTikkd9bNRLF1iDAz9Jwrnon3A=j44g@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, b-cousson@ti.com, andy.green@linaro.org, patches@linaro.org
-Cc: andy@warmcat.com, tony@atomide.com, peter.maydell@linaro.org, ben-linux@fluff.org, Jan Weitzel <j.weitzel@phytec.de>
+To: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: linux-kernel@vger.kernel.org, Thomas Renninger <trenn@suse.de>, Jean Pihet <j-pihet@ti.com>, linux-omap@vger.kernel.org, linux-pm@lists.linux-foundation.org
 
-Without OMAP_I2C_FLAG_RESET_REGS_POSTIDLE I got i2c controller
-timeouts on each accsess after an NACK message.
-Taking this flag fix it.
 
-This patch is on top of the i2c feature implementation flags
-patches
+* Jean Pihet <jean.pihet@newoldbits.com> wrote:
 
-Signed-off-by: Jan Weitzel <j.weitzel@phytec.de>
-Tested-by: Andy Green <andy.green@linaro.org>
-Acked-by: Andy Green <andy.green@linaro.org>
----
-v2: add Tested-by / Acked-by
+> Adding l-o and linux-pm MLs. The original post is at
+> http://www.spinics.net/lists/kernel/msg1186554.html
+> 
+> On Fri, May 13, 2011 at 4:48 PM, Ingo Molnar <mingo@elte.hu> wrote:
+> >
+> > * jean.pihet@newoldbits.com <jean.pihet@newoldbits.com> wrote:
+> >
+> >> From: Jean Pihet <j-pihet@ti.com>
+> >>
+> >> If used in a module both tracepoints need to be exported by the
+> >> kernel.
+> >
+> > but it's not used by any module in the kernel AFAICS, so why is this needed?
+> Not currently, that is why the error went unnoticed. I think it is
+> better to fix it now than later.
+> 
+> I am working on a plan to clean-up and isolate the OMAP PM code from
+> the core code and to provide the PM functionality as a module. This
+> effort is part of the 'remove the crazy ARM churn' from the kernel.
 
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+Feel free to keep this patch with those modifications/cleanups:
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index 5f4a1b2..3d3b4f4 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -2130,7 +2130,8 @@ static struct omap_hwmod_class omap44xx_i2c_hwmod_class = {
- };
- 
- static struct omap_i2c_dev_attr i2c_dev_attr = {
--	.flags  = OMAP_I2C_FLAG_BUS_SHIFT_NONE,
-+	.flags  = OMAP_I2C_FLAG_BUS_SHIFT_NONE |
-+		  OMAP_I2C_FLAG_RESET_REGS_POSTIDLE,
- };
- 
- /* i2c1 */
--- 
-1.7.0.4
+Acked-by: Ingo Molnar <mingo@elte.hu>
 
+but please make sure you push it together, i.e. never export something 
+(knowingly) without having in-tree use for it.
+
+Thanks,
+
+	Ingo
