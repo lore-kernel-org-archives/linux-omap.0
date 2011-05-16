@@ -1,184 +1,414 @@
-From: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Subject: [RESEND][PATCH 3/5] arm: omap: usb: device name change for the clk names of usbhs
-Date: Mon, 16 May 2011 14:34:57 +0530
-Message-ID: <1305536697-20147-6-git-send-email-keshava_mgowda@ti.com>
+From: Keshava Munegowda <keshava_mgowda@ti.com>
+Subject: [RESEND][PATCH 0/5] arm: omap: usb: Runtime PM support for EHCI and OHCI drivers
+Date: Mon, 16 May 2011 14:34:53 +0530
+Message-ID: <1305536697-20147-2-git-send-email-keshava_mgowda@ti.com>
 References: <1305536697-20147-1-git-send-email-keshava_mgowda@ti.com>
- <1305536697-20147-2-git-send-email-keshava_mgowda@ti.com>
- <1305536697-20147-3-git-send-email-keshava_mgowda@ti.com>
- <1305536697-20147-4-git-send-email-keshava_mgowda@ti.com>
- <1305536697-20147-5-git-send-email-keshava_mgowda@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1305536697-20147-5-git-send-email-keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org, gadiyar-l0cyMroinI0@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org, Keshava Munegowda <Keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1305536697-20147-1-git-send-email-keshava_mgowda@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Keshava Munegowda <keshava_mgowda@ti.com>, balbi@ti.com, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com
 List-Id: linux-omap@vger.kernel.org
 
-From: Keshava Munegowda <Keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Following 2 hwmod strcuture are added:
+UHH hwmod of usbhs with uhh base address and
+EHCI , OHCI irq and base addresses.
+TLL hwmod of usbhs with the TLL base address and irq.
 
-The global suspend and resume functions for usbhs core driver
-are implemented.These routine are called when the global suspend
-and resume occurs. Before calling these functions, the
-bus suspend and resume of ehci and ohci drivers are called
-from runtime pm.
-
-Signed-off-by: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
 ---
- drivers/mfd/omap-usb-host.c |  103 +++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 103 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  184 ++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  153 +++++++++++++++++++++++
+ 2 files changed, 337 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
-index bd63429..e1bc3b5 100644
---- a/drivers/mfd/omap-usb-host.c
-+++ b/drivers/mfd/omap-usb-host.c
-@@ -146,6 +146,10 @@
- #define is_ehci_hsic_mode(x)	(x == OMAP_EHCI_PORT_MODE_HSIC)
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+index 909a84d..fe9a176 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -84,6 +84,8 @@ static struct omap_hwmod omap3xxx_mcbsp4_hwmod;
+ static struct omap_hwmod omap3xxx_mcbsp5_hwmod;
+ static struct omap_hwmod omap3xxx_mcbsp2_sidetone_hwmod;
+ static struct omap_hwmod omap3xxx_mcbsp3_sidetone_hwmod;
++static struct omap_hwmod omap34xx_usb_host_hs_hwmod;
++static struct omap_hwmod omap34xx_usb_tll_hs_hwmod;
  
- 
-+/* USBHS state bits */
-+#define OMAP_USBHS_INIT		0
-+#define OMAP_USBHS_SUSPEND	4
-+
- struct usbhs_hcd_omap {
- 	struct clk			*xclk60mhsp1_ck;
- 	struct clk			*xclk60mhsp2_ck;
-@@ -165,6 +169,7 @@ struct usbhs_hcd_omap {
- 	u32				usbhs_rev;
- 	spinlock_t			lock;
- 	int				count;
-+	unsigned long			state;
+ /* L3 -> L4_CORE interface */
+ static struct omap_hwmod_ocp_if omap3xxx_l3_main__l4_core = {
+@@ -3574,6 +3576,185 @@ static struct omap_hwmod omap3xxx_mmc3_hwmod = {
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
  };
- /*-------------------------------------------------------------------------*/
  
-@@ -807,6 +812,8 @@ static int usbhs_enable(struct device *dev)
- 				(pdata->ehci_data->reset_gpio_port[1], 1);
- 	}
- 
-+	set_bit(OMAP_USBHS_INIT, &omap->state);
-+
- end_count:
- 	omap->count++;
- 	spin_unlock_irqrestore(&omap->lock, flags);
-@@ -895,6 +902,7 @@ static void usbhs_disable(struct device *dev)
- 	}
- 
- 	pm_runtime_put_sync(dev);
-+	clear_bit(OMAP_USBHS_INIT, &omap->state);
- 
- 	/* The gpio_free migh sleep; so unlock the spinlock */
- 	spin_unlock_irqrestore(&omap->lock, flags);
-@@ -924,10 +932,105 @@ void omap_usbhs_disable(struct device *dev)
- }
- EXPORT_SYMBOL_GPL(omap_usbhs_disable);
- 
-+#ifdef	CONFIG_PM
-+
-+static int usbhs_resume(struct device *dev)
-+{
-+	struct usbhs_hcd_omap		*omap = dev_get_drvdata(dev);
-+	struct usbhs_omap_platform_data	*pdata = &omap->platdata;
-+	unsigned long			flags = 0;
-+
-+	dev_dbg(dev, "Resuming TI HSUSB Controller\n");
-+
-+	if (!pdata) {
-+		dev_dbg(dev, "missing platform_data\n");
-+		return  -ENODEV;
-+	}
-+
-+	spin_lock_irqsave(&omap->lock, flags);
-+
-+	if (!test_bit(OMAP_USBHS_INIT, &omap->state) ||
-+		!test_bit(OMAP_USBHS_SUSPEND, &omap->state))
-+			goto end_resume;
-+
-+	pm_runtime_get_sync(dev);
-+
-+	if (is_omap_usbhs_rev2(omap)) {
-+		if (is_ehci_tll_mode(pdata->port_mode[0])) {
-+			clk_enable(omap->usbhost_p1_fck);
-+			clk_enable(omap->usbtll_p1_fck);
-+		}
-+		if (is_ehci_tll_mode(pdata->port_mode[1])) {
-+			clk_enable(omap->usbhost_p2_fck);
-+			clk_enable(omap->usbtll_p2_fck);
-+		}
-+		clk_enable(omap->utmi_p1_fck);
-+		clk_enable(omap->utmi_p2_fck);
-+	}
-+	clear_bit(OMAP_USBHS_SUSPEND, &omap->state);
-+
-+end_resume:
-+	spin_unlock_irqrestore(&omap->lock, flags);
-+	return 0;
-+}
-+
-+
-+static int usbhs_suspend(struct device *dev)
-+{
-+	struct usbhs_hcd_omap		*omap = dev_get_drvdata(dev);
-+	struct usbhs_omap_platform_data	*pdata = &omap->platdata;
-+	unsigned long			flags = 0;
-+
-+	dev_dbg(dev, "Suspending TI HSUSB Controller\n");
-+
-+	if (!pdata) {
-+		dev_dbg(dev, "missing platform_data\n");
-+		return  -ENODEV;
-+	}
-+
-+	spin_lock_irqsave(&omap->lock, flags);
-+
-+	if (!test_bit(OMAP_USBHS_INIT, &omap->state) ||
-+		test_bit(OMAP_USBHS_SUSPEND, &omap->state))
-+			goto end_suspend;
-+
-+	if (is_omap_usbhs_rev2(omap)) {
-+		if (is_ehci_tll_mode(pdata->port_mode[0])) {
-+			clk_disable(omap->usbhost_p1_fck);
-+			clk_disable(omap->usbtll_p1_fck);
-+		}
-+		if (is_ehci_tll_mode(pdata->port_mode[1])) {
-+			clk_disable(omap->usbhost_p2_fck);
-+			clk_disable(omap->usbtll_p2_fck);
-+		}
-+		clk_disable(omap->utmi_p2_fck);
-+		clk_disable(omap->utmi_p1_fck);
-+	}
-+
-+	set_bit(OMAP_USBHS_SUSPEND, &omap->state);
-+	pm_runtime_put_sync(dev);
-+
-+end_suspend:
-+	spin_unlock_irqrestore(&omap->lock, flags);
-+	return 0;
-+}
-+
-+
-+static const struct dev_pm_ops usbhsomap_dev_pm_ops = {
-+	.suspend	= usbhs_suspend,
-+	.resume		= usbhs_resume,
++/*
++ * 'usb_host_hs' class
++ * high-speed multi-port usb host controller
++ */
++static struct omap_hwmod_ocp_if omap34xx_usb_host_hs__l3_main_2 = {
++	.master		= &omap34xx_usb_host_hs_hwmod,
++	.slave		= &omap3xxx_l3_main_hwmod,
++	.clk		= "core_l3_ick",
++	.user		= OCP_USER_MPU,
 +};
 +
-+#define USBHS_OMAP_DEV_PM_OPS (&usbhsomap_dev_pm_ops)
-+#else
-+#define	USBHS_OMAP_DEV_PM_OPS	NULL
-+#endif
++static struct omap_hwmod_class_sysconfig omap34xx_usb_host_hs_sysc = {
++	.rev_offs	= 0x0000,
++	.sysc_offs	= 0x0010,
++	.syss_offs	= 0x0014,
++	.sysc_flags	= (SYSC_HAS_MIDLEMODE | SYSC_HAS_SIDLEMODE),
++	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
++			   MSTANDBY_FORCE | MSTANDBY_NO | MSTANDBY_SMART),
++	.sysc_fields	= &omap_hwmod_sysc_type1,
++};
 +
- static struct platform_driver usbhs_omap_driver = {
- 	.driver = {
- 		.name		= (char *)usbhs_driver_name,
- 		.owner		= THIS_MODULE,
-+		.pm		= USBHS_OMAP_DEV_PM_OPS,
- 	},
- 	.remove		= __exit_p(usbhs_omap_remove),
++static struct omap_hwmod_class omap34xx_usb_host_hs_hwmod_class = {
++	.name = "usbhs_uhh",
++	.sysc = &omap34xx_usb_host_hs_sysc,
++};
++
++static struct omap_hwmod_ocp_if *omap34xx_usb_host_hs_masters[] = {
++	&omap34xx_usb_host_hs__l3_main_2,
++};
++
++static struct omap_hwmod_irq_info omap34xx_usb_host_hs_irqs[] = {
++	{ .name = "ohci-irq", .irq = 76 },
++	{ .name = "ehci-irq", .irq = 77 },
++};
++
++static struct omap_hwmod_addr_space omap34xx_usb_host_hs_addrs[] = {
++	{
++		.name		= "uhh",
++		.pa_start	= 0x48064000,
++		.pa_end		= 0x480643ff,
++		.flags		= ADDR_TYPE_RT
++	},
++	{
++		.name		= "ohci",
++		.pa_start	= 0x48064400,
++		.pa_end		= 0x480647FF,
++		.flags		= ADDR_MAP_ON_INIT
++	},
++	{
++		.name		= "ehci",
++		.pa_start	= 0x48064800,
++		.pa_end		= 0x48064CFF,
++		.flags		= ADDR_MAP_ON_INIT
++	}
++};
++
++static struct omap_hwmod_ocp_if omap34xx_l4_cfg__usb_host_hs = {
++	.master		= &omap3xxx_l4_core_hwmod,
++	.slave		= &omap34xx_usb_host_hs_hwmod,
++	.clk		= "l4_ick",
++	.addr		= omap34xx_usb_host_hs_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap34xx_usb_host_hs_addrs),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++static struct omap_hwmod_ocp_if omap34xx_f128m_cfg__usb_host_hs = {
++	.clk		= "usbhost_120m_fck",
++	.user		= OCP_USER_MPU,
++	.flags		= OCPIF_SWSUP_IDLE,
++};
++
++static struct omap_hwmod_ocp_if omap34xx_f48m_cfg__usb_host_hs = {
++	.clk		= "usbhost_48m_fck",
++	.user		= OCP_USER_MPU,
++	.flags		= OCPIF_SWSUP_IDLE,
++};
++
++static struct omap_hwmod_ocp_if *omap34xx_usb_host_hs_slaves[] = {
++	&omap34xx_l4_cfg__usb_host_hs,
++	&omap34xx_f128m_cfg__usb_host_hs,
++	&omap34xx_f48m_cfg__usb_host_hs,
++};
++
++static struct omap_hwmod omap34xx_usb_host_hs_hwmod = {
++	.name		= "usbhs_uhh",
++	.class		= &omap34xx_usb_host_hs_hwmod_class,
++	.mpu_irqs	= omap34xx_usb_host_hs_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap34xx_usb_host_hs_irqs),
++	.main_clk	= "usbhost_ick",
++	.prcm = {
++		.omap2 = {
++			.module_offs = OMAP3430ES2_USBHOST_MOD,
++			.prcm_reg_id = 1,
++			.module_bit = 0,
++			.idlest_reg_id = 1,
++			.idlest_idle_bit = 1,
++			.idlest_stdby_bit = 0,
++		},
++	},
++	.slaves		= omap34xx_usb_host_hs_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap34xx_usb_host_hs_slaves),
++	.masters	= omap34xx_usb_host_hs_masters,
++	.masters_cnt	= ARRAY_SIZE(omap34xx_usb_host_hs_masters),
++	.flags		= HWMOD_SWSUP_SIDLE | HWMOD_SWSUP_MSTANDBY,
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++};
++
++/*
++ * 'usb_tll_hs' class
++ * usb_tll_hs module is the adapter on the usb_host_hs ports
++ */
++static struct omap_hwmod_class_sysconfig omap34xx_usb_tll_hs_sysc = {
++	.rev_offs	= 0x0000,
++	.sysc_offs	= 0x0010,
++	.syss_offs	= 0x0014,
++	.sysc_flags	= (SYSC_HAS_AUTOIDLE | SYSC_HAS_SIDLEMODE),
++	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
++	.sysc_fields	= &omap_hwmod_sysc_type1,
++};
++
++static struct omap_hwmod_class omap34xx_usb_tll_hs_hwmod_class = {
++	.name = "usbhs_tll",
++	.sysc = &omap34xx_usb_tll_hs_sysc,
++};
++
++static struct omap_hwmod_irq_info omap34xx_usb_tll_hs_irqs[] = {
++	{ .name = "tll-irq", .irq = 78 },
++};
++
++static struct omap_hwmod_addr_space omap34xx_usb_tll_hs_addrs[] = {
++	{
++		.name		= "tll",
++		.pa_start	= 0x48062000,
++		.pa_end		= 0x48062fff,
++		.flags		= ADDR_TYPE_RT
++	},
++};
++
++static struct omap_hwmod_ocp_if omap34xx_f_cfg__usb_tll_hs = {
++	.clk		= "usbtll_fck",
++	.user		= OCP_USER_MPU,
++	.flags		= OCPIF_SWSUP_IDLE,
++};
++
++static struct omap_hwmod_ocp_if omap34xx_l4_cfg__usb_tll_hs = {
++	.master		= &omap3xxx_l4_core_hwmod,
++	.slave		= &omap34xx_usb_tll_hs_hwmod,
++	.clk		= "l4_ick",
++	.addr		= omap34xx_usb_tll_hs_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap34xx_usb_tll_hs_addrs),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++static struct omap_hwmod_ocp_if *omap34xx_usb_tll_hs_slaves[] = {
++	&omap34xx_l4_cfg__usb_tll_hs,
++	&omap34xx_f_cfg__usb_tll_hs,
++};
++
++static struct omap_hwmod omap34xx_usb_tll_hs_hwmod = {
++	.name		= "usbhs_tll",
++	.class		= &omap34xx_usb_tll_hs_hwmod_class,
++	.mpu_irqs	= omap34xx_usb_tll_hs_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap34xx_usb_tll_hs_irqs),
++	.main_clk	= "usbtll_ick",
++	.prcm = {
++		.omap2 = {
++			.module_offs = CORE_MOD,
++			.prcm_reg_id = 3,
++			.module_bit = 2,
++			.idlest_reg_id = 3,
++			.idlest_idle_bit = 2,
++		},
++	},
++	.slaves		= omap34xx_usb_tll_hs_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap34xx_usb_tll_hs_slaves),
++	.flags		= HWMOD_SWSUP_SIDLE | HWMOD_SWSUP_MSTANDBY,
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++};
++
+ static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
+ 	&omap3xxx_l3_main_hwmod,
+ 	&omap3xxx_l4_core_hwmod,
+@@ -3656,6 +3837,9 @@ static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
+ 	/* usbotg for am35x */
+ 	&am35xx_usbhsotg_hwmod,
+ 
++	&omap34xx_usb_host_hs_hwmod,
++	&omap34xx_usb_tll_hs_hwmod,
++
+ 	NULL,
  };
+ 
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+index abc548a..d7112b0 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -66,6 +66,8 @@ static struct omap_hwmod omap44xx_mmc2_hwmod;
+ static struct omap_hwmod omap44xx_mpu_hwmod;
+ static struct omap_hwmod omap44xx_mpu_private_hwmod;
+ static struct omap_hwmod omap44xx_usb_otg_hs_hwmod;
++static struct omap_hwmod omap44xx_usb_host_hs_hwmod;
++static struct omap_hwmod omap44xx_usb_tll_hs_hwmod;
+ 
+ /*
+  * Interconnects omap_hwmod structures
+@@ -5027,6 +5029,155 @@ static struct omap_hwmod omap44xx_wd_timer3_hwmod = {
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+ 
++/*
++ * 'usb_host_hs' class
++ * high-speed multi-port usb host controller
++ */
++static struct omap_hwmod_ocp_if omap44xx_usb_host_hs__l3_main_2 = {
++	.master		= &omap44xx_usb_host_hs_hwmod,
++	.slave		= &omap44xx_l3_main_2_hwmod,
++	.clk		= "l3_div_ck",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++static struct omap_hwmod_class_sysconfig omap44xx_usb_host_hs_sysc = {
++	.rev_offs	= 0x0000,
++	.sysc_offs	= 0x0010,
++	.syss_offs	= 0x0014,
++	.sysc_flags	= (SYSC_HAS_MIDLEMODE | SYSC_HAS_SIDLEMODE),
++	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
++			   MSTANDBY_FORCE | MSTANDBY_NO | MSTANDBY_SMART),
++	.sysc_fields	= &omap_hwmod_sysc_type2,
++};
++
++static struct omap_hwmod_class omap44xx_usb_host_hs_hwmod_class = {
++	.name = "usbhs_uhh",
++	.sysc = &omap44xx_usb_host_hs_sysc,
++};
++
++static struct omap_hwmod_ocp_if *omap44xx_usb_host_hs_masters[] = {
++	&omap44xx_usb_host_hs__l3_main_2,
++};
++
++static struct omap_hwmod_irq_info omap44xx_usb_host_hs_irqs[] = {
++	{ .name = "ohci-irq", .irq = 76 + OMAP44XX_IRQ_GIC_START },
++	{ .name = "ehci-irq", .irq = 77 + OMAP44XX_IRQ_GIC_START },
++};
++
++static struct omap_hwmod_addr_space omap44xx_usb_host_hs_addrs[] = {
++	{
++		.name		= "uhh",
++		.pa_start	= 0x4a064000,
++		.pa_end		= 0x4a0647ff,
++		.flags		= ADDR_TYPE_RT
++	},
++	{
++		.name		= "ohci",
++		.pa_start	= 0x4A064800,
++		.pa_end		= 0x4A064BFF,
++		.flags		= ADDR_MAP_ON_INIT
++	},
++	{
++		.name		= "ehci",
++		.pa_start	= 0x4A064C00,
++		.pa_end		= 0x4A064FFF,
++		.flags		= ADDR_MAP_ON_INIT
++	}
++};
++
++static struct omap_hwmod_ocp_if omap44xx_l4_cfg__usb_host_hs = {
++	.master		= &omap44xx_l4_cfg_hwmod,
++	.slave		= &omap44xx_usb_host_hs_hwmod,
++	.clk		= "l4_div_ck",
++	.addr		= omap44xx_usb_host_hs_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap44xx_usb_host_hs_addrs),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++static struct omap_hwmod_ocp_if *omap44xx_usb_host_hs_slaves[] = {
++	&omap44xx_l4_cfg__usb_host_hs,
++};
++
++static struct omap_hwmod omap44xx_usb_host_hs_hwmod = {
++	.name		= "usbhs_uhh",
++	.class		= &omap44xx_usb_host_hs_hwmod_class,
++	.mpu_irqs	= omap44xx_usb_host_hs_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_usb_host_hs_irqs),
++	.main_clk	= "usb_host_hs_fck",
++	.prcm = {
++		.omap4 = {
++			.clkctrl_reg = OMAP4430_CM_L3INIT_USB_HOST_CLKCTRL,
++		},
++	},
++	.slaves		= omap44xx_usb_host_hs_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap44xx_usb_host_hs_slaves),
++	.masters	= omap44xx_usb_host_hs_masters,
++	.masters_cnt	= ARRAY_SIZE(omap44xx_usb_host_hs_masters),
++	.flags		= HWMOD_SWSUP_SIDLE | HWMOD_SWSUP_MSTANDBY,
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
++};
++
++/*
++ * 'usb_tll_hs' class
++ * usb_tll_hs module is the adapter on the usb_host_hs ports
++ */
++static struct omap_hwmod_class_sysconfig omap44xx_usb_tll_hs_sysc = {
++	.rev_offs	= 0x0000,
++	.sysc_offs	= 0x0010,
++	.syss_offs	= 0x0014,
++	.sysc_flags	= (SYSC_HAS_AUTOIDLE | SYSC_HAS_SIDLEMODE),
++	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
++	.sysc_fields	= &omap_hwmod_sysc_type1,
++};
++
++static struct omap_hwmod_class omap44xx_usb_tll_hs_hwmod_class = {
++	.name = "usbhs_tll",
++	.sysc = &omap44xx_usb_tll_hs_sysc,
++};
++
++static struct omap_hwmod_irq_info omap44xx_usb_tll_hs_irqs[] = {
++	{ .name = "tll-irq", .irq = 78 + OMAP44XX_IRQ_GIC_START },
++};
++
++static struct omap_hwmod_addr_space omap44xx_usb_tll_hs_addrs[] = {
++	{
++		.name		= "tll",
++		.pa_start	= 0x4a062000,
++		.pa_end		= 0x4a063fff,
++		.flags		= ADDR_TYPE_RT
++	},
++};
++
++static struct omap_hwmod_ocp_if omap44xx_l4_cfg__usb_tll_hs = {
++	.master		= &omap44xx_l4_cfg_hwmod,
++	.slave		= &omap44xx_usb_tll_hs_hwmod,
++	.clk		= "l4_div_ck",
++	.addr		= omap44xx_usb_tll_hs_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap44xx_usb_tll_hs_addrs),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++static struct omap_hwmod_ocp_if *omap44xx_usb_tll_hs_slaves[] = {
++	&omap44xx_l4_cfg__usb_tll_hs,
++};
++
++static struct omap_hwmod omap44xx_usb_tll_hs_hwmod = {
++	.name		= "usbhs_tll",
++	.class		= &omap44xx_usb_tll_hs_hwmod_class,
++	.mpu_irqs	= omap44xx_usb_tll_hs_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_usb_tll_hs_irqs),
++	.main_clk	= "usb_tll_hs_ick",
++	.prcm = {
++		.omap4 = {
++			.clkctrl_reg = OMAP4430_CM_L3INIT_USB_TLL_CLKCTRL,
++		},
++	},
++	.slaves		= omap44xx_usb_tll_hs_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap44xx_usb_tll_hs_slaves),
++	.flags		= HWMOD_SWSUP_SIDLE | HWMOD_SWSUP_MSTANDBY,
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
++};
++
+ static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
+ 
+ 	/* dmm class */
+@@ -5173,6 +5324,8 @@ static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
+ 	&omap44xx_wd_timer2_hwmod,
+ 	&omap44xx_wd_timer3_hwmod,
+ 
++	&omap44xx_usb_host_hs_hwmod,
++	&omap44xx_usb_tll_hs_hwmod,
+ 	NULL,
+ };
+ 
 -- 
 1.6.0.4
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
