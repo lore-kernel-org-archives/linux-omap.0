@@ -1,128 +1,91 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH 2/4] OMAP: DSS2: DSI: Use system workqueue for delayed work instead of a private workqueue
-Date: Mon, 16 May 2011 15:17:07 +0530
-Message-ID: <1305539229-28560-3-git-send-email-archit@ti.com>
+Subject: [PATCH 4/4] OMAP: DSS2: DSI: Get line buffer size from DSI_GNQ register
+Date: Mon, 16 May 2011 15:17:09 +0530
+Message-ID: <1305539229-28560-5-git-send-email-archit@ti.com>
 References: <1305539229-28560-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:53157 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:39549 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753974Ab1EPJmX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 16 May 2011 05:42:23 -0400
-Received: from dlep35.itg.ti.com ([157.170.170.118])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p4G9gMBP027238
+	id S1754171Ab1EPJmb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 16 May 2011 05:42:31 -0400
+Received: from dlep33.itg.ti.com ([157.170.170.112])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p4G9gVNw002925
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Mon, 16 May 2011 04:42:22 -0500
+	for <linux-omap@vger.kernel.org>; Mon, 16 May 2011 04:42:31 -0500
 Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
-	by dlep35.itg.ti.com (8.13.7/8.13.7) with ESMTP id p4G9gMKX010452
-	for <linux-omap@vger.kernel.org>; Mon, 16 May 2011 04:42:22 -0500 (CDT)
+	by dlep33.itg.ti.com (8.13.7/8.13.7) with ESMTP id p4G9gUDd024677
+	for <linux-omap@vger.kernel.org>; Mon, 16 May 2011 04:42:30 -0500 (CDT)
 In-Reply-To: <1305539229-28560-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com
 Cc: linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-In the previous DSI driver design, a private workqueue was needed to prevent a
-deadlock as explained in the commit : 0f16aa0ae6b84d7ae72fbe8999e6a94cb78edd4e
-. In the current design, the workqueue is only used for queueing delayed work in
-the case where we don't get a FRAMEDONE interrupt for 250 milliseconds. It is
-safe to remove the private workqueue amd use the system workqueue instead to
-schedule the delayed work with the new design where the deadlock can't occur.
+The line buffer sizes vary across DSI modules, create a function
+dsi_get_line_buf_size() using DSI_GNQ register to get the size of
+line buffer used for the DISPC video port data.
 
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/video/omap2/dss/dsi.c |   25 +++++++------------------
- 1 files changed, 7 insertions(+), 18 deletions(-)
+ drivers/video/omap2/dss/dsi.c |   36 ++++++++++++++++++++++++++++++++----
+ 1 files changed, 32 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
-index 091b318..f04244b 100644
+index 784677d..345757c 100644
 --- a/drivers/video/omap2/dss/dsi.c
 +++ b/drivers/video/omap2/dss/dsi.c
-@@ -294,8 +294,6 @@ struct dsi_data {
- 	bool te_enabled;
- 	bool ulps_enabled;
+@@ -2036,6 +2036,37 @@ static inline int dsi_get_num_data_lanes_dssdev(struct omap_dss_device *dssdev)
+ 	return num_data_lanes;
+ }
  
--	struct workqueue_struct *workqueue;
--
- 	void (*framedone_callback)(int, void *);
- 	void *framedone_data;
++static unsigned dsi_get_line_buf_size(struct platform_device *dsidev)
++{
++	int val;
++
++	/* line buffer on OMAP3 is 1024 x 24bits */
++	/* XXX: for some reason using full buffer size causes
++	 * considerable TX slowdown with update sizes that fill the
++	 * whole buffer */
++	if (!dss_has_feature(FEAT_DSI_GNQ))
++		return 1023 * 3;
++
++	val = REG_GET(dsidev, DSI_GNQ, 14, 12); /* VP1_LINE_BUFFER_SIZE */
++
++	switch (val) {
++	case 1:
++		return 512 * 3;		/* 512x24 bits */
++	case 2:
++		return 682 * 3;		/* 682x24 bits */
++	case 3:
++		return 853 * 3;		/* 853x24 bits */
++	case 4:
++		return 1024 * 3;	/* 1024x24 bits */
++	case 5:
++		return 1194 * 3;	/* 1194x24 bits */
++	case 6:
++		return 1365 * 3;	/* 1365x24 bits */
++	default:
++		BUG();
++	}
++}
++
+ static void dsi_set_lane_config(struct omap_dss_device *dssdev)
+ {
+ 	struct platform_device *dsidev = dsi_get_dsidev_from_dssdev(dssdev);
+@@ -3771,10 +3802,7 @@ static void dsi_update_screen_dispc(struct omap_dss_device *dssdev,
+ 	u32 l;
+ 	int r;
+ 	const unsigned channel = dsi->update_channel;
+-	/* line buffer is 1024 x 24bits */
+-	/* XXX: for some reason using full buffer size causes considerable TX
+-	 * slowdown with update sizes that fill the whole buffer */
+-	const unsigned line_buf_size = 1023 * 3;
++	const unsigned line_buf_size = dsi_get_line_buf_size(dsidev);
  
-@@ -3753,8 +3751,8 @@ static void dsi_update_screen_dispc(struct omap_dss_device *dssdev,
- 
- 	dsi_perf_mark_start(dsidev);
- 
--	r = queue_delayed_work(dsi->workqueue, &dsi->framedone_timeout_work,
--			msecs_to_jiffies(250));
-+	r = schedule_delayed_work(&dsi->framedone_timeout_work,
-+		msecs_to_jiffies(250));
- 	BUG_ON(r == 0);
- 
- 	dss_start_update(dssdev);
-@@ -4369,12 +4367,6 @@ static int dsi_init(struct platform_device *dsidev)
- 	mutex_init(&dsi->lock);
- 	sema_init(&dsi->bus_lock, 1);
- 
--	dsi->workqueue = create_singlethread_workqueue(dev_name(&dsidev->dev));
--	if (dsi->workqueue == NULL) {
--		r = -ENOMEM;
--		goto err1;
--	}
--
- 	INIT_DELAYED_WORK_DEFERRABLE(&dsi->framedone_timeout_work,
- 			dsi_framedone_timeout_work_callback);
- 
-@@ -4387,26 +4379,26 @@ static int dsi_init(struct platform_device *dsidev)
- 	if (!dsi_mem) {
- 		DSSERR("can't get IORESOURCE_MEM DSI\n");
- 		r = -EINVAL;
--		goto err2;
-+		goto err1;
- 	}
- 	dsi->base = ioremap(dsi_mem->start, resource_size(dsi_mem));
- 	if (!dsi->base) {
- 		DSSERR("can't ioremap DSI\n");
- 		r = -ENOMEM;
--		goto err2;
-+		goto err1;
- 	}
- 	dsi->irq = platform_get_irq(dsi->pdev, 0);
- 	if (dsi->irq < 0) {
- 		DSSERR("platform_get_irq failed\n");
- 		r = -ENODEV;
--		goto err3;
-+		goto err2;
- 	}
- 
- 	r = request_irq(dsi->irq, omap_dsi_irq_handler, IRQF_SHARED,
- 		dev_name(&dsidev->dev), dsi->pdev);
- 	if (r < 0) {
- 		DSSERR("request_irq failed\n");
--		goto err3;
-+		goto err2;
- 	}
- 
- 	/* DSI VCs initialization */
-@@ -4427,10 +4419,8 @@ static int dsi_init(struct platform_device *dsidev)
- 	enable_clocks(0);
- 
- 	return 0;
--err3:
--	iounmap(dsi->base);
- err2:
--	destroy_workqueue(dsi->workqueue);
-+	iounmap(dsi->base);
- err1:
- 	kfree(dsi);
- err0:
-@@ -4454,7 +4444,6 @@ static void dsi_exit(struct platform_device *dsidev)
- 	free_irq(dsi->irq, dsi->pdev);
- 	iounmap(dsi->base);
- 
--	destroy_workqueue(dsi->workqueue);
- 	kfree(dsi);
- 
- 	DSSDBG("omap_dsi_exit\n");
+ 	DSSDBG("dsi_update_screen_dispc(%d,%d %dx%d)\n",
+ 			x, y, w, h);
 -- 
 1.7.1
 
