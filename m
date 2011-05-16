@@ -1,219 +1,47 @@
-From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Subject: [RFC PATCH 08/10] OMAP: GPIO: cleanup prepare-for and resume-after idle functions
-Date: Mon, 16 May 2011 17:11:42 +0530
-Message-ID: <1305546104-1511-9-git-send-email-tarun.kanti@ti.com>
-References: <1305546104-1511-1-git-send-email-tarun.kanti@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL] Two omap fixes for v2.6.39-rc7
+Date: Mon, 16 May 2011 04:43:19 -0700
+Message-ID: <20110516114318.GB1780@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:36418 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753421Ab1EPLlx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 16 May 2011 07:41:53 -0400
-In-Reply-To: <1305546104-1511-1-git-send-email-tarun.kanti@ti.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:56891 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753969Ab1EPLnW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 May 2011 07:43:22 -0400
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>, Charulatha V <charu@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-By adding level and edge detection register offsets and then initializing them
-correctly according to OMAP versions during device registrations we can now remove
-lot of revision checks in these functions.
+Hi Linus,
 
-Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Cc: Charulatha V <charu@ti.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Kevin Hilman <khilman@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap2/gpio.c             |    8 +++
- arch/arm/plat-omap/gpio.c              |   91 ++++++++------------------------
- arch/arm/plat-omap/include/plat/gpio.h |    4 ++
- 3 files changed, 35 insertions(+), 68 deletions(-)
+Please pull two omap fixes from:
 
-diff --git a/arch/arm/mach-omap2/gpio.c b/arch/arm/mach-omap2/gpio.c
-index 7e79999..0f8782f 100644
---- a/arch/arm/mach-omap2/gpio.c
-+++ b/arch/arm/mach-omap2/gpio.c
-@@ -111,6 +111,10 @@ static int omap2_gpio_dev_init(struct omap_hwmod *oh, void *unused)
- 		pdata->regs->debounce = OMAP24XX_GPIO_DEBOUNCE_VAL;
- 		pdata->regs->debounce_en = OMAP24XX_GPIO_DEBOUNCE_EN;
- 		pdata->regs->ctrl = OMAP24XX_GPIO_CTRL;
-+		pdata->regs->leveldetect0 = OMAP24XX_GPIO_LEVELDETECT0;
-+		pdata->regs->leveldetect1 = OMAP24XX_GPIO_LEVELDETECT1;
-+		pdata->regs->risingdetect = OMAP24XX_GPIO_RISINGDETECT;
-+		pdata->regs->fallingdetect = OMAP24XX_GPIO_FALLINGDETECT;
- 		pdata->regs->wkupstatus = OMAP24XX_GPIO_WAKE_EN;
- 		pdata->regs->wkupclear = OMAP24XX_GPIO_CLEARWKUENA;
- 		pdata->regs->wkupset = OMAP24XX_GPIO_SETWKUENA;
-@@ -131,6 +135,10 @@ static int omap2_gpio_dev_init(struct omap_hwmod *oh, void *unused)
- 		pdata->regs->debounce = OMAP4_GPIO_DEBOUNCINGTIME;
- 		pdata->regs->debounce_en = OMAP4_GPIO_DEBOUNCENABLE;
- 		pdata->regs->ctrl = OMAP4_GPIO_CTRL;
-+		pdata->regs->leveldetect0 = OMAP4_GPIO_LEVELDETECT0;
-+		pdata->regs->leveldetect1 = OMAP4_GPIO_LEVELDETECT1;
-+		pdata->regs->risingdetect = OMAP4_GPIO_RISINGDETECT;
-+		pdata->regs->fallingdetect = OMAP4_GPIO_FALLINGDETECT;
- 		pdata->regs->wkupstatus = OMAP4_GPIO_IRQWAKEN0;
- 		pdata->regs->wkupclear = OMAP4_GPIO_IRQWAKEN0;
- 		pdata->regs->wkupset = OMAP4_GPIO_IRQWAKEN0;
-diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
-index 1a6789d..da72856 100644
---- a/arch/arm/plat-omap/gpio.c
-+++ b/arch/arm/plat-omap/gpio.c
-@@ -1291,6 +1291,7 @@ void omap2_gpio_prepare_for_idle(int off_mode)
- 	list_for_each_entry(bank, &omap_gpio_list, node) {
- 		u32 l1 = 0, l2 = 0;
- 		int j;
-+		struct omap_gpio_reg_offs *offset = bank->regs;
- 
- 		if (!bank->loses_context)
- 			continue;
-@@ -1307,40 +1308,17 @@ void omap2_gpio_prepare_for_idle(int off_mode)
- 		if (!(bank->enabled_non_wakeup_gpios))
- 			continue;
- 
--		if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
--			bank->saved_datain = __raw_readl(bank->base +
--					OMAP24XX_GPIO_DATAIN);
--			l1 = __raw_readl(bank->base +
--					OMAP24XX_GPIO_FALLINGDETECT);
--			l2 = __raw_readl(bank->base +
--					OMAP24XX_GPIO_RISINGDETECT);
--		}
--
--		if (cpu_is_omap44xx()) {
--			bank->saved_datain = __raw_readl(bank->base +
--						OMAP4_GPIO_DATAIN);
--			l1 = __raw_readl(bank->base +
--						OMAP4_GPIO_FALLINGDETECT);
--			l2 = __raw_readl(bank->base +
--						OMAP4_GPIO_RISINGDETECT);
--		}
-+		bank->saved_datain = __raw_readl(bank->base + offset->datain);
-+		l1 = __raw_readl(bank->base + offset->fallingdetect);
-+		l2 = __raw_readl(bank->base + offset->risingdetect);
- 
- 		bank->saved_fallingdetect = l1;
- 		bank->saved_risingdetect = l2;
- 		l1 &= ~bank->enabled_non_wakeup_gpios;
- 		l2 &= ~bank->enabled_non_wakeup_gpios;
- 
--		if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
--			__raw_writel(l1, bank->base +
--					OMAP24XX_GPIO_FALLINGDETECT);
--			__raw_writel(l2, bank->base +
--					OMAP24XX_GPIO_RISINGDETECT);
--		}
--
--		if (cpu_is_omap44xx()) {
--			__raw_writel(l1, bank->base + OMAP4_GPIO_FALLINGDETECT);
--			__raw_writel(l2, bank->base + OMAP4_GPIO_RISINGDETECT);
--		}
-+		__raw_writel(l1, bank->base + offset->fallingdetect);
-+		__raw_writel(l2, bank->base + offset->risingdetect);
- 
- 		c++;
- 	}
-@@ -1358,6 +1336,7 @@ void omap2_gpio_resume_after_idle(void)
- 	list_for_each_entry(bank, &omap_gpio_list, node) {
- 		u32 l = 0, gen, gen0, gen1;
- 		int j;
-+		struct omap_gpio_reg_offs *offset = bank->regs;
- 
- 		if (!bank->loses_context)
- 			continue;
-@@ -1371,21 +1350,11 @@ void omap2_gpio_resume_after_idle(void)
- 		if (!(bank->enabled_non_wakeup_gpios))
- 			continue;
- 
--		if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
--			__raw_writel(bank->saved_fallingdetect,
--				 bank->base + OMAP24XX_GPIO_FALLINGDETECT);
--			__raw_writel(bank->saved_risingdetect,
--				 bank->base + OMAP24XX_GPIO_RISINGDETECT);
--			l = __raw_readl(bank->base + OMAP24XX_GPIO_DATAIN);
--		}
--
--		if (cpu_is_omap44xx()) {
--			__raw_writel(bank->saved_fallingdetect,
--				 bank->base + OMAP4_GPIO_FALLINGDETECT);
--			__raw_writel(bank->saved_risingdetect,
--				 bank->base + OMAP4_GPIO_RISINGDETECT);
--			l = __raw_readl(bank->base + OMAP4_GPIO_DATAIN);
--		}
-+		__raw_writel(bank->saved_fallingdetect,
-+				bank->base + offset->fallingdetect);
-+		__raw_writel(bank->saved_risingdetect,
-+				bank->base + offset->risingdetect);
-+		l = __raw_readl(bank->base + offset->datain);
- 
- 		/* Check if any of the non-wakeup interrupt GPIOs have changed
- 		 * state.  If so, generate an IRQ by software.  This is
-@@ -1413,38 +1382,24 @@ void omap2_gpio_resume_after_idle(void)
- 		if (gen) {
- 			u32 old0, old1;
- 
-+			old0 = __raw_readl(bank->base + offset->leveldetect0);
-+			old1 = __raw_readl(bank->base + offset->leveldetect1);
-+
-+			__raw_writel(old0, bank->base + offset->leveldetect0);
-+			__raw_writel(old1, bank->base + offset->leveldetect1);
- 			if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
--				old0 = __raw_readl(bank->base +
--					OMAP24XX_GPIO_LEVELDETECT0);
--				old1 = __raw_readl(bank->base +
--					OMAP24XX_GPIO_LEVELDETECT1);
--				__raw_writel(old0 | gen, bank->base +
--					OMAP24XX_GPIO_LEVELDETECT0);
--				__raw_writel(old1 | gen, bank->base +
--					OMAP24XX_GPIO_LEVELDETECT1);
--				__raw_writel(old0, bank->base +
--					OMAP24XX_GPIO_LEVELDETECT0);
--				__raw_writel(old1, bank->base +
--					OMAP24XX_GPIO_LEVELDETECT1);
-+				old0 |= gen;
-+				old1 |= gen;
- 			}
- 
- 			if (cpu_is_omap44xx()) {
--				old0 = __raw_readl(bank->base +
--						OMAP4_GPIO_LEVELDETECT0);
--				old1 = __raw_readl(bank->base +
--						OMAP4_GPIO_LEVELDETECT1);
--				__raw_writel(old0 | l, bank->base +
--						OMAP4_GPIO_LEVELDETECT0);
--				__raw_writel(old1 | l, bank->base +
--						OMAP4_GPIO_LEVELDETECT1);
--				__raw_writel(old0, bank->base +
--						OMAP4_GPIO_LEVELDETECT0);
--				__raw_writel(old1, bank->base +
--						OMAP4_GPIO_LEVELDETECT1);
-+				old0 |= l;
-+				old1 |= l;
- 			}
-+			__raw_writel(old0, bank->base + offset->leveldetect0);
-+			__raw_writel(old1, bank->base + offset->leveldetect1);
- 		}
- 	}
--
- }
- 
- #endif
-diff --git a/arch/arm/plat-omap/include/plat/gpio.h b/arch/arm/plat-omap/include/plat/gpio.h
-index 81ba1f0..d4e9f3c 100644
---- a/arch/arm/plat-omap/include/plat/gpio.h
-+++ b/arch/arm/plat-omap/include/plat/gpio.h
-@@ -189,6 +189,10 @@ struct omap_gpio_reg_offs {
- 	u16 debounce;
- 	u16 debounce_en;
- 	u16 ctrl;
-+	u16 leveldetect0;
-+	u16 leveldetect1;
-+	u16 risingdetect;
-+	u16 fallingdetect;
- 	u16 wkupstatus;
- 	u16 wkupclear;
- 	u16 wkupset;
--- 
-1.6.0.4
+git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes-for-linus
+
+This contains one iommu regression fix and one clock fix.
+
+Regards,
+
+Tony
+
+
+The following changes since commit 693d92a1bbc9e42681c42ed190bd42b636ca876f:
+  Linus Torvalds (1):
+        Linux 2.6.39-rc7
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes-for-linus
+
+Avinash H.M (1):
+      OMAP3: set the core dpll clk rate in its set_rate function
+
+Laurent Pinchart (1):
+      omap: iommu: Return IRQ_HANDLED in fault handler when no fault occured
+
+ arch/arm/mach-omap2/clkt34xx_dpll3m2.c |    1 +
+ arch/arm/plat-omap/iommu.c             |    2 ++
+ 2 files changed, 3 insertions(+), 0 deletions(-)
