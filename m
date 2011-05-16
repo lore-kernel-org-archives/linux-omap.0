@@ -1,14 +1,13 @@
-From: Keshava Munegowda <keshava_mgowda@ti.com>
-Subject: (unknown)
-Date: Mon, 16 May 2011 15:04:20 +0530
-Message-ID: <1305538460-20980-1-git-send-email-keshava_mgowda@ti.com>
+From: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Subject: [RESEND][PATCH 1/5] arm: omap: usb: ehci and ohci hwmod structures for omap3 and omap4
+Date: Mon, 16 May 2011 15:06:10 +0530
+Message-ID: <1305538570-21006-1-git-send-email-keshava_mgowda@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Subject: 
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Keshava Munegowda <keshava_mgowda@ti.com>, balbi@ti.com, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org, gadiyar-l0cyMroinI0@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
 Following 2 hwmod strcuture are added:
@@ -16,7 +15,7 @@ UHH hwmod of usbhs with uhh base address and
 EHCI , OHCI irq and base addresses.
 TLL hwmod of usbhs with the TLL base address and irq.
 
-Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
+Signed-off-by: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
 ---
  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  184 ++++++++++++++++++++++++++++
  arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  153 +++++++++++++++++++++++
@@ -411,3 +410,8 @@ index abc548a..d7112b0 100644
  
 -- 
 1.6.0.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
