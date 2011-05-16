@@ -1,282 +1,174 @@
-From: "T Krishnamoorthy, Balaji" <balajitk@ti.com>
-Subject: Re: [PATCH v2 3/4] REGULATOR: TWL6025: add support to twl-regulator
-Date: Mon, 16 May 2011 14:38:15 +0530
-Message-ID: <BANLkTinrcQ-DRN-s+0sbJQ2=KRMtu+=hUg@mail.gmail.com>
-References: <1305206878-18094-1-git-send-email-gg@slimlogic.co.uk>
-	<1305206878-18094-4-git-send-email-gg@slimlogic.co.uk>
+From: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Subject: [RESEND][PATCH 2/5] arm: omap: usb: register hwmods of usbhs
+Date: Mon, 16 May 2011 14:34:54 +0530
+Message-ID: <1305536697-20147-3-git-send-email-keshava_mgowda@ti.com>
+References: <1305536697-20147-1-git-send-email-keshava_mgowda@ti.com>
+ <1305536697-20147-2-git-send-email-keshava_mgowda@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1305206878-18094-4-git-send-email-gg@slimlogic.co.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Graeme Gregory <gg@slimlogic.co.uk>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, sameo@linux.intel.com, balbi@ti.com, lrg@slimlogic.co.uk, broonie@opensource.wolfsonmicro.com
+Content-Type: text/plain
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1305536697-20147-2-git-send-email-keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org, gadiyar-l0cyMroinI0@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, May 12, 2011 at 6:57 PM, Graeme Gregory <gg@slimlogic.co.uk> wrote:
-> Adding support for the twl6025. Major difference in the twl6025 is the
-> group functionality has been removed from the chip so this affects how
-> regulators are enabled and disabled.
->
-> The names of the regulators also changed.
->
-> The DCDCs of the 6025 are software controllable as well.
->
-> Since V1
->
-> Use the features variable passed via platform data instead of calling
-> global function.
->
-> Change the very switch like if statements to be a more readable
-> switch statement.
->
-> Signed-off-by: Graeme Gregory <gg@slimlogic.co.uk>
-> ---
->  drivers/regulator/twl-regulator.c |  414 +++++++++++++++++++++++++++++++++---
->  1 files changed, 379 insertions(+), 35 deletions(-)
->
-> diff --git a/drivers/regulator/twl-regulator.c b/drivers/regulator/twl-regulator.c
-> index 2a808c2..51f28cc 100644
-> --- a/drivers/regulator/twl-regulator.c
-> +++ b/drivers/regulator/twl-regulator.c
-> @@ -51,8 +51,13 @@ struct twlreg_info {
->        u16                     min_mV;
->        u16                     max_mV;
->
-> +       u8                      flags;
-> +
->        /* used by regulator core */
->        struct regulator_desc   desc;
-> +
-> +       /* chip specific features */
-> +       unsigned long           features;
->  };
->
->
-> @@ -70,6 +75,7 @@ struct twlreg_info {
->  #define VREG_TRANS             1
->  #define VREG_STATE             2
->  #define VREG_VOLTAGE           3
-> +#define VREG_VOLTAGE_DCDC      4
->  /* TWL6030 Misc register offsets */
->  #define VREG_BC_ALL            1
->  #define VREG_BC_REF            2
-> @@ -87,6 +93,17 @@ struct twlreg_info {
->  #define TWL6030_CFG_STATE_APP(v)       (((v) & TWL6030_CFG_STATE_APP_MASK) >>\
->                                                TWL6030_CFG_STATE_APP_SHIFT)
->
-> +/* Flags for DCDC Voltage reading */
-> +#define DCDC_OFFSET_EN         BIT(0)
-> +#define DCDC_EXTENDED_EN       BIT(1)
-> +
-> +/* twl6025 SMPS EPROM values */
-> +#define TWL6030_SMPS_OFFSET            0xB0
-> +#define TWL6030_SMPS_MULT              0xB3
-> +#define SMPS_MULTOFFSET_SMPS4  BIT(0)
-> +#define SMPS_MULTOFFSET_VIO    BIT(1)
-> +#define SMPS_MULTOFFSET_SMPS3  BIT(6)
-> +
->  static inline int
->  twlreg_read(struct twlreg_info *info, unsigned slave_subgp, unsigned offset)
->  {
-> @@ -144,11 +161,15 @@ static int twl6030reg_is_enabled(struct regulator_dev *rdev)
->        struct twlreg_info      *info = rdev_get_drvdata(rdev);
->        int                     grp, val;
->
-> -       grp = twlreg_read(info, TWL_MODULE_PM_RECEIVER, VREG_GRP);
-> -       if (grp < 0)
-> -               return grp;
-> +       if (!(info->features & TWL6025_SUBCLASS)) {
-> +               grp = twlreg_read(info, TWL_MODULE_PM_RECEIVER, VREG_GRP);
-> +               if (grp < 0)
-> +                       return grp;
->
-> -       grp &= P1_GRP_6030;
-> +               grp &= P1_GRP_6030;
-> +       } else {
-> +               grp = 1;
-> +       }
->
->        val = twlreg_read(info, TWL_MODULE_PM_RECEIVER, VREG_STATE);
->        val = TWL6030_CFG_STATE_APP(val);
-> @@ -159,19 +180,22 @@ static int twl6030reg_is_enabled(struct regulator_dev *rdev)
->  static int twlreg_enable(struct regulator_dev *rdev)
->  {
->        struct twlreg_info      *info = rdev_get_drvdata(rdev);
-> -       int                     grp;
-> -       int                     ret;
-> +       int                     grp = 0;
-> +       int                     ret = 0;
->
-> -       grp = twlreg_read(info, TWL_MODULE_PM_RECEIVER, VREG_GRP);
-> -       if (grp < 0)
-> -               return grp;
-> +       if (!(twl_class_is_6030() && (info->features & TWL6025_SUBCLASS))) {
-> +               grp = twlreg_read(info, TWL_MODULE_PM_RECEIVER, VREG_GRP);
-> +               if (grp < 0)
-> +                       return grp;
->
-> -       if (twl_class_is_4030())
-> -               grp |= P1_GRP_4030;
-> -       else
-> -               grp |= P1_GRP_6030;
-> +               if (twl_class_is_4030())
-> +                       grp |= P1_GRP_4030;
-> +               else
-> +                       grp |= P1_GRP_6030;
->
-> -       ret = twlreg_write(info, TWL_MODULE_PM_RECEIVER, VREG_GRP, grp);
-> +               ret = twlreg_write(info, TWL_MODULE_PM_RECEIVER,
-> +                                       VREG_GRP, grp);
-> +       }
->
->        if (!ret && twl_class_is_6030())
->                ret = twlreg_write(info, TWL_MODULE_PM_RECEIVER, VREG_STATE,
-> @@ -186,29 +210,34 @@ static int twlreg_enable(struct regulator_dev *rdev)
->  static int twlreg_disable(struct regulator_dev *rdev)
->  {
->        struct twlreg_info      *info = rdev_get_drvdata(rdev);
-> -       int                     grp;
-> -       int                     ret;
-> -
-> -       grp = twlreg_read(info, TWL_MODULE_PM_RECEIVER, VREG_GRP);
-> -       if (grp < 0)
-> -               return grp;
-> -
-> -       /* For 6030, set the off state for all grps enabled */
-> -       if (twl_class_is_6030()) {
-> -               ret = twlreg_write(info, TWL_MODULE_PM_RECEIVER, VREG_STATE,
-> -                       (grp & (P1_GRP_6030 | P2_GRP_6030 | P3_GRP_6030)) <<
-> -                               TWL6030_CFG_STATE_GRP_SHIFT |
-> -                       TWL6030_CFG_STATE_OFF);
-> +       int                     grp = 0;
-> +       int                     ret = 0;
-> +
-> +       if (!(twl_class_is_6030() && (info->features & TWL6025_SUBCLASS))) {
-> +               grp = twlreg_read(info, TWL_MODULE_PM_RECEIVER, VREG_GRP);
-> +               if (grp < 0)
-> +                       return grp;
-> +
-> +               /* For 6030, set the off state for all grps enabled */
-> +               if (twl_class_is_6030()) {
-> +                       ret = twlreg_write(info, TWL_MODULE_PM_RECEIVER,
-> +                                       VREG_STATE,
-> +                                       (grp & (P1_GRP_6030 | P2_GRP_6030 |
-> +                                       P3_GRP_6030)) <<
-> +                                       TWL6030_CFG_STATE_GRP_SHIFT |
-> +                                       TWL6030_CFG_STATE_OFF);
->                if (ret)
->                        return ret;
-> -       }
-> +               }
->
-> -       if (twl_class_is_4030())
-> -               grp &= ~(P1_GRP_4030 | P2_GRP_4030 | P3_GRP_4030);
-> -       else
-> -               grp &= ~(P1_GRP_6030 | P2_GRP_6030 | P3_GRP_6030);
-> +               if (twl_class_is_4030())
-> +                       grp &= ~(P1_GRP_4030 | P2_GRP_4030 | P3_GRP_4030);
-> +               else
-> +                       grp &= ~(P1_GRP_6030 | P2_GRP_6030 | P3_GRP_6030);
->
-> -       ret = twlreg_write(info, TWL_MODULE_PM_RECEIVER, VREG_GRP, grp);
-> +               ret = twlreg_write(info, TWL_MODULE_PM_RECEIVER,
-> +                                       VREG_GRP, grp);
-> +       }
->
->        /* Next, associate cleared grp in state register */
->        if (!ret && twl_class_is_6030())
-> @@ -299,10 +328,11 @@ static int twl4030reg_set_mode(struct regulator_dev *rdev, unsigned mode)
->  static int twl6030reg_set_mode(struct regulator_dev *rdev, unsigned mode)
->  {
->        struct twlreg_info      *info = rdev_get_drvdata(rdev);
-> -       int grp;
-> +       int grp = 0;
->        int val;
->
-> -       grp = twlreg_read(info, TWL_MODULE_PM_RECEIVER, VREG_GRP);
-> +       if (!(twl_class_is_6030() && (info->features & TWL6025_SUBCLASS)))
-> +               grp = twlreg_read(info, TWL_MODULE_PM_RECEIVER, VREG_GRP);
->
->        if (grp < 0)
->                return grp;
-> @@ -594,6 +624,230 @@ static struct regulator_ops twl6030_fixed_resource = {
->        .get_status     = twl6030reg_get_status,
->  };
->
-> +/*
-> + * DCDC status and control
-> + */
-> +
+The hwmod structure of uhh and tll are retrived
+and registered with omap device
 
-<snip>
+Signed-off-by: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+---
+ arch/arm/mach-omap2/usb-host.c |   99 ++++++++++++++--------------------------
+ 1 files changed, 35 insertions(+), 64 deletions(-)
 
-> +
-> +static struct regulator_ops twldcdc_ops = {
-> +       .list_voltage           = twl6030dcdc_list_voltage,
-> +
-> +       .set_voltage            = twl6030dcdc_set_voltage,
-> +       .get_voltage_sel        = twl6030dcdc_get_voltage_sel,
+diff --git a/arch/arm/mach-omap2/usb-host.c b/arch/arm/mach-omap2/usb-host.c
+index 89ae298..9d762c4 100644
+--- a/arch/arm/mach-omap2/usb-host.c
++++ b/arch/arm/mach-omap2/usb-host.c
+@@ -28,51 +28,28 @@
+ #include <mach/hardware.h>
+ #include <mach/irqs.h>
+ #include <plat/usb.h>
++#include <plat/omap_device.h>
+ 
+ #include "mux.h"
+ 
+ #ifdef CONFIG_MFD_OMAP_USB_HOST
+ 
+-#define OMAP_USBHS_DEVICE	"usbhs-omap"
+-
+-static struct resource usbhs_resources[] = {
+-	{
+-		.name	= "uhh",
+-		.flags	= IORESOURCE_MEM,
+-	},
+-	{
+-		.name	= "tll",
+-		.flags	= IORESOURCE_MEM,
+-	},
+-	{
+-		.name	= "ehci",
+-		.flags	= IORESOURCE_MEM,
+-	},
+-	{
+-		.name	= "ehci-irq",
+-		.flags	= IORESOURCE_IRQ,
+-	},
+-	{
+-		.name	= "ohci",
+-		.flags	= IORESOURCE_MEM,
+-	},
+-	{
+-		.name	= "ohci-irq",
+-		.flags	= IORESOURCE_IRQ,
+-	}
+-};
+-
+-static struct platform_device usbhs_device = {
+-	.name		= OMAP_USBHS_DEVICE,
+-	.id		= 0,
+-	.num_resources	= ARRAY_SIZE(usbhs_resources),
+-	.resource	= usbhs_resources,
+-};
++#define OMAP_USBHS_DEVICE	"usbhs_omap"
++#define	USBHS_UHH_HWMODNAME	"usbhs_uhh"
++#define USBHS_TLL_HWMODNAME	"usbhs_tll"
+ 
+ static struct usbhs_omap_platform_data		usbhs_data;
+ static struct ehci_hcd_omap_platform_data	ehci_data;
+ static struct ohci_hcd_omap_platform_data	ohci_data;
+ 
++static struct omap_device_pm_latency omap_uhhtll_latency[] = {
++	  {
++		.deactivate_func = omap_device_idle_hwmods,
++		.activate_func	 = omap_device_enable_hwmods,
++		.flags = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
++	  },
++};
++
+ /* MUX settings for EHCI pins */
+ /*
+  * setup_ehci_io_mux - initialize IO pad mux for USBHOST
+@@ -508,7 +485,10 @@ static void setup_4430ohci_io_mux(const enum usbhs_omap_port_mode *port_mode)
+ 
+ void __init usbhs_init(const struct usbhs_omap_board_data *pdata)
+ {
+-	int	i;
++	struct omap_hwmod	*oh[2];
++	struct omap_device	*od;
++	int			bus_id = -1;
++	int			i;
+ 
+ 	for (i = 0; i < OMAP3_HS_USB_PORTS; i++) {
+ 		usbhs_data.port_mode[i] = pdata->port_mode[i];
+@@ -523,44 +503,35 @@ void __init usbhs_init(const struct usbhs_omap_board_data *pdata)
+ 	usbhs_data.ohci_data = &ohci_data;
+ 
+ 	if (cpu_is_omap34xx()) {
+-		usbhs_resources[0].start = OMAP34XX_UHH_CONFIG_BASE;
+-		usbhs_resources[0].end = OMAP34XX_UHH_CONFIG_BASE + SZ_1K - 1;
+-		usbhs_resources[1].start = OMAP34XX_USBTLL_BASE;
+-		usbhs_resources[1].end = OMAP34XX_USBTLL_BASE + SZ_4K - 1;
+-		usbhs_resources[2].start	= OMAP34XX_EHCI_BASE;
+-		usbhs_resources[2].end	= OMAP34XX_EHCI_BASE + SZ_1K - 1;
+-		usbhs_resources[3].start = INT_34XX_EHCI_IRQ;
+-		usbhs_resources[4].start	= OMAP34XX_OHCI_BASE;
+-		usbhs_resources[4].end	= OMAP34XX_OHCI_BASE + SZ_1K - 1;
+-		usbhs_resources[5].start = INT_34XX_OHCI_IRQ;
+ 		setup_ehci_io_mux(pdata->port_mode);
+ 		setup_ohci_io_mux(pdata->port_mode);
+ 	} else if (cpu_is_omap44xx()) {
+-		usbhs_resources[0].start = OMAP44XX_UHH_CONFIG_BASE;
+-		usbhs_resources[0].end = OMAP44XX_UHH_CONFIG_BASE + SZ_1K - 1;
+-		usbhs_resources[1].start = OMAP44XX_USBTLL_BASE;
+-		usbhs_resources[1].end = OMAP44XX_USBTLL_BASE + SZ_4K - 1;
+-		usbhs_resources[2].start = OMAP44XX_HSUSB_EHCI_BASE;
+-		usbhs_resources[2].end = OMAP44XX_HSUSB_EHCI_BASE + SZ_1K - 1;
+-		usbhs_resources[3].start = OMAP44XX_IRQ_EHCI;
+-		usbhs_resources[4].start = OMAP44XX_HSUSB_OHCI_BASE;
+-		usbhs_resources[4].end = OMAP44XX_HSUSB_OHCI_BASE + SZ_1K - 1;
+-		usbhs_resources[5].start = OMAP44XX_IRQ_OHCI;
+ 		setup_4430ehci_io_mux(pdata->port_mode);
+ 		setup_4430ohci_io_mux(pdata->port_mode);
+ 	}
+ 
+-	if (platform_device_add_data(&usbhs_device,
+-				&usbhs_data, sizeof(usbhs_data)) < 0) {
+-		printk(KERN_ERR "USBHS platform_device_add_data failed\n");
+-		goto init_end;
++	oh[0] = omap_hwmod_lookup(USBHS_UHH_HWMODNAME);
++	if (!oh[0]) {
++		pr_err("Could not look up %s\n", USBHS_UHH_HWMODNAME);
++		return;
+ 	}
+ 
+-	if (platform_device_register(&usbhs_device) < 0)
+-		printk(KERN_ERR "USBHS platform_device_register failed\n");
++	oh[1] = omap_hwmod_lookup(USBHS_TLL_HWMODNAME);
++	if (!oh[1]) {
++		pr_err("Could not look up %s\n", USBHS_TLL_HWMODNAME);
++		return;
++	}
+ 
+-init_end:
+-	return;
++	od = omap_device_build_ss(OMAP_USBHS_DEVICE, bus_id, oh, 2,
++				(void *)&usbhs_data, sizeof(usbhs_data),
++				omap_uhhtll_latency,
++				ARRAY_SIZE(omap_uhhtll_latency), false);
++
++	if (IS_ERR(od)) {
++		pr_err("Could not build hwmod devices %s, %s\n",
++			USBHS_UHH_HWMODNAME, USBHS_TLL_HWMODNAME);
++		return;
++	}
+ }
+ 
+ #else
+-- 
+1.6.0.4
 
-These 3 dcdc related function is specific to twl6025, could you please rename it
-
-> +
-> +       .enable                 = twlreg_enable,
-> +       .disable                = twlreg_disable,
-> +       .is_enabled             = twl6030reg_is_enabled,
-> +
-> +       .set_mode               = twl6030reg_set_mode,
-> +
-> +       .get_status             = twl6030reg_get_status,
-
-Can you define separate twl6025 specific regulator enable/disable/is_enabled
-/set_mode and get_status function
-This can improve readability, reduce the number of if
-and improves maintainability of previous twl chips
-
-> +};
-> +
->  /*----------------------------------------------------------------------*/
->
->  #define TWL4030_FIXED_LDO(label, offset, mVolts, num, turnon_delay, \
-> @@ -636,6 +890,22 @@ static struct regulator_ops twl6030_fixed_resource = {
->                }, \
->        }
->
-> +#define TWL6025_ADJUSTABLE_LDO(label, offset, min_mVolts, max_mVolts, num, \
-> +               remap_conf) { \
-> +       .base = offset, \
-> +       .id = num, \
-> +       .min_mV = min_mVolts, \
-> +       .max_mV = max_mVolts, \
-> +       .remap = remap_conf, \
-> +       .desc = { \
-> +               .name = #label, \
-> +               .id = TWL6025_REG_##label, \
-> +               .n_voltages = ((max_mVolts - min_mVolts)/100) + 1, \
-> +               .ops = &twl6030ldo_ops, \
-> +               .type = REGULATOR_VOLTAGE, \
-> +               .owner = THIS_MODULE, \
-> +               }, \
-> +       }
->
->  #define TWL_FIXED_LDO(label, offset, mVolts, num, turnon_delay, remap_conf, \
->                family, operations) { \
-> @@ -667,6 +937,23 @@ static struct regulator_ops twl6030_fixed_resource = {
->                }, \
->        }
->
-> +#define TWL6025_ADJUSTABLE_DCDC(label, offset, num, \
-> +               remap_conf) { \
-> +       .base = offset, \
-> +       .id = num, \
-> +       .min_mV = 600, \
-> +       .max_mV = 2100, \
-> +       .remap = remap_conf, \
-
-remap is not used for twl6025?
-
-> +       .desc = { \
-> +               .name = #label, \
-> +               .id = TWL6025_REG_##label, \
-> +               .n_voltages = 63, \
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
