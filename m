@@ -1,86 +1,91 @@
 From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Subject: [RFC PATCH 00/10] OMAP: GPIO: cleanup GPIO driver
-Date: Mon, 16 May 2011 17:11:34 +0530
-Message-ID: <1305546104-1511-1-git-send-email-tarun.kanti@ti.com>
+Subject: [RFC PATCH 09/10] OMAP: GPIO: cleanup omap_gpio_free and triggering functions
+Date: Mon, 16 May 2011 17:11:43 +0530
+Message-ID: <1305546104-1511-10-git-send-email-tarun.kanti@ti.com>
+References: <1305546104-1511-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48319 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753167Ab1EPLlr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 May 2011 07:41:47 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p4GBfiCO031806
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Mon, 16 May 2011 06:41:46 -0500
+Received: from comal.ext.ti.com ([198.47.26.152]:45255 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753501Ab1EPLlx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 16 May 2011 07:41:53 -0400
+In-Reply-To: <1305546104-1511-1-git-send-email-tarun.kanti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
+Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>, Charulatha V <charu@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>
+
+We can get rid of ifdef / if checks of OMAP revision in set_24xx_gpio_triggering()
+and omap_gpio_free().
+
+Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
 Cc: Charulatha V <charu@ti.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/plat-omap/gpio.c |   38 ++++++++------------------------------
+ 1 files changed, 8 insertions(+), 30 deletions(-)
 
-From: Charulatha V <charu@ti.com>
+diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+index 714626a..bc07559 100644
+--- a/arch/arm/plat-omap/gpio.c
++++ b/arch/arm/plat-omap/gpio.c
+@@ -269,15 +269,9 @@ static inline void set_24xx_gpio_triggering(struct gpio_bank *bank, int gpio,
+ 			bank->enabled_non_wakeup_gpios &= ~gpio_bit;
+ 	}
+ 
+-	if (cpu_is_omap44xx()) {
+-		bank->level_mask =
+-			__raw_readl(bank->base + OMAP4_GPIO_LEVELDETECT0) |
+-			__raw_readl(bank->base + OMAP4_GPIO_LEVELDETECT1);
+-	} else {
+-		bank->level_mask =
+-			__raw_readl(bank->base + OMAP24XX_GPIO_LEVELDETECT0) |
+-			__raw_readl(bank->base + OMAP24XX_GPIO_LEVELDETECT1);
+-	}
++	bank->level_mask =
++		__raw_readl(bank->base + bank->regs->leveldetect0) |
++		__raw_readl(bank->base + bank->regs->leveldetect1);
+ }
+ #endif
+ 
+@@ -609,29 +603,13 @@ static void omap_gpio_free(struct gpio_chip *chip, unsigned offset)
+ {
+ 	struct gpio_bank *bank = container_of(chip, struct gpio_bank, chip);
+ 	unsigned long flags;
++	void __iomem *reg;
+ 
+ 	spin_lock_irqsave(&bank->lock, flags);
+-#ifdef CONFIG_ARCH_OMAP16XX
+-	if (bank->method == METHOD_GPIO_1610) {
+-		/* Disable wake-up during idle for dynamic tick */
+-		void __iomem *reg = bank->base + OMAP1610_GPIO_CLEAR_WAKEUPENA;
+-		__raw_writel(1 << offset, reg);
+-	}
+-#endif
+-#if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
+-	if (bank->method == METHOD_GPIO_24XX) {
+-		/* Disable wake-up during idle for dynamic tick */
+-		void __iomem *reg = bank->base + OMAP24XX_GPIO_CLEARWKUENA;
+-		__raw_writel(1 << offset, reg);
+-	}
+-#endif
+-#ifdef CONFIG_ARCH_OMAP4
+-	if (bank->method == METHOD_GPIO_44XX) {
+-		/* Disable wake-up during idle for dynamic tick */
+-		void __iomem *reg = bank->base + OMAP4_GPIO_IRQWAKEN0;
+-		__raw_writel(1 << offset, reg);
+-	}
+-#endif
++	/* Disable wake-up during idle for dynamic tick */
++	reg = bank->base + bank->regs->wkupclear;
++
++	__raw_writel(1 << offset, reg);
+ 	bank->mod_usage &= ~(1 << offset);
+ 
+ 	if ((bank->regs->ctrl != USHRT_MAX) && (!bank->mod_usage)) {
+-- 
+1.6.0.4
 
-Do some more cleanup of OMAP GPIO driver and avoid usage of gpio_bank_count
-and gpio_bank pointer array by means of maintaining a list.
-
-Patch series is on following commit of linux-omap-pm (branch: wip/gpio-cleanup):
-73ec20e00b9c02d5588dc83babb567527ed4394d
-OMAP: GPIO: cleanup show revision, remove cpu_is checks, display only once
-
-Compile tested for:
- - omap1_defconfig
- - omap2plus_defconfig
-
-Boot test (success on the following boards):
- - OMAP1710-H3
- - OMAP2420-H4
- - OMAP3430-SDP
- - OMAP3430-Zoom2
- - OMAP3630-Zoom3
- - OMAP4430-SDP
- - OMAP4430-Blaze
-
-GPIO module functionality testing (success on the following boards):
- - OMAP2420-H4
- - OMAP3430-SDP
- - OMAP3430-Zoom2
- - OMAP3630-Zoom3
- - OMAP4430-SDP
- - OMAP4430-Blaze
-
-PM Testing (success as given below):
-OMAP3430-SDP: retention, off_mode, system_wide suspend, gpio wakeup
-OMAP3630-Zoom3: retention, system_wide suspend
-using the following:
-	     echo 5 > /sys/devices/platform/omap/omap_uart.0/sleep_timeout
-	     echo 5 > /sys/devices/platform/omap/omap_uart.1/sleep_timeout
-	     echo 5 > /sys/devices/platform/omap/omap_uart.2/sleep_timeout
-	     echo 5 > /sys/devices/platform/omap/omap_uart.3/sleep_timeout
-	     echo '5' > /debug/pm_debug/wakeup_timer_seconds
-	     echo 1 > /debug/pm_debug/sleep_while_idle
-
-Charulatha V (6):
-  OMAP: GPIO: Avoid cpu_is checks during module ena/disable
-  ZOOM: QUART: Request reset GPIO
-  OMAP2PLUS: GPIO: Fix non-wakeup GPIO and rev_ids
-  OMAP: GPIO: Remove dependency on gpio_bank_count
-  OMAP2PLUS: GPIO: Use flag to identify wkup dmn GPIO
-  OMAP: GPIO: Use USHRT_MAX for rev offset instead of -1
-
-Tarun Kanti DebBarma (4):
-  OMAP: GPIO: cleanup suspend and resume functions
-  OMAP: GPIO: cleanup prepare-for and resume-after idle functions
-  OMAP: GPIO: cleanup omap_gpio_free and triggering functions
-  OMAP: GPIO: remove harcoded offsets in context save and restore
-
- arch/arm/mach-omap1/gpio15xx.c              |    5 +-
- arch/arm/mach-omap1/gpio16xx.c              |    9 +-
- arch/arm/mach-omap1/gpio7xx.c               |    4 +-
- arch/arm/mach-omap2/board-zoom-debugboard.c |    9 +
- arch/arm/mach-omap2/gpio.c                  |   50 +++-
- arch/arm/mach-omap2/omap_hwmod_2430_data.c  |    2 +-
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c  |    2 +-
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c  |    2 +-
- arch/arm/plat-omap/gpio.c                   |  467 ++++++++++-----------------
- arch/arm/plat-omap/include/plat/gpio.h      |   14 +-
- 10 files changed, 257 insertions(+), 307 deletions(-)
