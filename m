@@ -1,73 +1,66 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH] arm: omap3: cm-t3517: fix section mismatch warning
-Date: Mon, 16 May 2011 16:36:45 +0300
-Message-ID: <4DD1286D.10403@compulab.co.il>
-References: <1303850474-25106-1-git-send-email-grinberg@compulab.co.il> <4DC01FB2.9060806@compulab.co.il> <4DCA3CC2.8080006@compulab.co.il>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: USB-ehci enumeration issue
+Date: Mon, 16 May 2011 16:41:12 +0300
+Message-ID: <20110516134109.GF11339@legolas.emea.dhcp.ti.com>
+References: <BANLkTin1WEd0KeUb7kZ80GAYbEQC3SkezA@mail.gmail.com>
+ <20110502095647.GU2529@legolas.emea.dhcp.ti.com>
+ <BANLkTi=6gyWG3Dww_uY89vDW_P6zGV=N9w@mail.gmail.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="4VcSvkf+hAuPXtVJ"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:46758
-	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754985Ab1EPNgq (ORCPT
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:34672 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755413Ab1EPNlR (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 16 May 2011 09:36:46 -0400
-In-Reply-To: <4DCA3CC2.8080006@compulab.co.il>
+	Mon, 16 May 2011 09:41:17 -0400
+Received: by mail-bw0-f45.google.com with SMTP id 16so4133873bwz.4
+        for <linux-omap@vger.kernel.org>; Mon, 16 May 2011 06:41:16 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <BANLkTi=6gyWG3Dww_uY89vDW_P6zGV=N9w@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Igor Grinberg <grinberg@compulab.co.il>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-
-ping x3
+To: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
+Cc: balbi@ti.com, Keshava Munegowda <keshava_mgowda@ti.com>, linux-omap@vger.kernel.org
 
 
-It has been 3 weeks already...
+--4VcSvkf+hAuPXtVJ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
+Hi,
 
-On 05/11/11 10:37, Igor Grinberg wrote:
+On Sun, May 15, 2011 at 06:21:31PM +0530, ABRAHAM, KISHON VIJAY wrote:
+> > > Does anyone else observe this issue?
+> >
+> > could be the regulators problem. Can you try with my hci branch ?
+> >
+> > git://gitorious.org/usb/usb.git hci
+> >
+>=20
+>    saw the issue even in this tree/branch.
 
-> ping x2
->
->
-> Can this one get into .39?
->
->
-> On 05/03/11 18:30, Igor Grinberg wrote:
->
->> ping!
->>
->> Just to make sure you haven't missed this one liner ;)
->>
->>
->> On 04/26/11 23:41, Igor Grinberg wrote:
->>> WARNING: arch/arm/mach-omap2/built-in.o(.text+0x11014): Section mismatch
->>> in reference from the function cm_t3517_init_usbh() to the (unknown
->>> reference) .init.data:(unknown)
->>> The function cm_t3517_init_usbh() references
->>> the (unknown reference) __initdata (unknown).
->>> This is often because cm_t3517_init_usbh lacks a __initdata
->>> annotation or the annotation of (unknown) is wrong.
->>>
->>> Signed-off-by: Igor Grinberg <grinberg@compulab.co.il>
->>> ---
->>>  arch/arm/mach-omap2/board-cm-t3517.c |    2 +-
->>>  1 files changed, 1 insertions(+), 1 deletions(-)
->>>
->>> diff --git a/arch/arm/mach-omap2/board-cm-t3517.c b/arch/arm/mach-omap2/board-cm-t3517.c
->>> index a27e3ee..802cb60 100644
->>> --- a/arch/arm/mach-omap2/board-cm-t3517.c
->>> +++ b/arch/arm/mach-omap2/board-cm-t3517.c
->>> @@ -178,7 +178,7 @@ static struct usbhs_omap_board_data cm_t3517_ehci_pdata __initdata = {
->>>  	.reset_gpio_port[2]  = -EINVAL,
->>>  };
->>>  
->>> -static int cm_t3517_init_usbh(void)
->>> +static int __init cm_t3517_init_usbh(void)
->>>  {
->>>  	int err;
->>>  
+Keshava ? Do you have any patch fixing this ?
 
--- 
-Regards,
-Igor.
+--=20
+balbi
 
+--4VcSvkf+hAuPXtVJ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQEcBAEBAgAGBQJN0Sl1AAoJEAv8Txj19kN1NgcIAKvdufrry5HMVHOUgFTZFgUK
+ULbvLovN8+cJi6EqiOsqa31JpN7bO82wndda4kNiKYVfARE4Ohk4cSngyZ/kheDN
+QrnTnsATS6b2j8N46ON6C8YUr2OSFkDaboouJmaZhJl4MOWkoue+vAJTCjcd/Xw6
+IymfZE98iAR5y6/30CuXxnpUhxS/7L6lJIV7hUJqgmhna8+pm/F1vsbOU2nkdrMu
+RLCQC1k6hxvsyifG+ACkG6sLaHVB6w7/J48qSoafTfaPC50iPTe8h8t81vdvwAbm
+dklkbakFUmAIZPb4T5v4d9kxi3GYbZZAbyiezgk7wMyUwD0moSl+Y1ku8HfG/24=
+=BZWi
+-----END PGP SIGNATURE-----
+
+--4VcSvkf+hAuPXtVJ--
