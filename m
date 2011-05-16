@@ -1,66 +1,87 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: USB-ehci enumeration issue
-Date: Mon, 16 May 2011 16:41:12 +0300
-Message-ID: <20110516134109.GF11339@legolas.emea.dhcp.ti.com>
-References: <BANLkTin1WEd0KeUb7kZ80GAYbEQC3SkezA@mail.gmail.com>
- <20110502095647.GU2529@legolas.emea.dhcp.ti.com>
- <BANLkTi=6gyWG3Dww_uY89vDW_P6zGV=N9w@mail.gmail.com>
-Reply-To: balbi@ti.com
+From: Liam Girdwood <lrg@ti.com>
+Subject: Re: [PATCH] omap: Remove support for omap2evm (Re:
+ Updated mach-types update)
+Date: Mon, 16 May 2011 14:45:29 +0100
+Message-ID: <4DD12A79.3090303@ti.com>
+References: <20110320110322.GC16646@n2100.arm.linux.org.uk>
+	<20110320114137.GD16646@n2100.arm.linux.org.uk>
+	<20110324175945.GV2811@atomide.com>
+	<20110513115406.GQ31483@atomide.com>
+	<20110513151916.77eba011.jhnikula@gmail.com>
+	<20110513144031.GV31483@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="4VcSvkf+hAuPXtVJ"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:34672 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755413Ab1EPNlR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 16 May 2011 09:41:17 -0400
-Received: by mail-bw0-f45.google.com with SMTP id 16so4133873bwz.4
-        for <linux-omap@vger.kernel.org>; Mon, 16 May 2011 06:41:16 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <BANLkTi=6gyWG3Dww_uY89vDW_P6zGV=N9w@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20110513144031.GV31483@atomide.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Paul Mundt <lethal@linux-sh.org>, Subhasish Ghosh <subhasish@mistralsolutions.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Srinath <srinath@mistralsolutions.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, Arun C <arunedarath@mistralsolutions.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
-Cc: balbi@ti.com, Keshava Munegowda <keshava_mgowda@ti.com>, linux-omap@vger.kernel.org
 
+On 13/05/11 15:40, Tony Lindgren wrote:
+> * Jarkko Nikula <jhnikula@gmail.com> [110513 05:15]:
+>> On Fri, 13 May 2011 04:54:07 -0700
+>> Tony Lindgren <tony@atomide.com> wrote:
+>>
+>>> * Tony Lindgren <tony@atomide.com> [110324 10:57]:
+>>>> * Russell King - ARM Linux <linux@arm.linux.org.uk> [110320 04:39]:
+>>>>> On Sun, Mar 20, 2011 at 11:03:22AM +0000, Russell King - ARM Linux wrote:
+>>>>>
+>>>>> Note that OMAP references machine_is_omap2evm() yet this has never been
+>>>>> merged.
+>>>>>
+>>>>> arch/arm/plat-omap/include/plat/uncompress.h:
+>>>>>
+>>>>>                 DEBUG_LL_OMAP2(1, omap2evm);
+>>>>>
+>>>>> so this entry needs to be removed.
+>>>>
+>>>> Hmm looks like we have LCD support and ASoC support for it, but no
+>>>> board :)
+>>>>
+>>>> Anybody working with this board?
+>>>>
+>>>> If so, please send patches for the related board-*.c support ASAP.
+>>>> Otherwise let's plan on deleting the related support.
+>>>
+>>> No patches, so let's remove it. Here's the patch to do that,
+>>> I'm planning to add this to my devel-cleanup branch.
+>>>
+>> Remove also from sound/soc/omap/Kconfig as well. You could put my
+>> ack for sound/soc/omap part but remember cc also Mark and Liam.
+> 
+> Thanks, here's the updated patch.
+> 
+> Regards,
+> 
+> Tony
+> 
+> 
+> From: Tony Lindgren <tony@atomide.com>
+> Date: Fri, 13 May 2011 04:41:32 -0700
+> Subject: [PATCH] omap: Remove support for omap2evm
+> 
+> The board support has never been merged for it as noticed
+> by Russell King <linux@arm.linux.org.uk>. So let's remove the
+> related dead code.
+> 
+> Cc: linux-fbdev@vger.kernel.org
+> Cc: alsa-devel@alsa-project.org
+> Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
+> Cc: Liam Girdwood <lrg@ti.com>
+> Cc: Paul Mundt <lethal@linux-sh.org>
+> Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> Acked-by: Jarkko Nikula <jhnikula@gmail.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> 
 
---4VcSvkf+hAuPXtVJ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-On Sun, May 15, 2011 at 06:21:31PM +0530, ABRAHAM, KISHON VIJAY wrote:
-> > > Does anyone else observe this issue?
-> >
-> > could be the regulators problem. Can you try with my hci branch ?
-> >
-> > git://gitorious.org/usb/usb.git hci
-> >
->=20
->    saw the issue even in this tree/branch.
-
-Keshava ? Do you have any patch fixing this ?
-
---=20
-balbi
-
---4VcSvkf+hAuPXtVJ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQEcBAEBAgAGBQJN0Sl1AAoJEAv8Txj19kN1NgcIAKvdufrry5HMVHOUgFTZFgUK
-ULbvLovN8+cJi6EqiOsqa31JpN7bO82wndda4kNiKYVfARE4Ohk4cSngyZ/kheDN
-QrnTnsATS6b2j8N46ON6C8YUr2OSFkDaboouJmaZhJl4MOWkoue+vAJTCjcd/Xw6
-IymfZE98iAR5y6/30CuXxnpUhxS/7L6lJIV7hUJqgmhna8+pm/F1vsbOU2nkdrMu
-RLCQC1k6hxvsyifG+ACkG6sLaHVB6w7/J48qSoafTfaPC50iPTe8h8t81vdvwAbm
-dklkbakFUmAIZPb4T5v4d9kxi3GYbZZAbyiezgk7wMyUwD0moSl+Y1ku8HfG/24=
-=BZWi
------END PGP SIGNATURE-----
-
---4VcSvkf+hAuPXtVJ--
+Acked-by: Liam Girdwood <lrg@ti.com>
