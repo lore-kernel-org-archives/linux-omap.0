@@ -1,60 +1,37 @@
-From: "Pihet-XID, Jean" <j-pihet@ti.com>
-Subject: Re: [PATCH] perf: export power_start and power_end tracepoints
-Date: Mon, 16 May 2011 11:45:50 +0200
-Message-ID: <BANLkTin6-TZHkw5iSb034Ur5xLfQoGRtLw@mail.gmail.com>
-References: <1305297838-4015-1-git-send-email-j-pihet@ti.com>
-	<20110513144830.GB32688@elte.hu>
-	<BANLkTikkd9bNRLF1iDAz9Jwrnon3A=j44g@mail.gmail.com>
-	<20110516092309.GD12325@elte.hu>
+From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
+Subject: Re: your mail
+Date: Mon, 16 May 2011 15:37:11 +0530
+Message-ID: <BANLkTimp4NgmZ7Y9PmccztGyAGPNu0vC8A@mail.gmail.com>
+References: <1305538460-20980-1-git-send-email-keshava_mgowda@ti.com>
+	<20110516094440.GQ11339@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20110516092309.GD12325@elte.hu>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: Jean Pihet <jean.pihet@newoldbits.com>, linux-kernel@vger.kernel.org, Thomas Renninger <trenn@suse.de>, linux-omap@vger.kernel.org, linux-pm@lists.linux-foundation.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:34336 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754232Ab1EPKHO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 16 May 2011 06:07:14 -0400
+In-Reply-To: <20110516094440.GQ11339@legolas.emea.dhcp.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: balbi@ti.com
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com
 
-On Mon, May 16, 2011 at 11:23 AM, Ingo Molnar <mingo@elte.hu> wrote:
+On Mon, May 16, 2011 at 3:14 PM, Felipe Balbi <balbi@ti.com> wrote:
+> Hi,
 >
-> * Jean Pihet <jean.pihet@newoldbits.com> wrote:
->
->> Adding l-o and linux-pm MLs. The original post is at
->> http://www.spinics.net/lists/kernel/msg1186554.html
+> On Mon, May 16, 2011 at 03:04:20PM +0530, Keshava Munegowda wrote:
+>> Following 2 hwmod strcuture are added:
+>> UHH hwmod of usbhs with uhh base address and
+>> EHCI , OHCI irq and base addresses.
+>> TLL hwmod of usbhs with the TLL base address and irq.
 >>
->> On Fri, May 13, 2011 at 4:48 PM, Ingo Molnar <mingo@elte.hu> wrote:
->> >
->> > * jean.pihet@newoldbits.com <jean.pihet@newoldbits.com> wrote:
->> >
->> >> From: Jean Pihet <j-pihet@ti.com>
->> >>
->> >> If used in a module both tracepoints need to be exported by the
->> >> kernel.
->> >
->> > but it's not used by any module in the kernel AFAICS, so why is th=
-is needed?
->> Not currently, that is why the error went unnoticed. I think it is
->> better to fix it now than later.
->>
->> I am working on a plan to clean-up and isolate the OMAP PM code from
->> the core code and to provide the PM functionality as a module. This
->> effort is part of the 'remove the crazy ARM churn' from the kernel.
+>> Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
 >
-> Feel free to keep this patch with those modifications/cleanups:
->
-> Acked-by: Ingo Molnar <mingo@elte.hu>
->
-> but please make sure you push it together, i.e. never export somethin=
-g
-> (knowingly) without having in-tree use for it.
-Ok will push the changes together when they are ready.
+> missing subject line.
 
->
-> Thanks,
->
-> =A0 =A0 =A0 =A0Ingo
->
+Ya, I have already correct it and resend this patch [RESEND] [PATCH 1/5]...
 
-Thanks,
-Jean
+Regards
+keshava
