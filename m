@@ -1,87 +1,65 @@
-From: Liam Girdwood <lrg@ti.com>
-Subject: Re: [PATCH] omap: Remove support for omap2evm (Re:
- Updated mach-types update)
-Date: Mon, 16 May 2011 14:45:29 +0100
-Message-ID: <4DD12A79.3090303@ti.com>
-References: <20110320110322.GC16646@n2100.arm.linux.org.uk>
-	<20110320114137.GD16646@n2100.arm.linux.org.uk>
-	<20110324175945.GV2811@atomide.com>
-	<20110513115406.GQ31483@atomide.com>
-	<20110513151916.77eba011.jhnikula@gmail.com>
-	<20110513144031.GV31483@atomide.com>
+From: Vladimir Zapolskiy <vzapolskiy@gmail.com>
+Subject: Re: [PATCHv2 0/2] [RFC] Shrink clock data utilizing preprocessor
+Date: Mon, 16 May 2011 19:25:11 +0300
+Message-ID: <BANLkTi=UE1YwBC3_Cd-Qo1YpGnLpjGWW5g@mail.gmail.com>
+References: <1305495958-2236-1-git-send-email-vzapolskiy@gmail.com>
+	<20110516075618.GC2429@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20110513144031.GV31483@atomide.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Paul Mundt <lethal@linux-sh.org>, Subhasish Ghosh <subhasish@mistralsolutions.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Srinath <srinath@mistralsolutions.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, Arun C <arunedarath@mistralsolutions.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-qy0-f181.google.com ([209.85.216.181]:39520 "EHLO
+	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751790Ab1EPQZM convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 May 2011 12:25:12 -0400
+Received: by qyg14 with SMTP id 14so2720403qyg.19
+        for <linux-omap@vger.kernel.org>; Mon, 16 May 2011 09:25:12 -0700 (PDT)
+In-Reply-To: <20110516075618.GC2429@pengutronix.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sascha Hauer <s.hauer@pengutronix.de>
+Cc: Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 13/05/11 15:40, Tony Lindgren wrote:
-> * Jarkko Nikula <jhnikula@gmail.com> [110513 05:15]:
->> On Fri, 13 May 2011 04:54:07 -0700
->> Tony Lindgren <tony@atomide.com> wrote:
+Hi Sascha,
+
+On Mon, May 16, 2011 at 10:56 AM, Sascha Hauer <s.hauer@pengutronix.de>=
+ wrote:
+> Hi Vladimir,
+>
+> On Mon, May 16, 2011 at 12:45:56AM +0300, Vladimir Zapolskiy wrote:
+>> This change shows a possibility to utilize C preprocessor to remove
+>> redundant data from clock definitions for OMAP4 architecture.
 >>
->>> * Tony Lindgren <tony@atomide.com> [110324 10:57]:
->>>> * Russell King - ARM Linux <linux@arm.linux.org.uk> [110320 04:39]:
->>>>> On Sun, Mar 20, 2011 at 11:03:22AM +0000, Russell King - ARM Linux wrote:
->>>>>
->>>>> Note that OMAP references machine_is_omap2evm() yet this has never been
->>>>> merged.
->>>>>
->>>>> arch/arm/plat-omap/include/plat/uncompress.h:
->>>>>
->>>>>                 DEBUG_LL_OMAP2(1, omap2evm);
->>>>>
->>>>> so this entry needs to be removed.
->>>>
->>>> Hmm looks like we have LCD support and ASoC support for it, but no
->>>> board :)
->>>>
->>>> Anybody working with this board?
->>>>
->>>> If so, please send patches for the related board-*.c support ASAP.
->>>> Otherwise let's plan on deleting the related support.
->>>
->>> No patches, so let's remove it. Here's the patch to do that,
->>> I'm planning to add this to my devel-cleanup branch.
->>>
->> Remove also from sound/soc/omap/Kconfig as well. You could put my
->> ack for sound/soc/omap part but remember cc also Mark and Liam.
-> 
-> Thanks, here's the updated patch.
-> 
-> Regards,
-> 
-> Tony
-> 
-> 
-> From: Tony Lindgren <tony@atomide.com>
-> Date: Fri, 13 May 2011 04:41:32 -0700
-> Subject: [PATCH] omap: Remove support for omap2evm
-> 
-> The board support has never been merged for it as noticed
-> by Russell King <linux@arm.linux.org.uk>. So let's remove the
-> related dead code.
-> 
-> Cc: linux-fbdev@vger.kernel.org
-> Cc: alsa-devel@alsa-project.org
-> Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
-> Cc: Liam Girdwood <lrg@ti.com>
-> Cc: Paul Mundt <lethal@linux-sh.org>
-> Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> Acked-by: Jarkko Nikula <jhnikula@gmail.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> 
+>> If the change is evaluated as a positive one, the same approach coul=
+d
+>> be applied in reducing LOCs from other files, which contain monotono=
+us
+>> data enumeration.
+>>
+>> Vladimir Zapolskiy (2):
+>> =C2=A0 OMAP4: clock data: shrink clock data utilizing preprocessor.
+>> =C2=A0 OMAP4: clock data: shrink more clock data.
+>>
+>> =C2=A0arch/arm/mach-omap2/clock44xx_data.c | 3313 +++++++++---------=
+----------------
+>> =C2=A01 files changed, 848 insertions(+), 2465 deletions(-)
+>
+> While the diffstat shows a huge saving in loc I suggest to delay this
+> until we have common clock code merged so that we don't have to
+> completely rework these files again in the near future.
+>
+> This has been said before, I just wanted to add my +1 on this opinion=
+=2E
 
-Acked-by: Liam Girdwood <lrg@ti.com>
+no objections from my side, the proposed change is deliberately marked
+as RFC, and I've decided to resend the patches just to show them public=
+ly
+and to gather more comments.
+
+Best wishes,
+Vladimir
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
