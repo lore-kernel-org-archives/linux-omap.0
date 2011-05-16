@@ -1,41 +1,69 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH v2] ARM: omap4: i2c reset regs postidle
-Date: Mon, 16 May 2011 19:16:05 +0200
-Message-ID: <4DD15BD5.9010303@ti.com>
-References: <4DD0DC9C.5020300@linaro.org> <1305537524-24753-1-git-send-email-j.weitzel@phytec.de>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: [PATCH v2 00/19] Consolidate simple ARM MMIO clock sources
+Date: Mon, 16 May 2011 18:23:34 +0100
+Message-ID: <20110516172334.GD13659@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:57554 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752391Ab1EPRQX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 16 May 2011 13:16:23 -0400
-In-Reply-To: <1305537524-24753-1-git-send-email-j.weitzel@phytec.de>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-arm-kernel@lists.infradead.org, John Stultz <johnstul@us.ibm.com>, Thomas Gleixner <tglx@linutronix.de>
+Cc: Sascha Hauer <kernel@pengutronix.de>, Kukjin Kim <kgene.kim@samsung.com>, Eric Miao <eric.y.miao@gmail.com>, Linus Walleij <linus.walleij@stericsson.com>, Erik Gilling <konkers@android.com>, Nicolas Pitre <nico@fluxnic.net>, Tony Lindgren <tony@atomide.com>, Catalin Marinas <catalin.marinas@arm.com>, Krzysztof Halasa <khc@pm.waw.pl>, Scott Branden <sbranden@broadcom.com>, linux-omap@vger.kernel.org, "Hans J. Koch" <hjk@hansjkoch.de>, Jiandong Zheng <jdzheng@broadcom.com>, Colin Cross <ccross@android.com>, Olof Johansson <olof@lixom.net>, Imre Kaloz <kaloz@openwrt.org>, Wan ZongShun <mcuos.com@gmail.com>, Lennert Buytenhek <kernel@wantstofly.org>, Alessandro Rubini <rubini@unipv.it>
 List-Id: linux-omap@vger.kernel.org
-To: Jan Weitzel <j.weitzel@phytec.de>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "andy.green@linaro.org" <andy.green@linaro.org>, "patches@linaro.org" <patches@linaro.org>, "andy@warmcat.com" <andy@warmcat.com>, "tony@atomide.com" <tony@atomide.com>, "peter.maydell@linaro.org" <peter.maydell@linaro.org>, "ben-linux@fluff.org" <ben-linux@fluff.org>
 
-Hi Jan,
+This is a re-posting of the clocksource patches, which includes some
+other updates.  This includes bcmring in the update.
 
-On 5/16/2011 11:18 AM, Jan Weitzel wrote:
-> Without OMAP_I2C_FLAG_RESET_REGS_POSTIDLE I got i2c controller
-> timeouts on each accsess after an NACK message.
-> Taking this flag fix it.
->
-> This patch is on top of the i2c feature implementation flags
-> patches
+In a similar light to the i8253 series, this consolidates 17 ARM
+MMIO counter clocksources into a single common implementation.  This
+common implementation caters for 32-bit and 16-bit register access
+sizes, up and down counters, and various bit sizes of those counters.
 
-Could you please give us more information and potentially provide a link 
-to the patches you are referring to?
-It will help us assessing the need for such flag in the hwmod data.
+Patch 1 is already in John Stultz tree, but is included for
+completeness and to get rid of a build warning.
 
-Please note that the changelog will stay forever in the GIT tree, so you 
-should avoid using "the patch" or making reference to something that is 
-not an existing commit id or email archive.
-You should fix as well the typo.
-
-Thanks,
-Benoit
-
+ arch/arm/Kconfig                         |   15 ++
+ arch/arm/common/timer-sp.c               |   80 +++++++----
+ arch/arm/include/asm/hardware/timer-sp.h |    4 +-
+ arch/arm/mach-bcmring/core.c             |  220 +++++++-----------------------
+ arch/arm/mach-integrator/Kconfig         |    1 +
+ arch/arm/mach-integrator/integrator_ap.c |   21 +---
+ arch/arm/mach-integrator/integrator_cp.c |   11 ++-
+ arch/arm/mach-ixp4xx/common.c            |   16 +--
+ arch/arm/mach-lpc32xx/timer.c            |   17 +--
+ arch/arm/mach-mxs/timer.c                |   20 +--
+ arch/arm/mach-netx/time.c                |   16 +--
+ arch/arm/mach-omap1/time.c               |   69 +++-------
+ arch/arm/mach-pxa/time.c                 |   17 +--
+ arch/arm/mach-realview/core.c            |   13 ++-
+ arch/arm/mach-sa1100/time.c              |   24 +---
+ arch/arm/mach-tcc8k/time.c               |   16 +--
+ arch/arm/mach-tegra/timer.c              |   16 +--
+ arch/arm/mach-u300/timer.c               |   18 +--
+ arch/arm/mach-versatile/core.c           |   13 ++-
+ arch/arm/mach-vexpress/ct-ca9x4.c        |   17 ++-
+ arch/arm/mach-vexpress/v2m.c             |   17 ++-
+ arch/arm/mach-w90x900/time.c             |   17 +--
+ arch/arm/plat-mxc/epit.c                 |   18 +--
+ arch/arm/plat-mxc/time.c                 |   38 +----
+ arch/arm/plat-nomadik/Kconfig            |    1 +
+ arch/arm/plat-nomadik/timer.c            |   31 +----
+ arch/arm/plat-omap/Kconfig               |    1 +
+ arch/arm/plat-orion/time.c               |   21 +---
+ arch/arm/plat-s5p/s5p-time.c             |   58 +++------
+ arch/arm/plat-spear/time.c               |   16 +--
+ drivers/Kconfig                          |    3 +
+ drivers/clocksource/Kconfig              |    2 +
+ drivers/clocksource/Makefile             |    1 +
+ drivers/clocksource/mmio.c               |   73 ++++++++++
+ include/linux/clocksource.h              |   10 ++-
+ 35 files changed, 354 insertions(+), 577 deletions(-)
