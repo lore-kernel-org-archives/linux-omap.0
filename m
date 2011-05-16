@@ -1,7 +1,7 @@
 From: Keshava Munegowda <keshava_mgowda@ti.com>
-Subject: [PATCH] omap: usbhs: Fixed the crash during rmmod of ehci and ohci
-Date: Mon, 16 May 2011 14:22:07 +0530
-Message-ID: <1305535927-19840-1-git-send-email-keshava_mgowda@ti.com>
+Subject: [PATCH v1] omap: usbhs: Fixed the crash during rmmod of ehci and ohci
+Date: Mon, 16 May 2011 14:24:58 +0530
+Message-ID: <1305536098-19871-1-git-send-email-keshava_mgowda@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
@@ -12,8 +12,8 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Keshava Munegowda <Keshava_mgowda@ti.com>
 
-The disableing of clocks and freeing GPIO are changed
-to fix the occurence of the crash of rmmod of ehci and ohci
+The disabling of clocks and freeing GPIO are changed
+to fix the occurrence of the crash of rmmod of ehci and ohci
 drivers. The GPIOs should be freed after the spin locks are
 unlocked.
 
