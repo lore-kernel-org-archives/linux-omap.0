@@ -1,44 +1,45 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: [RESEND/PATCH 2/2] arm: Kconfig: allow OMAP to use sparse IRQ numbering
-Date: Tue, 17 May 2011 02:46:12 +0300
-Message-ID: <1305589572-5812-2-git-send-email-balbi@ti.com>
-References: <1305589572-5812-1-git-send-email-balbi@ti.com>
+From: Ricardo Neri <ricardo.neri@ti.com>
+Subject: [PATCH 0/2] OMAP4: Add devices for HDMI audio
+Date: Mon, 16 May 2011 22:14:37 -0500
+Message-ID: <1305602079-3852-1-git-send-email-ricardo.neri@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:35115 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753718Ab1EPXq1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 16 May 2011 19:46:27 -0400
-Received: by mail-bw0-f45.google.com with SMTP id 16so60513bwz.32
-        for <linux-omap@vger.kernel.org>; Mon, 16 May 2011 16:46:26 -0700 (PDT)
-In-Reply-To: <1305589572-5812-1-git-send-email-balbi@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:52636 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751382Ab1EQDQI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 16 May 2011 23:16:08 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Felipe Balbi <balbi@ti.com>
+To: linux-omap@vger.kernel.org, tony@atomide.com, b-cousson@ti.com, paul@pwsan.com
+Cc: Ricardo Neri <ricardo.neri@ti.com>
 
-Select HAVE_SPARSE_IRQ to allow OMAP to use
-sparse IRQ numbering scheme. The main difference
-is that irq_descs will be added to a radix tree
-instead of a static array.
+The addition of two new audio devices is proposed. These two devices are
+needed for the ASoC CPU and machine drivers for HDMI audio on
+OMAP4.
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
- arch/arm/Kconfig |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+Implementation of ASoC HDMI audio drivers can be found here:
+ http://mailman.alsa-project.org/pipermail/alsa-devel/2011-May/039758.html
 
-diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
-index 416b02f..d5e2571 100644
---- a/arch/arm/Kconfig
-+++ b/arch/arm/Kconfig
-@@ -861,6 +861,7 @@ config ARCH_DAVINCI
- config ARCH_OMAP
- 	bool "TI OMAP"
- 	select HAVE_CLK
-+	select HAVE_SPARSE_IRQ
- 	select ARCH_REQUIRE_GPIOLIB
- 	select ARCH_HAS_CPUFREQ
- 	select GENERIC_CLOCKEVENTS
--- 
-1.7.4.1.343.ga91df
+Implementation of DSS patches to support HDMI audio can be found here:
+ http://www.mail-archive.com/linux-omap@vger.kernel.org/msg49011.html
+
+This implementation is based on on:
+* OMAP4: DSS2: Add dss_dss_clk opt clock for OMAP4, by Sumit Semwal
+ (http://gitorious.org/linux-omap-dss2/linux/commit/0da5637569bb9bf93e6930cd1c3b452eede50ba2)
+* Kernel 2.6.39-rc7
+ (git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git v2.6.39-rc7)
+ 
+The complete implementation, with devices, DSS and ASoC parts, is available at:
+ git://gitorious.org/omap-audio/linux-audio.git ricardon/topic/hdmi-audio-v2
+ 
+Validation was performed on HDMI TV. Penguins were present on the display
+and audio playback was performed with aplay at 32, 44.1 and 48kHz with S16_LE
+and S24_LE sample formats. Validation was performed on SDP4430 ES2.1 and ES2.2
+and Panda ES2.1 and ES2.0.
+
+Ricardo Neri (2):
+  OMAP4: HDMI: Add OMAP device for HDMI audio CPU DAI
+  OMAP4: Add device for HDMI OMAP4 audio for ASoC machine driver
+
+ arch/arm/mach-omap2/devices.c |   26 ++++++++++++++++++++++++++
+ 1 files changed, 26 insertions(+), 0 deletions(-)
 
