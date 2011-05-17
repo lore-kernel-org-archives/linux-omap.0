@@ -1,41 +1,75 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 4/6] OMAP: LDP: Port the display driver to new DSS2
-Date: Tue, 17 May 2011 16:16:18 +0300
-Message-ID: <1305638178.1847.14.camel@deskari>
-References: <1304926567-26814-1-git-send-email-tomi.valkeinen@ti.com>
-	 <1304926567-26814-5-git-send-email-tomi.valkeinen@ti.com>
-	 <EAF47CD23C76F840A9E7FCE10091EFAB033DBC0C34@dbde02.ent.ti.com>
-	 <1305095563.2097.11.camel@deskari>  <4DCB80DD.5090408@compulab.co.il>
-	 <1305535980.2002.34.camel@deskari>  <4DD106BD.4070009@compulab.co.il>
-	 <1305632940.1847.8.camel@deskari> <1305633414.1847.11.camel@deskari>
-	 <4DD269DD.8020006@compulab.co.il>
+From: "Manuel, Lesly Arackal" <leslyam@ti.com>
+Subject: Re: [PATCH v10 4/7] MFD: TWL4030: power scripts for OMAP3 boards
+Date: Tue, 17 May 2011 19:10:03 +0530
+Message-ID: <BANLkTi=c9naYFuuRbNG8FK6WuKWVBp0DKg@mail.gmail.com>
+References: <1304687833-4578-1-git-send-email-leslyam@ti.com>
+	<1304687833-4578-5-git-send-email-leslyam@ti.com>
+	<20110513183958.GY8970@sortiz-mobl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:52002 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754640Ab1EQNQ0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 17 May 2011 09:16:26 -0400
-Received: by mail-ey0-f172.google.com with SMTP id 13so204104eye.17
-        for <linux-omap@vger.kernel.org>; Tue, 17 May 2011 06:16:23 -0700 (PDT)
-In-Reply-To: <4DD269DD.8020006@compulab.co.il>
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:38300 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753427Ab1EQNkL convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 17 May 2011 09:40:11 -0400
+Received: by mail-ww0-f43.google.com with SMTP id 17so495325wwb.24
+        for <linux-omap@vger.kernel.org>; Tue, 17 May 2011 06:40:03 -0700 (PDT)
+In-Reply-To: <20110513183958.GY8970@sortiz-mobl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Igor Grinberg <grinberg@compulab.co.il>
-Cc: "Janorkar, Mayuresh" <mayur@ti.com>, "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Stanley Miao <stanley.miao@windriver.com>
+To: Samuel Ortiz <sameo@linux.intel.com>
+Cc: linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>, David Derrick <dderrick@ti.com>
 
-On Tue, 2011-05-17 at 15:28 +0300, Igor Grinberg wrote:
-> On 05/17/11 14:56, Tomi Valkeinen wrote:
+Hi Samuel,
 
-> > We still don't know if it works or not =).
-> 
-> I thought Mayuresh checked this and confirmed, no?
+On Sat, May 14, 2011 at 12:09 AM, Samuel Ortiz <sameo@linux.intel.com> =
+wrote:
+> Hi Lesly,
+>
+> On Fri, May 06, 2011 at 06:47:10PM +0530, Lesly A M wrote:
+>> Power bus message sequence for TWL4030 to enter sleep/wakeup/warm_re=
+set.
+>>
+>> TWL4030 power scripts which can be used by different OMAP3 boards
+>> with the power companion chip (TWL4030 series).
+>>
+>> The twl4030 generic script can be used by any board file to update
+>> the power data in twl4030_platform_data.
+>>
+>> Since the TWL4030 power script has dependency with APIs in twl4030-p=
+ower.c
+>> removing the __init for these APIs.
+>>
+>> For more information please see:
+>> =A0 =A0 =A0 http://omapedia.org/wiki/TWL4030_power_scripts
+> I understand you guys are trying to keep the arch/arm stats to a sane=
+ level,
+> but I don't see why this driver should be under drivers/mfd/. I'm usu=
+ally
+> flexible about what goes into drivers/mfd, but this one seems out of =
+context
+> to me.
 
-No, as far as I understood he tried with the patch he attached, which
-was something very different than this patch.
+Since this script driver file contains the changes for PM IC (TWL4030 s=
+eries),
+which is a Multifunction devices with GPIOs, USB, audio,
+current regulators, power management chip, ...
 
- Tomi
+This script driver file contains the pm bus message sequence which will=
+ be
+programmed in the scratch memory of the PM IC, and some resource config=
+uration
+data for PM IC resources.
 
+This change was suggested by Tony for the last version of this patch se=
+ries.
 
+Regards,
+Lesly A M
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
