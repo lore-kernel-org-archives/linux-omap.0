@@ -1,55 +1,79 @@
-From: Ricardo Neri <ricardo.neri@ti.com>
-Subject: [PATCH 1/2] OMAP4: HDMI: Add OMAP device for HDMI audio CPU DAI
-Date: Mon, 16 May 2011 22:14:38 -0500
-Message-ID: <1305602079-3852-2-git-send-email-ricardo.neri@ti.com>
-References: <1305602079-3852-1-git-send-email-ricardo.neri@ti.com>
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: Re: beagleboardxm 2.6.39rc4 mcbsp problems.
+Date: Tue, 17 May 2011 09:37:03 +0300
+Message-ID: <20110517093703.d0cd1e53.jhnikula@gmail.com>
+References: <1305122135-27938-1-git-send-email-premi@ti.com>
+	<201105130859.12477.peter.ujfalusi@ti.com>
+	<BANLkTi=9pm=xRqgt-tiV9+S594+Zo2ysCQ@mail.gmail.com>
+	<201105161154.55850.peter.ujfalusi@ti.com>
+	<4DD167EC.2010007@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:52637 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751495Ab1EQDQI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 16 May 2011 23:16:08 -0400
-In-Reply-To: <1305602079-3852-1-git-send-email-ricardo.neri@ti.com>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:46567 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752537Ab1EQGfy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 May 2011 02:35:54 -0400
+Received: by eyx24 with SMTP id 24so46813eyx.19
+        for <linux-omap@vger.kernel.org>; Mon, 16 May 2011 23:35:53 -0700 (PDT)
+In-Reply-To: <4DD167EC.2010007@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, tony@atomide.com, b-cousson@ti.com, paul@pwsan.com
-Cc: Ricardo Neri <ricardo.neri@ti.com>
+To: Steve Calfee <stevecalfee@gmail.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, "Premi, Sanjeev" <premi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Girdwood, Liam" <lrg@ti.com>
 
-Add device for HDMI audio. This device uses hwmod data from
-dss_hdmi. This device is to be used by the ASoC HDMI CPU DAI to
-obtain base memory address and DMA request number.
+Hi
 
-Signed-off-by: Ricardo Neri <ricardo.neri@ti.com>
----
- arch/arm/mach-omap2/devices.c |   16 ++++++++++++++++
- 1 files changed, 16 insertions(+), 0 deletions(-)
+On Mon, 16 May 2011 11:07:40 -0700
+Steve Calfee <stevecalfee@gmail.com> wrote:
 
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index 7b85585..56e2e98 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -313,6 +313,22 @@ OMAP_MCBSP_PLATFORM_DEVICE(5);
- 
- static void omap_init_audio(void)
- {
-+	struct omap_hwmod *oh_hdmi;
-+	struct omap_device *od_hdmi;
-+	char *oh_hdmi_name = "dss_hdmi";
-+	char *dev_hdmi_name = "hdmi-audio-dai";
-+
-+	if (cpu_is_omap44xx()) {
-+		oh_hdmi = omap_hwmod_lookup(oh_hdmi_name);
-+		WARN(!oh_hdmi, "%s: could not find omap_hwmod for %s\n",
-+			__func__, oh_hdmi_name);
-+
-+		od_hdmi = omap_device_build(dev_hdmi_name, -1, oh_hdmi, NULL, 0,
-+			NULL, 0, false);
-+		WARN(IS_ERR(od_hdmi), "%s: could not build omap_device for %s\n",
-+			__func__, dev_hdmi_name);
-+	}
-+
- 	platform_device_register(&omap_mcbsp1);
- 	platform_device_register(&omap_mcbsp2);
- 	if (cpu_is_omap243x() || cpu_is_omap34xx() || cpu_is_omap44xx()) {
+> On 05/16/11 01:54, Peter Ujfalusi wrote:
+> > On Saturday 14 May 2011 05:47:33 Steve Calfee wrote:
+> >> I put in a few debug statements. It appears that my DMA never gets
+> >> started. I know it can work with a different machine and codec driver,
+> >> but not mine. I don't see any explicit DMA init, but that must be the
+> >> problem.  Any more ideas?
+> > 
+> > You mean neither omap_pcm_hw_params nor omap_pcm_trigger got called?
+> > Could you post the output of dmesg related to ASoC? Does the connection 
+> > between the CPU and codec DAI correct?
+> > Does McBSP part got initialized (for example does omap_mcbsp_dai_hw_params, 
+> > omap_mcbsp_dai_trigger got called)?
+> > 
+> No, they get called. I just don't get the clock on the bclk pin.
+> 
+> I think I have the mcbsp1 set up correctly - I explictly set the MUX:
+> 
+> static struct omap_board_mux board_mux[] __initdata = {
+> #if 1
+> 	/* McBSP 1 */
+> 	OMAP3_MUX(MCBSP1_FSX, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
+> 	OMAP3_MUX(MCBSP1_CLKX, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
+> 	OMAP3_MUX(MCBSP1_DR, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
+> 	OMAP3_MUX(MCBSP1_DX, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
+> #endif
+> 	{ .reg_offset = OMAP_MUX_TERMINATOR },
+> };
+> 
+Did you try to run OMAP as an I2S master like what omap3pandora.c is
+doing?
+
+Missing clock in codec master configuration suggests that reason
+is in codec side and reversed roles during development makes easier to
+hunt it further as then OMAP can play data out independently of is the
+codec correctly configured or not.
+
+You could run OMAP as a master by specifying SND_SOC_DAIFMT_CBS_CFS
+as a DAI format for both codec and OMAP and by setting McBSP to use
+internal 96 MHz clock as a master clock. Something like below might work
+for testing purposes:
+
+snd_soc_dai_set_sysclk(cpu_dai, OMAP_MCBSP_SYSCLK_CLKS_FCLK,
+		       96000000, SND_SOC_CLOCK_IN);
+
+snd_soc_dai_set_clkdiv(cpu_dai, OMAP_MCBSP_CLKGDV,
+		       62); /* 96M / 48k*32 */
+
 -- 
-1.7.0.4
-
+Jarkko
