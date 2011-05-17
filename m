@@ -1,75 +1,67 @@
-From: "Manuel, Lesly Arackal" <leslyam@ti.com>
-Subject: Re: [PATCH v10 4/7] MFD: TWL4030: power scripts for OMAP3 boards
-Date: Tue, 17 May 2011 19:10:03 +0530
-Message-ID: <BANLkTi=c9naYFuuRbNG8FK6WuKWVBp0DKg@mail.gmail.com>
-References: <1304687833-4578-1-git-send-email-leslyam@ti.com>
-	<1304687833-4578-5-git-send-email-leslyam@ti.com>
-	<20110513183958.GY8970@sortiz-mobl>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH v3] ARM: omap4: i2c reset regs postidle
+Date: Tue, 17 May 2011 16:12:45 +0200
+Message-ID: <8762p94dr6.fsf@ti.com>
+References: <4DD15BD5.9010303@ti.com>
+	<1305624381-22524-1-git-send-email-j.weitzel@phytec.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:38300 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753427Ab1EQNkL convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 17 May 2011 09:40:11 -0400
-Received: by mail-ww0-f43.google.com with SMTP id 17so495325wwb.24
-        for <linux-omap@vger.kernel.org>; Tue, 17 May 2011 06:40:03 -0700 (PDT)
-In-Reply-To: <20110513183958.GY8970@sortiz-mobl>
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:44954 "EHLO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754184Ab1EQOM5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 17 May 2011 10:12:57 -0400
+Received: by wwd20 with SMTP id 20so534588wwd.23
+        for <linux-omap@vger.kernel.org>; Tue, 17 May 2011 07:12:54 -0700 (PDT)
+In-Reply-To: <1305624381-22524-1-git-send-email-j.weitzel@phytec.de> (Jan
+	Weitzel's message of "Tue, 17 May 2011 11:26:21 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Samuel Ortiz <sameo@linux.intel.com>
-Cc: linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>, David Derrick <dderrick@ti.com>
+To: Jan Weitzel <j.weitzel@phytec.de>
+Cc: linux-omap@vger.kernel.org, b-cousson@ti.com, andy.green@linaro.org, patches@linaro.org, andy@warmcat.com, tony@atomide.com, peter.maydell@linaro.org, ben-linux@fluff.org
 
-Hi Samuel,
+Jan Weitzel <j.weitzel@phytec.de> writes:
 
-On Sat, May 14, 2011 at 12:09 AM, Samuel Ortiz <sameo@linux.intel.com> =
-wrote:
-> Hi Lesly,
+> omap4430 get i2c timeouts at each access after an NACK message.
+> OMAP_I2C_FLAG_RESET_REGS_POSTIDLE fix it.
+
+We need a little better changelog here.  Specifically, *why* does this
+flag fix the problem?   What exactly is going wrong such that this fix
+is needed.
+
+Does this happen all the time?  only when off-mode is used?  etc.
+
+Looking closer at how this flag is used in the driver, I think the
+driver's usage of runtime PM is a bit broken.  I'm not sure if it's
+related to this problem, but I'll send a short series in a little bit to
+clean up the runtime PM usage, and get rid of the dev->idle flag which
+duplicates usage counting already provided by runtime PM.
+
+Kevin
+
+> Signed-off-by: Jan Weitzel <j.weitzel@phytec.de>
+> Tested-by: Andy Green <andy.green@linaro.org>
+> Acked-by: Andy Green <andy.green@linaro.org>
+> ---
+> Works on top of tmlind linux-omap-2.6.git
+> v3: commit message
+> v2: add Tested-by / Acked-by
 >
-> On Fri, May 06, 2011 at 06:47:10PM +0530, Lesly A M wrote:
->> Power bus message sequence for TWL4030 to enter sleep/wakeup/warm_re=
-set.
->>
->> TWL4030 power scripts which can be used by different OMAP3 boards
->> with the power companion chip (TWL4030 series).
->>
->> The twl4030 generic script can be used by any board file to update
->> the power data in twl4030_platform_data.
->>
->> Since the TWL4030 power script has dependency with APIs in twl4030-p=
-ower.c
->> removing the __init for these APIs.
->>
->> For more information please see:
->> =A0 =A0 =A0 http://omapedia.org/wiki/TWL4030_power_scripts
-> I understand you guys are trying to keep the arch/arm stats to a sane=
- level,
-> but I don't see why this driver should be under drivers/mfd/. I'm usu=
-ally
-> flexible about what goes into drivers/mfd, but this one seems out of =
-context
-> to me.
-
-Since this script driver file contains the changes for PM IC (TWL4030 s=
-eries),
-which is a Multifunction devices with GPIOs, USB, audio,
-current regulators, power management chip, ...
-
-This script driver file contains the pm bus message sequence which will=
- be
-programmed in the scratch memory of the PM IC, and some resource config=
-uration
-data for PM IC resources.
-
-This change was suggested by Tony for the last version of this patch se=
-ries.
-
-Regards,
-Lesly A M
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>  arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    3 ++-
+>  1 files changed, 2 insertions(+), 1 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> index 5f4a1b2..3d3b4f4 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> @@ -2130,7 +2130,8 @@ static struct omap_hwmod_class omap44xx_i2c_hwmod_class = {
+>  };
+>  
+>  static struct omap_i2c_dev_attr i2c_dev_attr = {
+> -	.flags  = OMAP_I2C_FLAG_BUS_SHIFT_NONE,
+> +	.flags  = OMAP_I2C_FLAG_BUS_SHIFT_NONE |
+> +		  OMAP_I2C_FLAG_RESET_REGS_POSTIDLE,
+>  };
+>  
+>  /* i2c1 */
