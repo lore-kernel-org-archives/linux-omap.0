@@ -1,64 +1,48 @@
-From: Steve Calfee <stevecalfee@gmail.com>
-Subject: Re: [PATCH 1/2] OMAP4: HDMI: Add OMAP device for HDMI audio CPU DAI
-Date: Tue, 17 May 2011 12:35:09 -0700
-Message-ID: <4DD2CDED.6090605@gmail.com>
-References: <1305602079-3852-1-git-send-email-ricardo.neri@ti.com> <1305602079-3852-2-git-send-email-ricardo.neri@ti.com>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH 04/19] ARM: omap1: convert to using readl/writel instead
+ of volatile struct
+Date: Tue, 17 May 2011 22:59:28 +0100
+Message-ID: <BANLkTinG0BmBJZTWr-FrBzANg-MbdsghkA@mail.gmail.com>
+References: <20110516172334.GD13659@n2100.arm.linux.org.uk>
+	<E1QM1ZG-0003DV-PA@rmk-PC.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:50578 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932111Ab1EQTfN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 May 2011 15:35:13 -0400
-Received: by pvg12 with SMTP id 12so378456pvg.19
-        for <linux-omap@vger.kernel.org>; Tue, 17 May 2011 12:35:13 -0700 (PDT)
-In-Reply-To: <1305602079-3852-2-git-send-email-ricardo.neri@ti.com>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:61261 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756618Ab1EQV73 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 May 2011 17:59:29 -0400
+Received: by iyb14 with SMTP id 14so786320iyb.19
+        for <linux-omap@vger.kernel.org>; Tue, 17 May 2011 14:59:28 -0700 (PDT)
+In-Reply-To: <E1QM1ZG-0003DV-PA@rmk-PC.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ricardo Neri <ricardo.neri@ti.com>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, b-cousson@ti.com, paul@pwsan.com
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.infradead.org, John Stultz <johnstul@us.ibm.com>, Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org
 
-On 05/16/11 20:14, Ricardo Neri wrote:
+On 16 May 2011 18:26, Russell King - ARM Linux <linux@arm.linux.org.uk>=
+ wrote:
+> --- a/arch/arm/mach-omap1/time.c
+> +++ b/arch/arm/mach-omap1/time.c
+=2E..
+> =C2=A0static inline unsigned long notrace omap_mpu_timer_read(int nr)
+> =C2=A0{
+> - =C2=A0 =C2=A0 =C2=A0 volatile omap_mpu_timer_regs_t* timer =3D omap=
+_mpu_timer_base(nr);
+> - =C2=A0 =C2=A0 =C2=A0 return timer->read_tim;
+> + =C2=A0 =C2=A0 =C2=A0 omap_mpu_timer_regs_t __iomem *timer =3D omap_=
+mpu_timer_base(nr);
+> + =C2=A0 =C2=A0 =C2=A0 return readl(&timer->read_tim);
+> =C2=A0}
 
-> +++ b/arch/arm/mach-omap2/devices.c
-> @@ -313,6 +313,22 @@ OMAP_MCBSP_PLATFORM_DEVICE(5);
->  
->  static void omap_init_audio(void)
->  {
-> +	struct omap_hwmod *oh_hdmi;
-> +	struct omap_device *od_hdmi;
-> +	char *oh_hdmi_name = "dss_hdmi";
-> +	char *dev_hdmi_name = "hdmi-audio-dai";
-> +
-> +	if (cpu_is_omap44xx()) {
-> +		oh_hdmi = omap_hwmod_lookup(oh_hdmi_name);
-> +		WARN(!oh_hdmi, "%s: could not find omap_hwmod for %s\n",
-> +			__func__, oh_hdmi_name);
-> +
-> +		od_hdmi = omap_device_build(dev_hdmi_name, -1, oh_hdmi, NULL, 0,
-> +			NULL, 0, false);
-> +		WARN(IS_ERR(od_hdmi), "%s: could not build omap_device for %s\n",
-> +			__func__, dev_hdmi_name);
-> +	}
-> +
->  	platform_device_register(&omap_mcbsp1);
->  	platform_device_register(&omap_mcbsp2);
->  	if (cpu_is_omap243x() || cpu_is_omap34xx() || cpu_is_omap44xx()) {
+We should start using the *_relaxed() accessors a bit more to avoid
+the barriers overhead in the standard I/O accessors.
 
-I know you did not start this, but this cpu_is stuff is cheating. There
-is a rule (maybe a guideline, or desire) in the kernel where they try to
-minimize #ifdef in c code. So here we have a runtime ifdef. The code
-will never be executed on other omap versions, but it takes up space and
-obscures the code flow.
-
-I think the generally accepted method of doing stuff like this is to
-have the ifdeffery in a header file where a inline code segment is
-defined if it applies to the processor being built. If the code does not
-apply to the model being built, a null #define is used, which does not
-take any space.
-
-Using a conditional inline enables the only source code change for this
-file (device.c) being a line where the inline code is called.
-
-Regards, Steve
+--=20
+Catalin
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
