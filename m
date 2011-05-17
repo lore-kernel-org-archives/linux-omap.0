@@ -1,46 +1,43 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP4: McBSP: Clear rx_irq at probe time
-Date: Tue, 17 May 2011 15:57:00 +0300
-Message-ID: <20110517125700.GY5323@atomide.com>
-References: <1305628420-10592-1-git-send-email-peter.ujfalusi@ti.com>
- <20110517152954.477365e6.jhnikula@gmail.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCHv2 0/2] [RFC] Shrink clock data utilizing preprocessor
+Date: Tue, 17 May 2011 15:06:43 +0200
+Message-ID: <87r57x4gt8.fsf@ti.com>
+References: <1305495958-2236-1-git-send-email-vzapolskiy@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:31364 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754620Ab1EQM5H (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 May 2011 08:57:07 -0400
-Content-Disposition: inline
-In-Reply-To: <20110517152954.477365e6.jhnikula@gmail.com>
+Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:41304 "EHLO
+	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754878Ab1EQNGt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 17 May 2011 09:06:49 -0400
+Received: by wyb40 with SMTP id 40so499122wyb.21
+        for <linux-omap@vger.kernel.org>; Tue, 17 May 2011 06:06:46 -0700 (PDT)
+In-Reply-To: <1305495958-2236-1-git-send-email-vzapolskiy@gmail.com> (Vladimir
+	Zapolskiy's message of "Mon, 16 May 2011 00:45:56 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jhnikula@gmail.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>
+To: Vladimir Zapolskiy <vzapolskiy@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Jarkko Nikula <jhnikula@gmail.com> [110517 15:24]:
-> On Tue, 17 May 2011 13:33:40 +0300
-> Peter Ujfalusi <peter.ujfalusi@ti.com> wrote:
-> 
-> > On OMAP4 we have one interrupt line per McBSP port.
-> > At proble time tx, and rx irq value will be -ENXIO,
-> > and only the tx irq will get corrected.
-> > In omap_mcbsp_request if the rx_irq is not 0 we proceed,
-> > and try to request the interrupt, which will fail on
-> > OMAP4 (rx_irq == -6).
-> > To avoid this error, clear the rx_irq at probe time
-> > on OMAP4.
-> > 
-> > Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> > ---
-> >  arch/arm/plat-omap/mcbsp.c |    4 +++-
-> >  1 files changed, 3 insertions(+), 1 deletions(-)
-> > 
-> Acked-by: Jarkko Nikula <jhnikula@gmail.com>
+Vladimir Zapolskiy <vzapolskiy@gmail.com> writes:
 
-This file should be under drivers/ somewhere, can you
-guys please take care of that?
+> This change shows a possibility to utilize C preprocessor to remove
+> redundant data from clock definitions for OMAP4 architecture.
+>
+> If the change is evaluated as a positive one, the same approach could
+> be applied in reducing LOCs from other files, which contain monotonous
+> data enumeration.
 
-Regards,
+Now that I can apply these patches and look at the result, I still have
+the same opinion.  For me, this results in a major loss of readability.
 
-Tony
+Changes just to make nice diffstats are fine, but not when it impacts
+readability, etc.  Especially since this data will likely be eventually
+moved to device tree, I'd rather see consolidation efforts focused
+elsewhere.
+
+Kevin
+
+
+
