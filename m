@@ -1,167 +1,111 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 4/6] OMAP: LDP: Port the display driver to new DSS2
-Date: Tue, 17 May 2011 14:49:00 +0300
-Message-ID: <1305632940.1847.8.camel@deskari>
-References: <1304926567-26814-1-git-send-email-tomi.valkeinen@ti.com>
-	 <1304926567-26814-5-git-send-email-tomi.valkeinen@ti.com>
-	 <EAF47CD23C76F840A9E7FCE10091EFAB033DBC0C34@dbde02.ent.ti.com>
-	 <1305095563.2097.11.camel@deskari>  <4DCB80DD.5090408@compulab.co.il>
-	 <1305535980.2002.34.camel@deskari>  <4DD106BD.4070009@compulab.co.il>
+From: Mayuresh Janorkar <mayur@ti.com>
+Subject: [PATCH v5 0/7] picodlp projector driver
+Date: Tue, 17 May 2011 17:49:39 +0530
+Message-ID: <1305634783-21265-1-git-send-email-mayur@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:41275 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754214Ab1EQLu5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 17 May 2011 07:50:57 -0400
-Received: by mail-ey0-f174.google.com with SMTP id 24so146675eyx.33
-        for <linux-omap@vger.kernel.org>; Tue, 17 May 2011 04:50:54 -0700 (PDT)
-In-Reply-To: <4DD106BD.4070009@compulab.co.il>
+Received: from devils.ext.ti.com ([198.47.26.153]:39369 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754343Ab1EQLxq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 May 2011 07:53:46 -0400
+Received: from dlep33.itg.ti.com ([157.170.170.112])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p4HBrkDg022574
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Tue, 17 May 2011 06:53:46 -0500
+Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
+	by dlep33.itg.ti.com (8.13.7/8.13.7) with ESMTP id p4HBrk4J026288
+	for <linux-omap@vger.kernel.org>; Tue, 17 May 2011 06:53:46 -0500 (CDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Igor Grinberg <grinberg@compulab.co.il>
-Cc: "Janorkar, Mayuresh" <mayur@ti.com>, "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Stanley Miao <stanley.miao@windriver.com>
+To: linux-omap@vger.kernel.org
+Cc: tomi.valkeinen@ti.com, Mayuresh Janorkar <mayur@ti.com>
 
-On Mon, 2011-05-16 at 14:13 +0300, Igor Grinberg wrote:
-> On 05/16/11 11:53, Tomi Valkeinen wrote:
-> 
-> > Here's an updated patch with the twl gpio code.
-> 
-> Looks good, though one minor issue below
-> 
-> > All the old omapfb porting patches, including new drivers for DSS2, can
-> > be found from 
-> >
-> > git://gitorious.org/linux-omap-dss2/linux.git old-omapfb-port
-> >
-> >  Tomi
-> >
-> > diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
-> > index e2ba779..ed78b9a 100644
-> > --- a/arch/arm/mach-omap2/board-ldp.c
-> > +++ b/arch/arm/mach-omap2/board-ldp.c
-> > @@ -44,6 +44,9 @@
-> >  #include <asm/delay.h>
-> >  #include <plat/usb.h>
-> >  
-> > +#include <video/omapdss.h>
-> > +#include <video/omap-panel-generic-dpi.h>
-> > +
-> >  #include "board-flash.h"
-> >  #include "mux.h"
-> >  #include "hsmmc.h"
-> > @@ -275,19 +278,70 @@ static inline void __init ldp_init_smsc911x(void)
-> >  	gpio_direction_input(eth_gpio);
-> >  }
-> >  
-> > -static struct platform_device ldp_lcd_device = {
-> > -	.name		= "ldp_lcd",
-> > -	.id		= -1,
-> > +/* LCD */
-> > +
-> > +static int ldp_backlight_gpio;
-> > +static int ldp_lcd_enable_gpio;
-> > +
-> > +#define LCD_PANEL_RESET_GPIO		55
-> > +#define LCD_PANEL_QVGA_GPIO		56
-> > +
-> > +static int ldp_panel_enable_lcd(struct omap_dss_device *dssdev)
-> > +{
-> > +	gpio_direction_output(ldp_lcd_enable_gpio, 1);
-> > +	gpio_direction_output(ldp_backlight_gpio, 1);
-> > +
-> > +	return 0;
-> > +}
-> > +
-> > +static void ldp_panel_disable_lcd(struct omap_dss_device *dssdev)
-> > +{
-> > +	gpio_direction_output(ldp_lcd_enable_gpio, 0);
-> > +	gpio_direction_output(ldp_backlight_gpio, 0);
-> > +}
-> > +
-> > +static struct panel_generic_dpi_data ldp_panel_data = {
-> > +	.name			= "2430sdp",
-> > +	.platform_enable	= ldp_panel_enable_lcd,
-> > +	.platform_disable	= ldp_panel_disable_lcd,
-> > +};
-> > +
-> > +static struct omap_dss_device ldp_lcd_device = {
-> > +	.name			= "lcd",
-> > +	.driver_name		= "generic_dpi_panel",
-> > +	.type			= OMAP_DISPLAY_TYPE_DPI,
-> > +	.phy.dpi.data_lines	= 16,
-> > +	.data			= &ldp_panel_data,
-> >  };
-> >  
-> > -static struct omap_lcd_config ldp_lcd_config __initdata = {
-> > -	.ctrl_name	= "internal",
-> > +static struct omap_dss_device *ldp_dss_devices[] = {
-> > +	&ldp_lcd_device,
-> >  };
-> >  
-> > -static struct omap_board_config_kernel ldp_config[] __initdata = {
-> > -	{ OMAP_TAG_LCD,		&ldp_lcd_config },
-> > +static struct omap_dss_board_info ldp_dss_data = {
-> > +	.num_devices	= ARRAY_SIZE(ldp_dss_devices),
-> > +	.devices	= ldp_dss_devices,
-> > +	.default_device	= &ldp_lcd_device,
-> >  };
-> >  
-> > +static void __init ldp_display_init(void)
-> > +{
-> > +	int r;
-> > +
-> > +	static struct gpio gpios[] __initdata = {
-> > +		{LCD_PANEL_RESET_GPIO, GPIOF_OUT_INIT_HIGH, "LCD RESET"},
-> > +		{LCD_PANEL_QVGA_GPIO, GPIOF_OUT_INIT_HIGH, "LCD QVGA"},
-> > +	};
-> > +
-> > +	r = gpio_request_array(gpios, ARRAY_SIZE(gpios));
-> > +	if (r) {
-> > +		pr_err("Cannot request LCD GPIOs, error %d\n", r);
-> > +		return;
-> > +	}
-> > +
-> > +	omap_display_init(&ldp_dss_data);
-> > +}
-> > +
-> >  static void __init omap_ldp_init_early(void)
-> >  {
-> >  	omap2_init_common_infrastructure();
-> > @@ -298,10 +352,30 @@ static struct twl4030_usb_data ldp_usb_data = {
-> >  	.usb_mode	= T2_USB_MODE_ULPI,
-> >  };
-> >  
-> > +static int ldp_twl_gpio_setup(struct device *dev, unsigned gpio, unsigned ngpio)
-> > +{
-> > +	int r;
-> > +
-> > +	struct gpio gpios[] = {
-> > +		{gpio + 7 , GPIOF_OUT_INIT_LOW, "LCD ENABLE"},
-> > +		{gpio + 15, GPIOF_OUT_INIT_LOW, "LCD BACKLIGHT"},
-> > +	};
-> > +
-> > +	r = gpio_request_array(gpios, ARRAY_SIZE(gpios));
-> > +	if (r)
-> > +		pr_err("Cannot request LCD GPIOs, error %d\n", r);
-> > +
-> > +	ldp_backlight_gpio = gpio + 15;
-> > +	ldp_lcd_enable_gpio = gpio + 7;
-> 
-> If the gpio_request_array() fails (though it shouldn't),
-> won't it be right to set both variables to -EINVAL?
+picodlp projector is supported by OMAP.
+OMAP4430 SDP and EVM boards have an on board projector called as picodlp projector.
+picodlp would be connected to display sub system as a display panel.
+It has a dlp pico processor dpp2600.
 
-Ah, yes. I'll fix that.
+The panel would be connected using 24 bit parallel interface.
+GPIO pin 59 called as DISPLAY SELECT pin selects either secondary lcd
+or picodlp.
 
-Do you know what will happen if twl_gpio_setup fails? Just an error
-print, or will TWL driver fail?
+It is a WVGA panel with 864 X 480 resolution.
 
-> Thanks for bringing this all together.
+To know more about picodlp please visit:
+http://omappedia.org/wiki/PicoDLP_projector_guide
 
-We still don't know if it works or not =).
+GPIO pin settings are required for powering_on the DLP and it is done in board file.
+The programming sequence states that processor has to send LOW on PWRGOOD (GPIO 45)
+then wait for a fraction of seconds and then send HIGH.
+EMU_DONE pin (GPIO 44) would be set to low once the DLP is ready for operation.
 
- Tomi
+Configuartion of picodlp involves passing dpp2600 commands through i2c.
+All these commands are defined in a panel header file.
+And more info on the commands can be found at:
+https://focus.ti.com/myti/docs/extranet.tsp?sectionId=403
 
+About DLP (Digital Light Processing):
+DLP is Texas Instruments award-winning display technology which has powered
+the worlds top projectors and displays, delivering pictures rich with color,
+contrast, clarity and brightness to screens of all sizes.
+Every DLP chip features an array of up to 2.2 million microscopic mirrors that
+switch at ultra high speeds  an innovative advantage that remains cutting edge
+and ideal for current and future applications alike. The results are
+high-resolution, highly reliable, razor-sharp images, that even work with
+fast motion video.
+To learn more about DLP technology, please visit www.DLP.com
+
+picodlp on OMAP4430 boards would make use of same technology.
+picodlp makes use of i2c bus device at 0x1b address for sending configuration
+commands to panel. In software picodlp panel driver has an i2c client.
+
+To know more about picodlp configuration commands please visit:
+http://focus.ti.com/lit/ug/dlpu002a/dlpu002a.pdf
+The link talks more about the timing specific things:
+http://focus.ti.com/lit/ds/dlps019b/dlps019b.pdf
+
+To know more about i2c_client model please visit:
+http://lxr.linux.no/#linux+v2.6.38/Documentation/i2c/writing-clients
+
+------------------------------------------------------------------------------
+These patches have been developed on top of master branch of
+Tomi's gitorious tree.
+
+I am maintaining a gitorious tree for these patches and can be found at:
+http://gitorious.org/~mayuresh/linux-omap-dss2/mayuresh-picodlp/commits/picodlp
+
+The driver has been tested when compiled as a module.
+
+Validated with a Penguin logos on OMAP4430 SDP ES2.1
+
+Checkpatch.pl warnings:
+WARNING: msleep < 20ms can sleep for up to 20ms; see Documentation/timers/timers-howto.txt
+I think this warning can be ignored
+
+New compilation warnings introduced: Nil
+
+Changes since v4:
+		1. Moved panel-picodlp.h from arch/arm/plat-omap to include/video
+		2. Reordered patches
+		
+-----------------------------------------------------------------------------
+Mayuresh Janorkar (3):
+  OMAP: DSS: Adding a header file for picodlp data
+  OMAP: DSS: Add picodlp panel driver
+  OMAP4: DSS: Adding a picodlp in OMAP4430 SDP board file
+
+Mythri P K (1):
+  OMAP: DSS: Adding a picodlp header file
+
+ arch/arm/mach-omap2/board-4430sdp.c          |   55 +++
+ drivers/video/omap2/displays/Kconfig         |    7 +
+ drivers/video/omap2/displays/Makefile        |    1 +
+ drivers/video/omap2/displays/panel-picodlp.c |  591 ++++++++++++++++++++++++++
+ drivers/video/omap2/displays/panel-picodlp.h |  288 +++++++++++++
+ include/video/panel-picodlp.h                |   23 +
+ 6 files changed, 965 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/video/omap2/displays/panel-picodlp.c
+ create mode 100644 drivers/video/omap2/displays/panel-picodlp.h
+ create mode 100644 include/video/panel-picodlp.h
 
