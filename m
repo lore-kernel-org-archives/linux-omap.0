@@ -1,49 +1,52 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH] OMAP4: McBSP: Clear rx_irq at probe time
-Date: Tue, 17 May 2011 13:33:40 +0300
-Message-ID: <1305628420-10592-1-git-send-email-peter.ujfalusi@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RESEND PATCH 1/4] omap: igep0020: name refactoring for future
+ merge with IGEP3
+Date: Tue, 17 May 2011 03:33:52 -0700
+Message-ID: <20110517103352.GB27250@atomide.com>
+References: <cover.1305235542.git.mike@compulab.co.il>
+ <d6dc9e334c729523f25993b7d610808e537ca74c.1305235542.git.mike@compulab.co.il>
+ <BANLkTikJaN=Q2RgrA7Hz-ye2BCOjNK42zA@mail.gmail.com>
+ <20110517075345.GQ5323@atomide.com>
+ <BANLkTikCgWxQoiYfS4O4+9jYCVBmcMAEOQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:35884 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752232Ab1EQKdq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 May 2011 06:33:46 -0400
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:59152 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752680Ab1EQKd6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 May 2011 06:33:58 -0400
+Content-Disposition: inline
+In-Reply-To: <BANLkTikCgWxQoiYfS4O4+9jYCVBmcMAEOQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, Jarkko Nikula <jhnikula@gmail.com>, Kishon Vijay Abraham I <kishon@ti.com>
+To: Enric =?utf-8?B?QmFsbGV0YsOy?= i Serra <eballetbo@gmail.com>
+Cc: Mike Rapoport <mike@compulab.co.il>, Tony.Lindgren.tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On OMAP4 we have one interrupt line per McBSP port.
-At proble time tx, and rx irq value will be -ENXIO,
-and only the tx irq will get corrected.
-In omap_mcbsp_request if the rx_irq is not 0 we proceed,
-and try to request the interrupt, which will fail on
-OMAP4 (rx_irq == -6).
-To avoid this error, clear the rx_irq at probe time
-on OMAP4.
+* Enric Balletb=C3=B2 i Serra <eballetbo@gmail.com> [110517 00:53]:
+> Hi,
+>=20
+> 2011/5/17 Tony Lindgren <tony@atomide.com>:
+> > * Enric Balletb=C3=B2 i Serra <eballetbo@gmail.com> [110516 10:11]:
+> >> Hi Mike,
+> >>
+> >> The only comment I wanted to do is maybe I prefer rename the
+> >> board-igep0020 to board-igep00x0 to be more generic. Apart from th=
+is
+> >> these patch series looks good for me and has my ack. Thanks.
+> >
+> > I suggest we do the rename separately later on. Otherwise it
+> > easily gets classified as "crazy churn" type of patch, so best
+> > to stick to just code coalescing and fixes for this merge window.
+>=20
+> Ok, so Mike you've my ack, thanks
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
- arch/arm/plat-omap/mcbsp.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
+Thanks, applying these to devel-cleanup for the upcoming merge
+window.
 
-diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
-index 5587acf..1e4e32e 100644
---- a/arch/arm/plat-omap/mcbsp.c
-+++ b/arch/arm/plat-omap/mcbsp.c
-@@ -1867,8 +1867,10 @@ static int __devinit omap_mcbsp_probe(struct platform_device *pdev)
- 	mcbsp->rx_irq = platform_get_irq_byname(pdev, "rx");
- 
- 	/* From OMAP4 there will be a single irq line */
--	if (mcbsp->tx_irq == -ENXIO)
-+	if (mcbsp->tx_irq == -ENXIO) {
- 		mcbsp->tx_irq = platform_get_irq(pdev, 0);
-+		mcbsp->rx_irq = 0;
-+	}
- 
- 	res = platform_get_resource_byname(pdev, IORESOURCE_DMA, "rx");
- 	if (!res) {
--- 
-1.7.5.rc3
-
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
