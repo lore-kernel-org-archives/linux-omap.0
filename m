@@ -1,106 +1,68 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: [PATCHv2 0/2] [RFC] Shrink clock data utilizing preprocessor
-Date: Tue, 17 May 2011 21:17:38 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024CF13F57@dbde02.ent.ti.com>
-References: <1305495958-2236-1-git-send-email-vzapolskiy@gmail.com>
- <87r57x4gt8.fsf@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH] omap3: boot message is not an error
+Date: Tue, 17 May 2011 19:33:41 +0200
+Message-ID: <1305653621.2694.4.camel@vence>
+References: <1305644565-26233-1-git-send-email-premi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:54430 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755238Ab1EQPrv convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 May 2011 11:47:51 -0400
-In-Reply-To: <87r57x4gt8.fsf@ti.com>
-Content-Language: en-US
+Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:35029 "EHLO
+	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755703Ab1EQRfQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 17 May 2011 13:35:16 -0400
+Received: by mail-ww0-f45.google.com with SMTP id 36so691867wwi.2
+        for <linux-omap@vger.kernel.org>; Tue, 17 May 2011 10:35:14 -0700 (PDT)
+In-Reply-To: <1305644565-26233-1-git-send-email-premi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hilman, Kevin" <khilman@ti.com>, Vladimir Zapolskiy <vzapolskiy@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Sanjeev Premi <premi@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Hilman, Kevin
-> Sent: Tuesday, May 17, 2011 6:37 PM
-> To: Vladimir Zapolskiy
-> Cc: Tony Lindgren; Cousson, Benoit; 
-> linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
-> Subject: Re: [PATCHv2 0/2] [RFC] Shrink clock data utilizing 
-> preprocessor
+Hi Sanjeev,
+
+On Tue, 2011-05-17 at 20:32 +0530, Sanjeev Premi wrote:
+> With current level, it shows up on the console
+> despite using 'silent' in bootargs.
 > 
-> Vladimir Zapolskiy <vzapolskiy@gmail.com> writes:
+> Signed-off-by: Sanjeev Premi <premi@ti.com>
+> ---
 > 
-> > This change shows a possibility to utilize C preprocessor to remove
-> > redundant data from clock definitions for OMAP4 architecture.
-> >
-> > If the change is evaluated as a positive one, the same 
-> approach could
-> > be applied in reducing LOCs from other files, which contain 
-> monotonous
-> > data enumeration.
+>  1) Couldn't find better text on commit message.
+>     Any suggestions?
 > 
-> Now that I can apply these patches and look at the result, I 
-> still have
-> the same opinion.  For me, this results in a major loss of 
-> readability.
+>  2) Though pm34xx.x is changed, the change itself
+>     is no related to power management. Hence, did
+>     annotate "pm:"
 
-[sp] I agree here. __VA_ARGS__ in most of the macros make it difficult
-     to undertsand the containment relation.
+Well, it's a change to PM core code, so PM prefix is fine.  How about:
 
-     Multiple inclusion of macros within another makes it difficult
-     to follow the chain/ sequence.
+OMAP3: PM: boot message is not an error, use pr_info
 
-     Using a set of changes to illustrate issue with scalability of
-     the macros as well:
+Also, please Cc linux-arm-kernel, and I will queue this fix for 2.6.40.
 
--static const struct clksel dpll_core_m2_div[] = {
--	{ .parent = &dpll_core_ck, .rates = div31_1to31_rates },
--	{ .parent = NULL },
--};
-+DEFINE_CLKSEL(dpll_core_m2_div, dpll_core_ck, div31_1to31_rates);
-...
-... many lines below...
-...
--static const struct clksel iva_hsd_byp_clk_mux_sel[] = {
--	{ .parent = &sys_clkin_ck, .rates = div_1_0_rates },
--	{ .parent = &div_iva_hs_clk, .rates = div_1_1_rates },
--	{ .parent = NULL },
--};
-+DEFINE_CLKSEL2(iva_hsd_byp_clk_mux_sel, sys_clkin_ck, div_iva_hs_clk);
+Minor comment below..
 
-    In DEFINE_CLKSEL() we need to pass the "rate" as argument
-    and in DEFINE_CLKSEL2() it isn't because we they are hardcoded
-    for current implementation.
-
-    But then,
-
-+#define DEFINE_CLKSEL3(_name, _parent0, _parent1, _parent2)		\
-+	static const struct clksel _name[] = {				\
-+		{ .parent = &_parent0, .rates = div_1_0_rates },	\
-+		{ .parent = &_parent1, .rates = div_1_1_rates },	\
-+		{ .parent = &_parent2, .rates = div_1_2_rates },	\
-+		{ .parent = NULL },					\
-+	}
- 
-    All these definitions don't scale well.
-
-~sanjeev
-
+>  arch/arm/mach-omap2/pm34xx.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
 > 
-> Changes just to make nice diffstats are fine, but not when it impacts
-> readability, etc.  Especially since this data will likely be 
-> eventually
-> moved to device tree, I'd rather see consolidation efforts focused
-> elsewhere.
-> 
-> Kevin
-> 
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe 
-> linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+> index 343027f..7584ba8 100644
+> --- a/arch/arm/mach-omap2/pm34xx.c
+> +++ b/arch/arm/mach-omap2/pm34xx.c
+> @@ -901,7 +901,7 @@ static int __init omap3_pm_init(void)
+>  
+>  	pm_errata_configure();
+>  
+> -	printk(KERN_ERR "Power Management for TI OMAP3.\n");
+> +	pr_info ("Power Management for TI OMAP3.\n");
+
+Drop space before the opening '('.
+
+>  	/* XXX prcm_setup_regs needs to be before enabling hw
+>  	 * supervised mode for powerdomains */
+
+Kevin
+
+
