@@ -1,47 +1,62 @@
-From: =?UTF-8?Q?Enric_Balletb=C3=B2_i_Serra?= <eballetbo@gmail.com>
-Subject: Re: [RESEND PATCH 1/4] omap: igep0020: name refactoring for future
- merge with IGEP3
-Date: Tue, 17 May 2011 09:57:35 +0200
-Message-ID: <BANLkTikCgWxQoiYfS4O4+9jYCVBmcMAEOQ@mail.gmail.com>
-References: <cover.1305235542.git.mike@compulab.co.il>
-	<d6dc9e334c729523f25993b7d610808e537ca74c.1305235542.git.mike@compulab.co.il>
-	<BANLkTikJaN=Q2RgrA7Hz-ye2BCOjNK42zA@mail.gmail.com>
-	<20110517075345.GQ5323@atomide.com>
+From: Carlos Chinea <carlos.chinea@nokia.com>
+Subject: Re: [RFC PATCHv4 0/7] HSI framework and drivers
+Date: Tue, 17 May 2011 11:39:13 +0300
+Message-ID: <1305621553.24348.5009.camel@groo>
+References: <1292321383-30200-1-git-send-email-carlos.chinea@nokia.com>
+	 <AANLkTimTfOyhDR6BsHD_1VvzOPGbYqo6L784wPkQMi_8@mail.gmail.com>
+	 <1300787404.8008.116.camel@groo>
+	 <BANLkTincpt8ojK8icvXz4XfkWL9z87VmUA@mail.gmail.com>
+	 <BANLkTikrXb7h_iG+xOvFPozT6w5Nj8nJKw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:63222 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752525Ab1EQH5g convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 May 2011 03:57:36 -0400
-Received: by iyb14 with SMTP id 14so206145iyb.19
-        for <linux-omap@vger.kernel.org>; Tue, 17 May 2011 00:57:35 -0700 (PDT)
-In-Reply-To: <20110517075345.GQ5323@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <BANLkTikrXb7h_iG+xOvFPozT6w5Nj8nJKw@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: ext Linus Walleij <linus.walleij@linaro.org>
+Cc: Govindraj <govindraj.ti@gmail.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, STEricsson_nomadik_linux <STEricsson_nomadik_linux@list.st.com>, pawel.szyszuk@stericsson.com
 List-Id: linux-omap@vger.kernel.org
-Cc: Mike Rapoport <mike@compulab.co.il>, Tony.Lindgren.tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi,
+On Mon, 2011-05-16 at 14:04 +0200, ext Linus Walleij wrote:
+> On Thu, May 12, 2011 at 2:17 PM, Govindraj <govindraj.ti@gmail.com> wrote:
+> > On Tue, Mar 22, 2011 at 3:20 PM, Carlos Chinea <carlos.chinea@nokia.com> wrote:
+> >> Hi,
+> >>
+> >> On Mon, 2011-03-21 at 09:16 +0100, ext Linus Walleij wrote:
+> >>> 2010/12/14 Carlos Chinea <carlos.chinea@nokia.com>:
+> >>>
+> >>> > Here you have the fourth round of the HSI framework patches.
+> >>>
+> >>> I'd like to notify that this out-of-tree framework is also in use for
+> >>> the ST-Ericsson
+> >>> Ux500s, and we've had great success with it. You can add my:
+> >>>
+> >>> Acked-by: Linus Walleij <linus.walleij@linaro.org>
+> >>>
+> >>
+> >
+> > Hi Carlos,
+> >
+> > Will you posting a next version of HSI framework.
+> >
+> > I am planning to adapt omap-hsi driver to this framework.
+> 
+> I was sort of asking the same thing.
 
-2011/5/17 Tony Lindgren <tony@atomide.com>:
-> * Enric Balletb=C3=B2 i Serra <eballetbo@gmail.com> [110516 10:11]:
->> Hi Mike,
->>
->> The only comment I wanted to do is maybe I prefer rename the
->> board-igep0020 to board-igep00x0 to be more generic. Apart from this
->> these patch series looks good for me and has my ack. Thanks.
->
-> I suggest we do the rename separately later on. Otherwise it
-> easily gets classified as "crazy churn" type of patch, so best
-> to stick to just code coalescing and fixes for this merge window.
+> I expected this to be queued up for 2.6.40 so we don't proliferate
+> out-of-tree drivers :-(
+> 
+> If Nokia will not pursue this patch set then tell me and Govindraj
+> and we can surely take it over.
+> 
 
-Ok, so Mike you've my ack, thanks
+We are still committed to these patches. We are aiming to release a new
+version in 3 weeks max, sooner if we can.
 
-Cheers,
-   Enric
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I am very sorry for the delay and I agree that starting to have several
+out-of-tree drivers is not acceptable. I'll try my best to fix this
+asap.
+
+Br,
+-- 
+Carlos Chinea <carlos.chinea@nokia.com>
