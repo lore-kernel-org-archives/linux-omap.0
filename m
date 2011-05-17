@@ -1,79 +1,58 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: beagleboardxm 2.6.39rc4 mcbsp problems.
-Date: Tue, 17 May 2011 09:37:03 +0300
-Message-ID: <20110517093703.d0cd1e53.jhnikula@gmail.com>
-References: <1305122135-27938-1-git-send-email-premi@ti.com>
-	<201105130859.12477.peter.ujfalusi@ti.com>
-	<BANLkTi=9pm=xRqgt-tiV9+S594+Zo2ysCQ@mail.gmail.com>
-	<201105161154.55850.peter.ujfalusi@ti.com>
-	<4DD167EC.2010007@gmail.com>
+From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
+Subject: Re: USB-ehci enumeration issue
+Date: Tue, 17 May 2011 13:08:39 +0530
+Message-ID: <BANLkTim04vsyPcKqGEgv1CUH_qOaFv7mpg@mail.gmail.com>
+References: <BANLkTin1WEd0KeUb7kZ80GAYbEQC3SkezA@mail.gmail.com>
+	<20110502095647.GU2529@legolas.emea.dhcp.ti.com>
+	<BANLkTi=6gyWG3Dww_uY89vDW_P6zGV=N9w@mail.gmail.com>
+	<20110516134109.GF11339@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:46567 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752537Ab1EQGfy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 May 2011 02:35:54 -0400
-Received: by eyx24 with SMTP id 24so46813eyx.19
-        for <linux-omap@vger.kernel.org>; Mon, 16 May 2011 23:35:53 -0700 (PDT)
-In-Reply-To: <4DD167EC.2010007@gmail.com>
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:57831 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752624Ab1EQHil convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 17 May 2011 03:38:41 -0400
+Received: by mail-bw0-f51.google.com with SMTP id 10so259984bwz.10
+        for <linux-omap@vger.kernel.org>; Tue, 17 May 2011 00:38:40 -0700 (PDT)
+In-Reply-To: <20110516134109.GF11339@legolas.emea.dhcp.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Steve Calfee <stevecalfee@gmail.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, "Premi, Sanjeev" <premi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Girdwood, Liam" <lrg@ti.com>
+To: balbi@ti.com
+Cc: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>, linux-omap@vger.kernel.org
 
-Hi
+On Mon, May 16, 2011 at 7:11 PM, Felipe Balbi <balbi@ti.com> wrote:
+>
+> Hi,
+>
+> On Sun, May 15, 2011 at 06:21:31PM +0530, ABRAHAM, KISHON VIJAY wrote=
+:
+> > > > Does anyone else observe this issue?
+> > >
+> > > could be the regulators problem. Can you try with my hci branch ?
+> > >
+> > > git://gitorious.org/usb/usb.git hci
+> > >
+> >
+> > =A0 =A0saw the issue even in this tree/branch.
+>
+> Keshava ? Do you have any patch fixing this ?
+>
 
-On Mon, 16 May 2011 11:07:40 -0700
-Steve Calfee <stevecalfee@gmail.com> wrote:
+Kishon
+please ensure that you have all the patches to make ehci /ohci to make
+working omap4 and omap3 sdp boards.
+you can find them here: =A0 git://gitorious.org/~kmg/mirrors/linux-ehci=
+-ohci
+get the latest branch : =A0kmg-39-rc6-omap4
 
-> On 05/16/11 01:54, Peter Ujfalusi wrote:
-> > On Saturday 14 May 2011 05:47:33 Steve Calfee wrote:
-> >> I put in a few debug statements. It appears that my DMA never gets
-> >> started. I know it can work with a different machine and codec driver,
-> >> but not mine. I don't see any explicit DMA init, but that must be the
-> >> problem.  Any more ideas?
-> > 
-> > You mean neither omap_pcm_hw_params nor omap_pcm_trigger got called?
-> > Could you post the output of dmesg related to ASoC? Does the connection 
-> > between the CPU and codec DAI correct?
-> > Does McBSP part got initialized (for example does omap_mcbsp_dai_hw_params, 
-> > omap_mcbsp_dai_trigger got called)?
-> > 
-> No, they get called. I just don't get the clock on the bclk pin.
-> 
-> I think I have the mcbsp1 set up correctly - I explictly set the MUX:
-> 
-> static struct omap_board_mux board_mux[] __initdata = {
-> #if 1
-> 	/* McBSP 1 */
-> 	OMAP3_MUX(MCBSP1_FSX, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
-> 	OMAP3_MUX(MCBSP1_CLKX, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
-> 	OMAP3_MUX(MCBSP1_DR, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
-> 	OMAP3_MUX(MCBSP1_DX, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-> #endif
-> 	{ .reg_offset = OMAP_MUX_TERMINATOR },
-> };
-> 
-Did you try to run OMAP as an I2S master like what omap3pandora.c is
-doing?
+~kmg/mirrors/linux-ehci-ohci:kmg-39-rc6-omap4
 
-Missing clock in codec master configuration suggests that reason
-is in codec side and reversed roles during development makes easier to
-hunt it further as then OMAP can play data out independently of is the
-codec correctly configured or not.
-
-You could run OMAP as a master by specifying SND_SOC_DAIFMT_CBS_CFS
-as a DAI format for both codec and OMAP and by setting McBSP to use
-internal 96 MHz clock as a master clock. Something like below might work
-for testing purposes:
-
-snd_soc_dai_set_sysclk(cpu_dai, OMAP_MCBSP_SYSCLK_CLKS_FCLK,
-		       96000000, SND_SOC_CLOCK_IN);
-
-snd_soc_dai_set_clkdiv(cpu_dai, OMAP_MCBSP_CLKGDV,
-		       62); /* 96M / 48k*32 */
-
--- 
-Jarkko
+keshava
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
