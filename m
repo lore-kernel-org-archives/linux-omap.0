@@ -1,64 +1,111 @@
 From: Mayuresh Janorkar <mayur@ti.com>
-Subject: [PATCH v5 2/4] OMAP: DSS: Adding a picodlp header file
-Date: Tue, 17 May 2011 17:49:41 +0530
-Message-ID: <1305634783-21265-3-git-send-email-mayur@ti.com>
+Subject: [PATCH v5 3/4] OMAP: DSS: Add picodlp panel driver
+Date: Tue, 17 May 2011 17:49:42 +0530
+Message-ID: <1305634783-21265-4-git-send-email-mayur@ti.com>
 References: <1305634783-21265-1-git-send-email-mayur@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38440 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754422Ab1EQLxw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 17 May 2011 07:53:52 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:39380 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754437Ab1EQLxz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 May 2011 07:53:55 -0400
 Received: from dlep35.itg.ti.com ([157.170.170.118])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p4HBrq0p010086
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p4HBrtgO022599
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 17 May 2011 06:53:52 -0500
+	for <linux-omap@vger.kernel.org>; Tue, 17 May 2011 06:53:55 -0500
 Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
-	by dlep35.itg.ti.com (8.13.7/8.13.7) with ESMTP id p4HBrpSU013779
-	for <linux-omap@vger.kernel.org>; Tue, 17 May 2011 06:53:51 -0500 (CDT)
+	by dlep35.itg.ti.com (8.13.7/8.13.7) with ESMTP id p4HBrtjT013787
+	for <linux-omap@vger.kernel.org>; Tue, 17 May 2011 06:53:55 -0500 (CDT)
 In-Reply-To: <1305634783-21265-1-git-send-email-mayur@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: tomi.valkeinen@ti.com, Mythri P K <mythripk@ti.com>, Mayuresh Janorkar <mayur@ti.com>
+Cc: tomi.valkeinen@ti.com, Mayuresh Janorkar <mayur@ti.com>, Mythri P K <mythripk@ti.com>
 
-From: Mythri P K <mythripk@ti.com>
+picodlp panel driver is required for driving DLP dpp2600.
+It consists of a dss driver and an i2c_client.
 
-picodlp is a projector connected supported by OMAP.
+i2c_client is required for sending commands to dpp (DLP Pico Projector).
 
-DLP used in OMAP4 is dpp2600 (DLP Pico Projector)
-The DLP requires commands to be sent over i2c for configurations,
-Commands are defined together in this header file
+Based on original design from Mythri P K <mythripk@ti.com>
 
-To know more about dpp2600 commands please visit:
-https://focus.ti.com/myti/docs/extranet.tsp?sectionId=403
+The power-up sequence consists of:
+Setting PWRGOOD to a logic low state. Once power is stable and thus the DPP2600
+is stable, then PWRGOOD should be deactivated (Set to a logic high).
+The DPP2600 will then perform a power-up initialization routine that will first
+configure and lock its PLL followed by loading self configuration data from
+external flash. DPP2600 would be activated and the EMU_DONE signal will be
+driven high. After this once internal initialization routine,
+which will take approximately 510ms, i2c commands can be sent.
 
-Signed-off-by: Mythri P K <mythripk@ti.com>
+To know more please visit: http://www.omappedia.org/wiki/PicoDLP_projector_guide
+
 Signed-off-by: Mayuresh Janorkar <mayur@ti.com>
+Signed-off-by: Mythri P K <mythripk@ti.com>
 ---
-Changes since v3, v4: Nil
+Changes since v4:
+	i2c_ungister removed from i2c_remove
+	Macros removed
+
+Changes since v3:
+	msleep moved to appropriate place
+	gpio requests moved to board file
 
 Changes since v2:
-		Added DMA_STATUS definition
+	Merged panel picodlp patches into a single patch
+	Introduced DMA_DONE polling between flash transfer
+	Changed GPIO handling
+	Reduced sleeps
 
-Changes since v1: Nil
+ drivers/video/omap2/displays/Kconfig         |    7 +
+ drivers/video/omap2/displays/Makefile        |    1 +
+ drivers/video/omap2/displays/panel-picodlp.c |  591 ++++++++++++++++++++++++++
+ 3 files changed, 599 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/video/omap2/displays/panel-picodlp.c
 
- drivers/video/omap2/displays/panel-picodlp.h |  288 ++++++++++++++++++++++++++
- 1 files changed, 288 insertions(+), 0 deletions(-)
- create mode 100644 drivers/video/omap2/displays/panel-picodlp.h
-
-diff --git a/drivers/video/omap2/displays/panel-picodlp.h b/drivers/video/omap2/displays/panel-picodlp.h
+diff --git a/drivers/video/omap2/displays/Kconfig b/drivers/video/omap2/displays/Kconfig
+index 609a280..0b05593 100644
+--- a/drivers/video/omap2/displays/Kconfig
++++ b/drivers/video/omap2/displays/Kconfig
+@@ -30,6 +30,13 @@ config PANEL_NEC_NL8048HL11_01B
+ 		This NEC NL8048HL11-01B panel is TFT LCD
+ 		used in the Zoom2/3/3630 sdp boards.
+ 
++config PANEL_PICODLP
++	tristate "OMAP PICO DLP Panel"
++	depends on OMAP2_DSS
++	help
++		Projector Panel used in TI's SDP4430 and EVM boards
++		For more info please visit http://www.dlp.com/projector/
++
+ config PANEL_TAAL
+         tristate "Taal DSI Panel"
+         depends on OMAP2_DSS_DSI
+diff --git a/drivers/video/omap2/displays/Makefile b/drivers/video/omap2/displays/Makefile
+index 0f601ab..d90f73c 100644
+--- a/drivers/video/omap2/displays/Makefile
++++ b/drivers/video/omap2/displays/Makefile
+@@ -4,5 +4,6 @@ obj-$(CONFIG_PANEL_SHARP_LS037V7DW01) += panel-sharp-ls037v7dw01.o
+ obj-$(CONFIG_PANEL_NEC_NL8048HL11_01B) += panel-nec-nl8048hl11-01b.o
+ 
+ obj-$(CONFIG_PANEL_TAAL) += panel-taal.o
++obj-$(CONFIG_PANEL_PICODLP) +=  panel-picodlp.o
+ obj-$(CONFIG_PANEL_TPO_TD043MTEA1) += panel-tpo-td043mtea1.o
+ obj-$(CONFIG_PANEL_ACX565AKM) += panel-acx565akm.o
+diff --git a/drivers/video/omap2/displays/panel-picodlp.c b/drivers/video/omap2/displays/panel-picodlp.c
 new file mode 100644
-index 0000000..a34b431
+index 0000000..cbc7f8a
 --- /dev/null
-+++ b/drivers/video/omap2/displays/panel-picodlp.h
-@@ -0,0 +1,288 @@
++++ b/drivers/video/omap2/displays/panel-picodlp.c
+@@ -0,0 +1,591 @@
 +/*
-+ * Header file required by picodlp panel driver
++ * picodlp panel driver
++ * picodlp_i2c_driver: i2c_client driver
 + *
 + * Copyright (C) 2009-2011 Texas Instruments
 + * Author: Mythri P K <mythripk@ti.com>
++ * Mayuresh Janorkar <mayur@ti.com>
 + *
 + * This program is free software; you can redistribute it and/or modify it
 + * under the terms of the GNU General Public License version 2 as published by
@@ -71,277 +118,578 @@ index 0000000..a34b431
 + *
 + * You should have received a copy of the GNU General Public License along with
 + * this program.  If not, see <http://www.gnu.org/licenses/>.
-+*/
++ */
 +
-+#ifndef __OMAP2_DISPLAY_PANEL_PICODLP_H
-+#define __OMAP2_DISPLAY_PANEL_PICODLP_H
++#include <linux/input.h>
++#include <linux/platform_device.h>
++#include <linux/interrupt.h>
++#include <linux/firmware.h>
++#include <linux/slab.h>
++#include <linux/mutex.h>
++#include <linux/i2c.h>
++#include <linux/delay.h>
++#include <linux/gpio.h>
 +
-+/* Commands used for configuring picodlp panel */
++#include <video/omapdss.h>
++#include <video/panel-picodlp.h>
 +
-+#define MAIN_STATUS			0x03
-+#define PBC_CONTROL			0x08
-+#define INPUT_SOURCE			0x0B
-+#define INPUT_RESOLUTION		0x0C
-+#define DATA_FORMAT			0x0D
-+#define IMG_ROTATION			0x0E
-+#define LONG_FLIP			0x0F
-+#define SHORT_FLIP			0x10
-+#define TEST_PAT_SELECT			0x11
-+#define R_DRIVE_CURRENT			0x12
-+#define G_DRIVE_CURRENT			0x13
-+#define B_DRIVE_CURRENT			0x14
-+#define READ_REG_SELECT			0x15
-+#define RGB_DRIVER_ENABLE		0x16
++#include "panel-picodlp.h"
 +
-+#define CPU_IF_MODE			0x18
-+#define FRAME_RATE			0x19
-+#define CPU_IF_SYNC_METHOD		0x1A
-+#define CPU_IF_SOF			0x1B
-+#define CPU_IF_EOF			0x1C
-+#define CPU_IF_SLEEP			0x1D
++struct picodlp_data {
++	struct mutex lock;
++	struct i2c_client *picodlp_i2c_client;
++};
 +
-+#define SEQUENCE_MODE			0x1E
-+#define SOFT_RESET			0x1F
-+#define FRONT_END_RESET			0x21
-+#define AUTO_PWR_ENABLE			0x22
++static struct i2c_board_info picodlp_i2c_board_info = {
++	I2C_BOARD_INFO("picodlp_i2c_driver", 0x1b),
++};
 +
-+#define VSYNC_LINE_DELAY		0x23
-+#define CPU_PI_HORIZ_START		0x24
-+#define CPU_PI_VERT_START		0x25
-+#define CPU_PI_HORIZ_WIDTH		0x26
-+#define CPU_PI_VERT_HEIGHT		0x27
++struct picodlp_i2c_data {
++	struct mutex xfer_lock;
++};
 +
-+#define PIXEL_MASK_CROP			0x28
-+#define CROP_FIRST_LINE			0x29
-+#define CROP_LAST_LINE			0x2A
-+#define CROP_FIRST_PIXEL		0x2B
-+#define CROP_LAST_PIXEL			0x2C
-+#define DMD_PARK_TRIGGER		0x2D
++struct i2c_device_id picodlp_i2c_id[] = {
++	{ "picodlp_i2c_driver", 0 },
++};
 +
-+#define MISC_REG			0x30
++struct picodlp_i2c_command {
++	u8 reg;
++	u32 value;
++};
 +
-+/* AGC registers */
-+#define AGC_CTRL			0x50
-+#define AGC_CLIPPED_PIXS		0x55
-+#define AGC_BRIGHT_PIXS			0x56
-+#define AGC_BG_PIXS			0x57
-+#define AGC_SAFETY_MARGIN		0x17
++static struct omap_video_timings pico_ls_timings = {
++	.x_res		= 864,
++	.y_res		= 480,
++	.hsw		= 7,
++	.hfp		= 11,
++	.hbp		= 7,
 +
-+/* Color Coordinate Adjustment registers */
-+#define CCA_ENABLE		0x5E
-+#define CCA_C1A			0x5F
-+#define CCA_C1B			0x60
-+#define CCA_C1C			0x61
-+#define CCA_C2A			0x62
-+#define CCA_C2B			0x63
-+#define CCA_C2C			0x64
-+#define CCA_C3A			0x65
-+#define CCA_C3B			0x66
-+#define CCA_C3C			0x67
-+#define CCA_C7A			0x71
-+#define CCA_C7B			0x72
-+#define CCA_C7C			0x73
++	.pixel_clock	= 19200,
++
++	.vsw		= 2,
++	.vfp		= 3,
++	.vbp		= 14,
++};
++
++static inline struct picodlp_panel_data
++		*get_panel_data(const struct omap_dss_device *dssdev)
++{
++	return (struct picodlp_panel_data *) dssdev->data;
++}
++
++static u32 picodlp_i2c_read(struct i2c_client *client, u8 reg)
++{
++	u8 read_cmd[] = {READ_REG_SELECT, reg}, data[4];
++	struct picodlp_i2c_data *picodlp_i2c_data = i2c_get_clientdata(client);
++	struct i2c_msg msg[2];
++
++	mutex_lock(&picodlp_i2c_data->xfer_lock);
++
++	msg[0].addr = client->addr;
++	msg[0].flags = 0;
++	msg[0].len = 2;
++	msg[0].buf = read_cmd;
++
++	msg[1].addr = client->addr;
++	msg[1].flags = I2C_M_RD;
++	msg[1].len = 4;
++	msg[1].buf = data;
++
++	i2c_transfer(client->adapter, msg, 2);
++	mutex_unlock(&picodlp_i2c_data->xfer_lock);
++	return (data[3] | (data[2] << 8) | (data[1] << 16) | (data[0] << 24));
++}
++
++static int picodlp_i2c_write_block(struct i2c_client *client,
++					u8 *data, int len)
++{
++	struct i2c_msg msg;
++	int i, r, msg_count = 1;
++
++	struct picodlp_i2c_data *picodlp_i2c_data = i2c_get_clientdata(client);
++
++	if (len < 1 || len > 32) {
++		dev_err(&client->dev,
++			"too long syn_write_block len %d\n", len);
++		return -EIO;
++	}
++	mutex_lock(&picodlp_i2c_data->xfer_lock);
++
++	msg.addr = client->addr;
++	msg.flags = 0;
++	msg.len = len;
++	msg.buf = data;
++	r = i2c_transfer(client->adapter, &msg, msg_count);
++	mutex_unlock(&picodlp_i2c_data->xfer_lock);
++
++	/*
++	 * i2c_transfer returns:
++	 * number of messages sent in case of success
++	 * a negative error number in case of failure
++	 */
++	if (r != msg_count)
++		goto err;
++
++	/* In case of success */
++	for (i = 0; i < len; i++)
++		dev_dbg(&client->dev,
++			"addr %x bw 0x%02x[%d]: 0x%02x\n",
++			client->addr, data[0] + i, i, data[i]);
++
++	return 0;
++err:
++	dev_err(&client->dev, "picodlp_i2c_write error\n");
++	return r;
++}
++
++static int picodlp_i2c_write(struct i2c_client *client, u8 reg, u32 value)
++{
++	u8 data[5];
++	int i;
++
++	data[0] = reg;
++	for (i = 1; i < 5; i++)
++		data[i] = (value >> (32 - (i) * 8)) & 0xFF;
++
++	return picodlp_i2c_write_block(client, data, 5);
++}
++
++static int picodlp_i2c_write_array(struct i2c_client *client,
++			const struct picodlp_i2c_command commands[],
++			int count)
++{
++	int i, r = 0;
++	for (i = 0; i < count; i++) {
++		r = picodlp_i2c_write(client, commands[i].reg,
++						commands[i].value);
++		if (r)
++			return r;
++	}
++	return r;
++}
++
++static bool picodlp_wait_for_dma_done(struct i2c_client *client)
++{
++	u8 trial = 100;
++
++	do {
++		msleep(1);
++		if (!trial--)
++			return -ETIMEDOUT;
++	} while (picodlp_i2c_read(client, MAIN_STATUS) & DMA_STATUS);
++
++	return 0;
++}
 +
 +/**
-+ * DLP Pico Processor 2600 comes with flash
-+ * We can do DMA operations from flash for accessing Look Up Tables
++ * picodlp_i2c_init:	i2c_initialization routine
++ * client:	i2c_client for communication
++ *
++ * return
++ *		0	: Success, no error
++ *	error code	: Failure
 + */
-+#define DMA_STATUS			0x100
-+#define FLASH_ADDR_BYTES		0x74
-+#define FLASH_DUMMY_BYTES		0x75
-+#define FLASH_WRITE_BYTES		0x76
-+#define FLASH_READ_BYTES		0x77
-+#define FLASH_OPCODE			0x78
-+#define FLASH_START_ADDR		0x79
-+#define FLASH_DUMMY2			0x7A
-+#define FLASH_WRITE_DATA		0x7B
++static int picodlp_i2c_init(struct i2c_client *client)
++{
++	int r;
++	static const struct picodlp_i2c_command init_cmd_set1[] = {
++		{SOFT_RESET, 1},
++		{DMD_PARK_TRIGGER, 1},
++		{MISC_REG, 5},
++		{SEQ_CONTROL, 0},
++		{SEQ_VECTOR, 0x100},
++		{DMD_BLOCK_COUNT, 7},
++		{DMD_VCC_CONTROL, 0x109},
++		{DMD_PARK_PULSE_COUNT, 0xA},
++		{DMD_PARK_PULSE_WIDTH, 0xB},
++		{DMD_PARK_DELAY, 0x2ED},
++		{DMD_SHADOW_ENABLE, 0},
++		{FLASH_OPCODE, 0xB},
++		{FLASH_DUMMY_BYTES, 1},
++		{FLASH_ADDR_BYTES, 3},
++		{PBC_CONTROL, 0},
++		{FLASH_START_ADDR, CMT_LUT_0_START_ADDR},
++		{FLASH_READ_BYTES, CMT_LUT_0_SIZE},
++		{CMT_SPLASH_LUT_START_ADDR, 0},
++		{CMT_SPLASH_LUT_DEST_SELECT, CMT_LUT_ALL},
++		{PBC_CONTROL, 1},
++	};
 +
-+#define TEMPORAL_DITH_DISABLE		0x7E
-+#define SEQ_CONTROL			0x82
-+#define SEQ_VECTOR			0x83
++	static const struct picodlp_i2c_command init_cmd_set2[] = {
++		{PBC_CONTROL, 0},
++		{CMT_SPLASH_LUT_DEST_SELECT, 0},
++		{PBC_CONTROL, 0},
++		{FLASH_START_ADDR, SEQUENCE_0_START_ADDR},
++		{FLASH_READ_BYTES, SEQUENCE_0_SIZE},
++		{SEQ_RESET_LUT_START_ADDR, 0},
++		{SEQ_RESET_LUT_DEST_SELECT, SEQ_SEQ_LUT},
++		{PBC_CONTROL, 1},
++	};
 +
-+/* DMD is Digital Micromirror Device */
-+#define DMD_BLOCK_COUNT			0x84
-+#define DMD_VCC_CONTROL			0x86
-+#define DMD_PARK_PULSE_COUNT		0x87
-+#define DMD_PARK_PULSE_WIDTH		0x88
-+#define DMD_PARK_DELAY			0x89
-+#define DMD_SHADOW_ENABLE		0x8E
-+#define SEQ_STATUS			0x8F
-+#define FLASH_CLOCK_CONTROL		0x98
-+#define DMD_PARK			0x2D
++	static const struct picodlp_i2c_command init_cmd_set3[] = {
++		{PBC_CONTROL, 0},
++		{SEQ_RESET_LUT_DEST_SELECT, 0},
++		{PBC_CONTROL, 0},
++		{FLASH_START_ADDR, DRC_TABLE_0_START_ADDR},
++		{FLASH_READ_BYTES, DRC_TABLE_0_SIZE},
++		{SEQ_RESET_LUT_START_ADDR, 0},
++		{SEQ_RESET_LUT_DEST_SELECT, SEQ_DRC_LUT_ALL},
++		{PBC_CONTROL, 1},
++	};
 +
-+#define SDRAM_BIST_ENABLE		0x46
-+#define DDR_DRIVER_STRENGTH		0x9A
-+#define SDC_ENABLE			0x9D
-+#define SDC_BUFF_SWAP_DISABLE		0xA3
-+#define CURTAIN_CONTROL			0xA6
-+#define DDR_BUS_SWAP_ENABLE		0xA7
-+#define DMD_TRC_ENABLE			0xA8
-+#define DMD_BUS_SWAP_ENABLE		0xA9
++	static const struct picodlp_i2c_command init_cmd_set4[] = {
++		{PBC_CONTROL, 0},
++		{SEQ_RESET_LUT_DEST_SELECT, 0},
++		{SDC_ENABLE, 1},
++		{AGC_CTRL, 7},
++		{CCA_C1A, 0x100},
++		{CCA_C1B, 0x0},
++		{CCA_C1C, 0x0},
++		{CCA_C2A, 0x0},
++		{CCA_C2B, 0x100},
++		{CCA_C2C, 0x0},
++		{CCA_C3A, 0x0},
++		{CCA_C3B, 0x0},
++		{CCA_C3C, 0x100},
++		{CCA_C7A, 0x100},
++		{CCA_C7B, 0x100},
++		{CCA_C7C, 0x100},
++		{CCA_ENABLE, 1},
++		{CPU_IF_MODE, 1},
++		{SHORT_FLIP, 1},
++		{CURTAIN_CONTROL, 0},
++		{DMD_PARK_TRIGGER, 0},
++		{R_DRIVE_CURRENT, 0x298},
++		{G_DRIVE_CURRENT, 0x298},
++		{B_DRIVE_CURRENT, 0x298},
++		{RGB_DRIVER_ENABLE, 7},
++		{SEQ_CONTROL, 0},
++		{ACTGEN_CONTROL, 0x10},
++		{SEQUENCE_MODE, SEQ_LOCK},
++		{DATA_FORMAT, RGB888},
++		{INPUT_RESOLUTION, WVGA_864_LANDSCAPE},
++		{INPUT_SOURCE, PARALLEL_RGB},
++		{CPU_IF_SYNC_METHOD, 1},
++		{SEQ_CONTROL, 1}
++	};
 +
-+#define ACTGEN_ENABLE			0xAE
-+#define ACTGEN_CONTROL			0xAF
-+#define ACTGEN_HORIZ_BP			0xB0
-+#define ACTGEN_VERT_BP			0xB1
++	r = picodlp_i2c_write_array(client, init_cmd_set1,
++						ARRAY_SIZE(init_cmd_set1));
++	if (r)
++		return r;
 +
-+/* Look Up Table access */
-+#define CMT_SPLASH_LUT_START_ADDR	0xFA
-+#define CMT_SPLASH_LUT_DEST_SELECT	0xFB
-+#define CMT_SPLASH_LUT_DATA		0xFC
-+#define SEQ_RESET_LUT_START_ADDR	0xFD
-+#define SEQ_RESET_LUT_DEST_SELECT	0xFE
-+#define SEQ_RESET_LUT_DATA		0xFF
++	r = picodlp_wait_for_dma_done(client);
++	if (r)
++		return r;
 +
-+/* Input source definitions */
-+#define PARALLEL_RGB		0
-+#define INT_TEST_PATTERN	1
-+#define SPLASH_SCREEN		2
-+#define CPU_INTF		3
-+#define BT656			4
++	r = picodlp_i2c_write_array(client, init_cmd_set2,
++					ARRAY_SIZE(init_cmd_set2));
++	if (r)
++		return r;
 +
-+/* Standard input resolution definitions */
-+#define QWVGA_LANDSCAPE		3	/* (427h*240v) */
-+#define WVGA_864_LANDSCAPE	21	/* (864h*480v) */
-+#define WVGA_DMD_OPTICAL_TEST	35	/* (608h*684v) */
++	r = picodlp_wait_for_dma_done(client);
++	if (r)
++		return r;
 +
-+/* Standard data format definitions */
-+#define RGB565			0
-+#define RGB666			1
-+#define RGB888			2
++	r = picodlp_i2c_write_array(client, init_cmd_set3,
++					ARRAY_SIZE(init_cmd_set3));
++	if (r)
++		return r;
 +
-+/* Test Pattern definitions */
-+#define TPG_CHECKERBOARD	0
-+#define TPG_BLACK		1
-+#define TPG_WHITE		2
-+#define TPG_RED			3
-+#define TPG_BLUE		4
-+#define TPG_GREEN		5
-+#define TPG_VLINES_BLACK	6
-+#define TPG_HLINES_BLACK	7
-+#define TPG_VLINES_ALT		8
-+#define TPG_HLINES_ALT		9
-+#define TPG_DIAG_LINES		10
-+#define TPG_GREYRAMP_VERT	11
-+#define TPG_GREYRAMP_HORIZ	12
-+#define TPG_ANSI_CHECKERBOARD	13
++	r = picodlp_wait_for_dma_done(client);
++	if (r)
++		return r;
 +
-+/* sequence mode definitions */
-+#define SEQ_FREE_RUN		0
-+#define SEQ_LOCK		1
++	r = picodlp_i2c_write_array(client, init_cmd_set4,
++					ARRAY_SIZE(init_cmd_set4));
++	if (r)
++		return r;
 +
-+/* curtain color definitions */
-+#define CURTAIN_BLACK		0
-+#define CURTAIN_RED		1
-+#define CURTAIN_GREEN		2
-+#define CURTAIN_BLUE		3
-+#define CURTAIN_YELLOW		4
-+#define CURTAIN_MAGENTA		5
-+#define CURTAIN_CYAN		6
-+#define CURTAIN_WHITE		7
++	return 0;
++}
 +
-+/* LUT definitions */
-+#define CMT_LUT_NONE		0
-+#define CMT_LUT_GREEN		1
-+#define CMT_LUT_RED		2
-+#define CMT_LUT_BLUE		3
-+#define CMT_LUT_ALL		4
-+#define SPLASH_LUT		5
++static int picodlp_i2c_probe(struct i2c_client *client,
++		const struct i2c_device_id *id)
++{
++	struct picodlp_i2c_data *picodlp_i2c_data;
 +
-+#define SEQ_LUT_NONE		0
-+#define SEQ_DRC_LUT_0		1
-+#define SEQ_DRC_LUT_1		2
-+#define SEQ_DRC_LUT_2		3
-+#define SEQ_DRC_LUT_3		4
-+#define SEQ_SEQ_LUT		5
-+#define SEQ_DRC_LUT_ALL		6
-+#define WPC_PROGRAM_LUT		7
++	picodlp_i2c_data = kzalloc(sizeof(struct picodlp_i2c_data), GFP_KERNEL);
 +
-+#define BITSTREAM_START_ADDR		0x00000000
-+#define BITSTREAM_SIZE			0x00040000
++	if (!picodlp_i2c_data)
++		return -ENOMEM;
 +
-+#define WPC_FW_0_START_ADDR		0x00040000
-+#define WPC_FW_0_SIZE			0x00000ce8
++	mutex_init(&picodlp_i2c_data->xfer_lock);
++	i2c_set_clientdata(client, picodlp_i2c_data);
 +
-+#define SEQUENCE_0_START_ADDR		0x00044000
-+#define SEQUENCE_0_SIZE			0x00001000
++	return 0;
++}
 +
-+#define SEQUENCE_1_START_ADDR		0x00045000
-+#define SEQUENCE_1_SIZE			0x00000d10
++static int picodlp_i2c_remove(struct i2c_client *client)
++{
++	struct picodlp_i2c_data *picodlp_i2c_data =
++					i2c_get_clientdata(client);
++	kfree(picodlp_i2c_data);
++	return 0;
++}
 +
-+#define SEQUENCE_2_START_ADDR		0x00046000
-+#define SEQUENCE_2_SIZE			0x00000d10
++static struct i2c_driver picodlp_i2c_driver = {
++	.driver = {
++		.name	= "picodlp_i2c_driver",
++	},
++	.probe		= picodlp_i2c_probe,
++	.remove		= picodlp_i2c_remove,
++	.id_table	= picodlp_i2c_id,
++};
 +
-+#define SEQUENCE_3_START_ADDR		0x00047000
-+#define SEQUENCE_3_SIZE			0x00000d10
++static int picodlp_panel_power_on(struct omap_dss_device *dssdev)
++{
++	int r, trial = 100;
++	struct picodlp_data *picod = dev_get_drvdata(&dssdev->dev);
++	struct picodlp_panel_data *picodlp_pdata = get_panel_data(dssdev);
 +
-+#define SEQUENCE_4_START_ADDR		0x00048000
-+#define SEQUENCE_4_SIZE			0x00000d10
++	if (dssdev->platform_enable) {
++		r = dssdev->platform_enable(dssdev);
++		if (r)
++			return r;
++	}
 +
-+#define SEQUENCE_5_START_ADDR		0x00049000
-+#define SEQUENCE_5_SIZE			0x00000d10
++	gpio_set_value(picodlp_pdata->pwrgood_gpio, 0);
++	msleep(1);
++	gpio_set_value(picodlp_pdata->pwrgood_gpio, 1);
 +
-+#define SEQUENCE_6_START_ADDR		0x0004a000
-+#define SEQUENCE_6_SIZE			0x00000d10
++	while (!gpio_get_value(picodlp_pdata->emu_done_gpio)) {
++		if (!trial--) {
++			dev_err(&dssdev->dev, "emu_done signal not"
++						" going high\n");
++			return -ETIMEDOUT;
++		}
++		msleep(5);
++	}
++	/*
++	 * As per dpp2600 programming guide,
++	 * it is required to sleep for 510ms after emu_done signal goes high
++	 * then only i2c commands can be successfully sent to dpp2600
++	 */
++	msleep(510);
++	if (omapdss_dpi_display_enable(dssdev)) {
++		dev_err(&dssdev->dev, "failed to enable DPI\n");
++		goto err1;
++	}
++	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
 +
-+#define CMT_LUT_0_START_ADDR		0x0004b200
-+#define CMT_LUT_0_SIZE			0x00000600
++	r = picodlp_i2c_init(picod->picodlp_i2c_client);
++	if (r)
++		goto err;
 +
-+#define CMT_LUT_1_START_ADDR		0x0004b800
-+#define CMT_LUT_1_SIZE			0x00000600
++	return r;
++err:
++	omapdss_dpi_display_disable(dssdev);
++err1:
++	if (dssdev->platform_disable)
++		dssdev->platform_disable(dssdev);
 +
-+#define CMT_LUT_2_START_ADDR		0x0004be00
-+#define CMT_LUT_2_SIZE			0x00000600
++	return r;
++}
 +
-+#define CMT_LUT_3_START_ADDR		0x0004c400
-+#define CMT_LUT_3_SIZE			0x00000600
++static void picodlp_panel_power_off(struct omap_dss_device *dssdev)
++{
++	struct picodlp_panel_data *picodlp_pdata = get_panel_data(dssdev);
 +
-+#define CMT_LUT_4_START_ADDR		0x0004ca00
-+#define CMT_LUT_4_SIZE			0x00000600
++	omapdss_dpi_display_disable(dssdev);
 +
-+#define CMT_LUT_5_START_ADDR		0x0004d000
-+#define CMT_LUT_5_SIZE			0x00000600
++	gpio_set_value(picodlp_pdata->emu_done_gpio, 0);
++	gpio_set_value(picodlp_pdata->pwrgood_gpio, 0);
 +
-+#define CMT_LUT_6_START_ADDR		0x0004d600
-+#define CMT_LUT_6_SIZE			0x00000600
++	if (dssdev->platform_disable)
++		dssdev->platform_disable(dssdev);
++}
 +
-+#define DRC_TABLE_0_START_ADDR		0x0004dc00
-+#define DRC_TABLE_0_SIZE		0x00000100
++static int picodlp_panel_probe(struct omap_dss_device *dssdev)
++{
++	struct picodlp_data *picod;
++	struct picodlp_panel_data *picodlp_pdata = get_panel_data(dssdev);
++	struct i2c_adapter *adapter;
++	struct i2c_client *picodlp_i2c_client;
++	int r = 0, picodlp_adapter_id;
 +
-+#define SPLASH_0_START_ADDR		0x0004dd00
-+#define SPLASH_0_SIZE			0x00032280
++	dssdev->panel.config = OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_ONOFF |
++				OMAP_DSS_LCD_IHS | OMAP_DSS_LCD_IVS;
++	dssdev->panel.acb = 0x0;
++	dssdev->panel.timings = pico_ls_timings;
 +
-+#define SEQUENCE_7_START_ADDR		0x00080000
-+#define SEQUENCE_7_SIZE			0x00000d10
++	picod =  kzalloc(sizeof(struct picodlp_data), GFP_KERNEL);
++	if (!picod)
++		return -ENOMEM;
 +
-+#define SEQUENCE_8_START_ADDR		0x00081800
-+#define SEQUENCE_8_SIZE			0x00000d10
++	mutex_init(&picod->lock);
 +
-+#define SEQUENCE_9_START_ADDR		0x00083000
-+#define SEQUENCE_9_SIZE			0x00000d10
++	picodlp_adapter_id = picodlp_pdata->picodlp_adapter_id;
 +
-+#define CMT_LUT_7_START_ADDR		0x0008e000
-+#define CMT_LUT_7_SIZE			0x00000600
++	adapter = i2c_get_adapter(picodlp_adapter_id);
++	if (!adapter) {
++		dev_err(&dssdev->dev, "can't get i2c adapter\n");
++		r = -ENODEV;
++		goto err;
++	}
 +
-+#define CMT_LUT_8_START_ADDR		0x0008e800
-+#define CMT_LUT_8_SIZE			0x00000600
++	picodlp_i2c_client = i2c_new_device(adapter, &picodlp_i2c_board_info);
++	if (!picodlp_i2c_client) {
++		dev_err(&dssdev->dev, "can't add i2c device::"
++					 " picodlp_i2c_client is NULL\n");
++		r = -ENODEV;
++		goto err;
++	}
 +
-+#define CMT_LUT_9_START_ADDR		0x0008f000
-+#define CMT_LUT_9_SIZE			0x00000600
++	picod->picodlp_i2c_client = picodlp_i2c_client;
 +
-+#define SPLASH_1_START_ADDR		0x0009a000
-+#define SPLASH_1_SIZE			0x00032280
++	dev_set_drvdata(&dssdev->dev, picod);
++	return r;
++err:
++	kfree(picod);
++	return r;
++}
 +
-+#define SPLASH_2_START_ADDR		0x000cd000
-+#define SPLASH_2_SIZE			0x00032280
++static void picodlp_panel_remove(struct omap_dss_device *dssdev)
++{
++	struct picodlp_data *picod = dev_get_drvdata(&dssdev->dev);
 +
-+#define SPLASH_3_START_ADDR		0x00100000
-+#define SPLASH_3_SIZE			0x00032280
++	i2c_unregister_device(picod->picodlp_i2c_client);
++	dev_set_drvdata(&dssdev->dev, NULL);
++	dev_dbg(&dssdev->dev, "removing picodlp panel\n");
 +
-+#define OPT_SPLASH_0_START_ADDR		0x00134000
-+#define OPT_SPLASH_0_SIZE		0x000cb100
++	kfree(picod);
++}
 +
-+#endif
++static int picodlp_panel_enable(struct omap_dss_device *dssdev)
++{
++	struct picodlp_data *picod = dev_get_drvdata(&dssdev->dev);
++	int r;
++
++	dev_dbg(&dssdev->dev, "enabling picodlp panel\n");
++
++	mutex_lock(&picod->lock);
++	if (dssdev->state != OMAP_DSS_DISPLAY_DISABLED) {
++		mutex_unlock(&picod->lock);
++		return -EINVAL;
++	}
++
++	r = picodlp_panel_power_on(dssdev);
++	mutex_unlock(&picod->lock);
++
++	return r;
++}
++
++static void picodlp_panel_disable(struct omap_dss_device *dssdev)
++{
++	struct picodlp_data *picod = dev_get_drvdata(&dssdev->dev);
++
++	mutex_lock(&picod->lock);
++	/* Turn off DLP Power */
++	if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE)
++		picodlp_panel_power_off(dssdev);
++
++	dssdev->state = OMAP_DSS_DISPLAY_DISABLED;
++	mutex_unlock(&picod->lock);
++
++	dev_dbg(&dssdev->dev, "disabling picodlp panel\n");
++}
++
++static int picodlp_panel_suspend(struct omap_dss_device *dssdev)
++{
++	struct picodlp_data *picod = dev_get_drvdata(&dssdev->dev);
++
++	mutex_lock(&picod->lock);
++	/* Turn off DLP Power */
++	if (dssdev->state != OMAP_DSS_DISPLAY_ACTIVE) {
++		mutex_unlock(&picod->lock);
++		dev_err(&dssdev->dev, "unable to suspend picodlp panel,"
++					" panel is not ACTIVE\n");
++		return -EINVAL;
++	}
++
++	picodlp_panel_power_off(dssdev);
++
++	dssdev->state = OMAP_DSS_DISPLAY_SUSPENDED;
++	mutex_unlock(&picod->lock);
++
++	dev_dbg(&dssdev->dev, "suspending picodlp panel\n");
++	return 0;
++}
++
++static int picodlp_panel_resume(struct omap_dss_device *dssdev)
++{
++	struct picodlp_data *picod = dev_get_drvdata(&dssdev->dev);
++	int r;
++
++	mutex_lock(&picod->lock);
++	if (dssdev->state != OMAP_DSS_DISPLAY_SUSPENDED) {
++		mutex_unlock(&picod->lock);
++		dev_err(&dssdev->dev, "unable to resume picodlp panel,"
++			" panel is not ACTIVE\n");
++		return -EINVAL;
++	}
++
++	r = picodlp_panel_power_on(dssdev);
++	mutex_unlock(&picod->lock);
++	dev_dbg(&dssdev->dev, "resuming picodlp panel\n");
++	return r;
++}
++
++static void picodlp_get_resolution(struct omap_dss_device *dssdev,
++					u16 *xres, u16 *yres)
++{
++	*xres = dssdev->panel.timings.x_res;
++	*yres = dssdev->panel.timings.y_res;
++}
++
++static struct omap_dss_driver picodlp_driver = {
++	.probe		= picodlp_panel_probe,
++	.remove		= picodlp_panel_remove,
++
++	.enable		= picodlp_panel_enable,
++	.disable	= picodlp_panel_disable,
++
++	.get_resolution	= picodlp_get_resolution,
++
++	.suspend	= picodlp_panel_suspend,
++	.resume		= picodlp_panel_resume,
++
++	.driver		= {
++		.name	= "picodlp_panel",
++		.owner	= THIS_MODULE,
++	},
++};
++
++static int __init picodlp_init(void)
++{
++	int r = 0;
++
++	r = i2c_add_driver(&picodlp_i2c_driver);
++	if (r) {
++		printk(KERN_WARNING "picodlp_i2c_driver" \
++			" registration failed\n");
++		return r;
++	}
++
++	r = omap_dss_register_driver(&picodlp_driver);
++	if (r)
++		i2c_del_driver(&picodlp_i2c_driver);
++
++	return r;
++}
++
++static void __exit picodlp_exit(void)
++{
++	i2c_del_driver(&picodlp_i2c_driver);
++	omap_dss_unregister_driver(&picodlp_driver);
++}
++
++module_init(picodlp_init);
++module_exit(picodlp_exit);
++
++MODULE_AUTHOR("Mythri P K <mythripk@ti.com>");
++MODULE_DESCRIPTION("picodlp driver");
++MODULE_LICENSE("GPL");
 -- 
 1.7.1
 
