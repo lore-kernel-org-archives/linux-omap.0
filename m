@@ -1,93 +1,42 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PM-WIP/voltdm_c][PATCH 10/11] OMAP4: PM: TWL6030: fix ON/RET/OFF voltages
-Date: Wed, 18 May 2011 00:17:33 -0500
-Message-ID: <1305695854-9638-11-git-send-email-nm@ti.com>
-References: <1305695854-9638-1-git-send-email-nm@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 1/2] OMAP4: HDMI: Add OMAP device for HDMI audio CPU DAI
+Date: Wed, 18 May 2011 08:41:19 +0300
+Message-ID: <201105180841.20224.peter.ujfalusi@ti.com>
+References: <1305602079-3852-1-git-send-email-ricardo.neri@ti.com> <1305602079-3852-2-git-send-email-ricardo.neri@ti.com> <4DD2CDED.6090605@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:44509 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:45503 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755096Ab1ERFRl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 May 2011 01:17:41 -0400
-Received: from dlep33.itg.ti.com ([157.170.170.112])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p4I5HedN005410
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Wed, 18 May 2011 00:17:40 -0500
-Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
-	by dlep33.itg.ti.com (8.13.7/8.13.7) with ESMTP id p4I5Heqr002255
-	for <linux-omap@vger.kernel.org>; Wed, 18 May 2011 00:17:40 -0500 (CDT)
-In-Reply-To: <1305695854-9638-1-git-send-email-nm@ti.com>
+	with ESMTP id S1752742Ab1ERFlY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 May 2011 01:41:24 -0400
+In-Reply-To: <4DD2CDED.6090605@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: kevin <khilman@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Patrick Titiano <p-titiano@ti.com>, Nishanth Menon <nm@ti.com>
+To: Steve Calfee <stevecalfee@gmail.com>
+Cc: "Neri, Ricardo" <ricardo.neri@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>, "paul@pwsan.com" <paul@pwsan.com>
 
-From: Patrick Titiano <p-titiano@ti.com>
+On Tuesday 17 May 2011 22:35:09 Steve Calfee wrote:
+> I think the generally accepted method of doing stuff like this is to
+> have the ifdeffery in a header file where a inline code segment is
+> defined if it applies to the processor being built. If the code does =
+not
+> apply to the model being built, a null #define is used, which does no=
+t
+> take any space.
 
-According to latest OMAP4430 Data Manual v0.4 dated March 2011:
- - Retention voltage shall be set to 0.83V. See tables 2.2, 2.4 and 2.6 in DM.
-   This allows saving a little more power in retention states.
- - OPP100 IVA nominal voltage is 1.188V. See table 2.4 in DM.
-   This allows saving a little power when CPU wakes up until Smart-Reflex is
-   not yet resumed.
+We have for example omap2plus_defconfig, which include support for wide=
+ range=20
+of OMAP based devices, with different CPUs (OMAP2/3/4).
+So we need to have runtime distinction of the CPU we are running (since=
+ we run=20
+the same kernel binary on OMAP2/3/4).
 
-[nm@ti.com: ported to voltdm_c]
-Signed-off-by: Nishanth Menon <nm@ti.com>
-Signed-off-by: Patrick Titiano <p-titiano@ti.com>
----
- arch/arm/mach-omap2/omap_twl.c |   24 ++++++++++++------------
- 1 files changed, 12 insertions(+), 12 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/omap_twl.c b/arch/arm/mach-omap2/omap_twl.c
-index 8b1e93c..54a6e02 100644
---- a/arch/arm/mach-omap2/omap_twl.c
-+++ b/arch/arm/mach-omap2/omap_twl.c
-@@ -197,10 +197,10 @@ static struct omap_voltdm_pmic omap3_core_pmic = {
- static struct omap_voltdm_pmic omap4_mpu_pmic = {
- 	.slew_rate		= 4000,
- 	.step_size		= 12660,
--	.on_volt		= 1350000,
--	.onlp_volt		= 1350000,
--	.ret_volt		= 837500,
--	.off_volt		= 600000,
-+	.on_volt		= 1375000,
-+	.onlp_volt		= 1375000,
-+	.ret_volt		= 830000,
-+	.off_volt		= 0,
- 	.volt_setup_time	= 0,
- 	.vp_erroroffset		= OMAP4_VP_CONFIG_ERROROFFSET,
- 	.vp_vstepmin		= OMAP4_VP_VSTEPMIN_VSTEPMIN,
-@@ -222,10 +222,10 @@ static struct omap_voltdm_pmic omap4_mpu_pmic = {
- static struct omap_voltdm_pmic omap4_iva_pmic = {
- 	.slew_rate		= 4000,
- 	.step_size		= 12660,
--	.on_volt		= 1100000,
--	.onlp_volt		= 1100000,
--	.ret_volt		= 837500,
--	.off_volt		= 600000,
-+	.on_volt		= 1188000,
-+	.onlp_volt		= 1188000,
-+	.ret_volt		= 830000,
-+	.off_volt		= 0,
- 	.volt_setup_time	= 0,
- 	.vp_erroroffset		= OMAP4_VP_CONFIG_ERROROFFSET,
- 	.vp_vstepmin		= OMAP4_VP_VSTEPMIN_VSTEPMIN,
-@@ -247,10 +247,10 @@ static struct omap_voltdm_pmic omap4_iva_pmic = {
- static struct omap_voltdm_pmic omap4_core_pmic = {
- 	.slew_rate		= 4000,
- 	.step_size		= 12660,
--	.on_volt		= 1100000,
--	.onlp_volt		= 1100000,
--	.ret_volt		= 837500,
--	.off_volt		= 600000,
-+	.on_volt		= 1200000,
-+	.onlp_volt		= 1200000,
-+	.ret_volt		= 830000,
-+	.off_volt		= 0,
- 	.volt_setup_time	= 0,
- 	.vp_erroroffset		= OMAP4_VP_CONFIG_ERROROFFSET,
- 	.vp_vstepmin		= OMAP4_VP_VSTEPMIN_VSTEPMIN,
--- 
-1.7.0.4
-
+--=20
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
