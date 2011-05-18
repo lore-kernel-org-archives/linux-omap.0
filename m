@@ -1,46 +1,54 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: context_loss_count error value
-Date: Wed, 18 May 2011 12:50:58 +0200
-Message-ID: <87k4douvsd.fsf@ti.com>
-References: <1305704452.1834.12.camel@deskari>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [RESEND][PATCH 3/5] arm: omap: usb: device name change for the
+ clk names of usbhs
+Date: Wed, 18 May 2011 13:51:05 +0300
+Message-ID: <20110518105102.GF13908@legolas.emea.dhcp.ti.com>
+References: <1305538681-21062-1-git-send-email-keshava_mgowda@ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:55624 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932638Ab1ERKvM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 18 May 2011 06:51:12 -0400
-Received: by mail-wy0-f169.google.com with SMTP id 19so1141643wyf.28
-        for <linux-omap@vger.kernel.org>; Wed, 18 May 2011 03:51:11 -0700 (PDT)
-In-Reply-To: <1305704452.1834.12.camel@deskari> (Tomi Valkeinen's message of
-	"Wed, 18 May 2011 10:40:52 +0300")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="b8GWCKCLzrXbuNet"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1305538681-21062-1-git-send-email-keshava_mgowda@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Keshava Munegowda <keshava_mgowda@ti.com>
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org
 
-Tomi Valkeinen <tomi.valkeinen@ti.com> writes:
 
-> Hi Kevin,
->
-> I was fixing DSS context loss handling which is a bit broken, and while
-> testing on OMAP3 Overo, with -rc7 and omap2plus_defconfig, I noticed
-> that get_context_loss_count() seems to always return 0.
->
-> 0 should be returned when an error happens, and as far as I see in
-> pwrdm_get_context_loss_count(), no error is happening but the DSS
-> context has just never been lost and the returned count is thus 0.
->
-> Is this correct? And what happens when the count wraps and goes back to
-> zero, does the function return 0 in that case?
+--b8GWCKCLzrXbuNet
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Hmm, you're right.  zero is actually documented as the error return
-value (even though it's not really checked.)
+On Mon, May 16, 2011 at 03:08:01PM +0530, Keshava Munegowda wrote:
+> device name usbhs clocks are changed from
+> usbhs-omap.0 to usbhs_omap; this is because
+> in the hwmod registration the device name is set
+> as usbhs_omap
+>=20
+> Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
 
-Since driver's should only every care about the *difference* in value
-between two calls to context_loss_count(), this might not be a big deal,
-but a proper fix is probably to have the state counters start at one.
+applied, thanks
 
-Kevin
+--=20
+balbi
 
+--b8GWCKCLzrXbuNet
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQEcBAEBAgAGBQJN06SWAAoJEAv8Txj19kN1o2kH/jTQWuRT3fObcPSzeeF/8FgA
+tIwwcEdelSnZD7gGn7nJuwFXEsAERWivwBz8MvqJ6J0Qg3OpNKyM7oWDQx6HbF2M
+op2J/LlR8qvGsc2Saw1PYHMbu9qxuqrvQz1FgzRQ95+O4SmL0gGAs5W+mx0niS3H
+KLib7XkoHO2meNyd7v5s7RQXK0Weah/7Rs1wWTUIiMCta7AcvzYTYnuBc/vaGI2E
+xCbpo45nErnfiI5jg8J3HbGg2lV1RUMvMhWxRbOP0PVjPiHusTZrjCJ80tyJrwS9
+9X951X88tsTR7CTbo2qcMEtbYu4BKDESePsPXaAVtvo1H0jSEwfbGOs+RQajmCM=
+=Dj9P
+-----END PGP SIGNATURE-----
+
+--b8GWCKCLzrXbuNet--
