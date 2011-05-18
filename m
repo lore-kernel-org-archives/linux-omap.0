@@ -1,46 +1,56 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PM-WIP/voltdm_c][PATCH 02/11] OMAP3+: PM: voltage: add required debugfs interfaces
-Date: Wed, 18 May 2011 10:44:17 +0200
-Message-ID: <878vu4z9cu.fsf@ti.com>
-References: <1305695854-9638-1-git-send-email-nm@ti.com>
-	<1305695854-9638-3-git-send-email-nm@ti.com>
+From: "Will Deacon" <will.deacon@arm.com>
+Subject: RE: [PATCH] ARM: fix mistaken dependency for CPU_HAS_PMU
+Date: Wed, 18 May 2011 09:47:33 +0100
+Message-ID: <39321.6859818951$1305708491@news.gmane.org>
+References: <1305686080-13182-1-git-send-email-tom.leiming@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:47146 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754796Ab1ERIob (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 18 May 2011 04:44:31 -0400
-Received: by mail-wy0-f172.google.com with SMTP id 29so1601923wyb.17
-        for <linux-omap@vger.kernel.org>; Wed, 18 May 2011 01:44:30 -0700 (PDT)
-In-Reply-To: <1305695854-9638-3-git-send-email-nm@ti.com> (Nishanth Menon's
-	message of "Wed, 18 May 2011 00:17:25 -0500")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1305686080-13182-1-git-send-email-tom.leiming@gmail.com>
+Content-Language: en-gb
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: tom.leiming@gmail.com, linux@arm.linux.org.uk
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>
 
-Nishanth Menon <nm@ti.com> writes:
+Hi,
 
-> Kevin's patch:
-> OMAP3+: voltage: remove unneeded debugfs interface
->
-> removed ability to check the voltages in the domains.
-> This puts a crunch on validation we can do, hence we
-> re-introduce them back in
->
-> Signed-off-by: Nishanth Menon <nm@ti.com>
+> From: Ming Lei <tom.leiming@gmail.com>
+> 
+> Obviously it is mistake for CPU_HAS_PMU to depend on
+> (!ARCH_OMAP3 || OMAP3_EMU).
 
-NAK.
+It's not that obvious!
+ 
+> No mattery it is omap3 or not, we can build pmu.o into
+> kernel safely. In fact, arm-v7 of omap3 has pmu inside
+> also.
 
-I don't want any OMAP specific debugfs interface for this.  The voltage
-domains will be represented by regulators (when I finish this
-cleanup/restructure), and we will use the regulator framework for
-interfacing to the voltages.
+Yes, but the PMU on Omap3 doesn't work unless you enable the emu clk, which
+is done in kernel/etm.c. Rather than duplicate that code (which only seems
+to be needed for Omap anyway) I decided to add a dependency on OMAP3_EMU so
+the clock gets enabled in etb_probe.
 
-If you need a temporary debugfs interface for this, then I suggest you 
-revert my original patch in your internal tree, or keep $SUBJECT patch
-as an internal patch.
+> So fix it that we can build pmu into kernel to support perf
+> for some valid config(such as enable both omap4 and omap3,
+> but OMAP3_EMU).
 
-Kevin
+No, I don't like this. The reason I don't like it is because it will lead to
+lots of bug reports that perf doesn't work on Omap3 because they haven't got
+the emu clock ticking. It was this scenario that led to the dependency being
+introduced in the first place:
+
+8954bb0d ("OMAP3: pmu: make CPU_HAS_PMU dependent on OMAP3_EMU")
+
+Is there a problem building the etm support for Omap4?
+
+Will
