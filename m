@@ -1,48 +1,53 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH 04/19] ARM: omap1: convert to using readl/writel instead
- of volatile struct
-Date: Tue, 17 May 2011 22:59:28 +0100
-Message-ID: <BANLkTinG0BmBJZTWr-FrBzANg-MbdsghkA@mail.gmail.com>
-References: <20110516172334.GD13659@n2100.arm.linux.org.uk>
-	<E1QM1ZG-0003DV-PA@rmk-PC.arm.linux.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: tom.leiming@gmail.com
+Subject: [PATCH] ARM: fix mistaken dependency for CPU_HAS_PMU
+Date: Wed, 18 May 2011 10:34:40 +0800
+Message-ID: <1305686080-13182-1-git-send-email-tom.leiming@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:61261 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756618Ab1EQV73 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 May 2011 17:59:29 -0400
-Received: by iyb14 with SMTP id 14so786320iyb.19
-        for <linux-omap@vger.kernel.org>; Tue, 17 May 2011 14:59:28 -0700 (PDT)
-In-Reply-To: <E1QM1ZG-0003DV-PA@rmk-PC.arm.linux.org.uk>
+Received: from mail-px0-f173.google.com ([209.85.212.173]:55630 "EHLO
+	mail-px0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753722Ab1ERCe7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 May 2011 22:34:59 -0400
+Received: by pxi16 with SMTP id 16so769918pxi.4
+        for <linux-omap@vger.kernel.org>; Tue, 17 May 2011 19:34:59 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org, John Stultz <johnstul@us.ibm.com>, Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org
+To: linux@arm.linux.org.uk
+Cc: linux-arm-kernel@lists.infradead.org, will.deacon@arm.com, Ming Lei <tom.leiming@gmail.com>, linux-omap@vger.kernel.org
 
-On 16 May 2011 18:26, Russell King - ARM Linux <linux@arm.linux.org.uk>=
- wrote:
-> --- a/arch/arm/mach-omap1/time.c
-> +++ b/arch/arm/mach-omap1/time.c
-=2E..
-> =C2=A0static inline unsigned long notrace omap_mpu_timer_read(int nr)
-> =C2=A0{
-> - =C2=A0 =C2=A0 =C2=A0 volatile omap_mpu_timer_regs_t* timer =3D omap=
-_mpu_timer_base(nr);
-> - =C2=A0 =C2=A0 =C2=A0 return timer->read_tim;
-> + =C2=A0 =C2=A0 =C2=A0 omap_mpu_timer_regs_t __iomem *timer =3D omap_=
-mpu_timer_base(nr);
-> + =C2=A0 =C2=A0 =C2=A0 return readl(&timer->read_tim);
-> =C2=A0}
+From: Ming Lei <tom.leiming@gmail.com>
 
-We should start using the *_relaxed() accessors a bit more to avoid
-the barriers overhead in the standard I/O accessors.
+Obviously it is mistake for CPU_HAS_PMU to depend on
+(!ARCH_OMAP3 || OMAP3_EMU).
 
---=20
-Catalin
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+No mattery it is omap3 or not, we can build pmu.o into
+kernel safely. In fact, arm-v7 of omap3 has pmu inside
+also.
+
+So fix it that we can build pmu into kernel to support perf
+for some valid config(such as enable both omap4 and omap3,
+but OMAP3_EMU).
+
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: linux-omap@vger.kernel.org
+Signed-off-by: Ming Lei <tom.leiming@gmail.com>
+---
+ arch/arm/Kconfig |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
+index 377a7a5..ba314d5 100644
+--- a/arch/arm/Kconfig
++++ b/arch/arm/Kconfig
+@@ -1061,8 +1061,7 @@ config XSCALE_PMU
+ 	default y
+ 
+ config CPU_HAS_PMU
+-	depends on (CPU_V6 || CPU_V6K || CPU_V7 || XSCALE_PMU) && \
+-		   (!ARCH_OMAP3 || OMAP3_EMU)
++	depends on CPU_V6 || CPU_V6K || CPU_V7 || XSCALE_PMU
+ 	default y
+ 	bool
+ 
+-- 
+1.7.4.1
+
