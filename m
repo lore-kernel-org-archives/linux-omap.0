@@ -1,205 +1,88 @@
-From: "Menon, Nishanth" <nm@ti.com>
-Subject: Re: [PM-WIP/voltdm_c][PATCH 06/11] OMAP4: PM: VC: fix channel bit
- offset for MPU
-Date: Wed, 18 May 2011 04:47:09 -0500
-Message-ID: <BANLkTimGiPSOyQDzoa2im3ewk9NbTjGJjg@mail.gmail.com>
-References: <1305695854-9638-1-git-send-email-nm@ti.com> <1305695854-9638-7-git-send-email-nm@ti.com>
- <87d3jgwdvv.fsf@ti.com>
+From: "Will Deacon" <will.deacon@arm.com>
+Subject: RE: [PATCH] ARM: fix mistaken dependency for CPU_HAS_PMU
+Date: Wed, 18 May 2011 10:53:18 +0100
+Message-ID: <20783.6289694116$1305712441@news.gmane.org>
+References: <1305686080-13182-1-git-send-email-tom.leiming@gmail.com>	<4785097973995347565@unknownmsgid>
+	<BANLkTinkZZwPG6S2goLYhuNV8JcVB-xsFw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:58495 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1756838Ab1ERJrb convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 18 May 2011 05:47:31 -0400
-Received: by mail-ww0-f53.google.com with SMTP id 40so1372861wwj.10
-        for <linux-omap@vger.kernel.org>; Wed, 18 May 2011 02:47:29 -0700 (PDT)
-In-Reply-To: <87d3jgwdvv.fsf@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <BANLkTinkZZwPG6S2goLYhuNV8JcVB-xsFw@mail.gmail.com>
+Content-Language: en-gb
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: 'Ming Lei' <tom.leiming@gmail.com>
+Cc: linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>
 
-On Wed, May 18, 2011 at 04:34, Kevin Hilman <khilman@ti.com> wrote:
-> Nishanth Menon <nm@ti.com> writes:
->
->> Patch "OMAP3+: VC: abstract out channel configuration" abstracts out
->> VC channel configuration. However, TRM has it's little surprises suc=
-h
->> as the following for channel_cfg:
->> CFG_CHANNEL_SA =A0 =A0BIT(0)
->> CFG_CHANNEL_RAV =A0 BIT(1)
->> CFG_CHANNEL_RAC =A0 BIT(2)
->> CFG_CHANNEL_RACEN BIT(3)
->> CFG_CHANNEL_CMD =A0 BIT(4)
->> is valid for core and iva, *but* for mpu, the channel offsets
->> are as follows:
->> CFG_CHANNEL_SA =A0 =A0BIT(0)
->> CFG_CHANNEL_CMD =A0 BIT(1)
->> CFG_CHANNEL_RAV =A0 BIT(2)
->> CFG_CHANNEL_RAC =A0 BIT(3)
->> CFG_CHANNEL_RACEN BIT(4)
->
-> sigh, glad to see the IP designers have something to do. :(
-/me thinks "lets say 'integration folks'.." ;)
+> >> From: Ming Lei <tom.leiming@gmail.com>
+> >>
+> >> Obviously it is mistake for CPU_HAS_PMU to depend on
+> >> (!ARCH_OMAP3 || OMAP3_EMU).
+> >
+> > It's not that obvious!
+> 
+> No, on ubuntu 11.04, default config options enables ARCH_OMAP3
+> and ARCH_OMAP4, and disable OMAP3_EMU, so cause pmu.o
+> can't be built in kernel.
+> 
+> pmu.o is just a platform driver for pmu device, so we should always
+> allow it to be built into kernel no matter there are pmu devices or
+> not, so we can support multiple boards with one same image.
 
->
-> Hmm, and I don't suppose there's any chance we can tell the differenc=
-e
-> based on IP revision information from the IP? =A0After looking at the=
- TRM
-> and the functional spec, there's a difference. =A0In the funcional sp=
-ec,
-> all 3 OMAP4 VCs have the "default" order, but in the TRM, the MPU is
-> different. =A0Which one is right? =A0 I assume you found this because=
- of a
-> bug in testing, so I take it the TRM is right.
-Unfortunately, that is what I have been burnt previously upon as well
-- in all cases, I have been told, "in case of conflict funcspec Vs
-TRM, believe the TRM" as there is integration aspects of an IP for an
-SoC involved :(. Unfortunately in this case, MPU caused core to
-transition until fixed.
+CPU_HAS_PMU is also used as a condition for enabling HW_PERF_EVENTS.
+I don't think we should set that for configurations where the platform
+doesn't provide working hardware counters.
 
->
->> to handle this on the fly, add a structure to describe this
->> and use the structure for vc44xx mpu definition. use the
->> default for rest of the domains.
->
-> IMO, while it makes us generate a few more struct in the data, I thin=
-k
-> it's cleaner to not treat this as an exception. =A0IOW, just define
-> the channel struct(s) in each data file, so every VC has one associat=
-ed
-> with it. =A0Probably also need a WARN() and graceful failure during i=
-nit
-> if a channel doesn't have a channel config defined.
-=2E.
+On top of that, pmu.o provides a reservation mechanism for the PMU
+which is used by tools such as perf and LTTng. If CPU_HAS_PMU is not
+set then you will get back -ENODEV, which I think is better than providing
+access to a PMU that's not working.
+ 
+> In fact, we should keep arch/arm/Kconfig or arch/arm/kernel/pmu.c more generic,
+> and avoid to make arm core code depend on machines options as far as possible.
+> 
+> For the pmu issue on omap3, below fix should be better than what
+> 8954bb0d did, shouldn't it?
+> 
+> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+> index 7b85585..c20a3a3 100644
+> --- a/arch/arm/mach-omap2/devices.c
+> +++ b/arch/arm/mach-omap2/devices.c
+> @@ -410,9 +410,12 @@ static void omap_init_pmu(void)
+>  {
+>  	if (cpu_is_omap24xx())
+>  		omap_pmu_device.resource = &omap2_pmu_resource;
+> -	else if (cpu_is_omap34xx())
+> +	else if (cpu_is_omap34xx()) {
+>  		omap_pmu_device.resource = &omap3_pmu_resource;
+> -	else
+> +#ifndef  CONFIG_OMAP3_EMU
+> +		return;
+> +#endif
+> +	} else
+>  		return;
+> 
+>  	platform_device_register(&omap_pmu_device);
 
->
->> Signed-off-by: Nishanth Menon <nm@ti.com>
->> ---
->> =A0arch/arm/mach-omap2/vc.c =A0 =A0 =A0 =A0 =A0| =A0 35 ++++++++++++=
-+++++++----------------
->> =A0arch/arm/mach-omap2/vc.h =A0 =A0 =A0 =A0 =A0| =A0 33 ++++++++++++=
-+++++++++++++++++++++
->> =A0arch/arm/mach-omap2/vc44xx_data.c | =A0 10 ++++++++++
->> =A03 files changed, 62 insertions(+), 16 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/vc.c b/arch/arm/mach-omap2/vc.c
->> index f8185d2..2add945 100644
->> --- a/arch/arm/mach-omap2/vc.c
->> +++ b/arch/arm/mach-omap2/vc.c
-[..]
->>
->> + =A0 =A0 /* if there is an exception case, use the exception data *=
-/
->> + =A0 =A0 if (!vc->cfg_ch_data)
->> + =A0 =A0 =A0 =A0 =A0 =A0 cfg_channel_data =3D &cfg_channel_common;
->> + =A0 =A0 else
->> + =A0 =A0 =A0 =A0 =A0 =A0 cfg_channel_data =3D vc->cfg_ch_data;
->
-> Based on the above, =A0this block could be dropped, and...
-Except I will have to replicate this for OMAP3 and 4 - which is
-possible.. but replicated data which is needed only during init
-:( did not want vc pointer to contain __initdata pointer (dangling
-ones after boot)
+The problem with this is that it still allows users to build kernels
+where perf is enabled but doesn't work. Since we know this is the case
+at build time, we have chance to stop them doing it then (or at least
+not let them select HW_PERF_EVENTS).
+ 
+> > Is there a problem building the etm support for Omap4?
+> 
+> Of course,  there is the problem I described above.
 
->
->> =A0 =A0 =A0 vc->cfg_channel =3D 0;
->>
->> =A0 =A0 =A0 /* get PMIC/board specific settings */
->> @@ -284,7 +286,7 @@ void __init omap_vc_init_channel(struct voltaged=
-omain *voltdm)
->> =A0 =A0 =A0 voltdm->rmw(vc->smps_sa_mask,
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 vc->i2c_slave_addr << __ffs(vc->=
-smps_sa_mask),
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 vc->common->smps_sa_reg);
->> - =A0 =A0 vc->cfg_channel |=3D CFG_CHANNEL_SA;
->> + =A0 =A0 vc->cfg_channel |=3D cfg_channel_data->cfg_channel_sa;
->
-> ...this would look like
->
-> =A0 =A0 =A0 =A0vc->cfg_channel |=3D vc->cfg_ch_bits->sa;
->
-> and similar for below.
-ok..
-[...]
+What I mean is, why can't you just select OMAP3_EMU in your Omap3/4 combined
+kernel config? Then everything should work.
 
->> diff --git a/arch/arm/mach-omap2/vc.h b/arch/arm/mach-omap2/vc.h
->> index f0fb61f..bbd8f1f 100644
->> --- a/arch/arm/mach-omap2/vc.h
->> +++ b/arch/arm/mach-omap2/vc.h
->> @@ -62,11 +62,42 @@ struct omap_vc_common {
->> =A0 =A0 =A0 u8 i2c_mcode_mask;
->> =A0};
->>
->> +/*
->> + * Channel configuration bits, common for OMAP3 & 4
->> + * OMAP3 register: PRM_VC_CH_CONF
->> + * OMAP4 register: PRM_VC_CFG_CHANNEL
->> + */
->> +#define CFG_CHANNEL_SA =A0 =A0BIT(0)
->> +#define CFG_CHANNEL_RAV =A0 BIT(1)
->> +#define CFG_CHANNEL_RAC =A0 BIT(2)
->> +#define CFG_CHANNEL_RACEN BIT(3)
->> +#define CFG_CHANNEL_CMD =A0 BIT(4)
->> +#define CFG_CHANNEL_MASK 0x3f
->> +/**
->> + * struct omap_vc_channel_cfg - describe the cfg_channel bitfield
->> + * @cfg_channel_sa: =A0SA_VDD_xxx_L
->> + * @cfg_channel_rav: RAV_VDD_xxx_L
->> + * @cfg_channel_rac: RAC_VDD_xxx_L
->> + * @cfg_channel_racen: =A0 =A0 =A0 RACEN_VDD_xxx_L
->> + * @cfg_channel_cmd: CMD_VDD_xxx_L
->
-> You should drop the cfg_channel_ prefix here (and below.)
-ok..
-
->
->> + *
->> + * by default it uses CFG_CHANNEL_xyz regs, but in OMAP4 MPU,
->> + * there is a need for an exception case.
->
-> This comment isn't really needed here. =A0IOW, let's assume it's not =
-an
-> exception, as new SoCs might decide to change again.
-true.
-
-[..]
->> =A0 */
->> =A0struct omap_vc_channel {
->> =A0 =A0 =A0 /* channel state */
->> @@ -74,6 +105,7 @@ struct omap_vc_channel {
->> =A0 =A0 =A0 u8 volt_reg_addr;
->> =A0 =A0 =A0 u8 cmd_reg_addr;
->> =A0 =A0 =A0 u8 cfg_channel;
->> + =A0 =A0 struct omap_vc_channel_cfg *cfg_ch_data;
->
-> s/cfg_ch_data/cfg_ch_bits/
-ok.
-
->
->> =A0 =A0 =A0 u16 setup_time;
->> =A0 =A0 =A0 bool i2c_high_speed;
->>
->> @@ -86,6 +118,7 @@ struct omap_vc_channel {
->> =A0 =A0 =A0 u8 cfg_channel_sa_shift;
->> =A0};
->>
->> +
->
-> stray whitespace change
-oops :( will fix in rev2
-
-[...]
-
-
-Regards,
-Nishanth Menon
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Will
