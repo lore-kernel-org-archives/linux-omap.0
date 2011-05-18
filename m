@@ -1,85 +1,117 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH 04/19] ARM: omap1: convert to using readl/writel instead
- of volatile struct
-Date: Wed, 18 May 2011 22:48:11 +0200
-Message-ID: <BANLkTikSZGjM5VUjbNXK2y0UC7jVMmbYEA@mail.gmail.com>
-References: <20110516172334.GD13659@n2100.arm.linux.org.uk>
-	<E1QM1ZG-0003DV-PA@rmk-PC.arm.linux.org.uk>
-	<BANLkTinG0BmBJZTWr-FrBzANg-MbdsghkA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:44830 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753154Ab1ERUsM convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 May 2011 16:48:12 -0400
-Received: by iwn34 with SMTP id 34so1622335iwn.19
-        for <linux-omap@vger.kernel.org>; Wed, 18 May 2011 13:48:11 -0700 (PDT)
-In-Reply-To: <BANLkTinG0BmBJZTWr-FrBzANg-MbdsghkA@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Antonio Ospite <ospite@studenti.unina.it>
+Subject: [PATCH] mmc: fix handling NULL returned from regulator_get()
+Date: Wed, 18 May 2011 23:37:44 +0200
+Message-ID: <1305754664-2917-1-git-send-email-ospite@studenti.unina.it>
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Sender: linux-mmc-owner@vger.kernel.org
+To: linux-mmc@vger.kernel.org
+Cc: Antonio Ospite <ospite@studenti.unina.it>, Chris Ball <cjb@laptop.org>, Will Newton <will.newton@gmail.com>, Linus Walleij <linus.walleij@stericsson.com>, Rabin Vincent <rabin.vincent@stericsson.com>, Sascha Hauer <s.hauer@pengutronix.de>, Madhusudhan Chikkature <madhu.cr@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, John Stultz <johnstul@us.ibm.com>, Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-2011/5/17 Catalin Marinas <catalin.marinas@arm.com>:
-> On 16 May 2011 18:26, Russell King - ARM Linux <linux@arm.linux.org.u=
-k> wrote:
->> --- a/arch/arm/mach-omap1/time.c
->> +++ b/arch/arm/mach-omap1/time.c
-> ...
->> =A0static inline unsigned long notrace omap_mpu_timer_read(int nr)
->> =A0{
->> - =A0 =A0 =A0 volatile omap_mpu_timer_regs_t* timer =3D omap_mpu_tim=
-er_base(nr);
->> - =A0 =A0 =A0 return timer->read_tim;
->> + =A0 =A0 =A0 omap_mpu_timer_regs_t __iomem *timer =3D omap_mpu_time=
-r_base(nr);
->> + =A0 =A0 =A0 return readl(&timer->read_tim);
->> =A0}
->
-> We should start using the *_relaxed() accessors a bit more to avoid
-> the barriers overhead in the standard I/O accessors.
+When regulator_get() is stubbed down it returns NULL, handle this case
+when deciding whether the driver can use the regulator or not.
 
-Speaking of which.
+Remember: IS_ERR(NULL) is false, see also this discussion for more
+insight: http://comments.gmane.org/gmane.linux.kernel.mmc/7934
 
-The documentation for the *_relaxed calls are in
-Documentation/DocBook/deviceiobook.tmpl
-and reads like this:
+Now that regulator_get() is handled correctly, the ifdef on
+CONFIG_REGULATOR in mmci.c can go away as well.
 
-"PCI ordering rules also guarantee that PIO read responses arrive after=
- any
-outstanding DMA writes from that bus, since for some devices the
-result of a readb
-call may signal to the driver that a DMA transaction is complete. In ma=
-ny cases,
-however, the driver may want to indicate that the next readb call has
-no relation to
-any previous DMA writes performed by the device. The driver can use
-readb_relaxed for these cases, although only some platforms will honor
-the relaxed
-semantics. Using the relaxed read functions will provide significant pe=
-rformance
-benefits on platforms that support it. The qla2xxx driver provides
-examples of how
-to use readX_relaxed. In many cases, a majority of the driver's readX c=
-alls can
-safely be converted to readX_relaxed calls, since only a few will indic=
-ate or
-depend on DMA completion."
+Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
+---
 
-I guess that in the ARM case "PCI DMA" corresponds to "bus mastering" b=
-ut
-is this strictly speaking properly describing the semantics of the ARM
-*_relaxed operations?
+ drivers/mmc/host/dw_mmc.c     |    2 +-
+ drivers/mmc/host/mmci.c       |    4 +---
+ drivers/mmc/host/mxcmmc.c     |    2 +-
+ drivers/mmc/host/omap_hsmmc.c |    4 ++--
+ drivers/mmc/host/sdhci.c      |    2 +-
+ 5 files changed, 6 insertions(+), 8 deletions(-)
 
-If it isn't a hint on how it should be understood would be much appreci=
-ated.
+diff --git a/drivers/mmc/host/dw_mmc.c b/drivers/mmc/host/dw_mmc.c
+index 87e1f57..5be1325 100644
+--- a/drivers/mmc/host/dw_mmc.c
++++ b/drivers/mmc/host/dw_mmc.c
+@@ -1442,7 +1442,7 @@ static int __init dw_mci_init_slot(struct dw_mci *host, unsigned int id)
+ #endif /* CONFIG_MMC_DW_IDMAC */
+ 
+ 	host->vmmc = regulator_get(mmc_dev(mmc), "vmmc");
+-	if (IS_ERR(host->vmmc)) {
++	if (IS_ERR_OR_NULL(host->vmmc)) {
+ 		printk(KERN_INFO "%s: no vmmc regulator found\n", mmc_hostname(mmc));
+ 		host->vmmc = NULL;
+ 	} else
+diff --git a/drivers/mmc/host/mmci.c b/drivers/mmc/host/mmci.c
+index b4a7e4f..6fac353 100644
+--- a/drivers/mmc/host/mmci.c
++++ b/drivers/mmc/host/mmci.c
+@@ -1058,10 +1058,9 @@ static int __devinit mmci_probe(struct amba_device *dev,
+ 		mmc->f_max = min(host->mclk, fmax);
+ 	dev_dbg(mmc_dev(mmc), "clocking block at %u Hz\n", mmc->f_max);
+ 
+-#ifdef CONFIG_REGULATOR
+ 	/* If we're using the regulator framework, try to fetch a regulator */
+ 	host->vcc = regulator_get(&dev->dev, "vmmc");
+-	if (IS_ERR(host->vcc))
++	if (IS_ERR_OR_NULL(host->vcc))
+ 		host->vcc = NULL;
+ 	else {
+ 		int mask = mmc_regulator_get_ocrmask(host->vcc);
+@@ -1077,7 +1076,6 @@ static int __devinit mmci_probe(struct amba_device *dev,
+ 				 "(using regulator instead)\n");
+ 		}
+ 	}
+-#endif
+ 	/* Fall back to platform data if no regulator is found */
+ 	if (host->vcc == NULL)
+ 		mmc->ocr_avail = plat->ocr_mask;
+diff --git a/drivers/mmc/host/mxcmmc.c b/drivers/mmc/host/mxcmmc.c
+index cc20e02..a9152da 100644
+--- a/drivers/mmc/host/mxcmmc.c
++++ b/drivers/mmc/host/mxcmmc.c
+@@ -155,7 +155,7 @@ static inline void mxcmci_init_ocr(struct mxcmci_host *host)
+ {
+ 	host->vcc = regulator_get(mmc_dev(host->mmc), "vmmc");
+ 
+-	if (IS_ERR(host->vcc)) {
++	if (IS_ERR_OR_NULL(host->vcc)) {
+ 		host->vcc = NULL;
+ 	} else {
+ 		host->mmc->ocr_avail = mmc_regulator_get_ocrmask(host->vcc);
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index 259ece0..45fd4fe 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -405,7 +405,7 @@ static int omap_hsmmc_reg_get(struct omap_hsmmc_host *host)
+ 	}
+ 
+ 	reg = regulator_get(host->dev, "vmmc");
+-	if (IS_ERR(reg)) {
++	if (IS_ERR_OR_NULL(reg)) {
+ 		dev_dbg(host->dev, "vmmc regulator missing\n");
+ 		/*
+ 		* HACK: until fixed.c regulator is usable,
+@@ -433,7 +433,7 @@ static int omap_hsmmc_reg_get(struct omap_hsmmc_host *host)
+ 
+ 		/* Allow an aux regulator */
+ 		reg = regulator_get(host->dev, "vmmc_aux");
+-		host->vcc_aux = IS_ERR(reg) ? NULL : reg;
++		host->vcc_aux = IS_ERR_OR_NULL(reg) ? NULL : reg;
+ 
+ 		/*
+ 		* UGLY HACK:  workaround regulator framework bugs.
+diff --git a/drivers/mmc/host/sdhci.c b/drivers/mmc/host/sdhci.c
+index 5d20661..d3585d4 100644
+--- a/drivers/mmc/host/sdhci.c
++++ b/drivers/mmc/host/sdhci.c
+@@ -2004,7 +2004,7 @@ int sdhci_add_host(struct sdhci_host *host)
+ 		goto untasklet;
+ 
+ 	host->vmmc = regulator_get(mmc_dev(mmc), "vmmc");
+-	if (IS_ERR(host->vmmc)) {
++	if (IS_ERR_OR_NULL(host->vmmc)) {
+ 		printk(KERN_INFO "%s: no vmmc regulator found\n", mmc_hostname(mmc));
+ 		host->vmmc = NULL;
+ 	} else {
+-- 
+1.7.5.1
 
-Yours,
-Linus Walleij
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
