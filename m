@@ -1,54 +1,75 @@
-From: "Menon, Nishanth" <nm@ti.com>
-Subject: Re: [PATCH] omap:pm: Fix boot-time errors with debugfs disabled
-Date: Wed, 18 May 2011 13:48:51 -0500
-Message-ID: <BANLkTikZaNpp-3TM732zXo2ASQR_Wq5yFA@mail.gmail.com>
-References: <1305221790-4944-1-git-send-email-premi@ti.com> <87fwocrmr9.fsf@ti.com>
+From: Ilkka Koskinen <ilkkakos@kolumbus.fi>
+Subject: Re: [PATCH] rtc-twl: Switch to using threaded irq
+Date: Wed, 18 May 2011 22:20:05 +0300
+Message-ID: <4DD41BE5.4050600@kolumbus.fi>
+References: <1300291634-17884-1-git-send-email-ilkka.koskinen@nokia.com>	 ,<BANLkTinp8M4nndDC5Sfm=PzCiL-vGEqELg@mail.gmail.com>	 <4F5287B0C366D047BF44025F9ED7BB43E9D7@008-AM1MPN1-001.mgdnok.nokia.com> <1305242664.2680.28.camel@work-vm>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:34303 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933485Ab1ERSt1 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 18 May 2011 14:49:27 -0400
-Received: by wyb40 with SMTP id 40so1627206wyb.7
-        for <linux-omap@vger.kernel.org>; Wed, 18 May 2011 11:49:11 -0700 (PDT)
-In-Reply-To: <87fwocrmr9.fsf@ti.com>
+Received: from emh03.mail.saunalahti.fi ([62.142.5.109]:43319 "EHLO
+	emh03.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933711Ab1ERT2J (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 May 2011 15:28:09 -0400
+In-Reply-To: <1305242664.2680.28.camel@work-vm>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Sanjeev Premi <premi@ti.com>, linux-omap@vger.kernel.org
+To: tony@atomide.com
+Cc: John Stultz <john.stultz@linaro.org>, a.zummo@towertech.it, rtc-linux@googlegroups.com, linux-omap@vger.kernel.org, balajitk@ti.com
 
-On Wed, May 18, 2011 at 11:34, Kevin Hilman <khilman@ti.com> wrote:
-> Basically, I'm in the process of a pretty major cleanup of the VC/VP =
-and
-> SR layers. =A0For example, in my pm-wip/voltdm_* branches, the debugf=
-s
-> interface to the voltage layer has been completely removed. =A0I'm al=
-so
-> thinking of removing the SR debugfs interface also, as I don't really
-> think we need a userspace interface for this. =A0A board-level interf=
-ace
-> is probably enough (/me waits for flame from Nishanth :)
-/me obliges with my 2cents ;) :
 
-on board level interface - yes - we should have it.
+Hi,
 
-on plugging out userspace:  This is too risky an approach - having a
-mechanism to control SR from userspace is critical - yes folks can do
-a regwrite over /dev/mem to plug it out, but with multiple SR classes,
-it hardly ever going to be right. further, SR is a touchy beast to bad
-clk and system configurations - if we view debugfs as what it was
-meant to be: debug interface, SR deserves it. I agree that asking for
-userspace to have a sysfs is not worth it if board level interface has
-it. (and adding custom patches for every board developer out there...
-well.. it is not really worth the pain).
+Tony, would you mind taking the patch in your tree?
 
-Regards,
-Nishanth Menon
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Btw, the nokia address doesn't work anymore, but
+should probably still remain in s-o-b...
+
+Cheers, Ilkka
+
+13.5.2011 2:24, John Stultz kirjoitti:
+> On Thu, 2011-05-05 at 07:51 +0000, ilkka.koskinen@nokia.com wrote:
+>> Hi,
+>>
+>> Tony and John: What would be the appropriate path for this patch?
+> 
+> I'd probably push it through omap maintainer path, as its hardware
+> specific and can be better tested there.
+> 
+> thanks
+> -john
+> 
+> 
+>> On Apr 13, 2011 Krishnamoorthy, Balaji T  wrote:
+>>> On Wed, Mar 16, 2011 at 9:37 PM, Ilkka Koskinen
+>> <ilkka.koskinen@nokia.com> wrote:
+>>>>
+>>>> The driver is accessing to i2c bus in interrupt handler.
+>>>> Therefore, it should use threaded irq.
+>>
+>>> Acked-by: Balaji T K <balajitk@ti.com>
+>>
+>>>>
+>>>> Signed-off-by: Ilkka Koskinen <ilkka.koskinen@nokia.com>
+>>>> ---
+>>>>  drivers/rtc/rtc-twl.c |    2 +-
+>>>>  1 files changed, 1 insertions(+), 1 deletions(-)
+>>>>
+>>>> diff --git a/drivers/rtc/rtc-twl.c b/drivers/rtc/rtc-twl.c
+>>>> index ed1b868..2715b96 100644
+>>>> --- a/drivers/rtc/rtc-twl.c
+>>>> +++ b/drivers/rtc/rtc-twl.c
+>>>> @@ -475,7 +475,7 @@ static int __devinit twl_rtc_probe(struct platform_device *pdev)
+>>>>        if (ret < 0)
+>>>>                goto out1;
+>>>>
+>>>> -       ret = request_irq(irq, twl_rtc_interrupt,
+>>>> +       ret = request_threaded_irq(irq, NULL, twl_rtc_interrupt,
+>>>>                                IRQF_TRIGGER_RISING,
+>>>>                                dev_name(&rtc->dev), rtc);
+>>>>        if (ret < 0) {
+>>>> --
+>>>> 1.7.0.4
+>>>>
+> 
+> 
