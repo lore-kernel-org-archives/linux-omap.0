@@ -1,42 +1,47 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 0/5] OMAP4: DSS2: HDMI: Add support for audio
-Date: Wed, 18 May 2011 09:13:46 +0300
-Message-ID: <1305699226.1834.2.camel@deskari>
-References: <1304578894-23967-1-git-send-email-ricardo.neri@ti.com>
-	 <1305655217.1883.51.camel@dexx0075479.dextra-mty.naucm.ext.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: Nishanth Menon <nm@ti.com>
+Subject: [PM-WIP_CPUFREQ][PATCH 0/6 v2] Cleanups for cpufreq
+Date: Wed, 18 May 2011 02:37:40 -0500
+Message-ID: <1305704266-17623-1-git-send-email-nm@ti.com>
+References: <[PM-WIP_CPUFREQ][PATCH 0/5] Cleanups for cpufreq>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:37687 "EHLO
+Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:39797 "EHLO
 	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753474Ab1ERGNw (ORCPT
+	by vger.kernel.org with ESMTP id S1754427Ab1ERHhv (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 18 May 2011 02:13:52 -0400
-Received: by mail-ey0-f181.google.com with SMTP id 5so370565eyh.26
-        for <linux-omap@vger.kernel.org>; Tue, 17 May 2011 23:13:51 -0700 (PDT)
-In-Reply-To: <1305655217.1883.51.camel@dexx0075479.dextra-mty.naucm.ext.ti.com>
+	Wed, 18 May 2011 03:37:51 -0400
+Received: by gwb19 with SMTP id 19so532867gwb.32
+        for <linux-omap@vger.kernel.org>; Wed, 18 May 2011 00:37:49 -0700 (PDT)
+In-Reply-To: <[PM-WIP_CPUFREQ][PATCH 0/5] Cleanups for cpufreq>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ricardo Neri <ricardo.neri@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "K, Mythri P" <mythripk@ti.com>
+To: kevin <khilman@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Nishanth Menon <nm@ti.com>
 
-Hi,
+Rev 2 of cleanups for cpufreq to include a couple of bugfixes we found as part of
+additional dvfs testing and code review.
 
-On Tue, 2011-05-17 at 13:00 -0500, Ricardo Neri wrote:
-> Hi,
-> 
-> I would like to solicit comments on this set of patches. Now that ASoC
-> part of the implementation has been Ack'ed by ASoC maintainers, these
-> patches are needed.
+Testing done: OMAP4SDP4430 +.39-rc7- I think the only other major platform would be
+omap2 - but I doubt it was functional previously - if someone has a chance to give
+it a whirl, please do, as I dont have access to an OMAP2 platform atm :(.
 
-I think the patches look ok. However, they don't apply to the current
-DSS2 master branch. Can you rebase to
+Applies on top of:
+git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git
+branch: pm-wip/cpufreq
 
-git://gitorious.org/linux-omap-dss2/linux.git master
+Changes since V1: http://marc.info/?l=linux-omap&m=130532085617487&w=2
+	Patch 5 was reworked - return condition handling + lesser spam error msg
+	Patch 6 was added - caught as part of kmemleak check
+	
+Nishanth Menon (6):
+  OMAP2+: cpufreq: free up table on exit
+  OMAP2+: cpufreq: handle invalid cpufreq table
+  OMAP2+: cpufreq: minor comment cleanup
+  OMAP2: cpufreq: use clk_init_cpufreq_table if OPPs not available
+  OMAP2+: cpufreq: use cpufreq_frequency_table_target
+  OMAP2+: cpufreq: fix freq_table leak
 
-and send me patches or a git url from which I can pull.
+ arch/arm/mach-omap2/omap2plus-cpufreq.c |   81 ++++++++++++++++++++++++++-----
+ 1 files changed, 69 insertions(+), 12 deletions(-)
 
- Tomi
-
-
+Regards,
+Nishanth Menon
