@@ -1,87 +1,99 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: [PATCH] omap:pm: Fix boot-time errors with debugfs disabled
-Date: Wed, 18 May 2011 14:46:54 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024CFDC853@dbde02.ent.ti.com>
-References: <1305221790-4944-1-git-send-email-premi@ti.com>
- <BANLkTim+3M3Z0C3GTtTQrb2cqk5eSAsR+w@mail.gmail.com>
- <B85A65D85D7EB246BE421B3FB0FBB593024CE66D34@dbde02.ent.ti.com>
- <BANLkTinxvCNdr7qQTWjRZ2KceSvanGQ0Sg@mail.gmail.com>
- <B85A65D85D7EB246BE421B3FB0FBB593024CFDC82C@dbde02.ent.ti.com>
- <BANLkTik5ZQLzyNqS6CRuJrActm9O7r7LEA@mail.gmail.com>
+From: Ming Lei <tom.leiming@gmail.com>
+Subject: Re: [PATCH] ARM: fix mistaken dependency for CPU_HAS_PMU
+Date: Wed, 18 May 2011 17:31:30 +0800
+Message-ID: <BANLkTinkZZwPG6S2goLYhuNV8JcVB-xsFw@mail.gmail.com>
+References: <1305686080-13182-1-git-send-email-tom.leiming@gmail.com>
+	<4785097973995347565@unknownmsgid>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57220 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755576Ab1ERJRC convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 May 2011 05:17:02 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p4I9GwxM005158
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Wed, 18 May 2011 04:17:00 -0500
-In-Reply-To: <BANLkTik5ZQLzyNqS6CRuJrActm9O7r7LEA@mail.gmail.com>
-Content-Language: en-US
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:50165 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932138Ab1ERJbb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 May 2011 05:31:31 -0400
+Received: by yxs7 with SMTP id 7so466595yxs.19
+        for <linux-omap@vger.kernel.org>; Wed, 18 May 2011 02:31:30 -0700 (PDT)
+In-Reply-To: <4785097973995347565@unknownmsgid>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Will Deacon <will.deacon@arm.com>
+Cc: linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-> -----Original Message-----
-> From: Menon, Nishanth=20
-> Sent: Wednesday, May 18, 2011 2:36 PM
-> To: Premi, Sanjeev
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: [PATCH] omap:pm: Fix boot-time errors with=20
-> debugfs disabled
->=20
-> On Wed, May 18, 2011 at 04:00, Premi, Sanjeev <premi@ti.com> wrote:
-> >> While cleaning up voltdm_c set earlier this week, I think=20
-> your changes
-> >> apply better there.
-> >> btw, I could incorporate a bit of your code into my patch,=20
-> esp the one
-> >> Tony commented on=20
-> http://marc.info/?l=3Dlinux-omap&m=3D130570559515977&w=3D2
-> ok this part got rejected pending regulator framework for scalable
-> voltage domains..
->=20
-> >> but, overall, on the topic of SR, either:
-> >> a) =A0move SR autocomp into sysfs (and dump the rest of the=20
-> debugfs - it
-> >> is useful for validation, but does'nt really provide=20
-> additional info)
-> >> - given that it used to reside in=20
-> /sys/power/sr_vddx_autocomp and then
-> >> moved to debugfs, I am not sure if this is the right path
-> >> b) move SR autocomp into a board defined configuration.. more
-> >> intrusive, but folks would really want to enable SR as an option a=
-t
-> >> times from userspace - many distros and devices do this=20
-> (e.g. N900)..
-> >
-> > [sp] I am not sure what you are suggesting. Can't we take=20
-> in the patch and
-> > =A0 =A0 then do the movements? ... the ones that doesn't seem=20
-> to be implemented
-> > =A0 =A0 so far (based on your comments).
-> depends on what Kevin thinks is the future of voltdm(in terms of whic=
-h
-> .4x target) - might be good to focus our attention into a single
-> branch and cleanit up for upstream.. I am personally not sure what
-> should autocomp's future should be - I think option of having boards
-> be able to define it - maybe as part of regulator framework + debugfs
-> cleanup similar(as voltdm_c has removed I believe all of voltage
-> debugfs - so your patch can be much smaller and effective there)..
+Hi,
 
-[sp] Reworking the patch for different branch is fine.
-     But what about the pm branch today.
+2011/5/18 Will Deacon <will.deacon@arm.com>:
+> Hi,
+>
+>> From: Ming Lei <tom.leiming@gmail.com>
+>>
+>> Obviously it is mistake for CPU_HAS_PMU to depend on
+>> (!ARCH_OMAP3 || OMAP3_EMU).
+>
+> It's not that obvious!
 
->=20
-> Regards,
-> Nishanth Menon
-> --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+No, on ubuntu 11.04, default config options enables ARCH_OMAP3
+and ARCH_OMAP4, and disable OMAP3_EMU, so cause pmu.o
+can't be built in kernel.
+
+pmu.o is just a platform driver for pmu device, so we should always
+allow it to be built into kernel no matter there are pmu devices or
+not, so we can support multiple boards with one same image.
+
+>
+>> No mattery it is omap3 or not, we can build pmu.o into
+>> kernel safely. In fact, arm-v7 of omap3 has pmu inside
+>> also.
+>
+> Yes, but the PMU on Omap3 doesn't work unless you enable the emu clk, which
+> is done in kernel/etm.c. Rather than duplicate that code (which only seems
+> to be needed for Omap anyway) I decided to add a dependency on OMAP3_EMU so
+> the clock gets enabled in etb_probe.
+>
+>> So fix it that we can build pmu into kernel to support perf
+>> for some valid config(such as enable both omap4 and omap3,
+>> but OMAP3_EMU).
+>
+> No, I don't like this. The reason I don't like it is because it will lead to
+> lots of bug reports that perf doesn't work on Omap3 because they haven't got
+> the emu clock ticking. It was this scenario that led to the dependency being
+> introduced in the first place:
+>
+> 8954bb0d ("OMAP3: pmu: make CPU_HAS_PMU dependent on OMAP3_EMU")
+
+I don't think it is good fix.
+
+In fact, we should keep arch/arm/Kconfig or arch/arm/kernel/pmu.c more generic,
+and avoid to make arm core code depend on machines options as far as possible.
+
+For the pmu issue on omap3, below fix should be better than what
+8954bb0d did, shouldn't it?
+
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index 7b85585..c20a3a3 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -410,9 +410,12 @@ static void omap_init_pmu(void)
+ {
+ 	if (cpu_is_omap24xx())
+ 		omap_pmu_device.resource = &omap2_pmu_resource;
+-	else if (cpu_is_omap34xx())
++	else if (cpu_is_omap34xx()) {
+ 		omap_pmu_device.resource = &omap3_pmu_resource;
+-	else
++#ifndef  CONFIG_OMAP3_EMU
++		return;
++#endif
++	} else
+ 		return;
+
+ 	platform_device_register(&omap_pmu_device);
+
+
+> Is there a problem building the etm support for Omap4?
+
+Of course,  there is the problem I described above.
+
+
+thanks,
+-- 
+Ming Lei
