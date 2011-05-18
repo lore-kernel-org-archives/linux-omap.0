@@ -1,60 +1,55 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: [PATCH] omap3: boot message is not an error
-Date: Wed, 18 May 2011 08:45:52 +0300
-Message-ID: <20110518084552.1e65f00f.jhnikula@gmail.com>
-References: <1305644565-26233-1-git-send-email-premi@ti.com>
-	<1305653621.2694.4.camel@vence>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH] OMAP4: McBSP: Clear rx_irq at probe time
+Date: Wed, 18 May 2011 08:52:07 +0300
+Message-ID: <201105180852.08264.peter.ujfalusi@ti.com>
+References: <1305628420-10592-1-git-send-email-peter.ujfalusi@ti.com> <20110517152954.477365e6.jhnikula@gmail.com> <20110517125700.GY5323@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:59384 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753786Ab1ERFp4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 May 2011 01:45:56 -0400
-Received: by ewy4 with SMTP id 4so335156ewy.19
-        for <linux-omap@vger.kernel.org>; Tue, 17 May 2011 22:45:55 -0700 (PDT)
-In-Reply-To: <1305653621.2694.4.camel@vence>
+Received: from comal.ext.ti.com ([198.47.26.152]:46516 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753427Ab1ERFwN convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 May 2011 01:52:13 -0400
+In-Reply-To: <20110517125700.GY5323@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Sanjeev Premi <premi@ti.com>, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Jarkko Nikula <jhnikula@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Girdwood, Liam" <lrg@ti.com>, "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
 
-On Tue, 17 May 2011 19:33:41 +0200
-Kevin Hilman <khilman@ti.com> wrote:
+On Tuesday 17 May 2011 15:57:00 Tony Lindgren wrote:
+> This file should be under drivers/ somewhere, can you
+> guys please take care of that?
 
-> Hi Sanjeev,
-> 
-> On Tue, 2011-05-17 at 20:32 +0530, Sanjeev Premi wrote:
-> > With current level, it shows up on the console
-> > despite using 'silent' in bootargs.
-> > 
-> > Signed-off-by: Sanjeev Premi <premi@ti.com>
-> > ---
-> > 
-> >  1) Couldn't find better text on commit message.
-> >     Any suggestions?
-> > 
-> >  2) Though pm34xx.x is changed, the change itself
-> >     is no related to power management. Hence, did
-> >     annotate "pm:"
-> 
-> Well, it's a change to PM core code, so PM prefix is fine.  How about:
-> 
-> OMAP3: PM: boot message is not an error, use pr_info
-> 
-> Also, please Cc linux-arm-kernel, and I will queue this fix for 2.6.40.
-...  
-> >  arch/arm/mach-omap2/pm34xx.c |    2 +-
-> >  1 files changed, 1 insertions(+), 1 deletions(-)
-> > 
-Does this bootup info print here bring any benefit for pm developers
-and users?
+Yeah, this has been discussed several times, and we have not reached ag=
+reement=20
+where to move this very OMAP specific code.
+One option was to move it under sound/soc/omap/ , since currently the o=
+nly=20
+user for mcbsp is audio.
+But McBSP is really versatile beast, it can be used for other things (f=
+or=20
+example it can handle SPI bus as well), so if we move it under ASoC, we=
+ are=20
+going to limit/block other use of these pins.
+We can not just cp arc/arm/plat-omap/mcbsp.c drivers/wherever...
+If we do that, we need to move it under some framework, or create a new=
+ one=20
+(bus driver?), which might be a bit tricky since we have special use of=
+ McBSP=20
+from audio side, this does not really fit the bus mode. Other uses of M=
+cBSP=20
+might be happy with the bus driver conversion, but we just do not have =
+those.
 
-For me it looks it can be removed as the pm34xx.c is always compiled
-and initialized for CONFIG_ARCH_OMAP3 so IMHO only error prints from
-pm34xx.c are relevant.
+IMHO the only place we can move this is under sound/soc/omap/ , but who=
+ can=20
+decide, that the McBSP can only be used for audio??
 
-
--- 
-Jarkko
+--=20
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
