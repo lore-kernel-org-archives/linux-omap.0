@@ -1,59 +1,56 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH] OMAP3: pm: Boot message is not an error, remove it
-Date: Wed, 18 May 2011 16:40:43 +0200
-Message-ID: <87wrhors0k.fsf@ti.com>
-References: <1305710080-2647-1-git-send-email-premi@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: context_loss_count error value
+Date: Wed, 18 May 2011 17:41:30 +0300
+Message-ID: <1305729690.30372.7.camel@deskari>
+References: <1305704452.1834.12.camel@deskari> <87k4douvsd.fsf@ti.com>
+	 <1305718422.1834.23.camel@deskari>  <877h9ot7c3.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:51444 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757283Ab1EROk5 (ORCPT
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:43435 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933029Ab1EROlg (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 18 May 2011 10:40:57 -0400
-Received: by mail-ww0-f47.google.com with SMTP id 4so1389082wwk.16
-        for <linux-omap@vger.kernel.org>; Wed, 18 May 2011 07:40:56 -0700 (PDT)
-In-Reply-To: <1305710080-2647-1-git-send-email-premi@ti.com> (Sanjeev Premi's
-	message of "Wed, 18 May 2011 14:44:40 +0530")
+	Wed, 18 May 2011 10:41:36 -0400
+Received: by wyf19 with SMTP id 19so1625581wyf.14
+        for <linux-omap@vger.kernel.org>; Wed, 18 May 2011 07:41:34 -0700 (PDT)
+In-Reply-To: <877h9ot7c3.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sanjeev Premi <premi@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, jhnikula@gmail.com
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-Hi Sanjeev,
+On Wed, 2011-05-18 at 16:24 +0200, Kevin Hilman wrote:
 
-Sanjeev Premi <premi@ti.com> writes:
+> Looking closer at the code, a zero return happens only when
+> 
+> 1) no hwmod associated to omap_device
+> 2) no power domain associated to hwmod
+> 3) power domain has not (yet) lost context
+> 
+> None of these are actually error conditions per-se, and in all cases, it
+> indidates that context has not been lost (or we can't tell if context
+> has been lost.) 
 
-> It shows up on the console despite using "silent"
-> in the bootargs.
->
-> Signed-off-by: Sanjeev Premi <premi@ti.com>
-> Cc: jhnikula@gmail.com
+If the pm code cannot tell whether the context has been lost or not, the
+driver must assume it has been lost, do you agree? If so, the driver
+must handle zero return value differently, and always restore context.
 
-Thanks!  Adding to queue for 2.6.40 (branch: for_2.6.40/pm-cleanup)
+> So I think the current code is correct.
 
-Kevin
+How is it correct if it returns an error even if no error has happened
+=)? Either the code or the documentation is wrong.
 
-> ---
->
->  v2: Changed the subject.
->      Removed the print altogether
->
->  v1: Convert printk to pr_info
->
->  arch/arm/mach-omap2/pm34xx.c |    2 --
->  1 files changed, 0 insertions(+), 2 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> index 343027f..ba6c524 100644
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -901,8 +901,6 @@ static int __init omap3_pm_init(void)
->  
->  	pm_errata_configure();
->  
-> -	printk(KERN_ERR "Power Management for TI OMAP3.\n");
-> -
->  	/* XXX prcm_setup_regs needs to be before enabling hw
->  	 * supervised mode for powerdomains */
->  	prcm_setup_regs();
+How about the wrap-around case? Does the loss count go back to zero?
+
+> Are you finding a case where HW context has actually been lost and the
+> powerdomain context loss is still at zero?
+
+No, I haven't been actually testing the PM features at all, I was just
+fixing the enablers in DSS and got a bunch of error prints as the DSS
+driver was checking for the return value.
+
+ Tomi
+
+
