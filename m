@@ -1,50 +1,66 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [RESEND PATCH 1/4] omap: igep0020: name refactoring for future
- merge with IGEP3
-Date: Wed, 18 May 2011 12:05:08 +0300
-Message-ID: <4DD38BC4.6080905@compulab.co.il>
-References: <cover.1305235542.git.mike@compulab.co.il>	<d6dc9e334c729523f25993b7d610808e537ca74c.1305235542.git.mike@compulab.co.il>	<BANLkTikJaN=Q2RgrA7Hz-ye2BCOjNK42zA@mail.gmail.com>	<20110517075345.GQ5323@atomide.com>	<BANLkTikCgWxQoiYfS4O4+9jYCVBmcMAEOQ@mail.gmail.com> <20110517103352.GB27250@atomide.com>
+From: "Menon, Nishanth" <nm@ti.com>
+Subject: Re: [PATCH] omap:pm: Fix boot-time errors with debugfs disabled
+Date: Wed, 18 May 2011 04:06:18 -0500
+Message-ID: <BANLkTik5ZQLzyNqS6CRuJrActm9O7r7LEA@mail.gmail.com>
+References: <1305221790-4944-1-git-send-email-premi@ti.com>
+ <BANLkTim+3M3Z0C3GTtTQrb2cqk5eSAsR+w@mail.gmail.com> <B85A65D85D7EB246BE421B3FB0FBB593024CE66D34@dbde02.ent.ti.com>
+ <BANLkTinxvCNdr7qQTWjRZ2KceSvanGQ0Sg@mail.gmail.com> <B85A65D85D7EB246BE421B3FB0FBB593024CFDC82C@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:45050
-	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752031Ab1ERJFO convert rfc822-to-8bit
+Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:43135 "EHLO
+	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755816Ab1ERJGm convert rfc822-to-8bit
 	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 18 May 2011 05:05:14 -0400
-In-Reply-To: <20110517103352.GB27250@atomide.com>
+	Wed, 18 May 2011 05:06:42 -0400
+Received: by mail-wy0-f171.google.com with SMTP id 32so1121216wyb.30
+        for <linux-omap@vger.kernel.org>; Wed, 18 May 2011 02:06:41 -0700 (PDT)
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593024CFDC82C@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-Cc: =?UTF-8?B?RW5yaWMgQmFsbGV0YsOyIGkgU2VycmE=?= <eballetbo@gmail.com>, Tony.Lindgren.tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Mike Rapoport <mike@compulab.co.il>
+To: "Premi, Sanjeev" <premi@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On 05/17/11 13:33, Tony Lindgren wrote:
+On Wed, May 18, 2011 at 04:00, Premi, Sanjeev <premi@ti.com> wrote:
+>> While cleaning up voltdm_c set earlier this week, I think your chang=
+es
+>> apply better there.
+>> btw, I could incorporate a bit of your code into my patch, esp the o=
+ne
+>> Tony commented on http://marc.info/?l=3Dlinux-omap&m=3D1305705595159=
+77&w=3D2
+ok this part got rejected pending regulator framework for scalable
+voltage domains..
 
-> * Enric Balletb=C3=B2 i Serra <eballetbo@gmail.com> [110517 00:53]:
->> Hi,
->>
->> 2011/5/17 Tony Lindgren <tony@atomide.com>:
->>> * Enric Balletb=C3=B2 i Serra <eballetbo@gmail.com> [110516 10:11]:
->>>> Hi Mike,
->>>>
->>>> The only comment I wanted to do is maybe I prefer rename the
->>>> board-igep0020 to board-igep00x0 to be more generic. Apart from th=
-is
->>>> these patch series looks good for me and has my ack. Thanks.
->>> I suggest we do the rename separately later on. Otherwise it
->>> easily gets classified as "crazy churn" type of patch, so best
->>> to stick to just code coalescing and fixes for this merge window.
->> Ok, so Mike you've my ack, thanks
-> Thanks, applying these to devel-cleanup for the upcoming merge
-> window.
+>> but, overall, on the topic of SR, either:
+>> a) =A0move SR autocomp into sysfs (and dump the rest of the debugfs =
+- it
+>> is useful for validation, but does'nt really provide additional info=
+)
+>> - given that it used to reside in /sys/power/sr_vddx_autocomp and th=
+en
+>> moved to debugfs, I am not sure if this is the right path
+>> b) move SR autocomp into a board defined configuration.. more
+>> intrusive, but folks would really want to enable SR as an option at
+>> times from userspace - many distros and devices do this (e.g. N900).=
+=2E
+>
+> [sp] I am not sure what you are suggesting. Can't we take in the patc=
+h and
+> =A0 =A0 then do the movements? ... the ones that doesn't seem to be i=
+mplemented
+> =A0 =A0 so far (based on your comments).
+depends on what Kevin thinks is the future of voltdm(in terms of which
+=2E4x target) - might be good to focus our attention into a single
+branch and cleanit up for upstream.. I am personally not sure what
+should autocomp's future should be - I think option of having boards
+be able to define it - maybe as part of regulator framework + debugfs
+cleanup similar(as voltdm_c has removed I believe all of voltage
+debugfs - so your patch can be much smaller and effective there)..
 
-You mean for-next? Or you've just forgot to update the devel-cleanup?
-
-
---=20
 Regards,
-Igor.
-
+Nishanth Menon
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
