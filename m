@@ -1,63 +1,83 @@
-From: "Menon, Nishanth" <nm@ti.com>
-Subject: Re: [PM-WIP_CPUFREQ][PATCH 3/6 v2] OMAP2+: cpufreq: minor comment cleanup
-Date: Wed, 18 May 2011 15:34:42 -0500
-Message-ID: <BANLkTikKiG4aCJ13yoVLXX+oMaw93kxvgA@mail.gmail.com>
-References: <1305704266-17623-4-git-send-email-nm@ti.com> <20110518200856.GA8149@google.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH 04/19] ARM: omap1: convert to using readl/writel instead
+ of volatile struct
+Date: Wed, 18 May 2011 22:48:11 +0200
+Message-ID: <BANLkTikSZGjM5VUjbNXK2y0UC7jVMmbYEA@mail.gmail.com>
+References: <20110516172334.GD13659@n2100.arm.linux.org.uk>
+	<E1QM1ZG-0003DV-PA@rmk-PC.arm.linux.org.uk>
+	<BANLkTinG0BmBJZTWr-FrBzANg-MbdsghkA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:44018 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751922Ab1ERUfL convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 18 May 2011 16:35:11 -0400
-Received: by mail-ww0-f43.google.com with SMTP id 17so2048125wwb.0
-        for <linux-omap@vger.kernel.org>; Wed, 18 May 2011 13:35:02 -0700 (PDT)
-In-Reply-To: <20110518200856.GA8149@google.com>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:44830 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753154Ab1ERUsM convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 May 2011 16:48:12 -0400
+Received: by iwn34 with SMTP id 34so1622335iwn.19
+        for <linux-omap@vger.kernel.org>; Wed, 18 May 2011 13:48:11 -0700 (PDT)
+In-Reply-To: <BANLkTinG0BmBJZTWr-FrBzANg-MbdsghkA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Todd Poynor <toddpoynor@google.com>
-Cc: kevin <khilman@ti.com>, linux-omap <linux-omap@vger.kernel.org>
+To: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, John Stultz <johnstul@us.ibm.com>, Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Wed, May 18, 2011 at 15:08, Todd Poynor <toddpoynor@google.com> wrot=
-e:
-> On Wed, May 18, 2011 at 02:37:43AM -0500, Nishanth Menon wrote:
->> this should probably get squashed in..
->>
->> Signed-off-by: Nishanth Menon <nm@ti.com>
->> ---
->> =A0arch/arm/mach-omap2/omap2plus-cpufreq.c | =A0 =A06 ++++--
->> =A01 files changed, 4 insertions(+), 2 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/omap2plus-cpufreq.c b/arch/arm/mach=
--omap2/omap2plus-cpufreq.c
->> index 6e3666a..45f1e9e 100644
->> --- a/arch/arm/mach-omap2/omap2plus-cpufreq.c
->> +++ b/arch/arm/mach-omap2/omap2plus-cpufreq.c
->> @@ -84,8 +84,10 @@ static int omap_target(struct cpufreq_policy *pol=
-icy,
->> =A0 =A0 =A0 if (is_smp() && (num_online_cpus() < NR_CPUS))
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret;
->>
->> - =A0 =A0 /* Ensure desired rate is within allowed range. =A0Some go=
-venors
->> - =A0 =A0 =A0* (ondemand) will just pass target_freq=3D0 to get the =
-minimum. */
->> + =A0 =A0 /*
->> + =A0 =A0 =A0* Ensure desired rate is within allowed range. =A0Some =
-govenors
->> + =A0 =A0 =A0* (ondemand) will just pass target_freq=3D0 to get the =
-minimum.
+2011/5/17 Catalin Marinas <catalin.marinas@arm.com>:
+> On 16 May 2011 18:26, Russell King - ARM Linux <linux@arm.linux.org.u=
+k> wrote:
+>> --- a/arch/arm/mach-omap1/time.c
+>> +++ b/arch/arm/mach-omap1/time.c
+> ...
+>> =A0static inline unsigned long notrace omap_mpu_timer_read(int nr)
+>> =A0{
+>> - =A0 =A0 =A0 volatile omap_mpu_timer_regs_t* timer =3D omap_mpu_tim=
+er_base(nr);
+>> - =A0 =A0 =A0 return timer->read_tim;
+>> + =A0 =A0 =A0 omap_mpu_timer_regs_t __iomem *timer =3D omap_mpu_time=
+r_base(nr);
+>> + =A0 =A0 =A0 return readl(&timer->read_tim);
+>> =A0}
 >
-> So long as the comment is being touched up, could fixup the typo for
-> "governor" (and also copied to a new block of code in another patch
-> in the series).
+> We should start using the *_relaxed() accessors a bit more to avoid
+> the barriers overhead in the standard I/O accessors.
 
-Will do. thanks for catching it :).
+Speaking of which.
 
-Regards,
-Nishanth Menon
+The documentation for the *_relaxed calls are in
+Documentation/DocBook/deviceiobook.tmpl
+and reads like this:
+
+"PCI ordering rules also guarantee that PIO read responses arrive after=
+ any
+outstanding DMA writes from that bus, since for some devices the
+result of a readb
+call may signal to the driver that a DMA transaction is complete. In ma=
+ny cases,
+however, the driver may want to indicate that the next readb call has
+no relation to
+any previous DMA writes performed by the device. The driver can use
+readb_relaxed for these cases, although only some platforms will honor
+the relaxed
+semantics. Using the relaxed read functions will provide significant pe=
+rformance
+benefits on platforms that support it. The qla2xxx driver provides
+examples of how
+to use readX_relaxed. In many cases, a majority of the driver's readX c=
+alls can
+safely be converted to readX_relaxed calls, since only a few will indic=
+ate or
+depend on DMA completion."
+
+I guess that in the ARM case "PCI DMA" corresponds to "bus mastering" b=
+ut
+is this strictly speaking properly describing the semantics of the ARM
+*_relaxed operations?
+
+If it isn't a hint on how it should be understood would be much appreci=
+ated.
+
+Yours,
+Linus Walleij
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
