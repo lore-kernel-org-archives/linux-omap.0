@@ -1,51 +1,46 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RESEND][PATCH 2/5] arm: omap: usb: register hwmods of usbhs
-Date: Wed, 18 May 2011 13:50:38 +0300
-Message-ID: <20110518105035.GE13908@legolas.emea.dhcp.ti.com>
-References: <1305538619-21034-1-git-send-email-keshava_mgowda@ti.com>
-Reply-To: balbi@ti.com
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: context_loss_count error value
+Date: Wed, 18 May 2011 12:50:58 +0200
+Message-ID: <87k4douvsd.fsf@ti.com>
+References: <1305704452.1834.12.camel@deskari>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="YkJPYEFdoxh/AXLE"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1305538619-21034-1-git-send-email-keshava_mgowda@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Keshava Munegowda <keshava_mgowda@ti.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com
-List-Id: linux-omap@vger.kernel.org
-
-
---YkJPYEFdoxh/AXLE
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:55624 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932638Ab1ERKvM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 18 May 2011 06:51:12 -0400
+Received: by mail-wy0-f169.google.com with SMTP id 19so1141643wyf.28
+        for <linux-omap@vger.kernel.org>; Wed, 18 May 2011 03:51:11 -0700 (PDT)
+In-Reply-To: <1305704452.1834.12.camel@deskari> (Tomi Valkeinen's message of
+	"Wed, 18 May 2011 10:40:52 +0300")
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-On Mon, May 16, 2011 at 03:06:59PM +0530, Keshava Munegowda wrote:
-> The hwmod structure of uhh and tll are retrived
-> and registered with omap device
->=20
-> Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
+Tomi Valkeinen <tomi.valkeinen@ti.com> writes:
 
-applied, thanks
+> Hi Kevin,
+>
+> I was fixing DSS context loss handling which is a bit broken, and while
+> testing on OMAP3 Overo, with -rc7 and omap2plus_defconfig, I noticed
+> that get_context_loss_count() seems to always return 0.
+>
+> 0 should be returned when an error happens, and as far as I see in
+> pwrdm_get_context_loss_count(), no error is happening but the DSS
+> context has just never been lost and the returned count is thus 0.
+>
+> Is this correct? And what happens when the count wraps and goes back to
+> zero, does the function return 0 in that case?
 
---=20
-balbi
+Hmm, you're right.  zero is actually documented as the error return
+value (even though it's not really checked.)
 
---YkJPYEFdoxh/AXLE
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Since driver's should only every care about the *difference* in value
+between two calls to context_loss_count(), this might not be a big deal,
+but a proper fix is probably to have the state counters start at one.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+Kevin
 
-iQEcBAEBAgAGBQJN06R7AAoJEAv8Txj19kN16FQIAJQ3eK8s9+vQ3gt8o8McTyNk
-AGq1C2hWL6WWIKsNX1PX9Xb/GK0rvJA0JKHTyO9XkFM2Zd9QaZ8W0eIJbDpHYpVl
-H7dqTTcJo1ALATLl4aQep6WPOFJ39cDu7u0AyKPks1+XEYW4+d/e3ne2LYoYVrME
-Ljy97PK6dDLTfTKaqvKP5A5Gmsr2hZDvKZiOQ+lvBa5fGGKTdvL1+77MVXdxPbqC
-wE4GJB0vfWRDZ66NwPL384i33idYf4KB0v1obMnFpBf/FRdr62l6reEESyeAWsCf
-tSzOf7X/XG4T30TIrLGlcbM6n/wVJQpFSkeVtfMRDt4vBnfXejzs5quus/vUwtg=
-=0SjL
------END PGP SIGNATURE-----
-
---YkJPYEFdoxh/AXLE--
