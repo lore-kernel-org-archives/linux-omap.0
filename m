@@ -1,113 +1,36 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PM-WIP_CPUFREQ][PATCH 6/6 v2] OMAP2+: cpufreq: fix freq_table leak
-Date: Wed, 18 May 2011 02:37:46 -0500
-Message-ID: <1305704266-17623-7-git-send-email-nm@ti.com>
-References: <[PM-WIP_CPUFREQ][PATCH 0/5] Cleanups for cpufreq>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: context_loss_count error value
+Date: Wed, 18 May 2011 10:40:52 +0300
+Message-ID: <1305704452.1834.12.camel@deskari>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:40034 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755038Ab1ERHiG (ORCPT
+Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:34051 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754755Ab1ERHlD (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 18 May 2011 03:38:06 -0400
-Received: by mail-yx0-f177.google.com with SMTP id 35so523536yxh.36
-        for <linux-omap@vger.kernel.org>; Wed, 18 May 2011 00:38:04 -0700 (PDT)
-In-Reply-To: <[PM-WIP_CPUFREQ][PATCH 0/5] Cleanups for cpufreq>
+	Wed, 18 May 2011 03:41:03 -0400
+Received: by mail-ww0-f53.google.com with SMTP id 40so1169200wwj.22
+        for <linux-omap@vger.kernel.org>; Wed, 18 May 2011 00:40:55 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: kevin <khilman@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Nishanth Menon <nm@ti.com>
+To: khilman@ti.com
+Cc: linux-omap@vger.kernel.org
 
-Since we have two cpus the cpuinit call for cpu1 causes
-freq_table of cpu0 to be overwritten. instead, we maintain
-a counter to keep track of cpus who use the cpufreq table
-allocate it once(one freq table for all CPUs) and free them
-once the last user is done with it.
+Hi Kevin,
 
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
- arch/arm/mach-omap2/omap2plus-cpufreq.c |   33 ++++++++++++++++++++++++------
- 1 files changed, 26 insertions(+), 7 deletions(-)
+I was fixing DSS context loss handling which is a bit broken, and while
+testing on OMAP3 Overo, with -rc7 and omap2plus_defconfig, I noticed
+that get_context_loss_count() seems to always return 0.
 
-diff --git a/arch/arm/mach-omap2/omap2plus-cpufreq.c b/arch/arm/mach-omap2/omap2plus-cpufreq.c
-index d0b4f97..fc3d0fb 100644
---- a/arch/arm/mach-omap2/omap2plus-cpufreq.c
-+++ b/arch/arm/mach-omap2/omap2plus-cpufreq.c
-@@ -42,6 +42,9 @@
- #define VERY_HI_RATE	900000000
- 
- static struct cpufreq_frequency_table *freq_table;
-+static int freq_table_users;
-+static DEFINE_MUTEX(freq_table_lock);
-+
- static struct clk *mpu_clk;
- 
- static int omap_verify_speed(struct cpufreq_policy *policy)
-@@ -172,6 +175,18 @@ skip_lpj:
- 	return ret;
- }
- 
-+static void freq_table_free(void)
-+{
-+	if (!freq_table_users)
-+		return;
-+	freq_table_users--;
-+	if (freq_table_users)
-+		return;
-+	clk_exit_cpufreq_table(&freq_table);
-+	kfree(freq_table);
-+	freq_table = NULL;
-+}
-+
- static int __cpuinit omap_cpu_init(struct cpufreq_policy *policy)
- {
- 	int result = 0;
-@@ -199,14 +214,18 @@ static int __cpuinit omap_cpu_init(struct cpufreq_policy *policy)
- 		return -EINVAL;
- 	}
- 
-+	mutex_lock(&freq_table_lock);
- 	/*
- 	 * if we dont get cpufreq table using opp, use traditional omap2 lookup
- 	 * as a fallback
- 	 */
--	if (opp_init_cpufreq_table(mpu_dev, &freq_table))
--		clk_init_cpufreq_table(&freq_table);
-+	if (!freq_table) {
-+		if (opp_init_cpufreq_table(mpu_dev, &freq_table))
-+			clk_init_cpufreq_table(&freq_table);
-+	}
- 
- 	if (freq_table) {
-+		freq_table_users++;
- 		result = cpufreq_frequency_table_cpuinfo(policy, freq_table);
- 		if (!result) {
- 			cpufreq_frequency_table_get_attr(freq_table,
-@@ -215,10 +234,10 @@ static int __cpuinit omap_cpu_init(struct cpufreq_policy *policy)
- 			clk_exit_cpufreq_table(&freq_table);
- 			WARN(true, "%s: fallback to clk_round(freq_table=%d)\n",
- 					__func__, result);
--			kfree(freq_table);
--			freq_table = NULL;
-+			freq_table_free();
- 		}
- 	}
-+	mutex_unlock(&freq_table_lock);
- 
- 	if (!freq_table) {
- 		policy->cpuinfo.min_freq = clk_round_rate(mpu_clk, 0) / 1000;
-@@ -251,9 +270,9 @@ static int __cpuinit omap_cpu_init(struct cpufreq_policy *policy)
- 
- static int omap_cpu_exit(struct cpufreq_policy *policy)
- {
--	clk_exit_cpufreq_table(&freq_table);
--	kfree(freq_table);
--	freq_table = NULL;
-+	mutex_lock(&freq_table_lock);
-+	freq_table_free();
-+	mutex_unlock(&freq_table_lock);
- 	clk_put(mpu_clk);
- 	return 0;
- }
--- 
-1.7.1
+0 should be returned when an error happens, and as far as I see in
+pwrdm_get_context_loss_count(), no error is happening but the DSS
+context has just never been lost and the returned count is thus 0.
+
+Is this correct? And what happens when the count wraps and goes back to
+zero, does the function return 0 in that case?
+
+ Tomi
+
 
