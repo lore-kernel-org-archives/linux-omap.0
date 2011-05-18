@@ -1,62 +1,151 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PM-WIP/voltdm_c][PATCH 00/11] OMAP4: Fixes for voltage scale
-Date: Wed, 18 May 2011 00:17:23 -0500
-Message-ID: <1305695854-9638-1-git-send-email-nm@ti.com>
+Subject: [PM-WIP/voltdm_c][PATCH 02/11] OMAP3+: PM: voltage: add required debugfs interfaces
+Date: Wed, 18 May 2011 00:17:25 -0500
+Message-ID: <1305695854-9638-3-git-send-email-nm@ti.com>
+References: <1305695854-9638-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:44872 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:44873 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752604Ab1ERFRi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 18 May 2011 01:17:38 -0400
-Received: from dlep34.itg.ti.com ([157.170.170.115])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p4I5HcZL025726
+	id S1752639Ab1ERFRj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 18 May 2011 01:17:39 -0400
+Received: from dlep35.itg.ti.com ([157.170.170.118])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p4I5Hcqv025729
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
 	for <linux-omap@vger.kernel.org>; Wed, 18 May 2011 00:17:38 -0500
 Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
-	by dlep34.itg.ti.com (8.13.7/8.13.7) with ESMTP id p4I5Hb9G002948
-	for <linux-omap@vger.kernel.org>; Wed, 18 May 2011 00:17:37 -0500 (CDT)
+	by dlep35.itg.ti.com (8.13.7/8.13.7) with ESMTP id p4I5Hc71002793
+	for <linux-omap@vger.kernel.org>; Wed, 18 May 2011 00:17:38 -0500 (CDT)
+In-Reply-To: <1305695854-9638-1-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: kevin <khilman@ti.com>
 Cc: linux-omap <linux-omap@vger.kernel.org>, Nishanth Menon <nm@ti.com>
 
-Hi,
-The following patches are on top of:
-git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git
-branch: pm-wip/voltdm_c
+Kevin's patch:
+OMAP3+: voltage: remove unneeded debugfs interface
 
-This contains a set of misc fixes and cleanups necessary for voltage scale
-to function.
+removed ability to check the voltages in the domains.
+This puts a crunch on validation we can do, hence we
+re-introduce them back in
 
-Tested on: SDP4430
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+ arch/arm/mach-omap2/voltage.c |   66 +++++++++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/voltage.h |    1 +
+ 2 files changed, 67 insertions(+), 0 deletions(-)
 
-Nishanth Menon (9):
-  OMAP3+: PM: SR: fix debugfs
-  OMAP3+: PM: voltage: add required debugfs interfaces
-  OMAP3+: PM: VP: fix vstepmax
-  OMAP4: PM: VC: support configuration of i2c clks
-  OMAP4: PM: VC: fix highspeed i2c for SR
-  OMAP4: PM: VC: fix channel bit offset for MPU
-  OMAP4: PM: TWL6030: fix uv to voltage for >0x39
-  OMAP4: PM: TWL6030: address 0V conversions
-  OMAP4: PM: TWL6030: add cmd register
+diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
+index 890ce39..ab5cbbd 100644
+--- a/arch/arm/mach-omap2/voltage.c
++++ b/arch/arm/mach-omap2/voltage.c
+@@ -282,6 +282,65 @@ void omap_change_voltscale_method(struct voltagedomain *voltdm,
+ 	}
+ }
+ 
++/* Voltage debugfs support */
++static int vp_volt_debug_get(void *data, u64 *val)
++{
++	struct voltagedomain *voltdm = (struct voltagedomain *)data;
++
++	if (!voltdm) {
++		pr_warning("Wrong paramater passed\n");
++		return -EINVAL;
++	}
++	*val = omap_vp_get_curr_volt(voltdm);
++
++	return 0;
++}
++DEFINE_SIMPLE_ATTRIBUTE(vp_volt_debug_fops, vp_volt_debug_get, NULL, "%llu\n");
++
++static int nom_volt_debug_get(void *data, u64 *val)
++{
++	struct voltagedomain *voltdm = (struct voltagedomain *) data;
++
++	if (!voltdm) {
++		pr_warning("Wrong paramater passed\n");
++		return -EINVAL;
++	}
++
++	*val = omap_voltage_get_nom_volt(voltdm);
++
++	return 0;
++}
++DEFINE_SIMPLE_ATTRIBUTE(nom_volt_debug_fops, nom_volt_debug_get, NULL,
++								"%llu\n");
++
++static void __init voltdm_debugfs_init(struct dentry *voltage_dir,
++					struct voltagedomain *voltdm)
++{
++	char *name;
++
++	name = kasprintf(GFP_KERNEL, "vdd_%s", voltdm->name);
++	if (!name) {
++		pr_warning("%s:vdd_%s: no mem for debugfs\n", __func__,
++				voltdm->name);
++		return;
++	}
++
++	voltdm->debug_dir = debugfs_create_dir(name, voltage_dir);
++	kfree(name);
++	if (IS_ERR_OR_NULL(voltdm->debug_dir)) {
++		pr_warning("%s: Unable to create debugfs directory for"
++			" vdd_%s\n", __func__, voltdm->name);
++		voltdm->debug_dir = NULL;
++		return;
++	}
++
++	(void) debugfs_create_file("curr_vp_volt", S_IRUGO, voltdm->debug_dir,
++				(void *) voltdm, &vp_volt_debug_fops);
++	(void) debugfs_create_file("curr_nominal_volt", S_IRUGO,
++				voltdm->debug_dir, (void *) voltdm,
++				&nom_volt_debug_fops);
++}
++
+ /**
+  * omap_voltage_late_init() - Init the various voltage parameters
+  *
+@@ -292,6 +351,7 @@ void omap_change_voltscale_method(struct voltagedomain *voltdm,
+ int __init omap_voltage_late_init(void)
+ {
+ 	struct voltagedomain *voltdm;
++	struct dentry *voltage_dir;
+ 
+ 	if (list_empty(&voltdm_list)) {
+ 		pr_err("%s: Voltage driver support not added\n",
+@@ -299,6 +359,8 @@ int __init omap_voltage_late_init(void)
+ 		return -EINVAL;
+ 	}
+ 
++	voltage_dir = debugfs_create_dir("voltage", NULL);
++
+ 	list_for_each_entry(voltdm, &voltdm_list, node) {
+ 		if (!voltdm->scalable)
+ 			continue;
+@@ -311,6 +373,10 @@ int __init omap_voltage_late_init(void)
+ 
+ 		if (voltdm->vc)
+ 			omap_vc_init_channel(voltdm);
++
++		if (voltage_dir)
++			voltdm_debugfs_init(voltage_dir, voltdm);
++
+ 	}
+ 
+ 	return 0;
+diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
+index f079167..2f7b268 100644
+--- a/arch/arm/mach-omap2/voltage.h
++++ b/arch/arm/mach-omap2/voltage.h
+@@ -88,6 +88,7 @@ struct voltagedomain {
+ 	u32 curr_volt;
+ 
+ 	struct omap_vdd_info *vdd;
++	struct dentry *debug_dir;
+ };
+ 
+ /**
+-- 
+1.7.0.4
 
-Patrick Titiano (2):
-  OMAP4: PM: TWL6030: fix voltage conversion formula
-  OMAP4: PM: TWL6030: fix ON/RET/OFF voltages
-
- arch/arm/mach-omap2/omap_twl.c         |   68 ++++++++++++++++++++++---------
- arch/arm/mach-omap2/prm-regbits-44xx.h |    8 ++++
- arch/arm/mach-omap2/smartreflex.c      |   21 +++++++++-
- arch/arm/mach-omap2/vc.c               |   55 +++++++++++++++----------
- arch/arm/mach-omap2/vc.h               |   37 ++++++++++++++++-
- arch/arm/mach-omap2/vc3xxx_data.c      |    2 +-
- arch/arm/mach-omap2/vc44xx_data.c      |   12 +++++-
- arch/arm/mach-omap2/voltage.c          |   66 +++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/voltage.h          |    9 ++++
- arch/arm/mach-omap2/vp.c               |    2 +-
- 10 files changed, 232 insertions(+), 48 deletions(-)
-
-Regards,
-Nishanth Menon
