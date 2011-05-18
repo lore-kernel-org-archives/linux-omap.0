@@ -1,88 +1,76 @@
-From: "Will Deacon" <will.deacon@arm.com>
-Subject: RE: [PATCH] ARM: fix mistaken dependency for CPU_HAS_PMU
-Date: Wed, 18 May 2011 10:53:18 +0100
-Message-ID: <20783.6289694116$1305712441@news.gmane.org>
-References: <1305686080-13182-1-git-send-email-tom.leiming@gmail.com>	<4785097973995347565@unknownmsgid>
-	<BANLkTinkZZwPG6S2goLYhuNV8JcVB-xsFw@mail.gmail.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: [GIT PULL] USB Patches
+Date: Wed, 18 May 2011 13:44:09 +0300
+Message-ID: <20110518104407.GA13908@legolas.emea.dhcp.ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <BANLkTinkZZwPG6S2goLYhuNV8JcVB-xsFw@mail.gmail.com>
-Content-Language: en-gb
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: 'Ming Lei' <tom.leiming@gmail.com>
-Cc: linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="82I3+IH0IqGh5yIs"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:50093 "EHLO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756924Ab1ERKoQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 18 May 2011 06:44:16 -0400
+Received: by mail-bw0-f42.google.com with SMTP id 18so3120310bwz.1
+        for <linux-omap@vger.kernel.org>; Wed, 18 May 2011 03:44:14 -0700 (PDT)
+Content-Disposition: inline
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-> >> From: Ming Lei <tom.leiming@gmail.com>
-> >>
-> >> Obviously it is mistake for CPU_HAS_PMU to depend on
-> >> (!ARCH_OMAP3 || OMAP3_EMU).
-> >
-> > It's not that obvious!
-> 
-> No, on ubuntu 11.04, default config options enables ARCH_OMAP3
-> and ARCH_OMAP4, and disable OMAP3_EMU, so cause pmu.o
-> can't be built in kernel.
-> 
-> pmu.o is just a platform driver for pmu device, so we should always
-> allow it to be built into kernel no matter there are pmu devices or
-> not, so we can support multiple boards with one same image.
 
-CPU_HAS_PMU is also used as a condition for enabling HW_PERF_EVENTS.
-I don't think we should set that for configurations where the platform
-doesn't provide working hardware counters.
+--82I3+IH0IqGh5yIs
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On top of that, pmu.o provides a reservation mechanism for the PMU
-which is used by tools such as perf and LTTng. If CPU_HAS_PMU is not
-set then you will get back -ENODEV, which I think is better than providing
-access to a PMU that's not working.
- 
-> In fact, we should keep arch/arm/Kconfig or arch/arm/kernel/pmu.c more generic,
-> and avoid to make arm core code depend on machines options as far as possible.
-> 
-> For the pmu issue on omap3, below fix should be better than what
-> 8954bb0d did, shouldn't it?
-> 
-> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-> index 7b85585..c20a3a3 100644
-> --- a/arch/arm/mach-omap2/devices.c
-> +++ b/arch/arm/mach-omap2/devices.c
-> @@ -410,9 +410,12 @@ static void omap_init_pmu(void)
->  {
->  	if (cpu_is_omap24xx())
->  		omap_pmu_device.resource = &omap2_pmu_resource;
-> -	else if (cpu_is_omap34xx())
-> +	else if (cpu_is_omap34xx()) {
->  		omap_pmu_device.resource = &omap3_pmu_resource;
-> -	else
-> +#ifndef  CONFIG_OMAP3_EMU
-> +		return;
-> +#endif
-> +	} else
->  		return;
-> 
->  	platform_device_register(&omap_pmu_device);
+Hi Tony,
 
-The problem with this is that it still allows users to build kernels
-where perf is enabled but doesn't work. Since we know this is the case
-at build time, we have chance to stop them doing it then (or at least
-not let them select HW_PERF_EVENTS).
- 
-> > Is there a problem building the etm support for Omap4?
-> 
-> Of course,  there is the problem I described above.
+These are all supposed to go into -rc cycle but I guess we're already
+too late for that (?). If so, let me know and I can add Cc:
+stable@kernel.org to all of those patches so they go to stable releases
+too.
 
-What I mean is, why can't you just select OMAP3_EMU in your Omap3/4 combined
-kernel config? Then everything should work.
+The following changes since commit 693d92a1bbc9e42681c42ed190bd42b636ca876f:
 
-Will
+  Linux 2.6.39-rc7 (2011-05-09 19:33:54 -0700)
+
+are available in the git repository at:
+  master.kernel.org:/pub/scm/linux/kernel/git/balbi/usb.git for-tony
+
+Felipe Balbi (1):
+      usb: musb: am35x: fix compile error when building am35x
+
+Hema HK (3):
+      usb: musb: OMAP4430: Power down the PHY during board init
+      usb: otg: OMAP4430: Fixing the omap4430_phy_init function
+      usb: otg: OMAP4430: Powerdown the internal PHY when USB is disabled
+
+ arch/arm/mach-omap2/board-am3517evm.c   |    2 +-
+ arch/arm/mach-omap2/omap_phy_internal.c |    9 ++++++---
+ arch/arm/mach-omap2/usb-musb.c          |   10 +++++-----
+ arch/arm/plat-omap/include/plat/usb.h   |    2 +-
+ 4 files changed, 13 insertions(+), 10 deletions(-)
+
+--=20
+balbi
+
+--82I3+IH0IqGh5yIs
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQEcBAEBAgAGBQJN06L3AAoJEAv8Txj19kN1KkMH/15OeFeLO2wJsD3U9P+2a8kv
+ZrETH8Lvf10l4CPcQtWS0fmJiHLXv2xgm6k01IV3xY64xUK7idcSGm6CbWeXmVFs
+ReN0cRYFHpimOuPxBVOJh1eHNWmt50AceQ04CZqsAY500eFsFXVZ78bIQE3c722+
+RUSrnhIidw2vCv23Jd+TznrYn/wXqIctOEe2nILPSUHHwzGw6gOpLB+4qQv2uzfT
+nxcc1psfkgt42MYPVfEkyVY+P0Ub+cs9ouXHYZMjCJaoLBgfnhBFJTGtLao5CY90
+AYlvMOu5YzzeE1xZXXtMIr7S746I1GWfSC87evmXp9JnP7uP2hTF8Za0nrRiIO4=
+=Npzs
+-----END PGP SIGNATURE-----
+
+--82I3+IH0IqGh5yIs--
