@@ -1,54 +1,60 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RESEND][PATCH 3/5] arm: omap: usb: device name change for the
- clk names of usbhs
-Date: Wed, 18 May 2011 13:51:05 +0300
-Message-ID: <20110518105102.GF13908@legolas.emea.dhcp.ti.com>
-References: <1305538681-21062-1-git-send-email-keshava_mgowda@ti.com>
+Subject: Re: [PATCH v1] omap: usbhs: Fixed the crash during rmmod of ehci and
+ ohci
+Date: Wed, 18 May 2011 13:53:15 +0300
+Message-ID: <20110518105312.GG13908@legolas.emea.dhcp.ti.com>
+References: <1305536098-19871-1-git-send-email-keshava_mgowda@ti.com>
 Reply-To: balbi@ti.com
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="b8GWCKCLzrXbuNet"
+	protocol="application/pgp-signature"; boundary="bFsKbPszpzYNtEU6"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1305538681-21062-1-git-send-email-keshava_mgowda@ti.com>
+In-Reply-To: <1305536098-19871-1-git-send-email-keshava_mgowda@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Keshava Munegowda <keshava_mgowda@ti.com>
 Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com
 List-Id: linux-omap@vger.kernel.org
 
 
---b8GWCKCLzrXbuNet
+--bFsKbPszpzYNtEU6
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, May 16, 2011 at 03:08:01PM +0530, Keshava Munegowda wrote:
-> device name usbhs clocks are changed from
-> usbhs-omap.0 to usbhs_omap; this is because
-> in the hwmod registration the device name is set
-> as usbhs_omap
+On Mon, May 16, 2011 at 02:24:58PM +0530, Keshava Munegowda wrote:
+> From: Keshava Munegowda <Keshava_mgowda@ti.com>
+>=20
+> The disabling of clocks and freeing GPIO are changed
+> to fix the occurrence of the crash of rmmod of ehci and ohci
+> drivers. The GPIOs should be freed after the spin locks are
+> unlocked.
 >=20
 > Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
 
-applied, thanks
+Acked-by: Felipe Balbi <balbi@ti.com>
+
+should this have:
+
+Cc: stable@kernel.org ??
 
 --=20
 balbi
 
---b8GWCKCLzrXbuNet
+--bFsKbPszpzYNtEU6
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQEcBAEBAgAGBQJN06SWAAoJEAv8Txj19kN1o2kH/jTQWuRT3fObcPSzeeF/8FgA
-tIwwcEdelSnZD7gGn7nJuwFXEsAERWivwBz8MvqJ6J0Qg3OpNKyM7oWDQx6HbF2M
-op2J/LlR8qvGsc2Saw1PYHMbu9qxuqrvQz1FgzRQ95+O4SmL0gGAs5W+mx0niS3H
-KLib7XkoHO2meNyd7v5s7RQXK0Weah/7Rs1wWTUIiMCta7AcvzYTYnuBc/vaGI2E
-xCbpo45nErnfiI5jg8J3HbGg2lV1RUMvMhWxRbOP0PVjPiHusTZrjCJ80tyJrwS9
-9X951X88tsTR7CTbo2qcMEtbYu4BKDESePsPXaAVtvo1H0jSEwfbGOs+RQajmCM=
-=Dj9P
+iQEcBAEBAgAGBQJN06UYAAoJEAv8Txj19kN1qlgIAJIm9ndwooLBwB83xBBgqhsX
+RsSX+B65lolhwi+6wK4ESu64uVpthBy+CmnPEKJhHPYgPcGcnGSh6YKt8liTI/iU
+2OSpCv4wCNY/or3bWNb6mby7R/r2tWWVzKTeB3dpGoQmqCJc66R5YSti3qnGBoPf
+pSz1HzL1G4d+Q+ipNOd7zVpql+5i+ICavAluk9M7AS16hqp4Y79OA+6ZvJHcHpsh
+kjghLlrcLGAPAgIALUTlGuljKKTQETlJYhWAjPPZaM3WluPQJ6yQbMywOqUBOBH2
+O895LERI8nFz9bThYPKc4QCYM3yZTXgVqqtzRPmbEUTr6+g2m+Mddkop80bAR/U=
+=UkQr
 -----END PGP SIGNATURE-----
 
---b8GWCKCLzrXbuNet--
+--bFsKbPszpzYNtEU6--
