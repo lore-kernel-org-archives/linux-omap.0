@@ -1,60 +1,133 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v1] omap: usbhs: Fixed the crash during rmmod of ehci and
- ohci
-Date: Wed, 18 May 2011 13:53:15 +0300
-Message-ID: <20110518105312.GG13908@legolas.emea.dhcp.ti.com>
-References: <1305536098-19871-1-git-send-email-keshava_mgowda@ti.com>
-Reply-To: balbi@ti.com
+From: "Varadarajan, Charulatha" <charu@ti.com>
+Subject: Re: [RFC PATCH 09/10] OMAP: GPIO: cleanup omap_gpio_free and
+ triggering functions
+Date: Wed, 18 May 2011 16:33:23 +0530
+Message-ID: <BANLkTinMqfxzQN-6M_iCJZViBxuUOm4TBg@mail.gmail.com>
+References: <1305546104-1511-1-git-send-email-tarun.kanti@ti.com> <1305546104-1511-10-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="bFsKbPszpzYNtEU6"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1305536098-19871-1-git-send-email-keshava_mgowda@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Keshava Munegowda <keshava_mgowda@ti.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:38326 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932680Ab1ERLEE convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 18 May 2011 07:04:04 -0400
+Received: by mail-iy0-f169.google.com with SMTP id 42so1277999iyh.28
+        for <linux-omap@vger.kernel.org>; Wed, 18 May 2011 04:04:03 -0700 (PDT)
+In-Reply-To: <1305546104-1511-10-git-send-email-tarun.kanti@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>
 
+Tarun,
 
---bFsKbPszpzYNtEU6
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Mon, May 16, 2011 at 17:11, Tarun Kanti DebBarma <tarun.kanti@ti.com=
+> wrote:
+> We can get rid of ifdef / if checks of OMAP revision in set_24xx_gpio=
+_triggering()
+> and omap_gpio_free().
+>
+> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+> Cc: Charulatha V <charu@ti.com>
+> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Cc: Kevin Hilman <khilman@ti.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> ---
+> =A0arch/arm/plat-omap/gpio.c | =A0 38 ++++++++-----------------------=
+-------
+> =A01 files changed, 8 insertions(+), 30 deletions(-)
+>
+> diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+> index 714626a..bc07559 100644
+> --- a/arch/arm/plat-omap/gpio.c
+> +++ b/arch/arm/plat-omap/gpio.c
+> @@ -269,15 +269,9 @@ static inline void set_24xx_gpio_triggering(stru=
+ct gpio_bank *bank, int gpio,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0bank->enabled_non_wake=
+up_gpios &=3D ~gpio_bit;
+> =A0 =A0 =A0 =A0}
+>
+> - =A0 =A0 =A0 if (cpu_is_omap44xx()) {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 bank->level_mask =3D
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 __raw_readl(bank->base =
++ OMAP4_GPIO_LEVELDETECT0) |
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 __raw_readl(bank->base =
++ OMAP4_GPIO_LEVELDETECT1);
+> - =A0 =A0 =A0 } else {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 bank->level_mask =3D
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 __raw_readl(bank->base =
++ OMAP24XX_GPIO_LEVELDETECT0) |
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 __raw_readl(bank->base =
++ OMAP24XX_GPIO_LEVELDETECT1);
+> - =A0 =A0 =A0 }
+> + =A0 =A0 =A0 bank->level_mask =3D
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 __raw_readl(bank->base + bank->regs->le=
+veldetect0) |
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 __raw_readl(bank->base + bank->regs->le=
+veldetect1);
+> =A0}
+> =A0#endif
+>
+> @@ -609,29 +603,13 @@ static void omap_gpio_free(struct gpio_chip *ch=
+ip, unsigned offset)
+> =A0{
+> =A0 =A0 =A0 =A0struct gpio_bank *bank =3D container_of(chip, struct g=
+pio_bank, chip);
+> =A0 =A0 =A0 =A0unsigned long flags;
+> + =A0 =A0 =A0 void __iomem *reg;
+>
+> =A0 =A0 =A0 =A0spin_lock_irqsave(&bank->lock, flags);
+> -#ifdef CONFIG_ARCH_OMAP16XX
+> - =A0 =A0 =A0 if (bank->method =3D=3D METHOD_GPIO_1610) {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* Disable wake-up during idle for dyna=
+mic tick */
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 void __iomem *reg =3D bank->base + OMAP=
+1610_GPIO_CLEAR_WAKEUPENA;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 __raw_writel(1 << offset, reg);
+> - =A0 =A0 =A0 }
+> -#endif
+> -#if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
+> - =A0 =A0 =A0 if (bank->method =3D=3D METHOD_GPIO_24XX) {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* Disable wake-up during idle for dyna=
+mic tick */
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 void __iomem *reg =3D bank->base + OMAP=
+24XX_GPIO_CLEARWKUENA;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 __raw_writel(1 << offset, reg);
+> - =A0 =A0 =A0 }
+> -#endif
+> -#ifdef CONFIG_ARCH_OMAP4
+> - =A0 =A0 =A0 if (bank->method =3D=3D METHOD_GPIO_44XX) {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* Disable wake-up during idle for dyna=
+mic tick */
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 void __iomem *reg =3D bank->base + OMAP=
+4_GPIO_IRQWAKEN0;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 __raw_writel(1 << offset, reg);
+> - =A0 =A0 =A0 }
+> -#endif
+> + =A0 =A0 =A0 /* Disable wake-up during idle for dynamic tick */
+> + =A0 =A0 =A0 reg =3D bank->base + bank->regs->wkupclear;
 
-On Mon, May 16, 2011 at 02:24:58PM +0530, Keshava Munegowda wrote:
-> From: Keshava Munegowda <Keshava_mgowda@ti.com>
->=20
-> The disabling of clocks and freeing GPIO are changed
-> to fix the occurrence of the crash of rmmod of ehci and ohci
-> drivers. The GPIOs should be freed after the spin locks are
-> unlocked.
->=20
-> Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
+Consider using bank->wake_clear instead of extracting reg here.
 
-Acked-by: Felipe Balbi <balbi@ti.com>
+> +
+> + =A0 =A0 =A0 __raw_writel(1 << offset, reg);
 
-should this have:
+This is wrong on OMAP15xx & OMAP7xx as wkupclear is NULL.
 
-Cc: stable@kernel.org ??
+-V Charulatha
 
---=20
-balbi
-
---bFsKbPszpzYNtEU6
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQEcBAEBAgAGBQJN06UYAAoJEAv8Txj19kN1qlgIAJIm9ndwooLBwB83xBBgqhsX
-RsSX+B65lolhwi+6wK4ESu64uVpthBy+CmnPEKJhHPYgPcGcnGSh6YKt8liTI/iU
-2OSpCv4wCNY/or3bWNb6mby7R/r2tWWVzKTeB3dpGoQmqCJc66R5YSti3qnGBoPf
-pSz1HzL1G4d+Q+ipNOd7zVpql+5i+ICavAluk9M7AS16hqp4Y79OA+6ZvJHcHpsh
-kjghLlrcLGAPAgIALUTlGuljKKTQETlJYhWAjPPZaM3WluPQJ6yQbMywOqUBOBH2
-O895LERI8nFz9bThYPKc4QCYM3yZTXgVqqtzRPmbEUTr6+g2m+Mddkop80bAR/U=
-=UkQr
------END PGP SIGNATURE-----
-
---bFsKbPszpzYNtEU6--
+> =A0 =A0 =A0 =A0bank->mod_usage &=3D ~(1 << offset);
+>
+> =A0 =A0 =A0 =A0if ((bank->regs->ctrl !=3D USHRT_MAX) && (!bank->mod_u=
+sage)) {
+> --
+> 1.6.0.4
+>
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
