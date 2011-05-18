@@ -1,56 +1,62 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: context_loss_count error value
-Date: Wed, 18 May 2011 17:41:30 +0300
-Message-ID: <1305729690.30372.7.camel@deskari>
-References: <1305704452.1834.12.camel@deskari> <87k4douvsd.fsf@ti.com>
-	 <1305718422.1834.23.camel@deskari>  <877h9ot7c3.fsf@ti.com>
+From: Rabin Vincent <rabin@rab.in>
+Subject: Re: [PATCH] OMAP4: fix return value of omap4_l3_init
+Date: Wed, 18 May 2011 21:23:31 +0530
+Message-ID: <BANLkTi=Rr0u5dyVAEQzwPRPMABmOQHF6tQ@mail.gmail.com>
+References: <1304787527-8314-1-git-send-email-rabin@rab.in>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:43435 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933029Ab1EROlg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 18 May 2011 10:41:36 -0400
-Received: by wyf19 with SMTP id 19so1625581wyf.14
-        for <linux-omap@vger.kernel.org>; Wed, 18 May 2011 07:41:34 -0700 (PDT)
-In-Reply-To: <877h9ot7c3.fsf@ti.com>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:38160 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756021Ab1ERPyM convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 May 2011 11:54:12 -0400
+Received: by bwz15 with SMTP id 15so1545300bwz.19
+        for <linux-omap@vger.kernel.org>; Wed, 18 May 2011 08:54:11 -0700 (PDT)
+In-Reply-To: <1304787527-8314-1-git-send-email-rabin@rab.in>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, r.sricharan@ti.com, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-On Wed, 2011-05-18 at 16:24 +0200, Kevin Hilman wrote:
+On Sat, May 7, 2011 at 22:28, Rabin Vincent <rabin@rab.in> wrote:
+> Don't PTR_ERR() a non-error pointer:
+>
+> =A0initcall omap4_l3_init+0x0/0xdc returned -544980480 after 0 usecs
+> =A0initcall omap4_l3_init+0x0/0xdc returned with error code -54498048=
+0
+>
+> Signed-off-by: Rabin Vincent <rabin@rab.in>
 
-> Looking closer at the code, a zero return happens only when
-> 
-> 1) no hwmod associated to omap_device
-> 2) no power domain associated to hwmod
-> 3) power domain has not (yet) lost context
-> 
-> None of these are actually error conditions per-se, and in all cases, it
-> indidates that context has not been lost (or we can't tell if context
-> has been lost.) 
+Ping?
 
-If the pm code cannot tell whether the context has been lost or not, the
-driver must assume it has been lost, do you agree? If so, the driver
-must handle zero return value differently, and always restore context.
+(with some git blame'd people now on cc.)
 
-> So I think the current code is correct.
-
-How is it correct if it returns an error even if no error has happened
-=)? Either the code or the documentation is wrong.
-
-How about the wrap-around case? Does the loss count go back to zero?
-
-> Are you finding a case where HW context has actually been lost and the
-> powerdomain context loss is still at zero?
-
-No, I haven't been actually testing the PM features at all, I was just
-fixing the enablers in DSS and got a bunch of error prints as the DSS
-driver was checking for the return value.
-
- Tomi
-
-
+> ---
+> =A0arch/arm/mach-omap2/devices.c | =A0 =A02 +-
+> =A01 files changed, 1 insertions(+), 1 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devi=
+ces.c
+> index 7b85585..5b8ca68 100644
+> --- a/arch/arm/mach-omap2/devices.c
+> +++ b/arch/arm/mach-omap2/devices.c
+> @@ -97,7 +97,7 @@ static int __init omap4_l3_init(void)
+>
+> =A0 =A0 =A0 =A0WARN(IS_ERR(od), "could not build omap_device for %s\n=
+", oh_name);
+>
+> - =A0 =A0 =A0 return PTR_ERR(od);
+> + =A0 =A0 =A0 return IS_ERR(od) ? PTR_ERR(od) : 0;
+> =A0}
+> =A0postcore_initcall(omap4_l3_init);
+>
+> --
+> 1.7.4.1
+>
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
