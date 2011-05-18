@@ -1,75 +1,57 @@
-From: Ilkka Koskinen <ilkkakos@kolumbus.fi>
-Subject: Re: [PATCH] rtc-twl: Switch to using threaded irq
-Date: Wed, 18 May 2011 22:20:05 +0300
-Message-ID: <4DD41BE5.4050600@kolumbus.fi>
-References: <1300291634-17884-1-git-send-email-ilkka.koskinen@nokia.com>	 ,<BANLkTinp8M4nndDC5Sfm=PzCiL-vGEqELg@mail.gmail.com>	 <4F5287B0C366D047BF44025F9ED7BB43E9D7@008-AM1MPN1-001.mgdnok.nokia.com> <1305242664.2680.28.camel@work-vm>
+From: Todd Poynor <toddpoynor@google.com>
+Subject: Re: [PM-WIP_CPUFREQ][PATCH 3/6 v2] OMAP2+: cpufreq: minor comment
+ cleanup
+Date: Wed, 18 May 2011 13:08:56 -0700
+Message-ID: <20110518200856.GA8149@google.com>
+References: <1305704266-17623-4-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from emh03.mail.saunalahti.fi ([62.142.5.109]:43319 "EHLO
-	emh03.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933711Ab1ERT2J (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 May 2011 15:28:09 -0400
-In-Reply-To: <1305242664.2680.28.camel@work-vm>
+Received: from smtp-out.google.com ([74.125.121.67]:20482 "EHLO
+	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751133Ab1ERUJE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 May 2011 16:09:04 -0400
+Content-Disposition: inline
+In-Reply-To: <1305704266-17623-4-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: John Stultz <john.stultz@linaro.org>, a.zummo@towertech.it, rtc-linux@googlegroups.com, linux-omap@vger.kernel.org, balajitk@ti.com
+To: Nishanth Menon <nm@ti.com>
+Cc: kevin <khilman@ti.com>, linux-omap <linux-omap@vger.kernel.org>
 
+On Wed, May 18, 2011 at 02:37:43AM -0500, Nishanth Menon wrote:
+> this should probably get squashed in..
+> 
+> Signed-off-by: Nishanth Menon <nm@ti.com>
+> ---
+>  arch/arm/mach-omap2/omap2plus-cpufreq.c |    6 ++++--
+>  1 files changed, 4 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/omap2plus-cpufreq.c b/arch/arm/mach-omap2/omap2plus-cpufreq.c
+> index 6e3666a..45f1e9e 100644
+> --- a/arch/arm/mach-omap2/omap2plus-cpufreq.c
+> +++ b/arch/arm/mach-omap2/omap2plus-cpufreq.c
+> @@ -84,8 +84,10 @@ static int omap_target(struct cpufreq_policy *policy,
+>  	if (is_smp() && (num_online_cpus() < NR_CPUS))
+>  		return ret;
+>  
+> -	/* Ensure desired rate is within allowed range.  Some govenors
+> -	 * (ondemand) will just pass target_freq=0 to get the minimum. */
+> +	/*
+> +	 * Ensure desired rate is within allowed range.  Some govenors
+> +	 * (ondemand) will just pass target_freq=0 to get the minimum.
 
-Hi,
+So long as the comment is being touched up, could fixup the typo for
+"governor" (and also copied to a new block of code in another patch
+in the series).
 
-Tony, would you mind taking the patch in your tree?
-
-Btw, the nokia address doesn't work anymore, but
-should probably still remain in s-o-b...
-
-Cheers, Ilkka
-
-13.5.2011 2:24, John Stultz kirjoitti:
-> On Thu, 2011-05-05 at 07:51 +0000, ilkka.koskinen@nokia.com wrote:
->> Hi,
->>
->> Tony and John: What would be the appropriate path for this patch?
+> +	 */
+>  	if (target_freq < policy->min)
+>  		target_freq = policy->min;
+>  	if (target_freq > policy->max)
+> -- 
+> 1.7.1
 > 
-> I'd probably push it through omap maintainer path, as its hardware
-> specific and can be better tested there.
-> 
-> thanks
-> -john
-> 
-> 
->> On Apr 13, 2011 Krishnamoorthy, Balaji T  wrote:
->>> On Wed, Mar 16, 2011 at 9:37 PM, Ilkka Koskinen
->> <ilkka.koskinen@nokia.com> wrote:
->>>>
->>>> The driver is accessing to i2c bus in interrupt handler.
->>>> Therefore, it should use threaded irq.
->>
->>> Acked-by: Balaji T K <balajitk@ti.com>
->>
->>>>
->>>> Signed-off-by: Ilkka Koskinen <ilkka.koskinen@nokia.com>
->>>> ---
->>>>  drivers/rtc/rtc-twl.c |    2 +-
->>>>  1 files changed, 1 insertions(+), 1 deletions(-)
->>>>
->>>> diff --git a/drivers/rtc/rtc-twl.c b/drivers/rtc/rtc-twl.c
->>>> index ed1b868..2715b96 100644
->>>> --- a/drivers/rtc/rtc-twl.c
->>>> +++ b/drivers/rtc/rtc-twl.c
->>>> @@ -475,7 +475,7 @@ static int __devinit twl_rtc_probe(struct platform_device *pdev)
->>>>        if (ret < 0)
->>>>                goto out1;
->>>>
->>>> -       ret = request_irq(irq, twl_rtc_interrupt,
->>>> +       ret = request_threaded_irq(irq, NULL, twl_rtc_interrupt,
->>>>                                IRQF_TRIGGER_RISING,
->>>>                                dev_name(&rtc->dev), rtc);
->>>>        if (ret < 0) {
->>>> --
->>>> 1.7.0.4
->>>>
-> 
-> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
