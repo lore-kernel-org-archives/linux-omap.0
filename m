@@ -1,67 +1,236 @@
-From: "Gulati, Shweta" <shweta.gulati@ti.com>
-Subject: Re: [PATCH V4] OMAP3+: SR Layer Cleanup
-Date: Thu, 19 May 2011 15:09:33 +0530
-Message-ID: <BANLkTi=BryM-eEsTNcV5E51SnkuZaKsF9Q@mail.gmail.com>
-References: <1305268062-20046-1-git-send-email-shweta.gulati@ti.com>
-	<87wrhn9ic2.fsf@ti.com>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: [PATCH] omap:pm: Fix boot-time errors with debugfs disabled
+Date: Thu, 19 May 2011 16:00:58 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024CFDCEE1@dbde02.ent.ti.com>
+References: <1305221790-4944-1-git-send-email-premi@ti.com>
+ <87fwocrmr9.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:48168 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932864Ab1ESJjf convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 19 May 2011 05:39:35 -0400
-Received: by bwz10 with SMTP id 10so3064148bwz.24
-        for <linux-omap@vger.kernel.org>; Thu, 19 May 2011 02:39:33 -0700 (PDT)
-In-Reply-To: <87wrhn9ic2.fsf@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:60707 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752696Ab1ESKbH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 May 2011 06:31:07 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id p4JAV47N029757
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Thu, 19 May 2011 05:31:06 -0500
+In-Reply-To: <87fwocrmr9.fsf@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, nm@ti.com, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
+To: "Hilman, Kevin" <khilman@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
+> -----Original Message-----
+> From: Hilman, Kevin 
+> Sent: Wednesday, May 18, 2011 10:04 PM
+> To: Premi, Sanjeev
+> Cc: linux-omap@vger.kernel.org
+> Subject: Re: [PATCH] omap:pm: Fix boot-time errors with 
+> debugfs disabled
+> 
+> Hi Sanjeev,
+> 
+> Sanjeev Premi <premi@ti.com> writes:
+> 
+> > There is an implicit assumption in current implementation that
+> > debugfs is always enabled.
+> >
+> > When debugfs is disabled, these errors are noticed during boot:
+> >   omap_voltage_late_init: Unable to create voltage debugfs main dir
+> >   vdd_debugfs_init: Unable to create debugfs directory for vdd_mpu
+> >   vdd_debugfs_init: Unable to create debugfs directory for vdd_core
+> >
+> > This patch fixes these errors by enclosing code related to debugfs
+> > in #ifdef CONFIG_DEBUG_FS..#endif.
+> >
+> > Boot tested on OMAP3EVM.
+> >
+> > Signed-off-by: Sanjeev Premi <premi@ti.com>
+> 
+> Sorry for the delay here, I've been on the road and finally 
+> catching up
+> on the list.
+> 
+> Basically, I'm in the process of a pretty major cleanup of 
+> the VC/VP and
+> SR layers.  For example, in my pm-wip/voltdm_* branches, the debugfs
+> interface to the voltage layer has been completely removed.  I'm also
+> thinking of removing the SR debugfs interface also, as I don't really
+> think we need a userspace interface for this.  A board-level interface
+> is probably enough (/me waits for flame from Nishanth :)
+> 
+> That being said, your approach below isn't quite right in its usage of
+> #ifdefs.  Use of #ifdefs like this is frowned upon for many reasons.
+> For starters, take a look the '#ifdefs are ugly' section of
+> Documentation/SubmittingPatches.
 
-On Thu, May 19, 2011 at 2:29 PM, Kevin Hilman <khilman@ti.com> wrote:
-> Shweta Gulati <shweta.gulati@ti.com> writes:
->
->> To set sr ntarget values =A0for all volt_domain,
->> volt_table is retrieved by doing a look_up of 'vdd_name'
->> field from omap_hwmod but voltage domain pointer does not
->> belong to omap_hwmod and is not used anywhere else.
->> As a part of voltage layer and SR Layer clean up volt
->> pointer is removed from omap_hwmod and added in dev
->> attributes of SR.
->>
->> Tested on OMAP3630 SDP and OMAP4430 SDP Board
->>
->> Signed-off-by: Shweta Gulati <shweta.gulati@ti.com>
->> Acked by: Nishanth Menon <nm@ti.com>
->> Cc: Benoit Cousson <b-cousson@ti.com>
->> Cc: Paul <paul@pwsan.com>
->
-> As this isn't a consolidation/cleanup, I'm not going to push for 2.6.=
-40,
-> but with an ack from Benoit, I'll queue for 2.6.40+.
->
-> Also it has some minor conflicts with some other SR cleanups I have
-> queued for 2.6.40+. =A0Please rebase on to my for_2.6.40/pm-misc bran=
-ch.
-Ok, I will rebase it to 2.6.40/pm-misc branch.
-> Thanks,
->
+[sp] I don't like #ifdefs either but each time we cannot create
+     a new file changes like this.
+
+     The current code is a mess with debugfs used too frequently.
+     And - all of it is not for debug. The location of ifdefs in
+     in the patch illustrates it quite well.
+
+     BTW, this isn't the only use of ifdefs in a C file in Linux.
+
+~sanjeev
+
+> 
 > Kevin
->
-
-
-
---=20
-Thanks,
-Regards,
-Shweta
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> > ---
+> >  Patch was created and tested on the pm branch at commit:
+> >    d695569 : rebuild PM from branches
+> >
+> >  I am still finding my way around new code sructure. Haven't
+> >  been able to verify if smartreflex and voltage layer are
+> >  properly initialized. Though I do understand that smartreflex
+> >  won't work without debugfs.
+> >
+> >  arch/arm/mach-omap2/smartreflex.c |   15 +++++++++++++++
+> >  arch/arm/mach-omap2/voltage.c     |    8 ++++++++
+> >  2 files changed, 23 insertions(+), 0 deletions(-)
+> >
+> > diff --git a/arch/arm/mach-omap2/smartreflex.c 
+> b/arch/arm/mach-omap2/smartreflex.c
+> > index 2ce2fb7..b757632 100644
+> > --- a/arch/arm/mach-omap2/smartreflex.c
+> > +++ b/arch/arm/mach-omap2/smartreflex.c
+> > @@ -54,7 +54,9 @@ struct omap_sr {
+> >  	struct list_head		node;
+> >  	struct omap_sr_nvalue_table	*nvalue_table;
+> >  	struct voltagedomain		*voltdm;
+> > +#ifdef CONFIG_DEBUG_FS
+> >  	struct dentry			*dbg_dir;
+> > +#endif
+> >  };
+> >  
+> >  /* sr_list contains all the instances of smartreflex module */
+> > @@ -826,7 +828,9 @@ static int __init omap_sr_probe(struct 
+> platform_device *pdev)
+> >  	struct omap_sr *sr_info = kzalloc(sizeof(struct 
+> omap_sr), GFP_KERNEL);
+> >  	struct omap_sr_data *pdata = pdev->dev.platform_data;
+> >  	struct resource *mem, *irq;
+> > +#ifdef CONFIG_DEBUG_FS
+> >  	struct dentry *vdd_dbg_dir, *nvalue_dir;
+> > +#endif
+> >  	struct omap_volt_data *volt_data;
+> >  	int i, ret = 0;
+> >  
+> > @@ -903,6 +907,7 @@ static int __init omap_sr_probe(struct 
+> platform_device *pdev)
+> >  	 * If the voltage domain debugfs directory is not created, do
+> >  	 * not try to create rest of the debugfs entries.
+> >  	 */
+> > +#ifdef CONFIG_DEBUG_FS
+> >  	vdd_dbg_dir = omap_voltage_get_dbgdir(sr_info->voltdm);
+> >  	if (!vdd_dbg_dir) {
+> >  		ret = -EINVAL;
+> > @@ -952,14 +957,22 @@ static int __init 
+> omap_sr_probe(struct platform_device *pdev)
+> >  		(void) debugfs_create_x32(name, S_IRUGO | 
+> S_IWUSR, nvalue_dir,
+> >  				&(sr_info->nvalue_table[i].nvalue));
+> >  	}
+> > +#else
+> > +	omap_voltage_get_volttable(sr_info->voltdm, &volt_data);
+> > +	if (!volt_data) {
+> > +		ret = -ENODATA;
+> > +	}
+> > +#endif /* CONFIG_DEBUG_FS */
+> >  
+> >  	return ret;
+> >  
+> > +#ifdef CONFIG_DEBUG_FS
+> >  err_debugfs:
+> >  	debugfs_remove_recursive(sr_info->dbg_dir);
+> >  err_iounmap:
+> >  	list_del(&sr_info->node);
+> >  	iounmap(sr_info->base);
+> > +#endif
+> >  err_release_region:
+> >  	release_mem_region(mem->start, resource_size(mem));
+> >  err_free_devinfo:
+> > @@ -988,8 +1001,10 @@ static int __devexit 
+> omap_sr_remove(struct platform_device *pdev)
+> >  
+> >  	if (sr_info->autocomp_active)
+> >  		sr_stop_vddautocomp(sr_info);
+> > +#ifdef CONFIG_DEBUG_FS
+> >  	if (sr_info->dbg_dir)
+> >  		debugfs_remove_recursive(sr_info->dbg_dir);
+> > +#endif
+> >  
+> >  	list_del(&sr_info->node);
+> >  	iounmap(sr_info->base);
+> > diff --git a/arch/arm/mach-omap2/voltage.c 
+> b/arch/arm/mach-omap2/voltage.c
+> > index 9ef3789..6153211 100644
+> > --- a/arch/arm/mach-omap2/voltage.c
+> > +++ b/arch/arm/mach-omap2/voltage.c
+> > @@ -250,6 +250,7 @@ static void __init vp_init(struct 
+> omap_vdd_info *vdd)
+> >  	vdd->write_reg(vp_val, prm_mod_offs, vdd->vp_data->vlimitto);
+> >  }
+> >  
+> > +#ifdef CONFIG_DEBUG_FS
+> >  static void __init vdd_debugfs_init(struct omap_vdd_info *vdd)
+> >  {
+> >  	char *name;
+> > @@ -297,6 +298,7 @@ static void __init 
+> vdd_debugfs_init(struct omap_vdd_info *vdd)
+> >  				vdd->debug_dir, (void *) vdd,
+> >  				&nom_volt_debug_fops);
+> >  }
+> > +#endif
+> >  
+> >  /* Voltage scale and accessory APIs */
+> >  static int _pre_volt_scale(struct omap_vdd_info *vdd,
+> > @@ -980,6 +982,7 @@ int omap_voltage_register_pmic(struct 
+> voltagedomain *voltdm,
+> >   * add any debug entry for a particular voltage domain. 
+> Returns NULL
+> >   * in case of error.
+> >   */
+> > +#ifdef CONFIG_DEBUG_FS
+> >  struct dentry *omap_voltage_get_dbgdir(struct 
+> voltagedomain *voltdm)
+> >  {
+> >  	struct omap_vdd_info *vdd;
+> > @@ -993,6 +996,7 @@ struct dentry 
+> *omap_voltage_get_dbgdir(struct voltagedomain *voltdm)
+> >  
+> >  	return vdd->debug_dir;
+> >  }
+> > +#endif
+> >  
+> >  /**
+> >   * omap_change_voltscale_method() - API to change the 
+> voltage scaling method.
+> > @@ -1078,16 +1082,20 @@ int __init omap_voltage_late_init(void)
+> >  		return -EINVAL;
+> >  	}
+> >  
+> > +#ifdef CONFIG_DEBUG_FS
+> >  	voltage_dir = debugfs_create_dir("voltage", NULL);
+> >  	if (IS_ERR(voltage_dir))
+> >  		pr_err("%s: Unable to create voltage debugfs 
+> main dir\n",
+> >  			__func__);
+> > +#endif
+> >  	for (i = 0; i < nr_scalable_vdd; i++) {
+> >  		if (omap_vdd_data_configure(vdd_info[i]))
+> >  			continue;
+> >  		omap_vc_init(vdd_info[i]);
+> >  		vp_init(vdd_info[i]);
+> > +#ifdef CONFIG_DEBUG_FS
+> >  		vdd_debugfs_init(vdd_info[i]);
+> > +#endif
+> >  	}
+> >  
+> >  	return 0;
+> 
