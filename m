@@ -1,97 +1,93 @@
 From: Steve Calfee <stevecalfee@gmail.com>
 Subject: Re: beagleboardxm 2.6.39rc4 mcbsp problems.
-Date: Wed, 18 May 2011 17:30:51 -0700
-Message-ID: <4DD464BB.3050708@gmail.com>
-References: <1305122135-27938-1-git-send-email-premi@ti.com> <201105161154.55850.peter.ujfalusi@ti.com> <4DD167EC.2010007@gmail.com> <201105171342.35056.peter.ujfalusi@ti.com>
+Date: Wed, 18 May 2011 18:06:16 -0700
+Message-ID: <4DD46D08.9040607@gmail.com>
+References: <1305122135-27938-1-git-send-email-premi@ti.com>	<201105130859.12477.peter.ujfalusi@ti.com>	<BANLkTi=9pm=xRqgt-tiV9+S594+Zo2ysCQ@mail.gmail.com>	<201105161154.55850.peter.ujfalusi@ti.com>	<4DD167EC.2010007@gmail.com> <20110517093703.d0cd1e53.jhnikula@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f173.google.com ([209.85.212.173]:62988 "EHLO
+Received: from mail-px0-f173.google.com ([209.85.212.173]:33014 "EHLO
 	mail-px0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753356Ab1ESAaz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 May 2011 20:30:55 -0400
-Received: by pxi16 with SMTP id 16so1430439pxi.4
-        for <linux-omap@vger.kernel.org>; Wed, 18 May 2011 17:30:55 -0700 (PDT)
-In-Reply-To: <201105171342.35056.peter.ujfalusi@ti.com>
+	with ESMTP id S1754061Ab1ESBGU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 May 2011 21:06:20 -0400
+Received: by pxi16 with SMTP id 16so1445775pxi.4
+        for <linux-omap@vger.kernel.org>; Wed, 18 May 2011 18:06:20 -0700 (PDT)
+In-Reply-To: <20110517093703.d0cd1e53.jhnikula@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Jarkko Nikula <jhnikula@gmail.com>, "Premi, Sanjeev" <premi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Girdwood, Liam" <lrg@ti.com>
+To: Jarkko Nikula <jhnikula@gmail.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, "Premi, Sanjeev" <premi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Girdwood, Liam" <lrg@ti.com>
 
-On 05/17/11 03:42, Peter Ujfalusi wrote:
-> Hi,
+On 05/16/11 23:37, Jarkko Nikula wrote:
+> Hi
 > 
-> On Monday 16 May 2011 21:07:40 Steve Calfee wrote:
+> On Mon, 16 May 2011 11:07:40 -0700
+> Steve Calfee <stevecalfee@gmail.com> wrote:
+> 
+>> On 05/16/11 01:54, Peter Ujfalusi wrote:
+>>> On Saturday 14 May 2011 05:47:33 Steve Calfee wrote:
+>>>> I put in a few debug statements. It appears that my DMA never gets
+>>>> started. I know it can work with a different machine and codec driver,
+>>>> but not mine. I don't see any explicit DMA init, but that must be the
+>>>> problem.  Any more ideas?
+>>>
+>>> You mean neither omap_pcm_hw_params nor omap_pcm_trigger got called?
+>>> Could you post the output of dmesg related to ASoC? Does the connection 
+>>> between the CPU and codec DAI correct?
+>>> Does McBSP part got initialized (for example does omap_mcbsp_dai_hw_params, 
+>>> omap_mcbsp_dai_trigger got called)?
+>>>
 >> No, they get called. I just don't get the clock on the bclk pin.
+>>
+>> I think I have the mcbsp1 set up correctly - I explictly set the MUX:
+>>
+>> static struct omap_board_mux board_mux[] __initdata = {
+>> #if 1
+>> 	/* McBSP 1 */
+>> 	OMAP3_MUX(MCBSP1_FSX, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
+>> 	OMAP3_MUX(MCBSP1_CLKX, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
+>> 	OMAP3_MUX(MCBSP1_DR, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
+>> 	OMAP3_MUX(MCBSP1_DX, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
+>> #endif
+>> 	{ .reg_offset = OMAP_MUX_TERMINATOR },
+>> };
+>>
+> Did you try to run OMAP as an I2S master like what omap3pandora.c is
+> doing?
 > 
-> OK.
-> Could you try to disconnect the CLKX, and FSX lines from OMAP, and see that 
-> you have the clocks on the codec side?
-> If in this way you still can not see the clocks, than your codec (max98095 ?) 
-> is not generating the clocks.
-> Could you also post from your machine driver how you configure the formats for 
-> cpu/codec DAI (snd_soc_dai_set_fmt call)?
+> Missing clock in codec master configuration suggests that reason
+> is in codec side and reversed roles during development makes easier to
+> hunt it further as then OMAP can play data out independently of is the
+> codec correctly configured or not.
 > 
-> While the clock lines are not physically connected, you can try to configure 
-> either side to generate the correct clocks on the lines. When you see that, 
-> you can connect them together, and see (hear) if it works.
+> You could run OMAP as a master by specifying SND_SOC_DAIFMT_CBS_CFS
+> as a DAI format for both codec and OMAP and by setting McBSP to use
+> internal 96 MHz clock as a master clock. Something like below might work
+> for testing purposes:
+> 
+> snd_soc_dai_set_sysclk(cpu_dai, OMAP_MCBSP_SYSCLK_CLKS_FCLK,
+> 		       96000000, SND_SOC_CLOCK_IN);
+> 
+> snd_soc_dai_set_clkdiv(cpu_dai, OMAP_MCBSP_CLKGDV,
+> 		       62); /* 96M / 48k*32 */
 > 
 Hi,
 
-Good suggestion. After switching to my codec as master, I could see the
-clocks. But one problem was the beagleboardxm trainer has level
-shifters, but they are one directional, and not correct for my use. So I
-reconnected to the expansion port pins (and re-did the voltage
-requirement of the codec to 1.8 volts). Now I get some sound.
+The hunt for clock continues. I redid my board-omap3beaglexm.c to as
+closely match what board-omap3pandora.c is doing as I can. Like pandora,
+I don't explicitly set the mux pin directions, I guess mcbsp master is
+the default.
 
-One problem remains and is a mystery to me. My omap setup with the
-max98095 codec is identical to the on board twl4030 device. The twl4030
-works find, but my codec only plays one channel.
+I also tried to get as close as I could to the soc/omap/omap3pandora.c
+machine driver with my omap3beaglexm.c machine driver. Specifically in
+the *_hw_params init routines.
 
-I hooked up a logic analyzer and discovered that my codec sends 32 bit
-clocks per fsx or what we call lrclk. The twl4030 sends 16 bit clocks
-per lrclk. I think that more than 16 bits is supposed to be ok and
-someone here said some of the high end audio test equipment only sends
-64 bitclock per lrclock and that seems to be within the standard. I
-think the I2S protocol says data bits are aligned with the lrclk, so
-what should be happening is the omap slave should send 16 bits of audio
-followed by 16 bits of null, then the lrclk switches and it should send
-the other channel of audio followed by null.
+But when I start things up (even with the codec disconnected from the
+bclk line), I don't get any movement on the CLK and fsx. And of course
+the dma doesn't send anything.
 
-The data being sent by the omap is actually 32 bits in the first lrclk
-phase, comprising the left 16 bits and the right 16 bits. The second
-lrclk phase gets null sent for all 32 bits. My 32 bits has the same data
-(from the same .wav file) that was sent to the twl4030 as two 16 bit
-channels.
-
-Here is the mcbsp register dump (the same from both twl4030 and max98095
-runs).
-
-[   54.391174] omap_pcm_trigger: cmd 1
-[   54.395111] omap_start_dma: lch 0
-[   54.399047] omap-mcbsp omap-mcbsp.1: **** McBSP1 regs ****
-[   54.404815] omap-mcbsp omap-mcbsp.1: DRR2:  0x2000100
-[   54.410125] omap-mcbsp omap-mcbsp.1: DRR1:  0x0000
-[   54.415130] omap-mcbsp omap-mcbsp.1: DXR2:  0x0000
-[   54.420166] omap-mcbsp omap-mcbsp.1: DXR1:  0x0000
-[   54.425201] omap-mcbsp omap-mcbsp.1: SPCR2: 0x0235
-[   54.430206] omap-mcbsp omap-mcbsp.1: SPCR1: 0x0030
-[   54.435241] omap-mcbsp omap-mcbsp.1: RCR2:  0x8041
-[   54.440277] omap-mcbsp omap-mcbsp.1: RCR1:  0x0040
-[   54.445281] omap-mcbsp omap-mcbsp.1: XCR2:  0x8041
-[   54.450317] omap-mcbsp omap-mcbsp.1: XCR1:  0x0040
-[   54.455352] omap-mcbsp omap-mcbsp.1: SRGR2: 0x001f
-[   54.460388] omap-mcbsp omap-mcbsp.1: SRGR1: 0x0f00
-[   54.465393] omap-mcbsp omap-mcbsp.1: PCR0:  0x000f
-[   54.470428] omap-mcbsp omap-mcbsp.1: ***********************
-[   54.476379] snd_pcm_post_start: state 3
-
-My codec cannot be set to use only 16 bits per phase. Is there a way to
-setup the omap so that data is sent to both channels? As you can see
-above the xphase bit is one saying dual channels. Is this a dma setup
-problem?
-
-Thanks for your help.
+Thanks for the suggestion.
 
 Regards, Steve
+
