@@ -1,71 +1,88 @@
-From: "Hans J. Koch" <hjk@hansjkoch.de>
-Subject: Re: [PATCH 01/19] Make clocksource name const
-Date: Thu, 19 May 2011 03:24:42 +0200
-Message-ID: <20110519012442.GA2728@local>
-References: <20110516172334.GD13659@n2100.arm.linux.org.uk>
-	<E1QM1YI-0003DJ-BQ@rmk-PC.arm.linux.org.uk>
+From: Lars-Peter Clausen <lars@metafoo.de>
+Subject: Re: [PATCH] mmc: fix handling NULL returned from regulator_get()
+Date: Wed, 18 May 2011 19:10:44 -0700
+Message-ID: <4DD47C24.1080404@metafoo.de>
+References: <1305754664-2917-1-git-send-email-ospite@studenti.unina.it> <m3vcx7el5h.fsf@pullcord.laptop.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <E1QM1YI-0003DJ-BQ@rmk-PC.arm.linux.org.uk>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Kukjin Kim <kgene.kim@samsung.com>, Eric Miao <eric.y.miao@gmail.com>, Linus Walleij <linus.walleij@stericsson.com>, Erik Gilling <konkers@android.com>, Nicolas Pitre <nico@fluxnic.net>, Tony Lindgren <tony@atomide.com>, John Stultz <johnstul@us.ibm.com>, Krzysztof Halasa <khc@pm.waw.pl>, linux-omap@vger.kernel.org, "Hans J. Koch" <hjk@hansjkoch.de>, Sascha Hauer <kernel@pengutronix.de>, Colin Cross <ccross@android.com>, Olof Johansson <olof@lixom.net>, Thomas Gleixner <tglx@linutronix.de>, Imre Kaloz <kaloz@openwrt.org>, Wan ZongShun <mcuos.com@gmail.com>, Lennert Buytenhek <kernel@wantstofly.org>, linux-arm-kernel@lists.infradead.org, Alessandro Rubini <rubini@unipv.it>
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <m3vcx7el5h.fsf@pullcord.laptop.org>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Chris Ball <cjb@laptop.org>
+Cc: Antonio Ospite <ospite@studenti.unina.it>, linux-mmc@vger.kernel.org, Will Newton <will.newton@gmail.com>, Linus Walleij <linus.walleij@stericsson.com>, Rabin Vincent <rabin.vincent@stericsson.com>, Sascha Hauer <s.hauer@pengutronix.de>, Madhusudhan Chikkature <madhu.cr@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, May 16, 2011 at 06:25:54PM +0100, Russell King - ARM Linux wrote:
-> As nothing should be writing to the clocksource name string, make the
-> clocksource name pointer const.  Build-tested on ARM Versatile Express.
+On 05/18/2011 02:47 PM, Chris Ball wrote:
+> Hi Antonio, thanks for doing this,
 > 
-> Cc: Alessandro Rubini <rubini@unipv.it>
-> Cc: Colin Cross <ccross@android.com>
-> Cc: Eric Miao <eric.y.miao@gmail.com>
-> Cc: Erik Gilling <konkers@android.com>
-> Cc: "Hans J. Koch" <hjk@hansjkoch.de>
-> Cc: Imre Kaloz <kaloz@openwrt.org>
-> Cc: Krzysztof Halasa <khc@pm.waw.pl>
-> Cc: Kukjin Kim <kgene.kim@samsung.com>
-> Cc: Lennert Buytenhek <kernel@wantstofly.org>
-> Cc: Linus Walleij <linus.walleij@stericsson.com>
-> Cc: linux-omap@vger.kernel.org
-> Cc: Nicolas Pitre <nico@fluxnic.net>
-> Cc: Olof Johansson <olof@lixom.net>
-> Cc: Sascha Hauer <kernel@pengutronix.de>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Viresh Kumar <viresh.kumar@st.com>
-> Cc: Wan ZongShun <mcuos.com@gmail.com>
-> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> On Wed, May 18 2011, Antonio Ospite wrote:
+>> When regulator_get() is stubbed down it returns NULL, handle this case
+>> when deciding whether the driver can use the regulator or not.
+>>
+>> Remember: IS_ERR(NULL) is false, see also this discussion for more
+>> insight: http://comments.gmane.org/gmane.linux.kernel.mmc/7934
+>>
+>> Now that regulator_get() is handled correctly, the ifdef on
+>> CONFIG_REGULATOR in mmci.c can go away as well.
+>>
+>> Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
+>> ---
+>>
+>>  drivers/mmc/host/dw_mmc.c     |    2 +-
+>>  drivers/mmc/host/mmci.c       |    4 +---
+>>  drivers/mmc/host/mxcmmc.c     |    2 +-
+>>  drivers/mmc/host/omap_hsmmc.c |    4 ++--
+>>  drivers/mmc/host/sdhci.c      |    2 +-
+>>  5 files changed, 6 insertions(+), 8 deletions(-)
+>>
+>> diff --git a/drivers/mmc/host/dw_mmc.c b/drivers/mmc/host/dw_mmc.c
+>> index 87e1f57..5be1325 100644
+>> --- a/drivers/mmc/host/dw_mmc.c
+>> +++ b/drivers/mmc/host/dw_mmc.c
+>> @@ -1442,7 +1442,7 @@ static int __init dw_mci_init_slot(struct dw_mci *host, unsigned int id)
+>>  #endif /* CONFIG_MMC_DW_IDMAC */
+>>  
+>>  	host->vmmc = regulator_get(mmc_dev(mmc), "vmmc");
+>> -	if (IS_ERR(host->vmmc)) {
+>> +	if (IS_ERR_OR_NULL(host->vmmc)) {
+>>  		printk(KERN_INFO "%s: no vmmc regulator found\n", mmc_hostname(mmc));
+>>  		host->vmmc = NULL;
+>>  	} else
+>> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+>> index 259ece0..45fd4fe 100644
+>> --- a/drivers/mmc/host/omap_hsmmc.c
+>> +++ b/drivers/mmc/host/omap_hsmmc.c
+>> @@ -405,7 +405,7 @@ static int omap_hsmmc_reg_get(struct omap_hsmmc_host *host)
+>>  	}
+>>  
+>>  	reg = regulator_get(host->dev, "vmmc");
+>> -	if (IS_ERR(reg)) {
+>> +	if (IS_ERR_OR_NULL(reg)) {
+>>  		dev_dbg(host->dev, "vmmc regulator missing\n");
+>>  		/*
+>>  		* HACK: until fixed.c regulator is usable,
+>>  	} else {
+>> [...] 
+> I think I like this change for every driver *except* sdhci -- users who
+> compile with CONFIG_REGULATOR=n (i.e. most distros) will start seeing
+> "mmc0: no vmmc regulator found" when they boot their x86 laptops, and
+> printing a cryptic regulator error message when regulator support isn't
+> even compiled in seems uncalled for.
+> 
+> So, I think my suggestion is to merge all but the last hunk of the
+> patch.  How do others feel about it?
+> 
 
-Acked-by: "Hans J. Koch" <hjk@hansjkoch.de>
+dw_mmc and omap_hsmmc will also print error messages if the regulator framework
+is not build-in. I suggest to use something like:
 
-> ---
->  include/linux/clocksource.h |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/include/linux/clocksource.h b/include/linux/clocksource.h
-> index c37b21a..94c1f38 100644
-> --- a/include/linux/clocksource.h
-> +++ b/include/linux/clocksource.h
-> @@ -161,7 +161,7 @@ struct clocksource {
->  	/*
->  	 * First part of structure is read mostly
->  	 */
-> -	char *name;
-> +	const char *name;
->  	struct list_head list;
->  	int rating;
->  	cycle_t (*read)(struct clocksource *cs);
-> -- 
-> 1.7.4.4
-> 
-> 
+if (IS_ERR(vmmc)) {
+	... do error handling
+} else if(vmmc) {
+	... use regulator
+} else {
+	... fallback code to initialize ocr_avail
+}
+
+- Lars
