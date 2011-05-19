@@ -1,100 +1,101 @@
 From: "Menon, Nishanth" <nm@ti.com>
-Subject: Re: [PM-WIP_CPUFREQ][PATCH 4/6 v2] OMAP2: cpufreq: use
- clk_init_cpufreq_table if OPPs not available
-Date: Thu, 19 May 2011 08:51:26 -0500
-Message-ID: <BANLkTinKByYJ1kbRXkWsc1UWrdxcj9+84g@mail.gmail.com>
-References: <1305704266-17623-5-git-send-email-nm@ti.com> <87d3jeal6r.fsf@ti.com>
+Subject: Re: [PATCH] omap:pm: Fix boot-time errors with debugfs disabled
+Date: Thu, 19 May 2011 08:58:15 -0500
+Message-ID: <BANLkTi=9hP2Hve-DfeM8QR-D5qvcn3omgg@mail.gmail.com>
+References: <1305221790-4944-1-git-send-email-premi@ti.com>
+ <87fwocrmr9.fsf@ti.com> <B85A65D85D7EB246BE421B3FB0FBB593024CFDCEE1@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:36354 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756953Ab1ESNvx convert rfc822-to-8bit
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:36119 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933238Ab1ESN6l convert rfc822-to-8bit
 	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 19 May 2011 09:51:53 -0400
-Received: by mail-ww0-f50.google.com with SMTP id 33so2696597wwc.19
-        for <linux-omap@vger.kernel.org>; Thu, 19 May 2011 06:51:46 -0700 (PDT)
-In-Reply-To: <87d3jeal6r.fsf@ti.com>
+	Thu, 19 May 2011 09:58:41 -0400
+Received: by mail-wy0-f175.google.com with SMTP id 20so2384983wye.20
+        for <linux-omap@vger.kernel.org>; Thu, 19 May 2011 06:58:35 -0700 (PDT)
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593024CFDCEE1@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>
+To: "Premi, Sanjeev" <premi@ti.com>
+Cc: "Hilman, Kevin" <khilman@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, May 19, 2011 at 08:12, Kevin Hilman <khilman@ti.com> wrote:
-> Nishanth Menon <nm@ti.com> writes:
->
->> OMAP2 does not use OPP tables at the moment for DVFS. Currently,
->> we depend on opp table initialization to give us the freq_table,
->> which makes sense for OMAP3+. for OMAP2, we should be using
->> clk_init_cpufreq_table - so if the opp based frequency table
->> initilization fails, fall back to clk_init_cpufreq_table to give
->> us the table.
+On Thu, May 19, 2011 at 05:30, Premi, Sanjeev <premi@ti.com> wrote:
+>> -----Original Message-----
+>> From: Hilman, Kevin
+>> Sent: Wednesday, May 18, 2011 10:04 PM
+>> To: Premi, Sanjeev
+>> Cc: linux-omap@vger.kernel.org
+>> Subject: Re: [PATCH] omap:pm: Fix boot-time errors with
+>> debugfs disabled
 >>
->> Signed-off-by: Nishanth Menon <nm@ti.com>
+>> Hi Sanjeev,
+>>
+>> Sanjeev Premi <premi@ti.com> writes:
+>>
+>> > There is an implicit assumption in current implementation that
+>> > debugfs is always enabled.
+>> >
+>> > When debugfs is disabled, these errors are noticed during boot:
+>> > =A0 omap_voltage_late_init: Unable to create voltage debugfs main =
+dir
+>> > =A0 vdd_debugfs_init: Unable to create debugfs directory for vdd_m=
+pu
+>> > =A0 vdd_debugfs_init: Unable to create debugfs directory for vdd_c=
+ore
+>> >
+>> > This patch fixes these errors by enclosing code related to debugfs
+>> > in #ifdef CONFIG_DEBUG_FS..#endif.
+>> >
+>> > Boot tested on OMAP3EVM.
+>> >
+>> > Signed-off-by: Sanjeev Premi <premi@ti.com>
+>>
+>> Sorry for the delay here, I've been on the road and finally
+>> catching up
+>> on the list.
+>>
+>> Basically, I'm in the process of a pretty major cleanup of
+>> the VC/VP and
+>> SR layers. =A0For example, in my pm-wip/voltdm_* branches, the debug=
+fs
+>> interface to the voltage layer has been completely removed. =A0I'm a=
+lso
+>> thinking of removing the SR debugfs interface also, as I don't reall=
+y
+>> think we need a userspace interface for this. =A0A board-level inter=
+face
+>> is probably enough (/me waits for flame from Nishanth :)
+>>
+>> That being said, your approach below isn't quite right in its usage =
+of
+>> #ifdefs. =A0Use of #ifdefs like this is frowned upon for many reason=
+s.
+>> For starters, take a look the '#ifdefs are ugly' section of
+>> Documentation/SubmittingPatches.
 >
-> This is a good approach, but for readability, the OPP version and the
-> clk version should probably be separated into separate functions, alo=
-ng
-> with their error handling.
-Was thinking more of the lines of splitting the file up. OMAP3+ all
-have OPPs defined. only one pending is OMAP2
-Either we introduce OPPs to OMAP2 OR we split it up and depend the OPP
-based stuff on ARCH_HAS_OPP and CPUFREQ
-
+> [sp] I don't like #ifdefs either but each time we cannot create
+> =A0 =A0 a new file changes like this.
 >
-> Minor: please capitalize acronyms: OPP, CPU, OMAP, etc...
+> =A0 =A0 The current code is a mess with debugfs used too frequently.
+> =A0 =A0 And - all of it is not for debug. The location of ifdefs in
+> =A0 =A0 in the patch illustrates it quite well.
+>
+> =A0 =A0 BTW, this isn't the only use of ifdefs in a C file in Linux.
+in reality the only reason you've had to do this patch was because we
+had a wicked handling of debugfs entries in voltage layer - with
+voltdm_c these are all gone. further any entries remaining (e.g. SR)
+are:
+dentry for debugfs file -> just a minor overhead not deserving a #ifdef
+all other functions of debugfs (as per include/linux/debugfs.h) when
+debugfs is disabled in .config will be static inlined and we will not
+need any #ifdefs at all
 
-will do.
+The real pending question is about functional SR debugfs entries that
+need to loose it's critical functionality.
 Regards,
 Nishanth Menon
-
->
-> Kevin
->
->> ---
->> =A0arch/arm/mach-omap2/omap2plus-cpufreq.c | =A0 =A09 ++++++++-
->> =A01 files changed, 8 insertions(+), 1 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/omap2plus-cpufreq.c b/arch/arm/mach=
--omap2/omap2plus-cpufreq.c
->> index 45f1e9e..854f4b3 100644
->> --- a/arch/arm/mach-omap2/omap2plus-cpufreq.c
->> +++ b/arch/arm/mach-omap2/omap2plus-cpufreq.c
->> @@ -180,7 +180,13 @@ static int __cpuinit omap_cpu_init(struct cpufr=
-eq_policy *policy)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_warning("%s: unable to get the mpu de=
-vice\n", __func__);
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
->> =A0 =A0 =A0 }
->> - =A0 =A0 opp_init_cpufreq_table(mpu_dev, &freq_table);
->> +
->> + =A0 =A0 /*
->> + =A0 =A0 =A0* if we dont get cpufreq table using opp, use tradition=
-al omap2 lookup
->> + =A0 =A0 =A0* as a fallback
->> + =A0 =A0 =A0*/
->> + =A0 =A0 if (opp_init_cpufreq_table(mpu_dev, &freq_table))
->> + =A0 =A0 =A0 =A0 =A0 =A0 clk_init_cpufreq_table(&freq_table);
->>
->> =A0 =A0 =A0 if (freq_table) {
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 result =3D cpufreq_frequency_table_cpuin=
-fo(policy, freq_table);
->> @@ -188,6 +194,7 @@ static int __cpuinit omap_cpu_init(struct cpufre=
-q_policy *policy)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 cpufreq_frequency_table_=
-get_attr(freq_table,
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 policy->cpu);
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 } else {
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 clk_exit_cpufreq_table(&fr=
-eq_table);
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 WARN(true, "%s: fallback=
- to clk_round(freq_table=3D%d)\n",
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 __func__, result);
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 kfree(freq_table);
->
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
