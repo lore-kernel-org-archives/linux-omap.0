@@ -1,67 +1,350 @@
 From: Amber Jain <amber@ti.com>
-Subject: [PATCH 2/5] OMAP: DSS2: configuring non-zero values for fir_hinc/fir_vinc
-Date: Thu, 19 May 2011 11:01:27 +0530
-Message-ID: <1305783090-21214-3-git-send-email-amber@ti.com>
+Subject: [PATCH 3/5] OMAP: DSS2: Use for loop where ever possible in SR(), RR(), DUMPREG()
+Date: Thu, 19 May 2011 11:01:28 +0530
+Message-ID: <1305783090-21214-4-git-send-email-amber@ti.com>
 References: <1305783090-21214-1-git-send-email-amber@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:44548 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754384Ab1ESFbl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 May 2011 01:31:41 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:59561 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754757Ab1ESFbo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 19 May 2011 01:31:44 -0400
 Received: from dlep26.itg.ti.com ([157.170.170.121])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p4J5Vf1Z005014
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p4J5Vi7c010889
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 19 May 2011 00:31:41 -0500
+	for <linux-omap@vger.kernel.org>; Thu, 19 May 2011 00:31:44 -0500
 In-Reply-To: <1305783090-21214-1-git-send-email-amber@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: tomi.valkeinen@ti.com, molnar@ti.com, Amber Jain <amber@ti.com>
 
-fir_hinc and fir_vinc can only have a non-zero value as per TRM.
-Hence removed the if...else condition and also made the necesary changes
-caused as the result of the condition removal.
+Use for loop instead of individual entries for OVL_FIR_COEF_H, OVL_FIR_COEF_HV,
+OVL_FIR_COEF_V and OVL_CONV_COEF in SR(), RR() and DUMPREG() functions.
 
 Signed-off-by: Amber Jain <amber@ti.com>
 ---
- drivers/video/omap2/dss/dispc.c |   15 ++++-----------
- 1 files changed, 4 insertions(+), 11 deletions(-)
+ drivers/video/omap2/dss/dispc.c |  257 +++++++++++----------------------------
+ 1 files changed, 70 insertions(+), 187 deletions(-)
 
 diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-index e680528..92169bb 100644
+index 92169bb..19b0b50 100644
 --- a/drivers/video/omap2/dss/dispc.c
 +++ b/drivers/video/omap2/dss/dispc.c
-@@ -1128,15 +1128,8 @@ static void _dispc_set_scaling(enum omap_plane plane,
+@@ -129,6 +129,7 @@ static inline u32 dispc_read_reg(const u16 idx)
  
- 	_dispc_set_scale_coef(plane, hscaleup, vscaleup, five_taps);
+ void dispc_save_context(void)
+ {
++	int i;
+ 	if (cpu_is_omap24xx())
+ 		return;
  
--	if (!orig_width || orig_width == out_width)
--		fir_hinc = 0;
--	else
--		fir_hinc = 1024 * orig_width / out_width;
+@@ -204,38 +205,17 @@ void dispc_save_context(void)
+ 	SR(OVL_ACCU0(OMAP_DSS_VIDEO1));
+ 	SR(OVL_ACCU1(OMAP_DSS_VIDEO1));
+ 
+-	SR(OVL_FIR_COEF_H(OMAP_DSS_VIDEO1, 0));
+-	SR(OVL_FIR_COEF_H(OMAP_DSS_VIDEO1, 1));
+-	SR(OVL_FIR_COEF_H(OMAP_DSS_VIDEO1, 2));
+-	SR(OVL_FIR_COEF_H(OMAP_DSS_VIDEO1, 3));
+-	SR(OVL_FIR_COEF_H(OMAP_DSS_VIDEO1, 4));
+-	SR(OVL_FIR_COEF_H(OMAP_DSS_VIDEO1, 5));
+-	SR(OVL_FIR_COEF_H(OMAP_DSS_VIDEO1, 6));
+-	SR(OVL_FIR_COEF_H(OMAP_DSS_VIDEO1, 7));
 -
--	if (!orig_height || orig_height == out_height)
--		fir_vinc = 0;
--	else
--		fir_vinc = 1024 * orig_height / out_height;
-+	fir_hinc = 1024 * orig_width / out_width;
-+	fir_vinc = 1024 * orig_height / out_height;
+-	SR(OVL_FIR_COEF_HV(OMAP_DSS_VIDEO1, 0));
+-	SR(OVL_FIR_COEF_HV(OMAP_DSS_VIDEO1, 1));
+-	SR(OVL_FIR_COEF_HV(OMAP_DSS_VIDEO1, 2));
+-	SR(OVL_FIR_COEF_HV(OMAP_DSS_VIDEO1, 3));
+-	SR(OVL_FIR_COEF_HV(OMAP_DSS_VIDEO1, 4));
+-	SR(OVL_FIR_COEF_HV(OMAP_DSS_VIDEO1, 5));
+-	SR(OVL_FIR_COEF_HV(OMAP_DSS_VIDEO1, 6));
+-	SR(OVL_FIR_COEF_HV(OMAP_DSS_VIDEO1, 7));
+-
+-	SR(OVL_CONV_COEF(OMAP_DSS_VIDEO1, 0));
+-	SR(OVL_CONV_COEF(OMAP_DSS_VIDEO1, 1));
+-	SR(OVL_CONV_COEF(OMAP_DSS_VIDEO1, 2));
+-	SR(OVL_CONV_COEF(OMAP_DSS_VIDEO1, 3));
+-	SR(OVL_CONV_COEF(OMAP_DSS_VIDEO1, 4));
+-
+-	SR(OVL_FIR_COEF_V(OMAP_DSS_VIDEO1, 0));
+-	SR(OVL_FIR_COEF_V(OMAP_DSS_VIDEO1, 1));
+-	SR(OVL_FIR_COEF_V(OMAP_DSS_VIDEO1, 2));
+-	SR(OVL_FIR_COEF_V(OMAP_DSS_VIDEO1, 3));
+-	SR(OVL_FIR_COEF_V(OMAP_DSS_VIDEO1, 4));
+-	SR(OVL_FIR_COEF_V(OMAP_DSS_VIDEO1, 5));
+-	SR(OVL_FIR_COEF_V(OMAP_DSS_VIDEO1, 6));
+-	SR(OVL_FIR_COEF_V(OMAP_DSS_VIDEO1, 7));
++	for (i = 0; i < 8; i++)
++		SR(OVL_FIR_COEF_H(OMAP_DSS_VIDEO1, i));
++
++	for (i = 0; i < 8; i++)
++		SR(OVL_FIR_COEF_HV(OMAP_DSS_VIDEO1, i));
++
++	for (i = 0; i < 5; i++)
++		SR(OVL_CONV_COEF(OMAP_DSS_VIDEO1, i));
++
++	for (i = 0; i < 8; i++)
++		SR(OVL_FIR_COEF_V(OMAP_DSS_VIDEO1, i));
  
- 	_dispc_set_fir(plane, fir_hinc, fir_vinc);
+ 	SR(OVL_PRELOAD(OMAP_DSS_VIDEO1));
  
-@@ -1144,8 +1137,8 @@ static void _dispc_set_scaling(enum omap_plane plane,
+@@ -253,38 +233,17 @@ void dispc_save_context(void)
+ 	SR(OVL_ACCU0(OMAP_DSS_VIDEO2));
+ 	SR(OVL_ACCU1(OMAP_DSS_VIDEO2));
  
- 	/* RESIZEENABLE and VERTICALTAPS */
- 	l &= ~((0x3 << 5) | (0x1 << 21));
--	l |= fir_hinc ? (1 << 5) : 0;
--	l |= fir_vinc ? (1 << 6) : 0;
-+	l |= (orig_width != out_width) ? (1 << 5) : 0;
-+	l |= (orig_height != out_height) ? (1 << 6) : 0;
- 	l |= five_taps ? (1 << 21) : 0;
+-	SR(OVL_FIR_COEF_H(OMAP_DSS_VIDEO2, 0));
+-	SR(OVL_FIR_COEF_H(OMAP_DSS_VIDEO2, 1));
+-	SR(OVL_FIR_COEF_H(OMAP_DSS_VIDEO2, 2));
+-	SR(OVL_FIR_COEF_H(OMAP_DSS_VIDEO2, 3));
+-	SR(OVL_FIR_COEF_H(OMAP_DSS_VIDEO2, 4));
+-	SR(OVL_FIR_COEF_H(OMAP_DSS_VIDEO2, 5));
+-	SR(OVL_FIR_COEF_H(OMAP_DSS_VIDEO2, 6));
+-	SR(OVL_FIR_COEF_H(OMAP_DSS_VIDEO2, 7));
+-
+-	SR(OVL_FIR_COEF_HV(OMAP_DSS_VIDEO2, 0));
+-	SR(OVL_FIR_COEF_HV(OMAP_DSS_VIDEO2, 1));
+-	SR(OVL_FIR_COEF_HV(OMAP_DSS_VIDEO2, 2));
+-	SR(OVL_FIR_COEF_HV(OMAP_DSS_VIDEO2, 3));
+-	SR(OVL_FIR_COEF_HV(OMAP_DSS_VIDEO2, 4));
+-	SR(OVL_FIR_COEF_HV(OMAP_DSS_VIDEO2, 5));
+-	SR(OVL_FIR_COEF_HV(OMAP_DSS_VIDEO2, 6));
+-	SR(OVL_FIR_COEF_HV(OMAP_DSS_VIDEO2, 7));
+-
+-	SR(OVL_CONV_COEF(OMAP_DSS_VIDEO2, 0));
+-	SR(OVL_CONV_COEF(OMAP_DSS_VIDEO2, 1));
+-	SR(OVL_CONV_COEF(OMAP_DSS_VIDEO2, 2));
+-	SR(OVL_CONV_COEF(OMAP_DSS_VIDEO2, 3));
+-	SR(OVL_CONV_COEF(OMAP_DSS_VIDEO2, 4));
+-
+-	SR(OVL_FIR_COEF_V(OMAP_DSS_VIDEO2, 0));
+-	SR(OVL_FIR_COEF_V(OMAP_DSS_VIDEO2, 1));
+-	SR(OVL_FIR_COEF_V(OMAP_DSS_VIDEO2, 2));
+-	SR(OVL_FIR_COEF_V(OMAP_DSS_VIDEO2, 3));
+-	SR(OVL_FIR_COEF_V(OMAP_DSS_VIDEO2, 4));
+-	SR(OVL_FIR_COEF_V(OMAP_DSS_VIDEO2, 5));
+-	SR(OVL_FIR_COEF_V(OMAP_DSS_VIDEO2, 6));
+-	SR(OVL_FIR_COEF_V(OMAP_DSS_VIDEO2, 7));
++	for (i = 0; i < 8; i++)
++		SR(OVL_FIR_COEF_H(OMAP_DSS_VIDEO2, i));
++
++	for (i = 0; i < 8; i++)
++		SR(OVL_FIR_COEF_HV(OMAP_DSS_VIDEO2, i));
++
++	for (i = 0; i < 5; i++)
++		SR(OVL_CONV_COEF(OMAP_DSS_VIDEO2, i));
++
++	for (i = 0; i < 8; i++)
++		SR(OVL_FIR_COEF_V(OMAP_DSS_VIDEO2, i));
  
- 	/* VRESIZECONF and HRESIZECONF */
+ 	SR(OVL_PRELOAD(OMAP_DSS_VIDEO2));
+ 
+@@ -294,6 +253,7 @@ void dispc_save_context(void)
+ 
+ void dispc_restore_context(void)
+ {
++	int i;
+ 	RR(SYSCONFIG);
+ 	/*RR(IRQENABLE);*/
+ 	/*RR(CONTROL);*/
+@@ -366,38 +326,17 @@ void dispc_restore_context(void)
+ 	RR(OVL_ACCU0(OMAP_DSS_VIDEO1));
+ 	RR(OVL_ACCU1(OMAP_DSS_VIDEO1));
+ 
+-	RR(OVL_FIR_COEF_H(OMAP_DSS_VIDEO1, 0));
+-	RR(OVL_FIR_COEF_H(OMAP_DSS_VIDEO1, 1));
+-	RR(OVL_FIR_COEF_H(OMAP_DSS_VIDEO1, 2));
+-	RR(OVL_FIR_COEF_H(OMAP_DSS_VIDEO1, 3));
+-	RR(OVL_FIR_COEF_H(OMAP_DSS_VIDEO1, 4));
+-	RR(OVL_FIR_COEF_H(OMAP_DSS_VIDEO1, 5));
+-	RR(OVL_FIR_COEF_H(OMAP_DSS_VIDEO1, 6));
+-	RR(OVL_FIR_COEF_H(OMAP_DSS_VIDEO1, 7));
+-
+-	RR(OVL_FIR_COEF_HV(OMAP_DSS_VIDEO1, 0));
+-	RR(OVL_FIR_COEF_HV(OMAP_DSS_VIDEO1, 1));
+-	RR(OVL_FIR_COEF_HV(OMAP_DSS_VIDEO1, 2));
+-	RR(OVL_FIR_COEF_HV(OMAP_DSS_VIDEO1, 3));
+-	RR(OVL_FIR_COEF_HV(OMAP_DSS_VIDEO1, 4));
+-	RR(OVL_FIR_COEF_HV(OMAP_DSS_VIDEO1, 5));
+-	RR(OVL_FIR_COEF_HV(OMAP_DSS_VIDEO1, 6));
+-	RR(OVL_FIR_COEF_HV(OMAP_DSS_VIDEO1, 7));
+-
+-	RR(OVL_CONV_COEF(OMAP_DSS_VIDEO1, 0));
+-	RR(OVL_CONV_COEF(OMAP_DSS_VIDEO1, 1));
+-	RR(OVL_CONV_COEF(OMAP_DSS_VIDEO1, 2));
+-	RR(OVL_CONV_COEF(OMAP_DSS_VIDEO1, 3));
+-	RR(OVL_CONV_COEF(OMAP_DSS_VIDEO1, 4));
+-
+-	RR(OVL_FIR_COEF_V(OMAP_DSS_VIDEO1, 0));
+-	RR(OVL_FIR_COEF_V(OMAP_DSS_VIDEO1, 1));
+-	RR(OVL_FIR_COEF_V(OMAP_DSS_VIDEO1, 2));
+-	RR(OVL_FIR_COEF_V(OMAP_DSS_VIDEO1, 3));
+-	RR(OVL_FIR_COEF_V(OMAP_DSS_VIDEO1, 4));
+-	RR(OVL_FIR_COEF_V(OMAP_DSS_VIDEO1, 5));
+-	RR(OVL_FIR_COEF_V(OMAP_DSS_VIDEO1, 6));
+-	RR(OVL_FIR_COEF_V(OMAP_DSS_VIDEO1, 7));
++	for (i = 0; i < 8; i++)
++		RR(OVL_FIR_COEF_H(OMAP_DSS_VIDEO1, i));
++
++	for (i = 0; i < 8; i++)
++		RR(OVL_FIR_COEF_HV(OMAP_DSS_VIDEO1, i));
++
++	for (i = 0; i < 5; i++)
++		RR(OVL_CONV_COEF(OMAP_DSS_VIDEO1, i));
++
++	for (i = 0; i < 8; i++)
++		RR(OVL_FIR_COEF_V(OMAP_DSS_VIDEO1, i));
+ 
+ 	RR(OVL_PRELOAD(OMAP_DSS_VIDEO1));
+ 
+@@ -415,38 +354,17 @@ void dispc_restore_context(void)
+ 	RR(OVL_ACCU0(OMAP_DSS_VIDEO2));
+ 	RR(OVL_ACCU1(OMAP_DSS_VIDEO2));
+ 
+-	RR(OVL_FIR_COEF_H(OMAP_DSS_VIDEO2, 0));
+-	RR(OVL_FIR_COEF_H(OMAP_DSS_VIDEO2, 1));
+-	RR(OVL_FIR_COEF_H(OMAP_DSS_VIDEO2, 2));
+-	RR(OVL_FIR_COEF_H(OMAP_DSS_VIDEO2, 3));
+-	RR(OVL_FIR_COEF_H(OMAP_DSS_VIDEO2, 4));
+-	RR(OVL_FIR_COEF_H(OMAP_DSS_VIDEO2, 5));
+-	RR(OVL_FIR_COEF_H(OMAP_DSS_VIDEO2, 6));
+-	RR(OVL_FIR_COEF_H(OMAP_DSS_VIDEO2, 7));
+-
+-	RR(OVL_FIR_COEF_HV(OMAP_DSS_VIDEO2, 0));
+-	RR(OVL_FIR_COEF_HV(OMAP_DSS_VIDEO2, 1));
+-	RR(OVL_FIR_COEF_HV(OMAP_DSS_VIDEO2, 2));
+-	RR(OVL_FIR_COEF_HV(OMAP_DSS_VIDEO2, 3));
+-	RR(OVL_FIR_COEF_HV(OMAP_DSS_VIDEO2, 4));
+-	RR(OVL_FIR_COEF_HV(OMAP_DSS_VIDEO2, 5));
+-	RR(OVL_FIR_COEF_HV(OMAP_DSS_VIDEO2, 6));
+-	RR(OVL_FIR_COEF_HV(OMAP_DSS_VIDEO2, 7));
+-
+-	RR(OVL_CONV_COEF(OMAP_DSS_VIDEO2, 0));
+-	RR(OVL_CONV_COEF(OMAP_DSS_VIDEO2, 1));
+-	RR(OVL_CONV_COEF(OMAP_DSS_VIDEO2, 2));
+-	RR(OVL_CONV_COEF(OMAP_DSS_VIDEO2, 3));
+-	RR(OVL_CONV_COEF(OMAP_DSS_VIDEO2, 4));
+-
+-	RR(OVL_FIR_COEF_V(OMAP_DSS_VIDEO2, 0));
+-	RR(OVL_FIR_COEF_V(OMAP_DSS_VIDEO2, 1));
+-	RR(OVL_FIR_COEF_V(OMAP_DSS_VIDEO2, 2));
+-	RR(OVL_FIR_COEF_V(OMAP_DSS_VIDEO2, 3));
+-	RR(OVL_FIR_COEF_V(OMAP_DSS_VIDEO2, 4));
+-	RR(OVL_FIR_COEF_V(OMAP_DSS_VIDEO2, 5));
+-	RR(OVL_FIR_COEF_V(OMAP_DSS_VIDEO2, 6));
+-	RR(OVL_FIR_COEF_V(OMAP_DSS_VIDEO2, 7));
++	for (i = 0; i < 8; i++)
++		RR(OVL_FIR_COEF_H(OMAP_DSS_VIDEO2, i));
++
++	for (i = 0; i < 8; i++)
++		RR(OVL_FIR_COEF_HV(OMAP_DSS_VIDEO2, i));
++
++	for (i = 0; i < 5; i++)
++		RR(OVL_CONV_COEF(OMAP_DSS_VIDEO2, i));
++
++	for (i = 0; i < 8; i++)
++		RR(OVL_FIR_COEF_V(OMAP_DSS_VIDEO2, i));
+ 
+ 	RR(OVL_PRELOAD(OMAP_DSS_VIDEO2));
+ 
+@@ -2454,6 +2372,7 @@ void dispc_dump_regs(struct seq_file *s)
+ {
+ #define DUMPREG(r) seq_printf(s, "%-50s %08x\n", #r, dispc_read_reg(r))
+ 
++	int i;
+ 	dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK);
+ 
+ 	DUMPREG(DISPC_REVISION);
+@@ -2548,65 +2467,29 @@ void dispc_dump_regs(struct seq_file *s)
+ 	DUMPREG(DISPC_OVL_ACCU0(OMAP_DSS_VIDEO2));
+ 	DUMPREG(DISPC_OVL_ACCU1(OMAP_DSS_VIDEO2));
+ 
+-	DUMPREG(DISPC_OVL_FIR_COEF_H(OMAP_DSS_VIDEO1, 0));
+-	DUMPREG(DISPC_OVL_FIR_COEF_H(OMAP_DSS_VIDEO1, 1));
+-	DUMPREG(DISPC_OVL_FIR_COEF_H(OMAP_DSS_VIDEO1, 2));
+-	DUMPREG(DISPC_OVL_FIR_COEF_H(OMAP_DSS_VIDEO1, 3));
+-	DUMPREG(DISPC_OVL_FIR_COEF_H(OMAP_DSS_VIDEO1, 4));
+-	DUMPREG(DISPC_OVL_FIR_COEF_H(OMAP_DSS_VIDEO1, 5));
+-	DUMPREG(DISPC_OVL_FIR_COEF_H(OMAP_DSS_VIDEO1, 6));
+-	DUMPREG(DISPC_OVL_FIR_COEF_H(OMAP_DSS_VIDEO1, 7));
+-	DUMPREG(DISPC_OVL_FIR_COEF_HV(OMAP_DSS_VIDEO1, 0));
+-	DUMPREG(DISPC_OVL_FIR_COEF_HV(OMAP_DSS_VIDEO1, 1));
+-	DUMPREG(DISPC_OVL_FIR_COEF_HV(OMAP_DSS_VIDEO1, 2));
+-	DUMPREG(DISPC_OVL_FIR_COEF_HV(OMAP_DSS_VIDEO1, 3));
+-	DUMPREG(DISPC_OVL_FIR_COEF_HV(OMAP_DSS_VIDEO1, 4));
+-	DUMPREG(DISPC_OVL_FIR_COEF_HV(OMAP_DSS_VIDEO1, 5));
+-	DUMPREG(DISPC_OVL_FIR_COEF_HV(OMAP_DSS_VIDEO1, 6));
+-	DUMPREG(DISPC_OVL_FIR_COEF_HV(OMAP_DSS_VIDEO1, 7));
+-	DUMPREG(DISPC_OVL_CONV_COEF(OMAP_DSS_VIDEO1, 0));
+-	DUMPREG(DISPC_OVL_CONV_COEF(OMAP_DSS_VIDEO1, 1));
+-	DUMPREG(DISPC_OVL_CONV_COEF(OMAP_DSS_VIDEO1, 2));
+-	DUMPREG(DISPC_OVL_CONV_COEF(OMAP_DSS_VIDEO1, 3));
+-	DUMPREG(DISPC_OVL_CONV_COEF(OMAP_DSS_VIDEO1, 4));
+-	DUMPREG(DISPC_OVL_FIR_COEF_V(OMAP_DSS_VIDEO1, 0));
+-	DUMPREG(DISPC_OVL_FIR_COEF_V(OMAP_DSS_VIDEO1, 1));
+-	DUMPREG(DISPC_OVL_FIR_COEF_V(OMAP_DSS_VIDEO1, 2));
+-	DUMPREG(DISPC_OVL_FIR_COEF_V(OMAP_DSS_VIDEO1, 3));
+-	DUMPREG(DISPC_OVL_FIR_COEF_V(OMAP_DSS_VIDEO1, 4));
+-	DUMPREG(DISPC_OVL_FIR_COEF_V(OMAP_DSS_VIDEO1, 5));
+-	DUMPREG(DISPC_OVL_FIR_COEF_V(OMAP_DSS_VIDEO1, 6));
+-	DUMPREG(DISPC_OVL_FIR_COEF_V(OMAP_DSS_VIDEO1, 7));
+-
+-	DUMPREG(DISPC_OVL_FIR_COEF_H(OMAP_DSS_VIDEO2, 0));
+-	DUMPREG(DISPC_OVL_FIR_COEF_H(OMAP_DSS_VIDEO2, 1));
+-	DUMPREG(DISPC_OVL_FIR_COEF_H(OMAP_DSS_VIDEO2, 2));
+-	DUMPREG(DISPC_OVL_FIR_COEF_H(OMAP_DSS_VIDEO2, 3));
+-	DUMPREG(DISPC_OVL_FIR_COEF_H(OMAP_DSS_VIDEO2, 4));
+-	DUMPREG(DISPC_OVL_FIR_COEF_H(OMAP_DSS_VIDEO2, 5));
+-	DUMPREG(DISPC_OVL_FIR_COEF_H(OMAP_DSS_VIDEO2, 6));
+-	DUMPREG(DISPC_OVL_FIR_COEF_H(OMAP_DSS_VIDEO2, 7));
+-	DUMPREG(DISPC_OVL_FIR_COEF_HV(OMAP_DSS_VIDEO2, 0));
+-	DUMPREG(DISPC_OVL_FIR_COEF_HV(OMAP_DSS_VIDEO2, 1));
+-	DUMPREG(DISPC_OVL_FIR_COEF_HV(OMAP_DSS_VIDEO2, 2));
+-	DUMPREG(DISPC_OVL_FIR_COEF_HV(OMAP_DSS_VIDEO2, 3));
+-	DUMPREG(DISPC_OVL_FIR_COEF_HV(OMAP_DSS_VIDEO2, 4));
+-	DUMPREG(DISPC_OVL_FIR_COEF_HV(OMAP_DSS_VIDEO2, 5));
+-	DUMPREG(DISPC_OVL_FIR_COEF_HV(OMAP_DSS_VIDEO2, 6));
+-	DUMPREG(DISPC_OVL_FIR_COEF_HV(OMAP_DSS_VIDEO2, 7));
+-	DUMPREG(DISPC_OVL_CONV_COEF(OMAP_DSS_VIDEO2, 0));
+-	DUMPREG(DISPC_OVL_CONV_COEF(OMAP_DSS_VIDEO2, 1));
+-	DUMPREG(DISPC_OVL_CONV_COEF(OMAP_DSS_VIDEO2, 2));
+-	DUMPREG(DISPC_OVL_CONV_COEF(OMAP_DSS_VIDEO2, 3));
+-	DUMPREG(DISPC_OVL_CONV_COEF(OMAP_DSS_VIDEO2, 4));
+-	DUMPREG(DISPC_OVL_FIR_COEF_V(OMAP_DSS_VIDEO2, 0));
+-	DUMPREG(DISPC_OVL_FIR_COEF_V(OMAP_DSS_VIDEO2, 1));
+-	DUMPREG(DISPC_OVL_FIR_COEF_V(OMAP_DSS_VIDEO2, 2));
+-	DUMPREG(DISPC_OVL_FIR_COEF_V(OMAP_DSS_VIDEO2, 3));
+-	DUMPREG(DISPC_OVL_FIR_COEF_V(OMAP_DSS_VIDEO2, 4));
+-	DUMPREG(DISPC_OVL_FIR_COEF_V(OMAP_DSS_VIDEO2, 5));
+-	DUMPREG(DISPC_OVL_FIR_COEF_V(OMAP_DSS_VIDEO2, 6));
+-	DUMPREG(DISPC_OVL_FIR_COEF_V(OMAP_DSS_VIDEO2, 7));
++	for (i = 0; i < 8; i++)
++		DUMPREG(DISPC_OVL_FIR_COEF_H(OMAP_DSS_VIDEO1, i));
++
++	for (i = 0; i < 8; i++)
++		DUMPREG(DISPC_OVL_FIR_COEF_HV(OMAP_DSS_VIDEO1, i));
++
++	for (i = 0; i < 5; i++)
++		DUMPREG(DISPC_OVL_CONV_COEF(OMAP_DSS_VIDEO1, i));
++
++	for (i = 0; i < 8; i++)
++		DUMPREG(DISPC_OVL_FIR_COEF_V(OMAP_DSS_VIDEO1, i));
++
++	for (i = 0; i < 8; i++)
++		DUMPREG(DISPC_OVL_FIR_COEF_H(OMAP_DSS_VIDEO2, i));
++
++	for (i = 0; i < 8; i++)
++		DUMPREG(DISPC_OVL_FIR_COEF_HV(OMAP_DSS_VIDEO2, i));
++
++	for (i = 0; i < 5; i++)
++		DUMPREG(DISPC_OVL_CONV_COEF(OMAP_DSS_VIDEO2, i));
++
++	for (i = 0; i < 8; i++)
++		DUMPREG(DISPC_OVL_FIR_COEF_V(OMAP_DSS_VIDEO2, i));
+ 
+ 	DUMPREG(DISPC_OVL_PRELOAD(OMAP_DSS_VIDEO1));
+ 	DUMPREG(DISPC_OVL_PRELOAD(OMAP_DSS_VIDEO2));
 -- 
 1.7.1
 
