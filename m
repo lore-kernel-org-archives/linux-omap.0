@@ -1,53 +1,257 @@
 From: Amber Jain <amber@ti.com>
-Subject: [PATCH 0/5] OMAP: DSS2: Add suppport for new color format
-Date: Thu, 19 May 2011 11:01:25 +0530
-Message-ID: <1305783090-21214-1-git-send-email-amber@ti.com>
+Subject: [PATCH 1/5] OMAP: DSS2: Add new color formats
+Date: Thu, 19 May 2011 11:01:26 +0530
+Message-ID: <1305783090-21214-2-git-send-email-amber@ti.com>
+References: <1305783090-21214-1-git-send-email-amber@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:44546 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754384Ab1ESFbf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 May 2011 01:31:35 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:39824 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754384Ab1ESFbi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 19 May 2011 01:31:38 -0400
 Received: from dlep26.itg.ti.com ([157.170.170.121])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id p4J5VZr5005007
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p4J5Vcgc022723
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 19 May 2011 00:31:35 -0500
+	for <linux-omap@vger.kernel.org>; Thu, 19 May 2011 00:31:38 -0500
+In-Reply-To: <1305783090-21214-1-git-send-email-amber@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: tomi.valkeinen@ti.com, molnar@ti.com, Amber Jain <amber@ti.com>
 
-This patch-set adds support for NV12 color format:
-- Adds support for various new color formats supported by OMAP4.
-- Corrects the fir_hinc and fir_vinc to have a non-zero value 
-  as per TRM.
-- Adds the support for NV12 along with the extra registers that needs to be
-  configured for the same.
-- Adds basic scaling support for the UV-plane in case of NV12 format.
-- Contains chroma scaling (_dispc_set_scaling_uv) design and implemented by
-  Lajos Molnar <molnar@ti.com>.
+Adds new color formats supported by OMAP4.
 
-Applies over:
-http://gitorious.org/~amber/linux-omap-dss2/amber-omap-dss2/commits/master
+Signed-off-by: Amber Jain <amber@ti.com>
+---
+ drivers/video/omap2/dss/dispc.c        |  109 ++++++++++++++++++++++---------
+ drivers/video/omap2/dss/dss_features.c |   33 +++++++++-
+ drivers/video/omap2/dss/manager.c      |    7 ++
+ include/video/omapdss.h                |    5 ++
+ 4 files changed, 121 insertions(+), 33 deletions(-)
 
-Can be tested using v4l2 streaming over:
-http://gitorious.org/~amber/linux-omap-dss2/amber-omap-dss2/commits/dss2-color-formats
-This branch contains few private patches which enables v4l2 on OMAP4.
-
-Amber Jain (5):
-  OMAP: DSS2: Add new color formats
-  OMAP: DSS2: configuring non-zero values for fir_hinc/fir_vinc
-  OMAP: DSS2: Use for loop where ever possible in SR(), RR(), DUMPREG()
-  OMAP: DSS2: Adds new registers for NV12 support
-  OMAP: DSS2: Add support for NV12 format
-
- drivers/video/omap2/dss/dispc.c        |  740 +++++++++++++++++++++-----------
- drivers/video/omap2/dss/dispc.h        |  147 +++++++
- drivers/video/omap2/dss/dss.h          |    3 +-
- drivers/video/omap2/dss/dss_features.c |   36 ++-
- drivers/video/omap2/dss/dss_features.h |    2 +
- drivers/video/omap2/dss/manager.c      |   12 +-
- include/video/omapdss.h                |    6 +
- 7 files changed, 681 insertions(+), 265 deletions(-)
+diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
+index 1a2d835..e680528 100644
+--- a/drivers/video/omap2/dss/dispc.c
++++ b/drivers/video/omap2/dss/dispc.c
+@@ -796,38 +796,78 @@ static void _dispc_set_color_mode(enum omap_plane plane,
+ 		enum omap_color_mode color_mode)
+ {
+ 	u32 m = 0;
+-
+-	switch (color_mode) {
+-	case OMAP_DSS_COLOR_CLUT1:
+-		m = 0x0; break;
+-	case OMAP_DSS_COLOR_CLUT2:
+-		m = 0x1; break;
+-	case OMAP_DSS_COLOR_CLUT4:
+-		m = 0x2; break;
+-	case OMAP_DSS_COLOR_CLUT8:
+-		m = 0x3; break;
+-	case OMAP_DSS_COLOR_RGB12U:
+-		m = 0x4; break;
+-	case OMAP_DSS_COLOR_ARGB16:
+-		m = 0x5; break;
+-	case OMAP_DSS_COLOR_RGB16:
+-		m = 0x6; break;
+-	case OMAP_DSS_COLOR_RGB24U:
+-		m = 0x8; break;
+-	case OMAP_DSS_COLOR_RGB24P:
+-		m = 0x9; break;
+-	case OMAP_DSS_COLOR_YUV2:
+-		m = 0xa; break;
+-	case OMAP_DSS_COLOR_UYVY:
+-		m = 0xb; break;
+-	case OMAP_DSS_COLOR_ARGB32:
+-		m = 0xc; break;
+-	case OMAP_DSS_COLOR_RGBA32:
+-		m = 0xd; break;
+-	case OMAP_DSS_COLOR_RGBX32:
+-		m = 0xe; break;
+-	default:
+-		BUG(); break;
++	if (plane != OMAP_DSS_GFX) {
++		switch (color_mode) {
++		case OMAP_DSS_COLOR_NV12:
++			m = 0x0; break;
++		case OMAP_DSS_COLOR_RGB12U:
++			m = 0x1; break;
++		case OMAP_DSS_COLOR_RGBA16:
++			m = 0x2; break;
++		case OMAP_DSS_COLOR_RGBX16:
++			m = 0x4; break;
++		case OMAP_DSS_COLOR_ARGB16:
++			m = 0x5; break;
++		case OMAP_DSS_COLOR_RGB16:
++			m = 0x6; break;
++		case OMAP_DSS_COLOR_ARGB16_1555:
++			m = 0x7; break;
++		case OMAP_DSS_COLOR_RGB24U:
++			m = 0x8; break;
++		case OMAP_DSS_COLOR_RGB24P:
++			m = 0x9; break;
++		case OMAP_DSS_COLOR_YUV2:
++			m = 0xA; break;
++		case OMAP_DSS_COLOR_UYVY:
++			m = 0xB; break;
++		case OMAP_DSS_COLOR_ARGB32:
++			m = 0xC; break;
++		case OMAP_DSS_COLOR_RGBA32:
++			m = 0xD; break;
++		case OMAP_DSS_COLOR_RGBX32:
++			m = 0xE; break;
++		case OMAP_DSS_COLOR_XRGB16_1555:
++			m = 0xF; break;
++		default:
++			BUG(); break;
++		}
++	} else {
++		switch (color_mode) {
++		case OMAP_DSS_COLOR_CLUT1:
++			m = 0x0; break;
++		case OMAP_DSS_COLOR_CLUT2:
++			m = 0x1; break;
++		case OMAP_DSS_COLOR_CLUT4:
++			m = 0x2; break;
++		case OMAP_DSS_COLOR_CLUT8:
++			m = 0x3; break;
++		case OMAP_DSS_COLOR_RGB12U:
++			m = 0x4; break;
++		case OMAP_DSS_COLOR_ARGB16:
++			m = 0x5; break;
++		case OMAP_DSS_COLOR_RGB16:
++			m = 0x6; break;
++		case OMAP_DSS_COLOR_ARGB16_1555:
++			m = 0x7; break;
++		case OMAP_DSS_COLOR_RGB24U:
++			m = 0x8; break;
++		case OMAP_DSS_COLOR_RGB24P:
++			m = 0x9; break;
++		case OMAP_DSS_COLOR_YUV2:
++			m = 0xa; break;
++		case OMAP_DSS_COLOR_UYVY:
++			m = 0xb; break;
++		case OMAP_DSS_COLOR_ARGB32:
++			m = 0xc; break;
++		case OMAP_DSS_COLOR_RGBA32:
++			m = 0xd; break;
++		case OMAP_DSS_COLOR_RGBX32:
++			m = 0xe; break;
++		case OMAP_DSS_COLOR_XRGB16_1555:
++			m = 0xF; break;
++		default:
++			BUG(); break;
++		}
+ 	}
+ 
+ 	REG_FLD_MOD(DISPC_OVL_ATTRIBUTES(plane), m, 4, 1);
+@@ -1203,12 +1243,17 @@ static int color_mode_to_bpp(enum omap_color_mode color_mode)
+ 	case OMAP_DSS_COLOR_CLUT4:
+ 		return 4;
+ 	case OMAP_DSS_COLOR_CLUT8:
++	case OMAP_DSS_COLOR_NV12:
+ 		return 8;
+ 	case OMAP_DSS_COLOR_RGB12U:
+ 	case OMAP_DSS_COLOR_RGB16:
+ 	case OMAP_DSS_COLOR_ARGB16:
+ 	case OMAP_DSS_COLOR_YUV2:
+ 	case OMAP_DSS_COLOR_UYVY:
++	case OMAP_DSS_COLOR_RGBA16:
++	case OMAP_DSS_COLOR_RGBX16:
++	case OMAP_DSS_COLOR_ARGB16_1555:
++	case OMAP_DSS_COLOR_XRGB16_1555:
+ 		return 16;
+ 	case OMAP_DSS_COLOR_RGB24P:
+ 		return 24;
+diff --git a/drivers/video/omap2/dss/dss_features.c b/drivers/video/omap2/dss/dss_features.c
+index 5be5eb0..4c9a036 100644
+--- a/drivers/video/omap2/dss/dss_features.c
++++ b/drivers/video/omap2/dss/dss_features.c
+@@ -177,6 +177,37 @@ static const enum omap_color_mode omap3_dss_supported_color_modes[] = {
+ 	OMAP_DSS_COLOR_RGBA32 | OMAP_DSS_COLOR_RGBX32,
+ };
+ 
++static const enum omap_color_mode omap4_dss_supported_color_modes[] = {
++	/* OMAP_DSS_GFX */
++	OMAP_DSS_COLOR_CLUT1 | OMAP_DSS_COLOR_CLUT2 |
++	OMAP_DSS_COLOR_CLUT4 | OMAP_DSS_COLOR_CLUT8 |
++	OMAP_DSS_COLOR_RGB12U | OMAP_DSS_COLOR_ARGB16 |
++	OMAP_DSS_COLOR_RGB16 | OMAP_DSS_COLOR_RGB24U |
++	OMAP_DSS_COLOR_RGB24P | OMAP_DSS_COLOR_ARGB32 |
++	OMAP_DSS_COLOR_RGBA32 | OMAP_DSS_COLOR_RGBX32 |
++	OMAP_DSS_COLOR_ARGB16_1555,
++
++	/* OMAP_DSS_VIDEO1 */
++	OMAP_DSS_COLOR_RGB16 | OMAP_DSS_COLOR_RGB12U |
++	OMAP_DSS_COLOR_YUV2 | OMAP_DSS_COLOR_ARGB16_1555 |
++	OMAP_DSS_COLOR_RGBA32 | OMAP_DSS_COLOR_NV12 |
++	OMAP_DSS_COLOR_RGBA16 | OMAP_DSS_COLOR_RGB24U |
++	OMAP_DSS_COLOR_RGB24P | OMAP_DSS_COLOR_UYVY |
++	OMAP_DSS_COLOR_ARGB16 | OMAP_DSS_COLOR_XRGB16_1555 |
++	OMAP_DSS_COLOR_ARGB32 | OMAP_DSS_COLOR_RGBX16 |
++	OMAP_DSS_COLOR_RGBX32,
++
++       /* OMAP_DSS_VIDEO2 */
++	OMAP_DSS_COLOR_RGB16 | OMAP_DSS_COLOR_RGB12U |
++	OMAP_DSS_COLOR_YUV2 | OMAP_DSS_COLOR_ARGB16_1555 |
++	OMAP_DSS_COLOR_RGBA32 | OMAP_DSS_COLOR_NV12 |
++	OMAP_DSS_COLOR_RGBA16 | OMAP_DSS_COLOR_RGB24U |
++	OMAP_DSS_COLOR_RGB24P | OMAP_DSS_COLOR_UYVY |
++	OMAP_DSS_COLOR_ARGB16 | OMAP_DSS_COLOR_XRGB16_1555 |
++	OMAP_DSS_COLOR_ARGB32 | OMAP_DSS_COLOR_RGBX16 |
++	OMAP_DSS_COLOR_RGBX32,
++};
++
+ static const char * const omap2_dss_clk_source_names[] = {
+ 	[OMAP_DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC]	= "N/A",
+ 	[OMAP_DSS_CLK_SRC_DSI_PLL_HSDIV_DSI]	= "N/A",
+@@ -299,7 +330,7 @@ static const struct omap_dss_features omap4_dss_features = {
+ 	.num_mgrs = 3,
+ 	.num_ovls = 3,
+ 	.supported_displays = omap4_dss_supported_displays,
+-	.supported_color_modes = omap3_dss_supported_color_modes,
++	.supported_color_modes = omap4_dss_supported_color_modes,
+ 	.clksrc_names = omap4_dss_clk_source_names,
+ 	.dss_params = omap4_dss_param_range,
+ };
+diff --git a/drivers/video/omap2/dss/manager.c b/drivers/video/omap2/dss/manager.c
+index ee38ca2..b40fe3d 100644
+--- a/drivers/video/omap2/dss/manager.c
++++ b/drivers/video/omap2/dss/manager.c
+@@ -775,10 +775,17 @@ static int configure_overlay(enum omap_plane plane)
+ 		}
+ 
+ 		switch (c->color_mode) {
++		case OMAP_DSS_COLOR_NV12:
++			bpp = 8;
++			break;
+ 		case OMAP_DSS_COLOR_RGB16:
+ 		case OMAP_DSS_COLOR_ARGB16:
+ 		case OMAP_DSS_COLOR_YUV2:
+ 		case OMAP_DSS_COLOR_UYVY:
++		case OMAP_DSS_COLOR_RGBA16:
++		case OMAP_DSS_COLOR_RGBX16:
++		case OMAP_DSS_COLOR_ARGB16_1555:
++		case OMAP_DSS_COLOR_XRGB16_1555:
+ 			bpp = 16;
+ 			break;
+ 
+diff --git a/include/video/omapdss.h b/include/video/omapdss.h
+index b1b5ba5..7680c20 100644
+--- a/include/video/omapdss.h
++++ b/include/video/omapdss.h
+@@ -86,6 +86,11 @@ enum omap_color_mode {
+ 	OMAP_DSS_COLOR_ARGB32	= 1 << 11, /* ARGB32 */
+ 	OMAP_DSS_COLOR_RGBA32	= 1 << 12, /* RGBA32 */
+ 	OMAP_DSS_COLOR_RGBX32	= 1 << 13, /* RGBx32 */
++	OMAP_DSS_COLOR_NV12		= 1 << 14, /* NV12 format: YUV 4:2:0 */
++	OMAP_DSS_COLOR_RGBA16		= 1 << 15, /* RGBA16 - 4444 */
++	OMAP_DSS_COLOR_RGBX16		= 1 << 16, /* RGBx16 - 4444 */
++	OMAP_DSS_COLOR_ARGB16_1555	= 1 << 17, /* ARGB16 - 1555 */
++	OMAP_DSS_COLOR_XRGB16_1555	= 1 << 18, /* xRGB16 - 1555 */
+ };
+ 
+ enum omap_lcd_display_type {
+-- 
+1.7.1
 
