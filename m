@@ -1,88 +1,89 @@
-From: Lars-Peter Clausen <lars@metafoo.de>
-Subject: Re: [PATCH] mmc: fix handling NULL returned from regulator_get()
-Date: Wed, 18 May 2011 19:10:44 -0700
-Message-ID: <4DD47C24.1080404@metafoo.de>
-References: <1305754664-2917-1-git-send-email-ospite@studenti.unina.it> <m3vcx7el5h.fsf@pullcord.laptop.org>
+From: Ricardo Neri <ricardo.neri@ti.com>
+Subject: Re: [PATCH 0/5] OMAP4: DSS2: HDMI: Add support for audio
+Date: Wed, 18 May 2011 23:36:25 -0500
+Message-ID: <1305779785.1920.2.camel@dexx0075479.dextra-mty.naucm.ext.ti.com>
+References: <1304578894-23967-1-git-send-email-ricardo.neri@ti.com>
+	 <1305655217.1883.51.camel@dexx0075479.dextra-mty.naucm.ext.ti.com>
+	 <1305699226.1834.2.camel@deskari>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <m3vcx7el5h.fsf@pullcord.laptop.org>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Chris Ball <cjb@laptop.org>
-Cc: Antonio Ospite <ospite@studenti.unina.it>, linux-mmc@vger.kernel.org, Will Newton <will.newton@gmail.com>, Linus Walleij <linus.walleij@stericsson.com>, Rabin Vincent <rabin.vincent@stericsson.com>, Sascha Hauer <s.hauer@pengutronix.de>, Madhusudhan Chikkature <madhu.cr@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:56912 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754015Ab1ESEhv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 19 May 2011 00:37:51 -0400
+Received: from dlep33.itg.ti.com ([157.170.170.112])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p4J4bp9h004511
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Wed, 18 May 2011 23:37:51 -0500
+In-Reply-To: <1305699226.1834.2.camel@deskari>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "K, Mythri P" <mythripk@ti.com>
 
-On 05/18/2011 02:47 PM, Chris Ball wrote:
-> Hi Antonio, thanks for doing this,
-> 
-> On Wed, May 18 2011, Antonio Ospite wrote:
->> When regulator_get() is stubbed down it returns NULL, handle this case
->> when deciding whether the driver can use the regulator or not.
->>
->> Remember: IS_ERR(NULL) is false, see also this discussion for more
->> insight: http://comments.gmane.org/gmane.linux.kernel.mmc/7934
->>
->> Now that regulator_get() is handled correctly, the ifdef on
->> CONFIG_REGULATOR in mmci.c can go away as well.
->>
->> Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
->> ---
->>
->>  drivers/mmc/host/dw_mmc.c     |    2 +-
->>  drivers/mmc/host/mmci.c       |    4 +---
->>  drivers/mmc/host/mxcmmc.c     |    2 +-
->>  drivers/mmc/host/omap_hsmmc.c |    4 ++--
->>  drivers/mmc/host/sdhci.c      |    2 +-
->>  5 files changed, 6 insertions(+), 8 deletions(-)
->>
->> diff --git a/drivers/mmc/host/dw_mmc.c b/drivers/mmc/host/dw_mmc.c
->> index 87e1f57..5be1325 100644
->> --- a/drivers/mmc/host/dw_mmc.c
->> +++ b/drivers/mmc/host/dw_mmc.c
->> @@ -1442,7 +1442,7 @@ static int __init dw_mci_init_slot(struct dw_mci *host, unsigned int id)
->>  #endif /* CONFIG_MMC_DW_IDMAC */
->>  
->>  	host->vmmc = regulator_get(mmc_dev(mmc), "vmmc");
->> -	if (IS_ERR(host->vmmc)) {
->> +	if (IS_ERR_OR_NULL(host->vmmc)) {
->>  		printk(KERN_INFO "%s: no vmmc regulator found\n", mmc_hostname(mmc));
->>  		host->vmmc = NULL;
->>  	} else
->> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
->> index 259ece0..45fd4fe 100644
->> --- a/drivers/mmc/host/omap_hsmmc.c
->> +++ b/drivers/mmc/host/omap_hsmmc.c
->> @@ -405,7 +405,7 @@ static int omap_hsmmc_reg_get(struct omap_hsmmc_host *host)
->>  	}
->>  
->>  	reg = regulator_get(host->dev, "vmmc");
->> -	if (IS_ERR(reg)) {
->> +	if (IS_ERR_OR_NULL(reg)) {
->>  		dev_dbg(host->dev, "vmmc regulator missing\n");
->>  		/*
->>  		* HACK: until fixed.c regulator is usable,
->>  	} else {
->> [...] 
-> I think I like this change for every driver *except* sdhci -- users who
-> compile with CONFIG_REGULATOR=n (i.e. most distros) will start seeing
-> "mmc0: no vmmc regulator found" when they boot their x86 laptops, and
-> printing a cryptic regulator error message when regulator support isn't
-> even compiled in seems uncalled for.
-> 
-> So, I think my suggestion is to merge all but the last hunk of the
-> patch.  How do others feel about it?
-> 
+Hi Tomi,
+Le mercredi 18 mai 2011 =C3=A0 01:13 -0500, Valkeinen, Tomi a =C3=A9cri=
+t :
+> Hi,
+>=20
+> On Tue, 2011-05-17 at 13:00 -0500, Ricardo Neri wrote:
+> > Hi,
+> >=20
+> > I would like to solicit comments on this set of patches. Now that A=
+SoC
+> > part of the implementation has been Ack'ed by ASoC maintainers, the=
+se
+> > patches are needed.
+>=20
+> I think the patches look ok. However, they don't apply to the current
+> DSS2 master branch. Can you rebase to
+>=20
+> git://gitorious.org/linux-omap-dss2/linux.git master
+>=20
+> and send me patches or a git url from which I can pull.
 
-dw_mmc and omap_hsmmc will also print error messages if the regulator framework
-is not build-in. I suggest to use something like:
+I have rebased the patches. Here is the information for you to pull the
+changes:
 
-if (IS_ERR(vmmc)) {
-	... do error handling
-} else if(vmmc) {
-	... use regulator
-} else {
-	... fallback code to initialize ocr_avail
-}
+The following changes since commit
+9138edf3cb53ecf5cfab2323d9b319bdb0a2ae25:
+  Archit Taneja (1):
+        OMAP4: 4430SDP: Add Panel Taal device struct in 4430sdp board
+file
 
-- Lars
+are available in the git repository at:
+
+  git://gitorious.org/omap-audio/linux-audio.git
+ricardon/topic/hdmi-audio-for-tomi
+
+Ricardo Neri (5):
+      OMAP4: DSS2: Create a DSS features structure for OMAP4430 ES1.0
+      OMAP4: DSS2: HDMI: Add DSS feature for CTS calculation
+      OMAP4: DSS2: HDMI: Add enums and structures for audio
+      OMAP4: DSS2: HDMI: Add functionality for audio configuration
+      OMAP4: DSS2: HDMI: Implement ASoC Codec driver for HDMI audio
+
+ drivers/video/omap2/dss/dss_features.c |   29 ++-
+ drivers/video/omap2/dss/dss_features.h |    1 +
+ drivers/video/omap2/dss/hdmi.c         |  432
+++++++++++++++++++++++++++++++++
+ drivers/video/omap2/dss/hdmi.h         |  220 ++++++++++++++++-
+ 4 files changed, 678 insertions(+), 4 deletions(-)
+
+
+Thanks!
+
+Ricardo
+>=20
+>  Tomi
+>=20
+>=20
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
