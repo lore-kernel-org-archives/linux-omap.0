@@ -1,36 +1,37 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 5/5] OMAP: DSS2: Add support for NV12 format
-Date: Thu, 19 May 2011 09:51:58 +0300
-Message-ID: <1305787918.1849.40.camel@deskari>
-References: <1305783090-21214-1-git-send-email-amber@ti.com>
-	 <1305783090-21214-6-git-send-email-amber@ti.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH 01/19] Make clocksource name const
+Date: Thu, 19 May 2011 09:19:44 +0200
+Message-ID: <BANLkTin-N-=CcS0nDrNH1wmSWHtxg8gMVw@mail.gmail.com>
+References: <20110516172334.GD13659@n2100.arm.linux.org.uk>
+	<E1QM1YI-0003DJ-BQ@rmk-PC.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:46529 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754845Ab1ESGwJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 19 May 2011 02:52:09 -0400
-Received: by eye13 with SMTP id 13so1051708eye.17
-        for <linux-omap@vger.kernel.org>; Wed, 18 May 2011 23:52:01 -0700 (PDT)
-In-Reply-To: <1305783090-21214-6-git-send-email-amber@ti.com>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:55570 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755777Ab1ESHTp convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 May 2011 03:19:45 -0400
+Received: by iwn34 with SMTP id 34so1947004iwn.19
+        for <linux-omap@vger.kernel.org>; Thu, 19 May 2011 00:19:44 -0700 (PDT)
+In-Reply-To: <E1QM1YI-0003DJ-BQ@rmk-PC.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Amber Jain <amber@ti.com>
-Cc: linux-omap@vger.kernel.org, molnar@ti.com
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.infradead.org, John Stultz <johnstul@us.ibm.com>, Thomas Gleixner <tglx@linutronix.de>, Kukjin Kim <kgene.kim@samsung.com>, Eric Miao <eric.y.miao@gmail.com>, Erik Gilling <konkers@android.com>, Nicolas Pitre <nico@fluxnic.net>, Tony Lindgren <tony@atomide.com>, Krzysztof Halasa <khc@pm.waw.pl>, linux-omap@vger.kernel.org, "Hans J. Koch" <hjk@hansjkoch.de>, Sascha Hauer <kernel@pengutronix.de>, Colin Cross <ccross@android.com>, Olof Johansson <olof@lixom.net>, Imre Kaloz <kaloz@openwrt.org>, Wan ZongShun <mcuos.com@gmail.com>, Lennert Buytenhek <kernel@wantstofly.org>, Alessandro Rubini <rubini@unipv.it>
 
-On Thu, 2011-05-19 at 11:01 +0530, Amber Jain wrote:
-> Adds the support for NV12 color format.
-> Added basic scaling support for the UV-plane in case of NV12 format.
+2011/5/16 Russell King - ARM Linux <linux@arm.linux.org.uk>:
 
-This is the most complex part of the patch set, do you feel the lines
-above explain what the patch is about? What about this patch affecting
-the old YUV modes? The scaler being enabled always for YUV modes on
-OMAP4? Any other areas the patch could affect? Things like that should
-be mentioned here.
+> As nothing should be writing to the clocksource name string, make the
+> clocksource name pointer const. =A0Build-tested on ARM Versatile Expr=
+ess.
 
- Tomi
+Acked-by: Linus Walleij <linus.walleij@linaro.org>
 
-
+Yours,
+Linus Walleij
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
