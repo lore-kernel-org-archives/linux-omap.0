@@ -1,58 +1,61 @@
-From: Shubhrajyoti <shubhrajyoti@ti.com>
-Subject: Re: [PATCH] omap4: hwmod: Enable the keypad
-Date: Thu, 19 May 2011 16:17:07 +0530
-Message-ID: <4DD4F52B.5070209@ti.com>
-References: <1298526157-2856-1-git-send-email-shubhrajyoti@ti.com> <4D6639DF.2040009@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PM-WIP_CPUFREQ][PATCH 1/6 v2] OMAP2+: cpufreq: free up table on exit
+Date: Thu, 19 May 2011 12:26:51 +0200
+Message-ID: <87liy39eac.fsf@ti.com>
+References: <1305704266-17623-2-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:49811 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753911Ab1ESKrP (ORCPT
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:52705 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752177Ab1ESKrp (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 19 May 2011 06:47:15 -0400
-Received: by yia27 with SMTP id 27so1130656yia.5
-        for <linux-omap@vger.kernel.org>; Thu, 19 May 2011 03:47:14 -0700 (PDT)
-In-Reply-To: <4D6639DF.2040009@ti.com>
+	Thu, 19 May 2011 06:47:45 -0400
+Received: by wwi18 with SMTP id 18so5494187wwi.4
+        for <linux-omap@vger.kernel.org>; Thu, 19 May 2011 03:47:42 -0700 (PDT)
+In-Reply-To: <1305704266-17623-2-git-send-email-nm@ti.com> (Nishanth Menon's
+	message of "Wed, 18 May 2011 02:37:41 -0500")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Nishanth Menon <nm@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>
 
-On Thursday 24 February 2011 04:28 PM, Cousson, Benoit wrote:
-> On 2/24/2011 6:42 AM, Datta, Shubhrajyoti wrote:
->> From: Shubhrajyoti D<shubhrajyoti@ti.com>
->>
->> Enable the keypad in the hwmod database.
->>
->> Signed-off-by: Shubhrajyoti D<shubhrajyoti@ti.com>
->> Cc: Benoit Cousson<b-cousson@ti.com>
->
-> Acked-by: Benoit Cousson<b-cousson@ti.com>
-Could this patch be queued for the next merge window. If there are no 
-further comments.
-Thanks and regards,
+Nishanth Menon <nm@ti.com> writes:
 
->
->> ---
->>   arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    2 +-
->>   1 files changed, 1 insertions(+), 1 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c 
->> b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
->> index 79a8601..5af80d6 100644
->> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
->> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
->> @@ -5056,7 +5056,7 @@ static __initdata struct omap_hwmod 
->> *omap44xx_hwmods[] = {
->> &omap44xx_iva_seq1_hwmod,
->>
->>       /* kbd class */
->> -/* &omap44xx_kbd_hwmod, */
->> + &omap44xx_kbd_hwmod,
->>
->>       /* mailbox class */
->> &omap44xx_mailbox_hwmod,
->
+> freq_table allocated by opp_init_cpufreq_table in omap_cpu_init
+> needs to be freed in omap_cpu_exit.
 
+Actually it needs to be freed by a corresponding OPP layer function.
+
+IOW, what happens if the OPP core code switches from using kmalloc to
+static tables, or something else?    The cleanup should be done by the
+same layer that does the init/alloc.
+
+Kevin
+
+> Signed-off-by: Nishanth Menon <nm@ti.com>
+> ---
+>  arch/arm/mach-omap2/omap2plus-cpufreq.c |    3 +++
+>  1 files changed, 3 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/omap2plus-cpufreq.c b/arch/arm/mach-omap2/omap2plus-cpufreq.c
+> index d53ce23..e38ebb8 100644
+> --- a/arch/arm/mach-omap2/omap2plus-cpufreq.c
+> +++ b/arch/arm/mach-omap2/omap2plus-cpufreq.c
+> @@ -26,6 +26,7 @@
+>  #include <linux/clk.h>
+>  #include <linux/io.h>
+>  #include <linux/opp.h>
+> +#include <linux/slab.h>
+>  #include <linux/cpu.h>
+>  
+>  #include <asm/system.h>
+> @@ -216,6 +217,8 @@ static int __cpuinit omap_cpu_init(struct cpufreq_policy *policy)
+>  static int omap_cpu_exit(struct cpufreq_policy *policy)
+>  {
+>  	clk_exit_cpufreq_table(&freq_table);
+> +	kfree(freq_table);
+> +	freq_table = NULL;
+>  	clk_put(mpu_clk);
+>  	return 0;
+>  }
