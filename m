@@ -1,79 +1,125 @@
-From: "Menon, Nishanth" <nm@ti.com>
-Subject: Re: [PATCH V4] OMAP3+: SR Layer Cleanup
-Date: Fri, 20 May 2011 08:23:02 -0500
-Message-ID: <BANLkTi=sLwrdaOanRNDM+NsnBGjxn5G6nQ@mail.gmail.com>
-References: <1305268062-20046-1-git-send-email-shweta.gulati@ti.com>
+From: Balaji T K <balajitk@ti.com>
+Subject: [PATCH 1/2] regulator: twl6030: do not write to _GRP for regulator enable
+Date: Fri, 20 May 2011 19:03:51 +0530
+Message-ID: <1305898432-14939-2-git-send-email-balajitk@ti.com>
+References: <1305898432-14939-1-git-send-email-balajitk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:53208 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754355Ab1ETNXX convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 20 May 2011 09:23:23 -0400
-Received: by mail-ww0-f47.google.com with SMTP id 4so3709678wwk.28
-        for <linux-omap@vger.kernel.org>; Fri, 20 May 2011 06:23:22 -0700 (PDT)
-In-Reply-To: <1305268062-20046-1-git-send-email-shweta.gulati@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:56678 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933851Ab1ETNfD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 20 May 2011 09:35:03 -0400
+In-Reply-To: <1305898432-14939-1-git-send-email-balajitk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Shweta Gulati <shweta.gulati@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
+To: linux-omap@vger.kernel.org, lrg@slimlogic.co.uk
+Cc: broonie@opensource.wolfsonmicro.com, lrg@ti.com, gg@slimlogic.co.uk, Balaji T K <balajitk@ti.com>
 
-On Fri, May 13, 2011 at 01:27, Shweta Gulati <shweta.gulati@ti.com> wro=
-te:
-[...]
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/ma=
-ch-omap2/omap_hwmod_3xxx_data.c
-> index 3cd91ac..b1b11de 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> @@ -29,6 +29,7 @@
->
-> =A0#include "omap_hwmod_common_data.h"
->
-> +#include "smartreflex.h"
-> =A0#include "prm-regbits-34xx.h"
-> =A0#include "cm-regbits-34xx.h"
-> =A0#include "wd_timer.h"
-> @@ -2904,6 +2905,10 @@ static struct omap_hwmod_class omap36xx_smartr=
-eflex_hwmod_class =3D {
-> =A0};
->
-> =A0/* SR1 */
-> +static struct omap_smartreflex_dev_attr sr1_dev_attr =3D {
-> + =A0 =A0 =A0 .sensor_voltdm_name =A0 =3D "mpu_iva",
-> +};
+TWL6030: regulator is enabled via VREG_STATE
+TWL4030: regulator is enabled via VREG_GRP
+Since there is nothing common, split twlreg_enable similar to other regulator_ops
 
-[...]
-> diff --git a/arch/arm/mach-omap2/smartreflex.h b/arch/arm/mach-omap2/=
-smartreflex.h
-> index 5f35b9e..aeeec5f 100644
-> --- a/arch/arm/mach-omap2/smartreflex.h
-> +++ b/arch/arm/mach-omap2/smartreflex.h
-> @@ -197,6 +197,16 @@ struct omap_sr_nvalue_table {
-> =A0};
->
-> =A0/**
-> + * struct omap_smartreflex_dev_attr - Smartreflex Device attribute.
-> + *
-> + * @sensor_voltdm_name: =A0 =A0 =A0 Name of voltdomain of SR instanc=
-e
-> + */
-> +
-> +struct omap_smartreflex_dev_attr {
-> + =A0 =A0 =A0 const char =A0 =A0 =A0*sensor_voltdm_name;
-> +};
-> +
+Signed-off-by: Balaji T K <balajitk@ti.com>
+---
+ drivers/regulator/twl-regulator.c |   39 +++++++++++++++++++++++-------------
+ 1 files changed, 25 insertions(+), 14 deletions(-)
 
-This structure is in #ifdef CONFIG_SMART_REFLEX and breaks
-hwmod_data.c when built without SR.
-please move it out of the #ifdef in your next rev.
+diff --git a/drivers/regulator/twl-regulator.c b/drivers/regulator/twl-regulator.c
+index 2a808c2..abb40c6 100644
+--- a/drivers/regulator/twl-regulator.c
++++ b/drivers/regulator/twl-regulator.c
+@@ -156,7 +156,7 @@ static int twl6030reg_is_enabled(struct regulator_dev *rdev)
+ 	return grp && (val == TWL6030_CFG_STATE_ON);
+ }
+ 
+-static int twlreg_enable(struct regulator_dev *rdev)
++static int twl4030reg_enable(struct regulator_dev *rdev)
+ {
+ 	struct twlreg_info	*info = rdev_get_drvdata(rdev);
+ 	int			grp;
+@@ -166,17 +166,28 @@ static int twlreg_enable(struct regulator_dev *rdev)
+ 	if (grp < 0)
+ 		return grp;
+ 
+-	if (twl_class_is_4030())
+-		grp |= P1_GRP_4030;
+-	else
+-		grp |= P1_GRP_6030;
++	grp |= P1_GRP_4030;
+ 
+ 	ret = twlreg_write(info, TWL_MODULE_PM_RECEIVER, VREG_GRP, grp);
+ 
+-	if (!ret && twl_class_is_6030())
+-		ret = twlreg_write(info, TWL_MODULE_PM_RECEIVER, VREG_STATE,
+-				grp << TWL6030_CFG_STATE_GRP_SHIFT |
+-				TWL6030_CFG_STATE_ON);
++	udelay(info->delay);
++
++	return ret;
++}
++
++static int twl6030reg_enable(struct regulator_dev *rdev)
++{
++	struct twlreg_info	*info = rdev_get_drvdata(rdev);
++	int			grp;
++	int			ret;
++
++	grp = twlreg_read(info, TWL_MODULE_PM_RECEIVER, VREG_GRP);
++	if (grp < 0)
++		return grp;
++
++	ret = twlreg_write(info, TWL_MODULE_PM_RECEIVER, VREG_STATE,
++			grp << TWL6030_CFG_STATE_GRP_SHIFT |
++			TWL6030_CFG_STATE_ON);
+ 
+ 	udelay(info->delay);
+ 
+@@ -473,7 +484,7 @@ static struct regulator_ops twl4030ldo_ops = {
+ 	.set_voltage	= twl4030ldo_set_voltage,
+ 	.get_voltage	= twl4030ldo_get_voltage,
+ 
+-	.enable		= twlreg_enable,
++	.enable		= twl4030reg_enable,
+ 	.disable	= twlreg_disable,
+ 	.is_enabled	= twl4030reg_is_enabled,
+ 
+@@ -531,7 +542,7 @@ static struct regulator_ops twl6030ldo_ops = {
+ 	.set_voltage	= twl6030ldo_set_voltage,
+ 	.get_voltage	= twl6030ldo_get_voltage,
+ 
+-	.enable		= twlreg_enable,
++	.enable		= twl6030reg_enable,
+ 	.disable	= twlreg_disable,
+ 	.is_enabled	= twl6030reg_is_enabled,
+ 
+@@ -564,7 +575,7 @@ static struct regulator_ops twl4030fixed_ops = {
+ 
+ 	.get_voltage	= twlfixed_get_voltage,
+ 
+-	.enable		= twlreg_enable,
++	.enable		= twl4030reg_enable,
+ 	.disable	= twlreg_disable,
+ 	.is_enabled	= twl4030reg_is_enabled,
+ 
+@@ -578,7 +589,7 @@ static struct regulator_ops twl6030fixed_ops = {
+ 
+ 	.get_voltage	= twlfixed_get_voltage,
+ 
+-	.enable		= twlreg_enable,
++	.enable		= twl6030reg_enable,
+ 	.disable	= twlreg_disable,
+ 	.is_enabled	= twl6030reg_is_enabled,
+ 
+@@ -588,7 +599,7 @@ static struct regulator_ops twl6030fixed_ops = {
+ };
+ 
+ static struct regulator_ops twl6030_fixed_resource = {
+-	.enable		= twlreg_enable,
++	.enable		= twl6030reg_enable,
+ 	.disable	= twlreg_disable,
+ 	.is_enabled	= twl6030reg_is_enabled,
+ 	.get_status	= twl6030reg_get_status,
+-- 
+1.7.0.4
 
-Regards,
-Nishanth Menon
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
