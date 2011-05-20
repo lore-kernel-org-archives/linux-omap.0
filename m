@@ -1,133 +1,260 @@
-From: Balaji T K <balajitk@ti.com>
-Subject: [PATCH 2/2] regulator: twl6030: do not write to _GRP for regulator disable
-Date: Fri, 20 May 2011 19:03:52 +0530
-Message-ID: <1305898432-14939-3-git-send-email-balajitk@ti.com>
-References: <1305898432-14939-1-git-send-email-balajitk@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
+From: Kevin Hilman <khilman@ti.com>
+Subject: [PATCH 1/2] GPIO: OMAP: move register offset defines into <plat/gpio.h>
+Date: Fri, 20 May 2011 15:41:07 +0200
+Message-ID: <1305898868-9188-2-git-send-email-khilman@ti.com>
+References: <1305898868-9188-1-git-send-email-khilman@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:49661 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933946Ab1ETNfH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 20 May 2011 09:35:07 -0400
-In-Reply-To: <1305898432-14939-1-git-send-email-balajitk@ti.com>
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:52318 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S934137Ab1ETNlQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 20 May 2011 09:41:16 -0400
+Received: by mail-wy0-f180.google.com with SMTP id 26so4478342wyj.39
+        for <linux-omap@vger.kernel.org>; Fri, 20 May 2011 06:41:15 -0700 (PDT)
+In-Reply-To: <1305898868-9188-1-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, lrg@slimlogic.co.uk
-Cc: broonie@opensource.wolfsonmicro.com, lrg@ti.com, gg@slimlogic.co.uk, Balaji T K <balajitk@ti.com>
+To: linux-omap@vger.kernel.org, Grant Likely <grant.likely@secretlab.ca>, Linus Walleij <linus.walleij@stericsson.com>
+Cc: linux-arm-kernel@lists.infradead.org
 
-TWL6030: regulator is disabled via VREG_STATE
-TWL4030: regulator is disabled via VREG_GRP
-Since there is nothing common, split twlreg_enable similar to other regulator_ops
+Register offset defines are moved to <plat/gpio.h> so they can be used
+by SoC-specific device init code to fill out platform_data register
+offsets.
 
-Signed-off-by: Balaji T K <balajitk@ti.com>
+Signed-off-by: Kevin Hilman <khilman@ti.com>
 ---
- drivers/regulator/twl-regulator.c |   47 +++++++++++++++++-------------------
- 1 files changed, 22 insertions(+), 25 deletions(-)
+ arch/arm/plat-omap/gpio.c              |  103 --------------------------------
+ arch/arm/plat-omap/include/plat/gpio.h |  103 ++++++++++++++++++++++++++++++++
+ 2 files changed, 103 insertions(+), 103 deletions(-)
 
-diff --git a/drivers/regulator/twl-regulator.c b/drivers/regulator/twl-regulator.c
-index abb40c6..4702b8a 100644
---- a/drivers/regulator/twl-regulator.c
-+++ b/drivers/regulator/twl-regulator.c
-@@ -194,7 +194,7 @@ static int twl6030reg_enable(struct regulator_dev *rdev)
- 	return ret;
- }
+diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+index d2adcdd..ff70538 100644
+--- a/arch/arm/plat-omap/gpio.c
++++ b/arch/arm/plat-omap/gpio.c
+@@ -30,109 +30,6 @@
+ #include <mach/gpio.h>
+ #include <asm/mach/irq.h>
  
--static int twlreg_disable(struct regulator_dev *rdev)
-+static int twl4030reg_disable(struct regulator_dev *rdev)
- {
- 	struct twlreg_info	*info = rdev_get_drvdata(rdev);
- 	int			grp;
-@@ -204,28 +204,25 @@ static int twlreg_disable(struct regulator_dev *rdev)
- 	if (grp < 0)
- 		return grp;
- 
--	/* For 6030, set the off state for all grps enabled */
--	if (twl_class_is_6030()) {
--		ret = twlreg_write(info, TWL_MODULE_PM_RECEIVER, VREG_STATE,
--			(grp & (P1_GRP_6030 | P2_GRP_6030 | P3_GRP_6030)) <<
--				TWL6030_CFG_STATE_GRP_SHIFT |
--			TWL6030_CFG_STATE_OFF);
--		if (ret)
--			return ret;
--	}
+-/*
+- * OMAP1510 GPIO registers
+- */
+-#define OMAP1510_GPIO_DATA_INPUT	0x00
+-#define OMAP1510_GPIO_DATA_OUTPUT	0x04
+-#define OMAP1510_GPIO_DIR_CONTROL	0x08
+-#define OMAP1510_GPIO_INT_CONTROL	0x0c
+-#define OMAP1510_GPIO_INT_MASK		0x10
+-#define OMAP1510_GPIO_INT_STATUS	0x14
+-#define OMAP1510_GPIO_PIN_CONTROL	0x18
 -
--	if (twl_class_is_4030())
--		grp &= ~(P1_GRP_4030 | P2_GRP_4030 | P3_GRP_4030);
--	else
--		grp &= ~(P1_GRP_6030 | P2_GRP_6030 | P3_GRP_6030);
-+	grp &= ~(P1_GRP_4030 | P2_GRP_4030 | P3_GRP_4030);
+-#define OMAP1510_IH_GPIO_BASE		64
+-
+-/*
+- * OMAP1610 specific GPIO registers
+- */
+-#define OMAP1610_GPIO_REVISION		0x0000
+-#define OMAP1610_GPIO_SYSCONFIG		0x0010
+-#define OMAP1610_GPIO_SYSSTATUS		0x0014
+-#define OMAP1610_GPIO_IRQSTATUS1	0x0018
+-#define OMAP1610_GPIO_IRQENABLE1	0x001c
+-#define OMAP1610_GPIO_WAKEUPENABLE	0x0028
+-#define OMAP1610_GPIO_DATAIN		0x002c
+-#define OMAP1610_GPIO_DATAOUT		0x0030
+-#define OMAP1610_GPIO_DIRECTION		0x0034
+-#define OMAP1610_GPIO_EDGE_CTRL1	0x0038
+-#define OMAP1610_GPIO_EDGE_CTRL2	0x003c
+-#define OMAP1610_GPIO_CLEAR_IRQENABLE1	0x009c
+-#define OMAP1610_GPIO_CLEAR_WAKEUPENA	0x00a8
+-#define OMAP1610_GPIO_CLEAR_DATAOUT	0x00b0
+-#define OMAP1610_GPIO_SET_IRQENABLE1	0x00dc
+-#define OMAP1610_GPIO_SET_WAKEUPENA	0x00e8
+-#define OMAP1610_GPIO_SET_DATAOUT	0x00f0
+-
+-/*
+- * OMAP7XX specific GPIO registers
+- */
+-#define OMAP7XX_GPIO_DATA_INPUT		0x00
+-#define OMAP7XX_GPIO_DATA_OUTPUT	0x04
+-#define OMAP7XX_GPIO_DIR_CONTROL	0x08
+-#define OMAP7XX_GPIO_INT_CONTROL	0x0c
+-#define OMAP7XX_GPIO_INT_MASK		0x10
+-#define OMAP7XX_GPIO_INT_STATUS		0x14
+-
+-/*
+- * omap2+ specific GPIO registers
+- */
+-#define OMAP24XX_GPIO_REVISION		0x0000
+-#define OMAP24XX_GPIO_IRQSTATUS1	0x0018
+-#define OMAP24XX_GPIO_IRQSTATUS2	0x0028
+-#define OMAP24XX_GPIO_IRQENABLE2	0x002c
+-#define OMAP24XX_GPIO_IRQENABLE1	0x001c
+-#define OMAP24XX_GPIO_WAKE_EN		0x0020
+-#define OMAP24XX_GPIO_CTRL		0x0030
+-#define OMAP24XX_GPIO_OE		0x0034
+-#define OMAP24XX_GPIO_DATAIN		0x0038
+-#define OMAP24XX_GPIO_DATAOUT		0x003c
+-#define OMAP24XX_GPIO_LEVELDETECT0	0x0040
+-#define OMAP24XX_GPIO_LEVELDETECT1	0x0044
+-#define OMAP24XX_GPIO_RISINGDETECT	0x0048
+-#define OMAP24XX_GPIO_FALLINGDETECT	0x004c
+-#define OMAP24XX_GPIO_DEBOUNCE_EN	0x0050
+-#define OMAP24XX_GPIO_DEBOUNCE_VAL	0x0054
+-#define OMAP24XX_GPIO_CLEARIRQENABLE1	0x0060
+-#define OMAP24XX_GPIO_SETIRQENABLE1	0x0064
+-#define OMAP24XX_GPIO_CLEARWKUENA	0x0080
+-#define OMAP24XX_GPIO_SETWKUENA		0x0084
+-#define OMAP24XX_GPIO_CLEARDATAOUT	0x0090
+-#define OMAP24XX_GPIO_SETDATAOUT	0x0094
+-
+-#define OMAP4_GPIO_REVISION		0x0000
+-#define OMAP4_GPIO_EOI			0x0020
+-#define OMAP4_GPIO_IRQSTATUSRAW0	0x0024
+-#define OMAP4_GPIO_IRQSTATUSRAW1	0x0028
+-#define OMAP4_GPIO_IRQSTATUS0		0x002c
+-#define OMAP4_GPIO_IRQSTATUS1		0x0030
+-#define OMAP4_GPIO_IRQSTATUSSET0	0x0034
+-#define OMAP4_GPIO_IRQSTATUSSET1	0x0038
+-#define OMAP4_GPIO_IRQSTATUSCLR0	0x003c
+-#define OMAP4_GPIO_IRQSTATUSCLR1	0x0040
+-#define OMAP4_GPIO_IRQWAKEN0		0x0044
+-#define OMAP4_GPIO_IRQWAKEN1		0x0048
+-#define OMAP4_GPIO_IRQENABLE1		0x011c
+-#define OMAP4_GPIO_WAKE_EN		0x0120
+-#define OMAP4_GPIO_IRQSTATUS2		0x0128
+-#define OMAP4_GPIO_IRQENABLE2		0x012c
+-#define OMAP4_GPIO_CTRL			0x0130
+-#define OMAP4_GPIO_OE			0x0134
+-#define OMAP4_GPIO_DATAIN		0x0138
+-#define OMAP4_GPIO_DATAOUT		0x013c
+-#define OMAP4_GPIO_LEVELDETECT0		0x0140
+-#define OMAP4_GPIO_LEVELDETECT1		0x0144
+-#define OMAP4_GPIO_RISINGDETECT		0x0148
+-#define OMAP4_GPIO_FALLINGDETECT	0x014c
+-#define OMAP4_GPIO_DEBOUNCENABLE	0x0150
+-#define OMAP4_GPIO_DEBOUNCINGTIME	0x0154
+-#define OMAP4_GPIO_CLEARIRQENABLE1	0x0160
+-#define OMAP4_GPIO_SETIRQENABLE1	0x0164
+-#define OMAP4_GPIO_CLEARWKUENA		0x0180
+-#define OMAP4_GPIO_SETWKUENA		0x0184
+-#define OMAP4_GPIO_CLEARDATAOUT		0x0190
+-#define OMAP4_GPIO_SETDATAOUT		0x0194
+-
+ struct gpio_bank {
+ 	unsigned long pbase;
+ 	void __iomem *base;
+diff --git a/arch/arm/plat-omap/include/plat/gpio.h b/arch/arm/plat-omap/include/plat/gpio.h
+index cac2e8a..ec97e00 100644
+--- a/arch/arm/plat-omap/include/plat/gpio.h
++++ b/arch/arm/plat-omap/include/plat/gpio.h
+@@ -52,6 +52,109 @@
  
- 	ret = twlreg_write(info, TWL_MODULE_PM_RECEIVER, VREG_GRP, grp);
+ #define OMAP34XX_NR_GPIOS		6
  
--	/* Next, associate cleared grp in state register */
--	if (!ret && twl_class_is_6030())
--		ret = twlreg_write(info, TWL_MODULE_PM_RECEIVER, VREG_STATE,
--				grp << TWL6030_CFG_STATE_GRP_SHIFT |
--				TWL6030_CFG_STATE_OFF);
-+	return ret;
-+}
++/*
++ * OMAP1510 GPIO registers
++ */
++#define OMAP1510_GPIO_DATA_INPUT	0x00
++#define OMAP1510_GPIO_DATA_OUTPUT	0x04
++#define OMAP1510_GPIO_DIR_CONTROL	0x08
++#define OMAP1510_GPIO_INT_CONTROL	0x0c
++#define OMAP1510_GPIO_INT_MASK		0x10
++#define OMAP1510_GPIO_INT_STATUS	0x14
++#define OMAP1510_GPIO_PIN_CONTROL	0x18
 +
-+static int twl6030reg_disable(struct regulator_dev *rdev)
-+{
-+	struct twlreg_info	*info = rdev_get_drvdata(rdev);
-+	int			grp = 0;
-+	int			ret;
++#define OMAP1510_IH_GPIO_BASE		64
 +
-+	grp = P1_GRP_6030 | P2_GRP_6030 | P3_GRP_6030;
++/*
++ * OMAP1610 specific GPIO registers
++ */
++#define OMAP1610_GPIO_REVISION		0x0000
++#define OMAP1610_GPIO_SYSCONFIG		0x0010
++#define OMAP1610_GPIO_SYSSTATUS		0x0014
++#define OMAP1610_GPIO_IRQSTATUS1	0x0018
++#define OMAP1610_GPIO_IRQENABLE1	0x001c
++#define OMAP1610_GPIO_WAKEUPENABLE	0x0028
++#define OMAP1610_GPIO_DATAIN		0x002c
++#define OMAP1610_GPIO_DATAOUT		0x0030
++#define OMAP1610_GPIO_DIRECTION		0x0034
++#define OMAP1610_GPIO_EDGE_CTRL1	0x0038
++#define OMAP1610_GPIO_EDGE_CTRL2	0x003c
++#define OMAP1610_GPIO_CLEAR_IRQENABLE1	0x009c
++#define OMAP1610_GPIO_CLEAR_WAKEUPENA	0x00a8
++#define OMAP1610_GPIO_CLEAR_DATAOUT	0x00b0
++#define OMAP1610_GPIO_SET_IRQENABLE1	0x00dc
++#define OMAP1610_GPIO_SET_WAKEUPENA	0x00e8
++#define OMAP1610_GPIO_SET_DATAOUT	0x00f0
 +
-+	/* For 6030, set the off state for all grps enabled */
-+	ret = twlreg_write(info, TWL_MODULE_PM_RECEIVER, VREG_STATE,
-+			(grp) << TWL6030_CFG_STATE_GRP_SHIFT |
-+			TWL6030_CFG_STATE_OFF);
++/*
++ * OMAP7XX specific GPIO registers
++ */
++#define OMAP7XX_GPIO_DATA_INPUT		0x00
++#define OMAP7XX_GPIO_DATA_OUTPUT	0x04
++#define OMAP7XX_GPIO_DIR_CONTROL	0x08
++#define OMAP7XX_GPIO_INT_CONTROL	0x0c
++#define OMAP7XX_GPIO_INT_MASK		0x10
++#define OMAP7XX_GPIO_INT_STATUS		0x14
++
++/*
++ * omap2+ specific GPIO registers
++ */
++#define OMAP24XX_GPIO_REVISION		0x0000
++#define OMAP24XX_GPIO_IRQSTATUS1	0x0018
++#define OMAP24XX_GPIO_IRQSTATUS2	0x0028
++#define OMAP24XX_GPIO_IRQENABLE2	0x002c
++#define OMAP24XX_GPIO_IRQENABLE1	0x001c
++#define OMAP24XX_GPIO_WAKE_EN		0x0020
++#define OMAP24XX_GPIO_CTRL		0x0030
++#define OMAP24XX_GPIO_OE		0x0034
++#define OMAP24XX_GPIO_DATAIN		0x0038
++#define OMAP24XX_GPIO_DATAOUT		0x003c
++#define OMAP24XX_GPIO_LEVELDETECT0	0x0040
++#define OMAP24XX_GPIO_LEVELDETECT1	0x0044
++#define OMAP24XX_GPIO_RISINGDETECT	0x0048
++#define OMAP24XX_GPIO_FALLINGDETECT	0x004c
++#define OMAP24XX_GPIO_DEBOUNCE_EN	0x0050
++#define OMAP24XX_GPIO_DEBOUNCE_VAL	0x0054
++#define OMAP24XX_GPIO_CLEARIRQENABLE1	0x0060
++#define OMAP24XX_GPIO_SETIRQENABLE1	0x0064
++#define OMAP24XX_GPIO_CLEARWKUENA	0x0080
++#define OMAP24XX_GPIO_SETWKUENA		0x0084
++#define OMAP24XX_GPIO_CLEARDATAOUT	0x0090
++#define OMAP24XX_GPIO_SETDATAOUT	0x0094
++
++#define OMAP4_GPIO_REVISION		0x0000
++#define OMAP4_GPIO_EOI			0x0020
++#define OMAP4_GPIO_IRQSTATUSRAW0	0x0024
++#define OMAP4_GPIO_IRQSTATUSRAW1	0x0028
++#define OMAP4_GPIO_IRQSTATUS0		0x002c
++#define OMAP4_GPIO_IRQSTATUS1		0x0030
++#define OMAP4_GPIO_IRQSTATUSSET0	0x0034
++#define OMAP4_GPIO_IRQSTATUSSET1	0x0038
++#define OMAP4_GPIO_IRQSTATUSCLR0	0x003c
++#define OMAP4_GPIO_IRQSTATUSCLR1	0x0040
++#define OMAP4_GPIO_IRQWAKEN0		0x0044
++#define OMAP4_GPIO_IRQWAKEN1		0x0048
++#define OMAP4_GPIO_IRQENABLE1		0x011c
++#define OMAP4_GPIO_WAKE_EN		0x0120
++#define OMAP4_GPIO_IRQSTATUS2		0x0128
++#define OMAP4_GPIO_IRQENABLE2		0x012c
++#define OMAP4_GPIO_CTRL			0x0130
++#define OMAP4_GPIO_OE			0x0134
++#define OMAP4_GPIO_DATAIN		0x0138
++#define OMAP4_GPIO_DATAOUT		0x013c
++#define OMAP4_GPIO_LEVELDETECT0		0x0140
++#define OMAP4_GPIO_LEVELDETECT1		0x0144
++#define OMAP4_GPIO_RISINGDETECT		0x0148
++#define OMAP4_GPIO_FALLINGDETECT	0x014c
++#define OMAP4_GPIO_DEBOUNCENABLE	0x0150
++#define OMAP4_GPIO_DEBOUNCINGTIME	0x0154
++#define OMAP4_GPIO_CLEARIRQENABLE1	0x0160
++#define OMAP4_GPIO_SETIRQENABLE1	0x0164
++#define OMAP4_GPIO_CLEARWKUENA		0x0180
++#define OMAP4_GPIO_SETWKUENA		0x0184
++#define OMAP4_GPIO_CLEARDATAOUT		0x0190
++#define OMAP4_GPIO_SETDATAOUT		0x0194
++
+ #define OMAP_MPUIO(nr)		(OMAP_MAX_GPIO_LINES + (nr))
+ #define OMAP_GPIO_IS_MPUIO(nr)	((nr) >= OMAP_MAX_GPIO_LINES)
  
- 	return ret;
- }
-@@ -485,7 +482,7 @@ static struct regulator_ops twl4030ldo_ops = {
- 	.get_voltage	= twl4030ldo_get_voltage,
- 
- 	.enable		= twl4030reg_enable,
--	.disable	= twlreg_disable,
-+	.disable	= twl4030reg_disable,
- 	.is_enabled	= twl4030reg_is_enabled,
- 
- 	.set_mode	= twl4030reg_set_mode,
-@@ -543,7 +540,7 @@ static struct regulator_ops twl6030ldo_ops = {
- 	.get_voltage	= twl6030ldo_get_voltage,
- 
- 	.enable		= twl6030reg_enable,
--	.disable	= twlreg_disable,
-+	.disable	= twl6030reg_disable,
- 	.is_enabled	= twl6030reg_is_enabled,
- 
- 	.set_mode	= twl6030reg_set_mode,
-@@ -576,7 +573,7 @@ static struct regulator_ops twl4030fixed_ops = {
- 	.get_voltage	= twlfixed_get_voltage,
- 
- 	.enable		= twl4030reg_enable,
--	.disable	= twlreg_disable,
-+	.disable	= twl4030reg_disable,
- 	.is_enabled	= twl4030reg_is_enabled,
- 
- 	.set_mode	= twl4030reg_set_mode,
-@@ -590,7 +587,7 @@ static struct regulator_ops twl6030fixed_ops = {
- 	.get_voltage	= twlfixed_get_voltage,
- 
- 	.enable		= twl6030reg_enable,
--	.disable	= twlreg_disable,
-+	.disable	= twl6030reg_disable,
- 	.is_enabled	= twl6030reg_is_enabled,
- 
- 	.set_mode	= twl6030reg_set_mode,
-@@ -600,7 +597,7 @@ static struct regulator_ops twl6030fixed_ops = {
- 
- static struct regulator_ops twl6030_fixed_resource = {
- 	.enable		= twl6030reg_enable,
--	.disable	= twlreg_disable,
-+	.disable	= twl6030reg_disable,
- 	.is_enabled	= twl6030reg_is_enabled,
- 	.get_status	= twl6030reg_get_status,
- };
 -- 
-1.7.0.4
+1.7.3.4
 
