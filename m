@@ -1,75 +1,65 @@
-From: Shawn Guo <shawn.guo@freescale.com>
-Subject: Re: [v2 0/7] OMAP: GPIO: Use PM runtime framework
-Date: Fri, 20 May 2011 11:34:17 +0800
-Message-ID: <20110520033416.GC27251@S2100-06.ap.freescale.net>
-References: <20110421054221.GF5918@atomide.com>
- <BANLkTi=s=KzeZfvoq7Efg2=Ceahz_fQxMA@mail.gmail.com>
- <20110426072941.GA3755@atomide.com>
- <BANLkTimGU+kODvL0dC2x7UNSz0TReKveXQ@mail.gmail.com>
- <87y62ng3f8.fsf@ti.com>
- <BANLkTimW1PTavvxjPujVMEV38vzMvja9mw@mail.gmail.com>
- <20110504061905.GD27860@atomide.com>
- <BANLkTikiUB4=y0sZtUSedcPveMsBSLJgpQ@mail.gmail.com>
- <87mxiscl0w.fsf@ti.com>
- <20110519190841.GJ5109@ponder.secretlab.ca>
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: Re: beagleboardxm 2.6.39rc4 mcbsp problems.
+Date: Fri, 20 May 2011 09:29:11 +0300
+Message-ID: <20110520092911.d725b9c4.jhnikula@gmail.com>
+References: <1305122135-27938-1-git-send-email-premi@ti.com>
+	<201105130859.12477.peter.ujfalusi@ti.com>
+	<BANLkTi=9pm=xRqgt-tiV9+S594+Zo2ysCQ@mail.gmail.com>
+	<201105161154.55850.peter.ujfalusi@ti.com>
+	<4DD167EC.2010007@gmail.com>
+	<20110517093703.d0cd1e53.jhnikula@gmail.com>
+	<4DD46D08.9040607@gmail.com>
+	<4DD5BCD0.6040009@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ch1ehsobe003.messaging.microsoft.com ([216.32.181.183]:29419
-	"EHLO ch1outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754321Ab1ETDaC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 19 May 2011 23:30:02 -0400
-Content-Disposition: inline
-In-Reply-To: <20110519190841.GJ5109@ponder.secretlab.ca>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:38444 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933024Ab1ETG1t (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 May 2011 02:27:49 -0400
+Received: by ewy4 with SMTP id 4so1074632ewy.19
+        for <linux-omap@vger.kernel.org>; Thu, 19 May 2011 23:27:48 -0700 (PDT)
+In-Reply-To: <4DD5BCD0.6040009@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: Kevin Hilman <khilman@ti.com>, paul@pwsan.com, Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Varadarajan, Charulatha" <charu@ti.com>
+To: Steve Calfee <stevecalfee@gmail.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, "Premi, Sanjeev" <premi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Girdwood, Liam" <lrg@ti.com>
 
-On Thu, May 19, 2011 at 01:08:41PM -0600, Grant Likely wrote:
-> On Thu, May 12, 2011 at 11:42:39AM +0200, Kevin Hilman wrote:
-> > Linus Walleij <linus.walleij@linaro.org> writes:
-> > 
-> > [...]
-> > 
-> > > For TI I guess this currently means you simply cannot work
-> > > on GPIO stuff until you know where to go with it unless you
-> > > allow the OMAP GPIO authors to keep churning in arch/arm/*...
-> > >
-> > > That's unless Grant is OK with us moving stuff into
-> > > drivers/gpio that does *not* use gpiolib and utilize singletons to
-> > > get at the gpio_chip addresses (i.e. current form) and keep it
-> > > churning like that until it can be refactored.
-> > 
-> > The churn will happen one way or another.  the only question is whether
-> > it happens in drivers/gpio or arch/arm/*.
-> > 
-> > Grant, what's your feeling here.  How much ugliness are you willing to
-> > tolerate in a bulk move to drivers/gpio.  At least for OMAP, I am
-> > personally be working on the cleanup/move so I can work either way,
-> > although I know Tony has an obvious preference for moving it to
-> > drivers/gpio. :)
-> > 
-> > The OMAP driver is already using gpiolib.  The main ugliness in the OMAP
-> > driver is the awful ifdeffery used to handle the differences across the
-> > various SoCs in the OMAP family.  I've already got most of that cleaned
-> > up[1].
-> 
-> Go ahead and move stuff.  I may as well have the junk in my tree.
-> 
-> I request however to have at least some semblance of organization.
-> I'd like each driver filename to be named something like gpio_*.c, and
+On Thu, 19 May 2011 17:58:56 -0700
+Steve Calfee <stevecalfee@gmail.com> wrote:
 
-Just confirm that you really mean gpio_*.c than *_gpio.c, because I
-see there have been several *_gpio.c but none gpio_*.c under
-drivers/gpio.
-
-> put things into the Makefile/Kconfig in alphabetical order as much as
-> possible.
+> > I also tried to get as close as I could to the soc/omap/omap3pandora.c
+> > machine driver with my omap3beaglexm.c machine driver. Specifically in
+> > the *_hw_params init routines.
+> > 
+> > But when I start things up (even with the codec disconnected from the
+> > bclk line), I don't get any movement on the CLK and fsx. And of course
+> > the dma doesn't send anything.
+> > 
 > 
+> I have gotten mcbsp1 to work as a slave (sort-of) with Peter's help. I
+> havent been able to get it to clock as a master. So now I try with
+> mcbsp3, still no luck.
+> 
+This very likely sounds that in master mode the master clock to McBSP is
+missing if there is no DMA running. Did you try to use internal 96 MHz
+from my example or did you try to use external CLKS what Pandora is
+using? That CLKS setup in Pandora requires that there is a clock coming
+to McBSP CLKS pin.
+
+But as you got codec slave mode working it seems that pin multiplexing
+is ok so there is no need to try with master mode. In problematic cases
+the master mode is a good start since then only McBSP clock setup and
+pin multiplexing can affect if there are no clock and data signals
+visible.
+
+> And with the mcbsp 4 pins not connected to anything but the scope, I
+> don't see any bitclock movement. I think others used u-boot to setup the
+> mcbspx, but has anyone successfully used linux to set up the pins?
+> 
+Yep, in a couple omap boards. Remember that for kernel based
+multiplexing the CONFIG_OMAP_MUX=y must be set.
 
 -- 
-Regards,
-Shawn
-
+Jarkko
