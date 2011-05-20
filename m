@@ -1,48 +1,63 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH V4] OMAP3+: SR Layer Cleanup
-Date: Fri, 20 May 2011 15:49:09 +0200
-Message-ID: <4DD67155.1030705@ti.com>
-References: <1305268062-20046-1-git-send-email-shweta.gulati@ti.com>
+From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Subject: [PATCH] Fix: ZOOM: QUART: Request reset GPIO
+Date: Fri, 20 May 2011 20:05:34 +0530
+Message-ID: <1305902134-22760-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58558 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:35799 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932291Ab1ETNtR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 20 May 2011 09:49:17 -0400
-In-Reply-To: <1305268062-20046-1-git-send-email-shweta.gulati@ti.com>
+	id S933843Ab1ETOfr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 20 May 2011 10:35:47 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gulati, Shweta" <shweta.gulati@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Menon, Nishanth" <nm@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Paul Walmsley <paul@pwsan.com>
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Charulatha V <charu@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>
 
-Hi Shweta,
+From: Charulatha V <charu@ti.com>
 
-On 5/13/2011 8:27 AM, Gulati, Shweta wrote:
-> To set sr ntarget values  for all volt_domain,
-> volt_table is retrieved by doing a look_up of 'vdd_name'
-> field from omap_hwmod but voltage domain pointer does not
-> belong to omap_hwmod and is not used anywhere else.
-> As a part of voltage layer and SR Layer clean up volt
-> pointer is removed from omap_hwmod and added in dev
-> attributes of SR.
->
-> Tested on OMAP3630 SDP and OMAP4430 SDP Board
->
-> Signed-off-by: Shweta Gulati<shweta.gulati@ti.com>
-> Acked by: Nishanth Menon<nm@ti.com>
-> Cc: Benoit Cousson<b-cousson@ti.com>
-> Cc: Paul Walmsley<paul@pwsan.com>
-> ---
->
-> V4:
->    Fixed comments like checking for NULL pointers
->    and following conventions in naming the instances
->    recommended by Todd Poynor and Benoit Cousson.
+Reset GPIO (OMAP_GPIO_152) for QUART in zoom2/zoom3 debug-board is
+not requested at all. This would lead to problems if this GPIO is
+wrongly requested. Hence request OMAP GPIO 152 for QUART RESET but
+do not apply a reset pulse as it would reset QUART and
+disturb the QUART settings.
 
-It looks like you missed at least two comments I did on the previous 
-version whereas you did agree to fix them.
+Signed-off-by: Charulatha V <charu@ti.com>
+Acked-by: Kevin Hilman <khilman@ti.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/mach-omap2/board-zoom-debugboard.c |    9 +++++++++
+ 1 files changed, 9 insertions(+), 0 deletions(-)
 
-Thanks,
-Benoit
+diff --git a/arch/arm/mach-omap2/board-zoom-debugboard.c b/arch/arm/mach-omap2/board-zoom-debugboard.c
+index 007ebdc..a5f62f8 100644
+--- a/arch/arm/mach-omap2/board-zoom-debugboard.c
++++ b/arch/arm/mach-omap2/board-zoom-debugboard.c
+@@ -22,6 +22,7 @@
+ #define ZOOM_SMSC911X_GPIO	158
+ #define ZOOM_QUADUART_CS	3
+ #define ZOOM_QUADUART_GPIO	102
++#define ZOOM_QUADUART_RST_GPIO	152
+ #define QUART_CLK		1843200
+ #define DEBUG_BASE		0x08000000
+ #define ZOOM_ETHR_START	DEBUG_BASE
+@@ -110,6 +111,14 @@ static inline void __init zoom_init_quaduart(void)
+ 	unsigned long cs_mem_base;
+ 	int quart_gpio = 0;
+ 
++	if (gpio_request_one(ZOOM_QUADUART_RST_GPIO,
++				GPIOF_OUT_INIT_LOW,
++				"TL16CP754C GPIO") < 0) {
++		pr_err("Failed to request GPIO%d for TL16CP754C\n",
++			ZOOM_QUADUART_RST_GPIO);
++		return;
++	}
++
+ 	quart_cs = ZOOM_QUADUART_CS;
+ 
+ 	if (gpmc_cs_request(quart_cs, SZ_1M, &cs_mem_base) < 0) {
+-- 
+1.6.0.4
+
