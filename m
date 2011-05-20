@@ -1,65 +1,111 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
 Subject: Re: beagleboardxm 2.6.39rc4 mcbsp problems.
-Date: Fri, 20 May 2011 09:29:11 +0300
-Message-ID: <20110520092911.d725b9c4.jhnikula@gmail.com>
-References: <1305122135-27938-1-git-send-email-premi@ti.com>
-	<201105130859.12477.peter.ujfalusi@ti.com>
-	<BANLkTi=9pm=xRqgt-tiV9+S594+Zo2ysCQ@mail.gmail.com>
-	<201105161154.55850.peter.ujfalusi@ti.com>
-	<4DD167EC.2010007@gmail.com>
-	<20110517093703.d0cd1e53.jhnikula@gmail.com>
-	<4DD46D08.9040607@gmail.com>
-	<4DD5BCD0.6040009@gmail.com>
+Date: Fri, 20 May 2011 09:56:56 +0300
+Message-ID: <201105200956.56507.peter.ujfalusi@ti.com>
+References: <1305122135-27938-1-git-send-email-premi@ti.com> <201105191428.10115.peter.ujfalusi@ti.com> <4DD5AEA6.6020907@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:38444 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933024Ab1ETG1t (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 May 2011 02:27:49 -0400
-Received: by ewy4 with SMTP id 4so1074632ewy.19
-        for <linux-omap@vger.kernel.org>; Thu, 19 May 2011 23:27:48 -0700 (PDT)
-In-Reply-To: <4DD5BCD0.6040009@gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:33618 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753389Ab1ETG47 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 May 2011 02:56:59 -0400
+In-Reply-To: <4DD5AEA6.6020907@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Steve Calfee <stevecalfee@gmail.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, "Premi, Sanjeev" <premi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Girdwood, Liam" <lrg@ti.com>
+Cc: Jarkko Nikula <jhnikula@gmail.com>, "Premi, Sanjeev" <premi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Girdwood, Liam" <lrg@ti.com>, Peter Hsiang <cdefgab1288@gmail.com>
 
-On Thu, 19 May 2011 17:58:56 -0700
-Steve Calfee <stevecalfee@gmail.com> wrote:
+On Friday 20 May 2011 02:58:30 Steve Calfee wrote:
+> On 05/19/11 04:28, Peter Ujfalusi wrote:
+> Correct, I can set bit clock to 64*lrclk, 48*lrclk, 128*lrclk, 17*lrc=
+lk,
+> and 18*lrclk.
 
-> > I also tried to get as close as I could to the soc/omap/omap3pandora.c
-> > machine driver with my omap3beaglexm.c machine driver. Specifically in
-> > the *_hw_params init routines.
-> > 
-> > But when I start things up (even with the codec disconnected from the
-> > bclk line), I don't get any movement on the CLK and fsx. And of course
-> > the dma doesn't send anything.
-> > 
-> 
-> I have gotten mcbsp1 to work as a slave (sort-of) with Peter's help. I
-> havent been able to get it to clock as a master. So now I try with
-> mcbsp3, still no luck.
-> 
-This very likely sounds that in master mode the master clock to McBSP is
-missing if there is no DMA running. Did you try to use internal 96 MHz
-from my example or did you try to use external CLKS what Pandora is
-using? That CLKS setup in Pandora requires that there is a clock coming
-to McBSP CLKS pin.
+Strange, that there is no option for 32*lrclk.
 
-But as you got codec slave mode working it seems that pin multiplexing
-is ok so there is no need to try with master mode. In problematic cases
-the master mode is a good start since then only McBSP clock setup and
-pin multiplexing can affect if there are no clock and data signals
-visible.
+> The audio folks here think that it is normal to send more
+> than required bit clocks, data is sent first so just ignore the rest.
 
-> And with the mcbsp 4 pins not connected to anything but the scope, I
-> don't see any bitclock movement. I think others used u-boot to setup the
-> mcbspx, but has anyone successfully used linux to set up the pins?
-> 
-Yep, in a couple omap boards. Remember that for kernel based
-multiplexing the CONFIG_OMAP_MUX=y must be set.
+Yes, it is allowed. The rest should be ignored.
+But I'm afraid, OMAP McBSP can not handle this in a way you (and me) wa=
+nted=20
+to.
 
--- 
-Jarkko
+> It would appear that the mcbsp doesn't really use the lrclk (I think
+> called FSX), it just uses a positive transition to start the bit
+> shifting for all the requested bits. The falling edge does not start =
+the
+> right channel, the shifter keeps going until all requested l/r counts
+> have been sent.
+
+Yeah, McBSP only cares about the start condition, it does not care abou=
+t the=20
+right channel FSX transition.
+This is the reason it is not possible to handle the scenario you are ai=
+ming=20
+for.
+At start condition, it just start to send the data stream (frame1 follo=
+wed by=20
+frame2 in dual-phase mode - in single phase mode it can send up to 128=20
+frames).
+Having said that, there might be a way to actually work this around wit=
+h=20
+McBSP's multichannel mode. Configuring it for 4 slots, and only shift d=
+ata for=20
+slot 0, and 2 in case of your setup (16bit data within 32 bitclocks).
+It is a long shot, I can not promise that I can take a look right away,=
+ but if=20
+you have time.... ;)
+
+> > You should have full stereo sound now.
+>=20
+> I do, thanks.
+
+Cool :D
+
+> I am truly amazed that I was able to follow your
+> instructions and get it to work first time. You must really know your
+> alsa machine implementation.
+
+Thanks, I try.
+
+> The problem is that now I cannot run 44.1Khz audio, I get underruns. =
+I
+> am guessing that software is expanding the samples from 16 bits to 32=
+?
+> Without your hack 44.1Khz audio works fine (but only audible in the
+> first channel).
+
+Hmm. I have used similar mode with twl4030, and tlv320dac33 (S32_LE wit=
+h=20
+24msbits) without issues with underrun. Let's see.
+Can you check /sys/devices/platform/omap-mcbsp.X/dma_op_mode, max_tx_th=
+res for=20
+your McBSP port?
+I would suggest to switch the dma_op_mode to threshold mode in any port=
+=2E
+
+When you play audio try to use bigger periods, something like 10ms:
+aplay -Dplughw:0,0 --period-time=3D10000 -v <your sample>
+
+Replace the -Dplughw:0,0 to point to the wm98095 PCM.
+
+Could you post the output of aplay?
+
+> I talk to Peter every day. He brought up the codec, I am trying to us=
+e
+> the Beagleboardxm as a generic Linux platform for new codec bringups =
+and
+> for following kernel and alsa cutting edge software.
+
+Make sense..
+
+--=20
+P=C3=A9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
