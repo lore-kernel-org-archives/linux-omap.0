@@ -1,28 +1,36 @@
-From: Koen Kooi <koen@dominion.thruhere.net>
-Subject: [PATCH] OMAP3: beagle: add support for beagleboard xM revision C
-Date: Fri, 20 May 2011 12:50:15 +0200
-Message-ID: <1305888615-28472-1-git-send-email-koen@dominion.thruhere.net>
+From: koen@dominion.thruhere.net
+Subject: [PATCHv2] OMAP3: beagle: add support for beagleboard xM revision C
+Date: Fri, 20 May 2011 12:59:07 +0200
+Message-ID: <4dd6498f.4b1be30a.2c53.ffffd0ca@mx.google.com>
+References: <y>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:51136 "EHLO
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:44283 "EHLO
 	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934174Ab1ETKug (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 May 2011 06:50:36 -0400
-Received: by wya21 with SMTP id 21so2624249wya.19
-        for <linux-omap@vger.kernel.org>; Fri, 20 May 2011 03:50:35 -0700 (PDT)
+	with ESMTP id S934425Ab1ETK73 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 May 2011 06:59:29 -0400
+Received: by wya21 with SMTP id 21so2629653wya.19
+        for <linux-omap@vger.kernel.org>; Fri, 20 May 2011 03:59:27 -0700 (PDT)
+In-Reply-To: <y>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: jkridner@beagleboard.org, Koen Kooi <koen@dominion.thruhere.net>
 
+From: Koen Kooi <koen@dominion.thruhere.net>
+
 The USB enable GPIO has been inverted and the USER button moved.
 
 Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
 ---
- arch/arm/mach-omap2/board-omap3beagle.c |   26 +++++++++++++++++++++-----
- 1 files changed, 21 insertions(+), 5 deletions(-)
+
+Changes since v1:
+	Fixed more xM references
+
+ arch/arm/mach-omap2/board-omap3beagle.c |   32 +++++++++++++++++++++++-------
+ 1 files changed, 24 insertions(+), 8 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index 2de4b02..05c5bab 100644
+index 2de4b02..1eb1e8e 100644
 --- a/arch/arm/mach-omap2/board-omap3beagle.c
 +++ b/arch/arm/mach-omap2/board-omap3beagle.c
 @@ -62,7 +62,9 @@
@@ -64,6 +72,15 @@ index 2de4b02..05c5bab 100644
  	}
  
  	return;
+@@ -278,7 +289,7 @@ static int beagle_twl_gpio_setup(struct device *dev,
+ {
+ 	int r;
+ 
+-	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM) {
++	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM || omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XMC) {
+ 		mmc[0].gpio_wp = -EINVAL;
+ 	} else if ((omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_C1_3) ||
+ 		(omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_C4)) {
 @@ -298,7 +309,7 @@ static int beagle_twl_gpio_setup(struct device *dev,
  	/* REVISIT: need ehci-omap hooks for external VBUS
  	 * power switch and overcurrent detect
@@ -73,6 +90,24 @@ index 2de4b02..05c5bab 100644
  		r = gpio_request(gpio + 1, "EHCI_nOC");
  		if (!r) {
  			r = gpio_direction_input(gpio + 1);
+@@ -320,7 +331,7 @@ static int beagle_twl_gpio_setup(struct device *dev,
+ 		gpio_direction_output(gpio + TWL4030_GPIO_MAX, 0);
+ 
+ 	/* DVI reset GPIO is different between beagle revisions */
+-	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM)
++	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM || omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XMC)
+ 		beagle_dvi_device.reset_gpio = 129;
+ 	else
+ 		beagle_dvi_device.reset_gpio = 170;
+@@ -334,7 +345,7 @@ static int beagle_twl_gpio_setup(struct device *dev,
+ 	 * P7/P8 revisions(prototype): Camera EN
+ 	 * A2+ revisions (production): LDO (supplies DVI, serial, led blocks)
+ 	 */
+-	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM) {
++	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM || omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XMC) {
+ 		r = gpio_request(gpio + 1, "nDVI_PWR_EN");
+ 		if (!r) {
+ 			r = gpio_direction_output(gpio + 1, 0);
 @@ -625,7 +636,7 @@ static void __init beagle_opp_init(void)
  	}
  
