@@ -1,42 +1,48 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH 0/2] GPIO: move OMAP driver to drivers/gpio
-Date: Fri, 20 May 2011 15:41:06 +0200
-Message-ID: <1305898868-9188-1-git-send-email-khilman@ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH V4] OMAP3+: SR Layer Cleanup
+Date: Fri, 20 May 2011 15:49:09 +0200
+Message-ID: <4DD67155.1030705@ti.com>
+References: <1305268062-20046-1-git-send-email-shweta.gulati@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:43308 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932098Ab1ETNlP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 20 May 2011 09:41:15 -0400
-Received: by mail-wy0-f169.google.com with SMTP id 19so3390677wyf.0
-        for <linux-omap@vger.kernel.org>; Fri, 20 May 2011 06:41:11 -0700 (PDT)
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58558 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932291Ab1ETNtR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 20 May 2011 09:49:17 -0400
+In-Reply-To: <1305268062-20046-1-git-send-email-shweta.gulati@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, Grant Likely <grant.likely@secretlab.ca>, Linus Walleij <linus.walleij@stericsson.com>
-Cc: linux-arm-kernel@lists.infradead.org
+To: "Gulati, Shweta" <shweta.gulati@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Menon, Nishanth" <nm@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Paul Walmsley <paul@pwsan.com>
 
-Move OMAP GPIO driver to drivers/gpio, but leave OMAP-specific
-register definitions in <plat/gpio.h>, where they will be used by
-SoC-specific code and passed in via platform_data (in forthcoming
-series.)
+Hi Shweta,
 
-After the move, I have another series that cleans up this
-driver, removing all the SoC-specific checks, #ifdefs, etc. and passes
-SoC-specific register offsets in from platform_data.
+On 5/13/2011 8:27 AM, Gulati, Shweta wrote:
+> To set sr ntarget values  for all volt_domain,
+> volt_table is retrieved by doing a look_up of 'vdd_name'
+> field from omap_hwmod but voltage domain pointer does not
+> belong to omap_hwmod and is not used anywhere else.
+> As a part of voltage layer and SR Layer clean up volt
+> pointer is removed from omap_hwmod and added in dev
+> attributes of SR.
+>
+> Tested on OMAP3630 SDP and OMAP4430 SDP Board
+>
+> Signed-off-by: Shweta Gulati<shweta.gulati@ti.com>
+> Acked by: Nishanth Menon<nm@ti.com>
+> Cc: Benoit Cousson<b-cousson@ti.com>
+> Cc: Paul Walmsley<paul@pwsan.com>
+> ---
+>
+> V4:
+>    Fixed comments like checking for NULL pointers
+>    and following conventions in naming the instances
+>    recommended by Todd Poynor and Benoit Cousson.
 
-Kevin Hilman (2):
-  GPIO: OMAP: move register offset defines into <plat/gpio.h>
-  GPIO: OMAP: move to drivers/gpio
+It looks like you missed at least two comments I did on the previous 
+version whereas you did agree to fix them.
 
- arch/arm/plat-omap/Makefile            |    2 +-
- arch/arm/plat-omap/gpio.c              | 2128 --------------------------------
- arch/arm/plat-omap/include/plat/gpio.h |  103 ++
- drivers/gpio/Makefile                  |    1 +
- drivers/gpio/gpio_omap.c               | 2023 ++++++++++++++++++++++++++++++
- 5 files changed, 2128 insertions(+), 2129 deletions(-)
- delete mode 100644 arch/arm/plat-omap/gpio.c
- create mode 100644 drivers/gpio/gpio_omap.c
-
--- 
-1.7.3.4
-
+Thanks,
+Benoit
