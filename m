@@ -1,51 +1,99 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [RFC PATCH 06/10] OMAP: GPIO: Use USHRT_MAX for rev offset instead of -1
-Date: Fri, 20 May 2011 11:30:15 +0200
-Message-ID: <87r57t67o8.fsf@ti.com>
-References: <1305546104-1511-1-git-send-email-tarun.kanti@ti.com>
-	<1305546104-1511-7-git-send-email-tarun.kanti@ti.com>
-	<87ei3u8yvr.fsf@ti.com>
-	<BANLkTikpDZBj9vGOfARpx=uowA5QR7zpxg@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Koen Kooi <koen@dominion.thruhere.net>
+Subject: [PATCH] OMAP3: beagle: add support for beagleboard xM revision C
+Date: Fri, 20 May 2011 12:50:15 +0200
+Message-ID: <1305888615-28472-1-git-send-email-koen@dominion.thruhere.net>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:33389 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753389Ab1ETJaW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 20 May 2011 05:30:22 -0400
-Received: by mail-ww0-f46.google.com with SMTP id 28so2863925wwb.27
-        for <linux-omap@vger.kernel.org>; Fri, 20 May 2011 02:30:21 -0700 (PDT)
-In-Reply-To: <BANLkTikpDZBj9vGOfARpx=uowA5QR7zpxg@mail.gmail.com> (Charulatha
-	Varadarajan's message of "Fri, 20 May 2011 14:01:44 +0530")
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:51136 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934174Ab1ETKug (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 May 2011 06:50:36 -0400
+Received: by wya21 with SMTP id 21so2624249wya.19
+        for <linux-omap@vger.kernel.org>; Fri, 20 May 2011 03:50:35 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Varadarajan, Charulatha" <charu@ti.com>
-Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>
+To: linux-omap@vger.kernel.org
+Cc: jkridner@beagleboard.org, Koen Kooi <koen@dominion.thruhere.net>
 
-"Varadarajan, Charulatha" <charu@ti.com> writes:
+The USB enable GPIO has been inverted and the USER button moved.
 
-> Kevin,
->
-> On Thu, May 19, 2011 at 21:29, Kevin Hilman <khilman@ti.com> wrote:
->> Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
->>
->>> From: Charulatha V <charu@ti.com>
->>>
->>> Use USHRT_MAX for revision offset instead of -1 if revision register
->>> is not available for a given SoC since rev offset is a u16 value.
->>>
->>> Signed-off-by: Charulatha V <charu@ti.com>
->>> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
->>> Cc: Kevin Hilman <khilman@ti.com>
->>> Cc: Tony Lindgren <tony@atomide.com>
->>
->> Thanks, folded this into the original.
->
-> I could not figure out this change in the repo. Please update.
+Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+---
+ arch/arm/mach-omap2/board-omap3beagle.c |   26 +++++++++++++++++++++-----
+ 1 files changed, 21 insertions(+), 5 deletions(-)
 
-You're right, I didn't push the update.
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index 2de4b02..05c5bab 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -62,7 +62,9 @@
+  *	AXBX	= GPIO173, GPIO172, GPIO171: 1 1 1
+  *	C1_3	= GPIO173, GPIO172, GPIO171: 1 1 0
+  *	C4	= GPIO173, GPIO172, GPIO171: 1 0 1
+- *	XM	= GPIO173, GPIO172, GPIO171: 0 0 0
++ *	XMA	= GPIO173, GPIO172, GPIO171: 0 0 0
++ *	XMB	= GPIO173, GPIO172, GPIO171: 0 0 1
++ *  XMC = GPIO173, GPIO172, GPIO171: 0 1 0
+  */
+ enum {
+ 	OMAP3BEAGLE_BOARD_UNKN = 0,
+@@ -70,6 +72,7 @@ enum {
+ 	OMAP3BEAGLE_BOARD_C1_3,
+ 	OMAP3BEAGLE_BOARD_C4,
+ 	OMAP3BEAGLE_BOARD_XM,
++	OMAP3BEAGLE_BOARD_XMC,
+ };
+ 
+ static u8 omap3_beagle_version;
+@@ -124,9 +127,17 @@ static void __init omap3_beagle_init_rev(void)
+ 		printk(KERN_INFO "OMAP3 Beagle Rev: xM\n");
+ 		omap3_beagle_version = OMAP3BEAGLE_BOARD_XM;
+ 		break;
++	case 1:
++		printk(KERN_INFO "OMAP3 Beagle Rev: xM B\n");
++		omap3_beagle_version = OMAP3BEAGLE_BOARD_XM;
++		break;
++	case 2:
++		printk(KERN_INFO "OMAP3 Beagle Rev: xM C\n");
++		omap3_beagle_version = OMAP3BEAGLE_BOARD_XMC;
++		break;
+ 	default:
+-		printk(KERN_INFO "OMAP3 Beagle Rev: unknown %hd\n", beagle_rev);
+-		omap3_beagle_version = OMAP3BEAGLE_BOARD_UNKN;
++		printk(KERN_INFO "OMAP3 Beagle Rev: unknown %hd, assuming xM C or newer\n", beagle_rev);
++		omap3_beagle_version = OMAP3BEAGLE_BOARD_XMC;
+ 	}
+ 
+ 	return;
+@@ -298,7 +309,7 @@ static int beagle_twl_gpio_setup(struct device *dev,
+ 	/* REVISIT: need ehci-omap hooks for external VBUS
+ 	 * power switch and overcurrent detect
+ 	 */
+-	if (omap3_beagle_get_rev() != OMAP3BEAGLE_BOARD_XM) {
++	if (omap3_beagle_get_rev() != OMAP3BEAGLE_BOARD_XM && omap3_beagle_get_rev() != OMAP3BEAGLE_BOARD_XMC) {
+ 		r = gpio_request(gpio + 1, "EHCI_nOC");
+ 		if (!r) {
+ 			r = gpio_direction_input(gpio + 1);
+@@ -625,7 +636,7 @@ static void __init beagle_opp_init(void)
+ 	}
+ 
+ 	/* Custom OPP enabled for XM */
+-	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM) {
++	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM || omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XMC) {
+ 		struct omap_hwmod *mh = omap_hwmod_lookup("mpu");
+ 		struct omap_hwmod *dh = omap_hwmod_lookup("iva");
+ 		struct device *dev;
+@@ -665,6 +676,11 @@ static void __init omap3_beagle_init(void)
+ 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+ 	omap3_beagle_init_rev();
+ 	omap3_beagle_i2c_init();
++
++	if (cpu_is_omap3630()) {
++		gpio_buttons[0].gpio = 4;
++	}
++
+ 	platform_add_devices(omap3_beagle_devices,
+ 			ARRAY_SIZE(omap3_beagle_devices));
+ 	omap_display_init(&beagle_dss_data);
+-- 
+1.6.6.1
 
-Just pushed now (may take some time to get out to kernel.org mirrors.)
-
-Kevin
