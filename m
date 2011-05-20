@@ -1,45 +1,62 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: beagleboardxm 2.6.39rc4 mcbsp problems.
-Date: Fri, 20 May 2011 10:03:50 +0300
-Message-ID: <201105201003.50500.peter.ujfalusi@ti.com>
-References: <1305122135-27938-1-git-send-email-premi@ti.com> <4DD5BCD0.6040009@gmail.com> <20110520092911.d725b9c4.jhnikula@gmail.com>
+From: "Varadarajan, Charulatha" <charu@ti.com>
+Subject: Re: [RFC PATCH 02/10] ZOOM: QUART: Request reset GPIO
+Date: Fri, 20 May 2011 13:53:26 +0530
+Message-ID: <BANLkTinTd-pztR0X=Tdy04fCVUT7eqC9Pg@mail.gmail.com>
+References: <1305546104-1511-1-git-send-email-tarun.kanti@ti.com>
+ <1305546104-1511-3-git-send-email-tarun.kanti@ti.com> <87ipt67jr6.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:37325 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932614Ab1ETHDx convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 May 2011 03:03:53 -0400
-In-Reply-To: <20110520092911.d725b9c4.jhnikula@gmail.com>
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:40776 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S934559Ab1ETIYI convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 20 May 2011 04:24:08 -0400
+Received: by iwl42 with SMTP id 42so3624613iwl.32
+        for <linux-omap@vger.kernel.org>; Fri, 20 May 2011 01:24:06 -0700 (PDT)
+In-Reply-To: <87ipt67jr6.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jhnikula@gmail.com>
-Cc: Steve Calfee <stevecalfee@gmail.com>, "Premi, Sanjeev" <premi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Girdwood, Liam" <lrg@ti.com>
+To: Kevin Hilman <khilman@ti.com>
+Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>
 
-Hi,
+On Thu, May 19, 2011 at 21:41, Kevin Hilman <khilman@ti.com> wrote:
+> Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
+>
+>> From: Charulatha V <charu@ti.com>
+>>
+>> Reset GPIO (OMAP_GPIO_152) for QUART in zoom2/zoom3 debug-board is
+>> not requested at all. This would lead to problems if this GPIO is
+>> wrongly requested. Hence request OMAP GPIO 152 for QUART RESET but
+>> do not apply a reset pulse as it would reset QUART and
+>> disturb the QUART settings.
+>>
+>> Signed-off-by: Charulatha V <charu@ti.com>
+>> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>> Cc: Kevin Hilman <khilman@ti.com>
+>> Cc: Tony Lindgren <tony@atomide.com>
+>
+> This is a bug fix that should be separated from this series, and sent=
+ to
+> l-o as a fix. =A0Also, please Cc linux-arm-kernel.
 
-On Friday 20 May 2011 09:29:11 Jarkko Nikula wrote:
-> This very likely sounds that in master mode the master clock to McBSP=
- is
-> missing if there is no DMA running.
+ok.
 
-If the clock setup is correct for McBSP, than it runs the clocks, and s=
-hifts=20
-out data.
+>
+> Feel free to add
+>
+> Acked-by: Kevin Hilman <khilman@ti.com>
 
-> Did you try to use internal 96 MHz
-> from my example or did you try to use external CLKS what Pandora is
-> using? That CLKS setup in Pandora requires that there is a clock comi=
-ng
-> to McBSP CLKS pin.
+Thanks
 
-Really good point. PRCM/CORE (depending on the McBSP port) 96M_FCLK mus=
-t be=20
-used here.
+-V Charulatha
 
---=20
-P=E9ter
+>
+> Thanks,
+>
+> Kevin
+>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
