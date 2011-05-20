@@ -1,140 +1,115 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH 10/14] GPIO: OMAP: convert MPUIO IRQ over to generic irq_chip
-Date: Fri, 20 May 2011 17:14:53 +0200
-Message-ID: <1305904497-26013-11-git-send-email-khilman@ti.com>
+Subject: [PATCH 11/14] GPIO: OMAP: remove useless gpio_valid() & check_gpio() checks
+Date: Fri, 20 May 2011 17:14:54 +0200
+Message-ID: <1305904497-26013-12-git-send-email-khilman@ti.com>
 References: <1305904497-26013-1-git-send-email-khilman@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:45951 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933413Ab1ETPPi (ORCPT
+Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:52957 "EHLO
+	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933413Ab1ETPPl (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 20 May 2011 11:15:38 -0400
-Received: by wyb28 with SMTP id 28so3404851wyb.8
-        for <linux-omap@vger.kernel.org>; Fri, 20 May 2011 08:15:35 -0700 (PDT)
+	Fri, 20 May 2011 11:15:41 -0400
+Received: by mail-wy0-f176.google.com with SMTP id 40so3243056wyb.7
+        for <linux-omap@vger.kernel.org>; Fri, 20 May 2011 08:15:40 -0700 (PDT)
 In-Reply-To: <1305904497-26013-1-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, Grant Likely <grant.likely@secretlab.ca>, Linus Walleij <linus.walleij@stericsson.com>
 Cc: linux-arm-kernel@lists.infradead.org
 
-MPUIO banks have their own dedicated IRQ chip interface, separate from
-the "normal" GPIO banks.   Convert the MPUIO IRQ chip over to using
-the new generic IRQ chip interface.
+These functions are useless.  They are only called in a few places,
+and where they are called, the GPIO has already been converted from an
+IRQ or masked, so these functions will never fail.
 
 Signed-off-by: Kevin Hilman <khilman@ti.com>
 ---
- drivers/gpio/gpio_omap.c |   74 ++++++++++++++++++---------------------------
- 1 files changed, 30 insertions(+), 44 deletions(-)
+ drivers/gpio/gpio_omap.c |   45 ---------------------------------------------
+ 1 files changed, 0 insertions(+), 45 deletions(-)
 
 diff --git a/drivers/gpio/gpio_omap.c b/drivers/gpio/gpio_omap.c
-index 6bb3785..d84cc95 100644
+index d84cc95..8f4ae55 100644
 --- a/drivers/gpio/gpio_omap.c
 +++ b/drivers/gpio/gpio_omap.c
-@@ -875,45 +875,8 @@ static struct irq_chip gpio_irq_chip = {
+@@ -90,40 +90,6 @@ int gpio_bank_count;
+ #define GPIO_INDEX(bank, gpio) (gpio % bank->width)
+ #define GPIO_BIT(bank, gpio) (1 << GPIO_INDEX(bank, gpio))
  
- #ifdef CONFIG_ARCH_OMAP1
- 
--/* MPUIO uses the always-on 32k clock */
--
--static void mpuio_ack_irq(struct irq_data *d)
+-static inline int gpio_valid(int gpio)
 -{
--	/* The ISR is reset automatically, so do nothing here. */
+-	if (gpio < 0)
+-		return -1;
+-	if (cpu_class_is_omap1() && OMAP_GPIO_IS_MPUIO(gpio)) {
+-		if (gpio >= OMAP_MAX_GPIO_LINES + 16)
+-			return -1;
+-		return 0;
+-	}
+-	if (cpu_is_omap15xx() && gpio < 16)
+-		return 0;
+-	if ((cpu_is_omap16xx()) && gpio < 64)
+-		return 0;
+-	if (cpu_is_omap7xx() && gpio < 192)
+-		return 0;
+-	if (cpu_is_omap2420() && gpio < 128)
+-		return 0;
+-	if (cpu_is_omap2430() && gpio < 160)
+-		return 0;
+-	if ((cpu_is_omap34xx() || cpu_is_omap44xx()) && gpio < 192)
+-		return 0;
+-	return -1;
 -}
 -
--static void mpuio_mask_irq(struct irq_data *d)
+-static int check_gpio(int gpio)
 -{
--	unsigned int gpio = OMAP_MPUIO(d->irq - IH_MPUIO_BASE);
--	struct gpio_bank *bank = irq_data_get_irq_chip_data(d);
--
--	_set_gpio_irqenable(bank, gpio, 0);
+-	if (unlikely(gpio_valid(gpio) < 0)) {
+-		printk(KERN_ERR "omap-gpio: invalid GPIO %d\n", gpio);
+-		dump_stack();
+-		return -1;
+-	}
+-	return 0;
 -}
 -
--static void mpuio_unmask_irq(struct irq_data *d)
--{
--	unsigned int gpio = OMAP_MPUIO(d->irq - IH_MPUIO_BASE);
--	struct gpio_bank *bank = irq_data_get_irq_chip_data(d);
--
--	_set_gpio_irqenable(bank, gpio, 1);
--}
--
--static struct irq_chip mpuio_irq_chip = {
--	.name		= "MPUIO",
--	.irq_ack	= mpuio_ack_irq,
--	.irq_mask	= mpuio_mask_irq,
--	.irq_unmask	= mpuio_unmask_irq,
--	.irq_set_type	= gpio_irq_type,
--#ifdef CONFIG_ARCH_OMAP16XX
--	/* REVISIT: assuming only 16xx supports MPUIO wake events */
--	.irq_set_wake	= gpio_wake_enable,
--#endif
--};
--
--
- #define bank_is_mpuio(bank)	((bank)->method == METHOD_MPUIO)
+ static void _set_gpio_direction(struct gpio_bank *bank, int gpio, int is_input)
+ {
+ 	void __iomem *reg = bank->base;
+@@ -172,9 +138,6 @@ static int _get_gpio_datain(struct gpio_bank *bank, int gpio)
+ {
+ 	void __iomem *reg = bank->base + bank->regs->datain;
  
+-	if (check_gpio(gpio) < 0)
+-		return -EINVAL;
 -
- #ifdef CONFIG_ARCH_OMAP16XX
- 
- #include <linux/platform_device.h>
-@@ -988,8 +951,6 @@ static inline void mpuio_init(void) {}
- 
- #else
- 
--extern struct irq_chip mpuio_irq_chip;
--
- #define bank_is_mpuio(bank)	0
- static inline void mpuio_init(void) {}
- 
-@@ -1189,6 +1150,30 @@ static void omap_gpio_mod_init(struct gpio_bank *bank, int id)
- 	}
+ 	return (__raw_readl(reg) & GPIO_BIT(bank, gpio)) != 0;
  }
  
-+static __init void
-+omap_mpuio_alloc_gc(struct gpio_bank *bank, unsigned int irq_start,
-+		    unsigned int num)
-+{
-+	struct irq_chip_generic *gc;
-+	struct irq_chip_type *ct;
-+
-+	gc = irq_alloc_generic_chip("MPUIO", 1, irq_start, bank->base,
-+				    handle_simple_irq);
-+	ct = gc->chip_types;
-+
-+	/* NOTE: No ack required, reading IRQ status clears it. */
-+	ct->chip.irq_mask = irq_gc_mask_set_bit;
-+	ct->chip.irq_unmask = irq_gc_mask_clr_bit;
-+	ct->chip.irq_set_type = gpio_irq_type;
-+	/* REVISIT: assuming only 16xx supports MPUIO wake events */
-+	if (cpu_is_omap16xx())
-+		ct->chip.irq_set_wake = gpio_wake_enable,
-+
-+	ct->regs.mask = OMAP_MPUIO_GPIO_INT / bank->stride;
-+	irq_setup_generic_chip(gc, IRQ_MSK(num), IRQ_GC_INIT_MASK_CACHE,
-+			       IRQ_NOREQUEST | IRQ_NOPROBE, 0);
-+}
-+
- static void __init omap_gpio_chip_init(struct gpio_bank *bank)
+@@ -182,9 +145,6 @@ static int _get_gpio_dataout(struct gpio_bank *bank, int gpio)
  {
- 	int j;
-@@ -1226,12 +1211,13 @@ static void __init omap_gpio_chip_init(struct gpio_bank *bank)
- 		     j < bank->virtual_irq_start + bank->width; j++) {
- 		irq_set_lockdep_class(j, &gpio_lock_class);
- 		irq_set_chip_data(j, bank);
--		if (bank_is_mpuio(bank))
--			irq_set_chip(j, &mpuio_irq_chip);
--		else
-+		if (bank_is_mpuio(bank)) {
-+			omap_mpuio_alloc_gc(bank, j, bank->width);
-+		} else {
- 			irq_set_chip(j, &gpio_irq_chip);
--		irq_set_handler(j, handle_simple_irq);
--		set_irq_flags(j, IRQF_VALID);
-+			irq_set_handler(j, handle_simple_irq);
-+			set_irq_flags(j, IRQF_VALID);
-+		}
- 	}
- 	irq_set_chained_handler(bank->irq, gpio_irq_handler);
- 	irq_set_handler_data(bank->irq, bank);
+ 	void __iomem *reg = bank->base + bank->regs->dataout;
+ 
+-	if (check_gpio(gpio) < 0)
+-		return -EINVAL;
+-
+ 	return (__raw_readl(reg) & GPIO_BIT(bank, gpio)) != 0;
+ }
+ 
+@@ -461,9 +421,6 @@ static int gpio_irq_type(struct irq_data *d, unsigned type)
+ 	else
+ 		gpio = d->irq - IH_GPIO_BASE;
+ 
+-	if (check_gpio(gpio) < 0)
+-		return -EINVAL;
+-
+ 	if (type & ~IRQ_TYPE_SENSE_MASK)
+ 		return -EINVAL;
+ 
+@@ -629,8 +586,6 @@ static int gpio_wake_enable(struct irq_data *d, unsigned int enable)
+ 	struct gpio_bank *bank;
+ 	int retval;
+ 
+-	if (check_gpio(gpio) < 0)
+-		return -ENODEV;
+ 	bank = irq_data_get_irq_chip_data(d);
+ 	retval = _set_gpio_wakeup(bank, GPIO_INDEX(bank, gpio), enable);
+ 
 -- 
 1.7.3.4
 
