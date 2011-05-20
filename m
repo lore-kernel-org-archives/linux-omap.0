@@ -1,254 +1,62 @@
-From: "Avinash.H.M" <avinashhm@ti.com>
-Subject: [PATCH v4] OMAP2/3: hwmod: fix the i2c-reset timeout during bootup
-Date: Fri, 20 May 2011 21:16:24 +0530
-Message-ID: <1305906384-22061-1-git-send-email-avinashhm@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: [PATCH] Fix generic irq chip
+Date: Fri, 20 May 2011 23:05:10 +0100
+Message-ID: <20110520220510.GC30675@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:41434 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757002Ab1ETPqv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 20 May 2011 11:46:51 -0400
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:53105 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757247Ab1ETWFq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 May 2011 18:05:46 -0400
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: "Avinash.H.M" <avinashhm@ti.com>, Rajendra Nayak <rnayak@ti.com>, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>
+To: Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@ti.com>, Lennert Buytenhek <kernel@wantstofly.org>, Nicolas Pitre <nico@fluxnic.net>, Thomas
+Cc: linux-arm-kernel@lists.infradead.org, davinci-linux-open-source@linux.davincidsp.com, linux-omap@vger.kernel.org
 
-The sequence of _ocp_softreset doesn't work for i2c. The i2c module has a
-special sequence to reset the module. The sequence is
- - Disable the I2C.
- - Write to SOFTRESET bit.
- - Enable the I2C.
- - Poll on the RESETDONE bit.
-The sequence is implemented as a function and the i2c_class is updated with
-the correct 'reset' pointer.  omap_hwmod_softreset function is implemented
-which triggers the softreset by writing into sysconfig register. On following
-this sequence, i2c module resets properly and timeouts are not seen.
+As a result of c42321c (genirq: Make generic irq chip depend on
+CONFIG_GENERIC_IRQ_CHIP), we now need those platforms using this in
+my tree to select this symbol.
 
-Cc: Rajendra Nayak <rnayak@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Benoit Cousson <b-cousson@ti.com>
-Cc: Kevin Hilman <khilman@ti.com>
-Signed-off-by: Avinash.H.M <avinashhm@ti.com>
----
+Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+--
+Please send acks ASAP.  Thanks to Mark for pointing this out with a patch
+for Samsung.
 
-The patch is based on
- * git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
- * master branch.
- * 693d92a commit. (Linux 2.6.39-rc7)
+ arch/arm/Kconfig           |    2 ++
+ arch/arm/plat-omap/Kconfig |    1 +
+ 2 files changed, 3 insertions(+), 0 deletions(-)
 
-Changes from previous versions:
-from v1:
-	- moved i2c specific things from hwmod files to i2c files.
-	- fixed comments from Paul.
-	- http://www.spinics.net/lists/linux-omap/msg49483.html
-
-from v2: 
-	- Avoided direct SYSCONFIG access in i2c.c
-	- http://www.spinics.net/lists/linux-omap/msg49632.html
-
-from v3:
-	- Addressed comments from Paul Walmsley.
-	- http://www.spinics.net/lists/arm-kernel/msg124120.html
-
-Testing:
-* build tested omap2plus_defconfig for warnings and errors. none introduced.
-* boot tested on 2430. 
-* tested for 'core off' in suspend resume on 3430 sdp. core off counters
-  increment after suspend resume. 
+diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
+index 44c16f0..9b63bab 100644
+--- a/arch/arm/Kconfig
++++ b/arch/arm/Kconfig
+@@ -854,6 +854,7 @@ config ARCH_DAVINCI
+ 	select HAVE_IDE
+ 	select CLKDEV_LOOKUP
+ 	select GENERIC_ALLOCATOR
++	select GENERIC_IRQ_CHIP
+ 	select ARCH_HAS_HOLES_MEMORYMODEL
+ 	help
+ 	  Support for TI's DaVinci platform.
+@@ -1033,6 +1034,7 @@ config PLAT_IOP
  
-Dependency: 
-* This needs "OMAP2+: hwmod data: Set hwmod flags to only allow 16-bit
-  accesses to i2c" from Andry Green for accessing i2c_sysc. Without this even
-  with this patch, we will see i2c reset timeouts.
-
- arch/arm/mach-omap2/i2c.c                    |   54 ++++++++++++++++++++++++++
- arch/arm/mach-omap2/omap_hwmod.c             |   27 +++++++++++++
- arch/arm/mach-omap2/omap_hwmod_2420_data.c   |    1 +
- arch/arm/mach-omap2/omap_hwmod_2430_data.c   |    1 +
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c   |    1 +
- arch/arm/plat-omap/include/plat/i2c.h        |    4 ++
- arch/arm/plat-omap/include/plat/omap_hwmod.h |    1 +
- 7 files changed, 89 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/i2c.c b/arch/arm/mach-omap2/i2c.c
-index 79c478c..de9c51a 100644
---- a/arch/arm/mach-omap2/i2c.c
-+++ b/arch/arm/mach-omap2/i2c.c
-@@ -21,9 +21,16 @@
+ config PLAT_ORION
+ 	bool
++	select GENERIC_IRQ_CHIP
+ 	select HAVE_SCHED_CLOCK
  
- #include <plat/cpu.h>
- #include <plat/i2c.h>
-+#include <plat/common.h>
- 
- #include "mux.h"
- 
-+/* In register I2C_CON, Bit 15 is the I2C enable bit */
-+#define I2C_EN				BIT(15)
-+#define I2C_CON_OFFSET			0x24
-+/* Maximum microseconds to wait for OMAP module to softreset */
-+#define MAX_MODULE_SOFTRESET_WAIT	10000
-+
- void __init omap2_i2c_mux_pins(int bus_id)
- {
- 	char mux_name[sizeof("i2c2_scl.i2c2_scl")];
-@@ -37,3 +44,50 @@ void __init omap2_i2c_mux_pins(int bus_id)
- 	sprintf(mux_name, "i2c%i_sda.i2c%i_sda", bus_id, bus_id);
- 	omap_mux_init_signal(mux_name, OMAP_PIN_INPUT);
- }
-+
-+/**
-+ * omap_i2c_reset - reset the omap i2c module.
-+ * @oh: struct omap_hwmod *
-+ *
-+ * The i2c moudle in omap2, omap3 had a special sequence to reset. The
-+ * sequence is:
-+ * - Disable the I2C.
-+ * - Write to SOFTRESET bit.
-+ * - Enable the I2C.
-+ * - Poll on the RESETDONE bit.
-+ * The sequence is implemented in below function. This is called for 2420,
-+ * 2430 and omap3.
-+ */
-+int omap_i2c_reset(struct omap_hwmod *oh)
-+{
-+	u32 v;
-+	int c = 0;
-+
-+	/* Disable I2C */
-+	v = omap_hwmod_read(oh, I2C_CON_OFFSET);
-+	v = v & ~I2C_EN;
-+	omap_hwmod_write(v, oh, I2C_CON_OFFSET);
-+
-+	/* Write to the SOFTRESET bit */
-+	omap_hwmod_softreset(oh);
-+
-+	/* Enable I2C */
-+	v = omap_hwmod_read(oh, I2C_CON_OFFSET);
-+	v |= I2C_EN;
-+	omap_hwmod_write(v, oh, I2C_CON_OFFSET);
-+
-+	/* Poll on RESETDONE bit */
-+	omap_test_timeout((omap_hwmod_read(oh,
-+				oh->class->sysc->syss_offs)
-+				& SYSS_RESETDONE_MASK),
-+				MAX_MODULE_SOFTRESET_WAIT, c);
-+
-+	if (c == MAX_MODULE_SOFTRESET_WAIT)
-+		pr_warning("%s: %s: softreset failed (waited %d usec)\n",
-+			__func__, oh->name, MAX_MODULE_SOFTRESET_WAIT);
-+	else
-+		pr_debug("%s: %s: softreset in %d usec\n", __func__,
-+			oh->name, c);
-+
-+	return 0;
-+}
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index e034294..08c803c 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -1562,6 +1562,33 @@ void omap_hwmod_write(u32 v, struct omap_hwmod *oh, u16 reg_offs)
- }
- 
- /**
-+ * omap_hwmod_softreset - reset a module via SYSCONFIG.SOFTRESET bit
-+ * @oh: struct omap_hwmod *
-+ *
-+ * This is a public function exposed to drivers. Some drivers may need to do
-+ * some settings before and after resetting the device.  Those drivers after
-+ * doing the necessary settings could use this function to start a reset by
-+ * setting the SYSCONFIG.SOFTRESET bit.
-+ */
-+int omap_hwmod_softreset(struct omap_hwmod *oh)
-+{
-+	u32 v;
-+	int ret;
-+
-+	if(!oh || !(oh->_sysc_cache))
-+		return -EINVAL;
-+
-+	v = oh->_sysc_cache;
-+	ret = _set_softreset(oh, &v);
-+	if (ret)
-+		goto error;
-+	_write_sysconfig(v, oh);
-+
-+error:
-+	return ret;
-+}
-+
-+/**
-  * omap_hwmod_set_slave_idlemode - set the hwmod's OCP slave idlemode
-  * @oh: struct omap_hwmod *
-  * @idlemode: SIDLEMODE field bits (shifted to bit 0)
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-index c4d0ae8..8950ad3 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-@@ -1447,6 +1447,7 @@ static struct omap_hwmod_class_sysconfig i2c_sysc = {
- static struct omap_hwmod_class i2c_class = {
- 	.name		= "i2c",
- 	.sysc		= &i2c_sysc,
-+	.reset		= &omap_i2c_reset,
- };
- 
- static struct omap_i2c_dev_attr i2c_dev_attr;
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-index 9682dd5..6b5413b 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-@@ -1524,6 +1524,7 @@ static struct omap_hwmod_class_sysconfig i2c_sysc = {
- static struct omap_hwmod_class i2c_class = {
- 	.name		= "i2c",
- 	.sysc		= &i2c_sysc,
-+	.reset		= &omap_i2c_reset,
- };
- 
- static struct omap_i2c_dev_attr i2c_dev_attr = {
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index 909a84d..2e21e2d 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -1460,6 +1460,7 @@ static struct omap_hwmod omap3xxx_uart4_hwmod = {
- static struct omap_hwmod_class i2c_class = {
- 	.name = "i2c",
- 	.sysc = &i2c_sysc,
-+	.reset = &omap_i2c_reset,
- };
- 
- /*
-diff --git a/arch/arm/plat-omap/include/plat/i2c.h b/arch/arm/plat-omap/include/plat/i2c.h
-index 878d632..3ffb94e 100644
---- a/arch/arm/plat-omap/include/plat/i2c.h
-+++ b/arch/arm/plat-omap/include/plat/i2c.h
-@@ -23,6 +23,8 @@
- 
- #include <linux/i2c.h>
- 
-+#include <plat/omap_hwmod.h>
-+
- #if defined(CONFIG_I2C_OMAP) || defined(CONFIG_I2C_OMAP_MODULE)
- extern int omap_register_i2c_bus(int bus_id, u32 clkrate,
- 				 struct i2c_board_info const *info,
-@@ -52,4 +54,6 @@ struct omap_i2c_dev_attr {
- void __init omap1_i2c_mux_pins(int bus_id);
- void __init omap2_i2c_mux_pins(int bus_id);
- 
-+int omap_i2c_reset(struct omap_hwmod *oh);
-+
- #endif /* __ASM__ARCH_OMAP_I2C_H */
-diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-index 1adea9c..fe8a0a2 100644
---- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
-+++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-@@ -572,6 +572,7 @@ void omap_hwmod_ocp_barrier(struct omap_hwmod *oh);
- 
- void omap_hwmod_write(u32 v, struct omap_hwmod *oh, u16 reg_offs);
- u32 omap_hwmod_read(struct omap_hwmod *oh, u16 reg_offs);
-+int omap_hwmod_softreset(struct omap_hwmod *oh);
- 
- int omap_hwmod_count_resources(struct omap_hwmod *oh);
- int omap_hwmod_fill_resources(struct omap_hwmod *oh, struct resource *res);
--- 
-1.7.1
-
+ config PLAT_PXA
+diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+index cd5f993..29b4c35 100644
+--- a/arch/arm/plat-omap/Kconfig
++++ b/arch/arm/plat-omap/Kconfig
+@@ -18,6 +18,7 @@ config ARCH_OMAP1
+ config ARCH_OMAP2PLUS
+ 	bool "TI OMAP2/3/4"
+ 	select CLKDEV_LOOKUP
++	select GENERIC_IRQ_CHIP
+ 	select OMAP_DM_TIMER
+ 	help
+ 	  "Systems based on OMAP2, OMAP3 or OMAP4"
