@@ -1,77 +1,57 @@
-From: "Avinash.H.M." <avinashhm@ti.com>
-Subject: Re: [PATCH v3] OMAP2/3: hwmod: fix the i2c-reset timeout during
- bootup
-Date: Fri, 20 May 2011 20:32:17 +0530
-Message-ID: <20110520150216.GA11915@avinash-laptop>
-References: <1304328111-15999-1-git-send-email-avinashhm@ti.com>
- <alpine.DEB.2.00.1105051548210.30136@utopia.booyaka.com>
- <20110509124842.GA25211@avinash-laptop>
- <alpine.DEB.2.00.1105181021590.4550@utopia.booyaka.com>
- <20110518162542.GB3026@avinash-laptop>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Kevin Hilman <khilman@ti.com>
+Subject: [PATCH 00/14] GPIO: OMAP: first round of cleanup
+Date: Fri, 20 May 2011 17:14:43 +0200
+Message-ID: <1305904497-26013-1-git-send-email-khilman@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:36015 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756038Ab1ETPCg (ORCPT
+Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:33456 "EHLO
+	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933183Ab1ETPPD (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 20 May 2011 11:02:36 -0400
-Received: by mail-yx0-f169.google.com with SMTP id 33so1654267yxt.0
-        for <linux-omap@vger.kernel.org>; Fri, 20 May 2011 08:02:34 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20110518162542.GB3026@avinash-laptop>
+	Fri, 20 May 2011 11:15:03 -0400
+Received: by mail-wy0-f174.google.com with SMTP id 21so2802721wya.19
+        for <linux-omap@vger.kernel.org>; Fri, 20 May 2011 08:15:01 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khi>
+To: linux-omap@vger.kernel.org, Grant Likely <grant.likely@secretlab.ca>, Linus Walleij <linus.walleij@stericsson.com>
+Cc: linux-arm-kernel@lists.infradead.org
 
-On Wed, May 18, 2011 at 09:55:42PM +0530, Avinash.H.M. wrote:
-> On Wed, May 18, 2011 at 10:22:28AM -0600, Paul Walmsley wrote:
-> > On Mon, 9 May 2011, Avinash.H.M. wrote:
-> > 
-> > > On Thu, May 05, 2011 at 03:58:56PM -0600, Paul Walmsley wrote:
-> > > 
-> > > > > 
-> > > > > The patch is based on
-> > > > >  * git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
-> > > > >  * master branch.
-> > > > >  * 9be20f0 commit. ( Linux-omap rebuilt: Updated to -rc5 )
-> > > > 
-> > > > Please base all your patches against mainline commits.  I suggest using 
-> > > > v2.6.39-rc6.
-> > > 
-> > > OK Paul. I will rebase against mainline, -rc6.
-> > 
-> > Ping.  Any progress?
-> 
-> Hi Paul ,
-> 
-> I am having the patch ready. Haven't had a chance to test. I will test
-> and send by tomorrow.
+Start moving SoC-specific register handling out of the driver by passing
+in register offsets in via platform data.
 
-Hi Paul ,
+Also, move OMAP1 MPUIO IRQ handling over to genric IRQ chip.
 
-I tested the patch on 3430 sdp today with the patch against 2.6.39-rc7.
+Applies on top of Tony's for-next branch (which include's the generic
+IRQ chip work from tglx) and the OMAP GPIO driver move to
+drivers/gpio.
 
-I am seeing that the timeout is there during bootup event with this
-patch. Tried with the previous version (v3 , which was tested against
-the older commit and was confirmed to be working). With this also, i am
-seeing that the reset timeouts are still present. 
+Charulatha V (1):
+  GPIO: OMAP: remove get_gpio_bank()
 
-So, looks like there is something broken. First glance, i suspect that
-the register access may not be proper. Need to debug more. I ll debug
-this and send the fix together.
+Kevin Hilman (13):
+  GPIO: OMAP: _clear_gpio_irqbank: fix flushing of posted write
+  GPIO: OMAP: remove MPUIO handling from _clear_gpio_irqbank()
+  GPIO: OMAP: move bank width into struct gpio_bank
+  GPIO: OMAP: _get_gpio_irqbank_mask: replace hard-coded mask with
+    bank->width
+  GPIO: OMAP: replace get_gpio_index() by using bank width
+  GPIO: OMAP: consolidate direction, input, output, remove #ifdefs
+  GPIO: OMAP: consolidate IRQ status handling, remove #ifdefs
+  GPIO: OMAP: conslidate enable/disable of GPIO IRQs, remove ifdefs
+  GPIO: OMAP: convert MPUIO IRQ over to generic irq_chip
+  GPIO: OMAP: remove useless gpio_valid() & check_gpio() checks
+  GPIO: OMAP: cleanup _set_gpio_wakeup(), remove ifdefs
+  GPIO: OMAP: debounce remove SoC specific registers, use pdata
+  GPIO: OMAP: cleanup show revision, remove cpu_is checks, display only
+    once
 
-Incase, if you want me to send this patch now and then send a seperate
-patch for the recent problem, do let me know.
+ arch/arm/mach-omap1/gpio15xx.c         |   22 +
+ arch/arm/mach-omap1/gpio16xx.c         |   28 ++
+ arch/arm/mach-omap1/gpio7xx.c          |   27 ++
+ arch/arm/mach-omap2/gpio.c             |   32 ++
+ arch/arm/plat-omap/include/plat/gpio.h |   20 +
+ drivers/gpio/gpio_omap.c               |  723 +++++++-------------------------
+ 6 files changed, 282 insertions(+), 570 deletions(-)
 
-thanks ,
+-- 
+1.7.3.4
 
-- Avinash
-
-> thanks ,
-> 
-> - Avinash
-> 
-> > 
-> > 
-> > - Paul
