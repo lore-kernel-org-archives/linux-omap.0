@@ -1,77 +1,61 @@
-From: Nicolas Pitre <nico@fluxnic.net>
-Subject: Re: [PATCH] Fix generic irq chip
-Date: Fri, 20 May 2011 18:20:54 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.1105201820180.14430@xanadu.home>
-References: <20110520220510.GC30675@n2100.arm.linux.org.uk>
+From: Steve Calfee <stevecalfee@gmail.com>
+Subject: Re: beagleboardxm 2.6.39rc4 mcbsp problems.
+Date: Fri, 20 May 2011 17:55:38 -0700
+Message-ID: <4DD70D8A.2090807@gmail.com>
+References: <1305122135-27938-1-git-send-email-premi@ti.com>	<201105130859.12477.peter.ujfalusi@ti.com>	<BANLkTi=9pm=xRqgt-tiV9+S594+Zo2ysCQ@mail.gmail.com>	<201105161154.55850.peter.ujfalusi@ti.com>	<4DD167EC.2010007@gmail.com>	<20110517093703.d0cd1e53.jhnikula@gmail.com>	<4DD46D08.9040607@gmail.com>	<4DD5BCD0.6040009@gmail.com> <20110520092911.d725b9c4.jhnikula@gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from relais.videotron.ca ([24.201.245.36]:55856 "EHLO
-	relais.videotron.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754667Ab1ETWUz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 May 2011 18:20:55 -0400
-Received: from xanadu.home ([66.130.28.92]) by vl-mo-mrz23.ip.videotron.ca
- (Sun Java(tm) System Messaging Server 6.3-8.01 (built Dec 16 2008; 32bit))
- with ESMTP id <0LLI001XJM1OBB71@vl-mo-mrz23.ip.videotron.ca> for
- linux-omap@vger.kernel.org; Fri, 20 May 2011 18:20:12 -0400 (EDT)
-In-reply-to: <20110520220510.GC30675@n2100.arm.linux.org.uk>
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:41724 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751600Ab1EUAzl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 May 2011 20:55:41 -0400
+Received: by pvg12 with SMTP id 12so1876921pvg.19
+        for <linux-omap@vger.kernel.org>; Fri, 20 May 2011 17:55:41 -0700 (PDT)
+In-Reply-To: <20110520092911.d725b9c4.jhnikula@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@ti.com>, Lennert Buytenhek <kernel@wantstofly.org>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, davinci-linux-open-source@linux.davincidsp.com, linux-omap@vger.kernel.org
+To: Jarkko Nikula <jhnikula@gmail.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, "Premi, Sanjeev" <premi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Girdwood, Liam" <lrg@ti.com>
 
-On Fri, 20 May 2011, Russell King - ARM Linux wrote:
-
-> As a result of c42321c (genirq: Make generic irq chip depend on
-> CONFIG_GENERIC_IRQ_CHIP), we now need those platforms using this in
-> my tree to select this symbol.
+On 05/19/11 23:29, Jarkko Nikula wrote:
+> On Thu, 19 May 2011 17:58:56 -0700
+> Steve Calfee <stevecalfee@gmail.com> wrote:
 > 
-> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-> --
-> Please send acks ASAP.  Thanks to Mark for pointing this out with a patch
-> for Samsung.
-
-Acked-by: Nicolas Pitre <nico@fluxnic.net>
-
-
-
-
+...
+>>
+> This very likely sounds that in master mode the master clock to McBSP is
+> missing if there is no DMA running. Did you try to use internal 96 MHz
+> from my example or did you try to use external CLKS what Pandora is
+> using? That CLKS setup in Pandora requires that there is a clock coming
+> to McBSP CLKS pin.
 > 
->  arch/arm/Kconfig           |    2 ++
->  arch/arm/plat-omap/Kconfig |    1 +
->  2 files changed, 3 insertions(+), 0 deletions(-)
+> But as you got codec slave mode working it seems that pin multiplexing
+> is ok so there is no need to try with master mode. In problematic cases
+> the master mode is a good start since then only McBSP clock setup and
+> pin multiplexing can affect if there are no clock and data signals
+> visible.
 > 
-> diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
-> index 44c16f0..9b63bab 100644
-> --- a/arch/arm/Kconfig
-> +++ b/arch/arm/Kconfig
-> @@ -854,6 +854,7 @@ config ARCH_DAVINCI
->  	select HAVE_IDE
->  	select CLKDEV_LOOKUP
->  	select GENERIC_ALLOCATOR
-> +	select GENERIC_IRQ_CHIP
->  	select ARCH_HAS_HOLES_MEMORYMODEL
->  	help
->  	  Support for TI's DaVinci platform.
-> @@ -1033,6 +1034,7 @@ config PLAT_IOP
->  
->  config PLAT_ORION
->  	bool
-> +	select GENERIC_IRQ_CHIP
->  	select HAVE_SCHED_CLOCK
->  
->  config PLAT_PXA
-> diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
-> index cd5f993..29b4c35 100644
-> --- a/arch/arm/plat-omap/Kconfig
-> +++ b/arch/arm/plat-omap/Kconfig
-> @@ -18,6 +18,7 @@ config ARCH_OMAP1
->  config ARCH_OMAP2PLUS
->  	bool "TI OMAP2/3/4"
->  	select CLKDEV_LOOKUP
-> +	select GENERIC_IRQ_CHIP
->  	select OMAP_DM_TIMER
->  	help
->  	  "Systems based on OMAP2, OMAP3 or OMAP4"
-> 
+
+OK, you called this correctly. Apparently the beagle does not by default
+have a clock on the clks pin. When I correctly followed your suggestion
+and changed to the internal 96,000,000 clock I do get transitions on the
+mcbsp1 clk and fsx pins.
+
+The problem is 96M is pretty big. the only divisor I see is 8 bits, your
+suggested division (else where of 62) only brings the bit clock rate to
+about 15Mhz. the frame clock did get set very near the 8Khz for the
+sample playback. So about 1900 bit clocks are sent per frame.
+
+This would be ok, but since the mcbsp does not respect the l/r clock
+(FSX) for shifting out data, I am back to getting audio on only one ear.
+I was hoping that in master mode I could configure the mcbsp to only
+send 16 bit clocks per frame. It looks like the clocks are not that
+configurable.
+
+The external clks pin is supposed to be connect to an external TPS65950
+chip which divides down the source 26Mhz clock by 256. I'll have to
+investigate why I was not seeing that clock.
+
+Regards, Steve
