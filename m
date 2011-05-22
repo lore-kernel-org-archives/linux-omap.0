@@ -1,262 +1,153 @@
 From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH v2 2/2] OMAP3BEAGLE: Add support for mt9p031 sensor driver.
-Date: Sun, 22 May 2011 16:49:31 +0300
-Message-ID: <4DD9146B.2050408@compulab.co.il>
-References: <1305899272-31839-1-git-send-email-javier.martin@vista-silicon.com> <1305899272-31839-2-git-send-email-javier.martin@vista-silicon.com>
+Subject: Re: [PATCHv2] OMAP3: beagle: add support for beagleboard xM revision
+ C
+Date: Sun, 22 May 2011 17:30:42 +0300
+Message-ID: <4DD91E12.4020006@compulab.co.il>
+References: <y> <4dd6498f.4b1be30a.2c53.ffffd0ca@mx.google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <1305899272-31839-2-git-send-email-javier.martin@vista-silicon.com>
-Sender: linux-media-owner@vger.kernel.org
-To: Javier Martin <javier.martin@vista-silicon.com>
-Cc: linux-media@vger.kernel.org, beagleboard@googlegroups.com, carlighting@yahoo.co.nz, g.liakhovetski@gmx.de, linux-arm-kernel@lists.infradead.org, laurent.pinchart@ideasonboard.com, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:58718
+	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753007Ab1EVOaq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Sun, 22 May 2011 10:30:46 -0400
+In-Reply-To: <4dd6498f.4b1be30a.2c53.ffffd0ca@mx.google.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: koen@dominion.thruhere.net
+Cc: linux-omap@vger.kernel.org, jkridner@beagleboard.org
 
-Hi Javier,
+Hi Koen,
 
+On 05/20/11 13:59, koen@dominion.thruhere.net wrote:
 
-linux-omap should be CC'ed - added.
-
-In addition to Koen's comments, some comments below.
-
-
-On 05/20/11 16:47, Javier Martin wrote:
-
-> isp.h file has to be included as a temporal measure
-> since clocks of the isp are not exposed yet.
+> From: Koen Kooi <koen@dominion.thruhere.net>
 >
-> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
+> The USB enable GPIO has been inverted and the USER button moved.
+>
+> Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
 > ---
->  arch/arm/mach-omap2/board-omap3beagle.c |  127 ++++++++++++++++++++++++++++++-
->  1 files changed, 123 insertions(+), 4 deletions(-)
+>
+> Changes since v1:
+> 	Fixed more xM references
+>
+>  arch/arm/mach-omap2/board-omap3beagle.c |   32 +++++++++++++++++++++++-------
+>  1 files changed, 24 insertions(+), 8 deletions(-)
 >
 > diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-> index 33007fd..f52e6ae 100644
+> index 2de4b02..1eb1e8e 100644
 > --- a/arch/arm/mach-omap2/board-omap3beagle.c
 > +++ b/arch/arm/mach-omap2/board-omap3beagle.c
-> @@ -24,15 +24,20 @@
->  #include <linux/input.h>
->  #include <linux/gpio_keys.h>
->  #include <linux/opp.h>
-> +#include <linux/i2c.h>
-> +#include <linux/mm.h>
-> +#include <linux/videodev2.h>
+> @@ -62,7 +62,9 @@
+>   *	AXBX	= GPIO173, GPIO172, GPIO171: 1 1 1
+>   *	C1_3	= GPIO173, GPIO172, GPIO171: 1 1 0
+>   *	C4	= GPIO173, GPIO172, GPIO171: 1 0 1
+> - *	XM	= GPIO173, GPIO172, GPIO171: 0 0 0
+> + *	XMA	= GPIO173, GPIO172, GPIO171: 0 0 0
+> + *	XMB	= GPIO173, GPIO172, GPIO171: 0 0 1
+> + *  XMC = GPIO173, GPIO172, GPIO171: 0 1 0
+>   */
+>  enum {
+>  	OMAP3BEAGLE_BOARD_UNKN = 0,
+> @@ -70,6 +72,7 @@ enum {
+>  	OMAP3BEAGLE_BOARD_C1_3,
+>  	OMAP3BEAGLE_BOARD_C4,
+>  	OMAP3BEAGLE_BOARD_XM,
+> +	OMAP3BEAGLE_BOARD_XMC,
+>  };
 >  
->  #include <linux/mtd/mtd.h>
->  #include <linux/mtd/partitions.h>
->  #include <linux/mtd/nand.h>
->  #include <linux/mmc/host.h>
-> -
-> +#include <linux/gpio.h>
+>  static u8 omap3_beagle_version;
+> @@ -124,9 +127,17 @@ static void __init omap3_beagle_init_rev(void)
+>  		printk(KERN_INFO "OMAP3 Beagle Rev: xM\n");
+>  		omap3_beagle_version = OMAP3BEAGLE_BOARD_XM;
+>  		break;
+> +	case 1:
+> +		printk(KERN_INFO "OMAP3 Beagle Rev: xM B\n");
+> +		omap3_beagle_version = OMAP3BEAGLE_BOARD_XM;
+> +		break;
+> +	case 2:
+> +		printk(KERN_INFO "OMAP3 Beagle Rev: xM C\n");
+> +		omap3_beagle_version = OMAP3BEAGLE_BOARD_XMC;
+> +		break;
+>  	default:
+> -		printk(KERN_INFO "OMAP3 Beagle Rev: unknown %hd\n", beagle_rev);
+> -		omap3_beagle_version = OMAP3BEAGLE_BOARD_UNKN;
+> +		printk(KERN_INFO "OMAP3 Beagle Rev: unknown %hd, assuming xM C or newer\n", beagle_rev);
 
-Why include this for second time?
+Please, break this line so it will be < 80
+and also all occurrences below.
 
->  #include <linux/regulator/machine.h>
->  #include <linux/i2c/twl.h>
->  
-> +#include <media/mt9p031.h>
-> +
->  #include <mach/hardware.h>
->  #include <asm/mach-types.h>
->  #include <asm/mach/arch.h>
-> @@ -47,12 +52,17 @@
->  #include <plat/nand.h>
->  #include <plat/usb.h>
->  #include <plat/omap_device.h>
-> +#include <plat/i2c.h>
->  
->  #include "mux.h"
->  #include "hsmmc.h"
->  #include "timer-gp.h"
->  #include "pm.h"
-> +#include "devices.h"
-> +#include "../../../drivers/media/video/omap3isp/isp.h"
->  
-> +#define MT9P031_RESET_GPIO	98
-> +#define MT9P031_XCLK		ISP_XCLK_A
->  #define NAND_BLOCK_SIZE		SZ_128K
->  
->  /*
-> @@ -273,6 +283,44 @@ static struct regulator_consumer_supply beagle_vsim_supply = {
->  
->  static struct gpio_led gpio_leds[];
->  
-> +static struct regulator_consumer_supply beagle_vaux3_supply = {
-> +	.supply		= "cam_1v8",
-> +};
-> +
-> +static struct regulator_consumer_supply beagle_vaux4_supply = {
-> +	.supply		= "cam_2v8",
-> +};
-> +
-> +/* VAUX3 for CAM_1V8 */
-> +static struct regulator_init_data beagle_vaux3 = {
-> +	.constraints = {
-> +		.min_uV			= 1800000,
-> +		.max_uV			= 1800000,
-> +		.apply_uV		= true,
-> +		.valid_modes_mask	= REGULATOR_MODE_NORMAL
-> +					| REGULATOR_MODE_STANDBY,
-> +		.valid_ops_mask		= REGULATOR_CHANGE_MODE
-> +					| REGULATOR_CHANGE_STATUS,
-> +	},
-> +	.num_consumer_supplies	= 1,
-> +	.consumer_supplies	= &beagle_vaux3_supply,
-> +};
-> +
-> +/* VAUX4 for CAM_2V8 */
-> +static struct regulator_init_data beagle_vaux4 = {
-> +	.constraints = {
-> +		.min_uV			= 1800000,
-> +		.max_uV			= 1800000,
-> +		.apply_uV		= true,
-> +		.valid_modes_mask	= REGULATOR_MODE_NORMAL
-> +					| REGULATOR_MODE_STANDBY,
-> +		.valid_ops_mask		= REGULATOR_CHANGE_MODE
-> +					| REGULATOR_CHANGE_STATUS,
-> +	},
-> +	.num_consumer_supplies	= 1,
-> +	.consumer_supplies	= &beagle_vaux4_supply,
-> +};
-> +
->  static int beagle_twl_gpio_setup(struct device *dev,
->  		unsigned gpio, unsigned ngpio)
->  {
-> @@ -309,6 +357,15 @@ static int beagle_twl_gpio_setup(struct device *dev,
->  			pr_err("%s: unable to configure EHCI_nOC\n", __func__);
+> +		omap3_beagle_version = OMAP3BEAGLE_BOARD_XMC;
 >  	}
 >  
-> +	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM) {
-> +		/*
-> +		 * Power on camera interface - only on pre-production, not
-> +		 * needed on production boards
-> +		 */
-> +		gpio_request(gpio + 2, "CAM_EN");
-> +		gpio_direction_output(gpio + 2, 1);
-
-Why not gpio_request_one()?
-
-> +	}
-> +
->  	/*
->  	 * TWL4030_GPIO_MAX + 0 == ledA, EHCI nEN_USB_PWR (out, XM active
->  	 * high / others active low)
-> @@ -451,6 +508,8 @@ static struct twl4030_platform_data beagle_twldata = {
->  	.vsim		= &beagle_vsim,
->  	.vdac		= &beagle_vdac,
->  	.vpll2		= &beagle_vpll2,
-> +	.vaux3		= &beagle_vaux3,
-> +	.vaux4		= &beagle_vaux4,
->  };
->  
->  static struct i2c_board_info __initdata beagle_i2c_boardinfo[] = {
-> @@ -463,15 +522,16 @@ static struct i2c_board_info __initdata beagle_i2c_boardinfo[] = {
->  };
->  
->  static struct i2c_board_info __initdata beagle_i2c_eeprom[] = {
-> -       {
-> -               I2C_BOARD_INFO("eeprom", 0x50),
-> -       },
-> +	{
-> +		I2C_BOARD_INFO("eeprom", 0x50),
-> +	},
->  };
-
-This part of the hunk is not related to the patch
-and should be in a separate (cleanup) patch.
-
->  
->  static int __init omap3_beagle_i2c_init(void)
->  {
->  	omap_register_i2c_bus(1, 2600, beagle_i2c_boardinfo,
->  			ARRAY_SIZE(beagle_i2c_boardinfo));
-> +	omap_register_i2c_bus(2, 100, NULL, 0); /* Enable I2C2 for camera */
->  	/* Bus 3 is attached to the DVI port where devices like the pico DLP
->  	 * projector don't work reliably with 400kHz */
->  	omap_register_i2c_bus(3, 100, beagle_i2c_eeprom, ARRAY_SIZE(beagle_i2c_eeprom));
-> @@ -654,6 +714,60 @@ static void __init beagle_opp_init(void)
 >  	return;
->  }
->  
-> +static int beagle_cam_set_xclk(struct v4l2_subdev *subdev, int hz)
-> +{
-> +	struct isp_device *isp = v4l2_dev_to_isp_device(subdev->v4l2_dev);
-> +	int ret;
-> +
-> +	ret = isp->platform_cb.set_xclk(isp, hz, MT9P031_XCLK);
-> +	return 0;
-> +}
-
-Why do you need ret variable here, if you always return zero?
-
-> +
-> +static int beagle_cam_reset(struct v4l2_subdev *subdev, int active)
-> +{
-> +	/* Set RESET_BAR to !active */
-> +	gpio_set_value(MT9P031_RESET_GPIO, !active);
-> +
-> +	return 0;
-> +}
-> +
-> +static struct mt9p031_platform_data beagle_mt9p031_platform_data = {
-> +	.set_xclk		= beagle_cam_set_xclk,
-> +	.reset			= beagle_cam_reset,
-> +};
-> +
-> +static struct i2c_board_info mt9p031_camera_i2c_device = {
-> +	I2C_BOARD_INFO("mt9p031", 0x48),
-> +	.platform_data = &beagle_mt9p031_platform_data,
-> +};
-> +
-> +static struct isp_subdev_i2c_board_info mt9p031_camera_subdevs[] = {
-> +	{
-> +		.board_info = &mt9p031_camera_i2c_device,
-> +		.i2c_adapter_id = 2,
-> +	},
-> +	{ NULL, 0, },
-> +};
-> +
-> +static struct isp_v4l2_subdevs_group beagle_camera_subdevs[] = {
-> +	{
-> +		.subdevs = mt9p031_camera_subdevs,
-> +		.interface = ISP_INTERFACE_PARALLEL,
-> +		.bus = {
-> +			.parallel = {
-> +				.data_lane_shift = 0,
-> +				.clk_pol = 1,
-> +				.bridge = ISPCTRL_PAR_BRIDGE_DISABLE,
-> +			}
-> +		},
-> +	},
-> +	{ },
-> +};
-> +
-> +static struct isp_platform_data beagle_isp_platform_data = {
-> +	.subdevs = beagle_camera_subdevs,
-> +};
-> +
->  static void __init omap3_beagle_init(void)
+> @@ -278,7 +289,7 @@ static int beagle_twl_gpio_setup(struct device *dev,
 >  {
+>  	int r;
+>  
+> -	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM) {
+> +	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM || omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XMC) {
+
+There is no real need to make it > 80
+
+>  		mmc[0].gpio_wp = -EINVAL;
+>  	} else if ((omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_C1_3) ||
+>  		(omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_C4)) {
+> @@ -298,7 +309,7 @@ static int beagle_twl_gpio_setup(struct device *dev,
+>  	/* REVISIT: need ehci-omap hooks for external VBUS
+>  	 * power switch and overcurrent detect
+>  	 */
+> -	if (omap3_beagle_get_rev() != OMAP3BEAGLE_BOARD_XM) {
+> +	if (omap3_beagle_get_rev() != OMAP3BEAGLE_BOARD_XM && omap3_beagle_get_rev() != OMAP3BEAGLE_BOARD_XMC) {
+>  		r = gpio_request(gpio + 1, "EHCI_nOC");
+>  		if (!r) {
+>  			r = gpio_direction_input(gpio + 1);
+> @@ -320,7 +331,7 @@ static int beagle_twl_gpio_setup(struct device *dev,
+>  		gpio_direction_output(gpio + TWL4030_GPIO_MAX, 0);
+>  
+>  	/* DVI reset GPIO is different between beagle revisions */
+> -	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM)
+> +	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM || omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XMC)
+>  		beagle_dvi_device.reset_gpio = 129;
+>  	else
+>  		beagle_dvi_device.reset_gpio = 170;
+> @@ -334,7 +345,7 @@ static int beagle_twl_gpio_setup(struct device *dev,
+>  	 * P7/P8 revisions(prototype): Camera EN
+>  	 * A2+ revisions (production): LDO (supplies DVI, serial, led blocks)
+>  	 */
+> -	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM) {
+> +	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM || omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XMC) {
+>  		r = gpio_request(gpio + 1, "nDVI_PWR_EN");
+>  		if (!r) {
+>  			r = gpio_direction_output(gpio + 1, 0);
+> @@ -625,7 +636,7 @@ static void __init beagle_opp_init(void)
+>  	}
+>  
+>  	/* Custom OPP enabled for XM */
+> -	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM) {
+> +	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM || omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XMC) {
+>  		struct omap_hwmod *mh = omap_hwmod_lookup("mpu");
+>  		struct omap_hwmod *dh = omap_hwmod_lookup("iva");
+>  		struct device *dev;
+> @@ -665,6 +676,11 @@ static void __init omap3_beagle_init(void)
 >  	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
-> @@ -679,6 +793,11 @@ static void __init omap3_beagle_init(void)
->  
->  	beagle_display_init();
->  	beagle_opp_init();
+>  	omap3_beagle_init_rev();
+>  	omap3_beagle_i2c_init();
 > +
-> +	/* Enable camera */
-> +	gpio_request(MT9P031_RESET_GPIO, "cam_rst");
-> +	gpio_direction_output(MT9P031_RESET_GPIO, 0);
+> +	if (cpu_is_omap3630()) {
+> +		gpio_buttons[0].gpio = 4;
+> +	}
 
-gpio_request_one()?
+can't this kind of check be used in all the XM checks above?
 
-> +	omap3_init_camera(&beagle_isp_platform_data);
->  }
->  
->  MACHINE_START(OMAP3_BEAGLE, "OMAP3 Beagle Board")
-
-
+> +
+>  	platform_add_devices(omap3_beagle_devices,
+>  			ARRAY_SIZE(omap3_beagle_devices));
+>  	omap_display_init(&beagle_dss_data);
 
 -- 
 Regards,
 Igor.
+
