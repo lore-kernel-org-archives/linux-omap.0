@@ -1,31 +1,35 @@
 From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH] cleanup regulator supply definitions in mach-omap2 to
- use REGULATOR_SUPPLY
-Date: Mon, 23 May 2011 06:45:12 +0800
-Message-ID: <20110522224510.GA15858@opensource.wolfsonmicro.com>
-References: <1306101529-22013-1-git-send-email-green@linuxhacker.ru>
+Subject: Re: [PATCH v4 1/2] REGULATOR: TWL6025: add support to twl-regulator
+Date: Mon, 23 May 2011 06:48:59 +0800
+Message-ID: <20110522224857.GA15882@opensource.wolfsonmicro.com>
+References: <1306095684-7732-1-git-send-email-gg@slimlogic.co.uk>
+ <1306095684-7732-2-git-send-email-gg@slimlogic.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:54907 "EHLO
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:54932 "EHLO
 	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752795Ab1EVWpS (ORCPT
+	by vger.kernel.org with ESMTP id S1755438Ab1EVWtD (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Sun, 22 May 2011 18:45:18 -0400
+	Sun, 22 May 2011 18:49:03 -0400
 Content-Disposition: inline
-In-Reply-To: <1306101529-22013-1-git-send-email-green@linuxhacker.ru>
+In-Reply-To: <1306095684-7732-2-git-send-email-gg@slimlogic.co.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: green@linuxhacker.ru
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Mike Rapoport <mike@compulab.co.il>, Nishant Kamat <nskamat@ti.com>, Steve Sakoman <steve@sakoman.com>, Mikkel Christensen <mlc@ti.com>, Felipe Balbi <balbi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+To: Graeme Gregory <gg@slimlogic.co.uk>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, lrg@slimlogic.co.uk, lrg@ti.com, linux@slimlogic.co.uk, balajitk@ti.com
 
-On Sun, May 22, 2011 at 05:58:49PM -0400, green@linuxhacker.ru wrote:
-> From: Oleg Drokin <green@linuxhacker.ru>
-> 
-> Also drop old style supply.dev assignments common in hsmmc init
-> as no longer needed.
+On Sun, May 22, 2011 at 09:21:23PM +0100, Graeme Gregory wrote:
+> Adding support for the twl6025. Major difference in the twl6025 is the
+> group functionality has been removed from the chip so this affects how
+> regulators are enabled and disabled.
 
 Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
 
-Note that it'd be better to split into two patches as it makes review
-easier.
+> Since V1
+> 
+> Use the features variable passed via platform data instead of calling
+> global function.
+
+Change histories like this should usually come after the --- so things
+like git am strip them out of what actually ends up in git.
