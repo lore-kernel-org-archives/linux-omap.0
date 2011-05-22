@@ -1,43 +1,44 @@
 From: green@linuxhacker.ru
-Subject: [PATCH 2/3] Add tps65921 chip
-Date: Sun, 22 May 2011 17:04:35 -0400
-Message-ID: <1306098276-21112-3-git-send-email-green@linuxhacker.ru>
-References: <1306098276-21112-1-git-send-email-green@linuxhacker.ru>
+Subject: Initial B&N Nook Color support, take four
+Date: Sun, 22 May 2011 17:04:33 -0400
+Message-ID: <1306098276-21112-1-git-send-email-green@linuxhacker.ru>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from c-71-228-165-73.hsd1.tn.comcast.net ([71.228.165.73]:42455 "EHLO
+Received: from c-71-228-165-73.hsd1.tn.comcast.net ([71.228.165.73]:42456 "EHLO
 	fatbox1.localnet" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755042Ab1EVVFA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 22 May 2011 17:05:00 -0400
-In-Reply-To: <1306098276-21112-1-git-send-email-green@linuxhacker.ru>
+	with ESMTP id S1755051Ab1EVVFB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 22 May 2011 17:05:01 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Oleg Drokin <green@linuxhacker.ru>, sameo@linux.intel.com
+Cc: linux-arm-kernel@lists.infradead.org
 
-From: Oleg Drokin <green@linuxhacker.ru>
+Hello!
 
-Very similar to TPS65920
-List of differences: http://www.ti.com/litv/pdf/swcu066b
+  Next attempt at B&N Nook Color board file submission.
+  USB peripheral mode is fully operational as is serial console and
+  MMC/SDCard.
 
-CC: sameo@linux.intel.com
-Signed-off-by: Oleg Drokin <green@linuxhacker.ru>
----
- drivers/mfd/twl-core.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+  Changes
+  since v3:
+  Separated mach-types change into a separate patch (already got RMK approval)
+  Dramatically cut number of includes in the board file again.
+  No longer set voltage regulator dev, just device name in the supply.
+  Style fixes
+  Serial in uncompress.h sorted by name
+  Corrected MUX package to CBP in board file.
+  omap_i2c_init now has no return since it's unused anyway.
+  Fixed keypad definition.
 
-diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-index 960b5be..3daebcc 100644
---- a/drivers/mfd/twl-core.c
-+++ b/drivers/mfd/twl-core.c
-@@ -1107,6 +1107,8 @@ static const struct i2c_device_id twl_ids[] = {
- 	{ "tps65950", 0 },		/* catalog version of twl5030 */
- 	{ "tps65930", TPS_SUBSET },	/* fewer LDOs and DACs; no charger */
- 	{ "tps65920", TPS_SUBSET },	/* fewer LDOs; no codec or charger */
-+	{ "tps65921", TPS_SUBSET },	/* fewer LDOs; no codec, no LED
-+					   and vibrator. Charger in USB module*/
- 	{ "twl6030", TWL6030_CLASS },	/* "Phoenix power chip" */
- 	{ /* end of list */ },
- };
--- 
-1.7.4.4
+  since v2:
+  rebased on devel-cleanup branch
+
+  since v1:
+  Threw away all the android stuff as suggested 
+  Cleaned up voltage regulators and removed the ones our twl chip actually
+    does not have
+  Changed the split of the patches to board file + twl update
+
+Bye,
+   Oleg
+
 
