@@ -1,35 +1,33 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH v4 1/2] REGULATOR: TWL6025: add support to twl-regulator
-Date: Mon, 23 May 2011 06:48:59 +0800
-Message-ID: <20110522224857.GA15882@opensource.wolfsonmicro.com>
-References: <1306095684-7732-1-git-send-email-gg@slimlogic.co.uk>
- <1306095684-7732-2-git-send-email-gg@slimlogic.co.uk>
-Mime-Version: 1.0
+From: Oleg Drokin <green@linuxhacker.ru>
+Subject: Re: [PATCH] cleanup regulator supply definitions in mach-omap2 to use REGULATOR_SUPPLY
+Date: Sun, 22 May 2011 18:49:26 -0400
+Message-ID: <13FCB0DC-28DB-4AC5-A08A-D8A71AA8D031@linuxhacker.ru>
+References: <1306101529-22013-1-git-send-email-green@linuxhacker.ru> <20110522224510.GA15858@opensource.wolfsonmicro.com>
+Mime-Version: 1.0 (Apple Message framework v1082)
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:54932 "EHLO
-	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1755438Ab1EVWtD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Sun, 22 May 2011 18:49:03 -0400
-Content-Disposition: inline
-In-Reply-To: <1306095684-7732-2-git-send-email-gg@slimlogic.co.uk>
+Received: from linuxhacker.ru ([217.76.32.60]:42639 "EHLO fiona.linuxhacker.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755900Ab1EVWtf convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 22 May 2011 18:49:35 -0400
+In-Reply-To: <20110522224510.GA15858@opensource.wolfsonmicro.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Graeme Gregory <gg@slimlogic.co.uk>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, lrg@slimlogic.co.uk, lrg@ti.com, linux@slimlogic.co.uk, balajitk@ti.com
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Sun, May 22, 2011 at 09:21:23PM +0100, Graeme Gregory wrote:
-> Adding support for the twl6025. Major difference in the twl6025 is the
-> group functionality has been removed from the chip so this affects how
-> regulators are enabled and disabled.
+Hello!
 
-Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+On May 22, 2011, at 6:45 PM, Mark Brown wrote:
 
-> Since V1
-> 
-> Use the features variable passed via platform data instead of calling
-> global function.
+> Note that it'd be better to split into two patches as it makes review
+> easier.
 
-Change histories like this should usually come after the --- so things
-like git am strip them out of what actually ends up in git.
+If I end-up with a new version of the patch, what do you think would be best as a divisor
+between the patches? Just have ~half of changes split into another patch or do you have any other ideas?
+
+Thanks.
+
+Bye,
+    Oleg
