@@ -1,34 +1,36 @@
-From: "Nori, Sekhar" <nsekhar@ti.com>
-Subject: RE: [PATCH] Fix generic irq chip
-Date: Mon, 23 May 2011 15:23:09 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024D09B1F7@dbde02.ent.ti.com>
-References: <20110520220510.GC30675@n2100.arm.linux.org.uk>
+From: Liam Girdwood <lrg@ti.com>
+Subject: Re: [PATCH v4 1/2] REGULATOR: TWL6025: add support to twl-regulator
+Date: Mon, 23 May 2011 10:57:54 +0100
+Message-ID: <4DDA2FA2.2000604@ti.com>
+References: <1306095684-7732-1-git-send-email-gg@slimlogic.co.uk> <1306095684-7732-2-git-send-email-gg@slimlogic.co.uk> <20110522224857.GA15882@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:50883 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753388Ab1EWJxn convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 May 2011 05:53:43 -0400
-In-Reply-To: <20110520220510.GC30675@n2100.arm.linux.org.uk>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20110522224857.GA15882@opensource.wolfsonmicro.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Graeme Gregory <gg@slimlogic.co.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Balbi, Felipe" <balbi@ti.com>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>, "linux@slimlogic.co.uk" <linux@slimlogic.co.uk>, "Krishnamoorthy, Balaji T" <balajitk@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, Lennert Buytenhek <kernel@wantstofly.org>, Nicolas Pitre <nico@>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Sat, May 21, 2011 at 03:35:10, Russell King - ARM Linux wrote:
-> As a result of c42321c (genirq: Make generic irq chip depend on
-> CONFIG_GENERIC_IRQ_CHIP), we now need those platforms using this in
-> my tree to select this symbol.
+On 22/05/11 23:48, Mark Brown wrote:
+> On Sun, May 22, 2011 at 09:21:23PM +0100, Graeme Gregory wrote:
+>> Adding support for the twl6025. Major difference in the twl6025 is the
+>> group functionality has been removed from the chip so this affects how
+>> regulators are enabled and disabled.
 > 
-> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-> --
-> Please send acks ASAP.  Thanks to Mark for pointing this out with a patch
-> for Samsung.
+> Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+> 
+>> Since V1
+>>
+>> Use the features variable passed via platform data instead of calling
+>> global function.
+> 
+> Change histories like this should usually come after the --- so things
+> like git am strip them out of what actually ends up in git.
 
-Acked-by: Sekhar Nori <nsekhar@ti.com>
+Applied.
 
-Thanks,
-Sekhar
+Thanks
+
+Liam
