@@ -1,56 +1,152 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH v2 2/2] OMAP3BEAGLE: Add support for mt9p031 sensor driver.
-Date: Mon, 23 May 2011 20:03:46 +0300
-Message-ID: <4DDA9372.5060200@compulab.co.il>
-References: <1305899272-31839-1-git-send-email-javier.martin@vista-silicon.com> <4DD9146B.2050408@compulab.co.il> <BANLkTi=sqZpAKFxeCbwqpU_7+WZABGa4=w@mail.gmail.com> <201105230947.15775.laurent.pinchart@ideasonboard.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Koen Kooi <koen@dominion.thruhere.net>
+Subject: Re: [PATCHv2] OMAP3: beagle: add support for beagleboard xM revision C
+Date: Mon, 23 May 2011 19:51:11 +0200
+Message-ID: <B1F920DA-1316-4DB6-B88F-C956C0708C41@dominion.thruhere.net>
+References: <y> <4dd6498f.4b1be30a.2c53.ffffd0ca@mx.google.com> <4DD91E12.4020006@compulab.co.il>
+Mime-Version: 1.0 (Apple Message framework v1084)
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:45819
-	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S932161Ab1EWRDz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 23 May 2011 13:03:55 -0400
-In-Reply-To: <201105230947.15775.laurent.pinchart@ideasonboard.com>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:46449 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755478Ab1EWRvQ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 May 2011 13:51:16 -0400
+Received: by wya21 with SMTP id 21so4397868wya.19
+        for <linux-omap@vger.kernel.org>; Mon, 23 May 2011 10:51:15 -0700 (PDT)
+In-Reply-To: <4DD91E12.4020006@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: javier Martin <javier.martin@vista-silicon.com>, linux-media@vger.kernel.org, beagleboard@googlegroups.com, carlighting@yahoo.co.nz, g.liakhovetski@gmx.de, linux-arm-kernel@lists.infradead.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-
-On 05/23/11 10:47, Laurent Pinchart wrote:
-> Hi Javier,
->
-> On Monday 23 May 2011 09:25:01 javier Martin wrote:
->> On 22 May 2011 15:49, Igor Grinberg <grinberg@compulab.co.il> wrote:
-> [snip]
->
->>>> @@ -309,6 +357,15 @@ static int beagle_twl_gpio_setup(struct device
->>>> *dev, pr_err("%s: unable to configure EHCI_nOC\n", __func__); }
->>>>
->>>> +     if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM) {
->>>> +             /*
->>>> +              * Power on camera interface - only on pre-production, not
->>>> +              * needed on production boards
->>>> +              */
->>>> +             gpio_request(gpio + 2, "CAM_EN");
->>>> +             gpio_direction_output(gpio + 2, 1);
->>> Why not gpio_request_one()?
->> Just to follow the same approach as in the rest of the code.
->> Maybe a further patch could change all "gpio_request()" uses to
->> "gpio_request_one()".
-> Please do it the other way around. Replace calls to gpio_request() + 
-> gpio_direction_output() with a call to gpio_request_one(), and then modify 
-> this patch to use gpio_request_one().
-
-Well, this is done already, you need to follow Tony's linux-next branch...
-So, just changing this patch would do...
-Also, good practice is to base patches on maintainer's appropriate branch,
-so it would be easier to apply.
+To: Igor Grinberg <grinberg@compulab.co.il>
+Cc: linux-omap@vger.kernel.org, jkridner@beagleboard.org
 
 
+Op 22 mei 2011, om 16:30 heeft Igor Grinberg het volgende geschreven:
 
--- 
-Regards,
-Igor.
+> Hi Koen,
+> 
+> On 05/20/11 13:59, koen@dominion.thruhere.net wrote:
+> 
+>> From: Koen Kooi <koen@dominion.thruhere.net>
+>> 
+>> The USB enable GPIO has been inverted and the USER button moved.
+>> 
+>> Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+>> ---
+>> 
+>> Changes since v1:
+>> 	Fixed more xM references
+>> 
+>> arch/arm/mach-omap2/board-omap3beagle.c |   32 +++++++++++++++++++++++-------
+>> 1 files changed, 24 insertions(+), 8 deletions(-)
+>> 
+>> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+>> index 2de4b02..1eb1e8e 100644
+>> --- a/arch/arm/mach-omap2/board-omap3beagle.c
+>> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
+>> @@ -62,7 +62,9 @@
+>>  *	AXBX	= GPIO173, GPIO172, GPIO171: 1 1 1
+>>  *	C1_3	= GPIO173, GPIO172, GPIO171: 1 1 0
+>>  *	C4	= GPIO173, GPIO172, GPIO171: 1 0 1
+>> - *	XM	= GPIO173, GPIO172, GPIO171: 0 0 0
+>> + *	XMA	= GPIO173, GPIO172, GPIO171: 0 0 0
+>> + *	XMB	= GPIO173, GPIO172, GPIO171: 0 0 1
+>> + *  XMC = GPIO173, GPIO172, GPIO171: 0 1 0
+>>  */
+>> enum {
+>> 	OMAP3BEAGLE_BOARD_UNKN = 0,
+>> @@ -70,6 +72,7 @@ enum {
+>> 	OMAP3BEAGLE_BOARD_C1_3,
+>> 	OMAP3BEAGLE_BOARD_C4,
+>> 	OMAP3BEAGLE_BOARD_XM,
+>> +	OMAP3BEAGLE_BOARD_XMC,
+>> };
+>> 
+>> static u8 omap3_beagle_version;
+>> @@ -124,9 +127,17 @@ static void __init omap3_beagle_init_rev(void)
+>> 		printk(KERN_INFO "OMAP3 Beagle Rev: xM\n");
+>> 		omap3_beagle_version = OMAP3BEAGLE_BOARD_XM;
+>> 		break;
+>> +	case 1:
+>> +		printk(KERN_INFO "OMAP3 Beagle Rev: xM B\n");
+>> +		omap3_beagle_version = OMAP3BEAGLE_BOARD_XM;
+>> +		break;
+>> +	case 2:
+>> +		printk(KERN_INFO "OMAP3 Beagle Rev: xM C\n");
+>> +		omap3_beagle_version = OMAP3BEAGLE_BOARD_XMC;
+>> +		break;
+>> 	default:
+>> -		printk(KERN_INFO "OMAP3 Beagle Rev: unknown %hd\n", beagle_rev);
+>> -		omap3_beagle_version = OMAP3BEAGLE_BOARD_UNKN;
+>> +		printk(KERN_INFO "OMAP3 Beagle Rev: unknown %hd, assuming xM C or newer\n", beagle_rev);
+> 
+> Please, break this line so it will be < 80
+> and also all occurrences below.
+> 
+>> +		omap3_beagle_version = OMAP3BEAGLE_BOARD_XMC;
+>> 	}
+>> 
+>> 	return;
+>> @@ -278,7 +289,7 @@ static int beagle_twl_gpio_setup(struct device *dev,
+>> {
+>> 	int r;
+>> 
+>> -	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM) {
+>> +	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM || omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XMC) {
+> 
+> There is no real need to make it > 80
+> 
+>> 		mmc[0].gpio_wp = -EINVAL;
+>> 	} else if ((omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_C1_3) ||
+>> 		(omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_C4)) {
+>> @@ -298,7 +309,7 @@ static int beagle_twl_gpio_setup(struct device *dev,
+>> 	/* REVISIT: need ehci-omap hooks for external VBUS
+>> 	 * power switch and overcurrent detect
+>> 	 */
+>> -	if (omap3_beagle_get_rev() != OMAP3BEAGLE_BOARD_XM) {
+>> +	if (omap3_beagle_get_rev() != OMAP3BEAGLE_BOARD_XM && omap3_beagle_get_rev() != OMAP3BEAGLE_BOARD_XMC) {
+>> 		r = gpio_request(gpio + 1, "EHCI_nOC");
+>> 		if (!r) {
+>> 			r = gpio_direction_input(gpio + 1);
+>> @@ -320,7 +331,7 @@ static int beagle_twl_gpio_setup(struct device *dev,
+>> 		gpio_direction_output(gpio + TWL4030_GPIO_MAX, 0);
+>> 
+>> 	/* DVI reset GPIO is different between beagle revisions */
+>> -	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM)
+>> +	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM || omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XMC)
+>> 		beagle_dvi_device.reset_gpio = 129;
+>> 	else
+>> 		beagle_dvi_device.reset_gpio = 170;
+>> @@ -334,7 +345,7 @@ static int beagle_twl_gpio_setup(struct device *dev,
+>> 	 * P7/P8 revisions(prototype): Camera EN
+>> 	 * A2+ revisions (production): LDO (supplies DVI, serial, led blocks)
+>> 	 */
+>> -	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM) {
+>> +	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM || omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XMC) {
+>> 		r = gpio_request(gpio + 1, "nDVI_PWR_EN");
+>> 		if (!r) {
+>> 			r = gpio_direction_output(gpio + 1, 0);
+>> @@ -625,7 +636,7 @@ static void __init beagle_opp_init(void)
+>> 	}
+>> 
+>> 	/* Custom OPP enabled for XM */
+>> -	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM) {
+>> +	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM || omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XMC) {
+>> 		struct omap_hwmod *mh = omap_hwmod_lookup("mpu");
+>> 		struct omap_hwmod *dh = omap_hwmod_lookup("iva");
+>> 		struct device *dev;
+>> @@ -665,6 +676,11 @@ static void __init omap3_beagle_init(void)
+>> 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+>> 	omap3_beagle_init_rev();
+>> 	omap3_beagle_i2c_init();
+>> +
+>> +	if (cpu_is_omap3630()) {
+>> +		gpio_buttons[0].gpio = 4;
+>> +	}
+> 
+> can't this kind of check be used in all the XM checks above?
 
+Not in every case, I'll see which ones can be converted to this simpler check. I'll respin the patch with your other comments addressed.
+
+regards
+
+Koen
