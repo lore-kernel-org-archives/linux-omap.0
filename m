@@ -1,39 +1,34 @@
-From: Liam Girdwood <lrg@ti.com>
-Subject: Re: [PATCH v4 2/2] USB: TWL6025 allow different regulator name
-Date: Mon, 23 May 2011 13:58:44 +0100
-Message-ID: <4DDA5A04.7050703@ti.com>
-References: <1306095684-7732-1-git-send-email-gg@slimlogic.co.uk> <1306095684-7732-3-git-send-email-gg@slimlogic.co.uk> <20110522225103.GB15882@opensource.wolfsonmicro.com> <4DDA2FC3.20009@ti.com> <20110523111326.GD5663@legolas.emea.dhcp.ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH] Fix generic irq chip
+Date: Mon, 23 May 2011 06:48:41 -0700
+Message-ID: <87lixx34ue.fsf@ti.com>
+References: <20110520220510.GC30675@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20110523111326.GD5663@legolas.emea.dhcp.ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Balbi, Felipe" <balbi@ti.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, Graeme Gregory <gg@slimlogic.co.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>, "linux@slimlogic.co.uk" <linux@slimlogic.co.uk>, "Krishnamoorthy, Balaji T" <balajitk@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:35410 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753015Ab1EWNsp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 23 May 2011 09:48:45 -0400
+Received: by mail-pw0-f54.google.com with SMTP id 8so3187509pwj.41
+        for <linux-omap@vger.kernel.org>; Mon, 23 May 2011 06:48:44 -0700 (PDT)
+In-Reply-To: <20110520220510.GC30675@n2100.arm.linux.org.uk> (Russell King's
+	message of "Fri, 20 May 2011 23:05:10 +0100")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, Lennert Buytenhek <kernel@wantstofly.org>, Nicolas Pitre <nico@fluxnic.net>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, davinci-linux-open-source@linux.davincidsp.com, linux-omap@vger.kernel.org
 
-On 23/05/11 12:13, Balbi, Felipe wrote:
-> Hi,
-> 
-> On Mon, May 23, 2011 at 10:58:27AM +0100, Liam Girdwood wrote:
->> On 22/05/11 23:51, Mark Brown wrote:
->>> On Sun, May 22, 2011 at 09:21:24PM +0100, Graeme Gregory wrote:
->>>> The twl6025 uses a different regulator for USB than the 6030 so select
->>>> the correct regulator name depending on the subclass of device.
->>>
->>> Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
->>
->> Acked-by: Liam Girdwood <lrg@ti.com>
-> 
-> Maybe it's better for you to carry this one Liam. I'm done taking
-> patches for this merge window and this is related to the same series
-> adding support to twl6025. Either that or this will be pending until
-> 2.6.41 merge window.
-> 
+Russell King - ARM Linux <linux@arm.linux.org.uk> writes:
 
-Ok, I've now applied it to regulator.
+> As a result of c42321c (genirq: Make generic irq chip depend on
+> CONFIG_GENERIC_IRQ_CHIP), we now need those platforms using this in
+> my tree to select this symbol.
+>
+> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> --
+> Please send acks ASAP.  Thanks to Mark for pointing this out with a patch
+> for Samsung.
 
-Thanks !
-
-Liam
+Acked-by: Kevin Hilman <khilman@ti.com>
