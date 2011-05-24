@@ -1,82 +1,68 @@
-From: "Avinash.H.M." <avinashhm@ti.com>
-Subject: Re: [PATCH v3] OMAP2/3: hwmod: fix the i2c-reset timeout during
- bootup
-Date: Wed, 25 May 2011 00:37:18 +0530
-Message-ID: <20110524190718.GA6899@avinash-laptop>
-References: <1304328111-15999-1-git-send-email-avinashhm@ti.com>
- <alpine.DEB.2.00.1105051548210.30136@utopia.booyaka.com>
- <20110509124842.GA25211@avinash-laptop>
- <alpine.DEB.2.00.1105181021590.4550@utopia.booyaka.com>
- <20110518162542.GB3026@avinash-laptop>
- <FCCFB4CDC6E5564B9182F639FC3560870370A4D887@dbde02.ent.ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: context_loss_count error value
+Date: Tue, 24 May 2011 16:45:43 -0700
+Message-ID: <87lixv1x3s.fsf@ti.com>
+References: <1305704452.1834.12.camel@deskari> <87k4douvsd.fsf@ti.com>
+	<1305718422.1834.23.camel@deskari> <877h9ot7c3.fsf@ti.com>
+	<1305729690.30372.7.camel@deskari> <1306252069.2194.28.camel@deskari>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:37771 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756134Ab1EXTHl (ORCPT
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:49005 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757375Ab1EXXps (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 24 May 2011 15:07:41 -0400
-Received: by mail-pv0-f177.google.com with SMTP id 11so3619611pvh.8
-        for <linux-omap@vger.kernel.org>; Tue, 24 May 2011 12:07:40 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC3560870370A4D887@dbde02.ent.ti.com>
+	Tue, 24 May 2011 19:45:48 -0400
+Received: by mail-pw0-f47.google.com with SMTP id 9so3455326pwj.20
+        for <linux-omap@vger.kernel.org>; Tue, 24 May 2011 16:45:46 -0700 (PDT)
+In-Reply-To: <1306252069.2194.28.camel@deskari> (Tomi Valkeinen's message of
+	"Tue, 24 May 2011 18:47:49 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Koyamangalath, Abhilash" <abhilash.kv@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Nayak, Rajendra" <rnayak@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Hilman, Kevin" <khilman@ti.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-On Thu, May 19, 2011 at 06:05:21PM +0530, Koyamangalath, Abhilash wrote:
+Hi Tomi,
 
-> I have tried the patch on am37x evm and the i2c soft-reset time-out issue doesn't
-> seem to go off for me. Previously I used to get a log  : 
-> 
-> [    0.000000] omap_hwmod: i2c1: softreset failed (waited 10000 usec)                                                                                                            
-> [    0.000000] omap_hwmod: i2c2: softreset failed (waited 10000 usec)                                                                                                            
-> [    0.000000] omap_hwmod: i2c3: softreset failed (waited 10000 usec) 
-> 
-> And now I get :
-> [    0.000000] omap_i2c_reset: i2c1: softreset failed (waited 10000 usec)
-> [    0.000000] omap_i2c_reset: i2c2: softreset failed (waited 10000 usec)
-> [    0.000000] omap_i2c_reset: i2c3: softreset failed (waited 10000 usec)
-> 
-> So the function where this failure happens seems to be the only thing that has changed.
-> I've tried this patch on top of the recent PSP 04.02.00.07 release. 
-> What am I missing?
+Tomi Valkeinen <tomi.valkeinen@ti.com> writes:
 
-Abhilash ,
+> On Wed, 2011-05-18 at 17:41 +0300, Tomi Valkeinen wrote:
+>> On Wed, 2011-05-18 at 16:24 +0200, Kevin Hilman wrote:
+>> 
+>> > Looking closer at the code, a zero return happens only when
+>> > 
+>> > 1) no hwmod associated to omap_device
+>> > 2) no power domain associated to hwmod
+>> > 3) power domain has not (yet) lost context
+>> > 
+>> > None of these are actually error conditions per-se, and in all cases, it
+>> > indidates that context has not been lost (or we can't tell if context
+>> > has been lost.) 
+>> 
+>> If the pm code cannot tell whether the context has been lost or not, the
+>> driver must assume it has been lost, do you agree? If so, the driver
+>> must handle zero return value differently, and always restore context.
+>> 
+>> > So I think the current code is correct.
+>> 
+>> How is it correct if it returns an error even if no error has happened
+>> =)? Either the code or the documentation is wrong.
+>> 
+>> How about the wrap-around case? Does the loss count go back to zero?
+>
+> Any conclusion on this?
 
-I am not sure what is PSP 04.02.00.07 release. But you should make sure
-that the hwmod structures in omap_hwmod_3xxx_data.c should have the
-16_bit flags. 
+Sorry for the lag... been travelling, and finally back home...
 
-Below is just a snippet in P.S.. There is already a patch submitted by
-andy green for this. Not sure, if it is merged.  
+You're right, the code is just wrong here and would lead to strange
+return value checking in the callers to be correct.
 
-With this and the posted v3 patch, you should not see timeouts. Or else
-you have some other problem.
+I think the best fix for this problem is to use a signed return value
+which can wrap as expected, and then use return negative error codes
+(e.g. -ENODEV).
 
-thanks ,
+Care to send a patch?  or do you have any other suggestions for a fix?
 
-- Avinash
+Thanks,
 
-PS:
-
- static struct omap_hwmod omap3xxx_i2c1_hwmod = {
-        .name           = "i2c1",
-+       .flags          = HWMOD_16BIT_REG,
- 
-
-> 
-> thanks,
-> Abhilash
-> 
-> 
-> 
-> > >
-> > >
-> > > - Paul
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Kevin
