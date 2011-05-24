@@ -1,135 +1,97 @@
-From: koen@dominion.thruhere.net
-Subject: [PATCHv2] OMAP3: beagle: add support for beagleboard xM revision C
-Date: Tue, 24 May 2011 11:48:26 +0200
-Message-ID: <4ddb7eef.0eb3e30a.5b7b.ffffb2fc@mx.google.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [GIT PULL] USB patches for next merge window
+Date: Tue, 24 May 2011 13:04:56 +0300
+Message-ID: <20110524100455.GA14371@legolas.emea.dhcp.ti.com>
+References: <20110518110353.GH13908@legolas.emea.dhcp.ti.com>
+ <20110518114242.GI13908@legolas.emea.dhcp.ti.com>
+ <20110523061346.GD3095@legolas.emea.dhcp.ti.com>
+ <20110523101515.8c47e7a2.jhnikula@gmail.com>
+ <20110523081524.GL3095@legolas.emea.dhcp.ti.com>
+ <20110524085244.GE30799@atomide.com>
+Reply-To: balbi@ti.com
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="EeQfGwPcQSOJBaQU"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:34988 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753445Ab1EXJse (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 May 2011 05:48:34 -0400
-Received: by wya21 with SMTP id 21so4829023wya.19
-        for <linux-omap@vger.kernel.org>; Tue, 24 May 2011 02:48:33 -0700 (PDT)
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:41354 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753187Ab1EXKFE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 24 May 2011 06:05:04 -0400
+Received: by fxm16 with SMTP id 16so5714788fxm.23
+        for <linux-omap@vger.kernel.org>; Tue, 24 May 2011 03:05:01 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <20110524085244.GE30799@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: jkridner@beagleboard.org, Koen Kooi <koen@dominion.thruhere.net>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Felipe Balbi <balbi@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Jarkko Nikula <jhnikula@gmail.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-From: Koen Kooi <koen@dominion.thruhere.net>
 
-The USB enable GPIO has been inverted and the USER button moved.
+--EeQfGwPcQSOJBaQU
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
----
+Hi,
 
-Changes since v1:
-	* Limited line width to 80 chars max
-	* changed XM || XMC to cpu_is_omap3630()	
+On Tue, May 24, 2011 at 11:52:45AM +0300, Tony Lindgren wrote:
+> * Felipe Balbi <balbi@ti.com> [110523 11:11]:
+> > On Mon, May 23, 2011 at 10:15:15AM +0300, Jarkko Nikula wrote:
+> > > On Mon, 23 May 2011 09:14:38 +0300
+> > > Felipe Balbi <balbi@ti.com> wrote:
+> > >=20
+> > > > a gentle ping here too. Without this we will have regressions on
+> > > > ehci/ohci as the pm_runtime patches have gone in via Samuel.
+> > > >=20
+> > > Does this mean that those regressions happened already when those
+> > > patches were made if there is pull request dependency?
+> >=20
+> > not really, no.
+> >=20
+> > > Remember bisectability is important. And very important if you are
+> > > bisecting something else but which is dependent on this as then you
+> > > could mark wrong good/bad points or not able to determine.
+> >=20
+> > True, true... I just wanted to avoid conflicts as much as possible so
+> > arch/arm/*omap*/ goes through Tony, and drivers/mfd/* goes through
+> > Samuel.
+> >=20
+> > pm_rutime and hwmod conversion aren't really that tightly coupled. As
+> > long as the arch code is in place, we can do pm_runtime at any time. Not
+> > sure if it's true the other way around. But one thing is for sure, if
+> > this pull request isn't taken, then I guess clocks won't enable on
+> > omap-usbhs...
+>=20
+> Looks like these patches are missing acks from Benoit and Paul?
+> I'd rather not pull them in without the acks. Note that we have
+> a very short merge window this time, so let's see if we can still
+> get them in.
 
- arch/arm/mach-omap2/board-omap3beagle.c |   34 +++++++++++++++++++++++-------
- 1 files changed, 26 insertions(+), 8 deletions(-)
+Ok... let's see if they'll Ack the patches which have been floating
+around. [1], [2] and [3] are the patches which need Ack.
 
-diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index 33007fd..ffd2209 100644
---- a/arch/arm/mach-omap2/board-omap3beagle.c
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -62,7 +62,9 @@
-  *	AXBX	= GPIO173, GPIO172, GPIO171: 1 1 1
-  *	C1_3	= GPIO173, GPIO172, GPIO171: 1 1 0
-  *	C4	= GPIO173, GPIO172, GPIO171: 1 0 1
-- *	XM	= GPIO173, GPIO172, GPIO171: 0 0 0
-+ *	XMA	= GPIO173, GPIO172, GPIO171: 0 0 0
-+ *	XMB	= GPIO173, GPIO172, GPIO171: 0 0 1
-+ *  XMC = GPIO173, GPIO172, GPIO171: 0 1 0
-  */
- enum {
- 	OMAP3BEAGLE_BOARD_UNKN = 0,
-@@ -70,6 +72,7 @@ enum {
- 	OMAP3BEAGLE_BOARD_C1_3,
- 	OMAP3BEAGLE_BOARD_C4,
- 	OMAP3BEAGLE_BOARD_XM,
-+	OMAP3BEAGLE_BOARD_XMC,
- };
- 
- static u8 omap3_beagle_version;
-@@ -124,9 +127,18 @@ static void __init omap3_beagle_init_rev(void)
- 		printk(KERN_INFO "OMAP3 Beagle Rev: xM\n");
- 		omap3_beagle_version = OMAP3BEAGLE_BOARD_XM;
- 		break;
-+	case 1:
-+		printk(KERN_INFO "OMAP3 Beagle Rev: xM B\n");
-+		omap3_beagle_version = OMAP3BEAGLE_BOARD_XM;
-+		break;
-+	case 2:
-+		printk(KERN_INFO "OMAP3 Beagle Rev: xM C\n");
-+		omap3_beagle_version = OMAP3BEAGLE_BOARD_XMC;
-+		break;
- 	default:
--		printk(KERN_INFO "OMAP3 Beagle Rev: unknown %hd\n", beagle_rev);
--		omap3_beagle_version = OMAP3BEAGLE_BOARD_UNKN;
-+		printk(KERN_INFO 
-+		"OMAP3 Beagle Rev: unknown %hd, assuming xM C or newer\n", beagle_rev);
-+		omap3_beagle_version = OMAP3BEAGLE_BOARD_XMC;
- 	}
- 
- 	return;
-@@ -278,7 +290,7 @@ static int beagle_twl_gpio_setup(struct device *dev,
- {
- 	int r;
- 
--	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM) {
-+	if (cpu_is_omap3630()) {
- 		mmc[0].gpio_wp = -EINVAL;
- 	} else if ((omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_C1_3) ||
- 		(omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_C4)) {
-@@ -298,7 +310,8 @@ static int beagle_twl_gpio_setup(struct device *dev,
- 	/* REVISIT: need ehci-omap hooks for external VBUS
- 	 * power switch and overcurrent detect
- 	 */
--	if (omap3_beagle_get_rev() != OMAP3BEAGLE_BOARD_XM) {
-+	if (omap3_beagle_get_rev() != OMAP3BEAGLE_BOARD_XM 
-+		&& omap3_beagle_get_rev() != OMAP3BEAGLE_BOARD_XMC) {
- 		r = gpio_request(gpio + 1, "EHCI_nOC");
- 		if (!r) {
- 			r = gpio_direction_input(gpio + 1);
-@@ -320,7 +333,7 @@ static int beagle_twl_gpio_setup(struct device *dev,
- 		gpio_direction_output(gpio + TWL4030_GPIO_MAX, 0);
- 
- 	/* DVI reset GPIO is different between beagle revisions */
--	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM)
-+	if (cpu_is_omap3630()) 
- 		beagle_dvi_device.reset_gpio = 129;
- 	else
- 		beagle_dvi_device.reset_gpio = 170;
-@@ -334,7 +347,7 @@ static int beagle_twl_gpio_setup(struct device *dev,
- 	 * P7/P8 revisions(prototype): Camera EN
- 	 * A2+ revisions (production): LDO (supplies DVI, serial, led blocks)
- 	 */
--	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM) {
-+	if (cpu_is_omap3630()) {
- 		r = gpio_request(gpio + 1, "nDVI_PWR_EN");
- 		if (!r) {
- 			r = gpio_direction_output(gpio + 1, 0);
-@@ -619,7 +632,7 @@ static void __init beagle_opp_init(void)
- 	}
- 
- 	/* Custom OPP enabled for XM */
--	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM) {
-+	if (cpu_is_omap3630()) {
- 		struct omap_hwmod *mh = omap_hwmod_lookup("mpu");
- 		struct omap_hwmod *dh = omap_hwmod_lookup("iva");
- 		struct device *dev;
-@@ -659,6 +672,11 @@ static void __init omap3_beagle_init(void)
- 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
- 	omap3_beagle_init_rev();
- 	omap3_beagle_i2c_init();
-+
-+	if (cpu_is_omap3630()) {
-+		gpio_buttons[0].gpio = 4;
-+	}
-+
- 	platform_add_devices(omap3_beagle_devices,
- 			ARRAY_SIZE(omap3_beagle_devices));
- 	omap_display_init(&beagle_dss_data);
--- 
-1.6.6.1
+[1] http://marc.info/?l=3Dlinux-omap&m=3D130512838504191&w=3D2
+[2] http://marc.info/?l=3Dlinux-omap&m=3D130512862104681&w=3D2
+[3] http://marc.info/?l=3Dlinux-omap&m=3D130512812503806&w=3D2
 
+--=20
+balbi
+
+--EeQfGwPcQSOJBaQU
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQEcBAEBAgAGBQJN24LHAAoJEAv8Txj19kN1NmwH/3cLhVrLOAcDk6kyM3R15J7k
+2MBku7LpxFGm6AsEpAgHhEP23f2goTb4W+yRpLA6jLn5vpntGVYRQVbHiaj4l86z
+nU1OCjOji2+L9fM3HX5Y/fOqSaxatwn399xHehQhXc7kr3K7zXk4PsGOOw4GcayK
+RCDU91HR75BL5iZhmYwx5TWAZ89qic5WRcetVURwqXDBZNt3zsu9z5bHFwMk0UFp
+GLFxw4tlYW4ytaYVtnYSZHE3Wbt8Ej2nb9Z8vu4oRQwPDW54M/n8W6qs4DIlY7Te
+zxykT8JG37xyxcKjqwouKVNz6PIWJTWikDdfQWJ456zkMn0+uHVX9u151y7tKig=
+=Yz/8
+-----END PGP SIGNATURE-----
+
+--EeQfGwPcQSOJBaQU--
