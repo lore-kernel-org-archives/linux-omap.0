@@ -1,101 +1,159 @@
-From: "Manuel, Lesly Arackal" <leslyam@ti.com>
-Subject: Re: [PATCH v10 4/7] MFD: TWL4030: power scripts for OMAP3 boards
-Date: Tue, 24 May 2011 17:47:07 +0530
-Message-ID: <BANLkTi=8mzg3FxJpJqLFgYsk9hrS5tcEag@mail.gmail.com>
-References: <1304687833-4578-1-git-send-email-leslyam@ti.com>
-	<1304687833-4578-5-git-send-email-leslyam@ti.com>
-	<20110513183958.GY8970@sortiz-mobl>
-	<BANLkTi=c9naYFuuRbNG8FK6WuKWVBp0DKg@mail.gmail.com>
-	<20110522214036.GO18610@sortiz-mobl>
+From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Subject: [PATCH 15/15] OMAP: GPIO: clean omap_gpio_mod_init function
+Date: Tue, 24 May 2011 19:54:54 +0530
+Message-ID: <1306247094-25372-16-git-send-email-tarun.kanti@ti.com>
+References: <1306247094-25372-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:48654 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755915Ab1EXMRI convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 24 May 2011 08:17:08 -0400
-Received: by mail-wy0-f172.google.com with SMTP id 29so5668840wyb.31
-        for <linux-omap@vger.kernel.org>; Tue, 24 May 2011 05:17:07 -0700 (PDT)
-In-Reply-To: <20110522214036.GO18610@sortiz-mobl>
+Received: from bear.ext.ti.com ([192.94.94.41]:43512 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756092Ab1EXOZI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 24 May 2011 10:25:08 -0400
+In-Reply-To: <1306247094-25372-1-git-send-email-tarun.kanti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>, David Derrick <dderrick@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: khilman@ti.com, santosh.shilimkar@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Charulatha V <charu@ti.com>, Tarun Kanti DebBarma <tarun.kanti@ti.com>
 
-Hi Samuel,
+From: Charulatha V <charu@ti.com>
 
-On Mon, May 23, 2011 at 3:10 AM, Samuel Ortiz <sameo@linux.intel.com> w=
-rote:
-> Hi Lesly,
->
-> On Tue, May 17, 2011 at 07:10:03PM +0530, Manuel, Lesly Arackal wrote=
-:
->> Hi Samuel,
->>
->> On Sat, May 14, 2011 at 12:09 AM, Samuel Ortiz <sameo@linux.intel.co=
-m> wrote:
->> > Hi Lesly,
->> >
->> > On Fri, May 06, 2011 at 06:47:10PM +0530, Lesly A M wrote:
->> >> Power bus message sequence for TWL4030 to enter sleep/wakeup/warm=
-_reset.
->> >>
->> >> TWL4030 power scripts which can be used by different OMAP3 boards
->> >> with the power companion chip (TWL4030 series).
->> >>
->> >> The twl4030 generic script can be used by any board file to updat=
-e
->> >> the power data in twl4030_platform_data.
->> >>
->> >> Since the TWL4030 power script has dependency with APIs in twl403=
-0-power.c
->> >> removing the __init for these APIs.
->> >>
->> >> For more information please see:
->> >> =A0 =A0 =A0 http://omapedia.org/wiki/TWL4030_power_scripts
->> > I understand you guys are trying to keep the arch/arm stats to a s=
-ane level,
->> > but I don't see why this driver should be under drivers/mfd/. I'm =
-usually
->> > flexible about what goes into drivers/mfd, but this one seems out =
-of context
->> > to me.
->>
->> Since this script driver file contains the changes for PM IC (TWL403=
-0 series),
->> which is a Multifunction devices with GPIOs, USB, audio,
->> current regulators, power management chip, ...
->>
->> This script driver file contains the pm bus message sequence which w=
-ill be
->> programmed in the scratch memory of the PM IC, and some resource con=
-figuration
->> data for PM IC resources.
->>
->> This change was suggested by Tony for the last version of this patch=
- series.
-> I understand, but I'm trying to get the "let's push everything that s=
-omehow
-> linked to our MFD driver to drivers/mfd/" crazyness down to a sane le=
-vel.
-> This one doesn't look like it should be part of drivers/mfd.
->
+With register offsets now defined for respective OMAP versions
+we can get rid of cpu_class_* checks. In addition, organized
+common initialization for the different OMAP silicon versions.
 
-This was moved to drivers/mfd/ based on the discussion of last version
-of this patch series.
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg48349.html
+Signed-off-by: Charulatha V <charu@ti.com>
+Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+---
+ arch/arm/mach-omap1/gpio16xx.c         |    1 +
+ arch/arm/plat-omap/include/plat/gpio.h |    1 +
+ drivers/gpio/gpio_omap.c               |   74 +++++++++++++-------------------
+ 3 files changed, 32 insertions(+), 44 deletions(-)
 
-I am slightly confused about, where to place these changes ?
+diff --git a/arch/arm/mach-omap1/gpio16xx.c b/arch/arm/mach-omap1/gpio16xx.c
+index 24f6cfa..e9f8abd 100644
+--- a/arch/arm/mach-omap1/gpio16xx.c
++++ b/arch/arm/mach-omap1/gpio16xx.c
+@@ -227,6 +227,7 @@ static int __init omap16xx_gpio_init(void)
+ 	omap16xx_gpio_regs.wkupset = OMAP1610_GPIO_SET_WAKEUPENA;
+ 	omap16xx_gpio_regs.edgectrl1 = OMAP1610_GPIO_EDGE_CTRL1;
+ 	omap16xx_gpio_regs.edgectrl2 = OMAP1610_GPIO_EDGE_CTRL2;
++	omap16xx_gpio_regs.sysconfig = OMAP1610_GPIO_SYSCONFIG;
+ 
+ 	for (i = 0; i < ARRAY_SIZE(omap16xx_gpio_dev); i++)
+ 		platform_device_register(omap16xx_gpio_dev[i]);
+diff --git a/arch/arm/plat-omap/include/plat/gpio.h b/arch/arm/plat-omap/include/plat/gpio.h
+index f82881c..ac45191 100644
+--- a/arch/arm/plat-omap/include/plat/gpio.h
++++ b/arch/arm/plat-omap/include/plat/gpio.h
+@@ -176,6 +176,7 @@ struct omap_gpio_dev_attr {
+ 
+ struct omap_gpio_reg_offs {
+ 	u16 revision;
++	u16 sysconfig;
+ 	u16 direction;
+ 	u16 datain;
+ 	u16 dataout;
+diff --git a/drivers/gpio/gpio_omap.c b/drivers/gpio/gpio_omap.c
+index ebeb16e..3649c74 100644
+--- a/drivers/gpio/gpio_omap.c
++++ b/drivers/gpio/gpio_omap.c
+@@ -885,65 +885,51 @@ static void __init omap_gpio_show_rev(struct gpio_bank *bank)
+ 	called = true;
+ }
+ 
+-/* This lock class tells lockdep that GPIO irqs are in a different
++/*
++ * This lock class tells lockdep that GPIO irqs are in a different
+  * category than their parents, so it won't report false recursion.
+  */
+ static struct lock_class_key gpio_lock_class;
+ 
+-/* TODO: Cleanup cpu_is_* checks */
+ static void omap_gpio_mod_init(struct gpio_bank *bank)
+ {
+-	if (cpu_class_is_omap2()) {
+-		if (cpu_is_omap44xx()) {
+-			__raw_writel(0xffffffff, bank->base +
+-					OMAP4_GPIO_IRQSTATUSCLR0);
+-			__raw_writel(0x00000000, bank->base +
+-					 OMAP4_GPIO_DEBOUNCENABLE);
+-			/* Initialize interface clk ungated, module enabled */
+-			__raw_writel(0, bank->base + OMAP4_GPIO_CTRL);
+-		} else if (cpu_is_omap34xx()) {
+-			__raw_writel(0x00000000, bank->base +
+-					OMAP24XX_GPIO_IRQENABLE1);
+-			__raw_writel(0xffffffff, bank->base +
+-					OMAP24XX_GPIO_IRQSTATUS1);
+-			__raw_writel(0x00000000, bank->base +
+-					OMAP24XX_GPIO_DEBOUNCE_EN);
++	if (bank->width == 32) {
++		u32 l = 0;
++
++		if (bank->regs->irqenable_inv)
++			l = ~l;
+ 
++		__raw_writel(l, bank->base + bank->regs->irqstatus);
++		__raw_writel(l, bank->base + bank->regs->irqenable);
++
++		if (bank->regs->debounce_en != USHRT_MAX)
++			__raw_writel(l, bank->base + bank->regs->debounce_en);
++
++		if (bank->regs->ctrl != USHRT_MAX)
+ 			/* Initialize interface clk ungated, module enabled */
+-			__raw_writel(0, bank->base + OMAP24XX_GPIO_CTRL);
+-		}
+-	} else if (cpu_class_is_omap1()) {
+-		if (bank_is_mpuio(bank)) {
+-			__raw_writew(0xffff, bank->base +
+-				OMAP_MPUIO_GPIO_MASKIT / bank->stride);
++			 __raw_writel(l, bank->base + bank->regs->ctrl);
++
++	} else if (bank->width == 16) {
++		u16 l = 0;
++
++		if (bank_is_mpuio(bank))
+ 			mpuio_init(bank);
+-		}
+-		if (cpu_is_omap15xx() && bank->method == METHOD_GPIO_1510) {
+-			__raw_writew(0xffff, bank->base
+-						+ OMAP1510_GPIO_INT_MASK);
+-			__raw_writew(0x0000, bank->base
+-						+ OMAP1510_GPIO_INT_STATUS);
+-		}
+-		if (cpu_is_omap16xx() && bank->method == METHOD_GPIO_1610) {
+-			__raw_writew(0x0000, bank->base
+-						+ OMAP1610_GPIO_IRQENABLE1);
+-			__raw_writew(0xffff, bank->base
+-						+ OMAP1610_GPIO_IRQSTATUS1);
+-			__raw_writew(0x0014, bank->base
+-						+ OMAP1610_GPIO_SYSCONFIG);
+ 
++		if (bank->regs->irqenable_inv)
++			l = ~l;
++
++		__raw_writew(l, bank->base + bank->regs->irqstatus);
++		__raw_writew(l, bank->base + bank->regs->irqenable);
++
++		if (bank->regs->sysconfig != USHRT_MAX) {
++			/* set wakeup-enable and smart-idle */
++			__raw_writew(0x14, bank->base + bank->regs->sysconfig);
+ 			/*
+ 			 * Enable system clock for GPIO module.
+ 			 * The CAM_CLK_CTRL *is* really the right place.
+ 			 */
+ 			omap_writel(omap_readl(ULPD_CAM_CLK_CTRL) | 0x04,
+-						ULPD_CAM_CLK_CTRL);
+-		}
+-		if (cpu_is_omap7xx() && bank->method == METHOD_GPIO_7XX) {
+-			__raw_writel(0xffffffff, bank->base
+-						+ OMAP7XX_GPIO_INT_MASK);
+-			__raw_writel(0x00000000, bank->base
+-						+ OMAP7XX_GPIO_INT_STATUS);
++					ULPD_CAM_CLK_CTRL);
+ 		}
+ 	}
+ }
+-- 
+1.6.0.4
 
-in ../../mach-omap2/ or drivers/mfd/  ...
-
---
-Thanks & Regards,
-Lesly A M
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
