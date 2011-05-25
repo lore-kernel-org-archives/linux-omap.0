@@ -1,113 +1,64 @@
-From: "Gulati, Shweta" <shweta.gulati@ti.com>
-Subject: Re: [PATCH V4] OMAP3+: SR Layer Cleanup
-Date: Wed, 25 May 2011 12:09:01 +0530
-Message-ID: <BANLkTim9MbNxtDm8dsZ9wXGm12u2qjwq-g@mail.gmail.com>
-References: <1305268062-20046-1-git-send-email-shweta.gulati@ti.com>
-	<4DD67155.1030705@ti.com>
-	<BANLkTi=ufSmtnEkyRFKOpbTAJkcUW1dXYg@mail.gmail.com>
-	<4DDB9C05.4090705@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH] ARM: OMAP: L3 interconnect: Error reporting cleanups
+Date: Wed, 25 May 2011 12:39:56 +0530
+Message-ID: <4DDCAB44.2060006@ti.com>
+References: <20110525025021.GA8460@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:42373 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752298Ab1EYGjD convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 25 May 2011 02:39:03 -0400
-Received: by mail-bw0-f47.google.com with SMTP id 5so9756721bwz.34
-        for <linux-omap@vger.kernel.org>; Tue, 24 May 2011 23:39:01 -0700 (PDT)
-In-Reply-To: <4DDB9C05.4090705@ti.com>
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:34014 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751974Ab1EYHKD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 25 May 2011 03:10:03 -0400
+Received: by ywg8 with SMTP id 8so3096887ywg.6
+        for <linux-omap@vger.kernel.org>; Wed, 25 May 2011 00:10:01 -0700 (PDT)
+In-Reply-To: <20110525025021.GA8460@google.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Menon, Nishanth" <nm@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Paul Walmsley <paul@pwsan.com>
+To: Todd Poynor <toddpoynor@google.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-Hi,
+Tod,
+On 5/25/2011 8:20 AM, Todd Poynor wrote:
+> * Move variable declarations from header file and make these static
+>    (the entire header file should probably go away).
+>
+Infact the intial version posted on the list had all these structures
+in C file. After some comments on the list we moved them to header file.
+Let's not move it again.
 
-On Tue, May 24, 2011 at 5:22 PM, Cousson, Benoit <b-cousson@ti.com> wro=
-te:
-> On 5/23/2011 6:40 AM, Gulati, Shweta wrote:
->>
->> Benoit,
->>
->> On Fri, May 20, 2011 at 7:19 PM, Cousson, Benoit<b-cousson@ti.com> =A0=
-wrote:
->>>
->>> Hi Shweta,
->>>
->>> On 5/13/2011 8:27 AM, Gulati, Shweta wrote:
->>>>
->>>> To set sr ntarget values =A0for all volt_domain,
->>>> volt_table is retrieved by doing a look_up of 'vdd_name'
->>>> field from omap_hwmod but voltage domain pointer does not
->>>> belong to omap_hwmod and is not used anywhere else.
->>>> As a part of voltage layer and SR Layer clean up volt
->>>> pointer is removed from omap_hwmod and added in dev
->>>> attributes of SR.
->>>>
->>>> Tested on OMAP3630 SDP and OMAP4430 SDP Board
->>>>
->>>> Signed-off-by: Shweta Gulati<shweta.gulati@ti.com>
->>>> Acked by: Nishanth Menon<nm@ti.com>
->>>> Cc: Benoit Cousson<b-cousson@ti.com>
->>>> Cc: Paul Walmsley<paul@pwsan.com>
->>>> ---
->>>>
->>>> V4:
->>>> =A0 Fixed comments like checking for NULL pointers
->>>> =A0 and following conventions in naming the instances
->>>> =A0 recommended by Todd Poynor and Benoit Cousson.
->>>
->>> It looks like you missed at least two comments I did on the previou=
-s
->>> version
->>> whereas you did agree to fix them.
->>
->> You told me to move smartrefex_xxxx_dev_attr above
->> omap44xx_smartreflex_XXX_hwmod struct,
+> * Define L3 TARG instance offsets, and read/write STDERRLOG registers
+>    relative to those offsets, rather than defining STDERRLOG_MAIN
+>    instance offsets and accessing other registers via offsets from
+>    that register.
 >
-> Just before the struct which is not the case.
-Ok will do , just above that struct.
->> which is already in that order and the other thing you suggested was
->> to move .dev_attr before .slaves,
->> that I have not done explaining that, to follow the standard as in a=
-ll
->> defined hwmod struct .dev_attr are placed after .slaves.
+> * Use ffs() to find error source from the L3_FLAGMUX_REGERRn
+>    register.
 >
-> Could you give some example in the OMAP4 data file?
-Benoit, I checked in  OMAP3 data file, So it that in OMAP3 and OMAP4 da=
-ta file
-the order should be different, what do you suggest?
-> In the generic form, you should have opt_clk attribute then dev_attr =
-then
-> .slaves.
+> * Remove extra l3_base[] entry.
 >
-> Anyway, do not say you will fix something if you decide not to fix th=
-em
-> after. Or in case of valid concern, please provide some explanation i=
-n the
-> cover letter.
-Benoit, I did send a mail asking for this concern earlier too, Anyways =
-we can
-decide order for OMAP3 and OMAP 4data files and I would change that in =
-V5.
+> * Modify L3 custom error message for consistency with standard
+>    error message.
+>
+These changes are ok.
 
-Thanks.
+> * Fixup indentation in one spot.
 >
-> Regards,
-> Benoit
->
->
+This code indentations needs more fixing and I have patch to
+clean that up. Your change is already part of that patch.
 
 
+> ---
+>   arch/arm/mach-omap2/omap_l3_noc.c |  122 +++++++++++++++++++++++++++++++------
+>   arch/arm/mach-omap2/omap_l3_noc.h |   88 +-------------------------
+>   2 files changed, 106 insertions(+), 104 deletions(-)
+>
+Can you update your patch with above. I will add that along with other
+L3 clean-up patch.
 
---=20
-Thanks,
-Regards,
-Shweta
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks
+
+regards
+Santosh
