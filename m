@@ -1,47 +1,40 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 07/15] OMAP: GPIO: handle save/restore ctx in GPIO driver
-Date: Wed, 25 May 2011 15:36:30 -0700
-Message-ID: <87boyqpfv5.fsf@ti.com>
+Subject: Re: [PATCH 08/15] OMAP2+: GPIO: make workaround_enabled bank specific
+Date: Wed, 25 May 2011 15:39:03 -0700
+Message-ID: <874o4ipfqw.fsf@ti.com>
 References: <1306247094-25372-1-git-send-email-tarun.kanti@ti.com>
-	<1306247094-25372-8-git-send-email-tarun.kanti@ti.com>
-	<87ipsypfzk.fsf@ti.com>
+	<1306247094-25372-9-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:57114 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752296Ab1EYWge (ORCPT
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:51093 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754631Ab1EYWjH (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 25 May 2011 18:36:34 -0400
-Received: by mail-pz0-f43.google.com with SMTP id 1so79184pzk.16
-        for <linux-omap@vger.kernel.org>; Wed, 25 May 2011 15:36:32 -0700 (PDT)
-In-Reply-To: <87ipsypfzk.fsf@ti.com> (Kevin Hilman's message of "Wed, 25 May
-	2011 15:33:51 -0700")
+	Wed, 25 May 2011 18:39:07 -0400
+Received: by mail-pw0-f50.google.com with SMTP id 3so95850pwi.37
+        for <linux-omap@vger.kernel.org>; Wed, 25 May 2011 15:39:06 -0700 (PDT)
+In-Reply-To: <1306247094-25372-9-git-send-email-tarun.kanti@ti.com> (Tarun
+	Kanti DebBarma's message of "Tue, 24 May 2011 19:54:47 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
 Cc: linux-omap@vger.kernel.org, santosh.shilimkar@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Charulatha V <charu@ti.com>
 
-Kevin Hilman <khilman@ti.com> writes:
+Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
 
-[...]
->> @@ -1394,11 +1409,17 @@ void omap2_gpio_resume_after_idle(void)
->>  		for (j = 0; j < hweight_long(bank->dbck_enable_mask); j++)
->>  			clk_enable(bank->dbck);
->>  
->> -		if (!workaround_enabled)
->> +		pdev = to_platform_device(bank->dev);
->> +		ctx_lost_cnt_after = omap_device_get_context_loss_count(pdev);
->> +
->> +		if (ctx_lost_cnt_after == bank->ctx_lost_cnt_before)
->>  			continue;
->>  
->> +		if (!workaround_enabled)
->> +			goto restore_gpio_ctx;
+> From: Charulatha V <charu@ti.com>
 >
-> Now that these functions are all bank-specific, this
-> 'workaround_enabled' flag should be made per-bank.
+> Make workaround_enabled flag bank-specific instead of using a single
+> flag for all the banks together. This would be helpful while making
+> use of runtime framework in OMAP GPIO driver which would make the
+> driver handle each GPIO bank independently.
+>
+> Also rename workaround_enabled flag to off_mode_wkup_wa_enabled
 
-Oops, ignore this comment... I see it's done in the next patch.
+Do we even need a dedicated flag for this?
+
+I seems that the combination of enabled_non_wakeup_gpios and whether or
+not context has been lost could be used to check this condition.
 
 Kevin
