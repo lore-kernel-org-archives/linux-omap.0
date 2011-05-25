@@ -1,284 +1,205 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: context_loss_count error value
-Date: Wed, 25 May 2011 11:31:02 +0300
-Message-ID: <1306312262.2062.16.camel@deskari>
-References: <1305704452.1834.12.camel@deskari> <87k4douvsd.fsf@ti.com>
-	 <1305718422.1834.23.camel@deskari> <877h9ot7c3.fsf@ti.com>
-	 <1305729690.30372.7.camel@deskari> <1306252069.2194.28.camel@deskari>
-	 <87lixv1x3s.fsf@ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH 1/2] OMAP4: HDMI: Add OMAP device for HDMI audio CPU DAI
+Date: Wed, 25 May 2011 11:58:55 +0200
+Message-ID: <4DDCD2DF.3090209@ti.com>
+References: <1305602079-3852-1-git-send-email-ricardo.neri@ti.com>	 <1305602079-3852-2-git-send-email-ricardo.neri@ti.com>	 <4DD2CDED.6090605@gmail.com> <201105180841.20224.peter.ujfalusi@ti.com>	 <4DD3FCC2.3020908@gmail.com> <1306208378.1897.302.camel@dexx0075479.dextra-mty.naucm.ext.ti.com> <4DDBF506.6090500@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:42880 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753741Ab1EYIbI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 25 May 2011 04:31:08 -0400
-Received: by eyf5 with SMTP id 5so3160410eyf.15
-        for <linux-omap@vger.kernel.org>; Wed, 25 May 2011 01:31:05 -0700 (PDT)
-In-Reply-To: <87lixv1x3s.fsf@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:56920 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754163Ab1EYJ65 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 25 May 2011 05:58:57 -0400
+In-Reply-To: <4DDBF506.6090500@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: Steve Calfee <stevecalfee@gmail.com>
+Cc: "Neri, Ricardo" <ricardo.neri@ti.com>, "Ujfalusi, Peter" <peter.ujfalusi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>
 
-On Tue, 2011-05-24 at 16:45 -0700, Kevin Hilman wrote:
-> Hi Tomi,
-> 
-> Tomi Valkeinen <tomi.valkeinen@ti.com> writes:
-> 
-> > On Wed, 2011-05-18 at 17:41 +0300, Tomi Valkeinen wrote:
-> >> On Wed, 2011-05-18 at 16:24 +0200, Kevin Hilman wrote:
-> >> 
-> >> > Looking closer at the code, a zero return happens only when
-> >> > 
-> >> > 1) no hwmod associated to omap_device
-> >> > 2) no power domain associated to hwmod
-> >> > 3) power domain has not (yet) lost context
-> >> > 
-> >> > None of these are actually error conditions per-se, and in all cases, it
-> >> > indidates that context has not been lost (or we can't tell if context
-> >> > has been lost.) 
-> >> 
-> >> If the pm code cannot tell whether the context has been lost or not, the
-> >> driver must assume it has been lost, do you agree? If so, the driver
-> >> must handle zero return value differently, and always restore context.
-> >> 
-> >> > So I think the current code is correct.
-> >> 
-> >> How is it correct if it returns an error even if no error has happened
-> >> =)? Either the code or the documentation is wrong.
-> >> 
-> >> How about the wrap-around case? Does the loss count go back to zero?
-> >
-> > Any conclusion on this?
-> 
-> Sorry for the lag... been travelling, and finally back home...
-> 
-> You're right, the code is just wrong here and would lead to strange
-> return value checking in the callers to be correct.
-> 
-> I think the best fix for this problem is to use a signed return value
-> which can wrap as expected, and then use return negative error codes
-> (e.g. -ENODEV).
-> 
-> Care to send a patch?  or do you have any other suggestions for a fix?
+On 5/24/2011 8:12 PM, Steve Calfee wrote:
+> On 05/23/11 20:39, Ricardo Neri wrote:
+>> Hi Steve,
+>>
+>> Le mercredi 18 mai 2011 =C3=A0 12:07 -0500, Steve Calfee a =C3=A9cri=
+t :
+>>> On 05/17/11 22:41, Peter Ujfalusi wrote:
+>>>> On Tuesday 17 May 2011 22:35:09 Steve Calfee wrote:
+>>>>> I think the generally accepted method of doing stuff like this is=
+ to
+>>>>> have the ifdeffery in a header file where a inline code segment i=
+s
+>>>>> defined if it applies to the processor being built. If the code d=
+oes not
+>>>>> apply to the model being built, a null #define is used, which doe=
+s not
+>>>>> take any space.
+>>>>
+> <SNIP>
+>>>
+>>> The preferred header contained ifdeffery does not exclude the
+>>> possibility of having multiple options selected, even at run time. =
+It
+>>> also can prevent multi cpu code bloat if it is not wanted.
+>>> Alternatively, X86 distributions such as Ubuntu already deal with
+>>> multiple arches (within the base arch intel/amd), using initrd type
+>>> startups.
+>>>
+>>> Also the current "cpu_is" stuff is not very scalable, when TI gets =
+to
+>>> Omap42, or even slightly smaller such as Omap5, the untidiness of t=
+he
+>>> current technique will become even more of a problem.
+>>>
+>>
+>> Thanks for your comments. Even though the use of cpu_is_ may not be =
+the
+>> best approach, it is used extensively in OMAP code. Do you think tha=
+t
+>> this situation needs to be fixed before accepting the patches for th=
+ese
+>> two devices?
+>>
+>
+> Hi Ricardo,
+>
+> I am not the omap maintainer, I am not blocking anything.
+>
+> I have lately been surfing the Omap code on a project. The cpu_is_*
+> stuff is common and growing. People are fixing it, see the patch for
+> gpio that was in today's mail.
 
-Here's a patch. I'm not quite sure in what situations the functions
-should return an error, but the code now returns -ENODEV if:
+It is not really growing. We are trying to get rid of it as much as we=20
+can. There are still some place where it is relevant, but most of the=20
+time it is not.
 
-- device pointer given by the driver to
-omap_pm_get_dev_context_loss_count() is NULL
+The proper way most is to use some features flag if it is a global HW=20
+characteristic.
+In that case it is not even necessary since the hwmod does exist only i=
+f=20
+the HW is there.
+So if the lookup is failing, there is no hdmi to handle.
+At some point the devices will be instantiated based on a hwmod=20
+enumeration. So only the relevant devices will be created. That will=20
+removed most of these nasty cpu_is_ everywhere.
 
-- pwrdomain pointer given to pwrdm_get_context_loss_count() is NULL,
-which should never happen, as the caller of that function already checks
-the pwrdomain pointer
+Regards,
+Benoit
 
- Tomi
+>
+> I know you just want to get your stuff into the tree, not fix the ent=
+ire
+> tree from problems you did not cause. However, someday, someone will
+> have to fix it up.
+>
+> For instance as an example of how to remove #ifdefs --
+> arch/arm/mach-omap2/clock.h uses ifdeffery in the header to remove it
+> from the c code. It checks a config option and adds or removes code w=
+ith
+> no source changes.
+>
+> It is possible to add a config_all_options so run time checks could b=
+e
+> made for the cases when a single executable is desired for multiple
+> archs. In this case the macro or static inline could wrap the option
+> selected code with a runtime cpu_is check, all without modifying the =
+=2Ec
+> source code.
+>
+> The optimizing compiler is really friendly to conditionally doing stu=
+ff,
+> if/else clauses that are never used (constants in conditionals) just
+> disappears.
+>
+> Sample header file definitions (not even compile tested, in fact
+> intentionaly incomplete but based on your patch):
+>
+> static inline  void __omap_init_hdmi_audio(struct your args) {
+> 	oh_hdmi =3D omap_hwmod_lookup(oh_hdmi_name);
+> 	WARN(!oh_hdmi, "%s: could not find omap_hwmod for %s\n",
+> 			__func__, oh_hdmi_name);
+>
+> 	od_hdmi =3D omap_device_build(dev_hdmi_name, -1, oh_hdmi, NULL, 0,
+> 			NULL, 0, false);
+> 	WARN(IS_ERR(od_hdmi), "%s: could not build omap_device for %s\n",
+> 	__func__, dev_hdmi_name);
+> }
+>
+> #ifdef CONFIG_ALL_OPTIONS
+> static inline  void omap_init_hdmi_audio(struct your args)
+> {
+> 	if (cpu_is_omap44xx())
+> 		__omap_init_hdmi_audio(struct your args);
+> }
+> #else
+> #ifdef CONFIG_CPU_OMAP44XX
+> static inline  void omap_init_hdmi_audio(struct your args)
+> {
+> 	__omap_init_hdmi_audio(struct your args);
+> }
+> #else
+> static inline  void omap_init_hdmi_audio(struct your args) {}
+> #endif
+>
+> And then the .c code would just contain:
+> omap_init_hdmi_audio(struct your args);
+>
+>> Also, in the case of OMAP, runtime CPU identification is needed, for=
+ the
+>> reason Peter mentions. It is hard for me to see how it can be
+>> implemented using #ifdef only. Do you think that runtime CPU
+>> identification should be moved to the header containing the ifdeferr=
+y?
+>
+> Yes, based on configuration options. An alternative to ifdefs and cpu=
+_is
+> is like today's omap gpio changes, where data is stuck in some struct=
+ure
+> at init time and then used at run time to conditionally init stuff. T=
+his
+> can be fairly obscure, but so are macros, and it is caused by the
+> fundamentally difficult problems of a maze of arches similar, but not
+> identical.
+>
+>> Individual functions for different domains (audio, video, etc.) woul=
+d
+>> still need to check at runtime if their devices are required. Perhap=
+s
+>> having a single omap2plus_defconfig for all OMAP2/3/4/x/y/... device=
+s is
+>> no longer convenient as more and more OMAP families arrive. What do =
+you
+>> think?
+>
+> Such choices that are realistic runtime detected requirements are fin=
+e.
+> In most cases I have seen they are arch specific and board specific, =
+so
+> really the capabilities should be platform specific and only actually
+> used on systems that need the capabilities.
+>
+>>
+>> Regarding using a initrd, that applies only for loadable modules, bu=
+t
+>> not for built-in modules, correct?
+>>
+>
+> Yes, although I think it is possible for an initrd to select another
+> kernel to load. In any case that is distribution specific and should =
+not
+> really be required for most omap kernel use. I merely suggested it wa=
+s a
+> possible alternative to an all-in one kernel build for your specific
+> multiarch board. It is an alternative so my poor older omap does not
+> have to carry around code for omap4, just because someone, somewhere
+> might want it on their board. In general I think the header and
+> structure solutions are more applicable.
+>
+> Regards, Steve
 
-
->From 11ce3b3bd1f5aac44aae7ab05725d77bc9ca3b42 Mon Sep 17 00:00:00 2001
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Date: Wed, 25 May 2011 11:06:41 +0300
-Subject: [PATCH] OMAP: change get_context_loss_count ret value to int
-
-get_context_loss_count functions return context loss count as u32, and
-zero means an error. However, zero is also returned when context has
-never been lost and could also be returned when the context loss count
-has wrapped and goes to zero.
-
-Change the functions to return an int, with negative value meaning an
-error.
-
-OMAP HSMMC code uses omap_pm_get_dev_context_loss_count(), but as the
-hsmmc code handles the returned value as an int, with negative value
-meaning an error, this patch actually fixes hsmmc code also.
-
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
----
- arch/arm/mach-omap2/omap_hwmod.c              |    2 +-
- arch/arm/mach-omap2/powerdomain.c             |   10 ++++++----
- arch/arm/mach-omap2/powerdomain.h             |    2 +-
- arch/arm/plat-omap/include/plat/omap-pm.h     |    4 ++--
- arch/arm/plat-omap/include/plat/omap_device.h |    2 +-
- arch/arm/plat-omap/include/plat/omap_hwmod.h  |    2 +-
- arch/arm/plat-omap/omap-pm-noop.c             |   18 +++++++++++-------
- arch/arm/plat-omap/omap_device.c              |    2 +-
- 8 files changed, 24 insertions(+), 18 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index e034294..4f0d554 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -2332,7 +2332,7 @@ ohsps_unlock:
-  * Returns the context loss count of the powerdomain assocated with @oh
-  * upon success, or zero if no powerdomain exists for @oh.
-  */
--u32 omap_hwmod_get_context_loss_count(struct omap_hwmod *oh)
-+int omap_hwmod_get_context_loss_count(struct omap_hwmod *oh)
- {
- 	struct powerdomain *pwrdm;
- 	int ret = 0;
-diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-index 9af0847..83166f5 100644
---- a/arch/arm/mach-omap2/powerdomain.c
-+++ b/arch/arm/mach-omap2/powerdomain.c
-@@ -935,16 +935,16 @@ int pwrdm_post_transition(void)
-  * @pwrdm: struct powerdomain * to wait for
-  *
-  * Context loss count is the sum of powerdomain off-mode counter, the
-- * logic off counter and the per-bank memory off counter.  Returns 0
-+ * logic off counter and the per-bank memory off counter.  Returns negative
-  * (and WARNs) upon error, otherwise, returns the context loss count.
-  */
--u32 pwrdm_get_context_loss_count(struct powerdomain *pwrdm)
-+int pwrdm_get_context_loss_count(struct powerdomain *pwrdm)
- {
- 	int i, count;
- 
- 	if (!pwrdm) {
- 		WARN(1, "powerdomain: %s: pwrdm is null\n", __func__);
--		return 0;
-+		return -ENODEV;
- 	}
- 
- 	count = pwrdm->state_counter[PWRDM_POWER_OFF];
-@@ -953,7 +953,9 @@ u32 pwrdm_get_context_loss_count(struct powerdomain *pwrdm)
- 	for (i = 0; i < pwrdm->banks; i++)
- 		count += pwrdm->ret_mem_off_counter[i];
- 
--	pr_debug("powerdomain: %s: context loss count = %u\n",
-+	count &= 0x7fffffff;
-+
-+	pr_debug("powerdomain: %s: context loss count = %d\n",
- 		 pwrdm->name, count);
- 
- 	return count;
-diff --git a/arch/arm/mach-omap2/powerdomain.h b/arch/arm/mach-omap2/powerdomain.h
-index d23d979..012827f 100644
---- a/arch/arm/mach-omap2/powerdomain.h
-+++ b/arch/arm/mach-omap2/powerdomain.h
-@@ -207,7 +207,7 @@ int pwrdm_clkdm_state_switch(struct clockdomain *clkdm);
- int pwrdm_pre_transition(void);
- int pwrdm_post_transition(void);
- int pwrdm_set_lowpwrstchange(struct powerdomain *pwrdm);
--u32 pwrdm_get_context_loss_count(struct powerdomain *pwrdm);
-+int pwrdm_get_context_loss_count(struct powerdomain *pwrdm);
- bool pwrdm_can_ever_lose_context(struct powerdomain *pwrdm);
- 
- extern void omap2xxx_powerdomains_init(void);
-diff --git a/arch/arm/plat-omap/include/plat/omap-pm.h b/arch/arm/plat-omap/include/plat/omap-pm.h
-index c0a7520..68df031 100644
---- a/arch/arm/plat-omap/include/plat/omap-pm.h
-+++ b/arch/arm/plat-omap/include/plat/omap-pm.h
-@@ -350,9 +350,9 @@ unsigned long omap_pm_cpu_get_freq(void);
-  * driver must restore device context.   If the number of context losses
-  * exceeds the maximum positive integer, the function will wrap to 0 and
-  * continue counting.  Returns the number of context losses for this device,
-- * or zero upon error.
-+ * or negative value upon error.
-  */
--u32 omap_pm_get_dev_context_loss_count(struct device *dev);
-+int omap_pm_get_dev_context_loss_count(struct device *dev);
- 
- void omap_pm_enable_off_mode(void);
- void omap_pm_disable_off_mode(void);
-diff --git a/arch/arm/plat-omap/include/plat/omap_device.h b/arch/arm/plat-omap/include/plat/omap_device.h
-index e4c349f..70d31d0 100644
---- a/arch/arm/plat-omap/include/plat/omap_device.h
-+++ b/arch/arm/plat-omap/include/plat/omap_device.h
-@@ -107,7 +107,7 @@ void __iomem *omap_device_get_rt_va(struct omap_device *od);
- int omap_device_align_pm_lat(struct platform_device *pdev,
- 			     u32 new_wakeup_lat_limit);
- struct powerdomain *omap_device_get_pwrdm(struct omap_device *od);
--u32 omap_device_get_context_loss_count(struct platform_device *pdev);
-+int omap_device_get_context_loss_count(struct platform_device *pdev);
- 
- /* Other */
- 
-diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-index 1adea9c..8658e2d 100644
---- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
-+++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-@@ -598,7 +598,7 @@ int omap_hwmod_for_each_by_class(const char *classname,
- 				 void *user);
- 
- int omap_hwmod_set_postsetup_state(struct omap_hwmod *oh, u8 state);
--u32 omap_hwmod_get_context_loss_count(struct omap_hwmod *oh);
-+int omap_hwmod_get_context_loss_count(struct omap_hwmod *oh);
- 
- int omap_hwmod_no_setup_reset(struct omap_hwmod *oh);
- 
-diff --git a/arch/arm/plat-omap/omap-pm-noop.c b/arch/arm/plat-omap/omap-pm-noop.c
-index b0471bb2..5bf7195 100644
---- a/arch/arm/plat-omap/omap-pm-noop.c
-+++ b/arch/arm/plat-omap/omap-pm-noop.c
-@@ -27,7 +27,7 @@
- #include <plat/omap_device.h>
- 
- static bool off_mode_enabled;
--static u32 dummy_context_loss_counter;
-+static int dummy_context_loss_counter;
- 
- /*
-  * Device-driver-originated constraints (via board-*.c files)
-@@ -311,22 +311,26 @@ void omap_pm_disable_off_mode(void)
- 
- #ifdef CONFIG_ARCH_OMAP2PLUS
- 
--u32 omap_pm_get_dev_context_loss_count(struct device *dev)
-+int omap_pm_get_dev_context_loss_count(struct device *dev)
- {
- 	struct platform_device *pdev = to_platform_device(dev);
--	u32 count;
-+	int count;
- 
- 	if (WARN_ON(!dev))
--		return 0;
-+		return -ENODEV;
- 
- 	if (dev->parent == &omap_device_parent) {
- 		count = omap_device_get_context_loss_count(pdev);
- 	} else {
- 		WARN_ONCE(off_mode_enabled, "omap_pm: using dummy context loss counter; device %s should be converted to omap_device",
- 			  dev_name(dev));
--		if (off_mode_enabled)
--			dummy_context_loss_counter++;
-+
- 		count = dummy_context_loss_counter;
-+
-+		if (off_mode_enabled) {
-+			count = (count + 1) & 0x7fffffff;
-+			dummy_context_loss_counter = count;
-+		}
- 	}
- 
- 	pr_debug("OMAP PM: context loss count for dev %s = %d\n",
-@@ -337,7 +341,7 @@ u32 omap_pm_get_dev_context_loss_count(struct device *dev)
- 
- #else
- 
--u32 omap_pm_get_dev_context_loss_count(struct device *dev)
-+int omap_pm_get_dev_context_loss_count(struct device *dev)
- {
- 	return dummy_context_loss_counter;
- }
-diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
-index 9bbda9a..9753f71 100644
---- a/arch/arm/plat-omap/omap_device.c
-+++ b/arch/arm/plat-omap/omap_device.c
-@@ -310,7 +310,7 @@ static void _add_optional_clock_clkdev(struct omap_device *od,
-  * return the context loss counter for that hwmod, otherwise return
-  * zero.
-  */
--u32 omap_device_get_context_loss_count(struct platform_device *pdev)
-+int omap_device_get_context_loss_count(struct platform_device *pdev)
- {
- 	struct omap_device *od;
- 	u32 ret = 0;
--- 
-1.7.4.1
-
-
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
