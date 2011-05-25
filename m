@@ -1,79 +1,84 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [PATCH 10/13] OMAP3: PM: export the v7_flush_dcache_all API to modules
-Date: Wed, 25 May 2011 14:21:23 +0200
-Message-ID: <BANLkTimwVqdNByZ2FhChdUm9cTi4qDzp=A@mail.gmail.com>
-References: <1305739950-11695-1-git-send-email-j-pihet@ti.com>
-	<1305739950-11695-11-git-send-email-j-pihet@ti.com>
-	<4DD4CF11.5010701@ti.com>
+From: "Koyamangalath, Abhilash" <abhilash.kv@ti.com>
+Subject: RE: [PATCH v3] OMAP2/3: hwmod: fix the i2c-reset timeout during
+ bootup
+Date: Wed, 25 May 2011 18:45:21 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC3560870370A4D88F@dbde02.ent.ti.com>
+References: <1304328111-15999-1-git-send-email-avinashhm@ti.com>
+ <alpine.DEB.2.00.1105051548210.30136@utopia.booyaka.com>
+ <20110509124842.GA25211@avinash-laptop>
+ <alpine.DEB.2.00.1105181021590.4550@utopia.booyaka.com>
+ <20110518162542.GB3026@avinash-laptop>
+ <FCCFB4CDC6E5564B9182F639FC3560870370A4D887@dbde02.ent.ti.com>,<20110524190718.GA6899@avinash-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f181.google.com ([209.85.216.181]:32889 "EHLO
-	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754752Ab1EYMVY convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 May 2011 08:21:24 -0400
-Received: by qyg14 with SMTP id 14so4442280qyg.19
-        for <linux-omap@vger.kernel.org>; Wed, 25 May 2011 05:21:24 -0700 (PDT)
-In-Reply-To: <4DD4CF11.5010701@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:44431 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751337Ab1EYNPh convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 May 2011 09:15:37 -0400
+In-Reply-To: <20110524190718.GA6899@avinash-laptop>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: "Mahadeva, Avinash" <avinashhm@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Nayak, Rajendra" <rnayak@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Hilman, Kevin" <khilman@ti.com>
 
-Hi Santosh,
 
-On Thu, May 19, 2011 at 10:04 AM, Santosh Shilimkar
-<santosh.shilimkar@ti.com> wrote:
-> On 5/18/2011 11:02 PM, jean.pihet@newoldbits.com wrote:
->>
->> From: Jean Pihet<j-pihet@ti.com>
->>
->> Provide the the assembly function v7_flush_dcache_all to the
->> OMAP3 PM module, under CONFIG_CPU_V7.
->> v7_flush_dcache_all is used by the low level sleep code.
->>
->> Signed-off-by: Jean Pihet<j-pihet@ti.com>
->> ---
->> =A0arch/arm/mach-omap2/pm.c | =A0 =A04 ++++
->> =A0arch/arm/mach-omap2/pm.h | =A0 =A04 ++++
->> =A02 files changed, 8 insertions(+), 0 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
->> index 2e43fd6..ab69c5a 100644
->> --- a/arch/arm/mach-omap2/pm.c
->> +++ b/arch/arm/mach-omap2/pm.c
->> @@ -325,6 +325,10 @@ unsigned long
->> omap_pm_tick_nohz_get_sleep_length_us(void)
->> =A0EXPORT_SYMBOL(omap_pm_tick_nohz_get_sleep_length_us);
->> =A0#endif
->>
->> +#ifdef CONFIG_CPU_V7
->> +EXPORT_SYMBOL(v7_flush_dcache_all);
->> +#endif
->> +
+>On Thu, May 19, 2011 at 06:05:21PM +0530, Koyamangalath, Abhilash wrote:
 >
-> You have already mentioned, this export is wrong and indeed it
-> is wrong. You can use "flush_cache_all()" instead here which will
-> pick the right asm function.
-I could not find a usable flush cache function that is exported for
-use by the modules. I will re-submit the next version of the patches
-and specifically ask about it on l-a-k ML as well.
-
->The downside is it will invalidate
-> I cache as well but that's ok because it's get invalidated anyways
-> in wakeup path.
-That should be ok.
-
+> > I have tried the patch on am37x evm and the i2c soft-reset time-out issue doesn't
+> > seem to go off for me. Previously I used to get a log  :
+> >
+> > [    0.000000] omap_hwmod: i2c1: softreset failed (waited 10000 usec)
+> > [    0.000000] omap_hwmod: i2c2: softreset failed (waited 10000 usec)
+> > [    0.000000] omap_hwmod: i2c3: softreset failed (waited 10000 usec)
+> >
+> > And now I get :
+> > [    0.000000] omap_i2c_reset: i2c1: softreset failed (waited 10000 usec)
+> > [    0.000000] omap_i2c_reset: i2c2: softreset failed (waited 10000 usec)
+> > [    0.000000] omap_i2c_reset: i2c3: softreset failed (waited 10000 usec)
+> >
+> > So the function where this failure happens seems to be the only thing that has changed.
+> > I've tried this patch on top of the recent PSP 04.02.00.07 release.
+> > What am I missing?
 >
-> Regards
-> Santosh
+>Abhilash ,
 >
+>I am not sure what is PSP 04.02.00.07 release. But you should make sure
+>that the hwmod structures in omap_hwmod_3xxx_data.c should have the
+>16_bit flags.
+>
+>Below is just a snippet in P.S.. There is already a patch submitted by
+>andy green for this. Not sure, if it is merged.
+>
+>With this and the posted v3 patch, you should not see timeouts. Or else
+>you have some other problem.
+>
+>thanks ,
+>
+>- Avinash
+>
+>PS:
+>
+> static struct omap_hwmod omap3xxx_i2c1_hwmod = {
+>        .name           = "i2c1",
+>+       .flags          = HWMOD_16BIT_REG,
 
-Thanks,
-Jean
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Yes Avinash, that works , 
+thanks.
+>
+>
+> >
+> > thanks,
+> > Abhilash
+> >
+> >
+> >
+> > > >
+> > > >
+> > > > - Paul
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
