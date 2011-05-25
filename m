@@ -1,82 +1,132 @@
-From: "Menon, Nishanth" <nm@ti.com>
-Subject: Re: [PM-WIP/voltdm_c][PATCH 04/11] OMAP4: PM: VC: support
- configuration of i2c clks
-Date: Wed, 25 May 2011 11:32:52 -0700
-Message-ID: <BANLkTin9OonSwHn3NAynyFJ-puiNGbqt9A@mail.gmail.com>
-References: <1305695854-9638-1-git-send-email-nm@ti.com> <1305695854-9638-5-git-send-email-nm@ti.com>
- <87y624xucx.fsf@ti.com> <BANLkTin5f5oz4aTiebmwWrwYCE2W2OLyAA@mail.gmail.com> <87aaeawsou.fsf@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: context_loss_count error value
+Date: Wed, 25 May 2011 11:34:33 -0700
+Message-ID: <87ipsyvdc6.fsf@ti.com>
+References: <1305704452.1834.12.camel@deskari> <87k4douvsd.fsf@ti.com>
+	<1305718422.1834.23.camel@deskari> <877h9ot7c3.fsf@ti.com>
+	<1305729690.30372.7.camel@deskari> <1306252069.2194.28.camel@deskari>
+	<87lixv1x3s.fsf@ti.com> <1306312262.2062.16.camel@deskari>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:43638 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752184Ab1EYSdR convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 25 May 2011 14:33:17 -0400
-Received: by wwd20 with SMTP id 20so7950244wwd.23
-        for <linux-omap@vger.kernel.org>; Wed, 25 May 2011 11:33:12 -0700 (PDT)
-In-Reply-To: <87aaeawsou.fsf@ti.com>
+Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:33831 "EHLO
+	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752184Ab1EYSek (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 25 May 2011 14:34:40 -0400
+Received: by iye7 with SMTP id 7so9129849iye.34
+        for <linux-omap@vger.kernel.org>; Wed, 25 May 2011 11:34:36 -0700 (PDT)
+In-Reply-To: <1306312262.2062.16.camel@deskari> (Tomi Valkeinen's message of
+	"Wed, 25 May 2011 11:31:02 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-On Wed, May 25, 2011 at 11:17, Kevin Hilman <khilman@ti.com> wrote:
-> "Menon, Nishanth" <nm@ti.com> writes:
->
->> On Wed, May 18, 2011 at 03:53, Kevin Hilman <khilman@ti.com> wrote:
->>> Nishanth Menon <nm@ti.com> writes:
->>>
->>>> Patch "OMAP2+: voltage: split voltage controller (VC) code into de=
-dicated layer"
->>>> splits out the hardcoded value in the code to vc's channel init.
->>>>
->>>> This patch further isolates the configuration to remove out PMIC s=
-pecific
->>>> configuration as high and low times are pmic specific.
->>>>
->>>> Values are updated as well based on latest TI analysis done in and=
-roid k35
->>>> kernel.
->>>>
->>>> Signed-off-by: Nishanth Menon <nm@ti.com>
->>>
->>> OK, this is a step in the right direction, but IIUC, these values a=
-re
->>> sys_clk dependent right? =A0Shouldn't we be calculating these value=
-s based
->>> on sys_clk?
->> 3 factors to my knowledge:
->> a) sr clk I believe(I need to grab the relevant internal doc to
->> verify) - factor of sysclk - > board based/in a way pmic based
->> b) =A0factor of board capacitance (similar to i2c bus)
->> c) =A0i2c bus capability of the PMIC itself.
->>
->> hence based it off pmic data..
->
-> These are hard-coded constants, that are calculated somehow, or their
-> simply pulled out of the air at random. =A0Either way, we need to kno=
-w
-> *how* they are calculated, and explain it in.
->
-> Personaly, I'd prefer that the explanation come in the form of code.
-> IOW, functions that calculate the value based on dependent clocks usi=
-ng
-> whatever the board-specific factors are as inputs.
+Tomi Valkeinen <tomi.valkeinen@ti.com> writes:
 
-yep, trying to dig internally to simplify the blackmagic involved.
-ideally, I'd like a person to look at the PMIC data sheet and update
-relevant params(timing, maybe bus capacitance max) and the rest of the
-computation should be automated. it makes bigger sense for us
-considering 4460 has a combination of TPS and TWL controlling rails
-and we just have one VC I2C config register to configure the common
-value.
+[...]
 
-Regards,
-Nishanth Menon
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> 
+>> You're right, the code is just wrong here and would lead to strange
+>> return value checking in the callers to be correct.
+>> 
+>> I think the best fix for this problem is to use a signed return value
+>> which can wrap as expected, and then use return negative error codes
+>> (e.g. -ENODEV).
+>> 
+>> Care to send a patch?  or do you have any other suggestions for a fix?
+>
+> Here's a patch. 
+
+Thanks!
+
+> I'm not quite sure in what situations the functions should return an
+> error, but the code now returns -ENODEV if:
+>
+> - device pointer given by the driver to
+> omap_pm_get_dev_context_loss_count() is NULL
+>
+> - pwrdomain pointer given to pwrdm_get_context_loss_count() is NULL,
+> which should never happen, as the caller of that function already checks
+> the pwrdomain pointer
+
+Looks right.
+
+Some comments below about wrapping.  Looks like your doing wrapping
+manually?  Why is that necessary?
+
+>  Tomi
+>
+>
+> From 11ce3b3bd1f5aac44aae7ab05725d77bc9ca3b42 Mon Sep 17 00:00:00 2001
+> From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> Date: Wed, 25 May 2011 11:06:41 +0300
+> Subject: [PATCH] OMAP: change get_context_loss_count ret value to int
+>
+> get_context_loss_count functions return context loss count as u32, and
+> zero means an error. However, zero is also returned when context has
+> never been lost and could also be returned when the context loss count
+> has wrapped and goes to zero.
+>
+> Change the functions to return an int, with negative value meaning an
+> error.
+>
+> OMAP HSMMC code uses omap_pm_get_dev_context_loss_count(), but as the
+> hsmmc code handles the returned value as an int, with negative value
+> meaning an error, this patch actually fixes hsmmc code also.
+>
+> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+
+[...]
+
+> @@ -953,7 +953,9 @@ u32 pwrdm_get_context_loss_count(struct powerdomain *pwrdm)
+>  	for (i = 0; i < pwrdm->banks; i++)
+>  		count += pwrdm->ret_mem_off_counter[i];
+>  
+> -	pr_debug("powerdomain: %s: context loss count = %u\n",
+> +	count &= 0x7fffffff;
+
+What's this for?
+
+> +	pr_debug("powerdomain: %s: context loss count = %d\n",
+>  		 pwrdm->name, count);
+>  
+>  	return count;
+
+[...]
+
+> @@ -311,22 +311,26 @@ void omap_pm_disable_off_mode(void)
+>  
+>  #ifdef CONFIG_ARCH_OMAP2PLUS
+>  
+> -u32 omap_pm_get_dev_context_loss_count(struct device *dev)
+> +int omap_pm_get_dev_context_loss_count(struct device *dev)
+>  {
+>  	struct platform_device *pdev = to_platform_device(dev);
+> -	u32 count;
+> +	int count;
+>  
+>  	if (WARN_ON(!dev))
+> -		return 0;
+> +		return -ENODEV;
+>  
+>  	if (dev->parent == &omap_device_parent) {
+>  		count = omap_device_get_context_loss_count(pdev);
+>  	} else {
+>  		WARN_ONCE(off_mode_enabled, "omap_pm: using dummy context loss counter; device %s should be converted to omap_device",
+>  			  dev_name(dev));
+> -		if (off_mode_enabled)
+> -			dummy_context_loss_counter++;
+> +
+>  		count = dummy_context_loss_counter;
+> +
+> +		if (off_mode_enabled) {
+> +			count = (count + 1) & 0x7fffffff;
+> +			dummy_context_loss_counter = count;
+> +		}
+
+Again, I don't think this masking is needed.   count is already an
+'int', so when it gets bigger than INT_MAX, it will wrap.
+
+Kevin
