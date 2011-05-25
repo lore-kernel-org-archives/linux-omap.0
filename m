@@ -1,41 +1,56 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 14/15] OMAP: GPIO: Use memset for omap_gpio_reg_offs
-Date: Wed, 25 May 2011 16:30:49 -0700
-Message-ID: <877h9el5na.fsf@ti.com>
-References: <1306247094-25372-1-git-send-email-tarun.kanti@ti.com>
-	<1306247094-25372-15-git-send-email-tarun.kanti@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Nishanth Menon <nm@ti.com>
+Subject: [PM-WIP_CPUFREQ][PATCH 0/6 V3] Cleanups for cpufreq
+Date: Wed, 25 May 2011 16:38:45 -0700
+Message-ID: <1306366733-8439-1-git-send-email-nm@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:59320 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753185Ab1EYXaw (ORCPT
+Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:47957 "EHLO
+	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752130Ab1EYXjA (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 25 May 2011 19:30:52 -0400
-Received: by mail-pw0-f42.google.com with SMTP id 3so104599pwj.29
-        for <linux-omap@vger.kernel.org>; Wed, 25 May 2011 16:30:51 -0700 (PDT)
-In-Reply-To: <1306247094-25372-15-git-send-email-tarun.kanti@ti.com> (Tarun
-	Kanti DebBarma's message of "Tue, 24 May 2011 19:54:53 +0530")
+	Wed, 25 May 2011 19:39:00 -0400
+Received: by mail-yi0-f48.google.com with SMTP id 28so113659yia.35
+        for <linux-omap@vger.kernel.org>; Wed, 25 May 2011 16:38:59 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Cc: linux-omap@vger.kernel.org, santosh.shilimkar@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Charulatha V <charu@ti.com>
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Kevin <khilman@ti.com>, Nishanth Menon <nm@ti.com>
 
-Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
+Rev 3 of cleanups for cpufreq to include a couple of bugfixes we found as part of
+additional dvfs testing and code review.
 
-> From: Charulatha V <charu@ti.com>
->
-> Use memset to fill omap_gpio_reg_offs structure with 0xFFFF
-> instead of filling each and every undefined register offset
-> separately with USHRT_MAX in a given OMAP SoC. This would ease
-> while adding new register offsets in the future SoCs.
->
-> Signed-off-by: Charulatha V <charu@ti.com>
-> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Testing done: OMAP4SDP4430 +.39- I think the only other major platform would be
+omap2 - but I doubt it was functional previously - if someone has a chance to give
+it a whirl, please do, as I dont have access to an OMAP2 platform atm :(.
 
-This can be dropped in favor of using zero to indicate a non-existant
-register offset.  Only the revision register needs a special case of
-using USHRT_MAX since zero can be a valid offset for the revision
-register.
+Applies on top of:
+git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git
+branch: pm-wip/cpufreq
 
-Kevin
+Depends on: http://marc.info/?t=130630947000002&r=1&w=2
+
+v3:
+   Changes:
+      minor rewrite for OMAP2 Vs OMAP3+ handling - code deltas isolated
+      dropped support for !freq_table (makes no sense for OMAP2+)
+      couple of additional cleanups and review comment incorporated
+      introduced OPP libary api(dependency)
+
+v2: http://marc.info/?l=linux-omap&m=130570427214357&w=2
+V1: http://marc.info/?l=linux-omap&m=130532085617487&w=2
+
+Nishanth Menon (8):
+  OMAP2+: cpufreq: move clk name decision to init
+  OMAP2+: cpufreq: deny initialization if no mpudev
+  OMAP2+: cpufreq: use opp/clk_*cpufreq_table based on silicon
+  OMAP2+: cpufreq: dont support !freq_table
+  OMAP2+: cpufreq: fix invalid cpufreq table with central alloc/free
+  OMAP2+: cpufreq: fix freq_table leak
+  OMAP2+: cpufreq: put clk if cpu_init failed
+  OMAP: cpufreq: minor file header updates
+
+ arch/arm/mach-omap1/omap1-cpufreq.c     |    1 -
+ arch/arm/mach-omap2/omap2plus-cpufreq.c |  182 +++++++++++++++++++++++--------
+ 2 files changed, 135 insertions(+), 48 deletions(-)
+
+Regards,
+Nishanth Menon
