@@ -1,52 +1,83 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PM-WIP_CPUFREQ][PATCH V3 3/8] OMAP2+: cpufreq: use opp/clk_*cpufreq_table based on silicon
-Date: Thu, 26 May 2011 13:25:51 -0700
-Message-ID: <871uzlcipc.fsf@ti.com>
-References: <1306366733-8439-1-git-send-email-nm@ti.com>
-	<1306366733-8439-4-git-send-email-nm@ti.com> <87pqn5e4zz.fsf@ti.com>
-	<BANLkTim5A_ypRs3ZetE1WeDcQ0dUN0sxMw@mail.gmail.com>
-	<BANLkTik=N1eJ4oUMFg_cn9pHZiSXieO0DQ@mail.gmail.com>
+Subject: Re: [PATCH 03/13] OMAP2+: PM: clean up usage of SRAM functions
+Date: Thu, 26 May 2011 13:34:55 -0700
+Message-ID: <87mxi9b3ps.fsf@ti.com>
+References: <1305739950-11695-1-git-send-email-j-pihet@ti.com>
+	<1305739950-11695-4-git-send-email-j-pihet@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:43111 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757892Ab1EZUZz convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 26 May 2011 16:25:55 -0400
-Received: by mail-pz0-f50.google.com with SMTP id 2so478591pzk.9
-        for <linux-omap@vger.kernel.org>; Thu, 26 May 2011 13:25:54 -0700 (PDT)
-In-Reply-To: <BANLkTik=N1eJ4oUMFg_cn9pHZiSXieO0DQ@mail.gmail.com> (Nishanth
-	Menon's message of "Thu, 26 May 2011 11:39:10 -0700")
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:57157 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757744Ab1EZUe7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 26 May 2011 16:34:59 -0400
+Received: by pxi19 with SMTP id 19so836602pxi.1
+        for <linux-omap@vger.kernel.org>; Thu, 26 May 2011 13:34:58 -0700 (PDT)
+In-Reply-To: <1305739950-11695-4-git-send-email-j-pihet@ti.com> (jean pihet's
+	message of "Wed, 18 May 2011 19:32:20 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>
+To: jean.pihet@newoldbits.com
+Cc: linux-omap@vger.kernel.org
 
-"Menon, Nishanth" <nm@ti.com> writes:
+jean.pihet@newoldbits.com writes:
 
-> On Thu, May 26, 2011 at 11:35, Menon, Nishanth <nm@ti.com> wrote:
->> On Thu, May 26, 2011 at 10:38, Kevin Hilman <khilman@ti.com> wrote:
->>>
->>> I'd prefer to see this even cleaner by dropping the clk_* versions =
-all
->>> together. =C2=A0Then, for those who want OMAP2 support (currently n=
-ot working
->>> or validated anyways), all that's needed is to add a function simli=
-lar
->>> to clk_init_cpufreq_table() which registers OPPs.
->>
->> yeah - that is better as well.. will do
+> From: Jean Pihet <j-pihet@ti.com>
 >
-> oops - missed asking - are you ok with just returning a warning and
-> not registering the cpufreq driver for OMAP2?
+> Clean-up SRAM functions usage to better isolate PM code, in order
+> to allow it to be used as a module.
 
-s/OMAP2/platforms without OPPs/
+Could use some more description as to why this is needed. e.g. SRAM code
+is built-in, but PM code pushed to SRAM is module, etc...
 
+> Signed-off-by: Jean Pihet <j-pihet@ti.com>
+> ---
+>  arch/arm/mach-omap2/pm34xx.c |    1 +
+>  arch/arm/plat-omap/sram.c    |    2 --
+>  2 files changed, 1 insertions(+), 2 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+> index 0c5e3a4..74169a2 100644
+> --- a/arch/arm/mach-omap2/pm34xx.c
+> +++ b/arch/arm/mach-omap2/pm34xx.c
+> @@ -456,6 +456,7 @@ void omap_sram_idle(void)
+>  			omap3_core_restore_context();
+>  			omap3_cm_restore_context();
+>  			omap3_sram_restore_context();
+> +			omap_push_sram_idle();
+>  			omap2_sms_restore_context();
+>  		}
+>  		omap_uart_resume_idle(0);
+> diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
+> index a3f50b3..f1a54bb 100644
+> --- a/arch/arm/plat-omap/sram.c
+> +++ b/arch/arm/plat-omap/sram.c
+> @@ -390,7 +390,6 @@ void omap3_sram_restore_context(void)
+>  	_omap3_sram_configure_core_dpll =
+>  		omap_sram_push(omap3_sram_configure_core_dpll,
+>  			       omap3_sram_configure_core_dpll_sz);
+> -	omap_push_sram_idle();
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+OK, this removal is replaced by the one above..
+
+>  }
+>  #endif /* CONFIG_PM */
+>  
+> @@ -399,7 +398,6 @@ static int __init omap34xx_sram_init(void)
+>  	_omap3_sram_configure_core_dpll =
+>  		omap_sram_push(omap3_sram_configure_core_dpll,
+>  			       omap3_sram_configure_core_dpll_sz);
+> -	omap_push_sram_idle();
+
+what replaces this one, which happens at init time?
+
+Looking closer at pm34xx, there's alrady a call in omap3_pm_init(), you
+should make that clear in the changelog too, otherwise it's a red flag
+to see two removals and only one addition.
+
+Kevin
+
+>  	return 0;
+>  }
+>  #else
