@@ -1,185 +1,192 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 15/15] OMAP: GPIO: clean omap_gpio_mod_init function
-Date: Wed, 25 May 2011 16:48:30 -0700
-Message-ID: <87r57mjq9d.fsf@ti.com>
-References: <1306247094-25372-1-git-send-email-tarun.kanti@ti.com>
-	<1306247094-25372-16-git-send-email-tarun.kanti@ti.com>
+Subject: Re: [PM-WIP_CPUFREQ][PATCH V3 6/8] OMAP2+: cpufreq: fix freq_table leak
+Date: Wed, 25 May 2011 17:16:54 -0700
+Message-ID: <877h9ejoy1.fsf@ti.com>
+References: <1306366733-8439-1-git-send-email-nm@ti.com>
+	<1306366733-8439-7-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:59692 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753571Ab1EYXsd (ORCPT
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:53173 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753067Ab1EZAQ5 (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 25 May 2011 19:48:33 -0400
-Received: by mail-px0-f173.google.com with SMTP id 16so106046pxi.18
-        for <linux-omap@vger.kernel.org>; Wed, 25 May 2011 16:48:32 -0700 (PDT)
-In-Reply-To: <1306247094-25372-16-git-send-email-tarun.kanti@ti.com> (Tarun
-	Kanti DebBarma's message of "Tue, 24 May 2011 19:54:54 +0530")
+	Wed, 25 May 2011 20:16:57 -0400
+Received: by mail-pv0-f170.google.com with SMTP id 21so84845pvh.15
+        for <linux-omap@vger.kernel.org>; Wed, 25 May 2011 17:16:56 -0700 (PDT)
+In-Reply-To: <1306366733-8439-7-git-send-email-nm@ti.com> (Nishanth Menon's
+	message of "Wed, 25 May 2011 16:38:51 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Cc: linux-omap@vger.kernel.org, santosh.shilimkar@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Charulatha V <charu@ti.com>
+To: Nishanth Menon <nm@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>
 
-Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
+Nishanth Menon <nm@ti.com> writes:
 
-> From: Charulatha V <charu@ti.com>
->
-> With register offsets now defined for respective OMAP versions
-> we can get rid of cpu_class_* checks. In addition, organized
-> common initialization for the different OMAP silicon versions.
->
-> Signed-off-by: Charulatha V <charu@ti.com>
-> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+> Since we have multiple CPUs, the cpuinit call for CPU1 causes
+> freq_table of CPU0 to be overwritten. Instead, we maintain
+> a counter to keep track of cpus who use the cpufreq table
+> allocate it once(one freq table for all CPUs) and free them
+> once the last user is done with it. We also need to protect
+> freq_table and this new counter from updates from multiple
+> contexts to be on a safe side.
 
-The sysconfig stuff in this patch should be removed.  In fact, now that
-hwmod is used to manage all the GPIO IP blocks, the driver should not be
-touching sysconfig at all.
+Not sure I understand the need for all the locking here.  Once allocated
+and filled, the freq_table isn't changing.  Also, all the functions are
+only reading the freq_table, not changing it.    So what is it you're
+trying to protect against?
 
-The hwmod defaults should be enough, and for enabling wake-ups, the
-device-specific code should be calling omap_hwmod_enable_wakeup() (which
-will also enable smart-idle if the IP supports it.)
-
-
+> Signed-off-by: Nishanth Menon <nm@ti.com>
 > ---
->  arch/arm/mach-omap1/gpio16xx.c         |    1 +
->  arch/arm/plat-omap/include/plat/gpio.h |    1 +
->  drivers/gpio/gpio_omap.c               |   74 +++++++++++++-------------------
->  3 files changed, 32 insertions(+), 44 deletions(-)
+>  arch/arm/mach-omap2/omap2plus-cpufreq.c |   62 +++++++++++++++++++++++++++----
+>  1 files changed, 54 insertions(+), 8 deletions(-)
 >
-> diff --git a/arch/arm/mach-omap1/gpio16xx.c b/arch/arm/mach-omap1/gpio16xx.c
-> index 24f6cfa..e9f8abd 100644
-> --- a/arch/arm/mach-omap1/gpio16xx.c
-> +++ b/arch/arm/mach-omap1/gpio16xx.c
-> @@ -227,6 +227,7 @@ static int __init omap16xx_gpio_init(void)
->  	omap16xx_gpio_regs.wkupset = OMAP1610_GPIO_SET_WAKEUPENA;
->  	omap16xx_gpio_regs.edgectrl1 = OMAP1610_GPIO_EDGE_CTRL1;
->  	omap16xx_gpio_regs.edgectrl2 = OMAP1610_GPIO_EDGE_CTRL2;
-> +	omap16xx_gpio_regs.sysconfig = OMAP1610_GPIO_SYSCONFIG;
+> diff --git a/arch/arm/mach-omap2/omap2plus-cpufreq.c b/arch/arm/mach-omap2/omap2plus-cpufreq.c
+> index 3ff3302..f026ac4 100644
+> --- a/arch/arm/mach-omap2/omap2plus-cpufreq.c
+> +++ b/arch/arm/mach-omap2/omap2plus-cpufreq.c
+> @@ -39,6 +39,9 @@
+>  #include <mach/hardware.h>
 >  
->  	for (i = 0; i < ARRAY_SIZE(omap16xx_gpio_dev); i++)
->  		platform_device_register(omap16xx_gpio_dev[i]);
-> diff --git a/arch/arm/plat-omap/include/plat/gpio.h b/arch/arm/plat-omap/include/plat/gpio.h
-> index f82881c..ac45191 100644
-> --- a/arch/arm/plat-omap/include/plat/gpio.h
-> +++ b/arch/arm/plat-omap/include/plat/gpio.h
-> @@ -176,6 +176,7 @@ struct omap_gpio_dev_attr {
+>  static struct cpufreq_frequency_table *freq_table;
+> +static int freq_table_users;
+> +static DEFINE_MUTEX(freq_table_lock);
+> +
+>  static struct clk *mpu_clk;
+>  static char *mpu_clk_name;
+>  static struct device *mpu_dev;
+> @@ -46,9 +49,17 @@ static bool use_opp;
 >  
->  struct omap_gpio_reg_offs {
->  	u16 revision;
-> +	u16 sysconfig;
->  	u16 direction;
->  	u16 datain;
->  	u16 dataout;
-> diff --git a/drivers/gpio/gpio_omap.c b/drivers/gpio/gpio_omap.c
-> index ebeb16e..3649c74 100644
-> --- a/drivers/gpio/gpio_omap.c
-> +++ b/drivers/gpio/gpio_omap.c
-> @@ -885,65 +885,51 @@ static void __init omap_gpio_show_rev(struct gpio_bank *bank)
->  	called = true;
->  }
->  
-> -/* This lock class tells lockdep that GPIO irqs are in a different
-> +/*
-> + * This lock class tells lockdep that GPIO irqs are in a different
->   * category than their parents, so it won't report false recursion.
->   */
->  static struct lock_class_key gpio_lock_class;
->  
-> -/* TODO: Cleanup cpu_is_* checks */
->  static void omap_gpio_mod_init(struct gpio_bank *bank)
+>  static int omap_verify_speed(struct cpufreq_policy *policy)
 >  {
-> -	if (cpu_class_is_omap2()) {
-> -		if (cpu_is_omap44xx()) {
-> -			__raw_writel(0xffffffff, bank->base +
-> -					OMAP4_GPIO_IRQSTATUSCLR0);
-> -			__raw_writel(0x00000000, bank->base +
-> -					 OMAP4_GPIO_DEBOUNCENABLE);
-> -			/* Initialize interface clk ungated, module enabled */
-> -			__raw_writel(0, bank->base + OMAP4_GPIO_CTRL);
-> -		} else if (cpu_is_omap34xx()) {
-> -			__raw_writel(0x00000000, bank->base +
-> -					OMAP24XX_GPIO_IRQENABLE1);
-> -			__raw_writel(0xffffffff, bank->base +
-> -					OMAP24XX_GPIO_IRQSTATUS1);
-> -			__raw_writel(0x00000000, bank->base +
-> -					OMAP24XX_GPIO_DEBOUNCE_EN);
-> +	if (bank->width == 32) {
-> +		u32 l = 0;
+> +	int r = -EINVAL;
 > +
-> +		if (bank->regs->irqenable_inv)
-> +			l = ~l;
->  
-> +		__raw_writel(l, bank->base + bank->regs->irqstatus);
-
-The ->irqenable_inv flag doesn't affect ->irqstatus.
-
-> +		__raw_writel(l, bank->base + bank->regs->irqenable);
+> +	mutex_lock(&freq_table_lock);
+>  	if (!freq_table)
+> -		return -EINVAL;
+> -	return cpufreq_frequency_table_verify(policy, freq_table);
+> +		goto out;
 > +
-> +		if (bank->regs->debounce_en != USHRT_MAX)
-> +			__raw_writel(l, bank->base + bank->regs->debounce_en);
-
-If ->irqenable_inv = true, debounce was just enabled for all GPIOs in
-the bank.
-
-> +		if (bank->regs->ctrl != USHRT_MAX)
->  			/* Initialize interface clk ungated, module enabled */
-> -			__raw_writel(0, bank->base + OMAP24XX_GPIO_CTRL);
-> -		}
-> -	} else if (cpu_class_is_omap1()) {
-> -		if (bank_is_mpuio(bank)) {
-> -			__raw_writew(0xffff, bank->base +
-> -				OMAP_MPUIO_GPIO_MASKIT / bank->stride);
-> +			 __raw_writel(l, bank->base + bank->regs->ctrl);
-
-If ->irqenable_env = true, all the clocks were just gated.
-
-Similar problems below.
-
-Kevin
+> +	r = cpufreq_frequency_table_verify(policy, freq_table);
 > +
-> +	} else if (bank->width == 16) {
-> +		u16 l = 0;
-> +
-> +		if (bank_is_mpuio(bank))
->  			mpuio_init(bank);
-> -		}
-> -		if (cpu_is_omap15xx() && bank->method == METHOD_GPIO_1510) {
-> -			__raw_writew(0xffff, bank->base
-> -						+ OMAP1510_GPIO_INT_MASK);
-> -			__raw_writew(0x0000, bank->base
-> -						+ OMAP1510_GPIO_INT_STATUS);
-> -		}
-> -		if (cpu_is_omap16xx() && bank->method == METHOD_GPIO_1610) {
-> -			__raw_writew(0x0000, bank->base
-> -						+ OMAP1610_GPIO_IRQENABLE1);
-> -			__raw_writew(0xffff, bank->base
-> -						+ OMAP1610_GPIO_IRQSTATUS1);
-> -			__raw_writew(0x0014, bank->base
-> -						+ OMAP1610_GPIO_SYSCONFIG);
->  
-> +		if (bank->regs->irqenable_inv)
-> +			l = ~l;
-> +
-> +		__raw_writew(l, bank->base + bank->regs->irqstatus);
-> +		__raw_writew(l, bank->base + bank->regs->irqenable);
-> +
-> +		if (bank->regs->sysconfig != USHRT_MAX) {
-> +			/* set wakeup-enable and smart-idle */
-> +			__raw_writew(0x14, bank->base + bank->regs->sysconfig);
->  			/*
->  			 * Enable system clock for GPIO module.
->  			 * The CAM_CLK_CTRL *is* really the right place.
->  			 */
->  			omap_writel(omap_readl(ULPD_CAM_CLK_CTRL) | 0x04,
-> -						ULPD_CAM_CLK_CTRL);
-> -		}
-> -		if (cpu_is_omap7xx() && bank->method == METHOD_GPIO_7XX) {
-> -			__raw_writel(0xffffffff, bank->base
-> -						+ OMAP7XX_GPIO_INT_MASK);
-> -			__raw_writel(0x00000000, bank->base
-> -						+ OMAP7XX_GPIO_INT_STATUS);
-> +					ULPD_CAM_CLK_CTRL);
->  		}
->  	}
+> +out:
+> +	mutex_unlock(&freq_table_lock);
+> +	return r;
 >  }
+>  
+>  static unsigned int omap_getspeed(unsigned int cpu)
+> @@ -74,9 +85,11 @@ static int omap_target(struct cpufreq_policy *policy,
+>  	if (is_smp() && (num_online_cpus() < NR_CPUS))
+>  		return ret;
+>  
+> +	mutex_lock(&freq_table_lock);
+>  	if (!freq_table) {
+>  		dev_err(mpu_dev, "%s: cpu%d: no freq table!\n", __func__,
+>  				policy->cpu);
+> +		mutex_unlock(&freq_table_lock);
+>  		return -EINVAL;
+>  	}
+>  
+> @@ -85,9 +98,13 @@ static int omap_target(struct cpufreq_policy *policy,
+>  	if (ret) {
+>  		dev_dbg(mpu_dev, "%s: cpu%d: no freq match for %d(ret=%d)\n",
+>  			__func__, policy->cpu, target_freq, ret);
+> +		mutex_unlock(&freq_table_lock);
+>  		return ret;
+>  	}
+> +
+>  	freqs.new = freq_table[i].frequency;
+> +	mutex_unlock(&freq_table_lock);
+> +
+>  	if (!freqs.new) {
+>  		dev_err(mpu_dev, "%s: cpu%d: no match for freq %d\n", __func__,
+>  			policy->cpu, target_freq);
+> @@ -156,22 +173,48 @@ skip_lpj:
+>  
+>  static int freq_table_alloc(void)
+>  {
+> -	if (use_opp)
+> -		return opp_init_cpufreq_table(mpu_dev, &freq_table);
+> +	int ret = 0;
+>  
+> -	clk_init_cpufreq_table(&freq_table);
+> -	if (!freq_table)
+> -		return -ENOMEM;
+> +	mutex_lock(&freq_table_lock);
+>  
+> -	return 0;
+> +	freq_table_users++;
+> +	/* Did we allocate previously? */
+> +	if (freq_table_users - 1)
+> +		goto out;
+
+Rather than the ' - 1', this can just be 
+
+     if (freq_table_users++)
+                goto out;
+
+or better, you probably don't need this check protected by the mutex,
+so this could just return directly, and then take the mutex_lock() after
+this point.
+
+However, if you get rid of the mutex (and I think you should), you could
+use an atomic variable here 
+> +	/* no, so we allocate */
+> +	if (use_opp) {
+> +		ret = opp_init_cpufreq_table(mpu_dev, &freq_table);
+> +	} else {
+> +		clk_init_cpufreq_table(&freq_table);
+> +		if (!freq_table)
+> +			ret = -ENOMEM;
+> +	}
+> +	/* if we did not allocate cleanly.. reduce user count */
+> +	if (!ret)
+> +		freq_table_users--;
+> +
+> +out:
+> +	mutex_unlock(&freq_table_lock);
+> +	return ret;
+>  }
+>  
+>  static void freq_table_free(void)
+>  {
+> +	mutex_lock(&freq_table_lock);
+> +
+> +	if (!freq_table_users)
+> +		goto out;
+> +	freq_table_users--;
+> +	if (freq_table_users)
+> +		goto out;
+
+Similarily:
+
+	if (--freq_table_users)
+		goto out;
+
+>  	if (use_opp)
+>  		opp_free_cpufreq_table(mpu_dev, &freq_table);
+>  	else
+>  		clk_exit_cpufreq_table(&freq_table);
+> +out:
+> +	mutex_unlock(&freq_table_lock);
+>  }
+>  
+>  static int __cpuinit omap_cpu_init(struct cpufreq_policy *policy)
+> @@ -195,14 +238,17 @@ static int __cpuinit omap_cpu_init(struct cpufreq_policy *policy)
+>  		return result;
+>  	}
+>  
+> +	mutex_lock(&freq_table_lock);
+>  	result = cpufreq_frequency_table_cpuinfo(policy, freq_table);
+>  	if (result) {
+> +		mutex_unlock(&freq_table_lock);
+>  		dev_err(mpu_dev, "%s: cpu%d: unable to get cpuinfo [%d]\n",
+>  			__func__, policy->cpu, result);
+>  		freq_table_free();
+>  		return result;
+>  	}
+>  	cpufreq_frequency_table_get_attr(freq_table, policy->cpu);
+> +	mutex_unlock(&freq_table_lock);
+>  
+>  	policy->min = policy->cpuinfo.min_freq;
+>  	policy->max = policy->cpuinfo.max_freq;
