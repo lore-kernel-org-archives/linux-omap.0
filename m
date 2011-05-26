@@ -1,172 +1,147 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH/RFC 4/4] OMAP2: PM debug: move wakeup timer into clockevent code
-Date: Thu, 26 May 2011 16:02:51 -0700
-Message-ID: <1306450971-27732-5-git-send-email-khilman@ti.com>
-References: <1306450971-27732-1-git-send-email-khilman@ti.com>
+Subject: Re: [PATCH 08/13] OMAP2+: PM: provide the next timer event API to PM modules
+Date: Thu, 26 May 2011 16:00:04 -0700
+Message-ID: <87sjs19iff.fsf@ti.com>
+References: <1305739950-11695-1-git-send-email-j-pihet@ti.com>
+	<1305739950-11695-9-git-send-email-j-pihet@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:47717 "EHLO
+Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:59313 "EHLO
 	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757352Ab1EZW4u (ORCPT
+	by vger.kernel.org with ESMTP id S932515Ab1EZXAH (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 26 May 2011 18:56:50 -0400
-Received: by mail-pv0-f174.google.com with SMTP id 12so512546pvg.19
-        for <linux-omap@vger.kernel.org>; Thu, 26 May 2011 15:56:49 -0700 (PDT)
-In-Reply-To: <1306450971-27732-1-git-send-email-khilman@ti.com>
+	Thu, 26 May 2011 19:00:07 -0400
+Received: by mail-pz0-f50.google.com with SMTP id 2so642053pzk.23
+        for <linux-omap@vger.kernel.org>; Thu, 26 May 2011 16:00:07 -0700 (PDT)
+In-Reply-To: <1305739950-11695-9-git-send-email-j-pihet@ti.com> (jean pihet's
+	message of "Wed, 18 May 2011 19:32:25 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: p-titiano@ti.com
+To: jean.pihet@newoldbits.com
+Cc: linux-omap@vger.kernel.org
 
-Move suspend wakeup timer from suspend path to be triggered based
-on clockevent suspend path.
+jean.pihet@newoldbits.com writes:
 
-When gptimers are eventually converted to be a driver, the wakeup
-timer feature can be made to be a driver-specific feature using the
-driver's suspend method.
+> From: Jean Pihet <j-pihet@ti.com>
+>
+> Provide omap_pm_tick_nohz_get_sleep_length_us so that the code
+> from the OMAP PM modules can use it.
+>
+> Signed-off-by: Jean Pihet <j-pihet@ti.com>
 
-Signed-off-by: Kevin Hilman <khilman@ti.com>
----
- arch/arm/mach-omap2/pm-debug.c            |   19 ----------------
- arch/arm/mach-omap2/pm.h                  |    3 --
- arch/arm/mach-omap2/pm34xx.c              |    4 ---
- arch/arm/mach-omap2/timer-gp.c            |   33 ++++++++++++++++++++++++++--
- arch/arm/plat-omap/include/plat/dmtimer.h |    1 -
- 5 files changed, 30 insertions(+), 30 deletions(-)
+This patch is doing more than mentioned in the changelog.
 
-diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
-index 7c72f29..72dee22 100644
---- a/arch/arm/mach-omap2/pm-debug.c
-+++ b/arch/arm/mach-omap2/pm-debug.c
-@@ -39,25 +39,6 @@
- #include "pm.h"
- 
- u32 enable_off_mode;
--u32 wakeup_timer_seconds;
--u32 wakeup_timer_milliseconds;
--
--void omap2_pm_wakeup_on_timer(u32 seconds, u32 milliseconds)
--{
--	u32 tick_rate, cycles;
--
--	if (!seconds && !milliseconds)
--		return;
--
--	tick_rate = clk_get_rate(omap_dm_timer_get_fclk(gptimer_wakeup));
--	cycles = tick_rate * seconds + tick_rate * milliseconds / 1000;
--	omap_dm_timer_stop(gptimer_wakeup);
--	omap_dm_timer_set_load_start(gptimer_wakeup, 0, 0xffffffff - cycles);
--
--	pr_info("PM: Resume timer in %u.%03u secs"
--		" (%d ticks at %d ticks/sec.)\n",
--		seconds, milliseconds, cycles, tick_rate);
--}
- 
- #ifdef CONFIG_DEBUG_FS
- #include <linux/debugfs.h>
-diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-index dd1c2e4..803bf1c 100644
---- a/arch/arm/mach-omap2/pm.h
-+++ b/arch/arm/mach-omap2/pm.h
-@@ -57,13 +57,10 @@ extern int omap3_pm_set_suspend_state(struct powerdomain *pwrdm, int state);
- 
- extern u32 wakeup_timer_seconds;
- extern u32 wakeup_timer_milliseconds;
--extern struct omap_dm_timer *gptimer_wakeup;
- 
- #ifdef CONFIG_PM_DEBUG
--extern void omap2_pm_wakeup_on_timer(u32 seconds, u32 milliseconds);
- extern u32 enable_off_mode;
- #else
--#define omap2_pm_wakeup_on_timer(seconds, milliseconds)	do {} while (0);
- #define enable_off_mode 0
- #endif
- 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 991ade6..a9d9bb1c8 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -532,10 +532,6 @@ static int omap3_pm_suspend(void)
- 	struct power_state *pwrst;
- 	int state, ret = 0;
- 
--	if (wakeup_timer_seconds || wakeup_timer_milliseconds)
--		omap2_pm_wakeup_on_timer(wakeup_timer_seconds,
--					 wakeup_timer_milliseconds);
--
- 	/* Read current next_pwrsts */
- 	list_for_each_entry(pwrst, &pwrst_list, node)
- 		pwrst->saved_state = pwrdm_read_next_pwrst(pwrst->pwrdm);
-diff --git a/arch/arm/mach-omap2/timer-gp.c b/arch/arm/mach-omap2/timer-gp.c
-index 3b9cf85..4de51a1 100644
---- a/arch/arm/mach-omap2/timer-gp.c
-+++ b/arch/arm/mach-omap2/timer-gp.c
-@@ -44,7 +44,7 @@
- #include <plat/omap_hwmod.h>
- 
- #include "timer-gp.h"
--
-+#include "pm.h"
- 
- /* MAX_GPTIMER_ID: number of GPTIMERs on the chip */
- #define MAX_GPTIMER_ID		12
-@@ -53,7 +53,30 @@ static struct omap_dm_timer *gptimer;
- static struct clock_event_device clockevent_gpt;
- static u8 __initdata gptimer_id = 1;
- static u8 __initdata inited;
--struct omap_dm_timer *gptimer_wakeup;
-+static struct omap_dm_timer *gptimer_wakeup;
-+
-+u32 wakeup_timer_seconds;
-+u32 wakeup_timer_milliseconds;
-+
-+static void omap2_pm_wakeup_on_timer(u32 seconds, u32 milliseconds)
-+{
-+	u32 tick_rate, cycles;
-+
-+	if (!gptimer_wakeup)
-+		return;
-+
-+	if (!seconds && !milliseconds)
-+		return;
-+
-+	tick_rate = clk_get_rate(omap_dm_timer_get_fclk(gptimer_wakeup));
-+	cycles = tick_rate * seconds + tick_rate * milliseconds / 1000;
-+	omap_dm_timer_stop(gptimer_wakeup);
-+	omap_dm_timer_set_load_start(gptimer_wakeup, 0, 0xffffffff - cycles);
-+
-+	pr_info("PM: Resume timer in %u.%03u secs"
-+		" (%d ticks at %d ticks/sec.)\n",
-+		seconds, milliseconds, cycles, tick_rate);
-+}
- 
- static irqreturn_t omap2_gp_timer_interrupt(int irq, void *dev_id)
- {
-@@ -95,8 +118,12 @@ static void omap2_gp_timer_set_mode(enum clock_event_mode mode,
- 		break;
- 	case CLOCK_EVT_MODE_ONESHOT:
- 		break;
--	case CLOCK_EVT_MODE_UNUSED:
- 	case CLOCK_EVT_MODE_SHUTDOWN:
-+		if (wakeup_timer_seconds || wakeup_timer_milliseconds)
-+			omap2_pm_wakeup_on_timer(wakeup_timer_seconds,
-+						 wakeup_timer_milliseconds);
-+		break;
-+	case CLOCK_EVT_MODE_UNUSED:
- 	case CLOCK_EVT_MODE_RESUME:
- 		break;
- 	}
-diff --git a/arch/arm/plat-omap/include/plat/dmtimer.h b/arch/arm/plat-omap/include/plat/dmtimer.h
-index d6c70d2..db230b3 100644
---- a/arch/arm/plat-omap/include/plat/dmtimer.h
-+++ b/arch/arm/plat-omap/include/plat/dmtimer.h
-@@ -56,7 +56,6 @@
-  */
- #define OMAP_TIMER_IP_VERSION_1                        0x1
- struct omap_dm_timer;
--extern struct omap_dm_timer *gptimer_wakeup;
- extern struct sys_timer omap_timer;
- struct clk;
- 
--- 
-1.7.4
+> ---
+>  arch/arm/mach-omap2/pm-debug.c |    7 ++++---
+>  arch/arm/mach-omap2/pm.c       |   15 +++++++++++++++
+>  arch/arm/mach-omap2/pm.h       |   12 ++++++++----
+>  3 files changed, 27 insertions(+), 7 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
+> index 0b896d4..24e5c31 100644
+> --- a/arch/arm/mach-omap2/pm-debug.c
+> +++ b/arch/arm/mach-omap2/pm-debug.c
+> @@ -141,9 +141,10 @@ void omap2_pm_dump(int mode, int resume, unsigned int us)
+>  	if (!resume)
+>  #ifdef CONFIG_NO_HZ
+>  		printk(KERN_INFO
+> -		       "--- Going to %s %s (next timer after %u ms)\n", s1, s2,
+> -		       jiffies_to_msecs(get_next_timer_interrupt(jiffies) -
+> -					jiffies));
+> +		       "--- Going to %s %s (next timer after %lu ms)\n", s1, s2,
+> +		       DIV_ROUND_UP(omap_pm_tick_nohz_get_sleep_length_us(),
+> +				    1000)
+> +		      );
+>  #else
+>  		printk(KERN_INFO "--- Going to %s %s\n", s1, s2);
+>  #endif
+> diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+> index 37a4801..0c451e3 100644
+> --- a/arch/arm/mach-omap2/pm.c
+> +++ b/arch/arm/mach-omap2/pm.c
+> @@ -14,6 +14,8 @@
+>  #include <linux/io.h>
+>  #include <linux/err.h>
+>  #include <linux/opp.h>
+> +#include <linux/hrtimer.h>
+> +#include <linux/tick.h>
+>  
+>  #include <plat/omap-pm.h>
+>  #include <plat/omap_device.h>
+> @@ -30,6 +32,7 @@ static struct omap_device_pm_latency *pm_lats;
+>  struct cpuidle_params *cpuidle_params_override_table;
+>  #endif
+>  
+> +#ifdef CONFIG_PM_DEBUG
+>  u32 enable_off_mode;
+>  EXPORT_SYMBOL(enable_off_mode);
+>  
+> @@ -37,6 +40,7 @@ int omap2_pm_debug;
+>  u32 sleep_while_idle;
+>  u32 wakeup_timer_seconds;
+>  u32 wakeup_timer_milliseconds;
+> +#endif
+>  
+>  static struct device *mpu_dev;
+>  static struct device *iva_dev;
+> @@ -292,6 +296,7 @@ void omap3_pm_init_cpuidle(struct cpuidle_params *cpuidle_board_params)
+>  }
+>  #endif
+>  
+> +#ifdef CONFIG_PM_DEBUG
+>  void omap2_pm_wakeup_on_timer(u32 seconds, u32 milliseconds)
+>  {
+>  	u32 tick_rate, cycles;
+> @@ -308,4 +313,14 @@ void omap2_pm_wakeup_on_timer(u32 seconds, u32 milliseconds)
+>  		" (%d ticks at %d ticks/sec.)\n",
+>  		seconds, milliseconds, cycles, tick_rate);
+>  }
+> +EXPORT_SYMBOL(omap2_pm_wakeup_on_timer);
 
+This doesn't seem related to $SUBJECT
+
+> +#endif
+> +
+> +#ifdef CONFIG_NO_HZ
+> +unsigned long omap_pm_tick_nohz_get_sleep_length_us(void)
+> +{
+> +	return ktime_to_us(tick_nohz_get_sleep_length());
+> +}
+> +EXPORT_SYMBOL(omap_pm_tick_nohz_get_sleep_length_us);
+> +#endif
+
+Usage of this is OMAP2-specific and needed for this very old, debug-only
+interface.  I was inspired by some of what you did in this series, and
+will attempt to make your life easier by just removing this code all
+together.  I just posted a series for that.
+
+>  
+> diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+> index 03da7f8..70eb80e 100644
+> --- a/arch/arm/mach-omap2/pm.h
+> +++ b/arch/arm/mach-omap2/pm.h
+> @@ -68,11 +68,15 @@ extern int omap2_pm_debug;
+>  extern u32 enable_off_mode;
+>  extern u32 sleep_while_idle;
+>  #else
+> -#define omap2_pm_dump(mode, resume, us)		do {} while (0);
+> +#define omap2_pm_dump(mode, resume, us)			do {} while (0);
+>  #define omap2_pm_wakeup_on_timer(seconds, milliseconds)	do {} while (0);
+> -#define omap2_pm_debug				0
+> -#define enable_off_mode 0
+> -#define sleep_while_idle 0
+> +#define omap2_pm_debug					0
+> +#define enable_off_mode					0
+> +#define sleep_while_idle				0
+> +#endif
+
+Unrelated whitespace changes.
+
+> +#ifdef CONFIG_NO_HZ
+> +extern unsigned long omap_pm_tick_nohz_get_sleep_length_us(void);
+>  #endif
+>  
+>  #if defined(CONFIG_PM_DEBUG) && defined(CONFIG_DEBUG_FS)
+
+Kevin
