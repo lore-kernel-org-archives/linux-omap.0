@@ -1,69 +1,28 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: context_loss_count error value
-Date: Thu, 26 May 2011 08:56:16 -0700
-Message-ID: <87tychihgf.fsf@ti.com>
-References: <1305704452.1834.12.camel@deskari> <87k4douvsd.fsf@ti.com>
-	<1305718422.1834.23.camel@deskari> <877h9ot7c3.fsf@ti.com>
-	<1305729690.30372.7.camel@deskari> <1306252069.2194.28.camel@deskari>
-	<87lixv1x3s.fsf@ti.com> <1306312262.2062.16.camel@deskari>
-	<87ipsyvdc6.fsf@ti.com> <1306349159.2062.32.camel@deskari>
-	<87tycitteb.fsf@ti.com> <1306389315.1922.4.camel@deskari>
-Mime-Version: 1.0
+From: Koen Kooi <koen@dominion.thruhere.net>
+Subject: Re: [GIT PULL] omap updates for 2.6.40
+Date: Thu, 26 May 2011 18:06:01 +0200
+Message-ID: <9741DC43-3197-4ECE-A377-FA865A3F6710@dominion.thruhere.net>
+References: <20110526113905.GG27250@atomide.com>
+Mime-Version: 1.0 (Apple Message framework v1084)
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:49718 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752977Ab1EZP4U (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 26 May 2011 11:56:20 -0400
-Received: by mail-pw0-f51.google.com with SMTP id 9so482635pwi.24
-        for <linux-omap@vger.kernel.org>; Thu, 26 May 2011 08:56:19 -0700 (PDT)
-In-Reply-To: <1306389315.1922.4.camel@deskari> (Tomi Valkeinen's message of
-	"Thu, 26 May 2011 08:55:15 +0300")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20110526113905.GG27250@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org
 
-Tomi Valkeinen <tomi.valkeinen@ti.com> writes:
 
-> On Wed, 2011-05-25 at 13:30 -0700, Kevin Hilman wrote:
->> Tomi Valkeinen <tomi.valkeinen@ti.com> writes:
->> 
->> > On Wed, 2011-05-25 at 11:34 -0700, Kevin Hilman wrote:
->> >> Tomi Valkeinen <tomi.valkeinen@ti.com> writes:
->
-> <snip>
->
->> >> 
->> >> > +		if (off_mode_enabled) {
->> >> > +			count = (count + 1) & 0x7fffffff;
->> >> > +			dummy_context_loss_counter = count;
->> >> > +		}
->> >> 
->> >> Again, I don't think this masking is needed.   count is already an
->> >> 'int', so when it gets bigger than INT_MAX, it will wrap.
->> >
->> > When count is INT_MAX and one is added to it, it'll wrap to INT_MIN,
->> > i.e. maximum negative value, which would be an error value. So by
->> > masking out the highest bit we'll get nonnegative count range from 0 to
->> > INT_MAX.
->> >
->> > Perhaps a comment would be justified here =).
->> 
->> Indeed, and using INT_MAX instead of the hard-coded constants would help
->> readability also.
->
-> It may be just me, but as I see it, INT_MAX is a number like any other,
-> and using it as a mask feels confusing to me.
->
-> Would this be ok to you:
->
-> /*
->  * Context loss count has to be a non-negative value. Clear the sign
->  * bit to get a value range from 0 to INT_MAX.
->  */
-> count &= ~(1 << 31);
->
+Op 26 mei 2011, om 13:39 heeft Tony Lindgren het volgende geschreven:
 
-Yes.
+> Hi Linus,
+> 
+> Please pull omap updates for this merge window from:
+> 
+> git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-for-linus
+> 
+> This contains clean-up to shrink down omap specific code a bit. Also included
+> are some fixes. But basically no new code at this point.
+
+What about updates to board files? Like adding support for the xM rev C to board-omap3beagle.c.
