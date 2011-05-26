@@ -1,90 +1,46 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH/RFC 1/4] OMAP3: PM debug: remove sleep_while_idle feature
-Date: Thu, 26 May 2011 16:02:48 -0700
-Message-ID: <1306450971-27732-2-git-send-email-khilman@ti.com>
-References: <1306450971-27732-1-git-send-email-khilman@ti.com>
+Subject: [PATCH/RFC 0/4] OMAP: PM debug: remove register dump, misc cleanups
+Date: Thu, 26 May 2011 16:02:47 -0700
+Message-ID: <1306450971-27732-1-git-send-email-khilman@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:39683 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756405Ab1EZW4o (ORCPT
+Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:58367 "EHLO
+	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756405Ab1EZW4m (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 26 May 2011 18:56:44 -0400
-Received: by mail-pw0-f41.google.com with SMTP id 12so690945pwi.14
-        for <linux-omap@vger.kernel.org>; Thu, 26 May 2011 15:56:43 -0700 (PDT)
-In-Reply-To: <1306450971-27732-1-git-send-email-khilman@ti.com>
+	Thu, 26 May 2011 18:56:42 -0400
+Received: by mail-pz0-f51.google.com with SMTP id 26so523836pzk.10
+        for <linux-omap@vger.kernel.org>; Thu, 26 May 2011 15:56:41 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: p-titiano@ti.com
 
-Remove the OMAP-specific PM debug 'sleep_while_idle' feature which is
-currently available as an OMAP-specific debugfs entry.
+Inspired by Jean's work to move PM code to modules, I decided it's
+time to remove a bunch of ugly and difficult to maintain code from PM
+debug.
 
-This duplicates existing ARM-generic functionality available as a
-boot-time option using the boot cmdline option 'hohlt'.
+The main chunk here is removing the register dump features for
+OMAP2/OMAP3 which are awful to read, and impossible to scale for
+OMAP4+.  Also, there are now some userspace /dev/mem-based tools (like
+omapconf) that can handle this type of thing much better, and with a
+much better interface and display.
 
-If runtime configuration of this is needed, then adding a debugfs
-entry for the ARM-generic hlt/nohlt interface should be added.
+Series applies to v2.6.39.
 
-Signed-off-by: Kevin Hilman <khilman@ti.com>
----
- arch/arm/mach-omap2/pm-debug.c |    3 ---
- arch/arm/mach-omap2/pm.h       |    2 --
- arch/arm/mach-omap2/pm34xx.c   |    2 --
- 3 files changed, 0 insertions(+), 7 deletions(-)
+Kevin Hilman (4):
+  OMAP3: PM debug: remove sleep_while_idle feature
+  OMAP2: PM debug: remove register dumping
+  OMAP3: PM debug: remove register dumping
+  OMAP2: PM debug: move wakeup timer into clockevent code
 
-diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
-index a5a83b3..cf9bc15 100644
---- a/arch/arm/mach-omap2/pm-debug.c
-+++ b/arch/arm/mach-omap2/pm-debug.c
-@@ -40,7 +40,6 @@
- 
- int omap2_pm_debug;
- u32 enable_off_mode;
--u32 sleep_while_idle;
- u32 wakeup_timer_seconds;
- u32 wakeup_timer_milliseconds;
- 
-@@ -639,8 +638,6 @@ static int __init pm_dbg_init(void)
- 
- 	(void) debugfs_create_file("enable_off_mode", S_IRUGO | S_IWUSR, d,
- 				   &enable_off_mode, &pm_dbg_option_fops);
--	(void) debugfs_create_file("sleep_while_idle", S_IRUGO | S_IWUSR, d,
--				   &sleep_while_idle, &pm_dbg_option_fops);
- 	(void) debugfs_create_file("wakeup_timer_seconds", S_IRUGO | S_IWUSR, d,
- 				   &wakeup_timer_seconds, &pm_dbg_option_fops);
- 	(void) debugfs_create_file("wakeup_timer_milliseconds",
-diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-index 797bfd1..fc2377c 100644
---- a/arch/arm/mach-omap2/pm.h
-+++ b/arch/arm/mach-omap2/pm.h
-@@ -64,13 +64,11 @@ extern void omap2_pm_dump(int mode, int resume, unsigned int us);
- extern void omap2_pm_wakeup_on_timer(u32 seconds, u32 milliseconds);
- extern int omap2_pm_debug;
- extern u32 enable_off_mode;
--extern u32 sleep_while_idle;
- #else
- #define omap2_pm_dump(mode, resume, us)		do {} while (0);
- #define omap2_pm_wakeup_on_timer(seconds, milliseconds)	do {} while (0);
- #define omap2_pm_debug				0
- #define enable_off_mode 0
--#define sleep_while_idle 0
- #endif
- 
- #if defined(CONFIG_CPU_IDLE)
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 0c5e3a4..991ade6 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -497,8 +497,6 @@ console_still_active:
- 
- int omap3_can_sleep(void)
- {
--	if (!sleep_while_idle)
--		return 0;
- 	if (!omap_uart_can_sleep())
- 		return 0;
- 	return 1;
+ arch/arm/mach-omap2/pm-debug.c            |  362 -----------------------------
+ arch/arm/mach-omap2/pm.h                  |    9 -
+ arch/arm/mach-omap2/pm24xx.c              |    6 +-
+ arch/arm/mach-omap2/pm34xx.c              |    6 -
+ arch/arm/mach-omap2/timer-gp.c            |   33 +++-
+ arch/arm/plat-omap/include/plat/dmtimer.h |    1 -
+ 6 files changed, 32 insertions(+), 385 deletions(-)
+
 -- 
 1.7.4
 
