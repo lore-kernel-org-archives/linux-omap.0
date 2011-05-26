@@ -1,16 +1,16 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [RFC][PATCH 7/9] OMAP4: powerdomain: Update MPU powerdomain for 4460
-Date: Wed, 25 May 2011 18:56:54 -0700
-Message-ID: <1306375016-707-8-git-send-email-nm@ti.com>
+Subject: [RFC][PATCH 8/9] OMAP4: clockdomain: Use CHIP_IS_44XX to reuse all CD's on 4460
+Date: Wed, 25 May 2011 18:56:55 -0700
+Message-ID: <1306375016-707-9-git-send-email-nm@ti.com>
 References: <1306375016-707-1-git-send-email-nm@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:42624 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757063Ab1EZB5a (ORCPT
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:46647 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757036Ab1EZB5e (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 25 May 2011 21:57:30 -0400
-Received: by mail-yi0-f42.google.com with SMTP id 12so171984yib.1
-        for <linux-omap@vger.kernel.org>; Wed, 25 May 2011 18:57:29 -0700 (PDT)
+	Wed, 25 May 2011 21:57:34 -0400
+Received: by gxk9 with SMTP id 9so146316gxk.40
+        for <linux-omap@vger.kernel.org>; Wed, 25 May 2011 18:57:33 -0700 (PDT)
 In-Reply-To: <1306375016-707-1-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -19,198 +19,661 @@ Cc: Rajendra Nayak <rnayak@ti.com>
 
 From: Rajendra Nayak <rnayak@ti.com>
 
-The 4460 platform has changes in the MPU powerdomain,
-hence model a new powerdomain for it and identify
-is using the CHIP_IS_OMAP446X macro.
-Also move all the common powerdomains to use
-CHIP_IS_44XX so they are reused on OMAP4460.
+The 4460 platform has no difference in the clockdomains
+as compared to the 4430 platform.
+Hence just update the .omap_chip field to make sure
+the same clockdomains model data can be reused on the
+4460 platform.
 
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 ---
- arch/arm/mach-omap2/powerdomains44xx_data.c |   53 ++++++++++++++++++---------
- 1 files changed, 36 insertions(+), 17 deletions(-)
+ arch/arm/mach-omap2/clockdomains44xx_data.c |  200 +++++++++++++-------------
+ 1 files changed, 100 insertions(+), 100 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/powerdomains44xx_data.c b/arch/arm/mach-omap2/powerdomains44xx_data.c
-index c4222c7..034a4c7 100644
---- a/arch/arm/mach-omap2/powerdomains44xx_data.c
-+++ b/arch/arm/mach-omap2/powerdomains44xx_data.c
-@@ -35,7 +35,7 @@ static struct powerdomain core_44xx_pwrdm = {
- 	.name		  = "core_pwrdm",
- 	.prcm_offs	  = OMAP4430_PRM_CORE_INST,
- 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
--	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- 	.pwrsts		  = PWRSTS_RET_ON,
- 	.pwrsts_logic_ret = PWRSTS_OFF_RET,
- 	.banks		  = 5,
-@@ -61,7 +61,7 @@ static struct powerdomain gfx_44xx_pwrdm = {
- 	.name		  = "gfx_pwrdm",
- 	.prcm_offs	  = OMAP4430_PRM_GFX_INST,
- 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
--	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- 	.pwrsts		  = PWRSTS_OFF_ON,
- 	.banks		  = 1,
- 	.pwrsts_mem_ret	= {
-@@ -78,7 +78,7 @@ static struct powerdomain abe_44xx_pwrdm = {
- 	.name		  = "abe_pwrdm",
- 	.prcm_offs	  = OMAP4430_PRM_ABE_INST,
- 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
--	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- 	.pwrsts		  = PWRSTS_OFF_RET_ON,
- 	.pwrsts_logic_ret = PWRSTS_OFF,
- 	.banks		  = 2,
-@@ -98,7 +98,7 @@ static struct powerdomain dss_44xx_pwrdm = {
- 	.name		  = "dss_pwrdm",
- 	.prcm_offs	  = OMAP4430_PRM_DSS_INST,
- 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
--	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- 	.pwrsts		  = PWRSTS_OFF_RET_ON,
- 	.pwrsts_logic_ret = PWRSTS_OFF,
- 	.banks		  = 1,
-@@ -116,7 +116,7 @@ static struct powerdomain tesla_44xx_pwrdm = {
- 	.name		  = "tesla_pwrdm",
- 	.prcm_offs	  = OMAP4430_PRM_TESLA_INST,
- 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
--	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- 	.pwrsts		  = PWRSTS_OFF_RET_ON,
- 	.pwrsts_logic_ret = PWRSTS_OFF_RET,
- 	.banks		  = 3,
-@@ -138,7 +138,7 @@ static struct powerdomain wkup_44xx_pwrdm = {
- 	.name		  = "wkup_pwrdm",
- 	.prcm_offs	  = OMAP4430_PRM_WKUP_INST,
- 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
--	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- 	.pwrsts		  = PWRSTS_ON,
- 	.banks		  = 1,
- 	.pwrsts_mem_ret	= {
-@@ -154,7 +154,7 @@ static struct powerdomain cpu0_44xx_pwrdm = {
- 	.name		  = "cpu0_pwrdm",
- 	.prcm_offs	  = OMAP4430_PRCM_MPU_CPU0_INST,
- 	.prcm_partition	  = OMAP4430_PRCM_MPU_PARTITION,
--	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- 	.pwrsts		  = PWRSTS_OFF_RET_ON,
- 	.pwrsts_logic_ret = PWRSTS_OFF_RET,
- 	.banks		  = 1,
-@@ -171,7 +171,7 @@ static struct powerdomain cpu1_44xx_pwrdm = {
- 	.name		  = "cpu1_pwrdm",
- 	.prcm_offs	  = OMAP4430_PRCM_MPU_CPU1_INST,
- 	.prcm_partition	  = OMAP4430_PRCM_MPU_PARTITION,
--	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- 	.pwrsts		  = PWRSTS_OFF_RET_ON,
- 	.pwrsts_logic_ret = PWRSTS_OFF_RET,
- 	.banks		  = 1,
-@@ -188,7 +188,7 @@ static struct powerdomain emu_44xx_pwrdm = {
- 	.name		  = "emu_pwrdm",
- 	.prcm_offs	  = OMAP4430_PRM_EMU_INST,
- 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
--	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- 	.pwrsts		  = PWRSTS_OFF_ON,
- 	.banks		  = 1,
- 	.pwrsts_mem_ret	= {
-@@ -200,7 +200,7 @@ static struct powerdomain emu_44xx_pwrdm = {
- };
- 
- /* mpu_44xx_pwrdm: Modena processor and the Neon coprocessor power domain */
--static struct powerdomain mpu_44xx_pwrdm = {
-+static struct powerdomain mpu_443x_pwrdm = {
- 	.name		  = "mpu_pwrdm",
- 	.prcm_offs	  = OMAP4430_PRM_MPU_INST,
- 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
-@@ -220,12 +220,30 @@ static struct powerdomain mpu_44xx_pwrdm = {
+diff --git a/arch/arm/mach-omap2/clockdomains44xx_data.c b/arch/arm/mach-omap2/clockdomains44xx_data.c
+index a607ec1..f9c980e 100644
+--- a/arch/arm/mach-omap2/clockdomains44xx_data.c
++++ b/arch/arm/mach-omap2/clockdomains44xx_data.c
+@@ -35,55 +35,55 @@
+ static struct clkdm_dep ducati_wkup_sleep_deps[] = {
+ 	{
+ 		.clkdm_name	 = "abe_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
  	},
+ 	{
+ 		.clkdm_name	 = "ivahd_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "l3_1_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "l3_2_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "l3_dss_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "l3_emif_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "l3_gfx_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "l3_init_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "l4_cfg_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "l4_per_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "l4_secure_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "l4_wkup_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "tesla_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{ NULL },
+ };
+@@ -91,15 +91,15 @@ static struct clkdm_dep ducati_wkup_sleep_deps[] = {
+ static struct clkdm_dep iss_wkup_sleep_deps[] = {
+ 	{
+ 		.clkdm_name	 = "ivahd_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "l3_1_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "l3_emif_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{ NULL },
+ };
+@@ -107,11 +107,11 @@ static struct clkdm_dep iss_wkup_sleep_deps[] = {
+ static struct clkdm_dep ivahd_wkup_sleep_deps[] = {
+ 	{
+ 		.clkdm_name	 = "l3_1_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "l3_emif_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{ NULL },
+ };
+@@ -119,35 +119,35 @@ static struct clkdm_dep ivahd_wkup_sleep_deps[] = {
+ static struct clkdm_dep l3_d2d_wkup_sleep_deps[] = {
+ 	{
+ 		.clkdm_name	 = "abe_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "ivahd_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "l3_1_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "l3_2_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "l3_emif_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "l3_init_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "l4_cfg_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "l4_per_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{ NULL },
+ };
+@@ -155,47 +155,47 @@ static struct clkdm_dep l3_d2d_wkup_sleep_deps[] = {
+ static struct clkdm_dep l3_dma_wkup_sleep_deps[] = {
+ 	{
+ 		.clkdm_name	 = "abe_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "ducati_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "ivahd_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "l3_1_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "l3_dss_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "l3_emif_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "l3_init_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "l4_cfg_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "l4_per_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "l4_secure_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "l4_wkup_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{ NULL },
+ };
+@@ -203,15 +203,15 @@ static struct clkdm_dep l3_dma_wkup_sleep_deps[] = {
+ static struct clkdm_dep l3_dss_wkup_sleep_deps[] = {
+ 	{
+ 		.clkdm_name	 = "ivahd_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "l3_2_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "l3_emif_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{ NULL },
+ };
+@@ -219,15 +219,15 @@ static struct clkdm_dep l3_dss_wkup_sleep_deps[] = {
+ static struct clkdm_dep l3_gfx_wkup_sleep_deps[] = {
+ 	{
+ 		.clkdm_name	 = "ivahd_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "l3_1_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "l3_emif_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{ NULL },
+ };
+@@ -235,31 +235,31 @@ static struct clkdm_dep l3_gfx_wkup_sleep_deps[] = {
+ static struct clkdm_dep l3_init_wkup_sleep_deps[] = {
+ 	{
+ 		.clkdm_name	 = "abe_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "ivahd_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "l3_emif_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "l4_cfg_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "l4_per_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "l4_secure_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "l4_wkup_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{ NULL },
+ };
+@@ -267,15 +267,15 @@ static struct clkdm_dep l3_init_wkup_sleep_deps[] = {
+ static struct clkdm_dep l4_secure_wkup_sleep_deps[] = {
+ 	{
+ 		.clkdm_name	 = "l3_1_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "l3_emif_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "l4_per_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{ NULL },
+ };
+@@ -283,59 +283,59 @@ static struct clkdm_dep l4_secure_wkup_sleep_deps[] = {
+ static struct clkdm_dep mpuss_wkup_sleep_deps[] = {
+ 	{
+ 		.clkdm_name	 = "abe_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "ducati_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "ivahd_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "l3_1_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "l3_2_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "l3_dss_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "l3_emif_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "l3_gfx_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "l3_init_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "l4_cfg_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "l4_per_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "l4_secure_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "l4_wkup_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "tesla_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{ NULL },
+ };
+@@ -343,39 +343,39 @@ static struct clkdm_dep mpuss_wkup_sleep_deps[] = {
+ static struct clkdm_dep tesla_wkup_sleep_deps[] = {
+ 	{
+ 		.clkdm_name	 = "abe_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "ivahd_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "l3_1_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "l3_2_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "l3_emif_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "l3_init_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "l4_cfg_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "l4_per_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{
+ 		.clkdm_name	 = "l4_wkup_clkdm",
+-		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP4430)
++		.omap_chip	 = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX)
+ 	},
+ 	{ NULL },
+ };
+@@ -387,7 +387,7 @@ static struct clockdomain l4_cefuse_44xx_clkdm = {
+ 	.cm_inst	  = OMAP4430_CM2_CEFUSE_INST,
+ 	.clkdm_offs	  = OMAP4430_CM2_CEFUSE_CEFUSE_CDOFFS,
+ 	.flags		  = CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_HWSUP,
+-	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
++	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
  };
  
-+static struct powerdomain mpu_446x_pwrdm = {
-+	.name		  = "mpu_pwrdm",
-+	.prcm_offs	  = OMAP4430_PRM_MPU_INST,
-+	.prcm_partition	  = OMAP4430_PRM_PARTITION,
-+	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4460),
-+	.pwrsts		  = PWRSTS_RET_ON,
-+	.pwrsts_logic_ret = PWRSTS_OFF_RET,
-+	.banks		  = 2,
-+	.pwrsts_mem_ret	= {
-+		[0] = PWRSTS_OFF_RET,	/* mpu_l2 */
-+		[1] = PWRSTS_RET,	/* mpu_ram */
-+	},
-+	.pwrsts_mem_on	= {
-+		[0] = PWRSTS_ON,	/* mpu_l2 */
-+		[1] = PWRSTS_ON,	/* mpu_ram */
-+	},
-+};
-+
- /* ivahd_44xx_pwrdm: IVA-HD power domain */
- static struct powerdomain ivahd_44xx_pwrdm = {
- 	.name		  = "ivahd_pwrdm",
- 	.prcm_offs	  = OMAP4430_PRM_IVAHD_INST,
- 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
+ static struct clockdomain l4_cfg_44xx_clkdm = {
+@@ -398,7 +398,7 @@ static struct clockdomain l4_cfg_44xx_clkdm = {
+ 	.clkdm_offs	  = OMAP4430_CM2_CORE_L4CFG_CDOFFS,
+ 	.dep_bit	  = OMAP4430_L4CFG_STATDEP_SHIFT,
+ 	.flags		  = CLKDM_CAN_HWSUP,
 -	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
 +	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- 	.pwrsts		  = PWRSTS_OFF_RET_ON,
- 	.pwrsts_logic_ret = PWRSTS_OFF,
- 	.banks		  = 4,
-@@ -249,7 +267,7 @@ static struct powerdomain cam_44xx_pwrdm = {
- 	.name		  = "cam_pwrdm",
- 	.prcm_offs	  = OMAP4430_PRM_CAM_INST,
- 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
--	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- 	.pwrsts		  = PWRSTS_OFF_ON,
- 	.banks		  = 1,
- 	.pwrsts_mem_ret	= {
-@@ -266,7 +284,7 @@ static struct powerdomain l3init_44xx_pwrdm = {
- 	.name		  = "l3init_pwrdm",
- 	.prcm_offs	  = OMAP4430_PRM_L3INIT_INST,
- 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
--	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- 	.pwrsts		  = PWRSTS_RET_ON,
- 	.pwrsts_logic_ret = PWRSTS_OFF_RET,
- 	.banks		  = 1,
-@@ -284,7 +302,7 @@ static struct powerdomain l4per_44xx_pwrdm = {
- 	.name		  = "l4per_pwrdm",
- 	.prcm_offs	  = OMAP4430_PRM_L4PER_INST,
- 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
--	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- 	.pwrsts		  = PWRSTS_RET_ON,
- 	.pwrsts_logic_ret = PWRSTS_OFF_RET,
- 	.banks		  = 2,
-@@ -307,7 +325,7 @@ static struct powerdomain always_on_core_44xx_pwrdm = {
- 	.name		  = "always_on_core_pwrdm",
- 	.prcm_offs	  = OMAP4430_PRM_ALWAYS_ON_INST,
- 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
--	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- 	.pwrsts		  = PWRSTS_ON,
  };
  
-@@ -316,7 +334,7 @@ static struct powerdomain cefuse_44xx_pwrdm = {
- 	.name		  = "cefuse_pwrdm",
- 	.prcm_offs	  = OMAP4430_PRM_CEFUSE_INST,
- 	.prcm_partition	  = OMAP4430_PRM_PARTITION,
+ static struct clockdomain tesla_44xx_clkdm = {
+@@ -411,7 +411,7 @@ static struct clockdomain tesla_44xx_clkdm = {
+ 	.wkdep_srcs	  = tesla_wkup_sleep_deps,
+ 	.sleepdep_srcs	  = tesla_wkup_sleep_deps,
+ 	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
 -	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
 +	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
- 	.pwrsts		  = PWRSTS_OFF_ON,
  };
  
-@@ -339,7 +357,8 @@ static struct powerdomain *powerdomains_omap44xx[] __initdata = {
- 	&cpu0_44xx_pwrdm,
- 	&cpu1_44xx_pwrdm,
- 	&emu_44xx_pwrdm,
--	&mpu_44xx_pwrdm,
-+	&mpu_443x_pwrdm,
-+	&mpu_446x_pwrdm,
- 	&ivahd_44xx_pwrdm,
- 	&cam_44xx_pwrdm,
- 	&l3init_44xx_pwrdm,
+ static struct clockdomain l3_gfx_44xx_clkdm = {
+@@ -424,7 +424,7 @@ static struct clockdomain l3_gfx_44xx_clkdm = {
+ 	.wkdep_srcs	  = l3_gfx_wkup_sleep_deps,
+ 	.sleepdep_srcs	  = l3_gfx_wkup_sleep_deps,
+ 	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
+-	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
++	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
+ };
+ 
+ static struct clockdomain ivahd_44xx_clkdm = {
+@@ -437,7 +437,7 @@ static struct clockdomain ivahd_44xx_clkdm = {
+ 	.wkdep_srcs	  = ivahd_wkup_sleep_deps,
+ 	.sleepdep_srcs	  = ivahd_wkup_sleep_deps,
+ 	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
+-	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
++	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
+ };
+ 
+ static struct clockdomain l4_secure_44xx_clkdm = {
+@@ -450,7 +450,7 @@ static struct clockdomain l4_secure_44xx_clkdm = {
+ 	.wkdep_srcs	  = l4_secure_wkup_sleep_deps,
+ 	.sleepdep_srcs	  = l4_secure_wkup_sleep_deps,
+ 	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
+-	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
++	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
+ };
+ 
+ static struct clockdomain l4_per_44xx_clkdm = {
+@@ -461,7 +461,7 @@ static struct clockdomain l4_per_44xx_clkdm = {
+ 	.clkdm_offs	  = OMAP4430_CM2_L4PER_L4PER_CDOFFS,
+ 	.dep_bit	  = OMAP4430_L4PER_STATDEP_SHIFT,
+ 	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
+-	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
++	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
+ };
+ 
+ static struct clockdomain abe_44xx_clkdm = {
+@@ -472,7 +472,7 @@ static struct clockdomain abe_44xx_clkdm = {
+ 	.clkdm_offs	  = OMAP4430_CM1_ABE_ABE_CDOFFS,
+ 	.dep_bit	  = OMAP4430_ABE_STATDEP_SHIFT,
+ 	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
+-	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
++	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
+ };
+ 
+ static struct clockdomain l3_instr_44xx_clkdm = {
+@@ -481,7 +481,7 @@ static struct clockdomain l3_instr_44xx_clkdm = {
+ 	.prcm_partition	  = OMAP4430_CM2_PARTITION,
+ 	.cm_inst	  = OMAP4430_CM2_CORE_INST,
+ 	.clkdm_offs	  = OMAP4430_CM2_CORE_L3INSTR_CDOFFS,
+-	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
++	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
+ };
+ 
+ static struct clockdomain l3_init_44xx_clkdm = {
+@@ -494,7 +494,7 @@ static struct clockdomain l3_init_44xx_clkdm = {
+ 	.wkdep_srcs	  = l3_init_wkup_sleep_deps,
+ 	.sleepdep_srcs	  = l3_init_wkup_sleep_deps,
+ 	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
+-	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
++	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
+ };
+ 
+ static struct clockdomain mpuss_44xx_clkdm = {
+@@ -506,7 +506,7 @@ static struct clockdomain mpuss_44xx_clkdm = {
+ 	.wkdep_srcs	  = mpuss_wkup_sleep_deps,
+ 	.sleepdep_srcs	  = mpuss_wkup_sleep_deps,
+ 	.flags		  = CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_HWSUP,
+-	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
++	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
+ };
+ 
+ static struct clockdomain mpu0_44xx_clkdm = {
+@@ -516,7 +516,7 @@ static struct clockdomain mpu0_44xx_clkdm = {
+ 	.cm_inst	  = OMAP4430_PRCM_MPU_CPU0_INST,
+ 	.clkdm_offs	  = OMAP4430_PRCM_MPU_CPU0_CPU0_CDOFFS,
+ 	.flags		  = CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_HWSUP,
+-	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
++	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
+ };
+ 
+ static struct clockdomain mpu1_44xx_clkdm = {
+@@ -526,7 +526,7 @@ static struct clockdomain mpu1_44xx_clkdm = {
+ 	.cm_inst	  = OMAP4430_PRCM_MPU_CPU1_INST,
+ 	.clkdm_offs	  = OMAP4430_PRCM_MPU_CPU1_CPU1_CDOFFS,
+ 	.flags		  = CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_HWSUP,
+-	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
++	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
+ };
+ 
+ static struct clockdomain l3_emif_44xx_clkdm = {
+@@ -537,7 +537,7 @@ static struct clockdomain l3_emif_44xx_clkdm = {
+ 	.clkdm_offs	  = OMAP4430_CM2_CORE_MEMIF_CDOFFS,
+ 	.dep_bit	  = OMAP4430_MEMIF_STATDEP_SHIFT,
+ 	.flags		  = CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_HWSUP,
+-	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
++	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
+ };
+ 
+ static struct clockdomain l4_ao_44xx_clkdm = {
+@@ -547,7 +547,7 @@ static struct clockdomain l4_ao_44xx_clkdm = {
+ 	.cm_inst	  = OMAP4430_CM2_ALWAYS_ON_INST,
+ 	.clkdm_offs	  = OMAP4430_CM2_ALWAYS_ON_ALWON_CDOFFS,
+ 	.flags		  = CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_HWSUP,
+-	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
++	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
+ };
+ 
+ static struct clockdomain ducati_44xx_clkdm = {
+@@ -560,7 +560,7 @@ static struct clockdomain ducati_44xx_clkdm = {
+ 	.wkdep_srcs	  = ducati_wkup_sleep_deps,
+ 	.sleepdep_srcs	  = ducati_wkup_sleep_deps,
+ 	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
+-	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
++	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
+ };
+ 
+ static struct clockdomain l3_2_44xx_clkdm = {
+@@ -571,7 +571,7 @@ static struct clockdomain l3_2_44xx_clkdm = {
+ 	.clkdm_offs	  = OMAP4430_CM2_CORE_L3_2_CDOFFS,
+ 	.dep_bit	  = OMAP4430_L3_2_STATDEP_SHIFT,
+ 	.flags		  = CLKDM_CAN_HWSUP,
+-	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
++	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
+ };
+ 
+ static struct clockdomain l3_1_44xx_clkdm = {
+@@ -582,7 +582,7 @@ static struct clockdomain l3_1_44xx_clkdm = {
+ 	.clkdm_offs	  = OMAP4430_CM2_CORE_L3_1_CDOFFS,
+ 	.dep_bit	  = OMAP4430_L3_1_STATDEP_SHIFT,
+ 	.flags		  = CLKDM_CAN_HWSUP,
+-	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
++	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
+ };
+ 
+ static struct clockdomain l3_d2d_44xx_clkdm = {
+@@ -594,7 +594,7 @@ static struct clockdomain l3_d2d_44xx_clkdm = {
+ 	.wkdep_srcs	  = l3_d2d_wkup_sleep_deps,
+ 	.sleepdep_srcs	  = l3_d2d_wkup_sleep_deps,
+ 	.flags		  = CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_HWSUP,
+-	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
++	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
+ };
+ 
+ static struct clockdomain iss_44xx_clkdm = {
+@@ -606,7 +606,7 @@ static struct clockdomain iss_44xx_clkdm = {
+ 	.wkdep_srcs	  = iss_wkup_sleep_deps,
+ 	.sleepdep_srcs	  = iss_wkup_sleep_deps,
+ 	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
+-	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
++	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
+ };
+ 
+ static struct clockdomain l3_dss_44xx_clkdm = {
+@@ -619,7 +619,7 @@ static struct clockdomain l3_dss_44xx_clkdm = {
+ 	.wkdep_srcs	  = l3_dss_wkup_sleep_deps,
+ 	.sleepdep_srcs	  = l3_dss_wkup_sleep_deps,
+ 	.flags		  = CLKDM_CAN_HWSUP_SWSUP,
+-	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
++	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
+ };
+ 
+ static struct clockdomain l4_wkup_44xx_clkdm = {
+@@ -630,7 +630,7 @@ static struct clockdomain l4_wkup_44xx_clkdm = {
+ 	.clkdm_offs	  = OMAP4430_PRM_WKUP_CM_WKUP_CDOFFS,
+ 	.dep_bit	  = OMAP4430_L4WKUP_STATDEP_SHIFT,
+ 	.flags		  = CLKDM_CAN_HWSUP,
+-	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
++	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
+ };
+ 
+ static struct clockdomain emu_sys_44xx_clkdm = {
+@@ -640,7 +640,7 @@ static struct clockdomain emu_sys_44xx_clkdm = {
+ 	.cm_inst	  = OMAP4430_PRM_EMU_CM_INST,
+ 	.clkdm_offs	  = OMAP4430_PRM_EMU_CM_EMU_CDOFFS,
+ 	.flags		  = CLKDM_CAN_HWSUP,
+-	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
++	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
+ };
+ 
+ static struct clockdomain l3_dma_44xx_clkdm = {
+@@ -652,7 +652,7 @@ static struct clockdomain l3_dma_44xx_clkdm = {
+ 	.wkdep_srcs	  = l3_dma_wkup_sleep_deps,
+ 	.sleepdep_srcs	  = l3_dma_wkup_sleep_deps,
+ 	.flags		  = CLKDM_CAN_FORCE_WAKEUP | CLKDM_CAN_HWSUP,
+-	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
++	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
+ };
+ 
+ static struct clockdomain *clockdomains_omap44xx[] __initdata = {
 -- 
 1.7.1
 
