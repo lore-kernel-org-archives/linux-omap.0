@@ -1,93 +1,42 @@
 From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH] arm: omap2plus: fix ads7846 pendown gpio request
-Date: Thu, 26 May 2011 16:58:35 +0300
-Message-ID: <4DDE5C8B.7030308@compulab.co.il>
-References: <1304521495-20578-1-git-send-email-grinberg@compulab.co.il>	<4DC18B64.2020903@gmail.com> <4DCA3C56.9020502@compulab.co.il>
+Subject: Re: [PATCH] ARM: OMAP: Get rid of section mismatch warnings
+Date: Thu, 26 May 2011 17:09:42 +0300
+Message-ID: <4DDE5F26.6040700@compulab.co.il>
+References: <1306414838-4330-1-git-send-email-silesh@ti.com>	<4DDE4EEF.8070108@ti.com> <20110526133732.GD11352@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:35805
+Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:37676
 	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1757851Ab1EZN6i (ORCPT
+	by vger.kernel.org with ESMTP id S1752265Ab1EZOJp (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 26 May 2011 09:58:38 -0400
-In-Reply-To: <4DCA3C56.9020502@compulab.co.il>
+	Thu, 26 May 2011 10:09:45 -0400
+In-Reply-To: <20110526133732.GD11352@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Thomas Weber <thomas.weber.linux@googlemail.com>, linux-arm-kernel@lists.infradead.org, Mike Rapoport <mike@compulab.co.il>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, Silesh C V <silesh@ti.com>, linux-arm-kernel@lists.infradead.org
 
-ping
+On 05/26/11 16:37, Tony Lindgren wrote:
 
-On 05/11/11 10:35, Igor Grinberg wrote:
-
-> Tony,
->
->
-> You can fold this one to the original patch from Mike as well,
->
-> or do you want it into the rc1?
->
->
->
-> On 05/04/11 20:22, Thomas Weber wrote:
->
->> Am 04.05.2011 17:04, schrieb Igor Grinberg:
->>> introduced by: 96974a24
->>> (omap: consolidate touch screen initialization among different boards)
+> * Santosh Shilimkar <santosh.shilimkar@ti.com> [110526 05:56]:
+>> On 5/26/2011 6:30 PM, Silesh C V wrote:
+>>> Get rid of the following and 8 other similar section mismatch
+>>> warnings
 >>>
->>> ads7846 driver can use either gpio_pendown or get_pendown_state()
->>> callback. In case of gpio_pendown, it requests the provided gpio_pendown
->>> thus resulting in double requesting that gpio:
->>>
->>> ads7846 spi1.0: failed to request pendown GPIO57
->>> ads7846: probe of spi1.0 failed with error -16
->>>
->>> Fix this by restricting the gpio request to the case of
->>> get_pendown_state() callback is used.
->>>
->>> Signed-off-by: Igor Grinberg<grinberg@compulab.co.il>
->>> ---
->>>   arch/arm/mach-omap2/common-board-devices.c |   20 ++++++++++----------
->>>   1 files changed, 10 insertions(+), 10 deletions(-)
->>>
->>> diff --git a/arch/arm/mach-omap2/common-board-devices.c b/arch/arm/mach-omap2/common-board-devices.c
->>> index d57c71d..61fee80 100644
->>> --- a/arch/arm/mach-omap2/common-board-devices.c
->>> +++ b/arch/arm/mach-omap2/common-board-devices.c
->>> @@ -83,17 +83,17 @@ void __init omap_ads7846_init(int bus_num, int gpio_pendown, int gpio_debounce,
->>>       struct spi_board_info *spi_bi =&ads7846_spi_board_info;
->>>       int err;
->>>
->>> -    err = gpio_request(gpio_pendown, "TS PenDown");
->>> -    if (err) {
->>> -        pr_err("Could not obtain gpio for TS PenDown: %d\n", err);
->>> -        return;
->>> -    }
->>> -
->>> -    gpio_direction_input(gpio_pendown);
->>> -    gpio_export(gpio_pendown, 0);
->>> +    if (board_pdata&&  board_pdata->get_pendown_state) {
->>> +        err = gpio_request_one(gpio_pendown, GPIOF_IN, "TSPenDown");
->>> +        if (err) {
->>> +            pr_err("Couldn't obtain gpio for TSPenDown: %d\n", err);
->>> +            return;
->>> +        }
->>> +        gpio_export(gpio_pendown, 0);
->>>
->>> -    if (gpio_debounce)
->>> -        gpio_set_debounce(gpio_pendown, gpio_debounce);
->>> +        if (gpio_debounce)
->>> +            gpio_set_debounce(gpio_pendown, gpio_debounce);
->>> +    }
->>>
->>>       ads7846_config.gpio_pendown = gpio_pendown;
->>>
->> Tested-by: Thomas Weber <weber@corscience.de>
+>> I send this [1] patch a month back. It's still not considered
+>> though even after reminder.
 >>
->> On Devkit8000.
->>
+>> [1] https://patchwork.kernel.org/patch/684831/
+> Applying now into devel-fixes with additional fixes from Silesh.
+> Updated patch below.
+
+Can this [1] also be applied to the devel-fixes, please? It is a month old today...
+
+[1] https://patchwork.kernel.org/patch/733531/
+
+Thanks
 
 -- 
 Regards,
