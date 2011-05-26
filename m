@@ -1,61 +1,59 @@
-From: "Menon, Nishanth" <nm@ti.com>
-Subject: Re: [PM-WIP_CPUFREQ][PATCH V3 8/8] OMAP: cpufreq: minor file header updates
-Date: Wed, 25 May 2011 17:48:30 -0700
-Message-ID: <BANLkTikJAATwHCANc5r=5=G+o47vWbVdtg@mail.gmail.com>
-References: <1306366733-8439-1-git-send-email-nm@ti.com> <1306366733-8439-9-git-send-email-nm@ti.com>
- <8739k2jovp.fsf@ti.com>
+From: Todd Poynor <toddpoynor@google.com>
+Subject: Re: [PM-WIP_CPUFREQ][PATCH V3 4/8] OMAP2+: cpufreq: dont support
+ !freq_table
+Date: Wed, 25 May 2011 17:51:05 -0700
+Message-ID: <20110526005105.GA21212@google.com>
+References: <1306366733-8439-1-git-send-email-nm@ti.com>
+ <1306366733-8439-5-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:51478 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754254Ab1EZAsv convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 25 May 2011 20:48:51 -0400
-Received: by mail-wy0-f178.google.com with SMTP id 33so175757wyb.23
-        for <linux-omap@vger.kernel.org>; Wed, 25 May 2011 17:48:50 -0700 (PDT)
-In-Reply-To: <8739k2jovp.fsf@ti.com>
+Received: from smtp-out.google.com ([216.239.44.51]:30354 "EHLO
+	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752309Ab1EZAvV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 May 2011 20:51:21 -0400
+Content-Disposition: inline
+In-Reply-To: <1306366733-8439-5-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>
+To: Nishanth Menon <nm@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Kevin <khilman@ti.com>
 
-On Wed, May 25, 2011 at 17:18, Kevin Hilman <khilman@ti.com> wrote:
-> Nishanth Menon <nm@ti.com> writes:
->
->> Minor file header updates to reflect 2011 for omap2-cpufreq code
->> and remove misleading OMAP3 reference in omap1 cpufreq code.
->>
->> Should probably be squashed to:
->> "OMAP: cpufreq: Split OMAP1 and OMAP2PLUS CPUfreq drivers."
->>
->> Reported-by: Todd Poynor <toddpoynor@google.com>
->> Signed-off-by: Nishanth Menon <nm@ti.com>
->
-> [...]
->
->> diff --git a/arch/arm/mach-omap2/omap2plus-cpufreq.c b/arch/arm/mach=
--omap2/omap2plus-cpufreq.c
->> index 594100e..2482c71 100644
->> --- a/arch/arm/mach-omap2/omap2plus-cpufreq.c
->> +++ b/arch/arm/mach-omap2/omap2plus-cpufreq.c
->> @@ -8,7 +8,7 @@
->> =A0 *
->> =A0 * =A0Based on cpu-sa1110.c, Copyright (C) 2001 Russell King
->> =A0 *
->> - * Copyright (C) 2007-2008 Texas Instruments, Inc.
->> + * Copyright (C) 2007-20011 Texas Instruments, Inc.
->
-> Wow, you're really wanting to have copyright coverage well into the
-> future ! =A0;)
+On Wed, May 25, 2011 at 04:38:49PM -0700, Nishanth Menon wrote:
+> OMAP2+ all have frequency tables, hence the hacks we had for older
+> silicon do not need to be carried forward. As part of this change,
+> use cpufreq_frequency_table_target to find the best match for
+> frequency requested.
+> 
+> Signed-off-by: Nishanth Menon <nm@ti.com>
+...
+> @@ -79,22 +66,35 @@ static int omap_target(struct cpufreq_policy *policy,
+>  		       unsigned int target_freq,
+>  		       unsigned int relation)
+>  {
+> -	int i, ret = 0;
+> +	unsigned int i;
+> +	int ret = 0;
+>  	struct cpufreq_freqs freqs;
+>  
+>  	/* Changes not allowed until all CPUs are online */
+>  	if (is_smp() && (num_online_cpus() < NR_CPUS))
+>  		return ret;
+>  
+> -	/* Ensure desired rate is within allowed range.  Some govenors
+> -	 * (ondemand) will just pass target_freq=0 to get the minimum. */
+> -	if (target_freq < policy->min)
+> -		target_freq = policy->min;
+> -	if (target_freq > policy->max)
+> -		target_freq = policy->max;
+> +	if (!freq_table) {
+> +		dev_err(mpu_dev, "%s: cpu%d: no freq table!\n", __func__,
+> +				policy->cpu);
 
-I must be on a timemachine ;).. will fix :D
+Just a minor comment: suggest dev_dbg() or WARN_ONCE() for some of
+these conditions that may be frequently evaluated and probably won't
+be cleared up after being hit once.
 
-Regards,
-Nishanth Menon
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+...
+
+Todd
