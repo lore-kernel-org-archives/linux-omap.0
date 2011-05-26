@@ -1,46 +1,227 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH/RFC 0/4] OMAP: PM debug: remove register dump, misc cleanups
-Date: Thu, 26 May 2011 16:02:47 -0700
-Message-ID: <1306450971-27732-1-git-send-email-khilman@ti.com>
+Subject: [PATCH/RFC 2/4] OMAP2: PM debug: remove register dumping
+Date: Thu, 26 May 2011 16:02:49 -0700
+Message-ID: <1306450971-27732-3-git-send-email-khilman@ti.com>
+References: <1306450971-27732-1-git-send-email-khilman@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:58367 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756405Ab1EZW4m (ORCPT
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:54772 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756405Ab1EZW4q (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 26 May 2011 18:56:42 -0400
-Received: by mail-pz0-f51.google.com with SMTP id 26so523836pzk.10
-        for <linux-omap@vger.kernel.org>; Thu, 26 May 2011 15:56:41 -0700 (PDT)
+	Thu, 26 May 2011 18:56:46 -0400
+Received: by pzk2 with SMTP id 2so598652pzk.37
+        for <linux-omap@vger.kernel.org>; Thu, 26 May 2011 15:56:46 -0700 (PDT)
+In-Reply-To: <1306450971-27732-1-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: p-titiano@ti.com
 
-Inspired by Jean's work to move PM code to modules, I decided it's
-time to remove a bunch of ugly and difficult to maintain code from PM
-debug.
+Signed-off-by: Kevin Hilman <khilman@ti.com>
+---
+ arch/arm/mach-omap2/pm-debug.c |  119 ----------------------------------------
+ arch/arm/mach-omap2/pm.h       |    4 -
+ arch/arm/mach-omap2/pm24xx.c   |    6 +-
+ 3 files changed, 2 insertions(+), 127 deletions(-)
 
-The main chunk here is removing the register dump features for
-OMAP2/OMAP3 which are awful to read, and impossible to scale for
-OMAP4+.  Also, there are now some userspace /dev/mem-based tools (like
-omapconf) that can handle this type of thing much better, and with a
-much better interface and display.
-
-Series applies to v2.6.39.
-
-Kevin Hilman (4):
-  OMAP3: PM debug: remove sleep_while_idle feature
-  OMAP2: PM debug: remove register dumping
-  OMAP3: PM debug: remove register dumping
-  OMAP2: PM debug: move wakeup timer into clockevent code
-
- arch/arm/mach-omap2/pm-debug.c            |  362 -----------------------------
- arch/arm/mach-omap2/pm.h                  |    9 -
- arch/arm/mach-omap2/pm24xx.c              |    6 +-
- arch/arm/mach-omap2/pm34xx.c              |    6 -
- arch/arm/mach-omap2/timer-gp.c            |   33 +++-
- arch/arm/plat-omap/include/plat/dmtimer.h |    1 -
- 6 files changed, 32 insertions(+), 385 deletions(-)
-
+diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
+index cf9bc15..6fe1700 100644
+--- a/arch/arm/mach-omap2/pm-debug.c
++++ b/arch/arm/mach-omap2/pm-debug.c
+@@ -38,129 +38,10 @@
+ #include "prm2xxx_3xxx.h"
+ #include "pm.h"
+ 
+-int omap2_pm_debug;
+ u32 enable_off_mode;
+ u32 wakeup_timer_seconds;
+ u32 wakeup_timer_milliseconds;
+ 
+-#define DUMP_PRM_MOD_REG(mod, reg)    \
+-	regs[reg_count].name = #mod "." #reg; \
+-	regs[reg_count++].val = omap2_prm_read_mod_reg(mod, reg)
+-#define DUMP_CM_MOD_REG(mod, reg)     \
+-	regs[reg_count].name = #mod "." #reg; \
+-	regs[reg_count++].val = omap2_cm_read_mod_reg(mod, reg)
+-#define DUMP_PRM_REG(reg) \
+-	regs[reg_count].name = #reg; \
+-	regs[reg_count++].val = __raw_readl(reg)
+-#define DUMP_CM_REG(reg) \
+-	regs[reg_count].name = #reg; \
+-	regs[reg_count++].val = __raw_readl(reg)
+-#define DUMP_INTC_REG(reg, off) \
+-	regs[reg_count].name = #reg; \
+-	regs[reg_count++].val = \
+-			 __raw_readl(OMAP2_L4_IO_ADDRESS(0x480fe000 + (off)))
+-
+-void omap2_pm_dump(int mode, int resume, unsigned int us)
+-{
+-	struct reg {
+-		const char *name;
+-		u32 val;
+-	} regs[32];
+-	int reg_count = 0, i;
+-	const char *s1 = NULL, *s2 = NULL;
+-
+-	if (!resume) {
+-#if 0
+-		/* MPU */
+-		DUMP_PRM_MOD_REG(OCP_MOD, OMAP2_PRM_IRQENABLE_MPU_OFFSET);
+-		DUMP_CM_MOD_REG(MPU_MOD, OMAP2_CM_CLKSTCTRL);
+-		DUMP_PRM_MOD_REG(MPU_MOD, OMAP2_PM_PWSTCTRL);
+-		DUMP_PRM_MOD_REG(MPU_MOD, OMAP2_PM_PWSTST);
+-		DUMP_PRM_MOD_REG(MPU_MOD, PM_WKDEP);
+-#endif
+-#if 0
+-		/* INTC */
+-		DUMP_INTC_REG(INTC_MIR0, 0x0084);
+-		DUMP_INTC_REG(INTC_MIR1, 0x00a4);
+-		DUMP_INTC_REG(INTC_MIR2, 0x00c4);
+-#endif
+-#if 0
+-		DUMP_CM_MOD_REG(CORE_MOD, CM_FCLKEN1);
+-		if (cpu_is_omap24xx()) {
+-			DUMP_CM_MOD_REG(CORE_MOD, OMAP24XX_CM_FCLKEN2);
+-			DUMP_PRM_MOD_REG(OMAP24XX_GR_MOD,
+-					OMAP2_PRCM_CLKEMUL_CTRL_OFFSET);
+-			DUMP_PRM_MOD_REG(OMAP24XX_GR_MOD,
+-					OMAP2_PRCM_CLKSRC_CTRL_OFFSET);
+-		}
+-		DUMP_CM_MOD_REG(WKUP_MOD, CM_FCLKEN);
+-		DUMP_CM_MOD_REG(CORE_MOD, CM_ICLKEN1);
+-		DUMP_CM_MOD_REG(CORE_MOD, CM_ICLKEN2);
+-		DUMP_CM_MOD_REG(WKUP_MOD, CM_ICLKEN);
+-		DUMP_CM_MOD_REG(PLL_MOD, CM_CLKEN);
+-		DUMP_CM_MOD_REG(PLL_MOD, CM_AUTOIDLE);
+-		DUMP_PRM_MOD_REG(CORE_MOD, OMAP2_PM_PWSTST);
+-#endif
+-#if 0
+-		/* DSP */
+-		if (cpu_is_omap24xx()) {
+-			DUMP_CM_MOD_REG(OMAP24XX_DSP_MOD, CM_FCLKEN);
+-			DUMP_CM_MOD_REG(OMAP24XX_DSP_MOD, CM_ICLKEN);
+-			DUMP_CM_MOD_REG(OMAP24XX_DSP_MOD, CM_IDLEST);
+-			DUMP_CM_MOD_REG(OMAP24XX_DSP_MOD, CM_AUTOIDLE);
+-			DUMP_CM_MOD_REG(OMAP24XX_DSP_MOD, CM_CLKSEL);
+-			DUMP_CM_MOD_REG(OMAP24XX_DSP_MOD, OMAP2_CM_CLKSTCTRL);
+-			DUMP_PRM_MOD_REG(OMAP24XX_DSP_MOD, OMAP2_RM_RSTCTRL);
+-			DUMP_PRM_MOD_REG(OMAP24XX_DSP_MOD, OMAP2_RM_RSTST);
+-			DUMP_PRM_MOD_REG(OMAP24XX_DSP_MOD, OMAP2_PM_PWSTCTRL);
+-			DUMP_PRM_MOD_REG(OMAP24XX_DSP_MOD, OMAP2_PM_PWSTST);
+-		}
+-#endif
+-	} else {
+-		DUMP_PRM_MOD_REG(CORE_MOD, PM_WKST1);
+-		if (cpu_is_omap24xx())
+-			DUMP_PRM_MOD_REG(CORE_MOD, OMAP24XX_PM_WKST2);
+-		DUMP_PRM_MOD_REG(WKUP_MOD, PM_WKST);
+-		DUMP_PRM_MOD_REG(OCP_MOD, OMAP2_PRCM_IRQSTATUS_MPU_OFFSET);
+-#if 1
+-		DUMP_INTC_REG(INTC_PENDING_IRQ0, 0x0098);
+-		DUMP_INTC_REG(INTC_PENDING_IRQ1, 0x00b8);
+-		DUMP_INTC_REG(INTC_PENDING_IRQ2, 0x00d8);
+-#endif
+-	}
+-
+-	switch (mode) {
+-	case 0:
+-		s1 = "full";
+-		s2 = "retention";
+-		break;
+-	case 1:
+-		s1 = "MPU";
+-		s2 = "retention";
+-		break;
+-	case 2:
+-		s1 = "MPU";
+-		s2 = "idle";
+-		break;
+-	}
+-
+-	if (!resume)
+-#ifdef CONFIG_NO_HZ
+-		printk(KERN_INFO
+-		       "--- Going to %s %s (next timer after %u ms)\n", s1, s2,
+-		       jiffies_to_msecs(get_next_timer_interrupt(jiffies) -
+-					jiffies));
+-#else
+-		printk(KERN_INFO "--- Going to %s %s\n", s1, s2);
+-#endif
+-	else
+-		printk(KERN_INFO "--- Woke up (slept for %u.%03u ms)\n",
+-			us / 1000, us % 1000);
+-
+-	for (i = 0; i < reg_count; i++)
+-		printk(KERN_INFO "%-20s: 0x%08x\n", regs[i].name, regs[i].val);
+-}
+-
+ void omap2_pm_wakeup_on_timer(u32 seconds, u32 milliseconds)
+ {
+ 	u32 tick_rate, cycles;
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index fc2377c..dd1c2e4 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -60,14 +60,10 @@ extern u32 wakeup_timer_milliseconds;
+ extern struct omap_dm_timer *gptimer_wakeup;
+ 
+ #ifdef CONFIG_PM_DEBUG
+-extern void omap2_pm_dump(int mode, int resume, unsigned int us);
+ extern void omap2_pm_wakeup_on_timer(u32 seconds, u32 milliseconds);
+-extern int omap2_pm_debug;
+ extern u32 enable_off_mode;
+ #else
+-#define omap2_pm_dump(mode, resume, us)		do {} while (0);
+ #define omap2_pm_wakeup_on_timer(seconds, milliseconds)	do {} while (0);
+-#define omap2_pm_debug				0
+ #define enable_off_mode 0
+ #endif
+ 
+diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
+index df3ded6..bf089e7 100644
+--- a/arch/arm/mach-omap2/pm24xx.c
++++ b/arch/arm/mach-omap2/pm24xx.c
+@@ -53,6 +53,8 @@
+ #include "powerdomain.h"
+ #include "clockdomain.h"
+ 
++static int omap2_pm_debug;
++
+ #ifdef CONFIG_SUSPEND
+ static suspend_state_t suspend_state = PM_SUSPEND_ON;
+ static inline bool is_suspending(void)
+@@ -123,7 +125,6 @@ static void omap2_enter_full_retention(void)
+ 	omap2_gpio_prepare_for_idle(0);
+ 
+ 	if (omap2_pm_debug) {
+-		omap2_pm_dump(0, 0, 0);
+ 		getnstimeofday(&ts_preidle);
+ 	}
+ 
+@@ -160,7 +161,6 @@ no_sleep:
+ 		getnstimeofday(&ts_postidle);
+ 		ts_idle = timespec_sub(ts_postidle, ts_preidle);
+ 		tmp = timespec_to_ns(&ts_idle) * NSEC_PER_USEC;
+-		omap2_pm_dump(0, 1, tmp);
+ 	}
+ 	omap2_gpio_resume_after_idle();
+ 
+@@ -247,7 +247,6 @@ static void omap2_enter_mpu_retention(void)
+ 	}
+ 
+ 	if (omap2_pm_debug) {
+-		omap2_pm_dump(only_idle ? 2 : 1, 0, 0);
+ 		getnstimeofday(&ts_preidle);
+ 	}
+ 
+@@ -259,7 +258,6 @@ static void omap2_enter_mpu_retention(void)
+ 		getnstimeofday(&ts_postidle);
+ 		ts_idle = timespec_sub(ts_postidle, ts_preidle);
+ 		tmp = timespec_to_ns(&ts_idle) * NSEC_PER_USEC;
+-		omap2_pm_dump(only_idle ? 2 : 1, 1, tmp);
+ 	}
+ }
+ 
 -- 
 1.7.4
 
