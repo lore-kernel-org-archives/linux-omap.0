@@ -1,50 +1,40 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 02/15] OMAP2PLUS: GPIO: Fix non-wakeup GPIO and rev_ids
-Date: Thu, 26 May 2011 10:15:10 -0700
-Message-ID: <8762oxgz8h.fsf@ti.com>
-References: <1306247094-25372-1-git-send-email-tarun.kanti@ti.com>
-	<1306247094-25372-3-git-send-email-tarun.kanti@ti.com>
-	<87sjs2sbvy.fsf@ti.com>
-	<BANLkTik2=da94cZh23gwx1hzZQK6H_hy2Q@mail.gmail.com>
+Subject: Re: [PATCH 1/3] OMAP: change get_context_loss_count ret value to int
+Date: Thu, 26 May 2011 10:23:33 -0700
+Message-ID: <871uzlgyui.fsf@ti.com>
+References: <1306428307-1360-1-git-send-email-tomi.valkeinen@ti.com>
+	<1306428307-1360-2-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:37296 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752693Ab1EZRPO (ORCPT
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:44017 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758017Ab1EZRXh (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 26 May 2011 13:15:14 -0400
-Received: by pxi9 with SMTP id 9so711790pxi.14
-        for <linux-omap@vger.kernel.org>; Thu, 26 May 2011 10:15:13 -0700 (PDT)
-In-Reply-To: <BANLkTik2=da94cZh23gwx1hzZQK6H_hy2Q@mail.gmail.com> (Charulatha
-	Varadarajan's message of "Thu, 26 May 2011 15:08:06 +0530")
+	Thu, 26 May 2011 13:23:37 -0400
+Received: by mail-px0-f177.google.com with SMTP id 10so676106pxi.36
+        for <linux-omap@vger.kernel.org>; Thu, 26 May 2011 10:23:36 -0700 (PDT)
+In-Reply-To: <1306428307-1360-2-git-send-email-tomi.valkeinen@ti.com> (Tomi
+	Valkeinen's message of "Thu, 26 May 2011 19:45:05 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Varadarajan, Charulatha" <charu@ti.com>
-Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>, linux-omap@vger.kernel.org, santosh.shilimkar@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-"Varadarajan, Charulatha" <charu@ti.com> writes:
+Tomi Valkeinen <tomi.valkeinen@ti.com> writes:
 
-> On Thu, May 26, 2011 at 03:04, Kevin Hilman <khilman@ti.com> wrote:
->> Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
->>
->>> From: Charulatha V <charu@ti.com>
->>>
->>> Non-wakeup GPIOs are available only in OMAP2420 and OMAP3430. But
->>> the GPIO driver initializes the non-wakeup GPIO bits for OMAP24xx
->>> (bothe OMAP 2420 and 2430) & not for OMAP3 which is incorrect.
->>
->> Can you cite the documentation you're using for the OMAP3 non-wakeup
->> GPIOs?
+> get_context_loss_count functions return context loss count as u32, and
+> zero means an error. However, zero is also returned when context has
+> never been lost and could also be returned when the context loss count
+> has wrapped and goes to zero.
 >
-> I am referring to Table 25-5. GPIO Channel Description at page no 3354
-> OMAP3430 public TRM Version P.
+> Change the functions to return an int, with negative value meaning an
+> error.
 >
+> OMAP HSMMC code uses omap_pm_get_dev_context_loss_count(), but as the
+> hsmmc code handles the returned value as an int, with negative value
+> meaning an error, this patch actually fixes hsmmc code also.
+>
+> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Based on how I understand that, those non-wakeup GPIOs are non-wakeup
-because they're not actually mapped anywhere, and not available on
-external pins.  Therefore, they should not need any special case
-handling for this triggering workaround.
-
-Kevin
-
+Acked-by: Kevin Hilman <khilman@ti.com>
