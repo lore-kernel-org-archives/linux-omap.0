@@ -1,49 +1,86 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 02/15] OMAP2PLUS: GPIO: Fix non-wakeup GPIO and rev_ids
-Date: Thu, 26 May 2011 16:12:32 +0200
-Message-ID: <4DDE5FD0.9050309@ti.com>
-References: <1306247094-25372-1-git-send-email-tarun.kanti@ti.com> <1306247094-25372-3-git-send-email-tarun.kanti@ti.com> <B85A65D85D7EB246BE421B3FB0FBB593024D177FCC@dbde02.ent.ti.com> <4DDE2745.3030307@ti.com> <B85A65D85D7EB246BE421B3FB0FBB593024D178110@dbde02.ent.ti.com> <4DDE435C.8060506@ti.com> <B85A65D85D7EB246BE421B3FB0FBB593024D17815E@dbde02.ent.ti.com> <4DDE4BB0.7010809@ti.com> <AB90A028-5926-4DBB-BAD9-7C0EF6E0FD05@mhlabs.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [RFC][PATCH 1/9] OMAP: ID: introduce chip detection for
+ OMAP4460
+Date: Thu, 26 May 2011 07:27:44 -0700
+Message-ID: <20110526142741.GA2082@olorun>
+References: <1306375016-707-1-git-send-email-nm@ti.com>
+ <1306375016-707-2-git-send-email-nm@ti.com>
+ <B85A65D85D7EB246BE421B3FB0FBB593024D177F64@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:41360 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932308Ab1EZOMm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 26 May 2011 10:12:42 -0400
-In-Reply-To: <AB90A028-5926-4DBB-BAD9-7C0EF6E0FD05@mhlabs.com>
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:57844 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752435Ab1EZO1u (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 26 May 2011 10:27:50 -0400
+Received: by mail-yw0-f54.google.com with SMTP id 7so426677ywf.13
+        for <linux-omap@vger.kernel.org>; Thu, 26 May 2011 07:27:49 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593024D177F64@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "B.J. Buchalter" <bj@mhlabs.com>
-Cc: "Premi, Sanjeev" <premi@ti.com>, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Varadarajan, Charulatha" <charu@ti.com>, Paul Walmsley <paul@pwsan.com>
+To: "Premi, Sanjeev" <premi@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, "V, Aneesh" <aneesh@ti.com>
 
-On 5/26/2011 3:38 PM, B.J. Buchalter wrote:
-> Why not do the following:
->
->         #define OMAP_GPIO_REV_0	0
->         #define OMAP_GPIO_REV_1	1
->         #define OMAP_GPIO_REV_2	2
->         #define OMAP_GPIO_REV_3	3
-> /*
-> 	OMAP_GPIO_REV_0:	OMAP2420
-> 	OMAP_GPIO_REV_1:	OMAP2430
-> 	OMAP_GPIO_REV_2:	OMAP3, DMxxx
-> 	OMAP_GPIO_REV_3:	OMAP4, OMAP5, DM816x
-> */
->
->    +	switch (oh->class->rev) {     ## This is auto-generated.
->    +	case 0:				## But this is our code.
->
->        I am recommending this to read as:
->
->    +	switch (oh->class->rev) {     ## This is auto-generated.
->    +	case OMAP_GPIO_REV_0:		## More readable.
->
-> That approach solves both issues -- Revision ->  Chip mapping in comment, no magic numbers in the code, and no implied restriction of the rev number to a specific SoC. Using the defines makes it easier to search the code for a specific revision, since you would no longer get false positives for all the other '0' and '1' constants that appear in the code. It also makes it indexible by tools like LXR.
+On 14:03-20110526, Premi, Sanjeev wrote:
+> > -----Original Message-----
+> > From: linux-omap-owner@vger.kernel.org 
+> > [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Menon, Nishanth
+> > Sent: Thursday, May 26, 2011 7:27 AM
+> > To: linux-omap
+> > Cc: V, Aneesh; Menon, Nishanth
+> > Subject: [RFC][PATCH 1/9] OMAP: ID: introduce chip detection 
+> > for OMAP4460
+> > 
+> > From: Aneesh V <aneesh@ti.com>
+> > 
+> > Add support for detecting the latest in the OMAP4 family: OMAP4460
+> > Among other changes, the new chip also can support 1.5GHz A9s,
+> > 1080p stereoscopic 3D and 12 MP stereo (dual camera). In addition,
+> > we have changes to OPPs supported, clock tree etc, hence having a
+> > chip detection is required.
+> > 
+> > Starting from OMAP4460 ES1.0, we are moving from HAWKEYE to 
+> > Ramp system
+> > for chip identification. Since the bit offsets are the same, 
+> > just rename
+> > the variable for dual use.
+> > 
+> > For more details on OMAP4460, see
+> > Highlights:
+> > http://focus.ti.com/general/docs/wtbu/wtbuproductcontent.tsp?c
+> > ontentId=53243&navigationId=12843&templateId=6123
+> > Public TRM is available here as usual:
+> > http://focus.ti.com/general/docs/wtbu/wtbudocumentcenter.tsp?t
+> > emplateId=6123&navigationId=12667
+> > 
+> > [nm@ti.com: cleanups and introduction of ramp system]
+> > Signed-off-by: Nishanth Menon <nm@ti.com>
+> > Signed-off-by: Aneesh V <aneesh@ti.com>
+> > ---
+> >  arch/arm/mach-omap2/id.c              |   19 ++++++++++++++-----
+> >  arch/arm/plat-omap/include/plat/cpu.h |   12 ++++++++++++
+> >  2 files changed, 26 insertions(+), 5 deletions(-)
+> > 
+> > diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+> > index 2537090..724be0a 100644
+> > --- a/arch/arm/mach-omap2/id.c
+> > +++ b/arch/arm/mach-omap2/id.c
+> > @@ -331,7 +331,7 @@ static void __init omap3_check_revision(void)
+> >  static void __init omap4_check_revision(void)
+> >  {
+> >  	u32 idcode;
+> > -	u16 hawkeye;
+> > +	u16 hawkeye_ramp;
+> 
+> [sp] Why is this change required?
+As explained in the commit message, using hawkeye will not be accurate
+anymore for 4460 onwards. The variable naming is changed to prevent confusion in
+the future as we continue to use ramp_system. As far as I know, there is
+no unique bit to differentiate between the two and so far have been
+unique.
 
-This is indeed what was done for I2C recently.
-The point is that this kind of define does not bring a lot of semantic. 
-But on the other hand it will definitively help the search aspect.
-
-Thanks,
-Benoit
+-- 
+Regards,
+Nishanth Menon
