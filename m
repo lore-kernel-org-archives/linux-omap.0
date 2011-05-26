@@ -1,99 +1,68 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PM-WIP_CPUFREQ][PATCH V3 3/8] OMAP2+: cpufreq: use opp/clk_*cpufreq_table based on silicon
-Date: Thu, 26 May 2011 10:38:56 -0700
-Message-ID: <87pqn5e4zz.fsf@ti.com>
-References: <1306366733-8439-1-git-send-email-nm@ti.com>
-	<1306366733-8439-4-git-send-email-nm@ti.com>
+From: "Varadarajan, Charulatha" <charu@ti.com>
+Subject: Re: [PATCH 02/15] OMAP2PLUS: GPIO: Fix non-wakeup GPIO and rev_ids
+Date: Thu, 26 May 2011 12:39:53 -0500
+Message-ID: <BANLkTikgD-EFGcJSh+EMQTwgTfBE15HkeQ@mail.gmail.com>
+References: <1306247094-25372-1-git-send-email-tarun.kanti@ti.com>
+ <1306247094-25372-3-git-send-email-tarun.kanti@ti.com> <87sjs2sbvy.fsf@ti.com>
+ <BANLkTik2=da94cZh23gwx1hzZQK6H_hy2Q@mail.gmail.com> <8762oxgz8h.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:37279 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758005Ab1EZRjC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 26 May 2011 13:39:02 -0400
-Received: by mail-pz0-f43.google.com with SMTP id 1so444139pzk.30
-        for <linux-omap@vger.kernel.org>; Thu, 26 May 2011 10:38:58 -0700 (PDT)
-In-Reply-To: <1306366733-8439-4-git-send-email-nm@ti.com> (Nishanth Menon's
-	message of "Wed, 25 May 2011 16:38:48 -0700")
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:51399 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758005Ab1EZRkd convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 26 May 2011 13:40:33 -0400
+Received: by mail-pv0-f181.google.com with SMTP id 13so477345pvg.12
+        for <linux-omap@vger.kernel.org>; Thu, 26 May 2011 10:40:33 -0700 (PDT)
+In-Reply-To: <8762oxgz8h.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>
+To: Kevin Hilman <khilman@ti.com>
+Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>, linux-omap@vger.kernel.org, santosh.shilimkar@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-Nishanth Menon <nm@ti.com> writes:
+Kevin,
 
-> OMAP2 is the only family using clk_[init|exit]_cpufreq_table, while
-> OMAP3+ use OPP table to generate and release the cpufreq tables.
+On Thu, May 26, 2011 at 12:15, Kevin Hilman <khilman@ti.com> wrote:
+> "Varadarajan, Charulatha" <charu@ti.com> writes:
 >
-> Hence use a flag to mark which API to use for allocating and freeing
-> the tables.
+>> On Thu, May 26, 2011 at 03:04, Kevin Hilman <khilman@ti.com> wrote:
+>>> Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
+>>>
+>>>> From: Charulatha V <charu@ti.com>
+>>>>
+>>>> Non-wakeup GPIOs are available only in OMAP2420 and OMAP3430. But
+>>>> the GPIO driver initializes the non-wakeup GPIO bits for OMAP24xx
+>>>> (bothe OMAP 2420 and 2430) & not for OMAP3 which is incorrect.
+>>>
+>>> Can you cite the documentation you're using for the OMAP3 non-wakeu=
+p
+>>> GPIOs?
+>>
+>> I am referring to Table 25-5. GPIO Channel Description at page no 33=
+54
+>> OMAP3430 public TRM Version P.
+>>
 >
-> Signed-off-by: Nishanth Menon <nm@ti.com>
+> Based on how I understand that, those non-wakeup GPIOs are non-wakeup
+> because they're not actually mapped anywhere, and not available on
+> external pins. =A0Therefore, they should not need any special case
+> handling for this triggering workaround.
 
-I'd prefer to see this even cleaner by dropping the clk_* versions all
-together.  Then, for those who want OMAP2 support (currently not working
-or validated anyways), all that's needed is to add a function simlilar
-to clk_init_cpufreq_table() which registers OPPs.
+Okay. Thanks for clarifying. I will not  do this for OMAP3. The special=
+ case
+would be only for OMAP2420 against the current code which is handling
+for OMAP24xx.
 
-Kevin
+-V Charulatha
 
-> ---
->  arch/arm/mach-omap2/omap2plus-cpufreq.c |   20 +++++++++++++++-----
->  1 files changed, 15 insertions(+), 5 deletions(-)
 >
-> diff --git a/arch/arm/mach-omap2/omap2plus-cpufreq.c b/arch/arm/mach-omap2/omap2plus-cpufreq.c
-> index 2d4e9d7..dbbf8b2 100644
-> --- a/arch/arm/mach-omap2/omap2plus-cpufreq.c
-> +++ b/arch/arm/mach-omap2/omap2plus-cpufreq.c
-> @@ -44,6 +44,7 @@ static struct cpufreq_frequency_table *freq_table;
->  static struct clk *mpu_clk;
->  static char *mpu_clk_name;
->  static struct device *mpu_dev;
-> +static bool use_opp;
->  
->  static int omap_verify_speed(struct cpufreq_policy *policy)
->  {
-> @@ -166,7 +167,10 @@ static int __cpuinit omap_cpu_init(struct cpufreq_policy *policy)
->  		return -EINVAL;
->  
->  	policy->cur = policy->min = policy->max = omap_getspeed(policy->cpu);
-> -	opp_init_cpufreq_table(mpu_dev, &freq_table);
-> +	if (use_opp)
-> +		opp_init_cpufreq_table(mpu_dev, &freq_table);
-> +	else
-> +		clk_init_cpufreq_table(&freq_table);
->  
->  	if (freq_table) {
->  		result = cpufreq_frequency_table_cpuinfo(policy, freq_table);
-> @@ -204,7 +208,10 @@ static int __cpuinit omap_cpu_init(struct cpufreq_policy *policy)
->  
->  static int omap_cpu_exit(struct cpufreq_policy *policy)
->  {
-> -	clk_exit_cpufreq_table(&freq_table);
-> +	if (use_opp)
-> +		opp_free_cpufreq_table(mpu_dev, &freq_table);
-> +	else
-> +		clk_exit_cpufreq_table(&freq_table);
->  	clk_put(mpu_clk);
->  	return 0;
->  }
-> @@ -227,12 +234,15 @@ static struct cpufreq_driver omap_driver = {
->  
->  static int __init omap_cpufreq_init(void)
->  {
-> -	if (cpu_is_omap24xx())
-> +	use_opp = true;
-> +	if (cpu_is_omap24xx()) {
->  		mpu_clk_name = "virt_prcm_set";
-> -	else if (cpu_is_omap34xx())
-> +		use_opp = false;
-> +	} else if (cpu_is_omap34xx()) {
->  		mpu_clk_name = "dpll1_ck";
-> -	else if (cpu_is_omap44xx())
-> +	} else if (cpu_is_omap44xx()) {
->  		mpu_clk_name = "dpll_mpu_ck";
-> +	}
->  
->  	if (!mpu_clk_name) {
->  		pr_err("%s: unsupported Silicon?\n", __func__);
+> Kevin
+>
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
