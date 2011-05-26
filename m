@@ -1,78 +1,91 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 09/13] OMAP2+: PM: export suspend_set_ops to PM modules
-Date: Thu, 26 May 2011 16:09:47 -0700
-Message-ID: <87lixt9hz8.fsf@ti.com>
-References: <1305739950-11695-1-git-send-email-j-pihet@ti.com>
-	<1305739950-11695-10-git-send-email-j-pihet@ti.com>
+Subject: Re: [RFC][PATCH 1/9] OMAP: ID: introduce chip detection for OMAP4460
+Date: Thu, 26 May 2011 16:15:15 -0700
+Message-ID: <87d3j59hq4.fsf@ti.com>
+References: <1306375016-707-1-git-send-email-nm@ti.com>
+	<1306375016-707-2-git-send-email-nm@ti.com>
+	<B85A65D85D7EB246BE421B3FB0FBB593024D177F64@dbde02.ent.ti.com>
+	<20110526142741.GA2082@olorun>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:44127 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932515Ab1EZXJu (ORCPT
+Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:35341 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754820Ab1EZXPS (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 26 May 2011 19:09:50 -0400
-Received: by mail-pv0-f181.google.com with SMTP id 13so613399pvg.40
-        for <linux-omap@vger.kernel.org>; Thu, 26 May 2011 16:09:49 -0700 (PDT)
-In-Reply-To: <1305739950-11695-10-git-send-email-j-pihet@ti.com> (jean pihet's
-	message of "Wed, 18 May 2011 19:32:26 +0200")
+	Thu, 26 May 2011 19:15:18 -0400
+Received: by mail-pz0-f54.google.com with SMTP id 27so848347pzk.27
+        for <linux-omap@vger.kernel.org>; Thu, 26 May 2011 16:15:17 -0700 (PDT)
+In-Reply-To: <20110526142741.GA2082@olorun> (Nishanth Menon's message of "Thu,
+	26 May 2011 07:27:44 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: jean.pihet@newoldbits.com
-Cc: linux-omap@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: "Premi, Sanjeev" <premi@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "V, Aneesh" <aneesh@ti.com>
 
-jean.pihet@newoldbits.com writes:
+Nishanth Menon <nm@ti.com> writes:
 
-> From: Jean Pihet <j-pihet@ti.com>
->
-> Export the suspend_set_ops API as omap_pm_suspend_set_ops in the pm
-> generic code, under CONFIG_SUSPEND.
->
-> Note -hack warning-: since the 'suspend_valid_only_mem' function is
-> not exported to modules, fill the 'valid' field value of
-> 'struct platform_suspend_ops' in the common code.
->
-> Signed-off-by: Jean Pihet <j-pihet@ti.com>
+> On 14:03-20110526, Premi, Sanjeev wrote:
+>> > -----Original Message-----
+>> > From: linux-omap-owner@vger.kernel.org 
+>> > [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Menon, Nishanth
+>> > Sent: Thursday, May 26, 2011 7:27 AM
+>> > To: linux-omap
+>> > Cc: V, Aneesh; Menon, Nishanth
+>> > Subject: [RFC][PATCH 1/9] OMAP: ID: introduce chip detection 
+>> > for OMAP4460
+>> > 
+>> > From: Aneesh V <aneesh@ti.com>
+>> > 
+>> > Add support for detecting the latest in the OMAP4 family: OMAP4460
+>> > Among other changes, the new chip also can support 1.5GHz A9s,
+>> > 1080p stereoscopic 3D and 12 MP stereo (dual camera). In addition,
+>> > we have changes to OPPs supported, clock tree etc, hence having a
+>> > chip detection is required.
+>> > 
+>> > Starting from OMAP4460 ES1.0, we are moving from HAWKEYE to 
+>> > Ramp system
+>> > for chip identification. Since the bit offsets are the same, 
+>> > just rename
+>> > the variable for dual use.
+>> > 
+>> > For more details on OMAP4460, see
+>> > Highlights:
+>> > http://focus.ti.com/general/docs/wtbu/wtbuproductcontent.tsp?c
+>> > ontentId=53243&navigationId=12843&templateId=6123
+>> > Public TRM is available here as usual:
+>> > http://focus.ti.com/general/docs/wtbu/wtbudocumentcenter.tsp?t
+>> > emplateId=6123&navigationId=12667
+>> > 
+>> > [nm@ti.com: cleanups and introduction of ramp system]
+>> > Signed-off-by: Nishanth Menon <nm@ti.com>
+>> > Signed-off-by: Aneesh V <aneesh@ti.com>
+>> > ---
+>> >  arch/arm/mach-omap2/id.c              |   19 ++++++++++++++-----
+>> >  arch/arm/plat-omap/include/plat/cpu.h |   12 ++++++++++++
+>> >  2 files changed, 26 insertions(+), 5 deletions(-)
+>> > 
+>> > diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+>> > index 2537090..724be0a 100644
+>> > --- a/arch/arm/mach-omap2/id.c
+>> > +++ b/arch/arm/mach-omap2/id.c
+>> > @@ -331,7 +331,7 @@ static void __init omap3_check_revision(void)
+>> >  static void __init omap4_check_revision(void)
+>> >  {
+>> >  	u32 idcode;
+>> > -	u16 hawkeye;
+>> > +	u16 hawkeye_ramp;
+>> 
+>> [sp] Why is this change required?
+> As explained in the commit message, using hawkeye will not be accurate
+> anymore for 4460 onwards. The variable naming is changed to prevent confusion in
+> the future as we continue to use ramp_system. As far as I know, there is
+> no unique bit to differentiate between the two and so far have been
+> unique.
 
-Can you try the patch below instead?    If that works, I'll submit to
-Rafael/linux-pm.
+So if the register is the same, and all the bit offsets are the same,
+what has changed?  IOW, if there's no difference to the SW, then the
+variable rename is probably superfluous, and could be covered by a
+comment in the code.
 
 Kevin
-
->From d3aca6317f5f92a5fd4fbaf1d039232c83cac4f4 Mon Sep 17 00:00:00 2001
-From: Kevin Hilman <khilman@ti.com>
-Date: Thu, 26 May 2011 16:10:13 -0700
-Subject: [PATCH] PM: export suspend_set_ops, suspend_valid_only_mem
-
-Some platforms wish to implement their PM core code as modules.  To
-do so, these functions need to be exported for modules.
-
-Reported-by: Jean Pihet <j-pihet@ti.com>
-Signed-off-by: Kevin Hilman <khilman@ti.com>
----
- kernel/power/suspend.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
-
-diff --git a/kernel/power/suspend.c b/kernel/power/suspend.c
-index 6275970..eca495d 100644
---- a/kernel/power/suspend.c
-+++ b/kernel/power/suspend.c
-@@ -44,6 +44,7 @@ void suspend_set_ops(const struct platform_suspend_ops *ops)
- 	suspend_ops = ops;
- 	mutex_unlock(&pm_mutex);
- }
-+EXPORT_SYMBOL(suspend_set_ops);
- 
- bool valid_state(suspend_state_t state)
- {
-@@ -65,6 +66,7 @@ int suspend_valid_only_mem(suspend_state_t state)
- {
- 	return state == PM_SUSPEND_MEM;
- }
-+EXPORT_SYMBOL(suspend_valid_only_mem);
- 
- static int suspend_test(int level)
- {
--- 
-1.7.4
-
