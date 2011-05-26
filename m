@@ -1,21 +1,21 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PM-WIP_CPUFREQ][PATCH V3 6/8] OMAP2+: cpufreq: fix freq_table leak
-Date: Wed, 25 May 2011 17:16:54 -0700
-Message-ID: <877h9ejoy1.fsf@ti.com>
+Subject: Re: [PM-WIP_CPUFREQ][PATCH V3 8/8] OMAP: cpufreq: minor file header updates
+Date: Wed, 25 May 2011 17:18:18 -0700
+Message-ID: <8739k2jovp.fsf@ti.com>
 References: <1306366733-8439-1-git-send-email-nm@ti.com>
-	<1306366733-8439-7-git-send-email-nm@ti.com>
+	<1306366733-8439-9-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:53173 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753067Ab1EZAQ5 (ORCPT
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:34717 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753256Ab1EZASV (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 25 May 2011 20:16:57 -0400
-Received: by mail-pv0-f170.google.com with SMTP id 21so84845pvh.15
-        for <linux-omap@vger.kernel.org>; Wed, 25 May 2011 17:16:56 -0700 (PDT)
-In-Reply-To: <1306366733-8439-7-git-send-email-nm@ti.com> (Nishanth Menon's
-	message of "Wed, 25 May 2011 16:38:51 -0700")
+	Wed, 25 May 2011 20:18:21 -0400
+Received: by pvg11 with SMTP id 11so97792pvg.13
+        for <linux-omap@vger.kernel.org>; Wed, 25 May 2011 17:18:20 -0700 (PDT)
+In-Reply-To: <1306366733-8439-9-git-send-email-nm@ti.com> (Nishanth Menon's
+	message of "Wed, 25 May 2011 16:38:53 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Nishanth Menon <nm@ti.com>
@@ -23,170 +23,29 @@ Cc: linux-omap <linux-omap@vger.kernel.org>
 
 Nishanth Menon <nm@ti.com> writes:
 
-> Since we have multiple CPUs, the cpuinit call for CPU1 causes
-> freq_table of CPU0 to be overwritten. Instead, we maintain
-> a counter to keep track of cpus who use the cpufreq table
-> allocate it once(one freq table for all CPUs) and free them
-> once the last user is done with it. We also need to protect
-> freq_table and this new counter from updates from multiple
-> contexts to be on a safe side.
-
-Not sure I understand the need for all the locking here.  Once allocated
-and filled, the freq_table isn't changing.  Also, all the functions are
-only reading the freq_table, not changing it.    So what is it you're
-trying to protect against?
-
-> Signed-off-by: Nishanth Menon <nm@ti.com>
-> ---
->  arch/arm/mach-omap2/omap2plus-cpufreq.c |   62 +++++++++++++++++++++++++++----
->  1 files changed, 54 insertions(+), 8 deletions(-)
+> Minor file header updates to reflect 2011 for omap2-cpufreq code
+> and remove misleading OMAP3 reference in omap1 cpufreq code.
 >
+> Should probably be squashed to:
+> "OMAP: cpufreq: Split OMAP1 and OMAP2PLUS CPUfreq drivers."
+>
+> Reported-by: Todd Poynor <toddpoynor@google.com>
+> Signed-off-by: Nishanth Menon <nm@ti.com>
+
+[...]
+
 > diff --git a/arch/arm/mach-omap2/omap2plus-cpufreq.c b/arch/arm/mach-omap2/omap2plus-cpufreq.c
-> index 3ff3302..f026ac4 100644
+> index 594100e..2482c71 100644
 > --- a/arch/arm/mach-omap2/omap2plus-cpufreq.c
 > +++ b/arch/arm/mach-omap2/omap2plus-cpufreq.c
-> @@ -39,6 +39,9 @@
->  #include <mach/hardware.h>
->  
->  static struct cpufreq_frequency_table *freq_table;
-> +static int freq_table_users;
-> +static DEFINE_MUTEX(freq_table_lock);
-> +
->  static struct clk *mpu_clk;
->  static char *mpu_clk_name;
->  static struct device *mpu_dev;
-> @@ -46,9 +49,17 @@ static bool use_opp;
->  
->  static int omap_verify_speed(struct cpufreq_policy *policy)
->  {
-> +	int r = -EINVAL;
-> +
-> +	mutex_lock(&freq_table_lock);
->  	if (!freq_table)
-> -		return -EINVAL;
-> -	return cpufreq_frequency_table_verify(policy, freq_table);
-> +		goto out;
-> +
-> +	r = cpufreq_frequency_table_verify(policy, freq_table);
-> +
-> +out:
-> +	mutex_unlock(&freq_table_lock);
-> +	return r;
->  }
->  
->  static unsigned int omap_getspeed(unsigned int cpu)
-> @@ -74,9 +85,11 @@ static int omap_target(struct cpufreq_policy *policy,
->  	if (is_smp() && (num_online_cpus() < NR_CPUS))
->  		return ret;
->  
-> +	mutex_lock(&freq_table_lock);
->  	if (!freq_table) {
->  		dev_err(mpu_dev, "%s: cpu%d: no freq table!\n", __func__,
->  				policy->cpu);
-> +		mutex_unlock(&freq_table_lock);
->  		return -EINVAL;
->  	}
->  
-> @@ -85,9 +98,13 @@ static int omap_target(struct cpufreq_policy *policy,
->  	if (ret) {
->  		dev_dbg(mpu_dev, "%s: cpu%d: no freq match for %d(ret=%d)\n",
->  			__func__, policy->cpu, target_freq, ret);
-> +		mutex_unlock(&freq_table_lock);
->  		return ret;
->  	}
-> +
->  	freqs.new = freq_table[i].frequency;
-> +	mutex_unlock(&freq_table_lock);
-> +
->  	if (!freqs.new) {
->  		dev_err(mpu_dev, "%s: cpu%d: no match for freq %d\n", __func__,
->  			policy->cpu, target_freq);
-> @@ -156,22 +173,48 @@ skip_lpj:
->  
->  static int freq_table_alloc(void)
->  {
-> -	if (use_opp)
-> -		return opp_init_cpufreq_table(mpu_dev, &freq_table);
-> +	int ret = 0;
->  
-> -	clk_init_cpufreq_table(&freq_table);
-> -	if (!freq_table)
-> -		return -ENOMEM;
-> +	mutex_lock(&freq_table_lock);
->  
-> -	return 0;
-> +	freq_table_users++;
-> +	/* Did we allocate previously? */
-> +	if (freq_table_users - 1)
-> +		goto out;
+> @@ -8,7 +8,7 @@
+>   *
+>   *  Based on cpu-sa1110.c, Copyright (C) 2001 Russell King
+>   *
+> - * Copyright (C) 2007-2008 Texas Instruments, Inc.
+> + * Copyright (C) 2007-20011 Texas Instruments, Inc.
 
-Rather than the ' - 1', this can just be 
+Wow, you're really wanting to have copyright coverage well into the
+future !  ;)
 
-     if (freq_table_users++)
-                goto out;
-
-or better, you probably don't need this check protected by the mutex,
-so this could just return directly, and then take the mutex_lock() after
-this point.
-
-However, if you get rid of the mutex (and I think you should), you could
-use an atomic variable here 
-> +	/* no, so we allocate */
-> +	if (use_opp) {
-> +		ret = opp_init_cpufreq_table(mpu_dev, &freq_table);
-> +	} else {
-> +		clk_init_cpufreq_table(&freq_table);
-> +		if (!freq_table)
-> +			ret = -ENOMEM;
-> +	}
-> +	/* if we did not allocate cleanly.. reduce user count */
-> +	if (!ret)
-> +		freq_table_users--;
-> +
-> +out:
-> +	mutex_unlock(&freq_table_lock);
-> +	return ret;
->  }
->  
->  static void freq_table_free(void)
->  {
-> +	mutex_lock(&freq_table_lock);
-> +
-> +	if (!freq_table_users)
-> +		goto out;
-> +	freq_table_users--;
-> +	if (freq_table_users)
-> +		goto out;
-
-Similarily:
-
-	if (--freq_table_users)
-		goto out;
-
->  	if (use_opp)
->  		opp_free_cpufreq_table(mpu_dev, &freq_table);
->  	else
->  		clk_exit_cpufreq_table(&freq_table);
-> +out:
-> +	mutex_unlock(&freq_table_lock);
->  }
->  
->  static int __cpuinit omap_cpu_init(struct cpufreq_policy *policy)
-> @@ -195,14 +238,17 @@ static int __cpuinit omap_cpu_init(struct cpufreq_policy *policy)
->  		return result;
->  	}
->  
-> +	mutex_lock(&freq_table_lock);
->  	result = cpufreq_frequency_table_cpuinfo(policy, freq_table);
->  	if (result) {
-> +		mutex_unlock(&freq_table_lock);
->  		dev_err(mpu_dev, "%s: cpu%d: unable to get cpuinfo [%d]\n",
->  			__func__, policy->cpu, result);
->  		freq_table_free();
->  		return result;
->  	}
->  	cpufreq_frequency_table_get_attr(freq_table, policy->cpu);
-> +	mutex_unlock(&freq_table_lock);
->  
->  	policy->min = policy->cpuinfo.min_freq;
->  	policy->max = policy->cpuinfo.max_freq;
+Kevin
