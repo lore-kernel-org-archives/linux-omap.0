@@ -1,306 +1,172 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH/RFC 3/4] OMAP3: PM debug: remove register dumping
-Date: Thu, 26 May 2011 16:02:50 -0700
-Message-ID: <1306450971-27732-4-git-send-email-khilman@ti.com>
+Subject: [PATCH/RFC 4/4] OMAP2: PM debug: move wakeup timer into clockevent code
+Date: Thu, 26 May 2011 16:02:51 -0700
+Message-ID: <1306450971-27732-5-git-send-email-khilman@ti.com>
 References: <1306450971-27732-1-git-send-email-khilman@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:50122 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756405Ab1EZW4s (ORCPT
+Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:47717 "EHLO
+	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757352Ab1EZW4u (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 26 May 2011 18:56:48 -0400
-Received: by mail-px0-f176.google.com with SMTP id 11so862032pxi.35
-        for <linux-omap@vger.kernel.org>; Thu, 26 May 2011 15:56:47 -0700 (PDT)
+	Thu, 26 May 2011 18:56:50 -0400
+Received: by mail-pv0-f174.google.com with SMTP id 12so512546pvg.19
+        for <linux-omap@vger.kernel.org>; Thu, 26 May 2011 15:56:49 -0700 (PDT)
 In-Reply-To: <1306450971-27732-1-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: p-titiano@ti.com
 
-Remove OMAP3-specific register dumping feature from PM debug layer.
-This is removed because:
+Move suspend wakeup timer from suspend path to be triggered based
+on clockevent suspend path.
 
-- it's ugly
-- it's OMAP3-specific, and will obviously not scale to OMAP4+
-- userspace /dev/mem-based tools (like omapconf) can do this much better
+When gptimers are eventually converted to be a driver, the wakeup
+timer feature can be made to be a driver-specific feature using the
+driver's suspend method.
 
 Signed-off-by: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/pm-debug.c |  221 ----------------------------------------
- 1 files changed, 0 insertions(+), 221 deletions(-)
+ arch/arm/mach-omap2/pm-debug.c            |   19 ----------------
+ arch/arm/mach-omap2/pm.h                  |    3 --
+ arch/arm/mach-omap2/pm34xx.c              |    4 ---
+ arch/arm/mach-omap2/timer-gp.c            |   33 ++++++++++++++++++++++++++--
+ arch/arm/plat-omap/include/plat/dmtimer.h |    1 -
+ 5 files changed, 30 insertions(+), 30 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
-index 6fe1700..7c72f29 100644
+index 7c72f29..72dee22 100644
 --- a/arch/arm/mach-omap2/pm-debug.c
 +++ b/arch/arm/mach-omap2/pm-debug.c
-@@ -63,10 +63,6 @@ void omap2_pm_wakeup_on_timer(u32 seconds, u32 milliseconds)
+@@ -39,25 +39,6 @@
+ #include "pm.h"
+ 
+ u32 enable_off_mode;
+-u32 wakeup_timer_seconds;
+-u32 wakeup_timer_milliseconds;
+-
+-void omap2_pm_wakeup_on_timer(u32 seconds, u32 milliseconds)
+-{
+-	u32 tick_rate, cycles;
+-
+-	if (!seconds && !milliseconds)
+-		return;
+-
+-	tick_rate = clk_get_rate(omap_dm_timer_get_fclk(gptimer_wakeup));
+-	cycles = tick_rate * seconds + tick_rate * milliseconds / 1000;
+-	omap_dm_timer_stop(gptimer_wakeup);
+-	omap_dm_timer_set_load_start(gptimer_wakeup, 0, 0xffffffff - cycles);
+-
+-	pr_info("PM: Resume timer in %u.%03u secs"
+-		" (%d ticks at %d ticks/sec.)\n",
+-		seconds, milliseconds, cycles, tick_rate);
+-}
+ 
+ #ifdef CONFIG_DEBUG_FS
  #include <linux/debugfs.h>
- #include <linux/seq_file.h>
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index dd1c2e4..803bf1c 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -57,13 +57,10 @@ extern int omap3_pm_set_suspend_state(struct powerdomain *pwrdm, int state);
  
--static void pm_dbg_regset_store(u32 *ptr);
--
--static struct dentry *pm_dbg_dir;
--
- static int pm_dbg_init_done;
+ extern u32 wakeup_timer_seconds;
+ extern u32 wakeup_timer_milliseconds;
+-extern struct omap_dm_timer *gptimer_wakeup;
  
- static int __init pm_dbg_init(void);
-@@ -76,160 +72,6 @@ enum {
- 	DEBUG_FILE_TIMERS,
- };
+ #ifdef CONFIG_PM_DEBUG
+-extern void omap2_pm_wakeup_on_timer(u32 seconds, u32 milliseconds);
+ extern u32 enable_off_mode;
+ #else
+-#define omap2_pm_wakeup_on_timer(seconds, milliseconds)	do {} while (0);
+ #define enable_off_mode 0
+ #endif
  
--struct pm_module_def {
--	char name[8]; /* Name of the module */
--	short type; /* CM or PRM */
--	unsigned short offset;
--	int low; /* First register address on this module */
--	int high; /* Last register address on this module */
--};
--
--#define MOD_CM 0
--#define MOD_PRM 1
--
--static const struct pm_module_def *pm_dbg_reg_modules;
--static const struct pm_module_def omap3_pm_reg_modules[] = {
--	{ "IVA2", MOD_CM, OMAP3430_IVA2_MOD, 0, 0x4c },
--	{ "OCP", MOD_CM, OCP_MOD, 0, 0x10 },
--	{ "MPU", MOD_CM, MPU_MOD, 4, 0x4c },
--	{ "CORE", MOD_CM, CORE_MOD, 0, 0x4c },
--	{ "SGX", MOD_CM, OMAP3430ES2_SGX_MOD, 0, 0x4c },
--	{ "WKUP", MOD_CM, WKUP_MOD, 0, 0x40 },
--	{ "CCR", MOD_CM, PLL_MOD, 0, 0x70 },
--	{ "DSS", MOD_CM, OMAP3430_DSS_MOD, 0, 0x4c },
--	{ "CAM", MOD_CM, OMAP3430_CAM_MOD, 0, 0x4c },
--	{ "PER", MOD_CM, OMAP3430_PER_MOD, 0, 0x4c },
--	{ "EMU", MOD_CM, OMAP3430_EMU_MOD, 0x40, 0x54 },
--	{ "NEON", MOD_CM, OMAP3430_NEON_MOD, 0x20, 0x48 },
--	{ "USB", MOD_CM, OMAP3430ES2_USBHOST_MOD, 0, 0x4c },
--
--	{ "IVA2", MOD_PRM, OMAP3430_IVA2_MOD, 0x50, 0xfc },
--	{ "OCP", MOD_PRM, OCP_MOD, 4, 0x1c },
--	{ "MPU", MOD_PRM, MPU_MOD, 0x58, 0xe8 },
--	{ "CORE", MOD_PRM, CORE_MOD, 0x58, 0xf8 },
--	{ "SGX", MOD_PRM, OMAP3430ES2_SGX_MOD, 0x58, 0xe8 },
--	{ "WKUP", MOD_PRM, WKUP_MOD, 0xa0, 0xb0 },
--	{ "CCR", MOD_PRM, PLL_MOD, 0x40, 0x70 },
--	{ "DSS", MOD_PRM, OMAP3430_DSS_MOD, 0x58, 0xe8 },
--	{ "CAM", MOD_PRM, OMAP3430_CAM_MOD, 0x58, 0xe8 },
--	{ "PER", MOD_PRM, OMAP3430_PER_MOD, 0x58, 0xe8 },
--	{ "EMU", MOD_PRM, OMAP3430_EMU_MOD, 0x58, 0xe4 },
--	{ "GLBL", MOD_PRM, OMAP3430_GR_MOD, 0x20, 0xe4 },
--	{ "NEON", MOD_PRM, OMAP3430_NEON_MOD, 0x58, 0xe8 },
--	{ "USB", MOD_PRM, OMAP3430ES2_USBHOST_MOD, 0x58, 0xe8 },
--	{ "", 0, 0, 0, 0 },
--};
--
--#define PM_DBG_MAX_REG_SETS 4
--
--static void *pm_dbg_reg_set[PM_DBG_MAX_REG_SETS];
--
--static int pm_dbg_get_regset_size(void)
--{
--	static int regset_size;
--
--	if (regset_size == 0) {
--		int i = 0;
--
--		while (pm_dbg_reg_modules[i].name[0] != 0) {
--			regset_size += pm_dbg_reg_modules[i].high +
--				4 - pm_dbg_reg_modules[i].low;
--			i++;
--		}
--	}
--	return regset_size;
--}
--
--static int pm_dbg_show_regs(struct seq_file *s, void *unused)
--{
--	int i, j;
--	unsigned long val;
--	int reg_set = (int)s->private;
--	u32 *ptr;
--	void *store = NULL;
--	int regs;
--	int linefeed;
--
--	if (reg_set == 0) {
--		store = kmalloc(pm_dbg_get_regset_size(), GFP_KERNEL);
--		ptr = store;
--		pm_dbg_regset_store(ptr);
--	} else {
--		ptr = pm_dbg_reg_set[reg_set - 1];
--	}
--
--	i = 0;
--
--	while (pm_dbg_reg_modules[i].name[0] != 0) {
--		regs = 0;
--		linefeed = 0;
--		if (pm_dbg_reg_modules[i].type == MOD_CM)
--			seq_printf(s, "MOD: CM_%s (%08x)\n",
--				pm_dbg_reg_modules[i].name,
--				(u32)(OMAP3430_CM_BASE +
--				pm_dbg_reg_modules[i].offset));
--		else
--			seq_printf(s, "MOD: PRM_%s (%08x)\n",
--				pm_dbg_reg_modules[i].name,
--				(u32)(OMAP3430_PRM_BASE +
--				pm_dbg_reg_modules[i].offset));
--
--		for (j = pm_dbg_reg_modules[i].low;
--			j <= pm_dbg_reg_modules[i].high; j += 4) {
--			val = *(ptr++);
--			if (val != 0) {
--				regs++;
--				if (linefeed) {
--					seq_printf(s, "\n");
--					linefeed = 0;
--				}
--				seq_printf(s, "  %02x => %08lx", j, val);
--				if (regs % 4 == 0)
--					linefeed = 1;
--			}
--		}
--		seq_printf(s, "\n");
--		i++;
--	}
--
--	if (store != NULL)
--		kfree(store);
--
--	return 0;
--}
--
--static void pm_dbg_regset_store(u32 *ptr)
--{
--	int i, j;
--	u32 val;
--
--	i = 0;
--
--	while (pm_dbg_reg_modules[i].name[0] != 0) {
--		for (j = pm_dbg_reg_modules[i].low;
--			j <= pm_dbg_reg_modules[i].high; j += 4) {
--			if (pm_dbg_reg_modules[i].type == MOD_CM)
--				val = omap2_cm_read_mod_reg(
--					pm_dbg_reg_modules[i].offset, j);
--			else
--				val = omap2_prm_read_mod_reg(
--					pm_dbg_reg_modules[i].offset, j);
--			*(ptr++) = val;
--		}
--		i++;
--	}
--}
--
--int pm_dbg_regset_save(int reg_set)
--{
--	if (pm_dbg_reg_set[reg_set-1] == NULL)
--		return -EINVAL;
--
--	pm_dbg_regset_store(pm_dbg_reg_set[reg_set-1]);
--
--	return 0;
--}
--
- static const char pwrdm_state_names[][PWRDM_MAX_PWRSTS] = {
- 	"OFF",
- 	"RET",
-@@ -349,11 +191,6 @@ static int pm_dbg_open(struct inode *inode, struct file *file)
- 	};
- }
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 991ade6..a9d9bb1c8 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -532,10 +532,6 @@ static int omap3_pm_suspend(void)
+ 	struct power_state *pwrst;
+ 	int state, ret = 0;
  
--static int pm_dbg_reg_open(struct inode *inode, struct file *file)
--{
--	return single_open(file, pm_dbg_show_regs, inode->i_private);
--}
+-	if (wakeup_timer_seconds || wakeup_timer_milliseconds)
+-		omap2_pm_wakeup_on_timer(wakeup_timer_seconds,
+-					 wakeup_timer_milliseconds);
 -
- static const struct file_operations debug_fops = {
- 	.open           = pm_dbg_open,
- 	.read           = seq_read,
-@@ -361,40 +198,6 @@ static const struct file_operations debug_fops = {
- 	.release        = single_release,
- };
+ 	/* Read current next_pwrsts */
+ 	list_for_each_entry(pwrst, &pwrst_list, node)
+ 		pwrst->saved_state = pwrdm_read_next_pwrst(pwrst->pwrdm);
+diff --git a/arch/arm/mach-omap2/timer-gp.c b/arch/arm/mach-omap2/timer-gp.c
+index 3b9cf85..4de51a1 100644
+--- a/arch/arm/mach-omap2/timer-gp.c
++++ b/arch/arm/mach-omap2/timer-gp.c
+@@ -44,7 +44,7 @@
+ #include <plat/omap_hwmod.h>
  
--static const struct file_operations debug_reg_fops = {
--	.open           = pm_dbg_reg_open,
--	.read           = seq_read,
--	.llseek         = seq_lseek,
--	.release        = single_release,
--};
+ #include "timer-gp.h"
 -
--int pm_dbg_regset_init(int reg_set)
--{
--	char name[2];
--
--	if (!pm_dbg_init_done)
--		pm_dbg_init();
--
--	if (reg_set < 1 || reg_set > PM_DBG_MAX_REG_SETS ||
--		pm_dbg_reg_set[reg_set-1] != NULL)
--		return -EINVAL;
--
--	pm_dbg_reg_set[reg_set-1] =
--		kmalloc(pm_dbg_get_regset_size(), GFP_KERNEL);
--
--	if (pm_dbg_reg_set[reg_set-1] == NULL)
--		return -ENOMEM;
--
--	if (pm_dbg_dir != NULL) {
--		sprintf(name, "%d", reg_set);
--
--		(void) debugfs_create_file(name, S_IRUGO,
--			pm_dbg_dir, (void *)reg_set, &debug_reg_fops);
--	}
--
--	return 0;
--}
--
- static int pwrdm_suspend_get(void *data, u64 *val)
++#include "pm.h"
+ 
+ /* MAX_GPTIMER_ID: number of GPTIMERs on the chip */
+ #define MAX_GPTIMER_ID		12
+@@ -53,7 +53,30 @@ static struct omap_dm_timer *gptimer;
+ static struct clock_event_device clockevent_gpt;
+ static u8 __initdata gptimer_id = 1;
+ static u8 __initdata inited;
+-struct omap_dm_timer *gptimer_wakeup;
++static struct omap_dm_timer *gptimer_wakeup;
++
++u32 wakeup_timer_seconds;
++u32 wakeup_timer_milliseconds;
++
++static void omap2_pm_wakeup_on_timer(u32 seconds, u32 milliseconds)
++{
++	u32 tick_rate, cycles;
++
++	if (!gptimer_wakeup)
++		return;
++
++	if (!seconds && !milliseconds)
++		return;
++
++	tick_rate = clk_get_rate(omap_dm_timer_get_fclk(gptimer_wakeup));
++	cycles = tick_rate * seconds + tick_rate * milliseconds / 1000;
++	omap_dm_timer_stop(gptimer_wakeup);
++	omap_dm_timer_set_load_start(gptimer_wakeup, 0, 0xffffffff - cycles);
++
++	pr_info("PM: Resume timer in %u.%03u secs"
++		" (%d ticks at %d ticks/sec.)\n",
++		seconds, milliseconds, cycles, tick_rate);
++}
+ 
+ static irqreturn_t omap2_gp_timer_interrupt(int irq, void *dev_id)
  {
- 	int ret = -EINVAL;
-@@ -477,20 +280,11 @@ DEFINE_SIMPLE_ATTRIBUTE(pm_dbg_option_fops, option_get, option_set, "%llu\n");
+@@ -95,8 +118,12 @@ static void omap2_gp_timer_set_mode(enum clock_event_mode mode,
+ 		break;
+ 	case CLOCK_EVT_MODE_ONESHOT:
+ 		break;
+-	case CLOCK_EVT_MODE_UNUSED:
+ 	case CLOCK_EVT_MODE_SHUTDOWN:
++		if (wakeup_timer_seconds || wakeup_timer_milliseconds)
++			omap2_pm_wakeup_on_timer(wakeup_timer_seconds,
++						 wakeup_timer_milliseconds);
++		break;
++	case CLOCK_EVT_MODE_UNUSED:
+ 	case CLOCK_EVT_MODE_RESUME:
+ 		break;
+ 	}
+diff --git a/arch/arm/plat-omap/include/plat/dmtimer.h b/arch/arm/plat-omap/include/plat/dmtimer.h
+index d6c70d2..db230b3 100644
+--- a/arch/arm/plat-omap/include/plat/dmtimer.h
++++ b/arch/arm/plat-omap/include/plat/dmtimer.h
+@@ -56,7 +56,6 @@
+  */
+ #define OMAP_TIMER_IP_VERSION_1                        0x1
+ struct omap_dm_timer;
+-extern struct omap_dm_timer *gptimer_wakeup;
+ extern struct sys_timer omap_timer;
+ struct clk;
  
- static int __init pm_dbg_init(void)
- {
--	int i;
- 	struct dentry *d;
--	char name[2];
- 
- 	if (pm_dbg_init_done)
- 		return 0;
- 
--	if (cpu_is_omap34xx())
--		pm_dbg_reg_modules = omap3_pm_reg_modules;
--	else {
--		printk(KERN_ERR "%s: only OMAP3 supported\n", __func__);
--		return -ENODEV;
--	}
--
- 	d = debugfs_create_dir("pm_debug", NULL);
- 	if (IS_ERR(d))
- 		return PTR_ERR(d);
-@@ -502,21 +296,6 @@ static int __init pm_dbg_init(void)
- 
- 	pwrdm_for_each(pwrdms_setup, (void *)d);
- 
--	pm_dbg_dir = debugfs_create_dir("registers", d);
--	if (IS_ERR(pm_dbg_dir))
--		return PTR_ERR(pm_dbg_dir);
--
--	(void) debugfs_create_file("current", S_IRUGO,
--		pm_dbg_dir, (void *)0, &debug_reg_fops);
--
--	for (i = 0; i < PM_DBG_MAX_REG_SETS; i++)
--		if (pm_dbg_reg_set[i] != NULL) {
--			sprintf(name, "%d", i+1);
--			(void) debugfs_create_file(name, S_IRUGO,
--				pm_dbg_dir, (void *)(i+1), &debug_reg_fops);
--
--		}
--
- 	(void) debugfs_create_file("enable_off_mode", S_IRUGO | S_IWUSR, d,
- 				   &enable_off_mode, &pm_dbg_option_fops);
- 	(void) debugfs_create_file("wakeup_timer_seconds", S_IRUGO | S_IWUSR, d,
 -- 
 1.7.4
 
