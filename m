@@ -1,143 +1,203 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] omap updates for 2.6.40
-Date: Thu, 26 May 2011 04:39:06 -0700
-Message-ID: <20110526113905.GG27250@atomide.com>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: [PATCH 02/15] OMAP2PLUS: GPIO: Fix non-wakeup GPIO and rev_ids
+Date: Thu, 26 May 2011 17:17:04 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024D178110@dbde02.ent.ti.com>
+References: <1306247094-25372-1-git-send-email-tarun.kanti@ti.com>
+ <1306247094-25372-3-git-send-email-tarun.kanti@ti.com>
+ <B85A65D85D7EB246BE421B3FB0FBB593024D177FCC@dbde02.ent.ti.com>
+ <4DDE2745.3030307@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60509 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754909Ab1EZLrO convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 May 2011 07:47:14 -0400
+In-Reply-To: <4DDE2745.3030307@ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Varadarajan, Charulatha" <charu@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-Hi Linus,
+> -----Original Message-----
+> From: Cousson, Benoit 
+> Sent: Thursday, May 26, 2011 3:41 PM
+> To: Premi, Sanjeev
+> Cc: DebBarma, Tarun Kanti; linux-omap@vger.kernel.org; 
+> Hilman, Kevin; Shilimkar, Santosh; tony@atomide.com; 
+> linux-arm-kernel@lists.infradead.org; Varadarajan, 
+> Charulatha; Paul Walmsley
+> Subject: Re: [PATCH 02/15] OMAP2PLUS: GPIO: Fix non-wakeup 
+> GPIO and rev_ids
+> 
+> On 5/26/2011 11:23 AM, Premi, Sanjeev wrote:
+> >> From: linux-omap-owner@vger.kernel.org
+> >> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of
+> >> DebBarma, Tarun Kanti
+> >> Sent: Tuesday, May 24, 2011 7:55 PM
+> >>
+> >> From: Charulatha V<charu@ti.com>
+> >>
+> >> Non-wakeup GPIOs are available only in OMAP2420 and OMAP3430. But
+> >> the GPIO driver initializes the non-wakeup GPIO bits for OMAP24xx
+> >> (bothe OMAP 2420 and 2430)&  not for OMAP3 which is incorrect.
+> >>
+> >> Fix the above by providing non-wakeup GPIO information 
+> through pdata
+> >> specific to the SoC.
+> >>
+> >> The GPIO rev id provided in the hwmod database is the same
+> >> for OMAP2420
+> >> and OMAP2430. Change the GPIO rev ids in hwmod database as 
+> given below
+> >> so that it can be used to identify OMAP2420 and OMAP2430.
+> >> OMAP2420 - 0
+> >> OMAP2430 - 1
+> >> OMAP3    - 2
+> >> OMAP4    - 3
+> >
+> > [sp] Magic numbers should be avoided.
+> >       Suggest using something like:
+> >       #define GPIO_REV_2420	0
+> >       #define GPIO_REV_2430	1
+> >       #define GPIO_REV_34XX	2
+> >       #define GPIO_REV_44xx	3
+> 
+> Well, it is not a magic number, it is a revision id that is 
+> incremented 
+> each time there is a difference in the IP.
+> The OMAP version -> IP version link is done at hwmod level. 
+> The driver 
+> does not have to know it is an OMAP3 or OMAP4. In that case we did 
+> change the IP version for every revisions, but OMAP5 will use 
+> the OMAP4 
+> revision.
+> I'm not even considering all the Davinci variants that are not named 
+> OMAP but do use OMAP IPs... as you already know...
+> That can provide a rather confusing information for my point of view.
+> 
+> Whereas a comment like that will give you the exhaustive information.
+> 
+> 0: OMAP2420
+> 1: OMAP2430
+> 2: OMAP3, DMxxx
+> 3: OMAP4, OMAP5, DM816x
+> 
+> That being said, some drivers already did that, so I'm not opposed to 
+> such change. I just think it is not the best approach.
+> At least it gives a pointer to the TRM that contains the IP doc.
 
-Please pull omap updates for this merge window from:
+[sp] Benoit, your are right from generation perspectove where the
+     it is easier to increment numbers but when we use comparison
+     code - as in this patch, comparison against a number isn't
+     readable.
 
-git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-for-linus
+     As example:
 
-This contains clean-up to shrink down omap specific code a bit. Also included
-are some fixes. But basically no new code at this point.
+ +	switch (oh->class->rev) {     ## This is auto-generated.
+ +	case 0:				## But this is our code.
 
-Regards,
+     I am recommending this to read as:
 
-Tony
+ +	switch (oh->class->rev) {     ## This is auto-generated.
+ +	case GPIO_REV_2420:		## More readable.
 
+	~sanjeev
 
-Aaro Koskinen (5):
-      OMAP3+: smartreflex: fix sr_late_init() error path in probe
-      OMAP3+: smartreflex: request the memory region
-      OMAP3+: smartreflex: fix ioremap leak on probe error
-      OMAP3+: smartreflex: delete instance from sr_list on probe error
-      OMAP3+: smartreflex: delete debugfs entries on probe error
-
-Felipe Balbi (1):
-      usb: musb: am35x: fix compile error when building am35x
-
-Hema HK (3):
-      usb: musb: OMAP4430: Power down the PHY during board init
-      usb: otg: OMAP4430: Fixing the omap4430_phy_init function
-      usb: otg: OMAP4430: Powerdown the internal PHY when USB is disabled
-
-Igor Grinberg (2):
-      arm: omap: gpmc-smsc911x: minor style fixes
-      arm: omap2plus: GPIO cleanup
-
-Jean Pihet (5):
-      OMAP3 cpuidle: remove useless SDP specific timings
-      OMAP3: clean-up mach specific cpuidle data structures
-      OMAP3: cpuidle: re-organize the C-states data
-      OMAP3: cpuidle: code rework for improved readability
-      OMAP3: cpuidle: change the power domains modes determination logic
-
-Mike Rapoport (10):
-      omap: gpmc-smsc911x: always set irq flags to IORESOURCE_IRQ_LOWLEVEL
-      omap: convert boards that use SMSC911x to use gpmc-smsc911x
-      omap: consolidate touch screen initialization among different boards
-      omap: use common initialization for PMIC i2c bus
-      omap: move detection of NAND CS to common-board-devices
-      omap: musb: introduce default board config
-      omap: igep0020: name refactoring for future merge with IGEP3
-      omap: igep0020: minor refactoring
-      omap: igep0020: add support for IGEP3
-      omap: drop board-igep0030.c
-
-Nishanth Menon (2):
-      OMAP4: PM: remove redundant #ifdef CONFIG_PM
-      OMAP3+: voltage: remove spurious pr_notice for debugfs
-
-Sanjeev Premi (1):
-      OMAP3: PM: Boot message is not an error, and not helpful, remove it
-
-Tony Lindgren (5):
-      omap: Run make savedefconfig on omap2plus_defconfig to shrink it
-      omap: Remove support for omap2evm
-      Merge branches 'devel-fixes', 'devel-cleanup' and 'devel-genirq' into for-next
-      Merge branch 'for-tony' of master.kernel.org:/.../balbi/usb into omap-for-linus
-      Merge branch 'for_2.6.40/pm-cleanup' of ssh://master.kernel.org/.../khilman/linux-omap-pm into omap-for-linus
-
-omar ramirez (2):
-      OMAP3/4: l3: fix omap3_l3_probe error path
-      OMAP3/4: l3: minor cleanup for parenthesis and extra spaces
-
- arch/arm/configs/omap2plus_defconfig            |   83 +----
- arch/arm/mach-omap2/Kconfig                     |    1 +
- arch/arm/mach-omap2/Makefile                    |    4 +-
- arch/arm/mach-omap2/board-2430sdp.c             |   27 +--
- arch/arm/mach-omap2/board-3430sdp.c             |  151 ++-------
- arch/arm/mach-omap2/board-4430sdp.c             |  114 ++-----
- arch/arm/mach-omap2/board-am3517crane.c         |   10 +-
- arch/arm/mach-omap2/board-am3517evm.c           |   56 +--
- arch/arm/mach-omap2/board-apollon.c             |   29 +-
- arch/arm/mach-omap2/board-cm-t35.c              |  236 ++----------
- arch/arm/mach-omap2/board-cm-t3517.c            |    9 +-
- arch/arm/mach-omap2/board-devkit8000.c          |  131 +------
- arch/arm/mach-omap2/board-igep0020.c            |  449 +++++++++++-----------
- arch/arm/mach-omap2/board-igep0030.c            |  458 -----------------------
- arch/arm/mach-omap2/board-ldp.c                 |  138 +-------
- arch/arm/mach-omap2/board-n8x0.c                |   28 +-
- arch/arm/mach-omap2/board-omap3beagle.c         |  194 +++-------
- arch/arm/mach-omap2/board-omap3evm.c            |  242 +++----------
- arch/arm/mach-omap2/board-omap3logic.c          |   14 +-
- arch/arm/mach-omap2/board-omap3pandora.c        |   90 +----
- arch/arm/mach-omap2/board-omap3stalker.c        |  133 +------
- arch/arm/mach-omap2/board-omap3touchbook.c      |  121 +------
- arch/arm/mach-omap2/board-omap4panda.c          |   79 ++---
- arch/arm/mach-omap2/board-overo.c               |  265 +++-----------
- arch/arm/mach-omap2/board-rm680.c               |   21 +-
- arch/arm/mach-omap2/board-rx51-peripherals.c    |   42 +--
- arch/arm/mach-omap2/board-rx51-video.c          |    5 +-
- arch/arm/mach-omap2/board-rx51.c                |   18 +-
- arch/arm/mach-omap2/board-zoom-debugboard.c     |   65 +---
- arch/arm/mach-omap2/board-zoom-display.c        |   31 +--
- arch/arm/mach-omap2/board-zoom-peripherals.c    |   29 +--
- arch/arm/mach-omap2/common-board-devices.c      |  163 ++++++++
- arch/arm/mach-omap2/common-board-devices.h      |   35 ++
- arch/arm/mach-omap2/cpuidle34xx.c               |  436 +++++++--------------
- arch/arm/mach-omap2/gpmc-smc91x.c               |   11 +-
- arch/arm/mach-omap2/gpmc-smsc911x.c             |   44 +--
- arch/arm/mach-omap2/omap_l3_noc.c               |   51 ++--
- arch/arm/mach-omap2/omap_l3_smx.c               |   42 +--
- arch/arm/mach-omap2/omap_phy_internal.c         |    9 +-
- arch/arm/mach-omap2/pm.h                        |   17 +-
- arch/arm/mach-omap2/pm34xx.c                    |   14 -
- arch/arm/mach-omap2/pm44xx.c                    |    2 -
- arch/arm/mach-omap2/smartreflex.c               |   23 +-
- arch/arm/mach-omap2/usb-musb.c                  |   22 +-
- arch/arm/mach-omap2/usb-tusb6010.c              |    3 +-
- arch/arm/mach-omap2/voltage.c                   |    1 -
- arch/arm/plat-omap/include/plat/gpmc-smsc911x.h |    4 +-
- arch/arm/plat-omap/include/plat/uncompress.h    |    1 -
- arch/arm/plat-omap/include/plat/usb.h           |    2 +-
- drivers/video/omap/Makefile                     |    1 -
- drivers/video/omap/lcd_omap2evm.c               |  192 ----------
- sound/soc/omap/Kconfig                          |    8 -
- sound/soc/omap/Makefile                         |    1 -
- sound/soc/omap/omap2evm.c                       |  139 -------
- 54 files changed, 1110 insertions(+), 3384 deletions(-)
- delete mode 100644 arch/arm/mach-omap2/board-igep0030.c
- create mode 100644 arch/arm/mach-omap2/common-board-devices.c
- create mode 100644 arch/arm/mach-omap2/common-board-devices.h
- delete mode 100644 drivers/video/omap/lcd_omap2evm.c
- delete mode 100644 sound/soc/omap/omap2evm.c
+> 
+> >       We don't have to refer back to this comment while 
+> reading the code.
+> >       I also believed that HWMODs were auto generated.
+> >       Can the changes to structures in this patch recreated 
+> using current
+> >       scripts?
+> 
+> Only OMAP4 & 5 are generated today, and in anycase this 
+> information is 
+> some custom data added by driver owner. So we just have to 
+> update that 
+> information.
+> I cannot really use the real HW IP version because it is 
+> irrelevant most 
+> of the time. Maybe in the future we will be able to force the 
+> HW team to 
+> provide relevant data in that field :-)
+> 
+> Regards,
+> Benoit
+> 
+> 
+> >
+> > ~sanjeev
+> >
+> >>
+> >> Signed-off-by: Charulatha V<charu@ti.com>
+> >> Cc: Cousson, Benoit<b-cousson@ti.com>
+> >> Cc: Paul Walmsley<paul@pwsan.com>
+> >> ---
+> >>   arch/arm/mach-omap2/gpio.c                 |   26
+> >> ++++++++++++++++++++++++--
+> >>   arch/arm/mach-omap2/omap_hwmod_2430_data.c |    2 +-
+> >>   arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    2 +-
+> >>   arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    2 +-
+> >>   arch/arm/plat-omap/include/plat/gpio.h     |    1 +
+> >>   drivers/gpio/gpio_omap.c                   |   11 +++--------
+> >>   6 files changed, 31 insertions(+), 13 deletions(-)
+> >>
+> >> diff --git a/arch/arm/mach-omap2/gpio.c 
+> b/arch/arm/mach-omap2/gpio.c
+> >> index 0446bd1..6cd26b4 100644
+> >> --- a/arch/arm/mach-omap2/gpio.c
+> >> +++ b/arch/arm/mach-omap2/gpio.c
+> >> @@ -56,6 +56,28 @@ static int omap2_gpio_dev_init(struct
+> >> omap_hwmod *oh, void *unused)
+> >>   		return -ENOMEM;
+> >>   	}
+> >>
+> >> +	switch (oh->class->rev) {
+> >> +	case 0:
+> >> +		if (id == 1)
+> >> +			/* non-wakeup GPIO pins for OMAP2420 Bank1 */
+> >> +			pdata->non_wakeup_gpios = 0xe203ffc0;
+> >> +		else if (id == 2)
+> >> +			/* non-wakeup GPIO pins for OMAP2420 Bank2 */
+> >> +			pdata->non_wakeup_gpios = 0x08700040;
+> >> +		break;
+> >> +	case 2:
+> >> +		if (id == 2)
+> >> +			/* non-wakeup GPIO pins for OMAP3 Bank2 */
+> >> +			pdata->non_wakeup_gpios = 0x00000001;
+> >> +		else if (id == 6)
+> >> +			/* non-wakeup GPIO pins for OMAP3 Bank6 */
+> >> +			pdata->non_wakeup_gpios = 0x08000000;
+> >> +		break;
+> >
+> > [sp] Where is the description on non-wakeup GPIOs in OMAP3?
+> >       Here is text from AM37x TRM:
+> >       [quote ...only relevant text]
+> >       Each GPIO module provides 32 dedicated 
+> general-purpose pins with input
+> >       and output capabilities; .... These pins can be 
+> configured for the
+> >       following applications:
+> >       - Data input (capture)/output (drive)
+> >       - Keyboard interface with a debounce cell
+> >       - Interrupt generation in ....
+> >       - Wake-up request generation in idle mode
+> >       [/quote]
+> >       Otherwise, what are the GPIO2_WAKEUPENABLE (0x4905 0020) and
+> >       GPIO6_WAKEUPENABLE (0x4905 8020) meant for?
+> >
+> >> +	default:
+> >> +		/* No non-wakeup GPIO pins for other SoCs */
+> >> +		break;
+> >> +	}
+> >> +
+> >
+> > ~sanjeev
+> >
+> > [snip]...[snip]
+> 
+> 
