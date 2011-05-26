@@ -1,96 +1,95 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH] ARM: OMAP: Get rid of section mismatch warnings
-Date: Thu, 26 May 2011 14:55:33 +0100
-Message-ID: <20110526135533.GA25841@n2100.arm.linux.org.uk>
-References: <1306414838-4330-1-git-send-email-silesh@ti.com> <4DDE4EEF.8070108@ti.com> <20110526133732.GD11352@atomide.com>
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: Re: [PATCH] arm: omap2plus: fix ads7846 pendown gpio request
+Date: Thu, 26 May 2011 16:58:35 +0300
+Message-ID: <4DDE5C8B.7030308@compulab.co.il>
+References: <1304521495-20578-1-git-send-email-grinberg@compulab.co.il>	<4DC18B64.2020903@gmail.com> <4DCA3C56.9020502@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:34418 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757404Ab1EZNzp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 May 2011 09:55:45 -0400
-Content-Disposition: inline
-In-Reply-To: <20110526133732.GD11352@atomide.com>
+Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:35805
+	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1757851Ab1EZN6i (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 26 May 2011 09:58:38 -0400
+In-Reply-To: <4DCA3C56.9020502@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, Silesh C V <silesh@ti.com>, linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org, Thomas Weber <thomas.weber.linux@googlemail.com>, linux-arm-kernel@lists.infradead.org, Mike Rapoport <mike@compulab.co.il>
 
-On Thu, May 26, 2011 at 06:37:32AM -0700, Tony Lindgren wrote:
-> * Santosh Shilimkar <santosh.shilimkar@ti.com> [110526 05:56]:
-> > On 5/26/2011 6:30 PM, Silesh C V wrote:
-> > >Get rid of the following and 8 other similar section mismatch
-> > >warnings
-> > >
-> > I send this [1] patch a month back. It's still not considered
-> > though even after reminder.
-> > 
-> > [1] https://patchwork.kernel.org/patch/684831/
-> 
-> Applying now into devel-fixes with additional fixes from Silesh.
-> Updated patch below.
+ping
 
-I also have this from a while back.  There's also some nastyness in
-twl4030-power.c which requires basically s/__init/__devinit/ to almost
-the entire file.
+On 05/11/11 10:35, Igor Grinberg wrote:
 
-8<--------
-From: Russell King <rmk+kernel@arm.linux.org.uk>
+> Tony,
+>
+>
+> You can fold this one to the original patch from Mike as well,
+>
+> or do you want it into the rc1?
+>
+>
+>
+> On 05/04/11 20:22, Thomas Weber wrote:
+>
+>> Am 04.05.2011 17:04, schrieb Igor Grinberg:
+>>> introduced by: 96974a24
+>>> (omap: consolidate touch screen initialization among different boards)
+>>>
+>>> ads7846 driver can use either gpio_pendown or get_pendown_state()
+>>> callback. In case of gpio_pendown, it requests the provided gpio_pendown
+>>> thus resulting in double requesting that gpio:
+>>>
+>>> ads7846 spi1.0: failed to request pendown GPIO57
+>>> ads7846: probe of spi1.0 failed with error -16
+>>>
+>>> Fix this by restricting the gpio request to the case of
+>>> get_pendown_state() callback is used.
+>>>
+>>> Signed-off-by: Igor Grinberg<grinberg@compulab.co.il>
+>>> ---
+>>>   arch/arm/mach-omap2/common-board-devices.c |   20 ++++++++++----------
+>>>   1 files changed, 10 insertions(+), 10 deletions(-)
+>>>
+>>> diff --git a/arch/arm/mach-omap2/common-board-devices.c b/arch/arm/mach-omap2/common-board-devices.c
+>>> index d57c71d..61fee80 100644
+>>> --- a/arch/arm/mach-omap2/common-board-devices.c
+>>> +++ b/arch/arm/mach-omap2/common-board-devices.c
+>>> @@ -83,17 +83,17 @@ void __init omap_ads7846_init(int bus_num, int gpio_pendown, int gpio_debounce,
+>>>       struct spi_board_info *spi_bi =&ads7846_spi_board_info;
+>>>       int err;
+>>>
+>>> -    err = gpio_request(gpio_pendown, "TS PenDown");
+>>> -    if (err) {
+>>> -        pr_err("Could not obtain gpio for TS PenDown: %d\n", err);
+>>> -        return;
+>>> -    }
+>>> -
+>>> -    gpio_direction_input(gpio_pendown);
+>>> -    gpio_export(gpio_pendown, 0);
+>>> +    if (board_pdata&&  board_pdata->get_pendown_state) {
+>>> +        err = gpio_request_one(gpio_pendown, GPIOF_IN, "TSPenDown");
+>>> +        if (err) {
+>>> +            pr_err("Couldn't obtain gpio for TSPenDown: %d\n", err);
+>>> +            return;
+>>> +        }
+>>> +        gpio_export(gpio_pendown, 0);
+>>>
+>>> -    if (gpio_debounce)
+>>> -        gpio_set_debounce(gpio_pendown, gpio_debounce);
+>>> +        if (gpio_debounce)
+>>> +            gpio_set_debounce(gpio_pendown, gpio_debounce);
+>>> +    }
+>>>
+>>>       ads7846_config.gpio_pendown = gpio_pendown;
+>>>
+>> Tested-by: Thomas Weber <weber@corscience.de>
+>>
+>> On Devkit8000.
+>>
 
-Fix various section mismatch warnings:
-
-WARNING: arch/arm/plat-omap/built-in.o(.devinit.text+0x46c): Section mismatch in reference from the function omap_gpio_probe() to the function .init.text:omap_gpio_chip_init()
-The function __devinit omap_gpio_probe() references
-a function __init omap_gpio_chip_init().
-If omap_gpio_chip_init is only used by omap_gpio_probe then
-annotate omap_gpio_chip_init with a matching annotation.
-
-WARNING: arch/arm/mach-omap2/built-in.o(.text+0x423c): Section mismatch in reference from the function pm_dbg_regset_init() to the function .init.text:pm_dbg_init()
-The function pm_dbg_regset_init() references
-the function __init pm_dbg_init().
-This is often because pm_dbg_regset_init lacks a __init
-annotation or the annotation of pm_dbg_init is wrong.
-
-Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
---
- arch/arm/mach-omap2/pm-debug.c |    4 ++--
- arch/arm/plat-omap/gpio.c      |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
-index 971d186..3800ee0 100644
---- a/arch/arm/plat-omap/gpio.c
-+++ b/arch/arm/plat-omap/gpio.c
-@@ -1629,7 +1629,7 @@ static void omap_gpio_mod_init(struct gpio_bank *bank, int id)
- 	}
- }
- 
--static void __init omap_gpio_chip_init(struct gpio_bank *bank)
-+static void __devinit omap_gpio_chip_init(struct gpio_bank *bank)
- {
- 	int j;
- 	static int gpio;
-diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
-index 125f565..169e930 100644
---- a/arch/arm/mach-omap2/pm-debug.c
-+++ b/arch/arm/mach-omap2/pm-debug.c
-@@ -189,7 +189,7 @@ static struct dentry *pm_dbg_dir;
- 
- static int pm_dbg_init_done;
- 
--static int __init pm_dbg_init(void);
-+static int pm_dbg_init(void);
- 
- enum {
- 	DEBUG_FILE_COUNTERS = 0,
-@@ -595,7 +595,7 @@ static int option_set(void *data, u64 val)
- 
- DEFINE_SIMPLE_ATTRIBUTE(pm_dbg_option_fops, option_get, option_set, "%llu\n");
- 
--static int __init pm_dbg_init(void)
-+static int pm_dbg_init(void)
- {
- 	int i;
- 	struct dentry *d;
+-- 
+Regards,
+Igor.
 
