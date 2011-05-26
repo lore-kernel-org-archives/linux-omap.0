@@ -1,48 +1,48 @@
-From: Tasslehoff Kjappfot <tasskjapp@gmail.com>
-Subject: [PATCH] free rev gpios when they are read, so others can read them later
-Date: Thu, 26 May 2011 21:59:53 +0200
-Message-ID: <2DCF0893-4166-4604-887B-EDBC3643290A@gmail.com>
-References: <1306438716-68265-1-git-send-email-tasskjapp@gmail.com>
-Mime-Version: 1.0 (Apple Message framework v1084)
-Content-Type: text/plain; charset=iso-8859-1
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PM-WIP_CPUFREQ][PATCH V3 3/8] OMAP2+: cpufreq: use opp/clk_*cpufreq_table based on silicon
+Date: Thu, 26 May 2011 13:25:51 -0700
+Message-ID: <871uzlcipc.fsf@ti.com>
+References: <1306366733-8439-1-git-send-email-nm@ti.com>
+	<1306366733-8439-4-git-send-email-nm@ti.com> <87pqn5e4zz.fsf@ti.com>
+	<BANLkTim5A_ypRs3ZetE1WeDcQ0dUN0sxMw@mail.gmail.com>
+	<BANLkTik=N1eJ4oUMFg_cn9pHZiSXieO0DQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:63515 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933056Ab1EZT74 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 May 2011 15:59:56 -0400
-Received: by ewy4 with SMTP id 4so385822ewy.19
-        for <linux-omap@vger.kernel.org>; Thu, 26 May 2011 12:59:55 -0700 (PDT)
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:43111 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757892Ab1EZUZz convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 26 May 2011 16:25:55 -0400
+Received: by mail-pz0-f50.google.com with SMTP id 2so478591pzk.9
+        for <linux-omap@vger.kernel.org>; Thu, 26 May 2011 13:25:54 -0700 (PDT)
+In-Reply-To: <BANLkTik=N1eJ4oUMFg_cn9pHZiSXieO0DQ@mail.gmail.com> (Nishanth
+	Menon's message of "Thu, 26 May 2011 11:39:10 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: "Menon, Nishanth" <nm@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>
 
-A script of mine that reads the rev gpios on the beagleboard started fa=
-iling when I upgraded to .37, since board-omap3beagle.c doesn=B4t free =
-the rev gpios after using them.
+"Menon, Nishanth" <nm@ti.com> writes:
 
-Signed-off-by: Tasslehoff Kjappfot <tasskjapp@gmail.com>
----
-arch/arm/mach-omap2/board-omap3beagle.c |    3 +++
-1 files changed, 3 insertions(+), 0 deletions(-)
+> On Thu, May 26, 2011 at 11:35, Menon, Nishanth <nm@ti.com> wrote:
+>> On Thu, May 26, 2011 at 10:38, Kevin Hilman <khilman@ti.com> wrote:
+>>>
+>>> I'd prefer to see this even cleaner by dropping the clk_* versions =
+all
+>>> together. =C2=A0Then, for those who want OMAP2 support (currently n=
+ot working
+>>> or validated anyways), all that's needed is to add a function simli=
+lar
+>>> to clk_init_cpufreq_table() which registers OPPs.
+>>
+>> yeah - that is better as well.. will do
+>
+> oops - missed asking - are you ok with just returning a warning and
+> not registering the cpufreq driver for OMAP2?
 
-diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-om=
-ap2/board-omap3beagle.c
-index 3ff3a2c..8a4ac43 100644
---- a/arch/arm/mach-omap2/board-omap3beagle.c
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -106,6 +106,9 @@ static void __init omap3_beagle_init_rev(void)
-	beagle_rev =3D gpio_get_value(171) | (gpio_get_value(172) << 1)
-			| (gpio_get_value(173) << 2);
-
-+        gpio_free_array(omap3_beagle_rev_gpios,
-+                        ARRAY_SIZE(omap3_beagle_rev_gpios));
-+
-	switch (beagle_rev) {
-	case 7:
-		printk(KERN_INFO "OMAP3 Beagle Rev: Ax/Bx\n");
---=20
-1.7.3.1
+s/OMAP2/platforms without OPPs/
 
 
 --
