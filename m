@@ -1,47 +1,31 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH 2/2] GPIO: OMAP: move to drivers/gpio
-Date: Fri, 27 May 2011 14:28:35 -0600
-Message-ID: <20110527202835.GE6645@ponder.secretlab.ca>
-References: <1305898868-9188-1-git-send-email-khilman@ti.com>
- <1305898868-9188-3-git-send-email-khilman@ti.com>
- <20110527073529.GF31953@ponder.secretlab.ca>
- <BANLkTinqEM-iDhgSMAnMB5uehkt=V1Qq+w@mail.gmail.com>
- <87pqn4404t.fsf@ti.com>
- <877h9c2kq2.fsf@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH] OMAP: don't trace functions called from sched_clock
+Date: Fri, 27 May 2011 13:39:10 -0700
+Message-ID: <87hb8fyj2p.fsf@ti.com>
+References: <1304846514-15641-1-git-send-email-rabin@rab.in>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:37229 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751277Ab1E0U2g (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 May 2011 16:28:36 -0400
-Received: by pvg12 with SMTP id 12so920452pvg.19
-        for <linux-omap@vger.kernel.org>; Fri, 27 May 2011 13:28:36 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <877h9c2kq2.fsf@ti.com>
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:55393 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752499Ab1E0UjO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 27 May 2011 16:39:14 -0400
+Received: by pvg13 with SMTP id 13so1095325pvg.12
+        for <linux-omap@vger.kernel.org>; Fri, 27 May 2011 13:39:13 -0700 (PDT)
+In-Reply-To: <1304846514-15641-1-git-send-email-rabin@rab.in> (Rabin Vincent's
+	message of "Sun, 8 May 2011 14:51:54 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, Linus Walleij <linus.walleij@stericsson.com>, linux-arm-kernel@lists.infradead.org
+To: Rabin Vincent <rabin@rab.in>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Fri, May 27, 2011 at 09:04:37AM -0700, Kevin Hilman wrote:
-> Kevin Hilman <khilman@ti.com> writes:
-> 
-> [...]
-> 
-> >
-> > OK, I rebased onto RMK's for-linus branch (already pulled by Linus),
-> > which contained some other changes touching gpio.c.    I also s/_/-/ in
-> > the filename.
-> >
-> > Below is pull request.
-> 
-> BTW, apologies for the ssh URL.  I used it because I just pushed it, and
-> wanted to be sure you didn't have to wait for the mirrors.
-> 
-> Kevin
+Rabin Vincent <rabin@rab.in> writes:
 
-Merged, thanks.
+> omap_readl() is used from the sched_clock() implementations and so must
+> be marked notrace to avoid recursion in ftrace.  Same thing with
+> mpu_read() for OMAP1.
+>
+> Signed-off-by: Rabin Vincent <rabin@rab.in>
 
-g.
-
+Acked-by: Kevin Hilman <khilman@ti.com>
