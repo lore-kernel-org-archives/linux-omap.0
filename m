@@ -1,141 +1,85 @@
-From: "Turquette, Mike" <mturquette@ti.com>
-Subject: Re: [PM-WIP_CPUFREQ][PATCH 0/6 V3] Cleanups for cpufreq
-Date: Fri, 27 May 2011 10:33:39 -0500
-Message-ID: <BANLkTiktQAt3q=a3-cNaFrTH5UeNH21tmg@mail.gmail.com>
-References: <1306366733-8439-1-git-send-email-nm@ti.com> <87ipsxcoz0.fsf@ti.com>
- <4DDF3169.9070503@ti.com> <BANLkTinv3HMBE_FBGWfLvnWyTRM=wXhpxA@mail.gmail.com>
- <4DDF4424.2000706@ti.com>
+From: Rabin Vincent <rabin@rab.in>
+Subject: Re: [PATCH] OMAP: don't trace functions called from sched_clock
+Date: Fri, 27 May 2011 21:03:57 +0530
+Message-ID: <BANLkTi=imJXEKriWdXOGE_wWWkQvdtLAHg@mail.gmail.com>
+References: <1304846514-15641-1-git-send-email-rabin@rab.in>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:50778 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753965Ab1E0Pd7 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 27 May 2011 11:33:59 -0400
-Received: by mail-qw0-f53.google.com with SMTP id 7so1085373qwb.12
-        for <linux-omap@vger.kernel.org>; Fri, 27 May 2011 08:33:59 -0700 (PDT)
-In-Reply-To: <4DDF4424.2000706@ti.com>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:50907 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751705Ab1E0PkE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 May 2011 11:40:04 -0400
+Received: by bwz15 with SMTP id 15so1392833bwz.19
+        for <linux-omap@vger.kernel.org>; Fri, 27 May 2011 08:40:02 -0700 (PDT)
+In-Reply-To: <1304846514-15641-1-git-send-email-rabin@rab.in>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: "Menon, Nishanth" <nm@ti.com>, Kevin Hilman <khilman@ti.com>, linux-omap <linux-omap@vger.kernel.org>
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rabin Vincent <rabin@rab.in>
 
-On Fri, May 27, 2011 at 1:26 AM, Santosh Shilimkar
-<santosh.shilimkar@ti.com> wrote:
-> On 5/27/2011 11:37 AM, Menon, Nishanth wrote:
->>
->> On Thu, May 26, 2011 at 22:06, Santosh Shilimkar
->> <santosh.shilimkar@ti.com> =A0wrote:
->>>
->>> On 5/26/2011 11:40 PM, Kevin Hilman wrote:
->>>>
->>>> So here's a dumb question, being rather ignorant of CPUfreq on SMP=
-=2E
->>>>
->>>> Should we be running a CPUfreq instance on both CPUs when they can=
-not be
->>>> scaled independently?
->>>>
->>>> What is being scaled here is actually the cluster (the MPU SS via
->>>> dpll_mpu_ck), not an individual CPU. =A0So to me, it only makes se=
-nse to
->>>> have a an instance of the driver per scalable device, which in thi=
-s case
->>>> is a single MPU SS.
->>>>
->>> We are running only one instance and for the exact same reason as a=
-bove.
->>> You are completely right and that's the whole intention of those
->>> CPUMASK two lines in the initialization code.
->>>
->>>
->>>> What am I missing?
->>>>
->>> Not at all.
->>
->> So not have cpufreq driver registered at all for CPU1? Life would be=
- a
->> lot simpler in omap2-cpufreq.c as a result. but that said, two views=
-:
->> a) future silicon somewhere ahead might need the current
->> infrastructure to scale into different tables..
->> b) as far as userspace sees it - cpu0 and cpu1 exists, cool, *but*
->> cpu1 is not scalable(no /sys/devices/system/cpu/cpu1/cpufreq.. but
->> .../cpu1/online is present). Keep in mind that userspace is usually
->> written chip independent. IMHO registering drivers for both devices =
-do
->> make sense they reflect what the reality of the system is. 2 cpus
->> scaling together - why do we want to OMAP "specific" stuff here?
->>
-> It's not OMAP specific Nishant.
-> And this feature is supported by CPUFREQ driver. My Intel machine
-> uses the same exact scheme for CPUFREQ. It's feature provided
-> specifically for hardwares with individual CPU scaling
-> limitation. Instead of CPU's, whole CPU cluster scales
-> together.
+Tony,
+
+On Sun, May 8, 2011 at 14:51, Rabin Vincent <rabin@rab.in> wrote:
+> omap_readl() is used from the sched_clock() implementations and so mu=
+st
+> be marked notrace to avoid recursion in ftrace. =A0Same thing with
+> mpu_read() for OMAP1.
 >
-> Both CPU's still have same consistent view of all CPUFREQ controls.
-> But in =A0back-ground, CPU1 is carrying only symbolic links.
+> Signed-off-by: Rabin Vincent <rabin@rab.in>
+
+Comments on this patch?  This is a bugfix; the function graph tracer
+will crash and burn on OMAP without this.
+
+> ---
+> =A0arch/arm/mach-omap1/io.c =A0 | =A0 =A02 +-
+> =A0arch/arm/mach-omap1/time.c | =A0 =A02 +-
+> =A0arch/arm/mach-omap2/io.c =A0 | =A0 =A02 +-
+> =A03 files changed, 3 insertions(+), 3 deletions(-)
 >
-> We make use of "related/affected cpu" feature which is
-> supported by generic CPUFREQ driver. Nothing OMAP-specific
-> here.
-
-Santosh is referring to this code in our cpufreq driver:
-
-        /*
-         * On OMAP SMP configuartion, both processors share the voltage
-         * and clock. So both CPUs needs to be scaled together and henc=
-e
-         * needs software co-ordination. Use cpufreq affected_cpus
-         * interface to handle this scenario. Additional is_smp() check
-         * is to keep SMP_ON_UP build working.
-         */
-        if (is_smp()) {
-                policy->shared_type =3D CPUFREQ_SHARED_TYPE_ANY;
-                cpumask_or(cpumask, cpumask_of(policy->cpu), cpumask);
-                cpumask_copy(policy->cpus, cpumask);
-        }
-
-policy->cpus knows about each CPU now (in fact, due to this you will
-see /sys/devices/system/cpu/cpu1/cpufreq is in fact a symlink to its
-cpu0 sibling!)
-
-This is pretty good in fact, since governors like ondemand take into
-consideration *all* of the CPUs in policy->cpus:
-
-        /* Get Absolute Load - in terms of freq */
-        max_load_freq =3D 0; <- tracks greatest need across all CPUs
-
-        for_each_cpu(j, policy->cpus) {
-                ... find max_load_freq ...
-
-Ultimate effect is that we run a single workqueue only on CPU0
-(kondemand or whatever) that takes the load characteristics of both
-CPU0 and CPU1 into account.
-
-Regards,
-Mike
-
-
-> And as I said i n other thread, if at all in future we get
-> CPU's which can scale indepedently, we just need to change
-> that one line where we specify the relation between CPU's.
-> It's as trivial as that.
+> diff --git a/arch/arm/mach-omap1/io.c b/arch/arm/mach-omap1/io.c
+> index 870886a..36ec2d7 100644
+> --- a/arch/arm/mach-omap1/io.c
+> +++ b/arch/arm/mach-omap1/io.c
+> @@ -158,7 +158,7 @@ u16 omap_readw(u32 pa)
+> =A0}
+> =A0EXPORT_SYMBOL(omap_readw);
 >
-> Regards
-> Santosh
+> -u32 omap_readl(u32 pa)
+> +u32 notrace omap_readl(u32 pa)
+> =A0{
+> =A0 =A0 =A0 =A0return __raw_readl(OMAP1_IO_ADDRESS(pa));
+> =A0}
+> diff --git a/arch/arm/mach-omap1/time.c b/arch/arm/mach-omap1/time.c
+> index 6885d2f..88c5c5e 100644
+> --- a/arch/arm/mach-omap1/time.c
+> +++ b/arch/arm/mach-omap1/time.c
+> @@ -203,7 +203,7 @@ static struct irqaction omap_mpu_timer2_irq =3D {
+> =A0 =A0 =A0 =A0.handler =A0 =A0 =A0 =A0=3D omap_mpu_timer2_interrupt,
+> =A0};
 >
+> -static cycle_t mpu_read(struct clocksource *cs)
+> +static cycle_t notrace mpu_read(struct clocksource *cs)
+> =A0{
+> =A0 =A0 =A0 =A0return ~omap_mpu_timer_read(1);
+> =A0}
+> diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+> index 441e79d..f1987b1 100644
+> --- a/arch/arm/mach-omap2/io.c
+> +++ b/arch/arm/mach-omap2/io.c
+> @@ -441,7 +441,7 @@ u16 omap_readw(u32 pa)
+> =A0}
+> =A0EXPORT_SYMBOL(omap_readw);
 >
->
->
+> -u32 omap_readl(u32 pa)
+> +u32 notrace omap_readl(u32 pa)
+> =A0{
+> =A0 =A0 =A0 =A0return __raw_readl(OMAP2_L4_IO_ADDRESS(pa));
+> =A0}
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+> 1.7.4.1
+>
 >
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
