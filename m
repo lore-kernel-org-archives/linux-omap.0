@@ -1,55 +1,87 @@
-From: Koen Kooi <koen@dominion.thruhere.net>
-Subject: Re: [GIT PULL] omap updates for 2.6.40
-Date: Fri, 27 May 2011 14:22:02 +0200
-Message-ID: <F1227659-7B2E-4DAE-A160-9B64CE275FE6@dominion.thruhere.net>
-References: <20110526113905.GG27250@atomide.com> <9741DC43-3197-4ECE-A377-FA865A3F6710@dominion.thruhere.net> <20110527063304.GA27962@atomide.com> <20110527110416.GG27962@atomide.com>
-Mime-Version: 1.0 (Apple Message framework v1084)
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCHv2 2/2] OMAP: add omap_device_reset()
+Date: Fri, 27 May 2011 14:38:53 +0200
+Message-ID: <4DDF9B5D.7060408@ti.com>
+References: <1306481908-7386-1-git-send-email-tomi.valkeinen@ti.com> <1306481908-7386-3-git-send-email-tomi.valkeinen@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:33374 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751397Ab1E0MWH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 May 2011 08:22:07 -0400
-In-Reply-To: <20110527110416.GG27962@atomide.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:55756 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751397Ab1E0MjA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 May 2011 08:39:00 -0400
+In-Reply-To: <1306481908-7386-3-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
+Cc: "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
+Hi Tomi,
 
-Op 27 mei 2011, om 13:04 heeft Tony Lindgren het volgende geschreven:
+On 5/27/2011 9:38 AM, Valkeinen, Tomi wrote:
+> Add omap_device_reset() function which can be used to reset the hwmods
+> associated with the given platform device.
 
-> * Tony Lindgren <tony@atomide.com> [110527 09:29]:
->> * Koen Kooi <koen@dominion.thruhere.net> [110526 19:02]:
->>> 
->>> Op 26 mei 2011, om 13:39 heeft Tony Lindgren het volgende geschreven:
->>> 
->>>> Hi Linus,
->>>> 
->>>> Please pull omap updates for this merge window from:
->>>> 
->>>> git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-for-linus
->>>> 
->>>> This contains clean-up to shrink down omap specific code a bit. Also included
->>>> are some fixes. But basically no new code at this point.
->>> 
->>> What about updates to board files? Like adding support for the xM rev C to board-omap3beagle.c.
->> 
->> Sorry we're doing only code coalescing and fixes for this merge window as
->> discussed on LAKML. Otherwise it's hard to see the code coalescing in the
->> diffstats, so new code will need to wait a bit.
->> 
->> I'll take a look and see if we can justify some fix like trivial patches
->> like the revision detection patches during the -rc cycle.
-> 
-> Koen, the patch above needs to be refreshed to apply to current mainline
-> kernel. It also seems to contain some whitespace errors.
-> 
-> Care to refresh it and repost?
+We've never exposed it because we are trying to avoid that any driver 
+play with asynchronous HW reset. That can lead to undefined HW behavior :-(
 
-I'm refreshing it right now and will after testing.
+Do you have some strong need for that?
 
-regards,
+Regards,
+Benoit
 
-Koen
+>
+> Signed-off-by: Tomi Valkeinen<tomi.valkeinen@ti.com>
+> ---
+>   arch/arm/plat-omap/include/plat/omap_device.h |    1 +
+>   arch/arm/plat-omap/omap_device.c              |   23 +++++++++++++++++++++++
+>   2 files changed, 24 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/plat-omap/include/plat/omap_device.h b/arch/arm/plat-omap/include/plat/omap_device.h
+> index 70d31d0..bcf1b35 100644
+> --- a/arch/arm/plat-omap/include/plat/omap_device.h
+> +++ b/arch/arm/plat-omap/include/plat/omap_device.h
+> @@ -108,6 +108,7 @@ int omap_device_align_pm_lat(struct platform_device *pdev,
+>   			     u32 new_wakeup_lat_limit);
+>   struct powerdomain *omap_device_get_pwrdm(struct omap_device *od);
+>   int omap_device_get_context_loss_count(struct platform_device *pdev);
+> +int omap_device_reset(struct platform_device *pdev);
+>
+>   /* Other */
+>
+> diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
+> index 9753f71..4e6fc1b 100644
+> --- a/arch/arm/plat-omap/omap_device.c
+> +++ b/arch/arm/plat-omap/omap_device.c
+> @@ -324,6 +324,29 @@ int omap_device_get_context_loss_count(struct platform_device *pdev)
+>   }
+>
+>   /**
+> + * omap_device_reset - reset hwmods of given device
+> + * @pdev: struct platform_device *
+> + *
+> + * Reset all hwmods associated with the given device. If a reset of a hwmod
+> + * fails the rest of the hwmods are skipped and the error is returned.
+> + */
+> +int omap_device_reset(struct platform_device *pdev)
+> +{
+> +	struct omap_device *od;
+> +	int i, r;
+> +
+> +	od = _find_by_pdev(pdev);
+> +
+> +	for (i = 0; i<  od->hwmods_cnt; i++) {
+> +		r = omap_hwmod_reset(od->hwmods[i]);
+> +		if (r)
+> +			return r;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +/**
+>    * omap_device_count_resources - count number of struct resource entries needed
+>    * @od: struct omap_device *
+>    *
+
