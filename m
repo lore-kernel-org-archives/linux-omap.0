@@ -1,52 +1,142 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PM-WIP_CPUFREQ][PATCH v4 0/4] Cleanups for cpufreq
-Date: Thu, 26 May 2011 19:39:16 -0700
-Message-ID: <1306463960-27340-1-git-send-email-nm@ti.com>
+Subject: [PM-WIP_CPUFREQ][PATCH v4 1/4] OMAP2+: cpufreq: dont support !freq_table
+Date: Thu, 26 May 2011 19:39:17 -0700
+Message-ID: <1306463960-27340-2-git-send-email-nm@ti.com>
+References: <1306463960-27340-1-git-send-email-nm@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:43113 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752974Ab1E0Cj3 (ORCPT
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:37604 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753085Ab1E0Cjd (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 26 May 2011 22:39:29 -0400
-Received: by mail-gy0-f181.google.com with SMTP id 4so674767gyh.12
-        for <linux-omap@vger.kernel.org>; Thu, 26 May 2011 19:39:28 -0700 (PDT)
+	Thu, 26 May 2011 22:39:33 -0400
+Received: by yxh35 with SMTP id 35so659330yxh.36
+        for <linux-omap@vger.kernel.org>; Thu, 26 May 2011 19:39:31 -0700 (PDT)
+In-Reply-To: <1306463960-27340-1-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
 Cc: Kevin <khilman@ti.com>, Nishanth Menon <nm@ti.com>
 
-Rev 4 of cleanups for cpufreq to take care of the review comments on
-the remaining rev3 patches.
+OMAP2+ all have frequency tables, hence the hacks we had for older
+silicon do not need to be carried forward. As part of this change,
+use cpufreq_frequency_table_target to find the best match for
+frequency requested.
 
-Applies on top of:
-git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git
-branch: pm-wip/cpufreq
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+ arch/arm/mach-omap2/omap2plus-cpufreq.c |   67 +++++++++++++++----------------
+ 1 files changed, 33 insertions(+), 34 deletions(-)
 
-Tested on SDP4430 - with a TI internal loadgenerator controlled on each cpu
-while online/offline of cpu1 and using all governors. (Used a forked dvfs
-for testing purposes)
+diff --git a/arch/arm/mach-omap2/omap2plus-cpufreq.c b/arch/arm/mach-omap2/omap2plus-cpufreq.c
+index 33a91ec..acf18e8 100644
+--- a/arch/arm/mach-omap2/omap2plus-cpufreq.c
++++ b/arch/arm/mach-omap2/omap2plus-cpufreq.c
+@@ -38,8 +38,6 @@
+ 
+ #include <mach/hardware.h>
+ 
+-#define VERY_HI_RATE	900000000
+-
+ static struct cpufreq_frequency_table *freq_table;
+ static struct clk *mpu_clk;
+ static char *mpu_clk_name;
+@@ -47,20 +45,9 @@ static struct device *mpu_dev;
+ 
+ static int omap_verify_speed(struct cpufreq_policy *policy)
+ {
+-	if (freq_table)
+-		return cpufreq_frequency_table_verify(policy, freq_table);
+-
+-	if (policy->cpu)
++	if (!freq_table)
+ 		return -EINVAL;
+-
+-	cpufreq_verify_within_limits(policy, policy->cpuinfo.min_freq,
+-				     policy->cpuinfo.max_freq);
+-
+-	policy->min = clk_round_rate(mpu_clk, policy->min * 1000) / 1000;
+-	policy->max = clk_round_rate(mpu_clk, policy->max * 1000) / 1000;
+-	cpufreq_verify_within_limits(policy, policy->cpuinfo.min_freq,
+-				     policy->cpuinfo.max_freq);
+-	return 0;
++	return cpufreq_frequency_table_verify(policy, freq_table);
+ }
+ 
+ static unsigned int omap_getspeed(unsigned int cpu)
+@@ -78,22 +65,35 @@ static int omap_target(struct cpufreq_policy *policy,
+ 		       unsigned int target_freq,
+ 		       unsigned int relation)
+ {
+-	int i, ret = 0;
++	unsigned int i;
++	int ret = 0;
+ 	struct cpufreq_freqs freqs;
+ 
+ 	/* Changes not allowed until all CPUs are online */
+ 	if (is_smp() && (num_online_cpus() < NR_CPUS))
+ 		return ret;
+ 
+-	/* Ensure desired rate is within allowed range.  Some govenors
+-	 * (ondemand) will just pass target_freq=0 to get the minimum. */
+-	if (target_freq < policy->min)
+-		target_freq = policy->min;
+-	if (target_freq > policy->max)
+-		target_freq = policy->max;
++	if (!freq_table) {
++		dev_err(mpu_dev, "%s: cpu%d: no freq table!\n", __func__,
++				policy->cpu);
++		return -EINVAL;
++	}
++
++	ret = cpufreq_frequency_table_target(policy, freq_table, target_freq,
++			relation, &i);
++	if (ret) {
++		dev_dbg(mpu_dev, "%s: cpu%d: no freq match for %d(ret=%d)\n",
++			__func__, policy->cpu, target_freq, ret);
++		return ret;
++	}
++	freqs.new = freq_table[i].frequency;
++	if (!freqs.new) {
++		dev_err(mpu_dev, "%s: cpu%d: no match for freq %d\n", __func__,
++			policy->cpu, target_freq);
++		return -EINVAL;
++	}
+ 
+ 	freqs.old = omap_getspeed(policy->cpu);
+-	freqs.new = clk_round_rate(mpu_clk, target_freq * 1000) / 1000;
+ 	freqs.cpu = policy->cpu;
+ 
+ 	if (freqs.old == freqs.new)
+@@ -166,19 +166,18 @@ static int __cpuinit omap_cpu_init(struct cpufreq_policy *policy)
+ 		return -EINVAL;
+ 
+ 	policy->cur = policy->min = policy->max = omap_getspeed(policy->cpu);
+-	opp_init_cpufreq_table(mpu_dev, &freq_table);
+-
+-	if (freq_table) {
+-		result = cpufreq_frequency_table_cpuinfo(policy, freq_table);
+-		if (!result)
+-			cpufreq_frequency_table_get_attr(freq_table,
+-							policy->cpu);
+-	} else {
+-		policy->cpuinfo.min_freq = clk_round_rate(mpu_clk, 0) / 1000;
+-		policy->cpuinfo.max_freq = clk_round_rate(mpu_clk,
+-							VERY_HI_RATE) / 1000;
++	result = opp_init_cpufreq_table(mpu_dev, &freq_table);
++
++	if (result) {
++		dev_err(mpu_dev, "%s: cpu%d: failed creating freq table[%d]\n",
++				__func__, policy->cpu, result);
++		return result;
+ 	}
+ 
++	result = cpufreq_frequency_table_cpuinfo(policy, freq_table);
++	if (!result)
++		cpufreq_frequency_table_get_attr(freq_table, policy->cpu);
++
+ 	policy->min = policy->cpuinfo.min_freq;
+ 	policy->max = policy->cpuinfo.max_freq;
+ 	policy->cur = omap_getspeed(policy->cpu);
+-- 
+1.7.1
 
-Patch 4 Depends on: http://marc.info/?t=130630947000002&r=1&w=2
-v4: changes:
-	* we drop omap2 code for clk_init/exit and expect omap2 be
-	supported once we get OPP/wrapper function to give us that
-	function (http://marc.info/?l=linux-omap&m=130644155723048&w=2)
-	* Dropped  the mutex infavor of atomic
-	(http://marc.info/?l=linux-omap&m=130643487913294&w=2)
-
-v3: http://marc.info/?l=linux-omap&m=130636674200733&w=2
-v2: http://marc.info/?l=linux-omap&m=130570427214357&w=2
-V1: http://marc.info/?l=linux-omap&m=130532085617487&w=2
-
-Nishanth Menon (4):
-  OMAP2+: cpufreq: dont support !freq_table
-  OMAP2+: cpufreq: use OPP library
-  OMAP2+: cpufreq: put clk if cpu_init failed
-  OMAP2+: cpufreq: fix freq_table leak
-
- arch/arm/mach-omap2/Makefile            |    4 +-
- arch/arm/mach-omap2/omap2plus-cpufreq.c |  103 ++++++++++++++++++------------
- 2 files changed, 64 insertions(+), 43 deletions(-)
-
-Regards,
-Nishanth Menon
