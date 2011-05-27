@@ -1,52 +1,59 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] omap updates for 2.6.40
-Date: Fri, 27 May 2011 14:04:19 +0300
-Message-ID: <20110527110416.GG27962@atomide.com>
-References: <20110526113905.GG27250@atomide.com>
- <9741DC43-3197-4ECE-A377-FA865A3F6710@dominion.thruhere.net>
- <20110527063304.GA27962@atomide.com>
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: Re: [PATCH] free rev gpios when they are read, so others can read
+ them later
+Date: Fri, 27 May 2011 14:28:09 +0300
+Message-ID: <4DDF8AC9.60709@compulab.co.il>
+References: <1306438716-68265-1-git-send-email-tasskjapp@gmail.com> <2DCF0893-4166-4604-887B-EDBC3643290A@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:14764 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751511Ab1E0LEZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 May 2011 07:04:25 -0400
-Content-Disposition: inline
-In-Reply-To: <20110527063304.GA27962@atomide.com>
+Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:36910
+	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752757Ab1E0L2K convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 27 May 2011 07:28:10 -0400
+In-Reply-To: <2DCF0893-4166-4604-887B-EDBC3643290A@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Koen Kooi <koen@dominion.thruhere.net>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Tasslehoff Kjappfot <tasskjapp@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [110527 09:29]:
-> * Koen Kooi <koen@dominion.thruhere.net> [110526 19:02]:
-> > 
-> > Op 26 mei 2011, om 13:39 heeft Tony Lindgren het volgende geschreven:
-> > 
-> > > Hi Linus,
-> > > 
-> > > Please pull omap updates for this merge window from:
-> > > 
-> > > git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-for-linus
-> > > 
-> > > This contains clean-up to shrink down omap specific code a bit. Also included
-> > > are some fixes. But basically no new code at this point.
-> > 
-> > What about updates to board files? Like adding support for the xM rev C to board-omap3beagle.c.
-> 
-> Sorry we're doing only code coalescing and fixes for this merge window as
-> discussed on LAKML. Otherwise it's hard to see the code coalescing in the
-> diffstats, so new code will need to wait a bit.
-> 
-> I'll take a look and see if we can justify some fix like trivial patches
-> like the revision detection patches during the -rc cycle.
+Hi Tasslehoff,
 
-Koen, the patch above needs to be refreshed to apply to current mainline
-kernel. It also seems to contain some whitespace errors.
+On 05/26/11 22:59, Tasslehoff Kjappfot wrote:
+> A script of mine that reads the rev gpios on the beagleboard started =
+failing when I upgraded to .37, since board-omap3beagle.c doesn=B4t fre=
+e the rev gpios after using them.
+>
+> Signed-off-by: Tasslehoff Kjappfot <tasskjapp@gmail.com>
+> ---
+> arch/arm/mach-omap2/board-omap3beagle.c |    3 +++
+> 1 files changed, 3 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-=
+omap2/board-omap3beagle.c
+> index 3ff3a2c..8a4ac43 100644
+> --- a/arch/arm/mach-omap2/board-omap3beagle.c
+> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
+> @@ -106,6 +106,9 @@ static void __init omap3_beagle_init_rev(void)
+> 	beagle_rev =3D gpio_get_value(171) | (gpio_get_value(172) << 1)
+> 			| (gpio_get_value(173) << 2);
+>
+> +        gpio_free_array(omap3_beagle_rev_gpios,
+> +                        ARRAY_SIZE(omap3_beagle_rev_gpios));
+> +
 
-Care to refresh it and repost?
+To be consistent with the rest of the file,
+can the white space here be "tabs" instead of spaces?
 
-Thanks,
 
-Tony
+--=20
+Regards,
+Igor.
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
