@@ -1,44 +1,73 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 0/3] Some omap_device/hwmod/pwrdomain patches
-Date: Fri, 27 May 2011 07:57:23 -0700
-Message-ID: <874o4g6vjg.fsf@ti.com>
-References: <1306428307-1360-1-git-send-email-tomi.valkeinen@ti.com>
-	<87ipsxfjyd.fsf@ti.com> <1306474266.1905.8.camel@deskari>
+Subject: Re: [RFC][PATCH 3/9] OMAP4460: HWMOD: DO not reset GPIO1 during HWMOD init
+Date: Fri, 27 May 2011 07:59:23 -0700
+Message-ID: <87vcww5gvo.fsf@ti.com>
+References: <1306375016-707-1-git-send-email-nm@ti.com>
+	<1306375016-707-4-git-send-email-nm@ti.com> <87oc2p82q0.fsf@ti.com>
+	<4DDF4E4D.6060008@ti.com>
+	<BANLkTi=dHknRn5KJSh3_bG-o19BUg2AjrA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:55055 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751370Ab1E0O51 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 27 May 2011 10:57:27 -0400
-Received: by mail-pv0-f174.google.com with SMTP id 12so805955pvg.19
-        for <linux-omap@vger.kernel.org>; Fri, 27 May 2011 07:57:26 -0700 (PDT)
-In-Reply-To: <1306474266.1905.8.camel@deskari> (Tomi Valkeinen's message of
-	"Fri, 27 May 2011 08:31:06 +0300")
+Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:42080 "EHLO
+	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751525Ab1E0O70 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 27 May 2011 10:59:26 -0400
+Received: by mail-pv0-f179.google.com with SMTP id 33so830117pvf.10
+        for <linux-omap@vger.kernel.org>; Fri, 27 May 2011 07:59:25 -0700 (PDT)
+In-Reply-To: <BANLkTi=dHknRn5KJSh3_bG-o19BUg2AjrA@mail.gmail.com> (Govindraj's
+	message of "Fri, 27 May 2011 12:56:30 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Govindraj <govindraj.ti@gmail.com>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, "Menon, Nishanth" <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "Sonasath, Moiz" <m-sonasath@ti.com>
 
-Tomi Valkeinen <tomi.valkeinen@ti.com> writes:
+Govindraj <govindraj.ti@gmail.com> writes:
 
-[...]
+> On Fri, May 27, 2011 at 12:40 PM, Cousson, Benoit <b-cousson@ti.com> =
+wrote:
+>
+>     On 5/27/2011 1:24 AM, Hilman, Kevin wrote:
+>
+>         Nishanth Menon<nm@ti.com> =C2=A0writes:
+>
+>
+>             From: Moiz Sonasath<m-sonasath@ti.com>
+>
+>             For OMAP4460, GPIO-7 of bank1 is used for controling
+>             the TPS modes, hence GPIO1 should not be reset
+>             during init as reset will cause the TPS voltage to
+>             drop to 0.9 V.
+>
+>
+>         ouch. =C2=A0I knew one of these days something like this was =
+going to happen
+>         with GPIO resets.
+>
+>
+>     BTW, don't we have the same kind of issue with the debug UART? I =
+remember
+>     that you had to do some hacks at some point to change these hwmod=
+ flags in
+>     the UART code.
+>
+>
+> Yes. we use below flags.
+>
+> uart->oh->flags |=3D HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET;
+>
 
->
->> This isn't something in general that drivers should be aware of, so I'd
->> rather not see this exposed to drivers (unless there's a real need.)
->
-> Ok, I'll drop the patch. I don't think there's any need for this in DSS.
->
->> As soon as I finish the move to device power domains (hopefully for
->> 2.6.41), the driver's callbacks will only be called if the device has
->> lost context, so checking for context loss will not be needed at all at
->> the driver level.
->
-> This sounds good. Runtime PM's suspend & resume callbacks or something
-> else? 
-
-Runtime PM callbacks.
+This is a hack (written by me) because the UART driver is not runtime P=
+M
+adapted.  When UART driver is runtime PM adapted, this will not be
+needed.
 
 Kevin
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
