@@ -1,100 +1,95 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PM-WIP_CPUFREQ][PATCH v4 4/4] OMAP2+: cpufreq: fix freq_table leak
-Date: Thu, 26 May 2011 19:39:20 -0700
-Message-ID: <1306463960-27340-5-git-send-email-nm@ti.com>
-References: <1306463960-27340-1-git-send-email-nm@ti.com>
+From: Todd Poynor <toddpoynor@google.com>
+Subject: [PATCH pm_wip/voltdm_nm] ARM: OMAP: Explicitly mask VPVOLTAGE field
+Date: Thu, 26 May 2011 20:03:46 -0700
+Message-ID: <20110527030346.GA2720@google.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:53811 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753349Ab1E0Cjn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 26 May 2011 22:39:43 -0400
-Received: by mail-yi0-f52.google.com with SMTP id 10so758232yih.25
-        for <linux-omap@vger.kernel.org>; Thu, 26 May 2011 19:39:42 -0700 (PDT)
-In-Reply-To: <1306463960-27340-1-git-send-email-nm@ti.com>
+Received: from smtp-out.google.com ([74.125.121.67]:30666 "EHLO
+	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753074Ab1E0DDx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 May 2011 23:03:53 -0400
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
-Cc: Kevin <khilman@ti.com>, Nishanth Menon <nm@ti.com>
+To: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org
 
-We use a single frequency table for multiple CPUs. But, with
-OMAP4, since we have multiple CPUs, the cpu_init call for CPU1
-causes freq_table previously allocated for CPU0 to be overwritten.
-In addition, we dont free the table on exit path.
+Reading the VPVOLTAGE field of PRM_VP_*_VOLTAGE registers currently
+relies on a u32 -> u8 conversion to mask off the FORCEUPDATEWAIT field
+in the upper bits.  Make this explicit using the mask and shift symbols
+already defined, added as new fields in struct omap_vp_common.
 
-We solve this by maintaining an atomic type counter to ensure
-just a single table exists at a given time.
-
-Signed-off-by: Nishanth Menon <nm@ti.com>
+Signed-off-by: Todd Poynor <toddpoynor@google.com>
 ---
+ arch/arm/mach-omap2/vp.c          |    3 ++-
+ arch/arm/mach-omap2/vp.h          |    4 ++++
+ arch/arm/mach-omap2/vp3xxx_data.c |    3 +++
+ arch/arm/mach-omap2/vp44xx_data.c |    2 ++
+ 4 files changed, 11 insertions(+), 1 deletions(-)
 
-NOTE: Depends on: http://marc.info/?t=130630947000002&r=1&w=2
-
- arch/arm/mach-omap2/omap2plus-cpufreq.c |   16 ++++++++++++++--
- 1 files changed, 14 insertions(+), 2 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/omap2plus-cpufreq.c b/arch/arm/mach-omap2/omap2plus-cpufreq.c
-index 40b2a7c..e101737 100644
---- a/arch/arm/mach-omap2/omap2plus-cpufreq.c
-+++ b/arch/arm/mach-omap2/omap2plus-cpufreq.c
-@@ -39,6 +39,7 @@
- #include <mach/hardware.h>
- 
- static struct cpufreq_frequency_table *freq_table;
-+static atomic_t freq_table_users = ATOMIC_INIT(0);
- static struct clk *mpu_clk;
- static char *mpu_clk_name;
- static struct device *mpu_dev;
-@@ -153,6 +154,12 @@ skip_lpj:
- 	return ret;
- }
- 
-+static inline void freq_table_free(void)
-+{
-+	if (atomic_dec_and_test(&freq_table_users))
-+		opp_free_cpufreq_table(mpu_dev, &freq_table);
-+}
-+
- static int __cpuinit omap_cpu_init(struct cpufreq_policy *policy)
- {
- 	int result = 0;
-@@ -168,7 +175,9 @@ static int __cpuinit omap_cpu_init(struct cpufreq_policy *policy)
+diff --git a/arch/arm/mach-omap2/vp.c b/arch/arm/mach-omap2/vp.c
+index e7d38f6..c3b7fde 100644
+--- a/arch/arm/mach-omap2/vp.c
++++ b/arch/arm/mach-omap2/vp.c
+@@ -227,7 +227,8 @@ unsigned long omap_vp_get_curr_volt(struct voltagedomain *voltdm)
+ 		return 0;
  	}
  
- 	policy->cur = policy->min = policy->max = omap_getspeed(policy->cpu);
--	result = opp_init_cpufreq_table(mpu_dev, &freq_table);
+-	curr_vsel = voltdm->read(vp->voltage);
++	curr_vsel = (voltdm->read(vp->voltage) & vp->common->vpvoltage_mask)
++		>> vp->common->vpvoltage_shift;
+ 
+ 	if (!voltdm->pmic || !voltdm->pmic->vsel_to_uv) {
+ 		pr_warning("%s: PMIC function to convert vsel to voltage"
+diff --git a/arch/arm/mach-omap2/vp.h b/arch/arm/mach-omap2/vp.h
+index 0d63267..cb62a7b 100644
+--- a/arch/arm/mach-omap2/vp.h
++++ b/arch/arm/mach-omap2/vp.h
+@@ -63,6 +63,8 @@ struct omap_vp_ops {
+  * @vlimitto_vddmin_shift: VDDMIN field shift in PRM_VP*_VLIMITTO reg
+  * @vlimitto_vddmax_shift: VDDMAX field shift in PRM_VP*_VLIMITTO reg
+  * @vlimitto_timeout_shift: TIMEOUT field shift in PRM_VP*_VLIMITTO reg
++ * @vpvoltage_mask: VPVOLTAGE field mask in PRM_VP*_VOLTAGE reg
++ * @vpvoltage_shift: VPVOLTAGE field shift in PRM_VP*_VOLTAGE reg
+  */
+ struct omap_vp_common {
+ 	u32 vpconfig_erroroffset_mask;
+@@ -79,6 +81,8 @@ struct omap_vp_common {
+ 	u8 vlimitto_vddmin_shift;
+ 	u8 vlimitto_vddmax_shift;
+ 	u8 vlimitto_timeout_shift;
++	u8 vpvoltage_mask;
++	u8 vpvoltage_shift;
+ 
+ 	const struct omap_vp_ops *ops;
+ };
+diff --git a/arch/arm/mach-omap2/vp3xxx_data.c b/arch/arm/mach-omap2/vp3xxx_data.c
+index d429c44..0b149e0 100644
+--- a/arch/arm/mach-omap2/vp3xxx_data.c
++++ b/arch/arm/mach-omap2/vp3xxx_data.c
+@@ -51,6 +51,9 @@ static const struct omap_vp_common omap3_vp_common = {
+ 	.vlimitto_vddmin_shift = OMAP3430_VDDMIN_SHIFT,
+ 	.vlimitto_vddmax_shift = OMAP3430_VDDMAX_SHIFT,
+ 	.vlimitto_timeout_shift = OMAP3430_TIMEOUT_SHIFT,
++	.vpvoltage_mask = OMAP3430_VPVOLTAGE_MASK,
++	.vpvoltage_shift = OMAP3430_VPVOLTAGE_SHIFT,
 +
-+	if (atomic_inc_return(&freq_table_users) == 1)
-+		result = opp_init_cpufreq_table(mpu_dev, &freq_table);
+ 	.ops = &omap3_vp_ops,
+ };
  
- 	if (result) {
- 		dev_err(mpu_dev, "%s: cpu%d: failed creating freq table[%d]\n",
-@@ -180,7 +189,7 @@ static int __cpuinit omap_cpu_init(struct cpufreq_policy *policy)
- 	if (!result)
- 		cpufreq_frequency_table_get_attr(freq_table, policy->cpu);
- 	else
--		goto fail_ck;
-+		goto fail_table;
+diff --git a/arch/arm/mach-omap2/vp44xx_data.c b/arch/arm/mach-omap2/vp44xx_data.c
+index 0daf2a4..174d6f7 100644
+--- a/arch/arm/mach-omap2/vp44xx_data.c
++++ b/arch/arm/mach-omap2/vp44xx_data.c
+@@ -51,6 +51,8 @@ static const struct omap_vp_common omap4_vp_common = {
+ 	.vlimitto_vddmin_shift = OMAP4430_VDDMIN_SHIFT,
+ 	.vlimitto_vddmax_shift = OMAP4430_VDDMAX_SHIFT,
+ 	.vlimitto_timeout_shift = OMAP4430_TIMEOUT_SHIFT,
++	.vpvoltage_mask = OMAP4430_VPVOLTAGE_MASK,
++	.vpvoltage_shift = OMAP4430_VPVOLTAGE_SHIFT,
+ 	.ops = &omap4_vp_ops,
+ };
  
- 	policy->min = policy->cpuinfo.min_freq;
- 	policy->max = policy->cpuinfo.max_freq;
-@@ -204,6 +213,8 @@ static int __cpuinit omap_cpu_init(struct cpufreq_policy *policy)
- 
- 	return 0;
- 
-+fail_table:
-+	freq_table_free();
- fail_ck:
- 	clk_put(mpu_clk);
- 	return result;
-@@ -211,6 +222,7 @@ fail_ck:
- 
- static int omap_cpu_exit(struct cpufreq_policy *policy)
- {
-+	freq_table_free();
- 	clk_put(mpu_clk);
- 	return 0;
- }
 -- 
-1.7.1
+1.7.3.1
 
