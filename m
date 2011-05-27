@@ -1,55 +1,42 @@
 From: Kevin Hilman <khilman@ti.com>
 Subject: Re: [RFC][PATCH 3/9] OMAP4460: HWMOD: DO not reset GPIO1 during HWMOD init
-Date: Fri, 27 May 2011 12:35:41 -0700
-Message-ID: <87zkm8x7g2.fsf@ti.com>
+Date: Fri, 27 May 2011 12:38:21 -0700
+Message-ID: <87oc2ox7bm.fsf@ti.com>
 References: <1306375016-707-1-git-send-email-nm@ti.com>
 	<1306375016-707-4-git-send-email-nm@ti.com> <87oc2p82q0.fsf@ti.com>
 	<4DDF4E4D.6060008@ti.com>
-	<BANLkTi=dHknRn5KJSh3_bG-o19BUg2AjrA@mail.gmail.com>
-	<87vcww5gvo.fsf@ti.com> <4DDFBDE6.1020606@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:50321 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752847Ab1E0Tfo (ORCPT
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:52518 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756470Ab1E0TiY (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 27 May 2011 15:35:44 -0400
-Received: by mail-pz0-f50.google.com with SMTP id 2so938859pzk.9
-        for <linux-omap@vger.kernel.org>; Fri, 27 May 2011 12:35:43 -0700 (PDT)
-In-Reply-To: <4DDFBDE6.1020606@ti.com> (Benoit Cousson's message of "Fri, 27
-	May 2011 17:06:14 +0200")
+	Fri, 27 May 2011 15:38:24 -0400
+Received: by mail-pz0-f54.google.com with SMTP id 27so1162877pzk.41
+        for <linux-omap@vger.kernel.org>; Fri, 27 May 2011 12:38:23 -0700 (PDT)
+In-Reply-To: <4DDF4E4D.6060008@ti.com> (Benoit Cousson's message of "Fri, 27
+	May 2011 09:10:05 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: Govindraj <govindraj.ti@gmail.com>, "Menon, Nishanth" <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "Sonasath, Moiz" <m-sonasath@ti.com>
+Cc: "Menon, Nishanth" <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "Sonasath, Moiz" <m-sonasath@ti.com>
 
 "Cousson, Benoit" <b-cousson@ti.com> writes:
 
-> Hi Kevin,
->
-> On 5/27/2011 4:59 PM, Hilman, Kevin wrote:
->> Govindraj<govindraj.ti@gmail.com>  writes:
->
-> [...]
->
->>> uart->oh->flags |= HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET;
->>>
->>
->> This is a hack (written by me) because the UART driver is not runtime PM
->> adapted.  When UART driver is runtime PM adapted, this will not be
->> needed.
->
-> The UART can support reset and idle? There is no assumption for the
-> UART used during the early debug phase?
+[...]
 
-No.  As long as the UART driver is doing runtime PM properly, there are
-no assumptions required.
+> In general we do not want to reset nor idle an IP that was potentially
+> already properly configured by bootloader or early Linux boot code.
+
+Actually, the opposite is true.
+
+The kernel should not make any assumptions about what the bootloader has
+or has not done.  We need to have a kernel that can boot from any
+bootloader (or none, like using kexec) and be able to start from a known
+hardware state.
+
+Any use of HWMOD_INIT_NO_IDLE, HWMOD_INIT_NO_RESET should be a rare
+exception and well documented.
 
 Kevin
-
-> Don't we have to maintain its state?
-> It will be indeed better if we don't have to.
->
-> Regards,
-> Benoit
