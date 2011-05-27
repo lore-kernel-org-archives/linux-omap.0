@@ -1,87 +1,139 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCHv2 2/2] OMAP: add omap_device_reset()
-Date: Fri, 27 May 2011 14:38:53 +0200
-Message-ID: <4DDF9B5D.7060408@ti.com>
-References: <1306481908-7386-1-git-send-email-tomi.valkeinen@ti.com> <1306481908-7386-3-git-send-email-tomi.valkeinen@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Koen Kooi <koen@dominion.thruhere.net>
+Subject: [PATCH v2] OMAP3: beagle: add support for beagleboard xM revision C
+Date: Fri, 27 May 2011 14:40:18 +0200
+Message-ID: <1306500018-19685-1-git-send-email-koen@dominion.thruhere.net>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:55756 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751397Ab1E0MjA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 May 2011 08:39:00 -0400
-In-Reply-To: <1306481908-7386-3-git-send-email-tomi.valkeinen@ti.com>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:37399 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753996Ab1E0MkX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 May 2011 08:40:23 -0400
+Received: by wya21 with SMTP id 21so1216142wya.19
+        for <linux-omap@vger.kernel.org>; Fri, 27 May 2011 05:40:22 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
-Cc: "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: linux-omap@vger.kernel.org
+Cc: jkridner@beagleboard.org, Koen Kooi <koen@dominion.thruhere.net>
 
-Hi Tomi,
+The USB enable GPIO has been inverted again and the USER button moved.
 
-On 5/27/2011 9:38 AM, Valkeinen, Tomi wrote:
-> Add omap_device_reset() function which can be used to reset the hwmods
-> associated with the given platform device.
+Future revisions will now fall back to xM rev C instead of unknown.
 
-We've never exposed it because we are trying to avoid that any driver 
-play with asynchronous HW reset. That can lead to undefined HW behavior :-(
+Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
+---
 
-Do you have some strong need for that?
+Changes since v1:
+	* updated against mainline to take Igors gpio cleanup into account
+	* removed xM rev B checks, no boards with that ID were ever produced, rev B boards show up as rev A
+	* double checked whitespace:
 
-Regards,
-Benoit
+		total: 0 errors, 0 warnings, 89 lines checked
+		patches/0001-OMAP3-beagle-add-support-for-beagleboard-xM-revision.patch has no obvious style problems and is ready for submission.
 
->
-> Signed-off-by: Tomi Valkeinen<tomi.valkeinen@ti.com>
-> ---
->   arch/arm/plat-omap/include/plat/omap_device.h |    1 +
->   arch/arm/plat-omap/omap_device.c              |   23 +++++++++++++++++++++++
->   2 files changed, 24 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/plat-omap/include/plat/omap_device.h b/arch/arm/plat-omap/include/plat/omap_device.h
-> index 70d31d0..bcf1b35 100644
-> --- a/arch/arm/plat-omap/include/plat/omap_device.h
-> +++ b/arch/arm/plat-omap/include/plat/omap_device.h
-> @@ -108,6 +108,7 @@ int omap_device_align_pm_lat(struct platform_device *pdev,
->   			     u32 new_wakeup_lat_limit);
->   struct powerdomain *omap_device_get_pwrdm(struct omap_device *od);
->   int omap_device_get_context_loss_count(struct platform_device *pdev);
-> +int omap_device_reset(struct platform_device *pdev);
->
->   /* Other */
->
-> diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
-> index 9753f71..4e6fc1b 100644
-> --- a/arch/arm/plat-omap/omap_device.c
-> +++ b/arch/arm/plat-omap/omap_device.c
-> @@ -324,6 +324,29 @@ int omap_device_get_context_loss_count(struct platform_device *pdev)
->   }
->
->   /**
-> + * omap_device_reset - reset hwmods of given device
-> + * @pdev: struct platform_device *
-> + *
-> + * Reset all hwmods associated with the given device. If a reset of a hwmod
-> + * fails the rest of the hwmods are skipped and the error is returned.
-> + */
-> +int omap_device_reset(struct platform_device *pdev)
-> +{
-> +	struct omap_device *od;
-> +	int i, r;
-> +
-> +	od = _find_by_pdev(pdev);
-> +
-> +	for (i = 0; i<  od->hwmods_cnt; i++) {
-> +		r = omap_hwmod_reset(od->hwmods[i]);
-> +		if (r)
-> +			return r;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +/**
->    * omap_device_count_resources - count number of struct resource entries needed
->    * @od: struct omap_device *
->    *
+ arch/arm/mach-omap2/board-omap3beagle.c |   31 +++++++++++++++++++++++--------
+ 1 files changed, 23 insertions(+), 8 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index be71426..177769b 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -63,7 +63,9 @@
+  *	AXBX	= GPIO173, GPIO172, GPIO171: 1 1 1
+  *	C1_3	= GPIO173, GPIO172, GPIO171: 1 1 0
+  *	C4	= GPIO173, GPIO172, GPIO171: 1 0 1
+- *	XM	= GPIO173, GPIO172, GPIO171: 0 0 0
++ *	XMA	= GPIO173, GPIO172, GPIO171: 0 0 0
++ *	XMB	= GPIO173, GPIO172, GPIO171: 0 0 1 - unused
++ *	XMC = GPIO173, GPIO172, GPIO171: 0 1 0
+  */
+ enum {
+ 	OMAP3BEAGLE_BOARD_UNKN = 0,
+@@ -71,6 +73,7 @@ enum {
+ 	OMAP3BEAGLE_BOARD_C1_3,
+ 	OMAP3BEAGLE_BOARD_C4,
+ 	OMAP3BEAGLE_BOARD_XM,
++	OMAP3BEAGLE_BOARD_XMC,
+ };
+ 
+ static u8 omap3_beagle_version;
+@@ -123,9 +126,13 @@ static void __init omap3_beagle_init_rev(void)
+ 		printk(KERN_INFO "OMAP3 Beagle Rev: xM\n");
+ 		omap3_beagle_version = OMAP3BEAGLE_BOARD_XM;
+ 		break;
++	case 2:
++		printk(KERN_INFO "OMAP3 Beagle Rev: xM\n");
++		omap3_beagle_version = OMAP3BEAGLE_BOARD_XMC;
++		break;
+ 	default:
+ 		printk(KERN_INFO "OMAP3 Beagle Rev: unknown %hd\n", beagle_rev);
+-		omap3_beagle_version = OMAP3BEAGLE_BOARD_UNKN;
++		omap3_beagle_version = OMAP3BEAGLE_BOARD_XMC;
+ 	}
+ }
+ 
+@@ -253,7 +260,7 @@ static int beagle_twl_gpio_setup(struct device *dev,
+ {
+ 	int r, usb_pwr_level;
+ 
+-	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM) {
++	if (cpu_is_omap3630()) {
+ 		mmc[0].gpio_wp = -EINVAL;
+ 	} else if ((omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_C1_3) ||
+ 		(omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_C4)) {
+@@ -275,11 +282,10 @@ static int beagle_twl_gpio_setup(struct device *dev,
+ 	 * high / others active low)
+ 	 * DVI reset GPIO is different between beagle revisions
+ 	 */
+-	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM) {
+-		usb_pwr_level = GPIOF_OUT_INIT_HIGH;
++	if (cpu_is_omap3630()) {
+ 		beagle_dvi_device.reset_gpio = 129;
+ 		/*
+-		 * gpio + 1 on Xm controls the TFP410's enable line (active low)
++		 * gpio + 1 on xM controls the TFP410's enable line (active low)
+ 		 * gpio + 2 control varies depending on the board rev as below:
+ 		 * P7/P8 revisions(prototype): Camera EN
+ 		 * A2+ revisions (production): LDO (DVI, serial, led blocks)
+@@ -295,7 +301,6 @@ static int beagle_twl_gpio_setup(struct device *dev,
+ 			pr_err("%s: unable to configure DVI_LDO_EN\n",
+ 				__func__);
+ 	} else {
+-		usb_pwr_level = GPIOF_OUT_INIT_LOW;
+ 		beagle_dvi_device.reset_gpio = 170;
+ 		/*
+ 		 * REVISIT: need ehci-omap hooks for external VBUS
+@@ -305,6 +310,12 @@ static int beagle_twl_gpio_setup(struct device *dev,
+ 			pr_err("%s: unable to configure EHCI_nOC\n", __func__);
+ 	}
+ 
++	/* Only xM rev A and xM rev B use active high */
++	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM)
++		usb_pwr_level = GPIOF_OUT_INIT_HIGH;
++	else
++		usb_pwr_level = GPIOF_OUT_INIT_LOW;
++
+ 	gpio_request_one(gpio + TWL4030_GPIO_MAX, usb_pwr_level, "nEN_USB_PWR");
+ 
+ 	/* TWL4030_GPIO_MAX + 1 == ledB, PMU_STAT (out, active low LED) */
+@@ -525,7 +536,7 @@ static void __init beagle_opp_init(void)
+ 	}
+ 
+ 	/* Custom OPP enabled for XM */
+-	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM) {
++	if (cpu_is_omap3630()) {
+ 		struct omap_hwmod *mh = omap_hwmod_lookup("mpu");
+ 		struct omap_hwmod *dh = omap_hwmod_lookup("iva");
+ 		struct device *dev;
+@@ -565,6 +576,10 @@ static void __init omap3_beagle_init(void)
+ 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+ 	omap3_beagle_init_rev();
+ 	omap3_beagle_i2c_init();
++
++	if (cpu_is_omap3630())
++			gpio_buttons[0].gpio = 4;
++
+ 	platform_add_devices(omap3_beagle_devices,
+ 			ARRAY_SIZE(omap3_beagle_devices));
+ 	omap_display_init(&beagle_dss_data);
+-- 
+1.6.6.1
 
