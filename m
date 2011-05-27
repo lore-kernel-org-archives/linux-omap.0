@@ -1,139 +1,114 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PM-WIP_CPUFREQ][PATCH 0/6 V3] Cleanups for cpufreq
-Date: Fri, 27 May 2011 16:27:12 -0700
-Message-ID: <871uzjwwq7.fsf@ti.com>
-References: <1306366733-8439-1-git-send-email-nm@ti.com>
-	<87ipsxcoz0.fsf@ti.com> <4DDF3169.9070503@ti.com>
-	<BANLkTinv3HMBE_FBGWfLvnWyTRM=wXhpxA@mail.gmail.com>
-	<4DDF4424.2000706@ti.com>
-	<BANLkTiktQAt3q=a3-cNaFrTH5UeNH21tmg@mail.gmail.com>
+Subject: Re: [PATCH pm_wip/voltdm_nm] ARM: OMAP: Explicitly mask VPVOLTAGE field
+Date: Fri, 27 May 2011 16:35:43 -0700
+Message-ID: <87ipsvvhrk.fsf@ti.com>
+References: <20110527030346.GA2720@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:54107 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757414Ab1E0X1P convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 27 May 2011 19:27:15 -0400
-Received: by mail-px0-f176.google.com with SMTP id 11so1403129pxi.21
-        for <linux-omap@vger.kernel.org>; Fri, 27 May 2011 16:27:14 -0700 (PDT)
-In-Reply-To: <BANLkTiktQAt3q=a3-cNaFrTH5UeNH21tmg@mail.gmail.com> (Mike
-	Turquette's message of "Fri, 27 May 2011 10:33:39 -0500")
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:52772 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752741Ab1E0Xfr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 27 May 2011 19:35:47 -0400
+Received: by mail-pw0-f49.google.com with SMTP id 8so1166032pwi.36
+        for <linux-omap@vger.kernel.org>; Fri, 27 May 2011 16:35:46 -0700 (PDT)
+In-Reply-To: <20110527030346.GA2720@google.com> (Todd Poynor's message of
+	"Thu, 26 May 2011 20:03:46 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Turquette, Mike" <mturquette@ti.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, "Menon, Nishanth" <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>
+To: Todd Poynor <toddpoynor@google.com>
+Cc: linux-omap@vger.kernel.org
 
-"Turquette, Mike" <mturquette@ti.com> writes:
+Hi Todd,
 
-> On Fri, May 27, 2011 at 1:26 AM, Santosh Shilimkar
-> <santosh.shilimkar@ti.com> wrote:
->> On 5/27/2011 11:37 AM, Menon, Nishanth wrote:
->>>
->>> On Thu, May 26, 2011 at 22:06, Santosh Shilimkar
->>> <santosh.shilimkar@ti.com> =C2=A0wrote:
->>>>
->>>> On 5/26/2011 11:40 PM, Kevin Hilman wrote:
->>>>>
->>>>> So here's a dumb question, being rather ignorant of CPUfreq on SM=
-P.
->>>>>
->>>>> Should we be running a CPUfreq instance on both CPUs when they ca=
-nnot be
->>>>> scaled independently?
->>>>>
->>>>> What is being scaled here is actually the cluster (the MPU SS via
->>>>> dpll_mpu_ck), not an individual CPU. =C2=A0So to me, it only make=
-s sense to
->>>>> have a an instance of the driver per scalable device, which in th=
-is case
->>>>> is a single MPU SS.
->>>>>
->>>> We are running only one instance and for the exact same reason as =
-above.
->>>> You are completely right and that's the whole intention of those
->>>> CPUMASK two lines in the initialization code.
->>>>
->>>>
->>>>> What am I missing?
->>>>>
->>>> Not at all.
->>>
->>> So not have cpufreq driver registered at all for CPU1? Life would b=
-e a
->>> lot simpler in omap2-cpufreq.c as a result. but that said, two view=
-s:
->>> a) future silicon somewhere ahead might need the current
->>> infrastructure to scale into different tables..
->>> b) as far as userspace sees it - cpu0 and cpu1 exists, cool, *but*
->>> cpu1 is not scalable(no /sys/devices/system/cpu/cpu1/cpufreq.. but
->>> .../cpu1/online is present). Keep in mind that userspace is usually
->>> written chip independent. IMHO registering drivers for both devices=
- do
->>> make sense they reflect what the reality of the system is. 2 cpus
->>> scaling together - why do we want to OMAP "specific" stuff here?
->>>
->> It's not OMAP specific Nishant.
->> And this feature is supported by CPUFREQ driver. My Intel machine
->> uses the same exact scheme for CPUFREQ. It's feature provided
->> specifically for hardwares with individual CPU scaling
->> limitation. Instead of CPU's, whole CPU cluster scales
->> together.
->>
->> Both CPU's still have same consistent view of all CPUFREQ controls.
->> But in =C2=A0back-ground, CPU1 is carrying only symbolic links.
->>
->> We make use of "related/affected cpu" feature which is
->> supported by generic CPUFREQ driver. Nothing OMAP-specific
->> here.
->
-> Santosh is referring to this code in our cpufreq driver:
->
->         /*
->          * On OMAP SMP configuartion, both processors share the volta=
-ge
->          * and clock. So both CPUs needs to be scaled together and he=
-nce
->          * needs software co-ordination. Use cpufreq affected_cpus
->          * interface to handle this scenario. Additional is_smp() che=
-ck
->          * is to keep SMP_ON_UP build working.
->          */
->         if (is_smp()) {
->                 policy->shared_type =3D CPUFREQ_SHARED_TYPE_ANY;
->                 cpumask_or(cpumask, cpumask_of(policy->cpu), cpumask)=
-;
->                 cpumask_copy(policy->cpus, cpumask);
->         }
->
-> policy->cpus knows about each CPU now (in fact, due to this you will
-> see /sys/devices/system/cpu/cpu1/cpufreq is in fact a symlink to its
-> cpu0 sibling!)
->
-> This is pretty good in fact, since governors like ondemand take into
-> consideration *all* of the CPUs in policy->cpus:
->
->         /* Get Absolute Load - in terms of freq */
->         max_load_freq =3D 0; <- tracks greatest need across all CPUs
->
->         for_each_cpu(j, policy->cpus) {
->                 ... find max_load_freq ...
->
-> Ultimate effect is that we run a single workqueue only on CPU0
-> (kondemand or whatever) that takes the load characteristics of both
-> CPU0 and CPU1 into account.
+Todd Poynor <toddpoynor@google.com> writes:
 
-OK, makes sense.  Thanks for the description.
+> Reading the VPVOLTAGE field of PRM_VP_*_VOLTAGE registers currently
+> relies on a u32 -> u8 conversion to mask off the FORCEUPDATEWAIT field
+> in the upper bits.  Make this explicit using the mask and shift symbols
+> already defined, added as new fields in struct omap_vp_common.
+>
+> Signed-off-by: Todd Poynor <toddpoynor@google.com>
 
-All of this came up because this series is going through contortions to
-make two CPUfreq registrations only using one freq_table, protect
-against concurrent access from different CPUs etc.,  which led me to
-wonder why we need two registrations.
+Thanks for the patch.  Indeed it's better to make this explict.
+
+Minor nit: we don't need both the mask and the shift defined.  Just add
+the mask, and the code can use __ffs(mask) to get the shift value.  This
+is what I've done in the rest of the VC/VP code.
+
+Also, can you make the subject prefix 'OMAP: VP: ...' 
+
+Thanks,
 
 Kevin
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+> ---
+>  arch/arm/mach-omap2/vp.c          |    3 ++-
+>  arch/arm/mach-omap2/vp.h          |    4 ++++
+>  arch/arm/mach-omap2/vp3xxx_data.c |    3 +++
+>  arch/arm/mach-omap2/vp44xx_data.c |    2 ++
+>  4 files changed, 11 insertions(+), 1 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/vp.c b/arch/arm/mach-omap2/vp.c
+> index e7d38f6..c3b7fde 100644
+> --- a/arch/arm/mach-omap2/vp.c
+> +++ b/arch/arm/mach-omap2/vp.c
+> @@ -227,7 +227,8 @@ unsigned long omap_vp_get_curr_volt(struct voltagedomain *voltdm)
+>  		return 0;
+>  	}
+>  
+> -	curr_vsel = voltdm->read(vp->voltage);
+> +	curr_vsel = (voltdm->read(vp->voltage) & vp->common->vpvoltage_mask)
+> +		>> vp->common->vpvoltage_shift;
+>  
+>  	if (!voltdm->pmic || !voltdm->pmic->vsel_to_uv) {
+>  		pr_warning("%s: PMIC function to convert vsel to voltage"
+> diff --git a/arch/arm/mach-omap2/vp.h b/arch/arm/mach-omap2/vp.h
+> index 0d63267..cb62a7b 100644
+> --- a/arch/arm/mach-omap2/vp.h
+> +++ b/arch/arm/mach-omap2/vp.h
+> @@ -63,6 +63,8 @@ struct omap_vp_ops {
+>   * @vlimitto_vddmin_shift: VDDMIN field shift in PRM_VP*_VLIMITTO reg
+>   * @vlimitto_vddmax_shift: VDDMAX field shift in PRM_VP*_VLIMITTO reg
+>   * @vlimitto_timeout_shift: TIMEOUT field shift in PRM_VP*_VLIMITTO reg
+> + * @vpvoltage_mask: VPVOLTAGE field mask in PRM_VP*_VOLTAGE reg
+> + * @vpvoltage_shift: VPVOLTAGE field shift in PRM_VP*_VOLTAGE reg
+>   */
+>  struct omap_vp_common {
+>  	u32 vpconfig_erroroffset_mask;
+> @@ -79,6 +81,8 @@ struct omap_vp_common {
+>  	u8 vlimitto_vddmin_shift;
+>  	u8 vlimitto_vddmax_shift;
+>  	u8 vlimitto_timeout_shift;
+> +	u8 vpvoltage_mask;
+> +	u8 vpvoltage_shift;
+>  
+>  	const struct omap_vp_ops *ops;
+>  };
+> diff --git a/arch/arm/mach-omap2/vp3xxx_data.c b/arch/arm/mach-omap2/vp3xxx_data.c
+> index d429c44..0b149e0 100644
+> --- a/arch/arm/mach-omap2/vp3xxx_data.c
+> +++ b/arch/arm/mach-omap2/vp3xxx_data.c
+> @@ -51,6 +51,9 @@ static const struct omap_vp_common omap3_vp_common = {
+>  	.vlimitto_vddmin_shift = OMAP3430_VDDMIN_SHIFT,
+>  	.vlimitto_vddmax_shift = OMAP3430_VDDMAX_SHIFT,
+>  	.vlimitto_timeout_shift = OMAP3430_TIMEOUT_SHIFT,
+> +	.vpvoltage_mask = OMAP3430_VPVOLTAGE_MASK,
+> +	.vpvoltage_shift = OMAP3430_VPVOLTAGE_SHIFT,
+> +
+>  	.ops = &omap3_vp_ops,
+>  };
+>  
+> diff --git a/arch/arm/mach-omap2/vp44xx_data.c b/arch/arm/mach-omap2/vp44xx_data.c
+> index 0daf2a4..174d6f7 100644
+> --- a/arch/arm/mach-omap2/vp44xx_data.c
+> +++ b/arch/arm/mach-omap2/vp44xx_data.c
+> @@ -51,6 +51,8 @@ static const struct omap_vp_common omap4_vp_common = {
+>  	.vlimitto_vddmin_shift = OMAP4430_VDDMIN_SHIFT,
+>  	.vlimitto_vddmax_shift = OMAP4430_VDDMAX_SHIFT,
+>  	.vlimitto_timeout_shift = OMAP4430_TIMEOUT_SHIFT,
+> +	.vpvoltage_mask = OMAP4430_VPVOLTAGE_MASK,
+> +	.vpvoltage_shift = OMAP4430_VPVOLTAGE_SHIFT,
+>  	.ops = &omap4_vp_ops,
+>  };
