@@ -1,59 +1,56 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH] free rev gpios when they are read, so others can read
- them later
-Date: Fri, 27 May 2011 14:28:09 +0300
-Message-ID: <4DDF8AC9.60709@compulab.co.il>
-References: <1306438716-68265-1-git-send-email-tasskjapp@gmail.com> <2DCF0893-4166-4604-887B-EDBC3643290A@gmail.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [RFC][PATCH 3/9] OMAP4460: HWMOD: DO not reset GPIO1 during HWMOD
+ init
+Date: Fri, 27 May 2011 14:16:08 +0200
+Message-ID: <4DDF9608.3060401@ti.com>
+References: <1306375016-707-1-git-send-email-nm@ti.com> <1306375016-707-4-git-send-email-nm@ti.com> <87oc2p82q0.fsf@ti.com> <4DDF4E4D.6060008@ti.com> <BANLkTi=dHknRn5KJSh3_bG-o19BUg2AjrA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:36910
-	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752757Ab1E0L2K convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 27 May 2011 07:28:10 -0400
-In-Reply-To: <2DCF0893-4166-4604-887B-EDBC3643290A@gmail.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:59283 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752656Ab1E0MQM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 27 May 2011 08:16:12 -0400
+In-Reply-To: <BANLkTi=dHknRn5KJSh3_bG-o19BUg2AjrA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tasslehoff Kjappfot <tasskjapp@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: Govindraj <govindraj.ti@gmail.com>
+Cc: "Hilman, Kevin" <khilman@ti.com>, "Menon, Nishanth" <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "Sonasath, Moiz" <m-sonasath@ti.com>
 
-Hi Tasslehoff,
-
-On 05/26/11 22:59, Tasslehoff Kjappfot wrote:
-> A script of mine that reads the rev gpios on the beagleboard started =
-failing when I upgraded to .37, since board-omap3beagle.c doesn=B4t fre=
-e the rev gpios after using them.
+On 5/27/2011 9:26 AM, Govindraj wrote:
 >
-> Signed-off-by: Tasslehoff Kjappfot <tasskjapp@gmail.com>
-> ---
-> arch/arm/mach-omap2/board-omap3beagle.c |    3 +++
-> 1 files changed, 3 insertions(+), 0 deletions(-)
+> On Fri, May 27, 2011 at 12:40 PM, Cousson, Benoit <b-cousson@ti.com
+> <mailto:b-cousson@ti.com>> wrote:
 >
-> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-=
-omap2/board-omap3beagle.c
-> index 3ff3a2c..8a4ac43 100644
-> --- a/arch/arm/mach-omap2/board-omap3beagle.c
-> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
-> @@ -106,6 +106,9 @@ static void __init omap3_beagle_init_rev(void)
-> 	beagle_rev =3D gpio_get_value(171) | (gpio_get_value(172) << 1)
-> 			| (gpio_get_value(173) << 2);
+>     On 5/27/2011 1:24 AM, Hilman, Kevin wrote:
 >
-> +        gpio_free_array(omap3_beagle_rev_gpios,
-> +                        ARRAY_SIZE(omap3_beagle_rev_gpios));
-> +
+>         Nishanth Menon<nm@ti.com <mailto:nm@ti.com>>  writes:
+>
+>             From: Moiz Sonasath<m-sonasath@ti.com
+>             <mailto:m-sonasath@ti.com>>
+>
+>             For OMAP4460, GPIO-7 of bank1 is used for controling
+>             the TPS modes, hence GPIO1 should not be reset
+>             during init as reset will cause the TPS voltage to
+>             drop to 0.9 V.
+>
+>
+>         ouch.  I knew one of these days something like this was going to
+>         happen
+>         with GPIO resets.
+>
+>
+>     BTW, don't we have the same kind of issue with the debug UART? I
+>     remember that you had to do some hacks at some point to change these
+>     hwmod flags in the UART code.
+>
+>
+> Yes. we use below flags.
+>
+> uart->oh->flags |= HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET;
 
-To be consistent with the rest of the file,
-can the white space here be "tabs" instead of spaces?
+Yeah, that's ugly... we do have to get rid of that as well using some 
+board settings / API.
 
-
---=20
-Regards,
-Igor.
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Benoit
