@@ -1,56 +1,55 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [RFC][PATCH 3/9] OMAP4460: HWMOD: DO not reset GPIO1 during HWMOD
- init
-Date: Fri, 27 May 2011 14:16:08 +0200
-Message-ID: <4DDF9608.3060401@ti.com>
-References: <1306375016-707-1-git-send-email-nm@ti.com> <1306375016-707-4-git-send-email-nm@ti.com> <87oc2p82q0.fsf@ti.com> <4DDF4E4D.6060008@ti.com> <BANLkTi=dHknRn5KJSh3_bG-o19BUg2AjrA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Koen Kooi <koen@dominion.thruhere.net>
+Subject: Re: [GIT PULL] omap updates for 2.6.40
+Date: Fri, 27 May 2011 14:22:02 +0200
+Message-ID: <F1227659-7B2E-4DAE-A160-9B64CE275FE6@dominion.thruhere.net>
+References: <20110526113905.GG27250@atomide.com> <9741DC43-3197-4ECE-A377-FA865A3F6710@dominion.thruhere.net> <20110527063304.GA27962@atomide.com> <20110527110416.GG27962@atomide.com>
+Mime-Version: 1.0 (Apple Message framework v1084)
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:59283 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752656Ab1E0MQM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 27 May 2011 08:16:12 -0400
-In-Reply-To: <BANLkTi=dHknRn5KJSh3_bG-o19BUg2AjrA@mail.gmail.com>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:33374 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751397Ab1E0MWH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 May 2011 08:22:07 -0400
+In-Reply-To: <20110527110416.GG27962@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Govindraj <govindraj.ti@gmail.com>
-Cc: "Hilman, Kevin" <khilman@ti.com>, "Menon, Nishanth" <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "Sonasath, Moiz" <m-sonasath@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On 5/27/2011 9:26 AM, Govindraj wrote:
->
-> On Fri, May 27, 2011 at 12:40 PM, Cousson, Benoit <b-cousson@ti.com
-> <mailto:b-cousson@ti.com>> wrote:
->
->     On 5/27/2011 1:24 AM, Hilman, Kevin wrote:
->
->         Nishanth Menon<nm@ti.com <mailto:nm@ti.com>>  writes:
->
->             From: Moiz Sonasath<m-sonasath@ti.com
->             <mailto:m-sonasath@ti.com>>
->
->             For OMAP4460, GPIO-7 of bank1 is used for controling
->             the TPS modes, hence GPIO1 should not be reset
->             during init as reset will cause the TPS voltage to
->             drop to 0.9 V.
->
->
->         ouch.  I knew one of these days something like this was going to
->         happen
->         with GPIO resets.
->
->
->     BTW, don't we have the same kind of issue with the debug UART? I
->     remember that you had to do some hacks at some point to change these
->     hwmod flags in the UART code.
->
->
-> Yes. we use below flags.
->
-> uart->oh->flags |= HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET;
 
-Yeah, that's ugly... we do have to get rid of that as well using some 
-board settings / API.
+Op 27 mei 2011, om 13:04 heeft Tony Lindgren het volgende geschreven:
 
-Benoit
+> * Tony Lindgren <tony@atomide.com> [110527 09:29]:
+>> * Koen Kooi <koen@dominion.thruhere.net> [110526 19:02]:
+>>> 
+>>> Op 26 mei 2011, om 13:39 heeft Tony Lindgren het volgende geschreven:
+>>> 
+>>>> Hi Linus,
+>>>> 
+>>>> Please pull omap updates for this merge window from:
+>>>> 
+>>>> git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-for-linus
+>>>> 
+>>>> This contains clean-up to shrink down omap specific code a bit. Also included
+>>>> are some fixes. But basically no new code at this point.
+>>> 
+>>> What about updates to board files? Like adding support for the xM rev C to board-omap3beagle.c.
+>> 
+>> Sorry we're doing only code coalescing and fixes for this merge window as
+>> discussed on LAKML. Otherwise it's hard to see the code coalescing in the
+>> diffstats, so new code will need to wait a bit.
+>> 
+>> I'll take a look and see if we can justify some fix like trivial patches
+>> like the revision detection patches during the -rc cycle.
+> 
+> Koen, the patch above needs to be refreshed to apply to current mainline
+> kernel. It also seems to contain some whitespace errors.
+> 
+> Care to refresh it and repost?
+
+I'm refreshing it right now and will after testing.
+
+regards,
+
+Koen
