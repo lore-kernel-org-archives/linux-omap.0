@@ -1,42 +1,47 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [RFC][PATCH 3/9] OMAP4460: HWMOD: DO not reset GPIO1 during HWMOD init
-Date: Fri, 27 May 2011 12:38:21 -0700
-Message-ID: <87oc2ox7bm.fsf@ti.com>
-References: <1306375016-707-1-git-send-email-nm@ti.com>
-	<1306375016-707-4-git-send-email-nm@ti.com> <87oc2p82q0.fsf@ti.com>
-	<4DDF4E4D.6060008@ti.com>
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH 2/2] GPIO: OMAP: move to drivers/gpio
+Date: Fri, 27 May 2011 14:28:35 -0600
+Message-ID: <20110527202835.GE6645@ponder.secretlab.ca>
+References: <1305898868-9188-1-git-send-email-khilman@ti.com>
+ <1305898868-9188-3-git-send-email-khilman@ti.com>
+ <20110527073529.GF31953@ponder.secretlab.ca>
+ <BANLkTinqEM-iDhgSMAnMB5uehkt=V1Qq+w@mail.gmail.com>
+ <87pqn4404t.fsf@ti.com>
+ <877h9c2kq2.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:52518 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756470Ab1E0TiY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 27 May 2011 15:38:24 -0400
-Received: by mail-pz0-f54.google.com with SMTP id 27so1162877pzk.41
-        for <linux-omap@vger.kernel.org>; Fri, 27 May 2011 12:38:23 -0700 (PDT)
-In-Reply-To: <4DDF4E4D.6060008@ti.com> (Benoit Cousson's message of "Fri, 27
-	May 2011 09:10:05 +0200")
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:37229 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751277Ab1E0U2g (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 May 2011 16:28:36 -0400
+Received: by pvg12 with SMTP id 12so920452pvg.19
+        for <linux-omap@vger.kernel.org>; Fri, 27 May 2011 13:28:36 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <877h9c2kq2.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "Menon, Nishanth" <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "Sonasath, Moiz" <m-sonasath@ti.com>
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, Linus Walleij <linus.walleij@stericsson.com>, linux-arm-kernel@lists.infradead.org
 
-"Cousson, Benoit" <b-cousson@ti.com> writes:
+On Fri, May 27, 2011 at 09:04:37AM -0700, Kevin Hilman wrote:
+> Kevin Hilman <khilman@ti.com> writes:
+> 
+> [...]
+> 
+> >
+> > OK, I rebased onto RMK's for-linus branch (already pulled by Linus),
+> > which contained some other changes touching gpio.c.    I also s/_/-/ in
+> > the filename.
+> >
+> > Below is pull request.
+> 
+> BTW, apologies for the ssh URL.  I used it because I just pushed it, and
+> wanted to be sure you didn't have to wait for the mirrors.
+> 
+> Kevin
 
-[...]
+Merged, thanks.
 
-> In general we do not want to reset nor idle an IP that was potentially
-> already properly configured by bootloader or early Linux boot code.
+g.
 
-Actually, the opposite is true.
-
-The kernel should not make any assumptions about what the bootloader has
-or has not done.  We need to have a kernel that can boot from any
-bootloader (or none, like using kexec) and be able to start from a known
-hardware state.
-
-Any use of HWMOD_INIT_NO_IDLE, HWMOD_INIT_NO_RESET should be a rare
-exception and well documented.
-
-Kevin
