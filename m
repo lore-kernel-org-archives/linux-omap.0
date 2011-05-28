@@ -1,51 +1,60 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH] OMAP: L3 interconnect: Error reporting cleanups
-Date: Sat, 28 May 2011 13:33:49 +0530
-Message-ID: <4DE0AC65.8000202@ti.com>
-References: <20110528032408.GA24868@google.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [linux-pm] [PATCH] PM: export suspend_set_ops, suspend_valid_only_mem
+Date: Sat, 28 May 2011 11:01:13 +0200
+Message-ID: <201105281101.13691.rjw@sisk.pl>
+References: <1306542839-5688-1-git-send-email-khilman@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:33182 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751331Ab1E1IDz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Sat, 28 May 2011 04:03:55 -0400
-Received: by mail-gy0-f177.google.com with SMTP id 20so1181458gyh.36
-        for <linux-omap@vger.kernel.org>; Sat, 28 May 2011 01:03:54 -0700 (PDT)
-In-Reply-To: <20110528032408.GA24868@google.com>
+Received: from ogre.sisk.pl ([217.79.144.158]:36219 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751413Ab1E1JAj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 28 May 2011 05:00:39 -0400
+In-Reply-To: <1306542839-5688-1-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Todd Poynor <toddpoynor@google.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-pm@lists.linux-foundation.org
+Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, Jean Pihet <jean.pihet@newoldbits.com>
 
-Todd,
+On Saturday, May 28, 2011, Kevin Hilman wrote:
+> Some platforms wish to implement their PM core suspend code as
+> modules.  To do so, these functions need to be exported to modules.
 
-On 5/28/2011 8:54 AM, Todd Poynor wrote:
-> * Make variables static.
->
-> * Define L3 TARG instance offsets, and read/write STDERRLOG registers
->    relative to those offsets, rather than defining STDERRLOG_MAIN
->    instance offsets and accessing other registers via offsets from
->    that register.
->
-> * Use ffs() to find error source from the L3_FLAGMUX_REGERRn
->    register.
->
-> * Remove extra l3_base[] entry.
->
-> * Modify L3 custom error message for consistency with standard
->    error message.
->
-> Signed-off-by: Todd Poynor<toddpoynor@google.com>
+Hmm.  What happens if the module is not loaded and the user attempts to
+suspend?
+
+Rafael
+
+
+> Reported-by: Jean Pihet <j-pihet@ti.com>
+> Signed-off-by: Kevin Hilman <khilman@ti.com>
 > ---
->
-> V2 updated for feedback from Santosh (thanks!).
->
-Thanks Todd.
-Will add this patch along with other patches
-on interconnect files.
+> Applies against v2.6.39
+> 
+>  kernel/power/suspend.c |    2 ++
+>  1 files changed, 2 insertions(+), 0 deletions(-)
+> 
+> diff --git a/kernel/power/suspend.c b/kernel/power/suspend.c
+> index 6275970..eca495d 100644
+> --- a/kernel/power/suspend.c
+> +++ b/kernel/power/suspend.c
+> @@ -44,6 +44,7 @@ void suspend_set_ops(const struct platform_suspend_ops *ops)
+>  	suspend_ops = ops;
+>  	mutex_unlock(&pm_mutex);
+>  }
+> +EXPORT_SYMBOL(suspend_set_ops);
+>  
+>  bool valid_state(suspend_state_t state)
+>  {
+> @@ -65,6 +66,7 @@ int suspend_valid_only_mem(suspend_state_t state)
+>  {
+>  	return state == PM_SUSPEND_MEM;
+>  }
+> +EXPORT_SYMBOL(suspend_valid_only_mem);
+>  
+>  static int suspend_test(int level)
+>  {
+> 
 
-Regards
-Santosh
