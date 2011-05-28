@@ -1,60 +1,56 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [linux-pm] [PATCH] PM: export suspend_set_ops, suspend_valid_only_mem
-Date: Sat, 28 May 2011 11:01:13 +0200
-Message-ID: <201105281101.13691.rjw@sisk.pl>
-References: <1306542839-5688-1-git-send-email-khilman@ti.com>
-Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+From: Tasslehoff Kjappfot <tasskjapp@gmail.com>
+Subject: Re: [PATCH] free rev gpios when they are read, so others can read them later
+Date: Sat, 28 May 2011 11:24:17 +0200
+Message-ID: <91831E5F-5654-4133-AADC-9C3D6B86A63E@gmail.com>
+References: <1306438716-68265-1-git-send-email-tasskjapp@gmail.com> <2DCF0893-4166-4604-887B-EDBC3643290A@gmail.com> <4DDF8AC9.60709@compulab.co.il>
+Mime-Version: 1.0 (Apple Message framework v1084)
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:36219 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751413Ab1E1JAj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 28 May 2011 05:00:39 -0400
-In-Reply-To: <1306542839-5688-1-git-send-email-khilman@ti.com>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:40134 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750771Ab1E1JYU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 28 May 2011 05:24:20 -0400
+Received: by ewy4 with SMTP id 4so879183ewy.19
+        for <linux-omap@vger.kernel.org>; Sat, 28 May 2011 02:24:19 -0700 (PDT)
+In-Reply-To: <4DDF8AC9.60709@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-pm@lists.linux-foundation.org
-Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, Jean Pihet <jean.pihet@newoldbits.com>
+To: Igor Grinberg <grinberg@compulab.co.il>
+Cc: linux-omap@vger.kernel.org
 
-On Saturday, May 28, 2011, Kevin Hilman wrote:
-> Some platforms wish to implement their PM core suspend code as
-> modules.  To do so, these functions need to be exported to modules.
-
-Hmm.  What happens if the module is not loaded and the user attempts to
-suspend?
-
-Rafael
-
-
-> Reported-by: Jean Pihet <j-pihet@ti.com>
-> Signed-off-by: Kevin Hilman <khilman@ti.com>
-> ---
-> Applies against v2.6.39
+Hi Igor.
 > 
->  kernel/power/suspend.c |    2 ++
->  1 files changed, 2 insertions(+), 0 deletions(-)
+> To be consistent with the rest of the file,
+> can the white space here be "tabs" instead of spaces?
 > 
-> diff --git a/kernel/power/suspend.c b/kernel/power/suspend.c
-> index 6275970..eca495d 100644
-> --- a/kernel/power/suspend.c
-> +++ b/kernel/power/suspend.c
-> @@ -44,6 +44,7 @@ void suspend_set_ops(const struct platform_suspend_ops *ops)
->  	suspend_ops = ops;
->  	mutex_unlock(&pm_mutex);
->  }
-> +EXPORT_SYMBOL(suspend_set_ops);
->  
->  bool valid_state(suspend_state_t state)
->  {
-> @@ -65,6 +66,7 @@ int suspend_valid_only_mem(suspend_state_t state)
->  {
->  	return state == PM_SUSPEND_MEM;
->  }
-> +EXPORT_SYMBOL(suspend_valid_only_mem);
->  
->  static int suspend_test(int level)
->  {
 > 
+> -- 
+> Regards,
+> Igor.
+> 
+
+They can. New version attached. I'm don't know how to use git send-email to continue this thread with a comment to my patch, so it was done manually. Let me know if something else is less-than-optimal with my patches. Rookie contributor :)
+
+Signed-off-by: Tasslehoff Kjappfot <tasskjapp@gmail.com>
+---
+ arch/arm/mach-omap2/board-omap3beagle.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index 3ff3a2c..54dbb7dd 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -106,6 +106,9 @@ static void __init omap3_beagle_init_rev(void)
+ 	beagle_rev = gpio_get_value(171) | (gpio_get_value(172) << 1)
+ 			| (gpio_get_value(173) << 2);
+ 
++	gpio_free_array(omap3_beagle_rev_gpios,
++			ARRAY_SIZE(omap3_beagle_rev_gpios));
++
+ 	switch (beagle_rev) {
+ 	case 7:
+ 		printk(KERN_INFO "OMAP3 Beagle Rev: Ax/Bx\n");
+-- 
+1.7.3.1
 
