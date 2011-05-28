@@ -1,51 +1,55 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH] PM: export suspend_set_ops, suspend_valid_only_mem
-Date: Fri, 27 May 2011 17:33:59 -0700
-Message-ID: <1306542839-5688-1-git-send-email-khilman@ti.com>
+Subject: Re: [PATCH 09/13] OMAP2+: PM: export suspend_set_ops to PM modules
+Date: Fri, 27 May 2011 17:28:11 -0700
+Message-ID: <87boynvfc4.fsf@ti.com>
+References: <1305739950-11695-1-git-send-email-j-pihet@ti.com>
+	<1305739950-11695-10-git-send-email-j-pihet@ti.com>
+	<87lixt9hz8.fsf@ti.com>
+	<BANLkTimsOMLWX0gmYKdF6XzwhMduGt2Q0A@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:40428 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757549Ab1E1A1m (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 27 May 2011 20:27:42 -0400
-Received: by mail-pv0-f173.google.com with SMTP id 3so1058059pvg.4
-        for <linux-omap@vger.kernel.org>; Fri, 27 May 2011 17:27:42 -0700 (PDT)
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:39645 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932094Ab1E1A2P convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 27 May 2011 20:28:15 -0400
+Received: by pvf33 with SMTP id 33so1016707pvf.38
+        for <linux-omap@vger.kernel.org>; Fri, 27 May 2011 17:28:14 -0700 (PDT)
+In-Reply-To: <BANLkTimsOMLWX0gmYKdF6XzwhMduGt2Q0A@mail.gmail.com> (Jean
+	Pihet's message of "Fri, 27 May 2011 09:48:33 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-pm@lists.linux-foundation.org
-Cc: linux-omap@vger.kernel.org, Jean Pihet <jean.pihet@newoldbits.com>
+To: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: linux-omap@vger.kernel.org
 
-Some platforms wish to implement their PM core suspend code as
-modules.  To do so, these functions need to be exported to modules.
+Jean Pihet <jean.pihet@newoldbits.com> writes:
 
-Reported-by: Jean Pihet <j-pihet@ti.com>
-Signed-off-by: Kevin Hilman <khilman@ti.com>
----
-Applies against v2.6.39
+> On Fri, May 27, 2011 at 1:09 AM, Kevin Hilman <khilman@ti.com> wrote:
+>> jean.pihet@newoldbits.com writes:
+>>
+>>> From: Jean Pihet <j-pihet@ti.com>
+>>>
+>>> Export the suspend_set_ops API as omap_pm_suspend_set_ops in the pm
+>>> generic code, under CONFIG_SUSPEND.
+>>>
+>>> Note -hack warning-: since the 'suspend_valid_only_mem' function is
+>>> not exported to modules, fill the 'valid' field value of
+>>> 'struct platform_suspend_ops' in the common code.
+>>>
+>>> Signed-off-by: Jean Pihet <j-pihet@ti.com>
+>>
+>> Can you try the patch below instead? =C2=A0 =C2=A0If that works, I'l=
+l submit to
+>> Rafael/linux-pm.
+> This is much cleaner! We need this pushed upstream.
 
- kernel/power/suspend.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+OK, thanks.  I just sent it to linux-pm.
 
-diff --git a/kernel/power/suspend.c b/kernel/power/suspend.c
-index 6275970..eca495d 100644
---- a/kernel/power/suspend.c
-+++ b/kernel/power/suspend.c
-@@ -44,6 +44,7 @@ void suspend_set_ops(const struct platform_suspend_ops *ops)
- 	suspend_ops = ops;
- 	mutex_unlock(&pm_mutex);
- }
-+EXPORT_SYMBOL(suspend_set_ops);
- 
- bool valid_state(suspend_state_t state)
- {
-@@ -65,6 +66,7 @@ int suspend_valid_only_mem(suspend_state_t state)
- {
- 	return state == PM_SUSPEND_MEM;
- }
-+EXPORT_SYMBOL(suspend_valid_only_mem);
- 
- static int suspend_test(int level)
- {
--- 
-1.7.4
-
+Kevin
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
