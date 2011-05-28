@@ -1,55 +1,38 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 09/13] OMAP2+: PM: export suspend_set_ops to PM modules
-Date: Fri, 27 May 2011 17:28:11 -0700
-Message-ID: <87boynvfc4.fsf@ti.com>
-References: <1305739950-11695-1-git-send-email-j-pihet@ti.com>
-	<1305739950-11695-10-git-send-email-j-pihet@ti.com>
-	<87lixt9hz8.fsf@ti.com>
-	<BANLkTimsOMLWX0gmYKdF6XzwhMduGt2Q0A@mail.gmail.com>
+Subject: Re: [PATCH] OMAP: don't trace functions called from sched_clock
+Date: Fri, 27 May 2011 17:32:12 -0700
+Message-ID: <8762ovvf5f.fsf@ti.com>
+References: <1304846514-15641-1-git-send-email-rabin@rab.in>
+	<87hb8fyj2p.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:39645 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932094Ab1E1A2P convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 27 May 2011 20:28:15 -0400
-Received: by pvf33 with SMTP id 33so1016707pvf.38
-        for <linux-omap@vger.kernel.org>; Fri, 27 May 2011 17:28:14 -0700 (PDT)
-In-Reply-To: <BANLkTimsOMLWX0gmYKdF6XzwhMduGt2Q0A@mail.gmail.com> (Jean
-	Pihet's message of "Fri, 27 May 2011 09:48:33 +0200")
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:45196 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757046Ab1E1AcP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 27 May 2011 20:32:15 -0400
+Received: by pzk4 with SMTP id 4so1041797pzk.28
+        for <linux-omap@vger.kernel.org>; Fri, 27 May 2011 17:32:14 -0700 (PDT)
+In-Reply-To: <87hb8fyj2p.fsf@ti.com> (Kevin Hilman's message of "Fri, 27 May
+	2011 13:39:10 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: linux-omap@vger.kernel.org
+To: Rabin Vincent <rabin@rab.in>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Jean Pihet <jean.pihet@newoldbits.com> writes:
+Kevin Hilman <khilman@ti.com> writes:
 
-> On Fri, May 27, 2011 at 1:09 AM, Kevin Hilman <khilman@ti.com> wrote:
->> jean.pihet@newoldbits.com writes:
+> Rabin Vincent <rabin@rab.in> writes:
+>
+>> omap_readl() is used from the sched_clock() implementations and so must
+>> be marked notrace to avoid recursion in ftrace.  Same thing with
+>> mpu_read() for OMAP1.
 >>
->>> From: Jean Pihet <j-pihet@ti.com>
->>>
->>> Export the suspend_set_ops API as omap_pm_suspend_set_ops in the pm
->>> generic code, under CONFIG_SUSPEND.
->>>
->>> Note -hack warning-: since the 'suspend_valid_only_mem' function is
->>> not exported to modules, fill the 'valid' field value of
->>> 'struct platform_suspend_ops' in the common code.
->>>
->>> Signed-off-by: Jean Pihet <j-pihet@ti.com>
->>
->> Can you try the patch below instead? =C2=A0 =C2=A0If that works, I'l=
-l submit to
->> Rafael/linux-pm.
-> This is much cleaner! We need this pushed upstream.
+>> Signed-off-by: Rabin Vincent <rabin@rab.in>
+>
+> Acked-by: Kevin Hilman <khilman@ti.com>
 
-OK, thanks.  I just sent it to linux-pm.
+I also meant to suggest this should probably queue for .40-rc series.
 
 Kevin
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
