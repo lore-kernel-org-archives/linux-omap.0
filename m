@@ -1,40 +1,20 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: [PATCH] media: omap3isp: fix format string warning
-Date: Sun, 29 May 2011 10:04:51 +0300
-Message-ID: <1306652691-21102-1-git-send-email-ohad@wizery.com>
+From: Microsoft <m.loto.yahoo.co.uk@[76.24.216.74]>
+Subject: winner
+Date: Sun, 29 May 2011 11:21:47 -0700
+Message-ID: <0LLY00J5BLO4EMC0@a-mtaout22.012.net.il>
+Reply-To: microsoft_draws0233@yahoo.com.hk
+Mime-Version: 1.0
+Content-Type: text/plain; charset=Windows-1251
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:60591 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751241Ab1E2HG2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 29 May 2011 03:06:28 -0400
+Received: from mtaout22.012.net.il ([80.179.55.172]:59002 "EHLO
+	mtaout22.012.net.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753476Ab1E2NjV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 29 May 2011 09:39:21 -0400
+Received: from conversion-daemon.a-mtaout22.012.net.il by a-mtaout22.012.net.il (HyperSendmail v2007.08) id <0LLY00K00LI8PA00@a-mtaout22.012.net.il> for linux-omap@vger.kernel.org; Sun, 29 May 2011 16:34:14 +0300 (IDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, linux-omap@vger.kernel.org, Ohad Ben-Cohen <ohad@wizery.com>
 
-Trivially fix this:
-
-drivers/media/video/omap3isp/isp.c: In function 'isp_isr_dbg':
-drivers/media/video/omap3isp/isp.c:394: warning: zero-length gnu_printf format string
-
-Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
----
- drivers/media/video/omap3isp/isp.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/media/video/omap3isp/isp.c b/drivers/media/video/omap3isp/isp.c
-index 472a693..a0d5e69 100644
---- a/drivers/media/video/omap3isp/isp.c
-+++ b/drivers/media/video/omap3isp/isp.c
-@@ -391,7 +391,7 @@ static inline void isp_isr_dbg(struct isp_device *isp, u32 irqstatus)
- 	};
- 	int i;
- 
--	dev_dbg(isp->dev, "");
-+	dev_dbg(isp->dev, "%s\n", __func__);
- 
- 	for (i = 0; i < ARRAY_SIZE(name); i++) {
- 		if ((1 << i) & irqstatus)
--- 
-1.7.1
-
+You have won 500.000 GBP
+send your phone number
+and address
