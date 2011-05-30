@@ -1,47 +1,50 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCHv2 2/2] OMAP: add omap_device_reset()
-Date: Mon, 30 May 2011 10:49:16 +0200
-Message-ID: <4DE35A0C.6040301@ti.com>
-References: <1306481908-7386-1-git-send-email-tomi.valkeinen@ti.com>  <1306481908-7386-3-git-send-email-tomi.valkeinen@ti.com>  <4DDF9B5D.7060408@ti.com> <1306500367.1905.18.camel@deskari>  <4DDFB8AF.1080800@ti.com> <1306514427.1905.27.camel@deskari> <alpine.DEB.2.00.1105292006330.8973@utopia.booyaka.com>
+From: Vladimir Pantelic <vladoman@gmail.com>
+Subject: Re: [RFC][PATCH 2/9] OMAP4: HWMOD: make current hwmods common for
+ 4460 and 4430
+Date: Mon, 30 May 2011 11:01:17 +0200
+Message-ID: <4DE35CDD.30709@gmail.com>
+References: <1306375016-707-1-git-send-email-nm@ti.com> <1306375016-707-3-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:54232 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752552Ab1E3ItX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 30 May 2011 04:49:23 -0400
-In-Reply-To: <alpine.DEB.2.00.1105292006330.8973@utopia.booyaka.com>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:54904 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752654Ab1E3JBU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 May 2011 05:01:20 -0400
+Received: by bwz15 with SMTP id 15so2706183bwz.19
+        for <linux-omap@vger.kernel.org>; Mon, 30 May 2011 02:01:19 -0700 (PDT)
+In-Reply-To: <1306375016-707-3-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, "Hilman, Kevin" <khilman@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Nishanth Menon <nm@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Aneesh V <aneesh@ti.com>
 
-On 5/30/2011 4:15 AM, Paul Walmsley wrote:
-> On Fri, 27 May 2011, Tomi Valkeinen wrote:
+Nishanth Menon wrote:
+> From: Aneesh V<aneesh@ti.com>
 >
->> However, VENC doesn't use the standard syscontrol mechanism, so that
->> cannot be done via omap_device interface anyway.
+> Make all hwmod data used for OMAP4430 available for
+> the OMAP44XX class so that OMAP4460 can use them.
+> We will modify the required 4460 hwmod in further patch(es).
 >
-> struct omap_hwmod_class has a .reset function pointer for this purpose.
-> It's already been necessary to deal with the I2C IP block:
+> [nm@ti.com: just rebased to .39]
+> Signed-off-by: Nishanth Menon<nm@ti.com>
+> Signed-off-by: Aneesh V<aneesh@ti.com>
+> ---
+>   arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  164 ++++++++++++++--------------
+>   1 files changed, 82 insertions(+), 82 deletions(-)
 >
->     https://patchwork.kernel.org/patch/804072/
->
-> If all that's needed are the steps in 4430 TRM Rev. T Section 10.6.5.1.2.3
-> "Subsequence--Video Encoder Software Reset", then it should be possible to
-> handle this internal reset with hwmod code.
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> index abc548a..2f51a5a 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> @@ -124,7 +124,7 @@ static struct omap_hwmod omap44xx_dmm_hwmod = {
+>   	.slaves_cnt	= ARRAY_SIZE(omap44xx_dmm_slaves),
+>   	.mpu_irqs	= omap44xx_dmm_irqs,
+>   	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_dmm_irqs),
+> -	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+> +	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
 
-Mmm, but in that case, if this is purely handled inside the IP, it is up 
-to the driver to manage that.
+I guess at the time that CHIP_IS_OMAP4430 was introduced it was totally
+unthinkable that another 44xx based chip would ever exist?
 
-hwmod should not manage more than the SYSCONFIG ocpreset because this is 
-part of the PRCM/OCP wrapper and not really the IP.
-
-In the case of the VENC, the reset is part of the regular init sequence, 
-so the driver will take care of it.
-
-Don't you think so?
-
-Regards,
-Benoit
