@@ -1,61 +1,84 @@
-From: Balaji T K <balajitk@ti.com>
-Subject: [PATCH 1/2] ARM: OMAP4: MMC: increase delay for pbias
-Date: Mon, 30 May 2011 19:55:33 +0530
-Message-ID: <1306765534-20103-2-git-send-email-balajitk@ti.com>
-References: <1306765534-20103-1-git-send-email-balajitk@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] OMAP3: beagle: add support for beagleboard xM revision
+ C
+Date: Mon, 30 May 2011 07:34:11 -0700
+Message-ID: <20110530143411.GG11352@atomide.com>
+References: <1306503133-31996-1-git-send-email-koen@dominion.thruhere.net>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <1306765534-20103-1-git-send-email-balajitk@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: tony@atomide.com, linux-omap@vger.kernel.org, cjb@laptop.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-mmc@vger.kernel.org, madhu.cr@ti.com, Balaji T K <balajitk@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:40681 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751629Ab1E3OeO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 May 2011 10:34:14 -0400
+Content-Disposition: inline
+In-Reply-To: <1306503133-31996-1-git-send-email-koen@dominion.thruhere.net>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Koen Kooi <koen@dominion.thruhere.net>
+Cc: linux-omap@vger.kernel.org, jkridner@beagleboard.org, linux-arm-kernel@lists.infradead.org
 
-4 micro seconds is not enough for PBIAS if MMC regulator is
-enabled from MMC regulator OFF.
-Increase the delay for PBIAS to stabilize.
-Wait for PBIAS and timeout if not.
+Hi,
 
-Resolves MMC/SD failure on OMAP4
-"Pbias Voltage is not same as LDO"
+* Koen Kooi <koen@dominion.thruhere.net> [110527 06:28]:
+>
+> @@ -123,9 +126,13 @@ static void __init omap3_beagle_init_rev(void)
+>  		printk(KERN_INFO "OMAP3 Beagle Rev: xM\n");
+>  		omap3_beagle_version = OMAP3BEAGLE_BOARD_XM;
+>  		break;
+> +	case 2:
+> +		printk(KERN_INFO "OMAP3 Beagle Rev: xM\n");
+> +		omap3_beagle_version = OMAP3BEAGLE_BOARD_XMC;
+> +		break;
+>  	default:
+>  		printk(KERN_INFO "OMAP3 Beagle Rev: unknown %hd\n", beagle_rev);
+> -		omap3_beagle_version = OMAP3BEAGLE_BOARD_UNKN;
+> +		omap3_beagle_version = OMAP3BEAGLE_BOARD_XMC;
+>  	}
+>  }
 
-Signed-off-by: Balaji T K <balajitk@ti.com>
----
- arch/arm/mach-omap2/hsmmc.c |   13 ++++++++++---
- 1 files changed, 10 insertions(+), 3 deletions(-)
+Maybe just set up static struct omap3_beagle that contains the
+various things to initialize. Then initialize it in omap3_beagle_init_rev
+above.
 
-diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc.c
-index b2f30be..3f8dc16 100644
---- a/arch/arm/mach-omap2/hsmmc.c
-+++ b/arch/arm/mach-omap2/hsmmc.c
-@@ -145,6 +145,7 @@ static void omap4_hsmmc1_after_set_reg(struct device *dev, int slot,
- 				 int power_on, int vdd)
- {
- 	u32 reg;
-+	unsigned long timeout;
- 
- 	if (power_on) {
- 		reg = omap4_ctrl_pad_readl(control_pbias_offset);
-@@ -157,9 +158,15 @@ static void omap4_hsmmc1_after_set_reg(struct device *dev, int slot,
- 			OMAP4_MMC1_PWRDNZ_MASK |
- 			OMAP4_USBC1_ICUSB_PWRDNZ_MASK);
- 		omap4_ctrl_pad_writel(reg, control_pbias_offset);
--		/* 4 microsec delay for comparator to generate an error*/
--		udelay(4);
--		reg = omap4_ctrl_pad_readl(control_pbias_offset);
-+
-+		timeout = jiffies + msecs_to_jiffies(5);
-+		do {
-+			reg = omap4_ctrl_pad_readl(control_pbias_offset);
-+			if (!(reg & OMAP4_MMC1_PBIASLITE_VMODE_ERROR_MASK))
-+				break;
-+			udelay(100);
-+		} while (!time_after(jiffies, timeout));
-+
- 		if (reg & OMAP4_MMC1_PBIASLITE_VMODE_ERROR_MASK) {
- 			pr_err("Pbias Voltage is not same as LDO\n");
- 			/* Caution : On VMODE_ERROR Power Down MMC IO */
--- 
-1.7.0.4
+Otherwise we'll end up adding more and more omap3_beagle_get_rev and
+cpu_is_omap tests to this file and it will become hard to maintain.
+  
+> @@ -253,7 +260,7 @@ static int beagle_twl_gpio_setup(struct device *dev,
+>  {
+>  	int r, usb_pwr_level;
+>  
+> -	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM) {
+> +	if (cpu_is_omap3630()) {
+>  		mmc[0].gpio_wp = -EINVAL;
+>  	} else if ((omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_C1_3) ||
+>  		(omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_C4)) {
 
+This would become:
+
+	mmc[0].gpio_wp = beagle.gpio_wp;
+
+> @@ -275,11 +282,10 @@ static int beagle_twl_gpio_setup(struct device *dev,
+>  	 * high / others active low)
+>  	 * DVI reset GPIO is different between beagle revisions
+>  	 */
+> -	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM) {
+> -		usb_pwr_level = GPIOF_OUT_INIT_HIGH;
+> +	if (cpu_is_omap3630()) {
+>  		beagle_dvi_device.reset_gpio = 129;
+>  		/*
+> -		 * gpio + 1 on Xm controls the TFP410's enable line (active low)
+> +		 * gpio + 1 on xM controls the TFP410's enable line (active low)
+>  		 * gpio + 2 control varies depending on the board rev as below:
+>  		 * P7/P8 revisions(prototype): Camera EN
+>  		 * A2+ revisions (production): LDO (DVI, serial, led blocks)
+
+This would be just:
+
+	usb_pwr_level = beagle.usb_pwr_level;
+
+And so on.
+
+Regards,
+
+Tony
