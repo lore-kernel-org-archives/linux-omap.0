@@ -1,110 +1,48 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH 2/2] omap3: iovmm: Support non page-aligned buffers in iommu_vmap
-Date: Mon, 30 May 2011 14:47:09 +0200
-Message-ID: <1306759629-17232-3-git-send-email-laurent.pinchart@ideasonboard.com>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH 0/2] OMAP3 IOMMU fixes
+Date: Mon, 30 May 2011 16:16:03 +0300 (EEST)
+Message-ID: <20110530.161603.33358104447681739.Hiroshi.DOYU@nokia.com>
 References: <1306759629-17232-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:40800 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751986Ab1E3MrQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 May 2011 08:47:16 -0400
+Received: from smtp.nokia.com ([147.243.128.24]:39045 "EHLO mgw-da01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753490Ab1E3NQH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 30 May 2011 09:16:07 -0400
 In-Reply-To: <1306759629-17232-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: teemu.tuominen@cybercom.com
+To: laurent.pinchart@ideasonboard.com, tony@atomide.com
+Cc: linux-omap@vger.kernel.org, teemu.tuominen@cybercom.com
 
-The IOMMU virtual memory mapping API requires page-aligned buffers.
-There's no hardware reason behind such a restriction. Remove it by
-rounding the address of the first page entry down, and adding the offset
-back to the IOMMU virtual address.
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH 0/2] OMAP3 IOMMU fixes
+Date: Mon, 30 May 2011 14:47:07 +0200
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
----
- arch/arm/plat-omap/iovmm.c |   32 ++++++++++++++++++++++++--------
- 1 files changed, 24 insertions(+), 8 deletions(-)
+> Hi everybody,
+> 
+> Here are two OMAP3 IOMMU fixes required to support big and/or unaligned memory
+> buffers.
+> 
+> Laurent Pinchart (2):
+>   omap3: iovmm: Work around sg_alloc_table size limitation in IOMMU
+>   omap3: iovmm: Support non page-aligned buffers in iommu_vmap
 
-diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
-index b82cef4..fa5ae98 100644
---- a/arch/arm/plat-omap/iovmm.c
-+++ b/arch/arm/plat-omap/iovmm.c
-@@ -60,6 +60,15 @@
- 
- static struct kmem_cache *iovm_area_cachep;
- 
-+/* return the offset of the first scatterlist entry in a sg table */
-+static unsigned int sgtable_offset(const struct sg_table *sgt)
-+{
-+	if (!sgt || !sgt->nents)
-+		return 0;
-+
-+	return sgt->sgl->offset;
-+}
-+
- /* return total bytes of sg buffers */
- static size_t sgtable_len(const struct sg_table *sgt)
- {
-@@ -72,11 +81,17 @@ static size_t sgtable_len(const struct sg_table *sgt)
- 	for_each_sg(sgt->sgl, sg, sgt->nents, i) {
- 		size_t bytes;
- 
--		bytes = sg_dma_len(sg);
-+		bytes = sg_dma_len(sg) + sg->offset;
- 
- 		if (!iopgsz_ok(bytes)) {
--			pr_err("%s: sg[%d] not iommu pagesize(%x)\n",
--			       __func__, i, bytes);
-+			pr_err("%s: sg[%d] not iommu pagesize(%u %u)\n",
-+			       __func__, i, bytes, sg->offset);
-+			return 0;
-+		}
-+
-+		if (i && sg->offset) {
-+			pr_err("%s: sg[%d] offset not allowed in internal "
-+			       "entries\n", __func__, i);
- 			return 0;
- 		}
- 
-@@ -207,8 +222,8 @@ static void *vmap_sg(const struct sg_table *sgt)
- 		u32 pa;
- 		int err;
- 
--		pa = sg_phys(sg);
--		bytes = sg_dma_len(sg);
-+		pa = sg_phys(sg) - sg->offset;
-+		bytes = sg_dma_len(sg) + sg->offset;
- 
- 		BUG_ON(bytes != PAGE_SIZE);
- 
-@@ -485,8 +500,8 @@ static int map_iovm_area(struct iommu *obj, struct iovm_struct *new,
- 		size_t bytes;
- 		struct iotlb_entry e;
- 
--		pa = sg_phys(sg);
--		bytes = sg_dma_len(sg);
-+		pa = sg_phys(sg) - sg->offset;
-+		bytes = sg_dma_len(sg) + sg->offset;
- 
- 		flags &= ~IOVMF_PGSZ_MASK;
- 		pgsz = bytes_to_iopgsz(bytes);
-@@ -666,7 +681,7 @@ u32 iommu_vmap(struct iommu *obj, u32 da, const struct sg_table *sgt,
- 	if (IS_ERR_VALUE(da))
- 		vunmap_sg(va);
- 
--	return da;
-+	return da + sgtable_offset(sgt);
- }
- EXPORT_SYMBOL_GPL(iommu_vmap);
- 
-@@ -685,6 +700,7 @@ struct sg_table *iommu_vunmap(struct iommu *obj, u32 da)
- 	 * 'sgt' is allocated before 'iommu_vmalloc()' is called.
- 	 * Just returns 'sgt' to the caller to free
- 	 */
-+	da &= PAGE_MASK;
- 	sgt = unmap_vm_area(obj, da, vunmap_sg, IOVMF_DISCONT | IOVMF_MMIO);
- 	if (!sgt)
- 		dev_dbg(obj->dev, "%s: No sgt\n", __func__);
--- 
-1.7.3.4
+Acked-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
+> 
+>  arch/arm/plat-omap/iovmm.c |   46 ++++++++++++++++++++++++++++++++++---------
+>  1 files changed, 36 insertions(+), 10 deletions(-)
+> 
+> -- 
+> Regards,
+> 
+> Laurent Pinchart
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
