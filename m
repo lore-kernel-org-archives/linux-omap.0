@@ -1,48 +1,47 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [PATCH 0/2] OMAP3 IOMMU fixes
-Date: Mon, 30 May 2011 16:16:03 +0300 (EEST)
-Message-ID: <20110530.161603.33358104447681739.Hiroshi.DOYU@nokia.com>
-References: <1306759629-17232-1-git-send-email-laurent.pinchart@ideasonboard.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: boot hang using OMAP for-next + Russell's for-linus
+Date: Mon, 30 May 2011 18:58:36 +0530
+Message-ID: <4DE39B84.40003@ti.com>
+References: <87d3j3x28x.fsf@ti.com> <20110530080533.GF11352@atomide.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.24]:39045 "EHLO mgw-da01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753490Ab1E3NQH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 30 May 2011 09:16:07 -0400
-In-Reply-To: <1306759629-17232-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:44639 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1756729Ab1E3N2n (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 30 May 2011 09:28:43 -0400
+Received: by mail-gx0-f174.google.com with SMTP id 21so1885307gxk.33
+        for <linux-omap@vger.kernel.org>; Mon, 30 May 2011 06:28:42 -0700 (PDT)
+In-Reply-To: <20110530080533.GF11352@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: laurent.pinchart@ideasonboard.com, tony@atomide.com
-Cc: linux-omap@vger.kernel.org, teemu.tuominen@cybercom.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, Russell King <rmk@arm.linux.org.uk>
 
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH 0/2] OMAP3 IOMMU fixes
-Date: Mon, 30 May 2011 14:47:07 +0200
+Tony,
 
-> Hi everybody,
-> 
-> Here are two OMAP3 IOMMU fixes required to support big and/or unaligned memory
-> buffers.
-> 
-> Laurent Pinchart (2):
->   omap3: iovmm: Work around sg_alloc_table size limitation in IOMMU
->   omap3: iovmm: Support non page-aligned buffers in iommu_vmap
+On 5/30/2011 1:35 PM, Tony Lindgren wrote:
+> * Kevin Hilman<khilman@ti.com>  [110527 14:24]:
+>> FYI... I just found this, but won't be able to look into it until next
+>> week, so if anyone needs a weekend debug project...
+>>
+>> Using Tony's for-next branch, I'm able to boot an omap2plus_defconfig (+
+>> busybox initramfs) kernel on my 3430/n900 just fine.   I then tried to
+>> merge in Russell's for-linus branch and it hangs during boot.
+>>
+>> It appears to hang in the init/registration of i2c busses.  Commenting
+>> out the i2c bus registration from board-rx51-peripherals and disabling a
+>> few of the users of i2c, I was able to boot.
+>
+> Looks like at least v3.0-rc1 boots just fine, so whatever that was
+> has been already fixed.
+>
+I noticed couple of issues with v3.0-rc1 as reported [1]
+on OMAP4430 SDP. Am I missing any trick for the console issue.
 
-Acked-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Regards
+Santosh
+[1] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg50126.html
 
-> 
->  arch/arm/plat-omap/iovmm.c |   46 ++++++++++++++++++++++++++++++++++---------
->  1 files changed, 36 insertions(+), 10 deletions(-)
-> 
-> -- 
-> Regards,
-> 
-> Laurent Pinchart
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
