@@ -1,46 +1,33 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [pm_wip/voltdm_nm][PATCH v2 3/3] OMAP4: PM: VC: make omap_vc_i2c_init static
-Date: Sun, 29 May 2011 16:19:40 -0700
-Message-ID: <1306711180-8631-4-git-send-email-nm@ti.com>
-References: <1306711180-8631-1-git-send-email-nm@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCHv2 2/2] OMAP: add omap_device_reset()
+Date: Sun, 29 May 2011 20:15:12 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1105292006330.8973@utopia.booyaka.com>
+References: <1306481908-7386-1-git-send-email-tomi.valkeinen@ti.com>  <1306481908-7386-3-git-send-email-tomi.valkeinen@ti.com>  <4DDF9B5D.7060408@ti.com> <1306500367.1905.18.camel@deskari>  <4DDFB8AF.1080800@ti.com> <1306514427.1905.27.camel@deskari>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:40808 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752911Ab1E2XTw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Sun, 29 May 2011 19:19:52 -0400
-Received: by gwb17 with SMTP id 17so1516940gwb.29
-        for <linux-omap@vger.kernel.org>; Sun, 29 May 2011 16:19:51 -0700 (PDT)
-In-Reply-To: <1306711180-8631-1-git-send-email-nm@ti.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:33987 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751920Ab1E3CPN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 29 May 2011 22:15:13 -0400
+In-Reply-To: <1306514427.1905.27.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
-Cc: Kevin <khilman@ti.com>, Nishanth Menon <nm@ti.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, "Hilman, Kevin" <khilman@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-The only user of omap_vc_i2c_init is vc.c itself, makes
-no reason for us to expose it out.
+On Fri, 27 May 2011, Tomi Valkeinen wrote:
 
-This also fixes the sparse warning:
-arch/arm/mach-omap2/vc.c:207:13: warning: symbol 'omap_vc_i2c_init' was not declared. Should it be static?
+> However, VENC doesn't use the standard syscontrol mechanism, so that 
+> cannot be done via omap_device interface anyway.
 
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
- arch/arm/mach-omap2/vc.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+struct omap_hwmod_class has a .reset function pointer for this purpose.  
+It's already been necessary to deal with the I2C IP block:
 
-diff --git a/arch/arm/mach-omap2/vc.c b/arch/arm/mach-omap2/vc.c
-index 42c77a8..d0b52cc 100644
---- a/arch/arm/mach-omap2/vc.c
-+++ b/arch/arm/mach-omap2/vc.c
-@@ -204,7 +204,7 @@ static void __init omap4_vc_init_channel(struct voltagedomain *voltdm)
-  * channel registers.  All other VC channels will use the
-  * same configuration.
-  */
--void __init omap_vc_i2c_init(struct voltagedomain *voltdm)
-+static void __init omap_vc_i2c_init(struct voltagedomain *voltdm)
- {
- 	struct omap_vc_channel *vc = voltdm->vc;
- 	static bool initialized;
--- 
-1.7.1
+   https://patchwork.kernel.org/patch/804072/
 
+If all that's needed are the steps in 4430 TRM Rev. T Section 10.6.5.1.2.3 
+"Subsequence--Video Encoder Software Reset", then it should be possible to 
+handle this internal reset with hwmod code.
+
+- Paul
