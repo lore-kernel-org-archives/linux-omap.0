@@ -1,84 +1,42 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH] OMAP2/4: PM: Boot message is not an error/info,	and not
- helpful, remove it
-Date: Mon, 30 May 2011 19:14:11 +0530
-Message-ID: <4DE39F2B.3040506@ti.com>
-References: <1306751527-15929-1-git-send-email-santosh.shilimkar@ti.com> <4DE39D40.2060500@ru.mvista.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [linux-pm] [PATCH] PM: export suspend_set_ops, suspend_valid_only_mem
+Date: Mon, 30 May 2011 16:00:51 +0200
+Message-ID: <201105301600.51839.rjw@sisk.pl>
+References: <1306542839-5688-1-git-send-email-khilman@ti.com> <201105281101.13691.rjw@sisk.pl> <BANLkTi=pQEp=_RpNyJ9o=mxjA+PMhgTKZQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:47328 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751745Ab1E3NoS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 30 May 2011 09:44:18 -0400
-Received: by mail-yw0-f43.google.com with SMTP id 6so1937452ywa.2
-        for <linux-omap@vger.kernel.org>; Mon, 30 May 2011 06:44:17 -0700 (PDT)
-In-Reply-To: <4DE39D40.2060500@ru.mvista.com>
+Received: from ogre.sisk.pl ([217.79.144.158]:40689 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751560Ab1E3OAO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 30 May 2011 10:00:14 -0400
+In-Reply-To: <BANLkTi=pQEp=_RpNyJ9o=mxjA+PMhgTKZQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sergei Shtylyov <sshtylyov@mvista.com>
-Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, linux-arm-kernel@lists.infradead.org
+To: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: linux-pm@lists.linux-foundation.org, Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org
 
-On 5/30/2011 7:06 PM, Sergei Shtylyov wrote:
-> Hello.
->
-> Santosh Shilimkar wrote:
->
->> The commit '99aa18278e' removed the boot messege for OMAP3. Do the same
->
-> Please specify that commit's summary in parens -- for the human readers.
-> Oh, and you don't need quotes around commit ID too.
->
-Yes I missed that. Updated patch below.
+On Monday, May 30, 2011, Jean Pihet wrote:
+> Rafael,
 
-Regards
-Santosh
+Hi,
 
- From 53e986a2a43dc204146af99c2d7a906dba781ea0 Mon Sep 17 00:00:00 2001
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Date: Mon, 30 May 2011 15:52:01 +0530
-Subject: [PATCH] OMAP2/4: PM: Boot message is not an error/info, and not 
-helpful, remove it
+> On Sat, May 28, 2011 at 11:01 AM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+> > On Saturday, May 28, 2011, Kevin Hilman wrote:
+> >> Some platforms wish to implement their PM core suspend code as
+> >> modules.  To do so, these functions need to be exported to modules.
+> >
+> > Hmm.  What happens if the module is not loaded and the user attempts to
+> > suspend?
+> In that case suspend_ops is NULL and suspending has no effect
+> (pm_suspend returns -ENODEV).
+> Note that this also happens after the module unload.
+> 
+> Is that the expected behavior?
 
-The commit 99aa18278e (OMAP3: PM: Boot message is not an error,
-and not helpful, remove it), removed the boot message for OMAP3.
-Do the same for OMAP2 and OMAP4 since it's really just noise in the
-boot log and PM init is always called.
+Yes, kind of, thanks.
 
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Kevin Hilman <khilman@ti.com>
----
-  arch/arm/mach-omap2/pm24xx.c |    1 -
-  arch/arm/mach-omap2/pm44xx.c |    2 --
-  2 files changed, 0 insertions(+), 3 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
-index df3ded6..5970759 100644
---- a/arch/arm/mach-omap2/pm24xx.c
-+++ b/arch/arm/mach-omap2/pm24xx.c
-@@ -442,7 +442,6 @@ static int __init omap2_pm_init(void)
-  	if (!cpu_is_omap24xx())
-  		return -ENODEV;
-
--	printk(KERN_INFO "Power Management for OMAP2 initializing\n");
-  	l = omap2_prm_read_mod_reg(OCP_MOD, OMAP2_PRCM_REVISION_OFFSET);
-  	printk(KERN_INFO "PRCM revision %d.%d\n", (l >> 4) & 0x0f, l & 0x0f);
-
-diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
-index 59a870b..a6259d6 100644
---- a/arch/arm/mach-omap2/pm44xx.c
-+++ b/arch/arm/mach-omap2/pm44xx.c
-@@ -103,8 +103,6 @@ static int __init omap4_pm_init(void)
-  	if (!cpu_is_omap44xx())
-  		return -ENODEV;
-
--	pr_err("Power Management for TI OMAP4.\n");
--
-  	ret = pwrdm_for_each(pwrdms_setup, NULL);
-  	if (ret) {
-  		pr_err("Failed to setup powerdomains\n");
--- 
-1.6.0.4
-
+Take care,
+Rafael
