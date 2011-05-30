@@ -1,84 +1,51 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP3: beagle: add support for beagleboard xM revision
- C
-Date: Mon, 30 May 2011 07:34:11 -0700
-Message-ID: <20110530143411.GG11352@atomide.com>
-References: <1306503133-31996-1-git-send-email-koen@dominion.thruhere.net>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH] media: omap3isp: fix format string warning
+Date: Mon, 30 May 2011 16:57:36 +0200
+Message-ID: <201105301657.36320.laurent.pinchart@ideasonboard.com>
+References: <1306652691-21102-1-git-send-email-ohad@wizery.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:40681 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751629Ab1E3OeO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 May 2011 10:34:14 -0400
-Content-Disposition: inline
-In-Reply-To: <1306503133-31996-1-git-send-email-koen@dominion.thruhere.net>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <1306652691-21102-1-git-send-email-ohad@wizery.com>
+Sender: linux-media-owner@vger.kernel.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Koen Kooi <koen@dominion.thruhere.net>
-Cc: linux-omap@vger.kernel.org, jkridner@beagleboard.org, linux-arm-kernel@lists.infradead.org
 
-Hi,
+Hi Ohad,
 
-* Koen Kooi <koen@dominion.thruhere.net> [110527 06:28]:
->
-> @@ -123,9 +126,13 @@ static void __init omap3_beagle_init_rev(void)
->  		printk(KERN_INFO "OMAP3 Beagle Rev: xM\n");
->  		omap3_beagle_version = OMAP3BEAGLE_BOARD_XM;
->  		break;
-> +	case 2:
-> +		printk(KERN_INFO "OMAP3 Beagle Rev: xM\n");
-> +		omap3_beagle_version = OMAP3BEAGLE_BOARD_XMC;
-> +		break;
->  	default:
->  		printk(KERN_INFO "OMAP3 Beagle Rev: unknown %hd\n", beagle_rev);
-> -		omap3_beagle_version = OMAP3BEAGLE_BOARD_UNKN;
-> +		omap3_beagle_version = OMAP3BEAGLE_BOARD_XMC;
->  	}
->  }
+On Sunday 29 May 2011 09:04:51 Ohad Ben-Cohen wrote:
+> Trivially fix this:
+> 
+> drivers/media/video/omap3isp/isp.c: In function 'isp_isr_dbg':
+> drivers/media/video/omap3isp/isp.c:394: warning: zero-length gnu_printf
+> format string
 
-Maybe just set up static struct omap3_beagle that contains the
-various things to initialize. Then initialize it in omap3_beagle_init_rev
-above.
+Thanks for the patch, but I've already applied something similar to my tree. 
+Sorry :-)
 
-Otherwise we'll end up adding more and more omap3_beagle_get_rev and
-cpu_is_omap tests to this file and it will become hard to maintain.
-  
-> @@ -253,7 +260,7 @@ static int beagle_twl_gpio_setup(struct device *dev,
->  {
->  	int r, usb_pwr_level;
->  
-> -	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM) {
-> +	if (cpu_is_omap3630()) {
->  		mmc[0].gpio_wp = -EINVAL;
->  	} else if ((omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_C1_3) ||
->  		(omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_C4)) {
+> Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
+> ---
+>  drivers/media/video/omap3isp/isp.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/media/video/omap3isp/isp.c
+> b/drivers/media/video/omap3isp/isp.c index 472a693..a0d5e69 100644
+> --- a/drivers/media/video/omap3isp/isp.c
+> +++ b/drivers/media/video/omap3isp/isp.c
+> @@ -391,7 +391,7 @@ static inline void isp_isr_dbg(struct isp_device *isp,
+> u32 irqstatus) };
+>  	int i;
+> 
+> -	dev_dbg(isp->dev, "");
+> +	dev_dbg(isp->dev, "%s\n", __func__);
+> 
+>  	for (i = 0; i < ARRAY_SIZE(name); i++) {
+>  		if ((1 << i) & irqstatus)
 
-This would become:
-
-	mmc[0].gpio_wp = beagle.gpio_wp;
-
-> @@ -275,11 +282,10 @@ static int beagle_twl_gpio_setup(struct device *dev,
->  	 * high / others active low)
->  	 * DVI reset GPIO is different between beagle revisions
->  	 */
-> -	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM) {
-> -		usb_pwr_level = GPIOF_OUT_INIT_HIGH;
-> +	if (cpu_is_omap3630()) {
->  		beagle_dvi_device.reset_gpio = 129;
->  		/*
-> -		 * gpio + 1 on Xm controls the TFP410's enable line (active low)
-> +		 * gpio + 1 on xM controls the TFP410's enable line (active low)
->  		 * gpio + 2 control varies depending on the board rev as below:
->  		 * P7/P8 revisions(prototype): Camera EN
->  		 * A2+ revisions (production): LDO (DVI, serial, led blocks)
-
-This would be just:
-
-	usb_pwr_level = beagle.usb_pwr_level;
-
-And so on.
-
+-- 
 Regards,
 
-Tony
+Laurent Pinchart
