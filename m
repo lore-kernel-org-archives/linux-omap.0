@@ -1,37 +1,58 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: boot hang using OMAP for-next + Russell's for-linus
-Date: Mon, 30 May 2011 01:05:33 -0700
-Message-ID: <20110530080533.GF11352@atomide.com>
-References: <87d3j3x28x.fsf@ti.com>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [PATCH/RFC 3/4] OMAP3: PM debug: remove register dumping
+Date: Mon, 30 May 2011 10:06:36 +0200
+Message-ID: <BANLkTikfPgkk1ca=E3SyU7T8T6vABgAjtQ@mail.gmail.com>
+References: <1306450971-27732-1-git-send-email-khilman@ti.com>
+	<1306450971-27732-4-git-send-email-khilman@ti.com>
+	<4DE344D6.5070103@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:40397 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754820Ab1E3IFg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 May 2011 04:05:36 -0400
-Content-Disposition: inline
-In-Reply-To: <87d3j3x28x.fsf@ti.com>
+Received: from mail-qy0-f181.google.com ([209.85.216.181]:39419 "EHLO
+	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754820Ab1E3IGg convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 May 2011 04:06:36 -0400
+Received: by qyg14 with SMTP id 14so1822967qyg.19
+        for <linux-omap@vger.kernel.org>; Mon, 30 May 2011 01:06:36 -0700 (PDT)
+In-Reply-To: <4DE344D6.5070103@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, Russell King <rmk@arm.linux.org.uk>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, p-titiano@ti.com
 
-* Kevin Hilman <khilman@ti.com> [110527 14:24]:
-> FYI... I just found this, but won't be able to look into it until next
-> week, so if anyone needs a weekend debug project...
-> 
-> Using Tony's for-next branch, I'm able to boot an omap2plus_defconfig (+
-> busybox initramfs) kernel on my 3430/n900 just fine.   I then tried to
-> merge in Russell's for-linus branch and it hangs during boot.
-> 
-> It appears to hang in the init/registration of i2c busses.  Commenting
-> out the i2c bus registration from board-rx51-peripherals and disabling a
-> few of the users of i2c, I was able to boot.
+On Mon, May 30, 2011 at 9:18 AM, Santosh Shilimkar
+<santosh.shilimkar@ti.com> wrote:
+> On 5/27/2011 4:32 AM, Kevin Hilman wrote:
+>>
+>> Remove OMAP3-specific register dumping feature from PM debug layer.
+>> This is removed because:
+>>
+>> - it's ugly
+>> - it's OMAP3-specific, and will obviously not scale to OMAP4+
+>> - userspace /dev/mem-based tools (like omapconf) can do this much be=
+tter
+>>
+> Fully agree and indeed it doesn't scale for OMAP4.
+>
+> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>
 
-Looks like at least v3.0-rc1 boots just fine, so whatever that was
-has been already fixed.
+Ok. Same comment about the use of omaconf as a debug/investigation tool=
+=2E
+Acked-by: Jean Pihet <j-pihet@ti.com>
 
-Regards,
-
-Tony
+>
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
