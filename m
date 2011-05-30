@@ -1,35 +1,67 @@
-From: Nishanth Menon <menon.nishanth@gmail.com>
-Subject: Re: [RFC][PATCH 2/9] OMAP4: HWMOD: make current hwmods common for
- 4460 and 4430
-Date: Mon, 30 May 2011 06:50:07 -0500
-Message-ID: <4DE3846F.6050904@gmail.com>
-References: <1306375016-707-1-git-send-email-nm@ti.com> <1306375016-707-3-git-send-email-nm@ti.com> <4DE35CDD.30709@gmail.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: V 3.0-rc1: [REPORT]  OMAP MMC and CONSOLE  Regression
+Date: Mon, 30 May 2011 18:03:12 +0530
+Message-ID: <4DE38E88.1030402@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:43306 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756711Ab1E3LuM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 May 2011 07:50:12 -0400
-Received: by yxs7 with SMTP id 7so1377766yxs.19
-        for <linux-omap@vger.kernel.org>; Mon, 30 May 2011 04:50:11 -0700 (PDT)
-In-Reply-To: <4DE35CDD.30709@gmail.com>
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:48309 "EHLO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756612Ab1E3MdS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 30 May 2011 08:33:18 -0400
+Received: by gyg13 with SMTP id 13so1689315gyg.41
+        for <linux-omap@vger.kernel.org>; Mon, 30 May 2011 05:33:17 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vladimir Pantelic <vladoman@gmail.com>
-Cc: Nishanth Menon <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Aneesh V <aneesh@ti.com>
+To: l-o <linux-omap@vger.kernel.org>
+Cc: "Krishnamoorthy, Balaji T" <balajitk@ti.com>
 
-On 05/30/2011 04:01 AM, Vladimir Pantelic wrote:
-[..]
->> - .omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
->> + .omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP44XX),
->
-> I guess at the time that CHIP_IS_OMAP4430 was introduced it was totally
-> unthinkable that another 44xx based chip would ever exist?
+While trying out V3.0-rc1, I noticed couple of regressions. Am
+posting this in case anybody come across same issues.
 
-I think it was a script that generated the data from internal databases. 
-yeah, it is possible that, at that point, not thought out far ahead :(
+1.OMAP MMC code keep throwing "Pbias Voltage is not same as LDO" error
+continuously.
 
-Regards,
-Nishanth Menon
+Balaji is planning post right fix for the same, but just
+in case you get around this issue,
+
+diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc.c
+index b2f30be..94ae400 100644
+--- a/arch/arm/mach-omap2/hsmmc.c
++++ b/arch/arm/mach-omap2/hsmmc.c
+@@ -145,6 +145,7 @@ static void omap4_hsmmc1_after_set_reg(struct device 
+*dev, int slot,
+  				 int power_on, int vdd)
+  {
+  	u32 reg;
++	unsigned long timeout;
+
+  	if (power_on) {
+  		reg = omap4_ctrl_pad_readl(control_pbias_offset);
+@@ -158,7 +159,14 @@ static void omap4_hsmmc1_after_set_reg(struct 
+device *dev, int slot,
+  			OMAP4_USBC1_ICUSB_PWRDNZ_MASK);
+  		omap4_ctrl_pad_writel(reg, control_pbias_offset);
+  		/* 4 microsec delay for comparator to generate an error*/
+-		udelay(4);
++		timeout = jiffies + msecs_to_jiffies(500);
++		do {
++			reg = omap4_ctrl_pad_readl(control_pbias_offset);
++			if (!(reg & OMAP4_MMC1_PBIASLITE_VMODE_ERROR_MASK))
++				break;
++			mdelay(1);
++		} while (!time_after(jiffies, timeout));
++
+  		reg = omap4_ctrl_pad_readl(control_pbias_offset);
+  		if (reg & OMAP4_MMC1_PBIASLITE_VMODE_ERROR_MASK) {
+  			pr_err("Pbias Voltage is not same as LDO\n");
+
+2. can't open /dev/ttyO2: No such file or directory
+
+This is not obvious console entry missing problem in FS.
+Need to look at this further.
+
+
+
