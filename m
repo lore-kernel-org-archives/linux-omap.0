@@ -1,47 +1,42 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH] OMAP: don't trace functions called from sched_clock
-Date: Tue, 31 May 2011 09:13:07 -0700
-Message-ID: <87oc2isvak.fsf@ti.com>
-References: <1304846514-15641-1-git-send-email-rabin@rab.in>
-	<87hb8fyj2p.fsf@ti.com> <8762ovvf5f.fsf@ti.com>
-	<20110531115039.GZ11352@atomide.com>
+Subject: Re: boot hang using OMAP for-next + Russell's for-linus
+Date: Tue, 31 May 2011 09:13:44 -0700
+Message-ID: <87ipsqsv9j.fsf@ti.com>
+References: <87d3j3x28x.fsf@ti.com> <20110530080533.GF11352@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:52710 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756994Ab1EaQNK (ORCPT
+Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:46029 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1756998Ab1EaQNs (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 31 May 2011 12:13:10 -0400
-Received: by mail-pz0-f42.google.com with SMTP id 37so2334065pzk.15
-        for <linux-omap@vger.kernel.org>; Tue, 31 May 2011 09:13:09 -0700 (PDT)
-In-Reply-To: <20110531115039.GZ11352@atomide.com> (Tony Lindgren's message of
-	"Tue, 31 May 2011 04:50:40 -0700")
+	Tue, 31 May 2011 12:13:48 -0400
+Received: by mail-px0-f175.google.com with SMTP id 17so2716564pxi.20
+        for <linux-omap@vger.kernel.org>; Tue, 31 May 2011 09:13:47 -0700 (PDT)
+In-Reply-To: <20110530080533.GF11352@atomide.com> (Tony Lindgren's message of
+	"Mon, 30 May 2011 01:05:33 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Rabin Vincent <rabin@rab.in>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org, Russell King <rmk@arm.linux.org.uk>
 
 Tony Lindgren <tony@atomide.com> writes:
 
-> * Kevin Hilman <khilman@ti.com> [110527 17:28]:
->> Kevin Hilman <khilman@ti.com> writes:
+> * Kevin Hilman <khilman@ti.com> [110527 14:24]:
+>> FYI... I just found this, but won't be able to look into it until next
+>> week, so if anyone needs a weekend debug project...
 >> 
->> > Rabin Vincent <rabin@rab.in> writes:
->> >
->> >> omap_readl() is used from the sched_clock() implementations and so must
->> >> be marked notrace to avoid recursion in ftrace.  Same thing with
->> >> mpu_read() for OMAP1.
->> >>
->> >> Signed-off-by: Rabin Vincent <rabin@rab.in>
->> >
->> > Acked-by: Kevin Hilman <khilman@ti.com>
+>> Using Tony's for-next branch, I'm able to boot an omap2plus_defconfig (+
+>> busybox initramfs) kernel on my 3430/n900 just fine.   I then tried to
+>> merge in Russell's for-linus branch and it hangs during boot.
 >> 
->> I also meant to suggest this should probably queue for .40-rc series.
+>> It appears to hang in the init/registration of i2c busses.  Commenting
+>> out the i2c bus registration from board-rx51-peripherals and disabling a
+>> few of the users of i2c, I was able to boot.
 >
-> Took a quick look and we should get rid of the omap_readl usage instead
-> like I commented in another mail.
+> Looks like at least v3.0-rc1 boots just fine, so whatever that was
+> has been already fixed.
 
-Agreed, that's a better approach.
+Indeed, rc1 is booting fine for me now.
 
 Kevin
