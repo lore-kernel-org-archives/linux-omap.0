@@ -1,56 +1,66 @@
-From: <kalle.jokiniemi@nokia.com>
-Subject: RE: [PATCH v2 1/1] OMAP3: rx-51: Add full regulator definitions
-Date: Tue, 31 May 2011 12:59:02 +0000
-Message-ID: <9D0D31AA57AAF5499AFDC63D6472631B0C0A15@008-AM1MPN1-036.mgdnok.nokia.com>
-References: <1304317733-9639-1-git-send-email-kalle.jokiniemi@nokia.com>
- <1304317733-9639-2-git-send-email-kalle.jokiniemi@nokia.com>
- <20110502095825.05515db9.jhnikula@gmail.com>
- <9D0D31AA57AAF5499AFDC63D6472631B09F26B@008-AM1MPN1-036.mgdnok.nokia.com>
- <20110531125722.GJ11352@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2] arm: omap3: cm-t35: add support for cm-t3730
+Date: Tue, 31 May 2011 06:04:47 -0700
+Message-ID: <20110531130447.GK11352@atomide.com>
+References: <4DC27317.7020206@compulab.co.il>
+ <1304839231-11329-1-git-send-email-grinberg@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:17205 "EHLO mgw-da02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752759Ab1EaM7e convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 May 2011 08:59:34 -0400
-In-Reply-To: <20110531125722.GJ11352@atomide.com>
-Content-Language: en-US
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:36744 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751500Ab1EaNEu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 May 2011 09:04:50 -0400
+Content-Disposition: inline
+In-Reply-To: <1304839231-11329-1-git-send-email-grinberg@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: broonie@opensource.wolfsonmicro.com, linux-omap@vger.kernel.org, jhnikula@gmail.com
+To: Igor Grinberg <grinberg@compulab.co.il>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
+* Igor Grinberg <grinberg@compulab.co.il> [110508 00:17]:
+> cm-t3730 is basically the same board as cm-t35, but has DM3730 SoC
+> assembled and therefore some changes are required.
 
+> +static void cm_t35_mux_init(void)
+> +{
+> +	int mux_mode = OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT;
+> +
+> +	omap3_mux_init(cm_t35_common_board_mux, OMAP_PACKAGE_CUS);
+> +
+> +	if (cpu_is_omap34xx()) {
+> +		omap_mux_init_signal("gpio_70", mux_mode);
+> +		omap_mux_init_signal("gpio_71", mux_mode);
+> +		omap_mux_init_signal("gpio_72", mux_mode);
+> +		omap_mux_init_signal("gpio_73", mux_mode);
+> +		omap_mux_init_signal("gpio_74", mux_mode);
+> +		omap_mux_init_signal("gpio_75", mux_mode);
+> +	} else if (cpu_is_omap3630()) {
+> +		mux_mode = OMAP_MUX_MODE3 | OMAP_PIN_OUTPUT;
+> +		omap_mux_init_signal("sys_boot0", mux_mode);
+> +		omap_mux_init_signal("sys_boot1", mux_mode);
+> +		omap_mux_init_signal("sys_boot3", mux_mode);
+> +		omap_mux_init_signal("sys_boot4", mux_mode);
+> +		omap_mux_init_signal("sys_boot5", mux_mode);
+> +		omap_mux_init_signal("sys_boot6", mux_mode);
+> +	}
+> +
+> +	omap_mux_init_signal("dss_data18", mux_mode);
+> +	omap_mux_init_signal("dss_data19", mux_mode);
+> +	omap_mux_init_signal("dss_data20", mux_mode);
+> +	omap_mux_init_signal("dss_data21", mux_mode);
+> +	omap_mux_init_signal("dss_data22", mux_mode);
+> +	omap_mux_init_signal("dss_data23", mux_mode);
+> +}
+> +#else
+> +static inline void cm_t35_mux_init(void) {}
+>  #endif
 
-> -----Original Message-----
-> From: ext Tony Lindgren [mailto:tony@atomide.com]
-> Sent: 31. toukokuuta 2011 15:57
-> To: Jokiniemi Kalle (Nokia-SD/Tampere)
-> Cc: broonie@opensource.wolfsonmicro.com; linux-omap@vger.kernel.org;
-> jhnikula@gmail.com
-> Subject: Re: [PATCH v2 1/1] OMAP3: rx-51: Add full regulator definitions
-> 
-> * kalle.jokiniemi@nokia.com <kalle.jokiniemi@nokia.com> [110512 01:56]:
-> > Hi Tony,
-> >
-> >  > -----Original Message-----
-> >  > From: ext Jarkko Nikula [mailto:jhnikula@gmail.com]
-> >  > Sent: 2. toukokuuta 2011 9:58
-> >  > To: Jokiniemi Kalle (Nokia-SD/Tampere)
-> >  > Cc: tony@atomide.com; broonie@opensource.wolfsonmicro.com; linux-
-> >  > omap@vger.kernel.org
-> >  > Subject: Re: [PATCH v2 1/1] OMAP3: rx-51: Add full regulator definitions
-> >
-> > Did this one get pushed to linux-omap? Just checking on my old patches...
-> 
-> Adding to devel-board for a future merge window when we can add some
-> new code.
+Should this cpu_is_omap if else done once and then set
+some data based on it? That would be better if you need to
+use it for detection for other things later on as it will
+avoid multiple cpu_is/machine_is if else lines of code.
 
-Excellent, thanks.
+Regards,
 
-- Kalle
-
-> 
-> Tony
+Tony
