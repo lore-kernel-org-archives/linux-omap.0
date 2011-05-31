@@ -1,65 +1,57 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: rtc-twl: catch22 in 2.6.37 and 2.6.38 when clock was never set
-Date: Tue, 31 May 2011 03:28:28 -0700
-Message-ID: <20110531102827.GT11352@atomide.com>
-References: <4D99D5B0.6010503@ahsoftware.de>
- <4D9AEB76.2060509@ahsoftware.de>
+Subject: Re: [PATCH] arm: omap3: beagle: Ensure msecure is mux'd to be able
+ to set the RTC
+Date: Tue, 31 May 2011 03:29:03 -0700
+Message-ID: <20110531102903.GU11352@atomide.com>
+References: <4D9AEB76.2060509@ahsoftware.de>
+ <1302010808-3065-1-git-send-email-holler@ahsoftware.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:20332 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753084Ab1EaK3G (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 May 2011 06:29:06 -0400
 Content-Disposition: inline
-In-Reply-To: <4D9AEB76.2060509@ahsoftware.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alexander Holler <holler@ahsoftware.de>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+In-Reply-To: <1302010808-3065-1-git-send-email-holler@ahsoftware.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Alexander Holler <holler@ahsoftware.de>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Alexander Holler <holler@ahsoftware.de> [110405 03:11]:
-> Hello,
+* Alexander Holler <holler@ahsoftware.de> [110405 06:38]:
+> Without msecure beeing high it isn't possible to set (or start)
+> the RTC.
 > 
-> Am 04.04.2011 16:29, schrieb Alexander Holler:
-> 
-> >it just happened here that the rechargeable backup battery for the RTC
-> >on a TPS65950 run out off power, because of some days while the device
-> >wasn't powered.
-> >
-> >Afterwards I couldn't read or set the clock with hwclock using a kernel
-> >2.6.37.n or 2.6.38.n.
-> >
-> >I don't have a fix, but I think I've analyzed the problem and can offer
-> >a (bad) workaround.
-> >
-> >What happens is the following:
-> >
-> >When trying to read or set the clock with hwclock, the driver (rtc-twl)
-> >starts an alarm, but the irq for the alarm will never get called. The
-> >result is that a select in hwclock times out (for both operations, read
-> >or set).
-> >
-> >Because I had this clock running before, I've got the idea to try one of
-> >those old OMAP-kernels (2.6.32-angstrom) using the same userland.
-> >And with that kernel I could set the clock.
-> >Using 2.6.37 or 2.6.38 afterwards, hwclock did function again, both read
-> >an set are working.
-> >
-> >So it looks like there is a catch22 in kernels >=2.6.37 (I haven't
-> >tested .33-.36):
-> >
-> >When the clock was never set, the alarm(-irq) doesn't work, so hwclock
-> >doesn't work, so one can't set the clock.
-> 
-> It turns out that the missing/wrong initialization of the msecure
-> line is the problem which disabled setting the clock. After doing
-> that through a quick hack, I could set the clock.
-> 
-> I'm using a BeagleBoard C4, but I can't find any msecure
-> initialization for other boards too.
-> 
-> What happened with those patches? E.g. those:
-> 
-> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg16125.html
+> Tested with a BeagleBoard C4.
 
-Looks like these need reposting. Maybe worth doing generic omap
-RTC init code though?
+Adding this into fixes.
 
 Tony
+ 
+> Signed-off-by: Alexander Holler <holler@ahsoftware.de>
+> ---
+>  arch/arm/mach-omap2/board-omap3beagle.c |    3 +++
+>  1 files changed, 3 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+> index 46d814a..ebe3a7e 100644
+> --- a/arch/arm/mach-omap2/board-omap3beagle.c
+> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
+> @@ -628,6 +628,9 @@ static void __init omap3_beagle_init(void)
+>  	usb_ehci_init(&ehci_pdata);
+>  	omap3beagle_flash_init();
+>  
+> +	/* Ensure msecure is mux'd to be able to set the RTC. */
+> +	omap_mux_init_signal("sys_drm_msecure", OMAP_PIN_OFF_OUTPUT_HIGH);
+> +
+>  	/* Ensure SDRC pins are mux'd for self-refresh */
+>  	omap_mux_init_signal("sdrc_cke0", OMAP_PIN_OUTPUT);
+>  	omap_mux_init_signal("sdrc_cke1", OMAP_PIN_OUTPUT);
+> -- 
+> 1.7.3.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
