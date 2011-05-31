@@ -1,50 +1,71 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP2: Add missing iounmap in omap4430_phy_init
-Date: Tue, 31 May 2011 04:55:35 -0700
-Message-ID: <20110531115535.GB11352@atomide.com>
-References: <20110526192553.GA21534@google.com>
+Subject: Re: [PATCH] free rev gpios when they are read, so others can read
+ them later
+Date: Tue, 31 May 2011 05:01:33 -0700
+Message-ID: <20110531120133.GC11352@atomide.com>
+References: <1306438716-68265-1-git-send-email-tasskjapp@gmail.com>
+ <2DCF0893-4166-4604-887B-EDBC3643290A@gmail.com>
+ <4DDF8AC9.60709@compulab.co.il>
+ <91831E5F-5654-4133-AADC-9C3D6B86A63E@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:65206 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:13057 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753238Ab1EaLzh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 May 2011 07:55:37 -0400
+	with ESMTP id S1753701Ab1EaMBh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 May 2011 08:01:37 -0400
 Content-Disposition: inline
-In-Reply-To: <20110526192553.GA21534@google.com>
+In-Reply-To: <91831E5F-5654-4133-AADC-9C3D6B86A63E@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Todd Poynor <toddpoynor@google.com>
-Cc: linux-omap@vger.kernel.org, Hema HK <hemahk@ti.com>
+To: Tasslehoff Kjappfot <tasskjapp@gmail.com>
+Cc: Igor Grinberg <grinberg@compulab.co.il>, linux-omap@vger.kernel.org
 
-* Todd Poynor <toddpoynor@google.com> [110526 12:22]:
-> !dev case needs iounmap before return.
+* Tasslehoff Kjappfot <tasskjapp@gmail.com> [110528 02:20]:
+> Hi Igor.
+> > 
+> > To be consistent with the rest of the file,
+> > can the white space here be "tabs" instead of spaces?
+> > 
+> > 
+> > -- 
+> > Regards,
+> > Igor.
+> > 
+> 
+> They can. New version attached. I'm don't know how to use git send-email to continue this thread with a comment to my patch, so it was done manually. Let me know if something else is less-than-optimal with my patches. Rookie contributor :)
 
-Adding to fixes thanks.
+Thanks applying to fixes with following description:
+
+Free Beagle rev gpios when they are read, so others can read them later
+ 
+Regards,
 
 Tony
- 
-> Signed-off-by: Todd Poynor <toddpoynor@google.com>
+
+> Signed-off-by: Tasslehoff Kjappfot <tasskjapp@gmail.com>
 > ---
->  arch/arm/mach-omap2/omap_phy_internal.c |    4 +++-
->  1 files changed, 3 insertions(+), 1 deletions(-)
+>  arch/arm/mach-omap2/board-omap3beagle.c |    3 +++
+>  1 files changed, 3 insertions(+), 0 deletions(-)
 > 
-> diff --git a/arch/arm/mach-omap2/omap_phy_internal.c b/arch/arm/mach-omap2/omap_phy_internal.c
-> index ae97336..bd563cf 100644
-> --- a/arch/arm/mach-omap2/omap_phy_internal.c
-> +++ b/arch/arm/mach-omap2/omap_phy_internal.c
-> @@ -56,8 +56,10 @@ int omap4430_phy_init(struct device *dev)
->  	/* Power down the phy */
->  	__raw_writel(PHY_PD, ctrl_base + CONTROL_DEV_CONF);
+> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+> index 3ff3a2c..54dbb7dd 100644
+> --- a/arch/arm/mach-omap2/board-omap3beagle.c
+> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
+> @@ -106,6 +106,9 @@ static void __init omap3_beagle_init_rev(void)
+>  	beagle_rev = gpio_get_value(171) | (gpio_get_value(172) << 1)
+>  			| (gpio_get_value(173) << 2);
 >  
-> -	if (!dev)
-> +	if (!dev) {
-> +		iounmap(ctrl_base);
->  		return 0;
-> +	}
->  
->  	phyclk = clk_get(dev, "ocp2scp_usb_phy_ick");
->  	if (IS_ERR(phyclk)) {
+> +	gpio_free_array(omap3_beagle_rev_gpios,
+> +			ARRAY_SIZE(omap3_beagle_rev_gpios));
+> +
+>  	switch (beagle_rev) {
+>  	case 7:
+>  		printk(KERN_INFO "OMAP3 Beagle Rev: Ax/Bx\n");
 > -- 
 > 1.7.3.1
 > 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
