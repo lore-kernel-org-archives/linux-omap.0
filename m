@@ -1,133 +1,90 @@
-From: "Nori, Sekhar" <nsekhar-l0cyMroinI0@public.gmane.org>
-Subject: RE: [RFC PATCH v4] Consolidate SRAM support
-Date: Tue, 31 May 2011 22:39:48 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024D234457@dbde02.ent.ti.com>
-References: <20110512174546.GB8633@n2100.arm.linux.org.uk>
-	<1306371777-20431-1-git-send-email-plagnioj@jcrosoft.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-In-Reply-To: <1306371777-20431-1-git-send-email-plagnioj-sclMFOaUSTBWk0Htik3J/w@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
-List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
-List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
-Sender: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-To: Jean-Christophe PLAGNIOL-VILLARD <plagnioj-sclMFOaUSTBWk0Htik3J/w@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-Cc: "davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org" <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Sascha Hauer <kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Russell King <rmk+kernel-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Koen Kooi <koen@dominion.thruhere.net>
+Subject: Re: [PATCH] OMAP3: beagle: add support for beagleboard xM revision C
+Date: Tue, 31 May 2011 20:13:45 +0200
+Message-ID: <12BBA6F3-601A-472B-AB24-FCEA7DCED29D@dominion.thruhere.net>
+References: <1306503133-31996-1-git-send-email-koen@dominion.thruhere.net> <20110530143411.GG11352@atomide.com>
+Mime-Version: 1.0 (Apple Message framework v1084)
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:44098 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757853Ab1EaSNt convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 May 2011 14:13:49 -0400
+Received: by wwa36 with SMTP id 36so5168276wwa.1
+        for <linux-omap@vger.kernel.org>; Tue, 31 May 2011 11:13:48 -0700 (PDT)
+In-Reply-To: <20110530143411.GG11352@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap List <linux-omap@vger.kernel.org>, Jason Kridner <jkridner@beagleboard.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Joel A Fernandes <agnel.joel@gmail.com>
 
-Hi Jean-Christophe,
 
-On Thu, May 26, 2011 at 06:32:57, Jean-Christophe PLAGNIOL-VILLARD wrote:
-> From: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+Op 30 mei 2011, om 16:34 heeft Tony Lindgren het volgende geschreven:
+
+> Hi,
 > 
-> We have two SoCs using SRAM, both with their own allocation systems,
-> and both with their own ways of copying functions into the SRAM.
+> * Koen Kooi <koen@dominion.thruhere.net> [110527 06:28]:
+>> 
+>> @@ -123,9 +126,13 @@ static void __init omap3_beagle_init_rev(void)
+>> 		printk(KERN_INFO "OMAP3 Beagle Rev: xM\n");
+>> 		omap3_beagle_version = OMAP3BEAGLE_BOARD_XM;
+>> 		break;
+>> +	case 2:
+>> +		printk(KERN_INFO "OMAP3 Beagle Rev: xM\n");
+>> +		omap3_beagle_version = OMAP3BEAGLE_BOARD_XMC;
+>> +		break;
+>> 	default:
+>> 		printk(KERN_INFO "OMAP3 Beagle Rev: unknown %hd\n", beagle_rev);
+>> -		omap3_beagle_version = OMAP3BEAGLE_BOARD_UNKN;
+>> +		omap3_beagle_version = OMAP3BEAGLE_BOARD_XMC;
+>> 	}
+>> }
 > 
-> Let's unify this before we have additional SoCs re-implementing this
-> obviously common functionality themselves.
+> Maybe just set up static struct omap3_beagle that contains the
+> various things to initialize. Then initialize it in omap3_beagle_init_rev
+> above.
 > 
-> For this use the generic allocator and the newly introduce
-> gen_pool_add_virt and gen_pool_virt_to_phys
+> Otherwise we'll end up adding more and more omap3_beagle_get_rev and
+> cpu_is_omap tests to this file and it will become hard to maintain.
 > 
-> Uio_pruss should probably take the SRAM pool pointer via
-> platform data so that it doesn't have to include Davinci specific
-> includes.
+>> @@ -253,7 +260,7 @@ static int beagle_twl_gpio_setup(struct device *dev,
+>> {
+>> 	int r, usb_pwr_level;
+>> 
+>> -	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM) {
+>> +	if (cpu_is_omap3630()) {
+>> 		mmc[0].gpio_wp = -EINVAL;
+>> 	} else if ((omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_C1_3) ||
+>> 		(omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_C4)) {
 > 
-> Signed-off-by: Russell King <rmk+kernel-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
-> Signed-off-by: Jean-Christophe PLAGNIOL-VILLARD <plagnioj-sclMFOaUSTBWk0Htik3J/w@public.gmane.org>
-> Cc: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
-> Cc: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
-> Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> Cc: Sascha Hauer <kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+> This would become:
+> 
+> 	mmc[0].gpio_wp = beagle.gpio_wp;
+> 
+>> @@ -275,11 +282,10 @@ static int beagle_twl_gpio_setup(struct device *dev,
+>> 	 * high / others active low)
+>> 	 * DVI reset GPIO is different between beagle revisions
+>> 	 */
+>> -	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM) {
+>> -		usb_pwr_level = GPIOF_OUT_INIT_HIGH;
+>> +	if (cpu_is_omap3630()) {
+>> 		beagle_dvi_device.reset_gpio = 129;
+>> 		/*
+>> -		 * gpio + 1 on Xm controls the TFP410's enable line (active low)
+>> +		 * gpio + 1 on xM controls the TFP410's enable line (active low)
+>> 		 * gpio + 2 control varies depending on the board rev as below:
+>> 		 * P7/P8 revisions(prototype): Camera EN
+>> 		 * A2+ revisions (production): LDO (DVI, serial, led blocks)
+> 
+> This would be just:
+> 
+> 	usb_pwr_level = beagle.usb_pwr_level;
+> 
+> And so on.
 
-I tested this on DA850 using suspend-to-RAM and audio, it works
-well!
+Tony, thanks for the feedback! The change you want is a bit too much for my C knowledge, but Joel will but picking it up from here.
 
->  arch/arm/Kconfig                                   |    2 +
->  arch/arm/mach-davinci/da850.c                      |    2 +-
->  arch/arm/mach-davinci/dm355.c                      |    2 +-
->  arch/arm/mach-davinci/dm365.c                      |    2 +-
->  arch/arm/mach-davinci/dm644x.c                     |    2 +-
->  arch/arm/mach-davinci/dm646x.c                     |    2 +-
->  arch/arm/mach-davinci/include/mach/common.h        |    2 +-
->  arch/arm/mach-davinci/include/mach/sram.h          |   13 +----
->  arch/arm/mach-davinci/pm.c                         |   21 +++----
->  arch/arm/mach-davinci/sram.c                       |   57 +++++--------------
+regards,
 
->  arch/arm/plat-mxc/include/mach/iram.h              |   28 ++++++++--
->  .../plat-mxc/{include/mach/iram.h => iram_alloc.c} |   40 ++++++++------
-
-I had trouble applying the plat-mxc stuff on v3.0-rc1.
-Can you please check?
-
-I also found some check patch errors. Feel free to merge
-the attached patch.
-
-With these, please add my:
-
-Acked-by: Sekhar Nori <nsekhar-l0cyMroinI0@public.gmane.org>
-
-Thanks,
-Sekhar
-
-----8<-------
-diff --git a/arch/arm/plat-mxc/include/mach/iram.h b/arch/arm/plat-mxc/include/mach/iram.h
-index 8279c47..aae5e35 100644
---- a/arch/arm/plat-mxc/include/mach/iram.h
-+++ b/arch/arm/plat-mxc/include/mach/iram.h
-@@ -31,7 +31,7 @@ static inline void *iram_alloc(size_t size, phys_addr_t *phys)
- 
- 	*phys = gen_pool_virt_to_phys(iram_pool, addr);
- 
--	return (void*)addr;
-+	return (void *) addr;
- }
- 
- static inline void iram_free(void *addr, size_t size)
-diff --git a/arch/arm/plat-omap/include/plat/sram.h b/arch/arm/plat-omap/include/plat/sram.h
-index 52b9b5c..cc99397 100644
---- a/arch/arm/plat-omap/include/plat/sram.h
-+++ b/arch/arm/plat-omap/include/plat/sram.h
-@@ -27,7 +27,7 @@ extern struct gen_pool *omap_gen_pool;
- 	size_t _sz = size;					\
- 	void *_sram = gen_pool_alloc(omap_gen_pool, _sz);	\
- 	_res = (_sram ? fncpy(_sram, &(funcp), _sz) : NULL);	\
--	if (!_res) 						\
-+	if (!_res)						\
- 		pr_err("Not enough space in SRAM\n");		\
- 	_res;							\
- })
-diff --git a/drivers/uio/uio_pruss.c b/drivers/uio/uio_pruss.c
-index db486cc..444176e 100644
---- a/drivers/uio/uio_pruss.c
-+++ b/drivers/uio/uio_pruss.c
-@@ -153,7 +153,7 @@ static int __devinit pruss_probe(struct platform_device *dev)
- 		goto out_free;
- 	}
- 
--	gdev->sram_vaddr = (void*)gen_pool_alloc(davinci_gen_pool, sram_pool_sz);
-+	gdev->sram_vaddr = (void *)gen_pool_alloc(davinci_gen_pool, sram_pool_sz);
- 	if (!gdev->sram_vaddr) {
- 		dev_err(&dev->dev, "Could not allocate SRAM pool\n");
- 		goto out_free;
-diff --git a/sound/soc/davinci/davinci-pcm.c b/sound/soc/davinci/davinci-pcm.c
-index dd305a2..1c383ab 100644
---- a/sound/soc/davinci/davinci-pcm.c
-+++ b/sound/soc/davinci/davinci-pcm.c
-@@ -239,7 +239,7 @@ static int allocate_sram(struct snd_pcm_substream *substream, unsigned size,
- 		return 0;
- 
- 	ppcm->period_bytes_max = size;
--	iram_virt = (void*)gen_pool_alloc(davinci_gen_pool, size);
-+	iram_virt = (void *)gen_pool_alloc(davinci_gen_pool, size);
- 	if (!iram_virt)
- 		goto exit1;
- 	iram_phys = gen_pool_virt_to_phys(davinci_gen_pool,
+Koen
