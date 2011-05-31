@@ -1,52 +1,46 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] omap: rx51: Don't power up speaker amplifier at
- bootup
-Date: Tue, 31 May 2011 00:27:08 -0700
-Message-ID: <20110531072708.GK11352@atomide.com>
-References: <1305199858-32643-1-git-send-email-jhnikula@gmail.com>
- <1305199858-32643-2-git-send-email-jhnikula@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Nishanth Menon <nm@ti.com>
+Subject: [pm_wip/voltdm_nm][PATCH 0/2] OMAP3+: PM: Support multiple PMICs
+Date: Tue, 31 May 2011 02:33:50 -0500
+Message-ID: <1306827232-27728-1-git-send-email-nm@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:37067 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751368Ab1EaH1L (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 May 2011 03:27:11 -0400
-Content-Disposition: inline
-In-Reply-To: <1305199858-32643-2-git-send-email-jhnikula@gmail.com>
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:47613 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751368Ab1EaHd6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 31 May 2011 03:33:58 -0400
+Received: by mail-yw0-f41.google.com with SMTP id 1so2120707ywa.14
+        for <linux-omap@vger.kernel.org>; Tue, 31 May 2011 00:33:57 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jhnikula@gmail.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Kevin Hilman <khilman@ti.com>, Nishanth Menon <nm@ti.com>
 
-* Jarkko Nikula <jhnikula@gmail.com> [110512 04:26]:
-> Speaker amplifier is accidentally powered up in early TWL gpio setup. This
-> causes a few mA of needless battery current consumption. Without this patch
-> the amplifier can be shutdown only by having one active audio playback and
-> shutdown cycle to speaker output.
-> 
-> Thanks to Kalle Jokiniemi <kalle.jokiniemi@nokia.com> for noticing the issue.
-> 
-> Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
-> Cc: Kalle Jokiniemi <kalle.jokiniemi@nokia.com>
-> ---
->  arch/arm/mach-omap2/board-rx51-peripherals.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
-> index 8242e99..0374562 100644
-> --- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-> +++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-> @@ -561,7 +561,7 @@ static int rx51_twlgpio_setup(struct device *dev, unsigned gpio, unsigned n)
->  	gpio_request(gpio + 6, "backlight_pwm");
->  	gpio_direction_output(gpio + 6, 0);
->  	gpio_request(gpio + 7, "speaker_en");
-> -	gpio_direction_output(gpio + 7, 1);
-> +	gpio_direction_output(gpio + 7, 0);
->  
->  	return 0;
->  }
+Hi,
+This series is a precursor to OMAP4460 support which uses 2 PMICs hence
+requiring a slight reorganization of our data. This subject has been brought
+up previously in the list as well, this work hopefully will get wider set of
+platforms to mainline with power management support.
 
-Jarkko care to rebase this on current -rc1?
+The following patches are on top of:
+git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git
+branch: pm-wip/voltdm_nm
 
-Tony
+NOTE: This probably has a minor conflict with the following applied.
+http://marc.info/?l=linux-omap&m=130672316613644&w=2
+
+Nishanth Menon (2):
+  OMAP3+: PM: VP: use uV for max and min voltage limits
+  OMAP3+: PM: introduce a central pmic control
+
+ arch/arm/mach-omap2/Makefile    |    2 +-
+ arch/arm/mach-omap2/omap_pmic.c |   74 +++++++++++++++++++++++++++
+ arch/arm/mach-omap2/omap_twl.c  |  104 +++++++++++++++++----------------------
+ arch/arm/mach-omap2/pm.c        |    5 +-
+ arch/arm/mach-omap2/pm.h        |   35 +++++++++++--
+ arch/arm/mach-omap2/voltage.h   |   27 +++++++++-
+ arch/arm/mach-omap2/vp.c        |    4 +-
+ 7 files changed, 178 insertions(+), 73 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/omap_pmic.c
+
+ Regards,
+ Nishanth Menon
