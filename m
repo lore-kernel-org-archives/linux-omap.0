@@ -1,33 +1,29 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP2: Add missing include of linux/gpio.h
-Date: Tue, 31 May 2011 05:47:33 -0700
-Message-ID: <20110531124733.GG11352@atomide.com>
-References: <1306845769.27719.1.camel@phoenix>
+Subject: Re: [PATCHv3] omap: rx51: Platform support for lp5523 led chip
+Date: Tue, 31 May 2011 05:55:18 -0700
+Message-ID: <20110531125518.GI11352@atomide.com>
+References: <20110331154421.GN5465@legolas.emea.dhcp.ti.com>
+ <1301652972-29666-1-git-send-email-ameya.palande@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:48743 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751079Ab1EaMzV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 May 2011 08:55:21 -0400
 Content-Disposition: inline
-In-Reply-To: <1306845769.27719.1.camel@phoenix>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Axel Lin <axel.lin@gmail.com>
-Cc: linux-kernel@vger.kernel.org, Syed Mohammed Khasim <x0khasim@ti.com>, Grazvydas Ignotas <notasas@gmail.com>, Steve Sakoman <steve@sakoman.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <1301652972-29666-1-git-send-email-ameya.palande@nokia.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Ameya Palande <ameya.palande@nokia.com>
+Cc: linux-omap@vger.kernel.org, balbi@ti.com, mathias.nyman@nokia.com, linux-arm-kernel@lists.infradead.org
 
-* Axel Lin <axel.lin@gmail.com> [110531 05:39]:
-> I got some build error like below while executing "make omap2plus_defconfig".
-> 
->   CC      arch/arm/mach-omap2/board-2430sdp.o
-> arch/arm/mach-omap2/board-2430sdp.c: In function 'omap_2430sdp_init':
-> arch/arm/mach-omap2/board-2430sdp.c:247: error: 'GPIOF_OUT_INIT_LOW' undeclared (first use in this function)
-> arch/arm/mach-omap2/board-2430sdp.c:247: error: (Each undeclared identifier is reported only once
-> arch/arm/mach-omap2/board-2430sdp.c:247: error: for each function it appears in.)
-> make[1]: *** [arch/arm/mach-omap2/board-2430sdp.o] Error 1
-> make: *** [arch/arm/mach-omap2] Error 2
-> 
-> This patch fixes the build error.
+* Ameya Palande <ameya.palande@nokia.com> [110401 03:13]:
 
-Can you please update this to also remove the wrong mach/gpio.h include?
+Applying this into devel-board for a future merge window after
+we can add new code with "Platform support for lp5523 led chip"
+as the patch description.
 
-Thanks,
+Regards,
 
 Tony
