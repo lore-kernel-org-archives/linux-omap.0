@@ -1,44 +1,65 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP4: SRAM: Fix warning: format '%08lx' expects type
- 'long unsigned int'
-Date: Tue, 31 May 2011 03:23:30 -0700
-Message-ID: <20110531102330.GS11352@atomide.com>
-References: <1301907896-30954-1-git-send-email-santosh.shilimkar@ti.com>
- <20110404091223.GA19854@n2100.arm.linux.org.uk>
- <4D9993AD.3080401@ti.com>
- <20110428140953.GD19709@n2100.arm.linux.org.uk>
- <20110503105555.GR2092@atomide.com>
+Subject: Re: rtc-twl: catch22 in 2.6.37 and 2.6.38 when clock was never set
+Date: Tue, 31 May 2011 03:28:28 -0700
+Message-ID: <20110531102827.GT11352@atomide.com>
+References: <4D99D5B0.6010503@ahsoftware.de>
+ <4D9AEB76.2060509@ahsoftware.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:17696 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751951Ab1EaKXe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 May 2011 06:23:34 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20110503105555.GR2092@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <4D9AEB76.2060509@ahsoftware.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alexander Holler <holler@ahsoftware.de>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Tony Lindgren <tony@atomide.com> [110503 03:52]:
-> * Russell King - ARM Linux <linux@arm.linux.org.uk> [110428 07:06]:
-> > 
-> > This looks much better.
-> > 
-> > Acked-by: Russell King <rmk+kernel@arm.linux.org.uk>
-> > 
-> > It looks like Tony hasn't taken it...  Tony, are you going to handle
-> > this patch?
+* Alexander Holler <holler@ahsoftware.de> [110405 03:11]:
+> Hello,
 > 
-> I can add it into my devel-cleanup branch for next merge window
-> assuming it won't conflict with your sram changes. If there's a
-> conflict, then you can take it.
+> Am 04.04.2011 16:29, schrieb Alexander Holler:
 > 
-> I'd rather not merge it in the -rc cycle this late as it's not
-> in the oopses or major regressions category.
+> >it just happened here that the rechargeable backup battery for the RTC
+> >on a TPS65950 run out off power, because of some days while the device
+> >wasn't powered.
+> >
+> >Afterwards I couldn't read or set the clock with hwclock using a kernel
+> >2.6.37.n or 2.6.38.n.
+> >
+> >I don't have a fix, but I think I've analyzed the problem and can offer
+> >a (bad) workaround.
+> >
+> >What happens is the following:
+> >
+> >When trying to read or set the clock with hwclock, the driver (rtc-twl)
+> >starts an alarm, but the irq for the alarm will never get called. The
+> >result is that a select in hwclock times out (for both operations, read
+> >or set).
+> >
+> >Because I had this clock running before, I've got the idea to try one of
+> >those old OMAP-kernels (2.6.32-angstrom) using the same userland.
+> >And with that kernel I could set the clock.
+> >Using 2.6.37 or 2.6.38 afterwards, hwclock did function again, both read
+> >an set are working.
+> >
+> >So it looks like there is a catch22 in kernels >=2.6.37 (I haven't
+> >tested .33-.36):
+> >
+> >When the clock was never set, the alarm(-irq) doesn't work, so hwclock
+> >doesn't work, so one can't set the clock.
+> 
+> It turns out that the missing/wrong initialization of the msecure
+> line is the problem which disabled setting the clock. After doing
+> that through a quick hack, I could set the clock.
+> 
+> I'm using a BeagleBoard C4, but I can't find any msecure
+> initialization for other boards too.
+> 
+> What happened with those patches? E.g. those:
+> 
+> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg16125.html
 
-Got this one finally queued as a fix.
+Looks like these need reposting. Maybe worth doing generic omap
+RTC init code though?
 
 Tony
