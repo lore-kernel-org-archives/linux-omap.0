@@ -1,59 +1,48 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP4: McBSP: Clear rx_irq at probe time
-Date: Tue, 31 May 2011 00:57:02 -0700
-Message-ID: <20110531075701.GN11352@atomide.com>
-References: <1305628420-10592-1-git-send-email-peter.ujfalusi@ti.com>
- <20110517152954.477365e6.jhnikula@gmail.com>
- <20110517125700.GY5323@atomide.com>
- <201105181539.46959.peter.ujfalusi@ti.com>
+Subject: Re: [RFC/PATCH 00/13] OMAP2+: PM: isolate PM code in modules
+Date: Tue, 31 May 2011 01:02:29 -0700
+Message-ID: <20110531080229.GO11352@atomide.com>
+References: <1305739950-11695-1-git-send-email-j-pihet@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:50789 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:53772 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1758109Ab1EaH5F (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 May 2011 03:57:05 -0400
+	with ESMTP id S1758008Ab1EaICd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 May 2011 04:02:33 -0400
 Content-Disposition: inline
-In-Reply-To: <201105181539.46959.peter.ujfalusi@ti.com>
+In-Reply-To: <1305739950-11695-1-git-send-email-j-pihet@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Jarkko Nikula <jhnikula@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Girdwood, Liam" <lrg@ti.com>, "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
+To: jean.pihet@newoldbits.com
+Cc: linux-omap@vger.kernel.org
 
-* Peter Ujfalusi <peter.ujfalusi@ti.com> [110518 05:36]:
-> Hi Tony,
+* jean.pihet@newoldbits.com <jean.pihet@newoldbits.com> [110518 10:28]:
+> From: Jean Pihet <j-pihet@ti.com>
 > 
-> On Tuesday 17 May 2011 15:57:00 Tony Lindgren wrote:
-> > This file should be under drivers/ somewhere, can you
-> > guys please take care of that?
+> First attempt at isolation of the OMAP2+ PM code
 > 
-> Do you have a place in mind?
+> RFC quality code but successfully tested on board as a proof
+> of concept
+> 
+> 1) provide PM functionality as modules
+> 
+> To allow for the PM functionality to be built and used as modules a
+> clean-up and isolation task first has been performed ('spaghetti
+> unwinding') because there are a lot of cross calls between various parts
+> of the PM code (core, platform specific, cpuidle ...).
 
-How about drivers/mcbsp?
+Glad to see this happening! :)
+ 
+> 2) Addition of EXPORT_SYMBOL for functions and variables used by
+> the code in PM modules. Lots of (too many?) symbols need to exported
+> to the PM modules.
 
-> We have several things under arch/arm/plat-omap, like i2c, dma, fb, gpio, 
-> mcbsp, usb...
+Ideally these would all be Linux generic of course..
 
-These are all going away into drivers. Only the code to initialize
-platform dta should be under arch/arm/*omap*/.
-
-> Should we create a directory for omap specific drivers under drivers?
-
-No, this was discussed few weeks ago on LAKML. The drivers should be
-grouped by type instead.
-
-> For example drivers/omap/ and move the mcbsp there first, without any API 
-> change?
-
-This is up to Greg, but I'd assume that a generic framework is the preferred
-way to go.
-
-> If needed we can think of changing the interface within McBSP if it is needed 
-> for other use later.
-> IMHO invention a common framework (as Jarkko was suggesting) for similar 
-> interfaces need more work, and synchronization between other platforms.
-
-Sure, but that's the only option we have to merge any new code.
+Anyways, please also consider what all modules could be moved to
+live under drivers/pm or similar. I'd assume a lot of this can
+be done in a generic way.
 
 Regards,
 
