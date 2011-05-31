@@ -1,87 +1,33 @@
-From: Axel Lin <axel.lin@gmail.com>
-Subject: [PATCH] ARM: OMAP2: Add missing include of linux/gpio.h
-Date: Tue, 31 May 2011 20:42:49 +0800
-Message-ID: <1306845769.27719.1.camel@phoenix>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP2: Add missing include of linux/gpio.h
+Date: Tue, 31 May 2011 05:47:33 -0700
+Message-ID: <20110531124733.GG11352@atomide.com>
+References: <1306845769.27719.1.camel@phoenix>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1306845769.27719.1.camel@phoenix>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Syed Mohammed Khasim <x0khasim@ti.com>, Grazvydas Ignotas <notasas@gmail.com>, Steve Sakoman <steve@sakoman.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Axel Lin <axel.lin@gmail.com>
+Cc: linux-kernel@vger.kernel.org, Syed Mohammed Khasim <x0khasim@ti.com>, Grazvydas Ignotas <notasas@gmail.com>, Steve Sakoman <steve@sakoman.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-I got some build error like below while executing "make omap2plus_defconfig".
+* Axel Lin <axel.lin@gmail.com> [110531 05:39]:
+> I got some build error like below while executing "make omap2plus_defconfig".
+> 
+>   CC      arch/arm/mach-omap2/board-2430sdp.o
+> arch/arm/mach-omap2/board-2430sdp.c: In function 'omap_2430sdp_init':
+> arch/arm/mach-omap2/board-2430sdp.c:247: error: 'GPIOF_OUT_INIT_LOW' undeclared (first use in this function)
+> arch/arm/mach-omap2/board-2430sdp.c:247: error: (Each undeclared identifier is reported only once
+> arch/arm/mach-omap2/board-2430sdp.c:247: error: for each function it appears in.)
+> make[1]: *** [arch/arm/mach-omap2/board-2430sdp.o] Error 1
+> make: *** [arch/arm/mach-omap2] Error 2
+> 
+> This patch fixes the build error.
 
-  CC      arch/arm/mach-omap2/board-2430sdp.o
-arch/arm/mach-omap2/board-2430sdp.c: In function 'omap_2430sdp_init':
-arch/arm/mach-omap2/board-2430sdp.c:247: error: 'GPIOF_OUT_INIT_LOW' undeclared (first use in this function)
-arch/arm/mach-omap2/board-2430sdp.c:247: error: (Each undeclared identifier is reported only once
-arch/arm/mach-omap2/board-2430sdp.c:247: error: for each function it appears in.)
-make[1]: *** [arch/arm/mach-omap2/board-2430sdp.o] Error 1
-make: *** [arch/arm/mach-omap2] Error 2
+Can you please update this to also remove the wrong mach/gpio.h include?
 
-This patch fixes the build error.
+Thanks,
 
-Signed-off-by: Axel Lin <axel.lin@gmail.com>
-Cc: Syed Mohammed Khasim <x0khasim@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Grazvydas Ignotas <notasas@gmail.com>
-Cc: Steve Sakoman <steve@sakoman.com>
----
- arch/arm/mach-omap2/board-2430sdp.c      |    1 +
- arch/arm/mach-omap2/board-apollon.c      |    1 +
- arch/arm/mach-omap2/board-omap3pandora.c |    1 +
- arch/arm/mach-omap2/board-overo.c        |    1 +
- 4 files changed, 4 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2/board-2430sdp.c
-index d54969b..329b95c 100644
---- a/arch/arm/mach-omap2/board-2430sdp.c
-+++ b/arch/arm/mach-omap2/board-2430sdp.c
-@@ -26,6 +26,7 @@
- #include <linux/err.h>
- #include <linux/clk.h>
- #include <linux/io.h>
-+#include <linux/gpio.h>
- 
- #include <mach/hardware.h>
- #include <asm/mach-types.h>
-diff --git a/arch/arm/mach-omap2/board-apollon.c b/arch/arm/mach-omap2/board-apollon.c
-index f3beb8e..41f07b0 100644
---- a/arch/arm/mach-omap2/board-apollon.c
-+++ b/arch/arm/mach-omap2/board-apollon.c
-@@ -27,6 +27,7 @@
- #include <linux/err.h>
- #include <linux/clk.h>
- #include <linux/smc91x.h>
-+#include <linux/gpio.h>
- 
- #include <mach/hardware.h>
- #include <asm/mach-types.h>
-diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
-index 1d10736..89d5fba 100644
---- a/arch/arm/mach-omap2/board-omap3pandora.c
-+++ b/arch/arm/mach-omap2/board-omap3pandora.c
-@@ -30,6 +30,7 @@
- #include <linux/leds.h>
- #include <linux/input.h>
- #include <linux/input/matrix_keypad.h>
-+#include <linux/gpio.h>
- #include <linux/gpio_keys.h>
- #include <linux/mmc/host.h>
- #include <linux/mmc/card.h>
-diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
-index 1555918..5942aa5 100644
---- a/arch/arm/mach-omap2/board-overo.c
-+++ b/arch/arm/mach-omap2/board-overo.c
-@@ -24,6 +24,7 @@
- #include <linux/err.h>
- #include <linux/init.h>
- #include <linux/io.h>
-+#include <linux/gpio.h>
- #include <linux/kernel.h>
- #include <linux/platform_device.h>
- #include <linux/i2c/twl.h>
--- 
-1.7.4.1
+Tony
