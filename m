@@ -1,49 +1,60 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC/PATCH 00/13] OMAP2+: PM: isolate PM code in modules
-Date: Tue, 31 May 2011 01:02:29 -0700
-Message-ID: <20110531080229.GO11352@atomide.com>
-References: <1305739950-11695-1-git-send-email-j-pihet@ti.com>
+From: "Titiano, Patrick" <p-titiano@ti.com>
+Subject: RE: [PATCH/RFC 2/4] OMAP2: PM debug: remove register dumping
+Date: Tue, 31 May 2011 10:24:10 +0200
+Message-ID: <E8606C3FD412994585953171ED63A9340219136F97@dnce01.ent.ti.com>
+References: <1306450971-27732-1-git-send-email-khilman@ti.com><1306450971-27732-3-git-send-email-khilman@ti.com>
+ <BANLkTikG1yExnfKGH6RsXU99MfTxGgiXww@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:53772 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1758008Ab1EaICd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 May 2011 04:02:33 -0400
-Content-Disposition: inline
-In-Reply-To: <1305739950-11695-1-git-send-email-j-pihet@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:46298 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758100Ab1EaIYN convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 May 2011 04:24:13 -0400
+Content-Class: urn:content-classes:message
+In-Reply-To: <BANLkTikG1yExnfKGH6RsXU99MfTxGgiXww@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: jean.pihet@newoldbits.com
-Cc: linux-omap@vger.kernel.org
+To: Jean Pihet <jean.pihet@newoldbits.com>, "Hilman, Kevin" <khilman@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* jean.pihet@newoldbits.com <jean.pihet@newoldbits.com> [110518 10:28]:
-> From: Jean Pihet <j-pihet@ti.com>
-> 
-> First attempt at isolation of the OMAP2+ PM code
-> 
-> RFC quality code but successfully tested on board as a proof
-> of concept
-> 
-> 1) provide PM functionality as modules
-> 
-> To allow for the PM functionality to be built and used as modules a
-> clean-up and isolation task first has been performed ('spaghetti
-> unwinding') because there are a lot of cross calls between various parts
-> of the PM code (core, platform specific, cpuidle ...).
 
-Glad to see this happening! :)
- 
-> 2) Addition of EXPORT_SYMBOL for functions and variables used by
-> the code in PM modules. Lots of (too many?) symbols need to exported
-> to the PM modules.
+>
+Texas Instruments France SA, 821 Avenue Jack Kilby, 06270 Villeneuve Loubet. 036 420 040 R.C.S Antibes. Capital de EUR 753.920
 
-Ideally these would all be Linux generic of course..
+-----Original Message-----
 
-Anyways, please also consider what all modules could be moved to
-live under drivers/pm or similar. I'd assume a lot of this can
-be done in a generic way.
+> From: Jean Pihet [mailto:jean.pihet@newoldbits.com]
+> Sent: Monday, May 30, 2011 10:05 AM
+> To: Hilman, Kevin
+> Cc: linux-omap@vger.kernel.org; Titiano, Patrick
+> Subject: Re: [PATCH/RFC 2/4] OMAP2: PM debug: remove register dumping
+>
+> On Fri, May 27, 2011 at 1:02 AM, Kevin Hilman <khilman@ti.com> wrote:
+> > Signed-off-by: Kevin Hilman <khilman@ti.com>
+> > ---
+> >  arch/arm/mach-omap2/pm-debug.c |  119 ---------------------------------
+> -------
+> >  arch/arm/mach-omap2/pm.h       |    4 -
+> >  arch/arm/mach-omap2/pm24xx.c   |    6 +-
+> >  3 files changed, 2 insertions(+), 127 deletions(-)
+> >
+> ...
+>
+> OK for this change. Is it the intention to use the omapconf tool as
+> the replacement for the regs dump code?
+
+Sorry but omapconf is run from userspace, it cannot be used to dump PRCM registers right before and after MPU WFI.
 
 Regards,
+Patrick.
 
-Tony
+
+>
+> Acked-by: Jean Pihet <j-pihet@ti.com>
+>
+> Regards,
+> Jean
+
