@@ -1,115 +1,39 @@
-From: Axel Lin <axel.lin@gmail.com>
-Subject: [PATCH v2] ARM: OMAP2: Add missing include of linux/gpio.h
-Date: Tue, 31 May 2011 20:55:44 +0800
-Message-ID: <1306846544.30148.1.camel@phoenix>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2 1/1] OMAP3: rx-51: Add full regulator definitions
+Date: Tue, 31 May 2011 05:57:22 -0700
+Message-ID: <20110531125722.GJ11352@atomide.com>
+References: <1304317733-9639-1-git-send-email-kalle.jokiniemi@nokia.com>
+ <1304317733-9639-2-git-send-email-kalle.jokiniemi@nokia.com>
+ <20110502095825.05515db9.jhnikula@gmail.com>
+ <9D0D31AA57AAF5499AFDC63D6472631B09F26B@008-AM1MPN1-036.mgdnok.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Syed Mohammed Khasim <x0khasim@ti.com>, Grazvydas Ignotas <notasas@gmail.com>, Steve Sakoman <steve@sakoman.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:21377 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751087Ab1EaM50 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 May 2011 08:57:26 -0400
+Content-Disposition: inline
+In-Reply-To: <9D0D31AA57AAF5499AFDC63D6472631B09F26B@008-AM1MPN1-036.mgdnok.nokia.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: kalle.jokiniemi@nokia.com
+Cc: broonie@opensource.wolfsonmicro.com, linux-omap@vger.kernel.org, jhnikula@gmail.com
 
-I got some build error like below while executing "make omap2plus_defconfig".
+* kalle.jokiniemi@nokia.com <kalle.jokiniemi@nokia.com> [110512 01:56]:
+> Hi Tony,
+> 
+>  > -----Original Message-----
+>  > From: ext Jarkko Nikula [mailto:jhnikula@gmail.com]
+>  > Sent: 2. toukokuuta 2011 9:58
+>  > To: Jokiniemi Kalle (Nokia-SD/Tampere)
+>  > Cc: tony@atomide.com; broonie@opensource.wolfsonmicro.com; linux-
+>  > omap@vger.kernel.org
+>  > Subject: Re: [PATCH v2 1/1] OMAP3: rx-51: Add full regulator definitions
+> 
+> Did this one get pushed to linux-omap? Just checking on my old patches...
 
-  CC      arch/arm/mach-omap2/board-2430sdp.o
-arch/arm/mach-omap2/board-2430sdp.c: In function 'omap_2430sdp_init':
-arch/arm/mach-omap2/board-2430sdp.c:247: error: 'GPIOF_OUT_INIT_LOW' undeclared (first use in this function)
-arch/arm/mach-omap2/board-2430sdp.c:247: error: (Each undeclared identifier is reported only once
-arch/arm/mach-omap2/board-2430sdp.c:247: error: for each function it appears in.)
+Adding to devel-board for a future merge window when we can add some
+new code.
 
-This patch fixes the build error by include linux/gpio.h instead of mach/gpio.h.
-
-Signed-off-by: Axel Lin <axel.lin@gmail.com>
-Cc: Syed Mohammed Khasim <x0khasim@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Grazvydas Ignotas <notasas@gmail.com>
-Cc: Steve Sakoman <steve@sakoman.com>
----
- arch/arm/mach-omap2/board-2430sdp.c      |    2 +-
- arch/arm/mach-omap2/board-apollon.c      |    2 +-
- arch/arm/mach-omap2/board-omap3pandora.c |    2 +-
- arch/arm/mach-omap2/board-overo.c        |    2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2/board-2430sdp.c
-index d54969b..5de6eac 100644
---- a/arch/arm/mach-omap2/board-2430sdp.c
-+++ b/arch/arm/mach-omap2/board-2430sdp.c
-@@ -26,13 +26,13 @@
- #include <linux/err.h>
- #include <linux/clk.h>
- #include <linux/io.h>
-+#include <linux/gpio.h>
- 
- #include <mach/hardware.h>
- #include <asm/mach-types.h>
- #include <asm/mach/arch.h>
- #include <asm/mach/map.h>
- 
--#include <mach/gpio.h>
- #include <plat/board.h>
- #include <plat/common.h>
- #include <plat/gpmc.h>
-diff --git a/arch/arm/mach-omap2/board-apollon.c b/arch/arm/mach-omap2/board-apollon.c
-index f3beb8e..b124bdf 100644
---- a/arch/arm/mach-omap2/board-apollon.c
-+++ b/arch/arm/mach-omap2/board-apollon.c
-@@ -27,13 +27,13 @@
- #include <linux/err.h>
- #include <linux/clk.h>
- #include <linux/smc91x.h>
-+#include <linux/gpio.h>
- 
- #include <mach/hardware.h>
- #include <asm/mach-types.h>
- #include <asm/mach/arch.h>
- #include <asm/mach/flash.h>
- 
--#include <mach/gpio.h>
- #include <plat/led.h>
- #include <plat/usb.h>
- #include <plat/board.h>
-diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
-index 1d10736..5ee034a 100644
---- a/arch/arm/mach-omap2/board-omap3pandora.c
-+++ b/arch/arm/mach-omap2/board-omap3pandora.c
-@@ -30,6 +30,7 @@
- #include <linux/leds.h>
- #include <linux/input.h>
- #include <linux/input/matrix_keypad.h>
-+#include <linux/gpio.h>
- #include <linux/gpio_keys.h>
- #include <linux/mmc/host.h>
- #include <linux/mmc/card.h>
-@@ -41,7 +42,6 @@
- 
- #include <plat/board.h>
- #include <plat/common.h>
--#include <mach/gpio.h>
- #include <mach/hardware.h>
- #include <plat/mcspi.h>
- #include <plat/usb.h>
-diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
-index 1555918..9952c20 100644
---- a/arch/arm/mach-omap2/board-overo.c
-+++ b/arch/arm/mach-omap2/board-overo.c
-@@ -24,6 +24,7 @@
- #include <linux/err.h>
- #include <linux/init.h>
- #include <linux/io.h>
-+#include <linux/gpio.h>
- #include <linux/kernel.h>
- #include <linux/platform_device.h>
- #include <linux/i2c/twl.h>
-@@ -45,7 +46,6 @@
- #include <plat/common.h>
- #include <video/omapdss.h>
- #include <video/omap-panel-generic-dpi.h>
--#include <mach/gpio.h>
- #include <plat/gpmc.h>
- #include <mach/hardware.h>
- #include <plat/nand.h>
--- 
-1.7.4.1
+Tony
