@@ -1,65 +1,46 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH 3/8] MFD: twl4030-audio: Rename platform
-	data
-Date: Wed, 1 Jun 2011 16:17:14 +0300
-Message-ID: <201106011617.14854.peter.ujfalusi@ti.com>
-References: <1306927051-8937-1-git-send-email-peter.ujfalusi@ti.com>
-	<201106011554.53090.peter.ujfalusi@ti.com>
-	<20110601130034.GE11352@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2 2/2] omap3: iovmm: Support non page-aligned buffers
+ in iommu_vmap
+Date: Wed, 1 Jun 2011 06:17:45 -0700
+Message-ID: <20110601131744.GH11352@atomide.com>
+References: <20110531132233.GQ11352@atomide.com>
+ <1306931102-10943-2-git-send-email-laurent.pinchart@ideasonboard.com>
+ <20110601125024.GD11352@atomide.com>
+ <201106011509.05514.laurent.pinchart@ideasonboard.com>
+ <20110601131052.GF11352@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20110601130034.GE11352@atomide.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Samuel Ortiz <sameo@linux.intel.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Girdwood, Liam" <lrg@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:57346 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751164Ab1FANRr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Jun 2011 09:17:47 -0400
+Content-Disposition: inline
+In-Reply-To: <20110601131052.GF11352@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-omap@vger.kernel.org
 
-On Wednesday 01 June 2011 16:00:34 Tony Lindgren wrote:
-> Yeah, most of it might be possible to describe with just a flags
-> like TWL_HAS_VIBRA etc.
+* Tony Lindgren <tony@atomide.com> [110601 06:07]:
+> * Laurent Pinchart <laurent.pinchart@ideasonboard.com> [110601 06:04]:
+> > On Wednesday 01 June 2011 14:50:24 Tony Lindgren wrote:
+> > > * Laurent Pinchart <laurent.pinchart@ideasonboard.com> [110601 05:21]:
+> > > > The IOMMU virtual memory mapping API requires page-aligned buffers.
+> > > > There's no hardware reason behind such a restriction. Remove it by
+> > > > rounding the address of the first page entry down, and adding the offset
+> > > > back to the IOMMU virtual address.
+> > > 
+> > > Does this one also fix some bug?
+> > 
+> > Yes, but no oops. It fixes an OMAP3 ISP failure when the buffer passed from 
+> > userspace is not page-aligned.
+> 
+> OK, thanks. I'll update the description with that and apply both to devel-fixes.
 
-Or TWL_BOARD_HAS_VIBRA, TWL_BOARD_HAS_CODEC...
+Oops not quite. Please repost one more time with linux-arm-kernel
+also Cc'd for review. Otherwise I have to repost them before merging..
 
-For the audio part it is a bit complicated than that:
-different base frequencies, for twl6040 we have parameters for Vibra (twl40=
-30 =
+Thanks,
 
-class only have the coexistence). The soc codec has a list of misc paramete=
-rs =
-
-for board specific configurations as well (not all board using them).
-I was thinking to switch the MFD driver(s) to use flags to specify the need=
-ed =
-
-child, and change the child drivers to deal with the missing platform data =
-
-themselves.
-In that way, board files can pass the vibra/codec platform data to the new =
-
-i2c_twl file for example, and provide flags to enable functionality.
-
-> > I'll take a look, but I think it is not going to be part of v2 of this
-> > series.
-> =
-
-> We should not do renaming before the clean-up though, it gets
-> classified as "unnecesary churn".
-
-The changes in board files are minimal. The biggest part is the code move, =
-and =
-
-that will remain the same now or later...
-
--- =
-
-P=E9ter
+Tony
