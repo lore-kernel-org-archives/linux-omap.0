@@ -1,178 +1,110 @@
-From: Keshava Munegowda <keshava_mgowda@ti.com>
-Subject: [PATCH 4/4] mfd: global Suspend and resume support of ehci and ohci
-Date: Wed, 1 Jun 2011 18:57:27 +0530
-Message-ID: <1306934847-6098-5-git-send-email-keshava_mgowda@ti.com>
-References: <1306934847-6098-1-git-send-email-keshava_mgowda@ti.com>
- <1306934847-6098-2-git-send-email-keshava_mgowda@ti.com>
- <1306934847-6098-3-git-send-email-keshava_mgowda@ti.com>
- <1306934847-6098-4-git-send-email-keshava_mgowda@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1306934847-6098-4-git-send-email-keshava_mgowda@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Keshava Munegowda <keshava_mgowda@ti.com>, balbi@ti.com, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, khilman@ti.com, b-cousson@ti.com, paul@pwsan.com, Keshava Munegowda <Keshava_mgowda@ti.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH v3 2/2] omap3: iovmm: Support non page-aligned buffers in iommu_vmap
+Date: Wed,  1 Jun 2011 15:30:12 +0200
+Message-ID: <1306935012-12406-2-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <20110601131744.GH11352@atomide.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:50557 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755553Ab1FANaQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Jun 2011 09:30:16 -0400
+In-Reply-To: <20110601131744.GH11352@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
 
-From: Keshava Munegowda <Keshava_mgowda@ti.com>
+The IOMMU virtual memory mapping API requires page-aligned buffers.
+There's no hardware reason behind such a restriction. Remove it by
+rounding the address of the first page entry down, and adding the offset
+back to the IOMMU virtual address.
 
-The global suspend and resume functions for usbhs core driver
-are implemented.These routine are called when the global suspend
-and resume occurs. Before calling these functions, the
-bus suspend and resume of ehci and ohci drivers are called
-from runtime pm.
-
-Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 ---
- drivers/mfd/omap-usb-host.c |  103 +++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 103 insertions(+), 0 deletions(-)
+ arch/arm/plat-omap/iovmm.c |   32 ++++++++++++++++++++++++--------
+ 1 files changed, 24 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
-index 43de12a..32d19e2 100644
---- a/drivers/mfd/omap-usb-host.c
-+++ b/drivers/mfd/omap-usb-host.c
-@@ -146,6 +146,10 @@
- #define is_ehci_hsic_mode(x)	(x == OMAP_EHCI_PORT_MODE_HSIC)
+diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
+index b82cef4..fa5ae98 100644
+--- a/arch/arm/plat-omap/iovmm.c
++++ b/arch/arm/plat-omap/iovmm.c
+@@ -60,6 +60,15 @@
  
+ static struct kmem_cache *iovm_area_cachep;
  
-+/* USBHS state bits */
-+#define OMAP_USBHS_INIT		0
-+#define OMAP_USBHS_SUSPEND	4
++/* return the offset of the first scatterlist entry in a sg table */
++static unsigned int sgtable_offset(const struct sg_table *sgt)
++{
++	if (!sgt || !sgt->nents)
++		return 0;
 +
- struct usbhs_hcd_omap {
- 	struct clk			*xclk60mhsp1_ck;
- 	struct clk			*xclk60mhsp2_ck;
-@@ -165,6 +169,7 @@ struct usbhs_hcd_omap {
- 	u32				usbhs_rev;
- 	spinlock_t			lock;
- 	int				count;
-+	unsigned long			state;
- };
- /*-------------------------------------------------------------------------*/
- 
-@@ -809,6 +814,8 @@ static int usbhs_enable(struct device *dev)
- 				(pdata->ehci_data->reset_gpio_port[1], 1);
- 	}
- 
-+	set_bit(OMAP_USBHS_INIT, &omap->state);
++	return sgt->sgl->offset;
++}
 +
- end_count:
- 	omap->count++;
- 	spin_unlock_irqrestore(&omap->lock, flags);
-@@ -897,6 +904,7 @@ static void usbhs_disable(struct device *dev)
- 	}
+ /* return total bytes of sg buffers */
+ static size_t sgtable_len(const struct sg_table *sgt)
+ {
+@@ -72,11 +81,17 @@ static size_t sgtable_len(const struct sg_table *sgt)
+ 	for_each_sg(sgt->sgl, sg, sgt->nents, i) {
+ 		size_t bytes;
  
- 	pm_runtime_put_sync(dev);
-+	clear_bit(OMAP_USBHS_INIT, &omap->state);
+-		bytes = sg_dma_len(sg);
++		bytes = sg_dma_len(sg) + sg->offset;
  
- 	/* The gpio_free migh sleep; so unlock the spinlock */
- 	spin_unlock_irqrestore(&omap->lock, flags);
-@@ -926,10 +934,105 @@ void omap_usbhs_disable(struct device *dev)
+ 		if (!iopgsz_ok(bytes)) {
+-			pr_err("%s: sg[%d] not iommu pagesize(%x)\n",
+-			       __func__, i, bytes);
++			pr_err("%s: sg[%d] not iommu pagesize(%u %u)\n",
++			       __func__, i, bytes, sg->offset);
++			return 0;
++		}
++
++		if (i && sg->offset) {
++			pr_err("%s: sg[%d] offset not allowed in internal "
++			       "entries\n", __func__, i);
+ 			return 0;
+ 		}
+ 
+@@ -207,8 +222,8 @@ static void *vmap_sg(const struct sg_table *sgt)
+ 		u32 pa;
+ 		int err;
+ 
+-		pa = sg_phys(sg);
+-		bytes = sg_dma_len(sg);
++		pa = sg_phys(sg) - sg->offset;
++		bytes = sg_dma_len(sg) + sg->offset;
+ 
+ 		BUG_ON(bytes != PAGE_SIZE);
+ 
+@@ -485,8 +500,8 @@ static int map_iovm_area(struct iommu *obj, struct iovm_struct *new,
+ 		size_t bytes;
+ 		struct iotlb_entry e;
+ 
+-		pa = sg_phys(sg);
+-		bytes = sg_dma_len(sg);
++		pa = sg_phys(sg) - sg->offset;
++		bytes = sg_dma_len(sg) + sg->offset;
+ 
+ 		flags &= ~IOVMF_PGSZ_MASK;
+ 		pgsz = bytes_to_iopgsz(bytes);
+@@ -666,7 +681,7 @@ u32 iommu_vmap(struct iommu *obj, u32 da, const struct sg_table *sgt,
+ 	if (IS_ERR_VALUE(da))
+ 		vunmap_sg(va);
+ 
+-	return da;
++	return da + sgtable_offset(sgt);
  }
- EXPORT_SYMBOL_GPL(omap_usbhs_disable);
+ EXPORT_SYMBOL_GPL(iommu_vmap);
  
-+#ifdef	CONFIG_PM
-+
-+static int usbhs_resume(struct device *dev)
-+{
-+	struct usbhs_hcd_omap		*omap = dev_get_drvdata(dev);
-+	struct usbhs_omap_platform_data	*pdata = &omap->platdata;
-+	unsigned long			flags = 0;
-+
-+	dev_dbg(dev, "Resuming TI HSUSB Controller\n");
-+
-+	if (!pdata) {
-+		dev_dbg(dev, "missing platform_data\n");
-+		return  -ENODEV;
-+	}
-+
-+	spin_lock_irqsave(&omap->lock, flags);
-+
-+	if (!test_bit(OMAP_USBHS_INIT, &omap->state) ||
-+		!test_bit(OMAP_USBHS_SUSPEND, &omap->state))
-+			goto end_resume;
-+
-+	pm_runtime_get_sync(dev);
-+
-+	if (is_omap_usbhs_rev2(omap)) {
-+		if (is_ehci_tll_mode(pdata->port_mode[0])) {
-+			clk_enable(omap->usbhost_p1_fck);
-+			clk_enable(omap->usbtll_p1_fck);
-+		}
-+		if (is_ehci_tll_mode(pdata->port_mode[1])) {
-+			clk_enable(omap->usbhost_p2_fck);
-+			clk_enable(omap->usbtll_p2_fck);
-+		}
-+		clk_enable(omap->utmi_p1_fck);
-+		clk_enable(omap->utmi_p2_fck);
-+	}
-+	clear_bit(OMAP_USBHS_SUSPEND, &omap->state);
-+
-+end_resume:
-+	spin_unlock_irqrestore(&omap->lock, flags);
-+	return 0;
-+}
-+
-+
-+static int usbhs_suspend(struct device *dev)
-+{
-+	struct usbhs_hcd_omap		*omap = dev_get_drvdata(dev);
-+	struct usbhs_omap_platform_data	*pdata = &omap->platdata;
-+	unsigned long			flags = 0;
-+
-+	dev_dbg(dev, "Suspending TI HSUSB Controller\n");
-+
-+	if (!pdata) {
-+		dev_dbg(dev, "missing platform_data\n");
-+		return  -ENODEV;
-+	}
-+
-+	spin_lock_irqsave(&omap->lock, flags);
-+
-+	if (!test_bit(OMAP_USBHS_INIT, &omap->state) ||
-+		test_bit(OMAP_USBHS_SUSPEND, &omap->state))
-+			goto end_suspend;
-+
-+	if (is_omap_usbhs_rev2(omap)) {
-+		if (is_ehci_tll_mode(pdata->port_mode[0])) {
-+			clk_disable(omap->usbhost_p1_fck);
-+			clk_disable(omap->usbtll_p1_fck);
-+		}
-+		if (is_ehci_tll_mode(pdata->port_mode[1])) {
-+			clk_disable(omap->usbhost_p2_fck);
-+			clk_disable(omap->usbtll_p2_fck);
-+		}
-+		clk_disable(omap->utmi_p2_fck);
-+		clk_disable(omap->utmi_p1_fck);
-+	}
-+
-+	set_bit(OMAP_USBHS_SUSPEND, &omap->state);
-+	pm_runtime_put_sync(dev);
-+
-+end_suspend:
-+	spin_unlock_irqrestore(&omap->lock, flags);
-+	return 0;
-+}
-+
-+
-+static const struct dev_pm_ops usbhsomap_dev_pm_ops = {
-+	.suspend	= usbhs_suspend,
-+	.resume		= usbhs_resume,
-+};
-+
-+#define USBHS_OMAP_DEV_PM_OPS (&usbhsomap_dev_pm_ops)
-+#else
-+#define	USBHS_OMAP_DEV_PM_OPS	NULL
-+#endif
-+
- static struct platform_driver usbhs_omap_driver = {
- 	.driver = {
- 		.name		= (char *)usbhs_driver_name,
- 		.owner		= THIS_MODULE,
-+		.pm		= USBHS_OMAP_DEV_PM_OPS,
- 	},
- 	.remove		= __exit_p(usbhs_omap_remove),
- };
+@@ -685,6 +700,7 @@ struct sg_table *iommu_vunmap(struct iommu *obj, u32 da)
+ 	 * 'sgt' is allocated before 'iommu_vmalloc()' is called.
+ 	 * Just returns 'sgt' to the caller to free
+ 	 */
++	da &= PAGE_MASK;
+ 	sgt = unmap_vm_area(obj, da, vunmap_sg, IOVMF_DISCONT | IOVMF_MMIO);
+ 	if (!sgt)
+ 		dev_dbg(obj->dev, "%s: No sgt\n", __func__);
 -- 
-1.6.0.4
+1.7.3.4
+
