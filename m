@@ -1,94 +1,187 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH v3 1/2] omap3: iovmm: Work around sg_alloc_table size limitation in IOMMU
-Date: Wed, 1 Jun 2011 15:50:50 +0200
-Message-ID: <201106011550.50873.laurent.pinchart@ideasonboard.com>
-References: <20110601131744.GH11352@atomide.com> <1306935012-12406-1-git-send-email-laurent.pinchart@ideasonboard.com> <20110601134338.GB6700@n2100.arm.linux.org.uk>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 4/4] mfd: global Suspend and resume support of ehci and ohci
+Date: Wed, 1 Jun 2011 15:54:38 +0200
+Message-ID: <201106011554.38415.rjw@sisk.pl>
+References: <1306934847-6098-1-git-send-email-keshava_mgowda@ti.com> <1306934847-6098-4-git-send-email-keshava_mgowda@ti.com> <1306934847-6098-5-git-send-email-keshava_mgowda@ti.com>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-1"
+  charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:49479 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753879Ab1FANux (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Jun 2011 09:50:53 -0400
-In-Reply-To: <20110601134338.GB6700@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1306934847-6098-5-git-send-email-keshava_mgowda@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Keshava Munegowda <keshava_mgowda@ti.com>
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, khilman@ti.com, b-cousson@ti.com, paul@pwsan.com
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Russell,
-
-On Wednesday 01 June 2011 15:43:38 Russell King - ARM Linux wrote:
-> On Wed, Jun 01, 2011 at 03:30:11PM +0200, Laurent Pinchart wrote:
-> > sg_alloc_table can only allocate multi-page scatter-gather list tables
-> > if the architecture supports scatter-gather lists chaining. ARM doesn't
-> > fit in that category.
+On Wednesday, June 01, 2011, Keshava Munegowda wrote:
+> From: Keshava Munegowda <Keshava_mgowda@ti.com>
 > 
-> Let's fix this properly, as I've said countless times and so far no one
-> has bothered to sort this out:
+> The global suspend and resume functions for usbhs core driver
+> are implemented.These routine are called when the global suspend
+> and resume occurs. Before calling these functions, the
+> bus suspend and resume of ehci and ohci drivers are called
+> from runtime pm.
 > 
-> 8<----
-> From: Russell King <rmk+kernel@arm.linux.org.uk>
-> Subject: ARM: Allow SoCs to enable scatterlist chaining
-> 
-> Allow SoCs to enable the scatterlist chaining support, which allows
-> scatterlist tables to be broken up into smaller allocations.
-> 
-> As support for this feature depends on the implementation details of
-> the users of the scatterlists, we can't enable this globally without
-> auditing all the users, which is a very big task.  Instead, let SoCs
-> progressively switch over to using this.
-> 
-> SoC drivers using scatterlists and SoC DMA implementations need
-> auditing before this option can be enabled for the SoC.
-
-In the specific iovmm case, the driver uses the sglist API to build a list of 
-page-size sg entries, and then process it in software. Is that considered as 
-an abuse of the sglist API, or valid usage ?
-
-Anyway, sglist chaining is not needed by iovmm. As iovmm just walks the sglist 
-manually, it's easier to allocate it in one go rather than using sglist 
-chaining. This of course doesn't make your patch unneeded or wrong.
-
-> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
 > ---
->  arch/arm/Kconfig                   |    3 +++
->  arch/arm/include/asm/scatterlist.h |    4 ++++
->  2 files changed, 7 insertions(+), 0 deletions(-)
+>  drivers/mfd/omap-usb-host.c |  103 +++++++++++++++++++++++++++++++++++++++++++
+>  1 files changed, 103 insertions(+), 0 deletions(-)
 > 
-> diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
-> index 9adc278..cc0dcbf 100644
-> --- a/arch/arm/Kconfig
-> +++ b/arch/arm/Kconfig
-> @@ -37,6 +37,9 @@ config ARM
->  	  Europe.  There is an ARM Linux project with a web page at
->  	  <http://www.arm.linux.org.uk/>.
-> 
-> +config ARM_HAS_SG_CHAIN
-> +	bool
+> diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
+> index 43de12a..32d19e2 100644
+> --- a/drivers/mfd/omap-usb-host.c
+> +++ b/drivers/mfd/omap-usb-host.c
+> @@ -146,6 +146,10 @@
+>  #define is_ehci_hsic_mode(x)	(x == OMAP_EHCI_PORT_MODE_HSIC)
+>  
+>  
+> +/* USBHS state bits */
+> +#define OMAP_USBHS_INIT		0
+> +#define OMAP_USBHS_SUSPEND	4
 > +
->  config HAVE_PWM
->  	bool
-> 
-> diff --git a/arch/arm/include/asm/scatterlist.h
-> b/arch/arm/include/asm/scatterlist.h index 2f87870..cefdb8f 100644
-> --- a/arch/arm/include/asm/scatterlist.h
-> +++ b/arch/arm/include/asm/scatterlist.h
-> @@ -1,6 +1,10 @@
->  #ifndef _ASMARM_SCATTERLIST_H
->  #define _ASMARM_SCATTERLIST_H
-> 
-> +#ifdef CONFIG_ARM_HAS_SG_CHAIN
-> +#define ARCH_HAS_SG_CHAIN
+>  struct usbhs_hcd_omap {
+>  	struct clk			*xclk60mhsp1_ck;
+>  	struct clk			*xclk60mhsp2_ck;
+> @@ -165,6 +169,7 @@ struct usbhs_hcd_omap {
+>  	u32				usbhs_rev;
+>  	spinlock_t			lock;
+>  	int				count;
+> +	unsigned long			state;
+>  };
+>  /*-------------------------------------------------------------------------*/
+>  
+> @@ -809,6 +814,8 @@ static int usbhs_enable(struct device *dev)
+>  				(pdata->ehci_data->reset_gpio_port[1], 1);
+>  	}
+>  
+> +	set_bit(OMAP_USBHS_INIT, &omap->state);
+> +
+>  end_count:
+>  	omap->count++;
+>  	spin_unlock_irqrestore(&omap->lock, flags);
+> @@ -897,6 +904,7 @@ static void usbhs_disable(struct device *dev)
+>  	}
+>  
+>  	pm_runtime_put_sync(dev);
+> +	clear_bit(OMAP_USBHS_INIT, &omap->state);
+>  
+>  	/* The gpio_free migh sleep; so unlock the spinlock */
+>  	spin_unlock_irqrestore(&omap->lock, flags);
+> @@ -926,10 +934,105 @@ void omap_usbhs_disable(struct device *dev)
+>  }
+>  EXPORT_SYMBOL_GPL(omap_usbhs_disable);
+>  
+> +#ifdef	CONFIG_PM
+> +
+> +static int usbhs_resume(struct device *dev)
+> +{
+> +	struct usbhs_hcd_omap		*omap = dev_get_drvdata(dev);
+> +	struct usbhs_omap_platform_data	*pdata = &omap->platdata;
+> +	unsigned long			flags = 0;
+> +
+> +	dev_dbg(dev, "Resuming TI HSUSB Controller\n");
+> +
+> +	if (!pdata) {
+> +		dev_dbg(dev, "missing platform_data\n");
+> +		return  -ENODEV;
+> +	}
+> +
+> +	spin_lock_irqsave(&omap->lock, flags);
+> +
+> +	if (!test_bit(OMAP_USBHS_INIT, &omap->state) ||
+> +		!test_bit(OMAP_USBHS_SUSPEND, &omap->state))
+> +			goto end_resume;
+> +
+> +	pm_runtime_get_sync(dev);
+> +
+> +	if (is_omap_usbhs_rev2(omap)) {
+> +		if (is_ehci_tll_mode(pdata->port_mode[0])) {
+> +			clk_enable(omap->usbhost_p1_fck);
+> +			clk_enable(omap->usbtll_p1_fck);
+> +		}
+> +		if (is_ehci_tll_mode(pdata->port_mode[1])) {
+> +			clk_enable(omap->usbhost_p2_fck);
+> +			clk_enable(omap->usbtll_p2_fck);
+> +		}
+> +		clk_enable(omap->utmi_p1_fck);
+> +		clk_enable(omap->utmi_p2_fck);
+> +	}
+> +	clear_bit(OMAP_USBHS_SUSPEND, &omap->state);
+> +
+> +end_resume:
+> +	spin_unlock_irqrestore(&omap->lock, flags);
+> +	return 0;
+> +}
+> +
+> +
+> +static int usbhs_suspend(struct device *dev)
+> +{
+> +	struct usbhs_hcd_omap		*omap = dev_get_drvdata(dev);
+> +	struct usbhs_omap_platform_data	*pdata = &omap->platdata;
+> +	unsigned long			flags = 0;
+> +
+> +	dev_dbg(dev, "Suspending TI HSUSB Controller\n");
+> +
+> +	if (!pdata) {
+> +		dev_dbg(dev, "missing platform_data\n");
+> +		return  -ENODEV;
+> +	}
+> +
+> +	spin_lock_irqsave(&omap->lock, flags);
+> +
+> +	if (!test_bit(OMAP_USBHS_INIT, &omap->state) ||
+> +		test_bit(OMAP_USBHS_SUSPEND, &omap->state))
+> +			goto end_suspend;
+> +
+> +	if (is_omap_usbhs_rev2(omap)) {
+> +		if (is_ehci_tll_mode(pdata->port_mode[0])) {
+> +			clk_disable(omap->usbhost_p1_fck);
+> +			clk_disable(omap->usbtll_p1_fck);
+> +		}
+> +		if (is_ehci_tll_mode(pdata->port_mode[1])) {
+> +			clk_disable(omap->usbhost_p2_fck);
+> +			clk_disable(omap->usbtll_p2_fck);
+> +		}
+> +		clk_disable(omap->utmi_p2_fck);
+> +		clk_disable(omap->utmi_p1_fck);
+> +	}
+> +
+> +	set_bit(OMAP_USBHS_SUSPEND, &omap->state);
+> +	pm_runtime_put_sync(dev);
+> +
+> +end_suspend:
+> +	spin_unlock_irqrestore(&omap->lock, flags);
+> +	return 0;
+> +}
+> +
+> +
+> +static const struct dev_pm_ops usbhsomap_dev_pm_ops = {
+> +	.suspend	= usbhs_suspend,
+> +	.resume		= usbhs_resume,
+> +};
+
+Please add .freeze()/.thaw() and .poweroff()/.restore() callbacks too.
+They may point to the same routines, but must be present.
+
+You can actually use the SIMPLE_DEV_PM_OPS() convenience macro for this
+purpose.
+
+> +
+> +#define USBHS_OMAP_DEV_PM_OPS (&usbhsomap_dev_pm_ops)
+> +#else
+> +#define	USBHS_OMAP_DEV_PM_OPS	NULL
 > +#endif
 > +
->  #include <asm/memory.h>
->  #include <asm/types.h>
->  #include <asm-generic/scatterlist.h>
+>  static struct platform_driver usbhs_omap_driver = {
+>  	.driver = {
+>  		.name		= (char *)usbhs_driver_name,
+>  		.owner		= THIS_MODULE,
+> +		.pm		= USBHS_OMAP_DEV_PM_OPS,
+>  	},
+>  	.remove		= __exit_p(usbhs_omap_remove),
+>  };
+> 
 
--- 
-Regards,
-
-Laurent Pinchart
+Thanks,
+Rafael
