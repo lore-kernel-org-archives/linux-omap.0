@@ -1,10 +1,15 @@
 From: Keshava Munegowda <keshava_mgowda@ti.com>
-Subject: [PATCH 0/4] arm: omap: usb: Hwmod and Runtime PM support for EHCI & OHCI
-Date: Wed, 1 Jun 2011 18:57:23 +0530
-Message-ID: <1306934847-6098-1-git-send-email-keshava_mgowda@ti.com>
+Subject: [PATCH 4/4] mfd: global Suspend and resume support of ehci and ohci
+Date: Wed, 1 Jun 2011 18:57:27 +0530
+Message-ID: <1306934847-6098-5-git-send-email-keshava_mgowda@ti.com>
+References: <1306934847-6098-1-git-send-email-keshava_mgowda@ti.com>
+ <1306934847-6098-2-git-send-email-keshava_mgowda@ti.com>
+ <1306934847-6098-3-git-send-email-keshava_mgowda@ti.com>
+ <1306934847-6098-4-git-send-email-keshava_mgowda@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1306934847-6098-4-git-send-email-keshava_mgowda@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 Cc: Keshava Munegowda <keshava_mgowda@ti.com>, balbi@ti.com, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, khilman@ti.com, b-cousson@ti.com, paul@pwsan.com, Keshava Munegowda <Keshava_mgowda@ti.com>
@@ -12,25 +17,162 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Keshava Munegowda <Keshava_mgowda@ti.com>
 
-These set of patches 
-- defines the hwmod structures of ehci and ohci of omap3 and omap4 socs.
-- Implements the Run time pm 
-- global suspend/resume of EHCI and OHCI
+The global suspend and resume functions for usbhs core driver
+are implemented.These routine are called when the global suspend
+and resume occurs. Before calling these functions, the
+bus suspend and resume of ehci and ohci drivers are called
+from runtime pm.
 
-Since, existing omap usbhs core driver of v3.0-rc1 release uses
-the run time PM APIs, these patches enables the ehci and ohci
-functionalaties.
+Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
+---
+ drivers/mfd/omap-usb-host.c |  103 +++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 103 insertions(+), 0 deletions(-)
 
-Keshava Munegowda (4):
-  arm: omap: usb: ehci and ohci hwmod structures for omap3 and omap4
-  arm: omap: usb: register hwmods of usbhs
-  arm: omap: usb: device name change for the clk names of usbhs
-  mfd: global Suspend and resume support of ehci and ohci
-
- arch/arm/mach-omap2/clock3xxx_data.c       |   28 ++--
- arch/arm/mach-omap2/clock44xx_data.c       |   10 +-
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  184 ++++++++++++++++++++++++++++
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  153 +++++++++++++++++++++++
- arch/arm/mach-omap2/usb-host.c             |   99 ++++++----------
- drivers/mfd/omap-usb-host.c                |  105 ++++++++++++++++-
- 6 files changed, 495 insertions(+), 84 deletions(-)
+diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
+index 43de12a..32d19e2 100644
+--- a/drivers/mfd/omap-usb-host.c
++++ b/drivers/mfd/omap-usb-host.c
+@@ -146,6 +146,10 @@
+ #define is_ehci_hsic_mode(x)	(x == OMAP_EHCI_PORT_MODE_HSIC)
+ 
+ 
++/* USBHS state bits */
++#define OMAP_USBHS_INIT		0
++#define OMAP_USBHS_SUSPEND	4
++
+ struct usbhs_hcd_omap {
+ 	struct clk			*xclk60mhsp1_ck;
+ 	struct clk			*xclk60mhsp2_ck;
+@@ -165,6 +169,7 @@ struct usbhs_hcd_omap {
+ 	u32				usbhs_rev;
+ 	spinlock_t			lock;
+ 	int				count;
++	unsigned long			state;
+ };
+ /*-------------------------------------------------------------------------*/
+ 
+@@ -809,6 +814,8 @@ static int usbhs_enable(struct device *dev)
+ 				(pdata->ehci_data->reset_gpio_port[1], 1);
+ 	}
+ 
++	set_bit(OMAP_USBHS_INIT, &omap->state);
++
+ end_count:
+ 	omap->count++;
+ 	spin_unlock_irqrestore(&omap->lock, flags);
+@@ -897,6 +904,7 @@ static void usbhs_disable(struct device *dev)
+ 	}
+ 
+ 	pm_runtime_put_sync(dev);
++	clear_bit(OMAP_USBHS_INIT, &omap->state);
+ 
+ 	/* The gpio_free migh sleep; so unlock the spinlock */
+ 	spin_unlock_irqrestore(&omap->lock, flags);
+@@ -926,10 +934,105 @@ void omap_usbhs_disable(struct device *dev)
+ }
+ EXPORT_SYMBOL_GPL(omap_usbhs_disable);
+ 
++#ifdef	CONFIG_PM
++
++static int usbhs_resume(struct device *dev)
++{
++	struct usbhs_hcd_omap		*omap = dev_get_drvdata(dev);
++	struct usbhs_omap_platform_data	*pdata = &omap->platdata;
++	unsigned long			flags = 0;
++
++	dev_dbg(dev, "Resuming TI HSUSB Controller\n");
++
++	if (!pdata) {
++		dev_dbg(dev, "missing platform_data\n");
++		return  -ENODEV;
++	}
++
++	spin_lock_irqsave(&omap->lock, flags);
++
++	if (!test_bit(OMAP_USBHS_INIT, &omap->state) ||
++		!test_bit(OMAP_USBHS_SUSPEND, &omap->state))
++			goto end_resume;
++
++	pm_runtime_get_sync(dev);
++
++	if (is_omap_usbhs_rev2(omap)) {
++		if (is_ehci_tll_mode(pdata->port_mode[0])) {
++			clk_enable(omap->usbhost_p1_fck);
++			clk_enable(omap->usbtll_p1_fck);
++		}
++		if (is_ehci_tll_mode(pdata->port_mode[1])) {
++			clk_enable(omap->usbhost_p2_fck);
++			clk_enable(omap->usbtll_p2_fck);
++		}
++		clk_enable(omap->utmi_p1_fck);
++		clk_enable(omap->utmi_p2_fck);
++	}
++	clear_bit(OMAP_USBHS_SUSPEND, &omap->state);
++
++end_resume:
++	spin_unlock_irqrestore(&omap->lock, flags);
++	return 0;
++}
++
++
++static int usbhs_suspend(struct device *dev)
++{
++	struct usbhs_hcd_omap		*omap = dev_get_drvdata(dev);
++	struct usbhs_omap_platform_data	*pdata = &omap->platdata;
++	unsigned long			flags = 0;
++
++	dev_dbg(dev, "Suspending TI HSUSB Controller\n");
++
++	if (!pdata) {
++		dev_dbg(dev, "missing platform_data\n");
++		return  -ENODEV;
++	}
++
++	spin_lock_irqsave(&omap->lock, flags);
++
++	if (!test_bit(OMAP_USBHS_INIT, &omap->state) ||
++		test_bit(OMAP_USBHS_SUSPEND, &omap->state))
++			goto end_suspend;
++
++	if (is_omap_usbhs_rev2(omap)) {
++		if (is_ehci_tll_mode(pdata->port_mode[0])) {
++			clk_disable(omap->usbhost_p1_fck);
++			clk_disable(omap->usbtll_p1_fck);
++		}
++		if (is_ehci_tll_mode(pdata->port_mode[1])) {
++			clk_disable(omap->usbhost_p2_fck);
++			clk_disable(omap->usbtll_p2_fck);
++		}
++		clk_disable(omap->utmi_p2_fck);
++		clk_disable(omap->utmi_p1_fck);
++	}
++
++	set_bit(OMAP_USBHS_SUSPEND, &omap->state);
++	pm_runtime_put_sync(dev);
++
++end_suspend:
++	spin_unlock_irqrestore(&omap->lock, flags);
++	return 0;
++}
++
++
++static const struct dev_pm_ops usbhsomap_dev_pm_ops = {
++	.suspend	= usbhs_suspend,
++	.resume		= usbhs_resume,
++};
++
++#define USBHS_OMAP_DEV_PM_OPS (&usbhsomap_dev_pm_ops)
++#else
++#define	USBHS_OMAP_DEV_PM_OPS	NULL
++#endif
++
+ static struct platform_driver usbhs_omap_driver = {
+ 	.driver = {
+ 		.name		= (char *)usbhs_driver_name,
+ 		.owner		= THIS_MODULE,
++		.pm		= USBHS_OMAP_DEV_PM_OPS,
+ 	},
+ 	.remove		= __exit_p(usbhs_omap_remove),
+ };
+-- 
+1.6.0.4
