@@ -1,70 +1,74 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 4/4] mfd: global Suspend and resume support of ehci and
- ohci
-Date: Wed, 1 Jun 2011 17:32:58 +0300
-Message-ID: <20110601143256.GG2409@legolas.emea.dhcp.ti.com>
-References: <1306934847-6098-1-git-send-email-keshava_mgowda@ti.com>
- <1306934847-6098-4-git-send-email-keshava_mgowda@ti.com>
- <1306934847-6098-5-git-send-email-keshava_mgowda@ti.com>
- <201106011554.38415.rjw@sisk.pl>
-Reply-To: balbi@ti.com
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: OMAP gpiolib?
+Date: Wed, 01 Jun 2011 07:36:44 -0700
+Message-ID: <8762opk48z.fsf@ti.com>
+References: <BANLkTikpOeH_xXLtdrmuN4KJcrdgONcP2A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="E69HUUNAyIJqGpVn"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:42519 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756766Ab1FAOdI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Jun 2011 10:33:08 -0400
-Content-Disposition: inline
-In-Reply-To: <201106011554.38415.rjw@sisk.pl>
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:54366 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756600Ab1FAOgs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Jun 2011 10:36:48 -0400
+Received: by mail-pw0-f51.google.com with SMTP id 9so63275pwi.24
+        for <linux-omap@vger.kernel.org>; Wed, 01 Jun 2011 07:36:47 -0700 (PDT)
+In-Reply-To: <BANLkTikpOeH_xXLtdrmuN4KJcrdgONcP2A@mail.gmail.com> (Brian
+	Hutchinson's message of "Wed, 1 Jun 2011 08:33:21 -0400")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Keshava Munegowda <keshava_mgowda@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, khilman@ti.com, b-cousson@ti.com, paul@pwsan.com
+To: Brian Hutchinson <b.hutchman@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
+[adding linux-omap list]
 
---E69HUUNAyIJqGpVn
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hello,
 
-Hi,
+Brian Hutchinson <b.hutchman@gmail.com> writes:
 
-On Wed, Jun 01, 2011 at 03:54:38PM +0200, Rafael J. Wysocki wrote:
-> > +static const struct dev_pm_ops usbhsomap_dev_pm_ops =3D {
-> > +	.suspend	=3D usbhs_suspend,
-> > +	.resume		=3D usbhs_resume,
-> > +};
->=20
-> Please add .freeze()/.thaw() and .poweroff()/.restore() callbacks too.
-> They may point to the same routines, but must be present.
->=20
-> You can actually use the SIMPLE_DEV_PM_OPS() convenience macro for this
-> purpose.
+> Hi Kevin,
+>
+> I caught part of the conversation on the ARM kernel list where it
+> looks like gpiolib for OMAP was going to be targeted to 2.6.41 or
+> something like that (going from memory).
 
-good point. BTW, do we need this #ifdef CONFIG_PM stuff which has been
-popping on most drivers recently ? To me it looks like driver.pm field
-is always available even if PM is disabled, so what's the point ? Saving
-a few bytes ?
+Actually, the recent discussions were more about moving the OMAP driver into
+drivers/gpio.  The OMAP GPIO driver already uses gpiolib.
 
---=20
-balbi
+> We have the C6A816x-evm (DDR2 version) and we have a custom board that
+> should be here any day based on a DDR3 design.
+>
+> I just stepped up to the latest u-boot & kernel for the DDR3 EVM (PSP
+> 04.00.00.10).  We need to use both the hardware spi (4 channels built
+> into the c6a816x) and gpio spi.
+>
+> I've been helping a colleague here get the gpio spi going but he
+> claims that he can't have gpio spi and hardware spi going at the same
+> time.  He claims if he tries to use both at the same time he gets a
+> kernel crash.
+>
+> So I guess my questions are:
+> 1.  In the release notes of the TI kernel we have (2.6.37) it says
+> gpio lib is added.  Is this the complete OMAP gpiolib support or are
+> there still things missing that we may need to back port from a 2.6.41
+> version?  I'm just trying to understand the roadmap and which tree I
+> should be watching.  I've been in Arago land quite a bit lately and
+> focusing on the git trees associated with that.
 
---E69HUUNAyIJqGpVn
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+I'm not familiar with the TI PSP kernels, so any specific questions
+should be addressed to the support channels for that kernel.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+In mainline, there is nothing (significant) that is different between
+.37 and .40 in OMAP GPIO support.  Both are using gpiolib.
 
-iQEcBAEBAgAGBQJN5k2YAAoJEAv8Txj19kN1bcMH/3Y21ajd9zctO7SZtuZipk8x
-yPZUb3tLZi0VCEBrM4qBx76nKVEx8Mo1Kf4bYUBfAqeS4jlgohC9Ot5G70PeRwFd
-Dxq4hPBVxR9tKughwwJFHqE5tHlqcgpaetcfr+eOfOnETCE4v6djuQGZMSQ47zMZ
-ZDPlHjj+InXs22g7Tnv2udRinHoXpFFMQbZdGK+U7rPZdo6it0CtIeHEUPYY883e
-GyUDxhtX9f+Gj4D5bpeuQ5fO9A2DOhlX/v3Xj6+slqSTtdYuKcaZ/X2x24rOhi/L
-aspvUGvjfcdC2g/Sxmgt441rELxZ94ip2k6L0G2uavAJ/3yqpWhAVrFuZrY6rtQ=
-=Rwus
------END PGP SIGNATURE-----
+> 2.  Can hardware spi & gpio spi be used at the same time?  Now that I
+> think of ... in past projects I've used either/or ... never both at
+> the same time.
 
---E69HUUNAyIJqGpVn--
+I don't know without digging into the TERM and knowing which exact GPIO
+pins and which SPI controller you're wanting to use, but GPIO pins are
+most always mux'd with other pins, so it is common that use of specific
+GPIO pins would prevent the use of some peripherals.
+
+Hope that helps,
+
+Kevin
