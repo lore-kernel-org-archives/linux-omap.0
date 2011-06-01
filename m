@@ -1,66 +1,45 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/8] MFD: twl4030-audio: Rename platform data
-Date: Wed, 1 Jun 2011 06:38:23 -0700
-Message-ID: <20110601133823.GI11352@atomide.com>
-References: <1306927051-8937-1-git-send-email-peter.ujfalusi@ti.com>
- <201106011554.53090.peter.ujfalusi@ti.com>
- <20110601130034.GE11352@atomide.com>
- <201106011617.14854.peter.ujfalusi@ti.com>
+From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
+Subject: Re: [PATCH 4/4] mfd: global Suspend and resume support of ehci and ohci
+Date: Wed, 1 Jun 2011 19:08:49 +0530
+Message-ID: <BANLkTimo8mF43SuyLAzdu18fD2di1Gurmw@mail.gmail.com>
+References: <1306934847-6098-1-git-send-email-keshava_mgowda@ti.com>
+	<1306934847-6098-2-git-send-email-keshava_mgowda@ti.com>
+	<1306934847-6098-3-git-send-email-keshava_mgowda@ti.com>
+	<1306934847-6098-4-git-send-email-keshava_mgowda@ti.com>
+	<1306934847-6098-5-git-send-email-keshava_mgowda@ti.com>
+	<20110601133128.GD2409@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:19178 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752507Ab1FANia (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Jun 2011 09:38:30 -0400
-Content-Disposition: inline
-In-Reply-To: <201106011617.14854.peter.ujfalusi@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20110601133128.GD2409@legolas.emea.dhcp.ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, khilman@ti.com, b-cousson@ti.com, paul@pwsan.com
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: "Girdwood, Liam" <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Samuel Ortiz <sameo@linux.intel.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>
 
-* Peter Ujfalusi <peter.ujfalusi@ti.com> [110601 06:13]:
-> On Wednesday 01 June 2011 16:00:34 Tony Lindgren wrote:
-> > Yeah, most of it might be possible to describe with just a flags
-> > like TWL_HAS_VIBRA etc.
-> 
-> Or TWL_BOARD_HAS_VIBRA, TWL_BOARD_HAS_CODEC...
-> 
-> For the audio part it is a bit complicated than that:
-> different base frequencies, for twl6040 we have parameters for Vibra (twl4030 
-> class only have the coexistence). The soc codec has a list of misc parameters 
-> for board specific configurations as well (not all board using them).
-> I was thinking to switch the MFD driver(s) to use flags to specify the needed 
-> child, and change the child drivers to deal with the missing platform data 
-> themselves.
-> In that way, board files can pass the vibra/codec platform data to the new 
-> i2c_twl file for example, and provide flags to enable functionality.
+On Wed, Jun 1, 2011 at 7:01 PM, Felipe Balbi <balbi@ti.com> wrote:
+> Hi,
+>
+> On Wed, Jun 01, 2011 at 06:57:27PM +0530, Keshava Munegowda wrote:
+>> diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host=
+=2Ec
+>> index 43de12a..32d19e2 100644
+>> --- a/drivers/mfd/omap-usb-host.c
+>> +++ b/drivers/mfd/omap-usb-host.c
+>> @@ -146,6 +146,10 @@
+>> =A0#define is_ehci_hsic_mode(x) (x =3D=3D OMAP_EHCI_PORT_MODE_HSIC)
+>>
+>>
+>> +/* USBHS state bits */
+>> +#define OMAP_USBHS_INIT =A0 =A0 =A0 =A0 =A0 =A0 =A00
+>> +#define OMAP_USBHS_SUSPEND =A0 4
+>
+> #define OMAP_USBHS_INIT =A0 =A0 =A0 =A0 BIT(0)
+> #define OMAP_USBHS_SUSPEND =A0 =A0 =A0BIT(1)
+>
+> ???
 
-OK, sounds doable.
- 
-> > > I'll take a look, but I think it is not going to be part of v2 of this
-> > > series.
-> > 
-> > We should not do renaming before the clean-up though, it gets
-> > classified as "unnecesary churn".
-> 
-> The changes in board files are minimal. The biggest part is the code move, and 
-> that will remain the same now or later...
+yes, I will do.. please comment on other patches too
 
-But you could easily remove all the board specific struct twl4030_codec_data
-and struct twl4030_codec_audio_data entries by adding a default audio
-init option to omap_pmic_init for the common configuration.
-
-How about something like:
-
-void omap_pmic_init(int bus, u32 clkrate, const char *pmic_type, int pmic_irq,
-                    struct twl4030_platform_data *pmic_data, u32 flags);
-
-Where flags would be TWL_BOARD_HAS_DEFAULT_CODEC etc, and if the entry in
-pmic_data is NULL, just use the default configuration. I think you already
-have the clkrate there?
-
-Regards,
-
-Tony
+keshava
