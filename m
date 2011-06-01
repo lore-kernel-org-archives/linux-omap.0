@@ -1,30 +1,43 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 2/2] omap3: iovmm: Support non page-aligned buffers
- in iommu_vmap
-Date: Wed, 1 Jun 2011 05:50:24 -0700
-Message-ID: <20110601125024.GD11352@atomide.com>
-References: <20110531132233.GQ11352@atomide.com>
- <1306931102-10943-2-git-send-email-laurent.pinchart@ideasonboard.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 3/8] MFD: twl4030-audio: Rename platform data
+Date: Wed, 1 Jun 2011 15:54:52 +0300
+Message-ID: <201106011554.53090.peter.ujfalusi@ti.com>
+References: <1306927051-8937-1-git-send-email-peter.ujfalusi@ti.com> <1306927051-8937-4-git-send-email-peter.ujfalusi@ti.com> <20110601120754.GC11352@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:35251 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750915Ab1FAMu0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Jun 2011 08:50:26 -0400
-Content-Disposition: inline
-In-Reply-To: <1306931102-10943-2-git-send-email-laurent.pinchart@ideasonboard.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <20110601120754.GC11352@atomide.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "Girdwood, Liam" <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Samuel Ortiz <sameo@linux.intel.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>
 List-Id: linux-omap@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-omap@vger.kernel.org
 
-* Laurent Pinchart <laurent.pinchart@ideasonboard.com> [110601 05:21]:
-> The IOMMU virtual memory mapping API requires page-aligned buffers.
-> There's no hardware reason behind such a restriction. Remove it by
-> rounding the address of the first page entry down, and adding the offset
-> back to the IOMMU virtual address.
+On Wednesday 01 June 2011 15:07:54 Tony Lindgren wrote:
+>=20
+> Can you please take a look at creating arch/arm/mach-omap2/i2c-twl.c =
+or
+> something in common-board-devices.c to get rid of the cut and paste
+> duplication in every board-*.c file?
 
-Does this one also fix some bug?
+Yes, it would make sense, since most of the board has similar configura=
+tion,=20
+and we have lots of duplicated code around.
+=20
+> Maybe you could have a generic twl_init function that allows overridi=
+ng
+> things like keypad with board specific configuration?
 
-Tony
+We might need also support for overriding other configurations=20
+(audio/codec/vibra for sure needs that).
+
+I'll take a look, but I think it is not going to be part of v2 of this =
+series.
+
+--=20
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-input" =
+in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
