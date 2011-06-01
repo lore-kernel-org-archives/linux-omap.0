@@ -1,35 +1,51 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: [PATCH] media: omap3isp: fix a pontential NULL deref
-Date: Wed,  1 Jun 2011 19:39:46 +0300
-Message-ID: <1306946386-31869-1-git-send-email-ohad@wizery.com>
-Return-path: <linux-media-owner@vger.kernel.org>
-Sender: linux-media-owner@vger.kernel.org
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, linux-omap@vger.kernel.org, Ohad Ben-Cohen <ohad@wizery.com>
+From: Julia Lawall <julia@diku.dk>
+Subject: [PATCH 9/10] arch/arm/mach-omap2/clock.c: add missing clk_put
+Date: Wed,  1 Jun 2011 19:10:12 +0200
+Message-ID: <1306948213-20767-9-git-send-email-julia@diku.dk>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: kernel-janitors@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Fix a potential NULL pointer dereference by skipping registration of
-external entities in case none are provided.
+From: Julia Lawall <julia@diku.dk>
 
-This is useful at least when testing mere memory-to-memory scenarios.
+Add missing call to clk_put.
 
-Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
+A simplified version of the semantic match that finds this problem is as
+follows: (http://coccinelle.lip6.fr/)
+
+// <smpl>
+@r exists@
+expression e1,e2;
+statement S;
+@@
+
+e1 = clk_get@p1(...);
+... when != e1 = e2
+    when != clk_put(e1)
+    when any
+if (...) { ... when != clk_put(e1)
+               when != if (...) { ... clk_put(e1) ... }
+* return@p3 ...;
+ } else S
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+
 ---
- drivers/media/video/omap3isp/isp.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/clock.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/media/video/omap3isp/isp.c b/drivers/media/video/omap3isp/isp.c
-index 2a5fbe6..367ced3 100644
---- a/drivers/media/video/omap3isp/isp.c
-+++ b/drivers/media/video/omap3isp/isp.c
-@@ -1756,7 +1756,7 @@ static int isp_register_entities(struct isp_device *isp)
- 		goto done;
+diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+index 180299e..bf9c36c 100644
+--- a/arch/arm/mach-omap2/clock.c
++++ b/arch/arm/mach-omap2/clock.c
+@@ -453,6 +453,7 @@ int __init omap2_clk_switch_mpurate_at_boot(const char *mpurate_ck_name)
+ 	if (IS_ERR_VALUE(r)) {
+ 		WARN(1, "clock: %s: unable to set MPU rate to %d: %d\n",
+ 		     mpurate_ck->name, mpurate, r);
++		clk_put(mpurate_ck);
+ 		return -EINVAL;
+ 	}
  
- 	/* Register external entities */
--	for (subdevs = pdata->subdevs; subdevs->subdevs; ++subdevs) {
-+	for (subdevs = pdata->subdevs; subdevs && subdevs->subdevs; ++subdevs) {
- 		struct v4l2_subdev *sensor;
- 		struct media_entity *input;
- 		unsigned int flags;
--- 
-1.7.1
