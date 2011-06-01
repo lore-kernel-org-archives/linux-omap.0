@@ -1,187 +1,51 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 4/4] mfd: global Suspend and resume support of ehci and ohci
-Date: Wed, 1 Jun 2011 15:54:38 +0200
-Message-ID: <201106011554.38415.rjw@sisk.pl>
-References: <1306934847-6098-1-git-send-email-keshava_mgowda@ti.com> <1306934847-6098-4-git-send-email-keshava_mgowda@ti.com> <1306934847-6098-5-git-send-email-keshava_mgowda@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH v3 1/2] omap3: iovmm: Work around sg_alloc_table size
+	limitation in IOMMU
+Date: Wed, 1 Jun 2011 15:03:06 +0100
+Message-ID: <20110601140306.GC6700@n2100.arm.linux.org.uk>
+References: <20110601131744.GH11352@atomide.com> <1306935012-12406-1-git-send-email-laurent.pinchart@ideasonboard.com> <20110601134338.GB6700@n2100.arm.linux.org.uk> <201106011550.50873.laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1306934847-6098-5-git-send-email-keshava_mgowda@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Keshava Munegowda <keshava_mgowda@ti.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, khilman@ti.com, b-cousson@ti.com, paul@pwsan.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:35014 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751079Ab1FAODN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Jun 2011 10:03:13 -0400
+Content-Disposition: inline
+In-Reply-To: <201106011550.50873.laurent.pinchart@ideasonboard.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Wednesday, June 01, 2011, Keshava Munegowda wrote:
-> From: Keshava Munegowda <Keshava_mgowda@ti.com>
+On Wed, Jun 01, 2011 at 03:50:50PM +0200, Laurent Pinchart wrote:
+> In the specific iovmm case, the driver uses the sglist API to build a list of 
+> page-size sg entries, and then process it in software. Is that considered as 
+> an abuse of the sglist API, or valid usage ?
 > 
-> The global suspend and resume functions for usbhs core driver
-> are implemented.These routine are called when the global suspend
-> and resume occurs. Before calling these functions, the
-> bus suspend and resume of ehci and ohci drivers are called
-> from runtime pm.
-> 
-> Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
-> ---
->  drivers/mfd/omap-usb-host.c |  103 +++++++++++++++++++++++++++++++++++++++++++
->  1 files changed, 103 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
-> index 43de12a..32d19e2 100644
-> --- a/drivers/mfd/omap-usb-host.c
-> +++ b/drivers/mfd/omap-usb-host.c
-> @@ -146,6 +146,10 @@
->  #define is_ehci_hsic_mode(x)	(x == OMAP_EHCI_PORT_MODE_HSIC)
->  
->  
-> +/* USBHS state bits */
-> +#define OMAP_USBHS_INIT		0
-> +#define OMAP_USBHS_SUSPEND	4
-> +
->  struct usbhs_hcd_omap {
->  	struct clk			*xclk60mhsp1_ck;
->  	struct clk			*xclk60mhsp2_ck;
-> @@ -165,6 +169,7 @@ struct usbhs_hcd_omap {
->  	u32				usbhs_rev;
->  	spinlock_t			lock;
->  	int				count;
-> +	unsigned long			state;
->  };
->  /*-------------------------------------------------------------------------*/
->  
-> @@ -809,6 +814,8 @@ static int usbhs_enable(struct device *dev)
->  				(pdata->ehci_data->reset_gpio_port[1], 1);
->  	}
->  
-> +	set_bit(OMAP_USBHS_INIT, &omap->state);
-> +
->  end_count:
->  	omap->count++;
->  	spin_unlock_irqrestore(&omap->lock, flags);
-> @@ -897,6 +904,7 @@ static void usbhs_disable(struct device *dev)
->  	}
->  
->  	pm_runtime_put_sync(dev);
-> +	clear_bit(OMAP_USBHS_INIT, &omap->state);
->  
->  	/* The gpio_free migh sleep; so unlock the spinlock */
->  	spin_unlock_irqrestore(&omap->lock, flags);
-> @@ -926,10 +934,105 @@ void omap_usbhs_disable(struct device *dev)
->  }
->  EXPORT_SYMBOL_GPL(omap_usbhs_disable);
->  
-> +#ifdef	CONFIG_PM
-> +
-> +static int usbhs_resume(struct device *dev)
-> +{
-> +	struct usbhs_hcd_omap		*omap = dev_get_drvdata(dev);
-> +	struct usbhs_omap_platform_data	*pdata = &omap->platdata;
-> +	unsigned long			flags = 0;
-> +
-> +	dev_dbg(dev, "Resuming TI HSUSB Controller\n");
-> +
-> +	if (!pdata) {
-> +		dev_dbg(dev, "missing platform_data\n");
-> +		return  -ENODEV;
-> +	}
-> +
-> +	spin_lock_irqsave(&omap->lock, flags);
-> +
-> +	if (!test_bit(OMAP_USBHS_INIT, &omap->state) ||
-> +		!test_bit(OMAP_USBHS_SUSPEND, &omap->state))
-> +			goto end_resume;
-> +
-> +	pm_runtime_get_sync(dev);
-> +
-> +	if (is_omap_usbhs_rev2(omap)) {
-> +		if (is_ehci_tll_mode(pdata->port_mode[0])) {
-> +			clk_enable(omap->usbhost_p1_fck);
-> +			clk_enable(omap->usbtll_p1_fck);
-> +		}
-> +		if (is_ehci_tll_mode(pdata->port_mode[1])) {
-> +			clk_enable(omap->usbhost_p2_fck);
-> +			clk_enable(omap->usbtll_p2_fck);
-> +		}
-> +		clk_enable(omap->utmi_p1_fck);
-> +		clk_enable(omap->utmi_p2_fck);
-> +	}
-> +	clear_bit(OMAP_USBHS_SUSPEND, &omap->state);
-> +
-> +end_resume:
-> +	spin_unlock_irqrestore(&omap->lock, flags);
-> +	return 0;
-> +}
-> +
-> +
-> +static int usbhs_suspend(struct device *dev)
-> +{
-> +	struct usbhs_hcd_omap		*omap = dev_get_drvdata(dev);
-> +	struct usbhs_omap_platform_data	*pdata = &omap->platdata;
-> +	unsigned long			flags = 0;
-> +
-> +	dev_dbg(dev, "Suspending TI HSUSB Controller\n");
-> +
-> +	if (!pdata) {
-> +		dev_dbg(dev, "missing platform_data\n");
-> +		return  -ENODEV;
-> +	}
-> +
-> +	spin_lock_irqsave(&omap->lock, flags);
-> +
-> +	if (!test_bit(OMAP_USBHS_INIT, &omap->state) ||
-> +		test_bit(OMAP_USBHS_SUSPEND, &omap->state))
-> +			goto end_suspend;
-> +
-> +	if (is_omap_usbhs_rev2(omap)) {
-> +		if (is_ehci_tll_mode(pdata->port_mode[0])) {
-> +			clk_disable(omap->usbhost_p1_fck);
-> +			clk_disable(omap->usbtll_p1_fck);
-> +		}
-> +		if (is_ehci_tll_mode(pdata->port_mode[1])) {
-> +			clk_disable(omap->usbhost_p2_fck);
-> +			clk_disable(omap->usbtll_p2_fck);
-> +		}
-> +		clk_disable(omap->utmi_p2_fck);
-> +		clk_disable(omap->utmi_p1_fck);
-> +	}
-> +
-> +	set_bit(OMAP_USBHS_SUSPEND, &omap->state);
-> +	pm_runtime_put_sync(dev);
-> +
-> +end_suspend:
-> +	spin_unlock_irqrestore(&omap->lock, flags);
-> +	return 0;
-> +}
-> +
-> +
-> +static const struct dev_pm_ops usbhsomap_dev_pm_ops = {
-> +	.suspend	= usbhs_suspend,
-> +	.resume		= usbhs_resume,
-> +};
+> Anyway, sglist chaining is not needed by iovmm. As iovmm just walks the sglist 
+> manually, it's easier to allocate it in one go rather than using sglist 
+> chaining. This of course doesn't make your patch unneeded or wrong.
 
-Please add .freeze()/.thaw() and .poweroff()/.restore() callbacks too.
-They may point to the same routines, but must be present.
+Well, there's a two issues here:
+1. Should iovmm use sg_phys(sg) with sg_dma_len(sg) ?
+   Probably not, because a scatterlist before DMA API mapping is defined
+   by sg_page(sg), sg->offset, sg->length and has N entries.  After DMA
+   API mapping (n = dma_map_sg(dev, sg, N, dir)), it has n entries where
+   n <= N, and the DMA address/lengths are sg_dma_address(sg) and
+   sg_dma_len(sg).  Both these are undefined for unmapped scatterlists.
 
-You can actually use the SIMPLE_DEV_PM_OPS() convenience macro for this
-purpose.
+   Getting this wrong means breakage when CONFIG_NEED_SG_DMA_LENGTH is
+   enabled.
 
-> +
-> +#define USBHS_OMAP_DEV_PM_OPS (&usbhsomap_dev_pm_ops)
-> +#else
-> +#define	USBHS_OMAP_DEV_PM_OPS	NULL
-> +#endif
-> +
->  static struct platform_driver usbhs_omap_driver = {
->  	.driver = {
->  		.name		= (char *)usbhs_driver_name,
->  		.owner		= THIS_MODULE,
-> +		.pm		= USBHS_OMAP_DEV_PM_OPS,
->  	},
->  	.remove		= __exit_p(usbhs_omap_remove),
->  };
-> 
+2. What would be the effect of enabling SG list chaining on iovmm?
+   The code uses the correct SG list walking helpers (for_each_sg) so
+   it should be able to cope with chained SG lists.
 
-Thanks,
-Rafael
+So, I think there's no problem here with chained SG lists, but there is
+an issue with using sg_dma_len().  I'd suggest converting stuff to use
+sg->length with sg_page(sg) rather than sg_dma_len(sg).
+
+As for whether SG chaining is required or not, if you're running up
+against the maximum SG table size, then you do have a requirement for
+SG chaining.
