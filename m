@@ -1,38 +1,35 @@
-From: Brian Hutchinson <b.hutchman@gmail.com>
-Subject: Re: OMAP gpiolib?
-Date: Wed, 1 Jun 2011 10:48:57 -0400
-Message-ID: <BANLkTikorKre_Z0kYGJzJneF_genurY+aQ@mail.gmail.com>
-References: <BANLkTikpOeH_xXLtdrmuN4KJcrdgONcP2A@mail.gmail.com>
-	<8762opk48z.fsf@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:40015 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756875Ab1FAOs6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Jun 2011 10:48:58 -0400
-Received: by bwz15 with SMTP id 15so114230bwz.19
-        for <linux-omap@vger.kernel.org>; Wed, 01 Jun 2011 07:48:57 -0700 (PDT)
-In-Reply-To: <8762opk48z.fsf@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: [PATCH] media: omap3isp: fix a pontential NULL deref
+Date: Wed,  1 Jun 2011 19:39:46 +0300
+Message-ID: <1306946386-31869-1-git-send-email-ohad@wizery.com>
+Return-path: <linux-media-owner@vger.kernel.org>
+Sender: linux-media-owner@vger.kernel.org
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, linux-omap@vger.kernel.org, Ohad Ben-Cohen <ohad@wizery.com>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org
 
-Thanks Kevin!
+Fix a potential NULL pointer dereference by skipping registration of
+external entities in case none are provided.
 
-The TI PSP04.00.00.10 release notes say the 2.6.37 kernel has gpio lib
-support added.  The previous version of the same kernel that was part
-of the previous PSP (4.00.00.09 I think) had the same kernel but
-apparently gpiolib was there but wasn't quite all there for the
-c6a816x.
+This is useful at least when testing mere memory-to-memory scenarios.
 
-Just wanted to make sure using hardware spi master and gpio spi master
-was a valid setup and didn't require special magic.  I know how to
-setup the pin mux but I didn't know if there was anything else special
-I should be aware of.  I'm not aware of any boards in arch that
-require a setup similar to ours we could look at as an example.
+Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
+---
+ drivers/media/video/omap3isp/isp.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Regards,
-
-Brian
+diff --git a/drivers/media/video/omap3isp/isp.c b/drivers/media/video/omap3isp/isp.c
+index 2a5fbe6..367ced3 100644
+--- a/drivers/media/video/omap3isp/isp.c
++++ b/drivers/media/video/omap3isp/isp.c
+@@ -1756,7 +1756,7 @@ static int isp_register_entities(struct isp_device *isp)
+ 		goto done;
+ 
+ 	/* Register external entities */
+-	for (subdevs = pdata->subdevs; subdevs->subdevs; ++subdevs) {
++	for (subdevs = pdata->subdevs; subdevs && subdevs->subdevs; ++subdevs) {
+ 		struct v4l2_subdev *sensor;
+ 		struct media_entity *input;
+ 		unsigned int flags;
+-- 
+1.7.1
