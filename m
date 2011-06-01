@@ -1,31 +1,29 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 3/4] arm: omap: usb: device name change for the clk names of usbhs
-Date: Wed, 01 Jun 2011 13:05:07 -0700
-Message-ID: <87hb89fhcc.fsf@ti.com>
-References: <1306934847-6098-1-git-send-email-keshava_mgowda@ti.com>
-	<1306934847-6098-2-git-send-email-keshava_mgowda@ti.com>
-	<1306934847-6098-3-git-send-email-keshava_mgowda@ti.com>
-	<1306934847-6098-4-git-send-email-keshava_mgowda@ti.com>
+From: Matthias Scheer <scheer@in.tum.de>
+Subject: Re: [PATCH] OMAP2: CONFIG_TOUCHSCREEN_ADS7846 XOR CONFIG_MTD_NAND_OMAP2
+ breaks build
+Date: Wed, 01 Jun 2011 23:42:36 +0200
+Message-ID: <4DE6B24C.7030900@in.tum.de>
+References: <loom.20110506T210326-622@post.gmane.org> <20110531130715.GL11352@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1306934847-6098-4-git-send-email-keshava_mgowda@ti.com> (Keshava
-	Munegowda's message of "Wed, 1 Jun 2011 18:57:26 +0530")
-Sender: linux-kernel-owner@vger.kernel.org
-To: Keshava Munegowda <keshava_mgowda@ti.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, b-cousson@ti.com, paul@pwsan.com, Keshava Munegowda <Keshava_mgowda@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-out1.informatik.tu-muenchen.de ([131.159.0.8]:40029 "EHLO
+	mail-out1.informatik.tu-muenchen.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758541Ab1FAVxX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Jun 2011 17:53:23 -0400
+In-Reply-To: <20110531130715.GL11352@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
 
-Keshava Munegowda <keshava_mgowda@ti.com> writes:
+On 31.05.2011 15:07, Tony Lindgren wrote:
+> Care to check if this is still needed for v3.0-rc1? If so, please
+> add proper patch description and Signed-off-by.
 
-> From: Keshava Munegowda <Keshava_mgowda@ti.com>
->
-> device name usbhs clocks are changed from
-> usbhs-omap.0 to usbhs_omap; this is because
-> in the hwmod registration the device name is set
-> as usbhs_omap
+Just tried and successfully built stock 3.0-rc1 kernels with both 
+configuration combinations. Patch no longer needed.
 
-..and because the identifier is changed to -1 in the previous patch
-without being documented.
-
-Kevin
+Cheers,
+Matthias
