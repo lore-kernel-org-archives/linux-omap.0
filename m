@@ -1,46 +1,101 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: (Bug report) the kernel crash when I run cyclictest on
- AM3715/DM3730
-Date: Wed, 1 Jun 2011 03:35:52 -0700
-Message-ID: <20110601103552.GY11352@atomide.com>
-References: <4DE450FE.1050402@windriver.com>
+From: Balaji T K <balajitk@ti.com>
+Subject: [PATCH v2 2/2] ARM: OMAP4: MMC: no regulator off during probe for eMMC
+Date: Wed, 1 Jun 2011 16:45:23 +0530
+Message-ID: <1306926923-3398-3-git-send-email-balajitk@ti.com>
+References: <1306926923-3398-1-git-send-email-balajitk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:13738 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S933384Ab1FAKfz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Jun 2011 06:35:55 -0400
-Content-Disposition: inline
-In-Reply-To: <4DE450FE.1050402@windriver.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <1306926923-3398-1-git-send-email-balajitk@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: tony@atomide.com, linux-omap@vger.kernel.org, cjb@laptop.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-mmc@vger.kernel.org, madhu.cr@ti.com, Balaji T K <balajitk@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: "stanley.miao" <stanley.miao@windriver.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* stanley.miao <stanley.miao@windriver.com> [110530 19:19]:
-> The test command :
-> 
-> # cyclictest -l100000000 -m -a0 -t1 -n -p99 -i200 -h200 -q
-> I run the following command to increase cpu's burden at the same time.
-> # while true; do hackbench; sleep 1;done
-> 
-> cyclictest and hackbench can be get in
-> git://git.kernel.org/pub/scm/linux/kernel/git/clrkwllms/rt-tests.git
-> 
-> The linux kernel version :
-> 
-> the kernel I used is windriver linux kernel. but this bug can also
-> be reproduced on the branch OMAPPSP_03.00.01.06 in
-> git://arago-project.org/git/projects/linux-omap3.git.
-> The kernel in linux-omap-2.6 git tree hung and didn't give any
-> useful Oops messages when I ran this cyclictest.
+eMMC does not handle power off when not in sleep state,
+Skip regulator disable during probe when eMMC is
+not in known state - state left by bootloader.
 
-Started these tests on zoom3 on current devel-fixes branch
-at commit 1704bf15deb6de20f8f4272c8d8232b36bbc7484. So far
-no issues here, so maybe try git bisect between the mainline
-version you have and v3.0-rc1?
+Resolves eMMC failure on OMAP4
+mmc0: error -110 whilst initialising MMC card
 
-Regards,
+Signed-off-by: Balaji T K <balajitk@ti.com>
+Tested-by:  Kishore Kadiyala <kishore.kadiyala@ti.com>
+Acked-by:  Kishore Kadiyala <kishore.kadiyala@ti.com>
+---
+ arch/arm/mach-omap2/board-4430sdp.c   |    1 +
+ arch/arm/mach-omap2/hsmmc.c           |    3 +++
+ arch/arm/mach-omap2/hsmmc.h           |    1 +
+ arch/arm/plat-omap/include/plat/mmc.h |    3 +++
+ drivers/mmc/host/omap_hsmmc.c         |    3 +++
+ 5 files changed, 11 insertions(+), 0 deletions(-)
 
-Tony
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+index 73fa90b..b324605 100644
+--- a/arch/arm/mach-omap2/board-4430sdp.c
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@ -322,6 +322,7 @@ static struct omap2_hsmmc_info mmc[] = {
+ 		.gpio_wp	= -EINVAL,
+ 		.nonremovable   = true,
+ 		.ocr_mask	= MMC_VDD_29_30,
++		.no_off_init	= true,
+ 	},
+ 	{
+ 		.mmc		= 1,
+diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc.c
+index 24f25c7..66868c5 100644
+--- a/arch/arm/mach-omap2/hsmmc.c
++++ b/arch/arm/mach-omap2/hsmmc.c
+@@ -338,6 +338,9 @@ static int __init omap_hsmmc_pdata_init(struct omap2_hsmmc_info *c,
+ 	if (c->no_off)
+ 		mmc->slots[0].no_off = 1;
+ 
++	if (c->no_off_init)
++		mmc->slots[0].no_regulator_off_init = c->no_off_init;
++
+ 	if (c->vcc_aux_disable_is_sleep)
+ 		mmc->slots[0].vcc_aux_disable_is_sleep = 1;
+ 
+diff --git a/arch/arm/mach-omap2/hsmmc.h b/arch/arm/mach-omap2/hsmmc.h
+index f119348..f757e78 100644
+--- a/arch/arm/mach-omap2/hsmmc.h
++++ b/arch/arm/mach-omap2/hsmmc.h
+@@ -18,6 +18,7 @@ struct omap2_hsmmc_info {
+ 	bool	nonremovable;	/* Nonremovable e.g. eMMC */
+ 	bool	power_saving;	/* Try to sleep or power off when possible */
+ 	bool	no_off;		/* power_saving and power is not to go off */
++	bool	no_off_init;	/* no power off when not in MMC sleep state */
+ 	bool	vcc_aux_disable_is_sleep; /* Regulator off remapped to sleep */
+ 	int	gpio_cd;	/* or -EINVAL */
+ 	int	gpio_wp;	/* or -EINVAL */
+diff --git a/arch/arm/plat-omap/include/plat/mmc.h b/arch/arm/plat-omap/include/plat/mmc.h
+index f38fef9..c7b8741 100644
+--- a/arch/arm/plat-omap/include/plat/mmc.h
++++ b/arch/arm/plat-omap/include/plat/mmc.h
+@@ -101,6 +101,9 @@ struct omap_mmc_platform_data {
+ 		/* If using power_saving and the MMC power is not to go off */
+ 		unsigned no_off:1;
+ 
++		/* eMMC does not handle power off when not in sleep state */
++		unsigned no_regulator_off_init:1;
++
+ 		/* Regulator off remapped to sleep */
+ 		unsigned vcc_aux_disable_is_sleep:1;
+ 
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index 259ece0..5b2e215 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -435,6 +435,9 @@ static int omap_hsmmc_reg_get(struct omap_hsmmc_host *host)
+ 		reg = regulator_get(host->dev, "vmmc_aux");
+ 		host->vcc_aux = IS_ERR(reg) ? NULL : reg;
+ 
++		/* For eMMC do not power off when not in sleep state */
++		if (mmc_slot(host).no_regulator_off_init)
++			return 0;
+ 		/*
+ 		* UGLY HACK:  workaround regulator framework bugs.
+ 		* When the bootloader leaves a supply active, it's
+-- 
+1.7.0.4
+
