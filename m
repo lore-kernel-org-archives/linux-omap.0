@@ -1,22 +1,20 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH 0/8] MFD/ASoC: TWL4030/TWL6040 changes
-Date: Thu, 2 Jun 2011 09:29:12 +0100
-Message-ID: <20110602082912.GB3085@opensource.wolfsonmicro.com>
-References: <1306927051-8937-1-git-send-email-peter.ujfalusi@ti.com>
+From: Microsoft <m.loto.yahoo.co.uk@[24.197.7.197]>
+Subject: winner
+Date: Thu, 02 Jun 2011 12:57:23 -0700
+Message-ID: <0LM50061ZN9NL1C0@a-mtaout21.012.net.il>
+Reply-To: microsoft_draws0233@yahoo.com.hk
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-input-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1306927051-8937-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Samuel Ortiz <sameo@linux.intel.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org
+Content-Type: text/plain; charset=Windows-1251
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mtaout21.012.net.il ([80.179.55.169]:57596 "EHLO
+	mtaout21.012.net.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758980Ab1FBIwR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Jun 2011 04:52:17 -0400
+Received: from conversion-daemon.a-mtaout21.012.net.il by a-mtaout21.012.net.il (HyperSendmail v2007.08) id <0LM500600M94ZK00@a-mtaout21.012.net.il> for linux-omap@vger.kernel.org; Thu, 02 Jun 2011 11:52:02 +0300 (IDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Jun 01, 2011 at 02:17:23PM +0300, Peter Ujfalusi wrote:
-> Hello,
-> 
-> The series will do three major things, and they are in one series, because they
-> pretty much depending on each other, so it is easier to handle them together.
-
-This all looks OK to me.
+You have won 500.000 GBP
+send your phone number
+and address
