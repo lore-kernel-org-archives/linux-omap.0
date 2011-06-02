@@ -1,186 +1,245 @@
 From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: [RFC 5/6] omap: iommu/iovmm: move to dedicated iommu folder
-Date: Fri,  3 Jun 2011 01:27:42 +0300
-Message-ID: <1307053663-24572-6-git-send-email-ohad@wizery.com>
+Subject: [RFC 3/6] media: omap3isp: generic iommu api migration
+Date: Fri,  3 Jun 2011 01:27:40 +0300
+Message-ID: <1307053663-24572-4-git-send-email-ohad@wizery.com>
 References: <1307053663-24572-1-git-send-email-ohad@wizery.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:51844 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755015Ab1FBWbM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Jun 2011 18:31:12 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1307053663-24572-1-git-send-email-ohad@wizery.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: laurent.pinchart@ideasonboard.com, Hiroshi.DOYU@nokia.com, arnd@arndb.de, davidb@codeaurora.org, Joerg.Roedel@amd.com, Ohad Ben-Cohen <ohad@wizery.com>
+List-Id: linux-omap@vger.kernel.org
 
-Move OMAP's iommu drivers to the dedicated iommu drivers folder.
+First step towards migrating omap3isp to the generic iommu api.
 
-While OMAP's iovmm (virtual memory manager) driver does not strictly
-belong to the iommu drivers folder, move it there as well, because
-it's by no means OMAP-specific (in concept. technically it is still
-coupled with the omap iommu), and exposing it will ease its generalization,
-consolidation, or removal (once a generic virtual memory manager and allocator
-would materialize).
+At this point we still need a handle of the omap-specific iommu, mainly
+because we highly depend on omap's iovmm.
 
-Move omap's iommu debug driver to the generic folder as well, for the
-same reasons.
+Migration will be fully completed only once omap's iovmm will be generalized
+(or replaced by a generic virtual memory manager framework).
 
 Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
 ---
- arch/arm/plat-omap/Kconfig                         |   14 --------------
- arch/arm/plat-omap/Makefile                        |    2 --
- arch/arm/plat-omap/{ => include/plat}/iopgtable.h  |    0
- drivers/iommu/Kconfig                              |   18 ++++++++++++++++++
- drivers/iommu/Makefile                             |    3 +++
- .../iommu/omap-iommu-debug.c                       |    2 +-
- .../iommu.c => drivers/iommu/omap-iommu.c          |    2 +-
- .../iovmm.c => drivers/iommu/omap-iovmm.c          |    2 +-
- drivers/media/video/Kconfig                        |    2 +-
- 9 files changed, 25 insertions(+), 20 deletions(-)
- rename arch/arm/plat-omap/{ => include/plat}/iopgtable.h (100%)
- rename arch/arm/plat-omap/iommu-debug.c => drivers/iommu/omap-iommu-debug.c (99%)
- rename arch/arm/plat-omap/iommu.c => drivers/iommu/omap-iommu.c (99%)
- rename arch/arm/plat-omap/iovmm.c => drivers/iommu/omap-iovmm.c (99%)
+ drivers/media/video/omap3isp/isp.c      |   41 +++++++++++++++++++++++++-----
+ drivers/media/video/omap3isp/isp.h      |    3 ++
+ drivers/media/video/omap3isp/ispccdc.c  |   16 ++++++------
+ drivers/media/video/omap3isp/ispstat.c  |    6 ++--
+ drivers/media/video/omap3isp/ispvideo.c |    4 +-
+ 5 files changed, 50 insertions(+), 20 deletions(-)
 
-diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
-index 1bb1981..14f067f 100644
---- a/arch/arm/plat-omap/Kconfig
-+++ b/arch/arm/plat-omap/Kconfig
-@@ -131,20 +131,6 @@ config OMAP_MBOX_KFIFO_SIZE
- 	  This can also be changed at runtime (via the mbox_kfifo_size
- 	  module parameter).
+diff --git a/drivers/media/video/omap3isp/isp.c b/drivers/media/video/omap3isp/isp.c
+index 897a1cf..25bade9 100644
+--- a/drivers/media/video/omap3isp/isp.c
++++ b/drivers/media/video/omap3isp/isp.c
+@@ -80,6 +80,13 @@
+ #include "isph3a.h"
+ #include "isphist.h"
  
--#can't be tristate; iommu api doesn't support un-registration
--config OMAP_IOMMU
--	bool
--	select IOMMU_API
--
--config OMAP_IOMMU_DEBUG
--       tristate "Export OMAP IOMMU internals in DebugFS"
--       depends on OMAP_IOMMU && DEBUG_FS
--       help
--         Select this to see extensive information about
--         the internal state of OMAP IOMMU in debugfs.
--
--         Say N unless you know you need this.
--
- config OMAP_IOMMU_IVA2
- 	bool
++/*
++ * this is provided as an interim solution until omap3isp doesn't need
++ * any omap-specific iommu API
++ */
++#define to_iommu(dev)							\
++	(struct iommu *)platform_get_drvdata(to_platform_device(dev))
++
+ static unsigned int autoidle;
+ module_param(autoidle, int, 0444);
+ MODULE_PARM_DESC(autoidle, "Enable OMAP3ISP AUTOIDLE support");
+@@ -1975,7 +1982,8 @@ static int isp_remove(struct platform_device *pdev)
+ 	isp_cleanup_modules(isp);
  
-diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
-index f0233e6..9852622 100644
---- a/arch/arm/plat-omap/Makefile
-+++ b/arch/arm/plat-omap/Makefile
-@@ -18,8 +18,6 @@ obj-$(CONFIG_ARCH_OMAP3) += omap_device.o
- obj-$(CONFIG_ARCH_OMAP4) += omap_device.o
+ 	omap3isp_get(isp);
+-	iommu_put(isp->iommu);
++	iommu_detach_device(isp->domain, isp->iommu_dev);
++	iommu_domain_free(isp->domain);
+ 	omap3isp_put(isp);
  
- obj-$(CONFIG_OMAP_MCBSP) += mcbsp.o
--obj-$(CONFIG_OMAP_IOMMU) += iommu.o iovmm.o
--obj-$(CONFIG_OMAP_IOMMU_DEBUG) += iommu-debug.o
+ 	free_irq(isp->irq_num, isp);
+@@ -2123,25 +2131,41 @@ static int isp_probe(struct platform_device *pdev)
+ 	}
  
- obj-$(CONFIG_CPU_FREQ) += cpu-omap.o
- obj-$(CONFIG_OMAP_DM_TIMER) += dmtimer.o
-diff --git a/arch/arm/plat-omap/iopgtable.h b/arch/arm/plat-omap/include/plat/iopgtable.h
-similarity index 100%
-rename from arch/arm/plat-omap/iopgtable.h
-rename to arch/arm/plat-omap/include/plat/iopgtable.h
-diff --git a/drivers/iommu/Kconfig b/drivers/iommu/Kconfig
-index 2c5dfb4..57378ac 100644
---- a/drivers/iommu/Kconfig
-+++ b/drivers/iommu/Kconfig
-@@ -1,3 +1,21 @@
- # IOMMU_API always gets selected by whoever wants it.
- config IOMMU_API
- 	bool
+ 	/* IOMMU */
+-	isp->iommu = iommu_get("isp");
+-	if (IS_ERR_OR_NULL(isp->iommu)) {
+-		isp->iommu = NULL;
++	isp->iommu_dev = omap_find_iommu_device("isp");
++	if (!isp->iommu_dev) {
++		dev_err(isp->dev, "omap_find_iommu_device failed\n");
+ 		ret = -ENODEV;
+ 		goto error_isp;
+ 	}
+ 
++	/* to be removed once iommu migration is complete */
++	isp->iommu = to_iommu(isp->iommu_dev);
 +
-+# can't be tristate; iommu api doesn't support un-registration
-+config OMAP_IOMMU
-+	bool
-+	select IOMMU_API
++	isp->domain = iommu_domain_alloc();
++	if (!isp->domain) {
++		dev_err(isp->dev, "can't alloc iommu domain\n");
++		ret = -ENOMEM;
++		goto error_isp;
++	}
 +
-+config OMAP_IOVMM
-+	tristate
-+	select OMAP_IOMMU
++	ret = iommu_attach_device(isp->domain, isp->iommu_dev);
++	if (ret) {
++		dev_err(&pdev->dev, "can't attach iommu device: %d\n", ret);
++		goto free_domain;
++	}
 +
-+config OMAP_IOMMU_DEBUG
-+       tristate "Export OMAP IOMMU internals in DebugFS"
-+       depends on OMAP_IOVMM && DEBUG_FS
-+       help
-+         Select this to see extensive information about
-+         the internal state of OMAP IOMMU in debugfs.
-+
-+         Say N unless you know you need this.
-diff --git a/drivers/iommu/Makefile b/drivers/iommu/Makefile
-index 241ba4c..c094875 100644
---- a/drivers/iommu/Makefile
-+++ b/drivers/iommu/Makefile
-@@ -1 +1,4 @@
- obj-$(CONFIG_IOMMU_API) += iommu.o
-+obj-$(CONFIG_OMAP_IOMMU) += omap-iommu.o
-+obj-$(CONFIG_OMAP_IOVMM) += omap-iovmm.o
-+obj-$(CONFIG_OMAP_IOMMU_DEBUG) += omap-iommu-debug.o
-diff --git a/arch/arm/plat-omap/iommu-debug.c b/drivers/iommu/omap-iommu-debug.c
-similarity index 99%
-rename from arch/arm/plat-omap/iommu-debug.c
-rename to drivers/iommu/omap-iommu-debug.c
-index f07cf2f..0f8c8dd 100644
---- a/arch/arm/plat-omap/iommu-debug.c
-+++ b/drivers/iommu/omap-iommu-debug.c
-@@ -21,7 +21,7 @@
+ 	/* Interrupt */
+ 	isp->irq_num = platform_get_irq(pdev, 0);
+ 	if (isp->irq_num <= 0) {
+ 		dev_err(isp->dev, "No IRQ resource\n");
+ 		ret = -ENODEV;
+-		goto error_isp;
++		goto detach_dev;
+ 	}
+ 
+ 	if (request_irq(isp->irq_num, isp_isr, IRQF_SHARED, "OMAP3 ISP", isp)) {
+ 		dev_err(isp->dev, "Unable to request IRQ\n");
+ 		ret = -EINVAL;
+-		goto error_isp;
++		goto detach_dev;
+ 	}
+ 
+ 	/* Entities */
+@@ -2162,8 +2186,11 @@ error_modules:
+ 	isp_cleanup_modules(isp);
+ error_irq:
+ 	free_irq(isp->irq_num, isp);
++detach_dev:
++	iommu_detach_device(isp->domain, isp->iommu_dev);
++free_domain:
++	iommu_domain_free(isp->domain);
+ error_isp:
+-	iommu_put(isp->iommu);
+ 	omap3isp_put(isp);
+ error:
+ 	isp_put_clocks(isp);
+diff --git a/drivers/media/video/omap3isp/isp.h b/drivers/media/video/omap3isp/isp.h
+index 2620c40..1b54aa4 100644
+--- a/drivers/media/video/omap3isp/isp.h
++++ b/drivers/media/video/omap3isp/isp.h
+@@ -32,6 +32,7 @@
+ #include <linux/io.h>
+ #include <linux/platform_device.h>
+ #include <linux/wait.h>
++#include <linux/iommu.h>
  #include <plat/iommu.h>
  #include <plat/iovmm.h>
  
--#include "iopgtable.h"
-+#include <plat/iopgtable.h>
+@@ -289,6 +290,8 @@ struct isp_device {
+ 	unsigned int subclk_resources;
  
- #define MAXCOLUMN 100 /* for short messages */
+ 	struct iommu *iommu;
++	struct iommu_domain *domain;
++	struct device *iommu_dev;
  
-diff --git a/arch/arm/plat-omap/iommu.c b/drivers/iommu/omap-iommu.c
-similarity index 99%
-rename from arch/arm/plat-omap/iommu.c
-rename to drivers/iommu/omap-iommu.c
-index f06e99c..1526fea 100644
---- a/arch/arm/plat-omap/iommu.c
-+++ b/drivers/iommu/omap-iommu.c
-@@ -25,7 +25,7 @@
+ 	struct isp_platform_callback platform_cb;
+ };
+diff --git a/drivers/media/video/omap3isp/ispccdc.c b/drivers/media/video/omap3isp/ispccdc.c
+index 39d501b..b59b06f 100644
+--- a/drivers/media/video/omap3isp/ispccdc.c
++++ b/drivers/media/video/omap3isp/ispccdc.c
+@@ -365,7 +365,7 @@ static void ccdc_lsc_free_request(struct isp_ccdc_device *ccdc,
+ 		dma_unmap_sg(isp->dev, req->iovm->sgt->sgl,
+ 			     req->iovm->sgt->nents, DMA_TO_DEVICE);
+ 	if (req->table)
+-		iommu_vfree(isp->iommu, req->table);
++		iommu_vfree(isp->domain, isp->iommu, req->table);
+ 	kfree(req);
+ }
  
- #include <plat/iommu.h>
+@@ -437,8 +437,8 @@ static int ccdc_lsc_config(struct isp_ccdc_device *ccdc,
  
--#include "iopgtable.h"
-+#include <plat/iopgtable.h>
+ 		req->enable = 1;
  
- #define for_each_iotlb_cr(obj, n, __i, cr)				\
- 	for (__i = 0;							\
-diff --git a/arch/arm/plat-omap/iovmm.c b/drivers/iommu/omap-iovmm.c
-similarity index 99%
-rename from arch/arm/plat-omap/iovmm.c
-rename to drivers/iommu/omap-iovmm.c
-index 80bb2b6..42f4a2c 100644
---- a/arch/arm/plat-omap/iovmm.c
-+++ b/drivers/iommu/omap-iovmm.c
-@@ -23,7 +23,7 @@
- #include <plat/iommu.h>
- #include <plat/iovmm.h>
+-		req->table = iommu_vmalloc(isp->iommu, 0, req->config.size,
+-					   IOMMU_FLAG);
++		req->table = iommu_vmalloc(isp->domain, isp->iommu, 0,
++					req->config.size, IOMMU_FLAG);
+ 		if (IS_ERR_VALUE(req->table)) {
+ 			req->table = 0;
+ 			ret = -ENOMEM;
+@@ -733,15 +733,15 @@ static int ccdc_config(struct isp_ccdc_device *ccdc,
+ 			 * already done by iommu_vmalloc().
+ 			 */
+ 			size = ccdc->fpc.fpnum * 4;
+-			table_new = iommu_vmalloc(isp->iommu, 0, size,
+-						  IOMMU_FLAG);
++			table_new = iommu_vmalloc(isp->domain, isp->iommu, 0,
++							size, IOMMU_FLAG);
+ 			if (IS_ERR_VALUE(table_new))
+ 				return -ENOMEM;
  
--#include "iopgtable.h"
-+#include <plat/iopgtable.h>
+ 			if (copy_from_user(da_to_va(isp->iommu, table_new),
+ 					   (__force void __user *)
+ 					   ccdc->fpc.fpcaddr, size)) {
+-				iommu_vfree(isp->iommu, table_new);
++				iommu_vfree(isp->domain, isp->iommu, table_new);
+ 				return -EFAULT;
+ 			}
  
- /*
-  * A device driver needs to create address mappings between:
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index bb53de7..4945f91 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -761,7 +761,7 @@ source "drivers/media/video/m5mols/Kconfig"
+@@ -751,7 +751,7 @@ static int ccdc_config(struct isp_ccdc_device *ccdc,
  
- config VIDEO_OMAP3
- 	tristate "OMAP 3 Camera support (EXPERIMENTAL)"
--	select OMAP_IOMMU
-+	select OMAP_IOVMM
- 	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API && ARCH_OMAP3 && EXPERIMENTAL
- 	---help---
- 	  Driver for an OMAP 3 camera controller.
+ 		ccdc_configure_fpc(ccdc);
+ 		if (table_old != 0)
+-			iommu_vfree(isp->iommu, table_old);
++			iommu_vfree(isp->domain, isp->iommu, table_old);
+ 	}
+ 
+ 	return ccdc_lsc_config(ccdc, ccdc_struct);
+@@ -2287,5 +2287,5 @@ void omap3isp_ccdc_cleanup(struct isp_device *isp)
+ 	ccdc_lsc_free_queue(ccdc, &ccdc->lsc.free_queue);
+ 
+ 	if (ccdc->fpc.fpcaddr != 0)
+-		iommu_vfree(isp->iommu, ccdc->fpc.fpcaddr);
++		iommu_vfree(isp->domain, isp->iommu, ccdc->fpc.fpcaddr);
+ }
+diff --git a/drivers/media/video/omap3isp/ispstat.c b/drivers/media/video/omap3isp/ispstat.c
+index b44cb68..afb7d78 100644
+--- a/drivers/media/video/omap3isp/ispstat.c
++++ b/drivers/media/video/omap3isp/ispstat.c
+@@ -366,7 +366,7 @@ static void isp_stat_bufs_free(struct ispstat *stat)
+ 				dma_unmap_sg(isp->dev, buf->iovm->sgt->sgl,
+ 					     buf->iovm->sgt->nents,
+ 					     DMA_FROM_DEVICE);
+-			iommu_vfree(isp->iommu, buf->iommu_addr);
++			iommu_vfree(isp->domain, isp->iommu, buf->iommu_addr);
+ 		} else {
+ 			if (!buf->virt_addr)
+ 				continue;
+@@ -399,8 +399,8 @@ static int isp_stat_bufs_alloc_iommu(struct ispstat *stat, unsigned int size)
+ 		struct iovm_struct *iovm;
+ 
+ 		WARN_ON(buf->dma_addr);
+-		buf->iommu_addr = iommu_vmalloc(isp->iommu, 0, size,
+-						IOMMU_FLAG);
++		buf->iommu_addr = iommu_vmalloc(isp->domain, isp->iommu, 0,
++							size, IOMMU_FLAG);
+ 		if (IS_ERR((void *)buf->iommu_addr)) {
+ 			dev_err(stat->isp->dev,
+ 				 "%s: Can't acquire memory for "
+diff --git a/drivers/media/video/omap3isp/ispvideo.c b/drivers/media/video/omap3isp/ispvideo.c
+index 9cd8f1a..7bc7986 100644
+--- a/drivers/media/video/omap3isp/ispvideo.c
++++ b/drivers/media/video/omap3isp/ispvideo.c
+@@ -446,7 +446,7 @@ ispmmu_vmap(struct isp_device *isp, const struct scatterlist *sglist, int sglen)
+ 	sgt->nents = sglen;
+ 	sgt->orig_nents = sglen;
+ 
+-	da = iommu_vmap(isp->iommu, 0, sgt, IOMMU_FLAG);
++	da = iommu_vmap(isp->domain, isp->iommu, 0, sgt, IOMMU_FLAG);
+ 	if (IS_ERR_VALUE(da))
+ 		kfree(sgt);
+ 
+@@ -462,7 +462,7 @@ static void ispmmu_vunmap(struct isp_device *isp, dma_addr_t da)
+ {
+ 	struct sg_table *sgt;
+ 
+-	sgt = iommu_vunmap(isp->iommu, (u32)da);
++	sgt = iommu_vunmap(isp->domain, isp->iommu, (u32)da);
+ 	kfree(sgt);
+ }
+ 
 -- 
 1.7.1
-
