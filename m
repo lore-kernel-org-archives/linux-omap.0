@@ -1,37 +1,54 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] OMAP: PM: omap_device: fix device power domain
- callbacks
-Date: Thu, 2 Jun 2011 16:51:30 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1106021649231.26852@utopia.booyaka.com>
-References: <1306886694-11092-1-git-send-email-khilman@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH] OMAP2+: CPUfreq: Allow the CPU scaling when secondary CPUs are offline.
+Date: Thu, 02 Jun 2011 16:10:24 -0700
+Message-ID: <87ei3bomn3.fsf@ti.com>
+References: <1307026270-313-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:49269 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753374Ab1FBWvb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Jun 2011 18:51:31 -0400
-In-Reply-To: <1306886694-11092-1-git-send-email-khilman@ti.com>
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:39502 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755131Ab1FBXK1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Jun 2011 19:10:27 -0400
+Received: by mail-px0-f169.google.com with SMTP id 9so797099pxi.14
+        for <linux-omap@vger.kernel.org>; Thu, 02 Jun 2011 16:10:27 -0700 (PDT)
+In-Reply-To: <1307026270-313-1-git-send-email-santosh.shilimkar@ti.com>
+	(Santosh Shilimkar's message of "Thu, 2 Jun 2011 20:21:10 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-On Tue, 31 May 2011, Kevin Hilman wrote:
+Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
 
-> After commit 4d27e9dcff00a6425d779b065ec8892e4f391661 (PM: Make power
-> domain callbacks take precedence over subsystem ones), the power
-> domain callbacks need to call the driver callbacks instead of relying
-> on the default subsystem (in this case, platform_bus) to handle the
-> driver callbacks.
-> 
-> Validated on 3430/n900, 3530/Overo.
-> 
-> Signed-off-by: Kevin Hilman <khilman@ti.com>
+> Current OMAP2PLUS CPUfreq tagret() functions returns when all
+> the CPU's are not online. This will break DVFS when secondary
+> CPUs are offlined.
+>
+> The intention of that check was just avoid CPU frequency change
+> during the window when CPU becomes online but it's cpufreq_init is
+> not done yet.
+>
+> Fix the check accordingly.
+>
+> Thanks for Nishant Menon <nm@ti.com> for reporting it.
+>
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Reported-by: Nishanth Menon <nm@ti.com>
+> Tested-by: Vishwanath BS <vishwanath.bs@ti.com>
 > ---
-> Will be queued in my for_3.0/pm-fixes branch unless there are objections.
+> There were some question of making the variable atomic etc
+> in an internal discussion. After some thinking, I realised
+> there is no need of that since this is just a counter which
+> maintains the count for online_cpus = cpufreq_init_cpus. 
 
-Seems reasonable to me, although I'm not the expert here.
+Since this is init-time only check, the check for every call to
+->target() seems excessive.
 
+How about leaving the ->target callback empty until all the CPUs are
+online.
 
-- Paul
+Also, how will this handle an SMP kernel booted with maxcpus=1 on the
+cmdline?
+
+Kevin
