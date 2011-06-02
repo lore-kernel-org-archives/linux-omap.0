@@ -1,122 +1,118 @@
-From: "Menon, Nishanth" <nm@ti.com>
-Subject: Re: [PM-WIP_CPUFREQ][PATCH v4 2/4] OMAP2+: cpufreq: use OPP library
-Date: Thu, 2 Jun 2011 18:14:00 -0500
-Message-ID: <BANLkTinJksT=PWAuXaKnuauixq_s=X7tfA@mail.gmail.com>
-References: <1306463960-27340-1-git-send-email-nm@ti.com> <1306463960-27340-3-git-send-email-nm@ti.com>
- <87zklzq2cs.fsf@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [pm_wip/voltdm_nm][PATCH v2 2/3] OMAP4: PM: VC: introduce concept of default channel
+Date: Thu, 02 Jun 2011 16:45:15 -0700
+Message-ID: <87pqmvn6gk.fsf@ti.com>
+References: <1306711180-8631-1-git-send-email-nm@ti.com>
+	<1306711180-8631-3-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:48088 "EHLO
-	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755382Ab1FBXOW convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 2 Jun 2011 19:14:22 -0400
-Received: by mail-wy0-f178.google.com with SMTP id 33so1136818wyb.9
-        for <linux-omap@vger.kernel.org>; Thu, 02 Jun 2011 16:14:20 -0700 (PDT)
-In-Reply-To: <87zklzq2cs.fsf@ti.com>
+Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:57101 "EHLO
+	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752511Ab1FBXpT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Jun 2011 19:45:19 -0400
+Received: by mail-pv0-f169.google.com with SMTP id 12so780701pvc.14
+        for <linux-omap@vger.kernel.org>; Thu, 02 Jun 2011 16:45:18 -0700 (PDT)
+In-Reply-To: <1306711180-8631-3-git-send-email-nm@ti.com> (Nishanth Menon's
+	message of "Sun, 29 May 2011 16:19:39 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
+To: Nishanth Menon <nm@ti.com>
 Cc: linux-omap <linux-omap@vger.kernel.org>
 
-On Thu, Jun 2, 2011 at 17:45, Kevin Hilman <khilman@ti.com> wrote:
-> Nishanth Menon <nm@ti.com> writes:
+Nishanth Menon <nm@ti.com> writes:
+
+> Due to a TRM bug, the current code assumes that channel0(core) is the default
+> channel. With the additional explanation provided by the hardware team, it is
+> clear that PRM_VC_CFG_CHANNEL register allows for flexibility of configuring
+> for various PMIC configurations. For example, the I2C slave address on TWL6030
+> when using 4430 configuration could potentially use the same slave address for
+> all domains, while in 4460 configuration, we drive MPU using TPS; Core and IVA
+> using TWL6030. To allow this flexibility, we state in existing parameters using
+> a flag to indicate usage of default channel.
 >
->> OMAP2 is the only family using clk_[init|exit]_cpufreq_table, howeve=
-r,
->> the cpufreq code has does not use clk_init_cpufreq_table. As a resul=
-t,
->> it is unusuable for OMAP2 and only usable only on platforms using OP=
-P
->> library.
->>
->> So move the compilation for cpufreq only if OPP is available for the
->> architecture and deny OMAP2 in multi-OMAP builds until OMAP2 is fixe=
-d.
->>
->> Signed-off-by: Nishanth Menon <nm@ti.com>
+> In addition, the TRM update clears up the confusion on the fact that MPU is
+> infact the default channel on OMAP4.
 >
-> I updated this patch slightly, preferring a more generic failure mode=
-,
-> namely just failing with a warning on init when no OPPs are present.
->
-> I tested this on 3430/n900 by simply commenting out the
-> omap_init_opp_table() for OMAP3. =A0CPUfreq init fails predictably wi=
-th
->
-> =A0 platform mpu.0: opp_init_cpufreq_table: Device OPP not found (-19=
-)
-> =A0 platform mpu.0: omap_cpu_init: cpu0: failed creating freq table[-=
-19]
->
-> So CPUfreq driver never gets registered.
->
-> Updated patch below. =A0If you're OK with this change, I'll apply it =
-to
-> pm-wip/cpufreq.
->
-> Kevin
->
->
-> From 22f1704e2ec30816e34b3d46a4c61513441fce8d Mon Sep 17 00:00:00 200=
-1
-> From: Nishanth Menon <nm@ti.com>
-> Date: Thu, 26 May 2011 19:39:18 -0700
-> Subject: [PATCH 2/4] OMAP2+: cpufreq: only supports OPP library
->
-> OMAP2 is the only family using clk_[init|exit]_cpufreq_table, however=
-,
-> the cpufreq code does not currently use clk_init_cpufreq_table. As a
-> result, it is unusuable for OMAP2 and only usable only on platforms
-> using OPP library.
->
-> Remove the unbalanced clk_exit_cpufreq_table(). =A0Any platforms wher=
-e
-> OPPs are not availble will fail on init because a freq table will not
-> be properly initialized.
+> We update the same here.
 >
 > Signed-off-by: Nishanth Menon <nm@ti.com>
-> [khilman@ti.com: changelog edits, and graceful failure mode changes]
-> Acked-by: Kevin Hilman <khilman@ti.com>
-> ---
-> =A0arch/arm/mach-omap2/omap2plus-cpufreq.c | =A0 =A03 +--
-> =A01 files changed, 1 insertions(+), 2 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/omap2plus-cpufreq.c b/arch/arm/mach-=
-omap2/omap2plus-cpufreq.c
-> index acf18e8..3af7cda 100644
-> --- a/arch/arm/mach-omap2/omap2plus-cpufreq.c
-> +++ b/arch/arm/mach-omap2/omap2plus-cpufreq.c
-> @@ -1,7 +1,7 @@
-> =A0/*
-> =A0* =A0OMAP2PLUS cpufreq driver
-> =A0*
-> - * =A0CPU frequency scaling for OMAP
-> + * =A0CPU frequency scaling for OMAP using OPP information
-> =A0*
-> =A0* =A0Copyright (C) 2005 Nokia Corporation
-> =A0* =A0Written by Tony Lindgren <tony@atomide.com>
-> @@ -203,7 +203,6 @@ static int __cpuinit omap_cpu_init(struct cpufreq=
-_policy *policy)
->
-> =A0static int omap_cpu_exit(struct cpufreq_policy *policy)
-> =A0{
-> - =A0 =A0 =A0 clk_exit_cpufreq_table(&freq_table);
-> =A0 =A0 =A0 =A0clk_put(mpu_clk);
-> =A0 =A0 =A0 =A0return 0;
-> =A0}
-> --
-> 1.7.4
->
->
-=46ine with me. thanks for it. it achieves what I needed as well :)
 
-Regards,
-Nishanth Menon
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+There's too much going on in this patch not described in the changelog
+(extra error checking, volt & cmd reg checking etc.)
+
+Also, I don't like the USE_DEFAULT_CHANNEL_I2C_PARAM, mainly because it
+adds clutter without any obvious value.  To me, zero is a perfectly good
+value to signify "use default channel value", especially since that's
+the value used by the hardware.
+
+Incidentally, adding this doesn't actually change current behavior.
+Currently, I use zero (an unconfigured value in the VC settings) to
+signify it should use default settings.  In your patch, you defined
+USE_DEFAULT_CHANNEL_I2C_PARAM as 0x10000 (17 bits) but assign it to 16
+bit fields, which means they are just set to zero. :)
+
+So rather than take this patch, I'm just going to fold the following
+diff into "OMAP3+: VC: abstract out channel configuration" in voltdm_b.
+I'll also update the changelog noting that the TRM is wrong here in that
+it describes CORE as the default channel when it's in fact MPU.
+
+Kevin
+
+diff --git a/arch/arm/mach-omap2/vc.c b/arch/arm/mach-omap2/vc.c
+index fba352d..fa48944 100644
+--- a/arch/arm/mach-omap2/vc.c
++++ b/arch/arm/mach-omap2/vc.c
+@@ -33,21 +33,20 @@
+  * - command configuration address (RAC) and enable bit (RACEN)
+  * - command values for ON, ONLP, RET and OFF (CMD)
+  *
+- * This function currently only allows flexible configuration of
+- * the non-default channel (e.g. non-zero channels.)  Starting with
+- * OMAP4, only the non-zero channels can be configured.  Channel zero
+- * always uses the channel zero register values.  Therefore, the
+- * same limitation is imposed on OMAP3 for consistency.
++ * This function currently only allows flexible configuration of the
++ * non-default channel.  Starting with OMAP4, there are more than 2
++ * channels, with one defined as the default (on OMAP4, it's MPU.)
++ * Only the non-default channel can be configured.
+  */
+ static int omap_vc_config_channel(struct voltagedomain *voltdm)
+ {
+ 	struct omap_vc_channel *vc = voltdm->vc;
+ 
+ 	/*
+-	 * For channel zero, the only configurable bit is RACEN.
++	 * For default channel, the only configurable bit is RACEN.
+ 	 * All others must stay at zero (see function comment above.)
+ 	 */
+-	if (!vc->cfg_channel_sa_shift)
++	if (vc->is_default_channel)
+ 		vc->cfg_channel &= CFG_CHANNEL_RACEN;
+ 
+ 	voltdm->rmw(CFG_CHANNEL_MASK << vc->cfg_channel_sa_shift,
+diff --git a/arch/arm/mach-omap2/vc.h b/arch/arm/mach-omap2/vc.h
+index f0fb61f..c216b57 100644
+--- a/arch/arm/mach-omap2/vc.h
++++ b/arch/arm/mach-omap2/vc.h
+@@ -84,6 +84,8 @@ struct omap_vc_channel {
+ 	u32 smps_cmdra_mask;
+ 	u8 cmdval_reg;
+ 	u8 cfg_channel_sa_shift;
++
++	bool is_default_channel;
+ };
+ 
+ extern struct omap_vc_channel omap3_vc_mpu;
+diff --git a/arch/arm/mach-omap2/vc44xx_data.c b/arch/arm/mach-omap2/vc44xx_data.c
+index fe4f4e5..5844b20 100644
+--- a/arch/arm/mach-omap2/vc44xx_data.c
++++ b/arch/arm/mach-omap2/vc44xx_data.c
+@@ -58,6 +58,7 @@ struct omap_vc_channel omap4_vc_mpu = {
+ 	.smps_volra_mask = OMAP4430_VOLRA_VDD_MPU_L_MASK,
+ 	.smps_cmdra_mask = OMAP4430_CMDRA_VDD_MPU_L_MASK,
+ 	.cfg_channel_sa_shift = OMAP4430_SA_VDD_MPU_L_SHIFT,
++	.is_default_channel = true,
+ };
+ 
+ struct omap_vc_channel omap4_vc_iva = {
