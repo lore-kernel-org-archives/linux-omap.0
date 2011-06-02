@@ -1,37 +1,45 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [linux-pm] calling runtime PM from system PM methods
-Date: Thu, 2 Jun 2011 14:38:01 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1106021436080.1674-100000@iolanthe.rowland.org>
-References: <87lixkyxa8.fsf@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 9/10] arch/arm/mach-omap2/clock.c: add missing clk_put
+Date: Thu, 2 Jun 2011 15:26:39 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1106021526220.26852@utopia.booyaka.com>
+References: <1306948213-20767-9-git-send-email-julia@diku.dk>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:56602 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752166Ab1FBSiE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Jun 2011 14:38:04 -0400
-In-Reply-To: <87lixkyxa8.fsf@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1306948213-20767-9-git-send-email-julia@diku.dk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Julia Lawall <julia@diku.dk>
+Cc: kernel-janitors@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org
 
-On Thu, 2 Jun 2011, Kevin Hilman wrote:
+On Wed, 1 Jun 2011, Julia Lawall wrote:
 
-> OK.  I was trying to catch that by checking pm_runtime_suspended(), but
-> now see that that cannot work in general.
+> From: Julia Lawall <julia@diku.dk>
 > 
-> The problem I'm trying to solve is how (or whether) I can use runtime PM
-> from the system PM methods, specifically in the case where runtime PM
-> has been disabled from userspace (or pm_runtime_forbid() has been
-> called.)  
+> Add missing call to clk_put.
 > 
-> In a nutshell, what I'm after is for any pm_runtime_forbid() calls to be
-> cancelled during system PM, thus allowing pending runtime PM events to
-> occur during system PM.
+> A simplified version of the semantic match that finds this problem is as
+> follows: (http://coccinelle.lip6.fr/)
+> 
+> // <smpl>
+> @r exists@
+> expression e1,e2;
+> statement S;
+> @@
+> 
+> e1 = clk_get@p1(...);
+> ... when != e1 = e2
+>     when != clk_put(e1)
+>     when any
+> if (...) { ... when != clk_put(e1)
+>                when != if (...) { ... clk_put(e1) ... }
+> * return@p3 ...;
+>  } else S
+> // </smpl>
+> 
+> Signed-off-by: Julia Lawall <julia@diku.dk>
 
-There are a few approaches that might do what you want.  But I'd like 
-to hear Rafael's opinion before making any suggestions.
+Acked-by: Paul Walmsley <paul@pwsan.com>
 
-Alan Stern
 
+- Paul
