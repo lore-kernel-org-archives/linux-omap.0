@@ -1,50 +1,33 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH] media: omap3isp: fix a pontential NULL deref
-Date: Thu, 2 Jun 2011 18:49:19 +0200
-Message-ID: <201106021849.20046.laurent.pinchart@ideasonboard.com>
-References: <1306946386-31869-1-git-send-email-ohad@wizery.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH pm_wip/voltdm_nm] OMAP: VP: Explicitly mask VPVOLTAGE field
+Date: Thu, 02 Jun 2011 16:13:18 -0700
+Message-ID: <878vtjomi9.fsf@ti.com>
+References: <20110528021559.GA482@google.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <1306946386-31869-1-git-send-email-ohad@wizery.com>
-Sender: linux-media-owner@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:48513 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755142Ab1FBXNW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Jun 2011 19:13:22 -0400
+Received: by mail-pz0-f47.google.com with SMTP id 36so652344pzk.20
+        for <linux-omap@vger.kernel.org>; Thu, 02 Jun 2011 16:13:21 -0700 (PDT)
+In-Reply-To: <20110528021559.GA482@google.com> (Todd Poynor's message of "Fri,
+	27 May 2011 19:15:59 -0700")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Todd Poynor <toddpoynor@google.com>
+Cc: linux-omap@vger.kernel.org
 
-Hi Ohad,
+Todd Poynor <toddpoynor@google.com> writes:
 
-On Wednesday 01 June 2011 18:39:46 Ohad Ben-Cohen wrote:
-> Fix a potential NULL pointer dereference by skipping registration of
-> external entities in case none are provided.
-> 
-> This is useful at least when testing mere memory-to-memory scenarios.
-> 
-> Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
+> Reading the VPVOLTAGE field of PRM_VP_*_VOLTAGE registers currently
+> relies on a u32 -> u8 conversion to mask off the FORCEUPDATEWAIT field
+> in the upper bits.  Make this explicit using the mask symbol
+> already defined, added as a new field in struct omap_vp_common.
+>
+> Signed-off-by: Todd Poynor <toddpoynor@google.com>
 
-Applied, thanks.
+Thanks, applied.
 
-> ---
->  drivers/media/video/omap3isp/isp.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/media/video/omap3isp/isp.c
-> b/drivers/media/video/omap3isp/isp.c index 2a5fbe6..367ced3 100644
-> --- a/drivers/media/video/omap3isp/isp.c
-> +++ b/drivers/media/video/omap3isp/isp.c
-> @@ -1756,7 +1756,7 @@ static int isp_register_entities(struct isp_device
-> *isp) goto done;
-> 
->  	/* Register external entities */
-> -	for (subdevs = pdata->subdevs; subdevs->subdevs; ++subdevs) {
-> +	for (subdevs = pdata->subdevs; subdevs && subdevs->subdevs; ++subdevs) {
->  		struct v4l2_subdev *sensor;
->  		struct media_entity *input;
->  		unsigned int flags;
-
--- 
-Regards,
-
-Laurent Pinchart
+Kevin
