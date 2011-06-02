@@ -1,45 +1,23 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 9/10] arch/arm/mach-omap2/clock.c: add missing clk_put
-Date: Thu, 2 Jun 2011 15:26:39 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1106021526220.26852@utopia.booyaka.com>
-References: <1306948213-20767-9-git-send-email-julia@diku.dk>
+From: "BPO Center" <gnld-rep@series-w.com>
+Subject: Send Name Address
+Date: Thu, 02 Jun 2011 17:58:37 -0400
+Message-ID: <web-2740479@be1.cablebahamas.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1306948213-20767-9-git-send-email-julia@diku.dk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Julia Lawall <julia@diku.dk>
-Cc: kernel-janitors@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=utf-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.bahamafood.com ([65.75.75.59]:63568 "EHLO
+	smtp4.coralwave.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754895Ab1FBWEH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Jun 2011 18:04:07 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: agt.gnld00@gmail.com
 
-On Wed, 1 Jun 2011, Julia Lawall wrote:
-
-> From: Julia Lawall <julia@diku.dk>
-> 
-> Add missing call to clk_put.
-> 
-> A simplified version of the semantic match that finds this problem is as
-> follows: (http://coccinelle.lip6.fr/)
-> 
-> // <smpl>
-> @r exists@
-> expression e1,e2;
-> statement S;
-> @@
-> 
-> e1 = clk_get@p1(...);
-> ... when != e1 = e2
->     when != clk_put(e1)
->     when any
-> if (...) { ... when != clk_put(e1)
->                when != if (...) { ... clk_put(e1) ... }
-> * return@p3 ...;
->  } else S
-> // </smpl>
-> 
-> Signed-off-by: Julia Lawall <julia@diku.dk>
-
-Acked-by: Paul Walmsley <paul@pwsan.com>
-
-
-- Paul
+Email-Id Awarded =C2=A3750.000.00 Pounds in B.P.O Promo Send"
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
