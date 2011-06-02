@@ -1,7 +1,7 @@
 From: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v4 06/18] I2C: OMAP1: set IP revision in platform data
-Date: Wed,  1 Jun 2011 17:19:32 -0700
-Message-ID: <1306973984-15165-7-git-send-email-khilman@ti.com>
+Subject: [PATCH v4 07/18] I2C: OMAP2+: Pass hwmod rev knowledge via platform_data when i2c bus added
+Date: Wed,  1 Jun 2011 17:19:33 -0700
+Message-ID: <1306973984-15165-8-git-send-email-khilman@ti.com>
 References: <1306973984-15165-1-git-send-email-khilman@ti.com>
 Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1306973984-15165-1-git-send-email-khilman-l0cyMroinI0@public.gmane.org>
@@ -12,10 +12,8 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Andy Green <andy-/Zus8d0mwwtBDgjK7y7TUQ@public.gmane.org>
 
-All OMAP1 are using "IP revision 1" in terms of register
-layout.  We set this information in omap1_i2c_add_bus() so
-we don't have to use cpu_is_xxx() any more in the omap i2c
-driver.
+Mark each OMAP I2C bus with the hwmod's knowledge of which I2C
+IP version is in the chip we're running on.
 
 Cc: patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
 Cc: Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
@@ -24,22 +22,25 @@ Signed-off-by: Andy Green <andy.green-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Signed-off-by: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/plat-omap/i2c.c |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
+ arch/arm/plat-omap/i2c.c |    6 ++++++
+ 1 files changed, 6 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/plat-omap/i2c.c b/arch/arm/plat-omap/i2c.c
-index 3341ca4..a938df0 100644
+index a938df0..0d3eda7 100644
 --- a/arch/arm/plat-omap/i2c.c
 +++ b/arch/arm/plat-omap/i2c.c
-@@ -108,6 +108,9 @@ static inline int omap1_i2c_add_bus(int bus_id)
- 	res[1].start = INT_I2C;
+@@ -155,6 +155,12 @@ static inline int omap2_i2c_add_bus(int bus_id)
+ 
  	pdata = &i2c_pdata[bus_id - 1];
- 
-+	/* all OMAP1 have IP version 1 register set */
-+	pdata->rev = OMAP_I2C_IP_VERSION_1;
+ 	/*
++	 * pass the hwmod class's CPU-specific knowledge of I2C IP revision in
++	 * use up to the OMAP I2C driver via platform data
++	 */
++	pdata->rev = oh->class->rev;
 +
- 	return platform_device_register(pdev);
- }
- 
++	/*
+ 	 * When waiting for completion of a i2c transfer, we need to
+ 	 * set a wake up latency constraint for the MPU. This is to
+ 	 * ensure quick enough wakeup from idle, when transfer
 -- 
 1.7.4
