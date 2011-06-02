@@ -1,54 +1,50 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH] OMAP2+: CPUfreq: Allow the CPU scaling when secondary CPUs are offline.
-Date: Thu, 02 Jun 2011 16:10:24 -0700
-Message-ID: <87ei3bomn3.fsf@ti.com>
-References: <1307026270-313-1-git-send-email-santosh.shilimkar@ti.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH] media: omap3isp: fix a pontential NULL deref
+Date: Thu, 2 Jun 2011 18:49:19 +0200
+Message-ID: <201106021849.20046.laurent.pinchart@ideasonboard.com>
+References: <1306946386-31869-1-git-send-email-ohad@wizery.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:39502 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755131Ab1FBXK1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Jun 2011 19:10:27 -0400
-Received: by mail-px0-f169.google.com with SMTP id 9so797099pxi.14
-        for <linux-omap@vger.kernel.org>; Thu, 02 Jun 2011 16:10:27 -0700 (PDT)
-In-Reply-To: <1307026270-313-1-git-send-email-santosh.shilimkar@ti.com>
-	(Santosh Shilimkar's message of "Thu, 2 Jun 2011 20:21:10 +0530")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <1306946386-31869-1-git-send-email-ohad@wizery.com>
+Sender: linux-media-owner@vger.kernel.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-omap@vger.kernel.org
 
-Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
+Hi Ohad,
 
-> Current OMAP2PLUS CPUfreq tagret() functions returns when all
-> the CPU's are not online. This will break DVFS when secondary
-> CPUs are offlined.
->
-> The intention of that check was just avoid CPU frequency change
-> during the window when CPU becomes online but it's cpufreq_init is
-> not done yet.
->
-> Fix the check accordingly.
->
-> Thanks for Nishant Menon <nm@ti.com> for reporting it.
->
-> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Reported-by: Nishanth Menon <nm@ti.com>
-> Tested-by: Vishwanath BS <vishwanath.bs@ti.com>
+On Wednesday 01 June 2011 18:39:46 Ohad Ben-Cohen wrote:
+> Fix a potential NULL pointer dereference by skipping registration of
+> external entities in case none are provided.
+> 
+> This is useful at least when testing mere memory-to-memory scenarios.
+> 
+> Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
+
+Applied, thanks.
+
 > ---
-> There were some question of making the variable atomic etc
-> in an internal discussion. After some thinking, I realised
-> there is no need of that since this is just a counter which
-> maintains the count for online_cpus = cpufreq_init_cpus. 
+>  drivers/media/video/omap3isp/isp.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/media/video/omap3isp/isp.c
+> b/drivers/media/video/omap3isp/isp.c index 2a5fbe6..367ced3 100644
+> --- a/drivers/media/video/omap3isp/isp.c
+> +++ b/drivers/media/video/omap3isp/isp.c
+> @@ -1756,7 +1756,7 @@ static int isp_register_entities(struct isp_device
+> *isp) goto done;
+> 
+>  	/* Register external entities */
+> -	for (subdevs = pdata->subdevs; subdevs->subdevs; ++subdevs) {
+> +	for (subdevs = pdata->subdevs; subdevs && subdevs->subdevs; ++subdevs) {
+>  		struct v4l2_subdev *sensor;
+>  		struct media_entity *input;
+>  		unsigned int flags;
 
-Since this is init-time only check, the check for every call to
-->target() seems excessive.
+-- 
+Regards,
 
-How about leaving the ->target callback empty until all the CPUs are
-online.
-
-Also, how will this handle an SMP kernel booted with maxcpus=1 on the
-cmdline?
-
-Kevin
+Laurent Pinchart
