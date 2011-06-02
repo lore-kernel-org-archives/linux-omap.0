@@ -1,168 +1,199 @@
-From: "Menon, Nishanth" <nm@ti.com>
-Subject: Re: [pm_wip/voltdm_nm][PATCH v2 2/3] OMAP4: PM: VC: introduce concept
- of default channel
-Date: Thu, 2 Jun 2011 18:53:38 -0500
-Message-ID: <BANLkTimtJijoVjSX2csi8-MXzGzfbmQfSg@mail.gmail.com>
-References: <1306711180-8631-1-git-send-email-nm@ti.com> <1306711180-8631-3-git-send-email-nm@ti.com>
- <87pqmvn6gk.fsf@ti.com>
+From: Kyungmin Park <kmpark@infradead.org>
+Subject: Re: [RFC 0/6] iommu: generic api migration and grouping
+Date: Fri, 3 Jun 2011 08:57:00 +0900
+Message-ID: <BANLkTimQA0Nsh+jgS=hD1VxKkD3zg84y+A@mail.gmail.com>
+References: <1307053663-24572-1-git-send-email-ohad@wizery.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:58588 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752578Ab1FBXyA convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 2 Jun 2011 19:54:00 -0400
-Received: by mail-wy0-f171.google.com with SMTP id 32so1643063wyb.16
-        for <linux-omap@vger.kernel.org>; Thu, 02 Jun 2011 16:53:58 -0700 (PDT)
-In-Reply-To: <87pqmvn6gk.fsf@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1307053663-24572-1-git-send-email-ohad@wizery.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, laurent.pinchart@ideasonboard.com, Hiroshi.DOYU@nokia.com, arnd@arndb.de, davidb@codeaurora.org, Joerg.Roedel@amd.com, Marek Szyprowski <m.szyprowski@samsung.com>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>
 
-On Thu, Jun 2, 2011 at 18:45, Kevin Hilman <khilman@ti.com> wrote:
-> Nishanth Menon <nm@ti.com> writes:
->
->> Due to a TRM bug, the current code assumes that channel0(core) is th=
-e default
->> channel. With the additional explanation provided by the hardware te=
-am, it is
->> clear that PRM_VC_CFG_CHANNEL register allows for flexibility of con=
-figuring
->> for various PMIC configurations. For example, the I2C slave address =
-on TWL6030
->> when using 4430 configuration could potentially use the same slave a=
-ddress for
->> all domains, while in 4460 configuration, we drive MPU using TPS; Co=
-re and IVA
->> using TWL6030. To allow this flexibility, we state in existing param=
-eters using
->> a flag to indicate usage of default channel.
->>
->> In addition, the TRM update clears up the confusion on the fact that=
- MPU is
->> infact the default channel on OMAP4.
->>
->> We update the same here.
->>
->> Signed-off-by: Nishanth Menon <nm@ti.com>
->
-> There's too much going on in this patch not described in the changelo=
-g
-> (extra error checking, volt & cmd reg checking etc.)
->
-> Also, I don't like the USE_DEFAULT_CHANNEL_I2C_PARAM, mainly because =
-it
-> adds clutter without any obvious value. =A0To me, zero is a perfectly=
- good
-> value to signify "use default channel value", especially since that's
-> the value used by the hardware.
-The reason is that 0 is a valid i2c register address. 8 bits is used
-in VC and I wanted one bit which was further away, hence the 16 bit.
-The usage could be that in .volt_reg_addr or in .cmd_reg_addr I could
-set this up with the macro. and bingo, we use the default domain's
-configuration.
+Hi,
 
-This is esp useful if we had a single pmic reg for all domains.. I
-mean the VC design allows for it, even though we dont use it
-currently.
->
-> Incidentally, adding this doesn't actually change current behavior.
-> Currently, I use zero (an unconfigured value in the VC settings) to
-> signify it should use default settings. =A0In your patch, you defined
-> USE_DEFAULT_CHANNEL_I2C_PARAM as 0x10000 (17 bits) but assign it to 1=
-6
-> bit fields, which means they are just set to zero. :)
+Good approach.
+CC'ed the Samsung IOMMU developer. Marek.
 
+BTW, Russell wants to use the DMA based IOMMU?
 
-> So rather than take this patch, I'm just going to fold the following
-> diff into "OMAP3+: VC: abstract out channel configuration" in voltdm_=
-b.
-> I'll also update the changelog noting that the TRM is wrong here in t=
-hat
-> it describes CORE as the default channel when it's in fact MPU.
+Please see the RFC patch, ARM: DMA-mapping & IOMMU integration
+http://www.spinics.net/lists/linux-mm/msg19856.html
 
-I intend to post a new series including my PMIC changes as well early
-next week(mondayish hopefully). Can we hold off review of any further
-of my voltage fixes patches till then?
+Thank you,
+Kyungmin Park
 
-> Kevin
+On Fri, Jun 3, 2011 at 7:27 AM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
+> First stab at iommu consolidation:
 >
-> diff --git a/arch/arm/mach-omap2/vc.c b/arch/arm/mach-omap2/vc.c
-> index fba352d..fa48944 100644
-> --- a/arch/arm/mach-omap2/vc.c
-> +++ b/arch/arm/mach-omap2/vc.c
-> @@ -33,21 +33,20 @@
-> =A0* - command configuration address (RAC) and enable bit (RACEN)
-> =A0* - command values for ON, ONLP, RET and OFF (CMD)
-> =A0*
-> - * This function currently only allows flexible configuration of
-> - * the non-default channel (e.g. non-zero channels.) =A0Starting wit=
-h
-> - * OMAP4, only the non-zero channels can be configured. =A0Channel z=
-ero
-> - * always uses the channel zero register values. =A0Therefore, the
-> - * same limitation is imposed on OMAP3 for consistency.
-> + * This function currently only allows flexible configuration of the
-> + * non-default channel. =A0Starting with OMAP4, there are more than =
-2
-> + * channels, with one defined as the default (on OMAP4, it's MPU.)
-> + * Only the non-default channel can be configured.
-> =A0*/
-> =A0static int omap_vc_config_channel(struct voltagedomain *voltdm)
-> =A0{
-> =A0 =A0 =A0 =A0struct omap_vc_channel *vc =3D voltdm->vc;
+> - Migrate OMAP's iommu driver to the generic iommu API. With this in =
+hand,
+> =A0users can now start using the generic iommu layer instead of calli=
+ng
+> =A0omap-specific iommu API.
 >
-> =A0 =A0 =A0 =A0/*
-> - =A0 =A0 =A0 =A0* For channel zero, the only configurable bit is RAC=
-EN.
-> + =A0 =A0 =A0 =A0* For default channel, the only configurable bit is =
-RACEN.
-> =A0 =A0 =A0 =A0 * All others must stay at zero (see function comment =
-above.)
-> =A0 =A0 =A0 =A0 */
-> - =A0 =A0 =A0 if (!vc->cfg_channel_sa_shift)
-> + =A0 =A0 =A0 if (vc->is_default_channel)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0vc->cfg_channel &=3D CFG_CHANNEL_RACEN=
-;
+> =A0New code that requires functionality missing from the generic iomm=
+u api,
+> =A0will add that functionality in the generic framework (e.g. adding =
+framework
+> =A0awareness to multi page sizes, supported by the underlying hardwar=
+e, will
+> =A0avoid the otherwise-inevitable code duplication when mapping a mem=
+ory
+> =A0region).
 >
-> =A0 =A0 =A0 =A0voltdm->rmw(CFG_CHANNEL_MASK << vc->cfg_channel_sa_shi=
-ft,
-> diff --git a/arch/arm/mach-omap2/vc.h b/arch/arm/mach-omap2/vc.h
-> index f0fb61f..c216b57 100644
-> --- a/arch/arm/mach-omap2/vc.h
-> +++ b/arch/arm/mach-omap2/vc.h
-> @@ -84,6 +84,8 @@ struct omap_vc_channel {
-> =A0 =A0 =A0 =A0u32 smps_cmdra_mask;
-> =A0 =A0 =A0 =A0u8 cmdval_reg;
-> =A0 =A0 =A0 =A0u8 cfg_channel_sa_shift;
-> +
-> + =A0 =A0 =A0 bool is_default_channel;
-> =A0};
+> =A0OMAP-specific api that is still exposed in the omap iommu driver c=
+an
+> =A0now be either moved to the generic iommu framework, or just remove=
+d (if not
+> =A0used).
 >
-> =A0extern struct omap_vc_channel omap3_vc_mpu;
-> diff --git a/arch/arm/mach-omap2/vc44xx_data.c b/arch/arm/mach-omap2/=
-vc44xx_data.c
-> index fe4f4e5..5844b20 100644
-> --- a/arch/arm/mach-omap2/vc44xx_data.c
-> +++ b/arch/arm/mach-omap2/vc44xx_data.c
-> @@ -58,6 +58,7 @@ struct omap_vc_channel omap4_vc_mpu =3D {
-> =A0 =A0 =A0 =A0.smps_volra_mask =3D OMAP4430_VOLRA_VDD_MPU_L_MASK,
-> =A0 =A0 =A0 =A0.smps_cmdra_mask =3D OMAP4430_CMDRA_VDD_MPU_L_MASK,
-> =A0 =A0 =A0 =A0.cfg_channel_sa_shift =3D OMAP4430_SA_VDD_MPU_L_SHIFT,
-> + =A0 =A0 =A0 .is_default_channel =3D true,
-> =A0};
+> =A0This api (and other omap-specific primitives like struct iommu) ne=
+eds to
+> =A0be omapified (i.e. renamed to include an 'omap_' prefix). At this =
+early
+> =A0point of this patch set this is too much churn though, so I'll do =
+that
+> =A0in the following iteration, after (and if), the general direction =
+is
+> =A0accepted.
 >
-> =A0struct omap_vc_channel omap4_vc_iva =3D {
+> - Migrate OMAP's iovmm (virtual memory manager) driver to the generic
+> =A0iommu API. With this in hand, iovmm no longer uses omap-specific a=
+pi
+> =A0for mapping/unmapping operations. Nevertheless, iovmm is still cou=
+pled
+> =A0with omap's iommu even with this change: it assumes omap page size=
+s,
+> =A0and it uses omap's iommu objects to maintain its internal state.
 >
-
-
-Regards,
-Nishanth Menon
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> =A0Further generalizing of iovmm strongly depends on our broader plan=
+s for
+> =A0providing a generic virtual memory manager and allocation framewor=
+k
+> =A0(which, as discussed, should be separated from a specific mapper).
+>
+> =A0iovmm has a mainline user: omap3isp, and therefore must be maintai=
+ned,
+> =A0but new potential users will either have to generalize it, or come=
+ up
+> =A0with a different generic framework that will replace it.
+>
+> - Migrate OMAP's iommu mainline user, omap3isp, to the generic API as=
+ well
+> =A0(so it doesn't break). As with iovmm, omap3isp still depends on
+> =A0omap's iommu, mainly because iovmm depends on it, but also for
+> =A0iommu context saving and restoring.
+>
+> =A0It is definitely desirable to completely remove omap3isp's depende=
+ncy
+> =A0on the omap-specific iommu layer, and that will be possible as the
+> =A0required functionality will be added to generic framework.
+>
+> - Create a dedicated iommu drivers folder (and put the base iommu cod=
+e there)
+> - Move OMAP's and MSM's iommu drivers to that drivers iommu folder
+>
+> =A0Putting all iommu drivers together will ease finding similarities
+> =A0between different platforms, with the intention of solving problem=
+s once,
+> =A0in a generic framework which everyone can use.
+>
+> =A0I've only moved the omap and msm implementations for now, to demon=
+strate
+> =A0the idea (and support the ARM diet :), but if this is found desira=
+ble,
+> =A0we can bring in intel-iommu.c and amd_iommu.c as well.
+>
+> Meta:
+>
+> - This patch set is not bisectable; it was splitted (and ordered) thi=
+s way
+> =A0to ease its review. Later iterations of this patch set will fix th=
+at
+> =A0(most likely by squashing the first three patches)
+> - Based on and tested with 3.0-rc1
+> - OMAP's iommu code was tested on both OMAP3 and OMAP4
+> - omap3isp code was tested with a sensor-less OMAP3 (memory-to-memory=
+ only)
+> =A0(thanks Laurent Pinchart for showing me the magic needed to test o=
+map3isp :)
+> - MSM code was only compile tested
+>
+> Ohad Ben-Cohen (6):
+> =A0omap: iommu: generic iommu api migration
+> =A0omap: iovmm: generic iommu api migration
+> =A0media: omap3isp: generic iommu api migration
+> =A0drivers: iommu: move to a dedicated folder
+> =A0omap: iommu/iovmm: move to dedicated iommu folder
+> =A0msm: iommu: move to dedicated iommu drivers folder
+>
+> =A0arch/arm/mach-msm/Kconfig =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0| =A0 15 -
+> =A0arch/arm/mach-msm/Makefile =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 | =A0 =A02 +-
+> =A0arch/arm/plat-omap/Kconfig =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 | =A0 12 -
+> =A0arch/arm/plat-omap/Makefile =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0| =A0 =A02 -
+> =A0arch/arm/plat-omap/include/plat/iommu.h =A0 =A0 =A0 =A0 =A0 =A0| =A0=
+ =A03 +-
+> =A0arch/arm/plat-omap/{ =3D> include/plat}/iopgtable.h =A0| =A0 18 ++
+> =A0arch/arm/plat-omap/include/plat/iovmm.h =A0 =A0 =A0 =A0 =A0 =A0| =A0=
+ 27 +-
+> =A0arch/x86/Kconfig =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 | =A0 =A05 +-
+> =A0drivers/Kconfig =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0| =A0 =A02 +
+> =A0drivers/Makefile =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 | =A0 =A01 +
+> =A0drivers/base/Makefile =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0| =A0 =A01 -
+> =A0drivers/iommu/Kconfig =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0| =A0 32 +++
+> =A0drivers/iommu/Makefile =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 | =A0 =A05 +
+> =A0drivers/{base =3D> iommu}/iommu.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0| =A0 =A00
+> =A0.../mach-msm/iommu.c =3D> drivers/iommu/msm-iommu.c =A0| =A0 =A00
+> =A0.../iommu/omap-iommu-debug.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 | =A0 =A02 +-
+> =A0.../iommu.c =3D> drivers/iommu/omap-iommu.c =A0 =A0 =A0 =A0 =A0| =A0=
+290 +++++++++++++++++---
+> =A0.../iovmm.c =3D> drivers/iommu/omap-iovmm.c =A0 =A0 =A0 =A0 =A0| =A0=
+113 +++++---
+> =A0drivers/media/video/Kconfig =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0| =A0 =A02 +-
+> =A0drivers/media/video/omap3isp/isp.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ | =A0 41 +++-
+> =A0drivers/media/video/omap3isp/isp.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ | =A0 =A03 +
+> =A0drivers/media/video/omap3isp/ispccdc.c =A0 =A0 =A0 =A0 =A0 =A0 | =A0=
+ 16 +-
+> =A0drivers/media/video/omap3isp/ispstat.c =A0 =A0 =A0 =A0 =A0 =A0 | =A0=
+ =A06 +-
+> =A0drivers/media/video/omap3isp/ispvideo.c =A0 =A0 =A0 =A0 =A0 =A0| =A0=
+ =A04 +-
+> =A024 files changed, 451 insertions(+), 151 deletions(-)
+> =A0rename arch/arm/plat-omap/{ =3D> include/plat}/iopgtable.h (84%)
+> =A0create mode 100644 drivers/iommu/Kconfig
+> =A0create mode 100644 drivers/iommu/Makefile
+> =A0rename drivers/{base =3D> iommu}/iommu.c (100%)
+> =A0rename arch/arm/mach-msm/iommu.c =3D> drivers/iommu/msm-iommu.c (1=
+00%)
+> =A0rename arch/arm/plat-omap/iommu-debug.c =3D> drivers/iommu/omap-io=
+mmu-debug.c (99%)
+> =A0rename arch/arm/plat-omap/iommu.c =3D> drivers/iommu/omap-iommu.c =
+(77%)
+> =A0rename arch/arm/plat-omap/iovmm.c =3D> drivers/iommu/omap-iovmm.c =
+(85%)
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
