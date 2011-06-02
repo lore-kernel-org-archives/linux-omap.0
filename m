@@ -1,13 +1,13 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH v4 09/18] I2C: OMAP2+: Solve array bounds overflow error on i2c idle
-Date: Wed,  1 Jun 2011 17:19:35 -0700
-Message-ID: <1306973984-15165-10-git-send-email-khilman@ti.com>
+Subject: [PATCH v4 14/18] I2C: OMAP1/OMAP2+: create omap I2C functionality flags for each cpu_... test
+Date: Wed,  1 Jun 2011 17:19:40 -0700
+Message-ID: <1306973984-15165-15-git-send-email-khilman@ti.com>
 References: <1306973984-15165-1-git-send-email-khilman@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:39505 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759073Ab1FBAUC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Jun 2011 20:20:02 -0400
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:48180 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1759248Ab1FBAUM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Jun 2011 20:20:12 -0400
 In-Reply-To: <1306973984-15165-1-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -16,18 +16,9 @@ Cc: Andy Green <andy.green@linaro.org>, linux-omap@vger.kernel.org, linux-arm-ke
 
 From: Andy Green <andy@warmcat.com>
 
-This solves the main problem the patch series is about.  Prior
-to this patch on OMAP3530 the driver wrongly interprets the I2C
-peripheral unit's own reported revision as meaning it is running
-on an IP V2 device and must use the extended registers.
-
-In fact OMAP3530 is IP V1 with the smaller register set, the
-reason for the confusion is that the hardware does in fact report
-having the same IP revision index as is found on an OMAP4430,
-which really is IP V2 and has the extended registers.
-
-This corrects the test for which registers to use so that it
-decides using hwmod knowledge found in the platform_data.
+These represent the 8 kinds of implementation functionality
+that up until now were inferred by the 16 remaining cpu_...()
+tests in the omap i2c driver.
 
 Cc: patches@linaro.org
 Cc: Ben Dooks <ben-linux@fluff.org>
@@ -36,22 +27,35 @@ Signed-off-by: Andy Green <andy.green@linaro.org>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Kevin Hilman <khilman@ti.com>
 ---
- drivers/i2c/busses/i2c-omap.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ include/linux/i2c-omap.h |   15 +++++++++++++++
+ 1 files changed, 15 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index fbd4ec4..f7196f3 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -309,7 +309,7 @@ static void omap_i2c_idle(struct omap_i2c_dev *dev)
- 	pdata = pdev->dev.platform_data;
+diff --git a/include/linux/i2c-omap.h b/include/linux/i2c-omap.h
+index 776c8e1..98ae49b 100644
+--- a/include/linux/i2c-omap.h
++++ b/include/linux/i2c-omap.h
+@@ -15,6 +15,21 @@
+ #define OMAP_I2C_IP_VERSION_1 1
+ #define OMAP_I2C_IP_VERSION_2 2
  
- 	dev->iestate = omap_i2c_read_reg(dev, OMAP_I2C_IE_REG);
--	if (dev->rev >= OMAP_I2C_REV_ON_4430)
-+	if (pdata->rev == OMAP_I2C_IP_VERSION_2)
- 		omap_i2c_write_reg(dev, OMAP_I2C_IP_V2_IRQENABLE_CLR, 1);
- 	else
- 		omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, 0);
++/* struct omap_i2c_bus_platform_data .flags meanings */
++
++#define OMAP_I2C_FLAG_NO_FIFO 1
++#define OMAP_I2C_FLAG_SIMPLE_CLOCK 2
++#define OMAP_I2C_FLAG_16BIT_DATA_REG 4
++#define OMAP_I2C_FLAG_RESET_REGS_POSTIDLE 8
++#define OMAP_I2C_FLAG_APPLY_ERRATA_I207 0x10
++#define OMAP_I2C_FLAG_ALWAYS_ARMXOR_CLK 0x20
++#define OMAP_I2C_FLAG_FORCE_19200_INT_CLK 0x40
++/* how the CPU address bus must be translated for I2C unit access */
++#define OMAP_I2C_FLAG_BUS_SHIFT_NONE 0
++#define OMAP_I2C_FLAG_BUS_SHIFT_1 0x80
++#define OMAP_I2C_FLAG_BUS_SHIFT_2 0x100
++#define OMAP_I2C_FLAG_BUS_SHIFT__SHIFT 7
++
+ struct omap_i2c_bus_platform_data {
+ 	u32		clkrate;
+ 	u32		rev;
 -- 
 1.7.4
 
