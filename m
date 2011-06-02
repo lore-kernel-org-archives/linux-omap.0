@@ -1,139 +1,248 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: calling runtime PM from system PM methods
-Date: Wed, 01 Jun 2011 17:05:31 -0700
-Message-ID: <87k4d55c8k.fsf@ti.com>
+Subject: Re: [PATCH 4/4] mfd: global Suspend and resume support of ehci and ohci
+Date: Wed, 01 Jun 2011 17:06:29 -0700
+Message-ID: <87d3ix5c6y.fsf@ti.com>
+References: <1306934847-6098-1-git-send-email-keshava_mgowda@ti.com>
+	<1306934847-6098-2-git-send-email-keshava_mgowda@ti.com>
+	<1306934847-6098-3-git-send-email-keshava_mgowda@ti.com>
+	<1306934847-6098-4-git-send-email-keshava_mgowda@ti.com>
+	<1306934847-6098-5-git-send-email-keshava_mgowda@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:45679 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754288Ab1FBAFg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Jun 2011 20:05:36 -0400
-Received: by mail-pw0-f48.google.com with SMTP id 16so274825pwi.7
-        for <linux-omap@vger.kernel.org>; Wed, 01 Jun 2011 17:05:34 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1306934847-6098-5-git-send-email-keshava_mgowda@ti.com> (Keshava
+	Munegowda's message of "Wed, 1 Jun 2011 18:57:27 +0530")
+Sender: linux-kernel-owner@vger.kernel.org
+To: Keshava Munegowda <keshava_mgowda@ti.com>
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, b-cousson@ti.com, paul@pwsan.com, Keshava Munegowda <Keshava_mgowda@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org
 
-Hi Rafael,
+Keshava Munegowda <keshava_mgowda@ti.com> writes:
 
-Once again, I'm back to some problems with using runtime PM from system
-PM methods.  On OMAP, many drivers don't need to do anything different
-for runtime PM compared to system PM, so the system PM methods can
-simply use runtime PM.
+> From: Keshava Munegowda <Keshava_mgowda@ti.com>
+>
+> The global suspend and resume functions for usbhs core driver
+> are implemented.These routine are called when the global suspend
+> and resume occurs. Before calling these functions, the
+> bus suspend and resume of ehci and ohci drivers are called
+> from runtime pm.
+>
+> Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
 
-The obvious complication arises when runtime PM is disabled from
-userspace, preventing system PM.
+First, from what I can see, this is only a partial implementation of
+runtime PM.  What I mean is that the runtime PM methods are used only
+during the suspend path.  The rest of the time the USB host IP block is
+left enabled, even when nothing is connected.
 
-Taking into consideration that runtime PM can be disabled from
-userspace, the system PM methods need to manually call the subsystems
-runtime PM callbask. An example of the resulting system PM methods can
-be found in the currenty OMAP I2C driver (excerpt below[1])
+I tested this on my 3530/Overo board, and verified that indeed the
+usbhost powerdomain hits retention on suspend, but while idle, when
+nothing is connected, I would expect the driver could be clever enough
+to use runtime PM (probably using autosuspend timeouts) to disable the
+hardware as well.
 
-This was working, but now we have device power domains which complicate
-the story.  My first take was to change the system PM methods to check
-the device power domain callbacks as well[2], and take care of the
-precedence.  That seems OK, but it's starting to feel like extra work
-for each driver that is easy to screw up, and includes some assumptions
-about how the PM core works (e.g. power domain precedence.)
+> ---
+>  drivers/mfd/omap-usb-host.c |  103 +++++++++++++++++++++++++++++++++++++++++++
+>  1 files changed, 103 insertions(+), 0 deletions(-)
+>
+> diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
+> index 43de12a..32d19e2 100644
+> --- a/drivers/mfd/omap-usb-host.c
+> +++ b/drivers/mfd/omap-usb-host.c
+> @@ -146,6 +146,10 @@
+>  #define is_ehci_hsic_mode(x)	(x == OMAP_EHCI_PORT_MODE_HSIC)
+>  
+>  
+> +/* USBHS state bits */
+> +#define OMAP_USBHS_INIT		0
+> +#define OMAP_USBHS_SUSPEND	4
 
-It also has the disadvantage of not taking into consideration the
-IRQ-safe capabilities of the PM core.
+These additional state bits don't seem to be necessary.
 
-Rather than adding this additional logic to every driver, what would be
-best is if we could just take advantage of all the existing logic in the
-runtime PM core, rather than duplicating some of it in the drivers.
+For suspend, just check 'pm_runtime_is_suspended()'
 
-The ideal case would be for system PM methods to be able to simply call
-pm_runtime_get_sync/_put_sync as well, but somehow force the
-transitions, even when pm_runtime_forbid() has been called.
+The init flag is only used in the suspend/resume hooks, but the need for
+it is a side effect of not correctly using the runtime PM callbacks.
 
-I suspect you won't like that idea, but am curious about your opinions.
+Remember that the runtime PM get/put hooks have usage counting.  Only
+when the usage count transitions to/from zero is the actual
+hardware-level enable/disable (via omap_hwmod) being done.   
 
-In the process of experimenting with other solutions, I found an
-interesting discovery:
+The current code is making the assumption that every call to get/put is
+going to result in an enable/disable of the hardware.
 
-In the driver's ->suspend() hook, I did something like this:
+Instead, all of the code that needs to be run only upon actual
+enable/disable of the hardware should be done in the driver's
+runtime_suspend/runtime_resume callbacks.  These are only called when
+the hardware actually changes state.   
 
-	priv->forced_suspend = false;
-	if (!pm_runtime_suspended(dev)) {
-		pm_runtime_put_sync(dev);
-		priv->forced_suspend = true;
-	}
+Not knowing that much about the EHCI block, upon first glance, it looks
+like mmuch of what is done in usbhs_enable() should actually be done in
+the ->runtime_resume() callback, and similarily, much of what is done in
+usbhs_disable() should be done in the ->runtime_suspend() callback.
 
-and in the resume hook I did this:
+Another thing to be aware of is that runtime PM can be disabled from
+userspace.  For example, try this:
 
-	if (priv->forced_suspend)
-		pm_runtime_get_sync(dev);
+   echo on > /sys/devices/platform/omap/usbhs_omap/power/control
 
-Even after disabling runtime PM from userspace via
-/sys/devices/.../power/control, the ->suspend() hook triggered an actual
-transition.  This is because pm_runtime_forbid() just uses the usage
-counter, so the _put_sync() in the ->suspend callback decrements the
-counter and triggers an rpm_idle().   Is this expected behavior?
+This disables runtime PM for the device.  After doing this and
+suspending, you'll notice that usbhost powerdomain no longer hits
+retention on suspend.  Setting it back to 'auto' allows it to work
+again.
 
-If I can count on this behavior, then the above solution seems better
-than my workaround below[2], although I kinda don't like making
-assumptions about how pm_runtime_forbid() is implemented.
+Because of this, you can not simply call pm_runtime_put() from the
+static suspend callback.  You should check pm_runtime_is_suspended().
+If it is, there's nothing to do.  If not, the runtime PM callbacks for
+the subsystem need to manually be called.  See drivers/i2c/i2c-omap.c
+for an example (and check the version in my PM branch, which has a fix
+required starting with kernel v3.0.)
+
+While I'm preaching on runtime PM here, some other things that should be
+cleaned up because they duplicate what other frameworks are doing:
+
+- drivers should not be touching their SYSCONFIG register.  This
+  is managed by omap_hwmod
+- current driver is doing usage counting, but runtime PM core is
+  already handling usage counting.
+
+My apologies for not reviewing the runtime PM work in this driver
+earlier.  Some of the problems above come from code that's already in
+mainline (which I should've reviewed earlier), and some are added with
+this series.  All of them should be cleaned up before merging this.
 
 Kevin
 
-[1] from drivers/i2c/busses/i2c-omap.c
-
-static int omap_i2c_suspend(struct device *dev)
-{
-	if (!pm_runtime_suspended(dev))
-		if (dev->bus && dev->bus->pm && dev->bus->pm->runtime_suspend)
-			dev->bus->pm->runtime_suspend(dev);
-
-	return 0;
-}
-
-static int omap_i2c_resume(struct device *dev)
-{
-	if (!pm_runtime_suspended(dev))
-		if (dev->bus && dev->bus->pm && dev->bus->pm->runtime_resume)
-			dev->bus->pm->runtime_resume(dev);
-
-	return 0;
-}
-
-
-
-
-[2] 
-static int omap_i2c_suspend(struct device *dev)
-{
-	int (*callback)(struct device *) = NULL;
-	int ret = 0;
-
-	if (!pm_runtime_suspended(dev)) {
-		if (dev->pwr_domain)
-			callback = dev->pwr_domain->ops.runtime_suspend;
-		else if (dev->bus && dev->bus->pm)
-			callback = dev->bus->pm->runtime_suspend;
-
-		ret = callback(dev);
-	}
-
-	return ret;
-}
-
-static int omap_i2c_resume(struct device *dev)
-{
-	int (*callback)(struct device *) = NULL;
-	int ret = 0;
-
-	if (!pm_runtime_suspended(dev)) {
-		if (dev->pwr_domain)
-			callback = dev->pwr_domain->ops.runtime_resume;
-		else if (dev->bus && dev->bus->pm)
-			callback = dev->bus->pm->runtime_resume;
-
-		ret = callback(dev);
-	}
-
-	return ret;
-}
-
+>  struct usbhs_hcd_omap {
+>  	struct clk			*xclk60mhsp1_ck;
+>  	struct clk			*xclk60mhsp2_ck;
+> @@ -165,6 +169,7 @@ struct usbhs_hcd_omap {
+>  	u32				usbhs_rev;
+>  	spinlock_t			lock;
+>  	int				count;
+> +	unsigned long			state;
+>  };
+>  /*-------------------------------------------------------------------------*/
+>  
+> @@ -809,6 +814,8 @@ static int usbhs_enable(struct device *dev)
+>  				(pdata->ehci_data->reset_gpio_port[1], 1);
+>  	}
+>  
+> +	set_bit(OMAP_USBHS_INIT, &omap->state);
+> +
+>  end_count:
+>  	omap->count++;
+>  	spin_unlock_irqrestore(&omap->lock, flags);
+> @@ -897,6 +904,7 @@ static void usbhs_disable(struct device *dev)
+>  	}
+>  
+>  	pm_runtime_put_sync(dev);
+> +	clear_bit(OMAP_USBHS_INIT, &omap->state);
+>  
+>  	/* The gpio_free migh sleep; so unlock the spinlock */
+>  	spin_unlock_irqrestore(&omap->lock, flags);
+> @@ -926,10 +934,105 @@ void omap_usbhs_disable(struct device *dev)
+>  }
+>  EXPORT_SYMBOL_GPL(omap_usbhs_disable);
+>  
+> +#ifdef	CONFIG_PM
+> +
+> +static int usbhs_resume(struct device *dev)
+> +{
+> +	struct usbhs_hcd_omap		*omap = dev_get_drvdata(dev);
+> +	struct usbhs_omap_platform_data	*pdata = &omap->platdata;
+> +	unsigned long			flags = 0;
+> +
+> +	dev_dbg(dev, "Resuming TI HSUSB Controller\n");
+> +
+> +	if (!pdata) {
+> +		dev_dbg(dev, "missing platform_data\n");
+> +		return  -ENODEV;
+> +	}
+> +
+> +	spin_lock_irqsave(&omap->lock, flags);
+> +
+> +	if (!test_bit(OMAP_USBHS_INIT, &omap->state) ||
+> +		!test_bit(OMAP_USBHS_SUSPEND, &omap->state))
+> +			goto end_resume;
+> +
+> +	pm_runtime_get_sync(dev);
+> +
+> +	if (is_omap_usbhs_rev2(omap)) {
+> +		if (is_ehci_tll_mode(pdata->port_mode[0])) {
+> +			clk_enable(omap->usbhost_p1_fck);
+> +			clk_enable(omap->usbtll_p1_fck);
+> +		}
+> +		if (is_ehci_tll_mode(pdata->port_mode[1])) {
+> +			clk_enable(omap->usbhost_p2_fck);
+> +			clk_enable(omap->usbtll_p2_fck);
+> +		}
+> +		clk_enable(omap->utmi_p1_fck);
+> +		clk_enable(omap->utmi_p2_fck);
+> +	}
+> +	clear_bit(OMAP_USBHS_SUSPEND, &omap->state);
+> +
+> +end_resume:
+> +	spin_unlock_irqrestore(&omap->lock, flags);
+> +	return 0;
+> +}
+> +
+> +
+> +static int usbhs_suspend(struct device *dev)
+> +{
+> +	struct usbhs_hcd_omap		*omap = dev_get_drvdata(dev);
+> +	struct usbhs_omap_platform_data	*pdata = &omap->platdata;
+> +	unsigned long			flags = 0;
+> +
+> +	dev_dbg(dev, "Suspending TI HSUSB Controller\n");
+> +
+> +	if (!pdata) {
+> +		dev_dbg(dev, "missing platform_data\n");
+> +		return  -ENODEV;
+> +	}
+> +
+> +	spin_lock_irqsave(&omap->lock, flags);
+> +
+> +	if (!test_bit(OMAP_USBHS_INIT, &omap->state) ||
+> +		test_bit(OMAP_USBHS_SUSPEND, &omap->state))
+> +			goto end_suspend;
+> +
+> +	if (is_omap_usbhs_rev2(omap)) {
+> +		if (is_ehci_tll_mode(pdata->port_mode[0])) {
+> +			clk_disable(omap->usbhost_p1_fck);
+> +			clk_disable(omap->usbtll_p1_fck);
+> +		}
+> +		if (is_ehci_tll_mode(pdata->port_mode[1])) {
+> +			clk_disable(omap->usbhost_p2_fck);
+> +			clk_disable(omap->usbtll_p2_fck);
+> +		}
+> +		clk_disable(omap->utmi_p2_fck);
+> +		clk_disable(omap->utmi_p1_fck);
+> +	}
+> +
+> +	set_bit(OMAP_USBHS_SUSPEND, &omap->state);
+> +	pm_runtime_put_sync(dev);
+> +
+> +end_suspend:
+> +	spin_unlock_irqrestore(&omap->lock, flags);
+> +	return 0;
+> +}
+> +
+> +
+> +static const struct dev_pm_ops usbhsomap_dev_pm_ops = {
+> +	.suspend	= usbhs_suspend,
+> +	.resume		= usbhs_resume,
+> +};
+> +
+> +#define USBHS_OMAP_DEV_PM_OPS (&usbhsomap_dev_pm_ops)
+> +#else
+> +#define	USBHS_OMAP_DEV_PM_OPS	NULL
+> +#endif
+> +
+>  static struct platform_driver usbhs_omap_driver = {
+>  	.driver = {
+>  		.name		= (char *)usbhs_driver_name,
+>  		.owner		= THIS_MODULE,
+> +		.pm		= USBHS_OMAP_DEV_PM_OPS,
+>  	},
+>  	.remove		= __exit_p(usbhs_omap_remove),
+>  };
