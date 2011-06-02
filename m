@@ -1,7 +1,7 @@
 From: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v4 05/18] I2C: OMAP: add rev to omap i2c platform data
-Date: Wed,  1 Jun 2011 17:19:31 -0700
-Message-ID: <1306973984-15165-6-git-send-email-khilman@ti.com>
+Subject: [PATCH v4 06/18] I2C: OMAP1: set IP revision in platform data
+Date: Wed,  1 Jun 2011 17:19:32 -0700
+Message-ID: <1306973984-15165-7-git-send-email-khilman@ti.com>
 References: <1306973984-15165-1-git-send-email-khilman@ti.com>
 Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1306973984-15165-1-git-send-email-khilman-l0cyMroinI0@public.gmane.org>
@@ -12,12 +12,10 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Andy Green <andy-/Zus8d0mwwtBDgjK7y7TUQ@public.gmane.org>
 
-We need to pass the I2C IP revision from the hwmod class up
-into the OMAP I2C driver, which does not have direct
-access to it.
-
-This adds a member to the platform data the OMAP I2C driver
-does use already to hold the I2C IP revision.
+All OMAP1 are using "IP revision 1" in terms of register
+layout.  We set this information in omap1_i2c_add_bus() so
+we don't have to use cpu_is_xxx() any more in the omap i2c
+driver.
 
 Cc: patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
 Cc: Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
@@ -26,20 +24,22 @@ Signed-off-by: Andy Green <andy.green-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Signed-off-by: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
 ---
- include/linux/i2c-omap.h |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ arch/arm/plat-omap/i2c.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
 
-diff --git a/include/linux/i2c-omap.h b/include/linux/i2c-omap.h
-index 701886d..b321211 100644
---- a/include/linux/i2c-omap.h
-+++ b/include/linux/i2c-omap.h
-@@ -17,6 +17,7 @@
+diff --git a/arch/arm/plat-omap/i2c.c b/arch/arm/plat-omap/i2c.c
+index 3341ca4..a938df0 100644
+--- a/arch/arm/plat-omap/i2c.c
++++ b/arch/arm/plat-omap/i2c.c
+@@ -108,6 +108,9 @@ static inline int omap1_i2c_add_bus(int bus_id)
+ 	res[1].start = INT_I2C;
+ 	pdata = &i2c_pdata[bus_id - 1];
  
- struct omap_i2c_bus_platform_data {
- 	u32		clkrate;
-+	u32		rev;
- 	void		(*set_mpu_wkup_lat)(struct device *dev, long set);
- 	int		(*device_enable) (struct platform_device *pdev);
- 	int		(*device_shutdown) (struct platform_device *pdev);
++	/* all OMAP1 have IP version 1 register set */
++	pdata->rev = OMAP_I2C_IP_VERSION_1;
++
+ 	return platform_device_register(pdev);
+ }
+ 
 -- 
 1.7.4
