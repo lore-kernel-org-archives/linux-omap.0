@@ -1,13 +1,13 @@
 From: Dmitry Kasatkin <dmitry.s.kasatkin@gmail.com>
-Subject: [PATCH 10/11] omap-sham: clear device flags when finishing request
-Date: Thu,  2 Jun 2011 21:10:12 +0300
-Message-ID: <da998a599e8ccd2a231967afc8052d1fe9463de7.1306926921.git.dmitry.kasatkin@gmail.com>
+Subject: [PATCH 02/11] omap-sham: remove unused code
+Date: Thu,  2 Jun 2011 21:10:04 +0300
+Message-ID: <63475b714e870f1d2ee8b40cfbbfc833de8cdae4.1306926921.git.dmitry.kasatkin@gmail.com>
 References: <cover.1306926921.git.dmitry.kasatkin@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:48908 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754013Ab1FBSKp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Jun 2011 14:10:45 -0400
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:34742 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753933Ab1FBSKd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Jun 2011 14:10:33 -0400
 In-Reply-To: <cover.1306926921.git.dmitry.kasatkin@gmail.com>
 In-Reply-To: <cover.1306926921.git.dmitry.kasatkin@gmail.com>
 References: <cover.1306926921.git.dmitry.kasatkin@gmail.com>
@@ -20,25 +20,38 @@ From: Dmitry Kasatkin <dmitry.kasatkin@nokia.com>
 
 Signed-off-by: Dmitry Kasatkin <dmitry.kasatkin@nokia.com>
 ---
- drivers/crypto/omap-sham.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
+ drivers/crypto/omap-sham.c |    5 -----
+ 1 files changed, 0 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/crypto/omap-sham.c b/drivers/crypto/omap-sham.c
-index 7ca7075..804c16b 100644
+index 8a45fb7..ac12a60 100644
 --- a/drivers/crypto/omap-sham.c
 +++ b/drivers/crypto/omap-sham.c
-@@ -650,8 +650,10 @@ static void omap_sham_finish_req(struct ahash_request *req, int err)
- 		ctx->flags |= BIT(FLAGS_ERROR);
- 	}
+@@ -658,7 +658,6 @@ static int omap_sham_handle_queue(struct omap_sham_dev *dd,
+ {
+ 	struct crypto_async_request *async_req, *backlog;
+ 	struct omap_sham_reqctx *ctx;
+-	struct ahash_request *prev_req;
+ 	unsigned long flags;
+ 	int err = 0, ret = 0;
  
-+	/* atomic operation is not needed here */
-+	dd->flags &= ~(BIT(FLAGS_BUSY) | BIT(FLAGS_FINAL) | BIT(FLAGS_CPU) |
-+			BIT(FLAGS_DMA_READY) | BIT(FLAGS_OUTPUT_READY));
- 	clk_disable(dd->iclk);
--	dd->flags &= ~BIT(FLAGS_BUSY);
+@@ -682,16 +681,12 @@ static int omap_sham_handle_queue(struct omap_sham_dev *dd,
+ 		backlog->complete(backlog, -EINPROGRESS);
  
- 	if (req->base.complete)
- 		req->base.complete(&req->base, err);
+ 	req = ahash_request_cast(async_req);
+-
+-	prev_req = dd->req;
+ 	dd->req = req;
+-
+ 	ctx = ahash_request_ctx(req);
+ 
+ 	dev_dbg(dd->dev, "handling new req, op: %lu, nbytes: %d\n",
+ 						ctx->op, req->nbytes);
+ 
+-
+ 	err = omap_sham_hw_init(dd);
+ 	if (err)
+ 		goto err1;
 -- 
 1.7.4.1
 
