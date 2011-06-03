@@ -1,60 +1,64 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/8] MFD: twl4030-audio: Rename platform
-	data
-Date: Fri, 3 Jun 2011 11:08:22 +0300
-Message-ID: <20110603080819.GK8696@atomide.com>
-References: <1306927051-8937-1-git-send-email-peter.ujfalusi@ti.com>
-	<201106011617.14854.peter.ujfalusi@ti.com>
-	<20110601133823.GI11352@atomide.com>
-	<201106020915.46491.peter.ujfalusi@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH] OMAP2+: CPUfreq: Allow the CPU scaling when secondary
+ CPUs are offline.
+Date: Fri, 03 Jun 2011 14:01:34 +0530
+Message-ID: <4DE89BE6.40809@ti.com>
+References: <1307026270-313-1-git-send-email-santosh.shilimkar@ti.com> <87ei3bomn3.fsf@ti.com> <4DE87E78.6000107@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-Content-Disposition: inline
-In-Reply-To: <201106020915.46491.peter.ujfalusi@ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Samuel Ortiz <sameo@linux.intel.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Girdwood, Liam" <lrg@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:38779 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752752Ab1FCIbj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Jun 2011 04:31:39 -0400
+Received: by mail-yw0-f45.google.com with SMTP id 41so804626ywl.32
+        for <linux-omap@vger.kernel.org>; Fri, 03 Jun 2011 01:31:38 -0700 (PDT)
+In-Reply-To: <4DE87E78.6000107@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-* Peter Ujfalusi <peter.ujfalusi@ti.com> [110602 09:11]:
-> On Wednesday 01 June 2011 16:38:23 Tony Lindgren wrote:
-> > But you could easily remove all the board specific struct
-> > twl4030_codec_data and struct twl4030_codec_audio_data entries by adding a
-> > default audio init option to omap_pmic_init for the common configuration.
-> 
-> Yeah, I can grep in the board files, and see what is the most common 
-> configuration
-> 
-> > How about something like:
-> > 
-> > void omap_pmic_init(int bus, u32 clkrate, const char *pmic_type, int
-> > pmic_irq, struct twl4030_platform_data *pmic_data, u32 flags);
-> 
-> common-board-devices.c has omap_pmic_init, but without the flags.
-> 
-> > Where flags would be TWL_BOARD_HAS_DEFAULT_CODEC etc, and if the entry in
-> > pmic_data is NULL, just use the default configuration. I think you already
-> > have the clkrate there?
-> 
-> I'll take a look, should we have new file specifically for twl, or should I 
-> extend the common-board-devices.c with the twl related things? IMHO a new file 
-> might be better, since the full twl config might be quite big.
+On 6/3/2011 11:56 AM, Santosh Shilimkar wrote:
+> On 6/3/2011 4:40 AM, Kevin Hilman wrote:
+>> Santosh Shilimkar<santosh.shilimkar@ti.com> writes:
+>>
+>>> Current OMAP2PLUS CPUfreq tagret() functions returns when all
+>>> the CPU's are not online. This will break DVFS when secondary
+>>> CPUs are offlined.
+>>>
+>>> The intention of that check was just avoid CPU frequency change
+>>> during the window when CPU becomes online but it's cpufreq_init is
+>>> not done yet.
+>>>
+>>> Fix the check accordingly.
+>>>
+>>> Thanks for Nishant Menon<nm@ti.com> for reporting it.
+>>>
+>>> Signed-off-by: Santosh Shilimkar<santosh.shilimkar@ti.com>
+>>> Reported-by: Nishanth Menon<nm@ti.com>
+>>> Tested-by: Vishwanath BS<vishwanath.bs@ti.com>
+>>> ---
+>>> There were some question of making the variable atomic etc
+>>> in an internal discussion. After some thinking, I realised
+>>> there is no need of that since this is just a counter which
+>>> maintains the count for online_cpus = cpufreq_init_cpus.
+>>
+>> Since this is init-time only check, the check for every call to
+>> ->target() seems excessive.
+>>
+>> How about leaving the ->target callback empty until all the CPUs are
+>> online.
+>>
+> Can do that as well.
+>
+After re-looking at this, seems not straight forward. This check is
+not for cpufreqdriver_init time but per-CPU init functions which is
+called after the driver is registered to the governor. We don't do 
+registration again except the cases where driver is build as a module.
 
-Yeah if it gets big then a separate file is better. Also, if we have
-a common init function for twl, then it's easy to add the board specific
-device tree initialization to that too and just leave out the calls to
-omap_pmic_init from board-*.c files.
+How do we handle that ?
 
-Regards,
-
-Tony
+Regards
+Santosh
