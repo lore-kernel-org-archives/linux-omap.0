@@ -1,120 +1,100 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 00/27] OMAP DSS runtime PM adaptation
-Date: Fri,  3 Jun 2011 13:00:10 +0300
-Message-ID: <1307095237-14805-1-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 02/27] OMAP: DSS2: Taal: Make driver more fault tolerant
+Date: Fri,  3 Jun 2011 13:00:12 +0300
+Message-ID: <1307095237-14805-3-git-send-email-tomi.valkeinen@ti.com>
+References: <1307095237-14805-1-git-send-email-tomi.valkeinen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:56789 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752215Ab1FCKBB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Jun 2011 06:01:01 -0400
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:43537 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752215Ab1FCKBF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Jun 2011 06:01:05 -0400
+In-Reply-To: <1307095237-14805-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 Cc: b-cousson@ti.com, paul@pwsan.com, khilman@ti.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Hi,
+If ULPS exit fails, and the following reset fails also, Taal driver was
+left in state where it thinks DSI is enabled while it really isn't,
+leading to crash.
 
-This patch set implements runtime PM adaptation for OMAP DSS driver.
+This patch checks the return value of taal_panel_reset, and if that
+fails, ulps_enabled is left true, causing the driver to retry ulps exit
+later.
 
-The bulk of the code is in the "OMAP: DSS2: Use PM runtime & HWMOD support"
-patch, which is a bit too large for comfort, but I haven't found out ways to
-split it up.
+Also the return value of taal_wake_up is checked at taal_disable, and if
+wake up fails, we'll skip the power_off. This could leave the panel into
+a not-quite-valid state, but there's nothing we can do about it in that
+situation.
 
-All DSS HW modules now handle enabling and disabling of the HW block
-independently via pm_runtime calls. Some DSS modules also require other DSS
-modules, and for that we have functions like dispc_runtime_get/put() which can
-be used to enable that module.
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+---
+ drivers/video/omap2/displays/panel-taal.c |   33 ++++++++++++++++++----------
+ 1 files changed, 21 insertions(+), 12 deletions(-)
 
-Due to DSS' peculiar clock setup the code is not as elegant as I'd like. The
-problem is that on OMAP4 we have to enable an optional clock before calling
-pm_runtime_get(), and similarly we need to keep the optional clock enabled
-until after pm_runtime_put() has been called.
-
-This causes some extra complications. For example, we can't use runtime_resume
-callback to enable the opt clocks, as they are required before calling
-pm_runtime_get().
-
-Previously DSS driver did reset the HW every time before taking it into use.
-This can no longer be done, as HWMOD framework handles the reset. While the
-driver works without resetting the HW, an error could render the HW inoperable
-and currently the driver may not be able to recover. So these patches may make
-the driver more unreliable on error cases.
-
-If a way to reset the HWMOD is added to the HWMOD framework, DSS driver can
-take it into use and the above mentioned problem should go away.
-
-Tested on OMAP4 Blaze, OMAP3 Overo, OMAP2420 N800. (However, N800 needs extra
-patches to get it and DSS2 running, can be found from n800 branch in my tree).
-
-These patches can be found from:
-
-git://gitorious.org/linux-omap-dss2/linux.git pmruntime
-
- Tomi
-
-Tomi Valkeinen (27):
-  OMAP: change get_context_loss_count ret value to int
-  OMAP: DSS2: Taal: Make driver more fault tolerant
-  OMAP: DSS2: Reset LANEx_ULPS_SIG2 bits after use
-  OMAP: DSS2: Handle dpll4_m4_ck in dss_get/put_clocks
-  OMAP: DSS2: Clean up probe for DSS & DSI
-  OMAP: DSS2: Init dispc first before other components
-  OMAP: DSS2: Remove clk optimization at dss init
-  OMAP: DSS2: rewrite use of context_loss_count
-  OMAP: DSS2: Use omap_pm_get_dev_context_loss_count to get ctx loss
-    count
-  OMAP: DSS2: DPI: remove unneeded SYSCK enable/disable
-  OMAP: DSS2: Add FEAT_VENC_REQUIRES_TV_DAC_CLK
-  OMAP: DSS2: Add new FEAT definitions for features missing from OMAP2
-  OMAP: DSS2: Remove core_dump_clocks
-  OMAP: DSS2: Remove CONFIG_OMAP2_DSS_SLEEP_BEFORE_RESET
-  OMAP4: HWMOD: Modify DSS opt clocks
-  OMAP3: HWMOD: Add DSS opt clocks
-  OMAP2420: HWMOD: Add DSS opt clocks
-  OMAP2430: HWMOD: Add DSS opt clocks
-  OMAP: DSS2: Use PM runtime & HWMOD support
-  OMAP4: HWMOD: Remove unneeded DSS opt clocks
-  OMAP: DSS2: Remove unused opt_clock_available
-  OMAP: DSS2: DISPC: remove finegrained clk enables/disables
-  OMAP: DSS2: Remove unused code from display.c
-  OMAP: DSS2: Remove ctx loss count from dss.c
-  OMAP4: CLKDEV: Remove omapdss clock aliases
-  OMAP: DSS2: DISPC: Fix context save/restore
-  OMAP: DSS2: DSS: Fix context save/restore
-
- arch/arm/mach-omap2/clock44xx_data.c          |   10 +-
- arch/arm/mach-omap2/display.c                 |   26 +-
- arch/arm/mach-omap2/omap_hwmod.c              |    2 +-
- arch/arm/mach-omap2/omap_hwmod_2420_data.c    |   19 +
- arch/arm/mach-omap2/omap_hwmod_2430_data.c    |   19 +
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c    |   37 ++-
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c    |   43 ++-
- arch/arm/mach-omap2/powerdomain.c             |   14 +-
- arch/arm/mach-omap2/powerdomain.h             |    2 +-
- arch/arm/plat-omap/include/plat/omap-pm.h     |    4 +-
- arch/arm/plat-omap/include/plat/omap_device.h |    2 +-
- arch/arm/plat-omap/include/plat/omap_hwmod.h  |    2 +-
- arch/arm/plat-omap/omap-pm-noop.c             |   24 +-
- arch/arm/plat-omap/omap_device.c              |    2 +-
- drivers/video/omap2/displays/panel-taal.c     |   33 +-
- drivers/video/omap2/dss/Kconfig               |   12 -
- drivers/video/omap2/dss/core.c                |   15 +-
- drivers/video/omap2/dss/dispc.c               |  496 ++++++++++++----------
- drivers/video/omap2/dss/dpi.c                 |   73 ++--
- drivers/video/omap2/dss/dsi.c                 |  284 ++++++++-----
- drivers/video/omap2/dss/dss.c                 |  564 ++++++-------------------
- drivers/video/omap2/dss/dss.h                 |   34 +-
- drivers/video/omap2/dss/dss_features.c        |   13 +-
- drivers/video/omap2/dss/dss_features.h        |    4 +
- drivers/video/omap2/dss/hdmi.c                |  149 +++++--
- drivers/video/omap2/dss/manager.c             |    8 +-
- drivers/video/omap2/dss/overlay.c             |   27 +-
- drivers/video/omap2/dss/rfbi.c                |   97 ++++-
- drivers/video/omap2/dss/sdi.c                 |   40 ++-
- drivers/video/omap2/dss/venc.c                |  171 +++++++-
- include/video/omapdss.h                       |    4 +-
- 31 files changed, 1207 insertions(+), 1023 deletions(-)
-
+diff --git a/drivers/video/omap2/displays/panel-taal.c b/drivers/video/omap2/displays/panel-taal.c
+index fdd5d4ae..b82bcc1 100644
+--- a/drivers/video/omap2/displays/panel-taal.c
++++ b/drivers/video/omap2/displays/panel-taal.c
+@@ -504,14 +504,18 @@ static int taal_exit_ulps(struct omap_dss_device *dssdev)
+ 		return 0;
+ 
+ 	r = omapdss_dsi_display_enable(dssdev);
+-	if (r)
+-		goto err;
++	if (r) {
++		dev_err(&dssdev->dev, "failed to enable DSI\n");
++		goto err1;
++	}
+ 
+ 	omapdss_dsi_vc_enable_hs(dssdev, td->channel, true);
+ 
+ 	r = _taal_enable_te(dssdev, true);
+-	if (r)
+-		goto err;
++	if (r) {
++		dev_err(&dssdev->dev, "failed to re-enable TE");
++		goto err2;
++	}
+ 
+ 	enable_irq(gpio_to_irq(panel_data->ext_te_gpio));
+ 
+@@ -521,13 +525,15 @@ static int taal_exit_ulps(struct omap_dss_device *dssdev)
+ 
+ 	return 0;
+ 
+-err:
+-	dev_err(&dssdev->dev, "exit ULPS failed");
+-	r = taal_panel_reset(dssdev);
+-
+-	enable_irq(gpio_to_irq(panel_data->ext_te_gpio));
+-	td->ulps_enabled = false;
++err2:
++	dev_err(&dssdev->dev, "failed to exit ULPS");
+ 
++	r = taal_panel_reset(dssdev);
++	if (!r) {
++		enable_irq(gpio_to_irq(panel_data->ext_te_gpio));
++		td->ulps_enabled = false;
++	}
++err1:
+ 	taal_queue_ulps_work(dssdev);
+ 
+ 	return r;
+@@ -1317,8 +1323,11 @@ static void taal_disable(struct omap_dss_device *dssdev)
+ 	dsi_bus_lock(dssdev);
+ 
+ 	if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE) {
+-		taal_wake_up(dssdev);
+-		taal_power_off(dssdev);
++		int r;
++
++		r = taal_wake_up(dssdev);
++		if (!r)
++			taal_power_off(dssdev);
+ 	}
+ 
+ 	dsi_bus_unlock(dssdev);
 -- 
 1.7.4.1
 
