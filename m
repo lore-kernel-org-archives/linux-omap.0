@@ -1,51 +1,116 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 24/27] OMAP: DSS2: Remove ctx loss count from dss.c
-Date: Fri,  3 Jun 2011 13:00:34 +0300
-Message-ID: <1307095237-14805-25-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 26/27] OMAP: DSS2: DISPC: Fix context save/restore
+Date: Fri,  3 Jun 2011 13:00:36 +0300
+Message-ID: <1307095237-14805-27-git-send-email-tomi.valkeinen@ti.com>
 References: <1307095237-14805-1-git-send-email-tomi.valkeinen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:44425 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754320Ab1FCKBy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Jun 2011 06:01:54 -0400
+Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:57183 "EHLO
+	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754392Ab1FCKB6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Jun 2011 06:01:58 -0400
 In-Reply-To: <1307095237-14805-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 Cc: b-cousson@ti.com, paul@pwsan.com, khilman@ti.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-dss.c only saves 1 register (3 in OMAP3) so the extra overhead from
-need_ctx_restore & co. is probably bigger than the time spent saving and
-restoring those few registers every time.
+The current method of saving and restoring the context could cause a
+restore before saving, effectively "restoring" zero values to registers.
 
-So remove the code from dss.c and restore context every time dss has
-been off.
+Add ctx_valid field to indicate if the saved context is valid and can be
+restored.
+
+Also restructure the code to save the ctx_loss_count in save_context(),
+which makes more sense than the previous method of storing new
+ctx_loss_count in dispc_need_ctx_restore.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/dss/dss.c |   61 +----------------------------------------
- 1 files changed, 1 insertions(+), 60 deletions(-)
+ drivers/video/omap2/dss/dispc.c |   97 +++++++++++++++-----------------------
+ 1 files changed, 38 insertions(+), 59 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
-index c8d7357..91572b6 100644
---- a/drivers/video/omap2/dss/dss.c
-+++ b/drivers/video/omap2/dss/dss.c
-@@ -62,7 +62,6 @@ static struct {
- 	struct platform_device *pdev;
- 	void __iomem    *base;
+diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
+index b13a656..73f1105 100644
+--- a/drivers/video/omap2/dss/dispc.c
++++ b/drivers/video/omap2/dss/dispc.c
+@@ -110,6 +110,7 @@ static struct {
+ 	u32 error_irqs;
+ 	struct work_struct error_work;
  
--	int		ctx_loss_cnt;
- 	struct mutex	runtime_lock;
- 	int		runtime_count;
++	bool		ctx_valid;
+ 	u32		ctx[DISPC_SZ_REGS / sizeof(u32)];
  
-@@ -633,61 +632,6 @@ void dss_select_hdmi_venc_clk_source(enum dss_hdmi_venc_clk_source_select hdmi)
- 	REG_FLD_MOD(DSS_CONTROL, hdmi, 15, 15);	/* VENC_HDMI_SWITCH */
+ #ifdef CONFIG_OMAP2_DSS_COLLECT_IRQ_STATS
+@@ -142,6 +143,23 @@ static inline u32 dispc_read_reg(const u16 idx)
+ 	return __raw_readl(dispc.base + idx);
  }
  
--/* CONTEXT */
--static void dss_init_ctx_loss_count(void)
++static int dispc_get_ctx_loss_count(void)
++{
++	struct device *dev = &dispc.pdev->dev;
++	struct omap_display_platform_data *pdata = dev->platform_data;
++	struct omap_dss_board_info *board_data = pdata->board_data;
++	int cnt;
++
++	if (!board_data->get_context_loss_count)
++		return -ENOENT;
++
++	cnt = board_data->get_context_loss_count(dev);
++
++	WARN_ONCE(cnt < 0, "get_context_loss_count failed: %d\n", cnt);
++
++	return cnt;
++}
++
+ #define SR(reg) \
+ 	dispc.ctx[DISPC_##reg / sizeof(u32)] = dispc_read_reg(DISPC_##reg)
+ #define RR(reg) \
+@@ -318,14 +336,30 @@ static void dispc_save_context(void)
+ 
+ 	if (dss_has_feature(FEAT_CORE_CLK_DIV))
+ 		SR(DIVISOR);
++
++	dispc.ctx_loss_cnt = dispc_get_ctx_loss_count();
++	dispc.ctx_valid = true;
++
++	DSSDBG("context saved, ctx_loss_count %d\n", dispc.ctx_loss_cnt);
+ }
+ 
+ static void dispc_restore_context(void)
+ {
+-	int i;
++	int i, ctx;
+ 
+ 	DSSDBG("dispc_restore_context\n");
+ 
++	if (!dispc.ctx_valid)
++		return;
++
++	ctx = dispc_get_ctx_loss_count();
++
++	if (ctx >= 0 && ctx == dispc.ctx_loss_cnt)
++		return;
++
++	DSSDBG("ctx_loss_count: saved %d, current %d\n",
++			dispc.ctx_loss_cnt, ctx);
++
+ 	/*RR(IRQENABLE);*/
+ 	/*RR(CONTROL);*/
+ 	RR(CONFIG);
+@@ -504,65 +538,13 @@ static void dispc_restore_context(void)
+ 	 * the context is fully restored
+ 	 */
+ 	RR(IRQENABLE);
++
++	DSSDBG("context restored\n");
+ }
+ 
+ #undef SR
+ #undef RR
+ 
+-static void dispc_init_ctx_loss_count(void)
 -{
--	struct device *dev = &dss.pdev->dev;
+-	struct device *dev = &dispc.pdev->dev;
 -	struct omap_display_platform_data *pdata = dev->platform_data;
 -	struct omap_dss_board_info *board_data = pdata->board_data;
 -	int cnt = 0;
@@ -53,7 +118,7 @@ index c8d7357..91572b6 100644
 -	/*
 -	 * get_context_loss_count returns negative on error. We'll ignore the
 -	 * error and store the error to ctx_loss_cnt, which will cause
--	 * dss_need_ctx_restore() call to return true.
+-	 * dispc_need_ctx_restore() call to return true.
 -	 */
 -
 -	if (board_data->get_context_loss_count)
@@ -61,14 +126,14 @@ index c8d7357..91572b6 100644
 -
 -	WARN_ON(cnt < 0);
 -
--	dss.ctx_loss_cnt = cnt;
+-	dispc.ctx_loss_cnt = cnt;
 -
 -	DSSDBG("initial ctx_loss_cnt %u\n", cnt);
 -}
 -
--static bool dss_need_ctx_restore(void)
+-static bool dispc_need_ctx_restore(void)
 -{
--	struct device *dev = &dss.pdev->dev;
+-	struct device *dev = &dispc.pdev->dev;
 -	struct omap_display_platform_data *pdata = dev->platform_data;
 -	struct omap_dss_board_info *board_data = pdata->board_data;
 -	int cnt;
@@ -84,39 +149,39 @@ index c8d7357..91572b6 100644
 -	if (cnt < 0) {
 -		dev_err(dev, "getting context loss count failed, will force "
 -				"context restore\n");
--		dss.ctx_loss_cnt = cnt;
+-		dispc.ctx_loss_cnt = cnt;
 -		return true;
 -	}
 -
--	if (cnt == dss.ctx_loss_cnt)
+-	if (cnt == dispc.ctx_loss_cnt)
 -		return false;
 -
--	DSSDBG("ctx_loss_cnt %d -> %d\n", dss.ctx_loss_cnt, cnt);
--	dss.ctx_loss_cnt = cnt;
+-	DSSDBG("ctx_loss_cnt %d -> %d\n", dispc.ctx_loss_cnt, cnt);
+-	dispc.ctx_loss_cnt = cnt;
 -
 -	return true;
 -}
 -
- static int dss_get_clocks(void)
+ int dispc_runtime_get(void)
  {
- 	struct clk *clk;
-@@ -756,8 +700,7 @@ int dss_runtime_get(void)
+ 	int r;
+@@ -584,8 +566,7 @@ int dispc_runtime_get(void)
  		if (r < 0)
- 			goto err;
+ 			goto err_runtime_get;
  
--		if (dss_need_ctx_restore())
--			dss_restore_context();
-+		dss_restore_context();
+-		if (dispc_need_ctx_restore())
+-			dispc_restore_context();
++		dispc_restore_context();
  	}
  
- 	mutex_unlock(&dss.runtime_lock);
-@@ -828,8 +771,6 @@ static int omap_dsshw_probe(struct platform_device *pdev)
- 	if (r)
- 		goto err_clocks;
+ 	mutex_unlock(&dispc.runtime_lock);
+@@ -3682,8 +3663,6 @@ static int omap_dispchw_probe(struct platform_device *pdev)
+ 		goto err_irq;
+ 	}
  
--	dss_init_ctx_loss_count();
+-	dispc_init_ctx_loss_count();
 -
- 	mutex_init(&dss.runtime_lock);
+ 	mutex_init(&dispc.runtime_lock);
  
  	pm_runtime_enable(&pdev->dev);
 -- 
