@@ -1,41 +1,75 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH] OMAP2+: CPUfreq: Allow the CPU scaling when secondary
- CPUs are offline.
-Date: Fri, 03 Jun 2011 17:35:01 +0530
-Message-ID: <4DE8CDED.5060504@ti.com>
-References: <1307026270-313-1-git-send-email-santosh.shilimkar@ti.com> <87ei3bomn3.fsf@ti.com> <4DE87E78.6000107@ti.com> <4DE89BE6.40809@ti.com>
+Subject: [PATCH][pm-wip/cpufreq] OMAP2+: CPUfreq: Remove superfluous check in target() for online CPU's.
+Date: Fri, 3 Jun 2011 17:46:57 +0530
+Message-ID: <1307103417-22721-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:52495 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752555Ab1FCMFG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Jun 2011 08:05:06 -0400
-Received: by mail-gw0-f54.google.com with SMTP id 15so1075438gwb.27
-        for <linux-omap@vger.kernel.org>; Fri, 03 Jun 2011 05:05:06 -0700 (PDT)
-In-Reply-To: <4DE89BE6.40809@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:60709 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751797Ab1FCMRD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 3 Jun 2011 08:17:03 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p53CGxYo027551
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Fri, 3 Jun 2011 07:17:01 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@ti.com>
 
-On 6/3/2011 2:01 PM, Santosh Shilimkar wrote:
-> On 6/3/2011 11:56 AM, Santosh Shilimkar wrote:
->> On 6/3/2011 4:40 AM, Kevin Hilman wrote:
+Current OMAP2PLUS CPUfreq tagret() functions returns when all
+the CPU's are not online. This breaks CPUfreq when secondary CPUs
+are offlined on SMP system.
 
-[...]
+The intention of that check was just avoid CPU frequency change
+during the window when CPU becomes online but it's cpufreq_init is
+not done yet. Otherwise it can lead to notifiers being sent on
+a CPU which is not yet registered to the governor.
 
->> Can do that as well.
->>
-> After re-looking at this, seems not straight forward. This check is
-> not for cpufreqdriver_init time but per-CPU init functions which is
-> called after the driver is registered to the governor. We don't do
-> registration again except the cases where driver is build as a module.
->
-> How do we handle that ?
-Ignore this questions since mostly we don't need that anymore.
-Will post and updated patch.
+But this race conditions is already managed by the CPUfreq
+core driver by updating the available cpumask accordingly.
 
-regards
-Santosh
+OMAP CPUFReq driver make use same cpumask for the notifiers
+so the above problem doesn't exist. In my initial implementation
+of the OMAP4 CPUFreq driver, I was using 'for_each_online_cpu()'
+for notifiers which lead me to add that check. Later I fixed
+the notifies but didn't realise that the check has become
+redundant then.
+
+Fix it by removing the superfluous check in target().
+
+Thanks for Nishant Menon <nm@ti.com> for reporting issue
+with hot-plug and Kevin Hilman <khilman@ti.com> for his
+comment on excessive check in target().
+
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Reported-by: Nishanth Menon <nm@ti.com>
+Tested-by: Vishwanath BS <vishwanath.bs@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>
+---
+This change is an outcome of discussion on another patch to fix
+the hot-plug issue. For details refer below thread:
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg50348.html
+
+ arch/arm/mach-omap2/omap2plus-cpufreq.c |    4 ----
+ 1 files changed, 0 insertions(+), 4 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap2plus-cpufreq.c b/arch/arm/mach-omap2/omap2plus-cpufreq.c
+index 33a91ec..3bf1704 100644
+--- a/arch/arm/mach-omap2/omap2plus-cpufreq.c
++++ b/arch/arm/mach-omap2/omap2plus-cpufreq.c
+@@ -81,10 +81,6 @@ static int omap_target(struct cpufreq_policy *policy,
+ 	int i, ret = 0;
+ 	struct cpufreq_freqs freqs;
+ 
+-	/* Changes not allowed until all CPUs are online */
+-	if (is_smp() && (num_online_cpus() < NR_CPUS))
+-		return ret;
+-
+ 	/* Ensure desired rate is within allowed range.  Some govenors
+ 	 * (ondemand) will just pass target_freq=0 to get the minimum. */
+ 	if (target_freq < policy->min)
+-- 
+1.6.0.4
+
