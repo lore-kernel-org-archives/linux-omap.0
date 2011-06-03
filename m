@@ -1,87 +1,42 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 13/27] OMAP: DSS2: Remove core_dump_clocks
-Date: Fri,  3 Jun 2011 13:00:23 +0300
-Message-ID: <1307095237-14805-14-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 20/27] OMAP4: HWMOD: Remove unneeded DSS opt clocks
+Date: Fri,  3 Jun 2011 13:00:30 +0300
+Message-ID: <1307095237-14805-21-git-send-email-tomi.valkeinen@ti.com>
 References: <1307095237-14805-1-git-send-email-tomi.valkeinen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:60037 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754221Ab1FCKBk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Jun 2011 06:01:40 -0400
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:44282 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754257Ab1FCKBp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Jun 2011 06:01:45 -0400
 In-Reply-To: <1307095237-14805-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 Cc: b-cousson@ti.com, paul@pwsan.com, khilman@ti.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Currently dss.c does all the low level clock handling in the DSS, and
-thus it contains pointers to all the clocks. This allows dss.c to dump
-the clock information for all the clocks.
+Some of the optional clocks for dss_core are not needed. Remove them.
 
-With pm_runtime this is no longer the case, as each submodule will
-handle its clocks independently. Thus remove the core_dump_clocks
-function as it cannot be used with pm_runtime.
-
+Cc: Benoit Cousson <b-cousson@ti.com>
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/dss/dss.c |   40 ----------------------------------------
- 1 files changed, 0 insertions(+), 40 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    3 ---
+ 1 files changed, 0 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
-index b63e290..951c849 100644
---- a/drivers/video/omap2/dss/dss.c
-+++ b/drivers/video/omap2/dss/dss.c
-@@ -989,50 +989,10 @@ static void dss_clk_disable_all_no_ctx(void)
- 	dss_clk_disable_no_ctx(clks);
- }
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+index 4f6ae94..b374cd0 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -1164,10 +1164,7 @@ static struct omap_hwmod_ocp_if *omap44xx_dss_slaves[] = {
+ };
  
--#if defined(CONFIG_DEBUG_FS) && defined(CONFIG_OMAP2_DSS_DEBUG_SUPPORT)
--/* CLOCKS */
--static void core_dump_clocks(struct seq_file *s)
--{
--	int i;
--	struct clk *clocks[5] = {
--		dss.dss_ick,
--		dss.dss_fck,
--		dss.dss_sys_clk,
--		dss.dss_tv_fck,
--		dss.dss_video_fck
--	};
--
--	const char *names[5] = {
--		"ick",
--		"fck",
--		"sys_clk",
--		"tv_fck",
--		"video_fck"
--	};
--
--	seq_printf(s, "- CORE -\n");
--
--	seq_printf(s, "internal clk count\t\t%u\n", dss.num_clks_enabled);
--
--	for (i = 0; i < 5; i++) {
--		if (!clocks[i])
--			continue;
--		seq_printf(s, "%s (%s)%*s\t%lu\t%d\n",
--				names[i],
--				clocks[i]->name,
--				24 - strlen(names[i]) - strlen(clocks[i]->name),
--				"",
--				clk_get_rate(clocks[i]),
--				clocks[i]->usecount);
--	}
--}
--#endif /* defined(CONFIG_DEBUG_FS) && defined(CONFIG_OMAP2_DSS_DEBUG_SUPPORT) */
--
- /* DEBUGFS */
- #if defined(CONFIG_DEBUG_FS) && defined(CONFIG_OMAP2_DSS_DEBUG_SUPPORT)
- void dss_debug_dump_clocks(struct seq_file *s)
- {
--	core_dump_clocks(s);
- 	dss_dump_clocks(s);
- 	dispc_dump_clocks(s);
- #ifdef CONFIG_OMAP2_DSS_DSI
+ static struct omap_hwmod_opt_clk dss_opt_clks[] = {
+-	{ .role = "sys_clk", .clk = "dss_sys_clk" },
+-	{ .role = "tv_clk", .clk = "dss_tv_clk" },
+ 	{ .role = "dss_clk", .clk = "dss_dss_clk" },
+-	{ .role = "video_clk", .clk = "dss_48mhz_clk" },
+ };
+ 
+ static struct omap_hwmod omap44xx_dss_hwmod = {
 -- 
 1.7.4.1
 
