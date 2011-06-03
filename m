@@ -1,99 +1,41 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [RFC 0/6] iommu: generic api migration and grouping
-Date: Fri, 3 Jun 2011 17:53:15 +0200
-Message-ID: <201106031753.16095.arnd@arndb.de>
-References: <1307053663-24572-1-git-send-email-ohad@wizery.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH 01/27] OMAP: change get_context_loss_count ret value to int
+Date: Fri, 03 Jun 2011 09:32:29 -0700
+Message-ID: <871uzaj2oy.fsf@ti.com>
+References: <1307095237-14805-1-git-send-email-tomi.valkeinen@ti.com>
+	<1307095237-14805-2-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:63777 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751011Ab1FCPxh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Jun 2011 11:53:37 -0400
-In-Reply-To: <1307053663-24572-1-git-send-email-ohad@wizery.com>
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:36389 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751052Ab1FCQcc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Jun 2011 12:32:32 -0400
+In-Reply-To: <1307095237-14805-2-git-send-email-tomi.valkeinen@ti.com> (Tomi
+	Valkeinen's message of "Fri, 3 Jun 2011 13:00:11 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, laurent.pinchart@ideasonboard.com, Hiroshi.DOYU@nokia.com, davidb@codeaurora.org, Joerg.Roedel@amd.com, Marek Szyprowski <m.szyprowski@samsung.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, b-cousson@ti.com, paul@pwsan.com
 
-On Friday 03 June 2011, Ohad Ben-Cohen wrote:
-> First stab at iommu consolidation:
+Tomi Valkeinen <tomi.valkeinen@ti.com> writes:
 
-Hi Ohad,
-
-Great to see your progress here!
- 
-> - Migrate OMAP's iommu driver to the generic iommu API. With this in hand,
->   users can now start using the generic iommu layer instead of calling
->   omap-specific iommu API.
-> 
->   New code that requires functionality missing from the generic iommu api,
->   will add that functionality in the generic framework (e.g. adding framework
->   awareness to multi page sizes, supported by the underlying hardware, will
->   avoid the otherwise-inevitable code duplication when mapping a memory
->   region).
+> get_context_loss_count functions return context loss count as u32, and
+> zero means an error. However, zero is also returned when context has
+> never been lost and could also be returned when the context loss count
+> has wrapped and goes to zero.
 >
->   OMAP-specific api that is still exposed in the omap iommu driver can
->   now be either moved to the generic iommu framework, or just removed (if not
->   used).
-> 
->   This api (and other omap-specific primitives like struct iommu) needs to
->   be omapified (i.e. renamed to include an 'omap_' prefix). At this early
->   point of this patch set this is too much churn though, so I'll do that
->   in the following iteration, after (and if), the general direction is
->   accepted.
-
-Sounds all good.
-
-> - Migrate OMAP's iovmm (virtual memory manager) driver to the generic
->   iommu API. With this in hand, iovmm no longer uses omap-specific api
->   for mapping/unmapping operations. Nevertheless, iovmm is still coupled
->   with omap's iommu even with this change: it assumes omap page sizes,
->   and it uses omap's iommu objects to maintain its internal state.
-> 
->   Further generalizing of iovmm strongly depends on our broader plans for
->   providing a generic virtual memory manager and allocation framework
->   (which, as discussed, should be separated from a specific mapper).
-> 
->   iovmm has a mainline user: omap3isp, and therefore must be maintained,
->   but new potential users will either have to generalize it, or come up
->   with a different generic framework that will replace it.
-
-I think the future of iovmm is looking not so good. Marek Szyprowski
-is working on a generic version of the dma-mapping API (dma_map_ops)
-based on the iommu API. As far as I can tell, once we have that in
-place, we you can migrate omap3isp from iovmm to dma-mapping and
-remove iovmm.
-
-Of course if there are things missing from the dma-mapping API
-that are present in iovmm, we should know about them so that we can
-extend the dma-mapping API accordingly.
-
-> - Migrate OMAP's iommu mainline user, omap3isp, to the generic API as well
->   (so it doesn't break). As with iovmm, omap3isp still depends on
->   omap's iommu, mainly because iovmm depends on it, but also for
->   iommu context saving and restoring.
-> 
->   It is definitely desirable to completely remove omap3isp's dependency
->   on the omap-specific iommu layer, and that will be possible as the
->   required functionality will be added to generic framework.
-
-ok.
-
-> - Create a dedicated iommu drivers folder (and put the base iommu code there)
+> Change the functions to return an int, with negative value meaning an
+> error.
 >
-> - Move OMAP's and MSM's iommu drivers to that drivers iommu folder
-> 
->   Putting all iommu drivers together will ease finding similarities
->   between different platforms, with the intention of solving problems once,
->   in a generic framework which everyone can use.
-> 
->   I've only moved the omap and msm implementations for now, to demonstrate
->   the idea (and support the ARM diet :), but if this is found desirable,
->   we can bring in intel-iommu.c and amd_iommu.c as well.
+> OMAP HSMMC code uses omap_pm_get_dev_context_loss_count(), but as the
+> hsmmc code handles the returned value as an int, with negative value
+> meaning an error, this patch actually fixes hsmmc code also.
+>
+> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> Acked-by: Kevin Hilman <khilman@ti.com>
 
-Yes, very good idea.
+This one should be separated out into a fix for v3.0-rc, and queued by
+Paul (also Cc'd to linux-arm-kernel.)
 
-	Arnd
+Kevin
