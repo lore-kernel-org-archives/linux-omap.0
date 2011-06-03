@@ -1,193 +1,61 @@
-From: "Fernandes, Joel A" <joelagnel@ti.com>
-Subject: [PATCH v6] OMAP3: beagle: add support for beagleboard xM revision C
-Date: Fri, 3 Jun 2011 16:56:22 -0500
-Message-ID: <8FFAA0BFC4E5374B8F85F65FE1F2BFA5C62252DB@dlee02.ent.ti.com>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: [PATCH] omap: cleanup NAND platform data
+Date: Sat, 4 Jun 2011 01:05:16 +0300
+Message-ID: <BANLkTimXxOcr4q2fkD0hjq4pMVPC0StBFw@mail.gmail.com>
+References: <1307130993-15265-1-git-send-email-notasas@gmail.com>
+	<BANLkTimnP-HuvVruB5hNSMHVnQUmned8Pg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:52637 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753546Ab1FCV4Y convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Jun 2011 17:56:24 -0400
-Content-Language: en-US
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:49607 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754508Ab1FCWFR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Jun 2011 18:05:17 -0400
+Received: by vxi39 with SMTP id 39so1694216vxi.19
+        for <linux-omap@vger.kernel.org>; Fri, 03 Jun 2011 15:05:17 -0700 (PDT)
+In-Reply-To: <BANLkTimnP-HuvVruB5hNSMHVnQUmned8Pg@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "beagle@list.ti.com - Ultra-low cost OMAP3 board (May contain non-TIers)" <beagle@list.ti.com>, "beagleboard@googlegroups.com" <beagleboard@googlegroups.com>, "Maupin, Chase" <chase.maupin@ti.com>
+To: Vimal Singh <vimal.newwork@gmail.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>
 
-The USB enable GPIO has been in beagleboard xM revision C
-The USER button has been moved since beagleboard xM
-Also, board specific initialization has been moved to beagle_config struct
-and initialized in omap3_beagle_init_rev. Default values in struct are for xMC.
+On Sat, Jun 4, 2011 at 12:14 AM, Vimal Singh <vimal.newwork@gmail.com> =
+wrote:
+> On Sat, Jun 4, 2011 at 1:26 AM, Grazvydas Ignotas <notasas@gmail.com>=
+ wrote:
+>>
+>> -static int omap2_nand_gpmc_retime(void)
+>> +static int omap2_nand_gpmc_retime(struct omap_nand_platform_data *g=
+pmc_nand_data)
+>> =A0{
+>> =A0 =A0 =A0 =A0struct gpmc_timings t;
+>> =A0 =A0 =A0 =A0int err;
+>> @@ -83,13 +81,11 @@ static int omap2_nand_gpmc_retime(void)
+>> =A0 =A0 =A0 =A0return 0;
+>> =A0}
+>>
+>> -int __init gpmc_nand_init(struct omap_nand_platform_data *_nand_dat=
+a)
+>> +int __init gpmc_nand_init(struct omap_nand_platform_data *gpmc_nand=
+_data)
+>> =A0{
+>> =A0 =A0 =A0 =A0int err =3D 0;
+>> =A0 =A0 =A0 =A0struct device *dev =3D &gpmc_nand_device.dev;
+>>
+>> - =A0 =A0 =A0 gpmc_nand_data =3D _nand_data;
+>> - =A0 =A0 =A0 gpmc_nand_data->nand_setup =3D omap2_nand_gpmc_retime;
+>
+> Purpose of doing this was to be able to utilise
+> 'omap2_nand_gpmc_retime', when DVFS is ready to use it,
+> for changing timing parameter dynamically when a frequency change is =
+done.
 
-Signed-off-by: Joel A Fernandes <joelagnel@ti.com>
-Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
----
- arch/arm/mach-omap2/board-omap3beagle.c |   70 ++++++++++++++++++++-----------
- 1 files changed, 46 insertions(+), 24 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-omap3beagle.c
-b/arch/arm/mach-omap2/board-omap3beagle.c
-index 7f21d24..261fb53 100644
---- a/arch/arm/mach-omap2/board-omap3beagle.c
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -61,7 +61,8 @@
-  *     AXBX    = GPIO173, GPIO172, GPIO171: 1 1 1
-  *     C1_3    = GPIO173, GPIO172, GPIO171: 1 1 0
-  *     C4      = GPIO173, GPIO172, GPIO171: 1 0 1
-- *     XM      = GPIO173, GPIO172, GPIO171: 0 0 0
-+ *     XMA/XMB = GPIO173, GPIO172, GPIO171: 0 0 0
-+ *     XMC = GPIO173, GPIO172, GPIO171: 0 1 0
-  */
- enum {
-        OMAP3BEAGLE_BOARD_UNKN = 0,
-@@ -69,14 +70,26 @@ enum {
-        OMAP3BEAGLE_BOARD_C1_3,
-        OMAP3BEAGLE_BOARD_C4,
-        OMAP3BEAGLE_BOARD_XM,
-+       OMAP3BEAGLE_BOARD_XMC,
- };
-
- static u8 omap3_beagle_version;
-
--static u8 omap3_beagle_get_rev(void)
--{
--       return omap3_beagle_version;
--}
-+/*
-+ * Board-specific configuration
-+ * Defaults to BeagleBoard-xMC
-+ */
-+static struct {
-+       int mmc1_gpio_wp;
-+       int usb_pwr_level;
-+       int reset_gpio;
-+       int usr_button_gpio;
-+} beagle_config = {
-+       .mmc1_gpio_wp = -EINVAL,
-+       .usb_pwr_level = GPIOF_OUT_INIT_LOW,
-+       .reset_gpio = 129,
-+       .usr_button_gpio = 4,
-+};
-
- static struct gpio omap3_beagle_rev_gpios[] __initdata = {
-        { 171, GPIOF_IN, "rev_id_0"    },
-@@ -111,18 +124,32 @@ static void __init omap3_beagle_init_rev(void)
-        case 7:
-                printk(KERN_INFO "OMAP3 Beagle Rev: Ax/Bx\n");
-                omap3_beagle_version = OMAP3BEAGLE_BOARD_AXBX;
-+               beagle_config.mmc1_gpio_wp = 29;
-+               beagle_config.reset_gpio = 170;
-+               beagle_config.usr_button_gpio = 7;
-                break;
-        case 6:
-                printk(KERN_INFO "OMAP3 Beagle Rev: C1/C2/C3\n");
-                omap3_beagle_version = OMAP3BEAGLE_BOARD_C1_3;
-+               beagle_config.mmc1_gpio_wp = 23;
-+               beagle_config.reset_gpio = 170;
-+               beagle_config.usr_button_gpio = 7;
-                break;
-        case 5:
-                printk(KERN_INFO "OMAP3 Beagle Rev: C4\n");
-                omap3_beagle_version = OMAP3BEAGLE_BOARD_C4;
-+               beagle_config.mmc1_gpio_wp = 23;
-+               beagle_config.reset_gpio = 170;
-+               beagle_config.usr_button_gpio = 7;
-                break;
-        case 0:
-                printk(KERN_INFO "OMAP3 Beagle Rev: xM\n");
-                omap3_beagle_version = OMAP3BEAGLE_BOARD_XM;
-+               beagle_config.usb_pwr_level = GPIOF_OUT_INIT_HIGH;
-+               break;
-+       case 2:
-+               printk(KERN_INFO "OMAP3 Beagle Rev: xM C\n");
-+               omap3_beagle_version = OMAP3BEAGLE_BOARD_XMC;
-                break;
-        default:
-                printk(KERN_INFO "OMAP3 Beagle Rev: unknown %hd\n", beagle_rev);
-@@ -234,7 +261,7 @@ static struct omap2_hsmmc_info mmc[] = {
-        {
-                .mmc            = 1,
-                .caps           = MMC_CAP_4_BIT_DATA | MMC_CAP_8_BIT_DATA,
--               .gpio_wp        = 29,
-+               .gpio_wp        = -EINVAL,
-        },
-        {}      /* Terminator */
- };
-@@ -252,17 +279,11 @@ static struct gpio_led gpio_leds[];
- static int beagle_twl_gpio_setup(struct device *dev,
-                unsigned gpio, unsigned ngpio)
- {
--       int r, usb_pwr_level;
--
--       if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM) {
--               mmc[0].gpio_wp = -EINVAL;
--       } else if ((omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_C1_3) ||
--               (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_C4)) {
--               omap_mux_init_gpio(23, OMAP_PIN_INPUT);
--               mmc[0].gpio_wp = 23;
--       } else {
--               omap_mux_init_gpio(29, OMAP_PIN_INPUT);
--       }
-+       int r;
-+
-+       if (beagle_config.mmc1_gpio_wp != -EINVAL)
-+               omap_mux_init_gpio(beagle_config.mmc1_gpio_wp, OMAP_PIN_INPUT);
-+       mmc[0].gpio_wp = beagle_config.mmc1_gpio_wp;
-        /* gpio + 0 is "mmc0_cd" (input/IRQ) */
-        mmc[0].gpio_cd = gpio + 0;
-        omap2_hsmmc_init(mmc);
-@@ -276,9 +297,7 @@ static int beagle_twl_gpio_setup(struct device *dev,
-         * high / others active low)
-         * DVI reset GPIO is different between beagle revisions
-         */
--       if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM) {
--               usb_pwr_level = GPIOF_OUT_INIT_HIGH;
--               beagle_dvi_device.reset_gpio = 129;
-+       if (cpu_is_omap3630()) {
-                /*
-                 * gpio + 1 on Xm controls the TFP410's enable line (active low)
-                 * gpio + 2 control varies depending on the board rev as below:
-@@ -296,8 +315,6 @@ static int beagle_twl_gpio_setup(struct device *dev,
-                        pr_err("%s: unable to configure DVI_LDO_EN\n",
-                                __func__);
-        } else {
--               usb_pwr_level = GPIOF_OUT_INIT_LOW;
--               beagle_dvi_device.reset_gpio = 170;
-                /*
-                 * REVISIT: need ehci-omap hooks for external VBUS
-                 * power switch and overcurrent detect
-@@ -305,8 +322,10 @@ static int beagle_twl_gpio_setup(struct device *dev,
-                if (gpio_request_one(gpio + 1, GPIOF_IN, "EHCI_nOC"))
-                        pr_err("%s: unable to configure EHCI_nOC\n", __func__);
-        }
-+       beagle_dvi_device.reset_gpio = beagle_config.reset_gpio;
-
--       gpio_request_one(gpio + TWL4030_GPIO_MAX, usb_pwr_level, "nEN_USB_PWR");
-+       gpio_request_one(gpio + TWL4030_GPIO_MAX, beagle_config.usb_pwr_level,
-+                       "nEN_USB_PWR");
-
-        /* TWL4030_GPIO_MAX + 1 == ledB, PMU_STAT (out, active low LED) */
-        gpio_leds[2].gpio = gpio + TWL4030_GPIO_MAX + 1;
-@@ -526,7 +545,7 @@ static void __init beagle_opp_init(void)
-        }
-
-        /* Custom OPP enabled for XM */
--       if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM) {
-+       if (cpu_is_omap3630()) {
-                struct omap_hwmod *mh = omap_hwmod_lookup("mpu");
-                struct omap_hwmod *dh = omap_hwmod_lookup("iva");
-                struct device *dev;
-@@ -566,6 +585,9 @@ static void __init omap3_beagle_init(void)
-        omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
-        omap3_beagle_init_rev();
-        omap3_beagle_i2c_init();
-+
-+       gpio_buttons[0].gpio = beagle_config.usr_button_gpio;
-+
-        platform_add_devices(omap3_beagle_devices,
-                        ARRAY_SIZE(omap3_beagle_devices));
-        omap_display_init(&beagle_dss_data);
+Well but it seems currently ...retime() only does single static
+configuration, I guess when it's updated to do DVFS stuff callback can
+easily be added back..
 --
-1.6.1
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
