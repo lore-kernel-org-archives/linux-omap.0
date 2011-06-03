@@ -1,224 +1,137 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 01/27] OMAP: change get_context_loss_count ret value to int
-Date: Fri,  3 Jun 2011 13:00:11 +0300
-Message-ID: <1307095237-14805-2-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 04/27] OMAP: DSS2: Handle dpll4_m4_ck in dss_get/put_clocks
+Date: Fri,  3 Jun 2011 13:00:14 +0300
+Message-ID: <1307095237-14805-5-git-send-email-tomi.valkeinen@ti.com>
 References: <1307095237-14805-1-git-send-email-tomi.valkeinen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:41956 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752631Ab1FCKBD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Jun 2011 06:01:03 -0400
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:34621 "EHLO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752631Ab1FCKBI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Jun 2011 06:01:08 -0400
 In-Reply-To: <1307095237-14805-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 Cc: b-cousson@ti.com, paul@pwsan.com, khilman@ti.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-get_context_loss_count functions return context loss count as u32, and
-zero means an error. However, zero is also returned when context has
-never been lost and could also be returned when the context loss count
-has wrapped and goes to zero.
-
-Change the functions to return an int, with negative value meaning an
-error.
-
-OMAP HSMMC code uses omap_pm_get_dev_context_loss_count(), but as the
-hsmmc code handles the returned value as an int, with negative value
-meaning an error, this patch actually fixes hsmmc code also.
+Get and put for dpll4_m4_ck was handled in dss_init/dss_exit. Move the
+code to dss_get/put_clocks(), which is a better place to handle it.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Acked-by: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod.c              |    2 +-
- arch/arm/mach-omap2/powerdomain.c             |   14 ++++++++++----
- arch/arm/mach-omap2/powerdomain.h             |    2 +-
- arch/arm/plat-omap/include/plat/omap-pm.h     |    4 ++--
- arch/arm/plat-omap/include/plat/omap_device.h |    2 +-
- arch/arm/plat-omap/include/plat/omap_hwmod.h  |    2 +-
- arch/arm/plat-omap/omap-pm-noop.c             |   24 +++++++++++++++++-------
- arch/arm/plat-omap/omap_device.c              |    2 +-
- 8 files changed, 34 insertions(+), 18 deletions(-)
+ drivers/video/omap2/dss/dss.c |   52 ++++++++++++++++++++--------------------
+ 1 files changed, 26 insertions(+), 26 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index e034294..4f0d554 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -2332,7 +2332,7 @@ ohsps_unlock:
-  * Returns the context loss count of the powerdomain assocated with @oh
-  * upon success, or zero if no powerdomain exists for @oh.
-  */
--u32 omap_hwmod_get_context_loss_count(struct omap_hwmod *oh)
-+int omap_hwmod_get_context_loss_count(struct omap_hwmod *oh)
- {
- 	struct powerdomain *pwrdm;
- 	int ret = 0;
-diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-index 9af0847..9d53a34 100644
---- a/arch/arm/mach-omap2/powerdomain.c
-+++ b/arch/arm/mach-omap2/powerdomain.c
-@@ -935,16 +935,16 @@ int pwrdm_post_transition(void)
-  * @pwrdm: struct powerdomain * to wait for
-  *
-  * Context loss count is the sum of powerdomain off-mode counter, the
-- * logic off counter and the per-bank memory off counter.  Returns 0
-+ * logic off counter and the per-bank memory off counter.  Returns negative
-  * (and WARNs) upon error, otherwise, returns the context loss count.
-  */
--u32 pwrdm_get_context_loss_count(struct powerdomain *pwrdm)
-+int pwrdm_get_context_loss_count(struct powerdomain *pwrdm)
- {
- 	int i, count;
+diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
+index d0b3f81..3eed8a2 100644
+--- a/drivers/video/omap2/dss/dss.c
++++ b/drivers/video/omap2/dss/dss.c
+@@ -669,7 +669,6 @@ static int dss_init(void)
+ 	int r;
+ 	u32 rev;
+ 	struct resource *dss_mem;
+-	struct clk *dpll4_m4_ck;
  
- 	if (!pwrdm) {
- 		WARN(1, "powerdomain: %s: pwrdm is null\n", __func__);
--		return 0;
-+		return -ENODEV;
- 	}
+ 	dss_mem = platform_get_resource(dss.pdev, IORESOURCE_MEM, 0);
+ 	if (!dss_mem) {
+@@ -715,26 +714,6 @@ static int dss_init(void)
+ 	REG_FLD_MOD(DSS_CONTROL, 1, 3, 3);	/* venc clock 4x enable */
+ 	REG_FLD_MOD(DSS_CONTROL, 0, 2, 2);	/* venc clock mode = normal */
+ #endif
+-	if (cpu_is_omap34xx()) {
+-		dpll4_m4_ck = clk_get(NULL, "dpll4_m4_ck");
+-		if (IS_ERR(dpll4_m4_ck)) {
+-			DSSERR("Failed to get dpll4_m4_ck\n");
+-			r = PTR_ERR(dpll4_m4_ck);
+-			goto fail1;
+-		}
+-	} else if (cpu_is_omap44xx()) {
+-		dpll4_m4_ck = clk_get(NULL, "dpll_per_m5x2_ck");
+-		if (IS_ERR(dpll4_m4_ck)) {
+-			DSSERR("Failed to get dpll4_m4_ck\n");
+-			r = PTR_ERR(dpll4_m4_ck);
+-			goto fail1;
+-		}
+-	} else { /* omap24xx */
+-		dpll4_m4_ck = NULL;
+-	}
+-
+-	dss.dpll4_m4_ck = dpll4_m4_ck;
+-
+ 	dss.dsi_clk_source[0] = OMAP_DSS_CLK_SRC_FCK;
+ 	dss.dsi_clk_source[1] = OMAP_DSS_CLK_SRC_FCK;
+ 	dss.dispc_clk_source = OMAP_DSS_CLK_SRC_FCK;
+@@ -749,17 +728,12 @@ static int dss_init(void)
  
- 	count = pwrdm->state_counter[PWRDM_POWER_OFF];
-@@ -953,7 +953,13 @@ u32 pwrdm_get_context_loss_count(struct powerdomain *pwrdm)
- 	for (i = 0; i < pwrdm->banks; i++)
- 		count += pwrdm->ret_mem_off_counter[i];
+ 	return 0;
  
--	pr_debug("powerdomain: %s: context loss count = %u\n",
-+	/*
-+	 * Context loss count has to be a non-negative value. Clear the sign
-+	 * bit to get a value range from 0 to INT_MAX.
-+	 */
-+	count &= INT_MAX;
-+
-+	pr_debug("powerdomain: %s: context loss count = %d\n",
- 		 pwrdm->name, count);
- 
- 	return count;
-diff --git a/arch/arm/mach-omap2/powerdomain.h b/arch/arm/mach-omap2/powerdomain.h
-index d23d979..012827f 100644
---- a/arch/arm/mach-omap2/powerdomain.h
-+++ b/arch/arm/mach-omap2/powerdomain.h
-@@ -207,7 +207,7 @@ int pwrdm_clkdm_state_switch(struct clockdomain *clkdm);
- int pwrdm_pre_transition(void);
- int pwrdm_post_transition(void);
- int pwrdm_set_lowpwrstchange(struct powerdomain *pwrdm);
--u32 pwrdm_get_context_loss_count(struct powerdomain *pwrdm);
-+int pwrdm_get_context_loss_count(struct powerdomain *pwrdm);
- bool pwrdm_can_ever_lose_context(struct powerdomain *pwrdm);
- 
- extern void omap2xxx_powerdomains_init(void);
-diff --git a/arch/arm/plat-omap/include/plat/omap-pm.h b/arch/arm/plat-omap/include/plat/omap-pm.h
-index c0a7520..68df031 100644
---- a/arch/arm/plat-omap/include/plat/omap-pm.h
-+++ b/arch/arm/plat-omap/include/plat/omap-pm.h
-@@ -350,9 +350,9 @@ unsigned long omap_pm_cpu_get_freq(void);
-  * driver must restore device context.   If the number of context losses
-  * exceeds the maximum positive integer, the function will wrap to 0 and
-  * continue counting.  Returns the number of context losses for this device,
-- * or zero upon error.
-+ * or negative value upon error.
-  */
--u32 omap_pm_get_dev_context_loss_count(struct device *dev);
-+int omap_pm_get_dev_context_loss_count(struct device *dev);
- 
- void omap_pm_enable_off_mode(void);
- void omap_pm_disable_off_mode(void);
-diff --git a/arch/arm/plat-omap/include/plat/omap_device.h b/arch/arm/plat-omap/include/plat/omap_device.h
-index e4c349f..70d31d0 100644
---- a/arch/arm/plat-omap/include/plat/omap_device.h
-+++ b/arch/arm/plat-omap/include/plat/omap_device.h
-@@ -107,7 +107,7 @@ void __iomem *omap_device_get_rt_va(struct omap_device *od);
- int omap_device_align_pm_lat(struct platform_device *pdev,
- 			     u32 new_wakeup_lat_limit);
- struct powerdomain *omap_device_get_pwrdm(struct omap_device *od);
--u32 omap_device_get_context_loss_count(struct platform_device *pdev);
-+int omap_device_get_context_loss_count(struct platform_device *pdev);
- 
- /* Other */
- 
-diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-index 1adea9c..8658e2d 100644
---- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
-+++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-@@ -598,7 +598,7 @@ int omap_hwmod_for_each_by_class(const char *classname,
- 				 void *user);
- 
- int omap_hwmod_set_postsetup_state(struct omap_hwmod *oh, u8 state);
--u32 omap_hwmod_get_context_loss_count(struct omap_hwmod *oh);
-+int omap_hwmod_get_context_loss_count(struct omap_hwmod *oh);
- 
- int omap_hwmod_no_setup_reset(struct omap_hwmod *oh);
- 
-diff --git a/arch/arm/plat-omap/omap-pm-noop.c b/arch/arm/plat-omap/omap-pm-noop.c
-index b0471bb2..3dc3801 100644
---- a/arch/arm/plat-omap/omap-pm-noop.c
-+++ b/arch/arm/plat-omap/omap-pm-noop.c
-@@ -27,7 +27,7 @@
- #include <plat/omap_device.h>
- 
- static bool off_mode_enabled;
--static u32 dummy_context_loss_counter;
-+static int dummy_context_loss_counter;
- 
- /*
-  * Device-driver-originated constraints (via board-*.c files)
-@@ -311,22 +311,32 @@ void omap_pm_disable_off_mode(void)
- 
- #ifdef CONFIG_ARCH_OMAP2PLUS
- 
--u32 omap_pm_get_dev_context_loss_count(struct device *dev)
-+int omap_pm_get_dev_context_loss_count(struct device *dev)
- {
- 	struct platform_device *pdev = to_platform_device(dev);
--	u32 count;
-+	int count;
- 
- 	if (WARN_ON(!dev))
--		return 0;
-+		return -ENODEV;
- 
- 	if (dev->parent == &omap_device_parent) {
- 		count = omap_device_get_context_loss_count(pdev);
- 	} else {
- 		WARN_ONCE(off_mode_enabled, "omap_pm: using dummy context loss counter; device %s should be converted to omap_device",
- 			  dev_name(dev));
--		if (off_mode_enabled)
--			dummy_context_loss_counter++;
-+
- 		count = dummy_context_loss_counter;
-+
-+		if (off_mode_enabled) {
-+			count++;
-+			/*
-+			 * Context loss count has to be a non-negative value.
-+			 * Clear the sign bit to get a value range from 0 to
-+			 * INT_MAX.
-+			 */
-+			count &= INT_MAX;
-+			dummy_context_loss_counter = count;
-+		}
- 	}
- 
- 	pr_debug("OMAP PM: context loss count for dev %s = %d\n",
-@@ -337,7 +347,7 @@ u32 omap_pm_get_dev_context_loss_count(struct device *dev)
- 
- #else
- 
--u32 omap_pm_get_dev_context_loss_count(struct device *dev)
-+int omap_pm_get_dev_context_loss_count(struct device *dev)
- {
- 	return dummy_context_loss_counter;
+-fail1:
+-	iounmap(dss.base);
+ fail0:
+ 	return r;
  }
-diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
-index 9bbda9a..9753f71 100644
---- a/arch/arm/plat-omap/omap_device.c
-+++ b/arch/arm/plat-omap/omap_device.c
-@@ -310,7 +310,7 @@ static void _add_optional_clock_clkdev(struct omap_device *od,
-  * return the context loss counter for that hwmod, otherwise return
-  * zero.
-  */
--u32 omap_device_get_context_loss_count(struct platform_device *pdev)
-+int omap_device_get_context_loss_count(struct platform_device *pdev)
+ 
+ static void dss_exit(void)
  {
- 	struct omap_device *od;
- 	u32 ret = 0;
+-	if (dss.dpll4_m4_ck)
+-		clk_put(dss.dpll4_m4_ck);
+-
+ 	iounmap(dss.base);
+ }
+ 
+@@ -845,6 +819,7 @@ static int dss_get_clock(struct clk **clock, const char *clk_name)
+ static int dss_get_clocks(void)
+ {
+ 	int r;
++	struct clk *dpll4_m4_ck;
+ 	struct omap_display_platform_data *pdata = dss.pdev->dev.platform_data;
+ 
+ 	dss.dss_ick = NULL;
+@@ -884,6 +859,27 @@ static int dss_get_clocks(void)
+ 			goto err;
+ 	}
+ 
++	if (cpu_is_omap34xx()) {
++		dpll4_m4_ck = clk_get(NULL, "dpll4_m4_ck");
++		if (IS_ERR(dpll4_m4_ck)) {
++			DSSERR("Failed to get dpll4_m4_ck\n");
++			r = PTR_ERR(dpll4_m4_ck);
++			goto err;
++		}
++	} else if (cpu_is_omap44xx()) {
++		dpll4_m4_ck = clk_get(NULL, "dpll_per_m5x2_ck");
++		if (IS_ERR(dpll4_m4_ck)) {
++			DSSERR("Failed to get dpll4_m4_ck\n");
++			r = PTR_ERR(dpll4_m4_ck);
++			goto err;
++		}
++	} else { /* omap24xx */
++		dpll4_m4_ck = NULL;
++	}
++
++	dss.dpll4_m4_ck = dpll4_m4_ck;
++
++
+ 	return 0;
+ 
+ err:
+@@ -897,12 +893,16 @@ err:
+ 		clk_put(dss.dss_tv_fck);
+ 	if (dss.dss_video_fck)
+ 		clk_put(dss.dss_video_fck);
++	if (dss.dpll4_m4_ck)
++		clk_put(dss.dpll4_m4_ck);
+ 
+ 	return r;
+ }
+ 
+ static void dss_put_clocks(void)
+ {
++	if (dss.dpll4_m4_ck)
++		clk_put(dss.dpll4_m4_ck);
+ 	if (dss.dss_video_fck)
+ 		clk_put(dss.dss_video_fck);
+ 	if (dss.dss_tv_fck)
 -- 
 1.7.4.1
 
