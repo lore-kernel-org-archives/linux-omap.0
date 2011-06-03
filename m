@@ -1,77 +1,101 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [pm_wip/voltdm_nm][PATCH 1/2] OMAP3+: PM: VP: use uV for max and min voltage limits
-Date: Fri, 03 Jun 2011 09:51:35 -0700
-Message-ID: <87pqmug8o8.fsf@ti.com>
-References: <1306827232-27728-1-git-send-email-nm@ti.com>
-	<1306827232-27728-2-git-send-email-nm@ti.com>
+Subject: Re: [pm_wip/voltdm_nm][PATCH v2 2/3] OMAP4: PM: VC: introduce concept of default channel
+Date: Fri, 03 Jun 2011 10:27:31 -0700
+Message-ID: <878vtig70c.fsf@ti.com>
+References: <1306711180-8631-1-git-send-email-nm@ti.com>
+	<1306711180-8631-3-git-send-email-nm@ti.com> <87pqmvn6gk.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:52904 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750965Ab1FCQvi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Jun 2011 12:51:38 -0400
-Received: by mail-px0-f182.google.com with SMTP id 20so1529659pxi.27
-        for <linux-omap@vger.kernel.org>; Fri, 03 Jun 2011 09:51:37 -0700 (PDT)
-In-Reply-To: <1306827232-27728-2-git-send-email-nm@ti.com> (Nishanth Menon's
-	message of "Tue, 31 May 2011 02:33:51 -0500")
+Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:54259 "EHLO
+	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753966Ab1FCR1f (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Jun 2011 13:27:35 -0400
+Received: by mail-pw0-f51.google.com with SMTP id 9so1338381pwi.24
+        for <linux-omap@vger.kernel.org>; Fri, 03 Jun 2011 10:27:34 -0700 (PDT)
+In-Reply-To: <87pqmvn6gk.fsf@ti.com> (Kevin Hilman's message of "Thu, 02 Jun
+	2011 16:45:15 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Nishanth Menon <nm@ti.com>
 Cc: linux-omap <linux-omap@vger.kernel.org>
 
-Nishanth Menon <nm@ti.com> writes:
+Hi Nishanth,
 
-> Every PMIC has it's own eccentricities, For example, one of the
-> PMIC has MSB set to 1 for a specific function - voltage enable!
-> using an hardcoded value specific for TWL when copied over to
-> such an implementation causes the system to crash as the MSB bit
-> was 0 and the voltage got disabled!.
->
-> Instead we use actual values and depend on the convertion routines
-> to abstract out the eccentricities of each PMIC.
->
-> With this, we can now move the voltages to a common location in
-> voltage.h as they are no longer dependent on PMICs and expect the
-> PMIC's conversion routines to set a cap if the voltage is out of
-> reach for the PMIC.
->
-> Reported-by: Jon Hunter <jon-hunter@ti.com>
-> Signed-off-by: Nishanth Menon <nm@ti.com>
-
-Nice.
-
-Minor comment for consideration while you're update this work...
+Kevin Hilman <khilman@ti.com> writes:
 
 [...]
 
-> diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
-> index f079167..7366793 100644
-> --- a/arch/arm/mach-omap2/voltage.h
-> +++ b/arch/arm/mach-omap2/voltage.h
-> @@ -109,6 +109,24 @@ struct omap_volt_data {
->  	u8	vp_errgain;
->  };
->  
-> +/* Min and max voltages from OMAP perspective */
-> +#define OMAP3430_VP1_VLIMITTO_VDDMIN	850000
-> +#define OMAP3430_VP1_VLIMITTO_VDDMAX	1425000
-> +#define OMAP3430_VP2_VLIMITTO_VDDMIN	900000
-> +#define OMAP3430_VP2_VLIMITTO_VDDMAX	1150000
-> +
-> +#define OMAP3630_VP1_VLIMITTO_VDDMIN	900000
-> +#define OMAP3630_VP1_VLIMITTO_VDDMAX	1350000
-> +#define OMAP3630_VP2_VLIMITTO_VDDMIN	900000
-> +#define OMAP3630_VP2_VLIMITTO_VDDMAX	1200000
-> +
-> +#define OMAP4_VP_MPU_VLIMITTO_VDDMIN	830000
-> +#define OMAP4_VP_MPU_VLIMITTO_VDDMAX	1410000
-> +#define OMAP4_VP_IVA_VLIMITTO_VDDMIN	830000
-> +#define OMAP4_VP_IVA_VLIMITTO_VDDMAX	1260000
-> +#define OMAP4_VP_CORE_VLIMITTO_VDDMIN	830000
-> +#define OMAP4_VP_CORE_VLIMITTO_VDDMAX	1200000
-> +
+>
+> So rather than take this patch, I'm just going to fold the following
+> diff into "OMAP3+: VC: abstract out channel configuration" in voltdm_b.
+> I'll also update the changelog noting that the TRM is wrong here in that
+> it describes CORE as the default channel when it's in fact MPU.
+>
 
-Plese reference what doc/TRM/appnote etc. these values come from.
+FYI...
+
+I modified this slightly in the current voltdm_* branch in that I'm now
+using a 'u8 flags' in the VC struct intead of a bool for this since  I expect
+to have some other reasons to use various flags.
 
 Kevin
+
+>
+> diff --git a/arch/arm/mach-omap2/vc.c b/arch/arm/mach-omap2/vc.c
+> index fba352d..fa48944 100644
+> --- a/arch/arm/mach-omap2/vc.c
+> +++ b/arch/arm/mach-omap2/vc.c
+> @@ -33,21 +33,20 @@
+>   * - command configuration address (RAC) and enable bit (RACEN)
+>   * - command values for ON, ONLP, RET and OFF (CMD)
+>   *
+> - * This function currently only allows flexible configuration of
+> - * the non-default channel (e.g. non-zero channels.)  Starting with
+> - * OMAP4, only the non-zero channels can be configured.  Channel zero
+> - * always uses the channel zero register values.  Therefore, the
+> - * same limitation is imposed on OMAP3 for consistency.
+> + * This function currently only allows flexible configuration of the
+> + * non-default channel.  Starting with OMAP4, there are more than 2
+> + * channels, with one defined as the default (on OMAP4, it's MPU.)
+> + * Only the non-default channel can be configured.
+>   */
+>  static int omap_vc_config_channel(struct voltagedomain *voltdm)
+>  {
+>  	struct omap_vc_channel *vc = voltdm->vc;
+>  
+>  	/*
+> -	 * For channel zero, the only configurable bit is RACEN.
+> +	 * For default channel, the only configurable bit is RACEN.
+>  	 * All others must stay at zero (see function comment above.)
+>  	 */
+> -	if (!vc->cfg_channel_sa_shift)
+> +	if (vc->is_default_channel)
+>  		vc->cfg_channel &= CFG_CHANNEL_RACEN;
+>  
+>  	voltdm->rmw(CFG_CHANNEL_MASK << vc->cfg_channel_sa_shift,
+> diff --git a/arch/arm/mach-omap2/vc.h b/arch/arm/mach-omap2/vc.h
+> index f0fb61f..c216b57 100644
+> --- a/arch/arm/mach-omap2/vc.h
+> +++ b/arch/arm/mach-omap2/vc.h
+> @@ -84,6 +84,8 @@ struct omap_vc_channel {
+>  	u32 smps_cmdra_mask;
+>  	u8 cmdval_reg;
+>  	u8 cfg_channel_sa_shift;
+> +
+> +	bool is_default_channel;
+>  };
+>  
+>  extern struct omap_vc_channel omap3_vc_mpu;
+> diff --git a/arch/arm/mach-omap2/vc44xx_data.c b/arch/arm/mach-omap2/vc44xx_data.c
+> index fe4f4e5..5844b20 100644
+> --- a/arch/arm/mach-omap2/vc44xx_data.c
+> +++ b/arch/arm/mach-omap2/vc44xx_data.c
+> @@ -58,6 +58,7 @@ struct omap_vc_channel omap4_vc_mpu = {
+>  	.smps_volra_mask = OMAP4430_VOLRA_VDD_MPU_L_MASK,
+>  	.smps_cmdra_mask = OMAP4430_CMDRA_VDD_MPU_L_MASK,
+>  	.cfg_channel_sa_shift = OMAP4430_SA_VDD_MPU_L_SHIFT,
+> +	.is_default_channel = true,
+>  };
+>  
+>  struct omap_vc_channel omap4_vc_iva = {
