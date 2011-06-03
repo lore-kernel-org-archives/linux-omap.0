@@ -1,76 +1,146 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 14/27] OMAP: DSS2: Remove CONFIG_OMAP2_DSS_SLEEP_BEFORE_RESET
-Date: Fri,  3 Jun 2011 13:00:24 +0300
-Message-ID: <1307095237-14805-15-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 15/27] OMAP4: HWMOD: Modify DSS opt clocks
+Date: Fri,  3 Jun 2011 13:00:25 +0300
+Message-ID: <1307095237-14805-16-git-send-email-tomi.valkeinen@ti.com>
 References: <1307095237-14805-1-git-send-email-tomi.valkeinen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:40887 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753811Ab1FCKBa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Jun 2011 06:01:30 -0400
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:46699 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754162Ab1FCKBe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Jun 2011 06:01:34 -0400
 In-Reply-To: <1307095237-14805-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 Cc: b-cousson@ti.com, paul@pwsan.com, khilman@ti.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-CONFIG_OMAP2_DSS_SLEEP_BEFORE_RESET is used to avoid an unclear bug at
-DSS reset time. The pm runtime will handle reset in the future, and this
-code has to be removed. Hopefully we won't see this error anymore.
+Add missing DSS optional clocks to HWMOD data for OMAP4xxx.
 
+Add HWMOD_CONTROL_OPT_CLKS_IN_RESET flag for dispc to fix dispc reset.
+
+Cc: Benoit Cousson <b-cousson@ti.com>
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/dss/Kconfig |   12 ------------
- drivers/video/omap2/dss/dss.c   |   13 -------------
- 2 files changed, 0 insertions(+), 25 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   40 ++++++++++++++++++++++++++++
+ 1 files changed, 40 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/Kconfig b/drivers/video/omap2/dss/Kconfig
-index 6b3e2da..0d12524 100644
---- a/drivers/video/omap2/dss/Kconfig
-+++ b/drivers/video/omap2/dss/Kconfig
-@@ -117,18 +117,6 @@ config OMAP2_DSS_MIN_FCK_PER_PCK
- 	  Max FCK is 173MHz, so this doesn't work if your PCK
- 	  is very high.
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+index abc548a..4f6ae94 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -1263,9 +1263,21 @@ static struct omap_hwmod_ocp_if *omap44xx_dss_dispc_slaves[] = {
+ 	&omap44xx_l4_per__dss_dispc,
+ };
  
--config OMAP2_DSS_SLEEP_BEFORE_RESET
--	bool "Sleep 50ms before DSS reset"
--	default y
--	help
--	  For some unknown reason we may get SYNC_LOST errors from the display
--	  subsystem at initialization time if we don't sleep before resetting
--	  the DSS. See the source (dss.c) for more comments.
--
--	  However, 50ms is quite long time to sleep, and with some
--	  configurations the SYNC_LOST may never happen, so the sleep can
--	  be disabled here.
--
- config OMAP2_DSS_SLEEP_AFTER_VENC_RESET
- 	bool "Sleep 20ms after VENC reset"
- 	default y
-diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
-index 951c849..a0e933a 100644
---- a/drivers/video/omap2/dss/dss.c
-+++ b/drivers/video/omap2/dss/dss.c
-@@ -1037,19 +1037,6 @@ static int omap_dsshw_probe(struct platform_device *pdev)
- 	 * the kernel resets it */
- 	omap_writel(omap_readl(0x48050440) & ~0x3, 0x48050440);
++static struct omap_hwmod_opt_clk dispc_opt_clks[] = {
++	{ .role = "dss_clk", .clk = "dss_dss_clk" },
++	/*
++	 * The rest of the clocks are not needed by the driver,
++	 * but are needed by the hwmod to reset DSS properly.
++	 */
++	{ .role = "sys_clk", .clk = "dss_sys_clk" },
++	{ .role = "tv_clk", .clk = "dss_tv_clk" },
++	{ .role = "hdmi_clk", .clk = "dss_48mhz_clk" },
++};
++
+ static struct omap_hwmod omap44xx_dss_dispc_hwmod = {
+ 	.name		= "dss_dispc",
+ 	.class		= &omap44xx_dispc_hwmod_class,
++	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+ 	.mpu_irqs	= omap44xx_dss_dispc_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_dss_dispc_irqs),
+ 	.sdma_reqs	= omap44xx_dss_dispc_sdma_reqs,
+@@ -1276,6 +1288,8 @@ static struct omap_hwmod omap44xx_dss_dispc_hwmod = {
+ 			.clkctrl_reg = OMAP4430_CM_DSS_DSS_CLKCTRL,
+ 		},
+ 	},
++	.opt_clks	= dispc_opt_clks,
++	.opt_clks_cnt	= ARRAY_SIZE(dispc_opt_clks),
+ 	.slaves		= omap44xx_dss_dispc_slaves,
+ 	.slaves_cnt	= ARRAY_SIZE(omap44xx_dss_dispc_slaves),
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+@@ -1354,6 +1368,11 @@ static struct omap_hwmod_ocp_if *omap44xx_dss_dsi1_slaves[] = {
+ 	&omap44xx_l4_per__dss_dsi1,
+ };
  
--#ifdef CONFIG_OMAP2_DSS_SLEEP_BEFORE_RESET
--	/* We need to wait here a bit, otherwise we sometimes start to
--	 * get synclost errors, and after that only power cycle will
--	 * restore DSS functionality. I have no idea why this happens.
--	 * And we have to wait _before_ resetting the DSS, but after
--	 * enabling clocks.
--	 *
--	 * This bug was at least present on OMAP3430. It's unknown
--	 * if it happens on OMAP2 or OMAP3630.
--	 */
--	msleep(50);
--#endif
--
- 	_omap_dss_reset();
++static struct omap_hwmod_opt_clk dsi1_opt_clks[] = {
++	{ .role = "dss_clk", .clk = "dss_dss_clk" },
++	{ .role = "sys_clk", .clk = "dss_sys_clk" },
++};
++
+ static struct omap_hwmod omap44xx_dss_dsi1_hwmod = {
+ 	.name		= "dss_dsi1",
+ 	.class		= &omap44xx_dsi_hwmod_class,
+@@ -1367,6 +1386,8 @@ static struct omap_hwmod omap44xx_dss_dsi1_hwmod = {
+ 			.clkctrl_reg = OMAP4430_CM_DSS_DSS_CLKCTRL,
+ 		},
+ 	},
++	.opt_clks	= dsi1_opt_clks,
++	.opt_clks_cnt	= ARRAY_SIZE(dsi1_opt_clks),
+ 	.slaves		= omap44xx_dss_dsi1_slaves,
+ 	.slaves_cnt	= ARRAY_SIZE(omap44xx_dss_dsi1_slaves),
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+@@ -1514,6 +1535,11 @@ static struct omap_hwmod_ocp_if *omap44xx_dss_hdmi_slaves[] = {
+ 	&omap44xx_l4_per__dss_hdmi,
+ };
  
- 	/* autoidle */
++static struct omap_hwmod_opt_clk hdmi_opt_clks[] = {
++	{ .role = "sys_clk", .clk = "dss_sys_clk" },
++	{ .role = "hdmi_clk", .clk = "dss_48mhz_clk" },
++};
++
+ static struct omap_hwmod omap44xx_dss_hdmi_hwmod = {
+ 	.name		= "dss_hdmi",
+ 	.class		= &omap44xx_hdmi_hwmod_class,
+@@ -1527,6 +1553,8 @@ static struct omap_hwmod omap44xx_dss_hdmi_hwmod = {
+ 			.clkctrl_reg = OMAP4430_CM_DSS_DSS_CLKCTRL,
+ 		},
+ 	},
++	.opt_clks	= hdmi_opt_clks,
++	.opt_clks_cnt	= ARRAY_SIZE(hdmi_opt_clks),
+ 	.slaves		= omap44xx_dss_hdmi_slaves,
+ 	.slaves_cnt	= ARRAY_SIZE(omap44xx_dss_hdmi_slaves),
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+@@ -1600,6 +1628,10 @@ static struct omap_hwmod_ocp_if *omap44xx_dss_rfbi_slaves[] = {
+ 	&omap44xx_l4_per__dss_rfbi,
+ };
+ 
++static struct omap_hwmod_opt_clk rfbi_opt_clks[] = {
++	{ .role = "rfbi_iclk", .clk = "dss_fck" },
++};
++
+ static struct omap_hwmod omap44xx_dss_rfbi_hwmod = {
+ 	.name		= "dss_rfbi",
+ 	.class		= &omap44xx_rfbi_hwmod_class,
+@@ -1611,6 +1643,8 @@ static struct omap_hwmod omap44xx_dss_rfbi_hwmod = {
+ 			.clkctrl_reg = OMAP4430_CM_DSS_DSS_CLKCTRL,
+ 		},
+ 	},
++	.opt_clks	= rfbi_opt_clks,
++	.opt_clks_cnt	= ARRAY_SIZE(rfbi_opt_clks),
+ 	.slaves		= omap44xx_dss_rfbi_slaves,
+ 	.slaves_cnt	= ARRAY_SIZE(omap44xx_dss_rfbi_slaves),
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+@@ -1669,6 +1703,10 @@ static struct omap_hwmod_ocp_if *omap44xx_dss_venc_slaves[] = {
+ 	&omap44xx_l4_per__dss_venc,
+ };
+ 
++static struct omap_hwmod_opt_clk venc_opt_clks[] = {
++	{ .role = "tv_clk", .clk = "dss_tv_clk" },
++};
++
+ static struct omap_hwmod omap44xx_dss_venc_hwmod = {
+ 	.name		= "dss_venc",
+ 	.class		= &omap44xx_venc_hwmod_class,
+@@ -1678,6 +1716,8 @@ static struct omap_hwmod omap44xx_dss_venc_hwmod = {
+ 			.clkctrl_reg = OMAP4430_CM_DSS_DSS_CLKCTRL,
+ 		},
+ 	},
++	.opt_clks	= venc_opt_clks,
++	.opt_clks_cnt	= ARRAY_SIZE(venc_opt_clks),
+ 	.slaves		= omap44xx_dss_venc_slaves,
+ 	.slaves_cnt	= ARRAY_SIZE(omap44xx_dss_venc_slaves),
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
 -- 
 1.7.4.1
 
