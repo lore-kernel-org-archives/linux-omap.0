@@ -1,71 +1,108 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 27/27] OMAP: DSS2: DSS: Fix context save/restore
-Date: Fri,  3 Jun 2011 13:00:37 +0300
-Message-ID: <1307095237-14805-28-git-send-email-tomi.valkeinen@ti.com>
-References: <1307095237-14805-1-git-send-email-tomi.valkeinen@ti.com>
+From: Igor Dmitriev <ext-dmitriev.igor@nokia.com>
+Subject: Re: [PATCH] OMAP2+: CPUfreq: Allow the CPU scaling when secondary
+ CPUs are offline.
+Date: Fri, 03 Jun 2011 13:07:41 +0300
+Message-ID: <1307095661.11365.1216.camel@digor-desktop.nmp.nokia.com>
+References: <4DE7A405.9030602@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:45533 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754392Ab1FCKCA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Jun 2011 06:02:00 -0400
-In-Reply-To: <1307095237-14805-1-git-send-email-tomi.valkeinen@ti.com>
+Received: from smtp.nokia.com ([147.243.128.26]:58278 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751834Ab1FCKNL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 3 Jun 2011 06:13:11 -0400
+In-Reply-To: <4DE7A405.9030602@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
-Cc: b-cousson@ti.com, paul@pwsan.com, khilman@ti.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: ext Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: l-o <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@ti.com>
 
-The current method of saving and restoring the context could cause a
-restore before saving, effectively "restoring" zero values to registers.
+Hi,
 
-Add ctx_valid field to indicate if the saved context is valid and can be
-restored.
+On Thu, 2011-06-02 at 20:23 +0530, ext Santosh Shilimkar wrote:
+> Missed Kevin in cc. :(
+> Sorry about that.
+> 
+> -------- Original Message --------
+> Subject: [PATCH] OMAP2+: CPUfreq: Allow the CPU scaling when secondary 
+> CPUs are offline.
+> Date: Thu, 2 Jun 2011 20:21:10 +0530
+> From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> To: <linux-omap@vger.kernel.org>
+> CC: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> 
+> Current OMAP2PLUS CPUfreq tagret() functions returns when all
+> the CPU's are not online. This will break DVFS when secondary
+> CPUs are offlined.
+> 
+> The intention of that check was just avoid CPU frequency change
+> during the window when CPU becomes online but it's cpufreq_init is
+> not done yet.
+> 
+> Fix the check accordingly.
+> 
+> Thanks for Nishant Menon <nm@ti.com> for reporting it.
+> 
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Reported-by: Nishanth Menon <nm@ti.com>
+> Tested-by: Vishwanath BS <vishwanath.bs@ti.com>
+> ---
+> There were some question of making the variable atomic etc
+> in an internal discussion. After some thinking, I realised
+> there is no need of that since this is just a counter which
+> maintains the count for online_cpus = cpufreq_init_cpus.
+> 
+>   arch/arm/mach-omap2/omap2plus-cpufreq.c |    9 ++++++++-
+>   1 files changed, 8 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/omap2plus-cpufreq.c 
+> b/arch/arm/mach-omap2/omap2plus-cpufreq.c
+> index 33a91ec..909bfcb 100644
+> --- a/arch/arm/mach-omap2/omap2plus-cpufreq.c
+> +++ b/arch/arm/mach-omap2/omap2plus-cpufreq.c
+> @@ -44,6 +44,7 @@ static struct cpufreq_frequency_table *freq_table;
+>   static struct clk *mpu_clk;
+>   static char *mpu_clk_name;
+>   static struct device *mpu_dev;
+> +static int cpus_initialized;
+> 
+>   static int omap_verify_speed(struct cpufreq_policy *policy)
+>   {
+> @@ -82,7 +83,7 @@ static int omap_target(struct cpufreq_policy *policy,
+>   	struct cpufreq_freqs freqs;
+> 
+>   	/* Changes not allowed until all CPUs are online */
 
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
----
- drivers/video/omap2/dss/dss.c |   10 ++++++++++
- 1 files changed, 10 insertions(+), 0 deletions(-)
+This comment are no more relevant and should be changed also...
 
-diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
-index 91572b6..964eb08 100644
---- a/drivers/video/omap2/dss/dss.c
-+++ b/drivers/video/omap2/dss/dss.c
-@@ -77,6 +77,7 @@ static struct {
- 	enum omap_dss_clk_source dispc_clk_source;
- 	enum omap_dss_clk_source lcd_clk_source[MAX_DSS_LCD_MANAGERS];
- 
-+	bool		ctx_valid;
- 	u32		ctx[DSS_SZ_REGS / sizeof(u32)];
- } dss;
- 
-@@ -112,12 +113,19 @@ static void dss_save_context(void)
- 		SR(SDI_CONTROL);
- 		SR(PLL_CONTROL);
- 	}
-+
-+	dss.ctx_valid = true;
-+
-+	DSSDBG("context saved\n");
- }
- 
- static void dss_restore_context(void)
- {
- 	DSSDBG("dss_restore_context\n");
- 
-+	if (!dss.ctx_valid)
-+		return;
-+
- 	RR(CONTROL);
- 
- 	if (dss_feat_get_supported_displays(OMAP_DSS_CHANNEL_LCD) &
-@@ -125,6 +133,8 @@ static void dss_restore_context(void)
- 		RR(SDI_CONTROL);
- 		RR(PLL_CONTROL);
- 	}
-+
-+	DSSDBG("context restored\n");
- }
- 
- #undef SR
--- 
-1.7.4.1
+> -	if (is_smp() && (num_online_cpus() < NR_CPUS))
+> +	if (is_smp() && (cpus_initialized < num_online_cpus()))
+>   		return ret;
+> 
+>   	/* Ensure desired rate is within allowed range.  Some govenors
+> @@ -194,6 +195,8 @@ static int __cpuinit omap_cpu_init(struct 
+> cpufreq_policy *policy)
+>   		policy->shared_type = CPUFREQ_SHARED_TYPE_ANY;
+>   		cpumask_or(cpumask, cpumask_of(policy->cpu), cpumask);
+>   		cpumask_copy(policy->cpus, cpumask);
+> +		cpus_initialized++;
+> +		smp_wmb();
+>   	}
+> 
+>   	/* FIXME: what's the actual transition time? */
+> @@ -206,6 +209,10 @@ static int omap_cpu_exit(struct cpufreq_policy *policy)
+>   {
+>   	clk_exit_cpufreq_table(&freq_table);
+>   	clk_put(mpu_clk);
+> +	if (is_smp()) {
+> +		cpus_initialized--;
+> +		smp_wmb();
+> +	}
+>   	return 0;
+>   }
+> 
+
+Best Regards,
+Igor Dmitriev
 
