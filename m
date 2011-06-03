@@ -1,42 +1,70 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 20/27] OMAP4: HWMOD: Remove unneeded DSS opt clocks
-Date: Fri,  3 Jun 2011 13:00:30 +0300
-Message-ID: <1307095237-14805-21-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 21/27] OMAP: DSS2: Remove unused opt_clock_available
+Date: Fri,  3 Jun 2011 13:00:31 +0300
+Message-ID: <1307095237-14805-22-git-send-email-tomi.valkeinen@ti.com>
 References: <1307095237-14805-1-git-send-email-tomi.valkeinen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:44282 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754257Ab1FCKBp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Jun 2011 06:01:45 -0400
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:52994 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754257Ab1FCKBt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Jun 2011 06:01:49 -0400
 In-Reply-To: <1307095237-14805-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 Cc: b-cousson@ti.com, paul@pwsan.com, khilman@ti.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Some of the optional clocks for dss_core are not needed. Remove them.
+opt_clock_available() is no longer needed, so remove it.
 
-Cc: Benoit Cousson <b-cousson@ti.com>
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    3 ---
- 1 files changed, 0 insertions(+), 3 deletions(-)
+ arch/arm/mach-omap2/display.c |   12 ------------
+ include/video/omapdss.h       |    2 --
+ 2 files changed, 0 insertions(+), 14 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index 4f6ae94..b374cd0 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -1164,10 +1164,7 @@ static struct omap_hwmod_ocp_if *omap44xx_dss_slaves[] = {
+diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
+index c7e19c4..af43620 100644
+--- a/arch/arm/mach-omap2/display.c
++++ b/arch/arm/mach-omap2/display.c
+@@ -46,17 +46,6 @@ static struct omap_device_pm_latency omap_dss_latency[] = {
+ /* oh_core is used for getting opt-clocks */
+ static struct omap_hwmod	*oh_core;
+ 
+-static bool opt_clock_available(const char *clk_role)
+-{
+-	int i;
+-
+-	for (i = 0; i < oh_core->opt_clks_cnt; i++) {
+-		if (!strcmp(oh_core->opt_clks[i].role, clk_role))
+-			return true;
+-	}
+-	return false;
+-}
+-
+ struct omap_dss_hwmod_data {
+ 	const char *oh_name;
+ 	const char *dev_name;
+@@ -120,7 +109,6 @@ int __init omap_display_init(struct omap_dss_board_info *board_data)
+ 	pdata.board_data = board_data;
+ 	pdata.board_data->get_context_loss_count =
+ 		omap_pm_get_dev_context_loss_count;
+-	pdata.opt_clock_available = opt_clock_available;
+ 
+ 	for (i = 0; i < oh_count; i++) {
+ 		oh = omap_hwmod_lookup(curr_dss_hwmod[i].oh_name);
+diff --git a/include/video/omapdss.h b/include/video/omapdss.h
+index 4f914a5..06914b1 100644
+--- a/include/video/omapdss.h
++++ b/include/video/omapdss.h
+@@ -264,8 +264,6 @@ static inline int omap_display_init(struct omap_dss_board_info *board_data)
+ struct omap_display_platform_data {
+ 	struct omap_dss_board_info *board_data;
+ 	/* TODO: Additional members to be added when PM is considered */
+-
+-	bool (*opt_clock_available)(const char *clk_role);
  };
  
- static struct omap_hwmod_opt_clk dss_opt_clks[] = {
--	{ .role = "sys_clk", .clk = "dss_sys_clk" },
--	{ .role = "tv_clk", .clk = "dss_tv_clk" },
- 	{ .role = "dss_clk", .clk = "dss_dss_clk" },
--	{ .role = "video_clk", .clk = "dss_48mhz_clk" },
- };
- 
- static struct omap_hwmod omap44xx_dss_hwmod = {
+ struct omap_video_timings {
 -- 
 1.7.4.1
 
