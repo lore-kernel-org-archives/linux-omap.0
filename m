@@ -1,58 +1,92 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH] OMAP2+: CPUfreq: Allow the CPU scaling when secondary
- CPUs are offline.
-Date: Fri, 03 Jun 2011 11:56:00 +0530
-Message-ID: <4DE87E78.6000107@ti.com>
-References: <1307026270-313-1-git-send-email-santosh.shilimkar@ti.com> <87ei3bomn3.fsf@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH v3 1/2] omap3: iovmm: Work around sg_alloc_table size
+	limitation in IOMMU
+Date: Fri, 3 Jun 2011 07:32:12 +0100
+Message-ID: <20110603063211.GA18082@n2100.arm.linux.org.uk>
+References: <20110601131744.GH11352@atomide.com> <201106011550.50873.laurent.pinchart@ideasonboard.com> <20110601140306.GC6700@n2100.arm.linux.org.uk> <201106030212.48226.laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:36400 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751256Ab1FCG0G (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Jun 2011 02:26:06 -0400
-Received: by mail-gy0-f172.google.com with SMTP id 3so830868gyf.31
-        for <linux-omap@vger.kernel.org>; Thu, 02 Jun 2011 23:26:05 -0700 (PDT)
-In-Reply-To: <87ei3bomn3.fsf@ti.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:48666 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751216Ab1FCGcT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Jun 2011 02:32:19 -0400
+Content-Disposition: inline
+In-Reply-To: <201106030212.48226.laurent.pinchart@ideasonboard.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 6/3/2011 4:40 AM, Kevin Hilman wrote:
-> Santosh Shilimkar<santosh.shilimkar@ti.com>  writes:
->
->> Current OMAP2PLUS CPUfreq tagret() functions returns when all
->> the CPU's are not online. This will break DVFS when secondary
->> CPUs are offlined.
->>
->> The intention of that check was just avoid CPU frequency change
->> during the window when CPU becomes online but it's cpufreq_init is
->> not done yet.
->>
->> Fix the check accordingly.
->>
->> Thanks for Nishant Menon<nm@ti.com>  for reporting it.
->>
->> Signed-off-by: Santosh Shilimkar<santosh.shilimkar@ti.com>
->> Reported-by: Nishanth Menon<nm@ti.com>
->> Tested-by: Vishwanath BS<vishwanath.bs@ti.com>
->> ---
->> There were some question of making the variable atomic etc
->> in an internal discussion. After some thinking, I realised
->> there is no need of that since this is just a counter which
->> maintains the count for online_cpus = cpufreq_init_cpus.
->
-> Since this is init-time only check, the check for every call to
-> ->target() seems excessive.
->
-> How about leaving the ->target callback empty until all the CPUs are
-> online.
->
-Can do that as well.
+On Fri, Jun 03, 2011 at 02:12:47AM +0200, Laurent Pinchart wrote:
+> Hi Russell,
+> 
+> On Wednesday 01 June 2011 16:03:06 Russell King - ARM Linux wrote:
+> > On Wed, Jun 01, 2011 at 03:50:50PM +0200, Laurent Pinchart wrote:
+> > > In the specific iovmm case, the driver uses the sglist API to build a
+> > > list of page-size sg entries, and then process it in software. Is that
+> > > considered as an abuse of the sglist API, or valid usage ?
+> > > 
+> > > Anyway, sglist chaining is not needed by iovmm. As iovmm just walks the
+> > > sglist manually, it's easier to allocate it in one go rather than using
+> > > sglist chaining. This of course doesn't make your patch unneeded or
+> > > wrong.
+> > 
+> > Well, there's a two issues here:
+> > 1. Should iovmm use sg_phys(sg) with sg_dma_len(sg) ?
+> >    Probably not, because a scatterlist before DMA API mapping is defined
+> >    by sg_page(sg), sg->offset, sg->length and has N entries.  After DMA
+> >    API mapping (n = dma_map_sg(dev, sg, N, dir)), it has n entries where
+> >    n <= N, and the DMA address/lengths are sg_dma_address(sg) and
+> >    sg_dma_len(sg).  Both these are undefined for unmapped scatterlists.
+> > 
+> >    Getting this wrong means breakage when CONFIG_NEED_SG_DMA_LENGTH is
+> >    enabled.
+> 
+> iovmm abuses the sglist API, there's no doubt on that. It will break when 
+> CONFIG_NEED_SG_DMA_LENGTH is enabled. iovmm should probably not use the sglist 
+> API, and it should probably not even exist in the first place. I know that TI 
+> is working on moving the OMAP-specific iommu/iovmm implementation to the 
+> generic IOMMU API, but that will take time. In the meantime, I'd like to fix 
+> iovmm to avoid the userspace-triggerable BUG_ON().
+> 
+> > 2. What would be the effect of enabling SG list chaining on iovmm?
+> >    The code uses the correct SG list walking helpers (for_each_sg) so
+> >    it should be able to cope with chained SG lists.
+> 
+> Yes it should. It might be slightly less efficient, but I don't think we will 
+> notice.
+> 
+> > So, I think there's no problem here with chained SG lists, but there is
+> > an issue with using sg_dma_len().  I'd suggest converting stuff to use
+> > sg->length with sg_page(sg) rather than sg_dma_len(sg).
+> 
+> With sg_page(sg) ? I'm not sure to follow you there.
 
-> Also, how will this handle an SMP kernel booted with maxcpus=1 on the
-> cmdline?
->
-That works because online CPU will be only 1 in that case.
+sg->length and sg_page(sg) are paired (and sg->length is paired with
+other stuff).  They describe the scatterlist _before_ DMA API mapping.
+After DMA API mapping, the scatterlist describes a list of regions
+defined by sg_dma_address(sg) and sg_dma_len(sg) - sg_dma_len(sg) is
+_only_ paired with sg_dma_address(sg).
+
+> > As for whether SG chaining is required or not, if you're running up against
+> > the maximum SG table size, then you do have a requirement for SG chaining.
+> 
+> The SG table size limit makes sure that the SG list fits in a page, so that it 
+> can be passed to the hardware. This isn't needed by iovmm, as it processes the 
+> sglist in software. iovmm could use SG chaining, but we would then need to 
+> enable it for the SoCs on which iovmm is used. I don't know if they properly 
+> support that.
+
+Err, no.  scatterlists are _never_ passed to hardware.  They're a kernel
+internal description of a list of regions in memory, which initially
+start off as describing the kernels view of those regions.  After DMA
+mapping, they describe it in terms of the device's view of those
+regions.
+
+At that point, scatterlists get converted to whatever form is required
+by the hardware doing DMA, which most certainly won't be the layout which
+struct scatterlist describes.
+
+SG chaining has _nothing_ to do with hardware.  It's all to do with
+software and hitting the SG table limit.
