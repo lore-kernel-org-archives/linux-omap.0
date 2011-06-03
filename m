@@ -1,64 +1,83 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH] OMAP2+: CPUfreq: Allow the CPU scaling when secondary
- CPUs are offline.
-Date: Fri, 03 Jun 2011 14:01:34 +0530
-Message-ID: <4DE89BE6.40809@ti.com>
-References: <1307026270-313-1-git-send-email-santosh.shilimkar@ti.com> <87ei3bomn3.fsf@ti.com> <4DE87E78.6000107@ti.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH v3 1/2] omap3: iovmm: Work around sg_alloc_table size
+ limitation in IOMMU
+Date: Fri, 3 Jun 2011 12:39:27 +0300
+Message-ID: <BANLkTingi0kS6MpqGNd0RJtAcY40Rz0DRw@mail.gmail.com>
+References: <20110601131744.GH11352@atomide.com>
+	<201106011550.50873.laurent.pinchart@ideasonboard.com>
+	<20110601140306.GC6700@n2100.arm.linux.org.uk>
+	<201106030212.48226.laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:38779 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752752Ab1FCIbj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Jun 2011 04:31:39 -0400
-Received: by mail-yw0-f45.google.com with SMTP id 41so804626ywl.32
-        for <linux-omap@vger.kernel.org>; Fri, 03 Jun 2011 01:31:38 -0700 (PDT)
-In-Reply-To: <4DE87E78.6000107@ti.com>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:53824 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753778Ab1FCJj3 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Jun 2011 05:39:29 -0400
+Received: by bwz15 with SMTP id 15so1612806bwz.19
+        for <linux-omap@vger.kernel.org>; Fri, 03 Jun 2011 02:39:28 -0700 (PDT)
+In-Reply-To: <201106030212.48226.laurent.pinchart@ideasonboard.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Fernando Guzman Lugo <fernando.lugo@ti.com>
 
-On 6/3/2011 11:56 AM, Santosh Shilimkar wrote:
-> On 6/3/2011 4:40 AM, Kevin Hilman wrote:
->> Santosh Shilimkar<santosh.shilimkar@ti.com> writes:
->>
->>> Current OMAP2PLUS CPUfreq tagret() functions returns when all
->>> the CPU's are not online. This will break DVFS when secondary
->>> CPUs are offlined.
->>>
->>> The intention of that check was just avoid CPU frequency change
->>> during the window when CPU becomes online but it's cpufreq_init is
->>> not done yet.
->>>
->>> Fix the check accordingly.
->>>
->>> Thanks for Nishant Menon<nm@ti.com> for reporting it.
->>>
->>> Signed-off-by: Santosh Shilimkar<santosh.shilimkar@ti.com>
->>> Reported-by: Nishanth Menon<nm@ti.com>
->>> Tested-by: Vishwanath BS<vishwanath.bs@ti.com>
->>> ---
->>> There were some question of making the variable atomic etc
->>> in an internal discussion. After some thinking, I realised
->>> there is no need of that since this is just a counter which
->>> maintains the count for online_cpus = cpufreq_init_cpus.
->>
->> Since this is init-time only check, the check for every call to
->> ->target() seems excessive.
->>
->> How about leaving the ->target callback empty until all the CPUs are
->> online.
->>
-> Can do that as well.
+On Fri, Jun 3, 2011 at 3:12 AM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hi Russell,
 >
-After re-looking at this, seems not straight forward. This check is
-not for cpufreqdriver_init time but per-CPU init functions which is
-called after the driver is registered to the governor. We don't do 
-registration again except the cases where driver is build as a module.
+> On Wednesday 01 June 2011 16:03:06 Russell King - ARM Linux wrote:
+>> On Wed, Jun 01, 2011 at 03:50:50PM +0200, Laurent Pinchart wrote:
+>> > In the specific iovmm case, the driver uses the sglist API to buil=
+d a
+>> > list of page-size sg entries, and then process it in software. Is =
+that
+>> > considered as an abuse of the sglist API, or valid usage ?
+>> >
+>> > Anyway, sglist chaining is not needed by iovmm. As iovmm just walk=
+s the
+>> > sglist manually, it's easier to allocate it in one go rather than =
+using
+>> > sglist chaining. This of course doesn't make your patch unneeded o=
+r
+>> > wrong.
+>>
+>> Well, there's a two issues here:
+>> 1. Should iovmm use sg_phys(sg) with sg_dma_len(sg) ?
+>> =C2=A0 =C2=A0Probably not, because a scatterlist before DMA API mapp=
+ing is defined
+>> =C2=A0 =C2=A0by sg_page(sg), sg->offset, sg->length and has N entrie=
+s. =C2=A0After DMA
+>> =C2=A0 =C2=A0API mapping (n =3D dma_map_sg(dev, sg, N, dir)), it has=
+ n entries where
+>> =C2=A0 =C2=A0n <=3D N, and the DMA address/lengths are sg_dma_addres=
+s(sg) and
+>> =C2=A0 =C2=A0sg_dma_len(sg). =C2=A0Both these are undefined for unma=
+pped scatterlists.
+>>
+>> =C2=A0 =C2=A0Getting this wrong means breakage when CONFIG_NEED_SG_D=
+MA_LENGTH is
+>> =C2=A0 =C2=A0enabled.
+>
+> iovmm abuses the sglist API, there's no doubt on that. It will break =
+when
+> CONFIG_NEED_SG_DMA_LENGTH is enabled. iovmm should probably not use t=
+he sglist
+> API, and it should probably not even exist in the first place. I know=
+ that TI
+> is working on moving the OMAP-specific iommu/iovmm implementation to =
+the
+> generic IOMMU API, but that will take time. In the meantime, I'd like=
+ to fix
+> iovmm to avoid the userspace-triggerable BUG_ON().
 
-How do we handle that ?
+This would also allow the tidspbridge driver to use iommu.
 
-Regards
-Santosh
+--=20
+=46elipe Contreras
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
