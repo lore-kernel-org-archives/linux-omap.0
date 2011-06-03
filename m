@@ -1,83 +1,120 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH v3 1/2] omap3: iovmm: Work around sg_alloc_table size
- limitation in IOMMU
-Date: Fri, 3 Jun 2011 12:39:27 +0300
-Message-ID: <BANLkTingi0kS6MpqGNd0RJtAcY40Rz0DRw@mail.gmail.com>
-References: <20110601131744.GH11352@atomide.com>
-	<201106011550.50873.laurent.pinchart@ideasonboard.com>
-	<20110601140306.GC6700@n2100.arm.linux.org.uk>
-	<201106030212.48226.laurent.pinchart@ideasonboard.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [PATCH 00/27] OMAP DSS runtime PM adaptation
+Date: Fri,  3 Jun 2011 13:00:10 +0300
+Message-ID: <1307095237-14805-1-git-send-email-tomi.valkeinen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:53824 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753778Ab1FCJj3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Jun 2011 05:39:29 -0400
-Received: by bwz15 with SMTP id 15so1612806bwz.19
-        for <linux-omap@vger.kernel.org>; Fri, 03 Jun 2011 02:39:28 -0700 (PDT)
-In-Reply-To: <201106030212.48226.laurent.pinchart@ideasonboard.com>
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:56789 "EHLO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752215Ab1FCKBB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Jun 2011 06:01:01 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Fernando Guzman Lugo <fernando.lugo@ti.com>
+To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
+Cc: b-cousson@ti.com, paul@pwsan.com, khilman@ti.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-On Fri, Jun 3, 2011 at 3:12 AM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi Russell,
->
-> On Wednesday 01 June 2011 16:03:06 Russell King - ARM Linux wrote:
->> On Wed, Jun 01, 2011 at 03:50:50PM +0200, Laurent Pinchart wrote:
->> > In the specific iovmm case, the driver uses the sglist API to buil=
-d a
->> > list of page-size sg entries, and then process it in software. Is =
-that
->> > considered as an abuse of the sglist API, or valid usage ?
->> >
->> > Anyway, sglist chaining is not needed by iovmm. As iovmm just walk=
-s the
->> > sglist manually, it's easier to allocate it in one go rather than =
-using
->> > sglist chaining. This of course doesn't make your patch unneeded o=
-r
->> > wrong.
->>
->> Well, there's a two issues here:
->> 1. Should iovmm use sg_phys(sg) with sg_dma_len(sg) ?
->> =C2=A0 =C2=A0Probably not, because a scatterlist before DMA API mapp=
-ing is defined
->> =C2=A0 =C2=A0by sg_page(sg), sg->offset, sg->length and has N entrie=
-s. =C2=A0After DMA
->> =C2=A0 =C2=A0API mapping (n =3D dma_map_sg(dev, sg, N, dir)), it has=
- n entries where
->> =C2=A0 =C2=A0n <=3D N, and the DMA address/lengths are sg_dma_addres=
-s(sg) and
->> =C2=A0 =C2=A0sg_dma_len(sg). =C2=A0Both these are undefined for unma=
-pped scatterlists.
->>
->> =C2=A0 =C2=A0Getting this wrong means breakage when CONFIG_NEED_SG_D=
-MA_LENGTH is
->> =C2=A0 =C2=A0enabled.
->
-> iovmm abuses the sglist API, there's no doubt on that. It will break =
-when
-> CONFIG_NEED_SG_DMA_LENGTH is enabled. iovmm should probably not use t=
-he sglist
-> API, and it should probably not even exist in the first place. I know=
- that TI
-> is working on moving the OMAP-specific iommu/iovmm implementation to =
-the
-> generic IOMMU API, but that will take time. In the meantime, I'd like=
- to fix
-> iovmm to avoid the userspace-triggerable BUG_ON().
+Hi,
 
-This would also allow the tidspbridge driver to use iommu.
+This patch set implements runtime PM adaptation for OMAP DSS driver.
 
---=20
-=46elipe Contreras
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The bulk of the code is in the "OMAP: DSS2: Use PM runtime & HWMOD support"
+patch, which is a bit too large for comfort, but I haven't found out ways to
+split it up.
+
+All DSS HW modules now handle enabling and disabling of the HW block
+independently via pm_runtime calls. Some DSS modules also require other DSS
+modules, and for that we have functions like dispc_runtime_get/put() which can
+be used to enable that module.
+
+Due to DSS' peculiar clock setup the code is not as elegant as I'd like. The
+problem is that on OMAP4 we have to enable an optional clock before calling
+pm_runtime_get(), and similarly we need to keep the optional clock enabled
+until after pm_runtime_put() has been called.
+
+This causes some extra complications. For example, we can't use runtime_resume
+callback to enable the opt clocks, as they are required before calling
+pm_runtime_get().
+
+Previously DSS driver did reset the HW every time before taking it into use.
+This can no longer be done, as HWMOD framework handles the reset. While the
+driver works without resetting the HW, an error could render the HW inoperable
+and currently the driver may not be able to recover. So these patches may make
+the driver more unreliable on error cases.
+
+If a way to reset the HWMOD is added to the HWMOD framework, DSS driver can
+take it into use and the above mentioned problem should go away.
+
+Tested on OMAP4 Blaze, OMAP3 Overo, OMAP2420 N800. (However, N800 needs extra
+patches to get it and DSS2 running, can be found from n800 branch in my tree).
+
+These patches can be found from:
+
+git://gitorious.org/linux-omap-dss2/linux.git pmruntime
+
+ Tomi
+
+Tomi Valkeinen (27):
+  OMAP: change get_context_loss_count ret value to int
+  OMAP: DSS2: Taal: Make driver more fault tolerant
+  OMAP: DSS2: Reset LANEx_ULPS_SIG2 bits after use
+  OMAP: DSS2: Handle dpll4_m4_ck in dss_get/put_clocks
+  OMAP: DSS2: Clean up probe for DSS & DSI
+  OMAP: DSS2: Init dispc first before other components
+  OMAP: DSS2: Remove clk optimization at dss init
+  OMAP: DSS2: rewrite use of context_loss_count
+  OMAP: DSS2: Use omap_pm_get_dev_context_loss_count to get ctx loss
+    count
+  OMAP: DSS2: DPI: remove unneeded SYSCK enable/disable
+  OMAP: DSS2: Add FEAT_VENC_REQUIRES_TV_DAC_CLK
+  OMAP: DSS2: Add new FEAT definitions for features missing from OMAP2
+  OMAP: DSS2: Remove core_dump_clocks
+  OMAP: DSS2: Remove CONFIG_OMAP2_DSS_SLEEP_BEFORE_RESET
+  OMAP4: HWMOD: Modify DSS opt clocks
+  OMAP3: HWMOD: Add DSS opt clocks
+  OMAP2420: HWMOD: Add DSS opt clocks
+  OMAP2430: HWMOD: Add DSS opt clocks
+  OMAP: DSS2: Use PM runtime & HWMOD support
+  OMAP4: HWMOD: Remove unneeded DSS opt clocks
+  OMAP: DSS2: Remove unused opt_clock_available
+  OMAP: DSS2: DISPC: remove finegrained clk enables/disables
+  OMAP: DSS2: Remove unused code from display.c
+  OMAP: DSS2: Remove ctx loss count from dss.c
+  OMAP4: CLKDEV: Remove omapdss clock aliases
+  OMAP: DSS2: DISPC: Fix context save/restore
+  OMAP: DSS2: DSS: Fix context save/restore
+
+ arch/arm/mach-omap2/clock44xx_data.c          |   10 +-
+ arch/arm/mach-omap2/display.c                 |   26 +-
+ arch/arm/mach-omap2/omap_hwmod.c              |    2 +-
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c    |   19 +
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c    |   19 +
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c    |   37 ++-
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c    |   43 ++-
+ arch/arm/mach-omap2/powerdomain.c             |   14 +-
+ arch/arm/mach-omap2/powerdomain.h             |    2 +-
+ arch/arm/plat-omap/include/plat/omap-pm.h     |    4 +-
+ arch/arm/plat-omap/include/plat/omap_device.h |    2 +-
+ arch/arm/plat-omap/include/plat/omap_hwmod.h  |    2 +-
+ arch/arm/plat-omap/omap-pm-noop.c             |   24 +-
+ arch/arm/plat-omap/omap_device.c              |    2 +-
+ drivers/video/omap2/displays/panel-taal.c     |   33 +-
+ drivers/video/omap2/dss/Kconfig               |   12 -
+ drivers/video/omap2/dss/core.c                |   15 +-
+ drivers/video/omap2/dss/dispc.c               |  496 ++++++++++++----------
+ drivers/video/omap2/dss/dpi.c                 |   73 ++--
+ drivers/video/omap2/dss/dsi.c                 |  284 ++++++++-----
+ drivers/video/omap2/dss/dss.c                 |  564 ++++++-------------------
+ drivers/video/omap2/dss/dss.h                 |   34 +-
+ drivers/video/omap2/dss/dss_features.c        |   13 +-
+ drivers/video/omap2/dss/dss_features.h        |    4 +
+ drivers/video/omap2/dss/hdmi.c                |  149 +++++--
+ drivers/video/omap2/dss/manager.c             |    8 +-
+ drivers/video/omap2/dss/overlay.c             |   27 +-
+ drivers/video/omap2/dss/rfbi.c                |   97 ++++-
+ drivers/video/omap2/dss/sdi.c                 |   40 ++-
+ drivers/video/omap2/dss/venc.c                |  171 +++++++-
+ include/video/omapdss.h                       |    4 +-
+ 31 files changed, 1207 insertions(+), 1023 deletions(-)
+
+-- 
+1.7.4.1
+
