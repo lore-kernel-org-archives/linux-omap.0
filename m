@@ -1,75 +1,79 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH][pm-wip/cpufreq] OMAP2+: CPUfreq: Remove superfluous check in target() for online CPU's.
-Date: Fri, 3 Jun 2011 17:46:57 +0530
-Message-ID: <1307103417-22721-1-git-send-email-santosh.shilimkar@ti.com>
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: Re: [PATCH v2] arm: omap3: cm-t35: add support for cm-t3730
+Date: Fri, 03 Jun 2011 16:37:59 +0300
+Message-ID: <4DE8E3B7.5020107@compulab.co.il>
+References: <4DC27317.7020206@compulab.co.il> <1304839231-11329-1-git-send-email-grinberg@compulab.co.il> <20110531130447.GK11352@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:60709 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751797Ab1FCMRD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 3 Jun 2011 08:17:03 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p53CGxYo027551
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 3 Jun 2011 07:17:01 -0500
+Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:33241
+	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754773Ab1FCNiC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Jun 2011 09:38:02 -0400
+In-Reply-To: <20110531130447.GK11352@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Current OMAP2PLUS CPUfreq tagret() functions returns when all
-the CPU's are not online. This breaks CPUfreq when secondary CPUs
-are offlined on SMP system.
+Hi Tony,
 
-The intention of that check was just avoid CPU frequency change
-during the window when CPU becomes online but it's cpufreq_init is
-not done yet. Otherwise it can lead to notifiers being sent on
-a CPU which is not yet registered to the governor.
 
-But this race conditions is already managed by the CPUfreq
-core driver by updating the available cpumask accordingly.
+On 05/31/11 16:04, Tony Lindgren wrote:
 
-OMAP CPUFReq driver make use same cpumask for the notifiers
-so the above problem doesn't exist. In my initial implementation
-of the OMAP4 CPUFreq driver, I was using 'for_each_online_cpu()'
-for notifiers which lead me to add that check. Later I fixed
-the notifies but didn't realise that the check has become
-redundant then.
+> * Igor Grinberg <grinberg@compulab.co.il> [110508 00:17]:
+>> cm-t3730 is basically the same board as cm-t35, but has DM3730 SoC
+>> assembled and therefore some changes are required.
+>> +static void cm_t35_mux_init(void)
+>> +{
+>> +	int mux_mode = OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT;
+>> +
+>> +	omap3_mux_init(cm_t35_common_board_mux, OMAP_PACKAGE_CUS);
+>> +
+>> +	if (cpu_is_omap34xx()) {
+>> +		omap_mux_init_signal("gpio_70", mux_mode);
+>> +		omap_mux_init_signal("gpio_71", mux_mode);
+>> +		omap_mux_init_signal("gpio_72", mux_mode);
+>> +		omap_mux_init_signal("gpio_73", mux_mode);
+>> +		omap_mux_init_signal("gpio_74", mux_mode);
+>> +		omap_mux_init_signal("gpio_75", mux_mode);
+>> +	} else if (cpu_is_omap3630()) {
+>> +		mux_mode = OMAP_MUX_MODE3 | OMAP_PIN_OUTPUT;
+>> +		omap_mux_init_signal("sys_boot0", mux_mode);
+>> +		omap_mux_init_signal("sys_boot1", mux_mode);
+>> +		omap_mux_init_signal("sys_boot3", mux_mode);
+>> +		omap_mux_init_signal("sys_boot4", mux_mode);
+>> +		omap_mux_init_signal("sys_boot5", mux_mode);
+>> +		omap_mux_init_signal("sys_boot6", mux_mode);
+>> +	}
+>> +
+>> +	omap_mux_init_signal("dss_data18", mux_mode);
+>> +	omap_mux_init_signal("dss_data19", mux_mode);
+>> +	omap_mux_init_signal("dss_data20", mux_mode);
+>> +	omap_mux_init_signal("dss_data21", mux_mode);
+>> +	omap_mux_init_signal("dss_data22", mux_mode);
+>> +	omap_mux_init_signal("dss_data23", mux_mode);
+>> +}
+>> +#else
+>> +static inline void cm_t35_mux_init(void) {}
+>>  #endif
+> Should this cpu_is_omap if else done once and then set
+> some data based on it? That would be better if you need to
+> use it for detection for other things later on as it will
+> avoid multiple cpu_is/machine_is if else lines of code.
 
-Fix it by removing the superfluous check in target().
+I'm not sure I understand what are you trying to propose here...
+If you look once again on the code, there is currently only one if (cpu_is_..) {} else {}
+statement currently present.
+(I can remove the "if (cpu_is_omap3630())" - it indeed has no value)
 
-Thanks for Nishant Menon <nm@ti.com> for reporting issue
-with hot-plug and Kevin Hilman <khilman@ti.com> for his
-comment on excessive check in target().
+Indeed, there will be some other differences...
+Each time I submit a patch, I try to be as optimal as I can,
+but again I'm open for suggestions...
+(though I think it is optimal, e.g. 33 lines for a new running board...)
 
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Reported-by: Nishanth Menon <nm@ti.com>
-Tested-by: Vishwanath BS <vishwanath.bs@ti.com>
-Cc: Kevin Hilman <khilman@ti.com>
----
-This change is an outcome of discussion on another patch to fix
-the hot-plug issue. For details refer below thread:
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg50348.html
-
- arch/arm/mach-omap2/omap2plus-cpufreq.c |    4 ----
- 1 files changed, 0 insertions(+), 4 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/omap2plus-cpufreq.c b/arch/arm/mach-omap2/omap2plus-cpufreq.c
-index 33a91ec..3bf1704 100644
---- a/arch/arm/mach-omap2/omap2plus-cpufreq.c
-+++ b/arch/arm/mach-omap2/omap2plus-cpufreq.c
-@@ -81,10 +81,6 @@ static int omap_target(struct cpufreq_policy *policy,
- 	int i, ret = 0;
- 	struct cpufreq_freqs freqs;
- 
--	/* Changes not allowed until all CPUs are online */
--	if (is_smp() && (num_online_cpus() < NR_CPUS))
--		return ret;
--
- 	/* Ensure desired rate is within allowed range.  Some govenors
- 	 * (ondemand) will just pass target_freq=0 to get the minimum. */
- 	if (target_freq < policy->min)
 -- 
-1.6.0.4
+Regards,
+Igor.
 
