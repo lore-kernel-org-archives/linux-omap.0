@@ -1,229 +1,221 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [pm_wip/voltdm_nm][PATCH v2 1/3] OMAP4: PM: VC: fix channel bit offset for MPU
-Date: Fri, 03 Jun 2011 16:42:16 -0700
-Message-ID: <87r57a8otj.fsf@ti.com>
-References: <1306711180-8631-1-git-send-email-nm@ti.com>
-	<1306711180-8631-2-git-send-email-nm@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 19/27] OMAP: DSS2: Use PM runtime & HWMOD support
+Date: Sat, 04 Jun 2011 11:01:44 +0300
+Message-ID: <1307174504.1777.24.camel@lappyti>
+References: <1307095237-14805-1-git-send-email-tomi.valkeinen@ti.com>
+	 <1307095237-14805-20-git-send-email-tomi.valkeinen@ti.com>
+	 <871uzahnib.fsf@ti.com> <1307122985.2016.72.camel@deskari>
+	 <87hb86a5mm.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:36540 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752110Ab1FCXmU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Jun 2011 19:42:20 -0400
-Received: by mail-px0-f175.google.com with SMTP id 17so1344424pxi.20
-        for <linux-omap@vger.kernel.org>; Fri, 03 Jun 2011 16:42:19 -0700 (PDT)
-In-Reply-To: <1306711180-8631-2-git-send-email-nm@ti.com> (Nishanth Menon's
-	message of "Sun, 29 May 2011 16:19:38 -0700")
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:53667 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751790Ab1FDIBx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 4 Jun 2011 04:01:53 -0400
+In-Reply-To: <87hb86a5mm.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, b-cousson@ti.com, paul@pwsan.com
 
-Nishanth Menon <nm@ti.com> writes:
+On Fri, 2011-06-03 at 15:53 -0700, Kevin Hilman wrote:
+> Tomi Valkeinen <tomi.valkeinen@ti.com> writes:
+> 
+> > Hi Kevin,
+> >
+> > On Fri, 2011-06-03 at 09:45 -0700, Kevin Hilman wrote:
+> >> Tomi Valkeinen <tomi.valkeinen@ti.com> writes:
+> >> 
+> >> > Use PM runtime and HWMOD support to handle enabling and disabling of DSS
+> >> > modules.
+> >> >
+> >> > Each DSS module will have get and put functions which can be used to
+> >> > enable and disable that module. The functions use pm_runtime and hwmod
+> >> > opt-clocks to enable the hardware.
+> >> >
+> >> > Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> >> 
+> >> [...]
+> >> 
+> >> > +int dispc_runtime_get(void)
+> >> > +{
+> >> > +	int r;
+> >> > +
+> >> > +	mutex_lock(&dispc.runtime_lock);
+> >> 
+> >> It's not clear to me what the lock is trying to protect.  I guess it's
+> >> the counter?  I don't think it should be needed...
+> >
+> > Yes, the counter. I don't think
+> >
+> > if (dispc.runtime_count++ == 0)
+> >
+> > is thread safe.
+> 
+> OK, if it's just the counter, you can drop the mutex and use an atomic
+> variable and use atomic_inc(), atomic_dec() etc.  Then it will be clear
+> from reading what exactly is protected.
 
-> Patch "OMAP3+: VC: abstract out channel configuration" abstracts out
-> VC channel configuration. However, TRM has it's little surprises such
-> as the following for channel_cfg:
-> CFG_CHANNEL_SA    BIT(0)
-> CFG_CHANNEL_RAV   BIT(1)
-> CFG_CHANNEL_RAC   BIT(2)
-> CFG_CHANNEL_RACEN BIT(3)
-> CFG_CHANNEL_CMD   BIT(4)
-> is valid for core and iva, *but* for mpu, the channel offsets are as follows:
-> CFG_CHANNEL_SA    BIT(0)
-> CFG_CHANNEL_CMD   BIT(1)
-> CFG_CHANNEL_RAV   BIT(2)
-> CFG_CHANNEL_RAC   BIT(3)
-> CFG_CHANNEL_RACEN BIT(4)
->
-> To handle this on the fly, add a structure to describe this and use the
-> structure for vc definition.
->
-> Signed-off-by: Nishanth Menon <nm@ti.com>
+Hmm, sorry, my mistake. It's actually for the whole function: we can't
+do "put" before the whole "get" has finished. Otherwise we could end up,
+for example, disabling a clock before enabling it.
 
-You're going to be irritated with me (again), but I changed my mind on
-this one.
+> >> > +	if (dispc.runtime_count++ == 0) {
+> >> 
+> >> You shouldn't need your own use-counting here.  The runtime PM core is
+> >> already doing usage counting.
+> >> 
+> >> Instead, you need to use the ->runtime_suspend() and ->runtime_resume()
+> >> callbacks (in dev_pm_ops).  These callbacks are called by the runtime PM
+> >> core when the usage count goes to/from zero.
+> >
+> > Yes, I wish I could do that =).
+> >
+> > I tried to explain this in the 00-patch, I guess I should've explained
+> > it in this patch also. Perhaps also in a comment.
+> 
+> Oops, my fault.  I didn't read the whole 00 patch.  I'm pretty ignorant
+> about DSS, so I was focused in on the runtime PM implementation only.
+> Sorry about that.
+> 
+> > From the introduction:
+> >
+> > ---
+> >
+> > Due to DSS' peculiar clock setup the code is not as elegant as I'd like. The
+> > problem is that on OMAP4 we have to enable an optional clock before calling
+> > pm_runtime_get(), and similarly we need to keep the optional clock enabled
+> > until after pm_runtime_put() has been called.
+> 
+> Just to clarify, what exactly does the opt clock have to be enabled for?
 
-Initially I thought that this was intentional and that OMAP5+ was going
-to have the bit fields in yet a different way, so I wanted to have this
-very flexible at a per-channel level.  It turns out that this one
-channel really is a mutant.  Somebody fat-fingered this in Bitwise and
-resulted in a single anomaly. 
+I'm not sure if this is a valid definition, but in my mind the opt clock
+has two uses: 1) a functional clock, to make the HW tick and registers
+accessible, and 2) act as a source clock for the outgoing pixel clock.
 
-Now that I know this is a single mutant case, I prefer handling it as an
-exception (kinda like you did in your original version.)
+Of these, the first one is the one that matters in this scope. So, it's
+a mandatory clock, but it's optional in the sense that there are other
+clocks that can be used in place of that clock.
 
-The RFC/patch below (currently at the tip of voltdm_nm, but only compile
-tested) is my version of solving the problem to handle it as an
-exception case.   What do you think?
+All OMAPs support the DSS fclk from PRCM (this is the default). If I
+remember right, OMAP2 also supports using sys clock as the DSS fclk.
+OMAP3 and 4 support using DSI PLL (whose source clock is sys clock) as
+the fclk.
 
-Kevin
+> From what I can gather, this particular opt clock has to be enabled for
+> the hwmod itself to be enabled (or disabled), correct?
 
+Yes, the registers are unaccessible and the HW doesn't come out of reset
+without the fclk.
 
->From 6df1f45d4b2a732083992e47596c67e6bdd0311f Mon Sep 17 00:00:00 2001
-From: Kevin Hilman <khilman@ti.com>
-Date: Thu, 2 Jun 2011 17:28:13 -0700
-Subject: [RFC/PATCH] OMAP3+: PM: VC: handle mutant channel config for OMAP4 MPU channel
+> This has been a known issue for reset[1], but I wasn't aware that it was
+> needed for a normal (re)enable of the hwmod.
+> 
+> > This causes some extra complications. For example, we can't use runtime_resume
+> > callback to enable the opt clocks, as they are required before calling
+> > pm_runtime_get().
+> >
+> 
+> Yuck.
+> 
+> > ---
+> >
+> > So, the opt clock handling required by the driver pretty much messes the
+> > whole idea of pm_runtime callbacks here. We can't do pretty much
+> > anything in the suspend and resume callbacks.
+> >
+> > We can't do save_context() in the suspend callback, because suspend
+> > could be called later, after pm_runtime_put_sync() and
+> > dispc_runtime_put() has returned. And and that point we've turned off
+> > the opt clock and can't touch the registers. If we'd move the opt-clock
+> > clk_disable to suspend, but clk_enable in dispc_runtime_get(), we'd get
+> > mismatched clk_disable/enable, so we can't do that. etc.
+> 
+> Double yuck.
+> 
+> It's clear now that you at least wanted to do the "right" thing and
+> thought about the variousways to do it, but weren't able to for various
+> reasons.  Thanks!
+> 
+> > I didn't come up with any other solutions to this. In the end, the
+> > dispc_runtime_get/put are quite clean functions (well, says me =), and
+> > their usage is more or less equivalent to pm_runtime_get/put. So I don't
+> > see it as a horrible solution.
+> 
+> I agree, it's not horrible.  Just induces very mild nausea.  ;)
+> 
+> > If and when the hwmod/pm_runtime/something handles this opt-clock issue,
+> > it shouldn't be too big of a job to use pm_runtime properly in the
+> > omapdss. 
+> 
+> Agreed.  I certainly won't hold up this patch unless we come up with an
+> alternate solution very quickly (which I will try below, and wait for
+> Paul/Benoit to correct me.)
+> 
+> > Of course, if you or somebody else has a solution for this now, I'm
+> > more than happy to use it =).
+> 
+> I don't have a solid solution, but so far, this sounds like an IP
+> requirement that should be managed at the hwmod level.
 
-On OMAP3+, all VC channels have the the same bitfield ordering for all
-VC channels, except the OMAP4 MPU channel.  This appears to be a freak
-accident as all other VC channel (including OMAP5) have the standard
-configuration.  Handle the mutant case by adding a per-channel flag
-to signal the deformity and handle it during VC init.
+I agree.
 
-Special thanks to Nishanth Menon <nm@ti.com> for finding this problem
-and for proposing the initial solution.
+How I imagine things should work is that the hwmod code defaults to the
+standard PRCM clock, but allows us to change the functional clock at a
+later time, allowing the original clock to be disabled.
 
-Cc: Nishanth Menon <nm@ti.com>
-Signed-off-by: Kevin Hilman <khilman@ti.com>
----
- arch/arm/mach-omap2/vc.c          |   62 +++++++++++++++++++++++++++++--------
- arch/arm/mach-omap2/vc.h          |    1 +
- arch/arm/mach-omap2/vc44xx_data.c |    2 +-
- 3 files changed, 51 insertions(+), 14 deletions(-)
+But I don't know how this would work in practice. The DSI PLL clock has
+to be programmed via DSI HW, and the bits that control the clock muxes
+are inside DSS. So the HWMOD code can't probably handle this by itself,
+but needs the DSS to do certain things at certain times.
 
-diff --git a/arch/arm/mach-omap2/vc.c b/arch/arm/mach-omap2/vc.c
-index d027864..c4edc62 100644
---- a/arch/arm/mach-omap2/vc.c
-+++ b/arch/arm/mach-omap2/vc.c
-@@ -10,17 +10,51 @@
- #include "prm-regbits-44xx.h"
- #include "prm44xx.h"
- 
--/*
-- * Channel configuration bits, common for OMAP3 & 4
-+/**
-+ * struct omap_vc_channel_cfg - describe the cfg_channel bitfield
-+ * @sa: bit for slave address 
-+ * @rav: bit for voltage configuration register
-+ * @rac: bit for command configuration register	
-+ * @racen: enable bit for RAC
-+ * @cmd: bit for command value set selection
-+ *
-+ * Channel configuration bits, common for OMAP3+
-  * OMAP3 register: PRM_VC_CH_CONF
-  * OMAP4 register: PRM_VC_CFG_CHANNEL
-+ * OMAP5 register: PRM_VC_SMPS_<voltdm>_CONFIG
-  */
--#define CFG_CHANNEL_SA    BIT(0)
--#define CFG_CHANNEL_RAV   BIT(1)
--#define CFG_CHANNEL_RAC   BIT(2)
--#define CFG_CHANNEL_RACEN BIT(3)
--#define CFG_CHANNEL_CMD   BIT(4)
--#define CFG_CHANNEL_MASK 0x3f
-+struct omap_vc_channel_cfg {
-+	u8 sa;
-+	u8 rav;
-+	u8 rac;
-+	u8 racen;
-+	u8 cmd;
-+};
-+
-+static struct omap_vc_channel_cfg vc_default_channel_cfg = {
-+	.sa    = BIT(0),
-+	.rav   = BIT(1),
-+	.rac   = BIT(2),
-+	.racen = BIT(3),
-+	.cmd   = BIT(4),
-+};
-+
-+/*
-+ * On OMAP3+, all VC channels have the above default bitfield
-+ * configuration, except the OMAP4 MPU channel.  This appears
-+ * to be a freak accident as every other VC channel has the
-+ * default configuration, thus creating a mutant channel config.
-+ */
-+static struct omap_vc_channel_cfg vc_mutant_channel_cfg = {
-+	.sa    = BIT(0),
-+	.rav   = BIT(2),
-+	.rac   = BIT(3),
-+	.racen = BIT(4),
-+	.cmd   = BIT(1),
-+};
-+
-+static struct omap_vc_channel_cfg *vc_cfg_bits = &vc_default_channel_cfg;
-+#define CFG_CHANNEL_MASK 0x1f
- 
- /**
-  * omap_vc_config_channel - configure VC channel to PMIC mappings
-@@ -47,7 +81,7 @@ static int omap_vc_config_channel(struct voltagedomain *voltdm)
- 	 * All others must stay at zero (see function comment above.)
- 	 */
- 	if (vc->flags & OMAP_VC_CHANNEL_DEFAULT)
--		vc->cfg_channel &= CFG_CHANNEL_RACEN;
-+		vc->cfg_channel &= vc_cfg_bits->racen;
- 
- 	voltdm->rmw(CFG_CHANNEL_MASK << vc->cfg_channel_sa_shift,
- 		    vc->cfg_channel << vc->cfg_channel_sa_shift,
-@@ -264,6 +298,8 @@ void __init omap_vc_init_channel(struct voltagedomain *voltdm)
- 	}
- 
- 	vc->cfg_channel = 0;
-+	if (vc->flags & OMAP_VC_CHANNEL_CFG_MUTANT)
-+		vc_cfg_bits = vc_mutant_channel_cfg;
- 
- 	/* get PMIC/board specific settings */
- 	vc->i2c_slave_addr = voltdm->pmic->i2c_slave_addr;
-@@ -275,7 +311,7 @@ void __init omap_vc_init_channel(struct voltagedomain *voltdm)
- 	voltdm->rmw(vc->smps_sa_mask,
- 		    vc->i2c_slave_addr << __ffs(vc->smps_sa_mask),
- 		    vc->common->smps_sa_reg);
--	vc->cfg_channel |= CFG_CHANNEL_SA;
-+	vc->cfg_channel |= vc_cfg_bits->sa;
- 
- 	/*
- 	 * Configure the PMIC register addresses.
-@@ -283,13 +319,13 @@ void __init omap_vc_init_channel(struct voltagedomain *voltdm)
- 	voltdm->rmw(vc->smps_volra_mask,
- 		    vc->volt_reg_addr << __ffs(vc->smps_volra_mask),
- 		    vc->common->smps_volra_reg);
--	vc->cfg_channel |= CFG_CHANNEL_RAV;
-+	vc->cfg_channel |= vc_cfg_bits->rav;
- 
- 	if (vc->cmd_reg_addr) {
- 		voltdm->rmw(vc->smps_cmdra_mask,
- 			    vc->cmd_reg_addr << __ffs(vc->smps_cmdra_mask),
- 			    vc->common->smps_cmdra_reg);
--		vc->cfg_channel |= CFG_CHANNEL_RAC | CFG_CHANNEL_RACEN;
-+		vc->cfg_channel |= vc_cfg_bits->rac | vc_cfg_bits->racen;
- 	}
- 
- 	/* Set up the on, inactive, retention and off voltage */
-@@ -302,7 +338,7 @@ void __init omap_vc_init_channel(struct voltagedomain *voltdm)
- 	       (ret_vsel << vc->common->cmd_ret_shift) |
- 	       (off_vsel << vc->common->cmd_off_shift));
- 	voltdm->write(val, vc->cmdval_reg);
--	vc->cfg_channel |= CFG_CHANNEL_CMD;
-+	vc->cfg_channel |= vc_cfg_bits->cmd;
- 
- 	/* Channel configuration */
- 	omap_vc_config_channel(voltdm);
-diff --git a/arch/arm/mach-omap2/vc.h b/arch/arm/mach-omap2/vc.h
-index e7d410c..e16dacf 100644
---- a/arch/arm/mach-omap2/vc.h
-+++ b/arch/arm/mach-omap2/vc.h
-@@ -64,6 +64,7 @@ struct omap_vc_common {
- 
- /* omap_vc_channel.flags values */
- #define OMAP_VC_CHANNEL_DEFAULT BIT(0)
-+#define OMAP_VC_CHANNEL_CFG_MUTANT BIT(1)
- 
- /**
-  * struct omap_vc_channel - VC per-instance data
-diff --git a/arch/arm/mach-omap2/vc44xx_data.c b/arch/arm/mach-omap2/vc44xx_data.c
-index 148be18..0a4fc37 100644
---- a/arch/arm/mach-omap2/vc44xx_data.c
-+++ b/arch/arm/mach-omap2/vc44xx_data.c
-@@ -52,7 +52,7 @@ static const struct omap_vc_common omap4_vc_common = {
- 
- /* VC instance data for each controllable voltage line */
- struct omap_vc_channel omap4_vc_mpu = {
--	.flags = OMAP_VC_CHANNEL_DEFAULT,
-+	.flags = OMAP_VC_CHANNEL_DEFAULT | OMAP_VC_CHANNEL_CFG_MUTANT,
- 	.common = &omap4_vc_common,
- 	.cmdval_reg = OMAP4_PRM_VC_VAL_CMD_VDD_MPU_L_OFFSET,
- 	.smps_sa_mask = OMAP4430_SA_VDD_MPU_L_PRM_VC_SMPS_SA_MASK,
--- 
-1.7.4
+> One approach would be to have an option to selectively manage optional
+> clocks in the hwmod enable/idle path.  We're doing it for reset[1], but
+> not for anything else.  And based on the changelog there[1], it doesn't
+> even sound like we fully understand the exact requirements around reset.
+
+Yes, the OMAP4 DSS reset is a bit unclear for me.
+
+> From the contortions you've had to go through though, it sounds like the
+> same optional clocks that are needed for reset are needed for a "normal"
+> module enable/disable.
+> 
+> I tried a simple hack to do that below[2].  Can you see if that works
+> for you and if you can remove the opt clk mgmt from your driver(s)?  I
+> only boot tested it on 3430/n900 which only has this opt-clk flag set
+> for the GPIO IP blocks.
+
+I didn't test it yet, but I would imagine it works. But it doesn't help
+us towards properly using the other clocks as fclk.
+
+However, it's not really any worse than the current DSS code. We don't
+currently turn off the DSS fclk from the PRCM, even if we would use the
+clock from the DSI PLL.
+
+So perhaps an approach where hwmod would enable the fclk from the PRCM
+automatically would be good. It's no worse than the other option, and 
+it'd give us the ability to use pm_runtime in the proper way.
+
+In this (hopefully temporary) solution the clock wouldn't really be
+optional clock, but mandatory.
+
+> Another idea off the top of my head is to extend runtime PM to have a
+> couple additional callbacks.  Something like ->runtime_resume_prepare()
+> which would be called before the HW is enabled (and thus before
+> ->runtime_resume()), and similarily ->runtime_suspend_complete() which
+> would be called after ->runtime_suspend() and after the HW has been
+> disabled.
+> 
+> I don't really like this approach because so far this is the only driver
+> that has needed something like this.  And in the case of this IP the
+> enable/disable of the optional clocks seems like a HW requirement for
+> the correct enable/disable of the IP, so it seems like something that
+> should be managed by the hwmod.
+
+Yes, I agree, that doesn't sound like a very good approach.
+
+ Tomi
+
 
