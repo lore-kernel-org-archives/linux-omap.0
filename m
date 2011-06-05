@@ -1,69 +1,36 @@
-From: Oleg Drokin <green@linuxhacker.ru>
-Subject: back-door musb USB host support
-Date: Sun, 5 Jun 2011 16:05:55 -0400
-Message-ID: <AA3DA96D-E0E1-4620-8998-88FAB2D7BD7D@linuxhacker.ru>
-References: <1303869133-27976-1-git-send-email-green@linuxhacker.ru> <1303869133-27976-3-git-send-email-green@linuxhacker.ru> <4DB7D89D.7090707@compulab.co.il> <1A637068-3F89-4B73-8A36-5278EB69C8CD@linuxhacker.ru> <4DB905CC.7030907@compulab.co.il> <5E4912CA-9E7A-423B-A8FA-DF16C0A4D242@linuxhacker.ru> <20110429092139.GB2529@legolas.emea.dhcp.ti.com>
-Mime-Version: 1.0 (Apple Message framework v1082)
+From: Nicolau Werneck <nwerneck@gmail.com>
+Subject: Testing cbus in N800
+Date: Sun, 5 Jun 2011 19:15:03 -0300
+Message-ID: <20110605221503.GA14454@spirit>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from linuxhacker.ru ([217.76.32.60]:59018 "EHLO fiona.linuxhacker.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753525Ab1FEUGJ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 5 Jun 2011 16:06:09 -0400
-In-Reply-To: <20110429092139.GB2529@legolas.emea.dhcp.ti.com>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:44223 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754350Ab1FEWPO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 5 Jun 2011 18:15:14 -0400
+Received: by wya21 with SMTP id 21so2403389wya.19
+        for <linux-omap@vger.kernel.org>; Sun, 05 Jun 2011 15:15:13 -0700 (PDT)
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-Hello!
+Hello. I wanted to try the latest cbus patches in my N800. I
+downloaded the branch from
 
-On Apr 29, 2011, at 5:21 AM, Felipe Balbi wrote:
->> On Apr 28, 2011, at 2:14 AM, Mike Rapoport wrote:
->>>>>> +static struct omap_musb_board_data musb_board_data = {
->>>>>> +	.interface_type		= MUSB_INTERFACE_ULPI,
->>>>>> +#ifdef CONFIG_USB_MUSB_OTG
->>>>>> +	.mode			= MUSB_OTG,
->>>>>> +#elif defined(CONFIG_USB_MUSB_HDRC_HCD)
->>>>>> +	.mode			= MUSB_HOST,
->>>>>> +#elif defined(CONFIG_USB_GADGET_MUSB_HDRC)
->>>>>> +	.mode			= MUSB_PERIPHERAL,
->>>>>> +#endif
->>>>> This kind of ifdefery is handled inside the musb driver. I'd set the mode to
->>>>> MUSB_OTG unless you want to explicitly limit it to HOST or PERIPHERAL
->>>> Actually it's not.
->>>> If I set MUSB_OTG here and then I choose PERIPHERAL mode in the kernel config,
->>>> the musb transceiver code will complain about board file and kernel config mismatch.
->>>> The Nook Color is advertised as peripheral device, but OTG must be working too
->>>> (not totally working at this point) I think there is value to be able to configure it
->>>> in two different modes.
->>> Frankly, I haven't tried choosing different modes in the kernel config and in
->>> the board data. Still, I believe that board data should define desired operation
->>> mode and the driver should do the best effort to enable the controller in the
->>> desired mode.
->> The desired operation mode is dependent on musb configuration.
->> E.g. see n8x0 board file for the example of the same thing.
-> Only development platforms should have that ifdef trickery. The idea of
-> that field is to tell the driver how the board is wired.
-> Host/Peripheral/OTG support is hardwired by the circuitry around the
-> USB receptacle you have on your board.
+git://gitorious.org/usb/usb.git cbus
 
-I am raising this again, I guess.
-So what is the plan with boards that are not advertised as having USB host support,
-but it's still possible to enable it with some trickery?
-Say on the Nook Color it's possible and I recently managed to do it, but it seems current
-drivers/usb/otg/twl4030-usb.c does not have any code to enable vbus (well, easy to overcome
-with a patch, I guess). Additional hacks are likely needed since ID pin is not
-connected in the usb receptacle, so no way to have real OTG, manual switch via sysfs is needed.
+But there is no "defconfig" file for either N800 or N810. Does
+anybody have a config file ready to use?...
 
-Additionally a particularly popular request from user community seems to be to allow external
-source to drive vbus (and perhaps allow battery charging at the same time), I am not exactly sure
-how that would fit into the current driver picture.
+Thanks,
+  ++nic
 
-Any ideas on how it would be best to start tackling this for eventual inclusion into mainline?
+-- 
+Nicolau Werneck <nwerneck@gmail.com>          C3CF E29F 5350 5DAA 3705
+http://www.lti.pcs.usp.br/~nwerneck           7B9E D6C4 37BB DA64 6F15
+Linux user #460716
+"Object-oriented programming is an exceptionally bad idea which could only have originated in California."
+-- Edsger Dijkstra
 
-Thanks.
-
-Bye,
-    Oleg
