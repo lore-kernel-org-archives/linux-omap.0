@@ -1,55 +1,41 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: [PATCH 3.0-rc1] PM / runtime: fix broken iteration over clock ids
-Date: Sun, 5 Jun 2011 15:31:12 +0200
-Message-ID: <201106051531.32878.jkrzyszt@tis.icnet.pl>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 4/4] mfd: global Suspend and resume support of ehci and ohci
+Date: Sun, 5 Jun 2011 19:19:38 +0200
+Message-ID: <201106051919.38637.rjw@sisk.pl>
+References: <1306934847-6098-1-git-send-email-keshava_mgowda@ti.com> <201106011554.38415.rjw@sisk.pl> <20110601143256.GG2409@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
-  charset="us-ascii"
+  charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:33551 "EHLO d1.icnet.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752340Ab1FENxp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 5 Jun 2011 09:53:45 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20110601143256.GG2409@legolas.emea.dhcp.ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: Keshava Munegowda <keshava_mgowda@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, khilman@ti.com, b-cousson@ti.com, paul@pwsan.com
 List-Id: linux-omap@vger.kernel.org
-To: linux-pm@lists.linux-foundation.org
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Pavel Machek <pavel@ucw.cz>, Len Brown <len.brown@intel.com>, Greg Kroah-Hartman <gregkh@suse.de>, linux-kernel@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-In its current form, pm_runtime_clk_notify() iterates through sub-
-strings of pm_clk_notifier_block.con_ids[0] rather than consecutive 
-pm_clk_notifier_block.con_ids[] elements. As a noticeable result, McBSP1 
-port no longer worked for me on updated arch/arm/mach-omap1/pm_bus.c 
-(commit 600b776eb39a13a28b090ba9efceb0c69d4508aa, "OMAP1 / PM: Use 
-generic clock manipulation routines for runtime PM"), not being able to 
-activate "fck" when required.
+On Wednesday, June 01, 2011, Felipe Balbi wrote:
+> Hi,
+> 
+> On Wed, Jun 01, 2011 at 03:54:38PM +0200, Rafael J. Wysocki wrote:
+> > > +static const struct dev_pm_ops usbhsomap_dev_pm_ops = {
+> > > +	.suspend	= usbhs_suspend,
+> > > +	.resume		= usbhs_resume,
+> > > +};
+> > 
+> > Please add .freeze()/.thaw() and .poweroff()/.restore() callbacks too.
+> > They may point to the same routines, but must be present.
+> > 
+> > You can actually use the SIMPLE_DEV_PM_OPS() convenience macro for this
+> > purpose.
+> 
+> good point. BTW, do we need this #ifdef CONFIG_PM stuff which has been
+> popping on most drivers recently ? To me it looks like driver.pm field
+> is always available even if PM is disabled, so what's the point ? Saving
+> a few bytes ?
 
-Tested on Amstrad Delta.
+Basically, yes (you may want to avoid defining the object this points to if
+CONFIG_PM is unset).
 
-Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
----
- drivers/base/power/clock_ops.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
-
---- git/drivers/base/power/clock_ops.c.orig	2011-05-30 22:16:35.000000000 +0200
-+++ git/drivers/base/power/clock_ops.c	2011-06-05 15:19:55.000000000 +0200
-@@ -291,7 +291,7 @@ static int pm_runtime_clk_notify(struct 
- {
- 	struct pm_clk_notifier_block *clknb;
- 	struct device *dev = data;
--	char *con_id;
-+	char **con_id;
- 	int error;
- 
- 	dev_dbg(dev, "%s() %ld\n", __func__, action);
-@@ -309,8 +309,8 @@ static int pm_runtime_clk_notify(struct 
- 
- 		dev->pwr_domain = clknb->pwr_domain;
- 		if (clknb->con_ids[0]) {
--			for (con_id = clknb->con_ids[0]; *con_id; con_id++)
--				pm_runtime_clk_add(dev, con_id);
-+			for (con_id = &clknb->con_ids[0]; *con_id; con_id++)
-+				pm_runtime_clk_add(dev, *con_id);
- 		} else {
- 			pm_runtime_clk_add(dev, NULL);
- 		}
+Thanks,
+Rafael
