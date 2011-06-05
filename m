@@ -1,41 +1,94 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 4/4] mfd: global Suspend and resume support of ehci and ohci
-Date: Sun, 5 Jun 2011 19:19:38 +0200
-Message-ID: <201106051919.38637.rjw@sisk.pl>
-References: <1306934847-6098-1-git-send-email-keshava_mgowda@ti.com> <201106011554.38415.rjw@sisk.pl> <20110601143256.GG2409@legolas.emea.dhcp.ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 4/4] mfd: global Suspend and resume support of ehci and
+ ohci
+Date: Sun, 5 Jun 2011 21:50:49 +0300
+Message-ID: <20110605185047.GB18731@legolas.emea.dhcp.ti.com>
+References: <1306934847-6098-1-git-send-email-keshava_mgowda@ti.com>
+ <201106011554.38415.rjw@sisk.pl>
+ <20110601143256.GG2409@legolas.emea.dhcp.ti.com>
+ <201106051919.38637.rjw@sisk.pl>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="O5XBE6gyVG5Rl6Rj"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20110601143256.GG2409@legolas.emea.dhcp.ti.com>
+Content-Disposition: inline
+In-Reply-To: <201106051919.38637.rjw@sisk.pl>
 Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: Keshava Munegowda <keshava_mgowda@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, khilman@ti.com, b-cousson@ti.com, paul@pwsan.com
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: balbi@ti.com, Keshava Munegowda <keshava_mgowda@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, khilman@ti.com, b-cousson@ti.com, paul@pwsan.com
 List-Id: linux-omap@vger.kernel.org
 
-On Wednesday, June 01, 2011, Felipe Balbi wrote:
-> Hi,
-> 
-> On Wed, Jun 01, 2011 at 03:54:38PM +0200, Rafael J. Wysocki wrote:
-> > > +static const struct dev_pm_ops usbhsomap_dev_pm_ops = {
-> > > +	.suspend	= usbhs_suspend,
-> > > +	.resume		= usbhs_resume,
-> > > +};
-> > 
-> > Please add .freeze()/.thaw() and .poweroff()/.restore() callbacks too.
-> > They may point to the same routines, but must be present.
-> > 
-> > You can actually use the SIMPLE_DEV_PM_OPS() convenience macro for this
-> > purpose.
-> 
-> good point. BTW, do we need this #ifdef CONFIG_PM stuff which has been
-> popping on most drivers recently ? To me it looks like driver.pm field
-> is always available even if PM is disabled, so what's the point ? Saving
-> a few bytes ?
 
-Basically, yes (you may want to avoid defining the object this points to if
-CONFIG_PM is unset).
+--O5XBE6gyVG5Rl6Rj
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Thanks,
-Rafael
+Hi,
+
+On Sun, Jun 05, 2011 at 07:19:38PM +0200, Rafael J. Wysocki wrote:
+> > On Wed, Jun 01, 2011 at 03:54:38PM +0200, Rafael J. Wysocki wrote:
+> > > > +static const struct dev_pm_ops usbhsomap_dev_pm_ops =3D {
+> > > > +	.suspend	=3D usbhs_suspend,
+> > > > +	.resume		=3D usbhs_resume,
+> > > > +};
+> > >=20
+> > > Please add .freeze()/.thaw() and .poweroff()/.restore() callbacks too.
+> > > They may point to the same routines, but must be present.
+> > >=20
+> > > You can actually use the SIMPLE_DEV_PM_OPS() convenience macro for th=
+is
+> > > purpose.
+> >=20
+> > good point. BTW, do we need this #ifdef CONFIG_PM stuff which has been
+> > popping on most drivers recently ? To me it looks like driver.pm field
+> > is always available even if PM is disabled, so what's the point ? Saving
+> > a few bytes ?
+>=20
+> Basically, yes (you may want to avoid defining the object this points to =
+if
+> CONFIG_PM is unset).
+
+wouldn't it look nicer to have a specific section for dev_pm_ops which
+gets automatically freed if CONFIG_PM isn't set ? I mean, there are a
+few drivers which don't have the ifdeferry around dev_pm_ops anyway.
+
+So, something like:
+
+#define __pm_ops	__section(.pm.ops)
+
+static const struct dev_pm_ops my_driver_pm_ops __pm_ops =3D {
+	.suspend	=3D my_driver_suspend,
+	.resume		=3D my_driver_resume,
+	[ blablabla ]
+};
+
+to simplify things, you could:
+
+#define DEFINE_DEV_PM_OPS(_ops)		\
+	const struct dev_pm_ops _ops __pm_ops
+
+that would mean changes to all linker scripts, though and a utility call
+that only does anything ifndef CONFIG_PM to free the .pm.ops section.
+
+--=20
+balbi
+
+--O5XBE6gyVG5Rl6Rj
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQEcBAEBAgAGBQJN69AHAAoJEAv8Txj19kN1NAAH/3VBSEOKpPM3QqZLB+wVORN6
+gPBtgRapDGeXuPdlpvnvwNAZIgluZqA1PrRnmYj1HU6cj2wUT3dNIB+VliPG6R8A
+1qZjuNiLCy9RKUIzxFYhypM5LQnbxVwrdvaluYBnf0Y1kD8QRpV1fBZMlRgQlPxr
+DRrlcpzZ6U3gqTA94Yi+RKFHv91iEDMu7jCzirlJfIvSfZHlD/Au7vQAjBYv0qgR
+Dv6CbhnKYp/gKLbgEXQyrhkWhj5znHi0joJ2E97m0Jc0PVpIc2eWeJY8e/OI5nkF
+lTkfCaZvocTQqxQoHBTjPD2bDBoGmfSMhpVv07MihvVFg3tsL5paqkaTTkR8SWI=
+=OJYM
+-----END PGP SIGNATURE-----
+
+--O5XBE6gyVG5Rl6Rj--
