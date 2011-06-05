@@ -1,94 +1,63 @@
-From: Felipe Balbi <balbi@ti.com>
+From: Alan Stern <stern@rowland.harvard.edu>
 Subject: Re: [PATCH 4/4] mfd: global Suspend and resume support of ehci and
  ohci
-Date: Sun, 5 Jun 2011 21:50:49 +0300
-Message-ID: <20110605185047.GB18731@legolas.emea.dhcp.ti.com>
-References: <1306934847-6098-1-git-send-email-keshava_mgowda@ti.com>
- <201106011554.38415.rjw@sisk.pl>
- <20110601143256.GG2409@legolas.emea.dhcp.ti.com>
- <201106051919.38637.rjw@sisk.pl>
-Reply-To: balbi@ti.com
+Date: Sun, 5 Jun 2011 15:30:55 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1106051519560.5916-100000@netrider.rowland.org>
+References: <20110605185047.GB18731@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="O5XBE6gyVG5Rl6Rj"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <201106051919.38637.rjw@sisk.pl>
+In-Reply-To: <20110605185047.GB18731@legolas.emea.dhcp.ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: balbi@ti.com, Keshava Munegowda <keshava_mgowda@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, khilman@ti.com, b-cousson@ti.com, paul@pwsan.com
+To: Felipe Balbi <balbi@ti.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Keshava Munegowda <keshava_mgowda@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, khilman@ti.com, b-cousson@ti.com, paul@pwsan.com
 List-Id: linux-omap@vger.kernel.org
 
+On Sun, 5 Jun 2011, Felipe Balbi wrote:
 
---O5XBE6gyVG5Rl6Rj
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> > > good point. BTW, do we need this #ifdef CONFIG_PM stuff which has been
+> > > popping on most drivers recently ? To me it looks like driver.pm field
+> > > is always available even if PM is disabled, so what's the point ? Saving
+> > > a few bytes ?
+> > 
+> > Basically, yes (you may want to avoid defining the object this points to if
+> > CONFIG_PM is unset).
+> 
+> wouldn't it look nicer to have a specific section for dev_pm_ops which
+> gets automatically freed if CONFIG_PM isn't set ? I mean, there are a
+> few drivers which don't have the ifdeferry around dev_pm_ops anyway.
+> 
+> So, something like:
+> 
+> #define __pm_ops	__section(.pm.ops)
+> 
+> static const struct dev_pm_ops my_driver_pm_ops __pm_ops = {
+> 	.suspend	= my_driver_suspend,
+> 	.resume		= my_driver_resume,
+> 	[ blablabla ]
+> };
+> 
+> to simplify things, you could:
+> 
+> #define DEFINE_DEV_PM_OPS(_ops)		\
+> 	const struct dev_pm_ops _ops __pm_ops
+> 
+> that would mean changes to all linker scripts, though and a utility call
+> that only does anything ifndef CONFIG_PM to free the .pm.ops section.
 
-Hi,
+In my opinion this would make programming harder, not easier.  It's
+very easy to understand "#ifdef" followed by "#endif"; people see them
+all the time.  The new tags you propose would force people to go
+searching through tons of source files to see what they mean, and then
+readers would still have to figure out when these tags should be used
+or what advantage they might bring.
 
-On Sun, Jun 05, 2011 at 07:19:38PM +0200, Rafael J. Wysocki wrote:
-> > On Wed, Jun 01, 2011 at 03:54:38PM +0200, Rafael J. Wysocki wrote:
-> > > > +static const struct dev_pm_ops usbhsomap_dev_pm_ops =3D {
-> > > > +	.suspend	=3D usbhs_suspend,
-> > > > +	.resume		=3D usbhs_resume,
-> > > > +};
-> > >=20
-> > > Please add .freeze()/.thaw() and .poweroff()/.restore() callbacks too.
-> > > They may point to the same routines, but must be present.
-> > >=20
-> > > You can actually use the SIMPLE_DEV_PM_OPS() convenience macro for th=
-is
-> > > purpose.
-> >=20
-> > good point. BTW, do we need this #ifdef CONFIG_PM stuff which has been
-> > popping on most drivers recently ? To me it looks like driver.pm field
-> > is always available even if PM is disabled, so what's the point ? Saving
-> > a few bytes ?
->=20
-> Basically, yes (you may want to avoid defining the object this points to =
-if
-> CONFIG_PM is unset).
+It's a little like "typedef struct foo foo_t;" -- doing this forces
+people to remember one extra piece of information that serves no real
+purpose except perhaps a minimal reduction in the amount of typing.  
+Since the limiting factor in kernel programming is human brainpower,
+not source file length, this is a bad tradeoff.  (Not to mention that
+it also obscures an important fact: A foo_t is an extended structure
+rather than a single value.)
 
-wouldn't it look nicer to have a specific section for dev_pm_ops which
-gets automatically freed if CONFIG_PM isn't set ? I mean, there are a
-few drivers which don't have the ifdeferry around dev_pm_ops anyway.
-
-So, something like:
-
-#define __pm_ops	__section(.pm.ops)
-
-static const struct dev_pm_ops my_driver_pm_ops __pm_ops =3D {
-	.suspend	=3D my_driver_suspend,
-	.resume		=3D my_driver_resume,
-	[ blablabla ]
-};
-
-to simplify things, you could:
-
-#define DEFINE_DEV_PM_OPS(_ops)		\
-	const struct dev_pm_ops _ops __pm_ops
-
-that would mean changes to all linker scripts, though and a utility call
-that only does anything ifndef CONFIG_PM to free the .pm.ops section.
-
---=20
-balbi
-
---O5XBE6gyVG5Rl6Rj
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQEcBAEBAgAGBQJN69AHAAoJEAv8Txj19kN1NAAH/3VBSEOKpPM3QqZLB+wVORN6
-gPBtgRapDGeXuPdlpvnvwNAZIgluZqA1PrRnmYj1HU6cj2wUT3dNIB+VliPG6R8A
-1qZjuNiLCy9RKUIzxFYhypM5LQnbxVwrdvaluYBnf0Y1kD8QRpV1fBZMlRgQlPxr
-DRrlcpzZ6U3gqTA94Yi+RKFHv91iEDMu7jCzirlJfIvSfZHlD/Au7vQAjBYv0qgR
-Dv6CbhnKYp/gKLbgEXQyrhkWhj5znHi0joJ2E97m0Jc0PVpIc2eWeJY8e/OI5nkF
-lTkfCaZvocTQqxQoHBTjPD2bDBoGmfSMhpVv07MihvVFg3tsL5paqkaTTkR8SWI=
-=OJYM
------END PGP SIGNATURE-----
-
---O5XBE6gyVG5Rl6Rj--
+Alan Stern
