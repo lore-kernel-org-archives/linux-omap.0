@@ -1,50 +1,49 @@
-From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: RE: [PATCH] ARM: omap4: gpio: fix setting IRQWAKEN bits
-Date: Mon, 6 Jun 2011 12:53:57 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB037B7B69A6@dbde02.ent.ti.com>
-References: <1307214239-16316-1-git-send-email-ccross@android.com>
- <4DEC7B6D.6060901@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 01/27] OMAP: change get_context_loss_count ret value to
+ int
+Date: Mon, 06 Jun 2011 10:28:06 +0300
+Message-ID: <1307345286.1910.5.camel@deskari>
+References: <1307095237-14805-1-git-send-email-tomi.valkeinen@ti.com>
+	 <1307095237-14805-2-git-send-email-tomi.valkeinen@ti.com>
+	 <871uzaj2oy.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4DEC7B6D.6060901@ti.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Colin Cross <ccross@android.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:39202 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753580Ab1FFH2M (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Jun 2011 03:28:12 -0400
+In-Reply-To: <871uzaj2oy.fsf@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>, paul@pwsan.com
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, b-cousson@ti.com
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Shilimkar, Santosh
-> Sent: Monday, June 06, 2011 12:32 PM
-> To: Colin Cross
-> Cc: linux-omap@vger.kernel.org; Tony Lindgren; Russell King; linux-
-> kernel@vger.kernel.org; linux-arm-kernel@lists.infradead.org
-> Subject: Re: [PATCH] ARM: omap4: gpio: fix setting IRQWAKEN bits
+On Fri, 2011-06-03 at 09:32 -0700, Kevin Hilman wrote:
+> Tomi Valkeinen <tomi.valkeinen@ti.com> writes:
 > 
-> On 6/5/2011 12:33 AM, Colin Cross wrote:
-> > Setting the IRQWAKEN bit was overwriting previous IRQWAKEN bits,
-> > causing only the last bit set to take effect, resulting in lost
-> > wakeups when the GPIO controller is in idle.
+> > get_context_loss_count functions return context loss count as u32, and
+> > zero means an error. However, zero is also returned when context has
+> > never been lost and could also be returned when the context loss count
+> > has wrapped and goes to zero.
 > >
-> > Replace direct writes to IRQWAKEN with writes to SETWKUENA and
-> > CLEARWKUEN.
+> > Change the functions to return an int, with negative value meaning an
+> > error.
 > >
-> > Signed-off-by: Colin Cross<ccross@android.com>
+> > OMAP HSMMC code uses omap_pm_get_dev_context_loss_count(), but as the
+> > hsmmc code handles the returned value as an int, with negative value
+> > meaning an error, this patch actually fixes hsmmc code also.
+> >
+> > Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> > Acked-by: Kevin Hilman <khilman@ti.com>
 > 
-> Looks good. This needs to be fixed on top of the clean-up
-> branch where GPIO movemnt to driver/gpio/* happening.
-> 
-> For this change,
-> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-This is also available as part of following cleanup series we are doing.
-However, since this is a defect we can prioritize it over the cleanup.
---
-Tarun
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> This one should be separated out into a fix for v3.0-rc, and queued by
+> Paul (also Cc'd to linux-arm-kernel.)
+
+Yup, I added it here for completeness to get a working patch series. The
+same patch has also been sent separately.
+
+ Tomi
+
+
