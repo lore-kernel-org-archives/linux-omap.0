@@ -1,44 +1,92 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [RFC PATCH V5 1/4] cpuidle: Move dev->last_residency update to
-	driver enter routine, remove dev->last_state
-Date: Mon, 6 Jun 2011 14:51:05 +0100
-Message-ID: <20110606135105.GA7023@n2100.arm.linux.org.uk>
-References: <20110606133917.5670.54949.stgit@tringupt.in.ibm.com> <20110606133926.5670.4650.stgit@tringupt.in.ibm.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 19/27] OMAP: DSS2: Use PM runtime & HWMOD support
+Date: Mon, 06 Jun 2011 16:55:25 +0300
+Message-ID: <1307368525.1910.50.camel@deskari>
+References: <1307095237-14805-1-git-send-email-tomi.valkeinen@ti.com>
+	 <1307095237-14805-20-git-send-email-tomi.valkeinen@ti.com>
+	 <871uzahnib.fsf@ti.com> <1307122985.2016.72.camel@deskari>
+	 <87hb86a5mm.fsf@ti.com> <1307174504.1777.24.camel@lappyti>
+	 <4DECCE90.6070201@ti.com> <1307365290.1910.39.camel@deskari>
+	 <4DECD2D7.6030207@ti.com> <1307366474.1910.44.camel@deskari>
+	 <4DECDA3A.7080808@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-sh-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20110606133926.5670.4650.stgit@tringupt.in.ibm.com>
-Sender: linux-sh-owner@vger.kernel.org
-To: Trinabh Gupta <trinabh@linux.vnet.ibm.com>
-Cc: arjan@linux.intel.com, peterz@infradead.org, lenb@kernel.org, venki@google.com, ak@linux.intel.com, len.brown@intel.com, santosh.shilimkar@ti.com, khilman@ti.com, linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:54791 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754802Ab1FFNz3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Jun 2011 09:55:29 -0400
+In-Reply-To: <4DECDA3A.7080808@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "Hilman, Kevin" <khilman@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>
 
-On Mon, Jun 06, 2011 at 07:09:26PM +0530, Trinabh Gupta wrote:
-> diff --git a/arch/arm/mach-at91/cpuidle.c b/arch/arm/mach-at91/cpuidle.c
-> index 1cfeac1..4696a0d 100644
-> --- a/arch/arm/mach-at91/cpuidle.c
-> +++ b/arch/arm/mach-at91/cpuidle.c
-> @@ -41,10 +41,10 @@ static int at91_enter_idle(struct cpuidle_device *dev,
->  
->  	local_irq_disable();
->  	do_gettimeofday(&before);
-> -	if (state == &dev->states[0])
-> +	if (index == 0)
->  		/* Wait for interrupt state */
->  		cpu_do_idle();
-> -	else if (state == &dev->states[1]) {
-> +	else if (index == 1) {
->  		asm("b 1f; .align 5; 1:");
->  		asm("mcr p15, 0, r0, c7, c10, 4");	/* drain write buffer */
+On Mon, 2011-06-06 at 15:46 +0200, Cousson, Benoit wrote:
+> On 6/6/2011 3:21 PM, Valkeinen, Tomi wrote:
+> > On Mon, 2011-06-06 at 15:15 +0200, Cousson, Benoit wrote:
+> >> On 6/6/2011 3:01 PM, Valkeinen, Tomi wrote:
+> >>> On Mon, 2011-06-06 at 14:56 +0200, Cousson, Benoit wrote:
+> >
+> >>> In this long term solution, if the dss_fclk is the main_clk, how does
+> >>> the framework handle the situation when we want to switch from the
+> >>> standard DSS fclk to the one from DSI PLL?
+> >>
+> >> That part cannot be done by the hwmod fmwk anyway. The goal of the fmwk
+> >> is to ensure that the module is accessible by the driver whatever the
+> >> PRCM clock used.
+> >> Enabling the DSI PLL will require the PRCM clock to be enabled first.
+> >>
+> >> Using the DSI PLL as the fclk is doable, but is it really useful or needed?
+> >
+> > Yes, it's useful and needed. It gives us much finer control to the clock
+> > frequencies, and so allows us to go to higher frequencies and also more
+> > exactly to the required pixel clock.
+> >
+> >> Assuming you need that mode, you will always have to explicitly switch
+> >> from DSI to PRCM clock before trying to disable the DSS.
+> >> This is something you will have to do inside the DSS driver. It should
+> >> be transparent to the hwmod fmwk.
+> >
+> > This sounds ok.
+> >
+> > I think the main question is how do we disable the standard DSS fclk
+> > from PRCM when using DSI PLL? As far as I know, disabling that clock
+> > will allow some areas of OMAP to be shut down even while DSS is working.
+> > So from power management point of view it sounds a needed feature.
+> 
+> Yes, at least in theory, but considering that any use case that will 
+> require the DSI PLL will use a LCD panel + backlight, or an OLED panel 
+> that will consume 50 times more than the 186 MHz clock, I do not think 
+> it is really needed.
+> Moreover, that clock is generated by the PER DPLL that will be always 
+> enabled in most usecase because it does generate the UART, I2C and most 
+> basic peripherals clocks. If we cannot gate the PER DPLL, there is no 
+> saving to expect from gating the DSS fclk only.
+> Bottom-line is that there is no practical power saving to expect from 
+> that mode.
+> 
+> > If the clock is main_clk for the HWMOD, it sounds to me it's always
+> > enabled if the HWMOD is enabled?
+> 
+> Yes, but that sounds to me a good trade off to avoid unnecessary 
+> complexity in your driver or in the hwmod fmwk.
 
-While looking through this patch, it is probably worth pointing out for
-the AT91 folk that this is broken.  Here's an extract from the GCC manual:
+Ok, if there are no real power savings there, then I agree, it's
+pointless to add that complexity.
 
-|  Similarly, you can't expect a sequence of volatile `asm' instructions
-| to remain perfectly consecutive.  If you want consecutive output, use a
-| single `asm'.  Also, GCC will perform some optimizations across a
-| volatile `asm' instruction; GCC does not "forget everything" when it
-| encounters a volatile `asm' instruction the way some other compilers do.
+So how do we go forward in short term? I'd very much like to remove all
+the "silly" code from the DSS pm_runtime patch series caused by this
+opt_clock handling. Is it possible to get some kind of a temporary
+solution in the hwmod framework which would somehow solve this from DSS
+driver's point of view? A flag that causes hwmod fmwk to enable
+opt-clocks automatically? Or is it possible to have more than one
+mandatory clock?
 
-It might be a good idea to fix those two asm() statements into one.
+This way when your long-term solution is done, the driver would not need
+any changes.
+
+ Tomi
+
+
