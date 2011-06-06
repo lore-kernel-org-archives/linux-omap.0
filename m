@@ -1,55 +1,52 @@
-From: Archit Taneja <archit@ti.com>
-Subject: Re: [PATCH 03/27] OMAP: DSS2: Reset LANEx_ULPS_SIG2 bits after use
-Date: Mon, 6 Jun 2011 11:11:29 +0530
-Message-ID: <4DEC6889.6020607@ti.com>
-References: <1307095237-14805-1-git-send-email-tomi.valkeinen@ti.com> <1307095237-14805-4-git-send-email-tomi.valkeinen@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+From: green@linuxhacker.ru
+Subject: Initial B&N Nook Color support, take five
+Date: Mon,  6 Jun 2011 02:05:02 -0400
+Message-ID: <1307340305-1252-1-git-send-email-green@linuxhacker.ru>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60434 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756610Ab1FFFea (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 6 Jun 2011 01:34:30 -0400
-In-Reply-To: <1307095237-14805-4-git-send-email-tomi.valkeinen@ti.com>
+Received: from c-71-228-165-73.hsd1.tn.comcast.net ([71.228.165.73]:56996 "EHLO
+	fatbox1.localnet" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752137Ab1FFGFy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Jun 2011 02:05:54 -0400
+Received: from fatbox1.localnet (fatbox1.localnet [127.0.0.1])
+	by fatbox1.localnet (8.14.4/8.14.4) with ESMTP id p5665rNk001294
+	for <linux-omap@vger.kernel.org>; Mon, 6 Jun 2011 02:05:53 -0400
+Received: (from green@localhost)
+	by fatbox1.localnet (8.14.4/8.14.4/Submit) id p5665r6p001292
+	for linux-omap@vger.kernel.org; Mon, 6 Jun 2011 02:05:53 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "Cousson, Benoit" <b-cousson@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "Hilman, Kevin" <khilman@ti.com>
+To: linux-omap@vger.kernel.org
 
-Hi,
+Hello!
 
-On Friday 03 June 2011 03:30 PM, Valkeinen, Tomi wrote:
-> LANEx_ULPS_SIG2 bits are left on after entering ULPS. This doesn't cause
-> any problems currently, as DSI HW is reset when it is enabled. However,
-> if the reset is not done, operation fails if the bits are still set.
->
-> So reset the bits after entering ULPS to ensure operation even without
-> HW reset.
->
-> Signed-off-by: Tomi Valkeinen<tomi.valkeinen@ti.com>
-> ---
->   drivers/video/omap2/dss/dsi.c |    4 ++++
->   1 files changed, 4 insertions(+), 0 deletions(-)
->
-> diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
-> index 69c2d4f..4496d09 100644
-> --- a/drivers/video/omap2/dss/dsi.c
-> +++ b/drivers/video/omap2/dss/dsi.c
-> @@ -3395,6 +3395,10 @@ static int dsi_enter_ulps(struct platform_device *dsidev)
->   	dsi_unregister_isr_cio(dsidev, dsi_completion_handler,&completion,
->   			DSI_CIO_IRQ_ULPSACTIVENOT_ALL0);
->
-> +	/* Reset LANEx_ULPS_SIG2 */
-> +	REG_FLD_MOD(dsidev, DSI_COMPLEXIO_CFG2, (0<<  0) | (0<<  1) | (0<<  2),
-> +		7, 5);
-> +
+ Next attempt at B&N Nook Color board file submission.
+ USB peripheral mode is fully operational as is serial console and
+ MMC/SDCard.
 
-We may need to reset more lanes based on the number of lanes the panel 
-is using. We could calculate a mask here instead.
+ Changes
+ since v4:
+ Rebased to devel-fixes
+ A few more style fixes with regulators
+ dropped board_mux define if CONFIG_OMAP_MUX is not set
+ since v3:
+ Separated mach-types change into a separate patch (already got RMK approval)
+ Dramatically cut number of includes in the board file again.
+ No longer set voltage regulator dev, just device name in the supply.
+ Style fixes
+ Serial in uncompress.h sorted by name
+ Corrected MUX package to CBP in board file.
+ omap_i2c_init now has no return since it's unused anyway.
+ Fixed keypad definition.
 
-Archit
->   	dsi_cio_power(dsidev, DSI_COMPLEXIO_POWER_ULPS);
->
->   	dsi_if_enable(dsidev, false);
+ since v2:
+ rebased on devel-cleanup branch
+
+ since v1:
+ Threw away all the android stuff as suggested 
+ Cleaned up voltage regulators and removed the ones our twl chip actually
+   does not have
+ Changed the split of the patches to board file + twl update
+
+Bye,
+  Oleg
 
