@@ -1,63 +1,46 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH] ARM: omap4: gpio: fix setting IRQWAKEN bits
-Date: Mon, 06 Jun 2011 16:25:02 -0700
-Message-ID: <87y61etuep.fsf@ti.com>
-References: <1307214239-16316-1-git-send-email-ccross@android.com>
-	<BANLkTingmUNvZO_szivRkmn7LRO4L5A+5Q@mail.gmail.com>
-	<87r576wpz6.fsf@ti.com> <20110606230522.GA16590@google.com>
+Subject: [GIT PULL] OMAP PM fixes for v3.0-rc
+Date: Mon, 06 Jun 2011 16:29:43 -0700
+Message-ID: <87oc2atu6w.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20110606230522.GA16590@google.com> (Todd Poynor's message of
-	"Mon, 6 Jun 2011 16:05:22 -0700")
-Sender: linux-kernel-owner@vger.kernel.org
-To: Todd Poynor <toddpoynor@google.com>
-Cc: l-o <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, lkml <linux-kernel@vger.kernel.org>, Colin Cross <ccross@android.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:54249 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752048Ab1FFX3q (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Jun 2011 19:29:46 -0400
+Received: by mail-pz0-f43.google.com with SMTP id 1so2649106pzk.2
+        for <linux-omap@vger.kernel.org>; Mon, 06 Jun 2011 16:29:45 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Todd Poynor <toddpoynor@google.com> writes:
+Tony,
 
-> On Mon, Jun 06, 2011 at 03:32:29PM -0700, Kevin Hilman wrote:
->> Colin Cross <ccross@android.com> writes:
->>=20
->> > On Sat, Jun 4, 2011 at 12:03 PM, Colin Cross <ccross@android.com> =
-wrote:
->> >> Setting the IRQWAKEN bit was overwriting previous IRQWAKEN bits,
->> >> causing only the last bit set to take effect, resulting in lost
->> >> wakeups when the GPIO controller is in idle.
->> >>
->> >> Replace direct writes to IRQWAKEN with writes to SETWKUENA and
->> >> CLEARWKUEN.
->> >>
->> >> Signed-off-by: Colin Cross <ccross@android.com>
->>=20
->> [...]
->>=20
->> >
->> > Todd pointed out that the OMAP4 TRM says not to use SETWKUENA and
->> > CLEARWKUENA. =20
->>=20
->> In my GPIO cleanups, I was wondering why the set/clear registers wer=
-e
->> not used here. Todd, can you give the TRM version & reference for th=
-is?
->> I didn't find anything after a quick scan/search.
->
-> http://focus.ti.com/general/docs/wtbu/wtbudocumentcenter.tsp?template=
-Id=3D6123&navigationId=3D12037
->
-> OMAP4460 Multimedia Device Silicon Revision 1.0 Version E
-> February 2011=E2=80=93Revised May 2011
->
-> p. 5357 Table 25-68. GPIO_CLEARWKUPENA
->
-> "Caution: This register is kept for backward software compatibility. =
-Use
-> GPIO_IRQWAKEN_0 and GPIO_IRQWAKEN_1 instead."
+Please pull the following fixes for v3.0-rc.  Looks like I just missed
+your pull request, so you can add this to the next one.
 
-OK, I see it now.
-
-Thanks,
+Note that I split the section mismatch patch from Russell into two.  One
+to go through you for OMAP core and the other (GPIO) to go through that
+driver tree.
 
 Kevin
+
+
+The following changes since commit 59c5f46fbe01a00eedf54a23789634438bb80603:
+
+  Linux 3.0-rc2 (2011-06-06 18:06:33 +0900)
+
+are available in the git repository at:
+  ssh://master.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git for_3.0/pm-fixes
+
+Kevin Hilman (1):
+      OMAP: PM: omap_device: fix device power domain callbacks
+
+Russell King (1):
+      OMAP: PM debug: fix section mismatch warnings
+
+ arch/arm/mach-omap2/pm-debug.c   |    4 ++--
+ arch/arm/plat-omap/omap_device.c |   19 +++++++++++++++++--
+ 2 files changed, 19 insertions(+), 4 deletions(-)
