@@ -1,37 +1,57 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [RFC 0/6] iommu: generic api migration and grouping
-Date: Mon, 6 Jun 2011 23:09:33 +0300
-Message-ID: <BANLkTinx21-E3DRe9D7LRB8e1aeOwv=-9A@mail.gmail.com>
-References: <1307053663-24572-1-git-send-email-ohad@wizery.com>
- <20110606100950.GC30762@amd.com> <BANLkTi=i2s-Ujiy4qn_XQv+9dMjUC9R66A@mail.gmail.com>
- <20110606153557.GE1953@amd.com> <BANLkTinwwVO4TmsxuTfSBf6jqYrEVV3b_A@mail.gmail.com>
- <20110606192030.GA4356@amd.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Colin Cross <ccross@android.com>
+Subject: [PATCH v2 1/2] ARM: omap4: gpio: fix setting IRQWAKEN bits
+Date: Mon,  6 Jun 2011 13:38:17 -0700
+Message-ID: <1307392698-21170-1-git-send-email-ccross@android.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20110606192030.GA4356@amd.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Roedel, Joerg" <Joerg.Roedel@amd.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "laurent.pinchart@ideasonboard.com" <laurent.pinchart@ideasonboard.com>, "Hiroshi.DOYU@nokia.com" <Hiroshi.DOYU@nokia.com>, "arnd@arndb.de" <arnd@arndb.de>, "davidb@codeaurora.org" <davidb@codeaurora.org>, Omar Ramirez Luna <omar.ramirez@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, tarun.kanti@ti.com, linux-arm-kernel@lists.infradead.org, Colin Cross <ccross@android.com>, Grant Likely <grant.likely@secretlab.ca>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Jun 6, 2011 at 10:20 PM, Roedel, Joerg <Joerg.Roedel@amd.com> wrote:
-> Well, it certainly makes sense to have a single implementation for this.
-> But I want to hide this complexity to the user of the IOMMU-API. The
-> best choice is to put this into the layer between the IOMMU-API and the
-> backend implementation.
+Setting the IRQWAKEN bit was overwriting previous IRQWAKEN bits,
+causing only the last bit set to take effect, resulting in lost
+wakeups when the GPIO controller is in idle.
 
-I agree.
+Replace direct writes to IRQWAKEN with MOD_REG_BIT calls to
+perform a read-modify-write on the register.
 
-The IOMMU API should take physically contiguous regions from the user,
-split them up according to page-sizes (/alignment requirements)
-supported by the hardware, and then tell the underlying implementation
-what to map where.
+Signed-off-by: Colin Cross <ccross@android.com>
+---
+ drivers/gpio/gpio-omap.c |   12 ++----------
+ 1 files changed, 2 insertions(+), 10 deletions(-)
 
-> That interface is not put into stone. There were other complains about
-> the ->unmap part recently, so there is certainly room for improvement
-> there.
+Santosh, I left your Acked-by off this patch because I changed
+the register access to match the OMAP4 TRM.
 
-Once the supported page sizes are exposed to the framework, the
-current ->unmap API should probably be enough. 'va' + 'order' sounds
-like all the information an implementation needs to unmap a page.
+diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+index 6c51191..8ba6957 100644
+--- a/drivers/gpio/gpio-omap.c
++++ b/drivers/gpio/gpio-omap.c
+@@ -432,7 +432,6 @@ static inline void set_24xx_gpio_triggering(struct gpio_bank *bank, int gpio,
+ {
+ 	void __iomem *base = bank->base;
+ 	u32 gpio_bit = 1 << gpio;
+-	u32 val;
+ 
+ 	if (cpu_is_omap44xx()) {
+ 		MOD_REG_BIT(OMAP4_GPIO_LEVELDETECT0, gpio_bit,
+@@ -455,15 +454,8 @@ static inline void set_24xx_gpio_triggering(struct gpio_bank *bank, int gpio,
+ 	}
+ 	if (likely(!(bank->non_wakeup_gpios & gpio_bit))) {
+ 		if (cpu_is_omap44xx()) {
+-			if (trigger != 0)
+-				__raw_writel(1 << gpio, bank->base+
+-						OMAP4_GPIO_IRQWAKEN0);
+-			else {
+-				val = __raw_readl(bank->base +
+-							OMAP4_GPIO_IRQWAKEN0);
+-				__raw_writel(val & (~(1 << gpio)), bank->base +
+-							 OMAP4_GPIO_IRQWAKEN0);
+-			}
++			MOD_REG_BIT(OMAP4_GPIO_IRQWAKEN0, gpio_bit,
++				trigger != 0);
+ 		} else {
+ 			/*
+ 			 * GPIO wakeup request can only be generated on edge
+-- 
+1.7.4.1
