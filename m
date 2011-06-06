@@ -1,108 +1,42 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH v3 1/2] omap3: iovmm: Work around sg_alloc_table size limitation in IOMMU
-Date: Mon, 6 Jun 2011 18:23:18 +0200
-Message-ID: <201106061823.18767.laurent.pinchart@ideasonboard.com>
-References: <20110601131744.GH11352@atomide.com> <201106030212.48226.laurent.pinchart@ideasonboard.com> <20110603063211.GA18082@n2100.arm.linux.org.uk>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [RFC 0/6] iommu: generic api migration and grouping
+Date: Mon, 6 Jun 2011 19:36:13 +0300
+Message-ID: <BANLkTinwwVO4TmsxuTfSBf6jqYrEVV3b_A@mail.gmail.com>
+References: <1307053663-24572-1-git-send-email-ohad@wizery.com>
+ <20110606100950.GC30762@amd.com> <BANLkTi=i2s-Ujiy4qn_XQv+9dMjUC9R66A@mail.gmail.com>
+ <20110606153557.GE1953@amd.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:41585 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754209Ab1FFQXE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Jun 2011 12:23:04 -0400
-In-Reply-To: <20110603063211.GA18082@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20110606153557.GE1953@amd.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Roedel, Joerg" <Joerg.Roedel@amd.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "laurent.pinchart@ideasonboard.com" <laurent.pinchart@ideasonboard.com>, "Hiroshi.DOYU@nokia.com" <Hiroshi.DOYU@nokia.com>, "arnd@arndb.de" <arnd@arndb.de>, "davidb@codeaurora.org" <davidb@codeaurora.org>, Omar Ramirez Luna <omar.ramirez@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Russell,
+On Mon, Jun 6, 2011 at 6:35 PM, Roedel, Joerg <Joerg.Roedel@amd.com> wrote:
+> On Mon, Jun 06, 2011 at 11:15:30AM -0400, Ohad Ben-Cohen wrote:
+>
+>> This is insufficient; users need somehow to tell what page sizes are
+>> supported by the underlying hardware (we can't assume host page-sizes,
+>> and we want to use bigger pages whenever possible, to relax the TLB
+>> pressure).
+> /
+> What does the IOMMU-API user need this info for? On the x86 IOMMUs these
+> details are handled transparently by the IOMMU driver.
 
-On Friday 03 June 2011 08:32:12 Russell King - ARM Linux wrote:
-> On Fri, Jun 03, 2011 at 02:12:47AM +0200, Laurent Pinchart wrote:
-> > On Wednesday 01 June 2011 16:03:06 Russell King - ARM Linux wrote:
-> > > On Wed, Jun 01, 2011 at 03:50:50PM +0200, Laurent Pinchart wrote:
-> > > > In the specific iovmm case, the driver uses the sglist API to build a
-> > > > list of page-size sg entries, and then process it in software. Is
-> > > > that considered as an abuse of the sglist API, or valid usage ?
-> > > > 
-> > > > Anyway, sglist chaining is not needed by iovmm. As iovmm just walks
-> > > > the sglist manually, it's easier to allocate it in one go rather
-> > > > than using sglist chaining. This of course doesn't make your patch
-> > > > unneeded or wrong.
-> > > 
-> > > Well, there's a two issues here:
-> > > 1. Should iovmm use sg_phys(sg) with sg_dma_len(sg) ?
-> > > 
-> > >    Probably not, because a scatterlist before DMA API mapping is
-> > >    defined by sg_page(sg), sg->offset, sg->length and has N entries. 
-> > >    After DMA API mapping (n = dma_map_sg(dev, sg, N, dir)), it has n
-> > >    entries where n <= N, and the DMA address/lengths are
-> > >    sg_dma_address(sg) and sg_dma_len(sg).  Both these are undefined
-> > >    for unmapped scatterlists.
-> > >    
-> > >    Getting this wrong means breakage when CONFIG_NEED_SG_DMA_LENGTH is
-> > >    enabled.
-> > 
-> > iovmm abuses the sglist API, there's no doubt on that. It will break when
-> > CONFIG_NEED_SG_DMA_LENGTH is enabled. iovmm should probably not use the
-> > sglist API, and it should probably not even exist in the first place. I
-> > know that TI is working on moving the OMAP-specific iommu/iovmm
-> > implementation to the generic IOMMU API, but that will take time. In the
-> > meantime, I'd like to fix iovmm to avoid the userspace-triggerable
-> > BUG_ON().
-> > 
-> > > 2. What would be the effect of enabling SG list chaining on iovmm?
-> > > 
-> > >    The code uses the correct SG list walking helpers (for_each_sg) so
-> > >    it should be able to cope with chained SG lists.
-> > 
-> > Yes it should. It might be slightly less efficient, but I don't think we
-> > will notice.
-> > 
-> > > So, I think there's no problem here with chained SG lists, but there is
-> > > an issue with using sg_dma_len().  I'd suggest converting stuff to use
-> > > sg->length with sg_page(sg) rather than sg_dma_len(sg).
-> > 
-> > With sg_page(sg) ? I'm not sure to follow you there.
-> 
-> sg->length and sg_page(sg) are paired (and sg->length is paired with
-> other stuff).  They describe the scatterlist _before_ DMA API mapping.
-> After DMA API mapping, the scatterlist describes a list of regions
-> defined by sg_dma_address(sg) and sg_dma_len(sg) - sg_dma_len(sg) is
-> _only_ paired with sg_dma_address(sg).
+That's one way to do that, but then it means duplicating this logic
+inside the different IOMMU implementations.
 
-OK. The driver is already using sg_phys(sg), which is a wrapper around 
-sg_page(sg). I still need to replace sg_dma_len(sg) with sg->length.
+Take the OMAP (and seemingly MSM too) example: we have 4KB, 64KB, 1MB
+and 16MB page-table entries. When we map a memory region, we need to
+break it up to a minimum number of pages (while validating
+sizes/alignments are sane). It's not complicated, but it can be nice
+if it'd be implemented only once.
 
-> > > As for whether SG chaining is required or not, if you're running up
-> > > against the maximum SG table size, then you do have a requirement for
-> > > SG chaining.
-> > 
-> > The SG table size limit makes sure that the SG list fits in a page, so
-> > that it can be passed to the hardware. This isn't needed by iovmm, as it
-> > processes the sglist in software. iovmm could use SG chaining, but we
-> > would then need to enable it for the SoCs on which iovmm is used. I
-> > don't know if they properly support that.
-> 
-> Err, no.  scatterlists are _never_ passed to hardware.  They're a kernel
-> internal description of a list of regions in memory, which initially
-> start off as describing the kernels view of those regions.  After DMA
-> mapping, they describe it in terms of the device's view of those
-> regions.
-> 
-> At that point, scatterlists get converted to whatever form is required
-> by the hardware doing DMA, which most certainly won't be the layout which
-> struct scatterlist describes.
-> 
-> SG chaining has _nothing_ to do with hardware.  It's all to do with software
-> and hitting the SG table limit.
-
-What's the reason for limiting the SG table size to one page then ?
-
--- 
-Regards,
-
-Laurent Pinchart
+In addition, unless we require 'va' and 'pa' to have the exact same
+alignment, we might run into specific page configuration that the
+IOMMU implementation cannot restore on ->unmap, since unmap only takes
+'va' and 'order'. So we will either have to supply 'pa' too, or have
+the implementation remember the mapping in order to unmap it later.
+That begins to be a bit messy...
