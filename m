@@ -1,60 +1,142 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [linux-pm] calling runtime PM from system PM methods
-Date: Mon, 6 Jun 2011 15:16:23 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1106061502270.1953-100000@iolanthe.rowland.org>
-References: <201106062029.36389.rjw@sisk.pl>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: [PATCH 3.0-rc1] PM / runtime: fix broken iteration over clock ids
+Date: Mon, 6 Jun 2011 21:18:17 +0200
+Message-ID: <201106062118.18734.jkrzyszt@tis.icnet.pl>
+References: <201106051531.32878.jkrzyszt@tis.icnet.pl> <201106061947.36238.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:37672 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1757815Ab1FFTQY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Jun 2011 15:16:24 -0400
-In-Reply-To: <201106062029.36389.rjw@sisk.pl>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <201106061947.36238.rjw@sisk.pl>
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Kevin Hilman <khilman@ti.com>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>, Paul Walmsley <paul@pwsan.com>
+Cc: linux-pm@lists.linux-foundation.org, Pavel Machek <pavel@ucw.cz>, Len Brown <len.brown@intel.com>, Greg Kroah-Hartman <gregkh@suse.de>, linux-kernel@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+List-Id: linux-omap@vger.kernel.org
 
-On Mon, 6 Jun 2011, Rafael J. Wysocki wrote:
-
-> > In a nutshell, what I'm after is for any pm_runtime_forbid() calls to be
-> > cancelled during system PM, thus allowing pending runtime PM events to
-> > occur during system PM.
+On Mon 06 Jun 2011 at 19:47:36 Rafael J. Wysocki wrote:
+> Hi,
+> 
+> On Sunday, June 05, 2011, Janusz Krzysztofik wrote:
+> > In its current form, pm_runtime_clk_notify() iterates through sub-
+> > strings of pm_clk_notifier_block.con_ids[0] rather than consecutive
+> > pm_clk_notifier_block.con_ids[] elements. As a noticeable result,
+> > McBSP1 port no longer worked for me on updated
+> > arch/arm/mach-omap1/pm_bus.c (commit
+> > 600b776eb39a13a28b090ba9efceb0c69d4508aa, "OMAP1 / PM: Use generic
+> > clock manipulation routines for runtime PM"), not being able to
+> > activate "fck" when required.
 > > 
-> > Basically, what I have is several drivers who don't really need suspend
-> > hooks if runtime PM is enabled, because they use runtime PM on a per
-> > transaction basis, handle all the HW stuff in the runtime PM callbacks,
-> > and from a HW perspective, there is no difference in power state between
-> > runtime and static suspend.  These devices are already runtime suspended
-> > when the system PM callbacks run, so there is nothing for the system PM
-> > callbacks to do.
+> > Tested on Amstrad Delta.
+> > 
+> > Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+> > ---
+> > 
+> >  drivers/base/power/clock_ops.c |    6 +++---
+> >  1 file changed, 3 insertions(+), 3 deletions(-)
+> > 
+> > --- git/drivers/base/power/clock_ops.c.orig	2011-05-30
+> > 22:16:35.000000000 +0200 +++
+> > git/drivers/base/power/clock_ops.c	2011-06-05 15:19:55.000000000
+> > +0200 @@ -291,7 +291,7 @@ static int pm_runtime_clk_notify(struct
+> > 
+> >  {
+> >  
+> >  	struct pm_clk_notifier_block *clknb;
+> >  	struct device *dev = data;
+> > 
+> > -	char *con_id;
+> > +	char **con_id;
+> > 
+> >  	int error;
+> >  	
+> >  	dev_dbg(dev, "%s() %ld\n", __func__, action);
+> > 
+> > @@ -309,8 +309,8 @@ static int pm_runtime_clk_notify(struct
+> > 
+> >  		dev->pwr_domain = clknb->pwr_domain;
+> >  		if (clknb->con_ids[0]) {
+> > 
+> > -			for (con_id = clknb->con_ids[0]; *con_id; con_id++)
+> > -				pm_runtime_clk_add(dev, con_id);
+> > +			for (con_id = &clknb->con_ids[0]; *con_id; con_id++)
+> > +				pm_runtime_clk_add(dev, *con_id);
+> > 
+> >  		} else {
+> >  		
+> >  			pm_runtime_clk_add(dev, NULL);
+> >  		
+> >  		}
 > 
-> Well, I'm not quite sure this is the case.  You have to remember that
-> system suspend can happen at any time, so even if your runtime PM is used
-> around transactions, it theoretically is possible for system suspend to
-> happen while one of the transactions is in progress (unless you can guarantee
-> that the transactions can't be preempted).
+> First off, sorry for the breakage.  Second, while the patch is
+> correct in the part is covered, it is incomplete (it also should
+> cover the !CONFIG_PM_RUNTIME case.  So, I think the appended patch
+> would be better.
 
-That's right.  For example, there may be a queue of pending I/O 
-transactions.  Runtime PM would leave the device active as long as the 
-queue was non-empty.  System sleep should force the driver to stop 
-processing the queue as well as suspending the device. 
+That's right, please take it over.
 
-> While it is tempting to try to get away with only two PM callbacks per
-> driver instead of four (or even more), it generally is not doable, simply
-> because driver callbacks are not executed directly by the core.
+Thanks,
+Janusz
+
+
+> Thanks,
+> Rafael
 > 
-> The only way to address the problem of code duplication between .suspend()
-> and .runtime_suspend() callbacks (and analogously for resume) I see at the
-> moment is to make those callbacks execute common routines.
-
-For example, the power state might be protected by a device-specific
-spinlock.  The suspend callback could acquire the spinlock, check to
-see if the device is already in a low-power state and if not, put it in
-one.  Then the same callback could be used for runtime suspend and
-system suspend -- apart from issues like stopping the I/O request
-queue.
-
-Alan Stern
-
+> ---
+>  drivers/base/power/clock_ops.c |   16 ++++++++--------
+>  1 file changed, 8 insertions(+), 8 deletions(-)
+> 
+> Index: linux-2.6/drivers/base/power/clock_ops.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/base/power/clock_ops.c
+> +++ linux-2.6/drivers/base/power/clock_ops.c
+> @@ -291,7 +291,7 @@ static int pm_runtime_clk_notify(struct
+>  {
+>  	struct pm_clk_notifier_block *clknb;
+>  	struct device *dev = data;
+> -	char *con_id;
+> +	char **con_id;
+>  	int error;
+> 
+>  	dev_dbg(dev, "%s() %ld\n", __func__, action);
+> @@ -309,8 +309,8 @@ static int pm_runtime_clk_notify(struct
+> 
+>  		dev->pwr_domain = clknb->pwr_domain;
+>  		if (clknb->con_ids[0]) {
+> -			for (con_id = clknb->con_ids[0]; *con_id; con_id++)
+> -				pm_runtime_clk_add(dev, con_id);
+> +			for (con_id = clknb->con_ids; *con_id; con_id++)
+> +				pm_runtime_clk_add(dev, *con_id);
+>  		} else {
+>  			pm_runtime_clk_add(dev, NULL);
+>  		}
+> @@ -380,7 +380,7 @@ static int pm_runtime_clk_notify(struct
+>  {
+>  	struct pm_clk_notifier_block *clknb;
+>  	struct device *dev = data;
+> -	char *con_id;
+> +	char **con_id;
+> 
+>  	dev_dbg(dev, "%s() %ld\n", __func__, action);
+> 
+> @@ -389,16 +389,16 @@ static int pm_runtime_clk_notify(struct
+>  	switch (action) {
+>  	case BUS_NOTIFY_ADD_DEVICE:
+>  		if (clknb->con_ids[0]) {
+> -			for (con_id = clknb->con_ids[0]; *con_id; con_id++)
+> -				enable_clock(dev, con_id);
+> +			for (con_id = clknb->con_ids; *con_id; con_id++)
+> +				enable_clock(dev, *con_id);
+>  		} else {
+>  			enable_clock(dev, NULL);
+>  		}
+>  		break;
+>  	case BUS_NOTIFY_DEL_DEVICE:
+>  		if (clknb->con_ids[0]) {
+> -			for (con_id = clknb->con_ids[0]; *con_id; con_id++)
+> -				disable_clock(dev, con_id);
+> +			for (con_id = clknb->con_ids; *con_id; con_id++)
+> +				disable_clock(dev, *con_id);
+>  		} else {
+>  			disable_clock(dev, NULL);
+>  		}
