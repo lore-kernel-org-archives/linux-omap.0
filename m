@@ -1,62 +1,50 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 03/27] OMAP: DSS2: Reset LANEx_ULPS_SIG2 bits after use
-Date: Mon, 06 Jun 2011 10:21:34 +0300
-Message-ID: <1307344894.1910.1.camel@deskari>
-References: <1307095237-14805-1-git-send-email-tomi.valkeinen@ti.com>
-	 <1307095237-14805-4-git-send-email-tomi.valkeinen@ti.com>
-	 <4DEC6889.6020607@ti.com>
+From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Subject: RE: [PATCH] ARM: omap4: gpio: fix setting IRQWAKEN bits
+Date: Mon, 6 Jun 2011 12:53:57 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB037B7B69A6@dbde02.ent.ti.com>
+References: <1307214239-16316-1-git-send-email-ccross@android.com>
+ <4DEC7B6D.6060901@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:58708 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751506Ab1FFHVk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Jun 2011 03:21:40 -0400
-In-Reply-To: <4DEC6889.6020607@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <4DEC7B6D.6060901@ti.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Colin Cross <ccross@android.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Archit Taneja <archit@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "Cousson, Benoit" <b-cousson@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "Hilman, Kevin" <khilman@ti.com>
 
-On Mon, 2011-06-06 at 11:11 +0530, Archit Taneja wrote:
-> Hi,
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Shilimkar, Santosh
+> Sent: Monday, June 06, 2011 12:32 PM
+> To: Colin Cross
+> Cc: linux-omap@vger.kernel.org; Tony Lindgren; Russell King; linux-
+> kernel@vger.kernel.org; linux-arm-kernel@lists.infradead.org
+> Subject: Re: [PATCH] ARM: omap4: gpio: fix setting IRQWAKEN bits
 > 
-> On Friday 03 June 2011 03:30 PM, Valkeinen, Tomi wrote:
-> > LANEx_ULPS_SIG2 bits are left on after entering ULPS. This doesn't cause
-> > any problems currently, as DSI HW is reset when it is enabled. However,
-> > if the reset is not done, operation fails if the bits are still set.
+> On 6/5/2011 12:33 AM, Colin Cross wrote:
+> > Setting the IRQWAKEN bit was overwriting previous IRQWAKEN bits,
+> > causing only the last bit set to take effect, resulting in lost
+> > wakeups when the GPIO controller is in idle.
 > >
-> > So reset the bits after entering ULPS to ensure operation even without
-> > HW reset.
+> > Replace direct writes to IRQWAKEN with writes to SETWKUENA and
+> > CLEARWKUEN.
 > >
-> > Signed-off-by: Tomi Valkeinen<tomi.valkeinen@ti.com>
-> > ---
-> >   drivers/video/omap2/dss/dsi.c |    4 ++++
-> >   1 files changed, 4 insertions(+), 0 deletions(-)
-> >
-> > diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
-> > index 69c2d4f..4496d09 100644
-> > --- a/drivers/video/omap2/dss/dsi.c
-> > +++ b/drivers/video/omap2/dss/dsi.c
-> > @@ -3395,6 +3395,10 @@ static int dsi_enter_ulps(struct platform_device *dsidev)
-> >   	dsi_unregister_isr_cio(dsidev, dsi_completion_handler,&completion,
-> >   			DSI_CIO_IRQ_ULPSACTIVENOT_ALL0);
-> >
-> > +	/* Reset LANEx_ULPS_SIG2 */
-> > +	REG_FLD_MOD(dsidev, DSI_COMPLEXIO_CFG2, (0<<  0) | (0<<  1) | (0<<  2),
-> > +		7, 5);
-> > +
+> > Signed-off-by: Colin Cross<ccross@android.com>
 > 
-> We may need to reset more lanes based on the number of lanes the panel 
-> is using. We could calculate a mask here instead.
-
-Yes, I noticed that but I decided just to fix the bug here. The same
-bits are set a few lines earlier.
-
-We should go through all the lane configs in dsi.c, and come up with a
-way to easily get the necessary masks.
-
- Tomi
-
-
+> Looks good. This needs to be fixed on top of the clean-up
+> branch where GPIO movemnt to driver/gpio/* happening.
+> 
+> For this change,
+> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+This is also available as part of following cleanup series we are doing.
+However, since this is a defect we can prioritize it over the cleanup.
+--
+Tarun
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
