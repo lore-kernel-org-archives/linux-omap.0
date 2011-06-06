@@ -1,49 +1,44 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 01/27] OMAP: change get_context_loss_count ret value to
- int
-Date: Mon, 06 Jun 2011 10:28:06 +0300
-Message-ID: <1307345286.1910.5.camel@deskari>
-References: <1307095237-14805-1-git-send-email-tomi.valkeinen@ti.com>
-	 <1307095237-14805-2-git-send-email-tomi.valkeinen@ti.com>
-	 <871uzaj2oy.fsf@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [RFC 0/6] iommu: generic api migration and grouping
+Date: Mon, 6 Jun 2011 11:10:30 +0200
+Message-ID: <201106061110.30601.arnd@arndb.de>
+References: <1307053663-24572-1-git-send-email-ohad@wizery.com> <201106031753.16095.arnd@arndb.de> <BANLkTim2pDu25ZudZ7ZzOwka0V1sYEhDKw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:39202 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753580Ab1FFH2M (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Jun 2011 03:28:12 -0400
-In-Reply-To: <871uzaj2oy.fsf@ti.com>
+Received: from moutng.kundenserver.de ([212.227.17.10]:50283 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753974Ab1FFJKq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Jun 2011 05:10:46 -0400
+In-Reply-To: <BANLkTim2pDu25ZudZ7ZzOwka0V1sYEhDKw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>, paul@pwsan.com
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, b-cousson@ti.com
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, laurent.pinchart@ideasonboard.com, Hiroshi.DOYU@nokia.com, davidb@codeaurora.org, Joerg.Roedel@amd.com, Marek Szyprowski <m.szyprowski@samsung.com>, David Woodhouse <dwmw2@infradead.org>, anil.s.keshavamurthy@intel.com
 
-On Fri, 2011-06-03 at 09:32 -0700, Kevin Hilman wrote:
-> Tomi Valkeinen <tomi.valkeinen@ti.com> writes:
+On Sunday 05 June 2011, Ohad Ben-Cohen wrote:
+> > As far as I can tell, once we have that in
+> > place, we you can migrate omap3isp from iovmm to dma-mapping and
+> > remove iovmm.
 > 
-> > get_context_loss_count functions return context loss count as u32, and
-> > zero means an error. However, zero is also returned when context has
-> > never been lost and could also be returned when the context loss count
-> > has wrapped and goes to zero.
-> >
-> > Change the functions to return an int, with negative value meaning an
-> > error.
-> >
-> > OMAP HSMMC code uses omap_pm_get_dev_context_loss_count(), but as the
-> > hsmmc code handles the returned value as an int, with negative value
-> > meaning an error, this patch actually fixes hsmmc code also.
-> >
-> > Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> > Acked-by: Kevin Hilman <khilman@ti.com>
+> Sounds like a plan.
 > 
-> This one should be separated out into a fix for v3.0-rc, and queued by
-> Paul (also Cc'd to linux-arm-kernel.)
+> I'd still prefer us to take small steps here, and not gate the omap
+> iommu cleanups with Marek's generic dma_map_ops work though. Let's go
+> forward and migrate omap's iommu to the generic iommu API, so new code
+> will be able to use it (e.g. the long coming virtio-based IPC/AMP
+> framework).
 
-Yup, I added it here for completeness to get a working patch series. The
-same patch has also been sent separately.
+Yes, of course. That's what I meant. Moving over omap to the IOMMU API
+is required anyway, so there is no point delaying that.
 
- Tomi
+> We'll migrate iovmm/omap3isp just enough so they don't break, but once
+> the generic dma_map_ops work materializes, we'd be able to complete
+> the migration, remove iovmm, and decouple omap3isp from omap-specific
+> iommu APIs for good.
 
+Ok, great!
 
+	Arnd
