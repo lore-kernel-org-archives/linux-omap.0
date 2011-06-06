@@ -1,86 +1,101 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH v3 1/2] omap3: iovmm: Work around sg_alloc_table size limitation in IOMMU
-Date: Mon, 6 Jun 2011 18:54:10 +0200
-Message-ID: <201106061854.10450.laurent.pinchart@ideasonboard.com>
-References: <20110601131744.GH11352@atomide.com> <201106061823.18767.laurent.pinchart@ideasonboard.com> <20110606164400.GA9456@n2100.arm.linux.org.uk>
+From: "Menon, Nishanth" <nm@ti.com>
+Subject: Re: [PATCH][pm-wip/cpufreq] OMAP2+: CPUfreq: Remove superfluous check
+ in target() for online CPU's.
+Date: Mon, 6 Jun 2011 11:56:52 -0500
+Message-ID: <BANLkTindbwTeYLt7c25PRO3eDn9E=mg3Dg@mail.gmail.com>
+References: <1307103417-22721-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:43136 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751574Ab1FFQx4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Jun 2011 12:53:56 -0400
-In-Reply-To: <20110606164400.GA9456@n2100.arm.linux.org.uk>
+Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:36197 "EHLO
+	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752292Ab1FFQ5O convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 6 Jun 2011 12:57:14 -0400
+Received: by mail-bw0-f46.google.com with SMTP id 15so3463896bwz.19
+        for <linux-omap@vger.kernel.org>; Mon, 06 Jun 2011 09:57:12 -0700 (PDT)
+In-Reply-To: <1307103417-22721-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>
 
-Hi Russell,
+On Fri, Jun 3, 2011 at 07:16, Santosh Shilimkar
+<santosh.shilimkar@ti.com> wrote:
+> Current OMAP2PLUS CPUfreq tagret() functions returns when all
+> the CPU's are not online. This breaks CPUfreq when secondary CPUs
+> are offlined on SMP system.
+>
+> The intention of that check was just avoid CPU frequency change
+> during the window when CPU becomes online but it's cpufreq_init is
+> not done yet. Otherwise it can lead to notifiers being sent on
+> a CPU which is not yet registered to the governor.
+>
+> But this race conditions is already managed by the CPUfreq
+> core driver by updating the available cpumask accordingly.
+>
+> OMAP CPUFReq driver make use same cpumask for the notifiers
+> so the above problem doesn't exist. In my initial implementation
+> of the OMAP4 CPUFreq driver, I was using 'for_each_online_cpu()'
+> for notifiers which lead me to add that check. Later I fixed
+> the notifies but didn't realise that the check has become
+> redundant then.
+>
+> Fix it by removing the superfluous check in target().
+>
+> Thanks for Nishant Menon <nm@ti.com> for reporting issue
+> with hot-plug and Kevin Hilman <khilman@ti.com> for his
+> comment on excessive check in target().
+>
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Reported-by: Nishanth Menon <nm@ti.com>
+> Tested-by: Vishwanath BS <vishwanath.bs@ti.com>
+> Cc: Kevin Hilman <khilman@ti.com>
 
-On Monday 06 June 2011 18:44:00 Russell King - ARM Linux wrote:
-> On Mon, Jun 06, 2011 at 06:23:18PM +0200, Laurent Pinchart wrote:
-> > Hi Russell,
-> > 
-> > On Friday 03 June 2011 08:32:12 Russell King - ARM Linux wrote:
-> > > SG chaining has _nothing_ to do with hardware.  It's all to do with
-> > > software and hitting the SG table limit.
-> > 
-> > What's the reason for limiting the SG table size to one page then ?
-> 
-> As I say, it's got nothing to do with them ending up being passed to
-> hardware.  Take a look at their definition:
-> 
-> struct scatterlist {
-> #ifdef CONFIG_DEBUG_SG
->         unsigned long   sg_magic;
-> #endif
->         unsigned long   page_link;
->         unsigned int    offset;
->         unsigned int    length;
->         dma_addr_t      dma_address;
-> #ifdef CONFIG_NEED_SG_DMA_LENGTH
->         unsigned int    dma_length;
-> #endif
-> };
-> 
-> That clearly isn't hardware specific - hardware won't cope with
-> CONFIG_DEBUG_SG being enabled or disabled, or whether the architecture
-> supports the dma_length field, or that this structure has developed from
-> being:
-> 
-> 	void *addr;
-> 	unsigend int length;
-> 	unsigned long dma_address;
-> 
-> to the above over the evolution of the kernel.  Or that we use the bottom
-> two bits of page_link as our own flag bits?
-> 
-> So no, this struct goes nowhere near hardware of any kind.  It's merely
-> used as a container to pass a list of scatter-gather locations in memory
-> internally around within the kernel, especially to dma_map_sg()/
-> dma_unmap_sg().
-> 
-> If you look at IDE or ATA code, or even SCSI code, you'll find the same
-> pattern.  They're passed a scatterlist.  They map it for dma using
-> dma_map_sg().  They then walk the scatterlist and extract the dma
-> address and length using sg_dma_address() and sg_dma_length() and create
-> the _hardware_ table from that information - and the hardware table very
-> much depends on the hardware itself.  Once DMA is complete, they unmap
-> the DMA region using dma_unmap_sg().
-> 
-> One very good reason that its limited to one page is because allocations
-> larger than one page are prone to failure.  Would you want your company
-> server failing to read/write data to its storage just because it couldn't
-> get a contiguous 8K page for a 5K long scatterlist?  I think if Linux
-> did that, it wouldn't have a future in the enterprise marketplace.
-
-Of course not, but if the scatterlist is only touched by kernel code, it 
-doesn't need to be contiguous in memory. It could be allocated with vmalloc().
-
--- 
+Tested-by: Nishanth Menon <nm@ti.com>
 Regards,
+Nishanth Menon
 
-Laurent Pinchart
+
+> ---
+> This change is an outcome of discussion on another patch to fix
+> the hot-plug issue. For details refer below thread:
+> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg50348.html
+>
+> =A0arch/arm/mach-omap2/omap2plus-cpufreq.c | =A0 =A04 ----
+> =A01 files changed, 0 insertions(+), 4 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/omap2plus-cpufreq.c b/arch/arm/mach-=
+omap2/omap2plus-cpufreq.c
+> index 33a91ec..3bf1704 100644
+> --- a/arch/arm/mach-omap2/omap2plus-cpufreq.c
+> +++ b/arch/arm/mach-omap2/omap2plus-cpufreq.c
+> @@ -81,10 +81,6 @@ static int omap_target(struct cpufreq_policy *poli=
+cy,
+> =A0 =A0 =A0 =A0int i, ret =3D 0;
+> =A0 =A0 =A0 =A0struct cpufreq_freqs freqs;
+>
+> - =A0 =A0 =A0 /* Changes not allowed until all CPUs are online */
+> - =A0 =A0 =A0 if (is_smp() && (num_online_cpus() < NR_CPUS))
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret;
+> -
+> =A0 =A0 =A0 =A0/* Ensure desired rate is within allowed range. =A0Som=
+e govenors
+> =A0 =A0 =A0 =A0 * (ondemand) will just pass target_freq=3D0 to get th=
+e minimum. */
+> =A0 =A0 =A0 =A0if (target_freq < policy->min)
+> --
+> 1.6.0.4
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
