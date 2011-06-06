@@ -1,36 +1,89 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: calling runtime PM from system PM methods
-Date: Mon, 6 Jun 2011 20:01:50 +0200
-Message-ID: <201106062001.50969.rjw@sisk.pl>
-References: <87k4d55c8k.fsf@ti.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [PATCH 4/4] mfd: global Suspend and resume support of ehci and
+ ohci
+Date: Mon, 6 Jun 2011 14:03:29 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1106061351240.1953-100000@iolanthe.rowland.org>
+References: <20110606172555.GL12242@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:60296 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756958Ab1FFSBA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 6 Jun 2011 14:01:00 -0400
-In-Reply-To: <87k4d55c8k.fsf@ti.com>
+Received: from iolanthe.rowland.org ([192.131.102.54]:49390 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1755494Ab1FFSDa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Jun 2011 14:03:30 -0400
+In-Reply-To: <20110606172555.GL12242@legolas.emea.dhcp.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>
+To: Felipe Balbi <balbi@ti.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Keshava Munegowda <keshava_mgowda@ti.com>, USB list <linux-usb@vger.kernel.org>, linux-omap@vger.kernel.org, Kernel development list <linux-kernel@vger.kernel.org>, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, khilman@ti.com, b-cousson@ti.com, paul@pwsan.com
 
-On Thursday, June 02, 2011, Kevin Hilman wrote:
-> Hi Rafael,
+On Mon, 6 Jun 2011, Felipe Balbi wrote:
 
-Hi,
+> > But what is the "right thing"?  Suppose you want to have conditional 
+> > support for dev_pm_ops whenever CONFIG_PM is enabled and you _also_ 
+> > want to have conditional support for runtime PM whenever 
+> > CONFIG_PM_RUNTIME is enabled?
+> 
+> we don't have this today either. Currently everybody does #ifdef
+> CONFIG_PM, so either all the data is available, or none is and adding
+> another #ifdef CONFIG_PM_RUNTIME for the runtime_* friends, would just
+> look even uglier :-)
 
-> Once again, I'm back to some problems with using runtime PM from system
-> PM methods.  On OMAP, many drivers don't need to do anything different
-> for runtime PM compared to system PM, so the system PM methods can
-> simply use runtime PM.
+Like in hcd-pci.c?  :-)
 
-No, they can't (I was talking about that at LinuxCon Japan last week).
+> > You can obtain that same guarantee by using #ifdef ... #endif.  Even 
+> > better, you can guarantee that the unused data won't be present at all, 
+> > as opposed to loaded and then freed.
+> 
+> I agree with you here, but I give you the same question as you gave me.
+> How will you have conditional on CONFIG_RUNTIME_PM and CONFIG_PM ? you'd
+> need two levels of ifdefs.
 
-I'll give more details in replies to the other messages in this thread.
+Well, you'd need more #ifdefs, no question about that.  Whether you 
+need more _levels_ of #ifdefs is unclear.
 
-Thanks,
-Rafael
+> > #ifdef CONFIG_PM
+> > 	#define DEV_PM_OPS_REF(my_pm_ops)	&(my_pm_ops)
+> > #else
+> > 	#define DEV_PM_OPS_REF(my_pm_ops)	NULL
+> > #endif
+> > 
+> > Then people could write
+> > 
+> > static struct platform_driver my_driver = {
+> > 	...
+> > 	.driver	= {
+> > 		.pm = DEV_PM_OPS_REF(my_driver_pm_ops),
+> > 	},
+> > };
+> > 
+> > without worrying about whether or not my_driver_pm_ops was defined.  
+> > And only one #ifdef block would be needed.
+> 
+> that'd be nice. Something similar to __exit_p() and __devexit_p()
+
+Right.  Maybe even call it __pm_ops_p().
+
+In fact, rather than tying this specifically to dev_pm_ops, it would 
+make sense to have a general-purpose memory section for code that won't 
+be used, and an appropriate macro (such as "__unused") to specify that 
+section attribute.  Then the PM core could do:
+
+#ifdef CONFIG_PM
+	#define __pm_ops
+#else
+	#define __pm_ops	__unused
+#endif
+
+and that would (I think) put less of a mental burden on people.
+
+> Well, it might work out if pm core makes dev_pm_ops only available on
+> CONFIG_PM builds.
+
+Currently the .pm member is part of struct bus_type, struct
+device_driver, and others whether CONFIG_PM is enabled or not.  I don't
+know if removing it when CONFIG_PM is disabled would cause build
+problems -- it might.
+
+Alan Stern
+
