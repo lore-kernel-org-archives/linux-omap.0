@@ -1,64 +1,71 @@
-From: "Roedel, Joerg" <Joerg.Roedel@amd.com>
-Subject: Re: [RFC 0/6] iommu: generic api migration and grouping
-Date: Mon, 6 Jun 2011 12:09:51 +0200
-Message-ID: <20110606100950.GC30762@amd.com>
-References: <1307053663-24572-1-git-send-email-ohad@wizery.com>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: [PATCH 2/2] Remove old-style supply.dev assignments common in
+ hsmmc init
+Date: Mon, 6 Jun 2011 13:13:21 +0300
+Message-ID: <BANLkTimgW+53CEfU8wNpaO8wPgWJ3yT90w@mail.gmail.com>
+References: <1307342762-25363-1-git-send-email-green@linuxhacker.ru>
+	<1307342762-25363-3-git-send-email-green@linuxhacker.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-media-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1307053663-24572-1-git-send-email-ohad@wizery.com>
-Sender: linux-media-owner@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "laurent.pinchart@ideasonboard.com" <laurent.pinchart@ideasonboard.com>, "Hiroshi.DOYU@nokia.com" <Hiroshi.DOYU@nokia.com>, "arnd@arndb.de" <arnd@arndb.de>, "davidb@codeaurora.org" <davidb@codeaurora.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:41582 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753220Ab1FFKNW convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Jun 2011 06:13:22 -0400
+Received: by vws1 with SMTP id 1so2623273vws.19
+        for <linux-omap@vger.kernel.org>; Mon, 06 Jun 2011 03:13:21 -0700 (PDT)
+In-Reply-To: <1307342762-25363-3-git-send-email-green@linuxhacker.ru>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: green@linuxhacker.ru
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, Mike Rapoport <mike@compulab.co.il>, Nishant Kamat <nskamat@ti.com>, Steve Sakoman <steve@sakoman.com>, Felipe Balbi <balbi@ti.com>
 
-Hi,
+On Mon, Jun 6, 2011 at 9:46 AM,  <green@linuxhacker.ru> wrote:
+> From: Oleg Drokin <green@linuxhacker.ru>
+>
+> CC: Mark Brown <broonie@opensource.wolfsonmicro.com>
+> CC: Mike Rapoport <mike@compulab.co.il>
+> CC: Nishant Kamat <nskamat@ti.com>
+> CC: Steve Sakoman <steve@sakoman.com>
+> CC: Felipe Balbi <balbi@ti.com>
+> Signed-off-by: Oleg Drokin <green@linuxhacker.ru>
+> ---
+> =A0arch/arm/mach-omap2/board-cm-t35.c =A0 =A0 =A0 =A0 =A0 | =A0 =A02 =
+--
+> =A0arch/arm/mach-omap2/board-ldp.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A0=
+2 --
+> =A0arch/arm/mach-omap2/board-omap3beagle.c =A0 =A0 =A0| =A0 =A04 ----
+> =A0arch/arm/mach-omap2/board-omap3evm.c =A0 =A0 =A0 =A0 | =A0 =A04 --=
+--
+> =A0arch/arm/mach-omap2/board-omap3logic.c =A0 =A0 =A0 | =A0 =A02 --
+> =A0arch/arm/mach-omap2/board-omap3stalker.c =A0 =A0 | =A0 =A04 ----
+> =A0arch/arm/mach-omap2/board-omap3touchbook.c =A0 | =A0 =A04 ----
+> =A0arch/arm/mach-omap2/board-overo.c =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A0=
+2 --
+> =A0arch/arm/mach-omap2/board-zoom-peripherals.c | =A0 =A07 -------
+> =A09 files changed, 0 insertions(+), 31 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2=
+/board-cm-t35.c
+> index 33855e4..a38cd70 100644
+> --- a/arch/arm/mach-omap2/board-cm-t35.c
+> +++ b/arch/arm/mach-omap2/board-cm-t35.c
+> @@ -480,8 +480,6 @@ static int cm_t35_twl_gpio_setup(struct device *d=
+ev, unsigned gpio,
+> =A0 =A0 =A0 =A0omap2_hsmmc_init(mmc);
+>
+> =A0 =A0 =A0 =A0/* link regulators to MMC adapters */
 
-On Thu, Jun 02, 2011 at 06:27:37PM -0400, Ohad Ben-Cohen wrote:
-> First stab at iommu consolidation:
-> 
-> - Migrate OMAP's iommu driver to the generic iommu API. With this in hand,
->   users can now start using the generic iommu layer instead of calling
->   omap-specific iommu API.
-> 
->   New code that requires functionality missing from the generic iommu api,
->   will add that functionality in the generic framework (e.g. adding framework
->   awareness to multi page sizes, supported by the underlying hardware, will
->   avoid the otherwise-inevitable code duplication when mapping a memory
->   region).
+Would be useful to remove this comment too.
 
-The IOMMU-API already supports multiple page-sizes. See the
-'order'-parameter of the map/unmap functions.
-
->   Further generalizing of iovmm strongly depends on our broader plans for
->   providing a generic virtual memory manager and allocation framework
->   (which, as discussed, should be separated from a specific mapper).
-
-The generic vmm for DMA is called DMA-API :) Any reason for not using
-that (those reasons should be fixed)?
-
->   iovmm has a mainline user: omap3isp, and therefore must be maintained,
->   but new potential users will either have to generalize it, or come up
->   with a different generic framework that will replace it.
-
-Moving to the DMA-API should be considered here. If it is too much work
-iovmm can stay for a while, but the goal should be to get rid of it and
-only use the DMA-API.
-
-> - Create a dedicated iommu drivers folder (and put the base iommu code there)
-
-Very good idea.
-
-
-	Joerg
-
-P.S.: Please also Cc the iommu-list (iommu@lists.linux-foundation.org)
-      in the future for IOMMU related patches.
-
--- 
-AMD Operating System Research Center
-
-Advanced Micro Devices GmbH Einsteinring 24 85609 Dornach
-General Managers: Alberto Bozzo, Andrew Bowd
-Registration: Dornach, Landkr. Muenchen; Registerger. Muenchen, HRB Nr. 43632
+> - =A0 =A0 =A0 cm_t35_vmmc1_supply.dev =3D mmc[0].dev;
+> - =A0 =A0 =A0 cm_t35_vsim_supply.dev =3D mmc[0].dev;
+>
+> =A0 =A0 =A0 =A0return 0;
+> =A0}
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
