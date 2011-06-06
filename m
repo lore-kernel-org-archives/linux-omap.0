@@ -1,31 +1,126 @@
-From: Oleg Drokin <green@linuxhacker.ru>
-Subject: Re: [PATCH 1/2] cleanup regulator supply definitions in mach-omap2 to use REGULATOR_SUPPLY
-Date: Mon, 6 Jun 2011 13:36:49 -0400
-Message-ID: <275EC3C2-501A-4EC4-BFCB-81DBABA49822@linuxhacker.ru>
-References: <1307342762-25363-1-git-send-email-green@linuxhacker.ru> <1307342762-25363-2-git-send-email-green@linuxhacker.ru> <20110606092126.GG18731@legolas.emea.dhcp.ti.com> <EA5D78AA-5A89-43AC-9D14-F378673F5D41@linuxhacker.ru> <20110606171326.GK12242@legolas.emea.dhcp.ti.com> <547324C9-4B76-410E-86E6-092D062C95AB@linuxhacker.ru> <20110606172832.GM12242@legolas.emea.dhcp.ti.com>
-Mime-Version: 1.0 (Apple Message framework v1082)
-Content-Type: text/plain; charset=us-ascii
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 3.0-rc1] PM / runtime: fix broken iteration over clock ids
+Date: Mon, 6 Jun 2011 19:47:36 +0200
+Message-ID: <201106061947.36238.rjw@sisk.pl>
+References: <201106051531.32878.jkrzyszt@tis.icnet.pl>
+Mime-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from linuxhacker.ru ([217.76.32.60]:37984 "EHLO fiona.linuxhacker.ru"
+Received: from ogre.sisk.pl ([217.79.144.158]:60237 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752121Ab1FFRhM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 6 Jun 2011 13:37:12 -0400
-In-Reply-To: <20110606172832.GM12242@legolas.emea.dhcp.ti.com>
+	id S1752292Ab1FFRqw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 6 Jun 2011 13:46:52 -0400
+In-Reply-To: <201106051531.32878.jkrzyszt@tis.icnet.pl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, Mike Rapoport <mike@compulab.co.il>, Nishant Kamat <nskamat@ti.com>, Steve Sakoman <steve@sakoman.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: linux-pm@lists.linux-foundation.org, Pavel Machek <pavel@ucw.cz>, Len Brown <len.brown@intel.com>, Greg Kroah-Hartman <gregkh@suse.de>, linux-kernel@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hello!
+Hi,
 
-On Jun 6, 2011, at 1:28 PM, Felipe Balbi wrote:
+On Sunday, June 05, 2011, Janusz Krzysztofik wrote:
+> In its current form, pm_runtime_clk_notify() iterates through sub-
+> strings of pm_clk_notifier_block.con_ids[0] rather than consecutive 
+> pm_clk_notifier_block.con_ids[] elements. As a noticeable result, McBSP1 
+> port no longer worked for me on updated arch/arm/mach-omap1/pm_bus.c 
+> (commit 600b776eb39a13a28b090ba9efceb0c69d4508aa, "OMAP1 / PM: Use 
+> generic clock manipulation routines for runtime PM"), not being able to 
+> activate "fck" when required.
+> 
+> Tested on Amstrad Delta.
+>
+> Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+> ---
+>  drivers/base/power/clock_ops.c |    6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
+> 
+> --- git/drivers/base/power/clock_ops.c.orig	2011-05-30 22:16:35.000000000 +0200
+> +++ git/drivers/base/power/clock_ops.c	2011-06-05 15:19:55.000000000 +0200
+> @@ -291,7 +291,7 @@ static int pm_runtime_clk_notify(struct 
+>  {
+>  	struct pm_clk_notifier_block *clknb;
+>  	struct device *dev = data;
+> -	char *con_id;
+> +	char **con_id;
+>  	int error;
+>  
+>  	dev_dbg(dev, "%s() %ld\n", __func__, action);
+> @@ -309,8 +309,8 @@ static int pm_runtime_clk_notify(struct 
+>  
+>  		dev->pwr_domain = clknb->pwr_domain;
+>  		if (clknb->con_ids[0]) {
+> -			for (con_id = clknb->con_ids[0]; *con_id; con_id++)
+> -				pm_runtime_clk_add(dev, con_id);
+> +			for (con_id = &clknb->con_ids[0]; *con_id; con_id++)
+> +				pm_runtime_clk_add(dev, *con_id);
+>  		} else {
+>  			pm_runtime_clk_add(dev, NULL);
+>  		}
 
->> Ok, I get the idea. Do you think it would be best to convert every supply
->> definition to an array then just in case?
-> I think that while you're doing this big conversion, why not ?
+First off, sorry for the breakage.  Second, while the patch is correct in
+the part is covered, it is incomplete (it also should cover the
+!CONFIG_PM_RUNTIME case.  So, I think the appended patch would be better.
 
-Well, ok then. I'll redo this patch.
+Thanks,
+Rafael
 
-Bye,
-    Oleg
+---
+ drivers/base/power/clock_ops.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
+
+Index: linux-2.6/drivers/base/power/clock_ops.c
+===================================================================
+--- linux-2.6.orig/drivers/base/power/clock_ops.c
++++ linux-2.6/drivers/base/power/clock_ops.c
+@@ -291,7 +291,7 @@ static int pm_runtime_clk_notify(struct
+ {
+ 	struct pm_clk_notifier_block *clknb;
+ 	struct device *dev = data;
+-	char *con_id;
++	char **con_id;
+ 	int error;
+ 
+ 	dev_dbg(dev, "%s() %ld\n", __func__, action);
+@@ -309,8 +309,8 @@ static int pm_runtime_clk_notify(struct
+ 
+ 		dev->pwr_domain = clknb->pwr_domain;
+ 		if (clknb->con_ids[0]) {
+-			for (con_id = clknb->con_ids[0]; *con_id; con_id++)
+-				pm_runtime_clk_add(dev, con_id);
++			for (con_id = clknb->con_ids; *con_id; con_id++)
++				pm_runtime_clk_add(dev, *con_id);
+ 		} else {
+ 			pm_runtime_clk_add(dev, NULL);
+ 		}
+@@ -380,7 +380,7 @@ static int pm_runtime_clk_notify(struct
+ {
+ 	struct pm_clk_notifier_block *clknb;
+ 	struct device *dev = data;
+-	char *con_id;
++	char **con_id;
+ 
+ 	dev_dbg(dev, "%s() %ld\n", __func__, action);
+ 
+@@ -389,16 +389,16 @@ static int pm_runtime_clk_notify(struct
+ 	switch (action) {
+ 	case BUS_NOTIFY_ADD_DEVICE:
+ 		if (clknb->con_ids[0]) {
+-			for (con_id = clknb->con_ids[0]; *con_id; con_id++)
+-				enable_clock(dev, con_id);
++			for (con_id = clknb->con_ids; *con_id; con_id++)
++				enable_clock(dev, *con_id);
+ 		} else {
+ 			enable_clock(dev, NULL);
+ 		}
+ 		break;
+ 	case BUS_NOTIFY_DEL_DEVICE:
+ 		if (clknb->con_ids[0]) {
+-			for (con_id = clknb->con_ids[0]; *con_id; con_id++)
+-				disable_clock(dev, con_id);
++			for (con_id = clknb->con_ids; *con_id; con_id++)
++				disable_clock(dev, *con_id);
+ 		} else {
+ 			disable_clock(dev, NULL);
+ 		}
