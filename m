@@ -1,42 +1,75 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [RFC 0/6] iommu: generic api migration and grouping
-Date: Mon, 6 Jun 2011 19:36:13 +0300
-Message-ID: <BANLkTinwwVO4TmsxuTfSBf6jqYrEVV3b_A@mail.gmail.com>
-References: <1307053663-24572-1-git-send-email-ohad@wizery.com>
- <20110606100950.GC30762@amd.com> <BANLkTi=i2s-Ujiy4qn_XQv+9dMjUC9R66A@mail.gmail.com>
- <20110606153557.GE1953@amd.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH v3 1/2] omap3: iovmm: Work around sg_alloc_table size
+	limitation in IOMMU
+Date: Mon, 6 Jun 2011 17:44:00 +0100
+Message-ID: <20110606164400.GA9456@n2100.arm.linux.org.uk>
+References: <20110601131744.GH11352@atomide.com> <201106030212.48226.laurent.pinchart@ideasonboard.com> <20110603063211.GA18082@n2100.arm.linux.org.uk> <201106061823.18767.laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20110606153557.GE1953@amd.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Roedel, Joerg" <Joerg.Roedel@amd.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "laurent.pinchart@ideasonboard.com" <laurent.pinchart@ideasonboard.com>, "Hiroshi.DOYU@nokia.com" <Hiroshi.DOYU@nokia.com>, "arnd@arndb.de" <arnd@arndb.de>, "davidb@codeaurora.org" <davidb@codeaurora.org>, Omar Ramirez Luna <omar.ramirez@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:55194 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754008Ab1FFQoI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Jun 2011 12:44:08 -0400
+Content-Disposition: inline
+In-Reply-To: <201106061823.18767.laurent.pinchart@ideasonboard.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Mon, Jun 6, 2011 at 6:35 PM, Roedel, Joerg <Joerg.Roedel@amd.com> wrote:
-> On Mon, Jun 06, 2011 at 11:15:30AM -0400, Ohad Ben-Cohen wrote:
->
->> This is insufficient; users need somehow to tell what page sizes are
->> supported by the underlying hardware (we can't assume host page-sizes,
->> and we want to use bigger pages whenever possible, to relax the TLB
->> pressure).
-> /
-> What does the IOMMU-API user need this info for? On the x86 IOMMUs these
-> details are handled transparently by the IOMMU driver.
+On Mon, Jun 06, 2011 at 06:23:18PM +0200, Laurent Pinchart wrote:
+> Hi Russell,
+> 
+> On Friday 03 June 2011 08:32:12 Russell King - ARM Linux wrote:
+> > SG chaining has _nothing_ to do with hardware.  It's all to do with software
+> > and hitting the SG table limit.
+> 
+> What's the reason for limiting the SG table size to one page then ?
 
-That's one way to do that, but then it means duplicating this logic
-inside the different IOMMU implementations.
+As I say, it's got nothing to do with them ending up being passed to
+hardware.  Take a look at their definition:
 
-Take the OMAP (and seemingly MSM too) example: we have 4KB, 64KB, 1MB
-and 16MB page-table entries. When we map a memory region, we need to
-break it up to a minimum number of pages (while validating
-sizes/alignments are sane). It's not complicated, but it can be nice
-if it'd be implemented only once.
+struct scatterlist {
+#ifdef CONFIG_DEBUG_SG
+        unsigned long   sg_magic;
+#endif
+        unsigned long   page_link;
+        unsigned int    offset;
+        unsigned int    length;
+        dma_addr_t      dma_address;
+#ifdef CONFIG_NEED_SG_DMA_LENGTH
+        unsigned int    dma_length;
+#endif
+};
 
-In addition, unless we require 'va' and 'pa' to have the exact same
-alignment, we might run into specific page configuration that the
-IOMMU implementation cannot restore on ->unmap, since unmap only takes
-'va' and 'order'. So we will either have to supply 'pa' too, or have
-the implementation remember the mapping in order to unmap it later.
-That begins to be a bit messy...
+That clearly isn't hardware specific - hardware won't cope with
+CONFIG_DEBUG_SG being enabled or disabled, or whether the architecture
+supports the dma_length field, or that this structure has developed from
+being:
+
+	void *addr;
+	unsigend int length;
+	unsigned long dma_address;
+
+to the above over the evolution of the kernel.  Or that we use the bottom
+two bits of page_link as our own flag bits?
+
+So no, this struct goes nowhere near hardware of any kind.  It's merely
+used as a container to pass a list of scatter-gather locations in memory
+internally around within the kernel, especially to dma_map_sg()/
+dma_unmap_sg().
+
+If you look at IDE or ATA code, or even SCSI code, you'll find the same
+pattern.  They're passed a scatterlist.  They map it for dma using
+dma_map_sg().  They then walk the scatterlist and extract the dma
+address and length using sg_dma_address() and sg_dma_length() and create
+the _hardware_ table from that information - and the hardware table very
+much depends on the hardware itself.  Once DMA is complete, they unmap
+the DMA region using dma_unmap_sg().
+
+One very good reason that its limited to one page is because allocations
+larger than one page are prone to failure.  Would you want your company
+server failing to read/write data to its storage just because it couldn't
+get a contiguous 8K page for a 5K long scatterlist?  I think if Linux
+did that, it wouldn't have a future in the enterprise marketplace.
