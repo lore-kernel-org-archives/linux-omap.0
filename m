@@ -1,79 +1,129 @@
-From: Sebastian Reichel <sre@debian.org>
-Subject: Re: problem with "undefined instruction"
-Date: Mon, 6 Jun 2011 14:56:00 +0200
-Message-ID: <20110606125600.GB20909@earth.universe>
-References: <20110430162357.GA14287@earth.universe>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH 19/27] OMAP: DSS2: Use PM runtime & HWMOD support
+Date: Mon, 6 Jun 2011 14:56:48 +0200
+Message-ID: <4DECCE90.6070201@ti.com>
+References: <1307095237-14805-1-git-send-email-tomi.valkeinen@ti.com>	 <1307095237-14805-20-git-send-email-tomi.valkeinen@ti.com>	 <871uzahnib.fsf@ti.com> <1307122985.2016.72.camel@deskari>	 <87hb86a5mm.fsf@ti.com> <1307174504.1777.24.camel@lappyti>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="XOIedfhf+7KOe/yw"
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comu.ring0.de ([46.4.151.82]:42482 "EHLO smtp.ring0.de"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:49272 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754357Ab1FFM4D (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 6 Jun 2011 08:56:03 -0400
-Received: from sre.ring0.de (unknown [134.106.131.106])
-	by smtp.ring0.de (Postfix) with ESMTP id CD1ED81814
-	for <linux-omap@vger.kernel.org>; Mon,  6 Jun 2011 12:56:00 +0000 (UTC)
-Content-Disposition: inline
-In-Reply-To: <20110430162357.GA14287@earth.universe>
+	id S1756121Ab1FFM4y (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 6 Jun 2011 08:56:54 -0400
+In-Reply-To: <1307174504.1777.24.camel@lappyti>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
+Cc: "Hilman, Kevin" <khilman@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>
 
+Hi Tomi,
 
---XOIedfhf+7KOe/yw
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Sat, Apr 30, 2011 at 06:23:57PM +0200, Sebastian Reichel wrote:
-> I'm currently trying to get a mainline based kernel running on my pandabo=
-ard.
-> The problem is, that it's crashing very early during the init phase becau=
-se of
-> "undefined instruction" exceptions:
->=20
-> [    1.867980] udevd (56): undefined instruction: pc=3D401e6ed4
-> [    1.874603] Code: 9cd0 fffe e92d 4ff0 (ed2d)
-> [    1.977752] modprobe (69): undefined instruction: pc=3D400c6ed4
-> [    1.977783] Code: 9cd0 fffe e92d 4ff0 (ed2d)
-> [    1.978240] init (1): undefined instruction: pc=3D40149ed4
-> [    1.978240] Code: 9cd0 fffe e92d 4ff0 (ed2d)
-> [    2.005706] Kernel panic - not syncing: Attempted to kill init!
+On 6/4/2011 10:01 AM, Valkeinen, Tomi wrote:
+> On Fri, 2011-06-03 at 15:53 -0700, Kevin Hilman wrote:
+>> Tomi Valkeinen<tomi.valkeinen@ti.com>  writes:
+>>
+>>> Hi Kevin,
+>>>
+>>> On Fri, 2011-06-03 at 09:45 -0700, Kevin Hilman wrote:
+>>>> Tomi Valkeinen<tomi.valkeinen@ti.com>  writes:
+>>>>
+>>>>> Use PM runtime and HWMOD support to handle enabling and disabling of DSS
+>>>>> modules.
+>>>>>
+>>>>> Each DSS module will have get and put functions which can be used to
+>>>>> enable and disable that module. The functions use pm_runtime and hwmod
+>>>>> opt-clocks to enable the hardware.
+>>>>>
+>>>>> Signed-off-by: Tomi Valkeinen<tomi.valkeinen@ti.com>
+>>>>
+>>>> [...]
+>>>>
+>>>>> +int dispc_runtime_get(void)
+>>>>> +{
+>>>>> +	int r;
+>>>>> +
+>>>>> +	mutex_lock(&dispc.runtime_lock);
+>>>>
+>>>> It's not clear to me what the lock is trying to protect.  I guess it's
+>>>> the counter?  I don't think it should be needed...
+>>>
+>>> Yes, the counter. I don't think
+>>>
+>>> if (dispc.runtime_count++ == 0)
+>>>
+>>> is thread safe.
+>>
+>> OK, if it's just the counter, you can drop the mutex and use an atomic
+>> variable and use atomic_inc(), atomic_dec() etc.  Then it will be clear
+>> from reading what exactly is protected.
 >
-> Exactly the same userland boots fine with the original 2.6.35 kernel, so =
-it's
-> probably not the userland's fault.
+> Hmm, sorry, my mistake. It's actually for the whole function: we can't
+> do "put" before the whole "get" has finished. Otherwise we could end up,
+> for example, disabling a clock before enabling it.
+>
+>>>>> +	if (dispc.runtime_count++ == 0) {
+>>>>
+>>>> You shouldn't need your own use-counting here.  The runtime PM core is
+>>>> already doing usage counting.
+>>>>
+>>>> Instead, you need to use the ->runtime_suspend() and ->runtime_resume()
+>>>> callbacks (in dev_pm_ops).  These callbacks are called by the runtime PM
+>>>> core when the usage count goes to/from zero.
+>>>
+>>> Yes, I wish I could do that =).
+>>>
+>>> I tried to explain this in the 00-patch, I guess I should've explained
+>>> it in this patch also. Perhaps also in a comment.
+>>
+>> Oops, my fault.  I didn't read the whole 00 patch.  I'm pretty ignorant
+>> about DSS, so I was focused in on the runtime PM implementation only.
+>> Sorry about that.
+>>
+>>>  From the introduction:
+>>>
+>>> ---
+>>>
+>>> Due to DSS' peculiar clock setup the code is not as elegant as I'd like. The
+>>> problem is that on OMAP4 we have to enable an optional clock before calling
+>>> pm_runtime_get(), and similarly we need to keep the optional clock enabled
+>>> until after pm_runtime_put() has been called.
+>>
+>> Just to clarify, what exactly does the opt clock have to be enabled for?
+>
+> I'm not sure if this is a valid definition, but in my mind the opt clock
+> has two uses: 1) a functional clock, to make the HW tick and registers
+> accessible, and 2) act as a source clock for the outgoing pixel clock.
 
-I found the source of this problem. VFPv3 support is not working
-correctly when OMAP2 (and thus CPU_V6) is enabled in the kernel
-config.
+That terminology in the PRCM just means that an opt clock will not be 
+handled automatically by the PRCM and will require SW control.
+This is not the case for mandatory clock. Upon module enable the PRCM 
+will ensure that all mandatory clocks (functional and interface) are 
+enabled automagically. If the clock is marked as optional it means that 
+the SW will have to enable it explicitly before enabling the module.
 
-I guess this should be mentioned in the kernel config (or fixed if
-possible).
+The modulemode was not there previously on OMAP2 & 3, but it is more or 
+less equivalent to icken=1 + fcken=1.
+This idea was to hide the explicit clock management especially for the 
+iclk that were already supposed to always be in autoidle.
 
--- Sebastian
+Since the current hwmod + clock fmwks are still based on the previous 
+clock centric approach we used to have on OMAP2 & 3, we cannot match 
+properly the modulemode to any clock and thus cannot handle properly the 
+DSS fclk as the main clock instead of the optional clock.
 
---XOIedfhf+7KOe/yw
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+A temporary option will be to consider the modulemode as the interface 
+clock and thus remove it from the main_clk and replace it by the real 
+DSS fclk.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+It should work be will unfortunately not be compliant with PRCM 
+recommendation to enable the modulemode once every clocks are enabled.
 
-iQIcBAEBCAAGBQJN7M5gAAoJENju1/PIO/qa5vYQAIP7QESB2IjFznB17j3I98r7
-E/N/PNoEGpnA3/cRJxx/rtuh4vtc2He4UtuKXLPaDvGWuV6eHlqkU7Kd2dJpQR3c
-FZbvSQ37jbyHYfXhlAcwWS0kh57GXU2IZ1zp8z1ZnbFPXMJ9xOxNadhG1BHi/zTe
-y3eaPUmXqgC28QmexoYo+68Bqjf/FZYibitXizLYWAnuagDkVP5/S8Yaaz9DIHPg
-7y4Ud69t30S39GqnPPcCABxXbhcS5Y34QYg+DoFKt6juYBu36mJrD3oKuzV8vgF9
-e1qKwGyIUBIA3l7+t3QwAOWehwe9J8eKtfL8hceicOIz3qteXeaU0N1p/EDYUIWR
-u0Jg0fbN5rS9NGnw8PHKIIzS5zwzwana0PeHmImkrmYZmGJUPmpGM0Ml4oUbdiih
-0pw8Y9oAfENqJ6uSvP6VvKW0hl68llr7B+HknnnRZr7ZUsXcSGRwnsu5G8JGg2HU
-IxG7qo4FTblVj20AMc6BSKzD9druXsI9VlA2aGFTblhabIDy5l9JDC7WfyULsusJ
-wzsB3YwSSIQCqyaDhAuOeALpzj37hhhb74KDHQu2BvOC2CvyckAUQpwCs44wAXXD
-TthQnZQWY357TadSQYEcEKZH4sweZVJ4zOAu4NhyfsUxWd6k5WkPFvS/qo/S2v0y
-tNMzmbEvKZDFYoYPwh6l
-=qgIx
------END PGP SIGNATURE-----
+The long term solution is to update the hwmod fmwk to handle the 
+modulemode directly and not through the clock fmwk. It will allow the 
+main_clk to be connnected to the dss_fclk.
 
---XOIedfhf+7KOe/yw--
+You will not have that nasty opt_clock issue anymore.
+
+Regards,
+Benoit
