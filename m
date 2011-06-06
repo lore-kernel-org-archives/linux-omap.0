@@ -1,126 +1,27 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 3.0-rc1] PM / runtime: fix broken iteration over clock ids
-Date: Mon, 6 Jun 2011 19:47:36 +0200
-Message-ID: <201106061947.36238.rjw@sisk.pl>
-References: <201106051531.32878.jkrzyszt@tis.icnet.pl>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH v3 1/2] omap3: iovmm: Work around sg_alloc_table size
+	limitation in IOMMU
+Date: Mon, 6 Jun 2011 19:00:52 +0100
+Message-ID: <20110606180052.GB9456@n2100.arm.linux.org.uk>
+References: <20110601131744.GH11352@atomide.com> <201106061823.18767.laurent.pinchart@ideasonboard.com> <20110606164400.GA9456@n2100.arm.linux.org.uk> <201106061854.10450.laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:60237 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752292Ab1FFRqw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 6 Jun 2011 13:46:52 -0400
-In-Reply-To: <201106051531.32878.jkrzyszt@tis.icnet.pl>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:60492 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756989Ab1FFSBB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Jun 2011 14:01:01 -0400
+Content-Disposition: inline
+In-Reply-To: <201106061854.10450.laurent.pinchart@ideasonboard.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: linux-pm@lists.linux-foundation.org, Pavel Machek <pavel@ucw.cz>, Len Brown <len.brown@intel.com>, Greg Kroah-Hartman <gregkh@suse.de>, linux-kernel@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi,
+On Mon, Jun 06, 2011 at 06:54:10PM +0200, Laurent Pinchart wrote:
+> Of course not, but if the scatterlist is only touched by kernel code, it 
+> doesn't need to be contiguous in memory. It could be allocated with vmalloc().
 
-On Sunday, June 05, 2011, Janusz Krzysztofik wrote:
-> In its current form, pm_runtime_clk_notify() iterates through sub-
-> strings of pm_clk_notifier_block.con_ids[0] rather than consecutive 
-> pm_clk_notifier_block.con_ids[] elements. As a noticeable result, McBSP1 
-> port no longer worked for me on updated arch/arm/mach-omap1/pm_bus.c 
-> (commit 600b776eb39a13a28b090ba9efceb0c69d4508aa, "OMAP1 / PM: Use 
-> generic clock manipulation routines for runtime PM"), not being able to 
-> activate "fck" when required.
-> 
-> Tested on Amstrad Delta.
->
-> Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-> ---
->  drivers/base/power/clock_ops.c |    6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
-> 
-> --- git/drivers/base/power/clock_ops.c.orig	2011-05-30 22:16:35.000000000 +0200
-> +++ git/drivers/base/power/clock_ops.c	2011-06-05 15:19:55.000000000 +0200
-> @@ -291,7 +291,7 @@ static int pm_runtime_clk_notify(struct 
->  {
->  	struct pm_clk_notifier_block *clknb;
->  	struct device *dev = data;
-> -	char *con_id;
-> +	char **con_id;
->  	int error;
->  
->  	dev_dbg(dev, "%s() %ld\n", __func__, action);
-> @@ -309,8 +309,8 @@ static int pm_runtime_clk_notify(struct 
->  
->  		dev->pwr_domain = clknb->pwr_domain;
->  		if (clknb->con_ids[0]) {
-> -			for (con_id = clknb->con_ids[0]; *con_id; con_id++)
-> -				pm_runtime_clk_add(dev, con_id);
-> +			for (con_id = &clknb->con_ids[0]; *con_id; con_id++)
-> +				pm_runtime_clk_add(dev, *con_id);
->  		} else {
->  			pm_runtime_clk_add(dev, NULL);
->  		}
-
-First off, sorry for the breakage.  Second, while the patch is correct in
-the part is covered, it is incomplete (it also should cover the
-!CONFIG_PM_RUNTIME case.  So, I think the appended patch would be better.
-
-Thanks,
-Rafael
-
----
- drivers/base/power/clock_ops.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
-
-Index: linux-2.6/drivers/base/power/clock_ops.c
-===================================================================
---- linux-2.6.orig/drivers/base/power/clock_ops.c
-+++ linux-2.6/drivers/base/power/clock_ops.c
-@@ -291,7 +291,7 @@ static int pm_runtime_clk_notify(struct
- {
- 	struct pm_clk_notifier_block *clknb;
- 	struct device *dev = data;
--	char *con_id;
-+	char **con_id;
- 	int error;
- 
- 	dev_dbg(dev, "%s() %ld\n", __func__, action);
-@@ -309,8 +309,8 @@ static int pm_runtime_clk_notify(struct
- 
- 		dev->pwr_domain = clknb->pwr_domain;
- 		if (clknb->con_ids[0]) {
--			for (con_id = clknb->con_ids[0]; *con_id; con_id++)
--				pm_runtime_clk_add(dev, con_id);
-+			for (con_id = clknb->con_ids; *con_id; con_id++)
-+				pm_runtime_clk_add(dev, *con_id);
- 		} else {
- 			pm_runtime_clk_add(dev, NULL);
- 		}
-@@ -380,7 +380,7 @@ static int pm_runtime_clk_notify(struct
- {
- 	struct pm_clk_notifier_block *clknb;
- 	struct device *dev = data;
--	char *con_id;
-+	char **con_id;
- 
- 	dev_dbg(dev, "%s() %ld\n", __func__, action);
- 
-@@ -389,16 +389,16 @@ static int pm_runtime_clk_notify(struct
- 	switch (action) {
- 	case BUS_NOTIFY_ADD_DEVICE:
- 		if (clknb->con_ids[0]) {
--			for (con_id = clknb->con_ids[0]; *con_id; con_id++)
--				enable_clock(dev, con_id);
-+			for (con_id = clknb->con_ids; *con_id; con_id++)
-+				enable_clock(dev, *con_id);
- 		} else {
- 			enable_clock(dev, NULL);
- 		}
- 		break;
- 	case BUS_NOTIFY_DEL_DEVICE:
- 		if (clknb->con_ids[0]) {
--			for (con_id = clknb->con_ids[0]; *con_id; con_id++)
--				disable_clock(dev, con_id);
-+			for (con_id = clknb->con_ids; *con_id; con_id++)
-+				disable_clock(dev, *con_id);
- 		} else {
- 			disable_clock(dev, NULL);
- 		}
+Except vmalloc has a higher latency and a more restrictive API than
+other allocators (think about the coherency issues with SMP systems
+which may have to do TLB flushing on several cores, etc.)
