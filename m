@@ -1,27 +1,36 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH v3 1/2] omap3: iovmm: Work around sg_alloc_table size
-	limitation in IOMMU
-Date: Mon, 6 Jun 2011 19:00:52 +0100
-Message-ID: <20110606180052.GB9456@n2100.arm.linux.org.uk>
-References: <20110601131744.GH11352@atomide.com> <201106061823.18767.laurent.pinchart@ideasonboard.com> <20110606164400.GA9456@n2100.arm.linux.org.uk> <201106061854.10450.laurent.pinchart@ideasonboard.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: calling runtime PM from system PM methods
+Date: Mon, 6 Jun 2011 20:01:50 +0200
+Message-ID: <201106062001.50969.rjw@sisk.pl>
+References: <87k4d55c8k.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:60492 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756989Ab1FFSBB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Jun 2011 14:01:01 -0400
-Content-Disposition: inline
-In-Reply-To: <201106061854.10450.laurent.pinchart@ideasonboard.com>
+Received: from ogre.sisk.pl ([217.79.144.158]:60296 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756958Ab1FFSBA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 6 Jun 2011 14:01:00 -0400
+In-Reply-To: <87k4d55c8k.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>
 
-On Mon, Jun 06, 2011 at 06:54:10PM +0200, Laurent Pinchart wrote:
-> Of course not, but if the scatterlist is only touched by kernel code, it 
-> doesn't need to be contiguous in memory. It could be allocated with vmalloc().
+On Thursday, June 02, 2011, Kevin Hilman wrote:
+> Hi Rafael,
 
-Except vmalloc has a higher latency and a more restrictive API than
-other allocators (think about the coherency issues with SMP systems
-which may have to do TLB flushing on several cores, etc.)
+Hi,
+
+> Once again, I'm back to some problems with using runtime PM from system
+> PM methods.  On OMAP, many drivers don't need to do anything different
+> for runtime PM compared to system PM, so the system PM methods can
+> simply use runtime PM.
+
+No, they can't (I was talking about that at LinuxCon Japan last week).
+
+I'll give more details in replies to the other messages in this thread.
+
+Thanks,
+Rafael
