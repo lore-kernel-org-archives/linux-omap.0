@@ -1,39 +1,154 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: [RFC] OMAP: McBSP not working if CONFIG_PM_RUNTIME not set
-Date: Tue, 7 Jun 2011 21:18:33 +0200
-Message-ID: <201106072118.33632.jkrzyszt@tis.icnet.pl>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 3.0-rc1] PM / runtime: fix broken iteration over clock ids
+Date: Tue, 7 Jun 2011 21:29:25 +0200
+Message-ID: <201106072129.26063.rjw@sisk.pl>
+References: <201106051531.32878.jkrzyszt@tis.icnet.pl> <201106061947.36238.rjw@sisk.pl> <201106062118.18734.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
-  charset="us-ascii"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:57926 "EHLO d1.icnet.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753292Ab1FGTYg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 7 Jun 2011 15:24:36 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <201106062118.18734.jkrzyszt@tis.icnet.pl>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: linux-pm@lists.linux-foundation.org, Pavel Machek <pavel@ucw.cz>, Len Brown <len.brown@intel.com>, Greg Kroah-Hartman <gregkh@suse.de>, linux-kernel@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: linux-pm@lists.linux-foundation.org
 
-Hi,
+On Monday, June 06, 2011, Janusz Krzysztofik wrote:
+> On Mon 06 Jun 2011 at 19:47:36 Rafael J. Wysocki wrote:
+> > Hi,
+> > 
+> > On Sunday, June 05, 2011, Janusz Krzysztofik wrote:
+> > > In its current form, pm_runtime_clk_notify() iterates through sub-
+> > > strings of pm_clk_notifier_block.con_ids[0] rather than consecutive
+> > > pm_clk_notifier_block.con_ids[] elements. As a noticeable result,
+> > > McBSP1 port no longer worked for me on updated
+> > > arch/arm/mach-omap1/pm_bus.c (commit
+> > > 600b776eb39a13a28b090ba9efceb0c69d4508aa, "OMAP1 / PM: Use generic
+> > > clock manipulation routines for runtime PM"), not being able to
+> > > activate "fck" when required.
+> > > 
+> > > Tested on Amstrad Delta.
+> > > 
+> > > Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+> > > ---
+> > > 
+> > >  drivers/base/power/clock_ops.c |    6 +++---
+> > >  1 file changed, 3 insertions(+), 3 deletions(-)
+> > > 
+> > > --- git/drivers/base/power/clock_ops.c.orig	2011-05-30
+> > > 22:16:35.000000000 +0200 +++
+> > > git/drivers/base/power/clock_ops.c	2011-06-05 15:19:55.000000000
+> > > +0200 @@ -291,7 +291,7 @@ static int pm_runtime_clk_notify(struct
+> > > 
+> > >  {
+> > >  
+> > >  	struct pm_clk_notifier_block *clknb;
+> > >  	struct device *dev = data;
+> > > 
+> > > -	char *con_id;
+> > > +	char **con_id;
+> > > 
+> > >  	int error;
+> > >  	
+> > >  	dev_dbg(dev, "%s() %ld\n", __func__, action);
+> > > 
+> > > @@ -309,8 +309,8 @@ static int pm_runtime_clk_notify(struct
+> > > 
+> > >  		dev->pwr_domain = clknb->pwr_domain;
+> > >  		if (clknb->con_ids[0]) {
+> > > 
+> > > -			for (con_id = clknb->con_ids[0]; *con_id; con_id++)
+> > > -				pm_runtime_clk_add(dev, con_id);
+> > > +			for (con_id = &clknb->con_ids[0]; *con_id; con_id++)
+> > > +				pm_runtime_clk_add(dev, *con_id);
+> > > 
+> > >  		} else {
+> > >  		
+> > >  			pm_runtime_clk_add(dev, NULL);
+> > >  		
+> > >  		}
+> > 
+> > First off, sorry for the breakage.  Second, while the patch is
+> > correct in the part is covered, it is incomplete (it also should
+> > cover the !CONFIG_PM_RUNTIME case.  So, I think the appended patch
+> > would be better.
+> 
+> That's right, please take it over.
 
-While solving this problem:
-http://www.spinics.net/lists/linux-omap/msg52011.html,
-I found that since commit e95496d4acadd0b72c4947be61e8d44700fdaae7, 
-"OMAP: McBSP: Add pm runtime support", McBSP ports, or at least McBSP1 
-on my Amstrad Delta, no longer work when CONFIG_PM_RUNTIME is not set. 
-Even if I don't use such setup and always select CONFIG_PM_RUNTIME, I 
-think current behaviour is wrong and should be corrected.
+OK, below is an "official" version.  Can you please double check if it fixes
+the problem for you?
 
-Before I come out with a patch, please advise if and how you think this 
-should be solved. Should CONFIG_OMAP_MCBSP depend on CONFIG_PM_RUNTIME?
-Or should it select CONFIG_PM_RUNTIME? Or maybe an old code which 
-manipulated clocks directly should be restored for no CONFIG_PM_RUNTIME 
-case? Or should arch/arm/mach-omap1/pm_bus.c be always built in and 
-pm_runtime_clk_add_notifier() called from there in order to enable 
-clocks on device initialization even if CONFIG_PM_RUNTIME is not set? Or 
-still a better solution?
+Rafael
 
-Thanks,
-Janusz
+---
+From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: PM / Runtime: Fix loops in pm_runtime_clk_notify()
+
+The loops over connection ID strings in pm_runtime_clk_notify()
+should actually iterate over the strings and not over the elements
+of the first of them, so make those loops behave as appropriate.
+
+This fixes a regression introduced by commit 600b776eb39a13a28b090
+(OMAP1 / PM: Use generic clock manipulation routines for runtime PM).
+
+Reported-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
+ drivers/base/power/clock_ops.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
+
+Index: linux-2.6/drivers/base/power/clock_ops.c
+===================================================================
+--- linux-2.6.orig/drivers/base/power/clock_ops.c
++++ linux-2.6/drivers/base/power/clock_ops.c
+@@ -291,7 +291,7 @@ static int pm_runtime_clk_notify(struct
+ {
+ 	struct pm_clk_notifier_block *clknb;
+ 	struct device *dev = data;
+-	char *con_id;
++	char **con_id;
+ 	int error;
+ 
+ 	dev_dbg(dev, "%s() %ld\n", __func__, action);
+@@ -309,8 +309,8 @@ static int pm_runtime_clk_notify(struct
+ 
+ 		dev->pwr_domain = clknb->pwr_domain;
+ 		if (clknb->con_ids[0]) {
+-			for (con_id = clknb->con_ids[0]; *con_id; con_id++)
+-				pm_runtime_clk_add(dev, con_id);
++			for (con_id = clknb->con_ids; *con_id; con_id++)
++				pm_runtime_clk_add(dev, *con_id);
+ 		} else {
+ 			pm_runtime_clk_add(dev, NULL);
+ 		}
+@@ -380,7 +380,7 @@ static int pm_runtime_clk_notify(struct
+ {
+ 	struct pm_clk_notifier_block *clknb;
+ 	struct device *dev = data;
+-	char *con_id;
++	char **con_id;
+ 
+ 	dev_dbg(dev, "%s() %ld\n", __func__, action);
+ 
+@@ -389,16 +389,16 @@ static int pm_runtime_clk_notify(struct
+ 	switch (action) {
+ 	case BUS_NOTIFY_ADD_DEVICE:
+ 		if (clknb->con_ids[0]) {
+-			for (con_id = clknb->con_ids[0]; *con_id; con_id++)
+-				enable_clock(dev, con_id);
++			for (con_id = clknb->con_ids; *con_id; con_id++)
++				enable_clock(dev, *con_id);
+ 		} else {
+ 			enable_clock(dev, NULL);
+ 		}
+ 		break;
+ 	case BUS_NOTIFY_DEL_DEVICE:
+ 		if (clknb->con_ids[0]) {
+-			for (con_id = clknb->con_ids[0]; *con_id; con_id++)
+-				disable_clock(dev, con_id);
++			for (con_id = clknb->con_ids; *con_id; con_id++)
++				disable_clock(dev, *con_id);
+ 		} else {
+ 			disable_clock(dev, NULL);
+ 		}
