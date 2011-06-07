@@ -1,43 +1,47 @@
-From: "Roedel, Joerg" <Joerg.Roedel@amd.com>
-Subject: Re: [RFC 0/6] iommu: generic api migration and grouping
-Date: Tue, 7 Jun 2011 11:58:29 +0200
-Message-ID: <20110607095829.GD4407@amd.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [RFC 2/6] omap: iovmm: generic iommu api migration
+Date: Tue, 7 Jun 2011 13:28:53 +0300
+Message-ID: <BANLkTi=nJXSEfWRXqwnHys1b5i5rgLcYpw@mail.gmail.com>
 References: <1307053663-24572-1-git-send-email-ohad@wizery.com>
- <20110606100950.GC30762@amd.com>
- <BANLkTi=i2s-Ujiy4qn_XQv+9dMjUC9R66A@mail.gmail.com>
- <20110606153557.GE1953@amd.com>
- <BANLkTinwwVO4TmsxuTfSBf6jqYrEVV3b_A@mail.gmail.com>
- <20110606192030.GA4356@amd.com>
- <BANLkTinx21-E3DRe9D7LRB8e1aeOwv=-9A@mail.gmail.com>
- <20110607075221.GB4407@amd.com>
- <BANLkTimR3KofKA3LSKXdX8k1FGR0XUxu=Q@mail.gmail.com>
+ <1307053663-24572-3-git-send-email-ohad@wizery.com> <201106071105.16262.laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <BANLkTimR3KofKA3LSKXdX8k1FGR0XUxu=Q@mail.gmail.com>
+In-Reply-To: <201106071105.16262.laurent.pinchart@ideasonboard.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "laurent.pinchart@ideasonboard.com" <laurent.pinchart@ideasonboard.com>, "Hiroshi.DOYU@nokia.com" <Hiroshi.DOYU@nokia.com>, "arnd@arndb.de" <arnd@arndb.de>, "davidb@codeaurora.org" <davidb@codeaurora.org>, Omar Ramirez Luna <omar.ramirez@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Hiroshi.DOYU@nokia.com, arnd@arndb.de, davidb@codeaurora.org, Joerg.Roedel@amd.com
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Jun 07, 2011 at 05:22:11AM -0400, Ohad Ben-Cohen wrote:
-> On Tue, Jun 7, 2011 at 10:52 AM, Roedel, Joerg <Joerg.Roedel@amd.com> wrote:
-> > Yup. Btw, is there any IOMMU hardware which supports non-natural
-> > alignment? In this case we need to expose these requirements somehow.
-> 
-> Not sure there are. Let's start with natural alignment, and extend it
-> only if someone with additional requirements shows up.
+Hi Laurent,
 
-Btw, mind to split out your changes which move the iommu-api into
-drivers/iommu? I can merge them meanwhile into my iommu tree and start
-working on a proposal for the generic large page-size support.
+On Tue, Jun 7, 2011 at 12:05 PM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> pgsz isn't used anymore, you can remove it.
 
-	Joerg
+Ok.
 
--- 
-AMD Operating System Research Center
+>> + =A0 =A0 =A0 =A0 =A0 =A0 order =3D get_order(bytes);
+>
+> Does iommu_map() handle offsets correctly, or does it expect pa to be=
+ aligned
+> to an order (or other) boundary ?
 
-Advanced Micro Devices GmbH Einsteinring 24 85609 Dornach
-General Managers: Alberto Bozzo, Andrew Bowd
-Registration: Dornach, Landkr. Muenchen; Registerger. Muenchen, HRB Nr. 43632
+Right now we have a BUG_ON if pa is unaligned, but that can be changed
+if needed (do we want it to handle offsets ?).
+
+> As Russell pointed out, we should use sg->length instead of sg_dma_le=
+ngth(sg).
+> sg_dma_length(sg) is only valid after the scatter list has been DMA-m=
+apped,
+> which doesn't happen in the iovmm driver. This applies to all sg_dma_=
+len(sg)
+> calls.
+
+I'll make sure I don't introduce such calls, but it sounds like a
+separate patch should take care of the existing ones; pls tell me if
+you want me to send one.
+
+Thanks,
+Ohad.
