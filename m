@@ -1,64 +1,119 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [pm-wip/cpufreq][PATCH 3/3] OMAP2+: cpufreq: do lateinit
-Date: Tue, 07 Jun 2011 14:49:40 -0700
-Message-ID: <8762ohnwgb.fsf@ti.com>
-References: <1307412330-25798-1-git-send-email-nm@ti.com>
-	<1307412330-25798-4-git-send-email-nm@ti.com>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: [RFC] OMAP: McBSP not working if CONFIG_PM_RUNTIME not set
+Date: Wed, 8 Jun 2011 00:16:43 +0200
+Message-ID: <201106080016.43271.jkrzyszt@tis.icnet.pl>
+References: <201106072118.33632.jkrzyszt@tis.icnet.pl> <87pqmpnxxe.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:41188 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757746Ab1FGVtn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Jun 2011 17:49:43 -0400
-Received: by mail-pw0-f41.google.com with SMTP id 12so111574pwi.0
-        for <linux-omap@vger.kernel.org>; Tue, 07 Jun 2011 14:49:42 -0700 (PDT)
-In-Reply-To: <1307412330-25798-4-git-send-email-nm@ti.com> (Nishanth Menon's
-	message of "Mon, 6 Jun 2011 21:05:30 -0500")
+Received: from d1.icnet.pl ([212.160.220.21]:50166 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756956Ab1FGWRX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 7 Jun 2011 18:17:23 -0400
+In-Reply-To: <87pqmpnxxe.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>
+To: Kevin Hilman <khilman@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-pm@lists.linux-foundation.org
 
-Nishanth Menon <nm@ti.com> writes:
+On Tue 07 Jun 2011 at 23:17:49 Kevin Hilman wrote:
+> Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> writes:
+> > ... Or should
+> > arch/arm/mach-omap1/pm_bus.c be always built in and
+> > pm_runtime_clk_add_notifier() called from there in order to enable
+> > clocks on device initialization even if CONFIG_PM_RUNTIME is not
+> > set? Or still a better solution?
+> 
+> You're on the right track already.
+> 
+> Yes, the notifier init should be done even on the !PM_RUNTIME case so
+> that clocks are enabled when the device is added and disabled when
+> the device is removed.
+> 
+> Can you try the patch below (only compile tested)
 
-> Since we do module_init, cpufreq initializes before power late_init
-> where many of the required data structures are registered. 
+It's OK, but kind of no-op unless something like below is also applied. 
+With it appended to your patch, you can add my Tested-by or what-else-by 
+you may find appropriate.
 
-What exactly are the dependencies here?  The only thing I see is the
-dependency on omap2_get_mpuss_device(), and those devices should be
-created as a postcore_initcall.
+Thanks,
+Janusz
 
-If there are other dependencies, they're probably created a side effect
-of your earlier patches where you moved stuff from the ->init hook
-(which happens much later) into the initcall function.  Maybe that needs
-a rethink?
+---
+--- git/arch/arm/mach-omap1/Makefile.orig	2011-06-06 18:06:57.000000000 +0200
++++ git/arch/arm/mach-omap1/Makefile	2011-06-07 23:40:11.000000000 +0200
+@@ -4,14 +4,14 @@
+ 
+ # Common support
+ obj-y := io.o id.o sram.o time.o irq.o mux.o flash.o serial.o devices.o dma.o
+-obj-y += clock.o clock_data.o opp_data.o reset.o
++obj-y += clock.o clock_data.o opp_data.o reset.o pm_bus.o
+ 
+ obj-$(CONFIG_OMAP_MCBSP) += mcbsp.o
+ 
+ obj-$(CONFIG_OMAP_32K_TIMER)	+= timer32k.o
+ 
+ # Power Management
+-obj-$(CONFIG_PM) += pm.o sleep.o pm_bus.o
++obj-$(CONFIG_PM) += pm.o sleep.o
+ 
+ # DSP
+ obj-$(CONFIG_OMAP_MBOX_FWK)	+= mailbox_mach.o
+--
 
-> Move cpufreq init to late_initcall instead. Further CONFIG_CPU_FREQ on
-> which the build depends is bool and does'nt support modules yet.
->
-> Signed-off-by: Nishanth Menon <nm@ti.com>
-
-If this works, it's only because of the link order defined by the
-Makefile ordering since both are the same level of initcall.
-
-When I move this driver to drivers/cpufreq, then the link order is less
-obvious.
-
-Kevin
-
+> If it works, and with your Tested-by, I'll queue this as a fix for
+> v3.0-rc.
+> 
+> Thanks,
+> 
+> Kevin
+> 
+> >From 971a6b1ba5cbca7b38fb14ae834b124c6e7bf9b5 Mon Sep 17 00:00:00
+> >2001
+> 
+> From: Kevin Hilman <khilman@ti.com>
+> Date: Tue, 7 Jun 2011 14:13:33 -0700
+> Subject: [PATCH] OMAP1: PM: register notifiers with generic clock ops
+> even when !PM_RUNTIME
+> 
+> When runtime PM is disabled, device clocks need to be enabled on
+> device add and disabled on device remove.  This currently is not
+> happening because in the !PM_RUNTIME case, no notifiers are
+> registered for OMAP1 devices.
+> 
+> Fix this by ensuring notifiers are registered, even in the
+> !PM_RUNTIME case.
+> 
+> Reported-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+> Signed-off-by: Kevin Hilman <khilman@ti.com>
 > ---
->  arch/arm/mach-omap2/omap2plus-cpufreq.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/omap2plus-cpufreq.c b/arch/arm/mach-omap2/omap2plus-cpufreq.c
-> index 2177381..07c2ab9 100644
-> --- a/arch/arm/mach-omap2/omap2plus-cpufreq.c
-> +++ b/arch/arm/mach-omap2/omap2plus-cpufreq.c
-> @@ -273,5 +273,5 @@ static void __exit omap_cpufreq_exit(void)
->  
->  MODULE_DESCRIPTION("cpufreq driver for OMAP2PLUS SOCs");
->  MODULE_LICENSE("GPL");
-> -module_init(omap_cpufreq_init);
-> +late_initcall(omap_cpufreq_init);
->  module_exit(omap_cpufreq_exit);
+>  arch/arm/mach-omap1/pm_bus.c |    8 ++++++--
+>  1 files changed, 6 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap1/pm_bus.c
+> b/arch/arm/mach-omap1/pm_bus.c index fe31d93..334fb88 100644
+> --- a/arch/arm/mach-omap1/pm_bus.c
+> +++ b/arch/arm/mach-omap1/pm_bus.c
+> @@ -56,9 +56,13 @@ static struct dev_power_domain
+> default_power_domain = { USE_PLATFORM_PM_SLEEP_OPS
+>  	},
+>  };
+> +#define OMAP1_PWR_DOMAIN (&default_power_domain)
+> +#else
+> +#define OMAP1_PWR_DOMAIN NULL
+> +#endif /* CONFIG_PM_RUNTIME */
+> 
+>  static struct pm_clk_notifier_block platform_bus_notifier = {
+> -	.pwr_domain = &default_power_domain,
+> +	.pwr_domain = OMAP1_PWR_DOMAIN,
+>  	.con_ids = { "ick", "fck", NULL, },
+>  };
+> 
+> @@ -72,4 +76,4 @@ static int __init omap1_pm_runtime_init(void)
+>  	return 0;
+>  }
+>  core_initcall(omap1_pm_runtime_init);
+> -#endif /* CONFIG_PM_RUNTIME */
+> +
