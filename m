@@ -1,90 +1,43 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH] arm: omap3: beagle: Ensure msecure is mux'd to be able
- to set the RTC
-Date: Tue, 07 Jun 2011 12:50:09 +0300
-Message-ID: <4DEDF451.1080604@compulab.co.il>
-References: <4D9AEB76.2060509@ahsoftware.de> <1302010808-3065-1-git-send-email-holler@ahsoftware.de> <20110531102903.GU11352@atomide.com> <4DEDDAF6.2070505@ahsoftware.de>
+From: "Roedel, Joerg" <Joerg.Roedel@amd.com>
+Subject: Re: [RFC 0/6] iommu: generic api migration and grouping
+Date: Tue, 7 Jun 2011 11:58:29 +0200
+Message-ID: <20110607095829.GD4407@amd.com>
+References: <1307053663-24572-1-git-send-email-ohad@wizery.com>
+ <20110606100950.GC30762@amd.com>
+ <BANLkTi=i2s-Ujiy4qn_XQv+9dMjUC9R66A@mail.gmail.com>
+ <20110606153557.GE1953@amd.com>
+ <BANLkTinwwVO4TmsxuTfSBf6jqYrEVV3b_A@mail.gmail.com>
+ <20110606192030.GA4356@amd.com>
+ <BANLkTinx21-E3DRe9D7LRB8e1aeOwv=-9A@mail.gmail.com>
+ <20110607075221.GB4407@amd.com>
+ <BANLkTimR3KofKA3LSKXdX8k1FGR0XUxu=Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:56718
-	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751498Ab1FGJuS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Jun 2011 05:50:18 -0400
-In-Reply-To: <4DEDDAF6.2070505@ahsoftware.de>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <BANLkTimR3KofKA3LSKXdX8k1FGR0XUxu=Q@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "laurent.pinchart@ideasonboard.com" <laurent.pinchart@ideasonboard.com>, "Hiroshi.DOYU@nokia.com" <Hiroshi.DOYU@nokia.com>, "arnd@arndb.de" <arnd@arndb.de>, "davidb@codeaurora.org" <davidb@codeaurora.org>, Omar Ramirez Luna <omar.ramirez@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Alexander Holler <holler@ahsoftware.de>
-Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On 06/07/11 11:01, Alexander Holler wrote:
+On Tue, Jun 07, 2011 at 05:22:11AM -0400, Ohad Ben-Cohen wrote:
+> On Tue, Jun 7, 2011 at 10:52 AM, Roedel, Joerg <Joerg.Roedel@amd.com> wrote:
+> > Yup. Btw, is there any IOMMU hardware which supports non-natural
+> > alignment? In this case we need to expose these requirements somehow.
+> 
+> Not sure there are. Let's start with natural alignment, and extend it
+> only if someone with additional requirements shows up.
 
-> Am 31.05.2011 12:29, schrieb Tony Lindgren:
->> * Alexander Holler<holler@ahsoftware.de>  [110405 06:38]:
->>> Without msecure beeing high it isn't possible to set (or start)
->>> the RTC.
->>>
->>> Tested with a BeagleBoard C4.
->>
->> Adding this into fixes.
->>
->> Tony
->>
->>> Signed-off-by: Alexander Holler<holler@ahsoftware.de>
->>> ---
->>>   arch/arm/mach-omap2/board-omap3beagle.c |    3 +++
->>>   1 files changed, 3 insertions(+), 0 deletions(-)
->>>
->>> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
->>> index 46d814a..ebe3a7e 100644
->>> --- a/arch/arm/mach-omap2/board-omap3beagle.c
->>> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
->>> @@ -628,6 +628,9 @@ static void __init omap3_beagle_init(void)
->>>       usb_ehci_init(&ehci_pdata);
->>>       omap3beagle_flash_init();
->>>
->>> +    /* Ensure msecure is mux'd to be able to set the RTC. */
->>> +    omap_mux_init_signal("sys_drm_msecure", OMAP_PIN_OFF_OUTPUT_HIGH);
->>> +
->>>       /* Ensure SDRC pins are mux'd for self-refresh */
->>>       omap_mux_init_signal("sdrc_cke0", OMAP_PIN_OUTPUT);
->>>       omap_mux_init_signal("sdrc_cke1", OMAP_PIN_OUTPUT);
->>> -- 
->>> 1.7.3.4
->>>
->
-> I've later switched to the following patch which muxes msecure as GPIO (the drm-mode isn't explained in the TRM) and also exports the GPIO, so root could easily switch it to prevent modifications on the RTC.
->
-> (Warning, either my clipboard or the version of Thunderbird I'm currently using replaces the tabs with spaces in the pasted patch and I'm currently too lazy to search a workaround).
->
-> ---
->  arch/arm/mach-omap2/board-omap3beagle.c |    6 ++++++
->  1 files changed, 6 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-> index 33007fd..24b4417 100644
-> --- a/arch/arm/mach-omap2/board-omap3beagle.c
-> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
-> @@ -673,6 +673,12 @@ static void __init omap3_beagle_init(void)
->         usbhs_init(&usbhs_bdata);
->         omap3beagle_flash_init();
->
-> +       /* Ensure msecure is high to be able to set the RTC. */
-> +       omap_mux_init_signal("gpio_22", OMAP_PIN_OFF_OUTPUT_HIGH);
-> +       gpio_request(22, "msecure");
-> +       gpio_direction_output(22, true);
+Btw, mind to split out your changes which move the iommu-api into
+drivers/iommu? I can merge them meanwhile into my iommu tree and start
+working on a proposal for the generic large page-size support.
 
-Can this be gpio_request_one() instead, please?
-Also, it will be nice to make a define for the magic 22.
-
-> +       gpio_export(22, false);
-> +
->         /* Ensure SDRC pins are mux'd for self-refresh */
->         omap_mux_init_signal("sdrc_cke0", OMAP_PIN_OUTPUT);
->         omap_mux_init_signal("sdrc_cke1", OMAP_PIN_OUTPUT);
+	Joerg
 
 -- 
-Regards,
-Igor.
+AMD Operating System Research Center
 
+Advanced Micro Devices GmbH Einsteinring 24 85609 Dornach
+General Managers: Alberto Bozzo, Andrew Bowd
+Registration: Dornach, Landkr. Muenchen; Registerger. Muenchen, HRB Nr. 43632
