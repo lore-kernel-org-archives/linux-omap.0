@@ -1,98 +1,44 @@
-From: Ben Dooks <ben-i2c-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
-Subject: Re: [PATCH v4 00/18] I2C: OMAP: I2C fixes, removal of cpu_is...
-	from driver
-Date: Tue, 7 Jun 2011 14:41:51 +0100
-Message-ID: <20110607134151.GE15795@trinity.fluff.org>
-References: <1306973984-15165-1-git-send-email-khilman@ti.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [RFC 2/6] omap: iovmm: generic iommu api migration
+Date: Tue, 7 Jun 2011 16:46:26 +0300
+Message-ID: <BANLkTimqt=yMGHcqEH5u-4GkMX9=+BuB6A@mail.gmail.com>
+References: <1307053663-24572-1-git-send-email-ohad@wizery.com>
+ <201106071105.16262.laurent.pinchart@ideasonboard.com> <BANLkTi=nJXSEfWRXqwnHys1b5i5rgLcYpw@mail.gmail.com>
+ <201106071326.53106.laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1306973984-15165-1-git-send-email-khilman-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
-Cc: Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andy Green <andy.green-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <201106071326.53106.laurent.pinchart@ideasonboard.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Hiroshi.DOYU@nokia.com, arnd@arndb.de, davidb@codeaurora.org, Joerg.Roedel@amd.com
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Jun 01, 2011 at 05:19:26PM -0700, Kevin Hilman wrote:
-> Ben, 
-> 
-> Please pull in this series from Andy Green for the next merge window.
+Hi Laurent,
 
-I'll have a look through this set as soon as possible.
- 
-> v4 is simply a rebase of Andy's v3 against v3.0-rc1 with some basic
-> sanity testing against with the latest kernel.
-> 
-> It's also available here for pulling:
-> 
-> git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git for_3.1/i2c-andy
-> 
-> Original cover letter from Andy below:
-> 
-> The following series removes cpu_...() usage completely from the
-> omap-i2c driver by having decisions about functional implementation
-> choices in the SoC held in cpu-specific hwmod tables that are
-> already established, or for OMAP1 where there is no hwmod, set at
-> OMAP1-specific i2c bus addition time.
-> 
-> Along the way it solves two issues with the existing implementation,
-> that only 16-bit accesses are documented to be allowed to the I2C
-> peripheral unit, and that due to a confusion in the existing driver
-> about whether it is faced with a newer IP version on OMAP3530, currently
-> it writes to a random non-existent I2C register at times on that
-> platform.
-> 
-> The patch series is quite extended from the first try thanks to
-> comments from Benoit Cousson.
-> 
-> This 3rd try is based on 2.6.38-rc8 as requested.
-> 
-> Andy Green (18):
->   I2C: OMAP2+: Set hwmod flags to only allow 16-bit accesses to i2c
->   I2C: OMAP2+: Name registers in I2C IP V2 only accordingly
->   I2C: OMAP2+: Introduce I2C IP versioning constants
->   I2C: OMAP2+: Tag all OMAP2+ hwmod defintions with I2C IP revision
->   I2C: OMAP: add rev to omap i2c platform data
->   I2C: OMAP1: set IP revision in platform data
->   I2C: OMAP2+: Pass hwmod rev knowledge via platform_data when i2c bus
->     added
->   I2C: OMAP2+: use platform_data ip revision to select register map
->   I2C: OMAP2+: Solve array bounds overflow error on i2c idle
->   I2C: OMAP2+: address confused probed version naming
->   I2C: OMAP2+: increase omap_i2c_dev_attr flags from u8 to u32
->   I2C: OMAP1/OMAP2+: add flags field to omap i2c platform data
->   I2C: OMAP2+: Pass flags up to omap i2c platform_data as well
->   I2C: OMAP1/OMAP2+: create omap I2C functionality flags for each
->     cpu_... test
->   I2C: OMAP2+: add correct functionality flags to all omap2plus i2c
->     dev_attr
->   I2C: OMAP1: set i2c unit feature implementation flags in platform
->     data
->   I2C: OMAP2+: Convert omap I2C driver to use feature implementation
->     flags from platform data
->   I2C: OMAP1/OMAP2+: prepend I2C IP version to probed version shown in
->     dev_info
-> 
->  arch/arm/mach-omap2/omap_hwmod_2420_data.c |    8 ++-
->  arch/arm/mach-omap2/omap_hwmod_2430_data.c |    6 ++
->  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   13 ++++
->  arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   18 ++++-
->  arch/arm/plat-omap/i2c.c                   |   27 ++++++++
->  arch/arm/plat-omap/include/plat/i2c.h      |    3 +-
->  drivers/i2c/busses/i2c-omap.c              |  100 +++++++++++++++-------------
->  include/linux/i2c-omap.h                   |   29 ++++++++
->  8 files changed, 153 insertions(+), 51 deletions(-)
-> 
-> -- 
-> 1.7.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-i2c" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Tue, Jun 7, 2011 at 2:26 PM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+>> Right now we have a BUG_ON if pa is unaligned, but that can be changed
+>> if needed (do we want it to handle offsets ?).
+>
+> At least for the OMAP3 ISP we need to, as video buffers don't necessarily
+> start on page boundaries.
 
--- 
-Ben Dooks, ben-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, http://www.fluff.org/ben/
+Where do you take care of those potential offsets today ? Or do you
+simply ignore the offsets and map the entire page ?
 
-Large Hadron Colada: A large Pina Colada that makes the universe disappear.
+Seems like omap's iommu (mostly) rejects unaligned pa addresses, see:
+
+4abb761749abfb4ec403e4054f9dae2ee604e54f "omap iommu: Reject unaligned
+addresses at setting page table entry"
+
+(this doesn't seem to cover 4KB entries though, only large pages,
+sections and super sections)
+
+> A separate patch is indeed needed, yes. As you're already working on iommu it
+> might be simpler if you add it to your tree.
+
+Sure, i'll send it.
+
+Thanks,
+Ohad.
