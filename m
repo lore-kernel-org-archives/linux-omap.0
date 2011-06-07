@@ -1,112 +1,64 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 3.0-rc1] PM / runtime: fix broken iteration over clock ids
-Date: Tue, 7 Jun 2011 23:35:09 +0200
-Message-ID: <201106072335.09519.rjw@sisk.pl>
-References: <201106051531.32878.jkrzyszt@tis.icnet.pl> <201106072129.26063.rjw@sisk.pl> <201106072324.54306.jkrzyszt@tis.icnet.pl>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [pm-wip/cpufreq][PATCH 3/3] OMAP2+: cpufreq: do lateinit
+Date: Tue, 07 Jun 2011 14:49:40 -0700
+Message-ID: <8762ohnwgb.fsf@ti.com>
+References: <1307412330-25798-1-git-send-email-nm@ti.com>
+	<1307412330-25798-4-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201106072324.54306.jkrzyszt@tis.icnet.pl>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: linux-pm@lists.linux-foundation.org, Pavel Machek <pavel@ucw.cz>, Len Brown <len.brown@intel.com>, Greg Kroah-Hartman <gregkh@suse.de>, linux-kernel@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:41188 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757746Ab1FGVtn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Jun 2011 17:49:43 -0400
+Received: by mail-pw0-f41.google.com with SMTP id 12so111574pwi.0
+        for <linux-omap@vger.kernel.org>; Tue, 07 Jun 2011 14:49:42 -0700 (PDT)
+In-Reply-To: <1307412330-25798-4-git-send-email-nm@ti.com> (Nishanth Menon's
+	message of "Mon, 6 Jun 2011 21:05:30 -0500")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>
 
-On Tuesday, June 07, 2011, Janusz Krzysztofik wrote:
-> On Tue 07 Jun 2011 at 21:29:25 Rafael J. Wysocki wrote:
-> > 
-> > OK, below is an "official" version.  Can you please double check if
-> > it fixes the problem for you?
-> 
-> Hi,
-> I've tested it successfully, but only the CONFIG_PM_RUNTIME=y case, not 
-> the other because of still another McBSP issue, I believe, described 
-> elswhere.
+Nishanth Menon <nm@ti.com> writes:
 
-OK, thanks!
+> Since we do module_init, cpufreq initializes before power late_init
+> where many of the required data structures are registered. 
 
-If the other case turns out to cause more problems, they'll need separate
-fixes anyway.
+What exactly are the dependencies here?  The only thing I see is the
+dependency on omap2_get_mpuss_device(), and those devices should be
+created as a postcore_initcall.
 
-Rafael
+If there are other dependencies, they're probably created a side effect
+of your earlier patches where you moved stuff from the ->init hook
+(which happens much later) into the initcall function.  Maybe that needs
+a rethink?
 
- 
-> > ---
-> > From: Rafael J. Wysocki <rjw@sisk.pl>
-> > Subject: PM / Runtime: Fix loops in pm_runtime_clk_notify()
-> > 
-> > The loops over connection ID strings in pm_runtime_clk_notify()
-> > should actually iterate over the strings and not over the elements
-> > of the first of them, so make those loops behave as appropriate.
-> > 
-> > This fixes a regression introduced by commit 600b776eb39a13a28b090
-> > (OMAP1 / PM: Use generic clock manipulation routines for runtime PM).
-> > 
-> > Reported-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-> > Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-> > ---
-> >  drivers/base/power/clock_ops.c |   16 ++++++++--------
-> >  1 file changed, 8 insertions(+), 8 deletions(-)
-> > 
-> > Index: linux-2.6/drivers/base/power/clock_ops.c
-> > ===================================================================
-> > --- linux-2.6.orig/drivers/base/power/clock_ops.c
-> > +++ linux-2.6/drivers/base/power/clock_ops.c
-> > @@ -291,7 +291,7 @@ static int pm_runtime_clk_notify(struct
-> >  {
-> >  	struct pm_clk_notifier_block *clknb;
-> >  	struct device *dev = data;
-> > -	char *con_id;
-> > +	char **con_id;
-> >  	int error;
-> > 
-> >  	dev_dbg(dev, "%s() %ld\n", __func__, action);
-> > @@ -309,8 +309,8 @@ static int pm_runtime_clk_notify(struct
-> > 
-> >  		dev->pwr_domain = clknb->pwr_domain;
-> >  		if (clknb->con_ids[0]) {
-> > -			for (con_id = clknb->con_ids[0]; *con_id; con_id++)
-> > -				pm_runtime_clk_add(dev, con_id);
-> > +			for (con_id = clknb->con_ids; *con_id; con_id++)
-> > +				pm_runtime_clk_add(dev, *con_id);
-> >  		} else {
-> >  			pm_runtime_clk_add(dev, NULL);
-> >  		}
-> > @@ -380,7 +380,7 @@ static int pm_runtime_clk_notify(struct
-> >  {
-> >  	struct pm_clk_notifier_block *clknb;
-> >  	struct device *dev = data;
-> > -	char *con_id;
-> > +	char **con_id;
-> > 
-> >  	dev_dbg(dev, "%s() %ld\n", __func__, action);
-> > 
-> > @@ -389,16 +389,16 @@ static int pm_runtime_clk_notify(struct
-> >  	switch (action) {
-> >  	case BUS_NOTIFY_ADD_DEVICE:
-> >  		if (clknb->con_ids[0]) {
-> > -			for (con_id = clknb->con_ids[0]; *con_id; con_id++)
-> > -				enable_clock(dev, con_id);
-> > +			for (con_id = clknb->con_ids; *con_id; con_id++)
-> > +				enable_clock(dev, *con_id);
-> >  		} else {
-> >  			enable_clock(dev, NULL);
-> >  		}
-> >  		break;
-> >  	case BUS_NOTIFY_DEL_DEVICE:
-> >  		if (clknb->con_ids[0]) {
-> > -			for (con_id = clknb->con_ids[0]; *con_id; con_id++)
-> > -				disable_clock(dev, con_id);
-> > +			for (con_id = clknb->con_ids; *con_id; con_id++)
-> > +				disable_clock(dev, *con_id);
-> >  		} else {
-> >  			disable_clock(dev, NULL);
-> >  		}
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-omap"
-> > in the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
+> Move cpufreq init to late_initcall instead. Further CONFIG_CPU_FREQ on
+> which the build depends is bool and does'nt support modules yet.
+>
+> Signed-off-by: Nishanth Menon <nm@ti.com>
+
+If this works, it's only because of the link order defined by the
+Makefile ordering since both are the same level of initcall.
+
+When I move this driver to drivers/cpufreq, then the link order is less
+obvious.
+
+Kevin
+
+> ---
+>  arch/arm/mach-omap2/omap2plus-cpufreq.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/omap2plus-cpufreq.c b/arch/arm/mach-omap2/omap2plus-cpufreq.c
+> index 2177381..07c2ab9 100644
+> --- a/arch/arm/mach-omap2/omap2plus-cpufreq.c
+> +++ b/arch/arm/mach-omap2/omap2plus-cpufreq.c
+> @@ -273,5 +273,5 @@ static void __exit omap_cpufreq_exit(void)
+>  
+>  MODULE_DESCRIPTION("cpufreq driver for OMAP2PLUS SOCs");
+>  MODULE_LICENSE("GPL");
+> -module_init(omap_cpufreq_init);
+> +late_initcall(omap_cpufreq_init);
+>  module_exit(omap_cpufreq_exit);
