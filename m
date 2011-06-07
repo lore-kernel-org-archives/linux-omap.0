@@ -1,139 +1,56 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Re: [PATCH 3.0-rc1] PM / runtime: fix broken iteration over clock ids
-Date: Wed, 8 Jun 2011 00:27:13 +0200
-Message-ID: <201106080027.14378.jkrzyszt@tis.icnet.pl>
-References: <201106051531.32878.jkrzyszt@tis.icnet.pl> <201106072129.26063.rjw@sisk.pl> <201106072324.54306.jkrzyszt@tis.icnet.pl>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [linux-pm] calling runtime PM from system PM methods
+Date: Tue, 07 Jun 2011 15:34:50 -0700
+Message-ID: <87pqmpl185.fsf@ti.com>
+References: <Pine.LNX.4.44L0.1106021010360.1913-100000@iolanthe.rowland.org>
+	<201106062029.36389.rjw@sisk.pl> <87zkluwqab.fsf@ti.com>
+	<201106072332.30464.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201106072324.54306.jkrzyszt@tis.icnet.pl>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-pm@lists.linux-foundation.org, Pavel Machek <pavel@ucw.cz>, Len Brown <len.brown@intel.com>, Greg Kroah-Hartman <gregkh@suse.de>, linux-kernel@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:50737 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756995Ab1FGWey (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Jun 2011 18:34:54 -0400
+Received: by pxi10 with SMTP id 10so3235266pxi.22
+        for <linux-omap@vger.kernel.org>; Tue, 07 Jun 2011 15:34:53 -0700 (PDT)
+In-Reply-To: <201106072332.30464.rjw@sisk.pl> (Rafael J. Wysocki's message of
+	"Tue, 7 Jun 2011 23:32:30 +0200")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Alan Stern <stern@rowland.harvard.edu>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>, Paul Walmsley <paul@pwsan.com>
 
-On Tue 07 Jun 2011 at 23:24:53 Janusz Krzysztofik wrote:
-> On Tue 07 Jun 2011 at 21:29:25 Rafael J. Wysocki wrote:
-> > OK, below is an "official" version.  Can you please double check if
-> > it fixes the problem for you?
-> 
-> Hi,
-> I've tested it successfully, but only the CONFIG_PM_RUNTIME=y case,
-> not the other because of still another McBSP issue, I believe,
-> described elswhere.
+"Rafael J. Wysocki" <rjw@sisk.pl> writes:
 
-With a patch from Kevin, I was able to test the !PM_RUNTIME case 
-successfully as well.
+> On Tuesday, June 07, 2011, Kevin Hilman wrote:
+>> "Rafael J. Wysocki" <rjw@sisk.pl> writes:
+>> 
+>> [..]
+>> 
+>> > While it is tempting to try to get away with only two PM callbacks per
+>> > driver instead of four (or even more), it generally is not doable, simply
+>> > because driver callbacks are not executed directly by the core.
+>> >
+>> > The only way to address the problem of code duplication between .suspend()
+>> > and .runtime_suspend() callbacks (and analogously for resume) I see at the
+>> > moment is to make those callbacks execute common routines.
+>> 
+>> Makes sense if the "common routines" are in the driver.  The problem
+>> arises when the common routines are not actually in the driver, but are
+>> instead at the subsystem (or in this case, device power domain) level.
+>
+> As Alan said, I'm not sure why that is a problem, because device power
+> domain can (and most likely should) provide system suspend callbacks as well
+> as runtime PM callbacks.  Those callbacks can be designed to do whatever is
+> needed.
 
-Thanks,
-Janusz
+Yes, I see now.
 
-> Thanks,
-> Janusz
-> 
-> > Rafael
-> > 
-> > ---
-> > From: Rafael J. Wysocki <rjw@sisk.pl>
-> > Subject: PM / Runtime: Fix loops in pm_runtime_clk_notify()
-> > 
-> > The loops over connection ID strings in pm_runtime_clk_notify()
-> > should actually iterate over the strings and not over the elements
-> > of the first of them, so make those loops behave as appropriate.
-> > 
-> > This fixes a regression introduced by commit 600b776eb39a13a28b090
-> > (OMAP1 / PM: Use generic clock manipulation routines for runtime
-> > PM).
-> > 
-> > Reported-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-> > Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-> > ---
-> > 
-> >  drivers/base/power/clock_ops.c |   16 ++++++++--------
-> >  1 file changed, 8 insertions(+), 8 deletions(-)
-> > 
-> > Index: linux-2.6/drivers/base/power/clock_ops.c
-> > ===================================================================
-> > --- linux-2.6.orig/drivers/base/power/clock_ops.c
-> > +++ linux-2.6/drivers/base/power/clock_ops.c
-> > @@ -291,7 +291,7 @@ static int pm_runtime_clk_notify(struct
-> > 
-> >  {
-> >  
-> >  	struct pm_clk_notifier_block *clknb;
-> >  	struct device *dev = data;
-> > 
-> > -	char *con_id;
-> > +	char **con_id;
-> > 
-> >  	int error;
-> >  	
-> >  	dev_dbg(dev, "%s() %ld\n", __func__, action);
-> > 
-> > @@ -309,8 +309,8 @@ static int pm_runtime_clk_notify(struct
-> > 
-> >  		dev->pwr_domain = clknb->pwr_domain;
-> >  		if (clknb->con_ids[0]) {
-> > 
-> > -			for (con_id = clknb->con_ids[0]; *con_id; con_id++)
-> > -				pm_runtime_clk_add(dev, con_id);
-> > +			for (con_id = clknb->con_ids; *con_id; con_id++)
-> > +				pm_runtime_clk_add(dev, *con_id);
-> > 
-> >  		} else {
-> >  		
-> >  			pm_runtime_clk_add(dev, NULL);
-> >  		
-> >  		}
-> > 
-> > @@ -380,7 +380,7 @@ static int pm_runtime_clk_notify(struct
-> > 
-> >  {
-> >  
-> >  	struct pm_clk_notifier_block *clknb;
-> >  	struct device *dev = data;
-> > 
-> > -	char *con_id;
-> > +	char **con_id;
-> > 
-> >  	dev_dbg(dev, "%s() %ld\n", __func__, action);
-> > 
-> > @@ -389,16 +389,16 @@ static int pm_runtime_clk_notify(struct
-> > 
-> >  	switch (action) {
-> >  	
-> >  	case BUS_NOTIFY_ADD_DEVICE:
-> >  		if (clknb->con_ids[0]) {
-> > 
-> > -			for (con_id = clknb->con_ids[0]; *con_id; con_id++)
-> > -				enable_clock(dev, con_id);
-> > +			for (con_id = clknb->con_ids; *con_id; con_id++)
-> > +				enable_clock(dev, *con_id);
-> > 
-> >  		} else {
-> >  		
-> >  			enable_clock(dev, NULL);
-> >  		
-> >  		}
-> >  		break;
-> >  	
-> >  	case BUS_NOTIFY_DEL_DEVICE:
-> >  		if (clknb->con_ids[0]) {
-> > 
-> > -			for (con_id = clknb->con_ids[0]; *con_id; con_id++)
-> > -				disable_clock(dev, con_id);
-> > +			for (con_id = clknb->con_ids; *con_id; con_id++)
-> > +				disable_clock(dev, *con_id);
-> > 
-> >  		} else {
-> >  		
-> >  			disable_clock(dev, NULL);
-> >  		
-> >  		}
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe
-> > linux-omap" in the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+For some reason, my runtime PM focus caused me to not consider the
+system PM callbacks in the device power domains.  Taking care of things
+there should solve my problems.
+
+Sorry for being a bit blind,
+
+Kevin
