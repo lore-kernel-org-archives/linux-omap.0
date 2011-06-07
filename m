@@ -1,109 +1,48 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [pm-wip/voltdm_nm][PATCH 04/10] OMAP4: PM: VC: allow channels use of default channel volt_reg_addr
-Date: Mon,  6 Jun 2011 21:16:07 -0500
-Message-ID: <1307412972-25854-5-git-send-email-nm@ti.com>
-References: <1307412972-25854-1-git-send-email-nm@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 19/27] OMAP: DSS2: Use PM runtime & HWMOD support
+Date: Tue, 07 Jun 2011 09:47:45 +0300
+Message-ID: <1307429265.1858.6.camel@deskari>
+References: <1307095237-14805-1-git-send-email-tomi.valkeinen@ti.com>
+	 <1307095237-14805-20-git-send-email-tomi.valkeinen@ti.com>
+	 <871uzahnib.fsf@ti.com> <1307122985.2016.72.camel@deskari>
+	 <87hb86a5mm.fsf@ti.com> <1307174504.1777.24.camel@lappyti>
+	 <4DECCE90.6070201@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:46855 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754812Ab1FGCTg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Jun 2011 22:19:36 -0400
-Received: by mail-gw0-f41.google.com with SMTP id a12so1697085gwa.28
-        for <linux-omap@vger.kernel.org>; Mon, 06 Jun 2011 19:19:35 -0700 (PDT)
-In-Reply-To: <1307412972-25854-1-git-send-email-nm@ti.com>
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:46648 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751160Ab1FGGrx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Jun 2011 02:47:53 -0400
+In-Reply-To: <4DECCE90.6070201@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
-Cc: kevin <khilman@ti.com>, Nishanth Menon <nm@ti.com>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "Hilman, Kevin" <khilman@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>
 
-OMAP4's PRM_VC_CFG_CHANNEL register allows for flexibility of configuring
-for various PMIC configurations. In combinations where we'd like to
-use the default VC channel's voltage_reg address in a particular non-default
-VC channel, we allow the use of USE_DEFAULT_CHANNEL_I2C_PARAM.
+On Mon, 2011-06-06 at 14:56 +0200, Cousson, Benoit wrote:
 
-Since 0 is a valid register address, we need to increase the size of
-reg storage for the flag. Depending on the PMIC and platform used,
-this can be populated on the PMIC's datastructure and percolates to
-VC's configuration.
+> That terminology in the PRCM just means that an opt clock will not be 
+> handled automatically by the PRCM and will require SW control.
+> This is not the case for mandatory clock. Upon module enable the PRCM 
+> will ensure that all mandatory clocks (functional and interface) are 
+> enabled automagically. If the clock is marked as optional it means that 
+> the SW will have to enable it explicitly before enabling the module.
 
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
- arch/arm/mach-omap2/vc.c      |   17 ++++++++++-------
- arch/arm/mach-omap2/vc.h      |    2 +-
- arch/arm/mach-omap2/voltage.h |    4 ++--
- 3 files changed, 13 insertions(+), 10 deletions(-)
+Is that correct? This would mean that whenever a hwmod has opt clock, it
+needs to implement similar hack functions that are present in this
+patch, to be able to enable the opt clock before enabling the hwmod, and
+to disable the opt clock after disabling the hwmod.
 
-diff --git a/arch/arm/mach-omap2/vc.c b/arch/arm/mach-omap2/vc.c
-index 6017c70..53a16cc 100644
---- a/arch/arm/mach-omap2/vc.c
-+++ b/arch/arm/mach-omap2/vc.c
-@@ -310,10 +310,11 @@ void __init omap_vc_init_channel(struct voltagedomain *voltdm)
- 	vc->setup_time = voltdm->pmic->volt_setup_time;
- 
- 	if ((vc->flags & OMAP_VC_CHANNEL_DEFAULT) &&
--		(vc->i2c_slave_addr == USE_DEFAULT_CHANNEL_I2C_PARAM)) {
-+		((vc->i2c_slave_addr == USE_DEFAULT_CHANNEL_I2C_PARAM) ||
-+		(vc->volt_reg_addr == USE_DEFAULT_CHANNEL_I2C_PARAM))) {
- 		pr_err("%s: voltdm %s: default channel "
--			"bad config-sa=%2x ?\n", __func__, voltdm->name,
--			vc->i2c_slave_addr);
-+			"bad config-sa=%2x vol=%2x?\n", __func__, voltdm->name,
-+			vc->i2c_slave_addr, vc->volt_reg_addr);
- 		return;
- 	}
- 
-@@ -328,10 +329,12 @@ void __init omap_vc_init_channel(struct voltagedomain *voltdm)
- 	/*
- 	 * Configure the PMIC register addresses.
- 	 */
--	voltdm->rmw(vc->smps_volra_mask,
--		    vc->volt_reg_addr << __ffs(vc->smps_volra_mask),
--		    vc->common->smps_volra_reg);
--	vc->cfg_channel |= vc_cfg_bits->rav;
-+	if (vc->volt_reg_addr != USE_DEFAULT_CHANNEL_I2C_PARAM) {
-+		voltdm->rmw(vc->smps_volra_mask,
-+			    vc->volt_reg_addr << __ffs(vc->smps_volra_mask),
-+			    vc->common->smps_volra_reg);
-+		vc->cfg_channel |= vc_cfg_bits->rav;
-+	}
- 
- 	if (vc->cmd_reg_addr) {
- 		voltdm->rmw(vc->smps_cmdra_mask,
-diff --git a/arch/arm/mach-omap2/vc.h b/arch/arm/mach-omap2/vc.h
-index 22c0060..310368f 100644
---- a/arch/arm/mach-omap2/vc.h
-+++ b/arch/arm/mach-omap2/vc.h
-@@ -78,7 +78,7 @@ struct omap_vc_channel {
- 
- 	/* channel state */
- 	u16 i2c_slave_addr;
--	u8 volt_reg_addr;
-+	u16 volt_reg_addr;
- 	u8 cmd_reg_addr;
- 	u8 cfg_channel;
- 	u16 setup_time;
-diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
-index 1732258..75f3557 100644
---- a/arch/arm/mach-omap2/voltage.h
-+++ b/arch/arm/mach-omap2/voltage.h
-@@ -114,7 +114,7 @@ struct omap_volt_data {
-  * channel is MPU, all other domains such as IVA/CORE, could optionally
-  * link their i2c reg configuration to use MPU channel's configuration if
-  * required. To do this, mark in the PMIC structure's
-- * i2c_slave_addr with this macro.
-+ * i2c_slave_addr, volt_reg_addr with this macro.
-  */
- #define USE_DEFAULT_CHANNEL_I2C_PARAM  0x8000
- 
-@@ -142,7 +142,7 @@ struct omap_voltdm_pmic {
- 	u8 vp_vddmax;
- 	u8 vp_timeout_us;
- 	u16 i2c_slave_addr;
--	u8 volt_reg_addr;
-+	u16 volt_reg_addr;
- 	u8 cmd_reg_addr;
- 	bool i2c_high_speed;
- 	u8 i2c_mcode;
--- 
-1.7.1
+I'd rather hope the optional clock could be enabled whenever the driver
+needs it, between enabling and disabling the hwmod.
+
+If it's required that the opt clocks are enabled before enabling the
+hwmod, what is the point of having them as optional and driver
+controlled? The hwmod fmwk could as well handle the opt clocks in that
+case.
+
+ Tomi
+
 
