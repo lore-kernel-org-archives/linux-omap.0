@@ -1,71 +1,140 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [linux-pm] calling runtime PM from system PM methods
-Date: Tue, 7 Jun 2011 09:55:11 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1106070951210.1972-100000@iolanthe.rowland.org>
-References: <87zkluwqab.fsf@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH v2 00/12] MFD/ASoC/Input: TWL4030/TWL60X0
+	changes
+Date: Tue, 7 Jun 2011 17:18:05 +0300
+Message-ID: <1307456297-15010-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:46259 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753767Ab1FGNzL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Jun 2011 09:55:11 -0400
-In-Reply-To: <87zkluwqab.fsf@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Samuel Ortiz <sameo@linux.intel.com>, Dmitry Torokhov <dmitry.torokhov@>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>, Paul Walmsley <paul@pwsan.com>
 
-On Mon, 6 Jun 2011, Kevin Hilman wrote:
+Hello,
 
-> "Rafael J. Wysocki" <rjw@sisk.pl> writes:
-> 
-> [..]
-> 
-> > While it is tempting to try to get away with only two PM callbacks per
-> > driver instead of four (or even more), it generally is not doable, simply
-> > because driver callbacks are not executed directly by the core.
-> >
-> > The only way to address the problem of code duplication between .suspend()
-> > and .runtime_suspend() callbacks (and analogously for resume) I see at the
-> > moment is to make those callbacks execute common routines.
-> 
-> Makes sense if the "common routines" are in the driver.  The problem
-> arises when the common routines are not actually in the driver, but are
-> instead at the subsystem (or in this case, device power domain) level.
+The second version gowned a bit since v1...
 
-Why should that be a problem?  System suspend also invokes the 
-subsystem and power domain methods.
+Changes since v1:
+- Common pmic related configuration moved out from board files
+- Rest of the series has been rebased on top of this change
 
-> Considering the OMAP I2C driver, it doesn't have (or need) runtime PM
-> callbacks.  It does runtime PM get/put per-xfer, and has no context to
-> save/restore, so it needs no runtime PM callbacks, or no special PM code
-> other than runtime PM get/put calls.  The device power domain level code
-> is managing the device clocks, power states, etc..
-> 
-> So what the system suspend needs to do is something like:
-> 
-> 1. block any new xfers from starting
-> 2. wait for any outstanding xfers
-> 3. if device is already runtime suspended
->     - nothing to do
-> 4. trigger idle transition (at device power domain level)
+Not changed since v1:
+- TWL6040 MFD driver has not been converted to i2c driver
+I have looked at this, and while it can be done, I feel that the changes needed
+in twl-core will be not accepted, since IMHO the twl-core need to be cleaned
+first. The solution, which can be done with the current code might look a bit
+hackish.
 
-1 - 2 should be handled at the device level, whereas 3 - 4 are handled
-at the power domain level.  Those are separate callbacks during system
-suspend.
+Updated intro message from the v1 series:
+The series will do four major things, and they are in one series, because they
+pretty much depending on each other, so it is easier to handle them together.
 
-> If runtime PM has not been disabled from userspace, it should always end
-> at step 3, since the last xfer will always trigger a runtime suspend.
-> 
-> However, if runtime PM has been disabled from
-> userspace/pm_runtime_forbid(), we need some way to do step 4.  It's this
-> last 'trigger' step that I'm trying to figure out how a clean way of
-> implementing, particularily for drivers with no runtime PM callbacks.
+0. Move the common pmic related configurations out from the board files.
+New pmic-common.c/h file has been created for this purpose.
+OMAP3 board files received two patches (pdata, and regualtor changes), OMAP4
+board files has been changed with one patch.
 
-You're too hung-up on runtime PM.  Forget about that and concentrate on
-system PM instead.  Power domains have system-PM callbacks as well as
-runtime-PM callbacks; use them to do what you want.
+1. Rename the twl4030-codec MFD driver to twl4030-audio
+Since the ASoC multicomponent introduction (2.6.37) the twl4030-codec MFD dirver
+had been using twl4030-audio to register (twl4030-codec is the ASoC codec
+driver). The documentation refers to this part of twl as audio block, so it is
+better to rename the driver as well to avoid confusion.
 
-Alan Stern
+2. Introduction of MFD driver for twl6040.
+The TWL6040 audio IC has codec and vibra functionality.
+Convert the existing ASoC codec driver to use the new MFD driver's interface.
 
+3. Vibrator driver for TWL6040 (Input/ForceFeedback driver)
+The driver itself, and support for the vibrators in SDP4430 board.
+
+The series has been tested on top of merged omap-next, asoc-next, and mfd-next.
+It applies on top of linux-next as well.
+
+Regards,
+Peter
+
+---
+Misael Lopez Cruz (3):
+  mfd: twl6040: Add initial support
+  ASoC: twl6040: Convert into TWL6040 MFD child
+  input: Add initial support for TWL6040 vibrator
+
+Peter Ujfalusi (9):
+  OMAP: New pmic-common for common TWL configuration
+  OMAP4: Move common twl6030 configuration to pmic-common
+  OMAP3: Move common pmic configuration to pmic-common
+  OMAP3: Move common regulator configuration to pmic-common
+  MFD: twl4030-codec: Rename internals from codec to audio
+  MFD: twl4030-codec -> twl4030-audio: Rename the driver
+  MFD: twl4030-audio: Rename platform data
+  MFD: twl6040: Change platform data for soc codec driver
+  OMAP4: SDP4430: Add twl6040 vibrator platform support
+
+ arch/arm/mach-omap2/Makefile                 |    2 +-
+ arch/arm/mach-omap2/board-3430sdp.c          |   89 +----
+ arch/arm/mach-omap2/board-4430sdp.c          |  183 +++------
+ arch/arm/mach-omap2/board-cm-t35.c           |   48 +--
+ arch/arm/mach-omap2/board-devkit8000.c       |   37 +--
+ arch/arm/mach-omap2/board-igep0020.c         |   44 +--
+ arch/arm/mach-omap2/board-ldp.c              |   15 +-
+ arch/arm/mach-omap2/board-omap3beagle.c      |   60 +---
+ arch/arm/mach-omap2/board-omap3evm.c         |   67 +---
+ arch/arm/mach-omap2/board-omap3pandora.c     |   59 +---
+ arch/arm/mach-omap2/board-omap3stalker.c     |   70 +---
+ arch/arm/mach-omap2/board-omap3touchbook.c   |   57 +---
+ arch/arm/mach-omap2/board-omap4panda.c       |  149 +------
+ arch/arm/mach-omap2/board-overo.c            |   59 +---
+ arch/arm/mach-omap2/board-rm680.c            |    8 +-
+ arch/arm/mach-omap2/board-rx51-peripherals.c |   44 +--
+ arch/arm/mach-omap2/board-zoom-peripherals.c |   88 +----
+ arch/arm/mach-omap2/common-board-devices.c   |   21 -
+ arch/arm/mach-omap2/common-board-devices.h   |   26 +-
+ arch/arm/mach-omap2/pmic-common.c            |  304 +++++++++++++
+ arch/arm/mach-omap2/pmic-common.h            |   59 +++
+ arch/arm/plat-omap/include/plat/irqs.h       |   12 +-
+ drivers/input/misc/Kconfig                   |   13 +-
+ drivers/input/misc/Makefile                  |    1 +
+ drivers/input/misc/twl4030-vibra.c           |   12 +-
+ drivers/input/misc/twl6040-vibra.c           |  428 +++++++++++++++++++
+ drivers/mfd/Kconfig                          |    8 +-
+ drivers/mfd/Makefile                         |    3 +-
+ drivers/mfd/twl-core.c                       |   13 +-
+ drivers/mfd/twl4030-audio.c                  |  278 ++++++++++++
+ drivers/mfd/twl4030-codec.c                  |  277 ------------
+ drivers/mfd/twl6040-core.c                   |  588 ++++++++++++++++++++++++++
+ drivers/mfd/twl6040-irq.c                    |  205 +++++++++
+ include/linux/i2c/twl.h                      |   21 +-
+ include/linux/mfd/twl4030-audio.h            |  272 ++++++++++++
+ include/linux/mfd/twl4030-codec.h            |  272 ------------
+ include/linux/mfd/twl6040.h                  |  260 ++++++++++++
+ sound/soc/codecs/Kconfig                     |    3 +-
+ sound/soc/codecs/twl4030.c                   |   22 +-
+ sound/soc/codecs/twl6040.c                   |  426 ++++---------------
+ sound/soc/codecs/twl6040.h                   |  118 -----
+ sound/soc/omap/sdp3430.c                     |    2 +-
+ sound/soc/omap/sdp4430.c                     |    2 +
+ sound/soc/omap/zoom2.c                       |    2 +-
+ 44 files changed, 2716 insertions(+), 2011 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/pmic-common.c
+ create mode 100644 arch/arm/mach-omap2/pmic-common.h
+ create mode 100644 drivers/input/misc/twl6040-vibra.c
+ create mode 100644 drivers/mfd/twl4030-audio.c
+ delete mode 100644 drivers/mfd/twl4030-codec.c
+ create mode 100644 drivers/mfd/twl6040-core.c
+ create mode 100644 drivers/mfd/twl6040-irq.c
+ create mode 100644 include/linux/mfd/twl4030-audio.h
+ delete mode 100644 include/linux/mfd/twl4030-codec.h
+ create mode 100644 include/linux/mfd/twl6040.h
+
+-- 
+1.7.5.3
