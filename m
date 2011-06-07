@@ -1,56 +1,133 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [linux-pm] calling runtime PM from system PM methods
-Date: Tue, 07 Jun 2011 15:34:50 -0700
-Message-ID: <87pqmpl185.fsf@ti.com>
-References: <Pine.LNX.4.44L0.1106021010360.1913-100000@iolanthe.rowland.org>
-	<201106062029.36389.rjw@sisk.pl> <87zkluwqab.fsf@ti.com>
-	<201106072332.30464.rjw@sisk.pl>
+Subject: Re: [RFC] OMAP: McBSP not working if CONFIG_PM_RUNTIME not set
+Date: Tue, 07 Jun 2011 16:48:34 -0700
+Message-ID: <87hb81kxt9.fsf@ti.com>
+References: <201106072118.33632.jkrzyszt@tis.icnet.pl> <87pqmpnxxe.fsf@ti.com>
+	<201106080016.43271.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:50737 "EHLO
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:53609 "EHLO
 	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756995Ab1FGWey (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Jun 2011 18:34:54 -0400
-Received: by pxi10 with SMTP id 10so3235266pxi.22
-        for <linux-omap@vger.kernel.org>; Tue, 07 Jun 2011 15:34:53 -0700 (PDT)
-In-Reply-To: <201106072332.30464.rjw@sisk.pl> (Rafael J. Wysocki's message of
-	"Tue, 7 Jun 2011 23:32:30 +0200")
+	by vger.kernel.org with ESMTP id S1755896Ab1FGXsh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Jun 2011 19:48:37 -0400
+Received: by mail-pv0-f181.google.com with SMTP id 13so2869pvg.40
+        for <linux-omap@vger.kernel.org>; Tue, 07 Jun 2011 16:48:36 -0700 (PDT)
+In-Reply-To: <201106080016.43271.jkrzyszt@tis.icnet.pl> (Janusz Krzysztofik's
+	message of "Wed, 8 Jun 2011 00:16:43 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>, Paul Walmsley <paul@pwsan.com>
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-pm@lists.linux-foundation.org
 
-"Rafael J. Wysocki" <rjw@sisk.pl> writes:
+Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> writes:
 
-> On Tuesday, June 07, 2011, Kevin Hilman wrote:
->> "Rafael J. Wysocki" <rjw@sisk.pl> writes:
+> On Tue 07 Jun 2011 at 23:17:49 Kevin Hilman wrote:
+>> Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> writes:
+>> > ... Or should
+>> > arch/arm/mach-omap1/pm_bus.c be always built in and
+>> > pm_runtime_clk_add_notifier() called from there in order to enable
+>> > clocks on device initialization even if CONFIG_PM_RUNTIME is not
+>> > set? Or still a better solution?
 >> 
->> [..]
+>> You're on the right track already.
 >> 
->> > While it is tempting to try to get away with only two PM callbacks per
->> > driver instead of four (or even more), it generally is not doable, simply
->> > because driver callbacks are not executed directly by the core.
->> >
->> > The only way to address the problem of code duplication between .suspend()
->> > and .runtime_suspend() callbacks (and analogously for resume) I see at the
->> > moment is to make those callbacks execute common routines.
+>> Yes, the notifier init should be done even on the !PM_RUNTIME case so
+>> that clocks are enabled when the device is added and disabled when
+>> the device is removed.
 >> 
->> Makes sense if the "common routines" are in the driver.  The problem
->> arises when the common routines are not actually in the driver, but are
->> instead at the subsystem (or in this case, device power domain) level.
+>> Can you try the patch below (only compile tested)
 >
-> As Alan said, I'm not sure why that is a problem, because device power
-> domain can (and most likely should) provide system suspend callbacks as well
-> as runtime PM callbacks.  Those callbacks can be designed to do whatever is
-> needed.
+> It's OK, but kind of no-op unless something like below is also applied. 
 
-Yes, I see now.
+Indeed.
 
-For some reason, my runtime PM focus caused me to not consider the
-system PM callbacks in the device power domains.  Taking care of things
-there should solve my problems.
+> With it appended to your patch, you can add my Tested-by or what-else-by 
+> you may find appropriate.
 
-Sorry for being a bit blind,
+Thanks, will fold your diff into the patch, add your Tested-by and
+submit as a PM fix for v3.0.
+
+Thanks,
 
 Kevin
+
+> Thanks,
+> Janusz
+>
+> ---
+> --- git/arch/arm/mach-omap1/Makefile.orig	2011-06-06 18:06:57.000000000 +0200
+> +++ git/arch/arm/mach-omap1/Makefile	2011-06-07 23:40:11.000000000 +0200
+> @@ -4,14 +4,14 @@
+>  
+>  # Common support
+>  obj-y := io.o id.o sram.o time.o irq.o mux.o flash.o serial.o devices.o dma.o
+> -obj-y += clock.o clock_data.o opp_data.o reset.o
+> +obj-y += clock.o clock_data.o opp_data.o reset.o pm_bus.o
+>  
+>  obj-$(CONFIG_OMAP_MCBSP) += mcbsp.o
+>  
+>  obj-$(CONFIG_OMAP_32K_TIMER)	+= timer32k.o
+>  
+>  # Power Management
+> -obj-$(CONFIG_PM) += pm.o sleep.o pm_bus.o
+> +obj-$(CONFIG_PM) += pm.o sleep.o
+>  
+>  # DSP
+>  obj-$(CONFIG_OMAP_MBOX_FWK)	+= mailbox_mach.o
+> --
+>
+>> If it works, and with your Tested-by, I'll queue this as a fix for
+>> v3.0-rc.
+>> 
+>> Thanks,
+>> 
+>> Kevin
+>> 
+>> >From 971a6b1ba5cbca7b38fb14ae834b124c6e7bf9b5 Mon Sep 17 00:00:00
+>> >2001
+>> 
+>> From: Kevin Hilman <khilman@ti.com>
+>> Date: Tue, 7 Jun 2011 14:13:33 -0700
+>> Subject: [PATCH] OMAP1: PM: register notifiers with generic clock ops
+>> even when !PM_RUNTIME
+>> 
+>> When runtime PM is disabled, device clocks need to be enabled on
+>> device add and disabled on device remove.  This currently is not
+>> happening because in the !PM_RUNTIME case, no notifiers are
+>> registered for OMAP1 devices.
+>> 
+>> Fix this by ensuring notifiers are registered, even in the
+>> !PM_RUNTIME case.
+>> 
+>> Reported-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+>> Signed-off-by: Kevin Hilman <khilman@ti.com>
+>> ---
+>>  arch/arm/mach-omap1/pm_bus.c |    8 ++++++--
+>>  1 files changed, 6 insertions(+), 2 deletions(-)
+>> 
+>> diff --git a/arch/arm/mach-omap1/pm_bus.c
+>> b/arch/arm/mach-omap1/pm_bus.c index fe31d93..334fb88 100644
+>> --- a/arch/arm/mach-omap1/pm_bus.c
+>> +++ b/arch/arm/mach-omap1/pm_bus.c
+>> @@ -56,9 +56,13 @@ static struct dev_power_domain
+>> default_power_domain = { USE_PLATFORM_PM_SLEEP_OPS
+>>  	},
+>>  };
+>> +#define OMAP1_PWR_DOMAIN (&default_power_domain)
+>> +#else
+>> +#define OMAP1_PWR_DOMAIN NULL
+>> +#endif /* CONFIG_PM_RUNTIME */
+>> 
+>>  static struct pm_clk_notifier_block platform_bus_notifier = {
+>> -	.pwr_domain = &default_power_domain,
+>> +	.pwr_domain = OMAP1_PWR_DOMAIN,
+>>  	.con_ids = { "ick", "fck", NULL, },
+>>  };
+>> 
+>> @@ -72,4 +76,4 @@ static int __init omap1_pm_runtime_init(void)
+>>  	return 0;
+>>  }
+>>  core_initcall(omap1_pm_runtime_init);
+>> -#endif /* CONFIG_PM_RUNTIME */
+>> +
