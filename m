@@ -1,34 +1,39 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [pm-wip/cpufreq][PATCH 1/3] OMAP2+: cpufreq: minor flow beautification
-Date: Tue, 07 Jun 2011 12:07:48 -0700
-Message-ID: <871uz5piij.fsf@ti.com>
-References: <1307412330-25798-1-git-send-email-nm@ti.com>
-	<1307412330-25798-2-git-send-email-nm@ti.com>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: [RFC] OMAP: McBSP not working if CONFIG_PM_RUNTIME not set
+Date: Tue, 7 Jun 2011 21:18:33 +0200
+Message-ID: <201106072118.33632.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:50414 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755424Ab1FGTHz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Jun 2011 15:07:55 -0400
-Received: by mail-pw0-f52.google.com with SMTP id 4so16142pwi.25
-        for <linux-omap@vger.kernel.org>; Tue, 07 Jun 2011 12:07:50 -0700 (PDT)
-In-Reply-To: <1307412330-25798-2-git-send-email-nm@ti.com> (Nishanth Menon's
-	message of "Mon, 6 Jun 2011 21:05:28 -0500")
+Received: from d1.icnet.pl ([212.160.220.21]:57926 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753292Ab1FGTYg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 7 Jun 2011 15:24:36 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: linux-pm@lists.linux-foundation.org
 
-Nishanth Menon <nm@ti.com> writes:
+Hi,
 
-> Probably should be squashed to:
-> "OMAP2+: cpufreq: fix freq_table leak"
->
-> Looks like I've been lazy and added up a useless else case!
->
-> Signed-off-by: Nishanth Menon <nm@ti.com>
+While solving this problem:
+http://www.spinics.net/lists/linux-omap/msg52011.html,
+I found that since commit e95496d4acadd0b72c4947be61e8d44700fdaae7, 
+"OMAP: McBSP: Add pm runtime support", McBSP ports, or at least McBSP1 
+on my Amstrad Delta, no longer work when CONFIG_PM_RUNTIME is not set. 
+Even if I don't use such setup and always select CONFIG_PM_RUNTIME, I 
+think current behaviour is wrong and should be corrected.
 
-Thanks, squashed.
+Before I come out with a patch, please advise if and how you think this 
+should be solved. Should CONFIG_OMAP_MCBSP depend on CONFIG_PM_RUNTIME?
+Or should it select CONFIG_PM_RUNTIME? Or maybe an old code which 
+manipulated clocks directly should be restored for no CONFIG_PM_RUNTIME 
+case? Or should arch/arm/mach-omap1/pm_bus.c be always built in and 
+pm_runtime_clk_add_notifier() called from there in order to enable 
+clocks on device initialization even if CONFIG_PM_RUNTIME is not set? Or 
+still a better solution?
 
-Kevin
+Thanks,
+Janusz
