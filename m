@@ -1,56 +1,53 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [pm-wip/voltdm_nm][PATCH 01/10] OMAP3+: VC: fix mutant channel handling
-Date: Mon,  6 Jun 2011 21:16:04 -0500
-Message-ID: <1307412972-25854-2-git-send-email-nm@ti.com>
-References: <1307412972-25854-1-git-send-email-nm@ti.com>
+Subject: [pm-wip/voltdm_nm][PATCH 00/10] OMAP2+: voltage: fixes
+Date: Mon,  6 Jun 2011 21:16:03 -0500
+Message-ID: <1307412972-25854-1-git-send-email-nm@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:43416 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754812Ab1FGCQR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Jun 2011 22:16:17 -0400
-Received: by mail-yi0-f54.google.com with SMTP id 13so806912yie.27
-        for <linux-omap@vger.kernel.org>; Mon, 06 Jun 2011 19:16:16 -0700 (PDT)
-In-Reply-To: <1307412972-25854-1-git-send-email-nm@ti.com>
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:36611 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754406Ab1FGCQQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Jun 2011 22:16:16 -0400
+Received: by mail-gw0-f46.google.com with SMTP id a18so1613115gwa.19
+        for <linux-omap@vger.kernel.org>; Mon, 06 Jun 2011 19:16:13 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
 Cc: kevin <khilman@ti.com>, Nishanth Menon <nm@ti.com>
 
-"OMAP3+: PM: VC: handle mutant channel config for OMAP4 MPU channel"
-handles the mutant channel flags, however since vc_cfg_bits is static
-file wide variable, it makes better sense to update this based on
-the specific channel using mutant or not. else if we have a initial
-registration of mutant channel definition, all other channels will
-end up using the mutant definition.
+Bunch of fixes for VC, VP incorporating previous comments
+merges two series of PMIC and voltage cleanups I send previously.
 
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
-we should probably squash this in to the original commit
- arch/arm/mach-omap2/vc.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
+Applies on:
+git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git
+voltdm_nm     3c217ab OMAP3+: PM: VC: handle mutant channel config for OMAP4 MPU channel
 
-diff --git a/arch/arm/mach-omap2/vc.c b/arch/arm/mach-omap2/vc.c
-index c8deac9..aa9f0bc 100644
---- a/arch/arm/mach-omap2/vc.c
-+++ b/arch/arm/mach-omap2/vc.c
-@@ -53,7 +53,7 @@ static struct omap_vc_channel_cfg vc_mutant_channel_cfg = {
- 	.cmd   = BIT(1),
- };
- 
--static struct omap_vc_channel_cfg *vc_cfg_bits = &vc_default_channel_cfg;
-+static struct omap_vc_channel_cfg *vc_cfg_bits;
- #define CFG_CHANNEL_MASK 0x1f
- 
- /**
-@@ -300,6 +300,8 @@ void __init omap_vc_init_channel(struct voltagedomain *voltdm)
- 	vc->cfg_channel = 0;
- 	if (vc->flags & OMAP_VC_CHANNEL_CFG_MUTANT)
- 		vc_cfg_bits = &vc_mutant_channel_cfg;
-+	else
-+		vc_cfg_bits = &vc_default_channel_cfg;
- 
- 	/* get PMIC/board specific settings */
- 	vc->i2c_slave_addr = voltdm->pmic->i2c_slave_addr;
--- 
-1.7.1
+Original series:
+http://marc.info/?l=linux-omap&m=130671118605896&w=2
+http://marc.info/?l=linux-omap&m=130682723914928&w=2
 
+Nishanth Menon (10):
+  OMAP3+: VC: fix mutant channel handling
+  OMAP4: PM: VC: allow channels use of default channel i2c_slaveaddr
+  OMAP4: PM: VC: allow channels to use cmdra reg
+  OMAP4: PM: VC: allow channels use of default channel volt_reg_addr
+  OMAP4: PM: VC: allow channels use of default channel cmd_reg_addr
+  OMAP3+: PM: VC: support configuring PMIC over I2C_SR
+  OMAP3+: PM: VP: use uV for max and min voltage limits
+  OMAP3+: PM: introduce a central pmic control
+  OMAP2+: PM: secure OPP access using rcu locks
+  OMAP2+: PM: init_voltages: handle non compliant bootloaders
+
+ arch/arm/mach-omap2/Makefile    |    2 +-
+ arch/arm/mach-omap2/omap_pmic.c |   74 +++++++++++++++++++++
+ arch/arm/mach-omap2/omap_twl.c  |  103 ++++++++++++++----------------
+ arch/arm/mach-omap2/pm.c        |   61 ++++++++++++++----
+ arch/arm/mach-omap2/pm.h        |   35 +++++++++--
+ arch/arm/mach-omap2/vc.c        |  134 ++++++++++++++++++++++++++++++++-------
+ arch/arm/mach-omap2/vc.h        |    8 ++-
+ arch/arm/mach-omap2/voltage.h   |   37 +++++++++--
+ arch/arm/mach-omap2/vp.c        |    4 +-
+ 9 files changed, 351 insertions(+), 107 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/omap_pmic.c
+
+ Regards,
+ Nishanth Menon
