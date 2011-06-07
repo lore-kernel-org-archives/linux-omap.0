@@ -1,49 +1,52 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: problem with "undefined instruction"
-Date: Tue, 7 Jun 2011 14:53:31 +0300
-Message-ID: <20110607115331.GZ8696@atomide.com>
-References: <20110430162357.GA14287@earth.universe>
- <20110606125600.GB20909@earth.universe>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH 1/9] OMAP: DSS2: Change DSI platform device name from
+ "omapdss_dsi1" to "omapdss_dsi"
+Date: Tue, 7 Jun 2011 13:08:05 +0100
+Message-ID: <20110607120804.GE18544@opensource.wolfsonmicro.com>
+References: <20110504094050.GI27860@atomide.com>
+ <1304595408.30935.16.camel@deskari>
+ <20110505130204.GK11744@opensource.wolfsonmicro.com>
+ <1304955274.2215.26.camel@deskari>
+ <20110509191912.GA6546@opensource.wolfsonmicro.com>
+ <1305030652.2045.49.camel@deskari>
+ <20110510134730.GB25877@opensource.wolfsonmicro.com>
+ <1305105825.2097.49.camel@deskari>
+ <20110511121243.GB5487@opensource.wolfsonmicro.com>
+ <1307447098.1858.31.camel@deskari>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:37155 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750964Ab1FGLx3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Jun 2011 07:53:29 -0400
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:35897 "EHLO
+	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752159Ab1FGMIH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Jun 2011 08:08:07 -0400
 Content-Disposition: inline
-In-Reply-To: <20110606125600.GB20909@earth.universe>
+In-Reply-To: <1307447098.1858.31.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sebastian Reichel <sre@debian.org>
-Cc: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Liam Girdwood <lrg@slimlogic.co.uk>, Archit Taneja <archit@ti.com>, linux-omap@vger.kernel.org
 
-* Sebastian Reichel <sre@debian.org> [110606 15:51]:
-> On Sat, Apr 30, 2011 at 06:23:57PM +0200, Sebastian Reichel wrote:
-> > I'm currently trying to get a mainline based kernel running on my pandaboard.
-> > The problem is, that it's crashing very early during the init phase because of
-> > "undefined instruction" exceptions:
-> > 
-> > [    1.867980] udevd (56): undefined instruction: pc=401e6ed4
-> > [    1.874603] Code: 9cd0 fffe e92d 4ff0 (ed2d)
-> > [    1.977752] modprobe (69): undefined instruction: pc=400c6ed4
-> > [    1.977783] Code: 9cd0 fffe e92d 4ff0 (ed2d)
-> > [    1.978240] init (1): undefined instruction: pc=40149ed4
-> > [    1.978240] Code: 9cd0 fffe e92d 4ff0 (ed2d)
-> > [    2.005706] Kernel panic - not syncing: Attempted to kill init!
-> >
-> > Exactly the same userland boots fine with the original 2.6.35 kernel, so it's
-> > probably not the userland's fault.
-> 
-> I found the source of this problem. VFPv3 support is not working
-> correctly when OMAP2 (and thus CPU_V6) is enabled in the kernel
-> config.
-> 
-> I guess this should be mentioned in the kernel config (or fixed if
-> possible).
+On Tue, Jun 07, 2011 at 02:44:58PM +0300, Tomi Valkeinen wrote:
+> On Wed, 2011-05-11 at 14:12 +0200, Mark Brown wrote:
+> > On Wed, May 11, 2011 at 12:23:45PM +0300, Tomi Valkeinen wrote:
 
-This should be easy to fix now. Do you have a minimal test program that
-triggers this?
+> > You need to create a new regulator of some kind and then provide a way
+> > for machines to set the supply_regulator in the init_data.
 
-Tony
+> What should this "new regulator of some kind" be? I was trying out with
+> fixed regulator, but I'm not quite sure if that's good here.
 
+It should be a regulator that does what you want.
+
+> I don't want a full controllable regulator, but just a virtual "route"
+> regulator, which mirrors the state of the parent regulator.
+
+If it's not doing what you want then make a new one.
+
+> Using a new regulator like this also means that there is a dependency
+> between the new regulator and the used source supply. I haven't solved
+> this yet, as the twl driver seems to add the regulators at some later
+> stage.
+
+I'm sorry but I can't parse what you're saying here at all.
