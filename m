@@ -1,48 +1,95 @@
-From: "Roedel, Joerg" <Joerg.Roedel@amd.com>
-Subject: Re: [RFC 0/6] iommu: generic api migration and grouping
-Date: Tue, 7 Jun 2011 09:52:21 +0200
-Message-ID: <20110607075221.GB4407@amd.com>
-References: <1307053663-24572-1-git-send-email-ohad@wizery.com>
- <20110606100950.GC30762@amd.com>
- <BANLkTi=i2s-Ujiy4qn_XQv+9dMjUC9R66A@mail.gmail.com>
- <20110606153557.GE1953@amd.com>
- <BANLkTinwwVO4TmsxuTfSBf6jqYrEVV3b_A@mail.gmail.com>
- <20110606192030.GA4356@amd.com>
- <BANLkTinx21-E3DRe9D7LRB8e1aeOwv=-9A@mail.gmail.com>
+From: Alexander Holler <holler@ahsoftware.de>
+Subject: Re: [PATCH] arm: omap3: beagle: Ensure msecure is mux'd to be able
+ to set the RTC
+Date: Tue, 07 Jun 2011 10:01:58 +0200
+Message-ID: <4DEDDAF6.2070505@ahsoftware.de>
+References: <4D9AEB76.2060509@ahsoftware.de> <1302010808-3065-1-git-send-email-holler@ahsoftware.de> <20110531102903.GU11352@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <BANLkTinx21-E3DRe9D7LRB8e1aeOwv=-9A@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "laurent.pinchart@ideasonboard.com" <laurent.pinchart@ideasonboard.com>, "Hiroshi.DOYU@nokia.com" <Hiroshi.DOYU@nokia.com>, "arnd@arndb.de" <arnd@arndb.de>, "davidb@codeaurora.org" <davidb@codeaurora.org>, Omar Ramirez Luna <omar.ramirez@ti.com>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from h1446028.stratoserver.net ([85.214.92.142]:55213 "EHLO
+	mail.ahsoftware.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751261Ab1FGIKw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Jun 2011 04:10:52 -0400
+Received: from eiche.ahsoftware (p57B2165D.dip0.t-ipconnect.de [87.178.22.93])
+	(using TLSv1 with cipher ADH-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mail.ahsoftware.de (Postfix) with ESMTPSA id 60BC74344AD
+	for <linux-omap@vger.kernel.org>; Tue,  7 Jun 2011 10:02:21 +0200 (CEST)
+In-Reply-To: <20110531102903.GU11352@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Mon, Jun 06, 2011 at 04:09:33PM -0400, Ohad Ben-Cohen wrote:
-> On Mon, Jun 6, 2011 at 10:20 PM, Roedel, Joerg <Joerg.Roedel@amd.com> wrote:
-> > Well, it certainly makes sense to have a single implementation for this.
-> > But I want to hide this complexity to the user of the IOMMU-API. The
-> > best choice is to put this into the layer between the IOMMU-API and the
-> > backend implementation.
-> 
-> I agree.
-> 
-> The IOMMU API should take physically contiguous regions from the user,
-> split them up according to page-sizes (/alignment requirements)
-> supported by the hardware, and then tell the underlying implementation
-> what to map where.
+Am 31.05.2011 12:29, schrieb Tony Lindgren:
+> * Alexander Holler<holler@ahsoftware.de>  [110405 06:38]:
+>> Without msecure beeing high it isn't possible to set (or start)
+>> the RTC.
+>>
+>> Tested with a BeagleBoard C4.
+>
+> Adding this into fixes.
+>
+> Tony
+>
+>> Signed-off-by: Alexander Holler<holler@ahsoftware.de>
+>> ---
+>>   arch/arm/mach-omap2/board-omap3beagle.c |    3 +++
+>>   1 files changed, 3 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+>> index 46d814a..ebe3a7e 100644
+>> --- a/arch/arm/mach-omap2/board-omap3beagle.c
+>> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
+>> @@ -628,6 +628,9 @@ static void __init omap3_beagle_init(void)
+>>   	usb_ehci_init(&ehci_pdata);
+>>   	omap3beagle_flash_init();
+>>
+>> +	/* Ensure msecure is mux'd to be able to set the RTC. */
+>> +	omap_mux_init_signal("sys_drm_msecure", OMAP_PIN_OFF_OUTPUT_HIGH);
+>> +
+>>   	/* Ensure SDRC pins are mux'd for self-refresh */
+>>   	omap_mux_init_signal("sdrc_cke0", OMAP_PIN_OUTPUT);
+>>   	omap_mux_init_signal("sdrc_cke1", OMAP_PIN_OUTPUT);
+>> --
+>> 1.7.3.4
+>>
 
-Yup. Btw, is there any IOMMU hardware which supports non-natural
-alignment? In this case we need to expose these requirements somehow.
+I've later switched to the following patch which muxes msecure as GPIO 
+(the drm-mode isn't explained in the TRM) and also exports the GPIO, so 
+root could easily switch it to prevent modifications on the RTC.
+
+(Warning, either my clipboard or the version of Thunderbird I'm 
+currently using replaces the tabs with spaces in the pasted patch and 
+I'm currently too lazy to search a workaround).
+
+---
+  arch/arm/mach-omap2/board-omap3beagle.c |    6 ++++++
+  1 files changed, 6 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c 
+b/arch/arm/mach-omap2/board-omap3beagle.c
+index 33007fd..24b4417 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -673,6 +673,12 @@ static void __init omap3_beagle_init(void)
+         usbhs_init(&usbhs_bdata);
+         omap3beagle_flash_init();
+
++       /* Ensure msecure is high to be able to set the RTC. */
++       omap_mux_init_signal("gpio_22", OMAP_PIN_OFF_OUTPUT_HIGH);
++       gpio_request(22, "msecure");
++       gpio_direction_output(22, true);
++       gpio_export(22, false);
++
+         /* Ensure SDRC pins are mux'd for self-refresh */
+         omap_mux_init_signal("sdrc_cke0", OMAP_PIN_OUTPUT);
+         omap_mux_init_signal("sdrc_cke1", OMAP_PIN_OUTPUT);
+-- 
+1.7.3.4
 
 Regards,
 
-	Joerg
-
--- 
-AMD Operating System Research Center
-
-Advanced Micro Devices GmbH Einsteinring 24 85609 Dornach
-General Managers: Alberto Bozzo, Andrew Bowd
-Registration: Dornach, Landkr. Muenchen; Registerger. Muenchen, HRB Nr. 43632
+Alexander Holler
