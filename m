@@ -1,65 +1,139 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 19/27] OMAP: DSS2: Use PM runtime & HWMOD support
-Date: Tue, 07 Jun 2011 12:08:36 +0300
-Message-ID: <1307437716.1858.19.camel@deskari>
-References: <1307095237-14805-1-git-send-email-tomi.valkeinen@ti.com>
-	 <1307095237-14805-20-git-send-email-tomi.valkeinen@ti.com>
-	 <871uzahnib.fsf@ti.com> <1307122985.2016.72.camel@deskari>
-	 <87hb86a5mm.fsf@ti.com> <1307174504.1777.24.camel@lappyti>
-	 <4DECCE90.6070201@ti.com> <1307365290.1910.39.camel@deskari>
-	 <4DECD2D7.6030207@ti.com> <1307366474.1910.44.camel@deskari>
-	 <4DECDA3A.7080808@ti.com> <1307368525.1910.50.camel@deskari>
-	 <4DECF215.5020505@ti.com>  <1307429547.1858.10.camel@deskari>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [RFC 1/6] omap: iommu: generic iommu api migration
+Date: Tue, 7 Jun 2011 11:22:47 +0200
+Message-ID: <201106071122.47804.laurent.pinchart@ideasonboard.com>
+References: <1307053663-24572-1-git-send-email-ohad@wizery.com>
+	<1307053663-24572-2-git-send-email-ohad@wizery.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:56582 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751834Ab1FGJIm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Jun 2011 05:08:42 -0400
-In-Reply-To: <1307429547.1858.10.camel@deskari>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1307053663-24572-2-git-send-email-ohad@wizery.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: arnd@arndb.de, Joerg.Roedel@amd.com, Hiroshi.DOYU@nokia.com, linux-kernel@vger.kernel.org, davidb@codeaurora.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "Hilman, Kevin" <khilman@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>
 
-On Tue, 2011-06-07 at 09:52 +0300, Tomi Valkeinen wrote:
-> On Mon, 2011-06-06 at 17:28 +0200, Cousson, Benoit wrote:
+Hi Ohad,
+
+Thanks for the patch.
+
+On Friday 03 June 2011 00:27:38 Ohad Ben-Cohen wrote:
+> Migrate OMAP's iommu to the generic iommu api, so users can stay
+> generic, and non-omap-specific code can be removed and eventually
+> consolidated into a generic framework.
 > 
-> > Before doing that, could you maybe just try something to make OMAP4 
-> > looks a little bit more like OMAP3?
-> > 
-> > dss_fck -> ick
-> > dss_dss_fck -> main_clk
-> > 
-> > That should ensure that both modulemode and the PRCM fclk will be 
-> > managed by pm_runtime.
+> Tested on both OMAP3 and OMAP4.
 > 
-> I made the changes as you suggested, and while I haven't made the
-> changes to omapdss yet to see if I can remove the dispc_runtime_get/put
-> style function, I can boot up and start the dss.
-> 
-> However, after booting up but before enabling the dss driver, I can see
-> that the clock counts are:
-> 
-> dss_tv_clk 0
-> dss_sys_clk 0
-> dss_fck 7
-> dss_dss_clk 0
-> dss_48mhz_clk 0
-> 
-> So the modulemode is set for all dss hwmods? Isn't this exactly how it's
-> _not_ meant to be, as modulemode should be set only after enabling the
-> fck?
+> Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
 
-This also seems to keep the DSS from going to RET or OFF, at least in
-the TI internal PM testing tree.
+[snip]
 
-So is the PM side buggy there, and it shouldn't care about the
-modulemode being enabled if other clocks are off, or is it the hwmod
-side that's buggy, and it should disable the modulemode also?
+> diff --git a/arch/arm/plat-omap/iommu.c b/arch/arm/plat-omap/iommu.c
+> index 34fc31e..f06e99c 100644
+> --- a/arch/arm/plat-omap/iommu.c
+> +++ b/arch/arm/plat-omap/iommu.c
 
- Tomi
+[snip]
+
+> +static int omap_iommu_domain_init(struct iommu_domain *domain)
+> +{
+> +	struct omap_iommu_domain *omap_domain;
+> +
+> +	omap_domain = kzalloc(sizeof(*omap_domain), GFP_KERNEL);
+> +	if (!omap_domain) {
+> +		pr_err("kzalloc failed\n");
+> +		goto fail_nomem;
+> +	}
+> +
+> +	omap_domain->pgtable = (u32 *)__get_free_pages(GFP_KERNEL,
+> +					get_order(IOPGD_TABLE_SIZE));
+> +	if (!omap_domain->pgtable) {
+> +		pr_err("__get_free_pages failed\n");
+> +		goto fail_nomem;
+> +	}
+> +
+> +	BUG_ON(!IS_ALIGNED((long)omap_domain->pgtable, IOPGD_TABLE_SIZE));
+
+Either __get_free_pages() guarantees that the allocated memory will be aligned 
+on an IOPGD_TABLE_SIZE boundary, in which case the BUG_ON() is unnecessary, or 
+doesn't offer such guarantee, in which case the BUG_ON() will oops randomly. 
+In both cases BUG_ON() should probably be avoided.
+
+> +	memset(omap_domain->pgtable, 0, IOPGD_TABLE_SIZE);
+> +	clean_dcache_area(omap_domain->pgtable, IOPGD_TABLE_SIZE);
+> +	mutex_init(&omap_domain->lock);
+> +
+> +	domain->priv = omap_domain;
+> +
+> +	return 0;
+> +
+> +fail_nomem:
+> +	kfree(omap_domain);
+> +	return -ENOMEM;
+> +}
+> +
+> +/* assume device was already detached */
+> +static void omap_iommu_domain_destroy(struct iommu_domain *domain)
+> +{
+> +	struct omap_iommu_domain *omap_domain = domain->priv;
+> +
+> +	domain->priv = NULL;
+> +
+> +	kfree(omap_domain);
+
+This leaks omap_domain->pgtable.
+
+The free_pages() call in omap_iommu_remove() should be removed, as 
+omap_iommu_probe() doesn't allocate the pages table anymore. You can also 
+remove the the struct iommu::iopgd field.
+
+> +}
 
 
+> +
+> +static phys_addr_t omap_iommu_iova_to_phys(struct iommu_domain *domain,
+> +					  unsigned long da)
+> +{
+> +	struct omap_iommu_domain *omap_domain = domain->priv;
+> +	struct iommu *oiommu = omap_domain->iommu_dev;
+> +	struct device *dev = oiommu->dev;
+> +	u32 *pgd, *pte;
+> +	phys_addr_t ret = 0;
+> +
+> +	iopgtable_lookup_entry(oiommu, da, &pgd, &pte);
+> +
+> +	if (pte) {
+> +		if (iopte_is_small(*pte))
+> +			ret = omap_iommu_translate(*pte, da, IOPTE_MASK);
+> +		else if (iopte_is_large(*pte))
+> +			ret = omap_iommu_translate(*pte, da, IOLARGE_MASK);
+> +		else
+> +			dev_err(dev, "bogus pte 0x%x", *pte);
+> +	} else {
+> +		if (iopgd_is_section(*pgd))
+> +			ret = omap_iommu_translate(*pgd, da, IOSECTION_MASK);
+> +		else if (iopgd_is_super(*pgd))
+> +			ret = omap_iommu_translate(*pgd, da, IOSUPER_MASK);
+> +		else
+> +			dev_err(dev, "bogus pgd 0x%x", *pgd);
+> +	}
+> +
+> +	return ret;
+
+You return 0 in the bogus pte/pgd cases. Is that intentional ?
+
+> +}
+
+-- 
+Regards,
+
+Laurent Pinchart
