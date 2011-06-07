@@ -1,41 +1,56 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 10/12] MFD: twl6040: Change platform data for soc codec driver
-Date: Tue, 7 Jun 2011 17:18:15 +0300
-Message-ID: <1307456297-15010-11-git-send-email-peter.ujfalusi@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2 03/12] OMAP3: Move common pmic
+ configuration to pmic-common
+Date: Tue, 7 Jun 2011 17:45:35 +0300
+Message-ID: <20110607144534.GA27477@atomide.com>
 References: <1307456297-15010-1-git-send-email-peter.ujfalusi@ti.com>
+	<1307456297-15010-4-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <1307456297-15010-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Samuel Ortiz <sameo@linux.intel.com>, Dmitry Torokhov <dmitry.torokhov@>
-Cc: linux-input@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org, Peter Ujfalusi <peter.ujfalusi@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Disposition: inline
+In-Reply-To: <1307456297-15010-4-git-send-email-peter.ujfalusi@ti.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: alsa-devel@alsa-project.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Samuel Ortiz <sameo@linux.intel.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Pass twl4030_codec_data instead of the twl4030_audio_data
-for the ASoC codec driver.
+* Peter Ujfalusi <peter.ujfalusi@ti.com> [110607 17:14]:
+> Reduce the amount of duplicated code by moving the common
+> configuration for twl4030/5030/tpsxx to the pmic-common file.
+> Use the omap3_pmic_config function from board files to
+> properly configure the PMIC with the common fields.
+...
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
- drivers/mfd/twl6040-core.c |    5 ++---
- 1 files changed, 2 insertions(+), 3 deletions(-)
+> --- a/arch/arm/mach-omap2/pmic-common.h
+> +++ b/arch/arm/mach-omap2/pmic-common.h
+> @@ -2,6 +2,9 @@
+>  #define __OMAP_PMIC_COMMON__
+>  
+>  #define TWL_COMMON_PDATA_USB		(1 << 0)
+> +#define TWL_COMMON_PDATA_BCI		(1 << 1)
+> +#define TWL_COMMON_PDATA_MADC		(1 << 2)
+> +#define TWL_COMMON_PDATA_CODEC		(1 << 3)
 
-diff --git a/drivers/mfd/twl6040-core.c b/drivers/mfd/twl6040-core.c
-index 5abdcb2..e88fe5c 100644
---- a/drivers/mfd/twl6040-core.c
-+++ b/drivers/mfd/twl6040-core.c
-@@ -494,9 +494,8 @@ static int __devinit twl6040_probe(struct platform_device *pdev)
- 	if (pdata->codec) {
- 		cell = &twl6040->cells[children];
- 		cell->name = "twl6040-codec";
--		/* The codec expects the twl4030_audio_data as platform data */
--		cell->platform_data = pdata;
--		cell->pdata_size = sizeof(*pdata);
-+		cell->platform_data = pdata->codec;
-+		cell->pdata_size = sizeof(*pdata->codec);
- 		children++;
- 	}
- 
--- 
-1.7.5.3
+This is looking good, thanks for cleaning up the twl bloat in
+board-*.c files :)
 
+Maybe already define TWL_COMMON_PDATA_AUDIO here so you can
+drop most of patch 7/12?
+
+If you need both then you can temporarily have:
+
+#define TWL_COMMON_PDATA_CODEC	TWL_COMMON_PDATA_AUDIO
+
+Regards,
+
+Tony
