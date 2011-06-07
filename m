@@ -1,103 +1,72 @@
-From: Alexander Holler <holler@ahsoftware.de>
-Subject: Re: [PATCH] arm: omap3: beagle: Ensure msecure is mux'd to be able
- to set the RTC
-Date: Tue, 07 Jun 2011 13:15:36 +0200
-Message-ID: <4DEE0858.2020308@ahsoftware.de>
-References: <4D9AEB76.2060509@ahsoftware.de> <1302010808-3065-1-git-send-email-holler@ahsoftware.de> <20110531102903.GU11352@atomide.com> <4DEDDAF6.2070505@ahsoftware.de> <4DEDF451.1080604@compulab.co.il>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [RFC 1/6] omap: iommu: generic iommu api migration
+Date: Tue, 7 Jun 2011 14:19:05 +0300
+Message-ID: <BANLkTineGVvmph=Om2FGR_+mkiMW6k7UAw@mail.gmail.com>
+References: <1307053663-24572-1-git-send-email-ohad@wizery.com>
+ <1307053663-24572-2-git-send-email-ohad@wizery.com> <201106071122.47804.laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from h1446028.stratoserver.net ([85.214.92.142]:42077 "EHLO
-	mail.ahsoftware.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752661Ab1FGLP6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Jun 2011 07:15:58 -0400
-Received: from eiche.ahsoftware (p57B2165D.dip0.t-ipconnect.de [87.178.22.93])
-	(using TLSv1 with cipher ADH-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mail.ahsoftware.de (Postfix) with ESMTPSA id 31B974345A9
-	for <linux-omap@vger.kernel.org>; Tue,  7 Jun 2011 13:15:56 +0200 (CEST)
-In-Reply-To: <4DEDF451.1080604@compulab.co.il>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:41957 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752048Ab1FGLT0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Jun 2011 07:19:26 -0400
+In-Reply-To: <201106071122.47804.laurent.pinchart@ideasonboard.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Igor Grinberg <grinberg@compulab.co.il>
-Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Hiroshi.DOYU@nokia.com, arnd@arndb.de, davidb@codeaurora.org, Joerg.Roedel@amd.com
 
-Am 07.06.2011 11:50, schrieb Igor Grinberg:
-> On 06/07/11 11:01, Alexander Holler wrote:
+Hi Laurent,
+
+On Tue, Jun 7, 2011 at 12:22 PM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+>> + =A0 =A0 BUG_ON(!IS_ALIGNED((long)omap_domain->pgtable, IOPGD_TABLE=
+_SIZE));
 >
->> Am 31.05.2011 12:29, schrieb Tony Lindgren:
->>> * Alexander Holler<holler@ahsoftware.de>   [110405 06:38]:
->>>> Without msecure beeing high it isn't possible to set (or start)
->>>> the RTC.
->>>>
->>>> Tested with a BeagleBoard C4.
->>>
->>> Adding this into fixes.
->>>
->>> Tony
->>>
->>>> Signed-off-by: Alexander Holler<holler@ahsoftware.de>
->>>> ---
->>>>    arch/arm/mach-omap2/board-omap3beagle.c |    3 +++
->>>>    1 files changed, 3 insertions(+), 0 deletions(-)
->>>>
->>>> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
->>>> index 46d814a..ebe3a7e 100644
->>>> --- a/arch/arm/mach-omap2/board-omap3beagle.c
->>>> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
->>>> @@ -628,6 +628,9 @@ static void __init omap3_beagle_init(void)
->>>>        usb_ehci_init(&ehci_pdata);
->>>>        omap3beagle_flash_init();
->>>>
->>>> +    /* Ensure msecure is mux'd to be able to set the RTC. */
->>>> +    omap_mux_init_signal("sys_drm_msecure", OMAP_PIN_OFF_OUTPUT_HIGH);
->>>> +
->>>>        /* Ensure SDRC pins are mux'd for self-refresh */
->>>>        omap_mux_init_signal("sdrc_cke0", OMAP_PIN_OUTPUT);
->>>>        omap_mux_init_signal("sdrc_cke1", OMAP_PIN_OUTPUT);
->>>> --
->>>> 1.7.3.4
->>>>
->>
->> I've later switched to the following patch which muxes msecure as GPIO (the drm-mode isn't explained in the TRM) and also exports the GPIO, so root could easily switch it to prevent modifications on the RTC.
->>
->> (Warning, either my clipboard or the version of Thunderbird I'm currently using replaces the tabs with spaces in the pasted patch and I'm currently too lazy to search a workaround).
->>
->> ---
->>   arch/arm/mach-omap2/board-omap3beagle.c |    6 ++++++
->>   1 files changed, 6 insertions(+), 0 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
->> index 33007fd..24b4417 100644
->> --- a/arch/arm/mach-omap2/board-omap3beagle.c
->> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
->> @@ -673,6 +673,12 @@ static void __init omap3_beagle_init(void)
->>          usbhs_init(&usbhs_bdata);
->>          omap3beagle_flash_init();
->>
->> +       /* Ensure msecure is high to be able to set the RTC. */
->> +       omap_mux_init_signal("gpio_22", OMAP_PIN_OFF_OUTPUT_HIGH);
->> +       gpio_request(22, "msecure");
->> +       gpio_direction_output(22, true);
+> Either __get_free_pages() guarantees that the allocated memory will b=
+e aligned
+> on an IOPGD_TABLE_SIZE boundary, in which case the BUG_ON() is unnece=
+ssary, or
+> doesn't offer such guarantee, in which case the BUG_ON() will oops ra=
+ndomly.
+
+Curious, does it oops randomly today ?
+(i just copied this from omap_iommu_probe, where it always existed).
+
+It is a bit ugly though, and thinking on it again, 16KB is not that
+big. We can just use kmalloc here, which does ensure the alignment
+(or, better yet, kzalloc, and then ditch the memset).
+
+> In both cases BUG_ON() should probably be avoided.
+
+I disagree; we must check this so user data won't be harmed (hardware
+requirement), and if a memory allocation API fails to meet its
+requirements - that's really bad and user data is again at stake (much
+more will break, not only the iommu driver).
+
+> This leaks omap_domain->pgtable.
 >
-> Can this be gpio_request_one() instead, please?
-> Also, it will be nice to make a define for the magic 22.
+> The free_pages() call in omap_iommu_remove() should be removed, as
+> omap_iommu_probe() doesn't allocate the pages table anymore.
 
-You need the "gpio_22" in the mux_init, so using a define would imho 
-introduce a potential source for an error, at least when the define 
-would not be anywhere near the "gpio_22" and someone would forget change 
-the string too, when he changes the define. So I don't think a define 
-adds much value there.
+thanks !
 
->
->> +       gpio_export(22, false);
->> +
->>          /* Ensure SDRC pins are mux'd for self-refresh */
->>          omap_mux_init_signal("sdrc_cke0", OMAP_PIN_OUTPUT);
->>          omap_mux_init_signal("sdrc_cke1", OMAP_PIN_OUTPUT);
->
+> You can also remove the the struct iommu::iopgd field.
 
-Regards,
+No, I can't; it's used when the device is attached to an address space =
+domain.
 
-Alexander
+> You return 0 in the bogus pte/pgd cases. Is that intentional ?
+
+Yes, that's probably the most (if any) reasonable value to return here
+(all other iommu implementations are doing so too).
+
+Thanks,
+Ohad.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
