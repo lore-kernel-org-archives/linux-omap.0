@@ -1,31 +1,68 @@
-From: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 0/3] I2C: OMAP: PM related cleanup
-Date: Tue,  7 Jun 2011 11:22:28 -0700
-Message-ID: <1307470951-22801-1-git-send-email-khilman@ti.com>
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+From: Kevin Hilman <khilman@ti.com>
+Subject: [PATCH 3/3] I2C: OMAP: remove racy suspend/resume callbacks
+Date: Tue,  7 Jun 2011 11:22:31 -0700
+Message-ID: <1307470951-22801-4-git-send-email-khilman@ti.com>
+References: <1307470951-22801-1-git-send-email-khilman@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:47647 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757821Ab1FGSWX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Jun 2011 14:22:23 -0400
+In-Reply-To: <1307470951-22801-1-git-send-email-khilman@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Ben Dooks <ben-linux@fluff.org>
+Cc: linux-i2c@vger.kernel.org, linux-omap@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, linux-arm-kernel@lists.infradead.org
 
-Here's a small series of PM-related cleanups for the OMAP I2C driver.
+Current system PM methods for this driver race with the runtime PM
+methods when an i2c xfer is in progress when the system suspend path
+is excuted.
 
-Series applies on top of the other cleanup series from Andy Green:
+These callbacks are only needed when runtime PM is disabled from
+userspace, so for now we accept that this device will not hit
+retention, even in suspend, if runtime PM disabled.
 
-  [PATCH v4 00/18] I2C: OMAP: I2C fixes, removal of cpu_is... from driver
+The correct fix (forthcoming) for v3.0+ is to use device power domain
+callbacks at the system PM level to handle this, but for now, this
+avoids the race.
 
-and is available from git here:
+Signed-off-by: Kevin Hilman <khilman@ti.com>
+---
+ drivers/i2c/busses/i2c-omap.c |   20 --------------------
+ 1 files changed, 0 insertions(+), 20 deletions(-)
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git wip/i2c
-
-Kevin Hilman (3):
-  I2C: OMAP: remove unneccesary use of pdev
-  I2C: OMAP: remove dev->idle, use usage counting provided by runtime
-    PM
-  I2C: OMAP: remove racy suspend/resume callbacks
-
- drivers/i2c/busses/i2c-omap.c |   70 +++++++++++++++-------------------------
- 1 files changed, 26 insertions(+), 44 deletions(-)
-
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index 4e3256f..77ed95f 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -1150,27 +1150,7 @@ static int omap_i2c_runtime_resume(struct device *dev)
+ 	return 0;
+ }
+ 
+-static int omap_i2c_suspend(struct device *dev)
+-{
+-	if (!pm_runtime_suspended(dev))
+-		if (dev->bus && dev->bus->pm && dev->bus->pm->runtime_suspend)
+-			dev->bus->pm->runtime_suspend(dev);
+-
+-	return 0;
+-}
+-
+-static int omap_i2c_resume(struct device *dev)
+-{
+-	if (!pm_runtime_suspended(dev))
+-		if (dev->bus && dev->bus->pm && dev->bus->pm->runtime_resume)
+-			dev->bus->pm->runtime_resume(dev);
+-
+-	return 0;
+-}
+-
+ static struct dev_pm_ops omap_i2c_pm_ops = {
+-	.suspend = omap_i2c_suspend,
+-	.resume = omap_i2c_resume,
+ 	.runtime_suspend = omap_i2c_runtime_suspend,
+ 	.runtime_resume = omap_i2c_runtime_resume,
+ };
 -- 
 1.7.4
+
