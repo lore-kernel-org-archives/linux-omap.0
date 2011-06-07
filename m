@@ -1,45 +1,48 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 19/27] OMAP: DSS2: Use PM runtime & HWMOD support
-Date: Tue, 7 Jun 2011 09:27:13 +0200
-Message-ID: <4DEDD2D1.4070900@ti.com>
-References: <1307095237-14805-1-git-send-email-tomi.valkeinen@ti.com>	 <1307095237-14805-20-git-send-email-tomi.valkeinen@ti.com>	 <871uzahnib.fsf@ti.com> <1307122985.2016.72.camel@deskari>	 <87hb86a5mm.fsf@ti.com> <1307174504.1777.24.camel@lappyti>	 <4DECCE90.6070201@ti.com> <1307429265.1858.6.camel@deskari>	 <4DEDCF73.9030607@ti.com> <1307431291.1858.15.camel@deskari>
+From: "Roedel, Joerg" <Joerg.Roedel@amd.com>
+Subject: Re: [RFC 0/6] iommu: generic api migration and grouping
+Date: Tue, 7 Jun 2011 09:52:21 +0200
+Message-ID: <20110607075221.GB4407@amd.com>
+References: <1307053663-24572-1-git-send-email-ohad@wizery.com>
+ <20110606100950.GC30762@amd.com>
+ <BANLkTi=i2s-Ujiy4qn_XQv+9dMjUC9R66A@mail.gmail.com>
+ <20110606153557.GE1953@amd.com>
+ <BANLkTinwwVO4TmsxuTfSBf6jqYrEVV3b_A@mail.gmail.com>
+ <20110606192030.GA4356@amd.com>
+ <BANLkTinx21-E3DRe9D7LRB8e1aeOwv=-9A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:48038 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750928Ab1FGH1R (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 7 Jun 2011 03:27:17 -0400
-In-Reply-To: <1307431291.1858.15.camel@deskari>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <BANLkTinx21-E3DRe9D7LRB8e1aeOwv=-9A@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "laurent.pinchart@ideasonboard.com" <laurent.pinchart@ideasonboard.com>, "Hiroshi.DOYU@nokia.com" <Hiroshi.DOYU@nokia.com>, "arnd@arndb.de" <arnd@arndb.de>, "davidb@codeaurora.org" <davidb@codeaurora.org>, Omar Ramirez Luna <omar.ramirez@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
-Cc: "Hilman, Kevin" <khilman@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>
 
-On 6/7/2011 9:21 AM, Valkeinen, Tomi wrote:
-> On Tue, 2011-06-07 at 09:12 +0200, Cousson, Benoit wrote:
->> On 6/7/2011 8:47 AM, Valkeinen, Tomi wrote:
->
->>> I'd rather hope the optional clock could be enabled whenever the driver
->>> needs it, between enabling and disabling the hwmod.
->>
->> Yeah, this is the case most of the time, except for you.
->
-> Are you talking only about the DSS_FCLK opt-clock from PRCM, or all DSS
-> opt clocks (sys clk, hdmi clk, tv clk, dac clock)?
->
-> I hope the rest of the opt clocks can be enabled later. Although I guess
-> all/many of them will be needed during reset, but that should be already
-> handled by the hwmod fmwk.
+On Mon, Jun 06, 2011 at 04:09:33PM -0400, Ohad Ben-Cohen wrote:
+> On Mon, Jun 6, 2011 at 10:20 PM, Roedel, Joerg <Joerg.Roedel@amd.com> wrote:
+> > Well, it certainly makes sense to have a single implementation for this.
+> > But I want to hide this complexity to the user of the IOMMU-API. The
+> > best choice is to put this into the layer between the IOMMU-API and the
+> > backend implementation.
+> 
+> I agree.
+> 
+> The IOMMU API should take physically contiguous regions from the user,
+> split them up according to page-sizes (/alignment requirements)
+> supported by the hardware, and then tell the underlying implementation
+> what to map where.
 
-Yes, sorry, for the confusion, but the point is that they all look the 
-same to me :-)
+Yup. Btw, is there any IOMMU hardware which supports non-natural
+alignment? In this case we need to expose these requirements somehow.
 
-The PRCM does not make any difference for any of these opt_clock, they 
-are all under SW control.
+Regards,
 
-Except that one of them must be enabled because internally it is used as 
-a functional clock.
+	Joerg
 
-Benoit
+-- 
+AMD Operating System Research Center
+
+Advanced Micro Devices GmbH Einsteinring 24 85609 Dornach
+General Managers: Alberto Bozzo, Andrew Bowd
+Registration: Dornach, Landkr. Muenchen; Registerger. Muenchen, HRB Nr. 43632
