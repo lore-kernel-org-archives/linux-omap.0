@@ -1,181 +1,114 @@
 From: "Govindraj.R" <govindraj.raja@ti.com>
-Subject: [PATCH v3 10/12] OMAP: Serial: Use resume call from prcm to enable uart
-Date: Wed, 8 Jun 2011 16:53:12 +0530
-Message-ID: <1307532194-13039-11-git-send-email-govindraj.raja@ti.com>
+Subject: [PATCH v3 11/12] OMAP2: Serial: Add has_async_wake flag.
+Date: Wed, 8 Jun 2011 16:53:13 +0530
+Message-ID: <1307532194-13039-12-git-send-email-govindraj.raja@ti.com>
 References: <1307532194-13039-1-git-send-email-govindraj.raja@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-serial-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:41861 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753398Ab1FHLXt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 8 Jun 2011 07:23:49 -0400
 In-Reply-To: <1307532194-13039-1-git-send-email-govindraj.raja@ti.com>
-Sender: linux-serial-owner@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>
-List-Id: linux-omap@vger.kernel.org
 
-Use resume idle call from prcm_irq to enable uart_port from low power states.
-Add api to check pad wakeup status which will we used from uart_resume func.
-to enable back uart port if a wakeup event occurred.
-
-UART_Resume func. can be removed once we have irq_chaining functionality
-available.
+Prior to this patch the uart_clock was cut using prepare/resume calls since
+these funcs are no more available with runtime changes use has_async_wake
+flag to keep clock active during bootup otherwise uart port will disabled
+during boot-up and cannot be enabled back. Also based on this flag we can
+disable uart port during suspend and enable back during resume for omap_socs
+that have not set has_async_wake.
 
 Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
 ---
- arch/arm/mach-omap2/pm24xx.c                  |    2 ++
- arch/arm/mach-omap2/pm34xx.c                  |    2 ++
- arch/arm/mach-omap2/serial.c                  |   23 +++++++++++++++++++++++
- arch/arm/plat-omap/include/plat/omap-serial.h |    2 ++
- arch/arm/plat-omap/include/plat/serial.h      |    1 +
- drivers/tty/serial/omap-serial.c              |   23 +++++++++++++++++++++++
- 6 files changed, 53 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/serial.c                  |    1 +
+ arch/arm/plat-omap/include/plat/omap-serial.h |    3 +++
+ drivers/tty/serial/omap-serial.c              |   14 ++++++++++++++
+ 3 files changed, 18 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
-index c405bda..ba58a1d 100644
---- a/arch/arm/mach-omap2/pm24xx.c
-+++ b/arch/arm/mach-omap2/pm24xx.c
-@@ -137,6 +137,8 @@ static void omap2_enter_full_retention(void)
- 			   OMAP_SDRC_REGADDR(SDRC_DLLA_CTRL),
- 			   OMAP_SDRC_REGADDR(SDRC_POWER));
- 
-+	omap_uart_resume_idle();
-+
- no_sleep:
- 	if (omap2_pm_debug) {
- 		unsigned long long tmp;
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index ac7b7f8..3997e92 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -216,6 +216,8 @@ static int prcm_clear_mod_irqs(s16 module, u8 regs)
- 
- 	wkst = omap2_prm_read_mod_reg(module, wkst_off);
- 	wkst &= omap2_prm_read_mod_reg(module, grpsel_off);
-+
-+	c += omap_uart_resume_idle();
- 	if (wkst) {
- 		iclk = omap2_cm_read_mod_reg(module, iclk_off);
- 		fclk = omap2_cm_read_mod_reg(module, fclk_off);
 diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-index 6ac078f..4bc5914 100644
+index 4bc5914..0a95c95 100644
 --- a/arch/arm/mach-omap2/serial.c
 +++ b/arch/arm/mach-omap2/serial.c
-@@ -199,6 +199,28 @@ static void omap_serial_fill_default_pads(struct omap_board_data *bdata)
- 	}
- }
- 
-+/* TBD: Will be removed once we have irq-chaing mechanism */
-+static bool omap_uart_chk_wakeup(struct platform_device *pdev)
-+{
-+	struct omap_uart_port_info *up = pdev->dev.platform_data;
-+	struct omap_device *od;
-+	u32 wkst = 0;
-+	bool ret = false;
-+
-+	od = to_omap_device(pdev);
-+	if (omap_hmwod_pad_get_wakeup_status(od->hwmods[0]))
-+		ret = true;
-+
-+	/* Check for normal UART wakeup (and clear it) */
-+	wkst = __raw_readl(up->wk_st) & up->wk_mask;
-+	if (wkst) {
-+		__raw_writel(wkst, up->wk_st);
-+		ret = true;
-+	}
-+
-+	return ret;
-+}
-+
- static void omap_uart_wakeup_enable(struct platform_device *pdev, bool enable)
- {
- 	struct omap_uart_port_info *up = pdev->dev.platform_data;
-@@ -369,6 +391,7 @@ void __init omap_serial_init_port(struct omap_board_data *bdata,
- 	pdata->uartclk = OMAP24XX_BASE_BAUD * 16;
- 	pdata->flags = UPF_BOOT_AUTOCONF;
- 	pdata->enable_wakeup = omap_uart_wakeup_enable;
-+	pdata->chk_wakeup = omap_uart_chk_wakeup;
- 	pdata->dma_enabled = info->dma_enabled;
- 	pdata->dma_rx_buf_size = info->dma_rx_buf_size;
- 	pdata->dma_rx_poll_rate = info->dma_rx_poll_rate;
+@@ -266,6 +266,7 @@ static void omap_uart_idle_init(struct omap_uart_port_info *uart,
+ 			break;
+ 		}
+ 		uart->wk_mask = wk_mask;
++		uart->has_async_wake = true;
+ 	} else if (cpu_is_omap24xx()) {
+ 		u32 wk_mask = 0;
+ 		u32 wk_en = PM_WKEN1, wk_st = PM_WKST1;
 diff --git a/arch/arm/plat-omap/include/plat/omap-serial.h b/arch/arm/plat-omap/include/plat/omap-serial.h
-index c5f4dd9..b5117bd 100644
+index b5117bd..69e6d4b 100644
 --- a/arch/arm/plat-omap/include/plat/omap-serial.h
 +++ b/arch/arm/plat-omap/include/plat/omap-serial.h
-@@ -75,6 +75,7 @@ struct omap_uart_port_info {
- 	unsigned int		auto_sus_timeout; /* Auto_suspend timeout */
- 
- 	void (*enable_wakeup)(struct platform_device *, bool);
-+	bool (*chk_wakeup)(struct platform_device *);
+@@ -79,6 +79,7 @@ struct omap_uart_port_info {
  	void __iomem *wk_st;
  	void __iomem *wk_en;
  	u32 wk_mask;
-@@ -132,6 +133,7 @@ struct uart_omap_port {
- 	unsigned long		port_activity;
++	bool			has_async_wake;
+ };
+ 
+ struct uart_omap_dma {
+@@ -134,6 +135,8 @@ struct uart_omap_port {
  	unsigned int		errata;
  	void (*enable_wakeup)(struct platform_device *, bool);
-+	bool (*chk_wakeup)(struct platform_device *);
+ 	bool (*chk_wakeup)(struct platform_device *);
++
++	bool			has_async_wake;
  };
  
  #endif /* __OMAP_SERIAL_H__ */
-diff --git a/arch/arm/plat-omap/include/plat/serial.h b/arch/arm/plat-omap/include/plat/serial.h
-index ee758d4..44a42aa 100644
---- a/arch/arm/plat-omap/include/plat/serial.h
-+++ b/arch/arm/plat-omap/include/plat/serial.h
-@@ -109,6 +109,7 @@ extern void omap_serial_init(void);
- extern void omap_serial_board_init(struct omap_uart_port_info *platform_data);
- extern void omap_serial_init_port(struct omap_board_data *bdata,
- 		struct omap_uart_port_info *platform_data);
-+extern u32 omap_uart_resume_idle(void);
- #endif
- 
- #endif
 diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-index 307b7c6..c3561dd 100644
+index c3561dd..dbe76f3 100644
 --- a/drivers/tty/serial/omap-serial.c
 +++ b/drivers/tty/serial/omap-serial.c
-@@ -43,6 +43,7 @@
- #include <plat/dmtimer.h>
- #include <plat/omap-serial.h>
- #include <plat/omap_device.h>
-+#include <plat/serial.h>
- 
- static struct uart_omap_port *ui[OMAP_MAX_HSUART_PORTS];
- 
-@@ -108,6 +109,27 @@ static inline void serial_omap_port_enable(struct uart_omap_port *up)
- 	pm_runtime_get_sync(&up->pdev->dev);
- }
- 
-+/* TBD: Should be removed once we irq-chaining mechanism in place */
-+u32 omap_uart_resume_idle()
-+{
-+	int i;
-+	u32 ret = 0;
+@@ -1181,6 +1181,13 @@ static int serial_omap_suspend(struct device *dev)
+ 		uart_suspend_port(&serial_omap_reg, &up->port);
+ 		console_trylock();
+ 		serial_omap_pm(&up->port, 3, 0);
 +
-+	for (i = 0; i < OMAP_MAX_HSUART_PORTS; i++) {
-+		struct uart_omap_port *up = ui[i];
-+
-+		if (!up)
-+			continue;
-+
-+		if (up->chk_wakeup(up->pdev)) {
-+			serial_omap_port_enable(up);
++		/* OMAP2 dont have async wakeup from prcm.
++		 * For such socs clocks will be kept active from probe and
++		 * cut only in suspend path.
++		 */
++		if (!up->has_async_wake)
 +			serial_omap_port_disable(up);
-+			ret++;
-+		}
-+	}
-+	return ret;
-+}
+ 	}
+ 	return 0;
+ }
+@@ -1192,6 +1199,9 @@ static int serial_omap_resume(struct device *dev)
+ 	if (up) {
+ 		uart_resume_port(&serial_omap_reg, &up->port);
+ 		console_unlock();
 +
- static void serial_omap_stop_rxdma(struct uart_omap_port *up)
- {
- 	if (up->uart_dma.rx_dma_used) {
-@@ -1392,6 +1414,7 @@ static int serial_omap_probe(struct platform_device *pdev)
- 	up->uart_dma.uart_base = mem->start;
++		if (!up->has_async_wake)
++			serial_omap_port_enable(up);
+ 	}
+ 
+ 	return 0;
+@@ -1415,6 +1425,7 @@ static int serial_omap_probe(struct platform_device *pdev)
  	up->errata = omap_up_info->errata;
  	up->enable_wakeup = omap_up_info->enable_wakeup;
-+	up->chk_wakeup = omap_up_info->chk_wakeup;
+ 	up->chk_wakeup = omap_up_info->chk_wakeup;
++	up->has_async_wake = omap_up_info->has_async_wake;
  
  	if (omap_up_info->dma_enabled) {
  		up->uart_dma.uart_dma_tx = dma_tx->start;
+@@ -1443,6 +1454,9 @@ static int serial_omap_probe(struct platform_device *pdev)
+ 		serial_omap_port_disable(up);
+ 	}
+ 
++	if (!up->has_async_wake)
++		serial_omap_port_enable(up);
++
+ 	ui[pdev->id] = up;
+ 	serial_omap_add_console_port(up);
+ 
 -- 
 1.7.0.4
 
