@@ -1,70 +1,135 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 19/27] OMAP: DSS2: Use PM runtime & HWMOD support
-Date: Wed, 8 Jun 2011 22:39:46 +0200
-Message-ID: <4DEFDE12.9040009@ti.com>
-References: <1307095237-14805-1-git-send-email-tomi.valkeinen@ti.com>	 <1307095237-14805-20-git-send-email-tomi.valkeinen@ti.com>	 <871uzahnib.fsf@ti.com> <1307122985.2016.72.camel@deskari>	 <87hb86a5mm.fsf@ti.com> <1307174504.1777.24.camel@lappyti>	 <4DECCE90.6070201@ti.com> <1307365290.1910.39.camel@deskari>	 <4DECD2D7.6030207@ti.com> <1307366474.1910.44.camel@deskari>	 <4DECDA3A.7080808@ti.com> <1307368525.1910.50.camel@deskari>	 <4DECF215.5020505@ti.com> <1307429547.1858.10.camel@deskari>	 <4DEE0D7E.6090309@ti.com> <1307447504.1858.37.camel@deskari>	 <4DEE5537.7060008@ti.com> <1307519752.1944.21.camel@deskari>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [pm-wip/cpufreq][PATCH 3/3] OMAP2+: cpufreq: do lateinit
+Date: Wed, 08 Jun 2011 14:03:15 -0700
+Message-ID: <87fwnkghnw.fsf@ti.com>
+References: <1307412330-25798-1-git-send-email-nm@ti.com>
+	<1307412330-25798-4-git-send-email-nm@ti.com> <8762ohnwgb.fsf@ti.com>
+	<BANLkTikUiOV6rYFbrULVMWkOS23Msy3hXg@mail.gmail.com>
+	<87ei34i2ck.fsf@ti.com>
+	<BANLkTinsZ2hqBvVnrJBe2EQR+kLD1AuuDQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:45299 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751228Ab1FHUju (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Jun 2011 16:39:50 -0400
-In-Reply-To: <1307519752.1944.21.camel@deskari>
+Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:59872 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754920Ab1FHVDT convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 8 Jun 2011 17:03:19 -0400
+Received: by mail-pz0-f51.google.com with SMTP id 26so438573pzk.10
+        for <linux-omap@vger.kernel.org>; Wed, 08 Jun 2011 14:03:18 -0700 (PDT)
+In-Reply-To: <BANLkTinsZ2hqBvVnrJBe2EQR+kLD1AuuDQ@mail.gmail.com> (Nishanth
+	Menon's message of "Wed, 8 Jun 2011 13:59:48 -0500")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
-Cc: "Hilman, Kevin" <khilman@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>
+To: "Menon, Nishanth" <nm@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>
 
-On 6/8/2011 9:55 AM, Valkeinen, Tomi wrote:
-> On Tue, 2011-06-07 at 18:43 +0200, Cousson, Benoit wrote:
->> On 6/7/2011 1:51 PM, Valkeinen, Tomi wrote:
->>> On Tue, 2011-06-07 at 13:37 +0200, Cousson, Benoit wrote:
->
->>>> The issue is that there is only one modulemode for the whole DSS.
->>>> Potentially only the dss_hwmod should have it. But then you have to
->>>> ensure that this device is enabled before any other DSS devices.
+"Menon, Nishanth" <nm@ti.com> writes:
+
+> On Wed, Jun 8, 2011 at 13:51, Kevin Hilman <khilman@ti.com> wrote:
+> [..]
+>>> the issue is as follows:
+>>> currently we dont do voltage transitions. when we do that
+>>> eventually(and my current code has an forked implementation of dvfs=
+,
+>>> the following steps happen):
+>>> late_initcall(omap2_common_pm_late_init);
+>>> does pmic inits, omap_voltage_late_init, init_voltages and SR dev i=
+nitialization
 >>>
->>> Does that change anything? Isn't the above (modulemode enabled before
->>> opt clock) still true, even if it was enabled only once for the dss_core
->>> hwmod?
+>>> without these, there is no way to transition MPU to proper voltage,
+>>> frequency combination. The requirement will have to be that
+>>> omap2-cpufreq.c allows for cpufreq transitions only after voltage a=
+nd
+>>> clk layers are ready for transitions - if we ever want to do dvfs -
+>>> which we will eventually need to.
 >>
->> It does not really change anything, but it is more accurate.
->> Modulemode need to be enable after the opt clocks that act as a
->> functional clock and before enabling HW_AUTO for the clockdomain.
+>> Yes, I understand.
 >>
->> The important parameter is the clock domain mode change. It is another
->> issue that we have to fix. It might not affect you for the moment.
+>> But $SUBJECT patch is fixing this as an _init_ time ordering problem=
+,
+>> What you're describing is a runtime requirement that doesn't exist u=
+ntil
+>> a DVFS transition is done. =C2=A0IOW, the requirement is that the vo=
+ltage
+>> etc. layers have to be init'd before the first transition.
+>>
+>> So, rather than fix this with initcall ordering (which will have to =
+be
+>> redone as things git moved and converted to modules), just create a =
+type
+>> of late init function in this driver, which gets called on the first
+>> transition.
 >
-> Ok. But the main issue now is the PM. If I change the clocks in hwmod
-> data as you suggested, dss_fck will always stay enabled and prevent RET
-> and OFF. So the fix is not acceptable even for temporary use.
+> The tricky part ofcourse is for the registration - if we do the
+> registration, omap_cpu_init will get called once the registration
+> happens - no reason to stop it, which in turn triggers omap_target th=
+e
+> moment the governors are ready to do their thing.=20
 
-Mmm, the issue is probably due to the way we are managing interface 
-clock that are usually able to autoidle. Because of that the 
-_disable_clocks function will not try to disable an interface clock 
-except if you use the following flag: OCPIF_SWSUP_IDLE.
+Yes.
 
-  static struct omap_hwmod_ocp_if omap44xx_l3_main_2__dss = {
-  	.master		= &omap44xx_l3_main_2_hwmod,
-  	.slave		= &omap44xx_dss_hwmod,
-	.clk		= "dss_fck",
-  	.addr		= omap44xx_dss_dma_addrs,
-  	.addr_cnt	= ARRAY_SIZE(omap44xx_dss_dma_addrs),
-  	.user		= OCP_USER_SDMA,
-+	.flags 		= OCPIF_SWSUP_IDLE,
+> Is the following what you are talking about? I am not completely sure
+> how this helps..
 
+No.  I was thinking of doing registration as it is today, but have a
+late hook that is called in the driver's->target() callback that checks
+if the other frameworks are ready. =20
+
+But now I see now that ->target() is called right after ->init(), so I
+don't think this helps.  Sheesh.  The PM init sequence/dependencies
+right now are a complete mess.
+
+Probably a better solution to this, would be to actually create a
+platform driver out of our CPUfreq driver.  Then, PM core late init
+would just register the platform device when it's ready.  This would
+also work if/when the CPUfreq driver is a module.
+
+Kevin
+
+
+> diff --git a/arch/arm/mach-omap2/omap2plus-cpufreq.c
+> b/arch/arm/mach-omap2/omap2plus-cpufreq.c
+> index 77efcb0..8586df8 100644
+> --- a/arch/arm/mach-omap2/omap2plus-cpufreq.c
+> +++ b/arch/arm/mach-omap2/omap2plus-cpufreq.c
+> @@ -253,6 +253,11 @@ static struct cpufreq_driver omap_driver =3D {
+>         .attr           =3D omap_cpufreq_attr,
+>  };
 >
-> So is there some way to fix this, or shall we just go forward with the
-> current patch series having the somewhat hacky way to use pm_runtime?
+> +static int __init omap_cpufreq_lateinit(void)
+> +{
+> +       return cpufreq_register_driver(&omap_driver);
+> +}
+> +
+>  static int __init omap_cpufreq_init(void)
+>  {
+>         if (cpu_is_omap24xx()) {
+> @@ -277,8 +282,7 @@ static int __init omap_cpufreq_init(void)
+>                 pr_warning("%s: unable to get the mpu device\n", __fu=
+nc__);
+>                 return -EINVAL;
+>         }
+> -
+> -       return cpufreq_register_driver(&omap_driver);
+> +       return 0;
+>  }
 >
-> I would personally like to get the driver right from the start, even if
-> that means more hacks in the hwmod fmwk (because that's where the
-> problems are). But if that is very difficult, I'm fine with the current
-> patch series.
-
-I hope we'll be able to fix the fmwk for 3.0.1.
-
-Benoit
-
+>  static void __exit omap_cpufreq_exit(void)
+> @@ -288,5 +292,6 @@ static void __exit omap_cpufreq_exit(void)
+>
+>  MODULE_DESCRIPTION("cpufreq driver for OMAP2PLUS SOCs");
+>  MODULE_LICENSE("GPL");
+> +late_initcall(omap_cpufreq_lateinit);
+>  module_init(omap_cpufreq_init);
+>  module_exit(omap_cpufreq_exit);
+>
+>
+> Regards,
+> Nishanth Menon
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
