@@ -1,47 +1,97 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: [GIT PULL] GPIO: OMAP fixes for v3.0-rc
-Date: Tue, 07 Jun 2011 17:08:27 -0700
-Message-ID: <878vtdkww4.fsf@ti.com>
+From: "Menon, Nishanth" <nm@ti.com>
+Subject: Re: [pm-wip/cpufreq][PATCH 3/3] OMAP2+: cpufreq: do lateinit
+Date: Tue, 7 Jun 2011 19:28:32 -0500
+Message-ID: <BANLkTikUiOV6rYFbrULVMWkOS23Msy3hXg@mail.gmail.com>
+References: <1307412330-25798-1-git-send-email-nm@ti.com> <1307412330-25798-4-git-send-email-nm@ti.com>
+ <8762ohnwgb.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, None <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:34906 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756201Ab1FHA2z convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 7 Jun 2011 20:28:55 -0400
+Received: by mail-ww0-f43.google.com with SMTP id 17so12016wwb.24
+        for <linux-omap@vger.kernel.org>; Tue, 07 Jun 2011 17:28:54 -0700 (PDT)
+In-Reply-To: <8762ohnwgb.fsf@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>
 
-Grant,
+On Tue, Jun 7, 2011 at 16:49, Kevin Hilman <khilman@ti.com> wrote:
+> Nishanth Menon <nm@ti.com> writes:
+>
+>> Since we do module_init, cpufreq initializes before power late_init
+>> where many of the required data structures are registered.
+>
+> What exactly are the dependencies here? =A0The only thing I see is th=
+e
+> dependency on omap2_get_mpuss_device(), and those devices should be
+> created as a postcore_initcall.
+>
+> If there are other dependencies, they're probably created a side effe=
+ct
+> of your earlier patches where you moved stuff from the ->init hook
+> (which happens much later) into the initcall function. =A0Maybe that =
+needs
+> a rethink?
+>
+>> Move cpufreq init to late_initcall instead. Further CONFIG_CPU_FREQ =
+on
+>> which the build depends is bool and does'nt support modules yet.
+>>
+>> Signed-off-by: Nishanth Menon <nm@ti.com>
+>
+> If this works, it's only because of the link order defined by the
+> Makefile ordering since both are the same level of initcall.
+>
+> When I move this driver to drivers/cpufreq, then the link order is le=
+ss
+> obvious.
 
-Here's a small set of OMAP GPIO fixes for v3.0-rc.
+the issue is as follows:
+currently we dont do voltage transitions. when we do that
+eventually(and my current code has an forked implementation of dvfs,
+the following steps happen):
+late_initcall(omap2_common_pm_late_init);
+does pmic inits, omap_voltage_late_init, init_voltages and SR dev initi=
+alization
 
-Thanks,
+without these, there is no way to transition MPU to proper voltage,
+frequency combination. The requirement will have to be that
+omap2-cpufreq.c allows for cpufreq transitions only after voltage and
+clk layers are ready for transitions - if we ever want to do dvfs -
+which we will eventually need to.
 
-Kevin
+Regards,
+Nishanth Menon
 
 
-
-The following changes since commit 59c5f46fbe01a00eedf54a23789634438bb80603:
-
-  Linux 3.0-rc2 (2011-06-06 18:06:33 +0900)
-
-are available in the git repository at:
-  git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git for_3.0/gpio-fixes
-
-Colin Cross (2):
-      GPIO: OMAP: fix setting IRQWAKEN bits for OMAP4
-      GPIO: OMAP: add locking around calls to _set_gpio_triggering
-
-Russell King (1):
-      GPIO: OMAP: fix section mismatch warnings
-
- drivers/gpio/gpio-omap.c |   23 ++++++++++++-----------
- 1 files changed, 12 insertions(+), 11 deletions(-)
+>
+> Kevin
+>
+>> ---
+>> =A0arch/arm/mach-omap2/omap2plus-cpufreq.c | =A0 =A02 +-
+>> =A01 files changed, 1 insertions(+), 1 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/omap2plus-cpufreq.c b/arch/arm/mach=
+-omap2/omap2plus-cpufreq.c
+>> index 2177381..07c2ab9 100644
+>> --- a/arch/arm/mach-omap2/omap2plus-cpufreq.c
+>> +++ b/arch/arm/mach-omap2/omap2plus-cpufreq.c
+>> @@ -273,5 +273,5 @@ static void __exit omap_cpufreq_exit(void)
+>>
+>> =A0MODULE_DESCRIPTION("cpufreq driver for OMAP2PLUS SOCs");
+>> =A0MODULE_LICENSE("GPL");
+>> -module_init(omap_cpufreq_init);
+>> +late_initcall(omap_cpufreq_init);
+>> =A0module_exit(omap_cpufreq_exit);
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
