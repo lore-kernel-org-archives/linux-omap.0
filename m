@@ -1,135 +1,103 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [pm-wip/cpufreq][PATCH 3/3] OMAP2+: cpufreq: do lateinit
-Date: Wed, 08 Jun 2011 14:03:15 -0700
-Message-ID: <87fwnkghnw.fsf@ti.com>
-References: <1307412330-25798-1-git-send-email-nm@ti.com>
-	<1307412330-25798-4-git-send-email-nm@ti.com> <8762ohnwgb.fsf@ti.com>
-	<BANLkTikUiOV6rYFbrULVMWkOS23Msy3hXg@mail.gmail.com>
-	<87ei34i2ck.fsf@ti.com>
-	<BANLkTinsZ2hqBvVnrJBe2EQR+kLD1AuuDQ@mail.gmail.com>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: [RESEND] [PATCH 1/2] OMAP1: allow reserving memory for camera
+Date: Wed, 8 Jun 2011 23:53:49 +0200
+Message-ID: <201106082354.10985.jkrzyszt@tis.icnet.pl>
+References: <201012051929.07220.jkrzyszt@tis.icnet.pl> <20101210170356.GA28472@n2100.arm.linux.org.uk> <201012102203.54413.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: Text/Plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:59872 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754920Ab1FHVDT convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 8 Jun 2011 17:03:19 -0400
-Received: by mail-pz0-f51.google.com with SMTP id 26so438573pzk.10
-        for <linux-omap@vger.kernel.org>; Wed, 08 Jun 2011 14:03:18 -0700 (PDT)
-In-Reply-To: <BANLkTinsZ2hqBvVnrJBe2EQR+kLD1AuuDQ@mail.gmail.com> (Nishanth
-	Menon's message of "Wed, 8 Jun 2011 13:59:48 -0500")
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <201012102203.54413.jkrzyszt@tis.icnet.pl>
+Sender: linux-media-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Guennadi Liakhovetski <g.liakhovetski@gmx.de>, linux-arm-kernel@lists.infradead.org, Linux Media Mailing List <linux-media@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>
 
-"Menon, Nishanth" <nm@ti.com> writes:
+On Fri 10 Dec 2010 at 22:03:52 Janusz Krzysztofik wrote:
+> Friday 10 December 2010 18:03:56 Russell King - ARM Linux napisa=C5=82=
+(a):
+> > On Fri, Dec 10, 2010 at 12:03:07PM +0100, Janusz Krzysztofik wrote:
+> > >  void __init omap1_camera_init(void *info)
+> > >  {
+> > > =20
+> > >  	struct platform_device *dev =3D &omap1_camera_device;
+> > >=20
+> > > +	dma_addr_t paddr =3D omap1_camera_phys_mempool_base;
+> > > +	dma_addr_t size =3D omap1_camera_phys_mempool_size;
+> > >=20
+> > >  	int ret;
+> > >  =09
+> > >  	dev->dev.platform_data =3D info;
+> > >=20
+> > > +	if (paddr) {
+> > > +		if (dma_declare_coherent_memory(&dev->dev, paddr, paddr, size,
+> > > +				DMA_MEMORY_MAP | DMA_MEMORY_EXCLUSIVE))
+> >=20
+> > Although this works, you're ending up with SDRAM being mapped via
+> > ioremap, which uses MT_DEVICE - so what is SDRAM ends up being
+> > mapped as if it were a device.
+> >=20
+> > For OMAP1, which is ARMv5 or lower, device memory becomes
+> > 'uncacheable, unbufferable' which is luckily what is used for the
+> > DMA coherent memory on those platforms - so no technical problem
+> > here.
+> >=20
+> > However, on ARMv6 and later, ioremapped memory is device memory,
+> > which has different ordering wrt normal memory mappings, and may
+> > appear on different busses on the CPU's interface.  So, this is
+> > something I don't encourage as it's unclear that the hardware will
+> > work.
+> >=20
+> > Essentially, dma_declare_coherent_memory() on ARM with main SDRAM
+> > should be viewed as a 'it might work, it might not, and it might
+> > stop working in the future' kind of interface.  In other words,
+> > there is no guarantee that this kind of thing will be supported in
+> > the future.
+>=20
+> I was affraid of an unswer of this kind. I'm not capable of comming
+> out with any better, alternative solutions. Any hints other than
+> giving up with that old videobuf-contig, coherent memory based
+> interface? Or can we agree on that 'luckily uncacheable,
+> unbufferable, SDRAM based DMA coherent memory' solution for now?
 
-> On Wed, Jun 8, 2011 at 13:51, Kevin Hilman <khilman@ti.com> wrote:
-> [..]
->>> the issue is as follows:
->>> currently we dont do voltage transitions. when we do that
->>> eventually(and my current code has an forked implementation of dvfs=
-,
->>> the following steps happen):
->>> late_initcall(omap2_common_pm_late_init);
->>> does pmic inits, omap_voltage_late_init, init_voltages and SR dev i=
-nitialization
->>>
->>> without these, there is no way to transition MPU to proper voltage,
->>> frequency combination. The requirement will have to be that
->>> omap2-cpufreq.c allows for cpufreq transitions only after voltage a=
-nd
->>> clk layers are ready for transitions - if we ever want to do dvfs -
->>> which we will eventually need to.
->>
->> Yes, I understand.
->>
->> But $SUBJECT patch is fixing this as an _init_ time ordering problem=
-,
->> What you're describing is a runtime requirement that doesn't exist u=
-ntil
->> a DVFS transition is done. =C2=A0IOW, the requirement is that the vo=
-ltage
->> etc. layers have to be init'd before the first transition.
->>
->> So, rather than fix this with initcall ordering (which will have to =
-be
->> redone as things git moved and converted to modules), just create a =
-type
->> of late init function in this driver, which gets called on the first
->> transition.
->
-> The tricky part ofcourse is for the registration - if we do the
-> registration, omap_cpu_init will get called once the registration
-> happens - no reason to stop it, which in turn triggers omap_target th=
-e
-> moment the governors are ready to do their thing.=20
+Russell, Tony,
 
-Yes.
+Sorry for getting back to this old thread, but since my previous=20
+attempts to provide[1] or support[2] a possibly better solution to the=20
+problem all failed on one hand, and I can see patches not very differen=
+t=20
+from mine[3] being accepted for arch/arm/mach-{mx3,imx} during this and=
+=20
+previous merge windows[4][5][6] on the other, is there any chance for t=
+he=20
+'dma_declare_coherent_memory() over a memblock_alloc()->free()->remove(=
+)=20
+obtained area' based solution being accepted for omap1_camera as well i=
+f=20
+I resend it refreshed?
 
-> Is the following what you are talking about? I am not completely sure
-> how this helps..
+BTW, commit 6d3163ce86dd386b4f7bda80241d7fea2bc0bb1d, "mm: check if any=
+=20
+page in a pageblock is reserved before marking it MIGRATE_RESERVE",=20
+almost corrected the problem for me, allowing for very stable device=20
+operation in videobuf_dma_contig mode once all resident programs get=20
+settled up and no unusual activity happens, but this is still not 100%=20
+reliable, so I think that only using a kind of memory area reservered=20
+during boot for the purpose can be considered as free of transient=20
+-ENOMEM issues.
 
-No.  I was thinking of doing registration as it is today, but have a
-late hook that is called in the driver's->target() callback that checks
-if the other frameworks are ready. =20
+Thanks,
+Janusz
 
-But now I see now that ->target() is called right after ->init(), so I
-don't think this helps.  Sheesh.  The PM init sequence/dependencies
-right now are a complete mess.
-
-Probably a better solution to this, would be to actually create a
-platform driver out of our CPUfreq driver.  Then, PM core late init
-would just register the platform device when it's ready.  This would
-also work if/when the CPUfreq driver is a module.
-
-Kevin
-
-
-> diff --git a/arch/arm/mach-omap2/omap2plus-cpufreq.c
-> b/arch/arm/mach-omap2/omap2plus-cpufreq.c
-> index 77efcb0..8586df8 100644
-> --- a/arch/arm/mach-omap2/omap2plus-cpufreq.c
-> +++ b/arch/arm/mach-omap2/omap2plus-cpufreq.c
-> @@ -253,6 +253,11 @@ static struct cpufreq_driver omap_driver =3D {
->         .attr           =3D omap_cpufreq_attr,
->  };
->
-> +static int __init omap_cpufreq_lateinit(void)
-> +{
-> +       return cpufreq_register_driver(&omap_driver);
-> +}
-> +
->  static int __init omap_cpufreq_init(void)
->  {
->         if (cpu_is_omap24xx()) {
-> @@ -277,8 +282,7 @@ static int __init omap_cpufreq_init(void)
->                 pr_warning("%s: unable to get the mpu device\n", __fu=
-nc__);
->                 return -EINVAL;
->         }
-> -
-> -       return cpufreq_register_driver(&omap_driver);
-> +       return 0;
->  }
->
->  static void __exit omap_cpufreq_exit(void)
-> @@ -288,5 +292,6 @@ static void __exit omap_cpufreq_exit(void)
->
->  MODULE_DESCRIPTION("cpufreq driver for OMAP2PLUS SOCs");
->  MODULE_LICENSE("GPL");
-> +late_initcall(omap_cpufreq_lateinit);
->  module_init(omap_cpufreq_init);
->  module_exit(omap_cpufreq_exit);
->
->
-> Regards,
-> Nishanth Menon
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+[1] http://lists.infradead.org/pipermail/linux-arm-kernel/2010-December=
+/036419.html
+[2] http://lists.infradead.org/pipermail/linux-arm-kernel/2010-December=
+/036551.html
+[3] http://lists.infradead.org/pipermail/linux-arm-kernel/2010-December=
+/034643.html
+[4] http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux-2.6.git;=
+h=3D164f7b5237cca2701dd2943928ec8d078877a28d
+[5] http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux-2.6.git;=
+h=3D031e912741746e4350204bb0436590ca0e993a7d
+[6] http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux-2.6.git;=
+h=3Ddca7c0b4293a06d1ed9387e729a4882896abccc2
