@@ -1,93 +1,112 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH] arm: omap3: beagle: Ensure msecure is mux'd to be able
- to set the RTC
-Date: Thu, 09 Jun 2011 00:57:09 +0300
-Message-ID: <4DEFF035.4070004@compulab.co.il>
-References: <4D9AEB76.2060509@ahsoftware.de> <1302010808-3065-1-git-send-email-holler@ahsoftware.de> <20110531102903.GU11352@atomide.com> <4DEDDAF6.2070505@ahsoftware.de> <4DEDF451.1080604@compulab.co.il> <4DEE0858.2020308@ahsoftware.de>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [RESEND] [PATCH 1/2] OMAP1: allow reserving memory for camera
+Date: Wed, 8 Jun 2011 23:13:30 +0100
+Message-ID: <20110608221330.GA13246@n2100.arm.linux.org.uk>
+References: <201012051929.07220.jkrzyszt@tis.icnet.pl> <20101210170356.GA28472@n2100.arm.linux.org.uk> <201012102203.54413.jkrzyszt@tis.icnet.pl> <201106082354.10985.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:41768
-	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1756260Ab1FHV50 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Jun 2011 17:57:26 -0400
-In-Reply-To: <4DEE0858.2020308@ahsoftware.de>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:52506 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755945Ab1FHWOJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Jun 2011 18:14:09 -0400
+Content-Disposition: inline
+In-Reply-To: <201106082354.10985.jkrzyszt@tis.icnet.pl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Alexander Holler <holler@ahsoftware.de>
-Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Guennadi Liakhovetski <g.liakhovetski@gmx.de>, linux-arm-kernel@lists.infradead.org, Linux Media Mailing List <linux-media@vger.kernel.org>
 
-On 06/07/11 14:15, Alexander Holler wrote:
+On Wed, Jun 08, 2011 at 11:53:49PM +0200, Janusz Krzysztofik wrote:
+> On Fri 10 Dec 2010 at 22:03:52 Janusz Krzysztofik wrote:
+> > Friday 10 December 2010 18:03:56 Russell King - ARM Linux napisa=C5=
+=82(a):
+> > > On Fri, Dec 10, 2010 at 12:03:07PM +0100, Janusz Krzysztofik wrot=
+e:
+> > > >  void __init omap1_camera_init(void *info)
+> > > >  {
+> > > > =20
+> > > >  	struct platform_device *dev =3D &omap1_camera_device;
+> > > >=20
+> > > > +	dma_addr_t paddr =3D omap1_camera_phys_mempool_base;
+> > > > +	dma_addr_t size =3D omap1_camera_phys_mempool_size;
+> > > >=20
+> > > >  	int ret;
+> > > >  =09
+> > > >  	dev->dev.platform_data =3D info;
+> > > >=20
+> > > > +	if (paddr) {
+> > > > +		if (dma_declare_coherent_memory(&dev->dev, paddr, paddr, siz=
+e,
+> > > > +				DMA_MEMORY_MAP | DMA_MEMORY_EXCLUSIVE))
+> > >=20
+> > > Although this works, you're ending up with SDRAM being mapped via
+> > > ioremap, which uses MT_DEVICE - so what is SDRAM ends up being
+> > > mapped as if it were a device.
+> > >=20
+> > > For OMAP1, which is ARMv5 or lower, device memory becomes
+> > > 'uncacheable, unbufferable' which is luckily what is used for the
+> > > DMA coherent memory on those platforms - so no technical problem
+> > > here.
+> > >=20
+> > > However, on ARMv6 and later, ioremapped memory is device memory,
+> > > which has different ordering wrt normal memory mappings, and may
+> > > appear on different busses on the CPU's interface.  So, this is
+> > > something I don't encourage as it's unclear that the hardware wil=
+l
+> > > work.
+> > >=20
+> > > Essentially, dma_declare_coherent_memory() on ARM with main SDRAM
+> > > should be viewed as a 'it might work, it might not, and it might
+> > > stop working in the future' kind of interface.  In other words,
+> > > there is no guarantee that this kind of thing will be supported i=
+n
+> > > the future.
+> >=20
+> > I was affraid of an unswer of this kind. I'm not capable of comming
+> > out with any better, alternative solutions. Any hints other than
+> > giving up with that old videobuf-contig, coherent memory based
+> > interface? Or can we agree on that 'luckily uncacheable,
+> > unbufferable, SDRAM based DMA coherent memory' solution for now?
+>=20
+> Russell, Tony,
+>=20
+> Sorry for getting back to this old thread, but since my previous=20
+> attempts to provide[1] or support[2] a possibly better solution to th=
+e=20
+> problem all failed on one hand, and I can see patches not very differ=
+ent=20
+> from mine[3] being accepted for arch/arm/mach-{mx3,imx} during this a=
+nd=20
+> previous merge windows[4][5][6] on the other, is there any chance for=
+ the=20
+> 'dma_declare_coherent_memory() over a memblock_alloc()->free()->remov=
+e()=20
+> obtained area' based solution being accepted for omap1_camera as well=
+ if=20
+> I resend it refreshed?
 
-> Am 07.06.2011 11:50, schrieb Igor Grinberg:
->> On 06/07/11 11:01, Alexander Holler wrote:
->>
->>> Am 31.05.2011 12:29, schrieb Tony Lindgren:
->>>> * Alexander Holler<holler@ahsoftware.de>   [110405 06:38]:
->>>>> Without msecure beeing high it isn't possible to set (or start)
->>>>> the RTC.
->>>>>
->>>>> Tested with a BeagleBoard C4.
->>>>
->>>> Adding this into fixes.
->>>>
->>>> Tony
->>>>
->>>>> Signed-off-by: Alexander Holler<holler@ahsoftware.de>
->>>>> ---
->>>>>    arch/arm/mach-omap2/board-omap3beagle.c |    3 +++
->>>>>    1 files changed, 3 insertions(+), 0 deletions(-)
->>>>>
->>>>> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
->>>>> index 46d814a..ebe3a7e 100644
->>>>> --- a/arch/arm/mach-omap2/board-omap3beagle.c
->>>>> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
->>>>> @@ -628,6 +628,9 @@ static void __init omap3_beagle_init(void)
->>>>>        usb_ehci_init(&ehci_pdata);
->>>>>        omap3beagle_flash_init();
->>>>>
->>>>> +    /* Ensure msecure is mux'd to be able to set the RTC. */
->>>>> +    omap_mux_init_signal("sys_drm_msecure", OMAP_PIN_OFF_OUTPUT_HIGH);
->>>>> +
->>>>>        /* Ensure SDRC pins are mux'd for self-refresh */
->>>>>        omap_mux_init_signal("sdrc_cke0", OMAP_PIN_OUTPUT);
->>>>>        omap_mux_init_signal("sdrc_cke1", OMAP_PIN_OUTPUT);
->>>>> -- 
->>>>> 1.7.3.4
->>>>>
->>>
->>> I've later switched to the following patch which muxes msecure as GPIO (the drm-mode isn't explained in the TRM) and also exports the GPIO, so root could easily switch it to prevent modifications on the RTC.
->>>
->>> (Warning, either my clipboard or the version of Thunderbird I'm currently using replaces the tabs with spaces in the pasted patch and I'm currently too lazy to search a workaround).
->>>
->>> ---
->>>   arch/arm/mach-omap2/board-omap3beagle.c |    6 ++++++
->>>   1 files changed, 6 insertions(+), 0 deletions(-)
->>>
->>> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
->>> index 33007fd..24b4417 100644
->>> --- a/arch/arm/mach-omap2/board-omap3beagle.c
->>> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
->>> @@ -673,6 +673,12 @@ static void __init omap3_beagle_init(void)
->>>          usbhs_init(&usbhs_bdata);
->>>          omap3beagle_flash_init();
->>>
->>> +       /* Ensure msecure is high to be able to set the RTC. */
->>> +       omap_mux_init_signal("gpio_22", OMAP_PIN_OFF_OUTPUT_HIGH);
->>> +       gpio_request(22, "msecure");
->>> +       gpio_direction_output(22, true);
->>
->> Can this be gpio_request_one() instead, please?
->> Also, it will be nice to make a define for the magic 22.
->
-> You need the "gpio_22" in the mux_init, so using a define would imho introduce a potential source for an error, at least when the define would not be anywhere near the "gpio_22" and someone would forget change the string too, when he changes the define. So I don't think a define adds much value there.
+I stand by my answer to your patches quoted above from a technical poin=
+t
+of view; we should not be mapping SDRAM using device mappings.
 
-Why not leave "sys_drm_msecure" for mux_init, or does it make troubles on XM?
+That ioremap() inside dma_declare_coherent_memory() needs to die, but
+it seems that those who now look after the DMA API really aren't
+interested in the technical details of this being wrong for some
+architecture - just like they're not really interested in the details
+of devices using dma-engines for their DMA support.
 
-What about gpio_request_one()? To conform with the rest of the file and mach-omap2/*.
+I'm afraid that the DMA support in Linux sucks because of this, and I
+have no real desire to participate in discussions with brick walls over
+this.
 
--- 
-Regards,
-Igor.
-
+Certainly the memblock_alloc()+free()+remove() is the right way to
+reserve the memory, but as it stands dma_declare_coherent_memory()
+should not be used on ARMv6 or higher CPUs to pass that memory to the
+device driver.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
