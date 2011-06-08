@@ -1,32 +1,48 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH 4/4] x86: intel-iommu: move to drivers/iommu/
-Date: Wed, 8 Jun 2011 13:33:10 +0300
-Message-ID: <BANLkTi=eRmd4h3+StGCR_-uVKo5F9fyd7g@mail.gmail.com>
-References: <1307522062-19273-1-git-send-email-ohad@wizery.com>
- <1307522062-19273-5-git-send-email-ohad@wizery.com> <1307524659.4771.12.camel@i7.infradead.org>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [RFC 2/6] omap: iovmm: generic iommu api migration
+Date: Wed, 8 Jun 2011 12:46:52 +0200
+Message-ID: <201106081246.53106.laurent.pinchart@ideasonboard.com>
+References: <1307053663-24572-1-git-send-email-ohad@wizery.com> <201106071326.53106.laurent.pinchart@ideasonboard.com> <BANLkTimqt=yMGHcqEH5u-4GkMX9=+BuB6A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:47651 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753881Ab1FHKdb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Jun 2011 06:33:31 -0400
-In-Reply-To: <1307524659.4771.12.camel@i7.infradead.org>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <BANLkTimqt=yMGHcqEH5u-4GkMX9=+BuB6A@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Hiroshi.DOYU@nokia.com, arnd@arndb.de, davidb@codeaurora.org, Joerg.Roedel@amd.com
 List-Id: linux-omap@vger.kernel.org
-To: David Woodhouse <dwmw2@infradead.org>
-Cc: Joerg Roedel <Joerg.Roedel@amd.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, David Brown <davidb@codeaurora.org>, iommu@lists.linux-foundation.org, linux-pci@vger.kernel.org
 
-On Wed, Jun 8, 2011 at 12:17 PM, David Woodhouse <dwmw2@infradead.org> wrote:
-> At least iova.o wants to go with it. That's one of the parts that is a
-> candidate for harmonisation across IOMMU implementations, either by
-> removing it or by having others use it too. It's how we allocate virtual
-> I/O address space.
->
-> I suspect the interrupt remapping support may well want to move with it
-> too. It's no more out-of-place in drivers/iommu than it is in
-> drivers/pci. And then you can certainly move dmar.o too.
+Hi Ohad,
 
-Sounds good, thanks.
+On Tuesday 07 June 2011 15:46:26 Ohad Ben-Cohen wrote:
+> On Tue, Jun 7, 2011 at 2:26 PM, Laurent Pinchart wrote:
+> >> Right now we have a BUG_ON if pa is unaligned, but that can be changed
+> >> if needed (do we want it to handle offsets ?).
+> > 
+> > At least for the OMAP3 ISP we need to, as video buffers don't necessarily
+> > start on page boundaries.
+> 
+> Where do you take care of those potential offsets today ? Or do you
+> simply ignore the offsets and map the entire page ?
 
-I'll wait a bit to see if there're more comments, and then re-send this one
+Here http://marc.info/?l=linux-omap&m=130693502326513&w=2 :-)
+
+> Seems like omap's iommu (mostly) rejects unaligned pa addresses, see:
+> 
+> 4abb761749abfb4ec403e4054f9dae2ee604e54f "omap iommu: Reject unaligned
+> addresses at setting page table entry"
+> 
+> (this doesn't seem to cover 4KB entries though, only large pages,
+> sections and super sections)
+> 
+> > A separate patch is indeed needed, yes. As you're already working on
+> > iommu it might be simpler if you add it to your tree.
+> 
+> Sure, i'll send it.
+
+-- 
+Regards,
+
+Laurent Pinchart
