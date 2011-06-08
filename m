@@ -1,53 +1,39 @@
-From: David Brown <davidb@codeaurora.org>
-Subject: Re: [PATCH 2/4] msm: iommu: move to drivers/iommu/
-Date: Wed, 08 Jun 2011 15:27:10 -0700
-Message-ID: <8yamxhsklhd.fsf@huya.qualcomm.com>
-References: <1307522062-19273-1-git-send-email-ohad@wizery.com>
-	<1307522062-19273-3-git-send-email-ohad@wizery.com>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: [RESEND] [PATCH 1/2] OMAP1: allow reserving memory for camera
+Date: Thu, 9 Jun 2011 00:44:57 +0200
+Message-ID: <201106090045.21251.jkrzyszt@tis.icnet.pl>
+References: <201012051929.07220.jkrzyszt@tis.icnet.pl> <201106082354.10985.jkrzyszt@tis.icnet.pl> <20110608221330.GA13246@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1307522062-19273-3-git-send-email-ohad@wizery.com> (Ohad
-	Ben-Cohen's message of "Wed, 8 Jun 2011 11:34:20 +0300")
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Ohad Ben-Cohen <ohad@wizery.com>, stepanm@codeaurora.org
-Cc: Arnd Bergmann <arnd@arndb.de>, Joerg Roedel <Joerg.Roedel@amd.com>, linux-kernel@vger.kernel.org, iommu@lists.linux-foundation.org, linux-pci@vger.kernel.org, linux-omap@vger.kernel.org, David Woodhouse <dwmw2@infradead.org>, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from d1.icnet.pl ([212.160.220.21]:58938 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753523Ab1FHWqs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 8 Jun 2011 18:46:48 -0400
+In-Reply-To: <20110608221330.GA13246@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Guennadi Liakhovetski <g.liakhovetski@gmx.de>, linux-arm-kernel@lists.infradead.org, Linux Media Mailing List <linux-media@vger.kernel.org>
 
-On Wed, Jun 08 2011, Ohad Ben-Cohen wrote:
+On Thu 09 Jun 2011 at 00:13:30 Russell King - ARM Linux wrote:
+> 
+> I stand by my answer to your patches quoted above from a technical
+> point of view; we should not be mapping SDRAM using device mappings.
+> 
+> That ioremap() inside dma_declare_coherent_memory() needs to die,
 
-> This should ease finding similarities with different platforms,
-> with the intention of solving problems once in a generic framework
-> which everyone can use.
->
-> Compile-tested for MSM8X60.
->
-> Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
-> ---
->  arch/arm/mach-msm/Kconfig                          |   12 ------------
->  arch/arm/mach-msm/Makefile                         |    2 +-
->  drivers/iommu/Kconfig                              |   11 +++++++++++
->  drivers/iommu/Makefile                             |    1 +
->  .../mach-msm/iommu.c => drivers/iommu/msm-iommu.c  |    0
->  5 files changed, 13 insertions(+), 13 deletions(-)
->  rename arch/arm/mach-msm/iommu.c => drivers/iommu/msm-iommu.c (100%)
+Then how about your alternative, ARM specific solution, "Avoid aliasing 
+mappings in DMA coherent allocator"? There was a series of initially 
+two, then three patches, of which the two others (459c1517f987 "ARM: 
+DMA: Replace page_to_dma()/dma_to_page() with pfn_to_dma()/dma_to_pfn()" 
+and 9eedd96301ca "ARM: DMA: top-down allocation in DMA coherent region") 
+are already in the mainline tree. I'm still porting a copy of that third 
+one from kernel version to version to have my device working 100% 
+reliably, in hope you finally push it into the mainline. No plans 
+against it? Or is there something about it I could help with?
 
-Moving the driver is good.  I'm wondering what we should do with
-iommu_dev.c, though.  Wouldn't it make sense to move this file as well?
-
-I've added the author, Stepan Moskovchenko, in case he has any feedback.
-
-David
-
--- 
-Sent by an employee of the Qualcomm Innovation Center, Inc.
-The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
+Thanks,
+Janusz
