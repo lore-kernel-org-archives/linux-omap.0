@@ -1,39 +1,169 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 0/2] OMAP3 IOMMU fixes
-Date: Wed, 8 Jun 2011 12:48:01 +0200
-Message-ID: <201106081248.01793.laurent.pinchart@ideasonboard.com>
-References: <1306759629-17232-1-git-send-email-laurent.pinchart@ideasonboard.com>
+From: "Govindraj.R" <govindraj.raja@ti.com>
+Subject: [PATCH v3 03/12] OMAP2+: Serial: Add default mux for all uarts.
+Date: Wed, 8 Jun 2011 16:53:05 +0530
+Message-ID: <1307532194-13039-4-git-send-email-govindraj.raja@ti.com>
+References: <1307532194-13039-1-git-send-email-govindraj.raja@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:56777 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755413Ab1FHKsD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Jun 2011 06:48:03 -0400
-In-Reply-To: <1306759629-17232-1-git-send-email-laurent.pinchart@ideasonboard.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <1307532194-13039-1-git-send-email-govindraj.raja@ti.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, teemu.tuominen@cybercom.com
 
-Hi Tony,
+Add default mux data for all uarts if mux info is not passed from
+board file to avoid breaking any board support.
 
-On Monday 30 May 2011 14:47:07 Laurent Pinchart wrote:
-> Hi everybody,
-> 
-> Here are two OMAP3 IOMMU fixes required to support big and/or unaligned
-> memory buffers.
-> 
-> Laurent Pinchart (2):
->   omap3: iovmm: Work around sg_alloc_table size limitation in IOMMU
->   omap3: iovmm: Support non page-aligned buffers in iommu_vmap
+Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
+---
+ arch/arm/mach-omap2/serial.c |  127 +++++++++++++++++++++++++++++++++++++++++-
+ 1 files changed, 126 insertions(+), 1 deletions(-)
 
-As per Russell comments, the first patch needs more work (or at least more 
-discussions). Could you apply the second patch already ?
-
+diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+index b16768a..8c1a4c7 100644
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -66,6 +66,129 @@ static struct omap_device_pm_latency omap_uart_latency[] = {
+ 	},
+ };
+ 
++#ifdef CONFIG_OMAP_MUX
++static struct omap_device_pad default_uart1_pads[] __initdata = {
++	{
++		.name	= "uart1_cts.uart1_cts",
++		.enable	= OMAP_PIN_INPUT_PULLUP | OMAP_MUX_MODE0,
++	},
++	{
++		.name	= "uart1_rts.uart1_rts",
++		.enable	= OMAP_PIN_OUTPUT | OMAP_MUX_MODE0,
++	},
++	{
++		.name	= "uart1_tx.uart1_tx",
++		.enable	= OMAP_PIN_OUTPUT | OMAP_MUX_MODE0,
++	},
++	{
++		.name	= "uart1_rx.uart1_rx",
++		.flags	= OMAP_DEVICE_PAD_REMUX | OMAP_DEVICE_PAD_WAKEUP,
++		.enable	= OMAP_PIN_INPUT_PULLUP | OMAP_MUX_MODE0,
++	},
++};
++
++static struct omap_device_pad default_uart2_pads[] __initdata = {
++	{
++		.name	= "uart2_cts.uart2_cts",
++		.enable	= OMAP_PIN_INPUT_PULLUP | OMAP_MUX_MODE0,
++	},
++	{
++		.name	= "uart2_rts.uart2_rts",
++		.enable	= OMAP_PIN_OUTPUT | OMAP_MUX_MODE0,
++	},
++	{
++		.name	= "uart2_tx.uart2_tx",
++		.enable	= OMAP_PIN_OUTPUT | OMAP_MUX_MODE0,
++	},
++	{
++		.name	= "uart2_rx.uart2_rx",
++		.flags	= OMAP_DEVICE_PAD_REMUX | OMAP_DEVICE_PAD_WAKEUP,
++		.enable	= OMAP_PIN_INPUT_PULLUP | OMAP_MUX_MODE0,
++	},
++};
++
++static struct omap_device_pad default_uart3_pads[] __initdata = {
++	{
++		.name	= "uart3_cts_rctx.uart3_cts_rctx",
++		.enable	= OMAP_PIN_INPUT_PULLUP | OMAP_MUX_MODE0,
++	},
++	{
++		.name	= "uart3_rts_sd.uart3_rts_sd",
++		.enable	= OMAP_PIN_OUTPUT | OMAP_MUX_MODE0,
++	},
++	{
++		.name	= "uart3_tx_irtx.uart3_tx_irtx",
++		.enable	= OMAP_PIN_OUTPUT | OMAP_MUX_MODE0,
++	},
++	{
++		.name	= "uart3_rx_irrx.uart3_rx_irrx",
++		.flags	= OMAP_DEVICE_PAD_REMUX | OMAP_DEVICE_PAD_WAKEUP,
++		.enable	= OMAP_PIN_INPUT | OMAP_MUX_MODE0,
++	},
++};
++
++static struct omap_device_pad default_omap36xx_uart4_pads[] __initdata = {
++	{
++		.name   = "gpmc_wait2.uart4_tx",
++		.enable = OMAP_PIN_OUTPUT | OMAP_MUX_MODE0,
++	},
++	{
++		.name	= "gpmc_wait3.uart4_rx",
++		.flags	= OMAP_DEVICE_PAD_REMUX | OMAP_DEVICE_PAD_WAKEUP,
++		.enable	= OMAP_PIN_INPUT | OMAP_MUX_MODE2,
++	},
++};
++
++static struct omap_device_pad default_omap4_uart4_pads[] __initdata = {
++	{
++		.name	= "uart4_tx.uart4_tx",
++		.enable	= OMAP_PIN_OUTPUT | OMAP_MUX_MODE0,
++	},
++	{
++		.name	= "uart4_rx.uart4_rx",
++		.flags	= OMAP_DEVICE_PAD_REMUX | OMAP_DEVICE_PAD_WAKEUP,
++		.enable	= OMAP_PIN_INPUT | OMAP_MUX_MODE0,
++	},
++};
++#else
++static struct omap_device_pad default_uart1_pads[] __initdata = {};
++static struct omap_device_pad default_uart2_pads[] __initdata = {};
++static struct omap_device_pad default_uart3_pads[] __initdata = {};
++static struct omap_device_pad default_omap36xx_uart4_pads[] __initdata = {};
++static struct omap_device_pad default_omap4_uart4_pads[] __initdata = {};
++#endif
++
++static void omap_serial_fill_default_pads(struct omap_board_data *bdata)
++{
++	switch (bdata->id) {
++	case 0:
++		bdata->pads = default_uart1_pads;
++		bdata->pads_cnt = ARRAY_SIZE(default_uart1_pads);
++		break;
++	case 1:
++		bdata->pads = default_uart2_pads;
++		bdata->pads_cnt = ARRAY_SIZE(default_uart2_pads);
++		break;
++	case 2:
++		bdata->pads = default_uart3_pads;
++		bdata->pads_cnt = ARRAY_SIZE(default_uart3_pads);
++		break;
++	case 3:
++		if (cpu_is_omap44xx()) {
++			bdata->pads = default_omap4_uart4_pads;
++			bdata->pads_cnt =
++				ARRAY_SIZE(default_omap4_uart4_pads);
++		} else {
++			bdata->pads = default_omap36xx_uart4_pads;
++			bdata->pads_cnt =
++				ARRAY_SIZE(default_omap36xx_uart4_pads);
++		}
++		break;
++	default:
++		break;
++	}
++}
++
+ static void omap_uart_idle_init(struct omap_uart_port_info *uart,
+ 				unsigned short num)
+ {
+@@ -242,6 +365,8 @@ void __init omap_serial_init(void)
+ 		bdata.flags = 0;
+ 		bdata.pads = NULL;
+ 		bdata.pads_cnt = 0;
+-		omap_serial_init_port(&bdata);
++
++		if (cpu_is_omap44xx() || cpu_is_omap34xx())
++			omap_serial_fill_default_pads(&bdata);
+ 	}
+ }
 -- 
-Regards,
+1.7.0.4
 
-Laurent Pinchart
