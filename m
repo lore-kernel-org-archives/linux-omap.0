@@ -1,61 +1,54 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: [PATCH] omap: iovmm: s/sg_dma_len(sg)/sg->length/
-Date: Wed,  8 Jun 2011 09:43:55 +0300
-Message-ID: <1307515436-20805-1-git-send-email-ohad@wizery.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:48690 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752530Ab1FHGpx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Jun 2011 02:45:53 -0400
-Received: by wwa36 with SMTP id 36so220873wwa.1
-        for <linux-omap@vger.kernel.org>; Tue, 07 Jun 2011 23:45:52 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v2 03/12] OMAP3: Move common pmic
+	configuration to pmic-common
+Date: Wed, 8 Jun 2011 09:51:30 +0300
+Message-ID: <201106080951.31056.peter.ujfalusi@ti.com>
+References: <1307456297-15010-1-git-send-email-peter.ujfalusi@ti.com>
+	<1307456297-15010-4-git-send-email-peter.ujfalusi@ti.com>
+	<20110607144534.GA27477@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20110607144534.GA27477@atomide.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Samuel Ortiz <sameo@linux.intel.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Girdwood, Liam" <lrg@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Tony Lindgren <tony@atomide.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Russell King <linux@arm.linux.org.uk>, Ohad Ben-Cohen <ohad@wizery.com>
 
-iovmm is erroneously using sg_dma_len with unmapped (DMA API-wise)
-SG entries, and will break if CONFIG_NEED_SG_DMA_LENGTH is enabled.
+On Tuesday 07 June 2011 17:45:35 Tony Lindgren wrote:
+> > +#define TWL_COMMON_PDATA_BCI		(1 << 1)
+> > +#define TWL_COMMON_PDATA_MADC		(1 << 2)
+> > +#define TWL_COMMON_PDATA_CODEC		(1 << 3)
+> =
 
-Fix that by using sg->length instead.
+> This is looking good, thanks for cleaning up the twl bloat in
+> board-*.c files :)
 
-Reported-by: Russell King <linux@arm.linux.org.uk>
-Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
----
- arch/arm/plat-omap/iovmm.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+As I recall the first three patch results ~600 less lines of code under mac=
+h-
+omap2.
 
-diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
-index 83a37c5..c60737c 100644
---- a/arch/arm/plat-omap/iovmm.c
-+++ b/arch/arm/plat-omap/iovmm.c
-@@ -72,7 +72,7 @@ static size_t sgtable_len(const struct sg_table *sgt)
- 	for_each_sg(sgt->sgl, sg, sgt->nents, i) {
- 		size_t bytes;
- 
--		bytes = sg_dma_len(sg);
-+		bytes = sg->length;
- 
- 		if (!iopgsz_ok(bytes)) {
- 			pr_err("%s: sg[%d] not iommu pagesize(%x)\n",
-@@ -198,7 +198,7 @@ static void *vmap_sg(const struct sg_table *sgt)
- 		int err;
- 
- 		pa = sg_phys(sg);
--		bytes = sg_dma_len(sg);
-+		bytes = sg->length;
- 
- 		BUG_ON(bytes != PAGE_SIZE);
- 
-@@ -476,7 +476,7 @@ static int map_iovm_area(struct iommu *obj, struct iovm_struct *new,
- 		struct iotlb_entry e;
- 
- 		pa = sg_phys(sg);
--		bytes = sg_dma_len(sg);
-+		bytes = sg->length;
- 
- 		flags &= ~IOVMF_PGSZ_MASK;
- 		pgsz = bytes_to_iopgsz(bytes);
--- 
-1.7.1
+> Maybe already define TWL_COMMON_PDATA_AUDIO here so you can
+> drop most of patch 7/12?
+> =
 
+> If you need both then you can temporarily have:
+> =
+
+> #define TWL_COMMON_PDATA_CODEC	TWL_COMMON_PDATA_AUDIO
+
+I have not thought about this.
+But I think we can live with the TWL_COMMON_PDATA_AUDIO all the way.
+I'll wait for more comments, and I'll do this for the v3.
+
+Thanks,
+P=E9ter
