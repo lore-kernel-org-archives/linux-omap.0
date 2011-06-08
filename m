@@ -1,39 +1,35 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH] omap: iovmm: s/sg_dma_len(sg)/sg->length/
-Date: Wed, 8 Jun 2011 18:03:23 +0200
-Message-ID: <201106081803.24729.laurent.pinchart@ideasonboard.com>
-References: <1307515436-20805-1-git-send-email-ohad@wizery.com>
+From: Chris Wright <chrisw@sous-sol.org>
+Subject: Re: [PATCH 4/4] x86: intel-iommu: move to drivers/iommu/
+Date: Wed, 8 Jun 2011 10:47:34 -0700
+Message-ID: <20110608174734.GF23047@sequoia.sous-sol.org>
+References: <1307522062-19273-1-git-send-email-ohad@wizery.com>
+	<1307522062-19273-5-git-send-email-ohad@wizery.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:53312 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756396Ab1FHQDd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Jun 2011 12:03:33 -0400
-In-Reply-To: <1307515436-20805-1-git-send-email-ohad@wizery.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <1307522062-19273-5-git-send-email-ohad@wizery.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Russell King <linux@arm.linux.org.uk>
+Cc: Arnd Bergmann <arnd@arndb.de>, Joerg Roedel <Joerg.Roedel@amd.com>, linux-kernel@vger.kernel.org, iommu@lists.linux-foundation.org, linux-pci@vger.kernel.org, David Brown <davidb@codeaurora.org>, linux-omap@vger.kernel.org, David Woodhouse <dwmw2@infradead.org>, linux-arm-kernel@lists.infradead.org
+List-Id: linux-omap@vger.kernel.org
 
-Hi Ohad,
+* Ohad Ben-Cohen (ohad@wizery.com) wrote:
+> +
+> +config DMAR
+> +	bool "Support for DMA Remapping Devices (EXPERIMENTAL)"
+> +	depends on PCI_MSI && ACPI && EXPERIMENTAL
 
-Thanks for the patch.
+You may want to further restrict to x86 and ia64
+And I think you'll need to fixup arch/ia64/Kconfig
 
-On Wednesday 08 June 2011 08:43:55 Ohad Ben-Cohen wrote:
-> iovmm is erroneously using sg_dma_len with unmapped (DMA API-wise)
-> SG entries, and will break if CONFIG_NEED_SG_DMA_LENGTH is enabled.
-> 
-> Fix that by using sg->length instead.
-> 
-> Reported-by: Russell King <linux@arm.linux.org.uk>
-> Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
-
-Tested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
--- 
-Regards,
-
-Laurent Pinchart
+BTW, I think EXPERIMENTAL can be dropped by now.
