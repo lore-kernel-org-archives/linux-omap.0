@@ -1,44 +1,45 @@
-From: Dmitry Kasatkin <dmitry.s.kasatkin@gmail.com>
-Subject: Re: [PATCH 00/11] crypto: omap-sham driver fixes
-Date: Wed, 8 Jun 2011 22:36:03 +0300
-Message-ID: <BANLkTi=RBdtY_-_KGKShvt=LJ044QOO3TQ@mail.gmail.com>
-References: <cover.1306926921.git.dmitry.kasatkin@gmail.com>
-	<20110608130833.GD4582@gondor.apana.org.au>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH v3 04/12] Serial: OMAP: Add runtime pm support for omap-serial
+ driver
+Date: Wed, 8 Jun 2011 15:39:04 -0500
+Message-ID: <4DEFDDE8.3090808@ti.com>
+References: <1307532194-13039-1-git-send-email-govindraj.raja@ti.com> <1307532194-13039-5-git-send-email-govindraj.raja@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:53860 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755809Ab1FHTgE convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Jun 2011 15:36:04 -0400
-In-Reply-To: <20110608130833.GD4582@gondor.apana.org.au>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <1307532194-13039-5-git-send-email-govindraj.raja@ti.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: "Govindraj.R" <govindraj.raja@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: linux-crypto@vger.kernel.org, linux-omap@vger.kernel.org
 
-Thanks!
+Hi Govindraj,
 
-On Wed, Jun 8, 2011 at 4:08 PM, Herbert Xu <herbert@gondor.apana.org.au=
-> wrote:
-> On Thu, Jun 02, 2011 at 09:10:02PM +0300, Dmitry Kasatkin wrote:
->> Hi,
->>
->> Recently we got crashes few times after some other patches to 2.6.32=
- kernel.
->> This patch set greatly prevents race condition situations.
->> No crashes are noticed any more.
->> Now the driver should be ok for multi core as well.
+On 6/8/2011 6:23 AM, Govindraj.R wrote:
+
+[snip]
+
+> +
+> +#define OMAP_UART_AUTOSUSPEND_DELAY (30 * HZ) /* Value is msecs */
+
+[snip]
+
+> @@ -1295,18 +1381,36 @@ static int serial_omap_probe(struct platform_device *pdev)
+>   		up->uart_dma.rx_dma_channel = OMAP_UART_DMA_CH_FREE;
+>   	}
 >
-> All applied to cryptodev. =A0Thanks Dmitry!
-> --
-> Email: Herbert Xu <herbert@gondor.apana.org.au>
-> Home Page: http://gondor.apana.org.au/~herbert/
-> PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> +	pm_runtime_use_autosuspend(&pdev->dev);
+> +	pm_runtime_set_autosuspend_delay(&pdev->dev,
+> +			OMAP_UART_AUTOSUSPEND_DELAY);
+
+Something is weird here...DEFAULT_AUTOSUSPEND_DELAY is defined as 
+(30*HZ) which would appear to be jiffies (ticks per second) and NOT 
+msecs. However, pm_runtime_set_autosuspend is clearly expecting msecs. 
+So this seems to conflict. By default 30*HZ for omap would be 30*128 = 
+3840ms so not quite 4 seconds.
+
+What were you intending here?
+
+Cheers
+Jon
