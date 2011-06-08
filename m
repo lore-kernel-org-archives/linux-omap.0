@@ -1,35 +1,50 @@
 From: David Brown <davidb@codeaurora.org>
-Subject: Re: [PATCH 0/4] drivers/iommu/ relocations
-Date: Wed, 08 Jun 2011 15:23:10 -0700
-Message-ID: <8yar574klo1.fsf@huya.qualcomm.com>
+Subject: Re: [PATCH 2/4] msm: iommu: move to drivers/iommu/
+Date: Wed, 08 Jun 2011 15:27:10 -0700
+Message-ID: <8yamxhsklhd.fsf@huya.qualcomm.com>
 References: <1307522062-19273-1-git-send-email-ohad@wizery.com>
-	<20110608093546.GG4407@amd.com>
+	<1307522062-19273-3-git-send-email-ohad@wizery.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20110608093546.GG4407@amd.com> (Joerg Roedel's message of "Wed,
-	8 Jun 2011 11:35:46 +0200")
-Sender: linux-pci-owner@vger.kernel.org
-To: "Roedel, Joerg" <Joerg.Roedel@amd.com>
-Cc: Ohad Ben-Cohen <ohad@wizery.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, David Woodhouse <dwmw2@infradead.org>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Ingo Molnar <mingo@elte.hu>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1307522062-19273-3-git-send-email-ohad@wizery.com> (Ohad
+	Ben-Cohen's message of "Wed, 8 Jun 2011 11:34:20 +0300")
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Ohad Ben-Cohen <ohad@wizery.com>, stepanm@codeaurora.org
+Cc: Arnd Bergmann <arnd@arndb.de>, Joerg Roedel <Joerg.Roedel@amd.com>, linux-kernel@vger.kernel.org, iommu@lists.linux-foundation.org, linux-pci@vger.kernel.org, linux-omap@vger.kernel.org, David Woodhouse <dwmw2@infradead.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Jun 08 2011, Roedel, Joerg wrote:
+On Wed, Jun 08 2011, Ohad Ben-Cohen wrote:
 
-> Great, thanks. I'll apply the patches as soon as the relevant ACKs come
-> in. Looking at the MAINTAINERS file David Brown needs to ACK the MSM
-> patch and David Woodhouse the VT-d patch.
+> This should ease finding similarities with different platforms,
+> with the intention of solving problems once in a generic framework
+> which everyone can use.
 >
-> David B., David W., is this direction ok for both of you?
+> Compile-tested for MSM8X60.
+>
+> Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
+> ---
+>  arch/arm/mach-msm/Kconfig                          |   12 ------------
+>  arch/arm/mach-msm/Makefile                         |    2 +-
+>  drivers/iommu/Kconfig                              |   11 +++++++++++
+>  drivers/iommu/Makefile                             |    1 +
+>  .../mach-msm/iommu.c => drivers/iommu/msm-iommu.c  |    0
+>  5 files changed, 13 insertions(+), 13 deletions(-)
+>  rename arch/arm/mach-msm/iommu.c => drivers/iommu/msm-iommu.c (100%)
 
-I think it is a good direction to move in.  I'll reply to the patch
-directly to comment on it.
+Moving the driver is good.  I'm wondering what we should do with
+iommu_dev.c, though.  Wouldn't it make sense to move this file as well?
 
-> My suggestion is that the ARM tree pulls in the necessary changes from
-> the IOMMU tree and the IOMMU code goes upstream through Ingo or directly
-> to Linus (with some time in linux-next, of course). Thoughts?
-
-This seems the cleanest to me.
+I've added the author, Stepan Moskovchenko, in case he has any feedback.
 
 David
 
