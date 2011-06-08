@@ -1,35 +1,51 @@
-From: Chris Wright <chrisw@sous-sol.org>
-Subject: Re: [PATCH 4/4] x86: intel-iommu: move to drivers/iommu/
-Date: Wed, 8 Jun 2011 10:47:34 -0700
-Message-ID: <20110608174734.GF23047@sequoia.sous-sol.org>
-References: <1307522062-19273-1-git-send-email-ohad@wizery.com>
-	<1307522062-19273-5-git-send-email-ohad@wizery.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: Clock & PM breakage in 3.0-rc2
+Date: Wed, 08 Jun 2011 11:32:47 -0700
+Message-ID: <87zklsi374.fsf@ti.com>
+References: <20110608173143.0b03ebac.jhnikula@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <1307522062-19273-5-git-send-email-ohad@wizery.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, Joerg Roedel <Joerg.Roedel@amd.com>, linux-kernel@vger.kernel.org, iommu@lists.linux-foundation.org, linux-pci@vger.kernel.org, David Brown <davidb@codeaurora.org>, linux-omap@vger.kernel.org, David Woodhouse <dwmw2@infradead.org>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:35686 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750885Ab1FHScv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Jun 2011 14:32:51 -0400
+Received: by mail-pw0-f44.google.com with SMTP id 5so372481pwi.3
+        for <linux-omap@vger.kernel.org>; Wed, 08 Jun 2011 11:32:49 -0700 (PDT)
+In-Reply-To: <20110608173143.0b03ebac.jhnikula@gmail.com> (Jarkko Nikula's
+	message of "Wed, 8 Jun 2011 17:31:43 +0300")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jarkko Nikula <jhnikula@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
-* Ohad Ben-Cohen (ohad@wizery.com) wrote:
-> +
-> +config DMAR
-> +	bool "Support for DMA Remapping Devices (EXPERIMENTAL)"
-> +	depends on PCI_MSI && ACPI && EXPERIMENTAL
+Jarkko Nikula <jhnikula@gmail.com> writes:
 
-You may want to further restrict to x86 and ia64
-And I think you'll need to fixup arch/ia64/Kconfig
+> While debugging another issue I noticed that McBSP2 clock on Nokia N900
+> doesn't get disabled in 3.0-rc2 after calling
+> pm_runtime_put_sync(mcbsp->dev) and the fclk usecount remains active if
+> the pm_runtime_get_sync(mcbsp->dev) was ever called activating it.
+>
+> I believe this affects other drivers too as the system is not able to
+> enter into retention idle even if the mcbsp clocks are off.
+>
+> I traced breakage to commit 638080c ("OMAP2+ / PM: move runtime
+> PM implementation to use device power domains").
+>
+> Reventing that and and 2064af9 ("PM: Revert "driver core: platform_bus:
+> allow runtime override of dev_pm_ops") makes both mcbsp clocks and
+> retention idle working again.
+>
+> Unfortunately I'm not able to see quickly what would be the right fix.
 
-BTW, I think EXPERIMENTAL can be dropped by now.
+This should be fixed in my for_3.0/pm-fixes branch (pull req. sent to
+Tony earlier this week.)
+
+Specifically, the "OMAP: PM: omap_device: fix device power domain callbacks"
+patch should fix your problem
+
+Can you test again with merging that branch from:
+
+    git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git
+
+Kevin
