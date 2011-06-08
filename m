@@ -1,48 +1,40 @@
-From: Carlos Chinea <carlos.chinea@nokia.com>
-Subject: Re: [RFC PATCHv4 0/7] HSI framework and drivers
-Date: Wed, 08 Jun 2011 10:12:45 +0300
-Message-ID: <1307517165.2819.33110.camel@groo>
-References: <1292321383-30200-1-git-send-email-carlos.chinea@nokia.com>
-	 <AANLkTimTfOyhDR6BsHD_1VvzOPGbYqo6L784wPkQMi_8@mail.gmail.com>
-	 <1300787404.8008.116.camel@groo>
-	 <BANLkTincpt8ojK8icvXz4XfkWL9z87VmUA@mail.gmail.com>
-	 <BANLkTikrXb7h_iG+xOvFPozT6w5Nj8nJKw@mail.gmail.com>
-	 <1305621553.24348.5009.camel@groo>  <20110607150910.GA3780@earth.universe>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH] OMAP4: McBSP: Clear rx_irq at probe time
+Date: Wed, 8 Jun 2011 10:51:26 +0300
+Message-ID: <201106081051.27234.peter.ujfalusi@ti.com>
+References: <1305628420-10592-1-git-send-email-peter.ujfalusi@ti.com> <201105181539.46959.peter.ujfalusi@ti.com> <20110531075701.GN11352@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20110607150910.GA3780@earth.universe>
-Sender: linux-kernel-owner@vger.kernel.org
-To: ext Sebastian Reichel <sre@debian.org>
-Cc: ext Linus Walleij <linus.walleij@linaro.org>, Govindraj <govindraj.ti@gmail.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, STEricsson_nomadik_linux <STEricsson_nomadik_linux@list.st.com>, pawel.szyszuk@stericsson.com
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:33068 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754833Ab1FHHvH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Jun 2011 03:51:07 -0400
+In-Reply-To: <20110531075701.GN11352@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Jarkko Nikula <jhnikula@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Girdwood, Liam" <lrg@ti.com>, "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
 
-Hi,
+Hi Tony,
 
-On Tue, 2011-06-07 at 17:09 +0200, ext Sebastian Reichel wrote:
-> On Tue, May 17, 2011 at 11:39:13AM +0300, Carlos Chinea wrote:
-> > We are still committed to these patches. We are aiming to release a new
-> > version in 3 weeks max, sooner if we can.
-> > 
-> > I am very sorry for the delay and I agree that starting to have several
-> > out-of-tree drivers is not acceptable. I'll try my best to fix this
-> > asap.
-> 
-> Do you also plan to add the platform code for rx51 to the mainline
-> kernel?
+On Tuesday 31 May 2011 10:57:02 Tony Lindgren wrote:
+> Sure, but that's the only option we have to merge any new code.
 
-Not yet in this patch set. If the HSI framework makes it into the
-kernel, then I will try to push a couple of new HSI clients needed for
-rx51 and the platform related code.
+So this patch will be not taken (even if without this patch OMAP4 McBSP=
+ is=20
+broken), unless we move the McBSP code out from plat-omap?
 
-> 
-> P.S.: 3 weeks are over today :)
-> 
+I have discussed with Jarkko, and internally about the mcbsp code move.=
+ This=20
+will certainly take some time to figure out a sane way to do this.
+To be hones I would be surprised if we can do this for 3.1...
 
-Yep, we are almost there with the patches :P A small problem in a last
-minute test is keeping us from releasing the patches already.
-
-Br,
--- 
-Carlos Chinea <carlos.chinea@nokia.com>
+Regards,
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
