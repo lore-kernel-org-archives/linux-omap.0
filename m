@@ -1,97 +1,122 @@
-From: "Menon, Nishanth" <nm@ti.com>
-Subject: Re: [pm-wip/cpufreq][PATCH 3/3] OMAP2+: cpufreq: do lateinit
-Date: Tue, 7 Jun 2011 19:28:32 -0500
-Message-ID: <BANLkTikUiOV6rYFbrULVMWkOS23Msy3hXg@mail.gmail.com>
-References: <1307412330-25798-1-git-send-email-nm@ti.com> <1307412330-25798-4-git-send-email-nm@ti.com>
- <8762ohnwgb.fsf@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Nishanth Menon <nm@ti.com>
+Subject: [pm-wip/voltdm_nm][PATCH 10/10] OMAP2+: PM: init_voltages: handle non compliant bootloaders
+Date: Tue,  7 Jun 2011 19:39:28 -0500
+Message-ID: <1307493568-31798-1-git-send-email-nm@ti.com>
+References: <[pm-wip/voltdm_nm][PATCH 00/10] OMAP2+: voltage: fixes>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:34906 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756201Ab1FHA2z convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 7 Jun 2011 20:28:55 -0400
-Received: by mail-ww0-f43.google.com with SMTP id 17so12016wwb.24
-        for <linux-omap@vger.kernel.org>; Tue, 07 Jun 2011 17:28:54 -0700 (PDT)
-In-Reply-To: <8762ohnwgb.fsf@ti.com>
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:52673 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753696Ab1FHAjg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Jun 2011 20:39:36 -0400
+Received: by mail-yx0-f169.google.com with SMTP id 22so335yxn.0
+        for <linux-omap@vger.kernel.org>; Tue, 07 Jun 2011 17:39:35 -0700 (PDT)
+In-Reply-To: <[pm-wip/voltdm_nm][PATCH 00/10] OMAP2+: voltage: fixes>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: kevin <khilman@ti.com>, Nishanth Menon <nm@ti.com>
 
-On Tue, Jun 7, 2011 at 16:49, Kevin Hilman <khilman@ti.com> wrote:
-> Nishanth Menon <nm@ti.com> writes:
->
->> Since we do module_init, cpufreq initializes before power late_init
->> where many of the required data structures are registered.
->
-> What exactly are the dependencies here? =A0The only thing I see is th=
-e
-> dependency on omap2_get_mpuss_device(), and those devices should be
-> created as a postcore_initcall.
->
-> If there are other dependencies, they're probably created a side effe=
-ct
-> of your earlier patches where you moved stuff from the ->init hook
-> (which happens much later) into the initcall function. =A0Maybe that =
-needs
-> a rethink?
->
->> Move cpufreq init to late_initcall instead. Further CONFIG_CPU_FREQ =
-on
->> which the build depends is bool and does'nt support modules yet.
->>
->> Signed-off-by: Nishanth Menon <nm@ti.com>
->
-> If this works, it's only because of the link order defined by the
-> Makefile ordering since both are the same level of initcall.
->
-> When I move this driver to drivers/cpufreq, then the link order is le=
-ss
-> obvious.
+Bootloaders should in theory setup a frequency which is enabled in
+OPP table. However, there can be mismatches, and we should try
+both going lower in addition to the going higher to find
+a match if bootloader boots up at a OPP than the kernel thinks it
+should be allowed. We also sequence the frequency and voltage settings
+properly.
 
-the issue is as follows:
-currently we dont do voltage transitions. when we do that
-eventually(and my current code has an forked implementation of dvfs,
-the following steps happen):
-late_initcall(omap2_common_pm_late_init);
-does pmic inits, omap_voltage_late_init, init_voltages and SR dev initi=
-alization
+Reported-by: Colin Cross <ccross@google.com>
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+PS: Apologies on the spam.. for some reason 10/10 never appeared in 
+http://marc.info/?l=linux-omap&r=2&b=201106&w=2 - grumble grumble :(
 
-without these, there is no way to transition MPU to proper voltage,
-frequency combination. The requirement will have to be that
-omap2-cpufreq.c allows for cpufreq transitions only after voltage and
-clk layers are ready for transitions - if we ever want to do dvfs -
-which we will eventually need to.
+ arch/arm/mach-omap2/pm.c |   55 ++++++++++++++++++++++++++++++++++++---------
+ 1 files changed, 44 insertions(+), 11 deletions(-)
 
-Regards,
-Nishanth Menon
+diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+index 7355347..ce7554b 100644
+--- a/arch/arm/mach-omap2/pm.c
++++ b/arch/arm/mach-omap2/pm.c
+@@ -174,7 +174,9 @@ static int __init omap2_set_init_voltage(char *vdd_name, char *clk_name,
+ 	struct voltagedomain *voltdm;
+ 	struct clk *clk;
+ 	struct opp *opp;
+-	unsigned long freq, bootup_volt;
++	unsigned long freq_cur, freq_valid, bootup_volt;
++	int raise_freq_idx, i;
++	int ret = -EINVAL;
+ 
+ 	if (!vdd_name || !clk_name || !dev) {
+ 		printk(KERN_ERR "%s: Invalid parameters!\n", __func__);
+@@ -195,16 +197,20 @@ static int __init omap2_set_init_voltage(char *vdd_name, char *clk_name,
+ 		goto exit;
+ 	}
+ 
+-	freq = clk->rate;
+-	clk_put(clk);
++	freq_cur = clk->rate;
++	freq_valid = freq_cur;
+ 
+ 	rcu_read_lock();
+-	opp = opp_find_freq_ceil(dev, &freq);
++	opp = opp_find_freq_ceil(dev, &freq_valid);
+ 	if (IS_ERR(opp)) {
+-		rcu_read_unlock();
+-		printk(KERN_ERR "%s: unable to find boot up OPP for vdd_%s\n",
+-			__func__, vdd_name);
+-		goto exit;
++		opp = opp_find_freq_floor(dev, &freq_valid);
++		if (IS_ERR(opp)) {
++			rcu_read_unlock();
++			pr_err("%s: no boot OPP match for %ld on vdd_%s\n",
++				__func__, freq_cur, vdd_name);
++			ret = -ENOENT;
++			goto exit_ck;
++		}
+ 	}
+ 
+ 	bootup_volt = opp_get_voltage(opp);
+@@ -212,11 +218,38 @@ static int __init omap2_set_init_voltage(char *vdd_name, char *clk_name,
+ 	if (!bootup_volt) {
+ 		printk(KERN_ERR "%s: unable to find voltage corresponding"
+ 			"to the bootup OPP for vdd_%s\n", __func__, vdd_name);
+-		goto exit;
++		ret = -ENOENT;
++		goto exit_ck;
+ 	}
+ 
+-	voltdm_scale(voltdm, bootup_volt);
+-	return 0;
++	/*
++	 * Frequency and Voltage have to be sequenced: if we move from
++	 * a lower frequency to higher frequency, raise voltage, followed by
++	 * frequency, and vice versa. we assume that the voltage at boot
++	 * is the required voltage for the frequency it was set for.
++	 */
++	raise_freq_idx = freq_cur < freq_valid;
++	for (i = 0; i < 2; i++) {
++		if (i == raise_freq_idx)
++			ret = clk_set_rate(clk, freq_valid);
++		else
++			ret = voltdm_scale(voltdm, bootup_volt);
++		if (ret < 0) {
++			pr_err("%s: unable to set %s-%s(f=%ld v=%ld)on vdd%s\n",
++				__func__,
++				(i == raise_freq_idx) ? "clk" : "voltage",
++				(i == raise_freq_idx) ? clk_name : vdd_name,
++				freq_valid, bootup_volt, vdd_name);
++			goto exit_ck;
++		}
++	}
++
++	ret = 0;
++exit_ck:
++	clk_put(clk);
++
++	if (!ret)
++		return 0;
+ 
+ exit:
+ 	printk(KERN_ERR "%s: Unable to put vdd_%s to its init voltage\n\n",
+-- 
+1.7.1
 
-
->
-> Kevin
->
->> ---
->> =A0arch/arm/mach-omap2/omap2plus-cpufreq.c | =A0 =A02 +-
->> =A01 files changed, 1 insertions(+), 1 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/omap2plus-cpufreq.c b/arch/arm/mach=
--omap2/omap2plus-cpufreq.c
->> index 2177381..07c2ab9 100644
->> --- a/arch/arm/mach-omap2/omap2plus-cpufreq.c
->> +++ b/arch/arm/mach-omap2/omap2plus-cpufreq.c
->> @@ -273,5 +273,5 @@ static void __exit omap_cpufreq_exit(void)
->>
->> =A0MODULE_DESCRIPTION("cpufreq driver for OMAP2PLUS SOCs");
->> =A0MODULE_LICENSE("GPL");
->> -module_init(omap_cpufreq_init);
->> +late_initcall(omap_cpufreq_init);
->> =A0module_exit(omap_cpufreq_exit);
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
