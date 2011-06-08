@@ -1,54 +1,48 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH v2 03/12] OMAP3: Move common pmic
-	configuration to pmic-common
-Date: Wed, 8 Jun 2011 09:51:30 +0300
-Message-ID: <201106080951.31056.peter.ujfalusi@ti.com>
-References: <1307456297-15010-1-git-send-email-peter.ujfalusi@ti.com>
-	<1307456297-15010-4-git-send-email-peter.ujfalusi@ti.com>
-	<20110607144534.GA27477@atomide.com>
+From: Carlos Chinea <carlos.chinea@nokia.com>
+Subject: Re: [RFC PATCHv4 0/7] HSI framework and drivers
+Date: Wed, 08 Jun 2011 10:12:45 +0300
+Message-ID: <1307517165.2819.33110.camel@groo>
+References: <1292321383-30200-1-git-send-email-carlos.chinea@nokia.com>
+	 <AANLkTimTfOyhDR6BsHD_1VvzOPGbYqo6L784wPkQMi_8@mail.gmail.com>
+	 <1300787404.8008.116.camel@groo>
+	 <BANLkTincpt8ojK8icvXz4XfkWL9z87VmUA@mail.gmail.com>
+	 <BANLkTikrXb7h_iG+xOvFPozT6w5Nj8nJKw@mail.gmail.com>
+	 <1305621553.24348.5009.camel@groo>  <20110607150910.GA3780@earth.universe>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20110607144534.GA27477@atomide.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Samuel Ortiz <sameo@linux.intel.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Girdwood, Liam" <lrg@ti.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20110607150910.GA3780@earth.universe>
+Sender: linux-kernel-owner@vger.kernel.org
+To: ext Sebastian Reichel <sre@debian.org>
+Cc: ext Linus Walleij <linus.walleij@linaro.org>, Govindraj <govindraj.ti@gmail.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, STEricsson_nomadik_linux <STEricsson_nomadik_linux@list.st.com>, pawel.szyszuk@stericsson.com
 List-Id: linux-omap@vger.kernel.org
 
-On Tuesday 07 June 2011 17:45:35 Tony Lindgren wrote:
-> > +#define TWL_COMMON_PDATA_BCI		(1 << 1)
-> > +#define TWL_COMMON_PDATA_MADC		(1 << 2)
-> > +#define TWL_COMMON_PDATA_CODEC		(1 << 3)
-> =
+Hi,
 
-> This is looking good, thanks for cleaning up the twl bloat in
-> board-*.c files :)
+On Tue, 2011-06-07 at 17:09 +0200, ext Sebastian Reichel wrote:
+> On Tue, May 17, 2011 at 11:39:13AM +0300, Carlos Chinea wrote:
+> > We are still committed to these patches. We are aiming to release a new
+> > version in 3 weeks max, sooner if we can.
+> > 
+> > I am very sorry for the delay and I agree that starting to have several
+> > out-of-tree drivers is not acceptable. I'll try my best to fix this
+> > asap.
+> 
+> Do you also plan to add the platform code for rx51 to the mainline
+> kernel?
 
-As I recall the first three patch results ~600 less lines of code under mac=
-h-
-omap2.
+Not yet in this patch set. If the HSI framework makes it into the
+kernel, then I will try to push a couple of new HSI clients needed for
+rx51 and the platform related code.
 
-> Maybe already define TWL_COMMON_PDATA_AUDIO here so you can
-> drop most of patch 7/12?
-> =
+> 
+> P.S.: 3 weeks are over today :)
+> 
 
-> If you need both then you can temporarily have:
-> =
+Yep, we are almost there with the patches :P A small problem in a last
+minute test is keeping us from releasing the patches already.
 
-> #define TWL_COMMON_PDATA_CODEC	TWL_COMMON_PDATA_AUDIO
-
-I have not thought about this.
-But I think we can live with the TWL_COMMON_PDATA_AUDIO all the way.
-I'll wait for more comments, and I'll do this for the v3.
-
-Thanks,
-P=E9ter
+Br,
+-- 
+Carlos Chinea <carlos.chinea@nokia.com>
