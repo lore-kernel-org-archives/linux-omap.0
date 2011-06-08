@@ -1,28 +1,24 @@
-From: Herbert Xu <herbert@gondor.apana.org.au>
-Subject: Re: [PATCH 00/11] crypto: omap-sham driver fixes
-Date: Wed, 8 Jun 2011 21:08:34 +0800
-Message-ID: <20110608130833.GD4582@gondor.apana.org.au>
-References: <cover.1306926921.git.dmitry.kasatkin@gmail.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH 0/4] drivers/iommu/ relocations
+Date: Wed, 8 Jun 2011 16:11:16 +0300
+Message-ID: <BANLkTin5JYt4=gru181N_BuvnHB7kUTUeQ@mail.gmail.com>
+References: <1307522062-19273-1-git-send-email-ohad@wizery.com> <20110608130522.GC29089@parisc-linux.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-crypto-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <cover.1306926921.git.dmitry.kasatkin@gmail.com>
-Sender: linux-crypto-owner@vger.kernel.org
-To: Dmitry Kasatkin <dmitry.s.kasatkin@gmail.com>
-Cc: linux-crypto@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20110608130522.GC29089@parisc-linux.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Matthew Wilcox <matthew@wil.cx>
+Cc: Joerg Roedel <Joerg.Roedel@amd.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, David Brown <davidb@codeaurora.org>, David Woodhouse <dwmw2@infradead.org>, iommu@lists.linux-foundation.org, linux-pci@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jun 02, 2011 at 09:10:02PM +0300, Dmitry Kasatkin wrote:
-> Hi,
-> 
-> Recently we got crashes few times after some other patches to 2.6.32 kernel.
-> This patch set greatly prevents race condition situations.
-> No crashes are noticed any more.
-> Now the driver should be ok for multi core as well.
+On Wed, Jun 8, 2011 at 4:05 PM, Matthew Wilcox <matthew@wil.cx> wrote:
+> You've missed at least parisc, ia64, alpha, sparc, powerpc and sh which
+> have IOMMUs.
 
-All applied to cryptodev.  Thanks Dmitry!
--- 
-Email: Herbert Xu <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+None of these seem to call register_iommu.
+
+> Not that they necessarily all need to be moved across in
+> one patchset, but saying "all iommu drivers" is clearly false.
+
+I've moved only the existing IOMMU API users.
