@@ -1,137 +1,179 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCHv2 04/28] OMAP: DSS2: Handle dpll4_m4_ck in dss_get/put_clocks
-Date: Thu,  9 Jun 2011 16:56:26 +0300
-Message-ID: <1307627810-3768-5-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCHv2 08/28] OMAP: DSS2: rewrite use of context_loss_count
+Date: Thu,  9 Jun 2011 16:56:30 +0300
+Message-ID: <1307627810-3768-9-git-send-email-tomi.valkeinen@ti.com>
 References: <1307627810-3768-1-git-send-email-tomi.valkeinen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:41288 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757817Ab1FIN5O (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Jun 2011 09:57:14 -0400
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:53134 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758027Ab1FIN5W (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Jun 2011 09:57:22 -0400
 In-Reply-To: <1307627810-3768-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 Cc: b-cousson@ti.com, paul@pwsan.com, khilman@ti.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Get and put for dpll4_m4_ck was handled in dss_init/dss_exit. Move the
-code to dss_get/put_clocks(), which is a better place to handle it.
+The function to get device's context loss count has changed from
+
+omap_pm_get_last_off_on_transaction_id() to
+omap_pm_get_dev_context_loss_count()
+
+Change name of the function pointer in omapdss.h accordingly, and use
+the term "context loss count" instead of "context id" in the code.
+
+Restructure the context loss count functions to handle errors properly,
+and ensure that context is always considered lost if an error happens.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/dss/dss.c |   52 ++++++++++++++++++++--------------------
- 1 files changed, 26 insertions(+), 26 deletions(-)
+ arch/arm/mach-omap2/display.c |    2 +-
+ drivers/video/omap2/dss/dss.c |   71 +++++++++++++++++++++++++++--------------
+ drivers/video/omap2/dss/dss.h |    1 -
+ include/video/omapdss.h       |    2 +-
+ 4 files changed, 49 insertions(+), 27 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
-index d0b3f81..bcd4a07 100644
---- a/drivers/video/omap2/dss/dss.c
-+++ b/drivers/video/omap2/dss/dss.c
-@@ -669,7 +669,6 @@ static int dss_init(void)
- 	int r;
- 	u32 rev;
- 	struct resource *dss_mem;
--	struct clk *dpll4_m4_ck;
- 
- 	dss_mem = platform_get_resource(dss.pdev, IORESOURCE_MEM, 0);
- 	if (!dss_mem) {
-@@ -715,26 +714,6 @@ static int dss_init(void)
- 	REG_FLD_MOD(DSS_CONTROL, 1, 3, 3);	/* venc clock 4x enable */
- 	REG_FLD_MOD(DSS_CONTROL, 0, 2, 2);	/* venc clock mode = normal */
- #endif
--	if (cpu_is_omap34xx()) {
--		dpll4_m4_ck = clk_get(NULL, "dpll4_m4_ck");
--		if (IS_ERR(dpll4_m4_ck)) {
--			DSSERR("Failed to get dpll4_m4_ck\n");
--			r = PTR_ERR(dpll4_m4_ck);
--			goto fail1;
--		}
--	} else if (cpu_is_omap44xx()) {
--		dpll4_m4_ck = clk_get(NULL, "dpll_per_m5x2_ck");
--		if (IS_ERR(dpll4_m4_ck)) {
--			DSSERR("Failed to get dpll4_m4_ck\n");
--			r = PTR_ERR(dpll4_m4_ck);
--			goto fail1;
--		}
--	} else { /* omap24xx */
--		dpll4_m4_ck = NULL;
--	}
--
--	dss.dpll4_m4_ck = dpll4_m4_ck;
--
- 	dss.dsi_clk_source[0] = OMAP_DSS_CLK_SRC_FCK;
- 	dss.dsi_clk_source[1] = OMAP_DSS_CLK_SRC_FCK;
- 	dss.dispc_clk_source = OMAP_DSS_CLK_SRC_FCK;
-@@ -749,17 +728,12 @@ static int dss_init(void)
- 
- 	return 0;
- 
--fail1:
--	iounmap(dss.base);
- fail0:
- 	return r;
- }
- 
- static void dss_exit(void)
- {
--	if (dss.dpll4_m4_ck)
--		clk_put(dss.dpll4_m4_ck);
--
- 	iounmap(dss.base);
- }
- 
-@@ -845,6 +819,7 @@ static int dss_get_clock(struct clk **clock, const char *clk_name)
- static int dss_get_clocks(void)
- {
- 	int r;
-+	struct clk *dpll4_m4_ck;
- 	struct omap_display_platform_data *pdata = dss.pdev->dev.platform_data;
- 
- 	dss.dss_ick = NULL;
-@@ -884,6 +859,27 @@ static int dss_get_clocks(void)
- 			goto err;
+diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
+index 543fcb8..084a51b 100644
+--- a/arch/arm/mach-omap2/display.c
++++ b/arch/arm/mach-omap2/display.c
+@@ -117,7 +117,7 @@ int __init omap_display_init(struct omap_dss_board_info *board_data)
  	}
  
-+	if (cpu_is_omap34xx()) {
-+		dpll4_m4_ck = clk_get(NULL, "dpll4_m4_ck");
-+		if (IS_ERR(dpll4_m4_ck)) {
-+			DSSERR("Failed to get dpll4_m4_ck\n");
-+			r = PTR_ERR(dpll4_m4_ck);
-+			goto err;
-+		}
-+	} else if (cpu_is_omap44xx()) {
-+		dpll4_m4_ck = clk_get(NULL, "dpll_per_m5x2_ck");
-+		if (IS_ERR(dpll4_m4_ck)) {
-+			DSSERR("Failed to get dpll_per_m5x2_ck\n");
-+			r = PTR_ERR(dpll4_m4_ck);
-+			goto err;
-+		}
-+	} else { /* omap24xx */
-+		dpll4_m4_ck = NULL;
-+	}
-+
-+	dss.dpll4_m4_ck = dpll4_m4_ck;
-+
-+
- 	return 0;
+ 	pdata.board_data = board_data;
+-	pdata.board_data->get_last_off_on_transaction_id = NULL;
++	pdata.board_data->get_context_loss_count = NULL;
+ 	pdata.opt_clock_available = opt_clock_available;
  
- err:
-@@ -897,12 +893,16 @@ err:
- 		clk_put(dss.dss_tv_fck);
- 	if (dss.dss_video_fck)
- 		clk_put(dss.dss_video_fck);
-+	if (dss.dpll4_m4_ck)
-+		clk_put(dss.dpll4_m4_ck);
+ 	for (i = 0; i < oh_count; i++) {
+diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
+index 57ce428..4f3de35 100644
+--- a/drivers/video/omap2/dss/dss.c
++++ b/drivers/video/omap2/dss/dss.c
+@@ -60,7 +60,7 @@ struct dss_reg {
+ static struct {
+ 	struct platform_device *pdev;
+ 	void __iomem    *base;
+-	int             ctx_id;
++	int		ctx_loss_cnt;
  
- 	return r;
+ 	struct clk	*dpll4_m4_ck;
+ 	struct clk	*dss_ick;
+@@ -665,34 +665,58 @@ void dss_select_hdmi_venc_clk_source(enum dss_hdmi_venc_clk_source_select hdmi)
  }
  
- static void dss_put_clocks(void)
+ /* CONTEXT */
+-static int dss_get_ctx_id(void)
++static void dss_init_ctx_loss_count(void)
  {
-+	if (dss.dpll4_m4_ck)
-+		clk_put(dss.dpll4_m4_ck);
- 	if (dss.dss_video_fck)
- 		clk_put(dss.dss_video_fck);
- 	if (dss.dss_tv_fck)
+-	struct omap_display_platform_data *pdata = dss.pdev->dev.platform_data;
+-	int r;
++	struct device *dev = &dss.pdev->dev;
++	struct omap_display_platform_data *pdata = dev->platform_data;
++	struct omap_dss_board_info *board_data = pdata->board_data;
++	int cnt = 0;
+ 
+-	if (!pdata->board_data->get_last_off_on_transaction_id)
+-		return 0;
+-	r = pdata->board_data->get_last_off_on_transaction_id(&dss.pdev->dev);
+-	if (r < 0) {
+-		dev_err(&dss.pdev->dev, "getting transaction ID failed, "
+-				"will force context restore\n");
+-		r = -1;
+-	}
+-	return r;
++	/*
++	 * get_context_loss_count returns negative on error. We'll ignore the
++	 * error and store the error to ctx_loss_cnt, which will cause
++	 * dss_need_ctx_restore() call to return true.
++	 */
++
++	if (board_data->get_context_loss_count)
++		cnt = board_data->get_context_loss_count(dev);
++
++	WARN_ON(cnt < 0);
++
++	dss.ctx_loss_cnt = cnt;
++
++	DSSDBG("initial ctx_loss_cnt %u\n", cnt);
+ }
+ 
+-int dss_need_ctx_restore(void)
++static bool dss_need_ctx_restore(void)
+ {
+-	int id = dss_get_ctx_id();
++	struct device *dev = &dss.pdev->dev;
++	struct omap_display_platform_data *pdata = dev->platform_data;
++	struct omap_dss_board_info *board_data = pdata->board_data;
++	int cnt;
+ 
+-	if (id < 0 || id != dss.ctx_id) {
+-		DSSDBG("ctx id %d -> id %d\n",
+-				dss.ctx_id, id);
+-		dss.ctx_id = id;
+-		return 1;
+-	} else {
+-		return 0;
++	/*
++	 * If get_context_loss_count is not available, assume that we need
++	 * context restore always.
++	 */
++	if (!board_data->get_context_loss_count)
++		return true;
++
++	cnt = board_data->get_context_loss_count(dev);
++	if (cnt < 0) {
++		dev_err(dev, "getting context loss count failed, will force "
++				"context restore\n");
++		dss.ctx_loss_cnt = cnt;
++		return true;
+ 	}
++
++	if (cnt == dss.ctx_loss_cnt)
++		return false;
++
++	DSSDBG("ctx_loss_cnt %d -> %d\n", dss.ctx_loss_cnt, cnt);
++	dss.ctx_loss_cnt = cnt;
++
++	return true;
+ }
+ 
+ static void save_all_ctx(void)
+@@ -1046,8 +1070,7 @@ static int omap_dsshw_probe(struct platform_device *pdev)
+ 
+ 	dss_clk_enable_all_no_ctx();
+ 
+-	dss.ctx_id = dss_get_ctx_id();
+-	DSSDBG("initial ctx id %u\n", dss.ctx_id);
++	dss_init_ctx_loss_count();
+ 
+ 	/* disable LCD and DIGIT output. This seems to fix the synclost
+ 	 * problem that we get, if the bootloader starts the DSS and
+diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
+index 8ab6d43..aeb611d 100644
+--- a/drivers/video/omap2/dss/dss.h
++++ b/drivers/video/omap2/dss/dss.h
+@@ -226,7 +226,6 @@ void dss_restore_context(void);
+ void dss_clk_enable(enum dss_clock clks);
+ void dss_clk_disable(enum dss_clock clks);
+ unsigned long dss_clk_get_rate(enum dss_clock clk);
+-int dss_need_ctx_restore(void);
+ const char *dss_get_generic_clk_source_name(enum omap_dss_clk_source clk_src);
+ void dss_dump_clocks(struct seq_file *s);
+ 
+diff --git a/include/video/omapdss.h b/include/video/omapdss.h
+index bb39738..4f914a5 100644
+--- a/include/video/omapdss.h
++++ b/include/video/omapdss.h
+@@ -244,7 +244,7 @@ int dsi_vc_send_bta_sync(struct omap_dss_device *dssdev, int channel);
+ 
+ /* Board specific data */
+ struct omap_dss_board_info {
+-	int (*get_last_off_on_transaction_id)(struct device *dev);
++	int (*get_context_loss_count)(struct device *dev);
+ 	int num_devices;
+ 	struct omap_dss_device **devices;
+ 	struct omap_dss_device *default_device;
 -- 
 1.7.4.1
 
