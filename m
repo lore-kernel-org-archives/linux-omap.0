@@ -1,103 +1,328 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v3 12/12] OMAP4: SDP4430: Add twl6040 vibrator platform support
-Date: Thu, 9 Jun 2011 16:30:30 +0300
-Message-ID: <1307626230-29660-13-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v3 05/12] MFD: twl4030-codec: Rename internals
+	from codec to audio
+Date: Thu, 9 Jun 2011 16:30:23 +0300
+Message-ID: <1307626230-29660-6-git-send-email-peter.ujfalusi@ti.com>
 References: <1307626230-29660-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
 In-Reply-To: <1307626230-29660-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
 To: Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Samuel Ortiz <sameo@linux.intel.com>, Dmitry Torokhov <dmitry.torokhov@>
-Cc: linux-input@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org, Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Add twl4030_vibra platform data, and the needed regulators
-for twl6040 vibrator.
+In preparation of renaming the driver from twl4030-codec
+to twl4030-audio, first do some clean ups in the driver,
+which does not cause any problems outside.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- arch/arm/mach-omap2/board-4430sdp.c |   48 +++++++++++++++++++++++++++++++++++
- 1 files changed, 48 insertions(+), 0 deletions(-)
+ drivers/mfd/twl4030-codec.c |  135 ++++++++++++++++++++++---------------------
+ 1 files changed, 68 insertions(+), 67 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index 968029a..266d146 100644
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -22,6 +22,7 @@
- #include <linux/i2c/twl.h>
- #include <linux/gpio_keys.h>
- #include <linux/regulator/machine.h>
-+#include <linux/regulator/fixed.h>
- #include <linux/leds.h>
- #include <linux/leds_pwm.h>
+diff --git a/drivers/mfd/twl4030-codec.c b/drivers/mfd/twl4030-codec.c
+index 2bf4136..e1782b3 100644
+--- a/drivers/mfd/twl4030-codec.c
++++ b/drivers/mfd/twl4030-codec.c
+@@ -1,5 +1,6 @@
+ /*
+- * MFD driver for twl4030 codec submodule
++ * MFD driver for twl4030 audio submodule, which contains an audio codec, and
++ * the vibra control.
+  *
+  * Author: Peter Ujfalusi <peter.ujfalusi@ti.com>
+  *
+@@ -31,53 +32,53 @@
+ #include <linux/mfd/core.h>
+ #include <linux/mfd/twl4030-codec.h>
  
-@@ -276,11 +277,40 @@ static struct platform_device sdp4430_lcd_device = {
- 	.id		= -1,
+-#define TWL4030_CODEC_CELLS	2
++#define TWL4030_AUDIO_CELLS	2
+ 
+-static struct platform_device *twl4030_codec_dev;
++static struct platform_device *twl4030_audio_dev;
+ 
+-struct twl4030_codec_resource {
++struct twl4030_audio_resource {
+ 	int request_count;
+ 	u8 reg;
+ 	u8 mask;
  };
  
-+static struct regulator_consumer_supply sdp4430_vbat_supply[] = {
-+	REGULATOR_SUPPLY("vddvibl", "twl6040-vibra"),
-+	REGULATOR_SUPPLY("vddvibr", "twl6040-vibra"),
-+};
-+
-+static struct regulator_init_data sdp4430_vbat_data = {
-+	.constraints = {
-+		.always_on	= 1,
-+	},
-+	.num_consumer_supplies	= ARRAY_SIZE(sdp4430_vbat_supply),
-+	.consumer_supplies	= sdp4430_vbat_supply,
-+};
-+
-+static struct fixed_voltage_config sdp4430_vbat_pdata = {
-+	.supply_name	= "VBAT",
-+	.microvolts	= 3750000,
-+	.init_data	= &sdp4430_vbat_data,
-+	.gpio		= -EINVAL,
-+};
-+
-+static struct platform_device sdp4430_vbat = {
-+	.name		= "reg-fixed-voltage",
-+	.id		= -1,
-+	.dev = {
-+		.platform_data = &sdp4430_vbat_pdata,
-+	},
-+};
-+
- static struct platform_device *sdp4430_devices[] __initdata = {
- 	&sdp4430_lcd_device,
- 	&sdp4430_gpio_keys_device,
- 	&sdp4430_leds_gpio,
- 	&sdp4430_leds_pwm,
-+	&sdp4430_vbat,
+-struct twl4030_codec {
++struct twl4030_audio {
+ 	unsigned int audio_mclk;
+ 	struct mutex mutex;
+-	struct twl4030_codec_resource resource[TWL4030_CODEC_RES_MAX];
+-	struct mfd_cell cells[TWL4030_CODEC_CELLS];
++	struct twl4030_audio_resource resource[TWL4030_CODEC_RES_MAX];
++	struct mfd_cell cells[TWL4030_AUDIO_CELLS];
  };
  
- static struct omap_lcd_config sdp4430_lcd_config __initdata = {
-@@ -402,7 +432,25 @@ static struct regulator_init_data sdp4430_vusim = {
+ /*
+  * Modify the resource, the function returns the content of the register
+  * after the modification.
+  */
+-static int twl4030_codec_set_resource(enum twl4030_codec_res id, int enable)
++static int twl4030_audio_set_resource(enum twl4030_codec_res id, int enable)
+ {
+-	struct twl4030_codec *codec = platform_get_drvdata(twl4030_codec_dev);
++	struct twl4030_audio *audio = platform_get_drvdata(twl4030_audio_dev);
+ 	u8 val;
+ 
+ 	twl_i2c_read_u8(TWL4030_MODULE_AUDIO_VOICE, &val,
+-			codec->resource[id].reg);
++			audio->resource[id].reg);
+ 
+ 	if (enable)
+-		val |= codec->resource[id].mask;
++		val |= audio->resource[id].mask;
+ 	else
+-		val &= ~codec->resource[id].mask;
++		val &= ~audio->resource[id].mask;
+ 
+ 	twl_i2c_write_u8(TWL4030_MODULE_AUDIO_VOICE,
+-					val, codec->resource[id].reg);
++					val, audio->resource[id].reg);
+ 
+ 	return val;
+ }
+ 
+-static inline int twl4030_codec_get_resource(enum twl4030_codec_res id)
++static inline int twl4030_audio_get_resource(enum twl4030_codec_res id)
+ {
+-	struct twl4030_codec *codec = platform_get_drvdata(twl4030_codec_dev);
++	struct twl4030_audio *audio = platform_get_drvdata(twl4030_audio_dev);
+ 	u8 val;
+ 
+ 	twl_i2c_read_u8(TWL4030_MODULE_AUDIO_VOICE, &val,
+-			codec->resource[id].reg);
++			audio->resource[id].reg);
+ 
+ 	return val;
+ }
+@@ -88,24 +89,24 @@ static inline int twl4030_codec_get_resource(enum twl4030_codec_res id)
+  */
+ int twl4030_codec_enable_resource(enum twl4030_codec_res id)
+ {
+-	struct twl4030_codec *codec = platform_get_drvdata(twl4030_codec_dev);
++	struct twl4030_audio *audio = platform_get_drvdata(twl4030_audio_dev);
+ 	int val;
+ 
+ 	if (id >= TWL4030_CODEC_RES_MAX) {
+-		dev_err(&twl4030_codec_dev->dev,
++		dev_err(&twl4030_audio_dev->dev,
+ 				"Invalid resource ID (%u)\n", id);
+ 		return -EINVAL;
+ 	}
+ 
+-	mutex_lock(&codec->mutex);
+-	if (!codec->resource[id].request_count)
++	mutex_lock(&audio->mutex);
++	if (!audio->resource[id].request_count)
+ 		/* Resource was disabled, enable it */
+-		val = twl4030_codec_set_resource(id, 1);
++		val = twl4030_audio_set_resource(id, 1);
+ 	else
+-		val = twl4030_codec_get_resource(id);
++		val = twl4030_audio_get_resource(id);
+ 
+-	codec->resource[id].request_count++;
+-	mutex_unlock(&codec->mutex);
++	audio->resource[id].request_count++;
++	mutex_unlock(&audio->mutex);
+ 
+ 	return val;
+ }
+@@ -117,31 +118,31 @@ EXPORT_SYMBOL_GPL(twl4030_codec_enable_resource);
+  */
+ int twl4030_codec_disable_resource(unsigned id)
+ {
+-	struct twl4030_codec *codec = platform_get_drvdata(twl4030_codec_dev);
++	struct twl4030_audio *audio = platform_get_drvdata(twl4030_audio_dev);
+ 	int val;
+ 
+ 	if (id >= TWL4030_CODEC_RES_MAX) {
+-		dev_err(&twl4030_codec_dev->dev,
++		dev_err(&twl4030_audio_dev->dev,
+ 				"Invalid resource ID (%u)\n", id);
+ 		return -EINVAL;
+ 	}
+ 
+-	mutex_lock(&codec->mutex);
+-	if (!codec->resource[id].request_count) {
+-		dev_err(&twl4030_codec_dev->dev,
++	mutex_lock(&audio->mutex);
++	if (!audio->resource[id].request_count) {
++		dev_err(&twl4030_audio_dev->dev,
+ 			"Resource has been disabled already (%u)\n", id);
+-		mutex_unlock(&codec->mutex);
++		mutex_unlock(&audio->mutex);
+ 		return -EPERM;
+ 	}
+-	codec->resource[id].request_count--;
++	audio->resource[id].request_count--;
+ 
+-	if (!codec->resource[id].request_count)
++	if (!audio->resource[id].request_count)
+ 		/* Resource can be disabled now */
+-		val = twl4030_codec_set_resource(id, 0);
++		val = twl4030_audio_set_resource(id, 0);
+ 	else
+-		val = twl4030_codec_get_resource(id);
++		val = twl4030_audio_get_resource(id);
+ 
+-	mutex_unlock(&codec->mutex);
++	mutex_unlock(&audio->mutex);
+ 
+ 	return val;
+ }
+@@ -149,15 +150,15 @@ EXPORT_SYMBOL_GPL(twl4030_codec_disable_resource);
+ 
+ unsigned int twl4030_codec_get_mclk(void)
+ {
+-	struct twl4030_codec *codec = platform_get_drvdata(twl4030_codec_dev);
++	struct twl4030_audio *audio = platform_get_drvdata(twl4030_audio_dev);
+ 
+-	return codec->audio_mclk;
++	return audio->audio_mclk;
+ }
+ EXPORT_SYMBOL_GPL(twl4030_codec_get_mclk);
+ 
+-static int __devinit twl4030_codec_probe(struct platform_device *pdev)
++static int __devinit twl4030_audio_probe(struct platform_device *pdev)
+ {
+-	struct twl4030_codec *codec;
++	struct twl4030_audio *audio;
+ 	struct twl4030_codec_data *pdata = pdev->dev.platform_data;
+ 	struct mfd_cell *cell = NULL;
+ 	int ret, childs = 0;
+@@ -187,33 +188,33 @@ static int __devinit twl4030_codec_probe(struct platform_device *pdev)
+ 	twl_i2c_write_u8(TWL4030_MODULE_AUDIO_VOICE,
+ 					val, TWL4030_REG_APLL_CTL);
+ 
+-	codec = kzalloc(sizeof(struct twl4030_codec), GFP_KERNEL);
+-	if (!codec)
++	audio = kzalloc(sizeof(struct twl4030_audio), GFP_KERNEL);
++	if (!audio)
+ 		return -ENOMEM;
+ 
+-	platform_set_drvdata(pdev, codec);
++	platform_set_drvdata(pdev, audio);
+ 
+-	twl4030_codec_dev = pdev;
+-	mutex_init(&codec->mutex);
+-	codec->audio_mclk = pdata->audio_mclk;
++	twl4030_audio_dev = pdev;
++	mutex_init(&audio->mutex);
++	audio->audio_mclk = pdata->audio_mclk;
+ 
+ 	/* Codec power */
+-	codec->resource[TWL4030_CODEC_RES_POWER].reg = TWL4030_REG_CODEC_MODE;
+-	codec->resource[TWL4030_CODEC_RES_POWER].mask = TWL4030_CODECPDZ;
++	audio->resource[TWL4030_CODEC_RES_POWER].reg = TWL4030_REG_CODEC_MODE;
++	audio->resource[TWL4030_CODEC_RES_POWER].mask = TWL4030_CODECPDZ;
+ 
+ 	/* PLL */
+-	codec->resource[TWL4030_CODEC_RES_APLL].reg = TWL4030_REG_APLL_CTL;
+-	codec->resource[TWL4030_CODEC_RES_APLL].mask = TWL4030_APLL_EN;
++	audio->resource[TWL4030_CODEC_RES_APLL].reg = TWL4030_REG_APLL_CTL;
++	audio->resource[TWL4030_CODEC_RES_APLL].mask = TWL4030_APLL_EN;
+ 
+ 	if (pdata->audio) {
+-		cell = &codec->cells[childs];
++		cell = &audio->cells[childs];
+ 		cell->name = "twl4030-codec";
+ 		cell->platform_data = pdata->audio;
+ 		cell->pdata_size = sizeof(*pdata->audio);
+ 		childs++;
+ 	}
+ 	if (pdata->vibra) {
+-		cell = &codec->cells[childs];
++		cell = &audio->cells[childs];
+ 		cell->name = "twl4030-vibra";
+ 		cell->platform_data = pdata->vibra;
+ 		cell->pdata_size = sizeof(*pdata->vibra);
+@@ -221,7 +222,7 @@ static int __devinit twl4030_codec_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	if (childs)
+-		ret = mfd_add_devices(&pdev->dev, pdev->id, codec->cells,
++		ret = mfd_add_devices(&pdev->dev, pdev->id, audio->cells,
+ 				      childs, NULL, 0);
+ 	else {
+ 		dev_err(&pdev->dev, "No platform data found for childs\n");
+@@ -232,45 +233,45 @@ static int __devinit twl4030_codec_probe(struct platform_device *pdev)
+ 		return 0;
+ 
+ 	platform_set_drvdata(pdev, NULL);
+-	kfree(codec);
+-	twl4030_codec_dev = NULL;
++	kfree(audio);
++	twl4030_audio_dev = NULL;
+ 	return ret;
+ }
+ 
+-static int __devexit twl4030_codec_remove(struct platform_device *pdev)
++static int __devexit twl4030_audio_remove(struct platform_device *pdev)
+ {
+-	struct twl4030_codec *codec = platform_get_drvdata(pdev);
++	struct twl4030_audio *audio = platform_get_drvdata(pdev);
+ 
+ 	mfd_remove_devices(&pdev->dev);
+ 	platform_set_drvdata(pdev, NULL);
+-	kfree(codec);
+-	twl4030_codec_dev = NULL;
++	kfree(audio);
++	twl4030_audio_dev = NULL;
+ 
+ 	return 0;
+ }
+ 
+ MODULE_ALIAS("platform:twl4030-audio");
+ 
+-static struct platform_driver twl4030_codec_driver = {
+-	.probe		= twl4030_codec_probe,
+-	.remove		= __devexit_p(twl4030_codec_remove),
++static struct platform_driver twl4030_audio_driver = {
++	.probe		= twl4030_audio_probe,
++	.remove		= __devexit_p(twl4030_audio_remove),
+ 	.driver		= {
+ 		.owner	= THIS_MODULE,
+ 		.name	= "twl4030-audio",
  	},
  };
  
-+static struct twl4030_vibra_data twl6040_vibra = {
-+	.vibldrv_res = 8,
-+	.vibrdrv_res = 3,
-+	.viblmotor_res = 10,
-+	.vibrmotor_res = 10,
-+	.vddvibl_uV = 0,	/* fixed volt supply - VBAT */
-+	.vddvibr_uV = 0,	/* fixed volt supply - VBAT */
-+};
-+
-+static struct twl4030_audio_data twl6040_audio = {
-+	.codec		= NULL,
-+	.vibra		= &twl6040_vibra,
-+	.audpwron_gpio	= 127,
-+	.naudint_irq	= OMAP44XX_IRQ_SYS_2N,
-+	.irq_base	= TWL6040_CODEC_IRQ_BASE,
-+};
-+
- static struct twl4030_platform_data sdp4430_twldata = {
-+	.audio		= &twl6040_audio,
- 	/* Regulators */
- 	.vusim		= &sdp4430_vusim,
- 	.vaux1		= &sdp4430_vaux1,
+-static int __devinit twl4030_codec_init(void)
++static int __devinit twl4030_audio_init(void)
+ {
+-	return platform_driver_register(&twl4030_codec_driver);
++	return platform_driver_register(&twl4030_audio_driver);
+ }
+-module_init(twl4030_codec_init);
++module_init(twl4030_audio_init);
+ 
+-static void __devexit twl4030_codec_exit(void)
++static void __devexit twl4030_audio_exit(void)
+ {
+-	platform_driver_unregister(&twl4030_codec_driver);
++	platform_driver_unregister(&twl4030_audio_driver);
+ }
+-module_exit(twl4030_codec_exit);
++module_exit(twl4030_audio_exit);
+ 
+ MODULE_AUTHOR("Peter Ujfalusi <peter.ujfalusi@ti.com>");
+ MODULE_LICENSE("GPL");
 -- 
 1.7.5.3
