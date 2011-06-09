@@ -1,93 +1,149 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [linux-pm] calling runtime PM from system PM methods
-Date: Wed, 08 Jun 2011 15:50:03 -0700
-Message-ID: <87hb80546c.fsf@ti.com>
-References: <Pine.LNX.4.44L0.1106021010360.1913-100000@iolanthe.rowland.org>
-	<201106062029.36389.rjw@sisk.pl> <87zkluwqab.fsf@ti.com>
-	<201106072332.30464.rjw@sisk.pl>
+From: Alexander Holler <holler@ahsoftware.de>
+Subject: Re: [PATCH] arm: omap3: beagle: Ensure msecure is mux'd to be able
+ to set the RTC
+Date: Thu, 09 Jun 2011 02:21:34 +0200
+Message-ID: <4DF0120E.5030204@ahsoftware.de>
+References: <4D9AEB76.2060509@ahsoftware.de> <1302010808-3065-1-git-send-email-holler@ahsoftware.de> <20110531102903.GU11352@atomide.com> <4DEDDAF6.2070505@ahsoftware.de> <4DEDF451.1080604@compulab.co.il> <4DEE0858.2020308@ahsoftware.de> <4DEFF035.4070004@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:44286 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752090Ab1FHWuG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Jun 2011 18:50:06 -0400
-Received: by pxi20 with SMTP id 20so618126pxi.41
-        for <linux-omap@vger.kernel.org>; Wed, 08 Jun 2011 15:50:05 -0700 (PDT)
-In-Reply-To: <201106072332.30464.rjw@sisk.pl> (Rafael J. Wysocki's message of
-	"Tue, 7 Jun 2011 23:32:30 +0200")
+Received: from h1446028.stratoserver.net ([85.214.92.142]:44766 "EHLO
+	mail.ahsoftware.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750880Ab1FIAVv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Jun 2011 20:21:51 -0400
+Received: from eiche.ahsoftware (p57B21592.dip0.t-ipconnect.de [87.178.21.146])
+	(using TLSv1 with cipher ADH-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mail.ahsoftware.de (Postfix) with ESMTPSA id ACB6E4344AD
+	for <linux-omap@vger.kernel.org>; Thu,  9 Jun 2011 02:21:48 +0200 (CEST)
+In-Reply-To: <4DEFF035.4070004@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>, Paul Walmsley <paul@pwsan.com>
+To: Igor Grinberg <grinberg@compulab.co.il>
+Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-"Rafael J. Wysocki" <rjw@sisk.pl> writes:
+On 08.06.2011 23:57, Igor Grinberg wrote:
+> On 06/07/11 14:15, Alexander Holler wrote:
+> 
+>> Am 07.06.2011 11:50, schrieb Igor Grinberg:
+>>> On 06/07/11 11:01, Alexander Holler wrote:
+>>>
+>>>> Am 31.05.2011 12:29, schrieb Tony Lindgren:
+>>>>> * Alexander Holler<holler@ahsoftware.de>   [110405 06:38]:
+>>>>>> Without msecure beeing high it isn't possible to set (or start)
+>>>>>> the RTC.
+>>>>>>
+>>>>>> Tested with a BeagleBoard C4.
+>>>>>
+>>>>> Adding this into fixes.
+>>>>>
+>>>>> Tony
+>>>>>
+>>>>>> Signed-off-by: Alexander Holler<holler@ahsoftware.de>
+>>>>>> ---
+>>>>>>    arch/arm/mach-omap2/board-omap3beagle.c |    3 +++
+>>>>>>    1 files changed, 3 insertions(+), 0 deletions(-)
+>>>>>>
+>>>>>> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+>>>>>> index 46d814a..ebe3a7e 100644
+>>>>>> --- a/arch/arm/mach-omap2/board-omap3beagle.c
+>>>>>> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
+>>>>>> @@ -628,6 +628,9 @@ static void __init omap3_beagle_init(void)
+>>>>>>        usb_ehci_init(&ehci_pdata);
+>>>>>>        omap3beagle_flash_init();
+>>>>>>
+>>>>>> +    /* Ensure msecure is mux'd to be able to set the RTC. */
+>>>>>> +    omap_mux_init_signal("sys_drm_msecure", OMAP_PIN_OFF_OUTPUT_HIGH);
+>>>>>> +
+>>>>>>        /* Ensure SDRC pins are mux'd for self-refresh */
+>>>>>>        omap_mux_init_signal("sdrc_cke0", OMAP_PIN_OUTPUT);
+>>>>>>        omap_mux_init_signal("sdrc_cke1", OMAP_PIN_OUTPUT);
+>>>>>> -- 
+>>>>>> 1.7.3.4
+>>>>>>
+>>>>
+>>>> I've later switched to the following patch which muxes msecure as GPIO (the drm-mode isn't explained in the TRM) and also exports the GPIO, so root could easily switch it to prevent modifications on the RTC.
+>>>>
+>>>> (Warning, either my clipboard or the version of Thunderbird I'm currently using replaces the tabs with spaces in the pasted patch and I'm currently too lazy to search a workaround).
+>>>>
+>>>> ---
+>>>>   arch/arm/mach-omap2/board-omap3beagle.c |    6 ++++++
+>>>>   1 files changed, 6 insertions(+), 0 deletions(-)
+>>>>
+>>>> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+>>>> index 33007fd..24b4417 100644
+>>>> --- a/arch/arm/mach-omap2/board-omap3beagle.c
+>>>> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
+>>>> @@ -673,6 +673,12 @@ static void __init omap3_beagle_init(void)
+>>>>          usbhs_init(&usbhs_bdata);
+>>>>          omap3beagle_flash_init();
+>>>>
+>>>> +       /* Ensure msecure is high to be able to set the RTC. */
+>>>> +       omap_mux_init_signal("gpio_22", OMAP_PIN_OFF_OUTPUT_HIGH);
+>>>> +       gpio_request(22, "msecure");
+>>>> +       gpio_direction_output(22, true);
+>>>
+>>> Can this be gpio_request_one() instead, please?
+>>> Also, it will be nice to make a define for the magic 22.
+>>
+>> You need the "gpio_22" in the mux_init, so using a define would imho introduce a potential source for an error, at least when the define would not be anywhere near the "gpio_22" and someone would forget change the string too, when he changes the define. So I don't think a define adds much value there.
+> 
+> Why not leave "sys_drm_msecure" for mux_init, or does it make troubles on XM?
 
-[...]
+There is nothing wrong with the small patch which uses sys_drm_msecure.
+It's short and does everything which is needed to use the RTC. I've
+posted the solution with the use of the GPIO-mode only as an alternative
+because the drm-mode isn't explained in the TRM (I assume one has to
+sign a NDA to get more informations on that).
+So it is not obvious what my first patch does. Using sys_drm_msecure
+works because it seems to be always off, at least on the BeagleBoards.
+The additional functionality in my second patch to turn off possible
+modifications on the RTC through switching the GPIO is most likely just
+an educational feature, I don't think someone will ever use that.
+I don't have any preferences which solution will end in the kernel, I
+just wanted to offer the second one too.
 
-> you need to separate the system suspend handling from runtime PM.
+> What about gpio_request_one()? To conform with the rest of the file and mach-omap2/*.
 
-/me risks getting yelled at again and jumps back in ;)
+Below is an updated version. The gpio_export() might be removed too.
 
-> Each of them requires a different approach, because the goal is really
-> different in both cases (basically, runtime PM triggers when the
-> device is _known_ to be idle, while system suspend may trigger while
-> it's actually being used).
+Regards,
 
-OK, but from the driver's perspective, the goals do not seem all that
-different to me:
+Alexander
 
-Runtime suspend
-1. activity
-2. activity finishes
-3. device is _known_ to be idle
-4. trigger device low-power transition 
 
-system suspend [echo mem > /sys/power/state]
-1. activity
-2. prevent future activity, halt/wait for current activity
-3. device is _known_ to be idle
-4. trigger device low-power transition
+From: Alexander Holler <holler@ahsoftware.de>
+Date: Thu, 19 May 2011 11:42:05 +0200
+Subject: [PATCH v3] arm: omap3: beagle: Ensure msecure is mux'd and high
+to be able to set the RTC
 
-The only difference is step 2.  In runtime suspend, the activity
-finishes on its own, in system suspend, the activity is forcibly
-stopped.  In either case, after that point the device is known to be
-idle, and proceeding from there is identical.  IOW, based on the above,
-another way of looking at system PM is forcing idle so that runtime PM
-can happen.
+Without msecure beeing high it isn't possible to set (or start)
+the RTC.
 
-I think it's important to note the similarities as well as the
-differences.  Maybe I'm still really blind here, but I cannot see how
-they can be completely decoupled.
+Tested with a BeagleBoard C4.
 
-More specifically, what should be the approach in system suspend when a
-device is already runtime suspended?  If you treat runtime and system PM
-as completely independent, you would have to runtime resume the device
-so that it can then be immediately system suspended.
+Signed-off-by: Alexander Holler <holler@ahsoftware.de>
+---
+ arch/arm/mach-omap2/board-omap3beagle.c |    5 +++++
+ 1 files changed, 5 insertions(+), 0 deletions(-)
 
-For many (if not all) devices though, what I suspect we would want is
-for devices that are runtime suspended to stay runtime suspended across
-a system suspend *and* resume.  That would mean that the device power
-domain would not call system PM callbacks on devices that are runtime
-suspended.
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c
+b/arch/arm/mach-omap2/board-omap3beagle.c
+index 33007fd..4c9e26e 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -673,6 +673,11 @@ static void __init omap3_beagle_init(void)
+ 	usbhs_init(&usbhs_bdata);
+ 	omap3beagle_flash_init();
 
-At least for device power domains where the low-power state is identical
-between runtime suspend and system suspend, this makes a lot of sense
-(to me.)  Device power domain ->suspend might look something like this
-(obviously not tested):
-
-    if (pm_runtime_suspended(dev))
-        return;
-
-    pm_generic_suspend(dev);       
-    magic_device_idle(dev); /* HW-specific, shared with runtime PM */
-    priv->flags |= MY_DEVICE_SYS_SUSPENDED;
-
-and ->resume():
-
-   if (priv->flags & MY_DEVICE_SYS_SUSPENDED) {
-       magic_device_enable(dev);
-       pm_generic_resume(dev);    
-  }
-
-Kevin
++	/* Ensure msecure is high to be able to set the RTC. */
++	omap_mux_init_signal("gpio_22", OMAP_PIN_OFF_OUTPUT_HIGH);
++	gpio_request_one(22, GPIOF_OUT_INIT_HIGH, "msecure");
++	gpio_export(22, false);
++
+ 	/* Ensure SDRC pins are mux'd for self-refresh */
+ 	omap_mux_init_signal("sdrc_cke0", OMAP_PIN_OUTPUT);
+ 	omap_mux_init_signal("sdrc_cke1", OMAP_PIN_OUTPUT);
+-- 
+1.7.3.4
