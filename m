@@ -1,260 +1,201 @@
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: Re: [PATCH/RFC 2/6] OMAP2+: PM: move runtime PM implementation to
- use device power domains
-Date: Thu, 09 Jun 2011 17:30:47 +0300
-Message-ID: <4DF0D917.905@maxwell.research.nokia.com>
-References: <1302134569-22825-1-git-send-email-khilman@ti.com> <1302134569-22825-3-git-send-email-khilman@ti.com>
+From: "Raju, Sundaram" <sundaram@ti.com>
+Subject: RE: [RFC] dmaengine: add new api for preparing simple slave transfer
+Date: Thu, 9 Jun 2011 21:31:56 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E940301FE2EFB@dbde02.ent.ti.com>
+References: <E0D41E29EB0DAC4E9F3FF173962E9E940301FE2DED@dbde02.ent.ti.com>
+ <20110609124723.GA24636@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:57395 "EHLO mgw-sa01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750899Ab1FIObM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 9 Jun 2011 10:31:12 -0400
-In-Reply-To: <1302134569-22825-3-git-send-email-khilman@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:43967 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752252Ab1FIQCP convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Jun 2011 12:02:15 -0400
+In-Reply-To: <20110609124723.GA24636@n2100.arm.linux.org.uk>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Felipe Balbi <balbi@ti.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Kevin and Felipe,
+Here it is, with proper line wrapping;
 
-Kevin Hilman wrote:
-> In commit 7538e3db6e015e890825fbd9f8659952896ddd5b (PM: add support
-> for device power domains) a better way for handling platform-specific
-> power hooks was introduced.
-> 
-> Rather than using the platform_bus dev_pm_ops overrides
-> (platform_bus_set_pm_ops()), this patch moves the OMAP runtime PM
-> implementation over to using device power domains.
-> 
-> Since OMAP is the only user of platform_bus_set_pm_ops(), that
-> interface can be removed (and will be in a forthcoming patch.)
+SDMA and EDMA are TI SoC specific DMA controllers. Their drivers have 
+been maintained in the respective SoC folders till now.
+arch/arm/plat-omap/dma.c
+arch/arm/mach-davinci/dma.c
 
-I have little doubt of the correctness of the patch itself, but it
-actually does break the USB on N900. I don't know PM so well that I
-would have a good idea what might be going wrong here, so I'm not
-certain that this is specific to the N900 either.
+I have gone through the existing offload engine (DMA) drivers in 
+drivers/dma which do slave transfers.
+I would like to move SDMA and EDMA also to dmaengine framework.
 
-It looks strange to me also but I've tested it several times so I'm
-fairly certain that the culprit is this very patch. :-) I'm using NFS
-root and the device fails to respond to ping with the patch although it
-can be clearly recognised by the host, and it also recognises the host.
-It seems just that the data doesn't get through.
+I believe that even though the dmaengine framework addresses and 
+supports most of the required use cases of a client driver to a DMA 
+controller, some extensions are required in it to make it still more 
+generic.
 
-My .config may be found here:
+Current framework contains two APIs to prepare for slave transfers: 
 
-<URL:http://www.retiisi.org.uk/~sakke/foo/.config>
+struct dma_async_tx_descriptor *(*device_prep_slave_sg)(
+		struct dma_chan *chan, struct scatterlist *sgl,
+		unsigned int sg_len, enum dma_data_direction direction,
+		unsigned long flags);
 
-And the respective boot logs, without and with the patch, are here:
+struct dma_async_tx_descriptor *(*device_prep_dma_cyclic)(
+		struct dma_chan *chan, dma_addr_t buf_addr, size_t buf_len,
+		size_t period_len, enum dma_data_direction direction);
 
-<URL:http://www.retiisi.org.uk/~sakke/foo/boot-success.txt>
-<URL:http://www.retiisi.org.uk/~sakke/foo/boot-fail.txt>
+and one control API. 
+int (*device_control)(struct dma_chan *chan, enum dma_ctrl_cmd cmd,
+		unsigned long arg);
 
-They're mostly the same.
+A simple single buffer transfer (i.e. non sg transfer) can be done only
+as a trivial case of the device_prep_slave_sg API. The client driver is
+expected to prepare a sg list and provide to the dmaengine API for that
+single buffer also.
 
-There's no difference on host side logs either. The first connection is
-with the patch, whereas the second one is without:
+In a slave transfer, the client has to define all the buffer related 
+attributes and the peripheral related attributes. 
 
----
-usb 5-2.1: new high speed USB device using ehci_hcd and address 42
-cdc_ether 5-2.1:1.0: usb0: register 'cdc_ether' at usb-0000:00:1d.7-2.1,
-CDC Ethernet Device, 0a:3b:20:fa:58:eb
-device usb0 entered promiscuous mode
-eth-usb: port 2(usb0) entering learning state
-eth-usb: port 2(usb0) entering learning state
-eth-usb: port 2(usb0) entering forwarding state
-usb 5-2.1: USB disconnect, address 42
-cdc_ether 5-2.1:1.0: usb0: unregister 'cdc_ether' usb-0000:00:1d.7-2.1,
-CDC Ethernet Device
-eth-usb: port 2(usb0) entering forwarding state
-device usb0 left promiscuous mode
-eth-usb: port 2(usb0) entering disabled state
-usb 5-2.1: new high speed USB device using ehci_hcd and address 43
-usb 5-2.1: USB disconnect, address 43
-usb 5-2.1: new high speed USB device using ehci_hcd and address 44
-cdc_ether 5-2.1:1.0: usb0: register 'cdc_ether' at usb-0000:00:1d.7-2.1,
-CDC Ethernet Device, 4a:bc:09:bb:ba:98
-device usb0 entered promiscuous mode
-eth-usb: port 2(usb0) entering learning state
-eth-usb: port 2(usb0) entering learning state
-eth-usb: port 2(usb0) entering learning state
-eth-usb: port 2(usb0) entering learning state
-eth-usb: port 2(usb0) entering learning state
-eth-usb: port 2(usb0) entering forwarding state
-usb 5-2.1: USB disconnect, address 44
----
+The above 2 APIs in the dmaengine framework expect all the 
+peripheral/slave related attributes to be filled in the 
+dma_slave_config data structure. 
+struct dma_slave_config {
+        enum dma_data_direction direction;
+        dma_addr_t src_addr;
+        dma_addr_t dst_addr;
+        enum dma_slave_buswidth src_addr_width;
+        enum dma_slave_buswidth dst_addr_width;
+        u32 src_maxburst;
+        u32 dst_maxburst;
+};
 
-Any ideas?
+This data structure is passed to the offload engine via the dma_chan 
+data structure in its private pointer.
 
-The id of the patch in the mainline kernel is
-638080c37ae08fd0c44cec13d7948ca5385ae851 .
+Now coming to the buffer related attributes, sg list is a nice way to 
+represent a disjoint buffer; all the offload engines in drivers/dma 
+create a descriptor for each of the contiguous chunk in the sg list 
+buffer and pass it to the controller. 
+
+But many a times a client may want to transfer from a single buffer to
+the peripheral and most of the DMA controllers have the capability to 
+transfer data in chunks/frames directly at a stretch. 
+All the attributes of a buffer, which are required for the transfer 
+can be programmed in single descriptor and submitted to the 
+DMA controller. 
+
+So I think the slave transfer API must also have a provision to pass 
+the buffer configuration. The buffer attributes have to be passed 
+directly as an argument in the prepare API, unlike dma_slave_config 
+as they will be different for each buffer that is going to be 
+transferred. 
+
+It is a stretch and impractical to use a highly segmented buffer (like
+the one described below) in a sglist. This is because sg list itself 
+is a representation of a disjoint buffer collection in terms of 
+smaller buffers. Now then each of these smaller buffers can have 
+different buffer configurations (like described below) and we are not 
+going to go down that road now. 
+
+Hence it makes sense to pass these buffer attributes for only a single
+buffer transfer and not a sg list. 
+This can be done by OPTION #1 
+1. Adding a pointer of the dma_buffer_config data structure in the 
+device_prep_slave_sg API.
+2. Ensuring that it will be ignored if a sg list passed. 
+Only when a single buffer is passed (in the sg list) then this buffer 
+configuration will be used.
+3. Any client that wants to do a sg transfer can simply ignore this 
+buffer configuration and pass NULL.
+The main disadvantage of this option is that all the existing drivers 
+need to be updated since the API signature is changed.
+
+It might even be better to have a separate API for non sg transfers.
+This is OPTION #2 
+Advantages of this option are 
+1. No change required in the existing drivers that use 
+device_prep_slave_sg API. 
+2. If any offload engine wants to prepare a simple buffer transfer 
+differently and not as a trivial case of a sg list, 
+this will be useful. 
+I know this can be done using 2 different implementations inside the 
+device_prep_slave_sg itself, but I think it's cleaner to have 
+different APIs. I have provided the generic buffer configuration 
+I can think of, here and also a new API definition, 
+if it makes sense to have one. This buffer configuration might not 
+be completely generic, and hence I ask all of you to please provide 
+comments to improve it. 
+
+Generic buffer description: 
+A generic buffer can be split into number of frames which contain 
+number of chunks inside them. The frames need not be contiguous, 
+nor do the chunks inside a frame. 
+
+-------------------------------------------------------------------
+ | Chunk 0 |ICG| Chunk 1 |ICG| ... |ICG| Chunk n | Frame 0 
+-------------------------------------------------------------------
+ |		Inter Frame Gap			     | 
+-------------------------------------------------------------------
+ | Chunk 0 |ICG| Chunk 1 |ICG| ... |ICG| Chunk n | Frame 1 
+-------------------------------------------------------------------
+ |		Inter Frame Gap			     | 
+-------------------------------------------------------------------
+ |		........					     | 
+-------------------------------------------------------------------
+ |		Inter Frame Gap			     | 
+-------------------------------------------------------------------
+ | Chunk 0 |ICG| Chunk 1 |ICG| ... |ICG| Chunk n | Frame m 
+-------------------------------------------------------------------
+
+Note: ICG = Inter Chunk Gap.
+
+struct dma_buffer_config {
+	u32 chunk_size; /* number of bytes in a chunk */
+	u32 frame_size; /* number of chunks in a frame */
+	/* u32 n_frames; number of frames in the buffer */
+	u32 inter_chunk_gap; /* number of bytes between end of a chunk 
+				and the start of the next chunk */ 
+	u32 inter_frame_gap; /* number of bytes between end of a frame 
+				and the start of the next frame */ 
+	bool sync_rate; /* 0 - a sync event is required from the 
+				peripheral to transfer a chunk 
+			1 - a sync event is required from the 
+				peripheral to transfer a frame */ 
+};
+
+The patch to add a new API for single buffer transfers alone: 
+diff --git a/include/linux/dmaengine.h b/include/linux/dmaengine.h
+@@ -491,6 +492,10 @@ struct dma_device {
+		struct dma_chan *chan, struct scatterlist *sgl,
+		unsigned int sg_len, enum dma_data_direction direction,
+		unsigned long flags);
++	struct dma_async_tx_descriptor *(*device_prep_slave)(
++		struct dma_chan *chan, dma_addr_t buf_addr,
++		unsigned int buf_len, void *buf_prop,
++		enum dma_data_direction direction, unsigned long flags);
+	struct dma_async_tx_descriptor *(*device_prep_dma_cyclic)(
+		struct dma_chan *chan, dma_addr_t buf_addr, size_t buf_len,
+		size_t period_len, enum dma_data_direction direction);
+
+The number of frames (n_frames) can always be determined using all 
+other values in the dma_buffer_config along with the 
+buffer length (buf_len) passed in the API. 
+n_frames = buf_len / (chunk_sixe * frame_size); 
+
+Regards, 
+Sundaram
+
+-----Original Message-----
+From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk] 
+Sent: Thursday, June 09, 2011 6:17 PM
+To: Raju, Sundaram
+Cc: linux-arm-kernel@lists.infradead.org; linux-kernel@vger.kernel.org; davinci-linux-open-source@linux.davincidsp.com; linux-omap@vger.kernel.org
+Subject: Re: [RFC] dmaengine: add new api for preparing simple slave transfer
+
+Can you please re-post with sensible wrapping at or before column 72.
+I'm not manually reformatting your entire message just so I can find
+the relevant bits to reply to.
 
 Thanks.
-
-> Cc: Grant Likely <grant.likely@secretlab.ca>
-> Cc: Magnus Damm <magnus.damm@gmail.com>
-> Cc: Rafael J. Wysocki <rjw@sisk.pl>
-> Signed-off-by: Kevin Hilman <khilman@ti.com>
-> ---
->  arch/arm/mach-omap2/Makefile     |    6 +-
->  arch/arm/mach-omap2/pm_bus.c     |   85 --------------------------------------
->  arch/arm/plat-omap/omap_device.c |   22 ++++++++++
->  3 files changed, 25 insertions(+), 88 deletions(-)
->  delete mode 100644 arch/arm/mach-omap2/pm_bus.c
-> 
-> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-> index a45cd64..b353584 100644
-> --- a/arch/arm/mach-omap2/Makefile
-> +++ b/arch/arm/mach-omap2/Makefile
-> @@ -59,10 +59,10 @@ endif
->  # Power Management
->  ifeq ($(CONFIG_PM),y)
->  obj-$(CONFIG_ARCH_OMAP2)		+= pm24xx.o
-> -obj-$(CONFIG_ARCH_OMAP2)		+= sleep24xx.o pm_bus.o
-> +obj-$(CONFIG_ARCH_OMAP2)		+= sleep24xx.o
->  obj-$(CONFIG_ARCH_OMAP3)		+= pm34xx.o sleep34xx.o \
-> -					   cpuidle34xx.o pm_bus.o
-> -obj-$(CONFIG_ARCH_OMAP4)		+= pm44xx.o pm_bus.o
-> +					   cpuidle34xx.o
-> +obj-$(CONFIG_ARCH_OMAP4)		+= pm44xx.o
->  obj-$(CONFIG_PM_DEBUG)			+= pm-debug.o
->  obj-$(CONFIG_OMAP_SMARTREFLEX)          += sr_device.o smartreflex.o
->  obj-$(CONFIG_OMAP_SMARTREFLEX_CLASS3)	+= smartreflex-class3.o
-> diff --git a/arch/arm/mach-omap2/pm_bus.c b/arch/arm/mach-omap2/pm_bus.c
-> deleted file mode 100644
-> index 5acd2ab..0000000
-> --- a/arch/arm/mach-omap2/pm_bus.c
-> +++ /dev/null
-> @@ -1,85 +0,0 @@
-> -/*
-> - * Runtime PM support code for OMAP
-> - *
-> - * Author: Kevin Hilman, Deep Root Systems, LLC
-> - *
-> - * Copyright (C) 2010 Texas Instruments, Inc.
-> - *
-> - * This file is licensed under the terms of the GNU General Public
-> - * License version 2. This program is licensed "as is" without any
-> - * warranty of any kind, whether express or implied.
-> - */
-> -#include <linux/init.h>
-> -#include <linux/kernel.h>
-> -#include <linux/io.h>
-> -#include <linux/pm_runtime.h>
-> -#include <linux/platform_device.h>
-> -#include <linux/mutex.h>
-> -
-> -#include <plat/omap_device.h>
-> -#include <plat/omap-pm.h>
-> -
-> -#ifdef CONFIG_PM_RUNTIME
-> -static int omap_pm_runtime_suspend(struct device *dev)
-> -{
-> -	struct platform_device *pdev = to_platform_device(dev);
-> -	int r, ret = 0;
-> -
-> -	dev_dbg(dev, "%s\n", __func__);
-> -
-> -	ret = pm_generic_runtime_suspend(dev);
-> -
-> -	if (!ret && dev->parent == &omap_device_parent) {
-> -		r = omap_device_idle(pdev);
-> -		WARN_ON(r);
-> -	}
-> -
-> -	return ret;
-> -};
-> -
-> -static int omap_pm_runtime_resume(struct device *dev)
-> -{
-> -	struct platform_device *pdev = to_platform_device(dev);
-> -	int r;
-> -
-> -	dev_dbg(dev, "%s\n", __func__);
-> -
-> -	if (dev->parent == &omap_device_parent) {
-> -		r = omap_device_enable(pdev);
-> -		WARN_ON(r);
-> -	}
-> -
-> -	return pm_generic_runtime_resume(dev);
-> -};
-> -#else
-> -#define omap_pm_runtime_suspend NULL
-> -#define omap_pm_runtime_resume NULL
-> -#endif /* CONFIG_PM_RUNTIME */
-> -
-> -static int __init omap_pm_runtime_init(void)
-> -{
-> -	const struct dev_pm_ops *pm;
-> -	struct dev_pm_ops *omap_pm;
-> -
-> -	pm = platform_bus_get_pm_ops();
-> -	if (!pm) {
-> -		pr_err("%s: unable to get dev_pm_ops from platform_bus\n",
-> -			__func__);
-> -		return -ENODEV;
-> -	}
-> -
-> -	omap_pm = kmemdup(pm, sizeof(struct dev_pm_ops), GFP_KERNEL);
-> -	if (!omap_pm) {
-> -		pr_err("%s: unable to alloc memory for new dev_pm_ops\n",
-> -			__func__);
-> -		return -ENOMEM;
-> -	}
-> -
-> -	omap_pm->runtime_suspend = omap_pm_runtime_suspend;
-> -	omap_pm->runtime_resume = omap_pm_runtime_resume;
-> -
-> -	platform_bus_set_pm_ops(omap_pm);
-> -
-> -	return 0;
-> -}
-> -core_initcall(omap_pm_runtime_init);
-> diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
-> index 9bbda9a..93cd2fb 100644
-> --- a/arch/arm/plat-omap/omap_device.c
-> +++ b/arch/arm/plat-omap/omap_device.c
-> @@ -536,6 +536,27 @@ int omap_early_device_register(struct omap_device *od)
->  	return 0;
->  }
->  
-> +static int _od_runtime_suspend(struct device *dev)
-> +{
-> +	struct platform_device *pdev = to_platform_device(dev);
-> +
-> +	return omap_device_idle(pdev);
-> +}
-> +
-> +static int _od_runtime_resume(struct device *dev)
-> +{
-> +	struct platform_device *pdev = to_platform_device(dev);
-> +
-> +	return omap_device_enable(pdev);
-> +}
-> +
-> +static struct dev_power_domain omap_device_power_domain = {
-> +	.ops = {
-> +		.runtime_suspend = _od_runtime_suspend,
-> +		.runtime_resume = _od_runtime_resume,
-> +	}
-> +};
-> +
->  /**
->   * omap_device_register - register an omap_device with one omap_hwmod
->   * @od: struct omap_device * to register
-> @@ -549,6 +570,7 @@ int omap_device_register(struct omap_device *od)
->  	pr_debug("omap_device: %s: registering\n", od->pdev.name);
->  
->  	od->pdev.dev.parent = &omap_device_parent;
-> +	od->pdev.dev.pwr_domain = &omap_device_power_domain;
->  	return platform_device_register(&od->pdev);
->  }
->  
-
-
--- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
