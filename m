@@ -1,44 +1,185 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH v3 06/12] MFD: twl4030-codec -> twl4030-audio: Rename the driver
-Date: Thu, 9 Jun 2011 21:37:28 +0200
-Message-ID: <201106092137.28678.arnd@arndb.de>
-References: <1307626230-29660-1-git-send-email-peter.ujfalusi@ti.com> <1307626230-29660-7-git-send-email-peter.ujfalusi@ti.com>
+From: Paul Mundt <lethal@linux-sh.org>
+Subject: Re: [PATCHv2 20/28] OMAP: DSS2: Use PM runtime & HWMOD support
+Date: Fri, 10 Jun 2011 05:03:37 +0900
+Message-ID: <20110609200335.GD26006@linux-sh.org>
+References: <1307627810-3768-1-git-send-email-tomi.valkeinen@ti.com> <1307627810-3768-21-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:56809 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754866Ab1FIThr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Jun 2011 15:37:47 -0400
-In-Reply-To: <1307626230-29660-7-git-send-email-peter.ujfalusi@ti.com>
+Received: from linux-sh.org ([111.68.239.195]:44572 "EHLO linux-sh.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752683Ab1FIUDp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 9 Jun 2011 16:03:45 -0400
+Content-Disposition: inline
+In-Reply-To: <1307627810-3768-21-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Samuel Ortiz <sameo@linux.intel.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org, Misael Lopez Cruz <misael.lopez@ti.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, b-cousson@ti.com, paul@pwsan.com, khilman@ti.com
 
-On Thursday 09 June 2011 15:30:24 Peter Ujfalusi wrote:
-> Rename the driver, and header file from twl4030-codec to
-> twl4030-audio.
-> To avoid breakage change depending drivers at the same time.
-> 
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> CC: Misael Lopez Cruz <misael.lopez@ti.com>
-> ---
->  drivers/input/misc/Kconfig         |    2 +-
->  drivers/input/misc/twl4030-vibra.c |   10 +-
->  drivers/mfd/Kconfig                |    2 +-
->  drivers/mfd/Makefile               |    2 +-
->  drivers/mfd/twl4030-audio.c        |  277 +++++++++++++++++++++++++++++++++++
->  drivers/mfd/twl4030-codec.c        |  278 ------------------------------------
->  include/linux/mfd/twl4030-audio.h  |  272 +++++++++++++++++++++++++++++++++++
->  include/linux/mfd/twl4030-codec.h  |  272 -----------------------------------
+On Thu, Jun 09, 2011 at 04:56:42PM +0300, Tomi Valkeinen wrote:
+> +int dispc_runtime_get(void)
+> +{
+> +	int r;
+> +
+> +	DSSDBG("dispc_runtime_get\n");
+> +
+> +	r = pm_runtime_get_sync(&dispc.pdev->dev);
+> +	WARN_ON(r < 0);
+> +	return r < 0 ? r : 0;
+> +}
+> +
+> +void dispc_runtime_put(void)
+> +{
+> +	int r;
+> +
+> +	DSSDBG("dispc_runtime_put\n");
+> +
+> +	r = pm_runtime_put(&dispc.pdev->dev);
+> +	WARN_ON(r < 0);
+>  }
+>  
+This seems a bit odd. Your runtime_get wrapper is explicitly synchronous
+while your put wrapper is explicitly asynchronous, although these details
+(if intentional) are not at all obvious from the wrapper naming. From
+the use in the error paths and so on you will definitely need to be using
+pm_runtime_put_sync() at least some of the time.
 
-Better use the -M flag to git-format-patch when moving files, to make it
-obvious what has or has not changed, and to reduce the size of the email.
+In the interest of avoiding confusion, I would in general just get rid of
+these wrappers and use the pm_runtime calls openly, as you already do for
+some of the other parts of the API. The runtime PM framework has pretty
+verbose debugging already that goes well beyond what you presently have,
+too.
 
-Also, shouldn't this file go into the sound/soc/ directory? It seems that this
-is really the device driver, not part of the multi-function layer.
+You seem to have adopted this sync/async pattern for all of the users:
 
-	Arnd
+> +int dsi_runtime_get(struct platform_device *dsidev)
+>  {
+> -	if (enable)
+> -		dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK);
+> -	else
+> -		dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK);
+> +	int r;
+> +	struct dsi_data *dsi = dsi_get_dsidrv_data(dsidev);
+> +
+> +	DSSDBG("dsi_runtime_get\n");
+> +
+> +	r = pm_runtime_get_sync(&dsi->pdev->dev);
+> +	WARN_ON(r < 0);
+> +	return r < 0 ? r : 0;
+> +}
+> +
+> +void dsi_runtime_put(struct platform_device *dsidev)
+> +{
+> +	struct dsi_data *dsi = dsi_get_dsidrv_data(dsidev);
+> +	int r;
+> +
+> +	DSSDBG("dsi_runtime_put\n");
+> +
+> +	r = pm_runtime_put(&dsi->pdev->dev);
+> +	WARN_ON(r < 0);
+>  }
+>  
+Here.
+
+> -void dss_clk_disable(enum dss_clock clks)
+> -{
+..
+> -	dss_clk_disable_no_ctx(clks);
+> +	r = pm_runtime_get_sync(&dss.pdev->dev);
+> +	WARN_ON(r < 0);
+> +	return r < 0 ? r : 0;
+>  }
+>  
+> -static void dss_clk_enable_all_no_ctx(void)
+> +void dss_runtime_put(void)
+>  {
+..
+> +	r = pm_runtime_put(&dss.pdev->dev);
+> +	WARN_ON(r < 0);
+>  }
+>  
+And here.
+
+> +static int hdmi_runtime_get(void)
+> +{
+> +	int r;
+> +
+> +	DSSDBG("hdmi_runtime_get\n");
+> +
+> +	r = pm_runtime_get_sync(&hdmi.pdev->dev);
+> +	WARN_ON(r < 0);
+> +	return r < 0 ? r : 0;
+> +}
+> +
+> +static void hdmi_runtime_put(void)
+> +{
+> +	int r;
+> +
+> +	DSSDBG("hdmi_runtime_put\n");
+> +
+> +	r = pm_runtime_put(&hdmi.pdev->dev);
+> +	WARN_ON(r < 0);
+> +}
+> +
+And here.
+
+> -static void rfbi_enable_clocks(bool enable)
+> +static int rfbi_runtime_get(void)
+>  {
+> -	if (enable)
+> -		dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK);
+> -	else
+> -		dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK);
+> +	int r;
+> +
+> +	DSSDBG("rfbi_runtime_get\n");
+> +
+> +	r = pm_runtime_get_sync(&rfbi.pdev->dev);
+> +	WARN_ON(r < 0);
+> +	return r < 0 ? r : 0;
+> +}
+> +
+> +static void rfbi_runtime_put(void)
+> +{
+> +	int r;
+> +
+> +	DSSDBG("rfbi_runtime_put\n");
+> +
+> +	r = pm_runtime_put(&rfbi.pdev->dev);
+> +	WARN_ON(r < 0);
+>  }
+>  
+And here.
+
+> +static int venc_runtime_get(void)
+>  {
+> -	if (enable) {
+> -		dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK | DSS_CLK_TVFCK);
+> -		if (dss_has_feature(FEAT_VENC_REQUIRES_TV_DAC_CLK))
+> -			dss_clk_enable(DSS_CLK_VIDFCK);
+> -	} else {
+> -		dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK | DSS_CLK_TVFCK);
+> -		if (dss_has_feature(FEAT_VENC_REQUIRES_TV_DAC_CLK))
+> -			dss_clk_disable(DSS_CLK_VIDFCK);
+> -	}
+> +	int r;
+> +
+> +	DSSDBG("venc_runtime_get\n");
+> +
+> +	r = pm_runtime_get_sync(&venc.pdev->dev);
+> +	WARN_ON(r < 0);
+> +	return r < 0 ? r : 0;
+> +}
+> +
+> +static void venc_runtime_put(void)
+> +{
+> +	int r;
+> +
+> +	DSSDBG("venc_runtime_put\n");
+> +
+> +	r = pm_runtime_put(&venc.pdev->dev);
+> +	WARN_ON(r < 0);
+>  }
+>  
+And here.
