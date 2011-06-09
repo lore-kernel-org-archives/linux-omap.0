@@ -1,20 +1,20 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [pm-wip/voltdm_nm][PATCH 01/10] OMAP3+: VC: fix mutant channel handling
-Date: Thu, 09 Jun 2011 10:21:19 -0700
-Message-ID: <8739ji3oq8.fsf@ti.com>
+Subject: Re: [pm-wip/voltdm_nm][PATCH 03/10] OMAP4: PM: VC: allow channels to use cmdra reg
+Date: Thu, 09 Jun 2011 10:48:07 -0700
+Message-ID: <8762oe28x4.fsf@ti.com>
 References: <1307412972-25854-1-git-send-email-nm@ti.com>
-	<1307412972-25854-2-git-send-email-nm@ti.com>
+	<1307412972-25854-4-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:35433 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752987Ab1FIRVX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Jun 2011 13:21:23 -0400
-Received: by mail-pw0-f51.google.com with SMTP id 9so854358pwi.10
-        for <linux-omap@vger.kernel.org>; Thu, 09 Jun 2011 10:21:22 -0700 (PDT)
-In-Reply-To: <1307412972-25854-2-git-send-email-nm@ti.com> (Nishanth Menon's
-	message of "Mon, 6 Jun 2011 21:16:04 -0500")
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:32917 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753038Ab1FIRsM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Jun 2011 13:48:12 -0400
+Received: by pwj4 with SMTP id 4so1025942pwj.2
+        for <linux-omap@vger.kernel.org>; Thu, 09 Jun 2011 10:48:10 -0700 (PDT)
+In-Reply-To: <1307412972-25854-4-git-send-email-nm@ti.com> (Nishanth Menon's
+	message of "Mon, 6 Jun 2011 21:16:06 -0500")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Nishanth Menon <nm@ti.com>
@@ -22,45 +22,52 @@ Cc: linux-omap <linux-omap@vger.kernel.org>
 
 Nishanth Menon <nm@ti.com> writes:
 
-> "OMAP3+: PM: VC: handle mutant channel config for OMAP4 MPU channel"
-> handles the mutant channel flags, however since vc_cfg_bits is static
-> file wide variable, it makes better sense to update this based on
-> the specific channel using mutant or not. else if we have a initial
-> registration of mutant channel definition, all other channels will
-> end up using the mutant definition.
+> if volt_reg and cmd_reg are the same from PMIC configuration,
+> we can use the cmd reg by using racen - 
 
-Indeed.
+-ECONFUSED
 
-> Signed-off-by: Nishanth Menon <nm@ti.com>
-> ---
-> we should probably squash this in to the original commit
+If volt_reg and cmd_reg are the same then I understood RACEN to be a
+don't care.  Zero means use volt_reg, 1 means use cmd_reg, but if
+volt_reg == cmd_reg, then either way is the same result.
 
-Thanks, squashed.
+The way I understood (and coded) this is that the only time you need
+RACEN set is precicesly the case when a cmd_reg is provided (and thus is
+different from volt_reg.
+
+What am I missing?
+
+Or, stated differently, I guess I don't understand the use case for 
+RAC != RACEN
 
 Kevin
 
->  arch/arm/mach-omap2/vc.c |    4 +++-
->  1 files changed, 3 insertions(+), 1 deletions(-)
+> this is valid for
+> voltage commands, however, in most cases, we'd like to retain
+> voltage reg configuration as well for vfsm commands going thru
+> from h/w.
+>
+> Signed-off-by: Nishanth Menon <nm@ti.com>
+> ---
+>  arch/arm/mach-omap2/vc.c |    6 +++++-
+>  1 files changed, 5 insertions(+), 1 deletions(-)
 >
 > diff --git a/arch/arm/mach-omap2/vc.c b/arch/arm/mach-omap2/vc.c
-> index c8deac9..aa9f0bc 100644
+> index 0c0e416..6017c70 100644
 > --- a/arch/arm/mach-omap2/vc.c
 > +++ b/arch/arm/mach-omap2/vc.c
-> @@ -53,7 +53,7 @@ static struct omap_vc_channel_cfg vc_mutant_channel_cfg = {
->  	.cmd   = BIT(1),
->  };
+> @@ -337,9 +337,13 @@ void __init omap_vc_init_channel(struct voltagedomain *voltdm)
+>  		voltdm->rmw(vc->smps_cmdra_mask,
+>  			    vc->cmd_reg_addr << __ffs(vc->smps_cmdra_mask),
+>  			    vc->common->smps_cmdra_reg);
+> -		vc->cfg_channel |= vc_cfg_bits->rac | vc_cfg_bits->racen;
+> +		vc->cfg_channel |= vc_cfg_bits->rac;
+>  	}
 >  
-> -static struct omap_vc_channel_cfg *vc_cfg_bits = &vc_default_channel_cfg;
-> +static struct omap_vc_channel_cfg *vc_cfg_bits;
->  #define CFG_CHANNEL_MASK 0x1f
->  
->  /**
-> @@ -300,6 +300,8 @@ void __init omap_vc_init_channel(struct voltagedomain *voltdm)
->  	vc->cfg_channel = 0;
->  	if (vc->flags & OMAP_VC_CHANNEL_CFG_MUTANT)
->  		vc_cfg_bits = &vc_mutant_channel_cfg;
-> +	else
-> +		vc_cfg_bits = &vc_default_channel_cfg;
->  
->  	/* get PMIC/board specific settings */
->  	vc->i2c_slave_addr = voltdm->pmic->i2c_slave_addr;
+> +	/* If voltage and cmd regs are same, we can use cmdra register */
+> +	if (vc->volt_reg_addr == vc->cmd_reg_addr)
+> +		vc->cfg_channel |= vc_cfg_bits->racen;
+> +
+>  	/* Set up the on, inactive, retention and off voltage */
+>  	on_vsel = voltdm->pmic->uv_to_vsel(voltdm->pmic->on_volt);
+>  	onlp_vsel = voltdm->pmic->uv_to_vsel(voltdm->pmic->onlp_volt);
