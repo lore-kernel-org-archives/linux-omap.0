@@ -1,326 +1,136 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH 7/8] OMAP: clock: Add flags to identify optional clock nodes
-Date: Thu, 9 Jun 2011 16:24:12 +0530
-Message-ID: <1307616853-28395-8-git-send-email-rnayak@ti.com>
-References: <1307616853-28395-1-git-send-email-rnayak@ti.com>
- <1307616853-28395-2-git-send-email-rnayak@ti.com>
- <1307616853-28395-3-git-send-email-rnayak@ti.com>
- <1307616853-28395-4-git-send-email-rnayak@ti.com>
- <1307616853-28395-5-git-send-email-rnayak@ti.com>
- <1307616853-28395-6-git-send-email-rnayak@ti.com>
- <1307616853-28395-7-git-send-email-rnayak@ti.com>
+From: "Raju, Sundaram" <sundaram-l0cyMroinI0@public.gmane.org>
+Subject: [RFC] dmaengine: add new api for preparing simple slave transfer
+Date: Thu, 9 Jun 2011 18:09:28 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E940301FE2DED@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40276 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757126Ab1FIKyg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 9 Jun 2011 06:54:36 -0400
-In-Reply-To: <1307616853-28395-7-git-send-email-rnayak@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
+List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
+List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
+Sender: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org" <davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: paul@pwsan.com, khilman@ti.com, b-cousson@ti.com, santosh.shilimkar@ti.com, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
 
-There is a need to identify optional clock nodes in
-the clock framework, so some specific sequence
-to enable them can be supported, which should be
-evident in the subsequent patches.
+SDMA and EDMA are TI SoC specific DMA controllers. Their drivers have been maintained in the respective SoC folders till now. 
+arch/arm/plat-omap/dma.c
+arch/arm/mach-davinci/dma.c
 
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
----
- arch/arm/mach-omap2/clock44xx_data.c    |   34 +++++++++++++++++++++++++++++++
- arch/arm/plat-omap/include/plat/clock.h |    1 +
- 2 files changed, 35 insertions(+), 0 deletions(-)
+I have gone through the existing offload engine (DMA) drivers in drivers/dma which do slave transfers. I would like to move SDMA and EDMA also to dmaengine framework.
 
-diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
-index 8c96567..58564fd 100644
---- a/arch/arm/mach-omap2/clock44xx_data.c
-+++ b/arch/arm/mach-omap2/clock44xx_data.c
-@@ -1394,6 +1394,7 @@ static struct clk bandgap_fclk = {
- 	.clkdm_name	= "l4_wkup_clkdm",
- 	.parent		= &sys_32k_ck,
- 	.recalc		= &followparent_recalc,
-+	.flags		= CLOCK_OPTCLK,
- };
- 
- static struct clk des3des_fck = {
-@@ -1464,6 +1465,7 @@ static struct clk dss_sys_clk = {
- 	.clkdm_name	= "l3_dss_clkdm",
- 	.parent		= &syc_clk_div_ck,
- 	.recalc		= &followparent_recalc,
-+	.flags		= CLOCK_OPTCLK,
- };
- 
- static struct clk dss_tv_clk = {
-@@ -1474,6 +1476,7 @@ static struct clk dss_tv_clk = {
- 	.clkdm_name	= "l3_dss_clkdm",
- 	.parent		= &extalt_clkin_ck,
- 	.recalc		= &followparent_recalc,
-+	.flags		= CLOCK_OPTCLK,
- };
- 
- static struct clk dss_dss_clk = {
-@@ -1484,6 +1487,7 @@ static struct clk dss_dss_clk = {
- 	.clkdm_name	= "l3_dss_clkdm",
- 	.parent		= &dpll_per_m5x2_ck,
- 	.recalc		= &followparent_recalc,
-+	.flags		= CLOCK_OPTCLK,
- };
- 
- static struct clk dss_48mhz_clk = {
-@@ -1494,6 +1498,7 @@ static struct clk dss_48mhz_clk = {
- 	.clkdm_name	= "l3_dss_clkdm",
- 	.parent		= &func_48mc_fclk,
- 	.recalc		= &followparent_recalc,
-+	.flags		= CLOCK_OPTCLK,
- };
- 
- static struct clk dss_fck = {
-@@ -1577,6 +1582,7 @@ static struct clk gpio1_dbclk = {
- 	.clkdm_name	= "l4_wkup_clkdm",
- 	.parent		= &sys_32k_ck,
- 	.recalc		= &followparent_recalc,
-+	.flags		= CLOCK_OPTCLK,
- };
- 
- static struct clk gpio1_ick = {
-@@ -1597,6 +1603,7 @@ static struct clk gpio2_dbclk = {
- 	.clkdm_name	= "l4_per_clkdm",
- 	.parent		= &sys_32k_ck,
- 	.recalc		= &followparent_recalc,
-+	.flags		= CLOCK_OPTCLK,
- };
- 
- static struct clk gpio2_ick = {
-@@ -1617,6 +1624,7 @@ static struct clk gpio3_dbclk = {
- 	.clkdm_name	= "l4_per_clkdm",
- 	.parent		= &sys_32k_ck,
- 	.recalc		= &followparent_recalc,
-+	.flags		= CLOCK_OPTCLK,
- };
- 
- static struct clk gpio3_ick = {
-@@ -1637,6 +1645,7 @@ static struct clk gpio4_dbclk = {
- 	.clkdm_name	= "l4_per_clkdm",
- 	.parent		= &sys_32k_ck,
- 	.recalc		= &followparent_recalc,
-+	.flags		= CLOCK_OPTCLK,
- };
- 
- static struct clk gpio4_ick = {
-@@ -1657,6 +1666,7 @@ static struct clk gpio5_dbclk = {
- 	.clkdm_name	= "l4_per_clkdm",
- 	.parent		= &sys_32k_ck,
- 	.recalc		= &followparent_recalc,
-+	.flags		= CLOCK_OPTCLK,
- };
- 
- static struct clk gpio5_ick = {
-@@ -1677,6 +1687,7 @@ static struct clk gpio6_dbclk = {
- 	.clkdm_name	= "l4_per_clkdm",
- 	.parent		= &sys_32k_ck,
- 	.recalc		= &followparent_recalc,
-+	.flags		= CLOCK_OPTCLK,
- };
- 
- static struct clk gpio6_ick = {
-@@ -1809,6 +1820,7 @@ static struct clk iss_ctrlclk = {
- 	.clkdm_name	= "iss_clkdm",
- 	.parent		= &func_96m_fclk,
- 	.recalc		= &followparent_recalc,
-+	.flags		= CLOCK_OPTCLK,
- };
- 
- static struct clk iss_fck = {
-@@ -2145,6 +2157,7 @@ static struct clk ocp2scp_usb_phy_phy_48m = {
- 	.clkdm_name	= "l3_init_clkdm",
- 	.parent		= &func_48m_fclk,
- 	.recalc		= &followparent_recalc,
-+	.flags		= CLOCK_OPTCLK,
- };
- 
- static struct clk ocp2scp_usb_phy_ick = {
-@@ -2206,6 +2219,7 @@ static struct clk slimbus1_fclk_1 = {
- 	.clkdm_name	= "abe_clkdm",
- 	.parent		= &func_24m_clk,
- 	.recalc		= &followparent_recalc,
-+	.flags		= CLOCK_OPTCLK,
- };
- 
- static struct clk slimbus1_fclk_0 = {
-@@ -2216,6 +2230,7 @@ static struct clk slimbus1_fclk_0 = {
- 	.clkdm_name	= "abe_clkdm",
- 	.parent		= &abe_24m_fclk,
- 	.recalc		= &followparent_recalc,
-+	.flags		= CLOCK_OPTCLK,
- };
- 
- static struct clk slimbus1_fclk_2 = {
-@@ -2226,6 +2241,7 @@ static struct clk slimbus1_fclk_2 = {
- 	.clkdm_name	= "abe_clkdm",
- 	.parent		= &pad_clks_ck,
- 	.recalc		= &followparent_recalc,
-+	.flags		= CLOCK_OPTCLK,
- };
- 
- static struct clk slimbus1_slimbus_clk = {
-@@ -2236,6 +2252,7 @@ static struct clk slimbus1_slimbus_clk = {
- 	.clkdm_name	= "abe_clkdm",
- 	.parent		= &slimbus_clk,
- 	.recalc		= &followparent_recalc,
-+	.flags		= CLOCK_OPTCLK,
- };
- 
- static struct clk slimbus1_fck = {
-@@ -2256,6 +2273,7 @@ static struct clk slimbus2_fclk_1 = {
- 	.clkdm_name	= "l4_per_clkdm",
- 	.parent		= &per_abe_24m_fclk,
- 	.recalc		= &followparent_recalc,
-+	.flags		= CLOCK_OPTCLK,
- };
- 
- static struct clk slimbus2_fclk_0 = {
-@@ -2266,6 +2284,7 @@ static struct clk slimbus2_fclk_0 = {
- 	.clkdm_name	= "l4_per_clkdm",
- 	.parent		= &func_24mc_fclk,
- 	.recalc		= &followparent_recalc,
-+	.flags		= CLOCK_OPTCLK,
- };
- 
- static struct clk slimbus2_slimbus_clk = {
-@@ -2276,6 +2295,7 @@ static struct clk slimbus2_slimbus_clk = {
- 	.clkdm_name	= "l4_per_clkdm",
- 	.parent		= &pad_slimbus_core_clks_ck,
- 	.recalc		= &followparent_recalc,
-+	.flags		= CLOCK_OPTCLK,
- };
- 
- static struct clk slimbus2_fck = {
-@@ -2564,6 +2584,7 @@ static struct clk usb_host_hs_utmi_p1_clk = {
- 	.clkdm_name	= "l3_init_clkdm",
- 	.parent		= &utmi_p1_gfclk,
- 	.recalc		= &followparent_recalc,
-+	.flags		= CLOCK_OPTCLK,
- };
- 
- static const struct clksel utmi_p2_gfclk_sel[] = {
-@@ -2591,6 +2612,7 @@ static struct clk usb_host_hs_utmi_p2_clk = {
- 	.clkdm_name	= "l3_init_clkdm",
- 	.parent		= &utmi_p2_gfclk,
- 	.recalc		= &followparent_recalc,
-+	.flags		= CLOCK_OPTCLK,
- };
- 
- static struct clk usb_host_hs_utmi_p3_clk = {
-@@ -2601,6 +2623,7 @@ static struct clk usb_host_hs_utmi_p3_clk = {
- 	.clkdm_name	= "l3_init_clkdm",
- 	.parent		= &init_60m_fclk,
- 	.recalc		= &followparent_recalc,
-+	.flags		= CLOCK_OPTCLK,
- };
- 
- static struct clk usb_host_hs_hsic480m_p1_clk = {
-@@ -2611,6 +2634,7 @@ static struct clk usb_host_hs_hsic480m_p1_clk = {
- 	.clkdm_name	= "l3_init_clkdm",
- 	.parent		= &dpll_usb_m2_ck,
- 	.recalc		= &followparent_recalc,
-+	.flags		= CLOCK_OPTCLK,
- };
- 
- static struct clk usb_host_hs_hsic60m_p1_clk = {
-@@ -2621,6 +2645,7 @@ static struct clk usb_host_hs_hsic60m_p1_clk = {
- 	.clkdm_name	= "l3_init_clkdm",
- 	.parent		= &init_60m_fclk,
- 	.recalc		= &followparent_recalc,
-+	.flags		= CLOCK_OPTCLK,
- };
- 
- static struct clk usb_host_hs_hsic60m_p2_clk = {
-@@ -2631,6 +2656,7 @@ static struct clk usb_host_hs_hsic60m_p2_clk = {
- 	.clkdm_name	= "l3_init_clkdm",
- 	.parent		= &init_60m_fclk,
- 	.recalc		= &followparent_recalc,
-+	.flags		= CLOCK_OPTCLK,
- };
- 
- static struct clk usb_host_hs_hsic480m_p2_clk = {
-@@ -2641,6 +2667,7 @@ static struct clk usb_host_hs_hsic480m_p2_clk = {
- 	.clkdm_name	= "l3_init_clkdm",
- 	.parent		= &dpll_usb_m2_ck,
- 	.recalc		= &followparent_recalc,
-+	.flags		= CLOCK_OPTCLK,
- };
- 
- static struct clk usb_host_hs_func48mclk = {
-@@ -2651,6 +2678,7 @@ static struct clk usb_host_hs_func48mclk = {
- 	.clkdm_name	= "l3_init_clkdm",
- 	.parent		= &func_48mc_fclk,
- 	.recalc		= &followparent_recalc,
-+	.flags		= CLOCK_OPTCLK,
- };
- 
- static struct clk usb_host_hs_fck = {
-@@ -2688,6 +2716,7 @@ static struct clk usb_otg_hs_xclk = {
- 	.clkdm_name	= "l3_init_clkdm",
- 	.parent		= &otg_60m_gfclk,
- 	.recalc		= &followparent_recalc,
-+	.flags		= CLOCK_OPTCLK,
- };
- 
- static struct clk usb_otg_hs_ick = {
-@@ -2708,6 +2737,7 @@ static struct clk usb_phy_cm_clk32k = {
- 	.clkdm_name	= "l4_ao_clkdm",
- 	.parent		= &sys_32k_ck,
- 	.recalc		= &followparent_recalc,
-+	.flags		= CLOCK_OPTCLK,
- };
- 
- static struct clk usb_tll_hs_usb_ch2_clk = {
-@@ -2718,6 +2748,7 @@ static struct clk usb_tll_hs_usb_ch2_clk = {
- 	.clkdm_name	= "l3_init_clkdm",
- 	.parent		= &init_60m_fclk,
- 	.recalc		= &followparent_recalc,
-+	.flags		= CLOCK_OPTCLK,
- };
- 
- static struct clk usb_tll_hs_usb_ch0_clk = {
-@@ -2728,6 +2759,7 @@ static struct clk usb_tll_hs_usb_ch0_clk = {
- 	.clkdm_name	= "l3_init_clkdm",
- 	.parent		= &init_60m_fclk,
- 	.recalc		= &followparent_recalc,
-+	.flags		= CLOCK_OPTCLK,
- };
- 
- static struct clk usb_tll_hs_usb_ch1_clk = {
-@@ -2738,6 +2770,7 @@ static struct clk usb_tll_hs_usb_ch1_clk = {
- 	.clkdm_name	= "l3_init_clkdm",
- 	.parent		= &init_60m_fclk,
- 	.recalc		= &followparent_recalc,
-+	.flags		= CLOCK_OPTCLK,
- };
- 
- static struct clk usb_tll_hs_ick = {
-@@ -2781,6 +2814,7 @@ static struct clk usim_fclk = {
- 	.clkdm_name	= "l4_wkup_clkdm",
- 	.parent		= &usim_ck,
- 	.recalc		= &followparent_recalc,
-+	.flags		= CLOCK_OPTCLK,
- };
- 
- static struct clk usim_fck = {
-diff --git a/arch/arm/plat-omap/include/plat/clock.h b/arch/arm/plat-omap/include/plat/clock.h
-index 006e599..cb2de7d 100644
---- a/arch/arm/plat-omap/include/plat/clock.h
-+++ b/arch/arm/plat-omap/include/plat/clock.h
-@@ -189,6 +189,7 @@ struct dpll_data {
- #define ENABLE_ON_INIT		(1 << 3)	/* Enable upon framework init */
- #define INVERT_ENABLE		(1 << 4)	/* 0 enables, 1 disables */
- #define CLOCK_CLKOUTX2		(1 << 5)
-+#define CLOCK_OPTCLK		(1 << 6)
- 
- /**
-  * struct clk - OMAP struct clk
--- 
-1.7.0.4
+I believe that even though the dmaengine framework addresses and supports most of the required use cases of a client driver to a DMA controller, some extensions are required in it to make it still more generic.
 
+Current framework contains two APIs to prepare for slave transfers: 
+        struct dma_async_tx_descriptor *(*device_prep_slave_sg)(
+                struct dma_chan *chan, struct scatterlist *sgl,
+                unsigned int sg_len, enum dma_data_direction direction,
+                unsigned long flags);
+
+        struct dma_async_tx_descriptor *(*device_prep_dma_cyclic)(
+                struct dma_chan *chan, dma_addr_t buf_addr, size_t buf_len,
+                size_t period_len, enum dma_data_direction direction);
+
+and one control API.
+        int (*device_control)(struct dma_chan *chan, enum dma_ctrl_cmd cmd,
+                unsigned long arg);
+
+A simple single buffer transfer (i.e. non sg transfer) can be done only as a trivial case of the device_prep_slave_sg API. The client driver is expected to prepare a sg list and provide to the dmaengine API for that single buffer also. 
+
+In a slave transfer, the client has to define all the buffer related attributes and the peripheral related attributes. 
+
+The above 2 APIs in the dmaengine framework expect all the peripheral/slave related attributes to be filled in the dma_slave_config data structure. 
+struct dma_slave_config {
+        enum dma_data_direction direction;
+        dma_addr_t src_addr;
+        dma_addr_t dst_addr;
+        enum dma_slave_buswidth src_addr_width;
+        enum dma_slave_buswidth dst_addr_width;
+        u32 src_maxburst;
+        u32 dst_maxburst;
+};
+
+This data structure is passed to the offload engine via the dma_chan data structure in its private pointer.
+
+Now coming to the buffer related attributes, sg list is a nice way to represent a disjoint buffer; all the offload engines in drivers/dma create a descriptor for each of the contiguous chunk in the sg list buffer and pass it to the controller.
+
+But many a times a client may want to transfer from a single buffer to the peripheral and most of the DMA controllers have the capability to transfer data in chunks/frames directly at a stretch. All the attributes of a buffer, which are required for the transfer can be programmed in single descriptor and submitted to the DMA controller.
+
+So I think the slave transfer API must also have a provision to pass the buffer configuration. The buffer attributes have to be passed directly as an argument in the prepare API, unlike dma_slave_config as they will be different for each buffer that is going to be transferred.  
+
+It is a stretch and impractical to use a highly segmented buffer (like the one described below) in a sglist. This is because sg list itself is a representation of a disjoint buffer collection in terms of smaller buffers. Now then each of these smaller buffers can have different buffer configurations (like described below) and we are not going to go down that road now.
+
+Hence it makes sense to pass these buffer attributes for only a single buffer transfer and not a sg list. This can be done by 
+OPTION #1
+1. Adding a pointer of the dma_buffer_config data structure in the device_prep_slave_sg API
+2. Ensuring that it will be ignored if a sg list passed. Only when a single buffer is passed (in the sg list) then this buffer configuration will be used. 
+3. Any client that wants to do a sg transfer can simply ignore this buffer configuration and pass NULL.
+The main disadvantage of this option is that all the existing drivers need to be updated since the API signature is changed.
+
+Now it might even be better to have a separate API for non sg transfers. 
+This is OPTION #2
+Advantages of this option are 
+1. No change required in the existing drivers that use device_prep_slave_sg API. 
+2. If any offload engine wants to prepare a simple buffer transfer differently and not as a trivial case of a sg list, this will be useful. I know this can be done using 2 different implementations inside the device_prep_slave_sg itself, but I think it's cleaner to have different APIs.
+ 
+I have provided the generic buffer configuration I can think of, here and also a new API definition, if it makes sense to have one.
+ 
+This buffer configuration might not be completely generic, and hence I ask all of you to please provide comments to improve it.
+
+Generic buffer description: 
+A generic buffer can be split into number of frames which contain number of chunks inside them. The frames need not be contiguous, nor do the chunks inside a frame. 
+
+	-------------------------------------------------------------------
+	| Chunk 0 |ICG| Chunk 1 |ICG| ... |ICG| Chunk n |	Frame 0
+	-------------------------------------------------------------------
+	|               	Inter Frame Gap			    |	
+	-------------------------------------------------------------------
+	| Chunk 0 |ICG| Chunk 1 |ICG| ... |ICG| Chunk n |	Frame 1
+	-------------------------------------------------------------------
+	|               	Inter Frame Gap			    |	
+	-------------------------------------------------------------------
+	|               		........				    |	
+	-------------------------------------------------------------------
+	|               	Inter Frame Gap			    |	
+	-------------------------------------------------------------------
+	| Chunk 0 |ICG| Chunk 1 |ICG| ... |ICG| Chunk n |	Frame m
+	-------------------------------------------------------------------
+
+Note: ICG = Inter Chunk Gap.
+
+struct dma_buffer_config {
+        u32 chunk_size;		/* number of bytes in a chunk */
+        u32 frame_size;		/* number of chunks in a frame */ 
+    /* u32 n_frames;		     number of frames in the buffer */
+        u32 inter_chunk_gap;	/* number of bytes between end of a chunk and the start 					of the next chunk */
+        u32 inter_frame_gap;	/* number of bytes between end of a frame and the start 					of the next frame */
+        bool sync_rate;		/* 0 - a sync event is required from the peripheral to 					transfer a chunk
+				    1 - a sync event is required from the peripheral to 					transfer a frame */
+};
+
+The patch to add a new API for single buffer transfers alone:
+diff --git a/include/linux/dmaengine.h b/include/linux/dmaengine.h
+@@ -491,6 +492,10 @@ struct dma_device {
+                struct dma_chan *chan, struct scatterlist *sgl,
+                unsigned int sg_len, enum dma_data_direction direction,
+                unsigned long flags);
++       struct dma_async_tx_descriptor *(*device_prep_slave)(
++               struct dma_chan *chan, dma_addr_t buf_addr,
++               unsigned int buf_len, struct dma_buffer_config *buf_prop,
++               enum dma_data_direction direction, unsigned long flags);
+        struct dma_async_tx_descriptor *(*device_prep_dma_cyclic)(
+                struct dma_chan *chan, dma_addr_t buf_addr, size_t buf_len,
+                size_t period_len, enum dma_data_direction direction);
+
+The number of frames (n_frames) can always be determined using all other values in the dma_buffer_config along with the buffer length (buf_len) passed in the API.
+n_frames = buf_len / (chunk_sixe * frame_size);
+
+Regards,
+Sundaram
