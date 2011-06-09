@@ -1,1227 +1,918 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v3 08/12] mfd: twl6040: Add initial support
-Date: Thu, 9 Jun 2011 16:30:26 +0300
-Message-ID: <1307626230-29660-9-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v3 04/12] OMAP3: Move common regulator
+	configuration to twl-common
+Date: Thu, 9 Jun 2011 16:30:22 +0300
+Message-ID: <1307626230-29660-5-git-send-email-peter.ujfalusi@ti.com>
 References: <1307626230-29660-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-input-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
 In-Reply-To: <1307626230-29660-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-input-owner@vger.kernel.org
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
 To: Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Samuel Ortiz <sameo@linux.intel.com>, Dmitry Torokhov <dmitry.torokhov@>
-Cc: linux-input@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org, Misael Lopez Cruz <misael.lopez@ti.com>, Jorge Eduardo Candelaria <jorge.candelaria@ti.com>, Margarita Olaya Cabrera <magi.olaya@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Misael Lopez Cruz <misael.lopez@ti.com>
+Some regulator config can be moved out from board files,
+since they are close to identical.
 
-TWL6040 IC provides analog high-end audio codec functions for
-handset applications. It contains several audio analog inputs
-and outputs as well as vibrator support. It's connected to the
-host processor via PDM interface for audio data communication.
-The audio modules are controlled by internal registers that
-can be accessed by I2C and PDM interface.
-
-TWL6040 MFD will be registered as a child of TWL-CORE, and will
-have two children of its own: twl6040-codec and twl6040-vibra.
-
-This driver is based on TWL4030 and WM8350 MFD drivers.
-
-Signed-off-by: Misael Lopez Cruz <misael.lopez@ti.com>
-Signed-off-by: Jorge Eduardo Candelaria <jorge.candelaria@ti.com>
-Signed-off-by: Margarita Olaya Cabrera <magi.olaya@ti.com>
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- arch/arm/plat-omap/include/plat/irqs.h |   12 +-
- drivers/mfd/Kconfig                    |    6 +
- drivers/mfd/Makefile                   |    1 +
- drivers/mfd/twl-core.c                 |    5 +-
- drivers/mfd/twl6040-core.c             |  602 ++++++++++++++++++++++++++++++++
- drivers/mfd/twl6040-irq.c              |  205 +++++++++++
- include/linux/i2c/twl.h                |    1 +
- include/linux/mfd/twl6040.h            |  261 ++++++++++++++
- 8 files changed, 1088 insertions(+), 5 deletions(-)
- create mode 100644 drivers/mfd/twl6040-core.c
- create mode 100644 drivers/mfd/twl6040-irq.c
- create mode 100644 include/linux/mfd/twl6040.h
+ arch/arm/mach-omap2/board-3430sdp.c          |   51 ++++----------------------
+ arch/arm/mach-omap2/board-cm-t35.c           |   41 +++------------------
+ arch/arm/mach-omap2/board-devkit8000.c       |   21 +----------
+ arch/arm/mach-omap2/board-igep0020.c         |   28 +++------------
+ arch/arm/mach-omap2/board-omap3beagle.c      |   44 ++--------------------
+ arch/arm/mach-omap2/board-omap3evm.c         |   47 +++---------------------
+ arch/arm/mach-omap2/board-omap3pandora.c     |   44 ++++------------------
+ arch/arm/mach-omap2/board-omap3stalker.c     |   48 +++---------------------
+ arch/arm/mach-omap2/board-omap3touchbook.c   |   40 ++++----------------
+ arch/arm/mach-omap2/board-overo.c            |   44 ++--------------------
+ arch/arm/mach-omap2/board-rx51-peripherals.c |   25 ++-----------
+ arch/arm/mach-omap2/board-zoom-peripherals.c |   41 ++-------------------
+ arch/arm/mach-omap2/twl-common.c             |   42 +++++++++++++++++++++
+ arch/arm/mach-omap2/twl-common.h             |    5 +++
+ 14 files changed, 109 insertions(+), 412 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/plat/irqs.h b/arch/arm/plat-omap/include/plat/irqs.h
-index 5a25098..2cfba51 100644
---- a/arch/arm/plat-omap/include/plat/irqs.h
-+++ b/arch/arm/plat-omap/include/plat/irqs.h
-@@ -407,11 +407,19 @@
- #endif
- #define TWL6030_IRQ_END		(TWL6030_IRQ_BASE + TWL6030_BASE_NR_IRQS)
- 
-+#define TWL6040_CODEC_IRQ_BASE	TWL6030_IRQ_END
-+#ifdef CONFIG_TWL6040_CODEC
-+#define TWL6040_CODEC_NR_IRQS	6
-+#else
-+#define TWL6040_CODEC_NR_IRQS	0
-+#endif
-+#define TWL6040_CODEC_IRQ_END	(TWL6040_CODEC_IRQ_BASE + TWL6040_CODEC_NR_IRQS)
-+
- /* Total number of interrupts depends on the enabled blocks above */
--#if (TWL4030_GPIO_IRQ_END > TWL6030_IRQ_END)
-+#if (TWL4030_GPIO_IRQ_END > TWL6040_CODEC_IRQ_END)
- #define TWL_IRQ_END 		TWL4030_GPIO_IRQ_END
- #else
--#define TWL_IRQ_END		TWL6030_IRQ_END
-+#define TWL_IRQ_END		TWL6040_CODEC_IRQ_END
- #endif
- 
- /* GPMC related */
-diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
-index 3a6f76a..ac6b4ae 100644
---- a/drivers/mfd/Kconfig
-+++ b/drivers/mfd/Kconfig
-@@ -233,6 +233,12 @@ config TWL6030_PWM
- 	  Say yes here if you want support for TWL6030 PWM.
- 	  This is used to control charging LED brightness.
- 
-+config TWL6040_CORE
-+	bool
-+	depends on TWL4030_CORE && GENERIC_HARDIRQS
-+	select MFD_CORE
-+	default n
-+
- config MFD_STMPE
- 	bool "Support STMicroelectronics STMPE"
- 	depends on I2C=y && GENERIC_HARDIRQS
-diff --git a/drivers/mfd/Makefile b/drivers/mfd/Makefile
-index 4cf9465..41f3b61 100644
---- a/drivers/mfd/Makefile
-+++ b/drivers/mfd/Makefile
-@@ -42,6 +42,7 @@ obj-$(CONFIG_TWL4030_MADC)      += twl4030-madc.o
- obj-$(CONFIG_TWL4030_POWER)    += twl4030-power.o
- obj-$(CONFIG_MFD_TWL4030_AUDIO)	+= twl4030-audio.o
- obj-$(CONFIG_TWL6030_PWM)	+= twl6030-pwm.o
-+obj-$(CONFIG_TWL6040_CORE)	+= twl6040-core.o twl6040-irq.o
- 
- obj-$(CONFIG_MFD_MC13XXX)	+= mc13xxx-core.o
- 
-diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-index f9d7880..a2eddc7 100644
---- a/drivers/mfd/twl-core.c
-+++ b/drivers/mfd/twl-core.c
-@@ -110,7 +110,7 @@
- #endif
- 
- #if defined(CONFIG_TWL4030_CODEC) || defined(CONFIG_TWL4030_CODEC_MODULE) ||\
--	defined(CONFIG_SND_SOC_TWL6040) || defined(CONFIG_SND_SOC_TWL6040_MODULE)
-+	defined(CONFIG_TWL6040_CORE) || defined(CONFIG_TWL6040_CORE_MODULE)
- #define twl_has_codec()	true
- #else
- #define twl_has_codec()	false
-@@ -824,10 +824,9 @@ add_children(struct twl4030_platform_data *pdata, unsigned long features)
- 			return PTR_ERR(child);
- 	}
- 
--	/* Phoenix codec driver is probed directly atm */
- 	if (twl_has_codec() && pdata->audio && twl_class_is_6030()) {
- 		sub_chip_id = twl_map[TWL_MODULE_AUDIO_VOICE].sid;
--		child = add_child(sub_chip_id, "twl6040-codec",
-+		child = add_child(sub_chip_id, "twl6040",
- 				pdata->audio, sizeof(*pdata->audio),
- 				false, 0, 0);
- 		if (IS_ERR(child))
-diff --git a/drivers/mfd/twl6040-core.c b/drivers/mfd/twl6040-core.c
-new file mode 100644
-index 0000000..195613c
---- /dev/null
-+++ b/drivers/mfd/twl6040-core.c
-@@ -0,0 +1,602 @@
-+/*
-+ * MFD driver for TWL6040 audio device
-+ *
-+ * Authors:	Misael Lopez Cruz <misael.lopez@ti.com>
-+ *		Jorge Eduardo Candelaria <jorge.candelaria@ti.com>
-+ *		Peter Ujfalusi <peter.ujfalusi@ti.com>
-+ *
-+ * Copyright:	(C) 2011 Texas Instruments, Inc.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-+ * 02110-1301 USA
-+ *
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/types.h>
-+#include <linux/slab.h>
-+#include <linux/kernel.h>
-+#include <linux/platform_device.h>
-+#include <linux/gpio.h>
-+#include <linux/delay.h>
-+#include <linux/i2c/twl.h>
-+#include <linux/mfd/core.h>
-+#include <linux/mfd/twl6040.h>
-+
-+static struct platform_device *twl6040_dev;
-+
-+int twl6040_reg_read(struct twl6040 *twl6040, unsigned int reg)
-+{
-+	int ret;
-+	u8 val = 0;
-+
-+	mutex_lock(&twl6040->io_mutex);
-+	ret = twl_i2c_read_u8(TWL_MODULE_AUDIO_VOICE, &val, reg);
-+	if (ret < 0) {
-+		mutex_unlock(&twl6040->io_mutex);
-+		return ret;
-+	}
-+	mutex_unlock(&twl6040->io_mutex);
-+
-+	return val;
-+}
-+EXPORT_SYMBOL(twl6040_reg_read);
-+
-+int twl6040_reg_write(struct twl6040 *twl6040, unsigned int reg, u8 val)
-+{
-+	int ret;
-+
-+	mutex_lock(&twl6040->io_mutex);
-+	ret = twl_i2c_write_u8(TWL_MODULE_AUDIO_VOICE, val, reg);
-+	mutex_unlock(&twl6040->io_mutex);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL(twl6040_reg_write);
-+
-+int twl6040_set_bits(struct twl6040 *twl6040, unsigned int reg, u8 mask)
-+{
-+	int ret;
-+	u8 val;
-+
-+	mutex_lock(&twl6040->io_mutex);
-+	ret = twl_i2c_read_u8(TWL_MODULE_AUDIO_VOICE, &val, reg);
-+	if (ret)
-+		goto out;
-+
-+	val |= mask;
-+	ret = twl_i2c_write_u8(TWL_MODULE_AUDIO_VOICE, val, reg);
-+out:
-+	mutex_unlock(&twl6040->io_mutex);
-+	return ret;
-+}
-+EXPORT_SYMBOL(twl6040_set_bits);
-+
-+int twl6040_clear_bits(struct twl6040 *twl6040, unsigned int reg, u8 mask)
-+{
-+	int ret;
-+	u8 val;
-+
-+	mutex_lock(&twl6040->io_mutex);
-+	ret = twl_i2c_read_u8(TWL_MODULE_AUDIO_VOICE, &val, reg);
-+	if (ret)
-+		goto out;
-+
-+	val &= ~mask;
-+	ret = twl_i2c_write_u8(TWL_MODULE_AUDIO_VOICE, val, reg);
-+out:
-+	mutex_unlock(&twl6040->io_mutex);
-+	return ret;
-+}
-+EXPORT_SYMBOL(twl6040_clear_bits);
-+
-+/* twl6040 codec manual power-up sequence */
-+static int twl6040_power_up(struct twl6040 *twl6040)
-+{
-+	u8 ldoctl, ncpctl, lppllctl;
-+	int ret;
-+
-+	/* enable high-side LDO, reference system and internal oscillator */
-+	ldoctl = TWL6040_HSLDOENA | TWL6040_REFENA | TWL6040_OSCENA;
-+	ret = twl6040_reg_write(twl6040, TWL6040_REG_LDOCTL, ldoctl);
-+	if (ret)
-+		return ret;
-+	usleep_range(10000, 10500);
-+
-+	/* enable negative charge pump */
-+	ncpctl = TWL6040_NCPENA;
-+	ret = twl6040_reg_write(twl6040, TWL6040_REG_NCPCTL, ncpctl);
-+	if (ret)
-+		goto ncp_err;
-+	usleep_range(1000, 1500);
-+
-+	/* enable low-side LDO */
-+	ldoctl |= TWL6040_LSLDOENA;
-+	ret = twl6040_reg_write(twl6040, TWL6040_REG_LDOCTL, ldoctl);
-+	if (ret)
-+		goto lsldo_err;
-+	usleep_range(1000, 1500);
-+
-+	/* enable low-power PLL */
-+	lppllctl = TWL6040_LPLLENA;
-+	ret = twl6040_reg_write(twl6040, TWL6040_REG_LPPLLCTL, lppllctl);
-+	if (ret)
-+		goto lppll_err;
-+	usleep_range(5000, 5500);
-+
-+	/* disable internal oscillator */
-+	ldoctl &= ~TWL6040_OSCENA;
-+	ret = twl6040_reg_write(twl6040, TWL6040_REG_LDOCTL, ldoctl);
-+	if (ret)
-+		goto osc_err;
-+
-+	return 0;
-+
-+osc_err:
-+	lppllctl &= ~TWL6040_LPLLENA;
-+	twl6040_reg_write(twl6040, TWL6040_REG_LPPLLCTL, lppllctl);
-+lppll_err:
-+	ldoctl &= ~TWL6040_LSLDOENA;
-+	twl6040_reg_write(twl6040, TWL6040_REG_LDOCTL, ldoctl);
-+lsldo_err:
-+	ncpctl &= ~TWL6040_NCPENA;
-+	twl6040_reg_write(twl6040, TWL6040_REG_NCPCTL, ncpctl);
-+ncp_err:
-+	ldoctl &= ~(TWL6040_HSLDOENA | TWL6040_REFENA | TWL6040_OSCENA);
-+	twl6040_reg_write(twl6040, TWL6040_REG_LDOCTL, ldoctl);
-+
-+	return ret;
-+}
-+
-+/* twl6040 manual power-down sequence */
-+static void twl6040_power_down(struct twl6040 *twl6040)
-+{
-+	u8 ncpctl, ldoctl, lppllctl;
-+
-+	ncpctl = twl6040_reg_read(twl6040, TWL6040_REG_NCPCTL);
-+	ldoctl = twl6040_reg_read(twl6040, TWL6040_REG_LDOCTL);
-+	lppllctl = twl6040_reg_read(twl6040, TWL6040_REG_LPPLLCTL);
-+
-+	/* enable internal oscillator */
-+	ldoctl |= TWL6040_OSCENA;
-+	twl6040_reg_write(twl6040, TWL6040_REG_LDOCTL, ldoctl);
-+	usleep_range(1000, 1500);
-+
-+	/* disable low-power PLL */
-+	lppllctl &= ~TWL6040_LPLLENA;
-+	twl6040_reg_write(twl6040, TWL6040_REG_LPPLLCTL, lppllctl);
-+
-+	/* disable low-side LDO */
-+	ldoctl &= ~TWL6040_LSLDOENA;
-+	twl6040_reg_write(twl6040, TWL6040_REG_LDOCTL, ldoctl);
-+
-+	/* disable negative charge pump */
-+	ncpctl &= ~TWL6040_NCPENA;
-+	twl6040_reg_write(twl6040, TWL6040_REG_NCPCTL, ncpctl);
-+
-+	/* disable high-side LDO, reference system and internal oscillator */
-+	ldoctl &= ~(TWL6040_HSLDOENA | TWL6040_REFENA | TWL6040_OSCENA);
-+	twl6040_reg_write(twl6040, TWL6040_REG_LDOCTL, ldoctl);
-+}
-+
-+static irqreturn_t twl6040_naudint_handler(int irq, void *data)
-+{
-+	struct twl6040 *twl6040 = data;
-+	u8 intid, status;
-+
-+	intid = twl6040_reg_read(twl6040, TWL6040_REG_INTID);
-+
-+	if (intid & TWL6040_READYINT)
-+		complete(&twl6040->ready);
-+
-+	if (intid & TWL6040_THINT) {
-+		status = twl6040_reg_read(twl6040, TWL6040_REG_STATUS);
-+		if (status & TWL6040_TSHUTDET) {
-+			dev_warn(&twl6040_dev->dev,
-+				 "Thermal shutdown, powering-off");
-+			twl6040_power(twl6040, 0);
-+		} else {
-+			dev_warn(&twl6040_dev->dev,
-+				 "Leaving thermal shutdown, powering-on");
-+			twl6040_power(twl6040, 1);
-+		}
-+	}
-+
-+	return IRQ_HANDLED;
-+}
-+
-+static int twl6040_power_up_completion(struct twl6040 *twl6040,
-+				       int naudint)
-+{
-+	int time_left;
-+	u8 intid;
-+
-+	time_left = wait_for_completion_timeout(&twl6040->ready,
-+						msecs_to_jiffies(144));
-+	if (!time_left) {
-+		intid = twl6040_reg_read(twl6040, TWL6040_REG_INTID);
-+		if (!(intid & TWL6040_READYINT)) {
-+			dev_err(&twl6040_dev->dev,
-+				"timeout waiting for READYINT\n");
-+			return -ETIMEDOUT;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+int twl6040_power(struct twl6040 *twl6040, int on)
-+{
-+	int audpwron = twl6040->audpwron;
-+	int naudint = twl6040->irq;
-+	int ret = 0;
-+
-+	mutex_lock(&twl6040->mutex);
-+
-+	if (on) {
-+		/* already powered-up */
-+		if (twl6040->power_count++)
-+			goto out;
-+
-+		if (gpio_is_valid(audpwron)) {
-+			/* use AUDPWRON line */
-+			gpio_set_value(audpwron, 1);
-+			/* wait for power-up completion */
-+			ret = twl6040_power_up_completion(twl6040, naudint);
-+			if (ret) {
-+				dev_err(&twl6040_dev->dev,
-+					"automatic power-down failed\n");
-+				twl6040->power_count = 0;
-+				goto out;
-+			}
-+		} else {
-+			/* use manual power-up sequence */
-+			ret = twl6040_power_up(twl6040);
-+			if (ret) {
-+				dev_err(&twl6040_dev->dev,
-+					"manual power-up failed\n");
-+				twl6040->power_count = 0;
-+				goto out;
-+			}
-+		}
-+		twl6040->pll = TWL6040_LPPLL_ID;
-+		twl6040->sysclk = 19200000;
-+	} else {
-+		/* already powered-down */
-+		if (!twl6040->power_count) {
-+			dev_err(&twl6040_dev->dev,
-+				"device is already powered-off\n");
-+			ret = -EPERM;
-+			goto out;
-+		}
-+
-+		if (--twl6040->power_count)
-+			goto out;
-+
-+		if (gpio_is_valid(audpwron)) {
-+			/* use AUDPWRON line */
-+			gpio_set_value(audpwron, 0);
-+
-+			/* power-down sequence latency */
-+			usleep_range(500, 700);
-+		} else {
-+			/* use manual power-down sequence */
-+			twl6040_power_down(twl6040);
-+		}
-+		twl6040->pll = TWL6040_NOPLL_ID;
-+		twl6040->sysclk = 0;
-+	}
-+
-+out:
-+	mutex_unlock(&twl6040->mutex);
-+	return ret;
-+}
-+EXPORT_SYMBOL(twl6040_power);
-+
-+int twl6040_is_powered(struct twl6040 *twl6040)
-+{
-+	return twl6040->power_count;
-+}
-+EXPORT_SYMBOL(twl6040_is_powered);
-+
-+int twl6040_set_pll(struct twl6040 *twl6040, enum twl6040_pll_id id,
-+		    unsigned int freq_in, unsigned int freq_out)
-+{
-+	u8 hppllctl, lppllctl;
-+	int ret = 0;
-+
-+	mutex_lock(&twl6040->mutex);
-+
-+	hppllctl = twl6040_reg_read(twl6040, TWL6040_REG_HPPLLCTL);
-+	lppllctl = twl6040_reg_read(twl6040, TWL6040_REG_LPPLLCTL);
-+
-+	switch (id) {
-+	case TWL6040_LPPLL_ID:
-+		/* low-power PLL divider */
-+		switch (freq_out) {
-+		case 17640000:
-+			lppllctl |= TWL6040_LPLLFIN;
-+			break;
-+		case 19200000:
-+			lppllctl &= ~TWL6040_LPLLFIN;
-+			break;
-+		default:
-+			dev_err(&twl6040_dev->dev,
-+				"freq_out %d not supported\n", freq_out);
-+			ret = -EINVAL;
-+			goto pll_out;
-+		}
-+		twl6040_reg_write(twl6040, TWL6040_REG_LPPLLCTL, lppllctl);
-+
-+		switch (freq_in) {
-+		case 32768:
-+			lppllctl |= TWL6040_LPLLENA;
-+			twl6040_reg_write(twl6040, TWL6040_REG_LPPLLCTL,
-+					  lppllctl);
-+			mdelay(5);
-+			lppllctl &= ~TWL6040_HPLLSEL;
-+			twl6040_reg_write(twl6040, TWL6040_REG_LPPLLCTL,
-+					  lppllctl);
-+			hppllctl &= ~TWL6040_HPLLENA;
-+			twl6040_reg_write(twl6040, TWL6040_REG_HPPLLCTL,
-+					  hppllctl);
-+			break;
-+		default:
-+			dev_err(&twl6040_dev->dev,
-+				"freq_in %d not supported\n", freq_in);
-+			ret = -EINVAL;
-+			goto pll_out;
-+		}
-+
-+		twl6040->pll = TWL6040_LPPLL_ID;
-+		break;
-+	case TWL6040_HPPLL_ID:
-+		/* high-performance PLL can provide only 19.2 MHz */
-+		if (freq_out != 19200000) {
-+			dev_err(&twl6040_dev->dev,
-+				"freq_out %d not supported\n", freq_out);
-+			ret = -EINVAL;
-+			goto pll_out;
-+		}
-+
-+		hppllctl &= ~TWL6040_MCLK_MSK;
-+
-+		switch (freq_in) {
-+		case 12000000:
-+			/* PLL enabled, active mode */
-+			hppllctl |= TWL6040_MCLK_12000KHZ |
-+				    TWL6040_HPLLENA;
-+			break;
-+		case 19200000:
-+			/*
-+			 * PLL disabled
-+			 * (enable PLL if MCLK jitter quality
-+			 *  doesn't meet specification)
-+			 */
-+			hppllctl |= TWL6040_MCLK_19200KHZ;
-+			break;
-+		case 26000000:
-+			/* PLL enabled, active mode */
-+			hppllctl |= TWL6040_MCLK_26000KHZ |
-+				    TWL6040_HPLLENA;
-+			break;
-+		case 38400000:
-+			/* PLL enabled, active mode */
-+			hppllctl |= TWL6040_MCLK_38400KHZ |
-+				    TWL6040_HPLLENA;
-+			break;
-+		default:
-+			dev_err(&twl6040_dev->dev,
-+				"freq_in %d not supported\n", freq_in);
-+			ret = -EINVAL;
-+			goto pll_out;
-+		}
-+
-+		/* enable clock slicer to ensure input waveform is square */
-+		hppllctl |= TWL6040_HPLLSQRENA;
-+
-+		twl6040_reg_write(twl6040, TWL6040_REG_HPPLLCTL, hppllctl);
-+		usleep_range(500, 700);
-+		lppllctl |= TWL6040_HPLLSEL;
-+		twl6040_reg_write(twl6040, TWL6040_REG_LPPLLCTL, lppllctl);
-+		lppllctl &= ~TWL6040_LPLLENA;
-+		twl6040_reg_write(twl6040, TWL6040_REG_LPPLLCTL, lppllctl);
-+
-+		twl6040->pll = TWL6040_HPPLL_ID;
-+		break;
-+	default:
-+		dev_err(&twl6040_dev->dev, "unknown pll id %d\n", id);
-+		ret = -EINVAL;
-+		goto pll_out;
-+	}
-+
-+	twl6040->sysclk = freq_out;
-+
-+pll_out:
-+	mutex_unlock(&twl6040->mutex);
-+	return ret;
-+}
-+EXPORT_SYMBOL(twl6040_set_pll);
-+
-+enum twl6040_pll_id twl6040_get_pll(struct twl6040 *twl6040)
-+{
-+	return twl6040->pll;
-+}
-+EXPORT_SYMBOL(twl6040_get_pll);
-+
-+unsigned int twl6040_get_sysclk(struct twl6040 *twl6040)
-+{
-+	return twl6040->sysclk;
-+}
-+EXPORT_SYMBOL(twl6040_get_sysclk);
-+
-+static int __devinit twl6040_probe(struct platform_device *pdev)
-+{
-+	struct twl4030_audio_data *pdata = pdev->dev.platform_data;
-+	struct twl6040 *twl6040;
-+	struct mfd_cell *cell = NULL;
-+	int ret, children = 0;
-+
-+	if (!pdata) {
-+		dev_err(&pdev->dev, "Platform data is missing\n");
-+		return -EINVAL;
-+	}
-+
-+	twl6040 = kzalloc(sizeof(struct twl6040), GFP_KERNEL);
-+	if (!twl6040)
-+		return -ENOMEM;
-+
-+	platform_set_drvdata(pdev, twl6040);
-+
-+	twl6040_dev = pdev;
-+	twl6040->dev = &pdev->dev;
-+	twl6040->audpwron = pdata->audpwron_gpio;
-+	twl6040->irq = pdata->naudint_irq;
-+	twl6040->irq_base = pdata->irq_base;
-+
-+	mutex_init(&twl6040->mutex);
-+	mutex_init(&twl6040->io_mutex);
-+	init_completion(&twl6040->ready);
-+
-+	twl6040->rev = twl6040_reg_read(twl6040, TWL6040_REG_ASICREV);
-+
-+	if (gpio_is_valid(twl6040->audpwron)) {
-+		ret = gpio_request(twl6040->audpwron, "audpwron");
-+		if (ret)
-+			goto gpio1_err;
-+
-+		ret = gpio_direction_output(twl6040->audpwron, 0);
-+		if (ret)
-+			goto gpio2_err;
-+	}
-+
-+	/* ERRATA: Automatic power-up is not possible in ES1.0 */
-+	if (twl6040_get_rev(twl6040) == TWL6040_REV_ES1_0)
-+		twl6040->audpwron = -EINVAL;
-+
-+	if (twl6040->irq) {
-+		/* codec interrupt */
-+		ret = twl6040_irq_init(twl6040);
-+		if (ret)
-+			goto gpio2_err;
-+
-+		ret = twl6040_request_irq(twl6040, TWL6040_IRQ_READY,
-+					  twl6040_naudint_handler, 0,
-+					  "twl6040_irq_ready", twl6040);
-+		if (ret) {
-+			dev_err(twl6040->dev, "READY IRQ request failed: %d\n",
-+				ret);
-+			goto irq_err;
-+		}
-+	}
-+
-+	/* dual-access registers controlled by I2C only */
-+	twl6040_set_bits(twl6040, TWL6040_REG_ACCCTL, TWL6040_I2CSEL);
-+
-+	if (pdata->codec) {
-+		cell = &twl6040->cells[children];
-+		cell->name = "twl6040-codec";
-+		/* The codec expects the twl4030_audio_data as platform data */
-+		cell->platform_data = pdata;
-+		cell->pdata_size = sizeof(*pdata);
-+		children++;
-+	}
-+
-+	if (pdata->vibra) {
-+		cell = &twl6040->cells[children];
-+		cell->name = "twl6040-vibra";
-+		cell->platform_data = pdata->vibra;
-+		cell->pdata_size = sizeof(*pdata->vibra);
-+		children++;
-+	}
-+
-+	if (children) {
-+		ret = mfd_add_devices(&pdev->dev, pdev->id, twl6040->cells,
-+				      children, NULL, 0);
-+		if (ret)
-+			goto mfd_err;
-+	} else {
-+		dev_err(&pdev->dev, "No platform data found for children\n");
-+		ret = -ENODEV;
-+		goto mfd_err;
-+	}
-+
-+	return 0;
-+
-+mfd_err:
-+	if (twl6040->irq)
-+		twl6040_free_irq(twl6040, TWL6040_IRQ_READY, twl6040);
-+irq_err:
-+	if (twl6040->irq)
-+		twl6040_irq_exit(twl6040);
-+gpio2_err:
-+	if (gpio_is_valid(twl6040->audpwron))
-+		gpio_free(twl6040->audpwron);
-+gpio1_err:
-+	platform_set_drvdata(pdev, NULL);
-+	kfree(twl6040);
-+	twl6040_dev = NULL;
-+	return ret;
-+}
-+
-+static int __devexit twl6040_remove(struct platform_device *pdev)
-+{
-+	struct twl6040 *twl6040 = platform_get_drvdata(pdev);
-+
-+	if (twl6040_is_powered(twl6040))
-+		twl6040_power(twl6040, 0);
-+
-+	if (gpio_is_valid(twl6040->audpwron))
-+		gpio_free(twl6040->audpwron);
-+
-+	twl6040_free_irq(twl6040, TWL6040_IRQ_READY, twl6040);
-+
-+	if (twl6040->irq)
-+		twl6040_irq_exit(twl6040);
-+
-+	mfd_remove_devices(&pdev->dev);
-+	platform_set_drvdata(pdev, NULL);
-+	kfree(twl6040);
-+	twl6040_dev = NULL;
-+
-+	return 0;
-+}
-+
-+static struct platform_driver twl6040_driver = {
-+	.probe		= twl6040_probe,
-+	.remove		= __devexit_p(twl6040_remove),
-+	.driver		= {
-+		.owner	= THIS_MODULE,
-+		.name	= "twl6040",
-+	},
-+};
-+
-+static int __devinit twl6040_init(void)
-+{
-+	return platform_driver_register(&twl6040_driver);
-+}
-+module_init(twl6040_init);
-+
-+static void __devexit twl6040_exit(void)
-+{
-+	platform_driver_unregister(&twl6040_driver);
-+}
-+
-+module_exit(twl6040_exit);
-+
-+MODULE_DESCRIPTION("TWL6040 MFD");
-+MODULE_AUTHOR("Misael Lopez Cruz <misael.lopez@ti.com>");
-+MODULE_AUTHOR("Jorge Eduardo Candelaria <jorge.candelaria@ti.com>");
-+MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:twl6040");
-diff --git a/drivers/mfd/twl6040-irq.c b/drivers/mfd/twl6040-irq.c
-new file mode 100644
-index 0000000..9380535
---- /dev/null
-+++ b/drivers/mfd/twl6040-irq.c
-@@ -0,0 +1,205 @@
-+/*
-+ * Interrupt controller support for TWL6040
-+ *
-+ * Author:     Misael Lopez Cruz <misael.lopez@ti.com>
-+ *
-+ * Copyright:   (C) 2011 Texas Instruments, Inc.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-+ * 02110-1301 USA
-+ *
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/irq.h>
-+#include <linux/interrupt.h>
-+#include <linux/mfd/core.h>
-+#include <linux/mfd/twl6040.h>
-+
-+struct twl6040_irq_data {
-+	int mask;
-+	int status;
-+};
-+
-+static struct twl6040_irq_data twl6040_irqs[] = {
-+	{
-+		.mask = TWL6040_THMSK,
-+		.status = TWL6040_THINT,
-+	},
-+	{
-+		.mask = TWL6040_PLUGMSK,
-+		.status = TWL6040_PLUGINT | TWL6040_UNPLUGINT,
-+	},
-+	{
-+		.mask = TWL6040_HOOKMSK,
-+		.status = TWL6040_HOOKINT,
-+	},
-+	{
-+		.mask = TWL6040_HFMSK,
-+		.status = TWL6040_HFINT,
-+	},
-+	{
-+		.mask = TWL6040_VIBMSK,
-+		.status = TWL6040_VIBINT,
-+	},
-+	{
-+		.mask = TWL6040_READYMSK,
-+		.status = TWL6040_READYINT,
-+	},
-+};
-+
-+static inline
-+struct twl6040_irq_data *irq_to_twl6040_irq(struct twl6040 *twl6040,
-+					    int irq)
-+{
-+	return &twl6040_irqs[irq - twl6040->irq_base];
-+}
-+
-+static void twl6040_irq_lock(struct irq_data *data)
-+{
-+	struct twl6040 *twl6040 = irq_data_get_irq_chip_data(data);
-+
-+	mutex_lock(&twl6040->irq_mutex);
-+}
-+
-+static void twl6040_irq_sync_unlock(struct irq_data *data)
-+{
-+	struct twl6040 *twl6040 = irq_data_get_irq_chip_data(data);
-+
-+	/* write back to hardware any change in irq mask */
-+	if (twl6040->irq_masks_cur != twl6040->irq_masks_cache) {
-+		twl6040->irq_masks_cache = twl6040->irq_masks_cur;
-+		twl6040_reg_write(twl6040, TWL6040_REG_INTMR,
-+				  twl6040->irq_masks_cur);
-+	}
-+
-+	mutex_unlock(&twl6040->irq_mutex);
-+}
-+
-+static void twl6040_irq_enable(struct irq_data *data)
-+{
-+	struct twl6040 *twl6040 = irq_data_get_irq_chip_data(data);
-+	struct twl6040_irq_data *irq_data = irq_to_twl6040_irq(twl6040,
-+							       data->irq);
-+
-+	twl6040->irq_masks_cur &= ~irq_data->mask;
-+}
-+
-+static void twl6040_irq_disable(struct irq_data *data)
-+{
-+	struct twl6040 *twl6040 = irq_data_get_irq_chip_data(data);
-+	struct twl6040_irq_data *irq_data = irq_to_twl6040_irq(twl6040,
-+							       data->irq);
-+
-+	twl6040->irq_masks_cur |= irq_data->mask;
-+}
-+
-+static struct irq_chip twl6040_irq_chip = {
-+	.name			= "twl6040",
-+	.irq_bus_lock		= twl6040_irq_lock,
-+	.irq_bus_sync_unlock	= twl6040_irq_sync_unlock,
-+	.irq_enable		= twl6040_irq_enable,
-+	.irq_disable		= twl6040_irq_disable,
-+};
-+
-+static irqreturn_t twl6040_irq_thread(int irq, void *data)
-+{
-+	struct twl6040 *twl6040 = data;
-+	u8 intid;
-+	int i;
-+
-+	intid = twl6040_reg_read(twl6040, TWL6040_REG_INTID);
-+
-+	/* apply masking and report (backwards to handle READYINT first) */
-+	for (i = ARRAY_SIZE(twl6040_irqs) - 1; i >= 0; i--) {
-+		if (twl6040->irq_masks_cur & twl6040_irqs[i].mask)
-+			intid &= ~twl6040_irqs[i].status;
-+		if (intid & twl6040_irqs[i].status)
-+			handle_nested_irq(twl6040->irq_base + i);
-+	}
-+
-+	/* ack unmasked irqs */
-+	twl6040_reg_write(twl6040, TWL6040_REG_INTID, intid);
-+
-+	return IRQ_HANDLED;
-+}
-+
-+int twl6040_irq_init(struct twl6040 *twl6040)
-+{
-+	int cur_irq, ret;
-+	u8 val;
-+
-+	mutex_init(&twl6040->irq_mutex);
-+
-+	/* mask the individual interrupt sources */
-+	twl6040->irq_masks_cur = TWL6040_ALLINT_MSK;
-+	twl6040->irq_masks_cache = TWL6040_ALLINT_MSK;
-+	twl6040_reg_write(twl6040, TWL6040_REG_INTMR, TWL6040_ALLINT_MSK);
-+
-+	if (!twl6040->irq) {
-+		dev_warn(twl6040->dev,
-+			 "no interrupt specified, no interrupts\n");
-+		twl6040->irq_base = 0;
-+		return 0;
-+	}
-+
-+	if (!twl6040->irq_base) {
-+		dev_err(twl6040->dev,
-+			"no interrupt base specified, no interrupts\n");
-+		return 0;
-+	}
-+
-+	/* Register them with genirq */
-+	for (cur_irq = twl6040->irq_base;
-+	     cur_irq < twl6040->irq_base + ARRAY_SIZE(twl6040_irqs);
-+	     cur_irq++) {
-+		irq_set_chip_data(cur_irq, twl6040);
-+		irq_set_chip_and_handler(cur_irq, &twl6040_irq_chip,
-+					 handle_level_irq);
-+		irq_set_nested_thread(cur_irq, 1);
-+
-+		/* ARM needs us to explicitly flag the IRQ as valid
-+		 * and will set them noprobe when we do so. */
-+#ifdef CONFIG_ARM
-+		set_irq_flags(cur_irq, IRQF_VALID);
-+#else
-+		irq_set_noprobe(cur_irq);
-+#endif
-+	}
-+
-+	ret = request_threaded_irq(twl6040->irq, NULL, twl6040_irq_thread,
-+				   IRQF_ONESHOT, "twl6040", twl6040);
-+	if (ret) {
-+		dev_err(twl6040->dev, "failed to request IRQ %d: %d\n",
-+			twl6040->irq, ret);
-+		return ret;
-+	}
-+
-+	/* reset interrupts */
-+	val = twl6040_reg_read(twl6040, TWL6040_REG_INTID);
-+
-+	/* interrupts cleared on write */
-+	twl6040_clear_bits(twl6040, TWL6040_REG_ACCCTL, TWL6040_INTCLRMODE);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL(twl6040_irq_init);
-+
-+void twl6040_irq_exit(struct twl6040 *twl6040)
-+{
-+	if (twl6040->irq)
-+		free_irq(twl6040->irq, twl6040);
-+}
-+EXPORT_SYMBOL(twl6040_irq_exit);
-diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
-index e0aba2b..ea5baa2 100644
---- a/include/linux/i2c/twl.h
-+++ b/include/linux/i2c/twl.h
-@@ -679,6 +679,7 @@ struct twl4030_audio_data {
- 	/* twl6040 */
- 	int audpwron_gpio;	/* audio power-on gpio */
- 	int naudint_irq;	/* audio interrupt */
-+	unsigned int irq_base;
+diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
+index 4810dcc..d944a56 100644
+--- a/arch/arm/mach-omap2/board-3430sdp.c
++++ b/arch/arm/mach-omap2/board-3430sdp.c
+@@ -283,16 +283,6 @@ static struct regulator_consumer_supply sdp3430_vaux3_supplies[] = {
+ 	REGULATOR_SUPPLY("vcc", "spi1.0"),
  };
  
- struct twl4030_platform_data {
-diff --git a/include/linux/mfd/twl6040.h b/include/linux/mfd/twl6040.h
-new file mode 100644
-index 0000000..d384a01
---- /dev/null
-+++ b/include/linux/mfd/twl6040.h
-@@ -0,0 +1,261 @@
-+/*
-+ * MFD driver for twl6040
-+ *
-+ * Authors:     Jorge Eduardo Candelaria <jorge.candelaria@ti.com>
-+ *              Misael Lopez Cruz <misael.lopez@ti.com>
-+ *
-+ * Copyright:   (C) 2011 Texas Instruments, Inc.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-+ * 02110-1301 USA
-+ *
-+ */
+-static struct regulator_consumer_supply sdp3430_vdda_dac_supplies[] = {
+-	REGULATOR_SUPPLY("vdda_dac", "omapdss_venc"),
+-};
+-
+-/* VPLL2 for digital video outputs */
+-static struct regulator_consumer_supply sdp3430_vpll2_supplies[] = {
+-	REGULATOR_SUPPLY("vdds_dsi", "omapdss"),
+-	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dsi1"),
+-};
+-
+ static struct regulator_consumer_supply sdp3430_vmmc1_supplies[] = {
+ 	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.0"),
+ };
+@@ -409,36 +399,6 @@ static struct regulator_init_data sdp3430_vsim = {
+ 	.consumer_supplies	= sdp3430_vsim_supplies,
+ };
+ 
+-/* VDAC for DSS driving S-Video */
+-static struct regulator_init_data sdp3430_vdac = {
+-	.constraints = {
+-		.min_uV			= 1800000,
+-		.max_uV			= 1800000,
+-		.apply_uV		= true,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies	= ARRAY_SIZE(sdp3430_vdda_dac_supplies),
+-	.consumer_supplies	= sdp3430_vdda_dac_supplies,
+-};
+-
+-static struct regulator_init_data sdp3430_vpll2 = {
+-	.constraints = {
+-		.name			= "VDVI",
+-		.min_uV			= 1800000,
+-		.max_uV			= 1800000,
+-		.apply_uV		= true,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies	= ARRAY_SIZE(sdp3430_vpll2_supplies),
+-	.consumer_supplies	= sdp3430_vpll2_supplies,
+-};
+-
+ static struct twl4030_platform_data sdp3430_twldata = {
+ 	/* platform_data for children goes here */
+ 	.gpio		= &sdp3430_gpio_data,
+@@ -451,16 +411,19 @@ static struct twl4030_platform_data sdp3430_twldata = {
+ 	.vmmc1		= &sdp3430_vmmc1,
+ 	.vmmc2		= &sdp3430_vmmc2,
+ 	.vsim		= &sdp3430_vsim,
+-	.vdac		= &sdp3430_vdac,
+-	.vpll2		= &sdp3430_vpll2,
+ };
+ 
+ static int __init omap3430_i2c_init(void)
+ {
+ 	/* i2c1 for PMIC only */
+ 	omap3_pmic_get_config(&sdp3430_twldata,
+-			  TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_BCI |
+-			  TWL_COMMON_PDATA_MADC | TWL_COMMON_PDATA_AUDIO, 0);
++			TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_BCI |
++			TWL_COMMON_PDATA_MADC | TWL_COMMON_PDATA_AUDIO,
++			TWL_COMMON_REGULATOR_VDAC | TWL_COMMON_REGULATOR_VPLL2);
++	sdp3430_twldata.vdac->constraints.apply_uV = true;
++	sdp3430_twldata.vpll2->constraints.apply_uV = true;
++	sdp3430_twldata.vpll2->constraints.name = "VDVI";
 +
-+#ifndef __TWL6040_CODEC_H__
-+#define __TWL6040_CODEC_H__
+ 	omap3_pmic_init("twl4030", &sdp3430_twldata);
+ 
+ 	/* i2c2 on camera connector (for sensor control) and optional isp1301 */
+diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
+index e867474..2ae6afe 100644
+--- a/arch/arm/mach-omap2/board-cm-t35.c
++++ b/arch/arm/mach-omap2/board-cm-t35.c
+@@ -345,9 +345,6 @@ static struct regulator_consumer_supply cm_t35_vsim_supply = {
+ 	.supply			= "vmmc_aux",
+ };
+ 
+-static struct regulator_consumer_supply cm_t35_vdac_supply =
+-	REGULATOR_SUPPLY("vdda_dac", "omapdss_venc");
+-
+ static struct regulator_consumer_supply cm_t35_vdvi_supply =
+ 	REGULATOR_SUPPLY("vdvi", "omapdss");
+ 
+@@ -381,35 +378,6 @@ static struct regulator_init_data cm_t35_vsim = {
+ 	.consumer_supplies	= &cm_t35_vsim_supply,
+ };
+ 
+-/* VDAC for DSS driving S-Video (8 mA unloaded, max 65 mA) */
+-static struct regulator_init_data cm_t35_vdac = {
+-	.constraints = {
+-		.min_uV			= 1800000,
+-		.max_uV			= 1800000,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies	= 1,
+-	.consumer_supplies	= &cm_t35_vdac_supply,
+-};
+-
+-/* VPLL2 for digital video outputs */
+-static struct regulator_init_data cm_t35_vpll2 = {
+-	.constraints = {
+-		.name			= "VDVI",
+-		.min_uV			= 1800000,
+-		.max_uV			= 1800000,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies	= 1,
+-	.consumer_supplies	= &cm_t35_vdvi_supply,
+-};
+-
+ static uint32_t cm_t35_keymap[] = {
+ 	KEY(0, 0, KEY_A),	KEY(0, 1, KEY_B),	KEY(0, 2, KEY_LEFT),
+ 	KEY(1, 0, KEY_UP),	KEY(1, 1, KEY_ENTER),	KEY(1, 2, KEY_DOWN),
+@@ -497,13 +465,16 @@ static struct twl4030_platform_data cm_t35_twldata = {
+ 	.gpio		= &cm_t35_gpio_data,
+ 	.vmmc1		= &cm_t35_vmmc1,
+ 	.vsim		= &cm_t35_vsim,
+-	.vdac		= &cm_t35_vdac,
+-	.vpll2		= &cm_t35_vpll2,
+ };
+ 
+ static void __init cm_t35_init_i2c(void)
+ {
+-	omap3_pmic_get_config(&cm_t35_twldata, TWL_COMMON_PDATA_USB, 0);
++	omap3_pmic_get_config(&cm_t35_twldata, TWL_COMMON_PDATA_USB,
++			TWL_COMMON_REGULATOR_VDAC | TWL_COMMON_REGULATOR_VPLL2);
++	cm_t35_twldata.vpll2->constraints.name = "VDVI";
++	cm_t35_twldata.vpll2->num_consumer_supplies = 1;
++	cm_t35_twldata.vpll2->consumer_supplies = &cm_t35_vdvi_supply;
 +
-+#include <linux/interrupt.h>
-+#include <linux/mfd/core.h>
+ 	omap3_pmic_init("tps65930", &cm_t35_twldata);
+ }
+ 
+diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
+index aa6a173..f7bc171 100644
+--- a/arch/arm/mach-omap2/board-devkit8000.c
++++ b/arch/arm/mach-omap2/board-devkit8000.c
+@@ -186,9 +186,6 @@ static struct omap_dss_board_info devkit8000_dss_data = {
+ 	.default_device = &devkit8000_lcd_device,
+ };
+ 
+-static struct regulator_consumer_supply devkit8000_vdda_dac_supply =
+-	REGULATOR_SUPPLY("vdda_dac", "omapdss_venc");
+-
+ static uint32_t board_keymap[] = {
+ 	KEY(0, 0, KEY_1),
+ 	KEY(1, 0, KEY_2),
+@@ -288,20 +285,6 @@ static struct regulator_init_data devkit8000_vmmc1 = {
+ 	.consumer_supplies	= &devkit8000_vmmc1_supply,
+ };
+ 
+-/* VDAC for DSS driving S-Video (8 mA unloaded, max 65 mA) */
+-static struct regulator_init_data devkit8000_vdac = {
+-	.constraints = {
+-		.min_uV			= 1800000,
+-		.max_uV			= 1800000,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies	= 1,
+-	.consumer_supplies	= &devkit8000_vdda_dac_supply,
+-};
+-
+ /* VPLL1 for digital video outputs */
+ static struct regulator_init_data devkit8000_vpll1 = {
+ 	.constraints = {
+@@ -335,7 +318,6 @@ static struct twl4030_platform_data devkit8000_twldata = {
+ 	/* platform_data for children goes here */
+ 	.gpio		= &devkit8000_gpio_data,
+ 	.vmmc1		= &devkit8000_vmmc1,
+-	.vdac		= &devkit8000_vdac,
+ 	.vpll1		= &devkit8000_vpll1,
+ 	.vio		= &devkit8000_vio,
+ 	.keypad		= &devkit8000_kp_data,
+@@ -344,7 +326,8 @@ static struct twl4030_platform_data devkit8000_twldata = {
+ static int __init devkit8000_i2c_init(void)
+ {
+ 	omap3_pmic_get_config(&devkit8000_twldata,
+-			  TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_AUDIO, 0);
++			  TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_AUDIO,
++			  TWL_COMMON_REGULATOR_VDAC);
+ 	omap3_pmic_init("tps65930", &devkit8000_twldata);
+ 	/* Bus 3 is attached to the DVI port where devices like the pico DLP
+ 	 * projector don't work reliably with 400kHz */
+diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
+index bb3723a..48f86e1 100644
+--- a/arch/arm/mach-omap2/board-igep0020.c
++++ b/arch/arm/mach-omap2/board-igep0020.c
+@@ -476,26 +476,6 @@ static struct omap_dss_board_info igep2_dss_data = {
+ 	.default_device	= &igep2_dvi_device,
+ };
+ 
+-static struct regulator_consumer_supply igep2_vpll2_supplies[] = {
+-	REGULATOR_SUPPLY("vdds_dsi", "omapdss"),
+-	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dsi1"),
+-};
+-
+-static struct regulator_init_data igep2_vpll2 = {
+-	.constraints = {
+-		.name			= "VDVI",
+-		.min_uV			= 1800000,
+-		.max_uV			= 1800000,
+-		.apply_uV		= true,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies	= ARRAY_SIZE(igep2_vpll2_supplies),
+-	.consumer_supplies	= igep2_vpll2_supplies,
+-};
+-
+ static void __init igep2_display_init(void)
+ {
+ 	int err = gpio_request_one(IGEP2_GPIO_DVI_PUP, GPIOF_OUT_INIT_HIGH,
+@@ -576,9 +556,11 @@ static void __init igep_i2c_init(void)
+ 			pr_warning("IGEP2: Could not register I2C3 bus (%d)\n", ret);
+ 
+ 		igep_twldata.keypad	= &igep2_keypad_pdata;
+-		igep_twldata.vpll2	= &igep2_vpll2;
+-		/* Use common codec data */
+-		omap3_pmic_get_config(&igep_twldata, TWL_COMMON_PDATA_AUDIO, 0);
++		/* Get common pmic data */
++		omap3_pmic_get_config(&igep_twldata, TWL_COMMON_PDATA_AUDIO,
++				      TWL_COMMON_REGULATOR_VPLL2);
++		igep_twldata.vpll2->constraints.apply_uV = true;
++		igep_twldata.vpll2->constraints.name = "VDVI";
+ 	}
+ 
+ 	omap3_pmic_init("twl4030", &igep_twldata);
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index 63104e8..ff991ca 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -210,14 +210,6 @@ static struct omap_dss_board_info beagle_dss_data = {
+ 	.default_device = &beagle_dvi_device,
+ };
+ 
+-static struct regulator_consumer_supply beagle_vdac_supply =
+-	REGULATOR_SUPPLY("vdda_dac", "omapdss_venc");
+-
+-static struct regulator_consumer_supply beagle_vdvi_supplies[] = {
+-	REGULATOR_SUPPLY("vdds_dsi", "omapdss"),
+-	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dsi1"),
+-};
+-
+ static void __init beagle_display_init(void)
+ {
+ 	int r;
+@@ -355,42 +347,11 @@ static struct regulator_init_data beagle_vsim = {
+ 	.consumer_supplies	= &beagle_vsim_supply,
+ };
+ 
+-/* VDAC for DSS driving S-Video (8 mA unloaded, max 65 mA) */
+-static struct regulator_init_data beagle_vdac = {
+-	.constraints = {
+-		.min_uV			= 1800000,
+-		.max_uV			= 1800000,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies	= 1,
+-	.consumer_supplies	= &beagle_vdac_supply,
+-};
+-
+-/* VPLL2 for digital video outputs */
+-static struct regulator_init_data beagle_vpll2 = {
+-	.constraints = {
+-		.name			= "VDVI",
+-		.min_uV			= 1800000,
+-		.max_uV			= 1800000,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies	= ARRAY_SIZE(beagle_vdvi_supplies),
+-	.consumer_supplies	= beagle_vdvi_supplies,
+-};
+-
+ static struct twl4030_platform_data beagle_twldata = {
+ 	/* platform_data for children goes here */
+ 	.gpio		= &beagle_gpio_data,
+ 	.vmmc1		= &beagle_vmmc1,
+ 	.vsim		= &beagle_vsim,
+-	.vdac		= &beagle_vdac,
+-	.vpll2		= &beagle_vpll2,
+ };
+ 
+ static struct i2c_board_info __initdata beagle_i2c_eeprom[] = {
+@@ -402,7 +363,10 @@ static struct i2c_board_info __initdata beagle_i2c_eeprom[] = {
+ static int __init omap3_beagle_i2c_init(void)
+ {
+ 	omap3_pmic_get_config(&beagle_twldata,
+-			  TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_AUDIO, 0);
++			TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_AUDIO,
++			TWL_COMMON_REGULATOR_VDAC | TWL_COMMON_REGULATOR_VPLL2);
++	beagle_twldata.vpll2->constraints.name = "VDVI";
 +
-+#define TWL6040_REG_ASICID		0x01
-+#define TWL6040_REG_ASICREV		0x02
-+#define TWL6040_REG_INTID		0x03
-+#define TWL6040_REG_INTMR		0x04
-+#define TWL6040_REG_NCPCTL		0x05
-+#define TWL6040_REG_LDOCTL		0x06
-+#define TWL6040_REG_HPPLLCTL		0x07
-+#define TWL6040_REG_LPPLLCTL		0x08
-+#define TWL6040_REG_LPPLLDIV		0x09
-+#define TWL6040_REG_AMICBCTL		0x0A
-+#define TWL6040_REG_DMICBCTL		0x0B
-+#define TWL6040_REG_MICLCTL		0x0C
-+#define TWL6040_REG_MICRCTL		0x0D
-+#define TWL6040_REG_MICGAIN		0x0E
-+#define TWL6040_REG_LINEGAIN		0x0F
-+#define TWL6040_REG_HSLCTL		0x10
-+#define TWL6040_REG_HSRCTL		0x11
-+#define TWL6040_REG_HSGAIN		0x12
-+#define TWL6040_REG_EARCTL		0x13
-+#define TWL6040_REG_HFLCTL		0x14
-+#define TWL6040_REG_HFLGAIN		0x15
-+#define TWL6040_REG_HFRCTL		0x16
-+#define TWL6040_REG_HFRGAIN		0x17
-+#define TWL6040_REG_VIBCTLL		0x18
-+#define TWL6040_REG_VIBDATL		0x19
-+#define TWL6040_REG_VIBCTLR		0x1A
-+#define TWL6040_REG_VIBDATR		0x1B
-+#define TWL6040_REG_HKCTL1		0x1C
-+#define TWL6040_REG_HKCTL2		0x1D
-+#define TWL6040_REG_GPOCTL		0x1E
-+#define TWL6040_REG_ALB			0x1F
-+#define TWL6040_REG_DLB			0x20
-+#define TWL6040_REG_TRIM1		0x28
-+#define TWL6040_REG_TRIM2		0x29
-+#define TWL6040_REG_TRIM3		0x2A
-+#define TWL6040_REG_HSOTRIM		0x2B
-+#define TWL6040_REG_HFOTRIM		0x2C
-+#define TWL6040_REG_ACCCTL		0x2D
-+#define TWL6040_REG_STATUS		0x2E
+ 	omap3_pmic_init("twl4030", &beagle_twldata);
+ 	/* Bus 3 is attached to the DVI port where devices like the pico DLP
+ 	 * projector don't work reliably with 400kHz */
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index 3e7e902..e6fa723 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -434,44 +434,6 @@ static struct twl4030_keypad_data omap3evm_kp_data = {
+ 	.rep		= 1,
+ };
+ 
+-static struct regulator_consumer_supply omap3_evm_vdda_dac_supply =
+-	REGULATOR_SUPPLY("vdda_dac", "omapdss_venc");
+-
+-/* VDAC for DSS driving S-Video */
+-static struct regulator_init_data omap3_evm_vdac = {
+-	.constraints = {
+-		.min_uV			= 1800000,
+-		.max_uV			= 1800000,
+-		.apply_uV		= true,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies	= 1,
+-	.consumer_supplies	= &omap3_evm_vdda_dac_supply,
+-};
+-
+-/* VPLL2 for digital video outputs */
+-static struct regulator_consumer_supply omap3_evm_vpll2_supplies[] = {
+-	REGULATOR_SUPPLY("vdds_dsi", "omapdss"),
+-	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dsi1"),
+-};
+-
+-static struct regulator_init_data omap3_evm_vpll2 = {
+-	.constraints = {
+-		.min_uV			= 1800000,
+-		.max_uV			= 1800000,
+-		.apply_uV		= true,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies	= ARRAY_SIZE(omap3_evm_vpll2_supplies),
+-	.consumer_supplies	= omap3_evm_vpll2_supplies,
+-};
+-
+ /* ads7846 on SPI */
+ static struct regulator_consumer_supply omap3evm_vio_supply =
+ 	REGULATOR_SUPPLY("vcc", "spi1.0");
+@@ -536,8 +498,6 @@ static struct twl4030_platform_data omap3evm_twldata = {
+ 	/* platform_data for children goes here */
+ 	.keypad		= &omap3evm_kp_data,
+ 	.gpio		= &omap3evm_gpio_data,
+-	.vdac		= &omap3_evm_vdac,
+-	.vpll2		= &omap3_evm_vpll2,
+ 	.vio		= &omap3evm_vio,
+ 	.vmmc1		= &omap3evm_vmmc1,
+ 	.vsim		= &omap3evm_vsim,
+@@ -546,8 +506,11 @@ static struct twl4030_platform_data omap3evm_twldata = {
+ static int __init omap3_evm_i2c_init(void)
+ {
+ 	omap3_pmic_get_config(&omap3evm_twldata,
+-			  TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_MADC |
+-			  TWL_COMMON_PDATA_AUDIO, 0);
++			TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_MADC |
++			TWL_COMMON_PDATA_AUDIO,
++			TWL_COMMON_REGULATOR_VDAC | TWL_COMMON_REGULATOR_VPLL2);
++	omap3evm_twldata.vdac->constraints.apply_uV = true;
++	omap3evm_twldata.vpll2->constraints.apply_uV = true;
+ 	omap3_pmic_init("twl4030", &omap3evm_twldata);
+ 	omap_register_i2c_bus(2, 400, NULL, 0);
+ 	omap_register_i2c_bus(3, 400, NULL, 0);
+diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
+index a862ba0..0650bf2 100644
+--- a/arch/arm/mach-omap2/board-omap3pandora.c
++++ b/arch/arm/mach-omap2/board-omap3pandora.c
+@@ -328,9 +328,6 @@ static struct regulator_consumer_supply pandora_vmmc2_supply =
+ static struct regulator_consumer_supply pandora_vmmc3_supply =
+ 	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.2");
+ 
+-static struct regulator_consumer_supply pandora_vdda_dac_supply =
+-	REGULATOR_SUPPLY("vdda_dac", "omapdss_venc");
+-
+ static struct regulator_consumer_supply pandora_vdds_supplies[] = {
+ 	REGULATOR_SUPPLY("vdds_sdi", "omapdss"),
+ 	REGULATOR_SUPPLY("vdds_dsi", "omapdss"),
+@@ -383,36 +380,6 @@ static struct regulator_init_data pandora_vmmc2 = {
+ 	.consumer_supplies	= &pandora_vmmc2_supply,
+ };
+ 
+-/* VDAC for DSS driving S-Video */
+-static struct regulator_init_data pandora_vdac = {
+-	.constraints = {
+-		.min_uV			= 1800000,
+-		.max_uV			= 1800000,
+-		.apply_uV		= true,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies	= 1,
+-	.consumer_supplies	= &pandora_vdda_dac_supply,
+-};
+-
+-/* VPLL2 for digital video outputs */
+-static struct regulator_init_data pandora_vpll2 = {
+-	.constraints = {
+-		.min_uV			= 1800000,
+-		.max_uV			= 1800000,
+-		.apply_uV		= true,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies	= ARRAY_SIZE(pandora_vdds_supplies),
+-	.consumer_supplies	= pandora_vdds_supplies,
+-};
+-
+ /* VAUX1 for LCD */
+ static struct regulator_init_data pandora_vaux1 = {
+ 	.constraints = {
+@@ -506,8 +473,6 @@ static struct twl4030_platform_data omap3pandora_twldata = {
+ 	.gpio		= &omap3pandora_gpio_data,
+ 	.vmmc1		= &pandora_vmmc1,
+ 	.vmmc2		= &pandora_vmmc2,
+-	.vdac		= &pandora_vdac,
+-	.vpll2		= &pandora_vpll2,
+ 	.vaux1		= &pandora_vaux1,
+ 	.vaux2		= &pandora_vaux2,
+ 	.vaux4		= &pandora_vaux4,
+@@ -526,7 +491,14 @@ static struct i2c_board_info __initdata omap3pandora_i2c3_boardinfo[] = {
+ static int __init omap3pandora_i2c_init(void)
+ {
+ 	omap3_pmic_get_config(&omap3pandora_twldata,
+-			      TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_AUDIO, 0);
++			TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_AUDIO,
++			TWL_COMMON_REGULATOR_VDAC | TWL_COMMON_REGULATOR_VPLL2);
++	omap3pandora_twldata.vdac->constraints.apply_uV = true;
++	omap3pandora_twldata.vpll2->constraints.apply_uV = true;
++	omap3pandora_twldata.vpll2->num_consumer_supplies =
++					ARRAY_SIZE(pandora_vdds_supplies);
++	omap3pandora_twldata.vpll2->consumer_supplies = pandora_vdds_supplies;
 +
-+#define TWL6040_CACHEREGNUM		(TWL6040_REG_STATUS + 1)
+ 	omap3_pmic_init("tps65950", &omap3pandora_twldata);
+ 	/* i2c2 pins are not connected */
+ 	omap_register_i2c_bus(3, 100, omap3pandora_i2c3_boardinfo,
+diff --git a/arch/arm/mach-omap2/board-omap3stalker.c b/arch/arm/mach-omap2/board-omap3stalker.c
+index 2b52281..e40e08c 100644
+--- a/arch/arm/mach-omap2/board-omap3stalker.c
++++ b/arch/arm/mach-omap2/board-omap3stalker.c
+@@ -388,51 +388,10 @@ static struct twl4030_keypad_data omap3stalker_kp_data = {
+ 	.rep		= 1,
+ };
+ 
+-static struct regulator_consumer_supply omap3_stalker_vdda_dac_supply =
+-	REGULATOR_SUPPLY("vdda_dac", "omapdss_venc");
+-
+-/* VDAC for DSS driving S-Video */
+-static struct regulator_init_data omap3_stalker_vdac = {
+-	.constraints		= {
+-		.min_uV			= 1800000,
+-		.max_uV			= 1800000,
+-		.apply_uV		= true,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-		| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+-		| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies	= 1,
+-	.consumer_supplies	= &omap3_stalker_vdda_dac_supply,
+-};
+-
+-/* VPLL2 for digital video outputs */
+-static struct regulator_consumer_supply omap3_stalker_vpll2_supplies[] = {
+-	REGULATOR_SUPPLY("vdds_dsi", "omapdss"),
+-	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dsi1"),
+-};
+-
+-static struct regulator_init_data omap3_stalker_vpll2 = {
+-	.constraints		= {
+-		.name			= "VDVI",
+-		.min_uV			= 1800000,
+-		.max_uV			= 1800000,
+-		.apply_uV = true,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-		| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+-		| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies	= ARRAY_SIZE(omap3_stalker_vpll2_supplies),
+-	.consumer_supplies	= omap3_stalker_vpll2_supplies,
+-};
+-
+ static struct twl4030_platform_data omap3stalker_twldata = {
+ 	/* platform_data for children goes here */
+ 	.keypad		= &omap3stalker_kp_data,
+ 	.gpio		= &omap3stalker_gpio_data,
+-	.vdac		= &omap3_stalker_vdac,
+-	.vpll2		= &omap3_stalker_vpll2,
+ 	.vmmc1		= &omap3stalker_vmmc1,
+ 	.vsim		= &omap3stalker_vsim,
+ };
+@@ -455,7 +414,12 @@ static int __init omap3_stalker_i2c_init(void)
+ {
+ 	omap3_pmic_get_config(&omap3stalker_twldata,
+ 			TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_MADC |
+-			TWL_COMMON_PDATA_AUDIO, 0);
++			TWL_COMMON_PDATA_AUDIO,
++			TWL_COMMON_REGULATOR_VDAC | TWL_COMMON_REGULATOR_VPLL2);
++	omap3stalker_twldata.vdac->constraints.apply_uV = true;
++	omap3stalker_twldata.vpll2->constraints.apply_uV = true;
++	omap3stalker_twldata.vpll2->constraints.name = "VDVI";
 +
-+#define TWL6040_VIOREGNUM		18
-+#define TWL6040_VDDREGNUM		21
+ 	omap3_pmic_init("twl4030", &omap3stalker_twldata);
+ 	omap_register_i2c_bus(2, 400, NULL, 0);
+ 	omap_register_i2c_bus(3, 400, omap3stalker_i2c_boardinfo3,
+diff --git a/arch/arm/mach-omap2/board-omap3touchbook.c b/arch/arm/mach-omap2/board-omap3touchbook.c
+index 094ea80..a0a3cf0 100644
+--- a/arch/arm/mach-omap2/board-omap3touchbook.c
++++ b/arch/arm/mach-omap2/board-omap3touchbook.c
+@@ -207,42 +207,11 @@ static struct regulator_init_data touchbook_vsim = {
+ 	.consumer_supplies	= &touchbook_vsim_supply,
+ };
+ 
+-/* VDAC for DSS driving S-Video (8 mA unloaded, max 65 mA) */
+-static struct regulator_init_data touchbook_vdac = {
+-	.constraints = {
+-		.min_uV			= 1800000,
+-		.max_uV			= 1800000,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies	= 1,
+-	.consumer_supplies	= &touchbook_vdac_supply,
+-};
+-
+-/* VPLL2 for digital video outputs */
+-static struct regulator_init_data touchbook_vpll2 = {
+-	.constraints = {
+-		.name			= "VDVI",
+-		.min_uV			= 1800000,
+-		.max_uV			= 1800000,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies	= 1,
+-	.consumer_supplies	= &touchbook_vdvi_supply,
+-};
+-
+ static struct twl4030_platform_data touchbook_twldata = {
+ 	/* platform_data for children goes here */
+ 	.gpio		= &touchbook_gpio_data,
+ 	.vmmc1		= &touchbook_vmmc1,
+ 	.vsim		= &touchbook_vsim,
+-	.vdac		= &touchbook_vdac,
+-	.vpll2		= &touchbook_vpll2,
+ };
+ 
+ static struct i2c_board_info __initdata touchBook_i2c_boardinfo[] = {
+@@ -255,7 +224,14 @@ static int __init omap3_touchbook_i2c_init(void)
+ {
+ 	/* Standard TouchBook bus */
+ 	omap3_pmic_get_config(&touchbook_twldata,
+-			TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_AUDIO, 0);
++			TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_AUDIO,
++			TWL_COMMON_REGULATOR_VDAC | TWL_COMMON_REGULATOR_VPLL2);
++	touchbook_twldata.vdac->num_consumer_supplies = 1;
++	touchbook_twldata.vdac->consumer_supplies = &touchbook_vdac_supply;
++	touchbook_twldata.vpll2->constraints.name = "VDVI";
++	touchbook_twldata.vpll2->num_consumer_supplies = 1;
++	touchbook_twldata.vpll2->consumer_supplies = &touchbook_vdvi_supply;
 +
-+/* INTID (0x03) fields */
+ 	omap3_pmic_init("twl4030", &touchbook_twldata);
+ 	/* Additional TouchBook bus */
+ 	omap_register_i2c_bus(3, 100, touchBook_i2c_boardinfo,
+diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
+index f334829..e3fa177 100644
+--- a/arch/arm/mach-omap2/board-overo.c
++++ b/arch/arm/mach-omap2/board-overo.c
+@@ -264,14 +264,6 @@ static struct omap_dss_board_info overo_dss_data = {
+ 	.default_device	= &overo_dvi_device,
+ };
+ 
+-static struct regulator_consumer_supply overo_vdda_dac_supply =
+-	REGULATOR_SUPPLY("vdda_dac", "omapdss_venc");
+-
+-static struct regulator_consumer_supply overo_vdds_dsi_supply[] = {
+-	REGULATOR_SUPPLY("vdds_dsi", "omapdss"),
+-	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dsi1"),
+-};
+-
+ static struct mtd_partition overo_nand_partitions[] = {
+ 	{
+ 		.name           = "xloader",
+@@ -447,46 +439,18 @@ static struct regulator_init_data overo_vmmc1 = {
+ 	.consumer_supplies	= &overo_vmmc1_supply,
+ };
+ 
+-/* VDAC for DSS driving S-Video (8 mA unloaded, max 65 mA) */
+-static struct regulator_init_data overo_vdac = {
+-	.constraints = {
+-		.min_uV			= 1800000,
+-		.max_uV			= 1800000,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies	= 1,
+-	.consumer_supplies	= &overo_vdda_dac_supply,
+-};
+-
+-/* VPLL2 for digital video outputs */
+-static struct regulator_init_data overo_vpll2 = {
+-	.constraints = {
+-		.name			= "VDVI",
+-		.min_uV			= 1800000,
+-		.max_uV			= 1800000,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies	= ARRAY_SIZE(overo_vdds_dsi_supply),
+-	.consumer_supplies	= overo_vdds_dsi_supply,
+-};
+-
+ static struct twl4030_platform_data overo_twldata = {
+ 	.gpio		= &overo_gpio_data,
+ 	.vmmc1		= &overo_vmmc1,
+-	.vdac		= &overo_vdac,
+-	.vpll2		= &overo_vpll2,
+ };
+ 
+ static int __init overo_i2c_init(void)
+ {
+ 	omap3_pmic_get_config(&overo_twldata,
+-			TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_AUDIO, 0);
++			TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_AUDIO,
++			TWL_COMMON_REGULATOR_VDAC | TWL_COMMON_REGULATOR_VPLL2);
++	overo_twldata.vpll2->constraints.name = "VDVI";
 +
-+#define TWL6040_THINT			0x01
-+#define TWL6040_PLUGINT			0x02
-+#define TWL6040_UNPLUGINT		0x04
-+#define TWL6040_HOOKINT			0x08
-+#define TWL6040_HFINT			0x10
-+#define TWL6040_VIBINT			0x20
-+#define TWL6040_READYINT		0x40
-+
-+/* INTMR (0x04) fields */
-+
-+#define TWL6040_THMSK			0x01
-+#define TWL6040_PLUGMSK			0x02
-+#define TWL6040_HOOKMSK			0x08
-+#define TWL6040_HFMSK			0x10
-+#define TWL6040_VIBMSK			0x20
-+#define TWL6040_READYMSK		0x40
-+#define TWL6040_ALLINT_MSK		0x7B
-+
-+/* NCPCTL (0x05) fields */
-+
-+#define TWL6040_NCPENA			0x01
-+#define TWL6040_NCPOPEN			0x40
-+
-+/* LDOCTL (0x06) fields */
-+
-+#define TWL6040_LSLDOENA		0x01
-+#define TWL6040_HSLDOENA		0x04
-+#define TWL6040_REFENA			0x40
-+#define TWL6040_OSCENA			0x80
-+
-+/* HPPLLCTL (0x07) fields */
-+
-+#define TWL6040_HPLLENA			0x01
-+#define TWL6040_HPLLRST			0x02
-+#define TWL6040_HPLLBP			0x04
-+#define TWL6040_HPLLSQRENA		0x08
-+#define TWL6040_MCLK_12000KHZ		(0 << 5)
-+#define TWL6040_MCLK_19200KHZ		(1 << 5)
-+#define TWL6040_MCLK_26000KHZ		(2 << 5)
-+#define TWL6040_MCLK_38400KHZ		(3 << 5)
-+#define TWL6040_MCLK_MSK		0x60
-+
-+/* LPPLLCTL (0x08) fields */
-+
-+#define TWL6040_LPLLENA			0x01
-+#define TWL6040_LPLLRST			0x02
-+#define TWL6040_LPLLSEL			0x04
-+#define TWL6040_LPLLFIN			0x08
-+#define TWL6040_HPLLSEL			0x10
-+
-+/* HSLCTL (0x10) fields */
-+
-+#define TWL6040_HSDACMODEL		0x02
-+#define TWL6040_HSDRVMODEL		0x08
-+
-+/* HSRCTL (0x11) fields */
-+
-+#define TWL6040_HSDACMODER		0x02
-+#define TWL6040_HSDRVMODER		0x08
-+
-+/* VIBCTLL (0x18) fields */
-+
-+#define TWL6040_VIBENAL			0x01
-+#define TWL6040_VIBCTRLL		0x04
-+#define TWL6040_VIBCTRLLP		0x08
-+#define TWL6040_VIBCTRLLN		0x10
-+
-+/* VIBDATL (0x19) fields */
-+
-+#define TWL6040_VIBDAT_MAX		0x64
-+
-+/* VIBCTLR (0x1A) fields */
-+
-+#define TWL6040_VIBENAR			0x01
-+#define TWL6040_VIBCTRLR		0x04
-+#define TWL6040_VIBCTRLRP		0x08
-+#define TWL6040_VIBCTRLRN		0x10
-+
-+/* GPOCTL (0x1E) fields */
-+
-+#define TWL6040_GPO1			0x01
-+#define TWL6040_GPO2			0x02
-+#define TWL6040_GPO3			0x03
-+
-+/* ACCCTL (0x2D) fields */
-+
-+#define TWL6040_I2CSEL			0x01
-+#define TWL6040_RESETSPLIT		0x04
-+#define TWL6040_INTCLRMODE		0x08
-+
-+#define TWL6040_SYSCLK_SEL_LPPLL	1
-+#define TWL6040_SYSCLK_SEL_HPPLL	2
-+
-+/* STATUS (0x2E) fields */
-+
-+#define TWL6040_PLUGCOMP		0x02
-+#define TWL6040_VIBLOCDET		0x10
-+#define TWL6040_VIBROCDET		0x20
-+#define TWL6040_TSHUTDET                0x40
-+
-+#define TWL6040_CELLS			2
-+
-+#define TWL6040_REV_ES1_0		0x00
-+#define TWL6040_REV_ES1_1		0x01
-+#define TWL6040_REV_ES1_2		0x02
-+
-+#define TWL6040_IRQ_TH			0
-+#define TWL6040_IRQ_PLUG		1
-+#define TWL6040_IRQ_HOOK		2
-+#define TWL6040_IRQ_HF			3
-+#define TWL6040_IRQ_VIB			4
-+#define TWL6040_IRQ_READY		5
-+
-+enum twl6040_pll_id {
-+	TWL6040_NOPLL_ID,
-+	TWL6040_LPPLL_ID,
-+	TWL6040_HPPLL_ID,
+ 	omap3_pmic_init("tps65950", &overo_twldata);
+ 	/* i2c2 pins are used for gpio */
+ 	omap_register_i2c_bus(3, 400, NULL, 0);
+diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+index dc69a7f..dfaf874 100644
+--- a/arch/arm/mach-omap2/board-rx51-peripherals.c
++++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+@@ -391,10 +391,6 @@ static struct regulator_consumer_supply rx51_vaux1_consumers[] = {
+ 	REGULATOR_SUPPLY("vdd", "2-0063"),
+ };
+ 
+-static struct regulator_consumer_supply rx51_vdac_supply[] = {
+-	REGULATOR_SUPPLY("vdda_dac", "omapdss_venc"),
+-};
+-
+ static struct regulator_init_data rx51_vaux1 = {
+ 	.constraints = {
+ 		.name			= "V28",
+@@ -511,21 +507,6 @@ static struct regulator_init_data rx51_vsim = {
+ 	.consumer_supplies	= &rx51_vsim_supply,
+ };
+ 
+-static struct regulator_init_data rx51_vdac = {
+-	.constraints = {
+-		.name			= "VDAC",
+-		.min_uV			= 1800000,
+-		.max_uV			= 1800000,
+-		.apply_uV		= true,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies	= 1,
+-	.consumer_supplies	= rx51_vdac_supply,
+-};
+-
+ static struct regulator_init_data rx51_vio = {
+ 	.constraints = {
+ 		.min_uV			= 1800000,
+@@ -778,7 +759,6 @@ static struct twl4030_platform_data rx51_twldata __initdata = {
+ 	.vaux4			= &rx51_vaux4,
+ 	.vmmc1			= &rx51_vmmc1,
+ 	.vsim			= &rx51_vsim,
+-	.vdac			= &rx51_vdac,
+ 	.vio			= &rx51_vio,
+ };
+ 
+@@ -835,7 +815,10 @@ static int __init rx51_i2c_init(void)
+ 	}
+ 	rx51_twldata.vmmc2 = &rx51_vmmc2;
+ 	omap3_pmic_get_config(&rx51_twldata,
+-			TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_MADC, 0);
++			TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_MADC,
++			TWL_COMMON_REGULATOR_VDAC);
++	rx51_twldata.vdac->constraints.apply_uV = true;
++	rx51_twldata.vdac->constraints.name = "VDAC";
+ 	omap_pmic_init(1, 2200, "twl5030", INT_34XX_SYS_NIRQ, &rx51_twldata);
+ 	omap_register_i2c_bus(2, 100, rx51_peripherals_i2c_board_info_2,
+ 			      ARRAY_SIZE(rx51_peripherals_i2c_board_info_2));
+diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c b/arch/arm/mach-omap2/board-zoom-peripherals.c
+index 58c0c6e..8853dc4 100644
+--- a/arch/arm/mach-omap2/board-zoom-peripherals.c
++++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
+@@ -227,40 +227,6 @@ static struct omap2_hsmmc_info mmc[] = {
+ 	{}      /* Terminator */
+ };
+ 
+-static struct regulator_consumer_supply zoom_vpll2_supplies[] = {
+-	REGULATOR_SUPPLY("vdds_dsi", "omapdss"),
+-	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dsi1"),
+-};
+-
+-static struct regulator_consumer_supply zoom_vdda_dac_supply =
+-	REGULATOR_SUPPLY("vdda_dac", "omapdss_venc");
+-
+-static struct regulator_init_data zoom_vpll2 = {
+-	.constraints = {
+-		.min_uV                 = 1800000,
+-		.max_uV                 = 1800000,
+-		.valid_modes_mask       = REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask         = REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies		= ARRAY_SIZE(zoom_vpll2_supplies),
+-	.consumer_supplies		= zoom_vpll2_supplies,
+-};
+-
+-static struct regulator_init_data zoom_vdac = {
+-	.constraints = {
+-		.min_uV                 = 1800000,
+-		.max_uV                 = 1800000,
+-		.valid_modes_mask       = REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask         = REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies		= 1,
+-	.consumer_supplies		= &zoom_vdda_dac_supply,
+-};
+-
+ static int zoom_twl_gpio_setup(struct device *dev,
+ 		unsigned gpio, unsigned ngpio)
+ {
+@@ -306,15 +272,14 @@ static struct twl4030_platform_data zoom_twldata = {
+ 	.vmmc1          = &zoom_vmmc1,
+ 	.vmmc2          = &zoom_vmmc2,
+ 	.vsim           = &zoom_vsim,
+-	.vpll2		= &zoom_vpll2,
+-	.vdac		= &zoom_vdac,
+ };
+ 
+ static int __init omap_i2c_init(void)
+ {
+ 	omap3_pmic_get_config(&zoom_twldata,
+-			  TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_BCI |
+-			  TWL_COMMON_PDATA_MADC | TWL_COMMON_PDATA_AUDIO, 0);
++			TWL_COMMON_PDATA_USB | TWL_COMMON_PDATA_BCI |
++			TWL_COMMON_PDATA_MADC | TWL_COMMON_PDATA_AUDIO,
++			TWL_COMMON_REGULATOR_VDAC | TWL_COMMON_REGULATOR_VPLL2);
+ 
+ 	if (machine_is_omap_zoom2()) {
+ 		struct twl4030_codec_audio_data *audio_data;
+diff --git a/arch/arm/mach-omap2/twl-common.c b/arch/arm/mach-omap2/twl-common.c
+index 2487e3c..f15f880 100644
+--- a/arch/arm/mach-omap2/twl-common.c
++++ b/arch/arm/mach-omap2/twl-common.c
+@@ -87,6 +87,41 @@ static struct twl4030_codec_data omap3_codec_pdata = {
+ 	.audio = &omap3_audio,
+ };
+ 
++static struct regulator_consumer_supply omap3_vdda_dac_supplies[] = {
++	REGULATOR_SUPPLY("vdda_dac", "omapdss_venc"),
 +};
 +
-+struct twl6040 {
-+	struct device *dev;
-+	struct mutex mutex;
-+	struct mutex io_mutex;
-+	struct mutex irq_mutex;
-+	struct mfd_cell cells[TWL6040_CELLS];
-+	struct completion ready;
-+
-+	int audpwron;
-+	int power_count;
-+	int rev;
-+
-+	enum twl6040_pll_id pll;
-+	unsigned int sysclk;
-+
-+	unsigned int irq;
-+	unsigned int irq_base;
-+	u8 irq_masks_cur;
-+	u8 irq_masks_cache;
++static struct regulator_init_data omap3_vdac_idata = {
++	.constraints = {
++		.min_uV			= 1800000,
++		.max_uV			= 1800000,
++		.valid_modes_mask	= REGULATOR_MODE_NORMAL
++					| REGULATOR_MODE_STANDBY,
++		.valid_ops_mask		= REGULATOR_CHANGE_MODE
++					| REGULATOR_CHANGE_STATUS,
++	},
++	.num_consumer_supplies	= ARRAY_SIZE(omap3_vdda_dac_supplies),
++	.consumer_supplies	= omap3_vdda_dac_supplies,
 +};
 +
-+static inline int twl6040_get_rev(struct twl6040 *twl6040)
-+{
-+	return twl6040->rev;
-+}
++static struct regulator_consumer_supply omap3_vpll2_supplies[] = {
++	REGULATOR_SUPPLY("vdds_dsi", "omapdss"),
++	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dsi1"),
++};
 +
-+static inline int twl6040_request_irq(struct twl6040 *twl6040, int irq,
-+				      irq_handler_t handler,
-+				      unsigned long irqflags,
-+				      const char *name,
-+				      void *data)
-+{
-+	if (!twl6040->irq_base)
-+		return -EINVAL;
++static struct regulator_init_data omap3_vpll2_idata = {
++	.constraints = {
++		.min_uV                 = 1800000,
++		.max_uV                 = 1800000,
++		.valid_modes_mask       = REGULATOR_MODE_NORMAL
++					| REGULATOR_MODE_STANDBY,
++		.valid_ops_mask         = REGULATOR_CHANGE_MODE
++					| REGULATOR_CHANGE_STATUS,
++	},
++	.num_consumer_supplies		= ARRAY_SIZE(omap3_vpll2_supplies),
++	.consumer_supplies		= omap3_vpll2_supplies,
++};
 +
-+	return request_threaded_irq(twl6040->irq_base + irq, NULL, handler,
-+				    irqflags, name, data);
-+}
+ static struct regulator_init_data omap4_vdac_idata = {
+ 	.constraints = {
+ 		.min_uV			= 1800000,
+@@ -259,4 +294,11 @@ void __init omap3_pmic_get_config(struct twl4030_platform_data *pmic_data,
+ 
+ 	if (pdata_flags & TWL_COMMON_PDATA_AUDIO && !pmic_data->codec)
+ 		pmic_data->codec = &omap3_codec_pdata;
 +
-+static inline void twl6040_free_irq(struct twl6040 *twl6040, int irq,
-+				    void *data)
-+{
-+	if (!twl6040->irq_base)
-+		return;
++	/* Common regulator configurations */
++	if (regulators_flags & TWL_COMMON_REGULATOR_VDAC && !pmic_data->vdac)
++		pmic_data->vdac = &omap3_vdac_idata;
 +
-+	free_irq(twl6040->irq_base + irq, data);
-+}
++	if (regulators_flags & TWL_COMMON_REGULATOR_VPLL2 && !pmic_data->vpll2)
++		pmic_data->vpll2 = &omap3_vpll2_idata;
+ }
+diff --git a/arch/arm/mach-omap2/twl-common.h b/arch/arm/mach-omap2/twl-common.h
+index 3b4b05d..5e83a5b 100644
+--- a/arch/arm/mach-omap2/twl-common.h
++++ b/arch/arm/mach-omap2/twl-common.h
+@@ -21,6 +21,11 @@
+ #define TWL_COMMON_REGULATOR_VUSB	(1 << 9)
+ #define TWL_COMMON_REGULATOR_CLK32KG	(1 << 10)
+ 
++/* TWL4030 LDO regulators */
++#define TWL_COMMON_REGULATOR_VPLL1	(1 << 4)
++#define TWL_COMMON_REGULATOR_VPLL2	(1 << 5)
 +
-+int twl6040_reg_read(struct twl6040 *twl6040, unsigned int reg);
-+int twl6040_reg_write(struct twl6040 *twl6040, unsigned int reg,
-+		      u8 val);
-+int twl6040_set_bits(struct twl6040 *twl6040, unsigned int reg,
-+		     u8 mask);
-+int twl6040_clear_bits(struct twl6040 *twl6040, unsigned int reg,
-+		       u8 mask);
-+int twl6040_power(struct twl6040 *twl6040, int on);
-+int twl6040_is_powered(struct twl6040 *twl6040);
-+int twl6040_set_pll(struct twl6040 *twl6040, enum twl6040_pll_id id,
-+		    unsigned int freq_in, unsigned int freq_out);
-+enum twl6040_pll_id twl6040_get_pll(struct twl6040 *twl6040);
-+unsigned int twl6040_get_sysclk(struct twl6040 *twl6040);
-+int twl6040_irq_init(struct twl6040 *twl6040);
-+void twl6040_irq_exit(struct twl6040 *twl6040);
 +
-+#endif  /* End of __TWL6040_CODEC_H__ */
+ struct twl4030_platform_data;
+ 
+ void omap_pmic_init(int bus, u32 clkrate, const char *pmic_type, int pmic_irq,
 -- 
 1.7.5.3
-
