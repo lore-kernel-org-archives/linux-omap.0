@@ -1,185 +1,59 @@
-From: Paul Mundt <lethal@linux-sh.org>
-Subject: Re: [PATCHv2 20/28] OMAP: DSS2: Use PM runtime & HWMOD support
-Date: Fri, 10 Jun 2011 05:03:37 +0900
-Message-ID: <20110609200335.GD26006@linux-sh.org>
-References: <1307627810-3768-1-git-send-email-tomi.valkeinen@ti.com> <1307627810-3768-21-git-send-email-tomi.valkeinen@ti.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH v3 04/12] Serial: OMAP: Add runtime pm support for omap-serial
+ driver
+Date: Thu, 9 Jun 2011 15:49:03 -0500
+Message-ID: <4DF131BF.3050908@ti.com>
+References: <1307532194-13039-1-git-send-email-govindraj.raja@ti.com> <1307532194-13039-5-git-send-email-govindraj.raja@ti.com> <4DEFDDE8.3090808@ti.com> <BANLkTik1fRzQEnGyzTLour-_kYxR+y2kGg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from linux-sh.org ([111.68.239.195]:44572 "EHLO linux-sh.org"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:52815 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752683Ab1FIUDp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 9 Jun 2011 16:03:45 -0400
-Content-Disposition: inline
-In-Reply-To: <1307627810-3768-21-git-send-email-tomi.valkeinen@ti.com>
+	id S1753877Ab1FIUtN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 9 Jun 2011 16:49:13 -0400
+In-Reply-To: <BANLkTik1fRzQEnGyzTLour-_kYxR+y2kGg@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, b-cousson@ti.com, paul@pwsan.com, khilman@ti.com
+To: Govindraj <govindraj.ti@gmail.com>
+Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>
 
-On Thu, Jun 09, 2011 at 04:56:42PM +0300, Tomi Valkeinen wrote:
-> +int dispc_runtime_get(void)
-> +{
-> +	int r;
-> +
-> +	DSSDBG("dispc_runtime_get\n");
-> +
-> +	r = pm_runtime_get_sync(&dispc.pdev->dev);
-> +	WARN_ON(r < 0);
-> +	return r < 0 ? r : 0;
-> +}
-> +
-> +void dispc_runtime_put(void)
-> +{
-> +	int r;
-> +
-> +	DSSDBG("dispc_runtime_put\n");
-> +
-> +	r = pm_runtime_put(&dispc.pdev->dev);
-> +	WARN_ON(r < 0);
->  }
->  
-This seems a bit odd. Your runtime_get wrapper is explicitly synchronous
-while your put wrapper is explicitly asynchronous, although these details
-(if intentional) are not at all obvious from the wrapper naming. From
-the use in the error paths and so on you will definitely need to be using
-pm_runtime_put_sync() at least some of the time.
+Hi Govindraj
 
-In the interest of avoiding confusion, I would in general just get rid of
-these wrappers and use the pm_runtime calls openly, as you already do for
-some of the other parts of the API. The runtime PM framework has pretty
-verbose debugging already that goes well beyond what you presently have,
-too.
+On 06/08/2011 11:35 PM, Govindraj wrote:
+> On Thu, Jun 9, 2011 at 2:09 AM, Jon Hunter<jon-hunter@ti.com>  wrote:
+>> Hi Govindraj,
+>>
+>> On 6/8/2011 6:23 AM, Govindraj.R wrote:
+>>
+>> [snip]
+>>
+>>> +
+>>> +#define OMAP_UART_AUTOSUSPEND_DELAY (30 * HZ) /* Value is msecs */
+>>
+>> [snip]
+>>
+>>> @@ -1295,18 +1381,36 @@ static int serial_omap_probe(struct
+>>> platform_device *pdev)
+>>>                 up->uart_dma.rx_dma_channel = OMAP_UART_DMA_CH_FREE;
+>>>         }
+>>>
+>>> +       pm_runtime_use_autosuspend(&pdev->dev);
+>>> +       pm_runtime_set_autosuspend_delay(&pdev->dev,
+>>> +                       OMAP_UART_AUTOSUSPEND_DELAY);
+>>
+>> Something is weird here...DEFAULT_AUTOSUSPEND_DELAY is defined as (30*HZ)
+>> which would appear to be jiffies (ticks per second) and NOT msecs. However,
+>> pm_runtime_set_autosuspend is clearly expecting msecs. So this seems to
+>> conflict. By default 30*HZ for omap would be 30*128 = 3840ms so not quite 4
+>> seconds.
+>>
+>> What were you intending here?
+>
+> Intention is to get approx 3 secs timeout for autosuspend.
 
-You seem to have adopted this sync/async pattern for all of the users:
+In that case you should just define DEFAULT_AUTOSUSPEND_DELAY as 30000. 
+The above is just confusing as you are mixing time types and hence, it 
+is not clear what you intend the default timeout to be.
 
-> +int dsi_runtime_get(struct platform_device *dsidev)
->  {
-> -	if (enable)
-> -		dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK);
-> -	else
-> -		dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK);
-> +	int r;
-> +	struct dsi_data *dsi = dsi_get_dsidrv_data(dsidev);
-> +
-> +	DSSDBG("dsi_runtime_get\n");
-> +
-> +	r = pm_runtime_get_sync(&dsi->pdev->dev);
-> +	WARN_ON(r < 0);
-> +	return r < 0 ? r : 0;
-> +}
-> +
-> +void dsi_runtime_put(struct platform_device *dsidev)
-> +{
-> +	struct dsi_data *dsi = dsi_get_dsidrv_data(dsidev);
-> +	int r;
-> +
-> +	DSSDBG("dsi_runtime_put\n");
-> +
-> +	r = pm_runtime_put(&dsi->pdev->dev);
-> +	WARN_ON(r < 0);
->  }
->  
-Here.
-
-> -void dss_clk_disable(enum dss_clock clks)
-> -{
-..
-> -	dss_clk_disable_no_ctx(clks);
-> +	r = pm_runtime_get_sync(&dss.pdev->dev);
-> +	WARN_ON(r < 0);
-> +	return r < 0 ? r : 0;
->  }
->  
-> -static void dss_clk_enable_all_no_ctx(void)
-> +void dss_runtime_put(void)
->  {
-..
-> +	r = pm_runtime_put(&dss.pdev->dev);
-> +	WARN_ON(r < 0);
->  }
->  
-And here.
-
-> +static int hdmi_runtime_get(void)
-> +{
-> +	int r;
-> +
-> +	DSSDBG("hdmi_runtime_get\n");
-> +
-> +	r = pm_runtime_get_sync(&hdmi.pdev->dev);
-> +	WARN_ON(r < 0);
-> +	return r < 0 ? r : 0;
-> +}
-> +
-> +static void hdmi_runtime_put(void)
-> +{
-> +	int r;
-> +
-> +	DSSDBG("hdmi_runtime_put\n");
-> +
-> +	r = pm_runtime_put(&hdmi.pdev->dev);
-> +	WARN_ON(r < 0);
-> +}
-> +
-And here.
-
-> -static void rfbi_enable_clocks(bool enable)
-> +static int rfbi_runtime_get(void)
->  {
-> -	if (enable)
-> -		dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK);
-> -	else
-> -		dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK);
-> +	int r;
-> +
-> +	DSSDBG("rfbi_runtime_get\n");
-> +
-> +	r = pm_runtime_get_sync(&rfbi.pdev->dev);
-> +	WARN_ON(r < 0);
-> +	return r < 0 ? r : 0;
-> +}
-> +
-> +static void rfbi_runtime_put(void)
-> +{
-> +	int r;
-> +
-> +	DSSDBG("rfbi_runtime_put\n");
-> +
-> +	r = pm_runtime_put(&rfbi.pdev->dev);
-> +	WARN_ON(r < 0);
->  }
->  
-And here.
-
-> +static int venc_runtime_get(void)
->  {
-> -	if (enable) {
-> -		dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK | DSS_CLK_TVFCK);
-> -		if (dss_has_feature(FEAT_VENC_REQUIRES_TV_DAC_CLK))
-> -			dss_clk_enable(DSS_CLK_VIDFCK);
-> -	} else {
-> -		dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK | DSS_CLK_TVFCK);
-> -		if (dss_has_feature(FEAT_VENC_REQUIRES_TV_DAC_CLK))
-> -			dss_clk_disable(DSS_CLK_VIDFCK);
-> -	}
-> +	int r;
-> +
-> +	DSSDBG("venc_runtime_get\n");
-> +
-> +	r = pm_runtime_get_sync(&venc.pdev->dev);
-> +	WARN_ON(r < 0);
-> +	return r < 0 ? r : 0;
-> +}
-> +
-> +static void venc_runtime_put(void)
-> +{
-> +	int r;
-> +
-> +	DSSDBG("venc_runtime_put\n");
-> +
-> +	r = pm_runtime_put(&venc.pdev->dev);
-> +	WARN_ON(r < 0);
->  }
->  
-And here.
+Jon
