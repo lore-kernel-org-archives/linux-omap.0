@@ -1,82 +1,91 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH 8/8] OMAP: clock: Enable clockdomain only for optional clocks
-Date: Thu, 9 Jun 2011 16:24:13 +0530
-Message-ID: <1307616853-28395-9-git-send-email-rnayak@ti.com>
-References: <1307616853-28395-1-git-send-email-rnayak@ti.com>
- <1307616853-28395-2-git-send-email-rnayak@ti.com>
- <1307616853-28395-3-git-send-email-rnayak@ti.com>
- <1307616853-28395-4-git-send-email-rnayak@ti.com>
- <1307616853-28395-5-git-send-email-rnayak@ti.com>
- <1307616853-28395-6-git-send-email-rnayak@ti.com>
- <1307616853-28395-7-git-send-email-rnayak@ti.com>
- <1307616853-28395-8-git-send-email-rnayak@ti.com>
+Subject: [PATCH 0/8] Fix module-mode enable sequence on OMAP4
+Date: Thu, 9 Jun 2011 16:24:05 +0530
+Message-ID: <1307616853-28395-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:49955 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:40275 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757233Ab1FIKye (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 9 Jun 2011 06:54:34 -0400
-In-Reply-To: <1307616853-28395-8-git-send-email-rnayak@ti.com>
+	id S1753919Ab1FIKyg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 9 Jun 2011 06:54:36 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: paul@pwsan.com, khilman@ti.com, b-cousson@ti.com, santosh.shilimkar@ti.com, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
 
-Optional clocks have a requirement to have the clockdomain
-force enabled (SW_WKUP) before the optional clock itself
-is enabled.
-Since optional clocks are currently handled directly by
-drivers using the clock framework, this needs to be handled
-at the clock framework. This sequence is already handled
-in the omap_hwmod framework for the essential/main
-clocks.
+Hi,
 
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
----
- arch/arm/mach-omap2/clock.c |   15 +++++++++++++++
- 1 files changed, 15 insertions(+), 0 deletions(-)
+On OMAP4, the PRCM recommended sequence for enabling
+a module after power-on-reset is
+-1- Force clkdm to SW_WKUP
+-2- Configure desired module mode to "enable" or "auto"
+-3- Wait for the desired module idle status to be FUNC
+-4- Program clkdm in HW_AUTO(if supported)
 
-diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index 2828d29..ff71ff7 100644
---- a/arch/arm/mach-omap2/clock.c
-+++ b/arch/arm/mach-omap2/clock.c
-@@ -286,6 +286,7 @@ void omap2_clk_disable(struct clk *clk)
- int omap2_clk_enable(struct clk *clk)
- {
- 	int ret;
-+	int hwsup = 0;
- 
- 	pr_debug("clock: %s: incrementing usecount\n", clk->name);
- 
-@@ -304,6 +305,17 @@ int omap2_clk_enable(struct clk *clk)
- 			goto oce_err1;
- 		}
- 	}
-+	/*
-+	 * TODO: This is needed here only as long as drivers use
-+	 * clock framework to enable optional clocks. For all the
-+	 * essential clocks, this sequence is handled in the
-+	 * omap_hwmod framework.
-+	 */
-+	/* Enable the clockdomain, if its an optional clock */
-+	if ((clk->flags & CLOCK_OPTCLK) && (clk->clkdm)) {
-+		hwsup = clkdm_is_idle(clk->clkdm);
-+		clkdm_wakeup(clk->clkdm);
-+	}
- 
- 	if (clk->ops && clk->ops->enable) {
- 		trace_clock_enable(clk->name, 1, smp_processor_id());
-@@ -315,6 +327,9 @@ int omap2_clk_enable(struct clk *clk)
- 		}
- 	}
- 
-+	if ((clk->flags & CLOCK_OPTCLK) && (clk->clkdm) && hwsup)
-+		clkdm_allow_idle(clk->clkdm);
-+
- 	return 0;
- 
- oce_err2:
--- 
-1.7.0.4
+This sequence applies to all older OMAPs' as well,
+however since they use 'autodeps', it makes sure that
+no clkdm is in IDLE, and hence not requiring a force
+SW_WKUP when a module is being enabled.
+
+OMAP4 does not need to support autodeps, because
+of the dynamic dependency feature, wherein
+the HW takes care of waking up a clockdomain from
+idle and hence the module, whenever an interconnect
+access happens to the given module.
+
+Implementing the sequence for OMAP4 requires some of
+the clockdomain handling that is currently done in
+clock framework to be done as part of hwmod framework
+since the step -3- above to "Wait for the desired 
+module idle status to be FUNC" is done as part of
+hwmod framework.
+
+This series moves the clockdomain handling into hwmod
+framework and implements the above sequence for OMAP4.
+
+The above sequence is expected to be followed even for
+optional clocks (steps -1-, -2- and -4- only) and that
+makes handling it difficult as optional clocks are enabled by
+drivers using direct clock framework calls and hence
+do not go through the hwmod framework.
+
+Hence this series also adds the handling of the sequence
+*only for optional clocks* in clock framework.
+
+Lastly, with this series drivers which are yet to be
+adapted to PM runtime and still rely on clock calls
+to enable/disable the respective *main* clocks are
+expected to be broken. MMC is one such which even breaks
+boot, and hence the series has a TEMP workaround patch
+added which keeps l3init clockdomain always force-enabled.
+This TEMP patch will gate all CORE low power transitions
+but should atleast allow MPU low power transitions to
+work.
+
+The series is tested for low power state transitions
+(RET/OFF) on OMAP3sdp and boot tested on OMAP4sdp.
+Applies on 3.0-rc2
+
+Rajendra Nayak (8):
+  OMAP2+: clockdomain: Add an api to read idle mode
+  OMAP2+: clockdomain: Add SoC support for clkdm_is_idle
+  OMAP2+: PM: Initialise sleep_switch to a non-valid value
+  OMAP2+: PM: idle clkdms only if already in idle
+  OMAP4: PM: TEMP: Prevent l3init from idling/force sleep
+  OMAP2+: hwmod: Follow the recomended PRCM clock enable sequence
+  OMAP: clock: Add flags to identify optional clock nodes
+  OMAP: clock: Enable clockdomain only for optional clocks
+
+ arch/arm/mach-omap2/clock.c                 |   30 ++++++++++++------------
+ arch/arm/mach-omap2/clock44xx_data.c        |   34 +++++++++++++++++++++++++++
+ arch/arm/mach-omap2/clockdomain.c           |   28 +++++++++++++++++++++-
+ arch/arm/mach-omap2/clockdomain.h           |    3 ++
+ arch/arm/mach-omap2/clockdomain2xxx_3xxx.c  |   12 +++++++++
+ arch/arm/mach-omap2/clockdomain44xx.c       |   16 ++++++------
+ arch/arm/mach-omap2/clockdomains44xx_data.c |    2 +-
+ arch/arm/mach-omap2/omap_hwmod.c            |   20 +++++++++++++++-
+ arch/arm/mach-omap2/pm.c                    |    6 +++-
+ arch/arm/plat-omap/include/plat/clock.h     |    1 +
+ 10 files changed, 124 insertions(+), 28 deletions(-)
 
