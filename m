@@ -1,149 +1,72 @@
-From: Alexander Holler <holler@ahsoftware.de>
-Subject: Re: [PATCH] arm: omap3: beagle: Ensure msecure is mux'd to be able
- to set the RTC
-Date: Thu, 09 Jun 2011 02:21:34 +0200
-Message-ID: <4DF0120E.5030204@ahsoftware.de>
-References: <4D9AEB76.2060509@ahsoftware.de> <1302010808-3065-1-git-send-email-holler@ahsoftware.de> <20110531102903.GU11352@atomide.com> <4DEDDAF6.2070505@ahsoftware.de> <4DEDF451.1080604@compulab.co.il> <4DEE0858.2020308@ahsoftware.de> <4DEFF035.4070004@compulab.co.il>
+From: Govindraj <govindraj.ti@gmail.com>
+Subject: Re: [PATCH v3 04/12] Serial: OMAP: Add runtime pm support for
+ omap-serial driver
+Date: Thu, 9 Jun 2011 10:05:47 +0530
+Message-ID: <BANLkTik1fRzQEnGyzTLour-_kYxR+y2kGg@mail.gmail.com>
+References: <1307532194-13039-1-git-send-email-govindraj.raja@ti.com>
+ <1307532194-13039-5-git-send-email-govindraj.raja@ti.com> <4DEFDDE8.3090808@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from h1446028.stratoserver.net ([85.214.92.142]:44766 "EHLO
-	mail.ahsoftware.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750880Ab1FIAVv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Jun 2011 20:21:51 -0400
-Received: from eiche.ahsoftware (p57B21592.dip0.t-ipconnect.de [87.178.21.146])
-	(using TLSv1 with cipher ADH-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mail.ahsoftware.de (Postfix) with ESMTPSA id ACB6E4344AD
-	for <linux-omap@vger.kernel.org>; Thu,  9 Jun 2011 02:21:48 +0200 (CEST)
-In-Reply-To: <4DEFF035.4070004@compulab.co.il>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <4DEFDDE8.3090808@ti.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Igor Grinberg <grinberg@compulab.co.il>
-Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On 08.06.2011 23:57, Igor Grinberg wrote:
-> On 06/07/11 14:15, Alexander Holler wrote:
-> 
->> Am 07.06.2011 11:50, schrieb Igor Grinberg:
->>> On 06/07/11 11:01, Alexander Holler wrote:
->>>
->>>> Am 31.05.2011 12:29, schrieb Tony Lindgren:
->>>>> * Alexander Holler<holler@ahsoftware.de>   [110405 06:38]:
->>>>>> Without msecure beeing high it isn't possible to set (or start)
->>>>>> the RTC.
->>>>>>
->>>>>> Tested with a BeagleBoard C4.
->>>>>
->>>>> Adding this into fixes.
->>>>>
->>>>> Tony
->>>>>
->>>>>> Signed-off-by: Alexander Holler<holler@ahsoftware.de>
->>>>>> ---
->>>>>>    arch/arm/mach-omap2/board-omap3beagle.c |    3 +++
->>>>>>    1 files changed, 3 insertions(+), 0 deletions(-)
->>>>>>
->>>>>> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
->>>>>> index 46d814a..ebe3a7e 100644
->>>>>> --- a/arch/arm/mach-omap2/board-omap3beagle.c
->>>>>> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
->>>>>> @@ -628,6 +628,9 @@ static void __init omap3_beagle_init(void)
->>>>>>        usb_ehci_init(&ehci_pdata);
->>>>>>        omap3beagle_flash_init();
->>>>>>
->>>>>> +    /* Ensure msecure is mux'd to be able to set the RTC. */
->>>>>> +    omap_mux_init_signal("sys_drm_msecure", OMAP_PIN_OFF_OUTPUT_HIGH);
->>>>>> +
->>>>>>        /* Ensure SDRC pins are mux'd for self-refresh */
->>>>>>        omap_mux_init_signal("sdrc_cke0", OMAP_PIN_OUTPUT);
->>>>>>        omap_mux_init_signal("sdrc_cke1", OMAP_PIN_OUTPUT);
->>>>>> -- 
->>>>>> 1.7.3.4
->>>>>>
->>>>
->>>> I've later switched to the following patch which muxes msecure as GPIO (the drm-mode isn't explained in the TRM) and also exports the GPIO, so root could easily switch it to prevent modifications on the RTC.
->>>>
->>>> (Warning, either my clipboard or the version of Thunderbird I'm currently using replaces the tabs with spaces in the pasted patch and I'm currently too lazy to search a workaround).
->>>>
->>>> ---
->>>>   arch/arm/mach-omap2/board-omap3beagle.c |    6 ++++++
->>>>   1 files changed, 6 insertions(+), 0 deletions(-)
->>>>
->>>> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
->>>> index 33007fd..24b4417 100644
->>>> --- a/arch/arm/mach-omap2/board-omap3beagle.c
->>>> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
->>>> @@ -673,6 +673,12 @@ static void __init omap3_beagle_init(void)
->>>>          usbhs_init(&usbhs_bdata);
->>>>          omap3beagle_flash_init();
->>>>
->>>> +       /* Ensure msecure is high to be able to set the RTC. */
->>>> +       omap_mux_init_signal("gpio_22", OMAP_PIN_OFF_OUTPUT_HIGH);
->>>> +       gpio_request(22, "msecure");
->>>> +       gpio_direction_output(22, true);
->>>
->>> Can this be gpio_request_one() instead, please?
->>> Also, it will be nice to make a define for the magic 22.
+On Thu, Jun 9, 2011 at 2:09 AM, Jon Hunter <jon-hunter@ti.com> wrote:
+> Hi Govindraj,
+>
+> On 6/8/2011 6:23 AM, Govindraj.R wrote:
+>
+> [snip]
+>
+>> +
+>> +#define OMAP_UART_AUTOSUSPEND_DELAY (30 * HZ) /* Value is msecs */
+>
+> [snip]
+>
+>> @@ -1295,18 +1381,36 @@ static int serial_omap_probe(struct
+>> platform_device *pdev)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0up->uart_dma.rx_dma_channel =3D OMAP_=
+UART_DMA_CH_FREE;
+>> =A0 =A0 =A0 =A0}
 >>
->> You need the "gpio_22" in the mux_init, so using a define would imho introduce a potential source for an error, at least when the define would not be anywhere near the "gpio_22" and someone would forget change the string too, when he changes the define. So I don't think a define adds much value there.
-> 
-> Why not leave "sys_drm_msecure" for mux_init, or does it make troubles on XM?
+>> + =A0 =A0 =A0 pm_runtime_use_autosuspend(&pdev->dev);
+>> + =A0 =A0 =A0 pm_runtime_set_autosuspend_delay(&pdev->dev,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP_UART_AUTOSUSPEND_=
+DELAY);
+>
+> Something is weird here...DEFAULT_AUTOSUSPEND_DELAY is defined as (30=
+*HZ)
+> which would appear to be jiffies (ticks per second) and NOT msecs. Ho=
+wever,
+> pm_runtime_set_autosuspend is clearly expecting msecs. So this seems =
+to
+> conflict. By default 30*HZ for omap would be 30*128 =3D 3840ms so not=
+ quite 4
+> seconds.
+>
+> What were you intending here?
 
-There is nothing wrong with the small patch which uses sys_drm_msecure.
-It's short and does everything which is needed to use the RTC. I've
-posted the solution with the use of the GPIO-mode only as an alternative
-because the drm-mode isn't explained in the TRM (I assume one has to
-sign a NDA to get more informations on that).
-So it is not obvious what my first patch does. Using sys_drm_msecure
-works because it seems to be always off, at least on the BeagleBoards.
-The additional functionality in my second patch to turn off possible
-modifications on the RTC through switching the GPIO is most likely just
-an educational feature, I don't think someone will ever use that.
-I don't have any preferences which solution will end in the kernel, I
-just wanted to offer the second one too.
+Intention is to get approx 3 secs timeout for autosuspend.
 
-> What about gpio_request_one()? To conform with the rest of the file and mach-omap2/*.
+--
+Thanks,
+Govindraj.R
 
-Below is an updated version. The gpio_export() might be removed too.
-
-Regards,
-
-Alexander
-
-
-From: Alexander Holler <holler@ahsoftware.de>
-Date: Thu, 19 May 2011 11:42:05 +0200
-Subject: [PATCH v3] arm: omap3: beagle: Ensure msecure is mux'd and high
-to be able to set the RTC
-
-Without msecure beeing high it isn't possible to set (or start)
-the RTC.
-
-Tested with a BeagleBoard C4.
-
-Signed-off-by: Alexander Holler <holler@ahsoftware.de>
----
- arch/arm/mach-omap2/board-omap3beagle.c |    5 +++++
- 1 files changed, 5 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-omap3beagle.c
-b/arch/arm/mach-omap2/board-omap3beagle.c
-index 33007fd..4c9e26e 100644
---- a/arch/arm/mach-omap2/board-omap3beagle.c
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -673,6 +673,11 @@ static void __init omap3_beagle_init(void)
- 	usbhs_init(&usbhs_bdata);
- 	omap3beagle_flash_init();
-
-+	/* Ensure msecure is high to be able to set the RTC. */
-+	omap_mux_init_signal("gpio_22", OMAP_PIN_OFF_OUTPUT_HIGH);
-+	gpio_request_one(22, GPIOF_OUT_INIT_HIGH, "msecure");
-+	gpio_export(22, false);
-+
- 	/* Ensure SDRC pins are mux'd for self-refresh */
- 	omap_mux_init_signal("sdrc_cke0", OMAP_PIN_OUTPUT);
- 	omap_mux_init_signal("sdrc_cke1", OMAP_PIN_OUTPUT);
--- 
-1.7.3.4
+>
+> Cheers
+> Jon
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-seria=
+l" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-serial"=
+ in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
