@@ -1,30 +1,57 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH 1/6] OMAP4: Add missing clock divider for OCP_ABE_ICLK
-Date: Mon, 18 Jul 2011 16:46:26 -0500
-Message-ID: <4E24A9B2.5070507@ti.com>
-References: <1310685865-3249-1-git-send-email-jon-hunter@ti.com> <alpine.DEB.2.00.1107150216380.16606@utopia.booyaka.com> <4E204FFC.5080700@ti.com> <4E249E55.6010004@ti.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [RFC 7/8] drivers: introduce rpmsg, a remote-processor
+ messaging bus
+Date: Thu, 9 Jun 2011 19:12:10 +0200
+Message-ID: <20110609171210.GB3877@ucw.cz>
+References: <1308640714-17961-1-git-send-email-ohad@wizery.com>
+ <1308640714-17961-8-git-send-email-ohad@wizery.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-15"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:38526 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750946Ab1GRVqc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 18 Jul 2011 17:46:32 -0400
-In-Reply-To: <4E249E55.6010004@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1308640714-17961-8-git-send-email-ohad@wizery.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, akpm@linux-foundation.org, Brian Swetland <swetland@google.com>, Arnd Bergmann <arnd@arndb.de>, Grant Likely <grant.likely@secretlab.ca>, davinci-linux-open-source <davinci-linux-open-source@linux.davincidsp.com>, Rusty Russell <rusty@rustcorp.com.au>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, b-cousson@ti.com
 
+Hi!
 
-On 7/18/2011 15:57, Jon Hunter wrote:
-> On further inspection of the clock44xx_data.c, it appears that all
-> interface clocks are called xxx_fck and not xxx_ick. I will ask Benoit
-> about this. However, this particular clock we are dealing with here is
-> an interface clock.
+> @@ -0,0 +1,75 @@
+> +What:		/sys/bus/rpmsg/devices/.../name
+> +Date:		June 2011
+> +KernelVersion:	3.2
+> +Contact:	Ohad Ben-Cohen <ohad@wizery.com>
+> +Description:
+> +		Every rpmsg device is a communication channel with a remote
+> +		processor. Channels are identified with a (textual) name,
+> +		which is maximum 32 bytes long (defined as RPMSG_NAME_SIZE in
+> +		rpmsg.h).
+> +
+> +		This sysfs entry contains the name of this channel.
+> +
+> +What:		/sys/bus/rpmsg/devices/.../src
+> +Date:		June 2011
+> +KernelVersion:	3.2
+> +Contact:	Ohad Ben-Cohen <ohad@wizery.com>
+> +Description:
+> +		Every rpmsg device is a communication channel with a remote
+> +		processor. Channels have a local ("source") rpmsg address,
+> +		and remote ("destination") rpmsg address. When an entity
+> +		starts listening on one end of a channel, it assigns it with
+> +		a unique rpmsg address (a 32 bits integer). This way when
+> +		inbound messages arrive to this address, the rpmsg core
+> +		dispatches them to the listening entity (a kernel driver).
+> +
+> +		This sysfs entry contains the src (local) rpmsg address
+> +		of this channel. If it contains 0xffffffff, then an address
+> +		wasn't assigned (can happen if no driver exists for this
+> +		channel).
 
-Actually, the above it not true. I will ask Benoit about the naming of 
-the slimbus interface clocks.
+So this is basically networking... right? Why not implement it as
+sockets? (accept, connect, read, write)?
 
-Jon
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
