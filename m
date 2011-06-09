@@ -1,136 +1,130 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [linux-pm] calling runtime PM from system PM methods
-Date: Thu, 9 Jun 2011 09:56:48 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1106090945490.2081-100000@iolanthe.rowland.org>
-References: <87hb80546c.fsf@ti.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [PATCHv2 00/28] OMAP DSS runtime PM adaptation
+Date: Thu,  9 Jun 2011 16:56:22 +0300
+Message-ID: <1307627810-3768-1-git-send-email-tomi.valkeinen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:49451 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1757584Ab1FIN4t (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Jun 2011 09:56:49 -0400
-In-Reply-To: <87hb80546c.fsf@ti.com>
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:57098 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757646Ab1FIN5C (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Jun 2011 09:57:02 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>, Paul Walmsley <paul@pwsan.com>
+To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
+Cc: b-cousson@ti.com, paul@pwsan.com, khilman@ti.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-On Wed, 8 Jun 2011, Kevin Hilman wrote:
+Hi,
 
-> "Rafael J. Wysocki" <rjw@sisk.pl> writes:
-> 
-> [...]
-> 
-> > you need to separate the system suspend handling from runtime PM.
-> 
-> /me risks getting yelled at again and jumps back in ;)
-> 
-> > Each of them requires a different approach, because the goal is really
-> > different in both cases (basically, runtime PM triggers when the
-> > device is _known_ to be idle, while system suspend may trigger while
-> > it's actually being used).
-> 
-> OK, but from the driver's perspective, the goals do not seem all that
-> different to me:
-> 
-> Runtime suspend
-> 1. activity
-> 2. activity finishes
-> 3. device is _known_ to be idle
-> 4. trigger device low-power transition 
-> 
-> system suspend [echo mem > /sys/power/state]
-> 1. activity
-> 2. prevent future activity, halt/wait for current activity
-> 3. device is _known_ to be idle
-> 4. trigger device low-power transition
-> 
-> The only difference is step 2.
+This patch set implements runtime PM adaptation for OMAP DSS driver.
 
-That _is_ the main difference, and it's a big one.  (As Magnus pointed 
-out, wakeup-enabling is another difference).
+This is second version of the set, changing the way pm_runtime is used. In this
+version the omapdss' pm_runtime adaptation is written as it should be, using
+pm_runtime callbacks, in which context save/restore and opt-clock
+enables/disables are made.
 
->  In runtime suspend, the activity
-> finishes on its own, in system suspend, the activity is forcibly
-> stopped.  In either case, after that point the device is known to be
-> idle, and proceeding from there is identical.  IOW, based on the above,
-> another way of looking at system PM is forcing idle so that runtime PM
-> can happen.
-> 
-> I think it's important to note the similarities as well as the
-> differences.  Maybe I'm still really blind here, but I cannot see how
-> they can be completely decoupled.
+This required changes (hacks?) to OMAP4 hwmod database, but it is meant to be
+fixed when the hwmod fmwk is improved to handle the DSS clocks properly.
+However, when that fix is done, omapdss driver won't need any changes.
 
-They don't have to be decoupled, and indeed they can share code.  The 
-point Rafael and I are making is that they have to use different 
-callback pointers, which gives you a chance to handle the differences 
-as well as the similarities.
+The bulk of the code is in the "OMAP: DSS2: Use PM runtime & HWMOD support"
+patch, which is a bit too large for comfort, but I haven't found out ways to
+split it up.
 
-> More specifically, what should be the approach in system suspend when a
-> device is already runtime suspended?  If you treat runtime and system PM
-> as completely independent, you would have to runtime resume the device
-> so that it can then be immediately system suspended.
+All DSS HW modules now handle enabling and disabling of the HW block
+independently via pm_runtime calls. Some DSS modules also require other DSS
+modules, and for that we have functions like dispc_runtime_get/put() which can
+be used to enable that module.
 
-Assuming the wakeup setting is correct, and assuming you use the same 
-power level for runtime suspend and system suspend, then nothing needs 
-to be done.
+Previously DSS driver did reset the HW every time before taking it into use.
+This can no longer be done, as HWMOD framework handles the reset. While the
+driver works without resetting the HW, an error could render the HW inoperable
+and currently the driver may not be able to recover. So these patches may make
+the driver more unreliable on error cases.
 
-If the wakeup setting is not correct, it has to be changed.  That 
-often implies going back to full power in order to change the 
-wakeup setting, then going to low power again.
+If a way to reset the HWMOD is added to the HWMOD framework, DSS driver can
+take it into use and the above mentioned problem should go away.
 
-This is all described in various files under Documentation/power/, in 
-particular, devices.txt and runtime_pm.txt.
+Tested on OMAP4 Blaze, OMAP3 Overo, OMAP2420 N800. (However, N800 needs extra
+patches to get it and DSS2 running, can be found from n800 branch in my tree).
 
-> For many (if not all) devices though, what I suspect we would want is
-> for devices that are runtime suspended to stay runtime suspended across
-> a system suspend *and* resume.  That would mean that the device power
-> domain would not call system PM callbacks on devices that are runtime
-> suspended.
+The patch set still contains "OMAP: change get_context_loss_count ret value to
+int" for completeness, but the patch should go through Paul Walmsley.
 
-No, it's generally agreed that _all_ devices should return to full 
-power during system resume -- even if they were runtime suspended 
-before the system sleep.  This also is explained in the Documentation 
-files.
+These patches can be found from:
 
-> At least for device power domains where the low-power state is identical
-> between runtime suspend and system suspend, this makes a lot of sense
-> (to me.)  Device power domain ->suspend might look something like this
-> (obviously not tested):
-> 
->     if (pm_runtime_suspended(dev))
->         return;
+git://gitorious.org/linux-omap-dss2/linux.git pmruntime
 
-You could test priv->flags here instead.  But I suppose this would
-work.
+Changes in v2:
+* Add a HWMOD patch "OMAP4: HWMOD: change DSS main_clk scheme", which allows us
+  to use pm_runtime as it should.
+* Modify "OMAP: DSS2: Use PM runtime & HWMOD support" to use pm_runtime as it
+  should.
 
->     pm_generic_suspend(dev);       
+ Tomi
 
-No, you shouldn't call the PM core here.
+Tomi Valkeinen (28):
+  OMAP: change get_context_loss_count ret value to int
+  OMAP: DSS2: Taal: Make driver more fault tolerant
+  OMAP: DSS2: Reset LANEx_ULPS_SIG2 bits after use
+  OMAP: DSS2: Handle dpll4_m4_ck in dss_get/put_clocks
+  OMAP: DSS2: Clean up probe for DSS & DSI
+  OMAP: DSS2: Init dispc first before other components
+  OMAP: DSS2: Remove clk optimization at dss init
+  OMAP: DSS2: rewrite use of context_loss_count
+  OMAP: DSS2: Use omap_pm_get_dev_context_loss_count to get ctx loss
+    count
+  OMAP: DSS2: DPI: remove unneeded SYSCK enable/disable
+  OMAP: DSS2: Add FEAT_VENC_REQUIRES_TV_DAC_CLK
+  OMAP: DSS2: Add new FEAT definitions for features missing from OMAP2
+  OMAP: DSS2: Remove core_dump_clocks
+  OMAP: DSS2: Remove CONFIG_OMAP2_DSS_SLEEP_BEFORE_RESET
+  OMAP4: HWMOD: Modify DSS opt clocks
+  OMAP3: HWMOD: Add DSS opt clocks
+  OMAP2420: HWMOD: Add DSS opt clocks
+  OMAP2430: HWMOD: Add DSS opt clocks
+  OMAP4: HWMOD: change DSS main_clk scheme
+  OMAP: DSS2: Use PM runtime & HWMOD support
+  OMAP4: HWMOD: Remove unneeded DSS opt clocks
+  OMAP: DSS2: Remove unused opt_clock_available
+  OMAP: DSS2: DISPC: remove finegrained clk enables/disables
+  OMAP: DSS2: Remove unused code from display.c
+  OMAP: DSS2: Remove ctx loss count from dss.c
+  OMAP4: CLKDEV: Remove omapdss clock aliases
+  OMAP: DSS2: DISPC: Fix context save/restore
+  OMAP: DSS2: DSS: Fix context save/restore
 
->     magic_device_idle(dev); /* HW-specific, shared with runtime PM */
+ arch/arm/mach-omap2/clock44xx_data.c          |   10 +-
+ arch/arm/mach-omap2/display.c                 |   26 +-
+ arch/arm/mach-omap2/omap_hwmod.c              |    2 +-
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c    |   19 +
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c    |   19 +
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c    |   37 ++-
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c    |   71 +++-
+ arch/arm/mach-omap2/powerdomain.c             |   14 +-
+ arch/arm/mach-omap2/powerdomain.h             |    2 +-
+ arch/arm/plat-omap/include/plat/omap-pm.h     |    4 +-
+ arch/arm/plat-omap/include/plat/omap_device.h |    2 +-
+ arch/arm/plat-omap/include/plat/omap_hwmod.h  |    2 +-
+ arch/arm/plat-omap/omap-pm-noop.c             |   24 +-
+ arch/arm/plat-omap/omap_device.c              |    2 +-
+ drivers/video/omap2/displays/panel-taal.c     |   33 +-
+ drivers/video/omap2/dss/Kconfig               |   12 -
+ drivers/video/omap2/dss/core.c                |   15 +-
+ drivers/video/omap2/dss/dispc.c               |  483 +++++++++++----------
+ drivers/video/omap2/dss/dpi.c                 |   73 ++--
+ drivers/video/omap2/dss/dsi.c                 |  262 +++++++-----
+ drivers/video/omap2/dss/dss.c                 |  583 ++++++-------------------
+ drivers/video/omap2/dss/dss.h                 |   34 +-
+ drivers/video/omap2/dss/dss_features.c        |   13 +-
+ drivers/video/omap2/dss/dss_features.h        |    4 +
+ drivers/video/omap2/dss/hdmi.c                |  161 +++++--
+ drivers/video/omap2/dss/manager.c             |    8 +-
+ drivers/video/omap2/dss/overlay.c             |   27 +-
+ drivers/video/omap2/dss/rfbi.c                |  110 ++++-
+ drivers/video/omap2/dss/sdi.c                 |   40 ++-
+ drivers/video/omap2/dss/venc.c                |  163 ++++++-
+ include/video/omapdss.h                       |    4 +-
+ 31 files changed, 1214 insertions(+), 1045 deletions(-)
 
-At this point you should call magic_device_set_low_power(dev).  That
-routine can also be shared with runtime PM.
-
->     priv->flags |= MY_DEVICE_SYS_SUSPENDED;
-
-I don't see any point in having separate flags for system suspend and 
-runtime suspend.  Just use MY_DEVICE_IS_SUSPENDED, and set it in the 
-magic_device_set_low_power routine.
-
-> and ->resume():
-> 
->    if (priv->flags & MY_DEVICE_SYS_SUSPENDED) {
->        magic_device_enable(dev);
->        pm_generic_resume(dev);    
->   }
-
-This should simply be:
-
-	magic_device_set_full_power(dev);  // clears MY_DEVICE_IS_SUSPENDED
-	magic_device_enable(dev);
-
-Alan Stern
+-- 
+1.7.4.1
 
