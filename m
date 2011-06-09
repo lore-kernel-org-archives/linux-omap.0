@@ -1,93 +1,146 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCHv2 11/28] OMAP: DSS2: Add FEAT_VENC_REQUIRES_TV_DAC_CLK
-Date: Thu,  9 Jun 2011 16:56:33 +0300
-Message-ID: <1307627810-3768-12-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCHv2 15/28] OMAP4: HWMOD: Modify DSS opt clocks
+Date: Thu,  9 Jun 2011 16:56:37 +0300
+Message-ID: <1307627810-3768-16-git-send-email-tomi.valkeinen@ti.com>
 References: <1307627810-3768-1-git-send-email-tomi.valkeinen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:60318 "EHLO
+Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:39341 "EHLO
 	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758086Ab1FIN5a (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Jun 2011 09:57:30 -0400
+	by vger.kernel.org with ESMTP id S1758105Ab1FIN5g (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Jun 2011 09:57:36 -0400
 In-Reply-To: <1307627810-3768-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 Cc: b-cousson@ti.com, paul@pwsan.com, khilman@ti.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-OMAP3430 requires an 96MHz clock to VENC's DAC, but no other OMAP needs
-it.
+Add missing DSS optional clocks to HWMOD data for OMAP4xxx.
 
-Add a new feature, FEAT_VENC_REQUIRES_TV_DAC_CLK, which tells if the
-clock is needed on this platform, and use that feature in venc.c to
-decide if the clock needs enabling.
+Add HWMOD_CONTROL_OPT_CLKS_IN_RESET flag for dispc to fix dispc reset.
 
+Cc: Benoit Cousson <b-cousson@ti.com>
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/dss/dss_features.c |    3 ++-
- drivers/video/omap2/dss/dss_features.h |    1 +
- drivers/video/omap2/dss/venc.c         |   16 ++++++++++------
- 3 files changed, 13 insertions(+), 7 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   40 ++++++++++++++++++++++++++++
+ 1 files changed, 40 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/dss_features.c b/drivers/video/omap2/dss/dss_features.c
-index 1c18888..a588380 100644
---- a/drivers/video/omap2/dss/dss_features.c
-+++ b/drivers/video/omap2/dss/dss_features.c
-@@ -286,7 +286,8 @@ static const struct omap_dss_features omap3430_dss_features = {
- 		FEAT_LCDENABLESIGNAL | FEAT_PCKFREEENABLE |
- 		FEAT_FUNCGATED | FEAT_ROWREPEATENABLE |
- 		FEAT_LINEBUFFERSPLIT | FEAT_RESIZECONF |
--		FEAT_DSI_PLL_FREQSEL | FEAT_DSI_REVERSE_TXCLKESC,
-+		FEAT_DSI_PLL_FREQSEL | FEAT_DSI_REVERSE_TXCLKESC |
-+		FEAT_VENC_REQUIRES_TV_DAC_CLK,
- 
- 	.num_mgrs = 2,
- 	.num_ovls = 3,
-diff --git a/drivers/video/omap2/dss/dss_features.h b/drivers/video/omap2/dss/dss_features.h
-index 07b346f..3058e24 100644
---- a/drivers/video/omap2/dss/dss_features.h
-+++ b/drivers/video/omap2/dss/dss_features.h
-@@ -51,6 +51,7 @@ enum dss_feat_id {
- 	FEAT_HDMI_CTS_SWMODE		= 1 << 19,
- 	FEAT_HANDLE_UV_SEPARATE         = 1 << 20,
- 	FEAT_ATTR2                      = 1 << 21,
-+	FEAT_VENC_REQUIRES_TV_DAC_CLK	= 1 << 22,
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+index abc548a..4f6ae94 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -1263,9 +1263,21 @@ static struct omap_hwmod_ocp_if *omap44xx_dss_dispc_slaves[] = {
+ 	&omap44xx_l4_per__dss_dispc,
  };
  
- /* DSS register field id */
-diff --git a/drivers/video/omap2/dss/venc.c b/drivers/video/omap2/dss/venc.c
-index 980f919..15b4431 100644
---- a/drivers/video/omap2/dss/venc.c
-+++ b/drivers/video/omap2/dss/venc.c
-@@ -38,6 +38,7 @@
- #include <plat/cpu.h>
++static struct omap_hwmod_opt_clk dispc_opt_clks[] = {
++	{ .role = "dss_clk", .clk = "dss_dss_clk" },
++	/*
++	 * The rest of the clocks are not needed by the driver,
++	 * but are needed by the hwmod to reset DSS properly.
++	 */
++	{ .role = "sys_clk", .clk = "dss_sys_clk" },
++	{ .role = "tv_clk", .clk = "dss_tv_clk" },
++	{ .role = "hdmi_clk", .clk = "dss_48mhz_clk" },
++};
++
+ static struct omap_hwmod omap44xx_dss_dispc_hwmod = {
+ 	.name		= "dss_dispc",
+ 	.class		= &omap44xx_dispc_hwmod_class,
++	.flags		= HWMOD_CONTROL_OPT_CLKS_IN_RESET,
+ 	.mpu_irqs	= omap44xx_dss_dispc_irqs,
+ 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_dss_dispc_irqs),
+ 	.sdma_reqs	= omap44xx_dss_dispc_sdma_reqs,
+@@ -1276,6 +1288,8 @@ static struct omap_hwmod omap44xx_dss_dispc_hwmod = {
+ 			.clkctrl_reg = OMAP4430_CM_DSS_DSS_CLKCTRL,
+ 		},
+ 	},
++	.opt_clks	= dispc_opt_clks,
++	.opt_clks_cnt	= ARRAY_SIZE(dispc_opt_clks),
+ 	.slaves		= omap44xx_dss_dispc_slaves,
+ 	.slaves_cnt	= ARRAY_SIZE(omap44xx_dss_dispc_slaves),
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+@@ -1354,6 +1368,11 @@ static struct omap_hwmod_ocp_if *omap44xx_dss_dsi1_slaves[] = {
+ 	&omap44xx_l4_per__dss_dsi1,
+ };
  
- #include "dss.h"
-+#include "dss_features.h"
++static struct omap_hwmod_opt_clk dsi1_opt_clks[] = {
++	{ .role = "dss_clk", .clk = "dss_dss_clk" },
++	{ .role = "sys_clk", .clk = "dss_sys_clk" },
++};
++
+ static struct omap_hwmod omap44xx_dss_dsi1_hwmod = {
+ 	.name		= "dss_dsi1",
+ 	.class		= &omap44xx_dsi_hwmod_class,
+@@ -1367,6 +1386,8 @@ static struct omap_hwmod omap44xx_dss_dsi1_hwmod = {
+ 			.clkctrl_reg = OMAP4430_CM_DSS_DSS_CLKCTRL,
+ 		},
+ 	},
++	.opt_clks	= dsi1_opt_clks,
++	.opt_clks_cnt	= ARRAY_SIZE(dsi1_opt_clks),
+ 	.slaves		= omap44xx_dss_dsi1_slaves,
+ 	.slaves_cnt	= ARRAY_SIZE(omap44xx_dss_dsi1_slaves),
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+@@ -1514,6 +1535,11 @@ static struct omap_hwmod_ocp_if *omap44xx_dss_hdmi_slaves[] = {
+ 	&omap44xx_l4_per__dss_hdmi,
+ };
  
- /* Venc registers */
- #define VENC_REV_ID				0x00
-@@ -382,12 +383,15 @@ static void venc_reset(void)
++static struct omap_hwmod_opt_clk hdmi_opt_clks[] = {
++	{ .role = "sys_clk", .clk = "dss_sys_clk" },
++	{ .role = "hdmi_clk", .clk = "dss_48mhz_clk" },
++};
++
+ static struct omap_hwmod omap44xx_dss_hdmi_hwmod = {
+ 	.name		= "dss_hdmi",
+ 	.class		= &omap44xx_hdmi_hwmod_class,
+@@ -1527,6 +1553,8 @@ static struct omap_hwmod omap44xx_dss_hdmi_hwmod = {
+ 			.clkctrl_reg = OMAP4430_CM_DSS_DSS_CLKCTRL,
+ 		},
+ 	},
++	.opt_clks	= hdmi_opt_clks,
++	.opt_clks_cnt	= ARRAY_SIZE(hdmi_opt_clks),
+ 	.slaves		= omap44xx_dss_hdmi_slaves,
+ 	.slaves_cnt	= ARRAY_SIZE(omap44xx_dss_hdmi_slaves),
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+@@ -1600,6 +1628,10 @@ static struct omap_hwmod_ocp_if *omap44xx_dss_rfbi_slaves[] = {
+ 	&omap44xx_l4_per__dss_rfbi,
+ };
  
- static void venc_enable_clocks(int enable)
- {
--	if (enable)
--		dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK | DSS_CLK_TVFCK |
--				DSS_CLK_VIDFCK);
--	else
--		dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK | DSS_CLK_TVFCK |
--				DSS_CLK_VIDFCK);
-+	if (enable) {
-+		dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK | DSS_CLK_TVFCK);
-+		if (dss_has_feature(FEAT_VENC_REQUIRES_TV_DAC_CLK))
-+			dss_clk_enable(DSS_CLK_VIDFCK);
-+	} else {
-+		dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK | DSS_CLK_TVFCK);
-+		if (dss_has_feature(FEAT_VENC_REQUIRES_TV_DAC_CLK))
-+			dss_clk_disable(DSS_CLK_VIDFCK);
-+	}
- }
++static struct omap_hwmod_opt_clk rfbi_opt_clks[] = {
++	{ .role = "rfbi_iclk", .clk = "dss_fck" },
++};
++
+ static struct omap_hwmod omap44xx_dss_rfbi_hwmod = {
+ 	.name		= "dss_rfbi",
+ 	.class		= &omap44xx_rfbi_hwmod_class,
+@@ -1611,6 +1643,8 @@ static struct omap_hwmod omap44xx_dss_rfbi_hwmod = {
+ 			.clkctrl_reg = OMAP4430_CM_DSS_DSS_CLKCTRL,
+ 		},
+ 	},
++	.opt_clks	= rfbi_opt_clks,
++	.opt_clks_cnt	= ARRAY_SIZE(rfbi_opt_clks),
+ 	.slaves		= omap44xx_dss_rfbi_slaves,
+ 	.slaves_cnt	= ARRAY_SIZE(omap44xx_dss_rfbi_slaves),
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+@@ -1669,6 +1703,10 @@ static struct omap_hwmod_ocp_if *omap44xx_dss_venc_slaves[] = {
+ 	&omap44xx_l4_per__dss_venc,
+ };
  
- static const struct venc_config *venc_timings_to_config(
++static struct omap_hwmod_opt_clk venc_opt_clks[] = {
++	{ .role = "tv_clk", .clk = "dss_tv_clk" },
++};
++
+ static struct omap_hwmod omap44xx_dss_venc_hwmod = {
+ 	.name		= "dss_venc",
+ 	.class		= &omap44xx_venc_hwmod_class,
+@@ -1678,6 +1716,8 @@ static struct omap_hwmod omap44xx_dss_venc_hwmod = {
+ 			.clkctrl_reg = OMAP4430_CM_DSS_DSS_CLKCTRL,
+ 		},
+ 	},
++	.opt_clks	= venc_opt_clks,
++	.opt_clks_cnt	= ARRAY_SIZE(venc_opt_clks),
+ 	.slaves		= omap44xx_dss_venc_slaves,
+ 	.slaves_cnt	= ARRAY_SIZE(omap44xx_dss_venc_slaves),
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
 -- 
 1.7.4.1
 
