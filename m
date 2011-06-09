@@ -1,49 +1,66 @@
-From: Alexander Holler <holler@ahsoftware.de>
-Subject: Re: [PATCH] arm: omap3: beagle: Ensure msecure is mux'd to be able
- to set the RTC
-Date: Thu, 09 Jun 2011 11:23:14 +0200
-Message-ID: <4DF09102.9080503@ahsoftware.de>
-References: <4D9AEB76.2060509@ahsoftware.de> <1302010808-3065-1-git-send-email-holler@ahsoftware.de> <20110531102903.GU11352@atomide.com> <4DEDDAF6.2070505@ahsoftware.de> <4DEDF451.1080604@compulab.co.il> <4DEE0858.2020308@ahsoftware.de> <4DEFF035.4070004@compulab.co.il> <4DF0120E.5030204@ahsoftware.de> <4DF078E4.8040903@compulab.co.il>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: [PATCH 4/8] OMAP2+: PM: idle clkdms only if already in idle
+Date: Thu, 9 Jun 2011 16:24:09 +0530
+Message-ID: <1307616853-28395-5-git-send-email-rnayak@ti.com>
+References: <1307616853-28395-1-git-send-email-rnayak@ti.com>
+ <1307616853-28395-2-git-send-email-rnayak@ti.com>
+ <1307616853-28395-3-git-send-email-rnayak@ti.com>
+ <1307616853-28395-4-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from h1446028.stratoserver.net ([85.214.92.142]:54004 "EHLO
-	mail.ahsoftware.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751368Ab1FIJXX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Jun 2011 05:23:23 -0400
-Received: from eiche.ahsoftware (p57B215CC.dip0.t-ipconnect.de [87.178.21.204])
-	(using TLSv1 with cipher ADH-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mail.ahsoftware.de (Postfix) with ESMTPSA id 6A1774345A9
-	for <linux-omap@vger.kernel.org>; Thu,  9 Jun 2011 11:23:21 +0200 (CEST)
-In-Reply-To: <4DF078E4.8040903@compulab.co.il>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:49941 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757209Ab1FIKy3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 9 Jun 2011 06:54:29 -0400
+In-Reply-To: <1307616853-28395-4-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Igor Grinberg <grinberg@compulab.co.il>
-Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: paul@pwsan.com, khilman@ti.com, b-cousson@ti.com, santosh.shilimkar@ti.com, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
 
-Hello,
+The omap_set_pwrdm_state function forces clockdomains
+to idle, without checking the existing idle state
+programmed, instead based solely on the HW capability
+of the clockdomain to support idle.
+This is wrong and the clockdomains should be idled
+post a state_switch *only* if idle transitions on the
+clockdomain were already enabled.
 
-Am 09.06.2011 09:40, schrieb Igor Grinberg:
-> On 06/09/11 03:21, Alexander Holler wrote:
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+---
+ arch/arm/mach-omap2/pm.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
 
-> I see. Is the new patch version somehow provides better functionality?
-> You configure the gpio for output, this means that the pin is actually driven
-> and not just relies on internal pullup (which can vary from chip to chip).
-> I know nothing about that msecure stuff, but may be it is better to drive the pin,
-> then just configuring the mux (enabling internal pullup)...
+diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+index d48813f..840b0e1 100644
+--- a/arch/arm/mach-omap2/pm.c
++++ b/arch/arm/mach-omap2/pm.c
+@@ -108,6 +108,7 @@ int omap_set_pwrdm_state(struct powerdomain *pwrdm, u32 state)
+ 	u32 cur_state;
+ 	int sleep_switch = -1;
+ 	int ret = 0;
++	int hwsup = 0;
+ 
+ 	if (pwrdm == NULL || IS_ERR(pwrdm))
+ 		return -EINVAL;
+@@ -127,6 +128,7 @@ int omap_set_pwrdm_state(struct powerdomain *pwrdm, u32 state)
+ 			(pwrdm->flags & PWRDM_HAS_LOWPOWERSTATECHANGE)) {
+ 			sleep_switch = LOWPOWERSTATE_SWITCH;
+ 		} else {
++			hwsup = clkdm_is_idle(pwrdm->pwrdm_clkdms[0]);
+ 			clkdm_wakeup(pwrdm->pwrdm_clkdms[0]);
+ 			pwrdm_wait_transition(pwrdm);
+ 			sleep_switch = FORCEWAKEUP_SWITCH;
+@@ -142,7 +144,7 @@ int omap_set_pwrdm_state(struct powerdomain *pwrdm, u32 state)
+ 
+ 	switch (sleep_switch) {
+ 	case FORCEWAKEUP_SWITCH:
+-		if (pwrdm->pwrdm_clkdms[0]->flags & CLKDM_CAN_ENABLE_AUTO)
++		if (hwsup)
+ 			clkdm_allow_idle(pwrdm->pwrdm_clkdms[0]);
+ 		else
+ 			clkdm_sleep(pwrdm->pwrdm_clkdms[0]);
+-- 
+1.7.0.4
 
-Just using the internal pullup was enough with my BeagleBoard C4.
-
->> Below is an updated version. The gpio_export() might be removed too.
->
-> The original patch version is already in Linus' tree, so this one will not apply as it is.
-> If you decide it is better then the original one, then it must be rebased.
-> Otherwise, looks OK.
-
-I'm fine with either version, so no new patch is necessary. ;)
-
-Regards,
-
-Alexander
