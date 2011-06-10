@@ -1,72 +1,79 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [linux-pm] calling runtime PM from system PM methods
-Date: Fri, 10 Jun 2011 16:57:07 +0100
-Message-ID: <20110610155707.GN26436@opensource.wolfsonmicro.com>
-References: <20110610152151.GG26441@sirena.org.uk>
- <Pine.LNX.4.44L0.1106101131110.1921-100000@iolanthe.rowland.org>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: [PATCH] OMAP3+: Kconfig: has EHCI only if USB present
+Date: Fri, 10 Jun 2011 21:38:12 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024D426804@dbde02.ent.ti.com>
+References: <1307718873-27652-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:33497 "EHLO
-	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753319Ab1FJP5L (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 10 Jun 2011 11:57:11 -0400
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44L0.1106101131110.1921-100000@iolanthe.rowland.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:38938 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752495Ab1FJQIr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Jun 2011 12:08:47 -0400
+In-Reply-To: <1307718873-27652-1-git-send-email-nm@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org
+To: "Menon, Nishanth" <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>
+Cc: Tony <tony@atomide.com>, linux-arm <linux-arm-kernel@lists.infradead.org>, "Balbi, Felipe" <balbi@ti.com>
 
-On Fri, Jun 10, 2011 at 11:45:30AM -0400, Alan Stern wrote:
-> On Fri, 10 Jun 2011, Mark Brown wrote:
-
-> > It's not massively clear to me how much sense that makes for the
-> > embedded case where we've got a much better idea of what happened to the
-> > hardware over suspend.  Note that I'm thinking here mostly of the case
-> > where we've runtime suspended the device, if the kernel thought the
-> > device was powered then it's much clearer that we should do this on
-> > resume.
-
-> Well, this is a SHOULD, not a MUST.  If you want your driver to leave a
-> device in a low-power state, it can do so.  Just bear in mind that the
-> PM core's idea of the device's runtime power state may end up not
-> matching reality unless you're careful.
-
-This is part of the trouble, it all feels like a lot more work than it
-should be for relatively common cases.  In the audio case we're fine as
-the subsystem implements a completely independent PM infrastructure
-which ignores the PM core except for system suspend (and sometimes
-ignores that), it's noticably harder to reason about what's going on
-when I go outside there and when I think about what I'm doing it always
-feels like it should be possible to factor it out of the drivers.
-
-> Of course, even if all devices do get turned on during resume, one 
-> would expect the normal runtime PM mechanism to power them down again 
-> very shortly after the resume is finished.
-
-Yeah, though of course if you're only going to be resumed for a very
-brief time anyway the amount of time you spend powering up and down
-suddenly gets a lot more interesting.  Things like responding to a
-keepalive from the network can be done quickly enough that people get
-annoyed if you burn 10ms or whatever powering up some irrelevant bit of
-hardware.
-
-> >  I've probably got a fairly
-> > odd view of the world here in that I mostly care about big devices
-> > connected over slow buses where power up can be user visible, and mostly
-> > work on subsystems where the concept of "full power" isn't terribly
-> > meaningful.
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Menon, Nishanth
+> Sent: Friday, June 10, 2011 8:45 PM
+> To: linux-omap
+> Cc: Tony; linux-arm; Balbi, Felipe; Menon, Nishanth
+> Subject: [PATCH] OMAP3+: Kconfig: has EHCI only if USB present
 > 
-> The PM core tries to be flexible, but there are limitations.  In
-> particular, it's not very well suited for handling devices with
-> multiple power levels.  Drivers simply have to do the best they can to
-> fit in with the PM core's power model.  For example, all functional
-> states might be considered "full power" and all others might be
-> considered "low power".  Coordinating all the extra details would then
-> be the driver's responsibility.
+> Attempting to disable USB generates the following warning at 
+> the moment:
+> warning: (ARCH_OMAP3 && ARCH_OMAP4) selects USB_ARCH_HAS_EHCI 
+> which has unmet direct dependencies (USB_SUPPORT)
+> 
+> Signed-off-by: Nishanth Menon <nm@ti.com>
+> ---
+> based on 3.0-rc2
+>  arch/arm/mach-omap2/Kconfig |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+> index ef7e12f..d5cf1a8 100644
+> --- a/arch/arm/mach-omap2/Kconfig
+> +++ b/arch/arm/mach-omap2/Kconfig
+> @@ -33,7 +33,7 @@ config ARCH_OMAP3
+>  	depends on ARCH_OMAP2PLUS
+>  	default y
+>  	select CPU_V7
+> -	select USB_ARCH_HAS_EHCI
+> +	select USB_ARCH_HAS_EHCI if USB_SUPPORT
+>  	select ARM_L1_CACHE_SHIFT_6 if !ARCH_OMAP4
+>  	select ARCH_HAS_OPP
+>  	select PM_OPP if PM
+> @@ -50,7 +50,7 @@ config ARCH_OMAP4
+>  	select ARM_ERRATA_720789
+>  	select ARCH_HAS_OPP
+>  	select PM_OPP if PM
+> -	select USB_ARCH_HAS_EHCI
+> +	select USB_ARCH_HAS_EHCI if USB_SUPPORT
+>  
+>  comment "OMAP Core Type"
+>  	depends on ARCH_OMAP2
 
-Right, I mostly agree - like I say I think the main thing that would be
-useful here is to extend the helpers for the common case unified suspend
-situation.  This may be totally separate to what Kevin needs, though.
+
+Here is earlier discussion on the same subject:
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg42064.html
+
+Exactly same patch was proposed.
+
+~sanjeev
+
+> -- 
+> 1.7.1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe 
+> linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
