@@ -1,34 +1,47 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH V2] PM: OPP: introduce function to free cpufreq table
-Date: Sat, 11 Jun 2011 00:06:34 +0200
-Message-ID: <201106110006.34976.rjw@sisk.pl>
-References: <1306309406-3299-1-git-send-email-nm@ti.com> <8739k2wsdx.fsf@ti.com>
+From: "Menon, Nishanth" <nm@ti.com>
+Subject: Re: Duration of mdelay and udelay depends on MPU frequency in SMP
+Date: Fri, 10 Jun 2011 17:19:13 -0500
+Message-ID: <BANLkTin1Tmjwjz8+J22Qi=cwu34Qp-B-wQ@mail.gmail.com>
+References: <BANLkTikGXzLba8uqXoffaUixBrEGj-XzRQ@mail.gmail.com>
+ <BANLkTimVPnzMCL=NMb7hDkL97nJ=XdFExw@mail.gmail.com> <4DCB8158.8060507@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:47500 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753467Ab1FJWGE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 10 Jun 2011 18:06:04 -0400
-In-Reply-To: <8739k2wsdx.fsf@ti.com>
+Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:55072 "EHLO
+	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753467Ab1FJWTf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 10 Jun 2011 18:19:35 -0400
+Received: by mail-wy0-f174.google.com with SMTP id 21so2729992wya.5
+        for <linux-omap@vger.kernel.org>; Fri, 10 Jun 2011 15:19:34 -0700 (PDT)
+In-Reply-To: <4DCB8158.8060507@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>, Nishanth Menon <nm@ti.com>
-Cc: linux-pm <linux-pm@lists.linux-foundation.org>, Todd <toddpoynor@google.com>, linux-omap <linux-omap@vger.kernel.org>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Saquib <saquib.herman@gmail.com>, linux-arm-kernel@lists.infradead.org, linux-omap <linux-omap@vger.kernel.org>
 
-On Wednesday, May 25, 2011, Kevin Hilman wrote:
-> Nishanth Menon <nm@ti.com> writes:
-> 
-> > cpufreq table allocated by opp_init_cpufreq_table is better
-> > freed by OPP layer itself. This allows future modifications to
-> > the table handling to be transparent to the users.
-> >
-> > Signed-off-by: Nishanth Menon <nm@ti.com>
-> 
-> Acked-by: Kevin Hilman <khilman@ti.com>
+On Thu, May 12, 2011 at 01:42, Santosh Shilimkar
+<santosh.shilimkar@ti.com> wrote:
+> On 5/5/2011 12:23 PM, Saquib wrote:
+>> Can anyone please help me to understand and fix this issue?
+>>
+>> When CPU frequency is "1008MHz", duration of delay was close to
+>> theoretical value, however, when "300MHz", it was close to about 4 times
+>> the theoretical value.
+>>
+>> I tested it on OMAP4(SMP) blaze board.
+>
+>>
+> It's a well known problem if the udelay() is based of global lpj.
+> You can read more here [1]
+>
+> Regards
+> Santosh
+> [1] http://eeek.borgchat.net/lists/arm-kernel/msg120702.html
+I am curious about this topic now.
+Searching Russel's patchworks for this:
+http://www.arm.linux.org.uk/developer/patches/search.php?summary=udelay
+I see nothing queued. What is the recommendation for udelay?
 
-Applied to suspend-2.6/linux-next.
-
-Thanks!
+Regards,
+Nishanth Menon
