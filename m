@@ -1,80 +1,122 @@
-From: onlyfever <onlyfever@gmail.com>
-Subject: Re: HELP:How to power down TWL5030 Voice/Bluetooth
-	sidetone PGA?
-Date: Fri, 10 Jun 2011 21:27:21 +0800
-Message-ID: <BANLkTi=9sg-WL+OXeA4J9rcH7c6zg+R3Pw@mail.gmail.com>
-References: <BANLkTik0mX5wSYNdBwhjxuaKa6908fmazQ@mail.gmail.com>
-	<201106101048.45966.peter.ujfalusi@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [RFC] dmaengine: add new api for preparing simple slave transfer
+Date: Fri, 10 Jun 2011 14:33:38 +0100
+Message-ID: <20110610133338.GD24636@n2100.arm.linux.org.uk>
+References: <E0D41E29EB0DAC4E9F3FF173962E9E940301FE2DED@dbde02.ent.ti.com> <20110609124723.GA24636@n2100.arm.linux.org.uk> <E0D41E29EB0DAC4E9F3FF173962E9E940301FE2EFB@dbde02.ent.ti.com> <20110609163206.GB24636@n2100.arm.linux.org.uk> <1307686397.10976.116.camel@vkoul-udesk3> <E0D41E29EB0DAC4E9F3FF173962E9E940301FE337F@dbde02.ent.ti.com> <20110610104318.GC24636@n2100.arm.linux.org.uk> <E0D41E29EB0DAC4E9F3FF173962E9E940301FE3452@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <201106101048.45966.peter.ujfalusi@ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: =?ISO-8859-1?Q?P=E9ter_Ujfalusi?= <peter.ujfalusi@ti.com>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:47447 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756324Ab1FJNeB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Jun 2011 09:34:01 -0400
+Content-Disposition: inline
+In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E940301FE3452@dbde02.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Raju, Sundaram" <sundaram@ti.com>
+Cc: "Koul, Vinod" <vinod.koul@intel.com>, Dan <dan.j.williams@intel.com>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-2011/6/10 P=E9ter Ujfalusi <peter.ujfalusi@ti.com>:
-> On Thursday 09 June 2011 16:40:15 onlyfever wrote:
->> Hello,
->> I want to power down Voice/Bluetooth sidetone PGA of TWL5030.
->> I set the VSTPGA Register/BTSTPGA Register to 0x00,but it seems that
->> the Voice/Bluetooth sidetone PGA still work,
->> and even set VSTPGA/BTSTPGA to Mute,there still have sidetone come out.
->>
->> How can I power down Voice/Bluetooth sidetone PGA?
->> I don't need sidetone.
->
-> Are you sure, that the sidetone is added by the VSTPGA/BTSTPGA?
-> Could you check, if you accidentally left either the analog loopbacks ena=
-bled
-> (or digital loopbacks)?
-> Check for these:
-> Right1/2 Analog Loopback, Left1/2 Analog Loopback, Voice Analog Loopback,
-> Left/Right/Voice Digital Loopback
->
-> Could you describe your scenario (uplink, downlink routing, etc)?
->
-> --
-> P=E9ter
->
+On Fri, Jun 10, 2011 at 05:18:46PM +0530, Raju, Sundaram wrote:
+> Russell,
+> 
+> > How do you handle the situation where a driver uses your new proposed
+> > API, but it doesn't support that in hardware.
+> 
+> It should be handled the same way how a sg buffer is handled, 
+> if LLI chaining feature is not available in the hardware. 
 
-1. when use Headset:
-uplink routing:HSMIC --> AVTXR2PGA & AVTXL2PGA --> VDXS & VDXM --> PCM_VDX
-downlink routing:PCM_VDR --> VDR -->  VRXPGA Fine gain --> DAC voice
---> VDL_GAIN Analog PGA --> HSOL/HSOR
+No, if the LLI chaining feature is available in hardware and your special
+'skip' feature is not, then you have to generate a set of LLIs for the
+hardware to walk through to 'emulate' the skip feature.
 
-I check the loopbacks,it seems that all Loopbacks have been disabled.
-bash-3.2# alsa_amixer |grep Loopback
-Simple mixer control 'Left Digital Loopback',0
-Simple mixer control 'Left1 Analog Loopback',0
-Simple mixer control 'Left2 Analog Loopback',0
-Simple mixer control 'Right Digital Loopback',0
-Simple mixer control 'Right1 Analog Loopback',0
-Simple mixer control 'Right2 Analog Loopback',0
-Simple mixer control 'Voice Analog Loopback',0
-Simple mixer control 'Voice Digital Loopback',0
+If you have no LLI support, then you need to program each transfer manually
+into the DMA controller.
 
-The sidetone is become louder if I increase the VSTPGA,
-and when I increase the VDL_GAIN Analog PGA,the sidetone is become louder t=
-oo.
-But the VRXPGA seems don't affect the sidetone,so I think VSTPGA cause
-the sidetone.
+> > > Actually we can deduce the chunk_size from the
+> > > dma_slave_config itself. It is either the src_addr_width or
+> > > dst_addr_width based on the direction. Because at a stretch
+> > > DMAC cannot transfer more than the slave register width.
+> > 
+> > I think you're misinterpreting those fields.  (dst|src)_addr_width tells
+> > the DMA controller the width of each transaction - whether to issue a
+> > byte, half-word, word or double-word read or write to the peripheral.
+> > It doesn't say how many of those to issue, it just says what the
+> > peripheral access size is to be.
+> > 
+> > In other words, they describe the width of the FIFO register.
+> 
+> Yes correct, I was just giving an example for considering or
+> understanding a buffer in 3D and how each dimension should be.
+> 
+> chunk_size = (src|dst)_addr_width, for a special case,
+> i.e, if DMAC is programmed to transfer the entire 1D buffer
+> per sync event received from the peripheral.
 
-2.when use Bluetooth:
-uplink routing:BT_PCM_VDR --> BTTXPGA --> VDXM --> PCM_VDX
-downlink routing:PCM_VDR --> VDR --> BTRXPGA --> BT_PCM_VDX
+Please, don't generate special cases.  Design proper APIs from the
+outset rather than abusing what's already there.  So no, don't abuse
+the address width stuff.
 
-When use Bluetooth interface,I don't know if something else can cause
-sidetone except BTSTPGA.
+In any case, the address width stuff must still be used to describe the
+peripherals FIFO register.
 
-thanks!
+> In slave transfer, the peripheral is going to give a sync event to 
+> DMAC when the FIFO register is full|empty.
+
+'sync event' - peripherals give 'request' signals to the DMAC asking
+them to transfer some more data only, and the DMAC gives an acknowledge
+signal back so that the peripheral knows that the DMAC is giving them
+data.  In the generic case, they typically have no further signalling.
+
+When the DMAC sees an active request, it will attempt to transfer up
+to the minimum of (burst size, number of transfers remaining) to the
+peripheral in one go.
+
+> Now DMACs capable of 3D transfer, do transfer of the whole 1D
+> buffer per sync received or even whole 2D buffer per sync received
+> (based on the sync rate programmed in the DMAC).
+
+Ok, what I'm envisioning is that your term "chunk size" means "register
+width", and you view that as one dimension.  We already describe this.
+
+A frame is a collection of chunks.  That's already described - the number
+of chunks in a buffer is the buffer size divided by the chunk size.
+Buffers must be a multiple of the chunk size.
+
+Then we have a collection of frames.  These can be non-contiguous.
+That's effectively described by our scatterlist.
+
+> So the DMAC has to be programmed for a 1D size (i.e. chunk size)
+> equal to that of the width of the FIFO register if the sync rate
+> programmed in DMAC is "per chunk".  
+
+This appears to be a circular definition, and makes little sense to me.
+
+The overall conclusion which I'm coming to is that we already support
+what you're asking for, but the problem is that we're using different
+(and I'd argue standard) terminology to describe what we have.
+
+The only issue which I see that we don't cover is the case where you want
+to describe a single buffer which is organised as N bytes to be transferred,
+M following bytes to be skipped, N bytes to be transferred, M bytes to be
+skipped.  I doubt there are many controllers which can be programmed with
+both 'N' and 'M' parameters directly.
+
+Let me finish with a summary of how memory-to-peripheral transfers are
+expected to operate:
+1. The DMA controller reads data from system RAM using whatever parameters
+   are most suitable for it to use up to the current buffer size.
+
+2. When the DMA request goes active, it transfers data that it read
+   previously to the device in dest_addr_width chunks of data.  It
+   transfers the minimum of the remaining data or the burst size.
+
+3. The peripheral, receiving data and filling its FIFO, drops the DMA
+   request.
+
+4. The DMA controller then reads more data from system RAM in the same
+   way in (1).
+
+5. If at any point the DMA controller reaches the end of the buffer, and
+   as a link to the next buffer, it immediately moves to the next buffer
+   and starts fetching data from that new buffer.
