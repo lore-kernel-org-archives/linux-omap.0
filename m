@@ -1,69 +1,60 @@
-From: =?iso-8859-1?q?P=E9ter_Ujfalusi?= <peter.ujfalusi@ti.com>
-Subject: Re: HELP:How to power down TWL5030 Voice/Bluetooth sidetone PGA?
-Date: Fri, 10 Jun 2011 17:16:13 +0300
-Message-ID: <201106101716.14008.peter.ujfalusi@ti.com>
-References: <BANLkTik0mX5wSYNdBwhjxuaKa6908fmazQ@mail.gmail.com> <201106101048.45966.peter.ujfalusi@ti.com> <BANLkTi=9sg-WL+OXeA4J9rcH7c6zg+R3Pw@mail.gmail.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [linux-pm] calling runtime PM from system PM methods
+Date: Fri, 10 Jun 2011 15:36:57 +0100
+Message-ID: <20110610143657.GF26441@sirena.org.uk>
+References: <87hb80546c.fsf@ti.com> <Pine.LNX.4.44L0.1106090945490.2081-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:60611 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755708Ab1FJOQR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Jun 2011 10:16:17 -0400
-In-Reply-To: <BANLkTi=9sg-WL+OXeA4J9rcH7c6zg+R3Pw@mail.gmail.com>
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:48308 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752509Ab1FJOhF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Jun 2011 10:37:05 -0400
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.44L0.1106090945490.2081-100000@iolanthe.rowland.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: onlyfever <onlyfever@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Kevin Hilman <khilman@ti.com>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org
 
-> 2011/6/10 P=E9ter Ujfalusi <peter.ujfalusi@ti.com>:
-> 1. when use Headset:
-> uplink routing:HSMIC --> AVTXR2PGA & AVTXL2PGA --> VDXS & VDXM --> PC=
-M_VDX
-> downlink routing:PCM_VDR --> VDR -->  VRXPGA Fine gain --> DAC voice
-> --> VDL_GAIN Analog PGA --> HSOL/HSOR
+On Thu, Jun 09, 2011 at 09:56:48AM -0400, Alan Stern wrote:
+> On Wed, 8 Jun 2011, Kevin Hilman wrote:
 
-Thanks
-=20
-> I check the loopbacks,it seems that all Loopbacks have been disabled.
-> bash-3.2# alsa_amixer |grep Loopback
-> Simple mixer control 'Left Digital Loopback',0
-> Simple mixer control 'Left1 Analog Loopback',0
-> Simple mixer control 'Left2 Analog Loopback',0
-> Simple mixer control 'Right Digital Loopback',0
-> Simple mixer control 'Right1 Analog Loopback',0
-> Simple mixer control 'Right2 Analog Loopback',0
-> Simple mixer control 'Voice Analog Loopback',0
-> Simple mixer control 'Voice Digital Loopback',0
+> > Runtime suspend
+> > 2. activity finishes
 
-Can you check with:
-amixer | grep -A 6  Loopback
+> > system suspend [echo mem > /sys/power/state]
+> > 2. prevent future activity, halt/wait for current activity
 
+> > The only difference is step 2.
 
-> The sidetone is become louder if I increase the VSTPGA,
-> and when I increase the VDL_GAIN Analog PGA,the sidetone is become lo=
-uder
-> too. But the VRXPGA seems don't affect the sidetone,so I think VSTPGA
-> cause the sidetone.
->=20
-> 2.when use Bluetooth:
-> uplink routing:BT_PCM_VDR --> BTTXPGA --> VDXM --> PCM_VDX
-> downlink routing:PCM_VDR --> VDR --> BTRXPGA --> BT_PCM_VDX
->=20
-> When use Bluetooth interface,I don't know if something else can cause
-> sidetone except BTSTPGA.
+> That _is_ the main difference, and it's a big one.  (As Magnus pointed 
+> out, wakeup-enabling is another difference).
 
-I don't have a board, which have this feature, but I'll check the TRM a=
-nd the=20
-code, if I can find something. Probably worth to find the ERRATA docume=
-nt as=20
-well...
+...
 
---=20
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> They don't have to be decoupled, and indeed they can share code.  The 
+> point Rafael and I are making is that they have to use different 
+> callback pointers, which gives you a chance to handle the differences 
+> as well as the similarities.
+
+It seems like everyone's agreeing with each other here - from the user
+side the request seems to be largely for core infastructure like
+UNIVERSAL_DEV_PM_OPS() (which I'm not sure is a good idea any more given
+that it doesn't do anything to handle the runtime/system interaction?).
+Right now this all feels like more work than it should be in simpler
+drivers.
+
+> > For many (if not all) devices though, what I suspect we would want is
+> > for devices that are runtime suspended to stay runtime suspended across
+> > a system suspend *and* resume.  That would mean that the device power
+> > domain would not call system PM callbacks on devices that are runtime
+> > suspended.
+
+> No, it's generally agreed that _all_ devices should return to full 
+> power during system resume -- even if they were runtime suspended 
+> before the system sleep.  This also is explained in the Documentation 
+> files.
+
+What is the reasoning behind this agreement?  It's not immediately
+obvious why this is useful.
