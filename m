@@ -1,105 +1,48 @@
 From: Carlos Chinea <carlos.chinea@nokia.com>
-Subject: [RFC PATCHv5 3/7] HSI: omap_ssi: Add OMAP SSI to the kernel configuration
-Date: Fri, 10 Jun 2011 16:38:40 +0300
-Message-ID: <1307713124-3946-4-git-send-email-carlos.chinea@nokia.com>
+Subject: [RFC PATCHv5 6/7] HSI: Add HSI API documentation
+Date: Fri, 10 Jun 2011 16:38:43 +0300
+Message-ID: <1307713124-3946-7-git-send-email-carlos.chinea@nokia.com>
 References: <1307713124-3946-1-git-send-email-carlos.chinea@nokia.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.48]:39376 "EHLO mgw-sa02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755261Ab1FJNmg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 10 Jun 2011 09:42:36 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1307713124-3946-1-git-send-email-carlos.chinea@nokia.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org
 Cc: linux-omap@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 
-Add OMAP SSI device and driver to the kernel configuration
+Add an entry for HSI in the device-drivers section of
+the kernel documentation.
 
 Signed-off-by: Carlos Chinea <carlos.chinea@nokia.com>
 ---
- arch/arm/mach-omap2/Makefile     |    2 ++
- drivers/hsi/Kconfig              |    2 ++
- drivers/hsi/Makefile             |    1 +
- drivers/hsi/controllers/Kconfig  |   23 +++++++++++++++++++++++
- drivers/hsi/controllers/Makefile |    5 +++++
- 5 files changed, 33 insertions(+), 0 deletions(-)
- create mode 100644 drivers/hsi/controllers/Kconfig
- create mode 100644 drivers/hsi/controllers/Makefile
+ Documentation/DocBook/device-drivers.tmpl |   17 +++++++++++++++++
+ 1 files changed, 17 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index b148077..b192954 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -171,6 +171,8 @@ obj-y					+= $(i2c-omap-m) $(i2c-omap-y)
- ifneq ($(CONFIG_TIDSPBRIDGE),)
- obj-y					+= dsp.o
- endif
-+omap-ssi-$(CONFIG_OMAP_SSI)		:= ssi.o
-+obj-y					+= $(omap-ssi-m) $(omap-ssi-y)
+diff --git a/Documentation/DocBook/device-drivers.tmpl b/Documentation/DocBook/device-drivers.tmpl
+index b638e50..5f70f73 100644
+--- a/Documentation/DocBook/device-drivers.tmpl
++++ b/Documentation/DocBook/device-drivers.tmpl
+@@ -437,4 +437,21 @@ X!Idrivers/video/console/fonts.c
+ !Edrivers/i2c/i2c-core.c
+   </chapter>
  
- # Specific board support
- obj-$(CONFIG_MACH_OMAP_GENERIC)		+= board-generic.o
-diff --git a/drivers/hsi/Kconfig b/drivers/hsi/Kconfig
-index 937062e..bba73ea 100644
---- a/drivers/hsi/Kconfig
-+++ b/drivers/hsi/Kconfig
-@@ -14,4 +14,6 @@ config HSI_BOARDINFO
- 	bool
- 	default y
- 
-+source "drivers/hsi/controllers/Kconfig"
++  <chapter id="hsi">
++     <title>High Speed Synchronous Serial Interface (HSI)</title>
 +
- endif # HSI
-diff --git a/drivers/hsi/Makefile b/drivers/hsi/Makefile
-index ed94a3a..0de87bd 100644
---- a/drivers/hsi/Makefile
-+++ b/drivers/hsi/Makefile
-@@ -3,3 +3,4 @@
- #
- obj-$(CONFIG_HSI_BOARDINFO)	+= hsi_boardinfo.o
- obj-$(CONFIG_HSI)		+= hsi.o
-+obj-y				+= controllers/
-diff --git a/drivers/hsi/controllers/Kconfig b/drivers/hsi/controllers/Kconfig
-new file mode 100644
-index 0000000..3efe0f0
---- /dev/null
-+++ b/drivers/hsi/controllers/Kconfig
-@@ -0,0 +1,23 @@
-+#
-+# HSI controllers configuration
-+#
-+comment "HSI controllers"
++     <para>
++	High Speed Synchronous Serial Interface (HSI) is a
++	serial interface mainly used for connecting application
++	engines (APE) with cellular modem engines (CMT) in cellular
++	handsets.
 +
-+config OMAP_SSI
-+	tristate "OMAP SSI hardware driver"
-+	depends on ARCH_OMAP && HSI
-+	default n
-+	---help---
-+	  SSI is a legacy version of HSI. It is usually used to connect
-+	  an application engine with a cellular modem.
-+	  If you say Y here, you will enable the OMAP SSI hardware driver.
++	HSI provides multiplexing for up to 16 logical channels,
++	low-latency and full duplex communication.
++     </para>
 +
-+	  If unsure, say N.
++!Iinclude/linux/hsi/hsi.h
++!Edrivers/hsi/hsi.c
++  </chapter>
 +
-+if OMAP_SSI
-+
-+config OMAP_SSI_CONFIG
-+	boolean
-+	default y
-+
-+endif # OMAP_SSI
-diff --git a/drivers/hsi/controllers/Makefile b/drivers/hsi/controllers/Makefile
-new file mode 100644
-index 0000000..c4ba2c2
---- /dev/null
-+++ b/drivers/hsi/controllers/Makefile
-@@ -0,0 +1,5 @@
-+#
-+# Makefile for HSI controllers drivers
-+#
-+
-+obj-$(CONFIG_OMAP_SSI)		+= omap_ssi.o
+ </book>
 -- 
 1.7.1
-
