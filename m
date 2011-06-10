@@ -1,32 +1,51 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [linux-pm] calling runtime PM from system PM methods
-Date: Fri, 10 Jun 2011 10:51:02 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1106101050140.1921-100000@iolanthe.rowland.org>
-References: <20110610143657.GF26441@sirena.org.uk>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH] OMAP3+: Kconfig: has EHCI only if USB present
+Date: Fri, 10 Jun 2011 10:14:33 -0500
+Message-ID: <1307718873-27652-1-git-send-email-nm@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:34505 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754382Ab1FJOvD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Jun 2011 10:51:03 -0400
-In-Reply-To: <20110610143657.GF26441@sirena.org.uk>
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:49507 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757526Ab1FJPOk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 10 Jun 2011 11:14:40 -0400
+Received: by mail-iw0-f173.google.com with SMTP id 42so3287234iwl.18
+        for <linux-omap@vger.kernel.org>; Fri, 10 Jun 2011 08:14:39 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Kevin Hilman <khilman@ti.com>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Tony <tony@atomide.com>, linux-arm <linux-arm-kernel@lists.infradead.org>, felipe <balbi@ti.com>, Nishanth Menon <nm@ti.com>
 
-On Fri, 10 Jun 2011, Mark Brown wrote:
+Attempting to disable USB generates the following warning at the moment:
+warning: (ARCH_OMAP3 && ARCH_OMAP4) selects USB_ARCH_HAS_EHCI which has unmet direct dependencies (USB_SUPPORT)
 
-> > No, it's generally agreed that _all_ devices should return to full 
-> > power during system resume -- even if they were runtime suspended 
-> > before the system sleep.  This also is explained in the Documentation 
-> > files.
-> 
-> What is the reasoning behind this agreement?  It's not immediately
-> obvious why this is useful.
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+based on 3.0-rc2
+ arch/arm/mach-omap2/Kconfig |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-See section 6 of Documentation/power/runtime_pm.txt.
-
-Alan Stern
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index ef7e12f..d5cf1a8 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -33,7 +33,7 @@ config ARCH_OMAP3
+ 	depends on ARCH_OMAP2PLUS
+ 	default y
+ 	select CPU_V7
+-	select USB_ARCH_HAS_EHCI
++	select USB_ARCH_HAS_EHCI if USB_SUPPORT
+ 	select ARM_L1_CACHE_SHIFT_6 if !ARCH_OMAP4
+ 	select ARCH_HAS_OPP
+ 	select PM_OPP if PM
+@@ -50,7 +50,7 @@ config ARCH_OMAP4
+ 	select ARM_ERRATA_720789
+ 	select ARCH_HAS_OPP
+ 	select PM_OPP if PM
+-	select USB_ARCH_HAS_EHCI
++	select USB_ARCH_HAS_EHCI if USB_SUPPORT
+ 
+ comment "OMAP Core Type"
+ 	depends on ARCH_OMAP2
+-- 
+1.7.1
 
