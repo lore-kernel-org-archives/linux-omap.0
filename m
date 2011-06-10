@@ -1,93 +1,64 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCHv2 20/28] OMAP: DSS2: Use PM runtime & HWMOD support
-Date: Fri, 10 Jun 2011 09:52:09 +0300
-Message-ID: <1307688729.1823.12.camel@lappyti>
-References: <1307627810-3768-1-git-send-email-tomi.valkeinen@ti.com>
-	 <1307627810-3768-21-git-send-email-tomi.valkeinen@ti.com>
-	 <20110609200335.GD26006@linux-sh.org>
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: N900 USB fix (Was: Re: [PATCH/RFC 2/6] OMAP2+: PM: move runtime PM
+ implementation to use device power domains)
+Date: Fri, 10 Jun 2011 09:57:57 +0300
+Message-ID: <4DF1C075.9080401@maxwell.research.nokia.com>
+References: <1302134569-22825-1-git-send-email-khilman@ti.com>	<1302134569-22825-3-git-send-email-khilman@ti.com>	<4DF0D917.905@maxwell.research.nokia.com> <87boy73qrs.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:49230 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753238Ab1FJGwP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 10 Jun 2011 02:52:15 -0400
-In-Reply-To: <20110609200335.GD26006@linux-sh.org>
+Received: from smtp.nokia.com ([147.243.128.26]:30827 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751803Ab1FJG6S (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 10 Jun 2011 02:58:18 -0400
+In-Reply-To: <87boy73qrs.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Mundt <lethal@linux-sh.org>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, b-cousson@ti.com, paul@pwsan.com, khilman@ti.com
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Felipe Balbi <balbi@ti.com>
 
-On Fri, 2011-06-10 at 05:03 +0900, Paul Mundt wrote:
-> On Thu, Jun 09, 2011 at 04:56:42PM +0300, Tomi Valkeinen wrote:
-> > +int dispc_runtime_get(void)
-> > +{
-> > +	int r;
-> > +
-> > +	DSSDBG("dispc_runtime_get\n");
-> > +
-> > +	r = pm_runtime_get_sync(&dispc.pdev->dev);
-> > +	WARN_ON(r < 0);
-> > +	return r < 0 ? r : 0;
-> > +}
-> > +
-> > +void dispc_runtime_put(void)
-> > +{
-> > +	int r;
-> > +
-> > +	DSSDBG("dispc_runtime_put\n");
-> > +
-> > +	r = pm_runtime_put(&dispc.pdev->dev);
-> > +	WARN_ON(r < 0);
-> >  }
-> >  
-> This seems a bit odd. Your runtime_get wrapper is explicitly synchronous
-> while your put wrapper is explicitly asynchronous, although these details
-> (if intentional) are not at all obvious from the wrapper naming. From
+Kevin Hilman wrote:
+> Sakari Ailus <sakari.ailus@maxwell.research.nokia.com> writes:
+> 
+>> Hi Kevin and Felipe,
+>>
+>> Kevin Hilman wrote:
+>>> In commit 7538e3db6e015e890825fbd9f8659952896ddd5b (PM: add support
+>>> for device power domains) a better way for handling platform-specific
+>>> power hooks was introduced.
+>>>
+>>> Rather than using the platform_bus dev_pm_ops overrides
+>>> (platform_bus_set_pm_ops()), this patch moves the OMAP runtime PM
+>>> implementation over to using device power domains.
+>>>
+>>> Since OMAP is the only user of platform_bus_set_pm_ops(), that
+>>> interface can be removed (and will be in a forthcoming patch.)
+>>
+>> I have little doubt of the correctness of the patch itself, but it
+>> actually does break the USB on N900. I don't know PM so well that I
+>> would have a good idea what might be going wrong here, so I'm not
+>> certain that this is specific to the N900 either.
+>>
+>> It looks strange to me also but I've tested it several times so I'm
+>> fairly certain that the culprit is this very patch. :-) 
+> 
+> You're correct, it's broken.
+> 
+> A fix has been posted (and pull req sent to Tony.)  Can you try my
+> for_3.0/pm-fixes branch which fixes this problem?  It's available in my
+> git tree:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git
 
-Yes, the naming could be improved to make the (a)synchronousness obvious
-to the caller. The functions are internal to DSS, but still.
+Hi, Kevin!
 
-> the use in the error paths and so on you will definitely need to be using
-> pm_runtime_put_sync() at least some of the time.
+Many thanks to you! :-) The patches indeed fix the problem. I seem to
+have used for_3.0/pm-fixes-2 branch, though. I guess that doesn't really
+matter. :-)
 
-Hmm, why is that? When the user of, say, dispc, has finished with it and
-calls dispc_runtime_put(), the caller shouldn't care if the HW is
-actually turned off now or later.
+Cheers,
 
-pm_runtime_put() can return an error value, but my wrappers discard it,
-as I don't know in which situations it could happen, and what could the
-driver do about it. If the HW cannot be turned off now, why could it be
-turned off later, and when would that be?
-
-> In the interest of avoiding confusion, I would in general just get rid of
-> these wrappers and use the pm_runtime calls openly, as you already do for
-> some of the other parts of the API. The runtime PM framework has pretty
-> verbose debugging already that goes well beyond what you presently have,
-> too.
-
-Yes, my main reason for the wrapper is to hide the device pointer from
-the users. So when, say, DSI block needs to use DISPC, it can just call
-dispc_runtime_get(), instead of having a mechanism to get the dispc
-device (dispc_get_dev() perhaps), and then using pm_runtime directly.
-
-Not a big difference, but I'd like to keep the dispc device pointer
-internal to dispc, as there's no real need to access it directly from
-elsewhere.
-
-Some of the wrappers are actually private to the file already, like for
-dsi. These wrappers could be removed without exposing any device
-pointers, but having them keeps the pattern consistent in all parts of
-the dss. And it allows me to have the WARN_ONs there easily.
-
-> You seem to have adopted this sync/async pattern for all of the users:
-
-Yes, I think the pattern is similar all around: when you get the device,
-you want it to be up and running immediately. When you put the device,
-you don't care when it's actually disabled.
-
- Tomi
-
-
+-- 
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
