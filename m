@@ -1,23 +1,37 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH 2/4] msm: iommu: move to drivers/iommu/
-Date: Fri, 10 Jun 2011 19:24:05 +0300
-Message-ID: <BANLkTi=owGc5JU1eF5wZmgiC0GbTCury8w@mail.gmail.com>
-References: <1307522062-19273-1-git-send-email-ohad@wizery.com>
- <1307522062-19273-3-git-send-email-ohad@wizery.com> <8yamxhsklhd.fsf@huya.qualcomm.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [linux-pm] calling runtime PM from system PM methods
+Date: Fri, 10 Jun 2011 13:17:56 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1106101317160.1921-100000@iolanthe.rowland.org>
+References: <20110610155707.GN26436@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <8yamxhsklhd.fsf@huya.qualcomm.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: David Brown <davidb@codeaurora.org>
-Cc: stepanm@codeaurora.org, Joerg Roedel <Joerg.Roedel@amd.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, David Woodhouse <dwmw2@infradead.org>, iommu@lists.linux-foundation.org, linux-pci@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from iolanthe.rowland.org ([192.131.102.54]:51339 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1755020Ab1FJRR5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Jun 2011 13:17:57 -0400
+In-Reply-To: <20110610155707.GN26436@opensource.wolfsonmicro.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org
 
-On Thu, Jun 9, 2011 at 1:27 AM, David Brown <davidb@codeaurora.org> wro=
-te:
-> Moving the driver is good. =A0I'm wondering what we should do with
-> iommu_dev.c, though. =A0Wouldn't it make sense to move this file as w=
-ell?
+On Fri, 10 Jun 2011, Mark Brown wrote:
 
-Yeah, it does make sense. I'll move that one too, thanks.
+> > Well, this is a SHOULD, not a MUST.  If you want your driver to leave a
+> > device in a low-power state, it can do so.  Just bear in mind that the
+> > PM core's idea of the device's runtime power state may end up not
+> > matching reality unless you're careful.
+> 
+> This is part of the trouble, it all feels like a lot more work than it
+> should be for relatively common cases.  In the audio case we're fine as
+> the subsystem implements a completely independent PM infrastructure
+> which ignores the PM core except for system suspend (and sometimes
+> ignores that), it's noticably harder to reason about what's going on
+> when I go outside there and when I think about what I'm doing it always
+> feels like it should be possible to factor it out of the drivers.
+
+What would make the common cases easier?
+
+Alan Stern
+
