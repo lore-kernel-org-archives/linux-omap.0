@@ -1,64 +1,47 @@
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: N900 USB fix (Was: Re: [PATCH/RFC 2/6] OMAP2+: PM: move runtime PM
- implementation to use device power domains)
-Date: Fri, 10 Jun 2011 09:57:57 +0300
-Message-ID: <4DF1C075.9080401@maxwell.research.nokia.com>
-References: <1302134569-22825-1-git-send-email-khilman@ti.com>	<1302134569-22825-3-git-send-email-khilman@ti.com>	<4DF0D917.905@maxwell.research.nokia.com> <87boy73qrs.fsf@ti.com>
+From: Paul Mundt <lethal@linux-sh.org>
+Subject: Re: [PATCHv2 20/28] OMAP: DSS2: Use PM runtime & HWMOD support
+Date: Fri, 10 Jun 2011 16:24:53 +0900
+Message-ID: <20110610072448.GG26006@linux-sh.org>
+References: <1307627810-3768-1-git-send-email-tomi.valkeinen@ti.com> <1307627810-3768-21-git-send-email-tomi.valkeinen@ti.com> <20110609200335.GD26006@linux-sh.org> <1307688729.1823.12.camel@lappyti>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:30827 "EHLO mgw-da02.nokia.com"
+Received: from linux-sh.org ([111.68.239.195]:60326 "EHLO linux-sh.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751803Ab1FJG6S (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 10 Jun 2011 02:58:18 -0400
-In-Reply-To: <87boy73qrs.fsf@ti.com>
+	id S1751383Ab1FJHZE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 10 Jun 2011 03:25:04 -0400
+Content-Disposition: inline
+In-Reply-To: <1307688729.1823.12.camel@lappyti>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Felipe Balbi <balbi@ti.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, b-cousson@ti.com, paul@pwsan.com, khilman@ti.com
 
-Kevin Hilman wrote:
-> Sakari Ailus <sakari.ailus@maxwell.research.nokia.com> writes:
+On Fri, Jun 10, 2011 at 09:52:09AM +0300, Tomi Valkeinen wrote:
+> On Fri, 2011-06-10 at 05:03 +0900, Paul Mundt wrote:
+> > the use in the error paths and so on you will definitely need to be using
+> > pm_runtime_put_sync() at least some of the time.
 > 
->> Hi Kevin and Felipe,
->>
->> Kevin Hilman wrote:
->>> In commit 7538e3db6e015e890825fbd9f8659952896ddd5b (PM: add support
->>> for device power domains) a better way for handling platform-specific
->>> power hooks was introduced.
->>>
->>> Rather than using the platform_bus dev_pm_ops overrides
->>> (platform_bus_set_pm_ops()), this patch moves the OMAP runtime PM
->>> implementation over to using device power domains.
->>>
->>> Since OMAP is the only user of platform_bus_set_pm_ops(), that
->>> interface can be removed (and will be in a forthcoming patch.)
->>
->> I have little doubt of the correctness of the patch itself, but it
->> actually does break the USB on N900. I don't know PM so well that I
->> would have a good idea what might be going wrong here, so I'm not
->> certain that this is specific to the N900 either.
->>
->> It looks strange to me also but I've tested it several times so I'm
->> fairly certain that the culprit is this very patch. :-) 
+> Hmm, why is that? When the user of, say, dispc, has finished with it and
+> calls dispc_runtime_put(), the caller shouldn't care if the HW is
+> actually turned off now or later.
 > 
-> You're correct, it's broken.
+Ah, I forgot that pm_runtime_disable() already does the synchronous bits
+for you, so you get lucky that way. I was concerned about the race
+between the work queue and the device pointer going away, but this is
+already handled by the subsystem via __pm_runtime_barrier() in the
+disable path.
+
+> pm_runtime_put() can return an error value, but my wrappers discard it,
+> as I don't know in which situations it could happen, and what could the
+> driver do about it. If the HW cannot be turned off now, why could it be
+> turned off later, and when would that be?
 > 
-> A fix has been posted (and pull req sent to Tony.)  Can you try my
-> for_3.0/pm-fixes branch which fixes this problem?  It's available in my
-> git tree:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git
+The return value is primarily aimed at informing you whether it was able
+to idle the device, whether there were already pending requests, etc. If
+you're in an exit path you're probably not too concerned with this.
 
-Hi, Kevin!
-
-Many thanks to you! :-) The patches indeed fix the problem. I seem to
-have used for_3.0/pm-fixes-2 branch, though. I guess that doesn't really
-matter. :-)
-
-Cheers,
-
--- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
+If you have some alternate means of cutting power to the block unrelated
+to runtime pm based clock control you can use the return value as a
+sanity measure to error out before inadvertently cutting power out
+underneath another user.
