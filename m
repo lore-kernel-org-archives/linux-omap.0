@@ -1,146 +1,255 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v4 15/18] ASoC: twl6040: Remove pll and headset mode dependency
-Date: Fri, 10 Jun 2011 14:54:33 +0300
-Message-ID: <1307706876-4768-16-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v4 17/18] ASoC: twl6040: Configure ramp step based on platform
+Date: Fri, 10 Jun 2011 14:54:35 +0300
+Message-ID: <1307706876-4768-18-git-send-email-peter.ujfalusi@ti.com>
 References: <1307706876-4768-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59594 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:51510 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756593Ab1FJLzr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 10 Jun 2011 07:55:47 -0400
+	id S1756674Ab1FJLzy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 10 Jun 2011 07:55:54 -0400
 In-Reply-To: <1307706876-4768-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Samuel Ortiz <sameo@linux.intel.com>, Dmitry Torokhov <dmitry.torokhov@>
-Cc: linux-input@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org, Misael Lopez Cruz <misael.lopez@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: linux-input@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org, Axel Castaneda Gonzalez <x0055901@ti.com>, Misael Lopez Cruz <misael.lopez@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>
 
-From: Misael Lopez Cruz <misael.lopez@ti.com>
+From: Axel Castaneda Gonzalez <x0055901@ti.com>
 
-Remove dependency between pll (hppll, lppll) and headset power
-mode (low-power, high-performance), as headset power mode can
-be used with any pll.
+Enable ramp down/up step to be configured based on
+platform.
 
-A new control is created to allow headset power mode configuration
-from userspace. Changing headset power mode during earpiece related
-usecases is not allowed as earpiece requires HS DAC in HP mode.
-
+Signed-off-by: Axel Castaneda Gonzalez <x0055901@ti.com>
 Signed-off-by: Misael Lopez Cruz <misael.lopez@ti.com>
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- sound/soc/codecs/twl6040.c |   64 +++++++++++++++++++++++++++++++++++++++++--
- 1 files changed, 61 insertions(+), 3 deletions(-)
+ include/linux/i2c/twl.h    |    4 ++
+ sound/soc/codecs/twl6040.c |   91 ++++++++++++++++++++++++++++++++++----------
+ 2 files changed, 75 insertions(+), 20 deletions(-)
 
-diff --git a/sound/soc/codecs/twl6040.c b/sound/soc/codecs/twl6040.c
-index 7845cdb..d334d86 100644
---- a/sound/soc/codecs/twl6040.c
-+++ b/sound/soc/codecs/twl6040.c
-@@ -79,6 +79,8 @@ struct twl6040_data {
- 	int codec_powered;
- 	int pll;
- 	int non_lp;
-+	int power_mode_forced;
-+	int headset_mode;
- 	unsigned int clk_in;
- 	unsigned int sysclk;
- 	struct snd_pcm_hw_constraint_list *sysclk_constraints;
-@@ -651,15 +653,26 @@ static int twl6040_power_mode_event(struct snd_soc_dapm_widget *w,
- {
- 	struct snd_soc_codec *codec = w->codec;
- 	struct twl6040_data *priv = snd_soc_codec_get_drvdata(codec);
-+	int ret = 0;
- 
--	if (SND_SOC_DAPM_EVENT_ON(event))
-+	if (SND_SOC_DAPM_EVENT_ON(event)) {
- 		priv->non_lp++;
--	else
-+		if (!strcmp(w->name, "Earphone Driver")) {
-+			/* Earphone doesn't support low power mode */
-+			priv->power_mode_forced = 1;
-+			ret = headset_power_mode(codec, 1);
-+		}
-+	} else {
- 		priv->non_lp--;
-+		if (!strcmp(w->name, "Earphone Driver")) {
-+			priv->power_mode_forced = 0;
-+			ret = headset_power_mode(codec, priv->headset_mode);
-+		}
-+	}
- 
- 	msleep(1);
- 
--	return 0;
-+	return ret;
- }
- 
- static void twl6040_hs_jack_report(struct snd_soc_codec *codec,
-@@ -964,6 +977,44 @@ static const struct snd_kcontrol_new hfr_mux_controls =
- static const struct snd_kcontrol_new ep_driver_switch_controls =
- 	SOC_DAPM_SINGLE("Switch", TWL6040_REG_EARCTL, 0, 1, 0);
- 
-+/* Headset power mode */
-+static const char *twl6040_headset_power_texts[] = {
-+	"Low-Power", "High-Perfomance",
-+};
-+
-+static const struct soc_enum twl6040_headset_power_enum =
-+	SOC_ENUM_SINGLE_EXT(ARRAY_SIZE(twl6040_headset_power_texts),
-+			twl6040_headset_power_texts);
-+
-+static int twl6040_headset_power_get_enum(struct snd_kcontrol *kcontrol,
-+	struct snd_ctl_elem_value *ucontrol)
-+{
-+	struct snd_soc_codec *codec = snd_kcontrol_chip(kcontrol);
-+	struct twl6040_data *priv = snd_soc_codec_get_drvdata(codec);
-+
-+	ucontrol->value.enumerated.item[0] = priv->headset_mode;
-+
-+	return 0;
-+}
-+
-+static int twl6040_headset_power_put_enum(struct snd_kcontrol *kcontrol,
-+	struct snd_ctl_elem_value *ucontrol)
-+{
-+	struct snd_soc_codec *codec = snd_kcontrol_chip(kcontrol);
-+	struct twl6040_data *priv = snd_soc_codec_get_drvdata(codec);
-+	int high_perf = ucontrol->value.enumerated.item[0];
-+	int ret;
-+
-+	if (priv->power_mode_forced)
-+		return -EPERM;
-+
-+	ret = headset_power_mode(codec, high_perf);
-+	if (!ret)
-+		priv->headset_mode = high_perf;
-+
-+	return ret;
-+}
-+
- static const struct snd_kcontrol_new twl6040_snd_controls[] = {
- 	/* Capture gains */
- 	SOC_DOUBLE_TLV("Capture Preamplifier Volume",
-@@ -982,6 +1033,10 @@ static const struct snd_kcontrol_new twl6040_snd_controls[] = {
- 		TWL6040_REG_HFLGAIN, TWL6040_REG_HFRGAIN, 0, 0x1D, 1, hf_tlv),
- 	SOC_SINGLE_TLV("Earphone Playback Volume",
- 		TWL6040_REG_EARCTL, 1, 0xF, 1, ep_tlv),
-+
-+	SOC_ENUM_EXT("Headset Power Mode", twl6040_headset_power_enum,
-+		twl6040_headset_power_get_enum,
-+		twl6040_headset_power_put_enum),
+diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
+index 685fd76..114c0f6 100644
+--- a/include/linux/i2c/twl.h
++++ b/include/linux/i2c/twl.h
+@@ -664,6 +664,10 @@ struct twl4030_codec_data {
+ 	unsigned int check_defaults:1;
+ 	unsigned int reset_registers:1;
+ 	unsigned int hs_extmute:1;
++	u16 hs_left_step;
++	u16 hs_right_step;
++	u16 hf_left_step;
++	u16 hf_right_step;
+ 	void (*set_hs_extmute)(int mute);
  };
  
- static const struct snd_soc_dapm_widget twl6040_dapm_widgets[] = {
-@@ -1450,6 +1505,9 @@ static int twl6040_probe(struct snd_soc_codec *codec)
+diff --git a/sound/soc/codecs/twl6040.c b/sound/soc/codecs/twl6040.c
+index 3c0d8da..f31a428 100644
+--- a/sound/soc/codecs/twl6040.c
++++ b/sound/soc/codecs/twl6040.c
+@@ -83,6 +83,10 @@ struct twl6040_data {
+ 	int headset_mode;
+ 	unsigned int clk_in;
+ 	unsigned int sysclk;
++	u16 hs_left_step;
++	u16 hs_right_step;
++	u16 hf_left_step;
++	u16 hf_right_step;
+ 	struct snd_pcm_hw_constraint_list *sysclk_constraints;
+ 	struct twl6040_jack_data hs_jack;
+ 	struct snd_soc_codec *codec;
+@@ -339,7 +343,11 @@ static inline int twl6040_hs_ramp_step(struct snd_soc_codec *codec,
+ 	if (headset->ramp == TWL6040_RAMP_UP) {
+ 		/* ramp step up */
+ 		if (val < headset->left_vol) {
+-			val += left_step;
++			if (val + left_step > headset->left_vol)
++				val = headset->left_vol;
++			else
++				val += left_step;
++
+ 			reg &= ~TWL6040_HSL_VOL_MASK;
+ 			twl6040_write(codec, TWL6040_REG_HSGAIN,
+ 					(reg | (~val & TWL6040_HSL_VOL_MASK)));
+@@ -349,7 +357,11 @@ static inline int twl6040_hs_ramp_step(struct snd_soc_codec *codec,
+ 	} else if (headset->ramp == TWL6040_RAMP_DOWN) {
+ 		/* ramp step down */
+ 		if (val > 0x0) {
+-			val -= left_step;
++			if ((int)val - (int)left_step < 0)
++				val = 0;
++			else
++				val -= left_step;
++
+ 			reg &= ~TWL6040_HSL_VOL_MASK;
+ 			twl6040_write(codec, TWL6040_REG_HSGAIN, reg |
+ 						(~val & TWL6040_HSL_VOL_MASK));
+@@ -366,7 +378,11 @@ static inline int twl6040_hs_ramp_step(struct snd_soc_codec *codec,
+ 	if (headset->ramp == TWL6040_RAMP_UP) {
+ 		/* ramp step up */
+ 		if (val < headset->right_vol) {
+-			val += right_step;
++			if (val + right_step > headset->right_vol)
++				val = headset->right_vol;
++			else
++				val += right_step;
++
+ 			reg &= ~TWL6040_HSR_VOL_MASK;
+ 			twl6040_write(codec, TWL6040_REG_HSGAIN,
+ 				(reg | (~val << TWL6040_HSR_VOL_SHIFT)));
+@@ -376,7 +392,11 @@ static inline int twl6040_hs_ramp_step(struct snd_soc_codec *codec,
+ 	} else if (headset->ramp == TWL6040_RAMP_DOWN) {
+ 		/* ramp step down */
+ 		if (val > 0x0) {
+-			val -= right_step;
++			if ((int)val - (int)right_step < 0)
++				val = 0;
++			else
++				val -= right_step;
++
+ 			reg &= ~TWL6040_HSR_VOL_MASK;
+ 			twl6040_write(codec, TWL6040_REG_HSGAIN,
+ 					 reg | (~val << TWL6040_HSR_VOL_SHIFT));
+@@ -407,7 +427,11 @@ static inline int twl6040_hf_ramp_step(struct snd_soc_codec *codec,
+ 	if (handsfree->ramp == TWL6040_RAMP_UP) {
+ 		/* ramp step up */
+ 		if (val < handsfree->left_vol) {
+-			val += left_step;
++			if (val + left_step > handsfree->left_vol)
++				val = handsfree->left_vol;
++			else
++				val += left_step;
++
+ 			reg &= ~TWL6040_HF_VOL_MASK;
+ 			twl6040_write(codec, TWL6040_REG_HFLGAIN,
+ 						reg | (0x1D - val));
+@@ -417,7 +441,11 @@ static inline int twl6040_hf_ramp_step(struct snd_soc_codec *codec,
+ 	} else if (handsfree->ramp == TWL6040_RAMP_DOWN) {
+ 		/* ramp step down */
+ 		if (val > 0) {
+-			val -= left_step;
++			if ((int)val - (int)left_step < 0)
++				val = 0;
++			else
++				val -= left_step;
++
+ 			reg &= ~TWL6040_HF_VOL_MASK;
+ 			twl6040_write(codec, TWL6040_REG_HFLGAIN,
+ 						reg | (0x1D - val));
+@@ -434,7 +462,11 @@ static inline int twl6040_hf_ramp_step(struct snd_soc_codec *codec,
+ 	if (handsfree->ramp == TWL6040_RAMP_UP) {
+ 		/* ramp step up */
+ 		if (val < handsfree->right_vol) {
+-			val += right_step;
++			if (val + right_step > handsfree->right_vol)
++				val = handsfree->right_vol;
++			else
++				val += right_step;
++
+ 			reg &= ~TWL6040_HF_VOL_MASK;
+ 			twl6040_write(codec, TWL6040_REG_HFRGAIN,
+ 						reg | (0x1D - val));
+@@ -444,7 +476,11 @@ static inline int twl6040_hf_ramp_step(struct snd_soc_codec *codec,
+ 	} else if (handsfree->ramp == TWL6040_RAMP_DOWN) {
+ 		/* ramp step down */
+ 		if (val > 0) {
+-			val -= right_step;
++			if ((int)val - (int)right_step < 0)
++				val = 0;
++			else
++				val -= right_step;
++
+ 			reg &= ~TWL6040_HF_VOL_MASK;
+ 			twl6040_write(codec, TWL6040_REG_HFRGAIN,
+ 						reg | (0x1D - val));
+@@ -473,11 +509,9 @@ static void twl6040_pga_hs_work(struct work_struct *work)
+ 
+ 	/* HS PGA volumes have 4 bits of resolution to ramp */
+ 	for (i = 0; i <= 16; i++) {
+-		headset_complete = 1;
+-		if (headset->ramp != TWL6040_RAMP_NONE)
+-			headset_complete = twl6040_hs_ramp_step(codec,
+-							headset->left_step,
+-							headset->right_step);
++		headset_complete = twl6040_hs_ramp_step(codec,
++						headset->left_step,
++						headset->right_step);
+ 
+ 		/* ramp finished ? */
+ 		if (headset_complete)
+@@ -518,11 +552,9 @@ static void twl6040_pga_hf_work(struct work_struct *work)
+ 
+ 	/* HF PGA volumes have 5 bits of resolution to ramp */
+ 	for (i = 0; i <= 32; i++) {
+-		handsfree_complete = 1;
+-		if (handsfree->ramp != TWL6040_RAMP_NONE)
+-			handsfree_complete = twl6040_hf_ramp_step(codec,
+-							handsfree->left_step,
+-							handsfree->right_step);
++		handsfree_complete = twl6040_hf_ramp_step(codec,
++						handsfree->left_step,
++						handsfree->right_step);
+ 
+ 		/* ramp finished ? */
+ 		if (handsfree_complete)
+@@ -563,12 +595,16 @@ static int pga_event(struct snd_soc_dapm_widget *w,
+ 		out = &priv->headset;
+ 		work = &priv->hs_delayed_work;
+ 		queue = priv->hs_workqueue;
++		out->left_step = priv->hs_left_step;
++		out->right_step = priv->hs_right_step;
+ 		out->step_delay = 5;	/* 5 ms between volume ramp steps */
+ 		break;
+ 	case 4:
+ 		out = &priv->handsfree;
+ 		work = &priv->hf_delayed_work;
+ 		queue = priv->hf_workqueue;
++		out->left_step = priv->hf_left_step;
++		out->right_step = priv->hf_right_step;
+ 		out->step_delay = 5;	/* 5 ms between volume ramp steps */
+ 		if (SND_SOC_DAPM_EVENT_ON(event))
+ 			priv->non_lp++;
+@@ -601,8 +637,6 @@ static int pga_event(struct snd_soc_dapm_widget *w,
+ 
+ 		if (!delayed_work_pending(work)) {
+ 			/* use volume ramp for power-down */
+-			out->left_step = 1;
+-			out->right_step = 1;
+ 			out->ramp = TWL6040_RAMP_DOWN;
+ 			INIT_COMPLETION(out->ramp_done);
+ 
+@@ -1495,6 +1529,7 @@ static int twl6040_resume(struct snd_soc_codec *codec)
+ static int twl6040_probe(struct snd_soc_codec *codec)
+ {
+ 	struct twl6040_data *priv;
++	struct twl4030_codec_data *pdata = dev_get_platdata(codec->dev);
+ 	int ret = 0;
+ 
+ 	priv = kzalloc(sizeof(struct twl6040_data), GFP_KERNEL);
+@@ -1505,6 +1540,22 @@ static int twl6040_probe(struct snd_soc_codec *codec)
  	priv->codec = codec;
  	codec->control_data = dev_get_drvdata(codec->dev->parent);
  
-+	/* default is high-performance mode */
-+	priv->headset_mode = 1;
++	if (pdata && pdata->hs_left_step && pdata->hs_right_step) {
++		priv->hs_left_step = pdata->hs_left_step;
++		priv->hs_right_step = pdata->hs_right_step;
++	} else {
++		priv->hs_left_step = 1;
++		priv->hs_right_step = 1;
++	}
 +
- 	priv->workqueue = create_singlethread_workqueue("twl6040-codec");
- 	if (!priv->workqueue) {
- 		ret = -ENOMEM;
++	if (pdata && pdata->hf_left_step && pdata->hf_right_step) {
++		priv->hf_left_step = pdata->hf_left_step;
++		priv->hf_right_step = pdata->hf_right_step;
++	} else {
++		priv->hf_left_step = 1;
++		priv->hf_right_step = 1;
++	}
++
+ 	/* default is high-performance mode */
+ 	priv->headset_mode = 1;
+ 	priv->sysclk_constraints = &hp_constraints;
 -- 
 1.7.5.3
 
