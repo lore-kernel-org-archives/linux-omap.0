@@ -1,86 +1,51 @@
-From: Steve Calfee <stevecalfee@gmail.com>
-Subject: beagleboard xm alsa in mcbsp3. 2.6.39-rc4
-Date: Thu, 09 Jun 2011 19:55:21 -0700
-Message-ID: <4DF18799.1040503@gmail.com>
+From: =?iso-8859-15?q?P=E9ter_Ujfalusi?= <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v3 06/12] MFD: twl4030-codec ->
+	twl4030-audio: Rename the driver
+Date: Fri, 10 Jun 2011 07:52:51 +0300
+Message-ID: <201106100752.51718.peter.ujfalusi@ti.com>
+References: <1307626230-29660-1-git-send-email-peter.ujfalusi@ti.com>
+	<1307626230-29660-7-git-send-email-peter.ujfalusi@ti.com>
+	<201106092137.28678.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:47321 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754710Ab1FJCzZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Jun 2011 22:55:25 -0400
-Received: by pzk9 with SMTP id 9so1029883pzk.19
-        for <linux-omap@vger.kernel.org>; Thu, 09 Jun 2011 19:55:25 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-15"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <201106092137.28678.arnd@arndb.de>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Brown <broonie@opensource.wolfsonmicro.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Mark@alsa-project.org, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "Lopez Cruz,   Misael" <misael.lopez@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Girdwood, Liam" <lrg@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
+On Thursday 09 June 2011 22:37:28 Arnd Bergmann wrote:
+> Better use the -M flag to git-format-patch when moving files, to make it
+> obvious what has or has not changed, and to reduce the size of the email.
 
-I have mcbsp1 working on an external codec. I moved the wires to the
-mcbsp3 pins. The codec is master, using tdm mode. I use the same codec
-i2s bus, and it gets the same setup (I change the dai-link stuff in my
-alsa machine driver to use the other omap i2s bus for my tests). If I
-pull the clk wire off the beagleboard pin, the clock from the codec
-looks good. With the wire attached to the pin, I don't see the pin
-wiggling. So it looks like maybe the pin is an output or something. The
-frame clock looks ok while connected.
+I tend to forgot the -M flag, thanks.
+ =
 
-In the board-omap3beagle.c I configure all 3 mcbsp the same way:
+> Also, shouldn't this file go into the sound/soc/ directory? It seems that
+> this is really the device driver, not part of the multi-function layer.
 
+This driver is the MFD core part for the audio block within the twl4030 ser=
+ies =
 
-#ifdef CONFIG_OMAP_MUX
-static struct omap_board_mux board_mux[] __initdata = {
-#if 1
-	/* McBSP 1 slave */
-	OMAP3_MUX(MCBSP1_FSX, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
-	OMAP3_MUX(MCBSP1_CLKX, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
-	OMAP3_MUX(MCBSP1_DR, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
-	OMAP3_MUX(MCBSP1_DX, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-#else
-	/* McBSP 1 master */
-	OMAP3_MUX(MCBSP1_FSX, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-	OMAP3_MUX(MCBSP1_CLKX, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-	OMAP3_MUX(MCBSP1_DR, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
-	OMAP3_MUX(MCBSP1_DX, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-#endif
-#if 1
-	/* McBSP 2 slave */
-	OMAP3_MUX(MCBSP2_FSX, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
-	OMAP3_MUX(MCBSP2_CLKX, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
-	OMAP3_MUX(MCBSP2_DR, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
-	OMAP3_MUX(MCBSP2_DX, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-#else
-	/* McBSP 2 master */
-	OMAP3_MUX(MCBSP2_FSX, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-	OMAP3_MUX(MCBSP2_CLKX, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-	OMAP3_MUX(MCBSP2_DR, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
-	OMAP3_MUX(MCBSP2_DX, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-#endif
-#if 1
-	/* McBSP 3 slave */
-	OMAP3_MUX(MCBSP3_FSX, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
-	OMAP3_MUX(MCBSP3_CLKX, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
-	OMAP3_MUX(MCBSP3_DR, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
-	OMAP3_MUX(MCBSP3_DX, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-#else
-	/* McBSP 3 master */
-	OMAP3_MUX(MCBSP3_FSX, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-	OMAP3_MUX(MCBSP3_CLKX, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-	OMAP3_MUX(MCBSP3_DR, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
-	OMAP3_MUX(MCBSP3_DX, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-#endif
-	{ .reg_offset = OMAP_MUX_TERMINATOR },
-};
-#endif
+pmic.
+We have the slave drivers under sound/soc/codecs/twl4030.c and =
 
-So far I have not been able to get the codec mastered bit clock to work
-on either mcbsp2 or msbsp3.
+drivers/input/misc/twl4030-vibra.c.
+The audio block has codec, and vibra functionality, and we need to have thi=
+s =
 
-I have been trying to follow the logic in mcbsp.c and in omap-mcbsp.c in
-how things get inited. I suspect there is something I have not done?
+driver to properly manage this block within twl.
 
-Any ideas.
+-- =
 
-Thanks, Steve
+P=E9ter
