@@ -1,95 +1,69 @@
-From: Carlos Chinea <carlos.chinea@nokia.com>
-Subject: [RFC PATCHv5 0/7] HSI framework and drivers
-Date: Fri, 10 Jun 2011 16:38:37 +0300
-Message-ID: <1307713124-3946-1-git-send-email-carlos.chinea@nokia.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, sre@debian.org, linus.walleij@linaro.org, govindraj.ti@gmail.com, pawel.szyszuk@stericsson.com, sjur.brandeland@stericsson.com, peter_henn@gmx.de
+From: =?iso-8859-1?q?P=E9ter_Ujfalusi?= <peter.ujfalusi@ti.com>
+Subject: Re: HELP:How to power down TWL5030 Voice/Bluetooth sidetone PGA?
+Date: Fri, 10 Jun 2011 17:16:13 +0300
+Message-ID: <201106101716.14008.peter.ujfalusi@ti.com>
+References: <BANLkTik0mX5wSYNdBwhjxuaKa6908fmazQ@mail.gmail.com> <201106101048.45966.peter.ujfalusi@ti.com> <BANLkTi=9sg-WL+OXeA4J9rcH7c6zg+R3Pw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:60611 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755708Ab1FJOQR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Jun 2011 10:16:17 -0400
+In-Reply-To: <BANLkTi=9sg-WL+OXeA4J9rcH7c6zg+R3Pw@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: onlyfever <onlyfever@gmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>
 
-Hi !
+> 2011/6/10 P=E9ter Ujfalusi <peter.ujfalusi@ti.com>:
+> 1. when use Headset:
+> uplink routing:HSMIC --> AVTXR2PGA & AVTXL2PGA --> VDXS & VDXM --> PC=
+M_VDX
+> downlink routing:PCM_VDR --> VDR -->  VRXPGA Fine gain --> DAC voice
+> --> VDL_GAIN Analog PGA --> HSOL/HSOR
 
-Here you have the fifth round of the HSI framework patches.
+Thanks
+=20
+> I check the loopbacks,it seems that all Loopbacks have been disabled.
+> bash-3.2# alsa_amixer |grep Loopback
+> Simple mixer control 'Left Digital Loopback',0
+> Simple mixer control 'Left1 Analog Loopback',0
+> Simple mixer control 'Left2 Analog Loopback',0
+> Simple mixer control 'Right Digital Loopback',0
+> Simple mixer control 'Right1 Analog Loopback',0
+> Simple mixer control 'Right2 Analog Loopback',0
+> Simple mixer control 'Voice Analog Loopback',0
+> Simple mixer control 'Voice Digital Loopback',0
 
-The patch series introduces the HSI framework, an SSI driver
-for OMAP and a generic character device for HSI/SSI devices.
+Can you check with:
+amixer | grep -A 6  Loopback
 
-SSI, which is a legacy version of HSI, is used to connect the application
-engine with the cellular modem on the Nokia N900.
 
-In this round we have added/fixed:
+> The sidetone is become louder if I increase the VSTPGA,
+> and when I increase the VDL_GAIN Analog PGA,the sidetone is become lo=
+uder
+> too. But the VRXPGA seems don't affect the sidetone,so I think VSTPGA
+> cause the sidetone.
+>=20
+> 2.when use Bluetooth:
+> uplink routing:BT_PCM_VDR --> BTTXPGA --> VDXM --> PCM_VDX
+> downlink routing:PCM_VDR --> VDR --> BTRXPGA --> BT_PCM_VDX
+>=20
+> When use Bluetooth interface,I don't know if something else can cause
+> sidetone except BTSTPGA.
 
-- hsi_char has undergone refactoring and poll support has been removed.
-- Fix RX hwbreak handling in omap_ssi
-- Add functions for clients to query the controllers and port id.
+I don't have a board, which have this feature, but I'll check the TRM a=
+nd the=20
+code, if I can find something. Probably worth to find the ERRATA docume=
+nt as=20
+well...
 
-TODO:
-
-- Move OMAP SSI to use omap hwmod and new pm functions.
-- Add aio support to hsi_char.
-- Add automatic character device node registration for hsi_char.
-- Add priority support in the HSI framework.
-
-I would very glad to continue getting feedback about this proposal.
-
-This patch series is based on 3.0-rc1.
-
-Version 4 of the patch set: https://lkml.org/lkml/2010/12/14/73
-
-Notes: 
- - checkpatch still reports a false positive on patch 1/7.
- - sparse error in hsi_char.c:128:1: error: Syntax error in unary expression,
-	due to a bug in the BUILD_BUG_ON_ZERO macro for __CHECKER__ option.
-	See https://lkml.org/lkml/2011/5/28/180
-
-Andras Domokos (3):
-  HSI: hsi_char: Add HSI char device driver
-  HSI: hsi_char: Add HSI char device kernel configuration
-  HSI: hsi_char: Update ioctl-number.txt
-
-Carlos Chinea (4):
-  HSI: hsi: Introducing HSI framework
-  HSI: omap_ssi: Introducing OMAP SSI driver
-  HSI: omap_ssi: Add OMAP SSI to the kernel configuration
-  HSI: Add HSI API documentation
-
- Documentation/DocBook/device-drivers.tmpl |   17 +
- Documentation/ioctl/ioctl-number.txt      |    1 +
- arch/arm/mach-omap2/Makefile              |    2 +
- arch/arm/mach-omap2/ssi.c                 |  134 +++
- arch/arm/plat-omap/include/plat/ssi.h     |  204 ++++
- drivers/Kconfig                           |    2 +
- drivers/Makefile                          |    1 +
- drivers/hsi/Kconfig                       |   20 +
- drivers/hsi/Makefile                      |    6 +
- drivers/hsi/clients/Kconfig               |   13 +
- drivers/hsi/clients/Makefile              |    5 +
- drivers/hsi/clients/hsi_char.c            |  804 +++++++++++++
- drivers/hsi/controllers/Kconfig           |   23 +
- drivers/hsi/controllers/Makefile          |    5 +
- drivers/hsi/controllers/omap_ssi.c        | 1852 +++++++++++++++++++++++++++++
- drivers/hsi/hsi.c                         |  496 ++++++++
- drivers/hsi/hsi_boardinfo.c               |   64 +
- drivers/hsi/hsi_core.h                    |   37 +
- include/linux/Kbuild                      |    1 +
- include/linux/hsi/Kbuild                  |    1 +
- include/linux/hsi/hsi.h                   |  412 +++++++
- include/linux/hsi/hsi_char.h              |   65 +
- 22 files changed, 4165 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-omap2/ssi.c
- create mode 100644 arch/arm/plat-omap/include/plat/ssi.h
- create mode 100644 drivers/hsi/Kconfig
- create mode 100644 drivers/hsi/Makefile
- create mode 100644 drivers/hsi/clients/Kconfig
- create mode 100644 drivers/hsi/clients/Makefile
- create mode 100644 drivers/hsi/clients/hsi_char.c
- create mode 100644 drivers/hsi/controllers/Kconfig
- create mode 100644 drivers/hsi/controllers/Makefile
- create mode 100644 drivers/hsi/controllers/omap_ssi.c
- create mode 100644 drivers/hsi/hsi.c
- create mode 100644 drivers/hsi/hsi_boardinfo.c
- create mode 100644 drivers/hsi/hsi_core.h
- create mode 100644 include/linux/hsi/Kbuild
- create mode 100644 include/linux/hsi/hsi.h
- create mode 100644 include/linux/hsi/hsi_char.h
+--=20
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
