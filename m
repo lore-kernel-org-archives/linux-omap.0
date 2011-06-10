@@ -1,330 +1,97 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH 4/8] OMAP2+: PM: idle clkdms only if already in idle
-Date: Fri, 10 Jun 2011 16:52:18 +0530
-Message-ID: <4DF1FE6A.3010202@ti.com>
-References: <1307616853-28395-1-git-send-email-rnayak@ti.com> <1307616853-28395-2-git-send-email-rnayak@ti.com> <1307616853-28395-3-git-send-email-rnayak@ti.com> <1307616853-28395-4-git-send-email-rnayak@ti.com> <1307616853-28395-5-git-send-email-rnayak@ti.com> <20110610001556.GA9159@google.com>
+From: "Raju, Sundaram" <sundaram@ti.com>
+Subject: RE: [RFC] dmaengine: add new api for preparing simple slave	transfer
+Date: Fri, 10 Jun 2011 17:18:46 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E940301FE3452@dbde02.ent.ti.com>
+References: <E0D41E29EB0DAC4E9F3FF173962E9E940301FE2DED@dbde02.ent.ti.com>
+ <20110609124723.GA24636@n2100.arm.linux.org.uk>
+ <E0D41E29EB0DAC4E9F3FF173962E9E940301FE2EFB@dbde02.ent.ti.com>
+ <20110609163206.GB24636@n2100.arm.linux.org.uk>
+ <1307686397.10976.116.camel@vkoul-udesk3>
+ <E0D41E29EB0DAC4E9F3FF173962E9E940301FE337F@dbde02.ent.ti.com>
+ <20110610104318.GC24636@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:32870 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754621Ab1FJLW2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 10 Jun 2011 07:22:28 -0400
-Received: by mail-gx0-f179.google.com with SMTP id 1so2096751gxk.10
-        for <linux-omap@vger.kernel.org>; Fri, 10 Jun 2011 04:22:27 -0700 (PDT)
-In-Reply-To: <20110610001556.GA9159@google.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:50814 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755918Ab1FJLtK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Jun 2011 07:49:10 -0400
+In-Reply-To: <20110610104318.GC24636@n2100.arm.linux.org.uk>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Todd Poynor <toddpoynor@google.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, khilman@ti.com, b-cousson@ti.com, santosh.shilimkar@ti.com, linux-arm-kernel@lists.infradead.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: "Koul, Vinod" <vinod.koul@intel.com>, Dan <dan.j.williams@intel.com>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 6/10/2011 5:45 AM, Todd Poynor wrote:
->> +	int hwsup = 0;
->> >
->> >    	if (pwrdm == NULL || IS_ERR(pwrdm))
->> >    		return -EINVAL;
->> >  @@ -127,6 +128,7 @@ int omap_set_pwrdm_state(struct powerdomain *pwrdm, u32 state)
->> >    			(pwrdm->flags&  PWRDM_HAS_LOWPOWERSTATECHANGE)) {
->> >    			sleep_switch = LOWPOWERSTATE_SWITCH;
->> >    		} else {
->> >  +			hwsup = clkdm_is_idle(pwrdm->pwrdm_clkdms[0]);
->> >    			clkdm_wakeup(pwrdm->pwrdm_clkdms[0]);
->> >    			pwrdm_wait_transition(pwrdm);
->> >    			sleep_switch = FORCEWAKEUP_SWITCH;
->> >  @@ -142,7 +144,7 @@ int omap_set_pwrdm_state(struct powerdomain *pwrdm, u32 state)
->> >
->> >    	switch (sleep_switch) {
->> >    	case FORCEWAKEUP_SWITCH:
->> >  -		if (pwrdm->pwrdm_clkdms[0]->flags&  CLKDM_CAN_ENABLE_AUTO)
->> >  +		if (hwsup)
->> >    			clkdm_allow_idle(pwrdm->pwrdm_clkdms[0]);
->> >    		else
->> >    			clkdm_sleep(pwrdm->pwrdm_clkdms[0]);
-> Is concurrency protection needed here?  Not sure if it's expected that
-> multiple threads would simultaneously manage the state of the same power
-> domain, or that the associated clock domain would change state
-> concurrently.
+Russell,
 
-Yeah, maybe there is a need for a per-clkdm lock to prevent these
-concurrency issues. This race between omap_set_pwrdm_state and
-clk_enable/disable all programming clkdm state was one possibility
-for a race (even without this series), but with this series to move the
-clkdm handling into hwmod there are certainly more possibilities (across 
-concurrent omap_hwmod_enable/idle) because the hwmod framework uses 
-per-hwmod lock while the clock framework used a global lock.
-Thanks for bringing this up.
-Paul/Benoit any thoughts on if a per-clkdm lock seems reasonable?
+> -----Original Message-----
+> From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk]
+> Sent: Friday, June 10, 2011 4:13 PM
+> To: Raju, Sundaram
+> Cc: Koul, Vinod; Dan; davinci-linux-open-source@linux.davincidsp.com; linux-
+> omap@vger.kernel.org; linux-kernel@vger.kernel.org; linux-arm-
+> kernel@lists.infradead.org
+> Subject: Re: [RFC] dmaengine: add new api for preparing simple slave transfer
+> 
+> On Fri, Jun 10, 2011 at 03:51:41PM +0530, Raju, Sundaram wrote:
+> > Consider a simple video use case of de-interlacing a video buffer.
+> > Odd lines have to be transferred first, and then the even lines are
+> > transferred separately. This can be done by programming the
+> > inter frame gap as the line size of the video buffer in the DMAC.
+> > This will require you to have only 2 descriptors, one for the
+> > odd lines and another for the even lines. This results in only
+> > 2 descriptors being written to DMAC registers.
+> 
+> How would this be handled with DMACs which can't 'skip' bytes in the
+> buffer?  You would have to generate a list of LLIs separately
+> describing each 'line' of video and chain them together.
 
-I just did a quick patch to add per-clkdm locking, it also has a
-couple instances of arch-specific clkdm calls making
-calls back to generic clkdm framework fixed, which
-otherwise would result in recursive locking.
+Correct.
 
-----
-From: Rajendra Nayak <rnayak@ti.com>
-Date: Fri, 10 Jun 2011 15:42:25 +0530
-Subject: [PATCH] OMAP: clockdomain: Add per clkdm lock to prevent 
-concurrent state programming
+> 
+> How do you handle the situation where a driver uses your new proposed
+> API, but it doesn't support that in hardware.
+> 
 
-Since the clkdm state programming is now done from
-within the hwmod framework (which uses a per-hwmod
-lock) instead of the being done from the clock
-framework (which used a global lock), there is
-now a need to have per-clkdm locking to prevent
-races between different hwmods/modules belonging to the
-same clock domain concurrently programming the
-clkdm state.
+It should be handled the same way how a sg buffer is handled, 
+if LLI chaining feature is not available in the hardware. 
 
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
----
-  arch/arm/mach-omap2/clockdomain.c          |   42 
-++++++++++++++++++++++++++--
-  arch/arm/mach-omap2/clockdomain.h          |    2 +
-  arch/arm/mach-omap2/clockdomain2xxx_3xxx.c |    6 ++-
-  arch/arm/mach-omap2/clockdomain44xx.c      |    7 ++--
-  4 files changed, 49 insertions(+), 8 deletions(-)
+It has to be submitted as a queue of separate descriptors to
+the DMAC, where each descriptor will be processed after the 
+completion of the previous descriptor.
 
-diff --git a/arch/arm/mach-omap2/clockdomain.c 
-b/arch/arm/mach-omap2/clockdomain.c
-index b98a972..374e669 100644
---- a/arch/arm/mach-omap2/clockdomain.c
-+++ b/arch/arm/mach-omap2/clockdomain.c
-@@ -92,6 +92,8 @@ static int _clkdm_register(struct clockdomain *clkdm)
+> > Actually we can deduce the chunk_size from the
+> > dma_slave_config itself. It is either the src_addr_width or
+> > dst_addr_width based on the direction. Because at a stretch
+> > DMAC cannot transfer more than the slave register width.
+> 
+> I think you're misinterpreting those fields.  (dst|src)_addr_width tells
+> the DMA controller the width of each transaction - whether to issue a
+> byte, half-word, word or double-word read or write to the peripheral.
+> It doesn't say how many of those to issue, it just says what the
+> peripheral access size is to be.
+> 
+> In other words, they describe the width of the FIFO register.
 
-  	pwrdm_add_clkdm(pwrdm, clkdm);
+Yes correct, I was just giving an example for considering or
+understanding a buffer in 3D and how each dimension should be.
 
-+	spin_lock_init(&clkdm->lock);
-+
-  	pr_debug("clockdomain: registered %s\n", clkdm->name);
+chunk_size = (src|dst)_addr_width, for a special case,
+i.e, if DMAC is programmed to transfer the entire 1D buffer
+per sync event received from the peripheral.
 
-  	return 0;
-@@ -690,6 +692,9 @@ int clkdm_clear_all_sleepdeps(struct clockdomain *clkdm)
-   */
-  int clkdm_sleep(struct clockdomain *clkdm)
-  {
-+	int ret;
-+	unsigned long flags;
-+
-  	if (!clkdm)
-  		return -EINVAL;
+In slave transfer, the peripheral is going to give a sync event to 
+DMAC when the FIFO register is full|empty.
 
-@@ -704,7 +709,10 @@ int clkdm_sleep(struct clockdomain *clkdm)
+Now DMACs capable of 3D transfer, do transfer of the whole 1D
+buffer per sync received or even whole 2D buffer per sync received
+(based on the sync rate programmed in the DMAC).
 
-  	pr_debug("clockdomain: forcing sleep on %s\n", clkdm->name);
+So the DMAC has to be programmed for a 1D size (i.e. chunk size)
+equal to that of the width of the FIFO register if the sync rate
+programmed in DMAC is "per chunk".  
 
--	return arch_clkdm->clkdm_sleep(clkdm);
-+	spin_lock_irqsave(&clkdm->lock, flags);
-+	ret = arch_clkdm->clkdm_sleep(clkdm);
-+	spin_unlock_irqrestore(&clkdm->lock, flags);
-+	return ret;
-  }
-
-  /**
-@@ -718,6 +726,9 @@ int clkdm_sleep(struct clockdomain *clkdm)
-   */
-  int clkdm_wakeup(struct clockdomain *clkdm)
-  {
-+	int ret;
-+	unsigned long flags;
-+
-  	if (!clkdm)
-  		return -EINVAL;
-
-@@ -732,7 +743,10 @@ int clkdm_wakeup(struct clockdomain *clkdm)
-
-  	pr_debug("clockdomain: forcing wakeup on %s\n", clkdm->name);
-
--	return arch_clkdm->clkdm_wakeup(clkdm);
-+	spin_lock_irqsave(&clkdm->lock, flags);
-+	ret = arch_clkdm->clkdm_wakeup(clkdm);
-+	spin_unlock_irqrestore(&clkdm->lock, flags);
-+	return ret;
-  }
-
-  /**
-@@ -747,6 +761,8 @@ int clkdm_wakeup(struct clockdomain *clkdm)
-   */
-  void clkdm_allow_idle(struct clockdomain *clkdm)
-  {
-+	unsigned long flags;
-+
-  	if (!clkdm)
-  		return;
-
-@@ -762,8 +778,10 @@ void clkdm_allow_idle(struct clockdomain *clkdm)
-  	pr_debug("clockdomain: enabling automatic idle transitions for %s\n",
-  		 clkdm->name);
-
-+	spin_lock_irqsave(&clkdm->lock, flags);
-  	arch_clkdm->clkdm_allow_idle(clkdm);
-  	pwrdm_clkdm_state_switch(clkdm);
-+	spin_unlock_irqrestore(&clkdm->lock, flags);
-  }
-
-  /**
-@@ -777,6 +795,8 @@ void clkdm_allow_idle(struct clockdomain *clkdm)
-   */
-  void clkdm_deny_idle(struct clockdomain *clkdm)
-  {
-+	unsigned long flags;
-+
-  	if (!clkdm)
-  		return;
-
-@@ -792,7 +812,9 @@ void clkdm_deny_idle(struct clockdomain *clkdm)
-  	pr_debug("clockdomain: disabling automatic idle transitions for %s\n",
-  		 clkdm->name);
-
-+	spin_lock_irqsave(&clkdm->lock, flags);
-  	arch_clkdm->clkdm_deny_idle(clkdm);
-+	spin_unlock_irqrestore(&clkdm->lock, flags);
-  }
-
-  /**
-@@ -805,6 +827,9 @@ void clkdm_deny_idle(struct clockdomain *clkdm)
-   */
-  int clkdm_is_idle(struct clockdomain *clkdm)
-  {
-+	int ret;
-+	unsigned long flags;
-+
-  	if (!clkdm)
-  		return -EINVAL;
-
-@@ -813,7 +838,10 @@ int clkdm_is_idle(struct clockdomain *clkdm)
-
-  	pr_debug("clockdomain: reading idle state for %s\n", clkdm->name);
-
--	return arch_clkdm->clkdm_is_idle(clkdm);
-+	spin_lock_irqsave(&clkdm->lock, flags);
-+	ret = arch_clkdm->clkdm_is_idle(clkdm);
-+	spin_unlock_irqrestore(&clkdm->lock, flags);
-+	return ret;
-  }
-
-
-@@ -835,6 +863,8 @@ int clkdm_is_idle(struct clockdomain *clkdm)
-   */
-  int clkdm_clk_enable(struct clockdomain *clkdm, struct clk *clk)
-  {
-+	unsigned long flags;
-+
-  	/*
-  	 * XXX Rewrite this code to maintain a list of enabled
-  	 * downstream clocks for debugging purposes?
-@@ -859,9 +889,11 @@ int clkdm_clk_enable(struct clockdomain *clkdm, 
-struct clk *clk)
-  	pr_debug("clockdomain: clkdm %s: clk %s now enabled\n", clkdm->name,
-  		 clk->name);
-
-+	spin_lock_irqsave(&clkdm->lock, flags);
-  	arch_clkdm->clkdm_clk_enable(clkdm);
-  	pwrdm_wait_transition(clkdm->pwrdm.ptr);
-  	pwrdm_clkdm_state_switch(clkdm);
-+	spin_unlock_irqrestore(&clkdm->lock, flags);
-
-  	return 0;
-  }
-@@ -882,6 +914,8 @@ int clkdm_clk_enable(struct clockdomain *clkdm, 
-struct clk *clk)
-   */
-  int clkdm_clk_disable(struct clockdomain *clkdm, struct clk *clk)
-  {
-+	unsigned long flags;
-+
-  	/*
-  	 * XXX Rewrite this code to maintain a list of enabled
-  	 * downstream clocks for debugging purposes?
-@@ -908,8 +942,10 @@ int clkdm_clk_disable(struct clockdomain *clkdm, 
-struct clk *clk)
-  	pr_debug("clockdomain: clkdm %s: clk %s now disabled\n", clkdm->name,
-  		 clk->name);
-
-+	spin_lock_irqsave(&clkdm->lock, flags);
-  	arch_clkdm->clkdm_clk_disable(clkdm);
-  	pwrdm_clkdm_state_switch(clkdm);
-+	spin_unlock_irqrestore(&clkdm->lock, flags);
-
-  	return 0;
-  }
-diff --git a/arch/arm/mach-omap2/clockdomain.h 
-b/arch/arm/mach-omap2/clockdomain.h
-index 085ed82..9fd4eb5 100644
---- a/arch/arm/mach-omap2/clockdomain.h
-+++ b/arch/arm/mach-omap2/clockdomain.h
-@@ -17,6 +17,7 @@
-  #define __ARCH_ARM_MACH_OMAP2_CLOCKDOMAIN_H
-
-  #include <linux/init.h>
-+#include <linux/spinlock.h>
-
-  #include "powerdomain.h"
-  #include <plat/clock.h>
-@@ -122,6 +123,7 @@ struct clockdomain {
-  	const struct omap_chip_id omap_chip;
-  	atomic_t usecount;
-  	struct list_head node;
-+	spinlock_t lock;
-  };
-
-  /**
-diff --git a/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c 
-b/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c
-index e0c393f..f841ac8 100644
---- a/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c
-+++ b/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c
-@@ -193,7 +193,8 @@ static int omap2_clkdm_clk_enable(struct clockdomain 
-*clkdm)
-  		_clkdm_add_autodeps(clkdm);
-  		_enable_hwsup(clkdm);
-  	} else {
--		clkdm_wakeup(clkdm);
-+		if (clkdm->flags & CLKDM_CAN_FORCE_WAKEUP)
-+			omap2_clkdm_wakeup(clkdm);
-  	}
-
-  	return 0;
-@@ -215,7 +216,8 @@ static int omap2_clkdm_clk_disable(struct 
-clockdomain *clkdm)
-  		_clkdm_del_autodeps(clkdm);
-  		_enable_hwsup(clkdm);
-  	} else {
--		clkdm_sleep(clkdm);
-+		if (clkdm->flags & CLKDM_CAN_FORCE_SLEEP)
-+			omap2_clkdm_sleep(clkdm);
-  	}
-
-  	return 0;
-diff --git a/arch/arm/mach-omap2/clockdomain44xx.c 
-b/arch/arm/mach-omap2/clockdomain44xx.c
-index e4b8e06..911770b 100644
---- a/arch/arm/mach-omap2/clockdomain44xx.c
-+++ b/arch/arm/mach-omap2/clockdomain44xx.c
-@@ -101,7 +101,8 @@ static int omap4_clkdm_is_idle(struct clockdomain 
-*clkdm)
-
-  static int omap4_clkdm_clk_enable(struct clockdomain *clkdm)
-  {
--	clkdm_wakeup(clkdm);
-+	if (clkdm->flags & CLKDM_CAN_FORCE_WAKEUP)
-+		return omap4_clkdm_wakeup(clkdm);
-  	return 0;
-  }
-
-@@ -112,8 +113,8 @@ static int omap4_clkdm_clk_disable(struct 
-clockdomain *clkdm)
-  	hwsup = omap4_cminst_is_clkdm_in_hwsup(clkdm->prcm_partition,
-  					clkdm->cm_inst, clkdm->clkdm_offs);
-
--	if (!hwsup)
--		clkdm_sleep(clkdm);
-+	if (!hwsup && (clkdm->flags & CLKDM_CAN_FORCE_SLEEP))
-+		omap4_clkdm_sleep(clkdm);
-
-  	return 0;
-  }
--- 
-1.7.0.4
-
+Regards,
+Sundaram
