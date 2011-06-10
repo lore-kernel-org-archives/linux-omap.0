@@ -1,51 +1,226 @@
-From: =?iso-8859-15?q?P=E9ter_Ujfalusi?= <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH v3 06/12] MFD: twl4030-codec ->
-	twl4030-audio: Rename the driver
-Date: Fri, 10 Jun 2011 07:52:51 +0300
-Message-ID: <201106100752.51718.peter.ujfalusi@ti.com>
-References: <1307626230-29660-1-git-send-email-peter.ujfalusi@ti.com>
-	<1307626230-29660-7-git-send-email-peter.ujfalusi@ti.com>
-	<201106092137.28678.arnd@arndb.de>
+From: "Koul, Vinod" <vinod.koul@intel.com>
+Subject: RE: [RFC] dmaengine: add new api for preparing simple slave
+ transfer
+Date: Fri, 10 Jun 2011 11:39:00 +0530
+Message-ID: <1307686140.10976.111.camel@vkoul-udesk3>
+References: <E0D41E29EB0DAC4E9F3FF173962E9E940301FE2DED@dbde02.ent.ti.com>
+	 <20110609124723.GA24636@n2100.arm.linux.org.uk>
+	 <E0D41E29EB0DAC4E9F3FF173962E9E940301FE2EFB@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-15"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <201106092137.28678.arnd@arndb.de>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Brown <broonie@opensource.wolfsonmicro.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Mark@alsa-project.org, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "Lopez Cruz,   Misael" <misael.lopez@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Girdwood, Liam" <lrg@ti.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:20932 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751634Ab1FJGoV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 10 Jun 2011 02:44:21 -0400
+In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E940301FE2EFB@dbde02.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Raju, Sundaram" <sundaram@ti.com>, Dan <dan.j.williams@intel.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Thursday 09 June 2011 22:37:28 Arnd Bergmann wrote:
-> Better use the -M flag to git-format-patch when moving files, to make it
-> obvious what has or has not changed, and to reduce the size of the email.
+On Thu, 2011-06-09 at 21:31 +0530, Raju, Sundaram wrote:
+> Here it is, with proper line wrapping;
+Please cc the respective MAINTAINERS, added Dan...
 
-I tend to forgot the -M flag, thanks.
- =
+> 
+> SDMA and EDMA are TI SoC specific DMA controllers. Their drivers have 
+> been maintained in the respective SoC folders till now.
+> arch/arm/plat-omap/dma.c
+> arch/arm/mach-davinci/dma.c
+> 
+> I have gone through the existing offload engine (DMA) drivers in 
+> drivers/dma which do slave transfers.
+> I would like to move SDMA and EDMA also to dmaengine framework.
+> 
+> I believe that even though the dmaengine framework addresses and 
+> supports most of the required use cases of a client driver to a DMA 
+> controller, some extensions are required in it to make it still more 
+> generic.
+> 
+> Current framework contains two APIs to prepare for slave transfers: 
+> 
+> struct dma_async_tx_descriptor *(*device_prep_slave_sg)(
+> 		struct dma_chan *chan, struct scatterlist *sgl,
+> 		unsigned int sg_len, enum dma_data_direction direction,
+> 		unsigned long flags);
+> 
+> struct dma_async_tx_descriptor *(*device_prep_dma_cyclic)(
+> 		struct dma_chan *chan, dma_addr_t buf_addr, size_t buf_len,
+> 		size_t period_len, enum dma_data_direction direction);
+> 
+> and one control API. 
+> int (*device_control)(struct dma_chan *chan, enum dma_ctrl_cmd cmd,
+> 		unsigned long arg);
+> 
+> A simple single buffer transfer (i.e. non sg transfer) can be done only
+> as a trivial case of the device_prep_slave_sg API. The client driver is
+> expected to prepare a sg list and provide to the dmaengine API for that
+> single buffer also.
+> 
+> In a slave transfer, the client has to define all the buffer related 
+> attributes and the peripheral related attributes. 
+> 
+> The above 2 APIs in the dmaengine framework expect all the 
+> peripheral/slave related attributes to be filled in the 
+> dma_slave_config data structure. 
+> struct dma_slave_config {
+>         enum dma_data_direction direction;
+>         dma_addr_t src_addr;
+>         dma_addr_t dst_addr;
+>         enum dma_slave_buswidth src_addr_width;
+>         enum dma_slave_buswidth dst_addr_width;
+>         u32 src_maxburst;
+>         u32 dst_maxburst;
+> };
+> 
+> This data structure is passed to the offload engine via the dma_chan 
+> data structure in its private pointer.
+No, this is passed thru control API you described above. Please read
+Documentation/dmaengine.txt
 
-> Also, shouldn't this file go into the sound/soc/ directory? It seems that
-> this is really the device driver, not part of the multi-function layer.
+> Now coming to the buffer related attributes, sg list is a nice way to 
+> represent a disjoint buffer; all the offload engines in drivers/dma 
+> create a descriptor for each of the contiguous chunk in the sg list 
+> buffer and pass it to the controller. 
+> 
+> But many a times a client may want to transfer from a single buffer to
+> the peripheral and most of the DMA controllers have the capability to 
+> transfer data in chunks/frames directly at a stretch. 
+> All the attributes of a buffer, which are required for the transfer 
+> can be programmed in single descriptor and submitted to the 
+> DMA controller. 
+> 
+> So I think the slave transfer API must also have a provision to pass 
+> the buffer configuration. The buffer attributes have to be passed 
+> directly as an argument in the prepare API, unlike dma_slave_config 
+> as they will be different for each buffer that is going to be 
+> transferred. 
+Can you articulate what attributes you are talking about. The
+dma_slave_config parameters don't represent buffer attributes. They
+represent the dma attributes on how you want to transfer. These things
+like bus widths, burst lengths are usually constant for the slave
+transfers, not sure why they should change per buffer?
 
-This driver is the MFD core part for the audio block within the twl4030 ser=
-ies =
+> 
+> It is a stretch and impractical to use a highly segmented buffer (like
+> the one described below) in a sglist. This is because sg list itself 
+> is a representation of a disjoint buffer collection in terms of 
+> smaller buffers. Now then each of these smaller buffers can have 
+> different buffer configurations (like described below) and we are not 
+> going to go down that road now. 
+well thats the linux idea, you use sg-list to describe this
+segmentation...
 
-pmic.
-We have the slave drivers under sound/soc/codecs/twl4030.c and =
+> 
+> Hence it makes sense to pass these buffer attributes for only a single
+> buffer transfer and not a sg list. 
+> This can be done by OPTION #1 
+> 1. Adding a pointer of the dma_buffer_config data structure in the 
+> device_prep_slave_sg API.
+> 2. Ensuring that it will be ignored if a sg list passed. 
+> Only when a single buffer is passed (in the sg list) then this buffer 
+> configuration will be used.
+> 3. Any client that wants to do a sg transfer can simply ignore this 
+> buffer configuration and pass NULL.
+> The main disadvantage of this option is that all the existing drivers 
+> need to be updated since the API signature is changed.
+> 
+> It might even be better to have a separate API for non sg transfers.
+> This is OPTION #2 
+> Advantages of this option are 
+> 1. No change required in the existing drivers that use 
+> device_prep_slave_sg API. 
+> 2. If any offload engine wants to prepare a simple buffer transfer 
+> differently and not as a trivial case of a sg list, 
+> this will be useful. 
+> I know this can be done using 2 different implementations inside the 
+> device_prep_slave_sg itself, but I think it's cleaner to have 
+> different APIs. I have provided the generic buffer configuration 
+> I can think of, here and also a new API definition, 
+> if it makes sense to have one. This buffer configuration might not 
+> be completely generic, and hence I ask all of you to please provide 
+> comments to improve it. 
+> 
+> Generic buffer description: 
+> A generic buffer can be split into number of frames which contain 
+> number of chunks inside them. The frames need not be contiguous, 
+> nor do the chunks inside a frame. 
+> 
+> -------------------------------------------------------------------
+>  | Chunk 0 |ICG| Chunk 1 |ICG| ... |ICG| Chunk n | Frame 0 
+> -------------------------------------------------------------------
+>  |		Inter Frame Gap			     | 
+> -------------------------------------------------------------------
+>  | Chunk 0 |ICG| Chunk 1 |ICG| ... |ICG| Chunk n | Frame 1 
+> -------------------------------------------------------------------
+>  |		Inter Frame Gap			     | 
+> -------------------------------------------------------------------
+>  |		........					     | 
+> -------------------------------------------------------------------
+>  |		Inter Frame Gap			     | 
+> -------------------------------------------------------------------
+>  | Chunk 0 |ICG| Chunk 1 |ICG| ... |ICG| Chunk n | Frame m 
+> -------------------------------------------------------------------
+> 
+> Note: ICG = Inter Chunk Gap.
+> 
+> struct dma_buffer_config {
+> 	u32 chunk_size; /* number of bytes in a chunk */
+> 	u32 frame_size; /* number of chunks in a frame */
+> 	/* u32 n_frames; number of frames in the buffer */
+> 	u32 inter_chunk_gap; /* number of bytes between end of a chunk 
+> 				and the start of the next chunk */ 
+> 	u32 inter_frame_gap; /* number of bytes between end of a frame 
+> 				and the start of the next frame */ 
+> 	bool sync_rate; /* 0 - a sync event is required from the 
+> 				peripheral to transfer a chunk 
+> 			1 - a sync event is required from the 
+> 				peripheral to transfer a frame */ 
+> };
+> 
+> The patch to add a new API for single buffer transfers alone: 
+> diff --git a/include/linux/dmaengine.h b/include/linux/dmaengine.h
+> @@ -491,6 +492,10 @@ struct dma_device {
+> 		struct dma_chan *chan, struct scatterlist *sgl,
+> 		unsigned int sg_len, enum dma_data_direction direction,
+> 		unsigned long flags);
+> +	struct dma_async_tx_descriptor *(*device_prep_slave)(
+> +		struct dma_chan *chan, dma_addr_t buf_addr,
+> +		unsigned int buf_len, void *buf_prop,
+> +		enum dma_data_direction direction, unsigned long flags);
+> 	struct dma_async_tx_descriptor *(*device_prep_dma_cyclic)(
+> 		struct dma_chan *chan, dma_addr_t buf_addr, size_t buf_len,
+> 		size_t period_len, enum dma_data_direction direction);
+> 
+> The number of frames (n_frames) can always be determined using all 
+> other values in the dma_buffer_config along with the 
+> buffer length (buf_len) passed in the API. 
+> n_frames = buf_len / (chunk_sixe * frame_size); 
+> 
+> Regards, 
+> Sundaram
+> 
+> -----Original Message-----
+> From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk] 
+> Sent: Thursday, June 09, 2011 6:17 PM
+> To: Raju, Sundaram
+> Cc: linux-arm-kernel@lists.infradead.org; linux-kernel@vger.kernel.org; davinci-linux-open-source@linux.davincidsp.com; linux-omap@vger.kernel.org
+> Subject: Re: [RFC] dmaengine: add new api for preparing simple slave transfer
+> 
+> Can you please re-post with sensible wrapping at or before column 72.
+> I'm not manually reformatting your entire message just so I can find
+> the relevant bits to reply to.
+> 
+> Thanks.
+> 
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
 
-drivers/input/misc/twl4030-vibra.c.
-The audio block has codec, and vibra functionality, and we need to have thi=
-s =
 
-driver to properly manage this block within twl.
+-- 
+~Vinod
 
--- =
-
-P=E9ter
