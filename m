@@ -1,56 +1,43 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v4 14/18] ASoC: twl6040: Support other sample rates in constraints.
-Date: Fri, 10 Jun 2011 14:54:32 +0300
-Message-ID: <1307706876-4768-15-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v4 16/18] ASoC: twl6040: set default constraints.
+Date: Fri, 10 Jun 2011 14:54:34 +0300
+Message-ID: <1307706876-4768-17-git-send-email-peter.ujfalusi@ti.com>
 References: <1307706876-4768-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-input-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:51501 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756235Ab1FJLzt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 10 Jun 2011 07:55:49 -0400
 In-Reply-To: <1307706876-4768-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-input-owner@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Samuel Ortiz <sameo@linux.intel.com>, Dmitry Torokhov <dmitry.torokhov@>
 Cc: linux-input@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org, Peter Ujfalusi <peter.ujfalusi@ti.com>
-List-Id: linux-omap@vger.kernel.org
 
 From: Liam Girdwood <lrg@ti.com>
 
-Add other supported sample rates to LP and HP modes.
+Set default sysclk constraints to high performance mode.
 
 Signed-off-by: Liam Girdwood <lrg@ti.com>
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- sound/soc/codecs/twl6040.c |   11 +++++++++++
- 1 files changed, 11 insertions(+), 0 deletions(-)
+ sound/soc/codecs/twl6040.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
 diff --git a/sound/soc/codecs/twl6040.c b/sound/soc/codecs/twl6040.c
-index 28dc5d9..7845cdb 100644
+index d334d86..3c0d8da 100644
 --- a/sound/soc/codecs/twl6040.c
 +++ b/sound/soc/codecs/twl6040.c
-@@ -1203,6 +1203,13 @@ static int twl6040_set_bias_level(struct snd_soc_codec *codec,
- /* set of rates for each pll: low-power and high-performance */
+@@ -1507,6 +1507,7 @@ static int twl6040_probe(struct snd_soc_codec *codec)
  
- static unsigned int lp_rates[] = {
-+	8000,
-+	11250,
-+	16000,
-+	22500,
-+	32000,
-+	44100,
-+	48000,
- 	88200,
- 	96000,
- };
-@@ -1213,6 +1220,10 @@ static struct snd_pcm_hw_constraint_list lp_constraints = {
- };
+ 	/* default is high-performance mode */
+ 	priv->headset_mode = 1;
++	priv->sysclk_constraints = &hp_constraints;
  
- static unsigned int hp_rates[] = {
-+	8000,
-+	16000,
-+	32000,
-+	48000,
- 	96000,
- };
- 
+ 	priv->workqueue = create_singlethread_workqueue("twl6040-codec");
+ 	if (!priv->workqueue) {
 -- 
 1.7.5.3
 
