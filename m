@@ -1,41 +1,96 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH 1/8] OMAP2+: clockdomain: Add an api to read idle mode
-Date: Fri, 10 Jun 2011 16:38:47 +0530
-Message-ID: <4DF1FB3F.1040906@ti.com>
-References: <1307616853-28395-1-git-send-email-rnayak@ti.com> <1307616853-28395-2-git-send-email-rnayak@ti.com> <20110610000715.GA9059@google.com>
+From: "Raju, Sundaram" <sundaram@ti.com>
+Subject: RE: [RFC] dmaengine: add new api for preparing simple slave transfer
+Date: Fri, 10 Jun 2011 16:43:53 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E940301FE3405@dbde02.ent.ti.com>
+References: <E0D41E29EB0DAC4E9F3FF173962E9E940301FE2DED@dbde02.ent.ti.com>
+	 <20110609124723.GA24636@n2100.arm.linux.org.uk>
+	 <E0D41E29EB0DAC4E9F3FF173962E9E940301FE2EFB@dbde02.ent.ti.com>
+ <1307686140.10976.111.camel@vkoul-udesk3>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:38548 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754621Ab1FJLI4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 10 Jun 2011 07:08:56 -0400
-Received: by mail-vx0-f179.google.com with SMTP id 40so2295604vxi.38
-        for <linux-omap@vger.kernel.org>; Fri, 10 Jun 2011 04:08:54 -0700 (PDT)
-In-Reply-To: <20110610000715.GA9059@google.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1307686140.10976.111.camel@vkoul-udesk3>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Koul, Vinod" <vinod.koul@intel.com>, Dan <dan.j.williams@intel.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Todd Poynor <toddpoynor@google.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, khilman@ti.com, b-cousson@ti.com, santosh.shilimkar@ti.com, linux-arm-kernel@lists.infradead.org
 
-On 6/10/2011 5:37 AM, Todd Poynor wrote:
-> On Thu, Jun 09, 2011 at 04:24:06PM +0530, Rajendra Nayak wrote:
->> Add a clockdomain api to check if hardware supervised
->> idle transitions are enabled on a clockdomain.
->>
-> ...
->> + * clkdm_is_idle - Check if the clkdm hwsup/autoidle is enabled
->
-> A minor suggestion on naming: "clkdm_allows_idle" seems more accurate
-> and a natural complement to the existing clkdm_allow_idle().
-
-Yeah, I agree. I'll change it in my next spin.
-
-Thanks,
-Rajendra
->
->
-> Todd
-
+Vmlub2QsDQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogS291bCwgVmlu
+b2QgW21haWx0bzp2aW5vZC5rb3VsQGludGVsLmNvbV0NCj4gU2VudDogRnJpZGF5LCBKdW5lIDEw
+LCAyMDExIDExOjM5IEFNDQo+IFRvOiBSYWp1LCBTdW5kYXJhbTsgRGFuDQo+IENjOiBSdXNzZWxs
+IEtpbmcgLSBBUk0gTGludXg7IGRhdmluY2ktbGludXgtb3Blbi0NCj4gc291cmNlQGxpbnV4LmRh
+dmluY2lkc3AuY29tOyBsaW51eC1vbWFwQHZnZXIua2VybmVsLm9yZzsgbGludXgtDQo+IGtlcm5l
+bEB2Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZw0K
+PiBTdWJqZWN0OiBSRTogW1JGQ10gZG1hZW5naW5lOiBhZGQgbmV3IGFwaSBmb3IgcHJlcGFyaW5n
+IHNpbXBsZSBzbGF2ZSB0cmFuc2Zlcg0KPiANCg0KPHNuaXA+DQo+ID4NCj4gPiBUaGUgYWJvdmUg
+MiBBUElzIGluIHRoZSBkbWFlbmdpbmUgZnJhbWV3b3JrIGV4cGVjdCBhbGwgdGhlDQo+ID4gcGVy
+aXBoZXJhbC9zbGF2ZSByZWxhdGVkIGF0dHJpYnV0ZXMgdG8gYmUgZmlsbGVkIGluIHRoZQ0KPiA+
+IGRtYV9zbGF2ZV9jb25maWcgZGF0YSBzdHJ1Y3R1cmUuDQo+ID4gc3RydWN0IGRtYV9zbGF2ZV9j
+b25maWcgew0KPiA+ICAgICAgICAgZW51bSBkbWFfZGF0YV9kaXJlY3Rpb24gZGlyZWN0aW9uOw0K
+PiA+ICAgICAgICAgZG1hX2FkZHJfdCBzcmNfYWRkcjsNCj4gPiAgICAgICAgIGRtYV9hZGRyX3Qg
+ZHN0X2FkZHI7DQo+ID4gICAgICAgICBlbnVtIGRtYV9zbGF2ZV9idXN3aWR0aCBzcmNfYWRkcl93
+aWR0aDsNCj4gPiAgICAgICAgIGVudW0gZG1hX3NsYXZlX2J1c3dpZHRoIGRzdF9hZGRyX3dpZHRo
+Ow0KPiA+ICAgICAgICAgdTMyIHNyY19tYXhidXJzdDsNCj4gPiAgICAgICAgIHUzMiBkc3RfbWF4
+YnVyc3Q7DQo+ID4gfTsNCj4gPg0KPiA+IFRoaXMgZGF0YSBzdHJ1Y3R1cmUgaXMgcGFzc2VkIHRv
+IHRoZSBvZmZsb2FkIGVuZ2luZSB2aWEgdGhlIGRtYV9jaGFuDQo+ID4gZGF0YSBzdHJ1Y3R1cmUg
+aW4gaXRzIHByaXZhdGUgcG9pbnRlci4NCj4gTm8sIHRoaXMgaXMgcGFzc2VkIHRocnUgY29udHJv
+bCBBUEkgeW91IGRlc2NyaWJlZCBhYm92ZS4gUGxlYXNlIHJlYWQNCj4gRG9jdW1lbnRhdGlvbi9k
+bWFlbmdpbmUudHh0DQoNClllcywgVmlub2QgaXRzIG15IG1pc3Rha2UuIEkgd2FudGVkIHRvIHNh
+eSBjb250cm9sIEFQSSBvbmx5LCANCmJ1dCBqdXN0IG1peGVkIGl0IHVwIHdpdGggaG93IHRoZSBk
+bWFfc2xhdmVfY29uZmlnIGlzIGF0dGFjaGVkIA0KdG8gZWFjaCBkbWFfY2hhbiBzbyB0aGF0IHRo
+ZSBvZmZsb2FkIGRyaXZlcnMgY2FuIHVzZSBpdCB3aGlsZSANCnByZXBhcmluZyB0aGUgZGVzY3Jp
+cHRvcnMuDQoNCj4gDQo+ID4gTm93IGNvbWluZyB0byB0aGUgYnVmZmVyIHJlbGF0ZWQgYXR0cmli
+dXRlcywgc2cgbGlzdCBpcyBhIG5pY2Ugd2F5IHRvDQo+ID4gcmVwcmVzZW50IGEgZGlzam9pbnQg
+YnVmZmVyOyBhbGwgdGhlIG9mZmxvYWQgZW5naW5lcyBpbiBkcml2ZXJzL2RtYQ0KPiA+IGNyZWF0
+ZSBhIGRlc2NyaXB0b3IgZm9yIGVhY2ggb2YgdGhlIGNvbnRpZ3VvdXMgY2h1bmsgaW4gdGhlIHNn
+IGxpc3QNCj4gPiBidWZmZXIgYW5kIHBhc3MgaXQgdG8gdGhlIGNvbnRyb2xsZXIuDQo+ID4NCj4g
+PiBCdXQgbWFueSBhIHRpbWVzIGEgY2xpZW50IG1heSB3YW50IHRvIHRyYW5zZmVyIGZyb20gYSBz
+aW5nbGUgYnVmZmVyIHRvDQo+ID4gdGhlIHBlcmlwaGVyYWwgYW5kIG1vc3Qgb2YgdGhlIERNQSBj
+b250cm9sbGVycyBoYXZlIHRoZSBjYXBhYmlsaXR5IHRvDQo+ID4gdHJhbnNmZXIgZGF0YSBpbiBj
+aHVua3MvZnJhbWVzIGRpcmVjdGx5IGF0IGEgc3RyZXRjaC4NCj4gPiBBbGwgdGhlIGF0dHJpYnV0
+ZXMgb2YgYSBidWZmZXIsIHdoaWNoIGFyZSByZXF1aXJlZCBmb3IgdGhlIHRyYW5zZmVyDQo+ID4g
+Y2FuIGJlIHByb2dyYW1tZWQgaW4gc2luZ2xlIGRlc2NyaXB0b3IgYW5kIHN1Ym1pdHRlZCB0byB0
+aGUNCj4gPiBETUEgY29udHJvbGxlci4NCj4gPg0KPiA+IFNvIEkgdGhpbmsgdGhlIHNsYXZlIHRy
+YW5zZmVyIEFQSSBtdXN0IGFsc28gaGF2ZSBhIHByb3Zpc2lvbiB0byBwYXNzDQo+ID4gdGhlIGJ1
+ZmZlciBjb25maWd1cmF0aW9uLiBUaGUgYnVmZmVyIGF0dHJpYnV0ZXMgaGF2ZSB0byBiZSBwYXNz
+ZWQNCj4gPiBkaXJlY3RseSBhcyBhbiBhcmd1bWVudCBpbiB0aGUgcHJlcGFyZSBBUEksIHVubGlr
+ZSBkbWFfc2xhdmVfY29uZmlnDQo+ID4gYXMgdGhleSB3aWxsIGJlIGRpZmZlcmVudCBmb3IgZWFj
+aCBidWZmZXIgdGhhdCBpcyBnb2luZyB0byBiZQ0KPiA+IHRyYW5zZmVycmVkLg0KPiBDYW4geW91
+IGFydGljdWxhdGUgd2hhdCBhdHRyaWJ1dGVzIHlvdSBhcmUgdGFsa2luZyBhYm91dC4gVGhlDQo+
+IGRtYV9zbGF2ZV9jb25maWcgcGFyYW1ldGVycyBkb24ndCByZXByZXNlbnQgYnVmZmVyIGF0dHJp
+YnV0ZXMuIFRoZXkNCj4gcmVwcmVzZW50IHRoZSBkbWEgYXR0cmlidXRlcyBvbiBob3cgeW91IHdh
+bnQgdG8gdHJhbnNmZXIuIFRoZXNlIHRoaW5ncw0KPiBsaWtlIGJ1cyB3aWR0aHMsIGJ1cnN0IGxl
+bmd0aHMgYXJlIHVzdWFsbHkgY29uc3RhbnQgZm9yIHRoZSBzbGF2ZQ0KPiB0cmFuc2ZlcnMsIG5v
+dCBzdXJlIHdoeSB0aGV5IHNob3VsZCBjaGFuZ2UgcGVyIGJ1ZmZlcj8NCj4gDQoNCkkgaGF2ZSB0
+cmllZCB0byBleHBsYWluIHRoZSBhdHRyaWJ1dGVzIGluIHRoZSBwcmV2aW91cyBtYWlsIA0KSSBw
+b3N0ZWQgaW4gdGhpcyB0aHJlYWQuDQoNClllcywgYnVmZmVyIGF0dHJpYnV0ZXMgc2hvdWxkIG5v
+dCBiZSByZXByZXNlbnRlZCBpbiANCnRoZSBkbWFfc2xhdmVfY29uZmlnLiBJdCBpcyBmb3Igc2xh
+dmUgcmVsYXRlZCBkYXRhLg0KVGhhdCBpcyB3aHkgaGFkIG1lbnRpb25lZCB0aGF0IGJ1ZmZlciBj
+b25maWd1cmF0aW9uIHNob3VsZCBiZQ0KYSBzZXBhcmF0ZSBzdHJ1Y3R1cmUgYW5kIHBhc3NlZCBp
+biB0aGUgcHJlcGFyZSBBUEkuDQpTZWUgcXVvdGVkIGJlbG93Og0KDQo8cXVvdGU+DQo+IHN0cnVj
+dCBkbWFfYnVmZmVyX2NvbmZpZyB7DQo+IAl1MzIgY2h1bmtfc2l6ZTsgLyogbnVtYmVyIG9mIGJ5
+dGVzIGluIGEgY2h1bmsgKi8NCj4gCXUzMiBmcmFtZV9zaXplOyAvKiBudW1iZXIgb2YgY2h1bmtz
+IGluIGEgZnJhbWUgKi8NCj4gCS8qIHUzMiBuX2ZyYW1lczsgbnVtYmVyIG9mIGZyYW1lcyBpbiB0
+aGUgYnVmZmVyICovDQo+IAl1MzIgaW50ZXJfY2h1bmtfZ2FwOyAvKiBudW1iZXIgb2YgYnl0ZXMg
+YmV0d2VlbiBlbmQgb2YgYSBjaHVuayANCj4gCQkJCWFuZCB0aGUgc3RhcnQgb2YgdGhlIG5leHQg
+Y2h1bmsgKi8gDQo+IAl1MzIgaW50ZXJfZnJhbWVfZ2FwOyAvKiBudW1iZXIgb2YgYnl0ZXMgYmV0
+d2VlbiBlbmQgb2YgYSBmcmFtZSANCj4gCQkJCWFuZCB0aGUgc3RhcnQgb2YgdGhlIG5leHQgZnJh
+bWUgKi8gDQo+IAlib29sIHN5bmNfcmF0ZTsgLyogMCAtIGEgc3luYyBldmVudCBpcyByZXF1aXJl
+ZCBmcm9tIHRoZSANCj4gCQkJCXBlcmlwaGVyYWwgdG8gdHJhbnNmZXIgYSBjaHVuayANCj4gCQkJ
+MSAtIGEgc3luYyBldmVudCBpcyByZXF1aXJlZCBmcm9tIHRoZSANCj4gCQkJCXBlcmlwaGVyYWwg
+dG8gdHJhbnNmZXIgYSBmcmFtZSAqLyANCj4gfTsNCj4gDQo+IFRoZSBwYXRjaCB0byBhZGQgYSBu
+ZXcgQVBJIGZvciBzaW5nbGUgYnVmZmVyIHRyYW5zZmVycyBhbG9uZTogDQo+IGRpZmYgLS1naXQg
+YS9pbmNsdWRlL2xpbnV4L2RtYWVuZ2luZS5oIGIvaW5jbHVkZS9saW51eC9kbWFlbmdpbmUuaA0K
+PiBAQCAtNDkxLDYgKzQ5MiwxMCBAQCBzdHJ1Y3QgZG1hX2RldmljZSB7DQo+IAkJc3RydWN0IGRt
+YV9jaGFuICpjaGFuLCBzdHJ1Y3Qgc2NhdHRlcmxpc3QgKnNnbCwNCj4gCQl1bnNpZ25lZCBpbnQg
+c2dfbGVuLCBlbnVtIGRtYV9kYXRhX2RpcmVjdGlvbiBkaXJlY3Rpb24sDQo+IAkJdW5zaWduZWQg
+bG9uZyBmbGFncyk7DQo+ICsJc3RydWN0IGRtYV9hc3luY190eF9kZXNjcmlwdG9yICooKmRldmlj
+ZV9wcmVwX3NsYXZlKSgNCj4gKwkJc3RydWN0IGRtYV9jaGFuICpjaGFuLCBkbWFfYWRkcl90IGJ1
+Zl9hZGRyLA0KPiArCQl1bnNpZ25lZCBpbnQgYnVmX2xlbiwgdm9pZCAqYnVmX3Byb3AsDQo+ICsJ
+CWVudW0gZG1hX2RhdGFfZGlyZWN0aW9uIGRpcmVjdGlvbiwgdW5zaWduZWQgbG9uZyBmbGFncyk7
+DQo+IAlzdHJ1Y3QgZG1hX2FzeW5jX3R4X2Rlc2NyaXB0b3IgKigqZGV2aWNlX3ByZXBfZG1hX2N5
+Y2xpYykoDQo+IAkJc3RydWN0IGRtYV9jaGFuICpjaGFuLCBkbWFfYWRkcl90IGJ1Zl9hZGRyLCBz
+aXplX3QgYnVmX2xlbiwNCj4gCQlzaXplX3QgcGVyaW9kX2xlbiwgZW51bSBkbWFfZGF0YV9kaXJl
+Y3Rpb24gZGlyZWN0aW9uKTsNCj4NCjwvcXVvdGU+DQoNClJlZ2FyZHMsDQpTdW5kYXJhbQ0K
