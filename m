@@ -1,80 +1,86 @@
-From: Todd Poynor <toddpoynor@google.com>
-Subject: Re: [PATCH 4/8] OMAP2+: PM: idle clkdms only if already in idle
-Date: Thu, 9 Jun 2011 17:15:56 -0700
-Message-ID: <20110610001556.GA9159@google.com>
-References: <1307616853-28395-1-git-send-email-rnayak@ti.com>
- <1307616853-28395-2-git-send-email-rnayak@ti.com>
- <1307616853-28395-3-git-send-email-rnayak@ti.com>
- <1307616853-28395-4-git-send-email-rnayak@ti.com>
- <1307616853-28395-5-git-send-email-rnayak@ti.com>
+From: Steve Calfee <stevecalfee@gmail.com>
+Subject: beagleboard xm alsa in mcbsp3. 2.6.39-rc4
+Date: Thu, 09 Jun 2011 19:55:21 -0700
+Message-ID: <4DF18799.1040503@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:1814 "EHLO
-	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752171Ab1FJAQH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Jun 2011 20:16:07 -0400
-Content-Disposition: inline
-In-Reply-To: <1307616853-28395-5-git-send-email-rnayak@ti.com>
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:47321 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754710Ab1FJCzZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Jun 2011 22:55:25 -0400
+Received: by pzk9 with SMTP id 9so1029883pzk.19
+        for <linux-omap@vger.kernel.org>; Thu, 09 Jun 2011 19:55:25 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, khilman@ti.com, b-cousson@ti.com, santosh.shilimkar@ti.com, linux-arm-kernel@lists.infradead.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, Jun 09, 2011 at 04:24:09PM +0530, Rajendra Nayak wrote:
-> The omap_set_pwrdm_state function forces clockdomains
-> to idle, without checking the existing idle state
-> programmed, instead based solely on the HW capability
-> of the clockdomain to support idle.
-> This is wrong and the clockdomains should be idled
-> post a state_switch *only* if idle transitions on the
-> clockdomain were already enabled.
-> 
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> ---
->  arch/arm/mach-omap2/pm.c |    4 +++-
->  1 files changed, 3 insertions(+), 1 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-> index d48813f..840b0e1 100644
-> --- a/arch/arm/mach-omap2/pm.c
-> +++ b/arch/arm/mach-omap2/pm.c
-> @@ -108,6 +108,7 @@ int omap_set_pwrdm_state(struct powerdomain *pwrdm, u32 state)
->  	u32 cur_state;
->  	int sleep_switch = -1;
->  	int ret = 0;
-> +	int hwsup = 0;
->  
->  	if (pwrdm == NULL || IS_ERR(pwrdm))
->  		return -EINVAL;
-> @@ -127,6 +128,7 @@ int omap_set_pwrdm_state(struct powerdomain *pwrdm, u32 state)
->  			(pwrdm->flags & PWRDM_HAS_LOWPOWERSTATECHANGE)) {
->  			sleep_switch = LOWPOWERSTATE_SWITCH;
->  		} else {
-> +			hwsup = clkdm_is_idle(pwrdm->pwrdm_clkdms[0]);
->  			clkdm_wakeup(pwrdm->pwrdm_clkdms[0]);
->  			pwrdm_wait_transition(pwrdm);
->  			sleep_switch = FORCEWAKEUP_SWITCH;
-> @@ -142,7 +144,7 @@ int omap_set_pwrdm_state(struct powerdomain *pwrdm, u32 state)
->  
->  	switch (sleep_switch) {
->  	case FORCEWAKEUP_SWITCH:
-> -		if (pwrdm->pwrdm_clkdms[0]->flags & CLKDM_CAN_ENABLE_AUTO)
-> +		if (hwsup)
->  			clkdm_allow_idle(pwrdm->pwrdm_clkdms[0]);
->  		else
->  			clkdm_sleep(pwrdm->pwrdm_clkdms[0]);
+Hi,
 
-Is concurrency protection needed here?  Not sure if it's expected that
-multiple threads would simultaneously manage the state of the same power
-domain, or that the associated clock domain would change state
-concurrently.
+I have mcbsp1 working on an external codec. I moved the wires to the
+mcbsp3 pins. The codec is master, using tdm mode. I use the same codec
+i2s bus, and it gets the same setup (I change the dai-link stuff in my
+alsa machine driver to use the other omap i2s bus for my tests). If I
+pull the clk wire off the beagleboard pin, the clock from the codec
+looks good. With the wire attached to the pin, I don't see the pin
+wiggling. So it looks like maybe the pin is an output or something. The
+frame clock looks ok while connected.
+
+In the board-omap3beagle.c I configure all 3 mcbsp the same way:
 
 
-Todd
-> 1.7.0.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+#ifdef CONFIG_OMAP_MUX
+static struct omap_board_mux board_mux[] __initdata = {
+#if 1
+	/* McBSP 1 slave */
+	OMAP3_MUX(MCBSP1_FSX, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
+	OMAP3_MUX(MCBSP1_CLKX, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
+	OMAP3_MUX(MCBSP1_DR, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
+	OMAP3_MUX(MCBSP1_DX, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
+#else
+	/* McBSP 1 master */
+	OMAP3_MUX(MCBSP1_FSX, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
+	OMAP3_MUX(MCBSP1_CLKX, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
+	OMAP3_MUX(MCBSP1_DR, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
+	OMAP3_MUX(MCBSP1_DX, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
+#endif
+#if 1
+	/* McBSP 2 slave */
+	OMAP3_MUX(MCBSP2_FSX, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
+	OMAP3_MUX(MCBSP2_CLKX, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
+	OMAP3_MUX(MCBSP2_DR, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
+	OMAP3_MUX(MCBSP2_DX, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
+#else
+	/* McBSP 2 master */
+	OMAP3_MUX(MCBSP2_FSX, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
+	OMAP3_MUX(MCBSP2_CLKX, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
+	OMAP3_MUX(MCBSP2_DR, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
+	OMAP3_MUX(MCBSP2_DX, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
+#endif
+#if 1
+	/* McBSP 3 slave */
+	OMAP3_MUX(MCBSP3_FSX, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
+	OMAP3_MUX(MCBSP3_CLKX, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
+	OMAP3_MUX(MCBSP3_DR, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
+	OMAP3_MUX(MCBSP3_DX, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
+#else
+	/* McBSP 3 master */
+	OMAP3_MUX(MCBSP3_FSX, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
+	OMAP3_MUX(MCBSP3_CLKX, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
+	OMAP3_MUX(MCBSP3_DR, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
+	OMAP3_MUX(MCBSP3_DX, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
+#endif
+	{ .reg_offset = OMAP_MUX_TERMINATOR },
+};
+#endif
+
+So far I have not been able to get the codec mastered bit clock to work
+on either mcbsp2 or msbsp3.
+
+I have been trying to follow the logic in mcbsp.c and in omap-mcbsp.c in
+how things get inited. I suspect there is something I have not done?
+
+Any ideas.
+
+Thanks, Steve
