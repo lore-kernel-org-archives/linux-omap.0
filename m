@@ -1,96 +1,330 @@
-From: "Raju, Sundaram" <sundaram@ti.com>
-Subject: RE: [RFC] dmaengine: add new api for preparing simple slave transfer
-Date: Fri, 10 Jun 2011 16:43:53 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E940301FE3405@dbde02.ent.ti.com>
-References: <E0D41E29EB0DAC4E9F3FF173962E9E940301FE2DED@dbde02.ent.ti.com>
-	 <20110609124723.GA24636@n2100.arm.linux.org.uk>
-	 <E0D41E29EB0DAC4E9F3FF173962E9E940301FE2EFB@dbde02.ent.ti.com>
- <1307686140.10976.111.camel@vkoul-udesk3>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH 4/8] OMAP2+: PM: idle clkdms only if already in idle
+Date: Fri, 10 Jun 2011 16:52:18 +0530
+Message-ID: <4DF1FE6A.3010202@ti.com>
+References: <1307616853-28395-1-git-send-email-rnayak@ti.com> <1307616853-28395-2-git-send-email-rnayak@ti.com> <1307616853-28395-3-git-send-email-rnayak@ti.com> <1307616853-28395-4-git-send-email-rnayak@ti.com> <1307616853-28395-5-git-send-email-rnayak@ti.com> <20110610001556.GA9159@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1307686140.10976.111.camel@vkoul-udesk3>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Koul, Vinod" <vinod.koul@intel.com>, Dan <dan.j.williams@intel.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:32870 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754621Ab1FJLW2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 10 Jun 2011 07:22:28 -0400
+Received: by mail-gx0-f179.google.com with SMTP id 1so2096751gxk.10
+        for <linux-omap@vger.kernel.org>; Fri, 10 Jun 2011 04:22:27 -0700 (PDT)
+In-Reply-To: <20110610001556.GA9159@google.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Todd Poynor <toddpoynor@google.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, khilman@ti.com, b-cousson@ti.com, santosh.shilimkar@ti.com, linux-arm-kernel@lists.infradead.org
 
-Vmlub2QsDQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogS291bCwgVmlu
-b2QgW21haWx0bzp2aW5vZC5rb3VsQGludGVsLmNvbV0NCj4gU2VudDogRnJpZGF5LCBKdW5lIDEw
-LCAyMDExIDExOjM5IEFNDQo+IFRvOiBSYWp1LCBTdW5kYXJhbTsgRGFuDQo+IENjOiBSdXNzZWxs
-IEtpbmcgLSBBUk0gTGludXg7IGRhdmluY2ktbGludXgtb3Blbi0NCj4gc291cmNlQGxpbnV4LmRh
-dmluY2lkc3AuY29tOyBsaW51eC1vbWFwQHZnZXIua2VybmVsLm9yZzsgbGludXgtDQo+IGtlcm5l
-bEB2Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZw0K
-PiBTdWJqZWN0OiBSRTogW1JGQ10gZG1hZW5naW5lOiBhZGQgbmV3IGFwaSBmb3IgcHJlcGFyaW5n
-IHNpbXBsZSBzbGF2ZSB0cmFuc2Zlcg0KPiANCg0KPHNuaXA+DQo+ID4NCj4gPiBUaGUgYWJvdmUg
-MiBBUElzIGluIHRoZSBkbWFlbmdpbmUgZnJhbWV3b3JrIGV4cGVjdCBhbGwgdGhlDQo+ID4gcGVy
-aXBoZXJhbC9zbGF2ZSByZWxhdGVkIGF0dHJpYnV0ZXMgdG8gYmUgZmlsbGVkIGluIHRoZQ0KPiA+
-IGRtYV9zbGF2ZV9jb25maWcgZGF0YSBzdHJ1Y3R1cmUuDQo+ID4gc3RydWN0IGRtYV9zbGF2ZV9j
-b25maWcgew0KPiA+ICAgICAgICAgZW51bSBkbWFfZGF0YV9kaXJlY3Rpb24gZGlyZWN0aW9uOw0K
-PiA+ICAgICAgICAgZG1hX2FkZHJfdCBzcmNfYWRkcjsNCj4gPiAgICAgICAgIGRtYV9hZGRyX3Qg
-ZHN0X2FkZHI7DQo+ID4gICAgICAgICBlbnVtIGRtYV9zbGF2ZV9idXN3aWR0aCBzcmNfYWRkcl93
-aWR0aDsNCj4gPiAgICAgICAgIGVudW0gZG1hX3NsYXZlX2J1c3dpZHRoIGRzdF9hZGRyX3dpZHRo
-Ow0KPiA+ICAgICAgICAgdTMyIHNyY19tYXhidXJzdDsNCj4gPiAgICAgICAgIHUzMiBkc3RfbWF4
-YnVyc3Q7DQo+ID4gfTsNCj4gPg0KPiA+IFRoaXMgZGF0YSBzdHJ1Y3R1cmUgaXMgcGFzc2VkIHRv
-IHRoZSBvZmZsb2FkIGVuZ2luZSB2aWEgdGhlIGRtYV9jaGFuDQo+ID4gZGF0YSBzdHJ1Y3R1cmUg
-aW4gaXRzIHByaXZhdGUgcG9pbnRlci4NCj4gTm8sIHRoaXMgaXMgcGFzc2VkIHRocnUgY29udHJv
-bCBBUEkgeW91IGRlc2NyaWJlZCBhYm92ZS4gUGxlYXNlIHJlYWQNCj4gRG9jdW1lbnRhdGlvbi9k
-bWFlbmdpbmUudHh0DQoNClllcywgVmlub2QgaXRzIG15IG1pc3Rha2UuIEkgd2FudGVkIHRvIHNh
-eSBjb250cm9sIEFQSSBvbmx5LCANCmJ1dCBqdXN0IG1peGVkIGl0IHVwIHdpdGggaG93IHRoZSBk
-bWFfc2xhdmVfY29uZmlnIGlzIGF0dGFjaGVkIA0KdG8gZWFjaCBkbWFfY2hhbiBzbyB0aGF0IHRo
-ZSBvZmZsb2FkIGRyaXZlcnMgY2FuIHVzZSBpdCB3aGlsZSANCnByZXBhcmluZyB0aGUgZGVzY3Jp
-cHRvcnMuDQoNCj4gDQo+ID4gTm93IGNvbWluZyB0byB0aGUgYnVmZmVyIHJlbGF0ZWQgYXR0cmli
-dXRlcywgc2cgbGlzdCBpcyBhIG5pY2Ugd2F5IHRvDQo+ID4gcmVwcmVzZW50IGEgZGlzam9pbnQg
-YnVmZmVyOyBhbGwgdGhlIG9mZmxvYWQgZW5naW5lcyBpbiBkcml2ZXJzL2RtYQ0KPiA+IGNyZWF0
-ZSBhIGRlc2NyaXB0b3IgZm9yIGVhY2ggb2YgdGhlIGNvbnRpZ3VvdXMgY2h1bmsgaW4gdGhlIHNn
-IGxpc3QNCj4gPiBidWZmZXIgYW5kIHBhc3MgaXQgdG8gdGhlIGNvbnRyb2xsZXIuDQo+ID4NCj4g
-PiBCdXQgbWFueSBhIHRpbWVzIGEgY2xpZW50IG1heSB3YW50IHRvIHRyYW5zZmVyIGZyb20gYSBz
-aW5nbGUgYnVmZmVyIHRvDQo+ID4gdGhlIHBlcmlwaGVyYWwgYW5kIG1vc3Qgb2YgdGhlIERNQSBj
-b250cm9sbGVycyBoYXZlIHRoZSBjYXBhYmlsaXR5IHRvDQo+ID4gdHJhbnNmZXIgZGF0YSBpbiBj
-aHVua3MvZnJhbWVzIGRpcmVjdGx5IGF0IGEgc3RyZXRjaC4NCj4gPiBBbGwgdGhlIGF0dHJpYnV0
-ZXMgb2YgYSBidWZmZXIsIHdoaWNoIGFyZSByZXF1aXJlZCBmb3IgdGhlIHRyYW5zZmVyDQo+ID4g
-Y2FuIGJlIHByb2dyYW1tZWQgaW4gc2luZ2xlIGRlc2NyaXB0b3IgYW5kIHN1Ym1pdHRlZCB0byB0
-aGUNCj4gPiBETUEgY29udHJvbGxlci4NCj4gPg0KPiA+IFNvIEkgdGhpbmsgdGhlIHNsYXZlIHRy
-YW5zZmVyIEFQSSBtdXN0IGFsc28gaGF2ZSBhIHByb3Zpc2lvbiB0byBwYXNzDQo+ID4gdGhlIGJ1
-ZmZlciBjb25maWd1cmF0aW9uLiBUaGUgYnVmZmVyIGF0dHJpYnV0ZXMgaGF2ZSB0byBiZSBwYXNz
-ZWQNCj4gPiBkaXJlY3RseSBhcyBhbiBhcmd1bWVudCBpbiB0aGUgcHJlcGFyZSBBUEksIHVubGlr
-ZSBkbWFfc2xhdmVfY29uZmlnDQo+ID4gYXMgdGhleSB3aWxsIGJlIGRpZmZlcmVudCBmb3IgZWFj
-aCBidWZmZXIgdGhhdCBpcyBnb2luZyB0byBiZQ0KPiA+IHRyYW5zZmVycmVkLg0KPiBDYW4geW91
-IGFydGljdWxhdGUgd2hhdCBhdHRyaWJ1dGVzIHlvdSBhcmUgdGFsa2luZyBhYm91dC4gVGhlDQo+
-IGRtYV9zbGF2ZV9jb25maWcgcGFyYW1ldGVycyBkb24ndCByZXByZXNlbnQgYnVmZmVyIGF0dHJp
-YnV0ZXMuIFRoZXkNCj4gcmVwcmVzZW50IHRoZSBkbWEgYXR0cmlidXRlcyBvbiBob3cgeW91IHdh
-bnQgdG8gdHJhbnNmZXIuIFRoZXNlIHRoaW5ncw0KPiBsaWtlIGJ1cyB3aWR0aHMsIGJ1cnN0IGxl
-bmd0aHMgYXJlIHVzdWFsbHkgY29uc3RhbnQgZm9yIHRoZSBzbGF2ZQ0KPiB0cmFuc2ZlcnMsIG5v
-dCBzdXJlIHdoeSB0aGV5IHNob3VsZCBjaGFuZ2UgcGVyIGJ1ZmZlcj8NCj4gDQoNCkkgaGF2ZSB0
-cmllZCB0byBleHBsYWluIHRoZSBhdHRyaWJ1dGVzIGluIHRoZSBwcmV2aW91cyBtYWlsIA0KSSBw
-b3N0ZWQgaW4gdGhpcyB0aHJlYWQuDQoNClllcywgYnVmZmVyIGF0dHJpYnV0ZXMgc2hvdWxkIG5v
-dCBiZSByZXByZXNlbnRlZCBpbiANCnRoZSBkbWFfc2xhdmVfY29uZmlnLiBJdCBpcyBmb3Igc2xh
-dmUgcmVsYXRlZCBkYXRhLg0KVGhhdCBpcyB3aHkgaGFkIG1lbnRpb25lZCB0aGF0IGJ1ZmZlciBj
-b25maWd1cmF0aW9uIHNob3VsZCBiZQ0KYSBzZXBhcmF0ZSBzdHJ1Y3R1cmUgYW5kIHBhc3NlZCBp
-biB0aGUgcHJlcGFyZSBBUEkuDQpTZWUgcXVvdGVkIGJlbG93Og0KDQo8cXVvdGU+DQo+IHN0cnVj
-dCBkbWFfYnVmZmVyX2NvbmZpZyB7DQo+IAl1MzIgY2h1bmtfc2l6ZTsgLyogbnVtYmVyIG9mIGJ5
-dGVzIGluIGEgY2h1bmsgKi8NCj4gCXUzMiBmcmFtZV9zaXplOyAvKiBudW1iZXIgb2YgY2h1bmtz
-IGluIGEgZnJhbWUgKi8NCj4gCS8qIHUzMiBuX2ZyYW1lczsgbnVtYmVyIG9mIGZyYW1lcyBpbiB0
-aGUgYnVmZmVyICovDQo+IAl1MzIgaW50ZXJfY2h1bmtfZ2FwOyAvKiBudW1iZXIgb2YgYnl0ZXMg
-YmV0d2VlbiBlbmQgb2YgYSBjaHVuayANCj4gCQkJCWFuZCB0aGUgc3RhcnQgb2YgdGhlIG5leHQg
-Y2h1bmsgKi8gDQo+IAl1MzIgaW50ZXJfZnJhbWVfZ2FwOyAvKiBudW1iZXIgb2YgYnl0ZXMgYmV0
-d2VlbiBlbmQgb2YgYSBmcmFtZSANCj4gCQkJCWFuZCB0aGUgc3RhcnQgb2YgdGhlIG5leHQgZnJh
-bWUgKi8gDQo+IAlib29sIHN5bmNfcmF0ZTsgLyogMCAtIGEgc3luYyBldmVudCBpcyByZXF1aXJl
-ZCBmcm9tIHRoZSANCj4gCQkJCXBlcmlwaGVyYWwgdG8gdHJhbnNmZXIgYSBjaHVuayANCj4gCQkJ
-MSAtIGEgc3luYyBldmVudCBpcyByZXF1aXJlZCBmcm9tIHRoZSANCj4gCQkJCXBlcmlwaGVyYWwg
-dG8gdHJhbnNmZXIgYSBmcmFtZSAqLyANCj4gfTsNCj4gDQo+IFRoZSBwYXRjaCB0byBhZGQgYSBu
-ZXcgQVBJIGZvciBzaW5nbGUgYnVmZmVyIHRyYW5zZmVycyBhbG9uZTogDQo+IGRpZmYgLS1naXQg
-YS9pbmNsdWRlL2xpbnV4L2RtYWVuZ2luZS5oIGIvaW5jbHVkZS9saW51eC9kbWFlbmdpbmUuaA0K
-PiBAQCAtNDkxLDYgKzQ5MiwxMCBAQCBzdHJ1Y3QgZG1hX2RldmljZSB7DQo+IAkJc3RydWN0IGRt
-YV9jaGFuICpjaGFuLCBzdHJ1Y3Qgc2NhdHRlcmxpc3QgKnNnbCwNCj4gCQl1bnNpZ25lZCBpbnQg
-c2dfbGVuLCBlbnVtIGRtYV9kYXRhX2RpcmVjdGlvbiBkaXJlY3Rpb24sDQo+IAkJdW5zaWduZWQg
-bG9uZyBmbGFncyk7DQo+ICsJc3RydWN0IGRtYV9hc3luY190eF9kZXNjcmlwdG9yICooKmRldmlj
-ZV9wcmVwX3NsYXZlKSgNCj4gKwkJc3RydWN0IGRtYV9jaGFuICpjaGFuLCBkbWFfYWRkcl90IGJ1
-Zl9hZGRyLA0KPiArCQl1bnNpZ25lZCBpbnQgYnVmX2xlbiwgdm9pZCAqYnVmX3Byb3AsDQo+ICsJ
-CWVudW0gZG1hX2RhdGFfZGlyZWN0aW9uIGRpcmVjdGlvbiwgdW5zaWduZWQgbG9uZyBmbGFncyk7
-DQo+IAlzdHJ1Y3QgZG1hX2FzeW5jX3R4X2Rlc2NyaXB0b3IgKigqZGV2aWNlX3ByZXBfZG1hX2N5
-Y2xpYykoDQo+IAkJc3RydWN0IGRtYV9jaGFuICpjaGFuLCBkbWFfYWRkcl90IGJ1Zl9hZGRyLCBz
-aXplX3QgYnVmX2xlbiwNCj4gCQlzaXplX3QgcGVyaW9kX2xlbiwgZW51bSBkbWFfZGF0YV9kaXJl
-Y3Rpb24gZGlyZWN0aW9uKTsNCj4NCjwvcXVvdGU+DQoNClJlZ2FyZHMsDQpTdW5kYXJhbQ0K
+On 6/10/2011 5:45 AM, Todd Poynor wrote:
+>> +	int hwsup = 0;
+>> >
+>> >    	if (pwrdm == NULL || IS_ERR(pwrdm))
+>> >    		return -EINVAL;
+>> >  @@ -127,6 +128,7 @@ int omap_set_pwrdm_state(struct powerdomain *pwrdm, u32 state)
+>> >    			(pwrdm->flags&  PWRDM_HAS_LOWPOWERSTATECHANGE)) {
+>> >    			sleep_switch = LOWPOWERSTATE_SWITCH;
+>> >    		} else {
+>> >  +			hwsup = clkdm_is_idle(pwrdm->pwrdm_clkdms[0]);
+>> >    			clkdm_wakeup(pwrdm->pwrdm_clkdms[0]);
+>> >    			pwrdm_wait_transition(pwrdm);
+>> >    			sleep_switch = FORCEWAKEUP_SWITCH;
+>> >  @@ -142,7 +144,7 @@ int omap_set_pwrdm_state(struct powerdomain *pwrdm, u32 state)
+>> >
+>> >    	switch (sleep_switch) {
+>> >    	case FORCEWAKEUP_SWITCH:
+>> >  -		if (pwrdm->pwrdm_clkdms[0]->flags&  CLKDM_CAN_ENABLE_AUTO)
+>> >  +		if (hwsup)
+>> >    			clkdm_allow_idle(pwrdm->pwrdm_clkdms[0]);
+>> >    		else
+>> >    			clkdm_sleep(pwrdm->pwrdm_clkdms[0]);
+> Is concurrency protection needed here?  Not sure if it's expected that
+> multiple threads would simultaneously manage the state of the same power
+> domain, or that the associated clock domain would change state
+> concurrently.
+
+Yeah, maybe there is a need for a per-clkdm lock to prevent these
+concurrency issues. This race between omap_set_pwrdm_state and
+clk_enable/disable all programming clkdm state was one possibility
+for a race (even without this series), but with this series to move the
+clkdm handling into hwmod there are certainly more possibilities (across 
+concurrent omap_hwmod_enable/idle) because the hwmod framework uses 
+per-hwmod lock while the clock framework used a global lock.
+Thanks for bringing this up.
+Paul/Benoit any thoughts on if a per-clkdm lock seems reasonable?
+
+I just did a quick patch to add per-clkdm locking, it also has a
+couple instances of arch-specific clkdm calls making
+calls back to generic clkdm framework fixed, which
+otherwise would result in recursive locking.
+
+----
+From: Rajendra Nayak <rnayak@ti.com>
+Date: Fri, 10 Jun 2011 15:42:25 +0530
+Subject: [PATCH] OMAP: clockdomain: Add per clkdm lock to prevent 
+concurrent state programming
+
+Since the clkdm state programming is now done from
+within the hwmod framework (which uses a per-hwmod
+lock) instead of the being done from the clock
+framework (which used a global lock), there is
+now a need to have per-clkdm locking to prevent
+races between different hwmods/modules belonging to the
+same clock domain concurrently programming the
+clkdm state.
+
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+---
+  arch/arm/mach-omap2/clockdomain.c          |   42 
+++++++++++++++++++++++++++--
+  arch/arm/mach-omap2/clockdomain.h          |    2 +
+  arch/arm/mach-omap2/clockdomain2xxx_3xxx.c |    6 ++-
+  arch/arm/mach-omap2/clockdomain44xx.c      |    7 ++--
+  4 files changed, 49 insertions(+), 8 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/clockdomain.c 
+b/arch/arm/mach-omap2/clockdomain.c
+index b98a972..374e669 100644
+--- a/arch/arm/mach-omap2/clockdomain.c
++++ b/arch/arm/mach-omap2/clockdomain.c
+@@ -92,6 +92,8 @@ static int _clkdm_register(struct clockdomain *clkdm)
+
+  	pwrdm_add_clkdm(pwrdm, clkdm);
+
++	spin_lock_init(&clkdm->lock);
++
+  	pr_debug("clockdomain: registered %s\n", clkdm->name);
+
+  	return 0;
+@@ -690,6 +692,9 @@ int clkdm_clear_all_sleepdeps(struct clockdomain *clkdm)
+   */
+  int clkdm_sleep(struct clockdomain *clkdm)
+  {
++	int ret;
++	unsigned long flags;
++
+  	if (!clkdm)
+  		return -EINVAL;
+
+@@ -704,7 +709,10 @@ int clkdm_sleep(struct clockdomain *clkdm)
+
+  	pr_debug("clockdomain: forcing sleep on %s\n", clkdm->name);
+
+-	return arch_clkdm->clkdm_sleep(clkdm);
++	spin_lock_irqsave(&clkdm->lock, flags);
++	ret = arch_clkdm->clkdm_sleep(clkdm);
++	spin_unlock_irqrestore(&clkdm->lock, flags);
++	return ret;
+  }
+
+  /**
+@@ -718,6 +726,9 @@ int clkdm_sleep(struct clockdomain *clkdm)
+   */
+  int clkdm_wakeup(struct clockdomain *clkdm)
+  {
++	int ret;
++	unsigned long flags;
++
+  	if (!clkdm)
+  		return -EINVAL;
+
+@@ -732,7 +743,10 @@ int clkdm_wakeup(struct clockdomain *clkdm)
+
+  	pr_debug("clockdomain: forcing wakeup on %s\n", clkdm->name);
+
+-	return arch_clkdm->clkdm_wakeup(clkdm);
++	spin_lock_irqsave(&clkdm->lock, flags);
++	ret = arch_clkdm->clkdm_wakeup(clkdm);
++	spin_unlock_irqrestore(&clkdm->lock, flags);
++	return ret;
+  }
+
+  /**
+@@ -747,6 +761,8 @@ int clkdm_wakeup(struct clockdomain *clkdm)
+   */
+  void clkdm_allow_idle(struct clockdomain *clkdm)
+  {
++	unsigned long flags;
++
+  	if (!clkdm)
+  		return;
+
+@@ -762,8 +778,10 @@ void clkdm_allow_idle(struct clockdomain *clkdm)
+  	pr_debug("clockdomain: enabling automatic idle transitions for %s\n",
+  		 clkdm->name);
+
++	spin_lock_irqsave(&clkdm->lock, flags);
+  	arch_clkdm->clkdm_allow_idle(clkdm);
+  	pwrdm_clkdm_state_switch(clkdm);
++	spin_unlock_irqrestore(&clkdm->lock, flags);
+  }
+
+  /**
+@@ -777,6 +795,8 @@ void clkdm_allow_idle(struct clockdomain *clkdm)
+   */
+  void clkdm_deny_idle(struct clockdomain *clkdm)
+  {
++	unsigned long flags;
++
+  	if (!clkdm)
+  		return;
+
+@@ -792,7 +812,9 @@ void clkdm_deny_idle(struct clockdomain *clkdm)
+  	pr_debug("clockdomain: disabling automatic idle transitions for %s\n",
+  		 clkdm->name);
+
++	spin_lock_irqsave(&clkdm->lock, flags);
+  	arch_clkdm->clkdm_deny_idle(clkdm);
++	spin_unlock_irqrestore(&clkdm->lock, flags);
+  }
+
+  /**
+@@ -805,6 +827,9 @@ void clkdm_deny_idle(struct clockdomain *clkdm)
+   */
+  int clkdm_is_idle(struct clockdomain *clkdm)
+  {
++	int ret;
++	unsigned long flags;
++
+  	if (!clkdm)
+  		return -EINVAL;
+
+@@ -813,7 +838,10 @@ int clkdm_is_idle(struct clockdomain *clkdm)
+
+  	pr_debug("clockdomain: reading idle state for %s\n", clkdm->name);
+
+-	return arch_clkdm->clkdm_is_idle(clkdm);
++	spin_lock_irqsave(&clkdm->lock, flags);
++	ret = arch_clkdm->clkdm_is_idle(clkdm);
++	spin_unlock_irqrestore(&clkdm->lock, flags);
++	return ret;
+  }
+
+
+@@ -835,6 +863,8 @@ int clkdm_is_idle(struct clockdomain *clkdm)
+   */
+  int clkdm_clk_enable(struct clockdomain *clkdm, struct clk *clk)
+  {
++	unsigned long flags;
++
+  	/*
+  	 * XXX Rewrite this code to maintain a list of enabled
+  	 * downstream clocks for debugging purposes?
+@@ -859,9 +889,11 @@ int clkdm_clk_enable(struct clockdomain *clkdm, 
+struct clk *clk)
+  	pr_debug("clockdomain: clkdm %s: clk %s now enabled\n", clkdm->name,
+  		 clk->name);
+
++	spin_lock_irqsave(&clkdm->lock, flags);
+  	arch_clkdm->clkdm_clk_enable(clkdm);
+  	pwrdm_wait_transition(clkdm->pwrdm.ptr);
+  	pwrdm_clkdm_state_switch(clkdm);
++	spin_unlock_irqrestore(&clkdm->lock, flags);
+
+  	return 0;
+  }
+@@ -882,6 +914,8 @@ int clkdm_clk_enable(struct clockdomain *clkdm, 
+struct clk *clk)
+   */
+  int clkdm_clk_disable(struct clockdomain *clkdm, struct clk *clk)
+  {
++	unsigned long flags;
++
+  	/*
+  	 * XXX Rewrite this code to maintain a list of enabled
+  	 * downstream clocks for debugging purposes?
+@@ -908,8 +942,10 @@ int clkdm_clk_disable(struct clockdomain *clkdm, 
+struct clk *clk)
+  	pr_debug("clockdomain: clkdm %s: clk %s now disabled\n", clkdm->name,
+  		 clk->name);
+
++	spin_lock_irqsave(&clkdm->lock, flags);
+  	arch_clkdm->clkdm_clk_disable(clkdm);
+  	pwrdm_clkdm_state_switch(clkdm);
++	spin_unlock_irqrestore(&clkdm->lock, flags);
+
+  	return 0;
+  }
+diff --git a/arch/arm/mach-omap2/clockdomain.h 
+b/arch/arm/mach-omap2/clockdomain.h
+index 085ed82..9fd4eb5 100644
+--- a/arch/arm/mach-omap2/clockdomain.h
++++ b/arch/arm/mach-omap2/clockdomain.h
+@@ -17,6 +17,7 @@
+  #define __ARCH_ARM_MACH_OMAP2_CLOCKDOMAIN_H
+
+  #include <linux/init.h>
++#include <linux/spinlock.h>
+
+  #include "powerdomain.h"
+  #include <plat/clock.h>
+@@ -122,6 +123,7 @@ struct clockdomain {
+  	const struct omap_chip_id omap_chip;
+  	atomic_t usecount;
+  	struct list_head node;
++	spinlock_t lock;
+  };
+
+  /**
+diff --git a/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c 
+b/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c
+index e0c393f..f841ac8 100644
+--- a/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c
++++ b/arch/arm/mach-omap2/clockdomain2xxx_3xxx.c
+@@ -193,7 +193,8 @@ static int omap2_clkdm_clk_enable(struct clockdomain 
+*clkdm)
+  		_clkdm_add_autodeps(clkdm);
+  		_enable_hwsup(clkdm);
+  	} else {
+-		clkdm_wakeup(clkdm);
++		if (clkdm->flags & CLKDM_CAN_FORCE_WAKEUP)
++			omap2_clkdm_wakeup(clkdm);
+  	}
+
+  	return 0;
+@@ -215,7 +216,8 @@ static int omap2_clkdm_clk_disable(struct 
+clockdomain *clkdm)
+  		_clkdm_del_autodeps(clkdm);
+  		_enable_hwsup(clkdm);
+  	} else {
+-		clkdm_sleep(clkdm);
++		if (clkdm->flags & CLKDM_CAN_FORCE_SLEEP)
++			omap2_clkdm_sleep(clkdm);
+  	}
+
+  	return 0;
+diff --git a/arch/arm/mach-omap2/clockdomain44xx.c 
+b/arch/arm/mach-omap2/clockdomain44xx.c
+index e4b8e06..911770b 100644
+--- a/arch/arm/mach-omap2/clockdomain44xx.c
++++ b/arch/arm/mach-omap2/clockdomain44xx.c
+@@ -101,7 +101,8 @@ static int omap4_clkdm_is_idle(struct clockdomain 
+*clkdm)
+
+  static int omap4_clkdm_clk_enable(struct clockdomain *clkdm)
+  {
+-	clkdm_wakeup(clkdm);
++	if (clkdm->flags & CLKDM_CAN_FORCE_WAKEUP)
++		return omap4_clkdm_wakeup(clkdm);
+  	return 0;
+  }
+
+@@ -112,8 +113,8 @@ static int omap4_clkdm_clk_disable(struct 
+clockdomain *clkdm)
+  	hwsup = omap4_cminst_is_clkdm_in_hwsup(clkdm->prcm_partition,
+  					clkdm->cm_inst, clkdm->clkdm_offs);
+
+-	if (!hwsup)
+-		clkdm_sleep(clkdm);
++	if (!hwsup && (clkdm->flags & CLKDM_CAN_FORCE_SLEEP))
++		omap4_clkdm_sleep(clkdm);
+
+  	return 0;
+  }
+-- 
+1.7.0.4
+
