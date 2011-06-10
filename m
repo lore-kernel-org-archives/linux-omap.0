@@ -1,145 +1,131 @@
 From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: [PATCH v2 1/4] drivers: iommu: move to a dedicated folder
-Date: Sat, 11 Jun 2011 00:55:44 +0300
-Message-ID: <1307742947-32118-2-git-send-email-ohad@wizery.com>
+Subject: [PATCH v2 3/4] x86: amd_iommu: move to drivers/iommu/
+Date: Sat, 11 Jun 2011 00:55:46 +0300
+Message-ID: <1307742947-32118-4-git-send-email-ohad@wizery.com>
 References: <1307742947-32118-1-git-send-email-ohad@wizery.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-pci-owner@vger.kernel.org>
 In-Reply-To: <1307742947-32118-1-git-send-email-ohad@wizery.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-pci-owner@vger.kernel.org
 To: Joerg Roedel <Joerg.Roedel@amd.com>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, David Brown <davidb@codeaurora.org>, David Woodhouse <dwmw2@infradead.org>, iommu@lists.linux-foundation.org, linux-pci@vger.kernel.org, Ohad Ben-Cohen <ohad@wizery.com>
 List-Id: linux-omap@vger.kernel.org
 
-Create a dedicated folder for iommu drivers, and move the base
-iommu implementation over there.
+This should ease finding similarities with different platforms,
+with the intention of solving problems once in a generic framework
+which everyone can use.
 
-Grouping the various iommu drivers in a single location will help
-finding similar problems shared by different platforms, so they
-could be solved once, in the iommu framework, instead of solved
-differently (or duplicated) in each driver.
+Compile-tested on x86_64.
 
 Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
 ---
- arch/arm/mach-msm/Kconfig       |    3 ---
- arch/ia64/Kconfig               |    3 ---
- arch/x86/Kconfig                |    5 ++---
- drivers/Kconfig                 |    2 ++
- drivers/Makefile                |    1 +
- drivers/base/Makefile           |    1 -
- drivers/iommu/Kconfig           |    3 +++
- drivers/iommu/Makefile          |    1 +
- drivers/{base => iommu}/iommu.c |    0
- 9 files changed, 9 insertions(+), 10 deletions(-)
- create mode 100644 drivers/iommu/Kconfig
- create mode 100644 drivers/iommu/Makefile
- rename drivers/{base => iommu}/iommu.c (100%)
+ arch/x86/Kconfig                               |   28 -----------------------
+ arch/x86/kernel/Makefile                       |    2 +-
+ drivers/iommu/Kconfig                          |   29 ++++++++++++++++++++++++
+ drivers/iommu/Makefile                         |    1 +
+ {arch/x86/kernel => drivers/iommu}/amd_iommu.c |    0
+ 5 files changed, 31 insertions(+), 29 deletions(-)
+ rename {arch/x86/kernel => drivers/iommu}/amd_iommu.c (100%)
 
-diff --git a/arch/arm/mach-msm/Kconfig b/arch/arm/mach-msm/Kconfig
-index 1516896..efb7b7d 100644
---- a/arch/arm/mach-msm/Kconfig
-+++ b/arch/arm/mach-msm/Kconfig
-@@ -205,9 +205,6 @@ config MSM_GPIOMUX
- config MSM_V2_TLMM
- 	bool
- 
--config IOMMU_API
--	bool
--
- config MSM_SCM
- 	bool
- endif
-diff --git a/arch/ia64/Kconfig b/arch/ia64/Kconfig
-index 38280ef..9929e4e 100644
---- a/arch/ia64/Kconfig
-+++ b/arch/ia64/Kconfig
-@@ -681,6 +681,3 @@ source "lib/Kconfig"
- 
- config IOMMU_HELPER
- 	def_bool (IA64_HP_ZX1 || IA64_HP_ZX1_SWIOTLB || IA64_GENERIC || SWIOTLB)
--
--config IOMMU_API
--	def_bool (DMAR)
 diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index da34972..460d573 100644
+index 460d573..1b6a2e2 100644
 --- a/arch/x86/Kconfig
 +++ b/arch/x86/Kconfig
-@@ -685,6 +685,7 @@ config AMD_IOMMU
- 	select SWIOTLB
- 	select PCI_MSI
- 	select PCI_IOV
-+	select IOMMU_API
- 	depends on X86_64 && PCI && ACPI
- 	---help---
- 	  With this option you can enable support for AMD IOMMU hardware in
-@@ -720,9 +721,6 @@ config SWIOTLB
- config IOMMU_HELPER
- 	def_bool (CALGARY_IOMMU || GART_IOMMU || SWIOTLB || AMD_IOMMU)
+@@ -680,34 +680,6 @@ config CALGARY_IOMMU_ENABLED_BY_DEFAULT
+ 	  Calgary anyway, pass 'iommu=calgary' on the kernel command line.
+ 	  If unsure, say Y.
  
--config IOMMU_API
--	def_bool (AMD_IOMMU || DMAR)
+-config AMD_IOMMU
+-	bool "AMD IOMMU support"
+-	select SWIOTLB
+-	select PCI_MSI
+-	select PCI_IOV
+-	select IOMMU_API
+-	depends on X86_64 && PCI && ACPI
+-	---help---
+-	  With this option you can enable support for AMD IOMMU hardware in
+-	  your system. An IOMMU is a hardware component which provides
+-	  remapping of DMA memory accesses from devices. With an AMD IOMMU you
+-	  can isolate the the DMA memory of different devices and protect the
+-	  system from misbehaving device drivers or hardware.
 -
- config MAXSMP
- 	bool "Enable Maximum number of SMP Processors and NUMA Nodes"
- 	depends on X86_64 && SMP && DEBUG_KERNEL && EXPERIMENTAL
-@@ -1945,6 +1943,7 @@ config PCI_CNB20LE_QUIRK
- config DMAR
- 	bool "Support for DMA Remapping Devices (EXPERIMENTAL)"
- 	depends on PCI_MSI && ACPI && EXPERIMENTAL
-+	select IOMMU_API
- 	help
- 	  DMA remapping (DMAR) devices support enables independent address
- 	  translations for Direct Memory Access (DMA) from devices.
-diff --git a/drivers/Kconfig b/drivers/Kconfig
-index 3bb154d..9d51318 100644
---- a/drivers/Kconfig
-+++ b/drivers/Kconfig
-@@ -126,4 +126,6 @@ source "drivers/hwspinlock/Kconfig"
+-	  You can find out if your system has an AMD IOMMU if you look into
+-	  your BIOS for an option to enable it or if you have an IVRS ACPI
+-	  table.
+-
+-config AMD_IOMMU_STATS
+-	bool "Export AMD IOMMU statistics to debugfs"
+-	depends on AMD_IOMMU
+-	select DEBUG_FS
+-	---help---
+-	  This option enables code in the AMD IOMMU driver to collect various
+-	  statistics about whats happening in the driver and exports that
+-	  information to userspace via debugfs.
+-	  If unsure, say N.
+-
+ # need this always selected by IOMMU for the VIA workaround
+ config SWIOTLB
+ 	def_bool y if X86_64
+diff --git a/arch/x86/kernel/Makefile b/arch/x86/kernel/Makefile
+index 90b06d4..aef0298 100644
+--- a/arch/x86/kernel/Makefile
++++ b/arch/x86/kernel/Makefile
+@@ -123,7 +123,7 @@ ifeq ($(CONFIG_X86_64),y)
  
- source "drivers/clocksource/Kconfig"
+ 	obj-$(CONFIG_GART_IOMMU)	+= amd_gart_64.o aperture_64.o
+ 	obj-$(CONFIG_CALGARY_IOMMU)	+= pci-calgary_64.o tce_64.o
+-	obj-$(CONFIG_AMD_IOMMU)		+= amd_iommu_init.o amd_iommu.o
++	obj-$(CONFIG_AMD_IOMMU)		+= amd_iommu_init.o
  
-+source "drivers/iommu/Kconfig"
-+
- endmenu
-diff --git a/drivers/Makefile b/drivers/Makefile
-index 09f3232..2f7a71a 100644
---- a/drivers/Makefile
-+++ b/drivers/Makefile
-@@ -122,3 +122,4 @@ obj-y				+= ieee802154/
- obj-y				+= clk/
- 
- obj-$(CONFIG_HWSPINLOCK)	+= hwspinlock/
-+obj-$(CONFIG_IOMMU_API)		+= iommu/
-diff --git a/drivers/base/Makefile b/drivers/base/Makefile
-index 4c5701c..5ab0d07 100644
---- a/drivers/base/Makefile
-+++ b/drivers/base/Makefile
-@@ -13,7 +13,6 @@ obj-$(CONFIG_FW_LOADER)	+= firmware_class.o
- obj-$(CONFIG_NUMA)	+= node.o
- obj-$(CONFIG_MEMORY_HOTPLUG_SPARSE) += memory.o
- obj-$(CONFIG_SMP)	+= topology.o
--obj-$(CONFIG_IOMMU_API) += iommu.o
- ifeq ($(CONFIG_SYSFS),y)
- obj-$(CONFIG_MODULES)	+= module.o
- endif
+ 	obj-$(CONFIG_PCI_MMCONFIG)	+= mmconf-fam10h_64.o
+ 	obj-y				+= vsmp_64.o
 diff --git a/drivers/iommu/Kconfig b/drivers/iommu/Kconfig
-new file mode 100644
-index 0000000..2c5dfb4
---- /dev/null
+index 21a80bf..9246c5b 100644
+--- a/drivers/iommu/Kconfig
 +++ b/drivers/iommu/Kconfig
-@@ -0,0 +1,3 @@
-+# IOMMU_API always gets selected by whoever wants it.
-+config IOMMU_API
-+	bool
+@@ -17,3 +17,32 @@ config MSM_IOMMU
+ config IOMMU_PGTABLES_L2
+ 	def_bool y
+ 	depends on MSM_IOMMU && MMU && SMP && CPU_DCACHE_DISABLE=n
++
++# AMD IOMMU support
++config AMD_IOMMU
++	bool "AMD IOMMU support"
++	select SWIOTLB
++	select PCI_MSI
++	select PCI_IOV
++	select IOMMU_API
++	depends on X86_64 && PCI && ACPI
++	---help---
++	  With this option you can enable support for AMD IOMMU hardware in
++	  your system. An IOMMU is a hardware component which provides
++	  remapping of DMA memory accesses from devices. With an AMD IOMMU you
++	  can isolate the the DMA memory of different devices and protect the
++	  system from misbehaving device drivers or hardware.
++
++	  You can find out if your system has an AMD IOMMU if you look into
++	  your BIOS for an option to enable it or if you have an IVRS ACPI
++	  table.
++
++config AMD_IOMMU_STATS
++	bool "Export AMD IOMMU statistics to debugfs"
++	depends on AMD_IOMMU
++	select DEBUG_FS
++	---help---
++	  This option enables code in the AMD IOMMU driver to collect various
++	  statistics about whats happening in the driver and exports that
++	  information to userspace via debugfs.
++	  If unsure, say N.
 diff --git a/drivers/iommu/Makefile b/drivers/iommu/Makefile
-new file mode 100644
-index 0000000..241ba4c
---- /dev/null
+index 1a71c82..4237eaf 100644
+--- a/drivers/iommu/Makefile
 +++ b/drivers/iommu/Makefile
-@@ -0,0 +1 @@
-+obj-$(CONFIG_IOMMU_API) += iommu.o
-diff --git a/drivers/base/iommu.c b/drivers/iommu/iommu.c
+@@ -1,2 +1,3 @@
+ obj-$(CONFIG_IOMMU_API) += iommu.o
+ obj-$(CONFIG_MSM_IOMMU) += msm_iommu.o msm_iommu_dev.o
++obj-$(CONFIG_AMD_IOMMU) += amd_iommu.o
+diff --git a/arch/x86/kernel/amd_iommu.c b/drivers/iommu/amd_iommu.c
 similarity index 100%
-rename from drivers/base/iommu.c
-rename to drivers/iommu/iommu.c
+rename from arch/x86/kernel/amd_iommu.c
+rename to drivers/iommu/amd_iommu.c
 -- 
 1.7.1
