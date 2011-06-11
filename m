@@ -1,79 +1,48 @@
-From: onlyfever <onlyfever@gmail.com>
-Subject: Re: HELP:How to power down TWL5030 Voice/Bluetooth sidetone PGA?
-Date: Sat, 11 Jun 2011 11:25:41 +0800
-Message-ID: <BANLkTikMO-VYQxauMQ8wh=L4P=VO6SOJ0g@mail.gmail.com>
-References: <BANLkTik0mX5wSYNdBwhjxuaKa6908fmazQ@mail.gmail.com>
-	<201106101048.45966.peter.ujfalusi@ti.com>
-	<BANLkTi=9sg-WL+OXeA4J9rcH7c6zg+R3Pw@mail.gmail.com>
-	<201106101716.14008.peter.ujfalusi@ti.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [linux-pm] calling runtime PM from system PM methods
+Date: Sat, 11 Jun 2011 12:42:39 +0100
+Message-ID: <20110611114239.GC2738@opensource.wolfsonmicro.com>
+References: <20110610155707.GN26436@opensource.wolfsonmicro.com>
+ <201106102038.22725.rjw@sisk.pl>
+ <20110610184222.GT26436@opensource.wolfsonmicro.com>
+ <201106102227.25391.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:61411 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758512Ab1FKDZl convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Jun 2011 23:25:41 -0400
-Received: by vxi39 with SMTP id 39so2641343vxi.19
-        for <linux-omap@vger.kernel.org>; Fri, 10 Jun 2011 20:25:41 -0700 (PDT)
-In-Reply-To: <201106101716.14008.peter.ujfalusi@ti.com>
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:56916 "EHLO
+	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754470Ab1FKLml (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Sat, 11 Jun 2011 07:42:41 -0400
+Content-Disposition: inline
+In-Reply-To: <201106102227.25391.rjw@sisk.pl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?ISO-8859-1?Q?P=E9ter_Ujfalusi?= <peter.ujfalusi@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-pm@lists.linux-foundation.org, Alan Stern <stern@rowland.harvard.edu>, linux-omap@vger.kernel.org
 
->
-> Can you check with:
-> amixer | grep -A 6 =A0Loopback
->
-Simple mixer control 'Left Digital Loopback',0
-  Capabilities: volume volume-joined penum
-  Playback channels: Mono
-  Capture channels: Mono
-  Limits: 0 - 7
-  Mono: 0 [0%] [-99999.99dB]
-Simple mixer control 'Left1 Analog Loopback',0
-  Capabilities: pswitch pswitch-joined penum
-  Playback channels: Mono
-  Mono: Playback [off]
-Simple mixer control 'Left2 Analog Loopback',0
-  Capabilities: pswitch pswitch-joined penum
-  Playback channels: Mono
-  Mono: Playback [off]
-Simple mixer control 'PreDriv',0
-  Capabilities: pvolume penum
-  Playback channels: Front Left - Front Right
---
-Simple mixer control 'Right Digital Loopback',0
-  Capabilities: volume volume-joined penum
-  Playback channels: Mono
-  Capture channels: Mono
-  Limits: 0 - 7
-  Mono: 0 [0%] [-99999.99dB]
-Simple mixer control 'Right1 Analog Loopback',0
-  Capabilities: pswitch pswitch-joined penum
-  Playback channels: Mono
-  Mono: Playback [off]
-Simple mixer control 'Right2 Analog Loopback',0
-  Capabilities: pswitch pswitch-joined penum
-  Playback channels: Mono
-  Mono: Playback [off]
-Simple mixer control 'TX1',0
-  Capabilities: cenum
-  Items: 'Analog' 'Digimic0'
---
-Simple mixer control 'Voice Analog Loopback',0
-  Capabilities: pswitch pswitch-joined penum
-  Playback channels: Mono
-  Mono: Playback [off]
-Simple mixer control 'Voice Digital Loopback',0
-  Capabilities: volume volume-joined penum
-  Playback channels: Mono
-  Capture channels: Mono
-  Limits: 0 - 41
-  Mono: 0 [0%] [-99999.99dB]
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Fri, Jun 10, 2011 at 10:27:25PM +0200, Rafael J. Wysocki wrote:
+
+> So, there are a few things to consider:
+
+> * Can the device do things like DMA?
+> * Does the driver use a workqueue?
+> * Does it use timers?
+
+> In all of the above cases your system suspend handling will require extra
+> care to make sure those things won't get in the way of the suspend process.
+
+Yes, that's the quiesce operation I think myself or Alan mentioned.
+
+> It's probably fair to say that everithing depends on the subsystem, what it
+> does and what it expects from the driver.  In the extreme case, when the
+> subsystem is like the platform bus type, the driver unfortunately is on its
+> own and has to deal with the whole complexity.
+
+I'm pretty much only working with buses that have no infrastructure and
+for which power is essentially orthogonal to the control bus itself -
+that's a very large proportion of the embedded space.  It really feels
+like we could be doing a better job for drivers using these buses,
+there's a lot of similarities in what many of them need but I can never
+find the time to get my head round it confidently enough to actually
+propose anything.
