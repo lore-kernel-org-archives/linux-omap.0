@@ -1,16 +1,16 @@
 From: Alan Stern <stern@rowland.harvard.edu>
 Subject: Re: [linux-pm] calling runtime PM from system PM methods
-Date: Sat, 11 Jun 2011 12:27:51 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1106111212340.3439-100000@netrider.rowland.org>
-References: <8739jhs2hv.fsf@ti.com>
+Date: Sat, 11 Jun 2011 12:42:31 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1106111227580.3439-100000@netrider.rowland.org>
+References: <87ipsdnt1a.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from netrider.rowland.org ([192.131.102.5]:38093 "HELO
+Received: from netrider.rowland.org ([192.131.102.5]:44261 "HELO
 	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1750835Ab1FKQ1w (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 11 Jun 2011 12:27:52 -0400
-In-Reply-To: <8739jhs2hv.fsf@ti.com>
+	with SMTP id S1751032Ab1FKQmc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 11 Jun 2011 12:42:32 -0400
+In-Reply-To: <87ipsdnt1a.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Kevin Hilman <khilman@ti.com>
@@ -18,111 +18,68 @@ Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Linux-pm mailing list <linux-pm@lists.lin
 
 On Fri, 10 Jun 2011, Kevin Hilman wrote:
 
-> So here's an interesting scenario which I think it triggers the same
-> problem as you highlight above.
+> Alan Stern <stern@rowland.harvard.edu> writes:
 > 
-> Assume you have a driver that's using runtime PM on a per-xfer basis.
-> Before each xfer, it does a pm_runtime_get_sync(), after each xfer it
-> does a pm_runtime_put_sync() (for this example, it's important that it's
-> a _put_sync()).  The _put_sync() might happen in an ISR, or possibly in
-> a thread waiting on a completion which is awoken by the ISR, etc. etc.
-> (the runtime PM callbacks are IRQ safe, and device is marked as such.)
+> [...]
+
+> > If the wakeup setting is not correct, it has to be changed.  That 
+> > often implies going back to full power in order to change the 
+> > wakeup setting, then going to low power again.
 > 
-> The driver is in the middle of an xfer and a system suspend request
-> happens.
+> OK, but how should this be implemented?  
 > 
-> The driver's ->suspend() callback happens, and the driver
+> If the device is runtime suspended at system suspend time, it implies
+> that somwhere in the system suspend path, the device has to be powered
+> on and enabled (a.k.a. runtime resumed.)
 > 
-> - enables/disables wakeups based on device_may_wakeup()
-> - prevents future xfers
-> - waits for current xfer to finish
+> From a driver writer's perspective, doing a pm_runtime_get_sync() would
+> be the obvious choice, but that causes nesting of ->runtime_resume
+> callbacks within ->suspend callbacks which is apparently forbidden (or
+> rather strongly recommended against :)
 > 
-> As soon as the xfer finishes, the driver gets notified (completion,
-> callback, IRQ, whatever) and calls pm_runtime_put_sync(), which triggers
-> subsys->runtime_suspend --> driver->runtime_suspend.
+> Now, assuming the driver's suspend can't do a pm_runtime_get()...
 > 
-> While the driver's ->suspend() callback doesn't directly call
-> pm_runtime_put_sync(), the act of waiting for the xfer to finish
-> causes the subsystem/driver->runtime_suspend callbacks to be called
-> during the subsytem/driver->suspend callback, which is the same problem
-> as you highlight above.  
+> In order to power on & enable the device, the driver has to essentially
+> duplicate everything that would be done by a runtime resume.
+
+Again, this depends on the subsystem and the driver.  For example, the
+USB subsystem does call pm_runtime_resume() in order to bring a device
+back to full power if the wakeup setting needs to be changed.  This is
+done in the subsystem code, and the subsystem is designed to allow it.
+
+(Actually, it could be improved.  In theory the driver doesn't need to
+be involved at all; a USB device's wakeup setting can be changed purely
+by the subsystem.  Nevertheless, the pm_runtime_resume call does wake
+up the driver, which then needs to be quiesced again shortly thereafter
+-- overall a waste of time.  This was the easiest approach.)
+
+> The problem comes because this work is shared between the driver and the
+> subsystem.  IOW, it's the driver's ->suspend() callback that decides
+> whether or not the device needs to be powered-on/enabled (e.g. to
+> enable/disable wakeups), but it might be the subsystem that actually has
+> does the magic_device_set_full_power(), magic_device_enable().
 > 
-> Based on your commit that removed incrementing the usage count across
-> suspend[1], you mentioned "we can rely on subsystems and device drivers
-> to avoid doing that unnecessarily."  The above example shows that this
-> type of thing might not be that obvious to detect and thus avoid.
+> So once the driver's ->suspend() realizes it needs to power on & enable
+> the device, it has no way to tell the subsystem to do so, wait for it to
+> happen, and then enable/disable its wakeups.
 
-As with so many other things, this depends entirely on how the 
-subsystem and driver are designed.  If they are written to allow this 
-sort of thing and handle it properly, there's no problem.
+Then the subsystem should _provide_ a way, if that's how you decide to
+handle things.
 
-Nothing in the PM core itself cares whether the runtime PM routines are
-invoked during system sleep.
+> Maybe I'm being really dense, really blind, or really stubborn (or all
+> three), but it seems to be that using runtime PM calls to implement
+> these things would be the most obvious and the most readable.
 
-> I suspect the solution to the above will be to add back the usage count
-> increment across system suspend, but I'm hoping not.  IMO, it would be
-> more flexible to allow the subsystems to decide.  The subsystems could
-> provide locking (or manage dev->power.usage_count) themselves if
-> necessary.  For example, leave it to the subsystem->prepare() to
-> pm_runtime_get_noresume() if it wants to avoid the "nesting" of
-> callbacks.
+Have you tried actually doing it in a situation where you control both
+the driver and the subsystem?
 
-Exactly.
-
-> A related question: does the pm_wq need to be freezable?  From
-> Documentation/power/runtime_pm.txt:
-> 
-> * The power management workqueue pm_wq in which bus types and device drivers can
->   put their PM-related work items.  It is strongly recommended that pm_wq be
->   used for queuing all work items related to run-time PM, because this allows
->   them to be synchronized with system-wide power transitions (suspend to RAM,
->   hibernation and resume from system sleep states).  pm_wq is declared in
->   include/linux/pm_runtime.h and defined in kernel/power/main.c.
-> 
-> Is "synchronized with system-wide power transistions" correct here?
-> Rather than synchronize, using a freezable workqueue actually _prevents_
-> runtime PM events (at least async ones.)
-
-Which prevents races -- the goal of synchronization.  If you use pm_wq 
-for your asynchronous runtime PM events, you never have to worry about 
-one of them occurring in the middle of a system sleep transition.
-
-> Again, proper locking (or management of dev->power.usage_count) at the
-> subsystem level would get you the same effect, but still leave
-> flexibility to the subsystem/pwr_domain layer.
-
-I'm not so sure about that.  For example, how would you prevent an 
-async resume from interfering with a system suspend?
-
-> Kevin
-> 
-> P.S. the commit below[1] removed the usage count increment/decrement
->      across system suspend/resume, but Documentation/power/runtime_pm.txt 
->      still refers to it.   Patch below[2] removes it, ssuming you're
->      not planning on adding it back.  ;)
-
-...
-
-> diff --git a/Documentation/power/runtime_pm.txt b/Documentation/power/runtime_pm.txt
-> index 654097b..22accb3 100644
-> --- a/Documentation/power/runtime_pm.txt
-> +++ b/Documentation/power/runtime_pm.txt
-> @@ -566,11 +566,6 @@ to do this is:
->  	pm_runtime_set_active(dev);
->  	pm_runtime_enable(dev);
->  
-> -The PM core always increments the run-time usage counter before calling the
-> -->prepare() callback and decrements it after calling the ->complete() callback.
-> -Hence disabling run-time PM temporarily like this will not cause any run-time
-> -suspend callbacks to be lost.
-> -
-
-Thank you for pointing this out.  I had forgotten about this; it
-implies that temporarily disabling runtime PM during system resume is
-no longer safe!
-
-Maybe we should put the get_noresume and put_sync calls back into the
-PM core, but only during the system resume stages.
+Basically, I think what Rafael was saying before referred to the 
+general case, where you don't know anything about the subsystem and 
+can't afford to make assumptions.  But in the real world you'll be 
+writing a driver for a particular subsystem and you'll know how that 
+subsystem works.  If the subsystem permits runtime PM calls to be 
+nested within the system PM routines, feel free to go ahead and use 
+them.
 
 Alan Stern
 
