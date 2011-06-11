@@ -1,85 +1,58 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [linux-pm] calling runtime PM from system PM methods
-Date: Sat, 11 Jun 2011 12:42:31 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1106111227580.3439-100000@netrider.rowland.org>
-References: <87ipsdnt1a.fsf@ti.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: calling runtime PM from system PM methods
+Date: Sat, 11 Jun 2011 22:56:36 +0200
+Message-ID: <201106112256.37012.rjw@sisk.pl>
+References: <20110610155707.GN26436@opensource.wolfsonmicro.com>
+	<201106102227.25391.rjw@sisk.pl>
+	<20110611114239.GC2738@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from netrider.rowland.org ([192.131.102.5]:44261 "HELO
-	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751032Ab1FKQmc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 11 Jun 2011 12:42:32 -0400
-In-Reply-To: <87ipsdnt1a.fsf@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <20110611114239.GC2738@opensource.wolfsonmicro.com>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>, Paul Walmsley <paul@pwsan.com>
 
-On Fri, 10 Jun 2011, Kevin Hilman wrote:
-
-> Alan Stern <stern@rowland.harvard.edu> writes:
+On Saturday, June 11, 2011, Mark Brown wrote:
+> On Fri, Jun 10, 2011 at 10:27:25PM +0200, Rafael J. Wysocki wrote:
 > 
-> [...]
-
-> > If the wakeup setting is not correct, it has to be changed.  That 
-> > often implies going back to full power in order to change the 
-> > wakeup setting, then going to low power again.
+> > So, there are a few things to consider:
 > 
-> OK, but how should this be implemented?  
+> > * Can the device do things like DMA?
+> > * Does the driver use a workqueue?
+> > * Does it use timers?
 > 
-> If the device is runtime suspended at system suspend time, it implies
-> that somwhere in the system suspend path, the device has to be powered
-> on and enabled (a.k.a. runtime resumed.)
+> > In all of the above cases your system suspend handling will require extra
+> > care to make sure those things won't get in the way of the suspend process.
 > 
-> From a driver writer's perspective, doing a pm_runtime_get_sync() would
-> be the obvious choice, but that causes nesting of ->runtime_resume
-> callbacks within ->suspend callbacks which is apparently forbidden (or
-> rather strongly recommended against :)
+> Yes, that's the quiesce operation I think myself or Alan mentioned.
 > 
-> Now, assuming the driver's suspend can't do a pm_runtime_get()...
+> > It's probably fair to say that everithing depends on the subsystem, what it
+> > does and what it expects from the driver.  In the extreme case, when the
+> > subsystem is like the platform bus type, the driver unfortunately is on its
+> > own and has to deal with the whole complexity.
 > 
-> In order to power on & enable the device, the driver has to essentially
-> duplicate everything that would be done by a runtime resume.
+> I'm pretty much only working with buses that have no infrastructure and
+> for which power is essentially orthogonal to the control bus itself -
+> that's a very large proportion of the embedded space.  It really feels
+> like we could be doing a better job for drivers using these buses,
+> there's a lot of similarities in what many of them need but I can never
+> find the time to get my head round it confidently enough to actually
+> propose anything.
 
-Again, this depends on the subsystem and the driver.  For example, the
-USB subsystem does call pm_runtime_resume() in order to bring a device
-back to full power if the wakeup setting needs to be changed.  This is
-done in the subsystem code, and the subsystem is designed to allow it.
+I agree.  That's one of the reasons why I introduced the struct dev_power_domain
+thing a while ago and the generic PM domains patchset I've just posted is a step
+in that direction.
 
-(Actually, it could be improved.  In theory the driver doesn't need to
-be involved at all; a USB device's wakeup setting can be changed purely
-by the subsystem.  Nevertheless, the pm_runtime_resume call does wake
-up the driver, which then needs to be quiesced again shortly thereafter
--- overall a waste of time.  This was the easiest approach.)
-
-> The problem comes because this work is shared between the driver and the
-> subsystem.  IOW, it's the driver's ->suspend() callback that decides
-> whether or not the device needs to be powered-on/enabled (e.g. to
-> enable/disable wakeups), but it might be the subsystem that actually has
-> does the magic_device_set_full_power(), magic_device_enable().
-> 
-> So once the driver's ->suspend() realizes it needs to power on & enable
-> the device, it has no way to tell the subsystem to do so, wait for it to
-> happen, and then enable/disable its wakeups.
-
-Then the subsystem should _provide_ a way, if that's how you decide to
-handle things.
-
-> Maybe I'm being really dense, really blind, or really stubborn (or all
-> three), but it seems to be that using runtime PM calls to implement
-> these things would be the most obvious and the most readable.
-
-Have you tried actually doing it in a situation where you control both
-the driver and the subsystem?
-
-Basically, I think what Rafael was saying before referred to the 
-general case, where you don't know anything about the subsystem and 
-can't afford to make assumptions.  But in the real world you'll be 
-writing a driver for a particular subsystem and you'll know how that 
-subsystem works.  If the subsystem permits runtime PM calls to be 
-nested within the system PM routines, feel free to go ahead and use 
-them.
-
-Alan Stern
-
+Thanks,
+Rafael
