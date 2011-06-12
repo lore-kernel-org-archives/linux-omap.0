@@ -1,61 +1,47 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [linux-pm] [PATCH] PM: export suspend_set_ops, suspend_valid_only_mem
-Date: Sun, 12 Jun 2011 16:20:20 +0200
-Message-ID: <201106121620.20442.rjw@sisk.pl>
-References: <1306542839-5688-1-git-send-email-khilman@ti.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [linux-pm] calling runtime PM from system PM methods
+Date: Sun, 12 Jun 2011 11:59:28 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1106121153510.18475-100000@netrider.rowland.org>
+References: <201106120046.36618.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:49512 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751993Ab1FLOTr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 12 Jun 2011 10:19:47 -0400
-In-Reply-To: <1306542839-5688-1-git-send-email-khilman@ti.com>
+Received: from netrider.rowland.org ([192.131.102.5]:34094 "HELO
+	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1754127Ab1FLP73 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 12 Jun 2011 11:59:29 -0400
+In-Reply-To: <201106120046.36618.rjw@sisk.pl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-pm@lists.linux-foundation.org
-Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, Jean Pihet <jean.pihet@newoldbits.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Kevin Hilman <khilman@ti.com>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>, Paul Walmsley <paul@pwsan.com>
 
-On Saturday, May 28, 2011, Kevin Hilman wrote:
-> Some platforms wish to implement their PM core suspend code as
-> modules.  To do so, these functions need to be exported to modules.
+On Sun, 12 Jun 2011, Rafael J. Wysocki wrote:
+
+> > Basically, I think what Rafael was saying before referred to the 
+> > general case, where you don't know anything about the subsystem and 
+> > can't afford to make assumptions.  But in the real world you'll be 
+> > writing a driver for a particular subsystem and you'll know how that 
+> > subsystem works.  If the subsystem permits runtime PM calls to be 
+> > nested within the system PM routines, feel free to go ahead and use 
+> > them.
 > 
-> Reported-by: Jean Pihet <j-pihet@ti.com>
-> Signed-off-by: Kevin Hilman <khilman@ti.com>
+> But then we get the problem that user space may echo "on" to the
+> device's "control" file in sysfs and the whole clever plan basically goes
+> south.
 
-Applied to suspend-2.6/linux-next.
+That would indeed be a problem if we used pm_runtime_suspend() in the
+system suspend code.  But it doesn't prevent us from calling
+pm_runtime_resume() during system suspend.
 
-Thanks,
-Rafael
+> Moreover, on some systems devices will belong to PM domains and their
+> drivers may potentially be used with different PM domains on different
+> platforms.  This means that drivers really should not make any assumptions
+> about whether or not they can use runtime PM in their system suspend/resume
+> routines.  They can't.
 
+Yes, clearly one mustn't make assumptions about unknown subsystems or
+PM domains.
 
-> ---
-> Applies against v2.6.39
-> 
->  kernel/power/suspend.c |    2 ++
->  1 files changed, 2 insertions(+), 0 deletions(-)
-> 
-> diff --git a/kernel/power/suspend.c b/kernel/power/suspend.c
-> index 6275970..eca495d 100644
-> --- a/kernel/power/suspend.c
-> +++ b/kernel/power/suspend.c
-> @@ -44,6 +44,7 @@ void suspend_set_ops(const struct platform_suspend_ops *ops)
->  	suspend_ops = ops;
->  	mutex_unlock(&pm_mutex);
->  }
-> +EXPORT_SYMBOL(suspend_set_ops);
->  
->  bool valid_state(suspend_state_t state)
->  {
-> @@ -65,6 +66,7 @@ int suspend_valid_only_mem(suspend_state_t state)
->  {
->  	return state == PM_SUSPEND_MEM;
->  }
-> +EXPORT_SYMBOL(suspend_valid_only_mem);
->  
->  static int suspend_test(int level)
->  {
-> 
+Alan Stern
 
