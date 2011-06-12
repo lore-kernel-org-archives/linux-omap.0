@@ -1,185 +1,543 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [linux-pm] calling runtime PM from system PM methods
-Date: Sun, 12 Jun 2011 01:13:38 +0200
-Message-ID: <201106120113.38356.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.1106021010360.1913-100000@iolanthe.rowland.org> <201106072332.30464.rjw@sisk.pl> <8739jhs2hv.fsf@ti.com>
-Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:48860 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751715Ab1FKXM5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 11 Jun 2011 19:12:57 -0400
-In-Reply-To: <8739jhs2hv.fsf@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Tatyana Brokhman <tlinder@codeaurora.org>
+Subject: [PATCH] usb:gadget: use min_t() macro instead of min()
+Date: Sun, 12 Jun 2011 14:14:46 +0300
+Message-ID: <1307877290-26672-1-git-send-email-tlinder@codeaurora.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: greg@kroah.com
+Cc: linux-usb@vger.kernel.org, linux-arm-msm@vger.kernel.org, balbi@ti.com, ablay@codeaurora.org, Tatyana Brokhman <tlinder@codeaurora.org>, open list <linux-kernel@vger.kernel.org>, "open list:FREESCALE USB PER..." <linuxppc-dev@lists.ozlabs.org>, "open list:OMAP USB SUPPORT" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>, Paul Walmsley <paul@pwsan.com>
 
-On Saturday, June 11, 2011, Kevin Hilman wrote:
-> "Rafael J. Wysocki" <rjw@sisk.pl> writes:
-> 
-> [...]
-> 
-> > Whether or not user space has disabled runtime PM _doesn't_ _matter_ for
-> > system suspend, because _you_ _can't_ call pm_runtime_suspend(), or
-> > pm_runtime_put_sunc(), from a driver's .suspend() callback _anyway_.
-> > The reason is that doing that would cause the subsystem's (or power
-> > domain's in this case) .runtime_suspend() callback to be invoked and
-> > that's incorrect.  Namely, it would require the subsystem (power domain)
-> > to expect that its .runtime_suspend() would always be executed indirectly
-> > as a result of calling its .suspend() (through the driver's callback)
-> > and that expectation may or may not be met (depending on the driver's
-> > design).
-> 
-> So here's an interesting scenario which I think it triggers the same
-> problem as you highlight above.
-> 
-> Assume you have a driver that's using runtime PM on a per-xfer basis.
-> Before each xfer, it does a pm_runtime_get_sync(), after each xfer it
-> does a pm_runtime_put_sync() (for this example, it's important that it's
-> a _put_sync()).  The _put_sync() might happen in an ISR,
+Signed-off-by: Tatyana Brokhman <tlinder@codeaurora.org>
 
-It can't happen in an ISR, to be precise.
+---
+ drivers/usb/gadget/composite.c      |   16 ++++++++--------
+ drivers/usb/gadget/dummy_hcd.c      |    2 +-
+ drivers/usb/gadget/f_fs.c           |    6 +++---
+ drivers/usb/gadget/f_mass_storage.c |   20 ++++++++++----------
+ drivers/usb/gadget/file_storage.c   |   22 +++++++++++-----------
+ drivers/usb/gadget/fsl_udc_core.c   |    4 ++--
+ drivers/usb/gadget/gmidi.c          |   10 +++++-----
+ drivers/usb/gadget/inode.c          |   12 ++++++------
+ drivers/usb/gadget/mv_udc_core.c    |    4 ++--
+ drivers/usb/gadget/omap_udc.c       |    6 +++---
+ drivers/usb/gadget/printer.c        |   16 ++++++++--------
+ drivers/usb/gadget/usbstring.c      |    2 +-
+ drivers/usb/gadget/uvc_video.c      |    4 ++--
+ 13 files changed, 62 insertions(+), 62 deletions(-)
 
-> or possibly in a thread waiting on a completion which is awoken by the ISR,
-> etc. etc. (the runtime PM callbacks are IRQ safe, and device is marked as such.)
-> 
-> The driver is in the middle of an xfer and a system suspend request
-> happens.
-> 
-> The driver's ->suspend() callback happens, and the driver
-> 
-> - enables/disables wakeups based on device_may_wakeup()
-> - prevents future xfers
-> - waits for current xfer to finish
-> 
-> As soon as the xfer finishes, the driver gets notified (completion,
-> callback, IRQ, whatever) and calls pm_runtime_put_sync(), which triggers
-> subsys->runtime_suspend --> driver->runtime_suspend.
-> 
-> While the driver's ->suspend() callback doesn't directly call
-> pm_runtime_put_sync(), the act of waiting for the xfer to finish
-> causes the subsystem/driver->runtime_suspend callbacks to be called
-> during the subsytem/driver->suspend callback, which is the same problem
-> as you highlight above.  
-
-It's not exactly the same.  The difference is that you're talking about race
-conditions between runtime PM and system suspend (I kind of know why I wanted
-system suspend to block runtime PM now :-)) that may be prevented by
-subsystem-level code from happening (by using locking and some flags etc.),
-while that code cannot do much if its .runtime_suspend() callback, for example,
-is executed directly from the system suspend code path.
+diff --git a/drivers/usb/gadget/composite.c b/drivers/usb/gadget/composite.c
+index d825dbc..aa2db3f 100644
+--- a/drivers/usb/gadget/composite.c
++++ b/drivers/usb/gadget/composite.c
+@@ -1085,7 +1085,7 @@ composite_setup(struct usb_gadget *gadget, const struct usb_ctrlrequest *ctrl)
+ 					cdev->desc.bcdUSB = cpu_to_le16(0x0210);
+ 			}
  
-> Based on your commit that removed incrementing the usage count across
-> suspend[1], you mentioned "we can rely on subsystems and device drivers
-> to avoid doing that unnecessarily."  The above example shows that this
-> type of thing might not be that obvious to detect and thus avoid.
-> 
-> I suspect the solution to the above will be to add back the usage count
-> increment across system suspend, but I'm hoping not.  IMO, it would be
-> more flexible to allow the subsystems to decide.  The subsystems could
-> provide locking (or manage dev->power.usage_count) themselves if
-> necessary.  For example, leave it to the subsystem->prepare() to
-> pm_runtime_get_noresume() if it wants to avoid the "nesting" of
-> callbacks.
+-			value = min(w_length, (u16) sizeof cdev->desc);
++			value = min_t(u16, w_length, sizeof(cdev->desc));
+ 			memcpy(req->buf, &cdev->desc, value);
+ 			break;
+ 		case USB_DT_DEVICE_QUALIFIER:
+@@ -1104,18 +1104,18 @@ composite_setup(struct usb_gadget *gadget, const struct usb_ctrlrequest *ctrl)
+ 		case USB_DT_CONFIG:
+ 			value = config_desc(cdev, w_value);
+ 			if (value >= 0)
+-				value = min(w_length, (u16) value);
++				value = min_t(u16, w_length, value);
+ 			break;
+ 		case USB_DT_STRING:
+ 			value = get_string(cdev, req->buf,
+ 					w_index, w_value & 0xff);
+ 			if (value >= 0)
+-				value = min(w_length, (u16) value);
++				value = min_t(u16, w_length, value);
+ 			break;
+ 		case USB_DT_BOS:
+ 			if (gadget_is_superspeed(gadget)) {
+ 				value = bos_desc(cdev);
+-				value = min(w_length, (u16) value);
++				value = min_t(u16, w_length, value);
+ 			}
+ 			break;
+ 		}
+@@ -1144,7 +1144,7 @@ composite_setup(struct usb_gadget *gadget, const struct usb_ctrlrequest *ctrl)
+ 			*(u8 *)req->buf = cdev->config->bConfigurationValue;
+ 		else
+ 			*(u8 *)req->buf = 0;
+-		value = min(w_length, (u16) 1);
++		value = min_t(u16, w_length, 1);
+ 		break;
+ 
+ 	/* function drivers must handle get/set altsetting; if there's
+@@ -1183,7 +1183,7 @@ composite_setup(struct usb_gadget *gadget, const struct usb_ctrlrequest *ctrl)
+ 		if (value < 0)
+ 			break;
+ 		*((u8 *)req->buf) = value;
+-		value = min(w_length, (u16) 1);
++		value = min_t(u16, w_length, 1);
+ 		break;
+ 
+ 	/*
+@@ -1607,8 +1607,8 @@ int usb_composite_probe(struct usb_composite_driver *driver,
+ 		driver->iProduct = driver->name;
+ 	composite_driver.function =  (char *) driver->name;
+ 	composite_driver.driver.name = driver->name;
+-	composite_driver.speed = min((u8)composite_driver.speed,
+-				     (u8)driver->max_speed);
++	composite_driver.speed = min_t(u8, composite_driver.speed,
++				       driver->max_speed);
+ 	composite = driver;
+ 	composite_gadget_bind = bind;
+ 
+diff --git a/drivers/usb/gadget/dummy_hcd.c b/drivers/usb/gadget/dummy_hcd.c
+index 74b7655..e134ea8 100644
+--- a/drivers/usb/gadget/dummy_hcd.c
++++ b/drivers/usb/gadget/dummy_hcd.c
+@@ -1213,7 +1213,7 @@ top:
+ 			/* not enough bandwidth left? */
+ 			if (limit < ep->ep.maxpacket && limit < len)
+ 				break;
+-			len = min (len, (unsigned) limit);
++			len = min_t(unsigned, len, limit);
+ 			if (len == 0)
+ 				break;
+ 
+diff --git a/drivers/usb/gadget/f_fs.c b/drivers/usb/gadget/f_fs.c
+index c161a9a..468e935 100644
+--- a/drivers/usb/gadget/f_fs.c
++++ b/drivers/usb/gadget/f_fs.c
+@@ -502,7 +502,7 @@ static ssize_t ffs_ep0_write(struct file *file, const char __user *buf,
+ 		}
+ 
+ 		/* FFS_SETUP_PENDING and not stall */
+-		len = min(len, (size_t)le16_to_cpu(ffs->ev.setup.wLength));
++		len = min_t(size_t, len, le16_to_cpu(ffs->ev.setup.wLength));
+ 
+ 		spin_unlock_irq(&ffs->ev.waitq.lock);
+ 
+@@ -636,7 +636,7 @@ static ssize_t ffs_ep0_read(struct file *file, char __user *buf,
+ 		}
+ 
+ 		return __ffs_ep0_read_events(ffs, buf,
+-					     min(n, (size_t)ffs->ev.count));
++					     min_t(size_t, n, ffs->ev.count));
+ 
+ 	case FFS_SETUP_PENDING:
+ 		if (ffs->ev.setup.bRequestType & USB_DIR_IN) {
+@@ -645,7 +645,7 @@ static ssize_t ffs_ep0_read(struct file *file, char __user *buf,
+ 			goto done_mutex;
+ 		}
+ 
+-		len = min(len, (size_t)le16_to_cpu(ffs->ev.setup.wLength));
++		len = min_t(size_t, len, le16_to_cpu(ffs->ev.setup.wLength));
+ 
+ 		spin_unlock_irq(&ffs->ev.waitq.lock);
+ 
+diff --git a/drivers/usb/gadget/f_mass_storage.c b/drivers/usb/gadget/f_mass_storage.c
+index 5b93395..d7b3f9f 100644
+--- a/drivers/usb/gadget/f_mass_storage.c
++++ b/drivers/usb/gadget/f_mass_storage.c
+@@ -646,7 +646,7 @@ static int fsg_setup(struct usb_function *f,
+ 		*(u8 *)req->buf = fsg->common->nluns - 1;
+ 
+ 		/* Respond with data/status */
+-		req->length = min((u16)1, w_length);
++		req->length = min_t(u16, 1, w_length);
+ 		return ep0_queue(fsg->common);
+ 	}
+ 
+@@ -790,11 +790,11 @@ static int do_read(struct fsg_common *common)
+ 		 *	the end of file.
+ 		 */
+ 		amount = min(amount_left, FSG_BUFLEN);
+-		amount = min((loff_t)amount,
++		amount = min_t(loff_t, amount,
+ 			     curlun->file_length - file_offset);
+ 		partial_page = file_offset & (PAGE_CACHE_SIZE - 1);
+ 		if (partial_page > 0)
+-			amount = min(amount, (unsigned int)PAGE_CACHE_SIZE -
++			amount = min_t(unsigned int, amount, PAGE_CACHE_SIZE -
+ 					     partial_page);
+ 
+ 		/* Wait for the next buffer to become available */
+@@ -943,12 +943,12 @@ static int do_write(struct fsg_common *common)
+ 			 * Finally, round down to a block boundary.
+ 			 */
+ 			amount = min(amount_left_to_req, FSG_BUFLEN);
+-			amount = min((loff_t)amount,
++			amount = min_t(loff_t, amount,
+ 				     curlun->file_length - usb_offset);
+ 			partial_page = usb_offset & (PAGE_CACHE_SIZE - 1);
+ 			if (partial_page > 0)
+-				amount = min(amount,
+-	(unsigned int)PAGE_CACHE_SIZE - partial_page);
++				amount = min_t(unsigned int, amount,
++					       PAGE_CACHE_SIZE - partial_page);
+ 
+ 			if (amount == 0) {
+ 				get_some_more = 0;
+@@ -1152,7 +1152,7 @@ static int do_verify(struct fsg_common *common)
+ 		 * past the end of file.
+ 		 */
+ 		amount = min(amount_left, FSG_BUFLEN);
+-		amount = min((loff_t)amount,
++		amount = min_t(loff_t, amount,
+ 			     curlun->file_length - file_offset);
+ 		if (amount == 0) {
+ 			curlun->sense_data =
+@@ -2203,7 +2203,7 @@ unknown_cmnd:
+ 	if (reply == -EINVAL)
+ 		reply = 0;		/* Error reply length */
+ 	if (reply >= 0 && common->data_dir == DATA_DIR_TO_HOST) {
+-		reply = min((u32)reply, common->data_size_from_cmnd);
++		reply = min_t(u32, reply, common->data_size_from_cmnd);
+ 		bh->inreq->length = reply;
+ 		bh->state = BUF_STATE_FULL;
+ 		common->residue -= reply;
+@@ -3129,8 +3129,8 @@ fsg_config_from_params(struct fsg_config *cfg,
+ 
+ 	/* Configure LUNs */
+ 	cfg->nluns =
+-		min(params->luns ?: (params->file_count ?: 1u),
+-		    (unsigned)FSG_MAX_LUNS);
++		min_t(unsigned, params->luns ?: (params->file_count ?: 1u),
++		    FSG_MAX_LUNS);
+ 	for (i = 0, lun = cfg->luns; i < cfg->nluns; ++i, ++lun) {
+ 		lun->ro = !!params->ro[i];
+ 		lun->cdrom = !!params->cdrom[i];
+diff --git a/drivers/usb/gadget/file_storage.c b/drivers/usb/gadget/file_storage.c
+index 0d55dee..aa8144d 100644
+--- a/drivers/usb/gadget/file_storage.c
++++ b/drivers/usb/gadget/file_storage.c
+@@ -1169,12 +1169,12 @@ static int do_read(struct fsg_dev *fsg)
+ 		 *	the next page.
+ 		 * If this means reading 0 then we were asked to read past
+ 		 *	the end of file. */
+-		amount = min((unsigned int) amount_left, mod_data.buflen);
+-		amount = min((loff_t) amount,
++		amount = min_t(unsigned int, amount_left, mod_data.buflen);
++		amount = min_t(loff_t, amount,
+ 				curlun->file_length - file_offset);
+ 		partial_page = file_offset & (PAGE_CACHE_SIZE - 1);
+ 		if (partial_page > 0)
+-			amount = min(amount, (unsigned int) PAGE_CACHE_SIZE -
++			amount = min_t(unsigned int, amount, PAGE_CACHE_SIZE -
+ 					partial_page);
+ 
+ 		/* Wait for the next buffer to become available */
+@@ -1316,12 +1316,12 @@ static int do_write(struct fsg_dev *fsg)
+ 			 *	to write past the end of file.
+ 			 * Finally, round down to a block boundary. */
+ 			amount = min(amount_left_to_req, mod_data.buflen);
+-			amount = min((loff_t) amount, curlun->file_length -
++			amount = min_t(loff_t, amount, curlun->file_length -
+ 					usb_offset);
+ 			partial_page = usb_offset & (PAGE_CACHE_SIZE - 1);
+ 			if (partial_page > 0)
+-				amount = min(amount,
+-	(unsigned int) PAGE_CACHE_SIZE - partial_page);
++				amount = min_t(unsigned int, amount,
++					       PAGE_CACHE_SIZE - partial_page);
+ 
+ 			if (amount == 0) {
+ 				get_some_more = 0;
+@@ -1515,8 +1515,8 @@ static int do_verify(struct fsg_dev *fsg)
+ 		 * And don't try to read past the end of the file.
+ 		 * If this means reading 0 then we were asked to read
+ 		 * past the end of file. */
+-		amount = min((unsigned int) amount_left, mod_data.buflen);
+-		amount = min((loff_t) amount,
++		amount = min_t(unsigned int, amount_left, mod_data.buflen);
++		amount = min_t(loff_t, amount,
+ 				curlun->file_length - file_offset);
+ 		if (amount == 0) {
+ 			curlun->sense_data =
+@@ -1974,8 +1974,8 @@ static int throw_away_data(struct fsg_dev *fsg)
+ 		/* Try to submit another request if we need one */
+ 		bh = fsg->next_buffhd_to_fill;
+ 		if (bh->state == BUF_STATE_EMPTY && fsg->usb_amount_left > 0) {
+-			amount = min(fsg->usb_amount_left,
+-					(u32) mod_data.buflen);
++			amount = min_t(u32, fsg->usb_amount_left,
++				       mod_data.buflen);
+ 
+ 			/* amount is always divisible by 512, hence by
+ 			 * the bulk-out maxpacket size */
+@@ -2568,7 +2568,7 @@ static int do_scsi_command(struct fsg_dev *fsg)
+ 	if (reply == -EINVAL)
+ 		reply = 0;		// Error reply length
+ 	if (reply >= 0 && fsg->data_dir == DATA_DIR_TO_HOST) {
+-		reply = min((u32) reply, fsg->data_size_from_cmnd);
++		reply = min_t(u32, reply, fsg->data_size_from_cmnd);
+ 		bh->inreq->length = reply;
+ 		bh->state = BUF_STATE_FULL;
+ 		fsg->residue -= reply;
+diff --git a/drivers/usb/gadget/fsl_udc_core.c b/drivers/usb/gadget/fsl_udc_core.c
+index 2cd9a60..5df6a1c 100644
+--- a/drivers/usb/gadget/fsl_udc_core.c
++++ b/drivers/usb/gadget/fsl_udc_core.c
+@@ -761,8 +761,8 @@ static struct ep_td_struct *fsl_build_dtd(struct fsl_req *req, unsigned *length,
+ 	struct ep_td_struct *dtd;
+ 
+ 	/* how big will this transfer be? */
+-	*length = min(req->req.length - req->req.actual,
+-			(unsigned)EP_MAX_LENGTH_TRANSFER);
++	*length = min_t(unsigned, req->req.length - req->req.actual,
++			EP_MAX_LENGTH_TRANSFER);
+ 
+ 	dtd = dma_pool_alloc(udc_controller->td_pool, GFP_KERNEL, dma);
+ 	if (dtd == NULL)
+diff --git a/drivers/usb/gadget/gmidi.c b/drivers/usb/gadget/gmidi.c
+index 4f40f14..9dab7a9 100644
+--- a/drivers/usb/gadget/gmidi.c
++++ b/drivers/usb/gadget/gmidi.c
+@@ -695,7 +695,7 @@ static int gmidi_setup(struct usb_gadget *gadget,
+ 		switch (w_value >> 8) {
+ 
+ 		case USB_DT_DEVICE:
+-			value = min(w_length, (u16) sizeof(device_desc));
++			value = min_t(u16, w_length, sizeof(device_desc));
+ 			memcpy(req->buf, &device_desc, value);
+ 			break;
+ 		case USB_DT_CONFIG:
+@@ -703,7 +703,7 @@ static int gmidi_setup(struct usb_gadget *gadget,
+ 					w_value >> 8,
+ 					w_value & 0xff);
+ 			if (value >= 0) {
+-				value = min(w_length, (u16)value);
++				value = min_t(u16, w_length, value);
+ 			}
+ 			break;
+ 
+@@ -716,7 +716,7 @@ static int gmidi_setup(struct usb_gadget *gadget,
+ 			value = usb_gadget_get_string(&stringtab,
+ 					w_value & 0xff, req->buf);
+ 			if (value >= 0) {
+-				value = min(w_length, (u16)value);
++				value = min_t(u16, w_length, value);
+ 			}
+ 			break;
+ 		}
+@@ -743,7 +743,7 @@ static int gmidi_setup(struct usb_gadget *gadget,
+ 			goto unknown;
+ 		}
+ 		*(u8 *)req->buf = dev->config;
+-		value = min(w_length, (u16)1);
++		value = min_t(u16, w_length, 1);
+ 		break;
+ 
+ 	/* until we add altsetting support, or other interfaces,
+@@ -785,7 +785,7 @@ static int gmidi_setup(struct usb_gadget *gadget,
+ 			break;
+ 		}
+ 		*(u8 *)req->buf = 0;
+-		value = min(w_length, (u16)1);
++		value = min_t(u16, w_length, 1);
+ 		break;
+ 
+ 	default:
+diff --git a/drivers/usb/gadget/inode.c b/drivers/usb/gadget/inode.c
+index a9a4556..0a8c719 100644
+--- a/drivers/usb/gadget/inode.c
++++ b/drivers/usb/gadget/inode.c
+@@ -564,7 +564,7 @@ static ssize_t ep_aio_read_retry(struct kiocb *iocb)
+ 	len = 0;
+ 	to_copy = priv->buf;
+ 	for (i=0; i < priv->nr_segs; i++) {
+-		ssize_t this = min((ssize_t)(priv->iv[i].iov_len), total);
++		ssize_t this = min_t(ssize_t, priv->iv[i].iov_len, total);
+ 
+ 		if (copy_to_user(priv->iv[i].iov_base, to_copy, this)) {
+ 			if (len == 0)
+@@ -1048,7 +1048,7 @@ ep0_read (struct file *fd, char __user *buf, size_t len, loff_t *ptr)
+ 			if (dev->setup_out_error)
+ 				retval = -EIO;
+ 			else {
+-				len = min (len, (size_t)dev->req->actual);
++				len = min_t(size_t, len, dev->req->actual);
+ // FIXME don't call this with the spinlock held ...
+ 				if (copy_to_user (buf, dev->req->buf, len))
+ 					retval = -EFAULT;
+@@ -1431,14 +1431,14 @@ gadgetfs_setup (struct usb_gadget *gadget, const struct usb_ctrlrequest *ctrl)
+ 		switch (w_value >> 8) {
+ 
+ 		case USB_DT_DEVICE:
+-			value = min (w_length, (u16) sizeof *dev->dev);
++			value = min_t(u16, w_length, sizeof(*dev->dev));
+ 			req->buf = dev->dev;
+ 			break;
+ #ifdef	CONFIG_USB_GADGET_DUALSPEED
+ 		case USB_DT_DEVICE_QUALIFIER:
+ 			if (!dev->hs_config)
+ 				break;
+-			value = min (w_length, (u16)
++			value = min_t(u16, w_length,
+ 				sizeof (struct usb_qualifier_descriptor));
+ 			make_qualifier (dev);
+ 			break;
+@@ -1450,7 +1450,7 @@ gadgetfs_setup (struct usb_gadget *gadget, const struct usb_ctrlrequest *ctrl)
+ 					w_value >> 8,
+ 					w_value & 0xff);
+ 			if (value >= 0)
+-				value = min (w_length, (u16) value);
++				value = min_t(u16, w_length, value);
+ 			break;
+ 		case USB_DT_STRING:
+ 			goto unrecognized;
+@@ -1512,7 +1512,7 @@ gadgetfs_setup (struct usb_gadget *gadget, const struct usb_ctrlrequest *ctrl)
+ 		if (ctrl->bRequestType != 0x80)
+ 			goto unrecognized;
+ 		*(u8 *)req->buf = dev->current_config;
+-		value = min (w_length, (u16) 1);
++		value = min_t(u16, w_length, 1);
+ 		break;
+ #endif
+ 
+diff --git a/drivers/usb/gadget/mv_udc_core.c b/drivers/usb/gadget/mv_udc_core.c
+index b1a8146..30d0b48 100644
+--- a/drivers/usb/gadget/mv_udc_core.c
++++ b/drivers/usb/gadget/mv_udc_core.c
+@@ -387,8 +387,8 @@ static struct mv_dtd *build_dtd(struct mv_req *req, unsigned *length,
+ 	struct mv_udc *udc;
+ 
+ 	/* how big will this transfer be? */
+-	*length = min(req->req.length - req->req.actual,
+-			(unsigned)EP_MAX_LENGTH_TRANSFER);
++	*length = min_t(unsigned, req->req.length - req->req.actual,
++			EP_MAX_LENGTH_TRANSFER);
+ 
+ 	udc = req->ep->udc;
+ 
+diff --git a/drivers/usb/gadget/omap_udc.c b/drivers/usb/gadget/omap_udc.c
+index 82fd249..1183b7a 100644
+--- a/drivers/usb/gadget/omap_udc.c
++++ b/drivers/usb/gadget/omap_udc.c
+@@ -558,8 +558,8 @@ static void next_in_dma(struct omap_ep *ep, struct omap_req *req)
+ 		omap_set_dma_transfer_params(ep->lch, OMAP_DMA_DATA_TYPE_S8,
+ 				length, 1, sync_mode, dma_trigger, 0);
+ 	} else {
+-		length = min(length / ep->maxpacket,
+-				(unsigned) UDC_TXN_TSC + 1);
++		length = min_t(unsigned, length / ep->maxpacket,
++				UDC_TXN_TSC + 1);
+ 		txdma_ctrl = length;
+ 		omap_set_dma_transfer_params(ep->lch, OMAP_DMA_DATA_TYPE_S16,
+ 				ep->ep.maxpacket >> 1, length, sync_mode,
+@@ -626,7 +626,7 @@ static void next_out_dma(struct omap_ep *ep, struct omap_req *req)
+ 	} else {
+ 		/* set up this DMA transfer, enable the fifo, start */
+ 		packets /= ep->ep.maxpacket;
+-		packets = min(packets, (unsigned)UDC_RXN_TC + 1);
++		packets = min_t(unsigned, packets, UDC_RXN_TC + 1);
+ 		req->dma_bytes = packets * ep->ep.maxpacket;
+ 		omap_set_dma_transfer_params(ep->lch, OMAP_DMA_DATA_TYPE_S16,
+ 				ep->ep.maxpacket >> 1, packets,
+diff --git a/drivers/usb/gadget/printer.c b/drivers/usb/gadget/printer.c
+index 00e5f19..f30bc7d 100644
+--- a/drivers/usb/gadget/printer.c
++++ b/drivers/usb/gadget/printer.c
+@@ -1148,15 +1148,15 @@ printer_setup(struct usb_gadget *gadget, const struct usb_ctrlrequest *ctrl)
+ 			switch (wValue >> 8) {
+ 
+ 			case USB_DT_DEVICE:
+-				value = min(wLength, (u16) sizeof device_desc);
++				value = min_t(u16, wLength, sizeof device_desc);
+ 				memcpy(req->buf, &device_desc, value);
+ 				break;
+ #ifdef CONFIG_USB_GADGET_DUALSPEED
+ 			case USB_DT_DEVICE_QUALIFIER:
+ 				if (!gadget->is_dualspeed)
+ 					break;
+-				value = min(wLength,
+-						(u16) sizeof dev_qualifier);
++				value = min_t(u16, wLength,
++						sizeof(dev_qualifier));
+ 				memcpy(req->buf, &dev_qualifier, value);
+ 				break;
+ 
+@@ -1171,14 +1171,14 @@ printer_setup(struct usb_gadget *gadget, const struct usb_ctrlrequest *ctrl)
+ 						wValue & 0xff,
+ 						gadget->is_otg);
+ 				if (value >= 0)
+-					value = min(wLength, (u16) value);
++					value = min_t(u16, wLength, value);
+ 				break;
+ 
+ 			case USB_DT_STRING:
+ 				value = usb_gadget_get_string(&stringtab,
+ 						wValue & 0xff, req->buf);
+ 				if (value >= 0)
+-					value = min(wLength, (u16) value);
++					value = min_t(u16, wLength, value);
+ 				break;
+ 			}
+ 			break;
+@@ -1198,7 +1198,7 @@ printer_setup(struct usb_gadget *gadget, const struct usb_ctrlrequest *ctrl)
+ 			if (ctrl->bRequestType != USB_DIR_IN)
+ 				break;
+ 			*(u8 *)req->buf = dev->config;
+-			value = min(wLength, (u16) 1);
++			value = min_t(u16, wLength, 1);
+ 			break;
+ 
+ 		case USB_REQ_SET_INTERFACE:
+@@ -1215,7 +1215,7 @@ printer_setup(struct usb_gadget *gadget, const struct usb_ctrlrequest *ctrl)
+ 				break;
+ 
+ 			*(u8 *)req->buf = dev->interface;
+-			value = min(wLength, (u16) 1);
++			value = min_t(u16, wLength, 1);
+ 			break;
+ 
+ 		default:
+@@ -1242,7 +1242,7 @@ printer_setup(struct usb_gadget *gadget, const struct usb_ctrlrequest *ctrl)
+ 				break;
+ 
+ 			*(u8 *)req->buf = dev->printer_status;
+-			value = min(wLength, (u16) 1);
++			value = min_t(u16, wLength, 1);
+ 			break;
+ 
+ 		case 2: /* Soft Reset */
+diff --git a/drivers/usb/gadget/usbstring.c b/drivers/usb/gadget/usbstring.c
+index 58c4d37..f65916a 100644
+--- a/drivers/usb/gadget/usbstring.c
++++ b/drivers/usb/gadget/usbstring.c
+@@ -124,7 +124,7 @@ usb_gadget_get_string (struct usb_gadget_strings *table, int id, u8 *buf)
+ 		return -EINVAL;
+ 
+ 	/* string descriptors have length, tag, then UTF16-LE text */
+-	len = min ((size_t) 126, strlen (s->s));
++	len = min_t(size_t, 126, strlen(s->s));
+ 	memset (buf + 2, 0, 2 * len);	/* zero all the bytes */
+ 	len = utf8_to_utf16le(s->s, (__le16 *)&buf[2], len);
+ 	if (len < 0)
+diff --git a/drivers/usb/gadget/uvc_video.c b/drivers/usb/gadget/uvc_video.c
+index b08f354..0e3a34d 100644
+--- a/drivers/usb/gadget/uvc_video.c
++++ b/drivers/usb/gadget/uvc_video.c
+@@ -49,7 +49,7 @@ uvc_video_encode_data(struct uvc_video *video, struct uvc_buffer *buf,
+ 
+ 	/* Copy video data to the USB buffer. */
+ 	mem = queue->mem + buf->buf.m.offset + queue->buf_used;
+-	nbytes = min((unsigned int)len, buf->buf.bytesused - queue->buf_used);
++	nbytes = min_t(unsigned int, len, buf->buf.bytesused - queue->buf_used);
+ 
+ 	memcpy(data, mem, nbytes);
+ 	queue->buf_used += nbytes;
+@@ -74,7 +74,7 @@ uvc_video_encode_bulk(struct usb_request *req, struct uvc_video *video,
+ 	}
+ 
+ 	/* Process video data. */
+-	len = min((int)(video->max_payload_size - video->payload_size), len);
++	len = min_t(int, video->max_payload_size - video->payload_size, len);
+ 	ret = uvc_video_encode_data(video, buf, mem, len);
+ 
+ 	video->payload_size += ret;
+-- 
+1.7.3.3
 
-I agree.
-
-> A related question: does the pm_wq need to be freezable?  From
-> Documentation/power/runtime_pm.txt:
-> 
-> * The power management workqueue pm_wq in which bus types and device drivers can
->   put their PM-related work items.  It is strongly recommended that pm_wq be
->   used for queuing all work items related to run-time PM, because this allows
->   them to be synchronized with system-wide power transitions (suspend to RAM,
->   hibernation and resume from system sleep states).  pm_wq is declared in
->   include/linux/pm_runtime.h and defined in kernel/power/main.c.
-> 
-> Is "synchronized with system-wide power transistions" correct here?
-> Rather than synchronize, using a freezable workqueue actually _prevents_
-> runtime PM events (at least async ones.)
-> 
-> Again, proper locking (or management of dev->power.usage_count) at the
-> subsystem level would get you the same effect, but still leave
-> flexibility to the subsystem/pwr_domain layer.
-
-No, please.
-
-The problem here is that I don't want runtime PM stuff to be called during
-the "noirq" stages of system suspend and resume which the freezing of the
-workqueue takes care of nicely.
-
-
-> P.S. the commit below[1] removed the usage count increment/decrement
->      across system suspend/resume, but Documentation/power/runtime_pm.txt 
->      still refers to it.   Patch below[2] removes it, ssuming you're
->      not planning on adding it back.  ;)
-
-No, I'm not.  In fact, I'm going to apply your patch. :-)
-
-Thanks,
-Rafael
-
-
-> [1]
-> commit e8665002477f0278f84f898145b1f141ba26ee26
-> Author: Rafael J. Wysocki <rjw@sisk.pl>
-> Date:   Sat Feb 12 01:42:41 2011 +0100
-> 
->     PM: Allow pm_runtime_suspend() to succeed during system suspend
->     
->     The dpm_prepare() function increments the runtime PM reference
->     counters of all devices to prevent pm_runtime_suspend() from
->     executing subsystem-level callbacks.  However, this was supposed to
->     guard against a specific race condition that cannot happen, because
->     the power management workqueue is freezable, so pm_runtime_suspend()
->     can only be called synchronously during system suspend and we can
->     rely on subsystems and device drivers to avoid doing that
->     unnecessarily.
->     
->     Make dpm_prepare() drop the runtime PM reference to each device
->     after making sure that runtime resume is not pending for it.
->     
->     Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
->     Acked-by: Kevin Hilman <khilman@ti.com>
-> 
-> [2]
-> From 8968e3e41d785e7e5ce7584d64f6a55b303e7060 Mon Sep 17 00:00:00 2001
-> From: Kevin Hilman <khilman@ti.com>
-> Date: Fri, 10 Jun 2011 16:05:51 -0700
-> Subject: [PATCH] PM / Runtime: update doc: usage count no longer incremented across system PM
-> 
-> commit e8665002477f0278f84f898145b1f141ba26ee26 (PM: Allow
-> pm_runtime_suspend() to succeed during system suspend) removed usage
-> count increment across system PM.
-> 
-> Update doc to reflect this.
-> 
-> Signed-off-by: Kevin Hilman <khilman@ti.com>
-> ---
-> Applies on v3.0-rc2
-> 
->  Documentation/power/runtime_pm.txt |    5 -----
->  1 files changed, 0 insertions(+), 5 deletions(-)
-> 
-> diff --git a/Documentation/power/runtime_pm.txt b/Documentation/power/runtime_pm.txt
-> index 654097b..22accb3 100644
-> --- a/Documentation/power/runtime_pm.txt
-> +++ b/Documentation/power/runtime_pm.txt
-> @@ -566,11 +566,6 @@ to do this is:
->  	pm_runtime_set_active(dev);
->  	pm_runtime_enable(dev);
->  
-> -The PM core always increments the run-time usage counter before calling the
-> -->prepare() callback and decrements it after calling the ->complete() callback.
-> -Hence disabling run-time PM temporarily like this will not cause any run-time
-> -suspend callbacks to be lost.
-> -
->  7. Generic subsystem callbacks
->  
->  Subsystems may wish to conserve code space by using the set of generic power
-> 
-
+--
+Sent by an employee of the Qualcomm Innovation Center, Inc.
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
