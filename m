@@ -1,7 +1,7 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v5 07/18] MFD: twl4030-audio: Rename platform data
-Date: Mon, 13 Jun 2011 19:37:39 +0300
-Message-ID: <1307983070-2257-8-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v5 09/18] ASoC: twl6040: Convert into TWL6040 MFD child
+Date: Mon, 13 Jun 2011 19:37:41 +0300
+Message-ID: <1307983070-2257-10-git-send-email-peter.ujfalusi@ti.com>
 References: <1307983070-2257-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,263 +9,844 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1307983070-2257-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Samuel Ortiz <sameo@linux.intel.com>, Dmitry Torokhov <dmitry.torokhov@>
-Cc: linux-input@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org, Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: linux-input@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org, Misael Lopez Cruz <misael.lopez@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Allign the platform data names for twl4030 audio submodule:
-twl4030_audio_data: for the core MFD driver
-twl4030_codec_data: for ASoC codec driver
-twl4030_vibra_data: for the input/ForceFeedback driver
+From: Misael Lopez Cruz <misael.lopez@ti.com>
 
-To avoid breakage, change all depending drivers, files
-to use the new types.
+Convert TWL6040 CODEC driver into a TWL6040 MFD child, it implies
+that MFD-level operations like register accesses, clock setting
+and power management are done through MFD APIs, not directly by
+CODEC driver anymore. To avoid conflicts with the other MFD child,
+vibrator registers are skipped in CODEC driver.
 
+Signed-off-by: Misael Lopez Cruz <misael.lopez@ti.com>
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
 ---
- arch/arm/mach-omap2/board-rx51-peripherals.c |    6 +++---
- arch/arm/mach-omap2/board-zoom-peripherals.c |   10 +++++-----
- arch/arm/mach-omap2/twl-common.c             |   10 +++++-----
- drivers/input/misc/twl4030-vibra.c           |    2 +-
- drivers/mfd/twl-core.c                       |    8 ++++----
- drivers/mfd/twl4030-audio.c                  |    8 ++++----
- include/linux/i2c/twl.h                      |   12 ++++++------
- sound/soc/codecs/twl4030.c                   |    6 +++---
- sound/soc/codecs/twl6040.c                   |    2 +-
- 9 files changed, 32 insertions(+), 32 deletions(-)
+ sound/soc/codecs/Kconfig   |    1 +
+ sound/soc/codecs/twl6040.c |  425 +++++++++-----------------------------------
+ sound/soc/codecs/twl6040.h |  118 ------------
+ sound/soc/omap/sdp4430.c   |    2 +
+ 4 files changed, 90 insertions(+), 456 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
-index dfaf874..a2d3e19 100644
---- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-+++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-@@ -738,11 +738,11 @@ static struct twl4030_power_data rx51_t2scripts_data __initdata = {
- 	.resource_config = twl4030_rconfig,
- };
+diff --git a/sound/soc/codecs/Kconfig b/sound/soc/codecs/Kconfig
+index 0002220..922f59f 100644
+--- a/sound/soc/codecs/Kconfig
++++ b/sound/soc/codecs/Kconfig
+@@ -240,6 +240,7 @@ config SND_SOC_TWL4030
+ 	tristate
  
--struct twl4030_codec_vibra_data rx51_vibra_data __initdata = {
-+struct twl4030_vibra_data rx51_vibra_data __initdata = {
- 	.coexist	= 0,
- };
+ config SND_SOC_TWL6040
++	select TWL6040_CORE
+ 	tristate
  
--struct twl4030_codec_data rx51_codec_data __initdata = {
-+struct twl4030_audio_data rx51_audio_data __initdata = {
- 	.audio_mclk	= 26000000,
- 	.vibra		= &rx51_vibra_data,
- };
-@@ -752,7 +752,7 @@ static struct twl4030_platform_data rx51_twldata __initdata = {
- 	.gpio			= &rx51_gpio_data,
- 	.keypad			= &rx51_kp_data,
- 	.power			= &rx51_t2scripts_data,
--	.codec			= &rx51_codec_data,
-+	.audio			= &rx51_audio_data,
- 
- 	.vaux1			= &rx51_vaux1,
- 	.vaux2			= &rx51_vaux2,
-diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c b/arch/arm/mach-omap2/board-zoom-peripherals.c
-index 8853dc4..6d44409 100644
---- a/arch/arm/mach-omap2/board-zoom-peripherals.c
-+++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
-@@ -282,12 +282,12 @@ static int __init omap_i2c_init(void)
- 			TWL_COMMON_REGULATOR_VDAC | TWL_COMMON_REGULATOR_VPLL2);
- 
- 	if (machine_is_omap_zoom2()) {
--		struct twl4030_codec_audio_data *audio_data;
--		audio_data = zoom_twldata.codec->audio;
-+		struct twl4030_codec_data *codec_data;
-+		codec_data = zoom_twldata.audio->codec;
- 
--		audio_data->ramp_delay_value = 3;	/* 161 ms */
--		audio_data->hs_extmute = 1;
--		audio_data->set_hs_extmute = zoom2_set_hs_extmute;
-+		codec_data->ramp_delay_value = 3;	/* 161 ms */
-+		codec_data->hs_extmute = 1;
-+		codec_data->set_hs_extmute = zoom2_set_hs_extmute;
- 	}
- 	omap_pmic_init(1, 2400, "twl5030", INT_34XX_SYS_NIRQ, &zoom_twldata);
- 	omap_register_i2c_bus(2, 400, NULL, 0);
-diff --git a/arch/arm/mach-omap2/twl-common.c b/arch/arm/mach-omap2/twl-common.c
-index f15f880..ca219ea 100644
---- a/arch/arm/mach-omap2/twl-common.c
-+++ b/arch/arm/mach-omap2/twl-common.c
-@@ -80,11 +80,11 @@ static struct twl4030_madc_platform_data omap3_madc_pdata = {
- 	.irq_line	= 1,
- };
- 
--static struct twl4030_codec_audio_data omap3_audio;
-+static struct twl4030_codec_data omap3_codec;
- 
--static struct twl4030_codec_data omap3_codec_pdata = {
-+static struct twl4030_audio_data omap3_audio_pdata = {
- 	.audio_mclk = 26000000,
--	.audio = &omap3_audio,
-+	.codec = &omap3_codec,
- };
- 
- static struct regulator_consumer_supply omap3_vdda_dac_supplies[] = {
-@@ -292,8 +292,8 @@ void __init omap3_pmic_get_config(struct twl4030_platform_data *pmic_data,
- 	if (pdata_flags & TWL_COMMON_PDATA_MADC && !pmic_data->madc)
- 		pmic_data->madc = &omap3_madc_pdata;
- 
--	if (pdata_flags & TWL_COMMON_PDATA_AUDIO && !pmic_data->codec)
--		pmic_data->codec = &omap3_codec_pdata;
-+	if (pdata_flags & TWL_COMMON_PDATA_AUDIO && !pmic_data->audio)
-+		pmic_data->audio = &omap3_audio_pdata;
- 
- 	/* Common regulator configurations */
- 	if (regulators_flags & TWL_COMMON_REGULATOR_VDAC && !pmic_data->vdac)
-diff --git a/drivers/input/misc/twl4030-vibra.c b/drivers/input/misc/twl4030-vibra.c
-index 7abca85..3c1a432 100644
---- a/drivers/input/misc/twl4030-vibra.c
-+++ b/drivers/input/misc/twl4030-vibra.c
-@@ -196,7 +196,7 @@ static SIMPLE_DEV_PM_OPS(twl4030_vibra_pm_ops,
- 
- static int __devinit twl4030_vibra_probe(struct platform_device *pdev)
- {
--	struct twl4030_codec_vibra_data *pdata = pdev->dev.platform_data;
-+	struct twl4030_vibra_data *pdata = pdev->dev.platform_data;
- 	struct vibra_info *info;
- 	int ret;
- 
-diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-index b8f2a4e..f9d7880 100644
---- a/drivers/mfd/twl-core.c
-+++ b/drivers/mfd/twl-core.c
-@@ -815,20 +815,20 @@ add_children(struct twl4030_platform_data *pdata, unsigned long features)
- 			return PTR_ERR(child);
- 	}
- 
--	if (twl_has_codec() && pdata->codec && twl_class_is_4030()) {
-+	if (twl_has_codec() && pdata->audio && twl_class_is_4030()) {
- 		sub_chip_id = twl_map[TWL_MODULE_AUDIO_VOICE].sid;
- 		child = add_child(sub_chip_id, "twl4030-audio",
--				pdata->codec, sizeof(*pdata->codec),
-+				pdata->audio, sizeof(*pdata->audio),
- 				false, 0, 0);
- 		if (IS_ERR(child))
- 			return PTR_ERR(child);
- 	}
- 
- 	/* Phoenix codec driver is probed directly atm */
--	if (twl_has_codec() && pdata->codec && twl_class_is_6030()) {
-+	if (twl_has_codec() && pdata->audio && twl_class_is_6030()) {
- 		sub_chip_id = twl_map[TWL_MODULE_AUDIO_VOICE].sid;
- 		child = add_child(sub_chip_id, "twl6040-codec",
--				pdata->codec, sizeof(*pdata->codec),
-+				pdata->audio, sizeof(*pdata->audio),
- 				false, 0, 0);
- 		if (IS_ERR(child))
- 			return PTR_ERR(child);
-diff --git a/drivers/mfd/twl4030-audio.c b/drivers/mfd/twl4030-audio.c
-index 5cdf841..ae51ab5 100644
---- a/drivers/mfd/twl4030-audio.c
-+++ b/drivers/mfd/twl4030-audio.c
-@@ -159,7 +159,7 @@ EXPORT_SYMBOL_GPL(twl4030_audio_get_mclk);
- static int __devinit twl4030_audio_probe(struct platform_device *pdev)
- {
- 	struct twl4030_audio *audio;
--	struct twl4030_codec_data *pdata = pdev->dev.platform_data;
-+	struct twl4030_audio_data *pdata = pdev->dev.platform_data;
- 	struct mfd_cell *cell = NULL;
- 	int ret, childs = 0;
- 	u8 val;
-@@ -206,11 +206,11 @@ static int __devinit twl4030_audio_probe(struct platform_device *pdev)
- 	audio->resource[TWL4030_AUDIO_RES_APLL].reg = TWL4030_REG_APLL_CTL;
- 	audio->resource[TWL4030_AUDIO_RES_APLL].mask = TWL4030_APLL_EN;
- 
--	if (pdata->audio) {
-+	if (pdata->codec) {
- 		cell = &audio->cells[childs];
- 		cell->name = "twl4030-codec";
--		cell->platform_data = pdata->audio;
--		cell->pdata_size = sizeof(*pdata->audio);
-+		cell->platform_data = pdata->codec;
-+		cell->pdata_size = sizeof(*pdata->codec);
- 		childs++;
- 	}
- 	if (pdata->vibra) {
-diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
-index ba4f886..e0aba2b 100644
---- a/include/linux/i2c/twl.h
-+++ b/include/linux/i2c/twl.h
-@@ -657,7 +657,7 @@ struct twl4030_power_data {
- extern void twl4030_power_init(struct twl4030_power_data *triton2_scripts);
- extern int twl4030_remove_script(u8 flags);
- 
--struct twl4030_codec_audio_data {
-+struct twl4030_codec_data {
- 	unsigned int digimic_delay; /* in ms */
- 	unsigned int ramp_delay_value;
- 	unsigned int offset_cncl_path;
-@@ -667,14 +667,14 @@ struct twl4030_codec_audio_data {
- 	void (*set_hs_extmute)(int mute);
- };
- 
--struct twl4030_codec_vibra_data {
-+struct twl4030_vibra_data {
- 	unsigned int	coexist;
- };
- 
--struct twl4030_codec_data {
-+struct twl4030_audio_data {
- 	unsigned int	audio_mclk;
--	struct twl4030_codec_audio_data		*audio;
--	struct twl4030_codec_vibra_data		*vibra;
-+	struct twl4030_codec_data *codec;
-+	struct twl4030_vibra_data *vibra;
- 
- 	/* twl6040 */
- 	int audpwron_gpio;	/* audio power-on gpio */
-@@ -690,7 +690,7 @@ struct twl4030_platform_data {
- 	struct twl4030_keypad_data		*keypad;
- 	struct twl4030_usb_data			*usb;
- 	struct twl4030_power_data		*power;
--	struct twl4030_codec_data		*codec;
-+	struct twl4030_audio_data		*audio;
- 
- 	/* Common LDO regulators for TWL4030/TWL6030 */
- 	struct regulator_init_data		*vdac;
-diff --git a/sound/soc/codecs/twl4030.c b/sound/soc/codecs/twl4030.c
-index 5e648d3..71674be 100644
---- a/sound/soc/codecs/twl4030.c
-+++ b/sound/soc/codecs/twl4030.c
-@@ -297,7 +297,7 @@ static inline void twl4030_reset_registers(struct snd_soc_codec *codec)
- 
- static void twl4030_init_chip(struct snd_soc_codec *codec)
- {
--	struct twl4030_codec_audio_data *pdata = dev_get_platdata(codec->dev);
-+	struct twl4030_codec_data *pdata = dev_get_platdata(codec->dev);
- 	struct twl4030_priv *twl4030 = snd_soc_codec_get_drvdata(codec);
- 	u8 reg, byte;
- 	int i = 0;
-@@ -732,7 +732,7 @@ static int aif_event(struct snd_soc_dapm_widget *w,
- 
- static void headset_ramp(struct snd_soc_codec *codec, int ramp)
- {
--	struct twl4030_codec_audio_data *pdata = codec->dev->platform_data;
-+	struct twl4030_codec_data *pdata = codec->dev->platform_data;
- 	unsigned char hs_gain, hs_pop;
- 	struct twl4030_priv *twl4030 = snd_soc_codec_get_drvdata(codec);
- 	/* Base values for ramp delay calculation: 2^19 - 2^26 */
-@@ -2297,7 +2297,7 @@ static struct snd_soc_codec_driver soc_codec_dev_twl4030 = {
- 
- static int __devinit twl4030_codec_probe(struct platform_device *pdev)
- {
--	struct twl4030_codec_audio_data *pdata = pdev->dev.platform_data;
-+	struct twl4030_codec_data *pdata = pdev->dev.platform_data;
- 
- 	if (!pdata) {
- 		dev_err(&pdev->dev, "platform_data is missing\n");
+ config SND_SOC_UDA134X
 diff --git a/sound/soc/codecs/twl6040.c b/sound/soc/codecs/twl6040.c
-index 4c33663..ade6616 100644
+index ade6616..a20e293 100644
 --- a/sound/soc/codecs/twl6040.c
 +++ b/sound/soc/codecs/twl6040.c
-@@ -1600,7 +1600,7 @@ static int twl6040_resume(struct snd_soc_codec *codec)
+@@ -24,11 +24,10 @@
+ #include <linux/init.h>
+ #include <linux/delay.h>
+ #include <linux/pm.h>
+-#include <linux/i2c.h>
+-#include <linux/gpio.h>
+ #include <linux/platform_device.h>
+ #include <linux/slab.h>
+ #include <linux/i2c/twl.h>
++#include <linux/mfd/twl6040.h>
+ 
+ #include <sound/core.h>
+ #include <sound/pcm.h>
+@@ -77,14 +76,12 @@ struct twl6040_jack_data {
+ 
+ /* codec private data */
+ struct twl6040_data {
+-	int audpwron;
+-	int naudint;
+ 	int codec_powered;
+ 	int pll;
+ 	int non_lp;
++	unsigned int clk_in;
+ 	unsigned int sysclk;
+ 	struct snd_pcm_hw_constraint_list *sysclk_constraints;
+-	struct completion ready;
+ 	struct twl6040_jack_data hs_jack;
+ 	struct snd_soc_codec *codec;
+ 	struct workqueue_struct *workqueue;
+@@ -239,12 +236,13 @@ static inline void twl6040_write_reg_cache(struct snd_soc_codec *codec,
+ static int twl6040_read_reg_volatile(struct snd_soc_codec *codec,
+ 			unsigned int reg)
+ {
++	struct twl6040 *twl6040 = codec->control_data;
+ 	u8 value;
+ 
+ 	if (reg >= TWL6040_CACHEREGNUM)
+ 		return -EIO;
+ 
+-	twl_i2c_read_u8(TWL_MODULE_AUDIO_VOICE, &value, reg);
++	value = twl6040_reg_read(twl6040, reg);
+ 	twl6040_write_reg_cache(codec, reg, value);
+ 
+ 	return value;
+@@ -256,11 +254,13 @@ static int twl6040_read_reg_volatile(struct snd_soc_codec *codec,
+ static int twl6040_write(struct snd_soc_codec *codec,
+ 			unsigned int reg, unsigned int value)
+ {
++	struct twl6040 *twl6040 = codec->control_data;
++
+ 	if (reg >= TWL6040_CACHEREGNUM)
+ 		return -EIO;
+ 
+ 	twl6040_write_reg_cache(codec, reg, value);
+-	return twl_i2c_write_u8(TWL_MODULE_AUDIO_VOICE, value, reg);
++	return twl6040_reg_write(twl6040, reg, value);
+ }
+ 
+ static void twl6040_init_vio_regs(struct snd_soc_codec *codec)
+@@ -268,15 +268,21 @@ static void twl6040_init_vio_regs(struct snd_soc_codec *codec)
+ 	u8 *cache = codec->reg_cache;
+ 	int reg, i;
+ 
+-	/* allow registers to be accessed by i2c */
+-	twl6040_write(codec, TWL6040_REG_ACCCTL, cache[TWL6040_REG_ACCCTL]);
+-
+ 	for (i = 0; i < TWL6040_VIOREGNUM; i++) {
+ 		reg = twl6040_vio_reg[i];
+-		/* skip read-only registers (ASICID, ASICREV, STATUS) */
++		/*
++		 * skip read-only registers (ASICID, ASICREV, STATUS)
++		 * and registers shared among MFD children
++		 */
+ 		switch (reg) {
+ 		case TWL6040_REG_ASICID:
+ 		case TWL6040_REG_ASICREV:
++		case TWL6040_REG_INTID:
++		case TWL6040_REG_INTMR:
++		case TWL6040_REG_NCPCTL:
++		case TWL6040_REG_LDOCTL:
++		case TWL6040_REG_GPOCTL:
++		case TWL6040_REG_ACCCTL:
+ 		case TWL6040_REG_STATUS:
+ 			continue;
+ 		default:
+@@ -293,6 +299,20 @@ static void twl6040_init_vdd_regs(struct snd_soc_codec *codec)
+ 
+ 	for (i = 0; i < TWL6040_VDDREGNUM; i++) {
+ 		reg = twl6040_vdd_reg[i];
++		/* skip vibra and PLL registers */
++		switch (reg) {
++		case TWL6040_REG_VIBCTLL:
++		case TWL6040_REG_VIBDATL:
++		case TWL6040_REG_VIBCTLR:
++		case TWL6040_REG_VIBDATR:
++		case TWL6040_REG_HPPLLCTL:
++		case TWL6040_REG_LPPLLCTL:
++		case TWL6040_REG_LPPLLDIV:
++			continue;
++		default:
++			break;
++		}
++
+ 		twl6040_write(codec, reg, cache[reg]);
+ 	}
+ }
+@@ -596,88 +616,6 @@ static int pga_event(struct snd_soc_dapm_widget *w,
+ 	return 0;
+ }
+ 
+-/* twl6040 codec manual power-up sequence */
+-static void twl6040_power_up(struct snd_soc_codec *codec)
+-{
+-	u8 ncpctl, ldoctl, lppllctl, accctl;
+-
+-	ncpctl = twl6040_read_reg_cache(codec, TWL6040_REG_NCPCTL);
+-	ldoctl = twl6040_read_reg_cache(codec, TWL6040_REG_LDOCTL);
+-	lppllctl = twl6040_read_reg_cache(codec, TWL6040_REG_LPPLLCTL);
+-	accctl = twl6040_read_reg_cache(codec, TWL6040_REG_ACCCTL);
+-
+-	/* enable reference system */
+-	ldoctl |= TWL6040_REFENA;
+-	twl6040_write(codec, TWL6040_REG_LDOCTL, ldoctl);
+-	msleep(10);
+-	/* enable internal oscillator */
+-	ldoctl |= TWL6040_OSCENA;
+-	twl6040_write(codec, TWL6040_REG_LDOCTL, ldoctl);
+-	udelay(10);
+-	/* enable high-side ldo */
+-	ldoctl |= TWL6040_HSLDOENA;
+-	twl6040_write(codec, TWL6040_REG_LDOCTL, ldoctl);
+-	udelay(244);
+-	/* enable negative charge pump */
+-	ncpctl |= TWL6040_NCPENA | TWL6040_NCPOPEN;
+-	twl6040_write(codec, TWL6040_REG_NCPCTL, ncpctl);
+-	udelay(488);
+-	/* enable low-side ldo */
+-	ldoctl |= TWL6040_LSLDOENA;
+-	twl6040_write(codec, TWL6040_REG_LDOCTL, ldoctl);
+-	udelay(244);
+-	/* enable low-power pll */
+-	lppllctl |= TWL6040_LPLLENA;
+-	twl6040_write(codec, TWL6040_REG_LPPLLCTL, lppllctl);
+-	/* reset state machine */
+-	accctl |= TWL6040_RESETSPLIT;
+-	twl6040_write(codec, TWL6040_REG_ACCCTL, accctl);
+-	mdelay(5);
+-	accctl &= ~TWL6040_RESETSPLIT;
+-	twl6040_write(codec, TWL6040_REG_ACCCTL, accctl);
+-	/* disable internal oscillator */
+-	ldoctl &= ~TWL6040_OSCENA;
+-	twl6040_write(codec, TWL6040_REG_LDOCTL, ldoctl);
+-}
+-
+-/* twl6040 codec manual power-down sequence */
+-static void twl6040_power_down(struct snd_soc_codec *codec)
+-{
+-	u8 ncpctl, ldoctl, lppllctl, accctl;
+-
+-	ncpctl = twl6040_read_reg_cache(codec, TWL6040_REG_NCPCTL);
+-	ldoctl = twl6040_read_reg_cache(codec, TWL6040_REG_LDOCTL);
+-	lppllctl = twl6040_read_reg_cache(codec, TWL6040_REG_LPPLLCTL);
+-	accctl = twl6040_read_reg_cache(codec, TWL6040_REG_ACCCTL);
+-
+-	/* enable internal oscillator */
+-	ldoctl |= TWL6040_OSCENA;
+-	twl6040_write(codec, TWL6040_REG_LDOCTL, ldoctl);
+-	udelay(10);
+-	/* disable low-power pll */
+-	lppllctl &= ~TWL6040_LPLLENA;
+-	twl6040_write(codec, TWL6040_REG_LPPLLCTL, lppllctl);
+-	/* disable low-side ldo */
+-	ldoctl &= ~TWL6040_LSLDOENA;
+-	twl6040_write(codec, TWL6040_REG_LDOCTL, ldoctl);
+-	udelay(244);
+-	/* disable negative charge pump */
+-	ncpctl &= ~(TWL6040_NCPENA | TWL6040_NCPOPEN);
+-	twl6040_write(codec, TWL6040_REG_NCPCTL, ncpctl);
+-	udelay(488);
+-	/* disable high-side ldo */
+-	ldoctl &= ~TWL6040_HSLDOENA;
+-	twl6040_write(codec, TWL6040_REG_LDOCTL, ldoctl);
+-	udelay(244);
+-	/* disable internal oscillator */
+-	ldoctl &= ~TWL6040_OSCENA;
+-	twl6040_write(codec, TWL6040_REG_LDOCTL, ldoctl);
+-	/* disable reference system */
+-	ldoctl &= ~TWL6040_REFENA;
+-	twl6040_write(codec, TWL6040_REG_LDOCTL, ldoctl);
+-	msleep(10);
+-}
+-
+ /* set headset dac and driver power mode */
+ static int headset_power_mode(struct snd_soc_codec *codec, int high_perf)
+ {
+@@ -766,33 +704,19 @@ static void twl6040_accessory_work(struct work_struct *work)
+ }
+ 
+ /* audio interrupt handler */
+-static irqreturn_t twl6040_naudint_handler(int irq, void *data)
++static irqreturn_t twl6040_audio_handler(int irq, void *data)
+ {
+ 	struct snd_soc_codec *codec = data;
++	struct twl6040 *twl6040 = codec->control_data;
+ 	struct twl6040_data *priv = snd_soc_codec_get_drvdata(codec);
+ 	u8 intid;
+ 
+-	twl_i2c_read_u8(TWL_MODULE_AUDIO_VOICE, &intid, TWL6040_REG_INTID);
+-
+-	if (intid & TWL6040_THINT)
+-		dev_alert(codec->dev, "die temp over-limit detection\n");
++	intid = twl6040_reg_read(twl6040, TWL6040_REG_INTID);
+ 
+ 	if ((intid & TWL6040_PLUGINT) || (intid & TWL6040_UNPLUGINT))
+ 		queue_delayed_work(priv->workqueue, &priv->delayed_work,
+ 							msecs_to_jiffies(200));
+ 
+-	if (intid & TWL6040_HOOKINT)
+-		dev_info(codec->dev, "hook detection\n");
+-
+-	if (intid & TWL6040_HFINT)
+-		dev_alert(codec->dev, "hf drivers over current detection\n");
+-
+-	if (intid & TWL6040_VIBINT)
+-		dev_alert(codec->dev, "vib drivers over current detection\n");
+-
+-	if (intid & TWL6040_READYINT)
+-		complete(&priv->ready);
+-
+ 	return IRQ_HANDLED;
+ }
+ 
+@@ -1231,36 +1155,11 @@ static int twl6040_add_widgets(struct snd_soc_codec *codec)
+ 	return 0;
+ }
+ 
+-static int twl6040_power_up_completion(struct snd_soc_codec *codec,
+-					int naudint)
+-{
+-	struct twl6040_data *priv = snd_soc_codec_get_drvdata(codec);
+-	int time_left;
+-	u8 intid;
+-
+-	time_left = wait_for_completion_timeout(&priv->ready,
+-				msecs_to_jiffies(144));
+-
+-	if (!time_left) {
+-		twl_i2c_read_u8(TWL_MODULE_AUDIO_VOICE, &intid,
+-							TWL6040_REG_INTID);
+-		if (!(intid & TWL6040_READYINT)) {
+-			dev_err(codec->dev, "timeout waiting for READYINT\n");
+-			return -ETIMEDOUT;
+-		}
+-	}
+-
+-	priv->codec_powered = 1;
+-
+-	return 0;
+-}
+-
+ static int twl6040_set_bias_level(struct snd_soc_codec *codec,
+ 				enum snd_soc_bias_level level)
+ {
++	struct twl6040 *twl6040 = codec->control_data;
+ 	struct twl6040_data *priv = snd_soc_codec_get_drvdata(codec);
+-	int audpwron = priv->audpwron;
+-	int naudint = priv->naudint;
+ 	int ret;
+ 
+ 	switch (level) {
+@@ -1272,62 +1171,30 @@ static int twl6040_set_bias_level(struct snd_soc_codec *codec,
+ 		if (priv->codec_powered)
+ 			break;
+ 
+-		if (gpio_is_valid(audpwron)) {
+-			/* use AUDPWRON line */
+-			gpio_set_value(audpwron, 1);
+-
+-			/* wait for power-up completion */
+-			ret = twl6040_power_up_completion(codec, naudint);
+-			if (ret)
+-				return ret;
++		ret = twl6040_power(twl6040, 1);
++		if (ret)
++			return ret;
+ 
+-			/* sync registers updated during power-up sequence */
+-			twl6040_read_reg_volatile(codec, TWL6040_REG_NCPCTL);
+-			twl6040_read_reg_volatile(codec, TWL6040_REG_LDOCTL);
+-			twl6040_read_reg_volatile(codec, TWL6040_REG_LPPLLCTL);
+-		} else {
+-			/* use manual power-up sequence */
+-			twl6040_power_up(codec);
+-			priv->codec_powered = 1;
+-		}
++		priv->codec_powered = 1;
+ 
+ 		/* initialize vdd/vss registers with reg_cache */
+ 		twl6040_init_vdd_regs(codec);
+ 
+ 		/* Set external boost GPO */
+ 		twl6040_write(codec, TWL6040_REG_GPOCTL, 0x02);
+-
+-		/* Set initial minimal gain values */
+-		twl6040_write(codec, TWL6040_REG_HSGAIN, 0xFF);
+-		twl6040_write(codec, TWL6040_REG_EARCTL, 0x1E);
+-		twl6040_write(codec, TWL6040_REG_HFLGAIN, 0x1D);
+-		twl6040_write(codec, TWL6040_REG_HFRGAIN, 0x1D);
+ 		break;
+ 	case SND_SOC_BIAS_OFF:
+ 		if (!priv->codec_powered)
+ 			break;
+ 
+-		if (gpio_is_valid(audpwron)) {
+-			/* use AUDPWRON line */
+-			gpio_set_value(audpwron, 0);
+-
+-			/* power-down sequence latency */
+-			udelay(500);
+-
+-			/* sync registers updated during power-down sequence */
+-			twl6040_read_reg_volatile(codec, TWL6040_REG_NCPCTL);
+-			twl6040_read_reg_volatile(codec, TWL6040_REG_LDOCTL);
+-			twl6040_write_reg_cache(codec, TWL6040_REG_LPPLLCTL,
+-						0x00);
+-		} else {
+-			/* use manual power-down sequence */
+-			twl6040_power_down(codec);
+-		}
+-
++		twl6040_power(twl6040, 0);
+ 		priv->codec_powered = 0;
+ 		break;
+ 	}
+ 
++	/* get PLL and sysclk after power transition */
++	priv->pll = twl6040_get_pll(twl6040);
++	priv->sysclk = twl6040_get_sysclk(twl6040);
+ 	codec->dapm.bias_level = level;
+ 
+ 	return 0;
+@@ -1374,39 +1241,40 @@ static int twl6040_hw_params(struct snd_pcm_substream *substream,
+ {
+ 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
+ 	struct snd_soc_codec *codec = rtd->codec;
++	struct twl6040 *twl6040 = codec->control_data;
+ 	struct twl6040_data *priv = snd_soc_codec_get_drvdata(codec);
+-	u8 lppllctl;
+-	int rate;
++	unsigned int sysclk;
++	int rate, ret;
+ 
+ 	/* nothing to do for high-perf pll, it supports only 48 kHz */
+ 	if (priv->pll == TWL6040_HPPLL_ID)
+ 		return 0;
+ 
+-	lppllctl = twl6040_read_reg_cache(codec, TWL6040_REG_LPPLLCTL);
+-
+ 	rate = params_rate(params);
+ 	switch (rate) {
+ 	case 11250:
+ 	case 22500:
+ 	case 44100:
+ 	case 88200:
+-		lppllctl |= TWL6040_LPLLFIN;
+-		priv->sysclk = 17640000;
++		sysclk = 17640000;
+ 		break;
+ 	case 8000:
+ 	case 16000:
+ 	case 32000:
+ 	case 48000:
+ 	case 96000:
+-		lppllctl &= ~TWL6040_LPLLFIN;
+-		priv->sysclk = 19200000;
++		sysclk = 19200000;
+ 		break;
+ 	default:
+ 		dev_err(codec->dev, "unsupported rate %d\n", rate);
+ 		return -EINVAL;
+ 	}
+ 
+-	twl6040_write(codec, TWL6040_REG_LPPLLCTL, lppllctl);
++	ret = twl6040_set_pll(twl6040, TWL6040_LPPLL_ID, priv->clk_in, sysclk);
++	if (ret)
++		return ret;
++
++	priv->sysclk = twl6040_get_sysclk(twl6040);
+ 
+ 	return 0;
+ }
+@@ -1449,99 +1317,27 @@ static int twl6040_set_dai_sysclk(struct snd_soc_dai *codec_dai,
+ 		int clk_id, unsigned int freq, int dir)
+ {
+ 	struct snd_soc_codec *codec = codec_dai->codec;
++	struct twl6040 *twl6040 = codec->control_data;
+ 	struct twl6040_data *priv = snd_soc_codec_get_drvdata(codec);
+-	u8 hppllctl, lppllctl;
+-
+-	hppllctl = twl6040_read_reg_cache(codec, TWL6040_REG_HPPLLCTL);
+-	lppllctl = twl6040_read_reg_cache(codec, TWL6040_REG_LPPLLCTL);
++	int ret = 0;
+ 
+ 	switch (clk_id) {
+ 	case TWL6040_SYSCLK_SEL_LPPLL:
+-		switch (freq) {
+-		case 32768:
+-			/* headset dac and driver must be in low-power mode */
+-			headset_power_mode(codec, 0);
+-
+-			/* clk32k input requires low-power pll */
+-			lppllctl |= TWL6040_LPLLENA;
+-			twl6040_write(codec, TWL6040_REG_LPPLLCTL, lppllctl);
+-			mdelay(5);
+-			lppllctl &= ~TWL6040_HPLLSEL;
+-			twl6040_write(codec, TWL6040_REG_LPPLLCTL, lppllctl);
+-			hppllctl &= ~TWL6040_HPLLENA;
+-			twl6040_write(codec, TWL6040_REG_HPPLLCTL, hppllctl);
+-			break;
+-		default:
+-			dev_err(codec->dev, "unknown mclk freq %d\n", freq);
+-			return -EINVAL;
+-		}
+-
+-		/* lppll divider */
+-		switch (priv->sysclk) {
+-		case 17640000:
+-			lppllctl |= TWL6040_LPLLFIN;
+-			break;
+-		case 19200000:
+-			lppllctl &= ~TWL6040_LPLLFIN;
+-			break;
+-		default:
+-			/* sysclk not yet configured */
+-			lppllctl &= ~TWL6040_LPLLFIN;
+-			priv->sysclk = 19200000;
+-			break;
+-		}
+-
+-		twl6040_write(codec, TWL6040_REG_LPPLLCTL, lppllctl);
++		ret = twl6040_set_pll(twl6040, TWL6040_LPPLL_ID,
++				      freq, priv->sysclk);
++		if (ret)
++			return ret;
+ 
+-		priv->pll = TWL6040_LPPLL_ID;
++		headset_power_mode(codec, 0);
+ 		priv->sysclk_constraints = &lp_constraints;
+ 		break;
+ 	case TWL6040_SYSCLK_SEL_HPPLL:
+-		hppllctl &= ~TWL6040_MCLK_MSK;
+-
+-		switch (freq) {
+-		case 12000000:
+-			/* mclk input, pll enabled */
+-			hppllctl |= TWL6040_MCLK_12000KHZ |
+-				    TWL6040_HPLLSQRBP |
+-				    TWL6040_HPLLENA;
+-			break;
+-		case 19200000:
+-			/* mclk input, pll disabled */
+-			hppllctl |= TWL6040_MCLK_19200KHZ |
+-				    TWL6040_HPLLSQRENA |
+-				    TWL6040_HPLLBP;
+-			break;
+-		case 26000000:
+-			/* mclk input, pll enabled */
+-			hppllctl |= TWL6040_MCLK_26000KHZ |
+-				    TWL6040_HPLLSQRBP |
+-				    TWL6040_HPLLENA;
+-			break;
+-		case 38400000:
+-			/* clk slicer, pll disabled */
+-			hppllctl |= TWL6040_MCLK_38400KHZ |
+-				    TWL6040_HPLLSQRENA |
+-				    TWL6040_HPLLBP;
+-			break;
+-		default:
+-			dev_err(codec->dev, "unknown mclk freq %d\n", freq);
+-			return -EINVAL;
+-		}
++		ret = twl6040_set_pll(twl6040, TWL6040_HPPLL_ID,
++				      freq, priv->sysclk);
++		if (ret)
++			return ret;
+ 
+-		/* headset dac and driver must be in high-performance mode */
+ 		headset_power_mode(codec, 1);
+-
+-		twl6040_write(codec, TWL6040_REG_HPPLLCTL, hppllctl);
+-		udelay(500);
+-		lppllctl |= TWL6040_HPLLSEL;
+-		twl6040_write(codec, TWL6040_REG_LPPLLCTL, lppllctl);
+-		lppllctl &= ~TWL6040_LPLLENA;
+-		twl6040_write(codec, TWL6040_REG_LPPLLCTL, lppllctl);
+-
+-		/* high-performance pll can provide only 19.2 MHz */
+-		priv->pll = TWL6040_HPPLL_ID;
+-		priv->sysclk = 19200000;
+ 		priv->sysclk_constraints = &hp_constraints;
+ 		break;
+ 	default:
+@@ -1549,6 +1345,10 @@ static int twl6040_set_dai_sysclk(struct snd_soc_dai *codec_dai,
+ 		return -EINVAL;
+ 	}
+ 
++	priv->pll = twl6040_get_pll(twl6040);
++	priv->clk_in = freq;
++	priv->sysclk = twl6040_get_sysclk(twl6040);
++
+ 	return 0;
+ }
+ 
+@@ -1600,11 +1400,8 @@ static int twl6040_resume(struct snd_soc_codec *codec)
  
  static int twl6040_probe(struct snd_soc_codec *codec)
  {
--	struct twl4030_codec_data *twl_codec = codec->dev->platform_data;
-+	struct twl4030_audio_data *twl_codec = codec->dev->platform_data;
+-	struct twl4030_audio_data *twl_codec = codec->dev->platform_data;
  	struct twl6040_data *priv;
- 	int audpwron, naudint;
+-	int audpwron, naudint;
  	int ret = 0;
+-	u8 icrev, intmr = TWL6040_ALLINT_MSK;
+ 
+ 	priv = kzalloc(sizeof(struct twl6040_data), GFP_KERNEL);
+ 	if (priv == NULL)
+@@ -1612,23 +1409,9 @@ static int twl6040_probe(struct snd_soc_codec *codec)
+ 	snd_soc_codec_set_drvdata(codec, priv);
+ 
+ 	priv->codec = codec;
++	codec->control_data = dev_get_drvdata(codec->dev->parent);
+ 
+-	twl_i2c_read_u8(TWL_MODULE_AUDIO_VOICE, &icrev, TWL6040_REG_ASICREV);
+-
+-	if (twl_codec && (icrev > 0))
+-		audpwron = twl_codec->audpwron_gpio;
+-	else
+-		audpwron = -EINVAL;
+-
+-	if (twl_codec)
+-		naudint = twl_codec->naudint_irq;
+-	else
+-		naudint = 0;
+-
+-	priv->audpwron = audpwron;
+-	priv->naudint = naudint;
+ 	priv->workqueue = create_singlethread_workqueue("twl6040-codec");
+-
+ 	if (!priv->workqueue) {
+ 		ret = -ENOMEM;
+ 		goto work_err;
+@@ -1638,56 +1421,34 @@ static int twl6040_probe(struct snd_soc_codec *codec)
+ 
+ 	mutex_init(&priv->mutex);
+ 
+-	init_completion(&priv->ready);
+ 	init_completion(&priv->headset.ramp_done);
+ 	init_completion(&priv->handsfree.ramp_done);
+ 
+-	if (gpio_is_valid(audpwron)) {
+-		ret = gpio_request(audpwron, "audpwron");
+-		if (ret)
+-			goto gpio1_err;
+-
+-		ret = gpio_direction_output(audpwron, 0);
+-		if (ret)
+-			goto gpio2_err;
+-
+-		priv->codec_powered = 0;
+-
+-		/* enable only codec ready interrupt */
+-		intmr &= ~(TWL6040_READYMSK | TWL6040_PLUGMSK);
+-
+-		/* reset interrupt status to allow correct power up sequence */
+-		twl6040_read_reg_volatile(codec, TWL6040_REG_INTID);
+-	}
+-	twl6040_write(codec, TWL6040_REG_INTMR, intmr);
+-
+-	if (naudint) {
+-		/* audio interrupt */
+-		ret = request_threaded_irq(naudint, NULL,
+-				twl6040_naudint_handler,
+-				IRQF_TRIGGER_LOW | IRQF_ONESHOT,
+-				"twl6040_codec", codec);
+-		if (ret)
+-			goto gpio2_err;
+-	}
+-
+-	/* init vio registers */
+-	twl6040_init_vio_regs(codec);
+-
+ 	priv->hf_workqueue = create_singlethread_workqueue("twl6040-hf");
+ 	if (priv->hf_workqueue == NULL) {
+ 		ret = -ENOMEM;
+-		goto irq_err;
++		goto hfwq_err;
+ 	}
+ 	priv->hs_workqueue = create_singlethread_workqueue("twl6040-hs");
+ 	if (priv->hs_workqueue == NULL) {
+ 		ret = -ENOMEM;
+-		goto wq_err;
++		goto hswq_err;
+ 	}
+ 
+ 	INIT_DELAYED_WORK(&priv->hs_delayed_work, twl6040_pga_hs_work);
+ 	INIT_DELAYED_WORK(&priv->hf_delayed_work, twl6040_pga_hf_work);
+ 
++	ret = twl6040_request_irq(codec->control_data, TWL6040_IRQ_PLUG,
++				  twl6040_audio_handler, 0,
++				  "twl6040_irq_plug", codec);
++	if (ret) {
++		dev_err(codec->dev, "PLUG IRQ request failed: %d\n", ret);
++		goto plugirq_err;
++	}
++
++	/* init vio registers */
++	twl6040_init_vio_regs(codec);
++
+ 	/* power on device */
+ 	ret = twl6040_set_bias_level(codec, SND_SOC_BIAS_STANDBY);
+ 	if (ret)
+@@ -1700,16 +1461,12 @@ static int twl6040_probe(struct snd_soc_codec *codec)
+ 	return 0;
+ 
+ bias_err:
++	twl6040_free_irq(codec->control_data, TWL6040_IRQ_PLUG, codec);
++plugirq_err:
+ 	destroy_workqueue(priv->hs_workqueue);
+-wq_err:
++hswq_err:
+ 	destroy_workqueue(priv->hf_workqueue);
+-irq_err:
+-	if (naudint)
+-		free_irq(naudint, codec);
+-gpio2_err:
+-	if (gpio_is_valid(audpwron))
+-		gpio_free(audpwron);
+-gpio1_err:
++hfwq_err:
+ 	destroy_workqueue(priv->workqueue);
+ work_err:
+ 	kfree(priv);
+@@ -1719,17 +1476,9 @@ work_err:
+ static int twl6040_remove(struct snd_soc_codec *codec)
+ {
+ 	struct twl6040_data *priv = snd_soc_codec_get_drvdata(codec);
+-	int audpwron = priv->audpwron;
+-	int naudint = priv->naudint;
+ 
+ 	twl6040_set_bias_level(codec, SND_SOC_BIAS_OFF);
+-
+-	if (gpio_is_valid(audpwron))
+-		gpio_free(audpwron);
+-
+-	if (naudint)
+-		free_irq(naudint, codec);
+-
++	twl6040_free_irq(codec->control_data, TWL6040_IRQ_PLUG, codec);
+ 	destroy_workqueue(priv->workqueue);
+ 	destroy_workqueue(priv->hf_workqueue);
+ 	destroy_workqueue(priv->hs_workqueue);
+diff --git a/sound/soc/codecs/twl6040.h b/sound/soc/codecs/twl6040.h
+index 23aeed0..234bfad 100644
+--- a/sound/soc/codecs/twl6040.h
++++ b/sound/soc/codecs/twl6040.h
+@@ -22,124 +22,6 @@
+ #ifndef __TWL6040_H__
+ #define __TWL6040_H__
+ 
+-#define TWL6040_REG_ASICID		0x01
+-#define TWL6040_REG_ASICREV		0x02
+-#define TWL6040_REG_INTID		0x03
+-#define TWL6040_REG_INTMR		0x04
+-#define TWL6040_REG_NCPCTL		0x05
+-#define TWL6040_REG_LDOCTL		0x06
+-#define TWL6040_REG_HPPLLCTL		0x07
+-#define TWL6040_REG_LPPLLCTL		0x08
+-#define TWL6040_REG_LPPLLDIV		0x09
+-#define TWL6040_REG_AMICBCTL		0x0A
+-#define TWL6040_REG_DMICBCTL		0x0B
+-#define TWL6040_REG_MICLCTL		0x0C
+-#define TWL6040_REG_MICRCTL		0x0D
+-#define TWL6040_REG_MICGAIN		0x0E
+-#define TWL6040_REG_LINEGAIN		0x0F
+-#define TWL6040_REG_HSLCTL		0x10
+-#define TWL6040_REG_HSRCTL		0x11
+-#define TWL6040_REG_HSGAIN		0x12
+-#define TWL6040_REG_EARCTL		0x13
+-#define TWL6040_REG_HFLCTL		0x14
+-#define TWL6040_REG_HFLGAIN		0x15
+-#define TWL6040_REG_HFRCTL		0x16
+-#define TWL6040_REG_HFRGAIN		0x17
+-#define TWL6040_REG_VIBCTLL		0x18
+-#define TWL6040_REG_VIBDATL		0x19
+-#define TWL6040_REG_VIBCTLR		0x1A
+-#define TWL6040_REG_VIBDATR		0x1B
+-#define TWL6040_REG_HKCTL1		0x1C
+-#define TWL6040_REG_HKCTL2		0x1D
+-#define TWL6040_REG_GPOCTL		0x1E
+-#define TWL6040_REG_ALB			0x1F
+-#define TWL6040_REG_DLB			0x20
+-#define TWL6040_REG_TRIM1		0x28
+-#define TWL6040_REG_TRIM2		0x29
+-#define TWL6040_REG_TRIM3		0x2A
+-#define TWL6040_REG_HSOTRIM		0x2B
+-#define TWL6040_REG_HFOTRIM		0x2C
+-#define TWL6040_REG_ACCCTL		0x2D
+-#define TWL6040_REG_STATUS		0x2E
+-
+-#define TWL6040_CACHEREGNUM		(TWL6040_REG_STATUS + 1)
+-
+-#define TWL6040_VIOREGNUM		18
+-#define TWL6040_VDDREGNUM		21
+-
+-/* INTID (0x03) fields */
+-
+-#define TWL6040_THINT			0x01
+-#define TWL6040_PLUGINT			0x02
+-#define TWL6040_UNPLUGINT		0x04
+-#define TWL6040_HOOKINT			0x08
+-#define TWL6040_HFINT			0x10
+-#define TWL6040_VIBINT			0x20
+-#define TWL6040_READYINT		0x40
+-
+-/* INTMR (0x04) fields */
+-
+-#define TWL6040_PLUGMSK			0x02
+-#define TWL6040_READYMSK		0x40
+-#define TWL6040_ALLINT_MSK		0x7B
+-
+-/* NCPCTL (0x05) fields */
+-
+-#define TWL6040_NCPENA			0x01
+-#define TWL6040_NCPOPEN			0x40
+-
+-/* LDOCTL (0x06) fields */
+-
+-#define TWL6040_LSLDOENA		0x01
+-#define TWL6040_HSLDOENA		0x04
+-#define TWL6040_REFENA			0x40
+-#define TWL6040_OSCENA			0x80
+-
+-/* HPPLLCTL (0x07) fields */
+-
+-#define TWL6040_HPLLENA			0x01
+-#define TWL6040_HPLLRST			0x02
+-#define TWL6040_HPLLBP			0x04
+-#define TWL6040_HPLLSQRENA		0x08
+-#define TWL6040_HPLLSQRBP		0x10
+-#define TWL6040_MCLK_12000KHZ		(0 << 5)
+-#define TWL6040_MCLK_19200KHZ		(1 << 5)
+-#define TWL6040_MCLK_26000KHZ		(2 << 5)
+-#define TWL6040_MCLK_38400KHZ		(3 << 5)
+-#define TWL6040_MCLK_MSK		0x60
+-
+-/* LPPLLCTL (0x08) fields */
+-
+-#define TWL6040_LPLLENA			0x01
+-#define TWL6040_LPLLRST			0x02
+-#define TWL6040_LPLLSEL			0x04
+-#define TWL6040_LPLLFIN			0x08
+-#define TWL6040_HPLLSEL			0x10
+-
+-/* HSLCTL (0x10) fields */
+-
+-#define TWL6040_HSDACMODEL		0x02
+-#define TWL6040_HSDRVMODEL		0x08
+-
+-/* HSRCTL (0x11) fields */
+-
+-#define TWL6040_HSDACMODER		0x02
+-#define TWL6040_HSDRVMODER		0x08
+-
+-/* ACCCTL (0x2D) fields */
+-
+-#define TWL6040_RESETSPLIT		0x04
+-
+-#define TWL6040_SYSCLK_SEL_LPPLL	1
+-#define TWL6040_SYSCLK_SEL_HPPLL	2
+-
+-#define TWL6040_HPPLL_ID		1
+-#define TWL6040_LPPLL_ID		2
+-
+-/* STATUS (0x2E) fields */
+-
+-#define TWL6040_PLUGCOMP		0x02
+-
+ void twl6040_hs_jack_detect(struct snd_soc_codec *codec,
+ 			    struct snd_soc_jack *jack, int report);
+ 
+diff --git a/sound/soc/omap/sdp4430.c b/sound/soc/omap/sdp4430.c
+index 189e039..5d67c25 100644
+--- a/sound/soc/omap/sdp4430.c
++++ b/sound/soc/omap/sdp4430.c
+@@ -21,6 +21,8 @@
+ 
+ #include <linux/clk.h>
+ #include <linux/platform_device.h>
++#include <linux/mfd/twl6040.h>
++
+ #include <sound/core.h>
+ #include <sound/pcm.h>
+ #include <sound/soc.h>
 -- 
 1.7.5.3
