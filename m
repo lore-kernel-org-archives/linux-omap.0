@@ -1,164 +1,234 @@
-From: =?ISO-8859-1?Q?P=E9ter?= Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: Re: [PATCH v4 11/18] input: Add initial support for TWL6040 vibrator
-Date: Mon, 13 Jun 2011 12:51:16 +0300
-Message-ID: <1530216.k8lJ4nKZ1s@barack>
-References: <1307706876-4768-1-git-send-email-peter.ujfalusi@ti.com> <1307706876-4768-12-git-send-email-peter.ujfalusi@ti.com> <20110611231854.GA3979@core.coreip.homeip.net>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCHv2 01/28] OMAP: change get_context_loss_count ret value
+ to int
+Date: Mon, 13 Jun 2011 12:51:50 +0300
+Message-ID: <1307958710.1847.56.camel@deskari>
+References: <1307627810-3768-1-git-send-email-tomi.valkeinen@ti.com>
+	 <1307627810-3768-2-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <20110611231854.GA3979@core.coreip.homeip.net>
-Sender: linux-input-owner@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: "Girdwood, Liam" <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Samuel Ortiz <sameo@linux.intel.com>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "Lopez Cruz, Misael" <misael.lopez@ti.com>, Jorge Eduardo Candelaria <jorge.candelaria@ti.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:58921 "EHLO
+	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751760Ab1FMJv4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 13 Jun 2011 05:51:56 -0400
+In-Reply-To: <1307627810-3768-2-git-send-email-tomi.valkeinen@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: paul@pwsan.com
+Cc: linux-fbdev@vger.kernel.org, b-cousson@ti.com, khilman@ti.com, linux-omap mailing list <linux-omap@vger.kernel.org>
 
-On Sunday 12 June 2011 01:18:54 Dmitry Torokhov wrote:
-> > +static void twl6040_vibra_enable(struct vibra_info *info)
-> > +{
-> > +     struct twl6040 *twl6040 =3D info->twl6040;
-> > +     int ret =3D 0;
->=20
-> Initialization is not needed.
+Paul, can you take this patch and queue it for an rc?
 
-True.
+ Tomi
 
-> > +static void vibra_play_work(struct work_struct *work)
-> > +{
-> > +     struct vibra_info *info =3D container_of(work,
-> > +                             struct vibra_info, play_work);
-> > +
-> > +     mutex_lock(&info->mutex);
-> > +
-> > +     if (info->weak_speed || info->strong_speed) {
-> > +             if (!info->enabled)
-> > +                     twl6040_vibra_enable(info);
-> > +
-> > +             twl6040_vibra_set_effect(info);
-> > +     } else if (info->enabled)
-> > +             twl6040_vibra_disable(info);
->=20
-> Why do we play with enabling/disabling the device here? Nobody can
-> request playing of an effect unless the device has been opened so if =
-we
-> manage power state in open/close methods we should not be doing it he=
-re
-> I think.
+On Thu, 2011-06-09 at 16:56 +0300, Tomi Valkeinen wrote:
+> get_context_loss_count functions return context loss count as u32, and
+> zero means an error. However, zero is also returned when context has
+> never been lost and could also be returned when the context loss count
+> has wrapped and goes to zero.
+> 
+> Change the functions to return an int, with negative value meaning an
+> error.
+> 
+> OMAP HSMMC code uses omap_pm_get_dev_context_loss_count(), but as the
+> hsmmc code handles the returned value as an int, with negative value
+> meaning an error, this patch actually fixes hsmmc code also.
+> 
+> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> Acked-by: Kevin Hilman <khilman@ti.com>
+> ---
+>  arch/arm/mach-omap2/omap_hwmod.c              |    2 +-
+>  arch/arm/mach-omap2/powerdomain.c             |   14 ++++++++++----
+>  arch/arm/mach-omap2/powerdomain.h             |    2 +-
+>  arch/arm/plat-omap/include/plat/omap-pm.h     |    4 ++--
+>  arch/arm/plat-omap/include/plat/omap_device.h |    2 +-
+>  arch/arm/plat-omap/include/plat/omap_hwmod.h  |    2 +-
+>  arch/arm/plat-omap/omap-pm-noop.c             |   24 +++++++++++++++++-------
+>  arch/arm/plat-omap/omap_device.c              |    2 +-
+>  8 files changed, 34 insertions(+), 18 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+> index e034294..4f0d554 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod.c
+> @@ -2332,7 +2332,7 @@ ohsps_unlock:
+>   * Returns the context loss count of the powerdomain assocated with @oh
+>   * upon success, or zero if no powerdomain exists for @oh.
+>   */
+> -u32 omap_hwmod_get_context_loss_count(struct omap_hwmod *oh)
+> +int omap_hwmod_get_context_loss_count(struct omap_hwmod *oh)
+>  {
+>  	struct powerdomain *pwrdm;
+>  	int ret = 0;
+> diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+> index 9af0847..9d53a34 100644
+> --- a/arch/arm/mach-omap2/powerdomain.c
+> +++ b/arch/arm/mach-omap2/powerdomain.c
+> @@ -935,16 +935,16 @@ int pwrdm_post_transition(void)
+>   * @pwrdm: struct powerdomain * to wait for
+>   *
+>   * Context loss count is the sum of powerdomain off-mode counter, the
+> - * logic off counter and the per-bank memory off counter.  Returns 0
+> + * logic off counter and the per-bank memory off counter.  Returns negative
+>   * (and WARNs) upon error, otherwise, returns the context loss count.
+>   */
+> -u32 pwrdm_get_context_loss_count(struct powerdomain *pwrdm)
+> +int pwrdm_get_context_loss_count(struct powerdomain *pwrdm)
+>  {
+>  	int i, count;
+>  
+>  	if (!pwrdm) {
+>  		WARN(1, "powerdomain: %s: pwrdm is null\n", __func__);
+> -		return 0;
+> +		return -ENODEV;
+>  	}
+>  
+>  	count = pwrdm->state_counter[PWRDM_POWER_OFF];
+> @@ -953,7 +953,13 @@ u32 pwrdm_get_context_loss_count(struct powerdomain *pwrdm)
+>  	for (i = 0; i < pwrdm->banks; i++)
+>  		count += pwrdm->ret_mem_off_counter[i];
+>  
+> -	pr_debug("powerdomain: %s: context loss count = %u\n",
+> +	/*
+> +	 * Context loss count has to be a non-negative value. Clear the sign
+> +	 * bit to get a value range from 0 to INT_MAX.
+> +	 */
+> +	count &= INT_MAX;
+> +
+> +	pr_debug("powerdomain: %s: context loss count = %d\n",
+>  		 pwrdm->name, count);
+>  
+>  	return count;
+> diff --git a/arch/arm/mach-omap2/powerdomain.h b/arch/arm/mach-omap2/powerdomain.h
+> index d23d979..012827f 100644
+> --- a/arch/arm/mach-omap2/powerdomain.h
+> +++ b/arch/arm/mach-omap2/powerdomain.h
+> @@ -207,7 +207,7 @@ int pwrdm_clkdm_state_switch(struct clockdomain *clkdm);
+>  int pwrdm_pre_transition(void);
+>  int pwrdm_post_transition(void);
+>  int pwrdm_set_lowpwrstchange(struct powerdomain *pwrdm);
+> -u32 pwrdm_get_context_loss_count(struct powerdomain *pwrdm);
+> +int pwrdm_get_context_loss_count(struct powerdomain *pwrdm);
+>  bool pwrdm_can_ever_lose_context(struct powerdomain *pwrdm);
+>  
+>  extern void omap2xxx_powerdomains_init(void);
+> diff --git a/arch/arm/plat-omap/include/plat/omap-pm.h b/arch/arm/plat-omap/include/plat/omap-pm.h
+> index c0a7520..68df031 100644
+> --- a/arch/arm/plat-omap/include/plat/omap-pm.h
+> +++ b/arch/arm/plat-omap/include/plat/omap-pm.h
+> @@ -350,9 +350,9 @@ unsigned long omap_pm_cpu_get_freq(void);
+>   * driver must restore device context.   If the number of context losses
+>   * exceeds the maximum positive integer, the function will wrap to 0 and
+>   * continue counting.  Returns the number of context losses for this device,
+> - * or zero upon error.
+> + * or negative value upon error.
+>   */
+> -u32 omap_pm_get_dev_context_loss_count(struct device *dev);
+> +int omap_pm_get_dev_context_loss_count(struct device *dev);
+>  
+>  void omap_pm_enable_off_mode(void);
+>  void omap_pm_disable_off_mode(void);
+> diff --git a/arch/arm/plat-omap/include/plat/omap_device.h b/arch/arm/plat-omap/include/plat/omap_device.h
+> index e4c349f..70d31d0 100644
+> --- a/arch/arm/plat-omap/include/plat/omap_device.h
+> +++ b/arch/arm/plat-omap/include/plat/omap_device.h
+> @@ -107,7 +107,7 @@ void __iomem *omap_device_get_rt_va(struct omap_device *od);
+>  int omap_device_align_pm_lat(struct platform_device *pdev,
+>  			     u32 new_wakeup_lat_limit);
+>  struct powerdomain *omap_device_get_pwrdm(struct omap_device *od);
+> -u32 omap_device_get_context_loss_count(struct platform_device *pdev);
+> +int omap_device_get_context_loss_count(struct platform_device *pdev);
+>  
+>  /* Other */
+>  
+> diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+> index 1adea9c..8658e2d 100644
+> --- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
+> +++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+> @@ -598,7 +598,7 @@ int omap_hwmod_for_each_by_class(const char *classname,
+>  				 void *user);
+>  
+>  int omap_hwmod_set_postsetup_state(struct omap_hwmod *oh, u8 state);
+> -u32 omap_hwmod_get_context_loss_count(struct omap_hwmod *oh);
+> +int omap_hwmod_get_context_loss_count(struct omap_hwmod *oh);
+>  
+>  int omap_hwmod_no_setup_reset(struct omap_hwmod *oh);
+>  
+> diff --git a/arch/arm/plat-omap/omap-pm-noop.c b/arch/arm/plat-omap/omap-pm-noop.c
+> index b0471bb2..3dc3801 100644
+> --- a/arch/arm/plat-omap/omap-pm-noop.c
+> +++ b/arch/arm/plat-omap/omap-pm-noop.c
+> @@ -27,7 +27,7 @@
+>  #include <plat/omap_device.h>
+>  
+>  static bool off_mode_enabled;
+> -static u32 dummy_context_loss_counter;
+> +static int dummy_context_loss_counter;
+>  
+>  /*
+>   * Device-driver-originated constraints (via board-*.c files)
+> @@ -311,22 +311,32 @@ void omap_pm_disable_off_mode(void)
+>  
+>  #ifdef CONFIG_ARCH_OMAP2PLUS
+>  
+> -u32 omap_pm_get_dev_context_loss_count(struct device *dev)
+> +int omap_pm_get_dev_context_loss_count(struct device *dev)
+>  {
+>  	struct platform_device *pdev = to_platform_device(dev);
+> -	u32 count;
+> +	int count;
+>  
+>  	if (WARN_ON(!dev))
+> -		return 0;
+> +		return -ENODEV;
+>  
+>  	if (dev->parent == &omap_device_parent) {
+>  		count = omap_device_get_context_loss_count(pdev);
+>  	} else {
+>  		WARN_ONCE(off_mode_enabled, "omap_pm: using dummy context loss counter; device %s should be converted to omap_device",
+>  			  dev_name(dev));
+> -		if (off_mode_enabled)
+> -			dummy_context_loss_counter++;
+> +
+>  		count = dummy_context_loss_counter;
+> +
+> +		if (off_mode_enabled) {
+> +			count++;
+> +			/*
+> +			 * Context loss count has to be a non-negative value.
+> +			 * Clear the sign bit to get a value range from 0 to
+> +			 * INT_MAX.
+> +			 */
+> +			count &= INT_MAX;
+> +			dummy_context_loss_counter = count;
+> +		}
+>  	}
+>  
+>  	pr_debug("OMAP PM: context loss count for dev %s = %d\n",
+> @@ -337,7 +347,7 @@ u32 omap_pm_get_dev_context_loss_count(struct device *dev)
+>  
+>  #else
+>  
+> -u32 omap_pm_get_dev_context_loss_count(struct device *dev)
+> +int omap_pm_get_dev_context_loss_count(struct device *dev)
+>  {
+>  	return dummy_context_loss_counter;
+>  }
+> diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
+> index 9bbda9a..9753f71 100644
+> --- a/arch/arm/plat-omap/omap_device.c
+> +++ b/arch/arm/plat-omap/omap_device.c
+> @@ -310,7 +310,7 @@ static void _add_optional_clock_clkdev(struct omap_device *od,
+>   * return the context loss counter for that hwmod, otherwise return
+>   * zero.
+>   */
+> -u32 omap_device_get_context_loss_count(struct platform_device *pdev)
+> +int omap_device_get_context_loss_count(struct platform_device *pdev)
+>  {
+>  	struct omap_device *od;
+>  	u32 ret = 0;
 
-We want to preserve as much power as we can.
-So if application opens the driver, but it is not requesting to play an=
-y=20
-effect we still keep the device turned off.
-When application request for stopping the effect without closing the de=
-vice,=20
-we turn off things in a similar way.
-The twl4030-vibra driver has been implemented in this way as well.
 
-> > +
-> > +     mutex_unlock(&info->mutex);
-> > +}
-
-=2E..
-
-> > +static int twl6040_vibra_open(struct input_dev *input)
-> > +{
-> > +     struct vibra_info *info =3D input_get_drvdata(input);
-> > +
-> > +     info->workqueue =3D create_singlethread_workqueue("vibra");
-> > +     if (info->workqueue =3D=3D NULL) {
-> > +             dev_err(&input->dev, "couldn't create workqueue\n");
-> > +             return -ENOMEM;
-> > +     }
->=20
-> Why do we need to create a separate workqueue? With arrival of CWQ
-> it looks like we should be able to use one of the system-wide
-> workqueues for this.
-
-The reason for this is to ensure that we have the lowest latency as pos=
-sible=20
-in most case. In the embedded devices we use the vibra for tactile type=
- of=20
-feedbacks as well, where few tens of ms delay can be felt.
-
-> > +
-> > +     return 0;
-> > +}
-> > +
-> > +static void twl6040_vibra_close(struct input_dev *input)
-> > +{
-> > +     struct vibra_info *info =3D input_get_drvdata(input);
-> > +
-> > +     cancel_work_sync(&info->play_work);
-> > +     INIT_WORK(&info->play_work, vibra_play_work);
-> > +     destroy_workqueue(info->workqueue);
-> > +     info->workqueue =3D NULL;
-> > +
-> > +     mutex_lock(&info->mutex);
-> > +
-> > +     if (info->enabled)
-> > +             twl6040_vibra_disable(info);
-> > +
-> > +     mutex_unlock(&info->mutex);
-> > +}
-> > +
-> > +#if CONFIG_PM
->=20
-> CONFIG_PM_SLEEP.
-
-OK, will be fixed.
-
-> > +static int twl6040_vibra_suspend(struct device *dev)
-> > +{
-> > +     struct platform_device *pdev =3D to_platform_device(dev);
-> > +     struct vibra_info *info =3D platform_get_drvdata(pdev);
-> > +
-> > +     mutex_lock(&info->mutex);
-> > +
-> > +     if (info->enabled)
-> > +             twl6040_vibra_disable(info);
-> > +
-> > +     mutex_unlock(&info->mutex);
-> > +
-> > +     return 0;
-> > +}
-> > +
-> > +static SIMPLE_DEV_PM_OPS(twl6040_vibra_pm_ops,
-> > +                      twl6040_vibra_suspend, NULL);
->=20
-> Move twl6040_vibra_pm_ops definition out of the #ifdef block so you
-> won't need to protect it use with ifdefs later.
-
-Thanks, I have change this.
-=20
-> > +#endif
-
-=2E..
-
-> > +static int __devexit twl6040_vibra_remove(struct platform_device *=
-pdev)
-> > +{
-> > +     struct vibra_info *info =3D platform_get_drvdata(pdev);
-> > +
-> > +     twl6040_power(info->twl6040, 0);
->=20
-> If we ensure that device is powered off until open() is called, and
-> also powered off when close() is called, then we do not need to switc=
-h
-> off power here.
-
-True, removed.
-
-> Thanks.
->=20
-> --
-> Dmitry
-
-Thanks for the comments. I will update the series.
-
---=20
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-input" =
-in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
