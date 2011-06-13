@@ -1,56 +1,79 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH/RFC 0/4] OMAP: PM debug: remove register dump, misc cleanups
-Date: Mon, 13 Jun 2011 17:58:05 +0530
-Message-ID: <4DF60255.1070409@ti.com>
-References: <1306450971-27732-1-git-send-email-khilman@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RFC PATCHv5 2/7] HSI: omap_ssi: Introducing OMAP SSI driver
+Date: Mon, 13 Jun 2011 06:21:53 -0700
+Message-ID: <20110613132152.GA3352@atomide.com>
+References: <1307713124-3946-1-git-send-email-carlos.chinea@nokia.com>
+ <1307713124-3946-3-git-send-email-carlos.chinea@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:42351 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752280Ab1FMM2N (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 13 Jun 2011 08:28:13 -0400
-Received: by mail-yi0-f48.google.com with SMTP id 24so1609074yic.35
-        for <linux-omap@vger.kernel.org>; Mon, 13 Jun 2011 05:28:11 -0700 (PDT)
-In-Reply-To: <1306450971-27732-1-git-send-email-khilman@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1307713124-3946-3-git-send-email-carlos.chinea@nokia.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Carlos Chinea <carlos.chinea@nokia.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, p-titiano@ti.com
 
-On 5/27/2011 4:32 AM, Kevin Hilman wrote:
-> Inspired by Jean's work to move PM code to modules, I decided it's
-> time to remove a bunch of ugly and difficult to maintain code from PM
-> debug.
->
-> The main chunk here is removing the register dump features for
-> OMAP2/OMAP3 which are awful to read, and impossible to scale for
-> OMAP4+.  Also, there are now some userspace /dev/mem-based tools (like
-> omapconf) that can handle this type of thing much better, and with a
-> much better interface and display.
->
-> Series applies to v2.6.39.
->
-I have tested this series on V3.0-rc2 as part of OMAP4 PM
-series. I think it's ready for merge.
+* Carlos Chinea <carlos.chinea@nokia.com> [110610 06:41]:
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/ssi.c
+> +static struct platform_device ssi_pdev = {
+> +	.name		= "omap_ssi",
+> +	.id		= 0,
+> +	.num_resources	= ARRAY_SIZE(ssi_resources),
+> +	.resource	= ssi_resources,
+> +	.dev		= {
+> +				.platform_data	= &ssi_pdata,
+> +	},
+> +};
+> +
+> +int __init omap_ssi_config(struct omap_ssi_board_config *ssi_config)
+> +{
+> +	unsigned int port, offset, cawake_gpio;
+> +	int err;
+> +
+> +	ssi_pdata.num_ports = ssi_config->num_ports;
+> +	for (port = 0, offset = 7; port < ssi_config->num_ports;
+> +							port++, offset += 5) {
+> +		cawake_gpio = ssi_config->cawake_gpio[port];
+> +		if (!cawake_gpio)
+> +			continue; /* Nothing to do */
+> +		err = gpio_request(cawake_gpio, "cawake");
+> +		if (err < 0)
+> +			goto rback;
+> +		gpio_direction_input(cawake_gpio);
+> +		ssi_resources[offset].start = gpio_to_irq(cawake_gpio);
+> +		ssi_resources[offset].flags &= ~IORESOURCE_UNSET;
+> +		ssi_resources[offset].flags |= IORESOURCE_IRQ_HIGHEDGE |
+> +							IORESOURCE_IRQ_LOWEDGE;
+> +	}
+> +
+> +	return 0;
+> +rback:
+> +	dev_err(&ssi_pdev.dev, "Request cawake (gpio%d) failed\n", cawake_gpio);
+> +	while (port > 0)
+> +		gpio_free(ssi_config->cawake_gpio[--port]);
+> +
+> +	return err;
+> +}
+> +
+> +static int __init ssi_init(void)
+> +{
+> +	return platform_device_register(&ssi_pdev);
+> +}
+> +subsys_initcall(ssi_init);
 
-Tested-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Looks like you need something here also to prevent this subsys_initcall
+on running on all boards. Maybe have a pointer to ssi_pdev that only
+gets initialized after omap_ssi_config?
 
-> Kevin Hilman (4):
->    OMAP3: PM debug: remove sleep_while_idle feature
->    OMAP2: PM debug: remove register dumping
->    OMAP3: PM debug: remove register dumping
->    OMAP2: PM debug: move wakeup timer into clockevent code
->
->   arch/arm/mach-omap2/pm-debug.c            |  362 -----------------------------
->   arch/arm/mach-omap2/pm.h                  |    9 -
->   arch/arm/mach-omap2/pm24xx.c              |    6 +-
->   arch/arm/mach-omap2/pm34xx.c              |    6 -
->   arch/arm/mach-omap2/timer-gp.c            |   33 +++-
->   arch/arm/plat-omap/include/plat/dmtimer.h |    1 -
->   6 files changed, 32 insertions(+), 385 deletions(-)
->
+Then you can have ssi_init fail if no configuration is called:
 
+	if (!pdev)
+		return -ENODEV;
+
+	return platform_device_register(pdev);
+
+Regards,
+
+Tony
