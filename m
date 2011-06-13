@@ -1,234 +1,150 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCHv2 01/28] OMAP: change get_context_loss_count ret value
- to int
-Date: Mon, 13 Jun 2011 12:51:50 +0300
-Message-ID: <1307958710.1847.56.camel@deskari>
-References: <1307627810-3768-1-git-send-email-tomi.valkeinen@ti.com>
-	 <1307627810-3768-2-git-send-email-tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 1/9] OMAP: DSS2: Change DSI platform device name from
+ "omapdss_dsi1" to "omapdss_dsi"
+Date: Mon, 13 Jun 2011 12:54:57 +0300
+Message-ID: <1307958897.1847.59.camel@deskari>
+References: <1304494704-7285-1-git-send-email-archit@ti.com>
+	 <1304494704-7285-2-git-send-email-archit@ti.com>
+	 <20110504094050.GI27860@atomide.com>  <1307452303.1858.59.camel@deskari>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:58921 "EHLO
+Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:44172 "EHLO
 	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751760Ab1FMJv4 (ORCPT
+	by vger.kernel.org with ESMTP id S1751614Ab1FMJzD (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 13 Jun 2011 05:51:56 -0400
-In-Reply-To: <1307627810-3768-2-git-send-email-tomi.valkeinen@ti.com>
+	Mon, 13 Jun 2011 05:55:03 -0400
+Received: by mail-fx0-f41.google.com with SMTP id 18so3210300fxm.0
+        for <linux-omap@vger.kernel.org>; Mon, 13 Jun 2011 02:55:02 -0700 (PDT)
+In-Reply-To: <1307452303.1858.59.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: paul@pwsan.com
-Cc: linux-fbdev@vger.kernel.org, b-cousson@ti.com, khilman@ti.com, linux-omap mailing list <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Archit Taneja <archit@ti.com>, linux-omap@vger.kernel.org
 
-Paul, can you take this patch and queue it for an rc?
+Tony, Ping.
+
+I'd like this DSS regulator issue decided on way or another, as it's
+stopping us getting Blaze board's panels working on mainline, and also
+preventing me from porting the old omapfb drivers to DSS2.
 
  Tomi
 
-On Thu, 2011-06-09 at 16:56 +0300, Tomi Valkeinen wrote:
-> get_context_loss_count functions return context loss count as u32, and
-> zero means an error. However, zero is also returned when context has
-> never been lost and could also be returned when the context loss count
-> has wrapped and goes to zero.
+On Tue, 2011-06-07 at 16:11 +0300, Tomi Valkeinen wrote:
+> Hi Tony,
 > 
-> Change the functions to return an int, with negative value meaning an
-> error.
+> On Wed, 2011-05-04 at 12:40 +0300, Tony Lindgren wrote:
+> > * Archit Taneja <archit@ti.com> [110504 10:30]:
+> > > --- a/arch/arm/mach-omap2/board-3430sdp.c
+> > > +++ b/arch/arm/mach-omap2/board-3430sdp.c
+> > > @@ -401,7 +401,7 @@ static struct regulator_consumer_supply sdp3430_vdda_dac_supplies[] = {
+> > >  /* VPLL2 for digital video outputs */
+> > >  static struct regulator_consumer_supply sdp3430_vpll2_supplies[] = {
+> > >  	REGULATOR_SUPPLY("vdds_dsi", "omapdss"),
+> > > -	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dsi1"),
+> > > +	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dsi.0"),
+> > >  };
+> > >  
+> > >  static struct regulator_consumer_supply sdp3430_vmmc1_supplies[] = {
+> > > diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+> > > index 570e83f..eafadb4 100644
+> > > --- a/arch/arm/mach-omap2/board-4430sdp.c
+> > > +++ b/arch/arm/mach-omap2/board-4430sdp.c
+> > > @@ -375,7 +375,7 @@ static struct regulator_consumer_supply sdp4430_vmmc_supply[] = {
+> > >  };
+> > >  static struct regulator_consumer_supply sdp4430_vcxio_supply[] = {
+> > >  	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dss"),
+> > > -	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dsi1"),
+> > > +	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dsi.0"),
+> > >  };
+> > ...
+> > 
+> > Looks like we should first combine all this cut and paste data
+> > for each board file into some common init function to cut
+> > down the "crazy churn".
 > 
-> OMAP HSMMC code uses omap_pm_get_dev_context_loss_count(), but as the
-> hsmmc code handles the returned value as an int, with negative value
-> meaning an error, this patch actually fixes hsmmc code also.
+> I haven't been able to do this in a clean way. The regulator framework
+> is rather static in this area, and adding the data for REGULATOR_SUPPLYs
+> dynamically based on OMAP version is something I haven't been able to
+> do.
 > 
-> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> Acked-by: Kevin Hilman <khilman@ti.com>
-> ---
->  arch/arm/mach-omap2/omap_hwmod.c              |    2 +-
->  arch/arm/mach-omap2/powerdomain.c             |   14 ++++++++++----
->  arch/arm/mach-omap2/powerdomain.h             |    2 +-
->  arch/arm/plat-omap/include/plat/omap-pm.h     |    4 ++--
->  arch/arm/plat-omap/include/plat/omap_device.h |    2 +-
->  arch/arm/plat-omap/include/plat/omap_hwmod.h  |    2 +-
->  arch/arm/plat-omap/omap-pm-noop.c             |   24 +++++++++++++++++-------
->  arch/arm/plat-omap/omap_device.c              |    2 +-
->  8 files changed, 34 insertions(+), 18 deletions(-)
+> The best option I've found out is defining helper macros to add those
+> consumers. An example patch below with 3430sdp and 4430sdp boards
+> modified.
 > 
-> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-> index e034294..4f0d554 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod.c
-> @@ -2332,7 +2332,7 @@ ohsps_unlock:
->   * Returns the context loss count of the powerdomain assocated with @oh
->   * upon success, or zero if no powerdomain exists for @oh.
->   */
-> -u32 omap_hwmod_get_context_loss_count(struct omap_hwmod *oh)
-> +int omap_hwmod_get_context_loss_count(struct omap_hwmod *oh)
->  {
->  	struct powerdomain *pwrdm;
->  	int ret = 0;
-> diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-> index 9af0847..9d53a34 100644
-> --- a/arch/arm/mach-omap2/powerdomain.c
-> +++ b/arch/arm/mach-omap2/powerdomain.c
-> @@ -935,16 +935,16 @@ int pwrdm_post_transition(void)
->   * @pwrdm: struct powerdomain * to wait for
->   *
->   * Context loss count is the sum of powerdomain off-mode counter, the
-> - * logic off counter and the per-bank memory off counter.  Returns 0
-> + * logic off counter and the per-bank memory off counter.  Returns negative
->   * (and WARNs) upon error, otherwise, returns the context loss count.
->   */
-> -u32 pwrdm_get_context_loss_count(struct powerdomain *pwrdm)
-> +int pwrdm_get_context_loss_count(struct powerdomain *pwrdm)
->  {
->  	int i, count;
+> This would allow boards to setup the regulators whatever way they want,
+> but the 99% of the boards could just use the macros.
+> 
+> It's still not as good as I'd want, because the source regulator is also
+> the same for a particular OMAP version for 99% of the boards. So there's
+> no real need to use those those macros in the board file, a common
+> display file should be able to set everything up. But as I said, I
+> haven't found out any way to do this.
+> 
+> What is your opinion of this approach?
+> 
+>  Tomi
+> 
+> 
+> 
+> diff --git a/arch/arm/mach-omap2/board-3430sdp.c
+> b/arch/arm/mach-omap2/board-3430sdp.c
+> index ae2963a..69b7e6f 100644
+> --- a/arch/arm/mach-omap2/board-3430sdp.c
+> +++ b/arch/arm/mach-omap2/board-3430sdp.c
+> @@ -308,13 +308,12 @@ static struct regulator_consumer_supply
+> sdp3430_vaux3_supplies[] = {
+>  };
 >  
->  	if (!pwrdm) {
->  		WARN(1, "powerdomain: %s: pwrdm is null\n", __func__);
-> -		return 0;
-> +		return -ENODEV;
->  	}
+>  static struct regulator_consumer_supply sdp3430_vdda_dac_supplies[] = {
+> -	REGULATOR_SUPPLY("vdda_dac", "omapdss_venc"),
+> +	OMAP_DSS_VENC_SUPPLIES,
+>  };
 >  
->  	count = pwrdm->state_counter[PWRDM_POWER_OFF];
-> @@ -953,7 +953,13 @@ u32 pwrdm_get_context_loss_count(struct powerdomain *pwrdm)
->  	for (i = 0; i < pwrdm->banks; i++)
->  		count += pwrdm->ret_mem_off_counter[i];
+>  /* VPLL2 for digital video outputs */
+>  static struct regulator_consumer_supply sdp3430_vpll2_supplies[] = {
+> -	REGULATOR_SUPPLY("vdds_dsi", "omapdss"),
+> -	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dsi1"),
+> +	OMAP_DSS_SUPPLIES,
+>  };
 >  
-> -	pr_debug("powerdomain: %s: context loss count = %u\n",
-> +	/*
-> +	 * Context loss count has to be a non-negative value. Clear the sign
-> +	 * bit to get a value range from 0 to INT_MAX.
-> +	 */
-> +	count &= INT_MAX;
+>  static struct regulator_consumer_supply sdp3430_vmmc1_supplies[] = {
+> diff --git a/arch/arm/mach-omap2/board-4430sdp.c
+> b/arch/arm/mach-omap2/board-4430sdp.c
+> index 2647a95..80bbf61 100644
+> --- a/arch/arm/mach-omap2/board-4430sdp.c
+> +++ b/arch/arm/mach-omap2/board-4430sdp.c
+> @@ -339,8 +339,7 @@ static struct regulator_consumer_supply
+> sdp4430_vmmc_supply[] = {
+>  	},
+>  };
+>  static struct regulator_consumer_supply sdp4430_vcxio_supply[] = {
+> -	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dss"),
+> -	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dsi1"),
+> +	OMAP_DSS_SUPPLIES,
+>  };
+>  
+>  static int omap4_twl6030_hsmmc_late_init(struct device *dev)
+> diff --git a/include/video/omapdss.h b/include/video/omapdss.h
+> index bb39738..557b400 100644
+> --- a/include/video/omapdss.h
+> +++ b/include/video/omapdss.h
+> @@ -636,4 +636,12 @@ int omap_rfbi_update(struct omap_dss_device
+> *dssdev,
+>  int omap_rfbi_configure(struct omap_dss_device *dssdev, int pixel_size,
+>  		int data_lines);
+>  
+> +#define OMAP_DSS_SUPPLIES \
+> +	REGULATOR_SUPPLY("vdds_sdi", "omapdss_dss"), \
+> +	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dss"), \
+> +	REGULATOR_SUPPLY("vdds_dsi", "omapdss_dsi1")
 > +
-> +	pr_debug("powerdomain: %s: context loss count = %d\n",
->  		 pwrdm->name, count);
->  
->  	return count;
-> diff --git a/arch/arm/mach-omap2/powerdomain.h b/arch/arm/mach-omap2/powerdomain.h
-> index d23d979..012827f 100644
-> --- a/arch/arm/mach-omap2/powerdomain.h
-> +++ b/arch/arm/mach-omap2/powerdomain.h
-> @@ -207,7 +207,7 @@ int pwrdm_clkdm_state_switch(struct clockdomain *clkdm);
->  int pwrdm_pre_transition(void);
->  int pwrdm_post_transition(void);
->  int pwrdm_set_lowpwrstchange(struct powerdomain *pwrdm);
-> -u32 pwrdm_get_context_loss_count(struct powerdomain *pwrdm);
-> +int pwrdm_get_context_loss_count(struct powerdomain *pwrdm);
->  bool pwrdm_can_ever_lose_context(struct powerdomain *pwrdm);
->  
->  extern void omap2xxx_powerdomains_init(void);
-> diff --git a/arch/arm/plat-omap/include/plat/omap-pm.h b/arch/arm/plat-omap/include/plat/omap-pm.h
-> index c0a7520..68df031 100644
-> --- a/arch/arm/plat-omap/include/plat/omap-pm.h
-> +++ b/arch/arm/plat-omap/include/plat/omap-pm.h
-> @@ -350,9 +350,9 @@ unsigned long omap_pm_cpu_get_freq(void);
->   * driver must restore device context.   If the number of context losses
->   * exceeds the maximum positive integer, the function will wrap to 0 and
->   * continue counting.  Returns the number of context losses for this device,
-> - * or zero upon error.
-> + * or negative value upon error.
->   */
-> -u32 omap_pm_get_dev_context_loss_count(struct device *dev);
-> +int omap_pm_get_dev_context_loss_count(struct device *dev);
->  
->  void omap_pm_enable_off_mode(void);
->  void omap_pm_disable_off_mode(void);
-> diff --git a/arch/arm/plat-omap/include/plat/omap_device.h b/arch/arm/plat-omap/include/plat/omap_device.h
-> index e4c349f..70d31d0 100644
-> --- a/arch/arm/plat-omap/include/plat/omap_device.h
-> +++ b/arch/arm/plat-omap/include/plat/omap_device.h
-> @@ -107,7 +107,7 @@ void __iomem *omap_device_get_rt_va(struct omap_device *od);
->  int omap_device_align_pm_lat(struct platform_device *pdev,
->  			     u32 new_wakeup_lat_limit);
->  struct powerdomain *omap_device_get_pwrdm(struct omap_device *od);
-> -u32 omap_device_get_context_loss_count(struct platform_device *pdev);
-> +int omap_device_get_context_loss_count(struct platform_device *pdev);
->  
->  /* Other */
->  
-> diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-> index 1adea9c..8658e2d 100644
-> --- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
-> +++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-> @@ -598,7 +598,7 @@ int omap_hwmod_for_each_by_class(const char *classname,
->  				 void *user);
->  
->  int omap_hwmod_set_postsetup_state(struct omap_hwmod *oh, u8 state);
-> -u32 omap_hwmod_get_context_loss_count(struct omap_hwmod *oh);
-> +int omap_hwmod_get_context_loss_count(struct omap_hwmod *oh);
->  
->  int omap_hwmod_no_setup_reset(struct omap_hwmod *oh);
->  
-> diff --git a/arch/arm/plat-omap/omap-pm-noop.c b/arch/arm/plat-omap/omap-pm-noop.c
-> index b0471bb2..3dc3801 100644
-> --- a/arch/arm/plat-omap/omap-pm-noop.c
-> +++ b/arch/arm/plat-omap/omap-pm-noop.c
-> @@ -27,7 +27,7 @@
->  #include <plat/omap_device.h>
->  
->  static bool off_mode_enabled;
-> -static u32 dummy_context_loss_counter;
-> +static int dummy_context_loss_counter;
->  
->  /*
->   * Device-driver-originated constraints (via board-*.c files)
-> @@ -311,22 +311,32 @@ void omap_pm_disable_off_mode(void)
->  
->  #ifdef CONFIG_ARCH_OMAP2PLUS
->  
-> -u32 omap_pm_get_dev_context_loss_count(struct device *dev)
-> +int omap_pm_get_dev_context_loss_count(struct device *dev)
->  {
->  	struct platform_device *pdev = to_platform_device(dev);
-> -	u32 count;
-> +	int count;
->  
->  	if (WARN_ON(!dev))
-> -		return 0;
-> +		return -ENODEV;
->  
->  	if (dev->parent == &omap_device_parent) {
->  		count = omap_device_get_context_loss_count(pdev);
->  	} else {
->  		WARN_ONCE(off_mode_enabled, "omap_pm: using dummy context loss counter; device %s should be converted to omap_device",
->  			  dev_name(dev));
-> -		if (off_mode_enabled)
-> -			dummy_context_loss_counter++;
+> +#define OMAP_DSS_VENC_SUPPLIES \
+> +	REGULATOR_SUPPLY("vdda_dac", "omapdss_venc")
 > +
->  		count = dummy_context_loss_counter;
-> +
-> +		if (off_mode_enabled) {
-> +			count++;
-> +			/*
-> +			 * Context loss count has to be a non-negative value.
-> +			 * Clear the sign bit to get a value range from 0 to
-> +			 * INT_MAX.
-> +			 */
-> +			count &= INT_MAX;
-> +			dummy_context_loss_counter = count;
-> +		}
->  	}
->  
->  	pr_debug("OMAP PM: context loss count for dev %s = %d\n",
-> @@ -337,7 +347,7 @@ u32 omap_pm_get_dev_context_loss_count(struct device *dev)
->  
->  #else
->  
-> -u32 omap_pm_get_dev_context_loss_count(struct device *dev)
-> +int omap_pm_get_dev_context_loss_count(struct device *dev)
->  {
->  	return dummy_context_loss_counter;
->  }
-> diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
-> index 9bbda9a..9753f71 100644
-> --- a/arch/arm/plat-omap/omap_device.c
-> +++ b/arch/arm/plat-omap/omap_device.c
-> @@ -310,7 +310,7 @@ static void _add_optional_clock_clkdev(struct omap_device *od,
->   * return the context loss counter for that hwmod, otherwise return
->   * zero.
->   */
-> -u32 omap_device_get_context_loss_count(struct platform_device *pdev)
-> +int omap_device_get_context_loss_count(struct platform_device *pdev)
->  {
->  	struct omap_device *od;
->  	u32 ret = 0;
+>  #endif
+> 
+> 
 
 
