@@ -1,52 +1,164 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] usb:gadget: use min_t() macro instead of min()
-Date: Mon, 13 Jun 2011 12:24:39 +0300
-Message-ID: <20110613092438.GK3633@legolas.emea.dhcp.ti.com>
-References: <1307877290-26672-1-git-send-email-tlinder@codeaurora.org>
-Reply-To: balbi@ti.com
+From: =?ISO-8859-1?Q?P=E9ter?= Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: Re: [PATCH v4 11/18] input: Add initial support for TWL6040 vibrator
+Date: Mon, 13 Jun 2011 12:51:16 +0300
+Message-ID: <1530216.k8lJ4nKZ1s@barack>
+References: <1307706876-4768-1-git-send-email-peter.ujfalusi@ti.com> <1307706876-4768-12-git-send-email-peter.ujfalusi@ti.com> <20110611231854.GA3979@core.coreip.homeip.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="2feizKym29CxAecD"
-Return-path: <linux-arm-msm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1307877290-26672-1-git-send-email-tlinder@codeaurora.org>
-Sender: linux-arm-msm-owner@vger.kernel.org
-To: Tatyana Brokhman <tlinder@codeaurora.org>
-Cc: greg@kroah.com, linux-usb@vger.kernel.org, linux-arm-msm@vger.kernel.org, balbi@ti.com, ablay@codeaurora.org, open list <linux-kernel@vger.kernel.org>, "open list:FREESCALE USB PER..." <linuxppc-dev@lists.ozlabs.org>, "open list:OMAP USB SUPPORT" <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <20110611231854.GA3979@core.coreip.homeip.net>
+Sender: linux-input-owner@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: "Girdwood, Liam" <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Samuel Ortiz <sameo@linux.intel.com>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "Lopez Cruz, Misael" <misael.lopez@ti.com>, Jorge Eduardo Candelaria <jorge.candelaria@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
+On Sunday 12 June 2011 01:18:54 Dmitry Torokhov wrote:
+> > +static void twl6040_vibra_enable(struct vibra_info *info)
+> > +{
+> > +     struct twl6040 *twl6040 =3D info->twl6040;
+> > +     int ret =3D 0;
+>=20
+> Initialization is not needed.
 
---2feizKym29CxAecD
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+True.
 
-Hi,
+> > +static void vibra_play_work(struct work_struct *work)
+> > +{
+> > +     struct vibra_info *info =3D container_of(work,
+> > +                             struct vibra_info, play_work);
+> > +
+> > +     mutex_lock(&info->mutex);
+> > +
+> > +     if (info->weak_speed || info->strong_speed) {
+> > +             if (!info->enabled)
+> > +                     twl6040_vibra_enable(info);
+> > +
+> > +             twl6040_vibra_set_effect(info);
+> > +     } else if (info->enabled)
+> > +             twl6040_vibra_disable(info);
+>=20
+> Why do we play with enabling/disabling the device here? Nobody can
+> request playing of an effect unless the device has been opened so if =
+we
+> manage power state in open/close methods we should not be doing it he=
+re
+> I think.
 
+We want to preserve as much power as we can.
+So if application opens the driver, but it is not requesting to play an=
+y=20
+effect we still keep the device turned off.
+When application request for stopping the effect without closing the de=
+vice,=20
+we turn off things in a similar way.
+The twl4030-vibra driver has been implemented in this way as well.
 
-On Sun, Jun 12, 2011 at 02:14:46PM +0300, Tatyana Brokhman wrote:
-> Signed-off-by: Tatyana Brokhman <tlinder@codeaurora.org>
+> > +
+> > +     mutex_unlock(&info->mutex);
+> > +}
 
-I need a sensible commit log for this. Why do we need to change all
-min() to min_t() ?
+=2E..
+
+> > +static int twl6040_vibra_open(struct input_dev *input)
+> > +{
+> > +     struct vibra_info *info =3D input_get_drvdata(input);
+> > +
+> > +     info->workqueue =3D create_singlethread_workqueue("vibra");
+> > +     if (info->workqueue =3D=3D NULL) {
+> > +             dev_err(&input->dev, "couldn't create workqueue\n");
+> > +             return -ENOMEM;
+> > +     }
+>=20
+> Why do we need to create a separate workqueue? With arrival of CWQ
+> it looks like we should be able to use one of the system-wide
+> workqueues for this.
+
+The reason for this is to ensure that we have the lowest latency as pos=
+sible=20
+in most case. In the embedded devices we use the vibra for tactile type=
+ of=20
+feedbacks as well, where few tens of ms delay can be felt.
+
+> > +
+> > +     return 0;
+> > +}
+> > +
+> > +static void twl6040_vibra_close(struct input_dev *input)
+> > +{
+> > +     struct vibra_info *info =3D input_get_drvdata(input);
+> > +
+> > +     cancel_work_sync(&info->play_work);
+> > +     INIT_WORK(&info->play_work, vibra_play_work);
+> > +     destroy_workqueue(info->workqueue);
+> > +     info->workqueue =3D NULL;
+> > +
+> > +     mutex_lock(&info->mutex);
+> > +
+> > +     if (info->enabled)
+> > +             twl6040_vibra_disable(info);
+> > +
+> > +     mutex_unlock(&info->mutex);
+> > +}
+> > +
+> > +#if CONFIG_PM
+>=20
+> CONFIG_PM_SLEEP.
+
+OK, will be fixed.
+
+> > +static int twl6040_vibra_suspend(struct device *dev)
+> > +{
+> > +     struct platform_device *pdev =3D to_platform_device(dev);
+> > +     struct vibra_info *info =3D platform_get_drvdata(pdev);
+> > +
+> > +     mutex_lock(&info->mutex);
+> > +
+> > +     if (info->enabled)
+> > +             twl6040_vibra_disable(info);
+> > +
+> > +     mutex_unlock(&info->mutex);
+> > +
+> > +     return 0;
+> > +}
+> > +
+> > +static SIMPLE_DEV_PM_OPS(twl6040_vibra_pm_ops,
+> > +                      twl6040_vibra_suspend, NULL);
+>=20
+> Move twl6040_vibra_pm_ops definition out of the #ifdef block so you
+> won't need to protect it use with ifdefs later.
+
+Thanks, I have change this.
+=20
+> > +#endif
+
+=2E..
+
+> > +static int __devexit twl6040_vibra_remove(struct platform_device *=
+pdev)
+> > +{
+> > +     struct vibra_info *info =3D platform_get_drvdata(pdev);
+> > +
+> > +     twl6040_power(info->twl6040, 0);
+>=20
+> If we ensure that device is powered off until open() is called, and
+> also powered off when close() is called, then we do not need to switc=
+h
+> off power here.
+
+True, removed.
+
+> Thanks.
+>=20
+> --
+> Dmitry
+
+Thanks for the comments. I will update the series.
 
 --=20
-balbi
-
---2feizKym29CxAecD
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQEcBAEBAgAGBQJN9ddWAAoJEAv8Txj19kN1oP4IAIpN/ZiTxdotBDFX1Q7Kx//H
-q8ddGHEf9Gp4aYVY18OT25W1aRtQVVfMzbHxwssSN5ZRq7GRktnY/c3yV9ar1vB1
-99Ao41XkWUCLhQKM0L+vQifG8Ufutom3VlYxl6GkmgNgj5cSsNzspNkQnGl5M6sO
-hD7tNiwOznuwX4ygZ+vC4EhCq0vjnh5IY8PuJjmIr+t7V8qCJA/OOifit0/e6sdz
-8VMiuNJQehqk8EYo2TcbVR9gnoID1mzbWeh5/LzlRz60uZSgDJdERidYcq/kcndO
-K0jUCJvMKfySXoP9bhlPGxR8WUflFZqSjvIrB94VyWn5MWzXKOyVX5OciyQbLpA=
-=awIV
------END PGP SIGNATURE-----
-
---2feizKym29CxAecD--
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-input" =
+in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
