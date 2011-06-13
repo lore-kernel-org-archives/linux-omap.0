@@ -1,76 +1,159 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH 1/2] cbus: make cbus parent of bus users
-Date: Mon, 13 Jun 2011 22:40:57 +0300
-Message-ID: <1307994058-25486-2-git-send-email-balbi@ti.com>
-References: <1307994058-25486-1-git-send-email-balbi@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [RFC PATCHv5 2/7] HSI: omap_ssi: Introducing OMAP SSI driver
+Date: Mon, 13 Jun 2011 13:21:59 -0700
+Message-ID: <874o3tmqhk.fsf@ti.com>
+References: <1307713124-3946-1-git-send-email-carlos.chinea@nokia.com>
+	<1307713124-3946-3-git-send-email-carlos.chinea@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:48107 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751188Ab1FMTlK (ORCPT
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:41188 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751099Ab1FMUWD (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 13 Jun 2011 15:41:10 -0400
-Received: by fxm8 with SMTP id 8so3196054fxm.26
-        for <linux-omap@vger.kernel.org>; Mon, 13 Jun 2011 12:41:06 -0700 (PDT)
-In-Reply-To: <1307994058-25486-1-git-send-email-balbi@ti.com>
+	Mon, 13 Jun 2011 16:22:03 -0400
+In-Reply-To: <1307713124-3946-3-git-send-email-carlos.chinea@nokia.com>
+	(Carlos Chinea's message of "Fri, 10 Jun 2011 16:38:39 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
+To: Carlos Chinea <carlos.chinea@nokia.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 
-CBUS is the underlying bus device, make
-it the parent of the bus users (retu and
-tahvo).
+Carlos Chinea <carlos.chinea@nokia.com> writes:
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
- arch/arm/mach-omap1/board-nokia770.c |    4 ++++
- arch/arm/mach-omap2/board-n8x0.c     |    4 ++++
- 2 files changed, 8 insertions(+), 0 deletions(-)
+> Introduces the OMAP SSI driver in the kernel.
+>
+> The Synchronous Serial Interface (SSI) is a legacy version
+> of HSI. As in the case of HSI, it is mainly used to connect
+> Application engines (APE) with cellular modem engines (CMT)
+> in cellular handsets.
+>
+> It provides a multichannel, full-duplex, multi-core communication
+> with no reference clock. The OMAP SSI block is capable of reaching
+> speeds of 110 Mbit/s.
+>
+> Signed-off-by: Carlos Chinea <carlos.chinea@nokia.com>
+> ---
+>  arch/arm/mach-omap2/ssi.c             |  134 +++
+>  arch/arm/plat-omap/include/plat/ssi.h |  204 ++++
+>  drivers/hsi/controllers/omap_ssi.c    | 1852 +++++++++++++++++++++++++++++++++
+>  3 files changed, 2190 insertions(+), 0 deletions(-)
+>  create mode 100644 arch/arm/mach-omap2/ssi.c
+>  create mode 100644 arch/arm/plat-omap/include/plat/ssi.h
+>  create mode 100644 drivers/hsi/controllers/omap_ssi.c
+>
+> diff --git a/arch/arm/mach-omap2/ssi.c b/arch/arm/mach-omap2/ssi.c
+> new file mode 100644
+> index 0000000..e822a77
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/ssi.c
+> @@ -0,0 +1,134 @@
+> +/*
+> + * linux/arch/arm/mach-omap2/ssi.c
 
-diff --git a/arch/arm/mach-omap1/board-nokia770.c b/arch/arm/mach-omap1/board-nokia770.c
-index 5d174a3..676d99f 100644
---- a/arch/arm/mach-omap1/board-nokia770.c
-+++ b/arch/arm/mach-omap1/board-nokia770.c
-@@ -136,6 +136,7 @@ static struct platform_device retu_device = {
- 	.num_resources	= ARRAY_SIZE(retu_resource),
- 	.dev		= {
- 		.platform_data = &nokia770_retu_data,
-+		.parent	= &nokia770_cbus_device.dev,
- 	},
- };
- 
-@@ -151,6 +152,9 @@ static struct platform_device tahvo_device = {
- 	.id		= -1,
- 	.resource	= tahvo_resource,
- 	.num_resources	= ARRAY_SIZE(tahvo_resource),
-+	.dev		= {
-+		.parent	= &nokia770_cbus_device.dev,
-+	},
- };
- 
- static struct platform_device tahvo_usb_device = {
-diff --git a/arch/arm/mach-omap2/board-n8x0.c b/arch/arm/mach-omap2/board-n8x0.c
-index ad06bde..b61ac1d 100644
---- a/arch/arm/mach-omap2/board-n8x0.c
-+++ b/arch/arm/mach-omap2/board-n8x0.c
-@@ -232,6 +232,7 @@ static struct platform_device retu_device = {
- 	.num_resources	= ARRAY_SIZE(retu_resource),
- 	.dev		= {
- 		.platform_data = &n8x0_retu_data,
-+		.parent	= &n8x0_cbus_device.dev,
- 	},
- };
- 
-@@ -247,6 +248,9 @@ static struct platform_device tahvo_device = {
- 	.id		= -1,
- 	.resource	= tahvo_resource,
- 	.num_resources	= ARRAY_SIZE(tahvo_resource),
-+	.dev		= {
-+		.parent	= &n8x0_cbus_device.dev,
-+	},
- };
- 
- static struct platform_device tahvo_usb_device = {
--- 
-1.7.6.rc1
+Minor: Please don't include filenames in the comments.  Files tend to move
+around and these comments don't get updated.
+
+> + * Copyright (C) 2010 Nokia Corporation. All rights reserved.
+> + *
+> + * Contact: Carlos Chinea <carlos.chinea@nokia.com>
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License
+> + * version 2 as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful, but
+> + * WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> + * General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+> + * 02110-1301 USA
+> + */
+> +
+> +#include <linux/kernel.h>
+> +#include <linux/init.h>
+> +#include <linux/err.h>
+> +#include <linux/gpio.h>
+> +#include <linux/platform_device.h>
+> +#include <plat/omap-pm.h>
+> +#include <plat/ssi.h>
+> +
+> +static struct omap_ssi_platform_data ssi_pdata = {
+> +	.num_ports			= SSI_NUM_PORTS,
+> +	.get_dev_context_loss_count	= omap_pm_get_dev_context_loss_count,
+> +};
+> +
+> +static struct resource ssi_resources[] = {
+> +	/* SSI controller */
+> +	[0] = {
+> +		.start	= 0x48058000,
+> +		.end	= 0x48058fff,
+> +		.name	= "omap_ssi_sys",
+> +		.flags	= IORESOURCE_MEM,
+> +	},
+> +	/* GDD */
+> +	[1] = {
+> +		.start	= 0x48059000,
+> +		.end	= 0x48059fff,
+> +		.name	= "omap_ssi_gdd",
+> +		.flags	= IORESOURCE_MEM,
+> +	},
+> +	[2] = {
+> +		.start	= 71,
+> +		.end	= 71,
+> +		.name	= "ssi_gdd",
+> +		.flags	= IORESOURCE_IRQ,
+> +	},
+> +	/* SSI port 1 */
+> +	[3] = {
+> +		.start	= 0x4805a000,
+> +		.end	= 0x4805a7ff,
+> +		.name	= "omap_ssi_sst1",
+> +		.flags	= IORESOURCE_MEM,
+> +	},
+> +	[4] = {
+> +		.start	= 0x4805a800,
+> +		.end	= 0x4805afff,
+> +		.name	= "omap_ssi_ssr1",
+> +		.flags	= IORESOURCE_MEM,
+> +	},
+> +	[5] = {
+> +		.start	= 67,
+> +		.end	= 67,
+> +		.name	= "ssi_p1_mpu_irq0",
+> +		.flags	= IORESOURCE_IRQ,
+> +	},
+> +	[6] = {
+> +		.start	= 68,
+> +		.end	= 68,
+> +		.name	= "ssi_p1_mpu_irq1",
+> +		.flags	= IORESOURCE_IRQ,
+> +	},
+> +	[7] = {
+> +		.start	= 0,
+> +		.end	= 0,
+> +		.name	= "ssi_p1_cawake",
+> +		.flags	= IORESOURCE_IRQ | IORESOURCE_UNSET,
+> +	},
+> +};
+> +
+> +static struct platform_device ssi_pdev = {
+> +	.name		= "omap_ssi",
+> +	.id		= 0,
+> +	.num_resources	= ARRAY_SIZE(ssi_resources),
+> +	.resource	= ssi_resources,
+> +	.dev		= {
+> +				.platform_data	= &ssi_pdata,
+> +	},
+> +};
+
+omap_hwmod has all the base address and IRQ data, will construct the
+struct resources and the platform_devices for you.  Please use
+omap_hwmod + omap_device for this part of the code.
+
+Kevin
+
 
