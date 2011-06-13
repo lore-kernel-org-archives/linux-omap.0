@@ -1,59 +1,39 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v5 18/18] OMAP4: SDP4430: Add twl6040 codec platform support
-Date: Mon, 13 Jun 2011 19:37:50 +0300
-Message-ID: <1307983070-2257-19-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v5 16/18] ASoC: twl6040: set default constraints.
+Date: Mon, 13 Jun 2011 19:37:48 +0300
+Message-ID: <1307983070-2257-17-git-send-email-peter.ujfalusi@ti.com>
 References: <1307983070-2257-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:44885 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753981Ab1FMQjG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 13 Jun 2011 12:39:06 -0400
+Return-path: <linux-input-owner@vger.kernel.org>
 In-Reply-To: <1307983070-2257-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-input-owner@vger.kernel.org
 To: Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Samuel Ortiz <sameo@linux.intel.com>, Dmitry Torokhov <dmitry.torokhov@>
-Cc: linux-input@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org, Misael Lopez Cruz <misael.lopez@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: linux-input@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org, Peter Ujfalusi <peter.ujfalusi@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
-From: Misael Lopez Cruz <misael.lopez@ti.com>
+From: Liam Girdwood <lrg@ti.com>
 
-Configure, and enable the twl6040 codec on SDP4430.
+Set default sysclk constraints to high performance mode.
 
-Signed-off-by: Misael Lopez Cruz <misael.lopez@ti.com>
+Signed-off-by: Liam Girdwood <lrg@ti.com>
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- arch/arm/mach-omap2/board-4430sdp.c |   10 +++++++++-
- 1 files changed, 9 insertions(+), 1 deletions(-)
+ sound/soc/codecs/twl6040.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index 266d146..369250b 100644
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -432,6 +432,14 @@ static struct regulator_init_data sdp4430_vusim = {
- 	},
- };
+diff --git a/sound/soc/codecs/twl6040.c b/sound/soc/codecs/twl6040.c
+index d334d86..3c0d8da 100644
+--- a/sound/soc/codecs/twl6040.c
++++ b/sound/soc/codecs/twl6040.c
+@@ -1507,6 +1507,7 @@ static int twl6040_probe(struct snd_soc_codec *codec)
  
-+static struct twl4030_codec_data twl6040_codec = {
-+	/* single-step ramp for headset and handsfree */
-+	.hs_left_step	= 0x0f,
-+	.hs_right_step	= 0x0f,
-+	.hf_left_step	= 0x1d,
-+	.hf_right_step	= 0x1d,
-+};
-+
- static struct twl4030_vibra_data twl6040_vibra = {
- 	.vibldrv_res = 8,
- 	.vibrdrv_res = 3,
-@@ -442,7 +450,7 @@ static struct twl4030_vibra_data twl6040_vibra = {
- };
+ 	/* default is high-performance mode */
+ 	priv->headset_mode = 1;
++	priv->sysclk_constraints = &hp_constraints;
  
- static struct twl4030_audio_data twl6040_audio = {
--	.codec		= NULL,
-+	.codec		= &twl6040_codec,
- 	.vibra		= &twl6040_vibra,
- 	.audpwron_gpio	= 127,
- 	.naudint_irq	= OMAP44XX_IRQ_SYS_2N,
+ 	priv->workqueue = create_singlethread_workqueue("twl6040-codec");
+ 	if (!priv->workqueue) {
 -- 
 1.7.5.3
 
