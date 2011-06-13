@@ -1,53 +1,72 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 0/2] OMAP3 IOMMU fixes
-Date: Mon, 13 Jun 2011 18:41:08 +0200
-Message-ID: <201106131841.08465.laurent.pinchart@ideasonboard.com>
-References: <1306759629-17232-1-git-send-email-laurent.pinchart@ideasonboard.com> <201106081248.01793.laurent.pinchart@ideasonboard.com> <20110613134034.GE3352@atomide.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCHv2 01/28] OMAP: change get_context_loss_count ret value
+ to int
+Date: Mon, 13 Jun 2011 19:45:04 +0300
+Message-ID: <1307983504.1847.87.camel@deskari>
+References: <1307627810-3768-1-git-send-email-tomi.valkeinen@ti.com>
+	 <1307627810-3768-2-git-send-email-tomi.valkeinen@ti.com>
+	 <1307958710.1847.56.camel@deskari>
+	 <BANLkTimi0RZ8Fe7VpY9J7dMPH6tpVzf=dw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:55730 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754233Ab1FMQlC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Jun 2011 12:41:02 -0400
-In-Reply-To: <20110613134034.GE3352@atomide.com>
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:59224 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753821Ab1FMQpM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 13 Jun 2011 12:45:12 -0400
+In-Reply-To: <BANLkTimi0RZ8Fe7VpY9J7dMPH6tpVzf=dw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, teemu.tuominen@cybercom.com, Ohad Ben-Cohen <ohad@wizery.com>
+To: "Ghongdemath, Girish" <girishsg@ti.com>
+Cc: paul@pwsan.com, linux-fbdev@vger.kernel.org, b-cousson@ti.com, khilman@ti.com, linux-omap mailing list <linux-omap@vger.kernel.org>
 
-Hi Tony,
-
-On Monday 13 June 2011 15:40:34 Tony Lindgren wrote:
-> * Laurent Pinchart <laurent.pinchart@ideasonboard.com> [110608 03:43]:
-> > Hi Tony,
-> > 
-> > On Monday 30 May 2011 14:47:07 Laurent Pinchart wrote:
-> > > Hi everybody,
-> > > 
-> > > Here are two OMAP3 IOMMU fixes required to support big and/or unaligned
-> > > memory buffers.
-> > > 
-> > > Laurent Pinchart (2):
-> > >   omap3: iovmm: Work around sg_alloc_table size limitation in IOMMU
-> > >   omap3: iovmm: Support non page-aligned buffers in iommu_vmap
-> > 
-> > As per Russell comments, the first patch needs more work (or at least
-> > more discussions). Could you apply the second patch already ?
+On Mon, 2011-06-13 at 11:37 -0500, Ghongdemath, Girish wrote:
+> Tomi,
+> Couple of queries,
 > 
-> It's getting too late for this cycle as this can be counted as
-> "features that never worked" type of patch. If it's a regression,
-> then please specify the commit breaking this suport.
+> On Mon, Jun 13, 2011 at 4:51 AM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
+> > Paul, can you take this patch and queue it for an rc?
+> >
+> >  Tomi
+> >
+> > On Thu, 2011-06-09 at 16:56 +0300, Tomi Valkeinen wrote:
+> >> get_context_loss_count functions return context loss count as u32, and
+> >> zero means an error. However, zero is also returned when context has
+> >> never been lost and could also be returned when the context loss count
+> >> has wrapped and goes to zero.
+> >>
+> >> Change the functions to return an int, with negative value meaning an
+> >> error.
+> >>
 > 
-> So let's plan on doing the move to drivers and patching whatever is
-> needed for the upcoming merge window.
+> >> +             if (off_mode_enabled) {
+> 
+> - why have a check for off_mode_enabled? As this only detects valid
+> next state for MPU/CORE. Other pwrdm can still
+> hit OFF.
 
-OK. Ohad, could you please apply this patch to your tree and submit it with 
-the whole series for 3.1 ?
+It does what the code did previously, without changing the logic. And
+this doesn't detect anything, it's just an dummy emulation for context
+loss to test the drivers.
 
--- 
-Regards,
+> >> +                     count++;
+> >> +                     /*
+> >> +                      * Context loss count has to be a non-negative value.
+> >> +                      * Clear the sign bit to get a value range from 0 to
+> >> +                      * INT_MAX.
+> >> +                      */
+> >> +                     count &= INT_MAX;
+> >> +                     dummy_context_loss_counter = count;
+> >> +             }
+> >>       }
+> 
+> - Why not use u32 instead?
 
-Laurent Pinchart
+So that we can return error values. That was the whole point of this
+patch.
+
+ Tomi
+
+
