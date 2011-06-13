@@ -1,85 +1,37 @@
-From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: RE: [PATCH v4 REPOST 18/20] gpio/omap: use pm-runtime framework
-Date: Wed, 27 Jul 2011 17:14:58 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB037C202D59@dbde02.ent.ti.com>
-References: <1310804152-9243-1-git-send-email-tarun.kanti@ti.com>
- <1310804152-9243-19-git-send-email-tarun.kanti@ti.com>
- <20110716190734.GB990@google.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [linux-pm] calling runtime PM from system PM methods
+Date: Mon, 13 Jun 2011 13:22:22 +0100
+Message-ID: <20110613122221.GA19552@opensource.wolfsonmicro.com>
+References: <20110610155707.GN26436@opensource.wolfsonmicro.com> <201106102227.25391.rjw@sisk.pl> <20110611114239.GC2738@opensource.wolfsonmicro.com> <201106112256.37012.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:45001 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752099Ab1G0LpL convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Jul 2011 07:45:11 -0400
-In-Reply-To: <20110716190734.GB990@google.com>
-Content-Language: en-US
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:47373 "EHLO
+	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752125Ab1G0MT5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 27 Jul 2011 08:19:57 -0400
+Content-Disposition: inline
+In-Reply-To: <201106112256.37012.rjw@sisk.pl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Todd Poynor <toddpoynor@google.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Varadarajan, Charulatha" <charu@ti.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-pm@lists.linux-foundation.org, Alan Stern <stern@rowland.harvard.edu>, linux-omap@vger.kernel.org
 
-Todd,
-[...]
-> > +		/* Initialize the gpio bank registers to init time value */
-> > +		omap_gpio_mod_init(bank);
-> 
-> omap_gpio_mod_init calls mpuio_init calls platform_driver_register
-> which can't be called in an IRQs off and spinlocked atomic context,
-> for example, device_private_init calls kzalloc with GFP_KERNEL.
-> 
-> Concurrency protection for this will need to happen prior to the
-> spinlock (assuming it really does need to be an IRQ saving spinlock
-> and not a mutex).   Possibly a new mutex is needed to protect the
-> check for first usage and init'ing the bank (and blocking a racing
-> second caller until the init is done).
-I have isolated mpuio_init() from omap_gpio_mod_init().
-mpuio_init() is now called once in omap_gpio_probe().
+On Sat, Jun 11, 2011 at 10:56:36PM +0200, Rafael J. Wysocki wrote:
+> On Saturday, June 11, 2011, Mark Brown wrote:
 
-> 
-> The omap_gpio_mod_init may be unbalanced with the code performed below
-> on last free of a GPIO for the bank?  If all GPIOs are freed and then
-> a new GPIO used, does omap_gpio_mod_init do the right thing?  Need a
-> separate flag to indicate whether one-time init has ever been
-> performed, vs. needing runtime PM enable/disable?
-With the above changes I am seeing omap_gpio_mod_init() is balanced.
-Let me know if I am still missing something.
---
-Tarun
-> 
-> > +	}
-> > +
-> >  	/* Set trigger to none. You need to enable the desired trigger with
-> >  	 * request_irq() or set_irq_type().
-> >  	 */
-> > @@ -517,7 +535,6 @@ static void omap_gpio_free(struct gpio_chip *chip,
-> unsigned offset)
-> >  	unsigned long flags;
-> >
-> >  	spin_lock_irqsave(&bank->lock, flags);
-> > -
-> >  	if (bank->regs->wkup_status)
-> >  		/* Disable wake-up during idle for dynamic tick */
-> >  		_gpio_rmw(base, bank->regs->wkup_status, 1 << offset, 0);
-> > @@ -535,6 +552,18 @@ static void omap_gpio_free(struct gpio_chip *chip,
-> unsigned offset)
-> >  	}
-> >
-> >  	_reset_gpio(bank, bank->chip.base + offset);
-> > +
-> > +	/*
-> > +	 * If this is the last gpio to be freed in the bank,
-> > +	 * disable the bank module.
-> > +	 */
-> > +	if (!bank->mod_usage) {
-> > +		if (IS_ERR_VALUE(pm_runtime_put_sync(bank->dev) < 0)) {
-> > +			dev_err(bank->dev, "%s: GPIO bank %d "
-> > +					"pm_runtime_put_sync failed\n",
-> > +					__func__, bank->id);
-> > +		}
-> > +	}
-> >  	spin_unlock_irqrestore(&bank->lock, flags);
-> 
-> 
-> Todd
+> > that's a very large proportion of the embedded space.  It really feels
+> > like we could be doing a better job for drivers using these buses,
+> > there's a lot of similarities in what many of them need but I can never
+> > find the time to get my head round it confidently enough to actually
+> > propose anything.
+
+> I agree.  That's one of the reasons why I introduced the struct dev_power_domain
+> thing a while ago and the generic PM domains patchset I've just posted is a step
+> in that direction.
+
+Ah, right - I'd not been thinking of those in the context of
+simplifications for basic devices, I'd been thinking of them as being
+for CPUs with more complex power domains that need managing.  I'll keep
+more of an eye on what's going on there.
