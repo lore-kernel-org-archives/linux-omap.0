@@ -1,40 +1,45 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP4: McBSP: Clear rx_irq at probe time
-Date: Mon, 13 Jun 2011 06:35:43 -0700
-Message-ID: <20110613133542.GD3352@atomide.com>
-References: <1305628420-10592-1-git-send-email-peter.ujfalusi@ti.com>
- <201105181539.46959.peter.ujfalusi@ti.com>
- <20110531075701.GN11352@atomide.com>
- <201106081051.27234.peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 0/2] OMAP3 IOMMU fixes
+Date: Mon, 13 Jun 2011 06:40:34 -0700
+Message-ID: <20110613134034.GE3352@atomide.com>
+References: <1306759629-17232-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <201106081248.01793.laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:22872 "EHLO
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:30728 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752961Ab1FMNfs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Jun 2011 09:35:48 -0400
+	with ESMTP id S1752968Ab1FMNkh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Jun 2011 09:40:37 -0400
 Content-Disposition: inline
-In-Reply-To: <201106081051.27234.peter.ujfalusi@ti.com>
+In-Reply-To: <201106081248.01793.laurent.pinchart@ideasonboard.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Jarkko Nikula <jhnikula@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Girdwood, Liam" <lrg@ti.com>, "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-omap@vger.kernel.org, teemu.tuominen@cybercom.com
 
-* Peter Ujfalusi <peter.ujfalusi@ti.com> [110608 00:46]:
+* Laurent Pinchart <laurent.pinchart@ideasonboard.com> [110608 03:43]:
 > Hi Tony,
 > 
-> On Tuesday 31 May 2011 10:57:02 Tony Lindgren wrote:
-> > Sure, but that's the only option we have to merge any new code.
+> On Monday 30 May 2011 14:47:07 Laurent Pinchart wrote:
+> > Hi everybody,
+> > 
+> > Here are two OMAP3 IOMMU fixes required to support big and/or unaligned
+> > memory buffers.
+> > 
+> > Laurent Pinchart (2):
+> >   omap3: iovmm: Work around sg_alloc_table size limitation in IOMMU
+> >   omap3: iovmm: Support non page-aligned buffers in iommu_vmap
 > 
-> So this patch will be not taken (even if without this patch OMAP4 McBSP is 
-> broken), unless we move the McBSP code out from plat-omap?
-> 
-> I have discussed with Jarkko, and internally about the mcbsp code move. This 
-> will certainly take some time to figure out a sane way to do this.
-> To be hones I would be surprised if we can do this for 3.1...
+> As per Russell comments, the first patch needs more work (or at least more 
+> discussions). Could you apply the second patch already ?
 
-Sure we can merge fixes, but let's get the move done before adding
-new features.
+It's getting too late for this cycle as this can be counted as
+"features that never worked" type of patch. If it's a regression,
+then please specify the commit breaking this suport.
+
+So let's plan on doing the move to drivers and patching whatever is
+needed for the upcoming merge window.
 
 Regards,
 
