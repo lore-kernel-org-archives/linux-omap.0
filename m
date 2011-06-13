@@ -1,66 +1,44 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH v2] arm: omap3: cm-t35: add support for cm-t3730
-Date: Mon, 13 Jun 2011 22:34:49 +0300
-Message-ID: <4DF66659.3070102@compulab.co.il>
-References: <4DC27317.7020206@compulab.co.il> <1304839231-11329-1-git-send-email-grinberg@compulab.co.il> <20110531130447.GK11352@atomide.com> <4DE8E3B7.5020107@compulab.co.il> <20110613133307.GC3352@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Felipe Balbi <balbi@ti.com>
+Subject: [PATCH 0/2] CBUS Patches
+Date: Mon, 13 Jun 2011 22:40:56 +0300
+Message-ID: <1307994058-25486-1-git-send-email-balbi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:59189
-	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753645Ab1FMTev (ORCPT
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:57752 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751188Ab1FMTlD (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 13 Jun 2011 15:34:51 -0400
-In-Reply-To: <20110613133307.GC3352@atomide.com>
+	Mon, 13 Jun 2011 15:41:03 -0400
+Received: by mail-fx0-f43.google.com with SMTP id 3so4002924fxm.2
+        for <linux-omap@vger.kernel.org>; Mon, 13 Jun 2011 12:41:02 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
 
-On 06/13/11 16:33, Tony Lindgren wrote:
-> * Igor Grinberg <grinberg@compulab.co.il> [110603 06:33]:
->> I'm not sure I understand what are you trying to propose here...
->> If you look once again on the code, there is currently only one if (cpu_is_..) {} else {}
->> statement currently present.
->> (I can remove the "if (cpu_is_omap3630())" - it indeed has no value)
->>
->> Indeed, there will be some other differences...
->> Each time I submit a patch, I try to be as optimal as I can,
->> but again I'm open for suggestions...
->> (though I think it is optimal, e.g. 33 lines for a new running board...)
-> What I meant is that maybe you should do the detection first in some
-> get_revision function and populate the gpio pins there. Sort of like
-> this recent beagle patch:
->
-> https://patchwork.kernel.org/patch/859662/
+Hi Tony,
 
-Yes I've seen this patch (actually, I was one of the people who reviewed it).
+the following two patches get rid of
+the static global variable holding the
+bus context. It's not needed at all.
 
-> That way adding support for other differences will be easier.
+This will allow us to have multiple
+CBUS buses by using different GPIOs.
 
-OK, now I understand what you mean.
-I think currently this is not optimal for cm-t35/3730 and will just complicate
-things and introduce more l-o-c.
+Will never be useful, but that's it
+should've been done anyway :-p
 
-The situation on beagle board is much more complicated then on cm-t3x.
-Beagle has quite a large number of revisions,
-while cm-t35 has only one and cm-t3730 has only one.
-Moreover, there is no difference in gpios - same numbers are used
-for the same functionality.
+Felipe Balbi (2):
+  cbus: make cbus parent of bus users
+  cbus: pass device as argument
 
-In particular the only two differences (that s/w cares about) between the boards are:
-1) mux of the DSS pins
-2) no NAND on cm-t3730 (still not introduced by the patch in subj)
-
-Nevertheless, I will try to come up with something,
-so we can see and decide what is a better option.
-
-I will base it on your devel-board branch
-(correct me if you want it some other way).
-
+ arch/arm/mach-omap1/board-nokia770.c |    4 ++++
+ arch/arm/mach-omap2/board-n8x0.c     |    4 ++++
+ drivers/cbus/cbus.c                  |   20 +++++++++++---------
+ drivers/cbus/cbus.h                  |    5 +++--
+ drivers/cbus/retu.c                  |    4 ++--
+ drivers/cbus/tahvo.c                 |    9 +++++++--
+ 6 files changed, 31 insertions(+), 15 deletions(-)
 
 -- 
-Regards,
-Igor.
+1.7.6.rc1
 
