@@ -1,159 +1,108 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [RFC PATCHv5 2/7] HSI: omap_ssi: Introducing OMAP SSI driver
-Date: Mon, 13 Jun 2011 13:21:59 -0700
-Message-ID: <874o3tmqhk.fsf@ti.com>
-References: <1307713124-3946-1-git-send-email-carlos.chinea@nokia.com>
-	<1307713124-3946-3-git-send-email-carlos.chinea@nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Felipe Balbi <balbi@ti.com>
+Subject: [PATCH] input: keypad: lm8323: convert to threaded IRQ
+Date: Tue, 14 Jun 2011 00:16:52 +0300
+Message-ID: <1307999812-3802-1-git-send-email-balbi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:41188 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751099Ab1FMUWD (ORCPT
+Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:53071 "EHLO
+	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752193Ab1FMVRG (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 13 Jun 2011 16:22:03 -0400
-In-Reply-To: <1307713124-3946-3-git-send-email-carlos.chinea@nokia.com>
-	(Carlos Chinea's message of "Fri, 10 Jun 2011 16:38:39 +0300")
+	Mon, 13 Jun 2011 17:17:06 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Carlos Chinea <carlos.chinea@nokia.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: linux-input@vger.kernel.org, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
 
-Carlos Chinea <carlos.chinea@nokia.com> writes:
+there's no need for that workqueue anymore.
+Get rid of it and move to threaded IRQs
+instead.
 
-> Introduces the OMAP SSI driver in the kernel.
->
-> The Synchronous Serial Interface (SSI) is a legacy version
-> of HSI. As in the case of HSI, it is mainly used to connect
-> Application engines (APE) with cellular modem engines (CMT)
-> in cellular handsets.
->
-> It provides a multichannel, full-duplex, multi-core communication
-> with no reference clock. The OMAP SSI block is capable of reaching
-> speeds of 110 Mbit/s.
->
-> Signed-off-by: Carlos Chinea <carlos.chinea@nokia.com>
-> ---
->  arch/arm/mach-omap2/ssi.c             |  134 +++
->  arch/arm/plat-omap/include/plat/ssi.h |  204 ++++
->  drivers/hsi/controllers/omap_ssi.c    | 1852 +++++++++++++++++++++++++++++++++
->  3 files changed, 2190 insertions(+), 0 deletions(-)
->  create mode 100644 arch/arm/mach-omap2/ssi.c
->  create mode 100644 arch/arm/plat-omap/include/plat/ssi.h
->  create mode 100644 drivers/hsi/controllers/omap_ssi.c
->
-> diff --git a/arch/arm/mach-omap2/ssi.c b/arch/arm/mach-omap2/ssi.c
-> new file mode 100644
-> index 0000000..e822a77
-> --- /dev/null
-> +++ b/arch/arm/mach-omap2/ssi.c
-> @@ -0,0 +1,134 @@
-> +/*
-> + * linux/arch/arm/mach-omap2/ssi.c
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+---
 
-Minor: Please don't include filenames in the comments.  Files tend to move
-around and these comments don't get updated.
+compile tested only. I need someone to reply with
+a Tested-by tag.
 
-> + * Copyright (C) 2010 Nokia Corporation. All rights reserved.
-> + *
-> + * Contact: Carlos Chinea <carlos.chinea@nokia.com>
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License
-> + * version 2 as published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful, but
-> + * WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-> + * General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-> + * 02110-1301 USA
-> + */
-> +
-> +#include <linux/kernel.h>
-> +#include <linux/init.h>
-> +#include <linux/err.h>
-> +#include <linux/gpio.h>
-> +#include <linux/platform_device.h>
-> +#include <plat/omap-pm.h>
-> +#include <plat/ssi.h>
-> +
-> +static struct omap_ssi_platform_data ssi_pdata = {
-> +	.num_ports			= SSI_NUM_PORTS,
-> +	.get_dev_context_loss_count	= omap_pm_get_dev_context_loss_count,
-> +};
-> +
-> +static struct resource ssi_resources[] = {
-> +	/* SSI controller */
-> +	[0] = {
-> +		.start	= 0x48058000,
-> +		.end	= 0x48058fff,
-> +		.name	= "omap_ssi_sys",
-> +		.flags	= IORESOURCE_MEM,
-> +	},
-> +	/* GDD */
-> +	[1] = {
-> +		.start	= 0x48059000,
-> +		.end	= 0x48059fff,
-> +		.name	= "omap_ssi_gdd",
-> +		.flags	= IORESOURCE_MEM,
-> +	},
-> +	[2] = {
-> +		.start	= 71,
-> +		.end	= 71,
-> +		.name	= "ssi_gdd",
-> +		.flags	= IORESOURCE_IRQ,
-> +	},
-> +	/* SSI port 1 */
-> +	[3] = {
-> +		.start	= 0x4805a000,
-> +		.end	= 0x4805a7ff,
-> +		.name	= "omap_ssi_sst1",
-> +		.flags	= IORESOURCE_MEM,
-> +	},
-> +	[4] = {
-> +		.start	= 0x4805a800,
-> +		.end	= 0x4805afff,
-> +		.name	= "omap_ssi_ssr1",
-> +		.flags	= IORESOURCE_MEM,
-> +	},
-> +	[5] = {
-> +		.start	= 67,
-> +		.end	= 67,
-> +		.name	= "ssi_p1_mpu_irq0",
-> +		.flags	= IORESOURCE_IRQ,
-> +	},
-> +	[6] = {
-> +		.start	= 68,
-> +		.end	= 68,
-> +		.name	= "ssi_p1_mpu_irq1",
-> +		.flags	= IORESOURCE_IRQ,
-> +	},
-> +	[7] = {
-> +		.start	= 0,
-> +		.end	= 0,
-> +		.name	= "ssi_p1_cawake",
-> +		.flags	= IORESOURCE_IRQ | IORESOURCE_UNSET,
-> +	},
-> +};
-> +
-> +static struct platform_device ssi_pdev = {
-> +	.name		= "omap_ssi",
-> +	.id		= 0,
-> +	.num_resources	= ARRAY_SIZE(ssi_resources),
-> +	.resource	= ssi_resources,
-> +	.dev		= {
-> +				.platform_data	= &ssi_pdata,
-> +	},
-> +};
+ drivers/input/keyboard/lm8323.c |   23 ++++-------------------
+ 1 files changed, 4 insertions(+), 19 deletions(-)
 
-omap_hwmod has all the base address and IRQ data, will construct the
-struct resources and the platform_devices for you.  Please use
-omap_hwmod + omap_device for this part of the code.
-
-Kevin
-
+diff --git a/drivers/input/keyboard/lm8323.c b/drivers/input/keyboard/lm8323.c
+index 71f744a8..3b21f42 100644
+--- a/drivers/input/keyboard/lm8323.c
++++ b/drivers/input/keyboard/lm8323.c
+@@ -146,7 +146,6 @@ struct lm8323_chip {
+ 	/* device lock */
+ 	struct mutex		lock;
+ 	struct i2c_client	*client;
+-	struct work_struct	work;
+ 	struct input_dev	*idev;
+ 	bool			kp_enabled;
+ 	bool			pm_suspend;
+@@ -162,7 +161,6 @@ struct lm8323_chip {
+ 
+ #define client_to_lm8323(c)	container_of(c, struct lm8323_chip, client)
+ #define dev_to_lm8323(d)	container_of(d, struct lm8323_chip, client->dev)
+-#define work_to_lm8323(w)	container_of(w, struct lm8323_chip, work)
+ #define cdev_to_pwm(c)		container_of(c, struct lm8323_pwm, cdev)
+ #define work_to_pwm(w)		container_of(w, struct lm8323_pwm, work)
+ 
+@@ -375,9 +373,9 @@ static void pwm_done(struct lm8323_pwm *pwm)
+  * Bottom half: handle the interrupt by posting key events, or dealing with
+  * errors appropriately.
+  */
+-static void lm8323_work(struct work_struct *work)
++static irqreturn_t lm8323_irq(int irq, void *_lm)
+ {
+-	struct lm8323_chip *lm = work_to_lm8323(work);
++	struct lm8323_chip *lm = _lm;
+ 	u8 ints;
+ 	int i;
+ 
+@@ -409,16 +407,6 @@ static void lm8323_work(struct work_struct *work)
+ 	}
+ 
+ 	mutex_unlock(&lm->lock);
+-}
+-
+-/*
+- * We cannot use I2C in interrupt context, so we just schedule work.
+- */
+-static irqreturn_t lm8323_irq(int irq, void *data)
+-{
+-	struct lm8323_chip *lm = data;
+-
+-	schedule_work(&lm->work);
+ 
+ 	return IRQ_HANDLED;
+ }
+@@ -675,7 +663,6 @@ static int __devinit lm8323_probe(struct i2c_client *client,
+ 	lm->client = client;
+ 	lm->idev = idev;
+ 	mutex_init(&lm->lock);
+-	INIT_WORK(&lm->work, lm8323_work);
+ 
+ 	lm->size_x = pdata->size_x;
+ 	lm->size_y = pdata->size_y;
+@@ -746,9 +733,8 @@ static int __devinit lm8323_probe(struct i2c_client *client,
+ 		goto fail3;
+ 	}
+ 
+-	err = request_irq(client->irq, lm8323_irq,
+-			  IRQF_TRIGGER_FALLING | IRQF_DISABLED,
+-			  "lm8323", lm);
++	err = request_threaded_irq(client->irq, NULL, lm8323_irq,
++			  IRQF_TRIGGER_FALLING, "lm8323", lm);
+ 	if (err) {
+ 		dev_err(&client->dev, "could not get IRQ %d\n", client->irq);
+ 		goto fail4;
+@@ -783,7 +769,6 @@ static int __devexit lm8323_remove(struct i2c_client *client)
+ 
+ 	disable_irq_wake(client->irq);
+ 	free_irq(client->irq, lm);
+-	cancel_work_sync(&lm->work);
+ 
+ 	input_unregister_device(lm->idev);
+ 
+-- 
+1.7.6.rc1
 
