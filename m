@@ -1,38 +1,44 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: RE: [PATCH] usb:gadget: use min_t() macro instead of min()
-Date: Mon, 13 Jun 2011 10:38:56 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1106131036430.1983-100000@iolanthe.rowland.org>
-References: <03b901cc29c0$6538e970$2faabc50$@org>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH] omap4: fix build error when undefining CONFIG_SMP
+Date: Mon, 13 Jun 2011 20:13:14 +0530
+Message-ID: <4DF62202.4040304@ti.com>
+References: <BANLkTimf9D55OZ+-sOMPw2_WgG3QO_RooQ@mail.gmail.com> <4DF5B011.7080709@ti.com> <20110613143501.GG3352@atomide.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-arm-msm-owner@vger.kernel.org>
-In-Reply-To: <03b901cc29c0$6538e970$2faabc50$@org>
-Sender: linux-arm-msm-owner@vger.kernel.org
-To: Tanya Brokhman <tlinder@codeaurora.org>
-Cc: balbi@ti.com, greg@kroah.com, linux-usb@vger.kernel.org, linux-arm-msm@vger.kernel.org, ablay@codeaurora.org, 'open list' <linux-kernel@vger.kernel.org>, "'open list:FREESCALE USB PER...'" <linuxppc-dev@lists.ozlabs.org>, "'open list:OMAP USB SUPPORT'" <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:60561 "EHLO
+	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753544Ab1FMOnV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 13 Jun 2011 10:43:21 -0400
+Received: by mail-yx0-f171.google.com with SMTP id 35so425075yxh.2
+        for <linux-omap@vger.kernel.org>; Mon, 13 Jun 2011 07:43:20 -0700 (PDT)
+In-Reply-To: <20110613143501.GG3352@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "Vadillo, Miguel" <vadillo@ti.com>, linux-omap@vger.kernel.org
 
-On Mon, 13 Jun 2011, Tanya Brokhman wrote:
+On 6/13/2011 8:05 PM, Tony Lindgren wrote:
+> * Santosh Shilimkar<santosh.shilimkar@ti.com>  [110612 23:32]:
+>> On 6/13/2011 11:55 AM, Vadillo, Miguel wrote:
+>>>
+>>> Function omap_smc2 is undeclared when disabling SMP
+>
+> Looks like this won't apply to current mainline kernel, care
+> to check if it's still needed?
+>
+Yep. After checking, looks like patch isn't generated
+against mainline. It's not needed against current mainline.
+Sorry for oversight.
 
-> > 
-> > On Sun, Jun 12, 2011 at 02:14:46PM +0300, Tatyana Brokhman wrote:
-> > > Signed-off-by: Tatyana Brokhman <tlinder@codeaurora.org>
-> > 
-> > I need a sensible commit log for this. Why do we need to change all
-> > min() to min_t() ?
-> > 
-> 
-> Actually, Alan asked me to make this change in one place in dummy_hcd. I
-> wasn't aware of the min_t macro before that. So when I searched the code for
-> other places I found quite a few and just thought that it would be "nicer"
-> to use min_t() instead of min() with casting. 
-> So we don't "need" to make this change. Everything works as is. This patch
-> only makes the code look nicer, nothing more.
-> I can elaborate the above in the commit log if you want.
 
-The change I suggested involved replacing two typecasts with a single 
-min_t.  All (or almost all) the places this patch touches currently 
-contain only one typecast, so the motivation for changing them is a lot 
-weaker.
+Miguel,
+Did you post this by mistake ?
+Looking at hunks it apears to be needed against
+internal tree.
 
-Alan Stern
+Regards
+Santosh
+
