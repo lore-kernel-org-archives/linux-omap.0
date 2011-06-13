@@ -1,376 +1,521 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v5 06/18] MFD: twl4030-codec -> twl4030-audio:
-	Rename the driver
-Date: Mon, 13 Jun 2011 19:37:38 +0300
-Message-ID: <1307983070-2257-7-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v5 11/18] input: Add initial support for TWL6040 vibrator
+Date: Mon, 13 Jun 2011 19:37:43 +0300
+Message-ID: <1307983070-2257-12-git-send-email-peter.ujfalusi@ti.com>
 References: <1307983070-2257-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:34088 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754245Ab1FMQil (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 13 Jun 2011 12:38:41 -0400
 In-Reply-To: <1307983070-2257-1-git-send-email-peter.ujfalusi@ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Samuel Ortiz <sameo@linux.intel.com>, Dmitry Torokhov <dmitry.torokhov@>
-Cc: alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-input@vger.kernel.org, Misael Lopez Cruz <misael.lopez@ti.com>, linux-omap@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Samuel Ortiz <sameo@linux.intel.com>, Dmitry Torokhov <dmitry.torokhov@>
+Cc: linux-input@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org, Misael Lopez Cruz <misael.lopez@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>
 
-Rename the driver, and header file from twl4030-codec to
-twl4030-audio.
-To avoid breakage change depending drivers at the same time.
+From: Misael Lopez Cruz <misael.lopez@ti.com>
 
+Add twl6040_vibra as a child of MFD device twl6040_codec. This
+implementation covers the PCM-to-PWM mode of TWL6040 vibrator
+module.
+
+Signed-off-by: Misael Lopez Cruz <misael.lopez@ti.com>
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-CC: Misael Lopez Cruz <misael.lopez@ti.com>
 ---
- drivers/input/misc/Kconfig                         |    2 +-
- drivers/input/misc/twl4030-vibra.c                 |   10 +++---
- drivers/mfd/Kconfig                                |    2 +-
- drivers/mfd/Makefile                               |    2 +-
- drivers/mfd/{twl4030-codec.c => twl4030-audio.c}   |   33 +++++++++----------
- .../linux/mfd/{twl4030-codec.h => twl4030-audio.h} |   16 +++++-----
- sound/soc/codecs/Kconfig                           |    2 +-
- sound/soc/codecs/twl4030.c                         |   16 +++++-----
- sound/soc/omap/sdp3430.c                           |    2 +-
- sound/soc/omap/zoom2.c                             |    2 +-
- 10 files changed, 43 insertions(+), 44 deletions(-)
- rename drivers/mfd/{twl4030-codec.c => twl4030-audio.c} (87%)
- rename include/linux/mfd/{twl4030-codec.h => twl4030-audio.h} (96%)
+ drivers/input/misc/Kconfig         |   11 +
+ drivers/input/misc/Makefile        |    1 +
+ drivers/input/misc/twl6040-vibra.c |  425 ++++++++++++++++++++++++++++++++++++
+ include/linux/i2c/twl.h            |    8 +
+ 4 files changed, 445 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/input/misc/twl6040-vibra.c
 
 diff --git a/drivers/input/misc/Kconfig b/drivers/input/misc/Kconfig
-index 45dc6aa..077309a 100644
+index 077309a..d1bf872 100644
 --- a/drivers/input/misc/Kconfig
 +++ b/drivers/input/misc/Kconfig
-@@ -267,7 +267,7 @@ config INPUT_TWL4030_PWRBUTTON
- config INPUT_TWL4030_VIBRA
- 	tristate "Support for TWL4030 Vibrator"
- 	depends on TWL4030_CORE
--	select TWL4030_CODEC
-+	select MFD_TWL4030_AUDIO
- 	select INPUT_FF_MEMLESS
+@@ -275,6 +275,17 @@ config INPUT_TWL4030_VIBRA
+ 	  To compile this driver as a module, choose M here. The module will
+ 	  be called twl4030_vibra.
+ 
++config INPUT_TWL6040_VIBRA
++	tristate "Support for TWL6040 Vibrator"
++	depends on TWL4030_CORE
++	select TWL6040_CORE
++	select INPUT_FF_MEMLESS
++	help
++	  This option enables support for TWL6040 Vibrator Driver.
++
++	  To compile this driver as a module, choose M here. The module will
++	  be called twl6040_vibra.
++
+ config INPUT_UINPUT
+ 	tristate "User level driver support"
  	help
- 	  This option enables support for TWL4030 Vibrator Driver.
-diff --git a/drivers/input/misc/twl4030-vibra.c b/drivers/input/misc/twl4030-vibra.c
-index 014dd4a..7abca85 100644
---- a/drivers/input/misc/twl4030-vibra.c
-+++ b/drivers/input/misc/twl4030-vibra.c
-@@ -28,7 +28,7 @@
- #include <linux/platform_device.h>
- #include <linux/workqueue.h>
- #include <linux/i2c/twl.h>
--#include <linux/mfd/twl4030-codec.h>
-+#include <linux/mfd/twl4030-audio.h>
- #include <linux/input.h>
- #include <linux/slab.h>
+diff --git a/drivers/input/misc/Makefile b/drivers/input/misc/Makefile
+index 38efb2c..4da7c3a 100644
+--- a/drivers/input/misc/Makefile
++++ b/drivers/input/misc/Makefile
+@@ -40,6 +40,7 @@ obj-$(CONFIG_INPUT_SGI_BTNS)		+= sgi_btns.o
+ obj-$(CONFIG_INPUT_SPARCSPKR)		+= sparcspkr.o
+ obj-$(CONFIG_INPUT_TWL4030_PWRBUTTON)	+= twl4030-pwrbutton.o
+ obj-$(CONFIG_INPUT_TWL4030_VIBRA)	+= twl4030-vibra.o
++obj-$(CONFIG_INPUT_TWL6040_VIBRA)	+= twl6040-vibra.o
+ obj-$(CONFIG_INPUT_UINPUT)		+= uinput.o
+ obj-$(CONFIG_INPUT_WISTRON_BTNS)	+= wistron_btns.o
+ obj-$(CONFIG_INPUT_WM831X_ON)		+= wm831x-on.o
+diff --git a/drivers/input/misc/twl6040-vibra.c b/drivers/input/misc/twl6040-vibra.c
+new file mode 100644
+index 0000000..acc8348
+--- /dev/null
++++ b/drivers/input/misc/twl6040-vibra.c
+@@ -0,0 +1,425 @@
++/*
++ * twl6040-vibra.c - TWL6040 Vibrator driver
++ *
++ * Author:      Jorge Eduardo Candelaria <jorge.candelaria@ti.com>
++ * Author:      Misael Lopez Cruz <misael.lopez@ti.com>
++ *
++ * Copyright:   (C) 2011 Texas Instruments, Inc.
++ *
++ * Based on twl4030-vibra.c by Henrik Saari <henrik.saari@nokia.com>
++ *				Felipe Balbi <felipe.balbi@nokia.com>
++ *				Jari Vanhala <ext-javi.vanhala@nokia.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ *
++ */
++#include <linux/module.h>
++#include <linux/platform_device.h>
++#include <linux/workqueue.h>
++#include <linux/i2c/twl.h>
++#include <linux/mfd/twl6040.h>
++#include <linux/slab.h>
++#include <linux/delay.h>
++#include <linux/regulator/consumer.h>
++
++#define EFFECT_DIR_180_DEG	0x8000
++
++/* Recommended modulation index 85% */
++#define TWL6040_VIBRA_MOD	85
++
++#define TWL6040_NUM_SUPPLIES 2
++
++struct vibra_info {
++	struct device *dev;
++	struct input_dev *input_dev;
++	struct workqueue_struct *workqueue;
++	struct work_struct play_work;
++	struct mutex mutex;
++
++	bool enabled;
++	int weak_speed;
++	int strong_speed;
++	int direction;
++
++	unsigned int vibldrv_res;
++	unsigned int vibrdrv_res;
++	unsigned int viblmotor_res;
++	unsigned int vibrmotor_res;
++
++	struct regulator_bulk_data supplies[TWL6040_NUM_SUPPLIES];
++
++	struct twl6040 *twl6040;
++};
++
++static irqreturn_t twl6040_vib_irq_handler(int irq, void *data)
++{
++	struct vibra_info *info = data;
++	struct twl6040 *twl6040 = info->twl6040;
++	u8 status;
++
++	status = twl6040_reg_read(twl6040, TWL6040_REG_STATUS);
++	if (status & TWL6040_VIBLOCDET) {
++		dev_warn(info->dev, "Left Vibrator overcurrent detected\n");
++		twl6040_clear_bits(twl6040, TWL6040_REG_VIBCTLL,
++				   TWL6040_VIBENAL);
++	}
++	if (status & TWL6040_VIBROCDET) {
++		dev_warn(info->dev, "Right Vibrator overcurrent detected\n");
++		twl6040_clear_bits(twl6040, TWL6040_REG_VIBCTLR,
++				   TWL6040_VIBENAR);
++	}
++
++	return IRQ_HANDLED;
++}
++
++static void twl6040_vibra_enable(struct vibra_info *info)
++{
++	struct twl6040 *twl6040 = info->twl6040;
++	int ret;
++
++	ret = regulator_bulk_enable(ARRAY_SIZE(info->supplies), info->supplies);
++	if (ret) {
++		dev_err(info->dev, "failed to enable regulators %d\n", ret);
++		return;
++	}
++
++	twl6040_power(info->twl6040, 1);
++	if (twl6040_get_rev(twl6040) <= TWL6040_REV_ES1_1) {
++		/*
++		 * ERRATA: Disable overcurrent protection for at least
++		 * 3ms when enabling vibrator drivers to avoid false
++		 * overcurrent detection
++		 */
++		twl6040_reg_write(twl6040, TWL6040_REG_VIBCTLL,
++				  TWL6040_VIBENAL | TWL6040_VIBCTRLL);
++		twl6040_reg_write(twl6040, TWL6040_REG_VIBCTLR,
++				  TWL6040_VIBENAR | TWL6040_VIBCTRLR);
++		usleep_range(3000, 3500);
++	}
++
++	twl6040_reg_write(twl6040, TWL6040_REG_VIBCTLL,
++			  TWL6040_VIBENAL);
++	twl6040_reg_write(twl6040, TWL6040_REG_VIBCTLR,
++			  TWL6040_VIBENAR);
++
++	info->enabled = true;
++}
++
++static void twl6040_vibra_disable(struct vibra_info *info)
++{
++	struct twl6040 *twl6040 = info->twl6040;
++
++	twl6040_reg_write(twl6040, TWL6040_REG_VIBCTLL, 0x00);
++	twl6040_reg_write(twl6040, TWL6040_REG_VIBCTLR, 0x00);
++	twl6040_power(info->twl6040, 0);
++
++	regulator_bulk_disable(ARRAY_SIZE(info->supplies), info->supplies);
++
++	info->enabled = false;
++}
++
++static u8 twl6040_vibra_code(int vddvib, int vibdrv_res, int motor_res,
++			     int speed, int direction)
++{
++	int vpk, max_code;
++	u8 vibdat;
++
++	/* output swing */
++	vpk = (vddvib * motor_res * TWL6040_VIBRA_MOD) /
++		(100 * (vibdrv_res + motor_res));
++
++	/* 50mV per VIBDAT code step */
++	max_code = vpk / 50;
++	if (max_code > TWL6040_VIBDAT_MAX)
++		max_code = TWL6040_VIBDAT_MAX;
++
++	/* scale speed to max allowed code */
++	vibdat = (u8)((speed * max_code) / USHRT_MAX);
++
++	/* 2's complement for direction > 180 degrees */
++	vibdat *= direction;
++
++	return vibdat;
++}
++
++static void twl6040_vibra_set_effect(struct vibra_info *info)
++{
++	struct twl6040 *twl6040 = info->twl6040;
++	u8 vibdatl, vibdatr;
++	int volt;
++
++	/* weak motor */
++	volt = regulator_get_voltage(info->supplies[0].consumer) / 1000;
++	vibdatl = twl6040_vibra_code(volt, info->vibldrv_res,
++				     info->viblmotor_res,
++				     info->weak_speed, info->direction);
++
++	/* strong motor */
++	volt = regulator_get_voltage(info->supplies[1].consumer) / 1000;
++	vibdatr = twl6040_vibra_code(volt, info->vibrdrv_res,
++				     info->vibrmotor_res,
++				     info->strong_speed, info->direction);
++
++	twl6040_reg_write(twl6040, TWL6040_REG_VIBDATL, vibdatl);
++	twl6040_reg_write(twl6040, TWL6040_REG_VIBDATR, vibdatr);
++}
++
++static void vibra_play_work(struct work_struct *work)
++{
++	struct vibra_info *info = container_of(work,
++				struct vibra_info, play_work);
++
++	mutex_lock(&info->mutex);
++
++	if (info->weak_speed || info->strong_speed) {
++		if (!info->enabled)
++			twl6040_vibra_enable(info);
++
++		twl6040_vibra_set_effect(info);
++	} else if (info->enabled)
++		twl6040_vibra_disable(info);
++
++	mutex_unlock(&info->mutex);
++}
++
++static int vibra_play(struct input_dev *input, void *data,
++		      struct ff_effect *effect)
++{
++	struct vibra_info *info = input_get_drvdata(input);
++	int ret;
++
++	info->weak_speed = effect->u.rumble.weak_magnitude;
++	info->strong_speed = effect->u.rumble.strong_magnitude;
++	info->direction = effect->direction < EFFECT_DIR_180_DEG ? 1 : -1;
++
++	ret = queue_work(info->workqueue, &info->play_work);
++	if (!ret) {
++		dev_info(&input->dev, "work is already on queue\n");
++		return ret;
++	}
++
++	return 0;
++}
++
++static int twl6040_vibra_open(struct input_dev *input)
++{
++	struct vibra_info *info = input_get_drvdata(input);
++
++	info->workqueue = create_singlethread_workqueue("vibra");
++	if (info->workqueue == NULL) {
++		dev_err(&input->dev, "couldn't create workqueue\n");
++		return -ENOMEM;
++	}
++
++	return 0;
++}
++
++static void twl6040_vibra_close(struct input_dev *input)
++{
++	struct vibra_info *info = input_get_drvdata(input);
++
++	cancel_work_sync(&info->play_work);
++	INIT_WORK(&info->play_work, vibra_play_work);
++	destroy_workqueue(info->workqueue);
++	info->workqueue = NULL;
++
++	mutex_lock(&info->mutex);
++
++	if (info->enabled)
++		twl6040_vibra_disable(info);
++
++	mutex_unlock(&info->mutex);
++}
++
++#if CONFIG_PM_SLEEP
++static int twl6040_vibra_suspend(struct device *dev)
++{
++	struct platform_device *pdev = to_platform_device(dev);
++	struct vibra_info *info = platform_get_drvdata(pdev);
++
++	mutex_lock(&info->mutex);
++
++	if (info->enabled)
++		twl6040_vibra_disable(info);
++
++	mutex_unlock(&info->mutex);
++
++	return 0;
++}
++
++#endif
++
++static SIMPLE_DEV_PM_OPS(twl6040_vibra_pm_ops, twl6040_vibra_suspend, NULL);
++
++static int __devinit twl6040_vibra_probe(struct platform_device *pdev)
++{
++	struct twl4030_vibra_data *pdata = pdev->dev.platform_data;
++	struct vibra_info *info;
++	int ret;
++
++	if (!pdata) {
++		dev_err(&pdev->dev, "platform_data not available\n");
++		return -EINVAL;
++	}
++
++	info = kzalloc(sizeof(*info), GFP_KERNEL);
++	if (!info) {
++		dev_err(&pdev->dev, "couldn't allocate memory\n");
++		return -ENOMEM;
++	}
++
++	info->dev = &pdev->dev;
++	info->twl6040 = dev_get_drvdata(pdev->dev.parent);
++	info->vibldrv_res = pdata->vibldrv_res;
++	info->vibrdrv_res = pdata->vibrdrv_res;
++	info->viblmotor_res = pdata->viblmotor_res;
++	info->vibrmotor_res = pdata->vibrmotor_res;
++	if ((!info->vibldrv_res && !info->viblmotor_res) ||
++	    (!info->vibrdrv_res && !info->vibrmotor_res)) {
++		dev_err(info->dev, "invalid vibra driver/motor resistance\n");
++		ret = -EINVAL;
++		goto err_kzalloc;
++	}
++
++	mutex_init(&info->mutex);
++	INIT_WORK(&info->play_work, vibra_play_work);
++
++	info->input_dev = input_allocate_device();
++	if (info->input_dev == NULL) {
++		dev_err(info->dev, "couldn't allocate input device\n");
++		ret = -ENOMEM;
++		goto err_kzalloc;
++	}
++
++	input_set_drvdata(info->input_dev, info);
++
++	info->input_dev->name = "twl6040:vibrator";
++	info->input_dev->id.version = 1;
++	info->input_dev->dev.parent = pdev->dev.parent;
++	info->input_dev->open = twl6040_vibra_open;
++	info->input_dev->close = twl6040_vibra_close;
++	__set_bit(FF_RUMBLE, info->input_dev->ffbit);
++
++	ret = input_ff_create_memless(info->input_dev, NULL, vibra_play);
++	if (ret < 0) {
++		dev_err(info->dev, "couldn't register vibrator to FF\n");
++		goto err_ialloc;
++	}
++
++	ret = input_register_device(info->input_dev);
++	if (ret < 0) {
++		dev_err(info->dev, "couldn't register input device\n");
++		goto err_iff;
++	}
++
++	platform_set_drvdata(pdev, info);
++
++	ret = twl6040_request_irq(info->twl6040, TWL6040_IRQ_VIB,
++				  twl6040_vib_irq_handler, 0,
++				  "twl6040_irq_vib", info);
++	if (ret) {
++		dev_err(info->dev, "VIB IRQ request failed: %d\n", ret);
++		goto err_irq;
++	}
++
++	info->supplies[0].supply = "vddvibl";
++	info->supplies[1].supply = "vddvibr";
++	ret = regulator_bulk_get(info->dev, ARRAY_SIZE(info->supplies),
++				 info->supplies);
++	if (ret) {
++		dev_err(info->dev, "couldn't get regulators %d\n", ret);
++		goto err_regulator;
++	}
++
++	if (pdata->vddvibl_uV) {
++		ret = regulator_set_voltage(info->supplies[0].consumer,
++					    pdata->vddvibl_uV,
++					    pdata->vddvibl_uV);
++		if (ret) {
++			dev_err(info->dev, "failed to set VDDVIBL volt %d\n",
++				ret);
++			goto err_voltage;
++		}
++	}
++
++	if (pdata->vddvibr_uV) {
++		ret = regulator_set_voltage(info->supplies[1].consumer,
++					    pdata->vddvibr_uV,
++					    pdata->vddvibr_uV);
++		if (ret) {
++			dev_err(info->dev, "failed to set VDDVIBR volt %d\n",
++				ret);
++			goto err_voltage;
++		}
++	}
++
++	return 0;
++
++err_voltage:
++	regulator_bulk_free(ARRAY_SIZE(info->supplies), info->supplies);
++err_regulator:
++	twl6040_free_irq(info->twl6040, TWL6040_IRQ_VIB, info);
++err_irq:
++	input_unregister_device(info->input_dev);
++	info->input_dev = NULL;
++err_iff:
++	if (info->input_dev)
++		input_ff_destroy(info->input_dev);
++err_ialloc:
++	input_free_device(info->input_dev);
++err_kzalloc:
++	kfree(info);
++	return ret;
++}
++
++static int __devexit twl6040_vibra_remove(struct platform_device *pdev)
++{
++	struct vibra_info *info = platform_get_drvdata(pdev);
++
++	regulator_bulk_free(ARRAY_SIZE(info->supplies), info->supplies);
++	twl6040_free_irq(info->twl6040, TWL6040_IRQ_VIB, info);
++	input_unregister_device(info->input_dev);
++	kfree(info);
++
++	return 0;
++}
++
++static struct platform_driver twl6040_vibra_driver = {
++	.probe		= twl6040_vibra_probe,
++	.remove		= __devexit_p(twl6040_vibra_remove),
++	.driver		= {
++		.name	= "twl6040-vibra",
++		.owner	= THIS_MODULE,
++		.pm	= &twl6040_vibra_pm_ops,
++	},
++};
++
++static int __init twl6040_vibra_init(void)
++{
++	return platform_driver_register(&twl6040_vibra_driver);
++}
++module_init(twl6040_vibra_init);
++
++static void __exit twl6040_vibra_exit(void)
++{
++	platform_driver_unregister(&twl6040_vibra_driver);
++}
++module_exit(twl6040_vibra_exit);
++
++MODULE_ALIAS("platform:twl6040-vibra");
++MODULE_DESCRIPTION("TWL6040 Vibra driver");
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Jorge Eduardo Candelaria <jorge.candelaria@ti.com>");
++MODULE_AUTHOR("Misael Lopez Cruz <misael.lopez@ti.com>");
+diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
+index ea5baa2..685fd76 100644
+--- a/include/linux/i2c/twl.h
++++ b/include/linux/i2c/twl.h
+@@ -669,6 +669,14 @@ struct twl4030_codec_data {
  
-@@ -67,7 +67,7 @@ static void vibra_enable(struct vibra_info *info)
- {
- 	u8 reg;
- 
--	twl4030_codec_enable_resource(TWL4030_CODEC_RES_POWER);
-+	twl4030_audio_enable_resource(TWL4030_AUDIO_RES_POWER);
- 
- 	/* turn H-Bridge on */
- 	twl_i2c_read_u8(TWL4030_MODULE_AUDIO_VOICE,
-@@ -75,7 +75,7 @@ static void vibra_enable(struct vibra_info *info)
- 	twl_i2c_write_u8(TWL4030_MODULE_AUDIO_VOICE,
- 			 (reg | TWL4030_VIBRA_EN), TWL4030_REG_VIBRA_CTL);
- 
--	twl4030_codec_enable_resource(TWL4030_CODEC_RES_APLL);
-+	twl4030_audio_enable_resource(TWL4030_AUDIO_RES_APLL);
- 
- 	info->enabled = true;
- }
-@@ -90,8 +90,8 @@ static void vibra_disable(struct vibra_info *info)
- 	twl_i2c_write_u8(TWL4030_MODULE_AUDIO_VOICE,
- 			 (reg & ~TWL4030_VIBRA_EN), TWL4030_REG_VIBRA_CTL);
- 
--	twl4030_codec_disable_resource(TWL4030_CODEC_RES_APLL);
--	twl4030_codec_disable_resource(TWL4030_CODEC_RES_POWER);
-+	twl4030_audio_disable_resource(TWL4030_AUDIO_RES_APLL);
-+	twl4030_audio_disable_resource(TWL4030_AUDIO_RES_POWER);
- 
- 	info->enabled = false;
- }
-diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
-index 0f09c05..3a6f76a 100644
---- a/drivers/mfd/Kconfig
-+++ b/drivers/mfd/Kconfig
-@@ -218,7 +218,7 @@ config TWL4030_POWER
- 	  and load scripts controlling which resources are switched off/on
- 	  or reset when a sleep, wakeup or warm reset event occurs.
- 
--config TWL4030_CODEC
-+config MFD_TWL4030_AUDIO
- 	bool
- 	depends on TWL4030_CORE
- 	select MFD_CORE
-diff --git a/drivers/mfd/Makefile b/drivers/mfd/Makefile
-index efe3cc3..4cf9465 100644
---- a/drivers/mfd/Makefile
-+++ b/drivers/mfd/Makefile
-@@ -40,7 +40,7 @@ obj-$(CONFIG_MENELAUS)		+= menelaus.o
- obj-$(CONFIG_TWL4030_CORE)	+= twl-core.o twl4030-irq.o twl6030-irq.o
- obj-$(CONFIG_TWL4030_MADC)      += twl4030-madc.o
- obj-$(CONFIG_TWL4030_POWER)    += twl4030-power.o
--obj-$(CONFIG_TWL4030_CODEC)	+= twl4030-codec.o
-+obj-$(CONFIG_MFD_TWL4030_AUDIO)	+= twl4030-audio.o
- obj-$(CONFIG_TWL6030_PWM)	+= twl6030-pwm.o
- 
- obj-$(CONFIG_MFD_MC13XXX)	+= mc13xxx-core.o
-diff --git a/drivers/mfd/twl4030-codec.c b/drivers/mfd/twl4030-audio.c
-similarity index 87%
-rename from drivers/mfd/twl4030-codec.c
-rename to drivers/mfd/twl4030-audio.c
-index e1782b3..5cdf841 100644
---- a/drivers/mfd/twl4030-codec.c
-+++ b/drivers/mfd/twl4030-audio.c
-@@ -30,7 +30,7 @@
- #include <linux/platform_device.h>
- #include <linux/i2c/twl.h>
- #include <linux/mfd/core.h>
--#include <linux/mfd/twl4030-codec.h>
-+#include <linux/mfd/twl4030-audio.h>
- 
- #define TWL4030_AUDIO_CELLS	2
- 
-@@ -45,7 +45,7 @@ struct twl4030_audio_resource {
- struct twl4030_audio {
- 	unsigned int audio_mclk;
- 	struct mutex mutex;
--	struct twl4030_audio_resource resource[TWL4030_CODEC_RES_MAX];
-+	struct twl4030_audio_resource resource[TWL4030_AUDIO_RES_MAX];
- 	struct mfd_cell cells[TWL4030_AUDIO_CELLS];
+ struct twl4030_vibra_data {
+ 	unsigned int	coexist;
++
++	/* twl6040 */
++	unsigned int vibldrv_res;	/* left driver resistance */
++	unsigned int vibrdrv_res;	/* right driver resistance */
++	unsigned int viblmotor_res;	/* left motor resistance */
++	unsigned int vibrmotor_res;	/* right motor resistance */
++	int vddvibl_uV;			/* VDDVIBL volt, set 0 for fixed reg */
++	int vddvibr_uV;			/* VDDVIBR volt, set 0 for fixed reg */
  };
  
-@@ -53,7 +53,7 @@ struct twl4030_audio {
-  * Modify the resource, the function returns the content of the register
-  * after the modification.
-  */
--static int twl4030_audio_set_resource(enum twl4030_codec_res id, int enable)
-+static int twl4030_audio_set_resource(enum twl4030_audio_res id, int enable)
- {
- 	struct twl4030_audio *audio = platform_get_drvdata(twl4030_audio_dev);
- 	u8 val;
-@@ -72,7 +72,7 @@ static int twl4030_audio_set_resource(enum twl4030_codec_res id, int enable)
- 	return val;
- }
- 
--static inline int twl4030_audio_get_resource(enum twl4030_codec_res id)
-+static inline int twl4030_audio_get_resource(enum twl4030_audio_res id)
- {
- 	struct twl4030_audio *audio = platform_get_drvdata(twl4030_audio_dev);
- 	u8 val;
-@@ -87,12 +87,12 @@ static inline int twl4030_audio_get_resource(enum twl4030_codec_res id)
-  * Enable the resource.
-  * The function returns with error or the content of the register
-  */
--int twl4030_codec_enable_resource(enum twl4030_codec_res id)
-+int twl4030_audio_enable_resource(enum twl4030_audio_res id)
- {
- 	struct twl4030_audio *audio = platform_get_drvdata(twl4030_audio_dev);
- 	int val;
- 
--	if (id >= TWL4030_CODEC_RES_MAX) {
-+	if (id >= TWL4030_AUDIO_RES_MAX) {
- 		dev_err(&twl4030_audio_dev->dev,
- 				"Invalid resource ID (%u)\n", id);
- 		return -EINVAL;
-@@ -110,18 +110,18 @@ int twl4030_codec_enable_resource(enum twl4030_codec_res id)
- 
- 	return val;
- }
--EXPORT_SYMBOL_GPL(twl4030_codec_enable_resource);
-+EXPORT_SYMBOL_GPL(twl4030_audio_enable_resource);
- 
- /*
-  * Disable the resource.
-  * The function returns with error or the content of the register
-  */
--int twl4030_codec_disable_resource(unsigned id)
-+int twl4030_audio_disable_resource(unsigned id)
- {
- 	struct twl4030_audio *audio = platform_get_drvdata(twl4030_audio_dev);
- 	int val;
- 
--	if (id >= TWL4030_CODEC_RES_MAX) {
-+	if (id >= TWL4030_AUDIO_RES_MAX) {
- 		dev_err(&twl4030_audio_dev->dev,
- 				"Invalid resource ID (%u)\n", id);
- 		return -EINVAL;
-@@ -146,15 +146,15 @@ int twl4030_codec_disable_resource(unsigned id)
- 
- 	return val;
- }
--EXPORT_SYMBOL_GPL(twl4030_codec_disable_resource);
-+EXPORT_SYMBOL_GPL(twl4030_audio_disable_resource);
- 
--unsigned int twl4030_codec_get_mclk(void)
-+unsigned int twl4030_audio_get_mclk(void)
- {
- 	struct twl4030_audio *audio = platform_get_drvdata(twl4030_audio_dev);
- 
- 	return audio->audio_mclk;
- }
--EXPORT_SYMBOL_GPL(twl4030_codec_get_mclk);
-+EXPORT_SYMBOL_GPL(twl4030_audio_get_mclk);
- 
- static int __devinit twl4030_audio_probe(struct platform_device *pdev)
- {
-@@ -199,12 +199,12 @@ static int __devinit twl4030_audio_probe(struct platform_device *pdev)
- 	audio->audio_mclk = pdata->audio_mclk;
- 
- 	/* Codec power */
--	audio->resource[TWL4030_CODEC_RES_POWER].reg = TWL4030_REG_CODEC_MODE;
--	audio->resource[TWL4030_CODEC_RES_POWER].mask = TWL4030_CODECPDZ;
-+	audio->resource[TWL4030_AUDIO_RES_POWER].reg = TWL4030_REG_CODEC_MODE;
-+	audio->resource[TWL4030_AUDIO_RES_POWER].mask = TWL4030_CODECPDZ;
- 
- 	/* PLL */
--	audio->resource[TWL4030_CODEC_RES_APLL].reg = TWL4030_REG_APLL_CTL;
--	audio->resource[TWL4030_CODEC_RES_APLL].mask = TWL4030_APLL_EN;
-+	audio->resource[TWL4030_AUDIO_RES_APLL].reg = TWL4030_REG_APLL_CTL;
-+	audio->resource[TWL4030_AUDIO_RES_APLL].mask = TWL4030_APLL_EN;
- 
- 	if (pdata->audio) {
- 		cell = &audio->cells[childs];
-@@ -275,4 +275,3 @@ module_exit(twl4030_audio_exit);
- 
- MODULE_AUTHOR("Peter Ujfalusi <peter.ujfalusi@ti.com>");
- MODULE_LICENSE("GPL");
--
-diff --git a/include/linux/mfd/twl4030-codec.h b/include/linux/mfd/twl4030-audio.h
-similarity index 96%
-rename from include/linux/mfd/twl4030-codec.h
-rename to include/linux/mfd/twl4030-audio.h
-index 5cc16bb..3d22b72 100644
---- a/include/linux/mfd/twl4030-codec.h
-+++ b/include/linux/mfd/twl4030-audio.h
-@@ -1,5 +1,5 @@
- /*
-- * MFD driver for twl4030 codec submodule
-+ * MFD driver for twl4030 audio submodule
-  *
-  * Author: Peter Ujfalusi <peter.ujfalusi@ti.com>
-  *
-@@ -259,14 +259,14 @@
- #define TWL4030_VIBRA_DIR_SEL		0x20
- 
- /* TWL4030 codec resource IDs */
--enum twl4030_codec_res {
--	TWL4030_CODEC_RES_POWER = 0,
--	TWL4030_CODEC_RES_APLL,
--	TWL4030_CODEC_RES_MAX,
-+enum twl4030_audio_res {
-+	TWL4030_AUDIO_RES_POWER = 0,
-+	TWL4030_AUDIO_RES_APLL,
-+	TWL4030_AUDIO_RES_MAX,
- };
- 
--int twl4030_codec_disable_resource(enum twl4030_codec_res id);
--int twl4030_codec_enable_resource(enum twl4030_codec_res id);
--unsigned int twl4030_codec_get_mclk(void);
-+int twl4030_audio_disable_resource(enum twl4030_audio_res id);
-+int twl4030_audio_enable_resource(enum twl4030_audio_res id);
-+unsigned int twl4030_audio_get_mclk(void);
- 
- #endif	/* End of __TWL4030_CODEC_H__ */
-diff --git a/sound/soc/codecs/Kconfig b/sound/soc/codecs/Kconfig
-index 98175a0..0002220 100644
---- a/sound/soc/codecs/Kconfig
-+++ b/sound/soc/codecs/Kconfig
-@@ -236,7 +236,7 @@ config SND_SOC_TLV320DAC33
- 	tristate
- 
- config SND_SOC_TWL4030
--	select TWL4030_CODEC
-+	select MFD_TWL4030_AUDIO
- 	tristate
- 
- config SND_SOC_TWL6040
-diff --git a/sound/soc/codecs/twl4030.c b/sound/soc/codecs/twl4030.c
-index bec788b..5e648d3 100644
---- a/sound/soc/codecs/twl4030.c
-+++ b/sound/soc/codecs/twl4030.c
-@@ -36,7 +36,7 @@
- #include <sound/tlv.h>
- 
- /* Register descriptions are here */
--#include <linux/mfd/twl4030-codec.h>
-+#include <linux/mfd/twl4030-audio.h>
- 
- /* Shadow register used by the audio driver */
- #define TWL4030_REG_SW_SHADOW		0x4A
-@@ -251,9 +251,9 @@ static void twl4030_codec_enable(struct snd_soc_codec *codec, int enable)
- 		return;
- 
- 	if (enable)
--		mode = twl4030_codec_enable_resource(TWL4030_CODEC_RES_POWER);
-+		mode = twl4030_audio_enable_resource(TWL4030_AUDIO_RES_POWER);
- 	else
--		mode = twl4030_codec_disable_resource(TWL4030_CODEC_RES_POWER);
-+		mode = twl4030_audio_disable_resource(TWL4030_AUDIO_RES_POWER);
- 
- 	if (mode >= 0) {
- 		twl4030_write_reg_cache(codec, TWL4030_REG_CODEC_MODE, mode);
-@@ -375,13 +375,13 @@ static void twl4030_apll_enable(struct snd_soc_codec *codec, int enable)
- 	if (enable) {
- 		twl4030->apll_enabled++;
- 		if (twl4030->apll_enabled == 1)
--			status = twl4030_codec_enable_resource(
--							TWL4030_CODEC_RES_APLL);
-+			status = twl4030_audio_enable_resource(
-+							TWL4030_AUDIO_RES_APLL);
- 	} else {
- 		twl4030->apll_enabled--;
- 		if (!twl4030->apll_enabled)
--			status = twl4030_codec_disable_resource(
--							TWL4030_CODEC_RES_APLL);
-+			status = twl4030_audio_disable_resource(
-+							TWL4030_AUDIO_RES_APLL);
- 	}
- 
- 	if (status >= 0)
-@@ -2260,7 +2260,7 @@ static int twl4030_soc_probe(struct snd_soc_codec *codec)
- 	}
- 	snd_soc_codec_set_drvdata(codec, twl4030);
- 	/* Set the defaults, and power up the codec */
--	twl4030->sysclk = twl4030_codec_get_mclk() / 1000;
-+	twl4030->sysclk = twl4030_audio_get_mclk() / 1000;
- 	codec->dapm.idle_bias_off = 1;
- 
- 	twl4030_init_chip(codec);
-diff --git a/sound/soc/omap/sdp3430.c b/sound/soc/omap/sdp3430.c
-index 3f72d17..9f6a758 100644
---- a/sound/soc/omap/sdp3430.c
-+++ b/sound/soc/omap/sdp3430.c
-@@ -36,7 +36,7 @@
- #include <plat/mcbsp.h>
- 
- /* Register descriptions for twl4030 codec part */
--#include <linux/mfd/twl4030-codec.h>
-+#include <linux/mfd/twl4030-audio.h>
- 
- #include "omap-mcbsp.h"
- #include "omap-pcm.h"
-diff --git a/sound/soc/omap/zoom2.c b/sound/soc/omap/zoom2.c
-index 0170994..9a2666f 100644
---- a/sound/soc/omap/zoom2.c
-+++ b/sound/soc/omap/zoom2.c
-@@ -32,7 +32,7 @@
- #include <plat/mcbsp.h>
- 
- /* Register descriptions for twl4030 codec part */
--#include <linux/mfd/twl4030-codec.h>
-+#include <linux/mfd/twl4030-audio.h>
- 
- #include "omap-mcbsp.h"
- #include "omap-pcm.h"
+ struct twl4030_audio_data {
 -- 
 1.7.5.3
+
