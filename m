@@ -1,115 +1,130 @@
-From: "Ghongdemath, Girish" <girishsg@ti.com>
-Subject: Re: [PATCHv2 01/28] OMAP: change get_context_loss_count ret value to int
-Date: Mon, 13 Jun 2011 11:37:01 -0500
-Message-ID: <BANLkTimi0RZ8Fe7VpY9J7dMPH6tpVzf=dw@mail.gmail.com>
-References: <1307627810-3768-1-git-send-email-tomi.valkeinen@ti.com>
-	<1307627810-3768-2-git-send-email-tomi.valkeinen@ti.com>
-	<1307958710.1847.56.camel@deskari>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH v5 00/18] MFD/ASoC/Input: TWL4030/TWL60X0 changes
+Date: Mon, 13 Jun 2011 19:37:32 +0300
+Message-ID: <1307983070-2257-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:51671 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753561Ab1FMQhE convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 13 Jun 2011 12:37:04 -0400
-In-Reply-To: <1307958710.1847.56.camel@deskari>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-input-owner@vger.kernel.org>
+Sender: linux-input-owner@vger.kernel.org
+To: Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Samuel Ortiz <sameo@linux.intel.com>, Dmitry Torokhov <dmitry.torokhov@>
+Cc: linux-input@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org, Peter Ujfalusi <peter.ujfalusi@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: paul@pwsan.com, linux-fbdev@vger.kernel.org, b-cousson@ti.com, khilman@ti.com, linux-omap mailing list <linux-omap@vger.kernel.org>
 
-Tomi,
-Couple of queries,
+Hello,
 
-On Mon, Jun 13, 2011 at 4:51 AM, Tomi Valkeinen <tomi.valkeinen@ti.com>=
- wrote:
-> Paul, can you take this patch and queue it for an rc?
->
-> =A0Tomi
->
-> On Thu, 2011-06-09 at 16:56 +0300, Tomi Valkeinen wrote:
->> get_context_loss_count functions return context loss count as u32, a=
-nd
->> zero means an error. However, zero is also returned when context has
->> never been lost and could also be returned when the context loss cou=
-nt
->> has wrapped and goes to zero.
->>
->> Change the functions to return an int, with negative value meaning a=
-n
->> error.
->>
+Changes since v4:
+- Comments from Dmitry Torokhov addressed for the twl6030-vibra driver.
 
->> + =A0 =A0 =A0 =A0 =A0 =A0 if (off_mode_enabled) {
+Intro message from the v4 series:
+The series will do five major things, and they are in one series, because they
+pretty much depending on each other, so it is easier to handle them together.
 
-- why have a check for off_mode_enabled? As this only detects valid
-next state for MPU/CORE. Other pwrdm can still
-hit OFF.
+1. Move the common pmic related configurations out from the board files.
+New twl-common.c/h file has been created for this purpose.
+OMAP3 board files received two patches (pdata, and regualtor changes), OMAP4
+board files has been changed with one patch.
 
+2. Rename the twl4030-codec MFD driver to twl4030-audio
+Since the ASoC multicomponent introduction (2.6.37) the twl4030-codec MFD dirver
+had been using twl4030-audio to register (twl4030-codec is the ASoC codec
+driver). The documentation refers to this part of twl as audio block, so it is
+better to rename the driver as well to avoid confusion.
 
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 count++;
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 /*
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* Context loss count ha=
-s to be a non-negative value.
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* Clear the sign bit to=
- get a value range from 0 to
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* INT_MAX.
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0*/
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 count &=3D INT_MAX;
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 dummy_context_loss_counter=
- =3D count;
->> + =A0 =A0 =A0 =A0 =A0 =A0 }
->> =A0 =A0 =A0 }
+3. Introduction of MFD driver for twl6040.
+The TWL6040 audio IC has codec and vibra functionality.
+Convert the existing ASoC codec driver to use the new MFD driver's interface.
 
-- Why not use u32 instead?
+4. Vibrator driver for TWL6040 (Input/ForceFeedback driver)
+The driver itself, and support for the vibrators in SDP4430 board.
 
+5. Updates for twl6040 ASoC codec driver
+HS ramp configuration, new ABE dais, updated sample rate constraints, SDP4430
+configuration.
 
 Regards,
-Girish
+Peter
 
->>
->> =A0 =A0 =A0 pr_debug("OMAP PM: context loss count for dev %s =3D %d\=
-n",
->> @@ -337,7 +347,7 @@ u32 omap_pm_get_dev_context_loss_count(struct de=
-vice *dev)
->>
->> =A0#else
->>
->> -u32 omap_pm_get_dev_context_loss_count(struct device *dev)
->> +int omap_pm_get_dev_context_loss_count(struct device *dev)
->> =A0{
->> =A0 =A0 =A0 return dummy_context_loss_counter;
->> =A0}
->> diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/o=
-map_device.c
->> index 9bbda9a..9753f71 100644
->> --- a/arch/arm/plat-omap/omap_device.c
->> +++ b/arch/arm/plat-omap/omap_device.c
->> @@ -310,7 +310,7 @@ static void _add_optional_clock_clkdev(struct om=
-ap_device *od,
->> =A0 * return the context loss counter for that hwmod, otherwise retu=
-rn
->> =A0 * zero.
->> =A0 */
->> -u32 omap_device_get_context_loss_count(struct platform_device *pdev=
-)
->> +int omap_device_get_context_loss_count(struct platform_device *pdev=
-)
->> =A0{
->> =A0 =A0 =A0 struct omap_device *od;
->> =A0 =A0 =A0 u32 ret =3D 0;
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+---
+Axel Castaneda Gonzalez (1):
+  ASoC: twl6040: Configure ramp step based on platform
+
+Liam Girdwood (3):
+  ASoC: twl6040: add all ABE DAIs
+  ASoC: twl6040: Support other sample rates in constraints.
+  ASoC: twl6040: set default constraints.
+
+Misael Lopez Cruz (5):
+  mfd: twl6040: Add initial support
+  ASoC: twl6040: Convert into TWL6040 MFD child
+  input: Add initial support for TWL6040 vibrator
+  ASoC: twl6040: Remove pll and headset mode dependency
+  OMAP4: SDP4430: Add twl6040 codec platform support
+
+Peter Ujfalusi (9):
+  OMAP: New twl-common for common TWL configuration
+  OMAP4: Move common twl6030 configuration to twl-common
+  OMAP3: Move common twl configuration to twl-common
+  OMAP3: Move common regulator configuration to twl-common
+  MFD: twl4030-codec: Rename internals from codec to audio
+  MFD: twl4030-codec -> twl4030-audio: Rename the driver
+  MFD: twl4030-audio: Rename platform data
+  MFD: twl6040: Change platform data for soc codec driver
+  OMAP4: SDP4430: Add twl6040 vibrator platform support
+
+ arch/arm/mach-omap2/Makefile                       |    2 +-
+ arch/arm/mach-omap2/board-3430sdp.c                |   89 +---
+ arch/arm/mach-omap2/board-4430sdp.c                |  187 ++----
+ arch/arm/mach-omap2/board-cm-t35.c                 |   48 +--
+ arch/arm/mach-omap2/board-devkit8000.c             |   37 +-
+ arch/arm/mach-omap2/board-igep0020.c               |   44 +--
+ arch/arm/mach-omap2/board-ldp.c                    |   15 +-
+ arch/arm/mach-omap2/board-omap3beagle.c            |   60 +--
+ arch/arm/mach-omap2/board-omap3evm.c               |   67 +--
+ arch/arm/mach-omap2/board-omap3pandora.c           |   59 +--
+ arch/arm/mach-omap2/board-omap3stalker.c           |   70 +--
+ arch/arm/mach-omap2/board-omap3touchbook.c         |   57 +--
+ arch/arm/mach-omap2/board-omap4panda.c             |  149 +-----
+ arch/arm/mach-omap2/board-overo.c                  |   59 +--
+ arch/arm/mach-omap2/board-rm680.c                  |    8 +-
+ arch/arm/mach-omap2/board-rx51-peripherals.c       |   44 +--
+ arch/arm/mach-omap2/board-zoom-peripherals.c       |   88 +---
+ arch/arm/mach-omap2/common-board-devices.c         |   21 -
+ arch/arm/mach-omap2/common-board-devices.h         |   26 +-
+ arch/arm/mach-omap2/twl-common.c                   |  304 ++++++++++
+ arch/arm/mach-omap2/twl-common.h                   |   59 ++
+ arch/arm/plat-omap/include/plat/irqs.h             |   12 +-
+ drivers/input/misc/Kconfig                         |   13 +-
+ drivers/input/misc/Makefile                        |    1 +
+ drivers/input/misc/twl4030-vibra.c                 |   12 +-
+ drivers/input/misc/twl6040-vibra.c                 |  425 +++++++++++++
+ drivers/mfd/Kconfig                                |    8 +-
+ drivers/mfd/Makefile                               |    3 +-
+ drivers/mfd/twl-core.c                             |   13 +-
+ drivers/mfd/twl4030-audio.c                        |  277 +++++++++
+ drivers/mfd/twl4030-codec.c                        |  277 ---------
+ drivers/mfd/twl6040-core.c                         |  601 +++++++++++++++++++
+ drivers/mfd/twl6040-irq.c                          |  205 +++++++
+ include/linux/i2c/twl.h                            |   25 +-
+ .../linux/mfd/{twl4030-codec.h => twl4030-audio.h} |   16 +-
+ include/linux/mfd/twl6040.h                        |  261 ++++++++
+ sound/soc/codecs/Kconfig                           |    3 +-
+ sound/soc/codecs/twl4030.c                         |   22 +-
+ sound/soc/codecs/twl6040.c                         |  630 ++++++++------------
+ sound/soc/codecs/twl6040.h                         |  118 ----
+ sound/soc/omap/sdp3430.c                           |    2 +-
+ sound/soc/omap/sdp4430.c                           |    2 +
+ sound/soc/omap/zoom2.c                             |    2 +-
+ 43 files changed, 2648 insertions(+), 1773 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/twl-common.c
+ create mode 100644 arch/arm/mach-omap2/twl-common.h
+ create mode 100644 drivers/input/misc/twl6040-vibra.c
+ create mode 100644 drivers/mfd/twl4030-audio.c
+ delete mode 100644 drivers/mfd/twl4030-codec.c
+ create mode 100644 drivers/mfd/twl6040-core.c
+ create mode 100644 drivers/mfd/twl6040-irq.c
+ rename include/linux/mfd/{twl4030-codec.h => twl4030-audio.h} (96%)
+ create mode 100644 include/linux/mfd/twl6040.h
+
+-- 
+1.7.5.3
+
