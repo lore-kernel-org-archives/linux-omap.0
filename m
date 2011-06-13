@@ -1,30 +1,38 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] omap4: fix build error when undefining CONFIG_SMP
-Date: Mon, 13 Jun 2011 07:35:01 -0700
-Message-ID: <20110613143501.GG3352@atomide.com>
-References: <BANLkTimf9D55OZ+-sOMPw2_WgG3QO_RooQ@mail.gmail.com>
- <4DF5B011.7080709@ti.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: RE: [PATCH] usb:gadget: use min_t() macro instead of min()
+Date: Mon, 13 Jun 2011 10:38:56 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1106131036430.1983-100000@iolanthe.rowland.org>
+References: <03b901cc29c0$6538e970$2faabc50$@org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:26480 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751160Ab1FMOfE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Jun 2011 10:35:04 -0400
-Content-Disposition: inline
-In-Reply-To: <4DF5B011.7080709@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-arm-msm-owner@vger.kernel.org>
+In-Reply-To: <03b901cc29c0$6538e970$2faabc50$@org>
+Sender: linux-arm-msm-owner@vger.kernel.org
+To: Tanya Brokhman <tlinder@codeaurora.org>
+Cc: balbi@ti.com, greg@kroah.com, linux-usb@vger.kernel.org, linux-arm-msm@vger.kernel.org, ablay@codeaurora.org, 'open list' <linux-kernel@vger.kernel.org>, "'open list:FREESCALE USB PER...'" <linuxppc-dev@lists.ozlabs.org>, "'open list:OMAP USB SUPPORT'" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: "Vadillo, Miguel" <vadillo@ti.com>, linux-omap@vger.kernel.org
 
-* Santosh Shilimkar <santosh.shilimkar@ti.com> [110612 23:32]:
-> On 6/13/2011 11:55 AM, Vadillo, Miguel wrote:
-> >
-> >Function omap_smc2 is undeclared when disabling SMP
+On Mon, 13 Jun 2011, Tanya Brokhman wrote:
 
-Looks like this won't apply to current mainline kernel, care
-to check if it's still needed?
+> > 
+> > On Sun, Jun 12, 2011 at 02:14:46PM +0300, Tatyana Brokhman wrote:
+> > > Signed-off-by: Tatyana Brokhman <tlinder@codeaurora.org>
+> > 
+> > I need a sensible commit log for this. Why do we need to change all
+> > min() to min_t() ?
+> > 
+> 
+> Actually, Alan asked me to make this change in one place in dummy_hcd. I
+> wasn't aware of the min_t macro before that. So when I searched the code for
+> other places I found quite a few and just thought that it would be "nicer"
+> to use min_t() instead of min() with casting. 
+> So we don't "need" to make this change. Everything works as is. This patch
+> only makes the code look nicer, nothing more.
+> I can elaborate the above in the commit log if you want.
 
-Tony
+The change I suggested involved replacing two typecasts with a single 
+min_t.  All (or almost all) the places this patch touches currently 
+contain only one typecast, so the motivation for changing them is a lot 
+weaker.
 
+Alan Stern
