@@ -1,40 +1,53 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v5 10/18] MFD: twl6040: Change platform data for soc codec driver
-Date: Mon, 13 Jun 2011 19:37:42 +0300
-Message-ID: <1307983070-2257-11-git-send-email-peter.ujfalusi@ti.com>
-References: <1307983070-2257-1-git-send-email-peter.ujfalusi@ti.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 0/2] OMAP3 IOMMU fixes
+Date: Mon, 13 Jun 2011 18:41:08 +0200
+Message-ID: <201106131841.08465.laurent.pinchart@ideasonboard.com>
+References: <1306759629-17232-1-git-send-email-laurent.pinchart@ideasonboard.com> <201106081248.01793.laurent.pinchart@ideasonboard.com> <20110613134034.GE3352@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1307983070-2257-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Samuel Ortiz <sameo@linux.intel.com>, Dmitry Torokhov <dmitry.torokhov@>
-Cc: linux-input@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org, Peter Ujfalusi <peter.ujfalusi@ti.com>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:55730 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754233Ab1FMQlC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Jun 2011 12:41:02 -0400
+In-Reply-To: <20110613134034.GE3352@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, teemu.tuominen@cybercom.com, Ohad Ben-Cohen <ohad@wizery.com>
 
-Pass twl4030_codec_data instead of the twl4030_audio_data
-for the ASoC codec driver.
+Hi Tony,
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
- drivers/mfd/twl6040-core.c |    5 ++---
- 1 files changed, 2 insertions(+), 3 deletions(-)
+On Monday 13 June 2011 15:40:34 Tony Lindgren wrote:
+> * Laurent Pinchart <laurent.pinchart@ideasonboard.com> [110608 03:43]:
+> > Hi Tony,
+> > 
+> > On Monday 30 May 2011 14:47:07 Laurent Pinchart wrote:
+> > > Hi everybody,
+> > > 
+> > > Here are two OMAP3 IOMMU fixes required to support big and/or unaligned
+> > > memory buffers.
+> > > 
+> > > Laurent Pinchart (2):
+> > >   omap3: iovmm: Work around sg_alloc_table size limitation in IOMMU
+> > >   omap3: iovmm: Support non page-aligned buffers in iommu_vmap
+> > 
+> > As per Russell comments, the first patch needs more work (or at least
+> > more discussions). Could you apply the second patch already ?
+> 
+> It's getting too late for this cycle as this can be counted as
+> "features that never worked" type of patch. If it's a regression,
+> then please specify the commit breaking this suport.
+> 
+> So let's plan on doing the move to drivers and patching whatever is
+> needed for the upcoming merge window.
 
-diff --git a/drivers/mfd/twl6040-core.c b/drivers/mfd/twl6040-core.c
-index 195613c..b6e5338 100644
---- a/drivers/mfd/twl6040-core.c
-+++ b/drivers/mfd/twl6040-core.c
-@@ -507,9 +507,8 @@ static int __devinit twl6040_probe(struct platform_device *pdev)
- 	if (pdata->codec) {
- 		cell = &twl6040->cells[children];
- 		cell->name = "twl6040-codec";
--		/* The codec expects the twl4030_audio_data as platform data */
--		cell->platform_data = pdata;
--		cell->pdata_size = sizeof(*pdata);
-+		cell->platform_data = pdata->codec;
-+		cell->pdata_size = sizeof(*pdata->codec);
- 		children++;
- 	}
- 
+OK. Ohad, could you please apply this patch to your tree and submit it with 
+the whole series for 3.1 ?
+
 -- 
-1.7.5.3
+Regards,
+
+Laurent Pinchart
