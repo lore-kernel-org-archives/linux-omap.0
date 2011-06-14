@@ -1,31 +1,81 @@
-From: =?ISO-8859-1?Q?P=E9ter?= Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [RFC 1/2] omap: mcbsp: Drop SPI mode support
-Date: Tue, 14 Jun 2011 15:38:41 +0300
-Message-ID: <6027329.5ZCJWRgjcM@barack>
-References: <1308050632-4733-1-git-send-email-jhnikula@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] OMAP4: McBSP: Clear rx_irq at probe time
+Date: Tue, 14 Jun 2011 05:40:09 -0700
+Message-ID: <20110614124009.GC23145@atomide.com>
+References: <1305628420-10592-1-git-send-email-peter.ujfalusi@ti.com>
+ <201106081051.27234.peter.ujfalusi@ti.com>
+ <20110613133542.GD3352@atomide.com>
+ <27857936.rzNg0PjYWH@barack>
+ <20110614150530.87e594a5.jhnikula@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:50901 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751109Ab1FNMio (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Jun 2011 08:38:44 -0400
-In-Reply-To: <1308050632-4733-1-git-send-email-jhnikula@gmail.com>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:61209 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752264Ab1FNMkO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Jun 2011 08:40:14 -0400
+Content-Disposition: inline
+In-Reply-To: <20110614150530.87e594a5.jhnikula@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Jarkko Nikula <jhnikula@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>
+Cc: =?utf-8?B?UMOpdGVy?= Ujfalusi <peter.ujfalusi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Girdwood, Liam" <lrg@ti.com>, "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
 
-On Tuesday 14 June 2011 13:23:51 Jarkko Nikula wrote:
-> We haven't seen any use for the SPI API in McBSP driver over the years. More
-> over, Peter Ujfalusi <peter.ujfalusi@ti.com> noticed that SPI mode is not
-> even supported since OMAP2430 so it's very unlikely that we'll see any use
-> for it in the future either.
-> 
-> Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
+* Jarkko Nikula <jhnikula@gmail.com> [110614 04:59]:
+> On Tue, 14 Jun 2011 14:19:34 +0300
+> P=C3=A9ter Ujfalusi <peter.ujfalusi@ti.com> wrote:
+>=20
+> > We have discussion ongoing about the mcbsp code move, and so far th=
+e current=20
+> > understanding/plan is (Jarkko/Liam correct me if I'm wrong):
+> > - Fix the OMAP4 support
+> > - move the code under sound/soc/omap/
+> >  - the reason for this is that McBSP block can be only used for str=
+eaming type=20
+> > of modes (from omap2430 onwards McBSP does not have clock stop func=
+tionality).
+> > This makes other type of usage hard to say the least.
+> > - Clean up the code (remove the SPI mode, remove unused code paths =
+at the same=20
+> > time)
+> > - Consolidate the interface for audio only use
+>=20
+> Yeah, now is perfect time to tell if there is any need for something
+> else than audio.
+>=20
+> OMAP1xxx/59xx and 2420 are already something like more
+> than 5 years old obsolete components and we haven't seen that any of
+> them would need SPI/clock stop functionality. Actually we haven't see=
+n
+> any other use for McBSP than audio.
 
-Either now or later, but for both:
+Yes this sounds OK to me. So the order to do things should be:
 
-Acked-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+- Fix issues
+- Remove unused code
+- Move to drivers
+- Add new features as needed
+=20
+> > - Only OMAP3 has sidetone (on OMAP2 EAC block has the sidetone), mi=
+ght need=20
+> > some change, but I think the current way can be reused.
+> >=20
+> Yeah, they probably need work on kernel side (hwmod stuff etc) but I
+> think for keeping userspace intact over the cleanup we might want to
+> keep these special sysfs nodes for sidetone filter coefficients, dma
+> operating mode and FIFO threshold as it over the cleanup.
 
+Also related is the sound/soc/omap mess that should not be doing
+any platform level stuff at all but instead get the configuration
+in platform data and device tree data eventually. Just grep for
+platform_set_drvdata in sound/soc/omap to see it..
+
+Regards,
+
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
