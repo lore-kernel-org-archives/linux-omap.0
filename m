@@ -1,37 +1,51 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP1: PM: register notifiers with generic clock ops
- even when !PM_RUNTIME
-Date: Tue, 14 Jun 2011 05:41:38 -0700
-Message-ID: <20110614124137.GD23145@atomide.com>
-References: <1307491502-28883-1-git-send-email-khilman@ti.com>
+From: "Roedel, Joerg" <Joerg.Roedel@amd.com>
+Subject: Re: [PATCH v2 0/4] drivers/iommu/ relocations
+Date: Tue, 14 Jun 2011 14:48:46 +0200
+Message-ID: <20110614124846.GA6689@amd.com>
+References: <1307742947-32118-1-git-send-email-ohad@wizery.com>
+ <20110614102916.GF29908@amd.com>
+ <BANLkTinABOiqzhY_FfCeQLyE53Wr=OtAeQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:39815 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751304Ab1FNMlm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Jun 2011 08:41:42 -0400
+Received: from tx2ehsobe003.messaging.microsoft.com ([65.55.88.13]:57725 "EHLO
+	TX2EHSOBE005.bigfish.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751863Ab1FNMs0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Jun 2011 08:48:26 -0400
 Content-Disposition: inline
-In-Reply-To: <1307491502-28883-1-git-send-email-khilman@ti.com>
+In-Reply-To: <BANLkTinABOiqzhY_FfCeQLyE53Wr=OtAeQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, David Brown <davidb@codeaurora.org>, David Woodhouse <dwmw2@infradead.org>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
 
-* Kevin Hilman <khilman@ti.com> [110607 17:00]:
-> When runtime PM is disabled, device clocks need to be enabled on
-> device add and disabled on device remove.  This currently is not
-> happening because in the !PM_RUNTIME case, no notifiers are registered
-> for OMAP1 devices.
+On Tue, Jun 14, 2011 at 06:44:56AM -0400, Ohad Ben-Cohen wrote:
+> On Tue, Jun 14, 2011 at 1:29 PM, Roedel, Joerg <Joerg.Roedel@amd.com> wrote:
+> > Btw, what tree do these patches apply against?
 > 
-> Fix this by ensuring notifiers are registered, even in the !PM_RUNTIME case.
+> v3.0-rc2
 > 
-> Reported-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-> Tested-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-> Signed-off-by: Kevin Hilman <khilman@ti.com>
-> ---
-> Tony, this fix should go in for v3.0-rc as well.
+> > I tried to apply them to v3.0-rc3 and got conflicts.
+> 
+> What kind of conflicts ? I just tried rc3 and it applied cleanly.
+> 
+> Just in case, I'm attaching the patches too.
+> 
+> Tell me if you still see any issue, thanks !
 
-Adding to devel-fixes.
+The patches from your archive applied fine. Probably the ones I got were
+screwed up by exchange :/
 
-Tony
+I go forward an test them now.
+
+Thanks,
+
+	Joerg
+
+-- 
+AMD Operating System Research Center
+
+Advanced Micro Devices GmbH Einsteinring 24 85609 Dornach
+General Managers: Alberto Bozzo, Andrew Bowd
+Registration: Dornach, Landkr. Muenchen; Registerger. Muenchen, HRB Nr. 43632
+
