@@ -1,56 +1,57 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v7] OMAP3: beagle: add support for beagleboard xM
- revision C
-Date: Tue, 14 Jun 2011 03:37:08 -0700
-Message-ID: <20110614103708.GO3352@atomide.com>
-References: <8FFAA0BFC4E5374B8F85F65FE1F2BFA5C62252EF@dlee02.ent.ti.com>
- <8F7AF80515AF0D4D93307E594F3CB40E928C407E@dlee03.ent.ti.com>
+From: Tasslehoff Kjappfot <tasskjapp@gmail.com>
+Subject: [PATCH] Fix wrong OMAP_ES_x_y defines that make omap_rev_lt_x_y and
+ friends misbehave
+Date: Tue, 14 Jun 2011 12:39:26 +0200
+Message-ID: <BANLkTi=75up6OQwRzGJ586eVLorEdpCa7w@mail.gmail.com>
+References: <BANLkTinWdQsjttt0m1h9KbVPjb6rWXNpvA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:41830 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755914Ab1FNKhL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Jun 2011 06:37:11 -0400
-Content-Disposition: inline
-In-Reply-To: <8F7AF80515AF0D4D93307E594F3CB40E928C407E@dlee03.ent.ti.com>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:37224 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755914Ab1FNKj2 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Jun 2011 06:39:28 -0400
+Received: by fxm17 with SMTP id 17so3511331fxm.19
+        for <linux-omap@vger.kernel.org>; Tue, 14 Jun 2011 03:39:27 -0700 (PDT)
+In-Reply-To: <BANLkTinWdQsjttt0m1h9KbVPjb6rWXNpvA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Kridner, Jason" <jdk@ti.com>
-Cc: "Fernandes, Joel A" <joelagnel@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Kooi, Koen" <k-kooi@ti.com>, "beagleboard@googlegroups.com" <beagleboard@googlegroups.com>, Jason Kridner <jkridner@beagleboard.org>
+To: linux-omap@vger.kernel.org
 
-* Kridner, Jason <jdk@ti.com> [110607 15:22]:
-> > -----Original Message-----
-> > From: Fernandes, Joel A
-> > Sent: Tuesday, June 07, 2011 4:55 PM
-> > To: linux-omap@vger.kernel.org
-> > Cc: Kridner, Jason; Kooi, Koen; beagleboard@googlegroups.com
-> > Subject: [PATCH v7] OMAP3: beagle: add support for beagleboard xM
-> > revision C
-> > 
-> > OMAP3: beagle: add support for beagleboard xM revision C
-> > 
-> > The USB enable GPIO has been in beagleboard xM revision C.
-> > The USER button has been moved since beagleboard xM.
-> > Also, board specific initialization has been moved to beagle_config
-> > struct
-> > and initialized in omap3_beagle_init_rev. Default values in struct are
-> > for xMC.
-> > 
-> > Signed-off-by: Joel A Fernandes <joelagnel@ti.com>
-> > Signed-off-by: Koen Kooi <koen@dominion.thruhere.net>
-> 
-> Hope this isn't considered noise, but...
-> 
-> Ack.
+=46rom 620fa271b32f8bdd8f06954c0a2c96af6ed1dc7b Mon Sep 17 00:00:00 200=
+1
+=46rom: Tasslehoff Kjappfot <tasskjapp@gmail.com>
+Date: Tue, 14 Jun 2011 12:06:09 +0200
+Subject: [PATCH] Fix wrong OMAP_ES_x_y defines that make
+omap_rev_lt_x_y and friends misbehave
+---
+=A0arch/arm/plat-omap/include/plat/cpu.h | =A0 =A08 ++++----
+=A01 files changed, 4 insertions(+), 4 deletions(-)
+diff --git a/arch/arm/plat-omap/include/plat/cpu.h
+b/arch/arm/plat-omap/include/plat/cpu.h
+index 7d24faa..ec63575 100644
+--- a/arch/arm/plat-omap/include/plat/cpu.h
++++ b/arch/arm/plat-omap/include/plat/cpu.h
+@@ -397,10 +397,10 @@ IS_OMAP_TYPE(3517, 0x3517)
+=A0 * Silicon revisions
+=A0 */
+=A0#define OMAP_ES_1_0 0x00
+-#define OMAP_ES_2_0 0x10
+-#define OMAP_ES_2_1 0x20
+-#define OMAP_ES_3_0 0x30
+-#define OMAP_ES_3_1 0x40
++#define OMAP_ES_2_0 0x01
++#define OMAP_ES_2_1 0x02
++#define OMAP_ES_3_0 0x03
++#define OMAP_ES_3_1 0x04
 
-Thanks, adding Acked-by: Jason Kridner <jkridner@beagleboard.org>
-and adding this patch to devel-board branch for next merge window.
-
-Jason, can you please reply with proper Acked-by next time?
-This way patchwork.kernel.org will automatically add the acks
-to the patch.
-
-Regards,
-
-Tony
+=A0#define OMAP_REV_MASK 0x0000ff00
+=A0#define OMAP_REV_BITS ((omap_rev() & OMAP_REV_MASK) >> 8)
+--
+1.7.1
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
