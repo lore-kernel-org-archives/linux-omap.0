@@ -1,79 +1,114 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: Re: [PATCH v4 11/18] input: Add initial support for TWL6040
- vibrator
-Date: Tue, 14 Jun 2011 08:34:00 +0200
-Message-ID: <20110614063400.GB8141@htj.dyndns.org>
-References: <1307706876-4768-1-git-send-email-peter.ujfalusi@ti.com>
- <1307706876-4768-12-git-send-email-peter.ujfalusi@ti.com>
- <20110611231854.GA3979@core.coreip.homeip.net>
- <1530216.k8lJ4nKZ1s@barack>
- <20110613212028.GA13138@core.coreip.homeip.net>
+From: "Raju, Sundaram" <sundaram@ti.com>
+Subject: RE: [RFC] dmaengine: add new api for preparing simple slave transfer
+Date: Tue, 14 Jun 2011 12:12:11 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9403020B7C2A@dbde02.ent.ti.com>
+References: <E0D41E29EB0DAC4E9F3FF173962E9E940301FE2DED@dbde02.ent.ti.com>
+	 <20110609124723.GA24636@n2100.arm.linux.org.uk>
+	 <E0D41E29EB0DAC4E9F3FF173962E9E940301FE2EFB@dbde02.ent.ti.com>
+	 <1307686140.10976.111.camel@vkoul-udesk3>
+	 <E0D41E29EB0DAC4E9F3FF173962E9E940301FE3405@dbde02.ent.ti.com>
+ <1307724439.10976.188.camel@vkoul-udesk3>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-input-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20110613212028.GA13138@core.coreip.homeip.net>
-Sender: linux-input-owner@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: =?iso-8859-1?Q?P=E9ter?= Ujfalusi <peter.ujfalusi@ti.com>, "Girdwood, Liam" <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Samuel Ortiz <sameo@linux.intel.com>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "Lopez Cruz, Misael" <misael.lopez@ti.com>, Jorge Eduardo Candelaria <jorge.candelaria@ti.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1307724439.10976.188.camel@vkoul-udesk3>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Koul, Vinod" <vinod.koul@intel.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Linus Walleij <linus.walleij@linaro.org>
+Cc: Dan <dan.j.williams@intel.com>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hello,
-
-On Mon, Jun 13, 2011 at 02:20:28PM -0700, Dmitry Torokhov wrote:
-> On Mon, Jun 13, 2011 at 12:51:16PM +0300, P=E9ter Ujfalusi wrote:
-> > On Sunday 12 June 2011 01:18:54 Dmitry Torokhov wrote:
-> >=20
-> > > > +static int twl6040_vibra_open(struct input_dev *input)
-> > > > +{
-> > > > +     struct vibra_info *info =3D input_get_drvdata(input);
-> > > > +
-> > > > +     info->workqueue =3D create_singlethread_workqueue("vibra"=
-);
-> > > > +     if (info->workqueue =3D=3D NULL) {
-> > > > +             dev_err(&input->dev, "couldn't create workqueue\n=
-");
-> > > > +             return -ENOMEM;
-> > > > +     }
-> > >=20
-> > > Why do we need to create a separate workqueue? With arrival of CW=
-Q
-> > > it looks like we should be able to use one of the system-wide
-> > > workqueues for this.
-> >=20
-> > The reason for this is to ensure that we have the lowest latency as=
- possible=20
-> > in most case. In the embedded devices we use the vibra for tactile =
-type of=20
-> > feedbacks as well, where few tens of ms delay can be felt.
->=20
-> Even if you create a dedicated workqueue with CWQ it will still be us=
-ing
-> shared pool of threads so I do not think that latency will be affecte=
-d
-> by using system-wide workqueue. I might be mistaken though, Tejun wil=
-l
-> correct me if I am wrong...
-
-Yeap, using a separate workqueue doesn't do anything for latency
-unless WQ_HIGHPRI and/or WQ_CPU_INTENSIVE is used; however, _please_
-stay away from it unless absolutely sure it's necessary (ie. unless
-you can pin point to where latency is coming from - even in that case,
-the thing which induces the latency probably is the one which should
-be fixed).
-
-CMWQ is pretty good at keeping latency low unless something is
-consuming large amount of CPU cycles and those work items are marked
-WQ_CPU_INTENSIVE, not the other way around and WQ_HIGHPRI is for
-things like MCE error reporting.
-
-Thanks.
-
---=20
-tejun
---
-To unsubscribe from this list: send the line "unsubscribe linux-input" =
-in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+UnVzc2VsbCwNCg0KVGhhbmtzIGZvciBhbGwgdGhlIHF1aWNrIHBvaW50ZXJzIGFuZCB0aGUgc3Vt
+bWFyeSBvZiBob3cgDQptZW1vcnktdG8tcGVyaXBoZXJhbCB0cmFuc2ZlcnMgYXJlIGV4cGVjdGVk
+IHRvIG9wZXJhdGUuDQoNCj4gT2ssIHdoYXQgSSdtIGVudmlzaW9uaW5nIGlzIHRoYXQgeW91ciB0
+ZXJtICJjaHVuayBzaXplIiBtZWFucyAicmVnaXN0ZXINCj4gd2lkdGgiLCBhbmQgeW91IHZpZXcg
+dGhhdCBhcyBvbmUgZGltZW5zaW9uLiAgV2UgYWxyZWFkeSBkZXNjcmliZSB0aGlzLg0KPiANCj4g
+QSBmcmFtZSBpcyBhIGNvbGxlY3Rpb24gb2YgY2h1bmtzLiAgVGhhdCdzIGFscmVhZHkgZGVzY3Jp
+YmVkIC0gdGhlIG51bWJlcg0KPiBvZiBjaHVua3MgaW4gYSBidWZmZXIgaXMgdGhlIGJ1ZmZlciBz
+aXplIGRpdmlkZWQgYnkgdGhlIGNodW5rIHNpemUuDQo+IEJ1ZmZlcnMgbXVzdCBiZSBhIG11bHRp
+cGxlIG9mIHRoZSBjaHVuayBzaXplLg0KPiANCj4gVGhlbiB3ZSBoYXZlIGEgY29sbGVjdGlvbiBv
+ZiBmcmFtZXMuICBUaGVzZSBjYW4gYmUgbm9uLWNvbnRpZ3VvdXMuDQo+IFRoYXQncyBlZmZlY3Rp
+dmVseSBkZXNjcmliZWQgYnkgb3VyIHNjYXR0ZXJsaXN0Lg0KPg0KPHNuaXA+DQo+IA0KPiBUaGUg
+b3ZlcmFsbCBjb25jbHVzaW9uIHdoaWNoIEknbSBjb21pbmcgdG8gaXMgdGhhdCB3ZSBhbHJlYWR5
+IHN1cHBvcnQNCj4gd2hhdCB5b3UncmUgYXNraW5nIGZvciwgYnV0IHRoZSBwcm9ibGVtIGlzIHRo
+YXQgd2UncmUgdXNpbmcgZGlmZmVyZW50DQo+IChhbmQgSSdkIGFyZ3VlIHN0YW5kYXJkKSB0ZXJt
+aW5vbG9neSB0byBkZXNjcmliZSB3aGF0IHdlIGhhdmUuDQo+IA0KPiBUaGUgb25seSBpc3N1ZSB3
+aGljaCBJIHNlZSB0aGF0IHdlIGRvbid0IGNvdmVyIGlzIHRoZSBjYXNlIHdoZXJlIHlvdSB3YW50
+DQo+IHRvIGRlc2NyaWJlIGEgc2luZ2xlIGJ1ZmZlciB3aGljaCBpcyBvcmdhbmlzZWQgYXMgTiBi
+eXRlcyB0byBiZSB0cmFuc2ZlcnJlZCwNCj4gTSBmb2xsb3dpbmcgYnl0ZXMgdG8gYmUgc2tpcHBl
+ZCwgTiBieXRlcyB0byBiZSB0cmFuc2ZlcnJlZCwgTSBieXRlcyB0byBiZQ0KPiBza2lwcGVkLiAg
+SSBkb3VidCB0aGVyZSBhcmUgbWFueSBjb250cm9sbGVycyB3aGljaCBjYW4gYmUgcHJvZ3JhbW1l
+ZCB3aXRoDQo+IGJvdGggJ04nIGFuZCAnTScgcGFyYW1ldGVycyBkaXJlY3RseS4NCj4NCg0KWWVz
+IHRoaXMgaXMgd2hhdCBJIHdhbnRlZCB0byBjb21tdW5pY2F0ZSBhbmQgZGlzY3VzcyBpbiB0aGUg
+bGlzdC4NClRoYW5rcyBmb3IgZGVzY3JpYmluZyBpdCBpbiB0aGUgc3RhbmRhcmQgdGVybWlub2xv
+Z3ksIGFuZCBwb2ludGluZyBtZSBpbiB0aGUgDQpyaWdodCBkaXJlY3Rpb24uDQoNCkFsc28gcGxl
+YXNlIG5vdGUgdGhhdCBpZiB0aGUgZ2FwIGJldHdlZW4gdGhlIGJ1ZmZlcnMgaW4gYSBzY2F0dGVy
+bGlzdCBpcw0KdW5pZm9ybSBhbmQgdGhhdCBjYW4gYWdhaW4gYmUgc2tpcHBlZCBieSB0aGUgRE1B
+QyBhdXRvbWF0aWNhbGx5DQpieSBwcm9ncmFtbWluZyB0aGF0IGdhcCBzaXplLCB0aGVuIHRoYXQg
+ZmVhdHVyZSBhbHNvIGlzIG5vdCBhdmFpbGFibGUgDQppbiB0aGUgY3VycmVudCBmcmFtZXdvcmsu
+DQoNCkkgdW5kZXJzdGFuZCBpdCBjYW4gYmUgZG9uZSB3aXRoIHRoZSBleGlzdGluZyBzY2F0dGVy
+bGlzdCwgYnV0IGp1c3Qgd3JpdGluZw0KYSB2YWx1ZSBpbiBhIERNQUMgcmVnaXN0ZXIgaXMgbXVj
+aCBiZXR0ZXIgaWYgYXZhaWxhYmxlLCB0aGFuIHByZXBhcmluZyANCmEgc2NhdHRlcmxpc3QgYW5k
+IHBhc3NpbmcgdG8gdGhlIEFQSS4NCg0KPiANCj4gUGxlYXNlLCBkb24ndCBnZW5lcmF0ZSBzcGVj
+aWFsIGNhc2VzLiAgRGVzaWduIHByb3BlciBBUElzIGZyb20gdGhlDQo+IG91dHNldCByYXRoZXIg
+dGhhbiBhYnVzaW5nIHdoYXQncyBhbHJlYWR5IHRoZXJlLiAgU28gbm8sIGRvbid0IGFidXNlDQo+
+IHRoZSBhZGRyZXNzIHdpZHRoIHN0dWZmLg0KPiANCj4gSW4gYW55IGNhc2UsIHRoZSBhZGRyZXNz
+IHdpZHRoIHN0dWZmIG11c3Qgc3RpbGwgYmUgdXNlZCB0byBkZXNjcmliZSB0aGUNCj4gcGVyaXBo
+ZXJhbHMgRklGTyByZWdpc3Rlci4NCj4NCg0KSSBkaWQgbm90IGludGVuZCB0byBhYnVzZSB0aGUg
+ZXhpc3RpbmcgYWRkcmVzcyB3aWR0aC4gSXQgbWlnaHQgbG9vayANCmxpa2UgdGhhdCBiZWNhdXNl
+IG9mIGhvdyBJIGRlc2NyaWJlZCBpdCBoZXJlLiANCkkgYWdyZWUgdGhhdCB0aGUgZG1hX3NsYXZl
+X2NvbmZpZyBpcyBmb3IgcGVyaXBoZXJhbCByZWxhdGVkIA0KcHJvcGVydGllcyB0byBiZSBzdG9y
+ZWQuIEkgd2FzIHBvaW50aW5nIG91dCB0aGF0IHRoZSBjaHVuayBzaXplDQp2YXJpYWJsZSBpbiB0
+aGUgZG1hX2J1ZmZlcl9jb25maWcgSSBwcm9wb3NlZCB3aWxsIGJlIGluIG1vc3QgY2FzZXMgDQpl
+cXVhbCB0byBGSUZPIHJlZ2lzdGVyIHdpZHRoLCB0byBkZXNjcmliZSB3aGF0IEkgYWN0dWFsbHkg
+bWVhbnQgYnkNCmNodW5rIHNpemUuDQoNCj4gSUlVQywgeW91IGhhdmUgYSBidWZmZXIgd2l0aCBn
+YXBzIGluIGJldHdlZW4gKGdpdmVuIGJ5IGFib3ZlIHBhcmFtcykuDQo+IElzIHlvdXIgRE1BIGgv
+dyBjYXBhYmxlIG9mIHBhcnNpbmcgdGhpcyBidWZmZXIgYW5kIGRpcmVjdGx5IGRvIGENCj4gdHJh
+bnNmZXIgYmFzZWQgb24gYWJvdmUgcGFyYW1ldGVycyAod2l0aG91dCBhbnkgd29yayBmb3IgU1cp
+LCBvciB5b3UgYXJlDQo+IGRvaW5nIHRoaXMgaW4geW91ciBkbWEgZHJpdmVyIGFuZCB0aGVuIHBy
+b2dyYW1taW5nIGEgbGlzdCBvZiBidWZmZXJzPw0KPiBJbiBmb3JtZXIgY2FzZSAoYWx0aG91Z2gg
+aSBoYXZlbid0IHNlZW4gc3VjaCBkbWEgY29udHJvbGxlciB5ZXQpLCBjYW4NCj4geW91IHNoYXJl
+IHRoZSBkYXRhc2hlZXQ/IEl0IHdvdWxkIG1ha2UgdmVyeSBsaXR0bGUgc2Vuc2UgdG8gY2hhbmdl
+IHRoZQ0KPiBjdXJyZW50IEFQSSBmb3IgeW91ciBleHRyYSBzcGVjaWFsIGNhc2UuIFRoaXMgc3Bl
+Y2lhbCBjYXNlIG5lZWRzIHRvIGJlDQo+IGhhbmRsZWQgZGlmZmVyZW50bHkgcmF0aGVyIHRoYW4g
+bWFraW5nIHJ1bGUgb3V0IG9mIGl0ISENCj4gDQoNClllcywgVmlub2QuIFRoaXMgaXMgZGlyZWN0
+bHkgaGFuZGxlZCBpbiB0aGUgRE1BQyBoL3cuDQoNClRoaXMgY2FwYWJpbGl0eSBpcyBwcmVzZW50
+IGluIDIgVEkgRE1BQ3MuDQpFRE1BIChFbmhhbmNlZCBETUEpIGluIGFsbCBUSSBEYVZpbmNpIFNv
+Q3MgYW5kIHRoZQ0KU0RNQSAoU3lzdGVtIERNQSkgaW4gYWxsIFRJIE9NQVAgU29Dcy4gVGhlIGRy
+aXZlcnMgb2YgdGhlc2UNCmNvbnRyb2xsZXJzIGFyZSBwcmVzZW50IGluIHRoZSByZXNwZWN0aXZl
+IERhVmluY2kgdHJlZSBhbmQgT01BUCB0cmVlDQp1bmRlciB0aGUgU29DIGZvbGRlcnMuDQoNCjxx
+dW90ZT4NCj4gU0RNQSBhbmQgRURNQSBhcmUgVEkgU29DIHNwZWNpZmljIERNQSBjb250cm9sbGVy
+cy4gVGhlaXIgZHJpdmVycyBoYXZlDQo+IGJlZW4gbWFpbnRhaW5lZCBpbiB0aGUgcmVzcGVjdGl2
+ZSBTb0MgZm9sZGVycyB0aWxsIG5vdy4NCj4gYXJjaC9hcm0vcGxhdC1vbWFwL2RtYS5jDQo+IGFy
+Y2gvYXJtL21hY2gtZGF2aW5jaS9kbWEuYw0KPC9xdW90ZT4NCg0KVGhlIE1hbnVhbCBvZiB0aGUg
+RURNQSBjb250cm9sbGVyIGluIFRJIERhVmluY2kgU29DcyBpcyBhdmFpbGFibGUgYXQNCmh0dHA6
+Ly93d3cudGkuY29tL2xpdHYvcGRmL3NwcnVlMjNkDQpTZWN0aW9uIDIuMiBpbiB0aGUgcGFnZSAy
+MyBleHBsYWlucyBob3cgdHJhbnNmZXJzIGFyZSBtYWRlIGJhc2VkDQpvbiB0aGUgZ2FwcyBwcm9n
+cmFtbWVkLiBJdCBhbHNvIGV4cGxhaW5zIGhvdyB0aGUgM0QgYnVmZmVyIGlzIA0KaW50ZXJuYWxs
+eSBzcGxpdCBpbiBFRE1BIGJhc2VkIG9uIHRoZSBnYXBzIHByb2dyYW1tZWQuDQoNClRoZSBjb21w
+bGV0ZSBSZWZlcmVuY2UgbWFudWFsIG9mIFRJIE9NQVAgU29DcyBpcyBhdmFpbGFibGUgYXQNCmh0
+dHA6Ly93d3cudGkuY29tL2xpdHYvcGRmL3NwcnVmOThzDQpDaGFwdGVyIDkgaW4gdGhpcyBkb2N1
+bWVudCBkZXNjcmliZXMgdGhlIFNETUEgY29udHJvbGxlci4NClNlY3Rpb24gOS40LjMgaW4gcGFn
+ZSA5ODEgZXhwbGFpbnMgdGhlIHZhcmlvdXMgYWRkcmVzcyBtb2RlcywNCmhvdyB0aGUgYWRkcmVz
+cyBpcyBpbmNyZW1lbnRlZCBieSB0aGUgRE1BQyBhbmQgYWJvdXQgdGhlIGdhcHMgDQppbiBiZXR3
+ZWVuIGJ1ZmZlcnMgYW5kIGZyYW1lcyBhbmQgaG93IHRoZSBETUFDIGhhbmRsZXMgdGhlbS4NCg0K
+TGludXMsDQo+IA0KPiBJcyBpdCByZWFsbHkgc28gYmFkPyBJdCBpcyBhIGN1c3RvbSBjb25maWd1
+cmF0aW9uIGFmdGVyIGFsbC4gRXZlbiBpZg0KPiB0aGVyZSB3ZXJlIG1hbnkgRE1BQ3Mgb3V0IHRo
+ZXJlIHN1cHBvcnRpbmcgaXQsIHdlJ2QgcHJvYmFibHkNCj4gbW9kZWwgaXQgbGlrZSB0aGlzLCBq
+dXN0IHBhc3Mgc29tZXRoaW5nIGxpa2UgRE1BX1NUUklERV9DT05GSUcNCj4gaW5zdGVhZCBvZiBz
+b21ldGhpbmcgbmFtZWQgYWZ0ZXIgYSBzcGVjaWZpYyBzbGF2ZSBjb250cm9sbGVyLg0KPiANCj4g
+VGhpcyB3YXkgRE1BQ3MgdGhhdCBkaWRuJ3Qgc3VwcG9ydCBzdHJpZGluZyBjb3VsZCBOQUNLIGEN
+Cj4gdHJhbnNmZXIgZm9yIGRldmljZSBkcml2ZXJzIHJlcXVlc3RpbmcgaXQgYW5kIHRoZW4gaXQg
+Y291bGQgZmlndXJlDQo+IG91dCB3aGF0IHRvIGRvLg0KPiANCj4gSWYgd2UgY2FuIGdldCBzb21l
+IGluZGljYXRpb24gYXMgdG8gd2hldGhlciBtb3JlIERNQUNzIGNhbg0KPiBkbyB0aGlzIGtpbmQg
+b2Ygc3R1ZmYsIHdlJ2QgbWF5YmUgbGlrZSB0byBpbnRyb2R1Y2UNCj4gRE1BX1NUUklERV9DT05G
+SUcgYWxyZWFkeSBub3cuDQo+DQoNCkkgd2FudGVkIHRvIGRpc2N1c3MgdGhpcyBmZWF0dXJlIGlu
+IHRoZSBsaXN0IGFuZCBnZXQgdGhpcyBmZWF0dXJlIA0KYWRkZWQgdG8gdGhlIGN1cnJlbnQgZG1h
+ZW5naW5lIGZyYW1ld29yay4gSWYgdGhlIGN1cnJlbnQgQVBJcw0KY2FuIGhhbmRsZSB0aGlzIGZl
+YXR1cmUsIHRoZW4gaXRzIHZlcnkgZ29vZCANCmFuZCBJIHdpbGwgZm9sbG93IHRoYXQgb25seS4N
+Cg0KSWYgd2hhdCB5b3Ugc3VnZ2VzdCBpcyB0aGUgcmlnaHQgd2F5IHRvIGdvIHRoZW4gSSBhbSBv
+a2F5Lg0KSU1ITyB0aGUgZnJhbWV3b3JrIHNob3VsZCBhbHdheXMgaGFuZGxlIHRoZSBjb21wbGV4
+IGNhc2UNCmFuZCBpbmRpdmlkdWFsIGltcGxlbWVudGF0aW9ucyBzaG91bGQgaW1wbGVtZW50IGEg
+c3Vic2V0IG9mDQp0aGUgY2FwYWJpbGl0eSBhbmQgaGVuY2UgSSBzdWdnZXN0IHRoZSBjaGFuZ2Vz
+IEkgcG9zdGVkIHRvIHRoZSBsaXN0Lg0KDQpSZWdhcmRzLA0KU3VuZGFyYW0NCg==
