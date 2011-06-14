@@ -1,64 +1,320 @@
-From: =?ISO-8859-1?Q?P=E9ter?= Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: Re: [PATCH] OMAP4: McBSP: Clear rx_irq at probe time
-Date: Tue, 14 Jun 2011 14:19:34 +0300
-Message-ID: <27857936.rzNg0PjYWH@barack>
-References: <1305628420-10592-1-git-send-email-peter.ujfalusi@ti.com> <201106081051.27234.peter.ujfalusi@ti.com> <20110613133542.GD3352@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: [RFC 1/2] omap: mcbsp: Drop SPI mode support
+Date: Tue, 14 Jun 2011 14:23:51 +0300
+Message-ID: <1308050632-4733-1-git-send-email-jhnikula@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:46727 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754362Ab1FNLTe convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Jun 2011 07:19:34 -0400
-In-Reply-To: <20110613133542.GD3352@atomide.com>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:62899 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755845Ab1FNLWn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Jun 2011 07:22:43 -0400
+Received: by eyx24 with SMTP id 24so1945202eyx.19
+        for <linux-omap@vger.kernel.org>; Tue, 14 Jun 2011 04:22:42 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Jarkko Nikula <jhnikula@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Girdwood, Liam" <lrg@ti.com>, "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Jarkko Nikula <jhnikula@gmail.com>
 
-Hi Tony,
+We haven't seen any use for the SPI API in McBSP driver over the years. More
+over, Peter Ujfalusi <peter.ujfalusi@ti.com> noticed that SPI mode is not
+even supported since OMAP2430 so it's very unlikely that we'll see any use
+for it in the future either.
 
-On Monday 13 June 2011 15:35:43 Tony Lindgren wrote:
-> Sure we can merge fixes
+Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
+---
+ arch/arm/plat-omap/include/plat/mcbsp.h |   37 ------
+ arch/arm/plat-omap/mcbsp.c              |  214 -------------------------------
+ 2 files changed, 0 insertions(+), 251 deletions(-)
 
-Can you take this patch forward?
+diff --git a/arch/arm/plat-omap/include/plat/mcbsp.h b/arch/arm/plat-omap/include/plat/mcbsp.h
+index f8f690a..3fc75a8 100644
+--- a/arch/arm/plat-omap/include/plat/mcbsp.h
++++ b/arch/arm/plat-omap/include/plat/mcbsp.h
+@@ -353,38 +353,6 @@ typedef enum {
+ 	OMAP_MCBSP_WORD_32,
+ } omap_mcbsp_word_length;
+ 
+-typedef enum {
+-	OMAP_MCBSP_CLK_RISING = 0,
+-	OMAP_MCBSP_CLK_FALLING,
+-} omap_mcbsp_clk_polarity;
+-
+-typedef enum {
+-	OMAP_MCBSP_FS_ACTIVE_HIGH = 0,
+-	OMAP_MCBSP_FS_ACTIVE_LOW,
+-} omap_mcbsp_fs_polarity;
+-
+-typedef enum {
+-	OMAP_MCBSP_CLK_STP_MODE_NO_DELAY = 0,
+-	OMAP_MCBSP_CLK_STP_MODE_DELAY,
+-} omap_mcbsp_clk_stp_mode;
+-
+-
+-/******* SPI specific mode **********/
+-typedef enum {
+-	OMAP_MCBSP_SPI_MASTER = 0,
+-	OMAP_MCBSP_SPI_SLAVE,
+-} omap_mcbsp_spi_mode;
+-
+-struct omap_mcbsp_spi_cfg {
+-	omap_mcbsp_spi_mode		spi_mode;
+-	omap_mcbsp_clk_polarity		rx_clock_polarity;
+-	omap_mcbsp_clk_polarity		tx_clock_polarity;
+-	omap_mcbsp_fs_polarity		fsx_polarity;
+-	u8				clk_div;
+-	omap_mcbsp_clk_stp_mode		clk_stp_mode;
+-	omap_mcbsp_word_length		word_length;
+-};
+-
+ /* Platform specific configuration */
+ struct omap_mcbsp_ops {
+ 	void (*request)(unsigned int);
+@@ -504,14 +472,9 @@ u32 omap_mcbsp_recv_word(unsigned int id);
+ 
+ int omap_mcbsp_xmit_buffer(unsigned int id, dma_addr_t buffer, unsigned int length);
+ int omap_mcbsp_recv_buffer(unsigned int id, dma_addr_t buffer, unsigned int length);
+-int omap_mcbsp_spi_master_xmit_word_poll(unsigned int id, u32 word);
+-int omap_mcbsp_spi_master_recv_word_poll(unsigned int id, u32 * word);
+-
+ 
+ /* McBSP functional clock source changing function */
+ extern int omap2_mcbsp_set_clks_src(u8 id, u8 fck_src_id);
+-/* SPI specific API */
+-void omap_mcbsp_set_spi_mode(unsigned int id, const struct omap_mcbsp_spi_cfg * spi_cfg);
+ 
+ /* Polled read/write functions */
+ int omap_mcbsp_pollread(unsigned int id, u16 * buf);
+diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
+index bf338a5..c4e2f40 100644
+--- a/arch/arm/plat-omap/mcbsp.c
++++ b/arch/arm/plat-omap/mcbsp.c
+@@ -1175,147 +1175,6 @@ u32 omap_mcbsp_recv_word(unsigned int id)
+ }
+ EXPORT_SYMBOL(omap_mcbsp_recv_word);
+ 
+-int omap_mcbsp_spi_master_xmit_word_poll(unsigned int id, u32 word)
+-{
+-	struct omap_mcbsp *mcbsp;
+-	omap_mcbsp_word_length tx_word_length;
+-	omap_mcbsp_word_length rx_word_length;
+-	u16 spcr2, spcr1, attempts = 0, word_lsb, word_msb = 0;
+-
+-	if (!omap_mcbsp_check_valid_id(id)) {
+-		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
+-		return -ENODEV;
+-	}
+-	mcbsp = id_to_mcbsp_ptr(id);
+-	tx_word_length = mcbsp->tx_word_length;
+-	rx_word_length = mcbsp->rx_word_length;
+-
+-	if (tx_word_length != rx_word_length)
+-		return -EINVAL;
+-
+-	/* First we wait for the transmitter to be ready */
+-	spcr2 = MCBSP_READ(mcbsp, SPCR2);
+-	while (!(spcr2 & XRDY)) {
+-		spcr2 = MCBSP_READ(mcbsp, SPCR2);
+-		if (attempts++ > 1000) {
+-			/* We must reset the transmitter */
+-			MCBSP_WRITE(mcbsp, SPCR2,
+-				    MCBSP_READ_CACHE(mcbsp, SPCR2) & (~XRST));
+-			udelay(10);
+-			MCBSP_WRITE(mcbsp, SPCR2,
+-				    MCBSP_READ_CACHE(mcbsp, SPCR2) | XRST);
+-			udelay(10);
+-			dev_err(mcbsp->dev, "McBSP%d transmitter not "
+-				"ready\n", mcbsp->id);
+-			return -EAGAIN;
+-		}
+-	}
+-
+-	/* Now we can push the data */
+-	if (tx_word_length > OMAP_MCBSP_WORD_16)
+-		MCBSP_WRITE(mcbsp, DXR2, word >> 16);
+-	MCBSP_WRITE(mcbsp, DXR1, word & 0xffff);
+-
+-	/* We wait for the receiver to be ready */
+-	spcr1 = MCBSP_READ(mcbsp, SPCR1);
+-	while (!(spcr1 & RRDY)) {
+-		spcr1 = MCBSP_READ(mcbsp, SPCR1);
+-		if (attempts++ > 1000) {
+-			/* We must reset the receiver */
+-			MCBSP_WRITE(mcbsp, SPCR1,
+-				    MCBSP_READ_CACHE(mcbsp, SPCR1) & (~RRST));
+-			udelay(10);
+-			MCBSP_WRITE(mcbsp, SPCR1,
+-				    MCBSP_READ_CACHE(mcbsp, SPCR1) | RRST);
+-			udelay(10);
+-			dev_err(mcbsp->dev, "McBSP%d receiver not "
+-				"ready\n", mcbsp->id);
+-			return -EAGAIN;
+-		}
+-	}
+-
+-	/* Receiver is ready, let's read the dummy data */
+-	if (rx_word_length > OMAP_MCBSP_WORD_16)
+-		word_msb = MCBSP_READ(mcbsp, DRR2);
+-	word_lsb = MCBSP_READ(mcbsp, DRR1);
+-
+-	return 0;
+-}
+-EXPORT_SYMBOL(omap_mcbsp_spi_master_xmit_word_poll);
+-
+-int omap_mcbsp_spi_master_recv_word_poll(unsigned int id, u32 *word)
+-{
+-	struct omap_mcbsp *mcbsp;
+-	u32 clock_word = 0;
+-	omap_mcbsp_word_length tx_word_length;
+-	omap_mcbsp_word_length rx_word_length;
+-	u16 spcr2, spcr1, attempts = 0, word_lsb, word_msb = 0;
+-
+-	if (!omap_mcbsp_check_valid_id(id)) {
+-		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
+-		return -ENODEV;
+-	}
+-
+-	mcbsp = id_to_mcbsp_ptr(id);
+-
+-	tx_word_length = mcbsp->tx_word_length;
+-	rx_word_length = mcbsp->rx_word_length;
+-
+-	if (tx_word_length != rx_word_length)
+-		return -EINVAL;
+-
+-	/* First we wait for the transmitter to be ready */
+-	spcr2 = MCBSP_READ(mcbsp, SPCR2);
+-	while (!(spcr2 & XRDY)) {
+-		spcr2 = MCBSP_READ(mcbsp, SPCR2);
+-		if (attempts++ > 1000) {
+-			/* We must reset the transmitter */
+-			MCBSP_WRITE(mcbsp, SPCR2,
+-				    MCBSP_READ_CACHE(mcbsp, SPCR2) & (~XRST));
+-			udelay(10);
+-			MCBSP_WRITE(mcbsp, SPCR2,
+-				    MCBSP_READ_CACHE(mcbsp, SPCR2) | XRST);
+-			udelay(10);
+-			dev_err(mcbsp->dev, "McBSP%d transmitter not "
+-				"ready\n", mcbsp->id);
+-			return -EAGAIN;
+-		}
+-	}
+-
+-	/* We first need to enable the bus clock */
+-	if (tx_word_length > OMAP_MCBSP_WORD_16)
+-		MCBSP_WRITE(mcbsp, DXR2, clock_word >> 16);
+-	MCBSP_WRITE(mcbsp, DXR1, clock_word & 0xffff);
+-
+-	/* We wait for the receiver to be ready */
+-	spcr1 = MCBSP_READ(mcbsp, SPCR1);
+-	while (!(spcr1 & RRDY)) {
+-		spcr1 = MCBSP_READ(mcbsp, SPCR1);
+-		if (attempts++ > 1000) {
+-			/* We must reset the receiver */
+-			MCBSP_WRITE(mcbsp, SPCR1,
+-				    MCBSP_READ_CACHE(mcbsp, SPCR1) & (~RRST));
+-			udelay(10);
+-			MCBSP_WRITE(mcbsp, SPCR1,
+-				    MCBSP_READ_CACHE(mcbsp, SPCR1) | RRST);
+-			udelay(10);
+-			dev_err(mcbsp->dev, "McBSP%d receiver not "
+-				"ready\n", mcbsp->id);
+-			return -EAGAIN;
+-		}
+-	}
+-
+-	/* Receiver is ready, there is something for us */
+-	if (rx_word_length > OMAP_MCBSP_WORD_16)
+-		word_msb = MCBSP_READ(mcbsp, DRR2);
+-	word_lsb = MCBSP_READ(mcbsp, DRR1);
+-
+-	word[0] = (word_lsb | (word_msb << 16));
+-
+-	return 0;
+-}
+-EXPORT_SYMBOL(omap_mcbsp_spi_master_recv_word_poll);
+-
+ /*
+  * Simple DMA based buffer rx/tx routines.
+  * Nothing fancy, just a single buffer tx/rx through DMA.
+@@ -1450,79 +1309,6 @@ int omap_mcbsp_recv_buffer(unsigned int id, dma_addr_t buffer,
+ EXPORT_SYMBOL(omap_mcbsp_recv_buffer);
+ 
+ /*
+- * SPI wrapper.
+- * Since SPI setup is much simpler than the generic McBSP one,
+- * this wrapper just need an omap_mcbsp_spi_cfg structure as an input.
+- * Once this is done, you can call omap_mcbsp_start().
+- */
+-void omap_mcbsp_set_spi_mode(unsigned int id,
+-				const struct omap_mcbsp_spi_cfg *spi_cfg)
+-{
+-	struct omap_mcbsp *mcbsp;
+-	struct omap_mcbsp_reg_cfg mcbsp_cfg;
+-
+-	if (!omap_mcbsp_check_valid_id(id)) {
+-		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
+-		return;
+-	}
+-	mcbsp = id_to_mcbsp_ptr(id);
+-
+-	memset(&mcbsp_cfg, 0, sizeof(struct omap_mcbsp_reg_cfg));
+-
+-	/* SPI has only one frame */
+-	mcbsp_cfg.rcr1 |= (RWDLEN1(spi_cfg->word_length) | RFRLEN1(0));
+-	mcbsp_cfg.xcr1 |= (XWDLEN1(spi_cfg->word_length) | XFRLEN1(0));
+-
+-	/* Clock stop mode */
+-	if (spi_cfg->clk_stp_mode == OMAP_MCBSP_CLK_STP_MODE_NO_DELAY)
+-		mcbsp_cfg.spcr1 |= (1 << 12);
+-	else
+-		mcbsp_cfg.spcr1 |= (3 << 11);
+-
+-	/* Set clock parities */
+-	if (spi_cfg->rx_clock_polarity == OMAP_MCBSP_CLK_RISING)
+-		mcbsp_cfg.pcr0 |= CLKRP;
+-	else
+-		mcbsp_cfg.pcr0 &= ~CLKRP;
+-
+-	if (spi_cfg->tx_clock_polarity == OMAP_MCBSP_CLK_RISING)
+-		mcbsp_cfg.pcr0 &= ~CLKXP;
+-	else
+-		mcbsp_cfg.pcr0 |= CLKXP;
+-
+-	/* Set SCLKME to 0 and CLKSM to 1 */
+-	mcbsp_cfg.pcr0 &= ~SCLKME;
+-	mcbsp_cfg.srgr2 |= CLKSM;
+-
+-	/* Set FSXP */
+-	if (spi_cfg->fsx_polarity == OMAP_MCBSP_FS_ACTIVE_HIGH)
+-		mcbsp_cfg.pcr0 &= ~FSXP;
+-	else
+-		mcbsp_cfg.pcr0 |= FSXP;
+-
+-	if (spi_cfg->spi_mode == OMAP_MCBSP_SPI_MASTER) {
+-		mcbsp_cfg.pcr0 |= CLKXM;
+-		mcbsp_cfg.srgr1 |= CLKGDV(spi_cfg->clk_div - 1);
+-		mcbsp_cfg.pcr0 |= FSXM;
+-		mcbsp_cfg.srgr2 &= ~FSGM;
+-		mcbsp_cfg.xcr2 |= XDATDLY(1);
+-		mcbsp_cfg.rcr2 |= RDATDLY(1);
+-	} else {
+-		mcbsp_cfg.pcr0 &= ~CLKXM;
+-		mcbsp_cfg.srgr1 |= CLKGDV(1);
+-		mcbsp_cfg.pcr0 &= ~FSXM;
+-		mcbsp_cfg.xcr2 &= ~XDATDLY(3);
+-		mcbsp_cfg.rcr2 &= ~RDATDLY(3);
+-	}
+-
+-	mcbsp_cfg.xcr2 &= ~XPHASE;
+-	mcbsp_cfg.rcr2 &= ~RPHASE;
+-
+-	omap_mcbsp_config(id, &mcbsp_cfg);
+-}
+-EXPORT_SYMBOL(omap_mcbsp_set_spi_mode);
+-
+-/*
+  * The following functions are only required on an OMAP1-only build.
+  * mach-omap2/mcbsp.c contains the real functions
+  */
+-- 
+1.7.5.3
 
-> but let's get the move done before adding
-> new features.
-
-What is considered a new feature here?
-Is it a new feature, if I fix the McBSP for OMAP4 (FIFO usage, and smal=
-l=20
-updates)?
-We have discussion ongoing about the mcbsp code move, and so far the cu=
-rrent=20
-understanding/plan is (Jarkko/Liam correct me if I'm wrong):
-- Fix the OMAP4 support
-- move the code under sound/soc/omap/
- - the reason for this is that McBSP block can be only used for streami=
-ng type=20
-of modes (from omap2430 onwards McBSP does not have clock stop function=
-ality).
-This makes other type of usage hard to say the least.
-- Clean up the code (remove the SPI mode, remove unused code paths at t=
-he same=20
-time)
-- Consolidate the interface for audio only use
-- Only OMAP3 has sidetone (on OMAP2 EAC block has the sidetone), might =
-need=20
-some change, but I think the current way can be reused.
-
-In this way we are not going to hide the OMAP4 fixes with the code=20
-move/consolidation effort, so one can track what has been done, and why=
-=2E
-
-Opinions?
-
---=20
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
