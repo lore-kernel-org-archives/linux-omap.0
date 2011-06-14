@@ -1,72 +1,66 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 3.0-rc2] OMAP: ams-delta: fix broken uevent sysfs entries
-Date: Tue, 14 Jun 2011 15:00:00 +0300
-Message-ID: <20110614115959.GI2353@legolas.emea.dhcp.ti.com>
-References: <201106070316.41099.jkrzyszt@tis.icnet.pl>
- <20110614114848.GS3352@atomide.com>
-Reply-To: balbi@ti.com
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: Re: [PATCH] OMAP4: McBSP: Clear rx_irq at probe time
+Date: Tue, 14 Jun 2011 15:05:30 +0300
+Message-ID: <20110614150530.87e594a5.jhnikula@gmail.com>
+References: <1305628420-10592-1-git-send-email-peter.ujfalusi@ti.com>
+	<201106081051.27234.peter.ujfalusi@ti.com>
+	<20110613133542.GD3352@atomide.com>
+	<27857936.rzNg0PjYWH@barack>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ohWw6IXhY39HKnGA"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20110614114848.GS3352@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:34730 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756083Ab1FNMEK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Jun 2011 08:04:10 -0400
+Received: by ewy4 with SMTP id 4so1965225ewy.19
+        for <linux-omap@vger.kernel.org>; Tue, 14 Jun 2011 05:04:08 -0700 (PDT)
+In-Reply-To: <27857936.rzNg0PjYWH@barack>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: =?ISO-8859-1?Q?P=E9ter?= Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Girdwood, Liam" <lrg@ti.com>, "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
 
+On Tue, 14 Jun 2011 14:19:34 +0300
+P=E9ter Ujfalusi <peter.ujfalusi@ti.com> wrote:
 
---ohWw6IXhY39HKnGA
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> We have discussion ongoing about the mcbsp code move, and so far the =
+current=20
+> understanding/plan is (Jarkko/Liam correct me if I'm wrong):
+> - Fix the OMAP4 support
+> - move the code under sound/soc/omap/
+>  - the reason for this is that McBSP block can be only used for strea=
+ming type=20
+> of modes (from omap2430 onwards McBSP does not have clock stop functi=
+onality).
+> This makes other type of usage hard to say the least.
+> - Clean up the code (remove the SPI mode, remove unused code paths at=
+ the same=20
+> time)
+> - Consolidate the interface for audio only use
 
-On Tue, Jun 14, 2011 at 04:48:48AM -0700, Tony Lindgren wrote:
-> * Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [110606 18:15]:
-> >=20
-> > Removing __initdata tags, introduced by commit=20
-> > bdc58fb950a3a1b0bc3cbd8e23d21ecdde2ac9a2, "arm: omap1: fix a bunch of=
-=20
-> > section mismatches", from corresponding platform_device structures=20
-> > declared in arch/arm/mach-omap1/board-ams-delta.c, corrects the problem=
-=20
-> > for me, which may indicate that their members (.name ?) are still=20
-> > referred to during runtime so they shouldn't be freed after boot.
+Yeah, now is perfect time to tell if there is any need for something
+else than audio.
+
+OMAP1xxx/59xx and 2420 are already something like more
+than 5 years old obsolete components and we haven't seen that any of
+them would need SPI/clock stop functionality. Actually we haven't seen
+any other use for McBSP than audio.
+
+> - Only OMAP3 has sidetone (on OMAP2 EAC block has the sidetone), migh=
+t need=20
+> some change, but I think the current way can be reused.
 >=20
-> Sounds like this needs a bit more research where this initdata
-> gets used?
-
-to me it sounds like missing __init/__exit annotations on the driver.
-See ams-delta-leds for instance:
-
-static int ams_delta_led_probe(struct platform_device *pdev)
-static int ams_delta_led_remove(struct platform_device *pdev)
-
-which means those drivers will have probe sitting outside or .init.text
-and trying to reference name which sits in .init.text ??? Could that be
-the case here ?
-
-But it could also be that the platform_device shouldn't be marked
-__initdata.
+Yeah, they probably need work on kernel side (hwmod stuff etc) but I
+think for keeping userspace intact over the cleanup we might want to
+keep these special sysfs nodes for sidetone filter coefficients, dma
+operating mode and FIFO threshold as it over the cleanup.
 
 --=20
-balbi
-
---ohWw6IXhY39HKnGA
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQEcBAEBAgAGBQJN900/AAoJEAv8Txj19kN1cI0IAISQ2qtLJsHKq09MTnyItiQM
-xrhVcVwQvUBeMbkfTiUGAzSF3kvT15m7GvrEvHg3kqimvretlvjrOtPCJodzgDoG
-LAOHPvC+TwvT1N4aD5tQxcjtBJlfhDZSRMz1cJeMSrh93iBQbc2kr6J9hMtx8HBU
-XDhSsmW20ImnMb/G+Kyakw9WJFr+4f6K5TRokpKrkjxO7uhVStZfFIny7sT6fk+o
-wvK4gT1ZVCRvWPvAAul9rQvqQqPzLKXLBkDM9c2zBRZtn9VIBp8/ZUhNM5372paz
-3zAN2/fX+4kM+KgjdWYHfiJXcvgjkYGm4lAC9UI48n6bl8bF7IWC9u+Pkn7+0UE=
-=G5K5
------END PGP SIGNATURE-----
-
---ohWw6IXhY39HKnGA--
+Jarkko
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
