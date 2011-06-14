@@ -1,42 +1,78 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCHv2 01/28] OMAP: change get_context_loss_count ret value
- to int
-Date: Tue, 14 Jun 2011 10:24:17 +0300
-Message-ID: <1308036257.1899.8.camel@deskari>
-References: <1307627810-3768-1-git-send-email-tomi.valkeinen@ti.com>
-	 <1307627810-3768-2-git-send-email-tomi.valkeinen@ti.com>
-	 <1307958710.1847.56.camel@deskari>
-	 <alpine.DEB.2.00.1106140111540.20723@utopia.booyaka.com>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: Re: Re: [PATCH v4 11/18] input: Add initial support for TWL6040
+ vibrator
+Date: Tue, 14 Jun 2011 09:31:30 +0200
+Message-ID: <20110614073130.GF8141@htj.dyndns.org>
+References: <1307706876-4768-1-git-send-email-peter.ujfalusi@ti.com>
+ <20110613212028.GA13138@core.coreip.homeip.net>
+ <20110614063400.GB8141@htj.dyndns.org>
+ <8556714.NHVg2d8yTv@barack>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:48823 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754233Ab1FNHYY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 14 Jun 2011 03:24:24 -0400
-In-Reply-To: <alpine.DEB.2.00.1106140111540.20723@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <8556714.NHVg2d8yTv@barack>
+Sender: linux-input-owner@vger.kernel.org
+To: =?iso-8859-1?Q?P=E9ter?= Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, "Girdwood, Liam" <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Samuel Ortiz <sameo@linux.intel.com>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "Lopez Cruz, Misael" <misael.lopez@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-fbdev@vger.kernel.org, b-cousson@ti.com, khilman@ti.com, linux-omap mailing list <linux-omap@vger.kernel.org>
 
-On Tue, 2011-06-14 at 01:13 -0600, Paul Walmsley wrote:
-> Hi Tomi
-> 
-> On Mon, 13 Jun 2011, Tomi Valkeinen wrote:
-> 
-> > Paul, can you take this patch and queue it for an rc?
-> 
-> Generally I only queue regressions or fixes for major problems (crashes, 
-> corruption, etc.) for -rc series.  So probably this one should go in via 
-> the normal merge window, unless it's been causing major disruptions?
+Hello,
 
-No, only disruptions for me as the DSS pm_runtime patches depend on this
-one to function correctly. So merge window is ok, I'll handle the DSS
-side somehow.
+On Tue, Jun 14, 2011 at 10:17:10AM +0300, P=E9ter Ujfalusi wrote:
+> The latency in most cases comes from the fact, that we are running an=
+ embedded=20
+> system. Number of peripherals are connected via I2C, these drivers ar=
+e using=20
+> workqueues to communicate with the IC.
+> Since only one device can communicate through I2C at the time. This i=
+s=20
+> basically the source of the latency. It does not really matter, if th=
+e devices=20
+> are on the same I2C bus or not, it is enough if two work belonging to=
+ device,=20
+> which happens to be on the same I2C bus, and the first work in the qu=
+eue takes=20
+> long time to complete (reading back bigger chunk of info, configuring=
+, etc).
+> Even if we could schedule the second work on the other CPU, it will b=
+e put=20
+> waiting till the I2C bus is free, so both CPU core has work assigned,=
+ the=20
+> first is keeping the I2C bus, the other waits for the I2C bus, and th=
+e third=20
+> is waiting to be scheduled (which will be happening, when the first w=
+ork=20
+> finished).
+> IMHO the tactile feedback (vibra) should have an excuse to have separ=
+ate WQ to=20
+> avoid latency spikes.
+> I agree, that most cases we can use the global wq.
 
- Tomi
+Thanks for the explanation.  I have a couple more questions.
 
+* While transferring data from I2C, I suppose the work item is fully
+  occupying the CPU?  If so, how long delay are we talking about?
+  Millisecs?
 
+* You said that the if one task is accessing I2C bus, the other would
+  wait even if scheduled on a different CPU.  Is access to I2C bus
+  protected with a spinlock?
+
+Also, as it's currently implemented, single threaded wq's effectively
+bypass concurrency level control.  This is an implementation detail
+which may change in the future, so even if you're seeing lower latency
+by using a separate single threaded wq, it's an accident and if you
+require lower latency you should be expressing the requirement
+explicitly.
+
+Thank you.
+
+--=20
+tejun
+--
+To unsubscribe from this list: send the line "unsubscribe linux-input" =
+in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
