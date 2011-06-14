@@ -1,62 +1,33 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC] ARM: OMAP2+ i2c NACK without STP
-Date: Tue, 14 Jun 2011 03:24:09 -0700
-Message-ID: <20110614102409.GN3352@atomide.com>
-References: <87oc30t81u.fsf@ti.com>
- <1308045959-24269-1-git-send-email-j.weitzel@phytec.de>
+From: "Roedel, Joerg" <Joerg.Roedel@amd.com>
+Subject: Re: [PATCH v2 0/4] drivers/iommu/ relocations
+Date: Tue, 14 Jun 2011 12:29:16 +0200
+Message-ID: <20110614102916.GF29908@amd.com>
+References: <1307742947-32118-1-git-send-email-ohad@wizery.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:31206 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755907Ab1FNKYM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Jun 2011 06:24:12 -0400
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1308045959-24269-1-git-send-email-j.weitzel@phytec.de>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1307742947-32118-1-git-send-email-ohad@wizery.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, David Brown <davidb@codeaurora.org>, David Woodhouse <dwmw2@infradead.org>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Jan Weitzel <j.weitzel@phytec.de>
-Cc: linux-omap@vger.kernel.org, b-cousson@ti.com, andy.green@linaro.org, patches@linaro.org, andy@warmcat.com, peter.maydell@linaro.org, khilman@ti.com
 
-* Jan Weitzel <j.weitzel@phytec.de> [110614 03:01]:
-> On OMAP4 OMAP_I2C_STAT_NACK is causing a timeout on the next access.
-> The isr cleans all flags in OMAP_I2C_CON_REG by setting OMAP_I2C_CON_STP
-> OMAP_I2C_CON_STP is also set in omap_i2c_xfer_msg on the last message.
-> 
-> According to the TI TSR the sequence for OMAP_I2C_STAT_NACK and
-> OMAP_I2C_STAT_AL are nearly the same.
-> Removing the OMAP_I2C_CON_STP part in the isr fix the problem.
-> Tested on OMAP4430 and OMAP3530 (here NACK was not a problem)
-> 
-> Signed-off-by: Jan Weitzel <j.weitzel@phytec.de>
+On Fri, Jun 10, 2011 at 05:55:43PM -0400, Ohad Ben-Cohen wrote:
+> Ohad Ben-Cohen (4):
+>   drivers: iommu: move to a dedicated folder
+>   msm: iommu: move to drivers/iommu/
+>   x86: amd_iommu: move to drivers/iommu/
+>   x86/ia64: intel-iommu: move to drivers/iommu/
 
-Please resend this to Ben Dooks and linux-i2c list Cc'd and also mention
-that this fixes booting on 2430sdp that's been failing for a while now.
+Btw, what tree do these patches apply against? I tried to apply them to
+v3.0-rc3 and got conflicts. Can you rebase them against -rc3?
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+	Joerg
 
-> ---
->  drivers/i2c/busses/i2c-omap.c |    6 ++----
->  1 files changed, 2 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> index 58a58c7..670f2a2 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -836,11 +836,9 @@ complete:
->  				~(OMAP_I2C_STAT_RRDY | OMAP_I2C_STAT_RDR |
->  				OMAP_I2C_STAT_XRDY | OMAP_I2C_STAT_XDR));
->  
-> -		if (stat & OMAP_I2C_STAT_NACK) {
-> +		if (stat & OMAP_I2C_STAT_NACK)
->  			err |= OMAP_I2C_STAT_NACK;
-> -			omap_i2c_write_reg(dev, OMAP_I2C_CON_REG,
-> -					   OMAP_I2C_CON_STP);
-> -		}
-> +
->  		if (stat & OMAP_I2C_STAT_AL) {
->  			dev_err(dev->dev, "Arbitration lost\n");
->  			err |= OMAP_I2C_STAT_AL;
-> -- 
-> 1.7.0.4
-> 
+-- 
+AMD Operating System Research Center
+
+Advanced Micro Devices GmbH Einsteinring 24 85609 Dornach
+General Managers: Alberto Bozzo, Andrew Bowd
+Registration: Dornach, Landkr. Muenchen; Registerger. Muenchen, HRB Nr. 43632
