@@ -1,53 +1,41 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH] power: opp: Fix rcu_dereference_check() without protection!
-Date: Tue, 14 Jun 2011 18:33:20 +0530
-Message-ID: <1308056600-17601-1-git-send-email-santosh.shilimkar@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/2] CBUS Patches
+Date: Tue, 14 Jun 2011 06:11:39 -0700
+Message-ID: <20110614131139.GE23145@atomide.com>
+References: <1307994058-25486-1-git-send-email-balbi@ti.com>
+ <20110614100643.GM3352@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-pm@lists.linux-foundation.org
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Nishanth Menon <nm@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:50771 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751892Ab1FNNLm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Jun 2011 09:11:42 -0400
+Content-Disposition: inline
+In-Reply-To: <20110614100643.GM3352@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-With RCU debug options enabled, below warning is observed.
+* Tony Lindgren <tony@atomide.com> [110614 03:02]:
+> * Felipe Balbi <balbi@ti.com> [110613 12:36]:
+> > Hi Tony,
+> > 
+> > the following two patches get rid of
+> > the static global variable holding the
+> > bus context. It's not needed at all.
+> > 
+> > This will allow us to have multiple
+> > CBUS buses by using different GPIOs.
+> > 
+> > Will never be useful, but that's it
+> > should've been done anyway :-p
+> 
+> OK cool applying to cbus branch.
 
-===================================================
-[ INFO: suspicious rcu_dereference_check() usage. ]
----------------------------------------------------
-drivers/base/power/opp.c:151 invoked rcu_dereference_check() without protection!
+Hmm the second patch "cbus: pass device as argument" breaks
+booting on n800. Anyways pushed out already so that will
+need to be fixed in a separate patch.
 
-other info that might help us debug this:
-
-rcu_scheduler_active = 1, debug_locks = 1
-no locks held by swapper/1.
-...
-
----------------------------------------------------
-
-Fix the same by protecting it with rcu_read lock.
-
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Nishanth Menon <nm@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
----
- drivers/base/power/opp.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/base/power/opp.c b/drivers/base/power/opp.c
-index 56a6899..cbed5e1 100644
---- a/drivers/base/power/opp.c
-+++ b/drivers/base/power/opp.c
-@@ -148,7 +148,9 @@ unsigned long opp_get_voltage(struct opp *opp)
- 	struct opp *tmp_opp;
- 	unsigned long v = 0;
- 
-+	rcu_read_lock();
- 	tmp_opp = rcu_dereference(opp);
-+	rcu_read_unlock();
- 	if (unlikely(IS_ERR_OR_NULL(tmp_opp)) || !tmp_opp->available)
- 		pr_err("%s: Invalid parameters\n", __func__);
- 	else
--- 
-1.6.0.4
+Tony
