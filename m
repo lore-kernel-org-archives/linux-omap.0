@@ -1,67 +1,62 @@
-From: Ming Lei <tom.leiming@gmail.com>
-Subject: Re: OMPA4: 3.0-rc1: Unhandled fault during insmod 'ohci-hcd.ko'
-Date: Tue, 14 Jun 2011 18:59:48 +0800
-Message-ID: <BANLkTi=TPNWMe9_gb7SY2J62SC0L8EoRcw@mail.gmail.com>
-References: <BANLkTinYcxJqUM4G2ERew3okUTdf0LOLGA@mail.gmail.com>
-	<BANLkTin=7aEaPDf=2Aa9SApdGetyvdz50g@mail.gmail.com>
+From: =?ISO-8859-1?Q?P=E9ter?= Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: Re: [PATCH] OMAP4: McBSP: Clear rx_irq at probe time
+Date: Tue, 14 Jun 2011 14:19:34 +0300
+Message-ID: <27857936.rzNg0PjYWH@barack>
+References: <1305628420-10592-1-git-send-email-peter.ujfalusi@ti.com> <201106081051.27234.peter.ujfalusi@ti.com> <20110613133542.GD3352@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:61502 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756104Ab1FNK7u convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Jun 2011 06:59:50 -0400
-Received: by wya21 with SMTP id 21so3796038wya.19
-        for <linux-omap@vger.kernel.org>; Tue, 14 Jun 2011 03:59:49 -0700 (PDT)
-In-Reply-To: <BANLkTin=7aEaPDf=2Aa9SApdGetyvdz50g@mail.gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:46727 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754362Ab1FNLTe convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Jun 2011 07:19:34 -0400
+In-Reply-To: <20110613133542.GD3352@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Todd Poynor <toddpoynor@google.com>, keshava_mgowda@ti.com, sameo@linux.intel.com
-Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Jarkko Nikula <jhnikula@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Girdwood, Liam" <lrg@ti.com>, "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
 
-Hi,
+Hi Tony,
 
-2011/6/5 Todd Poynor <toddpoynor@google.com>:
-> In general, the imprecise external abort usually means an access was =
-made to
-> registers of a module whose clock is gated. =A0The calls to clk_enabl=
-e()
-> within=A0usbhs_enable() probably aren't following the proper sequence=
- of
-> ensuring the CD_L3_INIT clock domain is on (CM_L3INIT_CLKSTCTRL.CLKTR=
-CTRL =3D
-> 0x2 SW_WKUP) and then the associated module slaves woken up
-> (CM_L3INIT_HSUSBHOST_CLKCTRL.MODULEMODE =3D 0x2 Enabled, similar
-> for=A0CM_L3INIT_HSUSBTLL_CLKCTRL). =A0Probably needs calls to the OMA=
-P device
-> layer to set those up, but I dunno the details of this device or why =
-it
-> broke.
->
+On Monday 13 June 2011 15:35:43 Tony Lindgren wrote:
+> Sure we can merge fixes
 
-No doubt, it is caused by gated clock, ehci will be OK if revert the
-commit below:
+Can you take this patch forward?
 
-commit 7e6502d577106fb5b202bbaac64c5f1b065e6daa
-Author: Keshava Munegowda <Keshava_mgowda@ti.com>
-Date:   Sun May 22 22:51:26 2011 +0200
+> but let's get the move done before adding
+> new features.
 
-    mfd: Add omap-usbhs runtime PM support
+What is considered a new feature here?
+Is it a new feature, if I fix the McBSP for OMAP4 (FIFO usage, and smal=
+l=20
+updates)?
+We have discussion ongoing about the mcbsp code move, and so far the cu=
+rrent=20
+understanding/plan is (Jarkko/Liam correct me if I'm wrong):
+- Fix the OMAP4 support
+- move the code under sound/soc/omap/
+ - the reason for this is that McBSP block can be only used for streami=
+ng type=20
+of modes (from omap2430 onwards McBSP does not have clock stop function=
+ality).
+This makes other type of usage hard to say the least.
+- Clean up the code (remove the SPI mode, remove unused code paths at t=
+he same=20
+time)
+- Consolidate the interface for audio only use
+- Only OMAP3 has sidetone (on OMAP2 EAC block has the sidetone), might =
+need=20
+some change, but I think the current way can be reused.
 
-    The usbhs core driver does not enable/disable the interface and
-    functional clocks; These clocks are handled by hwmod and runtime pm=
-,
-    hence insted of the clock enable/disable, the runtime pm APIS are
-    used. however,the port clocks and tll clocks are handled
-    by the usbhs core.
+In this way we are not going to hide the OMAP4 fixes with the code=20
+move/consolidation effort, so one can track what has been done, and why=
+=2E
 
-    Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
-    Signed-off-by: Samuel Ortiz <sameo@linux.intel.com>
-
+Opinions?
 
 --=20
-Ming Lei
+P=E9ter
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
