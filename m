@@ -1,47 +1,101 @@
 From: Carlos Chinea <carlos.chinea@nokia.com>
 Subject: Re: [RFC PATCHv5 2/7] HSI: omap_ssi: Introducing OMAP SSI driver
-Date: Tue, 14 Jun 2011 15:09:22 +0300
-Message-ID: <1308053362.2819.38112.camel@groo>
+Date: Tue, 14 Jun 2011 15:12:24 +0300
+Message-ID: <1308053544.2819.38115.camel@groo>
 References: <1307713124-3946-1-git-send-email-carlos.chinea@nokia.com>
 	 <1307713124-3946-3-git-send-email-carlos.chinea@nokia.com>
-	 <20110613132152.GA3352@atomide.com>
+	 <874o3tmqhk.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.48]:41112 "EHLO mgw-sa02.nokia.com"
+Received: from smtp.nokia.com ([147.243.128.24]:30879 "EHLO mgw-da01.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754331Ab1FNMNW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 14 Jun 2011 08:13:22 -0400
-In-Reply-To: <20110613132152.GA3352@atomide.com>
+	id S1754398Ab1FNMQ0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 14 Jun 2011 08:16:26 -0400
+In-Reply-To: <874o3tmqhk.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Tony Lindgren <tony@atomide.com>
+To: ext Kevin Hilman <khilman@ti.com>
 Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 
-Hi,
--- cut--
-> > +
-> > +static int __init ssi_init(void)
-> > +{
-> > +	return platform_device_register(&ssi_pdev);
-> > +}
-> > +subsys_initcall(ssi_init);
+On Mon, 2011-06-13 at 13:21 -0700, ext Kevin Hilman wrote:
+> Carlos Chinea <carlos.chinea@nokia.com> writes:
 > 
-> Looks like you need something here also to prevent this subsys_initcall
-> on running on all boards. Maybe have a pointer to ssi_pdev that only
-> gets initialized after omap_ssi_config?
+> > Introduces the OMAP SSI driver in the kernel.
+> >
+> > The Synchronous Serial Interface (SSI) is a legacy version
+> > of HSI. As in the case of HSI, it is mainly used to connect
+> > Application engines (APE) with cellular modem engines (CMT)
+> > in cellular handsets.
+> >
+> > It provides a multichannel, full-duplex, multi-core communication
+> > with no reference clock. The OMAP SSI block is capable of reaching
+> > speeds of 110 Mbit/s.
+> >
+> > Signed-off-by: Carlos Chinea <carlos.chinea@nokia.com>
+> > ---
+> >  arch/arm/mach-omap2/ssi.c             |  134 +++
+> >  arch/arm/plat-omap/include/plat/ssi.h |  204 ++++
+> >  drivers/hsi/controllers/omap_ssi.c    | 1852 +++++++++++++++++++++++++++++++++
+> >  3 files changed, 2190 insertions(+), 0 deletions(-)
+> >  create mode 100644 arch/arm/mach-omap2/ssi.c
+> >  create mode 100644 arch/arm/plat-omap/include/plat/ssi.h
+> >  create mode 100644 drivers/hsi/controllers/omap_ssi.c
+> >
+> > diff --git a/arch/arm/mach-omap2/ssi.c b/arch/arm/mach-omap2/ssi.c
+> > new file mode 100644
+> > index 0000000..e822a77
+> > --- /dev/null
+> > +++ b/arch/arm/mach-omap2/ssi.c
+> > @@ -0,0 +1,134 @@
+> > +/*
+> > + * linux/arch/arm/mach-omap2/ssi.c
 > 
-> Then you can have ssi_init fail if no configuration is called:
+> Minor: Please don't include filenames in the comments.  Files tend to move
+> around and these comments don't get updated.
+
+Yep. I'll remove this from all the comments.
+
 > 
-> 	if (!pdev)
-> 		return -ENODEV;
+> > + * Copyright (C) 2010 Nokia Corporation. All rights reserved.
+> > + *
+> > + * Contact: Carlos Chinea <carlos.chinea@nokia.com>
+> > + *
+> > + * This program is free software; you can redistribute it and/or
+> > + * modify it under the terms of the GNU General Public License
+> > + * version 2 as published by the Free Software Foundation.
+> > + *
+> > + * This program is distributed in the hope that it will be useful, but
+> > + * WITHOUT ANY WARRANTY; without even the implied warranty of
+> > + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> > + * General Public License for more details.
+> > + *
+> > + * You should have received a copy of the GNU General Public License
+> > + * along with this program; if not, write to the Free Software
+> > + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+> > + * 02110-1301 USA
+> > + */
+-- cut --
+
+> > +static struct platform_device ssi_pdev = {
+> > +	.name		= "omap_ssi",
+> > +	.id		= 0,
+> > +	.num_resources	= ARRAY_SIZE(ssi_resources),
+> > +	.resource	= ssi_resources,
+> > +	.dev		= {
+> > +				.platform_data	= &ssi_pdata,
+> > +	},
+> > +};
 > 
-> 	return platform_device_register(pdev);
+> omap_hwmod has all the base address and IRQ data, will construct the
+> struct resources and the platform_devices for you.  Please use
+> omap_hwmod + omap_device for this part of the code.
 > 
 
-Right. I'll do those changes.
+Yes, it  is already in my TODO list ;)
 
 Thanks,
 Carlos
+
 
