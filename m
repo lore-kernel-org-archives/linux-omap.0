@@ -1,32 +1,71 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC 1/2] omap: mcbsp: Drop SPI mode support
-Date: Tue, 14 Jun 2011 04:36:09 -0700
-Message-ID: <20110614113608.GP3352@atomide.com>
-References: <1308050632-4733-1-git-send-email-jhnikula@gmail.com>
+Subject: Re: [PATCH] Fix wrong OMAP_ES_x_y defines that make
+ omap_rev_lt_x_y and friends misbehave
+Date: Tue, 14 Jun 2011 04:41:16 -0700
+Message-ID: <20110614114116.GQ3352@atomide.com>
+References: <BANLkTinWdQsjttt0m1h9KbVPjb6rWXNpvA@mail.gmail.com>
+ <BANLkTi=75up6OQwRzGJ586eVLorEdpCa7w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:53969 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756410Ab1FNLgN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Jun 2011 07:36:13 -0400
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:45552 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755872Ab1FNLlS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Jun 2011 07:41:18 -0400
 Content-Disposition: inline
-In-Reply-To: <1308050632-4733-1-git-send-email-jhnikula@gmail.com>
+In-Reply-To: <BANLkTi=75up6OQwRzGJ586eVLorEdpCa7w@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jhnikula@gmail.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Peter Ujfalusi <peter.ujfalusi@ti.com>
+To: Tasslehoff Kjappfot <tasskjapp@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
-* Jarkko Nikula <jhnikula@gmail.com> [110614 04:18]:
-> We haven't seen any use for the SPI API in McBSP driver over the years. More
-> over, Peter Ujfalusi <peter.ujfalusi@ti.com> noticed that SPI mode is not
-> even supported since OMAP2430 so it's very unlikely that we'll see any use
-> for it in the future either.
+* Tasslehoff Kjappfot <tasskjapp@gmail.com> [110614 03:35]:
+> From 620fa271b32f8bdd8f06954c0a2c96af6ed1dc7b Mon Sep 17 00:00:00 200=
+1
+> From: Tasslehoff Kjappfot <tasskjapp@gmail.com>
+> Date: Tue, 14 Jun 2011 12:06:09 +0200
+> Subject: [PATCH] Fix wrong OMAP_ES_x_y defines that make
+> omap_rev_lt_x_y and friends misbehave
 
-Sounds fair to me, our first priority should be to get this
-code moved to live under drivers. If the SPI support is needed,
-it can be added back later on.
-
-Regards,
+Hmm, we don't seem to have these in the mainline kernel?
+Maybe take a look if something still needs to patched
+there?
 
 Tony
+
+> ---
+> =C2=A0arch/arm/plat-omap/include/plat/cpu.h | =C2=A0 =C2=A08 ++++----
+> =C2=A01 files changed, 4 insertions(+), 4 deletions(-)
+> diff --git a/arch/arm/plat-omap/include/plat/cpu.h
+> b/arch/arm/plat-omap/include/plat/cpu.h
+> index 7d24faa..ec63575 100644
+> --- a/arch/arm/plat-omap/include/plat/cpu.h
+> +++ b/arch/arm/plat-omap/include/plat/cpu.h
+> @@ -397,10 +397,10 @@ IS_OMAP_TYPE(3517, 0x3517)
+> =C2=A0 * Silicon revisions
+> =C2=A0 */
+> =C2=A0#define OMAP_ES_1_0 0x00
+> -#define OMAP_ES_2_0 0x10
+> -#define OMAP_ES_2_1 0x20
+> -#define OMAP_ES_3_0 0x30
+> -#define OMAP_ES_3_1 0x40
+> +#define OMAP_ES_2_0 0x01
+> +#define OMAP_ES_2_1 0x02
+> +#define OMAP_ES_3_0 0x03
+> +#define OMAP_ES_3_1 0x04
+>=20
+> =C2=A0#define OMAP_REV_MASK 0x0000ff00
+> =C2=A0#define OMAP_REV_BITS ((omap_rev() & OMAP_REV_MASK) >> 8)
+> --
+> 1.7.1
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
