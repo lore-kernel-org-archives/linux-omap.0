@@ -1,153 +1,48 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH v2 0/4] drivers/iommu/ relocations
-Date: Tue, 14 Jun 2011 13:44:56 +0300
-Message-ID: <BANLkTinABOiqzhY_FfCeQLyE53Wr=OtAeQ@mail.gmail.com>
-References: <1307742947-32118-1-git-send-email-ohad@wizery.com> <20110614102916.GF29908@amd.com>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary=0016e6dee70f3c82c604a5a9bbac
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20110614102916.GF29908@amd.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Roedel, Joerg" <Joerg.Roedel@amd.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, David Brown <davidb@codeaurora.org>, David Woodhouse <dwmw2@infradead.org>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
+From: Jan Weitzel <j.weitzel-guT5V/WYfQezQB+pC5nmwQ@public.gmane.org>
+Subject: [PATCH] ARM: OMAP2+ i2c NACK without STP
+Date: Tue, 14 Jun 2011 12:54:13 +0200
+Message-ID: <1308048853-21911-1-git-send-email-j.weitzel@phytec.de>
+References: <20110614102409.GN3352@atomide.com>
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20110614102409.GN3352-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org, andy.green-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
+Cc: andy-/Zus8d0mwwtBDgjK7y7TUQ@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, peter.maydell-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, khilman-l0cyMroinI0@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jan Weitzel <j.weitzel-guT5V/WYfQezQB+pC5nmwQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
---0016e6dee70f3c82c604a5a9bbac
-Content-Type: text/plain; charset=ISO-8859-1
+On OMAP4 OMAP_I2C_STAT_NACK is causing a timeout on the next access.
+The isr cleans all flags in OMAP_I2C_CON_REG by setting OMAP_I2C_CON_STP
+OMAP_I2C_CON_STP is also set in omap_i2c_xfer_msg on the last message.
 
-On Tue, Jun 14, 2011 at 1:29 PM, Roedel, Joerg <Joerg.Roedel@amd.com> wrote:
-> Btw, what tree do these patches apply against?
+According to the TI TSR the sequence for OMAP_I2C_STAT_NACK and
+OMAP_I2C_STAT_AL are nearly the same.
+Removing the OMAP_I2C_CON_STP part in the isr fix the problem.
+Tested on OMAP4430 and OMAP3530 (here NACK was not a problem)
+Fixes also booting on 2430sdp.
 
-v3.0-rc2
+Signed-off-by: Jan Weitzel <j.weitzel-guT5V/WYfQezQB+pC5nmwQ@public.gmane.org>
+Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+---
+ drivers/i2c/busses/i2c-omap.c |    6 ++----
+ 1 files changed, 2 insertions(+), 4 deletions(-)
 
-> I tried to apply them to v3.0-rc3 and got conflicts.
-
-What kind of conflicts ? I just tried rc3 and it applied cleanly.
-
-Just in case, I'm attaching the patches too.
-
-Tell me if you still see any issue, thanks !
-
---0016e6dee70f3c82c604a5a9bbac
-Content-Type: application/x-bzip2; name="iommu-patches.tar.bz2"
-Content-Disposition: attachment; filename="iommu-patches.tar.bz2"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_gowq4h2h0
-
-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
---0016e6dee70f3c82c604a5a9bbac--
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index 58a58c7..670f2a2 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -836,11 +836,9 @@ complete:
+ 				~(OMAP_I2C_STAT_RRDY | OMAP_I2C_STAT_RDR |
+ 				OMAP_I2C_STAT_XRDY | OMAP_I2C_STAT_XDR));
+ 
+-		if (stat & OMAP_I2C_STAT_NACK) {
++		if (stat & OMAP_I2C_STAT_NACK)
+ 			err |= OMAP_I2C_STAT_NACK;
+-			omap_i2c_write_reg(dev, OMAP_I2C_CON_REG,
+-					   OMAP_I2C_CON_STP);
+-		}
++
+ 		if (stat & OMAP_I2C_STAT_AL) {
+ 			dev_err(dev->dev, "Arbitration lost\n");
+ 			err |= OMAP_I2C_STAT_AL;
+-- 
+1.7.0.4
