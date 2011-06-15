@@ -1,55 +1,38 @@
-From: Dima Zavin <dima@android.com>
-Subject: Re: [PATCH] mfd: omap: fix the crash during omap ehci or ohci driver initialization
-Date: Wed, 15 Jun 2011 16:25:48 -0700
-Message-ID: <BANLkTingZ1A=7YxZ4E4aZ40QETs5MHQnfSYOj9x6sUG2657M9w@mail.gmail.com>
-References: <1307367739-20110-1-git-send-email-keshava_mgowda@ti.com>
-	<20110606135221.GG12242@legolas.emea.dhcp.ti.com>
+From: Nicolas Pitre <nicolas.pitre-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v4 00/18] I2C: OMAP: I2C fixes, removal of cpu_is... from
+ driver
+Date: Wed, 15 Jun 2011 19:27:31 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.1106151919070.2142@xanadu.home>
+References: <1306973984-15165-1-git-send-email-khilman@ti.com> <20110615213637.GH15795@trinity.fluff.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:3332 "EHLO
-	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752172Ab1FOX0A convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Jun 2011 19:26:00 -0400
-Received: from hpaq14.eem.corp.google.com (hpaq14.eem.corp.google.com [172.25.149.14])
-	by smtp-out.google.com with ESMTP id p5FNPtbo028917
-	for <linux-omap@vger.kernel.org>; Wed, 15 Jun 2011 16:25:55 -0700
-Received: from gxk21 (gxk21.prod.google.com [10.202.11.21])
-	by hpaq14.eem.corp.google.com with ESMTP id p5FNOxO1001790
-	(version=TLSv1/SSLv3 cipher=RC4-SHA bits=128 verify=NOT)
-	for <linux-omap@vger.kernel.org>; Wed, 15 Jun 2011 16:25:49 -0700
-Received: by gxk21 with SMTP id 21so523405gxk.19
-        for <linux-omap@vger.kernel.org>; Wed, 15 Jun 2011 16:25:49 -0700 (PDT)
-In-Reply-To: <20110606135221.GG12242@legolas.emea.dhcp.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20110615213637.GH15795-SMNkleLxa3Z6Wcw2j4pizdi2O/JbrIOy@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ben Dooks <ben-i2c-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
+Cc: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andy Green <andy.green-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: Keshava Munegowda <keshava_mgowda@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com
 
-Why is this not just a straight revert of
-7e6502d577106fb5b202bbaac64c5f1b065e6daa?
+On Wed, 15 Jun 2011, Ben Dooks wrote:
 
-On Mon, Jun 6, 2011 at 6:52 AM, Felipe Balbi <balbi@ti.com> wrote:
-> On Mon, Jun 06, 2011 at 07:12:19PM +0530, Keshava Munegowda wrote:
->> From: Keshava Munegowda <Keshava_mgowda@ti.com>
->>
->> Oops are produced during initialization of ehci and ohci
->> drivers. This is because the run time pm apis are used by
->> the driver but the corresponding hwmod structures and
->> initialization is not merged. hence revering =A0back the
->> commit id 7e6502d577106fb5b202bbaac64c5f1b065e6daa
->>
->> Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
->
-> Reported-by: Luciano Coelho <coelho@ti.com>
-> Acked-by: Felipe Balbi <balbi@ti.com>
->
-> --
-> balbi
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> On Wed, Jun 01, 2011 at 05:19:26PM -0700, Kevin Hilman wrote:
+> > Ben, 
+> > 
+> > Please pull in this series from Andy Green for the next merge window.
+> > 
+> > v4 is simply a rebase of Andy's v3 against v3.0-rc1 with some basic
+> > sanity testing against with the latest kernel.
+> 
+> These look much more like functionality changes than actual fixes, and
+> are much more suited for inclusion into -next for once the next stable
+> release is out.
+
+What do you mean, exactly?  The merge window, as opposed to 
+the -rc period, is good for functionality changes, no?
+
+Those patches have been out for quite a while, and they got quite 
+extensive testing in the OMAP tree, and in the kernel included with the 
+Linaro 11.05 release as well.
+
+
+Nicolas
