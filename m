@@ -1,83 +1,35 @@
-From: Vladimir Pantelic <vladoman@gmail.com>
-Subject: Re: [PATCH] omap v4l2: fix wrong resizer calculation
-Date: Wed, 15 Jun 2011 12:15:59 +0200
-Message-ID: <4DF8865F.5010007@gmail.com>
-References: <4DB67614.7030008@gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCHv2 15/28] OMAP4: HWMOD: Modify DSS opt clocks
+Date: Wed, 15 Jun 2011 14:23:47 +0300
+Message-ID: <1308137027.1974.39.camel@deskari>
+References: <1307627810-3768-1-git-send-email-tomi.valkeinen@ti.com>
+	 <1307627810-3768-16-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------060408030204090801090000"
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:41392 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753960Ab1FOKQC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Jun 2011 06:16:02 -0400
-In-Reply-To: <4DB67614.7030008@gmail.com>
+Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:41263 "EHLO
+	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754850Ab1FOLXx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 15 Jun 2011 07:23:53 -0400
+In-Reply-To: <1307627810-3768-16-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kernel development list <linux-kernel@vger.kernel.org>
-Cc: linux-omap@vger.kernel.org, "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: b-cousson@ti.com
+Cc: linux-fbdev@vger.kernel.org, paul@pwsan.com, khilman@ti.com, linux-omap mailing list <linux-omap@vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------060408030204090801090000
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+On Thu, 2011-06-09 at 16:56 +0300, Tomi Valkeinen wrote:
+> Add missing DSS optional clocks to HWMOD data for OMAP4xxx.
+> 
+> Add HWMOD_CONTROL_OPT_CLKS_IN_RESET flag for dispc to fix dispc reset.
+> 
+> Cc: Benoit Cousson <b-cousson@ti.com>
+> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-ping
+Benoit (and/or Paul/Kevin), can you ack this and the other HWMOD
+patches, or give comments?
 
---------------060408030204090801090000
-Content-Type: text/x-diff;
- name="0001-omap-v4l2-fix-wrong-resizer-calculation.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="0001-omap-v4l2-fix-wrong-resizer-calculation.patch"
-
->From 47473f26bda2ef2e3a5e8f0203fde0c74c412c36 Mon Sep 17 00:00:00 2001
-From: Vladimir Pantelic <vladoman@gmail.com>
-Date: Tue, 26 Apr 2011 09:28:11 +0200
-Subject: [PATCH] omap v4l2: fix wrong resizer calculation
-
-in omap_vout_new_crop(), "crop" is the output parameter and
-therefore new_crop/try_crop should be used to calculate the
-resizer values
-
-Signed-off-by: Vladimir Pantelic <vladoman@gmail.com>
----
- drivers/media/video/omap/omap_voutlib.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/media/video/omap/omap_voutlib.c b/drivers/media/video/omap/omap_voutlib.c
-index 2aa6a76..8ae7481 100644
---- a/drivers/media/video/omap/omap_voutlib.c
-+++ b/drivers/media/video/omap/omap_voutlib.c
-@@ -193,7 +193,7 @@ int omap_vout_new_crop(struct v4l2_pix_format *pix,
- 		return -EINVAL;
- 
- 	if (cpu_is_omap24xx()) {
--		if (crop->height != win->w.height) {
-+		if (try_crop.height != win->w.height) {
- 			/* If we're resizing vertically, we can't support a
- 			 * crop width wider than 768 pixels.
- 			 */
-@@ -202,7 +202,7 @@ int omap_vout_new_crop(struct v4l2_pix_format *pix,
- 		}
- 	}
- 	/* vertical resizing */
--	vresize = (1024 * crop->height) / win->w.height;
-+	vresize = (1024 * try_crop.height) / win->w.height;
- 	if (cpu_is_omap24xx() && (vresize > 2048))
- 		vresize = 2048;
- 	else if (cpu_is_omap34xx() && (vresize > 4096))
-@@ -221,7 +221,7 @@ int omap_vout_new_crop(struct v4l2_pix_format *pix,
- 			try_crop.height = 2;
- 	}
- 	/* horizontal resizing */
--	hresize = (1024 * crop->width) / win->w.width;
-+	hresize = (1024 * try_crop.width) / win->w.width;
- 	if (cpu_is_omap24xx() && (hresize > 2048))
- 		hresize = 2048;
- 	else if (cpu_is_omap34xx() && (hresize > 4096))
--- 
-1.6.0.2
+ Tomi
 
 
---------------060408030204090801090000--
