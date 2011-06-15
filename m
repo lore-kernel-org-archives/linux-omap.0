@@ -1,176 +1,126 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH 3/3] HACK: OMAP: Serial: use PRCM wakeup events to enable clocks
-Date: Wed, 15 Jun 2011 10:21:50 +0300
-Message-ID: <1308122510.1851.6.camel@sokoban>
-References: <1307625904-18629-1-git-send-email-t-kristo@ti.com> <1307625904-18629-4-git-send-email-t-kristo@ti.com> <BANLkTikTnMEDmXgbi1kxAJ0F0-NUAEDtzg@mail.gmail.com>
-Reply-To: <t-kristo@ti.com>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: Re: Re: Re: Re: [PATCH v4 11/18] input: Add initial support for
+ TWL6040 vibrator
+Date: Wed, 15 Jun 2011 10:18:58 +0200
+Message-ID: <20110615081858.GM8141@htj.dyndns.org>
+References: <1307706876-4768-1-git-send-email-peter.ujfalusi@ti.com>
+ <4476185.bf2jyafmHt@barack>
+ <20110614081836.GG8141@htj.dyndns.org>
+ <100646074.zaKeYdXKr4@barack>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:60615 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751505Ab1FOHVy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Jun 2011 03:21:54 -0400
-Content-Class: urn:content-classes:message
-In-Reply-To: <BANLkTikTnMEDmXgbi1kxAJ0F0-NUAEDtzg@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <100646074.zaKeYdXKr4@barack>
+Sender: linux-input-owner@vger.kernel.org
+To: =?iso-8859-1?Q?P=E9ter?= Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, "Girdwood, Liam" <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Samuel Ortiz <sameo@linux.intel.com>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "Lopez Cruz, Misael" <misael.lopez@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Govindraj <govindraj.ti@gmail.com>
-Cc: linux-omap@vger.kernel.org, "Basak, Partha" <p-basak2@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
 
-On Tue, 2011-06-14 at 14:34 +0200, Govindraj wrote:
-> On Thu, Jun 9, 2011 at 6:55 PM, Tero Kristo <t-kristo@ti.com> wrote:
-> > This patch is just to test that the idea works generally, proper implementation
-> > should be done for the OMAP UART driver.
-> >
+Hello,
 
-Hi Govindraj,
+On Tue, Jun 14, 2011 at 01:22:45PM +0300, P=E9ter Ujfalusi wrote:
+> However I did run a short experiments regarding to latencies:
+> With create_singlethread_workqueue :
+> Jun 14 12:54:30 omap-gentoo kernel: [  211.269531] vibra scheduling t=
+ime: 30 usec
+> Jun 14 12:54:30 omap-gentoo kernel: [  211.300811] vibra scheduling t=
+ime: 30 usec
+> Jun 14 12:54:33 omap-gentoo kernel: [  214.419006] vibra scheduling t=
+ime: 31 usec
+> Jun 14 12:54:34 omap-gentoo kernel: [  214.980987] vibra scheduling t=
+ime: 30 usec
+> Jun 14 12:54:35 omap-gentoo kernel: [  215.762115] vibra scheduling t=
+ime: 30 usec
+> Jun 14 12:54:35 omap-gentoo kernel: [  215.816650] vibra scheduling t=
+ime: 30 usec
+> Jun 14 12:54:35 omap-gentoo kernel: [  215.871337] vibra scheduling t=
+ime: 61 usec
+> Jun 14 12:54:35 omap-gentoo kernel: [  215.926025] vibra scheduling t=
+ime: 61 usec
+> Jun 14 12:54:35 omap-gentoo kernel: [  215.980743] vibra scheduling t=
+ime: 61 usec
+> Jun 14 12:54:35 omap-gentoo kernel: [  216.035430] vibra scheduling t=
+ime: 61 usec
+> Jun 14 12:54:38 omap-gentoo kernel: [  219.425659] vibra scheduling t=
+ime: 31 usec
+> Jun 14 12:54:40 omap-gentoo kernel: [  220.981658] vibra scheduling t=
+ime: 31 usec
+> Jun 14 12:54:44 omap-gentoo kernel: [  224.692504] vibra scheduling t=
+ime: 30 usec
+> Jun 14 12:54:44 omap-gentoo kernel: [  225.067138] vibra scheduling t=
+ime: 30 usec
+>=20
+> With create_workqueue :
+> Jun 14 12:05:00 omap-gentoo kernel: [  304.965393] vibra scheduling t=
+ime: 183 usec
+> Jun 14 12:05:01 omap-gentoo kernel: [  305.964996] vibra scheduling t=
+ime: 61 usec
+> Jun 14 12:05:03 omap-gentoo kernel: [  307.684082] vibra scheduling t=
+ime: 152 usec
+> Jun 14 12:05:06 omap-gentoo kernel: [  310.972778] vibra scheduling t=
+ime: 30 usec
+> Jun 14 12:05:08 omap-gentoo kernel: [  312.683715] vibra scheduling t=
+ime: 61 usec
+> Jun 14 12:05:10 omap-gentoo kernel: [  314.785675] vibra scheduling t=
+ime: 183 usec
+> Jun 14 12:05:15 omap-gentoo kernel: [  319.800903] vibra scheduling t=
+ime: 61 usec
+> Jun 14 12:05:16 omap-gentoo kernel: [  320.738403] vibra scheduling t=
+ime: 30 usec
+> Jun 14 12:05:16 omap-gentoo kernel: [  320.793090] vibra scheduling t=
+ime: 61 usec
+> Jun 14 12:05:16 omap-gentoo kernel: [  320.847778] vibra scheduling t=
+ime: 61 usec
+> Jun 14 12:05:16 omap-gentoo kernel: [  320.902465] vibra scheduling t=
+ime: 61 usec
+> Jun 14 12:05:16 omap-gentoo kernel: [  320.957153] vibra scheduling t=
+ime: 61 usec
+> Jun 14 12:05:16 omap-gentoo kernel: [  320.996185] vibra scheduling t=
+ime: 31 usec
+>=20
+> This is in a system, where I do not have any other drivers on I2C bus=
+, and I have
+> generated some load with this command:
+> grep -r generate_load /*
+>=20
+> So, I have some CPU, and IO load as well.
+>=20
+> At the end the differences are not that big, but with create_singleth=
+read_workqueue
+> I can see less spikes.
+>=20
+> This is with 3.0-rc2 kernel
+>=20
+> I still think, that there is a place for the create_singlethread_work=
+queue, and the
+> tactile feedback needs such a thing.
 
-Thanks for testing this out on OMAP3.
+So, yes, WQ_HIGHPRI would make difference in latency but as can be
+seen above in usecs range not msecs range and you're trading off batch
+execution and processing locality for it.
 
-> 
-> Doesn't seem to wake-up from off mode.
-> (uart pad wakeup after enable_offmode and uart timeouts)
-> 
-> I used attached patch which has some more additions to this patch.
-> (basically to get rid of prepare idle and resume idle calls from sram
-> idle path and cut clocks independently).
+> As I recall correctly this was the reason to use create_singlethread_=
+workqueue
+> in the twl4030-vibra driver as well (there were latency issues withou=
+t it).
 
-I am currently checking out your patch on my code base on OMAP4, so far
-I have not succeeded to get it work properly.
+Before cmwq, the latency which can be induced by using system
+workqueue can be easily upto seconds range.  With cmwq, it should be
+in the usecs to few millisecs range.  If that's not enough, the use
+case probably calls for dedicated RT thread or threaded IRQ handler.
 
-> 
-> IIUC we have to comment out all resume calls even from omap-serial.c
-> irq_chaining should call uart_irq handler registered in serial.c
-> and block sleep.
+No human being can feel 120usec difference and I can't see how using
+HIGHPRI is justified here (which is what the code is doing
+_accidentally_ by using singlethread_workqueue).
 
-Yep, this would be the case. A few calls are probably required in the
-omap-serial.c because console can try to print something out, and if
-this happens while clocks are cut, it dies. This is at least what I saw
-on my setup.
+Thank you.
 
-> And on 3430SDP even for module level wakeup after cutting clocks
-> I see it gets looped in prcm_irq handler trying to clear wakeup status bits
-> trying to handle same from serial_omap_irq calling resume_idle
-> doesn't seem to help though if I use the same call from prcm_clear_mod_irqs
-> helps in wakeup.
-
-Not sure about this as I don't have OMAP3.
-
-> Also patch series doesn't seem to apply cleanly on 3.0 kernel conflicts with
-> 4430pm things.
-
-This is probably true, I was forced to apply quite a large amount of
-code on top of PM branch to get sleep to work properly on OMAP4.
-
-Anyway, I'll continue testing on OMAP4 on top of your patch.
-
--Tero
-
-> 
-> --
-> Thanks,
-> Govindraj.R
-> 
-> 
-> > Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> > ---
-> >  arch/arm/mach-omap2/pm44xx.c     |    4 ----
-> >  arch/arm/mach-omap2/serial.c     |    3 +++
-> >  drivers/tty/serial/omap-serial.c |    7 +++++++
-> >  3 files changed, 10 insertions(+), 4 deletions(-)
-> >
-> > diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
-> > index f70a9ad..ac6aa77 100644
-> > --- a/arch/arm/mach-omap2/pm44xx.c
-> > +++ b/arch/arm/mach-omap2/pm44xx.c
-> > @@ -103,10 +103,6 @@ void omap4_enter_sleep(unsigned int cpu, unsigned int power_state)
-> >
-> >        if (core_next_state < PWRDM_POWER_ON) {
-> >                omap2_gpio_resume_after_idle();
-> > -               omap_uart_resume_idle(0);
-> > -               omap_uart_resume_idle(1);
-> > -               omap_uart_resume_idle(2);
-> > -               omap_uart_resume_idle(3);
-> >        }
-> >
-> >        return;
-> > diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-> > index 6959d65..4cf8c4a 100644
-> > --- a/arch/arm/mach-omap2/serial.c
-> > +++ b/arch/arm/mach-omap2/serial.c
-> > @@ -39,6 +39,7 @@
-> >  #include <plat/dma.h>
-> >  #include <plat/omap_hwmod.h>
-> >  #include <plat/omap_device.h>
-> > +#include <plat/prcm.h>
-> >
-> >  #include "prm2xxx_3xxx.h"
-> >  #include "pm.h"
-> > @@ -574,6 +575,8 @@ static void omap_uart_idle_init(struct omap_uart_state *uart)
-> >        ret = request_threaded_irq(uart->irq, NULL, omap_uart_interrupt,
-> >                                   IRQF_SHARED, "serial idle", (void *)uart);
-> >        WARN_ON(ret);
-> > +       ret = omap_prcm_register_pad_irq(uart->padconf, uart->irq);
-> > +       WARN_ON(ret);
-> >  }
-> >
-> >  void omap_uart_enable_irqs(int enable)
-> > diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-> > index 0275c28..cfe2e7c 100644
-> > --- a/drivers/tty/serial/omap-serial.c
-> > +++ b/drivers/tty/serial/omap-serial.c
-> > @@ -261,6 +261,8 @@ static void serial_omap_start_tx(struct uart_port *port)
-> >        unsigned int start;
-> >        int ret = 0;
-> >
-> > +       omap_uart_resume_idle(up->pdev->id);
-> > +
-> >        if (!up->use_dma) {
-> >                serial_omap_enable_ier_thri(up);
-> >                return;
-> > @@ -354,6 +356,8 @@ static inline irqreturn_t serial_omap_irq(int irq, void *dev_id)
-> >        unsigned int iir, lsr;
-> >        unsigned long flags;
-> >
-> > +       omap_uart_resume_idle(up->pdev->id);
-> > +
-> >        iir = serial_in(up, UART_IIR);
-> >        if (iir & UART_IIR_NO_INT)
-> >                return IRQ_NONE;
-> > @@ -947,6 +951,8 @@ serial_omap_console_write(struct console *co, const char *s,
-> >        unsigned int ier;
-> >        int locked = 1;
-> >
-> > +       omap_uart_resume_idle(up->pdev->id);
-> > +
-> >        local_irq_save(flags);
-> >        if (up->port.sysrq)
-> >                locked = 0;
-> > @@ -1303,6 +1309,7 @@ static int serial_omap_probe(struct platform_device *pdev)
-> >                goto do_release_region;
-> >
-> >        platform_set_drvdata(pdev, up);
-> > +       pr_info("OMAP UART %d is up\n", pdev->id);
-> >        return 0;
-> >  err:
-> >        dev_err(&pdev->dev, "[UART%d]: failure [%s]: %d\n",
-> > --
-> > 1.7.4.1
-> >
-> >
-> > Texas Instruments Oy, Tekniikantie 12, 02150 Espoo. Y-tunnus: 0115040-6. Kotipaikka: Helsinki
-> >
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >
-
-
-
-Texas Instruments Oy, Tekniikantie 12, 02150 Espoo. Y-tunnus: 0115040-6. Kotipaikka: Helsinki
- 
-
+--=20
+tejun
+--
+To unsubscribe from this list: send the line "unsubscribe linux-input" =
+in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
