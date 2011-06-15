@@ -1,45 +1,41 @@
-From: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v4 00/18] I2C: OMAP: I2C fixes, removal of cpu_is... from driver
-Date: Wed, 15 Jun 2011 16:33:48 -0700
-Message-ID: <87k4cm1xgj.fsf@ti.com>
-References: <1306973984-15165-1-git-send-email-khilman@ti.com>
-	<20110615213637.GH15795@trinity.fluff.org>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [RESEND PATCH 0/2] ARM IRQ Kconfig patches
+Date: Wed, 15 Jun 2011 16:48:55 -0700
+Message-ID: <8762o61wrc.fsf@ti.com>
+References: <1308142960-20767-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20110615213637.GH15795-SMNkleLxa3Z6Wcw2j4pizdi2O/JbrIOy@public.gmane.org> (Ben Dooks's message
-	of "Wed, 15 Jun 2011 22:36:37 +0100")
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ben Dooks <ben-i2c-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
-Cc: Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andy Green <andy.green-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:35859 "EHLO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753327Ab1FOXs7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 15 Jun 2011 19:48:59 -0400
+Received: by mail-pz0-f43.google.com with SMTP id 1so882975pzk.2
+        for <linux-omap@vger.kernel.org>; Wed, 15 Jun 2011 16:48:58 -0700 (PDT)
+In-Reply-To: <1308142960-20767-1-git-send-email-balbi@ti.com> (Felipe Balbi's
+	message of "Wed, 15 Jun 2011 16:02:38 +0300")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Russell King <linux@arm.linux.org.uk>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>
 
-Hi Ben,
+Felipe Balbi <balbi@ti.com> writes:
 
-Ben Dooks <ben-i2c-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org> writes:
-
-> On Wed, Jun 01, 2011 at 05:19:26PM -0700, Kevin Hilman wrote:
->> Ben, 
->> 
->> Please pull in this series from Andy Green for the next merge window.
->> 
->> v4 is simply a rebase of Andy's v3 against v3.0-rc1 with some basic
->> sanity testing against with the latest kernel.
+> I have lost count how many times I have sent
+> these patches. Will someone either take them
+> in or NAK them so I stop sending ??
 >
-> These look much more like functionality changes than actual fixes, and
-> are much more suited for inclusion into -next for once the next stable
-> release is out.
+> Felipe Balbi (2):
+>   arm: Kconfig: select correct HAVE_SPARSE_IRQ symbol
+>   arm: Kconfig: allow OMAP to use sparse IRQ numbering
+>
 
-Correct, this is a rework of functionality, not a set of fixes.  This
-series is targeted for the next release (v3.1), not for fixes
-(v3.0-rc).  
+Tested-by: Kevin Hilman <khilman@ti.com>
 
-I was requesting for it to be included in your queue for -next and for
-the next merge window.
-
-Tony has already been merging this in his omap-testing branch so it is
-has been getting lots of testing on OMAP platforms already.
-
-Thanks,
+Looks good to me.  Built with CONFIG_SPARSE_IRQ=y and boot tested on
+OMAP3430/n900 & OMAP4430/Blaze.
 
 Kevin
+
+
