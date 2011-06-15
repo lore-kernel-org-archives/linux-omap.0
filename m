@@ -1,43 +1,83 @@
-From: Andras Domokos <Andras.Domokos@nokia.com>
-Subject: Re: [RFC PATCHv5 0/7] HSI framework and drivers
-Date: Wed, 15 Jun 2011 12:27:03 +0300
-Message-ID: <1308130023-20667-1-git-send-email-Andras.Domokos@nokia.com>
-References: <1307713124-3946-1-git-send-email-carlos.chinea@nokia.com>, <20110614103548.3b336dac@lxorguk.ukuu.org.uk>
+From: Vladimir Pantelic <vladoman@gmail.com>
+Subject: Re: [PATCH] omap v4l2: fix wrong resizer calculation
+Date: Wed, 15 Jun 2011 12:15:59 +0200
+Message-ID: <4DF8865F.5010007@gmail.com>
+References: <4DB67614.7030008@gmail.com>
+Mime-Version: 1.0
+Content-Type: multipart/mixed;
+ boundary="------------060408030204090801090000"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:62628 "EHLO mgw-sa01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754209Ab1FOJ1q (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 15 Jun 2011 05:27:46 -0400
-In-Reply-To: <20110614103548.3b336dac@lxorguk.ukuu.org.uk>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:41392 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753960Ab1FOKQC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Jun 2011 06:16:02 -0400
+In-Reply-To: <4DB67614.7030008@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, sre@debian.org, linus.walleij@linaro.org, govindraj.ti@gmail.com, pawel.szyszuk@stericsson.com, sjur.brandeland@stericsson.com, peter_henn@gmx.de, Carlos Chinea <carlos.chinea@nokia.com>, Andras Domokos <Andras.Domokos@nokia.com>
+To: Kernel development list <linux-kernel@vger.kernel.org>
+Cc: linux-omap@vger.kernel.org, "Hiremath, Vaibhav" <hvaibhav@ti.com>
 
-Hi,
+This is a multi-part message in MIME format.
+--------------060408030204090801090000
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On 01/-10/-28163 09:59 PM, ext Alan Cox wrote:
-> On Fri, 10 Jun 2011 16:38:37 +0300
-> Carlos Chinea <carlos.chinea@nokia.com> wrote:
->
->> Hi !
->>
->> Here you have the fifth round of the HSI framework patches.
->
-> Looks good to me - only other oddity I found is to build hsi_char on x86
-> you need slab.h before kmemleak.h or the build errors
+ping
 
-We checked with Carlos why hsi_char was building for the ARM
-architecture in our environment.
-We found the reason, it was a kernel configuration issue after all, we
-didn't have CONFIG_DEBUG_KMEMLEAK option enabled in our .config file,
-that's why the oddity you have mentioned didn't show up in our case. But
-once the kernel option was turned on, we started seeing the compilation
-errors.
+--------------060408030204090801090000
+Content-Type: text/x-diff;
+ name="0001-omap-v4l2-fix-wrong-resizer-calculation.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="0001-omap-v4l2-fix-wrong-resizer-calculation.patch"
 
-We'll fix the problem based on your comments.
+>From 47473f26bda2ef2e3a5e8f0203fde0c74c412c36 Mon Sep 17 00:00:00 2001
+From: Vladimir Pantelic <vladoman@gmail.com>
+Date: Tue, 26 Apr 2011 09:28:11 +0200
+Subject: [PATCH] omap v4l2: fix wrong resizer calculation
 
-Thank you!
+in omap_vout_new_crop(), "crop" is the output parameter and
+therefore new_crop/try_crop should be used to calculate the
+resizer values
 
-Regards,
-Andras
+Signed-off-by: Vladimir Pantelic <vladoman@gmail.com>
+---
+ drivers/media/video/omap/omap_voutlib.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/video/omap/omap_voutlib.c b/drivers/media/video/omap/omap_voutlib.c
+index 2aa6a76..8ae7481 100644
+--- a/drivers/media/video/omap/omap_voutlib.c
++++ b/drivers/media/video/omap/omap_voutlib.c
+@@ -193,7 +193,7 @@ int omap_vout_new_crop(struct v4l2_pix_format *pix,
+ 		return -EINVAL;
+ 
+ 	if (cpu_is_omap24xx()) {
+-		if (crop->height != win->w.height) {
++		if (try_crop.height != win->w.height) {
+ 			/* If we're resizing vertically, we can't support a
+ 			 * crop width wider than 768 pixels.
+ 			 */
+@@ -202,7 +202,7 @@ int omap_vout_new_crop(struct v4l2_pix_format *pix,
+ 		}
+ 	}
+ 	/* vertical resizing */
+-	vresize = (1024 * crop->height) / win->w.height;
++	vresize = (1024 * try_crop.height) / win->w.height;
+ 	if (cpu_is_omap24xx() && (vresize > 2048))
+ 		vresize = 2048;
+ 	else if (cpu_is_omap34xx() && (vresize > 4096))
+@@ -221,7 +221,7 @@ int omap_vout_new_crop(struct v4l2_pix_format *pix,
+ 			try_crop.height = 2;
+ 	}
+ 	/* horizontal resizing */
+-	hresize = (1024 * crop->width) / win->w.width;
++	hresize = (1024 * try_crop.width) / win->w.width;
+ 	if (cpu_is_omap24xx() && (hresize > 2048))
+ 		hresize = 2048;
+ 	else if (cpu_is_omap34xx() && (hresize > 4096))
+-- 
+1.6.0.2
+
+
+--------------060408030204090801090000--
