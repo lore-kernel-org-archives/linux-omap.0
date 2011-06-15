@@ -1,90 +1,43 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 3.0-rc2] OMAP: ams-delta: fix broken uevent sysfs entries
-Date: Wed, 15 Jun 2011 16:16:55 +0300
-Message-ID: <20110615131654.GS471@legolas.emea.dhcp.ti.com>
-References: <201106070316.41099.jkrzyszt@tis.icnet.pl>
-	<201106151453.07945.jkrzyszt@tis.icnet.pl>
-	<20110615130005.GM471@legolas.emea.dhcp.ti.com>
-	<201106151514.11574.jkrzyszt@tis.icnet.pl>
-Reply-To: balbi@ti.com
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1725511319=="
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <201106151514.11574.jkrzyszt@tis.icnet.pl>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, balbi@ti.com, linux-kernel@vger.kernel.org
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: [PATCH] OMAP4: iommu: fix clock name
+Date: Wed, 15 Jun 2011 16:47:25 +0300
+Message-ID: <1308145645-22882-1-git-send-email-ohad@wizery.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:62703 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754857Ab1FONse (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Jun 2011 09:48:34 -0400
+Received: by wya21 with SMTP id 21so314864wya.19
+        for <linux-omap@vger.kernel.org>; Wed, 15 Jun 2011 06:48:33 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Tony Lindgren <tony@atomide.com>, Ohad Ben-Cohen <ohad@wizery.com>
 
+0e43327 "OMAP4: clock: Fix clock names and align with hwmod names"
+renamed ducati_ick to ipu_fck.
 
---===============1725511319==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="eHmdSDY+kY2au76U"
-Content-Disposition: inline
+Update OMAP4's iommu_device accordingly, so that omap_iommu_probe
+doesn't break when calling clk_get.
 
+Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
+---
+ arch/arm/mach-omap2/omap-iommu.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
---eHmdSDY+kY2au76U
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+diff --git a/arch/arm/mach-omap2/omap-iommu.c b/arch/arm/mach-omap2/omap-iommu.c
+index 3fc5dc7..e61fead 100644
+--- a/arch/arm/mach-omap2/omap-iommu.c
++++ b/arch/arm/mach-omap2/omap-iommu.c
+@@ -67,7 +67,7 @@ static struct iommu_device omap4_devices[] = {
+ 		.pdata = {
+ 			.name = "ducati",
+ 			.nr_tlb_entries = 32,
+-			.clk_name = "ducati_ick",
++			.clk_name = "ipu_fck",
+ 			.da_start = 0x0,
+ 			.da_end = 0xFFFFF000,
+ 		},
+-- 
+1.7.1
 
-Hi,
-
-On Wed, Jun 15, 2011 at 03:14:04PM +0200, Janusz Krzysztofik wrote:
-> > > How would you like to have this corrected then?
-> >=20
-> > I guess removing __initdata from all platoform_device structures is
-> > the way to go. We need to find another way to silent the section
-> > mismatch warnings.
->=20
-> OK. I'll cook a patch which removes __initdata from all listed above=20
-> instead of only from board-ams-delta.
-
-you can add my Acked-by line if you wish:
-
-Acked-by: Felipe Balbi <balbi@ti.com>
-
-and thanks for going through all this ;-)
-
---=20
-balbi
-
---eHmdSDY+kY2au76U
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQEcBAEBAgAGBQJN+LDGAAoJEAv8Txj19kN1W4cIAJ2D5F1XqUP6mn3SJn5yezqK
-O0y/6DuJbFn29UdJolrF4enSHxgBG7ayy7iUUukXZukfXat1gDRTDh28yGF7aCk/
-swuGJB5wr0keZUaI6kbNz5hha0edtCgVUGs3FwNGR/kUp0yblxyLeU3dh762/C4t
-KCy+oiB8zdMlnoWTLkHO5TOmssenAa7bRjy4RDzjxweAe47+uW3K4PstatK7QQF4
-VYJi4zYGnepdSShGeHXqqVuK3X1roCzZotwPqTz1f5kkXXJxVHj7qMmyR01YGyDi
-L6DA67qJdgzboNLYjp8pqUUJCzVcOlpaI342cAHYA/2EVv0tZVcdfkYx5xa+uSo=
-=lWuL
------END PGP SIGNATURE-----
-
---eHmdSDY+kY2au76U--
-
-
---===============1725511319==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-arm-kernel mailing list
-linux-arm-kernel@lists.infradead.org
-http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
---===============1725511319==--
