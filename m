@@ -1,207 +1,89 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: [PATCH v3 3/3] arm: omap3: cm-t35: add support for cm-t3730
-Date: Wed, 15 Jun 2011 00:16:14 +0300
-Message-ID: <1308086174-3080-3-git-send-email-grinberg@compulab.co.il>
-References: <20110614073648.GI3352@atomide.com>
+From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Subject: [PATCH v2 00/18] GPIO: OMAP: Driver Cleanup and Fixes
+Date: Wed, 15 Jun 2011 09:33:17 +0530
+Message-ID: <1308110615-28556-1-git-send-email-tarun.kanti@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:38866
-	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752736Ab1FNVQW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 14 Jun 2011 17:16:22 -0400
-In-Reply-To: <20110614073648.GI3352@atomide.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:41240 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750704Ab1FOEDF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 15 Jun 2011 00:03:05 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Mike Rapoport <mike@compulab.co.il>, Igor Grinberg <grinberg@compulab.co.il>
+To: linux-omap@vger.kernel.org
+Cc: khilman@ti.com, santosh.shilimkar@ti.com, tony@atomide.com, Tarun Kanti DebBarma <tarun.kanti@ti.com>
 
-cm-t3730 is basically the same board as cm-t35,
-but has AM/DM3730 SoC assembled and therefore some changes are required.
+This series is continuation of cleanup of OMAP GPIO driver and fixes.
+The cleanup include getting rid of cpu_is_* checks wherever possible,
+use of gpio_bank list instead of static array, use of unique platform
+specific value associated data member to OMAP platforms to avoid
+cpu_is_* checks. The series also include PM runtime support.
 
-Signed-off-by: Igor Grinberg <grinberg@compulab.co.il>
-Acked-by: Mike Rapoport <mike@compulab.co.il>
----
-v3:	fix MACH_* selection
-	remove completely the use of cpu_is_*
-v2:	Add debug uart entry
+Baseline: git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git
+Branch: wip/gpio-cleanup
+commit 1bb718191ab0158837ea6633d6fbdeb08fb755dc
+GPIO: OMAP: cleanup show revision, remove cpu_is checks, display only once
 
+v2:
+(1) Do special handling of non-wakeup GPIOs only on OMAP2420. Avoid this
+handling on OMAP3430.
 
- arch/arm/mach-omap2/Kconfig                  |    6 ++-
- arch/arm/mach-omap2/board-cm-t35.c           |   77 ++++++++++++++++++++-----
- arch/arm/plat-omap/include/plat/uncompress.h |    1 +
- 3 files changed, 67 insertions(+), 17 deletions(-)
+(2) Isolate cleanups and fixes into separate set of patches. Keep the cleanup
+first followed by the fixes.
 
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index 19d5891..4ae6257 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -266,9 +266,10 @@ config MACH_OMAP_ZOOM3
- 	select REGULATOR_FIXED_VOLTAGE
- 
- config MACH_CM_T35
--	bool "CompuLab CM-T35 module"
-+	bool "CompuLab CM-T35/CM-T3730 modules"
- 	depends on ARCH_OMAP3
- 	default y
-+	select MACH_CM_T3730
- 	select OMAP_PACKAGE_CUS
- 
- config MACH_CM_T3517
-@@ -277,6 +278,9 @@ config MACH_CM_T3517
- 	default y
- 	select OMAP_PACKAGE_CBB
- 
-+config MACH_CM_T3730
-+       bool
-+
- config MACH_IGEP0020
- 	bool "IGEP v2 board"
- 	depends on ARCH_OMAP3
-diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
-index 256b81c..ea31281 100644
---- a/arch/arm/mach-omap2/board-cm-t35.c
-+++ b/arch/arm/mach-omap2/board-cm-t35.c
-@@ -1,5 +1,5 @@
- /*
-- * board-cm-t35.c (CompuLab CM-T35 module)
-+ * CompuLab CM-T35/CM-T3730 modules support
-  *
-  * Copyright (C) 2009-2011 CompuLab, Ltd.
-  * Authors: Mike Rapoport <mike@compulab.co.il>
-@@ -574,17 +574,11 @@ static struct omap_board_mux board_mux[] __initdata = {
- 	OMAP3_MUX(UART1_TX, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
- 	OMAP3_MUX(UART1_RX, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
- 
--	/* DSS */
-+	/* common DSS */
- 	OMAP3_MUX(DSS_PCLK, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
- 	OMAP3_MUX(DSS_HSYNC, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
- 	OMAP3_MUX(DSS_VSYNC, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
- 	OMAP3_MUX(DSS_ACBIAS, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
--	OMAP3_MUX(DSS_DATA0, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
--	OMAP3_MUX(DSS_DATA1, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
--	OMAP3_MUX(DSS_DATA2, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
--	OMAP3_MUX(DSS_DATA3, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
--	OMAP3_MUX(DSS_DATA4, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
--	OMAP3_MUX(DSS_DATA5, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
- 	OMAP3_MUX(DSS_DATA6, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
- 	OMAP3_MUX(DSS_DATA7, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
- 	OMAP3_MUX(DSS_DATA8, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
-@@ -597,12 +591,6 @@ static struct omap_board_mux board_mux[] __initdata = {
- 	OMAP3_MUX(DSS_DATA15, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
- 	OMAP3_MUX(DSS_DATA16, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
- 	OMAP3_MUX(DSS_DATA17, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
--	OMAP3_MUX(DSS_DATA18, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
--	OMAP3_MUX(DSS_DATA19, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
--	OMAP3_MUX(DSS_DATA20, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
--	OMAP3_MUX(DSS_DATA21, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
--	OMAP3_MUX(DSS_DATA22, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
--	OMAP3_MUX(DSS_DATA23, OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT),
- 
- 	/* display controls */
- 	OMAP3_MUX(MCBSP1_FSR, OMAP_MUX_MODE4 | OMAP_PIN_OUTPUT),
-@@ -615,19 +603,53 @@ static struct omap_board_mux board_mux[] __initdata = {
- 
- 	{ .reg_offset = OMAP_MUX_TERMINATOR },
- };
-+
-+static void __init cm_t3x_common_dss_mux_init(int mux_mode)
-+{
-+	omap_mux_init_signal("dss_data18", mux_mode);
-+	omap_mux_init_signal("dss_data19", mux_mode);
-+	omap_mux_init_signal("dss_data20", mux_mode);
-+	omap_mux_init_signal("dss_data21", mux_mode);
-+	omap_mux_init_signal("dss_data22", mux_mode);
-+	omap_mux_init_signal("dss_data23", mux_mode);
-+}
-+
-+static void __init cm_t35_init_mux(void)
-+{
-+	omap_mux_init_signal("gpio_70", OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT);
-+	omap_mux_init_signal("gpio_71", OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT);
-+	omap_mux_init_signal("gpio_72", OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT);
-+	omap_mux_init_signal("gpio_73", OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT);
-+	omap_mux_init_signal("gpio_74", OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT);
-+	omap_mux_init_signal("gpio_75", OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT);
-+	cm_t3x_common_dss_mux_init(OMAP_MUX_MODE0 | OMAP_PIN_OUTPUT);
-+}
-+
-+static void __init cm_t3730_init_mux(void)
-+{
-+	omap_mux_init_signal("sys_boot0", OMAP_MUX_MODE3 | OMAP_PIN_OUTPUT);
-+	omap_mux_init_signal("sys_boot1", OMAP_MUX_MODE3 | OMAP_PIN_OUTPUT);
-+	omap_mux_init_signal("sys_boot3", OMAP_MUX_MODE3 | OMAP_PIN_OUTPUT);
-+	omap_mux_init_signal("sys_boot4", OMAP_MUX_MODE3 | OMAP_PIN_OUTPUT);
-+	omap_mux_init_signal("sys_boot5", OMAP_MUX_MODE3 | OMAP_PIN_OUTPUT);
-+	omap_mux_init_signal("sys_boot6", OMAP_MUX_MODE3 | OMAP_PIN_OUTPUT);
-+	cm_t3x_common_dss_mux_init(OMAP_MUX_MODE3 | OMAP_PIN_OUTPUT);
-+}
-+#else
-+static inline void cm_t35_init_mux(void) {}
-+static inline void cm_t3730_init_mux(void) {}
- #endif
- 
- static struct omap_board_config_kernel cm_t35_config[] __initdata = {
- };
- 
--static void __init cm_t35_init(void)
-+static void __init cm_t3x_common_init(void)
- {
- 	omap_board_config = cm_t35_config;
- 	omap_board_config_size = ARRAY_SIZE(cm_t35_config);
- 	omap3_mux_init(board_mux, OMAP_PACKAGE_CUS);
- 	omap_serial_init();
- 	cm_t35_init_i2c();
--	cm_t35_init_nand();
- 	omap_ads7846_init(1, CM_T35_GPIO_PENDOWN, 0, NULL);
- 	cm_t35_init_ethernet();
- 	cm_t35_init_led();
-@@ -637,6 +659,19 @@ static void __init cm_t35_init(void)
- 	usbhs_init(&usbhs_bdata);
- }
- 
-+static void __init cm_t35_init(void)
-+{
-+	cm_t3x_common_init();
-+	cm_t35_init_mux();
-+	cm_t35_init_nand();
-+}
-+
-+static void __init cm_t3730_init(void)
-+{
-+	cm_t3x_common_init();
-+	cm_t3730_init_mux();
-+}
-+
- MACHINE_START(CM_T35, "Compulab CM-T35")
- 	.boot_params	= 0x80000100,
- 	.reserve	= omap_reserve,
-@@ -646,3 +681,13 @@ MACHINE_START(CM_T35, "Compulab CM-T35")
- 	.init_machine	= cm_t35_init,
- 	.timer		= &omap_timer,
- MACHINE_END
-+
-+MACHINE_START(CM_T3730, "Compulab CM-T3730")
-+	.boot_params    = 0x80000100,
-+	.reserve        = omap_reserve,
-+	.map_io         = omap3_map_io,
-+	.init_early     = cm_t35_init_early,
-+	.init_irq       = omap_init_irq,
-+	.init_machine   = cm_t3730_init,
-+	.timer          = &omap_timer,
-+MACHINE_END
-diff --git a/arch/arm/plat-omap/include/plat/uncompress.h b/arch/arm/plat-omap/include/plat/uncompress.h
-index ac4b60d..a067484 100644
---- a/arch/arm/plat-omap/include/plat/uncompress.h
-+++ b/arch/arm/plat-omap/include/plat/uncompress.h
-@@ -148,6 +148,7 @@ static inline void __arch_decomp_setup(unsigned long arch_id)
- 		/* omap3 based boards using UART3 */
- 		DEBUG_LL_OMAP3(3, cm_t35);
- 		DEBUG_LL_OMAP3(3, cm_t3517);
-+		DEBUG_LL_OMAP3(3, cm_t3730);
- 		DEBUG_LL_OMAP3(3, craneboard);
- 		DEBUG_LL_OMAP3(3, devkit8000);
- 		DEBUG_LL_OMAP3(3, igep0020);
--- 
-1.7.3.4
+(3) Avoid calling omap_gpio_get_context_loss() directly and instead call it
+through function pointer in pdata initialized during init.
+
+(4) workaround_enabled flag is not longer needed and is removed.
+
+(5) Call pwrdm_post_transition() before calling omap_gpio_resume_after_idle().
+
+(6) In omap2_gpio_resume_after_idle() do context restore before handling
+workaround.
+
+(7) Use PM runtime framework.
+
+(8) Modify register offset names to : wkup_status, wkup_clear, wkup_set.
+Also use 'base + offset' for readibility in all relevant places.
+
+(9) Remove unwanted messages from commit section like TODO, etc.
+
+Test Details:
+* Compile tested for omap1_defconfig and omap2plus_defconfig.
+* OMAP1710-H3: Bootup test.
+* OMAP2430-SDP, OMAP3430-SDP, OMAP4430-SDP: Functional testing. 
+* PM Testing on OMAP3430-SDP: retention, off_mode, system_wide
+suspend and gpio wakeup.
+
+Charulatha V (13):
+  OMAP: GPIO: Remove dependency on gpio_bank_count
+  OMAP2PLUS: GPIO: Use flag to identify wakeup domain
+  OMAP: GPIO: Make gpio_context part of gpio_bank structure
+  OMAP: GPIO: Fix pwrdm_post_transition call sequence
+  OMAP: GPIO: handle save/restore ctx in GPIO driver
+  OMAP2PLUS: GPIO: make non-wakeup GPIO part of pdata
+  OMAP: GPIO: Avoid cpu checks during module ena/disable
+  OMAP: GPIO: clean set_gpio_triggering function
+  OMAP: GPIO: clean omap_gpio_mod_init function
+  OMAP15xx: GPIO: Use pinctrl offset instead of macro
+  OMAP: GPIO: Fix use of readl/readw to access isr_reg
+  OMAP: GPIO: Remove bank->method & METHOD_* macros
+  OMAP: GPIO: Fix bankwidth for OMAP7xx MPUIO
+
+Tarun Kanti DebBarma (5):
+  OMAP: GPIO: Use wkup regs off/suspend support flag
+  OMAP: GPIO: Use level/edge detect reg offsets
+  OMAP: GPIO: Remove hardcoded offsets in ctxt save/restore
+  OMAP: GPIO: use PM runtime framework
+  OMAP2: GPIO: clean prepare_for_idle and resume_after_idle
+
+ arch/arm/mach-omap1/gpio15xx.c         |    7 +-
+ arch/arm/mach-omap1/gpio16xx.c         |   20 +-
+ arch/arm/mach-omap1/gpio7xx.c          |   14 +-
+ arch/arm/mach-omap2/gpio.c             |   52 ++-
+ arch/arm/mach-omap2/pm34xx.c           |   21 +-
+ arch/arm/plat-omap/include/plat/gpio.h |   35 +-
+ drivers/gpio/gpio-omap.c               | 1082 ++++++++++++++------------------
+ 7 files changed, 572 insertions(+), 659 deletions(-)
 
