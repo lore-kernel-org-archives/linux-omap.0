@@ -1,62 +1,47 @@
-From: Maxim Podbereznyy <lisarden@gmail.com>
-Subject: Problem to set fb timings for a new display
-Date: Wed, 15 Jun 2011 20:05:34 +0400
-Message-ID: <BANLkTi=nPWgTizMyL=EDitPF1NFV9L1www@mail.gmail.com>
+From: Ambresh K <ambresh@ti.com>
+Subject: [PATCH] OMAP4: GPIO: Fix missing interrupts during device wakeup due to IOPAD.
+Date: Wed, 15 Jun 2011 13:40:45 -0700
+Message-ID: <1308170445-30665-1-git-send-email-ambresh@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:44679 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754857Ab1FOQFf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Jun 2011 12:05:35 -0400
-Received: by iwn34 with SMTP id 34so395713iwn.19
-        for <linux-omap@vger.kernel.org>; Wed, 15 Jun 2011 09:05:34 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux kernel <linux-kernel@vger.kernel.org>
+Cc: Philippe Mazet <p-mazet@ti.com>, Kevin Hilman <khilman@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Colin Cross <ccross@android.com>, linux omap <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
-Hi!
+From: Ambresh K <ambresh@ti.com>
 
-I'm using Beagleboard clone with TFT display connected. The display is 3.5"
-320x240.
+If gpio pins from bank[2-5] are marked as wakeup enable and if the wake is
+through gpio IO pad wakeup, then that wakeup gpio interrupt is lost.
 
-I created a new driver for this display for the kernel 2.6.32 (beagleboard
-BSP) obtained from the OE environment. When u-boot starts I set the
-following variables:
+In the current implementation, GPIO driver stores the context of DATAIN of
+all the gpio in the bank. During GPIO resuming, it checks DATAIN with wakeup
+enabled pins of gpio bank. If there is status change, then manually toggle
+GPIO_LEVELDETECT to generate pseudo interrupt.
 
-> setenv defaultdisplay pt35
-> setenv dvimode 320x240MR-16@60
+Reported-by: Philippe Mazet <p-mazet@ti.com>
+Tested-by: Philippe Mazet <p-mazet@ti.com>
+Signed-off-by: Ambresh K <ambresh@ti.com>
+---
+ drivers/gpio/gpio-omap.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-All I need is to have timings specified in my driver:
-
-static struct omap_video_timings pt35_timings = {
-        .x_res = 320,
-        .y_res = 240,
-
-        .pixel_clock    = 8000,
-
-        .hsw            = 30,
-        .hfp            = 40,
-        .hbp            = 0,
-
-        .vsw            = 5,
-        .vfp            = 13,
-        .vbp            = 4,
-};
-
-But with dvimode set to 320x240MR-16@60 an image is rather good, but is
-shifted a little. As I understand the timings is calculated by CVT and I
-can't change them.
-If I set dvimode to 320x240-16@60 then I get timings from
-drivers/video/modedb.c:
-}, {
-        /* 320x240 @ 60 Hz, 31.5 kHz hsync, 4:3 aspect ratio */
-        NULL, 60, 320, 240, 79440, 16, 16, 16, 5, 48, 1,
-        0, FB_VMODE_DOUBLE
-    }, {
-
-I want to set margins (porches) for the image but don't know how. Please
-advise!
-
-best regards,
-Max
+diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+index 6c51191..eaf3d78 100644
+--- a/drivers/gpio/gpio-omap.c
++++ b/drivers/gpio/gpio-omap.c
+@@ -477,8 +477,9 @@ static inline void set_24xx_gpio_triggering(struct gpio_bank *bank, int gpio,
+ 					+ OMAP24XX_GPIO_CLEARWKUENA);
+ 		}
+ 	}
+-	/* This part needs to be executed always for OMAP34xx */
+-	if (cpu_is_omap34xx() || (bank->non_wakeup_gpios & gpio_bit)) {
++	/* This part needs to be executed always for OMAP{34xx, 44xx} */
++	if (cpu_is_omap34xx() || cpu_is_omap44xx() ||
++			(bank->non_wakeup_gpios & gpio_bit)) {
+ 		/*
+ 		 * Log the edge gpio and manually trigger the IRQ
+ 		 * after resume if the input level changes
+-- 
+1.7.0.4
