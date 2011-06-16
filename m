@@ -1,67 +1,40 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: [PATCH] omap3: pm: Downgrade WARN for no wakeup source
-Date: Thu, 16 Jun 2011 21:43:07 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024D563E79@dbde02.ent.ti.com>
-References: <1308229940-27025-1-git-send-email-premi@ti.com>
- <877h8lsswk.fsf@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH v2 00/18] GPIO: OMAP: Driver Cleanup and Fixes
+Date: Thu, 16 Jun 2011 09:15:57 -0700
+Message-ID: <87ei2trbuq.fsf@ti.com>
+References: <1308058321-12875-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:42125 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755133Ab1FPQNS convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Jun 2011 12:13:18 -0400
-In-Reply-To: <877h8lsswk.fsf@ti.com>
-Content-Language: en-US
+Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:41524 "EHLO
+	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755640Ab1FPQQF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 16 Jun 2011 12:16:05 -0400
+Received: by mail-pv0-f169.google.com with SMTP id 12so1485498pvc.0
+        for <linux-omap@vger.kernel.org>; Thu, 16 Jun 2011 09:16:00 -0700 (PDT)
+In-Reply-To: <1308058321-12875-1-git-send-email-tarun.kanti@ti.com> (Tarun
+	Kanti DebBarma's message of "Tue, 14 Jun 2011 19:01:43 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hilman, Kevin" <khilman@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: linux-omap@vger.kernel.org, santosh.shilimkar@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org
 
-> -----Original Message-----
-> From: Hilman, Kevin 
-> Sent: Thursday, June 16, 2011 8:52 PM
-> To: Premi, Sanjeev
-> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
-> Subject: Re: [PATCH] omap3: pm: Downgrade WARN for no wakeup source
-> 
-> Hi Sanjeev,
-> 
-> Sanjeev Premi <premi@ti.com> writes:
-> 
-> > When multiple wakeup sources are defined in a system,
-> > there is a small window, when more than one source
-> > can trigger wakeup interrupt.
-> >
-> > In the current implementation, the do-while() loop
-> > can handle all wakeup sources that are recorded when
-> > probing the status register in prcm_interrupt_handler().
-> >
-> > When the ISR executes due to next queued wakeup, it
-> > there is nothing to be handled and value of "c" is 0.
-> 
-> Thanks for tracking this one down.
-> 
-> However, It's still not clear to me what is happening here.
-> 
-> Why is the IRQ firing if there is nothing to be handled?  
-> That suggests
-> to me that the IRQ status is not properly being cleared.
+Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
 
-[SP] On the contrary the IRQ status is actually getting cleared,
-     but there are more than "1" PRCM interrupts queued.
+> This series is continuation of cleanup of OMAP GPIO driver and fixes.
+> The cleanup include getting rid of cpu_is_* checks wherever possible,
+> use of gpio_bank list instead of static array, use of unique platform
+> specific value associated data member to OMAP platforms to avoid
+> cpu_is_* checks. The series also include PM runtime support.
 
-     The do-while() clears all the interrupt sources that
-     are flagged in the status register.
+A quick test of this series on 3430/n900 shows that it prevents PER
+retention.  I see CM_FCLKEN_PER=0000c000 (debounce clock for GPIO banks
+3 & 4 are still enabled.)
 
-     When the next wakeup interrupt is getting processed, the
-     status register doesn't contain any "source" to handle.
-     and value of "c" is returned as 0.... leading to the
-     warning.
+Can you retest with debounce enabled on one of the GPIOs for one of your platforms?
 
-~sanjeev
+Kevin
 
-> 
-> Kevin
-> 
+
+
