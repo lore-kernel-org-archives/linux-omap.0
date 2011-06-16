@@ -1,40 +1,90 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v2 00/18] GPIO: OMAP: Driver Cleanup and Fixes
-Date: Thu, 16 Jun 2011 09:15:57 -0700
-Message-ID: <87ei2trbuq.fsf@ti.com>
-References: <1308058321-12875-1-git-send-email-tarun.kanti@ti.com>
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH 00/14] GPIO: OMAP: first round of cleanup
+Date: Thu, 16 Jun 2011 10:26:04 -0600
+Message-ID: <20110616162604.GE3795@ponder.secretlab.ca>
+References: <1305904497-26013-1-git-send-email-khilman@ti.com>
+ <20110527032439.GK5032@ponder.secretlab.ca>
+ <87r56trc8k.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:41524 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755640Ab1FPQQF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 16 Jun 2011 12:16:05 -0400
-Received: by mail-pv0-f169.google.com with SMTP id 12so1485498pvc.0
-        for <linux-omap@vger.kernel.org>; Thu, 16 Jun 2011 09:16:00 -0700 (PDT)
-In-Reply-To: <1308058321-12875-1-git-send-email-tarun.kanti@ti.com> (Tarun
-	Kanti DebBarma's message of "Tue, 14 Jun 2011 19:01:43 +0530")
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:65514 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755127Ab1FPQ0I (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Jun 2011 12:26:08 -0400
+Received: by pzk9 with SMTP id 9so1156797pzk.19
+        for <linux-omap@vger.kernel.org>; Thu, 16 Jun 2011 09:26:07 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <87r56trc8k.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Cc: linux-omap@vger.kernel.org, santosh.shilimkar@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, Linus Walleij <linus.walleij@stericsson.com>, linux-arm-kernel@lists.infradead.org
 
-Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
+On Thu, Jun 16, 2011 at 09:07:39AM -0700, Kevin Hilman wrote:
+> Grant Likely <grant.likely@secretlab.ca> writes:
+> 
+> > On Fri, May 20, 2011 at 05:14:43PM +0200, Kevin Hilman wrote:
+> >> Start moving SoC-specific register handling out of the driver by passing
+> >> in register offsets in via platform data.
+> >> 
+> >> Also, move OMAP1 MPUIO IRQ handling over to genric IRQ chip.
+> >> 
+> >> Applies on top of Tony's for-next branch (which include's the generic
+> >> IRQ chip work from tglx) and the OMAP GPIO driver move to
+> >> drivers/gpio.
+> >
+> > Hey Kevin,
+> >
+> > If you've got a branch with this series in it and tested, then I'd be
+> > happy to pull that instead of applying the patches myself.
+> >
+> 
+> OK, I rebased this on v3.0-rc2 and now it's been through quite a bit
+> more testing.
+> 
+> Here's a branch for you.
 
-> This series is continuation of cleanup of OMAP GPIO driver and fixes.
-> The cleanup include getting rid of cpu_is_* checks wherever possible,
-> use of gpio_bank list instead of static array, use of unique platform
-> specific value associated data member to OMAP platforms to avoid
-> cpu_is_* checks. The series also include PM runtime support.
+Thanks.  A minor comment though...
 
-A quick test of this series on 3430/n900 shows that it prevents PER
-retention.  I see CM_FCLKEN_PER=0000c000 (debounce clock for GPIO banks
-3 & 4 are still enabled.)
+> 
+> Also FYI, we'll probably have 2nd round of GPIO cleanups/updates and
+> runtime PM conversion for the upcoming merge window too.
 
-Can you retest with debounce enabled on one of the GPIOs for one of your platforms?
+Okay.
 
-Kevin
+> 
+> Kevin
+> 
+> The following changes since commit 2c53b436a30867eb6b47dd7bab23ba638d1fb0d2:
+> 
+>   Linux 3.0-rc3 (2011-06-13 15:29:59 -0700)
+> 
+> are available in the git repository at:
+>   git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git for_3.1/gpio-cleanup
+> 
+> Charulatha V (1):
+>       GPIO: OMAP: remove get_gpio_bank()
+> 
+> Kevin Hilman (13):
+>       GPIO: OMAP: _clear_gpio_irqbank: fix flushing of posted write
+>       GPIO: OMAP: remove MPUIO handling from _clear_gpio_irqbank()
+>       GPIO: OMAP: move bank width into struct gpio_bank
+>       GPIO: OMAP: _get_gpio_irqbank_mask: replace hard-coded mask with bank->width
+>       GPIO: OMAP: replace get_gpio_index() by using bank width
+>       GPIO: OMAP: consolidate direction, input, output, remove #ifdefs
+>       GPIO: OMAP: consolidate IRQ status handling, remove #ifdefs
+>       GPIO: OMAP: conslidate enable/disable of GPIO IRQs, remove ifdefs
+>       GPIO: OMAP: convert MPUIO IRQ over to generic irq_chip
+>       GPIO: OMAP: remove useless gpio_valid() & check_gpio() checks
+>       GPIO: OMAP: cleanup _set_gpio_wakeup(), remove ifdefs
+>       GPIO: OMAP: debounce remove SoC specific registers, use pdata
+>       GPIO: OMAP: cleanup show revision, remove cpu_is checks, display only once
 
+Use this form for the patch summaries please: "gpio/omap: ...."
 
+It's better for the pull req to Linus when all the gpio patches look the same.
+
+Thanks,
+g.
 
