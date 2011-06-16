@@ -1,69 +1,43 @@
-From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Subject: Re: tidspbridge: problems executing sample apps
-Date: Thu, 16 Jun 2011 15:56:03 -0500
-Message-ID: <BANLkTinkudMjuDZ-KGCO5gpYikUhiYuxJA@mail.gmail.com>
-References: <BANLkTinawxhRF2FWBrR=vpfCraM=xLX4mA@mail.gmail.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [RESEND PATCH 0/2] ARM IRQ Kconfig patches
+Date: Thu, 16 Jun 2011 22:40:52 +0100
+Message-ID: <20110616214052.GA9698@n2100.arm.linux.org.uk>
+References: <1308142960-20767-1-git-send-email-balbi@ti.com>
+	<4DF9EDB1.4000707@ru.mvista.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:46095 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758080Ab1FPU4M convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 16 Jun 2011 16:56:12 -0400
-Received: by wwi36 with SMTP id 36so1604968wwi.2
-        for <linux-omap@vger.kernel.org>; Thu, 16 Jun 2011 13:56:09 -0700 (PDT)
-In-Reply-To: <BANLkTinawxhRF2FWBrR=vpfCraM=xLX4mA@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <4DF9EDB1.4000707@ru.mvista.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Sergei Shtylyov <sshtylyov@mvista.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: javier Martin <javier.martin@vista-silicon.com>
-Cc: linux-omap@vger.kernel.org
 
-Hi Javier,
-
-On Wed, Jun 15, 2011 at 10:19 AM, javier Martin
-<javier.martin@vista-silicon.com> wrote:
-> Hi,
+On Thu, Jun 16, 2011 at 03:49:05PM +0400, Sergei Shtylyov wrote:
+> Hello.
 >
-> 1- If I try prebuilt binaries (both for DSP side and userspace) I get
-> an execution error:
-=2E..
-> DSPNode_GetMessage failed: 0xffffffc2
-
-In this case, sample application is working, however the failures on
-get_message are unexpected, it seems this arose when the error codes
-were changed and the precompiled binaries where not updated, I'll fix
-this, thanks for the heads up.
-
-> 3- If I compile both DSP side and MPU side samples it also gives an
-> execution error:
-=2E..
-> root@beagleboard:/dspbridge# ./ping.out
-> DSP device detec[ =A0 64.484649] procwrap_detach: deprecated dspbridg=
-e ioctl
-> ted !!
-> DSPNode_Create failed: 0xffffffe3
+> On 15-06-2011 17:02, Felipe Balbi wrote:
 >
-=2E..
-> Do you know what combination of DSP bios, TI CGT and xdctools is most
-> suitable for using with tidspbridge in kernel 2.6.39?
+>> I have lost count how many times I have sent
+>> these patches. Will someone either take them
+>> in or NAK them so I stop sending ??
+>
+>> Felipe Balbi (2):
+>>    arm: Kconfig: select correct HAVE_SPARSE_IRQ symbol
+>>    arm: Kconfig: allow OMAP to use sparse IRQ numbering
+>
+>    Why not put it into Russell's patch system already?
 
-This is mentioned in the wiki: bios 5.33.04 and cgt tools 6.0.7
-http://omapedia.org/wiki/DSPBridge_Project#Initial_environment_setup
-
-This version of the bios already has the xdc tools bundled. BTW I
-replied to your gforge query in case it gives any information:
-http://bit.ly/laeJFD
-
-I also applied your patch to fix copying the dsp binaries on the build
-system, thanks!
-
-Regards,
-
-Omar
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I would like _someone_ (such as those who introduced the ARM arch to
+the Sparse IRQ stuff) at least to ack them first so I don't have to
+wonder whether the patches are correct or not.
