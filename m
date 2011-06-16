@@ -1,72 +1,63 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RESEND PATCH 0/2] ARM IRQ Kconfig patches
-Date: Thu, 16 Jun 2011 12:19:27 +0300
-Message-ID: <20110616091926.GI12230@legolas.emea.dhcp.ti.com>
-References: <1308142960-20767-1-git-send-email-balbi@ti.com>
- <20110615151422.GA2618@n2100.arm.linux.org.uk>
- <20110615152444.GZ471@legolas.emea.dhcp.ti.com>
-Reply-To: balbi@ti.com
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: [PATCH] omap3evm: Add Mistral WL12XX config support
+Date: Thu, 16 Jun 2011 15:23:08 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024D563C4B@dbde02.ent.ti.com>
+References: <y> <1308053788-25937-1-git-send-email-shahar@wizery.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="PWfwoUCx3AFJRUBq"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:45552 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752459Ab1FPJTd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 16 Jun 2011 05:19:33 -0400
-Received: by fxm11 with SMTP id 11so1396273fxm.13
-        for <linux-omap@vger.kernel.org>; Thu, 16 Jun 2011 02:19:30 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20110615152444.GZ471@legolas.emea.dhcp.ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:48643 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752875Ab1FPJxS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Jun 2011 05:53:18 -0400
+In-Reply-To: <1308053788-25937-1-git-send-email-shahar@wizery.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>
+To: Shahar Lev <shahar@wizery.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: linux-arm <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>
 
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Shahar Lev
+> Sent: Tuesday, June 14, 2011 5:46 PM
+> To: linux-omap@vger.kernel.org
+> Cc: linux-arm; Tony Lindgren; Shahar Lev
+> Subject: [PATCH] omap3evm: Add Mistral WL12XX config support
+> 
+> Add Kconfig entries indicating the existence of omap3evm's
+> wlan/bt wl12xx daughter card (see
+> http://mistralsolutions.com/component/jumi/Download_Common_Cod
+> e.html?docid=298),
+> and the exact reference clock type that the wl12xx device is hardwired
+> to (the wl12xx driver must know this).
+> 
+> In addition, start using CONFIG_OMAP3EVM_MISTRAL_WL12XX in
+> the omap3evm's board file instead of CONFIG_WL12XX_PLATFORM_DATA,
+> because the latter only indicates that the driver is being built, and
+> shouldn't be used to assume the existence of extension cards.
+> 
+> Signed-off-by: Shahar Lev <shahar@wizery.com>
+> ---
+>  arch/arm/mach-omap2/Kconfig          |   23 +++++++++++++++++++++++
+>  arch/arm/mach-omap2/board-omap3evm.c |   12 ++++++------
+>  2 files changed, 29 insertions(+), 6 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+> index 19d5891..8ef012d 100644
+> --- a/arch/arm/mach-omap2/Kconfig
+> +++ b/arch/arm/mach-omap2/Kconfig
+> @@ -342,6 +342,29 @@ config OMAP3_SDRC_AC_TIMING
+>  	  wish to say no.  Selecting yes without understanding what is
+>  	  going on could result in system crashes;
+>  
+> +config OMAP3EVM_MISTRAL_WL12XX
 
---PWfwoUCx3AFJRUBq
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+[sp] Could this be renamed simply as: OMAP3EVM_WL12XX?
+     OR is there a specific reason to add vendor/manufacturers' name
+     to the defintion? 
 
-Hi,
+~sanjeev
 
-On Wed, Jun 15, 2011 at 06:24:45PM +0300, Felipe Balbi wrote:
-> On Wed, Jun 15, 2011 at 04:14:22PM +0100, Russell King - ARM Linux wrote:
-> > On Wed, Jun 15, 2011 at 04:02:38PM +0300, Felipe Balbi wrote:
-> > > I have lost count how many times I have sent
-> > > these patches. Will someone either take them
-> > > in or NAK them so I stop sending ??
-> >=20
-> > It might help to copy the MMP and PXA people so that we get to hear
-> > their side of the story.  It may be that they always require sparse
-> > IRQ support to be enabled.
-> >=20
-> > 'cause at the moment I've no idea whether your patch is right or not.
->=20
-> I'll do so... thanks, at least one reply :-D
-
-seems like these aren't needed anymore. HAVE_SPARSE_IRQ is selected for
-the entire ARM architecture. Sorry for the noise.
-
---=20
-balbi
-
---PWfwoUCx3AFJRUBq
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQEcBAEBAgAGBQJN+cqeAAoJEAv8Txj19kN1lD0H/1bv6NAK0TtWFIOYRwxQpT6w
-tTF3R5pUUHDAM1lG+ynnMOUxIXgE27/Fh0C5I5Lj/xV52AB0xYJa8rCuhTwK2QMK
-UqLcyWV8PV6YsQ05lyQ2kmr0T0kx+T/aKUnqpLFBQ8iH60HNnw/6mP7pB//kJKWS
-lfUBNht6MjGb+QqVPzFzhjUROZnC6ptcpRX+EZV9pcL0y9tbp4CU07LYrNLnSkKU
-PBtdJdITi3l4Vtq2n3wDrue5Xuc/A9QrvAyVaIt6GM/3FS5pw7EzO/fXUik1DibT
-dtJqEOZQIa72l/zENVXusVadrT941JDYHQFyoW7tu8QCfTErh7wVJyBr1nH0uiY=
-=bnY+
------END PGP SIGNATURE-----
-
---PWfwoUCx3AFJRUBq--
+[snip]...[snip]
