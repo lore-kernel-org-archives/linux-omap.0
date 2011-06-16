@@ -1,50 +1,58 @@
-From: =?ISO-8859-1?Q?P=E9ter?= Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH v4 11/18] input: Add initial support for
-	TWL6040 vibrator
-Date: Thu, 16 Jun 2011 14:13:59 +0300
-Message-ID: <5476342.2jZLF0UGcI@barack>
-References: <1307706876-4768-1-git-send-email-peter.ujfalusi@ti.com>
-	<20110615081858.GM8141@htj.dyndns.org>
-	<20110615082301.GN8141@htj.dyndns.org>
+From: Sebastian Reichel <sre@debian.org>
+Subject: rx51 platform code for bq27x00
+Date: Thu, 16 Jun 2011 13:23:23 +0200
+Message-ID: <20110616112323.GA31389@earth.universe>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20110615082301.GN8141@htj.dyndns.org>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Tejun Heo <tj@kernel.org>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "Lopez Cruz, Misael" <misael.lopez@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Girdwood, Liam" <lrg@ti.com>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="PEIAKu/WMn1b1Hv9"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comu.ring0.de ([46.4.151.82]:44562 "EHLO smtp.ring0.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754495Ab1FPLXk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 16 Jun 2011 07:23:40 -0400
+Content-Disposition: inline
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Mika Laitio <ext-mika.1.laitio@nokia.com>
 
-On Wednesday 15 June 2011 10:23:01 Tejun Heo wrote:
-> On Wed, Jun 15, 2011 at 10:18:58AM +0200, Tejun Heo wrote:
-> > No human being can feel 120usec difference and I can't see how using
-> > HIGHPRI is justified here (which is what the code is doing
-> > _accidentally_ by using singlethread_workqueue).
-> =
 
-> Ooh, one more thing, and even if you insist on using HIGHPRI (please
-> don't), you don't need to create workqueue for each device.  You can
-> just create one for the whole driver in init and destroy it from exit.
-> What matters is the HIGHPRI attribute of the workqueue.  The number of
-> workqueues is completely irrelevant.
+--PEIAKu/WMn1b1Hv9
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Fair enough.
-I'll move to create_workqueue.
-If we later find issues with this (in a 'live' system), we can figure out a =
+Hi,
 
-way to fix it.
+There is a battery driver for the N900 battery in the mainline
+kernel, but it's not exposed in the rx51 board file. I found an
+existing patch on [0]. Can this be pulled into the mainline kernel?
 
-Thank you for your time on this.
-I'll make the changes accordingly.
+Mika Laitio: Can you send this patch to the linux-omap mailinglist?
 
-Regards,
-P=E9ter
+[0] https://build.pub.meego.com/package/view_file?file=linux-2.6-omap-rx51-bq27x00-i2c-address.patch&package=kernel-adaptation-n900&project=Project%3ADE%3ATrunk&srcmd5=8ca3e6ef69d03055c4046e47e7bf6391
+
+-- Sebastian
+
+--PEIAKu/WMn1b1Hv9
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBCAAGBQJN+eeqAAoJENju1/PIO/qaRccP/Ruz2MeZAe597sbuES8U/wBH
+mTA6OTJmuZVBD+BeXvmX6443sO8+qbdpkOwor1WbEC0d3dxqjM9A47areP8ZBXzW
+GqLolBHpIXltQAPSNquGqLJlul3/DrxwUkuEau6famrVi0uk+ObOHlQsItlqY/JS
+UVmqF886ljc7OBtCvJJl+FEbNXq9xMUoE4yH1VNc6eA5kHL5Jmhq89IsfMQvEAvu
+/ggAGftkkRdZfRgyEpSqxLAPqAgs0JDlp7EPTQHVuPfBZHkwHIimMEiOEa6NQ6gN
+aDmp/ewRHk9W5OzVoV0ucy8jobpe0a22oUjFOU0E1ypSiPGYw1XhOH6LLLNrqeCI
+ddMBt7r5BgwEqXHif7VGKwRSzcIqEZGhAWLxJekBPOibCIrBl9EK84voTBCuRIdS
+vyXLtucvef8GfirrhRmsTDLx9WdEFLIYBpkaxUU0OiLQGccmSxKR0hsr3Qi9HAoQ
+DKTsQKY00L61VAyfeI/hn4h2aZ8bAH5FSpaVWjb23cheL5CrxwHe0vE4x5GFPMuu
+OKS40svQH8cqSBv0rzkhSbXopnO+g3ZFzYWKD+0A312rnmJeBdQzaD471X7ZD41t
+Kw8czx4hn1VpFIHYNxxFNVx7FXx5h6P0wBj9j+tbzb98zRgFlyFVrCsLOwROkUHP
+DtTcj5WV7Oy71TS2TbFk
+=PAwc
+-----END PGP SIGNATURE-----
+
+--PEIAKu/WMn1b1Hv9--
