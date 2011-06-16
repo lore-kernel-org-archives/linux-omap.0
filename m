@@ -1,36 +1,57 @@
-From: Sergei Shtylyov <sshtylyov@mvista.com>
-Subject: Re: [RESEND PATCH 0/2] ARM IRQ Kconfig patches
-Date: Thu, 16 Jun 2011 15:49:05 +0400
-Message-ID: <4DF9EDB1.4000707@ru.mvista.com>
-References: <1308142960-20767-1-git-send-email-balbi@ti.com>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: Re: Re: Re: Re: Re: [PATCH v4 11/18] input: Add initial support
+ for TWL6040 vibrator
+Date: Thu, 16 Jun 2011 14:02:44 +0200
+Message-ID: <20110616120244.GA2611@htj.dyndns.org>
+References: <1307706876-4768-1-git-send-email-peter.ujfalusi@ti.com>
+ <20110615081858.GM8141@htj.dyndns.org>
+ <20110615082301.GN8141@htj.dyndns.org>
+ <5476342.2jZLF0UGcI@barack>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:64923 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755979Ab1FPLuP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Jun 2011 07:50:15 -0400
-Received: by wya21 with SMTP id 21so972536wya.19
-        for <linux-omap@vger.kernel.org>; Thu, 16 Jun 2011 04:50:14 -0700 (PDT)
-In-Reply-To: <1308142960-20767-1-git-send-email-balbi@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <5476342.2jZLF0UGcI@barack>
+Sender: linux-input-owner@vger.kernel.org
+To: =?iso-8859-1?Q?P=E9ter?= Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, "Girdwood, Liam" <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Samuel Ortiz <sameo@linux.intel.com>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "Lopez Cruz, Misael" <misael.lopez@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Russell King <linux@arm.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-Hello.
+Hello,
 
-On 15-06-2011 17:02, Felipe Balbi wrote:
+On Thu, Jun 16, 2011 at 02:13:59PM +0300, P=E9ter Ujfalusi wrote:
+> On Wednesday 15 June 2011 10:23:01 Tejun Heo wrote:
+> > On Wed, Jun 15, 2011 at 10:18:58AM +0200, Tejun Heo wrote:
+> > > No human being can feel 120usec difference and I can't see how us=
+ing
+> > > HIGHPRI is justified here (which is what the code is doing
+> > > _accidentally_ by using singlethread_workqueue).
+> >=20
+> > Ooh, one more thing, and even if you insist on using HIGHPRI (pleas=
+e
+> > don't), you don't need to create workqueue for each device.  You ca=
+n
+> > just create one for the whole driver in init and destroy it from ex=
+it.
+> > What matters is the HIGHPRI attribute of the workqueue.  The number=
+ of
+> > workqueues is completely irrelevant.
+>=20
+> Fair enough.
+> I'll move to create_workqueue.
 
-> I have lost count how many times I have sent
-> these patches. Will someone either take them
-> in or NAK them so I stop sending ??
+I suppose you meant alloc_workqueue()? :)
 
-> Felipe Balbi (2):
->    arm: Kconfig: select correct HAVE_SPARSE_IRQ symbol
->    arm: Kconfig: allow OMAP to use sparse IRQ numbering
+Sorry about the confusing names, I'm still in the (slow) process of
+deprecating older APIs.
 
-    Why not put it into Russell's patch system already?
+Thanks.
 
-WBR, Sergei
+--=20
+tejun
+--
+To unsubscribe from this list: send the line "unsubscribe linux-input" =
+in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
