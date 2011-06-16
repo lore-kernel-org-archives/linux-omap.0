@@ -1,58 +1,45 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH] OMAP4: GPIO: Fix missing interrupts during device wakeup
- due to IOPAD.
-Date: Thu, 16 Jun 2011 08:41:46 -0600
-Message-ID: <20110616144146.GC2806@ponder.secretlab.ca>
-References: <1308170445-30665-1-git-send-email-ambresh@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH] omap3: pm: Downgrade WARN for no wakeup source
+Date: Thu, 16 Jun 2011 08:22:19 -0700
+Message-ID: <877h8lsswk.fsf@ti.com>
+References: <1308229940-27025-1-git-send-email-premi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1308170445-30665-1-git-send-email-ambresh@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ambresh K <ambresh@ti.com>
-Cc: linux kernel <linux-kernel@vger.kernel.org>, Philippe Mazet <p-mazet@ti.com>, Kevin Hilman <khilman@ti.com>, Colin Cross <ccross@android.com>, linux omap <linux-omap@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:43544 "EHLO
+	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754933Ab1FPPWX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 16 Jun 2011 11:22:23 -0400
+Received: by mail-pv0-f180.google.com with SMTP id 21so1127412pvc.25
+        for <linux-omap@vger.kernel.org>; Thu, 16 Jun 2011 08:22:22 -0700 (PDT)
+In-Reply-To: <1308229940-27025-1-git-send-email-premi@ti.com> (Sanjeev Premi's
+	message of "Thu, 16 Jun 2011 18:42:20 +0530")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sanjeev Premi <premi@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Wed, Jun 15, 2011 at 01:40:45PM -0700, Ambresh K wrote:
-> From: Ambresh K <ambresh@ti.com>
-> 
-> If gpio pins from bank[2-5] are marked as wakeup enable and if the wake is
-> through gpio IO pad wakeup, then that wakeup gpio interrupt is lost.
-> 
-> In the current implementation, GPIO driver stores the context of DATAIN of
-> all the gpio in the bank. During GPIO resuming, it checks DATAIN with wakeup
-> enabled pins of gpio bank. If there is status change, then manually toggle
-> GPIO_LEVELDETECT to generate pseudo interrupt.
-> 
-> Reported-by: Philippe Mazet <p-mazet@ti.com>
-> Tested-by: Philippe Mazet <p-mazet@ti.com>
-> Signed-off-by: Ambresh K <ambresh@ti.com>
+Hi Sanjeev,
 
-Applied, thanks.
+Sanjeev Premi <premi@ti.com> writes:
 
-g.
+> When multiple wakeup sources are defined in a system,
+> there is a small window, when more than one source
+> can trigger wakeup interrupt.
+>
+> In the current implementation, the do-while() loop
+> can handle all wakeup sources that are recorded when
+> probing the status register in prcm_interrupt_handler().
+>
+> When the ISR executes due to next queued wakeup, it
+> there is nothing to be handled and value of "c" is 0.
 
-> ---
->  drivers/gpio/gpio-omap.c |    5 +++--
->  1 files changed, 3 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-> index 6c51191..eaf3d78 100644
-> --- a/drivers/gpio/gpio-omap.c
-> +++ b/drivers/gpio/gpio-omap.c
-> @@ -477,8 +477,9 @@ static inline void set_24xx_gpio_triggering(struct gpio_bank *bank, int gpio,
->  					+ OMAP24XX_GPIO_CLEARWKUENA);
->  		}
->  	}
-> -	/* This part needs to be executed always for OMAP34xx */
-> -	if (cpu_is_omap34xx() || (bank->non_wakeup_gpios & gpio_bit)) {
-> +	/* This part needs to be executed always for OMAP{34xx, 44xx} */
-> +	if (cpu_is_omap34xx() || cpu_is_omap44xx() ||
-> +			(bank->non_wakeup_gpios & gpio_bit)) {
->  		/*
->  		 * Log the edge gpio and manually trigger the IRQ
->  		 * after resume if the input level changes
-> -- 
-> 1.7.0.4
-> 
+Thanks for tracking this one down.
+
+However, It's still not clear to me what is happening here.
+
+Why is the IRQ firing if there is nothing to be handled?  That suggests
+to me that the IRQ status is not properly being cleared.
+
+Kevin
