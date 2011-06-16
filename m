@@ -1,21 +1,21 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v2 14/18] GPIO: OMAP: Fix use of readl/readw to access isr_reg
-Date: Thu, 16 Jun 2011 10:57:38 -0700
-Message-ID: <871uytmzfx.fsf@ti.com>
+Subject: Re: [PATCH v2 17/18] GPIO: OMAP: Use PM runtime framework
+Date: Thu, 16 Jun 2011 11:03:15 -0700
+Message-ID: <87r56tlkm4.fsf@ti.com>
 References: <1308111806-29152-1-git-send-email-tarun.kanti@ti.com>
-	<1308111806-29152-5-git-send-email-tarun.kanti@ti.com>
+	<1308111806-29152-8-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:48751 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752823Ab1FPR5l (ORCPT
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:45859 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758553Ab1FPSDS (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 16 Jun 2011 13:57:41 -0400
-Received: by mail-pw0-f46.google.com with SMTP id 7so624745pwj.33
-        for <linux-omap@vger.kernel.org>; Thu, 16 Jun 2011 10:57:40 -0700 (PDT)
-In-Reply-To: <1308111806-29152-5-git-send-email-tarun.kanti@ti.com> (Tarun
-	Kanti DebBarma's message of "Wed, 15 Jun 2011 09:53:22 +0530")
+	Thu, 16 Jun 2011 14:03:18 -0400
+Received: by mail-pv0-f171.google.com with SMTP id 4so204308pva.30
+        for <linux-omap@vger.kernel.org>; Thu, 16 Jun 2011 11:03:17 -0700 (PDT)
+In-Reply-To: <1308111806-29152-8-git-send-email-tarun.kanti@ti.com> (Tarun
+	Kanti DebBarma's message of "Wed, 15 Jun 2011 09:53:25 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
@@ -25,35 +25,172 @@ Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
 
 > From: Charulatha V <charu@ti.com>
 >
-> In gpio_irq_handler, isr register is always accessed as 32 bit register and only
-> for OMAP15xx the first 16 MSBs are masked. Correct this by using the appropriate
-> readl/readw registers as per the bank width.
+> Call runtime pm APIs pm_runtime_get_sync() and pm_runtime_put_sync()
+> for enabling/disabling clocks appropriately. Remove syscore_ops and
+> instead use dev_pm_ops now.
 >
 > Signed-off-by: Charulatha V <charu@ti.com>
+> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+
+Approach is fine.  some minor comments below..
+
 > ---
->  drivers/gpio/gpio-omap.c |    8 +++++---
->  1 files changed, 5 insertions(+), 3 deletions(-)
+>  drivers/gpio/gpio-omap.c |  100 ++++++++++++++++++++++++++++++++++++---------
+>  1 files changed, 80 insertions(+), 20 deletions(-)
 >
 > diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-> index c6987f2..01b568f 100644
+> index ea984fd..f5bb469 100644
 > --- a/drivers/gpio/gpio-omap.c
 > +++ b/drivers/gpio/gpio-omap.c
-> @@ -590,10 +590,12 @@ static void gpio_irq_handler(unsigned int irq, struct irq_desc *desc)
->  		u32 enabled;
+> @@ -80,6 +80,8 @@ struct gpio_bank {
+>  	struct omap_gpio_reg_offs *regs;
+>  };
 >  
->  		enabled = _get_gpio_irqbank_mask(bank);
-> -		isr_saved = isr = __raw_readl(isr_reg) & enabled;
+> +static void omap_gpio_mod_init(struct gpio_bank *bank);
+> +
+>  #define GPIO_INDEX(bank, gpio) (gpio % bank->width)
+>  #define GPIO_BIT(bank, gpio) (1 << GPIO_INDEX(bank, gpio))
+>  #define GPIO_MOD_CTRL_BIT	BIT(0)
+> @@ -492,6 +494,22 @@ static int omap_gpio_request(struct gpio_chip *chip, unsigned offset)
+>  	struct gpio_bank *bank = container_of(chip, struct gpio_bank, chip);
+>  	unsigned long flags;
 >  
-> -		if (cpu_is_omap15xx() && (bank->method == METHOD_MPUIO))
-> -			isr &= 0x0000ffff;
-> +		if (bank->width == 32)
-> +			isr = __raw_readl(isr_reg) & enabled;
-> +		else if (bank->width == 16)
-> +			isr = (__raw_readw(isr_reg) & enabled) & 0x0000ffff;
-> +		isr_saved = isr;
+> +	/*
+> +	 * If this is the first gpio_request for the bank,
+> +	 * enable the bank module.
+> +	 */
+> +	if (!bank->mod_usage) {
+> +		if (IS_ERR_VALUE(pm_runtime_get_sync(bank->dev) < 0)) {
+> +			dev_err(bank->dev, "%s: GPIO bank %d "
+> +					"pm_runtime_get_sync failed\n",
+> +					__func__, bank->id);
+> +			return -EINVAL;
+> +		}
+> +
+> +		/* Initialize the gpio bank registers to init time value */
+> +		omap_gpio_mod_init(bank);
+> +	}
+> +
+>  	spin_lock_irqsave(&bank->lock, flags);
+>  
+>  	/* Set trigger to none. You need to enable the desired trigger with
+> @@ -548,6 +566,18 @@ static void omap_gpio_free(struct gpio_chip *chip, unsigned offset)
+>  
+>  	_reset_gpio(bank, bank->chip.base + offset);
+>  	spin_unlock_irqrestore(&bank->lock, flags);
+> +
+> +	/*
+> +	 * If this is the last gpio to be freed in the bank,
+> +	 * disable the bank module.
+> +	 */
+> +	if (!bank->mod_usage) {
+> +		if (IS_ERR_VALUE(pm_runtime_put_sync(bank->dev) < 0)) {
+> +			dev_err(bank->dev, "%s: GPIO bank %d "
+> +					"pm_runtime_put_sync failed\n",
+> +					__func__, bank->id);
+> +		}
+> +	}
+>  }
+>  
+>  /*
+> @@ -572,6 +602,9 @@ static void gpio_irq_handler(unsigned int irq, struct irq_desc *desc)
+>  	chained_irq_enter(chip, desc);
+>  
+>  	bank = irq_get_handler_data(irq);
+> +
+> +	pm_runtime_get_sync(bank->dev);
+> +
+>  	isr_reg = bank->base + bank->regs->irqstatus;
+>  
+>  	if (WARN_ON(!isr_reg))
+> @@ -640,6 +673,8 @@ static void gpio_irq_handler(unsigned int irq, struct irq_desc *desc)
+>  exit:
+>  	if (!unmasked)
+>  		chained_irq_exit(chip, desc);
+> +
+> +	pm_runtime_put_sync(bank->dev);
+>  }
+>  
+>  static void gpio_irq_shutdown(struct irq_data *d)
+> @@ -1120,12 +1155,25 @@ static int __devinit omap_gpio_probe(struct platform_device *pdev)
+>  	}
+>  
+>  	pm_runtime_enable(bank->dev);
+> -	pm_runtime_get_sync(bank->dev);
+> +	pm_runtime_irq_safe(bank->dev);
+> +	if (IS_ERR_VALUE(pm_runtime_get_sync(bank->dev) < 0)) {
+> +		dev_err(bank->dev, "%s: GPIO bank %d pm_runtime_get_sync "
+> +				"failed\n", __func__, bank->id);
+> +		iounmap(bank->base);
+> +		return -EINVAL;
+> +	}
+>  
+>  	omap_gpio_mod_init(bank);
+>  	omap_gpio_chip_init(bank);
+>  	omap_gpio_show_rev(bank);
+>  
+> +	if (IS_ERR_VALUE(pm_runtime_put_sync(bank->dev) < 0)) {
+> +		dev_err(bank->dev, "%s: GPIO bank %d pm_runtime_put_sync "
+> +				"failed\n", __func__, bank->id);
+> +		iounmap(bank->base);
+> +		return -EINVAL;
+> +	}
+> +
+>  	list_add_tail(&bank->node, &omap_gpio_list);
+>  
+>  	return ret;
+> @@ -1136,7 +1184,7 @@ err_exit:
+>  	return ret;
+>  }
+>  
+> -static int omap_gpio_suspend(void)
+> +static int omap_gpio_suspend(struct device *dev)
+>  {
+>  	struct gpio_bank *bank;
+>  
+> @@ -1163,7 +1211,7 @@ static int omap_gpio_suspend(void)
+>  	return 0;
+>  }
+>  
+> -static void omap_gpio_resume(void)
+> +static int omap_gpio_resume(struct device *dev)
+>  {
+>  	struct gpio_bank *bank;
+>  
+> @@ -1173,7 +1221,7 @@ static void omap_gpio_resume(void)
+>  		unsigned long flags;
+>  
+>  		if (!bank->suspend_support)
+> -			return;
+> +			return 0;
+>  
+>  		wake_clear = bank->base + bank->regs->wkup_clear;
+>  		wake_set = bank->base + bank->regs->wkup_set;
+> @@ -1183,12 +1231,18 @@ static void omap_gpio_resume(void)
+>  		__raw_writel(bank->saved_wakeup, wake_set);
+>  		spin_unlock_irqrestore(&bank->lock, flags);
+>  	}
+> +	return 0;
+>  }
+>  
+> -static struct syscore_ops omap_gpio_syscore_ops = {
+> -	.suspend	= omap_gpio_suspend,
+> -	.resume		= omap_gpio_resume,
+> -};
+> +static int omap_gpio_pm_runtime_suspend(struct device *dev)
 
-Come to think of it, even when bank->width is 16, all the OMAP1
-registers are 4-byte aligned, so just use a 4-byte read.  The 'enabled'
-mask is already taking care to mask for bank width.
+Please drop the 'pm_' in these function names.
+
+> +{
+> +	return 0;
+> +}
+> +
+> +static int omap_gpio_pm_runtime_resume(struct device *dev)
+> +{
+> +	return 0;
+> +}
+
+Actually,  empty functions should not even be added.  Just add them in
+the patch that uses them.
 
 Kevin
