@@ -1,35 +1,33 @@
-From: Shahar Lev <shahar@wizery.com>
-Subject: Re: [PATCH] omap3evm: Add Mistral WL12XX config support
-Date: Thu, 16 Jun 2011 21:37:22 +0300
-Message-ID: <BANLkTikNwNdL30oEHUpKr-CJLPOXedGEmw@mail.gmail.com>
-References: <1308053788-25937-1-git-send-email-shahar@wizery.com>
-	<B85A65D85D7EB246BE421B3FB0FBB593024D563C4B@dbde02.ent.ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH 0/3] PRCM chain interrupt handler
+Date: Thu, 16 Jun 2011 11:56:39 -0700
+Message-ID: <87aadhk3ko.fsf@ti.com>
+References: <1307625904-18629-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:55421 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758634Ab1FPShY convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Jun 2011 14:37:24 -0400
-Received: by fxm17 with SMTP id 17so1297975fxm.19
-        for <linux-omap@vger.kernel.org>; Thu, 16 Jun 2011 11:37:22 -0700 (PDT)
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593024D563C4B@dbde02.ent.ti.com>
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:52514 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752866Ab1FPS4n (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 16 Jun 2011 14:56:43 -0400
+Received: by mail-pv0-f182.google.com with SMTP id 11so1741129pvg.13
+        for <linux-omap@vger.kernel.org>; Thu, 16 Jun 2011 11:56:42 -0700 (PDT)
+In-Reply-To: <1307625904-18629-1-git-send-email-t-kristo@ti.com> (Tero
+	Kristo's message of "Thu, 9 Jun 2011 16:25:01 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Premi, Sanjeev" <premi@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org
 
->
-> [sp] Could this be renamed simply as: OMAP3EVM_WL12XX?
-> =A0 =A0 OR is there a specific reason to add vendor/manufacturers' na=
-me
-> =A0 =A0 to the defintion?
->
+Hi Tero,
 
-I don't mind changing it.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tero Kristo <t-kristo@ti.com> writes:
+
+> Following set contains PRCM chain interrupt handling for OMAP3/4. 
+
+What does this series apply to?  It doesn't seem to apply to mainline
+(v3.0-rc3) or l-o master.
+
+Kevin
+
