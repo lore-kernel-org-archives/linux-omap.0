@@ -1,43 +1,25 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [RESEND PATCH 0/2] ARM IRQ Kconfig patches
-Date: Thu, 16 Jun 2011 22:40:52 +0100
-Message-ID: <20110616214052.GA9698@n2100.arm.linux.org.uk>
-References: <1308142960-20767-1-git-send-email-balbi@ti.com>
-	<4DF9EDB1.4000707@ru.mvista.com>
+From: "maria garang" <mariagarang@live.com>
+Subject: Hello
+Date: Thu, 16 Jun 2011 23:49:14 +0200
+Message-ID: <20110616234914.1329F209@centrum.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <4DF9EDB1.4000707@ru.mvista.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Sergei Shtylyov <sshtylyov@mvista.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Felipe Balbi <balbi@ti.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from gmmr2.centrum.cz ([90.183.38.158]:36585 "EHLO gmmr2.centrum.cz"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932141Ab1FPVtR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 16 Jun 2011 17:49:17 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jun 16, 2011 at 03:49:05PM +0400, Sergei Shtylyov wrote:
-> Hello.
->
-> On 15-06-2011 17:02, Felipe Balbi wrote:
->
->> I have lost count how many times I have sent
->> these patches. Will someone either take them
->> in or NAK them so I stop sending ??
->
->> Felipe Balbi (2):
->>    arm: Kconfig: select correct HAVE_SPARSE_IRQ symbol
->>    arm: Kconfig: allow OMAP to use sparse IRQ numbering
->
->    Why not put it into Russell's patch system already?
 
-I would like _someone_ (such as those who introduced the ARM arch to
-the Sparse IRQ stuff) at least to ack them first so I don't have to
-wonder whether the patches are correct or not.
+Hello
+my name is miss Maria,i saw your email today as i was browsing at this
+site( )and i became interested in you.with a warm heart i offer my
+friendship to you.i will like to know you the more and i humbly ask
+that you write to me through my email address at(mariagarang@live.com)
+so that i can give you my pictures and more details about me.Hope to
+hear from you soon,have a nice day.
+Thanks
+Maria
