@@ -1,19 +1,19 @@
 From: Kevin Hilman <khilman@ti.com>
 Subject: Re: [PATCH v2 14/18] GPIO: OMAP: Fix use of readl/readw to access isr_reg
-Date: Thu, 16 Jun 2011 10:53:44 -0700
-Message-ID: <87aadhmzmf.fsf@ti.com>
+Date: Thu, 16 Jun 2011 10:57:38 -0700
+Message-ID: <871uytmzfx.fsf@ti.com>
 References: <1308111806-29152-1-git-send-email-tarun.kanti@ti.com>
 	<1308111806-29152-5-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:60353 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757205Ab1FPRxr (ORCPT
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:48751 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752823Ab1FPR5l (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 16 Jun 2011 13:53:47 -0400
-Received: by mail-pw0-f50.google.com with SMTP id 3so1004146pwi.23
-        for <linux-omap@vger.kernel.org>; Thu, 16 Jun 2011 10:53:47 -0700 (PDT)
+	Thu, 16 Jun 2011 13:57:41 -0400
+Received: by mail-pw0-f46.google.com with SMTP id 7so624745pwj.33
+        for <linux-omap@vger.kernel.org>; Thu, 16 Jun 2011 10:57:40 -0700 (PDT)
 In-Reply-To: <1308111806-29152-5-git-send-email-tarun.kanti@ti.com> (Tarun
 	Kanti DebBarma's message of "Wed, 15 Jun 2011 09:53:22 +0530")
 Sender: linux-omap-owner@vger.kernel.org
@@ -50,13 +50,10 @@ Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
 > +			isr = __raw_readl(isr_reg) & enabled;
 > +		else if (bank->width == 16)
 > +			isr = (__raw_readw(isr_reg) & enabled) & 0x0000ffff;
+> +		isr_saved = isr;
 
-Minor nit: is the '& 0xffff' really needed.  The 'enabled' mask is
-already masked using the bank width.
+Come to think of it, even when bank->width is 16, all the OMAP1
+registers are 4-byte aligned, so just use a 4-byte read.  The 'enabled'
+mask is already taking care to mask for bank width.
 
 Kevin
-
-> +		isr_saved = isr;
->  
->  		if (bank->regs->leveldetect0)
->  			level_mask = bank->level_mask & enabled;
