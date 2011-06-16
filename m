@@ -1,63 +1,50 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: [PATCH] omap3evm: Add Mistral WL12XX config support
-Date: Thu, 16 Jun 2011 15:23:08 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593024D563C4B@dbde02.ent.ti.com>
-References: <y> <1308053788-25937-1-git-send-email-shahar@wizery.com>
+From: =?ISO-8859-1?Q?P=E9ter?= Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v4 11/18] input: Add initial support for
+	TWL6040 vibrator
+Date: Thu, 16 Jun 2011 14:13:59 +0300
+Message-ID: <5476342.2jZLF0UGcI@barack>
+References: <1307706876-4768-1-git-send-email-peter.ujfalusi@ti.com>
+	<20110615081858.GM8141@htj.dyndns.org>
+	<20110615082301.GN8141@htj.dyndns.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48643 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752875Ab1FPJxS convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Jun 2011 05:53:18 -0400
-In-Reply-To: <1308053788-25937-1-git-send-email-shahar@wizery.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20110615082301.GN8141@htj.dyndns.org>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Tejun Heo <tj@kernel.org>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "Lopez Cruz, Misael" <misael.lopez@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Girdwood, Liam" <lrg@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Shahar Lev <shahar@wizery.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: linux-arm <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Shahar Lev
-> Sent: Tuesday, June 14, 2011 5:46 PM
-> To: linux-omap@vger.kernel.org
-> Cc: linux-arm; Tony Lindgren; Shahar Lev
-> Subject: [PATCH] omap3evm: Add Mistral WL12XX config support
-> 
-> Add Kconfig entries indicating the existence of omap3evm's
-> wlan/bt wl12xx daughter card (see
-> http://mistralsolutions.com/component/jumi/Download_Common_Cod
-> e.html?docid=298),
-> and the exact reference clock type that the wl12xx device is hardwired
-> to (the wl12xx driver must know this).
-> 
-> In addition, start using CONFIG_OMAP3EVM_MISTRAL_WL12XX in
-> the omap3evm's board file instead of CONFIG_WL12XX_PLATFORM_DATA,
-> because the latter only indicates that the driver is being built, and
-> shouldn't be used to assume the existence of extension cards.
-> 
-> Signed-off-by: Shahar Lev <shahar@wizery.com>
-> ---
->  arch/arm/mach-omap2/Kconfig          |   23 +++++++++++++++++++++++
->  arch/arm/mach-omap2/board-omap3evm.c |   12 ++++++------
->  2 files changed, 29 insertions(+), 6 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-> index 19d5891..8ef012d 100644
-> --- a/arch/arm/mach-omap2/Kconfig
-> +++ b/arch/arm/mach-omap2/Kconfig
-> @@ -342,6 +342,29 @@ config OMAP3_SDRC_AC_TIMING
->  	  wish to say no.  Selecting yes without understanding what is
->  	  going on could result in system crashes;
->  
-> +config OMAP3EVM_MISTRAL_WL12XX
+On Wednesday 15 June 2011 10:23:01 Tejun Heo wrote:
+> On Wed, Jun 15, 2011 at 10:18:58AM +0200, Tejun Heo wrote:
+> > No human being can feel 120usec difference and I can't see how using
+> > HIGHPRI is justified here (which is what the code is doing
+> > _accidentally_ by using singlethread_workqueue).
+> =
 
-[sp] Could this be renamed simply as: OMAP3EVM_WL12XX?
-     OR is there a specific reason to add vendor/manufacturers' name
-     to the defintion? 
+> Ooh, one more thing, and even if you insist on using HIGHPRI (please
+> don't), you don't need to create workqueue for each device.  You can
+> just create one for the whole driver in init and destroy it from exit.
+> What matters is the HIGHPRI attribute of the workqueue.  The number of
+> workqueues is completely irrelevant.
 
-~sanjeev
+Fair enough.
+I'll move to create_workqueue.
+If we later find issues with this (in a 'live' system), we can figure out a =
 
-[snip]...[snip]
+way to fix it.
+
+Thank you for your time on this.
+I'll make the changes accordingly.
+
+Regards,
+P=E9ter
