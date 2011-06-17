@@ -1,581 +1,203 @@
-From: jean.pihet@newoldbits.com
-Subject: [PATCH] OMAP3: run the ASM sleep code from DDR
-Date: Fri, 17 Jun 2011 10:52:05 +0200
-Message-ID: <1308300725-12150-1-git-send-email-j-pihet@ti.com>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [RFC/PATCH] OMAP3: run the ASM sleep code from DDR
+Date: Fri, 17 Jun 2011 10:58:35 +0200
+Message-ID: <BANLkTik=1SGUjK2bj2BUPJwmkeUCuBipkA@mail.gmail.com>
+References: <1294935563-14426-1-git-send-email-j-pihet@ti.com>
+	<b52b65db02da68b3febc0c9cf1e99040@mail.gmail.com>
+	<9215f5d7252a4b60f58c3e14a9d46f59@mail.gmail.com>
+	<AANLkTinRZyVBu=c3cHBQ7OmJv3U8717_w8Haig4R=ZQh@mail.gmail.com>
+	<86b8aab234e1451170c0937e2ab786e5@mail.gmail.com>
+	<AANLkTinPxJigu8Nc5J04ciQ_c_Kw9R2xS7s1jaiqeM+F@mail.gmail.com>
+	<782caeeca19758b50d370c17db11c78a@mail.gmail.com>
+	<6bbd9e73b48eeb3f9f7615b19949f405@mail.gmail.com>
+	<BANLkTimF4Wd7Kgg6a=wL_6b6Rj7uzvkxeg@mail.gmail.com>
+	<4DFA2B2A.7060904@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:46001 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757271Ab1FQIwT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Jun 2011 04:52:19 -0400
-Received: by wyb38 with SMTP id 38so153493wyb.19
-        for <linux-omap@vger.kernel.org>; Fri, 17 Jun 2011 01:52:17 -0700 (PDT)
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:64471 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757425Ab1FQI6g convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Jun 2011 04:58:36 -0400
+Received: by qwk3 with SMTP id 3so1042841qwk.19
+        for <linux-omap@vger.kernel.org>; Fri, 17 Jun 2011 01:58:36 -0700 (PDT)
+In-Reply-To: <4DFA2B2A.7060904@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, santosh.shilimkar@ti.com
-Cc: Jean Pihet <j-pihet@ti.com>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-From: Jean Pihet <j-pihet@ti.com>
+Hi Santosh,
 
-Most of the ASM sleep code (in arch/arm/mach-omap2/sleep34xx.S)
-is copied to internal SRAM and run from there.
-However only a small part of the code really needs to run from internal SRAM.
+On Thu, Jun 16, 2011 at 6:11 PM, Santosh Shilimkar
+<santosh.shilimkar@ti.com> wrote:
+> On 6/16/2011 9:00 PM, Pihet-XID, Jean wrote:
+>>
+>> Hi Santosh, Benoit, Kevin,
+>>
+>> I would like to revive this discussion. Can you give some feedback o=
+n
+>> the self-refresh problem that is proposed in the latest patch from
+>> Santosh? Cf. below for more details.
+>>
+> Comments below.
+>
+>> On Fri, Feb 4, 2011 at 12:39 PM, Santosh Shilimkar
+>> <santosh.shilimkar@ti.com> =A0wrote:
+>>>
+>>> Jean,
+>>>>
+>>>> -----Original Message-----
+>>>> From: Santosh Shilimkar [mailto:santosh.shilimkar@ti.com]
+>>>> Sent: Tuesday, February 01, 2011 5:01 PM
+>>>> To: Jean Pihet
+>>>> Cc: linux-omap@vger.kernel.org; Jean Pihet-XID
+>>>> Subject: RE: [RFC/PATCH] OMAP3: run the ASM sleep code from DDR
+>>>>
+>>>>> -----Original Message-----
+>>>>> From: Jean Pihet [mailto:jean.pihet@newoldbits.com]
+>>>>> Sent: Tuesday, February 01, 2011 4:53 PM
+>>>>> To: Santosh Shilimkar
+>>>>> Cc: linux-omap@vger.kernel.org; Jean Pihet-XID
+>>>>> Subject: Re: [RFC/PATCH] OMAP3: run the ASM sleep code from DDR
+>>>>>
+>>>>
+>>>> [...]
+>>>>>>>
+>>>>>>> Does that makes sense?
+>>>>>>>
+>>>>>> Actually not. Rather I will separate only the scenario's
+>>>>>> where CORE low power targets are attempted and only have
+>>>>>> that code run from SRAM.
+>>>>>>
+>>>>>> There are scenario's where CORE can be active because MODEM,
+>>>>>> DSP and MPU can still hit RET, OFF. And here, the errata
+>>>>>> isn't applicable.
+>>>>>>
+>>>>>> Unless I missed something here, I think in the code we check
+>>>>>> the the CORE attempted state and based on that we can do a
+>>>>>> normal WFI from DDR (no self rfersh) or WFI from
+>>>>>> SRAM with self refresh enabled.
+>>>>>
+>>>>> No. Only the MPU attempted state is checked (this actually is the
+>>>>> 'save_state' parameter passed to omap_cpu_suspend).
+>>>>> So it makes sense to check the CORE attempted state in order to
+>>>>> decide
+>>>>> to run the WFI from internal SRAM or DDR.
+>>>>>
+>>>>> The MPU attempted state is used to decide whether to save the
+>>>>> MPU/L1/L2 context.
+>>>>>
+>>>> Looks like you miss-understood my point. As I understand from
+>>>> errata, as long as core clock domain can idle with core
+>>>> dpll divider auto idle enabled, the errata is applicable.
+>>>>
+>>>> So the only check needed is to see if the core clockdomain
+>>>> hw_auto or sw sleep is enabled.
+>>>>
+>>>> If it is suppose to be not idle(we force few C-states
+>>>> where CORE inactive is avoided for faster response),
+>>>> we can execute WFI from DDR with not enabling
+>>>> self refresh.
+>>
+>> Is this the way to go?
+>>
+> I think so considering we need C-states for
+> faster responses as well.
+>
+>>>>
+>>>> Rest of the scenario can follow the SRAM path.
+>>>>
+>>>> Hope this is clear to you.
+>>>
+>>> As per further discussion, I have updated your
+>>> patch to address above by using core clockdomain
+>>> state.
+>>>
+>>> Have tested OFF and RET with this new update and they
+>>> work as expected. Feel free to update further if needed.
+>>>
+>>> ------
+>>> =A0From 49fe8164a40431807495638ec23639cc9bc53cb9 Mon Sep 17 00:00:0=
+0 2001
+>>> From: Jean Pihet<j-pihet@ti.com>
+>>> Date: Sat, 29 Jan 2011 20:51:19 +0530
+>>> Subject: [PATCH] OMAP3: run the ASM sleep code from DDR
+>>
+>> ...
+>>
+>>>
+>>> -omap3_do_wfi:
+>>> +do_WFI:
+>>> + =A0 =A0 =A0 ldr =A0 =A0 r4, cm_clkstctrl_core =A0 @ read the CLKS=
+TCTRL_CORE
+>>> + =A0 =A0 =A0 ldr =A0 =A0 r5, [r4] =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0@=
+ read the contents of
+>>> CLKSTCTRL_CORE
+>>> + =A0 =A0 =A0 and =A0 =A0 r5, r5, #0x3
+>>> + =A0 =A0 =A0 cmp =A0 =A0 r5, #0x3
+>>> + =A0 =A0 =A0 beq =A0 =A0 omap3_do_wfi =A0 =A0 =A0 =A0 =A0 =A0@ Jum=
+pt to SRAM function
+>>> + =A0 =A0 =A0 mov =A0 =A0 r1, #0
+>>> + =A0 =A0 =A0 mcr =A0 =A0 p15, 0, r1, c7, c10, 4
+>>> + =A0 =A0 =A0 mcr =A0 =A0 p15, 0, r1, c7, c10, 5
+>>> +
+>>> + =A0 =A0 =A0 wfi =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 @ wait for interrupt
+>>> +
+>>> + =A0 =A0 =A0 ldmfd =A0 sp!, {r0-r12, pc} =A0 =A0 =A0 @ restore reg=
+s and return
+>>
+>> This code has a few problems:
+>> - there now are 2 wfi instructions, which I would like to avoid for
+>> readability and maintainability,
+>> - are the mcr instructions needed here? From
+>> arch/arm/include/asm/system.h it seems those are not needed for
+>> __LINUX_ARM_ARCH__>=3D 7
+>
+> The are barriers and in my clean-up I have already fixed them.
+> Your patch is bit old so has those things. Once you
+> refresh your patch against mainline, this can be simply
+> converted to DSB and DMB.
+>
+>>
+>> Furthermore the main point of discussion to me is: is it advised to =
+go
+>> into wfi without self refresh requested? Can anyone confirm this?
+>>
+> You can provided you ensure that CORE and SDRC can't idle.
+>
+> I suggest you to create a patch against mainline and then we
+> take it from there.
 
-This fix lets most of the ASM idle code run from the DDR
-in order to minimize the SRAM usage. No performance
-loss or gain can be measured with a 32KHz clock period.
+Re-pushed an updated patch on l-o ML: '[PATCH] OMAP3: run the ASM
+sleep code from DDR'.
 
-The only pieces of code that are mandatory in SRAM
-are:
-- the i443 erratum WA,
-- the i581 erratum WA,
-- the security extension code.
+I deliberately omitted the code for WFI transition without
+self-refresh because of the reasons mentioned here above and repeated
+here (quoting myself):
+"The DDR self refresh is enabled at each WFI but not necessarily hit.
+It is actually triggered by the CORE idle request which depends on the
+settings, the dependencies, the HW states... For example the CORE
+state depends on the MPU state so if the MPU stays ON running
+instructions the CORE will stay ON as well.
 
-SRAM usage:
-- original code:
-  . 560 bytes for omap3_sram_configure_core_dpll (used by DVFS),
-  . 1196 bytes for omap_sram_idle (used by suspend/resume in RETention),
-  . 124 bytes for es3_sdrc_fix (used by suspend/resume in OFF mode on ES3.x),
-  . 108 bytes for save_secure_ram_context (used on HS parts only).
+Also the code in wait_sdrc_ok will exit quicker if the CORE DPLL is
+already locked, e.g. if the CORE did not hit a low power state. Since
+the actual CORE hit state is unknow after wake-up from WFI the
+wait_sdrc_ok code always run at wake-up from MPU RET.
+"
 
-With this fix the usage for suspend/resume in RETention goes down 288 bytes,
-so the gain in SRAM usage for suspend/resume is 908 bytes.
+>
+> Regards
+> Santosh
+>
 
-Also fixed the SRAM initialization sequence to avoid an unnecessary
-copy to SRAM at boot time and for readability.
-
-Tested on Beagleboard (ES2.x) in idle with full RET and OFF modes.
-
-Signed-off-by: Jean Pihet <j-pihet@ti.com>
----
- arch/arm/mach-omap2/pm.h        |   20 ++-
- arch/arm/mach-omap2/pm34xx.c    |   20 ++-
- arch/arm/mach-omap2/sleep34xx.S |  316 ++++++++++++++++++++++-----------------
- arch/arm/plat-omap/sram.c       |   15 +--
- 4 files changed, 213 insertions(+), 158 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-index 45bcfce..a4ec213 100644
---- a/arch/arm/mach-omap2/pm.h
-+++ b/arch/arm/mach-omap2/pm.h
-@@ -88,18 +88,28 @@ extern int pm_dbg_regset_init(int reg_set);
- #define pm_dbg_regset_init(reg_set) do {} while (0);
- #endif /* CONFIG_PM_DEBUG */
- 
-+/* 24xx */
- extern void omap24xx_idle_loop_suspend(void);
-+extern unsigned int omap24xx_idle_loop_suspend_sz;
- 
- extern void omap24xx_cpu_suspend(u32 dll_ctrl, void __iomem *sdrc_dlla_ctrl,
- 					void __iomem *sdrc_power);
-+extern unsigned int omap24xx_cpu_suspend_sz;
-+
-+/* 3xxx */
- extern void omap34xx_cpu_suspend(u32 *addr, int save_state);
--extern int save_secure_ram_context(u32 *addr);
--extern void omap3_save_scratchpad_contents(void);
- 
--extern unsigned int omap24xx_idle_loop_suspend_sz;
-+/* omap3_do_wfi function pointer and size, for copy to SRAM */
-+extern void omap3_do_wfi(void);
-+extern unsigned int omap3_do_wfi_sz;
-+/* ... and its pointer from SRAM after copy */
-+extern void (*omap3_do_wfi_sram)(void);
-+
-+/* save_secure_ram_context function pointer and size, for copy to SRAM */
-+extern int save_secure_ram_context(u32 *addr);
- extern unsigned int save_secure_ram_context_sz;
--extern unsigned int omap24xx_cpu_suspend_sz;
--extern unsigned int omap34xx_cpu_suspend_sz;
-+
-+extern void omap3_save_scratchpad_contents(void);
- 
- #define PM_RTA_ERRATUM_i608		(1 << 0)
- #define PM_SDRC_WAKEUP_ERRATUM_i583	(1 << 1)
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index c155c9d..f056732 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -83,9 +83,8 @@ struct power_state {
- 
- static LIST_HEAD(pwrst_list);
- 
--static void (*_omap_sram_idle)(u32 *addr, int save_state);
--
- static int (*_omap_save_secure_sram)(u32 *addr);
-+void (*omap3_do_wfi_sram)(void);
- 
- static struct powerdomain *mpu_pwrdm, *neon_pwrdm;
- static struct powerdomain *core_pwrdm, *per_pwrdm;
-@@ -352,9 +351,6 @@ void omap_sram_idle(void)
- 	int core_prev_state, per_prev_state;
- 	u32 sdrc_pwr = 0;
- 
--	if (!_omap_sram_idle)
--		return;
--
- 	pwrdm_clear_all_prev_pwrst(mpu_pwrdm);
- 	pwrdm_clear_all_prev_pwrst(neon_pwrdm);
- 	pwrdm_clear_all_prev_pwrst(core_pwrdm);
-@@ -436,7 +432,7 @@ void omap_sram_idle(void)
- 	 * get saved. The restore path then reads from this
- 	 * location and restores them back.
- 	 */
--	_omap_sram_idle(omap3_arm_context, save_state);
-+	omap34xx_cpu_suspend(omap3_arm_context, save_state);
- 	cpu_init();
- 
- 	/* Restore normal SDRC POWER settings */
-@@ -852,10 +848,17 @@ static int __init clkdms_setup(struct clockdomain *clkdm, void *unused)
- 	return 0;
- }
- 
-+/*
-+ * Push functions to SRAM
-+ *
-+ * The minimum set of functions is pushed to SRAM for execution:
-+ * - omap3_do_wfi for erratum i581 WA,
-+ * - save_secure_ram_context for security extensions.
-+ */
- void omap_push_sram_idle(void)
- {
--	_omap_sram_idle = omap_sram_push(omap34xx_cpu_suspend,
--					omap34xx_cpu_suspend_sz);
-+	omap3_do_wfi_sram = omap_sram_push(omap3_do_wfi, omap3_do_wfi_sz);
-+
- 	if (omap_type() != OMAP2_DEVICE_TYPE_GP)
- 		_omap_save_secure_sram = omap_sram_push(save_secure_ram_context,
- 				save_secure_ram_context_sz);
-@@ -920,7 +923,6 @@ static int __init omap3_pm_init(void)
- 	per_clkdm = clkdm_lookup("per_clkdm");
- 	core_clkdm = clkdm_lookup("core_clkdm");
- 
--	omap_push_sram_idle();
- #ifdef CONFIG_SUSPEND
- 	suspend_set_ops(&omap_pm_ops);
- #endif /* CONFIG_SUSPEND */
-diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
-index 63f1066..2ef0c0d 100644
---- a/arch/arm/mach-omap2/sleep34xx.S
-+++ b/arch/arm/mach-omap2/sleep34xx.S
-@@ -179,8 +179,10 @@ ENTRY(save_secure_ram_context_sz)
-  *
-  *
-  * Notes:
-- * - this code gets copied to internal SRAM at boot and after wake-up
-- *   from OFF mode. The execution pointer in SRAM is _omap_sram_idle.
-+ * - only the minimum set of functions gets copied to internal SRAM at boot
-+ *   and after wake-up from OFF mode, cf. omap_push_sram_idle. The function
-+ *   pointers in SDRAM or SRAM are called depending on the desired low power
-+ *   target state.
-  * - when the OMAP wakes up it continues at different execution points
-  *   depending on the low power mode (non-OFF vs OFF modes),
-  *   cf. 'Resume path for xxx mode' comments.
-@@ -198,9 +200,15 @@ ENTRY(omap34xx_cpu_suspend)
- 	 *   3 - Both L1 and L2 lost and logic lost
- 	 */
- 
--	/* Directly jump to WFI is the context save is not required */
--	cmp	r1, #0x0
--	beq	omap3_do_wfi
-+	/*
-+	 * For OFF mode: save context and jump to WFI in SDRAM (omap3_do_wfi)
-+	 * For non-OFF modes: jump to the WFI code in SRAM (omap3_do_wfi_sram)
-+	 */
-+	ldr	r4, omap3_do_wfi_sram_addr
-+	ldr	r5, [r4]
-+	cmp	r1, #0x0		@ If no context save required,
-+	bxeq	r5			@  jump to the WFI code in SRAM
-+
- 
- 	/* Otherwise fall through to the save context code */
- save_context_wfi:
-@@ -284,7 +292,32 @@ clean_caches:
-  THUMB(	nop		)
- 	.arm
- 
--omap3_do_wfi:
-+	b	omap3_do_wfi
-+
-+/*
-+ * Local variables
-+ */
-+omap3_do_wfi_sram_addr:
-+	.word omap3_do_wfi_sram
-+kernel_flush:
-+	.word v7_flush_dcache_all
-+
-+/* ===================================
-+ * == WFI instruction => Enter idle ==
-+ * ===================================
-+ */
-+
-+/*
-+ * Do WFI instruction
-+ * Includes the resume path for non-OFF modes
-+ *
-+ * This code gets copied to internal SRAM and is accessible
-+ * from both SDRAM and SRAM:
-+ * - executed from SRAM for non-off modes (omap3_do_wfi_sram),
-+ * - executed from SDRAM for OFF mode (omap3_do_wfi).
-+ */
-+	.align	3
-+ENTRY(omap3_do_wfi)
- 	ldr	r4, sdrc_power		@ read the SDRC_POWER register
- 	ldr	r5, [r4]		@ read the contents of SDRC_POWER
- 	orr	r5, r5, #0x40		@ enable self refresh on idle req
-@@ -316,8 +349,86 @@ omap3_do_wfi:
- 	nop
- 	nop
- 	nop
--	bl wait_sdrc_ok
- 
-+/*
-+ * This function implements the erratum ID i581 WA:
-+ *  SDRC state restore before accessing the SDRAM
-+ *
-+ * Only used at return from non-OFF mode. For OFF
-+ * mode the ROM code configures the SDRC and
-+ * the DPLL before calling the restore code directly
-+ * from DDR.
-+ */
-+
-+/* Make sure SDRC accesses are ok */
-+wait_sdrc_ok:
-+
-+/* DPLL3 must be locked before accessing the SDRC. Maybe the HW ensures this */
-+	ldr	r4, cm_idlest_ckgen
-+wait_dpll3_lock:
-+	ldr	r5, [r4]
-+	tst	r5, #1
-+	beq	wait_dpll3_lock
-+
-+	ldr	r4, cm_idlest1_core
-+wait_sdrc_ready:
-+	ldr	r5, [r4]
-+	tst	r5, #0x2
-+	bne	wait_sdrc_ready
-+	/* allow DLL powerdown upon hw idle req */
-+	ldr	r4, sdrc_power
-+	ldr	r5, [r4]
-+	bic	r5, r5, #0x40
-+	str	r5, [r4]
-+
-+/*
-+ * PC-relative stores lead to undefined behaviour in Thumb-2: use a r7 as a
-+ * base instead.
-+ * Be careful not to clobber r7 when maintaing this code.
-+ */
-+
-+is_dll_in_lock_mode:
-+	/* Is dll in lock mode? */
-+	ldr	r4, sdrc_dlla_ctrl
-+	ldr	r5, [r4]
-+	tst	r5, #0x4
-+	bne	exit_nonoff_modes	@ Return if locked
-+	/* wait till dll locks */
-+	adr	r7, kick_counter
-+wait_dll_lock_timed:
-+	ldr	r4, wait_dll_lock_counter
-+	add	r4, r4, #1
-+	str	r4, [r7, #wait_dll_lock_counter - kick_counter]
-+	ldr	r4, sdrc_dlla_status
-+	/* Wait 20uS for lock */
-+	mov	r6, #8
-+wait_dll_lock:
-+	subs	r6, r6, #0x1
-+	beq	kick_dll
-+	ldr	r5, [r4]
-+	and	r5, r5, #0x4
-+	cmp	r5, #0x4
-+	bne	wait_dll_lock
-+	b	exit_nonoff_modes	@ Return when locked
-+
-+	/* disable/reenable DLL if not locked */
-+kick_dll:
-+	ldr	r4, sdrc_dlla_ctrl
-+	ldr	r5, [r4]
-+	mov	r6, r5
-+	bic	r6, #(1<<3)		@ disable dll
-+	str	r6, [r4]
-+	dsb
-+	orr	r6, r6, #(1<<3)		@ enable dll
-+	str	r6, [r4]
-+	dsb
-+	ldr	r4, kick_counter
-+	add	r4, r4, #1
-+	str	r4, [r7]		@ kick_counter
-+	b	wait_dll_lock_timed
-+
-+exit_nonoff_modes:
-+	/* Re-enable C-bit if needed */
- 	mrc	p15, 0, r0, c1, c0, 0
- 	tst	r0, #(1 << 2)		@ Check C bit enabled?
- 	orreq	r0, r0, #(1 << 2)	@ Enable the C bit if cleared
-@@ -331,6 +442,31 @@ omap3_do_wfi:
-  */
- 	ldmfd	sp!, {r0-r12, pc}	@ restore regs and return
- 
-+/*
-+ * Local variables
-+ */
-+sdrc_power:
-+	.word	SDRC_POWER_V
-+cm_idlest1_core:
-+	.word	CM_IDLEST1_CORE_V
-+cm_idlest_ckgen:
-+	.word	CM_IDLEST_CKGEN_V
-+sdrc_dlla_status:
-+	.word	SDRC_DLLA_STATUS_V
-+sdrc_dlla_ctrl:
-+	.word	SDRC_DLLA_CTRL_V
-+	/*
-+	 * When exporting to userspace while the counters are in SRAM,
-+	 * these 2 words need to be at the end to facilitate retrival!
-+	 */
-+kick_counter:
-+	.word	0
-+wait_dll_lock_counter:
-+	.word	0
-+
-+ENTRY(omap3_do_wfi_sz)
-+	.word	. - omap3_do_wfi
-+
- 
- /*
-  * ==============================
-@@ -346,6 +482,10 @@ omap3_do_wfi:
-  *  restore_es3: applies to 34xx >= ES3.0
-  *  restore_3630: applies to 36xx
-  *  restore: common code for 3xxx
-+ *
-+ * Note: when back from CORE and MPU OFF mode we are running
-+ *  from SDRAM, without MMU, without the caches and prediction.
-+ *  Also the SRAM content has been cleared.
-  */
- restore_es3:
- 	ldr	r5, pm_prepwstst_core_p
-@@ -364,7 +504,8 @@ copy_to_sram:
- 	bne	copy_to_sram
- 	ldr	r1, sram_base
- 	blx	r1
--	b	restore
-+
-+	b	restore		@ Fall through to common code
- 
- restore_3630:
- 	ldr	r1, pm_prepwstst_core_p
-@@ -574,12 +715,41 @@ usettbr0:
- restoremmu_on:
- 	ldmfd	sp!, {r0-r12, pc}	@ restore regs and return
- 
-+/*
-+ * Local variables
-+ */
-+pm_prepwstst_core_p:
-+	.word	PM_PREPWSTST_CORE_P
-+pm_pwstctrl_mpu:
-+	.word	PM_PWSTCTRL_MPU_P
-+scratchpad_base:
-+	.word	SCRATCHPAD_BASE_P
-+sram_base:
-+	.word	SRAM_BASE_P + 0x8000
-+ttbrbit_mask:
-+	.word	0xFFFFC000
-+table_index_mask:
-+	.word	0xFFF00000
-+table_entry:
-+	.word	0x00000C02
-+cache_pred_disable_mask:
-+	.word	0xFFFFE7FB
-+control_stat:
-+	.word	CONTROL_STAT
-+control_mem_rta:
-+	.word	CONTROL_MEM_RTA_CTRL
-+l2dis_3630:
-+	.word	0
-+
- 
- /*
-  * Internal functions
-  */
- 
--/* This function implements the erratum ID i443 WA, applies to 34xx >= ES3.0 */
-+/* This function implements the erratum ID i443 WA, applies to 34xx >= ES3.0
-+ *
-+ * Copied and run from SRAM in order to reconfigure the SDRC parameters.
-+ */
- 	.text
- 	.align	3
- ENTRY(es3_sdrc_fix)
-@@ -609,6 +779,9 @@ ENTRY(es3_sdrc_fix)
- 	str	r5, [r4]		@ kick off refreshes
- 	bx	lr
- 
-+/*
-+ * Local variables
-+ */
- 	.align
- sdrc_syscfg:
- 	.word	SDRC_SYSCONFIG_P
-@@ -627,128 +800,3 @@ sdrc_manual_1:
- ENDPROC(es3_sdrc_fix)
- ENTRY(es3_sdrc_fix_sz)
- 	.word	. - es3_sdrc_fix
--
--/*
-- * This function implements the erratum ID i581 WA:
-- *  SDRC state restore before accessing the SDRAM
-- *
-- * Only used at return from non-OFF mode. For OFF
-- * mode the ROM code configures the SDRC and
-- * the DPLL before calling the restore code directly
-- * from DDR.
-- */
--
--/* Make sure SDRC accesses are ok */
--wait_sdrc_ok:
--
--/* DPLL3 must be locked before accessing the SDRC. Maybe the HW ensures this */
--	ldr	r4, cm_idlest_ckgen
--wait_dpll3_lock:
--	ldr	r5, [r4]
--	tst	r5, #1
--	beq	wait_dpll3_lock
--
--	ldr	r4, cm_idlest1_core
--wait_sdrc_ready:
--	ldr	r5, [r4]
--	tst	r5, #0x2
--	bne	wait_sdrc_ready
--	/* allow DLL powerdown upon hw idle req */
--	ldr	r4, sdrc_power
--	ldr	r5, [r4]
--	bic	r5, r5, #0x40
--	str	r5, [r4]
--
--/*
-- * PC-relative stores lead to undefined behaviour in Thumb-2: use a r7 as a
-- * base instead.
-- * Be careful not to clobber r7 when maintaing this code.
-- */
--
--is_dll_in_lock_mode:
--	/* Is dll in lock mode? */
--	ldr	r4, sdrc_dlla_ctrl
--	ldr	r5, [r4]
--	tst	r5, #0x4
--	bxne	lr			@ Return if locked
--	/* wait till dll locks */
--	adr	r7, kick_counter
--wait_dll_lock_timed:
--	ldr	r4, wait_dll_lock_counter
--	add	r4, r4, #1
--	str	r4, [r7, #wait_dll_lock_counter - kick_counter]
--	ldr	r4, sdrc_dlla_status
--	/* Wait 20uS for lock */
--	mov	r6, #8
--wait_dll_lock:
--	subs	r6, r6, #0x1
--	beq	kick_dll
--	ldr	r5, [r4]
--	and	r5, r5, #0x4
--	cmp	r5, #0x4
--	bne	wait_dll_lock
--	bx	lr			@ Return when locked
--
--	/* disable/reenable DLL if not locked */
--kick_dll:
--	ldr	r4, sdrc_dlla_ctrl
--	ldr	r5, [r4]
--	mov	r6, r5
--	bic	r6, #(1<<3)		@ disable dll
--	str	r6, [r4]
--	dsb
--	orr	r6, r6, #(1<<3)		@ enable dll
--	str	r6, [r4]
--	dsb
--	ldr	r4, kick_counter
--	add	r4, r4, #1
--	str	r4, [r7]		@ kick_counter
--	b	wait_dll_lock_timed
--
--	.align
--cm_idlest1_core:
--	.word	CM_IDLEST1_CORE_V
--cm_idlest_ckgen:
--	.word	CM_IDLEST_CKGEN_V
--sdrc_dlla_status:
--	.word	SDRC_DLLA_STATUS_V
--sdrc_dlla_ctrl:
--	.word	SDRC_DLLA_CTRL_V
--pm_prepwstst_core_p:
--	.word	PM_PREPWSTST_CORE_P
--pm_pwstctrl_mpu:
--	.word	PM_PWSTCTRL_MPU_P
--scratchpad_base:
--	.word	SCRATCHPAD_BASE_P
--sram_base:
--	.word	SRAM_BASE_P + 0x8000
--sdrc_power:
--	.word	SDRC_POWER_V
--ttbrbit_mask:
--	.word	0xFFFFC000
--table_index_mask:
--	.word	0xFFF00000
--table_entry:
--	.word	0x00000C02
--cache_pred_disable_mask:
--	.word	0xFFFFE7FB
--control_stat:
--	.word	CONTROL_STAT
--control_mem_rta:
--	.word	CONTROL_MEM_RTA_CTRL
--kernel_flush:
--	.word	v7_flush_dcache_all
--l2dis_3630:
--	.word	0
--	/*
--	 * When exporting to userspace while the counters are in SRAM,
--	 * these 2 words need to be at the end to facilitate retrival!
--	 */
--kick_counter:
--	.word	0
--wait_dll_lock_counter:
--	.word	0
--ENDPROC(omap34xx_cpu_suspend)
--
--ENTRY(omap34xx_cpu_suspend_sz)
--	.word	. - omap34xx_cpu_suspend
-diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
-index 6af3d0b..363c91e 100644
---- a/arch/arm/plat-omap/sram.c
-+++ b/arch/arm/plat-omap/sram.c
-@@ -394,20 +394,15 @@ void omap3_sram_restore_context(void)
- }
- #endif /* CONFIG_PM */
- 
--static int __init omap34xx_sram_init(void)
--{
--	_omap3_sram_configure_core_dpll =
--		omap_sram_push(omap3_sram_configure_core_dpll,
--			       omap3_sram_configure_core_dpll_sz);
--	omap_push_sram_idle();
--	return 0;
--}
--#else
-+#endif /* CONFIG_ARCH_OMAP3 */
-+
- static inline int omap34xx_sram_init(void)
- {
-+#if defined(CONFIG_ARCH_OMAP3) && defined(CONFIG_PM)
-+	omap3_sram_restore_context();
-+#endif
- 	return 0;
- }
--#endif
- 
- int __init omap_sram_init(void)
- {
--- 
-1.7.4.1
-
+Regards,
+Jean
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
