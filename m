@@ -1,35 +1,101 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [pm-wip/voltdm_nm][PATCH 07/10] OMAP3+: PM: VP: use uV for max and min voltage limits
-Date: Fri, 17 Jun 2011 08:48:52 -0700
-Message-ID: <87sjr8cvbv.fsf@ti.com>
-References: <1307412972-25854-1-git-send-email-nm@ti.com>
-	<1307412972-25854-8-git-send-email-nm@ti.com> <87hb7ph5er.fsf@ti.com>
-	<BANLkTi=A75NHVeqz6dnKFZB-EcmJEH0XhA@mail.gmail.com>
+Subject: Re: [PATCH v2 08/18] GPIO: OMAP: Use wkup regs off/suspend support flag
+Date: Fri, 17 Jun 2011 08:52:04 -0700
+Message-ID: <87lix0cv6j.fsf@ti.com>
+References: <1308111776-29130-1-git-send-email-tarun.kanti@ti.com>
+	<1308111776-29130-7-git-send-email-tarun.kanti@ti.com>
+	<87boxxpvi2.fsf@ti.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB037B9AC59F@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:33799 "EHLO
+Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:55835 "EHLO
 	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751673Ab1FQPs4 (ORCPT
+	by vger.kernel.org with ESMTP id S1759316Ab1FQPwJ (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 17 Jun 2011 11:48:56 -0400
-Received: by mail-pz0-f47.google.com with SMTP id 36so2137232pzk.6
-        for <linux-omap@vger.kernel.org>; Fri, 17 Jun 2011 08:48:55 -0700 (PDT)
-In-Reply-To: <BANLkTi=A75NHVeqz6dnKFZB-EcmJEH0XhA@mail.gmail.com> (Nishanth
-	Menon's message of "Thu, 16 Jun 2011 19:28:34 -0500")
+	Fri, 17 Jun 2011 11:52:09 -0400
+Received: by mail-pz0-f44.google.com with SMTP id 5so2135418pzk.31
+        for <linux-omap@vger.kernel.org>; Fri, 17 Jun 2011 08:52:06 -0700 (PDT)
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB037B9AC59F@dbde02.ent.ti.com>
+	(Tarun Kanti DebBarma's message of "Fri, 17 Jun 2011 11:04:25 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>
+To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "tony@atomide.com" <tony@atomide.com>
 
-"Menon, Nishanth" <nm@ti.com> writes:
+"DebBarma, Tarun Kanti" <tarun.kanti@ti.com> writes:
 
-> On Thu, Jun 16, 2011 at 15:45, Kevin Hilman <khilman@ti.com> wrote:
->> Nice!
+[...]
+
+>> > diff --git a/arch/arm/mach-omap1/gpio16xx.c b/arch/arm/mach-
+>> omap1/gpio16xx.c
+>> > index 9a97e60..d1da7c8 100644
+>> > --- a/arch/arm/mach-omap1/gpio16xx.c
+>> > +++ b/arch/arm/mach-omap1/gpio16xx.c
+>> > @@ -52,6 +52,7 @@ static struct __initdata omap_gpio_platform_data
+>> omap16xx_mpu_gpio_config = {
+>> >     .bank_type              = METHOD_MPUIO,
+>> >     .bank_width             = 16,
+>> >     .bank_stride            = 1,
+>> > +   .suspend_support        = true,
+>> >     .regs                   = &omap16xx_mpuio_regs,
+>> >  };
+>> >
+>> > @@ -89,12 +90,16 @@ static struct omap_gpio_reg_offs omap16xx_gpio_regs
+>> = {
+>> >     .irqenable      = OMAP1610_GPIO_IRQENABLE1,
+>> >     .set_irqenable  = OMAP1610_GPIO_SET_IRQENABLE1,
+>> >     .clr_irqenable  = OMAP1610_GPIO_CLEAR_IRQENABLE1,
+>> > +   .wkup_status    = OMAP1610_GPIO_WAKEUPENABLE,
+>> > +   .wkup_clear     = OMAP1610_GPIO_CLEAR_WAKEUPENA,
+>> > +   .wkup_set       = OMAP1610_GPIO_SET_WAKEUPENA,
+>> >  };
+>> >
+>> >  static struct __initdata omap_gpio_platform_data omap16xx_gpio1_config
+>> = {
+>> >     .virtual_irq_start      = IH_GPIO_BASE,
+>> >     .bank_type              = METHOD_GPIO_1610,
+>> >     .bank_width             = 16,
+>> > +   .suspend_support        = true,
+>> >     .regs                   = &omap16xx_gpio_regs,
+>> >  };
+>> >
+>> > @@ -125,6 +130,7 @@ static struct __initdata omap_gpio_platform_data
+>> omap16xx_gpio2_config = {
+>> >     .virtual_irq_start      = IH_GPIO_BASE + 16,
+>> >     .bank_type              = METHOD_GPIO_1610,
+>> >     .bank_width             = 16,
+>> > +   .suspend_support        = true,
+>> >     .regs                   = &omap16xx_gpio_regs,
+>> >  };
+>> >
+>> > @@ -155,6 +161,7 @@ static struct __initdata omap_gpio_platform_data
+>> omap16xx_gpio3_config = {
+>> >     .virtual_irq_start      = IH_GPIO_BASE + 32,
+>> >     .bank_type              = METHOD_GPIO_1610,
+>> >     .bank_width             = 16,
+>> > +   .suspend_support        = true,
+>> >     .regs                   = &omap16xx_gpio_regs,
+>> >  };
+>> >
+>> > @@ -185,6 +192,7 @@ static struct __initdata omap_gpio_platform_data
+>> omap16xx_gpio4_config = {
+>> >     .virtual_irq_start      = IH_GPIO_BASE + 48,
+>> >     .bank_type              = METHOD_GPIO_1610,
+>> >     .bank_width             = 16,
+>> > +   .suspend_support        = true,
+>> >     .regs                   = &omap16xx_gpio_regs,
+>> >  };
 >>
->> A reference to where these voltages values came from would be good to
->> have in the code as well.
-> these are just conversions of the existing values - :( 
-> I think we need a seperate patch updating from each of OMAP DMs..
+>> Notice that you add a 'suspend_support = true' everywhere you add a the
+>> wkup_* registers.  This suggests to me that checking for the presence of
+>> one of those registers would tell you the same thing.
+>
+> Agreed!
+>
 
-Yes please.
+Specifically, I recommend checking for wake_status, since wake_set and
+wake_clear are legacy registers and may not be recommended (or present)
+on OMAP4+.
+
+Kevin
