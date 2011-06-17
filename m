@@ -1,63 +1,38 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] omap fixes for v3.0-rc3
-Date: Fri, 17 Jun 2011 04:13:31 -0700
-Message-ID: <20110617111330.GD23145@atomide.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCHv2 0/3] PRCM chain interrupt handler
+Date: Fri, 17 Jun 2011 15:06:25 +0300
+Message-ID: <1308312388-3952-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:37484 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757934Ab1FQMGe convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Jun 2011 08:06:34 -0400
+Received: from dlep35.itg.ti.com ([157.170.170.118])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id p5HC6YA1014430
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Fri, 17 Jun 2011 07:06:34 -0500
+Received: from dlep26.itg.ti.com (smtp-le.itg.ti.com [157.170.170.27])
+	by dlep35.itg.ti.com (8.13.7/8.13.8) with ESMTP id p5HC6Xj0023927
+	for <linux-omap@vger.kernel.org>; Fri, 17 Jun 2011 07:06:33 -0500 (CDT)
+Received: from dnce72.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p5HC6WRV011489
+	for <linux-omap@vger.kernel.org>; Fri, 17 Jun 2011 07:06:33 -0500 (CDT)
+Content-Class: urn:content-classes:message
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-Hi Linus,
+This set applies on top of PM branch.
 
-Please pull omap fixes from:
-
-git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git fixes
-
-This set contains regression fixes for PM and pandora board.
-
-Regards,
-
-Tony
+Changes compared to previous set:
+- should now apply cleanly
+  * removed pm44xx.c changes as the branch does not contain necessary support
 
 
-The following changes since commit 2c53b436a30867eb6b47dd7bab23ba638d1fb0d2:
-  Linus Torvalds (1):
-        Linux 3.0-rc3
 
-are available in the git repository at:
+Texas Instruments Oy, Tekniikantie 12, 02150 Espoo. Y-tunnus: 0115040-6. Kotipaikka: Helsinki
+ 
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git fixes
-
-Grazvydas Ignotas (1):
-      omap: pandora: fix NAND support
-
-Kevin Hilman (2):
-      OMAP: PM: omap_device: fix device power domain callbacks
-      OMAP1: PM: register notifiers with generic clock ops even when !PM_RUNTIME
-
-Russell King (1):
-      OMAP: PM debug: fix section mismatch warnings
-
-Tony Lindgren (2):
-      Merge branch 'for_3.0/pm-fixes' of ssh://master.kernel.org/.../khilman/linux-omap-pm into fixes
-      Merge branch 'fixes-v3.0-rc3' into devel-fixes
-
- arch/arm/mach-omap1/Makefile             |    4 ++--
- arch/arm/mach-omap1/pm_bus.c             |    8 ++++++--
- arch/arm/mach-omap2/board-omap3pandora.c |    3 ++-
- arch/arm/mach-omap2/pm-debug.c           |    4 ++--
- arch/arm/plat-omap/omap_device.c         |   19 +++++++++++++++++--
- 5 files changed, 29 insertions(+), 9 deletions(-)
