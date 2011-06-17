@@ -1,79 +1,50 @@
-From: Vladimir Pantelic <vladoman@gmail.com>
-Subject: [PATCH v2] omap v4l2: fix wrong resizer calculation
-Date: Fri, 17 Jun 2011 10:34:44 +0200
-Message-ID: <4DFB11A4.1040202@gmail.com>
+From: =?ISO-8859-1?Q?P=E9ter?= Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v4 11/18] input: Add initial support for
+	TWL6040 vibrator
+Date: Fri, 17 Jun 2011 12:39:57 +0300
+Message-ID: <5740779.B2nyl9oMW4@barack>
+References: <1307706876-4768-1-git-send-email-peter.ujfalusi@ti.com>
+	<20110616120244.GA2611@htj.dyndns.org> <4306005.scnJ1lQX4P@barack>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------050606080005010505030509"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kernel development list <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <4306005.scnJ1lQX4P@barack>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: alsa-devel@alsa-project.org
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, Tejun Heo <tj@kernel.org>, "Lopez Cruz, Misael" <misael.lopez@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Girdwood, Liam" <lrg@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------050606080005010505030509
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Hello Tejun,
 
-changes since v1:
-	reworded the commit message as requested
+On Thursday 16 June 2011 16:06:00 Ujfalusi, Peter wrote:
+> > I suppose you meant alloc_workqueue()? :)
+> =
 
---------------050606080005010505030509
-Content-Type: text/x-diff;
- name="0001-omap-v4l2-fix-wrong-resizer-calculation.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="0001-omap-v4l2-fix-wrong-resizer-calculation.patch"
+> Oh, yes. I mean that.
 
->From f7f1c11fef76e53cdfe4ad98c6c9605dbe94aa86 Mon Sep 17 00:00:00 2001
-From: Vladimir Pantelic <vladoman@gmail.com>
-Date: Tue, 26 Apr 2011 09:28:11 +0200
-Subject: [PATCH] omap v4l2: fix wrong resizer calculation
+Just avoid another series...
+I have looked at the alloc_workqueue, and I'm not really sure what paramete=
+rs =
 
-The omap_vout_new_crop() function has a possible bug, it uses
-uninitialized variables "crop.width/height" which are actually output of the
-function. Instead we should be using "try_crop.width/height" to calculate
-the resizer values.
+should I use.
+#define create_singlethread_workqueue(name)			\
+	alloc_workqueue((name), WQ_UNBOUND | WQ_MEM_RECLAIM, 1)
 
-Signed-off-by: Vladimir Pantelic <vladoman@gmail.com>
-Acked-by: Hiremath, Vaibhav <hvaibhav@ti.com>
----
- drivers/media/video/omap/omap_voutlib.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+I would use something like this instead of create_singlethread_workqueue:
 
-diff --git a/drivers/media/video/omap/omap_voutlib.c b/drivers/media/video/omap/omap_voutlib.c
-index 2aa6a76..8ae7481 100644
---- a/drivers/media/video/omap/omap_voutlib.c
-+++ b/drivers/media/video/omap/omap_voutlib.c
-@@ -193,7 +193,7 @@ int omap_vout_new_crop(struct v4l2_pix_format *pix,
- 		return -EINVAL;
- 
- 	if (cpu_is_omap24xx()) {
--		if (crop->height != win->w.height) {
-+		if (try_crop.height != win->w.height) {
- 			/* If we're resizing vertically, we can't support a
- 			 * crop width wider than 768 pixels.
- 			 */
-@@ -202,7 +202,7 @@ int omap_vout_new_crop(struct v4l2_pix_format *pix,
- 		}
- 	}
- 	/* vertical resizing */
--	vresize = (1024 * crop->height) / win->w.height;
-+	vresize = (1024 * try_crop.height) / win->w.height;
- 	if (cpu_is_omap24xx() && (vresize > 2048))
- 		vresize = 2048;
- 	else if (cpu_is_omap34xx() && (vresize > 4096))
-@@ -221,7 +221,7 @@ int omap_vout_new_crop(struct v4l2_pix_format *pix,
- 			try_crop.height = 2;
- 	}
- 	/* horizontal resizing */
--	hresize = (1024 * crop->width) / win->w.width;
-+	hresize = (1024 * try_crop.width) / win->w.width;
- 	if (cpu_is_omap24xx() && (hresize > 2048))
- 		hresize = 2048;
- 	else if (cpu_is_omap34xx() && (hresize > 4096))
--- 
-1.7.6.rc1.1.g2c162b
+alloc_workqueue("twl6040-vibra", WQ_UNBOUND | WQ_MEM_RECLAIM | WQ_HIGHPRI, =
+1);
 
+Is this correct?
 
---------------050606080005010505030509--
+Thanks,
+P=E9ter
