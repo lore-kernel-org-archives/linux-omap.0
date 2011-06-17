@@ -1,86 +1,93 @@
-From: =?ISO-8859-1?Q?P=E9ter?= Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH v4 00/18] MFD/ASoC/Input: TWL4030/TWL60X0
-	changes
-Date: Fri, 17 Jun 2011 13:06:19 +0300
-Message-ID: <5715729.tcDIHNc8b8@barack>
-References: <1307706876-4768-1-git-send-email-peter.ujfalusi@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [RFC/PATCH] OMAP3: run the ASM sleep code from DDR
+Date: Fri, 17 Jun 2011 14:43:15 +0530
+Message-ID: <4DFB1AAB.3090000@ti.com>
+References: <1294935563-14426-1-git-send-email-j-pihet@ti.com>	<b52b65db02da68b3febc0c9cf1e99040@mail.gmail.com>	<9215f5d7252a4b60f58c3e14a9d46f59@mail.gmail.com>	<AANLkTinRZyVBu=c3cHBQ7OmJv3U8717_w8Haig4R=ZQh@mail.gmail.com>	<86b8aab234e1451170c0937e2ab786e5@mail.gmail.com>	<AANLkTinPxJigu8Nc5J04ciQ_c_Kw9R2xS7s1jaiqeM+F@mail.gmail.com>	<782caeeca19758b50d370c17db11c78a@mail.gmail.com>	<6bbd9e73b48eeb3f9f7615b19949f405@mail.gmail.com>	<BANLkTimF4Wd7Kgg6a=wL_6b6Rj7uzvkxeg@mail.gmail.com>	<4DFA2B2A.7060904@ti.com> <BANLkTik=1SGUjK2bj2BUPJwmkeUCuBipkA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <1307706876-4768-1-git-send-email-peter.ujfalusi@ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: "Girdwood, Liam" <lrg@ti.com>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:60087 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757709Ab1FQJNX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 17 Jun 2011 05:13:23 -0400
+Received: by mail-gy0-f182.google.com with SMTP id 13so796049gyb.13
+        for <linux-omap@vger.kernel.org>; Fri, 17 Jun 2011 02:13:22 -0700 (PDT)
+In-Reply-To: <BANLkTik=1SGUjK2bj2BUPJwmkeUCuBipkA@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org
 
-Hello Tony, Samuel, Mark, Liam.
+On 6/17/2011 2:28 PM, Jean Pihet wrote:
+> Hi Santosh,
+>
 
-Did you got time to check the patches for your areas?
-I want to send the updated series with the change in the vibra driver =
-
-(addressing comments from Dmitry, and Tejun), but I want to address your =
-
-comments as well at the same time if any (or add you Ack).
-
-Thank you,
-P=E9ter
+[....]
 
 
-On Friday 10 June 2011 13:54:18 Ujfalusi, Peter wrote:
-> Hello,
-> =
+>>>> -omap3_do_wfi:
+>>>> +do_WFI:
+>>>> +       ldr     r4, cm_clkstctrl_core   @ read the CLKSTCTRL_CORE
+>>>> +       ldr     r5, [r4]                @ read the contents of
+>>>> CLKSTCTRL_CORE
+>>>> +       and     r5, r5, #0x3
+>>>> +       cmp     r5, #0x3
+>>>> +       beq     omap3_do_wfi            @ Jumpt to SRAM function
+>>>> +       mov     r1, #0
+>>>> +       mcr     p15, 0, r1, c7, c10, 4
+>>>> +       mcr     p15, 0, r1, c7, c10, 5
+>>>> +
+>>>> +       wfi                             @ wait for interrupt
+>>>> +
+>>>> +       ldmfd   sp!, {r0-r12, pc}       @ restore regs and return
+>>>
 
-> Changes since v3:
-> - patches generated with git format-patch -M to handle renames better
-> - Included depending updates for twl6040 soc codec driver:
->  - HS ramp configuration, new ABE dais, updated sample rate constraints
-> - Configure the twl6040 codec on SDP4430 board
-> =
+[....]
 
-> Updated intro message from the v3 series:
-> The series will do five major things, and they are in one series, because
-> they pretty much depending on each other, so it is easier to handle them
-> together.
-> =
+>>> Furthermore the main point of discussion to me is: is it advised to go
+>>> into wfi without self refresh requested? Can anyone confirm this?
+>>>
+>> You can provided you ensure that CORE and SDRC can't idle.
+>>
+>> I suggest you to create a patch against mainline and then we
+>> take it from there.
+>
+> Re-pushed an updated patch on l-o ML: '[PATCH] OMAP3: run the ASM
+> sleep code from DDR'.
+>
+Thanks. We needed this to be in mainline.
 
-> 1. Move the common pmic related configurations out from the board files.
-> New twl-common.c/h file has been created for this purpose.
-> OMAP3 board files received two patches (pdata, and regualtor changes), OM=
-AP4
-> board files has been changed with one patch.
-> =
+> I deliberately omitted the code for WFI transition without
+> self-refresh because of the reasons mentioned here above and repeated
+> here (quoting myself):
+> "The DDR self refresh is enabled at each WFI but not necessarily hit.
+> It is actually triggered by the CORE idle request which depends on the
+> settings, the dependencies, the HW states... For example the CORE
+> state depends on the MPU state so if the MPU stays ON running
+> instructions the CORE will stay ON as well.
+>
+> Also the code in wait_sdrc_ok will exit quicker if the CORE DPLL is
+> already locked, e.g. if the CORE did not hit a low power state. Since
+> the actual CORE hit state is unknow after wake-up from WFI the
+> wait_sdrc_ok code always run at wake-up from MPU RET.
+> "
+>
+What is written here is completely right and I never said
+anything against it. What I mentioned is if the CORE
+clock-domain is under HW supervision, SDRC can idle
+and hence the DDR can enter into self refresh.
 
-> 2. Rename the twl4030-codec MFD driver to twl4030-audio
-> Since the ASoC multicomponent introduction (2.6.37) the twl4030-codec MFD
-> dirver had been using twl4030-audio to register (twl4030-codec is the ASoC
-> codec driver). The documentation refers to this part of twl as audio bloc=
-k,
-> so it is better to rename the driver as well to avoid confusion.
-> =
+Ofocurse on OMAP3 all clock-domain has static deps set
+and hence above assumption is ok. The update I mentioned
+in the code will make it complete even without auto-dep
+assumption.
 
-> 3. Introduction of MFD driver for twl6040.
-> The TWL6040 audio IC has codec and vibra functionality.
-> Convert the existing ASoC codec driver to use the new MFD driver's
-> interface.
-> =
+Anyways if that is the only point we are contesting, I
+am OK to not have that change part of the patch because
+it would work becasuse of auto-deps.
 
-> 4. Vibrator driver for TWL6040 (Input/ForceFeedback driver)
-> The driver itself, and support for the vibrators in SDP4430 board.
-> =
+Regards
+Santosh
 
-> 5. Updates for twl6040 ASoC codec driver
-> HS ramp configuration, new ABE dais, updated sample rate constraints,
-> SDP4430 configuration.
-> =
-
-> Regards,
-> Peter
