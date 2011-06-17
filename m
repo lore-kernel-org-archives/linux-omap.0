@@ -1,33 +1,35 @@
 From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [alsa-devel] [PATCH v5 15/18] ASoC: twl6040: Remove pll and
-	headset mode dependency
-Date: Fri, 17 Jun 2011 14:27:59 +0100
-Message-ID: <20110617132759.GB4951@sirena.org.uk>
-References: <1307983070-2257-1-git-send-email-peter.ujfalusi@ti.com> <1307983070-2257-16-git-send-email-peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v5 16/18] ASoC: twl6040: set
+	default	constraints.
+Date: Fri, 17 Jun 2011 14:28:21 +0100
+Message-ID: <20110617132820.GC4951@sirena.org.uk>
+References: <1307983070-2257-1-git-send-email-peter.ujfalusi@ti.com>
+	<1307983070-2257-17-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-input-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
 Content-Disposition: inline
-In-Reply-To: <1307983070-2257-16-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-input-owner@vger.kernel.org
+In-Reply-To: <1307983070-2257-17-git-send-email-peter.ujfalusi@ti.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
 To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Samuel Ortiz <sameo@linux.intel.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, Misael Lopez Cruz <misael.lopez@ti.com>, linux-omap@vger.kernel.org
+Cc: alsa-devel@alsa-project.org, Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Jun 13, 2011 at 07:37:47PM +0300, Peter Ujfalusi wrote:
-> From: Misael Lopez Cruz <misael.lopez@ti.com>
+On Mon, Jun 13, 2011 at 07:37:48PM +0300, Peter Ujfalusi wrote:
+> From: Liam Girdwood <lrg@ti.com>
 > 
-> Remove dependency between pll (hppll, lppll) and headset power
-> mode (low-power, high-performance), as headset power mode can
-> be used with any pll.
+> Set default sysclk constraints to high performance mode.
+> 
+> Signed-off-by: Liam Girdwood <lrg@ti.com>
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 
 Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
-
-but...
-
-> A new control is created to allow headset power mode configuration
-> from userspace. Changing headset power mode during earpiece related
-> usecases is not allowed as earpiece requires HS DAC in HP mode.
-
-Might be nicer to allow the user to set the control given that you'll
-just ignore the configured value anyway if it's not usable right now.
