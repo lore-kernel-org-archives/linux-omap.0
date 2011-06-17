@@ -1,40 +1,116 @@
-From: Daniel Mack <zonque@gmail.com>
-Subject: [PATCH] ARM: OMAP: Overo: remove duplicate call to overo_ads7846_init()
-Date: Fri, 17 Jun 2011 18:17:12 +0200
-Message-ID: <1308327432-31177-1-git-send-email-zonque@gmail.com>
-References: <87r56sbg3b.fsf@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [RFC/PATCH] OMAP3: run the ASM sleep code from DDR
+Date: Fri, 17 Jun 2011 22:20:08 +0530
+Message-ID: <4DFB85C0.7040606@ti.com>
+References: <1294935563-14426-1-git-send-email-j-pihet@ti.com>	<b52b65db02da68b3febc0c9cf1e99040@mail.gmail.com>	<9215f5d7252a4b60f58c3e14a9d46f59@mail.gmail.com>	<AANLkTinRZyVBu=c3cHBQ7OmJv3U8717_w8Haig4R=ZQh@mail.gmail.com>	<86b8aab234e1451170c0937e2ab786e5@mail.gmail.com>	<AANLkTinPxJigu8Nc5J04ciQ_c_Kw9R2xS7s1jaiqeM+F@mail.gmail.com>	<782caeeca19758b50d370c17db11c78a@mail.gmail.com>	<6bbd9e73b48eeb3f9f7615b19949f405@mail.gmail.com>	<BANLkTimF4Wd7Kgg6a=wL_6b6Rj7uzvkxeg@mail.gmail.com>	<4DFA2B2A.7060904@ti.com>	<BANLkTik=1SGUjK2bj2BUPJwmkeUCuBipkA@mail.gmail.com>	<4DFB1AAB.3090000@ti.com> <87aadgcuu7.fsf@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.bugwerft.de ([212.112.241.193]:44397 "EHLO
-	mail.bugwerft.de" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756923Ab1FQQRS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Jun 2011 12:17:18 -0400
-In-Reply-To: <87r56sbg3b.fsf@ti.com>
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:40540 "EHLO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754720Ab1FQQuR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 17 Jun 2011 12:50:17 -0400
+Received: by yia27 with SMTP id 27so1779437yia.5
+        for <linux-omap@vger.kernel.org>; Fri, 17 Jun 2011 09:50:15 -0700 (PDT)
+In-Reply-To: <87aadgcuu7.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, Daniel Mack <zonque@gmail.com>
+To: Kevin Hilman <khilman@ti.com>
+Cc: Jean Pihet <jean.pihet@newoldbits.com>, "Cousson, Benoit" <b-cousson@ti.com>, linux-omap@vger.kernel.org
 
-overo_ads7846_init() is already called from overo_spi_init(), and
-calling it twice is not only unnecessary but causes a warning as
-"reg-fixed-voltage.1" is already added to the device tree.
+On 6/17/2011 9:29 PM, Kevin Hilman wrote:
+> Hi Santosh,
+>
+> Santosh Shilimkar<santosh.shilimkar@ti.com>  writes:
+>
+>> On 6/17/2011 2:28 PM, Jean Pihet wrote:
+>>> Hi Santosh,
+>>>
+>>
+>> [....]
+>>
+>>
+>>>>>> -omap3_do_wfi:
+>>>>>> +do_WFI:
+>>>>>> +       ldr     r4, cm_clkstctrl_core   @ read the CLKSTCTRL_CORE
+>>>>>> +       ldr     r5, [r4]                @ read the contents of
+>>>>>> CLKSTCTRL_CORE
+>>>>>> +       and     r5, r5, #0x3
+>>>>>> +       cmp     r5, #0x3
+>>>>>> +       beq     omap3_do_wfi            @ Jumpt to SRAM function
+>>>>>> +       mov     r1, #0
+>>>>>> +       mcr     p15, 0, r1, c7, c10, 4
+>>>>>> +       mcr     p15, 0, r1, c7, c10, 5
+>>>>>> +
+>>>>>> +       wfi                             @ wait for interrupt
+>>>>>> +
+>>>>>> +       ldmfd   sp!, {r0-r12, pc}       @ restore regs and return
+>>>>>
+>>
+>> [....]
+>>
+>>>>> Furthermore the main point of discussion to me is: is it advised to go
+>>>>> into wfi without self refresh requested? Can anyone confirm this?
+>>>>>
+>>>> You can provided you ensure that CORE and SDRC can't idle.
+>>>>
+>>>> I suggest you to create a patch against mainline and then we
+>>>> take it from there.
+>>>
+>>> Re-pushed an updated patch on l-o ML: '[PATCH] OMAP3: run the ASM
+>>> sleep code from DDR'.
+>>>
+>> Thanks. We needed this to be in mainline.
+>>
+>>> I deliberately omitted the code for WFI transition without
+>>> self-refresh because of the reasons mentioned here above and repeated
+>>> here (quoting myself):
+>>> "The DDR self refresh is enabled at each WFI but not necessarily hit.
+>>> It is actually triggered by the CORE idle request which depends on the
+>>> settings, the dependencies, the HW states... For example the CORE
+>>> state depends on the MPU state so if the MPU stays ON running
+>>> instructions the CORE will stay ON as well.
+>>>
+>>> Also the code in wait_sdrc_ok will exit quicker if the CORE DPLL is
+>>> already locked, e.g. if the CORE did not hit a low power state. Since
+>>> the actual CORE hit state is unknow after wake-up from WFI the
+>>> wait_sdrc_ok code always run at wake-up from MPU RET.
+>>> "
+>>>
+>> What is written here is completely right and I never said
+>> anything against it. What I mentioned is if the CORE
+>> clock-domain is under HW supervision, SDRC can idle
+>> and hence the DDR can enter into self refresh.
+>>
+>> Ofocurse on OMAP3 all clock-domain has static deps set
+>> and hence above assumption is ok. The update I mentioned
+>> in the code will make it complete even without auto-dep
+>> assumption.
+>>
+>> Anyways if that is the only point we are contesting, I
+>> am OK to not have that change part of the patch because
+>> it would work becasuse of auto-deps.
+>
+> Sorry I haven't followed the whole thread...
+>
+> Can you please clarify what would need to be updated if auto-deps were
+> removed?  We are hoping to remove them when we have full hwmod
+> conversion.
+>
+Sure.
+I sent an update on Jean's original patch to check the CORE clock
+domain state(HW_SUP or SW_WKUP). If we are in HW_SUP and the SDRC
+self refresh bit enabled, SDRC can idle along with CORE. So
+in that case and _only_ that case we need to execute WFI from
+SRAM. I thought that's a right way to go and not depend on
+auto-deps.
 
-Signed-off-by: Daniel Mack <zonque@gmail.com>
----
- arch/arm/mach-omap2/board-overo.c |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+Jean in his refreshed patch dropped that update
+with above auto-dep reasoning. For sure, with autodep
+set, we won't need that additional logic because
+CORE CD can never IDLE without MPU CD being in idle.
 
-diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
-index 175e1ab..110475f 100644
---- a/arch/arm/mach-omap2/board-overo.c
-+++ b/arch/arm/mach-omap2/board-overo.c
-@@ -568,7 +568,6 @@ static void __init overo_init(void)
- 	usb_musb_init(NULL);
- 	usbhs_init(&usbhs_bdata);
- 	overo_spi_init();
--	overo_ads7846_init();
- 	overo_init_smsc911x();
- 	overo_display_init();
- 	overo_init_led();
--- 
-1.7.5.1
-
+Regards
+Santosh
