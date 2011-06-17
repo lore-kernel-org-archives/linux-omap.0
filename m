@@ -1,35 +1,41 @@
 From: Daniel Mack <zonque@gmail.com>
-Subject: Re: Trouble with newer kernels on Gumstix Overo boards
-Date: Fri, 17 Jun 2011 17:11:26 +0200
-Message-ID: <BANLkTimfeS1Xin779eg=8cdjqmqcQeB6HA@mail.gmail.com>
-References: <BANLkTimJTBpj30EKf_EucvOf2yCHHbRrkQ@mail.gmail.com>
-	<ADF30F4D7BDE934D9B632CE7D5C7ACA4047B99E7E7AD@dbde03.ent.ti.com>
+Subject: [PATCH] ARM: OMAP: Overo: remove illegal extra call to
+	overo_ads7846_init()
+Date: Fri, 17 Jun 2011 17:21:50 +0200
+Message-ID: <1308324110-21918-1-git-send-email-zonque@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:64710 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758349Ab1FQPL1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Jun 2011 11:11:27 -0400
-Received: by pvg12 with SMTP id 12so1896216pvg.19
-        for <linux-omap@vger.kernel.org>; Fri, 17 Jun 2011 08:11:26 -0700 (PDT)
-In-Reply-To: <ADF30F4D7BDE934D9B632CE7D5C7ACA4047B99E7E7AD@dbde03.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, Daniel Mack <zonque@gmail.com>
 List-Id: linux-omap@vger.kernel.org
-To: "Gadiyar, Anand" <gadiyar@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Fri, Jun 17, 2011 at 4:03 PM, Gadiyar, Anand <gadiyar@ti.com> wrote:
->> console=ttyS2,115200 root=/dev/mmcblk0p2 rw rootfstype=ext3 rootwait
->
-> Here is your problem. We now use the OMAP-serial driver for the UARTs.
+Signed-off-by: Daniel Mack <zonque@gmail.com>
+---
+ arch/arm/mach-omap2/board-overo.c |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
 
-Which breaks backward-compatibility with bootloaders set up for older
-kernels. Now I have to deploy kernels with CONFIG_CMDLINE_FORCE=y. Was
-that really necessary?
-
-> Change the ttyS2 to ttyO2 and you should be fine.
-
-You're right, that did the trick. Thanks a lot!
-
-Daniel
+diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
+index 175e1ab..110475f 100644
+--- a/arch/arm/mach-omap2/board-overo.c
++++ b/arch/arm/mach-omap2/board-overo.c
+@@ -568,7 +568,6 @@ static void __init overo_init(void)
+ 	usb_musb_init(NULL);
+ 	usbhs_init(&usbhs_bdata);
+ 	overo_spi_init();
+-	overo_ads7846_init();
+ 	overo_init_smsc911x();
+ 	overo_display_init();
+ 	overo_init_led();
+-- 
+1.7.5.1
