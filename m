@@ -1,116 +1,94 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [RFC/PATCH] OMAP3: run the ASM sleep code from DDR
-Date: Fri, 17 Jun 2011 22:20:08 +0530
-Message-ID: <4DFB85C0.7040606@ti.com>
-References: <1294935563-14426-1-git-send-email-j-pihet@ti.com>	<b52b65db02da68b3febc0c9cf1e99040@mail.gmail.com>	<9215f5d7252a4b60f58c3e14a9d46f59@mail.gmail.com>	<AANLkTinRZyVBu=c3cHBQ7OmJv3U8717_w8Haig4R=ZQh@mail.gmail.com>	<86b8aab234e1451170c0937e2ab786e5@mail.gmail.com>	<AANLkTinPxJigu8Nc5J04ciQ_c_Kw9R2xS7s1jaiqeM+F@mail.gmail.com>	<782caeeca19758b50d370c17db11c78a@mail.gmail.com>	<6bbd9e73b48eeb3f9f7615b19949f405@mail.gmail.com>	<BANLkTimF4Wd7Kgg6a=wL_6b6Rj7uzvkxeg@mail.gmail.com>	<4DFA2B2A.7060904@ti.com>	<BANLkTik=1SGUjK2bj2BUPJwmkeUCuBipkA@mail.gmail.com>	<4DFB1AAB.3090000@ti.com> <87aadgcuu7.fsf@ti.com>
+From: Dima Zavin <dima@android.com>
+Subject: Re: OMPA4: 3.0-rc1: Unhandled fault during insmod 'ohci-hcd.ko'
+Date: Fri, 17 Jun 2011 10:55:33 -0700
+Message-ID: <BANLkTimc-tfBVL__=-R4nHSSApuh+fsittK9RiGGPOyTJfQgkg@mail.gmail.com>
+References: <BANLkTinYcxJqUM4G2ERew3okUTdf0LOLGA@mail.gmail.com>
+	<BANLkTin=7aEaPDf=2Aa9SApdGetyvdz50g@mail.gmail.com>
+	<BANLkTi=TPNWMe9_gb7SY2J62SC0L8EoRcw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:40540 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754720Ab1FQQuR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 17 Jun 2011 12:50:17 -0400
-Received: by yia27 with SMTP id 27so1779437yia.5
-        for <linux-omap@vger.kernel.org>; Fri, 17 Jun 2011 09:50:15 -0700 (PDT)
-In-Reply-To: <87aadgcuu7.fsf@ti.com>
+Received: from smtp-out.google.com ([74.125.121.67]:52975 "EHLO
+	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756380Ab1FQR4A convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Jun 2011 13:56:00 -0400
+Received: from hpaq14.eem.corp.google.com (hpaq14.eem.corp.google.com [172.25.149.14])
+	by smtp-out.google.com with ESMTP id p5HHtgLp014860
+	for <linux-omap@vger.kernel.org>; Fri, 17 Jun 2011 10:55:43 -0700
+Received: from pzk2 (pzk2.prod.google.com [10.243.19.130])
+	by hpaq14.eem.corp.google.com with ESMTP id p5HHtNDO028732
+	(version=TLSv1/SSLv3 cipher=RC4-SHA bits=128 verify=NOT)
+	for <linux-omap@vger.kernel.org>; Fri, 17 Jun 2011 10:55:41 -0700
+Received: by pzk2 with SMTP id 2so2374115pzk.37
+        for <linux-omap@vger.kernel.org>; Fri, 17 Jun 2011 10:55:36 -0700 (PDT)
+In-Reply-To: <BANLkTi=TPNWMe9_gb7SY2J62SC0L8EoRcw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Jean Pihet <jean.pihet@newoldbits.com>, "Cousson, Benoit" <b-cousson@ti.com>, linux-omap@vger.kernel.org
+To: Ming Lei <tom.leiming@gmail.com>, sameo@linux.intel.com
+Cc: Todd Poynor <toddpoynor@google.com>, keshava_mgowda@ti.com, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 
-On 6/17/2011 9:29 PM, Kevin Hilman wrote:
-> Hi Santosh,
->
-> Santosh Shilimkar<santosh.shilimkar@ti.com>  writes:
->
->> On 6/17/2011 2:28 PM, Jean Pihet wrote:
->>> Hi Santosh,
->>>
->>
->> [....]
->>
->>
->>>>>> -omap3_do_wfi:
->>>>>> +do_WFI:
->>>>>> +       ldr     r4, cm_clkstctrl_core   @ read the CLKSTCTRL_CORE
->>>>>> +       ldr     r5, [r4]                @ read the contents of
->>>>>> CLKSTCTRL_CORE
->>>>>> +       and     r5, r5, #0x3
->>>>>> +       cmp     r5, #0x3
->>>>>> +       beq     omap3_do_wfi            @ Jumpt to SRAM function
->>>>>> +       mov     r1, #0
->>>>>> +       mcr     p15, 0, r1, c7, c10, 4
->>>>>> +       mcr     p15, 0, r1, c7, c10, 5
->>>>>> +
->>>>>> +       wfi                             @ wait for interrupt
->>>>>> +
->>>>>> +       ldmfd   sp!, {r0-r12, pc}       @ restore regs and return
->>>>>
->>
->> [....]
->>
->>>>> Furthermore the main point of discussion to me is: is it advised to go
->>>>> into wfi without self refresh requested? Can anyone confirm this?
->>>>>
->>>> You can provided you ensure that CORE and SDRC can't idle.
->>>>
->>>> I suggest you to create a patch against mainline and then we
->>>> take it from there.
->>>
->>> Re-pushed an updated patch on l-o ML: '[PATCH] OMAP3: run the ASM
->>> sleep code from DDR'.
->>>
->> Thanks. We needed this to be in mainline.
->>
->>> I deliberately omitted the code for WFI transition without
->>> self-refresh because of the reasons mentioned here above and repeated
->>> here (quoting myself):
->>> "The DDR self refresh is enabled at each WFI but not necessarily hit.
->>> It is actually triggered by the CORE idle request which depends on the
->>> settings, the dependencies, the HW states... For example the CORE
->>> state depends on the MPU state so if the MPU stays ON running
->>> instructions the CORE will stay ON as well.
->>>
->>> Also the code in wait_sdrc_ok will exit quicker if the CORE DPLL is
->>> already locked, e.g. if the CORE did not hit a low power state. Since
->>> the actual CORE hit state is unknow after wake-up from WFI the
->>> wait_sdrc_ok code always run at wake-up from MPU RET.
->>> "
->>>
->> What is written here is completely right and I never said
->> anything against it. What I mentioned is if the CORE
->> clock-domain is under HW supervision, SDRC can idle
->> and hence the DDR can enter into self refresh.
->>
->> Ofocurse on OMAP3 all clock-domain has static deps set
->> and hence above assumption is ok. The update I mentioned
->> in the code will make it complete even without auto-dep
->> assumption.
->>
->> Anyways if that is the only point we are contesting, I
->> am OK to not have that change part of the patch because
->> it would work becasuse of auto-deps.
->
-> Sorry I haven't followed the whole thread...
->
-> Can you please clarify what would need to be updated if auto-deps were
-> removed?  We are hoping to remove them when we have full hwmod
-> conversion.
->
-Sure.
-I sent an update on Jean's original patch to check the CORE clock
-domain state(HW_SUP or SW_WKUP). If we are in HW_SUP and the SDRC
-self refresh bit enabled, SDRC can idle along with CORE. So
-in that case and _only_ that case we need to execute WFI from
-SRAM. I thought that's a right way to go and not depend on
-auto-deps.
+Samuel,
 
-Jean in his refreshed patch dropped that update
-with above auto-dep reasoning. For sure, with autodep
-set, we won't need that additional logic because
-CORE CD can never IDLE without MPU CD being in idle.
+Could you please push this revert to Linus (since the original got
+pulled in through the mfd tree) so that 3.0 is not broken on Panda?
 
-Regards
-Santosh
+--DIma
+
+On Tue, Jun 14, 2011 at 3:59 AM, Ming Lei <tom.leiming@gmail.com> wrote=
+:
+> Hi,
+>
+> 2011/6/5 Todd Poynor <toddpoynor@google.com>:
+>> In general, the imprecise external abort usually means an access was=
+ made to
+>> registers of a module whose clock is gated. =A0The calls to clk_enab=
+le()
+>> within=A0usbhs_enable() probably aren't following the proper sequenc=
+e of
+>> ensuring the CD_L3_INIT clock domain is on (CM_L3INIT_CLKSTCTRL.CLKT=
+RCTRL =3D
+>> 0x2 SW_WKUP) and then the associated module slaves woken up
+>> (CM_L3INIT_HSUSBHOST_CLKCTRL.MODULEMODE =3D 0x2 Enabled, similar
+>> for=A0CM_L3INIT_HSUSBTLL_CLKCTRL). =A0Probably needs calls to the OM=
+AP device
+>> layer to set those up, but I dunno the details of this device or why=
+ it
+>> broke.
+>>
+>
+> No doubt, it is caused by gated clock, ehci will be OK if revert the
+> commit below:
+>
+> commit 7e6502d577106fb5b202bbaac64c5f1b065e6daa
+> Author: Keshava Munegowda <Keshava_mgowda@ti.com>
+> Date: =A0 Sun May 22 22:51:26 2011 +0200
+>
+> =A0 =A0mfd: Add omap-usbhs runtime PM support
+>
+> =A0 =A0The usbhs core driver does not enable/disable the interface an=
+d
+> =A0 =A0functional clocks; These clocks are handled by hwmod and runti=
+me pm,
+> =A0 =A0hence insted of the clock enable/disable, the runtime pm APIS =
+are
+> =A0 =A0used. however,the port clocks and tll clocks are handled
+> =A0 =A0by the usbhs core.
+>
+> =A0 =A0Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
+> =A0 =A0Signed-off-by: Samuel Ortiz <sameo@linux.intel.com>
+>
+>
+> --
+> Ming Lei
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
