@@ -1,38 +1,63 @@
-From: =?ISO-8859-1?Q?P=E9ter?= Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH v4 11/18] input: Add initial support for
-	TWL6040 vibrator
-Date: Fri, 17 Jun 2011 13:59:47 +0300
-Message-ID: <1541792.uUz2bSMDMl@barack>
-References: <1307706876-4768-1-git-send-email-peter.ujfalusi@ti.com>
-	<5740779.B2nyl9oMW4@barack> <20110617094332.GE2611@htj.dyndns.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL] omap fixes for v3.0-rc3
+Date: Fri, 17 Jun 2011 04:13:31 -0700
+Message-ID: <20110617111330.GD23145@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20110617094332.GE2611@htj.dyndns.org>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Tejun Heo <tj@kernel.org>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "Lopez Cruz, Misael" <misael.lopez@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Girdwood, Liam" <lrg@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Friday 17 June 2011 11:43:32 Tejun Heo wrote:
-> Just use the default params
-> =
+Hi Linus,
 
-> 	alloc_workqueue("twl6040-vibra", 0, 0);
-> =
+Please pull omap fixes from:
 
-> Thanks.
+git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git fixes
 
-I'll do this for the next posting
+This set contains regression fixes for PM and pandora board.
 
-Thanks,
-P=E9ter
+Regards,
+
+Tony
+
+
+The following changes since commit 2c53b436a30867eb6b47dd7bab23ba638d1fb0d2:
+  Linus Torvalds (1):
+        Linux 3.0-rc3
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git fixes
+
+Grazvydas Ignotas (1):
+      omap: pandora: fix NAND support
+
+Kevin Hilman (2):
+      OMAP: PM: omap_device: fix device power domain callbacks
+      OMAP1: PM: register notifiers with generic clock ops even when !PM_RUNTIME
+
+Russell King (1):
+      OMAP: PM debug: fix section mismatch warnings
+
+Tony Lindgren (2):
+      Merge branch 'for_3.0/pm-fixes' of ssh://master.kernel.org/.../khilman/linux-omap-pm into fixes
+      Merge branch 'fixes-v3.0-rc3' into devel-fixes
+
+ arch/arm/mach-omap1/Makefile             |    4 ++--
+ arch/arm/mach-omap1/pm_bus.c             |    8 ++++++--
+ arch/arm/mach-omap2/board-omap3pandora.c |    3 ++-
+ arch/arm/mach-omap2/pm-debug.c           |    4 ++--
+ arch/arm/plat-omap/omap_device.c         |   19 +++++++++++++++++--
+ 5 files changed, 29 insertions(+), 9 deletions(-)
