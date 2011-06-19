@@ -1,62 +1,29 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [linux-pm] calling runtime PM from system PM methods
-Date: Sat, 18 Jun 2011 21:42:04 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1106182137100.3523-100000@netrider.rowland.org>
-References: <201106190157.31526.rjw@sisk.pl>
+From: linxz02@ovi.com
+Subject: [pm] keep Cortex M3 cores running while OMAP4 is suspended?
+Date: Sat, 18 Jun 2011 22:07:31 -0700 (PDT)
+Message-ID: <882569.33615.qm@web121412.mail.ne1.yahoo.com>
+Reply-To: linxz02@ovi.com
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from netrider.rowland.org ([192.131.102.5]:60412 "HELO
-	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751250Ab1FSBmF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 18 Jun 2011 21:42:05 -0400
-In-Reply-To: <201106190157.31526.rjw@sisk.pl>
+Received: from nm18-vm1.bullet.mail.ne1.yahoo.com ([98.138.91.64]:49094 "HELO
+	nm18-vm1.bullet.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1750789Ab1FSFNZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Sun, 19 Jun 2011 01:13:25 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Magnus Damm <magnus.damm@gmail.com>, LKML <linux-kernel@vger.kernel.org>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Sun, 19 Jun 2011, Rafael J. Wysocki wrote:
+Hi All,
 
-> On Saturday, June 18, 2011, Rafael J. Wysocki wrote:
-> > On Saturday, June 18, 2011, Alan Stern wrote:
-> > > On Sat, 18 Jun 2011, Rafael J. Wysocki wrote:
-> ...
-> > 
-> > Well, assuming that https://patchwork.kernel.org/patch/893722/ is applied,
-> > which is going to be, I think we can put
-> > 
-> > +       pm_runtime_get_noresume(dev);
-> > +       pm_runtime_enable(dev);
-> > 
-> > in device_resume() after the dev->power.is_suspended check and
-> > pm_runtime_put_noidle() under the End label.  That cause them to
-> > be called under the device lock, but that shouldn't be a big deal.
-> > 
-> > Accordingly, we can call pm_runtime_disable(dev) in __device_suspend(),
-> > right next to the setting of power.is_suspended.
-> > 
-> > This is implemented by the patch below.
-> 
-> Well, it hangs suspend on my Toshiba test box, I'm not sure why exactly.
-> 
-> This happens even if the pm_runtime_disable() is replaced with a version
-> that only increments the disable depth, so it looks like something down
-> the road relies on disable_depth being zero.  Which is worrisome.
+I was wondering whether it is possible to keep the Cortex M3 cores running while the OMAP processor is suspended. 
 
-This is a sign that the PM subsystem is getting a little too 
-complicated.  :-(
+My testing environment was simple: I used Pandaboard (OMAP4430) and kernel 2.6.35. I wrote an M3 program to toggle one GPIO pin (which drives a LED). As long as the M3 program is running, the LED will blink.
 
-> Trying to figure out what the problem is I noticed that, for example,
-> the generic PM operations use pm_runtime_suspended() to decide whether or
-> not to execute system suspend callbacks, so the patch below would break it.
-> 
-> Also, after commit e8665002477f0278f84f898145b1f141ba26ee26 the
-> pm_runtime_suspended() check in __pm_generic_call() doesn't really make
-> sense.
+On the kernel side, I tried to change the suspend functions in arch/arm/mach-omap2/pm44xx.c. I set the states of core_pwrdm and l4per_pwrdm to ON, right before the system suspends. However, when the system was suspended (omap4_pm_suspend() was invoked), the LED stopped to blink. I think the M3 cores were powered off then.
 
-In light of the recent changes, we should revisit the decisions behind 
-the generic PM operations.
+Did I miss anything? I'll really appreciate any input. Thanks!
 
-Alan Stern
+-Felix
 
