@@ -1,299 +1,120 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 03/10] omap: Move dmtimer defines to dmtimer.h
-Date: Mon, 20 Jun 2011 02:23:34 -0700
-Message-ID: <20110620092334.357.3701.stgit@kaulin>
+Subject: [PATCH 07/10] omap2+: Reserve clocksource and timesource and
+	initialize dmtimer later
+Date: Mon, 20 Jun 2011 02:23:43 -0700
+Message-ID: <20110620092343.357.60445.stgit@kaulin>
 References: <20110620091754.357.56441.stgit@kaulin>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:50039 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752955Ab1FTJXg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Jun 2011 05:23:36 -0400
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:54542 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753057Ab1FTJXp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Jun 2011 05:23:45 -0400
 In-Reply-To: <20110620091754.357.56441.stgit@kaulin>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
 Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org
 
-These will be needed when dmtimer platform init code gets split
-for omap1 and omap2+. These will also be needed for separate
-sys_timer init and driver init for the rest of the hardware timers
-in the following patches. No functional changes.
+There's no need to initialize the dmtimer framework early.
+Just mark the clocksource and timesource as reserved, and
+initialize dmtimer with an arch_initcall.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 Reviewed-by: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/plat-omap/dmtimer.c              |  121 ----------------------------
- arch/arm/plat-omap/include/plat/dmtimer.h |  125 +++++++++++++++++++++++++++++
- 2 files changed, 125 insertions(+), 121 deletions(-)
+ arch/arm/mach-omap1/timer32k.c            |    4 ----
+ arch/arm/mach-omap2/timer-gp.c            |    6 ++++--
+ arch/arm/plat-omap/dmtimer.c              |    8 ++++++++
+ arch/arm/plat-omap/include/plat/dmtimer.h |    1 +
+ 4 files changed, 13 insertions(+), 6 deletions(-)
 
+diff --git a/arch/arm/mach-omap1/timer32k.c b/arch/arm/mach-omap1/timer32k.c
+index 13d7b8f..96604a5 100644
+--- a/arch/arm/mach-omap1/timer32k.c
++++ b/arch/arm/mach-omap1/timer32k.c
+@@ -183,10 +183,6 @@ static __init void omap_init_32k_timer(void)
+ bool __init omap_32k_timer_init(void)
+ {
+ 	omap_init_clocksource_32k();
+-
+-#ifdef CONFIG_OMAP_DM_TIMER
+-	omap_dm_timer_init();
+-#endif
+ 	omap_init_32k_timer();
+ 
+ 	return true;
+diff --git a/arch/arm/mach-omap2/timer-gp.c b/arch/arm/mach-omap2/timer-gp.c
+index 578e9df..cf2ec85 100644
+--- a/arch/arm/mach-omap2/timer-gp.c
++++ b/arch/arm/mach-omap2/timer-gp.c
+@@ -69,6 +69,8 @@
+ /* MAX_GPTIMER_ID: number of GPTIMERs on the chip */
+ #define MAX_GPTIMER_ID		12
+ 
++u32 sys_timer_reserved;
++
+ /* Clockevent code */
+ 
+ static struct omap_dm_timer clkev;
+@@ -195,6 +197,8 @@ static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
+ 
+ 	omap_hwmod_enable(oh);
+ 
++	sys_timer_reserved |= (1 << (gptimer_id - 1));
++
+ 	if (gptimer_id != 12) {
+ 		struct clk *src;
+ 
+@@ -321,7 +325,6 @@ static void __init omap2_gp_clocksource_init(void)
+ #define OMAP_SYS_TIMER_INIT(name, clkev_nr, clkev_src)			\
+ static void __init omap##name##_timer_init(void)			\
+ {									\
+-	omap_dm_timer_init();						\
+ 	omap2_gp_clockevent_init((clkev_nr), clkev_src);		\
+ 	omap2_gp_clocksource_init();					\
+ }
+@@ -350,7 +353,6 @@ static void __init omap4_timer_init(void)
+ 	twd_base = ioremap(OMAP44XX_LOCAL_TWD_BASE, SZ_256);
+ 	BUG_ON(!twd_base);
+ #endif
+-	omap_dm_timer_init();
+ 	omap2_gp_clockevent_init(1, OMAP4_CLKEV_SOURCE);
+ 	omap2_gp_clocksource_init();
+ }
 diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
-index ee9f6eb..dfdc3b2 100644
+index 7c5cb4e..1462784 100644
 --- a/arch/arm/plat-omap/dmtimer.c
 +++ b/arch/arm/plat-omap/dmtimer.c
-@@ -41,127 +41,6 @@
- #include <plat/dmtimer.h>
- #include <mach/irqs.h>
+@@ -625,8 +625,16 @@ int __init omap_dm_timer_init(void)
+ 			sprintf(clk_name, "gpt%d_fck", i + 1);
+ 			timer->fclk = clk_get(NULL, clk_name);
+ 		}
++
++		/* One or two timers may be set up early for sys_timer */
++		if (sys_timer_reserved & (1  << i)) {
++			timer->reserved = 1;
++			timer->posted = 1;
++		}
+ #endif
+ 	}
  
--/* register offsets */
--#define _OMAP_TIMER_ID_OFFSET		0x00
--#define _OMAP_TIMER_OCP_CFG_OFFSET	0x10
--#define _OMAP_TIMER_SYS_STAT_OFFSET	0x14
--#define _OMAP_TIMER_STAT_OFFSET		0x18
--#define _OMAP_TIMER_INT_EN_OFFSET	0x1c
--#define _OMAP_TIMER_WAKEUP_EN_OFFSET	0x20
--#define _OMAP_TIMER_CTRL_OFFSET		0x24
--#define		OMAP_TIMER_CTRL_GPOCFG		(1 << 14)
--#define		OMAP_TIMER_CTRL_CAPTMODE	(1 << 13)
--#define		OMAP_TIMER_CTRL_PT		(1 << 12)
--#define		OMAP_TIMER_CTRL_TCM_LOWTOHIGH	(0x1 << 8)
--#define		OMAP_TIMER_CTRL_TCM_HIGHTOLOW	(0x2 << 8)
--#define		OMAP_TIMER_CTRL_TCM_BOTHEDGES	(0x3 << 8)
--#define		OMAP_TIMER_CTRL_SCPWM		(1 << 7)
--#define		OMAP_TIMER_CTRL_CE		(1 << 6) /* compare enable */
--#define		OMAP_TIMER_CTRL_PRE		(1 << 5) /* prescaler enable */
--#define		OMAP_TIMER_CTRL_PTV_SHIFT	2 /* prescaler value shift */
--#define		OMAP_TIMER_CTRL_POSTED		(1 << 2)
--#define		OMAP_TIMER_CTRL_AR		(1 << 1) /* auto-reload enable */
--#define		OMAP_TIMER_CTRL_ST		(1 << 0) /* start timer */
--#define _OMAP_TIMER_COUNTER_OFFSET	0x28
--#define _OMAP_TIMER_LOAD_OFFSET		0x2c
--#define _OMAP_TIMER_TRIGGER_OFFSET	0x30
--#define _OMAP_TIMER_WRITE_PEND_OFFSET	0x34
--#define		WP_NONE			0	/* no write pending bit */
--#define		WP_TCLR			(1 << 0)
--#define		WP_TCRR			(1 << 1)
--#define		WP_TLDR			(1 << 2)
--#define		WP_TTGR			(1 << 3)
--#define		WP_TMAR			(1 << 4)
--#define		WP_TPIR			(1 << 5)
--#define		WP_TNIR			(1 << 6)
--#define		WP_TCVR			(1 << 7)
--#define		WP_TOCR			(1 << 8)
--#define		WP_TOWR			(1 << 9)
--#define _OMAP_TIMER_MATCH_OFFSET	0x38
--#define _OMAP_TIMER_CAPTURE_OFFSET	0x3c
--#define _OMAP_TIMER_IF_CTRL_OFFSET	0x40
--#define _OMAP_TIMER_CAPTURE2_OFFSET		0x44	/* TCAR2, 34xx only */
--#define _OMAP_TIMER_TICK_POS_OFFSET		0x48	/* TPIR, 34xx only */
--#define _OMAP_TIMER_TICK_NEG_OFFSET		0x4c	/* TNIR, 34xx only */
--#define _OMAP_TIMER_TICK_COUNT_OFFSET		0x50	/* TCVR, 34xx only */
--#define _OMAP_TIMER_TICK_INT_MASK_SET_OFFSET	0x54	/* TOCR, 34xx only */
--#define _OMAP_TIMER_TICK_INT_MASK_COUNT_OFFSET	0x58	/* TOWR, 34xx only */
--
--/* register offsets with the write pending bit encoded */
--#define	WPSHIFT					16
--
--#define OMAP_TIMER_ID_REG			(_OMAP_TIMER_ID_OFFSET \
--							| (WP_NONE << WPSHIFT))
--
--#define OMAP_TIMER_OCP_CFG_REG			(_OMAP_TIMER_OCP_CFG_OFFSET \
--							| (WP_NONE << WPSHIFT))
--
--#define OMAP_TIMER_SYS_STAT_REG			(_OMAP_TIMER_SYS_STAT_OFFSET \
--							| (WP_NONE << WPSHIFT))
--
--#define OMAP_TIMER_STAT_REG			(_OMAP_TIMER_STAT_OFFSET \
--							| (WP_NONE << WPSHIFT))
--
--#define OMAP_TIMER_INT_EN_REG			(_OMAP_TIMER_INT_EN_OFFSET \
--							| (WP_NONE << WPSHIFT))
--
--#define OMAP_TIMER_WAKEUP_EN_REG		(_OMAP_TIMER_WAKEUP_EN_OFFSET \
--							| (WP_NONE << WPSHIFT))
--
--#define OMAP_TIMER_CTRL_REG			(_OMAP_TIMER_CTRL_OFFSET \
--							| (WP_TCLR << WPSHIFT))
--
--#define OMAP_TIMER_COUNTER_REG			(_OMAP_TIMER_COUNTER_OFFSET \
--							| (WP_TCRR << WPSHIFT))
--
--#define OMAP_TIMER_LOAD_REG			(_OMAP_TIMER_LOAD_OFFSET \
--							| (WP_TLDR << WPSHIFT))
--
--#define OMAP_TIMER_TRIGGER_REG			(_OMAP_TIMER_TRIGGER_OFFSET \
--							| (WP_TTGR << WPSHIFT))
--
--#define OMAP_TIMER_WRITE_PEND_REG		(_OMAP_TIMER_WRITE_PEND_OFFSET \
--							| (WP_NONE << WPSHIFT))
--
--#define OMAP_TIMER_MATCH_REG			(_OMAP_TIMER_MATCH_OFFSET \
--							| (WP_TMAR << WPSHIFT))
--
--#define OMAP_TIMER_CAPTURE_REG			(_OMAP_TIMER_CAPTURE_OFFSET \
--							| (WP_NONE << WPSHIFT))
--
--#define OMAP_TIMER_IF_CTRL_REG			(_OMAP_TIMER_IF_CTRL_OFFSET \
--							| (WP_NONE << WPSHIFT))
--
--#define OMAP_TIMER_CAPTURE2_REG			(_OMAP_TIMER_CAPTURE2_OFFSET \
--							| (WP_NONE << WPSHIFT))
--
--#define OMAP_TIMER_TICK_POS_REG			(_OMAP_TIMER_TICK_POS_OFFSET \
--							| (WP_TPIR << WPSHIFT))
--
--#define OMAP_TIMER_TICK_NEG_REG			(_OMAP_TIMER_TICK_NEG_OFFSET \
--							| (WP_TNIR << WPSHIFT))
--
--#define OMAP_TIMER_TICK_COUNT_REG		(_OMAP_TIMER_TICK_COUNT_OFFSET \
--							| (WP_TCVR << WPSHIFT))
--
--#define OMAP_TIMER_TICK_INT_MASK_SET_REG				\
--		(_OMAP_TIMER_TICK_INT_MASK_SET_OFFSET | (WP_TOCR << WPSHIFT))
--
--#define OMAP_TIMER_TICK_INT_MASK_COUNT_REG				\
--		(_OMAP_TIMER_TICK_INT_MASK_COUNT_OFFSET | (WP_TOWR << WPSHIFT))
--
--struct omap_dm_timer {
--	unsigned long phys_base;
--	int irq;
--#ifdef CONFIG_ARCH_OMAP2PLUS
--	struct clk *iclk, *fclk;
--#endif
--	void __iomem *io_base;
--	unsigned reserved:1;
--	unsigned enabled:1;
--	unsigned posted:1;
--};
--
- static int dm_timer_count;
- 
- #ifdef CONFIG_ARCH_OMAP1
+ 	return 0;
+ }
++
++arch_initcall(omap_dm_timer_init);
 diff --git a/arch/arm/plat-omap/include/plat/dmtimer.h b/arch/arm/plat-omap/include/plat/dmtimer.h
-index 330bd17..3203105 100644
+index dd8b3ff..f6dc77a 100644
 --- a/arch/arm/plat-omap/include/plat/dmtimer.h
 +++ b/arch/arm/plat-omap/include/plat/dmtimer.h
-@@ -92,5 +92,130 @@ void omap_dm_timer_write_counter(struct omap_dm_timer *timer, unsigned int value
+@@ -222,6 +222,7 @@ struct omap_dm_timer {
+ 	unsigned posted:1;
+ };
  
- int omap_dm_timers_active(void);
++extern u32 sys_timer_reserved;
+ void omap_dm_timer_prepare(struct omap_dm_timer *timer);
  
-+/*
-+ * Do not use the defines below, they are not needed. They should be only
-+ * used by dmtimer.c and sys_timer related code.
-+ */
-+
-+/* register offsets */
-+#define _OMAP_TIMER_ID_OFFSET		0x00
-+#define _OMAP_TIMER_OCP_CFG_OFFSET	0x10
-+#define _OMAP_TIMER_SYS_STAT_OFFSET	0x14
-+#define _OMAP_TIMER_STAT_OFFSET		0x18
-+#define _OMAP_TIMER_INT_EN_OFFSET	0x1c
-+#define _OMAP_TIMER_WAKEUP_EN_OFFSET	0x20
-+#define _OMAP_TIMER_CTRL_OFFSET		0x24
-+#define		OMAP_TIMER_CTRL_GPOCFG		(1 << 14)
-+#define		OMAP_TIMER_CTRL_CAPTMODE	(1 << 13)
-+#define		OMAP_TIMER_CTRL_PT		(1 << 12)
-+#define		OMAP_TIMER_CTRL_TCM_LOWTOHIGH	(0x1 << 8)
-+#define		OMAP_TIMER_CTRL_TCM_HIGHTOLOW	(0x2 << 8)
-+#define		OMAP_TIMER_CTRL_TCM_BOTHEDGES	(0x3 << 8)
-+#define		OMAP_TIMER_CTRL_SCPWM		(1 << 7)
-+#define		OMAP_TIMER_CTRL_CE		(1 << 6) /* compare enable */
-+#define		OMAP_TIMER_CTRL_PRE		(1 << 5) /* prescaler enable */
-+#define		OMAP_TIMER_CTRL_PTV_SHIFT	2 /* prescaler value shift */
-+#define		OMAP_TIMER_CTRL_POSTED		(1 << 2)
-+#define		OMAP_TIMER_CTRL_AR		(1 << 1) /* auto-reload enable */
-+#define		OMAP_TIMER_CTRL_ST		(1 << 0) /* start timer */
-+#define _OMAP_TIMER_COUNTER_OFFSET	0x28
-+#define _OMAP_TIMER_LOAD_OFFSET		0x2c
-+#define _OMAP_TIMER_TRIGGER_OFFSET	0x30
-+#define _OMAP_TIMER_WRITE_PEND_OFFSET	0x34
-+#define		WP_NONE			0	/* no write pending bit */
-+#define		WP_TCLR			(1 << 0)
-+#define		WP_TCRR			(1 << 1)
-+#define		WP_TLDR			(1 << 2)
-+#define		WP_TTGR			(1 << 3)
-+#define		WP_TMAR			(1 << 4)
-+#define		WP_TPIR			(1 << 5)
-+#define		WP_TNIR			(1 << 6)
-+#define		WP_TCVR			(1 << 7)
-+#define		WP_TOCR			(1 << 8)
-+#define		WP_TOWR			(1 << 9)
-+#define _OMAP_TIMER_MATCH_OFFSET	0x38
-+#define _OMAP_TIMER_CAPTURE_OFFSET	0x3c
-+#define _OMAP_TIMER_IF_CTRL_OFFSET	0x40
-+#define _OMAP_TIMER_CAPTURE2_OFFSET		0x44	/* TCAR2, 34xx only */
-+#define _OMAP_TIMER_TICK_POS_OFFSET		0x48	/* TPIR, 34xx only */
-+#define _OMAP_TIMER_TICK_NEG_OFFSET		0x4c	/* TNIR, 34xx only */
-+#define _OMAP_TIMER_TICK_COUNT_OFFSET		0x50	/* TCVR, 34xx only */
-+#define _OMAP_TIMER_TICK_INT_MASK_SET_OFFSET	0x54	/* TOCR, 34xx only */
-+#define _OMAP_TIMER_TICK_INT_MASK_COUNT_OFFSET	0x58	/* TOWR, 34xx only */
-+
-+/* register offsets with the write pending bit encoded */
-+#define	WPSHIFT					16
-+
-+#define OMAP_TIMER_ID_REG			(_OMAP_TIMER_ID_OFFSET \
-+							| (WP_NONE << WPSHIFT))
-+
-+#define OMAP_TIMER_OCP_CFG_REG			(_OMAP_TIMER_OCP_CFG_OFFSET \
-+							| (WP_NONE << WPSHIFT))
-+
-+#define OMAP_TIMER_SYS_STAT_REG			(_OMAP_TIMER_SYS_STAT_OFFSET \
-+							| (WP_NONE << WPSHIFT))
-+
-+#define OMAP_TIMER_STAT_REG			(_OMAP_TIMER_STAT_OFFSET \
-+							| (WP_NONE << WPSHIFT))
-+
-+#define OMAP_TIMER_INT_EN_REG			(_OMAP_TIMER_INT_EN_OFFSET \
-+							| (WP_NONE << WPSHIFT))
-+
-+#define OMAP_TIMER_WAKEUP_EN_REG		(_OMAP_TIMER_WAKEUP_EN_OFFSET \
-+							| (WP_NONE << WPSHIFT))
-+
-+#define OMAP_TIMER_CTRL_REG			(_OMAP_TIMER_CTRL_OFFSET \
-+							| (WP_TCLR << WPSHIFT))
-+
-+#define OMAP_TIMER_COUNTER_REG			(_OMAP_TIMER_COUNTER_OFFSET \
-+							| (WP_TCRR << WPSHIFT))
-+
-+#define OMAP_TIMER_LOAD_REG			(_OMAP_TIMER_LOAD_OFFSET \
-+							| (WP_TLDR << WPSHIFT))
-+
-+#define OMAP_TIMER_TRIGGER_REG			(_OMAP_TIMER_TRIGGER_OFFSET \
-+							| (WP_TTGR << WPSHIFT))
-+
-+#define OMAP_TIMER_WRITE_PEND_REG		(_OMAP_TIMER_WRITE_PEND_OFFSET \
-+							| (WP_NONE << WPSHIFT))
-+
-+#define OMAP_TIMER_MATCH_REG			(_OMAP_TIMER_MATCH_OFFSET \
-+							| (WP_TMAR << WPSHIFT))
-+
-+#define OMAP_TIMER_CAPTURE_REG			(_OMAP_TIMER_CAPTURE_OFFSET \
-+							| (WP_NONE << WPSHIFT))
-+
-+#define OMAP_TIMER_IF_CTRL_REG			(_OMAP_TIMER_IF_CTRL_OFFSET \
-+							| (WP_NONE << WPSHIFT))
-+
-+#define OMAP_TIMER_CAPTURE2_REG			(_OMAP_TIMER_CAPTURE2_OFFSET \
-+							| (WP_NONE << WPSHIFT))
-+
-+#define OMAP_TIMER_TICK_POS_REG			(_OMAP_TIMER_TICK_POS_OFFSET \
-+							| (WP_TPIR << WPSHIFT))
-+
-+#define OMAP_TIMER_TICK_NEG_REG			(_OMAP_TIMER_TICK_NEG_OFFSET \
-+							| (WP_TNIR << WPSHIFT))
-+
-+#define OMAP_TIMER_TICK_COUNT_REG		(_OMAP_TIMER_TICK_COUNT_OFFSET \
-+							| (WP_TCVR << WPSHIFT))
-+
-+#define OMAP_TIMER_TICK_INT_MASK_SET_REG				\
-+		(_OMAP_TIMER_TICK_INT_MASK_SET_OFFSET | (WP_TOCR << WPSHIFT))
-+
-+#define OMAP_TIMER_TICK_INT_MASK_COUNT_REG				\
-+		(_OMAP_TIMER_TICK_INT_MASK_COUNT_OFFSET | (WP_TOWR << WPSHIFT))
-+
-+struct omap_dm_timer {
-+	unsigned long phys_base;
-+	int irq;
-+#ifdef CONFIG_ARCH_OMAP2PLUS
-+	struct clk *iclk, *fclk;
-+#endif
-+	void __iomem *io_base;
-+	unsigned reserved:1;
-+	unsigned enabled:1;
-+	unsigned posted:1;
-+};
- 
- #endif /* __ASM_ARCH_DMTIMER_H */
+ static inline u32 __omap_dm_timer_read(void __iomem *base, u32 reg,
 
