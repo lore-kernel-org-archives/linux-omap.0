@@ -1,176 +1,175 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 06/10] omap2+: Remove gptimer_wakeup for now
-Date: Mon, 20 Jun 2011 02:23:41 -0700
-Message-ID: <20110620092341.357.14183.stgit@kaulin>
+Subject: [PATCH 08/10] omap2+: Use dmtimer macros for clocksource
+Date: Mon, 20 Jun 2011 02:23:45 -0700
+Message-ID: <20110620092345.357.11154.stgit@kaulin>
 References: <20110620091754.357.56441.stgit@kaulin>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:50137 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753057Ab1FTJXm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Jun 2011 05:23:42 -0400
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:54560 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753057Ab1FTJXr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Jun 2011 05:23:47 -0400
 In-Reply-To: <20110620091754.357.56441.stgit@kaulin>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
 Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org
 
-This removes the support for setting the wake-up timer for debugging.
+Use dmtimer macros for clocksource. As with the clockevent,
+this allows us to initialize the rest of dmtimer code later on.
 
-Later on we can reserve gptimer1 for PM code only and have similar
-functionality.
+Note that eventually we will be initializing the timesource
+from init_early so sched_clock will work properly for
+CONFIG_PRINTK_TIME.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 Reviewed-by: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/pm-debug.c |   28 ----------------------------
- arch/arm/mach-omap2/pm.h       |    6 ------
- arch/arm/mach-omap2/pm34xx.c   |    4 ----
- arch/arm/mach-omap2/timer-gp.c |    8 +-------
- 4 files changed, 1 insertions(+), 45 deletions(-)
+ arch/arm/mach-omap2/timer-gp.c   |   64 +++++++++++++++++++++-----------------
+ arch/arm/plat-omap/counter_32k.c |    2 +
+ 2 files changed, 37 insertions(+), 29 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
-index a5a83b3..c56d1d4 100644
---- a/arch/arm/mach-omap2/pm-debug.c
-+++ b/arch/arm/mach-omap2/pm-debug.c
-@@ -31,7 +31,6 @@
- #include <plat/board.h>
- #include "powerdomain.h"
- #include "clockdomain.h"
--#include <plat/dmtimer.h>
- #include <plat/omap-pm.h>
- 
- #include "cm2xxx_3xxx.h"
-@@ -41,8 +40,6 @@
- int omap2_pm_debug;
- u32 enable_off_mode;
- u32 sleep_while_idle;
--u32 wakeup_timer_seconds;
--u32 wakeup_timer_milliseconds;
- 
- #define DUMP_PRM_MOD_REG(mod, reg)    \
- 	regs[reg_count].name = #mod "." #reg; \
-@@ -162,23 +159,6 @@ void omap2_pm_dump(int mode, int resume, unsigned int us)
- 		printk(KERN_INFO "%-20s: 0x%08x\n", regs[i].name, regs[i].val);
- }
- 
--void omap2_pm_wakeup_on_timer(u32 seconds, u32 milliseconds)
--{
--	u32 tick_rate, cycles;
--
--	if (!seconds && !milliseconds)
--		return;
--
--	tick_rate = clk_get_rate(omap_dm_timer_get_fclk(gptimer_wakeup));
--	cycles = tick_rate * seconds + tick_rate * milliseconds / 1000;
--	omap_dm_timer_stop(gptimer_wakeup);
--	omap_dm_timer_set_load_start(gptimer_wakeup, 0, 0xffffffff - cycles);
--
--	pr_info("PM: Resume timer in %u.%03u secs"
--		" (%d ticks at %d ticks/sec.)\n",
--		seconds, milliseconds, cycles, tick_rate);
--}
--
- #ifdef CONFIG_DEBUG_FS
- #include <linux/debugfs.h>
- #include <linux/seq_file.h>
-@@ -576,9 +556,6 @@ static int option_set(void *data, u64 val)
- {
- 	u32 *option = data;
- 
--	if (option == &wakeup_timer_milliseconds && val >= 1000)
--		return -EINVAL;
--
- 	*option = val;
- 
- 	if (option == &enable_off_mode) {
-@@ -641,11 +618,6 @@ static int __init pm_dbg_init(void)
- 				   &enable_off_mode, &pm_dbg_option_fops);
- 	(void) debugfs_create_file("sleep_while_idle", S_IRUGO | S_IWUSR, d,
- 				   &sleep_while_idle, &pm_dbg_option_fops);
--	(void) debugfs_create_file("wakeup_timer_seconds", S_IRUGO | S_IWUSR, d,
--				   &wakeup_timer_seconds, &pm_dbg_option_fops);
--	(void) debugfs_create_file("wakeup_timer_milliseconds",
--			S_IRUGO | S_IWUSR, d, &wakeup_timer_milliseconds,
--			&pm_dbg_option_fops);
- 	pm_dbg_init_done = 1;
- 
- 	return 0;
-diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-index 45bcfce..c3a367e 100644
---- a/arch/arm/mach-omap2/pm.h
-+++ b/arch/arm/mach-omap2/pm.h
-@@ -60,19 +60,13 @@ inline void omap3_pm_init_cpuidle(struct cpuidle_params *cpuidle_board_params)
- extern int omap3_pm_get_suspend_state(struct powerdomain *pwrdm);
- extern int omap3_pm_set_suspend_state(struct powerdomain *pwrdm, int state);
- 
--extern u32 wakeup_timer_seconds;
--extern u32 wakeup_timer_milliseconds;
--extern struct omap_dm_timer *gptimer_wakeup;
--
- #ifdef CONFIG_PM_DEBUG
- extern void omap2_pm_dump(int mode, int resume, unsigned int us);
--extern void omap2_pm_wakeup_on_timer(u32 seconds, u32 milliseconds);
- extern int omap2_pm_debug;
- extern u32 enable_off_mode;
- extern u32 sleep_while_idle;
- #else
- #define omap2_pm_dump(mode, resume, us)		do {} while (0);
--#define omap2_pm_wakeup_on_timer(seconds, milliseconds)	do {} while (0);
- #define omap2_pm_debug				0
- #define enable_off_mode 0
- #define sleep_while_idle 0
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index c155c9d..4cb636a 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -534,10 +534,6 @@ static int omap3_pm_suspend(void)
- 	struct power_state *pwrst;
- 	int state, ret = 0;
- 
--	if (wakeup_timer_seconds || wakeup_timer_milliseconds)
--		omap2_pm_wakeup_on_timer(wakeup_timer_seconds,
--					 wakeup_timer_milliseconds);
--
- 	/* Read current next_pwrsts */
- 	list_for_each_entry(pwrst, &pwrst_list, node)
- 		pwrst->saved_state = pwrdm_read_next_pwrst(pwrst->pwrdm);
 diff --git a/arch/arm/mach-omap2/timer-gp.c b/arch/arm/mach-omap2/timer-gp.c
-index 62c0d5c..578e9df 100644
+index cf2ec85..52e295e 100644
 --- a/arch/arm/mach-omap2/timer-gp.c
 +++ b/arch/arm/mach-omap2/timer-gp.c
-@@ -72,11 +72,9 @@
- /* Clockevent code */
+@@ -262,20 +262,22 @@ static void __init omap2_gp_clockevent_init(int gptimer_id,
+  * sync counter.  See clocksource setup in plat-omap/counter_32k.c
+  */
  
- static struct omap_dm_timer clkev;
--static struct omap_dm_timer *gptimer;
- static struct clock_event_device clockevent_gpt;
- static u8 __initdata gptimer_id = 1;
- static u8 __initdata inited;
--struct omap_dm_timer *gptimer_wakeup;
- 
- static irqreturn_t omap2_gp_timer_interrupt(int irq, void *dev_id)
+-static void __init omap2_gp_clocksource_init(void)
++static void __init omap2_gp_clocksource_init(int unused, const char *dummy)
  {
-@@ -218,10 +216,6 @@ static int __init omap_dm_timer_init_one(struct omap_dm_timer *timer,
- 
- 	timer->reserved = 1;
- 
--	gptimer = omap_dm_timer_request_specific(gptimer_id);
--	BUG_ON(gptimer == NULL);
--	gptimer_wakeup = gptimer;
--
- 	return res;
+ 	omap_init_clocksource_32k();
  }
  
-@@ -235,7 +229,7 @@ static void __init omap2_gp_clockevent_init(int gptimer_id,
- 	res = omap_dm_timer_init_one(&clkev, gptimer_id, fck_source);
- 	BUG_ON(res);
+ #else
++
++static struct omap_dm_timer clksrc;
++
+ /*
+  * clocksource
+  */
+ static DEFINE_CLOCK_DATA(cd);
+-static struct omap_dm_timer *gpt_clocksource;
+ static cycle_t clocksource_read_cycles(struct clocksource *cs)
+ {
+-	return (cycle_t)omap_dm_timer_read_counter(gpt_clocksource);
++	return (cycle_t)__omap_dm_timer_read_counter(clksrc.io_base, 1);
+ }
  
--	omap2_gp_timer_irq.dev_id = (void *)gptimer;
-+	omap2_gp_timer_irq.dev_id = (void *)&clkev;
- 	setup_irq(clkev.irq, &omap2_gp_timer_irq);
+ static struct clocksource clocksource_gpt = {
+@@ -290,43 +292,48 @@ static void notrace dmtimer_update_sched_clock(void)
+ {
+ 	u32 cyc;
  
- 	__omap_dm_timer_int_enable(clkev.io_base, OMAP_TIMER_INT_OVERFLOW);
+-	cyc = omap_dm_timer_read_counter(gpt_clocksource);
++	cyc = __omap_dm_timer_read_counter(clksrc.io_base, 1);
+ 
+ 	update_sched_clock(&cd, cyc, (u32)~0);
+ }
+ 
+-/* Setup free-running counter for clocksource */
+-static void __init omap2_gp_clocksource_init(void)
++unsigned long long notrace sched_clock(void)
+ {
+-	static struct omap_dm_timer *gpt;
+-	u32 tick_rate;
+-	static char err1[] __initdata = KERN_ERR
+-		"%s: failed to request dm-timer\n";
+-	static char err2[] __initdata = KERN_ERR
+-		"%s: can't register clocksource!\n";
++	u32 cyc = 0;
+ 
+-	gpt = omap_dm_timer_request();
+-	if (!gpt)
+-		printk(err1, clocksource_gpt.name);
+-	gpt_clocksource = gpt;
++	if (clksrc.reserved)
++		cyc = __omap_dm_timer_read_counter(clksrc.io_base, 1);
+ 
+-	omap_dm_timer_set_source(gpt, OMAP_TIMER_SRC_SYS_CLK);
+-	tick_rate = clk_get_rate(omap_dm_timer_get_fclk(gpt));
++	return cyc_to_sched_clock(&cd, cyc, (u32)~0);
++}
++
++/* Setup free-running counter for clocksource */
++static void __init omap2_gp_clocksource_init(int gptimer_id,
++						const char *fck_source)
++{
++	int res;
++
++	res = omap_dm_timer_init_one(&clksrc, gptimer_id, fck_source);
++	BUG_ON(res);
+ 
+-	omap_dm_timer_set_load_start(gpt, 1, 0);
++	pr_info("OMAP clocksource: GPTIMER%d at %lu Hz\n",
++		gptimer_id, clksrc.rate);
+ 
+-	init_sched_clock(&cd, dmtimer_update_sched_clock, 32, tick_rate);
++	omap_dm_timer_set_load_start(&clksrc, 1, 0);
++	init_sched_clock(&cd, dmtimer_update_sched_clock, 32, clksrc.rate);
+ 
+-	if (clocksource_register_hz(&clocksource_gpt, tick_rate))
+-		printk(err2, clocksource_gpt.name);
++	if (clocksource_register_hz(&clocksource_gpt, clksrc.rate))
++		pr_err("Could not register clocksource %s\n",
++			clocksource_gpt.name);
+ }
+ #endif
+ 
+-#define OMAP_SYS_TIMER_INIT(name, clkev_nr, clkev_src)			\
++#define OMAP_SYS_TIMER_INIT(name, clkev_nr, clkev_src,			\
++				clksrc_nr, clksrc_src)			\
+ static void __init omap##name##_timer_init(void)			\
+ {									\
+ 	omap2_gp_clockevent_init((clkev_nr), clkev_src);		\
+-	omap2_gp_clocksource_init();					\
++	omap2_gp_clocksource_init((clksrc_nr), clksrc_src);		\
+ }
+ 
+ #define OMAP_SYS_TIMER(name)						\
+@@ -335,14 +342,15 @@ struct sys_timer omap##name##_timer = {					\
+ };
+ 
+ #ifdef CONFIG_ARCH_OMAP2
+-OMAP_SYS_TIMER_INIT(2, 1, OMAP2_CLKEV_SOURCE)
++OMAP_SYS_TIMER_INIT(2, 1, OMAP2_CLKEV_SOURCE, 2, OMAP2_MPU_SOURCE)
+ OMAP_SYS_TIMER(2)
+ #endif
+ 
+ #ifdef CONFIG_ARCH_OMAP3
+-OMAP_SYS_TIMER_INIT(3, 1, OMAP3_CLKEV_SOURCE)
++OMAP_SYS_TIMER_INIT(3, 1, OMAP3_CLKEV_SOURCE, 2, OMAP3_MPU_SOURCE)
+ OMAP_SYS_TIMER(3)
+-OMAP_SYS_TIMER_INIT(3_secure, OMAP3_SECURE_TIMER, OMAP3_CLKEV_SOURCE)
++OMAP_SYS_TIMER_INIT(3_secure, OMAP3_SECURE_TIMER, OMAP3_CLKEV_SOURCE,
++			2, OMAP3_MPU_SOURCE)
+ OMAP_SYS_TIMER(3_secure)
+ #endif
+ 
+@@ -354,7 +362,7 @@ static void __init omap4_timer_init(void)
+ 	BUG_ON(!twd_base);
+ #endif
+ 	omap2_gp_clockevent_init(1, OMAP4_CLKEV_SOURCE);
+-	omap2_gp_clocksource_init();
++	omap2_gp_clocksource_init(2, OMAP4_MPU_SOURCE);
+ }
+ OMAP_SYS_TIMER(4)
+ #endif
+diff --git a/arch/arm/plat-omap/counter_32k.c b/arch/arm/plat-omap/counter_32k.c
+index f7fed60..c13bc3d 100644
+--- a/arch/arm/plat-omap/counter_32k.c
++++ b/arch/arm/plat-omap/counter_32k.c
+@@ -126,7 +126,7 @@ static inline unsigned long long notrace _omap_32k_sched_clock(void)
+ 	return cyc_to_fixed_sched_clock(&cd, cyc, (u32)~0, SC_MULT, SC_SHIFT);
+ }
+ 
+-#ifndef CONFIG_OMAP_MPU_TIMER
++#if defined(CONFIG_OMAP_32K_TIMER) && !defined(CONFIG_OMAP_MPU_TIMER)
+ unsigned long long notrace sched_clock(void)
+ {
+ 	return _omap_32k_sched_clock();
 
