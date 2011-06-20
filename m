@@ -1,16 +1,14 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 03/10] omap: Move dmtimer defines to dmtimer.h
-Date: Mon, 20 Jun 2011 03:17:19 -0700
-Message-ID: <20110620101718.GI23145@atomide.com>
-References: <20110620091754.357.56441.stgit@kaulin>
-	<20110620092334.357.3701.stgit@kaulin>
-	<20110620095603.GC2082@n2100.arm.linux.org.uk>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [RFC PATCH] ARM: smp: Fix the CPU hotplug race with scheduler.
+Date: Mon, 20 Jun 2011 15:49:57 +0530
+Message-ID: <4DFF1ECD.8080305@ti.com>
+References: <1308561839-18407-1-git-send-email-santosh.shilimkar@ti.com>
+	<20110620095053.GA2082@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20110620095603.GC2082@n2100.arm.linux.org.uk>
+In-Reply-To: <20110620095053.GA2082@n2100.arm.linux.org.uk>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -21,26 +19,34 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 Sender: linux-arm-kernel-bounces@lists.infradead.org
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [110620 02:51]:
-> On Mon, Jun 20, 2011 at 02:23:34AM -0700, Tony Lindgren wrote:
-> > These will be needed when dmtimer platform init code gets split
-> > for omap1 and omap2+. These will also be needed for separate
-> > sys_timer init and driver init for the rest of the hardware timers
-> > in the following patches. No functional changes.
-> 
-> If dmtimer.c is the only user of these definitions, then its quite correct
-> for them to be in there.  If not, they should be in dmtimer.h in the local
-> directory - they're private definitions to the .c file and so should not
-> be exported outside of that .c file.
+On 6/20/2011 3:20 PM, Russell King - ARM Linux wrote:
+> On Mon, Jun 20, 2011 at 02:53:59PM +0530, Santosh Shilimkar wrote:
+>> The current ARM CPU hotplug code suffers from couple of race conditions
+>> in CPU online path with scheduler.
+>> The ARM CPU hotplug code doesn't wait for hot-plugged CPU to be marked
+>> active as part of cpu_notify() by the CPU which brought it up before
+>> enabling interrupts.
+>
+> Hmm, why not just move the set_cpu_online() call before notify_cpu_starting()
+> and add the wait after the set_cpu_online() ?
+I think that's what patch is doing. Do you mean, calling hotplug
+notifier chain immediately after CPU marked as online. Something
+like below.
 
-There will be more patches coming to make the rest of the dmtimer
-code be just a regular device driver. These inline functions will
-be used by sys_timer related code, and dmtimer device driver.
+	set_cpu_online(cpu, true);
+	notify_cpu_starting(cpu);
+         while (!cpumask_test_cpu(smp_processor_id(), cpu_active_mask))
+                 cpu_relax();
 
-This way we can make the dmtimer a loadable module and don't need
-to initialize any of that early.
+         /*
+          * Enable local interrupts.
+          */
+                 local_irq_enable();
+         local_fiq_enable();
 
-Tony
+
+Regards
+Santosh
