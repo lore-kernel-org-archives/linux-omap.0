@@ -1,55 +1,53 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH] omap2+: pm: Fix section mismatch in pm_dbg_init()
-Date: Mon, 20 Jun 2011 22:16:55 +0100
-Message-ID: <20110620211655.GN2082@n2100.arm.linux.org.uk>
-References: <1308256260-15597-1-git-send-email-premi@ti.com> <87tybk6wh8.fsf@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH] mfd: omap: fix the crash during omap ehci or ohci driver initialization
+Date: Mon, 20 Jun 2011 15:06:01 -0700
+Message-ID: <87liww6tva.fsf@ti.com>
+References: <1307367739-20110-1-git-send-email-keshava_mgowda@ti.com>
+	<20110620132626.GJ22420@sortiz-mobl>
+	<20110620132851.GJ14262@legolas.emea.dhcp.ti.com>
+	<20110620145941.GQ22420@sortiz-mobl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:35862 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755245Ab1FTVRF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Jun 2011 17:17:05 -0400
-Content-Disposition: inline
-In-Reply-To: <87tybk6wh8.fsf@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20110620145941.GQ22420@sortiz-mobl> (Samuel Ortiz's message of
+	"Mon, 20 Jun 2011 16:59:41 +0200")
+Sender: linux-kernel-owner@vger.kernel.org
+To: Samuel Ortiz <sameo@linux.intel.com>
+Cc: Felipe Balbi <balbi@ti.com>, Keshava Munegowda <keshava_mgowda@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, gadiyar@ti.com, parthab@india.ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Sanjeev Premi <premi@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Mon, Jun 20, 2011 at 02:09:39PM -0700, Kevin Hilman wrote:
-> Sanjeev Premi <premi@ti.com> writes:
-> 
-> > Fix the section mismatch warning:
-> >
-> >   WARNING: vmlinux.o(.text+0x21118): Section mismatch
-> >   in reference from the function pm_dbg_init() to the
-> >   function .init.text:pwrdms_setup()
-> >   The function pm_dbg_init() references
-> >   the function __init pwrdms_setup().
-> >   This is often because pm_dbg_init lacks a __init
-> >   annotation or the annotation of pwrdms_setup is wrong.
-> >
-> > Signed-off-by: Sanjeev Premi <premi@ti.com>
-> > ---
-> >  Applies to current linux-omap master
-> 
-> A previous commit just removed the __init annotation here because of a
-> different conflict with the regset init.   The regset code is now
-> removed in my queue for 3.1, so this patch is fine on top of that
-> series.
-> 
-> Queueing for v3.1 (branch: for_3.1/pm-misc)
+Samuel Ortiz <sameo@linux.intel.com> writes:
 
-Sigh.  Please put some thought into it first and stop applying patches
-without first doing some analysis and test-buliding the thing.  Otherwise
-you're going to be applying patches for ever which add and delete
-these things.
+> Hi Felipe,
+>
+> On Mon, Jun 20, 2011 at 04:28:52PM +0300, Felipe Balbi wrote:
+>> Hi,
+>> 
+>> On Mon, Jun 20, 2011 at 03:26:26PM +0200, Samuel Ortiz wrote:
+>> > On Mon, Jun 06, 2011 at 07:12:19PM +0530, Keshava Munegowda wrote:
+>> > > From: Keshava Munegowda <Keshava_mgowda@ti.com>
+>> > > 
+>> > > Oops are produced during initialization of ehci and ohci
+>> > > drivers. This is because the run time pm apis are used by
+>> > > the driver but the corresponding hwmod structures and
+>> > > initialization is not merged. 
+>> > You mean they're currently checked in a different tree ? Is that a
+>> > public one?
+>> 
+>> it was supposed to go via linux-omap tree but the patches got lost in
+>> the limbo :-(
+> Then shouldn't those patches be the ones to be sent to Linus as a fix for 3.0 ?
 
-If you make pm_dbg_init() __init, then you also have to make
-pm_dbg_regset_init() __init too.  What about the callers to
-pm_dbg_regset_init() - are these marked __init or not?  If not,
-they too will have to be marked __init, etc.
+If they were ready, maybe.  But those patches still need important work
+(and review) and are not "fix" material but need to wait until the next
+merge window.
 
-If that's not possible, then the __init attribute must be deleted
-from pwrdms_setup().
+Basically, the original patch should not have been submitted to mainline
+until the runtime PM support was ready, so the correct short term fix is
+to simply revert.
+
+Also, to echo the question from Dima Zavin:
+
+Why isn't this just a simple revert of the original patch?
+
+Kevin
