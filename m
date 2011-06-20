@@ -1,44 +1,33 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 06/10] omap2+: Remove gptimer_wakeup for now
-Date: Mon, 20 Jun 2011 02:48:46 -0700
-Message-ID: <20110620094846.GG23145@atomide.com>
-References: <20110620091754.357.56441.stgit@kaulin>
- <20110620092341.357.14183.stgit@kaulin>
- <4DFF1558.4020509@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [RFC PATCH] ARM: smp: Fix the CPU hotplug race with scheduler.
+Date: Mon, 20 Jun 2011 10:50:53 +0100
+Message-ID: <20110620095053.GA2082@n2100.arm.linux.org.uk>
+References: <1308561839-18407-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:10616 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753275Ab1FTJsv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Jun 2011 05:48:51 -0400
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <4DFF1558.4020509@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+In-Reply-To: <1308561839-18407-1-git-send-email-santosh.shilimkar@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org
+Cc: Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+List-Id: linux-omap@vger.kernel.org
 
-* Santosh Shilimkar <santosh.shilimkar@ti.com> [110620 02:35]:
-> On 6/20/2011 2:53 PM, Tony Lindgren wrote:
-> >This removes the support for setting the wake-up timer for debugging.
-> >
-> >Later on we can reserve gptimer1 for PM code only and have similar
-> >functionality.
-> >
-> >Signed-off-by: Tony Lindgren<tony@atomide.com>
-> >Reviewed-by: Kevin Hilman<khilman@ti.com>
-> >---
-> 
-> Kevin cleaned up this with a better patch.
-> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg50015.html
-> 
-> May be we can use that patch instead of this.
+On Mon, Jun 20, 2011 at 02:53:59PM +0530, Santosh Shilimkar wrote:
+> The current ARM CPU hotplug code suffers from couple of race conditions
+> in CPU online path with scheduler.
+> The ARM CPU hotplug code doesn't wait for hot-plugged CPU to be marked
+> active as part of cpu_notify() by the CPU which brought it up before
+> enabling interrupts.
 
-The thing is that it's a omap specific debug interface.
-
-I'd rather just get rid of it until there's some generic way
-of doing it. Maybe Kevin can just carry it along in the PM
-branch for now?
-
-Tony
+Hmm, why not just move the set_cpu_online() call before notify_cpu_starting()
+and add the wait after the set_cpu_online() ?
