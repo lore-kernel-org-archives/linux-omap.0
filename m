@@ -1,36 +1,40 @@
-From: Yegor Yefremov <yegor_sub1@visionsystems.de>
-Subject: Re: Trouble with newer kernels on Gumstix Overo boards
-Date: Mon, 20 Jun 2011 16:31:12 +0200
-Message-ID: <4DFF59B0.6040800@visionsystems.de>
-References: <BANLkTimJTBpj30EKf_EucvOf2yCHHbRrkQ@mail.gmail.com>	<ADF30F4D7BDE934D9B632CE7D5C7ACA4047B99E7E7AD@dbde03.ent.ti.com> <BANLkTimfeS1Xin779eg=8cdjqmqcQeB6HA@mail.gmail.com> <4DFF4BCB.1000206@visionsystems.de> <B85A65D85D7EB246BE421B3FB0FBB593024D625B33@dbde02.ent.ti.com>
-Reply-To: yegor_sub1@visionsystems.de
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [linux-pm] calling runtime PM from system PM methods
+Date: Mon, 20 Jun 2011 10:39:32 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1106201028470.2113-100000@iolanthe.rowland.org>
+References: <201106192136.51572.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from hhlx01.vscom.de ([62.145.30.242]:53081 "EHLO
-	mail.visionsystems.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754216Ab1FTOb1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Jun 2011 10:31:27 -0400
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593024D625B33@dbde02.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <201106192136.51572.rjw@sisk.pl>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Magnus Damm <magnus.damm@gmail.com>, LKML <linux-kernel@vger.kernel.org>, Tejun Heo <tj@kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Premi, Sanjeev" <premi@ti.com>
-Cc: Daniel Mack <zonque@gmail.com>, "Gadiyar, Anand" <gadiyar@ti.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
+On Sun, 19 Jun 2011, Rafael J. Wysocki wrote:
 
->> Are you using some extra patches? I have a custom board based 
->> on am3517 SoC and I have much more errors during booting as I 
->> can see from your boot log. I have no problems booting 
->> 2.6.32/37 though. Any idea?
-> [sp] You may want to follow this thread:
->      http://marc.info/?t=129864178000003&r=1&w=2
->
->      It was few months ago, and I am not sure if I tested updated
->      patch(es) working. But, something to verify...
->
+> In the meantime I rethought the __pm_runtime_disable() part of my previous
+> patch and I now think it's not necessary to complicate it any more.  Of course,
+> we need not check if runtime resume is pending in __device_suspend(), because
+> we've done it already in dpm_prepare(), but the barrier part should better be
+> done in there too.
 
-I've checked those patches from Benoit, but they seem to be already applied.
+Does this really make sense?  What use is a barrier in dpm_prepare() if 
+runtime PM is allowed to continue functioning up to the 
+suspend callback?
 
-Best regards,
-Yegor
+As I see it, we never want a suspend or suspend_noirq callback to call 
+pm_runtime_suspend().  However it's okay for the suspend callback to 
+invoke pm_runtime_resume(), as long as this is all done in subsystem 
+code.
+
+And in between the prepare and suspend callbacks, runtime PM should be
+more or less fully functional, right?  For most devices it will never
+be triggered, because it has to run in process context and both
+userspace and pm_wq are frozen.  It may trigger for devices marked as
+IRQ-safe, though.
+
+Maybe the barrier should be moved into __device_suspend().
+
+Alan Stern
