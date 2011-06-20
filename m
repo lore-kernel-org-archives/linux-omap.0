@@ -1,94 +1,70 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] mfd: omap: fix the crash during omap ehci or ohci driver
- initialization
-Date: Tue, 21 Jun 2011 01:13:31 +0300
-Message-ID: <20110620221330.GD28225@legolas.emea.dhcp.ti.com>
-References: <1307367739-20110-1-git-send-email-keshava_mgowda@ti.com>
- <20110620132626.GJ22420@sortiz-mobl>
- <20110620132851.GJ14262@legolas.emea.dhcp.ti.com>
- <20110620145941.GQ22420@sortiz-mobl>
- <87liww6tva.fsf@ti.com>
-Reply-To: balbi@ti.com
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH] omap2+: pm: Fix section mismatch in pm_dbg_init()
+Date: Mon, 20 Jun 2011 15:18:19 -0700
+Message-ID: <878vsw6tas.fsf@ti.com>
+References: <1308256260-15597-1-git-send-email-premi@ti.com>
+	<87tybk6wh8.fsf@ti.com> <20110620211655.GN2082@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="yudcn1FV7Hsu/q59"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:54922 "EHLO
+Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:58693 "EHLO
 	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755167Ab1FTWNi (ORCPT
+	by vger.kernel.org with ESMTP id S1755888Ab1FTWSX (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 20 Jun 2011 18:13:38 -0400
-Content-Disposition: inline
-In-Reply-To: <87liww6tva.fsf@ti.com>
+	Mon, 20 Jun 2011 18:18:23 -0400
+Received: by mail-iw0-f175.google.com with SMTP id 19so4504280iwn.6
+        for <linux-omap@vger.kernel.org>; Mon, 20 Jun 2011 15:18:22 -0700 (PDT)
+In-Reply-To: <20110620211655.GN2082@n2100.arm.linux.org.uk> (Russell King's
+	message of "Mon, 20 Jun 2011 22:16:55 +0100")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Samuel Ortiz <sameo@linux.intel.com>, Felipe Balbi <balbi@ti.com>, Keshava Munegowda <keshava_mgowda@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, gadiyar@ti.com, parthab@india.ti.com
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Sanjeev Premi <premi@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
+Russell King - ARM Linux <linux@arm.linux.org.uk> writes:
 
---yudcn1FV7Hsu/q59
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> On Mon, Jun 20, 2011 at 02:09:39PM -0700, Kevin Hilman wrote:
+>> Sanjeev Premi <premi@ti.com> writes:
+>> 
+>> > Fix the section mismatch warning:
+>> >
+>> >   WARNING: vmlinux.o(.text+0x21118): Section mismatch
+>> >   in reference from the function pm_dbg_init() to the
+>> >   function .init.text:pwrdms_setup()
+>> >   The function pm_dbg_init() references
+>> >   the function __init pwrdms_setup().
+>> >   This is often because pm_dbg_init lacks a __init
+>> >   annotation or the annotation of pwrdms_setup is wrong.
+>> >
+>> > Signed-off-by: Sanjeev Premi <premi@ti.com>
+>> > ---
+>> >  Applies to current linux-omap master
+>> 
+>> A previous commit just removed the __init annotation here because of a
+>> different conflict with the regset init.   The regset code is now
+>> removed in my queue for 3.1, so this patch is fine on top of that
+>> series.
+>> 
+>> Queueing for v3.1 (branch: for_3.1/pm-misc)
+>
+> Sigh.  Please put some thought into it first and stop applying patches
+> without first doing some analysis and test-buliding the thing.  Otherwise
+> you're going to be applying patches for ever which add and delete
+> these things.
+>
+> If you make pm_dbg_init() __init, then you also have to make
+> pm_dbg_regset_init() __init too.  What about the callers to
+> pm_dbg_regset_init() - are these marked __init or not?  If not,
+> they too will have to be marked __init, etc.
+>
+> If that's not possible, then the __init attribute must be deleted
+> from pwrdms_setup().
 
-Hi,
+As I mentioned above, the regset code (pm_dbg_regset_*) is being removed
+in a pending series I already have queued.
 
-On Mon, Jun 20, 2011 at 03:06:01PM -0700, Kevin Hilman wrote:
-> Samuel Ortiz <sameo@linux.intel.com> writes:
->=20
-> > Hi Felipe,
-> >
-> > On Mon, Jun 20, 2011 at 04:28:52PM +0300, Felipe Balbi wrote:
-> >> Hi,
-> >>=20
-> >> On Mon, Jun 20, 2011 at 03:26:26PM +0200, Samuel Ortiz wrote:
-> >> > On Mon, Jun 06, 2011 at 07:12:19PM +0530, Keshava Munegowda wrote:
-> >> > > From: Keshava Munegowda <Keshava_mgowda@ti.com>
-> >> > >=20
-> >> > > Oops are produced during initialization of ehci and ohci
-> >> > > drivers. This is because the run time pm apis are used by
-> >> > > the driver but the corresponding hwmod structures and
-> >> > > initialization is not merged.=20
-> >> > You mean they're currently checked in a different tree ? Is that a
-> >> > public one?
-> >>=20
-> >> it was supposed to go via linux-omap tree but the patches got lost in
-> >> the limbo :-(
-> > Then shouldn't those patches be the ones to be sent to Linus as a fix f=
-or 3.0 ?
->=20
-> If they were ready, maybe.  But those patches still need important work
-> (and review) and are not "fix" material but need to wait until the next
-> merge window.
->=20
-> Basically, the original patch should not have been submitted to mainline
-> until the runtime PM support was ready, so the correct short term fix is
-> to simply revert.
->=20
-> Also, to echo the question from Dima Zavin:
->=20
-> Why isn't this just a simple revert of the original patch?
+Thus, adding back the __init here is fine.  
 
-good question. git revert 7e6502d577106fb5b202bbaac64c5f1b065e6daa
-is much better.
+It was thought about and test built.
 
---=20
-balbi
-
---yudcn1FV7Hsu/q59
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQEcBAEBAgAGBQJN/8YKAAoJEAv8Txj19kN1Re4H/iXjDe9MOuWe8Rm1eWROEVqC
-C4fb5nrjUBO5P8F/b+TobhONMkUC1HARNZRbKoq03s8yNSP2Qohz9d/cqclZaqjn
-YMwfFcnM5KMbudJhzSxfqKsRNQcNzdrDL9Q/2pC0DoTDnpXXhj/BsIu8JKGMEtsZ
-47ct9mz+uX033Noq42lMHItM1m8X0/R0WcGfooOCjZgw7AXKnHEtxuEBrjBOm0rA
-aZsSNODdaa7jRCRUkGeYcrnEgREhppLwuA54SWDM6yBUp37r0ZOJzo2070j1FLWk
-pBtsMxoEvpR3KkWuNrwzp2X/jzoUxltaLh8njMkEMDgNxiG4d0RhVMPseMwm/nE=
-=lMVi
------END PGP SIGNATURE-----
-
---yudcn1FV7Hsu/q59--
+Kevin
