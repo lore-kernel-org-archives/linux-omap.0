@@ -1,41 +1,68 @@
-From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: RE: [PATCH v2 00/18] GPIO: OMAP: Driver Cleanup and Fixes
-Date: Tue, 21 Jun 2011 01:30:25 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB037B9ACD84@dbde02.ent.ti.com>
-References: <1308058321-12875-1-git-send-email-tarun.kanti@ti.com>
- <87ei2trbuq.fsf@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH] omap2+: pm: Fix section mismatch in pm_dbg_init()
+Date: Mon, 20 Jun 2011 14:09:39 -0700
+Message-ID: <87tybk6wh8.fsf@ti.com>
+References: <1308256260-15597-1-git-send-email-premi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:42570 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751942Ab1FTUAq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Jun 2011 16:00:46 -0400
-In-Reply-To: <87ei2trbuq.fsf@ti.com>
-Content-Language: en-US
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:57892 "EHLO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752454Ab1FTVJo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 20 Jun 2011 17:09:44 -0400
+Received: by mail-pv0-f170.google.com with SMTP id 10so8421818pvh.1
+        for <linux-omap@vger.kernel.org>; Mon, 20 Jun 2011 14:09:43 -0700 (PDT)
+In-Reply-To: <1308256260-15597-1-git-send-email-premi@ti.com> (Sanjeev Premi's
+	message of "Fri, 17 Jun 2011 02:01:00 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hilman, Kevin" <khilman@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Sanjeev Premi <premi@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-[...]
-> 
-> A quick test of this series on 3430/n900 shows that it prevents PER
-> retention.  I see CM_FCLKEN_PER=0000c000 (debounce clock for GPIO banks
-> 3 & 4 are still enabled.)
-> 
-> Can you retest with debounce enabled on one of the GPIOs for one of your
-> platforms?
-With one of the module debounce clock enabled it doesn't go to retention.
-Later I disabled all modules debounce clock. It doesn't to retention either.
-So this is same as your observation. I am surprised what has happened now.
-The only thing I could recollect is few patches to solve LDO and
-OMAP1 issues while testing before posting. I will investigate further.
---
-Tarun
-> 
-> Kevin
-> 
-> 
+Sanjeev Premi <premi@ti.com> writes:
 
+> Fix the section mismatch warning:
+>
+>   WARNING: vmlinux.o(.text+0x21118): Section mismatch
+>   in reference from the function pm_dbg_init() to the
+>   function .init.text:pwrdms_setup()
+>   The function pm_dbg_init() references
+>   the function __init pwrdms_setup().
+>   This is often because pm_dbg_init lacks a __init
+>   annotation or the annotation of pwrdms_setup is wrong.
+>
+> Signed-off-by: Sanjeev Premi <premi@ti.com>
+> ---
+>  Applies to current linux-omap master
+
+A previous commit just removed the __init annotation here because of a
+different conflict with the regset init.   The regset code is now
+removed in my queue for 3.1, so this patch is fine on top of that
+series.
+
+Queueing for v3.1 (branch: for_3.1/pm-misc)
+
+Thanks,
+
+Kevin
+
+
+
+>
+>  arch/arm/mach-omap2/pm-debug.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
+> index e01da45..ef33273 100644
+> --- a/arch/arm/mach-omap2/pm-debug.c
+> +++ b/arch/arm/mach-omap2/pm-debug.c
+> @@ -595,7 +595,7 @@ static int option_set(void *data, u64 val)
+>  
+>  DEFINE_SIMPLE_ATTRIBUTE(pm_dbg_option_fops, option_get, option_set, "%llu\n");
+>  
+> -static int pm_dbg_init(void)
+> +static int __init pm_dbg_init(void)
+>  {
+>  	int i;
+>  	struct dentry *d;
